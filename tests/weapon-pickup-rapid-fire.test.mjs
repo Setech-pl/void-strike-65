@@ -360,7 +360,7 @@ test("the main frame has one guarded late pickup publication", () => {
   assert.equal((source.match(/jsr render_weapon_pickup_overlay/g) ?? []).length, 0);
   assert.equal((source.match(/jmp render_weapon_pickup_overlay/g) ?? []).length, 1);
   assert.match(source,
-    /main_loop:\n\s+jsr wait_gameplay_frame[\s\S]+wait_gameplay_frame:\n\s+lda ENTITY_STATE\+WEAPON_PICKUP_SLOT\n\s+beq wait_frame\n\s+cmp #WEAPON_PICKUP_STATE_ACTIVE\n\s+beq @visible\n\s+ldx #\$50[\s\S]+@visible:\n\s+lda ENTITY_Y\+WEAPON_PICKUP_SLOT\n\s+clc\n\s+adc #WEAPON_PICKUP_HEIGHT_SCANLINES\n\s+lsr[\s\S]+wait_frame:\n\s+ldx #\$70[\s\S]+cpx VCOUNT/);
+    /main_loop:\n\s+jsr wait_gameplay_frame[\s\S]+wait_gameplay_frame:\n\s+lda ENTITY_STATE\+WEAPON_PICKUP_SLOT\n\s+beq wait_frame\n\s+cmp #WEAPON_PICKUP_STATE_ACTIVE\n\s+beq @visible\n\s+jsr pickup_pending_fence\n\s+bne wait_frame_at_line[\s\S]+@visible:\n\s+lda ENTITY_Y\+WEAPON_PICKUP_SLOT\n\s+lsr[\s\S]+adc #\(WEAPON_PICKUP_HEIGHT_SCANLINES\/2\)[\s\S]+wait_frame:\n\s+ldx #\$70[\s\S]+cpx VCOUNT/);
   assert.match(source,
     /render_weapon_pickup_overlay:[\s\S]+lda ENTITY_DRAWN_MASK\+WEAPON_PICKUP_SLOT[\s\S]+beq :\+[\s\S]+rts/);
   assert.match(source,

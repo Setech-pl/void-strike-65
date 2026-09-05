@@ -9,9 +9,9 @@
     "levelWorldRows": 3712,
     "phaseCount": 8,
     "initialContentBytes": 12900,
-    "linkedRuntimeBytes": 17203,
-    "simultaneousResidencyBytes": 18833,
-    "safeResidencyBytes": 3354,
+    "linkedRuntimeBytes": 17204,
+    "simultaneousResidencyBytes": 18834,
+    "safeResidencyBytes": 3353,
     "glue": {
       "stagingAddress": 21089,
       "holdingAddress": 32534,
@@ -38,7 +38,7 @@
         "packedLength": 921,
         "rawLength": 921,
         "finalDestination": 35968,
-        "crc16": 2479,
+        "crc16": 59670,
         "type": 0,
         "stagingId": 2,
         "destination": 33024
@@ -100,9 +100,9 @@
       "baselineReserveBytes": 1097,
       "reserveBytes": 73,
       "recoveredReserveBytes": 1097,
-      "residentSuffixGrossSavingsBytes": 1078,
-      "relocatedColdInitBytes": 2387,
-      "relocatedColdInitPackedCostBytes": 1892,
+      "residentSuffixGrossSavingsBytes": 1080,
+      "relocatedColdInitBytes": 2388,
+      "relocatedColdInitPackedCostBytes": 1894,
       "reserveAddress": 24499,
       "reserveEndAddress": 24571,
       "sourceOwned": true,
@@ -139,7 +139,7 @@
     "maximumExtensionChunkBytes": 6400,
     "maximumChunkCount": 8,
     "maximumNewSimultaneousResidencyBytes": 6841,
-    "remainingSafeResidencyBytes": 4951,
+    "remainingSafeResidencyBytes": 4950,
     "bootOnlyStaging": {
       "address": 33024,
       "bytes": 6484
@@ -156,12 +156,12 @@
     "manifest": {
       "address": 9690,
       "bytes": 78,
-      "crc16": 43380,
+      "crc16": 38874,
       "parsed": {
         "version": 1,
         "totalOccupiedSectors": 161,
         "manifestBytes": 78,
-        "crc16": 43380,
+        "crc16": 38874,
         "records": [
           {
             "startSector": 102,
@@ -180,7 +180,7 @@
             "packedLength": 921,
             "rawLength": 921,
             "finalDestination": 35968,
-            "crc16": 2479,
+            "crc16": 59670,
             "type": 0,
             "stagingId": 2,
             "destination": 33024
@@ -219,10 +219,10 @@
     "prefixEndAddress": 8640,
     "suffixAddress": 8641,
     "suffixRawBytes": 7743,
-    "suffixPackedBytes": 6665,
+    "suffixPackedBytes": 6663,
     "packedSourceAddress": 9832,
     "stagingAddress": 33024,
-    "stagedEndAddress": 39688,
+    "stagedEndAddress": 39686,
     "compression": "LZ-10/5"
   },
   "broadsideRuntime": {
@@ -280,7 +280,7 @@
       "startSector": 147,
       "sectors": 8,
       "transportBytes": 1024,
-      "crc16": 2479
+      "crc16": 59670
     }
   },
   "starfieldRuntime": {
@@ -289,7 +289,7 @@
     "bytes": 2252,
     "reservedBytes": 2278,
     "packedBytes": 1793,
-    "packedSourceAddress": 16497,
+    "packedSourceAddress": 16495,
     "stagingAddress": 30736,
     "stagingBytes": 1798,
     "compression": "LZ-10/5"
@@ -297,7 +297,7 @@
   "a2Kernel": {
     "loadAddress": 27136,
     "runAddress": 36864,
-    "sourceAddress": 18290,
+    "sourceAddress": 18288,
     "stagingAddress": 32534,
     "bytes": 255,
     "reservedBytes": 256,
@@ -316,27 +316,27 @@
     "effectActiveLimit": 5,
     "codeLoadAddress": 27392,
     "codeRunAddress": 37120,
-    "codeBytes": 3112,
+    "codeBytes": 3113,
     "sharedRuntimeBytes": 224,
-    "featureCodeBytes": 2888,
+    "featureCodeBytes": 2889,
     "codeReservedBytes": 3840,
     "codeBudget": {
       "baselineBytes": 564,
       "approvedDeltaBytes": 512,
-      "actualDeltaBytes": 2324,
+      "actualDeltaBytes": 2325,
       "limitBytes": 1076,
-      "remainingBytes": -1812,
+      "remainingBytes": -1813,
       "destructibleDebris": {
         "baselineBytes": 714,
         "approvedDeltaBytes": 768,
-        "actualBytes": 2888,
-        "actualDeltaBytes": 2174,
+        "actualBytes": 2889,
+        "actualDeltaBytes": 2175,
         "limitBytes": 1482
       },
       "weaponPickupRapidFire": {
         "baselineBytes": 849,
-        "actualBytes": 2888,
-        "actualDeltaBytes": 2039
+        "actualBytes": 2889,
+        "actualDeltaBytes": 2040
       },
       "weaponPickupSpreadShot": {
         "baselineBytes": 1444,
@@ -352,26 +352,26 @@
       },
       "frontendH31": {
         "baselineBytes": 1869,
-        "actualBytes": 2888,
-        "actualDeltaBytes": 1019,
+        "actualBytes": 2889,
+        "actualDeltaBytes": 1020,
         "hardDeltaBytes": 1280
       }
     },
-    "packedBytes": 2543,
-    "packedSourceAddress": 18545,
+    "packedBytes": 2545,
+    "packedSourceAddress": 18543,
     "initialPackedSourcesEndExclusive": 21088,
     "initialPackedSourcesLastAddress": 21087,
     "stagedSourceAddress": 21323,
-    "stagedEndAddress": 23865,
-    "stagedEndExclusive": 23866,
+    "stagedEndAddress": 23867,
+    "stagedEndExclusive": 23868,
     "sourceToStagingMarginBytes": 235,
-    "stagingToBroadsideMarginBytes": 214,
+    "stagingToBroadsideMarginBytes": 212,
     "stagingLifecycle": {
       "starfieldDestinationAddress": 21802,
       "starfieldDestinationEndExclusive": 24054,
       "starfieldDestinationOverlapStartAddress": 21802,
-      "starfieldDestinationOverlapEndExclusive": 23866,
-      "starfieldDestinationOverlapBytes": 2064,
+      "starfieldDestinationOverlapEndExclusive": 23868,
+      "starfieldDestinationOverlapBytes": 2066,
       "stagingReleasedBeforeStarfieldExpansion": true
     },
     "compression": "LZ-10/5",
@@ -410,7 +410,7 @@
       "startSector": 147,
       "sectors": 8,
       "transportBytes": 1024,
-      "crc16": 2479,
+      "crc16": 59670,
       "stagingAddress": 35968,
       "finalRuntimeAddress": 34816
     },
@@ -529,10 +529,10 @@
   "runtimeCodeBudget": {
     "measurement": "linked CODE + STARFIELD + BROADSIDE + A2_KERNEL + ENTITY_CODE bytes",
     "baselineBytes": 13697,
-    "actualBytes": 17203,
-    "actualDeltaBytes": 3506,
+    "actualBytes": 17204,
+    "actualDeltaBytes": 3507,
     "approvedDeltaBytes": 768,
-    "remainingBytes": -2738,
+    "remainingBytes": -2739,
     "enemyBreakupEffects": {
       "baselineBytes": 14184,
       "actualBytes": 14316,
@@ -548,8 +548,8 @@
     },
     "weaponPickupRapidFire": {
       "baselineBytes": 14316,
-      "actualBytes": 17203,
-      "actualDeltaBytes": 2887
+      "actualBytes": 17204,
+      "actualDeltaBytes": 2888
     },
     "weaponPickupSpreadShot": {
       "baselineBytes": 14948,
@@ -566,8 +566,8 @@
     },
     "frontendH31": {
       "baselineBytes": 15346,
-      "actualBytes": 17203,
-      "actualDeltaBytes": 1857,
+      "actualBytes": 17204,
+      "actualDeltaBytes": 1858,
       "hardDeltaBytes": 1280
     }
   },
@@ -1111,7 +1111,7 @@
         "entity_damage_applied": 93,
         "entity_despawn_debris": 56,
         "entity_effects_erase": 438,
-        "entity_effects_render": 1939,
+        "entity_effects_render": 1937,
         "entity_effects_update": 2258,
         "entity_player_fighter_projectile_hits_debris": 47,
         "entity_player_fighter_projectile_target": 696,
@@ -1131,7 +1131,7 @@
         "render_far_star_overlays": 2857,
         "render_far_star_overlays_if_needed": 2872,
         "render_fighter_projectile_overlays": 2462,
-        "render_interactive_entity_overlays": 1222,
+        "render_interactive_entity_overlays": 1220,
         "render_shared_fighter_explosions": 1139,
         "render_transient_effect_overlays": 815,
         "resolve_allied_sector_row": 144,
@@ -1156,7 +1156,7 @@
         "update_sound": 143,
         "update_starfield": 7990,
         "update_transient_effects": 764,
-        "update_weapon_pickup_active": 279,
+        "update_weapon_pickup_active": 268,
         "visible_hull_sector_row": 76,
         "weapon_pickup_collide_player": 48,
         "weapon_pickup_record_qualified_kill": 112
@@ -22992,12 +22992,12 @@
       },
       {
         "name": "ENTITY_CODE",
-        "bytes": 3112,
+        "bytes": 3113,
         "featureStartBytes": 714,
-        "featureDeltaBytes": 2398,
+        "featureDeltaBytes": 2399,
         "acceptedMaximumBytes": 1482,
         "reservedMaximumBytes": 3840,
-        "freeReservedBytes": 728
+        "freeReservedBytes": 727
       },
       {
         "name": "PICKUP_CODE",
@@ -23221,17 +23221,17 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 20608,
-        "sha256": "681414225cd3debb39b03f4be40f7b07a0143d79858c7ed5394888ca1d5dae48"
+        "sha256": "63ed6b04923ce23ce4bac15cc4d443e05fe3f7082895d8ba1071a0fb5f2865b4"
       },
       "void-strike-65.xex": {
         "path": "dist/void-strike-65.xex",
         "bytes": 21399,
-        "sha256": "6ea87181edc8f78376f221be830d44dd0bb3c6601fb2b6e36da5dbe473a07194"
+        "sha256": "702739eff00ead9b9d68fbf74fef712683a056fe964999a43d44cecf315dd315"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "95ec01b9456429fb9b508b990dba6b02cf6346f3313774c9e57275a69482758c"
+        "sha256": "efb6a570bd8d951a9f2926f949c2904fe6974085f8f2f03cb5376ac3bcb9e569"
       }
     },
     "reportPath": null,
@@ -23240,15 +23240,15 @@
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 20608,
-      "sha256": "681414225cd3debb39b03f4be40f7b07a0143d79858c7ed5394888ca1d5dae48"
+      "sha256": "63ed6b04923ce23ce4bac15cc4d443e05fe3f7082895d8ba1071a0fb5f2865b4"
     },
     "void-strike-65.xex": {
       "bytes": 21399,
-      "sha256": "6ea87181edc8f78376f221be830d44dd0bb3c6601fb2b6e36da5dbe473a07194"
+      "sha256": "702739eff00ead9b9d68fbf74fef712683a056fe964999a43d44cecf315dd315"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "95ec01b9456429fb9b508b990dba6b02cf6346f3313774c9e57275a69482758c"
+      "sha256": "efb6a570bd8d951a9f2926f949c2904fe6974085f8f2f03cb5376ac3bcb9e569"
     }
   }
 }

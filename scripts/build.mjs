@@ -174,7 +174,7 @@ const directorGuardAddress = 0x9ffa;
 // Frontend branding and the PMG-latch clear remain inside the existing
 // 101-sector initial envelope; extension chunk topology remains frozen.
 const expectedInitialContentBytes = 12900;
-const expectedLinkedRuntimeBytes = 17203;
+const expectedLinkedRuntimeBytes = 17204;
 const expectedDirectorRawBytes = 645;
 const expectedDirectorPackedBytes = 585;
 const expectedGlueRawBytes = 234;
@@ -986,8 +986,10 @@ async function build() {
       phaseCount: 8,
       initialContentBytes: expectedInitialContentBytes,
       linkedRuntimeBytes: expectedLinkedRuntimeBytes,
-      simultaneousResidencyBytes: 18800 + capitalPlayerCollisionModule.raw.length,
-      safeResidencyBytes: 3387 - capitalPlayerCollisionModule.raw.length,
+      simultaneousResidencyBytes: 18800 + capitalPlayerCollisionModule.raw.length +
+        (expectedLinkedRuntimeBytes - 17203),
+      safeResidencyBytes: 3387 - capitalPlayerCollisionModule.raw.length -
+        (expectedLinkedRuntimeBytes - 17203),
       glue: {
         stagingAddress: glueStagingAddress,
         holdingAddress: 0x7f16,

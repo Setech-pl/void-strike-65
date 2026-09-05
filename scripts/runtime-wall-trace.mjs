@@ -10,6 +10,7 @@ import { runtimeArtifactSet, runtimeArtifactNames } from "./runtime-evidence.mjs
 import { canonicalPlayfield } from "./playfield.mjs";
 import { readStartMenuRuntimeState } from "./preview.mjs";
 import { atari800ArtifactLaunches, validateAtari800Launch } from "./artifact-launch.mjs";
+import { focusedPalAcceptance } from "./focused-pal-acceptance.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const rootDirectory = path.resolve(scriptDirectory, "..");
@@ -250,6 +251,12 @@ const memoryIntegritySessions = ["XEX", "ATR"].flatMap((medium) =>
     kind: "memory-integrity-160s",
     pauseTest: policy === "hunt",
   })));
+
+const pickupFenceSessions = [["XEX", 2], ["ATR", 2], ["XEX", 1]].map(([medium, difficulty]) => ({
+  id: `pickup-fence-${medium.toLowerCase()}-${difficulty}-hunt`,
+  medium, difficulty, policy: "hunt", fireDelay: 4, frames: 8_000,
+  kind: "pickup-fence-cadence", pauseTest: true,
+}));
 
 const engineDiagnosticSessions = ["XEX", "ATR"].flatMap((medium) =>
   [0xa5, 0x5a].flatMap((coldFill) => [0, 1, 2].flatMap((difficulty) =>
@@ -1738,6 +1745,7 @@ function main() {
   const smokeFramesArgument = argumentValue("smoke-frames");
   const smokeFrames = smokeFramesArgument === undefined ? null : Number(smokeFramesArgument);
   const onlySession = argumentValue("only-session");
+  const pickupFenceTrace = process.argv.includes("--pickup-fence-trace");
   invariant(smokeFrames === null || Number.isInteger(smokeFrames) && smokeFrames > 0,
     "--smoke-frames must be a positive integer");
   if (shouldPrepare) prepareAtari800(sourceDirectory);
@@ -1875,7 +1883,8 @@ function main() {
       ...weaponPickupTraversalSessions, ...weaponPickupContactSessions,
       ...capitalMuzzleSessions, ...provisionalCapitalSessions, ...capitalContactSessions,
       ...memoryIntegritySessions, ...lowerPlayfieldSessions]
-      .concat(engineDiagnosticSessions, engineRestartSessions)
+      .concat(engineDiagnosticSessions, engineRestartSessions,
+        onlySession?.startsWith("pickup-fence-") ? pickupFenceSessions : [])
     : [{ ...baselineSessions[0], id: "observer-smoke", kind: "observer-smoke", frames: smokeFrames }];
   if (onlySession !== undefined) {
     sessionsToRun = sessionsToRun.filter(({ id }) => id === onlySession);
@@ -1950,6 +1959,12 @@ function main() {
       DFTRACE_POLICY: session.policy,
       DFTRACE_SESSION: session.id,
       DFTRACE_OUTPUT: outputPath,
+      ...(pickupFenceTrace ? {
+        DFTRACE_FENCE_OUTPUT: path.join(buildDirectory, `${session.id}-fence.jsonl`),
+        DFTRACE_FENCE_WAIT: String(labels.get("wait_gameplay_frame")),
+        DFTRACE_FENCE_LOOP: String(labels.get("wait_frame_at_line")),
+        DFTRACE_FENCE_SCREENSHOTS: "1",
+      } : {}),
 	  ...(session.coldFill === undefined ? {} : { DFTRACE_RAM_FILL: String(session.coldFill) }),
 	  ...(session.frontendDelay === undefined ? {} : {
 	    DFTRACE_FRONTEND_DELAY: String(session.frontendDelay),
@@ -2542,14 +2557,17 @@ function main() {
   }
   if (onlySession !== undefined) {
     const focusedReportPath = path.join(buildDirectory, `${onlySession}-focused-run.json`);
+    const acceptance = focusedPalAcceptance(allRows);
     fs.writeFileSync(focusedReportPath, `${JSON.stringify({
       emulator: "Atari800 7.1.2 PAL/XL",
       guest_instrumentation_bytes: 0,
       artifact_sha256: runtimeArtifacts,
       sessions: summaries,
-      passed: true,
+      acceptance,
+      passed: acceptance.passed,
     }, null, 2)}\n`);
     console.log(`Focused report: ${path.relative(rootDirectory, focusedReportPath)}`);
+    invariant(acceptance.passed, `Focused PAL acceptance failed: ${JSON.stringify(acceptance)}`);
     return;
   }
   if (broadsideTransientOnly) {

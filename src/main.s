@@ -2715,24 +2715,24 @@ copy_pause_screen:
 ; -----------------------------------------------------------------------------
 ; Frame and initialization
 
-; A pending or visible capsule starts its one update immediately after ANTIC
-; has scanned the preceding footprint's bottom edge. This preserves the old
-; backed footprint for the complete current raster, then leaves almost one PAL
-; frame for erase/update/ring rotation and the sole late redraw before ANTIC
-; reaches the new position. The moving wait phase still admits exactly one
-; simulation update per host frame and changes neither scroll nor pickup rate.
+; Move the fence earlier while PENDING is invisible, at most 8 VCOUNT units
+; (16 scanlines / 1824 cycles) per frame. The 32568-cycle wall gate leaves
+; 3000 cycles, so this shortened interval still has 1176 cycles of margin.
+; The existing PENDING timer yields $6C,$64,...,$14 over its first 12 waits,
+; then remains at $14 through the base delay and every Director retry.
+; ACTIVE still waits beyond the previous footprint and draws only at the
+; existing late fence. No visible geometry, movement or glyph phase changes.
 wait_gameplay_frame:
     lda ENTITY_STATE+WEAPON_PICKUP_SLOT
     beq wait_frame
     cmp #WEAPON_PICKUP_STATE_ACTIVE
     beq @visible
-    ldx #$50                    ; hidden PENDING keeps the transition within one PAL frame
+    jsr pickup_pending_fence
     bne wait_frame_at_line
 @visible:
     lda ENTITY_Y+WEAPON_PICKUP_SLOT
-    clc
-    adc #WEAPON_PICKUP_HEIGHT_SCANLINES
-    lsr                         ; VCOUNT advances once per two PAL scanlines
+    lsr                         ; pickup Y advances in even scanline steps
+    adc #(WEAPON_PICKUP_HEIGHT_SCANLINES/2)
     tax
     bne wait_frame_at_line
 
@@ -2756,6 +2756,7 @@ wait_frame_start:
     lda VCOUNT
     beq @leave_zero
     rts
+
 
 ; The loader uses ANTIC F for lines 0-163 and ANTIC E for the studio footer.
 ; PMG remains disabled. Two DLIs switch colours at exact scanline boundaries.
@@ -2798,10 +2799,10 @@ show_loader:
     rts
 
 set_loader_title_palette:
-    lda #LOADER_TITLE_COLPF1
-    sta COLPF1
     lda #LOADER_TITLE_COLPF2
     sta COLPF2
+    lda #LOADER_TITLE_COLPF1
+    sta COLPF1
     lda #LOADER_TITLE_COLBK
     sta COLBK
     rts
@@ -9311,20 +9312,11 @@ weapon_pickup_rapid_tick:
 @expired:
     jmp weapon_booster_release
 
-weapon_pickup_pending_tick:
-    dec ENTITY_TIMER+WEAPON_PICKUP_SLOT
-    bne weapon_pickup_collision_done
 integration_pickup_reveal_body:
-    ; Preserve the fixed resident layout while collapsing the former
-    ; kill-relative safe range to the one canonical top-entry coordinate.
-    lda ENTITY_Y+WEAPON_PICKUP_SLOT
-    cmp #WEAPON_PICKUP_ACTIVATION_TOP
-    beq :+
+    ; Activation has one canonical Y. Retain the original carry=1 contract;
+    ; compressible padding below preserves every following ENTITY_CODE ABI.
     lda #WEAPON_PICKUP_ACTIVATION_TOP
     cmp #(WEAPON_PICKUP_ACTIVATION_TOP-1)
-    bne :+
-    lda #$00                    ; unreachable packed-layout sentinel
-:
     sta ENTITY_Y+WEAPON_PICKUP_SLOT
     lda #$00
     sta ENTITY_TIMER+WEAPON_PICKUP_SLOT
@@ -9333,6 +9325,22 @@ integration_pickup_reveal_body:
     ora ENTITY_ACTIVE_MASK
     sta ENTITY_ACTIVE_MASK
     inc ENTITY_ACTIVE_COUNT
+    rts
+; Called only for the invisible PENDING state. ENTITY_CODE is published before
+; gameplay and remains resident. The helper exactly reuses the retired
+; 16-byte pickup lifecycle window and writes no lifecycle state.
+pickup_pending_fence:
+    lda ENTITY_TIMER+WEAPON_PICKUP_SLOT
+    ldx #$14
+    cmp #21
+    bcc @done
+    asl
+    asl
+    asl
+    adc #$74                    ; timer <32 leaves carry clear after three ASLs;
+                                ; (timer * 8 + $74) maps 31..21 to $6C..$1C
+    tax
+@done:
     rts
 
 ; Called only after the authoritative score path has accepted a lethal PlayerFighter
@@ -10068,7 +10076,7 @@ compose_weapon_pickup_phase:
     adc weapon_pickup_phase_offset_lo,x
     sta src_ptr
     lda weapon_pickup_type_base_hi,y
-    adc weapon_pickup_phase_offset_hi,x
+    adc #$00                    ; low-byte ADC carry is the complete high offset
     sta src_ptr+1
     ldy #(WEAPON_PICKUP_PHASE_GLYPH_COUNT*8-1)
 @copy:
@@ -10078,14 +10086,15 @@ compose_weapon_pickup_phase:
     bpl @copy
     rts
 
+weapon_pickup_phase_offset_lo:
+    .byte <$000,<$030,<$060,<$090,<$0C0,<$0F0,<$120,<$150
 weapon_pickup_type_base_lo:
     .byte <(WEAPON_PICKUP_PHASE_BANK+$000),<(WEAPON_PICKUP_PHASE_BANK+$180),<(WEAPON_PICKUP_PHASE_BANK+$300)
 weapon_pickup_type_base_hi:
     .byte >(WEAPON_PICKUP_PHASE_BANK+$000),>(WEAPON_PICKUP_PHASE_BANK+$180),>(WEAPON_PICKUP_PHASE_BANK+$300)
-weapon_pickup_phase_offset_lo:
-    .byte <$000,<$030,<$060,<$090,<$0C0,<$0F0,<$120,<$150
-weapon_pickup_phase_offset_hi:
-    .byte >$000,>$030,>$060,>$090,>$0C0,>$0F0,>$120,>$150
+    ; Removing the redundant high-offset table and its absolute-X ADC saves
+    ; nine bytes. Retain the frozen PICKUP_CODE end and later entry points.
+    .byte $00,$00,$00,$00,$00,$00,$EA,$EA,$EA
 weapon_pickup_render_ids:
     .byte WEAPON_PICKUP_GLYPH_BASE,WEAPON_PICKUP_GLYPH_BASE|$80,WEAPON_PICKUP_GLYPH_BASE
 
@@ -10669,6 +10678,9 @@ allied_engine_overlay_masks:
     EMIT_ALLIED_ENGINE_OVERLAY_MASKS
 enemy_engine_overlay_masks:
     EMIT_ENEMY_ENGINE_OVERLAY_MASKS
+    ; One unreachable byte keeps the reviewed 101-sector initial transport
+    ; boundary after the timing code is redistributed between resident blocks.
+    .byte $00
 
 .segment "A2_KERNEL"
 integration_pickup_pending_tick:

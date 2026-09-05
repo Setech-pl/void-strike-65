@@ -3070,6 +3070,128 @@ static void dftrace_init(void)
 	dftrace_initialised = 1;
 }
 
+/* Optional instruction-boundary fence audit. Host-only; no guest writes.
+ * VBI counts physical scanline-248 boundaries, even with OS VBI disabled. */
+static FILE *dffence_file;
+static unsigned dffence_wait, dffence_loop, dffence_leave, dffence_return;
+static unsigned dffence_host = 0xffffffffu, dffence_vbi = 0xffffffffu;
+static unsigned dffence_state = 0xffffffffu, dffence_previous_pc;
+static unsigned dffence_iterations, dffence_leave_iterations, dffence_selected;
+static unsigned dffence_old_top, dffence_old_bottom;
+static int dffence_waiting;
+static int dffence_drawing;
+static unsigned dffence_draw_depth;
+static UBYTE dffence_pmg_before[0x500];
+
+static void dffence_draw_end(unsigned pc)
+{
+	unsigned addresses[6] = {0}, i, address, inside = 0u, backing = 0u, pmg = 0u;
+	unsigned base = MEMORY_mem[dftrace_entity_render_id + 1u], cells = 0u;
+	dftrace_pickup_addresses(addresses);
+	for (i = 0u; i < 6u; ++i) {
+		if (!dftrace_pickup_screen_address_valid(addresses[i])) continue;
+		++cells;
+		if (MEMORY_mem[addresses[i]] == ((base + i) & 0xffu)) ++inside;
+		if ((dftrace_pickup_backing(i) & 0x7fu) >= 120u &&
+			(dftrace_pickup_backing(i) & 0x7fu) <= 125u) ++backing;
+	}
+	for (address = 0u; address < 0x500u; ++address)
+		if (dffence_pmg_before[address] != MEMORY_mem[0x3b00u + address]) ++pmg;
+	fprintf(dffence_file, "{\"event\":\"draw_audit\",\"host_frame\":%u,"
+		"\"trace_index\":%u,\"pc\":%u,\"scanline\":%d,\"clock\":%llu,"
+		"\"cells\":%u,\"matching_cells\":%u,\"orphan_glyphs\":%u,"
+		"\"backing_contamination\":%u,\"additional_pmg_scanlines\":%u}\n",
+		(unsigned) Atari800_nframes, dftrace_count, pc, ANTIC_ypos,
+		(unsigned long long) dftrace_clock(), cells, inside,
+		dftrace_pickup_glyph_cells() - inside, backing, pmg);
+}
+
+static void dffence_event(const char *event, unsigned pc)
+{
+	unsigned state = MEMORY_mem[dftrace_entity_state + 1u];
+	unsigned y = MEMORY_mem[dftrace_entity_y + 1u];
+	fprintf(dffence_file, "{\"event\":\"%s\",\"host_frame\":%u,\"clock\":%llu,"
+		"\"vbi_counter\":%u,\"scanline\":%d,\"vcount\":%u,\"cycle\":%d,"
+		"\"gameplay_counter\":%u,\"trace_index\":%u,\"pc\":%u,\"previous_pc\":%u,"
+		"\"fence\":%u,\"source\":\"%s\",\"pickup_state\":%u,\"pickup_y\":%u,"
+		"\"pending_timer\":%u,\"previous_top\":%u,\"previous_bottom\":%u,"
+		"\"current_top\":%u,\"current_bottom\":%u,\"drawn\":%u,"
+		"\"wait_iterations\":%u,\"leave_iterations\":%u}\n",
+		event, (unsigned) Atari800_nframes, (unsigned long long) dftrace_clock(),
+		dffence_vbi, ANTIC_ypos, (unsigned) ANTIC_GetByte(0xd40bu, TRUE), ANTIC_XPOS,
+		MEMORY_mem[dftrace_gameplay_frame], dftrace_count, pc, dffence_previous_pc,
+		dffence_selected, state == 0u ? "INACTIVE" : state == 1u ? "PENDING" : "ACTIVE",
+		state, y, MEMORY_mem[dftrace_entity_timer + 1u], dffence_old_top,
+		dffence_old_bottom, y, y + 16u, MEMORY_mem[dftrace_entity_drawn_mask + 1u],
+		dffence_iterations, dffence_leave_iterations);
+}
+
+static void dffence_observe(unsigned pc, unsigned x_register)
+{
+	unsigned state, host, vbi;
+	if (getenv("DFTRACE_FENCE_OUTPUT") == NULL) return;
+	if (dffence_file == NULL) {
+		dffence_file = fopen(getenv("DFTRACE_FENCE_OUTPUT"), "w");
+		if (dffence_file == NULL) { perror("pickup fence trace"); exit(2); }
+		dffence_wait = dftrace_env_u("DFTRACE_FENCE_WAIT");
+		dffence_loop = dftrace_env_u("DFTRACE_FENCE_LOOP");
+		dffence_leave = dffence_loop + 5u;
+		dffence_return = dffence_loop + 10u;
+	}
+	if (MEMORY_mem[dftrace_game_state] != 6u) return;
+	host = (unsigned) Atari800_nframes;
+	vbi = host + (ANTIC_ypos >= 248 ? 1u : 0u);
+	if (vbi != dffence_vbi) {
+		dffence_vbi = vbi; dffence_event("vbi", pc);
+		if (getenv("DFTRACE_FENCE_SCREENSHOTS") != NULL &&
+			((MEMORY_mem[dftrace_entity_state + 1u] == 1u && MEMORY_mem[dftrace_entity_timer + 1u] <= 9u) ||
+			 (MEMORY_mem[dftrace_entity_state + 1u] == 2u && MEMORY_mem[dftrace_entity_y + 1u] <= 44u))) {
+			char screenshot[1024];
+			snprintf(screenshot, sizeof(screenshot), "%s-host%u.png", getenv("DFTRACE_FENCE_OUTPUT"), host);
+			if (!Screen_SaveScreenshot(screenshot, 0)) { perror("fence screenshot"); exit(2); }
+		}
+	}
+	if (host != dffence_host) { dffence_host = host; dffence_event("host_frame", pc); }
+	state = MEMORY_mem[dftrace_entity_state + 1u];
+	if (state != dffence_state) { dffence_event("state_change", pc); dffence_state = state; }
+	if (pc == dffence_wait) {
+		dffence_iterations = dffence_leave_iterations = 0u;
+		dffence_selected = 0xffffffffu;
+		dffence_waiting = 1;
+		dffence_event("wait_enter", pc);
+	}
+	if (dffence_waiting && pc == dffence_loop) {
+		if (dffence_iterations == 0u) { dffence_selected = x_register; dffence_event("fence_selected", pc); }
+		++dffence_iterations;
+	}
+	if (dffence_waiting && pc == dffence_leave) ++dffence_leave_iterations;
+	if (dffence_waiting && pc == dffence_return) { dffence_event("wait_exit", pc); dffence_waiting = 0; }
+	if (pc == dftrace_pc_active) dffence_event("main_update", pc);
+	if (pc == dftrace_pc_end) dffence_event("main_end", pc);
+	if (pc == dftrace_pc_dli) dffence_event("dli", pc);
+	if (pc == dftrace_pc_entity_erase) dffence_event("erase", pc);
+	if (pc == dftrace_pc_after_entity_erase) { dffence_event("erase_end", pc); dffence_old_top = dffence_old_bottom = 0u; }
+	if (pc == dftrace_pc_entity_draw) {
+		dffence_event("draw", pc);
+		dffence_drawing = 1; dffence_draw_depth = 0u;
+		memcpy(dffence_pmg_before, MEMORY_mem + 0x3b00u, sizeof(dffence_pmg_before));
+		dffence_old_top = MEMORY_mem[dftrace_entity_y + 1u];
+		dffence_old_bottom = dffence_old_top + 16u;
+	}
+	if (dffence_drawing) {
+		if (MEMORY_mem[pc] == 0x20u) ++dffence_draw_depth;
+		if (MEMORY_mem[pc] == 0x60u) {
+			if (dffence_draw_depth != 0u) --dffence_draw_depth;
+			else {
+				dffence_event("draw_end", pc);
+				if (MEMORY_mem[dftrace_entity_state + 1u] == 2u) dffence_draw_end(pc);
+				dffence_drawing = 0;
+			}
+		}
+	}
+	dffence_previous_pc = pc;
+}
+
 static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_register)
 {
 	unsigned host_frame = (unsigned) Atari800_nframes;
@@ -3091,6 +3213,7 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 	}
 	if (!dftrace_initialised)
 		dftrace_init();
+	dffence_observe(pc, x_register);
 	if (dftrace_published_dlist_lo == 0u && MEMORY_mem[dftrace_game_state] == 6u)
 		dftrace_published_dlist_lo = MEMORY_mem[dftrace_active_dlist_lo];
 	if (host_frame != dftrace_display_host_frame) {

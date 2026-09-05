@@ -33,14 +33,14 @@ pickup phase/code/collision stream in sectors 147-154, 234-byte integration glue
 in sectors 155-156, and the Encounter Director in sectors 157-161. ATR stages
 each record at `$8100`; BROADSIDE expands 6,643 bytes to `$5E10-$7802`, the
 921-byte pickup stream is published temporarily at `$8C80-$9018`, and glue
-expands to `$5261-$534A`. Packed ENTITY_CODE stages at `$534B-$5D39`, directly
+expands to `$5261-$534A`. Packed ENTITY_CODE stages at `$534B-$5D3B`, directly
 after glue. Startup holds glue at `$7F16-$7FFF` after publishing
 the A2 kernel, then copies it to `$4EFE-$4FE7`; the 645-byte Director expands to
 `$9D75-$9FF9`. The last BROADSIDE source read makes `$8100` reusable;
 only then does startup copy the packed resident suffix and stage it at
-`$8100-$9ACE`. The 7,743-byte suffix is stored as a 6,607-byte LZ-10/5 stream
+`$8100-$9B06`. The 7,743-byte suffix is stored as a 6,663-byte LZ-10/5 stream
 and restores `$21C1-$3FFF`, overwriting all stage-2 code and its maximum
-eight-record manifest. The pickup stream is preserved at `$4801-$4B93` before
+eight-record manifest. The pickup stream is preserved at `$4801-$4B99` before
 its cold source overlaps the future A2 range, then expands atomically to
 `$8800-$8E81`; the final 33 bytes are the final-raster capital/player collision module.
 No loader byte remains resident or enters gameplay.
@@ -303,8 +303,10 @@ row order. Capsule codes are never committed to ring backing, tail repair, or
 wrap-copy sources, so an old footprint cannot return after a ring wrap. The
 logical Y is also the collection hitbox Y. EASY/MEDIUM/HARD accumulate 8/9/10
 scanlines per five PAL frames; HARD therefore renders +2 scanlines every frame
-instead of holding and jumping by one character row. PENDING retains the early
-fixed wait needed for its ACTIVE transition. Once ACTIVE, each update begins
+instead of holding and jumping by one character row. While PENDING is invisible,
+its wait fence advances from VCOUNT `$6C` to `$14` in steps of eight, then stays
+at `$14` through admission retries. This monotonic handoff reaches the first
+ACTIVE fence without waiting for an extra raster turn. Once ACTIVE, each update begins
 immediately after ANTIC has scanned the preceding footprint's bottom edge. The
 saved character cells therefore remain intact for that complete raster; reverse
 erase, ring rotation, and the single late redraw then finish before ANTIC returns

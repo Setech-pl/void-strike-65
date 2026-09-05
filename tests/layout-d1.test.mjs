@@ -94,14 +94,14 @@ test("Layout D.2 exact memory and transport budgets remain frozen", () => {
     [155, 2, 229, 234, 0x5261],
     [157, 5, 585, 645, 0x9d75],
   ]);
-  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17203);
-  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 18833);
-  assert.equal(manifest.encounterDirector.safeResidencyBytes, 3354);
+  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17204);
+  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 18834);
+  assert.equal(manifest.encounterDirector.safeResidencyBytes, 3353);
 });
 
 test("XEX and ATR preserve full A2, GLUE lifecycle, ENTITY_CODE, DIRECTOR and guard", () => {
   assert.equal(a2.length, 255);
-  assert.equal(sha256(a2), "780788840940a5fbe5dc4a8e0068fe2b01095ac65d2d31598f4519c4a0b879d7");
+  assert.equal(sha256(a2), "5d020ae9d2fa04fad3aecd72ec22a3b7ee530df3fcaccdd01be71323488ca33c");
   for (const artifact of ["xex", "atr"]) for (const fill of [0xa5, 0x5a]) {
     const staged = stageArtifact(artifact, fill);
     assert.equal(sha256(staged.sourceA2), sha256(a2), `${artifact} staged A2`);

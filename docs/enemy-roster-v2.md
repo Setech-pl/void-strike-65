@@ -56,7 +56,7 @@ There is **no current-artifact global PAL acceptance** to claim in this audit.
 
 | Evidence | Recorded result | Meaning at this baseline |
 | --- | --- | --- |
-| Current manifest/map | 17,203 B linked runtime; 18,833 B simultaneous residency; 3,354 B accounting allowance | Current local artifact metadata, not a timing measurement or contiguous free region |
+| Current manifest/map | 17,204 B linked runtime; 18,834 B simultaneous residency; 3,353 B accounting allowance | Current local artifact metadata, not a timing measurement or contiguous free region |
 | [Global wall trace](runtime-wall-trace.json) | 24,264 cycles; 11,304 physical cycles remaining; 50 completed sessions | Frozen/transferred evidence; artifact hashes differ from current binaries; runtime sessions were not regenerated during its recorded brand transfer |
 | [Capital/player focused trace](capital-player-collision-trace.json) | Maximum over its 16 sessions: 26,880 cycles; 8,688 physical cycles remaining | Frozen/transferred, also not bound to current artifact hashes; its 5,688 `gate_headroom` is distance to 32,568, not to the PAL frame boundary |
 | Full-height focused checkpoint described in PAL document | 29,216 cycles; 6,352 physical cycles remaining | Prior focused pickup traversal, not a new global maximum for the current build |
@@ -65,9 +65,10 @@ There is **no current-artifact global PAL acceptance** to claim in this audit.
 For an unambiguous future comparison, current artifact SHA-256 values are:
 
 ```text
-XEX   6ea87181edc8f78376f221be830d44dd0bb3c6601fb2b6e36da5dbe473a07194
-ATR   95ec01b9456429fb9b508b990dba6b02cf6346f3313774c9e57275a69482758c
-boot  681414225cd3debb39b03f4be40f7b07a0143d79858c7ed5394888ca1d5dae48
+XEX       702739eff00ead9b9d68fbf74fef712683a056fe964999a43d44cecf315dd315
+ATR       efb6a570bd8d951a9f2926f949c2904fe6974085f8f2f03cb5376ac3bcb9e569
+boot      63ed6b04923ce23ce4bac15cc4d443e05fe3f7082895d8ba1071a0fb5f2865b4
+manifest  3b82c200c58651943c048485b58596385a5202bad8cc8f7f8f21c595cd223b76
 ```
 
 Known documentation discrepancies must not become design assumptions:
@@ -178,7 +179,7 @@ invulnerability system for mines or children.
 | --- | --- | --- |
 | CPU/RAM | PAL 65XE, 64 KB, documented NMOS 6502 | No dynamic allocation, runtime trigonometry, OS calls after takeover, or extra ZP requirement |
 | Frame | 35,568 physical cycles at 50 Hz | Preserve current synchronization; measure DMA-on wall and raster deadlines |
-| Frame gate | `wait_gameplay_frame`: absent pickup uses VCOUNT `$70`, PENDING `$50`, ACTIVE uses `(pickup Y + height) >> 1` | Preserve all three paths; PMG writes need separate visible-raster inspection too |
+| Frame gate | `wait_gameplay_frame`: absent pickup uses VCOUNT `$70`; PENDING moves `$6C,$64,...,$14` and then stays at `$14`; ACTIVE uses `(pickup Y + height) >> 1` | Preserve all three paths; PMG writes need separate visible-raster inspection too |
 | Timing thresholds | Current trace producer uses 32,568; a focused capital path uses 32,584; manifest CPU diagnostic uses 32,500 | Adopt stricter 32,568 wall ceiling for v2; do not confuse CPU diagnostic with wall acceptance |
 | PMG | P0/P3 player; P1 enemy body; P2 scanner; M1–M3 capital signals; M0 reserved | Two independent P1/P2 enemy objects; keep player and all missiles unchanged |
 | ANTIC | Fixed HUD/divider, 27-row physical ring, dual 90-byte display lists | No new DLI, ring format, charset, or viewport change |
@@ -429,10 +430,10 @@ and all reject branches after linking. Normal spawn reset/draw is additional.
 ### Residency and placement
 
 Current executable reservations are nearly full: STARFIELD has 16 free bytes
-before the 10-byte BOOST backing; BROADSIDE 13; ENTITY_CODE 77; A2 1. The
+before the 10-byte BOOST backing; BROADSIDE 13; ENTITY_CODE 76; A2 1. The
 Director's six-byte guard is unavailable. Candidate post-loader holes listed
-in the current map are 24 + 96 + 16 + 13 + 832 + 60 + 6 + 529 + 382 + 1 + 77
-= **2,036 B**, excluding the initialized 32-byte alignment reserve and all
+in the current map are 24 + 96 + 16 + 13 + 832 + 60 + 6 + 529 + 382 + 1 + 76
+= **2,035 B**, excluding the initialized 32-byte alignment reserve and all
 temporal loader/PMG overlaps. Even these holes need explicit linker and startup
 ownership before use. Existing map/manifest accounts are not a placement proof.
 
@@ -464,7 +465,7 @@ read by the new channel-specific death renderer; new masks are single-frame
 silhouettes, not three full animation banks per type.
 
 1,752 + 1,024 + 128 = 2,904 B, exceeding identified holes by **868 B**.
-The 3,354-byte accounting allowance would leave 450 B, but cannot solve that
+The 3,353-byte accounting allowance would leave 449 B, but cannot solve that
 physical fragmentation/reclamation gap. In the first implementation prompt,
 measure replacement of the old scalar enemy routines, scanner, enemy explosion
 adapter, and review-only linked data; count recovered bytes only once and only

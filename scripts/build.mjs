@@ -99,7 +99,7 @@ const acceptedRuntimeCompactionReserveBytes = 1097;
 const minimumWeaponPickupReserveBytes = 512;
 const residentRuntimeSuffixAddressExpected = 0x21c1;
 const packedResidentStagingAddress = 0x8100;
-const entityPackedStagingAddress = 0x534b;
+const entityPackedStagingAddress = 0x535a;
 const weaponPickupPhaseBankAddress = 0x8800;
 const weaponPickupPackedStagingAddress = 0x8c80;
 const bootA2StagingAddress = 0x7f16;
@@ -173,13 +173,13 @@ const directorRunAddress = 0x9d75;
 const directorGuardAddress = 0x9ffa;
 // Frontend branding and the PMG-latch clear remain inside the existing
 // 101-sector initial envelope; extension chunk topology remains frozen.
-const expectedInitialContentBytes = 12900;
-const expectedLinkedRuntimeBytes = 17204;
+const expectedInitialContentBytes = 12898;
+const expectedLinkedRuntimeBytes = 17287;
 const expectedDirectorRawBytes = 645;
 const expectedDirectorPackedBytes = 585;
-const expectedGlueRawBytes = 234;
-const expectedGluePackedBytes = 229;
-const capitalPlayerCollisionAddress = 0x8e61;
+const expectedGlueRawBytes = 249;
+const expectedGluePackedBytes = 244;
+const capitalPlayerCollisionAddress = 0x8ebe;
 
 function ensureDirectory(fsApi, directory) {
   const parts = directory.split("/").filter(Boolean);
@@ -619,12 +619,14 @@ async function build() {
     stem: "capital-player-collision",
   });
   if (capitalPlayerCollisionModule.raw.length > 0x21) {
-    throw new Error(`Capital/player collision module exceeds $8E61-$8E81: ` +
+    throw new Error(`Capital/player collision module exceeds $8EBE-$8EDE: ` +
       `${capitalPlayerCollisionModule.raw.length} B`);
   }
   if (weaponPickupPhaseBankAddress + weaponPickupPhaseBank.length + pickupCodeRuntime.length !==
     capitalPlayerCollisionAddress) {
-    throw new Error("Capital/player collision does not immediately follow pickup runtime");
+    throw new Error("Capital/player collision does not immediately follow pickup runtime: " +
+      `$${(weaponPickupPhaseBankAddress + weaponPickupPhaseBank.length +
+        pickupCodeRuntime.length).toString(16)} != $${capitalPlayerCollisionAddress.toString(16)}`);
   }
   const weaponPickupPhaseRuntime = Buffer.concat([
     weaponPickupPhaseBank, pickupCodeRuntime, capitalPlayerCollisionModule.raw,
@@ -862,13 +864,13 @@ async function build() {
     record.startSector, record.sectorCount, record.packedLength,
     record.rawLength, record.finalDestination,
   ]);
-  if (bootSectors !== 101 || totalTransportSectors !== 161 ||
-    transportPayload.length !== 20608 || JSON.stringify(frozenRecordShape) !== JSON.stringify([
+  if (bootSectors !== 101 || totalTransportSectors !== 163 ||
+    transportPayload.length !== 20864 || JSON.stringify(frozenRecordShape) !== JSON.stringify([
       [102, 45, 5660, 6643, 0x5e10],
-      [147, 8, packedWeaponPickupPhaseBank.length, packedWeaponPickupPhaseBank.length,
+      [147, 9, packedWeaponPickupPhaseBank.length, packedWeaponPickupPhaseBank.length,
         weaponPickupPackedStagingAddress],
-      [155, 2, 229, 234, glueStagingAddress],
-      [157, 5, 585, 645, directorRunAddress],
+      [156, 3, 244, 249, glueStagingAddress],
+      [159, 5, 585, 645, directorRunAddress],
     ])) {
     throw new Error(`Layout D.2 transport topology changed: ${JSON.stringify(frozenRecordShape)}`);
   }
@@ -992,7 +994,7 @@ async function build() {
         (expectedLinkedRuntimeBytes - 17203),
       glue: {
         stagingAddress: glueStagingAddress,
-        holdingAddress: 0x7f16,
+        holdingAddress: 0x8600,
         finalAddress: glueFinalAddress,
         rawBytes: glueModule.raw.length,
         packedBytes: glueModule.packed.length,
@@ -1178,7 +1180,7 @@ async function build() {
     },
     integrationGlue: {
       transportAddress: glueStagingAddress,
-      holdingAddress: 0x7f16,
+      holdingAddress: 0x8600,
       finalAddress: glueFinalAddress,
       bytes: glueModule.raw.length,
       packedBytes: glueModule.packed.length,

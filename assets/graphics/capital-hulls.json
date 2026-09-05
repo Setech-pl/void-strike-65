@@ -462,7 +462,7 @@
     "enemy_void_lance": 2
   },
   "broadside": {
-    "provisionalFirstCapitalGameplayFrame": 50,
+    "provisionalFirstCapitalGameplayFrame": 600,
     "initialDelayFrames": 2,
     "retryDelayFrames": 7,
     "scheduleDelayScale": 2,

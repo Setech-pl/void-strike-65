@@ -949,7 +949,7 @@ export function compileCapitalHulls(definition, options = {}) {
   };
   const broadsideTiming = {
     provisionalFirstCapitalGameplayFrame:
-      boundedByte("provisionalFirstCapitalGameplayFrame", 1),
+      boundedWord("provisionalFirstCapitalGameplayFrame", 1),
     initialDelayFrames: boundedByte("initialDelayFrames", 1),
     retryDelayFrames: boundedByte("retryDelayFrames", 1),
     scheduleDelayScale: boundedByte("scheduleDelayScale", 1),

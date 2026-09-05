@@ -53,6 +53,8 @@ const hulls = loadCapitalHullsDefinition(
 const asset = compileEnemyRoster(loadEnemyRosterDefinition(definitionPath), rootDirectory);
 const [interceptor, talon, bomber] = asset.implemented;
 const source = fs.readFileSync(path.join(rootDirectory, "src", "main.s"), "utf8");
+const glueSource = fs.readFileSync(
+  path.join(rootDirectory, "src", "integration-glue.s"), "utf8");
 const manifest = JSON.parse(fs.readFileSync(path.join(rootDirectory, "build", "manifest.json"), "utf8"));
 const labels = new Map(
   fs.readFileSync(path.join(rootDirectory, "build", "void-strike-65.lbl"), "utf8")
@@ -613,10 +615,10 @@ test("projectile definitions preserve PMG colours and make capital fire material
     "capital travel-axis length is at least twice fighter fire");
   assert.ok(visuals.allied.occupiedPixels > visuals.interceptor.occupiedPixels * 2);
   assert.equal(visuals.allied.occupiedPixels, visuals.hostile.occupiedPixels);
-  assert.match(source,
+  assert.match(glueSource,
     /render_capital_shell_overlay:[\s\S]+CAPITAL_PROJECTILE_HOSTILE_ATTRIBUTE[\s\S]+sta \(dst_ptr\),y/);
-  assert.doesNotMatch(source.slice(source.indexOf("render_capital_shell_overlay:"),
-    source.indexOf("draw_broadside_span:")), /COLPM[0-3]|SIZEM/);
+  assert.doesNotMatch(glueSource.slice(glueSource.indexOf("render_capital_shell_overlay:"),
+    glueSource.indexOf("integration_broadside_release:")), /COLPM[0-3]|SIZEM/);
   assert.deepEqual(manifest.enemyRoster.projectileVisuals, hulls.broadside.projectileVisuals);
   assert.deepEqual(manifest.enemyRoster.damagePolicy, {
     priority: ["PLAYER_PROJECTILE", "PLAYER_CONTACT", "CAPITAL_HOSTILE",

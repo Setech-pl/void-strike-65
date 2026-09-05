@@ -45,10 +45,17 @@ For both XEX and ATR:
       vertical trail. Observe warning, four-frame launch flash, BROADSIDE and at
       least three A2 wraps: `$45/$D0/$51/$D2` may exist only at the current
       tracked cells, and the divider is clean after each ring transition.
-- [ ] From New Game, the first capital admission occurs on active gameplay
-      frame 50 (about one PAL second), not while loader, menu, or OPTIONS is
-      active. Restarting the level repeats the same frame-50 admission; a
-      temporarily full legal budget delays it only until the first legal frame.
+- [ ] From New Game, ordinary Interceptors appear immediately and the first is
+      visible no later than active gameplay frame 60. After a complete explosion
+      and slot release, observe at most 60/45/30 active frames to the next visible
+      Interceptor on BEGINNER/MEDIUM/HARD. Pause must not consume the interval.
+- [ ] Earn the first pickup only by three Player Fighter-projectile Interceptor
+      kills before the capital sector. Observe one natural PENDING state, one
+      ACTIVE capsule, and no synthetic or second drop.
+- [ ] The provisional capital request is not due before active gameplay frame
+      600, not while loader, menu, OPTIONS, or pause is active. A still-live
+      Interceptor or full legal budget may delay actual admission; once the hull
+      is active, no ordinary admission is allowed. There is no frame-50 copy.
 - [ ] During a complete Hostile hull pass, count at least three distinct
       25-frame warning -> four-frame flash -> projectile launches on EASY,
       MEDIUM, and HARD. No two warnings begin together and a full three-slot

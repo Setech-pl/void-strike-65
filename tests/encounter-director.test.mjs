@@ -11,7 +11,8 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const mainSource = fs.readFileSync(path.join(root, "src/main.s"), "utf8");
 const directorSource = fs.readFileSync(path.join(root, "src/encounter-director.s"), "utf8");
 const labels = new Map();
-for (const file of ["build/void-strike-65.lbl", "build/encounter-director.lbl"]) {
+for (const file of ["build/void-strike-65.lbl", "build/encounter-director.lbl",
+  "build/integration-glue.lbl"]) {
   for (const line of fs.readFileSync(path.join(root, file), "utf8").split(/\r?\n/)) {
     const match = /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim());
     if (match) labels.set(match[2], Number.parseInt(match[1], 16));
@@ -24,10 +25,17 @@ const state = {
   pending: 0x80fc, defer: 0x80fd, flags: 0x80fe, admissionFrame: 0x80ff,
 };
 const provisionalCapital = {
-  frame: 50,
+  frame: 600,
+  frameLo: 0x4ff8,
+  frameHi: 0x4ff9,
   due: 0x80,
   admitted: 0x40,
 };
+
+function setActiveGameplayFrame(image, frame) {
+  image[provisionalCapital.frameLo] = frame & 0xff;
+  image[provisionalCapital.frameHi] = frame >> 8 & 0xff;
+}
 
 function memory() {
   const result = new Uint8Array(0x10000);
@@ -83,6 +91,71 @@ function armMuzzle(image, turret, row) {
   image[labels.get("MUZZLE_VISIBLE_ROW") + turret] = row;
   image[labels.get("MUZZLE_SCREEN_LO") + turret] = address & 0xff;
   image[labels.get("MUZZLE_SCREEN_HI") + turret] = address >> 8;
+}
+
+function runEarlyEnemyReplay(difficulty, frames = 600) {
+  const image = memory();
+  const frameCounter = labels.get("frame_counter");
+  const enemyActive = labels.get("ENEMY_ACTIVE");
+  const enemyY = labels.get("enemy_y");
+  const enemyHp = labels.get("ENEMY_HP");
+  const pickupState = labels.get("ENTITY_STATE") + 1;
+  const pickupCounter = labels.get("ENTITY_HP") + 1;
+  image[labels.get("DIFFICULTY_SETTING")] = difficulty;
+  image[labels.get("PLAYER_LIFECYCLE")] = 0;
+  run(image, "init_state");
+  run(image, "init_entity_effects");
+  run(image, "director_init", { a: 0x6d ^ difficulty });
+  run(image, "init_broadside");
+  const rate = [8, 9, 10][difficulty];
+  let worldAccumulator = 0;
+  const admissions = [];
+  const visible = [];
+  const releases = [];
+  const kills = [];
+  const pickup = { pending: null, active: null };
+  const rng = [];
+  let maximumActive = 0;
+  for (let frame = 1; frame <= frames; frame += 1) {
+    image[frameCounter] = image[frameCounter] + 1 & 0xff;
+    run(image, "integration_active_gameplay_tick");
+    run(image, "tick_shared_fighter_explosions");
+    worldAccumulator += rate;
+    if (worldAccumulator >= 20) {
+      worldAccumulator -= 20;
+      run(image, "director_world_row_tick");
+    }
+    run(image, "integration_update_first_capital");
+    const before = image[enemyActive];
+    const beforeRng = image[state.rng];
+    const update = run(image, "integration_update_enemy");
+    const after = image[enemyActive];
+    if (before !== 1 && after === 1) {
+      admissions.push(frame);
+      rng.push([beforeRng, image[state.rng]]);
+    }
+    if (before === 2 && after === 0) releases.push(frame);
+    maximumActive = Math.max(maximumActive, after === 1 ? 1 : 0);
+    if (after === 1 && image[enemyY] + 14 > 16 && visible.length < admissions.length) {
+      visible.push(frame);
+      if (kills.length < 3) {
+        image[labels.get("ENEMY_PENDING_DAMAGE")] = 0;
+        image[labels.get("ENEMY_PENDING_SOURCE")] = 5;
+        run(image, "queue_enemy_damage", { a: image[enemyHp], y: 0 });
+        run(image, "resolve_enemy_damage");
+        kills.push(frame);
+      }
+    }
+    if (image[pickupState] !== 0) {
+      if (image[pickupState] === 1 && pickup.pending === null) pickup.pending = frame;
+      run(image, "update_weapon_pickup_active", { x: image[pickupState] });
+      if (image[pickupState] === 2 && pickup.active === null) pickup.active = frame;
+    }
+    assert.ok(update.visited.filter((pc) => pc === labels.get("reset_enemy")).length <= 1,
+      "one frame cannot admit the sole ordinary slot twice");
+  }
+  return { image, admissions, visible, releases, kills, pickup,
+    pickupCounter: image[pickupCounter], rng, maximumActive };
 }
 
 test("Level 1 has exactly eight gapless phases and ends at row 3712", () => {
@@ -291,7 +364,7 @@ test("BOSS_HANDOFF maps every capital state once and leaves final COMPLETE termi
   run(draining, "director_init", { a: 0x6d });
   draining[state.flags] = 1;
   draining[labels.get("CAPITAL_SECTOR_STATE")] = 7;
-  draining[labels.get("CAPITAL_SECTOR_STATE") + 1] = 23;
+  draining[labels.get("CAPITAL_SECTOR_STATE") + 1] = 28;
   draining[broadside.state] = 1;
   run(draining, "integration_update_sector_completion");
   assert.equal(draining[labels.get("CAPITAL_SECTOR_STATE")], 5);
@@ -316,19 +389,93 @@ test("scheduler ownership remains single-source and lifecycle-owned", () => {
   assert.doesNotMatch(directorSource, /rng_state|STAR_RNG_STATE/);
 });
 
-test("provisional first capital admission is frame-50, resettable and retry-safe", () => {
+test("focused production replay exposes three early qualified kills and one natural pickup", () => {
+  const limits = [60, 45, 30];
+  for (const difficulty of [0, 1, 2]) {
+    const trace = runEarlyEnemyReplay(difficulty);
+    assert.ok(trace.visible[0] <= 60, `difficulty ${difficulty} first visible ${trace.visible[0]}`);
+    assert.ok(trace.kills.length >= 3, `difficulty ${difficulty} produced ${trace.kills.length} kills`);
+    assert.equal(trace.pickup.pending, trace.kills[2], "third legal kill must create PENDING once");
+    assert.ok(trace.pickup.active !== null && trace.pickup.active < provisionalCapital.frame,
+      `difficulty ${difficulty} pickup did not become ACTIVE in the early window`);
+    assert.equal(trace.pickupCounter, 0, "the three-kill counter must reset after one drop");
+    assert.equal(trace.maximumActive, 1);
+    for (let index = 1; index < Math.min(trace.visible.length, trace.releases.length + 1);
+      index += 1) {
+      const release = trace.releases[index - 1];
+      assert.ok(trace.visible[index] - release <= limits[difficulty],
+        `difficulty ${difficulty} visibility gap ${trace.visible[index] - release}`);
+    }
+    assert.equal(trace.rng.every(([before, after]) => after === (5 * before + 1 & 0xff)), true,
+      "each accepted enemy must consume exactly one Director RNG value");
+  }
+});
+
+test("ordinary rejection is bounded, slot-safe, RNG-stable and capital-exclusive", () => {
+  const image = memory();
+  image[labels.get("DIFFICULTY_SETTING")] = 2;
+  image[labels.get("PLAYER_LIFECYCLE")] = 0;
+  run(image, "init_state");
+  run(image, "init_entity_effects");
+  run(image, "director_init", { a: 0x6f });
+  run(image, "init_broadside");
+  image[state.reaction] = 0;
+  image[labels.get("frame_counter")] = 1;
+  image[state.phase] = 2;
+  const rngBeforeMaskReject = image[state.rng];
+  assert.equal(run(image, "provisional_interceptor_director_request", { x: 0 }).carry, false);
+  assert.equal(image[state.rng], rngBeforeMaskReject, "phase-mask rejection consumed RNG");
+
+  image[state.phase] = 1;
+  image[state.admissionFrame] = 0;
+  run(image, "integration_update_enemy");
+  assert.equal(image[labels.get("ENEMY_ACTIVE")], 1);
+  const rngWithOccupiedSlot = image[state.rng];
+  run(image, "integration_update_enemy");
+  assert.equal(image[labels.get("ENEMY_ACTIVE")], 1, "occupied slot spawned a second enemy");
+  assert.equal(image[state.rng], rngWithOccupiedSlot, "occupied slot consumed Director RNG");
+
+  image[labels.get("ENEMY_ACTIVE")] = 0;
+  image[state.intensity] = 0;
+  image[labels.get("CAPITAL_SECTOR_STATE")] = 0;
+  image[labels.get("INTERCEPTOR_BURST_TIMER")] = 0;
+  image[state.reaction] = 0;
+  run(image, "integration_update_enemy");
+  assert.equal(image[labels.get("ENEMY_ACTIVE")], 0,
+    "active capital hull admitted an ordinary enemy");
+  assert.equal(image[state.intensity], 0);
+});
+
+test("active-gameplay schedule freezes across pause and odd player lifecycles", () => {
+  const image = memory();
+  image[labels.get("PLAYER_LIFECYCLE")] = 0;
+  for (let frame = 0; frame < 100; frame += 1) run(image, "integration_active_gameplay_tick");
+  const beforePause = image[provisionalCapital.frameLo] |
+    image[provisionalCapital.frameHi] << 8;
+  assert.equal(beforePause, 100);
+  image[labels.get("PLAYER_LIFECYCLE")] = 1;
+  for (let frame = 0; frame < 80; frame += 1) run(image, "integration_active_gameplay_tick");
+  assert.equal(image[provisionalCapital.frameLo] |
+    image[provisionalCapital.frameHi] << 8, beforePause);
+  image[labels.get("PLAYER_LIFECYCLE")] = 2;
+  for (let frame = 0; frame < 500; frame += 1) run(image, "integration_active_gameplay_tick");
+  assert.equal(image[provisionalCapital.frameLo] |
+    image[provisionalCapital.frameHi] << 8, provisionalCapital.frame);
+});
+
+test("provisional first capital admission uses the 16-bit active-gameplay clock", () => {
   const sectorState = labels.get("CAPITAL_SECTOR_STATE");
   const frameCounter = labels.get("frame_counter");
   const legal = memory();
   run(legal, "director_init", { a: 0x6d });
   run(legal, "init_broadside");
-  legal[frameCounter] = provisionalCapital.frame - 1;
+  setActiveGameplayFrame(legal, provisionalCapital.frame - 1);
   run(legal, "integration_update_first_capital");
   assert.equal(legal[sectorState], 7);
   assert.equal(legal[state.flags], 0);
-  legal[frameCounter] = provisionalCapital.frame;
+  setActiveGameplayFrame(legal, provisionalCapital.frame);
   run(legal, "integration_update_first_capital");
-  assert.equal(legal[sectorState], 0, "the first legal attempt must admit at gameplay frame 50");
+  assert.equal(legal[sectorState], 0, "the first legal attempt must admit at active frame 600");
   assert.equal(legal[state.flags], provisionalCapital.admitted);
 
   run(legal, "director_init", { a: 0x6d });
@@ -339,12 +486,13 @@ test("provisional first capital admission is frame-50, resettable and retry-safe
   const blocked = memory();
   run(blocked, "director_init", { a: 0x6d });
   run(blocked, "init_broadside");
-  blocked[frameCounter] = provisionalCapital.frame;
+  setActiveGameplayFrame(blocked, provisionalCapital.frame);
   blocked[state.intensity] = 2;
   run(blocked, "integration_update_first_capital");
   assert.equal(blocked[sectorState], 7);
   assert.equal(blocked[state.flags], provisionalCapital.due,
     "a legal budget block must retain a deterministic pending admission");
+  setActiveGameplayFrame(blocked, provisionalCapital.frame + 1);
   blocked[frameCounter] += 1;
   blocked[state.intensity] = 0;
   run(blocked, "integration_update_first_capital");
@@ -361,7 +509,9 @@ test("the provisional gate moves rather than duplicates the one capital encounte
   assert.deepEqual(byteTable(image, "level1_event_row_hi", 6), [0, 4, 7, 11, 14, 14]);
   assert.equal((mainSource.match(/jsr integration_update_first_capital\n/g) ?? []).length, 1);
   assert.match(mainSource,
-    /cmp #PROVISIONAL_FIRST_CAPITAL_FRAME[\s\S]+jmp retry_first_capital_admission/);
+    /cmp #>PROVISIONAL_FIRST_CAPITAL_FRAME[\s\S]+cmp #<PROVISIONAL_FIRST_CAPITAL_FRAME[\s\S]+jmp retry_first_capital_admission/);
+  assert.equal((mainSource.match(/PROVISIONAL_FIRST_CAPITAL_FRAME/g) ?? []).length, 2,
+    "the historical frame-50 gate must not survive as a second event");
 
   run(image, "director_init", { a: 0x6d });
   image[labels.get("CAPITAL_SECTOR_STATE")] = 2;
@@ -402,6 +552,7 @@ test("natural Level 1 reaches a visible two-sided BROADSIDE without state inject
     let completedCapital = false;
     for (let frame = 0; frame < 10_000; frame += 1) {
       image[frameCounter] = image[frameCounter] + 1 & 0xff;
+      run(image, "integration_active_gameplay_tick");
       const stateBeforeAdmission = image[sectorState];
       run(image, "integration_update_first_capital");
       if (admittedAtFrame === null && stateBeforeAdmission === 7 && image[sectorState] === 0)
@@ -443,9 +594,9 @@ test("natural Level 1 reaches a visible two-sided BROADSIDE without state inject
     }
 
     assert.equal(admittedAtFrame, provisionalCapital.frame,
-      `difficulty ${difficulty} capital admission must occur at active gameplay frame 50`);
-    assert.ok(enteredCapitalAtRow < 32,
-      `difficulty ${difficulty} moved capital section must begin during the provisional intro`);
+      `difficulty ${difficulty} capital admission must occur at active gameplay frame 600`);
+    assert.ok(enteredCapitalAtRow >= 200,
+      `difficulty ${difficulty} capital section must follow the early ordinary-enemy window`);
     assert.ok(visibleByOwner.has(1),
       `difficulty ${difficulty} must render a natural Hostile projectile`);
     assert.deepEqual([...motionByOwner].sort(), [...visibleByOwner].sort(),
@@ -486,6 +637,7 @@ test("natural capital exit performs one scene recycle on every world row", () =>
   let sawComplete = false;
   for (let frame = 0; frame < 5_000; frame += 1) {
     image[frameCounter] = image[frameCounter] + 1 & 0xff;
+    run(image, "integration_active_gameplay_tick");
     run(image, "integration_update_first_capital");
     run(image, "tick_launch_flashes");
     run(image, "update_broadside");
@@ -505,7 +657,7 @@ test("natural capital exit performs one scene recycle on every world row", () =>
     }
   }
   assert.equal(sawComplete, true, "natural capital DRAIN did not reach COMPLETE");
-  assert.equal(drainWorldRows, 23, "DRAIN must consume every visible hull row exactly once");
+  assert.equal(drainWorldRows, 28, "DRAIN must consume every visible hull row exactly once");
   assert.equal(drainRecycles, drainWorldRows,
     "the exit cannot fall back to the half-rate near-layer recycle");
 });

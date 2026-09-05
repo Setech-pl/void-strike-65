@@ -67,6 +67,14 @@ single-pulse weapon fires ten shots at four-frame intervals, then waits 60, 50,
 or 40 frames on Easy, Medium, or Hard. Interceptor pulses travel five scanlines per
 frame, live for at most 96 frames, and use a separate nine-slot pool.
 
+The provisional development cadence exposes the sole ordinary-enemy slot from
+the start of gameplay. Its first Interceptor is visible by active frame 60.
+After the prior explosion releases the slot, the inactive retry timer is
+48/36/24 active frames on BEGINNER/MEDIUM/HARD; the measured release-to-visible
+gaps are 50/38/26 frames and remain bounded by 60/45/30. Rejected requests keep
+the same table-driven retry and do not consume Director RNG. Pause, frontend,
+loader, and odd death/Game Over lifecycles do not advance this schedule.
+
 An Interceptor is worth 10 points when destroyed by a Player Fighter projectile, player
 contact, or Hostile friendly fire. A capital-ship hit or lifecycle cleanup awards
 no points. Debris has three hit points, causes fixed 20%/50%/70% maximum-hull
@@ -100,13 +108,16 @@ left the screen, the ordinary full-width background still advances at the
 listed world rate. Far-star overlays retain their 25% logical parallax step;
 no capital lifecycle state changes the physical scene cadence.
 
-During construction, the existing first capital encounter is provisionally
-admitted on active gameplay frame 50 (about one PAL second after New Game or a
-level restart). Menu, OPTIONS, loader, and initialization frames do not advance
-this counter. A legal pool/budget refusal leaves one pending request which is
-retried deterministically at the first legal frame; the ships still enter from
-above at the ordinary world rate. This moves the original encounter rather than
-adding another one at its former phase boundary. Later encounters,
+During construction, the existing first capital encounter is provisionally due
+on active gameplay frame 600. Menu, OPTIONS, loader, pause, and initialization
+frames do not advance this counter. A live ordinary-enemy lifecycle or legal
+budget refusal delays actual admission until the first legal frame; no new
+ordinary enemy is admitted while the capital hull is active, and the ships still
+enter from above at the ordinary world rate. This provisional development
+schedule creates a natural early test window for three qualifying Interceptor
+kills and the resulting `FREE -> PENDING -> ACTIVE` pickup. It moves the original
+encounter rather than adding another one at frame 50 or its former phase
+boundary. Later encounters,
 `BOSS_HANDOFF`, and level timing remain at their established rows.
 
 The provisional Hostile firing schedule exposes at least three evenly spaced
@@ -237,7 +248,7 @@ phase boundaries:
 | Debris field | 576-1056 | 28.8-52.8 s | 25.6-46.9 s | 23.0-42.2 s |
 | Mixed pressure | 1056-1664 | 52.8-83.2 s | 46.9-74.0 s | 42.2-66.6 s |
 | Recovery | 1664-1856 | 83.2-92.8 s | 74.0-82.5 s | 66.6-74.2 s |
-| Former capital/broadside escalation window; encounter provisionally moved to gameplay frame 50 | 1856-2752 | 92.8-137.6 s | 82.5-122.3 s | 74.2-110.1 s |
+| Former capital/broadside escalation window; encounter uses the provisional active-frame-600 development gate | 1856-2752 | 92.8-137.6 s | 82.5-122.3 s | 74.2-110.1 s |
 | Recovery | 2752-2944 | 137.6-147.2 s | 122.3-130.8 s | 110.1-117.8 s |
 | Final approach | 2944-3712 | 147.2-185.6 s | 130.8-165.0 s | 117.8-148.5 s |
 

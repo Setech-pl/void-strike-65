@@ -54,7 +54,7 @@ function stageArtifact(artifact, fill) {
   assert.deepEqual(Buffer.from(memory.subarray(0x9100, 0x9100 + entity.length)), entity);
   run(memory, "stage_a2_kernel");
   const finalAfterCopy = Buffer.from(memory.subarray(0x9000, 0x90ff));
-  assert.deepEqual(Buffer.from(memory.subarray(0x7f16, 0x7f16 + glue.length)), glue);
+  assert.deepEqual(Buffer.from(memory.subarray(0x8600, 0x8600 + glue.length)), glue);
   run(memory, "init_entity_effects");
   const finalAfterClear = Buffer.from(memory.subarray(0x9000, 0x90ff));
   run(memory, "unpack_weapon_pickup_phase_runtime");
@@ -81,22 +81,22 @@ test("Layout D.2 startup order and call bytes are frozen", () => {
 });
 
 test("Layout D.2 exact memory and transport budgets remain frozen", () => {
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 12900);
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 12898);
   assert.equal(manifest.transportCapacity.initialBootBytes, 12928);
-  assert.equal(manifest.transportCapacity.totalTransportSectors, 161);
-  assert.equal(manifest.transportCapacity.totalTransportBytes, 20608);
+  assert.equal(manifest.transportCapacity.totalTransportSectors, 163);
+  assert.equal(manifest.transportCapacity.totalTransportBytes, 20864);
   assert.equal(manifest.transportCapacity.stage2.bytes, 1191);
   assert.deepEqual(manifest.transportCapacity.manifest.parsed.records.map((record) =>
     [record.startSector, record.sectorCount, record.packedLength, record.rawLength,
       record.finalDestination]), [
     [102, 45, 5660, 6643, 0x5e10],
-    [147, 8, 921, 921, 0x8c80],
-    [155, 2, 229, 234, 0x5261],
-    [157, 5, 585, 645, 0x9d75],
+    [147, 9, 1022, 1022, 0x8c80],
+    [156, 3, 244, 249, 0x5261],
+    [159, 5, 585, 645, 0x9d75],
   ]);
-  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17204);
-  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 18834);
-  assert.equal(manifest.encounterDirector.safeResidencyBytes, 3353);
+  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17287);
+  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 18917);
+  assert.equal(manifest.encounterDirector.safeResidencyBytes, 3270);
 });
 
 test("XEX and ATR preserve full A2, GLUE lifecycle, ENTITY_CODE, DIRECTOR and guard", () => {
@@ -149,13 +149,13 @@ test("startup writes never intersect a source before its last read", () => {
   const sources = [
     { name: "A2 initial source", start: 0x4773, end: 0x4872, lastRead: 1 },
     { name: "packed ENTITY_CODE", start: 0x4872, end: 0x5261, lastRead: 2 },
-    { name: "packed pickup cold source", start: 0x8c80, end: 0x9062, lastRead: 3 },
+    { name: "packed pickup cold source", start: 0x8c80, end: 0x907e, lastRead: 3 },
     { name: "packed resident source", start: 0x2668, end: 0x4072, lastRead: 4 },
     { name: "packed starfield source", start: 0x4072, end: 0x4773, lastRead: 5 },
   ];
   const writes = [
     { sequence: 1, start: 0x7f16, end: 0x8015 },
-    { sequence: 2, start: 0x534b, end: 0x5d3a },
+    { sequence: 2, start: 0x535a, end: 0x5d4b },
     { sequence: 3, start: 0x4801, end: 0x4be3 },
     { sequence: 4, start: 0x8100, end: 0x9b0a },
     { sequence: 5, start: 0x7810, end: 0x7f11 },

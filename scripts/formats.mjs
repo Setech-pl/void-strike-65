@@ -223,7 +223,7 @@ export function validateBuildDirectory(rootDirectory) {
     manifest.entityEffects.codeBytes > 0 &&
     manifest.entityEffects.codeBytes <= manifest.entityEffects.codeReservedBytes,
   "ENTITY_CODE exceeds its $9100-$9FFF runtime reservation");
-  invariant(manifest.entityEffects.stagedSourceAddress === 0x534b &&
+  invariant(manifest.entityEffects.stagedSourceAddress === 0x535a &&
     manifest.entityEffects.initialPackedSourcesEndExclusive <=
       manifest.entityEffects.stagedSourceAddress &&
     manifest.entityEffects.stagedEndExclusive <= manifest.broadsideRuntime.runAddress &&
@@ -315,7 +315,7 @@ export function validateBuildDirectory(rootDirectory) {
   invariant(manifest.runtimeCodeBudget?.frontendH31?.baselineBytes ===
     SHIELD_BOOSTER_RUNTIME_BASELINE_BYTES &&
     (manifest.encounterDirector?.enabled === true
-      ? manifest.encounterDirector.linkedRuntimeBytes === 17204
+      ? manifest.encounterDirector.linkedRuntimeBytes === 17287
       : manifest.runtimeCodeBudget.frontendH31.actualDeltaBytes <=
         FRONTEND_H31_RUNTIME_HARD_DELTA_BYTES),
   "H3.1 exceeds its linked runtime hard budget");

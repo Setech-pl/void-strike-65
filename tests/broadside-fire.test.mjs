@@ -469,7 +469,7 @@ test("broadside source timing and schedule are deterministic and generated with 
   assert.equal(renderCapitalHullsCa65Include(second), renderCapitalHullsCa65Include(asset));
   const { capitalExplosion, ...timing } = asset.broadside;
   assert.deepEqual(timing, {
-    provisionalFirstCapitalGameplayFrame: 50,
+    provisionalFirstCapitalGameplayFrame: 600,
     initialDelayFrames: 2,
     retryDelayFrames: 7,
     scheduleDelayScale: 2,

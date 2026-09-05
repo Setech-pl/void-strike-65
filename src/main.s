@@ -25,6 +25,7 @@ DIRECTOR_RNG_ADVANCE = $9F32
 DIRECTOR_STATE_REACTION = $80F9
 DIRECTOR_STATE_RECOVERY = $80FA
 DIRECTOR_STATE_INTENSITY = $80F8
+DIRECTOR_STATE_PHASE = $80F6
 DIRECTOR_STATE_FLAGS = $80FE
 DIRECTOR_STATE_ADMISSION_FRAME = $80FF
 DIRECTOR_FLAG_COMPLETE = $01
@@ -35,8 +36,11 @@ DIRECTOR_HAZARD_DEBRIS = 1
 DIRECTOR_HAZARD_BROADSIDE = 2
 DIRECTOR_HAZARD_PICKUP = 3
 DIRECTOR_RETRY_FRAMES = 8
+ACTIVE_GAMEPLAY_FRAME_LO = $4FF8
+ACTIVE_GAMEPLAY_FRAME_HI = $4FF9
 PROVISIONAL_CAPITAL_BROADSIDE_REACTION_ROWS = 12
 integration_director_world_row = $4EFE
+integration_active_gameplay_tick = $4FE8
 integration_debris_spawn = $4F0D
 integration_debris_release = $4F1D
 integration_apply_allied_prow = $4F25
@@ -44,7 +48,7 @@ integration_apply_enemy_prow = $4F28
 CAPITAL_SHELL_GLYPH_SOURCE = $4F97
 render_capital_shell_overlay = $4F9F
 integration_broadside_release = $4FDC
-CAPITAL_PLAYER_COLLISION = $8E61
+CAPITAL_PLAYER_COLLISION = $8EBE
 
 .import __A2_KERNEL_RUN__, __A2_KERNEL_SIZE__
 .import __BOOT_STAGE2_LOAD__, __BOOT_STAGE2_RUN__, __BOOT_STAGE2_SIZE__
@@ -2276,9 +2280,7 @@ main_loop_frame_active = *
 profile_after_entity_erase = *
     jsr erase_fighter_projectile_overlays
 profile_after_projectile_erase = *
-    nop
-    nop
-    nop                         ; capsule draws only at the late entity fence
+    jsr integration_active_gameplay_tick
 profile_after_capsule = *
     jsr tick_shared_fighter_explosions
     jsr tick_capital_explosions
@@ -2887,6 +2889,8 @@ init_state:
     lda #$00
     sta scanner_phase
     sta frame_counter
+    sta ACTIVE_GAMEPLAY_FRAME_LO
+    sta ACTIVE_GAMEPLAY_FRAME_HI
     sta fire_timer
     sta hit_timer
     sta damage_timer
@@ -3962,11 +3966,13 @@ update_enemy_weapon_runtime:
     bne @done
     jmp @begin
 @stop:
-    lda #WEAPON_BURST_WAITING
-    sta INTERCEPTOR_BURST_STATE
     lda #$00
-    sta INTERCEPTOR_BURST_REMAINING
+    ldx ENEMY_ACTIVE
+    beq :+
     sta INTERCEPTOR_BURST_TIMER
+:
+    sta INTERCEPTOR_BURST_STATE
+    sta INTERCEPTOR_BURST_REMAINING
 @done:
     rts
 
@@ -6312,7 +6318,7 @@ select_sector_module:
 
 .segment "PICKUP_CODE"
 turret_layout_pickup_compat_pad:
-    .byte $00,$00,$00,$00,$00,$00,$00,$00
+    ; Retired: the 16-bit provisional capital gate consumes this old padding.
 
 .segment "BROADSIDE"
 
@@ -10094,7 +10100,7 @@ weapon_pickup_type_base_hi:
     .byte >(WEAPON_PICKUP_PHASE_BANK+$000),>(WEAPON_PICKUP_PHASE_BANK+$180),>(WEAPON_PICKUP_PHASE_BANK+$300)
     ; Removing the redundant high-offset table and its absolute-X ADC saves
     ; nine bytes. Retain the frozen PICKUP_CODE end and later entry points.
-    .byte $00,$00,$00,$00,$00,$00,$EA,$EA,$EA
+    .byte $EA,$EA
 weapon_pickup_render_ids:
     .byte WEAPON_PICKUP_GLYPH_BASE,WEAPON_PICKUP_GLYPH_BASE|$80,WEAPON_PICKUP_GLYPH_BASE
 
@@ -10517,17 +10523,24 @@ integration_update_first_capital:
     bit DIRECTOR_STATE_FLAGS
     bmi @retry
     bvs @done
-    lda frame_counter
-    cmp #PROVISIONAL_FIRST_CAPITAL_FRAME
-    bne @done
+    lda ACTIVE_GAMEPLAY_FRAME_HI
+    cmp #>PROVISIONAL_FIRST_CAPITAL_FRAME
+    bcc @done
+    bne @retry
+    lda ACTIVE_GAMEPLAY_FRAME_LO
+    cmp #<PROVISIONAL_FIRST_CAPITAL_FRAME
+    bcc @done
 @retry:
     jmp retry_first_capital_admission
 @done:
     rts
 
 retry_first_capital_admission:
+    bit DIRECTOR_STATE_FLAGS
+    bmi :+
     lda #DIRECTOR_FLAG_FIRST_CAPITAL_DUE
     sta DIRECTOR_STATE_FLAGS
+:
     lda DIRECTOR_STATE_INTENSITY
     bne @done
     lda CAPITAL_SECTOR_STATE
@@ -10552,7 +10565,20 @@ integration_interceptor_recycle:
     ; lifecycle explicitly inactive before a retry may be deferred by capital
     ; ownership or by the Director budget.
     stx ENEMY_ACTIVE
+    ldx DIFFICULTY_SETTING
+    lda interceptor_admission_retry_frames,x
+    sta INTERCEPTOR_BURST_TIMER
+    rts
 integration_interceptor_retry:
+    jmp interceptor_admission_update
+
+.segment "PICKUP_CODE"
+interceptor_admission_update:
+    ; DYING/GAME OVER frames neither consume cadence nor attempt admission.
+    ; ALIVE and respawn-invulnerable are the two even gameplay lifecycles.
+    lda PLAYER_LIFECYCLE
+    lsr
+    bcs @blocked
     ; The finite capital corridor owns new admissions while its hull is live.
     ; An already active Interceptor keeps its ordinary lifecycle, but an inactive
     ; slot cannot reserve the small EASY/MEDIUM budget ahead of ship-to-ship
@@ -10567,14 +10593,16 @@ integration_interceptor_retry:
     rts
 @request:
     ldx #DIRECTOR_HAZARD_INTERCEPTOR
-    jsr DIRECTOR_REQUEST
+    jsr provisional_interceptor_director_request
     bcs @admitted
-    lda #DIRECTOR_RETRY_FRAMES
+    ldx DIFFICULTY_SETTING
+    lda interceptor_admission_retry_frames,x
     sta INTERCEPTOR_BURST_TIMER
     rts
 @admitted:
     jmp reset_enemy
 
+.segment "CODE"
 integration_update_enemy_weapon:
     lda INTERCEPTOR_BURST_STATE
     cmp #WEAPON_BURST_FIRING
@@ -10673,6 +10701,43 @@ provisional_capital_broadside_request:
 provisional_capital_budgets:
     .byte $03,$04,$05
 
+.segment "PICKUP_CODE"
+; The provisional ordinary cadence is active-frame based, independent of the
+; Director's world-row reaction/recovery clocks. Preserve those clocks around
+; the production request so its phase mask, budget, allocation, one charge and
+; one private-RNG advance remain authoritative. Phase zero borrows phase one's
+; established Interceptor mask/budget for this request only.
+provisional_interceptor_director_request:
+    lda DIRECTOR_STATE_REACTION
+    pha
+    lda DIRECTOR_STATE_RECOVERY
+    pha
+    lda #$00
+    sta DIRECTOR_STATE_REACTION
+    sta DIRECTOR_STATE_RECOVERY
+    lda DIRECTOR_STATE_PHASE
+    pha
+    bne :+
+    inc DIRECTOR_STATE_PHASE
+:
+    jsr DIRECTOR_REQUEST
+    ldy #$00
+    bcc :+
+    iny
+:
+    pla
+    sta DIRECTOR_STATE_PHASE
+    pla
+    sta DIRECTOR_STATE_RECOVERY
+    pla
+    sta DIRECTOR_STATE_REACTION
+    cpy #$01                    ; restore the production request carry result
+    rts
+
+; Rejected admission and post-release cadence in active gameplay frames.
+interceptor_admission_retry_frames:
+    .byte 48,36,24
+
 .segment "ENTITY_CODE"
 allied_engine_overlay_masks:
     EMIT_ALLIED_ENGINE_OVERLAY_MASKS
@@ -10752,8 +10817,11 @@ CHUNK_FINAL_ADDRESS   = $5E10
 CHUNK_STAGING_SECTORS_MAX = 50
 LAYOUT_D_GLUE_STAGING = $5261
 LAYOUT_D_GLUE_FINAL = $4EFE
-LAYOUT_D_GLUE_HOLDING = $7F16
-LAYOUT_D_GLUE_BYTES = 234
+; Resident staging has been consumed before stage_a2_kernel reaches the GLUE
+; hold. This free high-RAM window survives the loader bitmap, entity clear and
+; starfield expansion until the final publication below $5000.
+LAYOUT_D_GLUE_HOLDING = $8600
+LAYOUT_D_GLUE_BYTES = 249
 
 .macro STAGE2_FAIL_NE
     .local ok

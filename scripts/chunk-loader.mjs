@@ -12,12 +12,12 @@ const CHUNK_TYPE_LZ = 1;
 const STAGING_BROADSIDE = 1;
 const STAGING_EXTENSION = 2;
 const SAFE_EXTENSION_RANGES = Object.freeze([
-  [0x4efe, 0x5000], [0x5261, 0x534b],
+  [0x4efe, 0x5000], [0x5261, 0x535a],
   [0x5de2, 0x5e06], [0x77b9, 0x7810],
   [0x7bd0, 0x7f10],
   [0x7fdb, 0x8000], [0x8130, 0x9000], [0x90cf, 0x9100], [0x992a, 0xa000],
 ]);
-const PICKUP_COLD_RANGE = Object.freeze([0x8c80, 0x9062]);
+const PICKUP_COLD_RANGE = Object.freeze([0x8c80, 0x907e]);
 
 const INITIAL_ENVELOPE_MAGIC = Buffer.from("DFI2", "ascii");
 const INITIAL_ENVELOPE_MIN_BYTES = 12;

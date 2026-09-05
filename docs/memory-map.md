@@ -19,8 +19,8 @@ lifetime phases and are not additive free memory.
 | `$5E10-$7802` | 6,643 B | relocated `BROADSIDE`/frontend/enemy/weapon runtime; reserved through `$780F` |
 | `$8000-$80FF` | 256 B | `ENTITY_STATE` BSS |
 | `$8800-$8C7F` | 1,152 B | immutable three-type/eight-phase pickup glyph source bank |
-| `$8C80-$8E60` | 481 B | late phased pickup compositor, size helpers, exact reverse-erase support, and provisional active-gameplay capital admission gate |
-| `$8E61-$8E81` | 33 B | shared inclusive final-raster swept-AABB capital-bolt/Player Fighter collision module |
+| `$8C80-$8EBD` | 574 B | late phased pickup compositor, size helpers, exact reverse-erase support, and provisional active-gameplay admission policy |
+| `$8EBE-$8EDE` | 33 B | shared inclusive final-raster swept-AABB capital-bolt/Player Fighter collision module |
 | `$9000-$90FE` | 255 B | relocated A2 kernel; one byte reserved through `$90FF` |
 | `$9100-$9D28` | 3,113 B | relocated `ENTITY_CODE`, including the pickup fence helper, H3.1 display lists, and frontend helpers; reserved through `$9D74` |
 | `$9D75-$9FF9` | 645 B | Hybrid Encounter Director code/common/Level 1 data |
@@ -28,43 +28,42 @@ lifetime phases and are not additive free memory.
 | `$21C1-$2667` | 1,191 B | boot-only `BOOT_STAGE2` overlay; replaced by the resident suffix before runtime |
 
 The linked production runtime metric is `CODE + STARFIELD + BROADSIDE +
-A2_KERNEL + ENTITY_CODE + PICKUP_CODE = 17,204 B`. With the 1,152-byte pickup
+A2_KERNEL + ENTITY_CODE + PICKUP_CODE = 17,287 B`. With the 1,152-byte pickup
 phase bank, late-published GLUE, DIRECTOR, and their frozen integration
 accounting plus the 33-byte collision module, simultaneous feature residency
-is 18,834 B and safe residency is 3,353 B.
+is 18,917 B and safe residency is 3,270 B.
 BROADSIDE is 6,643 B after moving the bolt renderer into retired GLUE space
-and unrolling the fixed 3x3 capital-impact compositor; PICKUP_CODE remains 481 B.
-Late-published GLUE grows by 81 B to 234 B; persistent BSS and glyph allocation
+and unrolling the fixed 3x3 capital-impact compositor; PICKUP_CODE is 574 B.
+Late-published GLUE is 249 B; persistent BSS and glyph allocation
 are unchanged.
 
 ## Boot transport layout
 
-The production Encounter Director transport is 20,608 bytes in 161 occupied
+The production Encounter Director transport is 20,864 bytes in 163 occupied
 sectors. BRCNT loads the 12,928-byte/101-sector initial block at `$2000-$527F`;
-the entry point remains `$201E`. Initial content is exactly 12,900 B and ends
-at `$5263`; the rest of the last sector is transport padding.
+the entry point remains `$201E`. Initial content is exactly 12,898 B and ends
+at `$5261`; the rest of the last sector is transport padding.
 
 | Initial address / ATR sectors | Size | Stored form and startup destination |
 | --- | ---: | --- |
 | `$2000-$21C0` | 449 B | raw bootstrap prefix |
 | `$21C1-$2667` | 1,191 B | stage-2 SIO/CRC/per-record-end/manifest overlay |
-| `$2668-$406E` | 6,663 B | packed resident suffix; staged at `$8100` |
-| `$406F-$476F` | 1,793 B | packed 2,252-byte starfield/music runtime; stages at `$7810` and expands to `$552A-$5DF5` |
-| `$4770-$486E` | 255 B | A2 source; staged at `$7F16`, then copied to `$9000-$90FE` before entity/effects clear |
-| `$486F-$525F` | 2,545 B | packed 3,113-byte ENTITY_CODE; staged at `$534B-$5D3B`, expands to `$9100-$9D28` |
-| `$5260-$5263` | 4 B | source-owned `DFB1` trailer; consumed before the GLUE chunk reuses `$5261` |
+| `$2668-$406C` | 6,661 B | packed resident suffix; staged at `$8100` |
+| `$406D-$476D` | 1,793 B | packed 2,252-byte starfield/music runtime; stages at `$7810` and expands to `$552A-$5DF5` |
+| `$476E-$486C` | 255 B | A2 source; staged at `$7F16`, then copied to `$9000-$90FE` before entity/effects clear |
+| `$486D-$525D` | 2,545 B | packed 3,113-byte ENTITY_CODE; staged at `$535A-$5D4A`, expands to `$9100-$9D28` |
+| `$525E-$5261` | 4 B | source-owned `DFB1` trailer; consumed before the GLUE chunk reuses `$5261` |
 | ATR sectors 102-146 | 5,760 B | external BROADSIDE record: 5,660 B packed / 6,643 B raw to `$5E10-$7802` |
-| ATR sectors 147-154 | 1,024 B | pickup/code/collision record: 921 B prepacked at cold `$8C80-$9018`; after preservation at `$4801-$4B99`, it expands 1,666 B to `$8800-$8E81` |
-| ATR sectors 155-156 | 256 B | GLUE record: 229 B packed / 234 B raw to staging `$5261-$534A` |
-| ATR sectors 157-161 | 640 B | Director record: 585 B packed / 645 B raw to `$9D75-$9FF9` |
+| ATR sectors 147-155 | 1,152 B | pickup/code/collision record: 1,022 B prepacked at cold `$8C80-$907D`; after preservation at `$4801-$4BFE`, it expands 1,759 B to `$8800-$8EDE` |
+| ATR sectors 156-158 | 384 B | GLUE record: 244 B packed / 249 B raw to staging `$5261-$5359`, then held at `$8600-$86F8` |
+| ATR sectors 159-163 | 640 B | Director record: 585 B packed / 645 B raw to `$9D75-$9FF9` |
 
 The `DFMC` v1 manifest is 78 B for the current four records and reserves space
-inside stage-2 for at most eight records. The ATR has 559 free sectors
-(71,552 B). Runtime and transport budgets remain separate; the current
-Director simultaneous-residency accounting reports 3,353 B safe, while the
-separate 6,841-byte transport capacity reports 4,950 B remaining. The older
+inside stage-2 for at most eight records. The ATR has 557 free sectors
+(71,296 B). Runtime and transport budgets remain separate; the current
+Director simultaneous-residency accounting reports 3,270 B safe. The older
 15,346-byte capacity reference remains useful only as history; the production
-gate is the exact 17,204-byte linked runtime
+gate is the exact 17,287-byte linked runtime
 and its explicit simultaneous-residency accounting.
 
 ## Loader-time ownership
@@ -90,7 +89,7 @@ this lifetime.
 | `$4028-$404F` | 40 B | fixed gameplay divider; never a rotating/transient backing row |
 | `$4050-$43FF` | 944 B | frontend screen RAM; not used by the expanded gameplay ring |
 | `$4400-$47FF` | 1,024 B | gameplay charset |
-| `$4800-$4BFF` | 1,024 B | frontend charset; `$4801-$4B99` temporarily preserves the 921-byte pickup/code/collision transport stream before frontend construction |
+| `$4800-$4BFF` | 1,024 B | frontend charset; `$4801-$4BFE` temporarily preserves the 1,022-byte pickup/code/collision transport stream before frontend construction |
 | `$4C00-$4D1F` | 288 B | expanded Allied hull map, 32x9 |
 | `$4D20-$4E3F` | 288 B | expanded Hostile hull map, 32x9 |
 | `$4E40-$4E70` | 49 B | persistent runtime state through difficulty setting |
@@ -99,8 +98,10 @@ this lifetime.
 | `$4ED7-$4ED8` | 2 B | allied/enemy fixed-divider versus ring muzzle-domain state; consumes the former compatibility pad without shifting later state |
 | `$4ED9-$4EE9` | 17 B | menu/gameplay music and tracked-muzzle state |
 | `$4EEA-$4EFD` | 20 B | ten TOP SCORES records as parallel packed-BCD low/high arrays |
-| `$4EFE-$4FE7` | 234 B | late-published integration glue, including physical shell-overlap detection and index-preserving release |
-| `$4FE8-$4FFF` | 24 B | unassigned after loader |
+| `$4EFE-$4FF6` | 249 B | late-published integration glue, including physical shell-overlap detection, active-gameplay clock tick, and index-preserving release |
+| `$4FF7` | 1 B | unassigned after loader |
+| `$4FF8-$4FF9` | 2 B | 16-bit active-gameplay frame counter |
+| `$4FFA-$4FFF` | 6 B | unassigned after loader |
 | `$5000-$53FF` | 1,024 B | dedicated gameplay HUD charset |
 | `$54CA-$5529` | 96 B | unassigned after far-star records moved below `$5000` |
 | `$5DF6-$5E05` | 16 B | free tail of the starfield reservation |
@@ -129,11 +130,13 @@ this lifetime.
 | `$85AE-$85B6` | 9 B | A2 list/ring publication state |
 | `$85B7-$85D2` | 28 B | allied per-visible-row boundary backing |
 | `$85D3-$85EE` | 28 B | enemy per-visible-row boundary backing |
-| `$85EF-$87FF` | 529 B | unowned after cold startup |
+| `$85EF-$85FF` | 17 B | unowned after cold startup |
+| `$8600-$86F8` | 249 B | boot-only GLUE holding buffer after resident staging is consumed; unowned after publication |
+| `$86F9-$87FF` | 263 B | unowned after cold startup |
 | `$8800-$8C7F` | 1,152 B | immutable pickup phase bank: three types × eight phases × six glyphs × eight bytes |
-| `$8C80-$8E60` | 481 B | pickup compositor, mapper, backing, common capital-shell collision dispatcher, exact reverse erase, and provisional first-capital gameplay gate; cold source is moved before publication |
-| `$8E61-$8E81` | 33 B | inclusive 16x15-player versus final-raster swept-8x6-bolt AABB collision module |
-| `$8E82-$8FFF` | 382 B | unowned after cold startup |
+| `$8C80-$8EBD` | 574 B | pickup compositor, mapper, backing, common capital-shell collision dispatcher, exact reverse erase, and provisional admission policy; cold source is moved before publication |
+| `$8EBE-$8EDE` | 33 B | inclusive 16x15-player versus final-raster swept-8x6-bolt AABB collision module |
+| `$8EDF-$8FFF` | 289 B | unowned after cold startup |
 | `$9000-$90FE` | 255 B | A2 kernel |
 | `$90FF` | 1 B | free A2 reservation tail |
 | `$9100-$9D28` | 3,113 B | entity/effect/booster/projectile-composite, pickup fence, and H3.1 frontend runtime |
@@ -148,13 +151,13 @@ charset, loader data, or staging buffer uses `$A000-$BFFF`.
 
 ## Boot-only ENTITY_CODE staging lifecycle
 
-The packed ENTITY_CODE source is `$486F-$525F`; its last byte is consumed before
-GLUE reuses `$5261-$534A`. ENTITY_CODE staging is `$534B-$5D3B` (2,545 B),
-so the source-to-staging margin is 235 B. Its end-exclusive address `$5D3C` is
-212 B below BROADSIDE at `$5E10`. The packed stream is copied only after the
+The packed ENTITY_CODE source is `$486D-$525D`; its last byte is consumed before
+GLUE reuses `$5261-$5359`. ENTITY_CODE staging is `$535A-$5D4A` (2,545 B),
+so the source-to-staging margin is 252 B. Its end-exclusive address `$5D4B` is
+197 B below BROADSIDE at `$5E10`. The packed stream is copied only after the
 initial block is resident, expanded to `$9100-$9D28`, and then released. The
 later starfield destination `$552A-$5DF5` overlaps the released staging range
-over `$552A-$5D3B` (2,066 B); it is never live concurrently with the packed
+over `$552A-$5D4A` (2,081 B); it is never live concurrently with the packed
 ENTITY_CODE source. Loader-resident RAM after startup remains 0 B.
 
 ## PMG ownership

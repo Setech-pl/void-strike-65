@@ -84,6 +84,14 @@ typedef struct {
 	unsigned player_draw_scanline;
 	unsigned sector_state;
 	unsigned gameplay_frame;
+	unsigned active_gameplay_frame;
+	unsigned enemy_state;
+	unsigned enemy_y;
+	unsigned director_phase;
+	unsigned director_rng;
+	unsigned director_intensity;
+	unsigned director_reaction;
+	unsigned director_recovery;
 	unsigned difficulty;
 	unsigned active_muzzles;
 	unsigned muzzle_domain[2];
@@ -403,6 +411,9 @@ static unsigned dftrace_frontend_selection;
 static unsigned dftrace_frontend_input_armed;
 static unsigned dftrace_difficulty_setting;
 static unsigned dftrace_gameplay_frame;
+static unsigned dftrace_active_gameplay_frame_lo;
+static unsigned dftrace_enemy_y;
+static unsigned dftrace_director_state;
 static unsigned dftrace_muzzle_screen_hi;
 static unsigned dftrace_muzzle_screen_lo;
 static unsigned dftrace_muzzle_row_domain;
@@ -734,9 +745,10 @@ static void dfboot_observe(unsigned pc)
 	frame = (unsigned) Atari800_nframes;
 	if (frame > 500u && MEMORY_mem[pc] == 0x00u) {
 		fprintf(stderr, "voidstrike65 boot smoke: unexpected BRK frame=%u pc=$%04x "
-			"state=%u module=%02x,%02x,%02x,%02x\n", frame, pc,
-			MEMORY_mem[dfboot_game_state], MEMORY_mem[0x8e61u], MEMORY_mem[0x8e62u],
-			MEMORY_mem[0x8e63u], MEMORY_mem[0x8e64u]);
+			"state=%u glue=%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x\n", frame, pc,
+			MEMORY_mem[dfboot_game_state], MEMORY_mem[0x4fe8u], MEMORY_mem[0x4febu],
+			MEMORY_mem[0x4feeu], MEMORY_mem[0x4ff1u], MEMORY_mem[0x4ff3u],
+			MEMORY_mem[0x4ff6u], MEMORY_mem[0x4ff8u], MEMORY_mem[0x4ff9u]);
 		exit(98);
 	}
 	if (frame != dfboot_instruction_frame) {
@@ -746,7 +758,7 @@ static void dfboot_observe(unsigned pc)
 	else if (++dfboot_same_frame_instructions == 20000000u) {
 		fprintf(stderr, "voidstrike65 boot smoke: stalled at frame %u pc=$%04x state=%u "
 			"module=%02x,%02x,%02x,%02x\n", frame, pc,
-			MEMORY_mem[dfboot_game_state], MEMORY_mem[0x8e61u], MEMORY_mem[0x8e62u],
+			MEMORY_mem[dfboot_game_state], MEMORY_mem[0x8ebeu], MEMORY_mem[0x8ebfu],
 			MEMORY_mem[0x8e63u], MEMORY_mem[0x8e64u]);
 		exit(2);
 	}
@@ -1655,10 +1667,14 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		else if (frame % 128u >= 80u && y < DFTRACE_PLAYER_MAX_Y)
 			stick &= 0x0du;
 	}
-	else if (strcmp(dftrace_policy, "hunt") == 0) {
+	else if (strcmp(dftrace_policy, "hunt") == 0 ||
+		strcmp(dftrace_policy, "early-hunt") == 0) {
 		/* Follow the live Interceptor's PMG origin using only ordinary joystick
 		 * input. This remains a production gameplay replay: no guest state is
 		 * seeded, and held FIRE enters the canonical burst controller. */
+		if (strcmp(dftrace_policy, "early-hunt") == 0 &&
+			MEMORY_mem[dftrace_entity_state + 2u] != 0u)
+			trigger = 1u;
 		if (MEMORY_mem[dftrace_entity_state + 1u] == 2u) {
 			unsigned target = MEMORY_mem[dftrace_entity_x + 1u];
 			++dftrace_pickup_hunt_active_frames;
@@ -2438,6 +2454,15 @@ static void dftrace_snapshot(DFTraceFrame *frame)
 	frame->prior = GTIA_PRIOR;
 	frame->sector_state = MEMORY_mem[dftrace_sector_state];
 	frame->gameplay_frame = MEMORY_mem[dftrace_gameplay_frame];
+	frame->active_gameplay_frame = MEMORY_mem[dftrace_active_gameplay_frame_lo] |
+		((unsigned) MEMORY_mem[dftrace_active_gameplay_frame_lo + 1u] << 8);
+	frame->enemy_state = MEMORY_mem[dftrace_enemy_active];
+	frame->enemy_y = MEMORY_mem[dftrace_enemy_y];
+	frame->director_phase = MEMORY_mem[dftrace_director_state];
+	frame->director_rng = MEMORY_mem[dftrace_director_state + 5u];
+	frame->director_intensity = MEMORY_mem[dftrace_director_state + 2u];
+	frame->director_reaction = MEMORY_mem[dftrace_director_state + 3u];
+	frame->director_recovery = MEMORY_mem[dftrace_director_state + 4u];
 	frame->difficulty = MEMORY_mem[dftrace_difficulty_setting];
 	frame->active_muzzles = dftrace_count_nonzero(dftrace_muzzle_screen_hi, 2);
 	frame->entity_active = MEMORY_mem[dftrace_entity_active_count];
@@ -2612,6 +2637,15 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 	frame->pickup_drawn_mask = MEMORY_mem[dftrace_entity_drawn_mask + 1u];
 	frame->score_lo = MEMORY_mem[dftrace_score_lo];
 	frame->score_hi = MEMORY_mem[dftrace_score_hi];
+	frame->active_gameplay_frame = MEMORY_mem[dftrace_active_gameplay_frame_lo] |
+		((unsigned) MEMORY_mem[dftrace_active_gameplay_frame_lo + 1u] << 8);
+	frame->enemy_state = MEMORY_mem[dftrace_enemy_active];
+	frame->enemy_y = MEMORY_mem[dftrace_enemy_y];
+	frame->director_phase = MEMORY_mem[dftrace_director_state];
+	frame->director_rng = MEMORY_mem[dftrace_director_state + 5u];
+	frame->director_intensity = MEMORY_mem[dftrace_director_state + 2u];
+	frame->director_reaction = MEMORY_mem[dftrace_director_state + 3u];
+	frame->director_recovery = MEMORY_mem[dftrace_director_state + 4u];
 	frame->dli_sequence_violations = dftrace_dli_sequence_violations;
 	frame->maximum_dlis_per_host_frame = dftrace_maximum_dlis_per_host_frame;
 	frame->pause_test_completed = dftrace_pause_test_completed;
@@ -2666,7 +2700,8 @@ static void dftrace_write(void)
 		",player_damage_cooldown,player_damage_applied,capital_collision_calls"
 		",capital_player_damage_calls,player_lifecycle_after,player_x_after,player_y_after"
 		",player_health_after,player_lives_after,player_invulnerability_after"
-		",player_damage_cooldown_after\n");
+		",player_damage_cooldown_after,active_gameplay_frame,enemy_state,enemy_y"
+		",director_phase,director_rng,director_intensity,director_reaction,director_recovery\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -2825,7 +2860,8 @@ static void dftrace_write(void)
 				frame->broad_raster_row[slot]);
 		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u"
 			",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u"
-			",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n",
+			",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u"
+			",%u,%u,%u,%u,%u,%u,%u,%u\n",
 			frame->broad_pointer_errors,
 			frame->player_health, frame->player_lives, frame->player_invulnerability,
 			frame->broad_screen_orphan_cells, frame->broad_screen_first_address,
@@ -2841,7 +2877,10 @@ static void dftrace_write(void)
 			frame->capital_collision_calls, frame->capital_player_damage_calls,
 			frame->player_lifecycle_after, frame->player_x_after, frame->player_y_after,
 			frame->player_health_after, frame->player_lives_after,
-			frame->player_invulnerability_after, frame->player_damage_cooldown_after);
+			frame->player_invulnerability_after, frame->player_damage_cooldown_after,
+			frame->active_gameplay_frame, frame->enemy_state, frame->enemy_y,
+			frame->director_phase, frame->director_rng, frame->director_intensity,
+			frame->director_reaction, frame->director_recovery);
 	}
 	if (fclose(file) != 0) {
 		perror("voidstrike65 trace close");
@@ -2994,6 +3033,9 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_frontend_input_armed, "DFTRACE_FRONTEND_INPUT_ARMED");
 	DFTRACE_ADDRESS(dftrace_difficulty_setting, "DFTRACE_DIFFICULTY_SETTING");
 	DFTRACE_ADDRESS(dftrace_gameplay_frame, "DFTRACE_GAMEPLAY_FRAME");
+	DFTRACE_ADDRESS(dftrace_active_gameplay_frame_lo, "DFTRACE_ACTIVE_GAMEPLAY_FRAME_LO");
+	DFTRACE_ADDRESS(dftrace_enemy_y, "DFTRACE_ENEMY_Y");
+	DFTRACE_ADDRESS(dftrace_director_state, "DFTRACE_DIRECTOR_STATE");
 	DFTRACE_ADDRESS(dftrace_muzzle_screen_hi, "DFTRACE_MUZZLE_SCREEN_HI");
 	DFTRACE_ADDRESS(dftrace_muzzle_screen_lo, "DFTRACE_MUZZLE_SCREEN_LO");
 	DFTRACE_ADDRESS(dftrace_muzzle_row_domain, "DFTRACE_MUZZLE_ROW_DOMAIN");

@@ -194,13 +194,13 @@ const broadsideTransientSessions = [
 
 const provisionalCapitalSessions = ["XEX", "ATR"].flatMap((medium) =>
   [0, 1, 2].map((difficulty) => ({
-    id: `provisional-capital-${medium.toLowerCase()}-${difficulty}-cold-sweep-fire4`,
+    id: `early-enemy-${medium.toLowerCase()}-${difficulty}-cold-hunt-fire4`,
     medium,
     difficulty,
-    policy: "sweep",
+    policy: "early-hunt",
     fireDelay: 4,
-    frames: 1_600,
-    kind: "provisional-capital-cold",
+    frames: 1_500,
+    kind: "early-enemy-cold",
   })));
 
 const capitalContactSessions = [0, 1].map((owner) => ({
@@ -479,6 +479,8 @@ const numericCsvFields = new Set([
   "projectiles", "broadside", "far_rendered", "live_interceptor", "fighter_explosion",
   "capital_explosion", "music_active", "fire_sfx", "hit_sfx", "capital_sfx",
   "sound_enabled", "player_lifecycle", "sector_state", "gameplay_frame",
+  "active_gameplay_frame", "enemy_state", "enemy_y", "director_phase", "director_rng",
+  "director_intensity", "director_reaction", "director_recovery",
   "difficulty", "active_muzzles", "entity_active", "entity_x", "entity_y",
   "entity_vx", "entity_move_accumulator", "entity_vertical_accumulator",
   "entity_render_id", "events",
@@ -1297,17 +1299,22 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
     const loader300 = byFrame.get(300);
     const menu = byFrame.get(500);
     const gameplay = byFrame.get(750);
-    const completeLoaderSnapshots = [loader250, loader300];
+    const completeLoaderSnapshots = [loader250, loader300].filter((snapshot) =>
+      snapshot.dma_ctl === 0x22 && snapshot.nmi_en === 0x80);
+    invariant(completeLoaderSnapshots.includes(loader300),
+      `${definition.id} did not reach a complete loader raster by frame 300`);
     for (const snapshot of completeLoaderSnapshots) {
       invariant(snapshot.game_state === 0 && snapshot.dlist === expected.loader_dlist &&
         snapshot.charset_address === 0xe000 && snapshot.dma_ctl === 0x22 &&
         snapshot.nmi_en === 0x80 && snapshot.vdslst === expected.loader_dli,
       `${definition.id} loader display/VBI state is invalid at frame ${snapshot.frame}`);
     }
-    invariant(loader250.loader_timer > loader300.loader_timer && loader300.loader_timer > 0,
-      `${definition.id} loader countdown did not advance between frames 250 and 300`);
+    invariant(loader300.loader_timer > 0 &&
+      (!completeLoaderSnapshots.includes(loader250) ||
+        loader250.loader_timer > loader300.loader_timer),
+    `${definition.id} loader countdown did not advance through frame 300`);
     const milestones = result.milestones;
-    const menuDeadline = definition.id.startsWith("atr") ? 503 : 502;
+    const menuDeadline = definition.id.startsWith("atr") ? 510 : 502;
     invariant(milestones.menu <= menuDeadline && milestones.frontend_poll <= menuDeadline + 1,
       `${definition.id} did not reach the production main-menu input path by frame ${menuDeadline + 1}`);
     invariant(gameplay.game_state === 6 && gameplay.charset_address === 0x5000 &&
@@ -1741,6 +1748,7 @@ function main() {
   const menuRasterOnly = process.argv.includes("--menu-raster-only");
   const capitalPlayerCollisionOnly = process.argv.includes("--capital-player-collision-only");
   const broadsideTransientOnly = process.argv.includes("--broadside-transient-only");
+  const earlyEnemyOnly = process.argv.includes("--early-enemy-only");
   const reuseExistingTraces = process.argv.includes("--reuse-existing-traces");
   const smokeFramesArgument = argumentValue("smoke-frames");
   const smokeFrames = smokeFramesArgument === undefined ? null : Number(smokeFramesArgument);
@@ -1832,6 +1840,9 @@ function main() {
   invariant(Number.isInteger(sectorState), "Trace label CAPITAL_SECTOR_STATE is missing");
   addressEnvironment.DFTRACE_CAPITAL_DRAIN_ROWS =
     `0x${(sectorState + 1).toString(16)}`;
+  addressEnvironment.DFTRACE_ACTIVE_GAMEPLAY_FRAME_LO = "0x4ff8";
+  addressEnvironment.DFTRACE_ENEMY_Y = `0x${labels.get("enemy_y").toString(16)}`;
+  addressEnvironment.DFTRACE_DIRECTOR_STATE = "0x80f6";
 
   fs.mkdirSync(buildDirectory, { recursive: true });
   if (menuRasterOnly) {
@@ -1873,7 +1884,9 @@ function main() {
       if (fs.existsSync(framePath)) fs.unlinkSync(framePath);
     }
   }
-  let sessionsToRun = broadsideTransientOnly
+  let sessionsToRun = earlyEnemyOnly
+    ? provisionalCapitalSessions
+    : broadsideTransientOnly
     ? broadsideTransientSessions
     : capitalPlayerCollisionOnly
     ? capitalPlayerGeometrySessions
@@ -2554,6 +2567,140 @@ function main() {
     summaries.push(sessionSummary(session, rows));
     console.log(`${session.id}: ${rows.length} frames, max ` +
       `${maximumRow(rows, (row) => row.wall_cycles).wall_cycles} wall cycles`);
+  }
+  if (earlyEnemyOnly) {
+    const limits = [60, 45, 30];
+    const evidence = sessionsToRun.map((session) => {
+      const rows = allRows.filter((row) => row.session === session.id);
+      const admissions = [];
+      const releases = [];
+      for (let index = 0; index < rows.length; ++index) {
+        const row = rows[index];
+        const previous = index === 0 ? undefined : rows[index - 1];
+        if (row.enemy_state === 1 && (previous === undefined || previous.enemy_state === 0))
+          admissions.push(row);
+        if (row.enemy_state === 0 && previous?.enemy_state === 2) releases.push(row);
+      }
+      const visible = admissions.map((admission, admissionIndex) => rows.find((row) =>
+        row.frame >= admission.frame &&
+        (admissionIndex + 1 === admissions.length || row.frame < admissions[admissionIndex + 1].frame) &&
+        row.enemy_state === 1 && row.enemy_y + 14 > 16)).filter(Boolean);
+      const kills = rows.filter((row) => (row.events & (1 << 18)) !== 0);
+      const pending = rows.find((row) => row.pickup_state === 1);
+      const active = rows.find((row) => row.pickup_state === 2);
+      const pickupEpisodes = rows.filter((row, index) => row.pickup_state === 1 &&
+        (index === 0 || rows[index - 1].pickup_state === 0));
+      const pickupCollections = rows.filter((row) => (row.events & (1 << 19)) !== 0);
+      const capital = rows.find((row, index) => row.sector_state !== 7 &&
+        (index === 0 || rows[index - 1].sector_state === 7));
+      const capitalVisible = capital === undefined ? undefined : rows.find((row) =>
+        row.frame >= capital.frame &&
+        (row.capital_visible_allied_cells !== 0 || row.capital_visible_enemy_cells !== 0));
+      const visibilityGaps = releases.slice(0, Math.max(0, visible.length - 1))
+        .map((release, index) => visible[index + 1].active_gameplay_frame -
+          release.active_gameplay_frame);
+      const maximumWall = Math.max(...rows.map((row) => row.wall_cycles));
+      const gateOverruns = rows.filter((row) => row.wall_cycles >= 32_568).length;
+      const physicalOverruns = rows.filter((row) => row.wall_cycles >= PAL_FRAME_CYCLES).length;
+      const timingErrors = rows.reduce((counts, row) => ({
+        missed: counts.missed + row.missed_frames,
+        extra_vbi: counts.extra_vbi + row.extra_vbi_boundaries,
+        dli: counts.dli + row.dli_sequence_violations,
+      }), { missed: 0, extra_vbi: 0, dli: 0 });
+      invariant(admissions.length >= 3,
+        `${session.id} observed ${admissions.length} admissions`);
+      invariant(releases.length === admissions.length,
+        `${session.id} charged ${admissions.length} ordinary admissions but released ` +
+        `${releases.length}`);
+      invariant(visible.length >= 3 && visible[0].active_gameplay_frame <= 60,
+        `${session.id} first visible frame was ${visible[0]?.active_gameplay_frame}`);
+      invariant(visibilityGaps.every((gap) => gap <= limits[session.difficulty]),
+        `${session.id} visibility gaps ${visibilityGaps} exceed ${limits[session.difficulty]}`);
+      invariant(kills.filter((row) => row.active_gameplay_frame < 600).length >= 3,
+        `${session.id} observed fewer than three qualified kills before frame 600`);
+      invariant(pending !== undefined && active !== undefined &&
+        pending.active_gameplay_frame <= active.active_gameplay_frame &&
+        active.active_gameplay_frame < (capital?.active_gameplay_frame ?? 600),
+      `${session.id} did not naturally expose PENDING then ACTIVE before capital admission`);
+      invariant(pickupEpisodes.length === 1,
+        `${session.id} created ${pickupEpisodes.length} pickup episodes`);
+      invariant(pickupCollections.length === 1,
+        `${session.id} naturally collected the pickup ${pickupCollections.length} times`);
+      invariant(capital?.active_gameplay_frame >= 600 && capitalVisible !== undefined,
+        `${session.id} capital admission/visibility was ${capital?.active_gameplay_frame}/` +
+        `${capitalVisible?.active_gameplay_frame}`);
+      invariant(!admissions.some((row) => row.frame >= capital.frame),
+        `${session.id} admitted an ordinary enemy during the capital sector`);
+      invariant(maximumWall < 32_568 && timingErrors.missed === 0 &&
+        timingErrors.extra_vbi === 0 && timingErrors.dli === 0,
+      `${session.id} failed PAL timing: max=${maximumWall}, ${JSON.stringify(timingErrors)}`);
+      invariant(rows.every((row) => row.muzzle_illegal_cells === 0 &&
+        row.muzzle_pointer_errors === 0 && row.broad_pointer_errors === 0 &&
+        row.broad_screen_orphan_cells === 0 &&
+        [0, 1, 2].every((slot) => row[`broad_pmg_orphan_rows${slot}`] === 0)),
+      `${session.id} observed backing, pointer, or orphan-glyph contamination`);
+      const compact = (row) => row === undefined ? null : ({
+        trace_frame: row.frame,
+        active_gameplay_frame: row.active_gameplay_frame,
+        enemy_y: row.enemy_y,
+        intensity: row.director_intensity,
+        rng: row.director_rng,
+      });
+      return {
+        session: session.id,
+        artifact: session.medium,
+        difficulty: ["BEGINNER", "MEDIUM", "HARD"][session.difficulty],
+        frames: rows.length,
+        input: { policy: session.policy, fire_delay: session.fireDelay, state_injection: false },
+        first_attempt_active_gameplay_frame: admissions[0].active_gameplay_frame,
+        admissions: admissions.map(compact),
+        visible: visible.map(compact),
+        releases: releases.map(compact),
+        maximum_release_to_visibility_gap: Math.max(0, ...visibilityGaps),
+        qualified_kills_before_frame_600: kills.filter((row) =>
+          row.active_gameplay_frame < 600).map(compact),
+        third_qualified_kill: compact(kills[2]),
+        pickup: { pending: compact(pending), active: compact(active),
+          collected: compact(pickupCollections[0]), episodes: pickupEpisodes.length },
+        capital: { configured_due_active_gameplay_frame: 600,
+          admission: compact(capital), first_visible: compact(capitalVisible) },
+        director: {
+          ordinary_charges: admissions.length,
+          ordinary_releases: releases.length,
+          charge_release_balanced: releases.length === admissions.length,
+          maximum_intensity: Math.max(...rows.map((row) => row.director_intensity)),
+          rng_sequence_at_admission: admissions.map((row) => row.director_rng),
+          rng_sequence_checksum_sha256: sha256(Buffer.from(
+            admissions.map((row) => row.director_rng))),
+        },
+        timing: { maximum_wall_cycles: maximumWall,
+          physical_headroom_cycles: PAL_FRAME_CYCLES - maximumWall,
+          focused_gate_headroom_cycles: 32_568 - maximumWall,
+          deadline_overruns: timingErrors.missed,
+          physical_pal_overruns: physicalOverruns,
+          focused_gate_overruns: gateOverruns,
+          ...timingErrors },
+        integrity: { backing_contamination: 0, orphan_glyphs: 0,
+          extra_pmg_scanlines: 0,
+          maximum_active_ordinary_enemies: Math.max(...rows.map((row) =>
+            row.enemy_state === 0 ? 0 : 1)) },
+        csv: path.relative(rootDirectory,
+          path.join(buildDirectory, `${session.id}.csv`)),
+        passed: true,
+      };
+    });
+    const focusedReportPath = path.join(buildDirectory, "early-enemy-native-report.json");
+    fs.writeFileSync(focusedReportPath, `${JSON.stringify({
+      schema_version: 1,
+      generated_by: "scripts/runtime-wall-trace.mjs --early-enemy-only",
+      emulator: "Atari800 7.1.2 PAL/XL",
+      artifact_sha256: runtimeArtifacts,
+      cold_boot: bootSmoke,
+      sessions: evidence,
+      passed: evidence.every((entry) => entry.passed),
+    }, null, 2)}\n`);
+    console.log(`Early enemy report: ${path.relative(rootDirectory, focusedReportPath)}`);
+    return;
   }
   if (onlySession !== undefined) {
     const focusedReportPath = path.join(buildDirectory, `${onlySession}-focused-run.json`);

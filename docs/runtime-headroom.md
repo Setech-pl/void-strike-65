@@ -79,39 +79,42 @@ cycles, leaving 10,787 cycles of the 35,568-cycle PAL frame, with no missed
 frame. This focused candidate measurement does not replace the accepted global
 report below.
 
-## Focused provisional early-capital evidence
+## Focused provisional early-enemy evidence
 
-Three cold-start Atari800 7.1.2 PAL/XL replays measure 1,100 active gameplay
-frames each on EASY, MEDIUM, and HARD. All three admit the moved, single
-capital encounter at gameplay frame 50. The first Allied pixels appear at
-frames 52/53/51 and the first frame containing visible pixels from both hulls
-is 72/71/67 respectively; entry remains tied to the normal 20/22.5/25 row/s
-world cadence.
+Six cold-start Atari800 7.1.2 PAL/XL replays cover XEX and ATR on BEGINNER,
+MEDIUM, and HARD for 1,500 active gameplay frames each. This is a provisional
+development schedule, not final level balance. First Interceptor admission is
+active frame 1 and first visibility is frame 2 in every replay. The measured
+release-to-next-visibility maxima are 50/38/26 frames, within the policy limits
+60/45/30. At least three qualifying Player Fighter-projectile kills occur by
+frames 256/238/300. Their single natural pickup enters PENDING on that third
+kill, ACTIVE at 447/381/331, and is collected at 527/455/400.
 
-The complete Hostile warning/flash/launch counts are 3/3/3 on EASY, 4/4/4 on
-MEDIUM, and 3/3/3 on HARD. Warning starts are separated by 80, 71-78, and 64
-active frames respectively. Across the 3,300 measured frames, maximum wall
-intervals are 22,760/23,741/24,639 cycles, leaving at least 10,929 cycles of
-the 35,568-cycle PAL frame. Missed frames, deadline overruns, extra VBI
-boundaries, illegal `$45/$D0` cells, and tracked-muzzle/BROADSIDE pointer errors
-are all zero. These focused measurements do not replace the accepted global
-gauntlet report below.
+The capital request becomes due at active frame 600. Mutual exclusion with a
+still-live ordinary enemy delays actual admission to 720/694/627 and first
+visible hull pixels to 723/696/628; no ordinary admission occurs during the
+active hull. XEX and ATR are replay-equivalent per difficulty. Maximum wall
+intervals are 29,385/30,305/30,733 cycles, leaving at least 4,835 cycles of the
+physical 35,568-cycle PAL frame and 1,835 cycles below the focused 32,568-cycle
+gate. Missed frames, deadline overruns, extra VBI boundaries, DLI ordering
+errors, backing contamination, orphan glyphs, and extra PMG scanlines are all
+zero. These focused measurements do not regenerate or replace the accepted
+global gauntlet evidence. Raw traces and their report are under
+`build/runtime-wall-trace/early-enemy-*`.
 
-At that provisional checkpoint the gate added 107 B of linked code/data, no
-BSS, and no glyphs. Linked runtime was 16,924 B; simultaneous residency was
-18,762 B and safe residency was 3,425 B. The entry and muzzle raster sequences plus raw per-frame
-traces are stored under `build/runtime-wall-trace/provisional-capital-*-cold-*`.
+The current change adds a 16-bit active-gameplay clock and a table-driven
+single-slot admission wrapper without adding BSS, glyphs, or enemy slots.
+Linked runtime is 17,287 B; simultaneous residency is 18,917 B and safe
+residency is 3,270 B. Executed linked bytes bound the per-frame clock at 34 CPU
+cycles including its `JSR` on the low-byte rollover path. The provisional
+Director wrapper costs at most 269 CPU cycles including its `JSR` on a
+successful phase-zero admission (143 on the measured phase-mask rejection) and
+runs only when the sole slot's retry timer permits an admission attempt.
 
-The owner-independent capital-shell/player collision module is a 33-byte
-inclusive final-raster swept-AABB routine at `$8E61-$8E81`, appended to the
-existing pickup phase/code stream. Replacing the former pixel-mask narrow phase
-still removes 77 B of simultaneous runtime residency: 18,910 -> 18,833 B,
-increasing safe residency from 3,277 to 3,354 B. Relative to the accepted
-renderer checkpoint, code/data grows by 6 B and persistent reserved BSS does
-not grow; three bytes of its existing compatibility hole now cache the mapped
-bolt raster tops. The aggregate pickup/code/collision transport is 921 B while
-remaining inside its existing eight-sector allocation; total transport remains
-161 sectors.
+The owner-independent capital-shell/player collision module remains a 33-byte
+inclusive final-raster swept-AABB routine, now at `$8EBE-$8EDE` after the
+expanded admission code. The aggregate pickup/code/collision transport is
+1,022 B in nine sectors; total transport is 163 sectors.
 
 Focused native XEX MEDIUM and ATR HARD sessions cover both owners and true
 top, middle, bottom, and one-scanline near-miss contacts. Their

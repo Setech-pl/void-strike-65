@@ -29,25 +29,26 @@ controlled destination. Any failure blanks DMA, selects a fixed red error
 background, and halts before partially loaded code can execute.
 
 The four ordered DFMC records are BROADSIDE in sectors 102-146, the packed
-pickup phase/code/collision stream in sectors 147-154, 234-byte integration glue
-in sectors 155-156, and the Encounter Director in sectors 157-161. ATR stages
+pickup phase/code/collision stream in sectors 147-155, 249-byte integration glue
+in sectors 156-158, and the Encounter Director in sectors 159-163. ATR stages
 each record at `$8100`; BROADSIDE expands 6,643 bytes to `$5E10-$7802`, the
-921-byte pickup stream is published temporarily at `$8C80-$9018`, and glue
-expands to `$5261-$534A`. Packed ENTITY_CODE stages at `$534B-$5D3B`, directly
-after glue. Startup holds glue at `$7F16-$7FFF` after publishing
-the A2 kernel, then copies it to `$4EFE-$4FE7`; the 645-byte Director expands to
+1,022-byte pickup stream is published temporarily at `$8C80-$907D`, and glue
+expands to `$5261-$5359`. Packed ENTITY_CODE stages at `$535A-$5D4A`, directly
+after glue. Startup holds glue at `$8600-$86F8` after consuming resident
+staging, then copies it to `$4EFE-$4FF6`; the 645-byte Director expands to
 `$9D75-$9FF9`. The last BROADSIDE source read makes `$8100` reusable;
 only then does startup copy the packed resident suffix and stage it at
 `$8100-$9B06`. The 7,743-byte suffix is stored as a 6,663-byte LZ-10/5 stream
 and restores `$21C1-$3FFF`, overwriting all stage-2 code and its maximum
-eight-record manifest. The pickup stream is preserved at `$4801-$4B99` before
+eight-record manifest. The pickup stream is preserved at `$4801-$4BFE` before
 its cold source overlaps the future A2 range, then expands atomically to
-`$8800-$8E81`; the final 33 bytes are the final-raster capital/player collision module.
+`$8800-$8EDE`; the final 33 bytes at `$8EBE-$8EDE` are the final-raster
+capital/player collision module.
 No loader byte remains resident or enters gameplay.
 
 The manifest uses 16-bit sector numbers, supports eight sequential chunks, and
-accepts RAW or LZ records. The current initial block and four records use 161
-sectors (20,608 B). The ATR itself has 559 unused sectors (71,552 B); runtime
+accepts RAW or LZ records. The current initial block and four records use 163
+sectors (20,864 B). The ATR itself has 557 unused sectors (71,296 B); runtime
 residency remains a separate constraint.
 
 ### DFMC v1 byte format
@@ -68,14 +69,14 @@ Each 16-byte record stores, in order: 16-bit start sector, 16-bit sector count,
 16-bit packed length, 16-bit raw length, 16-bit final destination, 16-bit CRC of
 the complete sector image, one-byte type (`0=RAW`, `1=LZ`), one-byte controlled
 staging identifier, and a 16-bit staging address. All words are little-endian.
-Production records begin at sectors 102, 147, 155, and 157. Their packed/raw
-lengths are respectively 5,660/6,643 B, 921/921 B, 229/234 B, and 585/645 B.
+Production records begin at sectors 102, 147, 156, and 159. Their packed/raw
+lengths are respectively 5,660/6,643 B, 1,022/1,759 B, 244/249 B, and 585/645 B.
 The second record carries the compressed immutable pickup phase bank plus its
 late compositor and the 33-byte collision module. Its cold copy at
-`$8C80-$9018` is first preserved at `$4801-$4B99`, then decompressed to
-`$8800-$8E81`; source and destination never overlap while live. Glue is
-transported to `$5261`, held at `$7F16-$7FFF` while ENTITY_CODE is unpacked,
-and late-published to `$4EFE-$4FE7`. The Director ends
+`$8C80-$907D` is first preserved at `$4801-$4BFE`, then decompressed to
+`$8800-$8EDE`; source and destination never overlap while live. Glue is
+transported to `$5261`, held at `$8600-$86F8` after resident staging is
+consumed, and late-published to `$4EFE-$4FF6`. The Director ends
 at `$9FF9`; `$9FFA-$9FFF` is a six-byte untouched guard.
 
 The loader bitmap source is declarative. The build rasterizes 7,680 bytes for a
@@ -92,20 +93,20 @@ footer palette zones. The loader remains visible for 250 complete PAL frames
 Cold staging also copies:
 
 - validated external broadside/runtime data to `$5E10-$780F` before takeover;
-- packed starfield/music data through `$7810-$7F0F` to `$552A-$5DF3`;
+- packed starfield/music data through `$7810-$7F0F` to `$552A-$5DF5`;
 - the 255-byte A2 kernel through `$7F16-$8014` to `$9000-$90FE`, before the
   `$8000-$80FF` entity/effects clear destroys the consumed source;
-- packed entity/effect/frontend code through boot-only staging at `$5300-$5CEF`
+- packed entity/effect/frontend code through boot-only staging at `$535A-$5D4A`
   to the resident `$9100-$9D74` range. The staging write begins only after the
-  initial packed source ending at `$5254` has been consumed. Its end-exclusive
-  `$5CF0` remains 288 bytes below the BROADSIDE destination at `$5E10`.
+  initial packed source ending at `$5261` has been consumed. Its end-exclusive
+  `$5D4B` remains 197 bytes below the BROADSIDE destination at `$5E10`.
 
-The initial packed sources end exclusively at `$5255`, leaving 171 bytes before
-the `$5300` staging start. Startup copies ENTITY_CODE there, expands the stream
+The initial packed sources end exclusively at `$5262`, leaving 248 bytes before
+the `$535A` staging start. Startup copies ENTITY_CODE there, expands the stream
 to its current live `$9100-$9D74` range, and immediately releases the staging
 range. `unpack_loader_bitmap` may then overwrite it while preparing the loader;
 after the loader display completes, `unpack_starfield_runtime` expands to
-`$552A-$5DFC`, overlapping 1,990 bytes of the already inactive ENTITY_CODE
+`$552A-$5DF5`, overlapping the already inactive ENTITY_CODE
 staging range. This ordering is mandatory; the overlap is temporal, not
 simultaneous residency.
 
@@ -261,6 +262,15 @@ The released ordinary enemy is the Interceptor. Its descriptor selects hit point
 score, pursuit profile, weapon profile, and PMG appearance. Interceptor projectiles
 share the fighter-projectile state allocation but use separate slots, red
 glyphs, collision ownership, and lifetime rules.
+
+The current provisional development schedule keeps one ordinary-enemy slot and
+uses table-driven BEGINNER/MEDIUM/HARD release-to-retry delays of 48/36/24 active
+gameplay frames. A bounded request still passes through the production Director
+phase mask and budget, consumes one charge and one RNG step only on admission,
+and remains excluded while a capital hull is active. The active-gameplay clock
+does not advance in loader, frontend, pause, dying, or Game Over states. This
+early window exists for natural Interceptor and three-kill booster testing; it
+is not the final level layout.
 
 Direct Interceptor/Player Fighter overlap is resolved after fighter projectiles and before
 broadside work. It queues the existing one-point contact hit against the

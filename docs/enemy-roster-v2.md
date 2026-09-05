@@ -359,9 +359,13 @@ denied request may block another request in that frame. Reaction/recovery use
 world rows, not frames. Hazard costs are currently 1/1/2/0 for ordinary fighter,
 debris, capital bolt, pickup. Current phase budgets peak at 3/4/5.
 
-Current fighter integration retries every eight eligible gameplay frames using
-the burst timer and blocks new ordinary admissions while the capital hull is
-live. A pre-existing fighter continues its lifecycle. `reset_enemy` separately
+The provisional single-Interceptor baseline uses the shared burst timer as a
+48/36/24 active-frame retry on BEGINNER/MEDIUM/HARD and blocks new ordinary
+admissions while the capital hull is live. Its admission wrapper preserves
+global reaction/recovery while retaining the production phase-mask, budget,
+allocation, charge, and RNG contract. This is a development test-window policy,
+not the indexed v2 design. A pre-existing fighter continues its lifecycle.
+`reset_enemy` separately
 uses `random_byte`, a right-shift `$B8` game LFSR; debris uses a distinct
 left-shift `$1D` LFSR and stars another state. Therefore migrating spawn choices
 to the Director is a deliberate replay-stream change, not current behavior.
@@ -389,7 +393,7 @@ ordinary death completion. Zero the retiring charge exactly once. Cleanup must
 also handle an undropped mine reservation, DRAIN, COMPLETE, life loss, and New
 Game, without disturbing live Director flags or applying a release after reset.
 
-Use one bounded admission attempt per frame, eight-frame retry delay, and the
+Use one bounded admission attempt per frame, a table-driven retry delay, and the
 existing live-capital admission exclusion. Permit type coexistence in eligible
 open phases only within occupancy, intensity, and projectile limits. The current
 boss event is an unregistered fallback to COMPLETE; do not pretend it starts a

@@ -43,15 +43,16 @@ test("physical OPTION enters PAUSED before any gameplay frame mutation", () => {
   assert.match(source, /STATE_PAUSED\s*=\s*8/);
   const loop = routine("main_loop", "enter_pause");
   assert.match(loop,
-    /jsr wait_frame\s+lda #CONSOL_OPTION_MASK\s+bit CONSOL\s+beq main_loop_option_pressed/);
-  assert.ok(loop.indexOf("bit CONSOL") < loop.indexOf("inc frame_counter"));
+    /jsr wait_gameplay_frame\s+lda #CONSOL_OPTION_MASK\s+bit CONSOL\s+beq main_loop_option_pressed/);
+  assert.ok(loop.indexOf("bit CONSOL") < loop.indexOf("integration_active_gameplay_tick"));
   assert.match(loop, /inc pause_option_latched\s+jmp enter_pause/);
 });
 
 test("PAUSED runs no world, combat, animation, score, death, or respawn tick", () => {
   const paused = routine("pause_loop", "poll_pause_option_edge");
   for (const forbidden of [
-    "frame_counter", "read_input", "update_enemy", "update_starfield",
+    "frame_counter", "ACTIVE_GAMEPLAY_FRAME", "integration_active_gameplay_tick",
+    "read_input", "update_enemy", "update_starfield",
     "update_player_fighter_weapon", "update_enemy_weapon", "handle_collisions",
     "tick_shared_fighter_explosions", "tick_capital_explosions",
     "update_engine_animation", "update_player_death", "tick_respawn_invulnerability",

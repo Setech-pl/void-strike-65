@@ -452,19 +452,25 @@ test("natural-fire trace records burst allocation and playfield movement", () =>
   assert.match(openAllocation, /PF0:[0-9]+:[0-9]+>[0-9]+:2x3/);
 });
 
-test("pulse cleanup is deterministic across drain, complete, death, and respawn paths", () => {
+test("released pulses survive sector drain while terminal player lifecycle still clears them", () => {
   let state = { ...createEnemyCombatState(asset), fireTimer: 0 };
   state = stepEnemyCombatFrame(asset, state);
   assert.ok(state.pool[0]);
   state = stepEnemyCombatFrame(asset, state, {
     sectorState: ENEMY_COMBAT_SECTOR_STATES.DRAIN,
   });
-  assert.equal(state.pool[0], null);
+  assert.ok(state.pool[0], "DRAIN stops the parent weapon without releasing its projectile");
+  assert.equal(state.burstState, "WAITING");
   state = stepEnemyCombatFrame(asset, state, {
     sectorState: ENEMY_COMBAT_SECTOR_STATES.COMPLETE,
   });
-  assert.ok(state.pool[0], "ordinary Interceptor fire resumes after the finite sector exits DRAIN");
-  assert.match(source, /update_enemy_weapon_runtime:[\s\S]+cmp #CAPITAL_HULL_STATE_DRAIN[\s\S]+clear_interceptor_projectiles/);
+  assert.ok(state.pool[0], "the independent projectile also survives COMPLETE");
+  state = stepEnemyCombatFrame(asset, state, { playerActive: false });
+  assert.equal(state.pool[0], null, "terminal player lifecycle retains full projectile cleanup");
+  assert.match(source,
+    /update_enemy_weapon_runtime:[\s\S]+cmp #CAPITAL_HULL_STATE_DRAIN[\s\S]+jmp @stop/);
+  assert.doesNotMatch(source.slice(source.indexOf("update_enemy_weapon_runtime:"),
+    source.indexOf("allocate_interceptor_projectile:")), /clear_interceptor_projectiles/);
   assert.match(source, /apply_player_damage:[\s\S]+jsr clear_interceptor_pulses/);
   assert.match(source, /respawn_player:[\s\S]+jsr clear_fighter_projectiles/);
 });

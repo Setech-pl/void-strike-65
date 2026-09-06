@@ -3741,7 +3741,7 @@ interceptor_projectile_hits_player:
     sec
     sbc player_y
     cmp #(PLAYER_COLLISION_LAST_ROW+1)
-    bcc @hit
+    bcc @vertical_overlap
     cmp #(256-(INTERCEPTOR_PROJECTILE_SPEED+INTERCEPTOR_PROJECTILE_HEIGHT-1))
     bcc @miss
 @vertical_overlap:
@@ -3931,7 +3931,7 @@ update_enemy_weapon_runtime:
     lda CAPITAL_SECTOR_STATE
     cmp #CAPITAL_HULL_STATE_DRAIN
     bne @player_state
-    jmp clear_interceptor_projectiles
+    jmp @stop                    ; stop the parent weapon, not its released shots
 @player_state:
     lda PLAYER_LIFECYCLE
     cmp #PLAYER_DYING

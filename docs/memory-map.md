@@ -41,8 +41,8 @@ are unchanged.
 
 The production Encounter Director transport is 21,120 bytes in 165 occupied
 sectors. BRCNT loads the 13,184-byte/103-sector initial block at `$2000-$537F`;
-the entry point remains `$201E`. Initial content is exactly 13,095 B and ends
-at `$5326`; the rest of the last sector is transport padding.
+the entry point remains `$201E`. Initial content is exactly 13,093 B and ends
+at `$5324`; the rest of the last sector is transport padding.
 
 | Initial address / ATR sectors | Size | Stored form and startup destination |
 | --- | ---: | --- |

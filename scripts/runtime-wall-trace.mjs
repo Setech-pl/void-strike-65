@@ -1766,8 +1766,8 @@ function main() {
   const smokeFrames = smokeFramesArgument === undefined ? null : Number(smokeFramesArgument);
   const onlySession = argumentValue("only-session");
   const activeFrames = Number(argumentValue("active-frames") ?? 0);
-  invariant(Number.isInteger(activeFrames) && activeFrames >= 0 && activeFrames <= 1500,
-    "--active-frames must be an integer from 0 to 1500");
+  invariant(Number.isInteger(activeFrames) && activeFrames >= 0 && activeFrames <= 1800,
+    "--active-frames must be an integer from 0 to 1800");
   const pickupFenceTrace = process.argv.includes("--pickup-fence-trace");
   invariant(smokeFrames === null || Number.isInteger(smokeFrames) && smokeFrames > 0,
     "--smoke-frames must be a positive integer");

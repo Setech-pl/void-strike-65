@@ -311,8 +311,14 @@ export function stepEnemyCombatFrame(asset, state, {
     }
   }
 
-  if (sectorState === ENEMY_COMBAT_SECTOR_STATES.DRAIN || !playerActive) {
+  if (!playerActive) {
     next.pool.fill(null);
+    next.burstState = "WAITING";
+    next.burstRemaining = 0;
+    next.fireTimer = 0;
+    return next;
+  }
+  if (sectorState === ENEMY_COMBAT_SECTOR_STATES.DRAIN) {
     next.burstState = "WAITING";
     next.burstRemaining = 0;
     next.fireTimer = 0;

@@ -262,7 +262,10 @@ projectile state.
 The released ordinary enemy is the Interceptor. Its descriptor selects hit points,
 score, pursuit profile, weapon profile, and PMG appearance. Interceptor projectiles
 share the fighter-projectile state allocation but use separate slots, red
-glyphs, collision ownership, and lifetime rules.
+glyphs, collision ownership, and lifetime rules. Once emitted, a projectile is
+independent of its Interceptor and the capital-sector phase; only its swept player
+collision, lower boundary, documented 96-frame lifetime, or gameplay teardown
+releases the slot.
 
 The current provisional development schedule keeps one ordinary-enemy slot and
 uses table-driven BEGINNER/MEDIUM/HARD release-to-retry delays of 48/36/24 active

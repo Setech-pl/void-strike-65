@@ -173,7 +173,7 @@ const directorRunAddress = 0x9d75;
 const directorGuardAddress = 0x9ffa;
 // The prepared-row PAL path changes compression while shrinking linked runtime
 // by five bytes. The initial content therefore occupies a 103-sector envelope.
-const expectedInitialContentBytes = 13095;
+const expectedInitialContentBytes = 13093;
 const expectedLinkedRuntimeBytes = 17277;
 const expectedDirectorRawBytes = 645;
 const expectedDirectorPackedBytes = 585;

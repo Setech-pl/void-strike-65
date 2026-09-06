@@ -310,8 +310,27 @@ static unsigned dftrace_difficulty;
 static const char *dftrace_policy;
 static const char *dftrace_session;
 static const char *dftrace_output;
+static const char *dftrace_interceptor_projectile_output;
 static DFTraceFrame *dftrace_frames;
 static DFTraceFrame dftrace_current;
+
+#define DFTRACE_INTERCEPTOR_SLOT_BASE 10u
+#define DFTRACE_INTERCEPTOR_SLOT_COUNT 9u
+#define DFTRACE_PROJECTILE_ARRAY_STRIDE 19u
+#define DFTRACE_INTERCEPTOR_GLYPH_FIRST 0xdau
+#define DFTRACE_INTERCEPTOR_GLYPH_LAST 0xedu
+
+static unsigned dftrace_interceptor_observed_active[DFTRACE_INTERCEPTOR_SLOT_COUNT];
+static unsigned dftrace_interceptor_previous_active[DFTRACE_INTERCEPTOR_SLOT_COUNT];
+static unsigned dftrace_interceptor_previous_x[DFTRACE_INTERCEPTOR_SLOT_COUNT];
+static unsigned dftrace_interceptor_previous_y[DFTRACE_INTERCEPTOR_SLOT_COUNT];
+static unsigned dftrace_interceptor_previous_lifetime[DFTRACE_INTERCEPTOR_SLOT_COUNT];
+static unsigned dftrace_interceptor_last_active_writer[DFTRACE_INTERCEPTOR_SLOT_COUNT];
+static unsigned dftrace_interceptor_watched_address[DFTRACE_INTERCEPTOR_SLOT_COUNT];
+static unsigned dftrace_interceptor_watched_value[DFTRACE_INTERCEPTOR_SLOT_COUNT];
+static unsigned dftrace_interceptor_last_screen_writer[DFTRACE_INTERCEPTOR_SLOT_COUNT];
+static unsigned dftrace_interceptor_output_initialised;
+static unsigned dftrace_interceptor_first_anomaly;
 
 static unsigned dftrace_pc_active;
 static unsigned dftrace_pc_end;
@@ -2502,6 +2521,160 @@ static unsigned dftrace_logical_row_address(unsigned row)
 		(MEMORY_mem[dftrace_playfield_row_hi + row - 1u] << 8);
 }
 
+static int dftrace_interceptor_display_position(unsigned address,
+	unsigned *raster_row, unsigned *raster_column)
+{
+	unsigned row;
+	if (address >= DFTRACE_DIVIDER_SCREEN && address < DFTRACE_DIVIDER_SCREEN + 40u) {
+		*raster_row = 0u;
+		*raster_column = address - DFTRACE_DIVIDER_SCREEN;
+		return 1;
+	}
+	for (row = 0u; row < DFTRACE_RING_ROWS; ++row) {
+		unsigned base = 0x7f00u + dftrace_displayed_dlist_lo;
+		unsigned pointer = MEMORY_mem[base + 7u + row * 3u] |
+			((unsigned) MEMORY_mem[base + 8u + row * 3u] << 8);
+		if (address >= pointer && address < pointer + 40u) {
+			*raster_row = row + 1u;
+			*raster_column = address - pointer;
+			return 1;
+		}
+	}
+	*raster_row = 0xffffffffu;
+	*raster_column = 0xffffffffu;
+	return 0;
+}
+
+static int dftrace_is_interceptor_projectile_code(unsigned code)
+{
+	return code >= DFTRACE_INTERCEPTOR_GLYPH_FIRST &&
+		code <= DFTRACE_INTERCEPTOR_GLYPH_LAST;
+}
+
+static void dftrace_watch_interceptor_projectiles(void)
+{
+	unsigned index;
+	if (dftrace_interceptor_projectile_output == NULL)
+		return;
+	for (index = 0u; index < DFTRACE_INTERCEPTOR_SLOT_COUNT; ++index) {
+		unsigned slot = index + DFTRACE_INTERCEPTOR_SLOT_BASE;
+		unsigned active = MEMORY_mem[dftrace_projectile_active + slot];
+		unsigned address = MEMORY_mem[dftrace_projectile_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_projectile_screen_hi + slot] << 8);
+		if (active != dftrace_interceptor_observed_active[index]) {
+			dftrace_interceptor_observed_active[index] = active;
+			dftrace_interceptor_last_active_writer[index] = dftrace_previous_pc;
+		}
+		if (address != dftrace_interceptor_watched_address[index]) {
+			dftrace_interceptor_watched_address[index] = address;
+			dftrace_interceptor_watched_value[index] = MEMORY_mem[address];
+			dftrace_interceptor_last_screen_writer[index] = 0u;
+		}
+		else if (MEMORY_mem[address] != dftrace_interceptor_watched_value[index]) {
+			dftrace_interceptor_watched_value[index] = MEMORY_mem[address];
+			dftrace_interceptor_last_screen_writer[index] = dftrace_previous_pc;
+		}
+	}
+}
+
+static void dftrace_write_interceptor_projectiles(DFTraceFrame *frame)
+{
+	FILE *file;
+	unsigned index;
+	if (dftrace_interceptor_projectile_output == NULL)
+		return;
+	file = fopen(dftrace_interceptor_projectile_output,
+		dftrace_interceptor_output_initialised ? "a" : "w");
+	if (file == NULL) {
+		perror("voidstrike65 interceptor projectile trace");
+		exit(2);
+	}
+	if (!dftrace_interceptor_output_initialised) {
+		fprintf(file, "frame,active_frame,slot,event,prior_active,active,prior_x,x,prior_y,y,prev_y,prior_lifetime,lifetime,rendered,address,screen_code,expected_code,visible,raster_row,raster_column,backing,parent_state,parent_x,parent_y,capital_state,ring_flags,ring_head,muzzle_overlap,broadside_overlap,projectile_overlap,last_active_writer_pc,last_screen_writer_pc,ttl_terminal,boundary_terminal,player_collision_terminal\n");
+		dftrace_interceptor_output_initialised = 1u;
+	}
+	for (index = 0u; index < DFTRACE_INTERCEPTOR_SLOT_COUNT; ++index) {
+		unsigned other;
+		unsigned slot = index + DFTRACE_INTERCEPTOR_SLOT_BASE;
+		unsigned active = MEMORY_mem[dftrace_projectile_active + slot];
+		unsigned x = MEMORY_mem[dftrace_projectile_active +
+			DFTRACE_PROJECTILE_ARRAY_STRIDE + slot];
+		unsigned y = MEMORY_mem[dftrace_projectile_active +
+			DFTRACE_PROJECTILE_ARRAY_STRIDE * 2u + slot];
+		unsigned prev_y = MEMORY_mem[dftrace_projectile_active +
+			DFTRACE_PROJECTILE_ARRAY_STRIDE * 3u + slot];
+		unsigned lifetime = MEMORY_mem[dftrace_projectile_active +
+			DFTRACE_PROJECTILE_ARRAY_STRIDE * 4u + slot];
+		unsigned rendered = MEMORY_mem[dftrace_projectile_rendered + slot];
+		unsigned address = MEMORY_mem[dftrace_projectile_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_projectile_screen_hi + slot] << 8);
+		unsigned screen_code = MEMORY_mem[address];
+		unsigned expected_code = 0x80u | (90u + (y & 7u) + ((x & 2u) ? 10u : 0u));
+		unsigned raster_row;
+		unsigned raster_column;
+		unsigned displayed = dftrace_interceptor_display_position(address,
+			&raster_row, &raster_column);
+		unsigned visible = active != 0u && rendered != 0u && displayed &&
+			dftrace_is_interceptor_projectile_code(screen_code);
+		unsigned muzzle_overlap = address ==
+			(MEMORY_mem[dftrace_muzzle_screen_lo] |
+			 ((unsigned) MEMORY_mem[dftrace_muzzle_screen_hi] << 8)) ||
+			address == (MEMORY_mem[dftrace_muzzle_screen_lo + 1u] |
+			 ((unsigned) MEMORY_mem[dftrace_muzzle_screen_hi + 1u] << 8));
+		unsigned projectile_overlap = 0u;
+		unsigned next_y = (dftrace_interceptor_previous_y[index] + 5u) & 0xffu;
+		unsigned delta_y = (dftrace_interceptor_previous_y[index] - frame->player_y) & 0xffu;
+		unsigned delta_x = (dftrace_interceptor_previous_x[index] - frame->player_x) & 0xffu;
+		unsigned ttl_terminal = dftrace_interceptor_previous_lifetime[index] == 1u;
+		unsigned boundary_terminal = next_y + 3u >= 241u;
+		unsigned player_collision_terminal =
+			(delta_y < 15u || delta_y >= 249u) && (delta_x < 8u || delta_x >= 255u);
+		const char *event = active != 0u && dftrace_interceptor_previous_active[index] == 0u
+			? "spawn" : active == 0u && dftrace_interceptor_previous_active[index] != 0u
+			? "release" : "active";
+		for (other = 0u; other < DFTRACE_INTERCEPTOR_SLOT_COUNT; ++other) {
+			unsigned other_slot = other + DFTRACE_INTERCEPTOR_SLOT_BASE;
+			unsigned other_address;
+			if (other == index || MEMORY_mem[dftrace_projectile_active + other_slot] == 0u)
+				continue;
+			other_address = MEMORY_mem[dftrace_projectile_screen_lo + other_slot] |
+				((unsigned) MEMORY_mem[dftrace_projectile_screen_hi + other_slot] << 8);
+			if (other_address == address)
+				projectile_overlap = 1u;
+		}
+		if (active != 0u || dftrace_interceptor_previous_active[index] != 0u) {
+			fprintf(file, "%u,%u,%u,%s,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n",
+				dftrace_count, frame->active_gameplay_frame, slot, event,
+				dftrace_interceptor_previous_active[index], active,
+				dftrace_interceptor_previous_x[index], x,
+				dftrace_interceptor_previous_y[index], y, prev_y,
+				dftrace_interceptor_previous_lifetime[index], lifetime, rendered,
+				address, screen_code, expected_code, visible, raster_row, raster_column,
+				MEMORY_mem[dftrace_projectile_backing_top + slot], frame->enemy_state,
+				MEMORY_mem[dftrace_enemy_x], frame->enemy_y, frame->sector_state,
+				frame->ring_flags, dftrace_logical_row_address(1u), muzzle_overlap,
+				dftrace_broad_live_owns_address(address), projectile_overlap,
+				dftrace_interceptor_last_active_writer[index],
+				dftrace_interceptor_last_screen_writer[index], ttl_terminal,
+				boundary_terminal, player_collision_terminal);
+		}
+		if (active != 0u && !visible)
+			dftrace_interceptor_first_anomaly = 1u;
+		else if (active == 0u && dftrace_interceptor_previous_active[index] != 0u &&
+			!ttl_terminal && !boundary_terminal && !player_collision_terminal &&
+			frame->player_lifecycle < 3u)
+			dftrace_interceptor_first_anomaly = 1u;
+		dftrace_interceptor_previous_active[index] = active;
+		dftrace_interceptor_previous_x[index] = x;
+		dftrace_interceptor_previous_y[index] = y;
+		dftrace_interceptor_previous_lifetime[index] = lifetime;
+	}
+	if (fclose(file) != 0) {
+		perror("voidstrike65 interceptor projectile trace close");
+		exit(2);
+	}
+}
+
 static int dftrace_is_hull_transient(unsigned value)
 {
 	return value == DFTRACE_ALLIED_MUZZLE_CODE ||
@@ -2922,6 +3095,7 @@ static void dftrace_init(void)
 	dftrace_policy = getenv("DFTRACE_POLICY");
 	dftrace_session = getenv("DFTRACE_SESSION");
 	dftrace_output = getenv("DFTRACE_OUTPUT");
+	dftrace_interceptor_projectile_output = getenv("DFTRACE_INTERCEPTOR_PROJECTILE_OUTPUT");
 	if (dftrace_policy == NULL || dftrace_session == NULL || dftrace_output == NULL) {
 		fprintf(stderr, "voidstrike65 trace: missing string environment\n");
 		exit(2);
@@ -3103,6 +3277,19 @@ static void dftrace_init(void)
 	dftrace_pause_test_enabled = getenv("DFTRACE_PAUSE_TEST") != NULL;
 	dftrace_engine_screenshot_prefix = getenv("DFTRACE_ENGINE_SCREENSHOT_PREFIX");
 	{
+		unsigned index;
+		for (index = 0u; index < DFTRACE_INTERCEPTOR_SLOT_COUNT; ++index) {
+			unsigned slot = index + DFTRACE_INTERCEPTOR_SLOT_BASE;
+			dftrace_interceptor_observed_active[index] =
+				MEMORY_mem[dftrace_projectile_active + slot];
+			dftrace_interceptor_watched_address[index] =
+				MEMORY_mem[dftrace_projectile_screen_lo + slot] |
+				((unsigned) MEMORY_mem[dftrace_projectile_screen_hi + slot] << 8);
+			dftrace_interceptor_watched_value[index] =
+				MEMORY_mem[dftrace_interceptor_watched_address[index]];
+		}
+	}
+	{
 		const char *compositor_output = getenv("DFTRACE_BROAD_COMPOSITOR_OUTPUT");
 		if (compositor_output != NULL && *compositor_output != '\0') {
 			dftrace_broad_compositor_file = fopen(compositor_output, "w");
@@ -3258,6 +3445,7 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 	}
 	if (!dftrace_initialised)
 		dftrace_init();
+	dftrace_watch_interceptor_projectiles();
 	dffence_observe(pc, x_register);
 	if (dftrace_published_dlist_lo == 0u && MEMORY_mem[dftrace_game_state] == 6u)
 		dftrace_published_dlist_lo = MEMORY_mem[dftrace_active_dlist_lo];
@@ -3494,7 +3682,8 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 			previous->next_start_clock = dftrace_clock();
 			previous->next_start_host_frame = (unsigned) Atari800_nframes;
 		}
-		if (dftrace_count == dftrace_limit || (dftrace_active_limit != 0u &&
+		if (dftrace_interceptor_first_anomaly || dftrace_count == dftrace_limit ||
+			(dftrace_active_limit != 0u &&
             dftrace_count != 0u && dftrace_frames[dftrace_count - 1].active_gameplay_frame >=
                 dftrace_active_limit)) {
 			dftrace_write();
@@ -3741,6 +3930,7 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 		dftrace_snapshot_engine(&dftrace_current);
 		dftrace_snapshot_muzzles(&dftrace_current);
 		dftrace_pickup_frame_end(&dftrace_current);
+		dftrace_write_interceptor_projectiles(&dftrace_current);
 		dftrace_current.end_clock = dftrace_clock();
 		dftrace_current.end_host_frame = (unsigned) Atari800_nframes;
 		dftrace_current.end_y = ANTIC_ypos;

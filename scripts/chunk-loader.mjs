@@ -12,7 +12,7 @@ const CHUNK_TYPE_LZ = 1;
 const STAGING_BROADSIDE = 1;
 const STAGING_EXTENSION = 2;
 const SAFE_EXTENSION_RANGES = Object.freeze([
-  [0x4efe, 0x5000], [0x5261, 0x535a],
+  [0x4efe, 0x5000], [0x52a3, 0x535a],
   [0x5de2, 0x5e06], [0x77b9, 0x7810],
   [0x7bd0, 0x7f10],
   [0x7fdb, 0x8000], [0x8130, 0x9000], [0x90cf, 0x9100], [0x992a, 0xa000],
@@ -243,7 +243,7 @@ export function deterministicCapacityBytes(length, seed = 0x6d2b79f5) {
 export function validateInitialBlockCapacity(byteLength, { allowExtendedInitialBlock = false } = {}) {
   invariant(Number.isInteger(byteLength) && byteLength >= ATR_SECTOR_BYTES,
     "initial block length is invalid");
-  const maximumSectors = allowExtendedInitialBlock ? 101 : 100;
+  const maximumSectors = allowExtendedInitialBlock ? 102 : 100;
   const maximumBytes = maximumSectors * ATR_SECTOR_BYTES;
   invariant(byteLength <= maximumBytes,
     `initial block exceeds ${maximumBytes} bytes / ${maximumSectors} sectors`);

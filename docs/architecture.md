@@ -19,8 +19,8 @@ verify phases bind the boot BIN, XEX, and ATR by exact size and SHA-256.
 
 ## Cold startup and loader
 
-The Encounter Director configuration uses a 101-sector initial block at
-`$2000-$527F` and enters at `$201E` with a 449-byte raw bootstrap prefix. A
+The Encounter Director configuration uses a 102-sector initial block at
+`$2000-$52FF` and enters at `$201E` with a 449-byte raw bootstrap prefix. A
 1,191-byte stage-2 overlay runs at `$21C1-$2667`; after it validates
 the complete manifest, it reads extension sectors through standard OS SIOV
 while OS IRQ/NMI and disk services are still available. Each chunk is fully
@@ -28,27 +28,28 @@ read, CRC16-CCITT checked, and only then copied or decompressed to its manifest-
 controlled destination. Any failure blanks DMA, selects a fixed red error
 background, and halts before partially loaded code can execute.
 
-The four ordered DFMC records are BROADSIDE in sectors 102-146, the packed
-pickup phase/code/collision stream in sectors 147-155, 249-byte integration glue
-in sectors 156-158, and the Encounter Director in sectors 159-163. ATR stages
+The four ordered DFMC records are BROADSIDE in sectors 103-147, the packed
+pickup phase/code/collision stream in sectors 148-156, 249-byte integration glue
+in sectors 157-159, and the Encounter Director in sectors 160-164. ATR stages
 each record at `$8100`; BROADSIDE expands 6,643 bytes to `$5E10-$7802`, the
-1,022-byte pickup stream is published temporarily at `$8C80-$907D`, and glue
-expands to `$5261-$5359`. Packed ENTITY_CODE stages at `$535A-$5D4A`, directly
-after glue. Startup holds glue at `$8600-$86F8` after consuming resident
-staging, then copies it to `$4EFE-$4FF6`; the 645-byte Director expands to
+1,020-byte pickup stream is published temporarily at `$8C80-$907B`, and glue
+expands to cold staging at `$7BD0-$7CC8`. Packed ENTITY_CODE stages at
+`$535A-$5D88`. Startup holds glue at `$8600-$86F8` after consuming resident
+staging, defers the overlapping starfield staging write until that hold is
+complete, then copies glue to `$4EFE-$4FF6`; the 645-byte Director expands to
 `$9D75-$9FF9`. The last BROADSIDE source read makes `$8100` reusable;
 only then does startup copy the packed resident suffix and stage it at
 `$8100-$9B06`. The 7,743-byte suffix is stored as a 6,663-byte LZ-10/5 stream
 and restores `$21C1-$3FFF`, overwriting all stage-2 code and its maximum
-eight-record manifest. The pickup stream is preserved at `$4801-$4BFE` before
+eight-record manifest. The pickup stream is preserved at `$4801-$4BFC` before
 its cold source overlaps the future A2 range, then expands atomically to
 `$8800-$8EDE`; the final 33 bytes at `$8EBE-$8EDE` are the final-raster
 capital/player collision module.
 No loader byte remains resident or enters gameplay.
 
 The manifest uses 16-bit sector numbers, supports eight sequential chunks, and
-accepts RAW or LZ records. The current initial block and four records use 163
-sectors (20,864 B). The ATR itself has 557 unused sectors (71,296 B); runtime
+accepts RAW or LZ records. The current initial block and four records use 164
+sectors (20,992 B). The ATR itself has 556 unused sectors (71,168 B); runtime
 residency remains a separate constraint.
 
 ### DFMC v1 byte format
@@ -69,13 +70,13 @@ Each 16-byte record stores, in order: 16-bit start sector, 16-bit sector count,
 16-bit packed length, 16-bit raw length, 16-bit final destination, 16-bit CRC of
 the complete sector image, one-byte type (`0=RAW`, `1=LZ`), one-byte controlled
 staging identifier, and a 16-bit staging address. All words are little-endian.
-Production records begin at sectors 102, 147, 156, and 159. Their packed/raw
-lengths are respectively 5,660/6,643 B, 1,022/1,759 B, 244/249 B, and 585/645 B.
+Production records begin at sectors 103, 148, 157, and 160. Their packed/raw
+lengths are respectively 5,660/6,643 B, 1,020/1,759 B, 244/249 B, and 585/645 B.
 The second record carries the compressed immutable pickup phase bank plus its
 late compositor and the 33-byte collision module. Its cold copy at
-`$8C80-$907D` is first preserved at `$4801-$4BFE`, then decompressed to
+`$8C80-$907B` is first preserved at `$4801-$4BFC`, then decompressed to
 `$8800-$8EDE`; source and destination never overlap while live. Glue is
-transported to `$5261`, held at `$8600-$86F8` after resident staging is
+transported to `$7BD0-$7CC8`, held at `$8600-$86F8` after resident staging is
 consumed, and late-published to `$4EFE-$4FF6`. The Director ends
 at `$9FF9`; `$9FFA-$9FFF` is a six-byte untouched guard.
 
@@ -93,15 +94,15 @@ footer palette zones. The loader remains visible for 250 complete PAL frames
 Cold staging also copies:
 
 - validated external broadside/runtime data to `$5E10-$780F` before takeover;
-- packed starfield/music data through `$7810-$7F0F` to `$552A-$5DF5`;
-- the 255-byte A2 kernel through `$7F16-$8014` to `$9000-$90FE`, before the
+- packed starfield/music data through `$7810-$7F12` to `$552A-$5DF5`;
+- the 254-byte A2 kernel through `$7F16-$8013` to `$9000-$90FD`, before the
   `$8000-$80FF` entity/effects clear destroys the consumed source;
-- packed entity/effect/frontend code through boot-only staging at `$535A-$5D4A`
+- packed entity/effect/frontend code through boot-only staging at `$535A-$5D88`
   to the resident `$9100-$9D74` range. The staging write begins only after the
-  initial packed source ending at `$5261` has been consumed. Its end-exclusive
-  `$5D4B` remains 197 bytes below the BROADSIDE destination at `$5E10`.
+  initial packed source ending at `$529E` has been consumed. Its end-exclusive
+  `$5D89` remains 135 bytes below the BROADSIDE destination at `$5E10`.
 
-The initial packed sources end exclusively at `$5262`, leaving 248 bytes before
+The initial packed sources end exclusively at `$529F`, leaving 187 bytes before
 the `$535A` staging start. Startup copies ENTITY_CODE there, expands the stream
 to its current live `$9100-$9D74` range, and immediately releases the staging
 range. `unpack_loader_bitmap` may then overwrite it while preparing the loader;

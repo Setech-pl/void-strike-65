@@ -10,6 +10,18 @@ const report = JSON.parse(fs.readFileSync(
 const manifest = JSON.parse(fs.readFileSync(path.join(root, "build", "manifest.json"), "utf8"));
 const observerSource = fs.readFileSync(
   path.join(root, "scripts", "atari800-wall-trace.h"), "utf8");
+const traceGeneratorSource = fs.readFileSync(
+  path.join(root, "scripts", "runtime-wall-trace.mjs"), "utf8");
+
+test("observer preparation replaces stale Raider instrumentation with current bindings", () => {
+  assert.doesNotMatch(observerSource, /DFTRACE_PC_RAIDER_UPDATE_START|dftrace_pc_raider/);
+  assert.match(observerSource, /DFTRACE_PC_INTERCEPTOR_UPDATE_START/);
+  assert.match(traceGeneratorSource,
+    /DFTRACE_PC_INTERCEPTOR_UPDATE_START: "profile_interceptor_projectile_update_begin"/);
+  assert.match(traceGeneratorSource,
+    /replace\(\/\^#include "darkfighter_trace\\\.h"/);
+  assert.match(traceGeneratorSource, /--trace-preflight-only/);
+});
 
 test("wall trace uses the unambiguous current coverage schema", () => {
   assert.equal(report.schema_version, 2);

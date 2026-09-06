@@ -49,7 +49,7 @@ function lzChunk(length, finalDestination, seed) {
   };
 }
 
-test("production gate distinguishes 100 sectors from the opt-in 101-sector layout", () => {
+test("production gate distinguishes 100 sectors from the opt-in 102-sector layout", () => {
   const hundred = buildDfmcV1Transport({
     initialContent: initialContent(100 * 128 - 12),
     manifestOffset: MANIFEST_OFFSET,
@@ -74,21 +74,31 @@ test("production gate distinguishes 100 sectors from the opt-in 101-sector layou
   assert.equal(hundredOne.initialBoot.bytes.length, 12928);
   assert.equal(hundredOne.initialBoot.sectors, 101);
   assert.equal(hundredOne.records[0].startSector, 102);
-});
 
-test("the opt-in initial-block ceiling accepts exactly 12928 bytes and rejects 12929", () => {
-  assert.deepEqual(validateInitialBlockCapacity(12928, { allowExtendedInitialBlock: true }), {
-    byteLength: 12928, sectors: 101, maximumBytes: 12928, maximumSectors: 101,
-  });
-  assert.throws(() => validateInitialBlockCapacity(12929, {
-    allowExtendedInitialBlock: true,
-  }), /exceeds 12928 bytes \/ 101 sectors/);
-  assert.throws(() => buildDfmcV1Transport({
-    initialContent: initialContent(101 * 128 - 11),
+  const hundredTwo = buildDfmcV1Transport({
+    initialContent: initialContent(102 * 128 - 12),
     manifestOffset: MANIFEST_OFFSET,
     chunks: [rawChunk(107)],
     allowExtendedInitialBlock: true,
-  }), /exceeds 12928 bytes \/ 101 sectors/);
+  });
+  assert.equal(hundredTwo.initialBoot.bytes.length, 13056);
+  assert.equal(hundredTwo.initialBoot.sectors, 102);
+  assert.equal(hundredTwo.records[0].startSector, 103);
+});
+
+test("the opt-in initial-block ceiling accepts exactly 13056 bytes and rejects 13057", () => {
+  assert.deepEqual(validateInitialBlockCapacity(13056, { allowExtendedInitialBlock: true }), {
+    byteLength: 13056, sectors: 102, maximumBytes: 13056, maximumSectors: 102,
+  });
+  assert.throws(() => validateInitialBlockCapacity(13057, {
+    allowExtendedInitialBlock: true,
+  }), /exceeds 13056 bytes \/ 102 sectors/);
+  assert.throws(() => buildDfmcV1Transport({
+    initialContent: initialContent(102 * 128 - 11),
+    manifestOffset: MANIFEST_OFFSET,
+    chunks: [rawChunk(107)],
+    allowExtendedInitialBlock: true,
+  }), /exceeds 13056 bytes \/ 102 sectors/);
 });
 
 test("one and multiple records preserve order, fields, and exact sector boundaries", () => {

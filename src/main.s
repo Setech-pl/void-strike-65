@@ -196,6 +196,10 @@ CORRIDOR_BOUNDARY_ROWS      = CAPITAL_HULL_VISIBLE_ROWS
 ; the high-RAM ring tables after cold staging.
 CORRIDOR_BOUNDARY_LEFT      = PLAYFIELD_RING_STATE_END
 CORRIDOR_BOUNDARY_RIGHT     = CORRIDOR_BOUNDARY_LEFT+CORRIDOR_BOUNDARY_ROWS
+; Rows one and two of the old boundary cache are no longer shifted in the hot
+; path.  They retain two per-muzzle backing bytes while row zero remains the
+; authoritative freshly generated boundary value for a newly tracked muzzle.
+MUZZLE_BACKING              = CORRIDOR_BOUNDARY_LEFT+$01 ; 2 B, allied/enemy
 CORRIDOR_PHASE_HI           = CORRIDOR_BOUNDARY_RIGHT+CORRIDOR_BOUNDARY_ROWS
 HULL_DRAW_ROW_LO            = CORRIDOR_PHASE_HI+$01
 HULL_DRAW_ROW_HI            = HULL_DRAW_ROW_LO+$01
@@ -284,6 +288,7 @@ TOP_SCORE_TABLE_END          = TOP_SCORE_TABLE+TOP_SCORE_TABLE_BYTES
 SESSION_SCORE_STATE_END      = TOP_SCORE_TABLE_END
 
 .export MUZZLE_ROW_DOMAIN, MUZZLE_VISIBLE_ROW, MUZZLE_SCREEN_LO, MUZZLE_SCREEN_HI
+.export MUZZLE_BACKING
 .export CORRIDOR_BOUNDARY_LEFT, CORRIDOR_BOUNDARY_RIGHT, BROAD_TURRET_FIRED
 ; Build/debug tooling reads these symbols from the linker label file. Exporting
 ; constants has no runtime footprint and avoids duplicating the resident-state
@@ -1036,8 +1041,9 @@ unpack_starfield_runtime:
 ; Patched by scripts/build.mjs. A2 and ENTITY_CODE are preserved before the
 ; pickup stream moves to $4801 and destroys their initial-source tail. The
 ; pickup copy must precede resident staging at $8100, whose maximum write would
-; otherwise destroy the temporary packed source at $8C80. All three are safe
-; before the final starfield staging copy.
+; otherwise destroy the temporary packed source at $8C80. The first four
+; records run before resident/entity expansion. The starfield record runs only
+; after GLUE has left its cold $7BD0 staging interval for the $8600 hold.
 boot_stage_streams:
 a2_kernel_source:
     .word $FFFF
@@ -1071,8 +1077,9 @@ stage_boot_streams:
     sta frontend_data_ptr
     lda #>boot_stage_streams
     sta frontend_data_ptr+1
-    lda #$05
+    lda #$04
     sta loader_dli_phase
+stage_boot_stream_record:
 @record:
     ldy #$00
     lda (frontend_data_ptr),y
@@ -1213,14 +1220,16 @@ boot_chunk_ready:
 .res $01A3-(*-start)
 resident_runtime_suffix:
 stage_glue_holding:
-    ldy #(LAYOUT_D_GLUE_BYTES-1)
+    ; 249 backward indices are equivalent to 249 forward indices offset by
+    ; seven. This equal-size loop leaves room to tail-call the deferred
+    ; starfield staging record without growing the linked CODE segment.
+    ldy #$07
 @hold_glue:
-    lda LAYOUT_D_GLUE_STAGING,y
-    sta LAYOUT_D_GLUE_HOLDING,y
-    dey
-    cpy #$FF
+    lda LAYOUT_D_GLUE_STAGING-$07,y
+    sta LAYOUT_D_GLUE_HOLDING-$07,y
+    iny
     bne @hold_glue
-    rts
+    jmp stage_starfield_stream
 
 frontend_loop:
     jsr wait_frame
@@ -3392,8 +3401,12 @@ read_input:
     lda PLAYER_LIFECYCLE
     cmp #PLAYER_RESPAWN_INVULNERABLE
     bne @position
-    ; Blink visibility still changes on stationary/horizontal invulnerable
-    ; frames, so only that lifecycle retains the old bounded PMG refresh.
+    ; Horizontal/stationary motion does not move PMG bytes. Refresh them only
+    ; on the exact eight-frame blink boundary instead of erasing and redrawing
+    ; the same image on the seven intervening frames.
+    lda RESPAWN_BLINK_FRAME
+    and #(RESPAWN_BLINK_HALF_PERIOD_FRAMES-1)
+    bne @position
     jsr erase_player
     jsr draw_player_for_lifecycle
 @position:
@@ -3694,19 +3707,19 @@ player_fighter_projectile_hits_enemy:
     cmp #ENEMY_ACTIVE_STATE
     bne @miss
     ldy ENEMY_ARCHETYPE
+    lda FIGHTER_PROJECTILE_Y,x
+    sec
+    sbc enemy_y
+    cmp enemy_frame_heights,y
+    bcc @vertical_overlap
+    cmp #(256-(PLAYER_FIGHTER_PROJECTILE_SPEED+PLAYER_FIGHTER_PROJECTILE_HEIGHT-1))
+    bcc @miss
+@vertical_overlap:
     lda FIGHTER_PROJECTILE_X,x
     sec
     sbc enemy_x
     cmp enemy_visible_widths,y
     bcs @miss
-    lda FIGHTER_PROJECTILE_Y,x
-    sec
-    sbc enemy_y
-    cmp enemy_frame_heights,y
-    bcc @hit
-    cmp #(256-(PLAYER_FIGHTER_PROJECTILE_SPEED+PLAYER_FIGHTER_PROJECTILE_HEIGHT-1))
-    bcc @miss
-@hit:
     sec
     rts
 @miss:
@@ -3714,20 +3727,20 @@ player_fighter_projectile_hits_enemy:
     rts
 
 interceptor_projectile_hits_player:
-    lda FIGHTER_PROJECTILE_X,x
-    sec
-    sbc player_x
-    cmp #PLAYER_COLLISION_WIDTH
-    bcc @horizontal_overlap
-    cmp #(256-(INTERCEPTOR_PROJECTILE_WIDTH_HPOS-1))
-    bcc @miss
-@horizontal_overlap:
     lda FIGHTER_PROJECTILE_PREV_Y,x
     sec
     sbc player_y
     cmp #(PLAYER_COLLISION_LAST_ROW+1)
     bcc @hit
     cmp #(256-(INTERCEPTOR_PROJECTILE_SPEED+INTERCEPTOR_PROJECTILE_HEIGHT-1))
+    bcc @miss
+@vertical_overlap:
+    lda FIGHTER_PROJECTILE_X,x
+    sec
+    sbc player_x
+    cmp #PLAYER_COLLISION_WIDTH
+    bcc @hit
+    cmp #(256-(INTERCEPTOR_PROJECTILE_WIDTH_HPOS-1))
     bcc @miss
 @hit:
     sec
@@ -5041,7 +5054,11 @@ advance_starfield_layers:
     beq @mark_dirty
     jsr advance_far_stars
 @mark_dirty:
-    lda #$80
+    ; Keep the far-step bit until the late renderer. On that 25%-rate path a
+    ; drawn star advances with the ring and therefore retains its just-erased
+    ; physical cell; the renderer can reuse that authoritative address.
+    lda STAR_GENERATION_FLAGS
+    ora #$80
     sta STAR_GENERATION_FLAGS
 @done:
     rts
@@ -5065,25 +5082,23 @@ scroll_world_columns:
     jsr entity_complete_scroll_tick
 :
 
-    ldx #(CAPITAL_HULL_VISIBLE_ROWS-1)
-@shift_boundaries:
-    lda CORRIDOR_BOUNDARY_LEFT-1,x
-    sta CORRIDOR_BOUNDARY_LEFT,x
-    lda CORRIDOR_BOUNDARY_RIGHT-1,x
-    sta CORRIDOR_BOUNDARY_RIGHT,x
-    dex
-    bne @shift_boundaries
-
     lda #$00
     jsr set_gameplay_row_ptr
     jsr generate_starfield_row
     ldy #CORRIDOR_CENTRAL_FIRST
     lda (dst_ptr),y
     sta CORRIDOR_BOUNDARY_LEFT
+    sta MUZZLE_BACKING
     ldy #(CORRIDOR_CENTRAL_END-1)
     lda (dst_ptr),y
     sta CORRIDOR_BOUNDARY_RIGHT
+    sta MUZZLE_BACKING+1
     rts
+
+    ; Retain every following cross-segment entry point while removing the
+    ; former 17-byte full boundary-table shift from the executed world path.
+world_boundary_shift_compat_pad:
+    .res $0B,$00
 
 ; Both runtime display lists keep HUD=$4000 and divider=$4028 immutable. Only
 ; the following 22 LMS addresses differ after a rotation. The inactive list is
@@ -5172,13 +5187,9 @@ rotate_playfield_rows:
     sta dst_ptr
     lda PLAYFIELD_ROW_HI,x
     sta dst_ptr+1
-    lda #<GAMEPLAY_DIVIDER_SCREEN
-    sta src_ptr
-    lda #>GAMEPLAY_DIVIDER_SCREEN
-    sta src_ptr+1
     ldy #39
 @copy_divider:
-    lda (src_ptr),y
+    lda GAMEPLAY_DIVIDER_SCREEN,y
     sta (dst_ptr),y
     dey
     bpl @copy_divider
@@ -5396,31 +5407,37 @@ ready:
 
 .segment "A2_KERNEL"
 
-erase_far_star_overlays:
-    ldx #(STAR_FAR_CAPACITY-1)
-erase_far_star_slot:
-    lda STAR_FAR_ACTIVE,x
-    bpl erase_far_star_next
-    and #$7F
-    sta STAR_FAR_ACTIVE,x
-    lda STAR_FAR_SCREEN_LO,x
-    sta dst_ptr
-    lda STAR_FAR_SCREEN_HI,x
-    sta dst_ptr+1
-    ldy #$00
-    lda #CH_SPACE
-    sta (dst_ptr),y
-erase_far_star_next:
-    dex
-    bpl erase_far_star_slot
-    rts
-
 render_far_star_overlays:
+    lda STAR_GENERATION_FLAGS
+    and #STAR_GENERATE_FAR
+    beq :+
+    lda #$40
+    bne :++
+:
+    lda #$FF
+:
+    sta loader_repeat_value
     ldx #$00
+    ldy #$00
 render_far_star_slot:
     lda STAR_FAR_ACTIVE,x
+    cmp loader_repeat_value
+    bne render_far_star_uncached
+    lda STAR_FAR_SCREEN_HI,x
+    cmp #>GAMEPLAY_RING_SCREEN
+    bcc render_far_star_resolve
+    sta dst_ptr+1
+    lda STAR_FAR_SCREEN_LO,x
+    sta dst_ptr
+    lda STAR_FAR_CODE,x
+    sta (dst_ptr),y
+    lda #$81
+    sta STAR_FAR_ACTIVE,x
+    bne render_far_star_next
+render_far_star_uncached:
     cmp #$01
     bne render_far_star_next
+render_far_star_resolve:
     RESOLVE_FAR_STAR_PTR
     ldy #$00
     lda (dst_ptr),y
@@ -5437,6 +5454,8 @@ render_far_star_next:
     inx
     cpx #STAR_FAR_CAPACITY
     bne render_far_star_slot
+    lda #$00
+    sta STAR_GENERATION_FLAGS
     rts
 
 .segment "STARFIELD"
@@ -5446,9 +5465,8 @@ render_far_star_next:
 ; than scanning it on every PAL frame.
 render_far_star_overlays_if_needed:
     lda STAR_GENERATION_FLAGS
+    cmp #$00
     beq @done
-    lda #$00
-    sta STAR_GENERATION_FLAGS
     jmp render_far_star_overlays
 @done:
     rts
@@ -5456,8 +5474,9 @@ render_far_star_overlays_if_needed:
 advance_far_stars:
     ldx #$00
 @slot:
-    lda STAR_FAR_ACTIVE,x
-    beq @next
+    ; Gameplay initialization fills the complete fixed population. There is
+    ; no runtime release path, so re-testing the invariant for all 29 records
+    ; on every quarter-rate step only duplicated the initializer's result.
     inc STAR_FAR_ROW,x
     lda STAR_FAR_ROW,x
     cmp #GAMEPLAY_SCREEN_ROWS
@@ -6027,14 +6046,7 @@ restore_active_muzzles:
     sta dst_ptr+1
     lda MUZZLE_SCREEN_LO,x
     sta dst_ptr
-    ldy MUZZLE_VISIBLE_ROW,x
-    cpx #$00
-    bne @enemy
-    lda CORRIDOR_BOUNDARY_LEFT,y
-    jmp @store
-@enemy:
-    lda CORRIDOR_BOUNDARY_RIGHT,y
-@store:
+    lda MUZZLE_BACKING,x
     ldy #$00
     sta (dst_ptr),y
 @next:
@@ -6070,7 +6082,13 @@ advance_tracked_muzzles:
     lda dst_ptr+1
     adc #$00
     sta MUZZLE_SCREEN_HI,x
-    bne @next
+    ; The projection may advance on a hull-only event while the central stars
+    ; remain stationary. Capture the exact new cell instead of maintaining and
+    ; shifting two complete 28-byte logical backing tables every world event.
+    ldy #$00
+    lda (dst_ptr),y
+    sta MUZZLE_BACKING,x
+    jmp @next
 @deactivate:
     lda #$00
     sta MUZZLE_ROW_DOMAIN,x
@@ -6185,22 +6203,23 @@ generate_corridor_row:
 ; the two streams are independent and source-derived muzzles are overlaid later.
 generate_starfield_row:
     lda #CH_SPACE
-    ldy #$00
     ldx CAPITAL_SECTOR_STATE
     cpx #CAPITAL_HULL_STATE_COMPLETE
-    bcs @clear_central
+    bcs @full
     ldy #CORRIDOR_CENTRAL_FIRST
 @clear_central:
     sta (dst_ptr),y
     iny
-    cpx #CAPITAL_HULL_STATE_COMPLETE
-    bcs @full_limit
     cpy #CORRIDOR_CENTRAL_END
     bne @clear_central
     jmp generate_near_star_row
-@full_limit:
+@full:
+    ldy #$00
+@clear_full:
+    sta (dst_ptr),y
+    iny
     cpy #40
-    bne @clear_central
+    bne @clear_full
     jmp generate_near_star_row
 
 .segment "BROADSIDE"
@@ -6725,6 +6744,88 @@ option_label_difficulty:
 options_persistent_tables_end:
 
     .assert options_persistent_tables_end <= $9500, error, "OPTIONS tables exceed persistent frontend RODATA gap"
+
+; The fixed page alignment leaves this resident interval unused. Keep the two
+; relocated helpers here so the PAL optimization consumes no runtime reserve.
+erase_far_star_overlays:
+    ldx #(STAR_FAR_CAPACITY-1)
+erase_far_star_slot:
+    lda STAR_FAR_ACTIVE,x
+    bpl erase_far_star_next
+    ; $81 -> $40 records that the cached physical address was just restored.
+    ; Positive values remain non-rendered to the twinkle and update paths.
+    lda #$40
+    sta STAR_FAR_ACTIVE,x
+    lda STAR_FAR_SCREEN_LO,x
+    sta dst_ptr
+    lda STAR_FAR_SCREEN_HI,x
+    sta dst_ptr+1
+    ldy #$00
+    lda #CH_SPACE
+    sta (dst_ptr),y
+erase_far_star_next:
+    dex
+    bpl erase_far_star_slot
+    rts
+
+integration_pickup_pending_tick:
+    dec ENTITY_TIMER+WEAPON_PICKUP_SLOT
+    bne @done
+    ldx #DIRECTOR_HAZARD_PICKUP
+    jsr DIRECTOR_REQUEST
+    bcs @reveal
+    lda #DIRECTOR_RETRY_FRAMES
+    sta ENTITY_TIMER+WEAPON_PICKUP_SLOT
+@done:
+    rts
+@reveal:
+    jmp integration_pickup_reveal_body
+
+; Select only the policy used by the following production Director request.
+; The caller has already saved the authoritative phase and restores it before
+; returning, so world-row phase progression remains unchanged.
+select_interceptor_request_phase:
+    lda CAPITAL_SECTOR_STATE
+    cmp #CAPITAL_HULL_STATE_DRAIN
+    bcs @ordinary
+    lda #$03                    ; existing all-hazards 3/4/5 policy
+    sta DIRECTOR_STATE_PHASE
+    rts
+@ordinary:
+    lda DIRECTOR_STATE_PHASE
+    bne @done
+    inc DIRECTOR_STATE_PHASE    ; phase zero borrows phase one's Interceptor bit
+@done:
+    rts
+
+; GLUE occupies the high half of the cold starfield staging window until the
+; resident and entity streams have been consumed. stage_glue_holding tail-calls
+; this one-record copy, so the overlapping starfield bytes are written only
+; after all 249 GLUE bytes are safe at $8600-$86F8.
+stage_starfield_stream:
+    lda #<starfield_packed_source
+    sta frontend_data_ptr
+    lda #>starfield_packed_source
+    sta frontend_data_ptr+1
+    lda #$01
+    sta loader_dli_phase
+    jmp stage_boot_stream_record
+
+; All module and prow boundaries leave this inner corridor open. Carry set is
+; therefore a complete proof that the player cannot contact either capital
+; hull; carry clear asks the exact source-row resolver to handle an edge case.
+player_inside_universal_hull_corridor:
+    lda player_x
+    cmp #$54
+    bcc @edge
+    adc #(PLAYER_COLLISION_WIDTH-2) ; CMP left C=1: add the remaining width
+    cmp #$AC
+    bcs @edge
+    sec
+    rts
+@edge:
+    clc
+    rts
 
 .align $100
 options_display_list:
@@ -8646,6 +8747,10 @@ handle_player_hull_contact:
     bne :+
     rts
 :
+    jsr player_inside_universal_hull_corridor
+    bcc @resolve_rows
+    rts
+@resolve_rows:
     lda player_y
     sec
     sbc #BROADSIDE_SCREEN_TOP
@@ -10562,8 +10667,8 @@ integration_interceptor_recycle:
     ldx #DIRECTOR_HAZARD_INTERCEPTOR
     jsr DIRECTOR_RELEASE
     ; DIRECTOR_RELEASE preserves X. Hazard Interceptor is zero, so make the ended
-    ; lifecycle explicitly inactive before a retry may be deferred by capital
-    ; ownership or by the Director budget.
+    ; lifecycle explicitly inactive before a retry may be deferred by the
+    ; Director budget.
     stx ENEMY_ACTIVE
     ldx DIFFICULTY_SETTING
     lda interceptor_admission_retry_frames,x
@@ -10579,13 +10684,8 @@ interceptor_admission_update:
     lda PLAYER_LIFECYCLE
     lsr
     bcs @blocked
-    ; The finite capital corridor owns new admissions while its hull is live.
-    ; An already active Interceptor keeps its ordinary lifecycle, but an inactive
-    ; slot cannot reserve the small EASY/MEDIUM budget ahead of ship-to-ship
-    ; fire and starve every naturally visible muzzle.
-    lda CAPITAL_SECTOR_STATE
-    cmp #CAPITAL_HULL_STATE_DRAIN
-    bcc @blocked
+    ; Capital presence is spatial pressure, not an ordinary-admission mask.
+    ; The production Director budget remains the sole coexistence gate.
     lda INTERCEPTOR_BURST_TIMER
     beq @request
     dec INTERCEPTOR_BURST_TIMER
@@ -10601,6 +10701,8 @@ interceptor_admission_update:
     rts
 @admitted:
     jmp reset_enemy
+    ; Retain the reviewed PICKUP_CODE layout without adding hot-path cycles.
+    .byte $00,$00,$00,$00,$00,$00,$00
 
 .segment "CODE"
 integration_update_enemy_weapon:
@@ -10619,7 +10721,8 @@ integration_update_player_death:
     jsr update_player_death
     php
     lda PLAYER_LIFECYCLE
-    beq @restore
+    lsr                         ; ALIVE/RESPAWN may admit; DYING/GAME OVER may not
+    bcc @restore
     lda frame_counter
     sta DIRECTOR_STATE_ADMISSION_FRAME
 @restore:
@@ -10706,7 +10809,10 @@ provisional_capital_budgets:
 ; Director's world-row reaction/recovery clocks. Preserve those clocks around
 ; the production request so its phase mask, budget, allocation, one charge and
 ; one private-RNG advance remain authoritative. Phase zero borrows phase one's
-; established Interceptor mask/budget for this request only.
+; established Interceptor policy before the hull arrives. During the admitted
+; traversal, borrow phase three's existing all-hazards 3/4/5 policy: those are
+; the same ceilings used by the capital-local BROADSIDE gate, so one live bolt
+; cannot permanently mask later ordinary lifecycles.
 provisional_interceptor_director_request:
     lda DIRECTOR_STATE_REACTION
     pha
@@ -10717,9 +10823,7 @@ provisional_interceptor_director_request:
     sta DIRECTOR_STATE_RECOVERY
     lda DIRECTOR_STATE_PHASE
     pha
-    bne :+
-    inc DIRECTOR_STATE_PHASE
-:
+    jsr select_interceptor_request_phase
     jsr DIRECTOR_REQUEST
     ldy #$00
     bcc :+
@@ -10737,6 +10841,7 @@ provisional_interceptor_director_request:
 ; Rejected admission and post-release cadence in active gameplay frames.
 interceptor_admission_retry_frames:
     .byte 48,36,24
+    .byte $00,$00                ; preserve the reviewed PICKUP_CODE byte count
 
 .segment "ENTITY_CODE"
 allied_engine_overlay_masks:
@@ -10746,20 +10851,6 @@ enemy_engine_overlay_masks:
     ; One unreachable byte keeps the reviewed 101-sector initial transport
     ; boundary after the timing code is redistributed between resident blocks.
     .byte $00
-
-.segment "A2_KERNEL"
-integration_pickup_pending_tick:
-    dec ENTITY_TIMER+WEAPON_PICKUP_SLOT
-    bne @done
-    ldx #DIRECTOR_HAZARD_PICKUP
-    jsr DIRECTOR_REQUEST
-    bcs @reveal
-    lda #DIRECTOR_RETRY_FRAMES
-    sta ENTITY_TIMER+WEAPON_PICKUP_SLOT
-@done:
-    rts
-@reveal:
-    jmp integration_pickup_reveal_body
 
 .export integration_update_enemy, integration_interceptor_recycle, integration_interceptor_retry
 .export integration_update_enemy_weapon, integration_update_player_death
@@ -10815,7 +10906,7 @@ CHUNK_STAGING_BROAD   = 1
 CHUNK_STAGING_ADDRESS = $8100
 CHUNK_FINAL_ADDRESS   = $5E10
 CHUNK_STAGING_SECTORS_MAX = 50
-LAYOUT_D_GLUE_STAGING = $5261
+LAYOUT_D_GLUE_STAGING = $7BD0
 LAYOUT_D_GLUE_FINAL = $4EFE
 ; Resident staging has been consumed before stage_a2_kernel reaches the GLUE
 ; hold. This free high-RAM window survives the loader bitmap, entity clear and

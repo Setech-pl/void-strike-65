@@ -55,7 +55,9 @@ For both XEX and ATR:
 - [ ] The provisional capital request is not due before active gameplay frame
       600, not while loader, menu, OPTIONS, or pause is active. A still-live
       Interceptor or full legal budget may delay actual admission; once the hull
-      is active, no ordinary admission is allowed. There is no frame-50 copy.
+      is active, ordinary Interceptor admissions continue whenever the Director
+      has capacity. Observe one complete admission/visibility/release cycle and
+      a subsequent admission during the same traversal. There is no frame-50 copy.
 - [ ] During a complete Hostile hull pass, count at least three distinct
       25-frame warning -> four-frame flash -> projectile launches on EASY,
       MEDIUM, and HARD. No two warnings begin together and a full three-slot

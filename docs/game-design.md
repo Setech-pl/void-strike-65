@@ -112,8 +112,10 @@ During construction, the existing first capital encounter is provisionally due
 on active gameplay frame 600. Menu, OPTIONS, loader, pause, and initialization
 frames do not advance this counter. A live ordinary-enemy lifecycle or legal
 budget refusal delays actual admission until the first legal frame; no new
-ordinary enemy is admitted while the capital hull is active, and the ships still
-enter from above at the ordinary world rate. This provisional development
+ordinary-enemy exclusion is attached to the capital lifecycle, and the ships still
+enter from above at the ordinary world rate. Ordinary admissions before, during,
+and after the traversal use the same one-slot Director budget, retry, RNG, and
+lifecycle policy. This provisional development
 schedule creates a natural early test window for three qualifying Interceptor
 kills and the resulting `FREE -> PENDING -> ACTIVE` pickup. It moves the original
 encounter rather than adding another one at frame 50 or its former phase

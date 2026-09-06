@@ -1015,6 +1015,7 @@ test("assembled muzzle records preserve backing and complete the full visible li
   const muzzleHi = labels.get("MUZZLE_SCREEN_HI");
   const leftBacking = labels.get("CORRIDOR_BOUNDARY_LEFT");
   const rightBacking = labels.get("CORRIDOR_BOUNDARY_RIGHT");
+  const muzzleBacking = leftBacking + 1;
   const turretFired = labels.get("BROAD_TURRET_FIRED");
   const destination = labels.get("dst_ptr");
   const gameplayScreen = 0x4028;
@@ -1032,6 +1033,8 @@ test("assembled muzzle records preserve backing and complete the full visible li
   memory[destination + 1] = gameplayScreen >> 8;
   memory[gameplayScreen + alliedColumn] = 0x45;
   memory[gameplayScreen + enemyColumn] = 0xd0;
+  memory[muzzleBacking] = 0x10;
+  memory[muzzleBacking + 1] = 0x30;
   memory[muzzleDomain] = 1;
   memory[muzzleDomain + 1] = 1;
   memory[muzzleRow] = 24;
@@ -1226,6 +1229,7 @@ test("hybrid world ring and hull-only copy preserve every logical row and both h
   const rowHi = labels.get("PLAYFIELD_ROW_HI");
   const leftBacking = labels.get("CORRIDOR_BOUNDARY_LEFT");
   const rightBacking = labels.get("CORRIDOR_BOUNDARY_RIGHT");
+  const muzzleBacking = leftBacking + 1;
   const logicalAddress = (memory, row) => row === 0
     ? gameplayScreen
     : memory[rowLo + row - 1] | memory[rowHi + row - 1] << 8;
@@ -1260,9 +1264,13 @@ test("hybrid world ring and hull-only copy preserve every logical row and both h
       assert.equal(corridorMemory[address + column],
         corridorBefore[(row - 1) * 40 + column], `corridor ${row},${column}`);
     }
-    assert.equal(corridorMemory[leftBacking + row], 0x20 + row - 1);
-    assert.equal(corridorMemory[rightBacking + row], 0x60 + row - 1);
   }
+  assert.equal(corridorMemory[muzzleBacking], corridorMemory[leftBacking]);
+  assert.equal(corridorMemory[muzzleBacking + 1], corridorMemory[rightBacking]);
+  for (let row = 3; row < canonicalPlayfield.gameplayRows; row += 1)
+    assert.equal(corridorMemory[leftBacking + row], 0x20 + row);
+  for (let row = 1; row < canonicalPlayfield.gameplayRows; row += 1)
+    assert.equal(corridorMemory[rightBacking + row], 0x60 + row);
 
   const completeMemory = createLinkedRuntimeMemory();
   const completeBefore = fillScreen(completeMemory);

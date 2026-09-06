@@ -44,7 +44,7 @@ function stageArtifact(artifact, fill) {
   const memory = new Uint8Array(0x10000).fill(fill);
   installBootArtifact(memory, root, artifact);
   run(memory, "stage_boot_streams");
-  const sourceA2 = Buffer.from(memory.subarray(0x7f16, 0x8015));
+  const sourceA2 = Buffer.from(memory.subarray(0x7f16, 0x7f16 + a2.length));
   const packedEntity = Buffer.from(memory.subarray(
     manifest.entityEffects.packedSourceAddress,
     manifest.entityEffects.packedSourceAddress + manifest.entityEffects.packedBytes,
@@ -53,10 +53,10 @@ function stageArtifact(artifact, fill) {
   run(memory, "unpack_entity_runtime");
   assert.deepEqual(Buffer.from(memory.subarray(0x9100, 0x9100 + entity.length)), entity);
   run(memory, "stage_a2_kernel");
-  const finalAfterCopy = Buffer.from(memory.subarray(0x9000, 0x90ff));
+  const finalAfterCopy = Buffer.from(memory.subarray(0x9000, 0x9000 + a2.length));
   assert.deepEqual(Buffer.from(memory.subarray(0x8600, 0x8600 + glue.length)), glue);
   run(memory, "init_entity_effects");
-  const finalAfterClear = Buffer.from(memory.subarray(0x9000, 0x90ff));
+  const finalAfterClear = Buffer.from(memory.subarray(0x9000, 0x9000 + a2.length));
   run(memory, "unpack_weapon_pickup_phase_runtime");
   assert.deepEqual(Buffer.from(memory.subarray(0x8800, 0x8800 + pickupPhaseRuntime.length)),
     pickupPhaseRuntime);
@@ -76,32 +76,35 @@ test("Layout D.2 startup order and call bytes are frozen", () => {
   assert.match(source,
     /boot_stage_streams:[\s\S]+a2_kernel_source:[\s\S]+entity_packed_source:[\s\S]+pickup_packed_source:[\s\S]+resident_packed_source:[\s\S]+starfield_packed_source:/,
     "pickup must be preserved after A2/ENTITY sources and before resident staging overwrites $8C80");
+  assert.match(source,
+    /stage_glue_holding:[\s\S]+jmp stage_starfield_stream[\s\S]+stage_starfield_stream:[\s\S]+jmp stage_boot_stream_record/,
+    "GLUE must leave $7BD0 before the deferred starfield staging write");
   const resident = fs.readFileSync(path.join(root, "build/resident-runtime.bin"));
   assert.deepEqual([...resident.subarray(0x40, 0x46)], [0x20, 0x44, 0x21, 0x20, 0xb9, 0x9a]);
 });
 
 test("Layout D.2 exact memory and transport budgets remain frozen", () => {
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 12898);
-  assert.equal(manifest.transportCapacity.initialBootBytes, 12928);
-  assert.equal(manifest.transportCapacity.totalTransportSectors, 163);
-  assert.equal(manifest.transportCapacity.totalTransportBytes, 20864);
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 12990);
+  assert.equal(manifest.transportCapacity.initialBootBytes, 13056);
+  assert.equal(manifest.transportCapacity.totalTransportSectors, 164);
+  assert.equal(manifest.transportCapacity.totalTransportBytes, 20992);
   assert.equal(manifest.transportCapacity.stage2.bytes, 1191);
   assert.deepEqual(manifest.transportCapacity.manifest.parsed.records.map((record) =>
     [record.startSector, record.sectorCount, record.packedLength, record.rawLength,
       record.finalDestination]), [
-    [102, 45, 5660, 6643, 0x5e10],
-    [147, 9, 1022, 1022, 0x8c80],
-    [156, 3, 244, 249, 0x5261],
-    [159, 5, 585, 645, 0x9d75],
+    [103, 45, 5654, 6643, 0x5e10],
+    [148, 9, 1020, 1020, 0x8c80],
+    [157, 3, 244, 249, 0x7bd0],
+    [160, 5, 585, 645, 0x9d75],
   ]);
-  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17287);
-  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 18917);
+  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17282);
+  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 18912);
   assert.equal(manifest.encounterDirector.safeResidencyBytes, 3270);
 });
 
 test("XEX and ATR preserve full A2, GLUE lifecycle, ENTITY_CODE, DIRECTOR and guard", () => {
-  assert.equal(a2.length, 255);
-  assert.equal(sha256(a2), "5d020ae9d2fa04fad3aecd72ec22a3b7ee530df3fcaccdd01be71323488ca33c");
+  assert.equal(a2.length, 254);
+  assert.equal(sha256(a2), "cfc656a7102f528884823343fa4ba8022a1b33f1712ce0df5820aa3c7fed77d5");
   for (const artifact of ["xex", "atr"]) for (const fill of [0xa5, 0x5a]) {
     const staged = stageArtifact(artifact, fill);
     assert.equal(sha256(staged.sourceA2), sha256(a2), `${artifact} staged A2`);
@@ -110,24 +113,19 @@ test("XEX and ATR preserve full A2, GLUE lifecycle, ENTITY_CODE, DIRECTOR and gu
     assert.deepEqual(Buffer.from(staged.memory.subarray(0x4efe, 0x4efe + glue.length)), glue);
     assert.deepEqual(Buffer.from(staged.memory.subarray(0x9d75, 0x9ffa)), director);
     assert.deepEqual([...staged.memory.subarray(0x9ffa, 0xa000)], Array(6).fill(fill));
-    assert.equal(staged.memory[0x90ea], 0xce);
   }
 });
 
-test("all 10 A2 entry points and relocated release glue retain their frozen opcodes", () => {
+test("current A2 entry points and relocated release glue retain their frozen opcodes", () => {
   const entries = [
-    ["integration_broadside_due", 0x90cf, 0xce],
-    ["integration_pickup_pending_tick", 0x90ea, 0xce],
-    ["render_far_star_next", 0x90c9, 0xe8],
-    ["render_far_star_slot", 0x9081, 0xbd],
-    ["erase_far_star_next", 0x907b, 0xca],
-    ["erase_far_star_slot", 0x9061, 0xbd],
-    ["render_far_star_overlays", 0x907f, 0xa2],
+    ["integration_broadside_due", 0x90e3, 0xce],
+    ["render_far_star_next", 0x90d8, 0xe8],
+    ["render_far_star_slot", 0x9072, 0xbd],
+    ["render_far_star_overlays", 0x905f, 0xad],
     ["build_playfield_display_list", 0x9008, 0x85],
-    ["erase_far_star_overlays", 0x905f, 0xa2],
     ["prebuild_next_playfield_display_list", 0x9000, 0xa2],
   ];
-  assert.equal(entries.length, 10);
+  assert.equal(entries.length, 6);
   for (const [name, address, opcode] of entries) {
     assert.equal(labels.get(name), address, name);
     assert.equal(a2[address - 0x9000], opcode, name);
@@ -136,29 +134,40 @@ test("all 10 A2 entry points and relocated release glue retain their frozen opco
   assert.equal(glue[0x4fdc - 0x4efe], 0x8a);
 });
 
-test("pickup hook executes $90EA → $90ED → $90FB, decrements 2 to 1 and returns", () => {
+test("relocated pickup hook decrements 2 to 1 and returns", () => {
   const { memory } = stageArtifact("xex", 0xa5);
   const timer = labels.get("ENTITY_TIMER") + 1;
   memory[timer] = 2;
   const result = run(memory, "integration_pickup_pending_tick");
   assert.equal(memory[timer], 1);
-  assert.deepEqual(result.visited, [0x90ea, 0x90ed, 0x90fb]);
+  assert.equal(result.visited[0], labels.get("integration_pickup_pending_tick"));
 });
 
 test("startup writes never intersect a source before its last read", () => {
   const sources = [
-    { name: "A2 initial source", start: 0x4773, end: 0x4872, lastRead: 1 },
-    { name: "packed ENTITY_CODE", start: 0x4872, end: 0x5261, lastRead: 2 },
-    { name: "packed pickup cold source", start: 0x8c80, end: 0x907e, lastRead: 3 },
-    { name: "packed resident source", start: 0x2668, end: 0x4072, lastRead: 4 },
-    { name: "packed starfield source", start: 0x4072, end: 0x4773, lastRead: 5 },
+    { name: "A2 initial source", start: manifest.a2Kernel.sourceAddress,
+      end: manifest.a2Kernel.sourceAddress + manifest.a2Kernel.bytes, lastRead: 1 },
+    { name: "packed ENTITY_CODE", start: manifest.entityEffects.packedSourceAddress,
+      end: manifest.entityEffects.initialPackedSourcesEndExclusive, lastRead: 2 },
+    { name: "packed pickup cold source", start: 0x8c80,
+      end: 0x8c80 + manifest.entityEffects.pickupPhasePackedBytes, lastRead: 3 },
+    { name: "packed resident source", start: manifest.residentRuntime.packedSourceAddress,
+      end: manifest.residentRuntime.packedSourceAddress +
+        manifest.residentRuntime.suffixPackedBytes, lastRead: 4 },
+    { name: "packed starfield source", start: manifest.starfieldRuntime.packedSourceAddress,
+      end: manifest.starfieldRuntime.packedSourceAddress +
+        manifest.starfieldRuntime.packedBytes, lastRead: 9 },
   ];
   const writes = [
-    { sequence: 1, start: 0x7f16, end: 0x8015 },
-    { sequence: 2, start: 0x535a, end: 0x5d4b },
-    { sequence: 3, start: 0x4801, end: 0x4be3 },
-    { sequence: 4, start: 0x8100, end: 0x9b0a },
-    { sequence: 5, start: 0x7810, end: 0x7f11 },
+    { sequence: 1, start: 0x7f16, end: 0x7f16 + manifest.a2Kernel.bytes },
+    { sequence: 2, start: 0x535a, end: manifest.entityEffects.stagedEndExclusive },
+    { sequence: 3, start: 0x4801,
+      end: 0x4801 + manifest.entityEffects.pickupPhasePackedBytes },
+    { sequence: 4, start: 0x8100,
+      end: 0x8100 + manifest.residentRuntime.suffixPackedBytes },
+    { sequence: 8, start: 0x8600, end: 0x8600 + glue.length },
+    { sequence: 9, start: 0x7810,
+      end: 0x7810 + manifest.starfieldRuntime.packedBytes },
   ];
   for (const write of writes) for (const live of sources) {
     const active = write.sequence <= live.lastRead;

@@ -870,6 +870,10 @@ function argumentValue(name) {
   return process.argv.find((argument) => argument.startsWith(prefix))?.slice(prefix.length);
 }
 
+function tracePcSymbols(binary) {
+  return new Set(binary.toString("latin1").match(/DFTRACE_PC_[A-Z0-9_]+/g) ?? []);
+}
+
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, {
     cwd: options.cwd ?? rootDirectory,
@@ -891,7 +895,6 @@ function prepareAtari800(sourceDirectory) {
   const configurePath = path.join(sourceDirectory, "configure");
   const cpuPath = path.join(sourceDirectory, "src", "cpu.c");
   const destinationHeader = path.join(sourceDirectory, "src", "voidstrike65_trace.h");
-  invariant(fs.existsSync(configurePath), `Atari800 configure is missing: ${configurePath}`);
   invariant(fs.existsSync(cpuPath), `Atari800 cpu.c is missing: ${cpuPath}`);
   const configureText = fs.readFileSync(path.join(sourceDirectory, "configure.ac"), "utf8");
   invariant(configureText.includes(`AC_INIT(Atari800, ${EXPECTED_ATARI800_VERSION},`),
@@ -899,6 +902,7 @@ function prepareAtari800(sourceDirectory) {
 
   fs.copyFileSync(headerPath, destinationHeader);
   let cpuText = fs.readFileSync(cpuPath, "utf8");
+  cpuText = cpuText.replace(/^#include "darkfighter_trace\.h"\r?\n/gm, "");
   if (!cpuText.includes('#include "voidstrike65_trace.h"')) {
     const includeAnchor = "#endif /* ASAP */\n";
     invariant(cpuText.includes(includeAnchor), "Atari800 cpu.c include anchor changed");
@@ -920,6 +924,7 @@ function prepareAtari800(sourceDirectory) {
   fs.writeFileSync(cpuPath, cpuText);
 
   if (!fs.existsSync(path.join(sourceDirectory, "Makefile"))) {
+    invariant(fs.existsSync(configurePath), `Atari800 configure is missing: ${configurePath}`);
     run(configurePath, ["--disable-sdltest", "--disable-riodevice"], { cwd: sourceDirectory });
   }
   run("make", ["-j4"], { cwd: sourceDirectory });
@@ -1505,13 +1510,13 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, xexPath, atrPath }
     staging_id: record.stagingId,
   }));
   invariant(JSON.stringify(dfmcRecords) === JSON.stringify([
-    { start_sector: 102, sectors: 45, packed_bytes: 5639, raw_bytes: 6643,
+    { start_sector: 103, sectors: 45, packed_bytes: 5654, raw_bytes: 6643,
       destination: 0x5e10, staging_id: 1 },
-    { start_sector: 147, sectors: 8, packed_bytes: 888, raw_bytes: 888,
+    { start_sector: 148, sectors: 9, packed_bytes: 1020, raw_bytes: 1020,
       destination: 0x8c80, staging_id: 2 },
-    { start_sector: 155, sectors: 2, packed_bytes: 229, raw_bytes: 234,
-      destination: 0x5259, staging_id: 2 },
-    { start_sector: 157, sectors: 5, packed_bytes: 585, raw_bytes: 645,
+    { start_sector: 157, sectors: 3, packed_bytes: 244, raw_bytes: 249,
+      destination: 0x7bd0, staging_id: 2 },
+    { start_sector: 160, sectors: 5, packed_bytes: 585, raw_bytes: 645,
       destination: 0x9d75, staging_id: 2 },
   ]), "DFMC record order or extent changed during the menu-lifecycle repair");
   const addressEnvironment = {
@@ -1749,6 +1754,8 @@ function main() {
   const capitalPlayerCollisionOnly = process.argv.includes("--capital-player-collision-only");
   const broadsideTransientOnly = process.argv.includes("--broadside-transient-only");
   const earlyEnemyOnly = process.argv.includes("--early-enemy-only");
+  const skipBootSmoke = process.argv.includes("--skip-boot-smoke");
+  const tracePreflightOnly = process.argv.includes("--trace-preflight-only");
   const reuseExistingTraces = process.argv.includes("--reuse-existing-traces");
   const smokeFramesArgument = argumentValue("smoke-frames");
   const smokeFrames = smokeFramesArgument === undefined ? null : Number(smokeFramesArgument);
@@ -1844,6 +1851,28 @@ function main() {
   addressEnvironment.DFTRACE_ENEMY_Y = `0x${labels.get("enemy_y").toString(16)}`;
   addressEnvironment.DFTRACE_DIRECTOR_STATE = "0x80f6";
 
+  if (tracePreflightOnly) {
+    const observerSymbols = tracePcSymbols(fs.readFileSync(emulatorPath));
+    const generatedSymbols = new Set(Object.keys(addressEnvironment)
+      .filter((name) => name.startsWith("DFTRACE_PC_")));
+    const observerHasDynamicProfiles = observerSymbols.delete("DFTRACE_PC_PROFILE");
+    const generatedProfiles = [...generatedSymbols]
+      .filter((name) => /^DFTRACE_PC_PROFILE\d+$/.test(name));
+    for (const name of generatedProfiles) generatedSymbols.delete(name);
+    invariant(observerHasDynamicProfiles &&
+      generatedProfiles.length === traceProfileLabels.length,
+    "Trace profile binding family is incomplete");
+    const missingFromGenerator = [...observerSymbols]
+      .filter((name) => !generatedSymbols.has(name)).sort();
+    const missingFromObserver = [...generatedSymbols]
+      .filter((name) => !observerSymbols.has(name)).sort();
+    invariant(missingFromGenerator.length === 0 && missingFromObserver.length === 0,
+      `Trace PC binding mismatch: observer-only=${missingFromGenerator.join(",") || "none"}; ` +
+      `generator-only=${missingFromObserver.join(",") || "none"}`);
+    console.log(`Trace preflight: ${observerSymbols.size} observer PC symbols match generated labels`);
+    return;
+  }
+
   fs.mkdirSync(buildDirectory, { recursive: true });
   if (menuRasterOnly) {
     const menuRaster = runMenuRasterAudit({
@@ -1855,9 +1884,12 @@ function main() {
     console.log(`Raw report: ${path.relative(rootDirectory, menuRaster.buildReportPath)}`);
     return;
   }
-  const bootSmoke = runBootSmoke({ emulatorPath, labels, xexPath, atrPath });
-  console.log(`Boot smoke: ${bootSmoke.sessions.length} XEX/ATR cold-start sessions passed`);
+  const bootSmoke = skipBootSmoke ? null :
+    runBootSmoke({ emulatorPath, labels, xexPath, atrPath });
+  if (bootSmoke !== null)
+    console.log(`Boot smoke: ${bootSmoke.sessions.length} XEX/ATR cold-start sessions passed`);
   if (bootSmokeOnly) {
+    invariant(bootSmoke !== null, "--boot-smoke-only cannot be combined with --skip-boot-smoke");
     console.log(`Report: ${path.relative(rootDirectory,
       path.join(buildDirectory, "boot-smoke", "report.json"))}`);
     return;
@@ -2596,11 +2628,36 @@ function main() {
       const capitalVisible = capital === undefined ? undefined : rows.find((row) =>
         row.frame >= capital.frame &&
         (row.capital_visible_allied_cells !== 0 || row.capital_visible_enemy_cells !== 0));
+      const capitalEnd = capital === undefined ? undefined : rows.find((row) =>
+        row.frame > capital.frame && row.sector_state >= 5);
+      const simultaneous = capital === undefined ? undefined : rows.find((row) =>
+        row.frame >= capital.frame && row.frame < (capitalEnd?.frame ?? Number.POSITIVE_INFINITY) &&
+        row.enemy_state === 1 && row.enemy_y + 14 > 16 &&
+        (row.capital_visible_allied_cells !== 0 || row.capital_visible_enemy_cells !== 0));
+      const simultaneousAdmission = simultaneous === undefined ? undefined :
+        admissions.findLast((row) => row.frame <= simultaneous.frame);
+      const capitalRelease = simultaneous === undefined ? undefined : releases.find((row) =>
+        row.frame > simultaneous.frame && row.frame <
+          (capitalEnd?.frame ?? Number.POSITIVE_INFINITY));
+      const capitalReadmission = capitalRelease === undefined ? undefined : admissions.find((row) =>
+        row.frame > capitalRelease.frame && row.frame <
+          (capitalEnd?.frame ?? Number.POSITIVE_INFINITY));
+      const broadsideDuringCapital = capital === undefined ? undefined : rows.find((row) =>
+        row.frame >= capital.frame && row.frame < (capitalEnd?.frame ?? Number.POSITIVE_INFINITY) &&
+        row.broadside > 0);
+      const rejectedCapitalRequests = rows.filter((row, index) => {
+        const previous = index === 0 ? undefined : rows[index - 1];
+        return previous !== undefined && capital !== undefined &&
+          row.frame >= capital.frame && row.frame <
+            (capitalEnd?.frame ?? Number.POSITIVE_INFINITY) &&
+          (row.events & (1 << 21)) !== 0 && previous.enemy_state === 0 &&
+          row.enemy_state === 0;
+      });
       const visibilityGaps = releases.slice(0, Math.max(0, visible.length - 1))
         .map((release, index) => visible[index + 1].active_gameplay_frame -
           release.active_gameplay_frame);
       const maximumWall = Math.max(...rows.map((row) => row.wall_cycles));
-      const gateOverruns = rows.filter((row) => row.wall_cycles >= 32_568).length;
+      const gateOverruns = rows.filter((row) => row.wall_cycles > 31_068).length;
       const physicalOverruns = rows.filter((row) => row.wall_cycles >= PAL_FRAME_CYCLES).length;
       const timingErrors = rows.reduce((counts, row) => ({
         missed: counts.missed + row.missed_frames,
@@ -2609,9 +2666,10 @@ function main() {
       }), { missed: 0, extra_vbi: 0, dli: 0 });
       invariant(admissions.length >= 3,
         `${session.id} observed ${admissions.length} admissions`);
-      invariant(releases.length === admissions.length,
-        `${session.id} charged ${admissions.length} ordinary admissions but released ` +
-        `${releases.length}`);
+      const activeReservationAtEnd = rows.at(-1).enemy_state === 0 ? 0 : 1;
+      invariant(releases.length + activeReservationAtEnd === admissions.length,
+        `${session.id} charged ${admissions.length} ordinary admissions but accounted for ` +
+        `${releases.length} releases and ${activeReservationAtEnd} active reservation`);
       invariant(visible.length >= 3 && visible[0].active_gameplay_frame <= 60,
         `${session.id} first visible frame was ${visible[0]?.active_gameplay_frame}`);
       invariant(visibilityGaps.every((gap) => gap <= limits[session.difficulty]),
@@ -2622,16 +2680,26 @@ function main() {
         pending.active_gameplay_frame <= active.active_gameplay_frame &&
         active.active_gameplay_frame < (capital?.active_gameplay_frame ?? 600),
       `${session.id} did not naturally expose PENDING then ACTIVE before capital admission`);
-      invariant(pickupEpisodes.length === 1,
-        `${session.id} created ${pickupEpisodes.length} pickup episodes`);
-      invariant(pickupCollections.length === 1,
-        `${session.id} naturally collected the pickup ${pickupCollections.length} times`);
+      invariant(pickupEpisodes.length >= 1,
+        `${session.id} created no pickup episodes`);
+      invariant(pickupCollections.length >= 1 &&
+        pickupCollections.length <= pickupEpisodes.length,
+      `${session.id} observed ${pickupEpisodes.length} pickup episodes but ` +
+        `${pickupCollections.length} natural collections`);
       invariant(capital?.active_gameplay_frame >= 600 && capitalVisible !== undefined,
         `${session.id} capital admission/visibility was ${capital?.active_gameplay_frame}/` +
         `${capitalVisible?.active_gameplay_frame}`);
-      invariant(!admissions.some((row) => row.frame >= capital.frame),
-        `${session.id} admitted an ordinary enemy during the capital sector`);
-      invariant(maximumWall < 32_568 && timingErrors.missed === 0 &&
+      invariant(simultaneous !== undefined && simultaneousAdmission !== undefined,
+        `${session.id} did not show a visible Hunter with the capital hull`);
+      invariant(capitalRelease !== undefined && capitalReadmission !== undefined,
+        `${session.id} did not release and readmit a Hunter during the capital traversal`);
+      invariant(broadsideDuringCapital !== undefined,
+        `${session.id} did not retain natural BROADSIDE fire during coexistence`);
+      invariant(rejectedCapitalRequests.length > 0 && rejectedCapitalRequests.every((row) => {
+        const previous = rows[row.frame - 1];
+        return previous !== undefined && row.director_rng === previous.director_rng;
+      }), `${session.id} rejected ordinary admission advanced Director RNG`);
+      invariant(maximumWall <= 31_068 && timingErrors.missed === 0 &&
         timingErrors.extra_vbi === 0 && timingErrors.dli === 0,
       `${session.id} failed PAL timing: max=${maximumWall}, ${JSON.stringify(timingErrors)}`);
       invariant(rows.every((row) => row.muzzle_illegal_cells === 0 &&
@@ -2663,19 +2731,26 @@ function main() {
         pickup: { pending: compact(pending), active: compact(active),
           collected: compact(pickupCollections[0]), episodes: pickupEpisodes.length },
         capital: { configured_due_active_gameplay_frame: 600,
-          admission: compact(capital), first_visible: compact(capitalVisible) },
+          admission: compact(capital), first_visible: compact(capitalVisible),
+          traversal_end: compact(capitalEnd), broadside: compact(broadsideDuringCapital) },
+        coexistence: { simultaneous: compact(simultaneous),
+          first_admission: compact(simultaneousAdmission),
+          release: compact(capitalRelease), readmission: compact(capitalReadmission) },
         director: {
           ordinary_charges: admissions.length,
           ordinary_releases: releases.length,
-          charge_release_balanced: releases.length === admissions.length,
+          active_ordinary_reservations_at_end: activeReservationAtEnd,
+          charge_release_balanced:
+            releases.length + activeReservationAtEnd === admissions.length,
           maximum_intensity: Math.max(...rows.map((row) => row.director_intensity)),
           rng_sequence_at_admission: admissions.map((row) => row.director_rng),
+          rejected_capital_requests_without_rng_advance: rejectedCapitalRequests.length,
           rng_sequence_checksum_sha256: sha256(Buffer.from(
             admissions.map((row) => row.director_rng))),
         },
         timing: { maximum_wall_cycles: maximumWall,
           physical_headroom_cycles: PAL_FRAME_CYCLES - maximumWall,
-          focused_gate_headroom_cycles: 32_568 - maximumWall,
+          focused_gate_headroom_cycles: 31_068 - maximumWall,
           deadline_overruns: timingErrors.missed,
           physical_pal_overruns: physicalOverruns,
           focused_gate_overruns: gateOverruns,

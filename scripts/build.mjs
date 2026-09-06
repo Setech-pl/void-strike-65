@@ -167,14 +167,14 @@ const broadsideRuntimeReservedBytes = 0x1a00;
 const starfieldStagingAddress = 0x7810;
 const starfieldStagingBytes = 0x706;
 const encounterDirectorEnabled = true;
-const glueStagingAddress = 0x5261;
+const glueStagingAddress = 0x7bd0;
 const glueFinalAddress = 0x4efe;
 const directorRunAddress = 0x9d75;
 const directorGuardAddress = 0x9ffa;
-// Frontend branding and the PMG-latch clear remain inside the existing
-// 101-sector initial envelope; extension chunk topology remains frozen.
-const expectedInitialContentBytes = 12898;
-const expectedLinkedRuntimeBytes = 17287;
+// The PAL coexistence helpers changed compression without changing linked
+// runtime size. The initial content therefore occupies a 102-sector envelope.
+const expectedInitialContentBytes = 12990;
+const expectedLinkedRuntimeBytes = 17282;
 const expectedDirectorRawBytes = 645;
 const expectedDirectorPackedBytes = 585;
 const expectedGlueRawBytes = 249;
@@ -711,13 +711,16 @@ async function build() {
   const entityStagedEndAddress = entityStagedSourceAddress + packedEntityCodeRuntime.length;
   const initialPackedSourcesEnd = entityPackedSourceAddress + packedEntityCodeRuntime.length;
   const initialPackedSourcesLastAddress = initialPackedSourcesEnd - 1;
-  if (!(initialPackedSourcesEnd <= glueStagingAddress &&
-    glueStagingAddress + glueModule.raw.length <= entityStagedSourceAddress)) {
+  const glueStagingEndAddress = glueStagingAddress + glueModule.raw.length;
+  if (!(glueStagingAddress >= 0x7bd0 &&
+    glueStagingEndAddress <= starfieldStagingAddress + starfieldStagingBytes)) {
     throw new Error(
-      `Cold sources/staging overlap: initial ends $${initialPackedSourcesEnd.toString(16)}, ` +
+      `GLUE cold staging is outside the deferred starfield window: initial ends ` +
+      `$${initialPackedSourcesEnd.toString(16)}, ` +
       `GLUE is $${glueStagingAddress.toString(16)}-$${
         (glueStagingAddress + glueModule.raw.length - 1).toString(16)}, ` +
-      `ENTITY staging starts $${entityStagedSourceAddress.toString(16)}`,
+      `starfield staging is $${starfieldStagingAddress.toString(16)}-$${
+        (starfieldStagingAddress + starfieldStagingBytes - 1).toString(16)}`,
     );
   }
   if (!(initialPackedSourcesEnd <= entityStagedSourceAddress)) {
@@ -864,13 +867,13 @@ async function build() {
     record.startSector, record.sectorCount, record.packedLength,
     record.rawLength, record.finalDestination,
   ]);
-  if (bootSectors !== 101 || totalTransportSectors !== 163 ||
-    transportPayload.length !== 20864 || JSON.stringify(frozenRecordShape) !== JSON.stringify([
-      [102, 45, 5660, 6643, 0x5e10],
-      [147, 9, packedWeaponPickupPhaseBank.length, packedWeaponPickupPhaseBank.length,
+  if (bootSectors !== 102 || totalTransportSectors !== 164 ||
+    transportPayload.length !== 20992 || JSON.stringify(frozenRecordShape) !== JSON.stringify([
+      [103, 45, 5654, 6643, 0x5e10],
+      [148, 9, packedWeaponPickupPhaseBank.length, packedWeaponPickupPhaseBank.length,
         weaponPickupPackedStagingAddress],
-      [156, 3, 244, 249, glueStagingAddress],
-      [159, 5, 585, 645, directorRunAddress],
+      [157, 3, 244, 249, glueStagingAddress],
+      [160, 5, 585, 645, directorRunAddress],
     ])) {
     throw new Error(`Layout D.2 transport topology changed: ${JSON.stringify(frozenRecordShape)}`);
   }

@@ -89,12 +89,12 @@ test("packed startup and relocated GLUE have pairwise-safe real lifetimes", () =
     initialSourcesEnd,
     contentEnd,
   }, {
-    residentPacked: 6663,
-    starfieldPacked: 1795,
+    residentPacked: 6678,
+    starfieldPacked: 1780,
     a2: 254,
-    entityPacked: 2607,
-    initialSourcesEnd: 0x529f,
-    contentEnd: 0x52a3,
+    entityPacked: 2739,
+    initialSourcesEnd: 0x5323,
+    contentEnd: 0x5327,
   });
   assert.equal(glue.length, 249);
   assert.deepEqual([glueStart, glueStart + glue.length - 1], [0x7bd0, 0x7cc8],
@@ -125,7 +125,7 @@ test("packed startup and relocated GLUE have pairwise-safe real lifetimes", () =
     interval(0x21c1, 0x1e3f, 5, 14, "resident runtime suffix"),
     interval(0x9100, 3113, 6, 14, "ENTITY_CODE runtime"),
     interval(0x4010, 7680, 12, 12, "loader bitmap destination"),
-    interval(0x552a, 2252, 13, 14, "starfield runtime"),
+    interval(0x552a, 2235, 13, 14, "starfield runtime"),
     interval(0x5e10, build.broadside.length, -4, 14, "BROADSIDE runtime"),
     interval(0x8800, 1759, 11, 14, "pickup/phase/collision runtime"),
     interval(0x9d75, director.length, 0, 14, "Director runtime"),
@@ -186,10 +186,10 @@ test("packed startup and relocated GLUE have pairwise-safe real lifetimes", () =
         buildTag: Buffer.alloc(5, 4) },
     ],
   });
-  assert.equal(transport.initialBoot.sectors, 102);
+  assert.equal(transport.initialBoot.sectors, 103);
   assert.deepEqual(transport.records.map((record) => [record.startSector,
     record.sectorCount, record.finalDestination]), [
-    [103, 45, 0x5e10], [148, 9, 0x8c80], [157, 3, 0x7bd0], [160, 5, 0x9d75],
+    [104, 45, 0x5e10], [149, 9, 0x8c80], [158, 3, 0x7bd0], [161, 5, 0x9d75],
   ]);
   for (const fill of [0xa5, 0x5a]) {
     for (const chunk of transport.chunkImages) writeWithSentinels(fill, 0x8100, chunk.bytes);

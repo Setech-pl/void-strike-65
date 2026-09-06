@@ -304,6 +304,7 @@ static int dftrace_initialised;
 static int dftrace_active;
 static unsigned dftrace_count;
 static unsigned dftrace_limit;
+static unsigned dftrace_active_limit;
 static unsigned dftrace_fire_delay;
 static unsigned dftrace_difficulty;
 static const char *dftrace_policy;
@@ -2902,6 +2903,8 @@ static void dftrace_init(void)
 			MEMORY_mem[address] = (UBYTE) fill;
 	}
 	dftrace_limit = dftrace_env_u("DFTRACE_FRAMES");
+    dftrace_active_limit = getenv("DFTRACE_ACTIVE_FRAMES") == NULL ? 0u :
+        dftrace_env_u("DFTRACE_ACTIVE_FRAMES");
 	dftrace_fire_delay = dftrace_env_u("DFTRACE_FIRE_DELAY");
 	dftrace_difficulty = dftrace_env_u("DFTRACE_DIFFICULTY");
 	dftrace_frontend_delay = getenv("DFTRACE_FRONTEND_DELAY") == NULL ? 0u :
@@ -3491,7 +3494,9 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 			previous->next_start_clock = dftrace_clock();
 			previous->next_start_host_frame = (unsigned) Atari800_nframes;
 		}
-		if (dftrace_count == dftrace_limit) {
+		if (dftrace_count == dftrace_limit || (dftrace_active_limit != 0u &&
+            dftrace_count != 0u && dftrace_frames[dftrace_count - 1].active_gameplay_frame >=
+                dftrace_active_limit)) {
 			dftrace_write();
 			fflush(NULL);
 			exit(0);

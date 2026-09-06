@@ -200,6 +200,16 @@ CORRIDOR_BOUNDARY_RIGHT     = CORRIDOR_BOUNDARY_LEFT+CORRIDOR_BOUNDARY_ROWS
 ; path.  They retain two per-muzzle backing bytes while row zero remains the
 ; authoritative freshly generated boundary value for a newly tracked muzzle.
 MUZZLE_BACKING              = CORRIDOR_BOUNDARY_LEFT+$01 ; 2 B, allied/enemy
+; Reuse the retired boundary rows. Only side cells 0..8/31..39 are cached;
+; the historical RIGHT row-zero byte aliases unused centre cell 25.
+PREPARED_HULL_ROW           = CORRIDOR_BOUNDARY_LEFT+$03 ; 40 B
+PREPARED_HULL_LO            = PREPARED_HULL_ROW+40
+PREPARED_HULL_HI            = PREPARED_HULL_LO+1
+PREPARED_HULL_SECTOR        = PREPARED_HULL_LO+2
+PREPARED_HULL_RING_LO       = PREPARED_HULL_LO+3
+.assert PREPARED_HULL_RING_LO < CORRIDOR_BOUNDARY_RIGHT+CORRIDOR_BOUNDARY_ROWS, error, "prepared hull exceeds retired backing"
+.export PREPARED_HULL_ROW, PREPARED_HULL_SECTOR
+.export STAR_RNG_STATE
 CORRIDOR_PHASE_HI           = CORRIDOR_BOUNDARY_RIGHT+CORRIDOR_BOUNDARY_ROWS
 HULL_DRAW_ROW_LO            = CORRIDOR_PHASE_HI+$01
 HULL_DRAW_ROW_HI            = HULL_DRAW_ROW_LO+$01
@@ -4992,6 +5002,7 @@ update_starfield:
     sta HULL_SCROLL_ACCUMULATOR
     ; Preserve the legacy accumulator postcondition; both comparison outcomes
     ; returned through this same bounded no-hull path.
+    jsr prepare_next_hull_row
     lda scroll_accumulator
     rts
 @hull_scroll:
@@ -5005,7 +5016,6 @@ update_starfield:
 ; segments. These bytes replace the removed duplicate-return dispatch and are
 ; unreachable after update_starfield returns.
 starfield_layout_d2_cadence_pad:
-    .byte $00,$60
 
 ; The legacy world clock is now the 100% hull reference. Near and far layers
 ; use independent exact fixed-point ratios against each hull/world event:
@@ -5098,7 +5108,6 @@ scroll_world_columns:
     ; Retain every following cross-segment entry point while removing the
     ; former 17-byte full boundary-table shift from the executed world path.
 world_boundary_shift_compat_pad:
-    .res $0B,$00
 
 ; Both runtime display lists keep HUD=$4000 and divider=$4028 immutable. Only
 ; the following 22 LMS addresses differ after a rotation. The inactive list is
@@ -5252,6 +5261,8 @@ build_star_glyphs:
 ; rows. Cells already occupied by a near star remain logically present but are
 ; not drawn until their next 25%-rate step reaches clear background.
 init_far_star_population:
+    lda #$FF                    ; init_screen has finished using the old backing
+    sta PREPARED_HULL_SECTOR
     ldx #$00
 @slot:
     lda #$01
@@ -5877,53 +5888,14 @@ scroll_hull_copy_source_ready:
     lda (src_ptr),y
     sta (dst_ptr),y
     dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
+    bpl @copy_allied
     ldy #39
 @copy_enemy:
     lda (src_ptr),y
     sta (dst_ptr),y
     dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
+    cpy #(CORRIDOR_ENEMY_FIRST-1)
+    bne @copy_enemy
 
     dex
     bpl scroll_hull_copy_row
@@ -5936,7 +5908,7 @@ scroll_hull_columns_advance_scene:
     lda CAPITAL_SECTOR_STATE
     cmp #CAPITAL_HULL_STATE_DRAIN
     bcs @drain_row
-    jsr draw_hull_row
+    jsr commit_prepared_hull_row
     jsr track_top_muzzles
     inc corridor_phase
     bne :+
@@ -6695,6 +6667,41 @@ player_engine_shape:
 ; display-list counter wraps at that boundary instead of carrying into the
 ; next kilobyte, so these bytes must move together as resident data grows.
 ; H3.1 display lists reproduce the accepted 216-scanline ANTIC contract.
+; Commit at the original draw point; key changes invalidate stale preparation.
+; 27 rows at a 40-byte stride have distinct low bytes (repeat period 32), so
+; this low-byte identity binds the complete physical destination, including wrap.
+commit_prepared_hull_row:
+    lda CAPITAL_SECTOR_STATE
+    cmp PREPARED_HULL_SECTOR
+    bne @miss
+    lda corridor_phase
+    cmp PREPARED_HULL_LO
+    bne @miss
+    lda CORRIDOR_PHASE_HI
+    cmp PREPARED_HULL_HI
+    bne @miss
+    lda PLAYFIELD_ROW_LO
+    cmp PREPARED_HULL_RING_LO
+    bne @miss
+    ; The sole caller has resolved the fixed divider. The two static sides can
+    ; share one index, with their last cells outside the loop. An unrotated
+    ; hull-only path fails the physical-row key above, without a second flag.
+    lda PREPARED_HULL_ROW+8
+    sta GAMEPLAY_DIVIDER_SCREEN+8
+    lda PREPARED_HULL_ROW+39
+    sta GAMEPLAY_DIVIDER_SCREEN+39
+    ldy #7
+@sides:
+    lda PREPARED_HULL_ROW,y
+    sta GAMEPLAY_DIVIDER_SCREEN,y
+    lda PREPARED_HULL_ROW+31,y
+    sta GAMEPLAY_DIVIDER_SCREEN+31,y
+    dey
+    bpl @sides
+    rts
+@miss:
+    jmp draw_hull_row
+
 .align $100
 main_menu_display_list:
     .byte $70,$70,$70,$47,<SCREEN,>SCREEN
@@ -6826,6 +6833,36 @@ player_inside_universal_hull_corridor:
 @edge:
     clc
     rts
+
+; Only immutable source cells are prepared. Difficulty is immutable throughout
+; gameplay (including pause); restart invalidates after init_screen. The key
+; binds both capital owners' shared 16-bit row, section and recycled ring row.
+prepare_next_hull_row:
+    lda CAPITAL_SECTOR_STATE
+    ; COMBAT is the measured peak and both source projections exist throughout
+    ; it. Entry/exit edges retain the raw path, which can leave a boundary star
+    ; untouched when one owner has no source row.
+    cmp #CAPITAL_HULL_STATE_COMBAT
+    bne @done
+    sta PREPARED_HULL_SECTOR
+    lda corridor_phase
+    sta PREPARED_HULL_LO
+    lda CORRIDOR_PHASE_HI
+    sta PREPARED_HULL_HI
+    lda PLAYFIELD_ROW_LO+PLAYFIELD_RING_ROWS-1
+    sta PREPARED_HULL_RING_LO
+    jmp prepare_hull_cells
+@done:
+    rts
+
+prepare_hull_cells:
+    lda #<PREPARED_HULL_ROW
+    sta dst_ptr
+    lda #>PREPARED_HULL_ROW
+    sta dst_ptr+1
+    jmp draw_hull_row
+
+.segment "ENTITY_CODE"
 
 .align $100
 options_display_list:

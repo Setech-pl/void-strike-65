@@ -243,7 +243,7 @@ export function deterministicCapacityBytes(length, seed = 0x6d2b79f5) {
 export function validateInitialBlockCapacity(byteLength, { allowExtendedInitialBlock = false } = {}) {
   invariant(Number.isInteger(byteLength) && byteLength >= ATR_SECTOR_BYTES,
     "initial block length is invalid");
-  const maximumSectors = allowExtendedInitialBlock ? 102 : 100;
+  const maximumSectors = allowExtendedInitialBlock ? 103 : 100;
   const maximumBytes = maximumSectors * ATR_SECTOR_BYTES;
   invariant(byteLength <= maximumBytes,
     `initial block exceeds ${maximumBytes} bytes / ${maximumSectors} sectors`);

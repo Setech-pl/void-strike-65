@@ -78,6 +78,7 @@ const SHIELD_BOOSTER_TARGET_DELTA_CYCLES = 350;
 const SHIELD_BOOSTER_HARD_DELTA_CYCLES = 496;
 const SHIELD_BOOSTER_TARGET_GATE_CYCLES = 32_422;
 const SHIELD_BOOSTER_HARD_GATE_CYCLES = 32_568;
+const CAPITAL_HUNTER_ACCEPTED_CEILING_CYCLES = 31_200;
 const SHIELD_BOOSTER_MINIMUM_HEADROOM_CYCLES = 3_000;
 const EXPECTED_ATARI800_VERSION = "7.1.2";
 const OFFICIAL_SOURCE_ARCHIVE_SHA256 =
@@ -932,7 +933,11 @@ function prepareAtari800(sourceDirectory) {
 
 function parseCsv(csvText, sessionDefinition) {
   const lines = csvText.trim().split(/\r?\n/);
-  invariant(lines.length === sessionDefinition.frames + 1,
+  invariant(sessionDefinition.activeFrames > 0
+    ? lines.length > 1 && lines.length <= sessionDefinition.activeFrames + 257 &&
+      Number(lines.at(-1).split(",")[lines[0].split(",").indexOf("active_gameplay_frame")]) ===
+        sessionDefinition.activeFrames
+    : lines.length === sessionDefinition.frames + 1,
     `${sessionDefinition.id} emitted ${lines.length - 1}/${sessionDefinition.frames} frames`);
   const headers = lines[0].split(",");
   return lines.slice(1).map((line) => {
@@ -1510,13 +1515,13 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, xexPath, atrPath }
     staging_id: record.stagingId,
   }));
   invariant(JSON.stringify(dfmcRecords) === JSON.stringify([
-    { start_sector: 103, sectors: 45, packed_bytes: 5654, raw_bytes: 6643,
+    { start_sector: 104, sectors: 45, packed_bytes: 5654, raw_bytes: 6643,
       destination: 0x5e10, staging_id: 1 },
-    { start_sector: 148, sectors: 9, packed_bytes: 1020, raw_bytes: 1020,
+    { start_sector: 149, sectors: 9, packed_bytes: 1020, raw_bytes: 1020,
       destination: 0x8c80, staging_id: 2 },
-    { start_sector: 157, sectors: 3, packed_bytes: 244, raw_bytes: 249,
+    { start_sector: 158, sectors: 3, packed_bytes: 244, raw_bytes: 249,
       destination: 0x7bd0, staging_id: 2 },
-    { start_sector: 160, sectors: 5, packed_bytes: 585, raw_bytes: 645,
+    { start_sector: 161, sectors: 5, packed_bytes: 585, raw_bytes: 645,
       destination: 0x9d75, staging_id: 2 },
   ]), "DFMC record order or extent changed during the menu-lifecycle repair");
   const addressEnvironment = {
@@ -1760,6 +1765,9 @@ function main() {
   const smokeFramesArgument = argumentValue("smoke-frames");
   const smokeFrames = smokeFramesArgument === undefined ? null : Number(smokeFramesArgument);
   const onlySession = argumentValue("only-session");
+  const activeFrames = Number(argumentValue("active-frames") ?? 0);
+  invariant(Number.isInteger(activeFrames) && activeFrames >= 0 && activeFrames <= 1500,
+    "--active-frames must be an integer from 0 to 1500");
   const pickupFenceTrace = process.argv.includes("--pickup-fence-trace");
   invariant(smokeFrames === null || Number.isInteger(smokeFrames) && smokeFrames > 0,
     "--smoke-frames must be a positive integer");
@@ -1936,6 +1944,7 @@ function main() {
     invariant(sessionsToRun.length === 1, `Unknown trace session: ${onlySession}`);
   }
   for (const session of sessionsToRun) {
+    session.activeFrames = activeFrames;
     const outputPath = path.join(buildDirectory, `${session.id}.csv`);
     const pickupContactPrefix = session.kind === "weapon-pickup-contact"
       ? path.join(buildDirectory, "weapon-pickup-contact-nose")
@@ -1998,7 +2007,8 @@ function main() {
       ...process.env,
       SDL_VIDEODRIVER: process.env.SDL_VIDEODRIVER ?? "dummy",
       ...addressEnvironment,
-      DFTRACE_FRAMES: String(session.frames),
+      DFTRACE_FRAMES: String(activeFrames === 0 ? session.frames : activeFrames + 256),
+      DFTRACE_ACTIVE_FRAMES: String(activeFrames),
       DFTRACE_FIRE_DELAY: String(session.fireDelay),
       DFTRACE_DIFFICULTY: String(session.difficulty),
       DFTRACE_POLICY: session.policy,
@@ -2657,7 +2667,8 @@ function main() {
         .map((release, index) => visible[index + 1].active_gameplay_frame -
           release.active_gameplay_frame);
       const maximumWall = Math.max(...rows.map((row) => row.wall_cycles));
-      const gateOverruns = rows.filter((row) => row.wall_cycles > 31_068).length;
+      const gateOverruns = rows.filter((row) =>
+        row.wall_cycles > CAPITAL_HUNTER_ACCEPTED_CEILING_CYCLES).length;
       const physicalOverruns = rows.filter((row) => row.wall_cycles >= PAL_FRAME_CYCLES).length;
       const timingErrors = rows.reduce((counts, row) => ({
         missed: counts.missed + row.missed_frames,
@@ -2699,7 +2710,8 @@ function main() {
         const previous = rows[row.frame - 1];
         return previous !== undefined && row.director_rng === previous.director_rng;
       }), `${session.id} rejected ordinary admission advanced Director RNG`);
-      invariant(maximumWall <= 31_068 && timingErrors.missed === 0 &&
+      invariant(maximumWall <= CAPITAL_HUNTER_ACCEPTED_CEILING_CYCLES &&
+        timingErrors.missed === 0 &&
         timingErrors.extra_vbi === 0 && timingErrors.dli === 0,
       `${session.id} failed PAL timing: max=${maximumWall}, ${JSON.stringify(timingErrors)}`);
       invariant(rows.every((row) => row.muzzle_illegal_cells === 0 &&
@@ -2750,7 +2762,8 @@ function main() {
         },
         timing: { maximum_wall_cycles: maximumWall,
           physical_headroom_cycles: PAL_FRAME_CYCLES - maximumWall,
-          focused_gate_headroom_cycles: 31_068 - maximumWall,
+          focused_gate_headroom_cycles:
+            CAPITAL_HUNTER_ACCEPTED_CEILING_CYCLES - maximumWall,
           deadline_overruns: timingErrors.missed,
           physical_pal_overruns: physicalOverruns,
           focused_gate_overruns: gateOverruns,

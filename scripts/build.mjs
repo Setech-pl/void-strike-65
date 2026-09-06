@@ -171,10 +171,10 @@ const glueStagingAddress = 0x7bd0;
 const glueFinalAddress = 0x4efe;
 const directorRunAddress = 0x9d75;
 const directorGuardAddress = 0x9ffa;
-// The PAL coexistence helpers changed compression without changing linked
-// runtime size. The initial content therefore occupies a 102-sector envelope.
-const expectedInitialContentBytes = 12990;
-const expectedLinkedRuntimeBytes = 17282;
+// The prepared-row PAL path changes compression while shrinking linked runtime
+// by five bytes. The initial content therefore occupies a 103-sector envelope.
+const expectedInitialContentBytes = 13095;
+const expectedLinkedRuntimeBytes = 17277;
 const expectedDirectorRawBytes = 645;
 const expectedDirectorPackedBytes = 585;
 const expectedGlueRawBytes = 249;
@@ -867,13 +867,13 @@ async function build() {
     record.startSector, record.sectorCount, record.packedLength,
     record.rawLength, record.finalDestination,
   ]);
-  if (bootSectors !== 102 || totalTransportSectors !== 164 ||
-    transportPayload.length !== 20992 || JSON.stringify(frozenRecordShape) !== JSON.stringify([
-      [103, 45, 5654, 6643, 0x5e10],
-      [148, 9, packedWeaponPickupPhaseBank.length, packedWeaponPickupPhaseBank.length,
+  if (bootSectors !== 103 || totalTransportSectors !== 165 ||
+    transportPayload.length !== 21120 || JSON.stringify(frozenRecordShape) !== JSON.stringify([
+      [104, 45, 5654, 6643, 0x5e10],
+      [149, 9, packedWeaponPickupPhaseBank.length, packedWeaponPickupPhaseBank.length,
         weaponPickupPackedStagingAddress],
-      [157, 3, 244, 249, glueStagingAddress],
-      [160, 5, 585, 645, directorRunAddress],
+      [158, 3, 244, 249, glueStagingAddress],
+      [161, 5, 585, 645, directorRunAddress],
     ])) {
     throw new Error(`Layout D.2 transport topology changed: ${JSON.stringify(frozenRecordShape)}`);
   }

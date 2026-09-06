@@ -312,7 +312,12 @@ director_common_end:
 .segment "LEVEL1_DATA"
 level1_phase_end_lo: .byte <128,<576,<1056,<1664,<1856,<2752,<2944,<3712
 level1_phase_end_hi: .byte >128,>576,>1056,>1664,>1856,>2752,>2944,>3712
-level1_phase_hazards: .byte $00,$09,$0A,$0F,$08,$0F,$08,$0F
+; Hunter is the only implemented ordinary roster member. Preserve every
+; authored debris/BROADSIDE/pickup bit, but keep one legal ordinary fallback in
+; phases 2, 4 and 6 until their Striker/Weaver/Gunship successors exist. Phase
+; zero retains its established phase-one borrowing rule because its budget is
+; intentionally zero.
+level1_phase_hazards: .byte $00,$09,$0B,$0F,$09,$0F,$09,$0F
 level1_phase_budget_easy:   .byte 0,1,2,3,1,2,1,2
 level1_phase_budget_medium: .byte 0,2,3,4,1,3,1,3
 level1_phase_budget_hard:   .byte 0,2,3,5,2,4,2,4

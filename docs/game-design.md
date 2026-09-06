@@ -258,7 +258,11 @@ The intensity budgets are 3/4/5 for EASY/MEDIUM/HARD. The Director has a
 private deterministic RNG and does not consume the game's existing random
 state. It owns admission policy and budgets while the existing Interceptor, debris,
 broadside, pickup, object-pool, and destruction lifecycles retain object
-ownership. With no boss consumer, `BOSS_HANDOFF` closes admissions and pickup
+ownership. Until the remaining ordinary roster is implemented, phases 2, 4,
+and 6 retain their authored hazard masks and budgets but also admit Hunter as
+the legal fallback. A later phase-native Striker, Weaver, or Gunship replaces
+only that temporary Hunter bit; it does not require a new scheduling policy.
+With no boss consumer, `BOSS_HANDOFF` closes admissions and pickup
 state, enters DRAIN, lets active objects expire, and emits exactly one
 `LEVEL COMPLETE`; it never creates a boss.
 

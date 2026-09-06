@@ -156,12 +156,12 @@
     "manifest": {
       "address": 9690,
       "bytes": 78,
-      "crc16": 8349,
+      "crc16": 55327,
       "parsed": {
         "version": 1,
         "totalOccupiedSectors": 165,
         "manifestBytes": 78,
-        "crc16": 8349,
+        "crc16": 55327,
         "records": [
           {
             "startSector": 104,
@@ -202,7 +202,7 @@
             "packedLength": 585,
             "rawLength": 645,
             "finalDestination": 40309,
-            "crc16": 64463,
+            "crc16": 48627,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -267,7 +267,7 @@
       "startSector": 161,
       "sectors": 5,
       "transportBytes": 640,
-      "crc16": 64463
+      "crc16": 48627
     }
   },
   "capitalPlayerCollisionRuntime": {
@@ -1112,12 +1112,12 @@
         "entity_despawn_debris": 56,
         "entity_effects_erase": 518,
         "entity_effects_render": 2163,
-        "entity_effects_update": 2256,
+        "entity_effects_update": 2341,
         "entity_player_fighter_projectile_hits_debris": 47,
         "entity_player_fighter_projectile_target": 718,
         "entity_spawn_debris": 190,
         "erase_far_star_overlays": 1246,
-        "erase_fighter_projectile_overlays": 1853,
+        "erase_fighter_projectile_overlays": 1972,
         "erase_interactive_entity_overlays": 223,
         "erase_transient_effect_overlays": 282,
         "handle_collisions": 4100,
@@ -1130,7 +1130,7 @@
         "render_capital_explosions": 740,
         "render_far_star_overlays": 1916,
         "render_far_star_overlays_if_needed": 1927,
-        "render_fighter_projectile_overlays": 3973,
+        "render_fighter_projectile_overlays": 4262,
         "render_interactive_entity_overlays": 1379,
         "render_shared_fighter_explosions": 1139,
         "render_transient_effect_overlays": 815,
@@ -1152,7 +1152,7 @@
         "update_enemy_weapon": 517,
         "update_fighter_projectiles": 2813,
         "update_player_death": 2044,
-        "update_player_fighter_weapon": 559,
+        "update_player_fighter_weapon": 545,
         "update_sound": 144,
         "update_starfield": 6271,
         "update_transient_effects": 765,
@@ -13393,6 +13393,276 @@
       {
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire4",
+        "frame": 1695,
+        "activeCpuCycles": 16235,
+        "mainLoopCpuCycles": 16248,
+        "projectileOccupancy": 19,
+        "player_fighterProjectileOccupancy": 10,
+        "broadsideOccupancy": 0,
+        "renderedFarStars": 0,
+        "playerLifecycle": 0,
+        "entityActiveCount": 1,
+        "entityY": 232,
+        "effectActiveCount": 0,
+        "effectActiveMask": 0,
+        "events": [
+          "world-copy",
+          "far-erase",
+          "hull-copy",
+          "broadside",
+          "fighter-explosion",
+          "capital-explosion",
+          "music-row",
+          "fighter-projectiles",
+          "live-interceptor",
+          "music+sfx",
+          "active-debris"
+        ],
+        "procedureCycles": {
+          "erase_interactive_entity_overlays": 180,
+          "entity_effects_erase": 194,
+          "advance_dst_to_next_physical_row": 50,
+          "erase_fighter_projectile_overlays": 1531,
+          "tick_shared_fighter_explosions": 37,
+          "tick_capital_explosions": 41,
+          "tick_launch_flashes": 55,
+          "update_player_death": 26,
+          "read_input": 69,
+          "update_enemy": 1127,
+          "player_fighter_projectile_hits_enemy": 46,
+          "entity_player_fighter_projectile_target": 66,
+          "interceptor_projectile_hits_player": 49,
+          "update_fighter_projectiles": 1998,
+          "update_broadside": 204,
+          "handle_collisions": 2314,
+          "update_player_fighter_weapon": 59,
+          "update_enemy_weapon": 92,
+          "erase_far_star_overlays": 376,
+          "rotate_playfield_rows": 1269,
+          "set_gameplay_row_ptr": 27,
+          "scroll_world_columns": 1972,
+          "advance_far_stars": 680,
+          "scroll_hull_columns": 28,
+          "update_starfield": 3346,
+          "render_far_star_overlays": 1618,
+          "render_far_star_overlays_if_needed": 1629,
+          "handle_player_hull_contact": 55,
+          "update_transient_effects": 29,
+          "weapon_pickup_collide_player": 31,
+          "update_weapon_pickup_active": 104,
+          "entity_effects_update": 269,
+          "render_capital_explosions": 41,
+          "render_shared_fighter_explosions": 41,
+          "render_fighter_projectile_overlays": 3320,
+          "render_interactive_entity_overlays": 1173,
+          "entity_effects_render": 1186,
+          "update_sound": 116,
+          "music_tick_gameplay": 41
+        },
+        "procedureTotalCycles": {
+          "erase_interactive_entity_overlays": 180,
+          "entity_effects_erase": 194,
+          "advance_dst_to_next_physical_row": 255,
+          "erase_fighter_projectile_overlays": 1531,
+          "tick_shared_fighter_explosions": 37,
+          "tick_capital_explosions": 41,
+          "tick_launch_flashes": 55,
+          "update_player_death": 26,
+          "read_input": 69,
+          "update_enemy": 1127,
+          "player_fighter_projectile_hits_enemy": 460,
+          "entity_player_fighter_projectile_target": 660,
+          "interceptor_projectile_hits_player": 305,
+          "update_fighter_projectiles": 1998,
+          "update_broadside": 204,
+          "handle_collisions": 2314,
+          "update_player_fighter_weapon": 59,
+          "update_enemy_weapon": 92,
+          "erase_far_star_overlays": 376,
+          "rotate_playfield_rows": 1269,
+          "set_gameplay_row_ptr": 27,
+          "scroll_world_columns": 1972,
+          "advance_far_stars": 680,
+          "scroll_hull_columns": 28,
+          "update_starfield": 3346,
+          "render_far_star_overlays": 1618,
+          "render_far_star_overlays_if_needed": 1629,
+          "handle_player_hull_contact": 55,
+          "update_transient_effects": 29,
+          "weapon_pickup_collide_player": 31,
+          "update_weapon_pickup_active": 104,
+          "entity_effects_update": 269,
+          "render_capital_explosions": 41,
+          "render_shared_fighter_explosions": 41,
+          "render_fighter_projectile_overlays": 3320,
+          "render_interactive_entity_overlays": 1173,
+          "entity_effects_render": 1186,
+          "update_sound": 116,
+          "music_tick_gameplay": 41
+        },
+        "procedureExclusiveCycles": {
+          "erase_interactive_entity_overlays": 180,
+          "entity_effects_erase": 14,
+          "advance_dst_to_next_physical_row": 255,
+          "erase_fighter_projectile_overlays": 1276,
+          "tick_shared_fighter_explosions": 37,
+          "tick_capital_explosions": 41,
+          "tick_launch_flashes": 55,
+          "update_player_death": 26,
+          "read_input": 69,
+          "update_enemy": 1127,
+          "player_fighter_projectile_hits_enemy": 460,
+          "entity_player_fighter_projectile_target": 200,
+          "interceptor_projectile_hits_player": 305,
+          "update_fighter_projectiles": 1033,
+          "update_broadside": 204,
+          "handle_collisions": 112,
+          "update_player_fighter_weapon": 59,
+          "update_enemy_weapon": 92,
+          "erase_far_star_overlays": 376,
+          "rotate_playfield_rows": 1269,
+          "set_gameplay_row_ptr": 27,
+          "scroll_world_columns": 676,
+          "advance_far_stars": 680,
+          "scroll_hull_columns": 28,
+          "update_starfield": 290,
+          "render_far_star_overlays": 1618,
+          "render_far_star_overlays_if_needed": 11,
+          "handle_player_hull_contact": 55,
+          "update_transient_effects": 29,
+          "weapon_pickup_collide_player": 31,
+          "update_weapon_pickup_active": 73,
+          "entity_effects_update": 136,
+          "render_capital_explosions": 41,
+          "render_shared_fighter_explosions": 41,
+          "render_fighter_projectile_overlays": 3320,
+          "render_interactive_entity_overlays": 1173,
+          "entity_effects_render": 13,
+          "update_sound": 116,
+          "music_tick_gameplay": 41
+        },
+        "procedureCallCounts": {
+          "erase_interactive_entity_overlays": 1,
+          "entity_effects_erase": 1,
+          "advance_dst_to_next_physical_row": 6,
+          "erase_fighter_projectile_overlays": 1,
+          "tick_shared_fighter_explosions": 1,
+          "tick_capital_explosions": 1,
+          "tick_launch_flashes": 1,
+          "update_player_death": 1,
+          "read_input": 1,
+          "update_enemy": 1,
+          "player_fighter_projectile_hits_enemy": 10,
+          "entity_player_fighter_projectile_target": 10,
+          "interceptor_projectile_hits_player": 9,
+          "update_fighter_projectiles": 1,
+          "update_broadside": 1,
+          "handle_collisions": 1,
+          "update_player_fighter_weapon": 1,
+          "update_enemy_weapon": 1,
+          "erase_far_star_overlays": 1,
+          "rotate_playfield_rows": 1,
+          "set_gameplay_row_ptr": 1,
+          "scroll_world_columns": 1,
+          "advance_far_stars": 1,
+          "scroll_hull_columns": 1,
+          "update_starfield": 1,
+          "render_far_star_overlays": 1,
+          "render_far_star_overlays_if_needed": 1,
+          "handle_player_hull_contact": 1,
+          "update_transient_effects": 1,
+          "weapon_pickup_collide_player": 1,
+          "update_weapon_pickup_active": 1,
+          "entity_effects_update": 1,
+          "render_capital_explosions": 1,
+          "render_shared_fighter_explosions": 1,
+          "render_fighter_projectile_overlays": 1,
+          "render_interactive_entity_overlays": 1,
+          "entity_effects_render": 1,
+          "update_sound": 1,
+          "music_tick_gameplay": 1
+        },
+        "procedureEdges": {
+          "entity_effects_erase->erase_interactive_entity_overlays": {
+            "cycles": 180,
+            "calls": 1
+          },
+          "erase_fighter_projectile_overlays->advance_dst_to_next_physical_row": {
+            "cycles": 255,
+            "calls": 6
+          },
+          "entity_player_fighter_projectile_target->player_fighter_projectile_hits_enemy": {
+            "cycles": 460,
+            "calls": 10
+          },
+          "update_fighter_projectiles->entity_player_fighter_projectile_target": {
+            "cycles": 660,
+            "calls": 10
+          },
+          "update_fighter_projectiles->interceptor_projectile_hits_player": {
+            "cycles": 305,
+            "calls": 9
+          },
+          "handle_collisions->update_fighter_projectiles": {
+            "cycles": 1998,
+            "calls": 1
+          },
+          "handle_collisions->update_broadside": {
+            "cycles": 204,
+            "calls": 1
+          },
+          "update_starfield->erase_far_star_overlays": {
+            "cycles": 376,
+            "calls": 1
+          },
+          "scroll_world_columns->rotate_playfield_rows": {
+            "cycles": 1269,
+            "calls": 1
+          },
+          "scroll_world_columns->set_gameplay_row_ptr": {
+            "cycles": 27,
+            "calls": 1
+          },
+          "update_starfield->scroll_world_columns": {
+            "cycles": 1972,
+            "calls": 1
+          },
+          "update_starfield->advance_far_stars": {
+            "cycles": 680,
+            "calls": 1
+          },
+          "update_starfield->scroll_hull_columns": {
+            "cycles": 28,
+            "calls": 1
+          },
+          "render_far_star_overlays_if_needed->render_far_star_overlays": {
+            "cycles": 1618,
+            "calls": 1
+          },
+          "entity_effects_update->update_transient_effects": {
+            "cycles": 29,
+            "calls": 1
+          },
+          "update_weapon_pickup_active->weapon_pickup_collide_player": {
+            "cycles": 31,
+            "calls": 1
+          },
+          "entity_effects_update->update_weapon_pickup_active": {
+            "cycles": 104,
+            "calls": 1
+          },
+          "entity_effects_render->render_interactive_entity_overlays": {
+            "cycles": 1173,
+            "calls": 1
+          }
+        },
+        "regionCycles": {
+          "rotate_playfield_table_shift": 611
+        }
+      },
+      {
+        "origin": "deterministic legal replay",
+        "session": "2-sweep-fire4",
         "frame": 695,
         "activeCpuCycles": 16234,
         "mainLoopCpuCycles": 16247,
@@ -19235,272 +19505,6 @@
         "regionCycles": {
           "rotate_playfield_table_shift": 611
         }
-      },
-      {
-        "origin": "deterministic legal replay",
-        "session": "2-sweep-fire6",
-        "frame": 839,
-        "activeCpuCycles": 16035,
-        "mainLoopCpuCycles": 16048,
-        "projectileOccupancy": 6,
-        "player_fighterProjectileOccupancy": 6,
-        "broadsideOccupancy": 2,
-        "renderedFarStars": 0,
-        "playerLifecycle": 0,
-        "entityActiveCount": 0,
-        "entityY": 232,
-        "effectActiveCount": 5,
-        "effectActiveMask": 31,
-        "events": [
-          "world-copy",
-          "far-erase",
-          "hull-copy",
-          "broadside",
-          "fighter-explosion",
-          "capital-explosion",
-          "music-row",
-          "fighter-projectiles",
-          "active-explosion",
-          "music+sfx",
-          "active-effects"
-        ],
-        "procedureCycles": {
-          "erase_transient_effect_overlays": 282,
-          "entity_effects_erase": 306,
-          "erase_fighter_projectile_overlays": 590,
-          "tick_shared_fighter_explosions": 48,
-          "tick_capital_explosions": 41,
-          "tick_launch_flashes": 55,
-          "update_player_death": 26,
-          "read_input": 69,
-          "update_enemy": 26,
-          "player_fighter_projectile_hits_enemy": 24,
-          "entity_player_fighter_projectile_target": 44,
-          "update_fighter_projectiles": 820,
-          "set_gameplay_row_ptr": 32,
-          "update_broadside": 1639,
-          "handle_collisions": 2534,
-          "update_player_fighter_weapon": 513,
-          "erase_far_star_overlays": 376,
-          "rotate_playfield_rows": 1269,
-          "scroll_world_columns": 1805,
-          "advance_far_stars": 680,
-          "resolve_allied_sector_row": 119,
-          "resolve_enemy_sector_row": 120,
-          "scroll_hull_columns": 2306,
-          "update_starfield": 5462,
-          "render_far_star_overlays": 1671,
-          "render_far_star_overlays_if_needed": 1682,
-          "handle_player_hull_contact": 55,
-          "update_transient_effects": 302,
-          "entity_effects_update": 436,
-          "render_capital_explosions": 41,
-          "render_shared_fighter_explosions": 45,
-          "advance_dst_to_next_physical_row": 41,
-          "render_fighter_projectile_overlays": 2360,
-          "render_transient_effect_overlays": 814,
-          "entity_effects_render": 831,
-          "update_sound": 139,
-          "music_tick_gameplay": 41
-        },
-        "procedureTotalCycles": {
-          "erase_transient_effect_overlays": 282,
-          "entity_effects_erase": 306,
-          "erase_fighter_projectile_overlays": 590,
-          "tick_shared_fighter_explosions": 48,
-          "tick_capital_explosions": 41,
-          "tick_launch_flashes": 55,
-          "update_player_death": 26,
-          "read_input": 69,
-          "update_enemy": 26,
-          "player_fighter_projectile_hits_enemy": 144,
-          "entity_player_fighter_projectile_target": 264,
-          "update_fighter_projectiles": 820,
-          "set_gameplay_row_ptr": 214,
-          "update_broadside": 1639,
-          "handle_collisions": 2534,
-          "update_player_fighter_weapon": 513,
-          "erase_far_star_overlays": 376,
-          "rotate_playfield_rows": 1269,
-          "scroll_world_columns": 1805,
-          "advance_far_stars": 680,
-          "resolve_allied_sector_row": 119,
-          "resolve_enemy_sector_row": 120,
-          "scroll_hull_columns": 2306,
-          "update_starfield": 5462,
-          "render_far_star_overlays": 1671,
-          "render_far_star_overlays_if_needed": 1682,
-          "handle_player_hull_contact": 55,
-          "update_transient_effects": 302,
-          "entity_effects_update": 436,
-          "render_capital_explosions": 41,
-          "render_shared_fighter_explosions": 45,
-          "advance_dst_to_next_physical_row": 164,
-          "render_fighter_projectile_overlays": 2360,
-          "render_transient_effect_overlays": 814,
-          "entity_effects_render": 831,
-          "update_sound": 139,
-          "music_tick_gameplay": 41
-        },
-        "procedureExclusiveCycles": {
-          "erase_transient_effect_overlays": 282,
-          "entity_effects_erase": 24,
-          "erase_fighter_projectile_overlays": 590,
-          "tick_shared_fighter_explosions": 48,
-          "tick_capital_explosions": 41,
-          "tick_launch_flashes": 55,
-          "update_player_death": 26,
-          "read_input": 69,
-          "update_enemy": 26,
-          "player_fighter_projectile_hits_enemy": 144,
-          "entity_player_fighter_projectile_target": 120,
-          "update_fighter_projectiles": 556,
-          "set_gameplay_row_ptr": 214,
-          "update_broadside": 1607,
-          "handle_collisions": 75,
-          "update_player_fighter_weapon": 513,
-          "erase_far_star_overlays": 376,
-          "rotate_playfield_rows": 1269,
-          "scroll_world_columns": 509,
-          "advance_far_stars": 680,
-          "resolve_allied_sector_row": 119,
-          "resolve_enemy_sector_row": 120,
-          "scroll_hull_columns": 1912,
-          "update_starfield": 295,
-          "render_far_star_overlays": 1671,
-          "render_far_star_overlays_if_needed": 11,
-          "handle_player_hull_contact": 55,
-          "update_transient_effects": 302,
-          "entity_effects_update": 134,
-          "render_capital_explosions": 41,
-          "render_shared_fighter_explosions": 45,
-          "advance_dst_to_next_physical_row": 164,
-          "render_fighter_projectile_overlays": 2196,
-          "render_transient_effect_overlays": 814,
-          "entity_effects_render": 17,
-          "update_sound": 139,
-          "music_tick_gameplay": 41
-        },
-        "procedureCallCounts": {
-          "erase_transient_effect_overlays": 1,
-          "entity_effects_erase": 1,
-          "erase_fighter_projectile_overlays": 1,
-          "tick_shared_fighter_explosions": 1,
-          "tick_capital_explosions": 1,
-          "tick_launch_flashes": 1,
-          "update_player_death": 1,
-          "read_input": 1,
-          "update_enemy": 1,
-          "player_fighter_projectile_hits_enemy": 6,
-          "entity_player_fighter_projectile_target": 6,
-          "update_fighter_projectiles": 1,
-          "set_gameplay_row_ptr": 7,
-          "update_broadside": 1,
-          "handle_collisions": 1,
-          "update_player_fighter_weapon": 1,
-          "erase_far_star_overlays": 1,
-          "rotate_playfield_rows": 1,
-          "scroll_world_columns": 1,
-          "advance_far_stars": 1,
-          "resolve_allied_sector_row": 1,
-          "resolve_enemy_sector_row": 1,
-          "scroll_hull_columns": 1,
-          "update_starfield": 1,
-          "render_far_star_overlays": 1,
-          "render_far_star_overlays_if_needed": 1,
-          "handle_player_hull_contact": 1,
-          "update_transient_effects": 1,
-          "entity_effects_update": 1,
-          "render_capital_explosions": 1,
-          "render_shared_fighter_explosions": 1,
-          "advance_dst_to_next_physical_row": 4,
-          "render_fighter_projectile_overlays": 1,
-          "render_transient_effect_overlays": 1,
-          "entity_effects_render": 1,
-          "update_sound": 1,
-          "music_tick_gameplay": 1
-        },
-        "procedureEdges": {
-          "entity_effects_erase->erase_transient_effect_overlays": {
-            "cycles": 282,
-            "calls": 1
-          },
-          "entity_player_fighter_projectile_target->player_fighter_projectile_hits_enemy": {
-            "cycles": 144,
-            "calls": 6
-          },
-          "update_fighter_projectiles->entity_player_fighter_projectile_target": {
-            "cycles": 264,
-            "calls": 6
-          },
-          "handle_collisions->update_fighter_projectiles": {
-            "cycles": 820,
-            "calls": 1
-          },
-          "update_broadside->set_gameplay_row_ptr": {
-            "cycles": 32,
-            "calls": 1
-          },
-          "handle_collisions->update_broadside": {
-            "cycles": 1639,
-            "calls": 1
-          },
-          "update_starfield->erase_far_star_overlays": {
-            "cycles": 376,
-            "calls": 1
-          },
-          "scroll_world_columns->rotate_playfield_rows": {
-            "cycles": 1269,
-            "calls": 1
-          },
-          "scroll_world_columns->set_gameplay_row_ptr": {
-            "cycles": 27,
-            "calls": 1
-          },
-          "update_starfield->scroll_world_columns": {
-            "cycles": 1805,
-            "calls": 1
-          },
-          "update_starfield->advance_far_stars": {
-            "cycles": 680,
-            "calls": 1
-          },
-          "scroll_hull_columns->set_gameplay_row_ptr": {
-            "cycles": 155,
-            "calls": 5
-          },
-          "scroll_hull_columns->resolve_allied_sector_row": {
-            "cycles": 119,
-            "calls": 1
-          },
-          "scroll_hull_columns->resolve_enemy_sector_row": {
-            "cycles": 120,
-            "calls": 1
-          },
-          "update_starfield->scroll_hull_columns": {
-            "cycles": 2306,
-            "calls": 1
-          },
-          "render_far_star_overlays_if_needed->render_far_star_overlays": {
-            "cycles": 1671,
-            "calls": 1
-          },
-          "entity_effects_update->update_transient_effects": {
-            "cycles": 302,
-            "calls": 1
-          },
-          "render_fighter_projectile_overlays->advance_dst_to_next_physical_row": {
-            "cycles": 164,
-            "calls": 4
-          },
-          "entity_effects_render->render_transient_effect_overlays": {
-            "cycles": 814,
-            "calls": 1
-          }
-        },
-        "regionCycles": {
-          "rotate_playfield_table_shift": 611
-        }
       }
     ],
     "scenarios": {
@@ -20111,21 +20115,24 @@
         }
       },
       "maximumProjectilePool": {
-        "origin": "coherent fixed-pool stress fixture cloned from a legal director frame",
-        "session": "2-sweep-fire4-projectile-stress",
-        "frame": 1964,
-        "activeCpuCycles": 11120,
-        "mainLoopCpuCycles": 11133,
+        "origin": "deterministic legal replay",
+        "session": "2-sweep-fire4",
+        "frame": 1695,
+        "activeCpuCycles": 16235,
+        "mainLoopCpuCycles": 16248,
         "projectileOccupancy": 19,
         "player_fighterProjectileOccupancy": 10,
         "broadsideOccupancy": 0,
         "renderedFarStars": 0,
         "playerLifecycle": 0,
         "entityActiveCount": 1,
-        "entityY": 48,
+        "entityY": 232,
         "effectActiveCount": 0,
         "effectActiveMask": 0,
         "events": [
+          "world-copy",
+          "far-erase",
+          "hull-copy",
           "broadside",
           "fighter-explosion",
           "capital-explosion",
@@ -20136,107 +20143,132 @@
           "active-debris"
         ],
         "procedureCycles": {
-          "erase_interactive_entity_overlays": 81,
-          "entity_effects_erase": 95,
-          "erase_fighter_projectile_overlays": 1118,
+          "erase_interactive_entity_overlays": 180,
+          "entity_effects_erase": 194,
+          "advance_dst_to_next_physical_row": 50,
+          "erase_fighter_projectile_overlays": 1531,
           "tick_shared_fighter_explosions": 37,
           "tick_capital_explosions": 41,
           "tick_launch_flashes": 55,
           "update_player_death": 26,
           "read_input": 69,
-          "update_enemy": 1038,
-          "entity_player_fighter_projectile_hits_debris": 29,
+          "update_enemy": 1127,
           "player_fighter_projectile_hits_enemy": 46,
-          "entity_player_fighter_projectile_target": 90,
-          "interceptor_projectile_hits_player": 32,
-          "update_fighter_projectiles": 2221,
-          "update_broadside": 199,
-          "handle_collisions": 2517,
-          "update_player_fighter_weapon": 52,
-          "update_enemy_weapon": 228,
-          "build_playfield_display_list": 1489,
-          "update_starfield": 1595,
-          "render_far_star_overlays_if_needed": 21,
+          "entity_player_fighter_projectile_target": 66,
+          "interceptor_projectile_hits_player": 49,
+          "update_fighter_projectiles": 1998,
+          "update_broadside": 204,
+          "handle_collisions": 2314,
+          "update_player_fighter_weapon": 59,
+          "update_enemy_weapon": 92,
+          "erase_far_star_overlays": 376,
+          "rotate_playfield_rows": 1269,
+          "set_gameplay_row_ptr": 27,
+          "scroll_world_columns": 1972,
+          "advance_far_stars": 680,
+          "scroll_hull_columns": 28,
+          "update_starfield": 3346,
+          "render_far_star_overlays": 1618,
+          "render_far_star_overlays_if_needed": 1629,
           "handle_player_hull_contact": 55,
           "update_transient_effects": 29,
-          "entity_effects_update": 105,
+          "weapon_pickup_collide_player": 31,
+          "update_weapon_pickup_active": 104,
+          "entity_effects_update": 269,
           "render_capital_explosions": 41,
           "render_shared_fighter_explosions": 41,
-          "render_fighter_projectile_overlays": 3309,
-          "render_interactive_entity_overlays": 177,
-          "entity_effects_render": 190,
-          "update_sound": 74,
-          "music_tick_gameplay": 56
+          "render_fighter_projectile_overlays": 3320,
+          "render_interactive_entity_overlays": 1173,
+          "entity_effects_render": 1186,
+          "update_sound": 116,
+          "music_tick_gameplay": 41
         },
         "procedureTotalCycles": {
-          "erase_interactive_entity_overlays": 81,
-          "entity_effects_erase": 95,
-          "erase_fighter_projectile_overlays": 1118,
+          "erase_interactive_entity_overlays": 180,
+          "entity_effects_erase": 194,
+          "advance_dst_to_next_physical_row": 255,
+          "erase_fighter_projectile_overlays": 1531,
           "tick_shared_fighter_explosions": 37,
           "tick_capital_explosions": 41,
           "tick_launch_flashes": 55,
           "update_player_death": 26,
           "read_input": 69,
-          "update_enemy": 1038,
-          "entity_player_fighter_projectile_hits_debris": 290,
+          "update_enemy": 1127,
           "player_fighter_projectile_hits_enemy": 460,
-          "entity_player_fighter_projectile_target": 900,
-          "interceptor_projectile_hits_player": 288,
-          "update_fighter_projectiles": 2221,
-          "update_broadside": 199,
-          "handle_collisions": 2517,
-          "update_player_fighter_weapon": 52,
-          "update_enemy_weapon": 228,
-          "build_playfield_display_list": 1489,
-          "update_starfield": 1595,
-          "render_far_star_overlays_if_needed": 21,
+          "entity_player_fighter_projectile_target": 660,
+          "interceptor_projectile_hits_player": 305,
+          "update_fighter_projectiles": 1998,
+          "update_broadside": 204,
+          "handle_collisions": 2314,
+          "update_player_fighter_weapon": 59,
+          "update_enemy_weapon": 92,
+          "erase_far_star_overlays": 376,
+          "rotate_playfield_rows": 1269,
+          "set_gameplay_row_ptr": 27,
+          "scroll_world_columns": 1972,
+          "advance_far_stars": 680,
+          "scroll_hull_columns": 28,
+          "update_starfield": 3346,
+          "render_far_star_overlays": 1618,
+          "render_far_star_overlays_if_needed": 1629,
           "handle_player_hull_contact": 55,
           "update_transient_effects": 29,
-          "entity_effects_update": 105,
+          "weapon_pickup_collide_player": 31,
+          "update_weapon_pickup_active": 104,
+          "entity_effects_update": 269,
           "render_capital_explosions": 41,
           "render_shared_fighter_explosions": 41,
-          "render_fighter_projectile_overlays": 3309,
-          "render_interactive_entity_overlays": 177,
-          "entity_effects_render": 190,
-          "update_sound": 74,
-          "music_tick_gameplay": 56
+          "render_fighter_projectile_overlays": 3320,
+          "render_interactive_entity_overlays": 1173,
+          "entity_effects_render": 1186,
+          "update_sound": 116,
+          "music_tick_gameplay": 41
         },
         "procedureExclusiveCycles": {
-          "erase_interactive_entity_overlays": 81,
+          "erase_interactive_entity_overlays": 180,
           "entity_effects_erase": 14,
-          "erase_fighter_projectile_overlays": 1118,
+          "advance_dst_to_next_physical_row": 255,
+          "erase_fighter_projectile_overlays": 1276,
           "tick_shared_fighter_explosions": 37,
           "tick_capital_explosions": 41,
           "tick_launch_flashes": 55,
           "update_player_death": 26,
           "read_input": 69,
-          "update_enemy": 1038,
-          "entity_player_fighter_projectile_hits_debris": 290,
+          "update_enemy": 1127,
           "player_fighter_projectile_hits_enemy": 460,
-          "entity_player_fighter_projectile_target": 150,
-          "interceptor_projectile_hits_player": 288,
+          "entity_player_fighter_projectile_target": 200,
+          "interceptor_projectile_hits_player": 305,
           "update_fighter_projectiles": 1033,
-          "update_broadside": 199,
-          "handle_collisions": 97,
-          "update_player_fighter_weapon": 52,
-          "update_enemy_weapon": 228,
-          "build_playfield_display_list": 1489,
-          "update_starfield": 106,
-          "render_far_star_overlays_if_needed": 21,
+          "update_broadside": 204,
+          "handle_collisions": 112,
+          "update_player_fighter_weapon": 59,
+          "update_enemy_weapon": 92,
+          "erase_far_star_overlays": 376,
+          "rotate_playfield_rows": 1269,
+          "set_gameplay_row_ptr": 27,
+          "scroll_world_columns": 676,
+          "advance_far_stars": 680,
+          "scroll_hull_columns": 28,
+          "update_starfield": 290,
+          "render_far_star_overlays": 1618,
+          "render_far_star_overlays_if_needed": 11,
           "handle_player_hull_contact": 55,
           "update_transient_effects": 29,
-          "entity_effects_update": 76,
+          "weapon_pickup_collide_player": 31,
+          "update_weapon_pickup_active": 73,
+          "entity_effects_update": 136,
           "render_capital_explosions": 41,
           "render_shared_fighter_explosions": 41,
-          "render_fighter_projectile_overlays": 3309,
-          "render_interactive_entity_overlays": 177,
+          "render_fighter_projectile_overlays": 3320,
+          "render_interactive_entity_overlays": 1173,
           "entity_effects_render": 13,
-          "update_sound": 74,
-          "music_tick_gameplay": 56
+          "update_sound": 116,
+          "music_tick_gameplay": 41
         },
         "procedureCallCounts": {
           "erase_interactive_entity_overlays": 1,
           "entity_effects_erase": 1,
+          "advance_dst_to_next_physical_row": 6,
           "erase_fighter_projectile_overlays": 1,
           "tick_shared_fighter_explosions": 1,
           "tick_capital_explosions": 1,
@@ -20244,7 +20276,6 @@
           "update_player_death": 1,
           "read_input": 1,
           "update_enemy": 1,
-          "entity_player_fighter_projectile_hits_debris": 10,
           "player_fighter_projectile_hits_enemy": 10,
           "entity_player_fighter_projectile_target": 10,
           "interceptor_projectile_hits_player": 9,
@@ -20253,11 +20284,19 @@
           "handle_collisions": 1,
           "update_player_fighter_weapon": 1,
           "update_enemy_weapon": 1,
-          "build_playfield_display_list": 1,
+          "erase_far_star_overlays": 1,
+          "rotate_playfield_rows": 1,
+          "set_gameplay_row_ptr": 1,
+          "scroll_world_columns": 1,
+          "advance_far_stars": 1,
+          "scroll_hull_columns": 1,
           "update_starfield": 1,
+          "render_far_star_overlays": 1,
           "render_far_star_overlays_if_needed": 1,
           "handle_player_hull_contact": 1,
           "update_transient_effects": 1,
+          "weapon_pickup_collide_player": 1,
+          "update_weapon_pickup_active": 1,
           "entity_effects_update": 1,
           "render_capital_explosions": 1,
           "render_shared_fighter_explosions": 1,
@@ -20269,47 +20308,81 @@
         },
         "procedureEdges": {
           "entity_effects_erase->erase_interactive_entity_overlays": {
-            "cycles": 81,
+            "cycles": 180,
             "calls": 1
           },
-          "entity_player_fighter_projectile_target->entity_player_fighter_projectile_hits_debris": {
-            "cycles": 290,
-            "calls": 10
+          "erase_fighter_projectile_overlays->advance_dst_to_next_physical_row": {
+            "cycles": 255,
+            "calls": 6
           },
           "entity_player_fighter_projectile_target->player_fighter_projectile_hits_enemy": {
             "cycles": 460,
             "calls": 10
           },
           "update_fighter_projectiles->entity_player_fighter_projectile_target": {
-            "cycles": 900,
+            "cycles": 660,
             "calls": 10
           },
           "update_fighter_projectiles->interceptor_projectile_hits_player": {
-            "cycles": 288,
+            "cycles": 305,
             "calls": 9
           },
           "handle_collisions->update_fighter_projectiles": {
-            "cycles": 2221,
+            "cycles": 1998,
             "calls": 1
           },
           "handle_collisions->update_broadside": {
-            "cycles": 199,
+            "cycles": 204,
             "calls": 1
           },
-          "update_starfield->build_playfield_display_list": {
-            "cycles": 1489,
+          "update_starfield->erase_far_star_overlays": {
+            "cycles": 376,
+            "calls": 1
+          },
+          "scroll_world_columns->rotate_playfield_rows": {
+            "cycles": 1269,
+            "calls": 1
+          },
+          "scroll_world_columns->set_gameplay_row_ptr": {
+            "cycles": 27,
+            "calls": 1
+          },
+          "update_starfield->scroll_world_columns": {
+            "cycles": 1972,
+            "calls": 1
+          },
+          "update_starfield->advance_far_stars": {
+            "cycles": 680,
+            "calls": 1
+          },
+          "update_starfield->scroll_hull_columns": {
+            "cycles": 28,
+            "calls": 1
+          },
+          "render_far_star_overlays_if_needed->render_far_star_overlays": {
+            "cycles": 1618,
             "calls": 1
           },
           "entity_effects_update->update_transient_effects": {
             "cycles": 29,
             "calls": 1
           },
+          "update_weapon_pickup_active->weapon_pickup_collide_player": {
+            "cycles": 31,
+            "calls": 1
+          },
+          "entity_effects_update->update_weapon_pickup_active": {
+            "cycles": 104,
+            "calls": 1
+          },
           "entity_effects_render->render_interactive_entity_overlays": {
-            "cycles": 177,
+            "cycles": 1173,
             "calls": 1
           }
         },
-        "regionCycles": {}
+        "regionCycles": {
+          "rotate_playfield_table_shift": 611
+        }
       },
       "threeBroadside": {
         "origin": "synthetic fixed-pool cycle stress; excluded from natural gameplay evidence",
@@ -24074,7 +24147,7 @@
           "frameLimit": 920
         }
       ],
-      "measuredFrames": 15080,
+      "measuredFrames": 14869,
       "input": "release FIRE for one frame, then deterministic held-FIRE neutral/sweep/evasive joystick policies"
     },
     "protectedSegments": [
@@ -24381,17 +24454,17 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 21120,
-        "sha256": "527abe735b3844ebecb9cc59789ee94356c2a061c5fff88ccdb68d59e42086e8"
+        "sha256": "32094b983f426269079c207c4bcc65601d1d8f47d78f6739641cc37c18ebbf3d"
       },
       "void-strike-65.xex": {
         "path": "dist/void-strike-65.xex",
         "bytes": 21769,
-        "sha256": "0d0cf48a12e0b062a16f09fda72b7cda7ad4733651ceb24779d19e95ef705d11"
+        "sha256": "458bbf2afd4a32da0b21571375671c952eddbbca25f8c804f126f465285943dc"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "aefc9646e043d8ec71e3cf6267a8cef67949c6b92d76be9a182ef5d7d317e866"
+        "sha256": "5fac9315b4d1c44249ac989a077073f35081437e9e35eac46bf08ff946226a42"
       }
     },
     "reportPath": null,
@@ -24400,15 +24473,15 @@
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 21120,
-      "sha256": "527abe735b3844ebecb9cc59789ee94356c2a061c5fff88ccdb68d59e42086e8"
+      "sha256": "32094b983f426269079c207c4bcc65601d1d8f47d78f6739641cc37c18ebbf3d"
     },
     "void-strike-65.xex": {
       "bytes": 21769,
-      "sha256": "0d0cf48a12e0b062a16f09fda72b7cda7ad4733651ceb24779d19e95ef705d11"
+      "sha256": "458bbf2afd4a32da0b21571375671c952eddbbca25f8c804f126f465285943dc"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "aefc9646e043d8ec71e3cf6267a8cef67949c6b92d76be9a182ef5d7d317e866"
+      "sha256": "5fac9315b4d1c44249ac989a077073f35081437e9e35eac46bf08ff946226a42"
     }
   }
 }

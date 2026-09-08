@@ -169,6 +169,32 @@ test("three eight-phase banks preserve one tapered 8x16 capsule through 2x2/2x3 
   assert.doesNotMatch(renderer, /@render_pickup_pair/);
 });
 
+test("runtime compositor publishes the exact capsule pixels for all types and phases", () => {
+  const { entities } = assets();
+  const glyphBase = manifest.entityEffects.weaponPickupGlyphIndex;
+  for (const [pickupType, typeIndex] of [["rapid", 0], ["spread", 1], ["shield", 2]]) {
+    for (let phase = 0; phase < 8; phase += 1) {
+      const trace = executeWeaponPickupBackingTrace({
+        root, artifact: "xex", pickupType, y: 104 + phase,
+      });
+      const actualBank = trace.charset.slice(glyphBase * 8, glyphBase * 8 + 48);
+      const expectedStart = (typeIndex * 8 + phase) * 48;
+      const expectedBank = Array.from(entities.pickupPhaseBank.subarray(
+        expectedStart, expectedStart + 48,
+      ));
+      assert.deepEqual(actualBank, expectedBank,
+        `${pickupType} phase ${phase} selected the wrong phase-bank bytes`);
+
+      const pixels = pickupPhasePixels(Uint8Array.from(actualBank), 0);
+      const occupiedRows = pixels.map((row) => row.some(Boolean));
+      assert.equal(occupiedRows.findIndex(Boolean), phase,
+        `${pickupType} phase ${phase} shifted the capsule's first visible row`);
+      assert.equal(occupiedRows.findLastIndex(Boolean), phase + 15,
+        `${pickupType} phase ${phase} shifted the capsule's last visible row`);
+    }
+  }
+});
+
 test("release XEX and ATR execute 0→1→2→pending only for consumed PlayerFighter kills", () => {
   const xex = executeWeaponPickupTrace({ root, artifact: "xex" });
   const atr = executeWeaponPickupTrace({ root, artifact: "atr" });

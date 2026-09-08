@@ -171,10 +171,10 @@ const glueStagingAddress = 0x7bd0;
 const glueFinalAddress = 0x4efe;
 const directorRunAddress = 0x9d75;
 const directorGuardAddress = 0x9ffa;
-// The prepared-row PAL path changes compression while shrinking linked runtime
-// by five bytes. The initial content therefore occupies a 103-sector envelope.
-const expectedInitialContentBytes = 13093;
-const expectedLinkedRuntimeBytes = 17277;
+// Ordinary waves drain before the capital sector and resume after its complete
+// ring reconstruction. The streams remain inside the existing 103 sectors.
+const expectedInitialContentBytes = 13116;
+const expectedLinkedRuntimeBytes = 17302;
 const expectedDirectorRawBytes = 645;
 const expectedDirectorPackedBytes = 585;
 const expectedGlueRawBytes = 249;

@@ -461,7 +461,7 @@ test("focused production replay exposes three early qualified kills and one natu
   }
 });
 
-test("ordinary rejection is bounded, slot-safe, RNG-stable and capital-compatible", () => {
+test("ordinary admission is slot-safe, RNG-stable and pre-sector compatible", () => {
   const image = memory();
   image[labels.get("DIFFICULTY_SETTING")] = 2;
   image[labels.get("PLAYER_LIFECYCLE")] = 0;
@@ -471,13 +471,6 @@ test("ordinary rejection is bounded, slot-safe, RNG-stable and capital-compatibl
   run(image, "init_broadside");
   const frameCounter = labels.get("frame_counter");
   image[state.reaction] = 0;
-  image[frameCounter] += 1;
-  run(image, "integration_active_gameplay_tick");
-  image[state.phase] = 2;
-  const rngBeforeMaskReject = image[state.rng];
-  assert.equal(run(image, "provisional_interceptor_director_request", { x: 0 }).carry, false);
-  assert.equal(image[state.rng], rngBeforeMaskReject, "phase-mask rejection consumed RNG");
-
   image[frameCounter] += 1;
   run(image, "integration_active_gameplay_tick");
   image[state.phase] = 1;
@@ -500,442 +493,38 @@ test("ordinary rejection is bounded, slot-safe, RNG-stable and capital-compatibl
 
   image[frameCounter] += 1;
   run(image, "integration_active_gameplay_tick");
-  image[labels.get("CAPITAL_SECTOR_STATE")] = 0;
+  image[labels.get("CAPITAL_SECTOR_STATE")] = 7;
+  image[state.flags] = 0;
   image[labels.get("INTERCEPTOR_BURST_TIMER")] = 0;
   const rngBeforeCapitalAdmission = image[state.rng];
   run(image, "integration_update_enemy");
   assert.equal(image[labels.get("ENEMY_ACTIVE")], 1,
-    "active capital hull must not suppress an ordinary admission");
+    "pre-sector OPEN must retain ordinary admission");
   assert.equal(image[state.intensity], 1);
   assert.equal(image[state.rng], 5 * rngBeforeCapitalAdmission + 1 & 0xff,
-    "capital-compatible admission must consume exactly one Director RNG value");
+    "pre-sector admission must consume exactly one Director RNG value");
 });
 
-test("ordinary admission completes and repeats during capital traversal on every difficulty", () => {
-  const retryCadences = [48, 36, 24];
-  const visibilityLimits = [60, 45, 30];
-  const capitalBudgets = [3, 4, 5];
-  assert.deepEqual(byteTable(memory(), "interceptor_admission_retry_frames", 3), retryCadences);
-
-  for (const difficulty of [0, 1, 2]) {
-    const image = currentMemory();
-    const frameCounter = labels.get("frame_counter");
-    const enemyActive = labels.get("ENEMY_ACTIVE");
-    const enemyY = labels.get("enemy_y");
-    const enemyHp = labels.get("ENEMY_HP");
-    const retryTimer = labels.get("INTERCEPTOR_BURST_TIMER");
-    const pickupState = labels.get("ENTITY_STATE") + 1;
-    const pickupCounter = labels.get("ENTITY_HP") + 1;
-    const sectorState = labels.get("CAPITAL_SECTOR_STATE");
-    image[labels.get("DIFFICULTY_SETTING")] = difficulty;
-    image[labels.get("PLAYER_LIFECYCLE")] = 0;
-    run(image, "init_state");
-    run(image, "init_entity_effects");
-    run(image, "director_init", { a: 0x71 ^ difficulty });
-    run(image, "init_broadside");
-    image[state.phase] = 1;
-    image[state.reaction] = 0;
-    image[state.recovery] = 0;
-    image[state.flags] = provisionalCapital.admitted;
-    image[sectorState] = 2;
-    image[frameCounter] = 1;
-    image[state.admissionFrame] = 0;
-    let logicalFrame = 1;
-    let hunterAdmissions = 0;
-    let hunterReleases = 0;
-
-    const advance = ({ explosion = false } = {}) => {
-      logicalFrame += 1;
-      image[frameCounter] = image[frameCounter] + 1 & 0xff;
-      run(image, "integration_active_gameplay_tick");
-      if (explosion) run(image, "tick_shared_fighter_explosions");
-      return run(image, "integration_update_enemy");
-    };
-    const admitAfterRetry = (releaseFrame, phase) => {
-      image[state.phase] = phase;
-      for (let delay = 0; delay < retryCadences[difficulty]; delay += 1) {
-        advance();
-        assert.equal(image[enemyActive], 0,
-          `difficulty ${difficulty} admitted before retry elapsed at ${delay}`);
-      }
-      const rngBefore = image[state.rng];
-      const admission = advance();
-      assert.equal(image[enemyActive], 1,
-        `difficulty ${difficulty} did not readmit in phase ${phase}`);
-      assert.equal(image[state.intensity], 3,
-        `difficulty ${difficulty} Hunter plus BROADSIDE charge mismatch`);
-      assert.equal(image[state.rng], 5 * rngBefore + 1 & 0xff,
-        `difficulty ${difficulty} accepted admission RNG mismatch`);
-      assert.equal(admission.visited.filter((pc) => pc === labels.get("reset_enemy")).length, 1,
-        `difficulty ${difficulty} admission count mismatch`);
-      hunterAdmissions += 1;
-
-      const sameFrameRng = image[state.rng];
-      assert.equal(run(image, "provisional_interceptor_director_request").carry, false,
-        `difficulty ${difficulty} same-frame guard failed`);
-      assert.equal(image[state.rng], sameFrameRng,
-        `difficulty ${difficulty} same-frame rejection advanced RNG`);
-      assert.equal(image[state.intensity], 3,
-        `difficulty ${difficulty} same-frame rejection acquired a charge`);
-
-      advance();
-      assert.ok(image[enemyY] + 14 > 16,
-        `difficulty ${difficulty} admitted Hunter was not visible`);
-      assert.ok(logicalFrame - releaseFrame <= visibilityLimits[difficulty],
-        `difficulty ${difficulty} visibility gap ${logicalFrame - releaseFrame}`);
-    };
-    const killAndRelease = (expectedCounter) => {
-      image[labels.get("ENEMY_PENDING_DAMAGE")] = 0;
-      image[labels.get("ENEMY_PENDING_SOURCE")] = 5;
-      run(image, "queue_enemy_damage", { a: image[enemyHp], y: 0 });
-      run(image, "resolve_enemy_damage");
-      assert.equal(image[enemyActive], 2, `difficulty ${difficulty} kill did not explode`);
-      assert.equal(image[pickupCounter], expectedCounter,
-        `difficulty ${difficulty} overlapping kill did not qualify`);
-      for (let frame = 0; frame < 24 && image[enemyActive] !== 0; frame += 1) {
-        advance({ explosion: true });
-      }
-      assert.equal(image[enemyActive], 0, `difficulty ${difficulty} Hunter did not release`);
-      assert.equal(image[state.intensity], 2,
-        `difficulty ${difficulty} Hunter release disturbed BROADSIDE charge`);
-      assert.equal(image[retryTimer], retryCadences[difficulty],
-        `difficulty ${difficulty} release did not rearm retry`);
-      hunterReleases += 1;
-      return logicalFrame;
-    };
-
-    image[state.intensity] = capitalBudgets[difficulty];
-    const rejectedRng = image[state.rng];
-    run(image, "integration_update_enemy");
-    assert.equal(image[enemyActive], 0, `difficulty ${difficulty} full budget admitted`);
-    assert.equal(image[state.intensity], capitalBudgets[difficulty],
-      `difficulty ${difficulty} rejected request leaked a charge`);
-    assert.equal(image[state.rng], rejectedRng,
-      `difficulty ${difficulty} rejected request advanced RNG`);
-    assert.equal(image[retryTimer], retryCadences[difficulty],
-      `difficulty ${difficulty} did not arm its bounded retry`);
-
-    image[state.intensity] = 0;
-    for (let delay = 0; delay < retryCadences[difficulty]; delay += 1) {
-      advance();
-      assert.equal(image[enemyActive], 0,
-        `difficulty ${difficulty} admitted before retry elapsed at ${delay}`);
-    }
-    const firstRng = image[state.rng];
-    advance();
-    assert.equal(image[enemyActive], 1, `difficulty ${difficulty} retry did not admit`);
-    assert.equal(image[state.intensity], 1, `difficulty ${difficulty} admission charge mismatch`);
-    assert.equal(image[state.rng], 5 * firstRng + 1 & 0xff,
-      `difficulty ${difficulty} admission RNG mismatch`);
-    assert.equal(image[sectorState], 2, `difficulty ${difficulty} disturbed capital traversal`);
-    hunterAdmissions += 1;
-
-    advance();
-    image[broadside.scheduleTimer] = 1;
-    armMuzzle(image, 1, 5);
-    const broadsideRng = image[state.rng];
-    run(image, "schedule_broadside");
-    assert.equal(image[broadside.state], 1,
-      `difficulty ${difficulty} capital fire did not coexist with Hunter`);
-    assert.equal(image[state.intensity], 3,
-      `difficulty ${difficulty} combined Director charge mismatch`);
-    assert.equal(image[state.rng], 5 * broadsideRng + 1 & 0xff,
-      `difficulty ${difficulty} BROADSIDE RNG mismatch`);
-
-    while (image[enemyY] + 14 <= 16) {
-      advance();
-    }
-    let releaseFrame = killAndRelease(1);
-    admitAfterRetry(releaseFrame, 1);
-    releaseFrame = killAndRelease(2);
-    admitAfterRetry(releaseFrame, 2);
-    releaseFrame = killAndRelease(0);
-    assert.equal(image[pickupState], 1,
-      `difficulty ${difficulty} third overlapping kill did not pend pickup`);
-    assert.equal(image[sectorState], 2,
-      `difficulty ${difficulty} capital traversal ended during repeated admissions`);
-    assert.equal(hunterAdmissions, 3, `difficulty ${difficulty} Hunter admission balance`);
-    assert.equal(hunterReleases, 3, `difficulty ${difficulty} Hunter release balance`);
-
-    image[broadside.workSlot] = 0;
-    run(image, "integration_broadside_release", { x: 0 });
-    assert.equal(image[state.intensity], 0,
-      `difficulty ${difficulty} final Director charge did not balance`);
-  }
-});
-
-test("respawn invulnerability cannot starve the capital-traversal retry cadence", () => {
-  assert.match(mainSource,
-    /integration_update_player_death:[\s\S]+lda PLAYER_LIFECYCLE\n\s+lsr[^\n]*\n\s+bcc @restore/,
-  "only odd non-admitting player lifecycles may occupy the Director same-frame guard");
-  const retryCadences = [48, 36, 24];
-  const visibilityLimits = [60, 45, 30];
-  for (const difficulty of [0, 1, 2]) {
-    const image = memory();
-    const frameCounter = labels.get("frame_counter");
-    const enemyActive = labels.get("ENEMY_ACTIVE");
-    const enemyY = labels.get("enemy_y");
-    image[labels.get("DIFFICULTY_SETTING")] = difficulty;
-    image[labels.get("PLAYER_LIFECYCLE")] = 2;
-    run(image, "init_state");
-    run(image, "init_entity_effects");
-    run(image, "director_init", { a: 0x37 ^ difficulty });
-    run(image, "init_broadside");
-    image[labels.get("PLAYER_LIFECYCLE")] = 2;
-    image[labels.get("CAPITAL_SECTOR_STATE")] = 2;
-    image[state.flags] = provisionalCapital.admitted;
-    image[state.phase] = 1;
-    image[state.reaction] = 0;
-    image[state.recovery] = 0;
-    image[state.admissionFrame] = 0;
-    image[labels.get("INTERCEPTOR_BURST_TIMER")] = retryCadences[difficulty];
-    image[frameCounter] = 1;
-    const releaseFrame = 1;
-
-    for (let elapsed = 1; elapsed <= retryCadences[difficulty]; elapsed += 1) {
-      image[frameCounter] = image[frameCounter] + 1 & 0xff;
-      run(image, "integration_active_gameplay_tick");
-      run(image, "integration_update_enemy");
-      assert.equal(image[enemyActive], 0,
-        `difficulty ${difficulty} admitted before its retry timer elapsed`);
-    }
-    image[frameCounter] = image[frameCounter] + 1 & 0xff;
-    const rngBefore = image[state.rng];
-    run(image, "integration_active_gameplay_tick");
-    run(image, "integration_update_enemy");
-    assert.equal(image[enemyActive], 1,
-      `difficulty ${difficulty} first eligible retry remained starved`);
-    assert.equal(image[state.intensity], 1,
-      `difficulty ${difficulty} Hunter did not acquire exactly one charge`);
-    assert.equal(image[state.rng], 5 * rngBefore + 1 & 0xff,
-      `difficulty ${difficulty} accepted retry did not advance RNG exactly once`);
-    assert.equal(image[labels.get("CAPITAL_SECTOR_STATE")], 2,
-      `difficulty ${difficulty} disturbed the active capital sector`);
-
-    image[frameCounter] = image[frameCounter] + 1 & 0xff;
-    run(image, "integration_active_gameplay_tick");
-    run(image, "integration_update_enemy");
-    assert.ok(image[enemyY] + 14 > 16, `difficulty ${difficulty} Hunter was not visible`);
-    const visibilityGap = image[frameCounter] - releaseFrame;
-    assert.ok(visibilityGap <= visibilityLimits[difficulty],
-      `difficulty ${difficulty} visibility gap ${visibilityGap}`);
-  }
-});
-
-test("ordinary Hunter stream spans capital completion and stops only at terminal play", () => {
-  const retryCadences = [48, 36, 24];
-  const visibilityLimits = [60, 45, 30];
+test("ordinary wave tables remain intact while the capital gate stays local", () => {
+  const image = currentMemory();
   const originalMasks = [0x00, 0x09, 0x0a, 0x0f, 0x08, 0x0f, 0x08, 0x0f];
   const fallbackPhases = [2, 4, 6];
-
-  for (const difficulty of [0, 1, 2]) {
-    const image = currentMemory();
-    const frameCounter = labels.get("frame_counter");
-    const enemyActive = labels.get("ENEMY_ACTIVE");
-    const enemyY = labels.get("enemy_y");
-    const retryTimer = labels.get("INTERCEPTOR_BURST_TIMER");
-    const sectorState = labels.get("CAPITAL_SECTOR_STATE");
-    const sectorDrainRows = sectorState + 1;
-    const lifecycle = labels.get("PLAYER_LIFECYCLE");
-    const masks = byteTable(image, "level1_phase_hazards", 8);
-    for (const phase of fallbackPhases) {
-      assert.equal(masks[phase], originalMasks[phase] | 0x01,
-        `phase ${phase} must preserve authored hazards and add only Hunter`);
-    }
-    for (const phase of [0, 1, 3, 5, 7]) {
-      assert.equal(masks[phase], originalMasks[phase],
-        `phase ${phase} policy changed unexpectedly`);
-    }
-
-    image[labels.get("DIFFICULTY_SETTING")] = difficulty;
-    image[lifecycle] = 0;
-    run(image, "init_state");
-    run(image, "init_entity_effects");
-    run(image, "director_init", { a: 0x59 ^ difficulty });
-    run(image, "init_broadside");
-    image[state.reaction] = 0;
-    image[state.recovery] = 0;
-    image[state.admissionFrame] = 0;
-    image[frameCounter] = 1;
-    setActiveGameplayFrame(image, 0);
-    let activeFrame = 0;
-    let admissions = 0;
-    let releases = 0;
-    let maximumActive = 0;
-    const frames = { before: [], during: [], after: [] };
-
-    const advance = ({ updateEnemy = true } = {}) => {
-      image[frameCounter] = image[frameCounter] + 1 & 0xff;
-      run(image, "integration_active_gameplay_tick");
-      activeFrame = image[provisionalCapital.frameLo] |
-        image[provisionalCapital.frameHi] << 8;
-      const before = image[enemyActive];
-      const result = updateEnemy ? run(image, "integration_update_enemy") : { visited: [] };
-      const after = image[enemyActive];
-      if (before === 0 && after === 1) admissions += 1;
-      maximumActive = Math.max(maximumActive, after === 1 ? 1 : 0);
-      assert.ok(result.visited.filter((pc) => pc === labels.get("reset_enemy")).length <= 1,
-        `difficulty ${difficulty} admitted twice in active frame ${activeFrame}`);
-      return { before, after, result };
-    };
-
-    const becomeVisible = (bucket) => {
-      advance();
-      assert.ok(image[enemyY] + 14 > 16,
-        `difficulty ${difficulty} Hunter did not become visible`);
-      bucket.push(activeFrame);
-    };
-
-    const releaseAtBottom = () => {
-      assert.equal(image[enemyActive], 1);
-      image[enemyY] = 239;
-      const intensityBefore = image[state.intensity];
-      advance();
-      assert.equal(image[enemyActive], 0,
-        `difficulty ${difficulty} Hunter did not complete its lifecycle`);
-      assert.equal(image[state.intensity], intensityBefore - 1,
-        `difficulty ${difficulty} release did not return one charge`);
-      assert.equal(image[retryTimer], retryCadences[difficulty],
-        `difficulty ${difficulty} release did not rearm retry`);
-      releases += 1;
-      return activeFrame;
-    };
-
-    const admitAfterRetry = (releaseFrame, phase, bucket) => {
-      image[state.phase] = phase;
-      for (let elapsed = 0; elapsed < retryCadences[difficulty]; elapsed += 1) {
-        advance();
-        assert.equal(image[enemyActive], 0,
-          `difficulty ${difficulty} admitted before phase-${phase} retry elapsed`);
-      }
-      const rngBefore = image[state.rng];
-      const intensityBefore = image[state.intensity];
-      const admissionFrame = activeFrame + 1;
-      advance();
-      assert.equal(image[enemyActive], 1,
-        `difficulty ${difficulty} phase ${phase} rejected its Hunter fallback`);
-      assert.equal(image[state.intensity], intensityBefore + 1,
-        `difficulty ${difficulty} admission did not acquire one charge`);
-      assert.equal(image[state.rng], 5 * rngBefore + 1 & 0xff,
-        `difficulty ${difficulty} admission did not advance RNG once`);
-      const sameFrameRng = image[state.rng];
-      const sameFrameIntensity = image[state.intensity];
-      assert.equal(run(image, "provisional_interceptor_director_request", { x: 0 }).carry, false,
-        `difficulty ${difficulty} same-frame guard was bypassed`);
-      assert.equal(image[state.rng], sameFrameRng,
-        `difficulty ${difficulty} rejected same-frame request advanced RNG`);
-      assert.equal(image[state.intensity], sameFrameIntensity,
-        `difficulty ${difficulty} rejected same-frame request acquired a charge`);
-      becomeVisible(bucket);
-      assert.ok(activeFrame - releaseFrame <= visibilityLimits[difficulty],
-        `difficulty ${difficulty} phase-${phase} visibility gap ${activeFrame - releaseFrame}`);
-      return admissionFrame;
-    };
-
-    // Phase zero keeps its existing phase-one borrowing policy, proving the
-    // stream begins before the provisional capital admission.
-    image[state.phase] = 0;
-    image[retryTimer] = 0;
-    const preRng = image[state.rng];
-    advance();
-    assert.equal(image[enemyActive], 1);
-    assert.equal(image[state.phase], 0, "ordinary adapter mutated authoritative phase zero");
-    assert.equal(image[state.rng], 5 * preRng + 1 & 0xff);
-    frames.before.push(activeFrame);
-    becomeVisible(frames.before);
-    releaseAtBottom();
-
-    // Advance monotonically to the authored active-frame capital gate without
-    // inventing a second wall-clock schedule.
-    setActiveGameplayFrame(image, provisionalCapital.frame - 1);
-    activeFrame = provisionalCapital.frame - 1;
-    image[retryTimer] = 0;
-    advance({ updateEnemy: false });
-    run(image, "integration_update_first_capital");
-    assert.equal(activeFrame, provisionalCapital.frame);
-    assert.equal(image[sectorState], 0,
-      `difficulty ${difficulty} capital did not admit at frame 600`);
-    image[sectorState] = 2;
-    image[state.phase] = 1;
-
-    // Two complete Hunter lifecycles share one continuous traversal.
-    const capitalRng = image[state.rng];
-    advance();
-    assert.equal(image[enemyActive], 1);
-    assert.equal(image[state.rng], 5 * capitalRng + 1 & 0xff);
-    frames.during.push(activeFrame);
-    becomeVisible(frames.during);
-    let releaseFrame = releaseAtBottom();
-    admitAfterRetry(releaseFrame, 2, frames.during);
-    releaseFrame = releaseAtBottom();
-    assert.equal(image[sectorState], 2,
-      `difficulty ${difficulty} traversal ended during overlap lifecycles`);
-
-    // Exercise the real DRAIN -> COMPLETE -> post-pass OPEN transition. No
-    // active-frame time is fabricated while the 27 physical rows are rebuilt.
-    image[sectorState] = 5;
-    image[sectorDrainRows] = 28;
-    image[state.intensity] = 0;
-    image.fill(0, broadside.state, broadside.state + 3);
-    image.fill(0, labels.get("BROAD_FLASH_TIMER"), labels.get("BROAD_FLASH_TIMER") + 3);
-    image.fill(0, labels.get("CAPITAL_EXPLOSION_TIMER"),
-      labels.get("CAPITAL_EXPLOSION_TIMER") + 2);
-    image.fill(0, labels.get("FIGHTER_EXPLOSION_TIMER"),
-      labels.get("FIGHTER_EXPLOSION_TIMER") + 2);
-    run(image, "integration_update_sector_completion");
-    assert.equal(image[sectorState], 6, `difficulty ${difficulty} did not enter COMPLETE`);
-    for (let row = 0; row < 27; row += 1) run(image, "entity_complete_scroll_tick");
-    assert.equal(image[sectorState], 7, `difficulty ${difficulty} did not reopen ordinary play`);
-
-    // Each roster-empty ambient phase retains its own budget while supplying
-    // Hunter as the temporary implemented fallback.
-    for (const phase of fallbackPhases) {
-      const admissionFrame = admitAfterRetry(releaseFrame, phase, frames.after);
-      assert.equal(image[state.phase], phase,
-        `difficulty ${difficulty} fallback mutated authoritative phase ${phase}`);
-      assert.equal(frames.after.at(-1), admissionFrame + 1);
-      releaseFrame = releaseAtBottom();
-    }
-    assert.equal(frames.after[0] - (frames.during.at(-1) + 1) <= visibilityLimits[difficulty], true,
-      `difficulty ${difficulty} first post-capital Hunter exceeded its visibility limit`);
-    assert.equal(admissions, 6, `difficulty ${difficulty} admission balance`);
-    assert.equal(releases, 6, `difficulty ${difficulty} release balance`);
-    assert.equal(maximumActive, 1, `difficulty ${difficulty} exceeded one ordinary slot`);
-    assert.equal(image[state.intensity], 0,
-      `difficulty ${difficulty} Hunter charges did not balance`);
-
-    // Odd player lifecycles block before cadence or Director state can change.
-    for (const blockedLifecycle of [1, 3]) {
-      image[lifecycle] = blockedLifecycle;
-      image[retryTimer] = 0;
-      const blockedRng = image[state.rng];
-      const blockedFrame = activeFrame;
-      advance();
-      assert.equal(activeFrame, blockedFrame,
-        `lifecycle ${blockedLifecycle} advanced the active gameplay clock`);
-      assert.equal(image[enemyActive], 0);
-      assert.equal(image[retryTimer], 0);
-      assert.equal(image[state.rng], blockedRng);
-    }
-
-    // The natural BOSS_HANDOFF/LEVEL COMPLETE flag remains the terminal gate.
-    image[lifecycle] = 0;
-    image[state.rowLo] = 0x7f;
-    image[state.rowHi] = 0x0e;
-    image[state.phase] = 7;
-    image[state.event] = 5;
-    image[state.pending] = 0xff;
-    image[state.reaction] = 0;
-    image[state.recovery] = 0;
-    run(image, "director_world_row_tick");
-    assert.equal(image[state.flags] & 1, 1, "BOSS_HANDOFF did not close admissions");
-    image[retryTimer] = 0;
-    const terminalRng = image[state.rng];
-    advance();
-    assert.equal(image[enemyActive], 0, "LEVEL COMPLETE admitted a Hunter");
-    assert.equal(image[state.intensity], 0, "terminal rejection acquired a charge");
-    assert.equal(image[state.rng], terminalRng, "terminal rejection advanced RNG");
+  const masks = byteTable(image, "level1_phase_hazards", 8);
+  for (const phase of fallbackPhases) {
+    assert.equal(masks[phase], originalMasks[phase] | 0x01,
+      `phase ${phase} must preserve authored hazards and add only Hunter`);
   }
+  for (const phase of [0, 1, 3, 5, 7]) {
+    assert.equal(masks[phase], originalMasks[phase],
+      `phase ${phase} policy changed unexpectedly`);
+  }
+  assert.deepEqual(byteTable(image, "interceptor_admission_retry_frames", 3), [48, 36, 24]);
+  assert.match(mainSource,
+    /ordinary_wave_capital_blocked:[\s\S]+bit DIRECTOR_STATE_FLAGS[\s\S]+cmp #CAPITAL_HULL_STATE_OPEN/);
+  assert.match(mainSource,
+    /interceptor_admission_update:[\s\S]+jsr ordinary_wave_capital_blocked[\s\S]+bmi @blocked/);
+  assert.match(mainSource,
+    /update_enemy_weapon_runtime:[\s\S]+jsr ordinary_wave_capital_blocked[\s\S]+bmi @stop/);
 });
 
 test("active-gameplay schedule freezes across pause and odd player lifecycles", () => {
@@ -979,13 +568,15 @@ test("provisional first capital admission uses the 16-bit active-gameplay clock"
   run(blocked, "director_init", { a: 0x6d });
   run(blocked, "init_broadside");
   setActiveGameplayFrame(blocked, provisionalCapital.frame);
-  blocked[state.intensity] = 2;
+  blocked[labels.get("ENEMY_ACTIVE")] = 1;
+  blocked[state.intensity] = 1;
   run(blocked, "integration_update_first_capital");
   assert.equal(blocked[sectorState], 7);
   assert.equal(blocked[state.flags], provisionalCapital.due,
-    "a legal budget block must retain a deterministic pending admission");
+    "a live ordinary enemy must retain a deterministic pending admission");
   setActiveGameplayFrame(blocked, provisionalCapital.frame + 1);
   blocked[frameCounter] += 1;
+  blocked[labels.get("ENEMY_ACTIVE")] = 0;
   blocked[state.intensity] = 0;
   run(blocked, "integration_update_first_capital");
   assert.equal(blocked[sectorState], 0);

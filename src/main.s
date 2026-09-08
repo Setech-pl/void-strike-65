@@ -3928,10 +3928,8 @@ play_player_fighter_projectile_sound:
     rts
 
 update_enemy_weapon_runtime:
-    lda CAPITAL_SECTOR_STATE
-    cmp #CAPITAL_HULL_STATE_DRAIN
-    bne @player_state
-    jmp @stop                    ; stop the parent weapon, not its released shots
+    jsr ordinary_wave_capital_blocked
+    bmi @stop                    ; stop the parent weapon, not its released shots
 @player_state:
     lda PLAYER_LIFECYCLE
     cmp #PLAYER_DYING
@@ -5836,6 +5834,36 @@ game_music_player_end:
 
 EMIT_MENU_MUSIC_DATA
 EMIT_GAMEPLAY_MUSIC_DATA
+
+; Capital admission runs before enemy and projectile movement. Keep the hull
+; out until the ordinary owner has completed its finite downward lifecycle and
+; every released pulse has left naturally; the following update may admit it.
+ordinary_wave_pressure_active:
+    lda ENEMY_ACTIVE
+    bne @done
+    ldx #(FIGHTER_PROJECTILE_SLOT_COUNT-INTERCEPTOR_PROJECTILE_SLOT_BASE-1)
+@scan:
+    lda FIGHTER_PROJECTILE_ACTIVE+INTERCEPTOR_PROJECTILE_SLOT_BASE,x
+    bne @done
+    dex
+    bpl @scan
+    inx                         ; exhausted scan returns Z=1 without state writes
+@done:
+    rts
+
+; N=1 from first-capital DUE through the complete hull/drain/reconstruction
+; lifecycle. The pre-sector OPEN and the post-sector OPEN both return N=0.
+.segment "CODE"
+ordinary_wave_capital_blocked:
+    bit DIRECTOR_STATE_FLAGS
+    bmi @done
+    bvc @done
+    lda CAPITAL_SECTOR_STATE
+    cmp #CAPITAL_HULL_STATE_OPEN
+@done:
+    rts
+
+.segment "STARFIELD"
 
 .assert * <= HUD_BOOSTER_BACKING, error, "starfield runtime overlaps BOOST HUD backing"
 .assert * - __STARFIELD_RUN__ <= $08E6, error, "starfield runtime exceeds the pre-broadside gap"
@@ -10219,12 +10247,17 @@ compose_weapon_pickup_phase:
     sta ENTITY_SCRATCH0
     tax
     ldy ENTITY_TYPE+WEAPON_PICKUP_SLOT
-    lda weapon_pickup_type_base_lo,y
+    tya
+    lsr                         ; carry selects the middle (Spread) bank
+    ror                         ; produce the type lows $00/$80/$00
     clc
     adc weapon_pickup_phase_offset_lo,x
     sta src_ptr
+    bcs :+                      ; the Spread bank can wrap before phase 6
+    cpx #$06                    ; every bank crosses its own $100 at phases 6-7
+:
     lda weapon_pickup_type_base_hi,y
-    adc #$00                    ; low-byte ADC carry is the complete high offset
+    adc #$00
     sta src_ptr+1
     ldy #(WEAPON_PICKUP_PHASE_GLYPH_COUNT*8-1)
 @copy:
@@ -10236,13 +10269,11 @@ compose_weapon_pickup_phase:
 
 weapon_pickup_phase_offset_lo:
     .byte <$000,<$030,<$060,<$090,<$0C0,<$0F0,<$120,<$150
-weapon_pickup_type_base_lo:
-    .byte <(WEAPON_PICKUP_PHASE_BANK+$000),<(WEAPON_PICKUP_PHASE_BANK+$180),<(WEAPON_PICKUP_PHASE_BANK+$300)
 weapon_pickup_type_base_hi:
     .byte >(WEAPON_PICKUP_PHASE_BANK+$000),>(WEAPON_PICKUP_PHASE_BANK+$180),>(WEAPON_PICKUP_PHASE_BANK+$300)
-    ; Removing the redundant high-offset table and its absolute-X ADC saves
-    ; nine bytes. Retain the frozen PICKUP_CODE end and later entry points.
-    .byte $EA,$EA
+    ; The phase carry and calculated type low consume the former local table
+    ; and pad without moving the frozen PICKUP_CODE end or later entry points.
+    .byte $EA
 weapon_pickup_render_ids:
     .byte WEAPON_PICKUP_GLYPH_BASE,WEAPON_PICKUP_GLYPH_BASE|$80,WEAPON_PICKUP_GLYPH_BASE
 
@@ -10683,8 +10714,8 @@ retry_first_capital_admission:
     lda #DIRECTOR_FLAG_FIRST_CAPITAL_DUE
     sta DIRECTOR_STATE_FLAGS
 :
-    lda DIRECTOR_STATE_INTENSITY
-    bne @done
+    jsr ordinary_wave_pressure_active
+    bne @done                    ; owner and released pulses finish naturally
     lda CAPITAL_SECTOR_STATE
     cmp #CAPITAL_HULL_STATE_OPEN
     bne @done
@@ -10716,6 +10747,10 @@ integration_interceptor_retry:
 
 .segment "PICKUP_CODE"
 interceptor_admission_update:
+    ; Freeze the existing retry across the full capital lifecycle. It resumes
+    ; after the reconstruction pass reaches post-sector OPEN, without catch-up.
+    jsr ordinary_wave_capital_blocked
+    bmi @blocked
     ; DYING/GAME OVER frames neither consume cadence nor attempt admission.
     ; ALIVE and respawn-invulnerable are the two even gameplay lifecycles.
     lda PLAYER_LIFECYCLE
@@ -10738,8 +10773,9 @@ interceptor_admission_update:
     rts
 @admitted:
     jmp reset_enemy
-    ; Retain the reviewed PICKUP_CODE layout without adding hot-path cycles.
-    .byte $00,$00,$00,$00,$00,$00,$00
+    ; Inert duplicate bytes preserve the fixed collision-module boundary while
+    ; keeping the packed cold image inside its unchanged preservation range.
+    .byte $30,$12,$70,$13
 
 .segment "CODE"
 integration_update_enemy_weapon:
@@ -10878,7 +10914,6 @@ provisional_interceptor_director_request:
 ; Rejected admission and post-release cadence in active gameplay frames.
 interceptor_admission_retry_frames:
     .byte 48,36,24
-    .byte $00,$00                ; preserve the reviewed PICKUP_CODE byte count
 
 .segment "ENTITY_CODE"
 allied_engine_overlay_masks:

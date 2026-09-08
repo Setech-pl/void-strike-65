@@ -58,6 +58,7 @@ defineReadFamily("INC", [[0xe6, "zp", 5], [0xf6, "zpx", 6], [0xee, "abs", 6], [0
 defineReadFamily("DEC", [[0xc6, "zp", 5], [0xd6, "zpx", 6], [0xce, "abs", 6], [0xde, "absx", 7]]);
 defineReadFamily("ASL", [[0x0a, "acc", 2], [0x06, "zp", 5], [0x16, "zpx", 6], [0x0e, "abs", 6], [0x1e, "absx", 7]]);
 defineReadFamily("LSR", [[0x4a, "acc", 2], [0x46, "zp", 5], [0x56, "zpx", 6], [0x4e, "abs", 6], [0x5e, "absx", 7]]);
+define(0x6a, "ROR", "acc", 2);
 
 for (const [opcode, operation] of [
   [0x90, "BCC"], [0xb0, "BCS"], [0xf0, "BEQ"], [0x30, "BMI"],
@@ -320,6 +321,12 @@ export class Nmos6502 {
         const result = this.setNz(byte >> 1);
         if (instruction.mode === "acc") this.a = result;
         else store(result);
+        break;
+      }
+      case "ROR": {
+        const carry = this.getFlag(FLAG_C) ? 0x80 : 0;
+        this.setFlag(FLAG_C, (this.a & 0x01) !== 0);
+        this.a = this.setNz(carry | this.a >> 1);
         break;
       }
       case "BCC": extraCycles += this.branch(!this.getFlag(FLAG_C), operand.offset); break;

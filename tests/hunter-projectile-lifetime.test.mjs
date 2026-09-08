@@ -17,6 +17,18 @@ const interceptorSlotBase = 10;
 const interceptorSlots = 9;
 const projectileKind = 2;
 const capitalStates = [0, 1, 2, 3, 4, 5, 6];
+const director = {
+  address: 0x9d75,
+  phase: 0x80f6,
+  intensity: 0x80f8,
+  reaction: 0x80f9,
+  recovery: 0x80fa,
+  rng: 0x80fb,
+  pending: 0x80fc,
+  flags: 0x80fe,
+  admissionFrame: 0x80ff,
+};
+const activeGameplayFrame = { lo: 0x4ff8, hi: 0x4ff9 };
 
 function parseLabels(text) {
   return new Map(text.split(/\r?\n/)
@@ -46,6 +58,8 @@ function assembleCurrentRuntime() {
     assert.ok([load, run, size, offset].every(Number.isInteger), `${prefix} fixture labels missing`);
     memory.set(linked.subarray(offset, offset + size), run);
   }
+  memory.set(fs.readFileSync(path.join(root, "build", "encounter-director.bin")),
+    director.address);
   return { memory, labels };
 }
 
@@ -60,12 +74,17 @@ function run(memory, labels, name, { a = 0, x = 0, y = 0 } = {}) {
   const stop = 0x7fff;
   cpu.push((stop - 1) >> 8);
   cpu.push((stop - 1) & 0xff);
-  cpu.pc = required(labels, name);
+  cpu.pc = typeof name === "number" ? name : required(labels, name);
   cpu.a = a;
   cpu.x = x;
   cpu.y = y;
   for (let steps = 0; steps < 400_000 && cpu.pc !== stop; steps += 1) cpu.step();
   assert.equal(cpu.pc, stop, `${name} did not return`);
+}
+
+function setActiveGameplayFrame(memory, frame) {
+  memory[activeGameplayFrame.lo] = frame & 0xff;
+  memory[activeGameplayFrame.hi] = frame >> 8;
 }
 
 function initialiseRows(memory, labels, head = 0) {
@@ -255,4 +274,161 @@ test("assembled Hunter shots remain independent through capital traversal and ri
 
   assert.match(fs.readFileSync(path.join(root, "src/main.s"), "utf8"),
     /interceptor_projectile_hits_player:[\s\S]+cmp #\(PLAYER_COLLISION_LAST_ROW\+1\)\s+bcc @vertical_overlap/);
+});
+
+test("capital due drains the final legal Hunter pulse before admission", () => {
+  const { memory, labels } = assembleCurrentRuntime();
+  const active = required(labels, "FIGHTER_PROJECTILE_ACTIVE");
+  const yAddress = required(labels, "FIGHTER_PROJECTILE_Y");
+  const sector = required(labels, "CAPITAL_SECTOR_STATE");
+  const enemyState = required(labels, "ENEMY_ACTIVE");
+  const burstState = required(labels, "INTERCEPTOR_BURST_STATE");
+
+  memory[required(labels, "PLAYER_LIFECYCLE")] = 0;
+  memory[required(labels, "player_x")] = 48;
+  memory[required(labels, "player_y")] = 225;
+  memory[required(labels, "ENEMY_ARCHETYPE")] = 0;
+  memory[required(labels, "enemy_x")] = 100;
+  memory[required(labels, "enemy_y")] = 16;
+  memory[enemyState] = 1;
+  memory[sector] = 7;
+  memory[director.flags] = 0;
+  setActiveGameplayFrame(memory, 599);
+
+  run(memory, labels, "integration_update_first_capital");
+  run(memory, labels, "integration_update_enemy_weapon");
+  assert.deepEqual([memory[active + interceptorSlotBase], memory[yAddress + interceptorSlotBase]],
+    [projectileKind, 29], "the final pre-due update must retain ordinary fire");
+
+  memory[enemyState] = 0;
+  setActiveGameplayFrame(memory, 600);
+  run(memory, labels, "integration_update_first_capital");
+  assert.deepEqual([memory[sector], memory[director.flags]], [7, 0x80]);
+  run(memory, labels, "integration_update_enemy_weapon");
+  assert.deepEqual([memory[active + interceptorSlotBase], memory[burstState]],
+    [projectileKind, 0], "the gate must reset the parent without suppressing its pulse");
+
+  for (let update = 1; update <= 42; update += 1) {
+    setActiveGameplayFrame(memory, 599 + update);
+    run(memory, labels, "integration_update_first_capital");
+    assert.equal(memory[sector], 7, `hull entered before projectile update ${update}`);
+    run(memory, labels, "update_fighter_projectiles");
+    assert.equal(memory[active + interceptorSlotBase], update === 42 ? 0 : projectileKind);
+  }
+
+  setActiveGameplayFrame(memory, 642);
+  run(memory, labels, "integration_update_first_capital");
+  assert.deepEqual([memory[sector], memory[director.flags]], [0, 0x40],
+    "admission must follow the natural release by one active update");
+});
+
+test("a live Hunter leaves naturally and gives capital admission a finite bound", () => {
+  const { memory, labels } = assembleCurrentRuntime();
+  const sector = required(labels, "CAPITAL_SECTOR_STATE");
+  const enemyState = required(labels, "ENEMY_ACTIVE");
+
+  memory[required(labels, "DIFFICULTY_SETTING")] = 2;
+  memory[required(labels, "PLAYER_LIFECYCLE")] = 0;
+  memory[required(labels, "ENEMY_ARCHETYPE")] = 0;
+  memory[required(labels, "enemy_y")] = 16 - 14;
+  memory[enemyState] = 1;
+  memory[sector] = 7;
+  memory[director.flags] = 0;
+  memory[director.intensity] = 1;
+
+  for (let update = 0; update < 238; update += 1) {
+    setActiveGameplayFrame(memory, 600 + update);
+    run(memory, labels, "integration_update_first_capital");
+    assert.equal(memory[sector], 7);
+    run(memory, labels, "integration_update_enemy");
+  }
+  assert.equal(memory[enemyState], 0, "the Hunter must recycle at the lower boundary");
+  assert.equal(memory[director.intensity], 0, "natural recycle must release Director pressure");
+
+  setActiveGameplayFrame(memory, 838);
+  run(memory, labels, "integration_update_first_capital");
+  assert.deepEqual([memory[sector], memory[director.flags]], [0, 0x40],
+    "the worst-positioned live Hunter must add at most 238 active frames");
+});
+
+test("ordinary waves stay closed through reconstruction and resume without catch-up", () => {
+  for (const difficulty of [0, 1, 2]) {
+    const { memory, labels } = assembleCurrentRuntime();
+    const active = required(labels, "FIGHTER_PROJECTILE_ACTIVE");
+    const sector = required(labels, "CAPITAL_SECTOR_STATE");
+    const enemyState = required(labels, "ENEMY_ACTIVE");
+    const burstState = required(labels, "INTERCEPTOR_BURST_STATE");
+    const burstRemaining = required(labels, "INTERCEPTOR_BURST_REMAINING");
+    const retryTimer = required(labels, "INTERCEPTOR_BURST_TIMER");
+    const reconstructionRows = required(labels, "ENTITY_SPAWN_TIMER_HI");
+
+    memory[required(labels, "DIFFICULTY_SETTING")] = difficulty;
+    memory[required(labels, "PLAYER_LIFECYCLE")] = 0;
+    memory[required(labels, "ENEMY_ARCHETYPE")] = 0;
+    memory[required(labels, "enemy_x")] = 100;
+    memory[required(labels, "enemy_y")] = 16;
+    memory[required(labels, "player_x")] = 48;
+    memory[required(labels, "player_y")] = 225;
+    memory[required(labels, "frame_counter")] = 1;
+    memory[director.phase] = 3;
+    memory[director.rng] = 0x6d;
+    memory[director.pending] = 0xff;
+    memory[director.admissionFrame] = 0;
+
+    for (const [capitalState, flags] of [[7, 0x80], [0, 0x40], [1, 0x40],
+      [2, 0x40], [3, 0x40], [4, 0x40], [5, 0x40], [6, 0x40]]) {
+      memory[sector] = capitalState;
+      memory[director.flags] = flags;
+      memory[enemyState] = 1;
+      memory[burstState] = 1;
+      memory[burstRemaining] = 6;
+      memory[retryTimer] = 0;
+      run(memory, labels, "integration_update_enemy_weapon");
+      assert.equal(memory[active + interceptorSlotBase], 0,
+        `difficulty ${difficulty}, state ${capitalState} emitted during the sector`);
+      assert.deepEqual([memory[enemyState], memory[burstState], memory[burstRemaining]],
+        [1, 0, 0], "the live Hunter must keep maneuvering while its parent weapon stops");
+
+      memory[enemyState] = 0;
+      memory[retryTimer] = 7;
+      run(memory, labels, "interceptor_admission_update");
+      assert.deepEqual([memory[enemyState], memory[retryTimer]], [0, 7],
+        "blocked admission must freeze the existing retry without catch-up");
+    }
+
+    memory[sector] = 6;
+    memory[director.flags] = 0x40;
+    memory[reconstructionRows] = 27;
+    memory[retryTimer] = 7;
+    for (let row = 1; row <= 27; row += 1) {
+      run(memory, labels, "interceptor_admission_update");
+      assert.equal(memory[retryTimer], 7);
+      run(memory, labels, "entity_complete_scroll_tick");
+      assert.equal(memory[sector], row === 27 ? 7 : 6);
+    }
+
+    run(memory, labels, "interceptor_admission_update");
+    assert.equal(memory[retryTimer], 6,
+      "post-sector OPEN must resume the frozen ordinary retry one step at a time");
+    memory[retryTimer] = 0;
+    run(memory, labels, "interceptor_admission_update");
+    assert.equal(memory[enemyState], 1, "post-sector OPEN must admit a normal Hunter");
+    memory[required(labels, "enemy_y")] = 16;
+    run(memory, labels, "integration_update_enemy_weapon");
+    assert.equal(memory[active + interceptorSlotBase], projectileKind,
+      "the returned Hunter must use the normal immediate burst start");
+
+    memory[director.flags] = 0x80;
+    memory[sector] = 1;
+    setActiveGameplayFrame(memory, 900);
+    run(memory, labels, "init_state");
+    run(memory, labels, director.address, { a: 0x6d });
+    assert.deepEqual([memory[director.flags], memory[sector], memory[activeGameplayFrame.lo],
+      memory[activeGameplayFrame.hi]], [0, 7, 0, 0], "new game must reopen ordinary waves");
+  }
+
+  const source = fs.readFileSync(path.join(root, "src/main.s"), "utf8");
+  assert.match(source,
+    /update_sector_completion:[\s\S]+CAPITAL_SECTOR_DRAIN_ROWS[\s\S]+BROAD_STATE[\s\S]+BROAD_FLASH_TIMER[\s\S]+CAPITAL_EXPLOSION_TIMER[\s\S]+FIGHTER_EXPLOSION_TIMER[\s\S]+jsr entity_begin_sector_complete/,
+    "COMPLETE must remain downstream of physical drain and effect lifecycles");
 });

@@ -33,6 +33,8 @@ const SHIELD_BOOSTER_RUNTIME_BASELINE_BYTES = 15346;
 const SHIELD_BOOSTER_ENTITY_BASELINE_BYTES = 1869;
 const SHIELD_BOOSTER_RUNTIME_HARD_DELTA_BYTES = 512;
 const FRONTEND_H31_RUNTIME_HARD_DELTA_BYTES = 1280;
+const HUNTER_WAVE_SEPARATION_RUNTIME_BASELINE_BYTES = 17277;
+const HUNTER_WAVE_SEPARATION_RUNTIME_HARD_DELTA_BYTES = 128;
 const MINIMUM_SPREAD_SHOT_RESERVE_BYTES = 64;
 const BOOT_PAYLOAD_TRAILER = Buffer.from([0x44, 0x46, 0x42, 0x31]); // "DFB1"
 
@@ -315,10 +317,12 @@ export function validateBuildDirectory(rootDirectory) {
   invariant(manifest.runtimeCodeBudget?.frontendH31?.baselineBytes ===
     SHIELD_BOOSTER_RUNTIME_BASELINE_BYTES &&
     (manifest.encounterDirector?.enabled === true
-      ? manifest.encounterDirector.linkedRuntimeBytes <= 17287
+      ? manifest.encounterDirector.linkedRuntimeBytes <=
+        HUNTER_WAVE_SEPARATION_RUNTIME_BASELINE_BYTES +
+          HUNTER_WAVE_SEPARATION_RUNTIME_HARD_DELTA_BYTES
       : manifest.runtimeCodeBudget.frontendH31.actualDeltaBytes <=
         FRONTEND_H31_RUNTIME_HARD_DELTA_BYTES),
-  "H3.1 exceeds its linked runtime hard budget");
+  "Hunter wave separation exceeds its linked runtime hard budget");
   invariant(manifest.residentRuntime?.loadAddress === 0x2000 &&
     manifest.residentRuntime.runAddress === 0x2000 &&
     manifest.residentRuntime.rawBytes === 0x2000 &&

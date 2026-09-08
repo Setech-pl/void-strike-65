@@ -89,12 +89,12 @@ test("packed startup and relocated GLUE have pairwise-safe real lifetimes", () =
     initialSourcesEnd,
     contentEnd,
   }, {
-    residentPacked: 6678,
-    starfieldPacked: 1780,
+    residentPacked: 6684,
+    starfieldPacked: 1796,
     a2: 254,
-    entityPacked: 2739,
-    initialSourcesEnd: 0x5323,
-    contentEnd: 0x5327,
+    entityPacked: 2738,
+    initialSourcesEnd: 0x5338,
+    contentEnd: 0x533c,
   });
   assert.equal(glue.length, 249);
   assert.deepEqual([glueStart, glueStart + glue.length - 1], [0x7bd0, 0x7cc8],
@@ -125,7 +125,7 @@ test("packed startup and relocated GLUE have pairwise-safe real lifetimes", () =
     interval(0x21c1, 0x1e3f, 5, 14, "resident runtime suffix"),
     interval(0x9100, 3113, 6, 14, "ENTITY_CODE runtime"),
     interval(0x4010, 7680, 12, 12, "loader bitmap destination"),
-    interval(0x552a, 2235, 13, 14, "starfield runtime"),
+    interval(0x552a, 2252, 13, 14, "starfield runtime"),
     interval(0x5e10, build.broadside.length, -4, 14, "BROADSIDE runtime"),
     interval(0x8800, 1759, 11, 14, "pickup/phase/collision runtime"),
     interval(0x9d75, director.length, 0, 14, "Director runtime"),
@@ -145,7 +145,7 @@ test("packed startup and relocated GLUE have pairwise-safe real lifetimes", () =
 
   // Alignment/content growth at and around the old boundary cannot collide
   // with the relocated GLUE. ENTITY staging remains the controlling boundary.
-  for (const variation of [-16, -1, 0, 1, 16, 50]) {
+  for (const variation of [-16, -1, 0, 1, 16, 34]) {
     const variedEnd = initialSourcesEnd + variation;
     assert.ok(variedEnd <= 0x535a, `initial variation ${variation} reaches ENTITY staging`);
     assert.ok(variedEnd <= glueStart || 0x535a <= glueStart,

@@ -452,7 +452,7 @@ test("natural-fire trace records burst allocation and playfield movement", () =>
   assert.match(openAllocation, /PF0:[0-9]+:[0-9]+>[0-9]+:2x3/);
 });
 
-test("released pulses survive sector drain while terminal player lifecycle still clears them", () => {
+test("released pulses survive the capital gate while terminal player lifecycle still clears them", () => {
   let state = { ...createEnemyCombatState(asset), fireTimer: 0 };
   state = stepEnemyCombatFrame(asset, state);
   assert.ok(state.pool[0]);
@@ -468,7 +468,7 @@ test("released pulses survive sector drain while terminal player lifecycle still
   state = stepEnemyCombatFrame(asset, state, { playerActive: false });
   assert.equal(state.pool[0], null, "terminal player lifecycle retains full projectile cleanup");
   assert.match(source,
-    /update_enemy_weapon_runtime:[\s\S]+cmp #CAPITAL_HULL_STATE_DRAIN[\s\S]+jmp @stop/);
+    /update_enemy_weapon_runtime:[\s\S]+jsr ordinary_wave_capital_blocked[\s\S]+bmi @stop/);
   assert.doesNotMatch(source.slice(source.indexOf("update_enemy_weapon_runtime:"),
     source.indexOf("allocate_interceptor_projectile:")), /clear_interceptor_projectiles/);
   assert.match(source, /apply_player_damage:[\s\S]+jsr clear_interceptor_pulses/);

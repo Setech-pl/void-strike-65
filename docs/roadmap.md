@@ -21,19 +21,29 @@ The repository currently contains:
 - Rapid Fire Booster;
 - Spread Shot Booster, including the accepted backing/erase correction,
   all-yellow Player Fighter fan, and symmetric readable trajectory;
+- ordinary Hunter/Interceptor waves before and after the capital-ship sector,
+  with existing enemies and released pulses draining naturally before admission
+  and no ordinary respawn during the complete hull reconstruction;
+- corrected pickup phase-bank addressing for all booster types and all eight
+  vertical phases; owner smoke passed for wave separation and capsule rendering;
 - mode-specific Player Fighter burst balance: eight shots for Normal, ten for Rapid, and
   eight atomic three-projectile salvos for Spread;
 - deterministic cold-RAM, XEX/ATR parity, memory-integrity, and PAL wall traces.
 
 ## Immediate work
 
-1. **Player Fighter visual unification** — align the runtime craft with the
+1. **Known raster follow-ups** — diagnose flickering distant dark-blue stars,
+   debris missing from some rendered frames, and the previously observed
+   post-sector Hunter-projectile raster failures. A playthrough without visible
+   capital-sector debris remains unexplained; the ordinary-wave gate does not
+   block `integration_debris_spawn`.
+2. **Player Fighter visual unification** — align the runtime craft with the
    approved silhouette, markings, and worn military visual direction.
-2. **Pickup drop-cadence tuning** — use owner playtest feedback to revisit the
+3. **Pickup drop-cadence tuning** — use owner playtest feedback to revisit the
    current every-third-qualifying-Interceptor-kill cadence. The present value is
    implemented behavior, not accepted final balance; this task must change it
    explicitly rather than editing documentation alone.
-3. **Spread Shot and Shield follow-up** — continue their presentation and
+4. **Spread Shot and Shield follow-up** — continue their presentation and
    balance review without describing either implemented booster as future work.
 
 ## Later work

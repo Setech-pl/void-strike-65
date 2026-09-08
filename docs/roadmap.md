@@ -37,6 +37,13 @@ The repository currently contains:
   and effects through matching reverse erase and forward redraw order; owner
   smoke confirmed menu music and improved gameplay for this combined cadence
   and drawing-order increment;
+- the capital-sector turret layout exposes 10/15/20 functional stations on
+  Easy/Medium/Hard while preserving the existing simultaneous turret and shell
+  limits, fire cadence, damage, and avoidance corridor; owner smoke accepted
+  the denser broadside;
+- capital-impact sound advances and releases its POKEY channel even while the
+  independent hit-effect timer is idle; owner smoke confirmed working audio
+  without changing the sound tables or effect duration;
 - mode-specific Player Fighter burst balance: eight shots for Normal, ten for Rapid, and
   eight atomic three-projectile salvos for Spread;
 - deterministic cold-RAM, XEX/ATR parity, memory-integrity, and PAL wall traces.

@@ -443,10 +443,10 @@
       }
     ],
     "turretLayout": {
-      "seed": 109,
-      "counts": { "easy": 8, "medium": 12, "hard": 16 },
-      "minimumSpacingRows": 24,
-      "maximumGapRows": { "easy": 80, "medium": 56, "hard": 40 },
+      "seed": 13,
+      "counts": { "easy": 10, "medium": 15, "hard": 20 },
+      "minimumSpacingRows": 16,
+      "maximumGapRows": { "easy": 64, "medium": 48, "hard": 32 },
       "turretModule": {
         "allied": "combat_1",
         "enemy": "combat_1"

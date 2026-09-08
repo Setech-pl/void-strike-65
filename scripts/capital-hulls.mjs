@@ -312,7 +312,7 @@ function compileSector(definition, rowsBySide, depthsBySide, glyphs, screenCodes
   const turretLayout = source.turretLayout;
   invariant(turretLayout && typeof turretLayout === "object",
     "Capital hull sector must define seeded difficulty-scaled turret geometry");
-  const expectedTurretCounts = { easy: 8, medium: 12, hard: 16 };
+  const expectedTurretCounts = { easy: 10, medium: 15, hard: 20 };
   for (const [difficulty, count] of Object.entries(expectedTurretCounts)) {
     invariant(turretLayout.counts?.[difficulty] === count,
       `${difficulty} hulls must expose exactly ${count} functional turrets`);

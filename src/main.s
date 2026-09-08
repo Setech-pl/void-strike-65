@@ -6552,7 +6552,7 @@ update_sound:
 
 @hit:
     lda hit_timer
-    beq @damage
+    beq @capital
     dec hit_timer
     inc AUDF2
     inc AUDF2

@@ -2409,8 +2409,8 @@ function main() {
           launches: launches.map(({ frame, gameplay_frame }) => ({ frame, gameplay_frame })),
         },
         station_counts: {
-          generated: [8, 12, 16][session.difficulty],
-          accepted: [8, 12, 16][session.difficulty],
+          generated: [10, 15, 20][session.difficulty],
+          accepted: [10, 15, 20][session.difficulty],
           shown: { allied: shownByOwner[0], enemy: shownByOwner[1] },
           warnings: { allied: warningsByOwner[0], enemy: warningsByOwner[1] },
           flashes: { allied: flashesByOwner[0], enemy: flashesByOwner[1] },

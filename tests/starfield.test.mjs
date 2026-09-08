@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import crypto from "node:crypto";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { Nmos6502 } from "../scripts/nmos6502.mjs";
 import {
   clearBackgroundOverlay,
   compileStarfield,
@@ -42,6 +45,36 @@ function runtimeBytes(label, length) {
   assert.ok(offset >= 0 && offset + length <= starRuntime.length,
     `${label} lies outside relocated starfield runtime`);
   return starRuntime.subarray(offset, offset + length);
+}
+
+function assembleCurrentStarRuntime() {
+  const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "void-strike-far-star-"));
+  const object = path.join(temporary, "main.o");
+  const binary = path.join(temporary, "void-strike-65.bin");
+  const labelsPath = path.join(temporary, "void-strike-65.lbl");
+  execFileSync("ca65", ["--cpu", "6502", "-g", "-I", path.join(root, "build"),
+    "-o", object, path.join(root, "src", "main.s")], { stdio: "pipe" });
+  execFileSync("ld65", ["-C", path.join(root, "cfg", "atari-boot.cfg"), "-o", binary,
+    "-Ln", labelsPath, object], { stdio: "pipe" });
+  const linked = fs.readFileSync(binary);
+  const currentLabels = new Map(fs.readFileSync(labelsPath, "utf8")
+    .split(/\r?\n/)
+    .map((line) => /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim()))
+    .filter(Boolean)
+    .map((match) => [match[2], Number.parseInt(match[1], 16)]));
+  const segment = (prefix) => {
+    const load = currentLabels.get(`__${prefix}_LOAD__`);
+    const run = currentLabels.get(`__${prefix}_RUN__`);
+    const size = currentLabels.get(`__${prefix}_SIZE__`);
+    assert.ok([load, run, size].every(Number.isInteger), `${prefix} labels missing`);
+    return { bytes: linked.subarray(load - 0x2000, load - 0x2000 + size), run };
+  };
+  return {
+    labels: currentLabels,
+    star: segment("STARFIELD"),
+    a2: segment("A2_KERNEL"),
+    entity: segment("ENTITY_CODE"),
+  };
 }
 
 // Executes the assembled rate dispatcher itself. Calls into the bounded screen
@@ -272,6 +305,70 @@ test("assembled 6502 keeps physical scene recycle at 100% and far stars at 25%",
     "both assembled accumulators close exactly over the common period");
   assert.ok(phaseTrace.every(([near, far]) =>
     near < asset.nearLayer.rateDenominator && far < asset.farLayer.rateDenominator));
+});
+
+test("far overlays remain visible when the ring rotates between quarter-rate steps", () => {
+  const current = assembleCurrentStarRuntime();
+  const memory = new Uint8Array(0x10000);
+  memory.set(current.star.bytes, current.star.run);
+  memory.set(current.a2.bytes, current.a2.run);
+  memory.set(current.entity.bytes, current.entity.run);
+
+  const capacity = asset.farLayer.population;
+  const active = current.labels.get("STAR_FAR_ACTIVE");
+  const row = active + capacity;
+  const column = row + capacity;
+  const code = column + capacity;
+  const screenLo = 0x8100;
+  const screenHi = screenLo + capacity;
+  const rowLo = current.labels.get("PLAYFIELD_ROW_LO");
+  const rowHi = current.labels.get("PLAYFIELD_ROW_HI");
+  const generationFlags = 0x4ed6;
+  const ring = 0x8140;
+  const ringRows = starfieldGeometry.gameplayRows - 1;
+
+  for (let index = 0; index < ringRows; index += 1) {
+    const address = ring + index * 40;
+    memory[rowLo + index] = address & 0xff;
+    memory[rowHi + index] = address >> 8;
+  }
+  for (let slot = 0; slot < capacity; slot += 1) {
+    memory[active + slot] = 1;
+    memory[row + slot] = slot % starfieldGeometry.gameplayRows;
+    memory[column + slot] = 9 + slot % 22;
+    memory[code + slot] = 1 + slot % 3;
+  }
+
+  const runCurrent = (label) => {
+    const cpu = new Nmos6502(memory);
+    const stop = 0x7fff;
+    cpu.push((stop - 1) >> 8);
+    cpu.push((stop - 1) & 0xff);
+    cpu.pc = current.labels.get(label);
+    for (let steps = 0; steps < 100_000 && cpu.pc !== stop; steps += 1) cpu.step();
+    assert.equal(cpu.pc, stop, `${label} did not return`);
+  };
+
+  runCurrent("render_far_star_overlays");
+  assert.equal(Array.from(memory.subarray(active, active + capacity))
+    .filter((value) => value === 0x81).length, capacity);
+
+  const slot = 4;
+  const oldAddress = memory[screenLo + slot] | memory[screenHi + slot] << 8;
+  runCurrent("erase_far_star_overlays");
+  runCurrent("rotate_playfield_rows");
+  const logicalRow = memory[row + slot];
+  const tableIndex = logicalRow - 1;
+  const newAddress = (memory[rowLo + tableIndex] | memory[rowHi + tableIndex] << 8) +
+    memory[column + slot];
+  assert.notEqual(newAddress, oldAddress, "non-moving far star must follow the rotated LMS row");
+
+  memory[generationFlags] = 0x80; // dirty publication without a 25%-rate far step
+  runCurrent("render_far_star_overlays");
+  assert.equal(memory[active + slot], 0x81,
+    "an erased far star disappeared until the next quarter-rate step");
+  assert.equal(memory[oldAddress], 0);
+  assert.equal(memory[newAddress], memory[code + slot]);
 });
 
 test("stars enter at the top, leave at the bottom, and remain sparse over time", () => {

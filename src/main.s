@@ -5431,7 +5431,15 @@ render_far_star_overlays:
 render_far_star_slot:
     lda STAR_FAR_ACTIVE,x
     cmp loader_repeat_value
-    bne render_far_star_uncached
+    beq render_far_star_cached
+render_far_star_uncached:
+    ; A dirty record is either $01 (previously covered) or $40 (just erased).
+    ; On a far step, $40 equals loader_repeat_value and keeps its cached cell;
+    ; between far steps both valid states compare below $FF and must resolve
+    ; the newly rotated LMS row. No $81 record survives the preceding erase.
+    bcc render_far_star_resolve
+    bcs render_far_star_next
+render_far_star_cached:
     lda STAR_FAR_SCREEN_HI,x
     cmp #>GAMEPLAY_RING_SCREEN
     bcc render_far_star_resolve
@@ -5442,9 +5450,6 @@ render_far_star_slot:
     sta (dst_ptr),y
     lda #$81
     sta STAR_FAR_ACTIVE,x
-    bne render_far_star_next
-render_far_star_uncached:
-    cmp #$01
     bne render_far_star_next
 render_far_star_resolve:
     RESOLVE_FAR_STAR_PTR

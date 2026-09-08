@@ -5,7 +5,9 @@ DIFFICULTY_SETTING = $4E70
 FRAME_COUNTER = $86
 CAPITAL_SECTOR_STATE = $4EA5
 CAPITAL_HULL_STATE_ENGINES = 0
+CAPITAL_HULL_STATE_DRAIN = 5
 CAPITAL_HULL_STATE_OPEN = 7
+HAZARD_DEBRIS = 1
 PHASE_COUNT = 8
 EVENT_COUNT = 6
 
@@ -36,21 +38,20 @@ EVENT_BOSS_HANDOFF = 5
 
 ; A = externally selected level seed. New Game calls this once; Game Over does not.
 director_init:
-    sta director_scratch
+    pha
     ldx #11
     lda #$00
 @clear:
     sta STATE_ROW_LO,x
     dex
     bpl @clear
-    lda director_scratch
+    pla
     sta STATE_RNG
     lda #$FF
     sta STATE_PENDING
-    lda FRAME_COUNTER
-    sec
-    sbc #$01
-    sta STATE_ADMISSION_FRAME
+    ldx FRAME_COUNTER
+    dex
+    stx STATE_ADMISSION_FRAME
     ldx #$00
     jsr hook_apply_phase_policy
     rts
@@ -143,7 +144,6 @@ director_check_phase:
 :
     sta STATE_RECOVERY
     txa
-    jmp @done
 @done:
     rts
 
@@ -192,21 +192,35 @@ director_try_event:
 
 director_request:
     lda STATE_FLAGS
-    and #FLAG_COMPLETE
-    bne @deny
+    lsr
+    bcs @deny
     lda STATE_ADMISSION_FRAME
     cmp FRAME_COUNTER
     beq @deny
     lda FRAME_COUNTER
     sta STATE_ADMISSION_FRAME
     lda STATE_RECOVERY
-    bne @deny
-    lda STATE_REACTION
+    ora STATE_REACTION
     bne @deny
     lda hazard_bits,x
     ldy STATE_PHASE
     and level1_phase_hazards,y
-    beq @deny
+    bne @phase_allowed
+    ; The provisional frame-600 capital section lies wholly inside phase one,
+    ; whose ordinary-space mask intentionally excludes debris. Admit only the
+    ; existing debris request while a hull is actively traversing; OPEN,
+    ; DRAIN and COMPLETE retain the authored phase mask. Every later Director
+    ; gate (frame, reaction, recovery, budget, allocator and RNG) stays shared.
+    cpx #HAZARD_DEBRIS
+    bne @deny
+    lda CAPITAL_SECTOR_STATE
+    cmp #CAPITAL_HULL_STATE_DRAIN
+    bcs @deny
+    ; Match the capital-local 3/4/5 intensity ceilings already used by
+    ; BROADSIDE. This keeps one cost-1 debris legal beside capital pressure
+    ; without changing any ordinary-space phase budget.
+    ldy #3
+@phase_allowed:
     lda hazard_costs,x
     clc
     adc STATE_INTENSITY
@@ -288,16 +302,16 @@ hook_dispatch_event:
     cmp #$01
     rts
 hook_can_allocate:
-    ldx $4EAA
-    dex
-    beq @deny
-    dex
-    dex
-    beq @deny
-    sec
-    rts
+    pha
+    lda $4EAA
+    lsr
+    pla
+    bcc @allow
 @deny:
     clc
+    rts
+@allow:
+    sec
     rts
 hook_event_deferred:
 hook_event_skipped:

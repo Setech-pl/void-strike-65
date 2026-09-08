@@ -18,10 +18,10 @@
 .include "frontend-h31.inc"
 
 DIRECTOR_INIT = $9D75
-DIRECTOR_WORLD_ROW_TICK = $9D9B
-DIRECTOR_REQUEST = $9EA7
-DIRECTOR_RELEASE = $9F23
-DIRECTOR_RNG_ADVANCE = $9F32
+DIRECTOR_WORLD_ROW_TICK = $9D95
+DIRECTOR_REQUEST = $9E9E
+DIRECTOR_RELEASE = $9F24
+DIRECTOR_RNG_ADVANCE = $9F33
 DIRECTOR_STATE_REACTION = $80F9
 DIRECTOR_STATE_RECOVERY = $80FA
 DIRECTOR_STATE_INTENSITY = $80F8
@@ -40,14 +40,13 @@ ACTIVE_GAMEPLAY_FRAME_LO = $4FF8
 ACTIVE_GAMEPLAY_FRAME_HI = $4FF9
 PROVISIONAL_CAPITAL_BROADSIDE_REACTION_ROWS = 12
 integration_director_world_row = $4EFE
-integration_active_gameplay_tick = $4FE8
+integration_active_gameplay_tick = $4FE9
 integration_debris_spawn = $4F0D
-integration_debris_release = $4F1D
-integration_apply_allied_prow = $4F25
-integration_apply_enemy_prow = $4F28
-CAPITAL_SHELL_GLYPH_SOURCE = $4F97
-render_capital_shell_overlay = $4F9F
-integration_broadside_release = $4FDC
+integration_apply_allied_prow = $4F26
+integration_apply_enemy_prow = $4F29
+CAPITAL_SHELL_GLYPH_SOURCE = $4F98
+render_capital_shell_overlay = $4FA0
+integration_broadside_release = $4FDD
 CAPITAL_PLAYER_COLLISION = $8EBE
 
 .import __A2_KERNEL_RUN__, __A2_KERNEL_SIZE__
@@ -1230,13 +1229,13 @@ boot_chunk_ready:
 .res $01A3-(*-start)
 resident_runtime_suffix:
 stage_glue_holding:
-    ; 249 backward indices are equivalent to 249 forward indices offset by
-    ; seven. This equal-size loop leaves room to tail-call the deferred
+    ; 250 backward indices are equivalent to 250 forward indices offset by
+    ; six. This equal-size loop leaves room to tail-call the deferred
     ; starfield staging record without growing the linked CODE segment.
-    ldy #$07
+    ldy #$06
 @hold_glue:
-    lda LAYOUT_D_GLUE_STAGING-$07,y
-    sta LAYOUT_D_GLUE_HOLDING-$07,y
+    lda LAYOUT_D_GLUE_STAGING-$06,y
+    sta LAYOUT_D_GLUE_HOLDING-$06,y
     iny
     bne @hold_glue
     jmp stage_starfield_stream
@@ -2295,10 +2294,10 @@ main_loop:
     sta pause_option_latched
 main_loop_frame_active = *
     inc frame_counter
-    jsr entity_effects_erase
-profile_after_entity_erase = *
     jsr erase_fighter_projectile_overlays
 profile_after_projectile_erase = *
+    jsr entity_effects_erase
+profile_after_entity_erase = *
     jsr integration_active_gameplay_tick
 profile_after_capsule = *
     jsr tick_shared_fighter_explosions
@@ -2345,10 +2344,10 @@ profile_after_entity_update = *
 profile_after_effect_visuals = *
     jsr render_capital_shell_overlays
 profile_after_broadside_render = *
-    jsr render_fighter_projectile_overlays
-profile_after_projectile_render = *
     jsr entity_effects_render
 profile_after_entity_render = *
+    jsr render_fighter_projectile_overlays
+profile_after_projectile_render = *
     jsr integration_update_sector_completion
 profile_after_sector = *
     jsr update_sound
@@ -6501,7 +6500,7 @@ fill_starfield_empty_cells:
 store_boundary_star:
     pha
     and #$7F
-    cmp #CAPITAL_HULL_GLYPH_BASE
+    cmp #(PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT)
     pla
     bcc :+
     lda #CH_SPACE
@@ -8400,7 +8399,7 @@ render_capital_explosion:
     ldx BROAD_WORK_VALUE
     sta CAPITAL_EXPLOSION_BACKUP,x
     and #$7F
-    cmp #CAPITAL_HULL_GLYPH_BASE
+    cmp #(PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT)
     bcc @skip
     cmp #(CAPITAL_HULL_GLYPH_BASE+CAPITAL_HULL_GLYPH_COUNT)
     bcs @skip
@@ -9152,9 +9151,9 @@ unpack_weapon_pickup_phase_runtime:
     stx broadside_destination+2
     jmp broadside_unpack_command
 
-; New backed overlays form the top of the character stack. Effects are
-; restored first, then interactive entities. Existing fighter projectiles and
-; broadside shells are restored later by their established routines.
+; Player projectiles form the top of the character stack and are restored by
+; the caller first. Effects and interactive entities then unwind here before
+; broadside shells are restored by their established routine.
 entity_effects_erase:
     lda EFFECT_RENDERED_MASK
     beq profile_entity_erase_begin
@@ -10038,9 +10037,10 @@ clear_transient_effects:
 
 .segment "ENTITY_CODE"
 
-; Render after scroll and after existing shell/projectile rendering. Logical Y
-; is authoritative. Ordinary entities cache the pointer until next-frame erase;
-; the fixed pickup keeps its four physical A2 cells resident until release.
+; Render after scroll and shell publication but before PlayerFighter projectiles,
+; which remain readable over debris and effects. Logical Y is authoritative.
+; Ordinary entities cache the pointer until next-frame erase; the fixed pickup
+; keeps its four physical A2 cells resident until release.
 entity_effects_render:
     lda EFFECT_ACTIVE_MASK
     bne @with_effects
@@ -10877,6 +10877,14 @@ provisional_capital_broadside_request:
     clc
     rts
 
+; The glue block uses its final byte while retaining every display and active-
+; frame address. Keep the eight-byte release wrapper in BROADSIDE's existing
+; reserved tail; debris still releases the same Director cost and slot state.
+integration_debris_release:
+    ldx #DIRECTOR_HAZARD_DEBRIS
+    jsr DIRECTOR_RELEASE
+    jmp entity_despawn_debris
+
 ; Reuse the established global intensity ceilings without changing any normal
 ; phase table: EASY 3, MEDIUM 4, HARD 5.
 provisional_capital_budgets:
@@ -10989,7 +10997,7 @@ LAYOUT_D_GLUE_FINAL = $4EFE
 ; hold. This free high-RAM window survives the loader bitmap, entity clear and
 ; starfield expansion until the final publication below $5000.
 LAYOUT_D_GLUE_HOLDING = $8600
-LAYOUT_D_GLUE_BYTES = 249
+LAYOUT_D_GLUE_BYTES = 250
 
 .macro STAGE2_FAIL_NE
     .local ok

@@ -29,6 +29,7 @@ const root = path.resolve(directory, "..");
 const definitionPath = path.join(root, "assets", "graphics", "starfield.json");
 const asset = compileStarfield(loadStarfieldDefinition(definitionPath));
 const source = fs.readFileSync(path.join(root, "src", "main.s"), "utf8");
+const integrationGlue = fs.readFileSync(path.join(root, "src", "integration-glue.s"), "utf8");
 const generated = fs.readFileSync(path.join(root, "build", "starfield.inc"), "utf8");
 const manifest = JSON.parse(fs.readFileSync(path.join(root, "build", "manifest.json"), "utf8"));
 const starRuntime = fs.readFileSync(path.join(root, "build", "starfield-runtime.bin"));
@@ -460,14 +461,14 @@ test("overlay ownership restores the current background and respects overlap ord
   const target = composeStarfield(asset, state).findIndex((code) => code !== 0);
   assert.ok(target >= 0);
   const initial = ownership.background[target];
-  ownership = setBackgroundOverlay(ownership, "projectile", [{ index: target, code: 0x7e }]);
   ownership = setBackgroundOverlay(ownership, "explosion", [{ index: target, code: 0x6d }]);
-  assert.equal(renderBackgroundOwnership(ownership)[target], 0x6d);
+  ownership = setBackgroundOverlay(ownership, "projectile", [{ index: target, code: 0x7e }]);
+  assert.equal(renderBackgroundOwnership(ownership)[target], 0x7e);
   state = stepStarfieldWorld(asset, state);
   ownership = updateBackgroundOwnership(ownership, asset, state);
   ownership = clearBackgroundOverlay(ownership, "projectile");
   assert.equal(renderBackgroundOwnership(ownership)[target], 0x6d,
-    "clearing a covered lower owner cannot erase the upper owner");
+    "clearing the upper projectile must reveal the covered effect");
   ownership = clearBackgroundOverlay(ownership, "explosion");
   assert.equal(renderBackgroundOwnership(ownership)[target], ownership.background[target]);
   assert.notEqual(initial, undefined);
@@ -477,17 +478,20 @@ test("assembly erases overlays before scroll and renders them in stacking order"
   const mainLoop = source.slice(source.indexOf("main_loop:"), source.indexOf("; -----------------------------------------------------------------------------\n; Frame"));
   const order = [
     "erase_fighter_projectile_overlays",
+    "entity_effects_erase",
     "update_starfield",
     "render_far_star_overlays_if_needed",
     "render_capital_explosions",
     "render_shared_fighter_explosions",
     "render_capital_shell_overlays",
+    "entity_effects_render",
     "render_fighter_projectile_overlays",
   ].map((label) => mainLoop.indexOf(label));
   assert.ok(order.every((offset) => offset >= 0));
   assert.deepEqual([...order].sort((a, b) => a - b), order);
   assert.match(source, /erase_fighter_projectile_overlays:[\s\S]+FIGHTER_PROJECTILE_BACKUP_TOP[\s\S]+FIGHTER_PROJECTILE_BACKUP_BOTTOM/);
-  assert.match(source, /render_capital_shell_overlays:[\s\S]+BROAD_PREV_Y[\s\S]+BROAD_COLLISION/);
+  assert.match(`${source}\n${integrationGlue}`,
+    /render_capital_shell_overlay:[\s\S]+BROAD_PREV_Y[\s\S]+BROAD_COLLISION/);
   assert.match(source, /update_starfield:[\s\S]+jsr erase_far_star_overlays[\s\S]+jsr scroll_world_columns/);
   assert.match(source,
     /advance_starfield_layers:[\s\S]+STAR_NEAR_RATE_NUMERATOR[\s\S]+STAR_NEAR_RATE_DENOMINATOR[\s\S]+STAR_FAR_RATE_NUMERATOR[\s\S]+STAR_FAR_RATE_DENOMINATOR/);

@@ -594,6 +594,70 @@ test("spawn deterministically selects two variants, two phases and three traject
   assert.deepEqual([...observedTrajectories].sort((a, b) => a - b), [0, 4, 0xfc]);
 });
 
+test("capital debris retries rejected admissions without overwriting its occupied slot", () => {
+  const rejectedCapital = createRuntimeMemory();
+  initialiseRows(rejectedCapital);
+  runRoutine(rejectedCapital, "init_entity_effects");
+  armDirectorDebrisAdmission(rejectedCapital);
+  rejectedCapital[0x80f9] = 1;
+  rejectedCapital[addresses.spawnTimer] = 1;
+  rejectedCapital[addresses.sectorState] = 0;
+  const capitalTrace = runRoutineTrace(rejectedCapital, "entity_effects_update",
+    ["entity_spawn_debris"]);
+  assert.deepEqual([
+    capitalTrace.callCounts.get("entity_spawn_debris"),
+    rejectedCapital[addresses.activeMask], rejectedCapital[addresses.spawnTimer],
+    rejectedCapital[0x80ff],
+  ], [0, 0, 8, rejectedCapital[addresses.frameCounter]]);
+
+  const rejectedOpen = createRuntimeMemory();
+  initialiseRows(rejectedOpen);
+  runRoutine(rejectedOpen, "init_entity_effects");
+  armDirectorDebrisAdmission(rejectedOpen);
+  rejectedOpen[0x80f9] = 1;
+  rejectedOpen[addresses.spawnTimer] = 1;
+  rejectedOpen[addresses.sectorState] = 7;
+  runRoutine(rejectedOpen, "entity_effects_update");
+  assert.equal(rejectedOpen[addresses.spawnTimer], 64,
+    "ordinary OPEN rejection must retain the established repeat delay");
+
+  const occupied = createRuntimeMemory();
+  initialiseRows(occupied);
+  initialiseEntity(occupied);
+  occupied[addresses.spawnTimer] = 1;
+  const admissionFrameBefore = occupied[0x80ff];
+  const occupiedTrace = runRoutineTrace(occupied, "entity_effects_update",
+    ["entity_spawn_debris"]);
+  assert.deepEqual([
+    occupiedTrace.callCounts.get("entity_spawn_debris"),
+    occupied[addresses.activeMask], occupied[addresses.activeCount],
+    occupied[addresses.spawnTimer], occupied[0x80ff],
+  ], [0, 1, 1, 1, admissionFrameBefore],
+  "an occupied debris slot must neither request, queue nor restart its timer");
+});
+
+test("capital debris uses existing 3/4/5 pressure ceilings on EASY, MEDIUM and HARD", () => {
+  for (const [difficulty, pressure, ceiling] of [[0, 2, 3], [1, 3, 4], [2, 4, 5]]) {
+    const memory = createRuntimeMemory();
+    initialiseRows(memory);
+    runRoutine(memory, "init_entity_effects");
+    armDirectorDebrisAdmission(memory);
+    memory[0x80f6] = 1;
+    memory[0x80f8] = pressure;
+    memory[addresses.difficulty] = difficulty;
+    memory[addresses.spawnTimer] = 1;
+    memory[addresses.sectorState] = 0;
+    memory[addresses.playerX] = 196;
+    memory[addresses.playerY] = 184;
+    runRoutine(memory, "entity_effects_update");
+    assert.deepEqual([memory[addresses.activeMask], memory[addresses.activeCount], memory[0x80f8]],
+      [1, 1, ceiling], `difficulty ${difficulty} did not admit one debris beside capital pressure`);
+    runRoutine(memory, "integration_debris_release");
+    assert.deepEqual([memory[addresses.activeMask], memory[addresses.activeCount], memory[0x80f8]],
+      [0, 0, pressure], `difficulty ${difficulty} release did not restore Director pressure`);
+  }
+});
+
 test("X, Y and tumbling phase change only on WORLD_ROW_ADVANCED", () => {
   const memory = createRuntimeMemory();
   initialiseRows(memory);

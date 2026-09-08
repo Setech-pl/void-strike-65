@@ -29,15 +29,15 @@ controlled destination. Any failure blanks DMA, selects a fixed red error
 background, and halts before partially loaded code can execute.
 
 The four ordered DFMC records are BROADSIDE in sectors 104-148, the packed
-pickup phase/code/collision stream in sectors 149-157, 249-byte integration glue
+pickup phase/code/collision stream in sectors 149-157, 250-byte integration glue
 in sectors 158-160, and the Encounter Director in sectors 161-165. ATR stages
-each record at `$8100`; BROADSIDE expands 6,643 bytes to `$5E10-$7802`, the
-1,020-byte pickup stream is published temporarily at `$8C80-$907B`, and glue
-expands to cold staging at `$7BD0-$7CC8`. Packed ENTITY_CODE stages at
-`$535A-$5E0C`. Startup holds glue at `$8600-$86F8` after consuming resident
+each record at `$8100`; BROADSIDE expands 6,651 bytes to `$5E10-$780A`, the
+1,021-byte pickup stream is published temporarily at `$8C80-$907C`, and glue
+expands to cold staging at `$7BD0-$7CC9`. Packed ENTITY_CODE stages at
+`$535A-$5E0C`. Startup holds glue at `$8600-$86F9` after consuming resident
 staging, defers the overlapping starfield staging write until that hold is
-complete, then copies glue to `$4EFE-$4FF6`; the 645-byte Director expands to
-`$9D75-$9FF9`. The last BROADSIDE source read makes `$8100` reusable;
+complete, then copies glue to `$4EFE-$4FF7`; the 644-byte Director expands to
+`$9D75-$9FF8`. The last BROADSIDE source read makes `$8100` reusable;
 only then does startup copy the packed resident suffix and stage it at
 `$8100-$9B15`. The 7,743-byte suffix is stored as a 6,678-byte LZ-10/5 stream
 and restores `$21C1-$3FFF`, overwriting all stage-2 code and its maximum
@@ -71,14 +71,14 @@ Each 16-byte record stores, in order: 16-bit start sector, 16-bit sector count,
 the complete sector image, one-byte type (`0=RAW`, `1=LZ`), one-byte controlled
 staging identifier, and a 16-bit staging address. All words are little-endian.
 Production records begin at sectors 104, 149, 158, and 161. Their packed/raw
-lengths are respectively 5,654/6,643 B, 1,020/1,759 B, 244/249 B, and 585/645 B.
+lengths are respectively 5,666/6,651 B, 1,021/1,759 B, 245/250 B, and 587/644 B.
 The second record carries the compressed immutable pickup phase bank plus its
 late compositor and the 33-byte collision module. Its cold copy at
-`$8C80-$907B` is first preserved at `$4801-$4BFC`, then decompressed to
+`$8C80-$907C` is first preserved at `$4801-$4BFD`, then decompressed to
 `$8800-$8EDE`; source and destination never overlap while live. Glue is
-transported to `$7BD0-$7CC8`, held at `$8600-$86F8` after resident staging is
-consumed, and late-published to `$4EFE-$4FF6`. The Director ends
-at `$9FF9`; `$9FFA-$9FFF` is a six-byte untouched guard.
+transported to `$7BD0-$7CC9`, held at `$8600-$86F9` after resident staging is
+consumed, and late-published to `$4EFE-$4FF7`. The Director ends
+at `$9FF8`; `$9FF9` remains free and `$9FFA-$9FFF` is the untouched guard.
 
 The loader bitmap source is declarative. The build rasterizes 7,680 bytes for a
 mixed ANTIC F/E screen and packs them to **1,967 bytes**. It expands to
@@ -299,6 +299,14 @@ lower layers move. The difficulty lookup replaces the former immediate load
 with `LDX abs` plus `LDA abs,X`: +6 CPU cycles only after a geometric overlap
 passes the earlier latch check, with no cost on inactive or collision-miss
 paths and no persistent-RAM allocation.
+
+During the active capital traversal, the existing debris request remains slot-0
+bounded and borrows the established phase-three 3/4/5 intensity ceilings for
+Easy/Medium/Hard. All shared frame, reaction, recovery, allocator and RNG gates
+still apply. A rejected traversal request retries after eight active frames;
+successful release keeps the ordinary 64-frame repeat delay. OPEN keeps its
+authored phase mask and ordinary retry, while DRAIN and COMPLETE admit no new
+debris. No retry debt accumulates while slot 0 is occupied.
 
 Slot 1 owns the sole pickup capsule. A qualifying Player Fighter-projectile Interceptor
 kill advances the three-kill drop counter. The next-type selector rotates

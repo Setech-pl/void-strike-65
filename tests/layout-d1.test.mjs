@@ -92,14 +92,14 @@ test("Layout D.2 exact memory and transport budgets remain frozen", () => {
   assert.deepEqual(manifest.transportCapacity.manifest.parsed.records.map((record) =>
     [record.startSector, record.sectorCount, record.packedLength, record.rawLength,
       record.finalDestination]), [
-    [104, 45, 5654, 6643, 0x5e10],
+    [104, 45, 5666, 6651, 0x5e10],
     [149, 9, 1021, 1021, 0x8c80],
-    [158, 3, 244, 249, 0x7bd0],
-    [161, 5, 585, 645, 0x9d75],
+    [158, 3, 245, 250, 0x7bd0],
+    [161, 5, 587, 644, 0x9d75],
   ]);
-  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17302);
-  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 18932);
-  assert.equal(manifest.encounterDirector.safeResidencyBytes, 3255);
+  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17310);
+  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 18940);
+  assert.equal(manifest.encounterDirector.safeResidencyBytes, 3247);
 });
 
 test("XEX and ATR preserve full A2, GLUE lifecycle, ENTITY_CODE, DIRECTOR and guard", () => {
@@ -111,7 +111,9 @@ test("XEX and ATR preserve full A2, GLUE lifecycle, ENTITY_CODE, DIRECTOR and gu
     assert.equal(sha256(staged.finalAfterCopy), sha256(a2), `${artifact} published A2`);
     assert.equal(sha256(staged.finalAfterClear), sha256(a2), `${artifact} A2 after clear`);
     assert.deepEqual(Buffer.from(staged.memory.subarray(0x4efe, 0x4efe + glue.length)), glue);
-    assert.deepEqual(Buffer.from(staged.memory.subarray(0x9d75, 0x9ffa)), director);
+    assert.deepEqual(Buffer.from(staged.memory.subarray(0x9d75, 0x9d75 + director.length)),
+      director);
+    assert.equal(staged.memory[0x9ff9], fill, `${artifact} Director tail gap`);
     assert.deepEqual([...staged.memory.subarray(0x9ffa, 0xa000)], Array(6).fill(fill));
   }
 });
@@ -130,8 +132,9 @@ test("current A2 entry points and relocated release glue retain their frozen opc
     assert.equal(labels.get(name), address, name);
     assert.equal(a2[address - 0x9000], opcode, name);
   }
-  assert.equal(labels.get("integration_broadside_release"), 0x4fdc);
-  assert.equal(glue[0x4fdc - 0x4efe], 0x8a);
+  assert.equal(labels.get("integration_broadside_release"), 0x4fdd);
+  assert.equal(glue[0x4fdd - 0x4efe], 0x8a);
+  assert.equal(labels.get("integration_debris_release"), 0x7800);
 });
 
 test("relocated pickup hook decrements 2 to 1 and returns", () => {

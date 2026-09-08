@@ -28,26 +28,34 @@ The repository currently contains:
   vertical phases; owner smoke passed for wave separation and capsule rendering;
 - distant dark-blue stars remain visible across intervening ring rotations;
   owner smoke passed, with their quarter-rate movement cadence accepted for now;
+- regular capital-sector debris cadence is accepted within the existing single
+  slot: active hull states 0–4 use an eight-active-frame rejected-attempt retry,
+  the established 64-frame post-lifecycle cooldown, and the existing 3/4/5
+  Easy/Medium/Hard intensity ceilings; DRAIN, COMPLETE, and OPEN receive no
+  exception;
+- Player Fighter projectiles retain the top backed-character layer over debris
+  and effects through matching reverse erase and forward redraw order; owner
+  smoke confirmed menu music and improved gameplay for this combined cadence
+  and drawing-order increment;
 - mode-specific Player Fighter burst balance: eight shots for Normal, ten for Rapid, and
   eight atomic three-projectile salvos for Spread;
 - deterministic cold-RAM, XEX/ATR parity, memory-integrity, and PAL wall traces.
 
 ## Immediate work
 
-1. **Capital-sector debris cadence** — make debris appear more regularly within
-   the existing simultaneous-object limits. The owner saw only one piece during
-   a capital-sector playthrough; the ordinary-wave gate does not block
-   `integration_debris_spawn`.
-2. **Known raster follow-ups** — investigate debris missing from some rendered
-   frames and the previously observed post-sector Hunter-projectile raster
-   failures.
-3. **Player Fighter visual unification** — align the runtime craft with the
+1. **Known raster and entry follow-ups** — investigate debris missing from some
+   rendered frames, the earlier post-sector Hunter-projectile raster failures,
+   and the sporadic capital-entry artifact reported during owner smoke. The
+   entry artifact did not reproduce in the repeated cold-`$A5`/`$5A` candidate
+   captures. None of these three issues is marked fixed by the accepted debris
+   cadence or drawing-order change.
+2. **Player Fighter visual unification** — align the runtime craft with the
    approved silhouette, markings, and worn military visual direction.
-4. **Pickup drop-cadence tuning** — use owner playtest feedback to revisit the
+3. **Pickup drop-cadence tuning** — use owner playtest feedback to revisit the
    current every-third-qualifying-Interceptor-kill cadence. The present value is
    implemented behavior, not accepted final balance; this task must change it
    explicitly rather than editing documentation alone.
-5. **Spread Shot and Shield follow-up** — continue their presentation and
+4. **Spread Shot and Shield follow-up** — continue their presentation and
    balance review without describing either implemented booster as future work.
 
 ## Later work

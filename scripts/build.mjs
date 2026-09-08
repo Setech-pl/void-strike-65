@@ -174,11 +174,11 @@ const directorGuardAddress = 0x9ffa;
 // Ordinary waves drain before the capital sector and resume after its complete
 // ring reconstruction. The streams remain inside the existing 103 sectors.
 const expectedInitialContentBytes = 13116;
-const expectedLinkedRuntimeBytes = 17302;
-const expectedDirectorRawBytes = 645;
-const expectedDirectorPackedBytes = 585;
-const expectedGlueRawBytes = 249;
-const expectedGluePackedBytes = 244;
+const expectedLinkedRuntimeBytes = 17310;
+const expectedDirectorRawBytes = 644;
+const expectedDirectorPackedBytes = 587;
+const expectedGlueRawBytes = 250;
+const expectedGluePackedBytes = 245;
 const capitalPlayerCollisionAddress = 0x8ebe;
 
 function ensureDirectory(fsApi, directory) {
@@ -869,11 +869,11 @@ async function build() {
   ]);
   if (bootSectors !== 103 || totalTransportSectors !== 165 ||
     transportPayload.length !== 21120 || JSON.stringify(frozenRecordShape) !== JSON.stringify([
-      [104, 45, 5654, 6643, 0x5e10],
+      [104, 45, 5666, 6651, 0x5e10],
       [149, 9, packedWeaponPickupPhaseBank.length, packedWeaponPickupPhaseBank.length,
         weaponPickupPackedStagingAddress],
-      [158, 3, 244, 249, glueStagingAddress],
-      [161, 5, 585, 645, directorRunAddress],
+      [158, 3, 245, 250, glueStagingAddress],
+      [161, 5, 587, 644, directorRunAddress],
     ])) {
     throw new Error(`Layout D.2 transport topology changed: ${JSON.stringify(frozenRecordShape)}`);
   }

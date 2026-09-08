@@ -384,6 +384,42 @@ test("BOSS_HANDOFF falls back to COMPLETE exactly once and closes admissions", (
   assert.equal(run(image, "director_request", { x: 0 }).carry, false);
 });
 
+test("phase-one debris admission is local to the active capital traversal", () => {
+  const image = memory();
+  const sectorState = labels.get("CAPITAL_SECTOR_STATE");
+  const frameCounter = labels.get("frame_counter");
+  image[labels.get("PLAYER_LIFECYCLE")] = 0;
+  image[labels.get("DIFFICULTY_SETTING")] = 2;
+  image[frameCounter] = 10;
+  run(image, "director_init", { a: 0x6d });
+  image[state.phase] = 1;
+  image[state.reaction] = 0;
+  image[state.recovery] = 0;
+  image[sectorState] = 7;
+  const rngBefore = image[state.rng];
+
+  assert.equal(run(image, "director_request", { x: 1 }).carry, false,
+    "phase-one OPEN space must retain its authored no-debris mask");
+  assert.deepEqual([image[state.intensity], image[state.rng]], [0, rngBefore]);
+
+  image[frameCounter] += 1;
+  image[sectorState] = 0;
+  assert.equal(run(image, "director_request", { x: 1 }).carry, true,
+    "the same debris request must be admitted once the capital traversal is active");
+  assert.equal(image[state.intensity], 1);
+  run(image, "director_release", { x: 1 });
+
+  for (const blockedState of [5, 6, 7]) {
+    image[frameCounter] += 1;
+    image[state.reaction] = 0;
+    image[state.recovery] = 0;
+    image[sectorState] = blockedState;
+    assert.equal(run(image, "director_request", { x: 1 }).carry, false,
+      `capital state ${blockedState} must not inherit the traversal exception`);
+    assert.equal(image[state.intensity], 0);
+  }
+});
+
 test("BOSS_HANDOFF maps every capital state once and leaves final COMPLETE terminal", () => {
   const expected = [5, 5, 5, 5, 5, 5, 6, 5];
   const entityState = labels.get("ENTITY_STATE");
@@ -630,6 +666,10 @@ test("natural Level 1 reaches a visible two-sided BROADSIDE without state inject
     const previousStates = [0, 0, 0];
     const previousFlashes = [0, 0, 0];
     const hostileCycles = { warnings: 0, flashes: 0, launches: 0 };
+    const debrisAdmissions = [];
+    const debrisReleases = [];
+    let debrisWasActive = false;
+    let maximumActiveDebris = 0;
     let admittedAtFrame = null;
     let enteredCapitalAtRow = null;
     let completedCapital = false;
@@ -643,7 +683,14 @@ test("natural Level 1 reaches a visible two-sided BROADSIDE without state inject
       run(image, "tick_launch_flashes");
       run(image, "update_broadside");
       run(image, "update_starfield");
+      const debrisBeforeUpdate = image[labels.get("ENTITY_ACTIVE_MASK")] & 1;
       run(image, "entity_effects_update");
+      const debrisActive = image[labels.get("ENTITY_ACTIVE_MASK")] & 1;
+      if (debrisBeforeUpdate && !debrisActive) debrisReleases.push(frame + 1);
+      if (debrisActive && !debrisWasActive && image[sectorState] < 5)
+        debrisAdmissions.push(frame + 1);
+      maximumActiveDebris = Math.max(maximumActiveDebris, debrisActive);
+      debrisWasActive = debrisActive !== 0;
       run(image, "render_launch_flashes");
       run(image, "integration_update_sector_completion");
       const row = image[state.rowLo] | image[state.rowHi] << 8;
@@ -690,6 +737,18 @@ test("natural Level 1 reaches a visible two-sided BROADSIDE without state inject
       `difficulty ${difficulty} warning/flash lifecycle mismatch`);
     assert.equal(hostileCycles.launches, hostileCycles.warnings,
       `difficulty ${difficulty} warning/launch lifecycle mismatch`);
+    assert.ok(debrisAdmissions.length >= 3,
+      `difficulty ${difficulty} capital debris admissions ${debrisAdmissions.join(",")}`);
+    assert.equal(maximumActiveDebris, 1,
+      `difficulty ${difficulty} exceeded the single debris-slot limit`);
+    const admissionIntervals = debrisAdmissions.slice(1)
+      .map((frame, index) => frame - debrisAdmissions[index]);
+    const emptyIntervals = debrisAdmissions.slice(1)
+      .map((frame, index) => frame - debrisReleases[index]);
+    assert.ok(Math.max(...admissionIntervals) <= 256,
+      `difficulty ${difficulty} capital admission gap ${Math.max(...admissionIntervals)} frames`);
+    assert.ok(Math.max(...emptyIntervals) <= 136,
+      `difficulty ${difficulty} empty debris gap ${Math.max(...emptyIntervals)} frames`);
     for (const owner of visibleByOwner) ownersAcrossDifficulties.add(owner);
     assert.equal(completedCapital, true, `difficulty ${difficulty} capital section must drain`);
     assert.equal(image[state.intensity], 0,

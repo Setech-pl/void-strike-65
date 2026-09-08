@@ -432,8 +432,8 @@ const traceLabels = {
 };
 
 const traceProfileLabels = [
-  "profile_after_entity_erase",
   "profile_after_projectile_erase",
+  "profile_after_entity_erase",
   "profile_after_capsule",
   "profile_after_frame_visuals",
   "profile_after_player",
@@ -450,8 +450,8 @@ const traceProfileLabels = [
   "profile_after_entity_update",
   "profile_after_effect_visuals",
   "profile_after_broadside_render",
-  "profile_after_projectile_render",
   "profile_after_entity_render",
+  "profile_after_projectile_render",
   "profile_after_sector",
   "profile_after_audio",
 ];

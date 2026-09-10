@@ -79,7 +79,7 @@ function assembleCurrentRuntime() {
     directorRunAddress: 0x9d75,
     capitalPlayerCollisionRuntime: fs.readFileSync(
       path.join(root, "build", "capital-player-collision.bin")),
-    capitalPlayerCollisionRunAddress: 0x8fce,
+    capitalPlayerCollisionRunAddress: 0x8fc9,
     labels,
     segmentSizes: parseSegmentSizes(fs.readFileSync(map, "utf8")),
   };

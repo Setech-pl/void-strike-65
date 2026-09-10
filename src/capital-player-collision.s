@@ -42,4 +42,4 @@ capital_player_collision_miss:
     clc
     rts
 
-.assert * <= $8FEF, error, "final-raster capital/player collision exceeds reviewed runtime tail"
+.assert * <= $8FEA, error, "final-raster capital/player collision exceeds runtime tail"

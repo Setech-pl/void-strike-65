@@ -282,7 +282,7 @@ export function compileEnemyRoster(definition, rootDirectory) {
   invariant(pulse?.renderer === "ANTIC4_GLYPH_POOL" && pulse.poolSlots === 9 &&
     pulse.activeLimit === 5,
     "Interceptor burst must keep nine allocated slots with a five-shot active limit");
-  invariant(pulse.burstCount === 5 && pulse.burstIntervalFrames === 8 &&
+  invariant(pulse.burstCount === 5 && pulse.burstIntervalFrames === 15 &&
     JSON.stringify(pulse.postBurstFrames) === JSON.stringify([60, 50, 40]),
   "Interceptor burst count, interval, or Easy/Medium/Hard pauses changed");
   invariant(pulse.speed === 5 && pulse.height === 3 && pulse.widthHpos === 2 &&

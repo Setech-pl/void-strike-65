@@ -1,7 +1,5 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -45,52 +43,8 @@ function memory() {
   return result;
 }
 
-let assembledMain;
 function currentMemory() {
-  if (assembledMain === undefined) {
-    const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "void-strike-repeat-admission-"));
-    const object = path.join(temporary, "main.o");
-    const binary = path.join(temporary, "main.bin");
-    const labelPath = path.join(temporary, "main.lbl");
-    const directorObject = path.join(temporary, "encounter-director.o");
-    const directorBinary = path.join(temporary, "encounter-director.bin");
-    execFileSync("ca65", ["--cpu", "6502", "-g", "-I", path.join(root, "build"),
-      "-o", object, path.join(root, "src", "main.s")]);
-    execFileSync("ld65", ["--large-alignment", "-C", path.join(root, "cfg", "atari-boot.cfg"), "-o", binary,
-      "-Ln", labelPath, object]);
-    execFileSync("ca65", ["--cpu", "6502", "-g", "-o", directorObject,
-      path.join(root, "src", "encounter-director.s")]);
-    execFileSync("ld65", ["-C", path.join(root, "cfg", "encounter-director.cfg"),
-      "-o", directorBinary, directorObject]);
-    const linked = fs.readFileSync(binary);
-    const currentLabels = new Map();
-    for (const line of fs.readFileSync(labelPath, "utf8").split(/\r?\n/)) {
-      const match = /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim());
-      if (match) currentLabels.set(match[2], Number.parseInt(match[1], 16));
-    }
-    const segment = (prefix) => {
-      const load = currentLabels.get(`__${prefix}_LOAD__`);
-      const size = currentLabels.get(`__${prefix}_SIZE__`);
-      const fileOffset = prefix === "PICKUP_CODE"
-        ? currentLabels.get("__PICKUPFILE_FILEOFFS__")
-        : load - 0x2000;
-      return {
-        address: currentLabels.get(`__${prefix}_RUN__`),
-        bytes: linked.subarray(fileOffset, fileOffset + size),
-      };
-    };
-    assembledMain = {
-      resident: linked.subarray(0, 0x2000),
-      segments: ["STARFIELD", "BROADSIDE", "A2_KERNEL", "ENTITY_CODE", "PICKUP_CODE"]
-        .map(segment),
-      director: fs.readFileSync(directorBinary),
-    };
-  }
-  const result = memory();
-  result.set(assembledMain.resident, 0x2000);
-  for (const segment of assembledMain.segments) result.set(segment.bytes, segment.address);
-  result.set(assembledMain.director, labels.get("__DIRECTOR_RAM_START__"));
-  return result;
+  return memory();
 }
 
 function run(memoryImage, target, { a = 0, x = 0, y = 0 } = {}) {
@@ -551,7 +505,7 @@ test("ordinary admission is slot-safe, RNG-stable and pre-sector compatible", ()
     "pre-sector admission must consume exactly one Director RNG value");
 });
 
-test("one guide owns three independently destructible Raiders and preserves the gap", () => {
+test("two PMG Raiders keep separate HP, score once, and preserve the surviving machine", () => {
   const image = currentMemory();
   run(image, "init_entity_effects");
   run(image, "reset_enemy");
@@ -561,82 +515,88 @@ test("one guide owns three independently destructible Raiders and preserves the 
   const pendingSource = labels.get("ENEMY_PENDING_SOURCE");
   const target = labels.get("ENEMY_TARGET_SLOT");
   const live = labels.get("ENEMY_LIVE_COUNT");
-  const guideY = labels.get("enemy_y");
-  const guideYHi = labels.get("ENEMY_FORMATION_Y_HI");
-  assert.deepEqual([...image.subarray(member, member + 3)], [1, 1, 1]);
-  assert.deepEqual([...image.subarray(hp, hp + 3)], [1, 1, 1]);
-  assert.deepEqual([image[live], image[guideY], image[guideYHi]], [3, 2, 0]);
+  const enemyX = labels.get("ENEMY_X");
+  const enemyY = labels.get("ENEMY_Y");
+  const score = labels.get("score_bcd_lo");
+  assert.deepEqual([...image.subarray(member, member + 2)], [1, 1]);
+  assert.deepEqual([...image.subarray(hp, hp + 2)], [1, 1]);
+  assert.deepEqual([image[live], image[enemyY], image[enemyY + 1]], [2, 48, 96]);
 
-  image[guideY] = 80;
   run(image, "clear_pmg");
   run(image, "draw_enemy");
-  for (const top of [80, 56, 32]) {
-    assert.ok(image.subarray(0x3d00 + top, 0x3d00 + top + 14).some(Boolean),
-      `Raider at Y=${top} must own visible P1 bytes`);
-  }
-  for (const [start, end] of [[46, 56], [70, 80]]) {
-    assert.ok(image.subarray(0x3d00 + start, 0x3d00 + end).every((byte) => byte === 0),
-      "fixed spacing must leave a readable PMG gap");
-  }
-  assert.equal(image[0xd001], image[0xd002], "both enemy colour planes share one HPOS");
+  assert.ok(image.subarray(0x3d00 + image[enemyY], 0x3d00 + image[enemyY] + 14).some(Boolean));
+  assert.ok(image.subarray(0x3e00 + image[enemyY + 1], 0x3e00 + image[enemyY + 1] + 14)
+    .some(Boolean));
+  const survivorP2 = image.slice(0x3e00, 0x3f00);
+  const survivorState = [image[enemyX + 1], image[enemyY + 1],
+    image[labels.get("ENEMY_VELOCITY_X") + 1], image[labels.get("ENEMY_MANEUVER_TIMER") + 1]];
+
+  image[target] = 0;
+  image[pendingDamage] = 1;
+  image[pendingSource] = 0;
+  run(image, "resolve_enemy_damage");
+  assert.deepEqual([...image.subarray(member, member + 2)], [0, 1]);
+  assert.deepEqual([...image.subarray(hp, hp + 2)], [0, 1]);
+  assert.deepEqual([image[live], image[labels.get("ENEMY_ACTIVE")], image[score]], [1, 1, 0x10]);
+  assert.deepEqual([image[enemyX + 1], image[enemyY + 1],
+    image[labels.get("ENEMY_VELOCITY_X") + 1], image[labels.get("ENEMY_MANEUVER_TIMER") + 1]],
+  survivorState, "destroying P1 must not mutate P2 movement state");
+  assert.deepEqual([...image.subarray(0x3e00, 0x3f00)], [...survivorP2],
+    "destroying P1 must not redraw or erase the live P2 machine");
+  run(image, "render_shared_fighter_explosions");
+  assert.deepEqual([...image.subarray(0x3e00, 0x3f00)], [...survivorP2],
+    "Raider breakup must not borrow the surviving PMG");
+  run(image, "resolve_enemy_damage");
+  assert.equal(image[score], 0x10, "re-resolving the frame must not award score twice");
+  assert.equal(run(image, "ordinary_wave_pressure_active").a, 1,
+    "one aggregate owner keeps capital admission blocked while any Raider survives");
+
+  run(image, "update_enemy");
+  assert.deepEqual([...image.subarray(member, member + 2)], [0, 1]);
+  assert.equal(image[enemyY + 1], survivorState[1] - 1,
+    "the surviving P2 continues its accepted independent crossing motion");
+  assert.ok(image[enemyX + 1] >= 48 && image[enemyX + 1] <= 208);
+  assert.equal(image[labels.get("ENEMY_VELOCITY_X") + 1], survivorState[2]);
+  assert.equal(image[labels.get("ENEMY_MANEUVER_TIMER") + 1], survivorState[3] - 1);
 
   image[target] = 1;
   image[pendingDamage + 1] = 1;
   image[pendingSource + 1] = 0;
   run(image, "resolve_enemy_damage");
-  assert.deepEqual([...image.subarray(member, member + 3)], [1, 0, 1]);
-  assert.deepEqual([...image.subarray(hp, hp + 3)], [1, 0, 1]);
-  assert.deepEqual([image[live], image[labels.get("ENEMY_ACTIVE")]], [2, 1]);
-  assert.equal(run(image, "ordinary_wave_pressure_active").a, 1,
-    "one aggregate owner keeps capital admission blocked while any Raider survives");
-
-  run(image, "update_enemy");
-  assert.equal(image[guideY], 81, "the invisible guide continues after the middle loss");
-  assert.deepEqual([...image.subarray(member, member + 3)], [1, 0, 1],
-    "the destroyed member remains a persistent gap");
-  assert.deepEqual([image[0x3d00 + 80], image[0x3d00 + 32]], [0, 0],
-    "one-line guide motion must clear only the two surviving old leading edges");
-  assert.ok(image.subarray(0x3d00 + 81, 0x3d00 + 81 + 14).some(Boolean));
-  assert.ok(image.subarray(0x3d00 + 33, 0x3d00 + 33 + 14).some(Boolean));
-  assert.ok(image.subarray(0x3d00 + 57, 0x3d00 + 57 + 14)
-    .every((byte) => byte === 0), "the destroyed middle gap must stay clear after motion");
-
-  for (const slot of [0, 2]) {
-    image[target] = slot;
-    image[pendingDamage + slot] = 1;
-    image[pendingSource + slot] = 0;
-  }
-  run(image, "resolve_enemy_damage");
-  assert.deepEqual([...image.subarray(member, member + 3)], [0, 0, 0]);
-  assert.deepEqual([image[live], image[labels.get("ENEMY_ACTIVE")]], [0, 2]);
+  assert.deepEqual([...image.subarray(member, member + 2)], [0, 0]);
+  assert.deepEqual([image[live], image[labels.get("ENEMY_ACTIVE")], image[score]], [0, 2, 0x20]);
   assert.equal(image[labels.get("FIGHTER_EXPLOSION_TIMER") + 1], 24,
     "the last loss leaves the shared explosion lifecycle active");
 });
 
-test("the shared burst rotates across visible living Raider members", () => {
+test("the shared burst alternates two real Raider origins and skips a destroyed owner", () => {
   const image = currentMemory();
   run(image, "init_entity_effects");
   run(image, "reset_enemy");
-  image[labels.get("enemy_y")] = 80;
   const target = labels.get("ENEMY_TARGET_SLOT");
   const cursor = labels.get("ENEMY_WEAPON_CURSOR");
+  const projectileActive = labels.get("FIGHTER_PROJECTILE_ACTIVE");
   const projectileY = labels.get("FIGHTER_PROJECTILE_Y");
-  const selected = [];
-  const origins = [];
-  for (let index = 0; index < 3; index += 1) {
-    assert.equal(run(image, "select_enemy_weapon_member").carry, true);
-    selected.push(image[target]);
-    assert.equal(run(image, "allocate_interceptor_projectile").carry, true);
-    origins.push(image[projectileY + 10 + index]);
-  }
-  assert.deepEqual(selected, [0, 1, 2]);
-  assert.deepEqual(origins, [93, 69, 45]);
+  run(image, "update_enemy_weapon_runtime");
+  image[labels.get("INTERCEPTOR_BURST_TIMER")] = 0;
+  run(image, "update_enemy_weapon_runtime");
+  assert.deepEqual([...image.subarray(projectileActive + 10, projectileActive + 12)], [2, 2]);
+  assert.deepEqual([...image.subarray(projectileY + 10, projectileY + 12)], [61, 109]);
   assert.equal(image[cursor], 0);
 
-  image[labels.get("ENEMY_MEMBER_STATE") + 1] = 0;
-  image[cursor] = 1;
+  image[target] = 0;
+  image[labels.get("ENEMY_PENDING_DAMAGE")] = 1;
+  image[labels.get("ENEMY_PENDING_SOURCE")] = 0;
+  run(image, "resolve_enemy_damage");
+  const releasedY = image[projectileY + 10];
+  run(image, "update_fighter_projectiles");
+  assert.equal(image[projectileActive + 10], 2,
+    "an already released pulse survives the death of its emitter");
+  assert.equal(image[projectileY + 10], releasedY + 5);
+
+  image[cursor] = 0;
   assert.equal(run(image, "select_enemy_weapon_member").carry, true);
-  assert.equal(image[target], 2, "the round robin skips the destroyed gap");
+  assert.equal(image[target], 1, "the round robin skips the destroyed owner");
 });
 
 test("ordinary wave tables remain intact while the capital gate stays local", () => {

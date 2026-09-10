@@ -81,9 +81,9 @@ export function loadFighterWeaponsDefinition(sourcePath) {
     "PlayerFighter post-burst pause must be 12 PAL frames");
   invariant(definition.player_fighter.rapidFireBurstCount === 6 &&
     definition.player_fighter.rapidFireBurstCount <= definition.player_fighter.poolSlots &&
-    definition.player_fighter.rapidFireIntervalFrames === 4 &&
+    definition.player_fighter.rapidFireIntervalFrames === 6 &&
     definition.player_fighter.rapidFireDurationFrames === 500,
-  "Rapid Fire must use six shots, a four-frame interval and exactly 500 active PAL frames");
+  "Rapid Fire must use six shots, a six-frame interval and exactly 500 active PAL frames");
   invariant(definition.player_fighter.spreadShotBurstCount === definition.player_fighter.burstCount &&
     definition.player_fighter.spreadShotDurationFrames === 500,
   "Spread Shot must use the eight-salvo normal burst for exactly 500 active PAL frames");
@@ -91,7 +91,7 @@ export function loadFighterWeaponsDefinition(sourcePath) {
     "Shield must last exactly 250 active PAL frames");
   invariant(definition.player_fighter.spreadShotProjectileCount === 3,
     "Spread Shot must allocate exactly three logical projectiles");
-  invariant(definition.player_fighter.spreadShotCooldownFrames === 20,
+  invariant(definition.player_fighter.spreadShotCooldownFrames === 28,
     "Spread Shot cooldown must preserve the reduced player-fire cadence");
   invariant(definition.player_fighter.spreadShotInitialOffsetHpos === 4,
     "Spread Shot side projectiles must start one character from the centre shot");

@@ -55,7 +55,7 @@ test("assembled gameplay display keeps HUD, divider and 27 ring rows distinct", 
   assert.deepEqual(weapons.viewport, canonicalPlayfield);
 });
 
-test("Interceptor PMG drawing clips every frame to the gameplay viewport", () => {
+test("Interceptor PMG drawing retains the accepted bounded viewport lifecycle", () => {
   const interceptor = roster.implemented[0];
   const visibleCounts = [];
   for (let logicalY = weapons.viewport.gameplayTop - interceptor.height;
@@ -77,18 +77,19 @@ test("Interceptor PMG drawing clips every frame to the gameplay viewport", () =>
   assert.ok(visibleCounts.at(-1) > visibleCounts.find((count) => count > 0),
     "successive occupied body rows enter progressively instead of appearing fully formed");
   const renderer = source.slice(source.indexOf("draw_enemy:"), source.indexOf("reset_enemy:"));
-  assert.match(renderer, /cpy #GAMEPLAY_TOP[\s\S]+bcc @body_next/);
-  assert.match(renderer, /cpy #GAMEPLAY_TOP[\s\S]+bcc @accent_done/);
+  assert.match(renderer, /cpy #GAMEPLAY_BOTTOM[\s\S]+bcs @body_done/);
+  assert.match(renderer,
+    /update_enemy_slot_motion:[\s\S]+jsr update_interceptor_soft_pursuit[\s\S]+ENEMY_MANEUVER_STATE,x/);
 });
 
-test("held FIRE emits the reduced four-shot normal burst at six-frame intervals", () => {
+test("held FIRE emits the further-reduced four-shot normal burst at nine-frame intervals", () => {
   const simulation = simulatePlayerFighterBurst(weapons, 40);
   const allocations = simulation.trace.filter(({ allocationResult }) =>
     allocationResult === "ALLOCATED");
-  assert.deepEqual(allocations.slice(0, 4).map(({ frame }) => frame), [1, 7, 13, 19]);
+  assert.deepEqual(allocations.slice(0, 4).map(({ frame }) => frame), [1, 10, 19, 28]);
   assert.equal(allocations[3].burstState, "POST_BURST_COOLDOWN");
   assert.equal(allocations[3].timer, 12);
-  assert.equal(allocations[4].frame, 31);
+  assert.equal(allocations[4].frame, 40);
   assert.ok(Math.max(...simulation.trace.map(({ active }) => active.length)) <= 6);
 });
 
@@ -97,10 +98,10 @@ test("Rapid keeps a clear advantage within the reduced five-active-shot limit", 
   const allocations = simulation.trace.filter(({ allocationResult }) =>
     allocationResult === "ALLOCATED");
   assert.deepEqual(allocations.slice(0, 6).map(({ frame }) => frame),
-    [1, 5, 9, 13, 17, 21]);
+    [1, 7, 13, 19, 25, 31]);
   assert.equal(allocations[5].burstState, "POST_BURST_COOLDOWN");
   assert.equal(allocations[5].timer, 12);
-  assert.equal(allocations[6].frame, 33);
+  assert.equal(allocations[6].frame, 43);
   assert.ok(Math.max(...simulation.trace.map(({ active }) => active.length)) <= 6);
 });
 
@@ -236,7 +237,7 @@ test("explosion adapters keep a stable centre and clear the full eight-row union
     /begin_player_fighter_explosion:[\s\S]+sbc #\(\(SHARED_FIGHTER_EXPLOSION_WIDTH_BITS\*2-PLAYER_COLLISION_WIDTH\)\/2\)/);
 });
 
-test("assembled PMG renderer shares one explosion bank between PlayerFighter and Interceptor slots", () => {
+test("assembled explosion bank stays on PlayerFighter PMGs and cannot commandeer either Raider", () => {
   const explosion = weapons.sharedFighterExplosion;
   assert.deepEqual([...xexBytes(labels.get("shared_fighter_explosion_masks"),
     explosion.outerBytes.length)], [...explosion.outerBytes]);
@@ -245,16 +246,17 @@ test("assembled PMG renderer shares one explosion bank between PlayerFighter and
   const renderer = source.slice(source.indexOf("erase_shared_fighter_explosion_slot:"),
     source.indexOf("update_enemy:"));
   assert.match(renderer, /GAMEPLAY_TOP[\s\S]+GAMEPLAY_BOTTOM/);
-  assert.match(renderer, /PLAYER0,y[\s\S]+PLAYER3,y[\s\S]+PLAYER1,y[\s\S]+PLAYER2,y/);
+  assert.match(renderer, /PLAYER0,y[\s\S]+PLAYER3,y/);
+  assert.doesNotMatch(renderer, /PLAYER1,y|PLAYER2,y|HPOSP1|HPOSP2/);
   assert.doesNotMatch(renderer, /COLPM|COLPF|SIZEM|SIZEP|MISSILES/);
   assert.match(source,
-    /resolve_enemy_damage:[\s\S]+ENEMY_EXPLODING_STATE[\s\S]+begin_enemy_fighter_explosion/);
+    /resolve_enemy_damage:[\s\S]+ENEMY_EXPLODING_STATE[\s\S]+spawn_interceptor_breakup_effects/);
   assert.match(source,
     /apply_player_damage:[\s\S]+PLAYER_DYING[\s\S]+begin_player_fighter_explosion/);
   assert.match(source,
     /main_loop:[\s\S]+tick_shared_fighter_explosions[\s\S]+render_shared_fighter_explosions/);
   assert.match(renderer,
-    /and #\(SHARED_FIGHTER_EXPLOSION_FRAME_DURATION-1\)[\s\S]+bne @next/);
+    /and #\(SHARED_FIGHTER_EXPLOSION_FRAME_DURATION-1\)[\s\S]+bne @done/);
   assert.match(source,
     /tick_shared_fighter_explosions:[\s\S]+cmp #\$01[\s\S]+erase_shared_fighter_explosion_slot/);
 });
@@ -379,9 +381,9 @@ test("assembled burst controllers use accepted counts, intervals, speeds and dam
     interceptorDamage: weapons.interceptor.damage,
   }, {
     player_fighterCount: 4, player_fighterActiveLimit: 6, player_fighterRapidCount: 6,
-    player_fighterSpreadCount: 4, player_fighterSpreadCooldown: 20,
-    player_fighterInterval: 6, player_fighterSpeed: 6, player_fighterPost: 12,
-    interceptorCount: 5, interceptorActiveLimit: 5, interceptorInterval: 8, interceptorSpeed: 5,
+    player_fighterSpreadCount: 4, player_fighterSpreadCooldown: 28,
+    player_fighterInterval: 9, player_fighterSpeed: 6, player_fighterPost: 12,
+    interceptorCount: 5, interceptorActiveLimit: 5, interceptorInterval: 15, interceptorSpeed: 5,
     interceptorPost: [60, 50, 40], interceptorDamage: 10,
   });
   assert.match(source,

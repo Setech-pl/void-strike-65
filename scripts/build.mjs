@@ -175,13 +175,13 @@ const directorGuardAddress = 0x9ffa;
 // This movement-only PMG build retains the same loader implementation and four
 // external publication records. Disabled Raider combat compresses the occupied
 // content into 103 initial sectors without changing stage-2 itself.
-const expectedInitialContentBytes = 13150;
-const expectedLinkedRuntimeBytes = 17506;
+const expectedInitialContentBytes = 13293;
+const expectedLinkedRuntimeBytes = 17651;
 const expectedDirectorRawBytes = 644;
 const expectedDirectorPackedBytes = 587;
 const expectedGlueRawBytes = 250;
 const expectedGluePackedBytes = 245;
-const capitalPlayerCollisionAddress = 0x8fce;
+const capitalPlayerCollisionAddress = 0x8fc9;
 
 function ensureDirectory(fsApi, directory) {
   const parts = directory.split("/").filter(Boolean);
@@ -564,8 +564,8 @@ async function build() {
     broadsideRuntimeBytes > broadsideRuntimeReservedBytes) {
     throw new Error("Broadside relocation lies outside its reviewed load/run ranges");
   }
-  if (starfieldLoadAddress !== 0x5a00 || starfieldRunAddress !== 0x552a ||
-    starfieldRuntimeBytes > 0x08e6) {
+  if (starfieldLoadAddress !== 0x5a00 || starfieldRunAddress !== 0x54e4 ||
+    starfieldRuntimeBytes > 0x092c) {
     throw new Error("Starfield relocation lies outside its reviewed load/run ranges");
   }
   if (a2KernelLoadAddress !== 0x6a00 || a2KernelRunAddress !== 0x9000 ||
@@ -624,7 +624,7 @@ async function build() {
     stem: "capital-player-collision",
   });
   if (capitalPlayerCollisionModule.raw.length > 0x21) {
-    throw new Error(`Capital/player collision module exceeds $8FCE-$8FEE: ` +
+    throw new Error(`Capital/player collision module exceeds $8FC9-$8FE9: ` +
       `${capitalPlayerCollisionModule.raw.length} B`);
   }
   if (weaponPickupPhaseBankAddress + weaponPickupPhaseBank.length + pickupCodeRuntime.length !==
@@ -888,13 +888,13 @@ async function build() {
     record.startSector, record.sectorCount, record.packedLength,
     record.rawLength, record.finalDestination,
   ]);
-  if (bootSectors !== 103 || totalTransportSectors !== 166 ||
-    transportPayload.length !== 21248 || JSON.stringify(frozenRecordShape) !== JSON.stringify([
-      [104, 45, 5659, 6653, 0x5e10],
-      [149, 10, 1168, 1168,
+  if (bootSectors !== 104 || totalTransportSectors !== 168 ||
+    transportPayload.length !== 21504 || JSON.stringify(frozenRecordShape) !== JSON.stringify([
+      [105, 45, 5660, 6647, 0x5e10],
+      [150, 11, 1267, 1267,
         weaponPickupPackedStagingAddress],
-      [159, 3, 245, 250, glueStagingAddress],
-      [162, 5, 587, 644, directorRunAddress],
+      [161, 3, 245, 250, glueStagingAddress],
+      [164, 5, 587, 644, directorRunAddress],
     ])) {
     throw new Error(`Layout D.2 transport topology changed: ${JSON.stringify(frozenRecordShape)}`);
   }
@@ -1244,7 +1244,7 @@ async function build() {
       loadAddress: starfieldLoadAddress,
       runAddress: starfieldRunAddress,
       bytes: starfieldRuntimeBytes,
-      reservedBytes: 0x08e6,
+      reservedBytes: 0x092c,
       packedBytes: packedStarfieldRuntime.length,
       packedSourceAddress: packedStarfieldAddress,
       packedSourceEndExclusive: packedStarfieldEndAddress,

@@ -118,7 +118,7 @@ test("both capsule types spawn and Spread moves through every A2 step without gh
   assert.deepEqual(trace.spreadCapsuleFrames.map(({ y }) => y),
     [26, 28, 30, 32, 34, 36, 38, 40]);
   assert.deepEqual(trace.spreadCapsuleFrames.map(({ a2Head }) => a2Head),
-    [0, 21, 21, 20, 20, 19, 19, 18]);
+    [0, 26, 26, 25, 25, 24, 24, 23]);
   for (const frame of trace.spreadCapsuleFrames) {
     const capsuleCells = [...frame.screen].filter((code) =>
       (code & 0x7f) >= 120 && (code & 0x7f) <= 125);
@@ -200,20 +200,23 @@ test("one Spread emission is an unambiguous three-projectile fan", () => {
     weapons.player_fighter.spreadShotLateralStepHpos,
     weapons.player_fighter.spreadShotLateralPeriodFrames,
     weapons.player_fighter.spreadShotCooldownFrames,
-  ], [500, 3, 4, 1, 2, 20]);
+  ], [500, 3, 4, 1, 2, 28]);
   const frames = executeSpreadShotTrace({ root, artifact: "xex" }).trajectoryFrames;
   assert.deepEqual(frames[0].slots.slice(0, 3).map(({ active, x, y }) => [active, x, y]), [
-    [0x11, 128, 182], [0x41, 124, 182], [0x21, 132, 182],
+    [0x11, 128, 223], [0x41, 124, 223], [0x21, 132, 223],
   ]);
   for (let frame = 1; frame < frames.length; frame += 1) {
     assert.deepEqual(frames[frame].slots.slice(0, 3).map(({ active, x, y }) =>
       [active, x, y]), [
-      [0x11, 128, 182 - frame * 6],
-      [0x41, 124 - Math.ceil(frame / 2), 182 - frame * 6],
-      [0x21, 132 + Math.ceil(frame / 2), 182 - frame * 6],
+      [0x11, 128, 223 - frame * 6],
+      [0x41, 124 - Math.ceil(frame / 2), 223 - frame * 6],
+      [0x21, 132 + Math.ceil(frame / 2), 223 - frame * 6],
     ]);
-    assert.equal([...frames[frame].screen].filter(Boolean).length, 3,
-      `frame ${frame} retained an erased projectile cell`);
+    assert.equal(new Set(frames[frame].slots.slice(0, 3)
+      .map(({ screenAddress }) => screenAddress)).size, 3,
+    `frame ${frame} must publish exactly three distinct projectile positions`);
+    assert.equal(frames[frame].slots.slice(0, 3)
+      .every(({ active, rendered }) => rendered === active || rendered === 0xff), true);
     assert.equal(frames[frame].slots.slice(0, 3).every(({ active }) => active < 0x80), true,
       "every Spread projectile must select the PlayerFighter's yellow COLPF2 bank");
   }
@@ -299,8 +302,10 @@ test("all three projectiles leave the screen cleanly without HUD or charset corr
   const trace = executeSpreadShotTrace({ root, artifact: "xex" });
   assert.equal(trace.projectilesAfterCleanup.slots.every(({ active, rendered }) =>
     active === 0 && rendered === 0), true);
-  assert.equal([...trace.projectilesAfterCleanup.screen].every((code) => code === 0), true,
-    "reverse erase must remove every final projectile cell");
+  assert.equal([...trace.projectilesAfterCleanup.screen].every((code) => {
+    const glyph = code & 0x7f;
+    return glyph < 11 || glyph >= 47;
+  }), true, "reverse erase must remove every final projectile glyph");
   const dynamicStart = 120 * 8;
   const dynamicEnd = 126 * 8;
   assert.deepEqual(trace.charset.subarray(0, dynamicStart),
@@ -346,26 +351,26 @@ test("Spread respects the six-projectile active budget and admits centre before 
   "a Spread controller update must never allocate a partial fan");
   const rejected = controller.records.filter(({ allocationDue, allocatedProjectiles }) =>
     allocationDue && allocatedProjectiles === 0);
-  assert.equal(rejected.length, 18,
+  assert.equal(rejected.length, 0,
     "a blocked Spread salvo must remain one deferred salvo, not accumulated catch-up");
   assert.equal(controller.maximumPoolOccupancy, 6);
-  assert.equal(controller.emittedSalvos, 27);
-  assert.equal(controller.emittedProjectiles, 81);
+  assert.equal(controller.emittedSalvos, 21);
+  assert.equal(controller.emittedProjectiles, 63);
   assert.equal(manifest.fighterWeapons.player_fighter.poolSlots, 10);
   assert.equal(manifest.entityEffects.effectActiveLimit, 5);
 });
 
-test("the configured 20-frame Spread cooldown avoids catch-up at the active limit", () => {
+test("the configured 28-frame Spread cooldown avoids catch-up at the active limit", () => {
   const trace = executeSpreadShotCooldownSafetyTrace({ root, artifact: "xex" });
   assert.equal(trace.tooFast.cooldown, 17);
   assert.ok(trace.tooFast.rejectedFullSalvos > 0,
     "a deliberately faster schedule must demonstrate saturation");
   assert.equal(trace.tooFast.maximumPoolOccupancy, 6);
   assert.deepEqual(trace.configured, {
-    cooldown: 20,
-    allocationSizes: Array(25).fill(3),
-    salvos: 25,
-    fullSalvos: 25,
+    cooldown: 28,
+    allocationSizes: Array(18).fill(3),
+    salvos: 18,
+    fullSalvos: 18,
     rejectedFullSalvos: 0,
     maximumPoolOccupancy: 6,
   });

@@ -44,7 +44,8 @@ test("two PMG Raiders keep independent movement state and cross vertically", () 
 
 test("runtime assigns one monochrome body to P1 and P2 and leaves player PMG intact", () => {
   assert.match(source, /sta COLPM1\s+sta COLPM2/);
-  assert.match(source, /sta PLAYER1,y[\s\S]+@body_p2_loop:[\s\S]+sta PLAYER2,y/);
+  assert.match(source,
+    /lda ENEMY_TARGET_SLOT[\s\S]+adc #>PLAYER1[\s\S]+sta @body_store\+2[\s\S]+sta PLAYER1,y/);
   assert.match(source,
     /draw_player:[\s\S]+sta PLAYER0,y[\s\S]+sta PLAYER3,y[\s\S]+cpx #PLAYER_H/);
   assert.match(source, /RAIDER_PMG_SLOT_COUNT = 2/);
@@ -53,8 +54,13 @@ test("runtime assigns one monochrome body to P1 and P2 and leaves player PMG int
   assert.match(source, /ENEMY_VELOCITY_X:\s+\.res RAIDER_PMG_SLOT_COUNT/);
   assert.match(source, /ENEMY_MANEUVER_STATE:\s+\.res RAIDER_PMG_SLOT_COUNT/);
   assert.match(source, /ENEMY_BEHAVIOUR_PHASE:\s+\.res RAIDER_PMG_SLOT_COUNT/);
-  assert.match(source, /player_fighter_projectile_hits_enemy:[\s\S]{0,120}\bclc\s+rts/);
-  assert.match(source, /update_enemy_weapon_runtime:[\s\S]{0,120}\brts/);
+  assert.match(source,
+    /player_fighter_projectile_hits_enemy:[\s\S]+sbc ENEMY_X,y[\s\S]+DAMAGE_PLAYER_PROJECTILE[\s\S]+queue_enemy_damage/);
+  assert.match(source,
+    /update_enemy_weapon_runtime:[\s\S]+select_enemy_weapon_member[\s\S]+allocate_interceptor_projectile/);
+  const enemyExplosion = source.slice(source.indexOf("begin_enemy_fighter_explosion_tail:"),
+    source.indexOf("reset_enemy_fire_cooldown_tail:"));
+  assert.doesNotMatch(enemyExplosion, /PLAYER1|PLAYER2|HPOSP1|HPOSP2|COLPM1|COLPM2/);
 });
 
 test("packed transports have positive measured boundaries", () => {

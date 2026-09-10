@@ -97,16 +97,17 @@ test("selected Interceptor palette matches the Hostile hull hue with independent
   assert.deepEqual(
     [graphics.hardwareState.get("COLPM0"), graphics.hardwareState.get("COLPM1"),
       graphics.hardwareState.get("COLPM2"), graphics.hardwareState.get("COLPM3")],
-    [0x0e, 0x44, 0x46, 0x28],
+    [0x0e, 0x44, 0x44, 0x28],
   );
-  assert.match(source,
-    /resolve_enemy_damage:[\s\S]+jsr spawn_interceptor_breakup_effects[\s\S]+lda ENEMY_LIVE_COUNT[\s\S]+lda #ENEMY_EXPLOSION_CORE_COLOR[\s\S]+sta COLPM1/);
+  const resolver = source.slice(source.indexOf("resolve_enemy_damage:"),
+    source.indexOf("insert_top_score:"));
+  assert.doesNotMatch(resolver, /COLPM1|COLPM2|HPOSP1|HPOSP2/);
   assert.match(source,
     /spawn_interceptor_breakup_effects:[\s\S]+jsr clear_transient_effects[\s\S]+sta EFFECT_ALLOCATION_RESULT[\s\S]+jmp begin_enemy_fighter_explosion/);
   assert.match(source,
     /materialize_interceptor_breakup_effects:[\s\S]+jsr spawn_breakup_effects_at[\s\S]+entity_interceptor_fragment_render_ids/);
   assert.match(source,
-    /tick_shared_fighter_explosions:[\s\S]+cpx #FIGHTER_EXPLOSION_ENEMY_SLOT[\s\S]+lda #ENEMY_RUNTIME_BODY_COLOR[\s\S]+sta COLPM1/);
+    /tick_shared_fighter_explosions:[\s\S]+cpx #FIGHTER_EXPLOSION_ENEMY_SLOT[\s\S]+beq @tick/);
   assert.match(source,
     /start_gameplay:[\s\S]+lda #ENEMY_RUNTIME_BODY_COLOR[\s\S]+sta COLPM1[\s\S]+music_start_gameplay/,
   "a new game must restore the Interceptor body even after an interrupted explosion");
@@ -254,7 +255,7 @@ test("assembled archetype descriptors assign only Interceptor single-pulse fire"
     poolSlots: 9,
     activeLimit: 5,
     burstCount: 5,
-    burstIntervalFrames: 8,
+    burstIntervalFrames: 15,
     postBurstFrames: [60, 50, 40],
     speed: 5,
     height: 3,
@@ -267,7 +268,7 @@ test("assembled archetype descriptors assign only Interceptor single-pulse fire"
   assert.equal(asset.inventory.slice(3).every(({ implemented }) => implemented === false), true);
 });
 
-test("five-shot reduced burst and existing difficulty pauses are exact", () => {
+test("five-shot burst uses the further-reduced interval and existing difficulty pauses", () => {
   assert.deepEqual([0, 1, 2].map((difficulty) => enemyFireCooldown(asset, difficulty)),
     [60, 50, 40]);
   for (const [difficulty, postBurst] of [[0, 60], [1, 50], [2, 40]]) {
@@ -279,9 +280,9 @@ test("five-shot reduced burst and existing difficulty pauses are exact", () => {
     const allocations = simulation.trace.filter(({ allocationResult }) =>
       allocationResult === "ALLOCATED");
     assert.deepEqual(allocations.slice(0, 5).map(({ frame }) => frame),
-      [1, 9, 17, 25, 33]);
+      [1, 16, 31, 46, 61]);
     assert.equal(allocations[4].cooldown, postBurst);
-    assert.equal(allocations[5]?.frame, 33 + postBurst);
+    assert.equal(allocations[5]?.frame, 61 + postBurst);
   }
 });
 
@@ -289,7 +290,7 @@ test("release Interceptor enters progressively and naturally reaches burst alloc
   for (const difficulty of [0, 1, 2]) {
     const { state, trace } = simulateNaturalInterceptorFire(asset, {
       difficulty,
-      frameCount: 55,
+      frameCount: 100,
       initialEnemyY: ENEMY_FULLY_VISIBLE_TOP - interceptor.height,
     });
     const allocation = trace.find(({ allocationResult }) => allocationResult === "ALLOCATED");
@@ -302,7 +303,7 @@ test("release Interceptor enters progressively and naturally reaches burst alloc
     assert.ok(state.shotsFired >= 5);
   }
   assert.match(source,
-    /reset_enemy:[\s\S]+GAMEPLAY_TOP-ENEMY_RELEASE_FRAME_HEIGHT[\s\S]+RAIDER_FORMATION_MEMBER_COUNT-1[\s\S]+sta ENEMY_HP,x[\s\S]+sta ENEMY_MEMBER_STATE,x[\s\S]+sta ENEMY_LIVE_COUNT/);
+    /reset_enemy:[\s\S]+RAIDER_PMG_LAST_SLOT[\s\S]+sta ENEMY_HP,x[\s\S]+sta ENEMY_MEMBER_STATE,x[\s\S]+RAIDER_PMG_SLOT_COUNT[\s\S]+sta ENEMY_LIVE_COUNT/);
 });
 
 test("natural playfield pulse remains visible while moving five scanlines per frame", () => {
@@ -398,7 +399,7 @@ test("respawn invulnerability consumes intersecting pulses without player damage
 
 test("Interceptor playfield pool cannot overwrite M0 or active capital missiles", () => {
   let state = createEnemyCombatState(asset);
-  for (let frame = 0; frame < 40; frame += 1) {
+  for (let frame = 0; frame < 70; frame += 1) {
     state = stepEnemyCombatFrame(asset, state, { enemyX: 120, enemyY: 56 });
   }
   assert.equal(state.shotsFired, 5);
@@ -422,7 +423,7 @@ test("Raider active-limit rejection defers one pulse without catch-up", () => {
   state = stepEnemyCombatFrame(asset, state, { enemyX: 120, enemyY: 56 });
   assert.equal(state.shotsFired, 1);
   state = stepEnemyCombatFrame(asset, state, { enemyX: 120, enemyY: 56 });
-  assert.deepEqual([state.shotsFired, state.fireTimer], [1, 7]);
+  assert.deepEqual([state.shotsFired, state.fireTimer], [1, 14]);
 });
 
 test("EXPLODING and inactive Interceptors never fall through to the live PMG renderer", () => {
@@ -496,7 +497,7 @@ test("runtime routes every fighter hit through canonical damage-source arbitrati
   assert.match(source,
     /handle_collisions:[\s\S]+DAMAGE_PLAYER_CONTACT[\s\S]+jsr resolve_enemy_damage/);
   assert.match(source,
-    /resolve_enemy_damage:[\s\S]+jsr spawn_interceptor_breakup_effects[\s\S]+cmp #\(DAMAGE_CAPITAL_HOSTILE\+1\)[\s\S]+jsr add_archetype_score[\s\S]+ENEMY_EXPLODING_STATE/);
+    /resolve_enemy_damage:[\s\S]+ENEMY_EXPLODING_STATE[\s\S]+jsr spawn_interceptor_breakup_effects[\s\S]+cmp #\(DAMAGE_CAPITAL_HOSTILE\+1\)[\s\S]+jsr add_archetype_score/);
 });
 
 test("canonical destruction policy awards descriptor score exactly once", () => {

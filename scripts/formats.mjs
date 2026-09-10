@@ -201,8 +201,8 @@ export function validateBuildDirectory(rootDirectory) {
     "Broadside runtime must begin at reclaimed RAM $5E10");
   invariant(manifest.broadsideRuntime?.bytes <= manifest.broadsideRuntime?.reservedBytes,
     "Broadside runtime exceeds its reserved relocation block");
-  invariant(manifest.starfieldRuntime?.runAddress === 0x552a,
-    "Starfield runtime must begin in the reviewed pre-broadside gap $552A");
+  invariant(manifest.starfieldRuntime?.runAddress === 0x54e4,
+    "Starfield runtime must begin in the reviewed pre-broadside gap $54E4");
   invariant(manifest.starfieldRuntime?.bytes <= manifest.starfieldRuntime?.reservedBytes,
     "Starfield runtime exceeds its reserved relocation block");
   invariant(manifest.starfieldRuntime?.packedBytes <= manifest.starfieldRuntime?.stagingBytes,

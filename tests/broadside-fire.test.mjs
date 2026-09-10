@@ -528,9 +528,9 @@ test("broadside source timing and schedule are deterministic and generated with 
     "enemy", "enemy", "enemy", "allied",
   ]);
   assert.deepEqual(asset.schedule.map(({ baseDelayAfterFrames }) => baseDelayAfterFrames),
-    [36, 36, 36, 95]);
+    [73, 73, 73, 95]);
   assert.deepEqual(asset.schedule.map(({ delayAfterFrames }) => delayAfterFrames),
-    [136, 136, 136, 254]);
+    [210, 210, 210, 254]);
   const cadence = simulateBroadsideCadence(asset, { frames: 1800, difficulty: "hard" });
   assert.ok(cadence.maximumActiveSlots <= 2);
   assert.match(routine("schedule_broadside", "render_broadside_warning"),
@@ -2407,11 +2407,11 @@ test("cadence preview plots source-derived warning, launch, and world-scroll tim
   const state = readBroadsideCadenceSequenceRuntimeState(source, definition);
   assert.deepEqual(
     [state.baseline.warningStats.count, state.baseline.launchStats.count],
-    [7, 7],
+    [9, 9],
   );
-  assert.deepEqual([state.final.warningStats.count, state.final.launchStats.count], [24, 24]);
+  assert.deepEqual([state.final.warningStats.count, state.final.launchStats.count], [22, 22]);
   assert.equal(state.final.warningStats.minimumGap, 16);
-  assert.equal(state.final.warningStats.averageGap, 832 / 23);
+  assert.equal(state.final.warningStats.averageGap, 832 / 21);
   assert.ok(state.final.warningScrolls.some(({ frame }) => frame % 4 === 0));
 
   const png = createBroadsideCadenceSequencePreview(source, definition);

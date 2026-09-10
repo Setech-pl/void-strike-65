@@ -42,7 +42,7 @@
         "poolSlots": 9,
         "activeLimit": 5,
         "burstCount": 5,
-        "burstIntervalFrames": 8,
+        "burstIntervalFrames": 15,
         "postBurstFrames": [60, 50, 40],
         "speed": 5,
         "height": 3,

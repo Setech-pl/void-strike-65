@@ -547,9 +547,9 @@
       }
     },
     "schedule": [
-      { "side": "enemy", "baseDelayAfterFrames": 36 },
-      { "side": "enemy", "baseDelayAfterFrames": 36 },
-      { "side": "enemy", "baseDelayAfterFrames": 36 },
+      { "side": "enemy", "baseDelayAfterFrames": 73 },
+      { "side": "enemy", "baseDelayAfterFrames": 73 },
+      { "side": "enemy", "baseDelayAfterFrames": 73 },
       { "side": "allied", "baseDelayAfterFrames": 95 }
     ]
   },

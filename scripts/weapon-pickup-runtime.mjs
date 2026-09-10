@@ -301,16 +301,15 @@ function killInterceptorWithPlayerFighter(memory, labels) {
   const hp = requiredLabel(labels, "ENEMY_HP");
   const pendingDamage = requiredLabel(labels, "ENEMY_PENDING_DAMAGE");
   const pendingSource = requiredLabel(labels, "ENEMY_PENDING_SOURCE");
-  memory.fill(0, memberState, memberState + 3);
-  memory.fill(0, hp, hp + 3);
-  memory.fill(0, pendingDamage, pendingDamage + 3);
-  memory.fill(5, pendingSource, pendingSource + 3);
+  memory.fill(0, memberState, memberState + 2);
+  memory.fill(0, hp, hp + 2);
+  memory.fill(0, pendingDamage, pendingDamage + 2);
+  memory.fill(5, pendingSource, pendingSource + 2);
   memory[memberState] = 1;
   memory[hp] = 1;
   memory[requiredLabel(labels, "ENEMY_LIVE_COUNT")] = 1;
-  memory[requiredLabel(labels, "ENEMY_FORMATION_Y_HI")] = 0;
-  memory[requiredLabel(labels, "enemy_x")] = 124;
-  memory[requiredLabel(labels, "enemy_y")] = 40;
+  memory[requiredLabel(labels, "ENEMY_X")] = 124;
+  memory[requiredLabel(labels, "ENEMY_Y")] = 40;
   armLethalPlayerFighterShot(memory, labels, 54);
   runRoutine(memory, labels, "update_fighter_projectiles");
   const damageSource = memory[requiredLabel(labels, "ENEMY_PENDING_SOURCE")];
@@ -1128,11 +1127,13 @@ export function executeWeaponPickupCauseTrace({ root = defaultRoot, artifact = "
     memory[requiredLabel(labels, "ENTITY_HP") + 1] = 1;
     memory[requiredLabel(labels, "ENEMY_ACTIVE")] = 1;
     memory[requiredLabel(labels, "ENEMY_ARCHETYPE")] = 0;
+    memory[requiredLabel(labels, "ENEMY_MEMBER_STATE")] = 1;
+    memory[requiredLabel(labels, "ENEMY_LIVE_COUNT")] = 1;
     memory[requiredLabel(labels, "ENEMY_HP")] = 1;
     memory[requiredLabel(labels, "ENEMY_PENDING_DAMAGE")] = 1;
     memory[requiredLabel(labels, "ENEMY_PENDING_SOURCE")] = source;
-    memory[requiredLabel(labels, "enemy_x")] = 124;
-    memory[requiredLabel(labels, "enemy_y")] = 95;
+    memory[requiredLabel(labels, "ENEMY_X")] = 124;
+    memory[requiredLabel(labels, "ENEMY_Y")] = 95;
     runRoutine(memory, labels, "resolve_enemy_damage");
     const first = pickupSnapshot(memory, labels, manifest,
       { phase: "CAUSE", frame: 0, damageSource: source });
@@ -1606,7 +1607,7 @@ export function executeSpreadShotCooldownSafetyTrace({
     artifact,
     frames,
     tooFast: runCandidate(17),
-    configured: runCandidate(20),
+    configured: runCandidate(28),
   };
 }
 
@@ -1663,15 +1664,17 @@ export function executeSpreadShotCollisionTrace({ root = defaultRoot, artifact =
     const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
     memory[requiredLabel(labels, "ENTITY_STATE") + 2] = 4;
     memory[requiredLabel(labels, "player_x")] = 124;
-    memory[requiredLabel(labels, "player_y")] = playerMaximumY;
+    memory[requiredLabel(labels, "player_y")] = 184;
     runRoutine(memory, labels, "allocate_player_fighter_projectile");
     memory[requiredLabel(labels, "ENEMY_ACTIVE")] = 1;
     memory[requiredLabel(labels, "ENEMY_ARCHETYPE")] = 0;
+    memory[requiredLabel(labels, "ENEMY_MEMBER_STATE")] = 1;
+    memory[requiredLabel(labels, "ENEMY_LIVE_COUNT")] = 1;
     memory[requiredLabel(labels, "ENEMY_HP")] = 3;
     memory[requiredLabel(labels, "ENEMY_PENDING_DAMAGE")] = 0;
     memory[requiredLabel(labels, "ENEMY_PENDING_SOURCE")] = 5;
-    memory[requiredLabel(labels, "enemy_x")] = 120;
-    memory[requiredLabel(labels, "enemy_y")] = 170;
+    memory[requiredLabel(labels, "ENEMY_X")] = 120;
+    memory[requiredLabel(labels, "ENEMY_Y")] = 170;
     memory[requiredLabel(labels, "score_bcd_lo")] = 0;
     memory[requiredLabel(labels, "score_bcd_hi")] = 0;
     runRoutine(memory, labels, "update_fighter_projectiles");
@@ -1695,7 +1698,7 @@ export function executeSpreadShotCollisionTrace({ root = defaultRoot, artifact =
     const projectileX = requiredLabel(labels, "FIGHTER_PROJECTILE_X");
     memory[requiredLabel(labels, "ENTITY_STATE") + 2] = 4;
     memory[requiredLabel(labels, "player_x")] = 124;
-    memory[requiredLabel(labels, "player_y")] = playerMaximumY;
+    memory[requiredLabel(labels, "player_y")] = 184;
     runRoutine(memory, labels, "allocate_player_fighter_projectile");
     for (let slot = 0; slot < 3; slot += 1) {
       if (slot !== selectedSlot) memory[active + slot] = 0;

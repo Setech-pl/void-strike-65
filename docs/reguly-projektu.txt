@@ -1,0 +1,87 @@
+VOID STRIKE 65 — REGUŁY PROJEKTU
+Wersja 2.0 — 2026-09-10
+Dotyczy prowadzącego rozmowę oraz lokalnego Codexa.
+
+1. CEL I ADAPTACYJNE WYMAGANIA
+
+Celem jest ukończenie grywalnej gry na Atari 65XE PAL 64 KB. Płynność, czytelność i ciekawa walka mają pierwszeństwo przed liczbą obiektów i perfekcją silnika.
+
+Założenia właściciela dotyczące wyglądu, zachowania i architektury mogą zmieniać się pod wpływem ograniczeń sprzętu. Nie traktuj wcześniejszych szczegółów jako bezwzględnie niezmiennych.
+
+Jeżeli realizacja grozi przekroczeniem budżetu cykli lub pamięci, regresjami albo wymaga nieproporcjonalnie dużej przebudowy, przedstaw problem przed dalszą implementacją. Zaproponuj 2–3 prostsze warianty: efekt dla gracza, koszt zasobów, ograniczenia, ryzyko i rekomendację. Oddzielaj pomiary od szacunków. Nie ogłaszaj niemożliwości bez dowodów.
+
+Preferuj kompromisy wyglądające jak świadomy projekt gry. Istotne zmiany gameplayu i wyglądu uzgadniaj z właścicielem. Nie pytaj ponownie o kompromisy już zaakceptowane. Rutynowe decyzje techniczne podejmuj samodzielnie.
+
+2. KRÓTKI CYKL PRACY
+
+Jeden ograniczony problem lub grywalny przyrost na zadanie. Nie dokładaj przy okazji nowych funkcji, porządków, optymalizacji ani odłożonych napraw.
+
+Dla nowego pomysłu wizualnego lub gameplayowego stosuj kolejność:
+a) mała implementacja, build, kontrola granic pamięci i krótki test uruchomienia;
+b) natychmiastowe przekazanie XEX właścicielowi do oceny;
+c) po pozytywnej ocenie — testy zmienionej mechaniki i jeden reprezentatywny pomiar native PAL;
+d) zamknięcie przyrostu i utrwalenie źródeł.
+
+Próbę przed pomiarem oznaczaj „do oceny wizualnej — PAL jeszcze niezweryfikowany”, a nie PASS. Nie wysyłaj wersji z rozpoznanym crashem lub uszkodzeniem pamięci. Jeżeli już istnieje konkretny dowód problemu czasowego, zbadaj go przed kolejną próbą właściciela.
+
+Negatywna ocena grywalności kończy rozwijanie wariantu, chyba że właściciel zaakceptuje konkretną poprawkę. Nie dopracowuj technicznie odrzuconego kierunku i nie odtwarzaj jego zaginionych źródeł bez rzeczywistej potrzeby.
+
+3. WERYFIKACJA PROPORCJONALNA DO ZMIANY
+
+Zachowaj tanie bramki buildu: granice segmentów, spakowanych transportów, stagingu, preservation/cold windows i identyfikatorów znaków. Ogólny zapas RAM nie zastępuje kontroli lokalnych granic.
+
+Przed przekazaniem nowego XEX sprawdź krótko zimny start i MAIN MENU → OPTIONS → BACK → START GAME. Jest to istotna kontrola znanej regresji, nie pełny gauntlet.
+
+Focused testy dodawaj lub uruchamiaj dla zmienionej mechaniki i konkretnego ryzyka, np. konsumpcji pocisku, pojedynczego naliczenia punktów lub usuwania obiektu. Nie pisz testów odtwarzających jedynie implementację. Test odtworzonej regresji może poprzedzać owner smoke.
+
+Nie uruchamiaj pełnego npm test ani gauntletu przy każdym przyroście. Pełna walidacja przypada na kamień milowy lub przygotowanie wydania. ATR sprawdzaj po zaakceptowanym XEX, gdy zamykamy przyrost obejmujący ten format, zmienia się ścieżka ładowania lub przygotowujemy wydanie.
+
+Przed uznaniem przyrostu gameplayu/renderera za gotowy wymagany jest reprezentatywny pomiar PAL po ocenie właściciela. Target: 31 200 cykli; hard gate: 32 568; fizyczna ramka: 35 568. Nie myl tych granic. Wynik scenariusza nie jest dowodem globalnego maksimum.
+
+Wykorzystuj dowody identycznego XEX z pasującymi symbolami i konfiguracją. Nie powtarzaj pomiaru tylko z powodu przeniesienia pliku lub zmiany komputera. Zmieniony XEX nie dziedziczy pomiaru poprzednika.
+
+Brak pokrycia replayu oznacza poprawę wejść lub okna obserwacji, nie automatyczne odrzucenie kodu. Zatrzymanie observera nie dowodzi usterki narzędzia — najpierw rozróżnij problem gry, uruchomienia i diagnostyki.
+
+4. OGRANICZANIE NARZUTU
+
+Nie twórz setek screenshotów, filmów, rozbudowanych raportów ani nowych observerów bez konkretnego pytania, które mają rozstrzygnąć. Domyślnie wystarczy XEX, hash, komenda uruchomienia, krótki wynik i ograniczenia.
+
+Nie powtarzaj szerokiego audytu ani wyszukiwania checkpointów, jeśli aktualny stan jest już potwierdzony. Po przerwaniu sprawdź tylko to, co mogło się zmienić, i kontynuuj od ostatniego kroku.
+
+Nie poświęcaj kilkunastu minut na automatyzację krótkiej ręcznej obsługi menu. Gdy automatyzacja jest przeszkodą, użyj najprostszego dostępnego sposobu odtworzenia. Nie omijaj przy tym rzeczywistego błędu gry.
+
+Po około 10 minutach bez rozstrzygnięcia podaj krótki status, przyczynę i jeden następny krok. To punkt kontroli, nie automatyczny rollback. Oczywiste poprawki i potrzebne ponowienia buildu są dozwolone; nie obowiązuje „jeden build i stop”.
+
+Raportuj czas diagnozy, implementacji, buildu i native oddzielnie, choćby orientacyjnie. Bez agentów równoległych w lokalnym zadaniu, chyba że właściciel wyraźnie zmieni tę zasadę.
+
+5. ŹRÓDŁA, CHECKPOINTY I COMMITY
+
+Przed eksperymentem zachowaj działający punkt odniesienia: źródła, potrzebne pliki nieśledzone, XEX i jego hash. Dirty worktree może być celowy; nie resetuj go do HEAD.
+
+Właściciel zezwala na lokalne commity checkpointowe na osobnej gałęzi eksperymentalnej bez każdorazowego pytania. Taki commit zabezpiecza pracę, nie oznacza owner PASS ani dopuszczenia do produkcji. Opisz jego status, w tym znane błędy.
+
+Śledź źródła eksperymentu i instrukcję buildu w Git. Ignorowany build/ lub /private/tmp nie może być jedyną kopią odtwarzalnej implementacji. Artefakty mogą pozostawać ignorowane, ale przy migracji kopiuj potrzebny XEX i dowody oddzielnie. Lokalny commit nie zastępuje kopii na innym urządzeniu.
+
+Commit zamykający przyrost na gałęzi integracyjnej wykonuj po owner PASS i wymaganych bramkach. Push, merge, tag i release wyłącznie na wyraźne polecenie. Nie commituj niezwiązanych zmian użytkownika; bez git add -A w niezweryfikowanym stanie.
+
+Nie nakładaj kolejnej próby na nieudaną bez jej zabezpieczenia. Wycofuj tylko własne zmiany. Bez szerokiego reset/restore/clean. Zachowaj tożsamość artefaktów i źródeł; nie wymyślaj hashy, wyników ani adresów trace.
+
+6. PROMPTY, RAPORTY I ŚRODOWISKO
+
+Każdy prompt wykonawczy ma krótko wskazywać: model/effort, checkpoint, zakres, zakazy, kolejność weryfikacji, warunek przerwania i commit/rollback. Odwołuj się do tych reguł zamiast przepisywać cały regulamin i historię przy każdym zadaniu.
+
+Ustalony wybór: gpt-5.6-sol high dla assemblera, PMG, rastra, pamięci i PAL; medium dla prostych zmian konfiguracji, dokumentacji i finalizacji. Terra high jako zamiennik. Wyższy effort stosuj dla konkretnej trudności, nie automatycznie.
+
+Raport końcowy: co zmieniono, co potwierdzono, co pozostaje niezweryfikowane, XEX i pełny hash, komenda owner smoke oraz ewentualna konkretna decyzja właściciela. Raport ma pomagać podjąć następny krok.
+
+Używaj narzędzi z PATH i ścieżek względnych. Nie utrwalaj ścieżek /usr/local ze starego Maca Intel. Brak pliku po migracji najpierw rozstrzygaj przez sprawdzenie ścieżki i hasha, nie przez przebudowę emulatora.
+
+Skrócenie celowej ekspozycji loadera nie zastępuje usprawnienia procesu. Nie kończ ładowania przed gotowością danych. Zmiany loadera prowadź jako osobny przyrost.
+
+7. TRWAŁOŚĆ I PIERWSZEŃSTWO
+
+Ten plik jest wspólną regułą procesu dla rozmowy prowadzącej i lokalnego Codexa. W repo przechowuj go jako docs/reguly-projektu.txt i umieść w głównym AGENTS.md obowiązek przeczytania go przed pracą.
+
+Wersja 2.0 zastępuje wcześniejszą kolejność wymagającą pełnego dowodu kosztowego przed każdą oceną wizualną oraz ogólny zakaz lokalnych commitów eksperymentalnych. Nie usuwa bramek gotowości produkcyjnej ani innych obowiązujących ograniczeń technicznych repo.
+
+Nowsze, wyraźne decyzje właściciela mają pierwszeństwo. Po zmianie procesu aktualizuj ten plik i jego kopię w repo. Nie twierdź, że obie kopie są zsynchronizowane bez potwierdzenia. Krótkie instrukcje projektu i AGENTS.md powinny wskazywać ten plik zamiast zawierać rozchodzące się kopie całej treści.

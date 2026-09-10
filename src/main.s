@@ -2368,10 +2368,10 @@ profile_after_effect_visuals = *
 profile_after_broadside_render = *
     jsr entity_effects_render
 profile_after_entity_render = *
-    jsr render_fighter_projectile_overlays
-profile_after_projectile_render = *
     jsr integration_update_sector_completion
 profile_after_sector = *
+    jsr render_fighter_projectile_overlays
+profile_after_projectile_render = *
     jsr update_sound
     lda MUSIC_ACTIVE
     beq :+
@@ -3932,7 +3932,7 @@ allocate_player_fighter_projectile_at_slot:
     tay
     lda player_x
     clc
-    adc #(PLAYER_COLLISION_WIDTH/2)
+    adc #(PLAYER_VISIBLE_WIDTH_HPOS/2)
     cpy #FIGHTER_PROJECTILE_RENDER_ID_SPREAD_LEFT
     bne :+
     sbc #PLAYER_FIGHTER_SPREAD_INITIAL_OFFSET
@@ -9835,7 +9835,8 @@ weapon_pickup_clear_sector:
     lda ENTITY_STATE+WEAPON_PICKUP_SLOT
     beq @done
     ; COMPLETE is entered after late overlay rendering. Projectiles can remain
-    ; alive across that boundary, so unwind their screen backing first.
+    ; alive across that boundary. They are still erased here and are published
+    ; later in the frame, after the lower capsule layer has been released.
     jsr erase_fighter_projectile_overlays
     jmp weapon_pickup_release
 @done:

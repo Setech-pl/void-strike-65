@@ -203,14 +203,14 @@ test("one Spread emission is an unambiguous three-projectile fan", () => {
   ], [500, 3, 4, 1, 2, 28]);
   const frames = executeSpreadShotTrace({ root, artifact: "xex" }).trajectoryFrames;
   assert.deepEqual(frames[0].slots.slice(0, 3).map(({ active, x, y }) => [active, x, y]), [
-    [0x11, 128, 223], [0x41, 124, 223], [0x21, 132, 223],
+    [0x11, 132, 223], [0x41, 128, 223], [0x21, 136, 223],
   ]);
   for (let frame = 1; frame < frames.length; frame += 1) {
     assert.deepEqual(frames[frame].slots.slice(0, 3).map(({ active, x, y }) =>
       [active, x, y]), [
-      [0x11, 128, 223 - frame * 6],
-      [0x41, 124 - Math.ceil(frame / 2), 223 - frame * 6],
-      [0x21, 132 + Math.ceil(frame / 2), 223 - frame * 6],
+      [0x11, 132, 223 - frame * 6],
+      [0x41, 128 - Math.ceil(frame / 2), 223 - frame * 6],
+      [0x21, 136 + Math.ceil(frame / 2), 223 - frame * 6],
     ]);
     assert.equal(new Set(frames[frame].slots.slice(0, 3)
       .map(({ screenAddress }) => screenAddress)).size, 3,
@@ -378,8 +378,8 @@ test("the configured 28-frame Spread cooldown avoids catch-up at the active limi
 
 test("Spread fixed phase is symmetric after 100 updates and both side bounds despawn", () => {
   const trace = executeSpreadShotMotionTrace({ root, artifact: "xex" });
-  assert.deepEqual(trace.initial, [128, 124, 132]);
-  assert.deepEqual(trace.after100, [128, 74, 182]);
+  assert.deepEqual(trace.initial, [132, 128, 136]);
+  assert.deepEqual(trace.after100, [132, 78, 186]);
   assert.deepEqual(trace.activeAfter100, [0x11, 0x41, 0x21]);
   assert.equal(trace.initial[0], trace.after100[0], "centre projectile drifted");
   assert.equal(trace.initial[1] - trace.after100[1],

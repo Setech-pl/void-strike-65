@@ -27,8 +27,10 @@ import {
   executeWeaponPickupTrace,
   executeWeaponPickupTraversalTrace,
   executePlayerFighterBurstBalanceTrace,
+  executePlayerFighterEmissionVisibilityTrace,
   executePlayerFighterProjectileColourTrace,
   executePlayerFighterProjectileColourLifecycleTrace,
+  executePlayerFighterSectorClearVisibilityTrace,
   weaponPickupTraceCsv,
 } from "../scripts/weapon-pickup-runtime.mjs";
 
@@ -678,6 +680,42 @@ test("packed runtime distinguishes reduced Normal, Rapid and Spread cadence", ()
   assert.deepEqual(firstBurstFrames(xex.traces[1]),
     [0, 6, 12, 18, 24, 30]);
   assert.deepEqual(firstBurstFrames(xex.traces[2]), [0, 28, 56]);
+});
+
+test("released FIRE emits a visible centred first frame across X, Y and ring phases", () => {
+  const trace = executePlayerFighterEmissionVisibilityTrace({ root, artifact: "xex" });
+  assert.equal(trace.cases.length, 216);
+  assert.equal(trace.cases.every(({ slots }) =>
+    slots.length > 0 && slots.every(({ visible }) => visible)), true);
+  for (const record of trace.cases) {
+    const offsets = record.slots.map(({ x }) => x - record.playerX);
+    assert.deepEqual(offsets, record.mode === "SPREAD" ? [8, 4, 12] : [8]);
+  }
+  assert.match(source,
+    /allocate_player_fighter_projectile_at_slot:[\s\S]+adc #\(PLAYER_VISIBLE_WIDTH_HPOS\/2\)/);
+});
+
+test("sector pickup clear republishes still-live PlayerFighter projectiles in the same frame", () => {
+  const trace = executePlayerFighterSectorClearVisibilityTrace({ root, artifact: "xex" });
+  assert.deepEqual([trace.before.active, trace.before.rendered], [1, 1]);
+  assert.deepEqual([trace.after.active, trace.after.rendered], [1, 1]);
+  assert.notEqual(trace.after.screenCode, 0);
+  assert.match(source,
+    /profile_after_entity_render[\s\S]+jsr integration_update_sector_completion[\s\S]+jsr render_fighter_projectile_overlays/);
+});
+
+test("both Raider shots leave the centred first frame visible across ring rotation", () => {
+  const trace = executePlayerFighterEmissionVisibilityTrace({
+    root,
+    artifact: "xex",
+    playerXs: [48, 124, 200],
+    playerYs: [184, 191],
+    ringHeads: [0, 1, 26],
+    raiderFire: true,
+  });
+  assert.equal(trace.cases.length, 54);
+  assert.equal(trace.cases.every(({ slots, raiderProjectiles }) =>
+    raiderProjectiles >= 2 && slots.length > 0 && slots.every(({ visible }) => visible)), true);
 });
 
 test("Normal and Rapid projectiles render through the PlayerFighter yellow bank", () => {

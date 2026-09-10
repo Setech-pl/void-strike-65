@@ -351,6 +351,7 @@ export function stepPlayerFighterBurst(asset, state, {
   gameplayActive = true,
   drain = false,
   sectorComplete = false,
+  playerVisibleWidthHpos = 16,
 } = {}) {
   invariant(["NORMAL", "RAPID"].includes(weaponMode),
     "PlayerFighter burst simulation supports NORMAL or RAPID mode");
@@ -405,7 +406,7 @@ export function stepPlayerFighterBurst(asset, state, {
   if (slot < 0) return next;
   next.pool[slot] = {
     owner: "PLAYER_FIGHTER",
-    x: playerX + 4,
+    x: playerX + playerVisibleWidthHpos / 2,
     y: playerY - asset.player_fighter.heightScanlines,
     previousY: playerY - asset.player_fighter.heightScanlines,
     width: asset.player_fighter.widthHpos,

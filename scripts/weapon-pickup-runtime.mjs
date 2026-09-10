@@ -766,6 +766,106 @@ export function player_fighterBurstBalanceTraceCsv(trace) {
   return `${rows.join("\n")}\n`;
 }
 
+export function executePlayerFighterEmissionVisibilityTrace({
+  root = defaultRoot, artifact = "xex", coldFill = 0,
+  playerXs = [48, 50, 124, 126, 198, 200],
+  playerYs = [184, 185, 190, 191], ringHeads = [0, 1, 26],
+  modes = [["NORMAL", 0], ["RAPID", 3], ["SPREAD", 4]],
+  raiderFire = false,
+} = {}) {
+  const cases = [];
+  for (const [mode, boosterState] of modes) {
+    for (const playerX of playerXs) {
+      for (const playerY of playerYs) {
+        for (const ringHead of ringHeads) {
+          const { memory, labels } = initialiseRuntime(root, artifact, coldFill);
+          initialiseRows(memory, labels, ringHead);
+          memory.fill(0, 0x3800, 0x4400);
+          memory[requiredLabel(labels, "player_x")] = playerX;
+          memory[requiredLabel(labels, "player_y")] = playerY;
+          memory[requiredLabel(labels, "PLAYER_LIFECYCLE")] = 0;
+          memory[requiredLabel(labels, "gameplay_fire_gate")] = 1;
+          memory[requiredLabel(labels, "ENTITY_STATE") + 2] = boosterState;
+          if (raiderFire) {
+            runRoutine(memory, labels, "reset_enemy");
+            for (let slot = 0; slot < 2; slot += 1) {
+              memory[requiredLabel(labels, "ENEMY_TARGET_SLOT")] = slot;
+              runRoutine(memory, labels, "allocate_interceptor_projectile");
+            }
+          }
+          memory[0xd010] = 1;
+          runRoutine(memory, labels, "update_player_fighter_weapon");
+          memory[0xd010] = 0;
+          runRoutine(memory, labels, "erase_fighter_projectile_overlays");
+          runRoutine(memory, labels, "update_fighter_projectiles");
+          runRoutine(memory, labels, "update_player_fighter_weapon");
+          runRoutine(memory, labels, "render_fighter_projectile_overlays");
+
+          const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
+          const xAddress = requiredLabel(labels, "FIGHTER_PROJECTILE_X");
+          const yAddress = requiredLabel(labels, "FIGHTER_PROJECTILE_Y");
+          const rendered = requiredLabel(labels, "FIGHTER_PROJECTILE_RENDERED");
+          const screenLow = requiredLabel(labels, "FIGHTER_PROJECTILE_SCREEN_LO");
+          const screenHigh = requiredLabel(labels, "FIGHTER_PROJECTILE_SCREEN_HI");
+          const slots = [];
+          for (let slot = 0; slot < 10; slot += 1) {
+            if (memory[active + slot] === 0) continue;
+            const screenAddress = memory[screenLow + slot] |
+              memory[screenHigh + slot] << 8;
+            const screenCode = memory[screenAddress];
+            const glyphAddress = 0x4400 + (screenCode & 0x7f) * 8;
+            const glyphBytes = Array.from(memory.subarray(glyphAddress, glyphAddress + 8));
+            slots.push({
+              slot,
+              renderId: memory[active + slot],
+              x: memory[xAddress + slot],
+              y: memory[yAddress + slot],
+              rendered: memory[rendered + slot],
+              screenAddress,
+              screenCode,
+              glyphBytes,
+              visible: memory[rendered + slot] !== 0 && glyphBytes.some(Boolean),
+            });
+          }
+          cases.push({
+            mode, playerX, playerY, ringHead, slots,
+            raiderProjectiles: countActive(memory, active + 10, 9),
+          });
+        }
+      }
+    }
+  }
+  return { artifact, coldFill, cases };
+}
+
+export function executePlayerFighterSectorClearVisibilityTrace({
+  root = defaultRoot, artifact = "xex", coldFill = 0,
+} = {}) {
+  const { memory, labels } = initialiseRuntime(root, artifact, coldFill);
+  memory.fill(0, ringBase, ringEnd);
+  memory[requiredLabel(labels, "player_x")] = 124;
+  memory[requiredLabel(labels, "player_y")] = 191;
+  runRoutine(memory, labels, "allocate_player_fighter_projectile");
+  runRoutine(memory, labels, "render_fighter_projectile_overlays");
+  const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
+  const rendered = requiredLabel(labels, "FIGHTER_PROJECTILE_RENDERED");
+  const screenLow = requiredLabel(labels, "FIGHTER_PROJECTILE_SCREEN_LO");
+  const screenHigh = requiredLabel(labels, "FIGHTER_PROJECTILE_SCREEN_HI");
+  const screenAddress = memory[screenLow] | memory[screenHigh] << 8;
+  const capture = () => ({
+    active: memory[active],
+    rendered: memory[rendered],
+    screenAddress,
+    screenCode: memory[screenAddress],
+  });
+  const before = capture();
+  memory[requiredLabel(labels, "ENTITY_STATE") + 1] = 1;
+  runRoutine(memory, labels, "weapon_pickup_clear_sector");
+  runRoutine(memory, labels, "render_fighter_projectile_overlays");
+  const after = capture();
+  return { artifact, before, after };
+}
+
 export function executePlayerFighterProjectileColourTrace({
   root = defaultRoot, artifact = "xex", coldFill = 0,
 } = {}) {
@@ -1673,7 +1773,7 @@ export function executeSpreadShotCollisionTrace({ root = defaultRoot, artifact =
     memory[requiredLabel(labels, "ENEMY_HP")] = 3;
     memory[requiredLabel(labels, "ENEMY_PENDING_DAMAGE")] = 0;
     memory[requiredLabel(labels, "ENEMY_PENDING_SOURCE")] = 5;
-    memory[requiredLabel(labels, "ENEMY_X")] = 120;
+    memory[requiredLabel(labels, "ENEMY_X")] = 124;
     memory[requiredLabel(labels, "ENEMY_Y")] = 170;
     memory[requiredLabel(labels, "score_bcd_lo")] = 0;
     memory[requiredLabel(labels, "score_bcd_hi")] = 0;

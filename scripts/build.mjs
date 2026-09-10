@@ -175,8 +175,8 @@ const directorGuardAddress = 0x9ffa;
 // This movement-only PMG build retains the same loader implementation and four
 // external publication records. Disabled Raider combat compresses the occupied
 // content into 103 initial sectors without changing stage-2 itself.
-const expectedInitialContentBytes = 13293;
-const expectedLinkedRuntimeBytes = 17651;
+const expectedInitialContentBytes = 13295;
+const expectedLinkedRuntimeBytes = 17653;
 const expectedDirectorRawBytes = 644;
 const expectedDirectorPackedBytes = 587;
 const expectedGlueRawBytes = 250;

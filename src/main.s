@@ -3913,20 +3913,29 @@ allocate_player_fighter_projectile_rejected:
     clc
     rts
 
+; Last HPOS whose one-HPOS projectile still lies in ANTIC column
+; GAMEPLAY_SCREEN_COLUMNS-1. The renderer maps (X-GAMEPLAY_LEFT_HPOS)/4 to a
+; column without a bound, so X=LEFT+COLUMNS*4 would draw into column 0 of the
+; next row. The silhouette centre player_x+PLAYER_VISIBLE_WIDTH_HPOS/2 reaches
+; that value at PLAYER_X_MAX, and Spread's right offset reaches it earlier.
+PLAYER_FIGHTER_PROJECTILE_X_LIMIT = GAMEPLAY_LEFT_HPOS+GAMEPLAY_SCREEN_COLUMNS*4-PLAYER_FIGHTER_PROJECTILE_WIDTH_HPOS
+.assert PLAYER_X_MAX+PLAYER_VISIBLE_WIDTH_HPOS/2+PLAYER_FIGHTER_SPREAD_INITIAL_OFFSET < 256, error, "PlayerFighter emission X must not wrap before its playfield clamp"
+
 .segment "CODE"
 allocate_player_fighter_projectile_one:
-    sta ENTITY_SCRATCH0
-    ldx #$00
+    pha                         ; projectile kind; the stack is three bytes
+    ldx #$00                    ; smaller than ENTITY_SCRATCH0 save/restore
 @find:
     lda FIGHTER_PROJECTILE_ACTIVE,x
     beq @allocate
     inx
     cpx #PLAYER_FIGHTER_PROJECTILE_ACTIVE_LIMIT
     bne @find
+    pla
     clc
     rts
 @allocate:
-    lda ENTITY_SCRATCH0
+    pla
 allocate_player_fighter_projectile_at_slot:
     sta FIGHTER_PROJECTILE_ACTIVE,x
     tay
@@ -3939,8 +3948,11 @@ allocate_player_fighter_projectile_at_slot:
 :
     cpy #FIGHTER_PROJECTILE_RENDER_ID_SPREAD_RIGHT
     bne :+
-    clc
-    adc #PLAYER_FIGHTER_SPREAD_INITIAL_OFFSET
+    adc #(PLAYER_FIGHTER_SPREAD_INITIAL_OFFSET-1) ; CPY equality left C=1
+:
+    cmp #(PLAYER_FIGHTER_PROJECTILE_X_LIMIT+1)
+    bcc :+
+    lda #PLAYER_FIGHTER_PROJECTILE_X_LIMIT
 :
     sta FIGHTER_PROJECTILE_X,x
     lda player_y

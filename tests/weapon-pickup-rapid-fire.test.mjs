@@ -687,9 +687,27 @@ test("released FIRE emits a visible centred first frame across X, Y and ring pha
   assert.equal(trace.cases.length, 216);
   assert.equal(trace.cases.every(({ slots }) =>
     slots.length > 0 && slots.every(({ visible }) => visible)), true);
+  // Playfield geometry: ANTIC 4 cells are four one-HPOS pixels wide and the
+  // normal playfield spans HPOS 48..207; the double-width fighter is 16 HPOS.
+  const leftHpos = 48;
+  const lastHpos = leftHpos + 40 * 4 - 1;
+  const silhouetteHalf = 16 / 2;
+  const pixelMasks = [0xc0, 0x30, 0x0c, 0x03];
   for (const record of trace.cases) {
-    const offsets = record.slots.map(({ x }) => x - record.playerX);
-    assert.deepEqual(offsets, record.mode === "SPREAD" ? [8, 4, 12] : [8]);
+    const offsets = record.mode === "SPREAD" ? [8, 4, 12] : [8];
+    assert.deepEqual(record.slots.map(({ x }) => x),
+      offsets.map((offset) => Math.min(record.playerX + offset, lastHpos)));
+    if (record.mode === "SPREAD") continue; // Spread composes with backing
+    const [{ screenAddress, glyphBytes }] = record.slots;
+    const rowOffset = (screenAddress - canonicalPlayfield.ringBufferAddress) % 40;
+    const pixel = pixelMasks.findIndex((mask) => glyphBytes.some((byte) => byte & mask));
+    const pixelCentre = leftHpos + rowOffset * 4 + pixel + 0.5;
+    const silhouetteCentre = record.playerX + silhouetteHalf;
+    // At PLAYER_X_MAX the silhouette centre (208) lies beyond the last
+    // playfield HPOS; the two-phase renderer's nearest pixel is 206.
+    const tolerance = silhouetteCentre > lastHpos ? 1.5 : 0.5;
+    assert.ok(Math.abs(pixelCentre - silhouetteCentre) <= tolerance,
+      `${record.mode} x=${record.playerX}: pixel ${pixelCentre} vs ${silhouetteCentre}`);
   }
   assert.match(source,
     /allocate_player_fighter_projectile_at_slot:[\s\S]+adc #\(PLAYER_VISIBLE_WIDTH_HPOS\/2\)/);

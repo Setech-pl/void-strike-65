@@ -248,6 +248,10 @@ export function executeInterceptorBreakupTrace({ root = defaultRoot, artifact = 
 
   memory[requiredLabel(labels, "ENEMY_ARCHETYPE")] = 0;
   memory[requiredLabel(labels, "ENEMY_ACTIVE")] = 1;
+  memory[requiredLabel(labels, "ENEMY_MEMBER_STATE")] = 1;
+  memory[requiredLabel(labels, "ENEMY_FORMATION_Y_HI")] = 0;
+  memory[requiredLabel(labels, "ENEMY_TARGET_SLOT")] = 0;
+  memory[requiredLabel(labels, "ENEMY_LIVE_COUNT")] = 1;
   memory[requiredLabel(labels, "ENEMY_HP")] = 1;
   memory[requiredLabel(labels, "enemy_x")] = 124;
   memory[requiredLabel(labels, "enemy_y")] = 88;

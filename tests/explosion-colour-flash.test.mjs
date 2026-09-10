@@ -79,9 +79,9 @@ test("PlayerFighter death wins same-frame arbitration and enemy flashes cannot r
     assert.equal(explosionFlashColorForTimers(runtime, { playerTimer, enemyTimer: 24 }),
       runtime.baseColor, "enemy flash cannot replace the restored PlayerFighter profile");
   }
-  const resolution = routine("resolve_enemy_damage", "add_archetype_score");
+  const resolution = routine("resolve_enemy_damage", "add_archetype_score_obsolete");
   assert.match(resolution,
-    /ENEMY_ACTIVE[\s\S]+cmp #ENEMY_ACTIVE_STATE[\s\S]+bne @done[\s\S]+sta ENEMY_ACTIVE[\s\S]+spawn_interceptor_breakup_effects/);
+    /ENEMY_ACTIVE[\s\S]+cmp #ENEMY_ACTIVE_STATE[\s\S]+bne @done[\s\S]+dec ENEMY_LIVE_COUNT[\s\S]+spawn_interceptor_breakup_effects[\s\S]+lda ENEMY_LIVE_COUNT[\s\S]+sta ENEMY_ACTIVE/);
   assert.match(source,
     /spawn_interceptor_breakup_effects:[\s\S]+begin_enemy_fighter_explosion/);
   assert.match(routine("update_enemy", "draw_enemy"),
@@ -149,7 +149,7 @@ test("enemy death during broadside uses the same bounded profile without changin
   assert.match(routine("handle_collisions", "queue_enemy_damage"),
     /jsr update_broadside\s+profile_after_broadside_update\s*=\s*\*\s+jsr resolve_enemy_damage/);
   assert.match(routine("update_broadside", "schedule_broadside"),
-    /jmp render_weapon_pickup_overlay/);
+    /jsr schedule_broadside[\s\S]+@done:\s+rts/);
   assert.doesNotMatch(routine("tick_capital_explosions", "render_capital_explosions"), /COLBK|damage_timer/);
   assert.doesNotMatch(routine("tick_launch_flashes", "render_launch_flashes"), /COLBK|damage_timer/);
   assert.equal(explosionFlashColorForTimers(runtime, { enemyTimer: 24 }), 0x1e);

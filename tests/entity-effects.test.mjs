@@ -119,6 +119,10 @@ const addresses = {
   enemyHp: labels.get("ENEMY_HP"),
   enemyPendingDamage: labels.get("ENEMY_PENDING_DAMAGE"),
   enemyPendingSource: labels.get("ENEMY_PENDING_SOURCE"),
+  enemyMemberState: labels.get("ENEMY_MEMBER_STATE"),
+  enemyFormationYHi: labels.get("ENEMY_FORMATION_Y_HI"),
+  enemyTargetSlot: labels.get("ENEMY_TARGET_SLOT"),
+  enemyLiveCount: labels.get("ENEMY_LIVE_COUNT"),
   enemyX: labels.get("enemy_x"),
   enemyY: labels.get("enemy_y"),
   scoreLo: labels.get("score_bcd_lo"),
@@ -323,6 +327,10 @@ function exercisePlayerInterceptorContact({
   memory[addresses.difficulty] = difficulty;
   memory[addresses.enemyActive] = 1;
   memory[addresses.enemyArchetype] = 0;
+  memory[addresses.enemyMemberState] = 1;
+  memory[addresses.enemyFormationYHi] = 0;
+  memory[addresses.enemyTargetSlot] = 0;
+  memory[addresses.enemyLiveCount] = 1;
   memory[addresses.enemyHp] = 1;
   memory[addresses.enemyPendingDamage] = 0;
   memory[addresses.enemyPendingSource] = 5;
@@ -1265,7 +1273,7 @@ test("Interceptor lifecycle and score remain the canonical contact breakup path"
     breakups: trace.callCounts.get("spawn_interceptor_breakup_effects"),
   }, {
     state: 2,
-    hp: 1,
+    hp: 0,
     explosionTimer: 24,
     effectPending: 2,
     score: 0x10,
@@ -1618,6 +1626,10 @@ test("debris and Interceptor arbitration follows upward first-contact order with
     initialiseShootableDebris(memory, { x: 124, y: 100, hp: 1 });
     memory[addresses.enemyActive] = 1;
     memory[addresses.enemyArchetype] = 0;
+    memory[addresses.enemyMemberState] = 1;
+    memory[addresses.enemyFormationYHi] = 0;
+    memory[addresses.enemyTargetSlot] = 0;
+    memory[addresses.enemyLiveCount] = 1;
     memory[addresses.enemyHp] = 1;
     memory[addresses.enemyPendingDamage] = 0;
     memory[addresses.enemyX] = 124;
@@ -1809,6 +1821,10 @@ test("every canonical Interceptor death spawns one local breakup without changin
     runRoutine(memory, "init_entity_effects");
     memory[addresses.enemyArchetype] = 0;
     memory[addresses.enemyActive] = 1;
+    memory[addresses.enemyMemberState] = 1;
+    memory[addresses.enemyFormationYHi] = 0;
+    memory[addresses.enemyTargetSlot] = 0;
+    memory[addresses.enemyLiveCount] = 1;
     memory[addresses.enemyHp] = 1;
     memory[addresses.enemyPendingDamage] = 1;
     memory[addresses.enemyPendingSource] = sourceId;

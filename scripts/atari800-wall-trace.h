@@ -87,6 +87,14 @@ typedef struct {
 	unsigned active_gameplay_frame;
 	unsigned enemy_state;
 	unsigned enemy_y;
+	unsigned enemy_slot_x[2];
+	unsigned enemy_slot_y[2];
+	unsigned enemy_hpos[2];
+	unsigned enemy_pmg_rows[2];
+	unsigned enemy_member_state[3];
+	unsigned enemy_member_hp[3];
+	unsigned enemy_live_count;
+	unsigned enemy_projectiles;
 	unsigned director_phase;
 	unsigned director_rng;
 	unsigned director_intensity;
@@ -417,6 +425,9 @@ static int dftrace_broadside_proof_sector_started;
 static unsigned dftrace_far_active;
 static unsigned dftrace_enemy_active;
 static unsigned dftrace_enemy_x;
+static unsigned dftrace_enemy_member_state;
+static unsigned dftrace_enemy_hp;
+static unsigned dftrace_enemy_live_count;
 static unsigned dftrace_fighter_explosion_timer;
 static unsigned dftrace_capital_explosion_timer;
 static unsigned dftrace_music_active;
@@ -506,6 +517,9 @@ static const char *dftrace_pickup_traversal_prefix;
 static unsigned dftrace_pickup_traversal_count;
 static unsigned dftrace_pickup_traversal_last_y = 0xffffffffu;
 static unsigned dftrace_pickup_hunt_active_frames;
+static unsigned dftrace_raider_observed_live_count;
+static unsigned dftrace_raider_resume_fire_frame;
+static unsigned dftrace_raider_fired_live_count;
 static const char *dftrace_pickup_contact_prefix;
 static unsigned dftrace_pickup_contact_count;
 static unsigned dftrace_pickup_contact_after_collect;
@@ -1687,6 +1701,19 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		else if (frame % 128u >= 80u && y < DFTRACE_PLAYER_MAX_Y)
 			stick &= 0x0du;
 	}
+	else if (strcmp(dftrace_policy, "raider-proof") == 0) {
+		/* Alternate the ordinary joystick target between the two independent
+		 * Raider slots. FIRE follows the session delay and production burst
+		 * controller; this movement-only build cannot damage either Raider. */
+		if (MEMORY_mem[dftrace_enemy_active] == 1u) {
+			unsigned slot = (frame / 48u) & 1u;
+			unsigned target = MEMORY_mem[dftrace_enemy_x + slot];
+			if (x + 3u < target)
+				stick = 0x07u;
+			else if (x > target + 3u)
+				stick = 0x0bu;
+		}
+	}
 	else if (strcmp(dftrace_policy, "hunt") == 0 ||
 		strcmp(dftrace_policy, "early-hunt") == 0) {
 		/* Follow the live Interceptor's PMG origin using only ordinary joystick
@@ -2478,6 +2505,20 @@ static void dftrace_snapshot(DFTraceFrame *frame)
 		((unsigned) MEMORY_mem[dftrace_active_gameplay_frame_lo + 1u] << 8);
 	frame->enemy_state = MEMORY_mem[dftrace_enemy_active];
 	frame->enemy_y = MEMORY_mem[dftrace_enemy_y];
+	for (unsigned slot = 0u; slot < 2u; ++slot) {
+		frame->enemy_slot_x[slot] = MEMORY_mem[dftrace_enemy_x + slot];
+		frame->enemy_slot_y[slot] = MEMORY_mem[dftrace_enemy_y + slot];
+		frame->enemy_hpos[slot] = slot == 0u ? GTIA_HPOSP1 : GTIA_HPOSP2;
+		frame->enemy_pmg_rows[slot] = dftrace_count_nonzero(0x3d00u + slot * 0x100u, 256u);
+	}
+	for (unsigned member = 0u; member < 3u; ++member) {
+		frame->enemy_member_state[member] = MEMORY_mem[dftrace_enemy_member_state + member];
+		frame->enemy_member_hp[member] = MEMORY_mem[dftrace_enemy_hp + member];
+	}
+	frame->enemy_live_count = MEMORY_mem[dftrace_enemy_live_count];
+	frame->enemy_projectiles = dftrace_count_nonzero(
+		dftrace_projectile_active + DFTRACE_INTERCEPTOR_SLOT_BASE,
+		DFTRACE_INTERCEPTOR_SLOT_COUNT);
 	frame->director_phase = MEMORY_mem[dftrace_director_state];
 	frame->director_rng = MEMORY_mem[dftrace_director_state + 5u];
 	frame->director_intensity = MEMORY_mem[dftrace_director_state + 2u];
@@ -2815,6 +2856,20 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 		((unsigned) MEMORY_mem[dftrace_active_gameplay_frame_lo + 1u] << 8);
 	frame->enemy_state = MEMORY_mem[dftrace_enemy_active];
 	frame->enemy_y = MEMORY_mem[dftrace_enemy_y];
+	for (unsigned slot = 0u; slot < 2u; ++slot) {
+		frame->enemy_slot_x[slot] = MEMORY_mem[dftrace_enemy_x + slot];
+		frame->enemy_slot_y[slot] = MEMORY_mem[dftrace_enemy_y + slot];
+		frame->enemy_hpos[slot] = slot == 0u ? GTIA_HPOSP1 : GTIA_HPOSP2;
+		frame->enemy_pmg_rows[slot] = dftrace_count_nonzero(0x3d00u + slot * 0x100u, 256u);
+	}
+	for (unsigned member = 0u; member < 3u; ++member) {
+		frame->enemy_member_state[member] = MEMORY_mem[dftrace_enemy_member_state + member];
+		frame->enemy_member_hp[member] = MEMORY_mem[dftrace_enemy_hp + member];
+	}
+	frame->enemy_live_count = MEMORY_mem[dftrace_enemy_live_count];
+	frame->enemy_projectiles = dftrace_count_nonzero(
+		dftrace_projectile_active + DFTRACE_INTERCEPTOR_SLOT_BASE,
+		DFTRACE_INTERCEPTOR_SLOT_COUNT);
 	frame->director_phase = MEMORY_mem[dftrace_director_state];
 	frame->director_rng = MEMORY_mem[dftrace_director_state + 5u];
 	frame->director_intensity = MEMORY_mem[dftrace_director_state + 2u];
@@ -2875,7 +2930,12 @@ static void dftrace_write(void)
 		",capital_player_damage_calls,player_lifecycle_after,player_x_after,player_y_after"
 		",player_health_after,player_lives_after,player_invulnerability_after"
 		",player_damage_cooldown_after,active_gameplay_frame,enemy_state,enemy_y"
-		",director_phase,director_rng,director_intensity,director_reaction,director_recovery\n");
+		",director_phase,director_rng,director_intensity,director_reaction,director_recovery"
+		",enemy_member0_state,enemy_member1_state,enemy_member2_state"
+		",enemy_member0_hp,enemy_member1_hp,enemy_member2_hp"
+		",enemy_live_count,enemy_projectiles"
+		",enemy_x0,enemy_x1,enemy_y0,enemy_y1,enemy_hpos1,enemy_hpos2"
+		",enemy_pmg_rows1,enemy_pmg_rows2\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -3035,7 +3095,8 @@ static void dftrace_write(void)
 		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u"
 			",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u"
 			",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u"
-			",%u,%u,%u,%u,%u,%u,%u,%u\n",
+			",%u,%u,%u,%u,%u,%u,%u,%u"
+			",%u,%u,%u,%u,%u,%u,%u,%u",
 			frame->broad_pointer_errors,
 			frame->player_health, frame->player_lives, frame->player_invulnerability,
 			frame->broad_screen_orphan_cells, frame->broad_screen_first_address,
@@ -3054,7 +3115,16 @@ static void dftrace_write(void)
 			frame->player_invulnerability_after, frame->player_damage_cooldown_after,
 			frame->active_gameplay_frame, frame->enemy_state, frame->enemy_y,
 			frame->director_phase, frame->director_rng, frame->director_intensity,
-			frame->director_reaction, frame->director_recovery);
+			frame->director_reaction, frame->director_recovery,
+			frame->enemy_member_state[0], frame->enemy_member_state[1],
+			frame->enemy_member_state[2], frame->enemy_member_hp[0],
+			frame->enemy_member_hp[1], frame->enemy_member_hp[2],
+			frame->enemy_live_count, frame->enemy_projectiles);
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u\n",
+			frame->enemy_slot_x[0], frame->enemy_slot_x[1],
+			frame->enemy_slot_y[0], frame->enemy_slot_y[1],
+			frame->enemy_hpos[0], frame->enemy_hpos[1],
+			frame->enemy_pmg_rows[0], frame->enemy_pmg_rows[1]);
 	}
 	if (fclose(file) != 0) {
 		perror("voidstrike65 trace close");
@@ -3196,6 +3266,9 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_far_active, "DFTRACE_FAR_ACTIVE");
 	DFTRACE_ADDRESS(dftrace_enemy_active, "DFTRACE_ENEMY_ACTIVE");
 	DFTRACE_ADDRESS(dftrace_enemy_x, "DFTRACE_ENEMY_X");
+	DFTRACE_ADDRESS(dftrace_enemy_member_state, "DFTRACE_ENEMY_MEMBER_STATE");
+	DFTRACE_ADDRESS(dftrace_enemy_hp, "DFTRACE_ENEMY_HP");
+	DFTRACE_ADDRESS(dftrace_enemy_live_count, "DFTRACE_ENEMY_LIVE_COUNT");
 	DFTRACE_ADDRESS(dftrace_fighter_explosion_timer, "DFTRACE_FIGHTER_EXPLOSION_TIMER");
 	DFTRACE_ADDRESS(dftrace_capital_explosion_timer, "DFTRACE_CAPITAL_EXPLOSION_TIMER");
 	DFTRACE_ADDRESS(dftrace_music_active, "DFTRACE_MUSIC_ACTIVE");

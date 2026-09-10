@@ -463,6 +463,7 @@
   },
   "broadside": {
     "provisionalFirstCapitalGameplayFrame": 600,
+    "activeLimit": 2,
     "initialDelayFrames": 2,
     "retryDelayFrames": 7,
     "scheduleDelayScale": 2,
@@ -546,10 +547,10 @@
       }
     },
     "schedule": [
-      { "side": "enemy", "baseDelayAfterFrames": 2 },
-      { "side": "enemy", "baseDelayAfterFrames": 2 },
-      { "side": "enemy", "baseDelayAfterFrames": 2 },
-      { "side": "allied", "baseDelayAfterFrames": 37 }
+      { "side": "enemy", "baseDelayAfterFrames": 36 },
+      { "side": "enemy", "baseDelayAfterFrames": 36 },
+      { "side": "enemy", "baseDelayAfterFrames": 36 },
+      { "side": "allied", "baseDelayAfterFrames": 95 }
     ]
   },
   "turrets": [

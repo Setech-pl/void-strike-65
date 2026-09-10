@@ -200,7 +200,7 @@ test("one Spread emission is an unambiguous three-projectile fan", () => {
     weapons.player_fighter.spreadShotLateralStepHpos,
     weapons.player_fighter.spreadShotLateralPeriodFrames,
     weapons.player_fighter.spreadShotCooldownFrames,
-  ], [500, 3, 4, 1, 2, 10]);
+  ], [500, 3, 4, 1, 2, 20]);
   const frames = executeSpreadShotTrace({ root, artifact: "xex" }).trajectoryFrames;
   assert.deepEqual(frames[0].slots.slice(0, 3).map(({ active, x, y }) => [active, x, y]), [
     [0x11, 128, 182], [0x41, 124, 182], [0x21, 132, 182],
@@ -319,53 +319,55 @@ test("all three projectiles leave the screen cleanly without HUD or charset corr
   }
 });
 
-test("Spread keeps a reserve slot in steady state and admits centre before an atomic side pair", () => {
+test("Spread respects the six-projectile active budget and admits centre before an atomic side pair", () => {
   const trace = executeSpreadShotPoolTrace({ root, artifact: "xex" });
   assert.deepEqual([
     manifest.fighterWeapons.player_fighter.poolSlots,
+    manifest.fighterWeapons.player_fighter.activeLimit,
     trace.empty.activeCount,
-    trace.sevenOccupied.activeCount,
-  ], [10, 3, 10]);
+    trace.threeOccupied.activeCount,
+  ], [10, 6, 3, 6]);
   assert.deepEqual(trace.empty.after.slice(0, 3), [0x11, 0x41, 0x21]);
-  assert.deepEqual(trace.sevenOccupied.after.slice(7), [0x11, 0x41, 0x21]);
-  assert.deepEqual(trace.eightOccupied.after.slice(8), [0x11, 0],
+  assert.deepEqual(trace.threeOccupied.after.slice(3, 6), [0x11, 0x41, 0x21]);
+  assert.deepEqual(trace.fourOccupied.after.slice(4, 6), [0x11, 0],
     "two free slots must admit the centre but never one unpaired side");
-  assert.deepEqual(trace.nineOccupied.after.slice(9), [0x11],
+  assert.deepEqual(trace.fiveOccupied.after.slice(5, 6), [0x11],
     "one free slot must remain sufficient for the priority centre");
-  assert.deepEqual(trace.full.after, trace.full.before);
+  assert.deepEqual(trace.activeFull.after, trace.activeFull.before);
+  assert.deepEqual(trace.physicalFull.after, trace.physicalFull.before);
   const controller = executePlayerFighterBurstBalanceTrace({
     root, artifact: "xex", windowFrames: 500,
   })
     .traces.find(({ mode }) => mode === "SPREAD");
-  assert.equal(controller.firstBurstSalvos, 8);
-  assert.equal(controller.firstBurstProjectiles, 24);
+  assert.equal(controller.firstBurstSalvos, 4);
+  assert.equal(controller.firstBurstProjectiles, 12);
   assert.equal(controller.records.every(({ allocatedProjectiles }) =>
     allocatedProjectiles === 0 || allocatedProjectiles === 3), true,
   "a Spread controller update must never allocate a partial fan");
   const rejected = controller.records.filter(({ allocationDue, allocatedProjectiles }) =>
     allocationDue && allocatedProjectiles === 0);
-  assert.equal(rejected.length, 0,
-    "500 active PAL frames must not reject a steady-state Spread salvo");
-  assert.equal(controller.maximumPoolOccupancy, 9);
-  assert.equal(controller.emittedSalvos, 49);
-  assert.equal(controller.emittedProjectiles, 147);
+  assert.equal(rejected.length, 18,
+    "a blocked Spread salvo must remain one deferred salvo, not accumulated catch-up");
+  assert.equal(controller.maximumPoolOccupancy, 6);
+  assert.equal(controller.emittedSalvos, 27);
+  assert.equal(controller.emittedProjectiles, 81);
   assert.equal(manifest.fighterWeapons.player_fighter.poolSlots, 10);
   assert.equal(manifest.entityEffects.effectActiveLimit, 5);
 });
 
-test("ten active PAL frames is the exact minimum safe Spread cooldown", () => {
+test("the configured 20-frame Spread cooldown avoids catch-up at the active limit", () => {
   const trace = executeSpreadShotCooldownSafetyTrace({ root, artifact: "xex" });
-  assert.equal(trace.unsafe.cooldown, 9);
-  assert.ok(trace.unsafe.rejectedFullSalvos > 0,
-    "nine frames must demonstrate transitional centre-only saturation");
-  assert.equal(trace.unsafe.maximumPoolOccupancy, 10);
-  assert.deepEqual(trace.minimumSafe, {
-    cooldown: 10,
-    allocationSizes: Array(50).fill(3),
-    salvos: 50,
-    fullSalvos: 50,
+  assert.equal(trace.tooFast.cooldown, 17);
+  assert.ok(trace.tooFast.rejectedFullSalvos > 0,
+    "a deliberately faster schedule must demonstrate saturation");
+  assert.equal(trace.tooFast.maximumPoolOccupancy, 6);
+  assert.deepEqual(trace.configured, {
+    cooldown: 20,
+    allocationSizes: Array(25).fill(3),
+    salvos: 25,
+    fullSalvos: 25,
     rejectedFullSalvos: 0,
-    maximumPoolOccupancy: 9,
+    maximumPoolOccupancy: 6,
   });
 });
 

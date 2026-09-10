@@ -44,7 +44,7 @@ function assembleCurrentRuntime() {
   const labelPath = path.join(temporary, "main.lbl");
   execFileSync("ca65", ["--cpu", "6502", "-g", "-I", path.join(root, "build"),
     "-o", object, path.join(root, "src", "main.s")]);
-  execFileSync("ld65", ["-C", path.join(root, "cfg", "atari-boot.cfg"), "-o", binary,
+  execFileSync("ld65", ["--large-alignment", "-C", path.join(root, "cfg", "atari-boot.cfg"), "-o", binary,
     "-Ln", labelPath, object]);
   const linked = fs.readFileSync(binary);
   const labels = parseLabels(fs.readFileSync(labelPath, "utf8"));
@@ -125,6 +125,16 @@ function activeShots(memory, labels) {
   const active = required(labels, "FIGHTER_PROJECTILE_ACTIVE");
   return Array.from({ length: interceptorSlots }, (_, index) =>
     memory[active + interceptorSlotBase + index]);
+}
+
+function setLiveFormation(memory, labels) {
+  const memberState = required(labels, "ENEMY_MEMBER_STATE");
+  const hp = required(labels, "ENEMY_HP");
+  memory.fill(1, memberState, memberState + 3);
+  memory.fill(1, hp, hp + 3);
+  memory[required(labels, "ENEMY_FORMATION_Y_HI")] = 0;
+  memory[required(labels, "ENEMY_TARGET_SLOT")] = 0;
+  memory[required(labels, "ENEMY_LIVE_COUNT")] = 3;
 }
 
 test("assembled Hunter shots remain independent through capital traversal and ring wrap", () => {
@@ -291,6 +301,7 @@ test("capital due drains the final legal Hunter pulse before admission", () => {
   memory[required(labels, "enemy_x")] = 100;
   memory[required(labels, "enemy_y")] = 16;
   memory[enemyState] = 1;
+  setLiveFormation(memory, labels);
   memory[sector] = 7;
   memory[director.flags] = 0;
   setActiveGameplayFrame(memory, 599);
@@ -332,11 +343,12 @@ test("a live Hunter leaves naturally and gives capital admission a finite bound"
   memory[required(labels, "ENEMY_ARCHETYPE")] = 0;
   memory[required(labels, "enemy_y")] = 16 - 14;
   memory[enemyState] = 1;
+  setLiveFormation(memory, labels);
   memory[sector] = 7;
   memory[director.flags] = 0;
   memory[director.intensity] = 1;
 
-  for (let update = 0; update < 238; update += 1) {
+  for (let update = 0; update < 286; update += 1) {
     setActiveGameplayFrame(memory, 600 + update);
     run(memory, labels, "integration_update_first_capital");
     assert.equal(memory[sector], 7);
@@ -345,10 +357,10 @@ test("a live Hunter leaves naturally and gives capital admission a finite bound"
   assert.equal(memory[enemyState], 0, "the Hunter must recycle at the lower boundary");
   assert.equal(memory[director.intensity], 0, "natural recycle must release Director pressure");
 
-  setActiveGameplayFrame(memory, 838);
+  setActiveGameplayFrame(memory, 886);
   run(memory, labels, "integration_update_first_capital");
   assert.deepEqual([memory[sector], memory[director.flags]], [0, 0x40],
-    "the worst-positioned live Hunter must add at most 238 active frames");
+    "the rear Raider must add at most 286 active frames");
 });
 
 test("ordinary waves stay closed through reconstruction and resume without catch-up", () => {
@@ -380,6 +392,7 @@ test("ordinary waves stay closed through reconstruction and resume without catch
       memory[sector] = capitalState;
       memory[director.flags] = flags;
       memory[enemyState] = 1;
+      setLiveFormation(memory, labels);
       memory[burstState] = 1;
       memory[burstRemaining] = 6;
       memory[retryTimer] = 0;

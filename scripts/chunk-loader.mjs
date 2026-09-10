@@ -17,7 +17,9 @@ const SAFE_EXTENSION_RANGES = Object.freeze([
   [0x7bd0, 0x7f10],
   [0x7fdb, 0x8000], [0x8130, 0x9000], [0x90cf, 0x9100], [0x992a, 0xa000],
 ]);
-const PICKUP_COLD_RANGE = Object.freeze([0x8c80, 0x907e]);
+// The pickup stream is consumed before A2/ENTITY publication. Its cold tail
+// may therefore cross $9100 without overlapping live gameplay code.
+const PICKUP_COLD_RANGE = Object.freeze([0x8c80, 0x917d]);
 
 const INITIAL_ENVELOPE_MAGIC = Buffer.from("DFI2", "ascii");
 const INITIAL_ENVELOPE_MIN_BYTES = 12;
@@ -243,7 +245,7 @@ export function deterministicCapacityBytes(length, seed = 0x6d2b79f5) {
 export function validateInitialBlockCapacity(byteLength, { allowExtendedInitialBlock = false } = {}) {
   invariant(Number.isInteger(byteLength) && byteLength >= ATR_SECTOR_BYTES,
     "initial block length is invalid");
-  const maximumSectors = allowExtendedInitialBlock ? 103 : 100;
+  const maximumSectors = allowExtendedInitialBlock ? 105 : 100;
   const maximumBytes = maximumSectors * ATR_SECTOR_BYTES;
   invariant(byteLength <= maximumBytes,
     `initial block exceeds ${maximumBytes} bytes / ${maximumSectors} sectors`);

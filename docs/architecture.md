@@ -19,9 +19,9 @@ verify phases bind the boot BIN, XEX, and ATR by exact size and SHA-256.
 
 ## Cold startup and loader
 
-The Encounter Director configuration uses a 103-sector initial block at
-`$2000-$537F` and enters at `$201E` with a 449-byte raw bootstrap prefix. A
-1,191-byte stage-2 overlay runs at `$21C1-$2667`; after it validates
+The Encounter Director configuration uses a 104-sector initial block at
+`$2000-$53FF` and enters at `$201E` with a 449-byte raw bootstrap prefix. A
+1,257-byte stage-2 overlay runs at `$21C1-$26A9`; after it validates
 the complete manifest, it reads extension sectors through standard OS SIOV
 while OS IRQ/NMI and disk services are still available. Each chunk is fully
 read, CRC16-CCITT checked, and only then copied or decompressed to its manifest-
@@ -29,27 +29,28 @@ controlled destination. Any failure blanks DMA, selects a fixed red error
 background, and halts before partially loaded code can execute.
 
 The four ordered DFMC records are BROADSIDE in sectors 104-148, the packed
-pickup phase/code/collision stream in sectors 149-157, 250-byte integration glue
-in sectors 158-160, and the Encounter Director in sectors 161-165. ATR stages
-each record at `$8100`; BROADSIDE expands 6,651 bytes to `$5E10-$780A`, the
-1,021-byte pickup stream is published temporarily at `$8C80-$907C`, and glue
-expands to cold staging at `$7BD0-$7CC9`. Packed ENTITY_CODE stages at
-`$535A-$5E0C`. Startup holds glue at `$8600-$86F9` after consuming resident
+pickup phase/code/collision stream in sectors 149-158, 250-byte integration glue
+in sectors 159-161, and the Encounter Director in sectors 162-166. ATR stages
+each record at `$8100`; BROADSIDE expands 6,653 bytes to `$5E10-$780C`, the
+1,168-byte pickup stream is published temporarily at `$8C80-$910F`, and glue
+expands to cold staging at `$7BD0-$7CC9`. Packed ENTITY_CODE is copied backward
+to `$5318-$5E0A`. Startup holds glue at `$8600-$86F9` after consuming resident
 staging, defers the overlapping starfield staging write until that hold is
 complete, then copies glue to `$4EFE-$4FF7`; the 644-byte Director expands to
 `$9D75-$9FF8`. The last BROADSIDE source read makes `$8100` reusable;
 only then does startup copy the packed resident suffix and stage it at
-`$8100-$9B15`. The 7,743-byte suffix is stored as a 6,678-byte LZ-10/5 stream
+`$8100-$9B0A`. The 7,743-byte suffix is stored as a 6,667-byte LZ-10/5 stream
 and restores `$21C1-$3FFF`, overwriting all stage-2 code and its maximum
-eight-record manifest. The pickup stream is preserved at `$4801-$4BFC` before
+eight-record manifest. The pickup stream is preserved at `$4801-$4C90` before
 its cold source overlaps the future A2 range, then expands atomically to
-`$8800-$8EDE`; the final 33 bytes at `$8EBE-$8EDE` are the final-raster
+`$8800-$8C7F`; runtime code occupies `$8C80-$8FCD`, and the final 33 bytes at
+`$8FCE-$8FEE` are the final-raster
 capital/player collision module.
 No loader byte remains resident or enters gameplay.
 
 The manifest uses 16-bit sector numbers, supports eight sequential chunks, and
-accepts RAW or LZ records. The current initial block and four records use 165
-sectors (21,120 B). The ATR itself has 555 unused sectors (71,040 B); runtime
+accepts RAW or LZ records. The current initial block and four records use 166
+sectors (21,248 B). The ATR itself has 554 unused sectors (70,912 B); runtime
 residency remains a separate constraint.
 
 ### DFMC v1 byte format
@@ -70,12 +71,12 @@ Each 16-byte record stores, in order: 16-bit start sector, 16-bit sector count,
 16-bit packed length, 16-bit raw length, 16-bit final destination, 16-bit CRC of
 the complete sector image, one-byte type (`0=RAW`, `1=LZ`), one-byte controlled
 staging identifier, and a 16-bit staging address. All words are little-endian.
-Production records begin at sectors 104, 149, 158, and 161. Their packed/raw
-lengths are respectively 5,666/6,651 B, 1,021/1,759 B, 245/250 B, and 587/644 B.
+Production records begin at sectors 104, 149, 159, and 162. Their packed/raw
+lengths are respectively 5,659/6,653 B, 1,168/1,168 B, 245/250 B, and 587/644 B.
 The second record carries the compressed immutable pickup phase bank plus its
 late compositor and the 33-byte collision module. Its cold copy at
-`$8C80-$907C` is first preserved at `$4801-$4BFD`, then decompressed to
-`$8800-$8EDE`; source and destination never overlap while live. Glue is
+`$8C80-$910F` is first preserved at `$4801-$4C90`, then its phase bank is
+decompressed to `$8800-$8C7F`; source and destination never overlap while live. Glue is
 transported to `$7BD0-$7CC9`, held at `$8600-$86F9` after resident staging is
 consumed, and late-published to `$4EFE-$4FF7`. The Director ends
 at `$9FF8`; `$9FF9` remains free and `$9FFA-$9FFF` is the untouched guard.
@@ -94,20 +95,21 @@ footer palette zones. The loader remains visible for 250 complete PAL frames
 Cold staging also copies:
 
 - validated external broadside/runtime data to `$5E10-$780F` before takeover;
-- packed starfield/music data through `$7810-$7F03` to `$552A-$5DE4`;
-- the 254-byte A2 kernel through `$7F16-$8013` to `$9000-$90FD`, before the
+- packed starfield/music data through `$7810-$7F2A` to `$552A-$5D9C`;
+- the 254-byte A2 kernel through `$7F2B-$8028` to `$9000-$90FD`, before the
   `$8000-$80FF` entity/effects clear destroys the consumed source;
-- packed entity/effect/frontend code through boot-only staging at `$535A-$5E0C`
+- packed entity/effect/frontend code through backward boot-only staging at `$5318-$5E0A`
   to the resident `$9100-$9D74` range. The staging write begins only after the
-  initial packed source ending at `$5322` has been consumed. Its end-exclusive
-  `$5E0D` remains three bytes below the BROADSIDE destination at `$5E10`.
+  initial packed source ending at `$5359` has been consumed. Its end-exclusive
+  `$5E0B` remains five bytes below the BROADSIDE destination at `$5E10`.
 
-The initial packed sources end exclusively at `$5323`, leaving 55 bytes before
-the `$535A` staging start. Startup copies ENTITY_CODE there, expands the stream
-to its current live `$9100-$9D74` range, and immediately releases the staging
+The initial packed sources end exclusively at `$535A`. Startup copies
+ENTITY_CODE backward to `$5318-$5E0A`; the 66-byte source/staging overlap is
+safe because descending addresses are read before they are overwritten. It
+expands the stream to its current live `$9100-$9D6D` range and immediately releases the staging
 range. `unpack_loader_bitmap` may then overwrite it while preparing the loader;
 after the loader display completes, `unpack_starfield_runtime` expands to
-`$552A-$5DF5`, overlapping the already inactive ENTITY_CODE
+`$552A-$5D9C`, overlapping the already inactive ENTITY_CODE
 staging range. This ordering is mandatory; the overlap is temporal, not
 simultaneous residency.
 
@@ -239,53 +241,37 @@ head, and ring wrap.
 
 | Pool | Physical capacity | Release active limit | Purpose |
 | --- | ---: | ---: | --- |
-| Player Fighter projectiles | 10 | 10 | normal, Rapid Fire, and Spread Shot |
-| Interceptor projectiles | 9 | 9 | single-pulse burst |
-| Combined fighter projectiles | 19 | 19 | contiguous physical allocation |
-| Broadside projectiles | 3 | production scheduler has 2 source turrets | capital fire |
+| Player Fighter projectiles | 10 | 6 | normal, Rapid Fire, and Spread Shot |
+| Interceptor projectiles | 9 | 0 | retained allocation; disabled in the two-PMG movement prototype |
+| Combined fighter projectiles | 19 | 6 | Player Fighter only in this prototype |
+| Broadside projectiles | 3 | 2 | capital fire; M1-M3 allocation remains unchanged |
 | Interactive entities | 4 | 2 | debris plus one pickup capsule; controller/reserve slots remain non-rendered |
 | Transient effects | 6 | 5 | one core plus four fragments |
 
 Pool scans are bounded by compile-time counts. Spread Shot admits its centre
 whenever at least one Player Fighter slot is free and admits the two side shots only as
-an atomic pair. Its ten-frame cooldown is the minimum safe value for the
-28-update maximum legal projectile lifetime: nine frames can reach a
-centre-only tenth slot, while ten frames holds the steady state to three full
-salvos and nine projectiles. Normal and Spread initialize an eight-shot/eight-
-salvo burst; Normal uses a three-frame interval, Spread ten, and Rapid alone
-initializes ten shots at two frames. All modes retain the 12-frame post-burst
+an atomic pair. Its twenty-frame cooldown enforces the reduced active-fire
+budget. Normal and Spread initialize a four-shot/four-salvo burst; Normal uses
+a six-frame interval, Spread twenty, and Rapid initializes six shots at four
+frames. All modes retain the 12-frame post-burst
 pause. The effects pool is not used for pickup capsules or persistent
 projectile state.
 
 ## Enemies, debris, and boosters
 
-The released ordinary enemy is the Interceptor. Its descriptor selects hit points,
-score, pursuit profile, weapon profile, and PMG appearance. Interceptor projectiles
-share the fighter-projectile state allocation but use separate slots, red
-glyphs, collision ownership, and lifetime rules. Once emitted, a projectile is
-independent of its Interceptor and the capital-sector phase; only its swept player
-collision, lower boundary, documented 96-frame lifetime, or gameplay teardown
-releases the slot.
+The movement prototype owns exactly two ordinary Raider slots. P1 draws the
+first body and P2 draws the second; both use the Interceptor silhouette at its
+existing double-width scale and one hostile colour, with no scanner layer. Each
+slot stores its own X, Y, signed horizontal velocity, fractional 4/5-speed
+accumulator, manoeuvre state/timer, and behaviour phase. Both call the accepted
+single-Interceptor soft-pursuit routine, but opposite initial velocities and
+phases prevent synchronized flight. Their opening manoeuvre crosses vertically
+before both machines leave ahead of the unchanged first capital sector.
 
-The current provisional development schedule keeps one ordinary-enemy slot and
-uses table-driven BEGINNER/MEDIUM/HARD release-to-retry delays of 48/36/24 active
-gameplay frames. A bounded request still passes through the production Director
-phase mask and budget, consumes one charge and one RNG step only on admission,
-and remains excluded while a capital hull is active. The active-gameplay clock
-does not advance in loader, frontend, pause, dying, or Game Over states. This
-early window exists for natural Interceptor and three-kill booster testing; it
-is not the final level layout.
-
-Direct Interceptor/Player Fighter overlap is resolved after fighter projectiles and before
-broadside work. It queues the existing one-point contact hit against the
-Interceptor, then passes all ten HULL units to the canonical player-damage routine.
-An accepted unshielded contact therefore saturates HULL at zero and uses the
-existing HUD, breakup, life-loss, respawn, and Game Over flow in one event.
-`PLAYER_LIFECYCLE`, Shield, the 25-frame post-hit cooldown, and the per-frame
-damage latch remain the ordered gates. Interceptor destruction is resolved
-independently afterward through the established scored `EXPLODING`/breakup
-path, including when a player-side gate suppresses damage. Collision geometry,
-movement, scheduling, and persistent state are unchanged.
+Raider hits, contact, weapon release, scoring, and explosions are inert in this
+prototype. The nine historical projectile records remain allocated only to
+avoid a wider memory-layout change. Player Fighter fire, stars, scroll, ring
+publication, and capital-sector scheduling keep their production paths.
 
 Debris is the implemented interactive entity in slot 0. It has bounded
 trajectories, two shapes, two tumble phases, three hit points, contact damage,
@@ -384,9 +370,11 @@ energy, and glyph 8 for the distinct continuous Shield bar. Digits and letters
 retain their existing allocations and colours.
 
 PMG base is `$3800`; active DMA pages are `$3B00-$3FFF`. P0 and P3 form the
-Player Fighter, P1 is the Interceptor, and P2 is its scanner. M1-M3 serve broadside warnings
-and impacts. M0 remains reserved; current Player Fighter weapons are ANTIC 4 overlays so
-the ten-slot pool and yellow colour are independent of `COLPM0`.
+Player Fighter. P1 carries Raider slot 0 and P2 carries Raider slot 1. Both are
+independent monochrome body pages; no DLI multiplexer or scanner is used.
+M1-M3 serve broadside warnings and impacts. M0 remains reserved;
+current Player Fighter weapons are ANTIC 4 overlays so the ten-slot pool and
+yellow colour are independent of `COLPM0`.
 
 ## Determinism and verification
 

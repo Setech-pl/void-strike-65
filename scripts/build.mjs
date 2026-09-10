@@ -72,6 +72,7 @@ const packageDefinition = JSON.parse(fs.readFileSync(path.join(rootDirectory, "p
 const gameVersion = packageDefinition.version;
 const quiet = process.argv.includes("--quiet");
 const candidateBuild = runtimeEvidencePhase(process.argv) === "candidate";
+const twoPmgRaiderPrototype = process.argv.includes("--two-pmg-raiders");
 const enemyReviewHarness = process.argv.includes("--enemy-review");
 const enemyCombatReviewHarness = process.argv.includes("--enemy-combat-review");
 const enemyPaletteArgument = process.argv.find((argument) => argument.startsWith("--enemy-palette="));
@@ -99,10 +100,10 @@ const acceptedRuntimeCompactionReserveBytes = 1097;
 const minimumWeaponPickupReserveBytes = 512;
 const residentRuntimeSuffixAddressExpected = 0x21c1;
 const packedResidentStagingAddress = 0x8100;
-const entityPackedStagingAddress = 0x535a;
+const entityPackedStagingAddress = 0x5318;
 const weaponPickupPhaseBankAddress = 0x8800;
 const weaponPickupPackedStagingAddress = 0x8c80;
-const bootA2StagingAddress = 0x7f16;
+const bootA2StagingAddress = 0x7f2b;
 const debrisVisualPolishEntityCodeBaselineBytes = 564;
 const debrisVisualPolishEntityCodeBudgetBytes = 512;
 const runtimeHeadroomHistoricalWallGate = 31568;
@@ -165,21 +166,22 @@ const frontendH31BaselineEntityFeatureBytes = shieldBoosterBaselineEntityFeature
 const frontendH31HardRuntimeDeltaBytes = 1280;
 const broadsideRuntimeReservedBytes = 0x1a00;
 const starfieldStagingAddress = 0x7810;
-const starfieldStagingBytes = 0x706;
+const starfieldStagingBytes = 0x71b;
 const encounterDirectorEnabled = true;
 const glueStagingAddress = 0x7bd0;
 const glueFinalAddress = 0x4efe;
 const directorRunAddress = 0x9d75;
 const directorGuardAddress = 0x9ffa;
-// Ordinary waves drain before the capital sector and resume after its complete
-// ring reconstruction. The streams remain inside the existing 103 sectors.
-const expectedInitialContentBytes = 13116;
-const expectedLinkedRuntimeBytes = 17310;
+// This movement-only PMG build retains the same loader implementation and four
+// external publication records. Disabled Raider combat compresses the occupied
+// content into 103 initial sectors without changing stage-2 itself.
+const expectedInitialContentBytes = 13150;
+const expectedLinkedRuntimeBytes = 17506;
 const expectedDirectorRawBytes = 644;
 const expectedDirectorPackedBytes = 587;
 const expectedGlueRawBytes = 250;
 const expectedGluePackedBytes = 245;
-const capitalPlayerCollisionAddress = 0x8ebe;
+const capitalPlayerCollisionAddress = 0x8fce;
 
 function ensureDirectory(fsApi, directory) {
   const parts = directory.split("/").filter(Boolean);
@@ -438,6 +440,7 @@ async function build() {
       "/project/cfg/atari-boot.cfg": config,
     },
     [
+      "--large-alignment",
       "-C",
       "/project/cfg/atari-boot.cfg",
       "-o",
@@ -494,6 +497,7 @@ async function build() {
   const residentPackedSourceOperand = labels.get("resident_packed_source");
   const residentPackedSizeOperand = labels.get("resident_packed_size");
   const pickupPackedSizeOperand = labels.get("pickup_packed_size");
+  const weaponPickupColdStagingAddress = labels.get("WEAPON_PICKUP_COLD_STAGING");
   const broadsidePackedSourceOperand = labels.get("broadside_packed_source");
   const starfieldPackedSourceOperand = labels.get("starfield_packed_source");
   const starfieldPackedSizeOperand = labels.get("starfield_packed_size");
@@ -531,6 +535,7 @@ async function build() {
     !Number.isInteger(residentPackedSourceOperand) ||
     !Number.isInteger(residentPackedSizeOperand) ||
     !Number.isInteger(pickupPackedSizeOperand) ||
+    !Number.isInteger(weaponPickupColdStagingAddress) ||
     !Number.isInteger(broadsidePackedSourceOperand) ||
     !Number.isInteger(starfieldPackedSourceOperand) ||
     !Number.isInteger(starfieldPackedSizeOperand) || !Number.isInteger(a2KernelSourceOperand) ||
@@ -619,7 +624,7 @@ async function build() {
     stem: "capital-player-collision",
   });
   if (capitalPlayerCollisionModule.raw.length > 0x21) {
-    throw new Error(`Capital/player collision module exceeds $8EBE-$8EDE: ` +
+    throw new Error(`Capital/player collision module exceeds $8FCE-$8FEE: ` +
       `${capitalPlayerCollisionModule.raw.length} B`);
   }
   if (weaponPickupPhaseBankAddress + weaponPickupPhaseBank.length + pickupCodeRuntime.length !==
@@ -635,10 +640,10 @@ async function build() {
   if (!unpackBroadsideLzss(packedWeaponPickupPhaseBank).equals(weaponPickupPhaseRuntime)) {
     throw new Error("Weapon-pickup phase runtime LZSS round trip failed");
   }
-  if (packedWeaponPickupPhaseBank.length > 0x03ff) {
+  if (packedWeaponPickupPhaseBank.length > 0x06fd) {
     throw new Error(`Packed pickup runtime ${packedWeaponPickupPhaseBank.length} B from ` +
       `${pickupCodeBytes} B code plus ${capitalPlayerCollisionModule.raw.length} B collision ` +
-      `exceeds the reviewed 1023 B cold staging range; ` +
+      `exceeds the reviewed 1789 B cold staging range; ` +
       `BROADSIDE=${broadsideRuntimeBytes} B, ENTITY_CODE=${entityCodeBytes} B`);
   }
   const bootStage2Runtime = Buffer.from(linkedPayload.subarray(
@@ -712,6 +717,16 @@ async function build() {
   const initialPackedSourcesEnd = entityPackedSourceAddress + packedEntityCodeRuntime.length;
   const initialPackedSourcesLastAddress = initialPackedSourcesEnd - 1;
   const glueStagingEndAddress = glueStagingAddress + glueModule.raw.length;
+  const packedStarfieldEndAddress = packedStarfieldAddress + packedStarfieldRuntime.length;
+  if (packedStarfieldEndAddress > weaponPickupColdStagingAddress) {
+    throw new Error(
+      `Packed STARFIELD $${packedStarfieldAddress.toString(16)}-$${
+        (packedStarfieldEndAddress - 1).toString(16)} overlaps pickup staging from $${
+        weaponPickupColdStagingAddress.toString(16)}`,
+    );
+  }
+  const packedStarfieldToPickupMarginBytes =
+    weaponPickupColdStagingAddress - packedStarfieldEndAddress;
   if (!(glueStagingAddress >= 0x7bd0 &&
     glueStagingEndAddress <= starfieldStagingAddress + starfieldStagingBytes)) {
     throw new Error(
@@ -723,10 +738,16 @@ async function build() {
         (starfieldStagingAddress + starfieldStagingBytes - 1).toString(16)}`,
     );
   }
-  if (!(initialPackedSourcesEnd <= entityStagedSourceAddress)) {
+  const entitySourceOverlapsStaging =
+    entityPackedSourceAddress < entityStagedEndAddress &&
+    entityStagedSourceAddress < initialPackedSourcesEnd;
+  if (entitySourceOverlapsStaging &&
+      !(entityStagedSourceAddress >= entityPackedSourceAddress)) {
     throw new Error(
-      `Initial packed sources ending exclusively at $${initialPackedSourcesEnd.toString(16)} ` +
-      `must precede ENTITY_CODE staging $${entityStagedSourceAddress.toString(16)}`,
+      `Overlapping ENTITY_CODE staging $${entityStagedSourceAddress.toString(16)}-$${
+        (entityStagedEndAddress - 1).toString(16)} must begin at or above its source $${
+        entityPackedSourceAddress.toString(16)}-$${
+        initialPackedSourcesLastAddress.toString(16)} for backward-copy safety`,
     );
   }
   if (!(entityStagedEndAddress <= broadsideRunAddress)) {
@@ -867,13 +888,13 @@ async function build() {
     record.startSector, record.sectorCount, record.packedLength,
     record.rawLength, record.finalDestination,
   ]);
-  if (bootSectors !== 103 || totalTransportSectors !== 165 ||
-    transportPayload.length !== 21120 || JSON.stringify(frozenRecordShape) !== JSON.stringify([
-      [104, 45, 5666, 6651, 0x5e10],
-      [149, 9, packedWeaponPickupPhaseBank.length, packedWeaponPickupPhaseBank.length,
+  if (bootSectors !== 103 || totalTransportSectors !== 166 ||
+    transportPayload.length !== 21248 || JSON.stringify(frozenRecordShape) !== JSON.stringify([
+      [104, 45, 5659, 6653, 0x5e10],
+      [149, 10, 1168, 1168,
         weaponPickupPackedStagingAddress],
-      [158, 3, 245, 250, glueStagingAddress],
-      [161, 5, 587, 644, directorRunAddress],
+      [159, 3, 245, 250, glueStagingAddress],
+      [162, 5, 587, 644, directorRunAddress],
     ])) {
     throw new Error(`Layout D.2 transport topology changed: ${JSON.stringify(frozenRecordShape)}`);
   }
@@ -893,7 +914,7 @@ async function build() {
   ], bootStage2XexEntry);
   const atr = makeAtr(transportPayload);
   const runtimeArtifacts = runtimeArtifactSet({ boot: transportPayload, xex, atr });
-  const cpuRuntimeTiming = isReviewVariant ? null : measureRuntimeCycles({
+  const cpuRuntimeTiming = isReviewVariant || twoPmgRaiderPrototype ? null : measureRuntimeCycles({
     residentMain,
     loadAddress,
     broadsideRuntime,
@@ -1226,6 +1247,9 @@ async function build() {
       reservedBytes: 0x08e6,
       packedBytes: packedStarfieldRuntime.length,
       packedSourceAddress: packedStarfieldAddress,
+      packedSourceEndExclusive: packedStarfieldEndAddress,
+      pickupColdStagingAddress: weaponPickupColdStagingAddress,
+      packedSourceToPickupMarginBytes: packedStarfieldToPickupMarginBytes,
       stagingAddress: starfieldStagingAddress,
       stagingBytes: starfieldStagingBytes,
       compression: "LZ-10/5",
@@ -1305,6 +1329,10 @@ async function build() {
       stagedEndAddress: entityStagedEndAddress - 1,
       stagedEndExclusive: entityStagedEndAddress,
       sourceToStagingMarginBytes: entityStagedSourceAddress - initialPackedSourcesEnd,
+      sourceStagingOverlapBytes: Math.max(
+        0, initialPackedSourcesEnd - entityStagedSourceAddress,
+      ),
+      stagingCopyDirection: "backward",
       stagingToBroadsideMarginBytes: broadsideRunAddress - entityStagedEndAddress,
       stagingLifecycle: {
         starfieldDestinationAddress: starfieldRunAddress,
@@ -1580,6 +1608,11 @@ async function build() {
       previewStartPhase: capitalHullsAsset.previewStartPhase,
       contourTransitions: Object.fromEntries(capitalHullsAsset.contourTransitionCounts),
       broadsideScheduleBytes: capitalHullsAsset.scheduleBytes.length,
+      broadsideFire: {
+        allocatedSlots: 3,
+        activeLimit: capitalHullsAsset.broadside.activeLimit,
+        delaysAfterFrames: capitalHullsAsset.schedule.map(({ delayAfterFrames }) => delayAfterFrames),
+      },
       flagshipSector: {
         totalRows: capitalHullsAsset.sector.totalRows,
         streamRows: capitalHullsAsset.sector.streamRows,
@@ -1637,6 +1670,22 @@ async function build() {
         scannerValue: enemyRosterAsset.runtime.colourPolicy.accentValue,
       },
       movementPolicy: enemyRosterAsset.runtime.movementPolicy,
+      raiderFormation: {
+        memberCount: 3,
+        guideVisible: false,
+        memberVerticalOffsetsScanlines: [0, -24, -48],
+        sharedPmgPlayers: ["P1", "P2"],
+        independentStateAndHp: true,
+        retainDestroyedGaps: true,
+        replacementDuringFlight: false,
+        leaderTransfer: false,
+        maximumOrdinaryMachines: 3,
+        lifecycleEndsAfterAllMembersLeaveOrAreDestroyed: true,
+        blocksCapitalAdmissionUntilLifecycleEnd: true,
+        weaponPoolSlots: 9,
+        weaponActiveLimit: enemyRosterAsset.runtime.weaponPolicy.singlePulse.activeLimit,
+        weaponOriginSelection: "round-robin living member",
+      },
       weaponPolicy: enemyRosterAsset.runtime.weaponPolicy,
       projectileVisuals: capitalHullsAsset.broadside.projectileVisuals,
       damagePolicy: {
@@ -1671,6 +1720,12 @@ async function build() {
         player_fighter: fighterWeaponsAsset.player_fighter.poolSlots,
         interceptor: fighterWeaponsAsset.interceptor.poolSlots,
         total: fighterWeaponsAsset.totalSlots,
+      },
+      activeLimits: {
+        player_fighter: fighterWeaponsAsset.player_fighter.activeLimit,
+        interceptor: fighterWeaponsAsset.interceptor.activeLimit,
+        total: fighterWeaponsAsset.player_fighter.activeLimit +
+          fighterWeaponsAsset.interceptor.activeLimit,
       },
       runtimeStateBytes: fighterWeaponsAsset.stateBytes,
       sharedFighterExplosion: {

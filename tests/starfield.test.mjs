@@ -55,7 +55,7 @@ function assembleCurrentStarRuntime() {
   const labelsPath = path.join(temporary, "void-strike-65.lbl");
   execFileSync("ca65", ["--cpu", "6502", "-g", "-I", path.join(root, "build"),
     "-o", object, path.join(root, "src", "main.s")], { stdio: "pipe" });
-  execFileSync("ld65", ["-C", path.join(root, "cfg", "atari-boot.cfg"), "-o", binary,
+  execFileSync("ld65", ["--large-alignment", "-C", path.join(root, "cfg", "atari-boot.cfg"), "-o", binary,
     "-Ln", labelsPath, object], { stdio: "pipe" });
   const linked = fs.readFileSync(binary);
   const currentLabels = new Map(fs.readFileSync(labelsPath, "utf8")

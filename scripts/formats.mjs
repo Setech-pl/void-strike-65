@@ -33,8 +33,8 @@ const SHIELD_BOOSTER_RUNTIME_BASELINE_BYTES = 15346;
 const SHIELD_BOOSTER_ENTITY_BASELINE_BYTES = 1869;
 const SHIELD_BOOSTER_RUNTIME_HARD_DELTA_BYTES = 512;
 const FRONTEND_H31_RUNTIME_HARD_DELTA_BYTES = 1280;
-const HUNTER_WAVE_SEPARATION_RUNTIME_BASELINE_BYTES = 17277;
-const HUNTER_WAVE_SEPARATION_RUNTIME_HARD_DELTA_BYTES = 128;
+const RAIDER_FORMATION_RUNTIME_BASELINE_BYTES = 17277;
+const RAIDER_FORMATION_RUNTIME_HARD_DELTA_BYTES = 512;
 const MINIMUM_SPREAD_SHOT_RESERVE_BYTES = 64;
 const BOOT_PAYLOAD_TRAILER = Buffer.from([0x44, 0x46, 0x42, 0x31]); // "DFB1"
 
@@ -225,13 +225,17 @@ export function validateBuildDirectory(rootDirectory) {
     manifest.entityEffects.codeBytes > 0 &&
     manifest.entityEffects.codeBytes <= manifest.entityEffects.codeReservedBytes,
   "ENTITY_CODE exceeds its $9100-$9FFF runtime reservation");
-  invariant(manifest.entityEffects.stagedSourceAddress === 0x535a &&
-    manifest.entityEffects.initialPackedSourcesEndExclusive <=
+  invariant(manifest.entityEffects.stagedSourceAddress === 0x5318 &&
+    manifest.entityEffects.packedSourceAddress <=
       manifest.entityEffects.stagedSourceAddress &&
+    manifest.entityEffects.stagingCopyDirection === "backward" &&
     manifest.entityEffects.stagedEndExclusive <= manifest.broadsideRuntime.runAddress &&
     manifest.entityEffects.sourceToStagingMarginBytes ===
       manifest.entityEffects.stagedSourceAddress -
         manifest.entityEffects.initialPackedSourcesEndExclusive &&
+    manifest.entityEffects.sourceStagingOverlapBytes === Math.max(
+      0, manifest.entityEffects.initialPackedSourcesEndExclusive -
+        manifest.entityEffects.stagedSourceAddress) &&
     manifest.entityEffects.stagingToBroadsideMarginBytes ===
       manifest.broadsideRuntime.runAddress - manifest.entityEffects.stagedEndExclusive,
   "ENTITY_CODE cold staging ranges or reported margins are inconsistent");
@@ -318,11 +322,11 @@ export function validateBuildDirectory(rootDirectory) {
     SHIELD_BOOSTER_RUNTIME_BASELINE_BYTES &&
     (manifest.encounterDirector?.enabled === true
       ? manifest.encounterDirector.linkedRuntimeBytes <=
-        HUNTER_WAVE_SEPARATION_RUNTIME_BASELINE_BYTES +
-          HUNTER_WAVE_SEPARATION_RUNTIME_HARD_DELTA_BYTES
+        RAIDER_FORMATION_RUNTIME_BASELINE_BYTES +
+          RAIDER_FORMATION_RUNTIME_HARD_DELTA_BYTES
       : manifest.runtimeCodeBudget.frontendH31.actualDeltaBytes <=
         FRONTEND_H31_RUNTIME_HARD_DELTA_BYTES),
-  "Hunter wave separation exceeds its linked runtime hard budget");
+  "Raider formation exceeds its linked runtime hard budget");
   invariant(manifest.residentRuntime?.loadAddress === 0x2000 &&
     manifest.residentRuntime.runAddress === 0x2000 &&
     manifest.residentRuntime.rawBytes === 0x2000 &&

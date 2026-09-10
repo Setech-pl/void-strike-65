@@ -142,10 +142,10 @@ test("hybrid ring reservation fits after staging and before entity/effects RAM",
     constants.set(match[1], Number.parseInt(match[2], 16));
   }
   assert.equal(constants.get("STARFIELD_STAGING"), 0x7810);
-  assert.equal(constants.get("STARFIELD_STAGING_BYTES"), 0x0700);
+  assert.equal(constants.get("STARFIELD_STAGING_BYTES"), 0x0712);
   assert.match(source, /PLAYFIELD_RING_ROWS\s*=\s*GAMEPLAY_SCREEN_ROWS-1/);
   assert.match(source, /PLAYFIELD_DLIST_BYTES\s*=\s*3\+3\+PLAYFIELD_RING_ROWS\*3\+3/);
-  assert.match(source, /PLAYFIELD_DLIST_A\s*=\s*STARFIELD_STAGING\+STARFIELD_STAGING_BYTES/);
+  assert.match(source, /PLAYFIELD_DLIST_A\s*=\s*\$7F10/);
   assert.match(source, /PLAYFIELD_RING_STATE_END\s*<=\s*\$7FDD/);
   assert.match(source, /PLAYFIELD_RING_STATE_END\s*<=\s*\$8000/);
   assert.match(source, /GAMEPLAY_SCREEN_ROWS\s*=\s*23/);

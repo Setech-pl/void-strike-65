@@ -470,6 +470,7 @@ test("broadside source timing and schedule are deterministic and generated with 
   const { capitalExplosion, ...timing } = asset.broadside;
   assert.deepEqual(timing, {
     provisionalFirstCapitalGameplayFrame: 600,
+    activeLimit: 2,
     initialDelayFrames: 2,
     retryDelayFrames: 7,
     scheduleDelayScale: 2,
@@ -527,9 +528,13 @@ test("broadside source timing and schedule are deterministic and generated with 
     "enemy", "enemy", "enemy", "allied",
   ]);
   assert.deepEqual(asset.schedule.map(({ baseDelayAfterFrames }) => baseDelayAfterFrames),
-    [2, 2, 2, 37]);
+    [36, 36, 36, 95]);
   assert.deepEqual(asset.schedule.map(({ delayAfterFrames }) => delayAfterFrames),
-    [68, 68, 68, 138]);
+    [136, 136, 136, 254]);
+  const cadence = simulateBroadsideCadence(asset, { frames: 1800, difficulty: "hard" });
+  assert.ok(cadence.maximumActiveSlots <= 2);
+  assert.match(routine("schedule_broadside", "render_broadside_warning"),
+    /cpx #BROADSIDE_ACTIVE_LIMIT/);
   assert.equal(asset.scheduleBytes.length, 8);
   assert.equal(asset.turretBytes.length, 14);
 });

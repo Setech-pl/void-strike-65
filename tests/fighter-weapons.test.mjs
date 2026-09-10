@@ -26,6 +26,7 @@ import { canonicalPlayfield } from "../scripts/playfield.mjs";
 const directory = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(directory, "..");
 const source = fs.readFileSync(path.join(root, "src", "main.s"), "utf8");
+const integrationSource = fs.readFileSync(path.join(root, "src", "integration-glue.s"), "utf8");
 const roster = compileEnemyRoster(loadEnemyRosterDefinition(
   path.join(root, "assets", "graphics", "enemy-roster.json")), root);
 const weapons = compileFighterWeapons(loadFighterWeaponsDefinition(
@@ -80,27 +81,27 @@ test("Interceptor PMG drawing clips every frame to the gameplay viewport", () =>
   assert.match(renderer, /cpy #GAMEPLAY_TOP[\s\S]+bcc @accent_done/);
 });
 
-test("held FIRE emits an exact eight-shot normal PlayerFighter burst at three-frame intervals", () => {
+test("held FIRE emits the reduced four-shot normal burst at six-frame intervals", () => {
   const simulation = simulatePlayerFighterBurst(weapons, 40);
   const allocations = simulation.trace.filter(({ allocationResult }) =>
     allocationResult === "ALLOCATED");
-  assert.deepEqual(allocations.slice(0, 8).map(({ frame }) => frame),
-    [1, 4, 7, 10, 13, 16, 19, 22]);
-  assert.equal(allocations[7].burstState, "POST_BURST_COOLDOWN");
-  assert.equal(allocations[7].timer, 12);
-  assert.equal(allocations[8].frame, 34);
-  assert.ok(Math.max(...simulation.trace.map(({ active }) => active.length)) >= 8);
+  assert.deepEqual(allocations.slice(0, 4).map(({ frame }) => frame), [1, 7, 13, 19]);
+  assert.equal(allocations[3].burstState, "POST_BURST_COOLDOWN");
+  assert.equal(allocations[3].timer, 12);
+  assert.equal(allocations[4].frame, 31);
+  assert.ok(Math.max(...simulation.trace.map(({ active }) => active.length)) <= 6);
 });
 
-test("Rapid keeps ten shots, its two-frame interval and the common post-burst pause", () => {
-  const simulation = simulatePlayerFighterBurst(weapons, 32, { weaponMode: "RAPID" });
+test("Rapid keeps a clear advantage within the reduced five-active-shot limit", () => {
+  const simulation = simulatePlayerFighterBurst(weapons, 50, { weaponMode: "RAPID" });
   const allocations = simulation.trace.filter(({ allocationResult }) =>
     allocationResult === "ALLOCATED");
-  assert.deepEqual(allocations.slice(0, 10).map(({ frame }) => frame),
-    [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]);
-  assert.equal(allocations[9].burstState, "POST_BURST_COOLDOWN");
-  assert.equal(allocations[9].timer, 12);
-  assert.equal(allocations[10].frame, 31);
+  assert.deepEqual(allocations.slice(0, 6).map(({ frame }) => frame),
+    [1, 5, 9, 13, 17, 21]);
+  assert.equal(allocations[5].burstState, "POST_BURST_COOLDOWN");
+  assert.equal(allocations[5].timer, 12);
+  assert.equal(allocations[6].frame, 33);
+  assert.ok(Math.max(...simulation.trace.map(({ active }) => active.length)) <= 6);
 });
 
 test("FIRE release stops new emissions while launched PlayerFighter shots remain independent", () => {
@@ -116,18 +117,25 @@ test("FIRE release stops new emissions while launched PlayerFighter shots remain
 
 test("PlayerFighter pool rejection neither overwrites shots nor counts a rejected emission", () => {
   let state = createPlayerFighterBurstState(weapons);
-  state.pool = state.pool.map((_, index) => ({ owner: "PLAYER_FIGHTER", x: 80 + index, y: 100,
-    previousY: 100, width: 1, height: 2, colour: 0x1e }));
-  const before = state.pool.map(({ x }) => x);
+  state.pool = state.pool.map((_, index) => index < weapons.player_fighter.activeLimit ?
+    { owner: "PLAYER_FIGHTER", x: 80 + index, y: 100,
+      previousY: 100, width: 1, height: 2, colour: 0x1e } : null);
+  const before = state.pool.map((shot) => shot?.x ?? null);
   state = stepPlayerFighterBurst(weapons, state, { fireHeld: true });
   assert.equal(state.shotsEmitted, 0);
-  assert.deepEqual(state.pool.map(({ x }) => x), before);
-  assert.equal(state.burstRemaining, 8);
+  assert.deepEqual(state.pool.map((shot) => shot?.x ?? null), before);
+  assert.equal(state.burstRemaining, 4);
+  state.pool[0] = null;
+  state = stepPlayerFighterBurst(weapons, state, { fireHeld: true });
+  assert.equal(state.shotsEmitted, 1, "one deferred shot uses the newly free slot");
+  state = stepPlayerFighterBurst(weapons, state, { fireHeld: true });
+  assert.equal(state.shotsEmitted, 1, "rejection does not accumulate a catch-up salvo");
 });
 
 test("fighter projectiles use fixed pools and remain independent of DRAIN and M0-M3", () => {
   assert.deepEqual([weapons.player_fighter.poolSlots, weapons.interceptor.poolSlots, weapons.totalSlots],
     [10, 9, 19]);
+  assert.deepEqual([weapons.player_fighter.activeLimit, weapons.interceptor.activeLimit], [6, 5]);
   let state = simulatePlayerFighterBurst(weapons, 12).state;
   assert.ok(state.pool.some(Boolean));
   state = stepPlayerFighterBurst(weapons, state, { drain: true });
@@ -144,7 +152,7 @@ test("PlayerFighter fire remains continuous through DRAIN and COMPLETE", () => {
   assert.equal(held.pool.some(Boolean), true);
   assert.notEqual(held.burstState, "WAITING");
   held = stepPlayerFighterBurst(weapons, held, { fireHeld: true, sectorComplete: true });
-  assert.equal(held.shotsEmitted, 4,
+  assert.equal(held.shotsEmitted, 2,
     "COMPLETE preserves the canonical burst cadence rather than forcing a new shot");
   assert.ok(held.pool.some(Boolean));
 
@@ -349,12 +357,14 @@ test("capital shells remain materially longer than both fighter projectile class
   assert.deepEqual([capital.widthHpos, capital.height], [8, 6]);
   assert.ok(capital.widthHpos >= player.widthHpos * 2);
   assert.ok(capital.widthHpos >= interceptor.widthHpos * 2);
-  assert.match(source, /render_capital_shell_overlay:[\s\S]+sta \(dst_ptr\),y[\s\S]+iny[\s\S]+sta \(dst_ptr\),y/);
+  assert.match(integrationSource,
+    /render_capital_shell_overlay:[\s\S]+sta \(dst_ptr\),y[\s\S]+iny[\s\S]+sta \(dst_ptr\),y/);
 });
 
 test("assembled burst controllers use accepted counts, intervals, speeds and damage", () => {
   assert.deepEqual({
     player_fighterCount: weapons.player_fighter.burstCount,
+    player_fighterActiveLimit: weapons.player_fighter.activeLimit,
     player_fighterRapidCount: weapons.player_fighter.rapidFireBurstCount,
     player_fighterSpreadCount: weapons.player_fighter.spreadShotBurstCount,
     player_fighterSpreadCooldown: weapons.player_fighter.spreadShotCooldownFrames,
@@ -362,14 +372,16 @@ test("assembled burst controllers use accepted counts, intervals, speeds and dam
     player_fighterSpeed: weapons.player_fighter.speedScanlines,
     player_fighterPost: weapons.player_fighter.postBurstFrames,
     interceptorCount: weapons.interceptor.burstCount,
+    interceptorActiveLimit: weapons.interceptor.activeLimit,
     interceptorInterval: weapons.interceptor.burstIntervalFrames,
     interceptorSpeed: weapons.interceptor.speedScanlines,
     interceptorPost: weapons.interceptor.postBurstFrames,
     interceptorDamage: weapons.interceptor.damage,
   }, {
-    player_fighterCount: 8, player_fighterRapidCount: 10, player_fighterSpreadCount: 8, player_fighterSpreadCooldown: 10,
-    player_fighterInterval: 3, player_fighterSpeed: 6, player_fighterPost: 12,
-    interceptorCount: 10, interceptorInterval: 4, interceptorSpeed: 5,
+    player_fighterCount: 4, player_fighterActiveLimit: 6, player_fighterRapidCount: 6,
+    player_fighterSpreadCount: 4, player_fighterSpreadCooldown: 20,
+    player_fighterInterval: 6, player_fighterSpeed: 6, player_fighterPost: 12,
+    interceptorCount: 5, interceptorActiveLimit: 5, interceptorInterval: 8, interceptorSpeed: 5,
     interceptorPost: [60, 50, 40], interceptorDamage: 10,
   });
   assert.match(source,

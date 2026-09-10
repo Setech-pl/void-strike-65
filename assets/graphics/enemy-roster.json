@@ -40,8 +40,9 @@
       "singlePulse": {
         "renderer": "ANTIC4_GLYPH_POOL",
         "poolSlots": 9,
-        "burstCount": 10,
-        "burstIntervalFrames": 4,
+        "activeLimit": 5,
+        "burstCount": 5,
+        "burstIntervalFrames": 8,
         "postBurstFrames": [60, 50, 40],
         "speed": 5,
         "height": 3,

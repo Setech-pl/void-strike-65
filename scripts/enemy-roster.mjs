@@ -279,9 +279,10 @@ export function compileEnemyRoster(definition, rootDirectory) {
     runtime.colourPolicy.accentValue === 0x46,
   "Enemy roster must select Hostile burgundy $44 with a brighter red $46 scanner");
   const pulse = runtime.weaponPolicy?.singlePulse;
-  invariant(pulse?.renderer === "ANTIC4_GLYPH_POOL" && pulse.poolSlots === 9,
-    "Interceptor burst must use its nine-slot ANTIC 4 glyph pool");
-  invariant(pulse.burstCount === 10 && pulse.burstIntervalFrames === 4 &&
+  invariant(pulse?.renderer === "ANTIC4_GLYPH_POOL" && pulse.poolSlots === 9 &&
+    pulse.activeLimit === 5,
+    "Interceptor burst must keep nine allocated slots with a five-shot active limit");
+  invariant(pulse.burstCount === 5 && pulse.burstIntervalFrames === 8 &&
     JSON.stringify(pulse.postBurstFrames) === JSON.stringify([60, 50, 40]),
   "Interceptor burst count, interval, or Easy/Medium/Hard pauses changed");
   invariant(pulse.speed === 5 && pulse.height === 3 && pulse.widthHpos === 2 &&
@@ -383,6 +384,7 @@ export function renderEnemyRosterCa65Include(asset) {
     `ENEMY_WEAPON_NONE = ${ENEMY_WEAPON_PROFILES.NONE}`,
     `ENEMY_WEAPON_SINGLE_PULSE = ${ENEMY_WEAPON_PROFILES.SINGLE_PULSE}`,
     `ENEMY_PULSE_POOL_SLOTS = ${asset.runtime.weaponPolicy.singlePulse.poolSlots}`,
+    `ENEMY_PULSE_ACTIVE_LIMIT = ${asset.runtime.weaponPolicy.singlePulse.activeLimit}`,
     `ENEMY_PULSE_BURST_COUNT = ${asset.runtime.weaponPolicy.singlePulse.burstCount}`,
     `ENEMY_PULSE_BURST_INTERVAL = ${asset.runtime.weaponPolicy.singlePulse.burstIntervalFrames}`,
     `ENEMY_PULSE_POST_BURST_EASY = ${asset.runtime.weaponPolicy.singlePulse.postBurstFrames[0]}`,

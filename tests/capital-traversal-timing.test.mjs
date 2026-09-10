@@ -41,7 +41,7 @@ function assembleCurrentRuntime() {
   const labelsPath = path.join(temporary, "void-strike-65.lbl");
   execFileSync("ca65", ["--cpu", "6502", "-g", "-I", path.join(root, "build"),
     "-o", object, path.join(root, "src", "main.s")], { stdio: "pipe" });
-  execFileSync("ld65", ["-C", path.join(root, "cfg", "atari-boot.cfg"), "-o", binary,
+  execFileSync("ld65", ["--large-alignment", "-C", path.join(root, "cfg", "atari-boot.cfg"), "-o", binary,
     "-m", map, "-Ln", labelsPath, object], { stdio: "pipe" });
 
   const linked = fs.readFileSync(binary);
@@ -79,7 +79,7 @@ function assembleCurrentRuntime() {
     directorRunAddress: 0x9d75,
     capitalPlayerCollisionRuntime: fs.readFileSync(
       path.join(root, "build", "capital-player-collision.bin")),
-    capitalPlayerCollisionRunAddress: 0x8ebe,
+    capitalPlayerCollisionRunAddress: 0x8fce,
     labels,
     segmentSizes: parseSegmentSizes(fs.readFileSync(map, "utf8")),
   };

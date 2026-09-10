@@ -204,6 +204,26 @@ const provisionalCapitalSessions = ["XEX", "ATR"].flatMap((medium) =>
     kind: "early-enemy-cold",
   })));
 
+const raiderFormationSessions = [{
+  id: "two-pmg-raiders-xex-hard",
+  medium: "XEX",
+  difficulty: 2,
+  policy: "raider-proof",
+  fireDelay: 8,
+  frames: 320,
+  kind: "two-pmg-raiders-native",
+}];
+
+const raiderSectorSessions = [{
+  id: "raider-sector-xex-hard",
+  medium: "XEX",
+  difficulty: 2,
+  policy: "early-hunt",
+  fireDelay: 4,
+  frames: 1_800,
+  kind: "raider-sector-lifecycle",
+}];
+
 const capitalContactSessions = [0, 1].map((owner) => ({
   id: `capital-contact-${owner === 0 ? "allied" : "hostile"}-medium`,
   difficulty: 1,
@@ -359,7 +379,10 @@ const traceLabels = {
   DFTRACE_BROAD_STATE: "BROAD_STATE",
   DFTRACE_FAR_ACTIVE: "STAR_FAR_ACTIVE",
   DFTRACE_ENEMY_ACTIVE: "ENEMY_ACTIVE",
-  DFTRACE_ENEMY_X: "enemy_x",
+  DFTRACE_ENEMY_X: "ENEMY_X",
+  DFTRACE_ENEMY_MEMBER_STATE: "ENEMY_MEMBER_STATE",
+  DFTRACE_ENEMY_HP: "ENEMY_HP",
+  DFTRACE_ENEMY_LIVE_COUNT: "ENEMY_LIVE_COUNT",
   DFTRACE_FIGHTER_EXPLOSION_TIMER: "FIGHTER_EXPLOSION_TIMER",
   DFTRACE_CAPITAL_EXPLOSION_TIMER: "CAPITAL_EXPLOSION_TIMER",
   DFTRACE_MUSIC_ACTIVE: "MUSIC_ACTIVE",
@@ -480,7 +503,11 @@ const numericCsvFields = new Set([
   "projectiles", "broadside", "far_rendered", "live_interceptor", "fighter_explosion",
   "capital_explosion", "music_active", "fire_sfx", "hit_sfx", "capital_sfx",
   "sound_enabled", "player_lifecycle", "sector_state", "gameplay_frame",
-  "active_gameplay_frame", "enemy_state", "enemy_y", "director_phase", "director_rng",
+  "active_gameplay_frame", "enemy_state", "enemy_y", "enemy_member0_state",
+  "enemy_member1_state", "enemy_member2_state", "enemy_member0_hp", "enemy_member1_hp",
+  "enemy_member2_hp", "enemy_live_count", "enemy_projectiles", "director_phase", "director_rng",
+  "enemy_x0", "enemy_x1", "enemy_y0", "enemy_y1", "enemy_hpos1", "enemy_hpos2",
+  "enemy_pmg_rows1", "enemy_pmg_rows2",
   "director_intensity", "director_reaction", "director_recovery",
   "difficulty", "active_muzzles", "entity_active", "entity_x", "entity_y",
   "entity_vx", "entity_move_accumulator", "entity_vertical_accumulator",
@@ -984,6 +1011,7 @@ function decodeEvents(bits) {
 function frameState(row, includeCpuReference = false) {
   const cpuSession = row.session.replace(/^targeted-/, "");
   const cpuReference = cpuReferenceByFrame.get(`${cpuSession}:${row.frame}`);
+  const raiderSlotCount = row.trace_kind === "two-pmg-raiders-native" ? 2 : 3;
   return {
     trace_kind: row.trace_kind,
     session: row.session,
@@ -1047,6 +1075,15 @@ function frameState(row, includeCpuReference = false) {
       effect_active_count: row.effect_active_count,
       effect_rendered_mask: row.effect_rendered_mask,
       live_interceptor: Boolean(row.live_interceptor),
+      raider_formation: {
+        guide_y: row.enemy_y,
+        member_state: [row.enemy_member0_state, row.enemy_member1_state,
+          row.enemy_member2_state].slice(0, raiderSlotCount),
+        member_hp: [row.enemy_member0_hp, row.enemy_member1_hp,
+          row.enemy_member2_hp].slice(0, raiderSlotCount),
+        live_count: row.enemy_live_count,
+        active_projectiles: row.enemy_projectiles,
+      },
       fighter_explosion: Boolean(row.fighter_explosion),
       capital_explosion: Boolean(row.capital_explosion),
       music_active: Boolean(row.music_active),
@@ -1064,6 +1101,20 @@ function frameState(row, includeCpuReference = false) {
       inclusive_procedure_cycles: cpuReference.procedureCycles,
       note: "Procedure values are inclusive and may be nested; they must not be summed.",
     } : null,
+  };
+}
+
+function twoPmgFrameState(row) {
+  return {
+    ...frameState(row),
+    two_pmg_raiders: [0, 1].map((slot) => ({
+      slot,
+      player: slot + 1,
+      x: row[`enemy_x${slot}`],
+      y: row[`enemy_y${slot}`],
+      hpos: row[`enemy_hpos${slot + 1}`],
+      nonzero_pmg_rows: row[`enemy_pmg_rows${slot + 1}`],
+    })),
   };
 }
 
@@ -1324,7 +1375,9 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
         loader250.loader_timer > loader300.loader_timer),
     `${definition.id} loader countdown did not advance through frame 300`);
     const milestones = result.milestones;
-    const menuDeadline = definition.id.startsWith("atr") ? 510 : 502;
+    // The 103-sector ATR takes two more SIO sectors than the accepted
+    // checkpoint; the cold-$A5 OS path reaches the same menu at frame 526.
+    const menuDeadline = definition.id.startsWith("atr") ? 526 : 502;
     invariant(milestones.menu <= menuDeadline && milestones.frontend_poll <= menuDeadline + 1,
       `${definition.id} did not reach the production main-menu input path by frame ${menuDeadline + 1}`);
     invariant(gameplay.game_state === 6 && gameplay.charset_address === 0x5000 &&
@@ -1465,7 +1518,7 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, xexPath, atrPath }
     };
   });
   const expectedBootStageStreams = [
-    { source: manifest.a2Kernel.sourceAddress, destination: 0x7f16,
+    { source: manifest.a2Kernel.sourceAddress, destination: 0x7f2b,
       bytes: manifest.a2Kernel.bytes },
     { source: manifest.entityEffects.packedSourceAddress,
       destination: manifest.entityEffects.stagedSourceAddress,
@@ -1515,13 +1568,13 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, xexPath, atrPath }
     staging_id: record.stagingId,
   }));
   invariant(JSON.stringify(dfmcRecords) === JSON.stringify([
-    { start_sector: 104, sectors: 45, packed_bytes: 5654, raw_bytes: 6643,
+    { start_sector: 104, sectors: 45, packed_bytes: 5659, raw_bytes: 6653,
       destination: 0x5e10, staging_id: 1 },
-    { start_sector: 149, sectors: 9, packed_bytes: 1020, raw_bytes: 1020,
+    { start_sector: 149, sectors: 10, packed_bytes: 1168, raw_bytes: 1168,
       destination: 0x8c80, staging_id: 2 },
-    { start_sector: 158, sectors: 3, packed_bytes: 244, raw_bytes: 249,
+    { start_sector: 159, sectors: 3, packed_bytes: 245, raw_bytes: 250,
       destination: 0x7bd0, staging_id: 2 },
-    { start_sector: 161, sectors: 5, packed_bytes: 585, raw_bytes: 645,
+    { start_sector: 162, sectors: 5, packed_bytes: 587, raw_bytes: 644,
       destination: 0x9d75, staging_id: 2 },
   ]), "DFMC record order or extent changed during the menu-lifecycle repair");
   const addressEnvironment = {
@@ -1759,6 +1812,8 @@ function main() {
   const capitalPlayerCollisionOnly = process.argv.includes("--capital-player-collision-only");
   const broadsideTransientOnly = process.argv.includes("--broadside-transient-only");
   const earlyEnemyOnly = process.argv.includes("--early-enemy-only");
+  const raiderFormationOnly = process.argv.includes("--raider-formation-only");
+  const raiderSectorOnly = process.argv.includes("--raider-sector-only");
   const skipBootSmoke = process.argv.includes("--skip-boot-smoke");
   const tracePreflightOnly = process.argv.includes("--trace-preflight-only");
   const reuseExistingTraces = process.argv.includes("--reuse-existing-traces");
@@ -1856,7 +1911,7 @@ function main() {
   addressEnvironment.DFTRACE_CAPITAL_DRAIN_ROWS =
     `0x${(sectorState + 1).toString(16)}`;
   addressEnvironment.DFTRACE_ACTIVE_GAMEPLAY_FRAME_LO = "0x4ff8";
-  addressEnvironment.DFTRACE_ENEMY_Y = `0x${labels.get("enemy_y").toString(16)}`;
+  addressEnvironment.DFTRACE_ENEMY_Y = `0x${labels.get("ENEMY_Y").toString(16)}`;
   addressEnvironment.DFTRACE_DIRECTOR_STATE = "0x80f6";
 
   if (tracePreflightOnly) {
@@ -1924,7 +1979,11 @@ function main() {
       if (fs.existsSync(framePath)) fs.unlinkSync(framePath);
     }
   }
-  let sessionsToRun = earlyEnemyOnly
+  let sessionsToRun = raiderFormationOnly
+    ? raiderFormationSessions
+    : raiderSectorOnly
+    ? raiderSectorSessions
+    : earlyEnemyOnly
     ? provisionalCapitalSessions
     : broadsideTransientOnly
     ? broadsideTransientSessions
@@ -1968,6 +2027,8 @@ function main() {
     const capitalGeometryPrefix = session.kind === "capital-player-geometry"
       ? path.join(buildDirectory, `${session.id}-frame`) : undefined;
     const capitalScreenshotPrefix = capitalGeometryPrefix ?? capitalContactPrefix;
+    const raiderScreenshotPrefix = session.kind === "two-pmg-raiders-native"
+      ? path.join(buildDirectory, session.id) : undefined;
     if (pickupContactPrefix !== undefined && !reuseExistingTraces) {
       const basename = path.basename(pickupContactPrefix);
       for (const name of fs.readdirSync(buildDirectory)) {
@@ -1998,6 +2059,13 @@ function main() {
     }
     if (capitalScreenshotPrefix !== undefined && !reuseExistingTraces) {
       const basename = path.basename(capitalScreenshotPrefix);
+      for (const name of fs.readdirSync(buildDirectory)) {
+        if (name.startsWith(`${basename}-`) && name.endsWith(".png"))
+          fs.unlinkSync(path.join(buildDirectory, name));
+      }
+    }
+    if (raiderScreenshotPrefix !== undefined && !reuseExistingTraces) {
+      const basename = path.basename(raiderScreenshotPrefix);
       for (const name of fs.readdirSync(buildDirectory)) {
         if (name.startsWith(`${basename}-`) && name.endsWith(".png"))
           fs.unlinkSync(path.join(buildDirectory, name));
@@ -2047,6 +2115,10 @@ function main() {
 	    DFTRACE_ENGINE_SCREENSHOT_PREFIX: path.join(buildDirectory, session.id),
 	    DFTRACE_ENGINE_SCREENSHOT_LIMIT: String(session.frames),
 	  } : {}),
+	  ...(raiderScreenshotPrefix === undefined ? {} : {
+	    DFTRACE_ENGINE_SCREENSHOT_PREFIX: raiderScreenshotPrefix,
+	    DFTRACE_ENGINE_SCREENSHOT_LIMIT: String(session.frames),
+	  }),
 	  ...(provisionalEntryPrefix === undefined ? {} : {
 	    DFTRACE_ENGINE_SCREENSHOT_PREFIX: provisionalEntryPrefix,
 	  }),
@@ -2609,6 +2681,180 @@ function main() {
     summaries.push(sessionSummary(session, rows));
     console.log(`${session.id}: ${rows.length} frames, max ` +
       `${maximumRow(rows, (row) => row.wall_cycles).wall_cycles} wall cycles`);
+  }
+  if (raiderFormationOnly) {
+    const session = sessionsToRun[0];
+    const rows = allRows.filter((row) => row.session === session.id);
+    const bothVisible = rows.filter((row) => row.enemy_state === 1 &&
+      row.enemy_member0_state === 1 && row.enemy_member1_state === 1 &&
+      row.enemy_pmg_rows1 > 0 && row.enemy_pmg_rows2 > 0);
+    invariant(bothVisible.length > 48,
+      `${session.id} did not show both PMG Raider slots long enough`);
+    const sameHeight = bothVisible.find((row) => row.enemy_y0 === row.enemy_y1 &&
+      row.enemy_x0 !== row.enemy_x1);
+    const swapped = bothVisible.find((row) => row.enemy_y0 > row.enemy_y1);
+    invariant(sameHeight !== undefined,
+      `${session.id} never showed both Raiders at one height with different X`);
+    invariant(swapped !== undefined,
+      `${session.id} did not reverse the initial vertical ordering`);
+    const xDeltas = new Set(bothVisible.map((row) => row.enemy_x1 - row.enemy_x0));
+    invariant(xDeltas.size > 4,
+      `${session.id} retained a fixed horizontal formation offset`);
+    const signedSteps = (slot) => bothVisible.slice(1).map((row, index) =>
+      Math.sign(row[`enemy_x${slot}`] - bothVisible[index][`enemy_x${slot}`]));
+    invariant([0, 1].every((slot) => {
+      const steps = signedSteps(slot);
+      return steps.includes(-1) && steps.includes(1);
+    }), `${session.id} did not show an independent turn in both slots`);
+    invariant(bothVisible.every((row) =>
+      row.enemy_hpos2 - row.enemy_hpos1 === row.enemy_x1 - row.enemy_x0),
+    `${session.id} HPOSP1/HPOSP2 ownership diverged from the two slot X values`);
+    invariant(rows.every((row) => row.enemy_projectiles === 0 &&
+      row.enemy_explosion_timer === 0),
+    `${session.id} enabled Raider combat or explosions in the movement demonstrator`);
+    invariant(Math.max(...rows.map((row) => row.player_fighter_projectiles)) > 0,
+      `${session.id} did not exercise active PlayerFighter fire`);
+    invariant(new Set(rows.map((row) => row.engine_active_dlist_lo)).size > 1 &&
+      new Set(rows.map((row) => row.engine_a2_head)).size > 1,
+      `${session.id} did not exercise playfield-ring rotation`);
+    const maximumWall = Math.max(...rows.map((row) => row.wall_cycles));
+    const movementPmgCosts = bothVisible.map((row) =>
+      row.profile_clock5 - row.profile_clock4);
+    const timingErrors = rows.reduce((counts, row) => ({
+      missed: counts.missed + row.missed_frames,
+      extra_vbi: counts.extra_vbi + row.extra_vbi_boundaries,
+      dli: counts.dli + row.dli_sequence_violations,
+    }), { missed: 0, extra_vbi: 0, dli: 0 });
+    invariant(maximumWall <= CAPITAL_HUNTER_ACCEPTED_CEILING_CYCLES &&
+      maximumWall <= SHIELD_BOOSTER_HARD_GATE_CYCLES &&
+      timingErrors.missed === 0 && timingErrors.extra_vbi === 0 && timingErrors.dli === 0,
+    `${session.id} failed PAL timing: max=${maximumWall}, ${JSON.stringify(timingErrors)}`);
+    const firstVisible = bothVisible[0];
+    const heaviestCaptured = maximumRow(
+      bothVisible.filter((row) => row.frame < 149), (row) => row.wall_cycles);
+    const selectedRows = [firstVisible, sameHeight, swapped, heaviestCaptured];
+    /* The screenshot taken on entry to frame F+1 is the completed Atari raster
+     * produced by trace row F, after its member-state transition. */
+    const screenshots = selectedRows.map((row) => path.join(buildDirectory,
+      `${session.id}-${String(row.frame + 1).padStart(3, "0")}.png`));
+    invariant(screenshots.every((screenshot) => fs.existsSync(screenshot)),
+      `${session.id} is missing a selected native Raider raster`);
+    const sheetPath = path.join(buildDirectory, `${session.id}-proof.png`);
+    writeScreenshotContact(screenshots, sheetPath, 4);
+    const report = {
+      schema_version: 1,
+      generated_by: "scripts/runtime-wall-trace.mjs --raider-formation-only",
+      emulator: "Atari800 7.1.2 PAL/XL",
+      artifact_sha256: runtimeArtifacts,
+      session: session.id,
+      difficulty: "HARD",
+      frames: rows.length,
+      input: { policy: session.policy, state_injection: false },
+      first_visible: twoPmgFrameState(firstVisible),
+      same_height_different_x: twoPmgFrameState(sameHeight),
+      vertical_order_swapped: twoPmgFrameState(swapped),
+      maximum_live_members: Math.max(...rows.map((row) => row.enemy_live_count)),
+      independence: {
+        horizontal_offset_values: xDeltas.size,
+        p1_and_p2_both_turned: true,
+        hpos_tracks_slot_x: true,
+        maximum_p1_nonzero_rows: Math.max(...rows.map((row) => row.enemy_pmg_rows1)),
+        maximum_p2_nonzero_rows: Math.max(...rows.map((row) => row.enemy_pmg_rows2)),
+      },
+      workload: {
+        player_fighter_fire_active: true,
+        maximum_player_fighter_projectiles:
+          Math.max(...rows.map((row) => row.player_fighter_projectiles)),
+        playfield_ring_rotation_active: true,
+        raider_projectiles: 0,
+        raider_combat_cost_included: false,
+        maximum_enemy_movement_pmg_wall_cycles:
+          Math.max(...movementPmgCosts),
+      },
+      timing: {
+        maximum_wall_cycles: maximumWall,
+        target_headroom_cycles: CAPITAL_HUNTER_ACCEPTED_CEILING_CYCLES - maximumWall,
+        hard_gate_headroom_cycles: SHIELD_BOOSTER_HARD_GATE_CYCLES - maximumWall,
+        ...timingErrors,
+      },
+      screenshot_sequence: path.relative(rootDirectory, sheetPath),
+      csv: path.relative(rootDirectory, path.join(buildDirectory, `${session.id}.csv`)),
+      passed: true,
+    };
+    const focusedReportPath = path.join(buildDirectory, "two-pmg-raiders-native-report.json");
+    fs.writeFileSync(focusedReportPath, `${JSON.stringify(report, null, 2)}\n`);
+    console.log(`Two-PMG Raider report: ${path.relative(rootDirectory, focusedReportPath)}`);
+    return;
+  }
+  if (raiderSectorOnly) {
+    const session = sessionsToRun[0];
+    const rows = allRows.filter((row) => row.session === session.id);
+    const capitalStartIndex = rows.findIndex((row, index) => index !== 0 &&
+      row.sector_state !== 7 && rows[index - 1].sector_state === 7);
+    invariant(capitalStartIndex > 0, `${session.id} did not enter the capital sector`);
+    const postOpenIndex = rows.findIndex((row, index) => index > capitalStartIndex &&
+      row.sector_state === 7 && rows[index - 1].sector_state !== 7);
+    invariant(postOpenIndex > capitalStartIndex,
+      `${session.id} did not return to post-sector OPEN`);
+    const preSector = rows.slice(0, capitalStartIndex);
+    const initialFormation = preSector.find((row) => row.enemy_state === 1 &&
+      row.enemy_live_count === 3);
+    invariant(initialFormation !== undefined,
+      `${session.id} did not run a three-Raider formation before the sector`);
+    const releasedShots = preSector.findLast((row) => row.enemy_state === 0 &&
+      row.enemy_projectiles > 0);
+    invariant(releasedShots !== undefined,
+      `${session.id} did not preserve released Raider shots after formation release`);
+    const capitalStart = rows[capitalStartIndex];
+    invariant(capitalStart.enemy_state === 0 && capitalStart.enemy_live_count === 0 &&
+      capitalStart.enemy_projectiles === 0,
+    `${session.id} entered the capital sector before ordinary pressure drained`);
+    const capitalRows = rows.slice(capitalStartIndex, postOpenIndex + 1);
+    invariant(capitalRows.every((row) => row.enemy_state === 0 &&
+      row.enemy_live_count === 0),
+    `${session.id} admitted ordinary machines during the capital lifecycle`);
+    const readmission = rows.slice(postOpenIndex + 1).find((row) =>
+      row.enemy_state === 1 && row.enemy_live_count === 3);
+    invariant(readmission !== undefined,
+      `${session.id} did not readmit a formation after post-sector OPEN`);
+    const maximumWall = Math.max(...rows.map((row) => row.wall_cycles));
+    const timingErrors = rows.reduce((counts, row) => ({
+      missed: counts.missed + row.missed_frames,
+      extra_vbi: counts.extra_vbi + row.extra_vbi_boundaries,
+      dli: counts.dli + row.dli_sequence_violations,
+    }), { missed: 0, extra_vbi: 0, dli: 0 });
+    invariant(maximumWall <= CAPITAL_HUNTER_ACCEPTED_CEILING_CYCLES &&
+      maximumWall <= SHIELD_BOOSTER_HARD_GATE_CYCLES &&
+      timingErrors.missed === 0 && timingErrors.extra_vbi === 0 && timingErrors.dli === 0,
+    `${session.id} failed PAL timing: max=${maximumWall}, ${JSON.stringify(timingErrors)}`);
+    const report = {
+      schema_version: 1,
+      generated_by: "scripts/runtime-wall-trace.mjs --raider-sector-only",
+      emulator: "Atari800 7.1.2 PAL/XL",
+      artifact_sha256: runtimeArtifacts,
+      session: session.id,
+      difficulty: "HARD",
+      frames: rows.length,
+      input: { policy: session.policy, state_injection: false },
+      initial_formation: frameState(initialFormation),
+      released_shots_finish_independently: frameState(releasedShots),
+      capital_start_empty: frameState(capitalStart),
+      post_sector_open: frameState(rows[postOpenIndex]),
+      formation_readmitted: frameState(readmission),
+      blocked_capital_frames: capitalRows.length,
+      timing: {
+        maximum_wall_cycles: maximumWall,
+        target_headroom_cycles: CAPITAL_HUNTER_ACCEPTED_CEILING_CYCLES - maximumWall,
+        hard_gate_headroom_cycles: SHIELD_BOOSTER_HARD_GATE_CYCLES - maximumWall,
+        ...timingErrors,
+      },
+      csv: path.relative(rootDirectory, path.join(buildDirectory, `${session.id}.csv`)),
+      passed: true,
+    };
+    const focusedReportPath = path.join(buildDirectory, "raider-sector-native-report.json");
+    fs.writeFileSync(focusedReportPath, `${JSON.stringify(report, null, 2)}\n`);
+    console.log(`Raider sector report: ${path.relative(rootDirectory, focusedReportPath)}`);
+    return;
   }
   if (earlyEnemyOnly) {
     const limits = [60, 45, 30];

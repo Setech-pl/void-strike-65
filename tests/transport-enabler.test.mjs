@@ -49,7 +49,7 @@ function lzChunk(length, finalDestination, seed) {
   };
 }
 
-test("production gate distinguishes 100 sectors from the opt-in 103-sector layout", () => {
+test("production gate distinguishes 100 sectors from the opt-in 105-sector layout", () => {
   const hundred = buildDfmcV1Transport({
     initialContent: initialContent(100 * 128 - 12),
     manifestOffset: MANIFEST_OFFSET,
@@ -96,19 +96,19 @@ test("production gate distinguishes 100 sectors from the opt-in 103-sector layou
   assert.equal(hundredThree.records[0].startSector, 104);
 });
 
-test("the opt-in initial-block ceiling accepts exactly 13184 bytes and rejects 13185", () => {
-  assert.deepEqual(validateInitialBlockCapacity(13184, { allowExtendedInitialBlock: true }), {
-    byteLength: 13184, sectors: 103, maximumBytes: 13184, maximumSectors: 103,
+test("the opt-in initial-block ceiling accepts exactly 13440 bytes and rejects 13441", () => {
+  assert.deepEqual(validateInitialBlockCapacity(13440, { allowExtendedInitialBlock: true }), {
+    byteLength: 13440, sectors: 105, maximumBytes: 13440, maximumSectors: 105,
   });
-  assert.throws(() => validateInitialBlockCapacity(13185, {
+  assert.throws(() => validateInitialBlockCapacity(13441, {
     allowExtendedInitialBlock: true,
-  }), /exceeds 13184 bytes \/ 103 sectors/);
+  }), /exceeds 13440 bytes \/ 105 sectors/);
   assert.throws(() => buildDfmcV1Transport({
-    initialContent: initialContent(103 * 128 - 11),
+    initialContent: initialContent(105 * 128 - 11),
     manifestOffset: MANIFEST_OFFSET,
     chunks: [rawChunk(107)],
     allowExtendedInitialBlock: true,
-  }), /exceeds 13184 bytes \/ 103 sectors/);
+  }), /exceeds 13440 bytes \/ 105 sectors/);
 });
 
 test("one and multiple records preserve order, fields, and exact sector boundaries", () => {

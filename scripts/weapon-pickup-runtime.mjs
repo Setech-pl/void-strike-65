@@ -297,9 +297,18 @@ function armLethalPlayerFighterShot(memory, labels, y = 109) {
 function killInterceptorWithPlayerFighter(memory, labels) {
   memory[requiredLabel(labels, "ENEMY_ARCHETYPE")] = 0;
   memory[requiredLabel(labels, "ENEMY_ACTIVE")] = 1;
-  memory[requiredLabel(labels, "ENEMY_HP")] = 1;
-  memory[requiredLabel(labels, "ENEMY_PENDING_DAMAGE")] = 0;
-  memory[requiredLabel(labels, "ENEMY_PENDING_SOURCE")] = 5;
+  const memberState = requiredLabel(labels, "ENEMY_MEMBER_STATE");
+  const hp = requiredLabel(labels, "ENEMY_HP");
+  const pendingDamage = requiredLabel(labels, "ENEMY_PENDING_DAMAGE");
+  const pendingSource = requiredLabel(labels, "ENEMY_PENDING_SOURCE");
+  memory.fill(0, memberState, memberState + 3);
+  memory.fill(0, hp, hp + 3);
+  memory.fill(0, pendingDamage, pendingDamage + 3);
+  memory.fill(5, pendingSource, pendingSource + 3);
+  memory[memberState] = 1;
+  memory[hp] = 1;
+  memory[requiredLabel(labels, "ENEMY_LIVE_COUNT")] = 1;
+  memory[requiredLabel(labels, "ENEMY_FORMATION_Y_HI")] = 0;
   memory[requiredLabel(labels, "enemy_x")] = 124;
   memory[requiredLabel(labels, "enemy_y")] = 40;
   armLethalPlayerFighterShot(memory, labels, 54);
@@ -323,12 +332,16 @@ function runBurst(memory, labels, { rapid, expectedCount, onFrame = () => {} }) 
   memory[0xd010] = 0;
   const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
   const emissions = [];
-  let previousCount = 0;
   for (let frame = 0; frame < 48 && emissions.length < expectedCount; frame += 1) {
     runRoutine(memory, labels, "update_player_fighter_weapon");
     const currentCount = countActive(memory, active, 10);
-    if (currentCount > previousCount) emissions.push(frame);
-    previousCount = currentCount;
+    if (currentCount > 0) {
+      emissions.push(frame);
+      // Isolate controller cadence from the independently tested active-pool
+      // limit. The harness consumes only the accepted slot; it must not call
+      // the production teardown that also resets the burst controller.
+      memory.fill(0, active, active + 10);
+    }
     if (rapid) runRoutine(memory, labels, "update_weapon_booster_active", { x: 3 });
     onFrame({ frame, emitted: emissions.at(-1) === frame });
   }
@@ -1550,10 +1563,11 @@ export function executeSpreadShotPoolTrace({ root = defaultRoot, artifact = "xex
   return {
     artifact,
     empty: runCase(0),
-    sevenOccupied: runCase(7),
-    eightOccupied: runCase(8),
-    nineOccupied: runCase(9),
-    full: runCase(10),
+    threeOccupied: runCase(3),
+    fourOccupied: runCase(4),
+    fiveOccupied: runCase(5),
+    activeFull: runCase(6),
+    physicalFull: runCase(10),
   };
 }
 
@@ -1591,8 +1605,8 @@ export function executeSpreadShotCooldownSafetyTrace({
   return {
     artifact,
     frames,
-    unsafe: runCandidate(9),
-    minimumSafe: runCandidate(10),
+    tooFast: runCandidate(17),
+    configured: runCandidate(20),
   };
 }
 

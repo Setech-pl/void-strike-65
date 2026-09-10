@@ -56,7 +56,7 @@ function currentMemory() {
     const directorBinary = path.join(temporary, "encounter-director.bin");
     execFileSync("ca65", ["--cpu", "6502", "-g", "-I", path.join(root, "build"),
       "-o", object, path.join(root, "src", "main.s")]);
-    execFileSync("ld65", ["-C", path.join(root, "cfg", "atari-boot.cfg"), "-o", binary,
+    execFileSync("ld65", ["--large-alignment", "-C", path.join(root, "cfg", "atari-boot.cfg"), "-o", binary,
       "-Ln", labelPath, object]);
     execFileSync("ca65", ["--cpu", "6502", "-g", "-o", directorObject,
       path.join(root, "src", "encounter-director.s")]);
@@ -107,7 +107,8 @@ function run(memoryImage, target, { a = 0, x = 0, y = 0 } = {}) {
     cpu.step();
   }
   assert.equal(cpu.pc, stop, `${target} did not return`);
-  return { visited, carry: (cpu.p & nmos6502Flags.carry) !== 0, cycles: cpu.cycles };
+  return { visited, carry: (cpu.p & nmos6502Flags.carry) !== 0, cycles: cpu.cycles,
+    a: cpu.a, x: cpu.x, y: cpu.y };
 }
 
 function byteTable(memoryImage, label, length) {
@@ -149,6 +150,8 @@ function runEarlyEnemyReplay(difficulty, frames = 600) {
   const enemyActive = labels.get("ENEMY_ACTIVE");
   const enemyY = labels.get("enemy_y");
   const enemyHp = labels.get("ENEMY_HP");
+  const enemyMemberState = labels.get("ENEMY_MEMBER_STATE");
+  const enemyTargetSlot = labels.get("ENEMY_TARGET_SLOT");
   const pickupState = labels.get("ENTITY_STATE") + 1;
   const pickupCounter = labels.get("ENTITY_HP") + 1;
   image[labels.get("DIFFICULTY_SETTING")] = difficulty;
@@ -188,10 +191,17 @@ function runEarlyEnemyReplay(difficulty, frames = 600) {
     maximumActive = Math.max(maximumActive, after === 1 ? 1 : 0);
     if (after === 1 && image[enemyY] + 14 > 16 && visible.length < admissions.length) {
       visible.push(frame);
-      if (kills.length < 3) {
-        image[labels.get("ENEMY_PENDING_DAMAGE")] = 0;
-        image[labels.get("ENEMY_PENDING_SOURCE")] = 5;
-        run(image, "queue_enemy_damage", { a: image[enemyHp], y: 0 });
+    }
+    if (after === 1 && kills.length < 3) {
+      const guideY = image[enemyY];
+      const target = [0, 1, 2].find((slot) =>
+        image[enemyMemberState + slot] === 1 && guideY >= slot * 24 &&
+        guideY - slot * 24 + 14 > 16);
+      if (target !== undefined) {
+        image[enemyTargetSlot] = target;
+        image[labels.get("ENEMY_PENDING_DAMAGE") + target] = 0;
+        image[labels.get("ENEMY_PENDING_SOURCE") + target] = 5;
+        run(image, "queue_enemy_damage", { a: image[enemyHp + target], y: 0 });
         run(image, "resolve_enemy_damage");
         kills.push(frame);
       }
@@ -541,6 +551,94 @@ test("ordinary admission is slot-safe, RNG-stable and pre-sector compatible", ()
     "pre-sector admission must consume exactly one Director RNG value");
 });
 
+test("one guide owns three independently destructible Raiders and preserves the gap", () => {
+  const image = currentMemory();
+  run(image, "init_entity_effects");
+  run(image, "reset_enemy");
+  const member = labels.get("ENEMY_MEMBER_STATE");
+  const hp = labels.get("ENEMY_HP");
+  const pendingDamage = labels.get("ENEMY_PENDING_DAMAGE");
+  const pendingSource = labels.get("ENEMY_PENDING_SOURCE");
+  const target = labels.get("ENEMY_TARGET_SLOT");
+  const live = labels.get("ENEMY_LIVE_COUNT");
+  const guideY = labels.get("enemy_y");
+  const guideYHi = labels.get("ENEMY_FORMATION_Y_HI");
+  assert.deepEqual([...image.subarray(member, member + 3)], [1, 1, 1]);
+  assert.deepEqual([...image.subarray(hp, hp + 3)], [1, 1, 1]);
+  assert.deepEqual([image[live], image[guideY], image[guideYHi]], [3, 2, 0]);
+
+  image[guideY] = 80;
+  run(image, "clear_pmg");
+  run(image, "draw_enemy");
+  for (const top of [80, 56, 32]) {
+    assert.ok(image.subarray(0x3d00 + top, 0x3d00 + top + 14).some(Boolean),
+      `Raider at Y=${top} must own visible P1 bytes`);
+  }
+  for (const [start, end] of [[46, 56], [70, 80]]) {
+    assert.ok(image.subarray(0x3d00 + start, 0x3d00 + end).every((byte) => byte === 0),
+      "fixed spacing must leave a readable PMG gap");
+  }
+  assert.equal(image[0xd001], image[0xd002], "both enemy colour planes share one HPOS");
+
+  image[target] = 1;
+  image[pendingDamage + 1] = 1;
+  image[pendingSource + 1] = 0;
+  run(image, "resolve_enemy_damage");
+  assert.deepEqual([...image.subarray(member, member + 3)], [1, 0, 1]);
+  assert.deepEqual([...image.subarray(hp, hp + 3)], [1, 0, 1]);
+  assert.deepEqual([image[live], image[labels.get("ENEMY_ACTIVE")]], [2, 1]);
+  assert.equal(run(image, "ordinary_wave_pressure_active").a, 1,
+    "one aggregate owner keeps capital admission blocked while any Raider survives");
+
+  run(image, "update_enemy");
+  assert.equal(image[guideY], 81, "the invisible guide continues after the middle loss");
+  assert.deepEqual([...image.subarray(member, member + 3)], [1, 0, 1],
+    "the destroyed member remains a persistent gap");
+  assert.deepEqual([image[0x3d00 + 80], image[0x3d00 + 32]], [0, 0],
+    "one-line guide motion must clear only the two surviving old leading edges");
+  assert.ok(image.subarray(0x3d00 + 81, 0x3d00 + 81 + 14).some(Boolean));
+  assert.ok(image.subarray(0x3d00 + 33, 0x3d00 + 33 + 14).some(Boolean));
+  assert.ok(image.subarray(0x3d00 + 57, 0x3d00 + 57 + 14)
+    .every((byte) => byte === 0), "the destroyed middle gap must stay clear after motion");
+
+  for (const slot of [0, 2]) {
+    image[target] = slot;
+    image[pendingDamage + slot] = 1;
+    image[pendingSource + slot] = 0;
+  }
+  run(image, "resolve_enemy_damage");
+  assert.deepEqual([...image.subarray(member, member + 3)], [0, 0, 0]);
+  assert.deepEqual([image[live], image[labels.get("ENEMY_ACTIVE")]], [0, 2]);
+  assert.equal(image[labels.get("FIGHTER_EXPLOSION_TIMER") + 1], 24,
+    "the last loss leaves the shared explosion lifecycle active");
+});
+
+test("the shared burst rotates across visible living Raider members", () => {
+  const image = currentMemory();
+  run(image, "init_entity_effects");
+  run(image, "reset_enemy");
+  image[labels.get("enemy_y")] = 80;
+  const target = labels.get("ENEMY_TARGET_SLOT");
+  const cursor = labels.get("ENEMY_WEAPON_CURSOR");
+  const projectileY = labels.get("FIGHTER_PROJECTILE_Y");
+  const selected = [];
+  const origins = [];
+  for (let index = 0; index < 3; index += 1) {
+    assert.equal(run(image, "select_enemy_weapon_member").carry, true);
+    selected.push(image[target]);
+    assert.equal(run(image, "allocate_interceptor_projectile").carry, true);
+    origins.push(image[projectileY + 10 + index]);
+  }
+  assert.deepEqual(selected, [0, 1, 2]);
+  assert.deepEqual(origins, [93, 69, 45]);
+  assert.equal(image[cursor], 0);
+
+  image[labels.get("ENEMY_MEMBER_STATE") + 1] = 0;
+  image[cursor] = 1;
+  assert.equal(run(image, "select_enemy_weapon_member").carry, true);
+  assert.equal(image[target], 2, "the round robin skips the destroyed gap");
+});
+
 test("ordinary wave tables remain intact while the capital gate stays local", () => {
   const image = currentMemory();
   const originalMasks = [0x00, 0x09, 0x0a, 0x0f, 0x08, 0x0f, 0x08, 0x0f];
@@ -745,9 +843,10 @@ test("natural Level 1 reaches a visible two-sided BROADSIDE without state inject
       .map((frame, index) => frame - debrisAdmissions[index]);
     const emptyIntervals = debrisAdmissions.slice(1)
       .map((frame, index) => frame - debrisReleases[index]);
-    assert.ok(Math.max(...admissionIntervals) <= 256,
-      `difficulty ${difficulty} capital admission gap ${Math.max(...admissionIntervals)} frames`);
-    assert.ok(Math.max(...emptyIntervals) <= 136,
+    assert.ok(Math.max(...admissionIntervals) <= 384,
+      `difficulty ${difficulty} capital admission gap ${Math.max(...admissionIntervals)} frames; ` +
+      `admissions=${debrisAdmissions.join(",")}; releases=${debrisReleases.join(",")}`);
+    assert.ok(Math.max(...emptyIntervals) <= 272,
       `difficulty ${difficulty} empty debris gap ${Math.max(...emptyIntervals)} frames`);
     for (const owner of visibleByOwner) ownersAcrossDifficulties.add(owner);
     assert.equal(completedCapital, true, `difficulty ${difficulty} capital section must drain`);

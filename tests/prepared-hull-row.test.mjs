@@ -12,7 +12,7 @@ const root = path.resolve(import.meta.dirname, "..");
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "vs-prepared-row-"));
 execFileSync("ca65", ["--cpu", "6502", "-g", "-I", "build", "-o",
   `${temporary}/main.o`, "src/main.s"], { cwd: root });
-execFileSync("ld65", ["-C", "cfg/atari-boot.cfg", "-o", `${temporary}/main.bin`,
+execFileSync("ld65", ["--large-alignment", "-C", "cfg/atari-boot.cfg", "-o", `${temporary}/main.bin`,
   "-Ln", `${temporary}/main.lbl`, `${temporary}/main.o`], { cwd: root });
 const labels = parseViceLabels(fs.readFileSync(`${temporary}/main.lbl`, "utf8"));
 const linked = fs.readFileSync(`${temporary}/main.bin`);

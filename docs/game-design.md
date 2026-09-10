@@ -41,10 +41,7 @@ to their prior blank contents. The optional type glyph is omitted because the
   maximum HULL); it never computes a percentage of remaining HULL. Debris
   contact tests the Player Fighter's complete double-width 16-HPOS visible envelope;
   its vertical contract and the debris 8x8 hitbox remain unchanged.
-- An accepted direct Interceptor collision destroys the current Player Fighter at any HULL
-  from one through ten. Shield absorbs it; respawn invulnerability, the shared
-  post-hit cooldown, and an earlier same-frame damage event retain their normal
-  gates. The Interceptor still follows its established scored breakup lifecycle.
+- Raider contact and damage are disabled in this movement-only prototype.
 - Losing a Player Fighter plays a 24-frame breakup. If a life remains, the replacement
   Player Fighter receives 250 active frames (5 seconds) of invulnerability and blinks in
   an 8-frame visible/8-frame hidden rhythm.
@@ -57,31 +54,31 @@ to their prior blank contents. The optional type glyph is omitted because the
 
 ### Combat and scoring
 
-The normal Player Fighter weapon fires an eight-projectile burst at one projectile every
-three active frames, followed by a 12-frame pause. Projectiles travel upward by
-six scanlines per active frame. The physical Player Fighter pool has ten slots.
+The normal Player Fighter weapon fires a four-projectile burst at one projectile every
+six active frames, followed by a 12-frame pause. Projectiles travel upward by
+six scanlines per active frame. Its physical pool remains ten slots, with at
+most six simultaneously active.
 
-The implemented Interceptor has one hit point. It uses soft horizontal pursuit with
-a readable weave and moves at 80% of the Player Fighter's maximum horizontal speed. Its
-single-pulse weapon fires ten shots at four-frame intervals, then waits 60, 50,
-or 40 frames on Easy, Medium, or Hard. Interceptor pulses travel five scanlines per
-frame, live for at most 96 frames, and use a separate nine-slot pool.
+The implemented experiment starts two monochrome PMG Raiders before the first
+capital sector. Each reuses the Interceptor's sampled soft pursuit and readable
+weave at 80% of the Player Fighter's maximum horizontal speed. They own separate
+X/Y coordinates, signed direction, fractional movement phase, manoeuvre timer,
+and behaviour phase. Opposite opening directions and phase offsets produce
+independent turns. The opening vertical crossing includes one shared height at
+different X and then reverses their vertical order.
 
-The provisional development cadence exposes the sole ordinary-enemy slot from
-the start of gameplay. Its first Interceptor is visible by active frame 60.
-After the prior explosion releases the slot, the inactive retry timer is
-48/36/24 active frames on BEGINNER/MEDIUM/HARD; the measured release-to-visible
-gaps are 50/38/26 frames and remain bounded by 60/45/30. Rejected requests keep
-the same table-driven retry and do not consume Director RNG. Pause, frontend,
-loader, and odd death/Game Over lifecycles do not advance this schedule.
+This increment measures movement only. Raider hits, contact damage, scoring,
+shots, and explosions are disabled. Player Fighter movement and fire, stars,
+scroll, and ring rotation remain active. Both Raiders leave before the unchanged
+capital schedule; no sector gate is bypassed.
 
-An Interceptor is worth 10 points when destroyed by a Player Fighter projectile, player
+Each Raider is worth 10 points when destroyed by a Player Fighter projectile, player
 contact, or Hostile friendly fire. A capital-ship hit or lifecycle cleanup awards
 no points. Debris has three hit points, causes fixed 20%/50%/70% maximum-hull
 damage on Easy/Medium/Hard contact, and never awards score when destroyed.
 
-Interceptor and debris destruction use the implemented entity/effects foundation.
-Interceptor breakup has a core, two wing fragments, a central fragment, and a red
+Raider and debris destruction use the implemented entity/effects foundation.
+Raider breakup has a core, two wing fragments, a central fragment, and a red
 eye fragment. Debris destruction has one core plus four fragments. These are
 transient effects, not interactive enemies.
 
@@ -110,14 +107,14 @@ no capital lifecycle state changes the physical scene cadence.
 
 During construction, the existing first capital encounter is provisionally due
 on active gameplay frame 600. Menu, OPTIONS, loader, pause, and initialization
-frames do not advance this counter. A live ordinary-enemy lifecycle or legal
-budget refusal delays actual admission until the first legal frame; no new
-ordinary-enemy exclusion is attached to the capital lifecycle, and the ships still
-enter from above at the ordinary world rate. Ordinary admissions before, during,
-and after the traversal use the same one-slot Director budget, retry, RNG, and
-lifecycle policy. This provisional development
-schedule creates a natural early test window for three qualifying Interceptor
-kills and the resulting `FREE -> PENDING -> ACTIVE` pickup. It moves the original
+frames do not advance this counter. A live Raider-formation lifecycle or legal
+budget refusal delays actual admission until the first legal frame. Once the
+capital encounter is due, ordinary admission remains closed through its entire
+lifecycle; an already emitted Raider pulse may finish its own bounded lifetime.
+Admissions before and after the traversal use the same one-formation Director
+budget, retry, RNG, and lifecycle policy. This provisional development schedule
+creates a natural early test window for three qualifying Raider kills and the
+resulting `FREE -> PENDING -> ACTIVE` pickup. It moves the original
 encounter rather than adding another one at frame 50 or its former phase
 boundary. Later encounters,
 `BOSS_HANDOFF`, and level timing remain at their established rows.
@@ -202,20 +199,22 @@ phase.
 ### Rapid Fire — implemented
 
 Rapid Fire lasts exactly 500 active PAL frames (10 seconds). It expands the
-burst to ten projectiles, keeps the 12-frame post-burst pause, and reduces the
-in-burst interval from three frames to two. Its projectiles retain the Player Fighter's established
+burst to six projectiles, keeps the 12-frame post-burst pause, and reduces the
+in-burst interval from six frames to four. At most six shots remain active,
+and its projectiles retain the Player Fighter's established
 yellow/gold. The 2x2 capsule uses a steel/yellow casing with a black `RF` symbol.
 
 ### Spread Shot — implemented
 
 Spread Shot lasts exactly 500 active PAL frames (10 seconds) and retains the
-normal eight-salvo burst and 12-frame post-burst pause, but uses a ten-active-
+normal four-salvo burst and 12-frame post-burst pause, but uses a twenty-active-
 frame cooldown between salvos; it never combines with Rapid Fire. With three
 free slots a salvo creates centre, left, and right together. Under transitional
 saturation the centre has priority, while the side pair is created together or
-not at all. Continuous FIRE produces 49 salvos and 147 projectiles during the
-500-frame boost, with no rejected full salvo in steady state and at most nine
-simultaneous Spread projectiles in the ten-slot Player Fighter pool.
+not at all. Continuous FIRE produces 27 salvos and 81 projectiles during the
+500-frame boost. Eighteen saturated allocation frames defer the one pending
+salvo without accumulating catch-up fire, and at most six Spread projectiles
+are simultaneously active in the unchanged ten-slot physical pool.
 
 The volley begins as a compact formation. The centre projectile travels
 vertically; the side projectiles start four horizontal-position units from the

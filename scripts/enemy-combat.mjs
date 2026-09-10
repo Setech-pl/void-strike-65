@@ -255,6 +255,57 @@ export function simulateInterceptorSoftPursuit(asset, {
   return { state, trace };
 }
 
+export function createTwoPmgRaiderPrototypeState(asset) {
+  return {
+    slots: [
+      { ...createInterceptorPursuitState(asset,
+        { x: 88, y: 48, velocityX: 1, moveAccumulator: 0 }),
+      direction: 1, maneuverState: 0, maneuverTimer: 48, behaviorPhase: 0 },
+      { ...createInterceptorPursuitState(asset,
+        { x: 152, y: 96, velocityX: -1, moveAccumulator: 2 }),
+      direction: -1, maneuverState: 0, maneuverTimer: 48, behaviorPhase: 12 },
+    ],
+  };
+}
+
+// Mirrors the bounded two-slot wrapper around update_interceptor_soft_pursuit.
+// Each slot owns its complete mutable movement state; the only shared input is
+// the current PlayerFighter X coordinate.
+export function stepTwoPmgRaiderPrototype(asset, state, { frame, playerX }) {
+  return {
+    slots: state.slots.map((slot, index) => {
+      const moved = stepInterceptorSoftPursuit(asset, slot, {
+        frame: frame + slot.behaviorPhase,
+        playerX,
+      });
+      const next = { ...slot, ...moved };
+      if (next.maneuverState === 0) {
+        next.y += index === 0 ? 1 : -1;
+        next.maneuverTimer -= 1;
+        if (next.maneuverTimer === 0) next.maneuverState = 1;
+      } else {
+        next.y += 1;
+      }
+      next.direction = Math.sign(next.velocityX);
+      return next;
+    }),
+  };
+}
+
+export function simulateTwoPmgRaiderPrototype(asset, {
+  frameCount = 240,
+  playerXForFrame = () => 124,
+} = {}) {
+  let state = createTwoPmgRaiderPrototypeState(asset);
+  const trace = [];
+  for (let frame = 0; frame < frameCount; frame += 1) {
+    const playerX = playerXForFrame(frame);
+    state = stepTwoPmgRaiderPrototype(asset, state, { frame, playerX });
+    trace.push({ frame, playerX, slots: state.slots.map((slot) => ({ ...slot })) });
+  }
+  return { state, trace };
+}
+
 export function createEnemyCombatState(asset, {
   difficulty = 1,
   slotIndex = 0,
@@ -354,7 +405,8 @@ export function stepEnemyCombatFrame(asset, state, {
 
   if (next.fireTimer > 0) next.fireTimer -= 1;
   if (next.fireTimer > 0) return next;
-  const pulseSlot = next.pool.findIndex((entry) => entry === null);
+  const pulseSlot = next.pool.findIndex((entry, index) =>
+    index < pulsePolicy.activeLimit && entry === null);
   if (pulseSlot < 0) return next;
 
   const origin = enemyPulseSpawnPosition(archetype, enemyX, enemyY, pulsePolicy);

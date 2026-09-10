@@ -69,7 +69,8 @@ export function loadFighterWeaponsDefinition(sourcePath) {
 
   for (const [id, weapon] of [["player_fighter", definition.player_fighter]]) {
     integer(weapon?.poolSlots, `${id}.poolSlots`, 1, 16);
-    invariant(weapon.burstCount === 8, `${id} normal burst must contain exactly eight shots`);
+    integer(weapon.activeLimit, `${id}.activeLimit`, 1, weapon.poolSlots);
+    invariant(weapon.burstCount === 4, `${id} reduced normal burst must contain exactly four shots`);
     integer(weapon.burstIntervalFrames, `${id}.burstIntervalFrames`, 1, 16);
     integer(weapon.speedScanlines, `${id}.speedScanlines`, 1, 16);
     integer(weapon.widthHpos, `${id}.widthHpos`, 1, 2);
@@ -78,11 +79,11 @@ export function loadFighterWeaponsDefinition(sourcePath) {
   }
   invariant(definition.player_fighter.postBurstFrames === 12,
     "PlayerFighter post-burst pause must be 12 PAL frames");
-  invariant(definition.player_fighter.rapidFireBurstCount === 10 &&
+  invariant(definition.player_fighter.rapidFireBurstCount === 6 &&
     definition.player_fighter.rapidFireBurstCount <= definition.player_fighter.poolSlots &&
-    definition.player_fighter.rapidFireIntervalFrames === 2 &&
+    definition.player_fighter.rapidFireIntervalFrames === 4 &&
     definition.player_fighter.rapidFireDurationFrames === 500,
-  "Rapid Fire must use ten shots, a two-frame interval and exactly 500 active PAL frames");
+  "Rapid Fire must use six shots, a four-frame interval and exactly 500 active PAL frames");
   invariant(definition.player_fighter.spreadShotBurstCount === definition.player_fighter.burstCount &&
     definition.player_fighter.spreadShotDurationFrames === 500,
   "Spread Shot must use the eight-salvo normal burst for exactly 500 active PAL frames");
@@ -90,8 +91,8 @@ export function loadFighterWeaponsDefinition(sourcePath) {
     "Shield must last exactly 250 active PAL frames");
   invariant(definition.player_fighter.spreadShotProjectileCount === 3,
     "Spread Shot must allocate exactly three logical projectiles");
-  invariant(definition.player_fighter.spreadShotCooldownFrames === 10,
-    "Spread Shot cooldown must preserve one reserve slot at maximum legal lifetime");
+  invariant(definition.player_fighter.spreadShotCooldownFrames === 20,
+    "Spread Shot cooldown must preserve the reduced player-fire cadence");
   invariant(definition.player_fighter.spreadShotInitialOffsetHpos === 4,
     "Spread Shot side projectiles must start one character from the centre shot");
   invariant(definition.player_fighter.spreadShotLateralStepHpos === 1 &&
@@ -131,6 +132,7 @@ export function compileFighterWeapons(definition, enemyRoster) {
     "Fighter weapons require the Interceptor ANTIC 4 glyph-pool policy");
   const interceptor = Object.freeze({
     poolSlots: pulse.poolSlots,
+    activeLimit: pulse.activeLimit,
     burstCount: pulse.burstCount,
     burstIntervalFrames: pulse.burstIntervalFrames,
     postBurstFrames: pulse.postBurstFrames,
@@ -206,7 +208,9 @@ export function renderFighterWeaponsCa65Include(asset) {
     `PLAYER_FIGHTER_PROJECTILE_GLYPH_COUNT = ${asset.glyphs.player_fighter.length}`,
     `INTERCEPTOR_PROJECTILE_GLYPH_COUNT = ${asset.glyphs.interceptor.length}`,
     `PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT = ${player_fighter.poolSlots}`,
+    `PLAYER_FIGHTER_PROJECTILE_ACTIVE_LIMIT = ${player_fighter.activeLimit}`,
     `INTERCEPTOR_PROJECTILE_SLOT_COUNT = ${interceptor.poolSlots}`,
+    `INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT = ${interceptor.activeLimit}`,
     `FIGHTER_PROJECTILE_SLOT_COUNT = ${asset.totalSlots}`,
     `INTERCEPTOR_PROJECTILE_SLOT_BASE = ${player_fighter.poolSlots}`,
     "WEAPON_BURST_WAITING = 0",
@@ -396,7 +400,8 @@ export function stepPlayerFighterBurst(asset, state, {
   }
   if (next.timer > 0) next.timer -= 1;
   if (next.timer > 0) return next;
-  const slot = next.pool.findIndex((shot) => shot === null);
+  const slot = next.pool.findIndex((shot, index) =>
+    index < asset.player_fighter.activeLimit && shot === null);
   if (slot < 0) return next;
   next.pool[slot] = {
     owner: "PLAYER_FIGHTER",

@@ -36,13 +36,12 @@ const addresses = {
   enemyActive: 0x4ecd,
   musicActive: 0x4ed9,
   gameMusicEnabled: 0x4ee3,
-  farActive: 0x54ca,
 };
 
 const counts = {
   broadsideSlots: 3,
   projectileSlots: 19,
-  farStars: 24,
+  farStars: 29,
   fighterExplosionSlots: 2,
 };
 
@@ -61,11 +60,8 @@ const profiledRoutineNames = [
   "update_player_fighter_weapon",
   "update_enemy_weapon",
   "update_starfield",
-  "erase_far_star_overlays",
-  "render_far_star_overlays",
-  "render_far_star_overlays_if_needed",
-  "advance_far_stars",
-  "set_far_star_ptr",
+  "generate_baked_far_star_row",
+  "draw_baked_far_star",
   "scroll_world_columns",
   "scroll_hull_columns",
   "visible_hull_sector_row",
@@ -319,14 +315,6 @@ function countNonZero(memory, start, length) {
   return count;
 }
 
-function countRenderedFarStars(memory) {
-  let count = 0;
-  for (let index = 0; index < counts.farStars; index += 1) {
-    if ((memory[addresses.farActive + index] & 0x80) !== 0) count += 1;
-  }
-  return count;
-}
-
 function snapshotRuntime(cpu, entryPoints) {
   const memory = cpu.memory;
   return {
@@ -341,7 +329,7 @@ function snapshotRuntime(cpu, entryPoints) {
       10,
     ),
     broadsideOccupancy: countNonZero(memory, addresses.broadState, counts.broadsideSlots),
-    renderedFarStars: countRenderedFarStars(memory),
+    renderedFarStars: counts.farStars,
     liveInterceptor: memory[addresses.enemyActive] === 1,
     activeExplosion: countNonZero(
       memory,
@@ -401,7 +389,7 @@ function eventNames(frame) {
   const names = [];
   for (const [name, label] of [
     ["world-copy", "scroll_world_columns"],
-    ["far-erase", "erase_far_star_overlays"],
+    ["row-baked-far", "generate_baked_far_star_row"],
     ["hull-copy", "scroll_hull_columns"],
     ["broadside", "update_broadside"],
     ["fighter-explosion", "render_shared_fighter_explosions"],
@@ -870,7 +858,8 @@ export function measureRuntimeCycles(build) {
   let interceptorBreakupPath;
   let noPlayerFighterProjectilePath;
   for (const frame of frames) {
-    if (frame.hits.has("scroll_world_columns") && frame.hits.has("erase_far_star_overlays")) {
+    if (frame.hits.has("scroll_world_columns") &&
+      frame.hits.has("generate_baked_far_star_row")) {
       worldNearFullErase = chooseMaximum(worldNearFullErase, frame, (candidate) => candidate.cycles);
     }
     if (frame.hits.has("scroll_hull_columns")) {
@@ -925,7 +914,7 @@ export function measureRuntimeCycles(build) {
     legalHeavy = chooseMaximum(legalHeavy, frame, (candidate) => candidate.cycles);
   }
 
-  invariant(worldNearFullErase, "Replay did not reach a world/near event with full far-star erase");
+  invariant(worldNearFullErase, "Replay did not reach a world event with row-baked far generation");
   invariant(hullEvent, "Replay did not reach a hull event");
   invariant(maximumProjectilePool?.before.projectileOccupancy === counts.projectileSlots,
     `Replay occupied ${maximumProjectilePool?.before.projectileOccupancy ?? 0}/` +

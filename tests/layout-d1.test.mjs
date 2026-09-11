@@ -80,31 +80,31 @@ test("Layout D.2 startup order and call bytes are frozen", () => {
     /stage_glue_holding:[\s\S]+jmp stage_starfield_stream[\s\S]+stage_starfield_stream:[\s\S]+jsr copy_pause_screen\s+jsr copy_pause_screen\s+jmp copy_pause_screen/,
     "GLUE must leave $7BD0 before the deferred starfield staging write");
   const resident = fs.readFileSync(path.join(root, "build/resident-runtime.bin"));
-  assert.deepEqual([...resident.subarray(0x40, 0x46)], [0x20, 0x28, 0x21, 0x20, 0xba, 0x9a]);
+  assert.deepEqual([...resident.subarray(0x40, 0x46)], [0x20, 0x28, 0x21, 0x20, 0x5c, 0x9a]);
 });
 
 test("Layout D.2 exact memory and transport budgets remain frozen", () => {
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13279);
-  assert.equal(manifest.transportCapacity.initialBootBytes, 13312);
-  assert.equal(manifest.transportCapacity.totalTransportSectors, 168);
-  assert.equal(manifest.transportCapacity.totalTransportBytes, 21504);
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 12949);
+  assert.equal(manifest.transportCapacity.initialBootBytes, 13056);
+  assert.equal(manifest.transportCapacity.totalTransportSectors, 162);
+  assert.equal(manifest.transportCapacity.totalTransportBytes, 20736);
   assert.equal(manifest.transportCapacity.stage2.bytes, 1257);
   assert.deepEqual(manifest.transportCapacity.manifest.parsed.records.map((record) =>
     [record.startSector, record.sectorCount, record.packedLength, record.rawLength,
       record.finalDestination]), [
-    [105, 45, 5666, 6653, 0x5e10],
-    [150, 11, 1277, 1277, 0x8c80],
-    [161, 3, 245, 250, 0x7bd0],
-    [164, 5, 587, 644, 0x9d75],
+    [103, 45, 5651, 6647, 0x5e10],
+    [148, 7, 854, 854, 0x8c80],
+    [155, 3, 245, 250, 0x7bd0],
+    [158, 5, 587, 644, 0x9d75],
   ]);
-  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17685);
-  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 19315);
-  assert.equal(manifest.encounterDirector.safeResidencyBytes, 2872);
+  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17287);
+  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 17765);
+  assert.equal(manifest.encounterDirector.safeResidencyBytes, 4422);
 });
 
 test("XEX and ATR preserve full A2, GLUE lifecycle, ENTITY_CODE, DIRECTOR and guard", () => {
-  assert.equal(a2.length, 254);
-  assert.equal(sha256(a2), "a6e4971528f1a887f8abf46f5b43c977ce75d2d31ff8ce19732124809cf097e4");
+  assert.equal(a2.length, 122);
+  assert.equal(sha256(a2), "e58b85d57ccad2c49560e4cc3b50b1f80e89d05acd9366c615f95a19289ab6b5");
   for (const artifact of ["xex", "atr"]) for (const fill of [0xa5, 0x5a]) {
     const staged = stageArtifact(artifact, fill);
     assert.equal(sha256(staged.sourceA2), sha256(a2), `${artifact} staged A2`);
@@ -120,21 +120,18 @@ test("XEX and ATR preserve full A2, GLUE lifecycle, ENTITY_CODE, DIRECTOR and gu
 
 test("current A2 entry points and relocated release glue retain their frozen opcodes", () => {
   const entries = [
-    ["integration_broadside_due", 0x90e3, 0xce],
-    ["render_far_star_next", 0x90d8, 0xe8],
-    ["render_far_star_slot", 0x9072, 0xbd],
-    ["render_far_star_overlays", 0x905f, 0xad],
+    ["integration_broadside_due", 0x905f, 0xce],
     ["build_playfield_display_list", 0x9008, 0x85],
     ["prebuild_next_playfield_display_list", 0x9000, 0xa2],
   ];
-  assert.equal(entries.length, 6);
+  assert.equal(entries.length, 3);
   for (const [name, address, opcode] of entries) {
     assert.equal(labels.get(name), address, name);
     assert.equal(a2[address - 0x9000], opcode, name);
   }
   assert.equal(labels.get("integration_broadside_release"), 0x4fdd);
   assert.equal(glue[0x4fdd - 0x4efe], 0x8a);
-  assert.equal(labels.get("integration_debris_release"), 0x77ec);
+  assert.equal(labels.get("integration_debris_release"), 0x77e6);
 });
 
 test("relocated pickup hook decrements 2 to 1 and returns", () => {

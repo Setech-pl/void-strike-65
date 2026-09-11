@@ -7,9 +7,15 @@
   },
   "farLayer": {
     "population": 29,
+    "representation": "row-baked",
     "rateNumerator": 1,
-    "rateDenominator": 4,
+    "rateDenominator": 1,
     "colourRegister": "COLPF1",
+    "pattern": {
+      "rows": 28,
+      "columns": [2, 17, 33, 9, 25, 38, 13, 29, 5, 21, 35, 11, 27, 0, 19, 31, 7, 23, 39, 15, 28, 4, 20, 36, 10, 26, 1, 18, 34],
+      "glyphs": ["DIM", "SHIFTED", "DIM", "DIM", "BRIGHT", "DIM", "DIM", "SHIFTED", "DIM", "DIM", "BRIGHT", "DIM", "DIM", "SHIFTED", "DIM", "DIM", "BRIGHT", "DIM", "DIM", "SHIFTED", "DIM", "DIM", "BRIGHT", "DIM", "DIM", "SHIFTED", "DIM", "DIM", "BRIGHT"]
+    },
     "glyphs": [
       { "id": "DIM", "screenCode": 1, "bytes": [0, 0, 0, 32, 0, 0, 0, 0] },
       { "id": "BRIGHT", "screenCode": 2, "bytes": [0, 0, 8, 0, 0, 0, 0, 0] },
@@ -30,6 +36,7 @@
     ]
   },
   "twinkle": {
+    "enabled": false,
     "intervalFrames": 16,
     "starsPerInterval": 1
   }

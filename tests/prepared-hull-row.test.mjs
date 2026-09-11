@@ -42,7 +42,7 @@ function fixture(difficulty, fill = 0) {
   }
   memory[at("DIFFICULTY_SETTING")] = difficulty;
   for (const name of ["init_playfield_row_table", "init_state", "init_entity_effects",
-    "unpack_capital_hull_maps", "init_broadside", "init_screen", "init_far_star_population"])
+    "unpack_capital_hull_maps", "init_broadside", "init_screen"])
     run(memory, name);
   memory[at("CAPITAL_SECTOR_STATE")] = 2;
   memory[at("corridor_phase")] = 123;
@@ -96,7 +96,7 @@ test("row, section, ring, init and hull-only changes invalidate preparation", ()
     if (change === "high") memory[at("CORRIDOR_PHASE_HI")]++;
     if (change === "section") memory[at("CAPITAL_SECTOR_STATE")] = 3;
     if (change === "ring") run(memory, "rotate_playfield_rows");
-    if (change === "init") run(memory, "init_far_star_population");
+    if (change === "init") run(memory, "init_screen");
     if (change === "hull-only") memory[at("PLAYFIELD_RING_FLAGS")] = 0;
     run(memory, "set_gameplay_row_ptr", 0);
     const reference = memory.slice();

@@ -1,11 +1,11 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 2.6
+Wersja: 2.7
 Data aktualizacji: 2026-09-11  
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD dokumentacyjny przed niniejszą aktualizacją: `cb0b9e3780c641678745f5c9b91497600a7c4751`
-Stan runtime: bez zmian w tym proofie; zachowany kandydat combined PMG + niepodłączony zwarty primitive po PASS cold-record fit, bez 21 writer hooks
-Aktualny XEX fit-proof: SHA-256 `c2dff8ef37dfa6fde8abef40db2375266cc1da4bbff2f716fe2c65ba89b9cb34`
+Aktualny HEAD przed niniejszym prototypem: `3660b84f6cb1504984da700f3622bd2a06118f39`
+Stan runtime: kandydat combined PMG + niepodłączony zwarty primitive po PASS cold-record fit oraz row-baked far stars; bez writer hooks i bez unified schedulera
+Aktualny XEX owner-smoke candidate: SHA-256 `2ad0c698aa4871998117a03e5632c9760ade5632fa6bd5e3f6f6a3819d654c3e`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
 
@@ -768,15 +768,65 @@ Decyzja:
 **static far stars nie rozwiązują unified publication window w aktualnej
 architekturze ring.**
 
-### Następna decyzja — tylko właściciel
+### Row-baked far-stars visual prototype — TECHNICAL PASS / OWNER SMOKE
 
-Dokładnie jeden możliwy następny krok wymaga jawnej decyzji właściciela:
+Właściciel odrzucił screen-static far stars i jawnie zaakceptował mały wariant
+row-baked poruszający się z background ringiem. Zaimplementowany prototyp:
 
-> mały far-only row-baked visual prototype, z zachowaniem 29 punktów i ich
-> zróżnicowanych glifów, ale z zaakceptowaniem ruchu z pełną prędkością ring.
+- zachowuje dokładnie 29 far stars w 28-wierszowym okresie: jeden punkt na
+  wiersz i drugi punkt w jednym wierszu;
+- zachowuje trzy istniejące, ciemniejsze glify `COLPF1`; near stars pozostają
+  jaśniejszymi/większymi glifami `COLPF0`;
+- generuje far stars wyłącznie podczas tworzenia/recyklingu base row;
+- usuwa niezależny erase, address resolve, render, twinkle, 116-B logical
+  record pool i 58-B physical-address cache;
+- nie dodaje unified schedulera ani writer hooks.
 
-Jeżeli taki ruch jest nieakceptowalny, zakończyć tę ścieżkę uproszczenia far
-stars. Nie wykonywać prototypu automatycznie.
+Instruction-exact koszt far-only na recycled row wynosi:
+
+- zwykły pojedynczy wiersz: `105` cykli;
+- podwójny wiersz bez kolizji: `175` cykli;
+- najcięższy legalny podwójny wiersz z jedną kolizją near i fallbackiem:
+  `206` cykli.
+
+Historyczny peak `4 221` spada więc do `206`, odzyskując `4 015` cykli.
+Orientacyjny cel `150` cykli zostaje przekroczony o 56 cykli w rzadkim legalnym
+worst case, ale twarda bramka odzysku co najmniej `3 500` przechodzi o 515
+cykli. Dwie jednoczesne kolizje dałyby syntetyczne `233`, lecz nie należą do
+legalnego generatora: nowy wiersz może zawierać najwyżej jedną near star przed
+wypaleniem far pattern.
+
+Niezależne lower-layer access sites spadają z `21` do `15`; bounded far write
+jest częścią już istniejącego base-row construction, nie osobnym późnym
+writerem. Linked runtime spada z `17 605` do `17 287 B`, simultaneous residency
+z `18 083` do `17 765 B`, a safe headroom rośnie z `4 104` do `4 422 B`.
+
+Przeliczony unified fighter visual commit wynosi `6 194-6 274` cykli i ma
+`3 701-3 781` cykli marginesu do konserwatywnego okna `9 975`. Ordinary legal
+11-projectile envelope wynosi `8 121-8 201`; Spread inverse `9 847-9 927`, więc
+ten ostatni jest nadal bardzo ciasny (`48-128` cykli), ale mieści się
+arytmetycznie bez dynamicznego twinkle.
+
+Focused model/ring tests przeszły: 600 kroków z dokładnie 29 punktami, trzy
+pełne wrapy, corridor ownership oraz pełna 28-wierszowa rekonstrukcja
+capital→OPEN. Cztery ograniczone native cold-boot sesje XEX/ATR również
+przeszły. XEX jest wyłącznie `row-baked far-stars owner-smoke candidate`;
+wizualne poczucie głębi i kontrast near/far wymagają oceny właściciela.
+
+Raport:
+`docs/diagnostics/stage-2b2b-row-baked-far-stars-visual-prototype.json`.
+
+Decyzja techniczna:
+
+**row-baked far stars są przyjęte do owner smoke i liczbowo przywracają
+wykonalność unified fighter visual commit.**
+
+### Następny proof — tylko po osobnym promptcie
+
+> PairShot feasibility for player + fighter enemies.
+
+Nie implementować PairShot, Light ani unified schedulera w ramach prototypu
+row-baked.
 
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 

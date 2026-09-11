@@ -117,68 +117,22 @@ function runRoutine(image, address) {
   assert.equal(cpu.pc, stop, `routine $${address.toString(16)} did not return`);
 }
 
-function verifyFarStarCachedAdvance(build) {
+function verifyRowBakedFarAdvance(build) {
   const image = installedMemory(build);
-  const farCapacity = 29;
-  const active = 0x85f2;
-  const row = active + farCapacity;
-  const column = row + farCapacity;
-  const code = column + farCapacity;
-  const screenLo = 0x8100;
-  const screenHi = screenLo + farCapacity;
-  const generationFlags = 0x4ed6;
-  const divider = 0x4028;
-  const ring = 0x8140;
-  const rowLo = build.labels.get("PLAYFIELD_ROW_LO");
-  const rowHi = build.labels.get("PLAYFIELD_ROW_HI");
-  const physical = Array.from({ length: 22 }, (unused, index) => ring + index * 40);
-  for (let index = 0; index < physical.length; index += 1) {
-    image[rowLo + index] = physical[index] & 0xff;
-    image[rowHi + index] = physical[index] >> 8;
+  const destination = 0x6000;
+  image[build.labels.get("dst_ptr")] = destination & 0xff;
+  image[build.labels.get("dst_ptr") + 1] = destination >> 8;
+  image[build.labels.get("STAR_FAR_PATTERN_ROW")] = 0;
+  image[build.labels.get("CAPITAL_SECTOR_STATE")] = 6;
+  runRoutine(image, build.labels.get("generate_baked_far_star_row"));
+  const stars = image.subarray(destination, destination + 40)
+    .filter((value) => value >= 1 && value <= 3);
+  assert.equal(stars.length, 2);
+  assert.equal(image[build.labels.get("STAR_FAR_PATTERN_ROW")], 1);
+  for (const retired of ["STAR_FAR_ACTIVE", "erase_far_star_overlays",
+    "advance_far_stars", "render_far_star_overlays"]) {
+    assert.equal(build.labels.has(retired), false, retired);
   }
-
-  const records = [
-    { slot: 0, row: 0, column: 9, address: divider + 9 },
-    { slot: 1, row: 1, column: 10, address: physical[0] + 10 },
-    { slot: 2, row: 5, column: 11, address: physical[4] + 11 },
-    { slot: 3, row: 21, column: 12, address: physical[20] + 12 },
-  ];
-  for (const record of records) {
-    image[active + record.slot] = 0x81;
-    image[row + record.slot] = record.row;
-    image[column + record.slot] = record.column;
-    image[code + record.slot] = 4 + record.slot;
-    image[screenLo + record.slot] = record.address & 0xff;
-    image[screenHi + record.slot] = record.address >> 8;
-    image[record.address] = image[code + record.slot];
-  }
-  runRoutine(image, build.labels.get("erase_far_star_overlays"));
-  for (const record of records) {
-    assert.equal(image[active + record.slot], 0x40,
-      `slot ${record.slot} erase state; label=$${build.labels.get("STAR_FAR_ACTIVE")?.toString(16)}`);
-    assert.equal(image[record.address], 0, `slot ${record.slot} erase cell; ` +
-      `cached=$${(image[screenLo + record.slot] | image[screenHi + record.slot] << 8).toString(16)} ` +
-      `dst=$${(image[0x96] | image[0x97] << 8).toString(16)}`);
-  }
-
-  const rotated = [physical.at(-1), ...physical.slice(0, -1)];
-  for (let index = 0; index < rotated.length; index += 1) {
-    image[rowLo + index] = rotated[index] & 0xff;
-    image[rowHi + index] = rotated[index] >> 8;
-  }
-  runRoutine(image, build.labels.get("advance_far_stars"));
-  image[generationFlags] = 0x82;
-  runRoutine(image, build.labels.get("render_far_star_overlays"));
-
-  for (const record of records) {
-    const nextRow = record.row + 1;
-    const expected = rotated[nextRow - 1] + record.column;
-    assert.equal(image[row + record.slot], nextRow);
-    assert.equal(image[active + record.slot], 0x81);
-    assert.equal(image[screenLo + record.slot] | image[screenHi + record.slot] << 8, expected);
-    assert.equal(image[expected], image[code + record.slot]);
-  }
-  assert.equal(image[generationFlags], 0);
 }
 
 test("assembled Hunter plus capital heavy frame recovers the PAL working ceiling", (context) => {
@@ -192,7 +146,7 @@ test("assembled Hunter plus capital heavy frame recovers the PAL working ceiling
   assert.equal(native.capital_explosion, 1);
 
   const assembled = assembleCurrentRuntime();
-  verifyFarStarCachedAdvance(assembled);
+  verifyRowBakedFarAdvance(assembled);
   const timing = measureRuntimeCycles(assembled);
   const heavy = timing.cpuReferenceFrames
     .filter((frame) => frame.broadsideOccupancy === 2 &&

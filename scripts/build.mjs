@@ -175,11 +175,10 @@ const glueStagingAddress = 0x7bd0;
 const glueFinalAddress = 0x4efe;
 const directorRunAddress = 0x9d75;
 const directorGuardAddress = 0x9ffa;
-// This movement-only PMG build retains the same loader implementation and four
-// external publication records. Disabled Raider combat compresses the occupied
-// content into 103 initial sectors without changing stage-2 itself.
-const expectedInitialContentBytes = 13231;
-const expectedLinkedRuntimeBytes = 17605;
+// Row-baked far stars remove the dynamic overlay code while retaining the same
+// loader implementation and four external publication records.
+const expectedInitialContentBytes = 12949;
+const expectedLinkedRuntimeBytes = 17287;
 const expectedDirectorRawBytes = 644;
 const expectedDirectorPackedBytes = 587;
 const expectedGlueRawBytes = 250;
@@ -891,13 +890,13 @@ async function build() {
     record.startSector, record.sectorCount, record.packedLength,
     record.rawLength, record.finalDestination,
   ]);
-  if (bootSectors !== 104 || totalTransportSectors !== 164 ||
-    transportPayload.length !== 20992 || JSON.stringify(frozenRecordShape) !== JSON.stringify([
-      [105, 45, 5660, 6647, 0x5e10],
-      [150, 7, 854, 854,
+  if (bootSectors !== 102 || totalTransportSectors !== 162 ||
+    transportPayload.length !== 20736 || JSON.stringify(frozenRecordShape) !== JSON.stringify([
+      [103, 45, 5651, 6647, 0x5e10],
+      [148, 7, 854, 854,
         weaponPickupPackedStagingAddress],
-      [157, 3, 245, 250, glueStagingAddress],
-      [160, 5, 587, 644, directorRunAddress],
+      [155, 3, 245, 250, glueStagingAddress],
+      [158, 5, 587, 644, directorRunAddress],
     ])) {
     throw new Error(`Layout D.2 transport topology changed: ${JSON.stringify(frozenRecordShape)}`);
   }
@@ -1755,8 +1754,11 @@ async function build() {
       corridor: starfieldAsset.corridor,
       farLayer: {
         population: starfieldAsset.farLayer.population,
+        representation: starfieldAsset.farLayer.representation,
         rateNumerator: starfieldAsset.farLayer.rateNumerator,
         rateDenominator: starfieldAsset.farLayer.rateDenominator,
+        patternRows: starfieldAsset.farLayer.pattern.rows,
+        patternBytes: starfieldAsset.farLayer.pattern.bytes.length,
         colourRegister: starfieldAsset.farLayer.colourRegister,
         glyphs: starfieldAsset.farLayer.glyphs.map(({ id, screenCode }) => ({ id, screenCode })),
       },
@@ -1769,6 +1771,7 @@ async function build() {
         colourRegister: starfieldAsset.nearLayer.colourRegister,
         glyphs: starfieldAsset.nearLayer.glyphs.map(({ id, screenCode }) => ({ id, screenCode })),
       },
+      twinkleEnabled: starfieldAsset.twinkle.enabled,
       twinkleIntervalFrames: starfieldAsset.twinkle.intervalFrames,
       glyphBytes: starfieldAsset.glyphBytes.length,
       runtimeStateBytes: starfieldAsset.stateBytes,

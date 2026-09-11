@@ -1254,12 +1254,9 @@ static unsigned dftrace_count_nonzero(unsigned address, unsigned length)
 
 static unsigned dftrace_count_far_rendered(void)
 {
-	unsigned index;
-	unsigned count = 0;
-	for (index = 0; index < 29; ++index)
-		if ((MEMORY_mem[dftrace_far_active + index] & 0x80u) != 0)
-			++count;
-	return count;
+	/* Row-baked far stars have no active-record pool. One 28-row pattern
+	 * period always contains 29 visible points after initialization. */
+	return 29u;
 }
 
 static int dftrace_is_ring_address(unsigned address)

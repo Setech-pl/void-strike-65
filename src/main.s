@@ -240,31 +240,16 @@ ENEMY_ACTIVE                = INTERCEPTOR_MOVE_ACCUMULATOR+$01
 ENEMY_LEGACY_STATE          = ENEMY_ACTIVE+$01
 GAMEPLAY_RESIDENT_END       = ENEMY_LEGACY_STATE+$03
 
-; Sparse far stars are decorative overlays above the authoritative near-layer
-; cells.  Their row is logical and their column physical within that row, so a
-; 50%-rate LMS rotation cannot accidentally drag the independent 25%-rate
-; layer. The logical records live beside the post-loader ring state so the
-; late-published integration glue can use the complete contiguous $4EFE-$4FFF
-; helper window without overlapping stars.
-STAR_FAR_ACTIVE              = HULL_DRAW_ROW_HI+$01
-STAR_FAR_ROW                 = STAR_FAR_ACTIVE+STAR_FAR_CAPACITY
-STAR_FAR_COLUMN              = STAR_FAR_ROW+STAR_FAR_CAPACITY
-STAR_FAR_CODE                = STAR_FAR_COLUMN+STAR_FAR_CAPACITY
-STAR_FAR_STATE_END           = STAR_FAR_CODE+STAR_FAR_CAPACITY
-; The packed resident suffix only occupies this area during cold startup.
-; Once restored, cache the exact physical cell used by each drawn far star so
-; reverse erase does not have to resolve the rotated LMS row a second time.
-STAR_FAR_SCREEN_LO           = $8100
-STAR_FAR_SCREEN_HI           = STAR_FAR_SCREEN_LO+STAR_FAR_CAPACITY
-STAR_FAR_SCREEN_END          = STAR_FAR_SCREEN_HI+STAR_FAR_CAPACITY
-
+; Far stars are immutable row-baked background data. The former 116-byte
+; logical record pool after HULL_DRAW_ROW_HI and the 58-byte $8100 address
+; cache are intentionally free: no per-star runtime ownership remains.
 STAR_RNG_STATE               = GAMEPLAY_RESIDENT_END
 STAR_NEAR_PHASE              = STAR_RNG_STATE+$01
-STAR_FAR_PHASE               = STAR_NEAR_PHASE+$01
-STAR_TWINKLE_TIMER           = STAR_FAR_PHASE+$01
-STAR_TWINKLE_SLOT            = STAR_TWINKLE_TIMER+$01
-STAR_GENERATION_FLAGS        = STAR_TWINKLE_SLOT+$01
-STARFIELD_STATE_END          = STAR_GENERATION_FLAGS+$01
+STAR_FAR_PATTERN_ROW         = STAR_NEAR_PHASE+$01
+; Preserve three reviewed scalar addresses so downstream music/muzzle state
+; does not move during this far-only prototype.
+STARFIELD_COMPAT_STATE       = STAR_FAR_PATTERN_ROW+$01
+STARFIELD_STATE_END          = STARFIELD_COMPAT_STATE+$03
 SESSION_SCORE_COMPAT_BYTES   = 2
 MUZZLE_ROW_DOMAIN            = STARFIELD_STATE_END          ; 2 B, fixed divider/ring
 SESSION_SCORE_COMPAT_END     = MUZZLE_ROW_DOMAIN+SESSION_SCORE_COMPAT_BYTES
@@ -313,7 +298,7 @@ SESSION_SCORE_STATE_END      = TOP_SCORE_TABLE_END
 .export ENEMY_MOVE_ACCUMULATOR, ENEMY_MANEUVER_STATE, ENEMY_MANEUVER_TIMER
 .export ENEMY_BEHAVIOUR_PHASE, ENEMY_LIVE_COUNT
 .export WEAPON_PICKUP_COLD_STAGING
-.export STAR_FAR_ACTIVE, MUSIC_ACTIVE
+.export STAR_FAR_PATTERN_ROW, MUSIC_ACTIVE
 .export TOP_SCORE_TABLE, TOP_SCORE_TABLE_LO, TOP_SCORE_TABLE_HI, TOP_SCORE_TABLE_END
 .export TOP_SCORE_RECORD_COUNT, TOP_SCORE_RECORD_BYTES, TOP_SCORE_STORAGE_COUNT
 .export TOP_SCORE_TABLE_BYTES
@@ -350,7 +335,6 @@ PLAYFIELD_RING_STATE_END = PLAYFIELD_PREBUILD_PENDING+$01
 .assert PLAYFIELD_DLIST_END <= $8000, error, "expanded display lists overlap entity/effects RAM"
 .assert PLAYFIELD_RING_STATE_END <= WEAPON_PICKUP_RUNTIME, error, "expanded ring overlaps pickup runtime"
 .assert HULL_DRAW_ROW_HI+$01 <= WEAPON_PICKUP_RUNTIME, error, "expanded hull coordinate state overlaps pickup runtime"
-.assert STAR_FAR_STATE_END <= WEAPON_PICKUP_RUNTIME, error, "far-star logical state overlaps pickup runtime"
 .export PLAYFIELD_DLIST_A, PLAYFIELD_DLIST_B, PLAYFIELD_ROW_LO, PLAYFIELD_ROW_HI
 .export PLAYFIELD_RING_ROWS
 .export PLAYFIELD_ACTIVE_DLIST_LO, PLAYFIELD_NEXT_DLIST_LO, PLAYFIELD_RING_FLAGS
@@ -468,8 +452,6 @@ CH_HUD_A    = 33
 CH_COLON    = 26
 CH_QUESTION = 31
 
-STAR_GENERATE_NEAR = $01
-STAR_GENERATE_FAR  = $02
 
 KAWASAKI_GREEN = $D8
 GAMEPLAY_COLPF0 = $0E
@@ -693,10 +675,7 @@ PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE = PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYE
 .assert CAPITAL_HULL_TURRET_COUNT = 2, error, "tracked muzzle records require exactly one turret per side"
 .assert GAMEPLAY_RESIDENT_END <= $4F00, error, "gameplay resident state exceeds reclaimed RAM"
 .assert STARFIELD_STATE_END <= $4F00, error, "starfield scalar state exceeds reclaimed RAM"
-.assert STAR_FAR_ACTIVE >= HULL_DRAW_ROW_HI+$01, error, "far-star records overlap hull ring state"
-.assert STAR_FAR_STATE_END <= WEAPON_PICKUP_RUNTIME, error, "far-star records overlap pickup runtime"
-.assert STAR_FAR_SCREEN_LO >= $8100, error, "far-star screen cache overlaps initialized entity state"
-.assert STAR_FAR_SCREEN_END <= $9000, error, "far-star screen cache overlaps A2 kernel"
+.assert HULL_DRAW_ROW_HI+$01 <= WEAPON_PICKUP_RUNTIME, error, "freed far-star record range overlaps pickup runtime"
 .assert STAR_FAR_FIRST > CH_SPACE, error, "star codes must not alias blank space"
 .assert GAMEPLAY_TOP & $07 = 0, error, "projectile row reduction requires an eight-scanline gameplay origin"
 .assert STAR_NEAR_END <= PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE, error, "star glyphs overlap PlayerFighter projectile glyphs"
@@ -2261,7 +2240,6 @@ start_gameplay:
     jsr unpack_capital_hull_maps
     jsr init_broadside
     jsr init_screen
-    jsr init_far_star_population
     lda player_x
     sta HPOSP0
     sta HPOSP3
@@ -2368,8 +2346,6 @@ profile_after_player_fighter_weapon = *
     jsr integration_update_enemy_weapon
 profile_after_interceptor_weapon = *
     jsr update_starfield
-    jsr tick_star_twinkle
-    jsr render_far_star_overlays_if_needed
 profile_after_world = *
     jsr handle_player_hull_contact
 profile_after_hull_contact = *
@@ -2703,11 +2679,6 @@ quit_gameplay_to_menu:
     sta HULL_SCROLL_ACCUMULATOR,x
     dex
     bpl @clear_gameplay
-    ldx #(STAR_FAR_STATE_END-STAR_FAR_ACTIVE)-1
-@clear_far_stars:
-    sta STAR_FAR_ACTIVE,x
-    dex
-    bpl @clear_far_stars
     ldx #(STARFIELD_STATE_END-STAR_RNG_STATE)-1
 @clear_starfield:
     sta STAR_RNG_STATE,x
@@ -3350,6 +3321,10 @@ init_screen:
     lda #$00
     sta BROAD_WORK_COUNT
 @corridor_rows:
+    lda #(GAMEPLAY_SCREEN_ROWS-1)
+    sec
+    sbc BROAD_WORK_COUNT
+    sta STAR_FAR_PATTERN_ROW
     lda BROAD_WORK_COUNT
     jsr set_gameplay_row_ptr
     jsr generate_starfield_row  ; initial near background uses its independent seed
@@ -3366,6 +3341,10 @@ init_screen:
     lda BROAD_WORK_COUNT
     cmp #GAMEPLAY_SCREEN_ROWS
     bne @corridor_rows
+    lda #$00                    ; the next recycled top row starts pattern zero
+    sta STAR_FAR_PATTERN_ROW
+    lda #$FF                    ; invalidate any cold prepared hull row
+    sta PREPARED_HULL_SECTOR
     rts
 
 ; -----------------------------------------------------------------------------
@@ -5223,61 +5202,14 @@ update_starfield:
 ; unreachable after update_starfield returns.
 starfield_layout_d2_cadence_pad:
 
-; The legacy world clock is now the 100% hull reference. Near and far layers
-; use independent exact fixed-point ratios against each hull/world event:
-; 1/2 (50%) and 1/4 (25%). Both remain bounded to at most one row per event.
+; One authoritative world event rotates the physical background exactly once.
+; Near and row-baked far stars are already part of that row; there is no
+; independent far-star simulation, erase, address resolve or redraw pass.
 advance_starfield_layers:
     lda #ENTITY_EVENT_WORLD_ROW_ADVANCED
     sta ENTITY_FRAME_EVENTS
     jsr integration_director_world_row
-    lda #$00
-    sta STAR_GENERATION_FLAGS
-    lda STAR_NEAR_PHASE
-    clc
-    adc #STAR_NEAR_RATE_NUMERATOR
-    cmp #STAR_NEAR_RATE_DENOMINATOR
-    bcs @near_step
-    sta STAR_NEAR_PHASE
-    jmp @far_rate
-@near_step:
-    sbc #STAR_NEAR_RATE_DENOMINATOR
-    sta STAR_NEAR_PHASE
-    lda #STAR_GENERATE_NEAR
-    sta STAR_GENERATION_FLAGS
-@far_rate:
-    lda STAR_FAR_PHASE
-    clc
-    adc #STAR_FAR_RATE_NUMERATOR
-    cmp #STAR_FAR_RATE_DENOMINATOR
-    bcs @far_step
-    sta STAR_FAR_PHASE
-    jmp @dispatch
-@far_step:
-    sbc #STAR_FAR_RATE_DENOMINATOR
-    sta STAR_FAR_PHASE
-    lda STAR_GENERATION_FLAGS
-    ora #STAR_GENERATE_FAR
-    sta STAR_GENERATION_FLAGS
-@dispatch:
-    ; Advance the physical scene exactly once per authoritative world row.
-    ; Far stars are erased before row publication and redrawn at their own
-    ; logical 1/4 cadence, so the capital exit cannot expose a half-rate centre
-    ; while the side bands drain at the full world rate.
-    jsr erase_far_star_overlays
-    jsr scroll_world_columns
-    lda STAR_GENERATION_FLAGS
-    and #STAR_GENERATE_FAR
-    beq @mark_dirty
-    jsr advance_far_stars
-@mark_dirty:
-    ; Keep the far-step bit until the late renderer. On that 25%-rate path a
-    ; drawn star advances with the ring and therefore retains its just-erased
-    ; physical cell; the renderer can reuse that authoritative address.
-    lda STAR_GENERATION_FLAGS
-    ora #$80
-    sta STAR_GENERATION_FLAGS
-@done:
-    rts
+    jmp scroll_world_columns
 
 ; A near/ring step is selected from, and always coincident with, the 100%-rate
 ; hull/world clock. Keep
@@ -5432,23 +5364,14 @@ rotate_playfield_table_shift_end:
     inc PLAYFIELD_PREBUILD_PENDING
     rts
 
-; Scalar state is reset before the initial near rows are generated. Sparse far
-; records are populated afterwards so they only claim completed blank cells.
+; Reset the row-baked phase before the initial 28-row period is generated.
 init_starfield_state:
     lda #$00
     sta STAR_NEAR_PHASE
-    sta STAR_FAR_PHASE
-    sta STAR_TWINKLE_SLOT
-    sta STAR_GENERATION_FLAGS
-    lda #STAR_TWINKLE_INTERVAL
-    sta STAR_TWINKLE_TIMER
-    ldx #(STAR_FAR_CAPACITY-1)
+    sta STAR_FAR_PATTERN_ROW
+    ldx #(STARFIELD_STATE_END-STARFIELD_COMPAT_STATE)-1
 @clear:
-    lda #$00
-    sta STAR_FAR_ACTIVE,x
-    sta STAR_FAR_ROW,x
-    sta STAR_FAR_COLUMN,x
-    sta STAR_FAR_CODE,x
+    sta STARFIELD_COMPAT_STATE,x
     dex
     bpl @clear
     rts
@@ -5462,34 +5385,6 @@ build_star_glyphs:
     cpx #((STAR_NEAR_END-STAR_FAR_FIRST)*8)
     bne @byte
     rts
-
-; Initial setup distributes the configured logical far stars over all gameplay
-; rows. Cells already occupied by a near star remain logically present but are
-; not drawn until their next 25%-rate step reaches clear background.
-init_far_star_population:
-    lda #$FF                    ; init_screen has finished using the old backing
-    sta PREPARED_HULL_SECTOR
-    ldx #$00
-@slot:
-    lda #$01
-    sta STAR_FAR_ACTIVE,x
-    jsr star_random_byte
-    and #$1F
-    cmp #GAMEPLAY_SCREEN_ROWS
-    bcc :+
-    sec
-    sbc #GAMEPLAY_SCREEN_ROWS
-:
-    sta STAR_FAR_ROW,x
-@column:
-    jsr choose_far_star_column
-    sta STAR_FAR_COLUMN,x
-    jsr choose_far_star_code
-    sta STAR_FAR_CODE,x
-    inx
-    cpx #STAR_FAR_CAPACITY
-    bne @slot
-    jmp render_far_star_overlays
 
 ; The near layer is authoritative character background. At most one star is
 ; introduced in a newly exposed row, keeping generation bounded and sparse.
@@ -5515,6 +5410,84 @@ generate_near_star_row:
 @sparkle:
     lda #STAR_NEAR_SPARKLE
 @store:
+    sta (dst_ptr),y
+@done:
+    jmp generate_baked_far_star_row
+
+; Add one immutable far point to every generated row and a second point to
+; pattern row zero. Over one complete 28-row ring this is exactly 29 far stars.
+; Near stars are generated first and retain priority; one bounded alternate
+; column is sufficient because a row contains at most one near star.
+generate_baked_far_star_row:
+    ldx STAR_FAR_PATTERN_ROW
+    jsr draw_baked_far_star
+    lda STAR_FAR_PATTERN_ROW
+    bne @advance
+    ldx #(STAR_FAR_CAPACITY-1)
+    jsr draw_baked_far_star
+@advance:
+    inc STAR_FAR_PATTERN_ROW
+    lda STAR_FAR_PATTERN_ROW
+    cmp #STAR_FAR_PATTERN_ROWS
+    bcc @done
+    lda #$00
+    sta STAR_FAR_PATTERN_ROW
+@done:
+    rts
+
+draw_baked_far_star:
+    lda far_baked_pattern,x
+    sta loader_repeat_value
+    lda CAPITAL_SECTOR_STATE
+    cmp #CAPITAL_HULL_STATE_COMPLETE
+    lda loader_repeat_value
+    and #$3F
+    bcs @column_ready
+    cmp #ENTITY_CORRIDOR_COLUMNS
+    bcc :+
+    sbc #ENTITY_CORRIDOR_COLUMNS
+:
+    clc
+    adc #ENTITY_CORRIDOR_FIRST_COLUMN
+@column_ready:
+    tay
+    lda (dst_ptr),y
+    beq @store
+    lda CAPITAL_SECTOR_STATE
+    cmp #CAPITAL_HULL_STATE_COMPLETE
+    bcs @fallback_full
+    tya
+    clc
+    adc #11
+    cmp #ENTITY_CORRIDOR_END_COLUMN
+    bcc @fallback_ready
+    sbc #ENTITY_CORRIDOR_COLUMNS
+    bcs @fallback_ready
+@fallback_full:
+    tya
+    clc
+    adc #17
+    cmp #40
+    bcc @fallback_ready
+    sbc #40
+@fallback_ready:
+    tay
+    lda (dst_ptr),y
+    bne @done
+@store:
+    lda loader_repeat_value
+    and #$C0
+    beq @dim
+    cmp #$40
+    beq @bright
+    lda #STAR_FAR_SHIFTED
+    bne @write
+@bright:
+    lda #STAR_FAR_BRIGHT
+    bne @write
+@dim:
+    lda #STAR_FAR_DIM
+@write:
     sta (dst_ptr),y
 @done:
     rts
@@ -5544,49 +5517,6 @@ choose_star_column:
     adc #(CORRIDOR_CENTRAL_FIRST+1)
     rts
 
-; Boundary cells 8/31 are part of the legal flight corridor, but the hull
-; projection code temporarily owns them for source muzzles. Persistent far
-; overlays therefore use the safe 22-cell interior until COMPLETE.
-choose_far_star_column:
-    jsr star_random_byte
-    lda CAPITAL_SECTOR_STATE
-    cmp #CAPITAL_HULL_STATE_COMPLETE
-    bcc @corridor
-    lda STAR_RNG_STATE
-    and #$3F
-    cmp #40
-    bcc @done
-    sec
-    sbc #40
-@done:
-    rts
-@corridor:
-    lda STAR_RNG_STATE
-    and #$1F
-    cmp #22
-    bcc :+
-    sec
-    sbc #22
-:
-    clc
-    adc #(CORRIDOR_CENTRAL_FIRST+1)
-    rts
-
-choose_far_star_code:
-    jsr star_random_byte
-    and #$07
-    cmp #$05
-    bcc @dim
-    beq @bright
-    lda #STAR_FAR_SHIFTED
-    rts
-@bright:
-    lda #STAR_FAR_BRIGHT
-    rts
-@dim:
-    lda #STAR_FAR_DIM
-    rts
-
 star_random_byte:
     lda STAR_RNG_STATE
     lsr
@@ -5596,183 +5526,8 @@ star_random_byte:
     sta STAR_RNG_STATE
     rts
 
-.macro RESOLVE_FAR_STAR_PTR
-.local ring, column, ready
-    lda STAR_FAR_ROW,x
-    bne ring
-    lda #<GAMEPLAY_DIVIDER_SCREEN
-    sta dst_ptr
-    lda #>GAMEPLAY_DIVIDER_SCREEN
-    sta dst_ptr+1
-    bne column
-ring:
-    tay
-    dey
-    lda PLAYFIELD_ROW_LO,y
-    sta dst_ptr
-    lda PLAYFIELD_ROW_HI,y
-    sta dst_ptr+1
-column:
-    clc
-    lda dst_ptr
-    adc STAR_FAR_COLUMN,x
-    sta dst_ptr
-    bcc ready
-    inc dst_ptr+1
-ready:
-.endmacro
-
-.segment "A2_KERNEL"
-
-render_far_star_overlays:
-    lda STAR_GENERATION_FLAGS
-    and #STAR_GENERATE_FAR
-    beq :+
-    lda #$40
-    bne :++
-:
-    lda #$FF
-:
-    sta loader_repeat_value
-    ldx #$00
-    ldy #$00
-render_far_star_slot:
-    lda STAR_FAR_ACTIVE,x
-    cmp loader_repeat_value
-    beq render_far_star_cached
-render_far_star_uncached:
-    ; A dirty record is either $01 (previously covered) or $40 (just erased).
-    ; On a far step, $40 equals loader_repeat_value and keeps its cached cell;
-    ; between far steps both valid states compare below $FF and must resolve
-    ; the newly rotated LMS row. No $81 record survives the preceding erase.
-    bcc render_far_star_resolve
-    bcs render_far_star_next
-render_far_star_cached:
-    lda STAR_FAR_SCREEN_HI,x
-    cmp #>GAMEPLAY_RING_SCREEN
-    bcc render_far_star_resolve
-    sta dst_ptr+1
-    lda STAR_FAR_SCREEN_LO,x
-    sta dst_ptr
-    lda STAR_FAR_CODE,x
-    sta (dst_ptr),y
-    lda #$81
-    sta STAR_FAR_ACTIVE,x
-    bne render_far_star_next
-render_far_star_resolve:
-    RESOLVE_FAR_STAR_PTR
-    ldy #$00
-    lda (dst_ptr),y
-    bne render_far_star_next        ; near stars and gameplay backing win
-    lda dst_ptr
-    sta STAR_FAR_SCREEN_LO,x
-    lda dst_ptr+1
-    sta STAR_FAR_SCREEN_HI,x
-    lda STAR_FAR_CODE,x
-    sta (dst_ptr),y
-    lda #$81
-    sta STAR_FAR_ACTIVE,x
-render_far_star_next:
-    inx
-    cpx #STAR_FAR_CAPACITY
-    bne render_far_star_slot
-    lda #$00
-    sta STAR_GENERATION_FLAGS
-    rts
-
-.segment "CODE"
-
-; Far stars persist as composed background until a world-scroll step erases
-; them.  Revisit the bounded 24-slot population only after that step rather
-; than scanning it on every PAL frame.
-render_far_star_overlays_if_needed:
-    lda STAR_GENERATION_FLAGS
-    cmp #$00
-    beq @done
-    jmp render_far_star_overlays
-@done:
-    rts
-
-.segment "STARFIELD"
-
-advance_far_stars:
-    ldx #$00
-@slot:
-    ; Gameplay initialization fills the complete fixed population. There is
-    ; no runtime release path, so re-testing the invariant for all 29 records
-    ; on every quarter-rate step only duplicated the initializer's result.
-    inc STAR_FAR_ROW,x
-    lda STAR_FAR_ROW,x
-    cmp #GAMEPLAY_SCREEN_ROWS
-    bcc @next
-@respawn:
-    lda #$00
-    sta STAR_FAR_ROW,x
-    jsr choose_far_star_column
-    sta STAR_FAR_COLUMN,x
-    jsr choose_far_star_code
-    sta STAR_FAR_CODE,x
-    lda #$01
-    sta STAR_FAR_ACTIVE,x
-@next:
-    inx
-    cpx #STAR_FAR_CAPACITY
-    bne @slot
-    rts
-
-tick_star_twinkle:
-    dec STAR_TWINKLE_TIMER
-    bne @done
-    lda #STAR_TWINKLE_INTERVAL
-    sta STAR_TWINKLE_TIMER
-    inc STAR_TWINKLE_SLOT
-    lda STAR_TWINKLE_SLOT
-    cmp #STAR_FAR_CAPACITY
-    bcc :+
-    lda #$00
-    sta STAR_TWINKLE_SLOT
-:
-    tax
-    lda STAR_FAR_ACTIVE,x
-    bpl @done                         ; hidden/covered stars hold their phase
-    lda STAR_FAR_CODE,x
-    sta loader_repeat_value
-    jsr set_far_star_ptr
-    ldy #$00
-    lda (dst_ptr),y
-    cmp loader_repeat_value
-    bne @done                         ; never change through an overlay owner
-    lda loader_repeat_value
-    cmp #STAR_FAR_BRIGHT
-    beq @dim
-    lda #STAR_FAR_BRIGHT
-    bne @store
-@dim:
-    lda #STAR_FAR_DIM
-@store:
-    sta STAR_FAR_CODE,x
-    lda STAR_FAR_CODE,x
-    sta (dst_ptr),y
-@done:
-    rts
-
-; Resolve one far-star record to its current physical LMS row while preserving
-; X as the slot index.  The column remains unchanged across every ring head.
-set_far_star_ptr:
-    txa
-    pha
-    lda STAR_FAR_ROW,x
-    jsr set_gameplay_row_ptr
-    pla
-    tax
-    clc
-    lda dst_ptr
-    adc STAR_FAR_COLUMN,x
-    sta dst_ptr
-    bcc :+
-    inc dst_ptr+1
-:
-    rts
+far_baked_pattern:
+    EMIT_FAR_STAR_PATTERN
 
 star_glyph_bytes:
     EMIT_STAR_GLYPHS
@@ -6993,29 +6748,6 @@ option_label_difficulty:
 options_persistent_tables_end:
 
     .assert options_persistent_tables_end <= $9500, error, "OPTIONS tables exceed persistent frontend RODATA gap"
-
-; The fixed page alignment leaves this resident interval unused. Keep the two
-; relocated helpers here so the PAL optimization consumes no runtime reserve.
-erase_far_star_overlays:
-    ldx #(STAR_FAR_CAPACITY-1)
-erase_far_star_slot:
-    lda STAR_FAR_ACTIVE,x
-    bpl erase_far_star_next
-    ; $81 -> $40 records that the cached physical address was just restored.
-    ; Positive values remain non-rendered to the twinkle and update paths.
-    lda #$40
-    sta STAR_FAR_ACTIVE,x
-    lda STAR_FAR_SCREEN_LO,x
-    sta dst_ptr
-    lda STAR_FAR_SCREEN_HI,x
-    sta dst_ptr+1
-    ldy #$00
-    lda #CH_SPACE
-    sta (dst_ptr),y
-erase_far_star_next:
-    dex
-    bpl erase_far_star_slot
-    rts
 
 integration_pickup_pending_tick:
     dec ENTITY_TIMER+WEAPON_PICKUP_SLOT
@@ -9183,6 +8915,8 @@ handle_player_hull_contact:
 ; Preserve the reviewed integration-glue target after replacing the former
 ; periodic cannon-mask decoder with the smaller encoded-layout selector.
 free_broadside_slot_layout_lead_pad:
+row_baked_far_broadside_layout_pad:
+    .res $0E                   ; removed far calls/cleanup; keep fixed glue ABI
 free_broadside_slot:
     jsr erase_broadside_slot
     lda #BROAD_FREE

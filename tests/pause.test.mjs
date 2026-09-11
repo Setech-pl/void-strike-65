@@ -154,7 +154,7 @@ test("NO returns to pause while YES clears gameplay and starts menu music", () =
     assert.match(quit, new RegExp(`jsr ${cleanup}`));
   }
   assert.match(quit,
-    /BROAD_STATE_END-BROAD_STATE_BASE[\s\S]+GAMEPLAY_RESIDENT_END-HULL_SCROLL_ACCUMULATOR[\s\S]+STAR_FAR_STATE_END-STAR_FAR_ACTIVE[\s\S]+STARFIELD_STATE_END-STAR_RNG_STATE/);
+    /BROAD_STATE_END-BROAD_STATE_BASE[\s\S]+GAMEPLAY_RESIDENT_END-HULL_SCROLL_ACCUMULATOR[\s\S]+STARFIELD_STATE_END-STAR_RNG_STATE/);
   assert.match(quit, /jsr enter_main_menu\s+jmp frontend_loop/);
   assert.match(routine("enter_frontend_state", "enter_exited_state"),
     /@start_menu_music:\s+jsr music_start_menu/);

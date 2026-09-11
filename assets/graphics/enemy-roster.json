@@ -39,8 +39,10 @@
     "weaponPolicy": {
       "singlePulse": {
         "renderer": "ANTIC4_GLYPH_POOL",
-        "poolSlots": 9,
+        "poolSlots": 5,
         "activeLimit": 5,
+        "visiblePulsesPerObject": 2,
+        "pairGlyphRows": [1, 2, 5, 6],
         "burstCount": 5,
         "burstIntervalFrames": 15,
         "postBurstFrames": [60, 50, 40],

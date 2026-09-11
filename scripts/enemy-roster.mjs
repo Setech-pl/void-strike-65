@@ -279,9 +279,10 @@ export function compileEnemyRoster(definition, rootDirectory) {
     runtime.colourPolicy.accentValue === 0x46,
   "Enemy roster must select Hostile burgundy $44 with a brighter red $46 scanner");
   const pulse = runtime.weaponPolicy?.singlePulse;
-  invariant(pulse?.renderer === "ANTIC4_GLYPH_POOL" && pulse.poolSlots === 9 &&
-    pulse.activeLimit === 5,
-    "Interceptor burst must keep nine allocated slots with a five-shot active limit");
+  invariant(pulse?.renderer === "ANTIC4_GLYPH_POOL" && pulse.poolSlots === 5 &&
+    pulse.activeLimit === 5 && pulse.visiblePulsesPerObject === 2 &&
+    pulse.pairGlyphRows?.join(",") === "1,2,5,6",
+    "Interceptor burst must keep five one-cell PairShot slots with a five-shot active limit");
   invariant(pulse.burstCount === 5 && pulse.burstIntervalFrames === 15 &&
     JSON.stringify(pulse.postBurstFrames) === JSON.stringify([60, 50, 40]),
   "Interceptor burst count, interval, or Easy/Medium/Hard pauses changed");

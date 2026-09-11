@@ -1,0 +1,387 @@
+{
+  "schema": "void-strike-65.stage-2b2b-pairshot-foundation-proof.v1",
+  "stage": "Stage 2B.2b PairShot foundation proof",
+  "date": "2026-09-11",
+  "status": "PASS_PAIRSHOT_FOUNDATION",
+  "scope": "One logical/one rendered/one-cell PairShot shared by Player Fighter and the existing fighter-enemy fire path; no unified scheduler, Light roster, capital or boss changes.",
+  "model": {
+    "name": "Codex (GPT-5 family)",
+    "reasoning": "High",
+    "note": "The requested GPT-5.6 Sol product label was not exposed by this session."
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "headBefore": "0ffb24bf82d32f9b61d78395e0b30a90da8a54eb",
+    "headAfter": "commit containing this report",
+    "untouched": [
+      ".claude/"
+    ],
+    "preservedRefs": {
+      "refs/wip/stage2b-foreign-0803": "13597d7fb6fa6bb0d04541ed68ab6715cec1e8d4",
+      "refs/wip/stage2b0-fdb-proof": "3e5d83f2f1944d2dd90b8a23bec9eaae0dcdebc8",
+      "refs/wip/stage2b2-single-window-rejected": "7f40ee0408356bf1f431b49bf5c51d50ae72a4b3"
+    }
+  },
+  "baselineProjectiles": {
+    "checkpoint": "0ffb24bf82d32f9b61d78395e0b30a90da8a54eb",
+    "physicalRecords": {
+      "player": 10,
+      "enemy": 9,
+      "total": 19
+    },
+    "activeLimits": {
+      "player": 6,
+      "enemy": 5,
+      "combined": 11
+    },
+    "maximumCellsPerProjectile": 2,
+    "controlledCombined": {
+      "logicalObjects": 11,
+      "dynamicCells": 22,
+      "simulationAndBookkeepingCycles": 728,
+      "collisionCycles": 418,
+      "updateCycles": 1146,
+      "eraseCycles": 1480,
+      "renderCycles": 3149,
+      "publicationCycles": 4629,
+      "totalProjectileCycles": 5775,
+      "addressResolveCyclesPerObject": 71
+    },
+    "playerBurstPipeline": {
+      "normal": {
+        "logicalObjectsInFirstBurst": 8,
+        "maximumConcurrent": 4,
+        "maximumCycles": 2557
+      },
+      "rapid": {
+        "logicalObjectsInFirstBurst": 10,
+        "maximumConcurrent": 6,
+        "maximumCycles": 3303
+      },
+      "spread": {
+        "logicalObjectsAllocatedByLegacyThree-waySalvosInTrace": 18,
+        "maximumConcurrent": 6,
+        "maximumCycles": 5322
+      }
+    }
+  },
+  "enemyProjectileInventory": {
+    "beforePoolRecords": 9,
+    "afterPoolRecords": 5,
+    "burstObjects": 5,
+    "visiblePulsesPerObject": 2,
+    "burstIntervalFrames": 15,
+    "postBurstFramesByDifficulty": [60, 50, 40],
+    "speedScanlinesPerFrame": 5,
+    "lifetimeFrames": 96,
+    "damagePerLogicalHit": 10,
+    "colour": "inverse ANTIC 4 / COLPF3 $46",
+    "movement": "downward swept path",
+    "controller": "one bounded round-robin burst controller shared across the current Raider formation"
+  },
+  "pairShotModel": {
+    "logicalObjectsPerRecord": 1,
+    "renderedObjectsPerRecord": 1,
+    "screenCellsPerRecord": 1,
+    "visiblePulsesPerRecord": 2,
+    "glyph": {
+      "dimensions": "8x8",
+      "paintedRows": [1, 2, 5, 6],
+      "player": "yellow COLPF2, width one ANTIC 4 pixel at one of four horizontal phases",
+      "enemy": "red COLPF3 through inverse screen code, width two ANTIC 4 pixels at one of two horizontal phases",
+      "compatibilityBankBytes": 448,
+      "addedGlyphBytes": 0
+    },
+    "recordReuse": "The existing common ten-array movement, erase, render, backing and collision kernel now covers five player and five enemy records.",
+    "collision": {
+      "eventsPerPairShot": 1,
+      "playerDamageMultiplierAdded": false,
+      "enemyDamagePerHitPreserved": 10,
+      "playerCollisionMissCyclesPerObject": 44,
+      "enemyCollisionMissCyclesPerObject": 32
+    },
+    "topBottom": {
+      "secondScreenCellUsed": false,
+      "bottomBackingUsed": false,
+      "reverseTwoCellUnwindUsed": false
+    }
+  },
+  "objectCounts": {
+    "normal": {
+      "beforeLogical": 8,
+      "afterLogical": 4,
+      "visiblePulses": 8
+    },
+    "spread": {
+      "beforeLogicalPerLegacySalvo": 3,
+      "beforeSalvos": 8,
+      "afterLogical": 4,
+      "visiblePulses": 8,
+      "sequence": ["centre", "left", "right", "centre"]
+    },
+    "rapid": {
+      "beforeLogical": 10,
+      "afterLogical": 5,
+      "visiblePulses": 10
+    },
+    "enemy": {
+      "beforeLogicalBurst": 5,
+      "afterLogicalBurst": 5,
+      "visiblePulsesAfter": 10
+    }
+  },
+  "dynamicCells": {
+    "controlledLegalWorstBefore": 22,
+    "controlledLegalWorstAfter": 10,
+    "normalBeforeAfter": [16, 4],
+    "rapidBeforeAfter": [12, 5],
+    "spreadBeforeAfter": [12, 4],
+    "enemyMaximumBeforeAfter": [10, 5],
+    "note": "Before values count the legacy TOP/BOTTOM visual footprint. Spread naturally reaches only two simultaneous PairShots under its retained 28-frame cadence, but four objects remain the bounded burst definition."
+  },
+  "instructionExactCpu": {
+    "method": "scripts/pairshot-proof.mjs executing assembled NMOS 6502 routines plus a 160-frame assembled burst trace",
+    "controlledScenarios": {
+      "playerNormal4": {
+        "simulationAndBookkeeping": 316,
+        "collision": 176,
+        "erase": 280,
+        "render": 842,
+        "publication": 1122,
+        "dynamicCells": 4
+      },
+      "playerRapid5": {
+        "simulationAndBookkeeping": 358,
+        "collision": 220,
+        "erase": 312,
+        "render": 1006,
+        "publication": 1318,
+        "dynamicCells": 5
+      },
+      "enemy5": {
+        "simulationAndBookkeeping": 333,
+        "collision": 160,
+        "erase": 312,
+        "render": 946,
+        "publication": 1258,
+        "dynamicCells": 5
+      },
+      "combined5plus5": {
+        "simulationAndBookkeeping": 543,
+        "collision": 380,
+        "erase": 472,
+        "render": 1766,
+        "publication": 2238,
+        "totalProjectileCycles": 3161,
+        "dynamicCells": 10,
+        "restoreMismatches": 0
+      }
+    },
+    "controlledCombinedRecovery": {
+      "beforeCycles": 5775,
+      "afterCycles": 3161,
+      "recoveredCycles": 2614,
+      "recoveredPercent": 45.26
+    },
+    "burstPipeline": {
+      "normalBeforeAfter": [2557, 1755],
+      "normalRecoveredPercent": 31.37,
+      "rapidBeforeAfter": [3303, 2117],
+      "rapidRecoveredPercent": 35.91,
+      "spreadBeforeAfter": [5322, 2062],
+      "spreadRecoveredPercent": 61.25
+    }
+  },
+  "nativeCpu": {
+    "method": "instrumented Atari800 7.1.2 PAL/XL, scripts/runtime-wall-trace.mjs --pairshot-only",
+    "sessions": [
+      {"mode": "Normal", "fighterOpenFrames": 475, "maximumActiveWorkCycles": 12898},
+      {"mode": "Rapid", "fighterOpenFrames": 475, "maximumActiveWorkCycles": 14365},
+      {"mode": "Spread", "fighterOpenFrames": 430, "maximumActiveWorkCycles": 11728}
+    ],
+    "totalFighterOpenFrames": 1440,
+    "maximumActivePlayerPairShots": 5,
+    "maximumNaturallyObservedEnemyPairShots": 3,
+    "fighterOpenMaximumActiveWorkCycles": 14365,
+    "playerAndEnemyMaximumActiveWorkCycles": 14365,
+    "twoHeavyMaximumActiveWorkCycles": 14365,
+    "heaviestFrameProjectileCycles": 3620,
+    "heaviestFrameProjectileBreakdown": {
+      "updateAndCollision": 1726,
+      "playerWeaponControl": 66,
+      "enemyWeaponControl": 197,
+      "eraseAndRender": 1631,
+      "addressMappingCalls": 6,
+      "addressMappingCycles": 503
+    },
+    "targetCycles": 31200,
+    "hardGateCycles": 32568,
+    "targetHeadroomCycles": 16835,
+    "hardGateHeadroomCycles": 18203,
+    "missed": 0,
+    "targetOverruns": 0,
+    "hardOverruns": 0,
+    "extraVbi": 0,
+    "dliAnomalies": 0,
+    "rawCadenceMaximumCycles": 36070,
+    "rawCadenceNote": "Raw cadence includes the deliberate fixed VCOUNT publication wait; the gate uses reconstructed active work and accounts for DLI time in that interval."
+  },
+  "spread": {
+    "geometry": "Four one-cell PairShots follow centre/left/right/centre; side motion retains one HPOS step per two updates.",
+    "inverseLowerLayerHandling": "One-cell composite merges both impulses into one slot-owned glyph; no BOTTOM cell or reverse two-cell unwind remains.",
+    "finalGlyphStatus": "The legacy split final-glyph path is structurally absent and the focused restore proof reports zero mismatches; visual acceptance remains owner-smoke work.",
+    "publicationWorstCycles": 1583,
+    "publicationComponents": {"erase": 216, "renderWithComposite": 1367}
+  },
+  "unifiedCommitForecast": {
+    "classification": "STRONG PASS for every player mode and controlled 5+5 PairShot maximum",
+    "conservativeWindowCycles": 9975,
+    "nonProjectileLayersCycles": 3464,
+    "schedulerEstimateCycles": [80, 160],
+    "normal": {"publicationCycles": 1126, "totalCycles": [4670, 4750], "marginCycles": [5225, 5305]},
+    "rapid": {"publicationCycles": 1322, "totalCycles": [4866, 4946], "marginCycles": [5029, 5109]},
+    "spread": {"publicationCycles": 1583, "totalCycles": [5127, 5207], "marginCycles": [4768, 4848]},
+    "controlledPlayer5Enemy5": {"publicationCycles": 2238, "totalCycles": [5782, 5862], "marginCycles": [4113, 4193]},
+    "note": "Totals are forecasts; layer costs come from the accepted row-baked feasibility model while PairShot publication is instruction-exact measured. No scheduler was implemented."
+  },
+  "memoryPlacement": {
+    "before": {
+      "linkedRuntimeBytes": 17287,
+      "simultaneousResidencyBytes": 17765,
+      "safeHeadroomBytes": 4422,
+      "projectileSegmentBytes": 228,
+      "fighterWeaponStateBytes": 202,
+      "residentCodeBytes": 4475,
+      "entityCodeBytes": 3105,
+      "initialContentBytes": 12949
+    },
+    "after": {
+      "linkedRuntimeBytes": 17215,
+      "simultaneousResidencyBytes": 17693,
+      "safeHeadroomBytes": 4494,
+      "projectileSegmentBytes": 138,
+      "fighterWeaponStateBytes": 112,
+      "residentCodeBytes": 4399,
+      "entityCodeBytes": 3109,
+      "initialContentBytes": 12829
+    },
+    "delta": {
+      "linkedRuntimeBytes": -72,
+      "simultaneousResidencyBytes": -72,
+      "safeHeadroomBytes": 72,
+      "projectileStateBytes": -90,
+      "residentCodeBytes": -76,
+      "entityCodeBytes": 4,
+      "initialContentBytes": -120
+    },
+    "gates": {
+      "starfieldPacked": {"bytes": 1676, "capacity": 1819, "margin": 143, "passed": true},
+      "pickupColdRecord": {"bytes": 852, "capacity": 1277, "margin": 425, "passed": true},
+      "entityStaging": {"sourceToStagingMargin": 255, "stagingToBroadsideMargin": 155, "passed": true},
+      "broadside": {"bytes": 6647, "capacity": 6656, "margin": 9, "passed": true},
+      "a2": {"bytes": 122, "capacity": 256, "margin": 134, "passed": true},
+      "entityCodeAlignment": {"address": "$9100", "aligned": true, "tailMargin": 80},
+      "initialContent": {"bytes": 12829, "transportBytes": 12928, "margin": 99, "passed": true}
+    },
+    "transport": {
+      "format": "DFMC-v1 multi-chunk unchanged",
+      "records": 4,
+      "occupiedSectors": 161,
+      "loaderChanged": false,
+      "basicRamUsed": false,
+      "runtimeDiskIoAdded": false
+    }
+  },
+  "capacityForecast": {
+    "measuredFoundation": {
+      "playerPairShots": 5,
+      "enemyPairShots": 5,
+      "dynamicCells": 10,
+      "publicationCycles": 2238,
+      "totalProjectileCycles": 3161
+    },
+    "twoHeavyPlusTwoLight": {
+      "classification": "viable",
+      "sharedEnemyPoolModel": "No projectile state or visual-window increase if Light fire shares the bounded five-record enemy PairShot pool.",
+      "visualWindowForecastCycles": [5782, 5862],
+      "marginToWindowCycles": [4113, 4193],
+      "unmeasured": "Light AI, admission and cadence CPU"
+    },
+    "twoHeavyPlusFourLight": {
+      "classification": "viable foundation, roster proof still required",
+      "sharedEnemyPoolModel": "The five-record enemy pool bounds projectile cells independently of shooter count.",
+      "visualWindowForecastCycles": [5782, 5862],
+      "marginToWindowCycles": [4113, 4193],
+      "unmeasured": "Light AI, admission and cadence CPU"
+    },
+    "optionalPoolExpansionScaling": {
+      "stateBytesPerAdditionalRecord": 10,
+      "measuredEnemyPublicationCyclesPerAdditionalCell": 184,
+      "measuredEnemySimulationCollisionCyclesPerAdditionalObject": 69,
+      "measuredTotalCyclesPerAdditionalEnemyObject": 253,
+      "plusTwoCellsVisualWindowCycles": [6150, 6230],
+      "plusFourCellsVisualWindowCycles": [6518, 6598],
+      "note": "Estimate only; pool expansion was not implemented or required for the shared capped-pool forecast."
+    }
+  },
+  "verification": {
+    "candidateBuild": {
+      "command": "npm run build:two-pmg",
+      "result": "PASS twice with byte-identical BIN/XEX/ATR/manifest SHA-256"
+    },
+    "focusedTests": {
+      "command": "node --test tests/pairshot-foundation.test.mjs tests/fighter-weapons.test.mjs tests/enemy-combat.test.mjs",
+      "result": "PASS 51/51"
+    },
+    "layoutTests": {
+      "command": "node --test tests/layout-d1.test.mjs",
+      "result": "PASS 6/6"
+    },
+    "rowBakedFoundationTests": {
+      "command": "node --test tests/starfield.test.mjs",
+      "result": "PASS 12/12"
+    },
+    "transportRegression": {
+      "result": "BLOCKED by host tool architecture after invocation",
+      "reason": "The test directly invokes the installed x86_64 ca65 and spawnSync fails with host error -86; the JS toolchain build and exact layout assertions pass."
+    },
+    "nativeTrace": {
+      "command": "ATARI800_TRACE_SOURCE=~/Projects/tools/atari800-7.1.2 node scripts/runtime-wall-trace.mjs --pairshot-only",
+      "result": "PASS",
+      "report": "build/runtime-wall-trace/pairshot-native-report.json"
+    },
+    "nativeColdBoot": {
+      "command": "ATARI800_TRACE_SOURCE=~/Projects/tools/atari800-7.1.2 npm run boot:smoke",
+      "result": "PASS",
+      "sessions": 4,
+      "artifacts": ["XEX", "ATR"]
+    },
+    "notPerformed": [
+      "unified visual scheduler",
+      "Effects 25 Hz",
+      "Light implementation",
+      "capital or boss changes",
+      "full unrelated milestone gauntlet"
+    ]
+  },
+  "artifacts": {
+    "xex": {
+      "path": "dist/void-strike-65.xex",
+      "bytes": 21349,
+      "sha256": "049c61a04dc26a3ae87949e6fb1b5a0b2c0d0f9cd87f0b949ae128f4c8f34e46",
+      "status": "PairShot owner-smoke candidate"
+    },
+    "atr": {
+      "path": "dist/void-strike-65.atr",
+      "bytes": 92176,
+      "sha256": "f82a61cf107a2ca00a6afe441a8f88d296b8a587c5e8c9eecd257994d31ac533"
+    },
+    "boot": {
+      "path": "dist/void-strike-65-boot.bin",
+      "bytes": 20608,
+      "sha256": "8e6015e9f98320542c6af3036b693a017b7e60632ecb75eb653a8192229b0d2d"
+    }
+  },
+  "decision": "PairShot foundation is viable",
+  "next": "Effects 25 Hz / staggered feasibility"
+}

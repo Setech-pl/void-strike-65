@@ -15,27 +15,19 @@ function byte(value) {
   return `$${value.toString(16).padStart(2, "0").toUpperCase()}`;
 }
 
-function projectileGlyphs(width, horizontalPhases, height) {
+function pairShotGlyphs(width, horizontalPhases, pairRows, phaseStride) {
   const glyphs = [];
   for (const horizontalPhase of horizontalPhases) {
-    for (let verticalPhase = 0; verticalPhase < 8; verticalPhase += 1) {
+    const pairGlyph = (() => {
       const rows = Array(8).fill(0);
-      for (let line = 0; line < height && verticalPhase + line < 8; line += 1) {
+      for (const row of pairRows) {
         for (let pixel = 0; pixel < width; pixel += 1) {
-          rows[verticalPhase + line] |= 3 << ((3 - horizontalPhase - pixel) * 2);
+          rows[row] |= 3 << ((3 - horizontalPhase - pixel) * 2);
         }
       }
-      glyphs.push(rows);
-    }
-    for (let overflowPhase = 8 - height + 1; overflowPhase < 8; overflowPhase += 1) {
-      const rows = Array(8).fill(0);
-      for (let line = 8 - overflowPhase; line < height; line += 1) {
-        for (let pixel = 0; pixel < width; pixel += 1) {
-          rows[overflowPhase + line - 8] |= 3 << ((3 - horizontalPhase - pixel) * 2);
-        }
-      }
-      glyphs.push(rows);
-    }
+      return rows;
+    })();
+    for (let phase = 0; phase < phaseStride; phase += 1) glyphs.push(pairGlyph);
   }
   return glyphs;
 }
@@ -70,7 +62,13 @@ export function loadFighterWeaponsDefinition(sourcePath) {
   for (const [id, weapon] of [["player_fighter", definition.player_fighter]]) {
     integer(weapon?.poolSlots, `${id}.poolSlots`, 1, 16);
     integer(weapon.activeLimit, `${id}.activeLimit`, 1, weapon.poolSlots);
-    invariant(weapon.burstCount === 8, `${id} normal burst must contain exactly eight shots`);
+    invariant(weapon.visiblePulsesPerObject === 2,
+      `${id} PairShot must depict exactly two visible pulses`);
+    invariant(Array.isArray(weapon.pairGlyphRows) &&
+      weapon.pairGlyphRows.join(",") === "1,2,5,6",
+    `${id} PairShot must keep both two-row impulses inside one character cell`);
+    invariant(weapon.burstCount === 4 && weapon.visibleBurstPulses === 8,
+      `${id} normal burst must contain four PairShots / eight visible pulses`);
     integer(weapon.burstIntervalFrames, `${id}.burstIntervalFrames`, 1, 16);
     integer(weapon.speedScanlines, `${id}.speedScanlines`, 1, 16);
     integer(weapon.widthHpos, `${id}.widthHpos`, 1, 2);
@@ -79,18 +77,20 @@ export function loadFighterWeaponsDefinition(sourcePath) {
   }
   invariant(definition.player_fighter.postBurstFrames === 12,
     "PlayerFighter post-burst pause must be 12 PAL frames");
-  invariant(definition.player_fighter.rapidFireBurstCount === 10 &&
+  invariant(definition.player_fighter.rapidFireBurstCount === 5 &&
+    definition.player_fighter.rapidFireVisiblePulses === 10 &&
     definition.player_fighter.rapidFireBurstCount <= definition.player_fighter.poolSlots &&
     definition.player_fighter.rapidFireIntervalFrames === 6 &&
     definition.player_fighter.rapidFireDurationFrames === 500,
-  "Rapid Fire must use ten shots, a six-frame interval and exactly 500 active PAL frames");
+  "Rapid Fire must use five PairShots / ten pulses, a six-frame interval and exactly 500 active PAL frames");
   invariant(definition.player_fighter.spreadShotBurstCount === definition.player_fighter.burstCount &&
+    definition.player_fighter.spreadShotVisiblePulses === 8 &&
     definition.player_fighter.spreadShotDurationFrames === 500,
-  "Spread Shot must use the eight-salvo normal burst for exactly 500 active PAL frames");
+  "Spread Shot must use four PairShots / eight pulses for exactly 500 active PAL frames");
   invariant(definition.player_fighter.shieldDurationFrames === 250,
     "Shield must last exactly 250 active PAL frames");
-  invariant(definition.player_fighter.spreadShotProjectileCount === 3,
-    "Spread Shot must allocate exactly three logical projectiles");
+  invariant(definition.player_fighter.spreadShotProjectileCount === 1,
+    "Each Spread emission must allocate exactly one logical PairShot");
   invariant(definition.player_fighter.spreadShotCooldownFrames === 28,
     "Spread Shot cooldown must preserve the reduced player-fire cadence");
   invariant(definition.player_fighter.spreadShotInitialOffsetHpos === 4,
@@ -130,6 +130,9 @@ export function compileFighterWeapons(definition, enemyRoster) {
   const pulse = enemyRoster?.runtime?.weaponPolicy?.singlePulse;
   invariant(pulse?.renderer === "ANTIC4_GLYPH_POOL",
     "Fighter weapons require the Interceptor ANTIC 4 glyph-pool policy");
+  invariant(pulse.visiblePulsesPerObject === 2 &&
+    pulse.pairGlyphRows?.join(",") === "1,2,5,6",
+  "Interceptor fire must use the shared one-cell two-pulse PairShot form");
   const interceptor = Object.freeze({
     poolSlots: pulse.poolSlots,
     activeLimit: pulse.activeLimit,
@@ -143,6 +146,8 @@ export function compileFighterWeapons(definition, enemyRoster) {
     lifetimeFrames: pulse.lifetimeFrames,
     colourRegister: pulse.colourRegister,
     colourValue: pulse.colourValue,
+    visiblePulsesPerObject: pulse.visiblePulsesPerObject,
+    pairGlyphRows: pulse.pairGlyphRows,
   });
   const player_fighter = definition.player_fighter;
   const activeImageTop = definition.viewport.activeImageTop;
@@ -163,8 +168,10 @@ export function compileFighterWeapons(definition, enemyRoster) {
     coreMasks: Uint8Array.from(definition.sharedFighterExplosion.coreMasks),
     slots: 2,
   });
-  const player_fighterGlyphs = projectileGlyphs(player_fighter.widthHpos, [0, 1, 2, 3], player_fighter.heightScanlines);
-  const interceptorGlyphs = projectileGlyphs(interceptor.widthHpos, [0, 2], interceptor.heightScanlines);
+  const player_fighterGlyphs = pairShotGlyphs(player_fighter.widthHpos, [0, 1, 2, 3],
+    player_fighter.pairGlyphRows, 9);
+  const interceptorGlyphs = pairShotGlyphs(interceptor.widthHpos, [0, 2],
+    interceptor.pairGlyphRows, 10);
   invariant(player_fighterGlyphs.length === 36 && interceptorGlyphs.length === 20,
     "Fighter projectile phase glyph count changed");
   invariant(definition.glyphLayout.player_fighterBase + player_fighterGlyphs.length <= 59,
@@ -213,6 +220,10 @@ export function renderFighterWeaponsCa65Include(asset) {
     `INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT = ${interceptor.activeLimit}`,
     `FIGHTER_PROJECTILE_SLOT_COUNT = ${asset.totalSlots}`,
     `INTERCEPTOR_PROJECTILE_SLOT_BASE = ${player_fighter.poolSlots}`,
+    `PAIRSHOT_VISIBLE_PULSES_PER_OBJECT = ${player_fighter.visiblePulsesPerObject}`,
+    `PLAYER_FIGHTER_NORMAL_VISIBLE_PULSES = ${player_fighter.visibleBurstPulses}`,
+    `PLAYER_FIGHTER_RAPID_VISIBLE_PULSES = ${player_fighter.rapidFireVisiblePulses}`,
+    `PLAYER_FIGHTER_SPREAD_VISIBLE_PULSES = ${player_fighter.spreadShotVisiblePulses}`,
     "WEAPON_BURST_WAITING = 0",
     "WEAPON_BURST_FIRING = 1",
     "WEAPON_BURST_POST = 2",

@@ -240,7 +240,7 @@ test("Interceptor pursuit reverses gradually and preserves a small deterministic
     /update_interceptor_soft_pursuit:[\s\S]+INTERCEPTOR_TARGET_SAMPLE_INTERVAL[\s\S]+player_x[\s\S]+enemy_velocity_x/);
 });
 
-test("assembled archetype descriptors assign only Interceptor single-pulse fire", () => {
+test("assembled archetype descriptors assign only Interceptor PairShot fire", () => {
   assert.deepEqual(asset.implemented.map(({ weaponProfileId }) => weaponProfileId),
     [ENEMY_WEAPON_PROFILES.SINGLE_PULSE, ENEMY_WEAPON_PROFILES.NONE,
       ENEMY_WEAPON_PROFILES.NONE]);
@@ -252,8 +252,10 @@ test("assembled archetype descriptors assign only Interceptor single-pulse fire"
     [60, 50, 40]);
   assert.deepEqual(asset.runtime.weaponPolicy.singlePulse, {
     renderer: "ANTIC4_GLYPH_POOL",
-    poolSlots: 9,
+    poolSlots: 5,
     activeLimit: 5,
+    visiblePulsesPerObject: 2,
+    pairGlyphRows: [1, 2, 5, 6],
     burstCount: 5,
     burstIntervalFrames: 15,
     postBurstFrames: [60, 50, 40],
@@ -403,8 +405,7 @@ test("Interceptor playfield pool cannot overwrite M0 or active capital missiles"
     state = stepEnemyCombatFrame(asset, state, { enemyX: 120, enemyY: 56 });
   }
   assert.equal(state.shotsFired, 5);
-  assert.equal(state.pool.length, 9);
-  assert.equal(state.pool.slice(5).every((slot) => slot === null), true);
+  assert.equal(state.pool.length, 5);
   assert.match(source, /MISSILE_M0_MASK = \$03/);
   const fighterRenderer = source.slice(source.indexOf("render_fighter_projectile_overlays:"),
     source.indexOf("; -----------------------------------------------------------------------------\n; Enemy"));

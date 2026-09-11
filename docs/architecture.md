@@ -19,8 +19,8 @@ verify phases bind the boot BIN, XEX, and ATR by exact size and SHA-256.
 
 ## Cold startup and loader
 
-The Encounter Director configuration uses a 104-sector initial block at
-`$2000-$53FF` and enters at `$201E` with a 449-byte raw bootstrap prefix. A
+The Encounter Director configuration uses a 101-sector initial block at
+`$2000-$527F` and enters at `$201E` with a 449-byte raw bootstrap prefix. A
 1,257-byte stage-2 overlay runs at `$21C1-$26A9`; after it validates
 the complete manifest, it reads extension sectors through standard OS SIOV
 while OS IRQ/NMI and disk services are still available. Each chunk is fully
@@ -28,18 +28,18 @@ read, CRC16-CCITT checked, and only then copied or decompressed to its manifest-
 controlled destination. Any failure blanks DMA, selects a fixed red error
 background, and halts before partially loaded code can execute.
 
-The four ordered DFMC records are BROADSIDE in sectors 105-149, the packed
-pickup-code/collision stream in sectors 150-156, 250-byte integration glue in
-sectors 157-159, and the Encounter Director in sectors 160-164. ATR stages
+The four ordered DFMC records are BROADSIDE in sectors 102-146, the packed
+pickup-code/collision stream in sectors 147-153, 250-byte integration glue in
+sectors 154-156, and the Encounter Director in sectors 157-161. ATR stages
 each record at `$8100`; BROADSIDE expands 6,647 bytes to `$5E10-$7806`, the
-854-byte pickup stream is preserved temporarily at `$4801-$4B56`, and glue
+852-byte pickup stream is preserved temporarily, and glue
 expands to cold staging at `$7BD0-$7CC9`. Packed ENTITY_CODE is copied backward
-to `$5318-$5DCD`. Startup holds glue at `$8600-$86F9` after consuming resident
+to `$5318-$5D74`. Startup holds glue at `$8600-$86F9` after consuming resident
 staging, defers the overlapping starfield staging write until that hold is
 complete, then copies glue to `$4EFE-$4FF7`; the 644-byte Director expands to
 `$9D75-$9FF8`. The last BROADSIDE source read makes `$8100` reusable;
 only then does startup copy the packed resident suffix and stage it at
-`$8100-$9B42`. The 7,743-byte suffix is stored as a 6,723-byte LZ-10/5 stream
+`$8100-$9B0B`. The 7,743-byte suffix is stored as a 6,668-byte LZ-10/5 stream
 and restores `$21C1-$3FFF`, overwriting all stage-2 code and its maximum
 eight-record manifest. The pickup stream expands atomically to `$8800-$8B87`:
 871 bytes of PMG/publication/primitive runtime followed by the final 33-byte
@@ -48,8 +48,8 @@ bank remains a generated source asset but is absent from transport and runtime.
 No loader byte remains resident or enters gameplay.
 
 The manifest uses 16-bit sector numbers, supports eight sequential chunks, and
-accepts RAW or LZ records. The current initial block and four records use 164
-sectors (20,992 B). The ATR itself has 556 unused sectors (71,168 B); runtime
+accepts RAW or LZ records. The current initial block and four records use 161
+sectors (20,608 B). The ATR itself has 559 unused sectors (71,552 B); runtime
 residency remains a separate constraint.
 
 ### DFMC v1 byte format
@@ -70,12 +70,12 @@ Each 16-byte record stores, in order: 16-bit start sector, 16-bit sector count,
 16-bit packed length, 16-bit raw length, 16-bit final destination, 16-bit CRC of
 the complete sector image, one-byte type (`0=RAW`, `1=LZ`), one-byte controlled
 staging identifier, and a 16-bit staging address. All words are little-endian.
-Production records begin at sectors 104, 149, 159, and 162. Their packed/raw
-lengths are respectively 5,659/6,653 B, 1,168/1,168 B, 245/250 B, and 587/644 B.
-The second record carries the compressed immutable pickup phase bank plus its
-late compositor and the 33-byte collision module. Its cold copy at
-`$8C80-$910F` is first preserved at `$4801-$4C90`, then its phase bank is
-decompressed to `$8800-$8C7F`; source and destination never overlap while live. Glue is
+Production records begin at sectors 102, 147, 154, and 157. Their packed/raw
+lengths are respectively 5,620/6,647 B, 852/852 B, 245/250 B, and 587/644 B.
+The second record carries the compressed PMG pickup/publication/primitive code
+plus the 33-byte collision module; the obsolete character-pickup phase bank is
+absent. Its cold copy at `$8C80-$8FD3` is first preserved at `$4801-$4B54`,
+then decompressed to `$8800-$8B87`; source and destination never overlap while live. Glue is
 transported to `$7BD0-$7CC9`, held at `$8600-$86F9` after resident staging is
 consumed, and late-published to `$4EFE-$4FF7`. The Director ends
 at `$9FF8`; `$9FF9` remains free and `$9FFA-$9FFF` is the untouched guard.
@@ -228,33 +228,29 @@ transient effects then save and restore their backing. A cell vacated by an
 overlay must contain exactly the byte that the lower layers would have produced
 in the same frame.
 
-Spread Shot uses the common projectile path. For overlapping or diagonal
-projectiles it composes slot-owned scratch glyphs from the current lower-layer
-byte, including a capital hull that moved during the frame. Erase and redraw
-are overlap-aware: one departing projectile cannot erase another live
-projectile, and the last departing projectile restores the current broadside or
-base byte. This contract covers module boundaries, prow, engines, every A2
-head, and ring wrap.
+Fighter weapons use a common one-cell PairShot record. Its fixed 8x8 glyph
+shows two separated impulses, while movement, lifetime and collision remain a
+single logical event. Spread uses the same path and composes one slot-owned
+scratch glyph when it meets a lower character layer. The former TOP/BOTTOM
+spill, reverse two-cell unwind, and final split-glyph path are absent.
 
 ## Bounded pools
 
 | Pool | Physical capacity | Release active limit | Purpose |
 | --- | ---: | ---: | --- |
-| Player Fighter projectiles | 10 | 6 | normal, Rapid Fire, and Spread Shot |
-| Interceptor projectiles | 9 | 0 | retained allocation; disabled in the two-PMG movement prototype |
-| Combined fighter projectiles | 19 | 6 | Player Fighter only in this prototype |
+| Player Fighter PairShots | 5 | 5 | four Normal/Spread or five Rapid objects; 8/8/10 visible pulses |
+| Fighter-enemy PairShots | 5 | 5 | shared enemy controller and one-cell PairShot renderer |
+| Combined fighter PairShots | 10 | 10 | controlled maximum; one dynamic cell per object |
 | Broadside projectiles | 3 | 2 | capital fire; M1-M3 allocation remains unchanged |
 | Interactive entities | 4 | 2 | debris plus one pickup capsule; controller/reserve slots remain non-rendered |
 | Transient effects | 6 | 5 | one core plus four fragments |
 
-Pool scans are bounded by compile-time counts. Spread Shot admits its centre
-whenever at least one Player Fighter slot is free and admits the two side shots only as
-an atomic pair. Its 28-frame cooldown enforces the active-fire
-budget. Normal and Spread initialize an eight-shot/eight-salvo burst; Normal uses
-a nine-frame interval, Spread 28, and Rapid initializes ten shots at six
-frames. All modes retain the 12-frame post-burst
-pause. The effects pool is not used for pickup capsules or persistent
-projectile state.
+Pool scans are bounded by compile-time counts. Normal and Spread initialize
+four PairShots, Rapid five. Their fixed glyphs preserve 8/8/10 visible pulses;
+Normal uses a nine-frame interval, Spread 28, and Rapid six. Spread emits the
+recognizable centre/left/right/centre sequence. All modes retain the 12-frame
+post-burst pause. The effects pool is not used for pickup capsules or
+persistent projectile state.
 
 ## Enemies, debris, and boosters
 
@@ -267,10 +263,10 @@ single-Interceptor soft-pursuit routine, but opposite initial velocities and
 phases prevent synchronized flight. Their opening manoeuvre crosses vertically
 before both machines leave ahead of the unchanged first capital sector.
 
-Raider hits, contact, weapon release, scoring, and explosions are inert in this
-prototype. The nine historical projectile records remain allocated only to
-avoid a wider memory-layout change. Player Fighter fire, stars, scroll, ring
-publication, and capital-sector scheduling keep their production paths.
+The current fighter proof enables the existing bounded Raider fire path. Five
+enemy PairShot records share one burst controller across the formation; they
+reuse the same one-cell movement/erase/render foundation as player fire while
+retaining hostile colour, speed, cadence, swept collision and ten-unit damage.
 
 Debris is the implemented interactive entity in slot 0. It has bounded
 trajectories, two shapes, two tumble phases, three hit points, contact damage,
@@ -339,11 +335,11 @@ writable backing bytes at `$5E06-$5E0F` preserve and restore the complete prior
 field across refresh, replacement, expiry, life loss, and teardown. No PMG,
 bitmap overlay, DLI, palette, or gameplay-charset allocation is involved.
 
-Rapid Fire uses the existing Player Fighter projectile renderer and yellow colour bank.
-Spread Shot uses three logical Player Fighter projectiles: centre, left, and right. All
-three use the yellow Player Fighter colour. Side directions are encoded in the existing
-render/state byte, and the parity of the existing lifetime supplies their
-one-HPOS-per-two-updates fixed phase, avoiding another allocation.
+Rapid Fire uses the shared PairShot renderer and yellow colour bank. Spread
+Shot emits four one-cell PairShots in a centre/left/right/centre sequence. Side
+directions are encoded in the existing render/state byte, and the parity of the
+existing lifetime supplies their one-HPOS-per-two-updates fixed phase, avoiding
+another allocation.
 
 Shield leaves the normal weapon cadence active. Its separate state is checked
 after `PLAYER_ALIVE` and before the ordinary 25-frame damage cooldown. A valid
@@ -356,11 +352,11 @@ therefore distinct from respawn invulnerability.
 
 ## Character and PMG ownership
 
-The gameplay charset has two free glyphs. Stars use 1-6, Player Fighter projectile
-phases 11-46, Spread Shot composite scratch 47-56, capital hulls 59-89,
-Interceptor/projectile phases 90-109, debris 110-117, and fragments 118-119. Glyphs
-120-125 are the single-owner dynamic pickup compositor bank; one of the three
-type-specific, eight-phase sources is copied there before the sole late draw.
+The gameplay charset has two free glyphs. Stars use 1-6, Player Fighter PairShot
+compatibility glyphs 11-46, Spread Shot composite scratch 47-56, capital hulls
+59-89, enemy PairShot compatibility glyphs 90-109, debris 110-117, and
+fragments 118-119. Glyphs 120-125 retain their source allocation but the PMG
+pickup candidate has no dynamic character-pickup compositor.
 Glyphs 126-127 are the dedicated connected left/right BROADSIDE bolt halves.
 
 The separate `$5000-$53FF` HUD charset keeps glyph 0 as the blank/separator,
@@ -371,9 +367,10 @@ retain their existing allocations and colours.
 PMG base is `$3800`; active DMA pages are `$3B00-$3FFF`. P0 and P3 form the
 Player Fighter. P1 carries Raider slot 0 and P2 carries Raider slot 1. Both are
 independent monochrome body pages; no DLI multiplexer or scanner is used.
-M1-M3 serve broadside warnings and impacts. M0 remains reserved;
-current Player Fighter weapons are ANTIC 4 overlays so the ten-slot pool and
-yellow colour are independent of `COLPM0`.
+M0-M3 form the fighter-sector PMG pickup capsule. An ACTIVE pickup is removed
+before capital, where M1-M3 resume broadside warning/impact ownership. Fighter
+PairShots remain ANTIC 4 overlays, so their ten-record pool and player/enemy
+colours are independent of the missile graphics.
 
 ## Determinism and verification
 

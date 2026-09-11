@@ -84,22 +84,22 @@ test("Layout D.2 startup order and call bytes are frozen", () => {
 });
 
 test("Layout D.2 exact memory and transport budgets remain frozen", () => {
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 12949);
-  assert.equal(manifest.transportCapacity.initialBootBytes, 13056);
-  assert.equal(manifest.transportCapacity.totalTransportSectors, 162);
-  assert.equal(manifest.transportCapacity.totalTransportBytes, 20736);
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 12829);
+  assert.equal(manifest.transportCapacity.initialBootBytes, 12928);
+  assert.equal(manifest.transportCapacity.totalTransportSectors, 161);
+  assert.equal(manifest.transportCapacity.totalTransportBytes, 20608);
   assert.equal(manifest.transportCapacity.stage2.bytes, 1257);
   assert.deepEqual(manifest.transportCapacity.manifest.parsed.records.map((record) =>
     [record.startSector, record.sectorCount, record.packedLength, record.rawLength,
       record.finalDestination]), [
-    [103, 45, 5651, 6647, 0x5e10],
-    [148, 7, 854, 854, 0x8c80],
-    [155, 3, 245, 250, 0x7bd0],
-    [158, 5, 587, 644, 0x9d75],
+    [102, 45, 5620, 6647, 0x5e10],
+    [147, 7, 852, 852, 0x8c80],
+    [154, 3, 245, 250, 0x7bd0],
+    [157, 5, 587, 644, 0x9d75],
   ]);
-  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17287);
-  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 17765);
-  assert.equal(manifest.encounterDirector.safeResidencyBytes, 4422);
+  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17215);
+  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 17693);
+  assert.equal(manifest.encounterDirector.safeResidencyBytes, 4494);
 });
 
 test("XEX and ATR preserve full A2, GLUE lifecycle, ENTITY_CODE, DIRECTOR and guard", () => {

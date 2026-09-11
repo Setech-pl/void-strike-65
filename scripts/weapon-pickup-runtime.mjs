@@ -21,7 +21,7 @@ function labelsFromFile(sourcePath) {
     .map((match) => [match[2], Number.parseInt(match[1], 16)]));
 }
 
-function requiredLabel(labels, name) {
+export function requiredLabel(labels, name) {
   const address = labels.get(name);
   if (!Number.isInteger(address)) throw new Error(`Missing linked label ${name}`);
   return address;
@@ -35,7 +35,7 @@ function fixedStateAddress(labels, name) {
   throw new Error(`Missing linked state address ${name}`);
 }
 
-function runRoutine(memory, labels, name, { a = 0, x = 0, y = 0 } = {}) {
+export function runRoutine(memory, labels, name, { a = 0, x = 0, y = 0 } = {}) {
   const cpu = new Nmos6502(memory);
   const stop = 0x7fff;
   cpu.push((stop - 1) >> 8);
@@ -73,7 +73,7 @@ function drawRuntimeHullScene(memory, labels, { head, topPhase }) {
   }
 }
 
-function initialiseRows(memory, labels, head = 0) {
+export function initialiseRows(memory, labels, head = 0) {
   const lo = requiredLabel(labels, "PLAYFIELD_ROW_LO");
   const hi = requiredLabel(labels, "PLAYFIELD_ROW_HI");
   for (let logical = 0; logical < ringRows; logical += 1) {
@@ -108,7 +108,7 @@ function logicalDisplay(memory, labels) {
   return display;
 }
 
-function initialiseRuntime(root, artifact, coldFill = 0) {
+export function initialiseRuntime(root, artifact, coldFill = 0) {
   const manifest = JSON.parse(fs.readFileSync(
     path.join(root, "dist", "void-strike-65-manifest.json"), "utf8"));
   const labels = labelsFromFile(path.join(root, "build", "void-strike-65.lbl"));

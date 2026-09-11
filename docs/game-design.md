@@ -54,10 +54,13 @@ to their prior blank contents. The optional type glyph is omitted because the
 
 ### Combat and scoring
 
-The normal Player Fighter weapon fires an eight-projectile burst at one projectile every
-nine active frames, followed by a 12-frame pause. Projectiles travel upward by
-six scanlines per active frame. Its physical pool remains ten slots, with at
-most six simultaneously active.
+The normal Player Fighter weapon fires four logical PairShots at one PairShot
+every nine active frames, followed by a 12-frame pause. Each one-cell PairShot
+glyph contains two separated pulses, preserving eight visible impulses. Shots
+travel upward by six scanlines per active frame. Rapid uses five PairShots for
+ten visible impulses; Spread uses four PairShots for eight. One PairShot is one
+movement/lifecycle object and produces one collision event, so the visual pair
+does not double damage.
 
 The implemented experiment starts two monochrome PMG Raiders before the first
 capital sector. Each reuses the Interceptor's sampled soft pursuit and readable
@@ -94,16 +97,18 @@ Difficulty changes the measured vertical rates:
 
 | Difficulty | World/scene and hull | Far stars | Debris |
 | --- | ---: | ---: | ---: |
-| Easy | 20 rows/s | 5 rows/s | 12 rows/s |
-| Medium | 22.5 rows/s | 5.625 rows/s | 13.5 rows/s |
-| Hard | 25 rows/s | 6.25 rows/s | 15 rows/s |
+| Easy | 20 rows/s | 20 rows/s, row-baked | 12 rows/s |
+| Medium | 22.5 rows/s | 22.5 rows/s, row-baked | 13.5 rows/s |
+| Hard | 25 rows/s | 25 rows/s, row-baked | 15 rows/s |
 
 Broadside warnings, launch flashes, heavy projectiles, hull contact, and
 capital explosions are implemented. World, stars, debris, and both hulls keep
 their relative rates through sector transitions. Once the last capital row has
 left the screen, the ordinary full-width background still advances at the
-listed world rate. Far-star overlays retain their 25% logical parallax step;
-no capital lifecycle state changes the physical scene cadence.
+listed world rate. Far stars are baked into recycled base rows and therefore
+move at background speed; near stars retain the faster dynamic motion that
+supplies parallax. No capital lifecycle state changes the physical scene
+cadence.
 
 During construction, the existing first capital encounter is provisionally due
 on active gameplay frame 600. Menu, OPTIONS, loader, pause, and initialization
@@ -199,31 +204,24 @@ phase.
 ### Rapid Fire — implemented
 
 Rapid Fire lasts exactly 500 active PAL frames (10 seconds). It expands the
-burst to ten projectiles, keeps the 12-frame post-burst pause, and reduces the
-in-burst interval from nine frames to six. At most six shots remain active,
-and its projectiles retain the Player Fighter's established
-yellow/gold. The 2x2 capsule uses a steel/yellow casing with a black `RF` symbol.
+burst to five PairShots / ten visible impulses, keeps the 12-frame post-burst
+pause, and reduces the in-burst interval from nine frames to six. At most five
+PairShots remain active, and they retain the Player Fighter's established
+yellow/gold.
 
 ### Spread Shot — implemented
 
-Spread Shot lasts exactly 500 active PAL frames (10 seconds) and retains the
-normal eight-salvo burst and 12-frame post-burst pause, but uses a 28-active-
-frame cooldown between salvos; it never combines with Rapid Fire. With three
-free slots a salvo creates centre, left, and right together. Under transitional
-saturation the centre has priority, while the side pair is created together or
-not at all. Continuous FIRE produces 19 salvos and 57 projectiles during the
-500-frame boost. A blocked allocation remains one pending salvo without
-accumulating catch-up fire, and at most six Spread projectiles
-are simultaneously active in the unchanged ten-slot physical pool.
+Spread Shot lasts exactly 500 active PAL frames (10 seconds), uses four
+PairShots / eight visible impulses and retains the 12-frame post-burst pause.
+Its 28-active-frame interval produces the sequence centre, left, right, centre;
+it never combines with Rapid Fire. A blocked allocation remains one pending
+PairShot without accumulating catch-up fire.
 
-The volley begins as a compact formation. The centre projectile travels
-vertically; the side projectiles start four horizontal-position units from the
-centre and move symmetrically left or right by one unit every two active frames.
-The phase comes from the existing projectile lifetime, so no extra timer or
-projectile-state array is required. All
-three travel upward at the normal Player Fighter speed, use the yellow Player Fighter weapon
-colour, collide with Interceptor and debris, and obey ordinary score rules. The 2x2
-capsule has a bright red casing and a black three-shot fan symbol.
+Centre PairShots travel vertically. Left and right PairShots move symmetrically
+by one horizontal-position unit every two active frames. The phase comes from
+the existing projectile lifetime, so no extra timer or state array is required.
+All travel upward at the normal Player Fighter speed, use the yellow weapon
+colour, create one collision event, and obey ordinary score rules.
 
 ### Shield Booster — implemented
 

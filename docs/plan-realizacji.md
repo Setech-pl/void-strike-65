@@ -1,11 +1,11 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 2.7
+Wersja: 2.8
 Data aktualizacji: 2026-09-11  
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD przed niniejszym prototypem: `3660b84f6cb1504984da700f3622bd2a06118f39`
-Stan runtime: kandydat combined PMG + niepodłączony zwarty primitive po PASS cold-record fit oraz row-baked far stars; bez writer hooks i bez unified schedulera
-Aktualny XEX owner-smoke candidate: SHA-256 `2ad0c698aa4871998117a03e5632c9760ade5632fa6bd5e3f6f6a3819d654c3e`
+Aktualny HEAD przed niniejszym prototypem: `0ffb24bf82d32f9b61d78395e0b30a90da8a54eb`
+Stan runtime: row-baked far stars + PASS PairShot foundation dla gracza i fighter enemies; bez unified schedulera
+Aktualny XEX owner-smoke candidate: SHA-256 `049c61a04dc26a3ae87949e6fb1b5a0b2c0d0f9cd87f0b949ae128f4c8f34e46`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
 
@@ -99,6 +99,11 @@ Docelowe bursty produkcyjne:
 - Normal: `8`;
 - Spread: `8`;
 - Rapid: `10`.
+
+Od PairShot foundation wartości `8/8/10` oznaczają widoczne impulsy. Jeden
+logiczny PairShot ma jeden lifecycle, jedno zdarzenie kolizji, jedną komórkę
+znakową i glif przedstawiający dwa impulsy. Odpowiada to `4/4/5` logicznym
+obiektom dla Normal/Spread/Rapid.
 
 `4/4/6` wolno używać wyłącznie diagnostycznie.
 
@@ -821,12 +826,67 @@ Decyzja techniczna:
 **row-baked far stars są przyjęte do owner smoke i liczbowo przywracają
 wykonalność unified fighter visual commit.**
 
+### PairShot foundation — TECHNICAL PASS / OWNER SMOKE
+
+Zaimplementowano wspólny, jednokomórkowy PairShot dla Player Fightera oraz
+istniejącej ścieżki fire fighter enemies. Jeden rekord ma jeden movement,
+lifecycle i collision event, natomiast stały glif 8x8 przedstawia dwa pionowo
+rozdzielone impulsy. Damage nie został automatycznie podwojony.
+
+Player Fighter zachowuje wizualne `8/8/10` jako:
+
+- Normal: 4 PairShot;
+- Spread: 4 PairShot w sekwencji centre/left/right/centre;
+- Rapid: 5 PairShot.
+
+Enemy path zachowuje istniejący pięcioobiektowy burst, cadence, prędkość,
+kolor i damage, ale każdy obiekt używa tego samego jednokomórkowego kontraktu.
+Fizyczny fighter projectile pool spada z `10 + 9 = 19` do `5 + 5 = 10`
+rekordów, a legalny controlled maximum z 22 do 10 dynamicznych komórek.
+
+Instruction-exact controlled maximum player+enemy:
+
+- simulation/bookkeeping: `543` cykle;
+- collision: `380`;
+- publication: `2 238`;
+- łącznie: `3 161`, wobec `5 775` przed zmianą;
+- odzysk: `2 614` cykli (`45,3%`).
+
+Native Atari800 PAL, trzy sesje Normal/Rapid/Spread po 480 klatek fighter
+OPEN, dał max `14 365` cykli aktywnej pracy. Headroom wynosi `16 835` do
+targetu i `18 203` do hard gate; missed, target/hard overruns, extra VBI i
+DLI anomalies wynoszą zero. Naturalny trace osiągnął 5 player PairShot i 3
+enemy PairShot, a kontrolowany instruction-exact harness pokrył pełne 5+5.
+
+Po podmianie samego projectile publication przeliczony unified window wynosi:
+
+- Normal `4 670-4 750`, margin `5 225-5 305`;
+- Rapid `4 866-4 946`, margin `5 029-5 109`;
+- Spread `5 127-5 207`, margin `4 768-4 848`;
+- controlled player+enemy 5+5 `5 782-5 862`, margin `4 113-4 193`.
+
+Spread zachowuje fan i nie używa już TOP/BOTTOM ani reverse two-cell unwind.
+Historyczny final-glyph path znika strukturalnie; focused restore proof ma
+`0` mismatch, natomiast końcowy wygląd nadal wymaga owner smoke.
+
+Linked runtime spada `17 287 -> 17 215 B`, simultaneous residency
+`17 765 -> 17 693 B`, safe headroom rośnie `4 422 -> 4 494 B`, a stan
+projectile pool spada `228 -> 138 B`. Wszystkie aktualne placement gates
+przechodzą bez BASIC RAM, zmiany loadera lub nowego rekordu transportu.
+
+Raport:
+`docs/diagnostics/stage-2b2b-pairshot-foundation-proof.json`.
+
+Decyzja techniczna:
+
+**PairShot foundation jest viable i gotowy jako owner-smoke candidate.**
+
 ### Następny proof — tylko po osobnym promptcie
 
-> PairShot feasibility for player + fighter enemies.
+> Effects 25 Hz / staggered feasibility.
 
-Nie implementować PairShot, Light ani unified schedulera w ramach prototypu
-row-baked.
+Nie implementować tego kroku, Light ani unified schedulera w ramach PairShot
+foundation.
 
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 

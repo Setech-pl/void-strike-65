@@ -272,6 +272,7 @@ typedef struct {
 	unsigned profile_compose_cycles;
 	unsigned profile_pointer_calls;
 	unsigned profile_pointer_cycles;
+	uint64_t profile_publication_begin;
 	uint64_t profile_erase_player_fighter_start;
 	uint64_t profile_interceptor_update_start;
 	uint64_t profile_interceptor_render_start;
@@ -322,11 +323,12 @@ static const char *dftrace_interceptor_projectile_output;
 static DFTraceFrame *dftrace_frames;
 static DFTraceFrame dftrace_current;
 
-#define DFTRACE_INTERCEPTOR_SLOT_BASE 10u
-#define DFTRACE_INTERCEPTOR_SLOT_COUNT 9u
-#define DFTRACE_PROJECTILE_ARRAY_STRIDE 19u
+#define DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT 5u
+#define DFTRACE_INTERCEPTOR_SLOT_BASE 5u
+#define DFTRACE_INTERCEPTOR_SLOT_COUNT 5u
+#define DFTRACE_PROJECTILE_ARRAY_STRIDE 10u
 #define DFTRACE_INTERCEPTOR_GLYPH_FIRST 0xdau
-#define DFTRACE_INTERCEPTOR_GLYPH_LAST 0xedu
+#define DFTRACE_INTERCEPTOR_GLYPH_LAST 0xe4u
 
 static unsigned dftrace_interceptor_observed_active[DFTRACE_INTERCEPTOR_SLOT_COUNT];
 static unsigned dftrace_interceptor_previous_active[DFTRACE_INTERCEPTOR_SLOT_COUNT];
@@ -349,6 +351,7 @@ static unsigned dftrace_pc_compose_start;
 static unsigned dftrace_pc_compose_end;
 static unsigned dftrace_pc_pointer_start;
 static unsigned dftrace_pc_pointer_end;
+static unsigned dftrace_pc_publication_begin;
 static unsigned dftrace_pc_erase_slot;
 static unsigned dftrace_pc_interceptor_update_start;
 static unsigned dftrace_pc_render_slot;
@@ -1405,7 +1408,7 @@ static void dftrace_snapshot_rapid_projectile(DFTraceFrame *frame)
 {
 	unsigned slot;
 	frame->rapid_projectile_slot = 0xffffffffu;
-	for (slot = 0; slot < 10u; ++slot) {
+	for (slot = 0; slot < DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT; ++slot) {
 		unsigned state = MEMORY_mem[dftrace_projectile_active + slot];
 		if (state != 0u && MEMORY_mem[dftrace_projectile_rendered + slot] != 0u)
 			frame->player_fighter_projectiles++;
@@ -1415,12 +1418,14 @@ static void dftrace_snapshot_rapid_projectile(DFTraceFrame *frame)
 				(MEMORY_mem[dftrace_projectile_screen_hi + slot] << 8);
 			unsigned screen_code = MEMORY_mem[address];
 			frame->rapid_projectiles++;
-			/* Prefer the exact yellow PlayerFighter code ($0f), not merely any positive
-			 * code: a later base/broadside glyph may occupy the same cell. */
+			/* Prefer either fixed yellow PairShot phase ($0b/$1d), not merely any
+			 * positive code: a later base/broadside glyph may occupy the same cell. */
 			if (frame->rapid_projectile_slot == 0xffffffffu ||
-				((frame->rapid_projectile_screen_code != 0x0fu ||
+				(((frame->rapid_projectile_screen_code != 0x0bu &&
+				   frame->rapid_projectile_screen_code != 0x1du) ||
 				  !dftrace_is_ring_address(frame->rapid_projectile_address)) &&
-				screen_code == 0x0fu && dftrace_is_ring_address(address))) {
+				(screen_code == 0x0bu || screen_code == 0x1du) &&
+				dftrace_is_ring_address(address))) {
 				frame->rapid_projectile_slot = slot;
 				frame->rapid_projectile_address = address;
 				frame->rapid_projectile_screen_code = screen_code;
@@ -1540,6 +1545,19 @@ static void dftrace_set_gameplay_input(unsigned frame)
 	unsigned trigger = frame <= dftrace_fire_delay ? 1 : 0;
 	unsigned x = MEMORY_mem[dftrace_player_x];
 	unsigned y = MEMORY_mem[dftrace_player_y];
+	/* PairShot timing fixtures keep all gameplay and enemy scheduling native;
+	 * only the already-approved booster mode is held to isolate each weapon. */
+	if (strcmp(dftrace_policy, "pairshot-normal") == 0)
+		MEMORY_mem[dftrace_entity_state + 2u] = 0u;
+	else if (strcmp(dftrace_policy, "pairshot-rapid") == 0 ||
+		strcmp(dftrace_policy, "pairshot-spread") == 0) {
+		MEMORY_mem[dftrace_entity_state + 2u] =
+			strcmp(dftrace_policy, "pairshot-rapid") == 0 ? 3u : 4u;
+		MEMORY_mem[dftrace_entity_timer + 2u] = 0xf4u;
+		MEMORY_mem[dftrace_entity_move_accumulator + 2u] = 1u;
+		MEMORY_mem[dftrace_entity_owner + 2u] = 1u;
+		MEMORY_mem[dftrace_entity_hp + 2u] = 17u;
+	}
 	if (strcmp(dftrace_policy, "capital-contact-allied") == 0 ||
 		strcmp(dftrace_policy, "capital-contact-hostile") == 0) {
 		unsigned slot;
@@ -1712,7 +1730,10 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		}
 	}
 	else if (strcmp(dftrace_policy, "hunt") == 0 ||
-		strcmp(dftrace_policy, "early-hunt") == 0) {
+		strcmp(dftrace_policy, "early-hunt") == 0 ||
+		strcmp(dftrace_policy, "pairshot-normal") == 0 ||
+		strcmp(dftrace_policy, "pairshot-rapid") == 0 ||
+		strcmp(dftrace_policy, "pairshot-spread") == 0) {
 		/* Follow the live Interceptor's PMG origin using only ordinary joystick
 		 * input. This remains a production gameplay replay: no guest state is
 		 * seeded, and held FIRE enters the canonical burst controller. */
@@ -2476,7 +2497,8 @@ static void dftrace_snapshot(DFTraceFrame *frame)
 {
 	frame->dma_ctl = ANTIC_DMACTL;
 	frame->nmi_en = ANTIC_NMIEN;
-	frame->projectiles = dftrace_count_nonzero(dftrace_projectile_active, 19);
+	frame->projectiles = dftrace_count_nonzero(dftrace_projectile_active,
+		DFTRACE_PROJECTILE_ARRAY_STRIDE);
 	frame->broadside = dftrace_count_nonzero(dftrace_broad_state, 3);
 	frame->far_rendered = dftrace_count_far_rendered();
 	frame->live_interceptor = MEMORY_mem[dftrace_enemy_active] == 1;
@@ -2647,7 +2669,7 @@ static void dftrace_write_interceptor_projectiles(DFTraceFrame *frame)
 		unsigned address = MEMORY_mem[dftrace_projectile_screen_lo + slot] |
 			((unsigned) MEMORY_mem[dftrace_projectile_screen_hi + slot] << 8);
 		unsigned screen_code = MEMORY_mem[address];
-		unsigned expected_code = 0x80u | (90u + (y & 7u) + ((x & 2u) ? 10u : 0u));
+		unsigned expected_code = 0x80u | (90u + ((x & 2u) ? 10u : 0u));
 		unsigned raster_row;
 		unsigned raster_column;
 		unsigned displayed = dftrace_interceptor_display_position(address,
@@ -2901,6 +2923,7 @@ static void dftrace_write(void)
 			index, index, index);
 	fprintf(file, ",profile_compose_calls,profile_compose_cycles"
 		",profile_pointer_calls,profile_pointer_cycles"
+		",profile_publication_begin"
 		",profile_erase_player_fighter_start,profile_interceptor_update_start"
 		",profile_interceptor_render_start,profile_entity_erase_start"
 		",profile_effect_update_end,profile_pickup_update_end"
@@ -3060,10 +3083,11 @@ static void dftrace_write(void)
 				(unsigned long long) frame->profile_dli_start[dli],
 				(unsigned long long) frame->profile_dli_end[dli],
 				frame->profile_dli_segment[dli]);
-		fprintf(file, ",%u,%u,%u,%u,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu"
+		fprintf(file, ",%u,%u,%u,%u,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu"
 			",%u,%u,%u,%u,%u,%u,%u",
 			frame->profile_compose_calls, frame->profile_compose_cycles,
 			frame->profile_pointer_calls, frame->profile_pointer_cycles,
+			(unsigned long long) frame->profile_publication_begin,
 			(unsigned long long) frame->profile_erase_player_fighter_start,
 			(unsigned long long) frame->profile_interceptor_update_start,
 			(unsigned long long) frame->profile_interceptor_render_start,
@@ -3190,6 +3214,7 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_pc_compose_end, "DFTRACE_PC_COMPOSE_END");
 	DFTRACE_ADDRESS(dftrace_pc_pointer_start, "DFTRACE_PC_POINTER_START");
 	DFTRACE_ADDRESS(dftrace_pc_pointer_end, "DFTRACE_PC_POINTER_END");
+	DFTRACE_ADDRESS(dftrace_pc_publication_begin, "DFTRACE_PC_PUBLICATION_BEGIN");
 	DFTRACE_ADDRESS(dftrace_pc_erase_slot, "DFTRACE_PC_ERASE_SLOT");
 	DFTRACE_ADDRESS(dftrace_pc_interceptor_update_start, "DFTRACE_PC_INTERCEPTOR_UPDATE_START");
 	DFTRACE_ADDRESS(dftrace_pc_render_slot, "DFTRACE_PC_RENDER_SLOT");
@@ -3850,10 +3875,10 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 	if (dftrace_current.profile_next < DFTRACE_PROFILE_COUNT &&
 		pc == dftrace_pc_profile[dftrace_current.profile_next]) {
 		dftrace_current.profile_clock[dftrace_current.profile_next] = dftrace_clock();
-		/* Profile 18 is the projectile-render boundary immediately before the
-		 * entity/effect renderer. Discard the earlier resident-capsule call so
-		 * the nested render markers describe only the final layer pass. */
-		if (dftrace_current.profile_next == 18u) {
+		/* Profile 17 ends broadside rendering immediately before the final
+		 * entity/effect pass. Discard the earlier resident-capsule call so the
+		 * nested render markers describe only that final layer pass. */
+		if (dftrace_current.profile_next == 17u) {
 			dftrace_current.profile_pickup_render_start = 0u;
 			dftrace_current.profile_effect_render_start = 0u;
 		}
@@ -3875,12 +3900,14 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 		dftrace_current.profile_pointer_cycles +=
 			(unsigned) (dftrace_clock() + 6u - dftrace_pointer_start_clock);
 	}
-	if (pc == dftrace_pc_erase_slot && x_register == 8u &&
+	if (pc == dftrace_pc_publication_begin)
+		dftrace_current.profile_publication_begin = dftrace_clock();
+	if (pc == dftrace_pc_erase_slot && x_register == 4u &&
 		dftrace_current.profile_erase_player_fighter_start == 0u)
 		dftrace_current.profile_erase_player_fighter_start = dftrace_clock();
 	if (pc == dftrace_pc_interceptor_update_start)
 		dftrace_current.profile_interceptor_update_start = dftrace_clock();
-	if (pc == dftrace_pc_render_slot && x_register == 10u &&
+	if (pc == dftrace_pc_render_slot && x_register == DFTRACE_INTERCEPTOR_SLOT_BASE &&
 		dftrace_current.profile_interceptor_render_start == 0u)
 		dftrace_current.profile_interceptor_render_start = dftrace_clock();
 	if (pc == dftrace_pc_entity_erase_start)

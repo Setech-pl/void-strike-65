@@ -12,56 +12,57 @@ lifetime phases and are not additive free memory.
 | `$0080-$009F` | 32 B | zero-page runtime variables |
 | `$0100-$01FF` | 256 B | 6502 stack |
 | `$0200-$03FF` | 512 B | OS workspace and vectors |
-| `$2000-$317A` | 4,475 B | resident `CODE` |
-| `$317B-$3FFC` | 3,714 B | resident `RODATA` |
-| `$5400-$54E3` | 228 B | `PROJECTILES`: 19 fighter slots, burst controllers, two shared fighter explosions, and two independent Raider records |
+| `$2000-$312E` | 4,399 B | resident `CODE` |
+| `$312F-$3FB0` | 3,714 B | resident `RODATA` |
+| `$5400-$5489` | 138 B | `PROJECTILES`: ten one-cell PairShot slots (five player + five enemy), burst controllers, two shared fighter explosions, and two independent Raider records |
+| `$548A-$54E3` | 90 B | free tail left by the PairShot pool reduction |
 | `$54E4-$5CF6` | 2,067 B | relocated `STARFIELD` runtime with immutable row-baked far-star pattern; 2,348 B reserved through `$5E0F` |
 | `$5E10-$7806` | 6,647 B | relocated `BROADSIDE`/frontend/enemy/weapon runtime plus debris-release wrapper; reserved through `$780F` |
 | `$8000-$80FF` | 256 B | `ENTITY_STATE` BSS |
 | `$8800-$8B66` | 871 B | fighter PMG pickup, projectile publication scaffold, contiguous 187-B lower-cell primitive, and provisional active-gameplay admission policy |
 | `$8B67-$8B87` | 33 B | shared inclusive final-raster swept-AABB capital-bolt/Player Fighter collision module |
 | `$9000-$9079` | 122 B | relocated A2 kernel; 134 bytes reserved through `$90FF` are free |
-| `$9100-$9D20` | 3,105 B | relocated `ENTITY_CODE`, including PMG pickup lifecycle, H3.1 display lists, and frontend helpers; reserved through `$9D74` |
+| `$9100-$9D24` | 3,109 B | relocated `ENTITY_CODE`, including PMG pickup lifecycle, H3.1 display lists, and frontend helpers; reserved through `$9D74` |
 | `$9D75-$9FF8` | 644 B | Hybrid Encounter Director code/common/Level 1 data; one byte remains free before the guard |
 | `$9FFA-$9FFF` | 6 B | untouched Director guard |
 | `$21C1-$26A9` | 1,257 B | boot-only `BOOT_STAGE2` overlay; replaced by the resident suffix before runtime |
 
-The linked row-baked prototype metric is `CODE + STARFIELD + BROADSIDE +
-A2_KERNEL + ENTITY_CODE + PICKUP_CODE = 17,287 B`. The obsolete 1,152-byte
+The linked PairShot prototype metric is `CODE + STARFIELD + BROADSIDE +
+A2_KERNEL + ENTITY_CODE + PICKUP_CODE = 17,215 B`. The obsolete 1,152-byte
 character-pickup phase bank is source-only and is not resident. With
 late-published GLUE, DIRECTOR, their frozen integration accounting, and the
-33-byte collision module, simultaneous feature residency is 17,765 B and safe
-residency is 4,422 B. BROADSIDE is 6,647 B and PICKUP_CODE is 871 B.
-Late-published GLUE is 250 B; persistent BSS and glyph allocation
-are unchanged.
+33-byte collision module, simultaneous feature residency is 17,693 B and safe
+residency is 4,494 B. BROADSIDE is 6,647 B and PICKUP_CODE is 871 B.
+Late-published GLUE is 250 B. The PairShot pool uses 90 fewer persistent BSS
+bytes; its fixed glyphs reuse the existing charset allocation.
 
 ## Boot transport layout
 
-The prototype transport is 20,736 bytes in 162 occupied sectors. BRCNT loads the
-13,056-byte/102-sector initial block at `$2000-$52FF`; the entry point remains
-`$201E`. Initial content is exactly 12,949 B and ends at `$5294`; the remaining
-107 bytes are transport padding.
+The prototype transport is 20,608 bytes in 161 occupied sectors. BRCNT loads the
+12,928-byte/101-sector initial block at `$2000-$527F`; the entry point remains
+`$201E`. Initial content is exactly 12,829 B and ends at `$521C`; the remaining
+99 bytes are transport padding.
 
 | Initial address / ATR sectors | Size | Stored form and startup destination |
 | --- | ---: | --- |
 | `$2000-$21C0` | 449 B | raw bootstrap prefix |
 | `$21C1-$26A9` | 1,257 B | stage-2 SIO/CRC/per-record-end/manifest overlay |
-| `$26AA-$40F0` | 6,727 B | packed resident suffix; staged at `$8100` |
-| `$40F1-$477C` | 1,676 B | packed 2,067-byte starfield/music runtime; deferred staging at `$7810-$7E9B`, then expansion to `$54E4-$5CF6`; 132 B remain before pickup preservation at `$4801` |
-| `$477D-$47F6` | 122 B | A2 source; staged at `$7F2B-$7FA4`, then copied to `$9000-$9079` before entity/effects clear |
-| `$47F7-$5290` | 2,714 B | packed 3,105-byte ENTITY_CODE; copied backward to staging at `$5318-$5DB1`, then expanded to `$9100-$9D20` |
-| `$5291-$5294` | 4 B | source-owned `DFB1` trailer |
-| ATR sectors 103-147 | 5,760 B | external BROADSIDE record: 5,651 B packed / 6,647 B raw to `$5E10-$7806` |
-| ATR sectors 148-154 | 896 B | unchanged pickup record type: 854-B packed stream at cold `$8C80-$8FD5`; after preservation at `$4801-$4B56`, it publishes 904 B to `$8800-$8B87` |
-| ATR sectors 155-157 | 384 B | GLUE record: 245 B packed / 250 B raw to cold staging `$7BD0-$7CC9`, then held at `$8600-$86F9` before deferred starfield staging |
-| ATR sectors 158-162 | 640 B | Director record: 587 B packed / 644 B raw to `$9D75-$9FF8` |
+| `$26AA-$40B5` | 6,668 B | packed resident suffix; staged at `$8100` |
+| `$40B6-$4741` | 1,676 B | packed 2,067-byte starfield/music runtime; deferred staging at `$7810-$7E9B`, then expansion to `$54E4-$5CF6`; 191 B remain before pickup preservation at `$4801` |
+| `$4742-$47BB` | 122 B | A2 source; staged at `$7F2B-$7FA4`, then copied to `$9000-$9079` before entity/effects clear |
+| `$47BC-$5218` | 2,653 B | packed 3,109-byte ENTITY_CODE; copied backward to staging at `$5318-$5D74`, then expanded to `$9100-$9D24` |
+| `$5219-$521C` | 4 B | source-owned `DFB1` trailer |
+| ATR sectors 102-146 | 5,760 B | external BROADSIDE record: 5,620 B packed / 6,647 B raw to `$5E10-$7806` |
+| ATR sectors 147-153 | 896 B | unchanged pickup record type: 852-B packed stream; after preservation it publishes 904 B to `$8800-$8B87` including the collision tail |
+| ATR sectors 154-156 | 384 B | GLUE record: 245 B packed / 250 B raw to cold staging `$7BD0-$7CC9`, then held at `$8600-$86F9` before deferred starfield staging |
+| ATR sectors 157-161 | 640 B | Director record: 587 B packed / 644 B raw to `$9D75-$9FF8` |
 
 The `DFMC` v1 manifest is 78 B for the current four records and reserves space
-inside stage-2 for at most eight records. The ATR has 558 free sectors
-(71,424 B). Runtime and transport budgets remain separate; the current
-Director simultaneous-residency accounting reports 4,422 B safe. The older
+inside stage-2 for at most eight records. The ATR has 559 free sectors
+(71,552 B). Runtime and transport budgets remain separate; the current
+Director simultaneous-residency accounting reports 4,494 B safe. The older
 15,346-byte capacity reference remains useful only as history; the production
-gate for this prototype is the exact 17,287-byte linked runtime
+gate for this prototype is the exact 17,215-byte linked runtime
 and its explicit simultaneous-residency accounting.
 
 ## Loader-time ownership
@@ -87,7 +88,7 @@ this lifetime.
 | `$4028-$404F` | 40 B | fixed gameplay divider; never a rotating/transient backing row |
 | `$4050-$43FF` | 944 B | frontend screen RAM; not used by the expanded gameplay ring |
 | `$4400-$47FF` | 1,024 B | gameplay charset |
-| `$4800-$4BFF` | 1,024 B | frontend charset; before frontend construction, `$4801-$4B56` temporarily preserves the 854-byte packed pickup/code/collision stream |
+| `$4800-$4BFF` | 1,024 B | frontend charset; before frontend construction, `$4801-$4B54` temporarily preserves the 852-byte packed pickup/code/collision stream |
 | `$4C00-$4D1F` | 288 B | expanded Allied hull map, 32x9 |
 | `$4D20-$4E3F` | 288 B | expanded Hostile hull map, 32x9 |
 | `$4E40-$4E70` | 49 B | persistent runtime state through difficulty setting |
@@ -100,12 +101,13 @@ this lifetime.
 | `$4FF8-$4FF9` | 2 B | 16-bit active-gameplay frame counter |
 | `$4FFA-$4FFF` | 6 B | unassigned after loader |
 | `$5000-$53FF` | 1,024 B | dedicated gameplay HUD charset |
-| `$54CA-$54CB` | 2 B | Raider live-state array |
-| `$54CC-$54CD` | 2 B | retained inert Raider HP array |
-| `$54CE-$54D1` | 4 B | retained inert pending-damage/source arrays |
-| `$54D2-$54D9` | 8 B | independent X, Y, signed velocity, and fractional movement accumulators |
-| `$54DA-$54DF` | 6 B | independent manoeuvre state, timer, and behaviour phase |
-| `$54E0-$54E3` | 4 B | selected slot/Y scratch, cursor, and live count |
+| `$5464-$5469` | 6 B | player/enemy PairShot burst controllers |
+| `$546A-$546F` | 6 B | two shared fighter-explosion records |
+| `$5470-$5471` | 2 B | Raider live-state array |
+| `$5472-$5477` | 6 B | Raider HP and pending damage/source arrays |
+| `$5478-$547F` | 8 B | independent X, Y, signed velocity, and fractional movement accumulators |
+| `$5480-$5485` | 6 B | independent manoeuvre state, timer, and behaviour phase |
+| `$5486-$5489` | 4 B | selected slot/Y scratch, weapon cursor, and live count |
 | `$5CF7-$5E05` | 271 B | free tail of the starfield reservation before BOOST backing |
 | `$5E06-$5E0F` | 10 B | exact prior-content backing for HUD cells `$401E-$4027` while BOOST is active |
 | `$780D-$780F` | 3 B | free tail of the broadside reservation |
@@ -130,7 +132,7 @@ built, so these overlaps are lifetime-safe.
 | `$806B-$807F` | 21 B | initialized alignment reserve |
 | `$8080-$80F3` | 116 B | six physical effect slots plus global state; release active limit 5 |
 | `$80F4-$80FF` | 12 B | persistent Encounter Director state, initialized after the entity/effects clear |
-| `$8100-$9B46` | 6,727 B | cold-start resident-suffix staging only |
+| `$8100-$9B0B` | 6,668 B | cold-start resident-suffix staging only |
 | `$8100-$813F` | 64 B | unowned after cold startup; the former 58-byte far-star physical-address cache is gone |
 | `$8140-$8577` | 1,080 B | 27-row physical gameplay ring, 40 bytes per row |
 | `$8578-$8592` | 27 B | logical-to-physical row low-byte table |
@@ -150,8 +152,8 @@ built, so these overlaps are lifetime-safe.
 | `$8B88-$8FFF` | 1,144 B | unowned after cold startup; old 1,152-byte character phase bank is not transported or resident |
 | `$9000-$9079` | 122 B | A2 kernel |
 | `$907A-$90FF` | 134 B | free A2 reservation tail after removing dynamic far-star render code |
-| `$9100-$9D20` | 3,105 B | entity/effect/booster/projectile and H3.1 frontend runtime |
-| `$9D21-$9D74` | 84 B | free tail of the ENTITY_CODE reservation |
+| `$9100-$9D24` | 3,109 B | entity/effect/booster/projectile and H3.1 frontend runtime |
+| `$9D25-$9D74` | 80 B | free tail of the ENTITY_CODE reservation |
 | `$9D75-$9FF8` | 644 B | Hybrid Encounter Director |
 | `$9FF9` | 1 B | free Director reservation tail |
 | `$9FFA-$9FFF` | 6 B | untouched guard; not available capacity |
@@ -163,12 +165,11 @@ charset, loader data, or staging buffer uses `$A000-$BFFF`.
 
 ## Boot-only ENTITY_CODE staging lifecycle
 
-The packed ENTITY_CODE source is `$48F5-$53AA`. Its backward copy to
-`$5318-$5DCD` (2,742 B) deliberately overlaps the already-read source by 147 B;
-the copy direction is part of the checked loader contract. The staging end is
-66 B below BROADSIDE at `$5E10`. After expansion to `$9100-$9D20`, the staging
-range is released. The later starfield destination `$54E4-$5DB5` overlaps that
-released range over 2,258 B; both lifetimes are ordered and never coexist.
+The packed ENTITY_CODE source is `$47BC-$5218`. Its backward copy to
+`$5318-$5D74` is 2,653 B and begins 255 B after the source. The staging end is
+155 B below BROADSIDE at `$5E10`. After expansion to `$9100-$9D24`, the staging
+range is released. The later starfield destination `$54E4-$5CF6` overlaps that
+released range over 2,067 B; both lifetimes are ordered and never coexist.
 Loader-resident RAM after startup remains 0 B.
 
 ## PMG ownership
@@ -181,10 +182,11 @@ Loader-resident RAM after startup remains 0 B.
 | `$3E00-$3EFF` | P2 monochrome body of Raider slot 1 |
 | `$3F00-$3FFF` | P3 Player Fighter engine |
 
-Current Player Fighter projectiles are ANTIC 4 overlays. The shared fighter
-allocation remains ten Player Fighter slots plus nine dormant Raider slots;
-the movement prototype admits no Raider shots. Broadside owns a separate
-three-slot pool.
+Current fighter projectiles are ANTIC 4 PairShot overlays. Five Player Fighter
+slots and five enemy slots share one movement/erase/render foundation. Each
+logical record owns one screen cell whose fixed glyph depicts two pulses; the
+enemy controller admits at most five shots across the formation. Broadside
+owns a separate three-slot pool.
 
 ## Gameplay charset allocation
 
@@ -195,11 +197,11 @@ Glyphs 126-127 are the left/right halves of the connected BROADSIDE bolt.
 | 0 | blank |
 | 1-6 | far/near stars |
 | 7-10 | Player Fighter body helpers |
-| 11-46 | Player Fighter projectile phases |
+| 11-46 | Player Fighter PairShot compatibility glyphs |
 | 47-56 | Spread Shot overlap-composite scratch |
 | 57-58 | gameplay helpers |
 | 59-89 | capital hulls |
-| 90-109 | Interceptor and Interceptor-projectile phases |
+| 90-109 | enemy PairShot compatibility glyphs |
 | 110-117 | debris |
 | 118-119 | transient fragments |
 | 120-125 | retained source glyph allocation; no dynamic character-pickup compositor in the PMG fit candidate |

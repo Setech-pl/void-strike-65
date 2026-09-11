@@ -175,10 +175,10 @@ const glueStagingAddress = 0x7bd0;
 const glueFinalAddress = 0x4efe;
 const directorRunAddress = 0x9d75;
 const directorGuardAddress = 0x9ffa;
-// Row-baked far stars remove the dynamic overlay code while retaining the same
-// loader implementation and four external publication records.
-const expectedInitialContentBytes = 12949;
-const expectedLinkedRuntimeBytes = 17287;
+// Row-baked far stars and one-cell PairShots reduce the runtime while retaining
+// the same loader implementation and four external publication records.
+const expectedInitialContentBytes = 12829;
+const expectedLinkedRuntimeBytes = 17215;
 const expectedDirectorRawBytes = 644;
 const expectedDirectorPackedBytes = 587;
 const expectedGlueRawBytes = 250;
@@ -890,13 +890,13 @@ async function build() {
     record.startSector, record.sectorCount, record.packedLength,
     record.rawLength, record.finalDestination,
   ]);
-  if (bootSectors !== 102 || totalTransportSectors !== 162 ||
-    transportPayload.length !== 20736 || JSON.stringify(frozenRecordShape) !== JSON.stringify([
-      [103, 45, 5651, 6647, 0x5e10],
-      [148, 7, 854, 854,
+  if (bootSectors !== 101 || totalTransportSectors !== 161 ||
+    transportPayload.length !== 20608 || JSON.stringify(frozenRecordShape) !== JSON.stringify([
+      [102, 45, 5620, 6647, 0x5e10],
+      [147, 7, 852, 852,
         weaponPickupPackedStagingAddress],
-      [155, 3, 245, 250, glueStagingAddress],
-      [158, 5, 587, 644, directorRunAddress],
+      [154, 3, 245, 250, glueStagingAddress],
+      [157, 5, 587, 644, directorRunAddress],
     ])) {
     throw new Error(`Layout D.2 transport topology changed: ${JSON.stringify(frozenRecordShape)}`);
   }

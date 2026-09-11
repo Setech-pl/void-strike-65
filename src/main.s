@@ -838,7 +838,7 @@ ENEMY_WEAPON_CURSOR:              .res 1
 ENEMY_LIVE_COUNT:                 .res 1
 FIGHTER_PROJECTILE_STATE_END:
 
-.assert FIGHTER_PROJECTILE_STATE_END-FIGHTER_PROJECTILE_ACTIVE = 228, error, "fighter projectile, explosion and two-Raider PMG state budget changed"
+.assert FIGHTER_PROJECTILE_STATE_END-FIGHTER_PROJECTILE_ACTIVE = 138, error, "PairShot, explosion and two-Raider PMG state budget changed"
 
 ; The complete page is explicit BSS, but no byte is trusted after cold boot.
 ; init_entity_effects clears all 256 bytes before installing deterministic
@@ -3533,13 +3533,13 @@ update_bullet = update_fighter_projectiles
 erase_bullet:
     jmp clear_player_fighter_projectiles
 
-; Nineteen fixed playfield slots provide independent launch positions without
-; consuming M0 or the three capital-warning missiles. Shared precomputed phase
-; glyphs avoid rewriting 16 charset bytes for every active shot every frame;
-; each slot retains exact screen backing and a bounded swept-collision lifecycle.
+; Ten fixed PairShot slots provide five PlayerFighter and five fighter-enemy
+; launch positions without consuming M0 or the three capital-warning missiles.
+; Each logical object owns one screen cell and one exact backing byte while its
+; glyph depicts two visible impulses. Collision remains one bounded swept event.
 init_fighter_projectiles:
     ; All ten slot arrays, both burst controllers and both explosion records
-    ; are one contiguous 202-byte owned block. A single cold/reset loop is
+    ; are one contiguous 112-byte owned block. A single cold/reset loop is
     ; byte-exact with the former field-by-field loops and saves resident code;
     ; its extra setup cycles never execute in the visible-frame hot path.
     lda #$00
@@ -3601,8 +3601,6 @@ clear_interceptor_projectiles:
     rts
 
 erase_fighter_projectile_overlays:
-    lda #(9-INTERCEPTOR_PROJECTILE_HEIGHT)
-    sta loader_repeat_value
     ldx #(FIGHTER_PROJECTILE_SLOT_COUNT-1)
 erase_fighter_projectile_slot = *
 @slot:
@@ -3615,30 +3613,15 @@ erase_fighter_projectile_slot = *
     ldy #$00
     lda FIGHTER_PROJECTILE_BACKUP_TOP,x
     sta (dst_ptr),y
-    lda FIGHTER_PROJECTILE_PREV_Y,x
-    and #$07
-    cmp loader_repeat_value
-    bcc @restored
-    lda FIGHTER_PROJECTILE_RENDERED,x
-    cmp #$FF                    ; hull/composite boundary used one physical row
-    beq @restored
-    jsr advance_dst_to_next_physical_row
-    ldy #$00
-    lda FIGHTER_PROJECTILE_BACKUP_BOTTOM,x
-    sta (dst_ptr),y
-@restored:
     lda #$00
     sta FIGHTER_PROJECTILE_RENDERED,x
 @next:
     dex
     bmi @done
-    cpx #(INTERCEPTOR_PROJECTILE_SLOT_BASE-1)
-    bne @slot
-    lda #(9-PLAYER_FIGHTER_PROJECTILE_HEIGHT)
-    sta loader_repeat_value
-    bne @slot
+    jmp @slot
 @done:
-    sta FIGHTER_PROJECTILE_OWNED_COUNT ; A is zero after the final restore
+    lda #$00
+    sta FIGHTER_PROJECTILE_OWNED_COUNT
     rts
 
 .export erase_fighter_projectile_slot
@@ -3815,9 +3798,8 @@ update_player_fighter_weapon:
 @begin:
     lda #WEAPON_BURST_FIRING
     sta PLAYER_FIGHTER_BURST_STATE
-    lda ENTITY_STATE+WEAPON_BOOSTER_SLOT
-    and #(PLAYER_FIGHTER_RAPID_FIRE_BURST_COUNT-PLAYER_FIGHTER_NORMAL_BURST_COUNT)
-    ora #PLAYER_FIGHTER_NORMAL_BURST_COUNT
+    ldy ENTITY_STATE+WEAPON_BOOSTER_SLOT
+    lda player_fighter_pairshot_burst_counts,y
     sta PLAYER_FIGHTER_BURST_REMAINING
     lda #$00
     sta PLAYER_FIGHTER_BURST_TIMER
@@ -3857,6 +3839,10 @@ update_player_fighter_weapon:
 player_fighter_fire_intervals:
     .byte PLAYER_FIGHTER_BURST_INTERVAL,PLAYER_FIGHTER_BURST_INTERVAL,PLAYER_FIGHTER_BURST_INTERVAL
     .byte PLAYER_FIGHTER_RAPID_FIRE_INTERVAL,PLAYER_FIGHTER_SPREAD_COOLDOWN,PLAYER_FIGHTER_BURST_INTERVAL
+player_fighter_pairshot_burst_counts:
+    .byte PLAYER_FIGHTER_NORMAL_BURST_COUNT,PLAYER_FIGHTER_NORMAL_BURST_COUNT
+    .byte PLAYER_FIGHTER_NORMAL_BURST_COUNT,PLAYER_FIGHTER_RAPID_FIRE_BURST_COUNT
+    .byte PLAYER_FIGHTER_SPREAD_BURST_COUNT,PLAYER_FIGHTER_NORMAL_BURST_COUNT
 
 allocate_player_fighter_projectile:
     ldy ENTITY_STATE+WEAPON_BOOSTER_SLOT
@@ -3873,39 +3859,20 @@ allocate_player_fighter_projectile:
 
 .segment "CODE"
 allocate_player_fighter_spread_projectiles:
-    ldy #$00
-    ldx #$00
-@find:
-    lda FIGHTER_PROJECTILE_ACTIVE,x
-    bne @next
-    txa
-    sta ENTITY_SCRATCH0,y
-    iny
-    cpy #PLAYER_FIGHTER_SPREAD_PROJECTILE_COUNT
-    beq @allocate_full
-@next:
-    inx
-    cpx #PLAYER_FIGHTER_PROJECTILE_ACTIVE_LIMIT
-    bne @find
-    cpy #$00
-    beq allocate_player_fighter_projectile_rejected
-    ; Transitional saturation always admits the centre. Two remaining slots
-    ; are useful only as an atomic pair, so one unpaired side slot stays free.
-    ldx ENTITY_SCRATCH0
-    lda #FIGHTER_PROJECTILE_RENDER_ID_SPREAD_CENTER
-    jsr allocate_player_fighter_projectile_at_slot
+    ldy PLAYER_FIGHTER_BURST_REMAINING
+    lda player_fighter_spread_pairshot_kinds,y
+    jsr allocate_player_fighter_projectile_one
+    bcc allocate_player_fighter_projectile_rejected
     jmp play_player_fighter_projectile_sound
-@allocate_full:
-    ldx ENTITY_SCRATCH0
-    lda #FIGHTER_PROJECTILE_RENDER_ID_SPREAD_CENTER
-    jsr allocate_player_fighter_projectile_at_slot
-    ldx ENTITY_SCRATCH1
-    lda #FIGHTER_PROJECTILE_RENDER_ID_SPREAD_LEFT
-    jsr allocate_player_fighter_projectile_at_slot
-    ldx ENTITY_SCRATCH2
-    lda #FIGHTER_PROJECTILE_RENDER_ID_SPREAD_RIGHT
-    jsr allocate_player_fighter_projectile_at_slot
-    jmp play_player_fighter_projectile_sound
+
+; Remaining counts 4,3,2,1 produce centre,left,right,centre. Four one-cell
+; PairShots retain a readable fan while the burst owns only four logical hits.
+player_fighter_spread_pairshot_kinds:
+    .byte FIGHTER_PROJECTILE_RENDER_ID_SPREAD_CENTER
+    .byte FIGHTER_PROJECTILE_RENDER_ID_SPREAD_CENTER
+    .byte FIGHTER_PROJECTILE_RENDER_ID_SPREAD_RIGHT
+    .byte FIGHTER_PROJECTILE_RENDER_ID_SPREAD_LEFT
+    .byte FIGHTER_PROJECTILE_RENDER_ID_SPREAD_CENTER
 
 allocate_player_fighter_projectile_rejected:
     clc
@@ -4081,9 +4048,8 @@ allocate_interceptor_projectile:
     sec
     rts
 
-; Preserve the existing single burst controller and nine allocated slots, but
-; admit at most five active pulses. Each due
-; pulse starts at the next living, fully visible Raider in bounded round-robin
+; Preserve the existing single burst controller and admit at most five active
+; PairShots. Each due shot starts at the next living, fully visible Raider in bounded round-robin
 ; order, so formation size does not multiply projectile pressure.
 select_enemy_weapon_member:
     lda #RAIDER_PMG_SLOT_COUNT
@@ -4124,13 +4090,11 @@ render_fighter_projectile_slot_loop:
     bne :+
     jmp render_fighter_projectile_next
 :
-    ; The nonzero projectile kind is the default two-cell erase latch. The
-    ; one-cell path replaces it with $FF at the common render exit below.
+    ; Every PairShot claims exactly one character cell. Its fixed glyph carries
+    ; both impulses; logical scanline Y remains authoritative for collision.
     jsr claim_fighter_projectile_visual
     lda FIGHTER_PROJECTILE_Y,x
     sta FIGHTER_PROJECTILE_PREV_Y,x
-    and #$07
-    sta row_counter
     cpx #INTERCEPTOR_PROJECTILE_SLOT_BASE
     bcs @interceptor_code
     lda FIGHTER_PROJECTILE_X,x
@@ -4139,18 +4103,8 @@ render_fighter_projectile_slot_loop:
     lda #(PLAYER_FIGHTER_PROJECTILE_GLYPH_STRIDE*2)
 :
     clc
-    adc row_counter
     adc #PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE
     sta loader_repeat_value
-    lda #$00
-    sta src_ptr+1
-    lda row_counter
-    cmp #$07
-    bne @code_ready
-    lda loader_repeat_value
-    clc
-    adc #$01
-    sta src_ptr+1
     bne @code_ready
 @interceptor_code:
     lda FIGHTER_PROJECTILE_X,x
@@ -4159,19 +4113,9 @@ render_fighter_projectile_slot_loop:
     lda #INTERCEPTOR_PROJECTILE_GLYPH_STRIDE
 :
     clc
-    adc row_counter
     adc #INTERCEPTOR_PROJECTILE_GLYPH_BASE
     ora #$80
     sta loader_repeat_value
-    lda #$00
-    sta src_ptr+1
-    lda row_counter
-    cmp #$06
-    bcc @code_ready
-    lda loader_repeat_value
-    clc
-    adc #$02
-    sta src_ptr+1
 @code_ready:
     ; This mapper is used exactly once for every rendered slot. Keeping it
     ; inline removes one JSR/RTS pair per active projectile while retaining the
@@ -4236,14 +4180,6 @@ profile_projectile_pointer_end = *
 @draw_top:
     lda loader_repeat_value
     sta (dst_ptr),y
-    lda src_ptr+1
-    beq @rendered
-    jsr advance_dst_to_next_physical_row
-    ldy #$00
-    lda (dst_ptr),y
-    sta FIGHTER_PROJECTILE_BACKUP_BOTTOM,x
-    lda src_ptr+1
-    sta (dst_ptr),y
 @rendered:
 render_fighter_projectile_next:
     inx
@@ -4267,9 +4203,9 @@ render_fighter_projectile_overlays_end = *
 
 .segment "BROADSIDE"
 
-; The red pulse bank is a regular three-scanline shape at two horizontal
-; phases. Building its twenty glyphs once saves 160 resident source bytes while
-; producing the exact same charset bytes consumed by the release renderer.
+; The red PairShot bank uses the same one-cell two-impulse silhouette at both
+; horizontal phases. Building the twenty compatibility glyphs once preserves
+; the established charset allocation without carrying resident source bytes.
 build_interceptor_projectile_glyphs:
     lda #$00
     ldx #$00
@@ -4282,23 +4218,24 @@ build_interceptor_projectile_glyphs:
     sta dst_ptr
     lda #>(CHARSET+INTERCEPTOR_PROJECTILE_GLYPH_BASE*8)
     sta dst_ptr+1
-    lda #$00
-    sta BROAD_WORK_SLOT
-@group:
-    ldy BROAD_WORK_SLOT
-    lda interceptor_projectile_group_masks,y
+    lda #$F0
     sta BROAD_WORK_VALUE
     ldx #$00
 @glyph:
-    ldy interceptor_projectile_start_rows,x
-    lda interceptor_projectile_row_counts,x
-    sta row_counter
-@paint:
+    cpx #INTERCEPTOR_PROJECTILE_GLYPH_STRIDE
+    bne :+
+    lda #$0F
+    sta BROAD_WORK_VALUE
+:
+    ldy #$01
     lda BROAD_WORK_VALUE
     sta (dst_ptr),y
     iny
-    dec row_counter
-    bne @paint
+    sta (dst_ptr),y
+    ldy #$05
+    sta (dst_ptr),y
+    iny
+    sta (dst_ptr),y
     clc
     lda dst_ptr
     adc #$08
@@ -4307,20 +4244,9 @@ build_interceptor_projectile_glyphs:
     inc dst_ptr+1
 :
     inx
-    cpx #$0A
+    cpx #INTERCEPTOR_PROJECTILE_GLYPH_COUNT
     bne @glyph
-    inc BROAD_WORK_SLOT
-    lda BROAD_WORK_SLOT
-    cmp #$02
-    bne @group
     rts
-
-interceptor_projectile_group_masks:
-    .byte $F0,$0F
-interceptor_projectile_start_rows:
-    .byte 0,1,2,3,4,5,6,7,0,0
-interceptor_projectile_row_counts:
-    .byte 3,3,3,3,3,3,2,1,1,2
 
 .segment "BROADSIDE"
 begin_enemy_fighter_explosion = begin_enemy_fighter_explosion_tail
@@ -8916,7 +8842,7 @@ handle_player_hull_contact:
 ; periodic cannon-mask decoder with the smaller encoded-layout selector.
 free_broadside_slot_layout_lead_pad:
 row_baked_far_broadside_layout_pad:
-    .res $0E                   ; removed far calls/cleanup; keep fixed glue ABI
+    .res $2F                   ; PairShot shrink retained behind fixed glue ABI
 free_broadside_slot:
     jsr erase_broadside_slot
     lda #BROAD_FREE
@@ -10507,14 +10433,9 @@ finish_startup_after_loader:
     jmp frontend_loop
 .endif
 
-; Character projectiles normally draw over empty space with the fixed phase
-; bank. If a PlayerFighter shot meets any lower character layer (hull, shell, star or
-; an earlier projectile), build one slot-owned glyph from the current backing
-; and merge the two-scanline yellow/red mask into it. This preserves the exact
-; lower silhouette without a broadside redraw. At phase seven only the top
-; scanline is merged; rendered flag $FF tells reverse erase that no bottom cell
-; was touched. Codes 47..56 are the ten already-reserved gap glyphs between the
-; fixed PlayerFighter phase bank and the capital-hull bank.
+; If a PlayerFighter Spread PairShot meets a lower character layer, build one
+; slot-owned glyph from that backing and merge both two-row impulses into it.
+; The pair is always contained in the same character cell.
 compose_player_fighter_projectile_glyph:
     and #$7F
     sta ENTITY_SCRATCH0
@@ -10579,22 +10500,21 @@ compose_player_fighter_projectile_glyph:
     lda #$C0
 @mask_ready:
     sta ENTITY_SCRATCH2
-    ldy row_counter
+    ldy #$01
     ora (dst_ptr),y
     sta (dst_ptr),y
     iny
-    cpy #$08
-    beq @single_row
     lda (dst_ptr),y
     ora ENTITY_SCRATCH2
     sta (dst_ptr),y
-    bne @code
-@single_row:
-    lda #$FF
-    sta FIGHTER_PROJECTILE_RENDERED,x ; erase skips the untouched bottom cell
-@code:
-    lda #$00                    ; composite never writes a second screen cell
-    sta src_ptr+1
+    ldy #$05
+    lda (dst_ptr),y
+    ora ENTITY_SCRATCH2
+    sta (dst_ptr),y
+    iny
+    lda (dst_ptr),y
+    ora ENTITY_SCRATCH2
+    sta (dst_ptr),y
     lda ENTITY_SCRATCH1
     sta loader_repeat_value
 profile_projectile_compose_end = *
@@ -10864,6 +10784,7 @@ enemy_engine_overlay_masks:
     EMIT_ENEMY_ENGINE_OVERLAY_MASKS
 
 claim_fighter_projectile_visual:
+    lda #$FF
     sta FIGHTER_PROJECTILE_RENDERED,x
     inc FIGHTER_PROJECTILE_OWNED_COUNT
     rts

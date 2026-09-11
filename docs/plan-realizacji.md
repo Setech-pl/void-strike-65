@@ -1,10 +1,10 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 2.3
+Wersja: 2.4
 Data aktualizacji: 2026-09-11  
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD dokumentacyjny przed niniejszą aktualizacją: `45096358a5d8dbc714a0ad7c9698ad77a7168fc5`
-Stan runtime: zachowany kandydat combined PMG + zwarty primitive po PASS cold-record fit; 21 writer hooks nadal nie jest wdrożonych
+Aktualny HEAD dokumentacyjny przed niniejszą aktualizacją: `f6eee5ce7f405dde6a3a6164a408638bab30bdd7`
+Stan runtime: zachowany kandydat combined PMG + zwarty primitive po PASS cold-record fit; odrzucone 21 writer hooks i rozszerzenie ABI zostały wycofane po native CPU/correctness FAIL
 Aktualny XEX fit-proof: SHA-256 `c2dff8ef37dfa6fde8abef40db2375266cc1da4bbff2f716fe2c65ba89b9cb34`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
@@ -580,11 +580,61 @@ Decyzja:
 
 **combined candidate mieści się teraz legalnie w cold preservation.**
 
-### Następny proof — tylko po decyzji właściciela
+### Combined ownership writer hooks + native trace — DONE / BLOCKED
 
-Wznowić combined ownership proof przez przepięcie ustalonych 21 lower-layer
-access sites do istniejącego central primitive, a następnie wykonać wymagany
-native ownership/CPU trace. Nie rozpoczynać automatycznie.
+Właściciel autoryzował wznowienie combined proof po `PASS_FIT`. Wszystkie 21
+ustalonych access sites zostało przepiętych warstwami: ring 1, world clear 2,
+near stars 2, far stars/twinkle 6, debris 6 i effects 4. Primitive pozostał
+jednym zwartym blokiem; zachowanie X w ABI zwiększyło go z `187 B` do `193 B`.
+Focused build i testy NMOS przeszły przed native trace.
+
+Placement pozostał poprawny:
+
+- linked runtime `17 627 B`, czyli `26 B` mniej od Stage 2A;
+- cold record `864 / 1277 B`, margin `413 B`;
+- simultaneous residency `18 105 B`, safe headroom `4 082 B`;
+- najmniejsze marginesy: A2 `1 B`, BROADSIDE `9 B`, packed STARFIELD `12 B`,
+  initial content `70 B`.
+
+Native Atari800 7.1.2 wykazał jednak konstrukcyjny CPU FAIL. Dwie sesje,
+łącznie 6 800 zakończonych klatek, wykonały `554 403` lookupów. Przy aktywnym
+ownership miss kosztował średnio około `1 020` cykli native, a kontrolowany
+11-record miss `726/730` cykli read/write. Klatka clear/rotation osiągnęła
+`1185` wywołań primitive i `302 455` cykli samego narzutu ownership.
+
+Najgorszy wynik:
+
+- native full-frame i fighter OPEN: `355 647` cykli;
+- two-Heavy: `355 567` cykli;
+- `12 064` missed frames;
+- `5 714` przekroczeń targetu i hard gate;
+- `10 979` dodatkowych VBI boundaries;
+- `0` DLI anomalies.
+
+Correctness również nie przeszło twardej bramki: na `469 970` lower writes i
+`1117` deferred writes obserwator zanotował `2` destructive writes, `1736`
+stale restores i `339` ghost glyphs. Ostatnia liczba może obejmować historyczny
+Spread final-glyph failure; zgodnie ze STOP nie wykonywano jego naprawy ani
+drugiego wariantu.
+
+Wniosek:
+
+**Variant A z liniowym skanem istniejących 19 rekordów jest odrzucony dla 21
+writer sites. Combined ownership foundation nie zachowuje nawet hard gate ani
+drogi do minimum 2 Heavy + 2 Light.**
+
+Po STOP wycofano wyłącznie hooki, rozszerzenie ABI, testy i instrumentację tego
+kandydata. Runtime wrócił do checkpointu `PASS_FIT`: PMG pickup i niepodłączony
+187-B primitive pozostają, a stary character phase bank nie wraca.
+
+Raport:
+`docs/diagnostics/stage-2b2b-combined-ownership-writer-hooks-native-trace.json`.
+
+### Następna decyzja — tylko właściciel
+
+Właściciel może osobno autoryzować jeden ograniczony proof nieliniowego indeksu
+ownership (Variant B) albo zakończyć tę ścieżkę znakowych projectile. Nie
+implementować bitmapy/hash/cache ani innego wariantu automatycznie.
 
 ### Stage 2B.2c — tylko po osobnej decyzji
 

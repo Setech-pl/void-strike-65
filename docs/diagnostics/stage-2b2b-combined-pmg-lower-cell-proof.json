@@ -1,0 +1,187 @@
+{
+  "schema": 1,
+  "stage": "combined PMG pickup plus projectile-safe lower-cell access proof",
+  "status": "BLOCKED",
+  "decision": "Combined design is rejected",
+  "date": "2026-09-11",
+  "model": {
+    "name": "Codex (GPT-5 family)",
+    "reasoning": "High",
+    "note": "The requested GPT-5.6 Sol product label was not exposed by this session."
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "headBefore": "6bffcc7dae85a82b2624dddcf19bfee7f4da2116",
+    "runtimeBaseline": "Stage 2A",
+    "runtimeResult": "all candidate runtime, build and focused-test source changes rolled back after the placement STOP",
+    "untouched": [".claude/"],
+    "preservedRefs": {
+      "refs/wip/stage2b-foreign-0803": "13597d7fb6fa6bb0d04541ed68ab6715cec1e8d4",
+      "refs/wip/stage2b0-fdb-proof": "3e5d83f2f1944d2dd90b8a23bec9eaae0dcdebc8",
+      "refs/wip/stage2b2-single-window-rejected": "7f40ee0408356bf1f431b49bf5c51d50ae72a4b3"
+    }
+  },
+  "scope": {
+    "implementedBeforeStop": [
+      "fighter-only M0-M3 fifth-player pickup with PENDING freeze and ACTIVE removal at capital admission",
+      "the proven Stage 2B.2 post-playfield projectile publication scheduler",
+      "one contiguous active-record lower-cell read/write primitive",
+      "TOP and BOTTOM lookup including the existing physical-row wrap helper",
+      "latest-underlay writes into the existing projectile BACKUP_TOP/BOTTOM fields"
+    ],
+    "notAttemptedAfterStop": [
+      "lower-layer call-site hooks",
+      "native ownership trace",
+      "host or native ownership CPU measurement",
+      "Variant B, raster bands, BASIC RAM, loader changes, runtime disk I/O or full-screen ownership"
+    ]
+  },
+  "preflight": {
+    "expectedHeadMatched": true,
+    "baselineArtifacts": {
+      "xexSha256": "487bdff550bec1497c4c3e55d54da82c5b253773dc4f0725401a6d1528a087e3",
+      "atrSha256": "743a86f51acb568dae4100b727b9990d513a9cf9d46899dba2d161f12ada45fe",
+      "bootSha256": "64dcf5af97b40c49840f9e639a37169231616d0870fa00c28c8310e2b977f917"
+    },
+    "baselineBuildIssue": "The unchanged HEAD failed its existing host runtime-cycles invariant under both Node 26.8.2 and Node 24.20.0: empty entity/effects path 188/124 cycles. Placement measurements therefore used the existing --candidate --two-pmg-raiders link path, whose only build.mjs effect is to omit that host replay; no gameplay prototype define is emitted."
+  },
+  "pmgPickupRecovery": {
+    "hardware": "M0-M3, PRIOR fifth-player mode; retained 1152-byte phase bank reused as the 16-scanline PMG shape source",
+    "sectorSemantics": {
+      "fighterOpen": "ACTIVE is updated and rendered; PENDING advances only in fighter OPEN",
+      "pendingAtCapitalAdmission": "preserved, invisible and frozen",
+      "activeAtCapitalAdmission": "missile span cleared and pickup released",
+      "capitalAndBossOrdinaryPickup": false
+    },
+    "linkedCodeAccounting": {
+      "removedBytes": 439,
+      "addedBytesBeforePrimitive": 171,
+      "netBytesBeforePrimitive": -268,
+      "note": "Current-HEAD remeasurement includes the fixed publication/claim scaffold required by the combined proof; the historical standalone PMG result was -288 B."
+    },
+    "segmentsBeforeToPrePrimitive": {
+      "CODE": { "before": 4475, "candidate": 4473, "delta": -2 },
+      "STARFIELD": { "before": 2258, "candidate": 2258, "delta": 0 },
+      "BROADSIDE": { "before": 6647, "candidate": 6647, "delta": 0 },
+      "A2_KERNEL": { "before": 254, "candidate": 254, "delta": 0 },
+      "ENTITY_CODE": { "before": 3178, "candidate": 3077, "delta": -101 },
+      "PICKUP_CODE": { "before": 841, "candidate": 676, "delta": -165 }
+    },
+    "linkedRuntimeBytes": { "before": 17653, "prePrimitive": 17385, "delta": -268 },
+    "simultaneousResidencyBytes": { "before": 19283, "prePrimitive": 19015, "delta": -268 },
+    "safeResidencyHeadroomBytes": { "before": 2904, "prePrimitive": 3172, "delta": 268 },
+    "pickupPackedRecordBytes": { "before": 1267, "prePrimitive": 1139, "delta": -128 },
+    "characterAccessSitesRemoved": 18
+  },
+  "writerAccessSites": {
+    "beforePmgPickup": 39,
+    "afterPmgPickup": 21,
+    "hooked": 0,
+    "mandatoryAfterPmg": [
+      { "layer": "ring rotation", "sites": 1 },
+      { "layer": "world clear", "sites": 2 },
+      { "layer": "near stars", "sites": 2 },
+      { "layer": "far stars and twinkle", "sites": 6 },
+      { "layer": "debris", "sites": 6 },
+      { "layer": "effects", "sites": 4 }
+    ],
+    "capitalOnly": "muzzle/flash/capital explosion and broadside character paths remain gated outside ordinary fighter OPEN; no fighter hook was required before the placement STOP"
+  },
+  "primitive": {
+    "representation": "Variant A: existing 19 projectile records",
+    "codeBytes": 187,
+    "contiguousRangeInRejectedLink": "$8E8A-$8F44",
+    "abi": "lower_cell_read/lower_cell_write take dst_ptr+Y; write takes A; A and Y plus dst_ptr are preserved, X is scratch",
+    "fastPath": "FIGHTER_PROJECTILE_OWNED_COUNT zero branches directly to the visible cell without scanning records",
+    "lookup": "ascending linear scan of RENDERED records; TOP compares stored SCREEN_LO/HI; BOTTOM uses PREV_Y footprint threshold and advance_dst_to_next_physical_row, including ring wrap",
+    "overlap": "the first ascending painter record is selected so a lower write updates the deepest projectile underlay in the existing reverse-erase stack",
+    "persistentUnderlayRamBytes": 0,
+    "newStateRamBytes": 11,
+    "maximumRecords": 19,
+    "maximumActiveProjectiles": 11,
+    "maximumOwnedCells": 22
+  },
+  "placementStop": {
+    "stopCondition": 1,
+    "rawRuntime": {
+      "pickupCodeBytes": 863,
+      "pickupCodeRange": "$8C80-$8FDE",
+      "collisionBytes": 33,
+      "collisionRequiredRange": "$8FDF-$8FFF",
+      "result": "raw runtime fits exactly to $9000"
+    },
+    "combinedSegments": {
+      "CODE": 4473,
+      "STARFIELD": 2258,
+      "BROADSIDE": 6647,
+      "A2_KERNEL": 254,
+      "ENTITY_CODE": 3077,
+      "PICKUP_CODE": 863
+    },
+    "linkedRuntimeBytes": { "before": 17653, "candidate": 17572, "delta": -81 },
+    "simultaneousResidencyBytes": { "before": 19283, "candidate": 19202, "delta": -81 },
+    "safeResidencyHeadroomBytes": { "before": 2904, "candidate": 2985, "delta": 81 },
+    "initialContentBytes": { "before": 13295, "candidate": 13217, "capacity": 13312, "envelope": 95 },
+    "entityPackedBytes": { "before": 2798, "candidate": 2721, "delta": -77 },
+    "pickupColdRecord": {
+      "prePrimitivePackedBytes": 1139,
+      "combinedPackedBytes": 1310,
+      "approvedCapacityBytes": 1277,
+      "packedPrimitiveDeltaBytes": 171,
+      "overflowBytes": 33,
+      "candidateRange": "$8C80-$919D",
+      "approvedRange": "$8C80-$917C"
+    },
+    "finding": "The primitive is one contiguous block and raw runtime placement passes exactly, but its external cold record exceeds the reviewed pickup-preservation range. Fixing this requires a new transport/layout or a further code-compaction proof, both outside the authorized scope."
+  },
+  "lookupCpu": {
+    "noActive": null,
+    "miss": null,
+    "topHit": null,
+    "bottomHit": null,
+    "worst": null,
+    "reason": "STOP was mandatory at placement-first before access-site hooks or executable artifacts existed."
+  },
+  "nativeResult": {
+    "status": "NOT_RUN_STOP_BEFORE_HOOKS",
+    "calls": null,
+    "deferredWrites": null,
+    "destructiveWrites": null,
+    "claims": null,
+    "releases": null,
+    "staleRestores": null,
+    "ghostGlyphs": null
+  },
+  "cpu": {
+    "status": "NOT_MEASURED_STOP_AT_PLACEMENT",
+    "ownershipOverheadMaximumCycles": null,
+    "fighterMaximumCycles": null,
+    "twoHeavyMaximumCycles": null,
+    "targetHeadroomCycles": null,
+    "hardGateHeadroomCycles": null,
+    "missed": null,
+    "overruns": null,
+    "vbiDliAnomalies": null
+  },
+  "capacity": {
+    "netRamBytesOfRejectedCombinedLink": -81,
+    "lookupScaling": "O(19) per intercepted access; 21 static fighter access sites remained before dynamic call counting",
+    "twoHeavyTwoLight": "aggregate RAM improves slightly, but no placed, hooked or CPU-measured ownership foundation exists; minimum four threats is not proven",
+    "twoHeavyFourLight": "not proven; the unmeasured writers-times-records CPU term remains a material risk",
+    "lightsImplemented": false
+  },
+  "spread": {
+    "secondCapsuleTrail": "character-pickup trail would disappear structurally under PMG, but no accepted runtime was retained",
+    "finalSpreadProjectileGlyph": "existing expected failure unchanged",
+    "repairAttempted": false
+  },
+  "verification": {
+    "assemblerAndLinker": "PASS through the combined linked image",
+    "rawRuntimePlacement": "PASS exactly",
+    "pickupColdPreservation": "FAIL by 33 B",
+    "focusedTests": "NOT_RUN after mandatory placement STOP",
+    "nativeTrace": "NOT_RUN after mandatory placement STOP",
+    "ownerSmoke": "none"
+  },
+  "next": "Owner decision: authorize or reject one dedicated cold-pickup-record compaction/layout proof that recovers at least 33 packed bytes while keeping the 187-byte primitive contiguous. Do not start it automatically."
+}

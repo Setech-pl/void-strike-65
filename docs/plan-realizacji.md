@@ -1,9 +1,9 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 2.1  
+Wersja: 2.2
 Data aktualizacji: 2026-09-11  
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD dokumentacyjny przed niniejszą aktualizacją: `633620e16ffd96734e76f273790a80d3dd903767`  
+Aktualny HEAD dokumentacyjny przed niniejszą aktualizacją: `6bffcc7dae85a82b2624dddcf19bfee7f4da2116`
 Stan kodu produkcyjnego: przywrócony do Stage 2A po odrzuconych proofach 2B.0, 2B.1 i 2B.2  
 Aktualny XEX bazowy Stage 2A: SHA-256 `487bdff550bec1497c4c3e55d54da82c5b253773dc4f0725401a6d1528a087e3`
 
@@ -505,17 +505,58 @@ STOP:
 
 Po FAIL nie uruchamiać automatycznie raster bands.
 
+### Połączony PMG pickup + central lower-cell primitive — DONE / BLOCKED
+
+Właściciel autoryzował jeden ograniczony proof wykorzystujący PMG pickup jako
+enabler pamięci i redukcji writer map.
+
+Wynik pozytywny:
+
+- PMG usunął 18 miejsc dostępu character pickupu: fighter writer set spadł z
+  39 do 21;
+- bieżący pre-primitive kandydat odzyskał `268 B` linked runtime, a nie
+  historyczne `288 B`;
+- `PICKUP_CODE` spadł z `841 B` do `676 B`, `ENTITY_CODE` z `3178 B` do
+  `3077 B`;
+- jeden primitive Variant A został zaimplementowany jako zwarty blok `187 B`;
+- korzystał z istniejących 19 rekordów, `BACKUP_TOP/BOTTOM` i nie dodawał RAM
+  underlay;
+- combined linked runtime wynosił `17 572 B`, czyli nadal `81 B` mniej od
+  Stage 2A;
+- raw runtime mieścił primitive i przesunięty 33-B collision dokładnie do
+  granicy `$9000`.
+
+Wynik negatywny i STOP:
+
+- spakowany cold pickup record wzrósł z `1139 B` przed primitive do `1310 B`;
+- zatwierdzony zakres `$8C80-$917C` mieści `1277 B`;
+- kandydat kończył się na `$919D`, czyli przekraczał preservation range o
+  `33 B`;
+- usunięcie tej przeszkody wymaga osobnego proofu compaction/layout albo zmiany
+  transportu, co było zabronione w tym zadaniu.
+
+Zgodnie z placement-first STOP 21 lower-layer sites nie zostało przepiętych,
+native ownership trace i pomiary CPU nie zostały uruchomione, a Variant B nie
+był próbowany. Cały runtime kandydata wycofano.
+
+Raport:
+`docs/diagnostics/stage-2b2b-combined-pmg-lower-cell-proof.json`.
+
+Decyzja:
+
+**combined PMG pickup + central lower-cell primitive jest odrzucony w obecnym
+cold-transport placement.**
+
 ### Następny proof — tylko po decyzji właściciela
 
-Rekomendowany jest jeden połączony, nadal ograniczony proof:
+Jedyna rekomendacja wynikająca z pomiaru:
 
-**użyć wcześniej zmierzonego odzysku kodu z PMG pickupu (`-288 B`) do
-umieszczenia jednego scentralizowanego projectile-safe lower-cell access
-primitive.**
+**osobny, ograniczony proof compaction/layout cold pickup record, który odzyska
+co najmniej 33 spakowane bajty, pozostawiając 187-B primitive jako jeden zwarty
+blok.**
 
-PMG usuwa jednocześnie 18 miejsc dostępu character pickupu. Taki proof zmienia
-dotychczasową kolejność roadmapy i dlatego wymaga jawnej decyzji właściciela.
-Nie został rozpoczęty.
+Nie rozpoczynać go automatycznie. Nie używać BASIC RAM, raster bands ani
+full-screen ownership jako obejścia tego wyniku.
 
 ### Stage 2B.2c — tylko po osobnej decyzji
 

@@ -1,87 +1,143 @@
-VOID STRIKE 65 — REGUŁY PROJEKTU
-Wersja 2.0 — 2026-09-10
-Dotyczy prowadzącego rozmowę oraz lokalnego Codexa.
+VOID STRIKE 65 — reguły projektu
 
-1. CEL I ADAPTACYJNE WYMAGANIA
+Wersja 2.1, aktualizacja po Stage 2B.2
 
-Celem jest ukończenie grywalnej gry na Atari 65XE PAL 64 KB. Płynność, czytelność i ciekawa walka mają pierwszeństwo przed liczbą obiektów i perfekcją silnika.
+1. Cel
 
-Założenia właściciela dotyczące wyglądu, zachowania i architektury mogą zmieniać się pod wpływem ograniczeń sprzętu. Nie traktuj wcześniejszych szczegółów jako bezwzględnie niezmiennych.
+Celem jest ukończenie grywalnej gry na Atari 65XE PAL 64 KB w rozsądnym czasie. Architektura ma służyć grze; nie przedłużamy projektu tylko po to, aby zachować wcześniejszy elegancki model techniczny.
 
-Jeżeli realizacja grozi przekroczeniem budżetu cykli lub pamięci, regresjami albo wymaga nieproporcjonalnie dużej przebudowy, przedstaw problem przed dalszą implementacją. Zaproponuj 2–3 prostsze warianty: efekt dla gracza, koszt zasobów, ograniczenia, ryzyko i rekomendację. Oddzielaj pomiary od szacunków. Nie ogłaszaj niemożliwości bez dowodów.
+2. Adaptacyjne wymagania właścicielskie
 
-Preferuj kompromisy wyglądające jak świadomy projekt gry. Istotne zmiany gameplayu i wyglądu uzgadniaj z właścicielem. Nie pytaj ponownie o kompromisy już zaakceptowane. Rutynowe decyzje techniczne podejmuj samodzielnie.
+Założenia wyglądu, zachowania i architektury mogą zostać zmienione po przedstawieniu mierzalnego ograniczenia sprzętowego. Nie zmieniaj samodzielnie istotnego gameplayu. Jeżeli wymaganie grozi przekroczeniem CPU/RAM, regresją lub nieproporcjonalną przebudową, przedstaw 2–3 prostsze warianty i rekomendację.
 
-2. KRÓTKI CYKL PRACY
+Oddzielaj MEASURED od ESTIMATE. Nie ogłaszaj niemożliwości bez dowodu.
 
-Jeden ograniczony problem lub grywalny przyrost na zadanie. Nie dokładaj przy okazji nowych funkcji, porządków, optymalizacji ani odłożonych napraw.
+3. Małe kroki i checkpointy
 
-Dla nowego pomysłu wizualnego lub gameplayowego stosuj kolejność:
-a) mała implementacja, build, kontrola granic pamięci i krótki test uruchomienia;
-b) natychmiastowe przekazanie XEX właścicielowi do oceny;
-c) po pozytywnej ocenie — testy zmienionej mechaniki i jeden reprezentatywny pomiar native PAL;
-d) zamknięcie przyrostu i utrwalenie źródeł.
+Najpierw mały dowód kosztowy/rasterowy, potem ograniczony grywalny przyrost. Jeden prompt wykonawczy ma mieć jeden główny wynik.
 
-Próbę przed pomiarem oznaczaj „do oceny wizualnej — PAL jeszcze niezweryfikowany”, a nie PASS. Nie wysyłaj wersji z rozpoznanym crashem lub uszkodzeniem pamięci. Jeżeli już istnieje konkretny dowód problemu czasowego, zbadaj go przed kolejną próbą właściciela.
+Każdy prompt musi wskazywać:
+- rekomendowany model;
+- reasoning/effort;
+- branch i checkpoint;
+- zakres;
+- zakazy;
+- kolejność weryfikacji;
+- stop conditions;
+- zasady commita i rollbacku.
 
-Negatywna ocena grywalności kończy rozwijanie wariantu, chyba że właściciel zaakceptuje konkretną poprawkę. Nie dopracowuj technicznie odrzuconego kierunku i nie odtwarzaj jego zaginionych źródeł bez rzeczywistej potrzeby.
+Nie resetuj ani nie stage'uj cudzych zmian. Lokalne commity są dozwolone. Bez push/merge/release bez decyzji właściciela.
 
-3. WERYFIKACJA PROPORCJONALNA DO ZMIANY
+4. Źródła prawdy
 
-Zachowaj tanie bramki buildu: granice segmentów, spakowanych transportów, stagingu, preservation/cold windows i identyfikatorów znaków. Ogólny zapas RAM nie zastępuje kontroli lokalnych granic.
+Przed każdym zadaniem przeczytaj aktualne:
+- `AGENTS.md`;
+- reguły projektu;
+- `docs/plan-realizacji.md`;
+- odpowiedni ostatni raport diagnostyczny.
 
-Przed przekazaniem nowego XEX sprawdź krótko zimny start i MAIN MENU → OPTIONS → BACK → START GAME. Jest to istotna kontrola znanej regresji, nie pełny gauntlet.
+Aktualny plan ma pierwszeństwo przed starszym promptem lub historycznym handoffem.
 
-Focused testy dodawaj lub uruchamiaj dla zmienionej mechaniki i konkretnego ryzyka, np. konsumpcji pocisku, pojedynczego naliczenia punktów lub usuwania obiektu. Nie pisz testów odtwarzających jedynie implementację. Test odtworzonej regresji może poprzedzać owner smoke.
+Jeżeli proof zmienia decyzję architektoniczną, roadmapa ma zostać zaktualizowana przed kolejnym promptem implementacyjnym.
 
-Nie uruchamiaj pełnego npm test ani gauntletu przy każdym przyroście. Pełna walidacja przypada na kamień milowy lub przygotowanie wydania. ATR sprawdzaj po zaakceptowanym XEX, gdy zamykamy przyrost obejmujący ten format, zmienia się ścieżka ładowania lub przygotowujemy wydanie.
+5. CPU i raster
 
-Przed uznaniem przyrostu gameplayu/renderera za gotowy wymagany jest reprezentatywny pomiar PAL po ocenie właściciela. Target: 31 200 cykli; hard gate: 32 568; fizyczna ramka: 35 568. Nie myl tych granic. Wynik scenariusza nie jest dowodem globalnego maksimum.
+Target: 31 200 cykli.
+Hard gate: 32 568 cykli.
+Fizyczna ramka PAL: 35 568 cykli.
 
-Wykorzystuj dowody identycznego XEX z pasującymi symbolami i konfiguracją. Nie powtarzaj pomiaru tylko z powodu przeniesienia pliku lub zmiany komputera. Zmieniony XEX nie dziedziczy pomiaru poprzednika.
+Wall time jest warunkiem koniecznym, ale niewystarczającym.
 
-Brak pokrycia replayu oznacza poprawę wejść lub okna obserwacji, nie automatyczne odrzucenie kodu. Zatrzymanie observera nie dowodzi usterki narzędzia — najpierw rozróżnij problem gry, uruchomienia i diagnostyki.
+Każdy renderer zapisujący do pamięci widocznej przez ANTIC musi udowodnić deadline względem rastra. Nie uznawaj PASS na podstawie samego `max cycles`.
 
-4. OGRANICZANIE NARZUTU
+Dynamiczny globalny fence zależny od `pickup_y`, `projectile_y` lub innego obiektu jest zabroniony.
 
-Nie twórz setek screenshotów, filmów, rozbudowanych raportów ani nowych observerów bez konkretnego pytania, które mają rozstrzygnąć. Domyślnie wystarczy XEX, hash, komenda uruchomienia, krótki wynik i ograniczenia.
+6. Aktualna decyzja o publikacji znaków
 
-Nie powtarzaj szerokiego audytu ani wyszukiwania checkpointów, jeśli aktualny stan jest już potwierdzony. Po przerwaniu sprawdź tylko to, co mogło się zmienić, i kontynuuj od ostatniego kroku.
+Pełny double buffer całego playfieldu został zmierzony i odrzucony:
+- maksymalny dodatkowy koszt fighter frame około 8 007 cykli;
+- projected worst około 34 820 > hard gate;
+- dodatkowe problemy placementu.
 
-Nie poświęcaj kilkunastu minut na automatyzację krótkiej ręcznej obsługi menu. Gdy automatyzacja jest przeszkodą, użyj najprostszego dostępnego sposobu odtworzenia. Nie omijaj przy tym rzeczywistego błędu gry.
+Nie wracaj do niego bez nowych dowodów lub jawnej decyzji właściciela.
 
-Po około 10 minutach bez rozstrzygnięcia podaj krótki status, przyczynę i jeden następny krok. To punkt kontroli, nie automatyczny rollback. Oczywiste poprawki i potrzebne ponowienia buildu są dozwolone; nie obowiązuje „jeden build i stop”.
+Globalny invariant `visible ring is read-only` nie obowiązuje.
 
-Raportuj czas diagnozy, implementacji, buildu i native oddzielnie, choćby orientacyjnie. Bez agentów równoległych w lokalnym zadaniu, chyba że właściciel wyraźnie zmieni tę zasadę.
+Stały sync `$70` z erase wcześnie i redraw późno również został zmierzony i odrzucony:
+- CPU i placement były dobre;
+- native trace wykazał premature erase i late redraw.
 
-5. ŹRÓDŁA, CHECKPOINTY I COMMITY
+Stage 2B.2 wykazał, że pojedyncze stałe publication window samo w sobie ma wystarczający budżet czasu, ale jest niewystarczające architektonicznie: inne warstwy visible ring zmieniały komórki OLD należące do projectile.
 
-Przed eksperymentem zachowaj działający punkt odniesienia: źródła, potrzebne pliki nieśledzone, XEX i jego hash. Dirty worktree może być celowy; nie resetuj go do HEAD.
+Aktualny blocker to **cell ownership / underlay**, nie liczba okien rastra.
 
-Właściciel zezwala na lokalne commity checkpointowe na osobnej gałęzi eksperymentalnej bez każdorazowego pytania. Taki commit zabezpiecza pracę, nie oznacza owner PASS ani dopuszczenia do produkcji. Opisz jego status, w tym znane błędy.
+Aktualny kierunek:
+- oddzielać simulation od publication;
+- zdefiniować minimalny ownership/deferred-underlay dla komórek zajętych przez znakowe projectile;
+- niższa warstwa nie może niszczyć foreground projectile; aktualizuje stan underlay;
+- erase projectile przywraca najnowszy underlay;
+- nie budować centralnego compositora całego ekranu;
+- raster bands rozważać dopiero po poprawnym ownership, jeśli pozostanie niezależny problem deadline;
+- nigdy per-object moving fence.
 
-Śledź źródła eksperymentu i instrukcję buildu w Git. Ignorowany build/ lub /private/tmp nie może być jedyną kopią odtwarzalnej implementacji. Artefakty mogą pozostawać ignorowane, ale przy migracji kopiuj potrzebny XEX i dowody oddzielnie. Lokalny commit nie zastępuje kopii na innym urządzeniu.
+7. Pickup
 
-Commit zamykający przyrost na gałęzi integracyjnej wykonuj po owner PASS i wymaganych bramkach. Push, merge, tag i release wyłącznie na wyraźne polecenie. Nie commituj niezwiązanych zmian użytkownika; bez git add -A w niezweryfikowanym stanie.
+Docelowy fighterowy pickup:
+- M0–M3 jako jednokolorowy PMG/fifth-player candidate;
+- tylko fighter sector.
 
-Nie nakładaj kolejnej próby na nieudaną bez jej zabezpieczenia. Wycofuj tylko własne zmiany. Bez szerokiego reset/restore/clean. Zachowaj tożsamość artefaktów i źródeł; nie wymyślaj hashy, wyników ani adresów trace.
+Semantyka:
+- PENDING przy wejściu do capital: zamrożony/odroczony;
+- ACTIVE przy wejściu do capital: usuwany;
+- capital i boss nie aktualizują zwykłego fighterowego pickupu.
 
-6. PROMPTY, RAPORTY I ŚRODOWISKO
+PMG pickup w odrzuconym proofie był zasobowo korzystny i nie był przyczyną FAIL, ale wraca do integracji dopiero po PASS kontraktu publikacji pocisków.
 
-Każdy prompt wykonawczy ma krótko wskazywać: model/effort, checkpoint, zakres, zakazy, kolejność weryfikacji, warunek przerwania i commit/rollback. Odwołuj się do tych reguł zamiast przepisywać cały regulamin i historię przy każdym zadaniu.
+8. Pojemność i grywalność fighter combat
 
-Ustalony wybór: gpt-5.6-sol high dla assemblera, PMG, rastra, pamięci i PAL; medium dla prostych zmian konfiguracji, dokumentacji i finalizacji. Terra high jako zamiennik. Wyższy effort stosuj dla konkretnej trudności, nie automatycznie.
+Minimum projektowe: 4 przeciwników/zagrożenia jednocześnie.
+Target rozszerzony: 6.
+Model: 2 Heavy + do 4 Light.
 
-Raport końcowy: co zmieniono, co potwierdzono, co pozostaje niezweryfikowane, XEX i pełny hash, komenda owner smoke oraz ewentualna konkretna decyzja właściciela. Raport ma pomagać podjąć następny krok.
+Heavy: P1/P2.
+Light: tańsze obiekty, niekoniecznie PMG.
 
-Używaj narzędzi z PATH i ścieżek względnych. Nie utrwalaj ścieżek /usr/local ze starego Maca Intel. Brak pliku po migracji najpierw rozstrzygaj przez sprawdzenie ścieżki i hasha, nie przez przebudowę emulatora.
+Architektura nie przechodzi finalnie tylko dlatego, że stabilnie obsługuje dwóch Raiderów. Musi zostawiać mierzalną drogę CPU/RAM do 2 Heavy + 2 Light i brak konstrukcyjnej blokady 2 Heavy + 4 Light.
 
-Skrócenie celowej ekspozycji loadera nie zastępuje usprawnienia procesu. Nie kończ ładowania przed gotowością danych. Zmiany loadera prowadź jako osobny przyrost.
+Fale preferują jeden dominujący archetyp + najwyżej jeden wspierający.
 
-7. TRWAŁOŚĆ I PIERWSZEŃSTWO
+9. Odrzucone kierunki — nie powtarzać bez nowych przesłanek
 
-Ten plik jest wspólną regułą procesu dla rozmowy prowadzącej i lokalnego Codexa. W repo przechowuj go jako docs/reguly-projektu.txt i umieść w głównym AGENTS.md obowiązek przeczytania go przed pracą.
+- pełny double buffer całego fighter playfieldu;
+- globalny read-only visible ring jako wymóg;
+- `$70` fixed-sync z szerokim erase/redraw gap;
+- single publication window traktowane jako samodzielne rozwiązanie bez ownership niższych warstw;
+- raster bands jako obejście konfliktów ownership;
+- moving fence zależny od Y obiektu;
+- znakowi Raiderzy;
+- kolejne serie mikrooptymalizacji odrzuconej konstrukcji.
 
-Wersja 2.0 zastępuje wcześniejszą kolejność wymagającą pełnego dowodu kosztowego przed każdą oceną wizualną oraz ogólny zakaz lokalnych commitów eksperymentalnych. Nie usuwa bramek gotowości produkcyjnej ani innych obowiązujących ograniczeń technicznych repo.
+10. BASIC RAM / loader
 
-Nowsze, wyraźne decyzje właściciela mają pierwszeństwo. Po zmianie procesu aktualizuj ten plik i jego kopię w repo. Nie twierdź, że obie kopie są zsynchronizowane bez potwierdzenia. Krótkie instrukcje projektu i AGENTS.md powinny wskazywać ten plik zamiast zawierać rozchodzące się kopie całej treści.
+Nie używaj BASIC RAM, loader changes, runtime disk I/O ani overlay transport jako domyślnego rozwiązania.
+
+BASIC RAM jest rezerwą dla problemu placementu po uzyskaniu architektury poprawnej rasterowo. Nie służy jako obejście błędu publikacji.
+
+11. Gameplay wartości stałe
+
+Bursty produkcyjne: 8/8/10.
+4/4/6 tylko diagnostycznie.
+
+12. Model wykonawczy
+
+Dla raster/timing i decyzji architektonicznych preferuj GPT-5.6 Sol / High, jeżeli dostępny. Inny model może wykonywać ograniczone zadanie, ale prompt ma jawnie zawierać wszystkie invariants, checkpoint i stop conditions.
+
+13. Reguła po nieudanym proofie
+
+Po `BLOCKED`/`REJECTED`:
+- zachowaj dowód;
+- wycofaj własny odrzucony kod produkcyjny;
+- commit dokumentacyjny jest dozwolony;
+- zaktualizuj roadmapę;
+- wskaż jeden następny eksperyment;
+- nie uruchamiaj automatycznie serii kolejnych wariantów.

@@ -430,9 +430,11 @@ Decyzja:
 
 Nie próbować naprawiać go przez dokładanie kolejnych wyjątków timingowych.
 
-### Stage 2B.2b — TERAZ: visible-ring ownership / deferred-underlay proof
+### Stage 2B.2b — DONE / BLOCKED
 
-Cel:
+Visible-ring ownership / deferred-underlay proof.
+
+Cel był następujący:
 
 **udowodnić minimalny kontrakt ownership dla komórek aktualnie zajętych przez znakowe pociski, bez budowania centralnego compositora całego ekranu.**
 
@@ -449,7 +451,41 @@ Zakres:
 6. zmierzyć CPU/RAM oraz liczbę przechwyconych foreign writes;
 7. native trace ma potwierdzić brak utraty foreground i poprawne restore.
 
-PASS wymaga:
+Statyczna mapa writerów potwierdziła priorytet projectile nad base/ring,
+far-stars, debris/pickup i effects. Wykazała jednak również, że poprawność
+wymaga przechwycenia nie tylko zapisów, ale także odczytów source/backing:
+niższa warstwa nie może zapisać do swojego backingu widocznego glifu
+projectile.
+
+Minimalny obowiązkowy zakres obejmuje 21 miejsc dostępu rozproszonych pomiędzy
+ring/world, far stars, debris i effects. Zachowanie pełnego character pickupu
+Stage 2A zwiększa tę liczbę do 39. Wybrany wariant A mógłby ponownie użyć
+istniejących `FIGHTER_PROJECTILE_BACKUP_TOP/BOTTOM` bez nowego RAM underlay,
+ale wspólny 16-bitowy lookup TOP/BOTTOM z obsługą wrapu wymaga około 216 B kodu
+jeszcze przed claim/release i wzrostem call-site'ów.
+
+Po dołączeniu samego publishera 2B.2 dostępne były tylko:
+
+- 12 B initial-content envelope;
+- 90 B największego surowego bloku STARFIELD;
+- 2 B luzu A2 kernel;
+- 2 B ENTITY staging margin;
+- 9 B BROADSIDE;
+- 6 B przed Directorem;
+- 0 B wzrostu PICKUP_CODE przed stałym collision `$8FC9`.
+
+STOP 2/3: rozwiązanie wymaga rozproszonego refactoru/relokacji kilku warstw
+albo nowego transportu. Runtime ownership nie został wdrożony, native trace nie
+został uruchomiony, wariant B i raster bands nie były próbowane. Kandydat
+publishera został wycofany; produkcja pozostaje na Stage 2A.
+
+Raport: `docs/diagnostics/stage-2b2b-visible-ring-ownership-proof.json`.
+
+Decyzja:
+
+**minimal ownership/deferred-underlay jest odrzucony w obecnym układzie Stage 2A i w zakresie małego samodzielnego proofu.**
+
+Historyczne warunki PASS pozostają:
 
 - `foreign destructive writes = 0` dla objętych proofem komórek;
 - poprawny restore najnowszego underlay;
@@ -468,6 +504,18 @@ STOP:
 - jeżeli rozwiązanie wymaga BASIC RAM, loadera lub runtime disk I/O.
 
 Po FAIL nie uruchamiać automatycznie raster bands.
+
+### Następny proof — tylko po decyzji właściciela
+
+Rekomendowany jest jeden połączony, nadal ograniczony proof:
+
+**użyć wcześniej zmierzonego odzysku kodu z PMG pickupu (`-288 B`) do
+umieszczenia jednego scentralizowanego projectile-safe lower-cell access
+primitive.**
+
+PMG usuwa jednocześnie 18 miejsc dostępu character pickupu. Taki proof zmienia
+dotychczasową kolejność roadmapy i dlatego wymaga jawnej decyzji właściciela.
+Nie został rozpoczęty.
 
 ### Stage 2B.2c — tylko po osobnej decyzji
 

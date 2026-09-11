@@ -82,26 +82,27 @@ test("Interceptor PMG drawing retains the accepted bounded viewport lifecycle", 
     /update_enemy_slot_motion:[\s\S]+jsr update_interceptor_soft_pursuit[\s\S]+ENEMY_MANEUVER_STATE,x/);
 });
 
-test("held FIRE emits the further-reduced four-shot normal burst at nine-frame intervals", () => {
-  const simulation = simulatePlayerFighterBurst(weapons, 40);
+test("held FIRE emits the accepted eight-shot normal burst at nine-frame intervals", () => {
+  const simulation = simulatePlayerFighterBurst(weapons, 90);
   const allocations = simulation.trace.filter(({ allocationResult }) =>
     allocationResult === "ALLOCATED");
-  assert.deepEqual(allocations.slice(0, 4).map(({ frame }) => frame), [1, 10, 19, 28]);
-  assert.equal(allocations[3].burstState, "POST_BURST_COOLDOWN");
-  assert.equal(allocations[3].timer, 12);
-  assert.equal(allocations[4].frame, 40);
+  assert.deepEqual(allocations.slice(0, 8).map(({ frame }) => frame),
+    [1, 10, 19, 28, 37, 46, 55, 64]);
+  assert.equal(allocations[7].burstState, "POST_BURST_COOLDOWN");
+  assert.equal(allocations[7].timer, 12);
+  assert.equal(allocations[8].frame, 76);
   assert.ok(Math.max(...simulation.trace.map(({ active }) => active.length)) <= 6);
 });
 
-test("Rapid keeps a clear advantage within the reduced five-active-shot limit", () => {
-  const simulation = simulatePlayerFighterBurst(weapons, 50, { weaponMode: "RAPID" });
+test("Rapid keeps a clear advantage within the six-active-shot limit", () => {
+  const simulation = simulatePlayerFighterBurst(weapons, 90, { weaponMode: "RAPID" });
   const allocations = simulation.trace.filter(({ allocationResult }) =>
     allocationResult === "ALLOCATED");
-  assert.deepEqual(allocations.slice(0, 6).map(({ frame }) => frame),
-    [1, 7, 13, 19, 25, 31]);
-  assert.equal(allocations[5].burstState, "POST_BURST_COOLDOWN");
-  assert.equal(allocations[5].timer, 12);
-  assert.equal(allocations[6].frame, 43);
+  assert.deepEqual(allocations.slice(0, 10).map(({ frame }) => frame),
+    [1, 7, 13, 19, 25, 31, 37, 43, 49, 55]);
+  assert.equal(allocations[9].burstState, "POST_BURST_COOLDOWN");
+  assert.equal(allocations[9].timer, 12);
+  assert.equal(allocations[10].frame, 67);
   assert.ok(Math.max(...simulation.trace.map(({ active }) => active.length)) <= 6);
 });
 
@@ -125,7 +126,7 @@ test("PlayerFighter pool rejection neither overwrites shots nor counts a rejecte
   state = stepPlayerFighterBurst(weapons, state, { fireHeld: true });
   assert.equal(state.shotsEmitted, 0);
   assert.deepEqual(state.pool.map((shot) => shot?.x ?? null), before);
-  assert.equal(state.burstRemaining, 4);
+  assert.equal(state.burstRemaining, 8);
   state.pool[0] = null;
   state = stepPlayerFighterBurst(weapons, state, { fireHeld: true });
   assert.equal(state.shotsEmitted, 1, "one deferred shot uses the newly free slot");
@@ -380,8 +381,8 @@ test("assembled burst controllers use accepted counts, intervals, speeds and dam
     interceptorPost: weapons.interceptor.postBurstFrames,
     interceptorDamage: weapons.interceptor.damage,
   }, {
-    player_fighterCount: 4, player_fighterActiveLimit: 6, player_fighterRapidCount: 6,
-    player_fighterSpreadCount: 4, player_fighterSpreadCooldown: 28,
+    player_fighterCount: 8, player_fighterActiveLimit: 6, player_fighterRapidCount: 10,
+    player_fighterSpreadCount: 8, player_fighterSpreadCooldown: 28,
     player_fighterInterval: 9, player_fighterSpeed: 6, player_fighterPost: 12,
     interceptorCount: 5, interceptorActiveLimit: 5, interceptorInterval: 15, interceptorSpeed: 5,
     interceptorPost: [60, 50, 40], interceptorDamage: 10,

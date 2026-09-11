@@ -616,10 +616,10 @@ test("HULL plates and the ten-cell BOOST field remain distinct at native screen 
   ]);
 });
 
-test("Rapid Fire lasts 500 active frames and keeps its reduced accelerated burst", () => {
+test("Rapid Fire lasts 500 active frames and keeps its accepted accelerated burst", () => {
   const trace = executeWeaponPickupTrace({ root, artifact: "xex" });
-  assert.deepEqual(trace.normalBurstFrames, [0, 9, 18, 27]);
-  assert.deepEqual(trace.rapidBurstFrames, [0, 6, 12, 18, 24, 30]);
+  assert.deepEqual(trace.normalBurstFrames, [0, 9, 18, 27, 36, 45, 54, 63]);
+  assert.deepEqual(trace.rapidBurstFrames, [0, 6, 12, 18, 24, 30, 36, 42, 48, 54]);
   assert.equal(trace.activeRapidFrames, 500);
   assert.equal(trace.rapidTimerFrames.length, 500);
   assert.deepEqual(trace.rapidTimerFrames.map(({ timer }) => timer),
@@ -654,10 +654,10 @@ test("Rapid Fire lasts 500 active frames and keeps its reduced accelerated burst
     weapons.player_fighter.rapidFireIntervalFrames, weapons.player_fighter.rapidFireDurationFrames,
     weapons.player_fighter.poolSlots, weapons.player_fighter.speedScanlines,
     weapons.player_fighter.widthHpos, weapons.player_fighter.heightScanlines,
-  ], [4, 6, 4, 9, 6, 500, 10, 6, 1, 2]);
+  ], [8, 10, 8, 9, 6, 500, 10, 6, 1, 2]);
 });
 
-test("packed runtime distinguishes reduced Normal, Rapid and Spread cadence", () => {
+test("packed runtime distinguishes accepted Normal, Rapid and Spread cadence", () => {
   const xex = executePlayerFighterBurstBalanceTrace({ root, artifact: "xex" });
   const atr = executePlayerFighterBurstBalanceTrace({ root, artifact: "atr" });
   assert.deepEqual({ ...xex, artifact: "release" }, { ...atr, artifact: "release" });
@@ -667,18 +667,18 @@ test("packed runtime distinguishes reduced Normal, Rapid and Spread cadence", ()
     mode.maximumPoolOccupancy,
   ]);
   assert.deepEqual(summary, [
-    ["NORMAL", 4, 9, 12, 4, 4, 9, 4],
-    ["RAPID", 6, 6, 12, 6, 6, 12, 6],
-    ["SPREAD", 4, 28, 12, 3, 9, 9, 6],
-    ["SHIELD", 4, 9, 12, 4, 4, 9, 4],
+    ["NORMAL", 8, 9, 12, 8, 8, 9, 4],
+    ["RAPID", 10, 6, 12, 10, 10, 13, 6],
+    ["SPREAD", 8, 28, 12, 3, 9, 9, 6],
+    ["SHIELD", 8, 9, 12, 8, 8, 9, 4],
   ]);
   const firstBurstFrames = (mode) => mode.records
     .filter(({ allocatedProjectiles }) => allocatedProjectiles > 0)
     .slice(0, mode.expectedBurst)
     .map(({ frame }) => frame);
-  assert.deepEqual(firstBurstFrames(xex.traces[0]), [0, 9, 18, 27]);
+  assert.deepEqual(firstBurstFrames(xex.traces[0]), [0, 9, 18, 27, 36, 45, 54, 63]);
   assert.deepEqual(firstBurstFrames(xex.traces[1]),
-    [0, 6, 12, 18, 24, 30]);
+    [0, 6, 12, 18, 24, 30, 36, 42, 48, 54]);
   assert.deepEqual(firstBurstFrames(xex.traces[2]), [0, 28, 56]);
 });
 

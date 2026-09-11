@@ -250,9 +250,9 @@ head, and ring wrap.
 
 Pool scans are bounded by compile-time counts. Spread Shot admits its centre
 whenever at least one Player Fighter slot is free and admits the two side shots only as
-an atomic pair. Its twenty-frame cooldown enforces the reduced active-fire
-budget. Normal and Spread initialize a four-shot/four-salvo burst; Normal uses
-a six-frame interval, Spread twenty, and Rapid initializes six shots at four
+an atomic pair. Its 28-frame cooldown enforces the active-fire
+budget. Normal and Spread initialize an eight-shot/eight-salvo burst; Normal uses
+a nine-frame interval, Spread 28, and Rapid initializes ten shots at six
 frames. All modes retain the 12-frame post-burst
 pause. The effects pool is not used for pickup capsules or persistent
 projectile state.

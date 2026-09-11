@@ -933,7 +933,7 @@
   },
   "fighterWeapons": {
     "source": "assets/graphics/fighter-weapons.json",
-    "sourceSha256": "3ad9e08bb26544cb9062f1ab13d75bffecbc5e0a6c267b49cd432d43cdd755ff",
+    "sourceSha256": "1bd8811baf0a08c9cc84aa48f52e580f33787f4beab2a43747714169f6cddb52",
     "viewport": {
       "formatVersion": 1,
       "activeImageTop": 8,
@@ -977,14 +977,14 @@
     "player_fighter": {
       "poolSlots": 10,
       "activeLimit": 6,
-      "burstCount": 4,
+      "burstCount": 8,
       "burstIntervalFrames": 9,
-      "rapidFireBurstCount": 6,
+      "rapidFireBurstCount": 10,
       "rapidFireIntervalFrames": 6,
       "rapidFireDurationFrames": 500,
       "spreadShotDurationFrames": 500,
       "shieldDurationFrames": 250,
-      "spreadShotBurstCount": 4,
+      "spreadShotBurstCount": 8,
       "spreadShotCooldownFrames": 28,
       "spreadShotProjectileCount": 3,
       "spreadShotInitialOffsetHpos": 4,
@@ -1180,17 +1180,17 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 21504,
-        "sha256": "b921e829b89d7bfdf193e22757db67d8b5fc951ef069f3d7e6e231c1372401c0"
+        "sha256": "64dcf5af97b40c49840f9e639a37169231616d0870fa00c28c8310e2b977f917"
       },
       "void-strike-65.xex": {
         "path": "dist/void-strike-65.xex",
         "bytes": 22148,
-        "sha256": "351189a65152184cabd40058f6565f117cb26e8d8125f061d729b5a5dab19088"
+        "sha256": "487bdff550bec1497c4c3e55d54da82c5b253773dc4f0725401a6d1528a087e3"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "280fd199481f8d937d3602319856bd284aef4114c39b796242cdb46c5d8f011c"
+        "sha256": "743a86f51acb568dae4100b727b9990d513a9cf9d46899dba2d161f12ada45fe"
       }
     },
     "reportPath": null,
@@ -1199,15 +1199,15 @@
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 21504,
-      "sha256": "b921e829b89d7bfdf193e22757db67d8b5fc951ef069f3d7e6e231c1372401c0"
+      "sha256": "64dcf5af97b40c49840f9e639a37169231616d0870fa00c28c8310e2b977f917"
     },
     "void-strike-65.xex": {
       "bytes": 22148,
-      "sha256": "351189a65152184cabd40058f6565f117cb26e8d8125f061d729b5a5dab19088"
+      "sha256": "487bdff550bec1497c4c3e55d54da82c5b253773dc4f0725401a6d1528a087e3"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "280fd199481f8d937d3602319856bd284aef4114c39b796242cdb46c5d8f011c"
+      "sha256": "743a86f51acb568dae4100b727b9990d513a9cf9d46899dba2d161f12ada45fe"
     }
   }
 }

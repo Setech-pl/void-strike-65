@@ -63,7 +63,14 @@ test("dynamic glyph ownership is explicit and all capsule transitions restore ba
     assert.deepEqual([trace.drawnMaskAfterErase, trace.renderedMaskAfterErase,
       trace.topLatchAfterErase], [0, 0, 0]);
   }
-  assert.match(source, /compose_weapon_pickup_phase:[\s\S]+weapon_pickup_type_base_lo/);
+  const composer = source.slice(source.indexOf("compose_weapon_pickup_phase:"),
+    source.indexOf("weapon_pickup_phase_offset_lo:"));
+  assert.match(composer, /tya[\s\S]+lsr[\s\S]+ror/,
+    "pickup type selects its 64-byte glyph-bank offset");
+  assert.match(composer, /weapon_pickup_phase_offset_lo,x/,
+    "animation phase supplies the low byte");
+  assert.match(composer, /weapon_pickup_type_base_hi,y/,
+    "pickup type supplies the high byte of the current glyph bank");
 });
 
 test("pickup rotation is exactly Rapid Spread Shield Rapid without RNG", () => {
@@ -191,7 +198,7 @@ test("Shield keeps the normal eight-shot cadence while Rapid and Spread remain u
   assert.deepEqual([byMode.NORMAL.firstBurstProjectiles, byMode.SHIELD.firstBurstProjectiles,
     byMode.RAPID.firstBurstProjectiles], [8, 8, 10]);
   assert.deepEqual([manifest.fighterWeapons.player_fighter.spreadShotProjectileCount,
-    manifest.fighterWeapons.player_fighter.spreadShotCooldownFrames], [3, 10]);
+    manifest.fighterWeapons.player_fighter.spreadShotCooldownFrames], [3, 28]);
   assert.deepEqual(byMode.SHIELD.records.filter(({ allocatedProjectiles }) =>
     allocatedProjectiles > 0).map(({ frame }) => frame),
   byMode.NORMAL.records.filter(({ allocatedProjectiles }) =>

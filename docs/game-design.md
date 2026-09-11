@@ -54,8 +54,8 @@ to their prior blank contents. The optional type glyph is omitted because the
 
 ### Combat and scoring
 
-The normal Player Fighter weapon fires a four-projectile burst at one projectile every
-six active frames, followed by a 12-frame pause. Projectiles travel upward by
+The normal Player Fighter weapon fires an eight-projectile burst at one projectile every
+nine active frames, followed by a 12-frame pause. Projectiles travel upward by
 six scanlines per active frame. Its physical pool remains ten slots, with at
 most six simultaneously active.
 
@@ -199,21 +199,21 @@ phase.
 ### Rapid Fire — implemented
 
 Rapid Fire lasts exactly 500 active PAL frames (10 seconds). It expands the
-burst to six projectiles, keeps the 12-frame post-burst pause, and reduces the
-in-burst interval from six frames to four. At most six shots remain active,
+burst to ten projectiles, keeps the 12-frame post-burst pause, and reduces the
+in-burst interval from nine frames to six. At most six shots remain active,
 and its projectiles retain the Player Fighter's established
 yellow/gold. The 2x2 capsule uses a steel/yellow casing with a black `RF` symbol.
 
 ### Spread Shot — implemented
 
 Spread Shot lasts exactly 500 active PAL frames (10 seconds) and retains the
-normal four-salvo burst and 12-frame post-burst pause, but uses a twenty-active-
+normal eight-salvo burst and 12-frame post-burst pause, but uses a 28-active-
 frame cooldown between salvos; it never combines with Rapid Fire. With three
 free slots a salvo creates centre, left, and right together. Under transitional
 saturation the centre has priority, while the side pair is created together or
-not at all. Continuous FIRE produces 27 salvos and 81 projectiles during the
-500-frame boost. Eighteen saturated allocation frames defer the one pending
-salvo without accumulating catch-up fire, and at most six Spread projectiles
+not at all. Continuous FIRE produces 19 salvos and 57 projectiles during the
+500-frame boost. A blocked allocation remains one pending salvo without
+accumulating catch-up fire, and at most six Spread projectiles
 are simultaneously active in the unchanged ten-slot physical pool.
 
 The volley begins as a compact formation. The centre projectile travels

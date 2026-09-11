@@ -331,7 +331,7 @@ function runBurst(memory, labels, { rapid, expectedCount, onFrame = () => {} }) 
   memory[0xd010] = 0;
   const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
   const emissions = [];
-  for (let frame = 0; frame < 48 && emissions.length < expectedCount; frame += 1) {
+  for (let frame = 0; frame < 160 && emissions.length < expectedCount; frame += 1) {
     runRoutine(memory, labels, "update_player_fighter_weapon");
     const currentCount = countActive(memory, active, 10);
     if (currentCount > 0) {
@@ -2219,8 +2219,10 @@ export function executeShieldBoosterTrace({
     m[requiredLabel(l, "player_y")] = playerMaximumY;
     m[requiredLabel(l, "FIGHTER_PROJECTILE_ACTIVE") + slot] = 2;
     m[requiredLabel(l, "FIGHTER_PROJECTILE_X") + slot] = 124;
-    m[requiredLabel(l, "FIGHTER_PROJECTILE_Y") + slot] = 178;
-    m[requiredLabel(l, "FIGHTER_PROJECTILE_PREV_Y") + slot] = 178;
+    // Collision uses PREV_Y as the start of the swept projectile envelope.
+    // Keep the fixture aligned with the player now clamped at the playfield bottom.
+    m[requiredLabel(l, "FIGHTER_PROJECTILE_Y") + slot] = playerMaximumY;
+    m[requiredLabel(l, "FIGHTER_PROJECTILE_PREV_Y") + slot] = playerMaximumY;
     m[requiredLabel(l, "FIGHTER_PROJECTILE_LIFETIME") + slot] = 10;
     interceptorProjectileCycles = runRoutine(m, l, "update_fighter_projectiles");
   }

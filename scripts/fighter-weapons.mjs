@@ -70,7 +70,7 @@ export function loadFighterWeaponsDefinition(sourcePath) {
   for (const [id, weapon] of [["player_fighter", definition.player_fighter]]) {
     integer(weapon?.poolSlots, `${id}.poolSlots`, 1, 16);
     integer(weapon.activeLimit, `${id}.activeLimit`, 1, weapon.poolSlots);
-    invariant(weapon.burstCount === 4, `${id} reduced normal burst must contain exactly four shots`);
+    invariant(weapon.burstCount === 8, `${id} normal burst must contain exactly eight shots`);
     integer(weapon.burstIntervalFrames, `${id}.burstIntervalFrames`, 1, 16);
     integer(weapon.speedScanlines, `${id}.speedScanlines`, 1, 16);
     integer(weapon.widthHpos, `${id}.widthHpos`, 1, 2);
@@ -79,11 +79,11 @@ export function loadFighterWeaponsDefinition(sourcePath) {
   }
   invariant(definition.player_fighter.postBurstFrames === 12,
     "PlayerFighter post-burst pause must be 12 PAL frames");
-  invariant(definition.player_fighter.rapidFireBurstCount === 6 &&
+  invariant(definition.player_fighter.rapidFireBurstCount === 10 &&
     definition.player_fighter.rapidFireBurstCount <= definition.player_fighter.poolSlots &&
     definition.player_fighter.rapidFireIntervalFrames === 6 &&
     definition.player_fighter.rapidFireDurationFrames === 500,
-  "Rapid Fire must use six shots, a six-frame interval and exactly 500 active PAL frames");
+  "Rapid Fire must use ten shots, a six-frame interval and exactly 500 active PAL frames");
   invariant(definition.player_fighter.spreadShotBurstCount === definition.player_fighter.burstCount &&
     definition.player_fighter.spreadShotDurationFrames === 500,
   "Spread Shot must use the eight-salvo normal burst for exactly 500 active PAL frames");

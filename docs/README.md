@@ -32,6 +32,7 @@ specification.
 | Visual and colour rules | [art-direction.md](art-direction.md) |
 | Atari800 and real-hardware checklist | [hardware-testing.md](hardware-testing.md) |
 | Current next tasks and future plans | [roadmap.md](roadmap.md) |
+| Rendering audit, architectural decision, and implementation gates | [plan-realizacji.md](plan-realizacji.md) |
 | Accepted architectural decisions | [decisions/](decisions/) |
 | Archived checkpoints, old memory values, and rejected experiments | [history/](history/) |
 | Runtime capture provenance | [media/manifest.json](media/manifest.json) |

@@ -1,9 +1,9 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 2.5
+Wersja: 2.6
 Data aktualizacji: 2026-09-11  
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD dokumentacyjny przed niniejszą aktualizacją: `0fa1ea9c733db566d758d8d1fbfb4139b50c842d`
+Aktualny HEAD dokumentacyjny przed niniejszą aktualizacją: `cb0b9e3780c641678745f5c9b91497600a7c4751`
 Stan runtime: bez zmian w tym proofie; zachowany kandydat combined PMG + niepodłączony zwarty primitive po PASS cold-record fit, bez 21 writer hooks
 Aktualny XEX fit-proof: SHA-256 `c2dff8ef37dfa6fde8abef40db2375266cc1da4bbff2f716fe2c65ba89b9cb34`
 
@@ -717,15 +717,66 @@ Decyzja:
 **unified fighter visual commit jest odrzucony przy pełnym bieżącym zestawie
 warstw.**
 
+### Static far stars feasibility — DONE / REJECTED
+
+Właściciel odrzucił redukcję populacji z 29 do 23 i autoryzował wyłącznie
+sprawdzenie, czy 29 far stars może pozostać wizualnie nieruchomych względem
+fighter playfield bez per-world-step erase/resolve/render.
+
+Instruction-exact pomiar aktualnej ścieżki potwierdził `4 221` cykli:
+
+- erase 29 rekordów: `1 240` cykli, 29 visible writes;
+- resolve/render po rotacji: `2 981` cykli, 29 address resolutions, 29
+  occupancy reads i 29 visible writes;
+- osobny pojedynczy twinkle event: `166-168` cykli; nie współwystępuje z
+  najcięższą ścieżką world-step.
+
+Samo ustawienie logicznej prędkości far stars na zero nie odzyskuje tych
+cykli. `rotate_playfield_rows` zmienia przypisanie fizycznego wiersza do
+logicznej pozycji ekranu. Rzadki znak pozostawiony w fizycznym wierszu przesuwa
+się więc o jeden wiersz na ekranie. Zachowanie 29 dowolnych punktów w stałych
+screen coordinates nadal wymaga ich relokacji po każdej rotacji.
+
+Sprawdzono trzy reprezentacje:
+
+- static physical-screen records zachowują pozycję tylko przy dalszym pełnym
+  erase/resolve/render — `4 221` cykli pozostaje;
+- wypalenie 29 punktów w recycled/base rows kosztowałoby konserwatywnie nie
+  więcej niż około `150` cykli na nowy wiersz i usunęłoby sześć niezależnych
+  far-star access sites, ale punkty poruszałyby się z pełną prędkością ring;
+- deterministyczny sparse pattern ma tę samą zależność: keyed by world row
+  porusza się z ringiem, keyed by screen row wymaga ponownej relokacji.
+
+Wariant row-baked jest liczbowo mocny, lecz nie spełnia zatwierdzonej semantyki
+wizualnej. Konserwatywny counterfactual z kosztem `150` cykli dałby unified
+commit `6 138-6 218` i margin `3 757-3 837` do okna `9 975`. Legalne 11
+projectile dałoby `8 065-8 145` w zwykłym przypadku oraz `9 791-9 871` dla
+Spread/inverse. Nie wolno traktować tych wartości jako zatwierdzonego
+kandydata: są warunkowe względem zaakceptowania widocznego ruchu far stars z
+pełną prędkością świata.
+
+W wymaganym wariancie screen-static dynamiczny koszt pozostaje `4 221`, unified
+commit pozostaje `10 209-10 289`, a droga do 4/6 obiektów nadal nie mieści się w
+jednym oknie. Uruchomiono STOP bez zmiany runtime i bez implementacji unified
+schedulera.
+
+Raport:
+`docs/diagnostics/stage-2b2b-static-far-stars-feasibility.json`.
+
+Decyzja:
+
+**static far stars nie rozwiązują unified publication window w aktualnej
+architekturze ring.**
+
 ### Następna decyzja — tylko właściciel
 
-Jeden możliwy następny proof wymaga jawnej zgody właściciela:
+Dokładnie jeden możliwy następny krok wymaga jawnej decyzji właściciela:
 
-> ograniczony unified-commit implementation proof z populacją far stars
-> zmniejszoną z 29 do 23.
+> mały far-only row-baked visual prototype, z zachowaniem 29 punktów i ich
+> zróżnicowanych glifów, ale z zaakceptowaniem ruchu z pełną prędkością ring.
 
-Nie wykonywać automatycznie. Alternatywą właścicielską jest zakończenie
-unified single-window route.
+Jeżeli taki ruch jest nieakceptowalny, zakończyć tę ścieżkę uproszczenia far
+stars. Nie wykonywać prototypu automatycznie.
 
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 

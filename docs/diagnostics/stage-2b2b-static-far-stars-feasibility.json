@@ -1,0 +1,332 @@
+{
+  "schema": "void-strike-65.stage-2b2b-static-far-stars-feasibility.v1",
+  "date": "2026-09-11",
+  "stage": "static far stars feasibility proof",
+  "status": "REJECTED",
+  "model": {
+    "name": "Codex (GPT-5 family)",
+    "reasoning": "High",
+    "note": "The requested GPT-5.6 Sol product label was not exposed by this session."
+  },
+  "scope": {
+    "runtimeChanged": false,
+    "unifiedSchedulerImplemented": false,
+    "farStarPrototypeImplemented": false,
+    "farStarCount": 29,
+    "nearStarsChanged": false,
+    "twinkleChanged": false,
+    "purpose": "Determine whether approximately 29 far stars can become visually stationary relative to the fighter playfield and cease participating in the per-world-step erase/resolve/render path."
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "headBefore": "cb0b9e3780c641678745f5c9b91497600a7c4751",
+    "headAfter": "commit containing this report",
+    "runtimeBaseline": "PASS_FIT combined PMG pickup plus unhooked contiguous 187-byte primitive",
+    "xexSha256": "c2dff8ef37dfa6fde8abef40db2375266cc1da4bbff2f716fe2c65ba89b9cb34",
+    "untouched": [
+      ".claude/"
+    ],
+    "preservedRefs": {
+      "refs/wip/stage2b-foreign-0803": "13597d7fb6fa6bb0d04541ed68ab6715cec1e8d4",
+      "refs/wip/stage2b0-fdb-proof": "3e5d83f2f1944d2dd90b8a23bec9eaae0dcdebc8",
+      "refs/wip/stage2b2-single-window-rejected": "7f40ee0408356bf1f431b49bf5c51d50ae72a4b3"
+    }
+  },
+  "method": {
+    "classification": "instruction-exact measurement of the current linked far-star routines plus static analysis of the rotating LMS ring",
+    "inputs": [
+      "current linked runtime and symbol file",
+      "rotate_playfield_rows and PLAYFIELD_ROW_LO/HI mapping",
+      "advance_starfield_layers, erase_far_star_overlays and render_far_star_overlays",
+      "tick_star_twinkle and set_far_star_ptr",
+      "Stage 2B.2 publication-window trace",
+      "Stage 2B.2b unified-commit feasibility measurements"
+    ],
+    "measurement": "A bounded NMOS-6502 instruction trace initialized all 29 records as visible, measured the complete erase path, forced the non-far-step post-rotation resolve/render path, and triggered one eligible twinkle slot. Visible accesses were counted only when the effective address was inside the gameplay screen/ring.",
+    "notPerformed": [
+      "runtime modification",
+      "unified scheduler implementation",
+      "native ownership trace",
+      "full PAL gauntlet"
+    ]
+  },
+  "currentFarStarPath": {
+    "population": 29,
+    "visualCadence": "Every authoritative world-row event erases all visible far-star overlays, rotates the physical row mapping, then resolves/renders all records. Logical far-star rows advance only on the 1/4-rate far step, but the visual relocation remains required on the other 3/4 steps.",
+    "peakVisualCycles": 4221,
+    "perStarAverageCycles": {
+      "erase": 42.76,
+      "resolveAndRender": 102.79,
+      "combined": 145.55
+    },
+    "screenAccesses": {
+      "visibleReads": 29,
+      "visibleWrites": 58,
+      "addressResolutions": 29,
+      "eraseWrites": 29,
+      "renderWrites": 29
+    },
+    "erase": {
+      "measuredCycles": 1240,
+      "breakdown": {
+        "activeRecordChecks": 189,
+        "stateBookkeeping": 203,
+        "cachedAddressLoads": 406,
+        "visibleErasePreparationAndWrites": 290,
+        "setupLoopAndReturn": 152
+      },
+      "visibleReads": 0,
+      "visibleWrites": 29
+    },
+    "resolveAndRender": {
+      "measuredCycles": 2981,
+      "breakdown": {
+        "setup": 18,
+        "slotDispatch": 363,
+        "logicalRowAndRingAddressResolve": 1168,
+        "occupancyChecks": 261,
+        "physicalAddressCache": 464,
+        "visibleRender": 290,
+        "stateBookkeeping": 203,
+        "loop": 204,
+        "finish": 10
+      },
+      "visibleReads": 29,
+      "visibleWrites": 29,
+      "addressResolutions": 29
+    },
+    "twinkle": {
+      "measuredControlledEventCycles": 168,
+      "previousFeasibilityMeasurementCycles": 166,
+      "reportedBoundCycles": "166-168 depending on the selected row/address path",
+      "visibleReadsPerEvent": 1,
+      "visibleWritesPerEvent": 1,
+      "peakContributionToWorldStep": 0,
+      "reason": "The world-step erase makes records non-visible before tick_star_twinkle, so the visible twinkle write does not coexist with the 4221-cycle peak."
+    },
+    "bookkeepingExcludedFrom4221": "Logical 1/4-rate row advance, respawn RNG and cadence selection are simulation, not visible commit work. Setting far_star_speed to zero would remove some simulation but not the 4221-cycle visual relocation."
+  },
+  "ringInvariant": {
+    "rows": 28,
+    "fixedDivider": true,
+    "rotatingRowsBelowDivider": 27,
+    "operation": "The old logical-bottom physical row is filled from the divider, PLAYFIELD_ROW_LO/HI entries shift toward larger logical row numbers, and the recycled physical row becomes logical row zero for the next display list.",
+    "consequence": "A byte left in a rotating physical row appears one logical screen row lower after publication. Therefore a sparse pattern baked into physical/base rows moves with the world ring; it is not screen-stationary.",
+    "formalCondition": "For an unchanged physical sparse pattern P to remain identical at screen coordinates across a one-row ring rotation, every unchanged row would need P[row+1] = P[row]. An arbitrary 29-point distribution does not satisfy this; only vertically repeated patterns such as stripes do, and those are not visually equivalent to 29 stars.",
+    "screenStationaryRequirement": "Keeping 29 arbitrary points fixed at fighter-screen coordinates requires changing their physical destination after each ring rotation, which is the current erase/resolve/render class of work."
+  },
+  "variants": [
+    {
+      "id": "A",
+      "name": "static physical-screen stars",
+      "result": "REJECT",
+      "dynamicFarStarVisualCycles": 4221,
+      "reason": "If bytes are left in physical ring rows they visibly move with the DLIST rotation. If their screen coordinates are held fixed, all 29 must still be relocated after every world-row event; zero logical speed does not remove the current visual path."
+    },
+    {
+      "id": "B",
+      "name": "stars baked into recycled/base row",
+      "result": "CPU_PASS_BUT_VISUAL_CONTRACT_FAIL",
+      "estimatedAdditionalCyclesPerRecycledRow": {
+        "maximum": 150,
+        "classification": "ESTIMATE"
+      },
+      "estimatedDynamicIndependentFarStarCycles": 0,
+      "representation": "A deterministic 28-row pattern with one far star per row and a second star in one row preserves 29 visible points after warm-up; column/code entries preserve brightness and size variety.",
+      "writesPerRecycle": "normally 1, at most 2",
+      "readsPerRecycle": "1-3 bounded occupancy tests with a fallback column",
+      "fullBackingRequired": false,
+      "reasonRejected": "The stars become part of world/base rows and move at the full ring cadence. Near stars would no longer be the sole moving/parallax star layer, contrary to the owner-approved screen-static direction."
+    },
+    {
+      "id": "C",
+      "name": "sparse deterministic background pattern",
+      "result": "REJECT",
+      "worldRowKeyedMode": "Equivalent to Variant B: inexpensive generation on recycle, but the points move with the ring.",
+      "screenRowKeyedMode": "Preserves screen coordinates only by regenerating/relocating the sparse pattern after each ring rotation, restoring the per-world-step writer cost.",
+      "fullBackingRequired": false,
+      "reason": "Changing table lookup into procedural generation does not change the row-mapping invariant."
+    }
+  ],
+  "chosenRepresentation": {
+    "value": null,
+    "reason": "No evaluated representation simultaneously removes the dynamic 29-star path and preserves visually stationary far stars under the current ring architecture.",
+    "prototypeDecision": "No runtime prototype was justified: Variant A/C fail structurally, while Variant B's only unresolved property is an owner-visible motion change, not CPU feasibility."
+  },
+  "visualResult": {
+    "requiredFarStars": 29,
+    "requiredMotion": "stationary relative to fighter screen",
+    "brightnessAndSizeVariety": "must remain",
+    "nearStarMotion": "unchanged",
+    "implemented": false,
+    "counterfactualVariantB": "Retains 29 points and glyph variety but scrolls them with the base ring at full world speed."
+  },
+  "cpu": {
+    "ownerCompliantStaticDesign": {
+      "beforeDynamicFarStarVisualCycles": 4221,
+      "afterDynamicFarStarVisualCycles": 4221,
+      "recoveredCycles": 0,
+      "gate": "REJECT: greater than 1500 cycles"
+    },
+    "counterfactualRowBakedDesign": {
+      "beforeDynamicFarStarVisualCycles": 4221,
+      "afterIncrementalRowGenerationCyclesMaximum": 150,
+      "recoveredCyclesMinimum": 4071,
+      "gate": "PASS numerically, but not an acceptable screen-static implementation"
+    },
+    "verySlowSparseTwinkle": {
+      "primaryCalculation": "disabled",
+      "estimatedEventCostMaximumCycles": 168,
+      "suggestedCadence": "one star every 64-128 frames",
+      "amortizedCyclesPerFrame": "1.3-2.7",
+      "constraint": "No 29-record erase/render pass. The event would need to be kept out of the narrow legal Spread window if Variant B were ever authorized."
+    }
+  },
+  "writerSites": {
+    "currentDynamicLowerLayerAccessSites": 21,
+    "currentFarStarAndTwinkleSites": 6,
+    "afterOwnerCompliantStaticDesign": 21,
+    "afterCounterfactualRowBakedDesign": 15,
+    "note": "Variant B removes six independent far-star/twinkle sites. Its one bounded base-row generation access belongs to base construction before projectile publication and is not a later independent far-star writer."
+  },
+  "unifiedCommit": {
+    "conservativeWindowCycles": 9975,
+    "schedulerEstimateCycles": {
+      "minimum": 80,
+      "maximum": 160
+    },
+    "ownerCompliantStaticDesign": {
+      "layerSubtotalCycles": 10129,
+      "projectedTotalCycles": {
+        "minimum": 10209,
+        "maximum": 10289
+      },
+      "marginToWindowCycles": {
+        "best": -234,
+        "worst": -314
+      },
+      "classification": "REJECT"
+    },
+    "counterfactualRowBakedDesign": {
+      "layerCostsCycles": {
+        "ring": 1263,
+        "worldClear": 535,
+        "nearStars": 151,
+        "farStarsMaximum": 150,
+        "debris": 220,
+        "effects": 1089,
+        "projectilePublication": 2650
+      },
+      "layerSubtotalCycles": 6058,
+      "projectedTotalCycles": {
+        "minimum": 6138,
+        "maximum": 6218
+      },
+      "marginToWindowCycles": {
+        "best": 3837,
+        "worst": 3757
+      },
+      "classification": "STRONG_PASS numerically; invalid for the required motion contract"
+    }
+  },
+  "legalElevenProjectileEnvelope": {
+    "ownerCompliantStaticDesign": {
+      "ordinaryCycles": {
+        "minimum": 12136,
+        "maximum": 12216
+      },
+      "spreadInverseCycles": {
+        "minimum": 13862,
+        "maximum": 13942
+      },
+      "result": "unchanged and outside the window"
+    },
+    "counterfactualRowBakedDesign": {
+      "ordinaryCycles": {
+        "minimum": 8065,
+        "maximum": 8145
+      },
+      "ordinaryMarginToWindowCycles": {
+        "best": 1910,
+        "worst": 1830
+      },
+      "spreadInverseCycles": {
+        "minimum": 9791,
+        "maximum": 9871
+      },
+      "spreadInverseMarginToWindowCycles": {
+        "best": 184,
+        "worst": 104
+      },
+      "spreadClassification": "Fits arithmetically without twinkle but remains high-risk and below the prior strong-pass margin."
+    }
+  },
+  "capacityForecast": {
+    "classification": "ESTIMATE; visual-window cost only, before Light weapons and without implementing Light",
+    "ownerCompliantStaticDesign": {
+      "twoHeavyTwoLightCycles": {
+        "minimum": 10649,
+        "maximum": 10729
+      },
+      "twoHeavyFourLightCycles": {
+        "minimum": 11089,
+        "maximum": 11169
+      },
+      "result": "Neither path fits because no far-star cycles are recovered."
+    },
+    "counterfactualRowBakedDesign": {
+      "twoHeavyTwoLightCycles": {
+        "minimum": 6578,
+        "maximum": 6658
+      },
+      "marginToWindowCycles": {
+        "best": 3397,
+        "worst": 3317
+      },
+      "twoHeavyFourLightCycles": {
+        "minimum": 7018,
+        "maximum": 7098
+      },
+      "targetMarginToWindowCycles": {
+        "best": 2957,
+        "worst": 2877
+      },
+      "result": "Window path is numerically preserved before Light weapons, but this result is conditional on accepting full-speed far-star motion."
+    }
+  },
+  "memory": {
+    "currentFarStarLogicalRecordsBytes": 116,
+    "currentFarStarPhysicalAddressCacheBytes": 58,
+    "currentFarStarRecordAndCacheBytes": 174,
+    "currentGlyphBytesRetained": 24,
+    "ownerCompliantStaticDesign": {
+      "additionalRamBytes": 0,
+      "codeChangeBytes": 0,
+      "recordsRetained": true,
+      "reason": "The current relocation mechanism remains required."
+    },
+    "counterfactualRowBakedDesign": {
+      "patternDataEstimateBytes": "29-58",
+      "phaseStateEstimateBytes": "1-3",
+      "codeEstimateBytes": "20-60",
+      "recordsCouldBeRemoved": true,
+      "estimatedRecordDataRecoveryBytes": "113-144 before linked placement",
+      "fullShadowOrBackingBytes": 0,
+      "classification": "ESTIMATE only; no source or placement change was made"
+    }
+  },
+  "stopCondition": {
+    "triggered": true,
+    "number": 2,
+    "reason": "The rotating LMS ring forces all 29 screen-stationary far stars to be relocated on every world-row event. Baking only at row recycle removes the cost solely by changing them into full-speed moving background points."
+  },
+  "verification": {
+    "runtimeDiff": "none",
+    "diagnosticJsonParse": "PASS before commit",
+    "documentationDiffCheck": "PASS before commit",
+    "build": "not rerun because no runtime/generated file changed; current XEX hash was verified unchanged",
+    "xexSha256": "c2dff8ef37dfa6fde8abef40db2375266cc1da4bbff2f716fe2c65ba89b9cb34"
+  },
+  "decision": "Static far stars do not solve the window",
+  "next": "Owner decision: either authorize one small far-only row-baked visual prototype accepting full-speed ring motion, or end this far-star simplification route. Do not execute automatically."
+}

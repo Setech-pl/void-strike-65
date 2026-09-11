@@ -1,9 +1,9 @@
 # VOID STRIKE 65 — plan realizacji po audycie renderowania
 
-Status: etap 2B.0 — dowód wykonalności zakończony; bieżący projekt double buffer odrzucony
+Status: etap 2B.2 — pojedyncze okno publikacji pocisków odrzucone; dalszy proof wymaga decyzji właściciela
 Data audytu: 2026-09-11
 Branch odniesienia: `experiment/two-pmg-raider-combat`
-Checkpoint: `c17d46f98914fad09527b19ea18978c75fd790bb`
+Checkpoint wejściowy 2B.2: `4605fed53f74edfa3c0192c896f5bda12eeb4349`
 
 ## 1. Decyzja
 
@@ -25,15 +25,20 @@ starfield oraz przejścia lifecycle. Współdzielenie jest podporządkowane
 stabilności; procedura wspólna dla sektorów nie może ponownie wprowadzać
 dynamicznego globalnego fence ani sektorowych wyjątków w środku gorącej pętli.
 
-Pierwsza implementowana ścieżka to **fighter combat**. Jej warstwa znakowa ma
-być przygotowywana poza aktualnie wyświetlanym buforem i publikowana dopiero po
-ukończeniu całej transakcji klatki. Pickup ma przestać sterować synchronizacją
-całej gry; kandydatem domyślnym jest jednokolorowa kapsuła z missiles PMG, które
-w tym sektorze nie są potrzebne broadside'owi.
+Pierwsza implementowana ścieżka to **fighter combat**. Negatywny proof 2B.0
+odrzucił pełny double buffer, a 2B.1 odrzucił szerokie okno `$70` z wczesnym
+erase i późnym redraw. Kontrakt `visible ring is read-only` nie obowiązuje.
+Proof 2B.2 oddzielił simulation pocisków od ich publikacji i wykonał sąsiadujące
+`erase OLD + render NEW` dopiero po ostatnim wierszu playfieldu, w stałym oknie
+zaczynającym się po opuszczeniu `VCOUNT $77`. Sam commit zmieścił się w oknie,
+ale starfield, ring, effects i znakowy pickup nadal zmieniały komórki OLD przed
+ich kolejnym odczytem przez ANTIC. Kontrakt został odrzucony; PMG pickup nie
+został zintegrowany, a etap 2B.3 nie jest dozwolonym następnym krokiem.
 
-To jest wariant pośredni między obecną wspólną pętlą a trzema kompletnymi
-rendererami. Daje izolację błędów i przewidywalny raster bez płacenia pamięcią
-za trzy kopie tych samych mapperów, kolizji i kompozytorów.
+Przeniesienie wszystkich kolidujących zapisów do jednego okna wymagałoby
+większego refactoru backingów/compositora i wykracza poza mały proof. Możliwy
+2B.2b z 2–3 raster bands wymaga osobnej decyzji właściciela; nie został
+rozpoczęty.
 
 ## 2. Stan faktyczny checkpointu
 
@@ -193,27 +198,24 @@ sprzętu — dokładnie tych obszarów, które obecnie powodują błędy.
 
 ## 6. Docelowy kontrakt publikacji obrazu
 
-### 6.1 Znaki: bufor wyświetlany jest tylko do odczytu
+### 6.1 Znaki: simulation oddzielona od publication
 
-Podczas aktywnej klatki kod nie kasuje i nie rysuje dynamicznych znaków w
-buforze wskazywanym przez bieżącą display listę. Przygotowuje kompletny następny
-stan w drugim ringu 27 × 40 B i publikuje go atomowo na ustalonej granicy
-ramki. Obecne dwie listy A2 można skierować do dwóch różnych ringów; drugi ring
-może korzystać z odzyskanego po cold starcie obszaru zaczynającego się przy
-`$7810`, zamiast wymagać ciągłego nowego 1 080-B otworu. Zakres
-`$7810-$7BCF` jest dziś buforem ekranu pauzy, więc nie jest darmowy: spike musi
-wykorzystać nieaktywny ring jako obraz do wznowienia, odtworzyć ekran po pauzie
-albo wskazać nowe, sprawdzone miejsce. Nie wolno policzyć tych samych bajtów
-jednocześnie jako drugi ring i backup pauzy.
+Pełny drugi ring i invariant `visible ring is read-only` są odrzucone wynikiem
+2B.0. Dynamiczny stan logiczny może być liczony wcześniej, ale nie może wtedy
+kasować ani rysować znakowego pocisku. Po opuszczeniu `VCOUNT $77` jedno stałe
+okno wykonuje `erase OLD` na podstawie zachowanego adresu, backingu i latcha
+jednej/dwóch komórek, a następnie `render NEW` na podstawie bieżącego X/Y.
 
-Stan backingu musi być przypisany do konkretnego bufora. Dla dwóch naprzemiennych
-ringów należy budżetować około 192-256 B dodatkowych adresów/flag/backingu albo
-usunąć backing przez odtwarzanie komórki z autorytatywnej bazy. Wybór ma zostać
-rozstrzygnięty małym prototypem, nie kolejną optymalizacją całego silnika.
-
-Publikacja następuje tylko, gdy cały bufor jest gotowy. Przekroczenie deadline'u
-nie może odsłonić połowy nowej klatki: stary bufor zostaje na ekranie, a licznik
-deadline overrun odrzuca kandydata.
+Display list pokazuje HUD na liniach 8-15, divider na 16-23 i 27 wierszy ringu
+na 24-239. Nominalne okno od początku linii 240 do najwcześniejszego fetchu
+dividera następnej klatki na linii 16 ma 10 032 cykle. Proof 2B.2 zmierzył
+początek commit na linii 240, cykl 53-57, maksimum publikacji 2 650 cykli i
+minimum 7 329 cykli zapasu. Rozszerzony observer śledzący wszystkie zmiany
+komórek OLD znalazł jednak w 920 klatkach OPEN 186 zapisów poza oknem:
+170 premature erase, 124 late redraw i 131 przypadków częściowego stanu
+widocznego dla ANTIC. Samo sąsiadujące wywołanie erase/redraw nie wystarcza,
+gdy niższe warstwy zmieniają tę samą pamięć wcześniej. Szczegóły są w
+[diagnostics/stage-2b2-projectile-publication-proof.json](diagnostics/stage-2b2-projectile-publication-proof.json).
 
 ### 6.2 PMG: stałe, mierzalne deadline'y
 
@@ -351,19 +353,16 @@ albo jawnej listy testów zastąpionych przez nową architekturę.
 
 ### Etap 2B — fighter renderer spike
 
-1. Dodać drugi ring i atomową publikację tylko dla fighter combat.
-2. Zastąpić ruchomy globalny fence stałą synchronizacją.
-3. Przenieść pickup na M0-M3; jeśli owner smoke odrzuci czytelność, narysować go
-   w drugim buforze znakowym.
-4. Zachować P0/P3 i zaakceptowany ruch P1/P2.
-5. Uruchomić build, granice pamięci, cold start oraz krótki trace deadline'ów.
-6. Przekazać XEX jako „do oceny wizualnej — pełny PAL jeszcze niezweryfikowany”.
-7. Po owner PASS wykonać reprezentatywny PAL: oba Raidery, maksymalna legalna
-   broń obu stron, pickup, debris, pięć efektów, ring wrap i wszystkie pozycje Y.
+1. 2B.0: pełny double buffer — **REJECTED**.
+2. 2B.1: PMG pickup oraz szeroki fixed sync `$70` — publisher **REJECTED**;
+   PMG pickup zachowany jako wynik zasobowy do ponownej integracji.
+3. 2B.2: pojedyncze post-playfield publication window dla znakowych pocisków —
+   **REJECTED/BLOCKED**.
+4. 2B.2b: ewentualny proof 2–3 raster bands — wyłącznie po osobnej decyzji
+   właściciela. Nie został rozpoczęty.
 
-Stop/rollback spike'a, jeżeli nie spełnia raster deadline przy wall poniżej
-31 200, dodaje netto ponad 768 B bez wykazanego odzysku albo wymaga dynamicznego
-fence zależnego od dowolnego obiektu.
+Etap 2B.3 pozostaje zablokowany. Następna decyzja właściciela dotyczy tego, czy
+uruchomić 2B.2b; nie wolno przechodzić do niego automatycznie.
 
 ### Etap 2B.0 — wynik dowodu wykonalności double buffer
 
@@ -393,12 +392,43 @@ wejścia na obrazie 2A i dowodu, cykle CPU bez DMA ANTIC.
 Dodatkowe ustalenie: stan logiczny far stars zajmuje `$85F2-$8665`;
 `memory-map.md` wciąż opisuje część tego zakresu jako nieprzydzieloną.
 
+### Etap 2B.1 — wynik fixed sync `$70`
+
+Decyzja: **REJECTED jako kontrakt publikacji**. PMG pickup i placement przeszły,
+ale szeroki odcinek `erase early -> długa logika -> redraw late` dał 17
+premature erase oraz 617 late redraw. Nie wolno go przywracać ani
+mikrooptymalizować. Trwały wynik:
+[diagnostics/stage-2b1-fixed-sync-proof.json](diagnostics/stage-2b1-fixed-sync-proof.json).
+
+### Etap 2B.2 — wynik projectile publication window
+
+Decyzja: **Single publication window is rejected**. Kandydat aktualizował stan
+i `PREV_Y` bez bezpośredniego erase, a stały commit po opuszczeniu `VCOUNT $77`
+kasował OLD i bezpośrednio rysował NEW. Rozszerzony trace wykazał jednak, że
+inne warstwy dotykały tych samych komórek wcześniej. Proof nie integrował PMG
+pickupu, Light enemies, raster bands ani zmian capital/boss. Runtime kandydata
+wycofano do Stage 2A; źródła negatywnego proofu zachowuje
+`refs/wip/stage2b2-single-window-rejected`.
+
+| Bramka | Wynik |
+| --- | --- |
+| Raster | 920 OPEN frames, 9 054 projectile stores i 186 zmian OLD przez inne warstwy; 170 premature, 124 late, 131 partial |
+| Okno | start line 240/cycle 53-57; publication max 2 650; minimum margin 7 329 cycles |
+| CPU | native active max 25 307; target headroom 5 893; hard headroom 7 261; nie był blockerem |
+| Pamięć | linked 17 653 -> 17 659 B; simultaneous 19 283 -> 19 289 B; safe 2 904 -> 2 898 B |
+| Placement | transport topology bez zmian; packed ENTITY staging pozostawia 2 B przed BROADSIDE |
+
+Możliwy następny proof: **2B.2b raster bands**, wyłącznie po decyzji właściciela.
+Etap 2B.3 nie został rozpoczęty.
+
 ### Etap 2C — capital traversal
 
-Zbudować osobny scheduler na tym samym mechanizmie publikacji. Nie wywoływać
-ordinary admission, fighterowego PMG ani fighterowego pickupu. Zweryfikować
-kadłuby, działa, pełną pulę broadside, debris, przeszkody, oba końce sektora i
-ring wrap. Dopiero potem usunąć stare gałęzie capital z dawnej wspólnej pętli.
+Etap pozostaje odroczony do przyjęcia bezpiecznego kontraktu publikacji dla
+fighter combat. Późniejszy osobny scheduler nie może dziedziczyć odrzuconego
+pojedynczego okna 2B.2 bez nowego proofu. Nie wywoływać ordinary admission,
+fighterowego PMG ani fighterowego pickupu. Zweryfikować kadłuby, działa, pełną
+pulę broadside, debris, przeszkody, oba końce sektora i ring wrap. Dopiero potem
+usunąć stare gałęzie capital z dawnej wspólnej pętli.
 
 ### Etap 2D — enemy foundation i roster
 
@@ -428,7 +458,6 @@ handlery po pomiarze foundation, a nie przez trzy kopie kodu bossa.
 - Nie kopiować pełnych rendererów, dopóki pomiar nie pokaże, że wspólny kernel
   sam jest źródłem deadline'u lub nieusuwalnego sprzężenia.
 
-Decyzję należy ponownie otworzyć tylko wtedy, gdy fighter spike pokaże, że drugi
-ring nie mieści się mimo odzysku pickupu albo jego aktualizacja przekracza CPU,
-lub gdy PMG pickup nie przejdzie oceny czytelności. Wtedy następne dwa warianty
-to, kolejno: znakowy pickup w niewidocznym buforze oraz sektorowe overlaye kodu.
+Bieżąca decyzja właściciela dotyczy wyłącznie tego, czy uruchomić ograniczony
+proof 2B.2b z 2–3 raster bands. Bez tej decyzji nie integrować PMG pickupu i nie
+rozpoczynać 2B.3, 2C ani kolejnego dużego wariantu renderera.

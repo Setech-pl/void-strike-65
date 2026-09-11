@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — plan realizacji po audycie renderowania
 
-Status: etap 2A — stabilna baza testowa
+Status: etap 2B.0 — dowód wykonalności zakończony; bieżący projekt double buffer odrzucony
 Data audytu: 2026-09-11
 Branch odniesienia: `experiment/two-pmg-raider-combat`
 Checkpoint: `c17d46f98914fad09527b19ea18978c75fd790bb`
@@ -235,6 +235,18 @@ Jego wygląd wymaga owner smoke. Jeśli czytelność czterech missiles okaże si
 nieakceptowalna, planem B jest pickup znakowy wyłącznie w niewidocznym buforze;
 nie wracamy do sterowania początkiem całej klatki pozycją kapsuły.
 
+Decyzja właściciela (2026-09-11): **fighter pickup is sector-local**.
+
+- `PENDING` przy przejściu do capital pozostaje odroczony: nie jest renderowany
+  ani aktualizowany w capital i może zostać wznowiony po wejściu do następnego
+  fighter sectora;
+- `ACTIVE` przy wejściu do capital zostaje usunięty;
+- capital traversal i boss nie renderują ani nie aktualizują zwykłego
+  fighterowego pickupu;
+- bez nowego transport recordu i bez persistence aktywnego pickupu. Jeśli owner
+  smoke pokaże, że znikanie `ACTIVE` na granicy sektora wygląda źle, będzie to
+  osobne małe zadanie (np. blokada spawnów przed końcem sektora).
+
 ## 7. Budżet pamięci
 
 Obecne 2 904 B bezpiecznego zapasu jest już w całości skonsumowane przez
@@ -352,6 +364,34 @@ albo jawnej listy testów zastąpionych przez nową architekturę.
 Stop/rollback spike'a, jeżeli nie spełnia raster deadline przy wall poniżej
 31 200, dodaje netto ponad 768 B bez wykazanego odzysku albo wymaga dynamicznego
 fence zależnego od dowolnego obiektu.
+
+### Etap 2B.0 — wynik dowodu wykonalności double buffer
+
+Decyzja: **Reject current double-buffer design.** Pełny Etap 2B nie został
+rozpoczęty. Kod dowodu wycofano z brancha; implementacja, flaga pomiarowa i
+harness są zachowane w `refs/wip/stage2b0-fdb-proof`, a dane liczbowe w
+[diagnostics/stage-2b0-double-buffer-proof.json](diagnostics/stage-2b0-double-buffer-proof.json).
+
+Mechanizm: ring B `$7940` i dividery `$8728`/`$7F28` parowane z ringiem A
+przez `EOR #$F8` starszego bajtu; back buffer doganiany z visible przez log
+komórek zapisanych w poprzedniej transakcji (erase, far stars, twinkle) oraz dwa
+wiersze rotacji; publikacja jednym bajtem selektora listy przy DLI; pickup M0-M3;
+pause backup 80 B (`$4000-$404F`). Pomiar: symulator NMOS 6502 hosta, te same
+wejścia na obrazie 2A i dowodu, cykle CPU bez DMA ANTIC.
+
+| Zakres | Wynik |
+| --- | --- |
+| Spójność obrazu | MEASURED: 1 614 klatek OPEN (2 700 klatek HARD, wyjście i powrót z capital) bajt w bajt równe obrazowi 2A |
+| Zapis do visible ring | MEASURED: 0; również 2× pause/resume i okno wypełnione `$A5` |
+| Synchronizacja back buffer | MEASURED: max 4 485 cykli (toggle 465 + dwa wiersze rotacji 1 370 + replay komórek do 2 666), średnio 2 386 |
+| Mapowanie i log w ścieżkach erase | MEASURED: max 4 122, średnio 1 882 |
+| Przyrost CPU klatki fighterowej | MEASURED: max 8 007, p99 7 745, średnio 5 875; capital: max 4 228 |
+| Jednorazowo | wejście do OPEN 20 471 cykli (kopia ringu), wyjście 4 107 |
+| Wall worst case | ESTIMATE: 26 813 (native 2A) + 8 007 ≈ 34 820 > hard gate 32 568 |
+| Kod | MEASURED: odzysk starego pickupu 416 B; mimo to PICKUP_CODE przekracza obszar o 84 B przy zachowanym banku 1 152 B; dalsze bramki transportu: packed STARFIELD +6 B, packed STARFIELD/`$4801` +9 B, packed ENTITY staging +27 B, pełna luka przed `.align $100` w ENTITY_CODE |
+
+Dodatkowe ustalenie: stan logiczny far stars zajmuje `$85F2-$8665`;
+`memory-map.md` wciąż opisuje część tego zakresu jako nieprzydzieloną.
 
 ### Etap 2C — capital traversal
 

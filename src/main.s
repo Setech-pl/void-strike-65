@@ -47,7 +47,7 @@ integration_apply_enemy_prow = $4F29
 CAPITAL_SHELL_GLYPH_SOURCE = $4F98
 render_capital_shell_overlay = $4FA0
 integration_broadside_release = $4FDD
-CAPITAL_PLAYER_COLLISION = $8FC9
+CAPITAL_PLAYER_COLLISION = $8B67
 
 .import __A2_KERNEL_RUN__, __A2_KERNEL_SIZE__
 .import __BOOT_STAGE2_LOAD__, __BOOT_STAGE2_RUN__, __BOOT_STAGE2_SIZE__
@@ -348,9 +348,9 @@ PLAYFIELD_RING_STATE_END = PLAYFIELD_PREBUILD_PENDING+$01
 .assert PLAYFIELD_DLIST_BYTES = 90, error, "expanded per-row LMS display list size changed"
 .assert >PLAYFIELD_DLIST_A = >PLAYFIELD_DLIST_B, error, "hybrid display lists must share one page"
 .assert PLAYFIELD_DLIST_END <= $8000, error, "expanded display lists overlap entity/effects RAM"
-.assert PLAYFIELD_RING_STATE_END <= WEAPON_PICKUP_PHASE_BANK, error, "expanded ring overlaps pickup phases"
-.assert HULL_DRAW_ROW_HI+$01 <= WEAPON_PICKUP_PHASE_BANK, error, "expanded hull coordinate state overlaps pickup phases"
-.assert STAR_FAR_STATE_END <= WEAPON_PICKUP_PHASE_BANK, error, "far-star logical state overlaps pickup phases"
+.assert PLAYFIELD_RING_STATE_END <= WEAPON_PICKUP_RUNTIME, error, "expanded ring overlaps pickup runtime"
+.assert HULL_DRAW_ROW_HI+$01 <= WEAPON_PICKUP_RUNTIME, error, "expanded hull coordinate state overlaps pickup runtime"
+.assert STAR_FAR_STATE_END <= WEAPON_PICKUP_RUNTIME, error, "far-star logical state overlaps pickup runtime"
 .export PLAYFIELD_DLIST_A, PLAYFIELD_DLIST_B, PLAYFIELD_ROW_LO, PLAYFIELD_ROW_HI
 .export PLAYFIELD_RING_ROWS
 .export PLAYFIELD_ACTIVE_DLIST_LO, PLAYFIELD_NEXT_DLIST_LO, PLAYFIELD_RING_FLAGS
@@ -683,7 +683,7 @@ EFFECT_FRAGMENT_GLYPH_BASE = ENTITY_DEBRIS_GLYPH_BASE+ENTITY_DEBRIS_GLYPH_COUNT
 WEAPON_PICKUP_GLYPH_BASE = EFFECT_FRAGMENT_GLYPH_BASE+EFFECT_FRAGMENT_GLYPH_COUNT
 WEAPON_PICKUP_SPREAD_GLYPH_BASE = WEAPON_PICKUP_GLYPH_BASE
 WEAPON_PICKUP_SHIELD_GLYPH_BASE = WEAPON_PICKUP_SPREAD_GLYPH_BASE
-WEAPON_PICKUP_PHASE_BANK = $8800
+WEAPON_PICKUP_RUNTIME = $8800
 WEAPON_PICKUP_PACKED_STAGING = $8C80
 WEAPON_PICKUP_COLD_STAGING = $4801
 PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE = PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_GLYPH_COUNT
@@ -694,7 +694,7 @@ PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE = PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYE
 .assert GAMEPLAY_RESIDENT_END <= $4F00, error, "gameplay resident state exceeds reclaimed RAM"
 .assert STARFIELD_STATE_END <= $4F00, error, "starfield scalar state exceeds reclaimed RAM"
 .assert STAR_FAR_ACTIVE >= HULL_DRAW_ROW_HI+$01, error, "far-star records overlap hull ring state"
-.assert STAR_FAR_STATE_END <= WEAPON_PICKUP_PHASE_BANK, error, "far-star records overlap pickup phases"
+.assert STAR_FAR_STATE_END <= WEAPON_PICKUP_RUNTIME, error, "far-star records overlap pickup runtime"
 .assert STAR_FAR_SCREEN_LO >= $8100, error, "far-star screen cache overlaps initialized entity state"
 .assert STAR_FAR_SCREEN_END <= $9000, error, "far-star screen cache overlaps A2 kernel"
 .assert STAR_FAR_FIRST > CH_SPACE, error, "star codes must not alias blank space"
@@ -905,7 +905,20 @@ ENTITY_OWNER:                .res ENTITY_SLOT_COUNT
 ENTITY_INTERACTIVE_END:
 
 .assert ENTITY_INTERACTIVE_END-ENTITY_ACTIVE_MASK = 96, error, "interactive entity state must remain 96 bytes"
-.res $20
+; Reuse the existing alignment hole for the bounded projectile publication and
+; lower-cell lookup scratch. init_entity_effects clears the complete page.
+FIGHTER_PROJECTILE_PUBLICATION_FRAME: .res 1
+FIGHTER_PROJECTILE_OWNED_COUNT:       .res 1
+LOWER_CELL_ADDR_LO:                   .res 1
+LOWER_CELL_ADDR_HI:                   .res 1
+LOWER_CELL_SAVED_DST_LO:              .res 1
+LOWER_CELL_SAVED_DST_HI:              .res 1
+LOWER_CELL_SAVED_X:                   .res 1
+LOWER_CELL_SAVED_Y:                   .res 1
+LOWER_CELL_VALUE:                     .res 1
+LOWER_CELL_OWNER_SLOT:                .res 1
+LOWER_CELL_OWNER_PART:                .res 1
+.res $15
 
 EFFECT_ACTIVE_MASK:          .res 1
 EFFECT_RENDERED_MASK:        .res 1
@@ -2308,7 +2321,7 @@ start_gameplay_end:
 .segment "BROADSIDE"
 
 main_loop:
-    jsr wait_gameplay_frame
+    jsr begin_fighter_projectile_frame
     lda #CONSOL_OPTION_MASK
     bit CONSOL
     beq main_loop_option_pressed
@@ -2316,7 +2329,9 @@ main_loop:
     sta pause_option_latched
 main_loop_frame_active = *
     inc frame_counter
-    jsr erase_fighter_projectile_overlays
+    ; Publication owns the old visual erase in fighter OPEN. Keep this operand-
+    ; sized read so the frozen main-loop profiling entry points do not move.
+    bit FIGHTER_PROJECTILE_ACTIVE
 profile_after_projectile_erase = *
     jsr entity_effects_erase
 profile_after_entity_erase = *
@@ -2370,7 +2385,7 @@ profile_after_broadside_render = *
 profile_after_entity_render = *
     jsr integration_update_sector_completion
 profile_after_sector = *
-    jsr render_fighter_projectile_overlays
+    jsr publish_fighter_projectile_overlays
 profile_after_projectile_render = *
     jsr update_sound
     lda MUSIC_ACTIVE
@@ -2385,7 +2400,7 @@ profile_after_audio = *
 main_loop_option_pressed = *
     lda pause_option_latched
     beq :+
-    jmp main_loop                ; debounce: no simulation until OPTION release
+    jmp fighter_projectile_option_debounce_wait
 :
     inc pause_option_latched
     jmp enter_pause
@@ -2757,27 +2772,11 @@ copy_pause_screen:
 ; -----------------------------------------------------------------------------
 ; Frame and initialization
 
-; Move the fence earlier while PENDING is invisible, at most 8 VCOUNT units
-; (16 scanlines / 1824 cycles) per frame. The 32568-cycle wall gate leaves
-; 3000 cycles, so this shortened interval still has 1176 cycles of margin.
-; The existing PENDING timer yields $6C,$64,...,$14 over its first 12 waits,
-; then remains at $14 through the base delay and every Director retry.
-; ACTIVE still waits beyond the previous footprint and draws only at the
-; existing late fence. No visible geometry, movement or glyph phase changes.
+; Capital traversal retains the reviewed Stage 2A start-of-frame cadence.
+; Fighter OPEN bypasses this wait and publishes character projectiles in the
+; single fixed post-playfield window below. Pickup state and Y are deliberately
+; absent from both synchronization paths.
 wait_gameplay_frame:
-    lda ENTITY_STATE+WEAPON_PICKUP_SLOT
-    beq wait_frame
-    cmp #WEAPON_PICKUP_STATE_ACTIVE
-    beq @visible
-    jsr pickup_pending_fence
-    bne wait_frame_at_line
-@visible:
-    lda ENTITY_Y+WEAPON_PICKUP_SLOT
-    lsr                         ; pickup Y advances in even scanline steps
-    adc #(WEAPON_PICKUP_HEIGHT_SCANLINES/2)
-    tax
-    bne wait_frame_at_line
-
 wait_frame:
     ldx #$70
 wait_frame_at_line:
@@ -2788,6 +2787,25 @@ wait_frame_at_line:
     cpx VCOUNT
     beq @leave_line
     rts
+
+; VCOUNT $77 covers PAL scanlines 238-239, the final ANTIC 4 row of the
+; gameplay ring. The wait exits on scanline 240. The ownership hooks are not
+; part of this fit proof; this is the already measured publication scaffold.
+publish_fighter_projectile_overlays:
+    lda FIGHTER_PROJECTILE_PUBLICATION_FRAME
+    bne fighter_projectile_publication_render_only
+    ldx #$77
+    jsr wait_frame_at_line
+fighter_projectile_publication_begin = *
+    jsr erase_fighter_projectile_overlays
+fighter_projectile_publication_render_only:
+    jmp render_fighter_projectile_overlays
+.export fighter_projectile_publication_begin
+
+fighter_projectile_option_debounce_wait:
+    ldx #$77
+    jsr wait_frame_at_line
+    jmp main_loop
 
 ; Returns just after VCOUNT leaves zero, before the visible display begins.
 wait_frame_start:
@@ -3618,7 +3636,7 @@ erase_fighter_projectile_slot = *
     ldy #$00
     lda FIGHTER_PROJECTILE_BACKUP_TOP,x
     sta (dst_ptr),y
-    lda FIGHTER_PROJECTILE_Y,x
+    lda FIGHTER_PROJECTILE_PREV_Y,x
     and #$07
     cmp loader_repeat_value
     bcc @restored
@@ -3641,6 +3659,7 @@ erase_fighter_projectile_slot = *
     sta loader_repeat_value
     bne @slot
 @done:
+    sta FIGHTER_PROJECTILE_OWNED_COUNT ; A is zero after the final restore
     rts
 
 .export erase_fighter_projectile_slot
@@ -4126,10 +4145,11 @@ render_fighter_projectile_slot_loop:
     bne :+
     jmp render_fighter_projectile_next
 :
-    ; The nonzero projectile kind already in A is a sufficient erase latch.
-    ; $FF remains reserved below for a composite that touched only one cell.
-    sta FIGHTER_PROJECTILE_RENDERED,x
+    ; The nonzero projectile kind is the default two-cell erase latch. The
+    ; one-cell path replaces it with $FF at the common render exit below.
+    jsr claim_fighter_projectile_visual
     lda FIGHTER_PROJECTILE_Y,x
+    sta FIGHTER_PROJECTILE_PREV_Y,x
     and #$07
     sta row_counter
     cpx #INTERCEPTOR_PROJECTILE_SLOT_BASE
@@ -4254,7 +4274,10 @@ render_fighter_projectile_next:
 :
     rts
 
+render_fighter_projectile_overlays_end = *
+
 .export render_fighter_projectile_slot
+.export render_fighter_projectile_overlays_end
 .export initialize_projectile_screen_pointer
 .export profile_projectile_pointer_end
 
@@ -9347,14 +9370,14 @@ unpack_broadside_runtime:
 
 ; The external pickup record initially lands in its not-yet-unpacked runtime
 ; reservation. stage_boot_streams preserves it in not-yet-initialised frontend
-; charset RAM before the final $8800-$8FFF unpack overwrites that packed copy.
+; charset RAM before the final pickup-code/collision unpack overwrites that copy.
 unpack_weapon_pickup_phase_runtime:
     ldx #>WEAPON_PICKUP_COLD_STAGING
     lda #<WEAPON_PICKUP_COLD_STAGING
     sta broadside_read_source+1
     stx broadside_read_source+2
-    ldx #>WEAPON_PICKUP_PHASE_BANK
-    lda #<WEAPON_PICKUP_PHASE_BANK
+    ldx #>WEAPON_PICKUP_RUNTIME
+    lda #<WEAPON_PICKUP_RUNTIME
     sta broadside_destination+1
     stx broadside_destination+2
     jmp broadside_unpack_command
@@ -9363,6 +9386,7 @@ unpack_weapon_pickup_phase_runtime:
 ; the caller first. Effects and interactive entities then unwind here before
 ; broadside shells are restored by their established routine.
 entity_effects_erase:
+    jsr clear_fighter_pickup_pmg
     lda EFFECT_RENDERED_MASK
     beq profile_entity_erase_begin
     jsr erase_transient_effect_overlays
@@ -9399,10 +9423,8 @@ erase_transient_effect_overlays:
     rts
 
 erase_interactive_entity_overlays:
-    ; Remove both interactive layers at frame start. The pickup is remapped
-    ; from logical Y after A2 rotates, so its 1/2 cadence cannot inherit every
-    ; physical ring step or wrap into a second visual pass.
-@debris:
+    ; The character layer now contains debris only. Fighter pickup ownership is
+    ; isolated in M0-M3 and cleared by entity_effects_erase above.
     lda ENTITY_SCREEN_HI
     beq @done
     sta dst_ptr+1
@@ -9418,63 +9440,8 @@ erase_interactive_entity_overlays:
     sta ENTITY_DRAWN_MASK
     sta ENTITY_SCREEN_HI
 @done:
-    lda ENTITY_ACTIVE_MASK
-    and #WEAPON_PICKUP_ACTIVE_MASK
-    sta ENTITY_RENDERED_MASK
-    ; Both branch paths deliberately restore the old physical footprint. The
-    ; active path is republished at its current logical row by the late render.
-    bne erase_weapon_pickup_overlay
-
-; Restore the exact last-rendered 2x2/2x3 footprint in reverse draw order.
-; Logical X/Y and the A2 head may already describe another row, so erase uses
-; only saved physical addresses. Reserved slot three owns the optional third
-; row pointer and its two backing bytes; it is never allocator-visible.
-erase_weapon_pickup_overlay:
-    ldx ENTITY_SCREEN_HI+WEAPON_PICKUP_SLOT
-    beq weapon_pickup_erase_done
-erase_weapon_pickup_overlay_restore:
-    lda ENTITY_SCREEN_HI+3
-    beq @middle
-    sta dst_ptr+1
-    lda ENTITY_SCREEN_LO+3
-    sta dst_ptr
-    ldy #$01
-    lda ENTITY_BACKING1+3
-    sta (dst_ptr),y
-    dey
-    lda ENTITY_BACKING0+3
-    sta (dst_ptr),y
-@middle:
-    lda ENTITY_VY+WEAPON_PICKUP_SLOT
-    beq @top
-    sta dst_ptr+1
-    lda ENTITY_VX+WEAPON_PICKUP_SLOT
-    sta dst_ptr
-    ldy #$01
-    lda ENTITY_BACKING3+WEAPON_PICKUP_SLOT
-    sta (dst_ptr),y
-    dey
-    lda ENTITY_BACKING2+WEAPON_PICKUP_SLOT
-    sta (dst_ptr),y
-@top:
-    stx dst_ptr+1
-    lda ENTITY_SCREEN_LO+WEAPON_PICKUP_SLOT
-    sta dst_ptr
-    ldy #$01
-    lda ENTITY_BACKING1+WEAPON_PICKUP_SLOT
-    sta (dst_ptr),y
-    dey
-    lda ENTITY_BACKING0+WEAPON_PICKUP_SLOT
-    sta (dst_ptr),y
     lda #$00
-    sta ENTITY_DRAWN_MASK+WEAPON_PICKUP_SLOT
-    sta ENTITY_SCREEN_HI+WEAPON_PICKUP_SLOT
-    sta ENTITY_SCREEN_HI+3
-    sta ENTITY_VY+WEAPON_PICKUP_SLOT
-    lda ENTITY_RENDERED_MASK
-    and #($FF-WEAPON_PICKUP_ACTIVE_MASK)
     sta ENTITY_RENDERED_MASK
-weapon_pickup_erase_done:
     rts
 
 ; The only entity event bit is consumed in place on the active path. A
@@ -9490,9 +9457,7 @@ profile_after_transient_effect_update = *
     beq @pickup
     jsr update_weapon_booster_active
 @pickup:
-    ldx ENTITY_STATE+WEAPON_PICKUP_SLOT
-    beq :+
-    jsr update_weapon_pickup_active
+    jsr update_fighter_pickup_pmg
 :
 profile_after_pickup_booster_update = *
     lda ENTITY_ACTIVE_MASK
@@ -9714,22 +9679,17 @@ integration_pickup_reveal_body:
     sta ENTITY_ACTIVE_MASK
     inc ENTITY_ACTIVE_COUNT
     rts
-; Called only for the invisible PENDING state. ENTITY_CODE is published before
-; gameplay and remains resident. The helper exactly reuses the retired
-; 16-byte pickup lifecycle window and writes no lifecycle state.
-pickup_pending_fence:
-    lda ENTITY_TIMER+WEAPON_PICKUP_SLOT
-    ldx #$14
-    cmp #21
-    bcc @done
-    asl
-    asl
-    asl
-    adc #$74                    ; timer <32 leaves carry clear after three ASLs;
-                                ; (timer * 8 + $74) maps 31..21 to $6C..$1C
-    tax
-@done:
+; Zero is the OPEN frame latch; every non-OPEN state bypasses fighter
+; publication and retains the reviewed capital frame start.
+begin_fighter_projectile_frame:
+    lda CAPITAL_SECTOR_STATE
+    eor #CAPITAL_HULL_STATE_OPEN
+    sta FIGHTER_PROJECTILE_PUBLICATION_FRAME
+    bne @capital
     rts
+@capital:
+    jmp begin_capital_projectile_frame
+    .byte $00,$00
 
 ; Called only after the authoritative score path has accepted a lethal PlayerFighter
 ; projectile source. Other deaths never reach this counter.
@@ -9757,9 +9717,6 @@ weapon_pickup_record_qualified_kill:
     sta ENTITY_HP+WEAPON_PICKUP_SLOT
     lda ENTITY_TYPE+WEAPON_PICKUP_NEXT_TYPE_SLOT
     sta ENTITY_TYPE+WEAPON_PICKUP_SLOT
-    tax
-    lda weapon_pickup_render_ids,x
-    sta ENTITY_RENDER_ID+WEAPON_PICKUP_SLOT
     inc ENTITY_TYPE+WEAPON_PICKUP_NEXT_TYPE_SLOT
     lda ENTITY_TYPE+WEAPON_PICKUP_NEXT_TYPE_SLOT
     cmp #WEAPON_PICKUP_TYPE_COUNT
@@ -9802,9 +9759,7 @@ weapon_pickup_release_active_mask:
     eor ENTITY_ACTIVE_MASK
     sta ENTITY_ACTIVE_MASK
     dec ENTITY_ACTIVE_COUNT
-    ; Normal pickup release occurs after lower-layer reverse erase and before
-    ; their late redraw, so restoring the resident capsule is sufficient.
-    jmp erase_weapon_pickup_overlay
+    jmp release_fighter_pickup_pmg_hardware
 @done:
     rts
 
@@ -9816,6 +9771,14 @@ weapon_pickup_release:
     ; Pending/visible fields are never read in state zero. The separately
     ; reserved booster controller and its HUD remain untouched.
     sta ENTITY_HP+WEAPON_PICKUP_SLOT
+    rts
+
+release_fighter_pickup_pmg_hardware:
+    jsr clear_fighter_pickup_pmg
+    lda #$00
+    sta PRIOR
+    lda #$54                    ; restore reviewed fighter/capital missile sizes
+    sta SIZEM
     rts
 
 weapon_booster_release:
@@ -9846,10 +9809,8 @@ weapon_pickup_clear_lifecycle:
 weapon_pickup_clear_sector:
     lda ENTITY_STATE+WEAPON_PICKUP_SLOT
     beq @done
-    ; COMPLETE is entered after late overlay rendering. Projectiles can remain
-    ; alive across that boundary. They are still erased here and are published
-    ; later in the frame, after the lower capsule layer has been released.
-    jsr erase_fighter_projectile_overlays
+    cmp #WEAPON_PICKUP_STATE_PENDING
+    beq @done                    ; preserve and freeze pending across capital
     jmp weapon_pickup_release
 @done:
     rts
@@ -10254,10 +10215,12 @@ entity_effects_render:
     lda EFFECT_ACTIVE_MASK
     bne @with_effects
     lda ENTITY_ACTIVE_MASK
+    and #$01
     bne render_interactive_entity_overlays
     rts
 @with_effects:
     lda ENTITY_ACTIVE_MASK
+    and #$01
     beq :+
     jsr render_interactive_entity_overlays
 :
@@ -10265,16 +10228,15 @@ entity_effects_render:
 
 .segment "ENTITY_CODE"
 render_interactive_entity_overlays:
-    ; Keep the accepted slot-zero path specialised, then append one fixed-slot
-    ; capsule path. Both retain byte-exact two-cell backing and layer order.
+    ; Character ownership is now limited to the accepted slot-zero debris path.
     lda ENTITY_ACTIVE_MASK
     lsr
-    bcc @pickup
+    bcc @done
     lda ENTITY_Y
     cmp #ENTITY_GAMEPLAY_TOP
-    bcc @pickup
+    bcc @done
     cmp #ENTITY_GAMEPLAY_BOTTOM
-    bcs @pickup
+    bcs @done
     sec
     sbc #ENTITY_GAMEPLAY_TOP
     lsr
@@ -10321,175 +10283,186 @@ render_interactive_entity_overlays:
     lda #$03
     sta ENTITY_DRAWN_MASK
     inc ENTITY_RENDERED_MASK
-@pickup:
-    jmp render_weapon_pickup_overlay
+@done:
+    rts
 
 .segment "PICKUP_CODE"
-render_weapon_pickup_overlay:
-    lda ENTITY_ACTIVE_MASK
-    lsr
-    lsr
-    bcs :+
+; Fighter-only pickup wrapper. PENDING is frozen outside OPEN; ACTIVE is
+; updated and republished to the four missile lanes only in fighter OPEN.
+update_fighter_pickup_pmg:
+    lda CAPITAL_SECTOR_STATE
+    cmp #CAPITAL_HULL_STATE_OPEN
+    bne @done
+    ldx ENTITY_STATE+WEAPON_PICKUP_SLOT
+    beq @done
+    jsr update_weapon_pickup_active
+    lda ENTITY_STATE+WEAPON_PICKUP_SLOT
+    cmp #WEAPON_PICKUP_STATE_ACTIVE
+    bne @done
+    jmp render_fighter_pickup_pmg
+@done:
     rts
-:
-    lda ENTITY_DRAWN_MASK+WEAPON_PICKUP_SLOT
-    beq :+
-    rts
-:
-    jsr compose_weapon_pickup_phase
+
+clear_fighter_pickup_pmg:
+    lda ENTITY_SCREEN_HI+WEAPON_PICKUP_SLOT
+    beq @done
+    ldy ENTITY_SCREEN_LO+WEAPON_PICKUP_SLOT
+    ldx #WEAPON_PICKUP_HEIGHT_SCANLINES
     lda #$00
-    sta ENTITY_VY+WEAPON_PICKUP_SLOT
-    sta ENTITY_SCREEN_HI+3
-
-    ; Map once, after A2 has published its final ring head for this frame.
-    ; Every touched row saves its exact physical pointer and prior two bytes.
-    lda ENTITY_Y+WEAPON_PICKUP_SLOT
-    sec
-    sbc #ENTITY_GAMEPLAY_TOP
-    lsr
-    lsr
-    lsr
-    tax
-    stx ENTITY_SCRATCH_SLOT
-    lda PLAYFIELD_ROW_LO,x
-    sta dst_ptr
-    lda PLAYFIELD_ROW_HI,x
-    sta dst_ptr+1
-    lda ENTITY_X+WEAPON_PICKUP_SLOT
-    sec
-    sbc #GAMEPLAY_LEFT_HPOS
-    lsr
-    lsr
-    clc
-    adc dst_ptr
-    sta dst_ptr
-    sta ENTITY_SCREEN_LO+WEAPON_PICKUP_SLOT
-    bcc :+
-    inc dst_ptr+1
-:
-    lda dst_ptr+1
+@line:
+    sta MISSILES,y
+    iny
+    dex
+    bne @line
     sta ENTITY_SCREEN_HI+WEAPON_PICKUP_SLOT
-    ldx #$00
-    ldy #$00
-    lda (dst_ptr),y
-    sta ENTITY_BACKING0+WEAPON_PICKUP_SLOT
-    iny
-    lda (dst_ptr),y
-    sta ENTITY_BACKING1+WEAPON_PICKUP_SLOT
-    ldy #$00
-    lda ENTITY_RENDER_ID+WEAPON_PICKUP_SLOT
-    sta (dst_ptr),y
-    clc
-    adc #$01
-    iny
-    sta (dst_ptr),y
+@done:
+    rts
 
-    ; Slot one's dormant VX/VY pair retains the middle physical pointer. At
-    ; the final ring row only the still-visible top slice is published.
-    lda ENTITY_SCRATCH_SLOT
-    cmp #(ENTITY_LOGICAL_ROWS-1)
-    bcs @one_row
-    jsr advance_dst_to_next_ring_row
-    lda dst_ptr
-    sta ENTITY_VX+WEAPON_PICKUP_SLOT
-    lda dst_ptr+1
-    sta ENTITY_VY+WEAPON_PICKUP_SLOT
-    ldy #$00
-    lda (dst_ptr),y
-    sta ENTITY_BACKING2+WEAPON_PICKUP_SLOT
-    iny
-    lda (dst_ptr),y
-    sta ENTITY_BACKING3+WEAPON_PICKUP_SLOT
-    ldy #$00
-    lda ENTITY_RENDER_ID+WEAPON_PICKUP_SLOT
+render_fighter_pickup_pmg:
+    lda ENTITY_Y+WEAPON_PICKUP_SLOT
+    clc
+    adc #PMG_DMA_CAPTURE_Y_OFFSET
+    tay
+    sta ENTITY_SCREEN_LO+WEAPON_PICKUP_SLOT
+    lda #$01
+    sta ENTITY_SCREEN_HI+WEAPON_PICKUP_SLOT
+    lda ENTITY_X+WEAPON_PICKUP_SLOT
+    sta HPOSM0
     clc
     adc #$02
-    sta (dst_ptr),y
-    adc #$01
+    sta HPOSM1
+    adc #$02
+    sta HPOSM2
+    adc #$02
+    sta HPOSM3
+    ldx #$00
+@line:
+    lda fighter_pickup_pmg_shape,x
+    sta MISSILES,y
     iny
-    sta (dst_ptr),y
+    inx
+    cpx #WEAPON_PICKUP_HEIGHT_SCANLINES
+    bne @line
+    lda #$00
+    sta SIZEM
+    lda #$10                    ; GTIA fifth-player mode: M0-M3 use COLPF3
+    sta PRIOR
+    rts
 
-    ; A non-zero phase spills the shifted 16-scanline source into a third row.
-    ; Clip that row at the bottom of the ring viewport. Reserved slot three
-    ; records both its address and backing for exact next-frame reverse erase.
-    lda ENTITY_SCRATCH0
-    beq @two_rows
-    lda ENTITY_SCRATCH_SLOT
-    cmp #(ENTITY_LOGICAL_ROWS-2)
-    bcs @two_rows
-    jsr advance_dst_to_next_ring_row
-    lda dst_ptr
-    sta ENTITY_SCREEN_LO+3
-    lda dst_ptr+1
-    sta ENTITY_SCREEN_HI+3
-    ldy #$00
-    lda (dst_ptr),y
-    sta ENTITY_BACKING0+3
-    iny
-    lda (dst_ptr),y
-    sta ENTITY_BACKING1+3
-    ldy #$00
-    lda ENTITY_RENDER_ID+WEAPON_PICKUP_SLOT
+; Exact first 16 bytes previously consumed from the generated character phase
+; bank. Keeping the mask local makes the 1152-byte fallback source-only.
+fighter_pickup_pmg_shape:
+    .byte $2A,$BF,$BF,$BE,$BC,$BC,$BC,$BC
+    .byte $A8,$FE,$FE,$BE,$3E,$3E,$3E,$3E
+
+; Shared lower-layer cell primitive retained as one contiguous proof block.
+; It is deliberately not wired into the 21 writer sites in this fit-only task.
+lower_cell_read:
     clc
-    adc #$04
-    sta (dst_ptr),y
-    adc #$01
-    iny
-    sta (dst_ptr),y
-@two_rows:
-    lda #$0F
-    sta ENTITY_DRAWN_MASK+WEAPON_PICKUP_SLOT
-    lda ENTITY_ACTIVE_MASK
-    sta ENTITY_RENDERED_MASK
-    rts
-@one_row:
-    lda #$03
-    sta ENTITY_DRAWN_MASK+WEAPON_PICKUP_SLOT
-    lda ENTITY_ACTIVE_MASK
-    sta ENTITY_RENDERED_MASK
-render_weapon_pickup_overlay_done:
-    rts
-
-; Publish one build-generated vertical phase in the six private glyphs 120-125.
-; The immutable 3-type x 8-phase bank is loaded after cold staging into free
-; runtime RAM at $8800. A phase is 48 contiguous bytes (three row pairs).
-compose_weapon_pickup_phase:
-    lda ENTITY_Y+WEAPON_PICKUP_SLOT
+    bcc lower_cell_access
+lower_cell_write:
     sec
-    sbc #ENTITY_GAMEPLAY_TOP
-    and #(WEAPON_PICKUP_VERTICAL_PHASE_COUNT-1)
-    sta ENTITY_SCRATCH0
-    tax
-    ldy ENTITY_TYPE+WEAPON_PICKUP_SLOT
-    tya
-    lsr                         ; carry selects the middle (Spread) bank
-    ror                         ; produce the type lows $00/$80/$00
-    clc
-    adc weapon_pickup_phase_offset_lo,x
-    sta src_ptr
-    bcs :+                      ; the Spread bank can wrap before phase 6
-    cpx #$06                    ; every bank crosses its own $100 at phases 6-7
+lower_cell_access:
+    sta LOWER_CELL_VALUE
+    php
+    sty LOWER_CELL_SAVED_Y
+    lda dst_ptr
+    pha
+    lda dst_ptr+1
+    pha
+    lda FIGHTER_PROJECTILE_OWNED_COUNT
+    bne :+
+    jmp @miss
 :
-    lda weapon_pickup_type_base_hi,y
+    tya
+    clc
+    adc dst_ptr
+    sta LOWER_CELL_ADDR_LO
+    lda dst_ptr+1
     adc #$00
-    sta src_ptr+1
-    ldy #(WEAPON_PICKUP_PHASE_GLYPH_COUNT*8-1)
-@copy:
-    lda (src_ptr),y
-    sta CHARSET+WEAPON_PICKUP_GLYPH_BASE*8,y
-    dey
-    bpl @copy
+    sta LOWER_CELL_ADDR_HI
+    ldx #$00
+@slot:
+    lda FIGHTER_PROJECTILE_RENDERED,x
+    beq @next
+    lda FIGHTER_PROJECTILE_SCREEN_LO,x
+    cmp LOWER_CELL_ADDR_LO
+    bne @bottom
+    lda FIGHTER_PROJECTILE_SCREEN_HI,x
+    cmp LOWER_CELL_ADDR_HI
+    beq @top_hit
+@bottom:
+    lda FIGHTER_PROJECTILE_RENDERED,x
+    cmp #$FF
+    beq @next
+    lda FIGHTER_PROJECTILE_PREV_Y,x
+    and #$07
+    cpx #INTERCEPTOR_PROJECTILE_SLOT_BASE
+    adc #$F9
+    bcc @next
+    lda FIGHTER_PROJECTILE_SCREEN_LO,x
+    sta dst_ptr
+    lda FIGHTER_PROJECTILE_SCREEN_HI,x
+    sta dst_ptr+1
+    jsr advance_dst_to_next_physical_row
+    lda dst_ptr
+    cmp LOWER_CELL_ADDR_LO
+    bne @next
+    lda dst_ptr+1
+    cmp LOWER_CELL_ADDR_HI
+    bne @next
+    ldy #$01
+    bne @hit
+@top_hit:
+    ldy #$00
+@hit:
+    pla
+    sta dst_ptr+1
+    pla
+    sta dst_ptr
+    plp
+    bcc @read_hit
+    lda LOWER_CELL_VALUE
+    cpy #$00
+    bne @write_bottom
+    sta FIGHTER_PROJECTILE_BACKUP_TOP,x
+    ldy LOWER_CELL_SAVED_Y
     rts
+@write_bottom:
+    sta FIGHTER_PROJECTILE_BACKUP_BOTTOM,x
+    ldy LOWER_CELL_SAVED_Y
+    rts
+@read_hit:
+    cpy #$00
+    bne @read_bottom
+    lda FIGHTER_PROJECTILE_BACKUP_TOP,x
+    ldy LOWER_CELL_SAVED_Y
+    rts
+@read_bottom:
+    lda FIGHTER_PROJECTILE_BACKUP_BOTTOM,x
+    ldy LOWER_CELL_SAVED_Y
+    rts
+@next:
+    inx
+    cpx #FIGHTER_PROJECTILE_SLOT_COUNT
+    bne @slot
+@miss:
+    pla
+    sta dst_ptr+1
+    pla
+    sta dst_ptr
+    plp
+    ldy LOWER_CELL_SAVED_Y
+    bcc @read_miss
+    lda LOWER_CELL_VALUE
+    sta (dst_ptr),y
+    rts
+@read_miss:
+    lda (dst_ptr),y
+    rts
+lower_cell_primitive_end:
 
-weapon_pickup_phase_offset_lo:
-    .byte <$000,<$030,<$060,<$090,<$0C0,<$0F0,<$120,<$150
-weapon_pickup_type_base_hi:
-    .byte >(WEAPON_PICKUP_PHASE_BANK+$000),>(WEAPON_PICKUP_PHASE_BANK+$180),>(WEAPON_PICKUP_PHASE_BANK+$300)
-    ; The phase carry and calculated type low consume the former local table
-    ; and pad without moving the frozen PICKUP_CODE end or later entry points.
-    .byte $EA
-weapon_pickup_render_ids:
-    .byte WEAPON_PICKUP_GLYPH_BASE,WEAPON_PICKUP_GLYPH_BASE|$80,WEAPON_PICKUP_GLYPH_BASE
+.export lower_cell_read, lower_cell_write, lower_cell_primitive_end
 
 ; Effects render after the interactive layer. Slot order is core then the four
 ; fragments; erase scans the physical pool in the exact opposite direction.
@@ -10895,7 +10868,7 @@ profile_projectile_compose_end = *
 
 .export profile_projectile_compose_end
 
-.segment "CODE"
+.segment "ENTITY_CODE"
 entity_slot_bit_masks:
     .byte $01,$02,$04,$08,$10
 entity_trajectory_vx:
@@ -10932,6 +10905,7 @@ retry_first_capital_admission:
     lda CAPITAL_SECTOR_STATE
     cmp #CAPITAL_HULL_STATE_OPEN
     bne @done
+    jsr weapon_pickup_clear_sector
     lda #CAPITAL_HULL_STATE_ENGINES
     sta CAPITAL_SECTOR_STATE
     lsr DIRECTOR_STATE_FLAGS     ; DUE $80 becomes ADMITTED $40 atomically
@@ -11154,9 +11128,11 @@ allied_engine_overlay_masks:
     EMIT_ALLIED_ENGINE_OVERLAY_MASKS
 enemy_engine_overlay_masks:
     EMIT_ENEMY_ENGINE_OVERLAY_MASKS
-    ; One unreachable byte keeps the reviewed 101-sector initial transport
-    ; boundary after the timing code is redistributed between resident blocks.
-    .byte $00
+
+claim_fighter_projectile_visual:
+    sta FIGHTER_PROJECTILE_RENDERED,x
+    inc FIGHTER_PROJECTILE_OWNED_COUNT
+    rts
 
 ; Tail placement consumes only the post-H3.1 ENTITY_CODE slack and therefore
 ; leaves the fixed frontend tables and their page-local pointers untouched.
@@ -11197,6 +11173,10 @@ game_music_read_token_tail:
     lda $FFFF,y
     rts
 
+begin_capital_projectile_frame:
+    jsr wait_gameplay_frame
+    jmp erase_fighter_projectile_overlays
+
 .export integration_update_enemy, integration_interceptor_recycle, integration_interceptor_retry
 .export integration_update_enemy_weapon, integration_update_player_death
 .export integration_update_sector_completion
@@ -11209,11 +11189,10 @@ game_music_read_token_tail:
 .assert *-__ENTITY_CODE_RUN__ <= ENTITY_CODE_RESERVED_BYTES, error, "ENTITY_CODE exceeds its unconditional RAM reservation"
 
 .export init_entity_effects, install_entity_effects_glyph
-.export compose_weapon_pickup_phase
 .export unpack_weapon_pickup_phase_runtime
 .export ENTITY_DEBRIS_GLYPH_BASE
 .export WEAPON_PICKUP_GLYPH_BASE, WEAPON_PICKUP_SPREAD_GLYPH_BASE, WEAPON_PICKUP_SHIELD_GLYPH_BASE
-.export WEAPON_PICKUP_PHASE_BANK
+.export WEAPON_PICKUP_RUNTIME
 .export entity_effects_erase, entity_effects_update, entity_effects_render
 .export entity_spawn_debris, entity_player_debris_overlap, entity_damage_applied, entity_despawn_debris
 .export entity_begin_sector_complete, entity_complete_scroll_tick
@@ -11229,8 +11208,8 @@ game_music_read_token_tail:
 .export materialize_interceptor_breakup_effects
 .export update_transient_effects, render_transient_effect_overlays
 .export erase_transient_effect_overlays, erase_interactive_entity_overlays
-.export erase_weapon_pickup_overlay
 .export render_interactive_entity_overlays
+.export update_fighter_pickup_pmg, clear_fighter_pickup_pmg
 .export entity_archetype_descriptors, entity_debris_glyph, effect_fragment_glyph
 .export entity_interceptor_fragment_render_ids, entity_trajectory_vx
 

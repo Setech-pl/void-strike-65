@@ -189,9 +189,9 @@ export function validateBuildDirectory(rootDirectory) {
   "Historical runtime-headroom payload gate is missing");
   invariant(transport.remainingAtrSectors === ATR_SECTOR_COUNT - transport.totalTransportSectors &&
     transport.remainingAtrTransportBytes === transport.remainingAtrSectors * ATR_SECTOR_SIZE &&
-    transport.maximumNewSimultaneousResidencyBytes === 6841 &&
+    transport.maximumNewSimultaneousResidencyBytes === 7993 &&
     transport.remainingSafeResidencyBytes ===
-      6841 - manifest.runtimeCodeBudget.frontendH31.actualDeltaBytes -
+      7993 - manifest.runtimeCodeBudget.frontendH31.actualDeltaBytes -
         (manifest.capitalPlayerCollisionRuntime?.bytes ?? 0) &&
     transport.loaderResidentBytes === 0,
   "Transport and runtime residency capacities are conflated or inconsistent");
@@ -278,9 +278,12 @@ export function validateBuildDirectory(rootDirectory) {
     manifest.entityEffects.pickupPhaseGlyphCount === 6 &&
     manifest.entityEffects.pickupPhaseCount === 8 &&
     manifest.entityEffects.pickupPhaseBankAddress === 0x8800 &&
-    manifest.entityEffects.dynamicPickupGlyphBankShared === true &&
+    manifest.entityEffects.pickupPhaseBankBytes === 0 &&
+    manifest.entityEffects.pickupPhaseSourceBytes === 1152 &&
+    manifest.entityEffects.pickupPhaseBankRuntimeReferences === 0 &&
+    manifest.entityEffects.dynamicPickupGlyphBankShared === false &&
     manifest.entityEffects.newGlyphsFromFoundation === DEBRIS_VISUAL_POLISH_NEW_GLYPHS,
-  "Weapon pickups must retain debris/effects and safely share phased glyphs 120-125");
+  "PMG pickup must retain debris/effects while the character phase bank stays source-only");
   invariant(manifest.payloadBudget?.destructibleDebris?.limitBytes ===
     DEBRIS_VISUAL_POLISH_PAYLOAD_LIMIT &&
     manifest.runtimeCodeBudget?.baselineBytes ===

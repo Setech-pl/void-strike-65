@@ -28,29 +28,28 @@ read, CRC16-CCITT checked, and only then copied or decompressed to its manifest-
 controlled destination. Any failure blanks DMA, selects a fixed red error
 background, and halts before partially loaded code can execute.
 
-The four ordered DFMC records are BROADSIDE in sectors 104-148, the packed
-pickup phase/code/collision stream in sectors 149-158, 250-byte integration glue
-in sectors 159-161, and the Encounter Director in sectors 162-166. ATR stages
-each record at `$8100`; BROADSIDE expands 6,653 bytes to `$5E10-$780C`, the
-1,168-byte pickup stream is published temporarily at `$8C80-$910F`, and glue
+The four ordered DFMC records are BROADSIDE in sectors 105-149, the packed
+pickup-code/collision stream in sectors 150-156, 250-byte integration glue in
+sectors 157-159, and the Encounter Director in sectors 160-164. ATR stages
+each record at `$8100`; BROADSIDE expands 6,647 bytes to `$5E10-$7806`, the
+854-byte pickup stream is preserved temporarily at `$4801-$4B56`, and glue
 expands to cold staging at `$7BD0-$7CC9`. Packed ENTITY_CODE is copied backward
-to `$5318-$5E0A`. Startup holds glue at `$8600-$86F9` after consuming resident
+to `$5318-$5DCD`. Startup holds glue at `$8600-$86F9` after consuming resident
 staging, defers the overlapping starfield staging write until that hold is
 complete, then copies glue to `$4EFE-$4FF7`; the 644-byte Director expands to
 `$9D75-$9FF8`. The last BROADSIDE source read makes `$8100` reusable;
 only then does startup copy the packed resident suffix and stage it at
-`$8100-$9B0A`. The 7,743-byte suffix is stored as a 6,667-byte LZ-10/5 stream
+`$8100-$9B42`. The 7,743-byte suffix is stored as a 6,723-byte LZ-10/5 stream
 and restores `$21C1-$3FFF`, overwriting all stage-2 code and its maximum
-eight-record manifest. The pickup stream is preserved at `$4801-$4C90` before
-its cold source overlaps the future A2 range, then expands atomically to
-`$8800-$8C7F`; runtime code occupies `$8C80-$8FCD`, and the final 33 bytes at
-`$8FCE-$8FEE` are the final-raster
-capital/player collision module.
+eight-record manifest. The pickup stream expands atomically to `$8800-$8B87`:
+871 bytes of PMG/publication/primitive runtime followed by the final 33-byte
+capital/player collision module. The obsolete 1,152-byte character-pickup phase
+bank remains a generated source asset but is absent from transport and runtime.
 No loader byte remains resident or enters gameplay.
 
 The manifest uses 16-bit sector numbers, supports eight sequential chunks, and
-accepts RAW or LZ records. The current initial block and four records use 166
-sectors (21,248 B). The ATR itself has 554 unused sectors (70,912 B); runtime
+accepts RAW or LZ records. The current initial block and four records use 164
+sectors (20,992 B). The ATR itself has 556 unused sectors (71,168 B); runtime
 residency remains a separate constraint.
 
 ### DFMC v1 byte format

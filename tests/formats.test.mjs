@@ -85,7 +85,7 @@ test("resident compaction proof survives and Spread Shot leaves at least 64 sour
     layout.suffixRawBytes - layout.suffixPackedBytes,
   ], [8192, 449, layout.suffixRawBytes, layout.suffixPackedBytes,
     layout.suffixRawBytes - layout.suffixPackedBytes]);
-  assert.equal(layout.suffixRawBytes - layout.suffixPackedBytes, 1053);
+  assert.equal(layout.suffixRawBytes - layout.suffixPackedBytes, 1020);
   assert.deepEqual(unpackBroadsideLzss(packed), suffix);
   assert.deepEqual(resident.subarray(layout.prefixBytes), suffix);
   assert.deepEqual(
@@ -94,7 +94,7 @@ test("resident compaction proof survives and Spread Shot leaves at least 64 sour
     packed,
   );
   assert.equal(reserve.recoveredReserveBytes, 1097);
-  assert.equal(reserve.residentSuffixGrossSavingsBytes, 1053);
+  assert.equal(reserve.residentSuffixGrossSavingsBytes, 1020);
   assert.equal(reserve.minimumRecoveredReserveBytes, 1024);
   assert.ok(reserve.reserveBytes >= 64);
   assert.deepEqual(manifest.payloadBudget.weaponPickupRapidFire, {
@@ -136,7 +136,7 @@ test("resident compaction proof survives and Spread Shot leaves at least 64 sour
     manifest.broadsideRuntime.runAddress,
     manifest.entityEffects.sourceToStagingMarginBytes,
     manifest.entityEffects.stagingToBroadsideMarginBytes,
-  ], [0x53da, 0x5318, 0x5e0d, 0x5e10, -194, 3]);
+  ], [0x53ab, 0x5318, 0x5dce, 0x5e10, -147, 66]);
 
   const lifecycle = manifest.entityEffects.stagingLifecycle;
   assert.equal(lifecycle.stagingReleasedBeforeStarfieldExpansion, true);
@@ -146,7 +146,7 @@ test("resident compaction proof survives and Spread Shot leaves at least 64 sour
     lifecycle.starfieldDestinationOverlapStartAddress,
     lifecycle.starfieldDestinationOverlapEndExclusive,
     lifecycle.starfieldDestinationOverlapBytes,
-  ], [0x552a, 0x5e0b, 0x552a, 0x5e0b, 2273]);
+  ], [0x54e4, 0x5db6, 0x54e4, 0x5db6, 2258]);
   assert.match(source,
     /jsr stage_boot_streams[\s\S]+jsr unpack_resident_runtime\s+jsr unpack_entity_runtime[\s\S]+jsr unpack_loader_bitmap\s+jsr show_loader\s+jsr unpack_starfield_runtime/,
     "ENTITY_CODE staging must be consumed before loader/starfield destinations overwrite it");

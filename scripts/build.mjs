@@ -101,8 +101,11 @@ const minimumWeaponPickupReserveBytes = 512;
 const residentRuntimeSuffixAddressExpected = 0x21c1;
 const packedResidentStagingAddress = 0x8100;
 const entityPackedStagingAddress = 0x5318;
-const weaponPickupPhaseBankAddress = 0x8800;
+const weaponPickupRuntimeAddress = 0x8800;
 const weaponPickupPackedStagingAddress = 0x8c80;
+const weaponPickupPackedStagingEndAddress = 0x917d;
+const weaponPickupPackedCapacityBytes =
+  weaponPickupPackedStagingEndAddress - weaponPickupPackedStagingAddress;
 const bootA2StagingAddress = 0x7f2b;
 const debrisVisualPolishEntityCodeBaselineBytes = 564;
 const debrisVisualPolishEntityCodeBudgetBytes = 512;
@@ -175,13 +178,13 @@ const directorGuardAddress = 0x9ffa;
 // This movement-only PMG build retains the same loader implementation and four
 // external publication records. Disabled Raider combat compresses the occupied
 // content into 103 initial sectors without changing stage-2 itself.
-const expectedInitialContentBytes = 13295;
-const expectedLinkedRuntimeBytes = 17653;
+const expectedInitialContentBytes = 13231;
+const expectedLinkedRuntimeBytes = 17605;
 const expectedDirectorRawBytes = 644;
 const expectedDirectorPackedBytes = 587;
 const expectedGlueRawBytes = 250;
 const expectedGluePackedBytes = 245;
-const capitalPlayerCollisionAddress = 0x8fc9;
+const capitalPlayerCollisionAddress = 0x8b67;
 
 function ensureDirectory(fsApi, directory) {
   const parts = directory.split("/").filter(Boolean);
@@ -614,9 +617,9 @@ async function build() {
     pickupCodeFileOffset,
     pickupCodeFileOffset + pickupCodeBytes,
   ));
-  if (pickupCodeRunAddress !== weaponPickupPhaseBankAddress + weaponPickupPhaseBank.length ||
-    pickupCodeRuntime.length !== pickupCodeBytes || pickupCodeBytes > 0x0380) {
-    throw new Error("Pickup compositor code does not fit its reviewed $8C80-$8FFF range");
+  if (pickupCodeRunAddress !== weaponPickupRuntimeAddress ||
+    pickupCodeRuntime.length !== pickupCodeBytes || pickupCodeBytes > 0x0800) {
+    throw new Error("PMG pickup and lower-cell primitive do not fit $8800-$8FFF");
   }
   const capitalPlayerCollisionModule = await buildResidentModule({
     sourcePath: path.join(rootDirectory, "src", "capital-player-collision.s"),
@@ -624,26 +627,26 @@ async function build() {
     stem: "capital-player-collision",
   });
   if (capitalPlayerCollisionModule.raw.length > 0x21) {
-    throw new Error(`Capital/player collision module exceeds $8FC9-$8FE9: ` +
+    throw new Error(`Capital/player collision module exceeds $8B67-$8B87: ` +
       `${capitalPlayerCollisionModule.raw.length} B`);
   }
-  if (weaponPickupPhaseBankAddress + weaponPickupPhaseBank.length + pickupCodeRuntime.length !==
+  if (weaponPickupRuntimeAddress + pickupCodeRuntime.length !==
     capitalPlayerCollisionAddress) {
     throw new Error("Capital/player collision does not immediately follow pickup runtime: " +
-      `$${(weaponPickupPhaseBankAddress + weaponPickupPhaseBank.length +
-        pickupCodeRuntime.length).toString(16)} != $${capitalPlayerCollisionAddress.toString(16)}`);
+      `$${(weaponPickupRuntimeAddress + pickupCodeRuntime.length).toString(16)} != ` +
+      `$${capitalPlayerCollisionAddress.toString(16)}`);
   }
   const weaponPickupPhaseRuntime = Buffer.concat([
-    weaponPickupPhaseBank, pickupCodeRuntime, capitalPlayerCollisionModule.raw,
+    pickupCodeRuntime, capitalPlayerCollisionModule.raw,
   ]);
   const packedWeaponPickupPhaseBank = packBroadsideLzss(weaponPickupPhaseRuntime);
   if (!unpackBroadsideLzss(packedWeaponPickupPhaseBank).equals(weaponPickupPhaseRuntime)) {
     throw new Error("Weapon-pickup phase runtime LZSS round trip failed");
   }
-  if (packedWeaponPickupPhaseBank.length > 0x06fd) {
+  if (packedWeaponPickupPhaseBank.length > weaponPickupPackedCapacityBytes) {
     throw new Error(`Packed pickup runtime ${packedWeaponPickupPhaseBank.length} B from ` +
       `${pickupCodeBytes} B code plus ${capitalPlayerCollisionModule.raw.length} B collision ` +
-      `exceeds the reviewed 1789 B cold staging range; ` +
+      `exceeds the reviewed ${weaponPickupPackedCapacityBytes} B cold staging range; ` +
       `BROADSIDE=${broadsideRuntimeBytes} B, ENTITY_CODE=${entityCodeBytes} B`);
   }
   const bootStage2Runtime = Buffer.from(linkedPayload.subarray(
@@ -888,13 +891,13 @@ async function build() {
     record.startSector, record.sectorCount, record.packedLength,
     record.rawLength, record.finalDestination,
   ]);
-  if (bootSectors !== 104 || totalTransportSectors !== 168 ||
-    transportPayload.length !== 21504 || JSON.stringify(frozenRecordShape) !== JSON.stringify([
+  if (bootSectors !== 104 || totalTransportSectors !== 164 ||
+    transportPayload.length !== 20992 || JSON.stringify(frozenRecordShape) !== JSON.stringify([
       [105, 45, 5660, 6647, 0x5e10],
-      [150, 11, 1267, 1267,
+      [150, 7, 854, 854,
         weaponPickupPackedStagingAddress],
-      [161, 3, 245, 250, glueStagingAddress],
-      [164, 5, 587, 644, directorRunAddress],
+      [157, 3, 245, 250, glueStagingAddress],
+      [160, 5, 587, 644, directorRunAddress],
     ])) {
     throw new Error(`Layout D.2 transport topology changed: ${JSON.stringify(frozenRecordShape)}`);
   }
@@ -925,8 +928,8 @@ async function build() {
     a2KernelRunAddress,
     entityCodeRuntime,
     entityCodeRunAddress,
-    weaponPickupPhaseBank,
-    weaponPickupPhaseBankAddress,
+    weaponPickupPhaseBank: null,
+    weaponPickupPhaseBankAddress: weaponPickupRuntimeAddress,
     pickupCodeRuntime,
     pickupCodeRunAddress,
     integrationGlueRuntime: glueModule.raw,
@@ -1012,9 +1015,9 @@ async function build() {
       phaseCount: 8,
       initialContentBytes: expectedInitialContentBytes,
       linkedRuntimeBytes: expectedLinkedRuntimeBytes,
-      simultaneousResidencyBytes: 18800 + capitalPlayerCollisionModule.raw.length +
+      simultaneousResidencyBytes: 17648 + capitalPlayerCollisionModule.raw.length +
         (expectedLinkedRuntimeBytes - 17203),
-      safeResidencyBytes: 3387 - capitalPlayerCollisionModule.raw.length -
+      safeResidencyBytes: 4539 - capitalPlayerCollisionModule.raw.length -
         (expectedLinkedRuntimeBytes - 17203),
       glue: {
         stagingAddress: glueStagingAddress,
@@ -1032,7 +1035,7 @@ async function build() {
       capitalPlayerCollision: {
         address: capitalPlayerCollisionAddress,
         transportAddress: weaponPickupPackedStagingAddress,
-        packedStreamOffset: weaponPickupPhaseBank.length + pickupCodeRuntime.length,
+        packedStreamOffset: pickupCodeRuntime.length,
         endExclusive: capitalPlayerCollisionAddress + capitalPlayerCollisionModule.raw.length,
         rawBytes: capitalPlayerCollisionModule.raw.length,
         packedBytes: capitalPlayerCollisionModule.packed.length,
@@ -1147,9 +1150,9 @@ async function build() {
         ),
       maximumExtensionChunkBytes: 50 * chunkLoaderConstants.atrSectorBytes,
       maximumChunkCount: chunkLoaderConstants.maxChunks,
-      maximumNewSimultaneousResidencyBytes: 6841,
+      maximumNewSimultaneousResidencyBytes: 7993,
       remainingSafeResidencyBytes:
-        6841 - (destructibleDebrisRuntimeCodeBytes - shieldBoosterBaselineRuntimeCodeBytes) -
+        7993 - (destructibleDebrisRuntimeCodeBytes - shieldBoosterBaselineRuntimeCodeBytes) -
           capitalPlayerCollisionModule.raw.length,
       bootOnlyStaging: { address: packedResidentStagingAddress, bytes: 0x1954 },
       loaderResidentBytes: 0,
@@ -1230,7 +1233,7 @@ async function build() {
     capitalPlayerCollisionRuntime: {
       runAddress: capitalPlayerCollisionAddress,
       transportAddress: weaponPickupPackedStagingAddress,
-      packedStreamOffset: weaponPickupPhaseBank.length + pickupCodeRuntime.length,
+      packedStreamOffset: pickupCodeRuntime.length,
       bytes: capitalPlayerCollisionModule.raw.length,
       packedBytes: capitalPlayerCollisionModule.packed.length,
       externalChunk: {
@@ -1367,11 +1370,13 @@ async function build() {
       spreadPickupGlyphIndex: labels.get("WEAPON_PICKUP_SPREAD_GLYPH_BASE"),
       shieldPickupGlyphCount: entityEffectsAsset.shieldPickupGlyphs.length / 8,
       shieldPickupGlyphIndex: labels.get("WEAPON_PICKUP_SHIELD_GLYPH_BASE"),
-      dynamicPickupGlyphBankShared: true,
+      dynamicPickupGlyphBankShared: false,
       pickupPhaseGlyphCount: entityEffectsAsset.weaponPickupRapidFire.maximumFootprintRows * 2,
       pickupPhaseCount: entityEffectsAsset.weaponPickupRapidFire.verticalPhaseCount,
-      pickupPhaseBankAddress: weaponPickupPhaseBankAddress,
-      pickupPhaseBankBytes: weaponPickupPhaseBank.length,
+      pickupPhaseBankAddress: weaponPickupRuntimeAddress,
+      pickupPhaseBankBytes: 0,
+      pickupPhaseSourceBytes: weaponPickupPhaseBank.length,
+      pickupPhaseBankRuntimeReferences: 0,
       pickupCodeAddress: pickupCodeRunAddress,
       pickupCodeBytes,
       pickupPhaseRuntimeBytes: weaponPickupPhaseRuntime.length,
@@ -1382,7 +1387,9 @@ async function build() {
         transportBytes: pickupPhaseChunk.bytes.length,
         crc16: pickupPhaseChunk.storageCrc16,
         stagingAddress: weaponPickupPackedStagingAddress,
-        finalRuntimeAddress: weaponPickupPhaseBankAddress,
+        finalRuntimeAddress: weaponPickupRuntimeAddress,
+        coldCapacityBytes: weaponPickupPackedCapacityBytes,
+        coldMarginBytes: weaponPickupPackedCapacityBytes - packedWeaponPickupPhaseBank.length,
       },
       newGlyphsFromFoundation: entityEffectsAsset.glyphs.length / 8 - 1,
       runtimeBudget: {

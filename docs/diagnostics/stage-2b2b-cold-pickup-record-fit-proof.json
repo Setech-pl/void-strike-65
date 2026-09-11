@@ -1,0 +1,197 @@
+{
+  "schema": 1,
+  "stage": "cold pickup record fit proof for combined PMG pickup plus central lower-cell primitive",
+  "status": "PASS_FIT",
+  "decision": "Combined candidate now fits cold preservation",
+  "date": "2026-09-11",
+  "model": {
+    "name": "Codex (GPT-5 family)",
+    "reasoning": "High",
+    "note": "The requested GPT-5.6 Sol product label was not exposed by this session."
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "headBefore": "45096358a5d8dbc714a0ad7c9698ad77a7168fc5",
+    "headAfter": "commit containing this report",
+    "untouched": [".claude/"],
+    "preservedRefs": {
+      "refs/wip/stage2b-foreign-0803": "13597d7fb6fa6bb0d04541ed68ab6715cec1e8d4",
+      "refs/wip/stage2b0-fdb-proof": "3e5d83f2f1944d2dd90b8a23bec9eaae0dcdebc8",
+      "refs/wip/stage2b2-single-window-rejected": "7f40ee0408356bf1f431b49bf5c51d50ae72a4b3"
+    }
+  },
+  "scope": {
+    "implemented": [
+      "restored the bounded combined PMG pickup, publication scaffold and 187-byte central primitive",
+      "moved the exact 16-byte PMG mask out of the legacy character phase bank",
+      "removed the legacy 1152-byte phase bank from runtime residency and the existing cold record",
+      "retained the phase generator and editable source asset",
+      "updated exact build metadata, placement checks, memory map and focused fit tests"
+    ],
+    "notImplemented": [
+      "the 21 lower-layer writer hooks",
+      "native ownership tracing",
+      "ownership CPU measurement",
+      "Light enemies or any gameplay expansion"
+    ]
+  },
+  "recordCompositionBefore": {
+    "verifiedFrom": [
+      "stage-2b2b-combined-pmg-lower-cell-proof.json",
+      "current build.mjs single-stream concatenation and cold-range validation",
+      "current source/reference audit"
+    ],
+    "components": [
+      {
+        "component": "legacy character-pickup phase bank",
+        "range": "$8800-$8C7F",
+        "rawBytes": 1152,
+        "preservedAs": "prefix of one shared LZSS stream; no independent packed size exists",
+        "runtimePurpose": "old three-type/eight-phase character pickup source",
+        "usedByPmg": "only its first 16 bytes were used as the PMG shape in the rejected combined candidate",
+        "usedByPrimitive": false,
+        "remainingRuntimeReferencesAfterLocalMask": 0,
+        "fallbackOnly": true
+      },
+      {
+        "component": "PICKUP_CODE",
+        "range": "$8C80-$8FDE",
+        "rawBytes": 863,
+        "preservedAs": "middle of the shared LZSS stream",
+        "runtimePurpose": "PMG pickup, publication scaffold, contiguous primitive and admission helpers",
+        "usedByPmg": true,
+        "usedByPrimitive": true,
+        "remainingRuntimeReferences": true,
+        "fallbackOnly": false
+      },
+      {
+        "component": "capital/player collision",
+        "range": "$8FDF-$8FFF",
+        "rawBytes": 33,
+        "preservedAs": "tail of the shared LZSS stream",
+        "runtimePurpose": "capital shell versus player swept AABB",
+        "usedByPmg": false,
+        "usedByPrimitive": false,
+        "remainingRuntimeReferences": true,
+        "fallbackOnly": false
+      }
+    ],
+    "rawBytes": 2048,
+    "packedRecordBytes": 1310,
+    "capacityBytes": 1277,
+    "overflowBytes": 33,
+    "packedComponentNote": "LZSS history crosses component boundaries, so component packed sizes are not additive or independently attributable."
+  },
+  "deadPayload": {
+    "method": "dead payload removal",
+    "legacyPhaseBankSourceBytes": 1152,
+    "legacyPhaseBankRuntimeBytesAfter": 0,
+    "legacyPhaseBankColdPreservationBytesAfter": 0,
+    "localPmgMaskBytes": 16,
+    "netRawRecordReductionBytes": 1144,
+    "packedRecordReductionBytes": 456,
+    "maskProof": "the local table is byte-identical to bytes 0..15 of build/weapon-pickup-phases.bin",
+    "runtimeReferenceProof": "src/main.s contains no WEAPON_PICKUP_PHASE_BANK, composer, phase-offset or type-base reference; focused test verifies the transport runtime is exactly PICKUP_CODE plus collision",
+    "sourceAssetRetained": true,
+    "furtherPaddingCleanupAttempted": false,
+    "localRecordReorderAttempted": false
+  },
+  "recordAfter": {
+    "components": [
+      {
+        "component": "PICKUP_CODE",
+        "range": "$8800-$8B66",
+        "rawBytes": 871,
+        "neededByPmg": true,
+        "neededByPrimitive": true
+      },
+      {
+        "component": "capital/player collision",
+        "range": "$8B67-$8B87",
+        "rawBytes": 33,
+        "neededByPmg": false,
+        "neededByPrimitive": false,
+        "remainingRuntimeReferences": true
+      }
+    ],
+    "rawRuntimeBytes": 904,
+    "packedRecordBytes": 854,
+    "capacityBytes": 1277,
+    "freeMarginBytes": 423,
+    "classification": "PASS_FIT",
+    "coldRange": "$8C80-$917C",
+    "actualPackedRange": "$8C80-$8FD5",
+    "preservationRange": "$4801-$4B56"
+  },
+  "combinedFoundation": {
+    "pmg": {
+      "hardware": "M0-M3 in PRIOR fifth-player mode",
+      "maskBytes": 16,
+      "pendingAtCapital": "preserved, invisible and frozen",
+      "activeAtCapital": "missile span cleared, state released, PRIOR restored to 0 and SIZEM to $54",
+      "capitalAndBossOrdinaryPickup": false
+    },
+    "primitive": {
+      "codeBytes": 187,
+      "contiguousRange": "$8A12-$8ACC",
+      "underlayRamBytes": 0,
+      "writerHooksInstalled": 0,
+      "nativeTraceRun": false
+    }
+  },
+  "memory": {
+    "stage2aLinkedRuntimeBytes": 17653,
+    "fitCandidateLinkedRuntimeBytes": 17605,
+    "linkedDeltaToStage2aBytes": -48,
+    "fitCandidateSimultaneousResidencyBytes": 18083,
+    "simultaneousResidencyDeltaToStage2aBytes": -1200,
+    "safeResidencyHeadroomBytes": 4104,
+    "pickupCodeBytes": 871,
+    "entityCodeBytes": 3105,
+    "entityCodeFreeTailBytes": 84,
+    "largestNewContiguousBlockBytes": 187,
+    "largestNewContiguousBlockRange": "$8A12-$8ACC"
+  },
+  "transport": {
+    "loaderChanged": false,
+    "format": "DFMC-v1 multi-chunk",
+    "formatChanged": false,
+    "recordCount": 4,
+    "newRecordAdded": false,
+    "pickupRecordTypeChanged": false,
+    "pickupRecordSectors": 7,
+    "sectorReductionIsNaturalPayloadShrink": true,
+    "basicRamUsed": false,
+    "runtimeDiskIoAdded": false,
+    "overlayTransportAdded": false
+  },
+  "buildGates": {
+    "deterministicCandidateBuild": "PASS twice with byte-identical hashes",
+    "xexAtrValidationInsideBuild": "PASS",
+    "packedStarfield": { "packedBytes": 1802, "capacityBytes": 1819, "marginBytes": 17, "pickupSourceMarginBytes": 10, "status": "PASS" },
+    "pickupPreservation": { "packedBytes": 854, "capacityBytes": 1277, "marginBytes": 423, "status": "PASS" },
+    "entityStaging": { "packedBytes": 2742, "backwardOverlapBytes": 147, "marginBeforeBroadsideBytes": 66, "status": "PASS" },
+    "broadside": { "rawBytes": 6647, "capacityBytes": 6656, "marginBytes": 9, "status": "PASS" },
+    "a2Kernel": { "rawBytes": 254, "capacityBytes": 256, "marginBytes": 2, "status": "PASS" },
+    "entityCodeAlignment": { "runAddress": "$9100", "aligned": true, "status": "PASS" },
+    "initialContent": { "bytes": 13231, "capacityBytes": 13312, "marginBytes": 81, "status": "PASS" }
+  },
+  "tests": {
+    "focusedFit": "PASS 3/3",
+    "transportEnabler": "PASS 6/6 before the platform-specific layout case",
+    "formatsArtifactChecks": "PASS 3/3; the remaining combined compaction/runtime-range case reached the updated layout assertions, then was not applicable because candidate runtimeTiming is intentionally null",
+    "capitalTraversalTiming": "NOT_APPLICABLE: its recorded native CSV was absent after the fit build; native evidence was forbidden by scope",
+    "platformSpecificLayoutTest": "NOT_RUN: installed /usr/local ca65 is an Intel executable and returns macOS error -86 on this ARM host",
+    "finalVerify": "NOT_APPLICABLE: verify-build intentionally rejects candidate artifacts without bound native runtime evidence; native evidence was forbidden in this fit-only proof",
+    "fullPal": "NOT_RUN_BY_SCOPE",
+    "ownerSmoke": "NOT_RUN_BY_SCOPE"
+  },
+  "artifacts": {
+    "xexSha256": "c2dff8ef37dfa6fde8abef40db2375266cc1da4bbff2f716fe2c65ba89b9cb34",
+    "atrSha256": "d4fb25aacdae1ec64b138ef1cfb7d659c059f2675f9fbecc4304c790e3f94976",
+    "bootSha256": "333168c0f1bfe46f9f3c529e1c49d0a9ad30050f137548061c464365d03709f9",
+    "manifestSha256": "ba0f5c1cc3ff8e5201cb74b3c966e7e8f2a6cf4564744ffcdd7f58f4cafa74a1",
+    "packedPickupRuntimeSha256": "ede24efabf8438b734bcf3d31bb51b0c73d7dcb7170ba522a70e378951d41434"
+  },
+  "next": "Ready to resume combined ownership proof with writer hooks. Do not execute without a separate owner prompt."
+}

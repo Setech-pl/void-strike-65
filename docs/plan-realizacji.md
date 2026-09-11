@@ -1,11 +1,11 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 2.2
+Wersja: 2.3
 Data aktualizacji: 2026-09-11  
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD dokumentacyjny przed niniejszą aktualizacją: `6bffcc7dae85a82b2624dddcf19bfee7f4da2116`
-Stan kodu produkcyjnego: przywrócony do Stage 2A po odrzuconych proofach 2B.0, 2B.1 i 2B.2  
-Aktualny XEX bazowy Stage 2A: SHA-256 `487bdff550bec1497c4c3e55d54da82c5b253773dc4f0725401a6d1528a087e3`
+Aktualny HEAD dokumentacyjny przed niniejszą aktualizacją: `45096358a5d8dbc714a0ad7c9698ad77a7168fc5`
+Stan runtime: zachowany kandydat combined PMG + zwarty primitive po PASS cold-record fit; 21 writer hooks nadal nie jest wdrożonych
+Aktualny XEX fit-proof: SHA-256 `c2dff8ef37dfa6fde8abef40db2375266cc1da4bbff2f716fe2c65ba89b9cb34`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
 
@@ -547,16 +547,44 @@ Decyzja:
 **combined PMG pickup + central lower-cell primitive jest odrzucony w obecnym
 cold-transport placement.**
 
+### Cold pickup record fit proof — DONE / PASS_FIT
+
+Właściciel autoryzował wyłącznie eliminację lub lokalne uporządkowanie payloadu
+cold recordu, bez writer hooks i bez native ownership trace.
+
+Audyt potwierdził, że odrzucony record składał się z:
+
+- starego 1,152-B character-pickup phase banku `$8800-$8C7F`;
+- 863-B `PICKUP_CODE` `$8C80-$8FDE`;
+- 33-B collision `$8FDF-$8FFF`;
+- razem 2,048 B raw / 1,310 B packed wobec capacity 1,277 B.
+
+Po PMG conversion jedynym konsumentem phase banku było pierwsze 16 B maski.
+Maskę zachowano byte-exact w `PICKUP_CODE`, a cały stary bank usunięto z
+runtime residency i cold preservation. Generator oraz source asset pozostały w
+repo i nadal generują 1,152 B dla historii/rollbacku.
+
+MEASURED po kroku A, bez dalszej compaction:
+
+- record: `854 B`, margin `423 B`;
+- runtime stream: `904 B` = `871 B PICKUP_CODE + 33 B collision`;
+- primitive: nadal jeden blok `187 B`, `$8A12-$8ACC`;
+- linked runtime: `17,605 B`, czyli `48 B` mniej od Stage 2A;
+- simultaneous residency: `18,083 B`, safe headroom `4,104 B`;
+- initial content: `13,231 / 13,312 B`, margin `81 B`;
+- loader i format DFMC/LZSS niezmienione; ten sam jeden pickup record, bez BASIC
+  RAM i bez nowego transportu;
+- deterministic candidate build, XEX/ATR validation i focused fit tests PASS.
+
+Decyzja:
+
+**combined candidate mieści się teraz legalnie w cold preservation.**
+
 ### Następny proof — tylko po decyzji właściciela
 
-Jedyna rekomendacja wynikająca z pomiaru:
-
-**osobny, ograniczony proof compaction/layout cold pickup record, który odzyska
-co najmniej 33 spakowane bajty, pozostawiając 187-B primitive jako jeden zwarty
-blok.**
-
-Nie rozpoczynać go automatycznie. Nie używać BASIC RAM, raster bands ani
-full-screen ownership jako obejścia tego wyniku.
+Wznowić combined ownership proof przez przepięcie ustalonych 21 lower-layer
+access sites do istniejącego central primitive, a następnie wykonać wymagany
+native ownership/CPU trace. Nie rozpoczynać automatycznie.
 
 ### Stage 2B.2c — tylko po osobnej decyzji
 

@@ -69,7 +69,7 @@ function assembleCurrentRuntime() {
     a2KernelRunAddress: labels.get("__A2_KERNEL_RUN__"),
     entityCodeRuntime: segment("ENTITY_CODE"),
     entityCodeRunAddress: labels.get("__ENTITY_CODE_RUN__"),
-    weaponPickupPhaseBank: fs.readFileSync(path.join(root, "build", "weapon-pickup-phases.bin")),
+    weaponPickupPhaseBank: null,
     weaponPickupPhaseBankAddress: 0x8800,
     pickupCodeRuntime: linked.subarray(pickupOffset, pickupOffset + pickupSize),
     pickupCodeRunAddress: labels.get("__PICKUP_CODE_RUN__"),
@@ -79,7 +79,7 @@ function assembleCurrentRuntime() {
     directorRunAddress: 0x9d75,
     capitalPlayerCollisionRuntime: fs.readFileSync(
       path.join(root, "build", "capital-player-collision.bin")),
-    capitalPlayerCollisionRunAddress: 0x8fc9,
+    capitalPlayerCollisionRunAddress: 0x8b67,
     labels,
     segmentSizes: parseSegmentSizes(fs.readFileSync(map, "utf8")),
   };
@@ -102,7 +102,6 @@ function installedMemory(build) {
     [build.starfieldRuntime, build.starfieldRunAddress],
     [build.a2KernelRuntime, build.a2KernelRunAddress],
     [build.entityCodeRuntime, build.entityCodeRunAddress],
-    [build.weaponPickupPhaseBank, build.weaponPickupPhaseBankAddress],
     [build.pickupCodeRuntime, build.pickupCodeRunAddress],
   ]) image.set(bytes, address);
   return image;

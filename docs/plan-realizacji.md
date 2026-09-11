@@ -1,10 +1,10 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 2.4
+Wersja: 2.5
 Data aktualizacji: 2026-09-11  
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD dokumentacyjny przed niniejszą aktualizacją: `f6eee5ce7f405dde6a3a6164a408638bab30bdd7`
-Stan runtime: zachowany kandydat combined PMG + zwarty primitive po PASS cold-record fit; odrzucone 21 writer hooks i rozszerzenie ABI zostały wycofane po native CPU/correctness FAIL
+Aktualny HEAD dokumentacyjny przed niniejszą aktualizacją: `0fa1ea9c733db566d758d8d1fbfb4139b50c842d`
+Stan runtime: bez zmian w tym proofie; zachowany kandydat combined PMG + niepodłączony zwarty primitive po PASS cold-record fit, bez 21 writer hooks
 Aktualny XEX fit-proof: SHA-256 `c2dff8ef37dfa6fde8abef40db2375266cc1da4bbff2f716fe2c65ba89b9cb34`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
@@ -270,9 +270,12 @@ Nie stosować jako bieżącego kierunku:
 - globalnego `read-only visible ring` jako wymogu;
 - jednego stałego sync `$70` z erase na początku i redraw pod koniec całej logiki;
 - dynamicznego fence zależnego od `pickup_y`, `projectile_y` lub innego obiektu;
+- Variant A z liniowym ownership lookup przy każdym lower-layer access;
+- Variant B wykonywanego jako O(1) ownership lookup przy każdym lower-layer
+  access bez nowej architektury redukującej liczbę wywołań;
 - kolejnych mikrooptymalizacji tych samych odrzuconych konstrukcji.
 
-### 7.3 Aktualny kontrakt do udowodnienia — ownership / underlay
+### 7.3 Ostatni sprawdzony kandydat — unified fighter visual commit
 
 Stage 2B.2 wykazał, że samo jedno stałe publication window **mieści się czasowo**:
 
@@ -297,25 +300,43 @@ W 920 klatkach OPEN zmierzono:
 - effects;
 - znakowy pickup Stage 2A.
 
+Po odrzuceniu per-access ownership właściciel zlecił wyłącznie feasibility
+measurement jednego wspólnego fighterowego commitu po zakończeniu playfieldu:
+
+1. simulation bez zapisów dynamicznych warstw do visible screen;
+2. w oknie najpierw reverse OLD unwind od najwyższej warstwy;
+3. następnie NEW composition w kolejności base/ring, stars, debris, effects,
+   projectiles;
+4. PMG pickup pozostaje poza character commit.
+
+Pomiar aktualnych procedur wykazał:
+
+- `10 129` cykli konserwatywnej sumy zmierzonych layer maxima, które mogą
+  legalnie współwystąpić w world-step (nie jest to jeden zaobserwowany frame);
+- `10 209-10 289` po dodaniu minimalnego dispatch/bookkeeping;
+- konserwatywne okno `9 975`, czyli brak `234-314` cykli;
+- bramka REJECT `9 500` przekroczona o `709-789` cykli;
+- legalny 11-projectile envelope jest jeszcze cięższy: około
+  `12 136-12 216` dla zwykłych dwukomórkowych ścieżek i
+  `13 862-13 942` przy Spread nad inverse lower layer.
+
+Największy składnik to far-star erase + ponowne rozwiązanie/render 29 rekordów:
+`4 221` cykli. Sam ring copy kosztuje `617`, ale kolejne `646` cykli przesunięcia
+jednego aktywnego zestawu adresów wierszy/DLIST jest publication-only
+bookkeeping i nie może zostać bezpiecznie wykonane przed końcem playfieldu bez
+nowej architektury mapowania.
+
 Wniosek:
 
-> Aktualnym blockerem nie jest liczba okien rastra ani koszt samego commitu pocisków. Blockerem jest brak jawnego ownership / underlay contract dla komórki visible ring, gdy kilka dynamicznych warstw chce ją zmieniać.
+> Unified fighter visual commit w jednym oknie jest odrzucony przy bieżącej
+> 29-slotowej animacji far stars i pełnym zestawie warstw.
 
-Następny proof ma ustalić minimalny model:
+Pełna klatka pozostałaby pod targetem: konserwatywny projected legal Spread
+envelope wynosi `29 040-29 120` cykli. Blockerem jest wyłącznie długość jednego
+okna publikacji, nie całkowity budżet PAL.
 
-1. kto jest właścicielem widocznej komórki;
-2. które warstwy są niżej/wyżej w priorytecie;
-3. jak niższa warstwa aktualizuje stan pod aktywnym pociskiem bez niszczenia foregroundu;
-4. jak erase pocisku odtwarza **aktualny** underlay, a nie historyczny bajt;
-5. jak uniknąć centralnego compositora całego playfieldu.
-
-Preferowany kierunek proofu:
-
-> mały per-cell ownership / deferred-underlay wyłącznie dla komórek aktualnie zajętych przez znakowe pociski.
-
-Nie budować od razu ogólnego systemu ownership całego ekranu.
-
-Raster bands nie są teraz aktywnym następnym krokiem. Mogą zostać rozważone dopiero po uzyskaniu poprawnego ownership, jeżeli pozostanie osobny problem deadline'ów.
+Raport:
+`docs/diagnostics/stage-2b2b-unified-fighter-visual-commit-feasibility.json`.
 
 ---
 
@@ -323,9 +344,11 @@ Raster bands nie są teraz aktywnym następnym krokiem. Mogą zostać rozważone
 
 Poprawność nie oznacza już „zero zapisów do visible ring”.
 
-Nowy warunek:
+Nowy warunek dla ewentualnego schedulera:
 
-> zapis do visible ring jest dozwolony tylko wtedy, gdy jednocześnie spełnione są dwa warunki: zapis mieści się w udowodnionym deadline rastra oraz respektuje ownership/underlay komórki.
+> wszystkie dynamiczne character-layer writes fighter sectora muszą zostać
+> złożone atomowo w udowodnionym oknie, bez per-access ownership; OLD backing
+> należy rozwinąć przed publikacją niższych NEW warstw.
 
 Dla każdej ścieżki trzeba udowodnić:
 - deadline erase starego obrazu;
@@ -334,8 +357,9 @@ Dla każdej ścieżki trzeba udowodnić:
 - ciężką legalną klatkę;
 - ring wrap;
 - effects/debris/far-stars współdzielące ekran;
-- brak foreign write niszczącego komórkę należącą do aktywnej wyższej warstwy;
-- poprawne odtworzenie aktualnego underlay po erase;
+- brak późnego restore wyższej warstwy niszczącego już opublikowany NEW stan
+  warstwy niższej;
+- jawny podział reverse OLD unwind i ordered NEW composition;
 - 0 przypadków ANTIC widzącego częściowy commit.
 
 Wall gates pozostają:
@@ -350,11 +374,19 @@ Wall gates pozostają:
 
 ## 9. Pamięć i placement
 
-### 9.1 Aktualny zaakceptowany baseline
+### 9.1 Aktualny zachowany checkpoint
 
-Produkcja pozostaje na kodzie Stage 2A. Nie przepisywać do baseline liczb z odrzuconego kandydata 2B.1.
+Runtime zachowuje checkpoint `PASS_FIT`: PMG pickup, brak starego 1,152-B
+character phase banku oraz niepodłączony 187-B lower-cell primitive. Writer
+hooks odrzuconego proofu nie są obecne. Feasibility measurement nie zmienił
+żadnego bajtu runtime ani transportu.
 
-Wartości 2B.1 są dowodem, że PMG pickup i usunięcie starego compositora mogą odzyskać zasoby, ale zostaną ponownie zmierzone po bezpiecznej integracji.
+Ostatnie potwierdzone wartości checkpointu:
+
+- linked runtime `17 605 B`;
+- simultaneous residency `18 083 B`;
+- safe headroom `4 104 B`;
+- cold pickup record `854 / 1277 B`, margin `423 B`.
 
 ### 9.2 Ważne ustalenia placementu
 
@@ -630,13 +662,72 @@ kandydata. Runtime wrócił do checkpointu `PASS_FIT`: PMG pickup i niepodłącz
 Raport:
 `docs/diagnostics/stage-2b2b-combined-ownership-writer-hooks-native-trace.json`.
 
+### Decyzja właściciela po ownership hooks
+
+Variant A pozostaje odrzucony. Variant B wykonywany jako ownership lookup przy
+każdym lower-layer access nie jest wart implementacji bez nowej architektury
+redukującej `1185` wywołań w klatce. Ścieżka character projectiles nie została
+jeszcze zamknięta, ale żaden per-access bitmap/hash/cache nie jest aktywnym
+kierunkiem.
+
+### Unified fighter visual commit feasibility — DONE / REJECTED
+
+Sprawdzono bez zmian runtime, czy wszystkie dynamiczne fighterowe warstwy
+znakowe można przenieść do jednego stałego okna po playfieldzie.
+
+MEASURED, instruction-exact na aktualnym linked runtime:
+
+- ring copy `617` cykli oraz konieczne w oknie mapowanie/DLIST `646`;
+- world clear `535`;
+- near-star worst current path `151`;
+- 29 far stars: erase `1 240`, resolve/render `2 981`;
+- debris erase/render `220`;
+- pięć effects erase/render `1 089`;
+- projectile publication native max z 2B.2 `2 650`.
+
+Twinkle `166` cykli nie współwystępuje jako visible write z najcięższym
+world-step, ponieważ far-star erase zmienia rekordy na stan niedrawnny przed
+`tick_star_twinkle`.
+
+Suma wynosi `10 129` cykli przed nowym schedulerem oraz `10 209-10 289` po
+minimalnym estymowanym dispatch/bookkeeping. To przekracza zarówno okno
+`9 975` o `234-314`, jak i próg REJECT `9 500` o `709-789`.
+
+Poprawny commit wymaga przy tym reverse OLD unwind przed NEW composition.
+Dosłowne pozostawienie projectile erase/render jako ostatniego, nierozdzielnego
+kroku mogłoby odtworzyć historyczny backing nad świeżo opublikowaną niższą
+warstwą.
+
+Full-frame CPU pozostaje liczbowo bezpieczny: konserwatywny legalny envelope z
+11 projectile i najdroższą ścieżką Spread jest estymowany na
+`29 040-29 120`, czyli `2 080` cykli poniżej targetu w gorszym końcu zakresu.
+Nie ratuje to pojedynczego okna.
+
+Najmniejszy zmierzony świadomy kompromis wizualny to ograniczenie populacji far
+stars z 29 do 23. Szacowana oszczędność `873` cykli daje commit
+`9 336-9 416`, nadal tylko w klasie POSSIBLE. Dla STRONG PASS potrzeba około
+16 far stars. Właściciel nie zatwierdził żadnej z tych zmian i runtime pozostaje
+bez zmian.
+
+Raport:
+`docs/diagnostics/stage-2b2b-unified-fighter-visual-commit-feasibility.json`.
+
+Decyzja:
+
+**unified fighter visual commit jest odrzucony przy pełnym bieżącym zestawie
+warstw.**
+
 ### Następna decyzja — tylko właściciel
 
-Właściciel może osobno autoryzować jeden ograniczony proof nieliniowego indeksu
-ownership (Variant B) albo zakończyć tę ścieżkę znakowych projectile. Nie
-implementować bitmapy/hash/cache ani innego wariantu automatycznie.
+Jeden możliwy następny proof wymaga jawnej zgody właściciela:
 
-### Stage 2B.2c — tylko po osobnej decyzji
+> ograniczony unified-commit implementation proof z populacją far stars
+> zmniejszoną z 29 do 23.
+
+Nie wykonywać automatycznie. Alternatywą właścicielską jest zakończenie
+unified single-window route.
+
+### Stage 2B.2c — raster bands tylko po osobnej decyzji
 
 Raster bands są wariantem rezerwowym **dopiero po rozwiązaniu ownership**, jeżeli nadal pozostanie czysty problem deadline'ów.
 
@@ -724,6 +815,10 @@ Bez jawnej decyzji właściciela:
 - nie wracać do moving fence zależnego od Y obiektu;
 - nie wykonywać kolejnych mikrooptymalizacji odrzuconego `$70` fixed-sync;
 - nie traktować samego single publication window jako rozwiązania konfliktów kilku writerów;
+- nie implementować Variant B jako per-access bitmap/hash/cache bez architektury
+  redukującej liczbę wywołań;
+- nie implementować unified fighter scheduler po wyniku REJECT bez jawnie
+  zatwierdzonego ograniczenia kosztu warstwy;
 - nie przechodzić do raster bands przed rozwiązaniem ownership/underlay;
 - nie wracać do znakowych Raiderów;
 - nie dodawać loader changes;

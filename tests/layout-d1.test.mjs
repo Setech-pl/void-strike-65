@@ -80,11 +80,11 @@ test("Layout D.2 startup order and call bytes are frozen", () => {
     /stage_glue_holding:[\s\S]+jmp stage_starfield_stream[\s\S]+stage_starfield_stream:[\s\S]+jsr copy_pause_screen\s+jsr copy_pause_screen\s+jmp copy_pause_screen/,
     "GLUE must leave $7BD0 before the deferred starfield staging write");
   const resident = fs.readFileSync(path.join(root, "build/resident-runtime.bin"));
-  assert.deepEqual([...resident.subarray(0x40, 0x46)], [0x20, 0x28, 0x21, 0x20, 0x5c, 0x9a]);
+  assert.deepEqual([...resident.subarray(0x40, 0x46)], [0x20, 0x28, 0x21, 0x20, 0x7d, 0x9a]);
 });
 
 test("Layout D.2 exact memory and transport budgets remain frozen", () => {
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 12829);
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 12903);
   assert.equal(manifest.transportCapacity.initialBootBytes, 12928);
   assert.equal(manifest.transportCapacity.totalTransportSectors, 161);
   assert.equal(manifest.transportCapacity.totalTransportBytes, 20608);
@@ -97,9 +97,9 @@ test("Layout D.2 exact memory and transport budgets remain frozen", () => {
     [154, 3, 245, 250, 0x7bd0],
     [157, 5, 587, 644, 0x9d75],
   ]);
-  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17215);
-  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 17693);
-  assert.equal(manifest.encounterDirector.safeResidencyBytes, 4494);
+  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17292);
+  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 17770);
+  assert.equal(manifest.encounterDirector.safeResidencyBytes, 4417);
 });
 
 test("XEX and ATR preserve full A2, GLUE lifecycle, ENTITY_CODE, DIRECTOR and guard", () => {

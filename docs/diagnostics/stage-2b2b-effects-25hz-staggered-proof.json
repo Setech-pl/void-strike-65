@@ -1,0 +1,214 @@
+{
+  "schema": "void-strike-65.stage-2b2b-effects-25hz-staggered-proof.v1",
+  "stage": "Stage 2B.2b Effects 25 Hz / staggered proof",
+  "date": "2026-09-12",
+  "status": "PASS_EFFECTS_25HZ",
+  "scope": "Character-cell debris and Interceptor breakup effects only; PairShot and row-baked far stars preserved, no unified scheduler or later owner-approved optimization.",
+  "model": {
+    "name": "Codex (GPT-5 family)",
+    "reasoning": "High",
+    "note": "The requested GPT-5.6 Sol product label was not exposed by this session."
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "headBefore": "66b90c5185989302e5b105938480aad88aa125dc",
+    "headAfter": "commit containing this report",
+    "untouched": [".claude/"],
+    "preservedRefs": {
+      "refs/wip/stage2b-foreign-0803": "13597d7fb6fa6bb0d04541ed68ab6715cec1e8d4",
+      "refs/wip/stage2b0-fdb-proof": "3e5d83f2f1944d2dd90b8a23bec9eaae0dcdebc8",
+      "refs/wip/stage2b2-single-window-rejected": "7f40ee0408356bf1f431b49bf5c51d50ae72a4b3"
+    }
+  },
+  "baselineEffects": {
+    "physicalSlots": 6,
+    "activeLimit": 5,
+    "maximumActive": 5,
+    "screenCellsPerEffect": 1,
+    "gameplayCollision": false,
+    "gameplayMeaning": "Collisionless visual aftermath. Damage, score and hit arbitration complete before effect allocation.",
+    "lifecycle": {
+      "coreLogicalFrames": 5,
+      "fragmentLogicalFrames": 30,
+      "logicalCadenceHz": 50,
+      "beforeVisualCadenceHz": 50
+    },
+    "visualLanguage": {
+      "characterCore": "Three colour/glyph stages selected from the five-frame core timer.",
+      "characterFragments": "Two glyph shapes plus normal/inverse colour bands; every existing visual combination remains reachable.",
+      "separateSharedPmgExplosion": "Six phases, four PAL frames per phase and 24 frames total; unchanged by this proof."
+    },
+    "backing": "Each rendered slot stores one exact screen address and BACKING0 byte; erase restores slots in reverse order.",
+    "instructionExactVisualPeakCycles": {
+      "eraseFive": 276,
+      "renderFive": 809,
+      "total": 1085,
+      "averagePerSlot": 217,
+      "source": "Revalidated instruction-exact on clean PairShot HEAD 66b90c5 across all 22 ring-head positions."
+    },
+    "hostWholeEffectPathCycles": {
+      "steadyUpdate": 298,
+      "visual": 1085,
+      "total": 1383,
+      "wrapperInclusiveObservedMaximum": 1491
+    }
+  },
+  "staggerModel": {
+    "logicalCadenceHz": 50,
+    "visualCadenceHzPerSlot": 25,
+    "groups": {
+      "even": {"slots": [0, 1, 2], "mask": "$07", "maximumUpdates": 3},
+      "odd": {"slots": [3, 4], "mask": "$18", "maximumUpdates": 2}
+    },
+    "assignmentReason": "Core slot 0 and fragment slot 1 share one character cell during the first two logical frames. Keeping them in one group preserves reverse backing order and prevents a cross-parity ghost.",
+    "spawnLatencyFrames": {"minimum": 0, "maximum": 1, "maximumMillisecondsPal": 20},
+    "expiry": "Logical expiry remains immediate. Any opposite-parity rendered cell is retained as pending visual clear and restored on its next tick, at most one frame later.",
+    "newStateBytes": 0,
+    "stateReuse": ["frame_counter parity", "EFFECT_SCRATCH1", "EFFECT_SCRATCH2", "existing rendered mask and backing arrays"]
+  },
+  "visualPhases": {
+    "characterEffects": {
+      "coreLogicalFrames": 5,
+      "fragmentLogicalFrames": 30,
+      "fragmentGlyphCadenceFrames": 2,
+      "allExistingGlyphAndColourStagesPreserved": true
+    },
+    "sharedFighterPmgExplosion": {
+      "phases": 6,
+      "framesPerPhase": 4,
+      "totalFrames": 24,
+      "changed": false
+    }
+  },
+  "cpu": {
+    "instructionExactAfter": {
+      "erasePeak": 222,
+      "renderPeak": 522,
+      "visualPublicationPeak": 744,
+      "steadySimulationBookkeepingPeak": 333,
+      "expirySimulationBookkeepingPeak": 416,
+      "wholeEffectPathPeak": 1077,
+      "wrapperInclusiveObservedMaximum": 1186
+    },
+    "delta": {
+      "visualPeakRecovered": 341,
+      "visualPeakPercent": 31.43,
+      "simulationBookkeepingAdded": 35,
+      "netWholeEffectPathRecovered": 306,
+      "wrapperInclusiveRecovered": 305
+    },
+    "classification": "PASS (651-750 cycles)",
+    "nativeInPlaceNote": "The current pre-unified-scheduler raster position measured a 1606-cycle DMA-on erase/render interval. It includes ANTIC DMA stalls and PMG clear work and is not the post-playfield instruction-exact commit gate; the future safe-window cost is 744 cycles."
+  },
+  "unifiedCommit": {
+    "conservativeWindowCycles": 9975,
+    "recoveredPeakCycles": 341,
+    "normal": {"before": [4670, 4750], "after": [4329, 4409], "margin": [5566, 5646]},
+    "rapid": {"before": [4866, 4946], "after": [4525, 4605], "margin": [5370, 5450]},
+    "spread": {"before": [5127, 5207], "after": [4786, 4866], "margin": [5109, 5189]},
+    "playerFiveEnemyFive": {"before": [5782, 5862], "after": [5441, 5521], "margin": [4454, 4534]},
+    "schedulerImplemented": false
+  },
+  "native": {
+    "emulator": "Atari800 7.1.2 PAL/XL, persistent instrumented tree",
+    "report": "build/runtime-wall-trace/effects-stagger-native-report.json",
+    "measuredFighterOpenFrames": 4808,
+    "fiveSlotEffectFrames": 583,
+    "spawnLatencyObservations": 585,
+    "effectPeakFrame": {
+      "activeWorkCycles": 10578,
+      "rawCadenceCycles": 35526,
+      "missed": 0
+    },
+    "fighterOpen": {"activeWorkMax": 13674, "rawCadenceMax": 36344},
+    "playerAndEnemy": {"activeWorkMax": 13674, "rawCadenceMax": 36344},
+    "twoHeavy": {"activeWorkMax": 13658, "rawCadenceMax": 36070},
+    "headroom": {"target31200": 17526, "hardGate32568": 18894},
+    "anomalies": {
+      "missedStableFighterOpen": 0,
+      "missedWithEffectsActive": 0,
+      "missedAtExistingFighterToCapitalBoundary": 1,
+      "targetOverruns": 0,
+      "hardGateOverruns": 0,
+      "extraVbi": 0,
+      "dliSequenceViolations": 0
+    },
+    "expiryRenderedMaskErrors": 0,
+    "hostGhostGlyphs": 0,
+    "hostStaleRestores": 0,
+    "interpretation": "The one observed missed boundary occurs with EFFECT_ACTIVE_COUNT=0 and EFFECT_RENDERED_MASK=0 immediately before fighter-to-capital transition. It is reported, not attributed to intentional wait, and is outside the scoped stable fighter/effect path."
+  },
+  "memoryPlacement": {
+    "before": {
+      "linkedRuntimeBytes": 17215,
+      "simultaneousResidencyBytes": 17693,
+      "safeHeadroomBytes": 4494,
+      "residentCodeBytes": 4399,
+      "entityCodeBytes": 3109,
+      "initialContentBytes": 12829
+    },
+    "after": {
+      "linkedRuntimeBytes": 17292,
+      "simultaneousResidencyBytes": 17770,
+      "safeHeadroomBytes": 4417,
+      "residentCodeBytes": 4435,
+      "entityCodeBytes": 3150,
+      "initialContentBytes": 12903
+    },
+    "delta": {
+      "linkedRuntimeBytes": 77,
+      "simultaneousResidencyBytes": 77,
+      "safeHeadroomBytes": -77,
+      "residentCodeBytes": 36,
+      "entityCodeBytes": 41,
+      "initialContentBytes": 74,
+      "stateBytes": 0,
+      "parityBytes": 0,
+      "tableBytes": 8
+    },
+    "gates": {
+      "starfieldPacked": {"bytes": 1676, "capacity": 1819, "margin": 143, "passed": true},
+      "coldPickup": {"bytes": 852, "capacity": 1277, "margin": 425, "passed": true},
+      "entityStaging": {"sourceToStagingMargin": 181, "stagingToBroadsideMargin": 113, "passed": true},
+      "broadside": {"bytes": 6647, "capacity": 6656, "margin": 9, "passed": true},
+      "a2": {"bytes": 122, "capacity": 256, "margin": 134, "passed": true},
+      "entityCode": {"address": "$9100", "bytes": 3150, "tailMargin": 39, "aligned": true, "passed": true},
+      "initialContent": {"bytes": 12903, "capacity": 12928, "margin": 25, "passed": true}
+    },
+    "basicRamUsed": false,
+    "loaderChanged": false,
+    "transportFormatChanged": false
+  },
+  "capacityForecast": {
+    "basis": "Effects peak is bounded by five existing visual slots and does not scale with Heavy/Light count. PairShot's shared five-record enemy pool remains the projectile bound.",
+    "twoHeavyTwoLight": {
+      "classification": "viable foundation; Light AI/admission remains unmeasured",
+      "visualWindowForecast": [5441, 5521],
+      "margin": [4454, 4534],
+      "additionalEffectStateBytes": 0
+    },
+    "twoHeavyFourLight": {
+      "classification": "viable foundation; Light AI/admission remains unmeasured",
+      "visualWindowForecast": [5441, 5521],
+      "margin": [4454, 4534],
+      "additionalEffectStateBytes": 0
+    },
+    "optionalEnemyPoolExpansionEstimate": {
+      "plusTwoCellsVisualWindow": [5809, 5889],
+      "plusFourCellsVisualWindow": [6177, 6257],
+      "source": "PairShot measured 184 publication cycles and 69 simulation/collision cycles per optional additional enemy cell; no pool expansion implemented."
+    }
+  },
+  "verification": {
+    "build": "npm run build:two-pmg -- --quiet: PASS",
+    "focused": "73/73 PASS: effects stagger, PairShot, fighter weapons, enemy combat, Layout D.2 and row-baked starfield",
+    "native": "4808 fighter OPEN frames processed; effect and hard gates PASS",
+    "bootSmoke": "4/4 XEX/ATR cold-start sessions PASS",
+    "notPerformed": ["unified visual scheduler", "background/ring 25 Hz", "debris 25 Hz", "Light implementation", "capital or boss changes"]
+  },
+  "artifact": {
+    "xex": {"path": "dist/void-strike-65.xex", "bytes": 21349, "sha256": "8aa58a8c43f0771c589c594a6fc4f268ab9c778461f8005309d27da2fa86dce2", "status": "effects 25 Hz owner-smoke candidate"}
+  },
+  "decision": "Effects 25 Hz/staggered is viable",
+  "next": "Background/ring 25 Hz / staggered feasibility"
+}

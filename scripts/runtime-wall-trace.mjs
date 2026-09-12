@@ -11,6 +11,7 @@ import { canonicalPlayfield } from "./playfield.mjs";
 import { readStartMenuRuntimeState } from "./preview.mjs";
 import { atari800ArtifactLaunches, validateAtari800Launch } from "./artifact-launch.mjs";
 import { focusedPalAcceptance } from "./focused-pal-acceptance.mjs";
+import { executeDebrisDestructionTrace } from "./debris-destruction-runtime.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const rootDirectory = path.resolve(scriptDirectory, "..");
@@ -1828,6 +1829,7 @@ function main() {
   const raiderFormationOnly = process.argv.includes("--raider-formation-only");
   const raiderSectorOnly = process.argv.includes("--raider-sector-only");
   const pairShotOnly = process.argv.includes("--pairshot-only");
+  const effectsStaggerOnly = process.argv.includes("--effects-stagger-only");
   const skipBootSmoke = process.argv.includes("--skip-boot-smoke");
   const tracePreflightOnly = process.argv.includes("--trace-preflight-only");
   const reuseExistingTraces = process.argv.includes("--reuse-existing-traces");
@@ -1993,7 +1995,9 @@ function main() {
       if (fs.existsSync(framePath)) fs.unlinkSync(framePath);
     }
   }
-  let sessionsToRun = pairShotOnly
+  let sessionsToRun = effectsStaggerOnly
+    ? [...pairShotSessions, ...debrisEffectsSessions]
+    : pairShotOnly
     ? pairShotSessions
     : raiderFormationOnly
     ? raiderFormationSessions
@@ -2697,6 +2701,149 @@ function main() {
     summaries.push(sessionSummary(session, rows));
     console.log(`${session.id}: ${rows.length} frames, max ` +
       `${maximumRow(rows, (row) => row.wall_cycles).wall_cycles} wall cycles`);
+  }
+  if (effectsStaggerOnly) {
+    const rows = allRows.filter((row) => row.sector_state === 7 &&
+      row.player_lifecycle === 0 && row.player_fighter_explosion_timer === 0);
+    const profileComplete = (row) => {
+      const clocks = [row.start_clock,
+        ...traceProfileLabels.map((unused, index) => row[`profile_clock${index}`]),
+        row.end_clock];
+      return clocks.every((clock, index) => Number.isInteger(clock) &&
+        (index === 0 || clock >= clocks[index - 1]));
+    };
+    const dliOverlap = (row, start, end) => Array.from({ length: 2 }, (unused, index) => ({
+      start: row[`profile_dli${index}_start`], end: row[`profile_dli${index}_end`],
+    })).reduce((sum, dli) => sum + Math.max(0,
+      Math.min(end, dli.end) - Math.max(start, dli.start)), 0);
+    const activeWorkCycles = (row) => {
+      const waitStart = row.profile_clock19;
+      const waitEnd = row.profile_publication_begin;
+      invariant(waitEnd >= waitStart && waitStart > 0,
+        `Effects publication interval missing at ${row.session}:${row.frame}`);
+      return row.wall_cycles - (waitEnd - waitStart) +
+        dliOverlap(row, waitStart, waitEnd) + 32;
+    };
+    const completeRows = rows.filter(profileComplete);
+    const stableFighterRows = completeRows.filter((row, index) => {
+      const next = completeRows[index + 1];
+      return next === undefined || next.session !== row.session || next.frame === row.frame + 1;
+    });
+    const effectRows = completeRows.filter((row) => row.effect_active_count === 5);
+    invariant(effectRows.length > 0, "Effects trace did not cover all five active slots");
+    const effectMetrics = (row) => {
+      const detail = profileCostBreakdown(row).entity_effect_detail;
+      return {
+        erase: detail.effect_erase,
+        update: detail.effect_update,
+        render: detail.effect_render,
+        visual: detail.effect_erase + detail.effect_render,
+        total: detail.effect_erase + detail.effect_update + detail.effect_render,
+      };
+    };
+    const effectPeak = maximumRow(effectRows, (row) => effectMetrics(row).visual);
+    const linkedEffectFrames = Array.from({ length: 22 }, (unused, ringHead) =>
+      executeDebrisDestructionTrace({ root: rootDirectory, artifact: "xex", ringHead })
+        .records.filter((row) => row.phase === "FINAL")).flat();
+    const linkedEffectPeak = maximumRow(linkedEffectFrames, (row) =>
+      row.effectEraseCycles + row.effectRenderCycles);
+    const fullPeak = maximumRow(completeRows, activeWorkCycles);
+    const combinedRows = completeRows.filter((row) => row.player_fighter_projectiles > 0 &&
+      row.enemy_projectiles > 0);
+    const twoHeavyRows = completeRows.filter((row) => row.enemy_member0_state === 1 &&
+      row.enemy_member1_state === 1 && row.enemy_pmg_rows1 > 0 && row.enemy_pmg_rows2 > 0);
+    invariant(combinedRows.length > 0, "Effects trace did not cover player + enemy PairShots");
+    invariant(twoHeavyRows.length > 0, "Effects trace did not cover two Heavy fighters");
+    const scenario = (selected) => {
+      const peak = maximumRow(selected, activeWorkCycles);
+      return { frames: selected.length, maximum_active_work_cycles: activeWorkCycles(peak),
+        maximum_raw_cadence_cycles: Math.max(...selected.map((row) => row.wall_cycles)),
+        frame: frameState(peak) };
+    };
+    const spawnLatencies = [];
+    let expiryErrors = 0;
+    for (let index = 0; index < rows.length; index += 1) {
+      const row = rows[index];
+      const next = rows[index + 1]?.session === row.session ? rows[index + 1] : null;
+      const previous = rows[index - 1]?.session === row.session ? rows[index - 1] : null;
+      if (row.effect_active_count === 5 &&
+          (previous === null || previous.effect_active_count !== 5)) {
+        for (let slot = 0; slot < 5; slot += 1) {
+          const bit = 1 << slot;
+          spawnLatencies.push((row.effect_rendered_mask & bit) !== 0 ? 0 :
+            next !== null && (next.effect_rendered_mask & bit) !== 0 ? 1 : 2);
+        }
+      }
+      if (row.effect_active_count === 0 && row.effect_rendered_mask !== 0 &&
+          (next === null || next.effect_active_count === 0 &&
+            next.effect_rendered_mask !== 0)) expiryErrors += 1;
+    }
+    invariant(spawnLatencies.length > 0, "Effects trace did not observe a five-slot effect spawn");
+    const anomalies = {
+      missed: rows.reduce((sum, row) => sum + row.missed_frames, 0),
+      missed_with_effects_active:
+        effectRows.reduce((sum, row) => sum + row.missed_frames, 0),
+      missed_stable_fighter_open:
+        stableFighterRows.reduce((sum, row) => sum + row.missed_frames, 0),
+      missed_at_fighter_to_capital_boundary:
+        rows.reduce((sum, row, index) => {
+          const next = rows[index + 1];
+          return sum + (row.missed_frames > 0 && next?.session === row.session &&
+            next.frame !== row.frame + 1 ? row.missed_frames : 0);
+        }, 0),
+      target_overruns: completeRows.filter((row) => activeWorkCycles(row) > 31_200).length,
+      hard_overruns: completeRows.filter((row) => activeWorkCycles(row) > 32_568).length,
+      extra_vbi: rows.reduce((sum, row) => sum + row.extra_vbi_boundaries, 0),
+      dli: rows.reduce((sum, row) => sum + row.dli_sequence_violations, 0),
+    };
+    const report = {
+      schema_version: 1,
+      generated_by: "scripts/runtime-wall-trace.mjs --effects-stagger-only",
+      emulator: "Atari800 7.1.2 PAL/XL",
+      artifact_sha256: runtimeArtifacts,
+      sessions: sessionsToRun.map(({ id, policy, frames }) => ({ id, policy, frames })),
+      measured_frames: rows.length,
+      five_slot_effect_frames: effectRows.length,
+      effects_peak: {
+        instruction_exact_post_playfield: {
+          erase: linkedEffectPeak.effectEraseCycles,
+          render: linkedEffectPeak.effectRenderCycles,
+          visual: linkedEffectPeak.effectEraseCycles + linkedEffectPeak.effectRenderCycles,
+        },
+        native_in_place_dma_on_interval: {
+          ...effectMetrics(effectPeak),
+          note: "Includes ANTIC DMA stalls at the current pre-scheduler raster position; it is not the post-playfield commit gate.",
+        },
+        frame: frameState(effectPeak),
+        maximum_active_work_cycles: activeWorkCycles(effectPeak),
+        raw_cadence_cycles: effectPeak.wall_cycles,
+      },
+      visual_spawn_latency_frames: { maximum: Math.max(...spawnLatencies),
+        observations: spawnLatencies.length },
+      expiry_rendered_mask_errors: expiryErrors,
+      fighter_open: scenario(completeRows),
+      player_and_enemy: scenario(combinedRows),
+      two_heavy: scenario(twoHeavyRows),
+      timing: {
+        maximum_active_work_cycles: activeWorkCycles(fullPeak),
+        maximum_raw_cadence_cycles: Math.max(...rows.map((row) => row.wall_cycles)),
+        target_headroom_cycles: 31_200 - activeWorkCycles(fullPeak),
+        hard_gate_headroom_cycles: 32_568 - activeWorkCycles(fullPeak),
+        ...anomalies,
+      },
+      csv: sessionsToRun.map(({ id }) => path.relative(rootDirectory,
+        path.join(buildDirectory, `${id}.csv`))),
+      passed: linkedEffectPeak.effectEraseCycles + linkedEffectPeak.effectRenderCycles <= 750 &&
+        Math.max(...spawnLatencies) <= 1 && expiryErrors === 0 &&
+        activeWorkCycles(fullPeak) <= 32_568 && anomalies.missed_with_effects_active === 0 &&
+        anomalies.missed_stable_fighter_open === 0 && anomalies.hard_overruns === 0 &&
+        anomalies.extra_vbi === 0 && anomalies.dli === 0,
+    };
+    const focusedReportPath = path.join(buildDirectory, "effects-stagger-native-report.json");
+    fs.writeFileSync(focusedReportPath, `${JSON.stringify(report, null, 2)}\n`);
+    console.log(`Effects stagger native report: ${path.relative(rootDirectory, focusedReportPath)}`);
+    if (!report.passed) process.exitCode = 1;
+    return;
   }
   if (pairShotOnly) {
     const rows = allRows.filter((row) => row.sector_state === 7 &&

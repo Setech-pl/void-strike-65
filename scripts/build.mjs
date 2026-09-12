@@ -177,8 +177,8 @@ const directorRunAddress = 0x9d75;
 const directorGuardAddress = 0x9ffa;
 // Row-baked far stars and one-cell PairShots reduce the runtime while retaining
 // the same loader implementation and four external publication records.
-const expectedInitialContentBytes = 12829;
-const expectedLinkedRuntimeBytes = 17215;
+const expectedInitialContentBytes = 12903;
+const expectedLinkedRuntimeBytes = 17292;
 const expectedDirectorRawBytes = 644;
 const expectedDirectorPackedBytes = 587;
 const expectedGlueRawBytes = 250;

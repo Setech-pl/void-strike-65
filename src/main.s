@@ -9059,8 +9059,20 @@ profile_entity_erase_begin = *
 
 erase_transient_effect_overlays:
     ; Slot five is physical reserve and can never acquire valid backing while
-    ; EFFECT_ACTIVE_LIMIT is five.
-    ldx #(EFFECT_ACTIVE_LIMIT-1)
+    ; EFFECT_ACTIVE_LIMIT is five. Character effects publish at 25 Hz: one
+    ; parity owns slots 0/1/2 and the other owns slots 3/4. The other parity
+    ; remains visible for its second PAL frame, so preserve both its backing
+    ; record and its rendered bit until the following frame.
+    lda frame_counter
+    and #$01
+    tay
+    lda effect_stagger_masks,y
+    eor #$FF
+    sta EFFECT_SCRATCH2
+    lda effect_stagger_erase_start,y
+    tax
+    lda effect_stagger_render_start,y
+    sta EFFECT_SCRATCH1
 @slot:
     lda entity_slot_bit_masks,x
     and EFFECT_RENDERED_MASK
@@ -9077,8 +9089,13 @@ erase_transient_effect_overlays:
     sta EFFECT_DRAWN_MASK,x
     sta EFFECT_SCREEN_HI,x
 @next:
+    cpx EFFECT_SCRATCH1
+    beq @finished
     dex
-    bpl @slot
+    jmp @slot
+@finished:
+    lda EFFECT_RENDERED_MASK
+    and EFFECT_SCRATCH2
     sta EFFECT_RENDERED_MASK
     rts
 
@@ -9818,6 +9835,11 @@ update_transient_effects:
     lda ENTITY_FRAME_EVENTS
     and #ENTITY_EVENT_WORLD_ROW_ADVANCED
     sta EFFECT_SCRATCH0
+    lda frame_counter
+    and #$01
+    tay
+    lda effect_stagger_masks,y
+    sta EFFECT_SCRATCH1
     ldx #EFFECT_DEBRIS_FRAGMENT_COUNT
 @slot:
     dec EFFECT_TIMER,x
@@ -9825,9 +9847,16 @@ update_transient_effects:
     clc
     adc effect_fragment_vx,x
     sta EFFECT_X,x
+    ; The two fragment shapes remain part of the visual language, but advance
+    ; only on this slot's 25 Hz publication tick. Toggling at 50 Hz would
+    ; sample the same shape on every staggered draw.
+    lda entity_slot_bit_masks,x
+    and EFFECT_SCRATCH1
+    beq :+
     lda EFFECT_RENDER_ID,x
     eor #$01
     sta EFFECT_RENDER_ID,x
+:
     lda EFFECT_Y,x
     clc
     adc effect_fragment_vy,x
@@ -10131,11 +10160,19 @@ lower_cell_primitive_end:
 ; provides the dark fade.
 .segment "CODE"
 render_transient_effect_overlays:
-    ldx #$00
+    lda frame_counter
+    and #$01
+    tay
+    lda effect_stagger_render_start,y
+    tax
+    lda effect_stagger_render_end,y
+    sta EFFECT_SCRATCH2
+    tya
+    bne @slot
     lda EFFECT_ACTIVE_MASK
     lsr
     bcs @slot
-    inx                         ; mask $1E means the five-frame core expired
+    inx                         ; the five-frame core expired; slots 1/2 remain
 @slot:
     lda EFFECT_Y,x
     cmp #ENTITY_GAMEPLAY_TOP
@@ -10228,7 +10265,7 @@ render_transient_effect_overlays:
 @next_saved:
 @next:
     inx
-    cpx #EFFECT_ACTIVE_LIMIT
+    cpx EFFECT_SCRATCH2
     beq :+
     jmp @slot
 :
@@ -10525,6 +10562,17 @@ profile_projectile_compose_end = *
 .segment "ENTITY_CODE"
 entity_slot_bit_masks:
     .byte $01,$02,$04,$08,$10
+effect_stagger_masks:
+    ; Core and fragment one can share a cell during the first two logical
+    ; frames. Keeping slots 0/1/2 in one publication group preserves their
+    ; reverse backing order; slots 3/4 form the second group.
+    .byte $07,$18
+effect_stagger_render_start:
+    .byte $00,$03
+effect_stagger_render_end:
+    .byte $03,$05
+effect_stagger_erase_start:
+    .byte $02,$04
 entity_trajectory_vx:
     EMIT_ENTITY_TRAJECTORY_VX
 

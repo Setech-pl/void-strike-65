@@ -67,7 +67,10 @@ function armShot(memory, labels) {
   memory[requiredLabel(labels, "FIGHTER_PROJECTILE_LIFETIME")] = 10;
 }
 
-function snapshot(memory, labels, { phase, frame, eraseCycles, updateCycles, renderCycles }) {
+function snapshot(memory, labels, {
+  phase, frame, eraseCycles, updateCycles, renderCycles,
+  effectEraseCycles = 0, effectUpdateCycles = 0, effectRenderCycles = 0,
+}) {
   const effectState = requiredLabel(labels, "EFFECT_STATE");
   const effectType = requiredLabel(labels, "EFFECT_TYPE");
   const effectX = requiredLabel(labels, "EFFECT_X");
@@ -102,6 +105,7 @@ function snapshot(memory, labels, { phase, frame, eraseCycles, updateCycles, ren
     debrisHitFlashTimer: memory[requiredLabel(labels, "ENTITY_OWNER")],
     projectileActive: memory[requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE")],
     effectActiveMask: memory[requiredLabel(labels, "EFFECT_ACTIVE_MASK")],
+    effectRenderedMask: memory[requiredLabel(labels, "EFFECT_RENDERED_MASK")],
     effectActiveCount: memory[requiredLabel(labels, "EFFECT_ACTIVE_COUNT")],
     effectPending: memory[requiredLabel(labels, "EFFECT_ALLOCATION_RESULT")],
     effects,
@@ -111,6 +115,9 @@ function snapshot(memory, labels, { phase, frame, eraseCycles, updateCycles, ren
     eraseCycles,
     updateCycles,
     renderCycles,
+    effectEraseCycles,
+    effectUpdateCycles,
+    effectRenderCycles,
     scoreLo: memory[requiredLabel(labels, "score_bcd_lo")],
     scoreHi: memory[requiredLabel(labels, "score_bcd_hi")],
     enemyHp: memory[requiredLabel(labels, "ENEMY_HP")],
@@ -130,7 +137,9 @@ function snapshot(memory, labels, { phase, frame, eraseCycles, updateCycles, ren
   };
 }
 
-export function executeDebrisDestructionTrace({ root = defaultRoot, artifact = "xex" } = {}) {
+export function executeDebrisDestructionTrace({
+  root = defaultRoot, artifact = "xex", ringHead = 0,
+} = {}) {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "dist", "void-strike-65-manifest.json")));
   const labels = labelsFromFile(path.join(root, "build", "void-strike-65.lbl"));
   const memory = new Uint8Array(0x10000);
@@ -153,7 +162,7 @@ export function executeDebrisDestructionTrace({ root = defaultRoot, artifact = "
   memory[0x80ff] = 0xff;
   runRoutine(memory, labels, "copy_charset");
   runRoutine(memory, labels, "install_entity_effects_glyph");
-  initialiseRows(memory, labels);
+  initialiseRows(memory, labels, ringHead);
   // The payload occupies screen RAM only during boot. The deterministic
   // fixture starts from the same blank lower layer that gameplay owns after
   // initialization, so every visible byte in the review comes from the linked
@@ -184,16 +193,26 @@ export function executeDebrisDestructionTrace({ root = defaultRoot, artifact = "
     return 1;
   };
   const runFrame = (phase, frame, shot = false) => {
+    memory[requiredLabel(labels, "frame_counter")] += 1;
+    const effectEraseProbe = Uint8Array.from(memory);
+    const effectEraseCycles = memory[requiredLabel(labels, "EFFECT_RENDERED_MASK")] === 0 ? 0 :
+      runRoutine(effectEraseProbe, labels, "erase_transient_effect_overlays");
     const eraseCycles = runRoutine(memory, labels, "entity_effects_erase");
     if (shot) {
       armShot(memory, labels);
       runRoutine(memory, labels, "update_fighter_projectiles");
     }
     memory[requiredLabel(labels, "ENTITY_FRAME_EVENTS")] = frameEvent();
+    const effectUpdateProbe = Uint8Array.from(memory);
+    const effectUpdateCycles = runRoutine(effectUpdateProbe, labels, "update_transient_effects");
     const updateCycles = runRoutine(memory, labels, "entity_effects_update");
+    const effectRenderProbe = Uint8Array.from(memory);
+    const effectRenderCycles = memory[requiredLabel(labels, "EFFECT_ACTIVE_MASK")] === 0 ? 0 :
+      runRoutine(effectRenderProbe, labels, "render_transient_effect_overlays");
     const renderCycles = runRoutine(memory, labels, "entity_effects_render");
     records.push(snapshot(memory, labels,
-      { phase, frame, eraseCycles, updateCycles, renderCycles }));
+      { phase, frame, eraseCycles, updateCycles, renderCycles,
+        effectEraseCycles, effectUpdateCycles, effectRenderCycles }));
   };
 
   runRoutine(memory, labels, "entity_effects_render");
@@ -213,7 +232,9 @@ export function executeDebrisDestructionTrace({ root = defaultRoot, artifact = "
   };
 }
 
-export function executeInterceptorBreakupTrace({ root = defaultRoot, artifact = "xex" } = {}) {
+export function executeInterceptorBreakupTrace({
+  root = defaultRoot, artifact = "xex", ringHead = 0,
+} = {}) {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "dist", "void-strike-65-manifest.json")));
   const labels = labelsFromFile(path.join(root, "build", "void-strike-65.lbl"));
   const memory = new Uint8Array(0x10000);
@@ -237,7 +258,7 @@ export function executeInterceptorBreakupTrace({ root = defaultRoot, artifact = 
   runRoutine(memory, labels, "copy_charset");
   runRoutine(memory, labels, "init_fighter_projectiles");
   runRoutine(memory, labels, "install_entity_effects_glyph");
-  initialiseRows(memory, labels);
+  initialiseRows(memory, labels, ringHead);
   memory.fill(0, 0x3800, 0x4000);
   memory.fill(0, 0x4000, 0x4400);
   // Keep this Interceptor-only visual trace independent from the normal neutral
@@ -267,6 +288,10 @@ export function executeInterceptorBreakupTrace({ root = defaultRoot, artifact = 
     { phase: "PRE_HIT", frame: 0, eraseCycles: 0, updateCycles: 0, renderCycles: 0 }));
   let worldAccumulator = 0;
   for (let frame = 0; frame < 32; frame += 1) {
+    memory[requiredLabel(labels, "frame_counter")] += 1;
+    const effectEraseProbe = Uint8Array.from(memory);
+    const effectEraseCycles = memory[requiredLabel(labels, "EFFECT_RENDERED_MASK")] === 0 ? 0 :
+      runRoutine(effectEraseProbe, labels, "erase_transient_effect_overlays");
     const eraseCycles = runRoutine(memory, labels, "entity_effects_erase");
     runRoutine(memory, labels, "tick_shared_fighter_explosions");
     if (frame === 0) {
@@ -279,12 +304,18 @@ export function executeInterceptorBreakupTrace({ root = defaultRoot, artifact = 
     worldAccumulator += 9;
     memory[requiredLabel(labels, "ENTITY_FRAME_EVENTS")] = worldAccumulator >= 20 ? 1 : 0;
     if (worldAccumulator >= 20) worldAccumulator -= 20;
+    const effectUpdateProbe = Uint8Array.from(memory);
+    const effectUpdateCycles = runRoutine(effectUpdateProbe, labels, "update_transient_effects");
     const updateCycles = runRoutine(memory, labels, "entity_effects_update");
     runRoutine(memory, labels, "render_shared_fighter_explosions");
+    const effectRenderProbe = Uint8Array.from(memory);
+    const effectRenderCycles = memory[requiredLabel(labels, "EFFECT_ACTIVE_MASK")] === 0 ? 0 :
+      runRoutine(effectRenderProbe, labels, "render_transient_effect_overlays");
     const renderCycles = runRoutine(memory, labels, "entity_effects_render");
     runRoutine(memory, labels, "update_sound");
     records.push(snapshot(memory, labels,
-      { phase: "BREAKUP", frame, eraseCycles, updateCycles, renderCycles }));
+      { phase: "BREAKUP", frame, eraseCycles, updateCycles, renderCycles,
+        effectEraseCycles, effectUpdateCycles, effectRenderCycles }));
   }
 
   return {

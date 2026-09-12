@@ -1,11 +1,11 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 2.8
-Data aktualizacji: 2026-09-11  
+Wersja: 2.9
+Data aktualizacji: 2026-09-12
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD przed niniejszym prototypem: `0ffb24bf82d32f9b61d78395e0b30a90da8a54eb`
-Stan runtime: row-baked far stars + PASS PairShot foundation dla gracza i fighter enemies; bez unified schedulera
-Aktualny XEX owner-smoke candidate: SHA-256 `049c61a04dc26a3ae87949e6fb1b5a0b2c0d0f9cd87f0b949ae128f4c8f34e46`
+Aktualny HEAD przed niniejszym prototypem: `66b90c5185989302e5b105938480aad88aa125dc`
+Stan runtime: row-baked far stars + PairShot + PASS Effects 25 Hz/staggered; bez unified schedulera
+Aktualny XEX owner-smoke candidate: SHA-256 `8aa58a8c43f0771c589c594a6fc4f268ab9c778461f8005309d27da2fa86dce2`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
 
@@ -881,12 +881,65 @@ Decyzja techniczna:
 
 **PairShot foundation jest viable i gotowy jako owner-smoke candidate.**
 
+### Effects 25 Hz / staggered — TECHNICAL PASS / OWNER SMOKE
+
+Pięć aktywnych jednokomórkowych character effects zachowuje logiczny lifecycle
+i ruch 50 Hz, ale publikuje obraz w dwóch grupach 25 Hz. Grupa `$07` obejmuje
+sloty 0/1/2, a `$18` sloty 3/4. Sloty 0 i 1 celowo pozostają razem, ponieważ w
+pierwszych dwóch klatkach mogą zajmować tę samą komórkę; wspólna parity
+zachowuje reverse backing i usuwa wykryty w prototypie cross-parity ghost.
+
+Nie zmniejszono sześciu faz osobnej eksplozji fightera w PMG: nadal trwają po
+cztery PAL frames, 24 frames łącznie. Character fragmenty zachowują obie fazy
+glyph i wszystkie istniejące pasma kolorów. Damage, scoring, collision i
+moment logicznego eventu pozostają 50 Hz; tylko visual spawn może czekać
+maksymalnie jedną klatkę (`20 ms`).
+
+Instruction-exact peak samego visual publication spada:
+
+- before: `276 erase + 809 render = 1 085` cykli (clean PairShot HEAD,
+  wszystkie 22 pozycje ring head);
+- after: `222 erase + 522 render = 744` cykle;
+- odzysk: `341` cykli (`31,43%`), klasa PASS `651-750`.
+
+Simulation/bookkeeping rośnie o `35` cykli przez parity phase selection, więc
+net całego efektowego path odzyskuje `306` cykli. Focused XEX/ATR proof ma
+spawn latency `0-1`, `0` stale restore/ghost oraz końcowe
+`EFFECT_RENDERED_MASK=0` po najwyżej jednej klatce pending clear.
+
+Native Atari800 PAL objął `4 808` fighter OPEN frames, w tym `583` frames z
+pełnymi pięcioma slotami. Max active work wyniósł `13 674`, z headroom
+`17 526` do targetu i `18 894` do hard gate. Stabilny fighter OPEN oraz frames
+z aktywnymi effects mają `0` missed, `0` target/hard overruns, `0` extra VBI i
+`0` DLI anomalies. Długi trace ujawnił jeden istniejący missed dokładnie na
+granicy fighter→capital, przy nieaktywnych effects; nie został przypisany do
+raster wait ani objęty zmianą tego proofu.
+
+Przeliczony unified visual commit:
+
+- Normal `4 329-4 409`, margin `5 566-5 646`;
+- Rapid `4 525-4 605`, margin `5 370-5 450`;
+- Spread `4 786-4 866`, margin `5 109-5 189`;
+- player 5 + enemy 5 `5 441-5 521`, margin `4 454-4 534`.
+
+Linked runtime rośnie `17 215 -> 17 292 B`, residency `17 693 -> 17 770 B`,
+safe headroom spada `4 494 -> 4 417 B`. Nowy RAM wynosi `0 B`; użyto
+istniejącego `frame_counter`, scratch i backing. Wszystkie placement gates
+przechodzą, w tym initial content `12 903/12 928` z marginesem `25 B`.
+
+Raport:
+`docs/diagnostics/stage-2b2b-effects-25hz-staggered-proof.json`.
+
+Decyzja techniczna:
+
+**Effects 25 Hz/staggered jest viable i gotowy jako owner-smoke candidate.**
+
 ### Następny proof — tylko po osobnym promptcie
 
-> Effects 25 Hz / staggered feasibility.
+> Background/ring 25 Hz / staggered feasibility.
 
-Nie implementować tego kroku, Light ani unified schedulera w ramach PairShot
-foundation.
+Nie implementować tego kroku, debris 25 Hz, Light ani unified schedulera w
+ramach proofu Effects 25 Hz.
 
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 

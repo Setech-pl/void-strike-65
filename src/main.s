@@ -4162,7 +4162,12 @@ profile_projectile_pointer_end = *
     ; the slot arrays; only the composite helper below mutates it and reloads.
     ldy #$00
     lda (dst_ptr),y
-    sta FIGHTER_PROJECTILE_BACKUP_TOP,x
+enemy_projectile_effect_backing_resolve = *
+    ; PairShots can cross a staggered Raider breakup cell. Saving that moving
+    ; effect glyph would resurrect it when the projectile later erases.
+    ; Reuse the narrow same-layer resolver to capture the effect's lower
+    ; backing instead. The final player-ghost resolver itself remains untouched.
+    jsr store_projectile_backing_resolving_effect
     cpx #INTERCEPTOR_PROJECTILE_SLOT_BASE
     bcs @draw_top
     cmp #CH_SPACE
@@ -4195,6 +4200,7 @@ render_fighter_projectile_overlays_end = *
 .export render_fighter_projectile_overlays_end
 .export initialize_projectile_screen_pointer
 .export profile_projectile_pointer_end
+.export enemy_projectile_effect_backing_resolve
 
 ; -----------------------------------------------------------------------------
 ; Enemy
@@ -9817,10 +9823,13 @@ spawn_breakup_effects_at:
 ; a same-frame debris event has not rendered yet and is atomically replaced.
 .segment "CODE"
 spawn_interceptor_breakup_effects:
-    jsr clear_transient_effects
+    ; A second Raider kill can arrive while the opposite 25 Hz parity is still
+    ; visible. Drain that retained half before reusing the five effect records.
     lda #$02
     sta EFFECT_ALLOCATION_RESULT
-    jmp begin_enemy_fighter_explosion
+    ; The pending value is the replacement-only dispatch marker. Reusing the
+    ; existing resolver target keeps the frozen 101-sector initial envelope.
+    jmp resolve_effect_backing_below_transient_effect
 
 materialize_interceptor_breakup_effects:
     lda FIGHTER_EXPLOSION_X+FIGHTER_EXPLOSION_ENEMY_SLOT
@@ -10113,12 +10122,92 @@ resolve_effect_backing_below_player_pairshot:
     lda EFFECT_SCRATCH0
 @unchanged:
     rts
+
+; Two stagger groups can briefly quantise different radial fragments into the
+; same character cell. The later group must inherit the already-rendered
+; effect's lower backing, not its visible glyph, or its later erase resurrects
+; one detached fragment. The glyph fast path keeps ordinary effect draws out
+; of the bounded five-slot address scan.
+store_projectile_backing_resolving_effect:
+    ; Most projectile cells contain blank/base/star codes below 90. Keep that
+    ; legal ten-slot frame to +17 cycles/slot; only actual effect glyph ranges
+    ; pay the bounded five-slot resolver.
+    cmp #ENTITY_DEBRIS_GLYPH_BASE
+    bcc @store
+@resolve:
+    ; Projectile and effect pools use independent indices, so every rendered
+    ; effect slot must be considered even when its number equals X.
+    jsr resolve_effect_backing_below_transient_effect
+@store:
+    sta FIGHTER_PROJECTILE_BACKUP_TOP,x
+    rts
+resolve_effect_backing_below_transient_effect:
+    sta EFFECT_SCRATCH0
+    lda EFFECT_ALLOCATION_RESULT
+    cmp #$02
+    beq erase_retained_transient_effects
+    lda EFFECT_SCRATCH0
+resolve_effect_backing_below_transient_effect_regular = *
+    and #$7F
+    cmp #ENTITY_DEBRIS_GLYPH_BASE
+    bcc @enemy_eye
+    cmp #(EFFECT_FRAGMENT_GLYPH_BASE+EFFECT_FRAGMENT_GLYPH_COUNT)
+    bcc @candidate
+    bcs @restore
+@enemy_eye:
+    cmp #INTERCEPTOR_PROJECTILE_GLYPH_BASE
+    beq @candidate
+    cmp #(INTERCEPTOR_PROJECTILE_GLYPH_BASE+1)
+    beq @candidate
+    sec
+    bcs @restore
+@candidate:
+    ldy #$00
+@slot:
+    ; The current 25 Hz parity was erased before this render pass; therefore
+    ; a rendered bit can only name a lower, retained effect from the opposite
+    ; parity. No self-slot exclusion is needed, and omitting it also prevents
+    ; independent projectile/effect slot indices from aliasing.
+    lda entity_slot_bit_masks,y
+    and EFFECT_RENDERED_MASK
+    beq @next
+    lda EFFECT_SCREEN_LO,y
+    cmp dst_ptr
+    bne @next
+    lda EFFECT_SCREEN_HI,y
+    cmp dst_ptr+1
+    bne @next
+    lda EFFECT_BACKING0,y
+    sta EFFECT_SCRATCH0
+    sec
+    bcs @restore_y
+@next:
+    iny
+    cpy #EFFECT_ACTIVE_LIMIT
+    bne @slot
+    clc
+@restore_y:
+    ldy #$00
+@restore:
+    lda EFFECT_SCRATCH0
+    rts
+erase_retained_transient_effects:
+    inc frame_counter
+    jsr erase_transient_effect_overlays
+    dec frame_counter
+    jsr clear_transient_effects
+    lda #$02
+    sta EFFECT_ALLOCATION_RESULT
+    jmp begin_enemy_fighter_explosion
 resolve_effect_backing_below_player_pairshot_end:
     ; Keep the reviewed pickup/collision transport boundary byte-exact. The
     ; rejected 187-byte generic primitive occupied this footprint; the narrow
     ; fix uses only its prefix and leaves the remainder inert.
     .res $BB-(resolve_effect_backing_below_player_pairshot_end-resolve_effect_backing_below_player_pairshot)
 .export resolve_effect_backing_below_player_pairshot
+.export resolve_effect_backing_below_transient_effect
+.export resolve_effect_backing_below_transient_effect_regular
+.export erase_retained_transient_effects
 
 ; Effects render after the interactive layer. Slot order is core then the four
 ; fragments; erase scans the physical pool in the exact opposite direction.
@@ -10184,6 +10273,7 @@ render_transient_effect_overlays:
     ldy #$00
     lda (dst_ptr),y
     jsr resolve_effect_backing_below_player_pairshot
+    jsr resolve_effect_backing_below_transient_effect
     sta EFFECT_BACKING0,x
     cpx #$00
     beq @core
@@ -10220,8 +10310,8 @@ render_transient_effect_overlays:
     bne @core_codes
 @yellow_core:
     lda EFFECT_RENDER_ID,x
-    beq @outside_y
     bne @core_codes
+    jmp @next_saved
 @dark_core:
     lda #EFFECT_FRAGMENT_GLYPH_BASE|$80
 @core_codes:

@@ -177,8 +177,8 @@ const directorRunAddress = 0x9d75;
 const directorGuardAddress = 0x9ffa;
 // Row-baked far stars and one-cell PairShots reduce the runtime while retaining
 // the same loader implementation and four external publication records.
-const expectedInitialContentBytes = 12912;
-const expectedLinkedRuntimeBytes = 17302;
+const expectedInitialContentBytes = 12914;
+const expectedLinkedRuntimeBytes = 17303;
 const expectedDirectorRawBytes = 644;
 const expectedDirectorPackedBytes = 587;
 const expectedGlueRawBytes = 250;
@@ -893,7 +893,7 @@ async function build() {
   if (bootSectors !== 101 || totalTransportSectors !== 161 ||
     transportPayload.length !== 20608 || JSON.stringify(frozenRecordShape) !== JSON.stringify([
       [102, 45, 5652, 6647, 0x5e10],
-      [147, 7, 754, 754,
+      [147, 7, 850, 850,
         weaponPickupPackedStagingAddress],
       [154, 3, 245, 250, glueStagingAddress],
       [157, 5, 587, 644, directorRunAddress],

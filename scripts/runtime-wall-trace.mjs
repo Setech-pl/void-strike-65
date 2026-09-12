@@ -173,6 +173,12 @@ const pairShotStaleSessions = [
   kind: "pairshot-stale-native",
 }));
 
+const raiderRemnantSessions = pairShotStaleSessions.map((session) => ({
+  ...session,
+  id: session.id.replace("pairshot-stale", "raider-remnant"),
+  kind: "raider-remnant-native",
+}));
+
 const weaponPickupTraversalSessions = [{
   id: "weapon-pickup-traversal-2-observe-fire4",
   difficulty: 2,
@@ -467,6 +473,8 @@ const traceLabels = {
   DFTRACE_EFFECT_ACTIVE_MASK: "EFFECT_ACTIVE_MASK",
   DFTRACE_EFFECT_ACTIVE_COUNT: "EFFECT_ACTIVE_COUNT",
   DFTRACE_EFFECT_RENDERED_MASK: "EFFECT_RENDERED_MASK",
+  DFTRACE_EFFECT_SCREEN_LO: "EFFECT_SCREEN_LO",
+  DFTRACE_EFFECT_SCREEN_HI: "EFFECT_SCREEN_HI",
   DFTRACE_CORRIDOR_PHASE: "corridor_phase",
   DFTRACE_RING_FLAGS: "PLAYFIELD_RING_FLAGS",
   DFTRACE_ACTIVE_DLIST_LO: "PLAYFIELD_ACTIVE_DLIST_LO",
@@ -549,6 +557,9 @@ const numericCsvFields = new Set([
   "colbk", "colpm0", "colpm1", "colpm2", "colpm3", "colpf0", "colpf1",
   "colpf2", "colpf3", "player_fighter_explosion_timer", "enemy_explosion_timer",
   "effect_active_mask", "effect_active_count", "effect_rendered_mask",
+  "transient_effect_orphan_cells", "transient_effect_first_address",
+  "transient_effect_first_code", "transient_effect_first_writer_pc",
+  "transient_effect_first_writer_x",
   "entity_active_mask", "pickup_state", "pickup_booster_state", "pickup_counter", "pickup_x", "pickup_y",
   "pickup_timer_lo", "pickup_timer_hi", "pickup_animation", "pickup_render_id",
   "pickup_drawn_mask", "score_lo", "score_hi", "rapid_projectiles",
@@ -1846,6 +1857,7 @@ function main() {
   const raiderSectorOnly = process.argv.includes("--raider-sector-only");
   const pairShotOnly = process.argv.includes("--pairshot-only");
   const pairShotStaleOnly = process.argv.includes("--pairshot-stale-only");
+  const raiderRemnantOnly = process.argv.includes("--raider-remnant-only");
   const effectsStaggerOnly = process.argv.includes("--effects-stagger-only");
   const skipBootSmoke = process.argv.includes("--skip-boot-smoke");
   const tracePreflightOnly = process.argv.includes("--trace-preflight-only");
@@ -2012,7 +2024,9 @@ function main() {
       if (fs.existsSync(framePath)) fs.unlinkSync(framePath);
     }
   }
-  let sessionsToRun = pairShotStaleOnly
+  let sessionsToRun = raiderRemnantOnly
+    ? raiderRemnantSessions
+    : pairShotStaleOnly
     ? pairShotStaleSessions
     : effectsStaggerOnly
     ? [...pairShotSessions, ...debrisEffectsSessions]
@@ -2807,6 +2821,87 @@ function main() {
     const reportPath = path.join(buildDirectory, "pairshot-stale-native-report.json");
     fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
     console.log(`PairShot stale native report: ${path.relative(rootDirectory, reportPath)}`);
+    if (!report.passed) process.exitCode = 1;
+    return;
+  }
+  if (raiderRemnantOnly) {
+    const rows = allRows;
+    const fighterRows = rows.filter((row) => row.sector_state === 7 &&
+      row.player_lifecycle === 0 && row.player_fighter_explosion_timer === 0);
+    const profileComplete = (row) => {
+      const clocks = [row.start_clock,
+        ...traceProfileLabels.map((unused, index) => row[`profile_clock${index}`]),
+        row.end_clock];
+      return clocks.every((clock, index) => Number.isInteger(clock) &&
+        (index === 0 || clock >= clocks[index - 1]));
+    };
+    const dliOverlap = (row, start, end) => Array.from({ length: 2 }, (unused, index) => ({
+      start: row[`profile_dli${index}_start`], end: row[`profile_dli${index}_end`],
+    })).reduce((sum, dli) => sum + Math.max(0,
+      Math.min(end, dli.end) - Math.max(start, dli.start)), 0);
+    const activeWorkCycles = (row) => {
+      const waitStart = row.profile_clock19;
+      const waitEnd = row.profile_publication_begin;
+      invariant(waitEnd >= waitStart && waitStart > 0,
+        `Raider remnant publication interval missing at ${row.session}:${row.frame}`);
+      return row.wall_cycles - (waitEnd - waitStart) +
+        dliOverlap(row, waitStart, waitEnd) + 32;
+    };
+    const completeRows = fighterRows.filter(profileComplete);
+    invariant(completeRows.length > 0,
+      "Raider remnant native mode has no profiled OPEN frames");
+    const heaviest = maximumRow(completeRows, activeWorkCycles);
+    const kills = rows.filter((row) => (row.events & (1 << 17)) !== 0).length;
+    const anomalies = {
+      effect_orphan_sum: rows.reduce((sum, row) =>
+        sum + row.transient_effect_orphan_cells, 0),
+      maximum_effect_orphans: Math.max(...rows.map((row) =>
+        row.transient_effect_orphan_cells)),
+      pairshot_orphan_sum: rows.reduce((sum, row) =>
+        sum + row.player_projectile_orphan_cells, 0),
+      maximum_pairshot_orphans: Math.max(...rows.map((row) =>
+        row.player_projectile_orphan_cells)),
+      missed: rows.reduce((sum, row) => sum + row.missed_frames, 0),
+      target_overruns: completeRows.filter((row) => activeWorkCycles(row) > 31_200).length,
+      hard_overruns: completeRows.filter((row) => activeWorkCycles(row) > 32_568).length,
+      extra_vbi: rows.reduce((sum, row) => sum + row.extra_vbi_boundaries, 0),
+      dli: rows.reduce((sum, row) => sum + row.dli_sequence_violations, 0),
+    };
+    const report = {
+      schema_version: 1,
+      generated_by: "scripts/runtime-wall-trace.mjs --raider-remnant-only",
+      emulator: "Atari800 7.1.2 PAL/XL",
+      artifact_sha256: runtimeArtifacts,
+      sessions: sessionsToRun.map(({ id, policy, frames }) => ({ id, policy, frames })),
+      frames: rows.length,
+      fighter_open_frames: fighterRows.length,
+      raider_breakup_events: kills,
+      remnants: {
+        sum: anomalies.effect_orphan_sum,
+        maximum_per_frame: anomalies.maximum_effect_orphans,
+      },
+      pairshot_regression: {
+        orphan_sum: anomalies.pairshot_orphan_sum,
+        maximum_per_frame: anomalies.maximum_pairshot_orphans,
+      },
+      timing: {
+        maximum_active_work_cycles: activeWorkCycles(heaviest),
+        maximum_raw_cadence_cycles: Math.max(...rows.map((row) => row.wall_cycles)),
+        target_headroom_cycles: 31_200 - activeWorkCycles(heaviest),
+        hard_gate_headroom_cycles: 32_568 - activeWorkCycles(heaviest),
+        ...anomalies,
+      },
+      csv: sessionsToRun.map(({ id }) => path.relative(rootDirectory,
+        path.join(buildDirectory, `${id}.csv`))),
+      passed: kills > 0 && anomalies.effect_orphan_sum === 0 &&
+        anomalies.pairshot_orphan_sum === 0 &&
+        activeWorkCycles(heaviest) <= 32_568 &&
+        anomalies.hard_overruns === 0 && anomalies.extra_vbi === 0 &&
+        anomalies.dli === 0,
+    };
+    const reportPath = path.join(buildDirectory, "raider-remnant-native-report.json");
+    fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+    console.log(`Raider remnant native report: ${path.relative(rootDirectory, reportPath)}`);
     if (!report.passed) process.exitCode = 1;
     return;
   }

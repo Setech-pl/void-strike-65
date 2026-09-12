@@ -170,6 +170,11 @@ typedef struct {
 	unsigned effect_active_mask;
 	unsigned effect_active_count;
 	unsigned effect_rendered_mask;
+	unsigned transient_effect_orphan_cells;
+	unsigned transient_effect_first_address;
+	unsigned transient_effect_first_code;
+	unsigned transient_effect_first_writer_pc;
+	unsigned transient_effect_first_writer_x;
 	unsigned rapid_projectiles;
 	unsigned player_fighter_projectiles;
 	unsigned player_projectile_recycled_checks;
@@ -329,6 +334,7 @@ static DFTraceFrame dftrace_current;
 #define DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT 5u
 #define DFTRACE_INTERCEPTOR_SLOT_BASE 5u
 #define DFTRACE_INTERCEPTOR_SLOT_COUNT 5u
+#define DFTRACE_PROJECTILE_SLOT_COUNT 10u
 #define DFTRACE_PROJECTILE_ARRAY_STRIDE 10u
 #define DFTRACE_INTERCEPTOR_GLYPH_FIRST 0xdau
 #define DFTRACE_INTERCEPTOR_GLYPH_LAST 0xe4u
@@ -492,6 +498,8 @@ static unsigned dftrace_score_hi;
 static unsigned dftrace_effect_active_mask;
 static unsigned dftrace_effect_active_count;
 static unsigned dftrace_effect_rendered_mask;
+static unsigned dftrace_effect_screen_lo;
+static unsigned dftrace_effect_screen_hi;
 static unsigned dftrace_engine_timer;
 static unsigned dftrace_engine_phase;
 static unsigned dftrace_corridor_phase;
@@ -506,6 +514,8 @@ static unsigned dftrace_gameplay_generation;
 static int dftrace_restart_game_over_seeded;
 static unsigned dftrace_previous_pc;
 static unsigned dftrace_pmg_last_writer[256];
+static unsigned dftrace_character_last_writer[65536];
+static unsigned dftrace_character_last_writer_x[65536];
 static unsigned dftrace_engine_previous[16];
 static int dftrace_engine_previous_valid;
 static unsigned dftrace_frontend_delay;
@@ -1476,6 +1486,107 @@ static void dftrace_snapshot_player_pairshot_orphans(DFTraceFrame *frame)
 		if (dftrace_is_player_pairshot_code(MEMORY_mem[address]) &&
 			!dftrace_player_pairshot_owns(address))
 			++frame->player_projectile_orphan_cells;
+}
+
+static int dftrace_is_transient_effect_code(unsigned value)
+{
+	unsigned code = value & 0x7fu;
+	return (code >= 110u && code < 120u) || code == 90u || code == 91u;
+}
+
+static void dftrace_track_character_screen_write(unsigned x_register, unsigned y_register)
+{
+	unsigned opcode;
+	unsigned address;
+	unsigned zp;
+	if (dftrace_previous_pc == 0u)
+		return;
+	opcode = MEMORY_mem[dftrace_previous_pc];
+	if (opcode == 0x91u) {
+		zp = MEMORY_mem[(dftrace_previous_pc + 1u) & 0xffffu];
+		address = MEMORY_mem[zp] |
+			((unsigned) MEMORY_mem[(zp + 1u) & 0xffu] << 8);
+		address = (address + y_register) & 0xffffu;
+	}
+	else if (opcode == 0x8du) {
+		address = MEMORY_mem[(dftrace_previous_pc + 1u) & 0xffffu] |
+			((unsigned) MEMORY_mem[(dftrace_previous_pc + 2u) & 0xffffu] << 8);
+	}
+	else
+		return;
+	if ((address >= DFTRACE_RING_SCREEN && address < DFTRACE_RING_END) ||
+		(address >= DFTRACE_DIVIDER_SCREEN && address < DFTRACE_DIVIDER_SCREEN + 40u)) {
+		dftrace_character_last_writer[address] = dftrace_previous_pc;
+		dftrace_character_last_writer_x[address] = x_register;
+	}
+}
+
+static int dftrace_transient_character_owner(unsigned address)
+{
+	unsigned slot;
+	for (slot = 0u; slot < 5u; ++slot) {
+		unsigned owned;
+		if ((MEMORY_mem[dftrace_effect_rendered_mask] & (1u << slot)) == 0u)
+			continue;
+		owned = MEMORY_mem[dftrace_effect_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_effect_screen_hi + slot] << 8);
+		if (owned == address)
+			return 1;
+	}
+	if ((MEMORY_mem[dftrace_entity_active_mask] & 1u) != 0u &&
+		MEMORY_mem[dftrace_entity_screen_hi] != 0u) {
+		unsigned owned = MEMORY_mem[dftrace_entity_screen_lo] |
+			((unsigned) MEMORY_mem[dftrace_entity_screen_hi] << 8);
+		if (owned == address || owned + 1u == address)
+			return 1;
+	}
+	for (slot = 0u; slot < DFTRACE_PROJECTILE_SLOT_COUNT; ++slot) {
+		unsigned owned;
+		if (MEMORY_mem[dftrace_projectile_rendered + slot] == 0u)
+			continue;
+		owned = MEMORY_mem[dftrace_projectile_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_projectile_screen_hi + slot] << 8);
+		if (owned == address)
+			return 1;
+	}
+	return 0;
+}
+
+static void dftrace_snapshot_transient_effect_orphans(DFTraceFrame *frame)
+{
+	unsigned address;
+	frame->transient_effect_orphan_cells = 0u;
+	frame->transient_effect_first_address = 0u;
+	frame->transient_effect_first_code = 0u;
+	frame->transient_effect_first_writer_pc = 0u;
+	frame->transient_effect_first_writer_x = 0u;
+	for (address = DFTRACE_DIVIDER_SCREEN;
+		address < DFTRACE_DIVIDER_SCREEN + 40u; ++address)
+		if (dftrace_is_transient_effect_code(MEMORY_mem[address]) &&
+			!dftrace_transient_character_owner(address)) {
+			if (frame->transient_effect_orphan_cells == 0u) {
+				frame->transient_effect_first_address = address;
+				frame->transient_effect_first_code = MEMORY_mem[address];
+				frame->transient_effect_first_writer_pc =
+					dftrace_character_last_writer[address];
+				frame->transient_effect_first_writer_x =
+					dftrace_character_last_writer_x[address];
+			}
+			++frame->transient_effect_orphan_cells;
+		}
+	for (address = DFTRACE_RING_SCREEN; address < DFTRACE_RING_END; ++address)
+		if (dftrace_is_transient_effect_code(MEMORY_mem[address]) &&
+			!dftrace_transient_character_owner(address)) {
+			if (frame->transient_effect_orphan_cells == 0u) {
+				frame->transient_effect_first_address = address;
+				frame->transient_effect_first_code = MEMORY_mem[address];
+				frame->transient_effect_first_writer_pc =
+					dftrace_character_last_writer[address];
+				frame->transient_effect_first_writer_x =
+					dftrace_character_last_writer_x[address];
+			}
+			++frame->transient_effect_orphan_cells;
+		}
 }
 
 static void dftrace_pairshot_rotate_begin(void)
@@ -2917,6 +3028,7 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 {
 	dftrace_snapshot_rapid_projectile(frame);
 	dftrace_snapshot_player_pairshot_orphans(frame);
+	dftrace_snapshot_transient_effect_orphans(frame);
 	frame->colbk = GTIA_COLBK;
 	frame->colpm0 = GTIA_COLPM0;
 	frame->colpm1 = GTIA_COLPM1;
@@ -3042,7 +3154,10 @@ static void dftrace_write(void)
 		",enemy_live_count,enemy_projectiles"
 		",enemy_x0,enemy_x1,enemy_y0,enemy_y1,enemy_hpos1,enemy_hpos2"
 		",enemy_pmg_rows1,enemy_pmg_rows2,player_projectile_recycled_checks"
-		",player_projectile_stale_cells,player_projectile_orphan_cells\n");
+		",player_projectile_stale_cells,player_projectile_orphan_cells"
+		",transient_effect_orphan_cells,transient_effect_first_address"
+		",transient_effect_first_code,transient_effect_first_writer_pc"
+		",transient_effect_first_writer_x\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -3228,14 +3343,19 @@ static void dftrace_write(void)
 			frame->enemy_member_state[2], frame->enemy_member_hp[0],
 			frame->enemy_member_hp[1], frame->enemy_member_hp[2],
 			frame->enemy_live_count, frame->enemy_projectiles);
-		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n",
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n",
 			frame->enemy_slot_x[0], frame->enemy_slot_x[1],
 			frame->enemy_slot_y[0], frame->enemy_slot_y[1],
 			frame->enemy_hpos[0], frame->enemy_hpos[1],
 			frame->enemy_pmg_rows[0], frame->enemy_pmg_rows[1],
 			frame->player_projectile_recycled_checks,
 			frame->player_projectile_stale_cells,
-			frame->player_projectile_orphan_cells);
+			frame->player_projectile_orphan_cells,
+			frame->transient_effect_orphan_cells,
+			frame->transient_effect_first_address,
+			frame->transient_effect_first_code,
+			frame->transient_effect_first_writer_pc,
+			frame->transient_effect_first_writer_x);
 	}
 	if (fclose(file) != 0) {
 		perror("voidstrike65 trace close");
@@ -3435,6 +3555,8 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_effect_active_mask, "DFTRACE_EFFECT_ACTIVE_MASK");
 	DFTRACE_ADDRESS(dftrace_effect_active_count, "DFTRACE_EFFECT_ACTIVE_COUNT");
 	DFTRACE_ADDRESS(dftrace_effect_rendered_mask, "DFTRACE_EFFECT_RENDERED_MASK");
+	DFTRACE_ADDRESS(dftrace_effect_screen_lo, "DFTRACE_EFFECT_SCREEN_LO");
+	DFTRACE_ADDRESS(dftrace_effect_screen_hi, "DFTRACE_EFFECT_SCREEN_HI");
 	DFTRACE_ADDRESS(dftrace_engine_timer, "DFTRACE_ENGINE_TIMER");
 	DFTRACE_ADDRESS(dftrace_engine_phase, "DFTRACE_ENGINE_PHASE");
 	DFTRACE_ADDRESS(dftrace_corridor_phase, "DFTRACE_CORRIDOR_PHASE");
@@ -3630,6 +3752,7 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 	}
 	if (!dftrace_initialised)
 		dftrace_init();
+	dftrace_track_character_screen_write(x_register, y_register);
 	dftrace_watch_interceptor_projectiles();
 	dffence_observe(pc, x_register);
 	if (dftrace_published_dlist_lo == 0u && MEMORY_mem[dftrace_game_state] == 6u)

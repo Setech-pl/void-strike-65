@@ -1,11 +1,11 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 3.1
+Wersja: 3.2
 Data aktualizacji: 2026-09-12
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD przed niniejszą poprawką: `0f5cc6c024fd29a83ae53ec0480484e0165b9cd1`
-Stan runtime: row-baked far stars + PairShot + PASS Effects 25 Hz/staggered + PASS final single-ghost fix; bez unified schedulera
-Aktualny XEX owner-smoke candidate: SHA-256 `c2643fa8aca308c18de026777b7067a93f0b755f91b7df6a037aece0f42ba798`
+Aktualny HEAD przed niniejszą poprawką: `f896a5e01a43bcc897df37ad9c9a2f25b5b69a1b`
+Stan runtime: row-baked far stars + PairShot + PASS Effects 25 Hz/staggered + PASS PairShot ghost fixes + PASS Raider remnant fix; bez unified schedulera
+Aktualny XEX owner-smoke candidate: SHA-256 `c4d70373abaac659b782b2a4bc9126c5b8dbcb9122fb964f7272bbe69d59fb07`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
 
@@ -1033,14 +1033,58 @@ Decyzja techniczna:
 owner smoke poprawionego XEX. Niebieskie row-baked far stars pozostają jawnie
 poza zakresem.**
 
+### Raider destruction remnant — FIX PASS / OWNER SMOKE
+
+Natywny ślad potwierdził, że pozostałość po Raiderze była komórką znakowego
+efektu, nie bajtem PMG ani aktywnym debris. Dwa mechanizmy mogły zatruć
+backing: fragmenty z przeciwnych grup staggera mogły przejąć wzajemny glyph,
+a PairShot przechodzący przez fragment mógł zapisać ten glyph jako własny
+underlay. Ostatni rzadki przypadek wynikał z aliasu numerów niezależnych pul:
+resolver pomijał effect slot, kiedy jego numer był równy numerowi projectile
+slot.
+
+Minimalna poprawka:
+
+- effect backing przechodzi przez pięcioslotowy resolver aktywnego niższego
+  efektu;
+- PairShot zapisuje lower backing aktywnego efektu zamiast jego glyphu;
+- resolver skanuje wszystkie widoczne effect slots, bez błędnego porównywania
+  ich indeksów z projectile slot;
+- przed ponownym użyciem całej puli efektów druga widoczna grupa parity jest
+  najpierw poprawnie wymazana.
+
+Wyniki:
+
+- legacy deterministic matrix: `745` stale cells w `401/1000` kill sequences;
+- final XEX+ATR matrix: `2000` kill sequences, `0` remnants, `0` restore
+  mismatch i `0` PairShot ghosts;
+- native Atari800 PAL: `9000` frames, `114` Raider breakup events,
+  `0` effect remnants i `0` PairShot orphan cells;
+- active-work max `14 689`, `0` target/hard overruns, `0` extra VBI,
+  `0` DLI anomalies;
+- effect publication peak `822 -> 978`, delta `+156` cycles; trafiony
+  projectile alias path `351 -> 533`, delta `+182`, oba poniżej lokalnego
+  stop gate `+300`;
+- linked runtime `17 302 -> 17 303 B`, residency `17 780 -> 17 781 B`, safe
+  headroom `4 406 B`; loader, transport format, starfield i gameplay debris
+  pozostają bez zmian.
+
+Raport:
+`docs/diagnostics/stage-2b2b-raider-destruction-remnant-fix.json`.
+
+Decyzja techniczna:
+
+**Raider destruction remnant fix przechodzi bramkę techniczną; wymagany jest
+owner smoke poprawionego XEX.**
+
 ### Następny krok — tylko owner smoke
 
-> Owner smoke final single PairShot ghost fix.
+> Owner smoke Raider remnant fix.
 
 Nie wykonywać w ramach tej poprawki Background/ring 25 Hz, debris 25 Hz,
-Light, unified schedulera, naprawy artefaktu po zniszczonym Raiderze ani
-naprawy skokowych/podwójnych niebieskich row-baked far stars. Ten ostatni
-problem jest osobnym NEXT dopiero po owner PASS niniejszej poprawki.
+Light, unified schedulera ani naprawy skokowych/podwójnych niebieskich
+row-baked far stars. Problem starfield jest osobnym NEXT dopiero po owner PASS
+niniejszej poprawki.
 
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 

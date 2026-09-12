@@ -1,0 +1,239 @@
+{
+  "schema": "void-strike-65.stage-2b2b-raider-destruction-remnant-fix.v1",
+  "date": "2026-09-12",
+  "status": "PASS_RAIDER_REMNANT_FIX",
+  "model": {
+    "used": "Codex (GPT-5 family)",
+    "reasoning": "High",
+    "requested_label_not_exposed": "GPT-5.6 Sol"
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "head_before": "f896a5e01a43bcc897df37ad9c9a2f25b5b69a1b",
+    "wip_refs_preserved": [
+      "refs/wip/stage2b-foreign-0803",
+      "refs/wip/stage2b0-fdb-proof",
+      "refs/wip/stage2b2-single-window-rejected"
+    ],
+    "claude_untouched": true
+  },
+  "scope": {
+    "fixed": "character remnants left by the Raider kill/effect sequence",
+    "confirmed_not_source": [
+      "Raider PMG bytes",
+      "active gameplay debris",
+      "ring rotation itself"
+    ],
+    "unchanged": [
+      "the final PlayerFighter PairShot ghost resolver",
+      "PairShot lifecycle, pool, cadence, damage and collision semantics",
+      "Effects 25 Hz/staggered cadence and six visual phases",
+      "row-baked far-star source and runtime",
+      "debris gameplay semantics",
+      "loader and transport format"
+    ]
+  },
+  "root_cause": {
+    "classification": "character effect glyph restored through stale backing",
+    "sequence": [
+      "opposite 25 Hz effect parity groups can quantise moving Raider fragments into the same character cell",
+      "without same-layer resolution the later effect captures the earlier effect glyph instead of its lower backing",
+      "a PairShot crossing a visible fragment can likewise capture that transient glyph as projectile backing",
+      "the original resolver skipped an effect slot when its numeric index equalled X",
+      "projectile X is a projectile-pool index, not an effect-pool index, so projectile slot 1 or 3 could incorrectly skip effect slot 1 or 3",
+      "after the effect moved or expired, projectile erase restored the captured fragment into an unowned physical cell",
+      "ring recycling then transported that already-stale character downward"
+    ],
+    "player_movement_correlation": "rejected; X movement only changes the chance and address of a PairShot/effect intersection",
+    "first_native_alias": {
+      "physical_address": "$82DC",
+      "glyph": 111,
+      "last_writer_pc": "$2B2E",
+      "last_writer": "erase_fighter_projectile_slot backing restore",
+      "projectile_slot_x": 1
+    },
+    "second_native_alias": {
+      "physical_address": "$82D4",
+      "glyph": 219,
+      "last_writer_pc": "$2B2E",
+      "projectile_slot_x": 3
+    }
+  },
+  "reproducer_before": {
+    "legacy_matrix": {
+      "artifact": "XEX",
+      "raider_kills": 1000,
+      "failing_kill_sequences": 401,
+      "remnant_cells": 745,
+      "modes": ["NORMAL", "RAPID", "SPREAD"],
+      "movement": ["STATIONARY", "LEFT", "RIGHT", "REVERSAL"],
+      "y_bands": ["HIGH", "MID", "LOW"],
+      "includes_ring_step": true,
+      "includes_ring_wrap": true
+    },
+    "first_same_layer_failure": {
+      "kill": 0,
+      "enemy_x": 52,
+      "enemy_y": 32,
+      "ring_head": 0,
+      "physical_address": "$407A",
+      "logical_row": 18,
+      "physical_row": 1,
+      "glyph": 110,
+      "write_sequence": [
+        "frame 1 effect render: 0 -> 110",
+        "frame 2 overlapping effect render: 110 -> 219",
+        "frame 3 effect erase: 219 -> 0",
+        "frame 4 opposite-parity erase: 0 -> 110"
+      ]
+    },
+    "slot_alias_microtrace": {
+      "effect_slot": 3,
+      "projectile_slot": 3,
+      "physical_address": "$41CC",
+      "visible_effect_glyph": 219,
+      "lower_backing": 0,
+      "legacy_saved_backing": 219,
+      "legacy_restored": 219,
+      "fixed_saved_backing": 0,
+      "fixed_restored": 0
+    },
+    "pre_final_native_alias_candidate": {
+      "frames": 9000,
+      "effect_orphan_observations": 71,
+      "maximum_orphans_per_frame": 2,
+      "pairshot_orphans": 0
+    }
+  },
+  "fix": {
+    "same_layer_resolver": "resolve_effect_backing_below_transient_effect",
+    "projectile_capture_wrapper": "store_projectile_backing_resolving_effect",
+    "replacement_drain": "erase_retained_transient_effects",
+    "semantics": [
+      "an effect landing on a retained lower effect stores that effect's lower backing",
+      "a PairShot landing on an active effect stores the effect's lower backing",
+      "all five rendered effect slots are scanned; independent projectile and effect indices are never compared",
+      "the current effect parity needs no self exclusion because its rendered bits were erased before rendering",
+      "before a full Raider effect-pool replacement, the retained opposite parity is erased before records are cleared and reused"
+    ],
+    "state_bytes_added": 0,
+    "fixed_pickup_code_footprint_preserved": true,
+    "full_compositor_added": false,
+    "pairshot_final_ghost_resolver_modified": false,
+    "starfield_changed": false
+  },
+  "focused_verification": {
+    "tests": [
+      "tests/raider-remnant.test.mjs",
+      "tests/pairshot-foundation.test.mjs",
+      "tests/effects-stagger.test.mjs",
+      "tests/cold-pickup-record-fit.test.mjs",
+      "tests/layout-d1.test.mjs",
+      "tests/starfield.test.mjs"
+    ],
+    "test_count": 33,
+    "passed": 33,
+    "failed": 0,
+    "acceptance_matrix": {
+      "artifacts": ["XEX", "ATR"],
+      "kills_per_artifact": 1000,
+      "total_kills": 2000,
+      "modes": ["NORMAL", "RAPID", "SPREAD"],
+      "movement": ["STATIONARY", "LEFT", "RIGHT", "REVERSAL"],
+      "y_bands": ["HIGH", "MID", "LOW"],
+      "ring_step_kills": "non-zero",
+      "ring_wrap_kills": "non-zero",
+      "simultaneous_effects": 5,
+      "remnant_cells": 0,
+      "restore_mismatches": 0,
+      "lost_erases": 0,
+      "pairshot_ghosts": 0
+    }
+  },
+  "cpu": {
+    "effect_publication_peak_before": 822,
+    "effect_publication_peak_after": 978,
+    "effect_peak_delta": 156,
+    "slot_alias_projectile_render_before": 351,
+    "slot_alias_projectile_render_after": 533,
+    "slot_alias_path_delta": 182,
+    "local_stop_gate_delta": 300,
+    "local_gate_passed": true,
+    "native_maximum_active_work_cycles": 14689,
+    "native_maximum_raw_cadence_cycles": 36422,
+    "target_cycles": 31200,
+    "target_headroom_cycles": 16511,
+    "hard_gate_cycles": 32568,
+    "hard_gate_headroom_cycles": 17879
+  },
+  "native": {
+    "emulator": "Atari800 7.1.2 PAL/XL instrumented",
+    "command": "ATARI800_TRACE_SOURCE=~/Projects/tools/atari800-7.1.2 node scripts/runtime-wall-trace.mjs --prepare --raider-remnant-only",
+    "sessions": ["NORMAL", "RAPID", "SPREAD"],
+    "frames_per_session": 3000,
+    "total_frames": 9000,
+    "fighter_open_frames": 5140,
+    "raider_breakup_events": 114,
+    "effect_remnants": 0,
+    "maximum_effect_remnants_per_frame": 0,
+    "pairshot_orphans": 0,
+    "maximum_pairshot_orphans_per_frame": 0,
+    "missed_frames": 3,
+    "target_overruns": 0,
+    "hard_overruns": 0,
+    "extra_vbi": 0,
+    "dli_anomalies": 0,
+    "missed_interpretation": "one raw-cadence wait crossing per independent long session; active work remained below target and no VBI/raster gate failed",
+    "report": "build/runtime-wall-trace/raider-remnant-native-report.json",
+    "passed": true
+  },
+  "memory_and_placement": {
+    "linked_runtime_before": 17302,
+    "linked_runtime_after": 17303,
+    "linked_delta": 1,
+    "simultaneous_residency_before": 17780,
+    "simultaneous_residency_after": 17781,
+    "residency_delta": 1,
+    "safe_headroom_after": 4406,
+    "new_state_bytes": 0,
+    "pickup_code_runtime_bytes": 871,
+    "pickup_collision_runtime_bytes": 904,
+    "cold_record_before": 754,
+    "cold_record_after": 850,
+    "cold_capacity": 1277,
+    "cold_margin_after": 427,
+    "initial_content": 12914,
+    "initial_capacity": 12928,
+    "initial_margin": 14,
+    "starfield_packed_bytes": 1681,
+    "starfield_staging_capacity": 1819,
+    "starfield_source_to_pickup_margin": 149,
+    "entity_staging_to_broadside_margin": 112,
+    "broadside_bytes": 6647,
+    "broadside_reserved_bytes": 6656,
+    "broadside_margin": 9,
+    "a2_bytes": 122,
+    "a2_reserved_bytes": 256,
+    "a2_margin": 134,
+    "entity_code_address": "$9100",
+    "entity_code_aligned": true,
+    "basic_ram": false,
+    "loader_change": false,
+    "transport_format_change": false
+  },
+  "build": {
+    "command": "npm run build:two-pmg",
+    "result": "PASS",
+    "boot_smoke": "4/4 XEX/ATR cold-start PASS",
+    "xex_validation": "PASS",
+    "atr_validation": "PASS"
+  },
+  "artifact": {
+    "path": "dist/void-strike-65.xex",
+    "bytes": 21347,
+    "sha256": "c4d70373abaac659b782b2a4bc9126c5b8dbcb9122fb964f7272bbe69d59fb07",
+    "status": "owner-smoke candidate"
+  },
+  "decision": "Raider destruction remnant fix is viable",
+  "next": "Owner smoke Raider remnant fix"
+}

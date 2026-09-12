@@ -172,6 +172,8 @@ typedef struct {
 	unsigned effect_rendered_mask;
 	unsigned rapid_projectiles;
 	unsigned player_fighter_projectiles;
+	unsigned player_projectile_recycled_checks;
+	unsigned player_projectile_stale_cells;
 	unsigned rapid_projectile_slot;
 	unsigned rapid_projectile_address;
 	unsigned rapid_projectile_screen_code;
@@ -341,6 +343,9 @@ static unsigned dftrace_interceptor_watched_value[DFTRACE_INTERCEPTOR_SLOT_COUNT
 static unsigned dftrace_interceptor_last_screen_writer[DFTRACE_INTERCEPTOR_SLOT_COUNT];
 static unsigned dftrace_interceptor_output_initialised;
 static unsigned dftrace_interceptor_first_anomaly;
+static unsigned dftrace_pairshot_recycled_count;
+static unsigned dftrace_pairshot_recycled_address[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
+static unsigned dftrace_pairshot_recycled_expected[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
 
 static unsigned dftrace_pc_active;
 static unsigned dftrace_pc_end;
@@ -1434,6 +1439,49 @@ static void dftrace_snapshot_rapid_projectile(DFTraceFrame *frame)
 			}
 		}
 	}
+}
+
+static void dftrace_pairshot_rotate_begin(void)
+{
+	unsigned slot = DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT;
+	unsigned recycled = MEMORY_mem[dftrace_playfield_row_lo + DFTRACE_RING_ROWS - 1u] |
+		((unsigned) MEMORY_mem[dftrace_playfield_row_hi + DFTRACE_RING_ROWS - 1u] << 8);
+	dftrace_pairshot_recycled_count = 0u;
+	while (slot-- != 0u) {
+		unsigned address;
+		unsigned target;
+		unsigned index;
+		if (MEMORY_mem[dftrace_projectile_rendered + slot] == 0u)
+			continue;
+		address = MEMORY_mem[dftrace_projectile_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_projectile_screen_hi + slot] << 8);
+		if (address < DFTRACE_DIVIDER_SCREEN ||
+			address >= DFTRACE_DIVIDER_SCREEN + 40u)
+			continue;
+		target = recycled + address - DFTRACE_DIVIDER_SCREEN;
+		for (index = 0u; index < dftrace_pairshot_recycled_count; ++index)
+			if (dftrace_pairshot_recycled_address[index] == target)
+				break;
+		if (index == dftrace_pairshot_recycled_count) {
+			dftrace_pairshot_recycled_address[index] = target;
+			++dftrace_pairshot_recycled_count;
+		}
+		/* Production unwinds slots 4..0.  On overlap the lowest slot is the
+		 * final writer, so descending capture intentionally replaces expected. */
+		dftrace_pairshot_recycled_expected[index] =
+			MEMORY_mem[dftrace_projectile_backing_top + slot];
+	}
+}
+
+static void dftrace_pairshot_rotate_end(DFTraceFrame *frame)
+{
+	unsigned index;
+	frame->player_projectile_recycled_checks += dftrace_pairshot_recycled_count;
+	for (index = 0u; index < dftrace_pairshot_recycled_count; ++index)
+		if (MEMORY_mem[dftrace_pairshot_recycled_address[index]] !=
+			dftrace_pairshot_recycled_expected[index])
+			++frame->player_projectile_stale_cells;
+	dftrace_pairshot_recycled_count = 0u;
 }
 
 static void dftrace_set_input(unsigned stick, unsigned trigger)
@@ -2955,7 +3003,8 @@ static void dftrace_write(void)
 		",enemy_member0_hp,enemy_member1_hp,enemy_member2_hp"
 		",enemy_live_count,enemy_projectiles"
 		",enemy_x0,enemy_x1,enemy_y0,enemy_y1,enemy_hpos1,enemy_hpos2"
-		",enemy_pmg_rows1,enemy_pmg_rows2\n");
+		",enemy_pmg_rows1,enemy_pmg_rows2,player_projectile_recycled_checks"
+		",player_projectile_stale_cells\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -3141,11 +3190,13 @@ static void dftrace_write(void)
 			frame->enemy_member_state[2], frame->enemy_member_hp[0],
 			frame->enemy_member_hp[1], frame->enemy_member_hp[2],
 			frame->enemy_live_count, frame->enemy_projectiles);
-		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u\n",
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n",
 			frame->enemy_slot_x[0], frame->enemy_slot_x[1],
 			frame->enemy_slot_y[0], frame->enemy_slot_y[1],
 			frame->enemy_hpos[0], frame->enemy_hpos[1],
-			frame->enemy_pmg_rows[0], frame->enemy_pmg_rows[1]);
+			frame->enemy_pmg_rows[0], frame->enemy_pmg_rows[1],
+			frame->player_projectile_recycled_checks,
+			frame->player_projectile_stale_cells);
 	}
 	if (fclose(file) != 0) {
 		perror("voidstrike65 trace close");
@@ -3822,6 +3873,10 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 
 	if (!dftrace_active)
 		goto observe_done;
+	if (pc == dftrace_pc_rotate_start)
+		dftrace_pairshot_rotate_begin();
+	else if (pc == dftrace_pc_rotate_end)
+		dftrace_pairshot_rotate_end(&dftrace_current);
 	dftrace_watch_engine_write(&dftrace_current);
 	dftrace_watch_display_list_write(&dftrace_current);
 	dftrace_watch_recycled_write(&dftrace_current);

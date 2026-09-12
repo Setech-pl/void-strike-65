@@ -5266,6 +5266,13 @@ rotate_playfield_rows:
     sta (dst_ptr),y
     dey
     bpl @copy_divider
+    ; Projectile publication is intentionally later in the OPEN frame. If a
+    ; retiring PairShot still covers the fixed divider, the raw row copy above
+    ; would otherwise clone its foreground glyph into the recycled ring row.
+    ; Unwind only those cloned cells, in the same reverse slot order as the
+    ; normal erase, while leaving the real divider ownership untouched.
+    jsr restore_recycled_row_projectile_underlay
+    ldx #(PLAYFIELD_RING_ROWS-1)
 
 rotate_playfield_table_shift:
 @row:
@@ -8842,7 +8849,29 @@ handle_player_hull_contact:
 ; periodic cannon-mask decoder with the smaller encoded-layout selector.
 free_broadside_slot_layout_lead_pad:
 row_baked_far_broadside_layout_pad:
-    .res $2F                   ; PairShot shrink retained behind fixed glue ABI
+restore_recycled_row_projectile_underlay:
+    ldx #(PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT-1)
+@slot:
+    lda FIGHTER_PROJECTILE_RENDERED,x
+    beq @next
+    lda FIGHTER_PROJECTILE_SCREEN_HI,x
+    cmp #>GAMEPLAY_DIVIDER_SCREEN
+    bne @next
+    lda FIGHTER_PROJECTILE_SCREEN_LO,x
+    sec
+    sbc #<GAMEPLAY_DIVIDER_SCREEN
+    cmp #GAMEPLAY_SCREEN_COLUMNS
+    bcs @next
+    tay
+    lda FIGHTER_PROJECTILE_BACKUP_TOP,x
+    sta (dst_ptr),y
+@next:
+    dex
+    bpl @slot
+    rts
+restore_recycled_row_projectile_underlay_end:
+    .res $2F-(restore_recycled_row_projectile_underlay_end-row_baked_far_broadside_layout_pad)
+                                ; consume only the prior PairShot shrink pad
 free_broadside_slot:
     jsr erase_broadside_slot
     lda #BROAD_FREE

@@ -159,6 +159,20 @@ const pairShotSessions = [
   kind: "pairshot-native",
 }));
 
+const pairShotStaleSessions = [
+  ["normal", "pairshot-normal"],
+  ["rapid", "pairshot-rapid"],
+  ["spread", "pairshot-spread"],
+].map(([mode, policy]) => ({
+  id: `pairshot-stale-${mode}-xex-hard`,
+  medium: "XEX",
+  difficulty: 2,
+  policy,
+  fireDelay: 4,
+  frames: 3_000,
+  kind: "pairshot-stale-native",
+}));
+
 const weaponPickupTraversalSessions = [{
   id: "weapon-pickup-traversal-2-observe-fire4",
   difficulty: 2,
@@ -526,6 +540,7 @@ const numericCsvFields = new Set([
   "enemy_member2_hp", "enemy_live_count", "enemy_projectiles", "director_phase", "director_rng",
   "enemy_x0", "enemy_x1", "enemy_y0", "enemy_y1", "enemy_hpos1", "enemy_hpos2",
   "enemy_pmg_rows1", "enemy_pmg_rows2",
+  "player_projectile_recycled_checks", "player_projectile_stale_cells",
   "director_intensity", "director_reaction", "director_recovery",
   "difficulty", "active_muzzles", "entity_active", "entity_x", "entity_y",
   "entity_vx", "entity_move_accumulator", "entity_vertical_accumulator",
@@ -1829,6 +1844,7 @@ function main() {
   const raiderFormationOnly = process.argv.includes("--raider-formation-only");
   const raiderSectorOnly = process.argv.includes("--raider-sector-only");
   const pairShotOnly = process.argv.includes("--pairshot-only");
+  const pairShotStaleOnly = process.argv.includes("--pairshot-stale-only");
   const effectsStaggerOnly = process.argv.includes("--effects-stagger-only");
   const skipBootSmoke = process.argv.includes("--skip-boot-smoke");
   const tracePreflightOnly = process.argv.includes("--trace-preflight-only");
@@ -1995,7 +2011,9 @@ function main() {
       if (fs.existsSync(framePath)) fs.unlinkSync(framePath);
     }
   }
-  let sessionsToRun = effectsStaggerOnly
+  let sessionsToRun = pairShotStaleOnly
+    ? pairShotStaleSessions
+    : effectsStaggerOnly
     ? [...pairShotSessions, ...debrisEffectsSessions]
     : pairShotOnly
     ? pairShotSessions
@@ -2701,6 +2719,90 @@ function main() {
     summaries.push(sessionSummary(session, rows));
     console.log(`${session.id}: ${rows.length} frames, max ` +
       `${maximumRow(rows, (row) => row.wall_cycles).wall_cycles} wall cycles`);
+  }
+  if (pairShotStaleOnly) {
+    const rows = allRows;
+    const fighterRows = rows.filter((row) => row.sector_state === 7 &&
+      row.player_lifecycle === 0 && row.player_fighter_explosion_timer === 0);
+    const profileComplete = (row) => {
+      const clocks = [row.start_clock,
+        ...traceProfileLabels.map((unused, index) => row[`profile_clock${index}`]),
+        row.end_clock];
+      return clocks.every((clock, index) => Number.isInteger(clock) &&
+        (index === 0 || clock >= clocks[index - 1]));
+    };
+    const dliOverlap = (row, start, end) => Array.from({ length: 2 }, (unused, index) => ({
+      start: row[`profile_dli${index}_start`], end: row[`profile_dli${index}_end`],
+    })).reduce((sum, dli) => sum + Math.max(0,
+      Math.min(end, dli.end) - Math.max(start, dli.start)), 0);
+    const activeWorkCycles = (row) => {
+      const waitStart = row.profile_clock19;
+      const waitEnd = row.profile_publication_begin;
+      invariant(waitEnd >= waitStart && waitStart > 0,
+        `PairShot stale publication interval missing at ${row.session}:${row.frame}`);
+      return row.wall_cycles - (waitEnd - waitStart) +
+        dliOverlap(row, waitStart, waitEnd) + 32;
+    };
+    const completeRows = fighterRows.filter(profileComplete);
+    invariant(completeRows.length > 0, "PairShot stale native mode has no profiled OPEN frames");
+    const heaviest = maximumRow(completeRows, activeWorkCycles);
+    let leftFrames = 0;
+    let rightFrames = 0;
+    let directionChanges = 0;
+    let previousDelta = 0;
+    for (let index = 1; index < rows.length; index += 1) {
+      if (rows[index].session !== rows[index - 1].session) {
+        previousDelta = 0;
+        continue;
+      }
+      const delta = rows[index].player_x - rows[index - 1].player_x;
+      if (delta < 0) leftFrames += 1;
+      if (delta > 0) rightFrames += 1;
+      if (delta !== 0 && previousDelta !== 0 && Math.sign(delta) !== Math.sign(previousDelta))
+        directionChanges += 1;
+      if (delta !== 0) previousDelta = delta;
+    }
+    const anomalies = {
+      recycled_checks: rows.reduce((sum, row) =>
+        sum + row.player_projectile_recycled_checks, 0),
+      stale_cells: rows.reduce((sum, row) => sum + row.player_projectile_stale_cells, 0),
+      maximum_stale_cells: Math.max(...rows.map((row) => row.player_projectile_stale_cells)),
+      missed: rows.reduce((sum, row) => sum + row.missed_frames, 0),
+      target_overruns: completeRows.filter((row) => activeWorkCycles(row) > 31_200).length,
+      hard_overruns: completeRows.filter((row) => activeWorkCycles(row) > 32_568).length,
+      extra_vbi: rows.reduce((sum, row) => sum + row.extra_vbi_boundaries, 0),
+      dli: rows.reduce((sum, row) => sum + row.dli_sequence_violations, 0),
+    };
+    const report = {
+      schema_version: 1,
+      generated_by: "scripts/runtime-wall-trace.mjs --pairshot-stale-only",
+      emulator: "Atari800 7.1.2 PAL/XL",
+      artifact_sha256: runtimeArtifacts,
+      sessions: sessionsToRun.map(({ id, policy, frames }) => ({ id, policy, frames })),
+      frames: rows.length,
+      fighter_open_frames: fighterRows.length,
+      movement: { left_frames: leftFrames, right_frames: rightFrames, direction_changes: directionChanges },
+      stale_cells: { recycled_checks: anomalies.recycled_checks, sum: anomalies.stale_cells,
+        maximum_per_frame: anomalies.maximum_stale_cells },
+      timing: {
+        maximum_active_work_cycles: activeWorkCycles(heaviest),
+        maximum_raw_cadence_cycles: Math.max(...rows.map((row) => row.wall_cycles)),
+        target_headroom_cycles: 31_200 - activeWorkCycles(heaviest),
+        hard_gate_headroom_cycles: 32_568 - activeWorkCycles(heaviest),
+        ...anomalies,
+      },
+      csv: sessionsToRun.map(({ id }) => path.relative(rootDirectory,
+        path.join(buildDirectory, `${id}.csv`))),
+      passed: anomalies.recycled_checks > 0 && anomalies.stale_cells === 0 &&
+        activeWorkCycles(heaviest) <= 32_568 &&
+        anomalies.hard_overruns === 0 && anomalies.extra_vbi === 0 &&
+        anomalies.dli === 0 && leftFrames > 0 && rightFrames > 0 && directionChanges > 0,
+    };
+    const reportPath = path.join(buildDirectory, "pairshot-stale-native-report.json");
+    fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+    console.log(`PairShot stale native report: ${path.relative(rootDirectory, reportPath)}`);
+    if (!report.passed) process.exitCode = 1;
+    return;
   }
   if (effectsStaggerOnly) {
     const rows = allRows.filter((row) => row.sector_state === 7 &&

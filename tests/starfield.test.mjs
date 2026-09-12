@@ -201,7 +201,7 @@ test("assembled generator is bounded and keeps near-star foreground on collision
   const fullCollision = runBakedFarRow({ phase: 0, fullWidth: true, occupied: [2, 34] });
 
   assert.deepEqual([ordinary.cycles, double.cycles, legalCollision.cycles,
-    collision.cycles, fullCollision.cycles], [105, 175, 206, 233, 215]);
+    collision.cycles, fullCollision.cycles], [106, 176, 207, 234, 216]);
   assert.equal(counts(ordinary.row).far, 1);
   assert.equal(counts(double.row).far, 2);
   assert.equal(counts(legalCollision.row).far, 2);
@@ -261,16 +261,16 @@ test("assembly has no independent far simulation, cache, erase, render, or twink
 
 test("relocated runtime and constrained placement gates remain inside bounds", () => {
   assert.equal(manifest.starfieldRuntime.runAddress, 0x54e4);
-  assert.equal(manifest.starfieldRuntime.bytes, 2067);
+  assert.equal(manifest.starfieldRuntime.bytes, 2072);
   assert.ok(manifest.starfieldRuntime.bytes <= manifest.starfieldRuntime.reservedBytes);
-  assert.equal(manifest.starfieldRuntime.packedBytes, 1676);
+  assert.equal(manifest.starfieldRuntime.packedBytes, 1681);
   assert.ok(manifest.starfieldRuntime.packedBytes <= 1819);
   assert.equal(manifest.a2Kernel.bytes, 122);
   assert.ok(manifest.a2Kernel.bytes <= manifest.a2Kernel.reservedBytes);
   assert.equal(manifest.broadsideRuntime.runAddress, 0x5e10);
   assert.equal(manifest.broadsideRuntime.bytes, 6647);
   assert.ok(manifest.broadsideRuntime.bytes <= manifest.broadsideRuntime.reservedBytes);
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 12903);
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 12908);
   assert.ok(manifest.transportCapacity.initialBootEnvelopeBytes >= 0);
   assert.equal(manifest.transportCapacity.manifest.parsed.records[1].packedLength, 852);
   assert.equal(labels.get("ENTITY_CODE_START") & 0xff, 0);

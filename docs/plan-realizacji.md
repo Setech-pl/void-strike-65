@@ -1,11 +1,11 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 2.9
+Wersja: 3.0
 Data aktualizacji: 2026-09-12
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD przed niniejszym prototypem: `66b90c5185989302e5b105938480aad88aa125dc`
-Stan runtime: row-baked far stars + PairShot + PASS Effects 25 Hz/staggered; bez unified schedulera
-Aktualny XEX owner-smoke candidate: SHA-256 `8aa58a8c43f0771c589c594a6fc4f268ab9c778461f8005309d27da2fa86dce2`
+Aktualny HEAD przed niniejszą poprawką: `671d4d95aca134b2d0c24a8ba9488bd5637c291e`
+Stan runtime: row-baked far stars + PairShot + PASS Effects 25 Hz/staggered + PASS PairShot stale-cell fix; bez unified schedulera
+Aktualny XEX owner-smoke candidate: SHA-256 `ed0da13c50e94962ebbe7967b05fdd6182e7c08ec39e8bf2da2199a6940a47e6`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
 
@@ -934,12 +934,58 @@ Decyzja techniczna:
 
 **Effects 25 Hz/staggered jest viable i gotowy jako owner-smoke candidate.**
 
-### Następny proof — tylko po osobnym promptcie
+### PairShot stale / scrolling cell — FIX PASS / OWNER SMOKE
 
-> Background/ring 25 Hz / staggered feasibility.
+Owner smoke zaakceptował język wizualny PairShot Normal/Rapid/Spread, ale
+wykrył okresowo pozostający glif, który następnie scrollował z background
+ringiem. Deterministyczny trace wskazał jedną sekwencję: PairShot nadal był
+widoczny w stałym dividerze `$4028-$404F`, kiedy `rotate_playfield_rows`
+kopiował ten wiersz do recyklingowanej dolnej physical row. Późny erase
+poprawnie przywracał tylko oryginalną komórkę dividera, pozostawiając kopię
+bez ownera.
 
-Nie implementować tego kroku, debris 25 Hz, Light ani unified schedulera w
-ramach proofu Effects 25 Hz.
+Minimalna poprawka zachowuje kolejność frame i publication. Bezpośrednio po
+istniejącym copy dividera odtwarza w jego recyklingowanej kopii backing tylko
+dla exact screen addresses pięciu player slots nadal oznaczonych `RENDERED`.
+Skan działa w tym samym reverse slot order co normalny erase i mieści się w
+istniejącym 47-bajtowym padzie; nie zmienia PairShot, effects, row-baked stars
+ani Raidera.
+
+Wyniki:
+
+- reproducer before: `300/1200` stale/ghost cells, wyłącznie top-bound;
+- reproducer after: `0/1200` stale, `0` ghost, `0` restore mismatch,
+  `0` lost erase dla wszystkich 27 ring heads, Normal/Rapid/Spread,
+  stationary/L/R/reversal oraz expiry/collision;
+- korelacja z ruchem gracza odrzucona: każda z czterech klas ruchu miała
+  przed fixem identyczne `75/300`; ruch zmieniał tylko kolumnę artefaktu;
+- koszt instruction-exact: konserwatywne max `230` dodatkowych cykli na
+  world/ring step (wszystkie pięć player cells w dividerze),
+  poniżej stop gate `300`; nie jest to koszt każdej PAL frame;
+- native Atari800: trzy sesje po 3000 frames, łącznie 180 s, `186` exact
+  divider-recycle checks i `0` stale copies; active-work max `15 834`,
+  target/hard overruns `0`, extra VBI `0`, DLI anomalies `0`;
+- trace odnotował trzy cadence misses (po jednym na niezależną długą sesję),
+  bez active-work overrun i bez związku ze stale-cell path;
+- linked runtime `17 292 -> 17 297 B`, residency `17 770 -> 17 775 B`,
+  safe headroom `4 417 -> 4 412 B`, nowy state `0 B`;
+- boot smoke XEX/ATR: `4/4 PASS`.
+
+Raport:
+`docs/diagnostics/stage-2b2b-pairshot-stale-cell-fix.json`.
+
+Decyzja techniczna:
+
+**PairShot stale-cell fix przechodzi bramkę techniczną; wymagany jest owner
+smoke poprawionego XEX. Artefakt po zniszczonym Raiderze pozostaje poza
+zakresem i nie został zmieniony.**
+
+### Następny krok — tylko owner smoke
+
+> Owner smoke PairShot stale-cell fix.
+
+Nie wykonywać w ramach tej poprawki Background/ring 25 Hz, debris 25 Hz,
+Light, unified schedulera ani naprawy artefaktu po zniszczonym Raiderze.
 
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 

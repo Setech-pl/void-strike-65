@@ -201,6 +201,123 @@ export function executePairShotStaleTrace({
   };
 }
 
+export function executePairShotEffectBackingTrace({
+  root = defaultRoot, artifact = "xex", shots = 1200,
+} = {}) {
+  const { memory, labels, manifest } = initialiseRuntime(root, artifact);
+  const label = (name) => requiredLabel(labels, name);
+  const active = label("FIGHTER_PROJECTILE_ACTIVE");
+  const projectileX = label("FIGHTER_PROJECTILE_X");
+  const projectileY = label("FIGHTER_PROJECTILE_Y");
+  const screenLow = label("FIGHTER_PROJECTILE_SCREEN_LO");
+  const screenHigh = label("FIGHTER_PROJECTILE_SCREEN_HI");
+  const backing = label("FIGHTER_PROJECTILE_BACKUP_TOP");
+  const rendered = label("FIGHTER_PROJECTILE_RENDERED");
+  const effectActive = label("EFFECT_ACTIVE_MASK");
+  const effectCount = label("EFFECT_ACTIVE_COUNT");
+  const effectState = label("EFFECT_STATE");
+  const effectX = label("EFFECT_X");
+  const effectY = label("EFFECT_Y");
+  const effectTimer = label("EFFECT_TIMER");
+  const effectRenderId = label("EFFECT_RENDER_ID");
+  const effectBacking = label("EFFECT_BACKING0");
+  const effectRendered = label("EFFECT_RENDERED_MASK");
+  const frameCounter = label("frame_counter");
+  const playerXAddress = label("player_x");
+  const playerYAddress = label("player_y");
+  const rowLow = label("PLAYFIELD_ROW_LO");
+  const rowHigh = label("PLAYFIELD_ROW_HI");
+  const records = [];
+
+  for (let shot = 0; shot < shots; shot += 1) {
+    const head = shot % ringRows;
+    const movement = movementAt(shot);
+    const mode = modeAt(shot);
+    const effectSlot = shot % 5;
+    const effectParity = effectSlot < 3 ? 0 : 1;
+    runRoutine(memory, labels, "init_entity_effects");
+    runRoutine(memory, labels, "init_fighter_projectiles");
+    initialiseRows(memory, labels, head);
+    memory.fill(0, dividerAddress, dividerAddress + screenColumns);
+    memory.fill(0, ringAddress, ringEnd);
+    memory[playerXAddress] = movement.playerX;
+    memory[playerYAddress] = 102;
+    runRoutine(memory, labels, "allocate_player_fighter_projectile_one", { a: mode.kind });
+
+    // A non-space lower byte makes Spread exercise its slot-owned composite
+    // glyph range; Normal/Rapid exercise both fixed PairShot phases.
+    const y = memory[projectileY];
+    const logicalRow = (y >> 3) - 2;
+    const column = (memory[projectileX] - 48) >> 2;
+    const rowAddress = logicalRow === 0 ? dividerAddress :
+      memory[rowLow + logicalRow - 1] | memory[rowHigh + logicalRow - 1] << 8;
+    const expectedUnderlay = mode.id === "SPREAD" ? 2 : 0;
+    memory[rowAddress + column] = expectedUnderlay;
+    runRoutine(memory, labels, "render_fighter_projectile_overlays");
+    const oldAddress = memory[screenLow] | memory[screenHigh] << 8;
+    const oldGlyph = memory[oldAddress];
+
+    memory[effectActive] = 1 << effectSlot;
+    memory[effectCount] = 1;
+    memory[effectState + effectSlot] = 1;
+    memory[effectX + effectSlot] = memory[projectileX];
+    memory[effectY + effectSlot] = memory[projectileY];
+    memory[effectTimer + effectSlot] = 12;
+    memory[effectRenderId + effectSlot] = 110;
+    memory[frameCounter] = effectParity;
+    const effectRenderCycles = runRoutine(memory, labels, "render_transient_effect_overlays");
+    const resolvedEffectBacking = memory[effectBacking + effectSlot];
+
+    memory[active] = 0;
+    const projectileEraseCycles = runRoutine(memory, labels,
+      "erase_fighter_projectile_overlays");
+    const afterProjectileErase = memory[oldAddress];
+    memory[frameCounter] = effectParity ^ 1;
+    const oppositeParityEraseCycles = runRoutine(memory, labels,
+      "erase_transient_effect_overlays");
+    const afterOppositeParity = memory[oldAddress];
+    memory[frameCounter] = effectParity + 2;
+    const effectEraseCycles = runRoutine(memory, labels, "erase_transient_effect_overlays");
+    const afterEffectErase = memory[oldAddress];
+    const stale = afterEffectErase !== expectedUnderlay;
+    records.push({
+      shot, mode: mode.id, movement: movement.id, playerX: movement.playerX,
+      playerDeltaX: movement.playerDeltaX, ringHead: head, effectSlot,
+      effectParity, oldAddress, oldGlyph, expectedUnderlay,
+      projectileBacking: memory[backing], resolvedEffectBacking,
+      afterProjectileErase, afterOppositeParity, afterEffectErase,
+      effectRenderCycles, projectileEraseCycles, oppositeParityEraseCycles,
+      effectEraseCycles,
+      renderedAfterErase: memory[rendered], effectRenderedAfterErase: memory[effectRendered],
+      stale, ghost: afterEffectErase === oldGlyph,
+    });
+  }
+
+  const count = (key) => records.filter((record) => record[key]).length;
+  const group = (values, key) => Object.fromEntries(values.map((id) => {
+    const selected = records.filter((record) => record[key] === id);
+    return [id, { shots: selected.length,
+      staleCells: selected.filter((record) => record.stale).length }];
+  }));
+  return {
+    schema: "void-strike-65.pairshot-effect-backing-trace.v1", artifact, shots,
+    manifestArtifact: manifest.artifacts[`void-strike-65.${artifact}`],
+    summary: {
+      staleCells: count("stale"), ghostGlyphs: count("ghost"),
+      restoreMismatches: count("stale"),
+      lostErases: records.filter((record) =>
+        record.afterProjectileErase !== record.expectedUnderlay).length,
+      effectRenderCyclesMax: Math.max(...records.map((record) => record.effectRenderCycles)),
+      projectileEraseCyclesMax: Math.max(...records.map((record) =>
+        record.projectileEraseCycles)),
+      byMovement: group(["STATIONARY", "LEFT", "RIGHT", "REVERSAL"], "movement"),
+      byMode: group(["NORMAL", "RAPID", "SPREAD"], "mode"),
+    },
+    firstFailure: records.find((record) => record.stale) ?? null,
+    records,
+  };
+}
+
 function main() {
   const trace = executePairShotStaleTrace({ root: defaultRoot, artifact: "xex" });
   process.stdout.write(`${JSON.stringify({ ...trace, records: undefined }, null, 2)}\n`);

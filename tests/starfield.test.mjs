@@ -270,9 +270,9 @@ test("relocated runtime and constrained placement gates remain inside bounds", (
   assert.equal(manifest.broadsideRuntime.runAddress, 0x5e10);
   assert.equal(manifest.broadsideRuntime.bytes, 6647);
   assert.ok(manifest.broadsideRuntime.bytes <= manifest.broadsideRuntime.reservedBytes);
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 12908);
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 12912);
   assert.ok(manifest.transportCapacity.initialBootEnvelopeBytes >= 0);
-  assert.equal(manifest.transportCapacity.manifest.parsed.records[1].packedLength, 852);
+  assert.equal(manifest.transportCapacity.manifest.parsed.records[1].packedLength, 754);
   assert.equal(labels.get("ENTITY_CODE_START") & 0xff, 0);
 });
 

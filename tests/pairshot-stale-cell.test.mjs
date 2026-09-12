@@ -3,7 +3,10 @@ import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { executePairShotStaleTrace } from "../scripts/pairshot-stale-runtime.mjs";
+import {
+  executePairShotEffectBackingTrace,
+  executePairShotStaleTrace,
+} from "../scripts/pairshot-stale-runtime.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -40,4 +43,22 @@ test("XEX and ATR agree on the bounded stale-cell matrix", () => {
   const atr = executePairShotStaleTrace({ root, artifact: "atr", shots: 108 });
   assert.deepEqual({ ...xex, artifact: "release", manifestArtifact: undefined },
     { ...atr, artifact: "release", manifestArtifact: undefined });
+});
+
+test("1200 staggered effects cannot retain one player PairShot as backing", () => {
+  const trace = executePairShotEffectBackingTrace({ root, artifact: "xex", shots: 1200 });
+  assert.equal(trace.shots, 1200);
+  assert.deepEqual(trace.summary.staleCells, 0);
+  assert.deepEqual(trace.summary.ghostGlyphs, 0);
+  assert.deepEqual(trace.summary.restoreMismatches, 0);
+  assert.deepEqual(trace.summary.lostErases, 0);
+  assert.equal(trace.firstFailure, null);
+  assert.deepEqual(Object.values(trace.summary.byMovement).map(({ shots }) => shots),
+    [300, 300, 300, 300]);
+  assert.deepEqual(Object.values(trace.summary.byMode).map(({ shots }) => shots),
+    [400, 400, 400]);
+  assert.ok(trace.records.every(({ projectileBacking, resolvedEffectBacking,
+    afterProjectileErase, afterEffectErase, expectedUnderlay }) =>
+    projectileBacking === expectedUnderlay && resolvedEffectBacking === expectedUnderlay &&
+    afterProjectileErase === expectedUnderlay && afterEffectErase === expectedUnderlay));
 });

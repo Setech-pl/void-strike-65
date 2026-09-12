@@ -1,11 +1,11 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 3.0
+Wersja: 3.1
 Data aktualizacji: 2026-09-12
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD przed niniejszą poprawką: `671d4d95aca134b2d0c24a8ba9488bd5637c291e`
-Stan runtime: row-baked far stars + PairShot + PASS Effects 25 Hz/staggered + PASS PairShot stale-cell fix; bez unified schedulera
-Aktualny XEX owner-smoke candidate: SHA-256 `ed0da13c50e94962ebbe7967b05fdd6182e7c08ec39e8bf2da2199a6940a47e6`
+Aktualny HEAD przed niniejszą poprawką: `0f5cc6c024fd29a83ae53ec0480484e0165b9cd1`
+Stan runtime: row-baked far stars + PairShot + PASS Effects 25 Hz/staggered + PASS final single-ghost fix; bez unified schedulera
+Aktualny XEX owner-smoke candidate: SHA-256 `c2643fa8aca308c18de026777b7067a93f0b755f91b7df6a037aece0f42ba798`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
 
@@ -980,12 +980,67 @@ Decyzja techniczna:
 smoke poprawionego XEX. Artefakt po zniszczonym Raiderze pozostaje poza
 zakresem i nie został zmieniony.**
 
+### Final single PairShot ghost — FIX PASS / OWNER SMOKE
+
+Kolejny owner smoke ujawnił drugi, niezależny mechanizm pojedynczego ducha.
+W fighter OPEN effects są publikowane przed późnym projectile commit. Jeżeli
+effect trafiał w OLD cell PairShot, zapisywał widoczny kod pocisku (`$0B`,
+`$1D` albo slotowy composite `$2F-$33`) jako własny backing. Late projectile
+erase poprawnie przywracał tło, lecz dwa takty staggera później effect erase
+odtwarzał zatruty backing i ponownie wpisywał dokładnie jeden glyph pocisku.
+
+Minimalna poprawka działa wyłącznie przy capture backingu efektu. Dla kodu z
+player PairShot range sprawdza maksymalnie pięć player records i, przy exact
+screen-address match, zapisuje do effect backingu najniższy pasujący
+`FIGHTER_PROJECTILE_BACKUP_TOP`. Zwykły effect cell kończy się na stałym
+glyph-range fast path, a starfield, PairShot lifecycle, stagger i kolejność
+warstw nie zostały zmienione. Odrzucony i niepodłączony 187-B per-access
+`lower_cell` primitive został wycofany; w jego stałym `$8800-$8B66`
+footprincie mieści się mały resolver oraz inert padding, więc collision tail i
+loader ABI pozostają na tych samych adresach.
+
+Wyniki:
+
+- deterministyczny microtrace before: effect backing `11`, po projectile erase
+  `0`, po następnym erase właściwej parity ponownie `11` — `1/1` ghost;
+- after: XEX i ATR po `1200` przypadków każdy, wszystkie pięć effect slots,
+  obie parity, Normal/Rapid/Spread oraz stationary/L/R/reversal: `0` stale,
+  `0` ghost, `0` restore mismatch, `0` lost erase;
+- korelacja z ruchem gracza odrzucona: ruch X zmienia wyłącznie prawdopodobną
+  komórkę przecięcia z effect;
+- effect publication peak `744 -> 822`, delta `+78` cykli, poniżej lokalnego
+  stop gate `+300`; trafiony resolver ma effect-render max `325` cykli;
+- native Atari800 PAL: trzy sesje po `3000` frames, `5414` fighter OPEN,
+  `122` divider recycle checks, `0` stale copies i pełny screen scan
+  `0` orphan PairShot cells; active-work max `14 077`, `0` target/hard
+  overruns, `0` extra VBI, `0` DLI anomalies;
+- trzy cadence misses pozostają po jednym na długą sesję przy active work
+  daleko pod targetem; nie są active-work ani raster overruns;
+- linked runtime `17 297 -> 17 302 B`, residency `17 775 -> 17 780 B`, safe
+  headroom `4 412 -> 4 407 B`, nowy state `0 B`;
+- pickup/collision runtime pozostaje `904 B`; zerowy padding po usuniętym
+  primitive poprawia packed cold record `852 -> 754 B`, margin `425 -> 523 B`;
+- initial content `12 912/12 928`, margin `16 B`; BROADSIDE margin `9 B`,
+  STARFIELD packed margin `138 B`, ENTITY staging margin `113 B`, A2 margin
+  `134 B`; boot smoke XEX/ATR `4/4 PASS`.
+
+Raport:
+`docs/diagnostics/stage-2b2b-pairshot-final-single-ghost-fix.json`.
+
+Decyzja techniczna:
+
+**Final single PairShot ghost fix przechodzi bramkę techniczną; wymagany jest
+owner smoke poprawionego XEX. Niebieskie row-baked far stars pozostają jawnie
+poza zakresem.**
+
 ### Następny krok — tylko owner smoke
 
-> Owner smoke PairShot stale-cell fix.
+> Owner smoke final single PairShot ghost fix.
 
 Nie wykonywać w ramach tej poprawki Background/ring 25 Hz, debris 25 Hz,
-Light, unified schedulera ani naprawy artefaktu po zniszczonym Raiderze.
+Light, unified schedulera, naprawy artefaktu po zniszczonym Raiderze ani
+naprawy skokowych/podwójnych niebieskich row-baked far stars. Ten ostatni
+problem jest osobnym NEXT dopiero po owner PASS niniejszej poprawki.
 
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 

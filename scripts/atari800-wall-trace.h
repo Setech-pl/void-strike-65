@@ -174,6 +174,7 @@ typedef struct {
 	unsigned player_fighter_projectiles;
 	unsigned player_projectile_recycled_checks;
 	unsigned player_projectile_stale_cells;
+	unsigned player_projectile_orphan_cells;
 	unsigned rapid_projectile_slot;
 	unsigned rapid_projectile_address;
 	unsigned rapid_projectile_screen_code;
@@ -1439,6 +1440,42 @@ static void dftrace_snapshot_rapid_projectile(DFTraceFrame *frame)
 			}
 		}
 	}
+}
+
+static int dftrace_is_player_pairshot_code(unsigned value)
+{
+	return value == 0x0bu || value == 0x1du ||
+		(value >= 0x2fu && value < 0x34u);
+}
+
+static int dftrace_player_pairshot_owns(unsigned address)
+{
+	unsigned slot;
+	for (slot = 0u; slot < DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT; ++slot) {
+		unsigned owned;
+		if (MEMORY_mem[dftrace_projectile_rendered + slot] == 0u)
+			continue;
+		owned = MEMORY_mem[dftrace_projectile_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_projectile_screen_hi + slot] << 8);
+		if (owned == address)
+			return 1;
+	}
+	return 0;
+}
+
+static void dftrace_snapshot_player_pairshot_orphans(DFTraceFrame *frame)
+{
+	unsigned address;
+	frame->player_projectile_orphan_cells = 0u;
+	for (address = DFTRACE_DIVIDER_SCREEN;
+		address < DFTRACE_DIVIDER_SCREEN + 40u; ++address)
+		if (dftrace_is_player_pairshot_code(MEMORY_mem[address]) &&
+			!dftrace_player_pairshot_owns(address))
+			++frame->player_projectile_orphan_cells;
+	for (address = DFTRACE_RING_SCREEN; address < DFTRACE_RING_END; ++address)
+		if (dftrace_is_player_pairshot_code(MEMORY_mem[address]) &&
+			!dftrace_player_pairshot_owns(address))
+			++frame->player_projectile_orphan_cells;
 }
 
 static void dftrace_pairshot_rotate_begin(void)
@@ -2879,6 +2916,7 @@ static void dftrace_snapshot_muzzles(DFTraceFrame *frame)
 static void dftrace_snapshot_flash(DFTraceFrame *frame)
 {
 	dftrace_snapshot_rapid_projectile(frame);
+	dftrace_snapshot_player_pairshot_orphans(frame);
 	frame->colbk = GTIA_COLBK;
 	frame->colpm0 = GTIA_COLPM0;
 	frame->colpm1 = GTIA_COLPM1;
@@ -3004,7 +3042,7 @@ static void dftrace_write(void)
 		",enemy_live_count,enemy_projectiles"
 		",enemy_x0,enemy_x1,enemy_y0,enemy_y1,enemy_hpos1,enemy_hpos2"
 		",enemy_pmg_rows1,enemy_pmg_rows2,player_projectile_recycled_checks"
-		",player_projectile_stale_cells\n");
+		",player_projectile_stale_cells,player_projectile_orphan_cells\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -3190,13 +3228,14 @@ static void dftrace_write(void)
 			frame->enemy_member_state[2], frame->enemy_member_hp[0],
 			frame->enemy_member_hp[1], frame->enemy_member_hp[2],
 			frame->enemy_live_count, frame->enemy_projectiles);
-		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n",
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n",
 			frame->enemy_slot_x[0], frame->enemy_slot_x[1],
 			frame->enemy_slot_y[0], frame->enemy_slot_y[1],
 			frame->enemy_hpos[0], frame->enemy_hpos[1],
 			frame->enemy_pmg_rows[0], frame->enemy_pmg_rows[1],
 			frame->player_projectile_recycled_checks,
-			frame->player_projectile_stale_cells);
+			frame->player_projectile_stale_cells,
+			frame->player_projectile_orphan_cells);
 	}
 	if (fclose(file) != 0) {
 		perror("voidstrike65 trace close");

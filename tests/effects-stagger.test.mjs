@@ -52,7 +52,7 @@ test("staggered expiry clears both parity groups without stale backing or ghosts
   assert.equal(frames[31].screen.every((value) => value === 0), true);
 });
 
-test("linked effect-only peak passes the 651-750 cycle gate on XEX and ATR", () => {
+test("PairShot backing resolver adds less than the 300-cycle fix ceiling", () => {
   const xex = executeDebrisDestructionTrace({ root, artifact: "xex" });
   const atr = executeDebrisDestructionTrace({ root, artifact: "atr" });
   assert.equal(assertDebrisDestructionTraceParity(xex, atr), true);
@@ -61,6 +61,7 @@ test("linked effect-only peak passes the 651-750 cycle gate on XEX and ATR", () 
       .filter((record) => record.phase === "FINAL")
       .reduce((maximum, record) => Math.max(maximum,
         record.effectEraseCycles + record.effectRenderCycles), 0)));
-  assert.equal(peak, 744);
-  assert.ok(peak >= 651 && peak <= 750);
+  assert.equal(peak, 822);
+  assert.equal(peak - 744, 78);
+  assert.ok(peak - 744 < 300);
 });

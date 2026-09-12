@@ -541,6 +541,7 @@ const numericCsvFields = new Set([
   "enemy_x0", "enemy_x1", "enemy_y0", "enemy_y1", "enemy_hpos1", "enemy_hpos2",
   "enemy_pmg_rows1", "enemy_pmg_rows2",
   "player_projectile_recycled_checks", "player_projectile_stale_cells",
+  "player_projectile_orphan_cells",
   "director_intensity", "director_reaction", "director_recovery",
   "difficulty", "active_muzzles", "entity_active", "entity_x", "entity_y",
   "entity_vx", "entity_move_accumulator", "entity_vertical_accumulator",
@@ -2767,6 +2768,8 @@ function main() {
         sum + row.player_projectile_recycled_checks, 0),
       stale_cells: rows.reduce((sum, row) => sum + row.player_projectile_stale_cells, 0),
       maximum_stale_cells: Math.max(...rows.map((row) => row.player_projectile_stale_cells)),
+      orphan_cells: rows.reduce((sum, row) => sum + row.player_projectile_orphan_cells, 0),
+      maximum_orphan_cells: Math.max(...rows.map((row) => row.player_projectile_orphan_cells)),
       missed: rows.reduce((sum, row) => sum + row.missed_frames, 0),
       target_overruns: completeRows.filter((row) => activeWorkCycles(row) > 31_200).length,
       hard_overruns: completeRows.filter((row) => activeWorkCycles(row) > 32_568).length,
@@ -2783,7 +2786,9 @@ function main() {
       fighter_open_frames: fighterRows.length,
       movement: { left_frames: leftFrames, right_frames: rightFrames, direction_changes: directionChanges },
       stale_cells: { recycled_checks: anomalies.recycled_checks, sum: anomalies.stale_cells,
-        maximum_per_frame: anomalies.maximum_stale_cells },
+        maximum_per_frame: anomalies.maximum_stale_cells,
+        orphan_sum: anomalies.orphan_cells,
+        maximum_orphans_per_frame: anomalies.maximum_orphan_cells },
       timing: {
         maximum_active_work_cycles: activeWorkCycles(heaviest),
         maximum_raw_cadence_cycles: Math.max(...rows.map((row) => row.wall_cycles)),
@@ -2794,6 +2799,7 @@ function main() {
       csv: sessionsToRun.map(({ id }) => path.relative(rootDirectory,
         path.join(buildDirectory, `${id}.csv`))),
       passed: anomalies.recycled_checks > 0 && anomalies.stale_cells === 0 &&
+        anomalies.orphan_cells === 0 &&
         activeWorkCycles(heaviest) <= 32_568 &&
         anomalies.hard_overruns === 0 && anomalies.extra_vbi === 0 &&
         anomalies.dli === 0 && leftFrames > 0 && rightFrames > 0 && directionChanges > 0,

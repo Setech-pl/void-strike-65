@@ -10073,114 +10073,52 @@ fighter_pickup_pmg_shape:
     .byte $2A,$BF,$BF,$BE,$BC,$BC,$BC,$BC
     .byte $A8,$FE,$FE,$BE,$3E,$3E,$3E,$3E
 
-; Shared lower-layer cell primitive retained as one contiguous proof block.
-; It is deliberately not wired into the 21 writer sites in this fit-only task.
-lower_cell_read:
-    clc
-    bcc lower_cell_access
-lower_cell_write:
-    sec
-lower_cell_access:
-    sta LOWER_CELL_VALUE
-    php
-    sty LOWER_CELL_SAVED_Y
-    lda dst_ptr
-    pha
-    lda dst_ptr+1
-    pha
-    lda FIGHTER_PROJECTILE_OWNED_COUNT
-    bne :+
-    jmp @miss
-:
-    tya
-    clc
-    adc dst_ptr
-    sta LOWER_CELL_ADDR_LO
-    lda dst_ptr+1
-    adc #$00
-    sta LOWER_CELL_ADDR_HI
-    ldx #$00
-@slot:
-    lda FIGHTER_PROJECTILE_RENDERED,x
-    beq @next
-    lda FIGHTER_PROJECTILE_SCREEN_LO,x
-    cmp LOWER_CELL_ADDR_LO
-    bne @bottom
-    lda FIGHTER_PROJECTILE_SCREEN_HI,x
-    cmp LOWER_CELL_ADDR_HI
-    beq @top_hit
-@bottom:
-    lda FIGHTER_PROJECTILE_RENDERED,x
-    cmp #$FF
-    beq @next
-    lda FIGHTER_PROJECTILE_PREV_Y,x
-    and #$07
-    cpx #INTERCEPTOR_PROJECTILE_SLOT_BASE
-    adc #$F9
-    bcc @next
-    lda FIGHTER_PROJECTILE_SCREEN_LO,x
-    sta dst_ptr
-    lda FIGHTER_PROJECTILE_SCREEN_HI,x
-    sta dst_ptr+1
-    jsr advance_dst_to_next_physical_row
-    lda dst_ptr
-    cmp LOWER_CELL_ADDR_LO
-    bne @next
-    lda dst_ptr+1
-    cmp LOWER_CELL_ADDR_HI
-    bne @next
-    ldy #$01
-    bne @hit
-@top_hit:
+; Effects publish before the late projectile commit. When an effect lands on
+; an OLD PlayerFighter PairShot cell, the visible byte is still the projectile
+; glyph even though effects are logically below projectiles. Resolve that one
+; transient case to the lowest matching player slot's saved underlay so a
+; later staggered effect erase cannot resurrect the projectile. Ordinary
+; effect cells take the glyph-range fast path and never scan the shot pool.
+.segment "PICKUP_CODE"
+resolve_effect_backing_below_player_pairshot:
+    cmp #PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE
+    beq @candidate
+    cmp #(PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_GLYPH_STRIDE*2)
+    beq @candidate
+    cmp #PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE
+    bcc @unchanged
+    cmp #(PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT)
+    bcs @unchanged
+@candidate:
+    sta EFFECT_SCRATCH0
     ldy #$00
-@hit:
-    pla
-    sta dst_ptr+1
-    pla
-    sta dst_ptr
-    plp
-    bcc @read_hit
-    lda LOWER_CELL_VALUE
-    cpy #$00
-    bne @write_bottom
-    sta FIGHTER_PROJECTILE_BACKUP_TOP,x
-    ldy LOWER_CELL_SAVED_Y
-    rts
-@write_bottom:
-    sta FIGHTER_PROJECTILE_BACKUP_BOTTOM,x
-    ldy LOWER_CELL_SAVED_Y
-    rts
-@read_hit:
-    cpy #$00
-    bne @read_bottom
-    lda FIGHTER_PROJECTILE_BACKUP_TOP,x
-    ldy LOWER_CELL_SAVED_Y
-    rts
-@read_bottom:
-    lda FIGHTER_PROJECTILE_BACKUP_BOTTOM,x
-    ldy LOWER_CELL_SAVED_Y
-    rts
+@projectile:
+    lda FIGHTER_PROJECTILE_RENDERED,y
+    beq @next
+    lda FIGHTER_PROJECTILE_SCREEN_LO,y
+    cmp dst_ptr
+    bne @next
+    lda FIGHTER_PROJECTILE_SCREEN_HI,y
+    cmp dst_ptr+1
+    bne @next
+    lda FIGHTER_PROJECTILE_BACKUP_TOP,y
+    sta EFFECT_SCRATCH0
+    jmp @restore_y
 @next:
-    inx
-    cpx #FIGHTER_PROJECTILE_SLOT_COUNT
-    bne @slot
-@miss:
-    pla
-    sta dst_ptr+1
-    pla
-    sta dst_ptr
-    plp
-    ldy LOWER_CELL_SAVED_Y
-    bcc @read_miss
-    lda LOWER_CELL_VALUE
-    sta (dst_ptr),y
+    iny
+    cpy #PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT
+    bne @projectile
+@restore_y:
+    ldy #$00
+    lda EFFECT_SCRATCH0
+@unchanged:
     rts
-@read_miss:
-    lda (dst_ptr),y
-    rts
-lower_cell_primitive_end:
-
-.export lower_cell_read, lower_cell_write, lower_cell_primitive_end
+resolve_effect_backing_below_player_pairshot_end:
+    ; Keep the reviewed pickup/collision transport boundary byte-exact. The
+    ; rejected 187-byte generic primitive occupied this footprint; the narrow
+    ; fix uses only its prefix and leaves the remainder inert.
+    .res $BB-(resolve_effect_backing_below_player_pairshot_end-resolve_effect_backing_below_player_pairshot)
+.export resolve_effect_backing_below_player_pairshot
 
 ; Effects render after the interactive layer. Slot order is core then the four
 ; fragments; erase scans the physical pool in the exact opposite direction.
@@ -10207,7 +10145,10 @@ render_transient_effect_overlays:
     cmp #ENTITY_GAMEPLAY_TOP
     bcc @outside_y
     cmp #ENTITY_GAMEPLAY_BOTTOM
-    bcs @outside_y
+    bcc @inside_y
+@outside_y:
+    jmp @next_saved
+@inside_y:
     sec
     sbc #ENTITY_GAMEPLAY_TOP
     lsr
@@ -10242,6 +10183,7 @@ render_transient_effect_overlays:
     sta EFFECT_SCREEN_HI,x
     ldy #$00
     lda (dst_ptr),y
+    jsr resolve_effect_backing_below_player_pairshot
     sta EFFECT_BACKING0,x
     cpx #$00
     beq @core
@@ -10278,9 +10220,8 @@ render_transient_effect_overlays:
     bne @core_codes
 @yellow_core:
     lda EFFECT_RENDER_ID,x
+    beq @outside_y
     bne @core_codes
-@outside_y:
-    jmp @next_saved
 @dark_core:
     lda #EFFECT_FRAGMENT_GLYPH_BASE|$80
 @core_codes:

@@ -1,0 +1,285 @@
+{
+  "schema": "void-strike-65-stage-2b2b-final-remaining-raider-remnant-fix-v1",
+  "date": "2026-09-13",
+  "status": "PASS_REMAINING_RAIDER_REMNANT_FIX",
+  "model": {
+    "model": "GPT-5 Codex",
+    "reasoning": "High"
+  },
+  "scope": {
+    "implemented": "Resolve effect backing below the one moving gameplay-debris record and below OLD enemy PairShot cells.",
+    "unchanged": [
+      "previous Raider remnant fix",
+      "PairShot model and final ghost fix",
+      "player fire cadence and cross-sector shot SFX",
+      "25 Hz staggered effects",
+      "row-baked far stars",
+      "ring cadence",
+      "gameplay debris lifecycle and collision",
+      "capital and boss"
+    ],
+    "production_shadow_map_bytes": 0
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "head_before": "33b0a61a9bc07c0405c7fbff1f2223a2e83c4b6d",
+    "wip_refs_preserved": [
+      "refs/wip/stage2b-foreign-0803",
+      "refs/wip/stage2b0-fdb-proof",
+      "refs/wip/stage2b2-single-window-rejected"
+    ],
+    "claude_untouched": true
+  },
+  "previous_fix": {
+    "legacy_reproducer_kills": 745,
+    "remnants_after_current_fix": 0,
+    "pairshot_final_ghost_regression": 0,
+    "status": "PASS; prior five-effect slot and cross-parity resolver remains in place"
+  },
+  "new_reproducer_before": {
+    "scenario": "A Raider breakup effect overlaps a live, downward-moving two-cell gameplay debris record while the ring advances.",
+    "artifact": "XEX",
+    "physical_address": "$8295",
+    "logical_row": 27,
+    "physical_row": 8,
+    "column": 21,
+    "glyph": "$6E",
+    "remnant_type": "character cell containing a historical gameplay-debris glyph",
+    "active_gameplay_record_for_remnant": false,
+    "live_debris_elsewhere": {
+      "active": true,
+      "state": 1,
+      "collision_category": 1,
+      "hp": 3,
+      "final_cells": ["$8155", "$8156"]
+    },
+    "writer_provenance": [
+      {
+        "frame": 0,
+        "writer": "render_interactive_entity_overlays / debris slot 0 generation 1",
+        "address": "$8295",
+        "transition": "$00 -> $6E",
+        "captured_backing": "$00"
+      },
+      {
+        "frame": 1,
+        "writer": "erase_interactive_entity_overlays",
+        "address": "$8295",
+        "transition": "$6E -> $00"
+      },
+      {
+        "frame": 1,
+        "writer": "render_interactive_entity_overlays then effect slot 1 generation 1",
+        "address": "$8295",
+        "transition": "$00 -> $6E -> $6F",
+        "effect_captured_backing": "$6E"
+      },
+      {
+        "frame": 2,
+        "writer": "erase_interactive_entity_overlays after debris movement",
+        "address": "$8295",
+        "transition": "$6F -> $00"
+      },
+      {
+        "frame": 3,
+        "writer": "erase_transient_effect_overlays / effect slot 1 generation 1",
+        "address": "$8295",
+        "transition": "$00 -> $6E",
+        "error": "restored the debris foreground glyph after the debris record had moved to another physical cell"
+      }
+    ],
+    "first_wrong_write": "The effect backing capture stored the visible debris glyph instead of ENTITY_BACKING0/1.",
+    "ring_role": "The ring only transported the already-stale byte later; it did not create it."
+  },
+  "second_bounded_path": {
+    "description": "The same effect-backing omission existed for an OLD enemy PairShot cell; the previous resolver scanned only the five player slots.",
+    "legacy_orphan": {
+      "address": "$8294",
+      "glyph": "$E4",
+      "writer_class": "ENEMY PAIRSHOT",
+      "active_record_after_release": false
+    },
+    "after": {
+      "stale_restores": 0,
+      "orphan_cells": 0
+    }
+  },
+  "root_cause": {
+    "primary": "Effects are above moving gameplay debris, but EFFECT_BACKING0 was captured directly from the visible cell. When debris moved before the effect parity erased, the effect restored the historical debris foreground glyph into clean background.",
+    "analogue": "Effect backing recognized player PairShot glyphs but not the two inverse enemy PairShot glyphs and scanned only five player records.",
+    "not_the_cause": [
+      "PMG Raider erase",
+      "ring row transport",
+      "the already-fixed effect-slot/projectile-slot alias",
+      "intentional gameplay debris",
+      "PairShot final-erase ordering"
+    ]
+  },
+  "fix": {
+    "interactive_debris": {
+      "routine": "resolve_effect_backing_below_interactive_debris",
+      "behavior": "For an address inside the currently rendered two-cell debris footprint, return ENTITY_BACKING0/1; otherwise preserve the visible byte.",
+      "addressing": "16-bit dst_ptr - ENTITY_SCREEN subtraction, including row-end page crossing",
+      "code_bytes": 38,
+      "state_bytes": 0
+    },
+    "enemy_pairshot": {
+      "routine": "resolve_effect_backing_below_player_pairshot",
+      "behavior": "Recognize both inverse enemy PairShot glyph variants and extend the existing exact-address scan from five player slots to all ten fighter projectile slots.",
+      "packed_payload_delta_bytes": 9,
+      "state_bytes": 0
+    },
+    "architecture": "No screen sweep, row clear, ownership bitmap, compositor, loader change, or gameplay semantic change."
+  },
+  "provenance_harness": {
+    "production_runtime": false,
+    "writer_classes": [
+      "BASE/RING",
+      "WORLD CLEAR",
+      "NEAR STAR",
+      "ROW-BAKED FAR STAR",
+      "DEBRIS",
+      "EFFECT",
+      "PLAYER PAIRSHOT",
+      "ENEMY PAIRSHOT",
+      "IMPACT",
+      "RAIDER BREAKUP/DEATH",
+      "OTHER"
+    ],
+    "metadata": [
+      "last writer class",
+      "writer slot",
+      "generation/lifecycle id",
+      "frame",
+      "value before/after",
+      "backing source"
+    ]
+  },
+  "matrix": {
+    "artifacts": ["XEX", "ATR"],
+    "primary_kills": 5000,
+    "total_kill_events": 5084,
+    "raider_slot_a": 2500,
+    "raider_slot_b": 2500,
+    "single_raider_scenarios": 1250,
+    "two_raider_scenarios": 3750,
+    "near_simultaneous_double_kills": 84,
+    "ring_step_scenarios": 5000,
+    "ring_wrap_scenarios": 3326,
+    "active_gameplay_debris_scenarios": 1666,
+    "validated_live_debris_records": 1666,
+    "enemy_fire_scenarios": 1666,
+    "preexisting_effect_slot_coverage": {
+      "0": 2500,
+      "1": 832,
+      "3": 834,
+      "5": 834
+    },
+    "weapons": ["NORMAL", "RAPID", "SPREAD"],
+    "movement": ["STATIONARY", "LEFT", "RIGHT", "REVERSAL"],
+    "y_bands": ["HIGH", "MID", "LOW"],
+    "stale_backing_restores": 0,
+    "dead_generation_cells": 0,
+    "orphan_visual_cells": 0,
+    "lost_erase": 0,
+    "failures": 0
+  },
+  "cpu": {
+    "effect_erase_render_peak_before": 978,
+    "effect_erase_render_peak_after": 1092,
+    "effect_peak_delta": 114,
+    "local_stop_gate_delta": 300,
+    "debris_resolver_targeted_frame_delta_max": 51,
+    "enemy_pairshot_resolver_targeted_frame_delta_max": 143,
+    "native_maximum_active_work_cycles": 14794,
+    "native_maximum_raw_cadence_cycles": 36473,
+    "target_cycles": 31200,
+    "target_headroom_cycles": 16406,
+    "hard_gate_cycles": 32568,
+    "hard_gate_headroom_cycles": 17774
+  },
+  "memory_and_placement": {
+    "linked_runtime_before": 17318,
+    "linked_runtime_after": 17359,
+    "linked_delta": 41,
+    "simultaneous_residency_before": 17796,
+    "simultaneous_residency_after": 17837,
+    "residency_delta": 41,
+    "safe_headroom_after": 4350,
+    "new_state_bytes": 0,
+    "entity_code_before": 3150,
+    "entity_code_after": 3188,
+    "entity_code_range": "$9100-$9D73",
+    "director_starts": "$9D75",
+    "entity_to_director_margin": 1,
+    "entity_packed_before": 2697,
+    "entity_packed_after": 2734,
+    "entity_staging_margin_after": 74,
+    "pickup_code_raw": 871,
+    "pickup_record_before": 850,
+    "pickup_record_after": 859,
+    "pickup_record_capacity": 1277,
+    "pickup_record_margin": 418,
+    "initial_content_before": 12933,
+    "initial_content_after": 12973,
+    "initial_content_capacity": 13056,
+    "initial_content_margin": 83,
+    "starfield_packed": 1681,
+    "starfield_staging_capacity": 1819,
+    "starfield_margin": 138,
+    "starfield_source_to_pickup_margin": 128,
+    "broadside": "6647/6656 B; margin 9 B",
+    "a2_kernel": "122/256 B; reservation margin 134 B",
+    "entity_code_aligned": true,
+    "basic_ram": false,
+    "loader_change": false,
+    "transport_format_change": false,
+    "new_transport_record": false
+  },
+  "focused_verification": {
+    "raider_remnant_test": "8/8 PASS, including previous 745-kill reproducer and 5084 kill events across XEX/ATR",
+    "regression_tests": "16/16 PASS: effects stagger, PairShot foundation/stale cell, player fire/audio, two PMG Raiders",
+    "deterministic_build": "PASS; two consecutive candidate builds produced identical XEX/ATR/boot hashes",
+    "known_unrelated_host_replay_issue": {
+      "integration_glue_literal": "$98FF",
+      "current_linked_entity_spawn_debris": "$98C0",
+      "impact_on_this_reproducer": "none; the remnant harness calls current linked labels and freezes ordinary spawn admission",
+      "changed_in_this_task": false
+    }
+  },
+  "native": {
+    "emulator": "Atari800 7.1.2 PAL/XL instrumented",
+    "command": "ATARI800_TRACE_SOURCE=~/Projects/tools/atari800-7.1.2 node scripts/runtime-wall-trace.mjs --prepare --raider-remnant-only",
+    "sessions": ["NORMAL", "RAPID", "SPREAD"],
+    "frames": 9000,
+    "fighter_open_frames": 5140,
+    "raider_breakup_events": 113,
+    "simultaneous_kills": "covered by the deterministic host matrix; native session uses natural bounded breakup events",
+    "effect_remnants": 0,
+    "maximum_effect_remnants_per_frame": 0,
+    "pairshot_orphans": 0,
+    "maximum_pairshot_orphans_per_frame": 0,
+    "missed_frames": 3,
+    "missed_interpretation": "one existing raw-cadence wait crossing per independent 3000-frame session; active work stayed below target, with zero extra VBI or deadline anomaly",
+    "target_overruns": 0,
+    "hard_overruns": 0,
+    "extra_vbi": 0,
+    "dli_anomalies": 0,
+    "report": "build/runtime-wall-trace/raider-remnant-native-report.json",
+    "passed": true
+  },
+  "artifacts": {
+    "xex": {
+      "path": "dist/void-strike-65.xex",
+      "bytes": 21484,
+      "sha256": "134d47c96361fc00d4cd4a8ebcb29ae240c092958f58eb16b1c050db1ed09db5"
+    },
+    "atr": {
+      "path": "dist/void-strike-65.atr",
+      "bytes": 92176,
+      "sha256": "44b39ff89c666ab2c127c9a2000cd8630772368ff8808b385529e06c98453fc1"
+    }
+  },
+  "decision": "The remaining Raider remnant is fixed by resolving effect backing below the two bounded moving lower-layer sources. Real gameplay debris remains active and collidable; no stale character owner survives.",
+  "next": "Owner smoke final Raider remnant"
+}

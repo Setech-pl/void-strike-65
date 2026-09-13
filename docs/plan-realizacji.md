@@ -1,11 +1,11 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 3.3
+Wersja: 3.4
 Data aktualizacji: 2026-09-13
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD przed niniejszą poprawką: `2271e9e0419a82cdaecf08a8379f2a8c48014777`
-Stan runtime: row-baked far stars + PairShot + PASS Effects 25 Hz/staggered + PASS PairShot ghost fixes + PASS Raider remnant fix + PASS fire cadence/audio handoff; bez unified schedulera
-Aktualny XEX owner-smoke candidate: SHA-256 `37f0dd84b598ee6c0bf33fe45dcee3008d0646401a82f8fbbccce955a50197d5`
+Aktualny HEAD przed niniejszą poprawką: `33b0a61a9bc07c0405c7fbff1f2223a2e83c4b6d`
+Stan runtime: row-baked far stars + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix candidate; bez unified schedulera
+Aktualny XEX owner-smoke candidate: SHA-256 `134d47c96361fc00d4cd4a8ebcb29ae240c092958f58eb16b1c050db1ed09db5`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
 
@@ -980,7 +980,7 @@ Decyzja techniczna:
 smoke poprawionego XEX. Artefakt po zniszczonym Raiderze pozostaje poza
 zakresem i nie został zmieniony.**
 
-### Final single PairShot ghost — FIX PASS / OWNER SMOKE
+### Final single PairShot ghost — OWNER PASS
 
 Kolejny owner smoke ujawnił drugi, niezależny mechanizm pojedynczego ducha.
 W fighter OPEN effects są publikowane przed późnym projectile commit. Jeżeli
@@ -1077,7 +1077,7 @@ Decyzja techniczna:
 **Raider destruction remnant fix przechodzi bramkę techniczną; wymagany jest
 owner smoke poprawionego XEX.**
 
-### Player fire cadence + cross-sector shot SFX — FIX PASS / OWNER SMOKE
+### Player fire cadence + cross-sector shot SFX — OWNER PASS
 
 Frame-exact trace rozdzielił dwie prawidłowe wartości rytmu broni od dwóch
 rzeczywistych błędów. W fighter OPEN każda broń ma stały interwał wewnątrz
@@ -1121,13 +1121,64 @@ Decyzja techniczna:
 **Player fire cadence oraz shot SFX handoff przechodzą bramkę techniczną;
 wymagany jest owner smoke poprawionego XEX.**
 
+Owner potwierdził następnie PASS kadencji i pełnego shot SFX przy przejściu
+fighter -> capital. PairShot oraz jego finalny ghost fix również mają OWNER
+PASS i nie są ponownie otwarte przez dalszą diagnostykę.
+
+### Final remaining Raider remnant — FIX PASS / OWNER SMOKE
+
+Drugi, niezależny przypadek nie wynikał z poprzednio naprawionego aliasu
+indeksów effect/projectile. Testowy shadow provenance złapał pierwszą błędną
+transformację: effect slot przejmował komórkę aktualnie zajętą przez ruchome
+gameplay debris i zapisywał widoczny glyph debris jako własny backing. Debris
+przesuwało się przed erase tej grupy parity, po czym effect odtwarzał
+historyczny glyph do czystego tła. Ring tylko transportował już zanieczyszczony
+bajt. Komórka pozostałości nie miała aktywnego rekordu ani kolizji; właściwe
+debris pozostawało żywe, miało HP/collision i znajdowało się w nowych dwóch
+komórkach.
+
+Minimalna poprawka:
+
+- effect backing rozpoznaje dokładny, aktualnie renderowany dwukomórkowy
+  footprint jedynego gameplay debris i używa `ENTITY_BACKING0/1`;
+- istniejący resolver OLD PairShot rozpoznaje również dwa inverse glyphy
+  przeciwnika i skanuje wszystkie `10`, nie tylko `5` player slots;
+- nie dodano runtime shadow map, RAM, screen sweep, compositora ani zmian
+  gameplay/lifecycle.
+
+Weryfikacja:
+
+- poprzedni reproducer: `745` kills, `0` remnants;
+- nowa macierz XEX+ATR: `5000` podstawowych i `5084` wszystkich kill events,
+  oba Raider slots, single/two Raider, `84` prawie jednoczesne double kills,
+  Normal/Rapid/Spread, ruch gracza, `0/1/3/5` wcześniejszych effect slots,
+  enemy fire, prawdziwe debris i ring wrap; `0` stale restores,
+  `0` dead-generation/orphan cells, `0` lost erase;
+- prawdziwe debris: `1666` aktywnych przypadków zachowało state, HP i collision;
+- native Atari800 PAL: `9000` frames, `113` breakup events, `0` remnants,
+  `0` PairShot orphans, active-work max `14 794`, `0` target/hard overruns,
+  `0` extra VBI i `0` DLI anomalies;
+- effect erase+render peak `978 -> 1092`, delta `+114` cycles; lokalne ścieżki
+  debris/enemy resolver mają odpowiednio maksymalny przyrost `+51/+143`, poniżej
+  stop gate `+300`;
+- linked runtime `17 318 -> 17 359 B`, residency `17 796 -> 17 837 B`, safe
+  headroom `4 350 B`; state RAM `+0 B`, wszystkie placement gates przechodzą.
+
+Raport:
+`docs/diagnostics/stage-2b2b-final-remaining-raider-remnant-fix.json`.
+
+Decyzja techniczna:
+
+**Final remaining Raider remnant fix przechodzi bramkę techniczną; wymagany
+jest owner smoke poprawionego XEX.**
+
 ### Następny krok — tylko owner smoke
 
-> Owner smoke player fire cadence + shot SFX across fighter -> capital transition.
+> Owner smoke final Raider remnant.
 
-Nie wykonywać w ramach tej poprawki zmian starfield/ring/debris, Light,
-unified schedulera ani capital/boss gameplay. Problem skokowych/podwójnych
-niebieskich row-baked far stars pozostaje osobnym późniejszym zadaniem.
+Nie wykonywać w ramach tej poprawki zmian starfield/ring/debris cadence,
+Light, unified schedulera ani capital/boss gameplay. Dopiero po OWNER PASS
+osobnym następnym zadaniem jest blue/white starfield visual + parallax fix.
 
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 

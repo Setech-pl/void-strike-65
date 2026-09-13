@@ -10038,6 +10038,34 @@ render_interactive_entity_overlays:
 @done:
     rts
 
+; Effects render above the moving character debris. If an effect claims either
+; currently-rendered debris cell, its backing must be the debris record's lower
+; backing rather than the visible debris glyph. The 16-bit subtraction handles
+; the legal row-end crossing and leaves A/Y in the form expected by the effect
+; publisher. This is deliberately local to the one accepted debris record.
+resolve_effect_backing_below_interactive_debris:
+    sta EFFECT_SCRATCH0
+    lda ENTITY_SCREEN_HI
+    beq @unchanged
+    lda dst_ptr
+    sec
+    sbc ENTITY_SCREEN_LO
+    tay
+    lda dst_ptr+1
+    sbc ENTITY_SCREEN_HI
+    bne @unchanged
+    cpy #$02
+    bcs @unchanged
+    lda ENTITY_BACKING0,y
+    ldy #$00
+    rts
+@unchanged:
+    ldy #$00
+    lda EFFECT_SCRATCH0
+    rts
+
+.export resolve_effect_backing_below_interactive_debris
+
 .segment "PICKUP_CODE"
 ; Fighter-only pickup wrapper. PENDING is frozen outside OPEN; ACTIVE is
 ; updated and republished to the four missile lanes only in fighter OPEN.
@@ -10108,22 +10136,27 @@ fighter_pickup_pmg_shape:
     .byte $A8,$FE,$FE,$BE,$3E,$3E,$3E,$3E
 
 ; Effects publish before the late projectile commit. When an effect lands on
-; an OLD PlayerFighter PairShot cell, the visible byte is still the projectile
-; glyph even though effects are logically below projectiles. Resolve that one
-; transient case to the lowest matching player slot's saved underlay so a
-; later staggered effect erase cannot resurrect the projectile. Ordinary
-; effect cells take the glyph-range fast path and never scan the shot pool.
+; an OLD PairShot cell, the visible byte is still the projectile glyph even
+; though effects are logically below projectiles. Resolve that transient case
+; to the matching player or enemy slot's saved underlay so a later staggered
+; effect erase cannot resurrect the projectile. Ordinary effect cells take the
+; glyph-range fast path and never scan the shot pool.
 .segment "PICKUP_CODE"
 resolve_effect_backing_below_player_pairshot:
     cmp #PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE
-    beq @candidate
+    beq resolve_effect_pairshot_candidate
     cmp #(PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_GLYPH_STRIDE*2)
-    beq @candidate
+    beq resolve_effect_pairshot_candidate
     cmp #PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE
-    bcc @unchanged
+    bcc resolve_effect_backing_below_enemy_pairshot
     cmp #(PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT)
-    bcs @unchanged
-@candidate:
+    bcc resolve_effect_pairshot_candidate
+resolve_effect_backing_below_enemy_pairshot:
+    cmp #(INTERCEPTOR_PROJECTILE_GLYPH_BASE|$80)
+    beq resolve_effect_pairshot_candidate
+    cmp #((INTERCEPTOR_PROJECTILE_GLYPH_BASE+INTERCEPTOR_PROJECTILE_GLYPH_STRIDE)|$80)
+    bne resolve_effect_pairshot_unchanged
+resolve_effect_pairshot_candidate:
     sta EFFECT_SCRATCH0
     ldy #$00
 @projectile:
@@ -10140,12 +10173,12 @@ resolve_effect_backing_below_player_pairshot:
     jmp @restore_y
 @next:
     iny
-    cpy #PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT
+    cpy #FIGHTER_PROJECTILE_SLOT_COUNT
     bne @projectile
 @restore_y:
     ldy #$00
     lda EFFECT_SCRATCH0
-@unchanged:
+resolve_effect_pairshot_unchanged:
     rts
 
 ; Two stagger groups can briefly quantise different radial fragments into the
@@ -10230,6 +10263,7 @@ resolve_effect_backing_below_player_pairshot_end:
     ; fix uses only its prefix and leaves the remainder inert.
     .res $BB-(resolve_effect_backing_below_player_pairshot_end-resolve_effect_backing_below_player_pairshot)
 .export resolve_effect_backing_below_player_pairshot
+.export resolve_effect_backing_below_enemy_pairshot
 .export resolve_effect_backing_below_transient_effect
 .export resolve_effect_backing_below_transient_effect_regular
 .export erase_retained_transient_effects
@@ -10298,6 +10332,7 @@ render_transient_effect_overlays:
     ldy #$00
     lda (dst_ptr),y
     jsr resolve_effect_backing_below_player_pairshot
+    jsr resolve_effect_backing_below_interactive_debris
     jsr resolve_effect_backing_below_transient_effect
     sta EFFECT_BACKING0,x
     cpx #$00

@@ -61,7 +61,7 @@ test("PairShot and Raider backing resolvers stay below the local fix ceiling", (
       .filter((record) => record.phase === "FINAL")
       .reduce((maximum, record) => Math.max(maximum,
         record.effectEraseCycles + record.effectRenderCycles), 0)));
-  assert.equal(peak, 978);
-  assert.equal(peak - 822, 156);
+  assert.equal(peak, 1092);
+  assert.equal(peak - 822, 270);
   assert.ok(peak - 822 < 300);
 });

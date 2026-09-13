@@ -30,8 +30,25 @@ function runRoutine(memory, labels, name, { writeLog = null, frame = null } = {}
     write(address, value, executingCpu) {
       if ((address >= 0x4028 && address < 0x4050) ||
           (address >= ringBase && address < ringEnd)) {
+        const effectBacking = labels.get("EFFECT_BACKING0");
+        const entityBacking0 = labels.get("ENTITY_BACKING0");
+        const entityBacking1 = labels.get("ENTITY_BACKING1");
+        const entityScreenLo = labels.get("ENTITY_SCREEN_LO");
+        const entityScreenHi = labels.get("ENTITY_SCREEN_HI");
+        const projectileBacking = labels.get("FIGHTER_PROJECTILE_BACKUP_TOP");
         writeLog.push({ frame, routine: name, pc: executingCpu.pc,
-          address, before: memory[address], after: value });
+          x: executingCpu.x, y: executingCpu.y,
+          address, before: memory[address], after: value,
+          effectBacking: Number.isInteger(effectBacking) && executingCpu.x < 5 ?
+            memory[effectBacking + executingCpu.x] : null,
+          entityBacking0: Number.isInteger(entityBacking0) ? memory[entityBacking0] : null,
+          entityBacking1: Number.isInteger(entityBacking1) ? memory[entityBacking1] : null,
+          entityScreenAddress: Number.isInteger(entityScreenLo) && Number.isInteger(entityScreenHi) ?
+            memory[entityScreenLo] | memory[entityScreenHi] << 8 : null,
+          projectileBacking: Number.isInteger(projectileBacking) && executingCpu.x < 10 ?
+            memory[projectileBacking + executingCpu.x] : null,
+          provenanceContext: { ...(writeLog.provenanceContext ?? {}) },
+        });
       }
     },
   });
@@ -78,6 +95,146 @@ function isTransientEffectGlyph(value) {
   return (code >= 110 && code < 120) || code === 90 || code === 91;
 }
 
+export const CHARACTER_WRITER_CLASSES = Object.freeze([
+  "BASE/RING", "WORLD CLEAR", "NEAR STAR", "ROW-BAKED FAR STAR",
+  "DEBRIS", "EFFECT", "PLAYER PAIRSHOT", "ENEMY PAIRSHOT", "IMPACT",
+  "RAIDER BREAKUP/DEATH", "OTHER",
+]);
+
+function baseProvenance(value = 0) {
+  return { writerClass: "BASE/RING", writerSlot: null, generation: 0,
+    frame: -1, value, backingSource: null };
+}
+
+function analyseCharacterProvenance(writeLog, labels, finalSnapshot) {
+  const cells = new Map();
+  const ownerFootprints = new Map();
+  const backing = new Map();
+  const history = [];
+  const restoreCandidates = [];
+  const effectEraseStart = requiredLabel(labels, "erase_transient_effect_overlays");
+  const effectEraseEnd = requiredLabel(labels, "erase_interactive_entity_overlays");
+
+  const cell = (address, value = 0) => cells.get(address) ?? baseProvenance(value);
+  const ownerKey = (writerClass, generation, slot) =>
+    `${writerClass}:${generation}:${slot}`;
+  const setOwned = (key, address) => {
+    const addresses = ownerFootprints.get(key) ?? new Set();
+    addresses.add(address);
+    ownerFootprints.set(key, addresses);
+  };
+  const releaseOwned = (key, address) => ownerFootprints.get(key)?.delete(address);
+  const captured = (visible, savedValue) => {
+    if (visible.value === savedValue) return { ...visible };
+    const source = visible.backingSource;
+    if (source && source.value === savedValue) return { ...source };
+    return baseProvenance(savedValue);
+  };
+
+  for (const write of writeLog) {
+    const context = write.provenanceContext ?? {};
+    let writerClass = "OTHER";
+    let writerSlot = write.x;
+    let generation = 0;
+    let action = "write";
+    let next = { writerClass, writerSlot, generation, frame: write.frame,
+      value: write.after, backingSource: null };
+    if (write.routine === "rotate_playfield_rows") {
+      writerClass = "BASE/RING";
+      writerSlot = null;
+      const source = 0x4028 + (write.x & 0xff);
+      next = { ...cell(source, write.after), frame: write.frame,
+        value: write.after, backingSource: cell(source, write.after) };
+      action = "transport";
+    } else if (write.routine === "entity_effects_render" && write.pc < 0x9000) {
+      writerClass = "EFFECT";
+      generation = context.effectGeneration ?? 1;
+      const key = ownerKey(writerClass, generation, writerSlot);
+      const visible = cell(write.address, write.before);
+      const saved = captured(visible, write.effectBacking);
+      backing.set(key, saved);
+      setOwned(key, write.address);
+      next = { writerClass, writerSlot, generation, frame: write.frame,
+        value: write.after, backingSource: saved };
+      action = "claim";
+    } else if (write.pc >= effectEraseStart && write.pc < effectEraseEnd) {
+      writerClass = "EFFECT";
+      generation = context.effectGeneration ?? 1;
+      const key = ownerKey(writerClass, generation, writerSlot);
+      releaseOwned(key, write.address);
+      next = { ...(backing.get(key) ?? baseProvenance(write.after)),
+        frame: write.frame, value: write.after };
+      action = "restore";
+    } else if (write.routine === "entity_effects_render") {
+      writerClass = "DEBRIS";
+      writerSlot = write.after & 1;
+      generation = context.debrisGeneration ?? 1;
+      const key = ownerKey(writerClass, generation, writerSlot);
+      const savedValue = writerSlot === 0 ? write.entityBacking0 : write.entityBacking1;
+      const saved = captured(cell(write.address, write.before), savedValue);
+      backing.set(key, saved);
+      setOwned(key, write.address);
+      next = { writerClass, writerSlot, generation, frame: write.frame,
+        value: write.after, backingSource: saved };
+      action = "claim";
+    } else if (write.routine === "entity_effects_erase") {
+      writerClass = "DEBRIS";
+      writerSlot = write.address === write.entityScreenAddress ? 0 : 1;
+      generation = context.debrisGeneration ?? 1;
+      const key = ownerKey(writerClass, generation, writerSlot);
+      releaseOwned(key, write.address);
+      next = { ...(backing.get(key) ?? baseProvenance(write.after)),
+        frame: write.frame, value: write.after };
+      action = "restore";
+    } else if (write.routine === "render_fighter_projectile_overlays") {
+      writerClass = write.x < 5 ? "PLAYER PAIRSHOT" : "ENEMY PAIRSHOT";
+      generation = context.projectileGeneration ?? 1;
+      const key = ownerKey(writerClass, generation, write.x);
+      const saved = captured(cell(write.address, write.before), write.projectileBacking);
+      backing.set(key, saved);
+      setOwned(key, write.address);
+      next = { writerClass, writerSlot: write.x, generation, frame: write.frame,
+        value: write.after, backingSource: saved };
+      action = "claim";
+    } else if (write.routine === "erase_fighter_projectile_overlays") {
+      writerClass = write.x < 5 ? "PLAYER PAIRSHOT" : "ENEMY PAIRSHOT";
+      generation = context.projectileGeneration ?? 1;
+      const key = ownerKey(writerClass, generation, write.x);
+      releaseOwned(key, write.address);
+      next = { ...(backing.get(key) ?? baseProvenance(write.after)),
+        frame: write.frame, value: write.after };
+      action = "restore";
+    }
+    if (action === "restore" && next.generation !== 0) {
+      const restoredKey = ownerKey(next.writerClass, next.generation, next.writerSlot);
+      if (!ownerFootprints.get(restoredKey)?.has(write.address)) {
+        restoreCandidates.push({ ...write, restoredProvenance: next });
+      }
+    }
+    cells.set(write.address, next);
+    history.push({ ...write, writerClass, writerSlot, generation, action,
+      resultingProvenance: next });
+  }
+
+  const activeAddresses = new Set(finalSnapshot.activeVisualAddresses ?? []);
+  const orphanCells = [...cells].filter(([address, metadata]) =>
+    metadata.generation !== 0 && !activeAddresses.has(address))
+    .map(([address, metadata]) => ({ address, ...metadata }));
+  const staleRestores = restoreCandidates.filter((restore) => orphanCells.some((orphan) =>
+    orphan.address === restore.address &&
+    orphan.writerClass === restore.restoredProvenance.writerClass &&
+    orphan.writerSlot === restore.restoredProvenance.writerSlot &&
+    orphan.generation === restore.restoredProvenance.generation));
+  return {
+    writerClasses: CHARACTER_WRITER_CLASSES,
+    history,
+    staleRestores,
+    transientRestoreCandidates: restoreCandidates,
+    orphanCells,
+    deadGenerationCells: orphanCells,
+  };
+}
+
 function transientEffectRemnants(memory, labels) {
   const lo = requiredLabel(labels, "PLAYFIELD_ROW_LO");
   const hi = requiredLabel(labels, "PLAYFIELD_ROW_HI");
@@ -117,6 +274,24 @@ function armShot(memory, labels, { x = 126, y = 106, kind = 1 } = {}) {
   memory[requiredLabel(labels, "FIGHTER_PROJECTILE_LIFETIME")] = 10;
 }
 
+function armGameplayDebris(memory, labels, { x, y }) {
+  memory[requiredLabel(labels, "ENTITY_ACTIVE_MASK")] |= 1;
+  memory[requiredLabel(labels, "ENTITY_ACTIVE_COUNT")] = 1;
+  memory[requiredLabel(labels, "ENTITY_TYPE")] = 1;
+  memory[requiredLabel(labels, "ENTITY_STATE")] = 1;
+  memory[requiredLabel(labels, "ENTITY_FLAGS")] = 0x3f;
+  memory[requiredLabel(labels, "ENTITY_X")] = x;
+  memory[requiredLabel(labels, "ENTITY_Y")] = y;
+  memory[requiredLabel(labels, "ENTITY_VX")] = 0;
+  memory[requiredLabel(labels, "ENTITY_VY")] = 8;
+  memory[requiredLabel(labels, "ENTITY_TIMER")] = 0;
+  memory[requiredLabel(labels, "ENTITY_MOVE_ACCUMULATOR")] = 0;
+  memory[requiredLabel(labels, "ENTITY_RENDER_ID")] = 110;
+  memory[requiredLabel(labels, "ENTITY_COLLISION_CATEGORY")] = 1;
+  memory[requiredLabel(labels, "ENTITY_HP")] = 3;
+  memory[requiredLabel(labels, "ENTITY_OWNER")] = 0;
+}
+
 function snapshot(memory, labels, {
   phase, frame, eraseCycles, updateCycles, renderCycles,
   effectEraseCycles = 0, effectUpdateCycles = 0, effectRenderCycles = 0,
@@ -131,6 +306,8 @@ function snapshot(memory, labels, {
   const effectScreenHi = requiredLabel(labels, "EFFECT_SCREEN_HI");
   const effectDrawn = requiredLabel(labels, "EFFECT_DRAWN_MASK");
   const effects = [];
+  const activeVisualAddresses = [];
+  const effectRenderedMask = memory[requiredLabel(labels, "EFFECT_RENDERED_MASK")];
   for (let slot = 0; slot < 5; slot += 1) {
     if (memory[effectState + slot] === 0) continue;
     const screenAddress = memory[effectScreenLo + slot] | memory[effectScreenHi + slot] << 8;
@@ -145,6 +322,22 @@ function snapshot(memory, labels, {
       screenAddress,
       screenCode: screenAddress === 0 ? 0 : memory[screenAddress],
     });
+    if ((effectRenderedMask & (1 << slot)) !== 0 && screenAddress !== 0) {
+      activeVisualAddresses.push(screenAddress);
+    }
+  }
+  const entityScreenAddress = memory[requiredLabel(labels, "ENTITY_SCREEN_LO")] |
+    memory[requiredLabel(labels, "ENTITY_SCREEN_HI")] << 8;
+  if (entityScreenAddress !== 0 && memory[requiredLabel(labels, "ENTITY_DRAWN_MASK")] !== 0) {
+    activeVisualAddresses.push(entityScreenAddress, (entityScreenAddress + 1) & 0xffff);
+  }
+  const projectileRendered = requiredLabel(labels, "FIGHTER_PROJECTILE_RENDERED");
+  const projectileScreenLo = requiredLabel(labels, "FIGHTER_PROJECTILE_SCREEN_LO");
+  const projectileScreenHi = requiredLabel(labels, "FIGHTER_PROJECTILE_SCREEN_HI");
+  for (let slot = 0; slot < 10; slot += 1) {
+    if (memory[projectileRendered + slot] === 0) continue;
+    activeVisualAddresses.push(memory[projectileScreenLo + slot] |
+      memory[projectileScreenHi + slot] << 8);
   }
   return {
     phase,
@@ -152,6 +345,10 @@ function snapshot(memory, labels, {
     debrisHp: memory[requiredLabel(labels, "ENTITY_HP")],
     debrisActive: memory[requiredLabel(labels, "ENTITY_ACTIVE_MASK")],
     debrisState: memory[requiredLabel(labels, "ENTITY_STATE")],
+    debrisCollisionCategory:
+      memory[requiredLabel(labels, "ENTITY_COLLISION_CATEGORY")],
+    debrisScreenAddress: entityScreenAddress,
+    debrisDrawnMask: memory[requiredLabel(labels, "ENTITY_DRAWN_MASK")],
     debrisHitFlashTimer: memory[requiredLabel(labels, "ENTITY_OWNER")],
     projectileActive: memory[requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE")],
     effectActiveMask: memory[requiredLabel(labels, "EFFECT_ACTIVE_MASK")],
@@ -159,6 +356,7 @@ function snapshot(memory, labels, {
     effectActiveCount: memory[requiredLabel(labels, "EFFECT_ACTIVE_COUNT")],
     effectPending: memory[requiredLabel(labels, "EFFECT_ALLOCATION_RESULT")],
     effects,
+    activeVisualAddresses,
     erased: eraseCycles > 0,
     updated: updateCycles > 0,
     rendered: renderCycles > 0,
@@ -171,7 +369,11 @@ function snapshot(memory, labels, {
     scoreLo: memory[requiredLabel(labels, "score_bcd_lo")],
     scoreHi: memory[requiredLabel(labels, "score_bcd_hi")],
     enemyHp: memory[requiredLabel(labels, "ENEMY_HP")],
+    enemyHpSlots: [0, 1].map((slot) =>
+      memory[requiredLabel(labels, "ENEMY_HP") + slot]),
     enemyActive: memory[requiredLabel(labels, "ENEMY_ACTIVE")],
+    enemyMemberStates: [0, 1].map((slot) =>
+      memory[requiredLabel(labels, "ENEMY_MEMBER_STATE") + slot]),
     enemyExplosionTimer:
       memory[requiredLabel(labels, "FIGHTER_EXPLOSION_TIMER") + 1],
     colbk: memory[0xd01a],
@@ -285,11 +487,17 @@ export function executeDebrisDestructionTrace({
 export function executeInterceptorBreakupTrace({
   root = defaultRoot, artifact = "xex", ringHead = 0, frames = 32,
   enemyX = 124, enemyY = 88, playerX = 124, weaponMode = "NORMAL",
+  raiderSlot = 0, secondRaider = false, secondKillFrame = null,
+  preexistingEffectCount = 0,
   actualPairShotKill = false, rotateRing = false,
   legacyEffectOverlapResolver = false, legacyEnemyProjectileEffectBacking = false,
   enemyProjectileEffectOverlap = false, projectileEffectOverlapSlot = 7,
   clearEffectOwnershipBeforeProjectile = false,
-  captureWrites = false,
+  activeDebrisOverlap = false,
+  activeEnemyProjectileOverlap = false,
+  legacyInteractiveDebrisEffectBacking = false,
+  legacyEffectEnemyPairshotBacking = false,
+  captureWrites = false, captureProvenance = false,
 } = {}) {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "dist", "void-strike-65-manifest.json")));
   const labels = labelsFromFile(path.join(root, "build", "void-strike-65.lbl"));
@@ -314,6 +522,14 @@ export function executeInterceptorBreakupTrace({
     memory[patch + 1] = backing & 0xff;
     memory[patch + 2] = backing >> 8;
   }
+  if (legacyInteractiveDebrisEffectBacking) {
+    memory[requiredLabel(labels,
+      "resolve_effect_backing_below_interactive_debris")] = 0x60;
+  }
+  if (legacyEffectEnemyPairshotBacking) {
+    memory[requiredLabel(labels,
+      "resolve_effect_backing_below_enemy_pairshot")] = 0x60;
+  }
   memory.set(fs.readFileSync(path.join(root, "build", "integration-glue.bin")), 0x4efe);
   memory.fill(0, 0x80f4, 0x8100);
   memory[0x80fb] = 0x6d;
@@ -334,29 +550,68 @@ export function executeInterceptorBreakupTrace({
   memory[requiredLabel(labels, "ENTITY_SPAWN_TIMER_LO")] = 0xff;
   memory[requiredLabel(labels, "ENTITY_SPAWN_TIMER_HI")] = 0xff;
 
+  const otherRaiderSlot = raiderSlot ^ 1;
   memory[requiredLabel(labels, "ENEMY_ARCHETYPE")] = 0;
   memory[requiredLabel(labels, "ENEMY_ACTIVE")] = 1;
-  memory[requiredLabel(labels, "ENEMY_MEMBER_STATE")] = 1;
-  memory[requiredLabel(labels, "ENEMY_TARGET_SLOT")] = 0;
-  memory[requiredLabel(labels, "ENEMY_LIVE_COUNT")] = 1;
-  memory[requiredLabel(labels, "ENEMY_HP")] = 1;
-  memory[requiredLabel(labels, "ENEMY_X")] = enemyX;
-  memory[requiredLabel(labels, "ENEMY_Y")] = enemyY;
+  memory[requiredLabel(labels, "ENEMY_MEMBER_STATE") + raiderSlot] = 1;
+  memory[requiredLabel(labels, "ENEMY_TARGET_SLOT")] = raiderSlot;
+  memory[requiredLabel(labels, "ENEMY_LIVE_COUNT")] = secondRaider ? 2 : 1;
+  memory[requiredLabel(labels, "ENEMY_HP") + raiderSlot] = 1;
+  memory[requiredLabel(labels, "ENEMY_X") + raiderSlot] = enemyX;
+  memory[requiredLabel(labels, "ENEMY_Y") + raiderSlot] = enemyY;
+  if (secondRaider) {
+    memory[requiredLabel(labels, "ENEMY_MEMBER_STATE") + otherRaiderSlot] = 1;
+    memory[requiredLabel(labels, "ENEMY_HP") + otherRaiderSlot] = 3;
+    memory[requiredLabel(labels, "ENEMY_X") + otherRaiderSlot] =
+      enemyX < 120 ? enemyX + 32 : enemyX - 32;
+    memory[requiredLabel(labels, "ENEMY_Y") + otherRaiderSlot] = enemyY;
+  }
   memory[requiredLabel(labels, "player_x")] = playerX;
   memory[requiredLabel(labels, "scanner_phase")] = 0;
   memory[requiredLabel(labels, "score_bcd_lo")] = 0x42;
   memory[requiredLabel(labels, "score_bcd_hi")] = 0x07;
   memory[0xd013] = manifest.enemyRoster.palette.releaseBodyValue;
   memory[0xd014] = manifest.enemyRoster.palette.scannerValue;
+  const writeLog = captureWrites || captureProvenance ? [] : null;
   runRoutine(memory, labels, "draw_enemy");
+  if (![0, 1, 3, 5].includes(preexistingEffectCount)) {
+    throw new Error(`Unsupported preexisting effect count ${preexistingEffectCount}`);
+  }
+  if (preexistingEffectCount > 0) {
+    if (writeLog !== null) writeLog.provenanceContext = { effectGeneration: 1 };
+    const activeMask = (1 << preexistingEffectCount) - 1;
+    memory[requiredLabel(labels, "EFFECT_ACTIVE_MASK")] = activeMask;
+    memory[requiredLabel(labels, "EFFECT_ACTIVE_COUNT")] = preexistingEffectCount;
+    for (let slot = 0; slot < preexistingEffectCount; slot += 1) {
+      memory[requiredLabel(labels, "EFFECT_STATE") + slot] = 1;
+      memory[requiredLabel(labels, "EFFECT_TYPE") + slot] = slot === 0 ? 0 : 1;
+      memory[requiredLabel(labels, "EFFECT_X") + slot] = enemyX + (slot - 2) * 4;
+      memory[requiredLabel(labels, "EFFECT_Y") + slot] = enemyY + (slot & 1) * 8;
+      memory[requiredLabel(labels, "EFFECT_TIMER") + slot] = 12;
+      memory[requiredLabel(labels, "EFFECT_RENDER_ID") + slot] = slot === 0 ? 110 : 118;
+    }
+    memory[requiredLabel(labels, "frame_counter")] = 0;
+    runRoutine(memory, labels, "entity_effects_render", { writeLog, frame: -2 });
+    memory[requiredLabel(labels, "frame_counter")] = 1;
+    runRoutine(memory, labels, "entity_effects_render", { writeLog, frame: -1 });
+    memory[requiredLabel(labels, "frame_counter")] = 0;
+  }
 
   const records = [];
-  const writeLog = captureWrites ? [] : null;
   let enemyProjectileBackingOverlap = null;
   records.push(snapshot(memory, labels,
     { phase: "PRE_HIT", frame: 0, eraseCycles: 0, updateCycles: 0, renderCycles: 0 }));
   let worldAccumulator = 0;
+  const deathEffectGeneration = preexistingEffectCount > 0 ? 2 : 1;
+  let currentEffectGeneration = preexistingEffectCount > 0 ? 1 : deathEffectGeneration;
   for (let frame = 0; frame < frames; frame += 1) {
+    if (writeLog !== null) {
+      writeLog.provenanceContext = {
+        effectGeneration: currentEffectGeneration,
+        debrisGeneration: activeDebrisOverlap ? 1 : 0,
+        projectileGeneration: activeEnemyProjectileOverlap ? 1 : 0,
+      };
+    }
     memory[requiredLabel(labels, "frame_counter")] += 1;
     const effectEraseProbe = Uint8Array.from(memory);
     const effectEraseCycles = memory[requiredLabel(labels, "EFFECT_RENDERED_MASK")] === 0 ? 0 :
@@ -368,14 +623,35 @@ export function executeInterceptorBreakupTrace({
       if (actualPairShotKill) {
         const kind = weaponMode === "SPREAD" ? 0x41 : 1;
         armShot(memory, labels, { x: enemyX + 2, y: enemyY + 14, kind });
-        runRoutine(memory, labels, "update_fighter_projectiles");
+        runRoutine(memory, labels, "update_fighter_projectiles", { writeLog, frame });
       } else {
         memory[requiredLabel(labels, "ENEMY_PENDING_DAMAGE")] = 1;
         memory[requiredLabel(labels, "ENEMY_PENDING_SOURCE")] = 0;
       }
-      runRoutine(memory, labels, "resolve_enemy_damage");
+      runRoutine(memory, labels, "resolve_enemy_damage", { writeLog, frame });
+      currentEffectGeneration = deathEffectGeneration;
+      if (writeLog !== null) {
+        writeLog.provenanceContext.effectGeneration = currentEffectGeneration;
+      }
+      if (activeDebrisOverlap) {
+        armGameplayDebris(memory, labels, {
+          x: memory[requiredLabel(labels, "FIGHTER_EXPLOSION_X") + 1] + 6,
+          y: memory[requiredLabel(labels, "FIGHTER_EXPLOSION_Y") + 1],
+        });
+      }
     } else {
       runRoutine(memory, labels, "update_enemy");
+      if (secondRaider && frame === secondKillFrame) {
+        const pendingDamage = requiredLabel(labels, "ENEMY_PENDING_DAMAGE");
+        const pendingSource = requiredLabel(labels, "ENEMY_PENDING_SOURCE");
+        memory[pendingDamage + otherRaiderSlot] = 3;
+        memory[pendingSource + otherRaiderSlot] = 0;
+        runRoutine(memory, labels, "resolve_enemy_damage", { writeLog, frame });
+        currentEffectGeneration += 1;
+        if (writeLog !== null) {
+          writeLog.provenanceContext.effectGeneration = currentEffectGeneration;
+        }
+      }
     }
     worldAccumulator += 9;
     const worldAdvanced = worldAccumulator >= 20;
@@ -393,6 +669,28 @@ export function executeInterceptorBreakupTrace({
       runRoutine(effectRenderProbe, labels, "render_transient_effect_overlays");
     const renderCycles = runRoutine(memory, labels, "entity_effects_render",
       { writeLog, frame });
+    if (activeEnemyProjectileOverlap && frame === 0) {
+      const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
+      const slot = 5;
+      memory[active + slot] = 2;
+      memory[requiredLabel(labels, "FIGHTER_PROJECTILE_X") + slot] =
+        memory[requiredLabel(labels, "FIGHTER_EXPLOSION_X") + 1] + 6;
+      memory[requiredLabel(labels, "FIGHTER_PROJECTILE_Y") + slot] =
+        memory[requiredLabel(labels, "FIGHTER_EXPLOSION_Y") + 1];
+      memory[requiredLabel(labels, "FIGHTER_PROJECTILE_PREV_Y") + slot] =
+        memory[requiredLabel(labels, "FIGHTER_EXPLOSION_Y") + 1];
+      memory[requiredLabel(labels, "FIGHTER_PROJECTILE_LIFETIME") + slot] = 8;
+      runRoutine(memory, labels, "render_fighter_projectile_overlays",
+        { writeLog, frame });
+    } else if (activeEnemyProjectileOverlap && frame > 0) {
+      runRoutine(memory, labels, "erase_fighter_projectile_overlays",
+        { writeLog, frame });
+      if (frame === 1) {
+        memory[requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE") + 5] = 0;
+      }
+      runRoutine(memory, labels, "render_fighter_projectile_overlays",
+        { writeLog, frame });
+    }
     if (enemyProjectileEffectOverlap && enemyProjectileBackingOverlap === null &&
         (memory[requiredLabel(labels, "EFFECT_RENDERED_MASK")] & 0x08) !== 0) {
       const effectSlot = 3;
@@ -444,14 +742,19 @@ export function executeInterceptorBreakupTrace({
 
   return {
     artifact,
-    scenario: { ringHead, enemyX, enemyY, playerX, weaponMode, actualPairShotKill,
+    scenario: { ringHead, enemyX, enemyY, playerX, weaponMode, raiderSlot,
+      secondRaider, secondKillFrame, preexistingEffectCount, actualPairShotKill,
       rotateRing, legacyEffectOverlapResolver, legacyEnemyProjectileEffectBacking,
       enemyProjectileEffectOverlap, projectileEffectOverlapSlot,
-      clearEffectOwnershipBeforeProjectile },
+      clearEffectOwnershipBeforeProjectile, activeDebrisOverlap,
+      activeEnemyProjectileOverlap, legacyInteractiveDebrisEffectBacking,
+      legacyEffectEnemyPairshotBacking, captureProvenance },
     records,
     remnants: transientEffectRemnants(memory, labels),
     enemyProjectileBackingOverlap,
     writeLog,
+    provenance: captureProvenance ?
+      analyseCharacterProvenance(writeLog, labels, records.at(-1)) : null,
     charset: Uint8Array.from(memory.subarray(0x4400, 0x4800)),
     manifest,
   };
@@ -510,6 +813,99 @@ export function executeRaiderRemnantMatrix({
     maximumEffectRenderCycles,
     remnantCount: failures.reduce((sum, failure) => sum + failure.remnants.length, 0),
     failures, firstFailure,
+  };
+}
+
+export function executeRemainingRaiderRemnantMatrix({
+  root = defaultRoot, artifact = "xex", kills = 5000,
+} = {}) {
+  const modes = ["NORMAL", "RAPID", "SPREAD"];
+  const movements = ["STATIONARY", "LEFT", "RIGHT", "REVERSAL"];
+  const effectCounts = [0, 1, 3, 5];
+  const overlaps = ["NONE", "DEBRIS", "ENEMY_PAIRSHOT"];
+  const yBands = [40, 96, 152];
+  const failures = [];
+  const coverage = {
+    raiderSlotA: 0, raiderSlotB: 0, singleRaider: 0, twoRaiders: 0,
+    nearSimultaneousKills: 0, ringSteps: 0, ringWraps: 0,
+    activeDebris: 0, noDebris: 0, enemyFire: 0, noEnemyFire: 0,
+    preexistingEffects: { 0: 0, 1: 0, 3: 0, 5: 0 },
+  };
+  let killEvents = 0;
+  let staleBackingRestores = 0;
+  let deadGenerationCells = 0;
+  let orphanVisualCells = 0;
+  let legitimateDebrisRecords = 0;
+  let maximumEffectRenderCycles = 0;
+
+  for (let kill = 0; kill < kills; kill += 1) {
+    const raiderSlot = kill & 1;
+    const secondRaider = (kill & 3) !== 0;
+    const overlap = overlaps[kill % overlaps.length];
+    const secondKillFrame = secondRaider && overlap === "NONE" && kill % 10 === 0 ? 2 : null;
+    const ringHead = kill % 27;
+    const band = kill % yBands.length;
+    const enemyY = yBands[band] + ((kill * 5) % 25);
+    const enemyX = 84 + ((kill * 7) % 18) * 4;
+    const movement = movements[kill % movements.length];
+    const playerX = movement === "LEFT" ? 72 : movement === "RIGHT" ? 176 :
+      movement === "REVERSAL" ? (kill & 1 ? 72 : 176) : 124;
+    const preexistingEffectCount = overlap === "DEBRIS" ? 0 :
+      effectCounts[kill % effectCounts.length];
+    const trace = executeInterceptorBreakupTrace({
+      root, artifact, ringHead, frames: 40, enemyX, enemyY, playerX,
+      weaponMode: modes[kill % modes.length], raiderSlot, secondRaider,
+      secondKillFrame, preexistingEffectCount, actualPairShotKill: true,
+      rotateRing: true, activeDebrisOverlap: overlap === "DEBRIS",
+      activeEnemyProjectileOverlap: overlap === "ENEMY_PAIRSHOT",
+      captureProvenance: true,
+    });
+    const primaryKilled = trace.records[1].enemyHpSlots[raiderSlot] === 0;
+    const secondaryKilled = secondKillFrame === null ||
+      trace.records.at(-1).enemyHpSlots[raiderSlot ^ 1] === 0;
+    killEvents += Number(primaryKilled) + Number(secondKillFrame !== null && secondaryKilled);
+    coverage.raiderSlotA += Number(raiderSlot === 0);
+    coverage.raiderSlotB += Number(raiderSlot === 1);
+    coverage.singleRaider += Number(!secondRaider);
+    coverage.twoRaiders += Number(secondRaider);
+    coverage.nearSimultaneousKills += Number(secondKillFrame !== null);
+    coverage.ringSteps += 1;
+    coverage.ringWraps += Number(ringHead + Math.floor(40 * 9 / 20) >= 27);
+    coverage.activeDebris += Number(overlap === "DEBRIS");
+    coverage.noDebris += Number(overlap !== "DEBRIS");
+    coverage.enemyFire += Number(overlap === "ENEMY_PAIRSHOT");
+    coverage.noEnemyFire += Number(overlap !== "ENEMY_PAIRSHOT");
+    coverage.preexistingEffects[preexistingEffectCount] += 1;
+    const final = trace.records.at(-1);
+    if (overlap === "DEBRIS" && final.debrisActive !== 0 &&
+        final.debrisState !== 0 && final.debrisCollisionCategory !== 0 &&
+        final.debrisHp > 0) {
+      legitimateDebrisRecords += 1;
+    }
+    const stale = trace.provenance.staleRestores.length;
+    const dead = trace.provenance.deadGenerationCells.length;
+    const orphan = trace.provenance.orphanCells.length;
+    staleBackingRestores += stale;
+    deadGenerationCells += dead;
+    orphanVisualCells += orphan;
+    maximumEffectRenderCycles = Math.max(maximumEffectRenderCycles,
+      ...trace.records.map((record) => record.effectRenderCycles));
+    if (!primaryKilled || !secondaryKilled || stale !== 0 || dead !== 0 || orphan !== 0) {
+      failures.push({ kill, movement, overlap, primaryKilled, secondaryKilled,
+        staleBackingRestores: stale, deadGenerationCells: dead,
+        orphanVisualCells: orphan, ...trace.scenario,
+        firstStaleRestore: trace.provenance.staleRestores[0] ?? null,
+        firstOrphan: trace.provenance.orphanCells[0] ?? null });
+    }
+  }
+
+  return {
+    artifact, requestedPrimaryKills: kills, killEvents, modes, movements,
+    yBands: ["HIGH", "MID", "LOW"], effectCounts, overlaps, coverage,
+    legitimateDebrisRecords, staleBackingRestores, deadGenerationCells,
+    orphanVisualCells, remnantCount: orphanVisualCells,
+    lostErase: staleBackingRestores,
+    maximumEffectRenderCycles, failures, firstFailure: failures[0] ?? null,
   };
 }
 

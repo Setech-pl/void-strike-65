@@ -1,11 +1,11 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 3.6
+Wersja: 3.7
 Data aktualizacji: 2026-09-13
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD przed niniejszym proofem: `baeb300f659da99609831b2fd0a35f73b04e80ce`
-Stan runtime: dwuwarstwowy starfield owner-smoke candidate + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck odroczony do debris 25 Hz / visual redesign; bez unified schedulera
-Aktualny XEX owner-smoke candidate: SHA-256 `242fa14107d76d2d5e8f6641de94b60b0ccacbbca3b626db7418eee7c5001390`
+Aktualny HEAD przed niniejszym proofem: `41d136f5a9a91e05c0b0886519c8e348d2753508`
+Stan runtime: dwuwarstwowy starfield po technicznym PASS naprawy widoczności white near + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck odroczony do debris 25 Hz / visual redesign; bez unified schedulera
+Aktualny XEX owner-smoke candidate: SHA-256 `c5bdc93b8b2b822bad22e19f402c9347de4fa1996cf58871c05b3ec0eba0b826`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
 
@@ -1226,7 +1226,7 @@ kolizją gracza i PairShot oraz limitem dwóch aktywnych obiektów, ale odracza
 integrację do osobnego `debris 25 Hz / visual redesign`. Nie wracać do
 jednoslotowego szkicu ani nie otwierać osobnego RaiderDebris subsystemu.
 
-### Two-layer starfield visual/parallax — TECHNICAL PASS / OWNER SMOKE
+### Two-layer starfield visual/parallax — OWNER SMOKE FAIL / visibility fix TECHNICAL PASS
 
 Dotychczasowy row-baked starfield miał dwie warstwy generowane w tych samych
 recyklingowanych wierszach. Niebieskie i białe punkty dziedziczyły więc tę
@@ -1286,17 +1286,54 @@ odpowiednio `5 231`, `5 035`, `4 774` i `4 119` cykli.
 Raport:
 `docs/diagnostics/stage-2b2b-two-layer-starfield-visual-parallax-fix.json`.
 
+Pierwszy owner smoke odrzucił ten artefakt: niebieskie far były widoczne, lecz
+białych near nie było widać. Frame-exact Atari800 trace wykazał, że nie był to
+problem glyphu, koloru, occupancy ani prędkości. Produkcyjny kod `2` wybiera
+jasny `COLPF0=$0E` w ANTIC 4, a forced-star proof pokazał biały piksel.
+Problemem była kolejność: late render następował po playfieldzie, ale erase
+wykonywał się już na początku kolejnej iteracji, przed następnym fetch ANTIC.
+Baseline dawał tylko `5/805` obserwacji kodu near przez ANTIC.
+
+Minimalny fix przenosi OLD erase do następnego stałego post-playfield window,
+przed PairShot erase/render, a NEW near nadal publikuje jako ostatnia najniższa
+warstwa na pustych komórkach. Osobny istniejący byte pamięta ring advance,
+ponieważ `ENTITY_FRAME_EVENTS` jest wcześniej konsumowany przez effects.
+Lokalny recycle cleanup usuwa wyłącznie przejściową kopię near z dividera;
+debris/effect/PairShot backing normalizuje transient near do `CH_SPACE`.
+
+Native 1100-frame fighter-OPEN trace:
+
+- `4 404` prób publikacji, `4 225` skutecznych zapisów;
+- `179` legalnych occupancy skips, w tym `156` przez blue far;
+- `4 076 / 4 396` właściwych fetchy ANTIC zobaczyło kod white near;
+- w 1095/1099 pełnych klatek widoczne były trzy lub cztery near stars;
+- `0` immediate overwritten writes i `0` orphan cells po publication po
+  pominięciu dwóch snapshotów przed inicjalizacją gameplay;
+- host 1000-frame wrap/cache test: stale/clone cells `0`;
+- active-work max `26 828`, missed/extra VBI/DLI anomalies `0`.
+
+Koszt starfield rośnie tylko z `692` do `766` cykli worst (+74); zachowany
+zysk względem dawnego `4 221` wynosi `3 455` cykli. Linked runtime wynosi
+`17 543 B`, simultaneous residency `18 021 B`, safe headroom `4 166 B`.
+STARFIELD `2205/2348 B` raw i `1792/1819 B` packed, A2 `190/256 B`,
+BROADSIDE margin `9 B`, cold pickup margin `412 B`, initial-content margin
+`47 B`. Loader, transport, liczba/prędkość near, far layer i gameplay pozostają
+bez zmian.
+
+Raport:
+`docs/diagnostics/stage-2b2b-near-star-visibility-fix.json`.
+
 Decyzja techniczna:
 
-**Two-layer starfield spełnia bramki CPU, pamięci, wrap i rekonstrukcji;
-finalna ocena płynności, paralaksy i czytelności pozostaje OWNER SMOKE.**
+**White near stars są teraz rzeczywiście pobierane przez ANTIC; finalna ocena
+widoczności i paralaksy pozostaje OWNER SMOKE.**
 
-### Następny krok — tylko po owner PASS starfield
+### Następny krok — tylko owner smoke
 
-> Background/ring 25 Hz / staggered feasibility.
+> Owner smoke white near stars + parallax.
 
-Nie wykonywać automatycznie. Raider wreck pozostaje odroczony do późniejszego
-debris 25 Hz / visual redesign.
+Nie wykonywać background/ring 25 Hz przed owner PASS. Raider wreck pozostaje
+odroczony do późniejszego debris 25 Hz / visual redesign.
 
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 

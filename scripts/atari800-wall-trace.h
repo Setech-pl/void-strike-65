@@ -36,6 +36,8 @@
 #define DFTRACE_PROFILE_COUNT 22u
 #define DFTRACE_PROFILE_DLI_COUNT 2u
 #define DFTRACE_CAPTURE_DMA_Y_OFFSET 8u
+#define DFTRACE_NEAR_COUNT 4u
+#define DFTRACE_NEAR_CODE 2u
 
 typedef struct {
 	uint64_t start_clock;
@@ -436,6 +438,8 @@ static unsigned dftrace_pc_gameplay_init;
 static unsigned dftrace_pc_dlist_publish;
 static unsigned dftrace_pc_rotate_start;
 static unsigned dftrace_pc_rotate_end;
+static unsigned dftrace_pc_near_erase;
+static unsigned dftrace_pc_near_render;
 static unsigned dftrace_dli_phase;
 
 static unsigned dftrace_player_x;
@@ -524,6 +528,16 @@ static unsigned dftrace_corridor_phase;
 static unsigned dftrace_ring_flags;
 static unsigned dftrace_active_dlist_lo;
 static unsigned dftrace_next_dlist_lo;
+static unsigned dftrace_near_row;
+static unsigned dftrace_near_column;
+static unsigned dftrace_near_screen_lo;
+static unsigned dftrace_near_screen_hi;
+static unsigned dftrace_dst_ptr;
+static FILE *dftrace_near_file;
+static unsigned dftrace_near_host_frame = 0xffffffffu;
+static unsigned dftrace_near_fetch_logged[DFTRACE_NEAR_COUNT];
+static unsigned dftrace_near_force_address;
+static unsigned dftrace_near_mode;
 static const char *dftrace_engine_screenshot_prefix;
 static unsigned dftrace_engine_screenshot_count;
 static unsigned dftrace_engine_screenshot_generation;
@@ -534,6 +548,7 @@ static unsigned dftrace_previous_pc;
 static unsigned dftrace_pmg_last_writer[256];
 static unsigned dftrace_character_last_writer[65536];
 static unsigned dftrace_character_last_writer_x[65536];
+static uint64_t dftrace_clock(void);
 static unsigned dftrace_engine_previous[16];
 static int dftrace_engine_previous_valid;
 static unsigned dftrace_frontend_delay;
@@ -1536,6 +1551,174 @@ static void dftrace_track_character_screen_write(unsigned x_register, unsigned y
 		(address >= DFTRACE_DIVIDER_SCREEN && address < DFTRACE_DIVIDER_SCREEN + 40u)) {
 		dftrace_character_last_writer[address] = dftrace_previous_pc;
 		dftrace_character_last_writer_x[address] = x_register;
+	}
+}
+
+static int dftrace_near_visible_row(unsigned address)
+{
+	unsigned base;
+	unsigned index;
+	if (address == 0u)
+		return -1;
+	if (address >= DFTRACE_DIVIDER_SCREEN &&
+		address < DFTRACE_DIVIDER_SCREEN + 40u)
+		return 0;
+	base = 0x7f00u + dftrace_displayed_dlist_lo;
+	for (index = 0u; index < DFTRACE_RING_ROWS; ++index) {
+		unsigned row = MEMORY_mem[base + 7u + index * 3u] |
+			((unsigned) MEMORY_mem[base + 8u + index * 3u] << 8);
+		if (address >= row && address < row + 40u)
+			return (int) index + 1;
+	}
+	return -1;
+}
+
+static void dftrace_near_visible_counts(unsigned *visible, unsigned *orphan,
+	unsigned *first_orphan, unsigned *first_orphan_writer)
+{
+	unsigned base = 0x7f00u + dftrace_displayed_dlist_lo;
+	unsigned row;
+	*visible = 0u;
+	*orphan = 0u;
+	*first_orphan = 0u;
+	*first_orphan_writer = 0u;
+	for (row = 0u; row <= DFTRACE_RING_ROWS; ++row) {
+		unsigned column;
+		unsigned address = row == 0u ? DFTRACE_DIVIDER_SCREEN :
+			MEMORY_mem[base + 7u + (row - 1u) * 3u] |
+			((unsigned) MEMORY_mem[base + 8u + (row - 1u) * 3u] << 8);
+		for (column = 0u; column < 40u; ++column) {
+			unsigned slot;
+			int owned = 0;
+			if (MEMORY_mem[address + column] != DFTRACE_NEAR_CODE)
+				continue;
+			(*visible)++;
+			for (slot = 0u; slot < DFTRACE_NEAR_COUNT; ++slot) {
+				unsigned cached = MEMORY_mem[dftrace_near_screen_lo + slot] |
+					((unsigned) MEMORY_mem[dftrace_near_screen_hi + slot] << 8);
+				if (cached == address + column) {
+					owned = 1;
+					break;
+				}
+			}
+			if (!owned) {
+				if (*first_orphan == 0u) {
+					*first_orphan = address + column;
+					*first_orphan_writer = dftrace_character_last_writer[address + column];
+				}
+				(*orphan)++;
+			}
+		}
+	}
+}
+
+static void dftrace_near_event(const char *event, unsigned slot, unsigned pc)
+{
+	unsigned address = MEMORY_mem[dftrace_near_screen_lo + slot] |
+		((unsigned) MEMORY_mem[dftrace_near_screen_hi + slot] << 8);
+	unsigned pointer = MEMORY_mem[dftrace_dst_ptr] |
+		((unsigned) MEMORY_mem[(dftrace_dst_ptr + 1u) & 0xffffu] << 8);
+	int visible_row = dftrace_near_visible_row(address);
+	unsigned physical_row = address >= DFTRACE_RING_SCREEN && address < DFTRACE_RING_END
+		? (address - DFTRACE_RING_SCREEN) / 40u : 0xffffffffu;
+	unsigned visible_near = 0u;
+	unsigned orphan_near = 0u;
+	unsigned first_orphan = 0u;
+	unsigned first_orphan_writer = 0u;
+	if (dftrace_near_file == NULL)
+		return;
+	if ((event[0] == 'p' && slot == 0u) ||
+		(event[0] == 'r' && event[7] == 'e'))
+		dftrace_near_visible_counts(&visible_near, &orphan_near,
+			&first_orphan, &first_orphan_writer);
+	fprintf(dftrace_near_file,
+		"%u,%u,%u,%d,%d,%llu,%s,%u,%u,%u,%u,%u,%u,%u,%d,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n",
+		dftrace_count, (unsigned) Atari800_nframes,
+		MEMORY_mem[dftrace_gameplay_frame], ANTIC_ypos, ANTIC_XPOS,
+		(unsigned long long) dftrace_clock(), event, slot, pc, dftrace_previous_pc,
+		MEMORY_mem[dftrace_near_row + slot], MEMORY_mem[dftrace_near_column + slot],
+		address, pointer, visible_row, physical_row,
+		address == 0u ? 0u : MEMORY_mem[address],
+		pointer == 0u ? 0u : MEMORY_mem[pointer],
+		address == 0u ? 0u : dftrace_character_last_writer[address],
+		MEMORY_mem[DFTRACE_CHARSET + DFTRACE_NEAR_CODE * 8u],
+		ANTIC_CHBASE, GTIA_COLPF0, GTIA_COLPF1,
+		MEMORY_mem[dftrace_sector_state], MEMORY_mem[dftrace_ring_flags],
+		visible_near, orphan_near, first_orphan, first_orphan_writer);
+	fflush(dftrace_near_file);
+}
+
+static unsigned dftrace_near_row_address(unsigned logical_row)
+{
+	unsigned base = 0x7f00u + dftrace_displayed_dlist_lo;
+	if (logical_row == 0u)
+		return DFTRACE_DIVIDER_SCREEN;
+	return MEMORY_mem[base + 7u + (logical_row - 1u) * 3u] |
+		((unsigned) MEMORY_mem[base + 8u + (logical_row - 1u) * 3u] << 8);
+}
+
+static void dftrace_near_observe(unsigned pc, unsigned x_register)
+{
+	unsigned host;
+	unsigned slot;
+	if (dftrace_near_file == NULL || MEMORY_mem[dftrace_game_state] != 6u)
+		return;
+	/* Diagnostic-only long OPEN run: keep the production XEX untouched while
+	 * collecting more than one complete fighter sector of ANTIC observations. */
+	if (getenv("DFTRACE_NEAR_HOLD_OPEN") != NULL)
+		MEMORY_mem[dftrace_sector_state] = 7u;
+	host = (unsigned) Atari800_nframes;
+	if (host != dftrace_near_host_frame) {
+		dftrace_near_host_frame = host;
+		memset(dftrace_near_fetch_logged, 0, sizeof(dftrace_near_fetch_logged));
+		if (getenv("DFTRACE_NEAR_FORCE") != NULL && dftrace_displayed_dlist_lo != 0u) {
+			unsigned address = dftrace_near_row_address(14u) + 20u;
+			if (dftrace_near_force_address != 0u &&
+				MEMORY_mem[dftrace_near_force_address] == DFTRACE_NEAR_CODE)
+				MEMORY_mem[dftrace_near_force_address] = 0u;
+			dftrace_near_force_address = address;
+			MEMORY_mem[address] = DFTRACE_NEAR_CODE;
+		}
+		for (slot = 0u; slot < DFTRACE_NEAR_COUNT; ++slot)
+			dftrace_near_event("physical_frame_begin", slot, pc);
+	}
+	for (slot = 0u; slot < DFTRACE_NEAR_COUNT; ++slot) {
+		unsigned address;
+		int row;
+		int glyph_scanline;
+		if (dftrace_near_fetch_logged[slot])
+			continue;
+		address = MEMORY_mem[dftrace_near_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_near_screen_hi + slot] << 8);
+		row = dftrace_near_visible_row(address);
+		glyph_scanline = row < 0 ? -1 : 16 + row * 8;
+		if (glyph_scanline >= 0 && ANTIC_ypos >= glyph_scanline) {
+			dftrace_near_fetch_logged[slot] = 1u;
+			dftrace_near_event("antic_glyph_scanline", slot, pc);
+		}
+	}
+	if (pc == dftrace_pc_near_erase) {
+		dftrace_near_mode = 1u;
+		dftrace_near_event("erase_begin", 0u, pc);
+	}
+	else if (pc == dftrace_pc_near_render) {
+		dftrace_near_mode = 2u;
+		dftrace_near_event("render_begin", 0u, pc);
+	}
+	if (dftrace_near_mode != 0u && dftrace_previous_pc != 0u &&
+		MEMORY_mem[dftrace_previous_pc] == 0xb1u &&
+		MEMORY_mem[(dftrace_previous_pc + 1u) & 0xffffu] == (dftrace_dst_ptr & 0xffu))
+		dftrace_near_event(dftrace_near_mode == 1u ? "erase_attempt" : "render_attempt",
+			x_register, pc);
+	if (dftrace_near_mode != 0u && dftrace_previous_pc != 0u &&
+		MEMORY_mem[dftrace_previous_pc] == 0x91u &&
+		MEMORY_mem[(dftrace_previous_pc + 1u) & 0xffffu] == (dftrace_dst_ptr & 0xffu))
+		dftrace_near_event(dftrace_near_mode == 1u ? "erase_write_after" : "render_write_after",
+			x_register, pc);
+	if (dftrace_near_mode != 0u && dftrace_previous_pc != 0u &&
+		MEMORY_mem[dftrace_previous_pc] == 0x60u) {
+		dftrace_near_event(dftrace_near_mode == 1u ? "erase_end" : "render_end", 0u, pc);
+		dftrace_near_mode = 0u;
 	}
 }
 
@@ -3512,6 +3695,8 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_pc_gameplay_init, "DFTRACE_PC_GAMEPLAY_INIT");
 	DFTRACE_ADDRESS(dftrace_pc_rotate_start, "DFTRACE_PC_ROTATE_START");
 	DFTRACE_ADDRESS(dftrace_pc_rotate_end, "DFTRACE_PC_ROTATE_END");
+	DFTRACE_ADDRESS(dftrace_pc_near_erase, "DFTRACE_PC_NEAR_ERASE");
+	DFTRACE_ADDRESS(dftrace_pc_near_render, "DFTRACE_PC_NEAR_RENDER");
 	dftrace_pc_dlist_publish = dftrace_pc_dli;
 	DFTRACE_ADDRESS(dftrace_dli_phase, "DFTRACE_DLI_PHASE");
 	DFTRACE_ADDRESS(dftrace_player_x, "DFTRACE_PLAYER_X");
@@ -3597,7 +3782,23 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_ring_flags, "DFTRACE_RING_FLAGS");
 	DFTRACE_ADDRESS(dftrace_active_dlist_lo, "DFTRACE_ACTIVE_DLIST_LO");
 	DFTRACE_ADDRESS(dftrace_next_dlist_lo, "DFTRACE_NEXT_DLIST_LO");
+	DFTRACE_ADDRESS(dftrace_near_row, "DFTRACE_NEAR_ROW");
+	DFTRACE_ADDRESS(dftrace_near_column, "DFTRACE_NEAR_COLUMN");
+	DFTRACE_ADDRESS(dftrace_near_screen_lo, "DFTRACE_NEAR_SCREEN_LO");
+	DFTRACE_ADDRESS(dftrace_near_screen_hi, "DFTRACE_NEAR_SCREEN_HI");
+	DFTRACE_ADDRESS(dftrace_dst_ptr, "DFTRACE_DST_PTR");
 #undef DFTRACE_ADDRESS
+	{
+		const char *near_output = getenv("DFTRACE_NEAR_OUTPUT");
+		if (near_output != NULL && *near_output != '\0') {
+			dftrace_near_file = fopen(near_output, "w");
+			if (dftrace_near_file == NULL) {
+				perror("voidstrike65 near-star output");
+				exit(2);
+			}
+			fputs("trace_frame,host_frame,gameplay_frame,scanline,cycle,clock,event,slot,pc,previous_pc,row,column,address,pointer,visible_row,physical_row,address_value,pointer_value,last_writer_pc,glyph_row0,chbase,colpf0,colpf1,sector_state,ring_flags,visible_near_cells,orphan_near_cells,first_orphan_address,first_orphan_writer_pc\n", dftrace_near_file);
+		}
+	}
 	dftrace_pickup_screenshot = getenv("DFTRACE_PICKUP_SCREENSHOT");
 	dftrace_pickup_sequence_prefix = getenv("DFTRACE_PICKUP_SEQUENCE_PREFIX");
 	dftrace_pickup_traversal_prefix = getenv("DFTRACE_PICKUP_TRAVERSAL_PREFIX");
@@ -3787,6 +3988,7 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 	if (!dftrace_initialised)
 		dftrace_init();
 	dftrace_track_character_screen_write(x_register, y_register);
+	dftrace_near_observe(pc, x_register);
 	dftrace_watch_interceptor_projectiles();
 	dffence_observe(pc, x_register);
 	if (dftrace_published_dlist_lo == 0u && MEMORY_mem[dftrace_game_state] == 6u)

@@ -80,11 +80,11 @@ test("Layout D.2 startup order and call bytes are frozen", () => {
     /stage_glue_holding:[\s\S]+jmp stage_starfield_stream[\s\S]+stage_starfield_stream:[\s\S]+jsr copy_pause_screen\s+jsr copy_pause_screen\s+jmp copy_pause_screen/,
     "GLUE must leave $7BD0 before the deferred starfield staging write");
   const resident = fs.readFileSync(path.join(root, "build/resident-runtime.bin"));
-  assert.deepEqual([...resident.subarray(0x40, 0x46)], [0x20, 0x28, 0x21, 0x20, 0x7d, 0x9a]);
+  assert.deepEqual([...resident.subarray(0x40, 0x46)], [0x20, 0x28, 0x21, 0x20, 0x89, 0x9a]);
 });
 
 test("Layout D.2 exact memory and transport budgets remain frozen", () => {
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13097);
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13137);
   assert.equal(manifest.transportCapacity.initialBootBytes, 13184);
   assert.equal(manifest.transportCapacity.totalTransportSectors, 163);
   assert.equal(manifest.transportCapacity.totalTransportBytes, 20864);
@@ -92,19 +92,19 @@ test("Layout D.2 exact memory and transport budgets remain frozen", () => {
   assert.deepEqual(manifest.transportCapacity.manifest.parsed.records.map((record) =>
     [record.startSector, record.sectorCount, record.packedLength, record.rawLength,
       record.finalDestination]), [
-    [104, 45, 5659, 6647, 0x5e10],
-    [149, 7, 860, 860, 0x8c80],
+    [104, 45, 5660, 6647, 0x5e10],
+    [149, 7, 865, 865, 0x8c80],
     [156, 3, 245, 250, 0x7bd0],
     [159, 5, 587, 644, 0x9d75],
   ]);
-  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17502);
-  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 17980);
-  assert.equal(manifest.encounterDirector.safeResidencyBytes, 4207);
+  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17543);
+  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 18021);
+  assert.equal(manifest.encounterDirector.safeResidencyBytes, 4166);
 });
 
 test("XEX and ATR preserve full A2, GLUE lifecycle, ENTITY_CODE, DIRECTOR and guard", () => {
-  assert.equal(a2.length, 171);
-  assert.equal(sha256(a2), "68d8d2c2094943e831ed9fc640ccfe5d569c4574148f133a11f98f2a7a1a3a8b");
+  assert.equal(a2.length, 190);
+  assert.equal(sha256(a2), "e96078af91d9de808e522d9dde19679daaa5d99cbda0014e1b117b1920e79200");
   for (const artifact of ["xex", "atr"]) for (const fill of [0xa5, 0x5a]) {
     const staged = stageArtifact(artifact, fill);
     assert.equal(sha256(staged.sourceA2), sha256(a2), `${artifact} staged A2`);

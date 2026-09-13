@@ -253,8 +253,8 @@ GAMEPLAY_RESIDENT_END       = ENEMY_LEGACY_STATE+$03
 ; logical record pool after HULL_DRAW_ROW_HI and the 58-byte $8100 address
 ; cache are intentionally free: no per-star runtime ownership remains.
 STAR_RNG_STATE               = GAMEPLAY_RESIDENT_END
-STAR_NEAR_PHASE              = STAR_RNG_STATE+$01
-STAR_FAR_PATTERN_ROW         = STAR_NEAR_PHASE+$01
+STAR_NEAR_RING_ADVANCED      = STAR_RNG_STATE+$01
+STAR_FAR_PATTERN_ROW         = STAR_NEAR_RING_ADVANCED+$01
 ; The first compatibility byte now records the shared blue fine-Y phase. Two
 ; bytes remain reserved so downstream music/muzzle state does not move.
 STARFIELD_COMPAT_STATE       = STAR_FAR_PATTERN_ROW+$01
@@ -308,7 +308,7 @@ SESSION_SCORE_STATE_END      = TOP_SCORE_TABLE_END
 .export ENEMY_MOVE_ACCUMULATOR, ENEMY_MANEUVER_STATE, ENEMY_MANEUVER_TIMER
 .export ENEMY_BEHAVIOUR_PHASE, ENEMY_LIVE_COUNT
 .export WEAPON_PICKUP_COLD_STAGING
-.export STAR_FAR_PATTERN_ROW, STAR_FAR_FINE_PHASE
+.export STAR_NEAR_RING_ADVANCED, STAR_FAR_PATTERN_ROW, STAR_FAR_FINE_PHASE
 .export STAR_NEAR_ROW, STAR_NEAR_COLUMN, STAR_NEAR_SCREEN_LO, STAR_NEAR_SCREEN_HI
 .export MUSIC_ACTIVE
 .export TOP_SCORE_TABLE, TOP_SCORE_TABLE_LO, TOP_SCORE_TABLE_HI, TOP_SCORE_TABLE_END
@@ -2791,6 +2791,9 @@ publish_fighter_projectile_overlays:
     ; publication, so an accepted PairShot is visible in the same safe window.
     jsr player_fire_transition_tick
 fighter_projectile_publication_begin = *
+    ; The previous sparse near image has now survived one complete ANTIC pass.
+    ; Retire it inside the same safe post-playfield window as character shots.
+    jsr erase_dynamic_near_star_overlays
     jsr erase_fighter_projectile_overlays
 fighter_projectile_publication_capital_render:
     jsr render_fighter_projectile_overlays
@@ -4187,6 +4190,10 @@ profile_projectile_pointer_end = *
     ; the slot arrays; only the composite helper below mutates it and reloads.
     ldy #$00
     lda (dst_ptr),y
+    cmp #STAR_NEAR_POINT
+    bne :+
+    lda #CH_SPACE               ; near is transient visual state, not backing
+:
 enemy_projectile_effect_backing_resolve = *
     ; PairShots can cross a staggered Raider breakup cell. Saving that moving
     ; effect glyph would resurrect it when the projectile later erases.
@@ -5120,6 +5127,7 @@ update_starfield:
     lda #$00
     sta PLAYFIELD_RING_FLAGS
     sta PLAYFIELD_PREBUILD_PENDING
+    sta STAR_NEAR_RING_ADVANCED
     ldx DIFFICULTY_SETTING
     lda scroll_accumulator
     clc
@@ -5163,6 +5171,7 @@ starfield_layout_d2_cadence_pad:
 advance_starfield_layers:
     lda #ENTITY_EVENT_WORLD_ROW_ADVANCED
     sta ENTITY_FRAME_EVENTS
+    sta STAR_NEAR_RING_ADVANCED
     jsr integration_director_world_row
     jmp scroll_world_columns
 
@@ -5301,6 +5310,7 @@ rotate_playfield_rows:
     ; Unwind only those cloned cells, in the same reverse slot order as the
     ; normal erase, while leaving the real divider ownership untouched.
     jsr restore_recycled_row_projectile_underlay
+    jsr restore_recycled_row_near_underlay
     ldx #(PLAYFIELD_RING_ROWS-1)
 
 rotate_playfield_table_shift:
@@ -5331,6 +5341,7 @@ init_starfield_state:
     lda #$00
     sta STAR_FAR_PATTERN_ROW
     sta STAR_FAR_FINE_PHASE
+    sta STAR_NEAR_RING_ADVANCED
     ldx #(STAR_NEAR_CAPACITY-1)
 @near:
     lda near_star_initial_rows,x
@@ -5409,10 +5420,9 @@ near_star_initial_columns:
     EMIT_NEAR_STAR_INITIAL_COLUMNS
 .segment "CODE"
 entity_effects_erase_with_two_layer_starfield:
-    ; The previous OPEN iteration ended after the playfield. Remove sparse
-    ; near overlays and advance both shared glyph phases before ANTIC reaches
-    ; the next gameplay rows, then preserve the existing effect-erase order.
-    jsr erase_dynamic_near_star_overlays
+    ; Advance the logical star state at 50 Hz. Sparse near remains resident
+    ; until the following post-playfield window; erasing it here would remove
+    ; the just-published glyph before ANTIC can fetch the next raster.
     jsr update_two_layer_starfield_phases
     jmp entity_effects_erase
 
@@ -5526,8 +5536,7 @@ render_dynamic_near_star_overlays:
     lda STAR_NEAR_ROW,x
     cmp #$02
     bcc @resolve
-    lda ENTITY_FRAME_EVENTS
-    and #ENTITY_EVENT_WORLD_ROW_ADVANCED
+    lda STAR_NEAR_RING_ADVANCED
     bne @cached_ready
     lda STAR_NEAR_SCREEN_HI,x
     cmp #>GAMEPLAY_RING_SCREEN_END
@@ -10131,6 +10140,10 @@ render_interactive_entity_overlays:
     sta dst_ptr+1
     ldy #$00
     lda (dst_ptr),y
+    cmp #STAR_NEAR_POINT
+    bne :+
+    lda #CH_SPACE               ; dynamic near owns no persistent underlay
+:
     sta ENTITY_BACKING0
     lda ENTITY_RENDER_ID
     ldx ENTITY_OWNER
@@ -10140,6 +10153,10 @@ render_interactive_entity_overlays:
     sta (dst_ptr),y
     iny
     lda (dst_ptr),y
+    cmp #STAR_NEAR_POINT
+    bne :+
+    lda #CH_SPACE
+:
     sta ENTITY_BACKING1
     lda ENTITY_RENDER_ID
     dex
@@ -10260,6 +10277,11 @@ fighter_pickup_pmg_shape:
 ; glyph-range fast path and never scan the shot pool.
 .segment "PICKUP_CODE"
 resolve_effect_backing_below_player_pairshot:
+    cmp #STAR_NEAR_POINT
+    bne :+
+    lda #CH_SPACE               ; an expired higher layer must not revive near
+    rts
+:
     cmp #PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE
     beq resolve_effect_pairshot_candidate
     cmp #(PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_GLYPH_STRIDE*2)
@@ -10962,6 +10984,23 @@ turret_warning_last_safe_rows:
     EMIT_TURRET_WARNING_LAST_SAFE_ROWS
 integration_broadside_glue_accounting_pad:
     .byte $00,$00
+
+; A ring step copies the fixed divider before sparse near is retired in the
+; post-playfield window. Remove only a copied near point from the recycled
+; destination; the real divider cell remains owned until normal publication.
+restore_recycled_row_near_underlay:
+    ldx #(STAR_NEAR_CAPACITY-1)
+@slot:
+    ldy STAR_NEAR_COLUMN,x
+    lda (dst_ptr),y
+    cmp #STAR_NEAR_POINT
+    bne @next
+    lda #CH_SPACE
+    sta (dst_ptr),y
+@next:
+    dex
+    bpl @slot
+    rts
 
 .segment "BROADSIDE"
 ; The moved development encounter spans the ordinary phase-0/1 boundary.

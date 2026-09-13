@@ -2597,10 +2597,6 @@ resume_gameplay_audio:
 
     lda fire_timer
     beq @hit
-    sta loader_repeat_value
-    lda #$39                    ; $32 + (7 - remaining shot frames)
-    sec
-    sbc loader_repeat_value
     sta AUDF1
     lda #$A8
     sta AUDC1
@@ -2637,6 +2633,7 @@ resume_gameplay_audio:
 @restore_music:
     jsr music_restore_gameplay_channels
 @done:
+resume_gameplay_audio_done:
     rts
 
 music_stop_gameplay:
@@ -2764,12 +2761,25 @@ wait_frame_at_line:
 ; part of this fit proof; this is the already measured publication scaffold.
 publish_fighter_projectile_overlays:
     lda FIGHTER_PROJECTILE_PUBLICATION_FRAME
-    bne fighter_projectile_publication_render_only
+    bne fighter_projectile_publication_capital_render
+    ; If OPEN admitted capital during this loop, account for the physical PAL
+    ; frame that lies between the outgoing $77 wait and the incoming $70 wait.
+    ; The ordinary end-of-loop call below then advances every SFX once on each
+    ; side of the wait instead of holding/truncating the shot tail.
+    lda CAPITAL_SECTOR_STATE
+    bne :+
+    jsr update_sound
+:
     ldx #$77
     jsr wait_frame_at_line
+    ; An OPEN frame can admit the capital sector before this post-playfield
+    ; wait. The following capital frame would then wait again at $70, skipping
+    ; one physical PAL fire-controller tick. Consume that tick here, before
+    ; publication, so an accepted PairShot is visible in the same safe window.
+    jsr player_fire_transition_tick
 fighter_projectile_publication_begin = *
     jsr erase_fighter_projectile_overlays
-fighter_projectile_publication_render_only:
+fighter_projectile_publication_capital_render:
     jmp render_fighter_projectile_overlays
 .export fighter_projectile_publication_begin
 
@@ -3783,19 +3793,20 @@ interceptor_projectile_hits_player:
 update_player_fighter_weapon:
     lda PLAYER_LIFECYCLE
     cmp #PLAYER_DYING
-    beq @released
+    beq update_player_fighter_weapon_released
     cmp #PLAYER_GAME_OVER
-    beq @released
+    beq update_player_fighter_weapon_released
     lda gameplay_fire_gate
-    beq @released
+    beq update_player_fighter_weapon_released
     lda TRIG0
-    bne @released
+    bne update_player_fighter_weapon_released
+update_player_fighter_weapon_controller:
     lda PLAYER_FIGHTER_BURST_STATE
     cmp #WEAPON_BURST_FIRING
-    beq @firing
+    beq update_player_fighter_weapon_firing
     cmp #WEAPON_BURST_POST
-    beq @post
-@begin:
+    beq update_player_fighter_weapon_post
+update_player_fighter_weapon_begin:
     lda #WEAPON_BURST_FIRING
     sta PLAYER_FIGHTER_BURST_STATE
     ldy ENTITY_STATE+WEAPON_BOOSTER_SLOT
@@ -3803,37 +3814,37 @@ update_player_fighter_weapon:
     sta PLAYER_FIGHTER_BURST_REMAINING
     lda #$00
     sta PLAYER_FIGHTER_BURST_TIMER
-@firing:
+update_player_fighter_weapon_firing:
     lda PLAYER_FIGHTER_BURST_TIMER
-    beq @emit
+    beq update_player_fighter_weapon_emit
     dec PLAYER_FIGHTER_BURST_TIMER
-    bne @done
-@emit:
+    bne update_player_fighter_weapon_done
+update_player_fighter_weapon_emit:
     jsr allocate_player_fighter_projectile
-    bcc @done                   ; rejected allocation is retried, not counted
+    bcc update_player_fighter_weapon_done ; rejected allocation is retried, not counted
     dec PLAYER_FIGHTER_BURST_REMAINING
-    beq @finish
+    beq update_player_fighter_weapon_finish
     ldy ENTITY_STATE+WEAPON_BOOSTER_SLOT
     lda player_fighter_fire_intervals,y
     sta PLAYER_FIGHTER_BURST_TIMER
     rts
-@finish:
+update_player_fighter_weapon_finish:
     lda #WEAPON_BURST_POST
     sta PLAYER_FIGHTER_BURST_STATE
     lda #PLAYER_FIGHTER_POST_BURST_PAUSE
     sta PLAYER_FIGHTER_BURST_TIMER
     rts
-@post:
+update_player_fighter_weapon_post:
     dec PLAYER_FIGHTER_BURST_TIMER
-    bne @done
-    jmp @begin
-@released:
+    bne update_player_fighter_weapon_done
+    jmp update_player_fighter_weapon_begin
+update_player_fighter_weapon_released:
     lda #WEAPON_BURST_WAITING
     sta PLAYER_FIGHTER_BURST_STATE
     lda #$00
     sta PLAYER_FIGHTER_BURST_REMAINING
     sta PLAYER_FIGHTER_BURST_TIMER
-@done:
+update_player_fighter_weapon_done:
     rts
 
 player_fighter_fire_intervals:
@@ -3938,7 +3949,7 @@ play_player_fighter_projectile_sound:
     sta AUDF1
     lda #$A8
     sta AUDC1
-    lda #$07
+    lda #$32                    ; software-owned phase; AUDF1 itself is write-only
     sta fire_timer
 @accepted:
     sec
@@ -6447,11 +6458,18 @@ update_sound:
 @enabled:
     lda fire_timer
     beq @hit
-    dec fire_timer
-    inc AUDF1
+    ; AUDF1 is write-only: INC would read POT0 and turn paddle noise into the
+    ; next frequency. Keep the $32..$38 phase in ordinary zero-page state.
+    ; The accepted-shot frame advances to $33; Rapid's six-frame interval then
+    ; leaves the $38 tail audible for one full PAL frame before the next shot.
+    inc fire_timer
     lda fire_timer
-    bne @hit
+    sta AUDF1                   ; $39 is silenced below before it can be heard
+    cmp #$39
+    bcc @hit
+@fire_done:
     lda #$00
+    sta fire_timer
     sta AUDC1
 
 @hit:
@@ -8876,7 +8894,14 @@ restore_recycled_row_projectile_underlay:
     bpl @slot
     rts
 restore_recycled_row_projectile_underlay_end:
-    .res $2F-(restore_recycled_row_projectile_underlay_end-row_baked_far_broadside_layout_pad)
+player_fire_transition_tick:
+    lda CAPITAL_SECTOR_STATE
+    bne restore_recycled_row_projectile_underlay_end-1
+    lda PLAYER_FIGHTER_BURST_STATE
+    beq restore_recycled_row_projectile_underlay_end-1
+    jmp update_player_fighter_weapon_controller
+player_fire_transition_tick_end:
+    .res $36-(player_fire_transition_tick_end-row_baked_far_broadside_layout_pad)
                                 ; consume only the prior PairShot shrink pad
 free_broadside_slot:
     jsr erase_broadside_slot

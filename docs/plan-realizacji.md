@@ -1,11 +1,11 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 3.2
-Data aktualizacji: 2026-09-12
+Wersja: 3.3
+Data aktualizacji: 2026-09-13
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD przed niniejszą poprawką: `f896a5e01a43bcc897df37ad9c9a2f25b5b69a1b`
-Stan runtime: row-baked far stars + PairShot + PASS Effects 25 Hz/staggered + PASS PairShot ghost fixes + PASS Raider remnant fix; bez unified schedulera
-Aktualny XEX owner-smoke candidate: SHA-256 `c4d70373abaac659b782b2a4bc9126c5b8dbcb9122fb964f7272bbe69d59fb07`
+Aktualny HEAD przed niniejszą poprawką: `2271e9e0419a82cdaecf08a8379f2a8c48014777`
+Stan runtime: row-baked far stars + PairShot + PASS Effects 25 Hz/staggered + PASS PairShot ghost fixes + PASS Raider remnant fix + PASS fire cadence/audio handoff; bez unified schedulera
+Aktualny XEX owner-smoke candidate: SHA-256 `37f0dd84b598ee6c0bf33fe45dcee3008d0646401a82f8fbbccce955a50197d5`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
 
@@ -1077,14 +1077,57 @@ Decyzja techniczna:
 **Raider destruction remnant fix przechodzi bramkę techniczną; wymagany jest
 owner smoke poprawionego XEX.**
 
+### Player fire cadence + cross-sector shot SFX — FIX PASS / OWNER SMOKE
+
+Frame-exact trace rozdzielił dwie prawidłowe wartości rytmu broni od dwóch
+rzeczywistych błędów. W fighter OPEN każda broń ma stały interwał wewnątrz
+serii i osobny, również stały interwał po serii: Normal `9/12`, Rapid `6/12`,
+Spread `28/12` klatek. Ruch gracza i faza world/ring nie zmieniają tych
+rozkładów. Pięcioslotowy pool PairShot nie odrzucił żadnego z `6800`
+zaakceptowanych strzałów; szczyt occupancy wyniósł odpowiednio `4/5/2`.
+
+Rzeczywiste przyczyny:
+
+- przejście OPEN -> ENGINES miało podwójne oczekiwanie `$77` -> `$70`, przez
+  co jedna fizyczna klatka nie wykonywała burst controllera ani sekwencera
+  audio;
+- `INC AUDF1` wykonywało read-modify-write na POKEY `$D200`, który przy
+  odczycie jest POT0, więc częstotliwość dalszych tonów zależała od wejścia
+  paddle zamiast od poprzedniej fazy SFX.
+
+Minimalna poprawka wykonuje transition-only tick już aktywnego burstu oraz
+audio po obu stronach fizycznej granicy, bez ponownego próbkowania FIRE.
+Faza shot SFX jest teraz własnością `fire_timer`; POKEY otrzymuje pełną
+sekwencję `$33..$38` bez odczytu AUDF1. SFX nadal startuje dopiero po udanej
+alokacji PairShot.
+
+Weryfikacja:
+
+- focused host: `53/53 PASS`, `6800` accepted shots, `0` denied admissions,
+  `0` brakujących końcowych tonów;
+- native Atari800 PAL: `9000` frames, `0` nieoczekiwanych spowolnień
+  kadencji, `0` brakujących final tones, `0` target/hard overruns, `0` extra
+  VBI, `0` DLI anomalies i `0` PairShot ghosts;
+- active-work max `14 788`, raw cadence max `36 486`; trzy oznaczone długie
+  iteracje są zamierzonym handoffem `$77` -> `$70`, a nie utraconym VBI;
+- linked runtime `17 303 -> 17 318 B`, residency `17 781 -> 17 796 B`, safe
+  headroom `4 391 B`; wszystkie placement gates przechodzą.
+
+Raport:
+`docs/diagnostics/stage-2b2b-player-fire-cadence-audio-fix.json`.
+
+Decyzja techniczna:
+
+**Player fire cadence oraz shot SFX handoff przechodzą bramkę techniczną;
+wymagany jest owner smoke poprawionego XEX.**
+
 ### Następny krok — tylko owner smoke
 
-> Owner smoke Raider remnant fix.
+> Owner smoke player fire cadence + shot SFX across fighter -> capital transition.
 
-Nie wykonywać w ramach tej poprawki Background/ring 25 Hz, debris 25 Hz,
-Light, unified schedulera ani naprawy skokowych/podwójnych niebieskich
-row-baked far stars. Problem starfield jest osobnym NEXT dopiero po owner PASS
-niniejszej poprawki.
+Nie wykonywać w ramach tej poprawki zmian starfield/ring/debris, Light,
+unified schedulera ani capital/boss gameplay. Problem skokowych/podwójnych
+niebieskich row-baked far stars pozostaje osobnym późniejszym zadaniem.
 
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 

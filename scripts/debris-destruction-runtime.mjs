@@ -23,9 +23,13 @@ function requiredLabel(labels, name) {
 }
 
 function runRoutine(memory, labels, name, { writeLog = null, frame = null } = {}) {
+  const ringRows = requiredLabel(labels, "PLAYFIELD_RING_ROWS");
+  const ringEnd = requiredLabel(labels, "PLAYFIELD_ROW_LO");
+  const ringBase = ringEnd - ringRows * 40;
   const cpu = new Nmos6502(memory, writeLog === null ? {} : {
     write(address, value, executingCpu) {
-      if ((address >= 0x4028 && address < 0x43c0)) {
+      if ((address >= 0x4028 && address < 0x4050) ||
+          (address >= ringBase && address < ringEnd)) {
         writeLog.push({ frame, routine: name, pc: executingCpu.pc,
           address, before: memory[address], after: value });
       }
@@ -46,8 +50,9 @@ function runRoutine(memory, labels, name, { writeLog = null, frame = null } = {}
 function logicalScreen(memory, labels) {
   const lo = requiredLabel(labels, "PLAYFIELD_ROW_LO");
   const hi = requiredLabel(labels, "PLAYFIELD_ROW_HI");
-  const cells = new Uint8Array(22 * 40);
-  for (let row = 0; row < 22; row += 1) {
+  const rows = requiredLabel(labels, "PLAYFIELD_RING_ROWS");
+  const cells = new Uint8Array(rows * 40);
+  for (let row = 0; row < rows; row += 1) {
     const address = memory[lo + row] | memory[hi + row] << 8;
     cells.set(memory.subarray(address, address + 40), row * 40);
   }
@@ -57,9 +62,12 @@ function logicalScreen(memory, labels) {
 function initialiseRows(memory, labels, head = 0) {
   const lo = requiredLabel(labels, "PLAYFIELD_ROW_LO");
   const hi = requiredLabel(labels, "PLAYFIELD_ROW_HI");
-  for (let logical = 0; logical < 22; logical += 1) {
-    const physical = (head + logical) % 22;
-    const address = 0x4050 + physical * 40;
+  const rows = requiredLabel(labels, "PLAYFIELD_RING_ROWS");
+  const ringBase = lo - rows * 40;
+  for (let logical = 0; logical < rows; logical += 1) {
+    const physical = (head + logical) % rows;
+    const address = ringBase + physical * 40;
+    memory.fill(0, address, address + 40);
     memory[lo + logical] = address & 0xff;
     memory[hi + logical] = address >> 8;
   }
@@ -73,21 +81,27 @@ function isTransientEffectGlyph(value) {
 function transientEffectRemnants(memory, labels) {
   const lo = requiredLabel(labels, "PLAYFIELD_ROW_LO");
   const hi = requiredLabel(labels, "PLAYFIELD_ROW_HI");
+  const rows = requiredLabel(labels, "PLAYFIELD_RING_ROWS");
+  const ringBase = lo - rows * 40;
   const logicalByPhysical = new Map();
-  for (let logical = 0; logical < 22; logical += 1) {
+  for (let logical = 0; logical < rows; logical += 1) {
     logicalByPhysical.set(memory[lo + logical] | memory[hi + logical] << 8, logical);
   }
   const remnants = [];
-  for (let address = 0x4028; address < 0x43c0; address += 1) {
+  const addresses = [
+    ...Array.from({ length: 40 }, (_, column) => 0x4028 + column),
+    ...Array.from({ length: rows * 40 }, (_, offset) => ringBase + offset),
+  ];
+  for (const address of addresses) {
     const glyph = memory[address];
     if (!isTransientEffectGlyph(glyph)) continue;
-    const rowBase = address < 0x4050 ? 0x4028 : 0x4050 +
-      Math.floor((address - 0x4050) / 40) * 40;
+    const rowBase = address < ringBase ? 0x4028 : ringBase +
+      Math.floor((address - ringBase) / 40) * 40;
     remnants.push({
       address,
       glyph,
-      logicalRow: address < 0x4050 ? 0 : (logicalByPhysical.get(rowBase) ?? -1) + 1,
-      physicalRow: address < 0x4050 ? -1 : Math.floor((address - 0x4050) / 40),
+      logicalRow: address < ringBase ? 0 : (logicalByPhysical.get(rowBase) ?? -1) + 1,
+      physicalRow: address < ringBase ? -1 : Math.floor((address - ringBase) / 40),
       column: address - rowBase,
     });
   }

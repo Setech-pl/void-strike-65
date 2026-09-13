@@ -9,6 +9,7 @@
 #include "gtia.h"
 #include "input.h"
 #include "pia.h"
+#include "pokey.h"
 #include "screen.h"
 
 #define DFTRACE_PAL_FRAME_CYCLES 35568u
@@ -59,6 +60,20 @@ typedef struct {
 	unsigned capital_explosion;
 	unsigned music_active;
 	unsigned fire_sfx;
+	unsigned fire_timer_value;
+	unsigned player_burst_state;
+	unsigned player_burst_remaining;
+	unsigned player_burst_timer;
+	unsigned audf1;
+	unsigned audc1;
+	unsigned fire_accept_calls;
+	unsigned update_sound_calls;
+	uint64_t fire_accept_clock;
+	uint64_t update_sound_clock;
+	unsigned fire_accept_scanline;
+	unsigned fire_accept_cycle;
+	unsigned update_sound_scanline;
+	unsigned update_sound_cycle;
 	unsigned hit_sfx;
 	unsigned capital_sfx;
 	unsigned sound_enabled;
@@ -356,6 +371,8 @@ static unsigned dftrace_pairshot_recycled_expected[DFTRACE_PLAYER_PROJECTILE_SLO
 
 static unsigned dftrace_pc_active;
 static unsigned dftrace_pc_end;
+static unsigned dftrace_pc_player_shot_sound;
+static unsigned dftrace_pc_update_sound;
 static unsigned dftrace_pc_profile[DFTRACE_PROFILE_COUNT];
 static unsigned dftrace_pc_dli_end;
 static unsigned dftrace_pc_dli_hud_end;
@@ -447,6 +464,7 @@ static unsigned dftrace_fighter_explosion_timer;
 static unsigned dftrace_capital_explosion_timer;
 static unsigned dftrace_music_active;
 static unsigned dftrace_fire_timer;
+static unsigned dftrace_player_burst_state;
 static unsigned dftrace_hit_timer;
 static unsigned dftrace_capital_sound_timer;
 static unsigned dftrace_sound_enabled;
@@ -3157,7 +3175,11 @@ static void dftrace_write(void)
 		",player_projectile_stale_cells,player_projectile_orphan_cells"
 		",transient_effect_orphan_cells,transient_effect_first_address"
 		",transient_effect_first_code,transient_effect_first_writer_pc"
-		",transient_effect_first_writer_x\n");
+		",transient_effect_first_writer_x"
+		",fire_timer_value,player_burst_state,player_burst_remaining,player_burst_timer"
+		",audf1,audc1,fire_accept_calls,update_sound_calls"
+		",fire_accept_clock,update_sound_clock"
+		",fire_accept_scanline,fire_accept_cycle,update_sound_scanline,update_sound_cycle\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -3343,7 +3365,7 @@ static void dftrace_write(void)
 			frame->enemy_member_state[2], frame->enemy_member_hp[0],
 			frame->enemy_member_hp[1], frame->enemy_member_hp[2],
 			frame->enemy_live_count, frame->enemy_projectiles);
-		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n",
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u",
 			frame->enemy_slot_x[0], frame->enemy_slot_x[1],
 			frame->enemy_slot_y[0], frame->enemy_slot_y[1],
 			frame->enemy_hpos[0], frame->enemy_hpos[1],
@@ -3356,6 +3378,15 @@ static void dftrace_write(void)
 			frame->transient_effect_first_code,
 			frame->transient_effect_first_writer_pc,
 			frame->transient_effect_first_writer_x);
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%llu,%llu,%u,%u,%u,%u\n",
+			frame->fire_timer_value, frame->player_burst_state,
+			frame->player_burst_remaining, frame->player_burst_timer,
+			frame->audf1, frame->audc1, frame->fire_accept_calls,
+			frame->update_sound_calls,
+			(unsigned long long) frame->fire_accept_clock,
+			(unsigned long long) frame->update_sound_clock,
+			frame->fire_accept_scanline, frame->fire_accept_cycle,
+			frame->update_sound_scanline, frame->update_sound_cycle);
 	}
 	if (fclose(file) != 0) {
 		perror("voidstrike65 trace close");
@@ -3409,6 +3440,8 @@ static void dftrace_init(void)
 #define DFTRACE_ADDRESS(field, env) field = dftrace_env_u(env)
 	DFTRACE_ADDRESS(dftrace_pc_active, "DFTRACE_PC_ACTIVE");
 	DFTRACE_ADDRESS(dftrace_pc_end, "DFTRACE_PC_END");
+	DFTRACE_ADDRESS(dftrace_pc_player_shot_sound, "DFTRACE_PC_PLAYER_SHOT_SOUND");
+	DFTRACE_ADDRESS(dftrace_pc_update_sound, "DFTRACE_PC_UPDATE_SOUND");
 	{
 		unsigned profile_index;
 		char profile_environment[32];
@@ -3505,6 +3538,7 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_capital_explosion_timer, "DFTRACE_CAPITAL_EXPLOSION_TIMER");
 	DFTRACE_ADDRESS(dftrace_music_active, "DFTRACE_MUSIC_ACTIVE");
 	DFTRACE_ADDRESS(dftrace_fire_timer, "DFTRACE_FIRE_TIMER");
+	DFTRACE_ADDRESS(dftrace_player_burst_state, "DFTRACE_PLAYER_BURST_STATE");
 	DFTRACE_ADDRESS(dftrace_hit_timer, "DFTRACE_HIT_TIMER");
 	DFTRACE_ADDRESS(dftrace_capital_sound_timer, "DFTRACE_CAPITAL_SOUND_TIMER");
 	DFTRACE_ADDRESS(dftrace_sound_enabled, "DFTRACE_SOUND_ENABLED");
@@ -4088,6 +4122,18 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 			dftrace_broad_screen_transient_cells();
 		dftrace_broad_compositor_event("before_rotate", 0xffffffffu);
 	}
+	if (pc == dftrace_pc_player_shot_sound) {
+		++dftrace_current.fire_accept_calls;
+		dftrace_current.fire_accept_clock = dftrace_clock();
+		dftrace_current.fire_accept_scanline = ANTIC_ypos;
+		dftrace_current.fire_accept_cycle = ANTIC_XPOS;
+	}
+	if (pc == dftrace_pc_update_sound) {
+		++dftrace_current.update_sound_calls;
+		dftrace_current.update_sound_clock = dftrace_clock();
+		dftrace_current.update_sound_scanline = ANTIC_ypos;
+		dftrace_current.update_sound_cycle = ANTIC_XPOS;
+	}
 
 	if (dftrace_current.profile_next < DFTRACE_PROFILE_COUNT &&
 		pc == dftrace_pc_profile[dftrace_current.profile_next]) {
@@ -4239,6 +4285,12 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 		dftrace_current.events |= DFTRACE_EVENT_DIRECTOR_EVENT;
 
 	if (pc == dftrace_pc_end) {
+		dftrace_current.fire_timer_value = MEMORY_mem[dftrace_fire_timer];
+		dftrace_current.player_burst_state = MEMORY_mem[dftrace_player_burst_state];
+		dftrace_current.player_burst_remaining = MEMORY_mem[dftrace_player_burst_state + 1u];
+		dftrace_current.player_burst_timer = MEMORY_mem[dftrace_player_burst_state + 2u];
+		dftrace_current.audf1 = POKEY_AUDF[POKEY_CHAN1];
+		dftrace_current.audc1 = POKEY_AUDC[POKEY_CHAN1];
 		dftrace_broad_compositor_event("frame_end", 0xffffffffu);
 		dftrace_snapshot_flash(&dftrace_current);
 		dftrace_snapshot_engine(&dftrace_current);

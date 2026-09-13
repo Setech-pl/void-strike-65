@@ -1,0 +1,197 @@
+{
+  "schema_version": 1,
+  "stage": "Stage 2B.2b player fire cadence + shot SFX cross-sector fix",
+  "date": "2026-09-13",
+  "status": "PASS_FIRE_CADENCE_AUDIO_FIX",
+  "model": {
+    "requested": "GPT-5.6 Sol / High",
+    "used": "Codex GPT-5 family / High"
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "head_before": "2271e9e0419a82cdaecf08a8379f2a8c48014777",
+    "wip_refs_preserved": [
+      "refs/wip/stage2b-foreign-0803",
+      "refs/wip/stage2b0-fdb-proof",
+      "refs/wip/stage2b2-single-window-rejected"
+    ]
+  },
+  "scope": {
+    "changed": [
+      "player burst clock handoff on the single fighter-to-capital boundary frame",
+      "shot SFX phase ownership and boundary cadence",
+      "frame-exact host/native trace instrumentation",
+      "Raider regression harness updated to initialise the current 27-row $8140 ring rather than stale pre-ring addresses"
+    ],
+    "unchanged": [
+      "PairShot appearance, records, collision and weapon cadence constants",
+      "row-baked far stars",
+      "effects 25 Hz/stagger",
+      "Raider remnant production fix",
+      "ring, debris, capital and boss gameplay"
+    ]
+  },
+  "open_space_trace": {
+    "method": "instruction-exact XEX host trace, 6000 frames per mode and movement; continuous FIRE",
+    "runs": 12,
+    "movements": ["STATIONARY", "LEFT", "RIGHT", "REVERSAL"],
+    "accepted_shots_total": 6800,
+    "denied_admissions_total": 0,
+    "modes": {
+      "NORMAL": {
+        "requested_intra_burst_interval_frames": 9,
+        "post_burst_interval_frames": 12,
+        "successful_interval_histogram_per_run": {"9": 462, "12": 153},
+        "accepted_shots_all_movements": 2464,
+        "maximum_pairshot_occupancy": 4,
+        "projectile_lifetime_frames": {"minimum": 35, "average": 35, "maximum": 35}
+      },
+      "RAPID": {
+        "requested_intra_burst_interval_frames": 6,
+        "post_burst_interval_frames": 12,
+        "successful_interval_histogram_per_run": {"6": 667, "12": 166},
+        "accepted_shots_all_movements": 3336,
+        "maximum_pairshot_occupancy": 5,
+        "projectile_lifetime_frames": {"minimum": 35, "average": 35, "maximum": 35}
+      },
+      "SPREAD": {
+        "requested_intra_burst_interval_frames": 28,
+        "post_burst_interval_frames": 12,
+        "successful_interval_histogram_per_run": {"12": 62, "28": 187},
+        "accepted_shots_all_movements": 1000,
+        "maximum_pairshot_occupancy": 2,
+        "projectile_lifetime_frames": {"minimum": 1, "average": 26.5341, "maximum": 35},
+        "lifetime_note": "lateral Spread cells can leave the playfield before the vertical 35-frame envelope"
+      }
+    },
+    "interval_explanation": "The two ordinary values are intentional intra-burst cadence and the 12-frame post-burst pause. Movement and world/ring-step phase do not change them.",
+    "movement_correlation": "REJECTED",
+    "pool_saturation_correlation": "REJECTED; Rapid legally reaches all five slots but produces zero denied admissions"
+  },
+  "root_causes": [
+    {
+      "id": "cross_sector_clock_hole",
+      "sequence": [
+        "the loop latches fighter OPEN publication at frame start",
+        "integration_update_first_capital changes OPEN(7) to ENGINES(0) in the middle of that loop",
+        "the outgoing path waits through VCOUNT $77 at the end of the frame",
+        "the next capital loop waits again at VCOUNT $70",
+        "one physical PAL frame therefore had no player burst-controller tick"
+      ],
+      "effect": "a cadence interval crossing the boundary gained one unexplained frame"
+    },
+    {
+      "id": "write_only_pokey_rmw",
+      "sequence": [
+        "play_player_fighter_projectile_sound wrote AUDF1=$32",
+        "update_sound used INC AUDF1",
+        "POKEY address $D200 is AUDF1 on write but POT0 on read",
+        "the NMOS 6502 read-modify-write therefore incremented paddle input, not the previous frequency"
+      ],
+      "effect": "native traces observed input-dependent values such as $E5 instead of the intended $33..$38 tail; the last tone was not reliable"
+    }
+  ],
+  "fix": {
+    "burst": "Expose the existing burst-controller core after input admission. On the one outgoing OPEN loop which has already admitted ENGINES(0), advance only an already-active FIRING/POST burst after the $77 wait. WAITING remains a no-op and TRIG0 is not sampled a second time.",
+    "audio_clock": "On that same boundary loop, tick update_sound once before the $77 wait and retain the ordinary tick after it. The two calls lie on opposite physical PAL frames; all other loops retain one call.",
+    "audio_phase": "Store the current shot frequency phase in fire_timer. Accepted fire starts at $32; update_sound writes the six full tones $33,$34,$35,$36,$37,$38 and clears at $39 without reading AUDF1.",
+    "allocation_semantics": "The SFX trigger remains after a successful PairShot allocation; denied allocation cannot trigger it.",
+    "new_state_bytes": 0
+  },
+  "transition_native_trace": {
+    "emulator": "Atari800 7.1.2 PAL/XL",
+    "frames": 9000,
+    "accepted_shots": {"NORMAL": 306, "RAPID": 414, "SPREAD": 124},
+    "boundary_windows": {
+      "NORMAL": {
+        "physical_accept_host_frames": [1009, 1018, 1027, 1039, 1048, 1057, 1066, 1078, 1087],
+        "physical_intervals": [9, 9, 12, 9, 9, 9, 12, 9],
+        "outgoing_boundary_sound_ticks": 2,
+        "boundary_tail": ["$55", "$56"]
+      },
+      "RAPID": {
+        "physical_accept_host_frames": [1038, 1044, 1050, 1056, 1062, 1074, 1080, 1086, 1092, 1098, 1110, 1116, 1122],
+        "physical_intervals": [6, 6, 6, 6, 12, 6, 6, 6, 6, 12, 6, 6],
+        "outgoing_boundary_sound_ticks": 2
+      },
+      "SPREAD": {
+        "physical_accept_host_frames": [991, 1019, 1047, 1075],
+        "physical_intervals": [28, 28, 28],
+        "outgoing_boundary_sound_ticks": 2,
+        "boundary_tones": ["$52", "$53", "$54", "$55", "$56"]
+      }
+    },
+    "missing_final_tones": 0,
+    "unexpected_cadence_slowdowns": 0,
+    "update_sound_calls_in_each_90_frame_transition_window": 91,
+    "note": "The trace still labels one two-host-frame main-loop cadence at each intentional $77->$70 handoff (3 total), but controller/audio catch-up covers the physical boundary; extra VBI remains zero."
+  },
+  "shot_sfx": {
+    "expected_full_tones_decimal": [51, 52, 53, 54, 55, 56],
+    "expected_full_tones_hex": ["$33", "$34", "$35", "$36", "$37", "$38"],
+    "host_complete_sequences": 6792,
+    "host_trace_tail_sequences": 8,
+    "host_missing_final_tones": 0,
+    "host_restarted_sequences_during_continuous_fire": 0
+  },
+  "cpu": {
+    "before_reference_native_active_work_max": 14689,
+    "before_reference_raw_cadence_max": 36422,
+    "after_native_active_work_max": 14788,
+    "after_native_raw_cadence_max": 36486,
+    "after_target_headroom": 16412,
+    "after_hard_gate_headroom": 17780,
+    "transition_helper_cycles_excluding_jsr": {
+      "ordinary_open_noop": 13,
+      "released_transition_noop": 19,
+      "active_advance": 45,
+      "active_emit_and_sfx_trigger": 207
+    },
+    "steady_open_overhead_including_jsr_cycles": 19,
+    "active_shot_sfx_tick_delta_cycles": 3,
+    "target_overruns": 0,
+    "hard_overruns": 0,
+    "extra_vbi": 0,
+    "dli_anomalies": 0
+  },
+  "memory_placement": {
+    "linked_runtime_before": 17303,
+    "linked_runtime_after": 17318,
+    "net_linked_delta": 15,
+    "simultaneous_residency_before": 17781,
+    "simultaneous_residency_after": 17796,
+    "safe_headroom_after": 4391,
+    "broadside_raw": "6647/6656 B; margin 9 B",
+    "starfield_packed": "1681/1819 B; margin 138 B",
+    "cold_pickup": "850/1277 B; margin 427 B",
+    "entity_staging_margin": 111,
+    "a2_to_pickup_margin": 9,
+    "initial_content": "12933/13056-byte sector envelope; 123 B padding",
+    "transport": "DFMC-v1 unchanged; existing four records; no BASIC RAM or loader logic change"
+  },
+  "regression": {
+    "focused_tests": "53/53 PASS",
+    "artifact_build": "assembly, link, XEX/ATR validation and all current placement assertions PASS through the focused build/native-trace path",
+    "standard_build_note": "The monolithic npm run build still enters the pre-existing legacy CPU replay and follows integration-glue.s's hard-coded entity_spawn_debris=$98FF while the unchanged current symbol is $98C0. That out-of-scope debris ABI/harness path predates this CODE/BROADSIDE-only fix; it was not altered or masked here.",
+    "pairshot_stale_cells_native": 0,
+    "pairshot_orphan_cells_native": 0,
+    "raider_kills_host": 2000,
+    "raider_remnants_host": 0,
+    "effects_stagger": "PASS",
+    "harness_correction": "The Raider harness now initialises and scans the production 27-row ring at $8140; the prior 22-row $4050 model left five row pointers dependent on cold staging bytes. No production starfield/ring code changed."
+  },
+  "artifacts": {
+    "xex": {
+      "path": "dist/void-strike-65.xex",
+      "bytes": 21475,
+      "sha256": "37f0dd84b598ee6c0bf33fe45dcee3008d0646401a82f8fbbccce955a50197d5"
+    },
+    "atr": {
+      "path": "dist/void-strike-65.atr",
+      "bytes": 92176,
+      "sha256": "39c7d45ca8be06edd59e2060c75f41ce6e1f667977981822fb301eeb527c38a6"
+    }
+  },
+  "decision": "Player fire cadence and shot SFX handoff are technically viable and pass the bounded regression/native gates.",
+  "next": "Owner smoke player fire cadence + shot SFX across fighter-to-capital transition"
+}

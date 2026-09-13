@@ -360,6 +360,8 @@ const lowerPlayfieldSessions = [{
 }];
 
 const traceLabels = {
+  DFTRACE_PC_PLAYER_SHOT_SOUND: "play_player_fighter_projectile_sound",
+  DFTRACE_PC_UPDATE_SOUND: "update_sound",
   DFTRACE_PC_ACTIVE: "main_loop_option_poll",
   DFTRACE_PC_END: "main_loop",
   DFTRACE_PC_FRONTEND_POLL: "frontend_input_poll",
@@ -424,6 +426,7 @@ const traceLabels = {
   DFTRACE_CAPITAL_EXPLOSION_TIMER: "CAPITAL_EXPLOSION_TIMER",
   DFTRACE_MUSIC_ACTIVE: "MUSIC_ACTIVE",
   DFTRACE_FIRE_TIMER: "fire_timer",
+  DFTRACE_PLAYER_BURST_STATE: "PLAYER_FIGHTER_BURST_STATE",
   DFTRACE_HIT_TIMER: "hit_timer",
   DFTRACE_CAPITAL_SOUND_TIMER: "CAPITAL_EXPLOSION_SOUND_TIMER",
   DFTRACE_SOUND_ENABLED: "sound_enabled",
@@ -542,6 +545,10 @@ const numericCsvFields = new Set([
   "extra_vbi_boundaries", "missed_frames", "dli_nmis", "dma_ctl", "nmi_en",
   "projectiles", "broadside", "far_rendered", "live_interceptor", "fighter_explosion",
   "capital_explosion", "music_active", "fire_sfx", "hit_sfx", "capital_sfx",
+  "fire_timer_value", "player_burst_state", "player_burst_remaining",
+  "player_burst_timer", "audf1", "audc1", "fire_accept_calls", "update_sound_calls",
+  "fire_accept_clock", "update_sound_clock", "fire_accept_scanline", "fire_accept_cycle",
+  "update_sound_scanline", "update_sound_cycle",
   "sound_enabled", "player_lifecycle", "sector_state", "gameplay_frame",
   "active_gameplay_frame", "enemy_state", "enemy_y", "enemy_member0_state",
   "enemy_member1_state", "enemy_member2_state", "enemy_member0_hp", "enemy_member1_hp",

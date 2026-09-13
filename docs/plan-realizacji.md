@@ -1,10 +1,10 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 3.4
+Wersja: 3.5
 Data aktualizacji: 2026-09-13
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD przed niniejszą poprawką: `33b0a61a9bc07c0405c7fbff1f2223a2e83c4b6d`
-Stan runtime: row-baked far stars + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix candidate; bez unified schedulera
+Aktualny HEAD przed niniejszym proofem: `e196e52faa100a16a6f39c343c1597e341e48129`
+Stan runtime: row-baked far stars + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix candidate; Raider wreck proof BLOCKED i wycofany; bez unified schedulera
 Aktualny XEX owner-smoke candidate: SHA-256 `134d47c96361fc00d4cd4a8ebcb29ae240c092958f58eb16b1c050db1ed09db5`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
@@ -1172,13 +1172,61 @@ Decyzja techniczna:
 **Final remaining Raider remnant fix przechodzi bramkę techniczną; wymagany
 jest owner smoke poprawionego XEX.**
 
-### Następny krok — tylko owner smoke
+### Raider wreck gameplay debris — BLOCKED
 
-> Owner smoke final Raider remnant.
+Właściciel zatwierdził mechanikę, w której około 25% Raider kills może
+pozostawić jeden prawdziwy wreck z HP=2, kolizją gracza i PairShot, przy
+maksymalnie dwóch aktywnych wreckach i bez nowej puli. Audyt wykazał, że
+istniejący rekord ma wszystkie wymagane pola: typ, HP, render ID, ruch,
+collision category i backing. Nie ma jednak obecnie dwuslotowej implementacji
+gameplay debris:
 
-Nie wykonywać w ramach tej poprawki zmian starfield/ring/debris cadence,
-Light, unified schedulera ani capital/boss gameplay. Dopiero po OWNER PASS
-osobnym następnym zadaniem jest blue/white starfield visual + parallax fix.
+- fizyczny SoA ma cztery rekordy, ale debris używa wyłącznie slotu 0;
+- slot 1 należy do PMG pickupu, slot 2 do boostera, a slot 3 jest tylko
+  niewykorzystaną rezerwą;
+- erase, update, render, player collision, PairShot arbitration, destruction,
+  release i backing resolvers są wszystkie wyspecjalizowane dla slotu 0.
+
+Przygotowany writer-complete szkic ponownie używał slotów 0 i 3, zachowywał
+globalny active limit 2 i nie dodawał RAM ani assetów. Placement-first pomiar
+zatrzymał jednak proof:
+
+- `PICKUP_CODE` wzrósł `871 -> 1231 B`, czyli o `360 B`, i przekroczył
+  istniejący `896-B` raw record o `335 B`;
+- `ENTITY_CODE` wzrósł `3188 -> 3264 B`, czyli o `76 B`, podczas gdy przed
+  stałym Directorem pozostał tylko `1 B`; overflow wyniósł `75 B`;
+- łączny writer-complete przyrost wyniósł `436 B` kodu przy `0 B` nowego
+  state RAM;
+- legalne osadzenie wymagałoby podziału hot debris path pomiędzy niezwiązane
+  rezerwy STARFIELD i A2 oraz ponownego otwarcia ich packed/initial-content
+  gates. Nie jest to mały subtype-only reuse.
+
+Zgodnie ze STOP nie wykonano drugiego layoutu, nie zwiększono puli, nie
+zmieniono loadera/BASIC RAM i nie zastąpiono pomiaru dwóch wrecków estymacją.
+Szkic runtime został wycofany. Statyczny test 5000 kolejnych wartości obecnego
+entity LFSR dał `1229` kwalifikacji (`24,58%`), więc tani kontrakt RNG jest
+poprawny; blockerem pozostaje wyłącznie dwurekordowa implementacja i placement.
+
+Raport:
+`docs/diagnostics/stage-2b2b-raider-wreck-gameplay-debris-proof.json`.
+
+Decyzja:
+
+**Raider wreck gameplay debris jest BLOCKED w obecnej jednoslotowej
+architekturze debris i układzie kodu.**
+
+Rekomendacja: odroczyć wreck do zatwierdzonego późniejszego proofu debris
+25 Hz / visual redesign, gdzie uogólnienie puli i publikacji może zostać
+wykonane raz, zamiast dodawać teraz osobny rozproszony kernel.
+
+### Następny krok — wymaga decyzji właściciela
+
+> Owner decision: defer Raider wreck integration to debris 25 Hz / visual
+> redesign (rekomendowane), albo osobno autoryzować two-record debris-kernel +
+> layout proof.
+
+Nie wykonywać automatycznie żadnego z tych wariantów ani zmian
+starfield/ring/debris cadence, Light, unified schedulera czy capital/boss.
 
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 

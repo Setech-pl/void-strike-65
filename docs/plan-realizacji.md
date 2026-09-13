@@ -1,11 +1,11 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 3.5
+Wersja: 3.6
 Data aktualizacji: 2026-09-13
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD przed niniejszym proofem: `e196e52faa100a16a6f39c343c1597e341e48129`
-Stan runtime: row-baked far stars + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix candidate; Raider wreck proof BLOCKED i wycofany; bez unified schedulera
-Aktualny XEX owner-smoke candidate: SHA-256 `134d47c96361fc00d4cd4a8ebcb29ae240c092958f58eb16b1c050db1ed09db5`
+Aktualny HEAD przed niniejszym proofem: `baeb300f659da99609831b2fd0a35f73b04e80ce`
+Stan runtime: dwuwarstwowy starfield owner-smoke candidate + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck odroczony do debris 25 Hz / visual redesign; bez unified schedulera
+Aktualny XEX owner-smoke candidate: SHA-256 `242fa14107d76d2d5e8f6641de94b60b0ccacbbca3b626db7418eee7c5001390`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
 
@@ -1219,14 +1219,84 @@ Rekomendacja: odroczyć wreck do zatwierdzonego późniejszego proofu debris
 25 Hz / visual redesign, gdzie uogólnienie puli i publikacji może zostać
 wykonane raz, zamiast dodawać teraz osobny rozproszony kernel.
 
-### Następny krok — wymaga decyzji właściciela
+### Raider wreck — OWNER DECISION / DEFERRED
 
-> Owner decision: defer Raider wreck integration to debris 25 Hz / visual
-> redesign (rekomendowane), albo osobno autoryzować two-record debris-kernel +
-> layout proof.
+Właściciel zachowuje zatwierdzony koncept sporadycznego wrecku z `HP=2`,
+kolizją gracza i PairShot oraz limitem dwóch aktywnych obiektów, ale odracza
+integrację do osobnego `debris 25 Hz / visual redesign`. Nie wracać do
+jednoslotowego szkicu ani nie otwierać osobnego RaiderDebris subsystemu.
 
-Nie wykonywać automatycznie żadnego z tych wariantów ani zmian
-starfield/ring/debris cadence, Light, unified schedulera czy capital/boss.
+### Two-layer starfield visual/parallax — TECHNICAL PASS / OWNER SMOKE
+
+Dotychczasowy row-baked starfield miał dwie warstwy generowane w tych samych
+recyklingowanych wierszach. Niebieskie i białe punkty dziedziczyły więc tę
+samą grubą prędkość ring, a każdy krok był pełnym skokiem o osiem scanlines.
+Trzy warianty far używały różnych pionowych faz, zaś największy wieloliniowy
+glif near wizualnie zbliżał się do debris.
+
+Kandydat zachowuje dokładnie 29 niebieskich `COLPF1` far stars jako row-baked
+background, lecz wszystkie używają jednego jednoscanline'owego glyphu. Wspólna
+faza `0..4` jest wyprowadzana z przewidywanej następnej wartości tego samego
+`scroll_accumulator`, którego używa ring; nie ma osobnego timera ani 29
+address resolves. Maksymalny sąsiedni ruch blue far spada z ośmiu do sześciu
+scanlines, również przez coarse wrap.
+
+Biała warstwa to cztery sparse dynamic `COLPF0` points. Każdy przesuwa się o
+jeden wiersz znakowy (`8 px`) w każdej klatce fighter OPEN, używa cache'u OLD
+physical address i czterech kolumn zarezerwowanych w patternie far. Dzięki
+temu wszystkie cztery są widoczne bez per-cell backingu. NEW jest publikowane
+w istniejącym post-playfield window po wyższych warstwach, ale zapisuje tylko
+`CH_SPACE`; efektywny priorytet near pozostaje więc niższy, bez nowych hooks.
+W capital ich ruch jest zamrożony, cache unieważniany, a powrót do fightera
+rozwiązuje adresy z
+aktualnej tablicy ring. Usunięto dawne `BRIGHT`, `SHIFTED`, `DOUBLE` i
+`SPARKLE`; nie istnieje trzecia duża/szybka klasa.
+
+Instruction-exact fighter OPEN:
+
+- wspólna far phase: `47` cykli;
+- near movement/bookkeeping: `75`;
+- near OLD erase: `155`;
+- near NEW render: `415` bez ring step albo `271` z ring step;
+- row-baked far generation: `83` zwykły, `136` najcięższy podwójny row;
+- skorelowany starfield peak: `692` cykle;
+- odzysk względem dawnego dynamic far path `4 221`: `3 529` cykli;
+- dodatkowy near peak względem wcześniejszego row-baked baseline: `494`
+  cykle, czyli klasa PASS.
+
+Średnia prędkość far wynosi `3,2/3,6/4,0 px/frame` na EASY/MEDIUM/HARD,
+podczas gdy near ma `8 px/frame`; stosunek paralaksy wynosi zatem
+`2,50x/2,22x/2,00x`. Testy objęły 600 klatek/pattern updates, wiele pełnych
+wrapów, wszystkie difficulty rates, capital reconstruction i ponowne wejście
+do fightera. Focused suite ma `49/49 PASS`, a native cold boot XEX/ATR
+`4/4 PASS`.
+
+Pamięć względem HEAD przed proofem: linked runtime `17 359 -> 17 502 B`,
+simultaneous residency `17 837 -> 17 980 B`, safe headroom `4 350 -> 4 207 B`.
+STARFIELD ma `2 195/2 348 B` raw i `1 783/1 819 B` packed; A2 ma
+`171/256 B`; BROADSIDE zachowuje `9 B` marginesu, cold pickup `417 B`, a
+initial-content envelope `87 B`. Loader, format transportu, BASIC RAM,
+PairShot, effects i gameplay pozostają bez zmian.
+
+Przeliczony unified visual commit (scheduler nadal nie istnieje): Normal
+`4 664-4 744`, Rapid `4 860-4 940`, Spread `5 121-5 201`, player+enemy 5+5
+`5 776-5 856`. Najgorszy margines do konserwatywnego okna `9 975` wynosi
+odpowiednio `5 231`, `5 035`, `4 774` i `4 119` cykli.
+
+Raport:
+`docs/diagnostics/stage-2b2b-two-layer-starfield-visual-parallax-fix.json`.
+
+Decyzja techniczna:
+
+**Two-layer starfield spełnia bramki CPU, pamięci, wrap i rekonstrukcji;
+finalna ocena płynności, paralaksy i czytelności pozostaje OWNER SMOKE.**
+
+### Następny krok — tylko po owner PASS starfield
+
+> Background/ring 25 Hz / staggered feasibility.
+
+Nie wykonywać automatycznie. Raider wreck pozostaje odroczony do późniejszego
+debris 25 Hz / visual redesign.
 
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 

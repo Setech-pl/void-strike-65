@@ -745,7 +745,7 @@ test("debris advances exactly three vertical rows in five world events", () => {
   assert.deepEqual(rows, [24, 32, 32, 40, 48, 48, 56, 56, 64, 72, 72, 80]);
 });
 
-test("EASY, MEDIUM and HARD keep world speed while far/near/debris use exact 25/50/60% rates", () => {
+test("EASY, MEDIUM and HARD keep world/debris rates while sparse near stays at 50 Hz", () => {
   const denominator = capitalHullsDefinition.broadside.worldScrollRateDenominator;
   assert.equal(denominator, 20);
   assert.deepEqual(capitalHullsDefinition.broadside.worldScrollRates,
@@ -753,48 +753,38 @@ test("EASY, MEDIUM and HARD keep world speed while far/near/debris use exact 25/
   assert.deepEqual(capitalHullsDefinition.broadside.hullScrollRates,
     capitalHullsDefinition.broadside.worldScrollRates);
   assert.deepEqual([
-    starfieldDefinition.nearLayer.rateNumerator,
-    starfieldDefinition.nearLayer.rateDenominator,
+    starfieldDefinition.nearLayer.representation,
+    starfieldDefinition.nearLayer.speedPixelsPerFrame,
     starfieldDefinition.farLayer.rateNumerator,
     starfieldDefinition.farLayer.rateDenominator,
-  ], [1, 2, 1, 4]);
+  ], ["sparse-dynamic", 8, 1, 1]);
 
   const measured = {};
   for (const [difficulty, numerator] of
     Object.entries(capitalHullsDefinition.broadside.worldScrollRates)) {
     const worldRowsPerSecond = 50 * numerator / denominator;
-    const nearRowsPerSecond = worldRowsPerSecond / 2;
-    const farRowsPerSecond = worldRowsPerSecond / 4;
+    const nearRowsPerSecond = 50;
+    const farRowsPerSecond = worldRowsPerSecond;
     const debrisRowsPerSecond = worldRowsPerSecond * 3 / 5;
-    assert.ok(farRowsPerSecond < nearRowsPerSecond &&
-      nearRowsPerSecond < debrisRowsPerSecond &&
-      debrisRowsPerSecond < worldRowsPerSecond);
+    assert.ok(debrisRowsPerSecond < farRowsPerSecond &&
+      farRowsPerSecond < nearRowsPerSecond);
 
     let worldAccumulator = 0;
-    let nearAccumulator = 0;
     const stepFrame = () => {
       let worldAdvanced = false;
-      let nearAdvanced = false;
       worldAccumulator += numerator;
       if (worldAccumulator >= denominator) {
         worldAccumulator -= denominator;
         worldAdvanced = true;
-        nearAccumulator += starfieldDefinition.nearLayer.rateNumerator;
-        if (nearAccumulator >= starfieldDefinition.nearLayer.rateDenominator) {
-          nearAccumulator -= starfieldDefinition.nearLayer.rateDenominator;
-          nearAdvanced = true;
-        }
       }
-      return { worldAdvanced, nearAdvanced };
+      return { worldAdvanced };
     };
     for (let frame = 1; frame <= 32; frame += 1) {
       stepFrame();
     }
     const spawnWorldAccumulator = worldAccumulator;
-    const spawnNearAccumulator = nearAccumulator;
     const framesFor = (numerator, denominator) => {
       worldAccumulator = spawnWorldAccumulator;
-      nearAccumulator = spawnNearAccumulator;
       let phase = 0;
       let frames = 0;
       let steps = 0;
@@ -823,17 +813,17 @@ test("EASY, MEDIUM and HARD keep world speed while far/near/debris use exact 25/
   }
   assert.deepEqual(measured, {
     easy: {
-      worldRowsPerSecond: 20, nearRowsPerSecond: 10, farRowsPerSecond: 5,
+      worldRowsPerSecond: 20, nearRowsPerSecond: 50, farRowsPerSecond: 20,
       debrisRowsPerSecond: 12, rejectedCandidateDebrisRowsPerSecond: 15,
       rejectedCandidateFrames: 73, finalFrames: 91,
     },
     medium: {
-      worldRowsPerSecond: 22.5, nearRowsPerSecond: 11.25, farRowsPerSecond: 5.625,
+      worldRowsPerSecond: 22.5, nearRowsPerSecond: 50, farRowsPerSecond: 22.5,
       debrisRowsPerSecond: 13.5, rejectedCandidateDebrisRowsPerSecond: 16.875,
       rejectedCandidateFrames: 66, finalFrames: 82,
     },
     hard: {
-      worldRowsPerSecond: 25, nearRowsPerSecond: 12.5, farRowsPerSecond: 6.25,
+      worldRowsPerSecond: 25, nearRowsPerSecond: 50, farRowsPerSecond: 25,
       debrisRowsPerSecond: 15, rejectedCandidateDebrisRowsPerSecond: 18.75,
       rejectedCandidateFrames: 60, finalFrames: 74,
     },
@@ -958,8 +948,8 @@ test("pause, new game, life loss, full sector transition and Game Over preserve 
   ], [7, 0, 32, 0, 101],
   "OPEN must re-arm normal delay without clearing the pool or consuming RNG");
   const postReconstructionStarRng = transition[addresses.starfieldRng];
-  assert.notEqual(postReconstructionStarRng, 0xa7,
-    "one complete ring reconstruction must retain normal starfield RNG progression");
+  assert.equal(postReconstructionStarRng, 0xa7,
+    "row-baked reconstruction must not revive the retired starfield RNG writer");
   for (let frame = 1; frame <= 31; frame += 1) {
     runRoutine(transition, "entity_effects_update");
     assert.equal(transition[addresses.activeMask], 0,

@@ -212,6 +212,15 @@ PREPARED_HULL_RING_LO       = PREPARED_HULL_LO+3
 CORRIDOR_PHASE_HI           = CORRIDOR_BOUNDARY_RIGHT+CORRIDOR_BOUNDARY_ROWS
 HULL_DRAW_ROW_LO            = CORRIDOR_PHASE_HI+$01
 HULL_DRAW_ROW_HI            = HULL_DRAW_ROW_LO+$01
+; The sparse white near layer reuses the head of the retired 29-record far
+; pool. Four fixed records keep row/column and the last rendered physical
+; address. They claim blank cells, so CH_SPACE is their complete lower-layer
+; contract and no per-record backing byte is needed.
+STAR_NEAR_ROW               = HULL_DRAW_ROW_HI+$01
+STAR_NEAR_COLUMN            = STAR_NEAR_ROW+STAR_NEAR_CAPACITY
+STAR_NEAR_SCREEN_LO         = STAR_NEAR_COLUMN+STAR_NEAR_CAPACITY
+STAR_NEAR_SCREEN_HI         = STAR_NEAR_SCREEN_LO+STAR_NEAR_CAPACITY
+STAR_NEAR_STATE_END         = STAR_NEAR_SCREEN_HI+STAR_NEAR_CAPACITY
 BROAD_TURRET_FIRED          = HULL_SCROLL_ACCUMULATOR+$2F
 BROAD_FLASH_TIMER           = BROAD_TURRET_FIRED+CAPITAL_HULL_TURRET_COUNT ; 3 B
 CAPITAL_SECTOR_STATE        = BROAD_FLASH_TIMER+$03
@@ -246,9 +255,10 @@ GAMEPLAY_RESIDENT_END       = ENEMY_LEGACY_STATE+$03
 STAR_RNG_STATE               = GAMEPLAY_RESIDENT_END
 STAR_NEAR_PHASE              = STAR_RNG_STATE+$01
 STAR_FAR_PATTERN_ROW         = STAR_NEAR_PHASE+$01
-; Preserve three reviewed scalar addresses so downstream music/muzzle state
-; does not move during this far-only prototype.
+; The first compatibility byte now records the shared blue fine-Y phase. Two
+; bytes remain reserved so downstream music/muzzle state does not move.
 STARFIELD_COMPAT_STATE       = STAR_FAR_PATTERN_ROW+$01
+STAR_FAR_FINE_PHASE          = STARFIELD_COMPAT_STATE
 STARFIELD_STATE_END          = STARFIELD_COMPAT_STATE+$03
 SESSION_SCORE_COMPAT_BYTES   = 2
 MUZZLE_ROW_DOMAIN            = STARFIELD_STATE_END          ; 2 B, fixed divider/ring
@@ -298,7 +308,9 @@ SESSION_SCORE_STATE_END      = TOP_SCORE_TABLE_END
 .export ENEMY_MOVE_ACCUMULATOR, ENEMY_MANEUVER_STATE, ENEMY_MANEUVER_TIMER
 .export ENEMY_BEHAVIOUR_PHASE, ENEMY_LIVE_COUNT
 .export WEAPON_PICKUP_COLD_STAGING
-.export STAR_FAR_PATTERN_ROW, MUSIC_ACTIVE
+.export STAR_FAR_PATTERN_ROW, STAR_FAR_FINE_PHASE
+.export STAR_NEAR_ROW, STAR_NEAR_COLUMN, STAR_NEAR_SCREEN_LO, STAR_NEAR_SCREEN_HI
+.export MUSIC_ACTIVE
 .export TOP_SCORE_TABLE, TOP_SCORE_TABLE_LO, TOP_SCORE_TABLE_HI, TOP_SCORE_TABLE_END
 .export TOP_SCORE_RECORD_COUNT, TOP_SCORE_RECORD_BYTES, TOP_SCORE_STORAGE_COUNT
 .export TOP_SCORE_TABLE_BYTES
@@ -676,6 +688,7 @@ PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE = PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYE
 .assert GAMEPLAY_RESIDENT_END <= $4F00, error, "gameplay resident state exceeds reclaimed RAM"
 .assert STARFIELD_STATE_END <= $4F00, error, "starfield scalar state exceeds reclaimed RAM"
 .assert HULL_DRAW_ROW_HI+$01 <= WEAPON_PICKUP_RUNTIME, error, "freed far-star record range overlaps pickup runtime"
+.assert STAR_NEAR_STATE_END <= WEAPON_PICKUP_RUNTIME, error, "sparse near-star records overlap pickup runtime"
 .assert STAR_FAR_FIRST > CH_SPACE, error, "star codes must not alias blank space"
 .assert GAMEPLAY_TOP & $07 = 0, error, "projectile row reduction requires an eight-scanline gameplay origin"
 .assert STAR_NEAR_END <= PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE, error, "star glyphs overlap PlayerFighter projectile glyphs"
@@ -2311,7 +2324,7 @@ main_loop_frame_active = *
     ; sized read so the frozen main-loop profiling entry points do not move.
     bit FIGHTER_PROJECTILE_ACTIVE
 profile_after_projectile_erase = *
-    jsr entity_effects_erase
+    jsr entity_effects_erase_with_two_layer_starfield
 profile_after_entity_erase = *
     jsr integration_active_gameplay_tick
 profile_after_capsule = *
@@ -2780,7 +2793,11 @@ publish_fighter_projectile_overlays:
 fighter_projectile_publication_begin = *
     jsr erase_fighter_projectile_overlays
 fighter_projectile_publication_capital_render:
-    jmp render_fighter_projectile_overlays
+    jsr render_fighter_projectile_overlays
+    ; Sparse near is logically below every character gameplay layer. Publishing
+    ; it last is safe because it writes CH_SPACE cells only, so existing
+    ; projectile/effect/debris foreground always wins without backing hooks.
+    jmp render_dynamic_near_star_overlays
 .export fighter_projectile_publication_begin
 
 fighter_projectile_option_debounce_wait:
@@ -2922,9 +2939,6 @@ init_state:
     sta INTERCEPTOR_MOVE_ACCUMULATOR
     lda #$A7
     sta rng_state
-    lda #STAR_GENERATION_SEED
-    sta STAR_RNG_STATE
-
     lda #$00
     sta scanner_phase
     sta frame_counter
@@ -3337,7 +3351,7 @@ init_screen:
     sta STAR_FAR_PATTERN_ROW
     lda BROAD_WORK_COUNT
     jsr set_gameplay_row_ptr
-    jsr generate_starfield_row  ; initial near background uses its independent seed
+    jsr generate_starfield_row  ; deterministic blue far background only
     ldx BROAD_WORK_COUNT
     ldy #CORRIDOR_CENTRAL_FIRST
     lda (dst_ptr),y
@@ -3355,7 +3369,7 @@ init_screen:
     sta STAR_FAR_PATTERN_ROW
     lda #$FF                    ; invalidate any cold prepared hull row
     sta PREPARED_HULL_SECTOR
-    rts
+    jmp render_dynamic_near_star_overlays
 
 ; -----------------------------------------------------------------------------
 ; Player and input
@@ -4176,9 +4190,7 @@ profile_projectile_pointer_end = *
 enemy_projectile_effect_backing_resolve = *
     ; PairShots can cross a staggered Raider breakup cell. Saving that moving
     ; effect glyph would resurrect it when the projectile later erases.
-    ; Reuse the narrow same-layer resolver to capture the effect's lower
-    ; backing instead. The final player-ghost resolver itself remains untouched.
-    jsr store_projectile_backing_resolving_effect
+    jsr store_projectile_backing_resolving_effect_core
     cpx #INTERCEPTOR_PROJECTILE_SLOT_BASE
     bcs @draw_top
     cmp #CH_SPACE
@@ -5145,16 +5157,16 @@ update_starfield:
 ; unreachable after update_starfield returns.
 starfield_layout_d2_cadence_pad:
 
-; One authoritative world event rotates the physical background exactly once.
-; Near and row-baked far stars are already part of that row; there is no
-; independent far-star simulation, erase, address resolve or redraw pass.
+; One authoritative world event rotates the physical blue-far background
+; exactly once. The sparse white layer is published separately at 50 Hz; there
+; is no independent 29-record far simulation/erase/resolve/redraw pass.
 advance_starfield_layers:
     lda #ENTITY_EVENT_WORLD_ROW_ADVANCED
     sta ENTITY_FRAME_EVENTS
     jsr integration_director_world_row
     jmp scroll_world_columns
 
-; A near/ring step is selected from, and always coincident with, the 100%-rate
+; A ring step is selected from, and always coincident with, the 100%-rate
 ; hull/world clock. Keep
 ; logical row zero at the fixed divider LMS, rotate the 27 rows below it, copy
 ; the prior divider into logical row one, then regenerate logical row zero.
@@ -5317,13 +5329,18 @@ rotate_playfield_table_shift_end:
 ; Reset the row-baked phase before the initial 28-row period is generated.
 init_starfield_state:
     lda #$00
-    sta STAR_NEAR_PHASE
     sta STAR_FAR_PATTERN_ROW
-    ldx #(STARFIELD_STATE_END-STARFIELD_COMPAT_STATE)-1
-@clear:
-    sta STARFIELD_COMPAT_STATE,x
+    sta STAR_FAR_FINE_PHASE
+    ldx #(STAR_NEAR_CAPACITY-1)
+@near:
+    lda near_star_initial_rows,x
+    sta STAR_NEAR_ROW,x
+    lda near_star_initial_columns,x
+    sta STAR_NEAR_COLUMN,x
+    lda #$00
+    sta STAR_NEAR_SCREEN_HI,x
     dex
-    bpl @clear
+    bpl @near
     rts
 
 build_star_glyphs:
@@ -5336,38 +5353,10 @@ build_star_glyphs:
     bne @byte
     rts
 
-; The near layer is authoritative character background. At most one star is
-; introduced in a newly exposed row, keeping generation bounded and sparse.
-generate_near_star_row:
-    jsr star_random_byte
-    and #(STAR_DENSITY_DENOMINATOR-1)
-    cmp #STAR_NEAR_DENSITY_NUMERATOR
-    bcs @done
-    jsr choose_star_column
-    tay
-    lda (dst_ptr),y
-    bne @done
-    jsr star_random_byte
-    and #(STAR_SPECIAL_FREQUENCY-1)
-    beq @sparkle
-    cmp #$02
-    bcc @double
-    lda #STAR_NEAR_POINT
-    bne @store
-@double:
-    lda #STAR_NEAR_DOUBLE
-    bne @store
-@sparkle:
-    lda #STAR_NEAR_SPARKLE
-@store:
-    sta (dst_ptr),y
-@done:
-    jmp generate_baked_far_star_row
-
 ; Add one immutable far point to every generated row and a second point to
 ; pattern row zero. Over one complete 28-row ring this is exactly 29 far stars.
-; Near stars are generated first and retain priority; one bounded alternate
-; column is sufficient because a row contains at most one near star.
+; The sparse white layer is published independently, so row construction has
+; no dynamic-star occupancy scan or fallback.
 generate_baked_far_star_row:
     ldx STAR_FAR_PATTERN_ROW
     jsr draw_baked_far_star
@@ -5401,84 +5390,211 @@ draw_baked_far_star:
     adc #ENTITY_CORRIDOR_FIRST_COLUMN
 @column_ready:
     tay
-    lda (dst_ptr),y
-    beq @store
-    lda CAPITAL_SECTOR_STATE
-    cmp #CAPITAL_HULL_STATE_COMPLETE
-    bcs @fallback_full
-    tya
-    clc
-    adc #11
-    cmp #ENTITY_CORRIDOR_END_COLUMN
-    bcc @fallback_ready
-    sbc #ENTITY_CORRIDOR_COLUMNS
-    bcs @fallback_ready
-@fallback_full:
-    tya
-    clc
-    adc #17
-    cmp #40
-    bcc @fallback_ready
-    sbc #40
-@fallback_ready:
-    tay
-    lda (dst_ptr),y
-    bne @done
-@store:
-    lda loader_repeat_value
-    and #$C0
-    beq @dim
-    cmp #$40
-    beq @bright
-    lda #STAR_FAR_SHIFTED
-    bne @write
-@bright:
-    lda #STAR_FAR_BRIGHT
-    bne @write
-@dim:
+    ; The independent white layer is no longer baked into this row. Hull data
+    ; owns only columns 0-8/31-39, while the fighter mapping is 9-30; pattern
+    ; row zero's two columns are distinct in both domains. No occupancy/fallback
+    ; pass remains on the recycled-row path.
     lda #STAR_FAR_DIM
-@write:
     sta (dst_ptr),y
 @done:
-    rts
-
-choose_star_column:
-    jsr star_random_byte
-    lda CAPITAL_SECTOR_STATE
-    cmp #CAPITAL_HULL_STATE_COMPLETE
-    bcc @corridor
-    lda STAR_RNG_STATE
-    and #$3F
-    cmp #40
-    bcc @done
-    sec
-    sbc #40
-@done:
-    rts
-@corridor:
-    lda STAR_RNG_STATE
-    and #$1F
-    cmp #22
-    bcc :+
-    sec
-    sbc #22
-:
-    clc
-    adc #(CORRIDOR_CENTRAL_FIRST+1)
-    rts
-
-star_random_byte:
-    lda STAR_RNG_STATE
-    lsr
-    bcc :+
-    eor #$B8
-:
-    sta STAR_RNG_STATE
     rts
 
 far_baked_pattern:
     EMIT_FAR_STAR_PATTERN
 
+.segment "STARFIELD"
+near_star_initial_rows:
+    EMIT_NEAR_STAR_INITIAL_ROWS
+near_star_initial_columns:
+    EMIT_NEAR_STAR_INITIAL_COLUMNS
+.segment "CODE"
+entity_effects_erase_with_two_layer_starfield:
+    ; The previous OPEN iteration ended after the playfield. Remove sparse
+    ; near overlays and advance both shared glyph phases before ANTIC reaches
+    ; the next gameplay rows, then preserve the existing effect-erase order.
+    jsr erase_dynamic_near_star_overlays
+    jsr update_two_layer_starfield_phases
+    jmp entity_effects_erase
+
+; Predict the accumulator state that update_starfield will publish later in
+; this same iteration. The resulting common blue phase therefore wraps on the
+; exact frame in which the display-list ring advances, without an independent
+; timer. This bounded glyph kernel reuses the A2 space retired with the old
+; per-record far renderer.
+.segment "STARFIELD"
+update_two_layer_starfield_phases:
+update_far_star_fine_phase:
+    ; Predict the accumulator published later in this iteration using the same
+    ; authoritative difficulty rate as update_starfield. A two-bit reduction
+    ; yields phases 0..4 and bounds adjacent-frame motion to six scanlines,
+    ; including the matching coarse-row wrap.
+    ldx DIFFICULTY_SETTING
+    lda scroll_accumulator
+    clc
+    adc world_scroll_rates,x
+    cmp #WORLD_SCROLL_RATE_DENOMINATOR
+    bcc :+
+    sbc #WORLD_SCROLL_RATE_DENOMINATOR
+:
+    lsr
+    lsr
+    tay
+    ldx STAR_FAR_FINE_PHASE
+    lda #$00
+    sta CHARSET+STAR_FAR_DIM*8,x
+    lda #$20
+    sta CHARSET+STAR_FAR_DIM*8,y
+    sty STAR_FAR_FINE_PHASE
+update_far_star_fine_phase_end = *
+.export update_far_star_fine_phase, update_far_star_fine_phase_end
+
+; Four small white points advance one character row on every OPEN PAL frame.
+; Their eight-scanline speed is independent of the 3.2/3.6/4.0-scanline
+; background rates and keeps the player-visible parallax unambiguous.
+    lda CAPITAL_SECTOR_STATE
+    cmp #CAPITAL_HULL_STATE_OPEN
+    beq @advance_near
+    ; Capital owns its hull columns and has no dynamic near layer. The OLD
+    ; cells were erased before this call; invalidate their physical cache so
+    ; the next fighter OPEN resolves all four records against the rebuilt ring.
+    jmp invalidate_dynamic_near_cache
+@advance_near:
+    ; Four absolute slots are smaller in cycle budget than an indexed loop:
+    ; 14 cycles/ordinary slot rather than 21, while retaining exact wrap.
+    .repeat STAR_NEAR_CAPACITY, I
+        inc STAR_NEAR_ROW+I
+        lda STAR_NEAR_ROW+I
+        cmp #GAMEPLAY_SCREEN_ROWS
+        bcc :+
+        lda #$00
+        sta STAR_NEAR_ROW+I
+:
+    .endrepeat
+    rts
+
+.segment "A2_KERNEL"
+invalidate_dynamic_near_cache:
+    ldx #(STAR_NEAR_CAPACITY-1)
+    lda #$00
+@invalidate_near:
+    sta STAR_NEAR_SCREEN_HI,x
+    dex
+    bpl @invalidate_near
+    rts
+
+.segment "STARFIELD"
+; Reverse the four sparse white overlays before ring reuse. The cached address
+; is the exact physical OLD cell from the prior render, independent of a later
+; logical-ring rotation. Near was published only into CH_SPACE after every
+; higher layer, so a foreground glyph means this erase must leave it untouched.
+erase_dynamic_near_star_overlays:
+    ldx #(STAR_NEAR_CAPACITY-1)
+    ldy #$00
+@slot:
+    lda STAR_NEAR_SCREEN_HI,x
+    sta dst_ptr+1
+    lda STAR_NEAR_SCREEN_LO,x
+    sta dst_ptr
+    lda (dst_ptr),y
+    cmp #STAR_NEAR_POINT
+    bne @next
+    lda #CH_SPACE
+    sta (dst_ptr),y
+@next:
+    dex
+    bpl @slot
+    rts
+
+; Publish four small white points after the ring and all higher character
+; layers have reached their new mapping. Only CH_SPACE is claimable, so the
+; late physical write still implements the intended lowest dynamic priority.
+.segment "STARFIELD"
+render_dynamic_near_star_overlays:
+    lda CAPITAL_SECTOR_STATE
+    cmp #CAPITAL_HULL_STATE_OPEN
+    beq :+
+    rts
+:
+    ldx #$00
+@slot:
+    ; Rows 2..27 can derive NEW from the exact cached OLD address. When the
+    ; ring rotates, logical row+1 remains on the same physical row; otherwise
+    ; the next physical row is exactly +40 bytes. Only divider crossings and
+    ; the first publication need the general row table.
+    lda STAR_NEAR_SCREEN_HI,x
+    beq @resolve
+    lda STAR_NEAR_ROW,x
+    cmp #$02
+    bcc @resolve
+    lda ENTITY_FRAME_EVENTS
+    and #ENTITY_EVENT_WORLD_ROW_ADVANCED
+    bne @cached_ready
+    lda STAR_NEAR_SCREEN_HI,x
+    cmp #>GAMEPLAY_RING_SCREEN_END
+    bne @advance_cached
+    lda STAR_NEAR_SCREEN_LO,x
+    cmp #<(GAMEPLAY_RING_SCREEN_END-GAMEPLAY_SCREEN_COLUMNS)
+    bcs @wrap_cached
+@advance_cached:
+    clc
+    lda STAR_NEAR_SCREEN_LO,x
+    adc #GAMEPLAY_SCREEN_COLUMNS
+    sta STAR_NEAR_SCREEN_LO,x
+    lda STAR_NEAR_SCREEN_HI,x
+    adc #$00
+    sta STAR_NEAR_SCREEN_HI,x
+    bne @cached_ready
+@wrap_cached:
+    clc
+    lda #<GAMEPLAY_RING_SCREEN
+    adc STAR_NEAR_COLUMN,x
+    sta STAR_NEAR_SCREEN_LO,x
+    lda #>GAMEPLAY_RING_SCREEN
+    sta STAR_NEAR_SCREEN_HI,x
+    bne @cached_ready
+@resolve:
+    lda STAR_NEAR_ROW,x
+    tay
+    beq @divider
+    dey
+    lda PLAYFIELD_ROW_LO,y
+    sta dst_ptr
+    lda PLAYFIELD_ROW_HI,y
+    bne @row_ready
+@divider:
+    lda #<GAMEPLAY_DIVIDER_SCREEN
+    sta dst_ptr
+    lda #>GAMEPLAY_DIVIDER_SCREEN
+@row_ready:
+    sta dst_ptr+1
+    clc
+    lda dst_ptr
+    adc STAR_NEAR_COLUMN,x
+    sta STAR_NEAR_SCREEN_LO,x
+    bcc :+
+    inc dst_ptr+1
+:
+    lda dst_ptr+1
+    sta STAR_NEAR_SCREEN_HI,x
+@cached_ready:
+    lda STAR_NEAR_SCREEN_LO,x
+    sta dst_ptr
+    lda STAR_NEAR_SCREEN_HI,x
+    sta dst_ptr+1
+    ldy #$00
+    lda (dst_ptr),y
+    bne @next
+    lda #STAR_NEAR_POINT
+    sta (dst_ptr),y
+@next:
+    inx
+    cpx #STAR_NEAR_CAPACITY
+    beq @done
+    jmp @slot
+@done:
+    rts
+
+.segment "STARFIELD"
 star_glyph_bytes:
     EMIT_STAR_GLYPHS
 
@@ -6131,7 +6247,7 @@ generate_starfield_row:
     iny
     cpy #CORRIDOR_CENTRAL_END
     bne @clear_central
-    jmp generate_near_star_row
+    jmp generate_baked_far_star_row
 @full:
     ldy #$00
 @clear_full:
@@ -6139,7 +6255,7 @@ generate_starfield_row:
     iny
     cpy #40
     bne @clear_full
-    jmp generate_near_star_row
+    jmp generate_baked_far_star_row
 
 .segment "BROADSIDE"
 
@@ -6407,7 +6523,7 @@ draw_hull_row:
 .segment "BROADSIDE"
 
 fill_starfield_empty_cells:
-    jmp generate_near_star_row
+    jmp generate_baked_far_star_row
 
 ; Initial rows preserve the historical RNG sequence: a hull projection stores
 ; black behind itself rather than leaking a capital-hull screen code into the
@@ -10043,6 +10159,7 @@ render_interactive_entity_overlays:
 ; backing rather than the visible debris glyph. The 16-bit subtraction handles
 ; the legal row-end crossing and leaves A/Y in the form expected by the effect
 ; publisher. This is deliberately local to the one accepted debris record.
+.segment "A2_KERNEL"
 resolve_effect_backing_below_interactive_debris:
     sta EFFECT_SCRATCH0
     lda ENTITY_SCREEN_HI
@@ -10169,8 +10286,8 @@ resolve_effect_pairshot_candidate:
     cmp dst_ptr+1
     bne @next
     lda FIGHTER_PROJECTILE_BACKUP_TOP,y
-    sta EFFECT_SCRATCH0
-    jmp @restore_y
+    ldy #$00
+    rts
 @next:
     iny
     cpy #FIGHTER_PROJECTILE_SLOT_COUNT
@@ -10186,7 +10303,7 @@ resolve_effect_pairshot_unchanged:
 ; effect's lower backing, not its visible glyph, or its later erase resurrects
 ; one detached fragment. The glyph fast path keeps ordinary effect draws out
 ; of the bounded five-slot address scan.
-store_projectile_backing_resolving_effect:
+store_projectile_backing_resolving_effect_core:
     ; Most projectile cells contain blank/base/star codes below 90. Keep that
     ; legal ten-slot frame to +17 cycles/slot; only actual effect glyph ranges
     ; pay the bounded five-slot resolver.

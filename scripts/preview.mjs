@@ -842,11 +842,11 @@ export function readGameGraphicsSource(
     ["GAMEPLAY_COLPF2", fighterWeapons.player_fighter.colourValue],
     ["GAMEPLAY_COLPF3", fighterWeapons.interceptor.colourValue],
     ["STAR_FAR_CAPACITY", starfield.farLayer.population],
-    ["STAR_FAR_STEP_RATIO", starfield.farLayer.stepRatio],
-    ["STAR_NEAR_STEP_RATIO", starfield.nearLayer.stepRatio],
-    ["STAR_NEAR_DENSITY_NUMERATOR", starfield.nearLayer.densityNumerator],
-    ["STAR_DENSITY_DENOMINATOR", starfield.nearLayer.densityDenominator],
-    ["STAR_SPECIAL_FREQUENCY", starfield.nearLayer.specialFrequency],
+    ["STAR_FAR_RATE_NUMERATOR", starfield.farLayer.rateNumerator],
+    ["STAR_FAR_RATE_DENOMINATOR", starfield.farLayer.rateDenominator],
+    ["STAR_NEAR_CAPACITY", starfield.nearLayer.population],
+    ["STAR_NEAR_FINE_STEP", starfield.nearLayer.speedPixelsPerFrame],
+    ["STAR_FINE_SCANLINES", 8],
     ["STAR_TWINKLE_INTERVAL", starfield.twinkle.intervalFrames],
     ["STAR_GENERATION_SEED", starfield.generationSeed],
   ]) {
@@ -3822,7 +3822,7 @@ export function createDebrisReviewPreview(
   fillRgbRect(rgb, width, height, 34, 52, 1212, 112, panel);
   strokeRgbRect(rgb, width, height, 34, 52, 1212, 112, steel);
   drawRgbLabel(rgb, width, "NATIVE 1X", 48, 62, frontend, gold);
-  const nearStar = [starfield.nearLayer.glyphs.find(({ id }) => id === "SPARKLE").bytes];
+  const nearStar = [starfield.nearLayer.glyphs.find(({ id }) => id === "POINT").bytes];
   drawRgbLabel(rgb, width, "MAX NEAR STAR", 62, 100, frontend, white);
   drawDebrisPhaseRgb(rgb, width, height, nearStar, 180, 98, 2, 1);
   for (let phaseIndex = 0; phaseIndex < phaseLabels.length; phaseIndex += 1) {

@@ -84,27 +84,27 @@ test("Layout D.2 startup order and call bytes are frozen", () => {
 });
 
 test("Layout D.2 exact memory and transport budgets remain frozen", () => {
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 12933);
-  assert.equal(manifest.transportCapacity.initialBootBytes, 13056);
-  assert.equal(manifest.transportCapacity.totalTransportSectors, 162);
-  assert.equal(manifest.transportCapacity.totalTransportBytes, 20736);
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13097);
+  assert.equal(manifest.transportCapacity.initialBootBytes, 13184);
+  assert.equal(manifest.transportCapacity.totalTransportSectors, 163);
+  assert.equal(manifest.transportCapacity.totalTransportBytes, 20864);
   assert.equal(manifest.transportCapacity.stage2.bytes, 1257);
   assert.deepEqual(manifest.transportCapacity.manifest.parsed.records.map((record) =>
     [record.startSector, record.sectorCount, record.packedLength, record.rawLength,
       record.finalDestination]), [
-    [103, 45, 5659, 6647, 0x5e10],
-    [148, 7, 850, 850, 0x8c80],
-    [155, 3, 245, 250, 0x7bd0],
-    [158, 5, 587, 644, 0x9d75],
+    [104, 45, 5659, 6647, 0x5e10],
+    [149, 7, 860, 860, 0x8c80],
+    [156, 3, 245, 250, 0x7bd0],
+    [159, 5, 587, 644, 0x9d75],
   ]);
-  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17318);
-  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 17796);
-  assert.equal(manifest.encounterDirector.safeResidencyBytes, 4391);
+  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17502);
+  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 17980);
+  assert.equal(manifest.encounterDirector.safeResidencyBytes, 4207);
 });
 
 test("XEX and ATR preserve full A2, GLUE lifecycle, ENTITY_CODE, DIRECTOR and guard", () => {
-  assert.equal(a2.length, 122);
-  assert.equal(sha256(a2), "e58b85d57ccad2c49560e4cc3b50b1f80e89d05acd9366c615f95a19289ab6b5");
+  assert.equal(a2.length, 171);
+  assert.equal(sha256(a2), "68d8d2c2094943e831ed9fc640ccfe5d569c4574148f133a11f98f2a7a1a3a8b");
   for (const artifact of ["xex", "atr"]) for (const fill of [0xa5, 0x5a]) {
     const staged = stageArtifact(artifact, fill);
     assert.equal(sha256(staged.sourceA2), sha256(a2), `${artifact} staged A2`);
@@ -120,7 +120,7 @@ test("XEX and ATR preserve full A2, GLUE lifecycle, ENTITY_CODE, DIRECTOR and gu
 
 test("current A2 entry points and relocated release glue retain their frozen opcodes", () => {
   const entries = [
-    ["integration_broadside_due", 0x905f, 0xce],
+    ["integration_broadside_due", 0x9090, 0xce],
     ["build_playfield_display_list", 0x9008, 0x85],
     ["prebuild_next_playfield_display_list", 0x9000, 0xa2],
   ];

@@ -251,7 +251,8 @@ export function executePairShotEffectBackingTrace({
     const column = (memory[projectileX] - 48) >> 2;
     const rowAddress = logicalRow === 0 ? dividerAddress :
       memory[rowLow + logicalRow - 1] | memory[rowHigh + logicalRow - 1] << 8;
-    const expectedUnderlay = mode.id === "SPREAD" ? 2 : 0;
+    const expectedUnderlay = mode.id === "SPREAD" ?
+      manifest.starfield.farLayer.glyphs[0].screenCode : 0;
     memory[rowAddress + column] = expectedUnderlay;
     runRoutine(memory, labels, "render_fighter_projectile_overlays");
     const oldAddress = memory[screenLow] | memory[screenHigh] << 8;

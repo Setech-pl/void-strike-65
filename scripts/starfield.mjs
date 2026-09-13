@@ -41,17 +41,21 @@ export function compileStarfield(definition) {
     "Far layer must use the owner-approved row-baked representation");
   invariant(far.rateNumerator === 1 && far.rateDenominator === 1,
     "Row-baked far stars must move at background-ring speed");
-  invariant(near?.rateNumerator === 1 && near.rateDenominator === 2,
-    "Near layer must preserve the exact 50% hull-speed ratio");
-  invariant(Number.isInteger(near.densityDenominator) && near.densityDenominator > 0 &&
-    (near.densityDenominator & (near.densityDenominator - 1)) === 0,
-  "Near density denominator must be a positive power of two");
-  invariant(Number.isInteger(near.densityNumerator) && near.densityNumerator > 0 &&
-    near.densityNumerator < near.densityDenominator,
-  "Near density numerator must be inside its denominator");
-  invariant(Number.isInteger(near.specialFrequency) && near.specialFrequency > 0 &&
-    (near.specialFrequency & (near.specialFrequency - 1)) === 0,
-  "Special-star frequency must be a positive power of two");
+  invariant(near?.representation === "sparse-dynamic",
+    "Near layer must use the owner-approved sparse dynamic representation");
+  invariant(Number.isInteger(near.population) && near.population >= 4 && near.population <= 8,
+    "Near population must stay inside the reviewed sparse range 4-8");
+  invariant(Number.isInteger(near.speedPixelsPerFrame) && near.speedPixelsPerFrame > 0 &&
+    near.speedPixelsPerFrame <= 8,
+  "Near speed must be 1-8 scanlines per PAL frame");
+  invariant(Array.isArray(near.initialRows) && near.initialRows.length === near.population &&
+    near.initialRows.every((row) => Number.isInteger(row) && row >= 0 && row < GAMEPLAY_ROWS),
+  "Near initial rows must cover every sparse record");
+  invariant(Array.isArray(near.initialColumns) && near.initialColumns.length === near.population &&
+    near.initialColumns.every((column) => Number.isInteger(column) && column > 8 && column < 31),
+  "Near initial columns must remain inside the fighter corridor");
+  invariant(Array.isArray(near.initialGlyphs) && near.initialGlyphs.length === near.population,
+    "Near initial glyphs must cover every sparse record");
   invariant(definition.twinkle?.enabled === false,
     "Row-baked far stars must not restore the independent twinkle writer");
   invariant(definition.twinkle?.intervalFrames >= 8 &&
@@ -61,12 +65,14 @@ export function compileStarfield(definition) {
     "This pass twinkles exactly one far star per interval");
   invariant(far.colourRegister === "COLPF1" && near.colourRegister === "COLPF0",
     "Star layers must preserve the reviewed blue-grey/bright playfield banks");
-  invariant(Array.isArray(far.glyphs) && far.glyphs.length === 3,
-    "Far layer needs exactly three compact glyph variants");
-  invariant(Array.isArray(near.glyphs) && near.glyphs.length === 3,
-    "Near layer needs exactly three compact glyph variants");
+  invariant(Array.isArray(far.glyphs) && far.glyphs.length === 1,
+    "Far layer uses one shared fine-phase glyph");
+  invariant(Array.isArray(near.glyphs) && near.glyphs.length === 1,
+    "Near layer uses one unambiguous point glyph");
   far.glyphs.forEach((glyph, index) => validateGlyph(glyph, 1 + index, "Far"));
-  near.glyphs.forEach((glyph, index) => validateGlyph(glyph, 4 + index, "Near"));
+  near.glyphs.forEach((glyph, index) => validateGlyph(glyph, 2 + index, "Near"));
+  invariant(near.initialGlyphs.every((id) => near.glyphs.some((glyph) => glyph.id === id)),
+    "Near initial glyph ids must name existing near glyphs");
   invariant(far.pattern?.rows === GAMEPLAY_ROWS,
     "Row-baked far pattern must cover one complete gameplay-ring period");
   invariant(Array.isArray(far.pattern.columns) &&
@@ -96,10 +102,11 @@ export function compileStarfield(definition) {
     nearLayer: Object.freeze({ ...near, glyphs: Object.freeze(near.glyphs.map(Object.freeze)) }),
     glyphs: Object.freeze(glyphs),
     glyphBytes: Uint8Array.from(glyphs.flatMap(({ bytes }) => bytes)),
-    // Runtime retains only the star RNG and the next row-baked pattern index.
-    // The 29 pattern entries are immutable generated data, not mutable state.
-    stateBytes: 2,
-    expectedNearVisible: GAMEPLAY_ROWS * near.densityNumerator / near.densityDenominator,
+    // The baked-pattern row and shared fine phase are the only live scalar
+    // bytes. Sparse near records keep row/column plus the last rendered screen
+    // address; they claim blank cells, so no per-record backing byte is needed.
+    stateBytes: 2 + near.population * 4,
+    expectedNearVisible: near.population,
   });
 }
 
@@ -114,26 +121,29 @@ export function renderStarfieldCa65Include(asset) {
     `STAR_FAR_PATTERN_ROWS = ${far.pattern.rows}`,
     `STAR_FAR_RATE_NUMERATOR = ${far.rateNumerator}`,
     `STAR_FAR_RATE_DENOMINATOR = ${far.rateDenominator}`,
-    `STAR_NEAR_RATE_NUMERATOR = ${near.rateNumerator}`,
-    `STAR_NEAR_RATE_DENOMINATOR = ${near.rateDenominator}`,
-    `STAR_NEAR_DENSITY_NUMERATOR = ${near.densityNumerator}`,
-    `STAR_DENSITY_DENOMINATOR = ${near.densityDenominator}`,
-    `STAR_SPECIAL_FREQUENCY = ${near.specialFrequency}`,
+    `STAR_NEAR_CAPACITY = ${near.population}`,
+    `STAR_NEAR_FINE_STEP = ${near.speedPixelsPerFrame}`,
+    "STAR_FINE_SCANLINES = 8",
     `STAR_TWINKLE_INTERVAL = ${asset.twinkle.intervalFrames}`,
     `STAR_TWINKLE_STARS_PER_INTERVAL = ${asset.twinkle.starsPerInterval}`,
     `STAR_GENERATION_SEED = ${byte(asset.generationSeed)}`,
     `STAR_FAR_DIM = ${names.get("DIM")}`,
-    `STAR_FAR_BRIGHT = ${names.get("BRIGHT")}`,
-    `STAR_FAR_SHIFTED = ${names.get("SHIFTED")}`,
     `STAR_NEAR_POINT = ${names.get("POINT")}`,
-    `STAR_NEAR_DOUBLE = ${names.get("DOUBLE")}`,
-    `STAR_NEAR_SPARKLE = ${names.get("SPARKLE")}`,
     `STAR_FAR_FIRST = ${far.glyphs[0].screenCode}`,
     `STAR_FAR_END = ${far.glyphs.at(-1).screenCode + 1}`,
     `STAR_NEAR_FIRST = ${near.glyphs[0].screenCode}`,
     `STAR_NEAR_END = ${near.glyphs.at(-1).screenCode + 1}`,
     ".macro EMIT_FAR_STAR_PATTERN",
     `    .byte ${[...far.pattern.bytes].map(byte).join(",")}`,
+    ".endmacro",
+    ".macro EMIT_NEAR_STAR_INITIAL_ROWS",
+    `    .byte ${near.initialRows.map(byte).join(",")}`,
+    ".endmacro",
+    ".macro EMIT_NEAR_STAR_INITIAL_COLUMNS",
+    `    .byte ${near.initialColumns.map(byte).join(",")}`,
+    ".endmacro",
+    ".macro EMIT_NEAR_STAR_INITIAL_CODES",
+    `    .byte ${near.initialGlyphs.map((id) => byte(names.get(id))).join(",")}`,
     ".endmacro",
     ".macro EMIT_STAR_GLYPHS",
     `    .byte ${[...asset.glyphBytes].map(byte).join(",")}`,
@@ -156,22 +166,6 @@ function chooseColumn(asset, state, fullWidth) {
   if (column >= width) column -= width;
   if (!fullWidth) column += asset.corridor.firstColumn + 1;
   return { rng, column };
-}
-
-function generateNearRow(asset, state, fullWidth) {
-  const row = new Uint8Array(SCREEN_COLUMNS);
-  let rng = nextStarRandom(state.rng);
-  if ((rng & (asset.nearLayer.densityDenominator - 1)) >=
-    asset.nearLayer.densityNumerator) return { rng, row };
-  const columnChoice = chooseColumn(asset, { rng }, fullWidth);
-  rng = columnChoice.rng;
-  rng = nextStarRandom(rng);
-  const choice = rng & (asset.nearLayer.specialFrequency - 1);
-  const code = choice === 0 ? asset.nearLayer.glyphs[2].screenCode
-    : choice < 2 ? asset.nearLayer.glyphs[1].screenCode
-      : asset.nearLayer.glyphs[0].screenCode;
-  row[columnChoice.column] = code;
-  return { rng, row };
 }
 
 function farPatternColumn(asset, packed, fullWidth) {
@@ -197,9 +191,9 @@ function bakeFarPatternRow(asset, row, patternRow, fullWidth) {
 }
 
 function generateBakedRow(asset, state, fullWidth, patternRow) {
-  const generated = generateNearRow(asset, state, fullWidth);
-  bakeFarPatternRow(asset, generated.row, patternRow, fullWidth);
-  return generated;
+  const row = new Uint8Array(SCREEN_COLUMNS);
+  bakeFarPatternRow(asset, row, patternRow, fullWidth);
+  return { rng: state.rng, row };
 }
 
 export function createStarfieldState(asset, {
@@ -210,6 +204,11 @@ export function createStarfieldState(asset, {
     rng: seed,
     fullWidth,
     near: new Uint8Array(GAMEPLAY_ROWS * SCREEN_COLUMNS),
+    dynamicNear: asset.nearLayer.initialRows.map((row, slot) => ({
+      row,
+      column: asset.nearLayer.initialColumns[slot],
+      code: asset.nearLayer.glyphs.find(({ id }) => id === asset.nearLayer.initialGlyphs[slot]).screenCode,
+    })),
     far: [],
     worldSteps: 0,
     nearSteps: 0,
@@ -230,7 +229,14 @@ export function createStarfieldState(asset, {
 }
 
 export function composeStarfield(asset, state) {
-  return Uint8Array.from(state.near);
+  const screen = Uint8Array.from(state.near);
+  if (!state.fullWidth) {
+    for (const star of state.dynamicNear) {
+      const address = star.row * SCREEN_COLUMNS + star.column;
+      if (screen[address] === 0) screen[address] = star.code;
+    }
+  }
+  return screen;
 }
 
 export function stepStarfieldWorld(asset, state) {
@@ -260,7 +266,14 @@ export function stepStarfieldWorld(asset, state) {
 }
 
 export function stepStarfieldFrame(asset, state) {
-  return { ...state };
+  if (state.fullWidth) return { ...state };
+  invariant(asset.nearLayer.speedPixelsPerFrame === 8,
+    "Current sparse near kernel advances exactly one character row per frame");
+  const dynamicNear = state.dynamicNear.map((star) => ({
+    ...star,
+    row: (star.row + 1) % GAMEPLAY_ROWS,
+  }));
+  return { ...state, nearPhase: 0, dynamicNear };
 }
 
 export function createBackgroundOwnership(asset, state) {

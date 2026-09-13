@@ -177,8 +177,8 @@ const directorRunAddress = 0x9d75;
 const directorGuardAddress = 0x9ffa;
 // Row-baked far stars and one-cell PairShots reduce the runtime while retaining
 // the same loader implementation and four external publication records.
-const expectedInitialContentBytes = 12973;
-const expectedLinkedRuntimeBytes = 17359;
+const expectedInitialContentBytes = 13097;
+const expectedLinkedRuntimeBytes = 17502;
 const expectedDirectorRawBytes = 644;
 const expectedDirectorPackedBytes = 587;
 const expectedGlueRawBytes = 250;
@@ -890,13 +890,13 @@ async function build() {
     record.startSector, record.sectorCount, record.packedLength,
     record.rawLength, record.finalDestination,
   ]);
-  if (bootSectors !== 102 || totalTransportSectors !== 162 ||
-    transportPayload.length !== 20736 || JSON.stringify(frozenRecordShape) !== JSON.stringify([
-      [103, 45, 5659, 6647, 0x5e10],
-      [148, 7, 859, 859,
+  if (bootSectors !== 103 || totalTransportSectors !== 163 ||
+    transportPayload.length !== 20864 || JSON.stringify(frozenRecordShape) !== JSON.stringify([
+      [104, 45, 5659, 6647, 0x5e10],
+      [149, 7, 860, 860,
         weaponPickupPackedStagingAddress],
-      [155, 3, 245, 250, glueStagingAddress],
-      [158, 5, 587, 644, directorRunAddress],
+      [156, 3, 245, 250, glueStagingAddress],
+      [159, 5, 587, 644, directorRunAddress],
     ])) {
     throw new Error(`Layout D.2 transport topology changed: ${JSON.stringify(frozenRecordShape)}`);
   }
@@ -1763,10 +1763,9 @@ async function build() {
         glyphs: starfieldAsset.farLayer.glyphs.map(({ id, screenCode }) => ({ id, screenCode })),
       },
       nearLayer: {
-        rateNumerator: starfieldAsset.nearLayer.rateNumerator,
-        rateDenominator: starfieldAsset.nearLayer.rateDenominator,
-        densityNumerator: starfieldAsset.nearLayer.densityNumerator,
-        densityDenominator: starfieldAsset.nearLayer.densityDenominator,
+        representation: starfieldAsset.nearLayer.representation,
+        population: starfieldAsset.nearLayer.population,
+        speedPixelsPerFrame: starfieldAsset.nearLayer.speedPixelsPerFrame,
         expectedVisible: starfieldAsset.expectedNearVisible,
         colourRegister: starfieldAsset.nearLayer.colourRegister,
         glyphs: starfieldAsset.nearLayer.glyphs.map(({ id, screenCode }) => ({ id, screenCode })),

@@ -10,29 +10,27 @@
     "representation": "row-baked",
     "rateNumerator": 1,
     "rateDenominator": 1,
+    "finePhase": true,
     "colourRegister": "COLPF1",
     "pattern": {
       "rows": 28,
-      "columns": [2, 17, 33, 9, 25, 38, 13, 29, 5, 21, 35, 11, 27, 0, 19, 31, 7, 23, 39, 15, 28, 4, 20, 36, 10, 26, 1, 18, 34],
-      "glyphs": ["DIM", "SHIFTED", "DIM", "DIM", "BRIGHT", "DIM", "DIM", "SHIFTED", "DIM", "DIM", "BRIGHT", "DIM", "DIM", "SHIFTED", "DIM", "DIM", "BRIGHT", "DIM", "DIM", "SHIFTED", "DIM", "DIM", "BRIGHT", "DIM", "DIM", "SHIFTED", "DIM", "DIM", "BRIGHT"]
+      "columns": [3, 17, 33, 5, 25, 6, 13, 29, 5, 21, 35, 11, 27, 0, 19, 4, 7, 23, 39, 15, 28, 4, 12, 36, 10, 26, 1, 18, 34],
+      "glyphs": ["DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM"]
     },
     "glyphs": [
-      { "id": "DIM", "screenCode": 1, "bytes": [0, 0, 0, 32, 0, 0, 0, 0] },
-      { "id": "BRIGHT", "screenCode": 2, "bytes": [0, 0, 8, 0, 0, 0, 0, 0] },
-      { "id": "SHIFTED", "screenCode": 3, "bytes": [0, 0, 0, 0, 2, 0, 0, 0] }
+      { "id": "DIM", "screenCode": 1, "bytes": [32, 0, 0, 0, 0, 0, 0, 0] }
     ]
   },
   "nearLayer": {
-    "rateNumerator": 1,
-    "rateDenominator": 2,
-    "densityNumerator": 3,
-    "densityDenominator": 8,
-    "specialFrequency": 8,
+    "representation": "sparse-dynamic",
+    "population": 4,
+    "speedPixelsPerFrame": 8,
+    "initialRows": [2, 9, 16, 23],
+    "initialColumns": [11, 18, 25, 29],
+    "initialGlyphs": ["POINT", "POINT", "POINT", "POINT"],
     "colourRegister": "COLPF0",
     "glyphs": [
-      { "id": "POINT", "screenCode": 4, "bytes": [0, 0, 0, 16, 0, 0, 0, 0] },
-      { "id": "DOUBLE", "screenCode": 5, "bytes": [0, 0, 0, 20, 0, 0, 0, 0] },
-      { "id": "SPARKLE", "screenCode": 6, "bytes": [0, 0, 16, 84, 16, 0, 0, 0] }
+      { "id": "POINT", "screenCode": 2, "bytes": [16, 0, 0, 0, 0, 0, 0, 0] }
     ]
   },
   "twinkle": {

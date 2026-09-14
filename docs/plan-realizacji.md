@@ -1,10 +1,10 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 4.4
+Wersja: 4.5
 Data aktualizacji: 2026-09-14
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD przed restore/clock proofem: `9658ab52d81e15438053a1926df2ea866b9cec1c`
-Stan runtime: `PASS_CAPITAL_SPEED_RESTORE_CLOCK_VERIFY` + `PASS_MASTER_PAL_CLOCK` + Raider PairShot `2 px/tick` + white-only starfield (4 white, `1 px/frame`, bez blue far) aktywny także w capital z hull occlusion + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck odroczony do debris 25 Hz / visual redesign; bez unified schedulera
+Aktualny HEAD przed background/ring 25 Hz proofem: `cf90b5bf5906a620e4c2d26ed895a7f3e940e4ba`
+Stan runtime: `REJECTED_BACKGROUND_RING_25HZ_PROOF` (runtime bez zmian) + `PASS_CAPITAL_SPEED_RESTORE_CLOCK_VERIFY` + `PASS_MASTER_PAL_CLOCK` + Raider PairShot `2 px/tick` + white-only starfield (4 white, `1 px/frame`, bez blue far) aktywny także w capital z hull occlusion + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck odroczony do debris 25 Hz / visual redesign; bez unified schedulera
 Ostatni XEX restore/clock owner-smoke candidate: SHA-256 `91ec98e9dc8334a1054dfbb902863af2fad7f6a3de7d3c4e8c72d3d1e6fa2147`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
@@ -1736,6 +1736,45 @@ oba handoffy sektorów.**
 
 Następny krok: `Owner smoke restored capital speed + cross-sector clock consistency`.
 Nie rozpoczynać background/ring 25 Hz.
+
+### Background/ring 25 Hz / staggered publication — REJECTED / baseline retained
+
+Proof wykazał, że zatwierdzony runtime już wykonuje publikację fighter ring i
+capital hull wyłącznie przy rzeczywistych eventach ruchu: EASY `20`, MEDIUM
+`22,5`, HARD `25 events/s`. Nie istnieje osobny pełny 50 Hz pass, który można
+bezpiecznie pominąć.
+
+Variant A jest już częścią baseline: `rotate_playfield_rows` odkłada rebuild
+drugiej DLIST przez `PLAYFIELD_PREBUILD_PENDING` na następną lekką klatkę, a
+capital przygotowuje `PREPARED_HULL_ROW` poza eventem. Instruction-exact daje
+`1497` cykli istniejącego odsunięcia DLIST z event frame; nie jest to nowy
+odzysk tego proofu.
+
+Pozostały event jest atomową transakcją visible ring: unwind przejściowych
+glyphów, zapis recycled row, rotacja tabeli wierszy, przełączenie przygotowanej
+DLIST i publikacja nowo odsłoniętego row. Dalsze przesunięcie rozdzielałoby
+widoczny kadłub od collision wyprowadzanego z `corridor_phase` albo wystawiłoby
+ANTIC na mieszany OLD/NEW mapping. Prawdziwy every-other-frame wariant obniżałby
+tempo do `10/11,25/12,5 events/s`, co łamie owner-approved płynność capital.
+
+Measured current subsystem peaks: fighter event `2446`, capital event `2914`
+cykli; po proofie bez zmian. Nowy peak recovery `0`, poniżej minimalnej bramki
+wartości `150`. Native baseline `105 000` PAL frames zachowuje active-work max
+`22 644`, headroom target/hard `8556/9924`, bez missed, extra VBI/DLI,
+skipped/double ticks, stale rows i orphan cells. Nie powstał nowy XEX ani zmiana
+runtime.
+
+Raport:
+`docs/diagnostics/stage-2b2b-background-ring-25hz-staggered-proof.json`.
+
+Decyzja techniczna:
+
+**Dodatkowy background/ring 25 Hz scheduler jest odrzucony. Zachować obecny
+event-driven 20–25 Hz publish i istniejące staggered preparation bez nowej
+warstwy planowania.**
+
+Następny proof wymagający osobnego promptu: `Debris 25 Hz / visual redesign
+proof`. Nie wykonywać go automatycznie.
 
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 

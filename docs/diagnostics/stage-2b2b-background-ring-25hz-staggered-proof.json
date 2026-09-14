@@ -1,0 +1,271 @@
+{
+  "schema": "void-strike-65.stage-2b2b-background-ring-25hz-staggered-proof.v1",
+  "date": "2026-09-14",
+  "status": "REJECTED",
+  "model": {
+    "name": "GPT-5 Codex",
+    "reasoning": "High"
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "headBefore": "cf90b5bf5906a620e4c2d26ed895a7f3e940e4ba",
+    "headAfter": "local docs-only commit containing this report",
+    "runtimeChanged": false,
+    "push": false,
+    "merge": false,
+    "release": false,
+    "untouched": [".claude/"]
+  },
+  "scope": {
+    "proofOnly": true,
+    "productionSchedulerImplemented": false,
+    "capitalCadenceChanged": false,
+    "fighterCadenceChanged": false,
+    "collisionSemanticsChanged": false,
+    "whiteStarsChanged": false,
+    "projectilesEffectsFireAudioChanged": false
+  },
+  "currentWorkMap": {
+    "logical": [
+      {
+        "routine": "update_starfield accumulator phase",
+        "sector": "fighter and capital",
+        "callsPerActivePalFrame": 1,
+        "purpose": "advance the authoritative world accumulator and emit at most one ring event",
+        "deferable": false
+      },
+      {
+        "routine": "scroll_hull_columns accumulator phase",
+        "sector": "capital",
+        "callsPerActivePalFrame": 1,
+        "purpose": "advance HULL_SCROLL_ACCUMULATOR, corridor phase and capital progression",
+        "deferable": false
+      },
+      {
+        "routine": "advance_starfield_layers",
+        "sector": "fighter and capital",
+        "callsPerVisualEvent": 1,
+        "purpose": "consume one emitted world event; it is not a second event producer",
+        "deferable": false
+      },
+      {
+        "routine": "capital collision geometry",
+        "sector": "capital",
+        "purpose": "derive collision from corridor_phase and visible hull-sector rows rather than character bytes",
+        "deferable": false
+      }
+    ],
+    "visual": [
+      {
+        "routine": "prebuild_next_playfield_display_list",
+        "sector": "fighter and capital",
+        "instructionExactCycles": 1492,
+        "currentScheduling": "already deferred to the next light PAL frame by PLAYFIELD_PREBUILD_PENDING",
+        "deferableFurther": false
+      },
+      {
+        "routine": "prepare_next_hull_row",
+        "sector": "capital",
+        "instructionExactCycles": 886,
+        "currentScheduling": "already prepares immutable PREPARED_HULL_ROW on a light frame",
+        "deferableFurther": false
+      },
+      {
+        "routine": "rotate_playfield_rows",
+        "sector": "fighter and capital",
+        "instructionExactCycles": 1409,
+        "purpose": "unwind transient cells, rotate the live 27-row table and atomically select the prepared DLIST",
+        "deferable": false,
+        "reason": "the recycled physical row is still visible before this event and row mapping cannot be partially published"
+      },
+      {
+        "routine": "generate_starfield_row",
+        "sector": "fighter OPEN",
+        "instructionExactCycles": 538,
+        "purpose": "clear/generate the newly exposed top row",
+        "deferable": false
+      },
+      {
+        "routine": "generate_starfield_row",
+        "sector": "capital corridor",
+        "instructionExactCycles": 329,
+        "purpose": "generate the newly exposed corridor/background row",
+        "deferable": false
+      },
+      {
+        "routine": "commit_prepared_hull_row",
+        "sector": "capital",
+        "instructionExactCycles": 246,
+        "purpose": "copy the already prepared hull sides into the newly exposed row",
+        "deferable": false
+      },
+      {
+        "routine": "scroll_hull_columns coincident ring path",
+        "sector": "capital",
+        "instructionExactCycles": 703,
+        "purpose": "advance scene and finish the same visible capital event",
+        "deferable": false
+      },
+      {
+        "routine": "scroll_hull_columns hull-only 22-row copy",
+        "sector": "capital",
+        "instructionExactCycles": 9953,
+        "currentScheduling": "not reached in the restored, phase-aligned 20/22.5/25 Hz ring+hull cadence",
+        "peakContributionCycles": 0
+      }
+    ]
+  },
+  "eventRates": {
+    "physicalPalFramesPerSecond": 50,
+    "pixelsPerEvent": 8,
+    "fighter": [
+      {"difficulty": "EASY", "logicalEventsPerSecond": 20, "visualPublicationsPerSecond": 20},
+      {"difficulty": "MEDIUM", "logicalEventsPerSecond": 22.5, "visualPublicationsPerSecond": 22.5},
+      {"difficulty": "HARD", "logicalEventsPerSecond": 25, "visualPublicationsPerSecond": 25}
+    ],
+    "capital": [
+      {"difficulty": "EASY", "logicalEventsPerSecond": 20, "visualPublicationsPerSecond": 20},
+      {"difficulty": "MEDIUM", "logicalEventsPerSecond": 22.5, "visualPublicationsPerSecond": 22.5},
+      {"difficulty": "HARD", "logicalEventsPerSecond": 25, "visualPublicationsPerSecond": 25}
+    ],
+    "finding": "the baseline is already event-driven at 20-25 Hz; it does not perform a 50 Hz background publication pass"
+  },
+  "instructionExactCpu": {
+    "method": "linked NMOS 6502 routine execution with the current runtime image and controlled event flags",
+    "fighter": {
+      "lightNoPendingPrebuildCycles": 114,
+      "postEventPrebuildLightCycles": 1611,
+      "eventCycles": 2446,
+      "hypotheticalEventPlusPrebuildCycles": 3943,
+      "existingBaselinePrebuildPeakAvoidanceCycles": 1497,
+      "weightedAverageCyclesByDifficulty": {"EASY": 1645.6, "MEDIUM": 1837.05, "HARD": 2028.5}
+    },
+    "capital": {
+      "lightNoPendingPrebuildCycles": 981,
+      "postEventPrebuildLightCycles": 2478,
+      "eventCycles": 2914,
+      "hypotheticalEventPlusPrebuildCycles": 4411,
+      "existingBaselinePrebuildPeakAvoidanceCycles": 1497,
+      "weightedAverageCyclesByDifficulty": {"EASY": 2353, "MEDIUM": 2524.5, "HARD": 2696}
+    },
+    "theoreticalPeakRecoveryUpperBoundIfWorkWerePerfectlyDivisible": {
+      "fighterCycles": 418,
+      "capitalCycles": 218,
+      "creditedToCandidate": 0,
+      "reason": "the remaining event work is an atomic visible-row/mapping transaction; no legal independently movable unit was found"
+    }
+  },
+  "variants": {
+    "A": {
+      "name": "stagger expensive supporting visual work",
+      "result": "ALREADY_PRESENT_IN_BASELINE",
+      "details": "DLIST rebuild and hull-row preparation already run on light frames; event frames only commit prepared/mapping-sensitive data",
+      "newPeakRecoveryCycles": 0
+    },
+    "B": {
+      "name": "true every-other-PAL visual publication",
+      "result": "REJECTED",
+      "details": "at current rates it is either a no-op or halves EASY/MEDIUM/HARD publication to 10/11.25/12.5 Hz, violating restored capital cadence and owner-approved smoothness"
+    },
+    "fighterOnly": {
+      "result": "REJECTED",
+      "details": "fighter uses the same atomic recycled-row/mapping contract; no safe additional unit reaches the 150-cycle minimum value gate"
+    }
+  },
+  "native": {
+    "emulator": "/Users/marcinkrzetowski/Projects/tools/atari800-7.1.2",
+    "evidence": "reanalysis of the exact current cf90b5b artifact trace from the capital restore/clock proof",
+    "runs": 50,
+    "physicalPalFrames": 105000,
+    "fighterToCapitalTransitions": 50,
+    "capitalToFighterTransitions": 50,
+    "worldUpdateProfileCycles": {
+      "fighterEventMaximum": 6761,
+      "capitalEventMaximum": 5339
+    },
+    "maximumActiveWorkCycles": 22644,
+    "averageActiveWorkCycles": 10226.74496,
+    "targetCycles": 31200,
+    "hardGateCycles": 32568,
+    "targetHeadroomCycles": 8556,
+    "hardGateHeadroomCycles": 9924,
+    "missedFrames": 0,
+    "extraVbi": 0,
+    "dliAnomalies": 0,
+    "skippedSimulationTicks": 0,
+    "doubleSimulationTicks": 0,
+    "maximumProjectileStaleOrOrphanCells": 0,
+    "maximumEffectOrphanCells": 0,
+    "maximumBroadsideOrphanCells": 0,
+    "dlistPrebuildsObserved": 47095,
+    "worldEventsObserved": 47145,
+    "note": "the 50-event difference is the final event of each finite trace without a following sampled frame"
+  },
+  "raster": {
+    "result": "PASS_BASELINE_UNCHANGED",
+    "atomicity": "transient unwind, recycled-row rewrite, live row-table rotation and prepared-DLIST selection remain one event transaction",
+    "partialRows": 0,
+    "staleRows": 0,
+    "tornHull": 0,
+    "mixedOldNewBackground": 0
+  },
+  "collision": {
+    "result": "PASS_BASELINE_UNCHANGED",
+    "source": "corridor_phase and hull module boundaries",
+    "deferredPublicationFinding": "delaying a capital visual event by one PAL frame while advancing logical corridor_phase would visibly separate hull and collision by one row; avoiding that needs a separate visual/collision phase architecture and is outside this proof"
+  },
+  "transitions": {
+    "fighterToCapital": 50,
+    "capitalToFighter": 50,
+    "skippedLogicalTicks": 0,
+    "doubleLogicalTicks": 0,
+    "visualBlankFrames": 0,
+    "delayedBackgroundRestoration": 0
+  },
+  "regression": {
+    "focusedHost": "PASS 23/23 for starfield, gameplay tuning and master PAL clock",
+    "preparedHullFixture": "NOT RUN: Node 26 spawnSync ca65 returned host errno -86 before test execution; the project build invokes the same assembler successfully and the current native artifact already contains the prepared-row path",
+    "candidateBuild": "PASS",
+    "xexValidation": "PASS as part of build:two-pmg",
+    "playerAndRaiderProjectiles": "unchanged",
+    "whiteStars": "unchanged; continuous and hull-occluded",
+    "effectsFireAudio": "unchanged",
+    "pairShotGhosts": 0,
+    "raiderStaleRemnants": 0
+  },
+  "cpuDecision": {
+    "beforeFighterBackgroundRingPeakCycles": 2446,
+    "afterFighterBackgroundRingPeakCycles": 2446,
+    "beforeCapitalBackgroundHullPeakCycles": 2914,
+    "afterCapitalBackgroundHullPeakCycles": 2914,
+    "newPeakRecoveryCycles": 0,
+    "classification": "REJECT",
+    "valueGateMinimumCycles": 150
+  },
+  "memoryPlacement": {
+    "runtimeDeltaBytes": 0,
+    "stateDeltaBytes": 0,
+    "linkedRuntimeBytes": 17526,
+    "simultaneousResidencyBytes": 18004,
+    "safeHeadroomBytes": 4183,
+    "starfieldRawBytes": 2188,
+    "starfieldPackedBytes": 1787,
+    "starfieldPackedMarginBytes": 32,
+    "initialContentMarginBytes": 61,
+    "broadsideMarginBytes": 3,
+    "a2MarginBytes": 59,
+    "coldPickupMarginBytes": 411,
+    "entityStagingToBroadsideMarginBytes": 100,
+    "basicRamUsed": false,
+    "loaderChanged": false,
+    "transportChanged": false
+  },
+  "artifact": {
+    "newOwnerSmokeCandidate": false,
+    "baselinePath": "dist/void-strike-65.xex",
+    "baselineSha256": "91ec98e9dc8334a1054dfbb902863af2fad7f6a3de7d3c4e8c72d3d1e6fa2147",
+    "status": "unchanged owner-approved checkpoint; not a new background/ring candidate"
+  },
+  "decision": "Additional background/ring 25 Hz staggering is rejected: the approved baseline already performs all safe preparation off the event frame, while the remaining visible transaction is atomic and true rate reduction would regress capital smoothness or collision alignment",
+  "next": "Debris 25 Hz / visual redesign proof requires a separate owner prompt"
+}

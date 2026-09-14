@@ -129,14 +129,17 @@ Preferowany model:
 
 Nie usuwać feedbacku trafień ani eksplozji.
 
-### 2.6 Background/ring visual publish 25 Hz / staggered
+### 2.6 Background/ring visual publish 25 Hz / staggered — REJECTED
 
-Do osobnego proofu:
+Proof z 2026-09-14 wykazał, że produkcyjny baseline już publikuje ring/hull
+event-driven z częstotliwością `20/22,5/25 Hz`, a kosztowne przygotowanie DLIST
+i capital hull row jest już rozłożone na lekkie klatki.
 
-- logiczny ruch świata może pozostać 50 Hz;
-- visual publication background/ring może być wykonywany co drugą klatkę lub rozłożony tak, aby nie kumulował się z najcięższymi effects/projectile frames.
-
-Nie zmieniać modelu collision bez dowodu.
+Pozostała praca eventu jest atomową publikacją visible row/mapping. Dalsze
+odroczenie nie daje nowego peak recovery bez zmniejszenia owner-approved
+cadence capital albo rozdzielenia widocznego kadłuba od collision phase.
+Nie dodawać osobnego background/ring 25 Hz schedulera; zachować istniejący
+event-driven publish i prebuild.
 
 ### 2.7 Debris 25 Hz / staggered
 

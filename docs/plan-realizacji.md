@@ -1,11 +1,11 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 4.7
+Wersja: 4.8
 Data aktualizacji: 2026-09-14
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD przed debris ABI/native slot-0 baseline: `fcdc2e555a9786dc5d470c8c5337cbba371d8b38`
-Stan runtime: `PASS_DEBRIS_ABI_NATIVE_SLOT0_BASELINE` + `REJECTED_DEBRIS_25HZ_SLOT03_FEASIBILITY` + `REJECTED_BACKGROUND_RING_25HZ_PROOF` (runtime bez zmian) + `PASS_CAPITAL_SPEED_RESTORE_CLOCK_VERIFY` + `PASS_MASTER_PAL_CLOCK` + Raider PairShot `2 px/tick` + white-only starfield (4 white, `1 px/frame`, bez blue far) aktywny także w capital z hull occlusion + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck nadal odroczony; bez unified schedulera
-Ostatni XEX debris ABI/native slot-0 candidate: SHA-256 `28fe399bf86b7ece78479d18facbba80d7fde9d723197dcf1761299c43d65863`
+Aktualny HEAD przed two-Heavy overlap black-mask fix: `76a2d7d02915a31c1e8eda9eb8b323be4a5b5b12`
+Stan runtime: `PASS_TWO_HEAVY_BLACK_MASK_FIX` + `PASS_DEBRIS_ABI_NATIVE_SLOT0_BASELINE` + `REJECTED_DEBRIS_25HZ_SLOT03_FEASIBILITY` + `REJECTED_BACKGROUND_RING_25HZ_PROOF` (runtime bez zmian) + `PASS_CAPITAL_SPEED_RESTORE_CLOCK_VERIFY` + `PASS_MASTER_PAL_CLOCK` + Raider PairShot `2 px/tick` + white-only starfield (4 white, `1 px/frame`, bez blue far) aktywny także w capital z hull occlusion + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck nadal odroczony; bez unified schedulera
+Ostatni XEX two-Heavy black-mask fix candidate: SHA-256 `c5dfc33846dc71b996d0445d3371f00458e6c24bb2f3f3dc676dc94730d2dd32`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
 
@@ -1847,6 +1847,34 @@ Raport:
 
 Następny rekomendowany proof: `bounded slot-0 + slot-3 debris kernel compaction/placement proof`.
 Nie implementować Raider wreck w tym kroku.
+
+### Two-Heavy overlap black-mask — FIX PASS / OWNER SMOKE
+
+Natywny raster baseline odtworzył sporadyczne czarne ubytki przy dwóch żywych
+Raiderach: `16/320` klatek, `1308` brakujących opaque pixels, max `220`.
+Kontrolowany overlap P1/P2 miał poprawny priorytet GTIA; strony `$3D00` i
+`$3E00` nie aliasowały się. Przyczyną był pełny erase obu 14-liniowych PMG
+przed symulacją i ponownym draw obu obiektów. Około `4,1k` cykli pomiędzy
+clear i końcem redraw pozwalało DMA pobrać przejściowe zera, mimo poprawnej
+pamięci PMG na końcu klatki.
+
+Hot path publikuje teraz każdy niezależny PMG natychmiast po jego ruchu i
+czyści tylko jedną opuszczoną scanline dla kroku `+1/-1`. Pełny erase
+pozostaje w kanonicznej ścieżce destruction; review-only full erase nie trafia
+do production. Host NMOS sprawdził top/mid/bottom oraz partial/full overlap:
+cross-page writes `0`, full-page blank states `0`. Atari800 7.1.2 PAL:
+`1000` klatek, `156` two-Heavy active frames, `13` overlap frames,
+black-mask `0`, stale `0`, missed/extra-VBI/DLI `0`. Active-work max `21 719`,
+headroom target/hard `9481/10849`.
+
+Fix dodaje `40 B` kodu, `0 B` RAM i `0 B` PMG. Linked runtime `17 566 B`,
+simultaneous residency `18 044 B`, safe headroom `4143 B`; initial content
+`13163/13184 B`, A2 `237/256 B`, BROADSIDE nadal `6653/6656 B`.
+
+Raport:
+`docs/diagnostics/stage-2b2b-two-heavy-overlap-black-mask-fix.json`.
+
+Następny task po owner smoke: `Fix off-screen spawn contract for Raider and gameplay debris`.
 
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 

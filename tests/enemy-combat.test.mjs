@@ -439,7 +439,9 @@ test("EXPLODING and inactive Interceptors never fall through to the live PMG ren
   assert.match(update,
     /cmp #ENEMY_EXPLODING_STATE[\s\S]+FIGHTER_EXPLOSION_TIMER\+FIGHTER_EXPLOSION_ENEMY_SLOT[\s\S]+beq @reset\s+rts/);
   assert.match(update,
-    /cmp #ENEMY_ACTIVE_STATE[\s\S]+beq @live\s+rts\s+@live:\s+jsr erase_enemy/);
+    /cmp #ENEMY_ACTIVE_STATE[\s\S]+beq @live\s+rts\s+@live:[\s\S]+jsr draw_enemy_member[\s\S]+jsr erase_enemy_departing_row/);
+  assert.doesNotMatch(update, /jsr erase_enemy(?:\s|$)/,
+    "live movement must not blank both complete PMG bodies before redraw");
   assert.match(source,
     /reset_enemy:[\s\S]+jsr reset_enemy_fire_cooldown\s+jmp draw_enemy/);
 });

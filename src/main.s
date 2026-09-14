@@ -4369,27 +4369,40 @@ update_enemy:
     beq @live
     rts
 @live:
-    jsr erase_enemy
     ldx #$00
 @move_member:
     lda ENEMY_MEMBER_STATE,x
     beq @move_next
     stx ENEMY_TARGET_SLOT
+    lda ENEMY_Y,x
+    pha
     jsr update_enemy_slot_motion
     ldx ENEMY_TARGET_SLOT
     lda ENEMY_Y,x
     cmp #GAMEPLAY_BOTTOM
-    bcc @move_next
+    bcc @draw_member
     lda #ENEMY_INACTIVE
     sta ENEMY_MEMBER_STATE,x
     dec ENEMY_LIVE_COUNT
+    jmp @retire_departing_row
+@draw_member:
+    ; Publish each independent PMG page immediately after its motion update.
+    ; Clearing both full bodies first left a long zero-filled interval which
+    ; ANTIC could fetch as an intermittent black/missing Raider silhouette.
+    jsr draw_enemy_member
+@retire_departing_row:
+    pla
+    jsr erase_enemy_departing_row
+    ldx ENEMY_TARGET_SLOT
 @move_next:
     inx
     cpx #RAIDER_PMG_SLOT_COUNT
     bne @move_member
     lda ENEMY_LIVE_COUNT
-    bne draw_enemy
+    bne @done
     jmp integration_interceptor_recycle
+@done:
+    rts
 
 draw_enemy:
     ldx ENEMY_ARCHETYPE
@@ -4402,9 +4415,20 @@ draw_enemy:
     bne :+
     jmp @member_next
 :
-    stx ENEMY_TARGET_SLOT
+    jsr draw_enemy_member
+    ldx ENEMY_TARGET_SLOT
+@member_next:
+    inx
+    cpx #RAIDER_PMG_SLOT_COUNT
+    beq :+
+    jmp @member
+:
+    rts
+
+draw_enemy_member:
     ; Accepted motion already clamps every mutable slot before drawing. Avoid a
     ; second scratch round-trip here: it cannot change an in-bounds position.
+    stx ENEMY_TARGET_SLOT
     ldy ENEMY_ARCHETYPE
     lda ENEMY_X,x
     sec
@@ -4438,15 +4462,10 @@ draw_enemy:
     dec row_counter
     bne @body_loop
 @body_done:
-    ldx ENEMY_TARGET_SLOT
-@member_next:
-    inx
-    cpx #RAIDER_PMG_SLOT_COUNT
-    beq :+
-    jmp @member
-:
     rts
 
+.if ENEMY_REVIEW_HARNESS
+.segment "STARFIELD"
 erase_enemy:
     ldx #$00
 @member:
@@ -4460,6 +4479,7 @@ erase_enemy:
     cpx #RAIDER_PMG_SLOT_COUNT
     bne @member
     rts
+.endif
 
 .segment "CODE"
 erase_enemy_member:
@@ -4468,23 +4488,23 @@ erase_enemy_member:
     lda ENEMY_TARGET_SLOT
     clc
     adc #>PLAYER1
-    sta @erase_store+2
+    sta erase_enemy_rows_store+2
     ldx ENEMY_ARCHETYPE
     lda enemy_frame_heights,x
     tax
+erase_enemy_rows:
     lda #$00
     ldy ENEMY_TARGET_Y
-@erase_loop:
+erase_enemy_rows_loop:
     cpy #GAMEPLAY_BOTTOM
-    bcs @erase_done
-@erase_store:
+    bcs erase_enemy_rows_done
+erase_enemy_rows_store:
     sta PLAYER1,y
 @erase_next:
     iny
     dex
-    bne @erase_loop
-@erase_done:
-@done:
+    bne erase_enemy_rows_loop
+erase_enemy_rows_done:
     rts
 
 ; Each prototype Raider owns an independent visible Y coordinate.
@@ -9024,8 +9044,9 @@ wait_for_master_pal_frame:
     sta GAMEPLAY_PAL_FRAME_CONSUMED
     rts
 wait_for_master_pal_frame_end:
-    .res $36-(wait_for_master_pal_frame_end-projectile_recycle_broadside_layout_pad)
-                                ; consume only the prior PairShot shrink pad
+    .res $39-(wait_for_master_pal_frame_end-projectile_recycle_broadside_layout_pad)
+                                ; absorb the three-byte Heavy hot-path shrink while
+                                ; preserving the fixed integration release ABI
 free_broadside_slot:
     jsr erase_broadside_slot
     lda #BROAD_FREE
@@ -11007,6 +11028,34 @@ restore_recycled_row_near_underlay:
 @next:
     dex
     bpl @slot
+    rts
+
+; Motion changes a Raider's Y by at most one scanline per gameplay tick. The
+; new body overwrites every shared row, so only the row which left the sprite
+; footprint must be retired. Appending this local repair preserves every
+; established A2 entry address used by the integration glue.
+erase_enemy_departing_row:
+    ldx ENEMY_TARGET_SLOT
+    cmp ENEMY_Y,x
+    beq @done
+    bcc @down
+    ldx ENEMY_ARCHETYPE          ; upward: retire old bottom row
+    clc
+    adc enemy_frame_heights,x
+    sec
+    sbc #$01
+@down:                           ; downward: retire old top row
+    cmp #GAMEPLAY_BOTTOM
+    bcs @done
+    tay
+    lda #$00
+    ldx ENEMY_TARGET_SLOT
+    bne @player2
+    sta PLAYER1,y
+    rts
+@player2:
+    sta PLAYER2,y
+@done:
     rts
 
 .segment "BROADSIDE"

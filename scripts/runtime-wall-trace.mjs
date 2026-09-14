@@ -254,7 +254,7 @@ const raiderFormationSessions = [{
   difficulty: 2,
   policy: "raider-proof",
   fireDelay: 8,
-  frames: 320,
+  frames: 1_000,
   kind: "two-pmg-raiders-native",
 }];
 
@@ -805,7 +805,7 @@ function decodeAtari800Screenshot(bytes) {
     rgb[index * 3 + 1] = palette[paletteOffset + 1];
     rgb[index * 3 + 2] = palette[paletteOffset + 2];
   }
-  return { width, height, rgb };
+  return { width, height, rgb, indices };
 }
 
 function encodeRgbPng(rgb, width, height) {
@@ -3361,15 +3361,27 @@ function main() {
     invariant(bothVisible.every((row) =>
       row.enemy_hpos2 - row.enemy_hpos1 === row.enemy_x1 - row.enemy_x0),
     `${session.id} HPOSP1/HPOSP2 ownership diverged from the two slot X values`);
-    invariant(rows.every((row) => row.enemy_projectiles === 0 &&
-      row.enemy_explosion_timer === 0),
-    `${session.id} enabled Raider combat or explosions in the movement demonstrator`);
     invariant(Math.max(...rows.map((row) => row.player_fighter_projectiles)) > 0,
       `${session.id} did not exercise active PlayerFighter fire`);
     invariant(new Set(rows.map((row) => row.engine_active_dlist_lo)).size > 1 &&
       new Set(rows.map((row) => row.engine_a2_head)).size > 1,
       `${session.id} did not exercise playfield-ring rotation`);
+    const dliOverlap = (row, start, end) => Array.from({ length: 2 }, (unused, index) => ({
+      start: row[`profile_dli${index}_start`], end: row[`profile_dli${index}_end`],
+    })).reduce((sum, dli) => sum + Math.max(0,
+      Math.min(end, dli.end) - Math.max(start, dli.start)), 0);
+    const activeWorkCycles = (row) => {
+      const waitStart = row.profile_clock19;
+      const waitEnd = row.profile_publication_begin;
+      invariant(waitEnd >= waitStart && waitStart > 0,
+        `Two-Heavy publication interval missing at ${row.session}:${row.frame}`);
+      return row.wall_cycles - (waitEnd - waitStart) +
+        dliOverlap(row, waitStart, waitEnd) + 32;
+    };
+    const completeRows = rows.filter((row) => row.profile_clock19 > 0 &&
+      row.profile_publication_begin >= row.profile_clock19);
     const maximumWall = Math.max(...rows.map((row) => row.wall_cycles));
+    const maximumActive = Math.max(...completeRows.map(activeWorkCycles));
     const movementPmgCosts = bothVisible.map((row) =>
       row.profile_clock5 - row.profile_clock4);
     const timingErrors = rows.reduce((counts, row) => ({
@@ -3393,6 +3405,53 @@ function main() {
       `${session.id} is missing a selected native Raider raster`);
     const sheetPath = path.join(buildDirectory, `${session.id}-proof.png`);
     writeScreenshotContact(screenshots, sheetPath, 4);
+    const raiderBody = JSON.parse(fs.readFileSync(path.join(rootDirectory,
+      "assets", "graphics", "enemy-roster.json"), "utf8"))
+      .archetypes.find(({ id }) => id === "INTERCEPTOR").body
+      .map((bits) => Number.parseInt(bits, 2));
+    let overlapEvents = 0;
+    let blackMaskEvents = 0;
+    let blackMaskPixels = 0;
+    let maximumBlackMaskPixels = 0;
+    const corruptedFrames = [];
+    for (const row of bothVisible) {
+      const framePath = path.join(buildDirectory,
+        `${session.id}-${String(row.frame + 1).padStart(3, "0")}.png`);
+      invariant(fs.existsSync(framePath), `${session.id} is missing raster ${row.frame + 1}`);
+      const screenshot = decodeAtari800Screenshot(fs.readFileSync(framePath));
+      const bounds = [0, 1].map((slot) => ({
+        left: 2 * (row[`enemy_hpos${slot + 1}`] - 64),
+        top: row[`enemy_y${slot}`] - 32,
+        right: 2 * (row[`enemy_hpos${slot + 1}`] - 64) + 32,
+        bottom: row[`enemy_y${slot}`] - 32 + raiderBody.length,
+      }));
+      if (bounds[0].left < bounds[1].right && bounds[1].left < bounds[0].right &&
+        bounds[0].top < bounds[1].bottom && bounds[1].top < bounds[0].bottom) {
+        overlapEvents += 1;
+      }
+      const expected = new Set();
+      for (const bound of bounds) for (let bodyY = 0; bodyY < raiderBody.length; bodyY += 1) {
+        for (let bit = 0; bit < 8; bit += 1) {
+          if ((raiderBody[bodyY] & (0x80 >> bit)) === 0) continue;
+          for (let pixel = 0; pixel < 4; pixel += 1) {
+            const x = bound.left + bit * 4 + pixel;
+            const y = bound.top + bodyY;
+            if (x >= 0 && x < screenshot.width && y >= 0 && y < screenshot.height)
+              expected.add(y * screenshot.width + x);
+          }
+        }
+      }
+      const missing = [...expected].filter((offset) => screenshot.indices[offset] === 0).length;
+      if (missing > 0) {
+        blackMaskEvents += 1;
+        blackMaskPixels += missing;
+        maximumBlackMaskPixels = Math.max(maximumBlackMaskPixels, missing);
+        if (corruptedFrames.length < 16) corruptedFrames.push({ frame: row.frame, missing });
+      }
+    }
+    const staleHeavyPageFrames = rows.reduce((count, row) => count +
+      [0, 1].filter((slot) => row[`enemy_member${slot}_state`] === 0 &&
+        row[`enemy_pmg_rows${slot + 1}`] > 0).length, 0);
     const report = {
       schema_version: 1,
       generated_by: "scripts/runtime-wall-trace.mjs --raider-formation-only",
@@ -3418,24 +3477,38 @@ function main() {
         maximum_player_fighter_projectiles:
           Math.max(...rows.map((row) => row.player_fighter_projectiles)),
         playfield_ring_rotation_active: true,
-        raider_projectiles: 0,
-        raider_combat_cost_included: false,
+        maximum_raider_projectiles: Math.max(...rows.map((row) => row.enemy_projectiles), 0),
+        raider_combat_cost_included: true,
         maximum_enemy_movement_pmg_wall_cycles:
           Math.max(...movementPmgCosts),
       },
+      overlap_raster: {
+        two_heavy_active_frames: bothVisible.length,
+        overlap_events: overlapEvents,
+        black_mask_events: blackMaskEvents,
+        black_mask_pixels: blackMaskPixels,
+        maximum_black_mask_pixels: maximumBlackMaskPixels,
+        first_corrupted_frames: corruptedFrames,
+        inactive_slot_stale_page_frames: staleHeavyPageFrames,
+      },
       timing: {
-        maximum_wall_cycles: maximumWall,
-        target_headroom_cycles: CAPITAL_HUNTER_ACCEPTED_CEILING_CYCLES - maximumWall,
-        hard_gate_headroom_cycles: SHIELD_BOOSTER_HARD_GATE_CYCLES - maximumWall,
+        maximum_active_work_cycles: maximumActive,
+        maximum_raw_cadence_cycles: maximumWall,
+        target_headroom_cycles: CAPITAL_HUNTER_ACCEPTED_CEILING_CYCLES - maximumActive,
+        hard_gate_headroom_cycles: SHIELD_BOOSTER_HARD_GATE_CYCLES - maximumActive,
         ...timingErrors,
       },
       screenshot_sequence: path.relative(rootDirectory, sheetPath),
       csv: path.relative(rootDirectory, path.join(buildDirectory, `${session.id}.csv`)),
-      passed: true,
+      passed: blackMaskEvents === 0 && staleHeavyPageFrames === 0 &&
+        maximumActive <= SHIELD_BOOSTER_HARD_GATE_CYCLES &&
+        timingErrors.missed === 0 && timingErrors.extra_vbi === 0 && timingErrors.dli === 0,
     };
     const focusedReportPath = path.join(buildDirectory, "two-pmg-raiders-native-report.json");
     fs.writeFileSync(focusedReportPath, `${JSON.stringify(report, null, 2)}\n`);
     console.log(`Two-PMG Raider report: ${path.relative(rootDirectory, focusedReportPath)}`);
+    invariant(report.passed,
+      `${session.id} retained ${blackMaskEvents} black-mask frames or failed PAL timing`);
     return;
   }
   if (raiderSectorOnly) {

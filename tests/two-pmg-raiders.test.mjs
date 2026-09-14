@@ -4,6 +4,8 @@ import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
+import { Nmos6502 } from "../scripts/nmos6502.mjs";
+import { installRuntimeSegments } from "../scripts/runtime-image.mjs";
 import {
   simulateTwoPmgRaiderPrototype,
 } from "../scripts/enemy-combat.mjs";
@@ -18,6 +20,28 @@ const asset = compileEnemyRoster(loadEnemyRosterDefinition(
   path.join(root, "assets/graphics/enemy-roster.json")), root);
 const manifest = JSON.parse(fs.readFileSync(
   path.join(root, "dist/void-strike-65-manifest.json"), "utf8"));
+const labels = new Map(fs.readFileSync(path.join(root, "build/void-strike-65.lbl"), "utf8")
+  .split(/\r?\n/).map((line) => /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim()))
+  .filter(Boolean).map((match) => [match[2], Number.parseInt(match[1], 16)]));
+
+function runRoutine(memory, target, hooks = {}) {
+  const cpu = new Nmos6502(memory, hooks);
+  const stop = 0x7fff;
+  cpu.push((stop - 1) >> 8);
+  cpu.push((stop - 1) & 0xff);
+  cpu.pc = labels.get(target);
+  for (let steps = 0; steps < 200_000 && cpu.pc !== stop; steps += 1) cpu.step();
+  assert.equal(cpu.pc, stop, `${target} did not return`);
+  return cpu.cycles;
+}
+
+function pageOpaqueBytes(memory, page) {
+  let count = 0;
+  for (let offset = 0; offset < 0x100; offset += 1) {
+    if (memory[page + offset] !== 0) count += 1;
+  }
+  return count;
+}
 
 test("two PMG Raiders keep independent movement state and cross vertically", () => {
   const replay = simulateTwoPmgRaiderPrototype(asset, {
@@ -61,6 +85,73 @@ test("runtime assigns one monochrome body to P1 and P2 and leaves player PMG int
   const enemyExplosion = source.slice(source.indexOf("begin_enemy_fighter_explosion_tail:"),
     source.indexOf("reset_enemy_fire_cooldown_tail:"));
   assert.doesNotMatch(enemyExplosion, /PLAYER1|PLAYER2|HPOSP1|HPOSP2|COLPM1|COLPM2/);
+});
+
+test("real NMOS Heavy update keeps P1/P2 isolated and never blanks either live page", () => {
+  const scenarios = [
+    { name: "one Heavy", active: [1, 0], x: [88, 152], y: [48, 96] },
+    { name: "separated top", active: [1, 1], x: [88, 152], y: [48, 96] },
+    { name: "partial overlap", active: [1, 1], x: [108, 116], y: [70, 75] },
+    { name: "maximum overlap", active: [1, 1], x: [112, 112], y: [72, 72] },
+    { name: "crossing middle", active: [1, 1], x: [116, 110], y: [104, 108] },
+    { name: "bottom", active: [1, 1], x: [104, 120], y: [220, 222] },
+  ];
+  for (const scenario of scenarios) {
+    const memory = new Uint8Array(0x10000);
+    installRuntimeSegments(memory, root);
+    memory.fill(0, 0x3d00, 0x3f00);
+    const setPair = (name, values) => values.forEach((value, slot) => {
+      memory[labels.get(name) + slot] = value & 0xff;
+    });
+    memory[labels.get("ENEMY_ACTIVE")] = 1;
+    memory[labels.get("ENEMY_ARCHETYPE")] = 0;
+    memory[labels.get("ENEMY_LIVE_COUNT")] = scenario.active.reduce((sum, value) => sum + value, 0);
+    memory[labels.get("player_x")] = 112;
+    setPair("ENEMY_MEMBER_STATE", scenario.active);
+    setPair("ENEMY_HP", [3, 3]);
+    setPair("ENEMY_X", scenario.x);
+    setPair("ENEMY_Y", scenario.y);
+    setPair("ENEMY_VELOCITY_X", [1, 0xff]);
+    setPair("ENEMY_MOVE_ACCUMULATOR", [0, 2]);
+    setPair("ENEMY_MANEUVER_STATE", [0, 0]);
+    setPair("ENEMY_MANEUVER_TIMER", [48, 48]);
+    setPair("ENEMY_BEHAVIOUR_PHASE", [0, 12]);
+    runRoutine(memory, "draw_enemy");
+    for (let slot = 0; slot < 2; slot += 1) assert.equal(
+      pageOpaqueBytes(memory, 0x3d00 + slot * 0x100) > 0,
+      scenario.active[slot] !== 0,
+      `${scenario.name}: initial P${slot + 1} state`,
+    );
+
+    const writes = [];
+    const minimum = [pageOpaqueBytes(memory, 0x3d00), pageOpaqueBytes(memory, 0x3e00)];
+    runRoutine(memory, "update_enemy", {
+      write(address, value, cpu) {
+        if (address < 0x3d00 || address >= 0x3f00) return undefined;
+        const pageSlot = address < 0x3e00 ? 0 : 1;
+        const targetSlot = memory[labels.get("ENEMY_TARGET_SLOT")];
+        writes.push({ address, value, pc: (cpu.pc - 3) & 0xffff, pageSlot, targetSlot });
+        assert.equal(pageSlot, targetSlot,
+          `${scenario.name}: slot ${targetSlot} wrote foreign PMG page at $${address.toString(16)}`);
+        memory[address] = value;
+        minimum[pageSlot] = Math.min(minimum[pageSlot],
+          pageOpaqueBytes(memory, 0x3d00 + pageSlot * 0x100));
+        return false;
+      },
+    });
+    assert.ok(writes.length >= 14 * memory[labels.get("ENEMY_LIVE_COUNT")],
+      `${scenario.name}: every live body must publish`);
+    for (let slot = 0; slot < 2; slot += 1) {
+      if (scenario.active[slot] !== 0) {
+        assert.ok(minimum[slot] > 0, `${scenario.name}: P${slot + 1} became fully blank`);
+        assert.ok(pageOpaqueBytes(memory, 0x3d00 + slot * 0x100) > 0,
+          `${scenario.name}: final P${slot + 1}`);
+      } else {
+        assert.equal(pageOpaqueBytes(memory, 0x3d00 + slot * 0x100), 0,
+          `${scenario.name}: inactive P${slot + 1} changed`);
+      }
+    }
+  }
 });
 
 test("packed transports have positive measured boundaries", () => {

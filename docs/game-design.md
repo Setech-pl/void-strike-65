@@ -70,6 +70,12 @@ and behaviour phase. Opposite opening directions and phase offsets produce
 independent turns. The opening vertical crossing includes one shared height at
 different X and then reverses their vertical order.
 
+Every Raider activation and recycle starts the complete 14-scanline body above
+the gameplay boundary at PMG Y=2. The two machines descend by their existing
+one-scanline movement into the old Y=48/Y=96 formation anchors before the
+crossing continues. Top clipping publishes only the portion that has entered;
+a completely hidden Raider cannot fire or collide.
+
 This increment measures movement only. Raider hits, contact damage, scoring,
 shots, and explosions are disabled. Player Fighter movement and fire, stars,
 scroll, and ring rotation remain active. Both Raiders leave before the unchanged
@@ -84,6 +90,11 @@ Raider and debris destruction use the implemented entity/effects foundation.
 Raider breakup has a core, two wing fragments, a central fragment, and a red
 eye fragment. Debris destruction has one core plus four fragments. These are
 transient effects, not interactive enemies.
+
+Gameplay debris is admitted at character Y=16, one complete eight-scanline row
+above its first legal entity row Y=24. It remains non-rendered and non-colliding
+until the existing world-event carry moves it to Y=24, then keeps its established
+HP, tumble, movement, collision and destruction contract.
 
 ### World and difficulty
 

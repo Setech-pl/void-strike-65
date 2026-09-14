@@ -102,7 +102,7 @@ function runEarlyEnemyReplay(difficulty, frames = 600) {
   const image = memory();
   const frameCounter = labels.get("frame_counter");
   const enemyActive = labels.get("ENEMY_ACTIVE");
-  const enemyY = labels.get("enemy_y");
+  const enemyY = labels.get("ENEMY_Y");
   const enemyHp = labels.get("ENEMY_HP");
   const enemyMemberState = labels.get("ENEMY_MEMBER_STATE");
   const enemyTargetSlot = labels.get("ENEMY_TARGET_SLOT");
@@ -143,14 +143,14 @@ function runEarlyEnemyReplay(difficulty, frames = 600) {
     }
     if (before === 2 && after === 0) releases.push(frame);
     maximumActive = Math.max(maximumActive, after === 1 ? 1 : 0);
-    if (after === 1 && image[enemyY] + 14 > 16 && visible.length < admissions.length) {
+    if (after === 1 && [0, 1].some((slot) =>
+      image[enemyMemberState + slot] === 1 && image[enemyY + slot] + 14 > 16) &&
+      visible.length < admissions.length) {
       visible.push(frame);
     }
     if (after === 1 && kills.length < 3) {
-      const guideY = image[enemyY];
       const target = [0, 1, 2].find((slot) =>
-        image[enemyMemberState + slot] === 1 && guideY >= slot * 24 &&
-        guideY - slot * 24 + 14 > 16);
+        image[enemyMemberState + slot] === 1 && image[enemyY + slot] + 14 > 16);
       if (target !== undefined) {
         image[enemyTargetSlot] = target;
         image[labels.get("ENEMY_PENDING_DAMAGE") + target] = 0;
@@ -509,6 +509,9 @@ test("two PMG Raiders keep separate HP, score once, and preserve the surviving m
   const image = currentMemory();
   run(image, "init_entity_effects");
   run(image, "reset_enemy");
+  image[labels.get("PLAYER_LIFECYCLE")] = 0;
+  image[state.flags] = 0;
+  image[labels.get("ENEMY_ARCHETYPE")] = 0;
   const member = labels.get("ENEMY_MEMBER_STATE");
   const hp = labels.get("ENEMY_HP");
   const pendingDamage = labels.get("ENEMY_PENDING_DAMAGE");
@@ -520,7 +523,11 @@ test("two PMG Raiders keep separate HP, score once, and preserve the surviving m
   const score = labels.get("score_bcd_lo");
   assert.deepEqual([...image.subarray(member, member + 2)], [1, 1]);
   assert.deepEqual([...image.subarray(hp, hp + 2)], [1, 1]);
-  assert.deepEqual([image[live], image[enemyY], image[enemyY + 1]], [2, 48, 96]);
+  assert.deepEqual([image[live], image[enemyY], image[enemyY + 1]], [2, 2, 2]);
+
+  for (let frame = 0; frame < 94; frame += 1) run(image, "update_enemy");
+  assert.deepEqual([image[enemyY], image[enemyY + 1]], [48, 96],
+    "both Raiders must enter naturally at their old formation anchors");
 
   run(image, "clear_pmg");
   run(image, "draw_enemy");
@@ -573,26 +580,35 @@ test("the shared burst alternates two real Raider origins and skips a destroyed 
   const image = currentMemory();
   run(image, "init_entity_effects");
   run(image, "reset_enemy");
+  image[labels.get("PLAYER_LIFECYCLE")] = 0;
+  image[state.flags] = 0;
+  image[labels.get("ENEMY_ARCHETYPE")] = 0;
   const target = labels.get("ENEMY_TARGET_SLOT");
   const cursor = labels.get("ENEMY_WEAPON_CURSOR");
   const projectileActive = labels.get("FIGHTER_PROJECTILE_ACTIVE");
   const projectileY = labels.get("FIGHTER_PROJECTILE_Y");
+  const enemyY = labels.get("ENEMY_Y");
+  for (let frame = 0; frame < 95; frame += 1) run(image, "update_enemy");
+  const origins = [image[enemyY], image[enemyY + 1]];
+  assert.equal(run(image, "select_enemy_weapon_member").carry, true,
+    "fully entered Raiders must be eligible emitters");
   run(image, "update_enemy_weapon_runtime");
   image[labels.get("INTERCEPTOR_BURST_TIMER")] = 0;
   run(image, "update_enemy_weapon_runtime");
-  assert.deepEqual([...image.subarray(projectileActive + 10, projectileActive + 12)], [2, 2]);
-  assert.deepEqual([...image.subarray(projectileY + 10, projectileY + 12)], [61, 109]);
+  assert.deepEqual([...image.subarray(projectileActive + 5, projectileActive + 7)], [2, 2]);
+  assert.deepEqual([...image.subarray(projectileY + 5, projectileY + 7)],
+    origins.map((value) => value + 13));
   assert.equal(image[cursor], 0);
 
   image[target] = 0;
   image[labels.get("ENEMY_PENDING_DAMAGE")] = 1;
   image[labels.get("ENEMY_PENDING_SOURCE")] = 0;
   run(image, "resolve_enemy_damage");
-  const releasedY = image[projectileY + 10];
+  const releasedY = image[projectileY + 5];
   run(image, "update_fighter_projectiles");
-  assert.equal(image[projectileActive + 10], 2,
+  assert.equal(image[projectileActive + 5], 2,
     "an already released pulse survives the death of its emitter");
-  assert.equal(image[projectileY + 10], releasedY + 5);
+  assert.equal(image[projectileY + 5], releasedY + 2);
 
   image[cursor] = 0;
   assert.equal(run(image, "select_enemy_weapon_member").carry, true);

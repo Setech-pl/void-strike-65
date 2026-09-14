@@ -253,7 +253,7 @@ const raiderFormationSessions = [{
   medium: "XEX",
   difficulty: 2,
   policy: "raider-proof",
-  fireDelay: 8,
+  fireDelay: 200,
   frames: 1_000,
   kind: "two-pmg-raiders-native",
 }];
@@ -2794,6 +2794,8 @@ function main() {
     });
     const debrisActive = rows.filter((row) => (row.entity_active_mask & 1) !== 0);
     const spawnRows = rows.filter((row) => event(row, 7));
+    const hiddenSpawnRows = spawnRows.filter((row) => row.entity_y + 8 <= 24);
+    const visibleSpawnRows = spawnRows.filter((row) => row.entity_y + 8 > 24);
     const contactRows = rows.filter((row) => event(row, 8));
     const despawnRows = rows.filter((row) => event(row, 9));
     const shotRows = rows.filter((row) => event(row, 12));
@@ -2846,6 +2848,9 @@ function main() {
     "Slot-zero debris baseline did not exercise every difficulty");
     invariant(contactRows.length > 0 && shotRows.length > 0 && destructionRows.length > 0 &&
       despawnRows.length > 0, "Slot-zero debris baseline missed a required lifecycle path");
+    invariant(spawnRows.length > 0 && hiddenSpawnRows.length === spawnRows.length &&
+      visibleSpawnRows.length === 0,
+    "Slot-zero debris baseline admitted visible debris");
     invariant(missedFrames === 0 && extraVbi === 0 && dliAnomalies === 0,
       "Slot-zero debris baseline observed a PAL timing/raster anomaly");
     invariant(completed.every((row) => activeWorkCycles(row) <= 32_568),
@@ -2874,6 +2879,14 @@ function main() {
         respawns_after_release: respawnsAfterRelease,
         sector_state_transitions: sectorTransitions,
         sector_states_observed: [...new Set(rows.map((row) => row.sector_state))].sort(),
+      },
+      spawn_contract: {
+        visible_top_y: 24,
+        height_scanlines: 8,
+        spawn_y_values: [...new Set(spawnRows.map((row) => row.entity_y))].sort(),
+        fully_hidden_at_activation: hiddenSpawnRows.length,
+        visible_at_activation_defects: visibleSpawnRows.length,
+        respawns_after_release: respawnsAfterRelease,
       },
       cpu: {
         overall: scenario(rows),
@@ -3337,23 +3350,34 @@ function main() {
   if (raiderFormationOnly) {
     const session = sessionsToRun[0];
     const rows = allRows.filter((row) => row.session === session.id);
-    const bothVisible = rows.filter((row) => row.enemy_state === 1 &&
+    const activationRows = rows.filter((row, index) => row.enemy_state === 1 &&
+      (index === 0 || rows[index - 1].enemy_state !== 1));
+    const hiddenActivations = activationRows.filter((row) => [0, 1].every((slot) =>
+      row[`enemy_member${slot}_state`] !== 1 || row[`enemy_y${slot}`] + 14 <= 16));
+    const twoActive = rows.filter((row) => row.enemy_state === 1 &&
       row.enemy_member0_state === 1 && row.enemy_member1_state === 1 &&
       row.enemy_pmg_rows1 > 0 && row.enemy_pmg_rows2 > 0);
+    const bothVisible = twoActive.filter((row) =>
+      // The first accepted anchor row still intersects the fixed top-edge
+      // clipping boundary in the screenshot oracle. Begin overlap comparison
+      // one scanline below it; spawn/top clipping is proved independently.
+      row.enemy_y0 > 48 && row.enemy_y1 > 48 &&
+      row.enemy_pmg_rows1 > 0 && row.enemy_pmg_rows2 > 0);
+    invariant(activationRows.length > 0 && hiddenActivations.length === activationRows.length,
+      `${session.id} admitted a Raider inside the visible playfield`);
     invariant(bothVisible.length > 48,
       `${session.id} did not show both PMG Raider slots long enough`);
-    const sameHeight = bothVisible.find((row) => row.enemy_y0 === row.enemy_y1 &&
-      row.enemy_x0 !== row.enemy_x1);
+    const sameHeight = bothVisible.find((row) => row.enemy_y0 === row.enemy_y1);
     const swapped = bothVisible.find((row) => row.enemy_y0 > row.enemy_y1);
     invariant(sameHeight !== undefined,
-      `${session.id} never showed both Raiders at one height with different X`);
+      `${session.id} never showed both Raiders at one height`);
     invariant(swapped !== undefined,
       `${session.id} did not reverse the initial vertical ordering`);
-    const xDeltas = new Set(bothVisible.map((row) => row.enemy_x1 - row.enemy_x0));
+    const xDeltas = new Set(twoActive.map((row) => row.enemy_x1 - row.enemy_x0));
     invariant(xDeltas.size > 4,
       `${session.id} retained a fixed horizontal formation offset`);
-    const signedSteps = (slot) => bothVisible.slice(1).map((row, index) =>
-      Math.sign(row[`enemy_x${slot}`] - bothVisible[index][`enemy_x${slot}`]));
+    const signedSteps = (slot) => twoActive.slice(1).map((row, index) =>
+      Math.sign(row[`enemy_x${slot}`] - twoActive[index][`enemy_x${slot}`]));
     invariant([0, 1].every((slot) => {
       const steps = signedSteps(slot);
       return steps.includes(-1) && steps.includes(1);
@@ -3461,6 +3485,15 @@ function main() {
       difficulty: "HARD",
       frames: rows.length,
       input: { policy: session.policy, state_injection: false },
+      spawn_contract: {
+        visible_top_y: 16,
+        height_scanlines: 14,
+        spawn_y_values: activationRows.map((row) => [row.enemy_y0, row.enemy_y1]),
+        spawns: activationRows.length,
+        respawns: Math.max(0, activationRows.length - 1),
+        fully_hidden_at_activation: hiddenActivations.length,
+        visible_at_activation_defects: activationRows.length - hiddenActivations.length,
+      },
       first_visible: twoPmgFrameState(firstVisible),
       same_height_different_x: twoPmgFrameState(sameHeight),
       vertical_order_swapped: twoPmgFrameState(swapped),

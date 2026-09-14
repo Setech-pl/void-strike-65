@@ -752,14 +752,14 @@ test("X, Y and tumbling phase change only on WORLD_ROW_ADVANCED", () => {
     memory[addresses.activeMask], memory[addresses.activeCount],
     memory[addresses.x], memory[addresses.y], memory[addresses.rng],
     memory[addresses.renderId], memory[addresses.vx],
-  ], [1, 1, 124, 24, 0x89, manifest.entityEffects.glyphIndex + 4, 4]);
+  ], [1, 1, 124, 16, 0x89, manifest.entityEffects.glyphIndex + 4, 4]);
   const initialGlyph = memory[addresses.renderId];
   runRoutine(memory, "entity_effects_update");
   assert.deepEqual([
     memory[addresses.x], memory[addresses.y], memory[addresses.renderId],
     memory[addresses.moveAccumulator],
-  ], [124, 24, initialGlyph, 0], "ordinary frame must not move or tumble world debris");
-  const expectedY = [24, 32, 32, 40];
+  ], [124, 16, initialGlyph, 0], "ordinary frame must not move or tumble world debris");
+  const expectedY = [16, 24, 24, 32];
   const expectedVerticalAccumulator = [3, 1, 4, 2];
   for (let event = 1; event <= 4; event += 1) {
     memory[addresses.events] = 1;

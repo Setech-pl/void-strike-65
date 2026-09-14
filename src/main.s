@@ -420,6 +420,7 @@ RAIDER_PMG_LAST_SLOT = RAIDER_PMG_SLOT_COUNT-1
 RAIDER_PMG_CROSS_FRAMES = 48
 RAIDER_PMG_START_X_0 = 88
 RAIDER_PMG_START_X_1 = 152
+RAIDER_PMG_SPAWN_Y = GAMEPLAY_TOP-ENEMY_RELEASE_FRAME_HEIGHT
 RAIDER_PMG_START_Y_0 = 48
 RAIDER_PMG_START_Y_1 = 96
 FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT = 0
@@ -4412,17 +4413,13 @@ draw_enemy:
     ldx #$00
 @member:
     lda ENEMY_MEMBER_STATE,x
-    bne :+
-    jmp @member_next
-:
+    beq @member_next
     jsr draw_enemy_member
     ldx ENEMY_TARGET_SLOT
 @member_next:
     inx
     cpx #RAIDER_PMG_SLOT_COUNT
-    beq :+
-    jmp @member
-:
+    bne @member
     rts
 
 draw_enemy_member:
@@ -4451,6 +4448,8 @@ draw_enemy_member:
     adc #>PLAYER1
     sta @body_store+2
 @body_loop:
+    cpy #GAMEPLAY_TOP
+    bcc @body_next
     lda enemy_body_data,x
     cpy #GAMEPLAY_BOTTOM
     bcs @body_done
@@ -4463,6 +4462,8 @@ draw_enemy_member:
     bne @body_loop
 @body_done:
     rts
+draw_enemy_offscreen_layout_pad:
+    .res 2,$EA                  ; preserve every following BROADSIDE integration ABI
 
 .if ENEMY_REVIEW_HARNESS
 .segment "STARFIELD"
@@ -4535,6 +4536,25 @@ update_enemy_slot_motion:
     lda INTERCEPTOR_MOVE_ACCUMULATOR
     sta ENEMY_MOVE_ACCUMULATOR,x
 
+    ; Admission is a normal one-scanline descent from a wholly hidden Y. The
+    ; unchanged 48-frame maneuver timer doubles as the cheap admission latch:
+    ; after the crossing begins it is below 48, so P2 may climb below its old
+    ; anchor without being mistaken for a new entry.
+    lda ENEMY_MANEUVER_TIMER,x
+    cmp #RAIDER_PMG_CROSS_FRAMES
+    bcc @formation_motion
+    lda ENEMY_Y,x
+    cmp raider_pmg_entry_y,x
+    bcs @accepted_motion
+    inc ENEMY_Y,x
+    rts
+@accepted_motion:
+    ; P1 reaches its old upper anchor first. Keep it there until P2 reaches
+    ; the old lower anchor, then run the accepted crossing path unchanged.
+    lda ENEMY_Y+1
+    cmp #RAIDER_PMG_START_Y_1
+    bcc @done
+@formation_motion:
     lda ENEMY_MANEUVER_STATE,x
     bne @egress
     cpx #$00
@@ -4554,21 +4574,16 @@ update_enemy_slot_motion:
     rts
 
 .segment "CODE"
+; No release caller reaches this legacy single-Heavy random-X helper. Its old
+; 21-byte footprint now absorbs 12 bytes of the bounded off-screen entry gate
+; so every reviewed CODE entry which follows retains its established address.
 reset_enemy_x:
-    lda #(ENEMY_X_RANGE+1)
-    sta row_counter
-    jsr random_byte
-    and #$7F
-    cmp row_counter
-    bcc :+
-    eor #$7F
-:
-    clc
-    adc #CORRIDOR_LEFT_HPOS
-    sta enemy_x
-    rts
+    .res 9,$EA
 
 .segment "STARFIELD"
+
+raider_pmg_entry_y:
+    .byte RAIDER_PMG_START_Y_0,RAIDER_PMG_START_Y_1
 
 reset_enemy:
     lda #$00
@@ -4593,9 +4608,8 @@ reset_enemy:
     sta ENEMY_X
     lda #RAIDER_PMG_START_X_1
     sta ENEMY_X+1
-    lda #RAIDER_PMG_START_Y_0
+    lda #RAIDER_PMG_SPAWN_Y
     sta ENEMY_Y
-    lda #RAIDER_PMG_START_Y_1
     sta ENEMY_Y+1
     lda #$01
     sta ENEMY_VELOCITY_X
@@ -9044,8 +9058,19 @@ wait_for_master_pal_frame:
     sta GAMEPLAY_PAL_FRAME_CONSUMED
     rts
 wait_for_master_pal_frame_end:
-    .res $39-(wait_for_master_pal_frame_end-projectile_recycle_broadside_layout_pad)
-                                ; absorb the three-byte Heavy hot-path shrink while
+; PairShot collision runs before the debris simulation tick. A newly admitted,
+; wholly hidden slot must not enter geometry. This 11-byte tail replaces ABI
+; padding rather than growing runtime or shifting the fixed $76A7 entry.
+entity_player_fighter_projectile_hits_visible_debris:
+    lda ENTITY_Y
+    cmp #ENTITY_GAMEPLAY_TOP
+    bcc @miss
+    jmp entity_player_fighter_projectile_hits_debris
+@miss:
+    rts
+debris_spawn_gate_broadside_layout_end:
+    .res $39-(debris_spawn_gate_broadside_layout_end-projectile_recycle_broadside_layout_pad)
+                                ; consume the remaining fixed-slot ABI padding while
                                 ; preserving the fixed integration release ABI
 free_broadside_slot:
     jsr erase_broadside_slot
@@ -9427,9 +9452,9 @@ profile_after_pickup_booster_update = *
     lda #$00
     sta ENTITY_VX
 @collision:
-    ; Active update has already proved that Y remains in gameplay. Direct
-    ; calls retain the guarded public entry below for boundary tests.
-    jmp entity_collide_player_active
+    ; Slot zero may now be active while its 2x1 cell remains wholly above the
+    ; ring. Keep the public Y gate on the live path as well as direct tests.
+    jmp entity_collide_player
 
 ; Slot one is never offered to the debris allocator. Its dormant fields own
 ; the qualified-kill counter and the pending/visible capsule. The non-rendered
@@ -9728,7 +9753,7 @@ entity_spawn_debris:
     asl
     adc #ENTITY_SAFE_SPAWN_LEFT_HPOS
     sta ENTITY_X
-    lda #ENTITY_GAMEPLAY_TOP
+    lda #(ENTITY_GAMEPLAY_TOP-ENTITY_DEBRIS_HEIGHT_SCANLINES)
     sta ENTITY_Y
     lda #ENTITY_DEBRIS_INITIAL_FLAGS
     sta ENTITY_FLAGS
@@ -9808,7 +9833,7 @@ entity_player_fighter_projectile_target:
     clc
     rts
 @active:
-    jsr entity_player_fighter_projectile_hits_debris
+    jsr entity_player_fighter_projectile_hits_visible_debris
     bcc entity_player_fighter_projectile_enemy_target
     ; Consult the per-frame shootable latch only after the cheap swept
     ; geometry says this slot could hit. Ordinary misses therefore retain the

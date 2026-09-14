@@ -1,11 +1,11 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 4.8
+Wersja: 4.9
 Data aktualizacji: 2026-09-14
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD przed two-Heavy overlap black-mask fix: `76a2d7d02915a31c1e8eda9eb8b323be4a5b5b12`
-Stan runtime: `PASS_TWO_HEAVY_BLACK_MASK_FIX` + `PASS_DEBRIS_ABI_NATIVE_SLOT0_BASELINE` + `REJECTED_DEBRIS_25HZ_SLOT03_FEASIBILITY` + `REJECTED_BACKGROUND_RING_25HZ_PROOF` (runtime bez zmian) + `PASS_CAPITAL_SPEED_RESTORE_CLOCK_VERIFY` + `PASS_MASTER_PAL_CLOCK` + Raider PairShot `2 px/tick` + white-only starfield (4 white, `1 px/frame`, bez blue far) aktywny także w capital z hull occlusion + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck nadal odroczony; bez unified schedulera
-Ostatni XEX two-Heavy black-mask fix candidate: SHA-256 `c5dfc33846dc71b996d0445d3371f00458e6c24bb2f3f3dc676dc94730d2dd32`
+Aktualny HEAD przed off-screen spawn fix: `c447062c9b43f45e985bef5395b14b2cfdf591d8`
+Stan runtime: `PASS_OFFSCREEN_RAIDER_DEBRIS_SPAWN_CANDIDATE` + `PASS_TWO_HEAVY_BLACK_MASK_FIX` + `PASS_DEBRIS_ABI_NATIVE_SLOT0_BASELINE` + `REJECTED_DEBRIS_25HZ_SLOT03_FEASIBILITY` + `REJECTED_BACKGROUND_RING_25HZ_PROOF` (runtime bez zmian) + `PASS_CAPITAL_SPEED_RESTORE_CLOCK_VERIFY` + `PASS_MASTER_PAL_CLOCK` + Raider PairShot `2 px/tick` + white-only starfield (4 white, `1 px/frame`, bez blue far) aktywny także w capital z hull occlusion + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck nadal odroczony; bez unified schedulera
+Ostatni XEX off-screen spawn candidate: SHA-256 `bd736c8e4a44a70dfc0bb95b54e4d693b443b3a3085ffec74f9d7f5c39af2bfb`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
 
@@ -1875,6 +1875,36 @@ Raport:
 `docs/diagnostics/stage-2b2b-two-heavy-overlap-black-mask-fix.json`.
 
 Następny task po owner smoke: `Fix off-screen spawn contract for Raider and gameplay debris`.
+
+### Off-screen Raider + gameplay debris spawn — FIX PASS / OWNER SMOKE
+
+Dwa niezależne widoczne defaulty zostały usunięte. Two-PMG `reset_enemy`
+ustawiał wcześniej formację bezpośrednio na Y=`48/96`, a debris startował na
+pierwszym legalnym row Y=`24`. Oba Heavy startują teraz całkowicie nad polem na
+Y=`2`; top-clipped PMG entry dochodzi do starych anchorów `48/96`, po czym
+zachowuje dotychczasowy crossing. Debris startuje na Y=`16` i pojawia się
+atomowo dopiero po istniejącym carry `+8` do Y=`24`. Ukryte obiekty nie
+renderują, nie kolidują, a ukryty Heavy nie strzela.
+
+Host: focused off-screen `7/7 PASS`, layout/two-PMG `13/13 PASS`, task-relevant
+encounter/entity `3/3 PASS`; backing/ring `5/5`, PairShot/fire-audio `6/6`,
+Raider-remnant/two-PMG `12/12`, boot XEX/ATR `4/4`. Atari800 7.1.2 PAL:
+Heavy `1000` klatek, `5` spawnów (`4` respawny), visible-at-activation `0`,
+black-mask `0`; dodatkowe XEX/ATR replays potwierdziły `38/38` hidden
+admissions. Debris `15 000` klatek, `61` spawnów (`58` respawnów),
+visible-at-activation `0`, `5 918` active frames i `2 665` world events.
+Missed/target/hard/extra-VBI/DLI = `0`.
+
+Fix dodaje `14 B` kodu, `0 B` RAM i `0 B` PMG. Linked runtime `17 580 B`,
+simultaneous residency `18 058 B`, safe headroom `4 129 B`; initial content
+`13 170/13 184 B`, STARFIELD packed `1787/1819 B`, BROADSIDE `6653/6656 B`,
+A2 `237/256 B`. Najwyższy task replay active-work: `22 160`, headroom
+target/hard `9040/10408`.
+
+Raport:
+`docs/diagnostics/stage-2b2b-offscreen-spawn-raider-debris-fix.json`.
+
+Następny task: `Owner smoke off-screen Raider + gameplay debris entry`.
 
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 

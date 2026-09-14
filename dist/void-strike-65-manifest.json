@@ -8,10 +8,10 @@
     "layout": "Layout D.2 — post-clear director init + intensity-preserving admission ABI",
     "levelWorldRows": 3712,
     "phaseCount": 8,
-    "initialContentBytes": 13163,
-    "linkedRuntimeBytes": 17566,
-    "simultaneousResidencyBytes": 18044,
-    "safeResidencyBytes": 4143,
+    "initialContentBytes": 13170,
+    "linkedRuntimeBytes": 17580,
+    "simultaneousResidencyBytes": 18058,
+    "safeResidencyBytes": 4129,
     "glue": {
       "stagingAddress": 31696,
       "holdingAddress": 34304,
@@ -38,7 +38,7 @@
         "packedLength": 866,
         "rawLength": 866,
         "finalDestination": 35968,
-        "crc16": 25446,
+        "crc16": 52527,
         "type": 0,
         "stagingId": 2,
         "destination": 33024
@@ -56,7 +56,7 @@
   "bootSectors": 103,
   "payloadBytes": 20864,
   "bootPayloadTrailer": {
-    "address": 21351,
+    "address": 21358,
     "bytes": 4,
     "ascii": "DFB1",
     "hex": "44464231",
@@ -100,7 +100,7 @@
       "baselineReserveBytes": 1097,
       "reserveBytes": 73,
       "recoveredReserveBytes": 1097,
-      "residentSuffixGrossSavingsBytes": 1022,
+      "residentSuffixGrossSavingsBytes": 1015,
       "relocatedColdInitBytes": 2437,
       "relocatedColdInitPackedCostBytes": 2057,
       "reserveAddress": 24499,
@@ -126,8 +126,8 @@
   "transportCapacity": {
     "format": "DFMC-v1 multi-chunk",
     "initialBootBytes": 13184,
-    "initialBootContentBytes": 13163,
-    "initialBootEnvelopeBytes": 21,
+    "initialBootContentBytes": 13170,
+    "initialBootEnvelopeBytes": 14,
     "initialBootSectors": 103,
     "extensionBytes": 7680,
     "extensionSectors": 60,
@@ -139,7 +139,7 @@
     "maximumExtensionChunkBytes": 6400,
     "maximumChunkCount": 8,
     "maximumNewSimultaneousResidencyBytes": 7993,
-    "remainingSafeResidencyBytes": 5740,
+    "remainingSafeResidencyBytes": 5726,
     "bootOnlyStaging": {
       "address": 33024,
       "bytes": 6484
@@ -156,20 +156,20 @@
     "manifest": {
       "address": 9756,
       "bytes": 78,
-      "crc16": 5052,
+      "crc16": 26244,
       "parsed": {
         "version": 1,
         "totalOccupiedSectors": 163,
         "manifestBytes": 78,
-        "crc16": 5052,
+        "crc16": 26244,
         "records": [
           {
             "startSector": 104,
             "sectorCount": 45,
-            "packedLength": 5662,
+            "packedLength": 5671,
             "rawLength": 6653,
             "finalDestination": 24080,
-            "crc16": 13646,
+            "crc16": 33663,
             "type": 1,
             "stagingId": 1,
             "destination": 33024
@@ -180,7 +180,7 @@
             "packedLength": 866,
             "rawLength": 866,
             "finalDestination": 35968,
-            "crc16": 25446,
+            "crc16": 52527,
             "type": 0,
             "stagingId": 2,
             "destination": 33024
@@ -219,10 +219,10 @@
     "prefixEndAddress": 8640,
     "suffixAddress": 8641,
     "suffixRawBytes": 7743,
-    "suffixPackedBytes": 6721,
+    "suffixPackedBytes": 6728,
     "packedSourceAddress": 9898,
     "stagingAddress": 33024,
-    "stagedEndAddress": 39744,
+    "stagedEndAddress": 39751,
     "compression": "LZ-10/5"
   },
   "broadsideRuntime": {
@@ -230,16 +230,16 @@
     "runAddress": 24080,
     "bytes": 6653,
     "reservedBytes": 6656,
-    "packedBytes": 5662,
+    "packedBytes": 5671,
     "packedSourceAddress": 33024,
     "compression": "LZ-10/5",
     "externalChunk": {
       "startSector": 104,
       "sectors": 45,
       "transportBytes": 5760,
-      "packedBytes": 5662,
+      "packedBytes": 5671,
       "rawBytes": 6653,
-      "crc16": 13646,
+      "crc16": 33663,
       "stagingAddress": 33024,
       "stagingEndAddress": 38783,
       "finalAddress": 24080
@@ -280,7 +280,7 @@
       "startSector": 149,
       "sectors": 7,
       "transportBytes": 896,
-      "crc16": 25446
+      "crc16": 52527
     }
   },
   "starfieldRuntime": {
@@ -289,10 +289,10 @@
     "bytes": 2188,
     "reservedBytes": 2348,
     "packedBytes": 1787,
-    "packedSourceAddress": 16619,
-    "packedSourceEndExclusive": 18406,
+    "packedSourceAddress": 16626,
+    "packedSourceEndExclusive": 18413,
     "pickupColdStagingAddress": 18433,
-    "packedSourceToPickupMarginBytes": 27,
+    "packedSourceToPickupMarginBytes": 20,
     "stagingAddress": 30736,
     "stagingBytes": 1819,
     "compression": "LZ-10/5"
@@ -300,7 +300,7 @@
   "a2Kernel": {
     "loadAddress": 27136,
     "runAddress": 36864,
-    "sourceAddress": 18406,
+    "sourceAddress": 18413,
     "stagingAddress": 32555,
     "bytes": 237,
     "reservedBytes": 256,
@@ -361,14 +361,14 @@
       }
     },
     "packedBytes": 2708,
-    "packedSourceAddress": 18643,
-    "initialPackedSourcesEndExclusive": 21351,
-    "initialPackedSourcesLastAddress": 21350,
+    "packedSourceAddress": 18650,
+    "initialPackedSourcesEndExclusive": 21358,
+    "initialPackedSourcesLastAddress": 21357,
     "stagedSourceAddress": 21272,
     "stagedEndAddress": 23979,
     "stagedEndExclusive": 23980,
-    "sourceToStagingMarginBytes": -79,
-    "sourceStagingOverlapBytes": 79,
+    "sourceToStagingMarginBytes": -86,
+    "sourceStagingOverlapBytes": 86,
     "stagingCopyDirection": "backward",
     "stagingToBroadsideMarginBytes": 100,
     "stagingLifecycle": {
@@ -417,7 +417,7 @@
       "startSector": 149,
       "sectors": 7,
       "transportBytes": 896,
-      "crc16": 25446,
+      "crc16": 52527,
       "stagingAddress": 35968,
       "finalRuntimeAddress": 34816,
       "coldCapacityBytes": 1277,
@@ -538,10 +538,10 @@
   "runtimeCodeBudget": {
     "measurement": "linked CODE + STARFIELD + BROADSIDE + A2_KERNEL + ENTITY_CODE bytes",
     "baselineBytes": 13697,
-    "actualBytes": 17566,
-    "actualDeltaBytes": 3869,
+    "actualBytes": 17580,
+    "actualDeltaBytes": 3883,
     "approvedDeltaBytes": 768,
-    "remainingBytes": -3101,
+    "remainingBytes": -3115,
     "enemyBreakupEffects": {
       "baselineBytes": 14184,
       "actualBytes": 14316,
@@ -557,8 +557,8 @@
     },
     "weaponPickupRapidFire": {
       "baselineBytes": 14316,
-      "actualBytes": 17566,
-      "actualDeltaBytes": 3250
+      "actualBytes": 17580,
+      "actualDeltaBytes": 3264
     },
     "weaponPickupSpreadShot": {
       "baselineBytes": 14948,
@@ -575,8 +575,8 @@
     },
     "frontendH31": {
       "baselineBytes": 15346,
-      "actualBytes": 17566,
-      "actualDeltaBytes": 2220,
+      "actualBytes": 17580,
+      "actualDeltaBytes": 2234,
       "hardDeltaBytes": 1280
     }
   },
@@ -1190,17 +1190,17 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 20864,
-        "sha256": "fcac8734a52a07f58bef0f17a2d28830893b306b6afd8c82b24616dff2398968"
+        "sha256": "7a368ad64d19153bae03152172a5080b322ad1d13c51f2ab37f8bf422292f3db"
       },
       "void-strike-65.xex": {
         "path": "dist/void-strike-65.xex",
         "bytes": 21625,
-        "sha256": "c5dfc33846dc71b996d0445d3371f00458e6c24bb2f3f3dc676dc94730d2dd32"
+        "sha256": "bd736c8e4a44a70dfc0bb95b54e4d693b443b3a3085ffec74f9d7f5c39af2bfb"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "39d50d757310bdb9ea237272b362e09a41b0c69c8f24e4e86775e533e846d914"
+        "sha256": "0317e359fd563cc2977e4c275406dfb50a6e499041b7f70d3b3d1d92f4ba286b"
       }
     },
     "reportPath": null,
@@ -1209,15 +1209,15 @@
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 20864,
-      "sha256": "fcac8734a52a07f58bef0f17a2d28830893b306b6afd8c82b24616dff2398968"
+      "sha256": "7a368ad64d19153bae03152172a5080b322ad1d13c51f2ab37f8bf422292f3db"
     },
     "void-strike-65.xex": {
       "bytes": 21625,
-      "sha256": "c5dfc33846dc71b996d0445d3371f00458e6c24bb2f3f3dc676dc94730d2dd32"
+      "sha256": "bd736c8e4a44a70dfc0bb95b54e4d693b443b3a3085ffec74f9d7f5c39af2bfb"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "39d50d757310bdb9ea237272b362e09a41b0c69c8f24e4e86775e533e846d914"
+      "sha256": "0317e359fd563cc2977e4c275406dfb50a6e499041b7f70d3b3d1d92f4ba286b"
     }
   }
 }

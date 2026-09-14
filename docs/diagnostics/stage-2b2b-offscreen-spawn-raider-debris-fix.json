@@ -1,0 +1,279 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-14",
+  "status": "PASS",
+  "model": "strongest available GPT-5 Codex",
+  "reasoning_effort": "high",
+  "scope": "off-screen spawn contract for two Heavy/Raider PMG members and slot-0 gameplay debris",
+  "baseline": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "head_before": "c447062c9b43f45e985bef5395b14b2cfdf591d8",
+    "xex_sha256_before": "c5dfc33846dc71b996d0445d3371f00458e6c24bb2f3f3dc676dc94730d2dd32",
+    "linked_runtime_bytes": 17566,
+    "simultaneous_residency_bytes": 18044,
+    "safe_headroom_bytes": 4143,
+    "native_active_work_max_cycles": 21719
+  },
+  "root_cause": {
+    "shared_cause": false,
+    "heavy_raider": {
+      "cause": "The two-PMG reset path replaced the earlier hidden Y=GAMEPLAY_TOP-height admission with visible formation anchors Y=48 and Y=96. The same reset path served first admission and recycle. The two-PMG draw path also lacked top clipping, so simply restoring Y=2 without the clipping contract would have been unsafe.",
+      "hypotheses": {
+        "H1_initial_y_regressed": "CONFIRMED",
+        "H2_coordinate_origin_shift": "REJECTED",
+        "H3_admission_delay_removed": "REJECTED: no separate pending state existed",
+        "H4_renderer_clipping_changed": "CONFIRMED as a supporting regression in the two-PMG path",
+        "H5_respawn_path_differs": "REJECTED: first spawn and recycle both call reset_enemy",
+        "H6_random_y_visible_range": "REJECTED"
+      }
+    },
+    "gameplay_debris": {
+      "cause": "entity_spawn_debris explicitly initialized Y to ENTITY_GAMEPLAY_TOP=24, the first visible character row. The renderer already rejected Y<24, but the active player-collision call bypassed that public guard and the PairShot target called geometry directly.",
+      "hypotheses": {
+        "H1_initial_y_regressed": "CONFIRMED as the independent visible default",
+        "H2_coordinate_origin_shift": "REJECTED",
+        "H3_admission_delay_removed": "REJECTED",
+        "H4_renderer_clipping_changed": "REJECTED: the character renderer already skips Y<24",
+        "H5_respawn_path_differs": "REJECTED: every admission uses entity_spawn_debris",
+        "H6_random_y_visible_range": "REJECTED"
+      }
+    }
+  },
+  "coordinate_contract": {
+    "heavy_raider": {
+      "coordinate": "top PMG source scanline",
+      "visible_top_y": 16,
+      "height_scanlines": 14,
+      "spawn_y": 2,
+      "first_partially_visible_y": 3,
+      "first_fully_visible_y": 16,
+      "entry_step": "1 scanline per master PAL gameplay tick",
+      "formation_handoff": "P1 holds at old Y=48 until P2 reaches old Y=96; the existing 48-frame cross then runs unchanged"
+    },
+    "gameplay_debris": {
+      "coordinate": "top scanline of a character-aligned 2x1 object",
+      "visible_top_y": 24,
+      "height_scanlines": 8,
+      "spawn_y": 16,
+      "first_partially_visible_y": null,
+      "first_fully_visible_y": 24,
+      "entry_step": "existing +8 vertical carry emitted by the 3/5 world-event accumulator",
+      "partial_note": "The existing renderer intentionally publishes only complete character rows, so Y=17..23 remains hidden rather than partially drawn."
+    }
+  },
+  "production_fix": {
+    "heavy_raider": [
+      "Restore both PMG members to the canonical hidden spawn Y=2.",
+      "Add page-local top clipping to draw_enemy_member.",
+      "Use the existing maneuver timer as an admission latch; preserve old Y=48/Y=96 formation anchors and the subsequent cross/egress state machine.",
+      "Retain the prior per-member draw-then-departing-row erase black-mask repair."
+    ],
+    "gameplay_debris": [
+      "Change only initial Y from 24 to 16.",
+      "Route live player collision through the existing public Y gate.",
+      "Add an 11-byte PairShot visibility gate in existing BROADSIDE ABI padding.",
+      "Keep HP=3, slot 0, movement, tumble, backing, glyphs and admission policy unchanged."
+    ],
+    "ram_delta_bytes": 0,
+    "pmg_memory_delta_bytes": 0,
+    "code_delta_bytes": 14
+  },
+  "collision_fire_contract": [
+    {
+      "object": "Heavy/Raider",
+      "state": "fully off-screen Y=2",
+      "player_collision": false,
+      "pairshot_collision": false,
+      "enemy_fire": false,
+      "render": "no visible PMG rows"
+    },
+    {
+      "object": "Heavy/Raider",
+      "state": "partially visible Y=3..15",
+      "player_collision": "only if final geometry can overlap; legal player Y>=32 prevents premature contact",
+      "pairshot_collision": true,
+      "enemy_fire": false,
+      "render": "top-clipped PMG rows only"
+    },
+    {
+      "object": "Heavy/Raider",
+      "state": "fully visible Y>=16",
+      "player_collision": true,
+      "pairshot_collision": true,
+      "enemy_fire": true,
+      "render": "complete PMG body while inside the bottom boundary"
+    },
+    {
+      "object": "gameplay debris",
+      "state": "fully off-screen Y=16",
+      "player_collision": false,
+      "pairshot_collision": false,
+      "enemy_fire": "N/A",
+      "render": "none; no screen address or backing captured"
+    },
+    {
+      "object": "gameplay debris",
+      "state": "partial Y=17..23",
+      "player_collision": false,
+      "pairshot_collision": false,
+      "enemy_fire": "N/A",
+      "render": "none by the existing character-aligned contract"
+    },
+    {
+      "object": "gameplay debris",
+      "state": "fully visible Y>=24",
+      "player_collision": true,
+      "pairshot_collision": true,
+      "enemy_fire": "N/A",
+      "render": "complete 2x1 footprint"
+    }
+  ],
+  "instruction_exact": {
+    "method": "NMOS 6502 execution of the linked baseline and candidate entries",
+    "heavy_reset_cycles_before": 1157,
+    "heavy_reset_cycles_after": 926,
+    "heavy_reset_delta_cycles": -231,
+    "heavy_first_entry_update_cycles_before": 1504,
+    "heavy_first_entry_update_cycles_after": 1283,
+    "heavy_first_entry_delta_cycles": -221,
+    "two_heavy_normal_accepted_update_cycles_before": 1382,
+    "two_heavy_normal_accepted_update_cycles_after": 1512,
+    "two_heavy_normal_delta_cycles": 130,
+    "debris_spawn_cycles_before": 181,
+    "debris_spawn_cycles_after": 181,
+    "debris_visible_active_no_world_cycles_before": 99,
+    "debris_visible_active_no_world_cycles_after": 111,
+    "debris_visible_active_delta_cycles": 12,
+    "debris_pairshot_miss_cycles_before": 62,
+    "debris_pairshot_miss_cycles_after": 73,
+    "debris_pairshot_hit_cycles_before": 124,
+    "debris_pairshot_hit_cycles_after": 135,
+    "debris_pairshot_gate_delta_cycles": 11,
+    "effect_backing_resolver_peak_cycles_before": 1107,
+    "effect_backing_resolver_peak_cycles_after": 1110,
+    "effect_backing_resolver_layout_delta_cycles": 3
+  },
+  "measured_native": {
+    "emulator": "Atari800 7.1.2 PAL/XL",
+    "heavy_raider": {
+      "completed_frames": 1000,
+      "spawns": 5,
+      "respawns": 4,
+      "fully_hidden_at_activation": 5,
+      "visible_at_activation_defects": 0,
+      "two_heavy_active_frames_in_raster_oracle": 113,
+      "overlap_events": 13,
+      "black_mask_events": 0,
+      "inactive_slot_stale_page_frames": 0,
+      "maximum_active_work_cycles": 20619,
+      "target_headroom_cycles": 10581,
+      "hard_headroom_cycles": 11949,
+      "missed_frames": 0,
+      "extra_vbi": 0,
+      "dli_anomalies": 0
+    },
+    "heavy_supplemental_cold_replays": {
+      "completed_frames": 9000,
+      "media": ["XEX", "ATR"],
+      "difficulties": ["EASY", "MEDIUM", "HARD"],
+      "spawns": 38,
+      "respawns": 32,
+      "fully_hidden_at_activation": 38,
+      "visible_at_activation_defects": 0,
+      "note": "Raw spawn evidence passed. The broader legacy early-enemy aggregate retained an unrelated old requirement for a visible ordinary Hunter during capital traversal and therefore was not used as the task PASS gate."
+    },
+    "gameplay_debris": {
+      "completed_frames": 15000,
+      "difficulty_frames": {"EASY": 5000, "MEDIUM": 5000, "HARD": 5000},
+      "spawns": 61,
+      "respawns_after_release": 58,
+      "fully_hidden_at_activation": 61,
+      "visible_at_activation_defects": 0,
+      "active_debris_frames": 5918,
+      "active_world_events": 2665,
+      "pairshot_hits": 55,
+      "destructions": 5,
+      "player_collisions": 10,
+      "despawns": 58,
+      "maximum_active_work_cycles": 22160,
+      "target_headroom_cycles": 9040,
+      "hard_headroom_cycles": 10408,
+      "missed_frames": 0,
+      "target_overruns": 0,
+      "hard_overruns": 0,
+      "extra_vbi": 0,
+      "dli_anomalies": 0,
+      "pairshot_stale_maximum": 0,
+      "pairshot_orphan_maximum": 0
+    }
+  },
+  "estimated": {},
+  "memory_placement": {
+    "linked_runtime_bytes": 17580,
+    "simultaneous_residency_bytes": 18058,
+    "safe_headroom_bytes": 4129,
+    "initial_content_bytes": 13170,
+    "initial_content_capacity_bytes": 13184,
+    "initial_content_margin_bytes": 14,
+    "starfield_raw_bytes": 2188,
+    "starfield_reserved_bytes": 2348,
+    "starfield_packed_bytes": 1787,
+    "starfield_packed_staging_bytes": 1819,
+    "starfield_packed_margin_bytes": 32,
+    "starfield_to_pickup_margin_bytes": 20,
+    "broadside_raw_bytes": 6653,
+    "broadside_reserved_bytes": 6656,
+    "broadside_margin_bytes": 3,
+    "a2_bytes": 237,
+    "a2_reserved_bytes": 256,
+    "a2_margin_bytes": 19,
+    "entity_code_bytes": 3162,
+    "entity_code_reserved_bytes": 3840,
+    "entity_code_margin_bytes": 678,
+    "pickup_code_bytes": 871,
+    "basic_ram_used": false,
+    "loader_changed": false
+  },
+  "regression": {
+    "focused_offscreen_tests": "7/7 PASS",
+    "layout_and_two_pmg_group": "13/13 PASS",
+    "task_relevant_encounter_entity_group": "3/3 PASS",
+    "backing_ring_group": "5/5 PASS",
+    "pairshot_fire_audio_group": "6/6 PASS",
+    "raider_remnant_two_pmg_group": "12/12 PASS",
+    "boot_smoke": "4/4 XEX/ATR PASS",
+    "two_heavy_black_mask": 0,
+    "heavy_pmg_cross_writes": 0,
+    "heavy_stale_pages": 0,
+    "debris_stale_or_ghost_host": 0,
+    "pairshot_ghosts": 0,
+    "raider_dead_generation_cells": 0,
+    "known_unrelated_full_suite_failures": "13 failures reproduced from stale/pre-existing fixtures; no new failure remains in the focused acceptance groups"
+  },
+  "artifact": {
+    "xex": "dist/void-strike-65.xex",
+    "xex_bytes": 21625,
+    "xex_sha256": "bd736c8e4a44a70dfc0bb95b54e4d693b443b3a3085ffec74f9d7f5c39af2bfb",
+    "atr": "dist/void-strike-65.atr",
+    "atr_bytes": 92176,
+    "atr_sha256": "0317e359fd563cc2977e4c275406dfb50a6e499041b7f70d3b3d1d92f4ba286b"
+  },
+  "files_changed": [
+    "src/main.s",
+    "scripts/build.mjs",
+    "scripts/runtime-wall-trace.mjs",
+    "tests/offscreen-spawn.test.mjs",
+    "tests/encounter-director.test.mjs",
+    "tests/entity-effects.test.mjs",
+    "tests/effects-stagger.test.mjs",
+    "tests/layout-d1.test.mjs",
+    "docs/game-design.md",
+    "docs/plan-realizacji.md",
+    "docs/diagnostics/stage-2b2b-offscreen-spawn-raider-debris-fix.json",
+    "dist/void-strike-65-boot.bin",
+    "dist/void-strike-65-manifest.json",
+    "dist/void-strike-65.atr",
+    "dist/void-strike-65.xex"
+  ],
+  "next_task": "Owner smoke off-screen Raider + gameplay debris entry"
+}

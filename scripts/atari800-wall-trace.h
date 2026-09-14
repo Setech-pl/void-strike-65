@@ -577,6 +577,16 @@ static unsigned dftrace_previous_pc;
 static unsigned dftrace_pmg_last_writer[256];
 static unsigned dftrace_character_last_writer[65536];
 static unsigned dftrace_character_last_writer_x[65536];
+static const char *dftrace_first_writer_output;
+static FILE *dftrace_first_writer_file;
+static unsigned char dftrace_first_writer_shadow[65536];
+static unsigned dftrace_first_writer_old[65536];
+static unsigned dftrace_first_writer_new[65536];
+static unsigned dftrace_first_writer_pc[65536];
+static unsigned dftrace_first_writer_frame[65536];
+static uint64_t dftrace_first_writer_clock[65536];
+static unsigned dftrace_first_writer_scanline[65536];
+static unsigned dftrace_first_writer_cycle[65536];
 static uint64_t dftrace_clock(void);
 static unsigned dftrace_engine_previous[16];
 static int dftrace_engine_previous_valid;
@@ -3147,6 +3157,252 @@ static int dftrace_interceptor_display_position(unsigned address,
 	return 0;
 }
 
+/* Diagnostic-only first-writer journal. The observer runs immediately after
+ * the previous instruction completed, so the previous PC plus the unchanged
+ * X/Y registers identify the exact effective address of every production
+ * store used by screen, ring and PMG publishers. No guest byte is modified. */
+static int dftrace_first_writer_effective_address(unsigned pc,
+	unsigned x_register, unsigned y_register, unsigned *address)
+{
+	unsigned opcode = MEMORY_mem[pc];
+	unsigned operand = MEMORY_mem[(pc + 1u) & 0xffffu];
+	unsigned base;
+	switch (opcode) {
+	case 0x81u: /* STA (zp,X) */
+		operand = (operand + x_register) & 0xffu;
+		*address = MEMORY_mem[operand] |
+			((unsigned) MEMORY_mem[(operand + 1u) & 0xffu] << 8);
+		return 1;
+	case 0x91u: /* STA (zp),Y */
+		base = MEMORY_mem[operand] |
+			((unsigned) MEMORY_mem[(operand + 1u) & 0xffu] << 8);
+		*address = (base + y_register) & 0xffffu;
+		return 1;
+	case 0x8du: /* STA abs */
+	case 0x8eu: /* STX abs */
+	case 0x8cu: /* STY abs */
+	case 0xeeu: /* INC abs */
+	case 0xceu: /* DEC abs */
+	case 0x0eu: /* ASL abs */
+	case 0x4eu: /* LSR abs */
+	case 0x2eu: /* ROL abs */
+	case 0x6eu: /* ROR abs */
+		*address = operand |
+			((unsigned) MEMORY_mem[(pc + 2u) & 0xffffu] << 8);
+		return 1;
+	case 0x9du: /* STA abs,X */
+	case 0xfeu: /* INC abs,X */
+	case 0xdeu: /* DEC abs,X */
+	case 0x1eu: /* ASL abs,X */
+	case 0x5eu: /* LSR abs,X */
+	case 0x3eu: /* ROL abs,X */
+	case 0x7eu: /* ROR abs,X */
+		base = operand | ((unsigned) MEMORY_mem[(pc + 2u) & 0xffffu] << 8);
+		*address = (base + x_register) & 0xffffu;
+		return 1;
+	case 0x99u: /* STA abs,Y */
+		base = operand | ((unsigned) MEMORY_mem[(pc + 2u) & 0xffffu] << 8);
+		*address = (base + y_register) & 0xffffu;
+		return 1;
+	default:
+		return 0;
+	}
+}
+
+static void dftrace_first_writer_position(unsigned address,
+	unsigned *logical_row, unsigned *column, unsigned *physical_row)
+{
+	unsigned raster_row;
+	unsigned raster_column;
+	*logical_row = 0xffffffffu;
+	*column = 0xffffffffu;
+	*physical_row = 0xffffffffu;
+	if (address >= DFTRACE_RING_SCREEN && address < DFTRACE_RING_END)
+		*physical_row = (address - DFTRACE_RING_SCREEN) / 40u;
+	if (dftrace_interceptor_display_position(address, &raster_row, &raster_column)) {
+		*logical_row = raster_row;
+		*column = raster_column;
+	}
+}
+
+static void dftrace_first_writer_emit(const char *kind, unsigned address,
+	unsigned old_value, unsigned new_value, unsigned writer_pc,
+	unsigned x_register, unsigned y_register, unsigned owner_mask)
+{
+	unsigned logical_row;
+	unsigned column;
+	unsigned physical_row;
+	unsigned ring_head = dftrace_logical_row_address(1u);
+	unsigned target = MEMORY_mem[dftrace_enemy_target_slot];
+	dftrace_first_writer_position(address, &logical_row, &column, &physical_row);
+	fprintf(dftrace_first_writer_file,
+		"%s,%s,%u,%u,%u,%llu,%d,%d,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%llu,%u,%u\n",
+		dftrace_session, kind, dftrace_count,
+		MEMORY_mem[dftrace_active_gameplay_frame_lo] |
+			((unsigned) MEMORY_mem[dftrace_active_gameplay_frame_lo + 1u] << 8),
+		(unsigned) Atari800_nframes, (unsigned long long) dftrace_clock(),
+		ANTIC_ypos, ANTIC_XPOS, address, old_value, new_value, writer_pc,
+		x_register, y_register, logical_row, column, physical_row, ring_head,
+		owner_mask, target,
+		MEMORY_mem[dftrace_enemy_member_state],
+		MEMORY_mem[dftrace_enemy_member_state + 1u],
+		MEMORY_mem[dftrace_enemy_x], MEMORY_mem[dftrace_enemy_x + 1u],
+		MEMORY_mem[dftrace_enemy_y], MEMORY_mem[dftrace_enemy_y + 1u],
+		MEMORY_mem[dftrace_entity_active_mask], MEMORY_mem[dftrace_entity_x],
+		MEMORY_mem[dftrace_entity_y], MEMORY_mem[dftrace_effect_active_mask],
+		dftrace_count_nonzero(dftrace_projectile_active,
+			DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT),
+		dftrace_count_nonzero(dftrace_projectile_active +
+			DFTRACE_INTERCEPTOR_SLOT_BASE, DFTRACE_INTERCEPTOR_SLOT_COUNT),
+		MEMORY_mem[dftrace_sector_state], MEMORY_mem[dftrace_ring_flags],
+		MEMORY_mem[dftrace_gameplay_frame], dftrace_first_writer_frame[address],
+		(unsigned long long) dftrace_first_writer_clock[address],
+		dftrace_first_writer_scanline[address], dftrace_first_writer_cycle[address]);
+}
+
+static void dftrace_first_writer_track(unsigned x_register, unsigned y_register)
+{
+	unsigned address;
+	unsigned old_value;
+	unsigned new_value;
+	if (dftrace_first_writer_file == NULL || dftrace_previous_pc == 0u ||
+		!dftrace_first_writer_effective_address(dftrace_previous_pc,
+			x_register, y_register, &address))
+		return;
+	if (!((address >= DFTRACE_DIVIDER_SCREEN &&
+			address < DFTRACE_DIVIDER_SCREEN + 40u) ||
+		  (address >= DFTRACE_RING_SCREEN && address < DFTRACE_RING_END) ||
+		  (address >= 0x3b00u && address < 0x4000u)))
+		return;
+	old_value = dftrace_first_writer_shadow[address];
+	new_value = MEMORY_mem[address];
+	if (old_value == new_value)
+		return;
+	dftrace_first_writer_shadow[address] = (unsigned char) new_value;
+	dftrace_first_writer_old[address] = old_value;
+	dftrace_first_writer_new[address] = new_value;
+	dftrace_first_writer_pc[address] = dftrace_previous_pc;
+	dftrace_first_writer_frame[address] = dftrace_count;
+	dftrace_first_writer_clock[address] = dftrace_clock();
+	dftrace_first_writer_scanline[address] = ANTIC_ypos;
+	dftrace_first_writer_cycle[address] = ANTIC_XPOS;
+	dftrace_first_writer_emit(address >= 0x3b00u && address < 0x4000u
+		? "pmg_write" : "character_write", address, old_value, new_value,
+		dftrace_previous_pc, x_register, y_register, 0u);
+}
+
+static unsigned dftrace_first_writer_owner(unsigned address)
+{
+	unsigned slot;
+	unsigned mask = 0u;
+	for (slot = 0u; slot < DFTRACE_NEAR_COUNT; ++slot) {
+		unsigned owned = MEMORY_mem[dftrace_near_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_near_screen_hi + slot] << 8);
+		if (owned == address && MEMORY_mem[address] == DFTRACE_NEAR_CODE)
+			mask |= 1u;
+	}
+	for (slot = 0u; slot < DFTRACE_PROJECTILE_SLOT_COUNT; ++slot) {
+		unsigned owned;
+		if (MEMORY_mem[dftrace_projectile_active + slot] == 0u ||
+			MEMORY_mem[dftrace_projectile_rendered + slot] == 0u)
+			continue;
+		owned = MEMORY_mem[dftrace_projectile_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_projectile_screen_hi + slot] << 8);
+		if (owned == address)
+			mask |= slot < DFTRACE_INTERCEPTOR_SLOT_BASE ? 2u : 4u;
+	}
+	if ((MEMORY_mem[dftrace_entity_drawn_mask] & 1u) != 0u) {
+		unsigned owned = MEMORY_mem[dftrace_entity_screen_lo] |
+			((unsigned) MEMORY_mem[dftrace_entity_screen_hi] << 8);
+		if (address == owned || address == owned + 1u)
+			mask |= 8u;
+	}
+	for (slot = 0u; slot < 5u; ++slot) {
+		unsigned owned;
+		if ((MEMORY_mem[dftrace_effect_rendered_mask] & (1u << slot)) == 0u)
+			continue;
+		owned = MEMORY_mem[dftrace_effect_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_effect_screen_hi + slot] << 8);
+		if (owned == address)
+			mask |= 16u;
+	}
+	if (dftrace_broad_live_owns_address(address))
+		mask |= 32u;
+	for (slot = 0u; slot < 2u; ++slot) {
+		unsigned owned = MEMORY_mem[dftrace_muzzle_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_muzzle_screen_hi + slot] << 8);
+		if (MEMORY_mem[dftrace_muzzle_screen_hi + slot] != 0u && owned == address)
+			mask |= 64u;
+	}
+	return mask;
+}
+
+static void dftrace_first_writer_kill(void)
+{
+	if (dftrace_first_writer_file == NULL)
+		return;
+	dftrace_first_writer_emit("raider_kill", 0u, 0u, 0u,
+		dftrace_pc_emitter_cleanup, 0u, 0u, 0u);
+}
+
+static void dftrace_first_writer_frame_end(void)
+{
+	unsigned row;
+	unsigned column;
+	if (dftrace_first_writer_file == NULL)
+		return;
+	for (row = 0u; row <= DFTRACE_RING_ROWS; ++row) {
+		unsigned base;
+		if (row == 0u)
+			base = DFTRACE_DIVIDER_SCREEN;
+		else {
+			unsigned dlist = 0x7f00u + dftrace_displayed_dlist_lo;
+			base = MEMORY_mem[dlist + 7u + (row - 1u) * 3u] |
+				((unsigned) MEMORY_mem[dlist + 8u + (row - 1u) * 3u] << 8);
+		}
+		if (base != DFTRACE_DIVIDER_SCREEN &&
+			!(base >= DFTRACE_RING_SCREEN && base + 40u <= DFTRACE_RING_END))
+			continue;
+		for (column = 8u; column < 32u; ++column) {
+			unsigned address = base + column;
+			unsigned value = MEMORY_mem[address];
+			if (value == 0u)
+				continue;
+			dftrace_first_writer_emit("character_visible", address,
+				dftrace_first_writer_old[address], value,
+				dftrace_first_writer_pc[address], 0u, 0u,
+				dftrace_first_writer_owner(address));
+		}
+	}
+	for (row = 0u; row < 256u; ++row) {
+		unsigned missile_address = 0x3b00u + row;
+		unsigned missile_value = MEMORY_mem[missile_address];
+		unsigned missile_owner =
+			(dftrace_count_nonzero(dftrace_broad_state, 3u) != 0u ||
+			 MEMORY_mem[dftrace_entity_state + 2u] != 0u) ? 512u : 0u;
+		if (missile_value != 0u)
+			dftrace_first_writer_emit("missile_visible", missile_address,
+				dftrace_first_writer_old[missile_address], missile_value,
+				dftrace_first_writer_pc[missile_address], 4u, row, missile_owner);
+		for (unsigned player = 0u; player < 4u; ++player) {
+			unsigned address = 0x3c00u + player * 0x100u + row;
+			unsigned value = MEMORY_mem[address];
+			unsigned owner;
+			if (player == 1u || player == 2u)
+				owner = MEMORY_mem[dftrace_enemy_member_state + player - 1u] == 1u
+					? 128u : 0u;
+			else
+				owner = (MEMORY_mem[dftrace_player_lifecycle] < 3u ||
+					dftrace_count_nonzero(dftrace_fighter_explosion_timer, 2u) != 0u)
+					? 256u : 0u;
+			if (value != 0u)
+				dftrace_first_writer_emit("pmg_visible", address,
+					dftrace_first_writer_old[address], value,
+					dftrace_first_writer_pc[address], player, row, owner);
+		}
+	}
+}
+
 static int dftrace_is_interceptor_projectile_code(unsigned code)
 {
 	return code >= DFTRACE_INTERCEPTOR_GLYPH_FIRST &&
@@ -3231,6 +3487,10 @@ static void dftrace_write_interceptor_projectiles(DFTraceFrame *frame)
 		unsigned boundary_terminal = next_y + 3u >= 241u;
 		unsigned player_collision_terminal =
 			(delta_y < 15u || delta_y >= 249u) && (delta_x < 8u || delta_x >= 255u);
+		unsigned emitter_death_terminal =
+			dftrace_interceptor_previous_active[index] >= 2u &&
+			MEMORY_mem[dftrace_enemy_member_state +
+				(dftrace_interceptor_previous_active[index] & 1u)] == 0u;
 		const char *event = active != 0u && dftrace_interceptor_previous_active[index] == 0u
 			? "spawn" : active == 0u && dftrace_interceptor_previous_active[index] != 0u
 			? "release" : "active";
@@ -3266,6 +3526,7 @@ static void dftrace_write_interceptor_projectiles(DFTraceFrame *frame)
 			dftrace_interceptor_first_anomaly = 1u;
 		else if (active == 0u && dftrace_interceptor_previous_active[index] != 0u &&
 			!ttl_terminal && !boundary_terminal && !player_collision_terminal &&
+			!emitter_death_terminal &&
 			frame->player_lifecycle < 3u)
 			dftrace_interceptor_first_anomaly = 1u;
 		dftrace_interceptor_previous_active[index] = active;
@@ -3800,6 +4061,13 @@ static void dftrace_write(void)
 		perror("voidstrike65 trace close");
 		exit(2);
 	}
+	if (dftrace_first_writer_file != NULL) {
+		if (fclose(dftrace_first_writer_file) != 0) {
+			perror("voidstrike65 first-writer trace close");
+			exit(2);
+		}
+		dftrace_first_writer_file = NULL;
+	}
 }
 
 static void dftrace_init(void)
@@ -3837,9 +4105,21 @@ static void dftrace_init(void)
 	dftrace_output = getenv("DFTRACE_OUTPUT");
 	dftrace_interceptor_projectile_output = getenv("DFTRACE_INTERCEPTOR_PROJECTILE_OUTPUT");
 	dftrace_sector_clock_output = getenv("DFTRACE_SECTOR_CLOCK_OUTPUT");
+	dftrace_first_writer_output = getenv("DFTRACE_FIRST_WRITER_OUTPUT");
 	if (dftrace_policy == NULL || dftrace_session == NULL || dftrace_output == NULL) {
 		fprintf(stderr, "voidstrike65 trace: missing string environment\n");
 		exit(2);
+	}
+	if (dftrace_first_writer_output != NULL && *dftrace_first_writer_output != '\0') {
+		dftrace_first_writer_file = fopen(dftrace_first_writer_output, "w");
+		if (dftrace_first_writer_file == NULL) {
+			perror("voidstrike65 first-writer trace");
+			exit(2);
+		}
+		fputs("session,kind,frame,active_frame,host_frame,clock,vcount,cycle,address,old_value,new_value,writer_pc,x_register,y_register,logical_row,column,physical_row,ring_head,owner_mask,target_slot,enemy_state0,enemy_state1,enemy_x0,enemy_x1,enemy_y0,enemy_y1,entity_active_mask,entity_x,entity_y,effect_active_mask,player_projectiles,enemy_projectiles,sector_state,ring_flags,gameplay_frame,origin_frame,origin_clock,origin_vcount,origin_cycle\n",
+			dftrace_first_writer_file);
+		memcpy(dftrace_first_writer_shadow, MEMORY_mem,
+			sizeof(dftrace_first_writer_shadow));
 	}
 	dftrace_frames = (DFTraceFrame *) calloc(dftrace_limit, sizeof(*dftrace_frames));
 	if (dftrace_frames == NULL) {
@@ -4221,6 +4501,7 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 	if (!dftrace_initialised)
 		dftrace_init();
 	dftrace_track_character_screen_write(x_register, y_register);
+	dftrace_first_writer_track(x_register, y_register);
 	dftrace_near_observe(pc, x_register);
 	dftrace_watch_interceptor_projectiles();
 	dffence_observe(pc, x_register);
@@ -4719,8 +5000,10 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 		dftrace_raider_effect_generation_active = 1u;
 		dftrace_raider_slot0_seen = 0u;
 	}
-	else if (pc == dftrace_pc_emitter_cleanup)
+	else if (pc == dftrace_pc_emitter_cleanup) {
+		dftrace_first_writer_kill();
 		dftrace_emitter_cleanup_begin(&dftrace_current);
+	}
 	else if (pc == dftrace_pc_emitter_cleanup_end)
 		dftrace_emitter_cleanup_end(&dftrace_current);
 	else if (pc == dftrace_pc_pickup_qualified_kill)
@@ -4756,6 +5039,7 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 		dftrace_snapshot_flash(&dftrace_current);
 		dftrace_snapshot_engine(&dftrace_current);
 		dftrace_snapshot_muzzles(&dftrace_current);
+		dftrace_first_writer_frame_end();
 		dftrace_pickup_frame_end(&dftrace_current);
 		dftrace_write_interceptor_projectiles(&dftrace_current);
 		dftrace_write_sector_clock(&dftrace_current);

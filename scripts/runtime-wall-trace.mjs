@@ -188,6 +188,20 @@ const raiderRemnantSessions = pairShotStaleSessions.map((session) => ({
   kind: "raider-remnant-native",
 }));
 
+const raiderFirstWriterSessions = [
+  ["normal", "pairshot-normal", 0],
+  ["rapid", "pairshot-rapid", 2],
+  ["spread", "pairshot-spread", 4],
+].map(([mode, policy, fireDelay]) => ({
+  id: `raider-first-writer-${mode}-xex-hard`,
+  medium: "XEX",
+  difficulty: 2,
+  policy,
+  fireDelay,
+  frames: 5_400,
+  kind: "raider-first-writer-native",
+}));
+
 const weaponPickupTraversalSessions = [{
   id: "weapon-pickup-traversal-2-observe-fire4",
   difficulty: 2,
@@ -1895,6 +1909,7 @@ function main() {
   const pairShotOnly = process.argv.includes("--pairshot-only");
   const pairShotStaleOnly = process.argv.includes("--pairshot-stale-only");
   const raiderRemnantOnly = process.argv.includes("--raider-remnant-only");
+  const raiderFirstWriterOnly = process.argv.includes("--raider-first-writer-only");
   const effectsStaggerOnly = process.argv.includes("--effects-stagger-only");
   const debrisSlot0BaselineOnly = process.argv.includes("--debris-slot0-baseline-only");
   const skipBootSmoke = process.argv.includes("--skip-boot-smoke");
@@ -2067,6 +2082,8 @@ function main() {
   }
   let sessionsToRun = debrisSlot0BaselineOnly
     ? debrisSlot0BaselineSessions
+    : raiderFirstWriterOnly
+    ? raiderFirstWriterSessions
     : raiderRemnantOnly
     ? raiderRemnantSessions
     : pairShotStaleOnly
@@ -2102,6 +2119,10 @@ function main() {
   for (const session of sessionsToRun) {
     session.activeFrames = activeFrames;
     const outputPath = path.join(buildDirectory, `${session.id}.csv`);
+    const firstWriterOutput = session.kind === "raider-first-writer-native"
+      ? path.join(buildDirectory, `${session.id}-first-writer.csv`) : undefined;
+    const interceptorProjectileOutput = session.kind === "raider-first-writer-native"
+      ? path.join(buildDirectory, `${session.id}-enemy-projectiles.csv`) : undefined;
     const pickupContactPrefix = session.kind === "weapon-pickup-contact"
       ? path.join(buildDirectory, "weapon-pickup-contact-nose")
       : session.kind === "weapon-pickup-overlap"
@@ -2179,6 +2200,12 @@ function main() {
       DFTRACE_POLICY: session.policy,
       DFTRACE_SESSION: session.id,
       DFTRACE_OUTPUT: outputPath,
+      ...(firstWriterOutput === undefined ? {} : {
+        DFTRACE_FIRST_WRITER_OUTPUT: firstWriterOutput,
+      }),
+      ...(interceptorProjectileOutput === undefined ? {} : {
+        DFTRACE_INTERCEPTOR_PROJECTILE_OUTPUT: interceptorProjectileOutput,
+      }),
       ...(pickupFenceTrace ? {
         DFTRACE_FENCE_OUTPUT: path.join(buildDirectory, `${session.id}-fence.jsonl`),
         DFTRACE_FENCE_WAIT: String(labels.get("wait_gameplay_frame")),
@@ -2778,6 +2805,11 @@ function main() {
     summaries.push(sessionSummary(session, rows));
     console.log(`${session.id}: ${rows.length} frames, max ` +
       `${maximumRow(rows, (row) => row.wall_cycles).wall_cycles} wall cycles`);
+  }
+  if (raiderFirstWriterOnly) {
+    console.log(`Raider first-writer raw traces: ${sessionsToRun.length} sessions, ` +
+      `${allRows.length} frames`);
+    return;
   }
   if (debrisSlot0BaselineOnly) {
     const rows = allRows;

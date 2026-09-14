@@ -1,9 +1,9 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 3.8
+Wersja: 3.9
 Data aktualizacji: 2026-09-14
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD przed niniejszym proofem: `33f58a500cd831a280921e33eb99c18578e8a602`
+Aktualny HEAD przed niniejszym proofem: `56671a6fa7aba1abefa9c4863093ed916a9b732b`
 Stan runtime: niezmieniony dwuwarstwowy row-baked starfield po wycofaniu zbyt kosztownego static-far prototype + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck odroczony do debris 25 Hz / visual redesign; bez unified schedulera
 Aktualny XEX owner-smoke candidate: SHA-256 `c5bdc93b8b2b822bad22e19f402c9347de4fa1996cf58871c05b3ec0eba0b826`
 
@@ -1370,14 +1370,63 @@ Decyzja:
 
 **29 screen-static blue far stars są odrzucone w aktualnej architekturze ring.**
 
-### Następny krok — wymaga decyzji ownera
+### Poprzednia rekomendacja — SUPERSEDED decyzją ownera
 
-> Osobny proof bardzo wolnego blue drift około 1/6 bieżącej prędkości, z
-> globalnym low-frequency accumulator i sparse/staggered remapem.
+Po odrzuceniu 29 static far rekomendowano osobny proof bardzo wolnego blue
+drift. Właściciel zamiast niego autoryzował poniższy finalny proof 14 static
+far; slow drift nie został rozpoczęty.
 
-Nie implementować go automatycznie. Nie wykonywać background/ring 25 Hz przed
-rozstrzygnięciem starfield. Raider wreck pozostaje odroczony do późniejszego
-debris 25 Hz / visual redesign.
+Raider wreck pozostaje odroczony do późniejszego debris 25 Hz / visual
+redesign.
+
+### 14 static far + slow near final proof — BLOCKED / runtime wycofany
+
+Właściciel odrzucił gęstość 29 far stars i autoryzował dokładnie 14 małych,
+dwuwariantowych blue points nieruchomych w screen-space oraz cztery white near
+poruszające się z prędkością `2 px/frame`. Proof użył wyłącznie dekoracyjnych
+stałych pozycji far, bez velocity, lifecycle, twinkle, per-frame simulation ani
+pełnoekranowego backingu. White near zachowały naprawiony post-playfield
+publication/backing contract i wspólną integralną fazę `0/2/4/6`.
+
+Model był funkcjonalnie poprawny w hostowym wykonaniu połączonego kodu 6502:
+
+- `1000` klatek i `12` pełnych wrapów;
+- `28 000` sprawdzeń stałych pozycji far, `0` błędów;
+- dokładnie 14 far oraz 4 widoczne near w każdej badanej klatce;
+- `0` scrolling stale blue cells i konstrukcyjnie pojedyncza aktywna scanline
+  w każdym z dwóch blue glyph variants.
+
+Instruction-exact koszt uruchomił jednak twardy STOP:
+
+- far OLD pass: `535` cykli;
+- far NEW pass worst: `941`;
+- complete far remap: `1 482`;
+- slow-near normal peak: `722`;
+- skorelowany ring-step/wrap starfield peak: `2 305` cykli;
+- limit proofu: `1 500`, przekroczenie: `805`;
+- zachowany zysk względem historycznego `4 221`: tylko `1 916` cykli.
+
+Placement jest drugim niezależnym blockerem. Kandydat wypełnił surowy
+STARFIELD `2348/2348 B`, lecz po spakowaniu miał `1908/1819 B` i przekraczał
+bieżącą cold boundary o `116 B`. Initial content wzrósł `13 137 -> 13 259 B`
+i wymagał 104 zamiast 103 sektorów; linked runtime wzrósł
+`17 543 -> 17 686 B`. Nie zmieniono loadera, transportu ani BASIC RAM.
+
+Zgodnie ze STOP nie próbowano drugiego mappera, nie zmniejszono liczby 14,
+nie uruchomiono slow-drift fallbacku ani background/ring 25 Hz. Runtime i
+artefakty przywrócono byte-for-byte do checkpointu `56671a6`; focused
+starfield po rollbacku ma `19/19 PASS`.
+
+Raport:
+`docs/diagnostics/stage-2b2b-14-static-far-slow-near-final-proof.json`.
+
+Decyzja:
+
+**14 screen-static blue far + 4 slow white near są odrzucone w aktualnej
+architekturze ring i cold layout. Nie istnieje legalny XEX do owner smoke.**
+
+Następny krok ponownie wymaga jawnej decyzji właściciela. Nie wykonywać
+background/ring 25 Hz automatycznie.
 
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 

@@ -376,6 +376,15 @@ function snapshot(memory, labels, {
       memory[requiredLabel(labels, "ENEMY_MEMBER_STATE") + slot]),
     enemyExplosionTimer:
       memory[requiredLabel(labels, "FIGHTER_EXPLOSION_TIMER") + 1],
+    enemyExplosionX:
+      memory[requiredLabel(labels, "FIGHTER_EXPLOSION_X") + 1],
+    enemyExplosionY:
+      memory[requiredLabel(labels, "FIGHTER_EXPLOSION_Y") + 1],
+    enemyTargetSlot: memory[requiredLabel(labels, "ENEMY_TARGET_SLOT")],
+    enemyXSlots: [0, 1].map((slot) =>
+      memory[requiredLabel(labels, "ENEMY_X") + slot]),
+    enemyYSlots: [0, 1].map((slot) =>
+      memory[requiredLabel(labels, "ENEMY_Y") + slot]),
     colbk: memory[0xd01a],
     colpm1: memory[0xd013],
     colpm2: memory[0xd014],
@@ -625,8 +634,8 @@ export function executeInterceptorBreakupTrace({
         armShot(memory, labels, { x: enemyX + 2, y: enemyY + 14, kind });
         runRoutine(memory, labels, "update_fighter_projectiles", { writeLog, frame });
       } else {
-        memory[requiredLabel(labels, "ENEMY_PENDING_DAMAGE")] = 1;
-        memory[requiredLabel(labels, "ENEMY_PENDING_SOURCE")] = 0;
+        memory[requiredLabel(labels, "ENEMY_PENDING_DAMAGE") + raiderSlot] = 1;
+        memory[requiredLabel(labels, "ENEMY_PENDING_SOURCE") + raiderSlot] = 0;
       }
       runRoutine(memory, labels, "resolve_enemy_damage", { writeLog, frame });
       currentEffectGeneration = deathEffectGeneration;

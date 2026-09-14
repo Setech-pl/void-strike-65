@@ -192,6 +192,9 @@ typedef struct {
 	unsigned transient_effect_first_code;
 	unsigned transient_effect_first_writer_pc;
 	unsigned transient_effect_first_writer_x;
+	unsigned transient_effect_coordinate_wraps;
+	unsigned interceptor_breakup_request_slot0;
+	unsigned interceptor_breakup_request_slot1;
 	unsigned rapid_projectiles;
 	unsigned player_fighter_projectiles;
 	unsigned player_projectile_recycled_checks;
@@ -412,6 +415,7 @@ static unsigned dftrace_pc_effect_spawn;
 static unsigned dftrace_pc_effect_erase;
 static unsigned dftrace_pc_effect_update;
 static unsigned dftrace_pc_effect_render;
+static unsigned dftrace_pc_interceptor_breakup_request;
 static unsigned dftrace_pc_interceptor_breakup_spawn;
 static unsigned dftrace_pc_pickup_qualified_kill;
 static unsigned dftrace_pc_pickup_collect;
@@ -522,8 +526,12 @@ static unsigned dftrace_score_hi;
 static unsigned dftrace_effect_active_mask;
 static unsigned dftrace_effect_active_count;
 static unsigned dftrace_effect_rendered_mask;
+static unsigned dftrace_effect_y;
 static unsigned dftrace_effect_screen_lo;
 static unsigned dftrace_effect_screen_hi;
+static unsigned dftrace_enemy_target_slot;
+static unsigned dftrace_previous_effect_active_mask;
+static unsigned dftrace_previous_effect_y[5];
 static unsigned dftrace_engine_timer;
 static unsigned dftrace_engine_phase;
 static unsigned dftrace_corridor_phase;
@@ -1790,6 +1798,24 @@ static void dftrace_snapshot_transient_effect_orphans(DFTraceFrame *frame)
 			}
 			++frame->transient_effect_orphan_cells;
 		}
+}
+
+static void dftrace_snapshot_transient_effect_coordinates(DFTraceFrame *frame)
+{
+	unsigned active = MEMORY_mem[dftrace_effect_active_mask];
+	unsigned slot;
+	frame->transient_effect_coordinate_wraps = 0u;
+	for (slot = 0u; slot < 5u; ++slot) {
+		unsigned bit = 1u << slot;
+		unsigned y = MEMORY_mem[dftrace_effect_y + slot];
+		if ((active & bit) != 0u &&
+			(dftrace_previous_effect_active_mask & bit) != 0u &&
+			((dftrace_previous_effect_y[slot] >= 240u && y < 4u) ||
+			 (dftrace_previous_effect_y[slot] < 4u && y >= 240u)))
+			++frame->transient_effect_coordinate_wraps;
+		dftrace_previous_effect_y[slot] = y;
+	}
+	dftrace_previous_effect_active_mask = active;
 }
 
 static void dftrace_pairshot_rotate_begin(void)
@@ -3287,6 +3313,7 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 	dftrace_snapshot_rapid_projectile(frame);
 	dftrace_snapshot_player_pairshot_orphans(frame);
 	dftrace_snapshot_transient_effect_orphans(frame);
+	dftrace_snapshot_transient_effect_coordinates(frame);
 	frame->colbk = GTIA_COLBK;
 	frame->colpm0 = GTIA_COLPM0;
 	frame->colpm1 = GTIA_COLPM1;
@@ -3419,7 +3446,9 @@ static void dftrace_write(void)
 		",fire_timer_value,player_burst_state,player_burst_remaining,player_burst_timer"
 		",audf1,audc1,fire_accept_calls,update_sound_calls"
 		",fire_accept_clock,update_sound_clock"
-		",fire_accept_scanline,fire_accept_cycle,update_sound_scanline,update_sound_cycle\n");
+		",fire_accept_scanline,fire_accept_cycle,update_sound_scanline,update_sound_cycle"
+		",transient_effect_coordinate_wraps,interceptor_breakup_request_slot0"
+		",interceptor_breakup_request_slot1\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -3618,7 +3647,7 @@ static void dftrace_write(void)
 			frame->transient_effect_first_code,
 			frame->transient_effect_first_writer_pc,
 			frame->transient_effect_first_writer_x);
-		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%llu,%llu,%u,%u,%u,%u\n",
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%llu,%llu,%u,%u,%u,%u,%u,%u,%u\n",
 			frame->fire_timer_value, frame->player_burst_state,
 			frame->player_burst_remaining, frame->player_burst_timer,
 			frame->audf1, frame->audc1, frame->fire_accept_calls,
@@ -3626,7 +3655,10 @@ static void dftrace_write(void)
 			(unsigned long long) frame->fire_accept_clock,
 			(unsigned long long) frame->update_sound_clock,
 			frame->fire_accept_scanline, frame->fire_accept_cycle,
-			frame->update_sound_scanline, frame->update_sound_cycle);
+			frame->update_sound_scanline, frame->update_sound_cycle,
+			frame->transient_effect_coordinate_wraps,
+			frame->interceptor_breakup_request_slot0,
+			frame->interceptor_breakup_request_slot1);
 	}
 	if (fclose(file) != 0) {
 		perror("voidstrike65 trace close");
@@ -3724,6 +3756,8 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_pc_effect_erase, "DFTRACE_PC_EFFECT_ERASE");
 	DFTRACE_ADDRESS(dftrace_pc_effect_update, "DFTRACE_PC_EFFECT_UPDATE");
 	DFTRACE_ADDRESS(dftrace_pc_effect_render, "DFTRACE_PC_EFFECT_RENDER");
+	DFTRACE_ADDRESS(dftrace_pc_interceptor_breakup_request,
+		"DFTRACE_PC_INTERCEPTOR_BREAKUP_REQUEST");
 	DFTRACE_ADDRESS(dftrace_pc_interceptor_breakup_spawn, "DFTRACE_PC_INTERCEPTOR_BREAKUP_SPAWN");
 	DFTRACE_ADDRESS(dftrace_pc_pickup_qualified_kill, "DFTRACE_PC_PICKUP_QUALIFIED_KILL");
 	DFTRACE_ADDRESS(dftrace_pc_pickup_collect, "DFTRACE_PC_PICKUP_COLLECT");
@@ -3832,8 +3866,10 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_effect_active_mask, "DFTRACE_EFFECT_ACTIVE_MASK");
 	DFTRACE_ADDRESS(dftrace_effect_active_count, "DFTRACE_EFFECT_ACTIVE_COUNT");
 	DFTRACE_ADDRESS(dftrace_effect_rendered_mask, "DFTRACE_EFFECT_RENDERED_MASK");
+	DFTRACE_ADDRESS(dftrace_effect_y, "DFTRACE_EFFECT_Y");
 	DFTRACE_ADDRESS(dftrace_effect_screen_lo, "DFTRACE_EFFECT_SCREEN_LO");
 	DFTRACE_ADDRESS(dftrace_effect_screen_hi, "DFTRACE_EFFECT_SCREEN_HI");
+	DFTRACE_ADDRESS(dftrace_enemy_target_slot, "DFTRACE_ENEMY_TARGET_SLOT");
 	DFTRACE_ADDRESS(dftrace_engine_timer, "DFTRACE_ENGINE_TIMER");
 	DFTRACE_ADDRESS(dftrace_engine_phase, "DFTRACE_ENGINE_PHASE");
 	DFTRACE_ADDRESS(dftrace_corridor_phase, "DFTRACE_CORRIDOR_PHASE");
@@ -4531,6 +4567,13 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 		dftrace_current.events |= DFTRACE_EVENT_EFFECT_UPDATE;
 	else if (pc == dftrace_pc_effect_render)
 		dftrace_current.events |= DFTRACE_EVENT_EFFECT_RENDER;
+	else if (pc == dftrace_pc_interceptor_breakup_request) {
+		unsigned slot = MEMORY_mem[dftrace_enemy_target_slot];
+		if (slot == 0u)
+			++dftrace_current.interceptor_breakup_request_slot0;
+		else if (slot == 1u)
+			++dftrace_current.interceptor_breakup_request_slot1;
+	}
 	else if (pc == dftrace_pc_interceptor_breakup_spawn)
 		dftrace_current.events |= DFTRACE_EVENT_INTERCEPTOR_BREAKUP_SPAWN;
 	else if (pc == dftrace_pc_pickup_qualified_kill)

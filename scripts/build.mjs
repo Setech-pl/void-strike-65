@@ -177,7 +177,7 @@ const directorRunAddress = 0x9d75;
 const directorGuardAddress = 0x9ffa;
 // White-only stars and one-cell PairShots retain the same loader implementation.
 // The two-Heavy raster repair adds one 40-byte departing-row helper to A2.
-const expectedInitialContentBytes = 13170;
+const expectedInitialContentBytes = 13171;
 const expectedLinkedRuntimeBytes = 17580;
 const expectedDirectorRawBytes = 644;
 const expectedDirectorPackedBytes = 587;

@@ -10065,8 +10065,9 @@ update_transient_effects:
     dec EFFECT_ACTIVE_COUNT
     lsr EFFECT_STATE
 @fragments:
-    lda EFFECT_STATE+1
-    beq @done
+    ; A non-zero pool mask always implies the four fixed fragment slots are
+    ; alive: every production allocator creates all five slots atomically and
+    ; only the core expires independently. Avoid a redundant slot-one probe.
     lda ENTITY_FRAME_EVENTS
     and #ENTITY_EVENT_WORLD_ROW_ADVANCED
     sta EFFECT_SCRATCH0
@@ -10097,6 +10098,11 @@ update_transient_effects:
     adc effect_fragment_vy,x
     clc
     adc EFFECT_SCRATCH0
+    ; A local +/-2 step can approach either unsigned wrap only after leaving
+    ; the playfield. Do not commit modulo results 0..3: retaining the previous
+    ; off-screen Y keeps that fragment hidden until the common TTL expires.
+    cmp #$04
+    bcc @next
     sta EFFECT_Y,x
 @next:
     dex
@@ -10105,6 +10111,10 @@ update_transient_effects:
     beq clear_transient_effects
 @done:
     rts
+    ; Preserve the reviewed entry points below this routine. The wrap guard
+    ; replaces a five-byte redundant probe with four live bytes; one cold pad
+    ; keeps every existing integration ABI address unchanged.
+    .res 1,$EA
 
 ; Lifecycle reset releases collisionless effects but deliberately preserves
 ; a current frame's backing records. If called after rendering (sector COMPLETE),

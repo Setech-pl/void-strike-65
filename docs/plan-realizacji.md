@@ -1906,6 +1906,34 @@ Raport:
 
 Następny task: `Owner smoke off-screen Raider + gameplay debris entry`.
 
+### Raider destruction fragment wrong-origin — FIX PASS / OWNER SMOKE
+
+Owner-observed fragment został zidentyfikowany jako istniejący collisionless
+Raider breakup effect, nie PMG, gameplay debris ani przyszły wreck. Snapshot
+kill X/Y oraz wybór P1/P2 były poprawne. Błąd powstawał później: 30-frame
+fragmenty kontynuowały ruch w unsigned `EFFECT_Y`; po opuszczeniu dołu sloty
+3/4 mogły zawinąć `$FF->$00` i po dojściu do Y=`24` wyrenderować się ponownie
+w odległym X. Deterministyczny baseline: `8` wrong-origin publishes / `96`
+fragmentów, po fixie `0/96` i coordinate wraps `0`.
+
+`update_transient_effects` nie zapisuje teraz wyników Y=`0..3`, zachowując
+ostatnią off-screen pozycję do wygaśnięcia TTL. Usunięty redundantny pięciobajtowy
+probe fragment state oraz 1 cold pad zachowują wszystkie późniejsze entry points;
+linked runtime pozostaje `17 580 B`, RAM bez zmian. Aktywny breakup update ma
+instruction-exact delta `+13` cykli typowo; poza breakup steady-state delta `0`.
+
+Host: nowy origin/reuse `3/3`, wcześniejszy Raider remnant `8/8` (ponad `5000`
+kill events), effects/off-screen/PairShot/two-PMG `18/18`, fire/audio `3/3`,
+layout `6/6`. Atari800 7.1.2 PAL: `9000` klatek, `124` kill requests
+(`62` P1 + `62` P2), `496` fragmentów, wrong-origin/wrap `0`, Raider breakup
+orphan `0`, missed/target/hard/extra-VBI/DLI `0`; active-work max `20 479`.
+Osobny 1000-frame two-Heavy raster: `13` overlaps, black-mask/stale `0`.
+
+Raport:
+`docs/diagnostics/stage-2b2b-raider-destruction-fragment-wrong-origin-fix.json`.
+
+Następny task: `Owner smoke Raider destruction fragment origin fix`.
+
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 
 Raster bands są wariantem rezerwowym **dopiero po rozwiązaniu ownership**, jeżeli nadal pozostanie czysty problem deadline'ów.

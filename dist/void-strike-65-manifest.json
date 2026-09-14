@@ -8,7 +8,7 @@
     "layout": "Layout D.2 — post-clear director init + intensity-preserving admission ABI",
     "levelWorldRows": 3712,
     "phaseCount": 8,
-    "initialContentBytes": 13170,
+    "initialContentBytes": 13171,
     "linkedRuntimeBytes": 17580,
     "simultaneousResidencyBytes": 18058,
     "safeResidencyBytes": 4129,
@@ -56,7 +56,7 @@
   "bootSectors": 103,
   "payloadBytes": 20864,
   "bootPayloadTrailer": {
-    "address": 21358,
+    "address": 21359,
     "bytes": 4,
     "ascii": "DFB1",
     "hex": "44464231",
@@ -100,7 +100,7 @@
       "baselineReserveBytes": 1097,
       "reserveBytes": 73,
       "recoveredReserveBytes": 1097,
-      "residentSuffixGrossSavingsBytes": 1015,
+      "residentSuffixGrossSavingsBytes": 1014,
       "relocatedColdInitBytes": 2437,
       "relocatedColdInitPackedCostBytes": 2057,
       "reserveAddress": 24499,
@@ -126,8 +126,8 @@
   "transportCapacity": {
     "format": "DFMC-v1 multi-chunk",
     "initialBootBytes": 13184,
-    "initialBootContentBytes": 13170,
-    "initialBootEnvelopeBytes": 14,
+    "initialBootContentBytes": 13171,
+    "initialBootEnvelopeBytes": 13,
     "initialBootSectors": 103,
     "extensionBytes": 7680,
     "extensionSectors": 60,
@@ -219,10 +219,10 @@
     "prefixEndAddress": 8640,
     "suffixAddress": 8641,
     "suffixRawBytes": 7743,
-    "suffixPackedBytes": 6728,
+    "suffixPackedBytes": 6729,
     "packedSourceAddress": 9898,
     "stagingAddress": 33024,
-    "stagedEndAddress": 39751,
+    "stagedEndAddress": 39752,
     "compression": "LZ-10/5"
   },
   "broadsideRuntime": {
@@ -289,10 +289,10 @@
     "bytes": 2188,
     "reservedBytes": 2348,
     "packedBytes": 1787,
-    "packedSourceAddress": 16626,
-    "packedSourceEndExclusive": 18413,
+    "packedSourceAddress": 16627,
+    "packedSourceEndExclusive": 18414,
     "pickupColdStagingAddress": 18433,
-    "packedSourceToPickupMarginBytes": 20,
+    "packedSourceToPickupMarginBytes": 19,
     "stagingAddress": 30736,
     "stagingBytes": 1819,
     "compression": "LZ-10/5"
@@ -300,7 +300,7 @@
   "a2Kernel": {
     "loadAddress": 27136,
     "runAddress": 36864,
-    "sourceAddress": 18413,
+    "sourceAddress": 18414,
     "stagingAddress": 32555,
     "bytes": 237,
     "reservedBytes": 256,
@@ -361,14 +361,14 @@
       }
     },
     "packedBytes": 2708,
-    "packedSourceAddress": 18650,
-    "initialPackedSourcesEndExclusive": 21358,
-    "initialPackedSourcesLastAddress": 21357,
+    "packedSourceAddress": 18651,
+    "initialPackedSourcesEndExclusive": 21359,
+    "initialPackedSourcesLastAddress": 21358,
     "stagedSourceAddress": 21272,
     "stagedEndAddress": 23979,
     "stagedEndExclusive": 23980,
-    "sourceToStagingMarginBytes": -86,
-    "sourceStagingOverlapBytes": 86,
+    "sourceToStagingMarginBytes": -87,
+    "sourceStagingOverlapBytes": 87,
     "stagingCopyDirection": "backward",
     "stagingToBroadsideMarginBytes": 100,
     "stagingLifecycle": {
@@ -1190,17 +1190,17 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 20864,
-        "sha256": "7a368ad64d19153bae03152172a5080b322ad1d13c51f2ab37f8bf422292f3db"
+        "sha256": "a629f3553d8f6c02db4890426bc6b78317bb48087977b9ca9e7ec60a7fdce317"
       },
       "void-strike-65.xex": {
         "path": "dist/void-strike-65.xex",
         "bytes": 21625,
-        "sha256": "bd736c8e4a44a70dfc0bb95b54e4d693b443b3a3085ffec74f9d7f5c39af2bfb"
+        "sha256": "039960a4b62d0665f58992681c21d7d7ed42400ded770ef4cdf0e58a6fbbd5e8"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "0317e359fd563cc2977e4c275406dfb50a6e499041b7f70d3b3d1d92f4ba286b"
+        "sha256": "fdc629f158db81bfa4ac2b0d994be6a7002fd527912f1d3f633489ae31bb0853"
       }
     },
     "reportPath": null,
@@ -1209,15 +1209,15 @@
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 20864,
-      "sha256": "7a368ad64d19153bae03152172a5080b322ad1d13c51f2ab37f8bf422292f3db"
+      "sha256": "a629f3553d8f6c02db4890426bc6b78317bb48087977b9ca9e7ec60a7fdce317"
     },
     "void-strike-65.xex": {
       "bytes": 21625,
-      "sha256": "bd736c8e4a44a70dfc0bb95b54e4d693b443b3a3085ffec74f9d7f5c39af2bfb"
+      "sha256": "039960a4b62d0665f58992681c21d7d7ed42400ded770ef4cdf0e58a6fbbd5e8"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "0317e359fd563cc2977e4c275406dfb50a6e499041b7f70d3b3d1d92f4ba286b"
+      "sha256": "fdc629f158db81bfa4ac2b0d994be6a7002fd527912f1d3f633489ae31bb0853"
     }
   }
 }

@@ -177,8 +177,8 @@ const directorRunAddress = 0x9d75;
 const directorGuardAddress = 0x9ffa;
 // White-only stars and one-cell PairShots retain the same loader implementation.
 // The two-Heavy raster repair adds one 40-byte departing-row helper to A2.
-const expectedInitialContentBytes = 13171;
-const expectedLinkedRuntimeBytes = 17580;
+const expectedInitialContentBytes = 13165;
+const expectedLinkedRuntimeBytes = 17572;
 const expectedDirectorRawBytes = 644;
 const expectedDirectorPackedBytes = 587;
 const expectedGlueRawBytes = 250;
@@ -905,8 +905,8 @@ async function build() {
   ]);
   if (bootSectors !== 103 || totalTransportSectors !== 163 ||
     transportPayload.length !== 20864 || JSON.stringify(frozenRecordShape) !== JSON.stringify([
-      [104, 45, 5671, 6653, 0x5e10],
-      [149, 7, 866, 866,
+      [104, 45, 5670, 6653, 0x5e10],
+      [149, 7, 860, 860,
         weaponPickupPackedStagingAddress],
       [156, 3, 245, 250, glueStagingAddress],
       [159, 5, 587, 644, directorRunAddress],

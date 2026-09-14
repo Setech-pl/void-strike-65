@@ -15,7 +15,7 @@ The repository currently contains:
 - `SCORE`, `LIFE`, and `HULL` HUD state;
 - parallax starfield and the scrolling Allied/Hostile broadside sector;
 - two-phase dim/bright capital-engine animation;
-- the Interceptor, its projectile weapon, damage, score, and breakup;
+- the Interceptor, its projectile weapon, damage, score, and compact destruction core;
 - interactive debris, destructible debris, contact damage, and breakup effects;
 - bounded entity and effects pools with reverse erase;
 - Rapid Fire Booster;

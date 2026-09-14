@@ -114,7 +114,7 @@ with a different sprite.
 | Fighter shots | 19: player 0–9, hostile 10–18 | Ten arrays × 19 B = 190 B; plus two three-byte burst controllers and two three-byte explosions = 202 B at `$5400–$54C9` |
 | Capital bolts | 3 | Independent warning/flight/impact lifecycle, owner/direction, cached backing; two-unit Director charge per committed bolt |
 | Interactive entities | 4 / 2 visible | 20 arrays × 4 B + 16 global bytes = 96 B at `$8000–$805F`; slot 0 debris, 1 pickup, 2 non-rendered booster controller, 3 reserve |
-| Cosmetic effects | 6 / 5 | 18 arrays × 6 B + 8 globals = 116 B at `$8080–$80F3`; one core plus four fragments; sixth slot reserved |
+| Cosmetic effects | 6 / 5 | 18 arrays × 6 B + 8 globals = 116 B at `$8080–$80F3`; debris may use one core plus four fragments, Raider uses only slot-zero core; sixth slot reserved |
 | Director state | 12 B | `$80F4–$80FF`, initialized after the complete entity page clear |
 
 Do not mistake the interactive/effect capacities for a general enemy allocator.

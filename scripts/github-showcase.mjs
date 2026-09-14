@@ -330,7 +330,7 @@ export function createAssetSheets() {
     drawPair("ARMOUR SHARD PHASE 2", 16, 282, 120);
     drawPair("TRUSS FRAGMENT PHASE 1", 32, 522, 120);
     drawPair("TRUSS FRAGMENT PHASE 2", 48, 762, 120);
-    drawHudText(canvas, "BREAKUP FRAGMENTS", 42, 280, 1, muted, graphics);
+    drawHudText(canvas, "DEBRIS BREAKUP FRAGMENTS", 42, 280, 1, muted, graphics);
     drawAntic4Glyph(canvas, entities.effectGlyphs.subarray(0, 8), 42, 315, 7, palette);
     drawAntic4Glyph(canvas, entities.effectGlyphs.subarray(8, 16), 115, 315, 7, palette, true);
     drawHudText(canvas, "RAPID FIRE CAPSULE", 340, 280, 1, muted, graphics);

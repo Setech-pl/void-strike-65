@@ -1970,6 +1970,45 @@ Raport:
 
 Następny task: `Owner smoke remaining mid-screen debris/remnant fix`.
 
+### Raider transient breakup fragments — REMOVED / OWNER SMOKE
+
+Owner zdecydował usunąć opcjonalne collisionless flying fragments zamiast
+kontynuować debugowanie remnantów. Raider breakup używał wspólnego pięcioslotowego
+poolu: slot 0 był kompaktowym core, a sloty 1–4 dwoma skrzydłami, czerwonym
+okiem i fragmentem centralnym. Raider materializuje teraz wyłącznie slot 0
+(`active mask=$01`, `count=1`, TTL 5). Generic gameplay-debris destruction
+nadal materializuje własny core + cztery fragmenty (`$1F`, count 5) i jego
+wykonany XEX trace jest byte-identical względem baseline.
+
+Score, hit sound, Encounter Director accounting, Heavy release, 24-frame
+destruction/respawn timing i off-screen respawn są bez zmian. Nie dodano wreck,
+debris, collectible ani obstacle. Raider path nie wykonywał fragment-only RNG,
+więc nie było takiej pracy do usunięcia; usunięto lokalną tabelę czterech
+tożsamości, inicjalizację slotów 1–4 i ich późniejszy update/render lifecycle.
+
+Host focused: `107/107 PASS`, w tym P1/P2, oba Heavy z kill P1/P2,
+sekwencyjne i naprzemienne zabicia, shared-pool reuse/TTL/masks, PairShot,
+off-screen spawn, PMG ownership oraz ponad `5000` kill events bez remnantów.
+Boot smoke XEX/ATR: `4/4 PASS`.
+
+Atari800 7.1.2 PAL production XEX: `9000` klatek, `124` kills (`62+62`),
+main explosions `124`, flying fragments `0`, remnant publications `0`, stale
+Raider PMG `0`, missed/target/hard/extra-VBI/DLI `0`. Osobny current-artifact
+two-Heavy supplement: `1000` klatek, `113` two-Heavy frames, `13` overlaps,
+black-mask `0`, inactive-slot stale pages `0`, off-screen spawns `5/5` legal.
+
+Linked runtime spadł `17 580 -> 17 572 B`; simultaneous residency
+`18 058 -> 18 050 B`, safe headroom `4 129 -> 4 137 B`; state RAM bez zmian.
+Instruction-exact lethal resolution `936 -> 917` cykli, materialisation update
+`806 -> 106`, core active update `343 -> 35`, steady no-effect frame `69 -> 69`.
+Native active-work max `20 479 -> 20 097`, target/hard headroom
+`10 721/12 089 -> 11 103/12 471`.
+
+Raport:
+`docs/diagnostics/stage-2b2b-raider-transient-breakup-fragments-removal.json`.
+
+Następny task: `Player PairShot variable-speed deterministic trace + root-cause + minimal fix`.
+
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 
 Raster bands są wariantem rezerwowym **dopiero po rozwiązaniu ownership**, jeżeli nadal pozostanie czysty problem deadline'ów.

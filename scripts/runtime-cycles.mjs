@@ -932,9 +932,9 @@ export function measureRuntimeCycles(build) {
   invariant(debrisDestructionPath, "Replay did not execute final debris destruction");
   invariant(fullEffectsPath?.before.effectActiveMask === 0x1f,
     "Replay did not execute one core plus four debris fragments");
-  invariant(interceptorBreakupPath?.after.effectActiveMask === 0x1f &&
-    interceptorBreakupPath.after.effectActiveCount === 5,
-  "Replay did not execute one Interceptor core plus four fragments");
+  invariant(interceptorBreakupPath?.after.effectActiveMask === 0x01 &&
+    interceptorBreakupPath.after.effectActiveCount === 1,
+  "Replay did not execute the slot-zero Interceptor destruction core");
   invariant(noPlayerFighterProjectilePath, "Replay did not execute a frame without PlayerFighter projectiles");
   invariant(!noPlayerFighterProjectilePath.hits.has("entity_player_fighter_projectile_target"),
     "Debris projectile dispatch ran without an active PlayerFighter projectile");
@@ -1034,8 +1034,8 @@ export function measureRuntimeCycles(build) {
       noActiveExplosionPathLimitCpuCycles: 124,
       spawnPathCpuCycles:
         interceptorBreakupPath.procedureTotalCycles.materialize_interceptor_breakup_effects,
-      fullEffectsPathCpuCycles: entityWrapperCycles(fullEffectsPath),
-      measurement: "linked release Interceptor death and shared five-slot effect path",
+      fullEffectsPathCpuCycles: entityWrapperCycles(interceptorBreakupPath),
+      measurement: "linked release Interceptor death and slot-zero core effect path",
     },
     replay: {
       sessions: sessions.map(({ difficulty, policy, fireDelay, frames: frameLimit }) => ({

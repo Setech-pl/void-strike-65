@@ -226,7 +226,7 @@ test("non-projectile causes and repeated resolution never advance the drop count
   assert.deepEqual(causes.map(({ first }) => first.scoreLo), [0x10, 0x10, 0, 0, 0]);
 });
 
-test("pending is hidden and non-colliding for thirty full frames after Interceptor breakup", () => {
+test("pickup pending remains hidden and non-colliding for thirty full frames", () => {
   const trace = executeWeaponPickupTrace({ root, artifact: "xex" });
   const pending = trace.records.filter(({ phase }) => phase === "PENDING");
   assert.equal(pending.length, 30);
@@ -239,7 +239,7 @@ test("pending is hidden and non-colliding for thirty full frames after Intercept
   assert.deepEqual([
     firstActive.state, firstActive.activeMask, firstActive.activeCount,
     firstActive.effectActiveMask, firstActive.effectActiveCount, firstActive.y,
-  ], [2, 2, 1, 0, 0, 24], "Interceptor fragments must expire before the capsule enters at the top");
+  ], [2, 2, 1, 0, 0, 24], "Raider core must be inactive before the capsule enters at the top");
 });
 
 test("every booster type enters at the top, crosses the full playfield once and releases below it", () => {

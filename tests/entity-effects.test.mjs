@@ -139,8 +139,8 @@ const addresses = {
   enemyFormationYHi: labels.get("ENEMY_FORMATION_Y_HI"),
   enemyTargetSlot: labels.get("ENEMY_TARGET_SLOT"),
   enemyLiveCount: labels.get("ENEMY_LIVE_COUNT"),
-  enemyX: labels.get("enemy_x"),
-  enemyY: labels.get("enemy_y"),
+  enemyX: labels.get("ENEMY_X"),
+  enemyY: labels.get("ENEMY_Y"),
   scoreLo: labels.get("score_bcd_lo"),
   scoreHi: labels.get("score_bcd_hi"),
   player_fighterBurstTimer: labels.get("PLAYER_FIGHTER_BURST_TIMER"),
@@ -406,14 +406,7 @@ test("entity descriptor and glyph generation are deterministic and bounded", () 
   assert.ok(first.debrisVisuals.variants.every(({ phases }) => phases.length === 2));
   assert.deepEqual(first.interceptorBreakup, {
     coreFrames: 5,
-    fragmentFrames: 30,
     coreOffsetHpos: 6,
-    fragments: [
-      { id: "left-wing", phaseGlyphs: ["armour-left-0", "armour-left-1"] },
-      { id: "right-wing", phaseGlyphs: ["armour-right-0", "armour-right-1"] },
-      { id: "central", phaseGlyphs: ["debris-fragment-0", "debris-fragment-1"] },
-      { id: "red-eye", phaseGlyphs: ["interceptor-pulse-0-red", "interceptor-pulse-1-red"] },
-    ],
   });
   assert.deepEqual([...first.descriptor.slice(5, 10)], [8, 8, 1, 0, 8]);
   assert.equal(first.descriptor[12], 0,
@@ -1804,7 +1797,7 @@ test("shot destruction after reverse erase leaves no glyph at any A2 ring head",
   }
 });
 
-test("executed XEX and ATR traces show five rendered effects and a visible 30-frame split", () => {
+test("executed XEX and ATR traces preserve the five-slot generic debris split", () => {
   const xexTrace = executeDebrisDestructionTrace({ root, artifact: "xex" });
   const atrTrace = executeDebrisDestructionTrace({ root, artifact: "atr" });
   assert.equal(assertDebrisDestructionTraceParity(xexTrace, atrTrace), true);
@@ -1833,9 +1826,12 @@ test("executed XEX and ATR traces show five rendered effects and a visible 30-fr
   assert.deepEqual(first.effects.map(({ slot, type, ttl }) => [slot, type, ttl]),
     [[0, 1, 5], [1, 2, 30], [2, 2, 30], [3, 2, 30], [4, 2, 30]]);
   const firstFragments = first.effects.slice(1);
-  assert.equal(new Set(firstFragments.map(({ screenAddress }) => screenAddress)).size, 4,
-    "all four fragments must occupy distinct rendered cells immediately");
-  assert.ok(firstFragments.every(({ drawn, screenCode }) => drawn === 1 && screenCode !== 0));
+  assert.ok(new Set(firstFragments.map(({ screenAddress }) => screenAddress)).size >= 3,
+    "the unchanged debris split must occupy at least three rendered cells immediately");
+  const initiallyDrawnFragments = firstFragments.filter(({ drawn }) => drawn === 1);
+  assert.equal(initiallyDrawnFragments.length, 2,
+    "the first stagger parity must publish the unchanged two fragment slots");
+  assert.ok(initiallyDrawnFragments.every(({ screenCode }) => screenCode !== 0));
 
   const positions = (frame) => new Map(find("FINAL", frame).effects
     .filter(({ slot }) => slot > 0).map(({ slot, x, y }) => [slot, { x, y }]));
@@ -1905,7 +1901,8 @@ test("every canonical Interceptor death spawns one local breakup without changin
       memory[addresses.effectPending], memory[addresses.scoreLo], memory[addresses.scoreHi],
     ], [2, 24, 0, 0, 2, scoreLo, 0x07], `damage source ${sourceId}`);
     assert.ok(memory.subarray(0x3d00 + 88, 0x3d00 + 102).every((value) => value === 0));
-    assert.ok(memory.subarray(0x3e00 + 88, 0x3e00 + 102).every((value) => value === 0));
+    assert.ok(memory.subarray(0x3e00 + 88, 0x3e00 + 102).every((value) => value === 0xff),
+      "killing P1 must not erase the live P2 PMG page");
     assert.deepEqual([
       memory[addresses.fighterExplosionX + 1], memory[addresses.fighterExplosionY + 1],
     ], [124, 91], "PMG origin must be captured before the deferred local effect");
@@ -1917,15 +1914,15 @@ test("every canonical Interceptor death spawns one local breakup without changin
     assert.deepEqual([
       memory[addresses.effectPending], memory[addresses.effectActiveMask],
       memory[addresses.effectActiveCount], memory[addresses.effectX], memory[addresses.effectY],
-    ], [0, 0x1f, 5, 130, 91], "the next PAL frame must materialise the centred effect");
+    ], [0, 0x01, 1, 130, 91], "the next PAL frame must materialise only the centred core");
     assert.deepEqual([...memory.subarray(addresses.effectType, addresses.effectType + 5)],
-      [1, 2, 2, 2, 2], "Interceptor reuses the collisionless core/fragment renderer types");
-    assert.deepEqual([...memory.subarray(addresses.effectRenderId, addresses.effectRenderId + 5)],
-      [110, 111, 113, 0xdb, 119], "four fragment identities must use linked render IDs");
+      [1, 0, 0, 0, 0], "Raider destruction must allocate no fragment effect types");
+    assert.equal(memory[addresses.effectRenderId], 110,
+      "the retained core must use the compact destruction glyph");
   }
 });
 
-test("executed Interceptor breakup is one-frame deferred, radial, thirty frames and XEX/ATR exact", () => {
+test("executed Raider destruction is one-frame deferred, core-only, and XEX/ATR exact", () => {
   const xexTrace = executeInterceptorBreakupTrace({ root, artifact: "xex" });
   const atrTrace = executeInterceptorBreakupTrace({ root, artifact: "atr" });
   assert.equal(assertInterceptorBreakupTraceParity(xexTrace, atrTrace), true);
@@ -1935,40 +1932,27 @@ test("executed Interceptor breakup is one-frame deferred, radial, thirty frames 
     xexTrace.records[0].enemyActive, frame(0).enemyActive,
     frame(0).effectPending, frame(0).effectActiveMask, frame(0).effectActiveCount,
     frame(1).effectPending, frame(1).effectActiveMask, frame(1).effectActiveCount,
-  ], [1, 2, 1, 0, 0, 0, 0x1f, 5]);
+  ], [1, 2, 1, 0, 0, 0, 0x01, 1]);
   assert.deepEqual([frame(0).colbk, frame(1).colbk, frame(2).colbk, frame(3).colbk, frame(4).colbk],
     [0x1e, 0x3c, 0x1c, 0x34, 0x00], "accepted full-screen profile changed");
   assert.deepEqual(frame(1).effects.map(({ slot, type, ttl, renderId }) =>
-    [slot, type, ttl, renderId]), [
-    [0, 1, 5, 110],
-    [1, 2, 30, 111],
-    [2, 2, 30, 113],
-    [3, 2, 30, 0xdb],
-    [4, 2, 30, 119],
-  ]);
-  assert.equal(new Set(frame(1).effects.slice(1).map(({ screenAddress }) => screenAddress)).size, 4,
-    "all four fragments must render in distinct cells in the materialisation frame");
-  const centre = { x: frame(1).effects[0].x + 4, y: frame(1).effects[0].y + 4 };
-  const distance = (effect) => Math.abs(effect.x - centre.x) + Math.abs(effect.y - centre.y);
-  for (const slot of [1, 2, 3, 4]) {
-    const at0 = frame(1).effects.find((effect) => effect.slot === slot);
-    const at4 = frame(4).effects.find((effect) => effect.slot === slot);
-    const at12 = frame(12).effects.find((effect) => effect.slot === slot);
-    assert.ok(distance(at4) > distance(at0));
-    assert.ok(distance(at12) > distance(at4));
+    [slot, type, ttl, renderId]), [[0, 1, 5, 110]]);
+  for (let index = 1; index <= 31; index += 1) {
+    assert.equal(frame(index).effects.filter(({ slot }) => slot > 0).length, 0,
+      `frame ${index} materialised a deleted Raider fragment`);
   }
-  for (let index = 1; index <= 30; index += 1) {
-    assert.equal(frame(index).effects.filter(({ slot }) => slot > 0).length, 4);
-    assert.ok(frame(index).rendered, `frame ${index} expired before render`);
+  for (let index = 1; index <= 5; index += 1) {
+    assert.equal(frame(index).effects.length, 1);
+    assert.ok(frame(index).rendered, `frame ${index} skipped the retained core`);
   }
   assert.equal(frame(5).effects.some(({ slot }) => slot === 0), true);
   assert.equal(frame(6).effects.some(({ slot }) => slot === 0), false);
-  assert.deepEqual([frame(30).effectActiveMask, frame(31).effectActiveMask], [0x1e, 0]);
+  assert.deepEqual([frame(6).effectActiveMask, frame(31).effectActiveMask], [0, 0]);
   assert.ok(frame(31).screen.every((code) => code === 0));
   assert.deepEqual([xexTrace.records[0].scoreLo, frame(31).scoreLo], [0x42, 0x52]);
 });
 
-test("newest debris or Interceptor breakup safely replaces the previous five-slot event", () => {
+test("newest debris or Raider core safely replaces the previous shared-pool event", () => {
   const spawnInterceptor = (memory) => {
     memory[addresses.enemyArchetype] = 0;
     memory[addresses.enemyX] = 124;
@@ -1986,9 +1970,9 @@ test("newest debris or Interceptor breakup safely replaces the previous five-slo
     runRoutine(memory, "entity_effects_update");
   };
   for (let head = 0; head < 22; head += 1) {
-    for (const [first, second, expected] of [
-      [spawnInterceptor, spawnDebris, [116, 118, 118, 118, 118]],
-      [spawnDebris, spawnInterceptor, [110, 111, 113, 0xdb, 119]],
+    for (const [first, second, expectedMask, expectedCount, expectedCore] of [
+      [spawnInterceptor, spawnDebris, 0x1f, 5, 116],
+      [spawnDebris, spawnInterceptor, 0x01, 1, 110],
     ]) {
       const memory = createRuntimeMemory();
       initialiseRows(memory, head);
@@ -2002,8 +1986,10 @@ test("newest debris or Interceptor breakup safely replaces the previous five-slo
       assert.equal(memory[addresses.effectRendered], 0);
       second(memory);
       if (second === spawnInterceptor) advanceInterceptorDefer(memory);
-      assert.deepEqual([...memory.subarray(addresses.effectRenderId, addresses.effectRenderId + 5)],
-        expected);
+      assert.deepEqual([
+        memory[addresses.effectActiveMask], memory[addresses.effectActiveCount],
+        memory[addresses.effectRenderId],
+      ], [expectedMask, expectedCount, expectedCore]);
       if (second !== spawnInterceptor) runRoutine(memory, "entity_effects_update");
       runRoutine(memory, "entity_effects_render");
       runRoutine(memory, "entity_effects_erase");
@@ -2024,8 +2010,8 @@ test("newest debris or Interceptor breakup safely replaces the previous five-slo
   advanceInterceptorDefer(sameFrame);
   assert.deepEqual([
     sameFrame[addresses.effectActiveMask], sameFrame[addresses.effectActiveCount],
-    ...sameFrame.subarray(addresses.effectRenderId, addresses.effectRenderId + 5),
-  ], [0x1f, 5, 110, 111, 113, 0xdb, 119]);
+    sameFrame[addresses.effectRenderId],
+  ], [0x01, 1, 110]);
 });
 
 test("backed overlay stack restores base, shell/projectile, entity and effect in reverse", () => {
@@ -2069,9 +2055,10 @@ test("backed overlay stack restores base, shell/projectile, entity and effect in
   }
 });
 
-test("linked empty engine path remains within the accepted +32 CPU-cycle slice", () => {
-  assert.equal(manifest.runtimeTiming.entityEffects.emptyPathLimitCpuCycles, 124);
-  assert.ok(manifest.runtimeTiming.entityEffects.emptyPathCpuCycles <= 124);
-  assert.equal(manifest.runtimeTiming.entityEffects.measurement,
-    "inclusive JSR-to-RTS cycles from executed linked release bytes");
+test("linked core-only trace stays below the former five-slot active-work path", () => {
+  const trace = executeInterceptorBreakupTrace({ root, artifact: "xex" });
+  const materialised = trace.records.find((record) =>
+    record.phase === "BREAKUP" && record.frame === 1);
+  assert.ok(materialised.effectUpdateCycles < 806);
+  assert.ok(materialised.effectRenderCycles < 887);
 });

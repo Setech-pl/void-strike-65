@@ -87,9 +87,9 @@ no points. Debris has three hit points, causes fixed 20%/50%/70% maximum-hull
 damage on Easy/Medium/Hard contact, and never awards score when destroyed.
 
 Raider and debris destruction use the implemented entity/effects foundation.
-Raider breakup has a core, two wing fragments, a central fragment, and a red
-eye fragment. Debris destruction has one core plus four fragments. These are
-transient effects, not interactive enemies.
+Raider destruction retains only one compact core explosion; it no longer emits
+flying breakup fragments. Debris destruction still has one core plus four
+fragments. These are transient effects, not interactive enemies.
 
 Gameplay debris is admitted at character Y=16, one complete eight-scanline row
 above its first legal entity row Y=24. It remains non-rendered and non-colliding

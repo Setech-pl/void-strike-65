@@ -3046,6 +3046,11 @@ function main() {
       "Raider remnant native mode has no profiled OPEN frames");
     const heaviest = maximumRow(completeRows, activeWorkCycles);
     const kills = rows.filter((row) => (row.events & (1 << 17)) !== 0).length;
+    const breakupRows = rows.filter((row) => (row.events & (1 << 17)) !== 0);
+    const flyingFragmentsGenerated = breakupRows.reduce((sum, row) => sum +
+      [1, 2, 3, 4].filter((slot) => (row.effect_active_mask & (1 << slot)) !== 0).length, 0);
+    const mainExplosionsGenerated = breakupRows.filter((row) =>
+      (row.effect_active_mask & 1) !== 0 && row.effect_active_count === 1).length;
     const debrisSpawns = rows.filter((row) => (row.events & (1 << 7)) !== 0).length;
     let debrisLifecycle = null;
     let debrisSession = null;
@@ -3116,7 +3121,8 @@ function main() {
         slot_1: requestedKills[1],
         total: requestedKills[0] + requestedKills[1],
       },
-      breakup_fragments_generated: kills * 4,
+      main_explosions_generated: mainExplosionsGenerated,
+      breakup_fragments_generated: flyingFragmentsGenerated,
       wrong_origin_fragments: anomalies.transient_effect_coordinate_wraps,
       gameplay_debris_spawns: debrisSpawns,
       gameplay_debris_first_visible_publications: debrisFirstVisible,
@@ -3157,7 +3163,9 @@ function main() {
       },
       csv: sessionsToRun.map(({ id }) => path.relative(rootDirectory,
         path.join(buildDirectory, `${id}.csv`))),
-      passed: kills > 0 && requestedKills[0] > 0 && requestedKills[1] > 0 &&
+      passed: kills > 0 && mainExplosionsGenerated === kills &&
+        flyingFragmentsGenerated === 0 &&
+        requestedKills[0] > 0 && requestedKills[1] > 0 &&
         anomalies.transient_effect_coordinate_wraps === 0 &&
         anomalies.raider_breakup_orphan_sum === 0 &&
         debrisFirstVisibleInvalid === 0 &&
@@ -4779,9 +4787,9 @@ function main() {
   invariant(interceptorBreakupRows.length > 0,
     "Trace did not execute the Interceptor breakup spawner");
   invariant(interceptorBreakupRows.every((row) =>
-    row.effect_active_mask === 0x1f && row.effect_active_count === 5 &&
+    row.effect_active_mask === 0x01 && row.effect_active_count === 1 &&
     (row.events & ((1 << 15) | (1 << 16))) === ((1 << 15) | (1 << 16))),
-  "Interceptor death did not update and render all five local effects in its spawn frame");
+  "Interceptor death did not update and render only its slot-zero core in the spawn frame");
   invariant(interceptorFlashPairs.length > 0,
     "Trace did not preserve the accepted yellow-to-red full-screen flash across deferred breakup");
   invariant(pickupQualifiedKillRows.length >= 3,
@@ -5531,8 +5539,9 @@ function main() {
       interceptor_breakup_effects: {
         ...coverageRecord(interceptorBreakupRows, () => true),
         spawner_frames: interceptorBreakupRows.length,
-        active_mask: 0x1f,
-        active_count: 5,
+        active_mask: 0x01,
+        active_count: 1,
+        flying_fragment_count: 0,
         spawn_updated_and_rendered: interceptorBreakupRows.every((row) =>
           (row.events & ((1 << 15) | (1 << 16))) === ((1 << 15) | (1 << 16))),
         full_screen_flash_preserved: interceptorFlashPairs.length > 0,

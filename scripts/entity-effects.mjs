@@ -209,19 +209,8 @@ export function loadEntityEffectsDefinition(sourcePath) {
   const interceptorBreakup = definition.interceptorBreakup;
   invariant(interceptorBreakup?.coreFrames >= 5 && interceptorBreakup.coreFrames <= 7,
     "Interceptor breakup core must last five through seven PAL frames");
-  invariant(interceptorBreakup.fragmentFrames >= 24 && interceptorBreakup.fragmentFrames <= 30,
-    "Interceptor breakup fragments must last twenty-four through thirty PAL frames");
   invariant(interceptorBreakup.coreOffsetHpos === 6,
     "Interceptor character core must centre its four-HPOS cell in the sixteen-HPOS hull");
-  invariant(Array.isArray(interceptorBreakup.fragments) && interceptorBreakup.fragments.length === 4,
-    "Interceptor breakup must define four deterministic fragment identities");
-  invariant(interceptorBreakup.fragments.map(({ id }) => id).join(",") ===
-    "left-wing,right-wing,central,red-eye",
-  "Interceptor fragment identities or order changed");
-  invariant(interceptorBreakup.fragments.every(({ phaseGlyphs }) =>
-    Array.isArray(phaseGlyphs) && phaseGlyphs.length === 2 &&
-      phaseGlyphs[0] !== phaseGlyphs[1]),
-  "Every Interceptor fragment must expose two distinct visual phases");
 
   const pickup = definition.weaponPickupRapidFire;
   invariant(pickup?.slot === 1,
@@ -525,10 +514,7 @@ export function renderEntityEffectsCa65Include(asset) {
     "EFFECT_DEBRIS_ACTIVE_MASK = $1F",
     `EFFECT_INTERCEPTOR_CORE_FRAMES = ${interceptorBreakup.coreFrames}`,
     `EFFECT_INTERCEPTOR_CORE_TIMER_LOAD = ${interceptorBreakup.coreFrames + 1}`,
-    `EFFECT_INTERCEPTOR_FRAGMENT_FRAMES = ${interceptorBreakup.fragmentFrames}`,
-    `EFFECT_INTERCEPTOR_FRAGMENT_TIMER_LOAD = ${interceptorBreakup.fragmentFrames + 1}`,
     `EFFECT_INTERCEPTOR_CORE_X_OFFSET = ${interceptorBreakup.coreOffsetHpos}`,
-    "EFFECT_INTERCEPTOR_ACTIVE_MASK = $1F",
     ".macro EMIT_ENTITY_ARCHETYPE_DESCRIPTORS",
     `    .byte ${[...asset.descriptor].map(byte).join(",")}`,
     ".endmacro",

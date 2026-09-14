@@ -335,3 +335,15 @@ Priorytet zasobów:
 4. pełnoprawny modularny boss.
 
 Nie optymalizować dla elegancji architektury kosztem ukończenia gry.
+
+---
+
+## 9. Raider flying breakup fragments — USUNIĘTE
+
+Collisionless flying fragments po zniszczeniu Raidera są opcjonalną kosmetyką
+i zostały usunięte decyzją właściciela. Lethal hit zachowuje kompaktowy core
+explosion, score/kill accounting, dźwięk, zwolnienie Heavy slotu i normalny
+respawn, ale nie materializuje slotów efektów 1–4.
+
+Nie zastępować fragmentów gameplay debris, wrakiem, collectible ani obstacle.
+Przyszły Raider wreck pozostaje osobnym odroczonym feature.

@@ -1,0 +1,217 @@
+{
+  "schema": "void-strike-65.stage-2b2b-gameplay-speed-tuning-proof.v1",
+  "date": "2026-09-14",
+  "status": "PASS_GAMEPLAY_SPEED_TUNING_CANDIDATE",
+  "model": { "name": "GPT-5 Codex", "reasoning": "High" },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "headBefore": "0625b8a6c8bd1331b29038d36a891a4f478679a6",
+    "headAfter": "local commit containing this report",
+    "push": false,
+    "merge": false,
+    "release": false
+  },
+  "scope": {
+    "raiderEnemyProjectileTravelVelocityOnly": true,
+    "capitalHullWorldAccumulatorOnly": true,
+    "whiteStarsContinuousThroughCapital": true,
+    "masterPalClockChanged": false,
+    "playerMovementChanged": false,
+    "playerProjectileChanged": false,
+    "playerFireOrAudioChanged": false,
+    "starSpeedCountOrColourChanged": false
+  },
+  "raiderProjectiles": {
+    "foundation": "all currently released enemy fighter PairShots share the bounded enemy kernel",
+    "records": 5,
+    "ticksPerActivePalFrame": 1,
+    "before": { "pixelsPerTick": 5, "pixelsPerSecond": 250 },
+    "after": { "pixelsPerTick": 2, "pixelsPerSecond": 100 },
+    "reductionPercent": 60,
+    "implementation": "asset-generated enemy-local integer Y delta; no new scheduler or player branch",
+    "unchanged": {
+      "burstCount": 5,
+      "burstIntervalFrames": 15,
+      "postBurstFramesEasyMediumHard": [60, 50, 40],
+      "damage": 10,
+      "lifetimeFrames": 96,
+      "redPairShotVisual": true,
+      "collisionBackingLifecycle": true
+    },
+    "nativeConsecutiveActiveTicks": {
+      "easy": 1237,
+      "medium": 1625,
+      "hard": 1971,
+      "displacementSet": [2]
+    }
+  },
+  "capitalTraversal": {
+    "pixelsPerEvent": 8,
+    "fighterWorldUnchanged": {
+      "denominator": 20,
+      "numeratorsEasyMediumHard": [8, 9, 10],
+      "eventsPerSecond": [20, 22.5, 25],
+      "pixelsPerSecond": [160, 180, 200]
+    },
+    "before": {
+      "denominator": 20,
+      "numeratorsEasyMediumHard": [8, 9, 10],
+      "eventsPerSecond": [20, 22.5, 25],
+      "pixelsPerSecond": [160, 180, 200],
+      "averagePixelsPerPalFrame": [3.2, 3.6, 4.0]
+    },
+    "after": {
+      "denominator": 40,
+      "numeratorsEasyMediumHard": [10, 12, 13],
+      "eventsPerSecond": [12.5, 15, 16.25],
+      "pixelsPerSecond": [100, 120, 130],
+      "averagePixelsPerPalFrame": [2.0, 2.4, 2.6],
+      "measuredEventsPer400Frames": [100, 120, 130]
+    },
+    "reductionPercentEasyMediumHard": [37.5, 33.3333, 35.0],
+    "implementation": "existing accumulators consume one sector-local numerator over denominator 40; OPEN doubles legacy 8/9/10 over 20 exactly, capital uses 10/12/13",
+    "masterClockOrFrameSkipAdded": false,
+    "ringAndHullPhaseAligned": true
+  },
+  "whiteStarsInCapital": {
+    "count": 4,
+    "speedPixelsPerPalFrame": 1,
+    "glyph": {
+      "screenCode": 1,
+      "bytes": [16, 0, 0, 0, 0, 0, 0, 0],
+      "activeScanlines": 1,
+      "singlePointAlreadyTrue": true,
+      "glyphChangeRequired": false
+    },
+    "lifecycle": "logical phase and row advance continuously across fighter, capital and return",
+    "publication": "OLD erase plus phase publish plus CH_SPACE-only NEW render in the existing late post-playfield commit",
+    "occlusion": "any non-CH_SPACE hull, gondola, turret or character gameplay cell wins; hidden stars retain logical motion",
+    "return": "no reset/reconstruction; first successful fighter return publish has host-frame delta 0",
+    "native": {
+      "capitalRenderAttemptsEasyMediumHard": [8640, 7208, 6648],
+      "capitalSuccessfulWritesEasyMediumHard": [8640, 7204, 6644],
+      "capitalOccupancySkipsEasyMediumHard": [0, 4, 4],
+      "capitalAnticVisibleFetchesEasyMediumHard": [8643, 7207, 6643],
+      "orphanCells": 0,
+      "staleCells": 0
+    },
+    "capitalShellBackingFinding": {
+      "firstFailingCell": "$8339",
+      "lastWriterPc": "$76DC inside erase_broadside_slot",
+      "rootCause": "capital shell captured STAR_NEAR_POINT as persistent backing and restored it after the logical star moved",
+      "fix": "A-only sanitizer maps STAR_NEAR_POINT to CH_SPACE for both stored shell backing bytes during restore",
+      "newFullScreenOwnershipMap": false
+    }
+  },
+  "instructionExactWhiteStarCost": {
+    "ordinary": {
+      "logicalUpdate": 29,
+      "erase": 158,
+      "phasePublish": 33,
+      "render": 262,
+      "total": 482
+    },
+    "coarseRowEvent": {
+      "logicalUpdate": 96,
+      "erase": 158,
+      "phasePublish": 34,
+      "render": 438,
+      "total": 726
+    },
+    "ringStepStarMarginal": {
+      "logicalUpdate": 29,
+      "erase": 158,
+      "phasePublish": 33,
+      "render": 420,
+      "recycledRowCleanup": 65,
+      "totalExcludingExistingRingRecycle": 705
+    },
+    "coarsePlusRingStarMarginal": { "totalExcludingExistingRingRecycle": 635 },
+    "capitalHullHeavyPolicy": "occupancy produces cheap skipped writes; it does not force rendering through geometry"
+  },
+  "nativePal": {
+    "emulator": "/Users/marcinkrzetowski/Projects/tools/atari800-7.1.2",
+    "physicalFrames": 9000,
+    "framesPerDifficulty": 3000,
+    "capitalTraversalFramesEasyMediumHard": [2169, 1809, 1669],
+    "maximumActiveWorkCycles": 22644,
+    "maximumCapitalActiveWorkCycles": 12830,
+    "maximumRawCadenceCycles": 28774,
+    "targetCycles": 31200,
+    "hardGateCycles": 32568,
+    "targetHeadroomCycles": 8556,
+    "hardGateHeadroomCycles": 9924,
+    "targetOverruns": 0,
+    "hardOverruns": 0,
+    "missedFrames": 0,
+    "extraVbi": 0,
+    "dliAnomalies": 0,
+    "soundCallsPerPhysicalFrame": 1,
+    "report": "build/runtime-wall-trace/gameplay-speed-tuning-native-report.json"
+  },
+  "memoryPlacement": {
+    "before": {
+      "linkedRuntimeBytes": 17513,
+      "simultaneousResidencyBytes": 17991,
+      "safeHeadroomBytes": 4196,
+      "initialContentBytes": 13113,
+      "starfieldRawBytes": 2190,
+      "starfieldPackedBytes": 1785,
+      "broadsideRawBytes": 6647
+    },
+    "after": {
+      "linkedRuntimeBytes": 17526,
+      "simultaneousResidencyBytes": 18004,
+      "safeHeadroomBytes": 4183,
+      "initialContentBytes": 13123,
+      "initialContentCapacityBytes": 13184,
+      "initialContentMarginBytes": 61,
+      "starfieldRawBytes": 2188,
+      "starfieldRawCapacityBytes": 2348,
+      "starfieldPackedBytes": 1787,
+      "starfieldPackedCapacityBytes": 1819,
+      "starfieldPackedMarginBytes": 32,
+      "starfieldPackedSourceToPickupMarginBytes": 27,
+      "broadsideRawBytes": 6653,
+      "broadsideCapacityBytes": 6656,
+      "broadsideMarginBytes": 3,
+      "a2Bytes": 197,
+      "a2CapacityBytes": 256,
+      "a2MarginBytes": 59,
+      "entityStagingToBroadsideMarginBytes": 100,
+      "coldPickupBytes": 866,
+      "coldPickupCapacityBytes": 1277,
+      "coldPickupMarginBytes": 411
+    },
+    "linkedRuntimeDeltaBytes": 13,
+    "stateDeltaBytes": 0,
+    "basicRamUsed": false,
+    "loaderChanged": false,
+    "transportFormatChanged": false,
+    "entityCodeAligned": true
+  },
+  "regression": {
+    "focusedGameplayStarfieldClockLayout": "PASS",
+    "broadsideCadenceAndCapitalExit": "PASS 5/5",
+    "pairShotEffectsFireAudio": "PASS 10/10",
+    "pairShotFoundationAndRaiderRemnant": "PASS 11/11 including >5000 Raider kills",
+    "pairShotGhosts": 0,
+    "raiderStaleRemnants": 0,
+    "effectBackingErrors": 0,
+    "playerFireCadence": {
+      "normal": [9, 12],
+      "rapid": [6, 12],
+      "spread": [28, 12]
+    },
+    "shotSfx": "$33..$38 complete",
+    "bootSmoke": "PASS 4/4 XEX/ATR cold starts",
+    "verifyBuildNote": "npm run verify intentionally rejects candidate artifacts without bound final-release runtime evidence; candidate build, artifact validation, focused tests and native proof pass"
+  },
+  "artifact": {
+    "path": "dist/void-strike-65.xex",
+    "sha256": "80b4d8c806db0cc5bc44244a8e6772d59c51805b732752a712d2e8293fea80dd",
+    "status": "owner-smoke candidate"
+  },
+  "decision": "Gameplay speed tuning candidate is technically viable",
+  "next": "Owner smoke Raider shots + capital traversal + stars in capital"
+}

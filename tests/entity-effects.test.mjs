@@ -750,8 +750,9 @@ test("EASY, MEDIUM and HARD keep world/debris rates while white stars drift at 5
   assert.equal(denominator, 20);
   assert.deepEqual(capitalHullsDefinition.broadside.worldScrollRates,
     { easy: 8, medium: 9, hard: 10 });
+  assert.equal(capitalHullsDefinition.broadside.hullScrollRateDenominator, 40);
   assert.deepEqual(capitalHullsDefinition.broadside.hullScrollRates,
-    capitalHullsDefinition.broadside.worldScrollRates);
+    { easy: 10, medium: 12, hard: 13 });
   assert.deepEqual([
     starfieldDefinition.nearLayer.representation,
     starfieldDefinition.nearLayer.speedPixelsPerFrame,

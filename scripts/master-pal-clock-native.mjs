@@ -106,7 +106,7 @@ process.stdout.write("\n");
 
 const manifest = JSON.parse(fs.readFileSync(path.join(root, "build", "manifest.json"), "utf8"));
 const enemyStep = manifest.fighterWeapons.interceptor.speedScanlines;
-assert.equal(enemyStep, 5, "reviewed enemy PairShot displacement per logical tick");
+assert.equal(enemyStep, 2, "owner-candidate enemy PairShot displacement per logical tick");
 assert.ok(fs.existsSync(enemyTracePath), "native enemy PairShot detail trace is missing");
 const enemyRows = parseCsv(enemyTracePath);
 const enemyActiveDeltas = enemyRows.filter((row) => row.prior_active !== 0 && row.active !== 0)

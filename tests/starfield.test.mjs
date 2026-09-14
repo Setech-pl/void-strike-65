@@ -189,26 +189,33 @@ test("1000-frame mixed cadence has no stale, clone, or lost white cells", () => 
   assert.deepEqual([...events].sort(), ["00", "01", "10", "11"]);
 });
 
-test("capital freezes and hides white stars, then OPEN reconstructs all four", () => {
+test("capital keeps white-star time continuous and CH_SPACE-only publication occludes hull", () => {
   const memory = createRuntime();
   runRoutine(memory, "render_dynamic_near_star_overlays");
-  const rows = [...memory.subarray(labels.get("STAR_NEAR_ROW"), labels.get("STAR_NEAR_ROW") + 4)];
   const phase = memory[labels.get("STAR_NEAR_FINE_PHASE")];
   runRoutine(memory, "erase_dynamic_near_star_overlays");
   memory[labels.get("CAPITAL_SECTOR_STATE")] = 1;
   runRoutine(memory, "update_white_starfield_phase");
-  assert.deepEqual([...memory.subarray(labels.get("STAR_NEAR_ROW"),
-    labels.get("STAR_NEAR_ROW") + 4)], rows);
-  assert.equal(memory[labels.get("STAR_NEAR_FINE_PHASE")], phase);
-  assert.deepEqual([...memory.subarray(labels.get("STAR_NEAR_SCREEN_HI"),
-    labels.get("STAR_NEAR_SCREEN_HI") + 4)], [0, 0, 0, 0]);
-  assert.equal(runRoutine(memory, "render_dynamic_near_star_overlays"), 14);
-  assert.equal(countWhiteCells(memory), 0);
-  memory[labels.get("CAPITAL_SECTOR_STATE")] = 7;
+  assert.equal(memory[labels.get("STAR_NEAR_FINE_PHASE")], (phase + 1) & 7);
+  const covered = memory[labels.get("STAR_NEAR_SCREEN_LO")] |
+    memory[labels.get("STAR_NEAR_SCREEN_HI")] << 8;
+  memory[covered] = 42;
+  runRoutine(memory, "publish_dynamic_near_star_phase");
+  runRoutine(memory, "render_dynamic_near_star_overlays");
+  assert.equal(memory[covered], 42, "capital hull must occlude the star");
+  assert.equal(countWhiteCells(memory), 3);
+  runRoutine(memory, "erase_dynamic_near_star_overlays");
+  memory[covered] = 0;
   runRoutine(memory, "update_white_starfield_phase");
   runRoutine(memory, "publish_dynamic_near_star_phase");
   runRoutine(memory, "render_dynamic_near_star_overlays");
-  assert.equal(countWhiteCells(memory), 4);
+  assert.equal(countWhiteCells(memory), 4, "the moving star returns naturally after open space");
+  memory[labels.get("CAPITAL_SECTOR_STATE")] = 7;
+  runRoutine(memory, "erase_dynamic_near_star_overlays");
+  runRoutine(memory, "update_white_starfield_phase");
+  runRoutine(memory, "publish_dynamic_near_star_phase");
+  runRoutine(memory, "render_dynamic_near_star_overlays");
+  assert.equal(countWhiteCells(memory), 4, "fighter re-entry has no reconstruction delay");
 });
 
 test("white publication retains the proven post-playfield ANTIC contract", () => {
@@ -259,17 +266,17 @@ test("layout and transport gates remain legal after blue-far removal", () => {
   assert.ok(manifest.starfieldRuntime.bytes <= manifest.starfieldRuntime.reservedBytes);
   assert.ok(manifest.starfieldRuntime.packedBytes <= manifest.starfieldRuntime.stagingBytes);
   assert.ok(manifest.a2Kernel.bytes <= manifest.a2Kernel.reservedBytes);
-  assert.equal(manifest.broadsideRuntime.reservedBytes - manifest.broadsideRuntime.bytes, 9);
+  assert.equal(manifest.broadsideRuntime.reservedBytes - manifest.broadsideRuntime.bytes, 3);
   assert.equal(manifest.transportCapacity.initialBootSectors, 103);
   assert.ok(manifest.transportCapacity.initialBootEnvelopeBytes >= 0);
   assert.equal(labels.get("ENTITY_CODE_START") & 0xff, 0);
 });
 
-test("capital hull rates make 1 px/frame exactly 20-35 percent on every difficulty", () => {
-  const hull = [8, 9, 10].map((rate) => rate * 8 / 20);
-  assert.deepEqual(hull, [3.2, 3.6, 4]);
+test("accepted 1 px/frame stars stay independent of the slower capital hull tuning", () => {
+  const hull = [10, 12, 13].map((rate) => rate * 8 / 40);
+  assert.deepEqual(hull, [2, 2.4, 2.6]);
   assert.deepEqual(hull.map((speed) => Number((1 / speed).toFixed(4))),
-    [0.3125, 0.2778, 0.25]);
+    [0.5, 0.4167, 0.3846]);
   assert.match(source, /world_scroll_rates:\s*\n\s*EMIT_WORLD_SCROLL_RATES\s*\nhull_scroll_rates:\s*\n\s*EMIT_HULL_SCROLL_RATES/);
 });
 

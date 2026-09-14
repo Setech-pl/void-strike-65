@@ -84,7 +84,7 @@ test("Layout D.2 startup order and call bytes are frozen", () => {
 });
 
 test("Layout D.2 exact memory and transport budgets remain frozen", () => {
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13113);
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13123);
   assert.equal(manifest.transportCapacity.initialBootBytes, 13184);
   assert.equal(manifest.transportCapacity.totalTransportSectors, 163);
   assert.equal(manifest.transportCapacity.totalTransportBytes, 20864);
@@ -92,19 +92,19 @@ test("Layout D.2 exact memory and transport budgets remain frozen", () => {
   assert.deepEqual(manifest.transportCapacity.manifest.parsed.records.map((record) =>
     [record.startSector, record.sectorCount, record.packedLength, record.rawLength,
       record.finalDestination]), [
-    [104, 45, 5662, 6647, 0x5e10],
+    [104, 45, 5665, 6653, 0x5e10],
     [149, 7, 866, 866, 0x8c80],
     [156, 3, 245, 250, 0x7bd0],
     [159, 5, 587, 644, 0x9d75],
   ]);
-  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17513);
-  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 17991);
-  assert.equal(manifest.encounterDirector.safeResidencyBytes, 4196);
+  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17526);
+  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 18004);
+  assert.equal(manifest.encounterDirector.safeResidencyBytes, 4183);
 });
 
 test("XEX and ATR preserve full A2, GLUE lifecycle, ENTITY_CODE, DIRECTOR and guard", () => {
   assert.equal(a2.length, 197);
-  assert.equal(sha256(a2), "70ecdd92f271b4e2b33d5cdf6d677ddb44a507b0e475322d2e7f5d49db634cbe");
+  assert.equal(sha256(a2), "69d6e6ae952ba9dfd4a994f77f1d62a19f02b29e29538e2642ca96bc7aa51cb2");
   for (const artifact of ["xex", "atr"]) for (const fill of [0xa5, 0x5a]) {
     const staged = stageArtifact(artifact, fill);
     assert.equal(sha256(staged.sourceA2), sha256(a2), `${artifact} staged A2`);
@@ -131,7 +131,7 @@ test("current A2 entry points and relocated release glue retain their frozen opc
   }
   assert.equal(labels.get("integration_broadside_release"), 0x4fdd);
   assert.equal(glue[0x4fdd - 0x4efe], 0x8a);
-  assert.equal(labels.get("integration_debris_release"), 0x77e6);
+  assert.equal(labels.get("integration_debris_release"), 0x77ec);
 });
 
 test("relocated pickup hook decrements 2 to 1 and returns", () => {

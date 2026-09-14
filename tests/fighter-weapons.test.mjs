@@ -381,7 +381,7 @@ test("assembled burst controllers use accepted counts, intervals, speeds and dam
     player_fighterCount: 4, player_fighterActiveLimit: 5, player_fighterRapidCount: 5,
     player_fighterSpreadCount: 4, player_fighterSpreadCooldown: 28,
     player_fighterInterval: 9, player_fighterSpeed: 6, player_fighterPost: 12,
-    interceptorCount: 5, interceptorActiveLimit: 5, interceptorInterval: 15, interceptorSpeed: 5,
+    interceptorCount: 5, interceptorActiveLimit: 5, interceptorInterval: 15, interceptorSpeed: 2,
     interceptorPost: [60, 50, 40], interceptorDamage: 10,
   });
   assert.match(source,

@@ -107,11 +107,12 @@ test("same-frame sector re-entry cannot admit a second simulation iteration", ()
 });
 
 test("starfield observes but never owns world and hull accumulator clocks", () => {
-  const starPhase = routine("update_white_starfield_phase", "invalidate_dynamic_near_cache");
+  const starPhase = routine("update_white_starfield_phase", "erase_dynamic_near_star_overlays");
   assert.doesNotMatch(starPhase, /scroll_accumulator|HULL_SCROLL_ACCUMULATOR/);
   const world = routine("update_starfield", "advance_starfield_layers");
-  assert.equal((world.match(/lda scroll_accumulator/g) ?? []).length, 2);
+  assert.equal((world.match(/scroll_accumulator/g) ?? []).length, 4);
   assert.equal((world.match(/sta scroll_accumulator/g) ?? []).length, 2);
-  assert.equal((world.match(/lda HULL_SCROLL_ACCUMULATOR/g) ?? []).length, 1);
+  assert.equal((world.match(/HULL_SCROLL_ACCUMULATOR/g) ?? []).length, 3);
   assert.equal((world.match(/sta HULL_SCROLL_ACCUMULATOR/g) ?? []).length, 2);
+  assert.match(world, /cmp #CAPITAL_HULL_STATE_OPEN[\s\S]+lda world_scroll_rates,x[\s\S]+asl[\s\S]+lda hull_scroll_rates,x/);
 });

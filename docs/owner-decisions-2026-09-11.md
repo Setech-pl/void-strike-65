@@ -30,14 +30,21 @@ smoke. Produkcyjny kierunek starfield to od teraz wyłącznie:
 
 - cztery małe, jasne, białe gwiazdy;
 - jedna dekoracyjna warstwa, bez blue far;
-- ruch `1 px/frame` w fighter OPEN;
-- zamrożenie i usunięcie z ekranu podczas capital traversal;
+- ruch `1 px/frame` we wszystkich aktywnych sektorach;
+- ciągły phase/lifecycle przez capital traversal; publikacja tylko w pustych
+  komórkach, z bezwzględnym priorytetem hull/gondola/turret;
 - zachowanie post-playfield erase/render oraz bezpiecznego backingu z proofu
   widoczności white near.
 
 Nie przywracać row-baked blue far, static blue overlay, slow blue drift,
 fine-phase blue ani drugiej klasy gwiazd. Git i zachowane historyczne raporty są
 mechanizmem rollbacku; martwy blue runtime nie ma pozostawać w produkcji.
+
+Gameplay-speed candidate z 2026-09-14 stroi enemy fighter PairShot z `5` do
+`2 px/PAL tick` oraz capital traversal do `10/12/13` zdarzeń na `40` ramek dla
+EASY/MEDIUM/HARD. Player movement, player projectile, fire/audio i fighter
+world speed pozostają bez zmian. Wartości są technicznie zweryfikowanym
+kandydatem; finalna akceptacja szybkości wymaga owner smoke.
 
 ### 2.1 Row-baked far stars — SUPERSEDED / historia
 

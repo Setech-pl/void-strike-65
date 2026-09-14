@@ -286,10 +286,10 @@ export function compileEnemyRoster(definition, rootDirectory) {
   invariant(pulse.burstCount === 5 && pulse.burstIntervalFrames === 15 &&
     JSON.stringify(pulse.postBurstFrames) === JSON.stringify([60, 50, 40]),
   "Interceptor burst count, interval, or Easy/Medium/Hard pauses changed");
-  invariant(pulse.speed === 5 && pulse.height === 3 && pulse.widthHpos === 2 &&
+  invariant(pulse.speed === 2 && pulse.height === 3 && pulse.widthHpos === 2 &&
     pulse.damage === 10 && pulse.lifetimeFrames === 96 &&
     pulse.colourRegister === "COLPF3" && pulse.colourValue === 0x46,
-  "Interceptor pulse geometry, damage, lifetime, or red playfield colour changed");
+  "Interceptor tuned speed, geometry, damage, lifetime, or red playfield colour changed");
   invariant(Array.isArray(definition.archetypes) &&
     definition.archetypes.length === ENEMY_ROSTER_IDS.length,
   "Enemy roster must inventory exactly ten identities");

@@ -1,11 +1,11 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 4.2
+Wersja: 4.3
 Data aktualizacji: 2026-09-14
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD przed proofem master clock: `db172a3bd23e2af400fc0b25e4cd1da7b0ac8b67`
-Stan runtime: `PASS_MASTER_PAL_CLOCK` candidate + owner-smoke FAIL white-only starfield (4 white, `1 px/frame`, bez blue far) + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck odroczony do debris 25 Hz / visual redesign; bez unified schedulera
-Ostatni XEX master-clock owner-smoke candidate: SHA-256 `0702caf6c5ae635cfb2352ef8dcf7afd92ed69defff9425b2f11339504baf598`
+Aktualny HEAD przed proofem gameplay speed tuning: `0625b8a6c8bd1331b29038d36a891a4f478679a6`
+Stan runtime: `PASS_GAMEPLAY_SPEED_TUNING_CANDIDATE` + `PASS_MASTER_PAL_CLOCK` + white-only starfield (4 white, `1 px/frame`, bez blue far) aktywny także w capital z hull occlusion + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck odroczony do debris 25 Hz / visual redesign; bez unified schedulera
+Ostatni XEX gameplay-speed owner-smoke candidate: SHA-256 `80b4d8c806db0cc5bc44244a8e6772d59c51805b732752a712d2e8293fea80dd`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
 
@@ -1629,6 +1629,61 @@ player shots i Raider shots.**
 
 Następny krok: `Owner smoke master timing: capital speed + player shots + Raider
 shots`. Nie naprawiać jeszcze wyglądu gwiazd i nie rozpoczynać ring 25 Hz.
+
+### Gameplay speed tuning: Raider shots + capital traversal + stars in capital — PASS CANDIDATE
+
+Po owner smoke master clock pozostałe różnice zostały sklasyfikowane jako
+strojenie gameplayu i prezentacji sektora, nie jako ponowny błąd zegara. Player
+movement, player PairShot `-6 px/tick`, cadence fire/audio oraz biały star speed
+`1 px/frame` pozostają bez zmian.
+
+Enemy fighter PairShot ma lokalne `dy=2` zamiast `dy=5`: `250 -> 100 px/s`,
+czyli redukcję o `60%`, bez zmiany burst count, cadence, damage, lifetime,
+kolizji ani publikacji. Wspólny enemy foundation nadal używa pięciu rekordów.
+
+Capital używa istniejącego akumulatora z mianownikiem `40` i licznikami
+EASY/MEDIUM/HARD `10/12/13`. Fighter OPEN zachowuje dokładnie dotychczasowe
+`8/9/10` na `20`. Natywnie daje to odpowiednio:
+
+- EASY: `12,5 events/s = 100 px/s = 2,0 px/PAL` (`-37,5%`);
+- MEDIUM: `15 events/s = 120 px/s = 2,4 px/PAL` (`-33,3%`);
+- HARD: `16,25 events/s = 130 px/s = 2,6 px/PAL` (`-35%`).
+
+Ring i hull konsumują jeden wspólny sector-local numerator, więc pozostają
+fazowo zgodne; master PAL token, fighter world speed i pozostałe timery nie są
+modyfikowane.
+
+Cztery białe gwiazdy zachowują ciągły phase/lifecycle przez fighter→capital→
+fighter. Publikują wyłącznie do `CH_SPACE`, dlatego hull/gondola/turret mają
+priorytet, a zasłonięta gwiazda pozostaje logicznie aktywna i wraca naturalnie.
+Pierwszy native trace wykrył dodatkowy brakujący przypadek: capital shell
+zapamiętywał transient biały punkt jako backing i później odtwarzał go jako
+orphan. Lokalny A-only sanitizer obu backing bytes naprawia ten przypadek;
+native orphan/stale count wynosi `0`.
+
+Native Atari800 7.1.2 PAL: po `3000` ramek na każdą difficulty (`9000`
+łącznie), enemy displacement set wyłącznie `{2}`, dokładnie `100/120/130`
+capital events na każde `400` aktywnych ramek, white stars ANTIC-visible w
+capital, `0` orphanów i first-return publish delta `0`. Active-work max `22 644`,
+raw cadence max `28 774`, target/hard overruns `0/0`, missed/extra VBI/DLI
+`0/0/0`. Target headroom `8 556`, hard-gate headroom `9 924`.
+
+Linked runtime `17 513 -> 17 526 B`, simultaneous residency `17 991 -> 18 004
+B`, safe headroom `4 196 -> 4 183 B`. BROADSIDE `6653/6656 B` (margin `3 B`),
+STARFIELD raw `2188/2348 B`, packed `1787/1819 B`, initial content
+`13123/13184 B`. BASIC RAM, loader i transport contract pozostają bez zmian.
+
+Raport:
+`docs/diagnostics/stage-2b2b-gameplay-speed-tuning-proof.json`.
+
+Decyzja techniczna:
+
+**Kandydat strojenia Raider shots, capital traversal i ciągłych white stars
+przechodzi build, placement, regresje oraz native PAL. Finalne wartości prędkości
+wymagają owner smoke.**
+
+Następny krok: `Owner smoke Raider shots + capital traversal + stars in capital`.
+Nie wykonywać automatycznie dalszego strojenia ani background/ring 25 Hz.
 
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 

@@ -482,7 +482,7 @@ test("broadside source timing and schedule are deterministic and generated with 
     warningEarlyHeight: 2,
     warningMediumHeight: 4,
     worldScrollRateDenominator: 20,
-    hullScrollRateDenominator: 20,
+    hullScrollRateDenominator: 40,
     projectileSpeed: 2,
     warningHeight: 6,
     flyingHeight: 4,
@@ -514,7 +514,7 @@ test("broadside source timing and schedule are deterministic and generated with 
     respawnInvulnerableFrames: 250,
     respawnBlinkHalfPeriodFrames: 8,
     worldScrollRates: { easy: 8, medium: 9, hard: 10 },
-    hullScrollRates: { easy: 8, medium: 9, hard: 10 },
+    hullScrollRates: { easy: 10, medium: 12, hard: 13 },
   });
   assert.deepEqual(
     [capitalExplosion.durationFrames, capitalExplosion.phaseFrames,
@@ -523,7 +523,7 @@ test("broadside source timing and schedule are deterministic and generated with 
     [24, 4, 3, 3, 6, 4, 0],
   );
   assert.deepEqual([...asset.worldScrollRateBytes], [8, 9, 10]);
-  assert.deepEqual([...asset.hullScrollRateBytes], [8, 9, 10]);
+  assert.deepEqual([...asset.hullScrollRateBytes], [10, 12, 13]);
   assert.deepEqual(asset.schedule.map(({ side }) => side), [
     "enemy", "enemy", "enemy", "allied",
   ]);
@@ -625,7 +625,7 @@ test("firing opportunities choose the oldest safe visible cannon once per lifecy
   assert.deepEqual(
     ["easy", "medium", "hard"].map((difficulty) =>
       warningHullAdvanceAllowance(asset, difficulty)),
-    [10, 12, 13],
+    [7, 8, 9],
   );
   const selected = selectOldestEligibleTurret(state, asset, world, "allied");
   assert.equal(selected.turret.id, "allied_turret_a");
@@ -890,18 +890,18 @@ test("assembled BROADSIDE overlap unwinds 0->2 draw with 2->0 erase for every sl
     /sta BROAD_PREV_H,x[\s\S]+sta BROAD_PREV_Y,x[\s\S]+sta BROAD_COLLISION,x[\s\S]+CAPITAL_SHELL_LEFT_GLYPH[\s\S]+adc #\$01/);
 });
 
-test("assembled fractional cadence makes hull movement 100% of the legacy world rate", () => {
+test("capital cadence is slower while fighter world rates retain their legacy values", () => {
   assert.deepEqual(HULL_SCROLL_DIFFICULTIES, { easy: 0, medium: 1, hard: 2 });
   assert.equal(asset.broadside.worldScrollRateDenominator, 20);
-  assert.equal(asset.broadside.hullScrollRateDenominator, 20);
+  assert.equal(asset.broadside.hullScrollRateDenominator, 40);
   const expected = {
-    easy: { rate: 8, world: [8, 40, 400], hull: [8, 40, 400], scanlines: [160, 160] },
-    medium: { rate: 9, world: [9, 45, 450], hull: [9, 45, 450], scanlines: [180, 180] },
-    hard: { rate: 10, world: [10, 50, 500], hull: [10, 50, 500], scanlines: [200, 200] },
+    easy: { worldRate: 8, hullRate: 10, world: [8, 40, 400], hull: [5, 25, 250], scanlines: [160, 100] },
+    medium: { worldRate: 9, hullRate: 12, world: [9, 45, 450], hull: [6, 30, 300], scanlines: [180, 120] },
+    hard: { worldRate: 10, hullRate: 13, world: [10, 50, 500], hull: [6, 32, 325], scanlines: [200, 130] },
   };
   for (const [difficulty, contract] of Object.entries(expected)) {
-    assert.equal(worldScrollRate(asset, difficulty), contract.rate);
-    assert.equal(hullScrollRate(asset, difficulty), contract.rate);
+    assert.equal(worldScrollRate(asset, difficulty), contract.worldRate);
+    assert.equal(hullScrollRate(asset, difficulty), contract.hullRate);
     for (const [index, frames] of [20, 100, 1000].entries()) {
       const world = createWorldScrollState(asset, { difficulty });
       let worldAdvances = 0;
@@ -918,7 +918,7 @@ test("assembled fractional cadence makes hull movement 100% of the legacy world 
       assert.equal(hullAdvances, contract.hull[index]);
       assert.equal(world.accumulator, 0, "complete rate windows have no temporal drift");
       assert.equal(world.hullAccumulator,
-        frames * contract.rate % asset.broadside.hullScrollRateDenominator,
+        frames * contract.hullRate % asset.broadside.hullScrollRateDenominator,
         "hull accumulator keeps its exact fractional remainder without drift");
     }
     assert.equal(worldScrollRate(asset, difficulty) * 50 * 8 /
@@ -934,6 +934,8 @@ test("assembled fractional cadence makes hull movement 100% of the legacy world 
   assert.equal(hard.accumulator, 0);
   assert.equal(hard.advances, 1);
   assert.equal(hard.visibleScrolls, 0);
+  assert.equal(advanceHullScroll(hard, asset), false);
+  assert.equal(advanceHullScroll(hard, asset), false);
   assert.equal(advanceHullScroll(hard, asset), false);
   assert.equal(advanceHullScroll(hard, asset), true);
   assert.equal(hard.visibleScrolls, 1);
@@ -951,23 +953,17 @@ test("assembled fractional cadence makes hull movement 100% of the legacy world 
   assert.equal(slot.x - x, 2, "shell movement remains two HPOS units per PAL frame");
   assert.match(routine("init_state", "clear_pmg"), /lda #\$00[\s\S]+sta scroll_accumulator/);
   assert.match(routine("update_starfield", "generate_corridor_row"),
-    /ldx DIFFICULTY_SETTING[\s\S]+adc hull_scroll_rates,x[\s\S]+cmp #HULL_SCROLL_RATE_DENOMINATOR[\s\S]+sbc #HULL_SCROLL_RATE_DENOMINATOR/);
+    /cmp #CAPITAL_HULL_STATE_OPEN[\s\S]+lda world_scroll_rates,x[\s\S]+asl[\s\S]+lda hull_scroll_rates,x[\s\S]+cmp #HULL_SCROLL_RATE_DENOMINATOR[\s\S]+sbc #HULL_SCROLL_RATE_DENOMINATOR/);
   assert.match(routine("main_loop", "wait_frame"),
-    /jsr wait_gameplay_frame[\s\S]+jsr update_starfield[\s\S]+jmp main_loop/);
+    /jsr wait_for_master_pal_frame[\s\S]+jsr update_starfield[\s\S]+jmp main_loop/);
   const rateTableAddress = labels.get("hull_scroll_rates");
   const difficultyAddress = readGameGraphicsSource(source, definition).constants.get(
     "DIFFICULTY_SETTING",
   );
-  assert.deepEqual([...broadsideRuntimeBytesAt(rateTableAddress, 3)], [8, 9, 10]);
-  const update = xexBytesAt(labels.get("update_starfield"), 56);
-  assert.notEqual(update.indexOf(Buffer.from([
-    0xae, difficultyAddress & 0xff,
-    difficultyAddress >> 8,
-    0xa5, labels.get("scroll_accumulator"), 0x18, 0x7d,
-    labels.get("world_scroll_rates") & 0xff,
-    labels.get("world_scroll_rates") >> 8, 0xc9, 20,
-  ])), -1);
-  assert.notEqual(update.indexOf(Buffer.from([0xe9, 20, 0x85,
+  assert.deepEqual([...broadsideRuntimeBytesAt(rateTableAddress, 3)], [10, 12, 13]);
+  const update = xexBytesAt(labels.get("update_starfield"), 80);
+  assert.notEqual(update.indexOf(Buffer.from([0xc9, 40])), -1);
+  assert.notEqual(update.indexOf(Buffer.from([0xe9, 40, 0x85,
     labels.get("scroll_accumulator")])), -1);
   const init = xexBytesAt(
     labels.get("init_state"),

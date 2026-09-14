@@ -178,7 +178,7 @@ test("both ships share one finite progression and retain an immutable eight-row 
   assert.equal(world.corridorPhase, 488);
   assert.equal(world.drainRows, 28);
   assert.equal(world.hullAdvances, 516);
-  assert.equal(frame, 1032);
+  assert.equal(frame, 1588);
 });
 
 test("assembled sector dictionaries, sequences, and overlays match the source asset", () => {
@@ -243,8 +243,8 @@ test("flagship keeps the further-reduced cadence, warning, speed, damage, and M0
   assert.equal(asset.broadside.projectileSpeed, 2);
   assert.equal(asset.broadside.playerDamage, 20);
   assert.deepEqual(asset.broadside.worldScrollRates, { easy: 8, medium: 9, hard: 10 });
-  assert.deepEqual(asset.broadside.hullScrollRates, { easy: 8, medium: 9, hard: 10 });
-  assert.equal(asset.broadside.hullScrollRateDenominator, 20);
+  assert.deepEqual(asset.broadside.hullScrollRates, { easy: 10, medium: 12, hard: 13 });
+  assert.equal(asset.broadside.hullScrollRateDenominator, 40);
   assert.equal(updateMissileByte(0xff, 1, false), 0xf3);
   assert.equal(updateMissileSize(0x01, 1, 1) & 0x03, 0x01,
     "changing M1 size preserves M0's pair");

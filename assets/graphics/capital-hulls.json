@@ -480,11 +480,11 @@
       "medium": 9,
       "hard": 10
     },
-    "hullScrollRateDenominator": 20,
+    "hullScrollRateDenominator": 40,
     "hullScrollRates": {
-      "easy": 8,
-      "medium": 9,
-      "hard": 10
+      "easy": 10,
+      "medium": 12,
+      "hard": 13
     },
     "projectileSpeed": 2,
     "warningHeight": 6,

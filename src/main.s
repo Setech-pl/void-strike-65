@@ -774,9 +774,10 @@ PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE = PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYE
 .assert INTERCEPTOR_HORIZONTAL_STEP_HPOS = PLAYER_FIGHTER_HORIZONTAL_STEP_HPOS, error, "fighter step units diverged"
 .assert INTERCEPTOR_SPEED_NUMERATOR*5 = INTERCEPTOR_SPEED_DENOMINATOR*4, error, "Interceptor maximum speed must remain exactly 4/5 of PlayerFighter"
 .assert INTERCEPTOR_SPEED_NUMERATOR < INTERCEPTOR_SPEED_DENOMINATOR, error, "Interceptor fractional rate must skip at least one frame"
-.assert WORLD_SCROLL_RATE_EASY = HULL_SCROLL_RATE_EASY, error, "world/hull easy cadence must remain phase-aligned"
-.assert WORLD_SCROLL_RATE_MEDIUM = HULL_SCROLL_RATE_MEDIUM, error, "world/hull medium cadence must remain phase-aligned"
-.assert WORLD_SCROLL_RATE_HARD = HULL_SCROLL_RATE_HARD, error, "world/hull hard cadence must remain phase-aligned"
+.assert HULL_SCROLL_RATE_DENOMINATOR = WORLD_SCROLL_RATE_DENOMINATOR*2, error, "capital rate conversion assumes a doubled denominator"
+.assert WORLD_SCROLL_RATE_EASY*2 > HULL_SCROLL_RATE_EASY, error, "capital EASY traversal must remain slower than fighter world scroll"
+.assert WORLD_SCROLL_RATE_MEDIUM*2 > HULL_SCROLL_RATE_MEDIUM, error, "capital MEDIUM traversal must remain slower than fighter world scroll"
+.assert WORLD_SCROLL_RATE_HARD*2 > HULL_SCROLL_RATE_HARD, error, "capital HARD traversal must remain slower than fighter world scroll"
 .assert WORLD_SCROLL_RATE_HARD*2 <= WORLD_SCROLL_RATE_DENOMINATOR, error, "hard cadence must leave one light frame for LMS prebuild"
 .assert INTERCEPTOR_WEAVE_PERIOD_FRAMES = 32, error, "Interceptor weave hot path assumes a 32-frame period"
 .assert INTERCEPTOR_ATTACK_ACTIVE_TOP = GAMEPLAY_TOP, error, "Interceptor pursuit begins at the gameplay viewport"
@@ -2780,7 +2781,15 @@ wait_frame_at_line:
 ; part of this fit proof; this is the already measured publication scaffold.
 publish_fighter_projectile_overlays:
     lda FIGHTER_PROJECTILE_PUBLICATION_FRAME
-    bne fighter_projectile_publication_capital_render
+    beq @fighter_window
+    ; Capital starts its frame at $70, but sparse white publication still runs
+    ; here after active work, beyond the gameplay playfield. Commit OLD/phase
+    ; before the shared render path; omitting this pair would clone every prior
+    ; white point into the scrolling ring.
+    jsr erase_dynamic_near_star_overlays
+    jsr publish_dynamic_near_star_phase
+    jmp fighter_projectile_publication_capital_render
+@fighter_window:
     ldx #$77
     jsr wait_frame_at_line
 fighter_projectile_publication_begin = *
@@ -5121,23 +5130,36 @@ update_starfield:
     lda STAR_NEAR_RING_ADVANCED
     and #$02                    ; retain this frame's near coarse-row event
     sta STAR_NEAR_RING_ADVANCED
+    ; Keep the owner-approved fighter world rates unchanged. During a capital
+    ; traversal both the background ring and hull consume the slower capital
+    ; numerator, so geometry remains phase-aligned without touching the PAL
+    ; gameplay token or adding ad-hoc frame skips. The common working
+    ; denominator is 40; fighter's 8/9/10 over 20 is doubled exactly.
     ldx DIFFICULTY_SETTING
-    lda scroll_accumulator
+    lda CAPITAL_SECTOR_STATE
+    cmp #CAPITAL_HULL_STATE_OPEN
+    bne @capital_rate
+    lda world_scroll_rates,x
+    asl
+    bne @rate_ready
+@capital_rate:
+    lda hull_scroll_rates,x
+@rate_ready:
+    pha
     clc
-    adc world_scroll_rates,x
-    cmp #WORLD_SCROLL_RATE_DENOMINATOR
+    adc scroll_accumulator
+    cmp #HULL_SCROLL_RATE_DENOMINATOR
     bcs @world_scroll
     sta scroll_accumulator
     jmp @hull_rate
 @world_scroll:
-    sbc #WORLD_SCROLL_RATE_DENOMINATOR
+    sbc #HULL_SCROLL_RATE_DENOMINATOR
     sta scroll_accumulator
     jsr advance_starfield_layers
 @hull_rate:
-    ldx DIFFICULTY_SETTING
-    lda HULL_SCROLL_ACCUMULATOR
+    pla
     clc
-    adc hull_scroll_rates,x
+    adc HULL_SCROLL_ACCUMULATOR
     cmp #HULL_SCROLL_RATE_DENOMINATOR
     bcs @hull_scroll
     sta HULL_SCROLL_ACCUMULATOR
@@ -5170,8 +5192,9 @@ advance_starfield_layers:
     jsr integration_director_world_row
     jmp scroll_world_columns
 
-; A ring step is selected from, and always coincident with, the 100%-rate
-; hull/world clock. Keep
+; A ring step is selected from the same sector-local numerator as the hull,
+; so the two mappings remain coincident even though capital traversal is now
+; slower than fighter-space world motion. Keep
 ; logical row zero at the fixed divider LMS, rotate the 27 rows below it, copy
 ; the prior divider into logical row one, then regenerate logical row zero.
 ; Hull generation follows; hull-only events retain their side-band copy path.
@@ -5375,15 +5398,11 @@ entity_effects_erase_with_white_starfield:
 
 .segment "STARFIELD"
 update_white_starfield_phase:
-    ; Four small white points move exactly one scanline per OPEN PAL frame.
-    ; A shared phase advances their logical row only once every eight frames.
+    ; Four small white points move exactly one scanline per PAL gameplay tick.
+    ; Their state is sector-independent: capital geometry only occludes visual
+    ; publication, so entry/exit cannot freeze, reset, or delay the layer.
     lda #$00
     sta STAR_NEAR_RING_ADVANCED
-    lda CAPITAL_SECTOR_STATE
-    cmp #CAPITAL_HULL_STATE_OPEN
-    beq @advance_near
-    jmp invalidate_dynamic_near_cache
-@advance_near:
     lda STAR_NEAR_FINE_PHASE
     clc
     adc #STAR_NEAR_FINE_STEP
@@ -5408,14 +5427,11 @@ update_white_starfield_phase:
     rts
 
 .segment "A2_KERNEL"
-invalidate_dynamic_near_cache:
-    ldx #(STAR_NEAR_CAPACITY-1)
-    lda #$00
-@invalidate_near:
-    sta STAR_NEAR_SCREEN_HI,x
-    dex
-    bpl @invalidate_near
-    rts
+; Capital no longer invalidates the four white-star address caches. Preserve
+; the reviewed A2 entry-point ABI with inert bytes instead of retaining the
+; obsolete freeze/invalidate routine as callable production code.
+continuous_white_star_a2_layout_pad:
+    .res 11, $EA
 
 .segment "STARFIELD"
 ; Reverse the four sparse white overlays before ring reuse. The cached address
@@ -5461,11 +5477,6 @@ publish_dynamic_near_star_phase:
 ; late physical write still implements the intended lowest dynamic priority.
 .segment "STARFIELD"
 render_dynamic_near_star_overlays:
-    lda CAPITAL_SECTOR_STATE
-    cmp #CAPITAL_HULL_STATE_OPEN
-    beq :+
-    rts
-:
     ldx #$00
 @slot:
     ; Cached addresses change only when the shared fine phase crosses a row,
@@ -5568,6 +5579,18 @@ render_dynamic_near_star_overlays:
     beq @done
     jmp @slot
 @done:
+    rts
+
+; Capital shells are a higher character layer and may capture a transient
+; white point while crossing open space. Such a point has no persistent
+; backing ownership; restoring it after the star moves would create an orphan
+; that scrolls with the ring. Keep the sanitizer A-only so both shell cells can
+; use it without disturbing the slot/index registers.
+sanitize_dynamic_near_backing:
+    cmp #STAR_NEAR_POINT
+    bne :+
+    lda #CH_SPACE
+:
     rts
 
 .segment "STARFIELD"
@@ -9036,9 +9059,11 @@ broadside_erase_begin:
     sbc #$01
     tay
     lda BROAD_PREV_Y,x
+    jsr sanitize_dynamic_near_backing
     sta (dst_ptr),y
     iny
     lda BROAD_COLLISION,x
+    jsr sanitize_dynamic_near_backing
     sta (dst_ptr),y
 broadside_erase_cells_restored:
     jmp broadside_erase_clear_previous

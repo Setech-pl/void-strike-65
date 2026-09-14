@@ -1879,6 +1879,7 @@ function main() {
   const reuseExistingTraces = process.argv.includes("--reuse-existing-traces");
   const smokeFramesArgument = argumentValue("smoke-frames");
   const smokeFrames = smokeFramesArgument === undefined ? null : Number(smokeFramesArgument);
+  const smokeDifficulty = Number(argumentValue("smoke-difficulty") ?? 2);
   const onlySession = argumentValue("only-session");
   const activeFrames = Number(argumentValue("active-frames") ?? 0);
   invariant(Number.isInteger(activeFrames) && activeFrames >= 0 && activeFrames <= 1800,
@@ -1886,6 +1887,8 @@ function main() {
   const pickupFenceTrace = process.argv.includes("--pickup-fence-trace");
   invariant(smokeFrames === null || Number.isInteger(smokeFrames) && smokeFrames > 0,
     "--smoke-frames must be a positive integer");
+  invariant(Number.isInteger(smokeDifficulty) && smokeDifficulty >= 0 && smokeDifficulty <= 2,
+    "--smoke-difficulty must be 0, 1, or 2");
   if (shouldPrepare) prepareAtari800(sourceDirectory);
 
   const emulatorPath = path.join(sourceDirectory, "src", "atari800");
@@ -2065,7 +2068,8 @@ function main() {
       ...memoryIntegritySessions, ...lowerPlayfieldSessions]
       .concat(engineDiagnosticSessions, engineRestartSessions,
         onlySession?.startsWith("pickup-fence-") ? pickupFenceSessions : [])
-    : [{ ...baselineSessions[0], id: "observer-smoke", kind: "observer-smoke", frames: smokeFrames }];
+    : [{ ...baselineSessions[0], difficulty: smokeDifficulty,
+      id: "observer-smoke", kind: "observer-smoke", frames: smokeFrames }];
   if (onlySession !== undefined) {
     sessionsToRun = sessionsToRun.filter(({ id }) => id === onlySession);
     invariant(sessionsToRun.length === 1, `Unknown trace session: ${onlySession}`);

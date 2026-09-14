@@ -30,7 +30,7 @@ test("master PAL gate makes transition-only fire/audio catch-up obsolete", () =>
   const publication = source.slice(source.indexOf("publish_fighter_projectile_overlays:"),
     source.indexOf("fighter_projectile_option_debounce_wait:"));
   assert.match(publication,
-    /lda FIGHTER_PROJECTILE_PUBLICATION_FRAME\s+bne fighter_projectile_publication_capital_render\s+ldx #\$77\s+jsr wait_frame_at_line\s+fighter_projectile_publication_begin/);
+    /lda FIGHTER_PROJECTILE_PUBLICATION_FRAME\s+beq @fighter_window[\s\S]+jsr erase_dynamic_near_star_overlays\s+jsr publish_dynamic_near_star_phase\s+jmp fighter_projectile_publication_capital_render\s+@fighter_window:\s+ldx #\$77\s+jsr wait_frame_at_line\s+fighter_projectile_publication_begin/);
   assert.doesNotMatch(publication, /jsr update_sound|player_fire_transition_tick/);
   assert.doesNotMatch(source, /player_fire_transition_tick:/);
   assert.match(source,

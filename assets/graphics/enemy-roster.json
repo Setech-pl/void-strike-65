@@ -46,7 +46,7 @@
         "burstCount": 5,
         "burstIntervalFrames": 15,
         "postBurstFrames": [60, 50, 40],
-        "speed": 5,
+        "speed": 2,
         "height": 3,
         "widthHpos": 2,
         "damage": 10,

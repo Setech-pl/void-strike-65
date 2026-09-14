@@ -117,20 +117,15 @@ function runRoutine(image, address) {
   assert.equal(cpu.pc, stop, `routine $${address.toString(16)} did not return`);
 }
 
-function verifyRowBakedFarAdvance(build) {
+function verifyWhiteOnlyStarfield(build) {
   const image = installedMemory(build);
-  const destination = 0x6000;
-  image[build.labels.get("dst_ptr")] = destination & 0xff;
-  image[build.labels.get("dst_ptr") + 1] = destination >> 8;
-  image[build.labels.get("STAR_FAR_PATTERN_ROW")] = 0;
-  image[build.labels.get("CAPITAL_SECTOR_STATE")] = 6;
-  runRoutine(image, build.labels.get("generate_baked_far_star_row"));
-  const stars = image.subarray(destination, destination + 40)
-    .filter((value) => value >= 1 && value <= 3);
-  assert.equal(stars.length, 2);
-  assert.equal(image[build.labels.get("STAR_FAR_PATTERN_ROW")], 1);
-  for (const retired of ["STAR_FAR_ACTIVE", "erase_far_star_overlays",
-    "advance_far_stars", "render_far_star_overlays"]) {
+  image[build.labels.get("CAPITAL_SECTOR_STATE")] = 7;
+  const before = image[build.labels.get("STAR_NEAR_FINE_PHASE")];
+  runRoutine(image, build.labels.get("update_white_starfield_phase"));
+  assert.equal(image[build.labels.get("STAR_NEAR_FINE_PHASE")], (before + 1) & 7);
+  for (const retired of ["STAR_FAR_ACTIVE", "STAR_FAR_PATTERN_ROW",
+    "generate_baked_far_star_row", "draw_baked_far_star",
+    "erase_far_star_overlays", "advance_far_stars", "render_far_star_overlays"]) {
     assert.equal(build.labels.has(retired), false, retired);
   }
 }
@@ -146,7 +141,7 @@ test("assembled Hunter plus capital heavy frame recovers the PAL working ceiling
   assert.equal(native.capital_explosion, 1);
 
   const assembled = assembleCurrentRuntime();
-  verifyRowBakedFarAdvance(assembled);
+  verifyWhiteOnlyStarfield(assembled);
   const timing = measureRuntimeCycles(assembled);
   const heavy = timing.cpuReferenceFrames
     .filter((frame) => frame.broadsideOccupancy === 2 &&

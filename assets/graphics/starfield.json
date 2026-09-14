@@ -6,31 +6,29 @@
     "endColumn": 32
   },
   "farLayer": {
-    "population": 29,
-    "representation": "row-baked",
-    "rateNumerator": 1,
+    "population": 0,
+    "representation": "disabled",
+    "rateNumerator": 0,
     "rateDenominator": 1,
-    "finePhase": true,
+    "finePhase": false,
     "colourRegister": "COLPF1",
     "pattern": {
-      "rows": 28,
-      "columns": [3, 17, 33, 5, 25, 6, 13, 29, 5, 21, 35, 11, 27, 0, 19, 4, 7, 23, 39, 15, 28, 4, 12, 36, 10, 26, 1, 18, 34],
-      "glyphs": ["DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM", "DIM"]
+      "rows": 0,
+      "columns": [],
+      "glyphs": []
     },
-    "glyphs": [
-      { "id": "DIM", "screenCode": 1, "bytes": [32, 0, 0, 0, 0, 0, 0, 0] }
-    ]
+    "glyphs": []
   },
   "nearLayer": {
     "representation": "sparse-dynamic",
     "population": 4,
-    "speedPixelsPerFrame": 8,
+    "speedPixelsPerFrame": 1,
     "initialRows": [2, 9, 16, 23],
     "initialColumns": [11, 18, 25, 29],
     "initialGlyphs": ["POINT", "POINT", "POINT", "POINT"],
     "colourRegister": "COLPF0",
     "glyphs": [
-      { "id": "POINT", "screenCode": 2, "bytes": [16, 0, 0, 0, 0, 0, 0, 0] }
+      { "id": "POINT", "screenCode": 1, "bytes": [16, 0, 0, 0, 0, 0, 0, 0] }
     ]
   },
   "twinkle": {

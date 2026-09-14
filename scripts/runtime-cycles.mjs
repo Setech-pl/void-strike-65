@@ -41,7 +41,9 @@ const addresses = {
 const counts = {
   broadsideSlots: 3,
   projectileSlots: 19,
-  farStars: 29,
+  // `renderedFarStars` is retained only as a report-schema property name.
+  // The production value is the four-record white-only decorative layer.
+  farStars: 4,
   fighterExplosionSlots: 2,
 };
 
@@ -60,8 +62,8 @@ const profiledRoutineNames = [
   "update_player_fighter_weapon",
   "update_enemy_weapon",
   "update_starfield",
-  "generate_baked_far_star_row",
-  "draw_baked_far_star",
+  "update_white_starfield_phase",
+  "publish_dynamic_near_star_phase",
   "scroll_world_columns",
   "scroll_hull_columns",
   "visible_hull_sector_row",
@@ -389,7 +391,7 @@ function eventNames(frame) {
   const names = [];
   for (const [name, label] of [
     ["world-copy", "scroll_world_columns"],
-    ["row-baked-far", "generate_baked_far_star_row"],
+    ["white-star-phase", "publish_dynamic_near_star_phase"],
     ["hull-copy", "scroll_hull_columns"],
     ["broadside", "update_broadside"],
     ["fighter-explosion", "render_shared_fighter_explosions"],
@@ -859,7 +861,7 @@ export function measureRuntimeCycles(build) {
   let noPlayerFighterProjectilePath;
   for (const frame of frames) {
     if (frame.hits.has("scroll_world_columns") &&
-      frame.hits.has("generate_baked_far_star_row")) {
+      frame.hits.has("publish_dynamic_near_star_phase")) {
       worldNearFullErase = chooseMaximum(worldNearFullErase, frame, (candidate) => candidate.cycles);
     }
     if (frame.hits.has("scroll_hull_columns")) {

@@ -1,11 +1,11 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 3.9
+Wersja: 4.0
 Data aktualizacji: 2026-09-14
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD przed niniejszym proofem: `56671a6fa7aba1abefa9c4863093ed916a9b732b`
-Stan runtime: niezmieniony dwuwarstwowy row-baked starfield po wycofaniu zbyt kosztownego static-far prototype + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck odroczony do debris 25 Hz / visual redesign; bez unified schedulera
-Aktualny XEX owner-smoke candidate: SHA-256 `c5bdc93b8b2b822bad22e19f402c9347de4fa1996cf58871c05b3ec0eba0b826`
+Aktualny HEAD przed niniejszym proofem: `03ce913d0b4dd7ec1df6e2f8f57e58814c68dc5f`
+Stan runtime: techniczny kandydat white-only starfield (4 white, `1 px/frame`, bez blue far) + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck odroczony do debris 25 Hz / visual redesign; bez unified schedulera
+Aktualny XEX owner-smoke candidate: SHA-256 `fc8e32b4435123d00ab9c98dd10d40864bd3a51b8d0f3c522c9ec4ed5c1b68a0`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
 
@@ -1425,7 +1425,82 @@ Decyzja:
 **14 screen-static blue far + 4 slow white near są odrzucone w aktualnej
 architekturze ring i cold layout. Nie istnieje legalny XEX do owner smoke.**
 
-Następny krok ponownie wymaga jawnej decyzji właściciela. Nie wykonywać
+### White-only slow starfield — TECHNICAL CANDIDATE / OWNER SMOKE
+
+Właściciel ostatecznie usunął wszystkie blue far stars i drugą warstwę.
+Kandydat zawiera dokładnie cztery małe białe punkty `COLPF0`, poruszające się
+o `1 px/frame` w fighter OPEN. Ruch wykorzystuje wspólną fazę `0..7`, a coarse
+przejście między wierszami następuje co osiem klatek. Nie ma indywidualnego
+lifecycle, twinkle ani symulacji blue far.
+
+Prędkość kadłuba/background ring wynika z kroków `8/9/10` przy mianowniku 20
+i rotacji o osiem scanlines: EASY `3,2`, MEDIUM `3,6`, HARD `4,0 px/frame`.
+White ma zatem odpowiednio `31,25%`, `27,78%` i `25%` tej prędkości. Wszystkie
+trzy wartości mieszczą się w owner target `20-35%`, dlatego nie wdrożono
+wolniejszego dodatkowego zegara.
+
+Publication rozróżnia cztery przypadki: bez zdarzenia, tylko coarse white,
+tylko ring step oraz coarse+ring. Cache przechowuje dokładny physical OLD
+adres. Coarse-only przesuwa go o jeden physical row, ring-only cofa o jeden,
+a coarse+ring wzajemnie się znoszą. OLD erase pozostaje w zaakceptowanym
+post-playfield window; wspólny bajt charsetu publikuje fine phase, a NEW jest
+nakładane wyłącznie na `CH_SPACE`. Capital unieważnia cache i zamraża warstwę;
+powrót do fightera rozwiązuje cztery adresy z aktualnej tablicy ring.
+
+Usunięto produkcyjny blue generator, 29-entry pattern, blue glyph, fine phase,
+static-overlay scaffolding i blue runtime data. Format źródłowy zachowuje
+jedynie jawne metadata `farLayer: disabled` do walidacji buildu; nie generują
+one danych ani kodu Atari.
+
+Usunięcie blue kodu ujawniło historyczną zależność layoutu BROADSIDE. Chroniona
+granica jest nadal rzeczywistym ABI release glue przy `$76A7`, lecz ca65 nie
+może oceniać relocatable label jako stałej w zwykłym `.assert ... error`.
+Pad nazwano zgodnie z aktualną funkcją, ustawiono na sześć bajtów po
+uwzględnieniu pięciobajtowego tagu transportu, a kontrolę przeniesiono do
+link-time `.assert ... lderror`. Legalny link potwierdza `$76A7` i zachowuje
+`9 B` marginesu BROADSIDE; nie przesunięto gameplay code dla samego adresu.
+
+Instruction-exact pełny koszt starfield:
+
+- zwykła klatka: update `38` + erase `158` + glyph phase `33` + render `271`
+  = `500` cykli;
+- coarse white bez ring step: `105 + 158 + 34 + 447 = 744` cykle;
+- ring step bez coarse: `38 + 158 + 33 + 429 + 65 = 723` cykle;
+- coarse+ring: `105 + 158 + 34 + 291 + 65 = 653` cykle;
+- ring wrap ma ten sam legalny peak `723`; pełny pierwszy re-entry tick kosztuje
+  `616` cykli (`38` update + `130` empty-cache erase + `33` phase + `415`
+  cold-cache render).
+
+Najgorsze `744` cykle mieści się pod twardym STOP `850`, ale należy do jawnej
+klasy `PARTIAL` z promptu (`701-850`), nie do preferowanego `<=700`. Zachowany
+zysk względem historycznych `4 221` wynosi `3 477` cykli. Nie wykonywano
+drugiej architektury ani dodatkowej optymalizacji przed owner smoke.
+
+Hostowe testy objęły wszystkie cztery event combinations, `1000` klatek
+coarse/ring/wrap, capital freeze/re-entry oraz PairShot/effects/fire/remnant
+regressions: `46/46 PASS`. Native Atari800 PAL przez `3000` klatek dał `1 916`
+kompletnych fighter-OPEN publikacji: `7 610/7 664` prób skutecznie zapisało
+white point, pozostałe `54` były legalnym occupancy skip; `0` stabilnych
+orphan/stale cells po rozgrzewce. Active-work max `17 605`, target/hard
+overruns `0`, extra VBI `0`, DLI anomalies `0`. Jeden missed boundary wystąpił
+przy istniejącym przejściu fighter->capital (`active work` następnej klatki),
+bez przekroczenia target/hard i bez korelacji ze starfield.
+
+Placement względem checkpointu: linked runtime `17 543 -> 17 518 B`,
+simultaneous residency `18 021 -> 17 996 B`, safe headroom `4 166 -> 4 191 B`.
+STARFIELD `2 184/2 348 B` raw oraz `1 779/1 819 B` packed, initial content
+`13 119/13 184 B`, A2 `197/256 B`, BROADSIDE `6 647/6 656 B`, cold pickup
+`866/1 277 B`. Loader, transport i BASIC RAM pozostają bez zmian.
+
+Raport:
+`docs/diagnostics/stage-2b2b-white-only-slow-starfield-proof.json`.
+
+Decyzja techniczna:
+
+**White-only slow starfield jest legalnym kandydatem do owner smoke. Finalna
+ocena gęstości, tempa i czytelności pozostaje decyzją właściciela.**
+
+Następny krok: `Owner smoke white-only slow starfield`. Nie rozpoczynać
 background/ring 25 Hz automatycznie.
 
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji

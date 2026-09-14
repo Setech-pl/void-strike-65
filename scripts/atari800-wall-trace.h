@@ -37,7 +37,7 @@
 #define DFTRACE_PROFILE_DLI_COUNT 2u
 #define DFTRACE_CAPTURE_DMA_Y_OFFSET 8u
 #define DFTRACE_NEAR_COUNT 4u
-#define DFTRACE_NEAR_CODE 2u
+#define DFTRACE_NEAR_CODE 1u
 
 typedef struct {
 	uint64_t start_clock;
@@ -1306,9 +1306,9 @@ static unsigned dftrace_count_nonzero(unsigned address, unsigned length)
 
 static unsigned dftrace_count_far_rendered(void)
 {
-	/* Row-baked far stars have no active-record pool. One 28-row pattern
-	 * period always contains 29 visible points after initialization. */
-	return 29u;
+	/* `far_rendered` is a frozen CSV column name. It now carries the count of
+	 * cached white-only overlay records; no blue population exists. */
+	return dftrace_count_nonzero(dftrace_near_screen_hi, DFTRACE_NEAR_COUNT);
 }
 
 static int dftrace_is_ring_address(unsigned address)

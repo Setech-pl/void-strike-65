@@ -35,12 +35,10 @@ export function compileStarfield(definition) {
     "Starfield corridor must preserve the accepted 8/24/8 layout");
   const far = definition.farLayer;
   const near = definition.nearLayer;
-  invariant(Number.isInteger(far?.population) && far.population >= 18 && far.population <= 30,
-    "Far population must remain in the sparse visual range 18-30");
-  invariant(far.representation === "row-baked",
-    "Far layer must use the owner-approved row-baked representation");
-  invariant(far.rateNumerator === 1 && far.rateDenominator === 1,
-    "Row-baked far stars must move at background-ring speed");
+  invariant(far?.population === 0 && far.representation === "disabled",
+    "The owner-approved production starfield has no far layer");
+  invariant(far.rateNumerator === 0 && far.rateDenominator === 1 && far.finePhase === false,
+    "Disabled far stars cannot retain motion or fine phase");
   invariant(near?.representation === "sparse-dynamic",
     "Near layer must use the owner-approved sparse dynamic representation");
   invariant(Number.isInteger(near.population) && near.population >= 4 && near.population <= 8,
@@ -57,39 +55,27 @@ export function compileStarfield(definition) {
   invariant(Array.isArray(near.initialGlyphs) && near.initialGlyphs.length === near.population,
     "Near initial glyphs must cover every sparse record");
   invariant(definition.twinkle?.enabled === false,
-    "Row-baked far stars must not restore the independent twinkle writer");
+    "White-only stars must not restore an independent twinkle writer");
   invariant(definition.twinkle?.intervalFrames >= 8 &&
     definition.twinkle.intervalFrames <= 64,
   "Twinkle interval must remain calm and bounded");
   invariant(definition.twinkle.starsPerInterval === 1,
     "This pass twinkles exactly one far star per interval");
-  invariant(far.colourRegister === "COLPF1" && near.colourRegister === "COLPF0",
-    "Star layers must preserve the reviewed blue-grey/bright playfield banks");
-  invariant(Array.isArray(far.glyphs) && far.glyphs.length === 1,
-    "Far layer uses one shared fine-phase glyph");
+  invariant(near.colourRegister === "COLPF0",
+    "White stars must use the bright playfield bank");
+  invariant(Array.isArray(far.glyphs) && far.glyphs.length === 0,
+    "Disabled far layer must not retain production glyphs");
   invariant(Array.isArray(near.glyphs) && near.glyphs.length === 1,
     "Near layer uses one unambiguous point glyph");
-  far.glyphs.forEach((glyph, index) => validateGlyph(glyph, 1 + index, "Far"));
-  near.glyphs.forEach((glyph, index) => validateGlyph(glyph, 2 + index, "Near"));
+  near.glyphs.forEach((glyph, index) => validateGlyph(glyph, 1 + index, "Near"));
   invariant(near.initialGlyphs.every((id) => near.glyphs.some((glyph) => glyph.id === id)),
     "Near initial glyph ids must name existing near glyphs");
-  invariant(far.pattern?.rows === GAMEPLAY_ROWS,
-    "Row-baked far pattern must cover one complete gameplay-ring period");
-  invariant(Array.isArray(far.pattern.columns) &&
-    far.pattern.columns.length === far.population &&
-    far.pattern.columns.every((column) => Number.isInteger(column) &&
-      column >= 0 && column < SCREEN_COLUMNS),
-  "Row-baked far pattern needs one legal full-width column per star");
-  invariant(Array.isArray(far.pattern.glyphs) &&
-    far.pattern.glyphs.length === far.population &&
-    far.pattern.glyphs.every((id) => far.glyphs.some((glyph) => glyph.id === id)),
-  "Row-baked far pattern glyph ids must name existing far glyphs");
-  invariant(far.population === far.pattern.rows + 1,
-    "The 28-row baked period must contain exactly one double-star row");
+  invariant(far.pattern?.rows === 0 && Array.isArray(far.pattern.columns) &&
+    far.pattern.columns.length === 0 && Array.isArray(far.pattern.glyphs) &&
+    far.pattern.glyphs.length === 0,
+  "Disabled far layer must not retain a baked pattern");
   const glyphs = [...far.glyphs, ...near.glyphs];
-  const farGlyphIndex = new Map(far.glyphs.map((glyph, index) => [glyph.id, index]));
-  const farPatternBytes = Uint8Array.from(far.pattern.columns.map((column, index) =>
-    column | farGlyphIndex.get(far.pattern.glyphs[index]) << 6));
+  const farPatternBytes = new Uint8Array();
   invariant(glyphs.at(-1).screenCode < 11,
     "Star glyphs must stay below the PlayerFighter projectile glyph bank");
   return Object.freeze({
@@ -102,8 +88,8 @@ export function compileStarfield(definition) {
     nearLayer: Object.freeze({ ...near, glyphs: Object.freeze(near.glyphs.map(Object.freeze)) }),
     glyphs: Object.freeze(glyphs),
     glyphBytes: Uint8Array.from(glyphs.flatMap(({ bytes }) => bytes)),
-    // The baked-pattern row and shared fine phase are the only live scalar
-    // bytes. Sparse near records keep row/column plus the last rendered screen
+    // The ring-event flags and shared fine-Y phase are the only live scalar
+    // bytes. Sparse white records keep row/column plus the last rendered screen
     // address; they claim blank cells, so no per-record backing byte is needed.
     stateBytes: 2 + near.population * 4,
     expectedNearVisible: near.population,
@@ -127,15 +113,9 @@ export function renderStarfieldCa65Include(asset) {
     `STAR_TWINKLE_INTERVAL = ${asset.twinkle.intervalFrames}`,
     `STAR_TWINKLE_STARS_PER_INTERVAL = ${asset.twinkle.starsPerInterval}`,
     `STAR_GENERATION_SEED = ${byte(asset.generationSeed)}`,
-    `STAR_FAR_DIM = ${names.get("DIM")}`,
     `STAR_NEAR_POINT = ${names.get("POINT")}`,
-    `STAR_FAR_FIRST = ${far.glyphs[0].screenCode}`,
-    `STAR_FAR_END = ${far.glyphs.at(-1).screenCode + 1}`,
     `STAR_NEAR_FIRST = ${near.glyphs[0].screenCode}`,
     `STAR_NEAR_END = ${near.glyphs.at(-1).screenCode + 1}`,
-    ".macro EMIT_FAR_STAR_PATTERN",
-    `    .byte ${[...far.pattern.bytes].map(byte).join(",")}`,
-    ".endmacro",
     ".macro EMIT_NEAR_STAR_INITIAL_ROWS",
     `    .byte ${near.initialRows.map(byte).join(",")}`,
     ".endmacro",
@@ -168,34 +148,6 @@ function chooseColumn(asset, state, fullWidth) {
   return { rng, column };
 }
 
-function farPatternColumn(asset, packed, fullWidth) {
-  const column = packed & 0x3f;
-  if (fullWidth) return column;
-  const width = asset.corridor.endColumn - asset.corridor.firstColumn - 2;
-  return asset.corridor.firstColumn + 1 + column % width;
-}
-
-function bakeFarPatternRow(asset, row, patternRow, fullWidth) {
-  const slots = patternRow === 0 ? [0, asset.farLayer.population - 1] : [patternRow];
-  const first = fullWidth ? 0 : asset.corridor.firstColumn + 1;
-  const width = fullWidth ? SCREEN_COLUMNS :
-    asset.corridor.endColumn - asset.corridor.firstColumn - 2;
-  for (const slot of slots) {
-    const packed = asset.farLayer.pattern.bytes[slot];
-    let column = farPatternColumn(asset, packed, fullWidth);
-    if (row[column] !== 0) column = first + (column - first + (fullWidth ? 17 : 11)) % width;
-    invariant(row[column] === 0, "bounded far-star fallback collided with another row owner");
-    row[column] = asset.farLayer.glyphs[packed >>> 6].screenCode;
-  }
-  return row;
-}
-
-function generateBakedRow(asset, state, fullWidth, patternRow) {
-  const row = new Uint8Array(SCREEN_COLUMNS);
-  bakeFarPatternRow(asset, row, patternRow, fullWidth);
-  return { rng: state.rng, row };
-}
-
 export function createStarfieldState(asset, {
   seed = asset.generationSeed,
   fullWidth = false,
@@ -212,19 +164,8 @@ export function createStarfieldState(asset, {
     far: [],
     worldSteps: 0,
     nearSteps: 0,
-    farSteps: 0,
     nearPhase: 0,
-    farPhase: 0,
-    farPatternRow: 0,
-    twinkleTimer: asset.twinkle.intervalFrames,
-    twinkleSlot: 0,
   };
-  for (let row = 0; row < GAMEPLAY_ROWS; row += 1) {
-    const patternRow = GAMEPLAY_ROWS - 1 - row;
-    const generated = generateBakedRow(asset, state, fullWidth, patternRow);
-    state.rng = generated.rng;
-    state.near.set(generated.row, row * SCREEN_COLUMNS);
-  }
   return state;
 }
 
@@ -246,7 +187,6 @@ export function stepStarfieldWorld(asset, state) {
     worldSteps: state.worldSteps + 1,
   };
   next.nearSteps += 1;
-  next.farSteps += 1;
   const first = next.fullWidth ? 0 : asset.corridor.firstColumn + 1;
   const end = next.fullWidth ? SCREEN_COLUMNS : asset.corridor.endColumn - 1;
   for (let row = GAMEPLAY_ROWS - 1; row > 0; row -= 1) {
@@ -255,25 +195,21 @@ export function stepStarfieldWorld(asset, state) {
         next.near[(row - 1) * SCREEN_COLUMNS + column];
     }
   }
-  const generated = generateBakedRow(asset, next, next.fullWidth, next.farPatternRow);
-  next.rng = generated.rng;
   const topStart = next.fullWidth ? 0 : asset.corridor.firstColumn;
   const topEnd = next.fullWidth ? SCREEN_COLUMNS : asset.corridor.endColumn;
   next.near.fill(0, topStart, topEnd);
-  next.near.set(generated.row.subarray(topStart, topEnd), topStart);
-  next.farPatternRow = (next.farPatternRow + 1) % asset.farLayer.pattern.rows;
   return next;
 }
 
 export function stepStarfieldFrame(asset, state) {
   if (state.fullWidth) return { ...state };
-  invariant(asset.nearLayer.speedPixelsPerFrame === 8,
-    "Current sparse near kernel advances exactly one character row per frame");
+  const phase = state.nearPhase + asset.nearLayer.speedPixelsPerFrame;
+  if (phase < 8) return { ...state, nearPhase: phase };
   const dynamicNear = state.dynamicNear.map((star) => ({
     ...star,
     row: (star.row + 1) % GAMEPLAY_ROWS,
   }));
-  return { ...state, nearPhase: 0, dynamicNear };
+  return { ...state, nearPhase: phase - 8, dynamicNear };
 }
 
 export function createBackgroundOwnership(asset, state) {

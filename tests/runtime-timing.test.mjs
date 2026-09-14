@@ -142,7 +142,7 @@ test("hybrid ring reservation fits after staging and before entity/effects RAM",
     constants.set(match[1], Number.parseInt(match[2], 16));
   }
   assert.equal(constants.get("STARFIELD_STAGING"), 0x7810);
-  assert.equal(constants.get("STARFIELD_STAGING_BYTES"), 0x0712);
+  assert.equal(constants.get("STARFIELD_STAGING_BYTES"), 0x071b);
   assert.match(source, /PLAYFIELD_RING_ROWS\s*=\s*GAMEPLAY_SCREEN_ROWS-1/);
   assert.match(source, /PLAYFIELD_DLIST_BYTES\s*=\s*3\+3\+PLAYFIELD_RING_ROWS\*3\+3/);
   assert.match(source, /PLAYFIELD_DLIST_A\s*=\s*\$7F10/);
@@ -172,7 +172,8 @@ test("logical gameplay row pointers keep a fixed divider plus 22 linear ring row
     /render_fighter_projectile_overlays:[\s\S]+@code_ready:\s+;[^\n]*\n(?:\s*;[^\n]*\n)*initialize_projectile_screen_pointer = \*/,
     "projectile mapping must stay inline in the per-slot renderer");
   assert.match(source,
-    /init_far_star_population:[\s\S]+sta STAR_FAR_ROW,x[\s\S]+sta STAR_FAR_COLUMN,x/);
+    /init_starfield_state:[\s\S]+sta STAR_NEAR_ROW,x[\s\S]+sta STAR_NEAR_COLUMN,x/);
   assert.match(source,
-    /set_far_star_ptr:[\s\S]+lda STAR_FAR_ROW,x\s+jsr set_gameplay_row_ptr[\s\S]+adc STAR_FAR_COLUMN,x/);
+    /render_dynamic_near_star_overlays:[\s\S]+lda STAR_NEAR_ROW,x[\s\S]+adc STAR_NEAR_COLUMN,x/);
+  assert.doesNotMatch(source, /STAR_FAR|generate_baked_far_star_row|draw_baked_far_star/);
 });

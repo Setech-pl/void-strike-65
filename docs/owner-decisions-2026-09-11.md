@@ -23,7 +23,23 @@ Po optymalizacjach fighter renderer nie powinien jedynie przechodzić hard gate.
 
 ## 2. Pakiet optymalizacji fighter combat — ZATWIERDZONY
 
-### 2.1 Row-baked far stars
+### 2.0 Starfield — decyzja nadrzędna z 2026-09-14
+
+Poniższe historyczne punkty 2.1 i 2.2 zostały zastąpione po kolejnych owner
+smoke. Produkcyjny kierunek starfield to od teraz wyłącznie:
+
+- cztery małe, jasne, białe gwiazdy;
+- jedna dekoracyjna warstwa, bez blue far;
+- ruch `1 px/frame` w fighter OPEN;
+- zamrożenie i usunięcie z ekranu podczas capital traversal;
+- zachowanie post-playfield erase/render oraz bezpiecznego backingu z proofu
+  widoczności white near.
+
+Nie przywracać row-baked blue far, static blue overlay, slow blue drift,
+fine-phase blue ani drugiej klasy gwiazd. Git i zachowane historyczne raporty są
+mechanizmem rollbacku; martwy blue runtime nie ma pozostawać w produkcji.
+
+### 2.1 Row-baked far stars — SUPERSEDED / historia
 
 Screen-static far stars zostały odrzucone pomiarem.
 
@@ -38,7 +54,7 @@ Akceptowany kierunek:
 
 Cel: odzyskać około 4k cykli dynamicznego kosztu i usunąć niezależne far-star writer sites.
 
-### 2.2 Starfield: tylko dwie warstwy
+### 2.2 Starfield: tylko dwie warstwy — SUPERSEDED / historia
 
 Docelowo starfield ma dwie warstwy:
 
@@ -131,7 +147,7 @@ Zmniejszenie częstotliwości wizualnej ma jednocześnie spłaszczać peak workl
 
 Preferowana kolejność:
 
-1. row-baked far stars + dwuwarstwowy starfield;
+1. white-only starfield: cztery wolne białe punkty, bez blue far;
 2. PairedProjectile foundation dla gracza;
 3. PairedProjectile dla fighterów przeciwnika;
 4. effects 25 Hz / staggered;

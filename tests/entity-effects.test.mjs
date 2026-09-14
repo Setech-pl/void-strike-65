@@ -745,7 +745,7 @@ test("debris advances exactly three vertical rows in five world events", () => {
   assert.deepEqual(rows, [24, 32, 32, 40, 48, 48, 56, 56, 64, 72, 72, 80]);
 });
 
-test("EASY, MEDIUM and HARD keep world/debris rates while sparse near stays at 50 Hz", () => {
+test("EASY, MEDIUM and HARD keep world/debris rates while white stars drift at 50 Hz", () => {
   const denominator = capitalHullsDefinition.broadside.worldScrollRateDenominator;
   assert.equal(denominator, 20);
   assert.deepEqual(capitalHullsDefinition.broadside.worldScrollRates,
@@ -755,9 +755,10 @@ test("EASY, MEDIUM and HARD keep world/debris rates while sparse near stays at 5
   assert.deepEqual([
     starfieldDefinition.nearLayer.representation,
     starfieldDefinition.nearLayer.speedPixelsPerFrame,
+    starfieldDefinition.farLayer.population,
     starfieldDefinition.farLayer.rateNumerator,
     starfieldDefinition.farLayer.rateDenominator,
-  ], ["sparse-dynamic", 8, 1, 1]);
+  ], ["sparse-dynamic", 1, 0, 0, 1]);
 
   const measured = {};
   for (const [difficulty, numerator] of

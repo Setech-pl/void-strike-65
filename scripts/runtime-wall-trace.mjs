@@ -368,10 +368,11 @@ const traceLabels = {
   DFTRACE_PC_DLI: "gameplay_dli",
   DFTRACE_PC_WORLD: "advance_starfield_layers",
   DFTRACE_PC_NEAR: "scroll_world_columns",
-  // Preserve the trace schema while rebinding its retired dynamic-far events:
-  // generation is the far visual event and draw marks its bounded row work.
-  DFTRACE_PC_FAR_ERASE: "generate_baked_far_star_row",
-  DFTRACE_PC_FAR_STEP: "draw_baked_far_star",
+  // Preserve the established CSV schema while rebinding the retired far-star
+  // fields to the white-only layer. The names are compatibility-only: these
+  // PCs now delimit logical white motion and its shared glyph publication.
+  DFTRACE_PC_FAR_ERASE: "update_white_starfield_phase",
+  DFTRACE_PC_FAR_STEP: "publish_dynamic_near_star_phase",
   DFTRACE_PC_HULL: "scroll_hull_columns",
   DFTRACE_PC_BROADSIDE: "update_broadside",
   DFTRACE_PC_FIGHTER_EXPLOSION: "render_shared_fighter_explosions",
@@ -418,7 +419,7 @@ const traceLabels = {
   DFTRACE_PROJECTILE_SCREEN_HI: "FIGHTER_PROJECTILE_SCREEN_HI",
   DFTRACE_PROJECTILE_BACKING_TOP: "FIGHTER_PROJECTILE_BACKUP_TOP",
   DFTRACE_BROAD_STATE: "BROAD_STATE",
-  DFTRACE_FAR_ACTIVE: "STAR_FAR_PATTERN_ROW",
+  DFTRACE_FAR_ACTIVE: "STAR_NEAR_FINE_PHASE",
   DFTRACE_ENEMY_ACTIVE: "ENEMY_ACTIVE",
   DFTRACE_ENEMY_X: "ENEMY_X",
   DFTRACE_ENEMY_MEMBER_STATE: "ENEMY_MEMBER_STATE",
@@ -4646,9 +4647,11 @@ function main() {
   "Trace did not preserve the exact debris 3/5 vertical cadence");
 
   const expectedLayerSpeeds = [
-    { difficulty: 0, world: 20, near: 20, far: 5, debris: 12 },
-    { difficulty: 1, world: 22.5, near: 22.5, far: 5.625, debris: 13.5 },
-    { difficulty: 2, world: 25, near: 25, far: 6.25, debris: 15 },
+    // The legacy `far` event bit is now the shared white-glyph publication;
+    // it runs every PAL frame. The `near` bit remains the world/ring event.
+    { difficulty: 0, world: 20, near: 20, far: 50, debris: 12 },
+    { difficulty: 1, world: 22.5, near: 22.5, far: 50, debris: 13.5 },
+    { difficulty: 2, world: 25, near: 25, far: 50, debris: 15 },
   ];
   const parallaxCadence = expectedLayerSpeeds.map((expected) => {
     const rows = cadenceRows.filter((row) => row.difficulty === expected.difficulty);

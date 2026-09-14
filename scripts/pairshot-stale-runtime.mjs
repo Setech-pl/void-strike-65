@@ -251,8 +251,11 @@ export function executePairShotEffectBackingTrace({
     const column = (memory[projectileX] - 48) >> 2;
     const rowAddress = logicalRow === 0 ? dividerAddress :
       memory[rowLow + logicalRow - 1] | memory[rowHigh + logicalRow - 1] << 8;
-    const expectedUnderlay = mode.id === "SPREAD" ?
-      manifest.starfield.farLayer.glyphs[0].screenCode : 0;
+    // Spread still needs a non-space lower-byte fixture to exercise its
+    // slot-owned composite path. Code $02 is deliberately not the transient
+    // white-star code ($01), whose production resolver must collapse to space
+    // so a moving decorative star can never become persistent backing.
+    const expectedUnderlay = mode.id === "SPREAD" ? 0x02 : 0;
     memory[rowAddress + column] = expectedUnderlay;
     runRoutine(memory, labels, "render_fighter_projectile_overlays");
     const oldAddress = memory[screenLow] | memory[screenHigh] << 8;

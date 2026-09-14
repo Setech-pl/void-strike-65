@@ -1,0 +1,216 @@
+{
+  "schema": "void-strike-65.stage-2b2b-white-only-slow-starfield-proof.v1",
+  "date": "2026-09-14",
+  "stage": "white-only slow starfield",
+  "status": "PASS_WHITE_ONLY_STARFIELD_CANDIDATE",
+  "performanceBand": "PARTIAL: measured 744-cycle peak is inside the explicit 701-850 band but below the mandatory 850-cycle STOP",
+  "model": {
+    "name": "Codex (GPT-5 family)",
+    "reasoning": "High",
+    "note": "The requested GPT-5.6 Sol product label was not exposed by this session."
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "headBefore": "03ce913d0b4dd7ec1df6e2f8f57e58814c68dc5f",
+    "headAfter": "commit containing this report",
+    "continuedDirtyWorktree": true,
+    "claudeUntouched": true,
+    "pushMergeRelease": false
+  },
+  "ownerContract": {
+    "layers": 1,
+    "blueFarStars": 0,
+    "whiteStars": 4,
+    "whiteSpeedPixelsPerFrame": 1,
+    "glyph": {
+      "screenCode": 1,
+      "bytes": [16, 0, 0, 0, 0, 0, 0, 0],
+      "colourRegister": "COLPF0"
+    },
+    "twinkle": false,
+    "capitalBehavior": "movement frozen, OLD cells retired in the post-playfield window, caches invalidated; current ring mapping is resolved on fighter re-entry"
+  },
+  "capitalHullSpeed": {
+    "derivation": "world/hull scroll rates 8, 9, 10 divided by 20 PAL frames and multiplied by one 8-scanline row",
+    "difficulty": {
+      "easyPixelsPerFrame": 3.2,
+      "mediumPixelsPerFrame": 3.6,
+      "hardPixelsPerFrame": 4.0
+    },
+    "whiteAsPercentOfHull": {
+      "easy": 31.25,
+      "medium": 27.78,
+      "hard": 25.0
+    },
+    "ownerTargetPercent": [20, 35],
+    "decision": "Keep 1 px/frame; it is substantially slower than hull movement at every difficulty. The 1 px every 2 frames candidate was not attempted."
+  },
+  "implementation": {
+    "logicalModel": "four records share one integral fine-Y phase 0..7; logical rows advance once per eight OPEN frames",
+    "screenAddressCache": "Each record retains its exact previously rendered physical address.",
+    "eventCases": {
+      "noCoarseNoRing": "cached physical address unchanged",
+      "coarseOnly": "cached physical address advances by one 40-byte physical row, with wrap",
+      "ringOnly": "cached physical address retreats by one 40-byte physical row, with wrap",
+      "coarseAndRing": "coarse movement and ring mapping cancel; cached address remains valid"
+    },
+    "publication": "OLD erase, shared glyph fine-phase update and NEW CH_SPACE-only render occur in the existing post-playfield publication window.",
+    "priority": "White stars claim only CH_SPACE and remain the lowest dynamic character layer.",
+    "newStateBytes": 0,
+    "runtimeStarfieldStateBytes": 18
+  },
+  "removedBlueFarProduction": {
+    "rowBakedGenerator": true,
+    "patternEntries": 29,
+    "patternBytes": 29,
+    "blueGlyphBytes": 8,
+    "finePhaseCodeAndState": true,
+    "staticOverlayProofScaffolding": true,
+    "activeAtariSymbols": [],
+    "sourceSchemaNote": "The source/build schema retains an explicit farLayer=disabled declaration and zero-valued metadata validation; it emits no blue Atari code or data."
+  },
+  "layoutFix": {
+    "rootCause": "Deleting blue code changed relocatable source layout and exposed an assembler-time assertion against a relocatable BROADSIDE label. ca65 requires linker evaluation for that expression.",
+    "protectedBoundary": {
+      "symbol": "free_broadside_slot",
+      "address": 30375,
+      "hex": "$76A7",
+      "purpose": "fixed integration-glue release ABI"
+    },
+    "method": "Rename the obsolete row-baked layout pad by its remaining projectile/release purpose, use a six-byte source pad after accounting for the five-byte transport tag, and change the exact-address check to .assert ... lderror.",
+    "magicAddressWorkaround": false,
+    "broadsideMarginBytes": 9,
+    "result": "PASS"
+  },
+  "cpu": {
+    "classification": "MEASURED instruction-exact linked NMOS 6502 routines",
+    "components": {
+      "ordinaryUpdateCycles": 38,
+      "coarseUpdateCycles": 105,
+      "ordinaryEraseCycles": 158,
+      "emptyCacheEraseCycles": 130,
+      "ordinaryGlyphPublicationCycles": 33,
+      "phaseZeroGlyphPublicationCycles": 34,
+      "ordinaryRenderCycles": 271,
+      "coarseOnlyRenderCycles": 447,
+      "ringOnlyRenderCycles": 429,
+      "coarseAndRingRenderCycles": 291,
+      "recycledCloneCleanupCycles": 65,
+      "coldCacheRenderCycles": 415
+    },
+    "frames": {
+      "ordinaryCycles": 500,
+      "coarseOnlyCycles": 744,
+      "ringStepOnlyCycles": 723,
+      "coarseAndRingCycles": 653,
+      "ringWrapCycles": 723,
+      "fighterReentryCycles": 616
+    },
+    "peakCycles": 744,
+    "gate": {
+      "strongPassMaximumCycles": 500,
+      "passMaximumCycles": 700,
+      "partialMaximumCycles": 850,
+      "mandatoryStopAboveCycles": 850,
+      "result": "PARTIAL performance band; legal technical owner-smoke candidate"
+    },
+    "historicalDynamicStarfieldCycles": 4221,
+    "retainedSavingCycles": 3477,
+    "previousTwoLayerCandidatePeakCycles": 766,
+    "peakDeltaAgainstPreviousCandidateCycles": -22
+  },
+  "memoryPlacement": {
+    "baselineLinkedRuntimeBytes": 17543,
+    "linkedRuntimeBytes": 17518,
+    "linkedDeltaBytes": -25,
+    "baselineSimultaneousResidencyBytes": 18021,
+    "simultaneousResidencyBytes": 17996,
+    "residencyDeltaBytes": -25,
+    "safeHeadroomBytes": 4191,
+    "starfieldRawBytes": 2184,
+    "starfieldRawCapacityBytes": 2348,
+    "starfieldRawMarginBytes": 164,
+    "starfieldPackedBytes": 1779,
+    "starfieldPackedCapacityBytes": 1819,
+    "starfieldPackedMarginBytes": 40,
+    "packedSourceToPickupMarginBytes": 32,
+    "coldPickupBytes": 866,
+    "coldPickupCapacityBytes": 1277,
+    "coldPickupMarginBytes": 411,
+    "entityStagingToBroadsideMarginBytes": 99,
+    "a2Bytes": 197,
+    "a2CapacityBytes": 256,
+    "a2MarginBytes": 59,
+    "broadsideBytes": 6647,
+    "broadsideCapacityBytes": 6656,
+    "broadsideMarginBytes": 9,
+    "initialContentBytes": 13119,
+    "initialContentCapacityBytes": 13184,
+    "initialContentMarginBytes": 65,
+    "initialBootSectors": 103,
+    "entityCodeAligned": true,
+    "basicRamUsed": false,
+    "loaderChanged": false,
+    "transportFormatChanged": false
+  },
+  "hostVerification": {
+    "focusedStarfield": "PASS 13/13",
+    "combinedRelevantRegression": "PASS 46/46",
+    "whiteFrames": 1000,
+    "eventCasesCovered": [
+      "no coarse/no ring",
+      "coarse only",
+      "ring only",
+      "coarse plus ring"
+    ],
+    "staleWhiteCells": 0,
+    "orphanStarGlyphs": 0,
+    "lostPublishes": 0,
+    "ringWrap": "PASS",
+    "capitalFreezeAndReentry": "PASS",
+    "pairShotGhosts": 0,
+    "raiderStaleRemnants": 0,
+    "effectBackingRegression": "PASS 1200 staggered captures",
+    "fireCadenceAudioRegression": "PASS",
+    "transportLayoutNativeToolNote": "The separate host-native ca65 regression cannot execute its x86_64 /usr/local/bin/ca65 binary on this arm64 host (errno -86). The supported WASM build, linker map, focused layout test and packed artifact gates pass."
+  },
+  "nativePal": {
+    "emulator": "/Users/marcinkrzetowski/Projects/tools/atari800-7.1.2",
+    "frames": 3000,
+    "fighterOpenCompleteFrames": 1916,
+    "whiteRenderAttempts": 7664,
+    "successfulWhiteWrites": 7610,
+    "legalOccupancySkips": 54,
+    "successfulWritePercent": 99.3,
+    "visibleWhitePerCompletedFrameHistogram": {
+      "4": 1864,
+      "3": 50,
+      "2": 2
+    },
+    "stableOrphanCellsAfterWarmup": 0,
+    "activeWorkMaxCycles": 17605,
+    "rawElapsedMaxCycles": 36104,
+    "targetOverruns": 0,
+    "hardGateOverruns": 0,
+    "missedSynchronization": 1,
+    "missedDetail": "One existing fighter-to-capital boundary crossed cadence at frame 644; the following active frame remained below target/hard and the event was not correlated with starfield publication.",
+    "extraVbi": 0,
+    "dliAnomalies": 0,
+    "bootSmoke": "PASS XEX/ATR 4/4"
+  },
+  "artifacts": {
+    "xex": {
+      "path": "dist/void-strike-65.xex",
+      "bytes": 21619,
+      "sha256": "fc8e32b4435123d00ab9c98dd10d40864bd3a51b8d0f3c522c9ec4ed5c1b68a0",
+      "status": "owner-smoke candidate"
+    },
+    "atr": {
+      "path": "dist/void-strike-65.atr",
+      "bytes": 92176,
+      "sha256": "54cd18202eb676523e1dcac39f1f8297b7a44f9f39150d804ec8a5a72aa964ee"
+    }
+  },
+  "decision": "White-only slow starfield is technically legal and ready for owner smoke; final visual acceptance is not claimed.",
+  "next": "Owner smoke white-only slow starfield"
+}

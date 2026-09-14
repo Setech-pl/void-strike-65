@@ -24,7 +24,7 @@ import {
   createStarfieldState,
   loadStarfieldDefinition,
   starfieldGeometry,
-  stepStarfieldWorld,
+  stepStarfieldFrame,
 } from "../scripts/starfield.mjs";
 import {
   executeWeaponPickupRingWrapTrace,
@@ -126,19 +126,20 @@ test("assembled joystick path reaches both canonical vertical clamps without cli
   assert.equal(memory[playerY], 32);
 });
 
-test("starfield reaches every gameplay row, including all five recovered lower rows", () => {
+test("white stars reach every gameplay row, including all five recovered lower rows", () => {
   let state = createStarfieldState(stars);
   const seen = Array(canonicalPlayfield.gameplayRows).fill(false);
-  for (let world = 0; world < canonicalPlayfield.gameplayRows * 4; world += 1) {
+  for (let frame = 0; frame < canonicalPlayfield.gameplayRows * 8; frame += 1) {
     const screen = composeStarfield(stars, state);
     for (let row = 0; row < canonicalPlayfield.gameplayRows; row += 1) {
       if (screen.subarray(row * 40, row * 40 + 40).some(Boolean)) seen[row] = true;
     }
-    state = stepStarfieldWorld(stars, state);
+    state = stepStarfieldFrame(stars, state);
   }
   assert.equal(seen.every(Boolean), true);
   assert.deepEqual(seen.slice(23), [true, true, true, true, true]);
-  assert.equal(stars.farLayer.population, 29, "sparse far-star density scales with 224 lines");
+  assert.equal(stars.farLayer.population, 0, "blue far stars are permanently disabled");
+  assert.equal(stars.nearLayer.population, 4, "the final decorative layer has four white stars");
 });
 
 test("projectiles, debris, pickups and ordinary enemies share the exclusive bottom fence", () => {

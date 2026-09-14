@@ -192,6 +192,7 @@ typedef struct {
 	unsigned transient_effect_first_code;
 	unsigned transient_effect_first_writer_pc;
 	unsigned transient_effect_first_writer_x;
+	unsigned stale_debris_projectile_restores;
 	unsigned transient_effect_coordinate_wraps;
 	unsigned interceptor_breakup_request_slot0;
 	unsigned interceptor_breakup_request_slot1;
@@ -389,6 +390,7 @@ static unsigned dftrace_pc_pointer_start;
 static unsigned dftrace_pc_pointer_end;
 static unsigned dftrace_pc_publication_begin;
 static unsigned dftrace_pc_erase_slot;
+static unsigned dftrace_pc_projectile_restore;
 static unsigned dftrace_pc_interceptor_update_start;
 static unsigned dftrace_pc_render_slot;
 static unsigned dftrace_pc_entity_erase_start;
@@ -1767,6 +1769,7 @@ static void dftrace_snapshot_transient_effect_orphans(DFTraceFrame *frame)
 {
 	unsigned address;
 	frame->transient_effect_orphan_cells = 0u;
+	frame->stale_debris_projectile_restores = 0u;
 	frame->transient_effect_first_address = 0u;
 	frame->transient_effect_first_code = 0u;
 	frame->transient_effect_first_writer_pc = 0u;
@@ -1775,6 +1778,10 @@ static void dftrace_snapshot_transient_effect_orphans(DFTraceFrame *frame)
 		address < DFTRACE_DIVIDER_SCREEN + 40u; ++address)
 		if (dftrace_is_transient_effect_code(MEMORY_mem[address]) &&
 			!dftrace_transient_character_owner(address)) {
+			if ((MEMORY_mem[address] & 0x7fu) >= 110u &&
+				(MEMORY_mem[address] & 0x7fu) < 118u &&
+				dftrace_character_last_writer[address] == dftrace_pc_projectile_restore)
+				++frame->stale_debris_projectile_restores;
 			if (frame->transient_effect_orphan_cells == 0u) {
 				frame->transient_effect_first_address = address;
 				frame->transient_effect_first_code = MEMORY_mem[address];
@@ -1788,6 +1795,10 @@ static void dftrace_snapshot_transient_effect_orphans(DFTraceFrame *frame)
 	for (address = DFTRACE_RING_SCREEN; address < DFTRACE_RING_END; ++address)
 		if (dftrace_is_transient_effect_code(MEMORY_mem[address]) &&
 			!dftrace_transient_character_owner(address)) {
+			if ((MEMORY_mem[address] & 0x7fu) >= 110u &&
+				(MEMORY_mem[address] & 0x7fu) < 118u &&
+				dftrace_character_last_writer[address] == dftrace_pc_projectile_restore)
+				++frame->stale_debris_projectile_restores;
 			if (frame->transient_effect_orphan_cells == 0u) {
 				frame->transient_effect_first_address = address;
 				frame->transient_effect_first_code = MEMORY_mem[address];
@@ -3447,7 +3458,7 @@ static void dftrace_write(void)
 		",audf1,audc1,fire_accept_calls,update_sound_calls"
 		",fire_accept_clock,update_sound_clock"
 		",fire_accept_scanline,fire_accept_cycle,update_sound_scanline,update_sound_cycle"
-		",transient_effect_coordinate_wraps,interceptor_breakup_request_slot0"
+		",stale_debris_projectile_restores,transient_effect_coordinate_wraps,interceptor_breakup_request_slot0"
 		",interceptor_breakup_request_slot1\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
@@ -3647,7 +3658,7 @@ static void dftrace_write(void)
 			frame->transient_effect_first_code,
 			frame->transient_effect_first_writer_pc,
 			frame->transient_effect_first_writer_x);
-		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%llu,%llu,%u,%u,%u,%u,%u,%u,%u\n",
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%llu,%llu,%u,%u,%u,%u,%u,%u,%u,%u\n",
 			frame->fire_timer_value, frame->player_burst_state,
 			frame->player_burst_remaining, frame->player_burst_timer,
 			frame->audf1, frame->audc1, frame->fire_accept_calls,
@@ -3656,6 +3667,7 @@ static void dftrace_write(void)
 			(unsigned long long) frame->update_sound_clock,
 			frame->fire_accept_scanline, frame->fire_accept_cycle,
 			frame->update_sound_scanline, frame->update_sound_cycle,
+			frame->stale_debris_projectile_restores,
 			frame->transient_effect_coordinate_wraps,
 			frame->interceptor_breakup_request_slot0,
 			frame->interceptor_breakup_request_slot1);
@@ -3732,6 +3744,7 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_pc_pointer_end, "DFTRACE_PC_POINTER_END");
 	DFTRACE_ADDRESS(dftrace_pc_publication_begin, "DFTRACE_PC_PUBLICATION_BEGIN");
 	DFTRACE_ADDRESS(dftrace_pc_erase_slot, "DFTRACE_PC_ERASE_SLOT");
+	DFTRACE_ADDRESS(dftrace_pc_projectile_restore, "DFTRACE_PC_PROJECTILE_RESTORE");
 	DFTRACE_ADDRESS(dftrace_pc_interceptor_update_start, "DFTRACE_PC_INTERCEPTOR_UPDATE_START");
 	DFTRACE_ADDRESS(dftrace_pc_render_slot, "DFTRACE_PC_RENDER_SLOT");
 	DFTRACE_ADDRESS(dftrace_pc_entity_erase_start, "DFTRACE_PC_ENTITY_ERASE_START");

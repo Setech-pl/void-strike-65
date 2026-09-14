@@ -510,6 +510,7 @@ const traceLabels = {
   DFTRACE_PC_POINTER_END: "profile_projectile_pointer_end",
   DFTRACE_PC_PUBLICATION_BEGIN: "fighter_projectile_publication_begin",
   DFTRACE_PC_ERASE_SLOT: "erase_fighter_projectile_slot",
+  DFTRACE_PC_PROJECTILE_RESTORE: "erase_fighter_projectile_restore",
   DFTRACE_PC_INTERCEPTOR_UPDATE_START: "profile_interceptor_projectile_update_begin",
   DFTRACE_PC_RENDER_SLOT: "render_fighter_projectile_slot",
   DFTRACE_PC_ENTITY_ERASE_START: "profile_entity_erase_begin",
@@ -586,7 +587,8 @@ const numericCsvFields = new Set([
   "effect_active_mask", "effect_active_count", "effect_rendered_mask",
   "transient_effect_orphan_cells", "transient_effect_first_address",
   "transient_effect_first_code", "transient_effect_first_writer_pc",
-  "transient_effect_first_writer_x", "transient_effect_coordinate_wraps",
+  "transient_effect_first_writer_x", "stale_debris_projectile_restores",
+  "transient_effect_coordinate_wraps",
   "interceptor_breakup_request_slot0", "interceptor_breakup_request_slot1",
   "entity_active_mask", "pickup_state", "pickup_booster_state", "pickup_counter", "pickup_x", "pickup_y",
   "pickup_timer_lo", "pickup_timer_hi", "pickup_animation", "pickup_render_id",
@@ -3044,14 +3046,39 @@ function main() {
       "Raider remnant native mode has no profiled OPEN frames");
     const heaviest = maximumRow(completeRows, activeWorkCycles);
     const kills = rows.filter((row) => (row.events & (1 << 17)) !== 0).length;
+    const debrisSpawns = rows.filter((row) => (row.events & (1 << 7)) !== 0).length;
+    let debrisLifecycle = null;
+    let debrisSession = null;
+    let debrisFirstVisible = 0;
+    let debrisFirstVisibleInvalid = 0;
+    for (const row of rows) {
+      if (row.session !== debrisSession) {
+        debrisSession = row.session;
+        debrisLifecycle = null;
+      }
+      if ((row.events & (1 << 7)) !== 0) {
+        debrisLifecycle = { sawOffscreen: row.entity_y < 24, visible: false };
+        if (row.entity_y >= 24) debrisFirstVisibleInvalid += 1;
+      }
+      if (debrisLifecycle !== null && (row.entity_active_mask & 1) !== 0) {
+        if (row.entity_y < 24) debrisLifecycle.sawOffscreen = true;
+        if (!debrisLifecycle.visible && row.entity_y >= 24) {
+          debrisFirstVisible += 1;
+          if (!debrisLifecycle.sawOffscreen || row.entity_y !== 24)
+            debrisFirstVisibleInvalid += 1;
+          debrisLifecycle.visible = true;
+        }
+      } else if ((row.entity_active_mask & 1) === 0) {
+        debrisLifecycle = null;
+      }
+    }
     const requestedKills = [0, 1].map((slot) => rows.reduce((sum, row) =>
       sum + row[`interceptor_breakup_request_slot${slot}`], 0));
-    // This fixed 3x3000-frame replay also contains an unrelated slot-zero
-    // gameplay-debris trail (glyph $75) and a broad glyph-range PairShot
-    // detector signature. The exact accepted ecac4be control produces 24/29;
-    // retain those raw counters as a regression comparison rather than
-    // misclassifying them as Raider-breakup coordinate failures.
-    const acceptedControl = { effect_orphan_sum: 24, pairshot_orphan_sum: 29 };
+    // The prior 45898e8 candidate produced 24 frames of orphan $75 restored
+    // by PairShot erase plus 29 broad PairShot-range matches. The former is
+    // this task's positively attributed gameplay-debris remnant and must now
+    // be zero; retain both old counts as an explicit before/after signature.
+    const priorCandidate = { effect_orphan_sum: 24, pairshot_orphan_sum: 29 };
     const raiderEffectCodes = new Set([110, 111, 112, 113, 118, 119, 218, 219]);
     const anomalies = {
       effect_orphan_sum: rows.reduce((sum, row) =>
@@ -3064,6 +3091,8 @@ function main() {
         row.player_projectile_orphan_cells)),
       transient_effect_coordinate_wraps: rows.reduce((sum, row) =>
         sum + row.transient_effect_coordinate_wraps, 0),
+      stale_debris_projectile_restores: rows.reduce((sum, row) =>
+        sum + row.stale_debris_projectile_restores, 0),
       raider_breakup_orphan_sum: rows.reduce((sum, row) => sum +
         (raiderEffectCodes.has(row.transient_effect_first_code)
           ? row.transient_effect_orphan_cells : 0), 0),
@@ -3089,14 +3118,27 @@ function main() {
       },
       breakup_fragments_generated: kills * 4,
       wrong_origin_fragments: anomalies.transient_effect_coordinate_wraps,
-      accepted_control_signature: {
-        head: "ecac4be8b45ba8d4a30edd0a0049220112c20cb0",
-        ...acceptedControl,
-        effect_orphan_delta: anomalies.effect_orphan_sum - acceptedControl.effect_orphan_sum,
+      gameplay_debris_spawns: debrisSpawns,
+      gameplay_debris_first_visible_publications: debrisFirstVisible,
+      gameplay_debris_invalid_first_visible_publications: debrisFirstVisibleInvalid,
+      breakup_cores: kills,
+      suspicious_first_visible_publications:
+        debrisFirstVisibleInvalid + anomalies.transient_effect_coordinate_wraps +
+        anomalies.raider_breakup_orphan_sum,
+      post_expiry_publications: anomalies.raider_breakup_orphan_sum,
+      stale_backing_object_glyph_restores:
+        anomalies.stale_debris_projectile_restores,
+      owner_symptom_equivalent_events:
+        anomalies.stale_debris_projectile_restores,
+      previous_candidate_signature: {
+        head: "45898e82d7d82e3d8334170cd9cfd1ce67bfc4c6",
+        ...priorCandidate,
+        effect_orphan_delta: anomalies.effect_orphan_sum - priorCandidate.effect_orphan_sum,
         pairshot_orphan_delta:
-          anomalies.pairshot_orphan_sum - acceptedControl.pairshot_orphan_sum,
-        classification: "The raw $75 cell belongs to the independent gameplay-debris path; " +
-          "Raider breakup uses $6E-$71/$76-$77 (optionally inverse).",
+          anomalies.pairshot_orphan_sum - priorCandidate.pairshot_orphan_sum,
+        classification: "The 24-frame $75 trail was a real stale gameplay-debris restore " +
+          "by PairShot erase. The unchanged 29 count is a broad glyph-range detector " +
+          "signature, not a live PairShot ownership failure.",
       },
       remnants: {
         sum: anomalies.effect_orphan_sum,
@@ -3118,8 +3160,10 @@ function main() {
       passed: kills > 0 && requestedKills[0] > 0 && requestedKills[1] > 0 &&
         anomalies.transient_effect_coordinate_wraps === 0 &&
         anomalies.raider_breakup_orphan_sum === 0 &&
-        anomalies.effect_orphan_sum <= acceptedControl.effect_orphan_sum &&
-        anomalies.pairshot_orphan_sum <= acceptedControl.pairshot_orphan_sum &&
+        debrisFirstVisibleInvalid === 0 &&
+        anomalies.effect_orphan_sum === 0 &&
+        anomalies.stale_debris_projectile_restores === 0 &&
+        anomalies.pairshot_orphan_sum <= priorCandidate.pairshot_orphan_sum &&
         activeWorkCycles(heaviest) <= 32_568 &&
         anomalies.hard_overruns === 0 && anomalies.extra_vbi === 0 &&
         anomalies.dli === 0,

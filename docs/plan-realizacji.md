@@ -1934,6 +1934,42 @@ Raport:
 
 Następny task: `Owner smoke Raider destruction fragment origin fix`.
 
+### Remaining mid-screen debris / Raider remnant — FIX PASS / OWNER SMOKE
+
+Owner-observed drugi przypadek został pozytywnie przypisany do gameplay debris
+slot 0, TYPE=`1`, prawego glyphu `$75`, ale nie był nowym admission ani renderem
+debris. PairShot zapisywał widoczny glyph debris jako swój backing. W kolejnej
+klatce debris erase/update przenosił prawdziwy obiekt, a późny
+`erase_fighter_projectile_slot` przywracał `$75` w starej komórce. Poprzedni
+native replay pokazywał jedną taką lifecycle violation przez `24` kolejne
+klatki; last writer PC=`$2B2F`.
+
+`store_projectile_backing_resolving_effect_core` rozwiązuje teraz także
+dokładny dwukomórkowy footprint aktywnego debris przez istniejący
+`resolve_effect_backing_below_interactive_debris`. Zapisuje lower backing,
+więc PairShot erase nie może ponownie opublikować historycznego debris. Zmiana
+mieści się w istniejącym PICKUP_CODE padding: linked runtime/RAM bez zmian;
+tylko overlap path `+38` cykli instruction-exact, zwykły blank-cell i
+steady-state `+0`.
+
+Host reproducer: legacy `$75->$0B->$00->$75`, fixed
+`$75->$0B->$00->$00`; oba debris cells, wszystkie 10 PairShot slots i trzy X
+pozycje `60/60 PASS`. Slot-0 audit potwierdził jedną produkcyjną aktywację:
+`entity_effects_update -> integration_debris_spawn -> DIRECTOR_REQUEST ->
+entity_spawn_debris`; Y=`16`, pierwsza publikacja Y=`24`.
+
+Atari800 7.1.2 PAL: `9000` klatek, `124` Raider kills (`62+62`), `41`
+gameplay-debris admissions i `41/41` legalnych first-visible publications,
+`124` breakup cores, `496` fragments. Suspicious first-visible, post-expiry,
+stale `$75` PairShot restores i owner-symptom-equivalent events=`0`; poprzedni
+`24`-frame `$75` signature spadł do `0`. Missed/target/hard/extra-VBI/DLI=`0`,
+active-work max `20 479`. Two-Heavy supplement: `13` overlaps, black-mask/stale=`0`.
+
+Raport:
+`docs/diagnostics/stage-2b2b-remaining-mid-screen-debris-remnant-fix.json`.
+
+Następny task: `Owner smoke remaining mid-screen debris/remnant fix`.
+
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 
 Raster bands są wariantem rezerwowym **dopiero po rozwiązaniu ownership**, jeżeli nadal pozostanie czysty problem deadline'ów.

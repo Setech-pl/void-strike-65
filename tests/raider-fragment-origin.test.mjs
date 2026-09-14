@@ -48,6 +48,8 @@ test("active breakup fragments cannot wrap to an unrelated visible origin", () =
             const previous = effect(frames[index - 1], slot);
             const current = effect(frames[index], slot);
             if (previous === undefined || current === undefined) continue;
+            assert.ok(Math.abs(current.x - previous.x) <= 2,
+              `Heavy ${raiderSlot} fragment ${slot} wrapped X ${previous.x}->${current.x}`);
             assert.ok(Math.abs(current.y - previous.y) <= 3,
               `Heavy ${raiderSlot} fragment ${slot} wrapped ${previous.y}->${current.y}`);
           }

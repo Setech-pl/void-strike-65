@@ -3631,28 +3631,30 @@ clear_interceptor_projectiles:
 erase_fighter_projectile_overlays:
     ldx #(FIGHTER_PROJECTILE_SLOT_COUNT-1)
 erase_fighter_projectile_slot = *
-@slot:
+erase_fighter_projectile_slot_loop:
     lda FIGHTER_PROJECTILE_RENDERED,x
-    beq @next
+    beq erase_fighter_projectile_next
     lda FIGHTER_PROJECTILE_SCREEN_LO,x
     sta dst_ptr
     lda FIGHTER_PROJECTILE_SCREEN_HI,x
     sta dst_ptr+1
     ldy #$00
     lda FIGHTER_PROJECTILE_BACKUP_TOP,x
+erase_fighter_projectile_restore = *
     sta (dst_ptr),y
     lda #$00
     sta FIGHTER_PROJECTILE_RENDERED,x
-@next:
+erase_fighter_projectile_next:
     dex
-    bmi @done
-    jmp @slot
-@done:
+    bmi erase_fighter_projectile_done
+    jmp erase_fighter_projectile_slot_loop
+erase_fighter_projectile_done:
     lda #$00
     sta FIGHTER_PROJECTILE_OWNED_COUNT
     rts
 
 .export erase_fighter_projectile_slot
+.export erase_fighter_projectile_restore
 
 update_fighter_projectiles:
     ldx #$00
@@ -10384,15 +10386,20 @@ resolve_effect_pairshot_unchanged:
 ; of the bounded five-slot address scan.
 store_projectile_backing_resolving_effect_core:
     ; Most projectile cells contain blank/base/star codes below 90. Keep that
-    ; legal ten-slot frame to +17 cycles/slot; only actual effect glyph ranges
-    ; pay the bounded five-slot resolver.
+    ; legal ten-slot frame to +17 cycles/slot; only effect/debris glyph-range
+    ; candidates pay the bounded address resolvers.
     cmp #ENTITY_DEBRIS_GLYPH_BASE
-    bcc @store
+    bcc store_projectile_backing_resolving_effect_core_store
 @resolve:
     ; Projectile and effect pools use independent indices, so every rendered
     ; effect slot must be considered even when its number equals X.
     jsr resolve_effect_backing_below_transient_effect
-@store:
+projectile_debris_backing_resolve = *
+    ; Debris is erased and republished before the late projectile erase. If a
+    ; PairShot saved either visible debris cell, restore the debris record's
+    ; lower backing instead of reviving its old glyph after it moves.
+    jsr resolve_effect_backing_below_interactive_debris
+store_projectile_backing_resolving_effect_core_store:
     sta FIGHTER_PROJECTILE_BACKUP_TOP,x
     rts
 resolve_effect_backing_below_transient_effect:
@@ -10463,6 +10470,7 @@ resolve_effect_backing_below_player_pairshot_end:
 .export resolve_effect_backing_below_transient_effect
 .export resolve_effect_backing_below_transient_effect_regular
 .export erase_retained_transient_effects
+.export projectile_debris_backing_resolve
 
 ; Effects render after the interactive layer. Slot order is core then the four
 ; fragments; erase scans the physical pool in the exact opposite direction.

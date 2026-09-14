@@ -769,6 +769,98 @@ export function executeInterceptorBreakupTrace({
   };
 }
 
+export function executeProjectileDebrisBackingTrace({
+  root = defaultRoot, artifact = "xex", legacyProjectileDebrisBacking = false,
+  projectileSlot = 1, debrisX = 124, debrisY = 136, debrisCellOffset = 4,
+} = {}) {
+  const labels = labelsFromFile(path.join(root, "build", "void-strike-65.lbl"));
+  const memory = new Uint8Array(0x10000);
+  const { requiresBroadsideUnpack } = installBootArtifact(memory, root, artifact);
+  if (requiresBroadsideUnpack) runRoutine(memory, labels, "unpack_boot_broadside_runtime");
+  runRoutine(memory, labels, "stage_boot_streams");
+  runRoutine(memory, labels, "unpack_resident_runtime");
+  runRoutine(memory, labels, "unpack_entity_runtime");
+  runRoutine(memory, labels, "stage_a2_kernel");
+  runRoutine(memory, labels, "init_entity_effects");
+  runRoutine(memory, labels, "unpack_weapon_pickup_phase_runtime");
+  runRoutine(memory, labels, "unpack_starfield_runtime");
+  memory.set(fs.readFileSync(path.join(root, "build", "integration-glue.bin")), 0x4efe);
+  runRoutine(memory, labels, "copy_charset");
+  runRoutine(memory, labels, "init_fighter_projectiles");
+  runRoutine(memory, labels, "install_entity_effects_glyph");
+  initialiseRows(memory, labels, 0);
+  memory.fill(0, 0x4000, 0x4400);
+
+  if (legacyProjectileDebrisBacking) {
+    const call = requiredLabel(labels, "projectile_debris_backing_resolve");
+    memory.fill(0xea, call, call + 3);
+  }
+
+  armGameplayDebris(memory, labels, { x: debrisX, y: debrisY });
+  memory[requiredLabel(labels, "ENTITY_RENDER_ID")] = 116;
+  memory[requiredLabel(labels, "ENTITY_TIMER")] = 4;
+  memory[requiredLabel(labels, "player_x")] = 196;
+  memory[requiredLabel(labels, "player_y")] = 184;
+
+  const writeLog = [];
+  writeLog.provenanceContext = { debrisGeneration: 1, projectileGeneration: 1 };
+  const debrisRenderCycles = runRoutine(memory, labels, "entity_effects_render",
+    { writeLog, frame: 0 });
+  const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
+  const projectileX = requiredLabel(labels, "FIGHTER_PROJECTILE_X");
+  const projectileY = requiredLabel(labels, "FIGHTER_PROJECTILE_Y");
+  const projectilePrevY = requiredLabel(labels, "FIGHTER_PROJECTILE_PREV_Y");
+  const projectileLifetime = requiredLabel(labels, "FIGHTER_PROJECTILE_LIFETIME");
+  memory[active + projectileSlot] = 1;
+  memory[projectileX + projectileSlot] = debrisX + debrisCellOffset;
+  memory[projectileY + projectileSlot] = debrisY;
+  memory[projectilePrevY + projectileSlot] = debrisY;
+  memory[projectileLifetime + projectileSlot] = 10;
+  const projectileRenderCycles = runRoutine(memory, labels,
+    "render_fighter_projectile_overlays", { writeLog, frame: 0 });
+  const screenLo = requiredLabel(labels, "FIGHTER_PROJECTILE_SCREEN_LO");
+  const screenHi = requiredLabel(labels, "FIGHTER_PROJECTILE_SCREEN_HI");
+  const backing = requiredLabel(labels, "FIGHTER_PROJECTILE_BACKUP_TOP");
+  const address = memory[screenLo + projectileSlot] |
+    memory[screenHi + projectileSlot] << 8;
+  const savedBacking = memory[backing + projectileSlot];
+
+  const entityEraseCycles = runRoutine(memory, labels, "entity_effects_erase",
+    { writeLog, frame: 1 });
+  const afterEntityErase = memory[address];
+  memory[requiredLabel(labels, "ENTITY_FRAME_EVENTS")] = 1;
+  const entityUpdateCycles = runRoutine(memory, labels, "entity_effects_update",
+    { writeLog, frame: 1 });
+  const movedY = memory[requiredLabel(labels, "ENTITY_Y")];
+  const movedX = memory[requiredLabel(labels, "ENTITY_X")];
+  const movedRenderCycles = runRoutine(memory, labels, "entity_effects_render",
+    { writeLog, frame: 1 });
+  const projectileEraseCycles = runRoutine(memory, labels,
+    "erase_fighter_projectile_overlays", { writeLog, frame: 1 });
+  const restored = memory[address];
+
+  return {
+    artifact,
+    projectileSlot,
+    debrisCellOffset,
+    debris: { type: memory[requiredLabel(labels, "ENTITY_TYPE")], slot: 0,
+      renderId: 116, initialX: debrisX, initialY: debrisY, movedX, movedY },
+    address,
+    visibleGlyph: 116 + (debrisCellOffset >> 2),
+    savedBacking,
+    afterEntityErase,
+    restored,
+    staleRestore: restored === 116 + (debrisCellOffset >> 2),
+    cycles: { debrisRenderCycles, projectileRenderCycles, entityEraseCycles,
+      entityUpdateCycles, movedRenderCycles, projectileEraseCycles },
+    writes: writeLog.filter((write) => write.address === address).map((write) => ({
+      frame: write.frame, routine: write.routine, pc: write.pc,
+      x: write.x, before: write.before, after: write.after,
+      projectileBacking: write.projectileBacking,
+    })),
+  };
+}
+
 export function executeRaiderRemnantMatrix({
   root = defaultRoot, artifact = "xex", kills = 2000,
   legacyEffectOverlapResolver = false,

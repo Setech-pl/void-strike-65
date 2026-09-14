@@ -40,11 +40,14 @@ Nie przywracać row-baked blue far, static blue overlay, slow blue drift,
 fine-phase blue ani drugiej klasy gwiazd. Git i zachowane historyczne raporty są
 mechanizmem rollbacku; martwy blue runtime nie ma pozostawać w produkcji.
 
-Gameplay-speed candidate z 2026-09-14 stroi enemy fighter PairShot z `5` do
-`2 px/PAL tick` oraz capital traversal do `10/12/13` zdarzeń na `40` ramek dla
-EASY/MEDIUM/HARD. Player movement, player projectile, fire/audio i fighter
-world speed pozostają bez zmian. Wartości są technicznie zweryfikowanym
-kandydatem; finalna akceptacja szybkości wymaga owner smoke.
+Owner smoke z 2026-09-14 zatwierdza enemy fighter PairShot `2 px/PAL tick`,
+Player movement/projectile/fire/audio, white stars `1 px/frame` oraz ich ciągłe
+działanie w capital. Wolniejsze capital `10/12/13` na `40` zostało odrzucone
+jako zbyt wolne i skokowe. Przywrócony kierunek capital to poprzednie
+EASY/MEDIUM/HARD `20/22,5/25 events/s`, zapisane w bieżącym wspólnym
+akumulatorze jako `16/18/20` na `40` (równoważne `8/9/10` na `20`). Fighter
+world speed i master PAL clock pozostają bez zmian; finalna ocena wizualna
+przywróconego traversal wymaga owner smoke.
 
 ### 2.1 Row-baked far stars — SUPERSEDED / historia
 

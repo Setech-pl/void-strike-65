@@ -1,11 +1,11 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 4.3
+Wersja: 4.4
 Data aktualizacji: 2026-09-14
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD przed proofem gameplay speed tuning: `0625b8a6c8bd1331b29038d36a891a4f478679a6`
-Stan runtime: `PASS_GAMEPLAY_SPEED_TUNING_CANDIDATE` + `PASS_MASTER_PAL_CLOCK` + white-only starfield (4 white, `1 px/frame`, bez blue far) aktywny także w capital z hull occlusion + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck odroczony do debris 25 Hz / visual redesign; bez unified schedulera
-Ostatni XEX gameplay-speed owner-smoke candidate: SHA-256 `80b4d8c806db0cc5bc44244a8e6772d59c51805b732752a712d2e8293fea80dd`
+Aktualny HEAD przed restore/clock proofem: `9658ab52d81e15438053a1926df2ea866b9cec1c`
+Stan runtime: `PASS_CAPITAL_SPEED_RESTORE_CLOCK_VERIFY` + `PASS_MASTER_PAL_CLOCK` + Raider PairShot `2 px/tick` + white-only starfield (4 white, `1 px/frame`, bez blue far) aktywny także w capital z hull occlusion + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck odroczony do debris 25 Hz / visual redesign; bez unified schedulera
+Ostatni XEX restore/clock owner-smoke candidate: SHA-256 `91ec98e9dc8334a1054dfbb902863af2fad7f6a3de7d3c4e8c72d3d1e6fa2147`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
 
@@ -1684,6 +1684,58 @@ wymagają owner smoke.**
 
 Następny krok: `Owner smoke Raider shots + capital traversal + stars in capital`.
 Nie wykonywać automatycznie dalszego strojenia ani background/ring 25 Hz.
+
+### Capital traversal restore + cross-sector clock verify — PASS
+
+Owner smoke odrzucił wyłącznie wolniejsze liczniki capital `10/12/13` na `40`:
+ruch kadłuba był za wolny i wyglądał skokowo. Przywrócono poprzedni kontrakt
+`8/9/10` na `20` w równoważnej reprezentacji bieżącego wspólnego mianownika:
+`16/18/20` na `40`. Fighter world, master PAL gate i kod akumulatorów nie
+zostały zmienione.
+
+Native Atari800 7.1.2 PAL, `50` pełnych cykli i `105 000` fizycznych ramek:
+
+- EASY: `20 events/s = 160 px/s = 3,2 px/PAL`;
+- MEDIUM: `22,5 events/s = 180 px/s = 3,6 px/PAL`;
+- HARD: `25 events/s = 200 px/s = 4,0 px/PAL`;
+- fighter→capital: `50`, capital→fighter: `50`;
+- skipped/double simulation ticks: `0/0`;
+- Player PairShot: zawsze `6 px/tick`, `1 tick/PAL`, `300 px/s`, także przez
+  oba handoffy;
+- enemy/Raider PairShot: zawsze `2 px/tick`, `1 tick/PAL`, `100 px/s` do
+  naturalnego drain/removal; nie zaobserwowano powrotu starego `5 px`;
+- white stars: zawsze `1 px/PAL = 50 px/s`, bez resetu, skipu i double-step;
+  wszystkie kombinacje fine/coarse × ring/no-ring wystąpiły natywnie;
+- stars pozostają ANTIC-visible w pustych komórkach capital, hull occlusion i
+  sanitizer backingu pozostają aktywne, orphan maximum `0`.
+
+Względem przywróconego kadłuba absolutna szybkość gwiazd nie zmienia się między
+sektorami. Stosunek white-star/hull wynosi EASY `31,25%`, MEDIUM `27,78%`, HARD
+`25%`; różnica względna wynosi odpowiednio `110/130/150 px/s`. Ewentualna
+różnica percepcyjna wynika z ruchomego punktu odniesienia, nie z innego zegara.
+
+Normal i Rapid zostały także zmierzone natywnie (`9/12`, `6/12`). Naturalny
+input trace nie pozyskał Spread, dlatego uzupełniający frame-exact test
+assembled runtime potwierdza wszystkie trzy kontrakty: Normal `9/12`, Rapid
+`6/12`, Spread `28/12`, pełne SFX `$33..$38`.
+
+Active-work max `22 644`, capital active-work max `14 500`, raw cadence max
+`28 774`; target/hard headroom `8 556/9 924`, missed/extra VBI/DLI `0/0/0`.
+Zmiana rate bytes nie dodaje kodu ani stanu: linked runtime `17 526 B`,
+simultaneous residency `18 004 B`, safe headroom `4 183 B`. Placement pozostaje
+identyczny i PASS.
+
+Raport:
+`docs/diagnostics/stage-2b2b-capital-speed-restore-clock-verify.json`.
+
+Decyzja techniczna:
+
+**Poprzednia szybkość capital została selektywnie przywrócona. Akceptowane
+zegary Raider/player PairShot, fire/audio i white stars pozostają stałe przez
+oba handoffy sektorów.**
+
+Następny krok: `Owner smoke restored capital speed + cross-sector clock consistency`.
+Nie rozpoczynać background/ring 25 Hz.
 
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 

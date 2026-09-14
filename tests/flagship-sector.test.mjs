@@ -178,7 +178,8 @@ test("both ships share one finite progression and retain an immutable eight-row 
   assert.equal(world.corridorPhase, 488);
   assert.equal(world.drainRows, 28);
   assert.equal(world.hullAdvances, 516);
-  assert.equal(frame, 1588);
+  assert.equal(frame, 1032,
+    "restored capital cadence must match the pre-tuning full traversal");
 });
 
 test("assembled sector dictionaries, sequences, and overlays match the source asset", () => {
@@ -237,13 +238,13 @@ test("seeded layouts expose exact 10/15/20 independent functional cannons", () =
   }
 });
 
-test("flagship keeps the further-reduced cadence, warning, speed, damage, and M0 ownership", () => {
+test("flagship keeps the restored traversal cadence, warning, speed, damage, and M0 ownership", () => {
   assert.deepEqual([...asset.scheduleBytes], [1, 210, 1, 210, 1, 210, 0, 254]);
   assert.equal(asset.broadside.warningFrames, 25);
   assert.equal(asset.broadside.projectileSpeed, 2);
   assert.equal(asset.broadside.playerDamage, 20);
   assert.deepEqual(asset.broadside.worldScrollRates, { easy: 8, medium: 9, hard: 10 });
-  assert.deepEqual(asset.broadside.hullScrollRates, { easy: 10, medium: 12, hard: 13 });
+  assert.deepEqual(asset.broadside.hullScrollRates, { easy: 16, medium: 18, hard: 20 });
   assert.equal(asset.broadside.hullScrollRateDenominator, 40);
   assert.equal(updateMissileByte(0xff, 1, false), 0xf3);
   assert.equal(updateMissileSize(0x01, 1, 1) & 0x03, 0x01,

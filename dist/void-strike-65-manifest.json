@@ -156,12 +156,12 @@
     "manifest": {
       "address": 9756,
       "bytes": 78,
-      "crc16": 48679,
+      "crc16": 30351,
       "parsed": {
         "version": 1,
         "totalOccupiedSectors": 163,
         "manifestBytes": 78,
-        "crc16": 48679,
+        "crc16": 30351,
         "records": [
           {
             "startSector": 104,
@@ -169,7 +169,7 @@
             "packedLength": 5665,
             "rawLength": 6653,
             "finalDestination": 24080,
-            "crc16": 59594,
+            "crc16": 58518,
             "type": 1,
             "stagingId": 1,
             "destination": 33024
@@ -239,7 +239,7 @@
       "transportBytes": 5760,
       "packedBytes": 5665,
       "rawBytes": 6653,
-      "crc16": 59594,
+      "crc16": 58518,
       "stagingAddress": 33024,
       "stagingEndAddress": 38783,
       "finalAddress": 24080
@@ -598,7 +598,7 @@
   },
   "capitalHulls": {
     "source": "assets/graphics/capital-hulls.json",
-    "sourceSha256": "70ff4e2926bae99f707b060b6370696aec0d92e01f1489d0c9cf60f8fcd0c649",
+    "sourceSha256": "93413f1c9e8b0afcb3d125f0856ed9a15a1349cee90aef7a2306680bf075d31a",
     "displayMode": "ANTIC 4",
     "segmentRows": 32,
     "glyphCount": 31,
@@ -1190,17 +1190,17 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 20864,
-        "sha256": "bfe016dabe63d150d67a9cce3e9e0aa6e54081f2126efc15afcef665be6c27ed"
+        "sha256": "746ff3647361a2284eb22ac8226ecd71e84af31467aa8f7dda4451455334f7c9"
       },
       "void-strike-65.xex": {
         "path": "dist/void-strike-65.xex",
         "bytes": 21625,
-        "sha256": "80b4d8c806db0cc5bc44244a8e6772d59c51805b732752a712d2e8293fea80dd"
+        "sha256": "91ec98e9dc8334a1054dfbb902863af2fad7f6a3de7d3c4e8c72d3d1e6fa2147"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "578aff6b6c74da8c877f7607a5b0e7329c950fbe7b69035d12964d1f803b37c3"
+        "sha256": "3fe317b1273d7ff668b392c60fa56e78ca1424e93f0f96c466e9d40905a60ff4"
       }
     },
     "reportPath": null,
@@ -1209,15 +1209,15 @@
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 20864,
-      "sha256": "bfe016dabe63d150d67a9cce3e9e0aa6e54081f2126efc15afcef665be6c27ed"
+      "sha256": "746ff3647361a2284eb22ac8226ecd71e84af31467aa8f7dda4451455334f7c9"
     },
     "void-strike-65.xex": {
       "bytes": 21625,
-      "sha256": "80b4d8c806db0cc5bc44244a8e6772d59c51805b732752a712d2e8293fea80dd"
+      "sha256": "91ec98e9dc8334a1054dfbb902863af2fad7f6a3de7d3c4e8c72d3d1e6fa2147"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "578aff6b6c74da8c877f7607a5b0e7329c950fbe7b69035d12964d1f803b37c3"
+      "sha256": "3fe317b1273d7ff668b392c60fa56e78ca1424e93f0f96c466e9d40905a60ff4"
     }
   }
 }

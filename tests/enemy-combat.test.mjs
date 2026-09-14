@@ -259,7 +259,7 @@ test("assembled archetype descriptors assign only Interceptor PairShot fire", ()
     burstCount: 5,
     burstIntervalFrames: 15,
     postBurstFrames: [60, 50, 40],
-    speed: 5,
+    speed: 2,
     height: 3,
     widthHpos: 2,
     damage: 10,
@@ -308,7 +308,7 @@ test("release Interceptor enters progressively and naturally reaches burst alloc
     /reset_enemy:[\s\S]+RAIDER_PMG_LAST_SLOT[\s\S]+sta ENEMY_HP,x[\s\S]+sta ENEMY_MEMBER_STATE,x[\s\S]+RAIDER_PMG_SLOT_COUNT[\s\S]+sta ENEMY_LIVE_COUNT/);
 });
 
-test("natural playfield pulse remains visible while moving five scanlines per frame", () => {
+test("natural playfield pulse remains visible while moving two scanlines per frame", () => {
   const { trace } = simulateNaturalInterceptorFire(asset, {
     difficulty: 1,
     frameCount: 12,
@@ -318,7 +318,7 @@ test("natural playfield pulse remains visible while moving five scanlines per fr
   const frames = trace.slice(allocationIndex, allocationIndex + 4);
   assert.deepEqual(frames.map(({ activePlayfieldProjectiles }) =>
     activePlayfieldProjectiles.find(({ renderSlot }) => renderSlot === 0)?.y),
-  [38, 43, 48, 53]);
+  [38, 40, 42, 44]);
   assert.equal(frames.every(({ sizeM }) => sizeM === 0x54), true,
     "fighter playfield rendering leaves every capital SIZEM pair unchanged");
 });
@@ -337,7 +337,7 @@ test("inactive, exploding, off-screen, and weaponless enemies cannot fire", () =
   }
 });
 
-test("pulse origin follows the active frame centre and moves down five scanlines per frame", () => {
+test("pulse origin follows the active frame centre and moves down two scanlines per frame", () => {
   const policy = asset.runtime.weaponPolicy.singlePulse;
   const origin = enemyPulseSpawnPosition(interceptor, 120, 56, policy);
   assert.deepEqual(origin, {
@@ -348,13 +348,13 @@ test("pulse origin follows the active frame centre and moves down five scanlines
   state = stepEnemyCombatFrame(asset, state, { enemyX: 120, enemyY: 56 });
   const spawned = state.pool.find(Boolean);
   assert.deepEqual([spawned.x, spawned.y, spawned.speed, spawned.damage],
-    [origin.x, origin.y, 5, 10]);
+    [origin.x, origin.y, 2, 10]);
   state = stepEnemyCombatFrame(asset, state, {
     enemyX: 120,
     enemyY: 56,
     player: { x: 80, y: 200, width: 8, height: 16 },
   });
-  assert.equal(state.pool.find(Boolean).y, origin.y + 5);
+  assert.equal(state.pool.find(Boolean).y, origin.y + 2);
 });
 
 test("swept collision catches between-frame crossings and one pulse causes one ten-point hit", () => {
@@ -395,6 +395,12 @@ test("respawn invulnerability consumes intersecting pulses without player damage
     enemyY: 166,
     playerInvulnerable: true,
   });
+  assert.deepEqual([state.playerHits, state.playerDamage, state.playerHealth], [0, 0, 100]);
+  state = stepEnemyCombatFrame(asset, state, {
+    enemyX: 120,
+    enemyY: 166,
+    playerInvulnerable: true,
+  });
   assert.deepEqual([state.playerHits, state.playerDamage, state.playerHealth], [1, 0, 100]);
   assert.equal(state.pool[0], null);
 });
@@ -416,7 +422,7 @@ test("Raider active-limit rejection defers one pulse without catch-up", () => {
   let state = createEnemyCombatState(asset);
   state.pool = state.pool.map((_, index) => index < 5 ? {
     active: true, owner: "INTERCEPTOR", x: 80 + index * 4, y: 80,
-    previousY: 80, speed: 5, damage: 10, lifetime: 96,
+    previousY: 80, speed: 2, damage: 10, lifetime: 96,
   } : null);
   state = stepEnemyCombatFrame(asset, state, { enemyX: 120, enemyY: 56 });
   assert.deepEqual([state.shotsFired, state.burstRemaining, state.fireTimer], [0, 5, 0]);

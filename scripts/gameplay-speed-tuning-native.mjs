@@ -41,8 +41,8 @@ function activeWork(row) {
 
 fs.mkdirSync(outputDirectory, { recursive: true });
 const manifest = JSON.parse(fs.readFileSync(path.join(root, "build", "manifest.json"), "utf8"));
-const expectedCapitalRates = [10, 12, 13];
-const expectedCapitalEvents = [100, 120, 130];
+const expectedCapitalRates = [16, 18, 20];
+const expectedCapitalEvents = [160, 180, 200];
 const sessions = [];
 
 for (let difficulty = 0; difficulty < 3; difficulty += 1) {

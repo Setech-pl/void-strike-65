@@ -514,7 +514,7 @@ test("broadside source timing and schedule are deterministic and generated with 
     respawnInvulnerableFrames: 250,
     respawnBlinkHalfPeriodFrames: 8,
     worldScrollRates: { easy: 8, medium: 9, hard: 10 },
-    hullScrollRates: { easy: 10, medium: 12, hard: 13 },
+    hullScrollRates: { easy: 16, medium: 18, hard: 20 },
   });
   assert.deepEqual(
     [capitalExplosion.durationFrames, capitalExplosion.phaseFrames,
@@ -523,7 +523,7 @@ test("broadside source timing and schedule are deterministic and generated with 
     [24, 4, 3, 3, 6, 4, 0],
   );
   assert.deepEqual([...asset.worldScrollRateBytes], [8, 9, 10]);
-  assert.deepEqual([...asset.hullScrollRateBytes], [10, 12, 13]);
+  assert.deepEqual([...asset.hullScrollRateBytes], [16, 18, 20]);
   assert.deepEqual(asset.schedule.map(({ side }) => side), [
     "enemy", "enemy", "enemy", "allied",
   ]);
@@ -625,7 +625,7 @@ test("firing opportunities choose the oldest safe visible cannon once per lifecy
   assert.deepEqual(
     ["easy", "medium", "hard"].map((difficulty) =>
       warningHullAdvanceAllowance(asset, difficulty)),
-    [7, 8, 9],
+    [10, 12, 13],
   );
   const selected = selectOldestEligibleTurret(state, asset, world, "allied");
   assert.equal(selected.turret.id, "allied_turret_a");
@@ -890,14 +890,14 @@ test("assembled BROADSIDE overlap unwinds 0->2 draw with 2->0 erase for every sl
     /sta BROAD_PREV_H,x[\s\S]+sta BROAD_PREV_Y,x[\s\S]+sta BROAD_COLLISION,x[\s\S]+CAPITAL_SHELL_LEFT_GLYPH[\s\S]+adc #\$01/);
 });
 
-test("capital cadence is slower while fighter world rates retain their legacy values", () => {
+test("capital cadence restores the legacy world rate without changing fighter timing", () => {
   assert.deepEqual(HULL_SCROLL_DIFFICULTIES, { easy: 0, medium: 1, hard: 2 });
   assert.equal(asset.broadside.worldScrollRateDenominator, 20);
   assert.equal(asset.broadside.hullScrollRateDenominator, 40);
   const expected = {
-    easy: { worldRate: 8, hullRate: 10, world: [8, 40, 400], hull: [5, 25, 250], scanlines: [160, 100] },
-    medium: { worldRate: 9, hullRate: 12, world: [9, 45, 450], hull: [6, 30, 300], scanlines: [180, 120] },
-    hard: { worldRate: 10, hullRate: 13, world: [10, 50, 500], hull: [6, 32, 325], scanlines: [200, 130] },
+    easy: { worldRate: 8, hullRate: 16, world: [8, 40, 400], hull: [8, 40, 400], scanlines: [160, 160] },
+    medium: { worldRate: 9, hullRate: 18, world: [9, 45, 450], hull: [9, 45, 450], scanlines: [180, 180] },
+    hard: { worldRate: 10, hullRate: 20, world: [10, 50, 500], hull: [10, 50, 500], scanlines: [200, 200] },
   };
   for (const [difficulty, contract] of Object.entries(expected)) {
     assert.equal(worldScrollRate(asset, difficulty), contract.worldRate);
@@ -935,8 +935,6 @@ test("capital cadence is slower while fighter world rates retain their legacy va
   assert.equal(hard.advances, 1);
   assert.equal(hard.visibleScrolls, 0);
   assert.equal(advanceHullScroll(hard, asset), false);
-  assert.equal(advanceHullScroll(hard, asset), false);
-  assert.equal(advanceHullScroll(hard, asset), false);
   assert.equal(advanceHullScroll(hard, asset), true);
   assert.equal(hard.visibleScrolls, 1);
   assert.equal(hard.visibleRows[0], 0);
@@ -960,7 +958,7 @@ test("capital cadence is slower while fighter world rates retain their legacy va
   const difficultyAddress = readGameGraphicsSource(source, definition).constants.get(
     "DIFFICULTY_SETTING",
   );
-  assert.deepEqual([...broadsideRuntimeBytesAt(rateTableAddress, 3)], [10, 12, 13]);
+  assert.deepEqual([...broadsideRuntimeBytesAt(rateTableAddress, 3)], [16, 18, 20]);
   const update = xexBytesAt(labels.get("update_starfield"), 80);
   assert.notEqual(update.indexOf(Buffer.from([0xc9, 40])), -1);
   assert.notEqual(update.indexOf(Buffer.from([0xe9, 40, 0x85,

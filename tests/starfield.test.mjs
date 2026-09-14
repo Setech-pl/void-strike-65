@@ -272,11 +272,11 @@ test("layout and transport gates remain legal after blue-far removal", () => {
   assert.equal(labels.get("ENTITY_CODE_START") & 0xff, 0);
 });
 
-test("accepted 1 px/frame stars stay independent of the slower capital hull tuning", () => {
-  const hull = [10, 12, 13].map((rate) => rate * 8 / 40);
-  assert.deepEqual(hull, [2, 2.4, 2.6]);
+test("accepted 1 px/frame stars stay independent of restored capital hull cadence", () => {
+  const hull = [16, 18, 20].map((rate) => rate * 8 / 40);
+  assert.deepEqual(hull, [3.2, 3.6, 4]);
   assert.deepEqual(hull.map((speed) => Number((1 / speed).toFixed(4))),
-    [0.5, 0.4167, 0.3846]);
+    [0.3125, 0.2778, 0.25]);
   assert.match(source, /world_scroll_rates:\s*\n\s*EMIT_WORLD_SCROLL_RATES\s*\nhull_scroll_rates:\s*\n\s*EMIT_HULL_SCROLL_RATES/);
 });
 

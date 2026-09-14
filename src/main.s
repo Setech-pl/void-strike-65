@@ -775,9 +775,9 @@ PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE = PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYE
 .assert INTERCEPTOR_SPEED_NUMERATOR*5 = INTERCEPTOR_SPEED_DENOMINATOR*4, error, "Interceptor maximum speed must remain exactly 4/5 of PlayerFighter"
 .assert INTERCEPTOR_SPEED_NUMERATOR < INTERCEPTOR_SPEED_DENOMINATOR, error, "Interceptor fractional rate must skip at least one frame"
 .assert HULL_SCROLL_RATE_DENOMINATOR = WORLD_SCROLL_RATE_DENOMINATOR*2, error, "capital rate conversion assumes a doubled denominator"
-.assert WORLD_SCROLL_RATE_EASY*2 > HULL_SCROLL_RATE_EASY, error, "capital EASY traversal must remain slower than fighter world scroll"
-.assert WORLD_SCROLL_RATE_MEDIUM*2 > HULL_SCROLL_RATE_MEDIUM, error, "capital MEDIUM traversal must remain slower than fighter world scroll"
-.assert WORLD_SCROLL_RATE_HARD*2 > HULL_SCROLL_RATE_HARD, error, "capital HARD traversal must remain slower than fighter world scroll"
+.assert WORLD_SCROLL_RATE_EASY*2 = HULL_SCROLL_RATE_EASY, error, "capital EASY traversal must match the restored pre-tuning cadence"
+.assert WORLD_SCROLL_RATE_MEDIUM*2 = HULL_SCROLL_RATE_MEDIUM, error, "capital MEDIUM traversal must match the restored pre-tuning cadence"
+.assert WORLD_SCROLL_RATE_HARD*2 = HULL_SCROLL_RATE_HARD, error, "capital HARD traversal must match the restored pre-tuning cadence"
 .assert WORLD_SCROLL_RATE_HARD*2 <= WORLD_SCROLL_RATE_DENOMINATOR, error, "hard cadence must leave one light frame for LMS prebuild"
 .assert INTERCEPTOR_WEAVE_PERIOD_FRAMES = 32, error, "Interceptor weave hot path assumes a 32-frame period"
 .assert INTERCEPTOR_ATTACK_ACTIVE_TOP = GAMEPLAY_TOP, error, "Interceptor pursuit begins at the gameplay viewport"
@@ -5131,10 +5131,10 @@ update_starfield:
     and #$02                    ; retain this frame's near coarse-row event
     sta STAR_NEAR_RING_ADVANCED
     ; Keep the owner-approved fighter world rates unchanged. During a capital
-    ; traversal both the background ring and hull consume the slower capital
+    ; traversal both the background ring and hull consume the restored capital
     ; numerator, so geometry remains phase-aligned without touching the PAL
     ; gameplay token or adding ad-hoc frame skips. The common working
-    ; denominator is 40; fighter's 8/9/10 over 20 is doubled exactly.
+    ; denominator is 40; the pre-tuning 8/9/10 over 20 is doubled exactly.
     ldx DIFFICULTY_SETTING
     lda CAPITAL_SECTOR_STATE
     cmp #CAPITAL_HULL_STATE_OPEN
@@ -5193,8 +5193,7 @@ advance_starfield_layers:
     jmp scroll_world_columns
 
 ; A ring step is selected from the same sector-local numerator as the hull,
-; so the two mappings remain coincident even though capital traversal is now
-; slower than fighter-space world motion. Keep
+; so the two mappings remain coincident at the restored pre-tuning cadence. Keep
 ; logical row zero at the fixed divider LMS, rotate the 27 rows below it, copy
 ; the prior divider into logical row one, then regenerate logical row zero.
 ; Hull generation follows; hull-only events retain their side-band copy path.

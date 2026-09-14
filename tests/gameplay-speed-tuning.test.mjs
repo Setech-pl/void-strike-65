@@ -74,16 +74,16 @@ test("enemy PairShot tuning is local and leaves the approved player displacement
   assert.deepEqual([memory[previousY + enemySlot], memory[y + enemySlot]], [100, 102]);
 });
 
-test("capital traversal uses one slower sector-local rate while fighter rates stay exact", () => {
+test("capital traversal restores the pre-tuning rate while fighter rates stay exact", () => {
   const broadside = hulls.broadside;
   assert.deepEqual([broadside.worldScrollRateDenominator,
     broadside.worldScrollRates], [20, { easy: 8, medium: 9, hard: 10 }]);
   assert.deepEqual([broadside.hullScrollRateDenominator,
-    broadside.hullScrollRates], [40, { easy: 10, medium: 12, hard: 13 }]);
+    broadside.hullScrollRates], [40, { easy: 16, medium: 18, hard: 20 }]);
   const expected = {
-    easy: { fighter: 80, capital: 50 },
-    medium: { fighter: 90, capital: 60 },
-    hard: { fighter: 100, capital: 65 },
+    easy: { fighter: 80, capital: 80 },
+    medium: { fighter: 90, capital: 90 },
+    hard: { fighter: 100, capital: 100 },
   };
   for (const [difficulty, result] of Object.entries(expected)) {
     assert.equal(events(200, broadside.worldScrollRates[difficulty], 20).count,
@@ -113,6 +113,27 @@ test("four one-point white stars continue through capital and use occupancy occl
   assert.doesNotMatch(render, /CAPITAL_SECTOR_STATE/);
   assert.match(render, /lda \(dst_ptr\),y\s+bne @next\s+lda #STAR_NEAR_POINT\s+sta \(dst_ptr\),y/,
     "non-empty capital hull geometry must retain visual priority");
+});
+
+test("white-star PAL phase advances once through every sector state and coarse boundary", () => {
+  for (let sector = 0; sector <= 7; sector += 1) {
+    for (let phase = 0; phase < 8; phase += 1) {
+      const memory = new Uint8Array(0x10000);
+      installRuntimeSegments(memory, root);
+      const rows = labels.get("STAR_NEAR_ROW");
+      memory[labels.get("CAPITAL_SECTOR_STATE")] = sector;
+      memory[labels.get("STAR_NEAR_FINE_PHASE")] = phase;
+      for (let slot = 0; slot < 4; slot += 1) memory[rows + slot] = 5 + slot;
+      run(memory, "update_white_starfield_phase");
+      assert.equal(memory[labels.get("STAR_NEAR_FINE_PHASE")], (phase + 1) & 7,
+        `sector ${sector}, phase ${phase}`);
+      assert.equal(memory[labels.get("STAR_NEAR_RING_ADVANCED")], phase === 7 ? 2 : 0,
+        `sector ${sector}, phase ${phase}`);
+      for (let slot = 0; slot < 4; slot += 1)
+        assert.equal(memory[rows + slot], 5 + slot + (phase === 7 ? 1 : 0),
+          `sector ${sector}, phase ${phase}, slot ${slot}`);
+    }
+  }
 });
 
 test("capital shell erase cannot restore a transient white point as backing", () => {

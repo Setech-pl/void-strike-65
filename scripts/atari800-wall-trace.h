@@ -345,6 +345,7 @@ static const char *dftrace_policy;
 static const char *dftrace_session;
 static const char *dftrace_output;
 static const char *dftrace_interceptor_projectile_output;
+static const char *dftrace_sector_clock_output;
 static DFTraceFrame *dftrace_frames;
 static DFTraceFrame dftrace_current;
 
@@ -367,6 +368,7 @@ static unsigned dftrace_interceptor_watched_value[DFTRACE_INTERCEPTOR_SLOT_COUNT
 static unsigned dftrace_interceptor_last_screen_writer[DFTRACE_INTERCEPTOR_SLOT_COUNT];
 static unsigned dftrace_interceptor_output_initialised;
 static unsigned dftrace_interceptor_first_anomaly;
+static unsigned dftrace_sector_clock_output_initialised;
 static unsigned dftrace_pairshot_recycled_count;
 static unsigned dftrace_pairshot_recycled_address[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
 static unsigned dftrace_pairshot_recycled_expected[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
@@ -3134,6 +3136,59 @@ static void dftrace_write_interceptor_projectiles(DFTraceFrame *frame)
 	}
 }
 
+/* Diagnostic-only physical-frame snapshot for cross-sector clock proofs.
+ * Keep this independent from the production XEX and from the already frozen
+ * general observer CSV: one row is emitted at the end of each admitted PAL
+ * simulation tick, with all five player PairShot records and all four white
+ * star records sampled from Atari RAM. */
+static void dftrace_write_sector_clock(DFTraceFrame *frame)
+{
+	FILE *file;
+	unsigned slot;
+	if (dftrace_sector_clock_output == NULL)
+		return;
+	file = fopen(dftrace_sector_clock_output,
+		dftrace_sector_clock_output_initialised ? "a" : "w");
+	if (file == NULL) {
+		perror("voidstrike65 sector clock trace");
+		exit(2);
+	}
+	if (!dftrace_sector_clock_output_initialised) {
+		fprintf(file, "frame,host_frame,active_frame,sector,ring_event,star_phase");
+		for (slot = 0u; slot < DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT; ++slot)
+			fprintf(file, ",p%u_active,p%u_y,p%u_prev_y,p%u_lifetime",
+				slot, slot, slot, slot);
+		for (slot = 0u; slot < DFTRACE_NEAR_COUNT; ++slot)
+			fprintf(file, ",star%u_row,star%u_address", slot, slot);
+		fputc('\n', file);
+		dftrace_sector_clock_output_initialised = 1u;
+	}
+	fprintf(file, "%u,%u,%u,%u,%u,%u", dftrace_count,
+		(unsigned) Atari800_nframes, frame->active_gameplay_frame,
+		frame->sector_state, (frame->events & DFTRACE_EVENT_WORLD) != 0u,
+		MEMORY_mem[dftrace_far_active]);
+	for (slot = 0u; slot < DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT; ++slot) {
+		unsigned active = MEMORY_mem[dftrace_projectile_active + slot];
+		unsigned y = MEMORY_mem[dftrace_projectile_active +
+			DFTRACE_PROJECTILE_ARRAY_STRIDE * 2u + slot];
+		unsigned previous_y = MEMORY_mem[dftrace_projectile_active +
+			DFTRACE_PROJECTILE_ARRAY_STRIDE * 3u + slot];
+		unsigned lifetime = MEMORY_mem[dftrace_projectile_active +
+			DFTRACE_PROJECTILE_ARRAY_STRIDE * 4u + slot];
+		fprintf(file, ",%u,%u,%u,%u", active, y, previous_y, lifetime);
+	}
+	for (slot = 0u; slot < DFTRACE_NEAR_COUNT; ++slot) {
+		unsigned address = MEMORY_mem[dftrace_near_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_near_screen_hi + slot] << 8);
+		fprintf(file, ",%u,%u", MEMORY_mem[dftrace_near_row + slot], address);
+	}
+	fputc('\n', file);
+	if (fclose(file) != 0) {
+		perror("voidstrike65 sector clock trace close");
+		exit(2);
+	}
+}
+
 static int dftrace_is_hull_transient(unsigned value)
 {
 	return value == DFTRACE_ALLIED_MUZZLE_CODE ||
@@ -3613,6 +3668,7 @@ static void dftrace_init(void)
 	dftrace_session = getenv("DFTRACE_SESSION");
 	dftrace_output = getenv("DFTRACE_OUTPUT");
 	dftrace_interceptor_projectile_output = getenv("DFTRACE_INTERCEPTOR_PROJECTILE_OUTPUT");
+	dftrace_sector_clock_output = getenv("DFTRACE_SECTOR_CLOCK_OUTPUT");
 	if (dftrace_policy == NULL || dftrace_session == NULL || dftrace_output == NULL) {
 		fprintf(stderr, "voidstrike65 trace: missing string environment\n");
 		exit(2);
@@ -4501,6 +4557,7 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 		dftrace_snapshot_muzzles(&dftrace_current);
 		dftrace_pickup_frame_end(&dftrace_current);
 		dftrace_write_interceptor_projectiles(&dftrace_current);
+		dftrace_write_sector_clock(&dftrace_current);
 		dftrace_current.end_clock = dftrace_clock();
 		dftrace_current.end_host_frame = (unsigned) Atari800_nframes;
 		dftrace_current.end_y = ANTIC_ypos;

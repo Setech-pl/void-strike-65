@@ -86,9 +86,9 @@ contact, or Hostile friendly fire. A capital-ship hit or lifecycle cleanup award
 no points. Debris has three hit points, causes fixed 20%/50%/70% maximum-hull
 damage on Easy/Medium/Hard contact, and never awards score when destroyed.
 
-Raider and debris destruction use the implemented entity/effects foundation.
-Raider destruction retains only one compact core explosion; it no longer emits
-flying breakup fragments. Debris destruction still has one core plus four
+Raider destruction retains its 24-frame full-screen background flash and sound,
+but creates no character-cell core or flying breakup fragments. Debris destruction
+still has one core plus four
 fragments. These are transient effects, not interactive enemies.
 
 Gameplay debris is admitted at character Y=16, one complete eight-scanline row

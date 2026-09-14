@@ -10016,36 +10016,24 @@ spawn_breakup_effects_at:
     tax
     rts
 
-; Reuse the proven debris five-slot allocator, then restore the still-live
-; neutral entity and retag only the visual roles. Every legal death runs after
-; the frame-start reverse erase, so a prior event has no valid backing left;
-; a same-frame debris event has not rendered yet and is atomically replaced.
+; Keep the legacy entry point used by the lethal-hit dispatcher, but do not
+; enter the generic debris allocator or clear any already-active effect.
 .segment "CODE"
 spawn_interceptor_breakup_effects:
-    ; A second Raider kill can arrive while the opposite 25 Hz parity is still
-    ; visible. Drain retained overlays before reusing slot zero for the core.
-    jmp erase_retained_transient_effects
+    ; Raider destruction is PMG/background feedback only. Do not touch the
+    ; shared character-effect pool: a legitimate debris breakup may be active.
+    jmp begin_enemy_fighter_explosion
 
-materialize_interceptor_breakup_effects = materialize_interceptor_core_tail
+; Retain an unreachable instrumentation symbol so native traces positively
+; prove that no delayed Raider character materialisation executes.
+materialize_interceptor_breakup_effects:
+    rts
 
-; Raider destruction owns only the stationary slot-zero core. Debris destruction
-; still uses the generic four-fragment path below. All TTLs freeze while paused.
+; Only gameplay-debris destruction owns this generic five-slot path. All TTLs
+; freeze while paused.
 update_transient_effects:
-    ; The two-step pending latch isolates a Raider kill from materialising its
-    ; backed core in the same world/hull-copy frame. A set carry calls the
-    ; materialiser on the following PAL frame.
-    lsr EFFECT_ALLOCATION_RESULT
-    bcc :+
-    jsr materialize_interceptor_breakup_effects
-:
     lda EFFECT_ACTIVE_MASK
     beq @done
-    lsr
-    bne @shared_breakup
-    dec EFFECT_TIMER
-    bne @done
-    jmp clear_transient_effects
-@shared_breakup:
     lda EFFECT_STATE
     beq @fragments
     dec EFFECT_TIMER
@@ -10425,26 +10413,6 @@ resolve_effect_backing_below_transient_effect_regular = *
 @restore:
     lda EFFECT_SCRATCH0
     rts
-erase_retained_transient_effects:
-    inc frame_counter
-    jsr erase_transient_effect_overlays
-    dec frame_counter
-    jsr clear_transient_effects
-    lda #$02
-    sta EFFECT_ALLOCATION_RESULT
-    jmp begin_enemy_fighter_explosion
-materialize_interceptor_core_tail:
-    jsr materialize_interceptor_core_position
-    lda #EFFECT_INTERCEPTOR_CORE_TIMER_LOAD
-    sta EFFECT_TIMER
-    lda #ENTITY_DEBRIS_GLYPH_BASE
-    sta EFFECT_RENDER_ID
-    lda #$01
-    sta EFFECT_TYPE
-    sta EFFECT_STATE
-    sta EFFECT_ACTIVE_COUNT
-    sta EFFECT_ACTIVE_MASK
-    rts
 resolve_effect_backing_below_player_pairshot_end:
     ; Keep the reviewed pickup/collision transport boundary byte-exact. The
     ; rejected 187-byte generic primitive occupied this footprint; the narrow
@@ -10454,7 +10422,6 @@ resolve_effect_backing_below_player_pairshot_end:
 .export resolve_effect_backing_below_enemy_pairshot
 .export resolve_effect_backing_below_transient_effect
 .export resolve_effect_backing_below_transient_effect_regular
-.export erase_retained_transient_effects
 .export projectile_debris_backing_resolve
 
 ; Effects render after the interactive layer. Slot order is core then the four
@@ -11079,18 +11046,6 @@ erase_enemy_departing_row:
 @done:
     rts
 
-; Keep the slot-zero Raider core initializer out of the full initial payload.
-; The A2 helper occupies existing reserved headroom and preserves the compact
-; pickup/collision record boundary used by the caller's metadata tail.
-materialize_interceptor_core_position:
-    lda FIGHTER_EXPLOSION_X+FIGHTER_EXPLOSION_ENEMY_SLOT
-    ; The releasing LSR enters with C=1; fold it into the centred offset.
-    adc #(EFFECT_INTERCEPTOR_CORE_X_OFFSET-1)
-    sta EFFECT_X
-    lda FIGHTER_EXPLOSION_Y+FIGHTER_EXPLOSION_ENEMY_SLOT
-    sta EFFECT_Y
-    rts
-
 .segment "BROADSIDE"
 ; The moved development encounter spans the ordinary phase-0/1 boundary.
 ; Admit only its legal ship-to-ship cycles locally so later phase policy,
@@ -11206,9 +11161,8 @@ claim_fighter_projectile_visual:
 ; leaves the fixed frontend tables and their page-local pointers untouched.
 begin_enemy_fighter_explosion_tail:
     ldx #FIGHTER_EXPLOSION_ENEMY_SLOT
-    ; The existing 24-frame timer still owns lifecycle/flash timing, while the
-    ; compact Raider core is rendered by a character overlay. P1 and P2 stay
-    ; exclusively owned by their respective live Raider slots.
+    ; The existing 24-frame timer owns the background flash and lifecycle.
+    ; Raider destruction deliberately publishes no character-cell effect.
     ldy ENEMY_TARGET_SLOT
     lda ENEMY_X,y
     ldx ENEMY_ARCHETYPE

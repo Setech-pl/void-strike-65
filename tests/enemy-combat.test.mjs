@@ -103,15 +103,12 @@ test("selected Interceptor palette matches the Hostile hull hue with independent
     source.indexOf("insert_top_score:"));
   assert.doesNotMatch(resolver, /COLPM1|COLPM2|HPOSP1|HPOSP2/);
   assert.match(source,
-    /spawn_interceptor_breakup_effects:[\s\S]+jsr clear_transient_effects[\s\S]+sta EFFECT_ALLOCATION_RESULT[\s\S]+jmp begin_enemy_fighter_explosion/);
+    /spawn_interceptor_breakup_effects:[\s\S]+jmp begin_enemy_fighter_explosion/);
   assert.match(source,
-    /materialize_interceptor_breakup_effects = materialize_interceptor_core_tail/);
-  assert.match(source,
-    /materialize_interceptor_core_tail:[\s\S]+sta EFFECT_TIMER[\s\S]+sta EFFECT_RENDER_ID[\s\S]+sta EFFECT_ACTIVE_COUNT[\s\S]+sta EFFECT_ACTIVE_MASK/);
-  assert.match(source,
-    /materialize_interceptor_core_position:[\s\S]+sta EFFECT_X[\s\S]+sta EFFECT_Y/);
-  assert.doesNotMatch(source,
-    /materialize_interceptor_core_tail:[\s\S]+jsr spawn_breakup_effects_at/);
+    /materialize_interceptor_breakup_effects:\s+rts/);
+  assert.doesNotMatch(source.slice(source.indexOf("spawn_interceptor_breakup_effects:"),
+    source.indexOf("update_transient_effects:")),
+  /EFFECT_|clear_transient_effects|erase_transient_effect_overlays/);
   assert.match(source,
     /tick_shared_fighter_explosions:[\s\S]+cpx #FIGHTER_EXPLOSION_ENEMY_SLOT[\s\S]+beq @tick/);
   assert.match(source,

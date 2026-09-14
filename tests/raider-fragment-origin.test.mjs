@@ -13,61 +13,88 @@ function breakupFrames(options) {
     ...options }).records.filter(({ phase }) => phase === "BREAKUP");
 }
 
-function effect(frame, slot) {
-  return frame.effects.find((candidate) => candidate.slot === slot);
-}
-
-test("both Heavy slots materialise only the centred destruction core", () => {
+test("both Heavy slots materialise no character destruction effect", () => {
   for (const raiderSlot of [0, 1]) {
     for (const [enemyX, enemyY] of [[80, 24], [124, 88], [160, 160], [124, 220]]) {
-      const frames = breakupFrames({ raiderSlot, enemyX, enemyY });
+      const trace = executeInterceptorBreakupTrace({
+        root, artifact: "xex", frames: 32, raiderSlot, enemyX, enemyY,
+        captureWrites: true, captureProvenance: true,
+      });
+      const frames = trace.records.filter(({ phase }) => phase === "BREAKUP");
       const killed = frames[0];
-      const materialised = frames[1];
       assert.deepEqual([killed.enemyExplosionX, killed.enemyExplosionY],
         [enemyX, enemyY + 3], `Heavy ${raiderSlot} kill snapshot`);
-      assert.deepEqual(materialised.effects.map(({ slot, x, y, ttl, drawn }) =>
-        [slot, x, y, ttl, drawn]), [[0, enemyX + 6, enemyY + 3, 5, 1]]);
-      assert.deepEqual([materialised.effectActiveMask, materialised.effectActiveCount],
-        [0x01, 1]);
-      assert.notEqual(materialised.effects[0].screenCode, 0,
-        "the compact destruction core must remain visible");
+      for (const frame of frames) assert.deepEqual([
+        frame.effectPending, frame.effectActiveMask, frame.effectActiveCount,
+        frame.effectRenderedMask, frame.effects.length,
+      ], [0, 0, 0, 0, 0], `Heavy ${raiderSlot} frame ${frame.frame}`);
+      const raiderCharacterWrites = trace.provenance.history.filter(({ frame, writerClass }) =>
+        frame >= 0 && writerClass === "EFFECT");
+      assert.equal(raiderCharacterWrites.length, 0,
+        `Heavy ${raiderSlot} wrote a destruction glyph into the character ring`);
     }
   }
 });
 
-test("Raider kills never materialise flying fragment slots", () => {
-  let fragments = 0;
+test("Raider kills never activate any transient-effect slot", () => {
+  let characterEffects = 0;
   for (const raiderSlot of [0, 1]) {
     for (const enemyX of [80, 124, 160]) {
       for (const enemyY of [24, 88, 160, 220]) {
         const frames = breakupFrames({ raiderSlot, enemyX, enemyY });
         for (const frame of frames) {
-          fragments += frame.effects.filter(({ slot }) => slot > 0).length;
-          assert.equal(frame.effectActiveMask & 0x1e, 0,
-            `Heavy ${raiderSlot} activated a fragment bit at frame ${frame.frame}`);
-          assert.ok(frame.effectActiveCount <= 1);
+          characterEffects += frame.effects.length;
+          assert.deepEqual([
+            frame.effectPending, frame.effectActiveMask, frame.effectActiveCount,
+          ], [0, 0, 0],
+          `Heavy ${raiderSlot} activated a character effect at frame ${frame.frame}`);
         }
       }
     }
   }
-  assert.equal(fragments, 0);
+  assert.equal(characterEffects, 0);
 });
 
-test("effect-slot reuse follows the surviving Heavy snapshot, not reset Raider state", () => {
+test("alternating Heavy kills retain score and never schedule delayed materialisation", () => {
   for (const raiderSlot of [0, 1]) {
     const frames = breakupFrames({ raiderSlot, enemyX: 124, enemyY: 220,
       secondRaider: true, secondKillFrame: 5 });
     const secondKill = frames.find(({ frame }) => frame === 5);
-    const replacement = frames.find(({ frame }) => frame === 6);
-    assert.equal(secondKill.effectPending, 1);
-    assert.equal(secondKill.effects.length, 0,
-      "the retained generation must clear before effect-slot reuse");
-    assert.deepEqual([effect(replacement, 0).x, effect(replacement, 0).y],
-      [secondKill.enemyExplosionX + 6, secondKill.enemyExplosionY]);
-    assert.deepEqual(replacement.effects.map(({ slot }) => slot), [0]);
-    assert.deepEqual([replacement.effectActiveMask, replacement.effectActiveCount], [1, 1]);
-    assert.equal(replacement.scoreLo, 0x62,
+    assert.deepEqual([
+      secondKill.effectPending, secondKill.effectActiveMask,
+      secondKill.effectActiveCount, secondKill.effects.length,
+    ], [0, 0, 0, 0]);
+    assert.equal(frames.every((frame) => frame.effectPending === 0 &&
+      frame.effectActiveMask === 0 && frame.effectActiveCount === 0), true);
+    assert.equal(secondKill.scoreLo, 0x62,
       "both Heavy kills retain one 10-point award each");
+  }
+});
+
+test("Raider death preserves an active generic debris breakup", () => {
+  for (const raiderSlot of [0, 1]) {
+    const frames = breakupFrames({ raiderSlot, secondRaider: true,
+      preexistingEffectCount: 5 });
+    assert.deepEqual([
+      frames[0].effectPending, frames[0].effectActiveMask,
+      frames[0].effectActiveCount, frames[0].effects.length,
+    ], [0, 0x1f, 5, 5]);
+    assert.ok(frames.slice(0, 5).every((frame) => frame.effects.length >= 4),
+      "Raider kill cleared an unrelated generic breakup");
+  }
+});
+
+test("Raider death preserves existing gameplay debris without allocating an effect", () => {
+  for (const raiderSlot of [0, 1]) {
+    const frames = breakupFrames({ raiderSlot, secondRaider: true,
+      preexistingGameplayDebris: true });
+    assert.ok(frames[0].debrisActive & 1);
+    assert.notEqual(frames[0].debrisState, 0);
+    assert.ok(frames[0].debrisHp > 0);
+    assert.deepEqual([
+      frames[0].effectPending, frames[0].effectActiveMask,
+      frames[0].effectActiveCount, frames[0].effects.length,
+    ], [0, 0, 0, 0]);
   }
 });
 
@@ -80,6 +107,7 @@ test("P1/P2 lethal hits keep release, score, explosion timing and later recycle"
     assert.equal(frames[24].enemyExplosionTimer, 0);
     assert.equal(frames[24].enemyActive, 0,
       "the unchanged recycle path leaves the formation ready for later admission");
-    assert.equal(frames.every((frame) => (frame.effectActiveMask & 0x1e) === 0), true);
+    assert.equal(frames.every((frame) => frame.effectPending === 0 &&
+      frame.effectActiveMask === 0 && frame.effectActiveCount === 0), true);
   }
 });

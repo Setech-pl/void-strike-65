@@ -4077,12 +4077,12 @@ export function createInterceptorBreakupPreview(
   const selected = [
     ["PRE_HIT", 0, "1 INTERCEPTOR"],
     ["BREAKUP", 0, "2 FINAL HIT"],
-    ["BREAKUP", 1, "3 YELLOW CORE"],
-    ["BREAKUP", 2, "4 CORE"],
-    ["BREAKUP", 3, "5 RED CORE"],
-    ["BREAKUP", 4, "6 CORE FADE"],
-    ["BREAKUP", 5, "7 LAST CORE"],
-    ["BREAKUP", 6, "8 CLEAN"],
+    ["BREAKUP", 1, "3 FLASH"],
+    ["BREAKUP", 2, "4 FLASH"],
+    ["BREAKUP", 3, "5 FLASH"],
+    ["BREAKUP", 4, "6 FLASH"],
+    ["BREAKUP", 5, "7 NO GLYPH"],
+    ["BREAKUP", 6, "8 NO GLYPH"],
   ].map(([phase, frame, label]) => ({
     label,
     record: trace.records.find((candidate) => candidate.phase === phase && candidate.frame === frame),
@@ -4104,7 +4104,7 @@ export function createInterceptorBreakupPreview(
   drawRgbLabel(rgb, width, "INTERCEPTOR BREAKUP  EXECUTED XEX BYTES  50 FPS", 24, 16,
     frontend, white);
   drawRgbLabel(rgb, width,
-    "FULL SCREEN FLASH UNCHANGED  LOCAL CORE 5  FLYING FRAGMENTS REMOVED", 24, 34,
+    "FULL SCREEN FLASH UNCHANGED  NO RAIDER CHARACTER EFFECT", 24, 34,
     frontend, yellow);
   drawRgbLabel(rgb, width, "NATIVE 1 TO 1  EIGHT ACTUAL RUNTIME FRAMES", 24, 58,
     frontend, steel);

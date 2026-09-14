@@ -503,6 +503,7 @@ export function executeInterceptorBreakupTrace({
   enemyProjectileEffectOverlap = false, projectileEffectOverlapSlot = 7,
   clearEffectOwnershipBeforeProjectile = false,
   activeDebrisOverlap = false,
+  preexistingGameplayDebris = false,
   activeEnemyProjectileOverlap = false,
   legacyInteractiveDebrisEffectBacking = false,
   legacyEffectEnemyPairshotBacking = false,
@@ -605,8 +606,13 @@ export function executeInterceptorBreakupTrace({
     runRoutine(memory, labels, "entity_effects_render", { writeLog, frame: -1 });
     memory[requiredLabel(labels, "frame_counter")] = 0;
   }
+  if (preexistingGameplayDebris) {
+    armGameplayDebris(memory, labels, { x: enemyX + 20, y: enemyY + 16 });
+    runRoutine(memory, labels, "entity_effects_render", { writeLog, frame: -1 });
+  }
 
   const records = [];
+  let lethalHitCycles = null;
   let enemyProjectileBackingOverlap = null;
   records.push(snapshot(memory, labels,
     { phase: "PRE_HIT", frame: 0, eraseCycles: 0, updateCycles: 0, renderCycles: 0 }));
@@ -637,7 +643,7 @@ export function executeInterceptorBreakupTrace({
         memory[requiredLabel(labels, "ENEMY_PENDING_DAMAGE") + raiderSlot] = 1;
         memory[requiredLabel(labels, "ENEMY_PENDING_SOURCE") + raiderSlot] = 0;
       }
-      runRoutine(memory, labels, "resolve_enemy_damage", { writeLog, frame });
+      lethalHitCycles = runRoutine(memory, labels, "resolve_enemy_damage", { writeLog, frame });
       currentEffectGeneration = deathEffectGeneration;
       if (writeLog !== null) {
         writeLog.provenanceContext.effectGeneration = currentEffectGeneration;
@@ -756,9 +762,11 @@ export function executeInterceptorBreakupTrace({
       rotateRing, legacyEffectOverlapResolver, legacyEnemyProjectileEffectBacking,
       enemyProjectileEffectOverlap, projectileEffectOverlapSlot,
       clearEffectOwnershipBeforeProjectile, activeDebrisOverlap,
+      preexistingGameplayDebris,
       activeEnemyProjectileOverlap, legacyInteractiveDebrisEffectBacking,
       legacyEffectEnemyPairshotBacking, captureProvenance },
     records,
+    lethalHitCycles,
     remnants: transientEffectRemnants(memory, labels),
     enemyProjectileBackingOverlap,
     writeLog,

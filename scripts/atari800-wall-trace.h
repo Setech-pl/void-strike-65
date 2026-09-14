@@ -196,6 +196,9 @@ typedef struct {
 	unsigned transient_effect_coordinate_wraps;
 	unsigned interceptor_breakup_request_slot0;
 	unsigned interceptor_breakup_request_slot1;
+	unsigned raider_character_writes;
+	unsigned raider_transient_allocations;
+	unsigned raider_slot0_activations;
 	unsigned rapid_projectiles;
 	unsigned player_fighter_projectiles;
 	unsigned player_projectile_recycled_checks;
@@ -534,6 +537,8 @@ static unsigned dftrace_effect_screen_hi;
 static unsigned dftrace_enemy_target_slot;
 static unsigned dftrace_previous_effect_active_mask;
 static unsigned dftrace_previous_effect_y[5];
+static unsigned dftrace_raider_effect_generation_active;
+static unsigned dftrace_raider_slot0_seen;
 static unsigned dftrace_engine_timer;
 static unsigned dftrace_engine_phase;
 static unsigned dftrace_corridor_phase;
@@ -1563,6 +1568,8 @@ static void dftrace_track_character_screen_write(unsigned x_register, unsigned y
 		(address >= DFTRACE_DIVIDER_SCREEN && address < DFTRACE_DIVIDER_SCREEN + 40u)) {
 		dftrace_character_last_writer[address] = dftrace_previous_pc;
 		dftrace_character_last_writer_x[address] = x_register;
+		if (dftrace_raider_effect_generation_active)
+			++dftrace_current.raider_character_writes;
 	}
 }
 
@@ -3459,7 +3466,8 @@ static void dftrace_write(void)
 		",fire_accept_clock,update_sound_clock"
 		",fire_accept_scanline,fire_accept_cycle,update_sound_scanline,update_sound_cycle"
 		",stale_debris_projectile_restores,transient_effect_coordinate_wraps,interceptor_breakup_request_slot0"
-		",interceptor_breakup_request_slot1\n");
+		",interceptor_breakup_request_slot1,raider_character_writes"
+		",raider_transient_allocations,raider_slot0_activations\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -3658,7 +3666,7 @@ static void dftrace_write(void)
 			frame->transient_effect_first_code,
 			frame->transient_effect_first_writer_pc,
 			frame->transient_effect_first_writer_x);
-		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%llu,%llu,%u,%u,%u,%u,%u,%u,%u,%u\n",
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%llu,%llu,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n",
 			frame->fire_timer_value, frame->player_burst_state,
 			frame->player_burst_remaining, frame->player_burst_timer,
 			frame->audf1, frame->audc1, frame->fire_accept_calls,
@@ -3670,7 +3678,10 @@ static void dftrace_write(void)
 			frame->stale_debris_projectile_restores,
 			frame->transient_effect_coordinate_wraps,
 			frame->interceptor_breakup_request_slot0,
-			frame->interceptor_breakup_request_slot1);
+			frame->interceptor_breakup_request_slot1,
+			frame->raider_character_writes,
+			frame->raider_transient_allocations,
+			frame->raider_slot0_activations);
 	}
 	if (fclose(file) != 0) {
 		perror("voidstrike65 trace close");
@@ -4587,8 +4598,12 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 		else if (slot == 1u)
 			++dftrace_current.interceptor_breakup_request_slot1;
 	}
-	else if (pc == dftrace_pc_interceptor_breakup_spawn)
+	else if (pc == dftrace_pc_interceptor_breakup_spawn) {
 		dftrace_current.events |= DFTRACE_EVENT_INTERCEPTOR_BREAKUP_SPAWN;
+		++dftrace_current.raider_transient_allocations;
+		dftrace_raider_effect_generation_active = 1u;
+		dftrace_raider_slot0_seen = 0u;
+	}
 	else if (pc == dftrace_pc_pickup_qualified_kill)
 		dftrace_current.events |= DFTRACE_EVENT_PICKUP_QUALIFIED_KILL;
 	else if (pc == dftrace_pc_pickup_collect)
@@ -4599,6 +4614,17 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 		dftrace_current.events |= DFTRACE_EVENT_DIRECTOR_REQUEST;
 	else if (pc == dftrace_pc_director_event)
 		dftrace_current.events |= DFTRACE_EVENT_DIRECTOR_EVENT;
+
+	if (dftrace_raider_effect_generation_active && !dftrace_raider_slot0_seen &&
+		(MEMORY_mem[dftrace_effect_active_mask] & 1u) != 0u) {
+		++dftrace_current.raider_slot0_activations;
+		dftrace_raider_slot0_seen = 1u;
+	}
+	if (dftrace_raider_effect_generation_active && dftrace_raider_slot0_seen &&
+		MEMORY_mem[dftrace_effect_active_mask] == 0u) {
+		dftrace_raider_effect_generation_active = 0u;
+		dftrace_raider_slot0_seen = 0u;
+	}
 
 	if (pc == dftrace_pc_end) {
 		dftrace_current.fire_timer_value = MEMORY_mem[dftrace_fire_timer];

@@ -590,6 +590,7 @@ const numericCsvFields = new Set([
   "transient_effect_first_writer_x", "stale_debris_projectile_restores",
   "transient_effect_coordinate_wraps",
   "interceptor_breakup_request_slot0", "interceptor_breakup_request_slot1",
+  "raider_character_writes", "raider_transient_allocations", "raider_slot0_activations",
   "entity_active_mask", "pickup_state", "pickup_booster_state", "pickup_counter", "pickup_x", "pickup_y",
   "pickup_timer_lo", "pickup_timer_hi", "pickup_animation", "pickup_render_id",
   "pickup_drawn_mask", "score_lo", "score_hi", "rapid_projectiles",
@@ -3045,13 +3046,23 @@ function main() {
     invariant(completeRows.length > 0,
       "Raider remnant native mode has no profiled OPEN frames");
     const heaviest = maximumRow(completeRows, activeWorkCycles);
-    const kills = rows.filter((row) => (row.events & (1 << 17)) !== 0).length;
-    const breakupRows = rows.filter((row) => (row.events & (1 << 17)) !== 0);
-    const flyingFragmentsGenerated = breakupRows.reduce((sum, row) => sum +
-      [1, 2, 3, 4].filter((slot) => (row.effect_active_mask & (1 << slot)) !== 0).length, 0);
-    const mainExplosionsGenerated = breakupRows.filter((row) =>
-      (row.effect_active_mask & 1) !== 0 && row.effect_active_count === 1).length;
+    const killRows = rows.filter((row) =>
+      row.interceptor_breakup_request_slot0 + row.interceptor_breakup_request_slot1 > 0);
+    const requestedKills = [0, 1].map((slot) => rows.reduce((sum, row) =>
+      sum + row[`interceptor_breakup_request_slot${slot}`], 0));
+    const kills = requestedKills[0] + requestedKills[1];
+    const mainExplosionsGenerated = killRows.filter((row) =>
+      row.enemy_explosion_timer === 24 && row.colbk === 0x1e).length;
+    const raiderCharacterWrites = rows.reduce((sum, row) =>
+      sum + row.raider_character_writes, 0);
+    const raiderTransientAllocations = rows.reduce((sum, row) =>
+      sum + row.raider_transient_allocations, 0);
+    const raiderSlot0Activations = rows.reduce((sum, row) =>
+      sum + row.raider_slot0_activations, 0);
     const debrisSpawns = rows.filter((row) => (row.events & (1 << 7)) !== 0).length;
+    const genericEffectSpawnRows = rows.filter((row) => (row.events & (1 << 13)) !== 0);
+    const validGenericEffectSpawns = genericEffectSpawnRows.filter((row) =>
+      row.effect_active_mask === 0x1f && row.effect_active_count === 5).length;
     let debrisLifecycle = null;
     let debrisSession = null;
     let debrisFirstVisible = 0;
@@ -3077,8 +3088,6 @@ function main() {
         debrisLifecycle = null;
       }
     }
-    const requestedKills = [0, 1].map((slot) => rows.reduce((sum, row) =>
-      sum + row[`interceptor_breakup_request_slot${slot}`], 0));
     // The prior 45898e8 candidate produced 24 frames of orphan $75 restored
     // by PairShot erase plus 29 broad PairShot-range matches. The former is
     // this task's positively attributed gameplay-debris remnant and must now
@@ -3122,12 +3131,17 @@ function main() {
         total: requestedKills[0] + requestedKills[1],
       },
       main_explosions_generated: mainExplosionsGenerated,
-      breakup_fragments_generated: flyingFragmentsGenerated,
+      raider_generated_character_writes: raiderCharacterWrites,
+      raider_generated_transient_effect_allocations: raiderTransientAllocations,
+      raider_slot0_effect_activations: raiderSlot0Activations,
+      breakup_fragments_generated: 0,
       wrong_origin_fragments: anomalies.transient_effect_coordinate_wraps,
       gameplay_debris_spawns: debrisSpawns,
+      generic_debris_destruction_effect_spawns: genericEffectSpawnRows.length,
+      valid_generic_debris_destruction_effect_spawns: validGenericEffectSpawns,
       gameplay_debris_first_visible_publications: debrisFirstVisible,
       gameplay_debris_invalid_first_visible_publications: debrisFirstVisibleInvalid,
-      breakup_cores: kills,
+      breakup_cores: 0,
       suspicious_first_visible_publications:
         debrisFirstVisibleInvalid + anomalies.transient_effect_coordinate_wraps +
         anomalies.raider_breakup_orphan_sum,
@@ -3163,8 +3177,11 @@ function main() {
       },
       csv: sessionsToRun.map(({ id }) => path.relative(rootDirectory,
         path.join(buildDirectory, `${id}.csv`))),
-      passed: kills > 0 && mainExplosionsGenerated === kills &&
-        flyingFragmentsGenerated === 0 &&
+      passed: kills > 0 && killRows.length === kills && mainExplosionsGenerated === kills &&
+        raiderCharacterWrites === 0 && raiderTransientAllocations === 0 &&
+        raiderSlot0Activations === 0 &&
+        genericEffectSpawnRows.length > 0 &&
+        validGenericEffectSpawns === genericEffectSpawnRows.length &&
         requestedKills[0] > 0 && requestedKills[1] > 0 &&
         anomalies.transient_effect_coordinate_wraps === 0 &&
         anomalies.raider_breakup_orphan_sum === 0 &&
@@ -4651,6 +4668,8 @@ function main() {
   const shotRows = allRows.filter((row) => (row.events & (1 << 12)) !== 0);
   const effectSpawnRows = allRows.filter((row) => (row.events & (1 << 13)) !== 0);
   const interceptorBreakupRows = allRows.filter((row) => (row.events & (1 << 17)) !== 0);
+  const interceptorKillRows = allRows.filter((row) =>
+    row.interceptor_breakup_request_slot0 + row.interceptor_breakup_request_slot1 > 0);
   const pickupQualifiedKillRows = weaponPickupRows.filter((row) =>
     (row.events & (1 << 18)) !== 0);
   // The deterministic pickup showcase proves capsule/render semantics, while
@@ -4754,9 +4773,9 @@ function main() {
   const pickupPhysicalAddressChanges = pickupActiveTransitions.filter(({ previous, row }) =>
     Array.from({ length: 6 }, (_, index) => row[`pickup_new_address${index}`] !==
       previous[`pickup_new_address${index}`]).some(Boolean)).length;
-  const interceptorFlashPairs = interceptorBreakupRows.filter((row) => {
-    const deathFrame = rowsBySessionFrame.get(`${row.session}:${row.frame - 1}`);
-    return deathFrame?.colbk === 0x1e && row.colbk === 0x3c;
+  const interceptorFlashPairs = interceptorKillRows.filter((row) => {
+    const nextFrame = rowsBySessionFrame.get(`${row.session}:${row.frame + 1}`);
+    return row.colbk === 0x1e && nextFrame?.colbk === 0x3c;
   });
   const fullEffectRows = allRows.filter((row) =>
     row.effect_active_mask === 0x1f && row.effect_active_count === 5);
@@ -4784,12 +4803,12 @@ function main() {
     "Active debris fragments were never erased on the following frame");
   invariant(effectSpawnRows.some((row) => row.sector_state === 7),
     "Trace did not spawn the five-slot destruction effect after the capital sector");
-  invariant(interceptorBreakupRows.length > 0,
-    "Trace did not execute the Interceptor breakup spawner");
-  invariant(interceptorBreakupRows.every((row) =>
-    row.effect_active_mask === 0x01 && row.effect_active_count === 1 &&
-    (row.events & ((1 << 15) | (1 << 16))) === ((1 << 15) | (1 << 16))),
-  "Interceptor death did not update and render only its slot-zero core in the spawn frame");
+  invariant(interceptorKillRows.length > 0,
+    "Trace did not execute the Interceptor destruction path");
+  invariant(interceptorBreakupRows.length === 0 && interceptorKillRows.every((row) =>
+    row.raider_character_writes === 0 && row.raider_transient_allocations === 0 &&
+    row.raider_slot0_activations === 0),
+  "Interceptor death entered the deleted character-effect materialization path");
   invariant(interceptorFlashPairs.length > 0,
     "Trace did not preserve the accepted yellow-to-red full-screen flash across deferred breakup");
   invariant(pickupQualifiedKillRows.length >= 3,
@@ -5537,15 +5556,19 @@ function main() {
         post_capital_spawn_observed: effectSpawnRows.some((row) => row.sector_state === 7),
       },
       interceptor_breakup_effects: {
-        ...coverageRecord(interceptorBreakupRows, () => true),
-        spawner_frames: interceptorBreakupRows.length,
-        active_mask: 0x01,
-        active_count: 1,
+        ...coverageRecord(interceptorKillRows, () => true),
+        kill_frames: interceptorKillRows.length,
+        character_materializer_frames: interceptorBreakupRows.length,
+        character_writes: allRows.reduce((sum, row) => sum + row.raider_character_writes, 0),
+        transient_allocations: allRows.reduce((sum, row) =>
+          sum + row.raider_transient_allocations, 0),
+        slot0_activations: allRows.reduce((sum, row) =>
+          sum + row.raider_slot0_activations, 0),
+        active_mask: 0,
+        active_count: 0,
         flying_fragment_count: 0,
-        spawn_updated_and_rendered: interceptorBreakupRows.every((row) =>
-          (row.events & ((1 << 15) | (1 << 16))) === ((1 << 15) | (1 << 16))),
         full_screen_flash_preserved: interceptorFlashPairs.length > 0,
-        yellow_death_then_red_materialisation_frames: interceptorFlashPairs.length,
+        yellow_death_then_red_flash_pairs: interceptorFlashPairs.length,
       },
       weapon_pickup_rapid_fire: {
         qualified_kills: pickupQualifiedKillRows.map((row) => frameState(row)),

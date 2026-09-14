@@ -16,7 +16,7 @@ test("previous 745-remnant reproducer remains clean", () => {
   assert.equal(trace.failures.length, 0);
 });
 
-test("effect backing resolves an OLD enemy PairShot cell", () => {
+test("Raider death cannot publish an effect through the legacy enemy PairShot resolver", () => {
   const options = {
     root, artifact: "xex", actualPairShotKill: true, frames: 40,
     activeEnemyProjectileOverlap: true, captureProvenance: true,
@@ -25,11 +25,14 @@ test("effect backing resolves an OLD enemy PairShot cell", () => {
     ...options, legacyEffectEnemyPairshotBacking: true,
   });
   const fixed = executeInterceptorBreakupTrace(options);
-  assert.ok(legacy.provenance.staleRestores.length > 0);
-  assert.equal(legacy.provenance.orphanCells.length, 1);
-  assert.equal(legacy.provenance.orphanCells[0].writerClass, "ENEMY PAIRSHOT");
-  assert.equal(fixed.provenance.staleRestores.length, 0);
-  assert.equal(fixed.provenance.orphanCells.length, 0);
+  for (const trace of [legacy, fixed]) {
+    assert.equal(trace.provenance.staleRestores.length, 0);
+    assert.equal(trace.provenance.orphanCells.length, 0);
+    assert.equal(trace.records.every((record) => record.effectPending === 0 &&
+      record.effectActiveMask === 0 && record.effectActiveCount === 0), true);
+    assert.equal(trace.provenance.history.filter(({ frame, writerClass }) =>
+      frame >= 0 && writerClass === "EFFECT").length, 0);
+  }
 });
 
 test("more than 5000 Raider kills leave no dead-generation character cells", () => {

@@ -81,7 +81,7 @@ test("PlayerFighter death wins same-frame arbitration and enemy flashes cannot r
   }
   const resolution = routine("resolve_enemy_damage", "add_archetype_score_obsolete");
   assert.match(resolution,
-    /ENEMY_ACTIVE[\s\S]+cmp #ENEMY_ACTIVE_STATE[\s\S]+bne @done[\s\S]+dec ENEMY_LIVE_COUNT[\s\S]+spawn_interceptor_breakup_effects[\s\S]+lda ENEMY_LIVE_COUNT[\s\S]+sta ENEMY_ACTIVE/);
+    /cmp #ENEMY_ACTIVE_STATE[\s\S]+bne @next[\s\S]+dec ENEMY_LIVE_COUNT[\s\S]+bne @damage_feedback[\s\S]+sta ENEMY_ACTIVE[\s\S]+@damage_feedback:[\s\S]+spawn_interceptor_breakup_effects/);
   assert.match(source,
     /spawn_interceptor_breakup_effects:[\s\S]+begin_enemy_fighter_explosion/);
   assert.match(routine("update_enemy", "draw_enemy"),

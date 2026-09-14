@@ -74,10 +74,6 @@
       [0, 0, 12, 15, 60, 12, 0, 0]
     ]
   },
-  "interceptorBreakup": {
-    "coreFrames": 5,
-    "coreOffsetHpos": 6
-  },
   "weaponPickupRapidFire": {
     "slot": 1,
     "qualifiedKillsPerDrop": 3,

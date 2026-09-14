@@ -905,7 +905,7 @@ export function measureRuntimeCycles(build) {
     if (frame.before.effectActiveCount === 5) {
       fullEffectsPath = chooseMaximum(fullEffectsPath, frame, (candidate) => candidate.cycles);
     }
-    if (frame.hits.has("materialize_interceptor_breakup_effects")) {
+    if (frame.hits.has("spawn_interceptor_breakup_effects")) {
       interceptorBreakupPath = chooseMaximum(interceptorBreakupPath, frame,
         (candidate) => candidate.cycles);
     }
@@ -932,9 +932,12 @@ export function measureRuntimeCycles(build) {
   invariant(debrisDestructionPath, "Replay did not execute final debris destruction");
   invariant(fullEffectsPath?.before.effectActiveMask === 0x1f,
     "Replay did not execute one core plus four debris fragments");
-  invariant(interceptorBreakupPath?.after.effectActiveMask === 0x01 &&
-    interceptorBreakupPath.after.effectActiveCount === 1,
-  "Replay did not execute the slot-zero Interceptor destruction core");
+  invariant(interceptorBreakupPath &&
+    interceptorBreakupPath.after.effectActiveMask ===
+      interceptorBreakupPath.before.effectActiveMask &&
+    interceptorBreakupPath.after.effectActiveCount ===
+      interceptorBreakupPath.before.effectActiveCount,
+  "Replay did not preserve the effect pool across character-free Raider destruction");
   invariant(noPlayerFighterProjectilePath, "Replay did not execute a frame without PlayerFighter projectiles");
   invariant(!noPlayerFighterProjectilePath.hits.has("entity_player_fighter_projectile_target"),
     "Debris projectile dispatch ran without an active PlayerFighter projectile");
@@ -1033,9 +1036,9 @@ export function measureRuntimeCycles(build) {
       noActiveExplosionPathCpuCycles: emptyEnginePathCycles,
       noActiveExplosionPathLimitCpuCycles: 124,
       spawnPathCpuCycles:
-        interceptorBreakupPath.procedureTotalCycles.materialize_interceptor_breakup_effects,
+        interceptorBreakupPath.procedureTotalCycles.spawn_interceptor_breakup_effects,
       fullEffectsPathCpuCycles: entityWrapperCycles(interceptorBreakupPath),
-      measurement: "linked release Interceptor death and slot-zero core effect path",
+      measurement: "linked release Raider death with no character-effect allocation",
     },
     replay: {
       sessions: sessions.map(({ difficulty, policy, fireDelay, frames: frameLimit }) => ({

@@ -114,7 +114,7 @@ with a different sprite.
 | Fighter shots | 19: player 0–9, hostile 10–18 | Ten arrays × 19 B = 190 B; plus two three-byte burst controllers and two three-byte explosions = 202 B at `$5400–$54C9` |
 | Capital bolts | 3 | Independent warning/flight/impact lifecycle, owner/direction, cached backing; two-unit Director charge per committed bolt |
 | Interactive entities | 4 / 2 visible | 20 arrays × 4 B + 16 global bytes = 96 B at `$8000–$805F`; slot 0 debris, 1 pickup, 2 non-rendered booster controller, 3 reserve |
-| Cosmetic effects | 6 / 5 | 18 arrays × 6 B + 8 globals = 116 B at `$8080–$80F3`; debris may use one core plus four fragments, Raider uses only slot-zero core; sixth slot reserved |
+| Cosmetic effects | 6 / 5 | 18 arrays × 6 B + 8 globals = 116 B at `$8080–$80F3`; debris may use one core plus four fragments, Raider uses none; sixth slot reserved |
 | Director state | 12 B | `$80F4–$80FF`, initialized after the complete entity page clear |
 
 Do not mistake the interactive/effect capacities for a general enemy allocator.
@@ -133,11 +133,10 @@ The hostile weapon currently emits ten-shot bursts, four frames apart, with
 60/50/40-frame post-burst pauses; its nine slots outlive the shooter and use
 fixed downward speed 5, width 2 HPOS, height 3, and TTL 96.
 
-Effects are collisionless and replaceable: `spawn_interceptor_breakup_effects`
-clears the previous event, sets a deferred materialization latch, and starts
-the shared PMG explosion. `materialize_interceptor_breakup_effects` produces
-the five cosmetic pieces on the next frame. Debris can replace that event;
-fragment lifetime is 30 active frames and the PMG explosion lasts 24.
+Generic debris effects are collisionless and replaceable. Raider destruction
+does not clear, allocate, defer, update, or publish a record in that pool; its
+wrapper starts only the shared 24-frame background explosion lifecycle.
+Debris fragments retain their 30-active-frame lifetime.
 Making these fragments damaging would require a different ownership and
 collision contract. V2 explicitly does not do so.
 
@@ -326,12 +325,10 @@ First implement one-slot parity, then two-slot isolation in the foundation.
 Every affected writer must be audited: `draw_enemy`, `erase_enemy`,
 `render_shared_fighter_explosions`, `erase_shared_fighter_explosion_slot`, and
 colour/flash/reset paths. Player explosion P0/P3 remains independent.
-Cosmetic five-piece breakup can be requested at most once per frame, using a
-fixed slot tie-break and the existing replaceable event. Its saved origin must
-be captured at death rather than read from a parent slot reused by children.
-Retain the existing enemy `FIGHTER_EXPLOSION_X/Y` bytes for that one cosmetic
-origin until its pending event is materialized; they are not reclaim credits.
-Skipping a second cosmetic event must never skip gameplay damage or score.
+Generic debris may request one cosmetic five-piece breakup per frame. Raider
+death requests no cosmetic character event, so it cannot displace an unrelated
+generic effect. The existing `FIGHTER_EXPLOSION_X/Y` bytes remain part of the
+shared background explosion state and are not reclaim credits.
 
 Use shared logical swept rectangles. Keep player-shot first-contact arbitration
 across debris and both eligible enemy slots; debris retains equality priority,

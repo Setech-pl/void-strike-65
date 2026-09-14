@@ -243,7 +243,7 @@ spill, reverse two-cell unwind, and final split-glyph path are absent.
 | Combined fighter PairShots | 10 | 10 | controlled maximum; one dynamic cell per object |
 | Broadside projectiles | 3 | 2 | capital fire; M1-M3 allocation remains unchanged |
 | Interactive entities | 4 | 2 | debris plus one pickup capsule; controller/reserve slots remain non-rendered |
-| Transient effects | 6 | 5 | debris may use one core plus four fragments; Raider destruction uses slot 0 only |
+| Transient effects | 6 | 5 | debris may use one core plus four fragments; Raider destruction does not use this pool |
 
 Pool scans are bounded by compile-time counts. Normal and Spread initialize
 four PairShots, Rapid five. Their fixed glyphs preserve 8/8/10 visible pulses;
@@ -275,8 +275,8 @@ double-width Player Fighter PMG, while retaining the existing vertical player en
 and 8x8 debris box. Its single accepted damage event indexes a three-byte
 Easy/Medium/Hard table containing 2/5/7 HULL units, then uses the canonical
 atomic saturating damage/death/HUD path. Debris destruction may materialize the
-five-slot effects envelope; Raider destruction materializes only the slot-zero
-core. Both are erased before
+five-slot effects envelope. Raider destruction creates no character effect and
+leaves any unrelated generic effect intact. Generic effects are erased before
 lower layers move. The difficulty lookup replaces the former immediate load
 with `LDX abs` plus `LDA abs,X`: +6 CPU cycles only after a geometric overlap
 passes the earlier latch check, with no cost on inactive or collision-miss

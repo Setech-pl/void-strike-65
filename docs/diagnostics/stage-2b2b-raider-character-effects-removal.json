@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "status": "PASS_OWNER_SMOKE_REQUIRED",
+  "date": "2026-09-14",
+  "branch": "experiment/two-pmg-raider-combat",
+  "owner_baseline": "bb6e6aa44e4293b6542eb8568b674c60cecd29a7",
+  "objective": "Remove every Raider-created character-cell destruction effect while preserving generic debris effects and all gameplay semantics.",
+  "removed_before_contract": {
+    "slot": 0,
+    "ttl": 5,
+    "render_id": 110,
+    "active_mask": 1,
+    "active_count": 1,
+    "pending_materialization": "EFFECT_ALLOCATION_RESULT"
+  },
+  "implementation": {
+    "raider_path": "spawn_interceptor_breakup_effects tail-jumps directly to begin_enemy_fighter_explosion",
+    "removed_work": [
+      "erase_retained_transient_effects",
+      "pending Raider materialization read/write",
+      "materialize_interceptor_core_tail",
+      "materialize_interceptor_core_position",
+      "Raider core timer/render/type/state/mask/count initialization",
+      "Raider-only core constants and asset record"
+    ],
+    "retained": [
+      "24-frame FIGHTER_EXPLOSION_TIMER lifecycle",
+      "background flash",
+      "destruction sound",
+      "score and kill credit",
+      "Heavy and Director release",
+      "normal off-screen respawn",
+      "generic five-slot gameplay-debris effects"
+    ]
+  },
+  "host": {
+    "focused_tests": 136,
+    "task_relevant_failures": 0,
+    "boot_smoke_sessions": 4,
+    "xex_atr_cold_boot_passed": true,
+    "coverage": [
+      "P1 and P2 lethal hits",
+      "both Heavy active, kill either slot",
+      "alternating and sequential kills/recycles",
+      "kill with gameplay debris present",
+      "kill with a generic five-slot effect present",
+      "score, sound, release, timer, and respawn",
+      "zero EFFECT_ALLOCATION_RESULT and zero Raider effect writes"
+    ]
+  },
+  "native_pal": {
+    "emulator": "Atari800 7.1.2 PAL/XL",
+    "frames": 9000,
+    "raider_kills": 124,
+    "p1_kills": 62,
+    "p2_kills": 62,
+    "main_background_explosions": 124,
+    "raider_generated_character_writes": 0,
+    "raider_generated_transient_allocations": 0,
+    "raider_slot0_effect_activations": 0,
+    "flying_fragments": 0,
+    "unexpected_remnant_publications": 0,
+    "stale_raider_pmg": 0,
+    "gameplay_debris_spawns": 41,
+    "valid_generic_debris_effect_spawns": 1,
+    "missed_frames": 0,
+    "target_overruns": 0,
+    "hard_gate_overruns": 0,
+    "extra_vbi": 0,
+    "dli_anomalies": 0,
+    "maximum_active_work_cycles": 19651,
+    "target_headroom_cycles": 11549,
+    "hard_headroom_cycles": 12917,
+    "two_heavy_supplement": {
+      "frames": 1000,
+      "two_heavy_active_frames": 113,
+      "overlap_events": 13,
+      "black_mask_events": 0,
+      "black_mask_pixels": 0,
+      "inactive_slot_stale_page_frames": 0,
+      "offscreen_activations": 5,
+      "offscreen_activation_defects": 0
+    }
+  },
+  "cpu_memory": {
+    "linked_code_bytes_before_after_delta": [17572, 17539, -33],
+    "simultaneous_residency_bytes_before_after_delta": [18050, 18017, -33],
+    "state_ram_bytes_delta": 0,
+    "safe_residency_headroom_before_after_delta": [4137, 4170, 33],
+    "lethal_resolve_cycles_before_after_delta": [939, 701, -238],
+    "steady_empty_effect_wrapper_cycles_before_after_delta": [69, 60, -9],
+    "delayed_materialization_wrapper_cycles_before_after_delta": [152, 60, -92],
+    "active_core_update_wrapper_cycles_before_after_delta": [81, 60, -21],
+    "native_active_work_max_before_after_delta": [20097, 19651, -446],
+    "target_headroom_before_after_delta": [11103, 11549, 446],
+    "hard_headroom_before_after_delta": [12471, 12917, 446]
+  },
+  "build": {
+    "linked_candidate_command": "npm run build:two-pmg",
+    "linked_candidate_passed": true,
+    "standard_build_note": "The monolithic npm run build still enters the known pre-existing legacy runtime-cycles replay and stops after 20,000,000 steps; the established --candidate --two-pmg-raiders link path emits no gameplay define and assembled/linked the production bytes successfully.",
+    "xex_bytes": 21579,
+    "xex_sha256": "01ad4742963050e4dd7369e6be562588538509d2aaa2d5fd1dc899d10ad45ee1"
+  },
+  "next_task": "Player PairShot variable-speed deterministic trace + root-cause + minimal fix."
+}

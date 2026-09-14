@@ -347,3 +347,14 @@ respawn, ale nie materializuje slotów efektów 1–4.
 
 Nie zastępować fragmentów gameplay debris, wrakiem, collectible ani obstacle.
 Przyszły Raider wreck pozostaje osobnym odroczonym feature.
+
+---
+
+## 10. Raider character destruction effects — USUNIĘTE
+
+Późniejszy owner smoke odrzucił także pięcioklatkowy core w slocie 0. Raider
+lethal hit nie może tworzyć żadnego obiektu znakowego, maski aktywności, zapisu
+do character ring ani opóźnionej materializacji. Pozostają 24-klatkowy background
+flash, dźwięk, score/kill accounting, Heavy release, Director accounting i
+normalny off-screen respawn. Generic gameplay-debris effects pozostają bez zmian
+i nie mogą być czyszczone przez Raider death.

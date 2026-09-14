@@ -1,11 +1,11 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 4.9
+Wersja: 4.10
 Data aktualizacji: 2026-09-14
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD przed off-screen spawn fix: `c447062c9b43f45e985bef5395b14b2cfdf591d8`
-Stan runtime: `PASS_OFFSCREEN_RAIDER_DEBRIS_SPAWN_CANDIDATE` + `PASS_TWO_HEAVY_BLACK_MASK_FIX` + `PASS_DEBRIS_ABI_NATIVE_SLOT0_BASELINE` + `REJECTED_DEBRIS_25HZ_SLOT03_FEASIBILITY` + `REJECTED_BACKGROUND_RING_25HZ_PROOF` (runtime bez zmian) + `PASS_CAPITAL_SPEED_RESTORE_CLOCK_VERIFY` + `PASS_MASTER_PAL_CLOCK` + Raider PairShot `2 px/tick` + white-only starfield (4 white, `1 px/frame`, bez blue far) aktywny także w capital z hull occlusion + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck nadal odroczony; bez unified schedulera
-Ostatni XEX off-screen spawn candidate: SHA-256 `bd736c8e4a44a70dfc0bb95b54e4d693b443b3a3085ffec74f9d7f5c39af2bfb`
+Owner baseline przed usunięciem Raider character core: `bb6e6aa44e4293b6542eb8568b674c60cecd29a7`
+Stan runtime: `PASS_RAIDER_CHARACTER_EFFECTS_REMOVED` + `PASS_OFFSCREEN_RAIDER_DEBRIS_SPAWN_CANDIDATE` + `PASS_TWO_HEAVY_BLACK_MASK_FIX` + `PASS_DEBRIS_ABI_NATIVE_SLOT0_BASELINE` + `REJECTED_DEBRIS_25HZ_SLOT03_FEASIBILITY` + `REJECTED_BACKGROUND_RING_25HZ_PROOF` (runtime bez zmian) + `PASS_CAPITAL_SPEED_RESTORE_CLOCK_VERIFY` + `PASS_MASTER_PAL_CLOCK` + Raider PairShot `2 px/tick` + white-only starfield (4 white, `1 px/frame`, bez blue far) aktywny także w capital z hull occlusion + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio; Raider wreck nadal odroczony; bez unified schedulera
+Aktualny XEX Raider character-free candidate: SHA-256 `01ad4742963050e4dd7369e6be562588538509d2aaa2d5fd1dc899d10ad45ee1`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
 
@@ -2006,6 +2006,45 @@ Native active-work max `20 479 -> 20 097`, target/hard headroom
 
 Raport:
 `docs/diagnostics/stage-2b2b-raider-transient-breakup-fragments-removal.json`.
+
+Następny task: `Player PairShot variable-speed deterministic trace + root-cause + minimal fix`.
+
+### Raider character destruction effects — REMOVED / OWNER SMOKE
+
+Owner odrzucił również zachowany wcześniej pięcioklatkowy core znakowy Raidera:
+slot 0, render ID `ENTITY_DEBRIS_GLYPH_BASE` (`110`), TTL `5`, active mask
+`$01`, active count `1`. `spawn_interceptor_breakup_effects` zachowuje ABI lethal
+hit path, lecz skacze teraz bezpośrednio do `begin_enemy_fighter_explosion`.
+Raider death nie czyści generic effect pool, nie ustawia
+`EFFECT_ALLOCATION_RESULT`, nie materializuje żadnego slotu i nie publikuje
+znaku do character ring. Nie dodano zastępczego glyphu, debris, wreck ani
+collectible.
+
+Pozostają bez zmian: enemy background flash, hit sound, score i kill credit,
+Heavy/Director release, `FIGHTER_EXPLOSION_TIMER=24` oraz późniejszy off-screen
+respawn. Generic gameplay-debris breakup nadal używa pięciu slotów (`$1F`,
+count `5`) i Raider kill zachowuje już aktywny generic effect.
+
+Host focused: `136` testów, po aktualizacji dwóch owner-invalid historycznych
+asercji wszystkie grupy task-relevant przechodzą. Boot smoke: `4/4` XEX/ATR.
+Atari800 7.1.2 PAL: `9000` klatek, `124` kills (`62+62`), `124` background
+explosions, Raider-generated character writes `0`, Raider transient allocations
+`0`, Raider slot-0 activations `0`, flying fragments `0`, suspicious/remnant
+publications `0`, stale PMG `0`, missed/target/hard/extra-VBI/DLI `0`. Ślad
+wykonał także jeden poprawny generic debris breakup (`$1F`, count `5`).
+Two-Heavy supplement: `1000` klatek, `113` two-Heavy frames, `13` overlaps,
+black-mask pixels `0`, inactive-slot stale pages `0`, off-screen activations
+`5/5` legal.
+
+Linked runtime `17 572 -> 17 539 B`, simultaneous residency
+`18 050 -> 18 017 B`, safe headroom `4 137 -> 4 170 B`; state RAM bez zmian.
+Instruction-exact lethal resolve w identycznym harnessie `939 -> 701` cykli,
+steady empty effect wrapper `69 -> 60`, delayed materialization `152 -> 60`,
+active core update `81 -> 60`. Native active-work max `20 097 -> 19 651`,
+target/hard headroom `11 103/12 471 -> 11 549/12 917`.
+
+Raport:
+`docs/diagnostics/stage-2b2b-raider-character-effects-removal.json`.
 
 Następny task: `Player PairShot variable-speed deterministic trace + root-cause + minimal fix`.
 

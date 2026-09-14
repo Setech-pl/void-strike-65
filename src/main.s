@@ -382,6 +382,9 @@ DAMAGE_CLEANUP           = 5
 FIGHTER_PROJECTILE_FREE   = 0
 FIGHTER_PROJECTILE_PLAYER_FIGHTER  = 1
 FIGHTER_PROJECTILE_INTERCEPTOR = 2
+FIGHTER_PROJECTILE_INTERCEPTOR_EMITTER_MASK = $01
+FIGHTER_PROJECTILE_INTERCEPTOR_P1 = FIGHTER_PROJECTILE_INTERCEPTOR
+FIGHTER_PROJECTILE_INTERCEPTOR_P2 = FIGHTER_PROJECTILE_INTERCEPTOR|FIGHTER_PROJECTILE_INTERCEPTOR_EMITTER_MASK
 FIGHTER_PROJECTILE_SPREAD_CENTER = $10
 FIGHTER_PROJECTILE_SPREAD_RIGHT = $20
 FIGHTER_PROJECTILE_SPREAD_LEFT = $40
@@ -4049,8 +4052,6 @@ allocate_interceptor_projectile:
     clc
     rts
 @allocate:
-    lda #FIGHTER_PROJECTILE_INTERCEPTOR
-    sta FIGHTER_PROJECTILE_ACTIVE,x
     stx BROAD_WORK_SLOT
     ldy ENEMY_ARCHETYPE
     lda enemy_visible_widths,y
@@ -4074,7 +4075,10 @@ allocate_interceptor_projectile:
     lda #INTERCEPTOR_PROJECTILE_LIFETIME
     sta FIGHTER_PROJECTILE_LIFETIME,x
     lda ENEMY_TARGET_SLOT
-    eor #$01                    ; exactly two PMG owners alternate on acceptance
+    ora #FIGHTER_PROJECTILE_INTERCEPTOR
+    sta FIGHTER_PROJECTILE_ACTIVE,x
+    eor #(FIGHTER_PROJECTILE_INTERCEPTOR|$01)
+                                  ; exactly two PMG owners alternate on acceptance
     sta ENEMY_WEAPON_CURSOR
     sec
     rts
@@ -10022,7 +10026,7 @@ spawn_breakup_effects_at:
 spawn_interceptor_breakup_effects:
     ; Raider destruction is PMG/background feedback only. Do not touch the
     ; shared character-effect pool: a legitimate debris breakup may be active.
-    jmp begin_enemy_fighter_explosion
+    jmp begin_enemy_fighter_explosion_with_projectile_cleanup
 
 ; Retain an unreachable instrumentation symbol so native traces positively
 ; prove that no delayed Raider character materialisation executes.
@@ -11156,6 +11160,27 @@ claim_fighter_projectile_visual:
     sta FIGHTER_PROJECTILE_RENDERED,x
     inc FIGHTER_PROJECTILE_OWNED_COUNT
     rts
+
+; ENEMY_TARGET_SLOT identifies the destroyed Raider. ACTIVE bit 0 is emitter
+; identity only in the fixed enemy slot range: $02=P1, $03=P2. Publication
+; later in this same frame reverse-erases every rendered OLD PairShot before
+; skipping these invalidated records, so no early raster write or stale glyph
+; is introduced here. Foreign records remain active and are redrawn normally.
+begin_enemy_fighter_explosion_with_projectile_cleanup:
+    ldx #INTERCEPTOR_PROJECTILE_SLOT_BASE
+@slot:
+    lda FIGHTER_PROJECTILE_ACTIVE,x
+    beq @next
+    and #FIGHTER_PROJECTILE_INTERCEPTOR_EMITTER_MASK
+    cmp ENEMY_TARGET_SLOT
+    bne @next
+    lda #FIGHTER_PROJECTILE_FREE
+    sta FIGHTER_PROJECTILE_ACTIVE,x
+@next:
+    inx
+    cpx #FIGHTER_PROJECTILE_SLOT_COUNT
+    bne @slot
+    jmp begin_enemy_fighter_explosion
 
 ; Tail placement consumes only the post-H3.1 ENTITY_CODE slack and therefore
 ; leaves the fixed frontend tables and their page-local pointers untouched.

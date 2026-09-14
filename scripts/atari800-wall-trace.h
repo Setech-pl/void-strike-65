@@ -199,6 +199,14 @@ typedef struct {
 	unsigned raider_character_writes;
 	unsigned raider_transient_allocations;
 	unsigned raider_slot0_activations;
+	unsigned raider_kills_with_emitter_projectile_active;
+	unsigned emitter_owned_projectiles_at_kill;
+	unsigned emitter_owned_projectiles_removed;
+	unsigned foreign_projectiles_preserved;
+	unsigned foreign_projectiles_incorrectly_removed;
+	unsigned post_kill_emitter_projectile_continuations;
+	unsigned emitter_owned_physical_slot0_at_kill;
+	unsigned enemy_projectile_stale_cells;
 	unsigned rapid_projectiles;
 	unsigned player_fighter_projectiles;
 	unsigned player_projectile_recycled_checks;
@@ -422,6 +430,8 @@ static unsigned dftrace_pc_effect_update;
 static unsigned dftrace_pc_effect_render;
 static unsigned dftrace_pc_interceptor_breakup_request;
 static unsigned dftrace_pc_interceptor_breakup_spawn;
+static unsigned dftrace_pc_emitter_cleanup;
+static unsigned dftrace_pc_emitter_cleanup_end;
 static unsigned dftrace_pc_pickup_qualified_kill;
 static unsigned dftrace_pc_pickup_collect;
 static unsigned dftrace_pc_director_world;
@@ -539,6 +549,8 @@ static unsigned dftrace_previous_effect_active_mask;
 static unsigned dftrace_previous_effect_y[5];
 static unsigned dftrace_raider_effect_generation_active;
 static unsigned dftrace_raider_slot0_seen;
+static unsigned dftrace_emitter_cleanup_same[DFTRACE_INTERCEPTOR_SLOT_COUNT];
+static unsigned dftrace_emitter_cleanup_foreign[DFTRACE_INTERCEPTOR_SLOT_COUNT];
 static unsigned dftrace_engine_timer;
 static unsigned dftrace_engine_phase;
 static unsigned dftrace_corridor_phase;
@@ -1536,6 +1548,93 @@ static void dftrace_snapshot_player_pairshot_orphans(DFTraceFrame *frame)
 		if (dftrace_is_player_pairshot_code(MEMORY_mem[address]) &&
 			!dftrace_player_pairshot_owns(address))
 			++frame->player_projectile_orphan_cells;
+}
+
+static int dftrace_is_enemy_pairshot_code(unsigned value)
+{
+	return value >= DFTRACE_INTERCEPTOR_GLYPH_FIRST &&
+		value <= DFTRACE_INTERCEPTOR_GLYPH_LAST;
+}
+
+static int dftrace_enemy_pairshot_owns(unsigned address)
+{
+	unsigned slot;
+	for (slot = DFTRACE_INTERCEPTOR_SLOT_BASE;
+		slot < DFTRACE_PROJECTILE_SLOT_COUNT; ++slot) {
+		unsigned owned;
+		if (MEMORY_mem[dftrace_projectile_active + slot] == 0u ||
+			MEMORY_mem[dftrace_projectile_rendered + slot] == 0u)
+			continue;
+		owned = MEMORY_mem[dftrace_projectile_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_projectile_screen_hi + slot] << 8);
+		if (owned == address)
+			return 1;
+	}
+	return 0;
+}
+
+static void dftrace_snapshot_enemy_pairshot_orphans(DFTraceFrame *frame)
+{
+	unsigned address;
+	frame->enemy_projectile_stale_cells = 0u;
+	for (address = DFTRACE_DIVIDER_SCREEN;
+		address < DFTRACE_DIVIDER_SCREEN + 40u; ++address)
+		if (dftrace_is_enemy_pairshot_code(MEMORY_mem[address]) &&
+			!dftrace_enemy_pairshot_owns(address))
+			++frame->enemy_projectile_stale_cells;
+	for (address = DFTRACE_RING_SCREEN; address < DFTRACE_RING_END; ++address)
+		if (dftrace_is_enemy_pairshot_code(MEMORY_mem[address]) &&
+			!dftrace_enemy_pairshot_owns(address))
+			++frame->enemy_projectile_stale_cells;
+}
+
+static void dftrace_emitter_cleanup_begin(DFTraceFrame *frame)
+{
+	unsigned index;
+	unsigned target = MEMORY_mem[dftrace_enemy_target_slot] & 1u;
+	unsigned owned = 0u;
+	for (index = 0u; index < DFTRACE_INTERCEPTOR_SLOT_COUNT; ++index) {
+		unsigned slot = DFTRACE_INTERCEPTOR_SLOT_BASE + index;
+		unsigned active = MEMORY_mem[dftrace_projectile_active + slot];
+		dftrace_emitter_cleanup_same[index] = 0u;
+		dftrace_emitter_cleanup_foreign[index] = 0u;
+		if (active == 0u)
+			continue;
+		if ((active & 1u) == target) {
+			dftrace_emitter_cleanup_same[index] = active;
+			++owned;
+			if (index == 0u)
+				++frame->emitter_owned_physical_slot0_at_kill;
+		}
+		else
+			dftrace_emitter_cleanup_foreign[index] = active;
+	}
+	if (owned != 0u)
+		++frame->raider_kills_with_emitter_projectile_active;
+	frame->emitter_owned_projectiles_at_kill += owned;
+}
+
+static void dftrace_emitter_cleanup_end(DFTraceFrame *frame)
+{
+	unsigned index;
+	for (index = 0u; index < DFTRACE_INTERCEPTOR_SLOT_COUNT; ++index) {
+		unsigned slot = DFTRACE_INTERCEPTOR_SLOT_BASE + index;
+		unsigned active = MEMORY_mem[dftrace_projectile_active + slot];
+		if (dftrace_emitter_cleanup_same[index] != 0u) {
+			if (active == 0u)
+				++frame->emitter_owned_projectiles_removed;
+			else
+				++frame->post_kill_emitter_projectile_continuations;
+		}
+		if (dftrace_emitter_cleanup_foreign[index] != 0u) {
+			if (active == dftrace_emitter_cleanup_foreign[index])
+				++frame->foreign_projectiles_preserved;
+			else
+				++frame->foreign_projectiles_incorrectly_removed;
+		}
+		dftrace_emitter_cleanup_same[index] = 0u;
+		dftrace_emitter_cleanup_foreign[index] = 0u;
+	}
 }
 
 static int dftrace_is_transient_effect_code(unsigned value)
@@ -3330,6 +3429,7 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 {
 	dftrace_snapshot_rapid_projectile(frame);
 	dftrace_snapshot_player_pairshot_orphans(frame);
+	dftrace_snapshot_enemy_pairshot_orphans(frame);
 	dftrace_snapshot_transient_effect_orphans(frame);
 	dftrace_snapshot_transient_effect_coordinates(frame);
 	frame->colbk = GTIA_COLBK;
@@ -3467,7 +3567,11 @@ static void dftrace_write(void)
 		",fire_accept_scanline,fire_accept_cycle,update_sound_scanline,update_sound_cycle"
 		",stale_debris_projectile_restores,transient_effect_coordinate_wraps,interceptor_breakup_request_slot0"
 		",interceptor_breakup_request_slot1,raider_character_writes"
-		",raider_transient_allocations,raider_slot0_activations\n");
+		",raider_transient_allocations,raider_slot0_activations"
+		",raider_kills_with_emitter_projectile_active,emitter_owned_projectiles_at_kill"
+		",emitter_owned_projectiles_removed,foreign_projectiles_preserved"
+		",foreign_projectiles_incorrectly_removed,post_kill_emitter_projectile_continuations"
+		",emitter_owned_physical_slot0_at_kill,enemy_projectile_stale_cells\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -3666,7 +3770,7 @@ static void dftrace_write(void)
 			frame->transient_effect_first_code,
 			frame->transient_effect_first_writer_pc,
 			frame->transient_effect_first_writer_x);
-		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%llu,%llu,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n",
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%llu,%llu,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u",
 			frame->fire_timer_value, frame->player_burst_state,
 			frame->player_burst_remaining, frame->player_burst_timer,
 			frame->audf1, frame->audc1, frame->fire_accept_calls,
@@ -3682,6 +3786,15 @@ static void dftrace_write(void)
 			frame->raider_character_writes,
 			frame->raider_transient_allocations,
 			frame->raider_slot0_activations);
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u\n",
+			frame->raider_kills_with_emitter_projectile_active,
+			frame->emitter_owned_projectiles_at_kill,
+			frame->emitter_owned_projectiles_removed,
+			frame->foreign_projectiles_preserved,
+			frame->foreign_projectiles_incorrectly_removed,
+			frame->post_kill_emitter_projectile_continuations,
+			frame->emitter_owned_physical_slot0_at_kill,
+			frame->enemy_projectile_stale_cells);
 	}
 	if (fclose(file) != 0) {
 		perror("voidstrike65 trace close");
@@ -3783,6 +3896,8 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_pc_interceptor_breakup_request,
 		"DFTRACE_PC_INTERCEPTOR_BREAKUP_REQUEST");
 	DFTRACE_ADDRESS(dftrace_pc_interceptor_breakup_spawn, "DFTRACE_PC_INTERCEPTOR_BREAKUP_SPAWN");
+	DFTRACE_ADDRESS(dftrace_pc_emitter_cleanup, "DFTRACE_PC_EMITTER_CLEANUP");
+	DFTRACE_ADDRESS(dftrace_pc_emitter_cleanup_end, "DFTRACE_PC_EMITTER_CLEANUP_END");
 	DFTRACE_ADDRESS(dftrace_pc_pickup_qualified_kill, "DFTRACE_PC_PICKUP_QUALIFIED_KILL");
 	DFTRACE_ADDRESS(dftrace_pc_pickup_collect, "DFTRACE_PC_PICKUP_COLLECT");
 	DFTRACE_ADDRESS(dftrace_pc_director_world, "DFTRACE_PC_DIRECTOR_WORLD");
@@ -4604,6 +4719,10 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 		dftrace_raider_effect_generation_active = 1u;
 		dftrace_raider_slot0_seen = 0u;
 	}
+	else if (pc == dftrace_pc_emitter_cleanup)
+		dftrace_emitter_cleanup_begin(&dftrace_current);
+	else if (pc == dftrace_pc_emitter_cleanup_end)
+		dftrace_emitter_cleanup_end(&dftrace_current);
 	else if (pc == dftrace_pc_pickup_qualified_kill)
 		dftrace_current.events |= DFTRACE_EVENT_PICKUP_QUALIFIED_KILL;
 	else if (pc == dftrace_pc_pickup_collect)

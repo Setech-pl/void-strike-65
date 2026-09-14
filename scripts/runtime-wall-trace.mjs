@@ -397,6 +397,8 @@ const traceLabels = {
   DFTRACE_PC_EFFECT_RENDER: "render_transient_effect_overlays",
   DFTRACE_PC_INTERCEPTOR_BREAKUP_REQUEST: "spawn_interceptor_breakup_effects",
   DFTRACE_PC_INTERCEPTOR_BREAKUP_SPAWN: "materialize_interceptor_breakup_effects",
+  DFTRACE_PC_EMITTER_CLEANUP: "begin_enemy_fighter_explosion_with_projectile_cleanup",
+  DFTRACE_PC_EMITTER_CLEANUP_END: "begin_enemy_fighter_explosion_tail",
   DFTRACE_PC_PICKUP_QUALIFIED_KILL: "weapon_pickup_record_qualified_kill",
   DFTRACE_PC_PICKUP_COLLECT: "weapon_pickup_collect",
   DFTRACE_PC_ENTITY_ERASE: "clear_fighter_pickup_pmg",
@@ -591,6 +593,10 @@ const numericCsvFields = new Set([
   "transient_effect_coordinate_wraps",
   "interceptor_breakup_request_slot0", "interceptor_breakup_request_slot1",
   "raider_character_writes", "raider_transient_allocations", "raider_slot0_activations",
+  "raider_kills_with_emitter_projectile_active", "emitter_owned_projectiles_at_kill",
+  "emitter_owned_projectiles_removed", "foreign_projectiles_preserved",
+  "foreign_projectiles_incorrectly_removed", "post_kill_emitter_projectile_continuations",
+  "emitter_owned_physical_slot0_at_kill", "enemy_projectile_stale_cells",
   "entity_active_mask", "pickup_state", "pickup_booster_state", "pickup_counter", "pickup_x", "pickup_y",
   "pickup_timer_lo", "pickup_timer_hi", "pickup_animation", "pickup_render_id",
   "pickup_drawn_mask", "score_lo", "score_hi", "rapid_projectiles",
@@ -3059,6 +3065,22 @@ function main() {
       sum + row.raider_transient_allocations, 0);
     const raiderSlot0Activations = rows.reduce((sum, row) =>
       sum + row.raider_slot0_activations, 0);
+    const emitterOwnership = {
+      kills_with_emitter_projectile_active: rows.reduce((sum, row) =>
+        sum + row.raider_kills_with_emitter_projectile_active, 0),
+      emitter_owned_projectiles_at_kill: rows.reduce((sum, row) =>
+        sum + row.emitter_owned_projectiles_at_kill, 0),
+      emitter_owned_projectiles_removed: rows.reduce((sum, row) =>
+        sum + row.emitter_owned_projectiles_removed, 0),
+      foreign_projectiles_preserved: rows.reduce((sum, row) =>
+        sum + row.foreign_projectiles_preserved, 0),
+      foreign_projectiles_incorrectly_removed: rows.reduce((sum, row) =>
+        sum + row.foreign_projectiles_incorrectly_removed, 0),
+      post_kill_emitter_projectile_continuations: rows.reduce((sum, row) =>
+        sum + row.post_kill_emitter_projectile_continuations, 0),
+      emitter_owned_physical_slot0_at_kill: rows.reduce((sum, row) =>
+        sum + row.emitter_owned_physical_slot0_at_kill, 0),
+    };
     const debrisSpawns = rows.filter((row) => (row.events & (1 << 7)) !== 0).length;
     const genericEffectSpawnRows = rows.filter((row) => (row.events & (1 << 13)) !== 0);
     const validGenericEffectSpawns = genericEffectSpawnRows.filter((row) =>
@@ -3107,6 +3129,10 @@ function main() {
         sum + row.transient_effect_coordinate_wraps, 0),
       stale_debris_projectile_restores: rows.reduce((sum, row) =>
         sum + row.stale_debris_projectile_restores, 0),
+      enemy_projectile_stale_cells: rows.reduce((sum, row) =>
+        sum + row.enemy_projectile_stale_cells, 0),
+      maximum_enemy_projectile_stale_cells: Math.max(...rows.map((row) =>
+        row.enemy_projectile_stale_cells)),
       raider_breakup_orphan_sum: rows.reduce((sum, row) => sum +
         (raiderEffectCodes.has(row.transient_effect_first_code)
           ? row.transient_effect_orphan_cells : 0), 0),
@@ -3134,6 +3160,13 @@ function main() {
       raider_generated_character_writes: raiderCharacterWrites,
       raider_generated_transient_effect_allocations: raiderTransientAllocations,
       raider_slot0_effect_activations: raiderSlot0Activations,
+      emitter_projectile_cleanup: emitterOwnership,
+      post_kill_owner_symptom_objects:
+        emitterOwnership.post_kill_emitter_projectile_continuations,
+      enemy_projectile_stale_cells: {
+        sum: anomalies.enemy_projectile_stale_cells,
+        maximum_per_frame: anomalies.maximum_enemy_projectile_stale_cells,
+      },
       breakup_fragments_generated: 0,
       wrong_origin_fragments: anomalies.transient_effect_coordinate_wraps,
       gameplay_debris_spawns: debrisSpawns,
@@ -3177,9 +3210,16 @@ function main() {
       },
       csv: sessionsToRun.map(({ id }) => path.relative(rootDirectory,
         path.join(buildDirectory, `${id}.csv`))),
-      passed: kills > 0 && killRows.length === kills && mainExplosionsGenerated === kills &&
+      passed: kills >= 100 && killRows.length === kills && mainExplosionsGenerated === kills &&
         raiderCharacterWrites === 0 && raiderTransientAllocations === 0 &&
         raiderSlot0Activations === 0 &&
+        emitterOwnership.kills_with_emitter_projectile_active > 0 &&
+        emitterOwnership.emitter_owned_projectiles_at_kill ===
+          emitterOwnership.emitter_owned_projectiles_removed &&
+        emitterOwnership.foreign_projectiles_preserved > 0 &&
+        emitterOwnership.foreign_projectiles_incorrectly_removed === 0 &&
+        emitterOwnership.post_kill_emitter_projectile_continuations === 0 &&
+        anomalies.enemy_projectile_stale_cells === 0 &&
         genericEffectSpawnRows.length > 0 &&
         validGenericEffectSpawns === genericEffectSpawnRows.length &&
         requestedKills[0] > 0 && requestedKills[1] > 0 &&

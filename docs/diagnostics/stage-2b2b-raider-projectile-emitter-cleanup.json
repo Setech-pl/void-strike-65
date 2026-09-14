@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-14",
+  "status": "PASS_OWNER_SMOKE_REQUIRED",
+  "baseline_head": "6dd2f198ba945d9888c11023cf5882f1fe7f8f32",
+  "branch": "experiment/two-pmg-raider-combat",
+  "objective": "Attribute the intermittent post-kill falling object and expire only PairShots owned by the destroyed Raider.",
+  "attribution": {
+    "object_class": "enemy Interceptor PairShot character overlay",
+    "deterministic_cases": {
+      "kill_after_active_shot": [20, 20],
+      "kill_without_active_shot": [0, 20]
+    },
+    "representative_p1": {
+      "raider_slot": 0,
+      "projectile_slot": 5,
+      "active": 2,
+      "projectile_xy": [78, 47],
+      "cell_xy": [76, 40],
+      "phase_xy": [2, 7],
+      "remaining_lifetime": 95,
+      "screen_address": 33175,
+      "screen_code": 228,
+      "glyph": 100,
+      "writer_pc": 37594,
+      "writer_pc_hex": "$92DA",
+      "writer_x": 5,
+      "exact_coordinate_correlation": true
+    },
+    "representative_p2": {
+      "raider_slot": 1,
+      "projectile_slot": 5,
+      "active": 3,
+      "projectile_xy": [142, 79],
+      "cell_xy": [140, 72],
+      "phase_xy": [2, 7],
+      "remaining_lifetime": 95,
+      "screen_address": 33351,
+      "screen_code": 228,
+      "glyph": 100,
+      "writer_pc": 37594,
+      "writer_pc_hex": "$92DA",
+      "writer_x": 5,
+      "exact_coordinate_correlation": true
+    },
+    "same_coordinate_competing_writes": {
+      "character_effect": 0,
+      "gameplay_debris": 0
+    }
+  },
+  "ownership": {
+    "representation": "bit 0 of enemy FIGHTER_PROJECTILE_ACTIVE in physical slots 5-9",
+    "p1_value": 2,
+    "p2_value": 3,
+    "ram_delta_bytes": 0,
+    "consumer_audit": "Enemy update, collision, pressure and render admission use zero/nonzero tests; renderer selects enemy glyph by physical slot index. Player spread bits are interpreted only after the player-slot branch."
+  },
+  "fix": {
+    "allocation": "Accepted enemy shots encode ENEMY_TARGET_SLOT in ACTIVE bit 0.",
+    "destruction": "A five-record kill-only scan clears only matching-owner ACTIVE records before the existing 24-frame fighter explosion begins.",
+    "publication_order": "Rendered OLD records retain RENDERED until the existing late reverse erase restores backing; killed inactive records are then skipped, while foreign records redraw normally."
+  },
+  "host": {
+    "focused_tests": [6, 6],
+    "owner_isolation": {
+      "kill_p1": "P1 ACTIVE 2 removed; P2 ACTIVE 3 survives and advances next frame",
+      "kill_p2": "P2 ACTIVE 3 removed; P1 ACTIVE 2 survives and advances next frame"
+    },
+    "positions": {
+      "publication_states": ["rendered", "between publications"],
+      "projectile_y": [96, 216, 228]
+    },
+    "destruction_feedback": {
+      "explosion_timer": 24,
+      "hit_sound_timer": 14,
+      "score_bcd": "0010",
+      "destroyed_member_state": 0,
+      "foreign_member_state": 1,
+      "live_count": 1
+    },
+    "xex_atr_equivalent": true
+  },
+  "native": {
+    "emulator": "Atari800 7.1.2 PAL/XL",
+    "frames": 9000,
+    "raider_kills": 130,
+    "kills_by_slot": [65, 65],
+    "kills_with_emitter_projectile_active": 72,
+    "emitter_owned_projectiles_at_kill": 129,
+    "emitter_owned_projectiles_removed": 129,
+    "foreign_projectiles_preserved": 24,
+    "foreign_projectiles_incorrectly_removed": 0,
+    "post_kill_emitter_projectile_continuations": 0,
+    "post_kill_owner_symptom_objects": 0,
+    "enemy_projectile_stale_cells": 0,
+    "main_explosions": 130,
+    "raider_character_writes": 0,
+    "raider_transient_allocations": 0,
+    "gameplay_debris_spawns": 41,
+    "valid_generic_debris_effect_spawns": 1,
+    "missed_frames": 0,
+    "target_overruns": 0,
+    "hard_gate_overruns": 0,
+    "extra_vbi": 0,
+    "dli_anomalies": 0,
+    "active_work_max_cycles": 18840,
+    "target_headroom_cycles": 12360,
+    "hard_headroom_cycles": 13728
+  },
+  "two_heavy_native": {
+    "frames": 1000,
+    "two_heavy_active_frames": 113,
+    "overlap_events": 13,
+    "black_mask_events": 0,
+    "inactive_slot_stale_page_frames": 0,
+    "offscreen_spawns": 5,
+    "offscreen_spawn_defects": 0,
+    "respawns": 4
+  },
+  "cpu_memory": {
+    "linked_runtime_bytes_before_after_delta": [17539, 17566, 27],
+    "simultaneous_residency_bytes_before_after_delta": [18017, 18044, 27],
+    "state_ram_delta_bytes": 0,
+    "allocation_cycles_p1_p2": [130, 143],
+    "allocation_cycle_delta": 0,
+    "destruction_cycles_sound_enabled_before_after_delta": [717, 777, 60],
+    "steady_projectile_update_cycle_delta": 0,
+    "effect_update_cycle_delta": 0,
+    "active_work_max_before_after_delta": [19651, 18840, -811]
+  },
+  "artifacts": {
+    "xex_sha256": "a4fd121fae34766182ae16235a6772662d0fec6cdda5eded8615357918e6585a",
+    "atr_sha256": "8e3f79c0aec454701fd958fe5ef383c7ba6eed7fa002bce447b93d7b6b9e60ed"
+  },
+  "owner_smoke_required": true,
+  "next_task": "Player PairShot variable-speed deterministic trace + root-cause + minimal fix."
+}

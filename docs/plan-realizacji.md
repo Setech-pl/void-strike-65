@@ -1,11 +1,11 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 4.10
+Wersja: 4.11
 Data aktualizacji: 2026-09-14
 Branch roboczy: `experiment/two-pmg-raider-combat`  
 Owner baseline przed usunięciem Raider character core: `bb6e6aa44e4293b6542eb8568b674c60cecd29a7`
-Stan runtime: `PASS_RAIDER_CHARACTER_EFFECTS_REMOVED` + `PASS_OFFSCREEN_RAIDER_DEBRIS_SPAWN_CANDIDATE` + `PASS_TWO_HEAVY_BLACK_MASK_FIX` + `PASS_DEBRIS_ABI_NATIVE_SLOT0_BASELINE` + `REJECTED_DEBRIS_25HZ_SLOT03_FEASIBILITY` + `REJECTED_BACKGROUND_RING_25HZ_PROOF` (runtime bez zmian) + `PASS_CAPITAL_SPEED_RESTORE_CLOCK_VERIFY` + `PASS_MASTER_PAL_CLOCK` + Raider PairShot `2 px/tick` + white-only starfield (4 white, `1 px/frame`, bez blue far) aktywny także w capital z hull occlusion + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio; Raider wreck nadal odroczony; bez unified schedulera
-Aktualny XEX Raider character-free candidate: SHA-256 `01ad4742963050e4dd7369e6be562588538509d2aaa2d5fd1dc899d10ad45ee1`
+Stan runtime: `PASS_RAIDER_PROJECTILE_EMITTER_CLEANUP` + `PASS_RAIDER_CHARACTER_EFFECTS_REMOVED` + `PASS_OFFSCREEN_RAIDER_DEBRIS_SPAWN_CANDIDATE` + `PASS_TWO_HEAVY_BLACK_MASK_FIX` + `PASS_DEBRIS_ABI_NATIVE_SLOT0_BASELINE` + `REJECTED_DEBRIS_25HZ_SLOT03_FEASIBILITY` + `REJECTED_BACKGROUND_RING_25HZ_PROOF` (runtime bez zmian) + `PASS_CAPITAL_SPEED_RESTORE_CLOCK_VERIFY` + `PASS_MASTER_PAL_CLOCK` + Raider PairShot `2 px/tick` + white-only starfield (4 white, `1 px/frame`, bez blue far) aktywny także w capital z hull occlusion + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio; Raider wreck nadal odroczony; bez unified schedulera
+Aktualny XEX emitter-owned cleanup candidate: SHA-256 `a4fd121fae34766182ae16235a6772662d0fec6cdda5eded8615357918e6585a`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
 
@@ -2045,6 +2045,47 @@ target/hard headroom `11 103/12 471 -> 11 549/12 917`.
 
 Raport:
 `docs/diagnostics/stage-2b2b-raider-character-effects-removal.json`.
+
+Następny task: `Player PairShot variable-speed deterministic trace + root-cause + minimal fix`.
+
+### Raider projectile persistence — ATTRIBUTED / EMITTER CLEANUP PASS / OWNER SMOKE
+
+Deterministyczny production-path reproducer pozytywnie przypisał owner-visible
+falling object do enemy Interceptor PairShot: kill po aktywnym strzale dał
+obiekt w `20/20` przypadków, kill bez strzału `0/20`. Reprezentatywny rekord
+fizyczny slot 5 miał screen code `$E4` (glyph 100), writer PC `$92DA`, X/Y
+`78/47`, cell X/Y `76/40`, lifetime `95`; PMG, character effect i gameplay
+debris nie były writerem tej komórki.
+
+Emitter identity używa wolnego bitu 0 istniejącego enemy `ACTIVE`: `$02=P1`,
+`$03=P2`, bez nowego RAM. Enemy consumers sprawdzają zero/nonzero i wybierają
+renderer po fizycznym zakresie slotów 5–9; player spread interpretuje własne
+bity dopiero w player range. Lethal path skanuje tylko pięć enemy records i
+zeruje wyłącznie ACTIVE należące do `ENEMY_TARGET_SLOT`. Istniejący late reverse
+erase przywraca OLD backing, po czym killed shots nie są publikowane, a foreign
+shots są rysowane ponownie i kontynuują ruch.
+
+Host ownership/isolation `6/6 PASS`: P1/P2, rendered i between-publication,
+Y `96/216/228`, near player/bottom, XEX/ATR. Kill P1 usuwa tylko `$02`, kill P2
+tylko `$03`; drugi pocisk zachowuje lifetime i następnej klatce przesuwa Y o 2.
+Timer eksplozji `24`, hit sound timer `14`, score `0010`, live count/release
+pozostają poprawne. Boot smoke `4/4 PASS`.
+
+Atari800 7.1.2 PAL production: `9000` klatek, `130` kills (`65+65`), `72`
+kills z aktywnym projectile emitera, `129/129` owner shots usuniętych, `24`
+foreign shots zachowanych, incorrect foreign removals `0`, post-kill emitter
+continuations `0`, stale enemy cells `0`. Main explosions `130`, generic debris
+spawns `41`, poprawny generic breakup `1`; missed/target/hard/extra-VBI/DLI=`0`.
+Two-Heavy supplement: `1000` klatek, `113` wspólnych frames, `13` overlaps,
+black-mask `0`, inactive PMG stale `0`, off-screen defects `0`.
+
+Linked runtime `17 539 -> 17 566 B`, residency `18 017 -> 18 044 B`, state RAM
+delta `0 B`. Allocation P1/P2 `130/143` cykli, delta `0`; sound-enabled lethal
+resolve `717 -> 777`, delta `+60`; steady projectile/effect update delta `0`.
+Native active-work max `19 651 -> 18 840`, target/hard headroom `12 360/13 728`.
+
+Raport:
+`docs/diagnostics/stage-2b2b-raider-projectile-emitter-cleanup.json`.
 
 Następny task: `Player PairShot variable-speed deterministic trace + root-cause + minimal fix`.
 

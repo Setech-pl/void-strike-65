@@ -13,8 +13,7 @@ DIRECTOR_RELEASE = $9F24
 DIRECTOR_HAZARD_DEBRIS = 1
 DIRECTOR_RETRY_FRAMES = 8
 ENTITY_REPEAT_SPAWN_DELAY = 64
-entity_spawn_debris = $98FF
-entity_despawn_debris = $9A14
+.include "integration-abi.inc"
 free_broadside_slot = $76A7
 HULL_DRAW_ROW_LO = $85F0
 HULL_DRAW_ROW_HI = $85F1

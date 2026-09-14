@@ -39,6 +39,22 @@ const labels = new Map(
     .filter(Boolean)
     .map((match) => [match[2], Number.parseInt(match[1], 16)]),
 );
+const integrationGlueLabels = new Map(
+  fs.readFileSync(path.join(root, "build", "integration-glue.lbl"), "utf8")
+    .split(/\r?\n/)
+    .map((line) => /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim()))
+    .filter(Boolean)
+    .map((match) => [match[2], Number.parseInt(match[1], 16)]),
+);
+labels.set("integration_debris_spawn", integrationGlueLabels.get("integration_debris_spawn"));
+const directorLabels = new Map(
+  fs.readFileSync(path.join(root, "build", "encounter-director.lbl"), "utf8")
+    .split(/\r?\n/)
+    .map((line) => /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim()))
+    .filter(Boolean)
+    .map((match) => [match[2], Number.parseInt(match[1], 16)]),
+);
+labels.set("director_request", directorLabels.get("director_request"));
 
 const addresses = {
   state: 0x8000,
@@ -168,6 +184,15 @@ function armDirectorDebrisAdmission(memory) {
   memory[0x80fb] = 0x6d;
   memory[0x80fc] = 0xff;
   memory[0x80ff] = (memory[addresses.frameCounter] - 1) & 0xff;
+}
+
+function snapshotDebrisSlotZero(memory) {
+  return [
+    addresses.activeMask, addresses.activeCount, addresses.type, addresses.entityState,
+    addresses.flags, addresses.x, addresses.y, addresses.vx, addresses.vy,
+    addresses.moveAccumulator, addresses.verticalAccumulator, addresses.renderId,
+    addresses.hp, addresses.owner, addresses.rng,
+  ].map((address) => memory[address]);
 }
 
 function runRoutine(memory, name, { accumulator = 0, beforeExecute } = {}) {
@@ -600,6 +625,53 @@ test("spawn deterministically selects two variants, two phases and three traject
   assert.deepEqual([...observedVariants].sort(), [0, 1]);
   assert.deepEqual([...observedPhases].sort(), [0, 1]);
   assert.deepEqual([...observedTrajectories].sort((a, b) => a - b), [0, 4, 0xfc]);
+});
+
+test("integration debris ABI is derived from and jumps to the linked spawn symbol", () => {
+  const generatedAbi = fs.readFileSync(
+    path.join(root, "build", "integration-abi.inc"), "utf8");
+  const linkedSpawn = labels.get("entity_spawn_debris");
+  assert.equal(generatedAbi.trim(),
+    `entity_spawn_debris = $${linkedSpawn.toString(16).toUpperCase()}`);
+
+  const glue = fs.readFileSync(path.join(root, "build", "integration-glue.bin"));
+  const glueBase = manifest.integrationGlue.finalAddress;
+  const entryOffset = integrationGlueLabels.get("integration_debris_spawn") - glueBase;
+  const jumpOffset = glue.indexOf(0x4c, entryOffset);
+  assert.ok(jumpOffset >= entryOffset && jumpOffset < entryOffset + 16,
+    "integration debris entry must contain its tail JMP");
+  assert.equal(glue[jumpOffset + 1] | glue[jumpOffset + 2] << 8, linkedSpawn,
+    "integration debris tail JMP drifted from the linked production entry");
+});
+
+test("integration debris admission is equivalent to Director request plus direct spawn", () => {
+  const direct = createRuntimeMemory();
+  const integrated = createRuntimeMemory();
+  const composed = createRuntimeMemory();
+  for (const memory of [direct, integrated, composed]) {
+    initialiseRows(memory);
+    runRoutine(memory, "init_entity_effects");
+    armDirectorDebrisAdmission(memory);
+    memory[addresses.rng] = 0x51;
+    memory[addresses.spawnTimer] = 1;
+    memory[addresses.sectorState] = 0;
+    memory[addresses.playerX] = 196;
+    memory[addresses.playerY] = 184;
+  }
+
+  runRoutine(direct, "entity_spawn_debris");
+  runRoutine(integrated, "integration_debris_spawn");
+  runRoutine(composed, "director_request", { beforeExecute(cpu) { cpu.x = 1; } });
+  runRoutine(composed, "entity_spawn_debris");
+
+  assert.deepEqual(snapshotDebrisSlotZero(integrated), snapshotDebrisSlotZero(direct),
+    "public admission must initialize the same slot-zero debris state as direct spawn");
+  assert.deepEqual(
+    [...integrated.slice(0x80f4, 0x8100)],
+    [...composed.slice(0x80f4, 0x8100)],
+    "public admission must preserve Director request semantics");
+  assert.deepEqual(snapshotDebrisSlotZero(integrated), snapshotDebrisSlotZero(composed),
+    "public entry must equal the canonical Director-request plus direct-spawn composition");
 });
 
 test("capital debris retries rejected admissions without overwriting its occupied slot", () => {

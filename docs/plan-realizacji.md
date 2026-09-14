@@ -1,11 +1,11 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 4.6
+Wersja: 4.7
 Data aktualizacji: 2026-09-14
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD przed debris 25 Hz / slot-0+3 feasibility: `e9bbcc96a1a304c86a3093d09742a6dea8768101`
-Stan runtime: `REJECTED_DEBRIS_25HZ_SLOT03_FEASIBILITY` (runtime bez zmian) + `REJECTED_BACKGROUND_RING_25HZ_PROOF` (runtime bez zmian) + `PASS_CAPITAL_SPEED_RESTORE_CLOCK_VERIFY` + `PASS_MASTER_PAL_CLOCK` + Raider PairShot `2 px/tick` + white-only starfield (4 white, `1 px/frame`, bez blue far) aktywny także w capital z hull occlusion + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck nadal odroczony; bez unified schedulera
-Ostatni XEX restore/clock owner-smoke candidate: SHA-256 `91ec98e9dc8334a1054dfbb902863af2fad7f6a3de7d3c4e8c72d3d1e6fa2147`
+Aktualny HEAD przed debris ABI/native slot-0 baseline: `fcdc2e555a9786dc5d470c8c5337cbba371d8b38`
+Stan runtime: `PASS_DEBRIS_ABI_NATIVE_SLOT0_BASELINE` + `REJECTED_DEBRIS_25HZ_SLOT03_FEASIBILITY` + `REJECTED_BACKGROUND_RING_25HZ_PROOF` (runtime bez zmian) + `PASS_CAPITAL_SPEED_RESTORE_CLOCK_VERIFY` + `PASS_MASTER_PAL_CLOCK` + Raider PairShot `2 px/tick` + white-only starfield (4 white, `1 px/frame`, bez blue far) aktywny także w capital z hull occlusion + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck nadal odroczony; bez unified schedulera
+Ostatni XEX debris ABI/native slot-0 candidate: SHA-256 `28fe399bf86b7ece78479d18facbba80d7fde9d723197dcf1761299c43d65863`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
 
@@ -1817,11 +1817,36 @@ Decyzja techniczna:
 
 **Nie implementować teraz debris 25 Hz publication ani slotu 3. Obecna faza
 jest już 20-25 Hz, kandydat nie odzyskuje peak, a dual-slot nadal wymaga
-rozproszonego kosztu i placementu.**
+rozproszonego kosztu i placementu.** Prerequisite ABI wskazany przez ten proof
+został wykonany poniżej.
 
-Następny proof wymagający osobnego promptu: `Debris integration ABI repair +
-native slot-0 baseline proof`. Nie wykonywać go automatycznie i nie integrować
-Raider wreck.
+### Debris integration ABI + native slot-0 baseline — PASS
+
+Historyczny literal `entity_spawn_debris=$98FF` w osobno linkowanym glue nie był
+stałym ABI: był kopią dawnego adresu z mapy i po relokacji ENTITY_CODE wskazywał
+na operand `$80`. Build generuje teraz jednoelementowy `integration-abi.inc`
+bezpośrednio z bieżącego symbolu głównego linku (`$98C0`). Focused guard sprawdza
+zarówno wygenerowaną wartość, jak i operand końcowego `JMP`; publiczna ścieżka
+jest byte-state równoważna `DIRECTOR_REQUEST + entity_spawn_debris` i tworzy
+identyczny rekord debris jak direct entry.
+
+Dedykowany Atari800 7.1.2 PAL replay wykonał `15 000` klatek (`5 000` na EASY,
+MEDIUM i HARD): `55` spawnów, `5 303` aktywnych debris-frames, `2 372` world
+events, `45` trafień PairShot (`42` non-lethal, `3` destruction), `4` kontakty
+z graczem i `53` despawny. Active-work max `23 794`; debris-active max `22 271`;
+target/hard overruns, missed frames, extra VBI i DLI anomalies wynoszą `0`.
+Focused NMOS backing/ring tests: `19/19 PASS`; boot smoke XEX/ATR: `4/4 PASS`.
+
+Zmiana nie dodaje kodu ani RAM: linked runtime `17 526 B`, simultaneous
+residency `18 004 B`, safe headroom `4 183 B`. XEX zachowuje rozmiar `21 625 B`;
+zmienia się jeden bajt operand low (`$FF->$C0`) oraz zależne CRC/manifest bytes.
+Slot 3 i odrzucony 25-Hz publisher pozostają nietknięte.
+
+Raport:
+`docs/diagnostics/stage-2b2b-debris-abi-native-slot0-baseline.json`.
+
+Następny rekomendowany proof: `bounded slot-0 + slot-3 debris kernel compaction/placement proof`.
+Nie implementować Raider wreck w tym kroku.
 
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 

@@ -663,6 +663,16 @@ async function build() {
   if (!unpackBroadsideLzss(packedEntityCodeRuntime).equals(entityCodeRuntime)) {
     throw new Error("ENTITY_CODE LZSS round trip failed");
   }
+  const entitySpawnDebrisAddress = labels.get("entity_spawn_debris");
+  if (!Number.isInteger(entitySpawnDebrisAddress)) {
+    throw new Error("Linked entity_spawn_debris symbol is missing");
+  }
+  // Integration glue is assembled as a separately linked resident module.
+  // Derive its one cross-module debris entry from the authoritative main link
+  // instead of copying a relocatable ENTITY_CODE address into its source.
+  const integrationAbiInclude = Buffer.from(
+    `entity_spawn_debris = $${entitySpawnDebrisAddress.toString(16).toUpperCase()}\n`,
+  );
   const directorModule = await buildResidentModule({
     sourcePath: path.join(rootDirectory, "src", "encounter-director.s"),
     configPath: path.join(rootDirectory, "cfg", "encounter-director.cfg"),
@@ -672,7 +682,10 @@ async function build() {
     sourcePath: path.join(rootDirectory, "src", "integration-glue.s"),
     configPath: path.join(rootDirectory, "cfg", "integration-glue.cfg"),
     stem: "integration-glue",
-    extraInputs: { "/project/build/capital-hulls.inc": capitalHullsInclude },
+    extraInputs: {
+      "/project/build/capital-hulls.inc": capitalHullsInclude,
+      "/project/build/integration-abi.inc": integrationAbiInclude,
+    },
   });
   if (directorModule.raw.length !== expectedDirectorRawBytes ||
     directorModule.packed.length !== expectedDirectorPackedBytes) {
@@ -1865,6 +1878,7 @@ async function build() {
   writeFile(path.join(buildDirectory, "integration-glue.lbl"), glueModule.labels);
   writeFile(path.join(buildDirectory, "integration-glue.bin"), glueModule.raw);
   writeFile(path.join(buildDirectory, "integration-glue-packed.bin"), glueModule.packed);
+  writeFile(path.join(buildDirectory, "integration-abi.inc"), integrationAbiInclude);
   writeFile(path.join(buildDirectory, "encounter-director.o"), directorModule.object);
   writeFile(path.join(buildDirectory, "encounter-director.lst"), directorModule.listing);
   writeFile(path.join(buildDirectory, "encounter-director.map"), directorModule.map);

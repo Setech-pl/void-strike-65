@@ -136,6 +136,15 @@ const debrisEffectsSessions = [{
   kind: "debris-effects-coverage",
 }];
 
+const debrisSlot0BaselineSessions = [0, 1, 2].map((difficulty) => ({
+  id: `debris-slot0-${difficulty}-sweep-fire4`,
+  difficulty,
+  policy: "sweep",
+  fireDelay: 4,
+  frames: 5_000,
+  kind: "debris-slot0-baseline",
+}));
+
 const weaponPickupSessions = [{
   id: "weapon-pickup-2-hunt-fire4",
   difficulty: 2,
@@ -1874,6 +1883,7 @@ function main() {
   const pairShotStaleOnly = process.argv.includes("--pairshot-stale-only");
   const raiderRemnantOnly = process.argv.includes("--raider-remnant-only");
   const effectsStaggerOnly = process.argv.includes("--effects-stagger-only");
+  const debrisSlot0BaselineOnly = process.argv.includes("--debris-slot0-baseline-only");
   const skipBootSmoke = process.argv.includes("--skip-boot-smoke");
   const tracePreflightOnly = process.argv.includes("--trace-preflight-only");
   const reuseExistingTraces = process.argv.includes("--reuse-existing-traces");
@@ -2042,7 +2052,9 @@ function main() {
       if (fs.existsSync(framePath)) fs.unlinkSync(framePath);
     }
   }
-  let sessionsToRun = raiderRemnantOnly
+  let sessionsToRun = debrisSlot0BaselineOnly
+    ? debrisSlot0BaselineSessions
+    : raiderRemnantOnly
     ? raiderRemnantSessions
     : pairShotStaleOnly
     ? pairShotStaleSessions
@@ -2753,6 +2765,150 @@ function main() {
     summaries.push(sessionSummary(session, rows));
     console.log(`${session.id}: ${rows.length} frames, max ` +
       `${maximumRow(rows, (row) => row.wall_cycles).wall_cycles} wall cycles`);
+  }
+  if (debrisSlot0BaselineOnly) {
+    const rows = allRows;
+    const profileComplete = (row) => {
+      const clocks = [row.start_clock,
+        ...traceProfileLabels.map((unused, index) => row[`profile_clock${index}`]),
+        row.end_clock];
+      return clocks.every((clock, index) => Number.isInteger(clock) &&
+        (index === 0 || clock >= clocks[index - 1])) &&
+        row.profile_publication_begin >= row.profile_clock19 && row.profile_clock19 > 0;
+    };
+    const dliOverlap = (row, start, end) => Array.from({ length: 2 }, (unused, index) => ({
+      start: row[`profile_dli${index}_start`], end: row[`profile_dli${index}_end`],
+    })).reduce((sum, dli) => sum + Math.max(0,
+      Math.min(end, dli.end) - Math.max(start, dli.start)), 0);
+    const activeWorkCycles = (row) => row.wall_cycles -
+      (row.profile_publication_begin - row.profile_clock19) +
+      dliOverlap(row, row.profile_clock19, row.profile_publication_begin) + 32;
+    const completed = rows.filter(profileComplete);
+    const event = (row, bit) => (row.events & (1 << bit)) !== 0;
+    const maximum = (selected, metric) => selected.length === 0 ? null :
+      Math.max(...selected.map(metric));
+    const scenario = (selected) => ({
+      sample_count: selected.length,
+      maximum_full_frame_cycles: maximum(selected, (row) => row.wall_cycles),
+      maximum_active_work_cycles: maximum(selected.filter(profileComplete), activeWorkCycles),
+    });
+    const debrisActive = rows.filter((row) => (row.entity_active_mask & 1) !== 0);
+    const spawnRows = rows.filter((row) => event(row, 7));
+    const contactRows = rows.filter((row) => event(row, 8));
+    const despawnRows = rows.filter((row) => event(row, 9));
+    const shotRows = rows.filter((row) => event(row, 12));
+    const destructionRows = rows.filter((row) => event(row, 13));
+    const worldEventRows = debrisActive.filter((row) => event(row, 0));
+    const pairshotMissRows = debrisActive.filter((row) =>
+      row.player_fighter_projectiles > 0 && !event(row, 12));
+    let horizontalSteps = 0;
+    let verticalCarries = 0;
+    let respawnsAfterRelease = 0;
+    let sectorTransitions = 0;
+    const seenRelease = new Set();
+    for (let index = 1; index < rows.length; index += 1) {
+      const previous = rows[index - 1];
+      const current = rows[index];
+      if (previous.session !== current.session) continue;
+      if (previous.sector_state !== current.sector_state) sectorTransitions += 1;
+      if (event(previous, 9)) seenRelease.add(previous.session);
+      if (event(current, 7) && seenRelease.has(current.session)) respawnsAfterRelease += 1;
+      if ((previous.entity_active_mask & 1) !== 0 && (current.entity_active_mask & 1) !== 0) {
+        if (previous.entity_x !== current.entity_x) horizontalSteps += 1;
+        if (previous.entity_y !== current.entity_y) verticalCarries += 1;
+      }
+    }
+    const byDifficulty = debrisSlot0BaselineSessions.map((session) => {
+      const selected = rows.filter((row) => row.difficulty === session.difficulty);
+      return {
+        difficulty: session.difficulty,
+        completed_frames: selected.length,
+        spawns: selected.filter((row) => event(row, 7)).length,
+        active_debris_frames: selected.filter((row) =>
+          (row.entity_active_mask & 1) !== 0).length,
+        active_world_events: selected.filter((row) =>
+          (row.entity_active_mask & 1) !== 0 && event(row, 0)).length,
+        pairshot_hits: selected.filter((row) => event(row, 12)).length,
+        destructions: selected.filter((row) => event(row, 13)).length,
+        player_collisions: selected.filter((row) => event(row, 8)).length,
+        despawns: selected.filter((row) => event(row, 9)).length,
+      };
+    });
+    const missedFrames = rows.reduce((sum, row) => sum + row.missed_frames, 0);
+    const extraVbi = rows.reduce((sum, row) => sum + row.extra_vbi_boundaries, 0);
+    const dliAnomalies = rows.reduce((sum, row) => sum + row.dli_sequence_violations, 0);
+    const activeValues = completed.map(activeWorkCycles).sort((left, right) => left - right);
+    const percentile = (fraction) => activeValues[Math.ceil(activeValues.length * fraction) - 1];
+    invariant(rows.length === 15_000 && byDifficulty.every(({ completed_frames }) =>
+      completed_frames === 5_000), "Slot-zero debris baseline did not complete all PAL frames");
+    invariant(byDifficulty.every(({ spawns, active_debris_frames, active_world_events }) =>
+      spawns > 0 && active_debris_frames > 0 && active_world_events > 0),
+    "Slot-zero debris baseline did not exercise every difficulty");
+    invariant(contactRows.length > 0 && shotRows.length > 0 && destructionRows.length > 0 &&
+      despawnRows.length > 0, "Slot-zero debris baseline missed a required lifecycle path");
+    invariant(missedFrames === 0 && extraVbi === 0 && dliAnomalies === 0,
+      "Slot-zero debris baseline observed a PAL timing/raster anomaly");
+    invariant(completed.every((row) => activeWorkCycles(row) <= 32_568),
+      "Slot-zero debris baseline exceeded the hard active-work gate");
+    const report = {
+      status: "PASS",
+      emulator: "Atari800 7.1.2 PAL/XL",
+      production_artifacts: runtimeArtifacts,
+      sessions: summaries,
+      coverage: {
+        completed_frames: rows.length,
+        by_difficulty: byDifficulty,
+        spawns: spawnRows.length,
+        active_debris_frames: debrisActive.length,
+        active_world_events: worldEventRows.length,
+        horizontal_steps: horizontalSteps,
+        vertical_carries: verticalCarries,
+        pairshot_miss_frames: pairshotMissRows.length,
+        pairshot_hits: shotRows.length,
+        nonlethal_pairshot_hits: shotRows.length - destructionRows.length,
+        destructions: destructionRows.length,
+        player_collisions: contactRows.length,
+        despawns: despawnRows.length,
+        bottom_despawns: despawnRows.filter((row) =>
+          !event(row, 8) && !event(row, 12)).length,
+        respawns_after_release: respawnsAfterRelease,
+        sector_state_transitions: sectorTransitions,
+        sector_states_observed: [...new Set(rows.map((row) => row.sector_state))].sort(),
+      },
+      cpu: {
+        overall: scenario(rows),
+        fighter_open: scenario(rows.filter((row) => row.sector_state === 7)),
+        debris_active: scenario(debrisActive),
+        debris_ordinary: scenario(debrisActive.filter((row) => !event(row, 0))),
+        debris_world_event: scenario(worldEventRows),
+        debris_spawn: scenario(spawnRows),
+        debris_pairshot_hit: scenario(shotRows),
+        debris_pairshot_miss: scenario(pairshotMissRows),
+        debris_destruction: scenario(destructionRows),
+        debris_player_collision: scenario(contactRows),
+        debris_despawn: scenario(despawnRows),
+        average_active_work_cycles: activeValues.reduce((sum, value) => sum + value, 0) /
+          activeValues.length,
+        p95_active_work_cycles: percentile(0.95),
+        p99_active_work_cycles: percentile(0.99),
+      },
+      timing_raster: {
+        missed_frames: missedFrames,
+        extra_vbi_boundaries: extraVbi,
+        dli_sequence_anomalies: dliAnomalies,
+        target_overruns: completed.filter((row) => activeWorkCycles(row) > 31_200).length,
+        hard_gate_overruns: completed.filter((row) => activeWorkCycles(row) > 32_568).length,
+        player_projectile_stale_maximum:
+          maximum(rows, (row) => row.player_projectile_stale_cells),
+        player_projectile_orphan_maximum:
+          maximum(rows, (row) => row.player_projectile_orphan_cells),
+      },
+      passed: true,
+    };
+    const reportPath = path.join(buildDirectory, "debris-slot0-native-report.json");
+    fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+    console.log(`Debris slot-zero native report: ${path.relative(rootDirectory, reportPath)}`);
+    return;
   }
   if (pairShotStaleOnly) {
     const rows = allRows;

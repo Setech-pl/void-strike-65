@@ -1,0 +1,282 @@
+{
+  "schema": "void-strike-65.stage-2b2b-sector-clock-capital-shot-timing-audit.v1",
+  "date": "2026-09-14",
+  "status": "MULTIPLE_ROOT_CAUSES",
+  "model": {
+    "name": "GPT-5 Codex",
+    "reasoning": "High"
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "headBefore": "93ef7bede11f043ab4d4a746e6125c0e9eb35274",
+    "headAfter": "docs-only commit containing this report",
+    "runtimeChanged": false,
+    "claudeUntouched": true,
+    "pushMergeRelease": false
+  },
+  "scope": {
+    "audited": [
+      "physical PAL/VBI cadence",
+      "active-gameplay and frame counters",
+      "player burst controller and PairShot movement",
+      "enemy PairShot movement",
+      "shot audio sequencer",
+      "world and hull scroll accumulators",
+      "ring rotation",
+      "white-star local phase and coarse event",
+      "fighter/capital sector handoff"
+    ],
+    "unchanged": [
+      "white-star count, glyph, speed and capital visibility policy",
+      "PairShot representation and gameplay",
+      "effects 25 Hz",
+      "capital gameplay",
+      "background/ring cadence",
+      "debris and boss work"
+    ]
+  },
+  "clockMap": [
+    {
+      "domain": "physical PAL frame",
+      "state": "VCOUNT / native Atari800_nframes",
+      "producer": "ANTIC PAL raster",
+      "frequency": "50 Hz",
+      "sectorGate": "none",
+      "shared": "There is no production RAM latch that makes this the authoritative gameplay tick."
+    },
+    {
+      "domain": "main-loop frame",
+      "state": "frame_counter",
+      "producer": "INC at main_loop_frame_active",
+      "frequency": "once per main-loop iteration",
+      "sectorGate": "active gameplay, after pause/option gate",
+      "shared": "animation, admission and scheduling consumers; not a physical-VBI counter"
+    },
+    {
+      "domain": "active gameplay",
+      "state": "ACTIVE_GAMEPLAY_FRAME_LO/HI",
+      "producer": "integration_active_gameplay_tick",
+      "frequency": "once per main-loop iteration when PLAYER_LIFECYCLE is even",
+      "sectorGate": "all fighter/capital states; frozen for DYING/GAME OVER",
+      "shared": "Encounter Director capital admission"
+    },
+    {
+      "domain": "player fire/burst",
+      "state": "PLAYER_FIGHTER_BURST_STATE/REMAINING/TIMER",
+      "producer": "update_player_fighter_weapon",
+      "frequency": "once per main-loop iteration plus the existing OPEN-to-ENGINES boundary catch-up",
+      "sectorGate": "player lifecycle, gameplay_fire_gate and TRIG0 admission",
+      "shared": "no starfield state"
+    },
+    {
+      "domain": "fighter projectiles",
+      "state": "FIGHTER_PROJECTILE_Y/PREV_Y/LIFETIME",
+      "producer": "update_fighter_projectiles inside handle_collisions",
+      "frequency": "once per main-loop iteration",
+      "sectorGate": "none; player and enemy records remain live across capital",
+      "shared": "player and enemy PairShot pool"
+    },
+    {
+      "domain": "audio",
+      "state": "fire_timer, hit_timer and capital sound timers",
+      "producer": "update_sound",
+      "frequency": "once per main-loop iteration plus the existing OPEN-to-ENGINES boundary call on the opposite side of the wait",
+      "sectorGate": "sound_enabled controls output, not cadence",
+      "shared": "independent software SFX phases; AUDF1 remains write-only"
+    },
+    {
+      "domain": "world/ring",
+      "state": "scroll_accumulator and PLAYFIELD_RING_FLAGS",
+      "producer": "update_starfield / advance_starfield_layers",
+      "frequency": "one accumulator update per main-loop iteration; one ring rotation on carry",
+      "sectorGate": "all active sector states",
+      "shared": "Director world-row event and physical ring mapping"
+    },
+    {
+      "domain": "capital hull",
+      "state": "HULL_SCROLL_ACCUMULATOR and corridor_phase/CORRIDOR_PHASE_HI",
+      "producer": "update_starfield / scroll_hull_columns",
+      "frequency": "one accumulator update per main-loop iteration; one hull row on carry while active",
+      "sectorGate": "capital state controls hull composition; OPEN still advances the prepared world clock",
+      "shared": "uses the same generated 8/9/10 over 20 difficulty rates as world"
+    },
+    {
+      "domain": "white-star motion",
+      "state": "STAR_NEAR_FINE_PHASE, STAR_NEAR_ROW and STAR_NEAR_RING_ADVANCED",
+      "producer": "update_white_starfield_phase; advance_starfield_layers only ORs the observed ring-event bit",
+      "frequency": "one local phase update per OPEN main-loop iteration, one coarse row every eight updates",
+      "sectorGate": "frozen/cache-invalidated outside OPEN",
+      "shared": "does not write scroll_accumulator, HULL_SCROLL_ACCUMULATOR, frame_counter or sector state"
+    },
+    {
+      "domain": "sector transition",
+      "state": "CAPITAL_SECTOR_STATE",
+      "producer": "Director admission, update_sector_state, update_sector_completion and entity_complete_scroll_tick",
+      "frequency": "event/state driven inside the main-loop iteration",
+      "sectorGate": "OPEN=7, ENGINES..COMPLETE=0..6",
+      "shared": "selects the mixed OPEN end-of-frame $77 anchor or capital start-of-frame $70 anchor"
+    }
+  ],
+  "whiteOnlyDiffAudit": {
+    "base": "33f58a500cd831a280921e33eb99c18578e8a602",
+    "candidate": "93ef7bede11f043ab4d4a746e6125c0e9eb35274",
+    "capitalHullAssetSha256Both": "685e561ddc0f366df814f94c631f103e8257dd9f212df710e20b03f4759eb0",
+    "worldAndHullRatesChanged": false,
+    "fireControllerChanged": false,
+    "projectileMovementChanged": false,
+    "audioSequencerChanged": false,
+    "transitionAnchorsChanged": false,
+    "starWritesSharedClock": false,
+    "conclusion": "The white-only change cannot produce an additional world/hull event and did not alter the capital velocity constants or player weapon clocks."
+  },
+  "capitalSpeed": {
+    "classification": "MEASURED native event cadence plus source-derived eight-scanline displacement",
+    "previousIntendedPixelsPerFrame": {
+      "easy": 3.2,
+      "medium": 3.6,
+      "hard": 4.0
+    },
+    "currentBeforeFixPixelsPerFrame": {
+      "easy": 3.2,
+      "medium": 3.6,
+      "hard": 4.0
+    },
+    "afterFixPixelsPerFrame": null,
+    "nativeCadenceFramesPerDifficulty": 400,
+    "nativeWorldAndHullEvents": {
+      "easy": 160,
+      "medium": 180,
+      "hard": 200
+    },
+    "nativeEventHz": {
+      "easy": 20,
+      "medium": 22.5,
+      "hard": 25
+    },
+    "ringDeltaModulo27ForEveryConsecutiveWorldEvent": 26,
+    "unexpectedDoubleRingAdvances": 0,
+    "decision": "The reported capital-speed increase was not reproduced and is not present in the white-only runtime diff."
+  },
+  "nativeTransitionTrace": {
+    "emulator": "/Users/marcinkrzetowski/Projects/tools/atari800-7.1.2",
+    "runs": 20,
+    "framesPerRun": 1750,
+    "totalFrames": 35000,
+    "transitionSequenceIdentical": true,
+    "fighterToCapital": {
+      "instances": 20,
+      "sequence": "outgoing OPEN iteration starts in host frame 1054, waits through $77 in 1055; first capital iteration waits at $70 and starts in 1056",
+      "mainLoopStartHostDelta": 2,
+      "physicalTickResult": "ACTIVE_GAMEPLAY_FRAME, projectile movement, world/hull and effects have no producer call in host frame 1055; the owner-PASS burst/audio helpers alone consume their skipped tick",
+      "missedBoundaryLabels": 20
+    },
+    "capitalToFighter": {
+      "instances": 20,
+      "sequence": "COMPLETE iteration and first OPEN iteration both start in host frame 2140",
+      "mainLoopStartHostDelta": 0,
+      "physicalTickResult": "frame_counter/active-gameplay and the player-projectile update enter twice in host frame 2140; fire and world updates enter twice in host frame 2141 as the first OPEN iteration crosses VBI",
+      "startupDuplicatesExcluded": 20
+    },
+    "otherStartCadenceAnomalies": 0,
+    "extraVbi": 0,
+    "dliAnomalies": 0,
+    "origin": "The mixed OPEN $77 publication and capital $70 frame-start cadence entered this path at f6eee5ce, before the white-only starfield commits."
+  },
+  "worldRing": {
+    "hardObserverFrames": 3000,
+    "hardWorldEvents": 1500,
+    "hardHullEvents": 1500,
+    "ringHeadDeltaSetModulo27": [26],
+    "starCoarsePlusRingCreatesExtraWorldEvent": false,
+    "detail": "STAR_NEAR_RING_ADVANCED is a consumer-side bitfield. Star coarse sets bit 1; the authoritative world step ORs bit 0 after it has already decided to rotate exactly once."
+  },
+  "fireCadence": {
+    "classification": "MEASURED current linked XEX, instruction-exact, 6000 calls per mode and movement, four movement patterns",
+    "acceptedShots": {
+      "normal": 2464,
+      "rapid": 3336,
+      "spread": 1000
+    },
+    "deniedAdmissions": 0,
+    "movementCorrelation": false,
+    "intervalsByLogicalSector": {
+      "normal": {
+        "open": {"9": 924, "12": 304},
+        "capital": {"9": 924, "12": 304},
+        "crossBoundary": {"12": 4}
+      },
+      "rapid": {
+        "open": {"6": 1332, "12": 332},
+        "capital": {"6": 1332, "12": 332},
+        "crossBoundary": {"6": 4}
+      },
+      "spread": {
+        "open": {"12": 124, "28": 372},
+        "capital": {"12": 124, "28": 372},
+        "crossBoundary": {"28": 4}
+      }
+    },
+    "audio": {
+      "expectedTonesHex": ["$33", "$34", "$35", "$36", "$37", "$38"],
+      "missingCompletedSequenceTones": 0,
+      "unexpectedRestarts": 0,
+      "previousOwnerPassFixPresent": true
+    },
+    "conclusion": "The burst state machine itself remains deterministic and sector-independent. Its existing entry helper does not make the other gameplay domains physical-frame exact."
+  },
+  "projectileMovement": {
+    "classification": "MEASURED instruction-exact routine plus native call clocks",
+    "playerPixelsPerRoutineCall": -6,
+    "representativeYBefore": 200,
+    "representativeYAfter": 194,
+    "lifetimeDeltaPerCall": -1,
+    "oneActiveSlotRoutineCycles": 234,
+    "sectorStatesTested": [7, 0, 1, 2, 3, 4, 5, 6],
+    "sectorDependentDisplacement": false,
+    "physicalCadenceIssue": "The routine is called once per main-loop iteration, not once per latched PAL VBI. It therefore inherits the entry hole and exit duplicate/split described by the native transition trace."
+  },
+  "starReentry": {
+    "sectorBecomesOpen": "native trace frame 1729, host frame 2140",
+    "firstRenderWrites": "same transition iteration, host frame 2140 at scanlines 285-288",
+    "firstAnticFetch": "host frame 2141 at scanlines 64, 120, 176 and 232",
+    "exactDelay": "zero extra logical iterations; one next-display fetch, at most one PAL frame",
+    "occupancyDelay": false,
+    "skippedStarTimer": false,
+    "cause": "intentional capital cache invalidation followed by safe late publication after the playfield has passed",
+    "visualFixAttempted": false
+  },
+  "cpuMemory": {
+    "runtimeDeltaBytes": 0,
+    "activeWorkMaxCycles3000FrameRun": 17605,
+    "activeWorkMaxCyclesTwentyTransitionRuns": 16441,
+    "rawCadenceMaxCycles": 36104,
+    "targetOverruns": 0,
+    "hardGateOverruns": 0,
+    "linkedRuntimeBytes": 17518,
+    "simultaneousResidencyBytes": 17996,
+    "safeHeadroomBytes": 4191
+  },
+  "regression": {
+    "candidateBuild": "PASS",
+    "focusedTests": "PASS 34/34",
+    "pairShotStaleCellsNative": 0,
+    "pairShotOrphanCellsNative": 0,
+    "effectOrphanCellsNative": 0,
+    "raiderGenerationMatrix": "PASS >5000 kills",
+    "fireAudio": "PASS",
+    "note": "A broader 56-test selection also exposed 11 existing stale capital-hull/runtime-timing fixture assertions against older display-list lengths, hashes and source labels. They were not changed or counted as proof for this docs-only audit."
+  },
+  "rootCause": {
+    "capitalSpeedObservation": "No current-code regression: rates and native event cadence are identical to the pre-white candidate.",
+    "shotTimingObservation": "The movement kernel is stable, but the pre-existing mixed $77/$70 sector anchors do not provide one physical-frame tick to every subsystem at both handoffs.",
+    "starReturnObservation": "A separate intentional one-fetch publication delay, not a shared-clock stall.",
+    "singleSharedWhiteStarCause": false
+  },
+  "fix": {
+    "applied": false,
+    "reason": "A local star-phase change cannot affect the proven handoff. Extending the existing burst/audio catch-up to projectiles, collision, world, effects and lifecycle would duplicate partial gameplay at a raster-sensitive point. Correcting both boundaries requires a dedicated authoritative physical-frame latch/anchor proof or a scheduler re-alignment, which exceeds this task's minimal-fix stop condition.",
+    "speculativeRuntimeChangeAvoided": true
+  },
+  "decision": "No single white-star timing regression explains the owner observations. Capital speed is unchanged; the player movement complaint exposes an older cross-sector frame-domain defect, while star re-entry is a separate publication/visual behavior.",
+  "next": "Owner decision on a dedicated mixed-$77/$70 sector-handoff master-clock proof; owner smoke capital speed + player shot timing only after that proof produces a runtime candidate."
+}

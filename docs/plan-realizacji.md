@@ -1,11 +1,11 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 4.0
+Wersja: 4.1
 Data aktualizacji: 2026-09-14
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD przed niniejszym proofem: `03ce913d0b4dd7ec1df6e2f8f57e58814c68dc5f`
-Stan runtime: techniczny kandydat white-only starfield (4 white, `1 px/frame`, bez blue far) + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck odroczony do debris 25 Hz / visual redesign; bez unified schedulera
-Aktualny XEX owner-smoke candidate: SHA-256 `fc8e32b4435123d00ab9c98dd10d40864bd3a51b8d0f3c522c9ec4ed5c1b68a0`
+Aktualny HEAD przed niniejszym audytem: `93ef7bede11f043ab4d4a746e6125c0e9eb35274`
+Stan runtime: owner-smoke FAIL white-only starfield (4 white, `1 px/frame`, bez blue far) + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; audyt zegarów nie zmienił runtime; Raider wreck odroczony do debris 25 Hz / visual redesign; bez unified schedulera
+Ostatni XEX white-only owner-smoke (FAIL, bez nowego kandydata timingowego): SHA-256 `fc8e32b4435123d00ab9c98dd10d40864bd3a51b8d0f3c522c9ec4ed5c1b68a0`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
 
@@ -1502,6 +1502,73 @@ ocena gęstości, tempa i czytelności pozostaje decyzją właściciela.**
 
 Następny krok: `Owner smoke white-only slow starfield`. Nie rozpoczynać
 background/ring 25 Hz automatycznie.
+
+### Sector clock / capital speed / player shot timing — MULTIPLE_ROOT_CAUSES / NO RUNTIME FIX
+
+Owner smoke white-only zgłosił szybszy odbiór capital traversal, okresowo
+nierówne tempo pocisków oraz opóźniony powrót gwiazd. Audyt diffu od
+`33f58a5` do `93ef7be` nie znalazł żadnej zmiany stałych hull/world, kernela
+PairShot, kontrolera burst ani audio. Asset capital-hull jest byte-identyczny,
+a native cadence dla EASY/MEDIUM/HARD nadal wynosi odpowiednio `20/22,5/25`
+row events/s, czyli `3,2/3,6/4,0 px/frame`. Każdy world event obraca ring
+dokładnie raz; nie występuje dodatkowy event dla kombinacji white coarse+ring.
+
+Frame-exact native trace ujawnił jednak starszy defekt domen zegara wynikający
+z połączenia fighterowego końcowego anchoru `$77` z capital startowym `$70`.
+W 20 identycznych naturalnych cyklach (`35 000` klatek):
+
+- OPEN→ENGINES miało 20 razy delta startu `2` host-frames. Owner-PASS helper
+  uzupełnia w pominiętej klatce burst i audio, lecz active-gameplay,
+  projectile movement, world/hull i effects nie mają odpowiedniego ticku;
+- COMPLETE→OPEN miało 20 razy delta `0`: dwie iteracje rozpoczynają się w tym
+  samym host-frame. Wskutek przejścia pierwszego OPEN work przez VBI
+  frame/gameplay i player-projectile entry występują podwójnie w jednym
+  host-frame, a fire/world entry podwójnie w następnym;
+- poza startowym artefaktem uruchomienia nie było innych anomalii cadence;
+  extra VBI i DLI anomalies wyniosły `0`.
+
+Ten mieszany kontrakt wszedł wraz z publication scaffoldem w `f6eee5ce`, przed
+white-only i wcześniejszymi two-layer zmianami. White-star state jest wyłącznie
+lokalnym konsumentem zdarzenia ring i nie zapisuje `scroll_accumulator`,
+`HULL_SCROLL_ACCUMULATOR`, `frame_counter` ani sector state.
+
+Bieżący linked XEX zachowuje deterministyczne logiczne interwały fire w OPEN i
+capital: Normal `9/12`, Rapid `6/12`, Spread `28/12`, bez denied admissions i
+bez zależności od L/R. Jeden wywołany player movement kernel zawsze przesuwa
+Y o `-6` i lifetime o `-1` we wszystkich stanach sector. Problemem jest
+przypisanie tych wywołań do fizycznych VBI na obu granicach, nie ich lokalna
+semantyka. Audio nadal odtwarza pełne `$33-$38` i zachowuje owner-PASS fix.
+
+White stars po COMPLETE są publikowane jeszcze w tej samej transition
+iteration (scanlines `285-288`), a ANTIC czyta je w następnym physical frame
+(scanlines `64/120/176/232`). Dokładne opóźnienie wynosi jeden następny fetch,
+nie kilka gameplay frames; kwestia pionowych par i polityki capital pozostaje
+osobnym zadaniem wizualnym.
+
+Nie zastosowano spekulacyjnego runtime fixa. Rozszerzenie lokalnego catch-upu
+na projectile/collision/world/effects tworzyłoby częściowy drugi gameplay tick
+w raster-sensitive miejscu. Poprawne zamknięcie obu granic wymaga osobnego
+proofu jednego authoritative physical-frame latch/anchor albo przebudowy
+handoffu schedulera. To przekracza stop condition bieżącego małego audytu.
+
+MEASURED current runtime pozostaje bez zmian: active-work max `17 605`,
+target/hard overruns `0`, raw cadence max `36 104`, linked runtime `17 518 B`,
+simultaneous residency `17 996 B`, safe headroom `4 191 B`. Focused regresje
+starfield/PairShot/effects/Raider/fire-audio: `34/34 PASS`.
+
+Raport:
+`docs/diagnostics/stage-2b2b-sector-clock-capital-shot-timing-audit.json`.
+
+Decyzja:
+
+**White-only starfield nie zmienił prędkości capital ani zegarów broni. Objawy
+nie mają jednego wspólnego nowego root cause. Starszy mieszany `$77/$70`
+handoff wymaga osobnego proofu master clock; runtime pozostaje bez zmian.**
+
+Następny krok wymagający decyzji właściciela: ograniczony proof fizycznego
+sector-handoff clock. Dopiero jego runtime PASS może otrzymać `Owner smoke
+capital speed + player shot timing`. Nie naprawiać w tym kroku wyglądu gwiazd
+i nie rozpoczynać background/ring 25 Hz.
 
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 

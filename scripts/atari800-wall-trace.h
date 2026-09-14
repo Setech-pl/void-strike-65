@@ -3115,7 +3115,9 @@ static void dftrace_write_interceptor_projectiles(DFTraceFrame *frame)
 				dftrace_interceptor_last_screen_writer[index], ttl_terminal,
 				boundary_terminal, player_collision_terminal);
 		}
-		if (active != 0u && !visible)
+		/* A newly allocated shot is published after the displayed-list snapshot
+		 * used by this observer. Start enforcing visibility on its next frame. */
+		if (active != 0u && dftrace_interceptor_previous_active[index] != 0u && !visible)
 			dftrace_interceptor_first_anomaly = 1u;
 		else if (active == 0u && dftrace_interceptor_previous_active[index] != 0u &&
 			!ttl_terminal && !boundary_terminal && !player_collision_terminal &&

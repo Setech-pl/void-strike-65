@@ -6,7 +6,6 @@ import { fileURLToPath } from "node:url";
 
 import {
   executePlayerFireAudioTrace,
-  executeTransitionCatchupProof,
 } from "../scripts/player-fire-audio-trace.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -24,31 +23,18 @@ test("shot SFX owns its phase in RAM and never reads write-only AUDF1", () => {
     /resume_gameplay_audio:[\s\S]+lda fire_timer\s+beq @hit\s+sta AUDF1/);
 });
 
-test("fighter to capital handoff consumes exactly the skipped fire-controller tick", () => {
+test("master PAL gate makes transition-only fire/audio catch-up obsolete", () => {
+  const loop = source.slice(source.indexOf("main_loop:"), source.indexOf("enter_pause:"));
+  assert.match(loop,
+    /main_loop:\s+jsr wait_for_master_pal_frame\s+jsr begin_fighter_projectile_frame/);
   const publication = source.slice(source.indexOf("publish_fighter_projectile_overlays:"),
     source.indexOf("fighter_projectile_option_debounce_wait:"));
   assert.match(publication,
-    /lda CAPITAL_SECTOR_STATE\s+bne :\+\s+jsr update_sound\s+:\s+ldx #\$77\s+jsr wait_frame_at_line[\s\S]+jsr player_fire_transition_tick[\s\S]+fighter_projectile_publication_begin/);
-  assert.match(source,
-    /player_fire_transition_tick:\s+lda CAPITAL_SECTOR_STATE\s+bne restore_recycled_row_projectile_underlay_end-1\s+lda PLAYER_FIGHTER_BURST_STATE\s+beq restore_recycled_row_projectile_underlay_end-1\s+jmp update_player_fighter_weapon_controller/);
+    /lda FIGHTER_PROJECTILE_PUBLICATION_FRAME\s+bne fighter_projectile_publication_capital_render\s+ldx #\$77\s+jsr wait_frame_at_line\s+fighter_projectile_publication_begin/);
+  assert.doesNotMatch(publication, /jsr update_sound|player_fire_transition_tick/);
+  assert.doesNotMatch(source, /player_fire_transition_tick:/);
   assert.match(source,
     /lda TRIG0\s+bne update_player_fighter_weapon_released\s+update_player_fighter_weapon_controller:\s+lda PLAYER_FIGHTER_BURST_STATE/);
-
-  const proof = executeTransitionCatchupProof({ root });
-  assert.deepEqual(proof.open_noop, {
-    sector: 7, state_before: 1, state_after: 1,
-    remaining_before: 2, remaining_after: 2,
-    timer_before: 2, timer_after: 2,
-    allocated: 0, shot_sfx_triggered: false, cycles: 13,
-  });
-  assert.equal(proof.released_noop.allocated, 0);
-  assert.equal(proof.released_noop.state_after, 0);
-  assert.equal(proof.active_advance.timer_after, 1);
-  assert.equal(proof.active_advance.allocated, 0);
-  assert.equal(proof.active_emit.timer_after, 9);
-  assert.equal(proof.active_emit.remaining_after, 1);
-  assert.equal(proof.active_emit.allocated, 1);
-  assert.equal(proof.active_emit.shot_sfx_triggered, true);
 });
 
 test("accepted cadence is movement-independent, pool-safe and every complete SFX is $33..$38", () => {

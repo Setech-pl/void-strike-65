@@ -1,11 +1,11 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 4.1
+Wersja: 4.2
 Data aktualizacji: 2026-09-14
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD przed niniejszym audytem: `93ef7bede11f043ab4d4a746e6125c0e9eb35274`
-Stan runtime: owner-smoke FAIL white-only starfield (4 white, `1 px/frame`, bez blue far) + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; audyt zegarów nie zmienił runtime; Raider wreck odroczony do debris 25 Hz / visual redesign; bez unified schedulera
-Ostatni XEX white-only owner-smoke (FAIL, bez nowego kandydata timingowego): SHA-256 `fc8e32b4435123d00ab9c98dd10d40864bd3a51b8d0f3c522c9ec4ed5c1b68a0`
+Aktualny HEAD przed proofem master clock: `db172a3bd23e2af400fc0b25e4cd1da7b0ac8b67`
+Stan runtime: `PASS_MASTER_PAL_CLOCK` candidate + owner-smoke FAIL white-only starfield (4 white, `1 px/frame`, bez blue far) + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck odroczony do debris 25 Hz / visual redesign; bez unified schedulera
+Ostatni XEX master-clock owner-smoke candidate: SHA-256 `0702caf6c5ae635cfb2352ef8dcf7afd92ed69defff9425b2f11339504baf598`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
 
@@ -1569,6 +1569,66 @@ Następny krok wymagający decyzji właściciela: ograniczony proof fizycznego
 sector-handoff clock. Dopiero jego runtime PASS może otrzymać `Owner smoke
 capital speed + player shot timing`. Nie naprawiać w tym kroku wyglądu gwiazd
 i nie rozpoczynać background/ring 25 Hz.
+
+### Authoritative PAL gameplay clock / sector handoff — PASS_MASTER_PAL_CLOCK
+
+Pierwszy gameplay DLI display listy jest teraz sprzętowym producentem jednego
+8-bitowego tokenu na fizyczną ramkę PAL. Końcowy HUD DLI nie zwiększa tokenu.
+Wspólna bramka na początku `main_loop` konsumuje nową wartość dokładnie raz;
+ponowne wejście pętli w tej samej ramce czeka na następny DLI. Sektorowe anchory
+`$77` i `$70` pozostają harmonogramem raster/publication i nie są już źródłem
+liczby ticków symulacji. Dwa bajty latcha wykorzystują istniejący zarezerwowany
+`STARFIELD_COMPAT_STATE`, więc nie dodano RAM.
+
+Usunięto dwa specjalne OPEN→capital catch-upy dla fire i audio. Po wspólnej
+bramce wykonywałyby drugi tick wybranych systemów. Cały dotychczasowy wspólny
+main path — player/enemy movement i pociski, burst controllers, logical effects,
+debris/pickup, oba akumulatory świata/capital oraz audio — pozostaje w swoich
+lokalnych procedurach, ale jest dopuszczany tylko przez jeden token PAL.
+
+Native Atari800 7.1.2 PAL, 50 pełnych cykli i `87 500` ramek:
+
+- fighter→capital: `50`, capital→fighter: `50`;
+- skipped simulation ticks: `0`, double simulation ticks: `0`;
+- host-frame delta i active-gameplay delta na obu granicach: wyłącznie `1`;
+- wszystkie 22 profilowane punkty wspólnej ścieżki były obecne w każdym ticku;
+- audio calls/tick: min/max `1/1`;
+- missed frames, extra VBI i DLI anomalies: `0/0/0`.
+
+Player fire mierzony w fizycznych ramkach zachowuje Normal `9/12`, Rapid
+`6/12`, Spread `28/12`. Player PairShot pozostaje `-6 px/tick = 300 px/s`.
+Enemy PairShot w `587` kolejnych aktywnych native tickach miał wyłącznie
+`+5 px`, czyli `250 px/s`. Zegar nie przyspiesza go już na handoffie; ta nadal
+wysoka prędkość wynika z `dy=5` i może być strojona dopiero osobną decyzją.
+
+Akumulatory świata i kadłuba są wywoływane raz na token. MEASURED cadence:
+EASY `20 events/s = 160 px/s = 3,2 px/PAL`, MEDIUM `22,5 = 180 = 3,6`, HARD
+`25 = 200 = 4,0`. Jeden event nadal oznacza jeden krok rzędu/ringu.
+
+Koszt steady master gate wynosi instruction-exact `32` cykle (`6` w DLI oraz
+`26` dla JSR+natychmiastowego consume). Native active-work max `21 948`, target
+headroom `9 252`, hard-gate headroom `10 620`; target/hard overruns `0/0`.
+Surowa odległość startów ma zakres `11 335–59 870` cykli, ponieważ wykonywanie
+zmienia fazę wewnątrz sąsiednich ramek przy `$77/$70`; nie oznacza to pominięcia
+VBI, co potwierdza delta host-frame `1` i brak missed/extra VBI.
+
+Linked runtime `17 518 -> 17 513 B`, simultaneous residency `17 996 -> 17 991
+B`, safe headroom `4 191 -> 4 196 B`. Build, XEX/ATR boot smoke, placement i
+focused master/fire/audio/pause/starfield tests PASS. Szerszy zestaw zachowuje
+wcześniejsze nieaktualne fixture/adresy (m.in. debris `$98FF` i brak starego
+CSV); nie osłabiano ich w tym proofie.
+
+Raport:
+`docs/diagnostics/stage-2b2b-authoritative-pal-gameplay-clock-proof.json`.
+
+Decyzja techniczna:
+
+**Jeden sprzętowo pochodny PAL token jest poprawnym master clock dla wspólnej
+symulacji. Kandydat jest gotowy wyłącznie do owner smoke prędkości capital,
+player shots i Raider shots.**
+
+Następny krok: `Owner smoke master timing: capital speed + player shots + Raider
+shots`. Nie naprawiać jeszcze wyglądu gwiazd i nie rozpoczynać ring 25 Hz.
 
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 

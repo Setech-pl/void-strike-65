@@ -43,7 +43,7 @@ test("physical OPTION enters PAUSED before any gameplay frame mutation", () => {
   assert.match(source, /STATE_PAUSED\s*=\s*8/);
   const loop = routine("main_loop", "enter_pause");
   assert.match(loop,
-    /jsr wait_gameplay_frame\s+lda #CONSOL_OPTION_MASK\s+bit CONSOL\s+beq main_loop_option_pressed/);
+    /jsr wait_for_master_pal_frame\s+jsr begin_fighter_projectile_frame\s+lda #CONSOL_OPTION_MASK\s+bit CONSOL\s+beq main_loop_option_pressed/);
   assert.ok(loop.indexOf("bit CONSOL") < loop.indexOf("integration_active_gameplay_tick"));
   assert.match(loop, /inc pause_option_latched\s+jmp enter_pause/);
 });

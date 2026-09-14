@@ -50,51 +50,6 @@ function histogram(values) {
     .map((value) => [value, values.filter((candidate) => candidate === value).length]));
 }
 
-export function executeTransitionCatchupProof({
-  root = defaultRoot,
-  artifact = "xex",
-} = {}) {
-  const run = ({ sector, burstState, burstRemaining, burstTimer }) => {
-    const { memory, labels, manifest } = initialiseRuntime(root, artifact, 0xa5);
-    const activeAddress = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
-    const stateAddress = requiredLabel(labels, "PLAYER_FIGHTER_BURST_STATE");
-    const remainingAddress = requiredLabel(labels, "PLAYER_FIGHTER_BURST_REMAINING");
-    const timerAddress = requiredLabel(labels, "PLAYER_FIGHTER_BURST_TIMER");
-    memory[requiredLabel(labels, "CAPITAL_SECTOR_STATE")] = sector;
-    memory[stateAddress] = burstState;
-    memory[remainingAddress] = burstRemaining;
-    memory[timerAddress] = burstTimer;
-    memory[requiredLabel(labels, "sound_enabled")] = 1;
-    const beforeActive = countActive(memory, activeAddress,
-      manifest.fighterWeapons.player_fighter.poolSlots);
-    const result = runTracedRoutine(memory, labels, "player_fire_transition_tick");
-    return {
-      sector,
-      state_before: burstState,
-      state_after: memory[stateAddress],
-      remaining_before: burstRemaining,
-      remaining_after: memory[remainingAddress],
-      timer_before: burstTimer,
-      timer_after: memory[timerAddress],
-      allocated: countActive(memory, activeAddress,
-        manifest.fighterWeapons.player_fighter.poolSlots) - beforeActive,
-      shot_sfx_triggered: result.writes.some(({ address, after }) =>
-        address === requiredLabel(labels, "fire_timer") && after === 0x32),
-      cycles: result.cycles,
-    };
-  };
-  return {
-    open_noop: run({ sector: CAPITAL_OPEN, burstState: 1, burstRemaining: 2,
-      burstTimer: 2 }),
-    released_noop: run({ sector: 0, burstState: 0, burstRemaining: 0,
-      burstTimer: 0 }),
-    active_advance: run({ sector: 0, burstState: 1, burstRemaining: 2,
-      burstTimer: 2 }),
-    active_emit: run({ sector: 0, burstState: 1, burstRemaining: 2,
-      burstTimer: 1 }),
-  };
-}
-
 function executeMode({
   root, artifact, mode, boosterState, frames, transitionFrame,
   movement = "STATIONARY", boosterExpiryFrame = null,

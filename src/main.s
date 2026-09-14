@@ -258,6 +258,12 @@ STAR_NEAR_RING_ADVANCED      = STAR_RNG_STATE+$01
 STAR_NEAR_FINE_PHASE         = STAR_NEAR_RING_ADVANCED+$01
 STARFIELD_COMPAT_STATE       = STAR_NEAR_FINE_PHASE+$01
 STARFIELD_STATE_END          = STARFIELD_COMPAT_STATE+$03
+; The first gameplay DLI is the one event that occurs exactly once in every
+; physical PAL display frame in both fighter and capital sectors. Two bytes
+; from the already-reserved compatibility tail turn it into a token consumed
+; once by the gameplay loop, independently of its later publication anchor.
+PHYSICAL_PAL_FRAME_ID        = STARFIELD_COMPAT_STATE
+GAMEPLAY_PAL_FRAME_CONSUMED  = STARFIELD_COMPAT_STATE+$01
 SESSION_SCORE_COMPAT_BYTES   = 2
 MUZZLE_ROW_DOMAIN            = STARFIELD_STATE_END          ; 2 B, fixed divider/ring
 SESSION_SCORE_COMPAT_END     = MUZZLE_ROW_DOMAIN+SESSION_SCORE_COMPAT_BYTES
@@ -307,6 +313,7 @@ SESSION_SCORE_STATE_END      = TOP_SCORE_TABLE_END
 .export ENEMY_BEHAVIOUR_PHASE, ENEMY_LIVE_COUNT
 .export WEAPON_PICKUP_COLD_STAGING
 .export STAR_NEAR_RING_ADVANCED, STAR_NEAR_FINE_PHASE
+.export PHYSICAL_PAL_FRAME_ID, GAMEPLAY_PAL_FRAME_CONSUMED
 .export STAR_NEAR_ROW, STAR_NEAR_COLUMN, STAR_NEAR_SCREEN_LO, STAR_NEAR_SCREEN_HI
 .export MUSIC_ACTIVE
 .export TOP_SCORE_TABLE, TOP_SCORE_TABLE_LO, TOP_SCORE_TABLE_HI, TOP_SCORE_TABLE_END
@@ -2310,6 +2317,7 @@ start_gameplay_end:
 .segment "BROADSIDE"
 
 main_loop:
+    jsr wait_for_master_pal_frame
     jsr begin_fighter_projectile_frame
     lda #CONSOL_OPTION_MASK
     bit CONSOL
@@ -2392,8 +2400,8 @@ main_loop_option_pressed = *
     inc pause_option_latched
     jmp enter_pause
 
-main_loop_option_poll = main_loop+3
-main_loop_active = main_loop+14
+main_loop_option_poll = main_loop+6
+main_loop_active = main_loop+17
 .export frontend_input_poll, main_loop_option_poll, main_loop_active
 .export profile_after_entity_erase, profile_after_projectile_erase
 .export profile_after_capsule, profile_after_frame_visuals, profile_after_player
@@ -2773,21 +2781,8 @@ wait_frame_at_line:
 publish_fighter_projectile_overlays:
     lda FIGHTER_PROJECTILE_PUBLICATION_FRAME
     bne fighter_projectile_publication_capital_render
-    ; If OPEN admitted capital during this loop, account for the physical PAL
-    ; frame that lies between the outgoing $77 wait and the incoming $70 wait.
-    ; The ordinary end-of-loop call below then advances every SFX once on each
-    ; side of the wait instead of holding/truncating the shot tail.
-    lda CAPITAL_SECTOR_STATE
-    bne :+
-    jsr update_sound
-:
     ldx #$77
     jsr wait_frame_at_line
-    ; An OPEN frame can admit the capital sector before this post-playfield
-    ; wait. The following capital frame would then wait again at $70, skipping
-    ; one physical PAL fire-controller tick. Consume that tick here, before
-    ; publication, so an accepted PairShot is visible in the same safe window.
-    jsr player_fire_transition_tick
 fighter_projectile_publication_begin = *
     ; The previous sparse near image has now survived one complete ANTIC pass.
     ; Retire it inside the same safe post-playfield window as character shots.
@@ -3225,6 +3220,9 @@ gameplay_dli:
     ; restarting the HUD instruction and creating an odd third DLI.
     lda gameplay_dli_phase
     bne gameplay_dli_sync_hud
+    ; Hardware PAL-frame source. The final-row DLI takes the branch above, so
+    ; the display list produces exactly one token despite having two DLIs.
+    inc PHYSICAL_PAL_FRAME_ID
     lda PLAYFIELD_ACTIVE_DLIST_LO
     clc
     adc #$03
@@ -5338,6 +5336,8 @@ init_starfield_state:
     lda #$00
     sta STAR_NEAR_FINE_PHASE
     sta STAR_NEAR_RING_ADVANCED
+    sta PHYSICAL_PAL_FRAME_ID
+    sta GAMEPLAY_PAL_FRAME_CONSUMED
     ldx #(STAR_NEAR_CAPACITY-1)
 @near:
     lda near_star_initial_rows,x
@@ -8963,11 +8963,11 @@ handle_player_hull_contact:
 
 ; Preserve the reviewed integration-glue target after replacing the former
 ; periodic cannon-mask decoder with the smaller encoded-layout selector.
-; The final BROADSIDE image receives a five-byte chunk tag. Keep six source
-; bytes here so the net eleven-byte layout recovery still leaves the separately
-; assembled integration-glue.s release jump at fixed $76A7.
+; The separately assembled integration glue calls free_broadside_slot at the
+; fixed $76A7 ABI. Replacing the transition catch-ups with the common master
+; gate retires this six-byte source pad while preserving that real boundary.
 white_starfield_broadside_abi_pad:
-    .res 6
+    .res 0
 free_broadside_slot_layout_lead_pad:
 projectile_recycle_broadside_layout_pad:
 restore_recycled_row_projectile_underlay:
@@ -8991,14 +8991,18 @@ restore_recycled_row_projectile_underlay:
     bpl @slot
     rts
 restore_recycled_row_projectile_underlay_end:
-player_fire_transition_tick:
-    lda CAPITAL_SECTOR_STATE
-    bne restore_recycled_row_projectile_underlay_end-1
-    lda PLAYER_FIGHTER_BURST_STATE
-    beq restore_recycled_row_projectile_underlay_end-1
-    jmp update_player_fighter_weapon_controller
-player_fire_transition_tick_end:
-    .res $36-(player_fire_transition_tick_end-projectile_recycle_broadside_layout_pad)
+; Wait for and atomically consume one token produced by the first gameplay DLI.
+; A second sector-loop entry in the same physical frame stalls here; a changed
+; token admits exactly one complete simulation/publication iteration.
+wait_for_master_pal_frame:
+@wait:
+    lda PHYSICAL_PAL_FRAME_ID
+    cmp GAMEPLAY_PAL_FRAME_CONSUMED
+    beq @wait
+    sta GAMEPLAY_PAL_FRAME_CONSUMED
+    rts
+wait_for_master_pal_frame_end:
+    .res $36-(wait_for_master_pal_frame_end-projectile_recycle_broadside_layout_pad)
                                 ; consume only the prior PairShot shrink pad
 free_broadside_slot:
     jsr erase_broadside_slot
@@ -9011,6 +9015,7 @@ free_broadside_slot:
 free_broadside_slot_layout_pad:
                                 ; former three-byte layout pad now resets Y
 .assert free_broadside_slot = $76A7, lderror, "integration release target moved"
+.export wait_for_master_pal_frame
 
 .segment "BROADSIDE"
 

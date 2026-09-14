@@ -1,0 +1,185 @@
+{
+  "schema": "void-strike-65.player-pairshot-variable-speed-fix.v1",
+  "status": "PASS_PENDING_OWNER_SMOKE",
+  "baseline": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "head_before_work": "34a70ab4e941de97f265ed33cab053dda3f762c8",
+    "production_xex_sha256": "a4fd121fae34766182ae16235a6772662d0fec6cdda5eded8615357918e6585a"
+  },
+  "defect_classification": [
+    "VISUAL_PUBLICATION_FREQUENCY"
+  ],
+  "root_cause": {
+    "logical_update": "update_fighter_projectiles subtracts PLAYER_FIGHTER_PROJECTILE_SPEED=6 once per admitted PAL frame",
+    "old_publication": "render_fighter_projectile_overlays selected only the horizontal X glyph bank while its one-cell destination used floor(Y/8)",
+    "visible_result": "the fixed in-cell glyph phase produced 8,8,8,0 scanline publication steps for a logical 6,6,6,6 trajectory",
+    "rejected_hypotheses": [
+      "SIMULATION_SPEED",
+      "SIMULATION_UPDATE_FREQUENCY",
+      "FIRE_CADENCE",
+      "SLOT_REUSE",
+      "world/event clock coupling",
+      "slot-loop early exit",
+      "PAL master tick regression"
+    ]
+  },
+  "fix": {
+    "description": "Generate eight scanline phases inside each used horizontal Player PairShot glyph bank and add Y&7 to the selected glyph. Composite/Spread publication merges the selected phased glyph into the slot-owned underlay glyph.",
+    "speed_constant_changed": false,
+    "cadence_changed": false,
+    "pool_or_scheduler_changed": false,
+    "new_runtime_ram_bytes": 0,
+    "glyph_abi": {
+      "player_glyphs_before": 36,
+      "player_glyphs_after": 36,
+      "horizontal_stride": 9,
+      "vertical_phases": 8
+    }
+  },
+  "before_fix_native_trace": {
+    "emulator": "Atari800 7.1.2 PAL",
+    "completed_pal_frames": 12600,
+    "sessions": [
+      {
+        "mode": "Normal",
+        "frames": 4200,
+        "visible_delta_histogram": { "0": 2018, "8": 5794 }
+      },
+      {
+        "mode": "Rapid",
+        "frames": 4200,
+        "visible_delta_histogram": { "0": 2608, "8": 7569 }
+      },
+      {
+        "mode": "Spread",
+        "frames": 4200,
+        "visible_delta_histogram": { "0": 783, "8": 2189 }
+      }
+    ],
+    "allocations": 1118,
+    "continuously_active_samples": 21021,
+    "delta_6_samples": 21021,
+    "illegal_logical_movement_samples": 0,
+    "skipped_update_samples": 0,
+    "double_update_samples": 0,
+    "render_count_not_one": 0,
+    "character_write_count_not_one": 0,
+    "phase_verifiable_samples": 21001,
+    "vertical_phase_mismatches": 12926,
+    "representative_slot_0": [
+      { "frame": 9, "y_before": 223, "y_after": 217, "delta": 6, "updates": 1, "visible_y": 216 },
+      { "frame": 10, "y_before": 217, "y_after": 211, "delta": 6, "updates": 1, "visible_y": 208 },
+      { "frame": 11, "y_before": 211, "y_after": 205, "delta": 6, "updates": 1, "visible_y": 200 },
+      { "frame": 12, "y_before": 205, "y_after": 199, "delta": 6, "updates": 1, "visible_y": 192 },
+      { "frame": 13, "y_before": 199, "y_after": 193, "delta": 6, "updates": 1, "visible_y": 192 }
+    ]
+  },
+  "after_fix_native_trace": {
+    "emulator": "Atari800 7.1.2 PAL",
+    "completed_pal_frames": 12600,
+    "sessions": [
+      {
+        "mode": "Normal",
+        "frames": 4200,
+        "allocations": 412,
+        "maximum_active_work_cycles": 28458,
+        "visible_delta_histogram": { "6": 7812 }
+      },
+      {
+        "mode": "Rapid",
+        "frames": 4200,
+        "allocations": 555,
+        "maximum_active_work_cycles": 28541,
+        "visible_delta_histogram": { "6": 10177 }
+      },
+      {
+        "mode": "Spread",
+        "frames": 4200,
+        "allocations": 151,
+        "maximum_active_work_cycles": 28461,
+        "visible_delta_histogram": { "6": 2972 }
+      }
+    ],
+    "allocations": 1118,
+    "releases_and_reuses": 1114,
+    "allocations_by_slot": { "0": 471, "1": 377, "2": 181, "3": 69, "4": 20 },
+    "continuously_active_samples": 21021,
+    "delta_6_samples": 21021,
+    "illegal_logical_movement_samples": 0,
+    "skipped_update_samples": 0,
+    "double_update_samples": 0,
+    "render_count_not_one": 0,
+    "character_write_count_not_one": 0,
+    "phase_verifiable_samples": 21001,
+    "publication_occluded_samples": 20,
+    "vertical_phase_mismatches": 0,
+    "visible_publication_irregularities": 0,
+    "pairshot_orphan_cells": 0,
+    "pairshot_stale_cells": 0,
+    "missed_pal_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "dli_sequence_violations": 0,
+    "target_overruns": 0,
+    "hard_overruns": 0,
+    "concurrent_coverage": {
+      "two_heavy_frames": 2504,
+      "enemy_shot_frames": 2856,
+      "world_event_frames": 6299,
+      "effect_active_frames": 30
+    },
+    "representative_slot_0": [
+      { "frame": 9, "y_before": 223, "y_after": 217, "delta": 6, "updates": 1, "publications": 1, "visible_y": 217 },
+      { "frame": 10, "y_before": 217, "y_after": 211, "delta": 6, "updates": 1, "publications": 1, "visible_y": 211 },
+      { "frame": 11, "y_before": 211, "y_after": 205, "delta": 6, "updates": 1, "publications": 1, "visible_y": 205 },
+      { "frame": 12, "y_before": 205, "y_after": 199, "delta": 6, "updates": 1, "publications": 1, "visible_y": 199 },
+      { "frame": 13, "y_before": 199, "y_after": 193, "delta": 6, "updates": 1, "publications": 1, "visible_y": 193 }
+    ]
+  },
+  "fire_cadence": {
+    "result": "UNCHANGED_NOT_CORRUPTED",
+    "short_tap_interval_frames": 12,
+    "normal": { "burst_interval_frames": 9, "post_burst_frames": 12 },
+    "rapid": { "burst_interval_frames": 6, "post_burst_frames": 12 },
+    "spread": { "burst_interval_frames": 12, "post_burst_frames": 28 },
+    "allocations_during_150_frame_pause": 0,
+    "note": "Long intervals are the scripted FIRE release or player death/respawn lifecycle, not cadence drift."
+  },
+  "cpu_memory": {
+    "linked_runtime_bytes_before": 17566,
+    "linked_runtime_bytes_after": 17549,
+    "linked_runtime_delta_bytes": -17,
+    "simultaneous_residency_bytes_before": 18044,
+    "simultaneous_residency_bytes_after": 18027,
+    "runtime_state_bytes_before": 112,
+    "runtime_state_bytes_after": 112,
+    "runtime_ram_delta_bytes": 0,
+    "projectile_update_cycle_delta": 0,
+    "publication_cycles": {
+      "four_player_pairshots_before": 1361,
+      "four_player_pairshots_after": 1464,
+      "delta": 103,
+      "five_player_pairshots_before": 1634,
+      "five_player_pairshots_after": 1749,
+      "delta_max_player_only": 115
+    },
+    "native_active_work_max_before": 28465,
+    "native_active_work_max_after": 28541,
+    "native_delta_cycles": 76,
+    "target_cycles": 31200,
+    "hard_cycles": 32568,
+    "target_headroom_cycles": 2659,
+    "hard_headroom_cycles": 4027
+  },
+  "host_validation": {
+    "focused_tests": 35,
+    "focused_passed": 35,
+    "boot_smoke_sessions": 4,
+    "boot_smoke_passed": 4,
+    "known_unrelated_failures_excluded": "weapon pickup/Spread capsule suites already listed in docs/plan-realizacji.md section 11"
+  },
+  "production": {
+    "xex_sha256": "cde949e54eef956709daf0c29de44613de1ea1a9259fc357f91f85c8a17cce8c",
+    "xex_bytes": 21586,
+    "atr_bytes": 92176
+  }
+}

@@ -15,19 +15,23 @@ function byte(value) {
   return `$${value.toString(16).padStart(2, "0").toUpperCase()}`;
 }
 
-function pairShotGlyphs(width, horizontalPhases, pairRows, phaseStride) {
+function pairShotGlyphs(width, horizontalPhases, pairRows, phaseStride,
+  verticalPhases = 0) {
   const glyphs = [];
   for (const horizontalPhase of horizontalPhases) {
-    const pairGlyph = (() => {
+    const activeVerticalPhases = (horizontalPhase & 1) === 0 ? verticalPhases : 0;
+    for (let phase = 0; phase < phaseStride; phase += 1) {
       const rows = Array(8).fill(0);
-      for (const row of pairRows) {
+      const verticalPhase = phase < activeVerticalPhases ? phase : 0;
+      for (const sourceRow of pairRows) {
+        const row = activeVerticalPhases === 0 ? sourceRow :
+          (sourceRow + verticalPhase - pairRows[0] + 8) & 7;
         for (let pixel = 0; pixel < width; pixel += 1) {
           rows[row] |= 3 << ((3 - horizontalPhase - pixel) * 2);
         }
       }
-      return rows;
-    })();
-    for (let phase = 0; phase < phaseStride; phase += 1) glyphs.push(pairGlyph);
+      glyphs.push(rows);
+    }
   }
   return glyphs;
 }
@@ -66,7 +70,9 @@ export function loadFighterWeaponsDefinition(sourcePath) {
       `${id} PairShot must depict exactly two visible pulses`);
     invariant(Array.isArray(weapon.pairGlyphRows) &&
       weapon.pairGlyphRows.join(",") === "1,2,5,6",
-    `${id} PairShot must keep both two-row impulses inside one character cell`);
+    `${id} PairShot base phase must contain two two-row impulses`);
+    invariant(weapon.verticalPhases === 8,
+      `${id} PairShot must encode every logical scanline phase`);
     invariant(weapon.burstCount === 4 && weapon.visibleBurstPulses === 8,
       `${id} normal burst must contain four PairShots / eight visible pulses`);
     integer(weapon.burstIntervalFrames, `${id}.burstIntervalFrames`, 1, 16);
@@ -169,7 +175,7 @@ export function compileFighterWeapons(definition, enemyRoster) {
     slots: 2,
   });
   const player_fighterGlyphs = pairShotGlyphs(player_fighter.widthHpos, [0, 1, 2, 3],
-    player_fighter.pairGlyphRows, 9);
+    player_fighter.pairGlyphRows, 9, player_fighter.verticalPhases);
   const interceptorGlyphs = pairShotGlyphs(interceptor.widthHpos, [0, 2],
     interceptor.pairGlyphRows, 10);
   invariant(player_fighterGlyphs.length === 36 && interceptorGlyphs.length === 20,
@@ -211,6 +217,7 @@ export function renderFighterWeaponsCa65Include(asset) {
     `PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE = ${asset.glyphLayout.player_fighterBase}`,
     `INTERCEPTOR_PROJECTILE_GLYPH_BASE = ${asset.glyphLayout.interceptorBase}`,
     "PLAYER_FIGHTER_PROJECTILE_GLYPH_STRIDE = 9",
+    `PLAYER_FIGHTER_PROJECTILE_VERTICAL_PHASE_COUNT = ${player_fighter.verticalPhases}`,
     "INTERCEPTOR_PROJECTILE_GLYPH_STRIDE = 10",
     `PLAYER_FIGHTER_PROJECTILE_GLYPH_COUNT = ${asset.glyphs.player_fighter.length}`,
     `INTERCEPTOR_PROJECTILE_GLYPH_COUNT = ${asset.glyphs.interceptor.length}`,

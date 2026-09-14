@@ -312,6 +312,28 @@ test("PlayerFighter glyphs and the assembled Interceptor glyph builder match aut
   assert.equal(weapons.glyphs.interceptor.some((glyph) => glyph.includes(0xf0)), true);
 });
 
+test("Player PairShot publishes all eight logical vertical phases without changing its 36-glyph ABI", () => {
+  assert.equal(weapons.player_fighter.verticalPhases, 8);
+  assert.equal(weapons.glyphs.player_fighter.length, 36);
+  for (const bank of [0, 18]) {
+    for (let phase = 0; phase < 8; phase += 1) {
+      const glyph = weapons.glyphs.player_fighter[bank + phase];
+      const occupiedRows = glyph.flatMap((value, row) => value === 0 ? [] : [row]);
+      assert.deepEqual(occupiedRows,
+        [phase, phase + 1, phase + 4, phase + 5].map((row) => row & 7).sort((a, b) => a - b));
+    }
+    assert.deepEqual(weapons.glyphs.player_fighter[bank + 8],
+      weapons.glyphs.player_fighter[bank], "reserved ninth glyph remains phase-zero compatible");
+  }
+  const renderer = source.slice(source.indexOf("render_fighter_projectile_overlays:"),
+    source.indexOf("; -----------------------------------------------------------------------------\n; Enemy"));
+  assert.match(renderer,
+    /lda FIGHTER_PROJECTILE_Y,x[\s\S]+and #\$07[\s\S]+adc loader_repeat_value[\s\S]+adc #PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE/);
+  assert.match(source.slice(source.indexOf("compose_player_fighter_projectile_glyph:"),
+    source.indexOf("profile_projectile_compose_end")),
+  /@merge_projectile_phase:[\s\S]+lda \(src_ptr\),y[\s\S]+ora \(dst_ptr\),y/);
+});
+
 test("Interceptor inverse screen code selects the intended ANTIC 4 glyph and red bank", () => {
   const charsetBase = 0x4400;
   const glyphIndex = 7;

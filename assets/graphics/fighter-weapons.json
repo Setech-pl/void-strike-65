@@ -9,6 +9,7 @@
     "activeLimit": 5,
     "visiblePulsesPerObject": 2,
     "pairGlyphRows": [1, 2, 5, 6],
+    "verticalPhases": 8,
     "burstCount": 4,
     "visibleBurstPulses": 8,
     "burstIntervalFrames": 9,

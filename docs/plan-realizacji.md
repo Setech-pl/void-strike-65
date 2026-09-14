@@ -2089,6 +2089,44 @@ Raport:
 
 Następny task: `Player PairShot variable-speed deterministic trace + root-cause + minimal fix`.
 
+### Player PairShot variable speed — VISUAL PUBLICATION FIX / OWNER SMOKE
+
+Deterministyczny trace produkcyjny rozdzielił symulację, allocation cadence i
+publikację. Przed zmianą wszystkie `21 021` legalne active-frame samples miały
+dokładnie jeden update i logiczne `delta Y=6`, bez skip/double tick. Błąd był
+wyłącznie w publikacji: adres znaku używał `floor(Y/8)`, lecz renderer wybierał
+stałą fazę glifu tylko z X. Widoczny tor miał więc kroki `8,8,8,0`, mimo
+logicznego `6,6,6,6`.
+
+Minimalna zmiana zachowuje 36-glifowy ABI i stride 9, ale w dwóch faktycznie
+używanych bankach poziomych koduje osiem faz scanline. Renderer dodaje `Y&7` do
+kodu znaku; ścieżka composite/Spread scala dokładnie wybraną fazę z backingiem.
+`PLAYER_FIGHTER_PROJECTILE_SPEED=6`, scheduler, pool i cadence nie zmieniły się;
+RAM delta `0 B`.
+
+Atari800 7.1.2 PAL po zmianie: `12 600` klatek Normal/Rapid/Spread, `1 118`
+allocations, `1 114` release/reuse, wszystkie pięć slotów użyte, `21 021/21 021`
+legal samples z jednym update i `delta=6`, visible delta `6` w `20 961`
+porównaniach, illegal logical/publication `0`, skip/double `0`, orphan/stale `0`,
+missed/target/hard/extra-VBI/DLI `0`. Dwadzieścia próbek było legalnie zasłonięte
+przez późniejszą warstwę i nie weszło do bezpośredniej oceny fazy. Trace zawiera
+`2 504` two-Heavy frames, enemy shots, world events i aktywne effects.
+
+Cadence pozostał zgodny: Normal `9 + 12`, Rapid `6 + 12`, Spread `12/28`;
+podczas 150-klatkowej przerwy allocations `0`, a po wznowieniu pierwszy i późne
+strzały zachowują `delta=6` oraz regularną publikację. Focused host `35/35`, boot
+smoke `4/4`.
+
+Linked runtime `17 566 -> 17 549 B`, residency `18 044 -> 18 027 B`, state RAM
+`112 -> 112 B`. Player-only publication: cztery aktywne rekordy `1361 -> 1464`
+cykle, pięć `1634 -> 1749`; update delta `0`. Native active-work max
+`28 465 -> 28 541`, target/hard headroom `2 659/4 027`.
+
+Raport:
+`docs/diagnostics/stage-2b2b-player-pairshot-variable-speed-fix.json`.
+
+Następny task: `Build deterministic owner-style reproducer for the remaining post-Raider purple remnant`.
+
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 
 Raster bands są wariantem rezerwowym **dopiero po rozwiązaniu ownership**, jeżeli nadal pozostanie czysty problem deadline'ów.

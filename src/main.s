@@ -4132,12 +4132,16 @@ render_fighter_projectile_slot_loop:
     sta FIGHTER_PROJECTILE_PREV_Y,x
     cpx #INTERCEPTOR_PROJECTILE_SLOT_BASE
     bcs @interceptor_code
+    lda FIGHTER_PROJECTILE_Y,x
+    and #$07                    ; publish the exact logical scanline phase
+    sta loader_repeat_value
     lda FIGHTER_PROJECTILE_X,x
     and #$02                    ; allocation and two-HPOS movement keep even X
     beq :+
     lda #(PLAYER_FIGHTER_PROJECTILE_GLYPH_STRIDE*2)
 :
     clc
+    adc loader_repeat_value
     adc #PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE
     sta loader_repeat_value
     bne @code_ready
@@ -10321,9 +10325,13 @@ resolve_effect_backing_below_player_pairshot:
     rts
 :
     cmp #PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE
-    beq resolve_effect_pairshot_candidate
+    bcc resolve_effect_backing_below_enemy_pairshot
+    cmp #(PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_VERTICAL_PHASE_COUNT)
+    bcc resolve_effect_pairshot_candidate
     cmp #(PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_GLYPH_STRIDE*2)
-    beq resolve_effect_pairshot_candidate
+    bcc resolve_effect_backing_below_enemy_pairshot
+    cmp #(PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_GLYPH_STRIDE*2+PLAYER_FIGHTER_PROJECTILE_VERTICAL_PHASE_COUNT)
+    bcc resolve_effect_pairshot_candidate
     cmp #PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE
     bcc resolve_effect_backing_below_enemy_pairshot
     cmp #(PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT)
@@ -10801,30 +10809,29 @@ compose_player_fighter_projectile_glyph:
     bpl @copy_inverse_row
 @copied:
 
-    lda FIGHTER_PROJECTILE_X,x
-    and #$02
-    beq :+
-    lda #$30
-    bne @mask_ready
-:
-    lda #$C0
-@mask_ready:
-    sta ENTITY_SCRATCH2
-    ldy #$01
+    ; Merge the already-selected horizontal/vertical phase into the slot-owned
+    ; composite. This preserves the moving phase even over a nonblank underlay.
+    lda loader_repeat_value
+    asl
+    asl
+    asl
+    sta src_ptr
+    lda loader_repeat_value
+    lsr
+    lsr
+    lsr
+    lsr
+    lsr
+    clc
+    adc #>CHARSET
+    sta src_ptr+1
+    ldy #$07
+@merge_projectile_phase:
+    lda (src_ptr),y
     ora (dst_ptr),y
     sta (dst_ptr),y
-    iny
-    lda (dst_ptr),y
-    ora ENTITY_SCRATCH2
-    sta (dst_ptr),y
-    ldy #$05
-    lda (dst_ptr),y
-    ora ENTITY_SCRATCH2
-    sta (dst_ptr),y
-    iny
-    lda (dst_ptr),y
-    ora ENTITY_SCRATCH2
-    sta (dst_ptr),y
+    dey
+    bpl @merge_projectile_phase
     lda ENTITY_SCRATCH1
     sta loader_repeat_value
 profile_projectile_compose_end = *

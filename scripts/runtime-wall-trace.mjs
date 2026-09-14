@@ -202,6 +202,16 @@ const raiderFirstWriterSessions = [
   kind: "raider-first-writer-native",
 }));
 
+const playerPairShotSpeedSessions = ["normal", "rapid", "spread"].map((mode) => ({
+  id: `player-pairshot-speed-${mode}-xex-hard`,
+  medium: "XEX",
+  difficulty: 2,
+  policy: `pairshot-speed-${mode}`,
+  fireDelay: 0,
+  frames: 4_200,
+  kind: "player-pairshot-speed-native",
+}));
+
 const weaponPickupTraversalSessions = [{
   id: "weapon-pickup-traversal-2-observe-fire4",
   difficulty: 2,
@@ -527,8 +537,11 @@ const traceLabels = {
   DFTRACE_PC_PUBLICATION_BEGIN: "fighter_projectile_publication_begin",
   DFTRACE_PC_ERASE_SLOT: "erase_fighter_projectile_slot",
   DFTRACE_PC_PROJECTILE_RESTORE: "erase_fighter_projectile_restore",
+  DFTRACE_PC_PROJECTILE_UPDATE_START: "update_fighter_projectiles",
   DFTRACE_PC_INTERCEPTOR_UPDATE_START: "profile_interceptor_projectile_update_begin",
   DFTRACE_PC_RENDER_SLOT: "render_fighter_projectile_slot",
+  DFTRACE_PC_RENDER_END: "render_fighter_projectile_overlays_end",
+  DFTRACE_PC_CLAIM_PROJECTILE: "claim_fighter_projectile_visual",
   DFTRACE_PC_ENTITY_ERASE_START: "profile_entity_erase_begin",
   DFTRACE_PC_EFFECT_UPDATE_END: "profile_after_transient_effect_update",
   DFTRACE_PC_PICKUP_UPDATE_END: "profile_after_pickup_booster_update",
@@ -1910,6 +1923,7 @@ function main() {
   const pairShotStaleOnly = process.argv.includes("--pairshot-stale-only");
   const raiderRemnantOnly = process.argv.includes("--raider-remnant-only");
   const raiderFirstWriterOnly = process.argv.includes("--raider-first-writer-only");
+  const playerPairShotSpeedOnly = process.argv.includes("--player-pairshot-speed-only");
   const effectsStaggerOnly = process.argv.includes("--effects-stagger-only");
   const debrisSlot0BaselineOnly = process.argv.includes("--debris-slot0-baseline-only");
   const skipBootSmoke = process.argv.includes("--skip-boot-smoke");
@@ -2082,6 +2096,8 @@ function main() {
   }
   let sessionsToRun = debrisSlot0BaselineOnly
     ? debrisSlot0BaselineSessions
+    : playerPairShotSpeedOnly
+    ? playerPairShotSpeedSessions
     : raiderFirstWriterOnly
     ? raiderFirstWriterSessions
     : raiderRemnantOnly
@@ -2123,6 +2139,8 @@ function main() {
       ? path.join(buildDirectory, `${session.id}-first-writer.csv`) : undefined;
     const interceptorProjectileOutput = session.kind === "raider-first-writer-native"
       ? path.join(buildDirectory, `${session.id}-enemy-projectiles.csv`) : undefined;
+    const playerPairShotOutput = session.kind === "player-pairshot-speed-native"
+      ? path.join(buildDirectory, `${session.id}-player-pairshots.csv`) : undefined;
     const pickupContactPrefix = session.kind === "weapon-pickup-contact"
       ? path.join(buildDirectory, "weapon-pickup-contact-nose")
       : session.kind === "weapon-pickup-overlap"
@@ -2205,6 +2223,9 @@ function main() {
       }),
       ...(interceptorProjectileOutput === undefined ? {} : {
         DFTRACE_INTERCEPTOR_PROJECTILE_OUTPUT: interceptorProjectileOutput,
+      }),
+      ...(playerPairShotOutput === undefined ? {} : {
+        DFTRACE_PLAYER_PAIRSHOT_OUTPUT: playerPairShotOutput,
       }),
       ...(pickupFenceTrace ? {
         DFTRACE_FENCE_OUTPUT: path.join(buildDirectory, `${session.id}-fence.jsonl`),
@@ -2808,6 +2829,11 @@ function main() {
   }
   if (raiderFirstWriterOnly) {
     console.log(`Raider first-writer raw traces: ${sessionsToRun.length} sessions, ` +
+      `${allRows.length} frames`);
+    return;
+  }
+  if (playerPairShotSpeedOnly) {
+    console.log(`Player PairShot speed raw traces: ${sessionsToRun.length} sessions, ` +
       `${allRows.length} frames`);
     return;
   }

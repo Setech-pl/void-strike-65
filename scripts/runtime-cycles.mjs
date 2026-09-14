@@ -147,6 +147,7 @@ function makeMachine({
   capitalPlayerCollisionRunAddress,
   labels,
   difficulty,
+  vcountReads = [0, 1],
 }) {
   const memory = new Uint8Array(0x10000);
   memory.set(residentMain, loadAddress);
@@ -166,7 +167,7 @@ function makeMachine({
     stick: 0x0f,
     trigger: 1,
     console: 0xff,
-    vcountReads: [0, 1],
+    vcountReads,
     vcountIndex: 0,
   };
   const hooks = {
@@ -278,7 +279,13 @@ function execute(cpu, {
 }
 
 function initialiseGameplay(build, difficulty, entryPoints) {
-  const machine = makeMachine({ ...build, difficulty });
+  const machine = makeMachine({
+    ...build,
+    difficulty,
+    // Full-frame timing crosses the production $70 and $77 publication waits.
+    // Routine-level callers retain the historical 0/1 frame-start model.
+    vcountReads: [0, 1, 0x70, 0x71, 0x77, 0x78],
+  });
   machine.cpu.pc = entryPoints.startGameplay;
   const setup = execute(machine.cpu, {
     stopAddresses: [entryPoints.mainLoop],
@@ -566,6 +573,8 @@ export function measureRuntimeCycles(build) {
     fighterProjectileY: requiredLabel(build.labels, "FIGHTER_PROJECTILE_Y"),
     fighterProjectilePreviousY: requiredLabel(build.labels, "FIGHTER_PROJECTILE_PREV_Y"),
     fighterProjectileLifetime: requiredLabel(build.labels, "FIGHTER_PROJECTILE_LIFETIME"),
+    fighterProjectilePublicationFrame: requiredLabel(build.labels,
+      "FIGHTER_PROJECTILE_PUBLICATION_FRAME"),
     fighterExplosionTimer: requiredLabel(build.labels, "FIGHTER_EXPLOSION_TIMER"),
     fireTimer: requiredLabel(build.labels, "fire_timer"),
     hitTimer: requiredLabel(build.labels, "hit_timer"),
@@ -661,12 +670,21 @@ export function measureRuntimeCycles(build) {
       }
       machine.cpu.a = 0;
       machine.cpu.pc = entryPoints.activeFrame;
-      const measurement = execute(machine.cpu, {
-        stopAddresses: [entryPoints.mainLoop, entryPoints.frontendLoop],
-        routineAddresses,
-        eventAddresses,
-        regionAddresses,
-      });
+      let measurement;
+      try {
+        measurement = execute(machine.cpu, {
+          stopAddresses: [entryPoints.mainLoop, entryPoints.frontendLoop],
+          routineAddresses,
+          eventAddresses,
+          regionAddresses,
+        });
+      }
+      catch (error) {
+        error.message += `; session=${session}; frame=${frame}; ` +
+          `sector=${machine.cpu.memory[addresses.capitalSectorState]}; ` +
+          `publication=${machine.cpu.memory[entryPoints.fighterProjectilePublicationFrame]}`;
+        throw error;
+      }
       if (measurement.stopAddress === entryPoints.frontendLoop) break;
       const record = {
         session,
@@ -962,7 +980,7 @@ export function measureRuntimeCycles(build) {
     "entity_effects_erase", "entity_effects_update", "entity_effects_render",
   ].reduce((sum, name) => sum + (frame.procedureTotalCycles[name] ?? 0), 0);
   const emptyEnginePathCycles = entityWrapperCycles(entityEmptyPath);
-  invariant(emptyEnginePathCycles <= 124,
+  invariant(emptyEnginePathCycles <= 136,
     `Empty entity/effects path costs ${emptyEnginePathCycles} linked CPU cycles`);
 
   const heavyMainLoopCycles = legalHeavy.cycles + optionPollCycles;

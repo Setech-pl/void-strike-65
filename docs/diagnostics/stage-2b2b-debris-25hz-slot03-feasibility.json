@@ -1,0 +1,431 @@
+{
+  "schema_version": 1,
+  "stage": "stage-2b2b-debris-25hz-slot03-feasibility",
+  "date": "2026-09-14",
+  "status": "REJECTED",
+  "scope": "static and instruction-exact feasibility audit only; no production runtime change and no Raider wreck implementation",
+  "baseline": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "head": "e9bbcc96a1a304c86a3093d09742a6dea8768101",
+    "approved_runtime_commit": "cf90b5bf5906a620e4c2d26ed895a7f3e940e4ba",
+    "worktree_before": [
+      "?? .claude/"
+    ],
+    "xex": {
+      "path": "dist/void-strike-65.xex",
+      "sha256": "91ec98e9dc8334a1054dfbb902863af2fad7f6a3de7d3c4e8c72d3d1e6fa2147"
+    },
+    "native_active_work_cycles": {
+      "classification": "measured in the previously accepted native PAL trace; not rerun because this proof changed no runtime",
+      "maximum": 22644,
+      "average": 10226.74496,
+      "target_headroom": 8556,
+      "hard_gate_headroom": 9924
+    },
+    "memory_bytes": {
+      "classification": "measured linked build",
+      "linked_runtime": 17526,
+      "simultaneous_residency": 18004,
+      "safe_headroom": 4183
+    },
+    "placement": {
+      "starfield_packed": { "used": 1787, "capacity": 1819, "margin": 32 },
+      "initial_content_margin": 61,
+      "broadside_margin": 3,
+      "a2_margin": 59,
+      "pickup_code_raw": { "used": 871, "capacity": 896, "margin": 25 },
+      "entity_code_before_director": {
+        "entity_end_exclusive": "0x9D5A",
+        "director_start": "0x9D75",
+        "margin": 27
+      }
+    },
+    "authoritative_sources_read": [
+      "AGENTS.md",
+      "docs/reguly-projektu.txt",
+      "docs/README.md",
+      "docs/plan-realizacji.md v4.5",
+      "docs/owner-decisions-2026-09-11.md",
+      "docs/diagnostics/stage-2b2b-raider-wreck-gameplay-debris-proof.json",
+      "docs/diagnostics/stage-2b2b-effects-25hz-staggered-proof.json",
+      "docs/diagnostics/stage-2b2b-final-remaining-raider-remnant-fix.json",
+      "docs/diagnostics/stage-2b2b-capital-speed-restore-clock-verify.json",
+      "src/main.s",
+      "src/integration-glue.s",
+      "assets/graphics/entity-effects.json",
+      "build/entity-effects.inc"
+    ]
+  },
+  "current_debris_architecture": {
+    "pool": {
+      "physical_records": 4,
+      "bytes_per_record": 20,
+      "record_bytes_already_allocated": 80,
+      "common_header_bytes": 16,
+      "interactive_state_total_bytes": 96,
+      "global_active_limit": 2,
+      "roles": {
+        "slot_0": "only implemented gameplay debris",
+        "slot_1": "PMG pickup and qualified-kill counter",
+        "slot_2": "booster controller and next-pickup type",
+        "slot_3": "reserved physical record; no production reader or writer"
+      }
+    },
+    "record_layout": [
+      { "offset": 0, "field": "TYPE" },
+      { "offset": 1, "field": "STATE" },
+      { "offset": 2, "field": "FLAGS" },
+      { "offset": 3, "field": "X" },
+      { "offset": 4, "field": "Y" },
+      { "offset": 5, "field": "VX" },
+      { "offset": 6, "field": "VY" },
+      { "offset": 7, "field": "MOVE_ACCUMULATOR" },
+      { "offset": 8, "field": "TIMER / debris vertical 3-of-5 accumulator" },
+      { "offset": 9, "field": "RENDER_ID" },
+      { "offset": 10, "field": "COLLISION_CATEGORY" },
+      { "offset": 11, "field": "SCREEN_LO" },
+      { "offset": 12, "field": "SCREEN_HI" },
+      { "offset": 13, "field": "BACKING0" },
+      { "offset": 14, "field": "BACKING1" },
+      { "offset": 15, "field": "BACKING2; unused by current debris" },
+      { "offset": 16, "field": "BACKING3; unused by current debris" },
+      { "offset": 17, "field": "DRAWN_MASK" },
+      { "offset": 18, "field": "HP" },
+      { "offset": 19, "field": "OWNER / two-frame nonlethal-hit flash timer" }
+    ],
+    "lifecycle": [
+      "Encounter Director admits one hazard and entity_spawn_debris initializes slot 0",
+      "entity_effects_erase restores two backing cells before ring/world work on every PAL frame",
+      "entity_effects_update runs once per PAL frame; movement and tumble consume WORLD_ROW_ADVANCED",
+      "entity_collide_player_active checks the player once per active PAL frame",
+      "up to five player PairShot records can call the debris target path in a PAL frame",
+      "entity_effects_render resolves the current physical row, captures two lower cells and publishes the 2x1 glyph",
+      "three PairShot hit events decrement HP 3 to 0; nonlethal hits suppress further same-frame hits",
+      "lethal hit creates the shared five-slot collisionless breakup effect and releases the Director hazard",
+      "player contact applies difficulty damage and releases debris",
+      "bottom exit releases debris; ordinary respawn delay is 64 PAL frames"
+    ],
+    "frequencies_hz": {
+      "gameplay_update": 50,
+      "player_collision": 50,
+      "erase_and_render_while_active": 50,
+      "tumble_phase_easy_medium_hard": [20, 22.5, 25],
+      "vertical_rows_easy_medium_hard": [12, 13.5, 15],
+      "horizontal_steps_easy_medium_hard": [5, 5.625, 6.25]
+    },
+    "visuals": {
+      "variants": 2,
+      "phases_per_variant": 2,
+      "cells": "2x1",
+      "glyphs": 8,
+      "glyph_bytes": 64,
+      "phase_change_source": "every WORLD_ROW_ADVANCED event, already 20-25 Hz",
+      "colour_flash": "inverse attribute while OWNER hit-flash timer is nonzero"
+    },
+    "backing_and_priority": {
+      "backing_cells": 2,
+      "near_star_sanitizer": "STAR_NEAR_POINT is stored as CH_SPACE because white stars own no persistent underlay",
+      "effects": "effects render above debris and resolve exact debris footprint to BACKING0/1",
+      "projectiles": "PairShot is the final character layer and resolves effect/debris lower backing",
+      "ring_requirement": "debris must be erased before rotate_playfield_rows; retaining it across a ring rotation changes its logical row and can bake the glyph into recycled background"
+    },
+    "destruction_and_score": {
+      "hp": 3,
+      "pairshot_damage_per_hit": 1,
+      "effect_slots": 5,
+      "core_frames": 5,
+      "fragment_frames": 30,
+      "score": "no score event for ordinary debris",
+      "single_instance_assumption": "destruction source X/Y/RENDER_ID are read from slot-0 absolute fields"
+    }
+  },
+  "slot_0_hardcoding_inventory": [
+    {
+      "location": "src/main.s:9234-9308 / erase_interactive_entity_overlays",
+      "assumption": "one rendered mask bit, one absolute SCREEN/BACKING pair, two cells",
+      "category": "B",
+      "required_change": "take slot index and clear only that slot bit/state in reverse order",
+      "estimated_net_bytes": "12-28",
+      "risk": "medium: erase order and backing ownership"
+    },
+    {
+      "location": "src/main.s:9313-9408 / entity_effects_update active path",
+      "assumption": "mask bit 0 and every debris field are absolute slot 0",
+      "category": "C",
+      "required_change": "two-slot dispatch plus indexed update while preserving X across collision/difficulty use",
+      "estimated_net_bytes": "70-120",
+      "risk": "high: world event, release, player collision and shared X register"
+    },
+    {
+      "location": "src/main.s:9684-9730 / entity_spawn_debris",
+      "assumption": "availability, mask, all initialized fields and allocation result name slot 0",
+      "category": "B",
+      "required_change": "select slot 0 or 3 and write SoA fields indexed",
+      "estimated_net_bytes": "35-65",
+      "risk": "medium: active-limit and Director admission rollback"
+    },
+    {
+      "location": "src/main.s:9778-9834 / entity_player_fighter_projectile_target and debris damage",
+      "assumption": "one debris target is arbitrated against one enemy; HP/flags/owner are absolute slot 0",
+      "category": "C",
+      "required_change": "scan two target slots, select earliest swept hit, preserve projectile X and chosen debris slot",
+      "estimated_net_bytes": "75-120",
+      "risk": "high: first-contact ordering and one-hit semantics"
+    },
+    {
+      "location": "src/main.s:9841-9855 / entity_player_fighter_projectile_hits_debris",
+      "assumption": "collision geometry reads slot-0 X/Y",
+      "category": "B",
+      "required_change": "index target fields without consuming projectile index",
+      "estimated_net_bytes": "10-24",
+      "risk": "medium"
+    },
+    {
+      "location": "src/main.s:9860-9896 / entity_collide_player_active",
+      "assumption": "player contact reads slot-0 X/Y and releases the only debris",
+      "category": "B",
+      "required_change": "indexed geometry and indexed release",
+      "estimated_net_bytes": "16-32",
+      "risk": "medium"
+    },
+    {
+      "location": "src/main.s:9899-9917 / entity_despawn_debris",
+      "assumption": "clears bit 0 with $FE and absolute slot-0 state",
+      "category": "B",
+      "required_change": "clear selected bit and record",
+      "estimated_net_bytes": "16-30",
+      "risk": "medium: global active count and respawn policy"
+    },
+    {
+      "location": "src/main.s:9922-9963 / spawn_debris_destruction_effects",
+      "assumption": "source X/Y/RENDER_ID come from slot 0",
+      "category": "B",
+      "required_change": "read selected source slot before shared effect materialization",
+      "estimated_net_bytes": "8-18",
+      "risk": "low-medium"
+    },
+    {
+      "location": "src/main.s:10092-10172 / entity_effects_render and render_interactive_entity_overlays",
+      "assumption": "bit 0, absolute logical/physical address, two backing bytes and one rendered counter",
+      "category": "C",
+      "required_change": "reverse-safe two-slot publisher and per-slot rendered bits",
+      "estimated_net_bytes": "45-85",
+      "risk": "high: ring wrap, effects, projectiles and white-star backing"
+    },
+    {
+      "location": "src/main.s:10178-10200 / resolve_effect_backing_below_interactive_debris",
+      "assumption": "one exact slot-0 2-cell footprint",
+      "category": "B",
+      "required_change": "test slot 0 and slot 3 in priority-safe order",
+      "estimated_net_bytes": "18-34",
+      "risk": "high: previously fixed Raider-remnant provenance"
+    },
+    {
+      "location": "src/main.s:11047-11054 / integration_debris_release",
+      "assumption": "Director release has no record parameter and jumps to slot-0 despawn",
+      "category": "B",
+      "required_change": "preserve selected slot through Director release",
+      "estimated_net_bytes": "6-14",
+      "risk": "medium; BROADSIDE has only 3 bytes free"
+    },
+    {
+      "location": "src/integration-glue.s:16-17,57-70 / integration_debris_spawn ABI",
+      "assumption": "fixed absolute spawn/despawn entry points; current spawn target remains historical $98FF",
+      "category": "C",
+      "required_change": "repair or generate the cross-module ABI before another native debris proof",
+      "estimated_net_bytes": "0 if corrected constants retain glue size",
+      "risk": "critical correctness; linked entity_spawn_debris is now $98C0"
+    },
+    {
+      "location": "build/entity-effects.inc:6-7,86-88 / pool size, active limit and slot roles",
+      "assumption": "four records and active limit two; slots 1/2 have deliberate special roles",
+      "category": "D",
+      "required_change": "none; slot 1 pickup and slot 2 booster must remain special",
+      "estimated_net_bytes": 0,
+      "risk": "do not generalize all four slots"
+    }
+  ],
+  "slot_3_status": {
+    "record_ram_exists": true,
+    "new_record_ram_required": 0,
+    "production_references": 0,
+    "truly_unused_as_interactive_record": true,
+    "blockers": [
+      "all debris lifecycle paths are slot-0 absolute",
+      "active/rendered masks and release assume bit 0",
+      "projectile target arbitration must choose between two debris plus enemy while preserving projectile X",
+      "effect backing resolver must scan both footprints without reintroducing remnant bugs",
+      "spawn/Director policy has only one debris result and release ABI",
+      "hot code cannot grow in BROADSIDE; PICKUP_CODE has 25 raw bytes and ENTITY_CODE has 27 bytes before the resident Director"
+    ],
+    "blocker_types": ["code", "placement", "collision", "raster", "policy ABI"],
+    "not_blocked_by": ["record RAM", "new asset RAM", "global active-count capacity"]
+  },
+  "current_cost": {
+    "classification": "instruction_exact NMOS 6502 execution of linked XEX routines unless stated otherwise",
+    "cycles": {
+      "spawn_direct_entry": 182,
+      "erase_debris_only": 38,
+      "render_debris_only": 184,
+      "visual_publication_total": 222,
+      "active_core_no_world_event_including_player_miss": 59,
+      "active_core_world_event_no_vertical_carry": 99,
+      "active_core_world_event_vertical_carry": 118,
+      "active_core_world_event_vertical_and_horizontal_step": 160,
+      "full_isolated_debris_no_event": 281,
+      "full_isolated_debris_worst_world_event": 382,
+      "full_entity_wrapper_no_event": 384,
+      "full_entity_wrapper_world_event": 424,
+      "player_collision_public_miss": 36,
+      "player_collision_accepted_hit_and_release": 53,
+      "pairshot_target_miss_including_enemy_fallback": 62,
+      "pairshot_nonlethal_debris_hit": 124,
+      "pairshot_lethal_debris_hit_with_breakup_and_release": 691,
+      "destruction_effect_materialization": 475,
+      "despawn_direct_entry": 50
+    },
+    "memory": {
+      "interactive_record_ram": 80,
+      "common_interactive_header_ram": 16,
+      "debris_glyph_bytes": 64,
+      "descriptor_bytes": 16,
+      "trajectory_table_bytes": 4,
+      "contact_damage_table_bytes": 3,
+      "minimum_exclusive_debris_code_spans_bytes": 645,
+      "code_attribution_note": "shared wrappers, RNG, breakup materializer and effect code are intentionally excluded from the minimum exclusive sum"
+    },
+    "scenarios": {
+      "zero_active": "no debris erase/render; scheduler timer path remains",
+      "one_active": "281 cycles ordinary isolated path; up to 382 on a vertical+horizontal world event",
+      "two_active": "not executable in production; static estimate adds one indexed simulation/collision/publication path",
+      "maximum_player_pairshots": "up to five debris target admissions per PAL frame; current one-target miss path is 62 cycles including enemy fallback",
+      "with_effects": "effects publish above debris and pay the existing debris lower-backing resolver",
+      "ring_event": "debris must be erased before rotate_playfield_rows and redrawn after the new mapping",
+      "destruction": "691-cycle lethal target path includes 475-cycle shared five-effect materialization"
+    }
+  },
+  "visual_25hz_design": {
+    "smallest_visual_contract": {
+      "representation": "retain the existing two 2x1 variants and two tumble phases",
+      "simulation": "50 Hz",
+      "phase": "WORLD_ROW_ADVANCED, already 20/22.5/25 Hz",
+      "publication_candidate": "retain the two screen glyphs on no-event frames; erase and republish on every ring/world event and on spawn, hit-state change, release or destruction"
+    },
+    "why_fixed_parity_is_not_safe": [
+      "EASY and MEDIUM ring events do not share a fixed alternating parity",
+      "a retained physical glyph changes logical row when PLAYFIELD_ROW mapping rotates",
+      "current debris moves only on three of five world events, so allowing the ring to carry its cell would desynchronize visual and collision Y",
+      "damage and destruction are discovered after the current frame-start erase point",
+      "effects and PairShots may own foreground over either debris cell"
+    ],
+    "required_prerequisite": "a pre-erase authoritative dirty/event token covering the upcoming ring event plus hit/release ownership; the current ENTITY_FRAME_EVENTS bit is produced later by update_starfield",
+    "cpu_estimate": {
+      "classification": "estimated from the instruction-exact 222-cycle visual path",
+      "current_visual_cycles_per_pal_frame": 222,
+      "candidate_average_visual_cycles_per_frame_easy_medium_hard": [88.8, 99.9, 111],
+      "average_recovery_before_gate_cost_easy_medium_hard": [133.2, 122.1, 111],
+      "worst_event_frame_visual_cycles": 222,
+      "worst_event_frame_peak_recovery": 0,
+      "value_gate_minimum_peak_recovery": 150,
+      "classification_against_value_gate": "REJECT"
+    },
+    "resource_estimate": {
+      "classification": "estimated, no prototype",
+      "code_delta_bytes": "45-90 for predictor/dirty/forced-clear protocol before slot generalization",
+      "data_delta_bytes": 0,
+      "additional_record_ram_bytes": 0,
+      "state_note": "unused BACKING2/BACKING3 or DRAWN_MASK high bits could hold local state, but this does not solve ordering"
+    },
+    "raster_result": "not established; a blind 25 Hz parity pass is rejected because it can expose stale, shifted or baked-in debris",
+    "visual_result": "existing tumble cadence already meets the requested approximate 25 Hz phase rate; no new visual prototype was needed"
+  },
+  "slot_0_slot_3_options": [
+    {
+      "variant": "A - tiny two-slot iterator over 0 and 3",
+      "classification": "BLOCKED",
+      "code_bytes": "estimated 330-430 net replacement/growth; prior writer-complete implementation measured +436 B",
+      "runtime_ram_bytes": 0,
+      "cpu_two_debris": "estimated extra 281 ordinary to 382 world-event cycles, plus indexed-loop overhead and up to five additional collision tests",
+      "collision_cost": "estimated 30-60 cycles per additional target candidate per player shot",
+      "render_cost": "approximately another 222 cycles on a mandatory ring publication frame",
+      "destruction_cost": "shared 475-cycle breakup materializer remains one event; selected-slot handoff is additional",
+      "placement": "does not fit current 25-B PICKUP_CODE raw margin or 27-B ENTITY_CODE-to-Director margin",
+      "risk": "high"
+    },
+    {
+      "variant": "B - explicit slot-0 and slot-3 calls",
+      "classification": "REJECTED",
+      "code_bytes": "duplicating fixed kernels approaches or exceeds the 645-B debris-exclusive code footprint; calls into a common indexed kernel converge to Variant A plus wrappers",
+      "runtime_ram_bytes": 0,
+      "cpu_two_debris": "similar to Variant A; fixed calls save only a small iterator branch",
+      "placement": "worse than Variant A unless almost all code is shared",
+      "risk": "high code growth for no semantic simplification"
+    },
+    {
+      "variant": "C - common pointer/index routine",
+      "classification": "REJECTED_FOR_NOW",
+      "code_bytes": "prior measured writer-complete draft +436 B; current audit finds no compensating removal from 25 Hz phase logic",
+      "runtime_ram_bytes": 0,
+      "cpu_two_debris": "adds indexed access and slot preservation in every lifecycle/collision path",
+      "placement": "previous draft overflowed PICKUP_CODE by 335 B and ENTITY_CODE by 75 B; current corresponding hot margins remain only 25 B and 27 B",
+      "risk": "reopens the exact failed generalization"
+    }
+  ],
+  "integration_abi_finding": {
+    "classification": "measured from current linked labels, integration-glue binary and focused tests",
+    "source_constant": "entity_spawn_debris = $98FF",
+    "linked_symbol": "entity_spawn_debris = $98C0",
+    "jump_target_byte": "0x80 at $98FF",
+    "host_result": "Unsupported NMOS 6502 opcode $80 at $98FF",
+    "scope_effect": "direct linked routine instruction counts are valid, but production admission/native debris coverage cannot be freshly certified until the ABI is repaired",
+    "changed_in_this_task": false
+  },
+  "future_raider_wreck_compatibility": {
+    "answer": "NO",
+    "reason": "slot 3 has free record RAM, but the rejected publication change does not generalize spawn, collision, HP, destruction, backing or release; the same writer-complete code and placement blocker remains"
+  },
+  "capacity_resource_impact": {
+    "runtime_change": false,
+    "current_cpu_headroom_preserved": true,
+    "current_ram_headroom_preserved": true,
+    "assessment": "CPU has room for two debris, but code placement—not record RAM or frame budget—is the limiting resource. Spending hundreds of bytes for slot 3 now would consume scarce contiguous hot regions needed by fighter/capital/boss completion."
+  },
+  "tests_and_measurements": [
+    {
+      "command": "npm run build:two-pmg -- --quiet",
+      "result": "PASS; deterministic legal baseline build"
+    },
+    {
+      "command": "node /tmp/debris-audit.mjs",
+      "result": "PASS; instruction-exact direct linked-routine costs recorded in current_cost; temporary file is not a repository artifact"
+    },
+    {
+      "command": "node --test tests/entity-effects.test.mjs tests/effects-stagger.test.mjs tests/raider-remnant.test.mjs tests/weapon-pickup-spread-shot.test.mjs",
+      "result": "43 pass, 26 fail, 2 expected todo; five debris admission failures reproduce the $98FF ABI mismatch, while other failures are known stale historical fixtures/expectations; focused effects/remnant regressions pass"
+    },
+    {
+      "command": "node --test tests/effects-stagger.test.mjs tests/raider-remnant.test.mjs",
+      "result": "PASS: 12/12; effects backing, PairShot backing, previous 745-remnant reproducer and more-than-5000-kill provenance matrix remain clean"
+    },
+    {
+      "command": "env ATARI800_TRACE_SOURCE=/Users/marcinkrzetowski/Projects/tools/atari800-7.1.2 npm run boot:smoke",
+      "result": "PASS; four XEX/ATR cold-start sessions"
+    },
+    {
+      "command": "shasum -a 256 dist/void-strike-65.xex",
+      "result": "91ec98e9dc8334a1054dfbb902863af2fad7f6a3de7d3c4e8c72d3d1e6fa2147; unchanged approved artifact"
+    }
+  ],
+  "native_measurement": {
+    "performed_for_this_proof": false,
+    "reason": "no runtime prototype was justified after static/instruction-exact rejection, and the current debris spawn ABI prevents trustworthy new admission coverage",
+    "claim": "no new native measurement"
+  },
+  "decision": "Do not implement debris 25 Hz publication or slot-3 generalization now. Existing debris visual phase is already 20-25 Hz; reducing erase/render needs a broader pre-erase event/ownership protocol, recovers no worst-event peak, and does not remove slot-0 coupling.",
+  "recommendation": "Repair the stale integration-glue debris spawn ABI and re-establish a clean native slot-0 debris baseline before any new debris feature or renderer proof.",
+  "next_task": "Debris integration ABI repair + native slot-0 baseline proof",
+  "files_changed": [
+    "docs/diagnostics/stage-2b2b-debris-25hz-slot03-feasibility.json",
+    "docs/plan-realizacji.md"
+  ]
+}

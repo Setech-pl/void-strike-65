@@ -1,10 +1,10 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 4.5
+Wersja: 4.6
 Data aktualizacji: 2026-09-14
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD przed background/ring 25 Hz proofem: `cf90b5bf5906a620e4c2d26ed895a7f3e940e4ba`
-Stan runtime: `REJECTED_BACKGROUND_RING_25HZ_PROOF` (runtime bez zmian) + `PASS_CAPITAL_SPEED_RESTORE_CLOCK_VERIFY` + `PASS_MASTER_PAL_CLOCK` + Raider PairShot `2 px/tick` + white-only starfield (4 white, `1 px/frame`, bez blue far) aktywny także w capital z hull occlusion + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck odroczony do debris 25 Hz / visual redesign; bez unified schedulera
+Aktualny HEAD przed debris 25 Hz / slot-0+3 feasibility: `e9bbcc96a1a304c86a3093d09742a6dea8768101`
+Stan runtime: `REJECTED_DEBRIS_25HZ_SLOT03_FEASIBILITY` (runtime bez zmian) + `REJECTED_BACKGROUND_RING_25HZ_PROOF` (runtime bez zmian) + `PASS_CAPITAL_SPEED_RESTORE_CLOCK_VERIFY` + `PASS_MASTER_PAL_CLOCK` + Raider PairShot `2 px/tick` + white-only starfield (4 white, `1 px/frame`, bez blue far) aktywny także w capital z hull occlusion + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck nadal odroczony; bez unified schedulera
 Ostatni XEX restore/clock owner-smoke candidate: SHA-256 `91ec98e9dc8334a1054dfbb902863af2fad7f6a3de7d3c4e8c72d3d1e6fa2147`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
@@ -1773,8 +1773,55 @@ Decyzja techniczna:
 event-driven 20–25 Hz publish i istniejące staggered preparation bez nowej
 warstwy planowania.**
 
-Następny proof wymagający osobnego promptu: `Debris 25 Hz / visual redesign
-proof`. Nie wykonywać go automatycznie.
+### Debris 25 Hz / visual redesign + slot 0/3 audit — REJECTED / prerequisite found
+
+Audyt wykazał, że obecny gameplay debris już zmienia dwufazowy tumble wyłącznie
+przy `WORLD_ROW_ADVANCED`, czyli EASY/MEDIUM/HARD `20/22,5/25 Hz`. Koszt 50 Hz
+nie pochodzi z wyboru fazy, lecz z bezwarunkowego dwukomórkowego unwind i
+ponownej publikacji: instruction-exact `38 + 184 = 222` cykle na każdy aktywny
+PAL frame.
+
+Najmniejszy sensowny kandydat zachowałby glyph na klatkach bez world eventu i
+publikował tylko przy rzeczywistym ring stepie. Dawałby średnio około
+`111-133` cykli odzysku na klatkę, ale mandatory ring/destruction frame nadal
+płaci pełne `222`; worst-event peak recovery wynosi `0`, poniżej minimalnej
+bramki wartości `150`. Blind parity 25 Hz jest rasterowo niepoprawne: ring
+eventy EASY/MEDIUM nie mają stałej parity, a retained physical glyph zmieniłby
+logiczny row lub zostałby wciągnięty do recycled background. Poprawny wariant
+wymagałby nowego pre-erase event/dirty contract obejmującego również później
+wykrywane hit/release oraz overlap effects/PairShot. Nie otwierać w tym celu
+szerszego schedulera ani ownership.
+
+Fizyczny slot 3 istnieje już w czterorekordowym SoA, jest niewykorzystany i nie
+wymaga `20 B` nowego RAM. Redesign publikacji nie usuwa jednak slot-0
+hardcoding ze spawn, simulation, player collision, PairShot arbitration,
+damage/destruction, release, render i effect-backing resolvera. Poprzedni
+writer-complete szkic `+436 B` pozostaje właściwym rzędem wielkości; obecne hot
+marginesy to tylko `25 B` w raw PICKUP_CODE i `27 B` pomiędzy ENTITY_CODE a
+Directorem, przy BROADSIDE `3 B`. Nie łączyć teraz slotu 0+3 z odrzuconym
+25-Hz publisherem.
+
+Audyt potwierdził także aktualny prerequisite correctness: osobno budowany
+`integration-glue.s` nadal skacze do historycznego `entity_spawn_debris=$98FF`,
+podczas gdy bieżący linked symbol wynosi `$98C0`; `$98FF` zawiera operand
+`$80`, który instruction harness odrzuca jako unsupported opcode. Direct-entry
+koszty debris są wiarygodne, ale nowy native admission proof nie będzie
+wiarygodny przed naprawą ABI. Runtime nie został zmieniony, a zatwierdzony XEX
+zachowuje SHA-256
+`91ec98e9dc8334a1054dfbb902863af2fad7f6a3de7d3c4e8c72d3d1e6fa2147`.
+
+Raport:
+`docs/diagnostics/stage-2b2b-debris-25hz-slot03-feasibility.json`.
+
+Decyzja techniczna:
+
+**Nie implementować teraz debris 25 Hz publication ani slotu 3. Obecna faza
+jest już 20-25 Hz, kandydat nie odzyskuje peak, a dual-slot nadal wymaga
+rozproszonego kosztu i placementu.**
+
+Następny proof wymagający osobnego promptu: `Debris integration ABI repair +
+native slot-0 baseline proof`. Nie wykonywać go automatycznie i nie integrować
+Raider wreck.
 
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 

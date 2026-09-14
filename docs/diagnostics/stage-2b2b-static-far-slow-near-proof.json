@@ -1,0 +1,147 @@
+{
+  "schema": "void-strike-65.stage-2b2b-static-far-slow-near-proof.v1",
+  "date": "2026-09-14",
+  "stage": "static far plus slow near starfield proof",
+  "status": "BLOCKED",
+  "model": {
+    "name": "Codex (GPT-5 family)",
+    "reasoning": "High",
+    "note": "The requested GPT-5.6 Sol product label was not exposed by this session."
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "headBefore": "33f58a500cd831a280921e33eb99c18578e8a602",
+    "headAfter": "commit containing this docs-only report",
+    "runtimeRolledBack": true,
+    "claudeUntouched": true,
+    "pushMergeRelease": false,
+    "preservedRefs": {
+      "refs/wip/stage2b-foreign-0803": "13597d7fb6fa6bb0d04541ed68ab6715cec1e8d4",
+      "refs/wip/stage2b0-fdb-proof": "3e5d83f2f1944d2dd90b8a23bec9eaae0dcdebc8",
+      "refs/wip/stage2b2-single-window-rejected": "7f40ee0408356bf1f431b49bf5c51d50ae72a4b3"
+    }
+  },
+  "confirmedBaseline": {
+    "far": {
+      "representation": "row-baked background-ring data",
+      "count": 29,
+      "screenSpeedPixelsPerFrame": {
+        "easy": 3.2,
+        "medium": 3.6,
+        "hard": 4.0
+      },
+      "reason": "The character bytes live in recycled physical rows selected by the rotating LMS table; therefore their screen velocity equals ring velocity."
+    },
+    "near": {
+      "representation": "four sparse dynamic character overlays",
+      "count": 4,
+      "screenSpeedPixelsPerFrame": 8,
+      "visibilityFixPreserved": true
+    },
+    "starfieldWorstCycles": 766,
+    "historicalDynamicFarCycles": 4221
+  },
+  "prototype": {
+    "far": {
+      "representation": "29 immutable screen positions, remapped only with ring-head changes",
+      "velocity": 0,
+      "perStarSimulation": false,
+      "perStarLifecycle": false,
+      "perFrameGenericAddressResolution": false,
+      "twinkle": false,
+      "patternBytes": 29,
+      "newStateBytes": 0,
+      "oldCleanup": "Remove only STAR_FAR_DIM at the old physical position before publishing the rotated row table.",
+      "newPublication": "Write STAR_FAR_DIM only into CH_SPACE; hull and higher gameplay character layers win.",
+      "divider": "Two fixed-row points remain at the same addresses; their recycled copies are removed locally."
+    },
+    "near": {
+      "count": 4,
+      "velocityPixelsPerFrame": 2,
+      "phase": [0, 2, 4, 6],
+      "fractionalAccumulator": false,
+      "logicalRowAdvance": "once per four PAL frames",
+      "publication": "Existing post-playfield OLD erase and ANTIC-visible NEW publication retained."
+    },
+    "capitalOcclusion": "Static far attempted to claim blank cells only; hull characters could not be overwritten. The proof stopped before native visual acceptance."
+  },
+  "cpu": {
+    "classification": "MEASURED instruction-exact NMOS 6502 prototype",
+    "farRingStep": {
+      "recycledDividerCleanupAndNewRowCycles": 61,
+      "remaining26PhysicalRowsCycles": 1434,
+      "fixedDividerReclaimCycles": 34,
+      "totalCycles": 1529
+    },
+    "near": {
+      "oldEraseCycles": 155,
+      "phaseUpdateOrdinaryCycles": 32,
+      "phaseUpdateCoarseWrapCycles": 91,
+      "newRenderCycles": 415,
+      "normalFramePeakCycles": 661,
+      "existingRecycledCloneCleanupCycles": 90
+    },
+    "frames": {
+      "normalNoRingPeakCycles": 661,
+      "ringStepPeakCycles": 2280,
+      "ringWrapPeakCycles": 2280,
+      "initialOrFullLayoutFarCycles": 1521,
+      "initialOrFullLayoutWithNearCycles": 1936
+    },
+    "gate": {
+      "strongPassMaximumCycles": 900,
+      "passMaximumCycles": 1200,
+      "partialMaximumCycles": 1500,
+      "measuredPeakCycles": 2280,
+      "overHardProofLimitCycles": 780,
+      "result": "REJECT"
+    },
+    "retainedSavingAgainst4221Cycles": 1941
+  },
+  "populationCounterfactual": {
+    "classification": "ESTIMATE, optimistic linear lower bound from measured protected OLD/NEW cell accesses; not implemented",
+    "far29": {
+      "farRemapCycles": 1529,
+      "totalStarfieldPeakCycles": 2280
+    },
+    "far20": {
+      "farRemapCyclesAtLeast": 1054,
+      "totalStarfieldPeakCyclesAtLeast": 1805
+    },
+    "far16": {
+      "farRemapCyclesAtLeast": 844,
+      "totalStarfieldPeakCyclesAtLeast": 1595
+    },
+    "note": "A truly sparse mapper would add address-resolution overhead, so the 20/16 totals are favorable lower bounds, not implementation forecasts."
+  },
+  "memoryPlacementPrototype": {
+    "linkedRuntimeBytes": 17563,
+    "linkedDeltaBytes": 20,
+    "starfieldRawBytes": 2228,
+    "starfieldRawCapacityBytes": 2348,
+    "starfieldRawMarginBytes": 120,
+    "entityCodeBytes": 3170,
+    "pickupCodeBytes": 871,
+    "initialContentBytes": 13101,
+    "basicRamUsed": false,
+    "loaderChanged": false,
+    "transportFormatChanged": false,
+    "physicalPlacement": "PASS before the CPU stop"
+  },
+  "rollback": {
+    "productionRuntime": "Restored byte-for-byte to HEAD 33f58a5",
+    "currentFarSpeed": "unchanged row-baked 3.2/3.6/4.0 px/frame",
+    "currentNearSpeed": "unchanged 8 px/frame",
+    "currentXexSha256": "c5bdc93b8b2b822bad22e19f402c9347de4fa1996cf58871c05b3ec0eba0b826",
+    "ownerCandidateBuilt": false
+  },
+  "verification": {
+    "prototypeBuild": "PASS before instruction-exact CPU measurement",
+    "rollbackBuild": "PASS: npm run build:two-pmg -- --quiet",
+    "rollbackFocusedStarfield": "PASS 19/19",
+    "nativeTrace": "Not run after the mandatory CPU STOP; there is no owner candidate.",
+    "regressions": "Existing PairShot/effects/fire-audio/near-visibility runtime is unchanged by rollback."
+  },
+  "decision": "29 screen-static blue far stars are rejected in the current ring architecture.",
+  "next": "Owner decision required for a separate very-slow blue drift proof (about one sixth current speed). Do not implement automatically and do not begin background/ring 25 Hz."
+}

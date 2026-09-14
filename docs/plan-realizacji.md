@@ -1,10 +1,10 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 3.7
-Data aktualizacji: 2026-09-13
+Wersja: 3.8
+Data aktualizacji: 2026-09-14
 Branch roboczy: `experiment/two-pmg-raider-combat`  
-Aktualny HEAD przed niniejszym proofem: `41d136f5a9a91e05c0b0886519c8e348d2753508`
-Stan runtime: dwuwarstwowy starfield po technicznym PASS naprawy widoczności white near + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck odroczony do debris 25 Hz / visual redesign; bez unified schedulera
+Aktualny HEAD przed niniejszym proofem: `33f58a500cd831a280921e33eb99c18578e8a602`
+Stan runtime: niezmieniony dwuwarstwowy row-baked starfield po wycofaniu zbyt kosztownego static-far prototype + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio + final remaining Raider-remnant fix; Raider wreck odroczony do debris 25 Hz / visual redesign; bez unified schedulera
 Aktualny XEX owner-smoke candidate: SHA-256 `c5bdc93b8b2b822bad22e19f402c9347de4fa1996cf58871c05b3ec0eba0b826`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
@@ -1328,12 +1328,56 @@ Decyzja techniczna:
 **White near stars są teraz rzeczywiście pobierane przez ANTIC; finalna ocena
 widoczności i paralaksy pozostaje OWNER SMOKE.**
 
-### Następny krok — tylko owner smoke
+### Static far + slow near proof — BLOCKED / runtime wycofany
 
-> Owner smoke white near stars + parallax.
+Owner odrzucił prędkość kandydata: blue far poruszały się z ringiem
+`3,2/3,6/4,0 px/frame`, a white near `8 px/frame`. Autoryzowany proof sprawdził
+29 blue points nieruchomych w screen-space oraz white near `2 px/frame`.
 
-Nie wykonywać background/ring 25 Hz przed owner PASS. Raider wreck pozostaje
-odroczony do późniejszego debris 25 Hz / visual redesign.
+Minimalny prototyp nie przywracał 29 recordów, velocity, lifecycle, twinkle ani
+per-frame resolvera. Stały układ 29 pozycji był inicjalizowany raz; przy jedynym
+zdarzeniu zmieniającym mapowanie ring usuwał OLD blue byte, zakładał NEW tylko
+na `CH_SPACE`, a dwie pozycje dividera nie obracały się. White near używały
+wspólnej integralnej fazy `0/2/4/6`, bez fractional accumulatora i bez zmiany
+zaakceptowanego late-publication/backing contract.
+
+Instruction-exact pomiar uruchomił twardy STOP:
+
+- static-far recycle cleanup/new row: `61` cykli;
+- remap 26 pozostałych physical rows: `1 434`;
+- fixed-divider reclaim: `34`;
+- static-far ring-step razem: `1 529` cykli;
+- slow-near normal peak: `661` cykli;
+- skorelowany ring-step/wrap starfield peak, wraz z istniejącym 90-cycle near
+  clone cleanup: `2 280` cykli.
+
+Sam far remap przekracza limit całego proofu `1 500`; pełny peak przekracza go o
+`780`. Zachowany zysk względem historycznych `4 221` wynosi tylko `1 941`, mniej
+niż wymagane około `3 500`. Przyczyną nie jest 29 generic address resolves, lecz
+minimalne OLD/NEW reads+writes potrzebne do ochrony wyższych character layers i
+usunięcia blue byte z każdej starej physical cell przed zmianą mapowania.
+
+Optymistyczne dolne granice, liniowo skalowane z rzeczywistych 29-point cell
+accesses, wynoszą: 20 far `>=1 805` oraz 16 far `>=1 595` cykli całego
+starfield peak. Nie zaimplementowano mniejszych populacji. Screen-static runtime,
+near `2 px/frame`, build-contract edits i wygenerowane artefakty zostały
+wycofane; produkcyjny XEX pozostaje byte-identical z checkpointem.
+
+Raport:
+`docs/diagnostics/stage-2b2b-static-far-slow-near-proof.json`.
+
+Decyzja:
+
+**29 screen-static blue far stars są odrzucone w aktualnej architekturze ring.**
+
+### Następny krok — wymaga decyzji ownera
+
+> Osobny proof bardzo wolnego blue drift około 1/6 bieżącej prędkości, z
+> globalnym low-frequency accumulator i sparse/staggered remapem.
+
+Nie implementować go automatycznie. Nie wykonywać background/ring 25 Hz przed
+rozstrzygnięciem starfield. Raider wreck pozostaje odroczony do późniejszego
+debris 25 Hz / visual redesign.
 
 ### Stage 2B.2c — raster bands tylko po osobnej decyzji
 

@@ -171,6 +171,35 @@ typedef struct {
 	unsigned pickup_animation;
 	unsigned pickup_render_id;
 	unsigned pickup_drawn_mask;
+	unsigned pickup_admission_requests;
+	unsigned pickup_attempt_sector;
+	unsigned pickup_attempt_active_mask;
+	unsigned pickup_attempt_active_count;
+	unsigned pickup_attempt_x;
+	unsigned pickup_attempt_y;
+	unsigned pickup_attempt_timer;
+	unsigned pickup_attempt_type[4];
+	unsigned pickup_attempt_state[4];
+	unsigned pickup_attempt_director_phase;
+	unsigned pickup_attempt_director_intensity;
+	unsigned pickup_attempt_director_reaction;
+	unsigned pickup_attempt_director_recovery;
+	unsigned pickup_attempt_director_rng;
+	unsigned pickup_attempt_director_flags;
+	unsigned pickup_attempt_admission_frame;
+	unsigned pickup_attempt_gameplay_frame;
+	unsigned pickup_attempt_player_lifecycle;
+	unsigned pickup_pmg_rows;
+	unsigned pickup_hposm[4];
+	unsigned pickup_sizem;
+	unsigned pickup_screen_lo;
+	unsigned pickup_screen_hi;
+	unsigned pickup_pmg_byte_top;
+	unsigned pickup_pmg_byte_middle;
+	unsigned pickup_pmg_byte_bottom;
+	unsigned pickup_gractl;
+	unsigned entity_type[4];
+	unsigned entity_state[4];
 	unsigned score_lo;
 	unsigned score_hi;
 	unsigned colbk;
@@ -357,6 +386,9 @@ static unsigned dftrace_active_limit;
 static unsigned dftrace_fire_delay;
 static unsigned dftrace_difficulty;
 static const char *dftrace_policy;
+static const char *dftrace_pmg_lab_screenshot;
+static unsigned dftrace_pmg_lab_presentations;
+static unsigned dftrace_pmg_lab_screenshot_frame = 0xffffffffu;
 static const char *dftrace_session;
 static const char *dftrace_output;
 static const char *dftrace_interceptor_projectile_output;
@@ -554,6 +586,7 @@ static unsigned dftrace_entity_move_accumulator;
 static unsigned dftrace_entity_vertical_accumulator;
 static unsigned dftrace_entity_render_id;
 static unsigned dftrace_entity_active_mask;
+static unsigned dftrace_entity_type;
 static unsigned dftrace_entity_state;
 static unsigned dftrace_entity_hp;
 static unsigned dftrace_entity_timer;
@@ -751,6 +784,12 @@ static unsigned dfboot_loader_dli_count;
 static uint64_t dfboot_same_frame_instructions;
 static unsigned dfboot_instruction_frame = 0xffffffffu;
 static DFBootSnapshot dfboot_snapshots[5];
+static unsigned dfboot_trace_pc[64];
+static unsigned dfboot_trace_a[64];
+static unsigned dfboot_trace_x[64];
+static unsigned dfboot_trace_y[64];
+static unsigned dfboot_trace_s[64];
+static unsigned dfboot_trace_head;
 
 static unsigned dfboot_env_u(const char *name)
 {
@@ -896,19 +935,42 @@ static void dfboot_init(void)
 	dfboot_initialised = 1;
 }
 
-static void dfboot_observe(unsigned pc)
+static void dfboot_observe(unsigned pc, unsigned a_register, unsigned x_register,
+	unsigned y_register, unsigned s_register)
 {
 	unsigned frame;
 	unsigned fire_start;
+	unsigned trace_index;
 	if (!dfboot_initialised)
 		dfboot_init();
 	frame = (unsigned) Atari800_nframes;
+	dfboot_trace_pc[dfboot_trace_head & 63u] = pc;
+	dfboot_trace_a[dfboot_trace_head & 63u] = a_register;
+	dfboot_trace_x[dfboot_trace_head & 63u] = x_register;
+	dfboot_trace_y[dfboot_trace_head & 63u] = y_register;
+	dfboot_trace_s[dfboot_trace_head & 63u] = s_register;
+	++dfboot_trace_head;
 	if (frame > 500u && MEMORY_mem[pc] == 0x00u) {
 		fprintf(stderr, "voidstrike65 boot smoke: unexpected BRK frame=%u pc=$%04x "
 			"state=%u glue=%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x\n", frame, pc,
 			MEMORY_mem[dfboot_game_state], MEMORY_mem[0x4fe8u], MEMORY_mem[0x4febu],
 			MEMORY_mem[0x4feeu], MEMORY_mem[0x4ff1u], MEMORY_mem[0x4ff3u],
 			MEMORY_mem[0x4ff6u], MEMORY_mem[0x4ff8u], MEMORY_mem[0x4ff9u]);
+		fprintf(stderr, "last instructions (oldest first):\n");
+		for (trace_index = 0u; trace_index < 64u; ++trace_index) {
+			unsigned slot = (dfboot_trace_head + trace_index) & 63u;
+			fprintf(stderr, "$%04x op=%02x a=%02x x=%02x y=%02x s=%02x\n",
+				dfboot_trace_pc[slot], MEMORY_mem[dfboot_trace_pc[slot]],
+				dfboot_trace_a[slot], dfboot_trace_x[slot], dfboot_trace_y[slot],
+				dfboot_trace_s[slot]);
+		}
+		fprintf(stderr, "stack $01f0-$01ff:");
+		for (trace_index = 0u; trace_index < 16u; ++trace_index)
+			fprintf(stderr, " %02x", MEMORY_mem[0x01f0u + trace_index]);
+		fprintf(stderr, "\nextension $8d8e-$8d9d:");
+		for (trace_index = 0u; trace_index < 16u; ++trace_index)
+			fprintf(stderr, " %02x", MEMORY_mem[0x8d8eu + trace_index]);
+		fprintf(stderr, "\n");
 		exit(98);
 	}
 	if (frame != dfboot_instruction_frame) {
@@ -2126,16 +2188,72 @@ static DFTracePhysicalBounds dftrace_bolt_physical_bounds(unsigned slot,
 	return result;
 }
 
-/* Re-enter the unmodified production capital traversal five times. Only the
- * Director admission boundary is accelerated: every hull state change, drain,
- * COMPLETE reconstruction and OPEN re-entry remains guest code. */
+/* Re-enter the unmodified production capital traversal. Only the Director
+ * admission boundary is accelerated: every hull state change, drain, COMPLETE
+ * reconstruction and OPEN re-entry remains guest code. */
+static int dftrace_reentry_policy(void)
+{
+	return strncmp(dftrace_policy, "pairshot-reentry-", 17u) == 0 ||
+		strcmp(dftrace_policy, "booster-reentry") == 0;
+}
+
+/* Test-only PMG visibility laboratory. This deliberately runs after the
+ * guest renderer, so the next complete ANTIC raster contains only this fixed
+ * missile object. It never enters the production XEX. */
+static int dftrace_pmg_lab_variant(void)
+{
+	return strcmp(dftrace_policy, "pmg-lab-fifth-player") == 0 ||
+		strcmp(dftrace_policy, "pmg-lab-ordinary-missiles") == 0 ||
+		strcmp(dftrace_policy, "pmg-lab-single-missile") == 0;
+}
+
+static void dftrace_publish_pmg_lab(void)
+{
+	unsigned row;
+	unsigned value = 0xf0u;
+	if (!dftrace_pmg_lab_variant())
+		return;
+	/* $3b00 is PMBASE+$300: the exact production missile DMA page. */
+	for (row = 0u; row < 256u; ++row)
+		MEMORY_mem[0x3b00u + row] = 0u;
+	if (strcmp(dftrace_policy, "pmg-lab-single-missile") == 0)
+		value = 0x10u;
+	for (row = 0u; row < 16u; ++row)
+		MEMORY_mem[0x3b00u + 120u + row] = (UBYTE) value;
+	/* Use the emulator's real GTIA write path: direct cached-variable writes do
+	 * not update its horizontal raster pointers and are not hardware-equivalent. */
+	GTIA_PutByte(GTIA_OFFSET_HPOSM0, 94u);
+	GTIA_PutByte(GTIA_OFFSET_HPOSM1, 96u);
+	GTIA_PutByte(GTIA_OFFSET_HPOSM2, 98u);
+	GTIA_PutByte(GTIA_OFFSET_HPOSM3, 100u);
+	GTIA_PutByte(GTIA_OFFSET_GRACTL, 0x03u);
+	if (strcmp(dftrace_policy, "pmg-lab-fifth-player") == 0) {
+		GTIA_PutByte(GTIA_OFFSET_SIZEM, 0x00u);
+		GTIA_PutByte(GTIA_OFFSET_PRIOR, 0x10u);
+	}
+	else if (strcmp(dftrace_policy, "pmg-lab-ordinary-missiles") == 0) {
+		GTIA_PutByte(GTIA_OFFSET_SIZEM, 0x00u);
+		GTIA_PutByte(GTIA_OFFSET_PRIOR, 0x00u);
+	}
+	else {
+		/* M0 only, fourfold width; P0-P3 graphics and colours are untouched. */
+		GTIA_PutByte(GTIA_OFFSET_SIZEM, 0x03u);
+		GTIA_PutByte(GTIA_OFFSET_PRIOR, 0x00u);
+	}
+	++dftrace_pmg_lab_presentations;
+}
+
 static void dftrace_prepare_pairshot_reentry(unsigned frame)
 {
 	unsigned sector;
-	if (strncmp(dftrace_policy, "pairshot-reentry-", 17u) != 0)
+	unsigned target_cycles;
+	unsigned fighter_frames;
+	if (!dftrace_reentry_policy())
 		return;
+	target_cycles = strcmp(dftrace_policy, "booster-reentry") == 0 ? 3u : 5u;
+	fighter_frames = strcmp(dftrace_policy, "booster-reentry") == 0 ? 480u : 180u;
 	sector = MEMORY_mem[dftrace_sector_state];
-	/* Keep one continuous gameplay generation alive for all five traversals;
+	/* Keep one continuous gameplay generation alive for all requested traversals;
 	 * collision/update/render code still executes, but cannot end the replay. */
 	MEMORY_mem[dftrace_broad_state + 29u] = 10u;
 	MEMORY_mem[dftrace_player_lifecycle + 2u] = 2u;
@@ -2150,8 +2268,8 @@ static void dftrace_prepare_pairshot_reentry(unsigned frame)
 	}
 	if (sector == 7u)
 		MEMORY_mem[dftrace_director_state + 8u] = 0x40u;
-	if (sector == 7u && dftrace_pairshot_reentry_cycles < 5u &&
-		frame - dftrace_pairshot_reentry_open_frame >= 180u) {
+	if (sector == 7u && dftrace_pairshot_reentry_cycles < target_cycles &&
+		frame - dftrace_pairshot_reentry_open_frame >= fighter_frames) {
 		MEMORY_mem[dftrace_sector_state] = 0u;
 		MEMORY_mem[dftrace_corridor_phase] = 0u;
 		MEMORY_mem[dftrace_corridor_phase_hi] = 0u;
@@ -2172,6 +2290,7 @@ static void dftrace_set_gameplay_input(unsigned frame)
 	unsigned y = MEMORY_mem[dftrace_player_y];
 	int pairshot_speed = strncmp(dftrace_policy, "pairshot-speed-", 15u) == 0;
 	int pairshot_reentry = strncmp(dftrace_policy, "pairshot-reentry-", 17u) == 0;
+	int booster_reentry = strcmp(dftrace_policy, "booster-reentry") == 0;
 	dftrace_prepare_pairshot_reentry(frame);
 	if (pairshot_speed) {
 		/* Eight isolated tap allocations, then >=1000 held frames, a 150-frame
@@ -2394,7 +2513,7 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		strcmp(dftrace_policy, "pairshot-normal") == 0 ||
 		strcmp(dftrace_policy, "pairshot-rapid") == 0 ||
 		strcmp(dftrace_policy, "pairshot-spread") == 0 || pairshot_speed ||
-		pairshot_reentry) {
+		pairshot_reentry || booster_reentry) {
 		/* Follow the live Interceptor's PMG origin using only ordinary joystick
 		 * input. This remains a production gameplay replay: no guest state is
 		 * seeded, and held FIRE enters the canonical burst controller. */
@@ -3156,6 +3275,7 @@ static void dftrace_remember_capital_physical(unsigned slot)
 
 static void dftrace_snapshot(DFTraceFrame *frame)
 {
+	unsigned pickup_row;
 	frame->dma_ctl = ANTIC_DMACTL;
 	frame->nmi_en = ANTIC_NMIEN;
 	frame->projectiles = dftrace_count_nonzero(dftrace_projectile_active,
@@ -3228,6 +3348,29 @@ static void dftrace_snapshot(DFTraceFrame *frame)
 		(frame->pickup_booster_state != 0u ? 2u : 1u)];
 	frame->pickup_render_id = MEMORY_mem[dftrace_entity_render_id + 1u];
 	frame->pickup_drawn_mask = MEMORY_mem[dftrace_entity_drawn_mask + 1u];
+	frame->pickup_pmg_rows = 0u;
+	for (pickup_row = 0u; pickup_row < 256u; ++pickup_row) {
+		if ((MEMORY_mem[0x3b00u + pickup_row] & 0xf0u) != 0u)
+			++frame->pickup_pmg_rows;
+	}
+	frame->pickup_hposm[0] = GTIA_HPOSM0;
+	frame->pickup_hposm[1] = GTIA_HPOSM1;
+	frame->pickup_hposm[2] = GTIA_HPOSM2;
+	frame->pickup_hposm[3] = GTIA_HPOSM3;
+	frame->pickup_sizem = GTIA_SIZEM;
+	frame->pickup_screen_lo = MEMORY_mem[dftrace_entity_screen_lo + 1u];
+	frame->pickup_screen_hi = MEMORY_mem[dftrace_entity_screen_hi + 1u];
+	frame->pickup_pmg_byte_top = frame->pickup_screen_hi == 0u ? 0u :
+		MEMORY_mem[0x3b00u + frame->pickup_screen_lo];
+	frame->pickup_pmg_byte_middle = frame->pickup_screen_hi == 0u ? 0u :
+		MEMORY_mem[0x3b00u + frame->pickup_screen_lo + 7u];
+	frame->pickup_pmg_byte_bottom = frame->pickup_screen_hi == 0u ? 0u :
+		MEMORY_mem[0x3b00u + frame->pickup_screen_lo + 15u];
+	frame->pickup_gractl = GTIA_GRACTL;
+	for (unsigned slot = 0u; slot < 4u; ++slot) {
+		frame->entity_type[slot] = MEMORY_mem[dftrace_entity_type + slot];
+		frame->entity_state[slot] = MEMORY_mem[dftrace_entity_state + slot];
+	}
 	frame->score_lo = MEMORY_mem[dftrace_score_lo];
 	frame->score_hi = MEMORY_mem[dftrace_score_hi];
 }
@@ -4016,6 +4159,7 @@ static void dftrace_snapshot_muzzles(DFTraceFrame *frame)
 
 static void dftrace_snapshot_flash(DFTraceFrame *frame)
 {
+	unsigned pickup_row;
 	dftrace_snapshot_rapid_projectile(frame);
 	dftrace_snapshot_player_pairshot_orphans(frame);
 	dftrace_snapshot_enemy_pairshot_orphans(frame);
@@ -4059,6 +4203,29 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 		(frame->pickup_booster_state != 0u ? 2u : 1u)];
 	frame->pickup_render_id = MEMORY_mem[dftrace_entity_render_id + 1u];
 	frame->pickup_drawn_mask = MEMORY_mem[dftrace_entity_drawn_mask + 1u];
+	frame->pickup_pmg_rows = 0u;
+	for (pickup_row = 0u; pickup_row < 256u; ++pickup_row) {
+		if ((MEMORY_mem[0x3b00u + pickup_row] & 0xf0u) != 0u)
+			++frame->pickup_pmg_rows;
+	}
+	frame->pickup_hposm[0] = GTIA_HPOSM0;
+	frame->pickup_hposm[1] = GTIA_HPOSM1;
+	frame->pickup_hposm[2] = GTIA_HPOSM2;
+	frame->pickup_hposm[3] = GTIA_HPOSM3;
+	frame->pickup_sizem = GTIA_SIZEM;
+	frame->pickup_screen_lo = MEMORY_mem[dftrace_entity_screen_lo + 1u];
+	frame->pickup_screen_hi = MEMORY_mem[dftrace_entity_screen_hi + 1u];
+	frame->pickup_pmg_byte_top = frame->pickup_screen_hi == 0u ? 0u :
+		MEMORY_mem[0x3b00u + frame->pickup_screen_lo];
+	frame->pickup_pmg_byte_middle = frame->pickup_screen_hi == 0u ? 0u :
+		MEMORY_mem[0x3b00u + frame->pickup_screen_lo + 7u];
+	frame->pickup_pmg_byte_bottom = frame->pickup_screen_hi == 0u ? 0u :
+		MEMORY_mem[0x3b00u + frame->pickup_screen_lo + 15u];
+	frame->pickup_gractl = GTIA_GRACTL;
+	for (unsigned slot = 0u; slot < 4u; ++slot) {
+		frame->entity_type[slot] = MEMORY_mem[dftrace_entity_type + slot];
+		frame->entity_state[slot] = MEMORY_mem[dftrace_entity_state + slot];
+	}
 	frame->score_lo = MEMORY_mem[dftrace_score_lo];
 	frame->score_hi = MEMORY_mem[dftrace_score_hi];
 	frame->active_gameplay_frame = MEMORY_mem[dftrace_active_gameplay_frame_lo] |
@@ -4160,7 +4327,23 @@ static void dftrace_write(void)
 		",raider_kills_with_emitter_projectile_active,emitter_owned_projectiles_at_kill"
 		",emitter_owned_projectiles_removed,foreign_projectiles_preserved"
 		",foreign_projectiles_incorrectly_removed,post_kill_emitter_projectile_continuations"
-		",emitter_owned_physical_slot0_at_kill,enemy_projectile_stale_cells\n");
+		",emitter_owned_physical_slot0_at_kill,enemy_projectile_stale_cells"
+		",pickup_admission_requests,pickup_attempt_sector,pickup_attempt_active_mask"
+		",pickup_attempt_active_count,pickup_attempt_x,pickup_attempt_y,pickup_attempt_timer"
+		",pickup_attempt_slot0_type,pickup_attempt_slot0_state"
+		",pickup_attempt_slot1_type,pickup_attempt_slot1_state"
+		",pickup_attempt_slot2_type,pickup_attempt_slot2_state"
+		",pickup_attempt_slot3_type,pickup_attempt_slot3_state"
+		",pickup_attempt_director_phase,pickup_attempt_director_intensity"
+		",pickup_attempt_director_reaction,pickup_attempt_director_recovery"
+		",pickup_attempt_director_rng,pickup_attempt_director_flags"
+		",pickup_attempt_admission_frame,pickup_attempt_gameplay_frame"
+		",pickup_attempt_player_lifecycle"
+		",pickup_pmg_rows,pickup_hposm0,pickup_hposm1,pickup_hposm2,pickup_hposm3"
+		",pickup_sizem,pickup_screen_lo,pickup_screen_hi,pickup_pmg_byte_top"
+		",pickup_pmg_byte_middle,pickup_pmg_byte_bottom,pickup_gractl"
+		",slot0_type,slot0_state,slot1_type,slot1_state"
+		",slot2_type,slot2_state,slot3_type,slot3_state\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -4375,7 +4558,7 @@ static void dftrace_write(void)
 			frame->raider_character_writes,
 			frame->raider_transient_allocations,
 			frame->raider_slot0_activations);
-		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u\n",
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u",
 			frame->raider_kills_with_emitter_projectile_active,
 			frame->emitter_owned_projectiles_at_kill,
 			frame->emitter_owned_projectiles_removed,
@@ -4384,6 +4567,33 @@ static void dftrace_write(void)
 			frame->post_kill_emitter_projectile_continuations,
 			frame->emitter_owned_physical_slot0_at_kill,
 			frame->enemy_projectile_stale_cells);
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u", frame->pickup_admission_requests,
+			frame->pickup_attempt_sector, frame->pickup_attempt_active_mask,
+			frame->pickup_attempt_active_count, frame->pickup_attempt_x,
+			frame->pickup_attempt_y, frame->pickup_attempt_timer);
+		for (unsigned slot = 0u; slot < 4u; ++slot)
+			fprintf(file, ",%u,%u", frame->pickup_attempt_type[slot],
+				frame->pickup_attempt_state[slot]);
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u",
+			frame->pickup_attempt_director_phase,
+			frame->pickup_attempt_director_intensity,
+			frame->pickup_attempt_director_reaction,
+			frame->pickup_attempt_director_recovery,
+			frame->pickup_attempt_director_rng,
+			frame->pickup_attempt_director_flags,
+			frame->pickup_attempt_admission_frame,
+			frame->pickup_attempt_gameplay_frame,
+			frame->pickup_attempt_player_lifecycle);
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u", frame->pickup_pmg_rows,
+			frame->pickup_hposm[0], frame->pickup_hposm[1],
+			frame->pickup_hposm[2], frame->pickup_hposm[3], frame->pickup_sizem,
+			frame->pickup_screen_lo, frame->pickup_screen_hi);
+		fprintf(file, ",%u,%u,%u,%u", frame->pickup_pmg_byte_top,
+			frame->pickup_pmg_byte_middle, frame->pickup_pmg_byte_bottom,
+			frame->pickup_gractl);
+		for (unsigned slot = 0u; slot < 4u; ++slot)
+			fprintf(file, ",%u,%u", frame->entity_type[slot], frame->entity_state[slot]);
+		fputc('\n', file);
 	}
 	if (fclose(file) != 0) {
 		perror("voidstrike65 trace close");
@@ -4429,6 +4639,7 @@ static void dftrace_init(void)
 		exit(2);
 	}
 	dftrace_policy = getenv("DFTRACE_POLICY");
+	dftrace_pmg_lab_screenshot = getenv("DFTRACE_PMG_LAB_SCREENSHOT");
 	dftrace_session = getenv("DFTRACE_SESSION");
 	dftrace_output = getenv("DFTRACE_OUTPUT");
 	dftrace_interceptor_projectile_output = getenv("DFTRACE_INTERCEPTOR_PROJECTILE_OUTPUT");
@@ -4601,6 +4812,7 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_entity_vertical_accumulator, "DFTRACE_ENTITY_VERTICAL_ACCUMULATOR");
 	DFTRACE_ADDRESS(dftrace_entity_render_id, "DFTRACE_ENTITY_RENDER_ID");
 	DFTRACE_ADDRESS(dftrace_entity_active_mask, "DFTRACE_ENTITY_ACTIVE_MASK");
+	DFTRACE_ADDRESS(dftrace_entity_type, "DFTRACE_ENTITY_TYPE");
 	DFTRACE_ADDRESS(dftrace_entity_state, "DFTRACE_ENTITY_STATE");
 	DFTRACE_ADDRESS(dftrace_entity_hp, "DFTRACE_ENTITY_HP");
 	DFTRACE_ADDRESS(dftrace_entity_timer, "DFTRACE_ENTITY_TIMER");
@@ -4817,7 +5029,8 @@ static void dffence_observe(unsigned pc, unsigned x_register)
 	dffence_previous_pc = pc;
 }
 
-static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_register)
+static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_register,
+	unsigned y_register, unsigned s_register)
 {
 	unsigned host_frame = (unsigned) Atari800_nframes;
 	/* The hook runs immediately before PC.  A preceding STA $3B00,Y has
@@ -4833,7 +5046,7 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 		return;
 	}
 	if (getenv("DFBOOT_OUTPUT") != NULL) {
-		dfboot_observe(pc);
+		dfboot_observe(pc, a_register, x_register, y_register, s_register);
 		return;
 	}
 	if (!dftrace_initialised)
@@ -4904,6 +5117,20 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 			dftrace_dli_integrity_count = MEMORY_mem[dftrace_dli_phase] != 0u ? 1u : 0u;
 			dftrace_maximum_dlis_per_host_frame = dftrace_dli_integrity_count;
 		}
+		/* The previous end hook published the object before this completed ANTIC
+		 * pass. Capture before the current guest frame can touch PMG state. */
+		/* Prime several full frames: the first active hook still exposes the
+		 * loader/playfield hand-off framebuffer, not a complete PMG lab raster. */
+		if (dftrace_pmg_lab_variant() && dftrace_pmg_lab_presentations >= 5u &&
+			dftrace_pmg_lab_screenshot != NULL && *dftrace_pmg_lab_screenshot != '\0' &&
+			dftrace_pmg_lab_screenshot_frame == 0xffffffffu) {
+			if (!Screen_SaveScreenshot(dftrace_pmg_lab_screenshot, 0)) {
+				fprintf(stderr, "voidstrike65 trace: PMG-lab screenshot failed: %s\n",
+					dftrace_pmg_lab_screenshot);
+				exit(2);
+			}
+			dftrace_pmg_lab_screenshot_frame = dftrace_count;
+		}
 		if (dftrace_rapid_screenshot != NULL && *dftrace_rapid_screenshot != '\0' &&
 			dftrace_rapid_screenshot_frame == 0xffffffffu &&
 			MEMORY_mem[dftrace_entity_state + 2u] == 3u) {
@@ -4945,20 +5172,29 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 		 * the existing framebuffer; the end-of-loop hook can run before the
 		 * pickup's scanline and is therefore not visual evidence. */
 		if (MEMORY_mem[dftrace_entity_state + 1u] == 2u &&
-			MEMORY_mem[dftrace_entity_active_mask] == 2u &&
-			(MEMORY_mem[dftrace_entity_drawn_mask + 1u] & 15u) == 15u &&
-			MEMORY_mem[dftrace_effect_active_count] == 0u) {
-			dftrace_pickup_visible_passes++;
+			(MEMORY_mem[dftrace_entity_active_mask] & 2u) != 0u &&
+			MEMORY_mem[dftrace_entity_screen_hi + 1u] != 0u &&
+			GTIA_PRIOR == 0x10u) {
+			unsigned pickup_rows = 0u;
+			unsigned row;
+			for (row = 0u; row < 256u; ++row) {
+				if ((MEMORY_mem[0x3b00u + row] & 0xf0u) != 0u)
+					++pickup_rows;
+			}
+			if (pickup_rows == 16u)
+				++dftrace_pickup_visible_passes;
+			else
+				dftrace_pickup_visible_passes = 0u;
 			if (dftrace_pickup_screenshot != NULL && *dftrace_pickup_screenshot != '\0' &&
 				dftrace_pickup_screenshot_frame == 0xffffffffu &&
-				dftrace_pickup_visible_passes == 2u &&
+				dftrace_pickup_visible_passes == 5u &&
 				!Screen_SaveScreenshot(dftrace_pickup_screenshot, 0)) {
 				fprintf(stderr, "voidstrike65 trace: pickup screenshot failed: %s\n",
 					dftrace_pickup_screenshot);
 				exit(2);
 			}
 			if (dftrace_pickup_screenshot_frame == 0xffffffffu &&
-				dftrace_pickup_visible_passes == 2u)
+				dftrace_pickup_visible_passes == 5u)
 				dftrace_pickup_screenshot_frame = dftrace_count;
 		}
 		else
@@ -5103,6 +5339,9 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 		dftrace_current.start_host_frame = (unsigned) Atari800_nframes;
 		dftrace_current.start_y = ANTIC_ypos;
 		dftrace_current.start_x = ANTIC_XPOS;
+		/* Publish without touching entity state: otherwise the production erase
+		 * path quite correctly clears a fake slot before the scanline arrives. */
+		dftrace_publish_pmg_lab();
 		dftrace_snapshot(&dftrace_current);
 		dftrace_snapshot_engine(&dftrace_current);
 		dftrace_current.gameplay_generation = dftrace_gameplay_generation;
@@ -5352,8 +5591,45 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 		dftrace_current.events |= DFTRACE_EVENT_PICKUP_COLLECT;
 	else if (pc == dftrace_pc_director_world)
 		dftrace_current.events |= DFTRACE_EVENT_DIRECTOR_WORLD;
-	else if (pc == dftrace_pc_director_request)
+	else if (pc == dftrace_pc_director_request) {
 		dftrace_current.events |= DFTRACE_EVENT_DIRECTOR_REQUEST;
+		if (x_register == 3u) {
+			unsigned slot;
+			++dftrace_current.pickup_admission_requests;
+			dftrace_current.pickup_attempt_sector = MEMORY_mem[dftrace_sector_state];
+			dftrace_current.pickup_attempt_active_mask =
+				MEMORY_mem[dftrace_entity_active_mask];
+			dftrace_current.pickup_attempt_active_count =
+				MEMORY_mem[dftrace_entity_active_count];
+			dftrace_current.pickup_attempt_x = MEMORY_mem[dftrace_entity_x + 1u];
+			dftrace_current.pickup_attempt_y = MEMORY_mem[dftrace_entity_y + 1u];
+			dftrace_current.pickup_attempt_timer = MEMORY_mem[dftrace_entity_timer + 1u];
+			for (slot = 0u; slot < 4u; ++slot) {
+				dftrace_current.pickup_attempt_type[slot] =
+					MEMORY_mem[dftrace_entity_type + slot];
+				dftrace_current.pickup_attempt_state[slot] =
+					MEMORY_mem[dftrace_entity_state + slot];
+			}
+			dftrace_current.pickup_attempt_director_phase =
+				MEMORY_mem[dftrace_director_state];
+			dftrace_current.pickup_attempt_director_intensity =
+				MEMORY_mem[dftrace_director_state + 2u];
+			dftrace_current.pickup_attempt_director_reaction =
+				MEMORY_mem[dftrace_director_state + 3u];
+			dftrace_current.pickup_attempt_director_recovery =
+				MEMORY_mem[dftrace_director_state + 4u];
+			dftrace_current.pickup_attempt_director_rng =
+				MEMORY_mem[dftrace_director_state + 5u];
+			dftrace_current.pickup_attempt_director_flags =
+				MEMORY_mem[dftrace_director_state + 8u];
+			dftrace_current.pickup_attempt_admission_frame =
+				MEMORY_mem[dftrace_director_state + 9u];
+			dftrace_current.pickup_attempt_gameplay_frame =
+				MEMORY_mem[dftrace_gameplay_frame];
+			dftrace_current.pickup_attempt_player_lifecycle =
+				MEMORY_mem[dftrace_player_lifecycle];
+		}
+	}
 	else if (pc == dftrace_pc_director_event)
 		dftrace_current.events |= DFTRACE_EVENT_DIRECTOR_EVENT;
 

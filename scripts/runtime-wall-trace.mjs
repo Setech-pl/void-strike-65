@@ -222,6 +222,32 @@ const playerPairShotReentrySessions = ["normal", "rapid", "spread"].map((mode) =
   kind: "player-pairshot-reentry-native",
 }));
 
+const boosterAdmissionReentrySessions = Array.from({ length: 5 }, (_, run) => ({
+  id: `booster-admission-reentry-${run + 1}-xex-hard`,
+  medium: "XEX",
+  difficulty: 2,
+  policy: "booster-reentry",
+  fireDelay: 0,
+  // One full capital traversal plus an OPEN re-entry, still with production
+  // gameplay/admission/pickup code; only the diagnostic sector cadence is held.
+  frames: 3_600,
+  kind: "booster-admission-native",
+}));
+
+const pmgLabSessions = [
+  ["pmg-lab-fifth-player", "pmg-lab-fifth-player"],
+  ["pmg-lab-ordinary-missiles", "pmg-lab-ordinary-missiles"],
+  ["pmg-lab-single-missile", "pmg-lab-single-missile"],
+].map(([id, policy]) => ({
+  id,
+  medium: "XEX",
+  difficulty: 2,
+  policy,
+  fireDelay: 0,
+  frames: 90,
+  kind: "pmg-visibility-lab",
+}));
+
 const weaponPickupTraversalSessions = [{
   id: "weapon-pickup-traversal-2-observe-fire4",
   difficulty: 2,
@@ -507,6 +533,7 @@ const traceLabels = {
   DFTRACE_ENTITY_VERTICAL_ACCUMULATOR: "ENTITY_TIMER",
   DFTRACE_ENTITY_RENDER_ID: "ENTITY_RENDER_ID",
   DFTRACE_ENTITY_ACTIVE_MASK: "ENTITY_ACTIVE_MASK",
+  DFTRACE_ENTITY_TYPE: "ENTITY_TYPE",
   DFTRACE_ENTITY_STATE: "ENTITY_STATE",
   DFTRACE_ENTITY_HP: "ENTITY_HP",
   DFTRACE_ENTITY_TIMER: "ENTITY_TIMER",
@@ -1059,15 +1086,18 @@ function prepareAtari800(sourceDirectory) {
   }
   if (cpuText.includes("DFTrace_Observe(GET_PC());"))
     cpuText = cpuText.replace("DFTrace_Observe(GET_PC());",
-      "DFTrace_Observe(GET_PC(), X, Y);");
+      "DFTrace_Observe(GET_PC(), A, X, Y, S);");
   if (cpuText.includes("DFTrace_Observe(GET_PC(), X);"))
     cpuText = cpuText.replace("DFTrace_Observe(GET_PC(), X);",
-      "DFTrace_Observe(GET_PC(), X, Y);");
-  if (!cpuText.includes("DFTrace_Observe(GET_PC(), X, Y);")) {
+      "DFTrace_Observe(GET_PC(), A, X, Y, S);");
+  if (cpuText.includes("DFTrace_Observe(GET_PC(), X, Y);"))
+    cpuText = cpuText.replace("DFTrace_Observe(GET_PC(), X, Y);",
+      "DFTrace_Observe(GET_PC(), A, X, Y, S);");
+  if (!cpuText.includes("DFTrace_Observe(GET_PC(), A, X, Y, S);")) {
     const executeAnchor = "\t\tCPU_delayed_nmi = 0;\n";
     invariant(cpuText.includes(executeAnchor), "Atari800 CPU execution anchor changed");
     cpuText = cpuText.replace(executeAnchor,
-      `${executeAnchor}\t\tDFTrace_Observe(GET_PC(), X, Y);\n`);
+      `${executeAnchor}\t\tDFTrace_Observe(GET_PC(), A, X, Y, S);\n`);
   }
   fs.writeFileSync(cpuPath, cpuText);
 
@@ -1406,7 +1436,7 @@ function sessionSummary(session, rows) {
   };
 }
 
-function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
+function runBootSmoke({ emulatorPath, labels, manifest, xexPath, atrPath }) {
   const outputDirectory = path.join(buildDirectory, "boot-smoke");
   fs.mkdirSync(outputDirectory, { recursive: true });
   const addressEnvironment = {};
@@ -1490,9 +1520,12 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
         loader250.loader_timer > loader300.loader_timer),
     `${definition.id} loader countdown did not advance through frame 300`);
     const milestones = result.milestones;
-    // The 103-sector ATR takes two more SIO sectors than the accepted
-    // checkpoint; the cold-$A5 OS path reaches the same menu at frame 526.
-    const menuDeadline = definition.id.startsWith("atr") ? 526 : 502;
+    // Native SIO consumes at most two PAL frames per occupied 128-byte sector.
+    // Derive the ATR deadline from the manifest so a legal extension cannot
+    // fail smoke merely because its transport gained reviewed sectors.
+    const menuDeadline = definition.id.startsWith("atr")
+      ? 190 + manifest.transportCapacity.totalTransportSectors * 2
+      : 502;
     invariant(milestones.menu <= menuDeadline && milestones.frontend_poll <= menuDeadline + 1,
       `${definition.id} did not reach the production main-menu input path by frame ${menuDeadline + 1}`);
     invariant(gameplay.game_state === 6 && gameplay.charset_address === 0x5000 &&
@@ -1935,6 +1968,7 @@ function main() {
   const raiderFirstWriterOnly = process.argv.includes("--raider-first-writer-only");
   const playerPairShotSpeedOnly = process.argv.includes("--player-pairshot-speed-only");
   const playerPairShotReentryOnly = process.argv.includes("--player-pairshot-reentry-only");
+  const boosterAdmissionOnly = process.argv.includes("--booster-admission-only");
   const effectsStaggerOnly = process.argv.includes("--effects-stagger-only");
   const debrisSlot0BaselineOnly = process.argv.includes("--debris-slot0-baseline-only");
   const skipBootSmoke = process.argv.includes("--skip-boot-smoke");
@@ -2078,7 +2112,7 @@ function main() {
     return;
   }
   const bootSmoke = skipBootSmoke ? null :
-    runBootSmoke({ emulatorPath, labels, xexPath, atrPath });
+    runBootSmoke({ emulatorPath, labels, manifest, xexPath, atrPath });
   if (bootSmoke !== null)
     console.log(`Boot smoke: ${bootSmoke.sessions.length} XEX/ATR cold-start sessions passed`);
   if (bootSmokeOnly) {
@@ -2090,6 +2124,8 @@ function main() {
   const allRows = [];
   const summaries = [];
   const pickupScreenshotPath = path.join(buildDirectory, "weapon-pickup-static-atari800.png");
+  const boosterAdmissionScreenshotPath = path.join(buildDirectory,
+    "booster-admission-reentry-atari800.png");
   const rapidScreenshotPath = path.join(buildDirectory,
     "weapon-pickup-rapid-projectiles-atari800.png");
   const spreadScreenshotPath = path.join(buildDirectory,
@@ -2109,7 +2145,12 @@ function main() {
       if (fs.existsSync(framePath)) fs.unlinkSync(framePath);
     }
   }
-  let sessionsToRun = playerPairShotReentryOnly
+  if (!reuseExistingTraces && boosterAdmissionOnly &&
+    fs.existsSync(boosterAdmissionScreenshotPath))
+    fs.unlinkSync(boosterAdmissionScreenshotPath);
+  let sessionsToRun = boosterAdmissionOnly
+    ? boosterAdmissionReentrySessions
+    : playerPairShotReentryOnly
     ? playerPairShotReentrySessions
     : debrisSlot0BaselineOnly
     ? debrisSlot0BaselineSessions
@@ -2145,6 +2186,8 @@ function main() {
         onlySession?.startsWith("pickup-fence-") ? pickupFenceSessions : [])
     : [{ ...baselineSessions[0], difficulty: smokeDifficulty,
       id: "observer-smoke", kind: "observer-smoke", frames: smokeFrames }];
+  if (onlySession?.startsWith("pmg-lab-"))
+    sessionsToRun = pmgLabSessions;
   if (onlySession !== undefined) {
     sessionsToRun = sessionsToRun.filter(({ id }) => id === onlySession);
     invariant(sessionsToRun.length === 1, `Unknown trace session: ${onlySession}`);
@@ -2152,6 +2195,8 @@ function main() {
   for (const session of sessionsToRun) {
     session.activeFrames = activeFrames;
     const outputPath = path.join(buildDirectory, `${session.id}.csv`);
+    const pmgLabScreenshotPath = session.kind === "pmg-visibility-lab"
+      ? path.join(buildDirectory, `${session.id}-atari800.png`) : undefined;
     const firstWriterOutput = session.kind === "raider-first-writer-native"
       ? path.join(buildDirectory, `${session.id}-first-writer.csv`) : undefined;
     const interceptorProjectileOutput = session.kind === "raider-first-writer-native"
@@ -2262,6 +2307,12 @@ function main() {
         DFTRACE_RAPID_SCREENSHOT: rapidScreenshotPath,
         DFTRACE_SPREAD_SCREENSHOT: spreadScreenshotPath,
       } : {}),
+      ...(session.kind === "booster-admission-native" ? {
+        DFTRACE_PICKUP_SCREENSHOT: boosterAdmissionScreenshotPath,
+      } : {}),
+      ...(pmgLabScreenshotPath === undefined ? {} : {
+        DFTRACE_PMG_LAB_SCREENSHOT: pmgLabScreenshotPath,
+      }),
       ...(session.kind === "weapon-pickup-traversal" ? {
         DFTRACE_PICKUP_TRAVERSAL_PREFIX: pickupTraversalPrefix,
       } : {}),
@@ -2857,6 +2908,11 @@ function main() {
   }
   if (playerPairShotReentryOnly) {
     console.log(`Player PairShot re-entry raw traces: ${sessionsToRun.length} sessions, ` +
+      `${allRows.length} frames`);
+    return;
+  }
+  if (boosterAdmissionOnly) {
+    console.log(`Booster admission raw traces: ${sessionsToRun.length} sessions, ` +
       `${allRows.length} frames`);
     return;
   }

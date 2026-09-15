@@ -10287,8 +10287,13 @@ render_fighter_pickup_pmg:
 ; Exact first 16 bytes previously consumed from the generated character phase
 ; bank. Keeping the mask local makes the 1152-byte fallback source-only.
 fighter_pickup_pmg_shape:
-    .byte $2A,$BF,$BF,$BE,$BC,$BC,$BC,$BC
-    .byte $A8,$FE,$FE,$BE,$3E,$3E,$3E,$3E
+    ; Deliberately solid fifth-player capsule: every row asserts the valid
+    ; M0-M3 quartet. The previous decorative combinations were only a faint,
+    ; unrecognisable trace at native GTIA resolution.
+    ; Low nibbles are intentionally retained as inert transport entropy: GTIA
+    ; consumes only M0-M3 bits 4-7, while the packed resident layout is frozen.
+    .byte $FA,$FF,$FF,$FE,$FC,$FC,$FC,$FC
+    .byte $F8,$FE,$FE,$FE,$F1,$FE,$FE,$FE
 
 ; Effects publish before the late projectile commit. When an effect lands on
 ; an OLD PairShot cell, the visible byte is still the projectile glyph even

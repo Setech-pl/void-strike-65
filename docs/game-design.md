@@ -1,8 +1,7 @@
 # Void Strike 65 game design
 
 This document defines the player-visible rules of the accepted checkpoint named
-in [STATUS.md](STATUS.md). Sections marked **OWNER-SMOKE CANDIDATE** describe
-committed behavior the owner has not accepted yet. Technical implementation
+in [STATUS.md](STATUS.md). Technical implementation
 belongs in [architecture.md](architecture.md), numeric memory ownership in
 [memory-map.md](memory-map.md), and planned work in
 [plan-realizacji.md](plan-realizacji.md).
@@ -84,13 +83,12 @@ one-scanline movement into the old Y=48/Y=96 formation anchors before the
 crossing continues. Top clipping publishes only the portion that has entered;
 a completely hidden Raider cannot fire or collide.
 
-### Light Wingman — OWNER-SMOKE CANDIDATE
+### Light Wingman
 
-Not accepted gameplay. The candidate commits in [STATUS.md](STATUS.md) add one
-Light Wingman with every Raider formation. It is a small two-cell character
+Every Raider formation brings one Light Wingman. It is a small two-cell character
 fighter that sits centred behind the first Raider, 12 scanlines above it,
 without switching sides; it moves on the character grid, so its vertical gap
-steps by up to seven lines. It has one hit point, fires one red PairShot every
+steps by up to seven lines, which is intentional. It has one hit point, fires one red PairShot every
 96/80/64 frames on Easy/Medium/Hard when fully visible, and is worth 5 points.
 One Player PairShot or player contact destroys it (contact uses the Raider
 contract). If its leader is lost it flies straight down and leaves the screen.
@@ -203,9 +201,8 @@ is removed before the capital sector; a PENDING capsule is frozen and resumes
 afterwards. Picking up the same active type refreshes it. Picking up another
 type replaces it, so Rapid Fire, Spread Shot, and Shield are mutually exclusive.
 
-OWNER-SMOKE CANDIDATE (uncommitted): a solid capsule mask with every M0-M3 bit
-set, chosen for readability; the accepted checkpoint still uses the earlier
-decorative mask.
+The capsule mask is solid (every M0-M3 bit set) so it stays readable at native
+resolution.
 
 ## Canonical gameplay raster
 

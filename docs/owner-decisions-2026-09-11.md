@@ -359,3 +359,77 @@ do character ring ani opóźnionej materializacji. Pozostają 24-klatkowy backgr
 flash, dźwięk, score/kill accounting, Heavy release, Director accounting i
 normalny off-screen respawn. Generic gameplay-debris effects pozostają bez zmian
 i nie mogą być czyszczone przez Raider death.
+
+---
+
+## 11. Booster — potwierdzony bieżący kontrakt runtime — ACTIVE
+
+Finalny audit z 2026-09-15 nie zmienia wartości gameplay ani częstotliwości
+dropu. Bieżący kontrakt jest deterministyczny: co trzecie śmiertelne trafienie
+Raidera przez Player PairShot, zebrane tylko gdy slot kapsuły jest pusty, tworzy
+pickup. Nie ma osobnego losowania prawdopodobieństwa. Ukryta kapsuła może
+pozostać PENDING podczas normalnych bramek Director i próbuje ponownie co osiem
+klatek; PENDING zamarza przez capital, ACTIVE jest przed capital zwalniany, a
+aktywny booster w slocie 2 zachowuje timer przez przejście sektorowe.
+
+Owner observation „booster nie pojawił się” pozostaje prawdziwą obserwacją, lecz
+nie potwierdza defektu admission/spawn. Deterministyczny PAL audit wykazał
+widoczne przyjęcia przed i po capital, bez stale mask/count ani silent loss.
+Nie zwiększać częstotliwości dropu w celu wymuszenia obserwacji.
+
+---
+
+## 12. Pickup PMG visibility — 2026-09-15 — OWNER-ACCEPTED
+
+Owner preference jest rozstrzygająca: kapsuła ma być stabilna i rozpoznawalna,
+nie dekoracyjna. Zatwierdzona minimalna reprezentacja pozostaje w obecnym
+przydziale M0–M3 jako 16-wierszowy solid fifth-player mark (`PRIOR=$10`,
+`COLPF3`); nie zmienia to drop rate, slotów, kolizji ani efektów Rapid/Spread/
+Shield. Zachować wcześniej zatwierdzony plan hybrydowy C/cc65, port Director po
+zamknięciu bieżących błędów i późniejszy proof capital `ANTIC VSCROL`.
+
+---
+
+## 13. Hybrid C Director — OWNER ACCEPTED, fundament projektu
+
+Planowany port 1:1 został wykonany na osobnej gałęzi. Build cc65 korzysta z
+istniejącego ca65/ld65, loadera DFMC i własnego runtime; nie używa stock startup,
+libc, stosu C, nowego zero page ani BASIC RAM. A/B na tych samych stanach,
+seedach i trzech trudnościach daje `0` divergencji.
+
+Właściciel zaakceptował wynik: **Hybrid C Director jest teraz fundamentem
+projektu.** Native
+ASM i C dla niezmienionego replay `2-evasive-fire3` kończą 920 klatek z tym
+samym maksimum `28 479`; target/hard headroom wynoszą `2 721`/`4 089`, bez
+missed frames, extra VBI i anomalii DLI. Native observer 4 000 klatek przechodzi
+trzy dispatchowane eventy.
+
+Dawny BRK pod `$028D` był skutkiem nadpisania `$8B88-$8C7C` przez packed
+resident-suffix staging `$8100-$9B0B`, nie błędem JSR/RTS/RTI ani rejestrów.
+Minimalna naprawa przenosi cold source niskiego kodu C pod `$7D40` i publikuje
+go przez veneer dopiero po zużyciu suffixu. Stos sprzętowy pozostaje
+zbilansowany; wygenerowany kod nie używa C software stack, nowych symboli ZP
+ani helperów runtime. Pierwotnie wskazanym następnym krokiem po akceptacji była
+granica sector state/lifecycle i fundament EnemyArchetype.
+
+Ten następny krok został wykonany bez zmiany gameplay: C jest teraz jedynym
+właścicielem high-level sector state i lifecycle obu Raiderów. Raider jest
+pierwszym 12-bajtowym rekordem `EnemyArchetype` (HP, behavior, fire policy i
+cadence, renderer, weapon, score/value). ASM pozostaje właścicielem ruchu
+sprzętowego, PMG/PairShot, kolizji, rastra i audio. A/B względem zaakceptowanego
+hybrid baseline ma `0` divergencji w 12 488 klatkach; ten sam PAL replay kończy
+920 klatek z max `28 505` (+26), target/hard headroom `2 695`/`4 063` oraz zero
+missed frames, extra VBI i anomalii DLI. Umieszczenie `$8C7D-$8E84` jest legalne
+i nie używa BASIC RAM; software stack i nowe ZP pozostają 0 B.
+
+---
+
+## 14. Light Wingman M1 i widoczna kapsuła PMG — OWNER-ACCEPTED (2026-09-15)
+
+Owner smoke PASS dla XEX `900152fe…` (`ed72e25` + `5f2f3ae` + solid mask kapsuły):
+Light Wingman nie migocze, nie przeskakuje między stronami, daje się trafić i
+zniszczyć, a przed capital traversal jest poprawnie usuwany. Zachowanie Heavy
+pozostaje poprawne. Obecne 8-liniowe kroki pionowe Light względem lidera są
+zamierzone i akceptowane. Solidna reprezentacja kapsuły PMG (M0–M3,
+`PRIOR=$10`, `COLPF3`) jest zaakceptowana. Płynne śledzenie pionowe Light (M2)
+jest odłożone — nie implementować bez nowej decyzji.

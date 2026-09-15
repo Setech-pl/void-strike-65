@@ -77,11 +77,10 @@ komórka, glif z dwoma impulsami). `4/4/6` wyłącznie diagnostycznie.
 
 - **Zaakceptowany fundament:** `2df89da` — Hybrid C Director, C-owned
   sector/lifecycle, Raider jako pierwszy `EnemyArchetype`; owner-accepted.
-- **Kandydat do owner smoke:** Light Wingman M1 (`ed72e25` + `5f2f3ae`) —
-  `2 Heavy + 1 Light`, późna publikacja bez migotania, formacja wycentrowana za
-  liderem. Płynne śledzenie pionowe (M2) jest `BLOCKED_PLACEMENT`.
-- **Niezacommitowana praca właściciela:** solid mask kapsuły PMG, diagnostyka
-  boostera, oczekiwanie testu emitter-bit, instrumentacja trace; zob. STATUS.
+- **Zaakceptowany (owner smoke PASS 2026-09-15):** Light Wingman M1
+  (`2 Heavy + 1 Light`, późna publikacja bez migotania, formacja wycentrowana za
+  liderem, 8-liniowe kroki pionowe akceptowane) oraz solidna kapsuła PMG.
+  Płynne śledzenie pionowe (M2) jest odłożone decyzją właściciela.
 
 ---
 
@@ -90,34 +89,21 @@ komórka, glif z dwoma impulsami). `4/4/6` wyłącznie diagnostycznie.
 Kolejność jest wiążąca. Nie rozpoczynać kolejnego punktu automatycznie po
 `BLOCKED`/`REJECTED`; po każdym punkcie aktualizować STATUS.
 
-### 4.1 Owner smoke i porządki Light Wingman M1
+### 4.1 Owner smoke i porządki Light Wingman M1 — DONE
 
-Cel: rozstrzygnąć kandydata `5f2f3ae`.
+Owner smoke PASS 2026-09-15; niezacommitowana praca rozstrzygnięta.
 
-- owner smoke XEX wskazanego w STATUS;
-- PASS → punkt 4.2; FAIL → mała poprawka na tej samej gałęzi albo revert commitów
-  Light (fundament `2df89da` pozostaje nienaruszony);
-- rozstrzygnąć z właścicielem los niezacommitowanych zmian wymienionych w STATUS.
+### 4.2 Czysty zaakceptowany checkpoint: Light + widoczny pickup — DONE
 
-Gotowe gdy: jest decyzja PASS/FAIL i żadna praca nie wisi niezacommitowana bez
-właściciela.
-
-### 4.2 Czysty zaakceptowany checkpoint: Light + widoczny pickup
-
-Cel: jeden commitowany stan, z którego da się odtworzyć XEX do smoke.
-
-- po zgodzie właściciela zacommitować solid mask kapsuły PMG (M0–M3,
-  `PRIOR=$10`, `COLPF3`) i powiązaną dokumentację/diagnostykę;
-- zbudować XEX z czystego drzewa i porównać hash z artefaktem owner smoke;
-- STATUS: nowy zaakceptowany checkpoint i jego CPU/RAM.
-
-Gotowe gdy: zaakceptowany hash XEX jest odtwarzalny z Gita.
+Commit `feat: accept Light Wingman and visible PMG pickup`; zaakceptowany XEX
+odtwarzalny z Gita (hash w STATUS).
 
 ### 4.3 Rezydentna pojemność — tylko gdy potrzebna
 
-Cel: legalne ~100 B rezydentnej przestrzeni dla płynnego Light (kompozytor 2x2,
-ok. 75 B) i kolejnych archetypów. Obecne marginesy: extension 17 B, strumień
-pickup 6 B, packed STARFIELD 24 B, A2 19 B, ENTITY_CODE 12 B.
+Cel: legalne ~100 B rezydentnej przestrzeni dla kolejnych archetypów oraz —
+tylko po nowej decyzji właściciela — płynnego Light (kompozytor 2x2, ok. 75 B).
+Obecne marginesy: extension 17 B, strumień pickup 6 B, packed STARFIELD 24 B,
+A2 19 B, ENTITY_CODE 12 B.
 
 - przed implementacją przedstawić 2–3 warianty (relokacja zimnego kodu w
   istniejącym transporcie, kompaktowanie, mały rezydentny segment);

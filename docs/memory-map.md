@@ -1,10 +1,9 @@
 # Current memory map
 
-Checkpoint: **LIGHT M1 OWNER-SMOKE CANDIDATE** — branch
-`experiment/hybrid-c-director`, HEAD `5f2f3ae`; the owner-smoke XEX
-`900152fe…` adds only the uncommitted pickup-mask bytes and has the same layout.
-The linked-segment and BSS tables reflect this candidate. Sections marked
-*accepted `2df89da`* were not regenerated for the candidate.
+Checkpoint: **accepted Light Wingman M1 + solid PMG pickup** on
+`experiment/hybrid-c-director` (`feat: accept Light Wingman and visible PMG
+pickup`, XEX `900152fe…`). The linked-segment and BSS tables reflect this
+checkpoint. Sections marked *earlier `2df89da`* were not regenerated.
 
 This is one snapshot. Addresses and linked sizes come from
 `build/void-strike-65.map`; packed sizes, staging ranges, artifacts, and reserves
@@ -51,7 +50,7 @@ lifetime phases and are not additive free memory.
 | `$21C1-$26A9` | 1,257 B | boot-only `BOOT_STAGE2` overlay; replaced by the resident suffix before runtime |
 
 The linked metric is `CODE + STARFIELD + BROADSIDE + A2_KERNEL + ENTITY_CODE +
-PICKUP_CODE = 17,452 B` for the candidate (17,521 B at `2df89da`). The obsolete 1,152-byte
+PICKUP_CODE = 17,452 B` (17,521 B at `2df89da`). The obsolete 1,152-byte
 character-pickup phase bank is source-only and is not resident. With
 late-published GLUE, the collision module, 1,543-byte complete hybrid C/ABI
 payload and C state, simultaneous feature residency is 19,207 B and safe
@@ -60,9 +59,9 @@ the pickup/collision stream holds LIGHT_RESIDENT 226 B and PICKUP_CODE 777 B.
 The PairShot pool uses 90 fewer persistent BSS bytes; its fixed glyphs reuse the
 existing charset allocation.
 
-## Boot transport layout — accepted `2df89da`
+## Boot transport layout — earlier `2df89da`
 
-Light M1 candidate: 22,400 B in 175 sectors, initial content 13,113 B; the
+Light M1: 22,400 B in 175 sectors, initial content 13,113 B; the
 pickup/collision record is 964 B at sectors 149-156 publishing from `$8776`,
 the extension record is 742 B at sectors 164-169 expanding to `$8C7D-$8FEE`,
 and later records move three sectors. Exact values: `build/manifest.json`.
@@ -167,7 +166,7 @@ starfield, so all overlaps are lifetime-safe.
 | `$8080-$80F3` | 116 B | six physical effect slots plus global state; release active limit 5 |
 | `$80F4-$80FF` | 12 B | persistent Encounter Director state, initialized after the entity/effects clear |
 | `$8100-$9B13` | 6,676 B | cold-start resident-suffix staging only |
-| `$8100-$810B` | 12 B | Light M1 candidate: C Light record `$8100-$8105`, ASM render cache/scratch `$8106-$810B` |
+| `$8100-$810B` | 12 B | Light M1: C Light record `$8100-$8105`, ASM render cache/scratch `$8106-$810B` |
 | `$810C-$810F` | 4 B | unowned after cold startup |
 | `$8110-$8118` | 9 B | C-owned derived archetype profile cache; ASM read-only (moved from `$8776`) |
 | `$8119-$813F` | 39 B | unowned after cold startup |
@@ -210,7 +209,7 @@ starfield, so all overlaps are lifetime-safe.
 Cold startup initializes every byte of `$8000-$80FF`. No current code, state,
 charset, loader data, or staging buffer uses `$A000-$BFFF`.
 
-## Boot-only ENTITY_CODE staging lifecycle — accepted `2df89da`
+## Boot-only ENTITY_CODE staging lifecycle — earlier `2df89da`
 
 The packed ENTITY_CODE source is `$487A-$5317`. Its backward copy to
 `$5318-$5DB5` is 2,718 B and begins exactly after the source. The staging end is
@@ -251,7 +250,7 @@ Glyphs 126-127 are the left/right halves of the connected BROADSIDE bolt.
 | 90-109 | enemy PairShot compatibility glyphs |
 | 110-117 | debris |
 | 118-119 | transient fragments |
-| 120-121 | Light Wingman left/right cells (M1 candidate) |
+| 120-121 | Light Wingman left/right cells (M1) |
 | 122-125 | retained source glyph allocation; unused at runtime (PMG pickup has no character compositor) |
 | 126-127 | connected BROADSIDE bolt (left/right halves; bit 7 selects the Hostile colour bank) |
 

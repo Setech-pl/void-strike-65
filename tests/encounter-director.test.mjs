@@ -600,7 +600,7 @@ test("the shared burst alternates two real Raider origins and skips a destroyed 
   run(image, "update_enemy_weapon_runtime");
   image[labels.get("INTERCEPTOR_BURST_TIMER")] = 0;
   run(image, "update_enemy_weapon_runtime");
-  assert.deepEqual([...image.subarray(projectileActive + 5, projectileActive + 7)], [2, 2]);
+  assert.deepEqual([...image.subarray(projectileActive + 5, projectileActive + 7)], [2, 3]);
   assert.deepEqual([...image.subarray(projectileY + 5, projectileY + 7)],
     origins.map((value) => value + 13));
   assert.equal(image[cursor], 0);

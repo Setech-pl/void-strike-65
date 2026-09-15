@@ -5,8 +5,7 @@ foundation.** Branch `experiment/hybrid-c-director` contains the accepted
 Director plus the first follow-on increment: C owns the sector/high-level enemy
 lifecycle boundary and describes the current Raider through a compact
 `EnemyArchetype` (accepted at `2df89da`). The Light Wingman (record 1,
-`ed72e25`/`5f2f3ae`) is an **OWNER-SMOKE CANDIDATE**, not accepted gameplay;
-see [STATUS.md](STATUS.md).
+`ed72e25`/`5f2f3ae`) is owner-accepted; see [STATUS.md](STATUS.md).
 
 Evidence is recorded in
 `docs/diagnostics/hybrid-c-director-behavior-ab.json`,
@@ -64,7 +63,7 @@ burst policy 1, 5 shots at 15-frame intervals, post-burst pauses 60/50/40,
 two-Heavy-PMG renderer class 1, red PairShot weapon class 1, BCD score `$10`,
 and Director value 1. Both current Heavy slots select that record.
 
-Record 1 is the Light Wingman (candidate awaiting owner smoke): HP 1 (the
+Record 1 is the Light Wingman (owner-accepted M1): HP 1 (the
 Heavy is already at the one-hit minimum, so "lower HP" is equal HP),
 wingman-follow behavior 1, single-shot policy 2, burst count 1 with no
 interval, pauses 96/80/64 frames for EASY/MEDIUM/HARD, character 2x1 renderer
@@ -158,15 +157,15 @@ C-owned lifecycle field.
 | C software stack | 0 | none |
 | new zero page | 0 | none |
 
-At the accepted checkpoint `2df89da`, totals are 1,256 bytes of C CODE, 170 bytes of C RODATA, 0 bytes DATA,
+At the earlier `2df89da` checkpoint, totals were 1,256 bytes of C CODE, 170 bytes of C RODATA, 0 bytes DATA,
 16 bytes BSS, 0 bytes software stack and 0 bytes zero page. Linked runtime is
 17,521 bytes. Simultaneous feature residency is 18,914 bytes, leaving 3,273
-bytes of the feature-residency safety budget. The Light M1 candidate measures
+bytes of the feature-residency safety budget. The accepted Light M1 runtime measures
 17,452 B linked, 19,207 B simultaneous and 2,980 B safe.
 
 Light Wingman placement (2026-09-15). The first attempt placed the Light
 renderer in ENTITY_CODE and overflowed its packed staging by 176 B. The
-accepted candidate adds nothing to ENTITY_CODE and uses only existing records
+accepted runtime adds nothing to ENTITY_CODE and uses only existing records
 and expanders:
 
 1. `LIGHT_CODE` is linked with the main image directly after the measured C
@@ -190,7 +189,7 @@ RAM, runtime disk I/O or a new loader record. The cost is that the extension,
 pickup stream and starfield gate are now within 17/6/24 B of their limits: a
 further archetype requires a new placement decision. The owner-requested smooth
 1-line vertical tracking (a 2x2 dynamic glyph compositor, about 75 B) is
-`BLOCKED_PLACEMENT` for the same reason.
+deferred by the owner and would be `BLOCKED_PLACEMENT` for the same reason.
 
 The old high-C reservation still ends at `$9FF7`; `$9FFA-$9FFF` remains the
 protected guard. The new 520-byte archetype/lifecycle composite uses the legal

@@ -45,7 +45,6 @@ extern volatile uint8_t light_x;
 extern volatile uint8_t light_y;
 extern volatile uint8_t light_fire_timer;
 extern volatile uint8_t light_leaderless;
-extern volatile uint8_t light_side;
 extern volatile uint8_t light_screen_lo;
 extern volatile uint8_t light_screen_hi;
 extern volatile uint8_t light_backing0;

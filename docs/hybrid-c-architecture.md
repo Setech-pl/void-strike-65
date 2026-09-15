@@ -71,9 +71,9 @@ class 2, red PairShot weapon class 1, BCD score `$05`, Director value 1. The
 Light is admitted together with each Raider formation, so it consumes no extra
 Director request; its Director value is recorded for later wave budgeting.
 
-C additionally owns the single Light record in `$8100-$810C`: state, HP, X
-(four-aligned HPOS), Y, fire timer, leaderless latch and signed formation
-offset. The ASM kernel owns only the render cache (screen pointer, two backing
+C additionally owns the single Light record in `$8100-$8105`: state, HP, X
+(four-aligned HPOS), Y, fire timer and leaderless latch; the formation is a
+fixed centred offset behind Heavy slot 0. The ASM kernel owns only the render cache (screen pointer, two backing
 bytes) and two scratch bytes of that block; C writes the render cache solely
 at game initialization, when the playfield is rebuilt.
 
@@ -125,8 +125,8 @@ interrupt `RTI` path. The stock cc65 Atari startup and libc are not linked.
 | sector state | C lifecycle | `$4EA5` |
 | enemy archetype, active/member state, HP, live count | C lifecycle | existing `$5470-$5489` fields |
 | selected archetype's ASM-facing profile cache | C lifecycle | `$8110-$8118` (moved from `$8776`) |
-| Light state, HP, position, fire timer, formation | C lifecycle | `$8100-$8106` |
-| Light render cache and scratch | ASM Light kernel | `$8107-$810C` |
+| Light state, HP, position, fire timer, leaderless latch | C lifecycle | `$8100-$8105` |
+| Light render cache and scratch | ASM Light kernel | `$8106-$810B` |
 | ABI opcode/argument and C scratch | C/ABI boundary | `$86FA-$8700` |
 | pending enemy damage/source mailboxes | ASM kernel | existing `$5472-$5477` fields |
 | enemy coordinates, velocity, manoeuvre and projectile slots | ASM kernel | existing fixed symbols |
@@ -142,13 +142,13 @@ C-owned lifecycle field.
 | --- | ---: | --- |
 | ca65 ABI veneer | 117 | `$8701-$8775` |
 | C profile BSS | 9 | `$8110-$8118` |
-| C Light BSS (incl. 6 B ASM render cache/scratch) | 13 | `$8100-$810C` |
+| C Light BSS (incl. 6 B ASM render cache/scratch) | 12 | `$8100-$810B` |
 | cc65 low CODE | 242 | `$8B88-$8C79` |
 | `EnemyArchetype` RODATA (Raider + Light) | 24 | `$8C7D-$8C94` |
-| lifecycle + Light CODE | 738 | `$8C95-$8F76` |
-| Light ASM `LIGHT_CODE` (erase, render) | 125 | `$8F77-$8FF3` |
+| lifecycle + Light CODE | 725 | `$8C95-$8F69` |
+| Light ASM `LIGHT_CODE` (late publication: erase, render) | 133 | `$8F6A-$8FEE` |
 | Light ASM `LIGHT_RESIDENT` (update, shot, kill, glyph) | 226 | `$8776-$8857` |
-| Light ASM backing hook (STARFIELD tail) | 36 | `$5D45-$5D68` |
+| Light ASM lower-layer backing resolver (STARFIELD tail) | 31 | `$5D45-$5D63` |
 | Light ASM score add (retired BROADSIDE pad) | 17 | `$77A1-$77B1` |
 | cc65 RNG CODE | 21 | `$9D5E-$9D72` |
 | Director RODATA | 158 | `$9D75-$9E12` |
@@ -169,24 +169,26 @@ and expanders:
 
 1. `LIGHT_CODE` is linked with the main image directly after the measured C
    extension and appended to the existing late-compressed extension stream:
-   887 B raw / 742 B packed of 960, expanded to `$8C7D-$8FF3` by the unchanged
-   boot call (12 B slack before A2).
+   882 B raw / 742 B packed of 960, expanded to `$8C7D-$8FEE` by the unchanged
+   boot call (17 B slack before A2).
 2. `LIGHT_RESIDENT` heads the existing pickup/collision stream, whose runtime
    start moves from `$8800` to `$8776` into documented-unowned RAM; the retired
    92 B of inert PICKUP padding and the 2-byte unreachable accounting pad are
    reclaimed, and the zero-filled image still ends at the fixed `$8B67`
    collision module (6 B slack). The stream expands after the veneer is
    published and before the loader, so no lifetime overlaps.
-3. The 36-byte PairShot backing hook uses the STARFIELD resident tail; packed
-   starfield is 1,777 B against the 1,798 B correction gate and 1,819 B
-   staging limit.
+3. The 31-byte lower-layer backing resolver (`light_cell_resolve`) uses the
+   STARFIELD resident tail; packed starfield is 1,774 B against the 1,798 B
+   correction gate and 1,819 B staging limit.
 4. The 17-byte BCD score add exactly fills the retired BROADSIDE entry pad,
    so every following BROADSIDE entry address is unchanged.
 
 All Light code is resident for the whole game; it does not depend on BASIC
 RAM, runtime disk I/O or a new loader record. The cost is that the extension,
-pickup stream and starfield gate are now within 12/6/21 B of their limits: a
-further archetype requires a new placement decision.
+pickup stream and starfield gate are now within 17/6/24 B of their limits: a
+further archetype requires a new placement decision. The owner-requested smooth
+1-line vertical tracking (a 2x2 dynamic glyph compositor, about 75 B) is
+`BLOCKED_PLACEMENT` for the same reason.
 
 The old high-C reservation still ends at `$9FF7`; `$9FFA-$9FFF` remains the
 protected guard. The new 520-byte archetype/lifecycle composite uses the legal

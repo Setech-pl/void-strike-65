@@ -89,9 +89,9 @@ test("Layout D.2 startup order and call bytes are frozen", () => {
 
 test("Layout D.2 exact memory and transport budgets remain frozen", () => {
   // Light Wingman placement (2026-09-15): the STARFIELD tail grows the initial
-  // block by 34 B, the pickup/collision record carries the $8776 kernel head,
+  // block by 29 B, the pickup/collision record carries the $8776 kernel head,
   // and the late-compressed extension record carries LIGHT_CODE after C.
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13118);
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13113);
   assert.equal(manifest.transportCapacity.initialBootBytes, 13184);
   assert.equal(manifest.transportCapacity.totalTransportSectors, 175);
   assert.equal(manifest.transportCapacity.totalTransportBytes, 22400);
@@ -108,9 +108,9 @@ test("Layout D.2 exact memory and transport budgets remain frozen", () => {
     [170, 1, 23, 21, 0x9d5e],
     [171, 5, 542, 643, 0x9d75],
   ]);
-  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17463);
-  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 19223);
-  assert.equal(manifest.encounterDirector.safeResidencyBytes, 2964);
+  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17452);
+  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 19207);
+  assert.equal(manifest.encounterDirector.safeResidencyBytes, 2980);
 });
 
 test("XEX and ATR preserve full A2, GLUE lifecycle, ENTITY_CODE, DIRECTOR and guard", () => {

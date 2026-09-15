@@ -1,0 +1,78 @@
+{
+  "id": "stage-2b2b-light-wingman-late-publication",
+  "date": "2026-09-15",
+  "status": "PASS_CANDIDATE_AWAITING_OWNER_SMOKE",
+  "owner_report": "Light pojawia się w losowym miejscu względem skrzydła i migocze.",
+  "previous_candidate": { "commit": "ed72e25", "xex_sha256": "126b2b81ffc57fb97df762ffae2fe24aba64d195da11d3a5e2df043c6f68afde" },
+  "diagnosis": {
+    "source": "native Atari800 PAL trace 2-evasive-fire3 of the previous candidate (920 frames)",
+    "flicker": {
+      "cause": "Light erased right after the master PAL frame gate and redrawn only in the mid-frame entity render",
+      "main_loop_start_scanline": { "18": 826, "229": 23, "230": 71 },
+      "light_erase_end_scanline": [20, 235],
+      "light_render_end_scanline": [2, 311],
+      "leader_alive_frames": 434,
+      "frames_with_light_row_inside_erase_render_band": 161
+    },
+    "position": {
+      "cause": "4-HPOS horizontal and 8-line vertical character grid against a 1-HPOS/1-line PMG leader, plus +20/-12 side switching at leader X 144/96",
+      "measured_dx_vs_leader": { "18": 47, "20": 116 },
+      "measured_dy_vs_leader_top": { "-12": 13, "-13": 13, "-14": 13, "-15": 13, "-16": 92, "-17": 7, "-18": 6, "-19": 6 }
+    }
+  },
+  "fix": {
+    "late_publication": "operand of jsr erase_fighter_projectile_overlays in the fighter window (after wait_frame_at_line $77) redirected to light_publish: PairShot erase, conditional Light erase, Light render, then PairShot render and sparse near as before",
+    "layering": "debris/effects (mid-frame) < Light < PairShots < sparse near (CH_SPACE only)",
+    "lower_layer_backing": "light_cell_resolve maps a captured Light code (only one Light, codes $F8/$F9) to that cell's lower backing; effects via resolve_effect_backing_below_interactive_debris_and_light, debris via debris_capture_resolve",
+    "conditional_erase": "a Light cell overwritten by a lower layer is left to that layer",
+    "recycled_row": "footprint and leaderless retirement stay above scanline 232, the ring row rotate_playfield_rows recycles",
+    "formation": "centred behind Heavy slot 0: x = min(200, (leader X + 4 + 2) & $FC), y = leader Y - 12; side switching removed",
+    "capital_gate": "capital admission also requires light_screen_hi == 0"
+  },
+  "candidate": {
+    "xex_path": "build/owner-smoke/light-wingman-late-900152fe/void-strike-65-light-wingman-late.xex",
+    "xex_sha256": "900152fed5b1aec3eee200034121fbd6d930288d6a3669c13968c74c93955ce8",
+    "build_command": "npm run build:candidate -- --quiet",
+    "reproducibility_note": "Built from the working tree, which also holds the uncommitted solid fifth-player pickup mask hunk."
+  },
+  "native_pal": {
+    "session": "2-evasive-fire3",
+    "frames": 920,
+    "max_wall_cycles": 29177,
+    "delta_vs_previous_candidate": 478,
+    "delta_vs_accepted_baseline": 672,
+    "target_headroom": 2023,
+    "hard_gate_headroom": 3391,
+    "physical_headroom": 6391,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "dli_ordering_errors": 0,
+    "fighter_open_frames": 659,
+    "fighter_frames_with_publication_ending_inside_playfield": 0,
+    "later_ending_frames": { "count": 46, "sector_states": [0, 1, 2], "leader_alive": 0 },
+    "measured_dx_vs_leader": { "4": 94, "6": 39 },
+    "boot_smoke": "4/4 PASS",
+    "coexistence_screenshot": "build/owner-smoke/light-wingman-late-900152fe/native-xex-frame750-centred.png"
+  },
+  "placement": {
+    "light_code": { "run": "$8F6A-$8FEE", "bytes": 133, "free_before_9000": 17 },
+    "light_resident": { "run": "$8776-$8857", "bytes": 226 },
+    "starfield_resolver": { "run": "$5D45-$5D63", "bytes": 31, "packed_starfield": 1774, "correction_gate": 1798 },
+    "c_lifecycle_code": { "run": "$8C95-$8F69", "bytes": 725 },
+    "light_state": { "c_record": "$8100-$8105", "asm_cache": "$8106-$810B" },
+    "linked_runtime_bytes": 17452,
+    "simultaneous_residency_bytes": 19207,
+    "safe_residency_bytes": 2980
+  },
+  "smooth_vertical_tracking": {
+    "status": "BLOCKED_PLACEMENT",
+    "design": "2x2 dynamic glyph compositor on glyphs 120-123, phase Y&7, 40-byte zero-padded source strip",
+    "estimated_bytes": 75,
+    "free_regions_bytes": { "starfield_packed_to_gate": 24, "a2_kernel": 19, "extension_tail": 17, "entity_code_run": 12, "pickup_stream": 6 },
+    "note": "no single legal region holds the compositor; a placement decision for about 100 B is required"
+  },
+  "tests": {
+    "light_wingman_focused": "12/12 pass",
+    "full_suite": { "failing": 110, "baseline_failing": 115, "new_failure_names": 0 }
+  }
+}

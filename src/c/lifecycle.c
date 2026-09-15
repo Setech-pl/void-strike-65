@@ -30,17 +30,21 @@
 #define ENEMY_Y_0                U8_AT(0x547Au)
 #define PLAYER_LIFECYCLE         U8_AT(0x4EAAu)
 
-/* Light Wingman formation: leader is Heavy slot 0. The wingman keeps a
- * 4-HPOS gap on one side and switches side only at a corridor edge. */
+/* Light Wingman formation (owner smoke 2026-09-15): centred behind Heavy
+ * slot 0 at a fixed offset, never switching sides. The Heavy is 16 HPOS wide
+ * with no left inset and 14 lines tall; the Light is 8 x 8. Its left edge is
+ * (16 - 8) / 2 past the leader X, rounded to the nearest 4-HPOS ANTIC cell,
+ * and clamped to the last two-cell start, 48 + (40 - 2) * 4. It trails 8 + 4
+ * lines above (enemies fly down). It retires before the recycled bottom ring
+ * row, which the late-published Light must never occupy. */
 #define LIGHT                    enemy_archetypes[ENEMY_ARCHETYPE_LIGHT_WINGMAN]
-#define LIGHT_RIGHT_OFFSET       20u
-#define LIGHT_LEFT_OFFSET        12u
-#define LIGHT_X_MIN              84u
-#define LIGHT_X_MAX              164u
+#define LIGHT_CENTRE_OFFSET      4u
+#define LIGHT_ROUND              2u
+#define LIGHT_X_LAST             200u
 #define LIGHT_LAG_Y              12u
 #define LIGHT_FIRE_TOP           24u
 #define LIGHT_FIRE_BOTTOM        224u
-#define LIGHT_RETIRE_Y           240u
+#define LIGHT_RETIRE_Y           232u
 
 #define ENEMY_INACTIVE           0u
 #define ENEMY_ACTIVE_STATE       1u
@@ -101,7 +105,6 @@ volatile uint8_t light_x;
 volatile uint8_t light_y;
 volatile uint8_t light_fire_timer;
 volatile uint8_t light_leaderless;
-volatile uint8_t light_side;
 volatile uint8_t light_screen_lo;
 volatile uint8_t light_screen_hi;
 volatile uint8_t light_backing0;
@@ -159,7 +162,10 @@ uint8_t sector_c_update_first_capital(void)
         }
         DIRECTOR_STATE_FLAGS = DIRECTOR_FLAG_CAPITAL_DUE;
     }
+    /* Capital frames skip the fighter publication window, so the Light must
+     * also be unpublished (its late erase done) before the sector leaves. */
     if (asm_sector_pressure_active() != 0u || light_state != ENEMY_INACTIVE ||
+        light_screen_hi != 0u ||
         CAPITAL_SECTOR_STATE != SECTOR_FIGHTER) {
         return 0u;
     }
@@ -236,7 +242,6 @@ void enemy_c_spawn_raiders(void)
         light_state = ENEMY_ACTIVE_STATE;
         light_hp = LIGHT.hit_points;
         light_leaderless = 0u;
-        light_side = LIGHT_RIGHT_OFFSET;
         light_y = 0u;
         light_fire_timer = (&LIGHT.post_burst_easy_frames)[DIFFICULTY_SETTING];
     }
@@ -308,14 +313,10 @@ uint8_t enemy_c_light_tick(void)
             return 0u;
         }
     } else {
-        /* light_side is the signed formation offset. Switching only beyond
-         * these leader positions gives edge-only hysteresis. */
-        if (ENEMY_X_0 > LIGHT_X_MAX - LIGHT_RIGHT_OFFSET) {
-            light_side = (uint8_t)(0u - LIGHT_LEFT_OFFSET);
-        } else if (ENEMY_X_0 < LIGHT_X_MIN + LIGHT_LEFT_OFFSET) {
-            light_side = LIGHT_RIGHT_OFFSET;
+        light_x = (uint8_t)((ENEMY_X_0 + LIGHT_CENTRE_OFFSET + LIGHT_ROUND) & 0xFCu);
+        if (light_x > LIGHT_X_LAST) {
+            light_x = LIGHT_X_LAST;
         }
-        light_x = (uint8_t)((ENEMY_X_0 + light_side) & 0xFCu);
         if (ENEMY_Y_0 < LIGHT_LAG_Y) {
             light_y = 0u;
         } else {

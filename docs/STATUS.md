@@ -33,18 +33,23 @@ Always verify local HEAD and generated artifact before relying on these values.
 
 ## Current candidate — awaiting owner smoke
 
-`2 Heavy Raiders + 1 Light Wingman`
+`2 Heavy Raiders + 1 Light Wingman`, second iteration.
 
-Committed on `experiment/hybrid-c-director` after `bf27d65` as
-`feat(enemy): add Light Wingman as second C EnemyArchetype`.
+Commits on `experiment/hybrid-c-director` after `bf27d65`:
+
+- `ed72e25 feat(enemy): add Light Wingman as second C EnemyArchetype`
+  (first owner smoke: Light appeared at a varying place relative to its
+  leader and flickered);
+- `fix(enemy): publish Light Wingman late and centre it behind its leader`
+  (this candidate).
 
 Owner-smoke XEX:
 
-`build/owner-smoke/light-wingman-126b2b81/void-strike-65-light-wingman.xex`
+`build/owner-smoke/light-wingman-late-900152fe/void-strike-65-light-wingman-late.xex`
 
 SHA-256:
 
-`126b2b81ffc57fb97df762ffae2fe24aba64d195da11d3a5e2df043c6f68afde`
+`900152fed5b1aec3eee200034121fbd6d930288d6a3669c13968c74c93955ce8`
 
 The XEX was built from the working tree, which also contains one uncommitted,
 separately owned hunk: the solid fifth-player pickup mask
@@ -52,7 +57,7 @@ separately owned hunk: the solid fifth-player pickup mask
 The committed Light tree alone therefore produces a different XEX hash; commit
 or drop that pickup hunk before treating any hash as reproducible from Git.
 
-Not owner-accepted yet. If the owner rejects it, revert the Light commit; the
+Not owner-accepted yet. If the owner rejects it, revert the Light commits; the
 accepted baseline above is unchanged.
 
 ---
@@ -83,7 +88,8 @@ VOID STRIKE 65 uses a hybrid architecture:
 - ANTIC/raster;
 - PMG;
 - Heavy renderer/publication;
-- Light 2x1 character renderer, backing and hot collision (candidate);
+- Light 2x1 character renderer, late publication, backing and hot collision
+  (candidate);
 - PairShot publication;
 - character ring;
 - backing/restore;
@@ -123,16 +129,24 @@ wingman-follow behavior, single-shot policy with 96/80/64-frame pauses
 (EASY/MEDIUM/HARD), character 2x1 renderer class, red PairShot, BCD score
 `$05`, Director value 1.
 
-- maximum one Light; admitted together with each Raider formation, following
-  Heavy slot 0 (12-scanline lag, +20/-12 HPOS side with edge-only switching);
-- leader lost: continues straight down and recycles at scanline 240;
+- maximum one Light; admitted together with each Raider formation;
+- centred behind Heavy slot 0: left edge leader X + (16 - 8) / 2 rounded to the
+  4-HPOS cell grid (error <= 2 HPOS), clamped to the last two-cell start, 8 + 4
+  lines above the leader; no side switching;
+- erased and republished only in the post-playfield PairShot window
+  (after `wait_frame_at_line $77`), so ANTIC never scans it while erased;
+- leader lost: continues straight down and retires at scanline 232, before the
+  ring row recycled by `rotate_playfield_rows`;
 - no P0-P3 use; two ANTIC 4 ring cells (glyphs 120/121, hostile bank);
 - one player PairShot or player contact destroys it; independent score;
-- capital admission waits until it has retired; non-fighter sectors retire it;
+- capital admission waits until it has retired and been unpublished;
 - no Director redesign; no new loader record, DLI, VBI or compositor.
 
-The first Light attempt (renderer in ENTITY_CODE, +176 B over the `$5E10`
-staging boundary) remains rejected. The candidate adds nothing to ENTITY_CODE.
+Known limitation: the Light is drawn in 8-line character rows while the Heavy
+PMG moves 1 line per frame, so its vertical gap to the leader still steps
+between 12 and 19 lines. Smooth 1-line tracking (a 2x2 dynamic glyph
+compositor) is `BLOCKED_PLACEMENT`: it needs about 75 B, while the largest
+free legal region is 24 B (see "Latest completed experiment").
 
 ### Pickup / booster
 
@@ -148,7 +162,8 @@ Owner smoke should remain the final visual acceptance gate.
 Known visual issues remain under observation:
 
 - debris can occasionally appear inside the visible playfield;
-- debris can occasionally flicker/disappear/reappear.
+- debris can occasionally flicker/disappear/reappear (same early-erase /
+  mid-frame-render raster window that caused the Light flicker).
 
 ### Post-Raider purple artifact
 
@@ -181,19 +196,22 @@ Accepted lifecycle/archetype baseline (`2df89da`):
 - linked runtime: 17,521 B; simultaneous residency: 18,914 B;
   safe residency remaining: 3,273 B
 
-Light Wingman candidate (`126b2b81`, same replay):
+Light Wingman candidate (`900152fe`, same replay):
 
-- PAL max: 28,699 cycles (+194)
-- target headroom: 2,501; hard-gate headroom: 3,869; physical: 6,869
+- PAL max: 29,177 cycles (+672 vs baseline, +478 vs `ed72e25`)
+- target headroom: 2,023; hard-gate headroom: 3,391; physical: 6,391
 - missed frames / extra VBI / DLI ordering errors / overruns: 0
+- in all 659 fighter-OPEN frames the Light publication ends after the
+  playfield; the 46 later-ending frames are capital frames without a Light
 - boot smoke: 4 XEX/ATR cold-start sessions PASS
-- linked runtime: 17,463 B (retired pads reclaimed)
-- simultaneous residency: 19,223 B; safe residency remaining: 2,964 B
+- linked runtime: 17,452 B
+- simultaneous residency: 19,207 B; safe residency remaining: 2,980 B
 
-Placement margins are now small: extension composite 12 B before `$9000`
-(742/960 B packed), pickup/collision stream 6 B zero fill before `$8B67`,
-packed STARFIELD 21 B below its 1,798 B correction gate. A further archetype
-needs a new placement decision.
+Placement margins: extension composite 17 B before `$9000` (742/960 B packed),
+pickup/collision stream 6 B zero fill before `$8B67`, packed STARFIELD 24 B
+below its 1,798 B correction gate, A2 kernel 19 B, ENTITY_CODE 12 B run space.
+A further archetype or the smooth Light renderer needs a new placement
+decision.
 
 Use identical replay scenarios when comparing CPU numbers.
 
@@ -212,18 +230,20 @@ evidence against a change, unless a new name appears.
 
 ## Latest completed experiment
 
-Light Wingman placement: SOLVED without ENTITY_CODE growth, using only legal
-existing capacity — head of the pickup/collision stream (`$8776-$8857`),
-extension-stream tail (`$8F77-$8FF3`), STARFIELD tail (`$5D45-$5D68`), the
-retired 17-byte BROADSIDE entry pad (`$77A1-$77B1`) and C/ASM Light state
-`$8100-$810C` (C profile cache moved to `$8110-$8118`). See
-`docs/diagnostics/stage-2b2b-light-wingman-2heavy-1light.json`.
+Light Wingman owner-smoke fix (2026-09-15), diagnosed from the candidate's own
+native trace: the Light was erased right after the frame gate (scanline ~20)
+and redrawn only at scanlines 97-150, so in 161 of 434 leader-alive frames the
+beam passed its row while it was erased; its position combined a 4-HPOS / 8-line
+character grid with side switching. Fixed by late publication and a fixed
+centred formation. Smooth vertical tracking: `BLOCKED_PLACEMENT` (about 75 B
+needed; free regions 24/19/17/12/6 B). See
+`docs/diagnostics/stage-2b2b-light-wingman-late-publication.json`.
 
 ---
 
 ## Current task
 
-Owner smoke of the `2 Heavy + 1 Light` candidate.
+Owner smoke of the `2 Heavy + 1 Light` late-publication candidate.
 
 Executor currently preferred:
 
@@ -233,14 +253,16 @@ Claude Code.
 
 ## Next roadmap after Light owner PASS
 
-1. Interceptor as another data-driven EnemyArchetype (needs resident capacity).
-2. Bomber / Heavy Assault.
-3. Wave/progression expansion.
-4. Fighter acceptance/capacity growth.
-5. Capital VSCROL proof.
-6. Capital turrets/gondolas/damaged sections.
-7. Reusable capital modules.
-8. Modular boss.
+1. Placement decision for about 100 B of resident Light/archetype capacity
+   (needed for smooth Light tracking and for the next archetype).
+2. Interceptor as another data-driven EnemyArchetype.
+3. Bomber / Heavy Assault.
+4. Wave/progression expansion.
+5. Fighter acceptance/capacity growth.
+6. Capital VSCROL proof.
+7. Capital turrets/gondolas/damaged sections.
+8. Reusable capital modules.
+9. Modular boss.
 
 ---
 

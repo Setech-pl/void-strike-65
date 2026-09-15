@@ -2374,7 +2374,7 @@ main_loop_frame_active = *
     ; sized read so the frozen main-loop profiling entry points do not move.
     bit FIGHTER_PROJECTILE_ACTIVE
 profile_after_projectile_erase = *
-    jsr entity_effects_erase_with_white_starfield_light
+    jsr entity_effects_erase_with_white_starfield
 profile_after_entity_erase = *
     jsr integration_active_gameplay_tick
 profile_after_capsule = *
@@ -2420,7 +2420,7 @@ profile_after_entity_update = *
 profile_after_effect_visuals = *
     jsr render_capital_shell_overlays
 profile_after_broadside_render = *
-    jsr entity_effects_render_with_light
+    jsr entity_effects_render
 profile_after_entity_render = *
     jsr integration_update_sector_completion
 profile_after_sector = *
@@ -2840,7 +2840,9 @@ fighter_projectile_publication_begin = *
     ; Retire it inside the same safe post-playfield window as character shots.
     jsr erase_dynamic_near_star_overlays
     jsr publish_dynamic_near_star_phase
-    jsr erase_fighter_projectile_overlays
+    ; Light Wingman: PairShot erase, then the Light unwinds and republishes
+    ; inside this post-playfield window, below the PairShots rendered next.
+    jsr erase_fighter_projectile_overlays_with_light
 fighter_projectile_publication_capital_render:
     jsr render_fighter_projectile_overlays
     ; Sparse near is logically below every character gameplay layer. Publishing
@@ -10165,10 +10167,7 @@ render_interactive_entity_overlays:
     sta dst_ptr+1
     ldy #$00
     lda (dst_ptr),y
-    cmp #STAR_NEAR_POINT
-    bne :+
-    lda #CH_SPACE               ; dynamic near owns no persistent underlay
-:
+    jsr debris_capture_resolve  ; near owns no underlay; Light gives its own
     sta ENTITY_BACKING0
     lda ENTITY_RENDER_ID
     ldx ENTITY_OWNER
@@ -10178,10 +10177,7 @@ render_interactive_entity_overlays:
     sta (dst_ptr),y
     iny
     lda (dst_ptr),y
-    cmp #STAR_NEAR_POINT
-    bne :+
-    lda #CH_SPACE
-:
+    jsr debris_capture_resolve
     sta ENTITY_BACKING1
     lda ENTITY_RENDER_ID
     dex
@@ -10367,8 +10363,10 @@ store_projectile_backing_resolving_effect_core:
 projectile_debris_backing_resolve = *
     ; Debris is erased and republished before the late projectile erase. If a
     ; PairShot saved either visible debris cell, restore the debris record's
-    ; lower backing instead of reviving its old glyph after it moves.
-    jsr resolve_effect_backing_below_interactive_debris_and_light
+    ; lower backing instead of reviving its old glyph after it moves. The
+    ; Light is published just below the PairShots, so its glyph is a legal
+    ; PairShot backing here and needs no substitution.
+    jsr resolve_effect_backing_below_interactive_debris
 store_projectile_backing_resolving_effect_core_store:
     sta FIGHTER_PROJECTILE_BACKUP_TOP,x
     rts
@@ -10482,7 +10480,7 @@ render_transient_effect_overlays:
     ldy #$00
     lda (dst_ptr),y
     jsr resolve_effect_backing_below_player_pairshot
-    jsr resolve_effect_backing_below_interactive_debris
+    jsr resolve_effect_backing_below_interactive_debris_and_light
     jsr resolve_effect_backing_below_transient_effect
     sta EFFECT_BACKING0,x
     cpx #$00
@@ -11805,23 +11803,23 @@ boot_chunk_manifest_end:
 .export layout_d_publish_glue, layout_d_publish_glue_end
 .export layout_d_entity_unpack_complete
 
-; Light Wingman: the five hooks below are operand-only redirections of existing
-; JSRs. Each hook first performs the routine it is named after, except the
-; erase hook, which restores the Light's cells before it (reverse render order).
-; Without the hybrid C Light ABI they resolve to the original targets.
+; Light Wingman: the hooks below are operand-only redirections of existing
+; JSRs. Each hook first performs the routine it is named after; the debris
+; capture hook also keeps the near-star sanitising it replaces. Without the
+; hybrid C Light ABI they resolve to the original targets.
 .ifdef ENEMY_LIGHT_TICK
 .include "light-wingman.s"
-entity_effects_erase_with_white_starfield_light = light_erase
+erase_fighter_projectile_overlays_with_light = light_publish
 entity_effects_update_with_light = light_update
-entity_effects_render_with_light = light_render
 entity_player_fighter_projectile_target_with_light = light_shot
 resolve_effect_backing_below_interactive_debris_and_light = light_backing
-.export light_erase, light_update, light_render, light_shot, light_backing
-.export light_destroyed, light_glyph
+debris_capture_resolve = light_cell_resolve_sanitized
+.export light_publish, light_update, light_shot, light_backing
+.export light_cell_resolve, light_destroyed, light_glyph
 .else
-entity_effects_erase_with_white_starfield_light = entity_effects_erase_with_white_starfield
+erase_fighter_projectile_overlays_with_light = erase_fighter_projectile_overlays
 entity_effects_update_with_light = entity_effects_update
-entity_effects_render_with_light = entity_effects_render
 entity_player_fighter_projectile_target_with_light = entity_player_fighter_projectile_target
 resolve_effect_backing_below_interactive_debris_and_light = resolve_effect_backing_below_interactive_debris
+debris_capture_resolve = sanitize_dynamic_near_backing
 .endif

@@ -4,58 +4,69 @@
 ; main.s reaches these entries solely through operand-only hook redirections,
 ; so no existing entry point or segment boundary moves.
 ;
-; Layering (reverse order on erase):
-;   render: debris -> effects -> Light -> PairShots (late publication)
-;   erase:  Light -> effects -> debris, before any other layer writes
-; A PairShot saving a Light cell inherits the Light's lower backing, and the
-; Light saving an OLD PairShot cell inherits that shot's underlay, so neither
-; erase can resurrect the other's glyph.
+; Late publication (owner smoke 2026-09-15: the frame-start erase left the
+; Light blank while ANTIC scanned the upper playfield, so it flickered). The
+; Light is now erased and republished only inside the post-playfield PairShot
+; window (after wait_frame_at_line $77), between the PairShot erase and render:
+;   debris/effects (mid-frame) < Light < PairShots < sparse near (CH_SPACE only)
+; Debris and effects render while the previous Light image is still visible;
+; light_cell_resolve gives them the Light's lower backing, and the late Light
+; erase leaves a cell alone once such a lower layer has overwritten it.
 
 LIGHT_WIDTH_HPOS = 8
 LIGHT_HEIGHT_SCANLINES = 8
+LIGHT_CELL_COUNT = 2
 LIGHT_GLYPH = WEAPON_PICKUP_GLYPH_BASE          ; 120/121: retired pickup bank
 LIGHT_SCREEN_CODE = LIGHT_GLYPH|CAPITAL_PROJECTILE_HOSTILE_ATTRIBUTE
 LIGHT_PROJECTILE_OWNER = FIGHTER_PROJECTILE_INTERCEPTOR|$04
 LIGHT_SCORE_BCD = ENEMY_ARCHETYPE_TABLE+12+10   ; C-owned Light record field
+; The bottom ring row is recycled (overwritten by the divider copy) by
+; rotate_playfield_rows while the late-published Light is still visible; the
+; footprint therefore never enters it, so the late erase never writes into a
+; recycled row.
+LIGHT_RENDER_BOTTOM = ENTITY_GAMEPLAY_BOTTOM-8
 
 .assert LIGHT_GLYPH = 120, error, "Light glyphs must reuse the retired pickup bank"
+.assert (LIGHT_SCREEN_CODE & (LIGHT_CELL_COUNT-1)) = 0, error, "Light cell index must be the low code bits"
 .assert (LIGHT_PROJECTILE_OWNER & FIGHTER_PROJECTILE_INTERCEPTOR_EMITTER_MASK) = 0, error, "Light shots are attributed to leader slot P1"
 
 ; Residency (all resident for the whole game, no runtime I/O):
 ;   LIGHT_CODE     tail of the hybrid extension composite, carried in the
 ;                  existing late-compressed extension stream
 ;   LIGHT_RESIDENT head of the pickup/collision stream at $8776
-;   STARFIELD      free tail of the relocated starfield runtime (backing hook)
+;   STARFIELD      free tail of the relocated starfield runtime (resolver)
 ;   BROADSIDE      light_add_score in the retired 17-byte entry pad (main.s)
 
 .segment "LIGHT_CODE"
 
-; Frame start, before debris/effects erase.
-light_erase:
+; Replaces the PairShot erase operand in the fighter publication window.
+light_publish:
+    jsr erase_fighter_projectile_overlays
     lda LIGHT_SCREEN_HI
-    beq @done
+    beq @render
     sta dst_ptr+1
     lda LIGHT_SCREEN_LO
     sta dst_ptr
-    ldy #$01
-    lda LIGHT_BACKING1
+    ldy #(LIGHT_CELL_COUNT-1)
+@erase:
+    tya
+    ora #LIGHT_SCREEN_CODE
+    cmp (dst_ptr),y             ; a lower layer that overwrote it owns it now
+    bne :+
+    lda LIGHT_BACKING0,y
     sta (dst_ptr),y
+:
     dey
-    lda LIGHT_BACKING0
-    sta (dst_ptr),y
+    bpl @erase
+    iny
     sty LIGHT_SCREEN_HI
-@done:
-    jmp entity_effects_erase_with_white_starfield
-
-; After debris/effects render and before the late PairShot publication.
-light_render:
-    jsr entity_effects_render
+@render:
     lda LIGHT_STATE
     beq @done
     jsr light_top
     cmp #ENTITY_GAMEPLAY_TOP
     bcc @done
-    cmp #ENTITY_GAMEPLAY_BOTTOM
+    cmp #LIGHT_RENDER_BOTTOM
     bcs @done
     sbc #(ENTITY_GAMEPLAY_TOP-1) ; C=0
     lsr
@@ -79,9 +90,11 @@ light_render:
 @cell:
     ldy #$00
     lda (dst_ptr),y
-    ; An OLD PairShot glyph still occupies the cell until late publication:
-    ; save that shot's underlay (and never a transient near-star point).
+    ; PairShots are already erased; save the true lower backing below any
+    ; visible debris/effect cell and never a transient near-star point.
     jsr resolve_effect_backing_below_player_pairshot
+    jsr resolve_effect_backing_below_interactive_debris
+    jsr resolve_effect_backing_below_transient_effect
     sta LIGHT_BACKING0,x
     txa
     ora #LIGHT_SCREEN_CODE
@@ -91,7 +104,7 @@ light_render:
     inc dst_ptr+1
 :
     inx
-    cpx #$02
+    cpx #LIGHT_CELL_COUNT
     bne @cell
     lda LIGHT_SCRATCH
     sta LIGHT_SCREEN_HI
@@ -232,28 +245,32 @@ light_glyph:
 
 .segment "STARFIELD"
 
-; PairShot backing capture: a shot entering a currently rendered Light cell
-; must save the Light's lower backing, never the Light glyph. An unrendered
-; Light has SCREEN_HI=0, which can never match a ring page, so it needs no
-; separate test.
+; Effects: the existing debris resolver, then the Light resolver below.
 light_backing:
     jsr resolve_effect_backing_below_interactive_debris
-    sta LIGHT_SCRATCH
-    lda dst_ptr
-    sec
-    sbc LIGHT_SCREEN_LO
-    tay
-    lda dst_ptr+1
-    sbc LIGHT_SCREEN_HI
-    bne @restore
-    cpy #$02
-    bcs @restore
-    lda LIGHT_BACKING0,y
-    ldy #$00
+    jmp light_cell_resolve
+
+; Debris capture: near-star sanitising (as before), then the Light resolver.
+light_cell_resolve_sanitized:
+    cmp #STAR_NEAR_POINT
+    bne light_cell_resolve
+    lda #CH_SPACE
     rts
-@restore:
-    lda LIGHT_SCRATCH
-    ldy #$00
+
+; A = captured cell byte. There is one Light and its codes are used by nothing
+; else, so a Light code names the cell index directly: return that cell's lower
+; backing so the lower layer's later erase cannot resurrect the Light glyph.
+; X and Y are preserved (debris captures its second cell with Y=1).
+light_cell_resolve:
+    cmp #LIGHT_SCREEN_CODE
+    bcc @done
+    cmp #(LIGHT_SCREEN_CODE+LIGHT_CELL_COUNT)
+    bcs @done
+    lsr
+    lda LIGHT_BACKING0
+    bcc @done
+    lda LIGHT_BACKING1
+@done:
     rts
 
 light_starfield_end:

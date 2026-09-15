@@ -32,8 +32,9 @@ character renderer class 2, red PairShot, BCD score `$05`, Director value 1),
 admission, formation motion, fire decision, HP and recycle. A small ASM kernel
 owns only its two ANTIC 4 ring cells, their backing, the glyph install, the
 PairShot emission and the hot PairShot/contact tests. It uses no PMG, DLI, VBI,
-compositor or new loader record: five existing `JSR` operands are redirected to
-wrappers that first perform the routine they replace. The kernel resides in
+compositor or new loader record: six existing `JSR` operands are redirected to
+wrappers that first perform the routine they replace; the Light is published in
+the post-playfield PairShot window, centred behind its leader. The kernel resides in
 legal existing capacity only — the extension-stream tail, the head of the
 pickup/collision stream at `$8776`, the STARFIELD free tail and a retired
 17-byte BROADSIDE pad — as detailed in
@@ -261,11 +262,14 @@ transient effects then save and restore their backing. A cell vacated by an
 overlay must contain exactly the byte that the lower layers would have produced
 in the same frame.
 
-The Light Wingman's 2x1 character overlay renders directly after debris and
-effects and before the late PairShot publication, and is erased first at frame
-start. Its render saves the underlay of an OLD PairShot rather than the shot
-glyph, and a PairShot saving a Light cell inherits the Light's backing, so
-neither later erase can resurrect the other's glyph.
+The Light Wingman's 2x1 character overlay is erased and republished only in the
+post-playfield PairShot window, after the PairShot erase and before the PairShot
+render, so ANTIC never scans it while it is erased. Debris and effects render
+mid-frame while the previous Light image is still visible; a captured Light code
+names its cell, so they store the Light's lower backing, and the late Light
+erase leaves any cell such a lower layer has overwritten. PairShots above it keep
+the Light glyph as their backing in true reverse order. The footprint stays above
+the ring row recycled by `rotate_playfield_rows`.
 
 Fighter weapons use a common one-cell PairShot record. Its fixed 8x8 glyph
 shows two separated impulses, while movement, lifetime and collision remain a
@@ -283,7 +287,7 @@ spill, reverse two-cell unwind, and final split-glyph path are absent.
 | Broadside projectiles | 3 | 2 | capital fire; M1-M3 allocation remains unchanged |
 | Interactive entities | 4 | 2 | debris plus one pickup capsule; controller/reserve slots remain non-rendered |
 | Transient effects | 6 | 5 | debris may use one core plus four fragments; Raider destruction does not use this pool; Light destruction reuses the debris breakup |
-| Light Wingman | 1 | 1 | C-owned record in `$8100-$810C`; two ring cells; shots use the shared enemy PairShot pool |
+| Light Wingman | 1 | 1 | C-owned record in `$8100-$810B`; two ring cells; shots use the shared enemy PairShot pool |
 
 Pool scans are bounded by compile-time counts. Normal and Spread initialize
 four PairShots, Rapid five. Their fixed glyphs preserve 8/8/10 visible pulses;
@@ -308,18 +312,21 @@ enemy PairShot records share one burst controller across the formation; they
 reuse the same one-cell movement/erase/render foundation as player fire while
 retaining hostile colour, speed, cadence, swept collision and ten-unit damage.
 
-The Light Wingman follows Heavy slot 0 with a 12-scanline lag and a 4-HPOS gap
-(offset +20 right or -12 left), switching side only beyond leader X 144/96. If
-its leader is destroyed or released, it continues straight down one scanline
-per frame and is recycled at scanline 240; a respawned slot never re-captures
+The Light Wingman is centred behind Heavy slot 0: its left edge is the leader X
+plus (16 - 8) / 2 rounded to the 4-HPOS cell grid and clamped to the last
+two-cell start, 8 + 4 scanlines above the leader, with no side switching. It is
+drawn in 8-line character rows, so its vertical gap steps between 12 and 19
+lines; smooth tracking is blocked on placement. If its leader is destroyed or
+released, it continues straight down one scanline per frame and retires at
+scanline 232; a respawned slot never re-captures
 it. It fires one red PairShot after its difficulty pause (64/80/96 frames on
 HARD/MEDIUM/EASY) when fully visible and the player is alive; a full shared
 pool drops the shot. Its shots carry the leader's P1 emitter bit, so the
 existing emitter-owned cleanup applies unchanged. One player PairShot or a
 player contact destroys it (Raider contact contract: full player damage, one
 enemy damage unit), awarding `$05` BCD with the debris breakup and hit sound.
-Capital admission waits until it has retired, and any non-fighter sector
-retires it immediately.
+Capital admission waits until it has retired and been unpublished, and any
+non-fighter sector retires it immediately.
 
 Debris is the implemented interactive entity in slot 0. It has bounded
 trajectories, two shapes, two tumble phases, three hit points, contact damage,

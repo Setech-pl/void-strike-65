@@ -2221,8 +2221,26 @@ Raport: `docs/diagnostics/stage-2b2b-light-wingman-2heavy-1light.json`.
 Marginesy po zmianie: extension 12 B, strumień pickup 6 B, packed STARFIELD
 21 B. Kolejny archetyp wymaga nowej decyzji o rozmieszczeniu.
 
-Następny task: owner smoke `2 Heavy + 1 Light`; po PASS — Interceptor jako
-kolejny archetyp korzystający z renderera Light.
+Owner smoke (`ed72e25`, XEX `126b2b81`): „Light pojawia się w losowym miejscu
+względem skrzydła i migocze”. Native trace tego kandydata pokazał, że Light był
+kasowany zaraz po bramce ramki (linia ~20), a rysowany dopiero na liniach
+97–150 — w 161 z 434 klatek promień mijał jego wiersz, gdy był skasowany;
+pozycja łączyła siatkę 4 HPOS / 8 linii z przeskakiwaniem stron.
+
+Poprawka: Light jest kasowany i publikowany wyłącznie w oknie po playfieldzie
+(po `wait_frame_at_line $77`), między erase a render PairShotów; debris/efekty
+dostają jego backing przez kod komórki (`light_cell_resolve`), a późny erase
+pomija komórki nadpisane przez niższą warstwę. Formacja: wycentrowany za
+liderem, 8 + 4 linie wyżej, bez zmiany strony, clamp do kolumn 38–39; ślad
+nigdy nie wchodzi w recyklowany wiersz ringu (wycofanie na 232). Native
+`2-evasive-fire3` na XEX `900152fe…`: max `29 177`, 0 missed/extra VBI/DLI;
+we wszystkich 659 klatkach fighter publikacja kończy się za playfieldem.
+Płynne śledzenie pionowe (kompozytor 2x2): `BLOCKED_PLACEMENT` — ok. 75 B
+przy największym wolnym obszarze 24 B. Raport:
+`docs/diagnostics/stage-2b2b-light-wingman-late-publication.json`.
+
+Następny task: owner smoke poprawionego `2 Heavy + 1 Light`; po PASS — decyzja
+o rozmieszczeniu ok. 100 B (płynny Light i kolejny archetyp), potem Interceptor.
 
 ### Stage 2E — boss
 

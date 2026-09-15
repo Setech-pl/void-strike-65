@@ -75,7 +75,6 @@ const light = (image) => ({
   y: image[L("light_y")],
   timer: image[L("light_fire_timer")],
   leaderless: image[L("_light_leaderless")],
-  side: image[L("_light_side")],
 });
 
 function setLeader(image, x, y, state = 1) {
@@ -108,7 +107,7 @@ test("Light kernel placement is legal, resident and inside every reviewed gate",
   assert.ok(extension.packedBytes <= 960, "late-compressed extension cold staging limit");
   assert.ok(manifest.starfieldRuntime.packedBytes <= 0x706, "starfield correction gate");
   assert.ok(L("light_starfield_end") <= L("hud_booster_backing"));
-  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 90,
+  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 93,
     "ENTITY_CODE staging is untouched");
   assert.equal(manifest.capitalPlayerCollisionRuntime.runAddress, 0x8b67);
   // light_add_score exactly fills the retired 17-byte BROADSIDE entry pad.
@@ -127,7 +126,7 @@ test("formation admission yields 2 Heavy + 1 Light with independent lifecycles",
     assert.deepEqual([...image.subarray(member, member + 2)], [1, 1]);
     assert.deepEqual([image[L("ENEMY_LIVE_COUNT")], image[L("ENEMY_ACTIVE")]], [2, 1]);
     assert.deepEqual(light(image), {
-      state: 1, hp: 1, x: 0, y: 0, timer: pause, leaderless: 0, side: 20,
+      state: 1, hp: 1, x: 0, y: 0, timer: pause, leaderless: 0,
     });
     // A wingman still flying from an earlier formation keeps its lifecycle.
     image[L("light_y")] = 100;
@@ -137,7 +136,7 @@ test("formation admission yields 2 Heavy + 1 Light with independent lifecycles",
   }
 });
 
-test("C formation follows Heavy slot 0 with a lag and edge-only side hysteresis", () => {
+test("C formation holds the Light centred behind Heavy slot 0 without side switching", () => {
   const image = game();
   run(image, "enemy_spawn_raiders");
   const tick = (x, y) => {
@@ -145,12 +144,17 @@ test("C formation follows Heavy slot 0 with a lag and edge-only side hysteresis"
     run(image, "enemy_light_tick");
     return [light(image).x, light(image).y];
   };
-  assert.deepEqual(tick(100, 100), [120, 88]);
-  assert.deepEqual(tick(144, 100), [164, 88], "right side holds to the corridor edge");
-  assert.deepEqual(tick(150, 60), [136, 48], "beyond the edge the wingman switches left");
-  assert.deepEqual(tick(120, 60), [108, 48], "no switch back inside the corridor");
-  assert.deepEqual(tick(90, 60), [108, 48], "near the left edge it switches right again");
-  assert.deepEqual(tick(88, 8), [108, 0], "a leader above the lag keeps the wingman hidden");
+  // Centre offset (16 - 8) / 2 = 4 HPOS, rounded to the nearest 4-HPOS cell.
+  for (let x = 48; x <= 198; x += 1) {
+    const [lightX] = tick(x, 100);
+    assert.ok(Math.abs(lightX - (x + 4)) <= 2, `leader ${x}: light ${lightX}`);
+    assert.equal(lightX & 3, 0);
+  }
+  assert.deepEqual(tick(100, 100), [104, 88], "8 + 4 lines behind (above) the leader");
+  assert.deepEqual(tick(156, 60), [160, 48], "no side switch near the right edge");
+  assert.deepEqual(tick(60, 60), [64, 48], "no side switch near the left edge");
+  assert.deepEqual(tick(208, 60), [200, 48], "clamped to the last two-cell start, columns 38-39");
+  assert.deepEqual(tick(88, 8), [92, 0], "a leader above the lag keeps the wingman hidden");
 });
 
 test("leader loss continues straight down, then recycles below the playfield", () => {
@@ -164,15 +168,15 @@ test("leader loss continues straight down, then recycles below the playfield", (
   assert.equal(image[L("ENEMY_MEMBER_STATE") + 1], 1, "Heavy slot 1 survives");
   run(image, "enemy_light_tick");
   assert.deepEqual([light(image).state, light(image).leaderless, light(image).x,
-    light(image).y], [1, 1, 120, 89]);
+    light(image).y], [1, 1, 104, 89]);
   setLeader(image, 40, 40, 1);  // a respawned slot never re-captures this wingman
   run(image, "enemy_light_tick");
-  assert.deepEqual([light(image).x, light(image).y], [120, 90]);
-  image[L("light_y")] = 238;
+  assert.deepEqual([light(image).x, light(image).y], [104, 90]);
+  image[L("light_y")] = 230;
   run(image, "enemy_light_tick");
   assert.equal(light(image).state, 1);
   run(image, "enemy_light_tick");
-  assert.equal(light(image).state, 0, "recycled at scanline 240");
+  assert.equal(light(image).state, 0, "retired before the recycled bottom ring row (232)");
 });
 
 test("single-shot fire policy is slower than the Heavy burst and gated by visibility", () => {
@@ -200,9 +204,9 @@ test("ASM emits one red PairShot owned by the leader's P1 emitter bit", () => {
   image[L("light_fire_timer")] = 0;
   run(image, "light_update");
   const active = L("FIGHTER_PROJECTILE_ACTIVE");
-  assert.deepEqual([light(image).x, light(image).y], [100, 100]);
+  assert.deepEqual([light(image).x, light(image).y], [84, 100]);
   assert.equal(image[active + ENEMY_BASE], LIGHT_OWNER);
-  assert.equal(image[L("FIGHTER_PROJECTILE_X") + ENEMY_BASE], 102);
+  assert.equal(image[L("FIGHTER_PROJECTILE_X") + ENEMY_BASE], 86);
   assert.equal(image[L("FIGHTER_PROJECTILE_Y") + ENEMY_BASE], 104);
   assert.equal(image[L("FIGHTER_PROJECTILE_LIFETIME") + ENEMY_BASE], 96);
   assert.deepEqual([...image.subarray(CHARSET + 120 * 8, CHARSET + 122 * 8)],
@@ -258,48 +262,57 @@ test("player contact follows the Raider contract and destroys the Light", () => 
   image[L("light_fire_timer")] = 50;
   image[L("PLAYER_LIFECYCLE")] = 0;
   image[0x4e5d] = 10;                 // BROAD_PLAYER_HEALTH
-  image[L("player_x")] = 116;
+  image[L("player_x")] = 100;           // Light x 104: overlaps the player
   image[L("player_y")] = 100;
   run(image, "light_update");
   assert.equal(light(image).state, 0);
   assert.equal(image[0x4e5d], 0, "full player damage through the shared gate");
 });
 
-test("render and erase restore both ring cells byte-exactly in reverse layer order", () => {
+test("late publication erases PairShots first, then unwinds and republishes the Light", () => {
   const image = game();
   run(image, "enemy_spawn_raiders");
   image[L("light_x")] = 100;          // column (100-48)/4 = 13
   image[L("light_y")] = 100;          // top 96 -> ring row 9
   const left = cell(image, 9, 13);
-  // Left: an OLD enemy PairShot whose saved underlay is $05. Right: near star.
+  // Left: an OLD enemy PairShot over underlay $05. Right: a near star.
   image[left] = (90 | 0x80);
   image[left + 1] = 1;
   const slot = 6;
-  image[L("FIGHTER_PROJECTILE_RENDERED") + slot] = 0xff;
+  image[L("FIGHTER_PROJECTILE_RENDERED") + slot] = 1;
   image[L("FIGHTER_PROJECTILE_SCREEN_LO") + slot] = left & 0xff;
   image[L("FIGHTER_PROJECTILE_SCREEN_HI") + slot] = left >> 8;
   image[L("FIGHTER_PROJECTILE_BACKUP_TOP") + slot] = 0x05;
-  run(image, "light_render");
+  run(image, "light_publish");
+  assert.equal(image[L("FIGHTER_PROJECTILE_RENDERED") + slot], 0, "PairShots are erased first");
   assert.deepEqual([image[left], image[left + 1]], [LIGHT_CODE_LEFT, LIGHT_CODE_LEFT + 1]);
   assert.deepEqual([image[L("light_backing0")], image[L("light_backing1")]], [0x05, 0x00],
     "shot underlay and CH_SPACE, never a PairShot or near-star glyph");
   assert.equal(image[L("light_screen_lo")] | image[L("light_screen_hi")] << 8, left);
 
-  // A PairShot later saving the right Light cell inherits the Light's backing.
-  const dst = L("dst_ptr");
-  image[dst] = (left + 1) & 0xff;
-  image[dst + 1] = (left + 1) >> 8;
-  assert.equal(run(image, "light_backing", { a: LIGHT_CODE_LEFT + 1 }).a, 0x00);
-  image[dst] = (left + 2) & 0xff;
-  assert.equal(run(image, "light_backing", { a: 0x33 }).a, 0x33, "other cells unchanged");
+  // Debris/effects rendered over the still-visible Light inherit its backing.
+  const resolved = run(image, "light_cell_resolve", { a: LIGHT_CODE_LEFT + 1, x: 7, y: 1 });
+  assert.deepEqual([resolved.a, resolved.x, resolved.y], [0x00, 7, 1]);
+  assert.equal(run(image, "light_cell_resolve", { a: 0x33 }).a, 0x33, "other codes unchanged");
+  assert.equal(run(image, "light_cell_resolve_sanitized", { a: 1 }).a, 0, "near star sanitised");
 
-  image[left] = 0x77;                 // any later layer write is overwritten by restore
-  run(image, "light_erase");
-  assert.deepEqual([image[left], image[left + 1]], [0x05, 0x00]);
+  // A lower layer overwrote the left cell; the Light then retires.
+  image[left] = 0x77;
+  image[L("light_state")] = 0;
+  run(image, "light_publish");
+  assert.deepEqual([image[left], image[left + 1]], [0x77, 0x00], "only still-owned cells restore");
   assert.equal(image[L("light_screen_hi")], 0);
-  const again = run(image, "light_erase");
-  assert.ok(again.cycles > 0);
-  assert.deepEqual([image[left], image[left + 1]], [0x05, 0x00], "erase is idempotent");
+  run(image, "light_publish");
+  assert.deepEqual([image[left], image[left + 1]], [0x77, 0x00], "unpublish is idempotent");
+
+  // The footprint never enters the recycled bottom ring row (Y 232-239).
+  image[L("light_state")] = 1;
+  image[L("light_y")] = 232;
+  run(image, "light_publish");
+  assert.equal(image[L("light_screen_hi")], 0);
+  image[L("light_y")] = 231;
+  run(image, "light_publish");
+  assert.equal(image[L("light_screen_lo")] | image[L("light_screen_hi")] << 8, cell(image, 25, 13));
 });
 
 test("fighter->capital waits for the Light and capital->fighter re-admits a fresh one", () => {
@@ -315,6 +328,9 @@ test("fighter->capital waits for the Light and capital->fighter re-admits a fres
   run(image, "enemy_light_tick");
   assert.equal(light(image).state, 0);
   image[state] = 7;
+  image[L("light_screen_hi")] = 0x81; // retired but not yet unpublished late
+  assert.equal(run(image, "sector_update_first_capital").a, 0);
+  image[L("light_screen_hi")] = 0;
   assert.equal(run(image, "sector_update_first_capital").a, 1);
   assert.equal(image[state], 0);
 
@@ -324,13 +340,21 @@ test("fighter->capital waits for the Light and capital->fighter re-admits a fres
   assert.deepEqual([light(image).state, light(image).hp, light(image).leaderless], [1, 1, 0]);
 });
 
-test("hooks are operand-only redirections and C remains the single lifecycle owner", () => {
-  for (const hook of ["entity_effects_erase_with_white_starfield_light",
-    "entity_effects_update_with_light", "entity_effects_render_with_light",
-    "entity_player_fighter_projectile_target_with_light",
-    "resolve_effect_backing_below_interactive_debris_and_light"]) {
-    assert.equal((mainSource.match(new RegExp(`jsr ${hook}\\b`, "g")) ?? []).length, 1, hook);
+test("hooks are operand-only redirections and the Light publishes only in the late window", () => {
+  for (const [hook, count] of [
+    ["entity_effects_update_with_light", 1],
+    ["erase_fighter_projectile_overlays_with_light", 1],
+    ["entity_player_fighter_projectile_target_with_light", 1],
+    ["resolve_effect_backing_below_interactive_debris_and_light", 1],
+    ["debris_capture_resolve", 2],
+  ]) {
+    assert.equal((mainSource.match(new RegExp(`jsr ${hook}\\b`, "g")) ?? []).length, count, hook);
   }
+  assert.match(mainSource, new RegExp("jsr wait_frame_at_line\\s+fighter_projectile_publication_begin = \\*" +
+    "[\\s\\S]*?jsr erase_fighter_projectile_overlays_with_light\\s+" +
+    "fighter_projectile_publication_capital_render:\\s+jsr render_fighter_projectile_overlays"));
+  assert.doesNotMatch(mainSource, /jsr entity_effects_(?:erase_with_white_starfield|render)_with_light/,
+    "no frame-start Light erase and no mid-frame Light render");
   assert.doesNotMatch(lightSource,
     /\b(?:sta|stx|sty|inc|dec)\s+(?:LIGHT_STATE|LIGHT_HP|LIGHT_X|LIGHT_Y)\b/,
     "ASM never writes C-owned Light lifecycle, HP or position");

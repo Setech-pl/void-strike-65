@@ -192,7 +192,8 @@ export function validateBuildDirectory(rootDirectory) {
     transport.maximumNewSimultaneousResidencyBytes === 7993 &&
     transport.remainingSafeResidencyBytes ===
       7993 - manifest.runtimeCodeBudget.frontendH31.actualDeltaBytes -
-        (manifest.capitalPlayerCollisionRuntime?.bytes ?? 0) &&
+        (manifest.capitalPlayerCollisionRuntime?.bytes ?? 0) -
+        (manifest.encounterDirector?.residencyDeltaBytes ?? 0) &&
     transport.loaderResidentBytes === 0,
   "Transport and runtime residency capacities are conflated or inconsistent");
   invariant(manifest.broadsideRuntime?.loadAddress === 0x4000,
@@ -346,14 +347,21 @@ export function validateBuildDirectory(rootDirectory) {
 
   const parsedXex = parseXex(xex);
   const directorEnabled = manifest.encounterDirector?.enabled === true;
-  invariant(parsedXex.segments.length === (directorEnabled ? 6 : 3),
+  const directorCodeRuntimes = directorEnabled
+    ? (manifest.directorCodeRuntimes ?? (manifest.directorCodeRuntime == null
+      ? [] : [{ ...manifest.directorCodeRuntime, file: "encounter-director-code.bin" }]))
+    : [];
+  invariant(parsedXex.segments.length === (directorEnabled ? 6 + directorCodeRuntimes.length : 3),
     "XEX segment count does not match the enabled transport layout");
   const payloadSegment = parsedXex.segments[0];
   const broadsideSegment = parsedXex.segments[1];
   const pickupPhaseSegment = directorEnabled ? parsedXex.segments[2] : null;
   const glueSegment = directorEnabled ? parsedXex.segments[3] : null;
-  const directorSegment = directorEnabled ? parsedXex.segments[4] : null;
-  const runSegment = parsedXex.segments[directorEnabled ? 5 : 2];
+  const directorCodeSegments = directorCodeRuntimes.map((runtime, index) =>
+    parsedXex.segments[4 + index]);
+  const directorSegment = directorEnabled
+    ? parsedXex.segments[4 + directorCodeRuntimes.length] : null;
+  const runSegment = parsedXex.segments[directorEnabled ? 5 + directorCodeRuntimes.length : 2];
   invariant(payloadSegment.start === manifest.loadAddress, "XEX payload load address is wrong");
   invariant(payloadSegment.data.equals(boot.subarray(0, transport.initialBootBytes)),
     "XEX initial block differs from ATR");
@@ -376,6 +384,15 @@ export function validateBuildDirectory(rootDirectory) {
     "XEX packed pickup phase-runtime segment is invalid");
     invariant(glueSegment.start === manifest.integrationGlue.transportAddress &&
       glueSegment.data.equals(glueRuntime), "XEX GLUE staging segment is invalid");
+    for (let index = 0; index < directorCodeRuntimes.length; index += 1) {
+      const runtime = directorCodeRuntimes[index];
+      const directorCodeRuntime = fs.readFileSync(path.join(rootDirectory,
+        "build", runtime.xexFile ?? runtime.file));
+      invariant(directorCodeSegments[index].start ===
+        (runtime.transportAddress ?? runtime.runAddress) &&
+        directorCodeSegments[index].data.equals(directorCodeRuntime),
+      `XEX C Director CODE segment ${runtime.name ?? index} is invalid`);
+    }
     invariant(directorSegment.start === manifest.directorRuntime.runAddress &&
       directorSegment.data.equals(directorRuntime), "XEX DIRECTOR segment is invalid");
     const pickupPhaseRuntime = unpackBroadsideLzss(packedPickupPhaseRuntime);

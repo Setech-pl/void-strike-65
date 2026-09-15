@@ -1,0 +1,75 @@
+{
+  "schema_version": 2,
+  "status": "PASS",
+  "generated_at": "2026-09-15",
+  "emulator": "instrumented Atari800 7.1.2 PAL/XL",
+  "replay": {
+    "session": "2-evasive-fire3",
+    "measured_frames": 920,
+    "difficulty": 2,
+    "policy": "evasive",
+    "fire_delay": 3,
+    "same_replay_requested": true,
+    "scheduled_director_events": 1,
+    "scheduled_event_frames": [255],
+    "c_completed": true
+  },
+  "gates": {
+    "production_target_cycles": 31200,
+    "hard_gate_cycles": 32568,
+    "physical_pal_cycles": 35568
+  },
+  "asm": {
+    "xex_sha256": "85c474c39130f5a423ab56608931df820d4b0ad8e8baa4d7de8858121b2356cb",
+    "maximum_wall_cycles": 28479,
+    "target_headroom_cycles": 2721,
+    "hard_headroom_cycles": 4089,
+    "physical_headroom_cycles": 7089,
+    "hard_gate_overruns": 0,
+    "physical_overruns": 0,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "dli_ordering_errors": 0
+  },
+  "c": {
+    "xex_sha256": "b9b19a007f5abbf2a8b3ec66e832a85fb7e77b64f3e28b7ed5377cd21533fd1b",
+    "maximum_wall_cycles": 28479,
+    "target_headroom_cycles": 2721,
+    "hard_headroom_cycles": 4089,
+    "physical_headroom_cycles": 7089,
+    "hard_gate_overruns": 0,
+    "physical_overruns": 0,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "dli_ordering_errors": 0,
+    "boot_smoke": {
+      "status": "PASS",
+      "sessions_passed": 4,
+      "frames_per_session": 750,
+      "media": ["XEX", "ATR"],
+      "cold_ram_fills": [165, 90]
+    },
+    "multiple_event_smoke": {
+      "status": "PASS",
+      "completed_frames": 4000,
+      "maximum_wall_cycles": 28453,
+      "scheduled_dispatches": 3,
+      "dispatch_frames": [667, 2567, 3219]
+    }
+  },
+  "delta_cycles": 0,
+  "linked_path_probe": {
+    "hottest_migrated_routine": "director_world_row_tick",
+    "asm_max_cycles": 294,
+    "c_max_cycles": 479,
+    "delta_cycles": 185,
+    "largest_observed_caller_delta_cycles": 189,
+    "interpretation": "The local C routine is slower, but the unchanged native replay maximum is unchanged and all PAL gates pass."
+  },
+  "behavioral_divergences": 0,
+  "discarded_measurement": {
+    "maximum_wall_cycles": 63419,
+    "reason": "The earlier candidate's ABI veneer at 0x548A had been overwritten by a gameplay lifecycle clear; this was not a valid C Director timing result."
+  },
+  "decision": "Technical PASS; recommend adopting the C Director as the project foundation, subject to owner approval."
+}

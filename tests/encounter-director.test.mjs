@@ -10,6 +10,7 @@ import { installRuntimeSegments } from "../scripts/runtime-image.mjs";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const mainSource = fs.readFileSync(path.join(root, "src/main.s"), "utf8");
 const directorSource = fs.readFileSync(path.join(root, "src/encounter-director.s"), "utf8");
+const lifecycleSource = fs.readFileSync(path.join(root, "src/c/lifecycle.c"), "utf8");
 const labels = new Map();
 for (const file of ["build/void-strike-65.lbl", "build/encounter-director.lbl",
   "build/integration-glue.lbl"]) {
@@ -507,9 +508,11 @@ test("ordinary admission is slot-safe, RNG-stable and pre-sector compatible", ()
 
 test("two PMG Raiders keep separate HP, score once, and preserve the surviving machine", () => {
   const image = currentMemory();
+  image[labels.get("DIFFICULTY_SETTING")] = 1;
+  image[labels.get("PLAYER_LIFECYCLE")] = 0;
+  run(image, "director_init", { a: 0x6d });
   run(image, "init_entity_effects");
   run(image, "reset_enemy");
-  image[labels.get("PLAYER_LIFECYCLE")] = 0;
   image[state.flags] = 0;
   image[labels.get("ENEMY_ARCHETYPE")] = 0;
   const member = labels.get("ENEMY_MEMBER_STATE");
@@ -578,9 +581,11 @@ test("two PMG Raiders keep separate HP, score once, and preserve the surviving m
 
 test("the shared burst alternates two real Raider origins and skips a destroyed owner", () => {
   const image = currentMemory();
+  image[labels.get("DIFFICULTY_SETTING")] = 1;
+  image[labels.get("PLAYER_LIFECYCLE")] = 0;
+  run(image, "director_init", { a: 0x6d });
   run(image, "init_entity_effects");
   run(image, "reset_enemy");
-  image[labels.get("PLAYER_LIFECYCLE")] = 0;
   image[state.flags] = 0;
   image[labels.get("ENEMY_ARCHETYPE")] = 0;
   const target = labels.get("ENEMY_TARGET_SLOT");
@@ -701,10 +706,11 @@ test("the provisional gate moves rather than duplicates the one capital encounte
     [128, 32, 64, 128, 0, 128]);
   assert.deepEqual(byteTable(image, "level1_event_row_hi", 6), [0, 4, 7, 11, 14, 14]);
   assert.equal((mainSource.match(/jsr integration_update_first_capital\n/g) ?? []).length, 1);
-  assert.match(mainSource,
-    /cmp #>PROVISIONAL_FIRST_CAPITAL_FRAME[\s\S]+cmp #<PROVISIONAL_FIRST_CAPITAL_FRAME[\s\S]+jmp retry_first_capital_admission/);
-  assert.equal((mainSource.match(/PROVISIONAL_FIRST_CAPITAL_FRAME/g) ?? []).length, 2,
-    "the historical frame-50 gate must not survive as a second event");
+  assert.match(mainSource, /integration_update_first_capital:[\s\S]+jsr HYBRID_SECTOR_UPDATE_FIRST_CAPITAL/);
+  assert.match(lifecycleSource,
+    /FIRST_CAPITAL_FRAME\s+600u[\s\S]+ACTIVE_GAMEPLAY_FRAME_HI[\s\S]+asm_sector_pressure_active/);
+  assert.equal((lifecycleSource.match(/FIRST_CAPITAL_FRAME/g) ?? []).length, 4,
+    "the high-level C lifecycle must own exactly one first-capital threshold");
 
   run(image, "director_init", { a: 0x6d });
   image[labels.get("CAPITAL_SECTOR_STATE")] = 2;

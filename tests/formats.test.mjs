@@ -30,7 +30,8 @@ test("XEX contains a payload segment and RUNAD", () => {
   const { manifest } = validateBuildDirectory(rootDirectory);
   const xex = fs.readFileSync(path.join(rootDirectory, "dist", "void-strike-65.xex"));
   const { segments } = parseXex(xex);
-  assert.equal(segments.length, 6);
+  const directorCodeRuntimes = manifest.directorCodeRuntimes ?? [];
+  assert.equal(segments.length, 6 + directorCodeRuntimes.length);
   assert.equal(segments[0].start, 0x2000);
   assert.equal(segments[0].data.length, manifest.transportCapacity.initialBootBytes);
   assert.deepEqual([segments[1].start, segments[1].end],
@@ -41,9 +42,18 @@ test("XEX contains a payload segment and RUNAD", () => {
     [pickupRecord.finalDestination,
       pickupRecord.finalDestination + pickupRecord.rawLength - 1]);
   assert.deepEqual([segments[3].start, segments[3].end], [0x7bd0, 0x7cc9]);
-  assert.deepEqual([segments[4].start, segments[4].end], [0x9d75, 0x9ff8]);
-  assert.deepEqual([segments[5].start, segments[5].end], [0x02e0, 0x02e1]);
-  assert.equal(segments[5].data.readUInt16LE(0),
+  directorCodeRuntimes.forEach((runtime, index) => {
+    const xexBytes = runtime.xexStagingCompression === "LZ-10/5"
+      ? runtime.packedBytes : runtime.bytes;
+    assert.deepEqual([segments[4 + index].start, segments[4 + index].end],
+      [runtime.transportAddress, runtime.transportAddress + xexBytes - 1]);
+  });
+  const directorIndex = 4 + directorCodeRuntimes.length;
+  assert.deepEqual([segments[directorIndex].start, segments[directorIndex].end],
+    [manifest.directorRuntime.runAddress, manifest.directorRuntime.endExclusive - 1]);
+  assert.deepEqual([segments[directorIndex + 1].start, segments[directorIndex + 1].end],
+    [0x02e0, 0x02e1]);
+  assert.equal(segments[directorIndex + 1].data.readUInt16LE(0),
     manifest.transportCapacity.stage2.xexEntryAddress);
 });
 
@@ -85,7 +95,14 @@ test("resident compaction proof survives and Spread Shot leaves at least 64 sour
     layout.suffixRawBytes - layout.suffixPackedBytes,
   ], [8192, 449, layout.suffixRawBytes, layout.suffixPackedBytes,
     layout.suffixRawBytes - layout.suffixPackedBytes]);
-  assert.equal(layout.suffixRawBytes - layout.suffixPackedBytes, 1020);
+  if (manifest.encounterDirector.implementation === "ca65-asm") {
+    assert.ok(layout.suffixRawBytes - layout.suffixPackedBytes >=
+      reserve.minimumRecoveredReserveBytes);
+  } else {
+    assert.ok(manifest.transportCapacity.initialBootContentBytes <=
+      manifest.transportCapacity.initialBootBytes,
+    "hybrid startup publisher must remain inside the existing boot envelope");
+  }
   assert.deepEqual(unpackBroadsideLzss(packed), suffix);
   assert.deepEqual(resident.subarray(layout.prefixBytes), suffix);
   assert.deepEqual(
@@ -94,7 +111,8 @@ test("resident compaction proof survives and Spread Shot leaves at least 64 sour
     packed,
   );
   assert.equal(reserve.recoveredReserveBytes, 1097);
-  assert.equal(reserve.residentSuffixGrossSavingsBytes, 1020);
+  assert.equal(reserve.residentSuffixGrossSavingsBytes,
+    layout.suffixRawBytes - layout.suffixPackedBytes);
   assert.equal(reserve.minimumRecoveredReserveBytes, 1024);
   assert.ok(reserve.reserveBytes >= 64);
   assert.deepEqual(manifest.payloadBudget.weaponPickupRapidFire, {
@@ -136,7 +154,7 @@ test("resident compaction proof survives and Spread Shot leaves at least 64 sour
     manifest.broadsideRuntime.runAddress,
     manifest.entityEffects.sourceToStagingMarginBytes,
     manifest.entityEffects.stagingToBroadsideMarginBytes,
-  ], [0x53ab, 0x5318, 0x5dce, 0x5e10, -147, 66]);
+  ], [0x5318, 0x5318, 0x5db6, 0x5e10, 0, 90]);
 
   const lifecycle = manifest.entityEffects.stagingLifecycle;
   assert.equal(lifecycle.stagingReleasedBeforeStarfieldExpansion, true);
@@ -146,7 +164,7 @@ test("resident compaction proof survives and Spread Shot leaves at least 64 sour
     lifecycle.starfieldDestinationOverlapStartAddress,
     lifecycle.starfieldDestinationOverlapEndExclusive,
     lifecycle.starfieldDestinationOverlapBytes,
-  ], [0x54e4, 0x5db6, 0x54e4, 0x5db6, 2258]);
+  ], [0x54e4, 0x5d45, 0x54e4, 0x5d45, 2145]);
   assert.match(source,
     /jsr stage_boot_streams[\s\S]+jsr unpack_resident_runtime\s+jsr unpack_entity_runtime[\s\S]+jsr unpack_loader_bitmap\s+jsr show_loader\s+jsr unpack_starfield_runtime/,
     "ENTITY_CODE staging must be consumed before loader/starfield destinations overwrite it");

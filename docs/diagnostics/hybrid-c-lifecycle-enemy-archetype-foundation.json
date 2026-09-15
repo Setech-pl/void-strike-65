@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "status": "PASS",
+  "generated_at": "2026-09-15",
+  "foundation_status": "Hybrid C Director is owner-accepted and is now the project foundation.",
+  "branch": "experiment/hybrid-c-director",
+  "baseline": {
+    "role": "owner-accepted pre-increment hybrid C Director",
+    "xex_sha256": "b9b19a007f5abbf2a8b3ec66e832a85fb7e77b64f3e28b7ed5377cd21533fd1b"
+  },
+  "candidate": {
+    "xex_sha256": "9aa7336e5ba516bd01874b897e5c298fa5d0a734dab628258ff8597727cc50d8",
+    "atr_sha256": "1cecd8b9d3eabc8310effb9cd4f648598da511f325d6c3f060c9065c7cd9b560",
+    "xex_bytes": 22362,
+    "atr_bytes": 92176
+  },
+  "scope": {
+    "moved_to_c": [
+      "authoritative high-level sector state",
+      "fighter/capital/future-boss lifecycle contract",
+      "sector entry, capital phase mapping, completion and final-drain decisions",
+      "authoritative Raider archetype/member/HP/live-count state",
+      "two-Raider admission, damage, retirement and recycle decisions",
+      "Raider EnemyArchetype data and ASM-facing derived profile"
+    ],
+    "retained_in_asm": [
+      "VBI, DLI, ANTIC and raster",
+      "PMG and PairShot publication",
+      "ring backing and restore",
+      "enemy coordinates, movement and manoeuvre execution",
+      "hot collision loops and damage mailboxes",
+      "hardware writes and audio hot paths"
+    ],
+    "gameplay_changes": 0,
+    "new_enemy_types": 0,
+    "third_raider": false
+  },
+  "enemy_archetype": {
+    "record_bytes": 12,
+    "fields": [
+      "hit_points",
+      "movement_behavior_id",
+      "fire_policy_id",
+      "burst_count",
+      "burst_interval_frames",
+      "post_burst_easy_frames",
+      "post_burst_medium_frames",
+      "post_burst_hard_frames",
+      "renderer_class",
+      "weapon_class",
+      "score_bcd",
+      "director_value"
+    ],
+    "raider": [1, 0, 1, 5, 15, 60, 50, 40, 1, 1, 16, 1],
+    "raider_slots": 2
+  },
+  "abi_delta": {
+    "removed": ["_asm_director_set_sector"],
+    "c_to_asm_added": ["_asm_sector_pressure_active"],
+    "asm_to_c_added": [
+      "lifecycle_init",
+      "sector_update_first_capital",
+      "sector_update_capital_phase",
+      "sector_begin_complete",
+      "sector_complete_scroll_tick",
+      "sector_force_final_drain",
+      "enemy_spawn_raiders",
+      "enemy_retire_member",
+      "enemy_apply_pending_damage",
+      "enemy_recycle"
+    ],
+    "veneer_bytes": 117,
+    "crossing_policy": "coarse lifecycle boundaries only"
+  },
+  "placement": {
+    "legal": true,
+    "basic_ram_used": false,
+    "loader_format_changed": false,
+    "low_c": {"start": "0x8B88", "end": "0x8C79", "bytes": 242},
+    "archetype_rodata": {"start": "0x8C7D", "end": "0x8C88", "bytes": 12},
+    "lifecycle_code": {"start": "0x8C89", "end": "0x8E84", "bytes": 508},
+    "extension_runtime_bytes": 520,
+    "extension_packed_bytes": 423,
+    "extension_staging": {"start": "0x7810", "end": "0x79B6"},
+    "protected_guard": {"start": "0x9FFA", "end": "0x9FFF", "intact": true}
+  },
+  "c_footprint": {
+    "code_bytes": 1256,
+    "rodata_bytes": 170,
+    "data_bytes": 0,
+    "bss_bytes": 16,
+    "software_stack_bytes": 0,
+    "zero_page_bytes": 0,
+    "runtime_helpers": [],
+    "generated_assembly_audited": true
+  },
+  "memory": {
+    "linked_runtime_bytes": 17521,
+    "baseline_linked_runtime_bytes": 17563,
+    "linked_runtime_delta_bytes": -42,
+    "simultaneous_residency_bytes": 18914,
+    "baseline_simultaneous_residency_bytes": 18415,
+    "simultaneous_residency_delta_bytes": 499,
+    "safe_residency_bytes": 3273
+  },
+  "behavioral_ab": {
+    "baseline_implementation": "accepted cc65 C Director with ASM lifecycle",
+    "candidate_implementation": "cc65 C Director and lifecycle",
+    "compared_frames": 12488,
+    "director_frame_calls": 42304,
+    "lifecycle_frames": 7200,
+    "lifecycle_calls": 36000,
+    "difficulties": [0, 1, 2],
+    "sector_transitions_compared": 24,
+    "raider_admissions_compared": 11,
+    "unexplained_divergences": 0,
+    "rng_ordering_unchanged": true,
+    "capital_entry_exit_unchanged": true,
+    "both_heavy_slots_unchanged": true
+  },
+  "native_boot_smoke": {
+    "status": "PASS",
+    "sessions": 4,
+    "frames_per_session": 750,
+    "media": ["XEX", "ATR"],
+    "cold_ram_fills": [165, 90]
+  },
+  "native_pal": {
+    "emulator": "Atari800 7.1.2 PAL/XL",
+    "session": "2-evasive-fire3",
+    "same_replay": true,
+    "completed_frames": 920,
+    "scheduled_director_events": 1,
+    "scheduled_event_frames": [255],
+    "raider_admission_frames": [1, 65, 141, 222, 330, 435, 517],
+    "baseline_max_cycles": 28479,
+    "candidate_max_cycles": 28505,
+    "delta_cycles": 26,
+    "production_target_cycles": 31200,
+    "target_headroom_cycles": 2695,
+    "hard_gate_cycles": 32568,
+    "hard_headroom_cycles": 4063,
+    "physical_pal_cycles": 35568,
+    "physical_headroom_cycles": 7063,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "dli_ordering_errors": 0,
+    "deadline_overruns": 0
+  },
+  "validation": {
+    "build_candidate": "PASS",
+    "xex_validation": "PASS",
+    "atr_validation": "PASS",
+    "hybrid_lifecycle_tests": "PASS",
+    "format_and_layout_tests": "PASS",
+    "behavioral_ab": "PASS",
+    "native_boot_smoke": "PASS",
+    "native_pal_replay": "PASS"
+  },
+  "decision": "Foundation is ready for the first Light enemy without modifying the core Director architecture."
+}

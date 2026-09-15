@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { fileURLToPath } from "node:url";
-import { toolchain } from "romdev-toolchain-cc65";
+import { shareDir, toolchain } from "romdev-toolchain-cc65";
 import { makeAtr, makeXexSegments, validateBuildDirectory } from "./formats.mjs";
 import {
   buildDfmcV1Transport,
@@ -72,6 +72,8 @@ const packageDefinition = JSON.parse(fs.readFileSync(path.join(rootDirectory, "p
 const gameVersion = packageDefinition.version;
 const quiet = process.argv.includes("--quiet");
 const candidateBuild = runtimeEvidencePhase(process.argv) === "candidate";
+const asmDirectorBaseline = process.argv.includes("--asm-director");
+const skipRuntimeMeasurement = process.argv.includes("--skip-runtime-measurement");
 const twoPmgRaiderPrototype = process.argv.includes("--two-pmg-raiders");
 const enemyReviewHarness = process.argv.includes("--enemy-review");
 const enemyCombatReviewHarness = process.argv.includes("--enemy-combat-review");
@@ -300,6 +302,226 @@ async function buildResidentModule({ sourcePath, configPath, stem, extraInputs =
   };
 }
 
+async function buildHybridDirectorModule() {
+  const base = "/project/build/encounter-director";
+  const cSource = fs.readFileSync(path.join(rootDirectory, "src", "c", "director.c"));
+  const cHeader = fs.readFileSync(path.join(rootDirectory, "src", "c", "director.h"));
+  const lifecycleSource = fs.readFileSync(path.join(rootDirectory, "src", "c", "lifecycle.c"));
+  const lifecycleHeader = fs.readFileSync(path.join(rootDirectory, "src", "c", "lifecycle.h"));
+  const archetypeHeader = fs.readFileSync(
+    path.join(rootDirectory, "src", "c", "enemy-archetype.h"),
+  );
+  const stdintHeader = fs.readFileSync(path.join(shareDir, "include", "stdint.h"));
+  const longBranchMacros = fs.readFileSync(path.join(shareDir, "asminc", "longbranch.mac"));
+  const abiSource = fs.readFileSync(path.join(rootDirectory, "src", "hybrid", "c-asm-abi.s"));
+  const config = fs.readFileSync(path.join(rootDirectory, "cfg", "encounter-director.cfg"));
+  const compiled = await runWasmTool(
+    "cc65",
+    {
+      "/project/src/c/director.c": cSource,
+      "/project/src/c/director.h": cHeader,
+      "/project/src/c/lifecycle.h": lifecycleHeader,
+      "/cc65/include/stdint.h": stdintHeader,
+    },
+    ["--cpu", "6502", "-Oirs", "-I", "/project/src/c", "-I", "/cc65/include",
+      "-o", `${base}-generated.s`, "/project/src/c/director.c"],
+    [`${base}-generated.s`],
+  );
+  const generatedAssembly = compiled.outputs[`${base}-generated.s`];
+  const lifecycleCompiled = await runWasmTool(
+    "cc65",
+    {
+      "/project/src/c/lifecycle.c": lifecycleSource,
+      "/project/src/c/lifecycle.h": lifecycleHeader,
+      "/project/src/c/enemy-archetype.h": archetypeHeader,
+      "/cc65/include/stdint.h": stdintHeader,
+    },
+    ["--cpu", "6502", "-Oirs", "-I", "/project/src/c", "-I", "/cc65/include",
+      "-o", `${base}-lifecycle-generated.s`, "/project/src/c/lifecycle.c"],
+    [`${base}-lifecycle-generated.s`],
+  );
+  const lifecycleGeneratedAssembly =
+    lifecycleCompiled.outputs[`${base}-lifecycle-generated.s`];
+  for (const [moduleName, assembly] of [
+    ["Director", generatedAssembly],
+    ["lifecycle/archetype", lifecycleGeneratedAssembly],
+  ]) {
+    const generatedText = assembly.toString("utf8");
+    const executableText = generatedText.replace(/^\s*\.importzp.*$/gmi, "");
+    if (/^\s*(?:jsr|jmp)\s+(?:push|pop|incsp|decsp|tos|addysp|subysp)/mi.test(generatedText) ||
+        /\(sp\)/.test(generatedText) ||
+        /\b(?:c_sp|sreg|regsave|regbank|tmp[1-4]|ptr[1-4])\b/.test(executableText)) {
+      const helperLines = generatedText.split(/\r?\n/).filter((line) =>
+        /^\s*(?:jsr|jmp)\s+(?:push|pop|incsp|decsp|tos|addysp|subysp)/i.test(line) ||
+        /\(sp\)/.test(line) ||
+        (!/^\s*\.importzp/i.test(line) &&
+          /\b(?:c_sp|sreg|regsave|regbank|tmp[1-4]|ptr[1-4])\b/.test(line)));
+      throw new Error(`C ${moduleName} unexpectedly requires cc65 software-stack/zero-page state: ` +
+        helperLines.slice(0, 8).join(" | "));
+    }
+  }
+  const cAssembled = await runWasmTool(
+    "ca65",
+    {
+      [`${base}-generated.s`]: generatedAssembly,
+      "/cc65/asminc/longbranch.mac": longBranchMacros,
+    },
+    ["--cpu", "6502", "-g", "-I", "/cc65/asminc", "-l", `${base}-c.lst`,
+      "-o", `${base}-c.o`, `${base}-generated.s`],
+    [`${base}-c.o`, `${base}-c.lst`],
+  );
+  const abiAssembled = await runWasmTool(
+    "ca65",
+    { [`${base}-abi.s`]: abiSource },
+    ["--cpu", "6502", "-g", "-l", `${base}-abi.lst`, "-o", `${base}-abi.o`,
+      `${base}-abi.s`],
+    [`${base}-abi.o`, `${base}-abi.lst`],
+  );
+  const lifecycleAssembled = await runWasmTool(
+    "ca65",
+    {
+      [`${base}-lifecycle-generated.s`]: lifecycleGeneratedAssembly,
+      "/cc65/asminc/longbranch.mac": longBranchMacros,
+    },
+    ["--cpu", "6502", "-g", "-I", "/cc65/asminc", "-l", `${base}-lifecycle.lst`,
+      "-o", `${base}-lifecycle.o`, `${base}-lifecycle-generated.s`],
+    [`${base}-lifecycle.o`, `${base}-lifecycle.lst`],
+  );
+  const linked = await runWasmTool(
+    "ld65",
+    {
+      [`${base}-c.o`]: cAssembled.outputs[`${base}-c.o`],
+      [`${base}-lifecycle.o`]: lifecycleAssembled.outputs[`${base}-lifecycle.o`],
+      [`${base}-abi.o`]: abiAssembled.outputs[`${base}-abi.o`],
+      [`${base}.cfg`]: config,
+    },
+    ["-C", `${base}.cfg`, "-o", `${base}-combined.bin`, "-m", `${base}.map`,
+      "-Ln", `${base}.lbl`, `${base}-abi.o`, `${base}-c.o`, `${base}-lifecycle.o`],
+    [`${base}-combined.bin`, `${base}.map`, `${base}.lbl`],
+  );
+  const combinedRaw = Buffer.from(linked.outputs[`${base}-combined.bin`]);
+  const map = linked.outputs[`${base}.map`];
+  const labels = linked.outputs[`${base}.lbl`];
+  const parsedLabels = parseViceLabels(labels.toString("utf8"));
+  const abiBytes = parsedLabels.get("__DIRECTOR_ABI_SIZE__");
+  const lowCodeBytes = parsedLabels.get("__DIRECTOR_C_LOW_SIZE__");
+  const extensionCodeBytes = parsedLabels.get("__HYBRID_C_EXT_SIZE__");
+  const archetypeBytes = parsedLabels.get("__ENEMY_ARCHETYPE_DATA_SIZE__");
+  const extensionBytes = extensionCodeBytes + archetypeBytes;
+  const preCodeBytes = parsedLabels.get("__DIRECTOR_C_PRE_SIZE__");
+  const cCodeBytes = parsedLabels.get("__DIRECTOR_C_CODE_SIZE__");
+  const rodataBytes = parsedLabels.get("__LEVEL1_DATA_SIZE__");
+  const bssBytes = parsedLabels.get("__DIRECTOR_C_BSS_SIZE__");
+  const lifecycleBssBytes = parsedLabels.get("__HYBRID_C_STATE_SIZE__");
+  if (![abiBytes, lowCodeBytes, extensionCodeBytes, archetypeBytes, preCodeBytes,
+    cCodeBytes, rodataBytes, bssBytes, lifecycleBssBytes]
+    .every(Number.isInteger)) {
+    throw new Error("Hybrid Director link is missing segment size labels");
+  }
+  const highBytes = rodataBytes + cCodeBytes;
+  if (combinedRaw.length !== abiBytes + lowCodeBytes + extensionBytes + preCodeBytes + highBytes) {
+    throw new Error("Hybrid Director output does not match its linked CODE/RODATA segments");
+  }
+  let offset = 0;
+  const makeSegment = (name, runAddress, bytes) => {
+    const data = combinedRaw.subarray(offset, offset + bytes);
+    offset += bytes;
+    return { name, runAddress, data, packed: packBroadsideLzss(data) };
+  };
+  const codeSegments = [
+    { ...makeSegment("abi", 0x8701, abiBytes), transportAddress: 0x7cca },
+    { ...makeSegment("low", 0x8b88, lowCodeBytes), transportAddress: 0x7d40 },
+    { ...makeSegment("extension", 0x8c7d, extensionBytes), transportAddress: 0x7810,
+      lateCompressed: true },
+    makeSegment("pre", 0x9d5e, preCodeBytes),
+  ];
+  const lifecycleExtension = codeSegments.find(({ name }) => name === "extension");
+  if (lifecycleExtension.packed.length > 0x3c0) {
+    throw new Error(`Hybrid lifecycle extension is ${lifecycleExtension.data.length} B raw / ` +
+      `${lifecycleExtension.packed.length} B packed; cold staging limit is 960 B`);
+  }
+  const raw = combinedRaw.subarray(offset);
+  const packed = packBroadsideLzss(raw);
+  if (!codeSegments.every(({ data, packed: segmentPacked }) =>
+    unpackBroadsideLzss(segmentPacked).equals(data)) ||
+      !unpackBroadsideLzss(packed).equals(raw)) {
+    throw new Error("Hybrid Director LZSS round trip failed");
+  }
+  const codeRaw = Buffer.concat(codeSegments.map(({ data }) => data));
+  const codePacked = Buffer.concat(codeSegments.map(({ packed: segmentPacked }) => segmentPacked));
+  return {
+    implementation: "cc65-c",
+    raw,
+    packed,
+    codeRaw,
+    codePacked,
+    codeSegments,
+    combinedRaw,
+    object: cAssembled.outputs[`${base}-c.o`],
+    lifecycleObject: lifecycleAssembled.outputs[`${base}-lifecycle.o`],
+    abiObject: abiAssembled.outputs[`${base}-abi.o`],
+    listing: cAssembled.outputs[`${base}-c.lst`],
+    lifecycleListing: lifecycleAssembled.outputs[`${base}-lifecycle.lst`],
+    abiListing: abiAssembled.outputs[`${base}-abi.lst`],
+    generatedAssembly,
+    lifecycleGeneratedAssembly,
+    map,
+    labels,
+    footprint: {
+      abiBytes,
+      codeBytes: lowCodeBytes + extensionCodeBytes + preCodeBytes + cCodeBytes,
+      rodataBytes: rodataBytes + archetypeBytes,
+      dataBytes: 0,
+      bssBytes: bssBytes + lifecycleBssBytes,
+      cStackBytes: 0,
+      zeroPageBytes: 0,
+    },
+  };
+}
+
+function renderDirectorAbiInclude(labelBytes) {
+  const labels = parseViceLabels(labelBytes.toString("utf8"));
+  const symbols = [
+    ["DIRECTOR_INIT", "director_init"],
+    ["DIRECTOR_WORLD_ROW_TICK", "director_world_row_tick"],
+    ["DIRECTOR_REQUEST", "director_request"],
+    ["DIRECTOR_RELEASE", "director_release"],
+    ["DIRECTOR_RNG_ADVANCE", "director_rng_advance"],
+    ["DIRECTOR_PUBLISH_LOW", "director_publish_low"],
+    ["HYBRID_SECTOR_UPDATE_FIRST_CAPITAL", "sector_update_first_capital"],
+    ["HYBRID_SECTOR_UPDATE_CAPITAL_PHASE", "sector_update_capital_phase"],
+    ["HYBRID_SECTOR_BEGIN_COMPLETE", "sector_begin_complete"],
+    ["HYBRID_SECTOR_COMPLETE_SCROLL_TICK", "sector_complete_scroll_tick"],
+    ["HYBRID_SECTOR_FORCE_FINAL_DRAIN", "sector_force_final_drain"],
+    ["HYBRID_ENEMY_SPAWN_RAIDERS", "enemy_spawn_raiders"],
+    ["HYBRID_ENEMY_RETIRE_MEMBER", "enemy_retire_member"],
+    ["HYBRID_ENEMY_APPLY_PENDING_DAMAGE", "enemy_apply_pending_damage"],
+    ["HYBRID_ENEMY_RECYCLE", "enemy_recycle"],
+    ["ENEMY_ARCHETYPE_TABLE", "enemy_archetype_table"],
+    ["ENEMY_PROFILE_MOVEMENT_ID", "enemy_profile_movement_id"],
+    ["ENEMY_PROFILE_FIRE_POLICY_ID", "enemy_profile_fire_policy_id"],
+    ["ENEMY_PROFILE_BURST_COUNT", "enemy_profile_burst_count"],
+    ["ENEMY_PROFILE_BURST_INTERVAL", "enemy_profile_burst_interval"],
+    ["ENEMY_PROFILE_POST_BURST_FRAMES", "enemy_profile_post_burst_frames"],
+    ["ENEMY_PROFILE_RENDERER_CLASS", "enemy_profile_renderer_class"],
+    ["ENEMY_PROFILE_WEAPON_CLASS", "enemy_profile_weapon_class"],
+    ["ENEMY_PROFILE_SCORE_BCD", "enemy_profile_score_bcd"],
+    ["ENEMY_PROFILE_DIRECTOR_VALUE", "enemy_profile_director_value"],
+  ];
+  for (const [, name] of symbols) {
+    if (!Number.isInteger(labels.get(name))) throw new Error(`Hybrid ABI symbol ${name} is missing`);
+  }
+  const abiBytes = labels.get("__DIRECTOR_ABI_SIZE__") ?? 0;
+  const extensionBytes = (labels.get("__ENEMY_ARCHETYPE_DATA_SIZE__") ?? 0) +
+    (labels.get("__HYBRID_C_EXT_SIZE__") ?? 0);
+  return Buffer.from(symbols.map(([constant, name]) =>
+    `${constant} = $${labels.get(name).toString(16).toUpperCase()}\n`).join("") +
+    `DIRECTOR_ABI_STAGING = $7CCA\nDIRECTOR_ABI_RUNTIME = $8701\n` +
+    `DIRECTOR_ABI_BYTES = ${abiBytes}\n` +
+    `HYBRID_C_EXT_STAGING = $7810\nHYBRID_C_EXT_RUNTIME = $8C7D\n` +
+    `HYBRID_C_EXT_BYTES = ${extensionBytes}\n`);
+}
+
 async function build() {
   fs.mkdirSync(buildDirectory, { recursive: true });
   fs.mkdirSync(distDirectory, { recursive: true });
@@ -396,6 +618,43 @@ async function build() {
   const frontendH31Include = Buffer.from(renderFrontendH31Ca65Include(frontendH31Asset));
   writeFile(path.join(buildDirectory, "frontend-h31.inc"), frontendH31Include);
 
+  const directorModule = asmDirectorBaseline
+    ? {
+        ...(await buildResidentModule({
+          sourcePath: path.join(rootDirectory, "src", "encounter-director.s"),
+          configPath: path.join(rootDirectory, "cfg", "encounter-director-asm.cfg"),
+          stem: "encounter-director",
+        })),
+        implementation: "ca65-asm",
+        codeRaw: Buffer.alloc(0),
+        codePacked: Buffer.alloc(0),
+        codeSegments: [],
+        footprint: {
+          abiBytes: 0,
+          codeBytes: expectedDirectorRawBytes - 158,
+          rodataBytes: 158,
+          dataBytes: 0,
+          bssBytes: 12,
+          cStackBytes: 0,
+          zeroPageBytes: 0,
+        },
+      }
+    : await buildHybridDirectorModule();
+  if (process.argv.includes("--director-only")) {
+    writeFile(path.join(buildDirectory, "encounter-director.map"), directorModule.map);
+    writeFile(path.join(buildDirectory, "encounter-director.lbl"), directorModule.labels);
+    writeFile(path.join(buildDirectory, "encounter-director-generated.s"),
+      directorModule.generatedAssembly ?? Buffer.alloc(0));
+    writeFile(path.join(buildDirectory, "encounter-director.bin"), directorModule.raw);
+    for (const segment of directorModule.codeSegments) {
+      writeFile(path.join(buildDirectory, `encounter-director-code-${segment.name}.bin`),
+        segment.data);
+    }
+    return;
+  }
+  const directorAbiInclude = renderDirectorAbiInclude(directorModule.labels);
+  writeFile(path.join(buildDirectory, "director-abi.inc"), directorAbiInclude);
+
   const assembled = await runWasmTool(
     "ca65",
     {
@@ -410,6 +669,7 @@ async function build() {
       "/project/build/gameplay-music.inc": gameplayMusicInclude,
       "/project/build/entity-effects.inc": entityEffectsInclude,
       "/project/build/frontend-h31.inc": frontendH31Include,
+      "/project/build/director-abi.inc": directorAbiInclude,
     },
     [
       "--cpu",
@@ -673,11 +933,6 @@ async function build() {
   const integrationAbiInclude = Buffer.from(
     `entity_spawn_debris = $${entitySpawnDebrisAddress.toString(16).toUpperCase()}\n`,
   );
-  const directorModule = await buildResidentModule({
-    sourcePath: path.join(rootDirectory, "src", "encounter-director.s"),
-    configPath: path.join(rootDirectory, "cfg", "encounter-director.cfg"),
-    stem: "encounter-director",
-  });
   const glueModule = await buildResidentModule({
     sourcePath: path.join(rootDirectory, "src", "integration-glue.s"),
     configPath: path.join(rootDirectory, "cfg", "integration-glue.cfg"),
@@ -685,10 +940,11 @@ async function build() {
     extraInputs: {
       "/project/build/capital-hulls.inc": capitalHullsInclude,
       "/project/build/integration-abi.inc": integrationAbiInclude,
+      "/project/build/director-abi.inc": directorAbiInclude,
     },
   });
-  if (directorModule.raw.length !== expectedDirectorRawBytes ||
-    directorModule.packed.length !== expectedDirectorPackedBytes) {
+  if (asmDirectorBaseline && (directorModule.raw.length !== expectedDirectorRawBytes ||
+    directorModule.packed.length !== expectedDirectorPackedBytes)) {
     throw new Error(`Encounter Director size changed: ${directorModule.raw.length} raw / ` +
       `${directorModule.packed.length} packed`);
   }
@@ -837,56 +1093,78 @@ async function build() {
     a2KernelRuntime, packedEntityCodeRuntime, bootPayloadTrailer,
   ];
   const placeholderInitial = Buffer.concat(initialContentParts(bootStage2Runtime));
-  if (placeholderInitial.length !== expectedInitialContentBytes) {
+  if (asmDirectorBaseline && placeholderInitial.length !== expectedInitialContentBytes) {
     throw new Error(`Layout D.2 initial content changed: ${placeholderInitial.length} B; ` +
       `expected ${expectedInitialContentBytes} B; packed ENTITY_CODE ` +
       `${packedEntityCodeRuntime.length} B; BROADSIDE ${broadsideRuntimeBytes} B; ` +
       `ENTITY_CODE ${entityCodeBytes} B; PICKUP_CODE ${pickupCodeBytes} B`);
   }
   const buildTag = (bytes) => crypto.createHash("sha256").update(bytes).digest().subarray(0, 5);
+  const transportChunks = [{
+    packed: packedBroadsideRuntime,
+    raw: broadsideRuntime,
+    finalDestination: broadsideRunAddress,
+    type: chunkLoaderConstants.chunkTypeLz,
+    stagingId: chunkLoaderConstants.stagingBroadside,
+    destination: packedResidentStagingAddress,
+    buildTag: buildTag(packedBroadsideRuntime),
+  }, {
+    packed: packedWeaponPickupPhaseBank,
+    raw: packedWeaponPickupPhaseBank,
+    finalDestination: weaponPickupPackedStagingAddress,
+    type: chunkLoaderConstants.chunkTypeRaw,
+    stagingId: chunkLoaderConstants.stagingExtension,
+    destination: packedResidentStagingAddress,
+    buildTag: buildTag(packedWeaponPickupPhaseBank),
+  }, {
+    packed: glueModule.packed,
+    raw: glueModule.raw,
+    finalDestination: glueStagingAddress,
+    type: chunkLoaderConstants.chunkTypeLz,
+    stagingId: chunkLoaderConstants.stagingExtension,
+    destination: packedResidentStagingAddress,
+    buildTag: buildTag(glueModule.packed),
+  }];
+  for (const segment of directorModule.codeSegments) {
+    transportChunks.push({
+      packed: segment.packed,
+      raw: segment.lateCompressed ? segment.packed : segment.data,
+      finalDestination: segment.transportAddress ?? segment.runAddress,
+      type: segment.lateCompressed
+        ? chunkLoaderConstants.chunkTypeRaw
+        : chunkLoaderConstants.chunkTypeLz,
+      stagingId: chunkLoaderConstants.stagingExtension,
+      destination: packedResidentStagingAddress,
+      buildTag: buildTag(segment.packed),
+    });
+  }
+  transportChunks.push({
+    packed: directorModule.packed,
+    raw: directorModule.raw,
+    finalDestination: directorRunAddress,
+    type: chunkLoaderConstants.chunkTypeLz,
+    stagingId: chunkLoaderConstants.stagingExtension,
+    destination: packedResidentStagingAddress,
+    buildTag: buildTag(directorModule.packed),
+  });
   const transport = buildDfmcV1Transport({
     initialContent: placeholderInitial,
     manifestOffset: residentPrefix.length + manifestOffsetInStage2,
     allowExtendedInitialBlock: encounterDirectorEnabled,
-    chunks: [{
-      packed: packedBroadsideRuntime,
-      raw: broadsideRuntime,
-      finalDestination: broadsideRunAddress,
-      type: chunkLoaderConstants.chunkTypeLz,
-      stagingId: chunkLoaderConstants.stagingBroadside,
-      destination: packedResidentStagingAddress,
-      buildTag: buildTag(packedBroadsideRuntime),
-    }, {
-      packed: packedWeaponPickupPhaseBank,
-      raw: packedWeaponPickupPhaseBank,
-      finalDestination: weaponPickupPackedStagingAddress,
-      type: chunkLoaderConstants.chunkTypeRaw,
-      stagingId: chunkLoaderConstants.stagingExtension,
-      destination: packedResidentStagingAddress,
-      buildTag: buildTag(packedWeaponPickupPhaseBank),
-    }, {
-      packed: glueModule.packed,
-      raw: glueModule.raw,
-      finalDestination: glueStagingAddress,
-      type: chunkLoaderConstants.chunkTypeLz,
-      stagingId: chunkLoaderConstants.stagingExtension,
-      destination: packedResidentStagingAddress,
-      buildTag: buildTag(glueModule.packed),
-    }, {
-      packed: directorModule.packed,
-      raw: directorModule.raw,
-      finalDestination: directorRunAddress,
-      type: chunkLoaderConstants.chunkTypeLz,
-      stagingId: chunkLoaderConstants.stagingExtension,
-      destination: packedResidentStagingAddress,
-      buildTag: buildTag(directorModule.packed),
-    }],
+    chunks: transportChunks,
     unpackLz: unpackBroadsideLzss,
   });
   const { initialBoot, manifest: chunkManifest, transportPayload,
     totalOccupiedSectors: totalTransportSectors } = transport;
-  const [broadsideChunk, pickupPhaseChunk, glueChunk, directorChunk] = transport.chunkImages;
-  const [broadsideRecord, pickupPhaseRecord, glueRecord, directorRecord] = transport.records;
+  const [broadsideChunk, pickupPhaseChunk, glueChunk] = transport.chunkImages;
+  const [broadsideRecord, pickupPhaseRecord, glueRecord] = transport.records;
+  const directorCodeChunks = directorModule.codeSegments.map((segment, index) => ({
+    ...segment,
+    chunk: transport.chunkImages[3 + index],
+    record: transport.records[3 + index],
+  }));
+  const directorChunk = transport.chunkImages.at(-1);
+  const directorRecord = transport.records.at(-1);
   const extensionSectors = transport.chunkImages.reduce((sum, chunk) => sum + chunk.sectors, 0);
   const extensionStartSector = broadsideRecord.startSector;
   const initialContent = transport.patchedInitialContent;
@@ -903,14 +1181,14 @@ async function build() {
     record.startSector, record.sectorCount, record.packedLength,
     record.rawLength, record.finalDestination,
   ]);
-  if (bootSectors !== 103 || totalTransportSectors !== 163 ||
-    transportPayload.length !== 20864 || JSON.stringify(frozenRecordShape) !== JSON.stringify([
-      [104, 45, 5670, 6653, 0x5e10],
-      [149, 7, 827, 827,
-        weaponPickupPackedStagingAddress],
-      [156, 3, 245, 250, glueStagingAddress],
-      [159, 5, 587, 644, directorRunAddress],
-    ])) {
+  const expectedDestinations = [broadsideRunAddress, weaponPickupPackedStagingAddress,
+    glueStagingAddress, ...directorModule.codeSegments.map((segment) =>
+      segment.transportAddress ?? segment.runAddress),
+    directorRunAddress];
+  if ((asmDirectorBaseline && bootSectors !== 103) ||
+    transportPayload.length !== totalTransportSectors * 128 ||
+    JSON.stringify(frozenRecordShape.map((record) => record[4])) !==
+      JSON.stringify(expectedDestinations)) {
     throw new Error(`Layout D.2 transport topology changed: ${JSON.stringify(frozenRecordShape)}`);
   }
   if (initialBoot.bytes.readUInt16LE(2) !== loadAddress) {
@@ -925,11 +1203,16 @@ async function build() {
     { start: broadsideRunAddress, data: broadsideRuntime },
     { start: weaponPickupPackedStagingAddress, data: packedWeaponPickupPhaseBank },
     { start: glueStagingAddress, data: glueModule.raw },
+    ...directorModule.codeSegments.map((segment) => ({
+      start: segment.transportAddress ?? segment.runAddress,
+      data: segment.lateCompressed ? segment.packed : segment.data,
+    })),
     { start: directorRunAddress, data: directorModule.raw },
   ], bootStage2XexEntry);
   const atr = makeAtr(transportPayload);
   const runtimeArtifacts = runtimeArtifactSet({ boot: transportPayload, xex, atr });
-  const cpuRuntimeTiming = isReviewVariant || twoPmgRaiderPrototype ? null : measureRuntimeCycles({
+  const cpuRuntimeTiming = isReviewVariant || twoPmgRaiderPrototype || skipRuntimeMeasurement
+    ? null : measureRuntimeCycles({
     residentMain,
     loadAddress,
     broadsideRuntime,
@@ -942,12 +1225,15 @@ async function build() {
     entityCodeRunAddress,
     weaponPickupPhaseBank: null,
     weaponPickupPhaseBankAddress: weaponPickupRuntimeAddress,
-    pickupCodeRuntime,
+    pickupCodeRuntime: Buffer.concat([
+      pickupCodeRuntime, capitalPlayerCollisionModule.raw,
+    ]),
     pickupCodeRunAddress,
     integrationGlueRuntime: glueModule.raw,
     integrationGlueRunAddress: glueFinalAddress,
     directorRuntime: directorModule.raw,
     directorRunAddress,
+    directorAdditionalSegments: directorModule.codeSegments,
     capitalPlayerCollisionRuntime: capitalPlayerCollisionModule.raw,
     capitalPlayerCollisionRunAddress: capitalPlayerCollisionAddress,
     labels,
@@ -1001,7 +1287,8 @@ async function build() {
   };
   const destructibleDebrisRuntimeCodeBytes = codeBytes + starfieldRuntimeBytes +
     broadsideRuntimeBytes + a2KernelBytes + entityCodeBytes + pickupCodeBytes;
-  if (encounterDirectorEnabled && destructibleDebrisRuntimeCodeBytes !== expectedLinkedRuntimeBytes) {
+  if (asmDirectorBaseline && encounterDirectorEnabled &&
+    destructibleDebrisRuntimeCodeBytes !== expectedLinkedRuntimeBytes) {
     throw new Error(`Layout D.2 linked runtime changed: ${destructibleDebrisRuntimeCodeBytes} B; ` +
       `expected ${expectedLinkedRuntimeBytes} B`);
   }
@@ -1014,6 +1301,18 @@ async function build() {
   // New weapon code consumes only the explicit post-compaction payload reserve;
   // the live linked total remains reported below instead of being misclassified
   // as growth of either completed feature.
+  const directorTotalBytes = directorModule.codeRaw.length + directorModule.raw.length;
+  const directorAdditionalStateBytes = directorModule.implementation === "cc65-c"
+    ? directorModule.footprint.bssBytes : 0;
+  const directorResidencyDelta = directorTotalBytes - expectedDirectorRawBytes +
+    directorAdditionalStateBytes;
+  const hybridResidencyDelta = directorResidencyDelta +
+    (destructibleDebrisRuntimeCodeBytes - expectedLinkedRuntimeBytes);
+  const baselineSimultaneousResidencyBytes = 17648 + capitalPlayerCollisionModule.raw.length +
+    (expectedLinkedRuntimeBytes - 17203);
+  const simultaneousResidencyBytes = baselineSimultaneousResidencyBytes + hybridResidencyDelta;
+  const safeResidencyBytes = 4539 - capitalPlayerCollisionModule.raw.length -
+    (expectedLinkedRuntimeBytes - 17203) - hybridResidencyDelta;
 
   const manifest = {
     formatVersion: 1,
@@ -1022,15 +1321,18 @@ async function build() {
     toolchain: "romdev-toolchain-cc65@0.1.3",
     encounterDirector: {
       enabled: encounterDirectorEnabled,
-      layout: "Layout D.2 — post-clear director init + intensity-preserving admission ABI",
+      implementation: directorModule.implementation,
+      layout: directorModule.implementation === "cc65-c"
+        ? "Hybrid cc65 C Director + stable ca65 ABI veneer"
+        : "Layout D.2 ca65 ASM baseline",
       levelWorldRows: 3712,
       phaseCount: 8,
-      initialContentBytes: expectedInitialContentBytes,
-      linkedRuntimeBytes: expectedLinkedRuntimeBytes,
-      simultaneousResidencyBytes: 17648 + capitalPlayerCollisionModule.raw.length +
-        (expectedLinkedRuntimeBytes - 17203),
-      safeResidencyBytes: 4539 - capitalPlayerCollisionModule.raw.length -
-        (expectedLinkedRuntimeBytes - 17203),
+      initialContentBytes: placeholderInitial.length,
+      linkedRuntimeBytes: destructibleDebrisRuntimeCodeBytes,
+      simultaneousResidencyBytes,
+      safeResidencyBytes,
+      residencyDeltaBytes: directorResidencyDelta,
+      totalMigrationResidencyDeltaBytes: hybridResidencyDelta,
       glue: {
         stagingAddress: glueStagingAddress,
         holdingAddress: 0x8600,
@@ -1040,9 +1342,21 @@ async function build() {
       },
       director: {
         address: directorRunAddress,
-        endExclusive: directorGuardAddress,
-        rawBytes: directorModule.raw.length,
-        packedBytes: directorModule.packed.length,
+        endExclusive: directorRunAddress + directorModule.raw.length,
+        reservedEndExclusive: directorGuardAddress,
+        rawBytes: directorTotalBytes,
+        packedBytes: directorModule.codePacked.length + directorModule.packed.length,
+        codeAddress: directorModule.codeSegments[0]?.runAddress ?? null,
+        codeBytes: directorModule.footprint.abiBytes + directorModule.footprint.codeBytes,
+        rodataAddress: directorRunAddress,
+        rodataBytes: directorModule.footprint.rodataBytes,
+        placements: [
+          ...directorModule.codeSegments.map(({ name, runAddress, data }) => ({
+            name, runAddress, bytes: data.length,
+          })),
+          { name: "high", runAddress: directorRunAddress, bytes: directorModule.raw.length },
+        ],
+        footprint: directorModule.footprint,
       },
       capitalPlayerCollision: {
         address: capitalPlayerCollisionAddress,
@@ -1165,7 +1479,7 @@ async function build() {
       maximumNewSimultaneousResidencyBytes: 7993,
       remainingSafeResidencyBytes:
         7993 - (destructibleDebrisRuntimeCodeBytes - shieldBoosterBaselineRuntimeCodeBytes) -
-          capitalPlayerCollisionModule.raw.length,
+          capitalPlayerCollisionModule.raw.length - directorResidencyDelta,
       bootOnlyStaging: { address: packedResidentStagingAddress, bytes: 0x1954 },
       loaderResidentBytes: 0,
       stage2: {
@@ -1231,8 +1545,10 @@ async function build() {
       },
     },
     directorRuntime: {
+      implementation: directorModule.implementation,
       runAddress: directorRunAddress,
-      endExclusive: directorGuardAddress,
+      endExclusive: directorRunAddress + directorModule.raw.length,
+      reservedEndExclusive: directorGuardAddress,
       bytes: directorModule.raw.length,
       packedBytes: directorModule.packed.length,
       externalChunk: {
@@ -1242,6 +1558,27 @@ async function build() {
         crc16: directorChunk.storageCrc16,
       },
     },
+    directorCodeRuntime: null,
+    directorCodeRuntimes: directorCodeChunks.map(({ name, runAddress, transportAddress, data,
+      packed: segmentPacked, lateCompressed, record, chunk }) => ({
+      name,
+      file: `encounter-director-code-${name}.bin`,
+      xexFile: lateCompressed
+        ? `encounter-director-code-${name}-packed.bin`
+        : `encounter-director-code-${name}.bin`,
+      xexStagingCompression: lateCompressed ? "LZ-10/5" : null,
+      runAddress,
+      transportAddress: transportAddress ?? runAddress,
+      endExclusive: runAddress + data.length,
+      bytes: data.length,
+      packedBytes: segmentPacked.length,
+      externalChunk: {
+        startSector: record.startSector,
+        sectors: chunk.sectors,
+        transportBytes: chunk.bytes.length,
+        crc16: chunk.storageCrc16,
+      },
+    })),
     capitalPlayerCollisionRuntime: {
       runAddress: capitalPlayerCollisionAddress,
       transportAddress: weaponPickupPackedStagingAddress,
@@ -1880,11 +2217,32 @@ async function build() {
   writeFile(path.join(buildDirectory, "integration-glue-packed.bin"), glueModule.packed);
   writeFile(path.join(buildDirectory, "integration-abi.inc"), integrationAbiInclude);
   writeFile(path.join(buildDirectory, "encounter-director.o"), directorModule.object);
+  if (directorModule.abiObject) {
+    writeFile(path.join(buildDirectory, "encounter-director-abi.o"), directorModule.abiObject);
+    writeFile(path.join(buildDirectory, "encounter-director-abi.lst"), directorModule.abiListing);
+    writeFile(path.join(buildDirectory, "encounter-director-generated.s"),
+      directorModule.generatedAssembly);
+    writeFile(path.join(buildDirectory, "encounter-director-lifecycle.o"),
+      directorModule.lifecycleObject);
+    writeFile(path.join(buildDirectory, "encounter-director-lifecycle.lst"),
+      directorModule.lifecycleListing);
+    writeFile(path.join(buildDirectory, "encounter-director-lifecycle-generated.s"),
+      directorModule.lifecycleGeneratedAssembly);
+  }
   writeFile(path.join(buildDirectory, "encounter-director.lst"), directorModule.listing);
   writeFile(path.join(buildDirectory, "encounter-director.map"), directorModule.map);
   writeFile(path.join(buildDirectory, "encounter-director.lbl"), directorModule.labels);
   writeFile(path.join(buildDirectory, "encounter-director.bin"), directorModule.raw);
   writeFile(path.join(buildDirectory, "encounter-director-packed.bin"), directorModule.packed);
+  writeFile(path.join(buildDirectory, "encounter-director-code.bin"), directorModule.codeRaw);
+  writeFile(path.join(buildDirectory, "encounter-director-code-packed.bin"),
+    directorModule.codePacked);
+  for (const segment of directorModule.codeSegments) {
+    writeFile(path.join(buildDirectory, `encounter-director-code-${segment.name}.bin`),
+      segment.data);
+    writeFile(path.join(buildDirectory, `encounter-director-code-${segment.name}-packed.bin`),
+      segment.packed);
+  }
   writeFile(path.join(buildDirectory, "capital-player-collision.o"),
     capitalPlayerCollisionModule.object);
   writeFile(path.join(buildDirectory, "capital-player-collision.lst"),
@@ -1920,7 +2278,7 @@ async function build() {
   writeFile(path.join(artifactDirectory, "void-strike-65.atr"), atr);
   writeFile(path.join(artifactDirectory, "void-strike-65-manifest.json"), manifestBytes);
 
-  if (!isReviewVariant) validateBuildDirectory(rootDirectory);
+  if (!isReviewVariant && !skipRuntimeMeasurement) validateBuildDirectory(rootDirectory);
 
   if (!quiet) {
     console.log(candidateBuild

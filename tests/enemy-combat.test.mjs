@@ -53,12 +53,14 @@ const hulls = loadCapitalHullsDefinition(
 const asset = compileEnemyRoster(loadEnemyRosterDefinition(definitionPath), rootDirectory);
 const [interceptor, talon, bomber] = asset.implemented;
 const source = fs.readFileSync(path.join(rootDirectory, "src", "main.s"), "utf8");
+const lifecycleSource = fs.readFileSync(
+  path.join(rootDirectory, "src", "c", "lifecycle.c"), "utf8");
 const glueSource = fs.readFileSync(
   path.join(rootDirectory, "src", "integration-glue.s"), "utf8");
 const manifest = JSON.parse(fs.readFileSync(path.join(rootDirectory, "build", "manifest.json"), "utf8"));
 const labels = new Map(
-  fs.readFileSync(path.join(rootDirectory, "build", "void-strike-65.lbl"), "utf8")
-    .split(/\r?\n/)
+  ["build/void-strike-65.lbl", "build/encounter-director.lbl"]
+    .flatMap((file) => fs.readFileSync(path.join(rootDirectory, file), "utf8").split(/\r?\n/))
     .map((line) => /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim()))
     .filter(Boolean)
     .map((match) => [match[2], Number.parseInt(match[1], 16)]),
@@ -247,12 +249,8 @@ test("assembled archetype descriptors assign only Interceptor PairShot fire", ()
   assert.deepEqual(asset.implemented.map(({ weaponProfileId }) => weaponProfileId),
     [ENEMY_WEAPON_PROFILES.SINGLE_PULSE, ENEMY_WEAPON_PROFILES.NONE,
       ENEMY_WEAPON_PROFILES.NONE]);
-  assert.deepEqual(
-    [...readRuntimeBytes(labels.get("enemy_weapon_profiles"), 3)],
-    [ENEMY_WEAPON_PROFILES.SINGLE_PULSE, 0, 0],
-  );
-  assert.deepEqual([...readRuntimeBytes(labels.get("interceptor_post_burst_frames"), 3)],
-    [60, 50, 40]);
+  assert.deepEqual([...readRuntimeBytes(labels.get("_enemy_archetypes"), 12)],
+    [1, 0, 1, 5, 15, 60, 50, 40, 1, 1, 0x10, 1]);
   assert.deepEqual(asset.runtime.weaponPolicy.singlePulse, {
     renderer: "ANTIC4_GLYPH_POOL",
     poolSlots: 5,
@@ -307,8 +305,9 @@ test("release Interceptor enters progressively and naturally reaches burst alloc
     assert.equal(allocation.activePlayfieldProjectiles.length, 1);
     assert.ok(state.shotsFired >= 5);
   }
-  assert.match(source,
-    /reset_enemy:[\s\S]+RAIDER_PMG_LAST_SLOT[\s\S]+sta ENEMY_HP,x[\s\S]+sta ENEMY_MEMBER_STATE,x[\s\S]+RAIDER_PMG_SLOT_COUNT[\s\S]+sta ENEMY_LIVE_COUNT/);
+  assert.match(source, /reset_enemy:[\s\S]+jsr HYBRID_ENEMY_SPAWN_RAIDERS/);
+  assert.match(lifecycleSource,
+    /enemy_c_spawn_raiders[\s\S]+enemy_archetypes\[0\]\.hit_points[\s\S]+ENEMY_LIVE_COUNT = RAIDER_SLOT_COUNT/);
 });
 
 test("natural playfield pulse remains visible while moving two scanlines per frame", () => {

@@ -1,10 +1,22 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 4.11
-Data aktualizacji: 2026-09-14
-Branch roboczy: `experiment/two-pmg-raider-combat`  
+Wersja: 4.12
+Data aktualizacji: 2026-09-15
+Branch roboczy: `experiment/hybrid-c-director`
 Owner baseline przed usunięciem Raider character core: `bb6e6aa44e4293b6542eb8568b674c60cecd29a7`
 Stan runtime: `PASS_RAIDER_PROJECTILE_EMITTER_CLEANUP` + `PASS_RAIDER_CHARACTER_EFFECTS_REMOVED` + `PASS_OFFSCREEN_RAIDER_DEBRIS_SPAWN_CANDIDATE` + `PASS_TWO_HEAVY_BLACK_MASK_FIX` + `PASS_DEBRIS_ABI_NATIVE_SLOT0_BASELINE` + `REJECTED_DEBRIS_25HZ_SLOT03_FEASIBILITY` + `REJECTED_BACKGROUND_RING_25HZ_PROOF` (runtime bez zmian) + `PASS_CAPITAL_SPEED_RESTORE_CLOCK_VERIFY` + `PASS_MASTER_PAL_CLOCK` + Raider PairShot `2 px/tick` + white-only starfield (4 white, `1 px/frame`, bez blue far) aktywny także w capital z hull occlusion + PairShot + PASS Effects 25 Hz/staggered + OWNER PASS PairShot ghosts + OWNER PASS fire cadence/audio; Raider wreck nadal odroczony; bez unified schedulera
+
+**Hybrid C Director jest zaakceptowany przez właściciela i jest teraz
+fundamentem projektu.** Na `experiment/hybrid-c-director` C posiada także
+granicę high-level sector/lifecycle oraz pierwszy 12-bajtowy kontrakt
+`EnemyArchetype`; istniejący Raider jest jedynym rekordem i zachowuje dokładnie
+dotychczasowe HP, ruch, cadence, PairShot, score oraz renderer 2 Heavy PMG.
+Rozszerzone deterministyczne A/B wobec zaakceptowanego hybrid baseline ma `0`
+divergencji w 12 488 klatkach. Niezmieniony native replay `2-evasive-fire3`
+kończy 920 klatek z max `28 505` (+26), headroom target/hard `2 695`/`4 063`,
+bez missed frames, extra VBI i anomalii DLI. Nowy C composite mieści się legalnie
+w `$8C7D-$8E84`; software stack i nowe ZP nadal mają 0 B. Następny osobny krok
+to pierwszy Light Wingman korzystający z istniejącej architektury archetypów.
 Aktualny XEX emitter-owned cleanup candidate: SHA-256 `a4fd121fae34766182ae16235a6772662d0fec6cdda5eded8615357918e6585a`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.

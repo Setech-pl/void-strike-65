@@ -51,6 +51,7 @@ function stageArtifact(artifact, fill) {
   ));
   run(memory, "unpack_resident_runtime");
   run(memory, "unpack_entity_runtime");
+  if (labels.has("publish_director_abi")) run(memory, "publish_director_abi");
   assert.deepEqual(Buffer.from(memory.subarray(0x9100, 0x9100 + entity.length)), entity);
   run(memory, "stage_a2_kernel");
   const finalAfterCopy = Buffer.from(memory.subarray(0x9000, 0x9000 + a2.length));
@@ -71,7 +72,7 @@ function stageArtifact(artifact, fill) {
 
 test("Layout D.2 startup order and call bytes are frozen", () => {
   assert.match(source,
-    /jsr stage_boot_streams[\s\S]+jsr unpack_entity_runtime\nlayout_d_entity_unpack_complete:\n\s+jsr stage_a2_kernel\n\s+jsr init_entity_effects/);
+    /jsr stage_boot_streams[\s\S]+jsr unpack_entity_runtime[\s\S]{0,120}layout_d_entity_unpack_complete:\n\s+jsr stage_a2_kernel\n\s+jsr init_entity_effects/);
   assert.doesNotMatch(source, /jsr init_entity_effects\n\s+jsr stage_a2_kernel/);
   assert.match(source,
     /boot_stage_streams:[\s\S]+a2_kernel_source:[\s\S]+entity_packed_source:[\s\S]+pickup_packed_source:[\s\S]+resident_packed_source:[\s\S]+starfield_packed_source:/,
@@ -80,26 +81,31 @@ test("Layout D.2 startup order and call bytes are frozen", () => {
     /stage_glue_holding:[\s\S]+jmp stage_starfield_stream[\s\S]+stage_starfield_stream:[\s\S]+jsr copy_pause_screen\s+jsr copy_pause_screen\s+jmp copy_pause_screen/,
     "GLUE must leave $7BD0 before the deferred starfield staging write");
   const resident = fs.readFileSync(path.join(root, "build/resident-runtime.bin"));
-  assert.deepEqual([...resident.subarray(0x40, 0x46)], [0x20, 0x28, 0x21, 0x20, 0x89, 0x9a]);
+  assert.deepEqual([...resident.subarray(0x40, 0x46)],
+    [0x20, 0xcf, 0x21, 0x20, 0x2b, 0x21]);
 });
 
 test("Layout D.2 exact memory and transport budgets remain frozen", () => {
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13160);
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13084);
   assert.equal(manifest.transportCapacity.initialBootBytes, 13184);
-  assert.equal(manifest.transportCapacity.totalTransportSectors, 163);
-  assert.equal(manifest.transportCapacity.totalTransportBytes, 20864);
+  assert.equal(manifest.transportCapacity.totalTransportSectors, 172);
+  assert.equal(manifest.transportCapacity.totalTransportBytes, 22016);
   assert.equal(manifest.transportCapacity.stage2.bytes, 1257);
   assert.deepEqual(manifest.transportCapacity.manifest.parsed.records.map((record) =>
     [record.startSector, record.sectorCount, record.packedLength, record.rawLength,
       record.finalDestination]), [
-    [104, 45, 5670, 6653, 0x5e10],
-    [149, 7, 819, 819, 0x8c80],
+    [104, 45, 5653, 6650, 0x5e10],
+    [149, 7, 788, 788, 0x8c80],
     [156, 3, 245, 250, 0x7bd0],
-    [159, 5, 587, 644, 0x9d75],
+    [159, 2, 116, 117, 0x7cca],
+    [161, 2, 210, 242, 0x7d40],
+    [163, 4, 423, 423, 0x7810],
+    [167, 1, 23, 21, 0x9d5e],
+    [168, 5, 542, 643, 0x9d75],
   ]);
-  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17566);
-  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 18044);
-  assert.equal(manifest.encounterDirector.safeResidencyBytes, 4143);
+  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17521);
+  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 18914);
+  assert.equal(manifest.encounterDirector.safeResidencyBytes, 3273);
 });
 
 test("XEX and ATR preserve full A2, GLUE lifecycle, ENTITY_CODE, DIRECTOR and guard", () => {

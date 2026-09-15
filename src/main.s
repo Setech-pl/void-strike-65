@@ -16,12 +16,8 @@
 .include "entity-effects.inc"
 .include "loader-display-list.inc"
 .include "frontend-h31.inc"
+.include "director-abi.inc"
 
-DIRECTOR_INIT = $9D75
-DIRECTOR_WORLD_ROW_TICK = $9D95
-DIRECTOR_REQUEST = $9E9E
-DIRECTOR_RELEASE = $9F24
-DIRECTOR_RNG_ADVANCE = $9F33
 DIRECTOR_STATE_REACTION = $80F9
 DIRECTOR_STATE_RECOVERY = $80FA
 DIRECTOR_STATE_INTENSITY = $80F8
@@ -418,6 +414,10 @@ ENEMY_SLOT_INDEX = 0
 ENEMY_INACTIVE = 0
 ENEMY_ACTIVE_STATE = 1
 ENEMY_EXPLODING_STATE = 2
+ENEMY_MOVEMENT_RAIDER_CROSS_PURSUIT = 0
+ENEMY_FIRE_RAIDER_PAIR_BURST = 1
+ENEMY_RENDERER_TWO_HEAVY_PMG = 1
+ENEMY_WEAPON_RED_PAIRSHOT = 1
 RAIDER_PMG_SLOT_COUNT = 2
 RAIDER_PMG_LAST_SLOT = RAIDER_PMG_SLOT_COUNT-1
 RAIDER_PMG_CROSS_FRAMES = 48
@@ -1019,6 +1019,11 @@ layout_d_stage_boot_streams_complete:
 :
     jsr unpack_resident_runtime
     jsr unpack_entity_runtime
+    .if DIRECTOR_ABI_BYTES > 0
+    jsr publish_director_abi
+    .else
+    jsr stage_starfield_stream
+    .endif
 layout_d_entity_unpack_complete:
     jsr stage_a2_kernel
     jsr init_entity_effects
@@ -1263,8 +1268,8 @@ boot_chunk_ready:
 resident_runtime_suffix:
 stage_glue_holding:
     ; 250 backward indices are equivalent to 250 forward indices offset by
-    ; six. This equal-size loop leaves room to tail-call the deferred
-    ; starfield staging record without growing the linked CODE segment.
+    ; six. A2 has already been published when this tail-calls the deferred
+    ; starfield staging record, whose three copies may overwrite A2 staging.
     ldy #$06
 @hold_glue:
     lda LAYOUT_D_GLUE_STAGING-$06,y
@@ -1272,6 +1277,37 @@ stage_glue_holding:
     iny
     bne @hold_glue
     jmp stage_starfield_stream
+
+.if DIRECTOR_ABI_BYTES > 0
+; The hybrid ABI arrives immediately after cold GLUE. Resident staging owns its
+; final $8701 gap until unpack_entity_runtime returns,
+; so publish it only after that lifetime ends and before starfield reuses $7CCA.
+publish_director_abi:
+    ldy #DIRECTOR_ABI_BYTES-1
+@copy:
+    lda DIRECTOR_ABI_STAGING,y
+    sta DIRECTOR_ABI_RUNTIME,y
+    dey
+    bpl @copy
+    ; The copied veneer owns the bounded low-C publisher. The lifecycle and
+    ; archetype extension is held as a packed stream in the pause-backup range;
+    ; expand it after resident staging is consumed, but return before starfield
+    ; staging so stage_a2_kernel can publish its source from $7F2B first.
+    jsr DIRECTOR_PUBLISH_LOW
+    lda #<HYBRID_C_EXT_STAGING
+    sta broadside_read_source+1
+    lda #>HYBRID_C_EXT_STAGING
+    sta broadside_read_source+2
+    lda #<HYBRID_C_EXT_RUNTIME
+    sta broadside_destination+1
+    lda #>HYBRID_C_EXT_RUNTIME
+    sta broadside_destination+2
+    jsr broadside_unpack_command
+    rts
+    .res 2,$EA                  ; offset the restored three-byte GLUE tail-call
+    .assert HYBRID_C_EXT_BYTES > 0, error, "hybrid lifecycle extension must not be empty"
+    .assert HYBRID_C_EXT_BYTES <= $383, error, "hybrid lifecycle extension exceeds $8C7D-$8FFF"
+.endif
 
 frontend_loop:
     jsr wait_frame
@@ -2934,15 +2970,8 @@ init_state:
 
     lda #ENEMY_SPAWN_X
     sta enemy_x
-    lda #ENEMY_RELEASE_ARCHETYPE
-    sta ENEMY_ARCHETYPE
-    ldx #ENEMY_RELEASE_ARCHETYPE
     lda #(GAMEPLAY_TOP-ENEMY_RELEASE_FRAME_HEIGHT) ; progressive entry below HUD
     sta enemy_y
-    lda #ENEMY_INACTIVE
-    sta ENEMY_ACTIVE
-    lda enemy_hit_points,x
-    sta ENEMY_HP
 
     lda #$00
     sta enemy_velocity_x
@@ -3991,9 +4020,11 @@ update_enemy_weapon_runtime:
     lda ENEMY_ACTIVE
     cmp #ENEMY_ACTIVE_STATE
     bne @stop
-    ldx ENEMY_ARCHETYPE
-    lda enemy_weapon_profiles,x
-    cmp #ENEMY_WEAPON_SINGLE_PULSE
+    lda ENEMY_PROFILE_FIRE_POLICY_ID
+    cmp #ENEMY_FIRE_RAIDER_PAIR_BURST
+    bne @stop
+    lda ENEMY_PROFILE_WEAPON_CLASS
+    cmp #ENEMY_WEAPON_RED_PAIRSHOT
     bne @stop
     jsr select_enemy_weapon_member
     bcc @stop
@@ -4005,7 +4036,7 @@ update_enemy_weapon_runtime:
 @begin:
     lda #WEAPON_BURST_FIRING
     sta INTERCEPTOR_BURST_STATE
-    lda #INTERCEPTOR_BURST_COUNT
+    lda ENEMY_PROFILE_BURST_COUNT
     sta INTERCEPTOR_BURST_REMAINING
     lda #$00
     sta INTERCEPTOR_BURST_TIMER
@@ -4019,14 +4050,13 @@ update_enemy_weapon_runtime:
     bcc @done
     dec INTERCEPTOR_BURST_REMAINING
     beq @finish
-    lda #INTERCEPTOR_BURST_INTERVAL
+    lda ENEMY_PROFILE_BURST_INTERVAL
     sta INTERCEPTOR_BURST_TIMER
     rts
 @finish:
     lda #WEAPON_BURST_POST
     sta INTERCEPTOR_BURST_STATE
-    ldx DIFFICULTY_SETTING
-    lda interceptor_post_burst_frames,x
+    lda ENEMY_PROFILE_POST_BURST_FRAMES
     sta INTERCEPTOR_BURST_TIMER
     rts
 @post:
@@ -4392,9 +4422,8 @@ update_enemy:
     lda ENEMY_Y,x
     cmp #GAMEPLAY_BOTTOM
     bcc @draw_member
-    lda #ENEMY_INACTIVE
-    sta ENEMY_MEMBER_STATE,x
-    dec ENEMY_LIVE_COUNT
+    jsr HYBRID_ENEMY_RETIRE_MEMBER
+    .res 5,$EA                  ; preserve fixed BROADSIDE integration targets
     jmp @retire_departing_row
 @draw_member:
     ; Publish each independent PMG page immediately after its motion update.
@@ -4600,12 +4629,8 @@ reset_enemy:
     sta enemy_velocity_x
     sta INTERCEPTOR_MOVE_ACCUMULATOR
     sta ENEMY_WEAPON_CURSOR
-    ldy #ENEMY_ACTIVE_STATE      ; retained labels remain inert in this movement-only build
     ldx #RAIDER_PMG_LAST_SLOT
 @member:
-    tya
-    sta ENEMY_HP,x
-    sta ENEMY_MEMBER_STATE,x
     lda #$00
     sta ENEMY_PENDING_DAMAGE,x
     sta ENEMY_PENDING_SOURCE,x
@@ -4632,10 +4657,7 @@ reset_enemy:
     sta ENEMY_MOVE_ACCUMULATOR+1
     lda #12
     sta ENEMY_BEHAVIOUR_PHASE+1
-    lda #RAIDER_PMG_SLOT_COUNT
-    sta ENEMY_LIVE_COUNT
-    lda #ENEMY_ACTIVE_STATE
-    sta ENEMY_ACTIVE
+    jsr HYBRID_ENEMY_SPAWN_RAIDERS
     jsr reset_enemy_fire_cooldown
     jmp draw_enemy
 
@@ -4911,33 +4933,21 @@ resolve_enemy_damage:
 @member:
     lda ENEMY_PENDING_DAMAGE,x
     beq @next
-    lda ENEMY_MEMBER_STATE,x
-    cmp #ENEMY_ACTIVE_STATE
-    bne @next                    ; a repeated resolve cannot score a dead slot
-    lda ENEMY_HP,x
-    sec
-    sbc ENEMY_PENDING_DAMAGE,x
-    bcc @destroy
-    beq @destroy
-    sta ENEMY_HP,x
-    bne @next
-@destroy:
     stx ENEMY_TARGET_SLOT
+    jsr HYBRID_ENEMY_APPLY_PENDING_DAMAGE
+    beq @restore_next            ; includes nonlethal and already-dead members
+    ldx ENEMY_TARGET_SLOT
     lda ENEMY_PENDING_SOURCE,x
     pha
     jsr erase_enemy_member
-    ldx ENEMY_TARGET_SLOT
-    lda #ENEMY_INACTIVE
-    sta ENEMY_MEMBER_STATE,x
-    sta ENEMY_HP,x
-    dec ENEMY_LIVE_COUNT
+    lda ENEMY_ACTIVE
+    cmp #ENEMY_EXPLODING_STATE
     bne @damage_feedback
-    lda #ENEMY_EXPLODING_STATE
-    sta ENEMY_ACTIVE
     lda #$00
     sta enemy_velocity_x
     jsr reset_enemy_fire_cooldown
 @damage_feedback:
+    lda #$00
     sta HITCLR
     jsr spawn_interceptor_breakup_effects
     pla
@@ -4953,6 +4963,7 @@ resolve_enemy_damage:
     jsr weapon_pickup_record_qualified_kill
 @no_score:
     jsr play_hit_sound
+@restore_next:
     ldx ENEMY_TARGET_SLOT
 @next:
     inx
@@ -6068,44 +6079,8 @@ clear_top_hull_row:
 .segment "CODE"
 
 update_sector_state:
-    lda CORRIDOR_PHASE_HI
-    beq @low_page
-    cmp #$01
-    bne @drain
-    lda corridor_phase
-    cmp #<CAPITAL_HULL_SECTION_COMBAT_END
-    bcc @combat
-    cmp #<CAPITAL_HULL_SECTION_FORWARD_END
-    bcc @forward
-    cmp #<CAPITAL_HULL_STREAM_ROWS
-    bcc @prow
-@drain:
-    lda #CAPITAL_HULL_STATE_DRAIN
-    bne @store
-@low_page:
-    lda corridor_phase
-    cmp #<CAPITAL_HULL_SECTION_ENGINES_END
-    bcc @engines
-    cmp #<CAPITAL_HULL_SECTION_AFT_END
-    bcc @aft
-    bcs @combat
-@engines:
-    lda #CAPITAL_HULL_STATE_ENGINES
-    beq @store
-@aft:
-    lda #CAPITAL_HULL_STATE_AFT
-    bne @store
-@combat:
-    lda #CAPITAL_HULL_STATE_COMBAT
-    bne @store
-@forward:
-    lda #CAPITAL_HULL_STATE_FORWARD
-    bne @store
-@prow:
-    lda #CAPITAL_HULL_STATE_PROW
-@store:
-    sta CAPITAL_SECTOR_STATE
-    rts
+    jmp HYBRID_SECTOR_UPDATE_CAPITAL_PHASE
+    .res 58,$EA                  ; preserve reviewed following CODE addresses
 
 .segment "BROADSIDE"
 
@@ -6730,8 +6705,8 @@ frontend_screen_data:
     .word ended_screen_data, game_over_screen_data ; gameplay is never rendered here
     .word pause_screen_data, pause_quit_screen_data
 
-interceptor_post_burst_frames:
-    .byte INTERCEPTOR_POST_BURST_EASY,INTERCEPTOR_POST_BURST_MEDIUM,INTERCEPTOR_POST_BURST_HARD
+interceptor_post_burst_frames_legacy_pad:
+    .res 3,$00
 .segment "RODATA"
 shared_fighter_explosion_masks:
     EMIT_SHARED_FIGHTER_EXPLOSION_MASKS
@@ -7379,8 +7354,10 @@ init_broadside:
     sta PLAYER_LIFECYCLE
     lda #PLAYER_STARTING_LIVES
     sta PLAYER_LIVES
-    lda #CAPITAL_HULL_STATE_OPEN
-    sta CAPITAL_SECTOR_STATE
+    ; The accepted C lifecycle initialized the authoritative sector byte.
+    bit CAPITAL_SECTOR_STATE
+    nop
+    nop
     lda #PLAYER_HEALTH_UNITS    ; ten 10-point units, directly deriving 100%
     sta BROAD_PLAYER_HEALTH
     lda #BROADSIDE_INITIAL_DELAY
@@ -9230,13 +9207,11 @@ enemy_accent_rows:
 enemy_accent_offsets:
     EMIT_ENEMY_ACCENT_OFFSETS
 .segment "CODE"
-enemy_hit_points:
-    EMIT_ENEMY_HIT_POINTS
-enemy_scores:
-    EMIT_ENEMY_SCORES
+enemy_high_level_profile_legacy_pad:
+    .res ENEMY_IMPLEMENTED_COUNT*2,$00
 .segment "BROADSIDE"
-enemy_weapon_profiles:
-    EMIT_ENEMY_WEAPON_PROFILES
+enemy_weapon_profile_legacy_pad:
+    .res ENEMY_IMPLEMENTED_COUNT,$00
 enemy_projectile_spawn_y_offsets:
     EMIT_ENEMY_PROJECTILE_SPAWN_Y_OFFSETS
 enemy_body_data:
@@ -9802,10 +9777,7 @@ entity_next_rng:
 entity_begin_sector_complete:
     jsr clear_transient_effects
     jsr weapon_pickup_clear_sector
-    lda #PLAYFIELD_RING_ROWS
-    sta ENTITY_SPAWN_TIMER_HI
-    inc CAPITAL_SECTOR_STATE
-    rts
+    jmp HYBRID_SECTOR_BEGIN_COMPLETE
 
 ; COMPLETE receives exactly one full ring reconstruction pass. The
 ; following OPEN frame starts with the normal delayed entity scheduler. This
@@ -9813,16 +9785,8 @@ entity_begin_sector_complete:
 ; remaining BROADSIDE reservation rather than expanding packed ENTITY_CODE.
 .segment "BROADSIDE"
 entity_complete_scroll_tick:
-    lda DIRECTOR_STATE_FLAGS
-    lsr
-    bcs @done                    ; final Director COMPLETE is terminal
-    dec ENTITY_SPAWN_TIMER_HI
-    bne @done
-    inc CAPITAL_SECTOR_STATE
-    lda #ENTITY_INITIAL_SPAWN_DELAY
-    sta ENTITY_SPAWN_TIMER_LO
-@done:
-    rts
+    jmp HYBRID_SECTOR_COMPLETE_SCROLL_TICK
+    .res 17,$EA                 ; preserve fixed BROADSIDE entry addresses
 
 .segment "ENTITY_CODE"
 
@@ -10857,56 +10821,36 @@ entity_trajectory_vx:
     EMIT_ENTITY_TRAJECTORY_VX
 
 
-; Encounter Director adapters own admission and policy only. Object lifecycle
-; remains in the existing production routines reached by these gates.
+; The C lifecycle owns the high-level sector transition. ASM performs only the
+; sector-local pickup action requested by the returned semantic token.
 .segment "PICKUP_CODE"
 integration_update_first_capital:
-    bit DIRECTOR_STATE_FLAGS
-    bmi @retry
-    bvs @done
-    lda ACTIVE_GAMEPLAY_FRAME_HI
-    cmp #>PROVISIONAL_FIRST_CAPITAL_FRAME
-    bcc @done
-    bne @retry
-    lda ACTIVE_GAMEPLAY_FRAME_LO
-    cmp #<PROVISIONAL_FIRST_CAPITAL_FRAME
-    bcc @done
-@retry:
-    jmp retry_first_capital_admission
-@done:
-    rts
-
 retry_first_capital_admission:
-    bit DIRECTOR_STATE_FLAGS
-    bmi :+
-    lda #DIRECTOR_FLAG_FIRST_CAPITAL_DUE
-    sta DIRECTOR_STATE_FLAGS
-:
-    jsr ordinary_wave_pressure_active
-    bne @done                    ; owner and released pulses finish naturally
-    lda CAPITAL_SECTOR_STATE
-    cmp #CAPITAL_HULL_STATE_OPEN
-    bne @done
-    jsr weapon_pickup_clear_sector
-    lda #CAPITAL_HULL_STATE_ENGINES
-    sta CAPITAL_SECTOR_STATE
-    lsr DIRECTOR_STATE_FLAGS     ; DUE $80 becomes ADMITTED $40 atomically
+    jsr HYBRID_SECTOR_UPDATE_FIRST_CAPITAL
+    beq @done
+    jmp weapon_pickup_clear_sector
 @done:
     rts
+    .res 49,$EA                 ; preserve fixed pickup/collision boundary
 
 .segment "CODE"
 integration_update_enemy:
     lda ENEMY_ACTIVE
     beq integration_interceptor_retry
+    lda ENEMY_PROFILE_MOVEMENT_ID
+    cmp #ENEMY_MOVEMENT_RAIDER_CROSS_PURSUIT
+    bne @done
+    lda ENEMY_PROFILE_RENDERER_CLASS
+    cmp #ENEMY_RENDERER_TWO_HEAVY_PMG
+    bne @done
     jmp update_enemy
+@done:
+    rts
 
 integration_interceptor_recycle:
     ldx #DIRECTOR_HAZARD_INTERCEPTOR
     jsr DIRECTOR_RELEASE
-    ; DIRECTOR_RELEASE preserves X. Hazard Interceptor is zero, so make the ended
-    ; lifecycle explicitly inactive before a retry may be deferred by the
-    ; Director budget.
-    stx ENEMY_ACTIVE
+    jsr HYBRID_ENEMY_RECYCLE
     ldx DIFFICULTY_SETTING
     lda interceptor_admission_retry_frames,x
     sta INTERCEPTOR_BURST_TIMER
@@ -10973,15 +10917,9 @@ integration_update_player_death:
 
 integration_update_sector_completion:
     jsr update_sector_completion
-    lda DIRECTOR_STATE_FLAGS
-    lsr
-    bcc @done
-    jsr weapon_pickup_clear_sector
-    lda CAPITAL_SECTOR_STATE
-    cmp #CAPITAL_HULL_STATE_COMPLETE
+    jsr HYBRID_SECTOR_FORCE_FINAL_DRAIN
     beq @done
-    lda #CAPITAL_HULL_STATE_DRAIN
-    sta CAPITAL_SECTOR_STATE
+    jmp weapon_pickup_clear_sector
 @done:
     rts
 
@@ -11106,11 +11044,10 @@ provisional_capital_budgets:
     .byte $03,$04,$05
 
 add_archetype_score_tail:
-    ldx ENEMY_ARCHETYPE
     sed
     clc
     lda score_bcd_lo
-    adc enemy_scores,x
+    adc ENEMY_PROFILE_SCORE_BCD
     sta score_bcd_lo
     lda score_bcd_hi
     adc #$00

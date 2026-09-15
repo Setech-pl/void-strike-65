@@ -12,58 +12,71 @@ lifetime phases and are not additive free memory.
 | `$0080-$009F` | 32 B | zero-page runtime variables |
 | `$0100-$01FF` | 256 B | 6502 stack |
 | `$0200-$03FF` | 512 B | OS workspace and vectors |
-| `$2000-$3157` | 4,440 B | resident `CODE` |
-| `$3158-$3FD9` | 3,714 B | resident `RODATA` |
+| `$2000-$3169` | 4,458 B | resident `CODE` |
+| `$316A-$3FEB` | 3,714 B | resident `RODATA` |
 | `$5400-$5489` | 138 B | `PROJECTILES`: ten one-cell PairShot slots (five player + five enemy), burst controllers, two shared fighter explosions, and two independent Raider records |
-| `$548A-$54E3` | 90 B | free tail left by the PairShot pool reduction |
-| `$54E4-$5CFB` | 2,072 B | relocated `STARFIELD` runtime with immutable row-baked far-star pattern; 2,348 B reserved through `$5E0F` |
-| `$5E10-$7806` | 6,647 B | relocated `BROADSIDE`/frontend/enemy/weapon runtime plus debris-release wrapper; reserved through `$780F` |
-| `$8000-$80FF` | 256 B | `ENTITY_STATE` BSS |
+| `$548A-$54E3` | 90 B | free linked tail; not stable against the PairShot lifecycle clear |
+| `$54E4-$5D44` | 2,145 B | relocated `STARFIELD` runtime; reserved through `$5E0F` |
+| `$5E10-$7809` | 6,650 B | relocated `BROADSIDE`/frontend/enemy/weapon runtime plus debris-release wrapper; reserved through `$780F` |
+| `$8000-$80F3` | 244 B | `ENTITY_STATE` BSS |
+| `$80F4-$80FF` | 12 B | C-owned Encounter Director semantic state at its legacy addresses |
+| `$86FA-$8700` | 7 B | hybrid ABI mailbox and cc65 Director scratch BSS; no C stack |
+| `$8701-$8775` | 117 B | hybrid C/ASM Director/lifecycle ABI veneer and startup publishers |
+| `$8776-$877E` | 9 B | C-owned derived Raider profile cache read by the ASM kernel |
 | `$8800-$8B66` | 871 B | fighter PMG pickup, projectile publication scaffold, narrow effect/PairShot backing resolver in the retired 187-B proof footprint, and provisional active-gameplay admission policy |
 | `$8B67-$8B87` | 33 B | shared inclusive final-raster swept-AABB capital-bolt/Player Fighter collision module |
-| `$9000-$9079` | 122 B | relocated A2 kernel; 134 bytes reserved through `$90FF` are free |
-| `$9100-$9D4D` | 3,150 B | relocated `ENTITY_CODE`, including PMG pickup lifecycle, H3.1 display lists, and frontend helpers; reserved through `$9D74` |
-| `$9D75-$9FF8` | 644 B | Hybrid Encounter Director code/common/Level 1 data; one byte remains free before the guard |
+| `$8B88-$8C79` | 242 B | low cc65 Director code |
+| `$8C7A-$8C7C` | 3 B | free gap |
+| `$8C7D-$8C88` | 12 B | C `EnemyArchetype` table (one Raider record) |
+| `$8C89-$8E84` | 508 B | C sector and high-level enemy lifecycle code |
+| `$9000-$90EC` | 237 B | relocated A2 kernel; 19 bytes reserved through `$90FF` are free |
+| `$9100-$9D57` | 3,160 B | relocated `ENTITY_CODE`, including PMG pickup lifecycle, H3.1 display lists, and frontend helpers |
+| `$9D5E-$9D72` | 21 B | cc65 Director `5*x+1` RNG routine |
+| `$9D73-$9D74` | 2 B | free tail before Director tables |
+| `$9D75-$9E12` | 158 B | C Director constants and Level 1 tables |
+| `$9E13-$9FF7` | 485 B | remaining cc65 Director code |
+| `$9FF8-$9FF9` | 2 B | free Director reservation tail |
 | `$9FFA-$9FFF` | 6 B | untouched Director guard |
 | `$21C1-$26A9` | 1,257 B | boot-only `BOOT_STAGE2` overlay; replaced by the resident suffix before runtime |
 
-The current linked metric is `CODE + STARFIELD + BROADSIDE + A2_KERNEL +
-ENTITY_CODE + PICKUP_CODE = 17,302 B`. The obsolete 1,152-byte
+The linked metric is `CODE + STARFIELD + BROADSIDE + A2_KERNEL + ENTITY_CODE +
+PICKUP_CODE = 17,521 B`. The obsolete 1,152-byte
 character-pickup phase bank is source-only and is not resident. With
-late-published GLUE, DIRECTOR, their frozen integration accounting, and the
-33-byte collision module, simultaneous feature residency is 17,780 B and safe
-residency is 4,407 B. BROADSIDE is 6,647 B and PICKUP_CODE is 871 B.
-Late-published GLUE is 250 B. The PairShot pool uses 90 fewer persistent BSS
-bytes; its fixed glyphs reuse the existing charset allocation.
+late-published GLUE, the collision module, 1,543-byte complete hybrid C/ABI
+payload and 16 B of C state, simultaneous feature residency is 18,914 B and
+safe residency is 3,273 B. BROADSIDE is 6,650 B and PICKUP_CODE is 871 B.
+The PairShot pool uses 90 fewer persistent BSS bytes; its fixed glyphs reuse the
+existing charset allocation.
 
 ## Boot transport layout
 
-The prototype transport is 20,608 bytes in 161 occupied sectors. BRCNT loads the
-12,928-byte/101-sector initial block at `$2000-$527F`; the entry point remains
-`$201E`. Initial content is exactly 12,912 B and ends at `$526F`; the remaining
-16 bytes are transport padding.
+The hybrid transport is 22,016 bytes in 172 occupied sectors. BRCNT loads the
+13,184-byte/103-sector initial block at `$2000-$537F`; the entry point remains
+`$201E`. Initial content is 13,084 B and ends at `$531B`; the remaining bytes
+are transport padding.
 
 | Initial address / ATR sectors | Size | Stored form and startup destination |
 | --- | ---: | --- |
 | `$2000-$21C0` | 449 B | raw bootstrap prefix |
 | `$21C1-$26A9` | 1,257 B | stage-2 SIO/CRC/per-record-end/manifest overlay |
-| `$26AA-$40D9` | 6,704 B | packed resident suffix; staged at `$8100` |
-| `$40DA-$476A` | 1,681 B | packed 2,072-byte starfield/music runtime; deferred staging at `$7810-$7EA0`, then expansion to `$54E4-$5CFB`; 150 B remain before pickup preservation at `$4801` |
-| `$476B-$47E4` | 122 B | A2 source; staged at `$7F2B-$7FA4`, then copied to `$9000-$9079` before entity/effects clear |
-| `$47E5-$526B` | 2,695 B | packed 3,150-byte ENTITY_CODE; copied backward to staging at `$5318-$5D9E`, then expanded to `$9100-$9D4D` |
-| `$526C-$526F` | 4 B | source-owned `DFB1` trailer |
-| ATR sectors 102-146 | 5,760 B | external BROADSIDE record: 5,620 B packed / 6,647 B raw to `$5E10-$7806` |
-| ATR sectors 147-153 | 896 B | unchanged pickup record type: 754-B packed stream; after preservation it publishes 904 B to `$8800-$8B87` including the collision tail |
-| ATR sectors 154-156 | 384 B | GLUE record: 245 B packed / 250 B raw to cold staging `$7BD0-$7CC9`, then held at `$8600-$86F9` before deferred starfield staging |
-| ATR sectors 157-161 | 640 B | Director record: 587 B packed / 644 B raw to `$9D75-$9FF8` |
+| `$26AA-$40BD` | 6,676 B | packed resident suffix; staged at `$8100-$9B13` |
+| `$40BE-$478C` | 1,743 B | packed 2,145-byte starfield/music runtime; deferred staging at `$7810`, then expansion to `$54E4-$5D44` |
+| `$478D-$4879` | 237 B | A2 source; staged at `$7F2B`, then copied to `$9000-$90EC` before entity/effects clear |
+| `$487A-$5317` | 2,718 B | packed 3,160-byte ENTITY_CODE; copied backward to `$5318-$5DB5`, then expanded to `$9100-$9D57` |
+| `$5318-$531B` | 4 B | source-owned `DFB1` trailer |
+| ATR sectors 104-148 | 5,760 B | external BROADSIDE record: 5,653 B packed / 6,650 B raw to `$5E10` |
+| ATR sectors 149-155 | 896 B | 788-B pickup/collision stream; publishes 904 B to `$8800-$8B87` |
+| ATR sectors 156-158 | 384 B | GLUE: 245 B packed / 250 B raw to `$7BD0-$7CC9`, then held at `$8600-$86F9` |
+| ATR sectors 159-160 | 256 B | 116-B packed / 117-B ABI veneer staged at `$7CCA`, then published to `$8701-$8775` |
+| ATR sectors 161-162 | 256 B | 210-B packed / 242-B low C code staged at `$7D40`, then published to `$8B88-$8C79` after resident-suffix consumption |
+| ATR sectors 163-166 | 512 B | already-packed 423-B lifecycle stream staged at `$7810-$79B6`, then expanded to `$8C7D-$8E84` |
+| ATR sector 167 | 128 B | 23-B packed / 21-B C RNG code to `$9D5E-$9D72` |
+| ATR sectors 168-172 | 640 B | 542-B packed / 643-B tables and high C code to `$9D75-$9FF7` |
 
-The `DFMC` v1 manifest is 78 B for the current four records and reserves space
-inside stage-2 for at most eight records. The ATR has 559 free sectors
-(71,552 B). Runtime and transport budgets remain separate; the current
-Director simultaneous-residency accounting reports 4,407 B safe. The older
-15,346-byte capacity reference remains useful only as history; the production
-gate for this prototype is the exact 17,302-byte linked runtime
-and its explicit simultaneous-residency accounting.
+The `DFMC` v1 manifest is 142 B for eight records. The ATR has 548 free sectors
+(70,144 B).
+Runtime and transport budgets remain separate; the hybrid Director
+simultaneous-residency accounting reports 3,273 B safe.
 
 ## Loader-time ownership
 
@@ -103,25 +116,29 @@ this lifetime.
 | `$5000-$53FF` | 1,024 B | dedicated gameplay HUD charset |
 | `$5464-$5469` | 6 B | player/enemy PairShot burst controllers |
 | `$546A-$546F` | 6 B | two shared fighter-explosion records |
-| `$5470-$5471` | 2 B | Raider live-state array |
-| `$5472-$5477` | 6 B | Raider HP and pending damage/source arrays |
+| `$5470-$5471` | 2 B | C-owned Raider member-state array |
+| `$5472-$5477` | 6 B | C-owned Raider HP plus ASM-owned pending damage/source mailboxes |
 | `$5478-$547F` | 8 B | independent X, Y, signed velocity, and fractional movement accumulators |
 | `$5480-$5485` | 6 B | independent manoeuvre state, timer, and behaviour phase |
-| `$5486-$5489` | 4 B | selected slot/Y scratch, weapon cursor, and live count |
+| `$5486-$5489` | 4 B | ASM selected-slot/Y scratch and weapon cursor plus C-owned live count |
 | `$5CF7-$5E05` | 271 B | free tail of the starfield reservation before BOOST backing |
 | `$5E06-$5E0F` | 10 B | exact prior-content backing for HUD cells `$401E-$4027` while BOOST is active |
 | `$780D-$780F` | 3 B | free tail of the broadside reservation |
 | `$7810-$7BCF` | 960 B | pause-screen backup after cold staging is consumed |
 | `$7BD0-$7CC9` | 250 B | GLUE staging until its byte-exact copy to `$8600-$86F9`; overwritten only by the later packed-starfield staging write |
-| `$7CCA-$7F0F` | 582 B | unassigned after cold staging |
+| `$7810-$79B6` | 423 B | cold packed lifecycle source until expansion to `$8C7D-$8E84`; later reclaimed by starfield staging |
+| `$7CCA-$7D3D` | 116 B | cold packed ABI source until publication to `$8701-$8775` |
+| `$7D3E-$7D3F` | 2 B | cold staging guard |
+| `$7D40-$7E11` | 210 B | cold packed low-C source until publication to `$8B88-$8C79` |
+| `$7E12-$7F0F` | 254 B | unassigned after cold staging |
 | `$7F10-$7F69` | 90 B | expanded A2 display list A |
 | `$7F6A-$7FC3` | 90 B | expanded A2 display list B |
 | `$7FC4-$7FFF` | 60 B | unassigned |
 
-During cold startup only, the packed starfield occupies `$7810-$7E9B` and the
-122-byte A2 image occupies `$7F2B-$7FA4`. The A2 image is copied to `$9000`
-before the entity-state clear and before the post-loader display lists are
-built, so these overlaps are lifetime-safe.
+During cold startup only, the packed starfield uses `$7810` after the lifecycle
+stream there has been expanded, and the 237-byte A2 image occupies
+`$7F2B-$8017`. Startup publishes the C extension first, then A2, held glue and
+starfield, so all overlaps are lifetime-safe.
 
 ## BSS and high relocated runtime
 
@@ -132,7 +149,7 @@ built, so these overlaps are lifetime-safe.
 | `$806B-$807F` | 21 B | initialized alignment reserve |
 | `$8080-$80F3` | 116 B | six physical effect slots plus global state; release active limit 5 |
 | `$80F4-$80FF` | 12 B | persistent Encounter Director state, initialized after the entity/effects clear |
-| `$8100-$9B0B` | 6,668 B | cold-start resident-suffix staging only |
+| `$8100-$9B13` | 6,676 B | cold-start resident-suffix staging only |
 | `$8100-$813F` | 64 B | unowned after cold startup; the former 58-byte far-star physical-address cache is gone |
 | `$8140-$8577` | 1,080 B | 27-row physical gameplay ring, 40 bytes per row |
 | `$8578-$8592` | 27 B | logical-to-physical row low-byte table |
@@ -146,16 +163,25 @@ built, so these overlaps are lifetime-safe.
 | `$85E6-$85EE` | 9 B | unowned after cold startup |
 | `$85EF-$85FF` | 17 B | unowned after cold startup; `$85F2-$85FF` was the head of the retired logical far-record pool |
 | `$8600-$86F9` | 250 B | boot-only GLUE holding buffer after resident staging is consumed; unowned after publication; its first 102 bytes formerly doubled as the rest of the logical far-record pool |
-| `$86FA-$87FF` | 262 B | unowned after cold startup |
+| `$86FA-$8700` | 7 B | hybrid C Director/lifecycle mailbox and scratch; software stack 0 B, new ZP 0 B |
+| `$8701-$8775` | 117 B | hybrid C/ASM Director/lifecycle ABI veneer and startup publishers |
+| `$8776-$877E` | 9 B | C-owned derived archetype profile cache; ASM read-only |
+| `$877F-$87FF` | 129 B | unowned after cold startup |
 | `$8800-$8B66` | 871 B | PMG pickup, single-window publication scaffold, narrow effect/PairShot backing resolver in the retired primitive footprint, and admission helpers |
 | `$8B67-$8B87` | 33 B | inclusive 16x15-player versus final-raster swept-8x6-bolt AABB collision module |
-| `$8B88-$8FFF` | 1,144 B | unowned after cold startup; old 1,152-byte character phase bank is not transported or resident |
-| `$9000-$9079` | 122 B | A2 kernel |
-| `$907A-$90FF` | 134 B | free A2 reservation tail after removing dynamic far-star render code |
-| `$9100-$9D4D` | 3,150 B | entity/effect/booster/projectile and H3.1 frontend runtime |
-| `$9D4E-$9D74` | 39 B | free tail of the ENTITY_CODE reservation |
-| `$9D75-$9FF8` | 644 B | Hybrid Encounter Director |
-| `$9FF9` | 1 B | free Director reservation tail |
+| `$8B88-$8C79` | 242 B | low cc65 Director code |
+| `$8C7A-$8C7C` | 3 B | free gap |
+| `$8C7D-$8C88` | 12 B | C `EnemyArchetype` RODATA, currently one Raider record |
+| `$8C89-$8E84` | 508 B | C sector/high-level enemy lifecycle code |
+| `$8E85-$8FFF` | 379 B | unowned after cold startup |
+| `$9000-$90EC` | 237 B | A2 kernel |
+| `$90ED-$90FF` | 19 B | free A2 reservation tail |
+| `$9100-$9D57` | 3,160 B | entity/effect/booster/projectile and H3.1 frontend runtime |
+| `$9D58-$9D5D` | 6 B | free ENTITY_CODE reservation tail |
+| `$9D5E-$9D72` | 21 B | cc65 Director RNG code |
+| `$9D73-$9D74` | 2 B | free ENTITY_CODE reservation tail |
+| `$9D75-$9FF7` | 643 B | C Director RODATA plus high CODE |
+| `$9FF8-$9FF9` | 2 B | free Director reservation tail |
 | `$9FFA-$9FFF` | 6 B | untouched guard; not available capacity |
 | `$A000-$BFFF` | 8,192 B | deliberately unused BASIC-ROM window |
 | `$C000-$FFFF` | 16,384 B | OS ROM and I/O; not gameplay RAM |
@@ -165,11 +191,11 @@ charset, loader data, or staging buffer uses `$A000-$BFFF`.
 
 ## Boot-only ENTITY_CODE staging lifecycle
 
-The packed ENTITY_CODE source is `$47E5-$526B`. Its backward copy to
-`$5318-$5D9E` is 2,695 B and begins 172 B after the source. The staging end is
-113 B below BROADSIDE at `$5E10`. After expansion to `$9100-$9D4D`, the staging
-range is released. The later starfield destination `$54E4-$5CFB` overlaps that
-released range over 2,072 B; both lifetimes are ordered and never coexist.
+The packed ENTITY_CODE source is `$487A-$5317`. Its backward copy to
+`$5318-$5DB5` is 2,718 B and begins exactly after the source. The staging end is
+90 B below BROADSIDE at `$5E10`. After expansion to `$9100-$9D57`, the staging
+range is released. The later starfield destination `$54E4-$5D44` overlaps that
+released range over 2,145 B; both lifetimes are ordered and never coexist.
 Loader-resident RAM after startup remains 0 B.
 
 ## PMG ownership

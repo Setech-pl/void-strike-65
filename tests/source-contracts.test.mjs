@@ -51,8 +51,9 @@ test("current documentation keeps implemented, planned and historical state dist
   const gameDesign = read("docs/game-design.md");
   const architecture = read("docs/architecture.md");
   const artDirection = read("docs/art-direction.md");
-  const roadmap = read("docs/roadmap.md");
-  const runtimeHeadroom = read("docs/runtime-headroom.md");
+  // The single active roadmap and the current CPU/RAM summary.
+  const roadmap = read("docs/plan-realizacji.md");
+  const runtimeHeadroom = read("docs/STATUS.md");
   const currentSources = [gameDesign, architecture, artDirection, roadmap,
     runtimeHeadroom, read("docs/memory-map.md")].join("\n");
 

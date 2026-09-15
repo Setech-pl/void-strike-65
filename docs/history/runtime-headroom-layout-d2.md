@@ -1,4 +1,6 @@
-# Current PAL runtime headroom
+# PAL runtime headroom — Layout D.2 era (ARCHIVED 2026-09-15)
+
+> Historical report. Its numbers predate the hybrid C foundation and are not current; current CPU/RAM figures are in [../STATUS.md](../STATUS.md).
 
 This is the current performance summary after the accepted PAL headroom
 recovery pass, the completed Spread Shot rebuild, Shield Booster, the H3.1
@@ -6,7 +8,7 @@ frontend, and the data-only H4.2 C INDUSTRIAL gameplay art update. The local run
 distinct HULL plates, the full BOOST HUD field, and the multi-position TOP
 SCORES fix, plus fixed 2/5/7 difficulty-scaled player/debris damage.
 The machine-readable source is
-[runtime-wall-trace.json](runtime-wall-trace.json), generated from and bound to
+[runtime-wall-trace.json](../runtime-wall-trace.json), generated from and bound to
 the packed boot BIN, XEX, and ATR.
 
 ## Current result
@@ -246,5 +248,5 @@ behavior and PAL release gates now pass; physical smoke remains the next gate.
 
 The measurement is exact for the stated Atari800 version, not an electrical
 measurement of a physical Atari. Real-hardware validation remains required by
-[hardware-testing.md](hardware-testing.md). Historical gates and the invalid
-34,132-cycle checkpoint are archived under [history/](history/).
+[hardware-testing.md](../hardware-testing.md). Historical gates and the invalid
+34,132-cycle checkpoint are archived under [history/](README.md).

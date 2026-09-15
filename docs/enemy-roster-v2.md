@@ -47,7 +47,7 @@ read, not regenerated. Supporting sources:
   [entity/effect tests](../tests/entity-effects.test.mjs),
   [Director tests](../tests/encounter-director.test.mjs).
 - [Memory map](memory-map.md), [architecture](architecture.md),
-  [game rules](game-design.md), [PAL evidence discussion](runtime-headroom.md),
+  [game rules](game-design.md), [PAL evidence discussion](history/runtime-headroom-layout-d2.md),
   [hardware acceptance](hardware-testing.md), [boss concepts](boss-concepts.md).
 
 The manifest reports `runtimeEvidence.status = candidate-awaiting-trace`,

@@ -1,8 +1,11 @@
 # Void Strike 65 game design
 
-This document defines the current player-visible rules. Technical implementation
+This document defines the player-visible rules of the accepted checkpoint named
+in [STATUS.md](STATUS.md). Sections marked **OWNER-SMOKE CANDIDATE** describe
+committed behavior the owner has not accepted yet. Technical implementation
 belongs in [architecture.md](architecture.md), numeric memory ownership in
-[memory-map.md](memory-map.md), and future work in [roadmap.md](roadmap.md).
+[memory-map.md](memory-map.md), and planned work in
+[plan-realizacji.md](plan-realizacji.md).
 
 ## Implemented game
 
@@ -35,13 +38,14 @@ to their prior blank contents. The optional type glyph is omitted because the
 40-column HUD has exactly ten unclaimed cells and one active booster at a time.
 
 - A new game starts with three playable Player Fighters and a full 100% hull.
-- The hull has ten health units. An ordinary Interceptor pulse removes one unit
+- The hull has ten health units. An ordinary Raider PairShot removes one unit
   (10%), while capital-ship fire removes two units (20%). Debris contact removes
   a fixed two, five, or seven units on Easy, Medium, or Hard (20%/50%/70% of
   maximum HULL); it never computes a percentage of remaining HULL. Debris
   contact tests the Player Fighter's complete double-width 16-HPOS visible envelope;
   its vertical contract and the debris 8x8 hitbox remain unchanged.
-- Raider contact and damage are disabled in this movement-only prototype.
+- Contact with a Raider applies the full ten-unit hull damage through the shared
+  damage gate and deals one damage unit to the Raider.
 - Losing a Player Fighter plays a 24-frame breakup. If a life remains, the replacement
   Player Fighter receives 250 active frames (5 seconds) of invulnerability and blinks in
   an 8-frame visible/8-frame hidden rhythm.
@@ -62,13 +66,17 @@ ten visible impulses; Spread uses four PairShots for eight. One PairShot is one
 movement/lifecycle object and produces one collision event, so the visual pair
 does not double damage.
 
-The implemented experiment starts two monochrome PMG Raiders before the first
-capital sector. Each reuses the Interceptor's sampled soft pursuit and readable
-weave at 80% of the Player Fighter's maximum horizontal speed. They own separate
-X/Y coordinates, signed direction, fractional movement phase, manoeuvre timer,
+Ordinary fighter combat uses up to two Heavy Raiders, each a monochrome PMG body
+(P1/P2), admitted together as one formation by the Encounter Director. Raider is
+the first C `EnemyArchetype`: one hit point, sampled soft pursuit with a readable
+weave at 80% of the Player Fighter's maximum horizontal speed, and separate
+X/Y coordinates, signed direction, fractional movement phase, manoeuvre timer
 and behaviour phase. Opposite opening directions and phase offsets produce
-independent turns. The opening vertical crossing includes one shared height at
-different X and then reverses their vertical order.
+independent turns; the opening vertical crossing reverses their vertical order.
+The formation shares one enemy burst controller: five red PairShots at 15-frame
+intervals, then a 60/50/40-frame pause on Easy/Medium/Hard, with at most five
+enemy PairShots in flight. Enemy PairShots move two scanlines per PAL frame.
+Shots still in flight when their Raider is destroyed expire with it.
 
 Every Raider activation and recycle starts the complete 14-scanline body above
 the gameplay boundary at PMG Y=2. The two machines descend by their existing
@@ -76,10 +84,17 @@ one-scanline movement into the old Y=48/Y=96 formation anchors before the
 crossing continues. Top clipping publishes only the portion that has entered;
 a completely hidden Raider cannot fire or collide.
 
-This increment measures movement only. Raider hits, contact damage, scoring,
-shots, and explosions are disabled. Player Fighter movement and fire, stars,
-scroll, and ring rotation remain active. Both Raiders leave before the unchanged
-capital schedule; no sector gate is bypassed.
+### Light Wingman — OWNER-SMOKE CANDIDATE
+
+Not accepted gameplay. The candidate commits in [STATUS.md](STATUS.md) add one
+Light Wingman with every Raider formation. It is a small two-cell character
+fighter that sits centred behind the first Raider, 12 scanlines above it,
+without switching sides; it moves on the character grid, so its vertical gap
+steps by up to seven lines. It has one hit point, fires one red PairShot every
+96/80/64 frames on Easy/Medium/Hard when fully visible, and is worth 5 points.
+One Player PairShot or player contact destroys it (contact uses the Raider
+contract). If its leader is lost it flies straight down and leaves the screen.
+The capital encounter waits until it has gone.
 
 Each Raider is worth 10 points when destroyed by a Player Fighter projectile, player
 contact, or Hostile friendly fire. A capital-ship hit or lifecycle cleanup awards
@@ -106,20 +121,20 @@ and bright phases, each lasting eight active frames.
 
 Difficulty changes the measured vertical rates:
 
-| Difficulty | World/scene and hull | Far stars | Debris |
-| --- | ---: | ---: | ---: |
-| Easy | 20 rows/s | 20 rows/s, row-baked | 12 rows/s |
-| Medium | 22.5 rows/s | 22.5 rows/s, row-baked | 13.5 rows/s |
-| Hard | 25 rows/s | 25 rows/s, row-baked | 15 rows/s |
+| Difficulty | World/scene and hull | Debris |
+| --- | ---: | ---: |
+| Easy | 20 rows/s | 12 rows/s |
+| Medium | 22.5 rows/s | 13.5 rows/s |
+| Hard | 25 rows/s | 15 rows/s |
 
 Broadside warnings, launch flashes, heavy projectiles, hull contact, and
 capital explosions are implemented. World, stars, debris, and both hulls keep
 their relative rates through sector transitions. Once the last capital row has
 left the screen, the ordinary full-width background still advances at the
-listed world rate. Far stars are baked into recycled base rows and therefore
-move at background speed; near stars retain the faster dynamic motion that
-supplies parallax. No capital lifecycle state changes the physical scene
-cadence.
+listed world rate. The starfield is one decorative layer of four small white
+stars moving one scanline per PAL frame in every sector; they occupy only empty
+cells, so hull, gondola and turret graphics always stay in front. No capital
+lifecycle state changes the physical scene cadence.
 
 During construction, the existing first capital encounter is provisionally due
 on active gameplay frame 600. Menu, OPTIONS, loader, pause, and initialization
@@ -164,7 +179,7 @@ one-damage-event-per-frame latch retain their existing precedence.
 ## Implemented boosters
 
 Only one pickup capsule may exist at a time. A qualifying kill is specifically
-an Interceptor destroyed by a consumed Player Fighter projectile. Broadside fire, player
+a Raider destroyed by a Player Fighter PairShot while no capsule exists. Broadside fire, player
 collision, debris destruction, and lifecycle cleanup do not advance the drop
 counter.
 
@@ -176,20 +191,21 @@ any admission retry, remains at that off-screen coordinate. Admission publishes
 the capsule at the first fully visible position, Y=24; it then crosses every
 scanline phase through the last visible scanline Y=239 and releases its slot at
 the exclusive boundary Y=240. Thus
-PENDING cannot consume any collectible screen travel. The current three-kill
-cadence describes shipped behavior, not accepted final balance; a separate
-owner-playtest tuning task is recorded in the roadmap.
+PENDING cannot consume any collectible screen travel. The three-kill cadence is
+deterministic (no random drop roll); changing it requires an explicit owner
+decision.
 
-Each type is one logical slot and exactly one non-flickering visual capsule.
-Its shifted 8x16 source occupies a 2x2 footprint at phase zero and a 2x3
-footprint between character rows. HARD moves it exactly two scanlines per PAL
-frame; EASY and MEDIUM retain their slower fractional rates without an
-eight-scanline jump. The collection hitbox follows the same effective visual
-Y. During contact the Player Fighter's opaque hull/engine pixels remain in front, while
-transparent PMG pixels reveal the capsule until the single accepted collection
-removes it. Picking up the same active type
-refreshes it. Picking up another type
-replaces it, so Rapid Fire, Spread Shot, and Shield are mutually exclusive.
+Each type is one logical slot and one fighter-sector capsule drawn as a
+16-scanline fifth-player PMG object (missiles M0-M3 in `COLPF3`), not as
+characters. It moves 8/9/10 twentieths of a scanline per PAL frame on
+Easy/Medium/Hard, and the collection hitbox follows the same Y. An ACTIVE capsule
+is removed before the capital sector; a PENDING capsule is frozen and resumes
+afterwards. Picking up the same active type refreshes it. Picking up another
+type replaces it, so Rapid Fire, Spread Shot, and Shield are mutually exclusive.
+
+OWNER-SMOKE CANDIDATE (uncommitted): a solid capsule mask with every M0-M3 bit
+set, chosen for readability; the accepted checkpoint still uses the earlier
+decorative mask.
 
 ## Canonical gameplay raster
 
@@ -264,7 +280,7 @@ phase boundaries:
 
 The intensity budgets are 3/4/5 for EASY/MEDIUM/HARD. The Director has a
 private deterministic RNG and does not consume the game's existing random
-state. It owns admission policy and budgets while the existing Interceptor, debris,
+state. It owns admission policy and budgets while the existing Raider-formation, debris,
 broadside, pickup, object-pool, and destruction lifecycles retain object
 ownership. Until the remaining ordinary roster is implemented, phases 2, 4,
 and 6 retain their authored hazard masks and budgets but also admit Hunter as
@@ -287,7 +303,7 @@ objects until their normal cleanup, and leaves the single COMPLETE state termina
 Nova Missile is a future boss-only special-weapon pickup, not a member of the
 planned Rapid Fire / Spread Shot / Shield drop rotation. It may appear only
 during a boss encounter, never in standard sectors or through the qualifying
-Interceptor-kill counter. Its capsule is planned as a large, readable 2x2 missile.
+Raider-kill counter. Its capsule is planned as a large, readable 2x2 missile.
 
 Collecting it arms exactly one missile independently of the current weapon
 booster and Shield. A held FIRE input at collection must not launch it: the
@@ -306,4 +322,4 @@ runtime.
 
 Additional enemy archetypes, longer level structures, bosses, and further
 audio/visual polish remain future work. They are not implied by the current
-Interceptor descriptors or review-only asset records.
+enemy-roster descriptors or review-only asset records.

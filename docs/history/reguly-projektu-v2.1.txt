@@ -1,0 +1,143 @@
+VOID STRIKE 65 — reguły projektu
+
+Wersja 2.1, aktualizacja po Stage 2B.2
+
+1. Cel
+
+Celem jest ukończenie grywalnej gry na Atari 65XE PAL 64 KB w rozsądnym czasie. Architektura ma służyć grze; nie przedłużamy projektu tylko po to, aby zachować wcześniejszy elegancki model techniczny.
+
+2. Adaptacyjne wymagania właścicielskie
+
+Założenia wyglądu, zachowania i architektury mogą zostać zmienione po przedstawieniu mierzalnego ograniczenia sprzętowego. Nie zmieniaj samodzielnie istotnego gameplayu. Jeżeli wymaganie grozi przekroczeniem CPU/RAM, regresją lub nieproporcjonalną przebudową, przedstaw 2–3 prostsze warianty i rekomendację.
+
+Oddzielaj MEASURED od ESTIMATE. Nie ogłaszaj niemożliwości bez dowodu.
+
+3. Małe kroki i checkpointy
+
+Najpierw mały dowód kosztowy/rasterowy, potem ograniczony grywalny przyrost. Jeden prompt wykonawczy ma mieć jeden główny wynik.
+
+Każdy prompt musi wskazywać:
+- rekomendowany model;
+- reasoning/effort;
+- branch i checkpoint;
+- zakres;
+- zakazy;
+- kolejność weryfikacji;
+- stop conditions;
+- zasady commita i rollbacku.
+
+Nie resetuj ani nie stage'uj cudzych zmian. Lokalne commity są dozwolone. Bez push/merge/release bez decyzji właściciela.
+
+4. Źródła prawdy
+
+Przed każdym zadaniem przeczytaj aktualne:
+- `AGENTS.md`;
+- reguły projektu;
+- `docs/plan-realizacji.md`;
+- odpowiedni ostatni raport diagnostyczny.
+
+Aktualny plan ma pierwszeństwo przed starszym promptem lub historycznym handoffem.
+
+Jeżeli proof zmienia decyzję architektoniczną, roadmapa ma zostać zaktualizowana przed kolejnym promptem implementacyjnym.
+
+5. CPU i raster
+
+Target: 31 200 cykli.
+Hard gate: 32 568 cykli.
+Fizyczna ramka PAL: 35 568 cykli.
+
+Wall time jest warunkiem koniecznym, ale niewystarczającym.
+
+Każdy renderer zapisujący do pamięci widocznej przez ANTIC musi udowodnić deadline względem rastra. Nie uznawaj PASS na podstawie samego `max cycles`.
+
+Dynamiczny globalny fence zależny od `pickup_y`, `projectile_y` lub innego obiektu jest zabroniony.
+
+6. Aktualna decyzja o publikacji znaków
+
+Pełny double buffer całego playfieldu został zmierzony i odrzucony:
+- maksymalny dodatkowy koszt fighter frame około 8 007 cykli;
+- projected worst około 34 820 > hard gate;
+- dodatkowe problemy placementu.
+
+Nie wracaj do niego bez nowych dowodów lub jawnej decyzji właściciela.
+
+Globalny invariant `visible ring is read-only` nie obowiązuje.
+
+Stały sync `$70` z erase wcześnie i redraw późno również został zmierzony i odrzucony:
+- CPU i placement były dobre;
+- native trace wykazał premature erase i late redraw.
+
+Stage 2B.2 wykazał, że pojedyncze stałe publication window samo w sobie ma wystarczający budżet czasu, ale jest niewystarczające architektonicznie: inne warstwy visible ring zmieniały komórki OLD należące do projectile.
+
+Aktualny blocker to **cell ownership / underlay**, nie liczba okien rastra.
+
+Aktualny kierunek:
+- oddzielać simulation od publication;
+- zdefiniować minimalny ownership/deferred-underlay dla komórek zajętych przez znakowe projectile;
+- niższa warstwa nie może niszczyć foreground projectile; aktualizuje stan underlay;
+- erase projectile przywraca najnowszy underlay;
+- nie budować centralnego compositora całego ekranu;
+- raster bands rozważać dopiero po poprawnym ownership, jeśli pozostanie niezależny problem deadline;
+- nigdy per-object moving fence.
+
+7. Pickup
+
+Docelowy fighterowy pickup:
+- M0–M3 jako jednokolorowy PMG/fifth-player candidate;
+- tylko fighter sector.
+
+Semantyka:
+- PENDING przy wejściu do capital: zamrożony/odroczony;
+- ACTIVE przy wejściu do capital: usuwany;
+- capital i boss nie aktualizują zwykłego fighterowego pickupu.
+
+PMG pickup w odrzuconym proofie był zasobowo korzystny i nie był przyczyną FAIL, ale wraca do integracji dopiero po PASS kontraktu publikacji pocisków.
+
+8. Pojemność i grywalność fighter combat
+
+Minimum projektowe: 4 przeciwników/zagrożenia jednocześnie.
+Target rozszerzony: 6.
+Model: 2 Heavy + do 4 Light.
+
+Heavy: P1/P2.
+Light: tańsze obiekty, niekoniecznie PMG.
+
+Architektura nie przechodzi finalnie tylko dlatego, że stabilnie obsługuje dwóch Raiderów. Musi zostawiać mierzalną drogę CPU/RAM do 2 Heavy + 2 Light i brak konstrukcyjnej blokady 2 Heavy + 4 Light.
+
+Fale preferują jeden dominujący archetyp + najwyżej jeden wspierający.
+
+9. Odrzucone kierunki — nie powtarzać bez nowych przesłanek
+
+- pełny double buffer całego fighter playfieldu;
+- globalny read-only visible ring jako wymóg;
+- `$70` fixed-sync z szerokim erase/redraw gap;
+- single publication window traktowane jako samodzielne rozwiązanie bez ownership niższych warstw;
+- raster bands jako obejście konfliktów ownership;
+- moving fence zależny od Y obiektu;
+- znakowi Raiderzy;
+- kolejne serie mikrooptymalizacji odrzuconej konstrukcji.
+
+10. BASIC RAM / loader
+
+Nie używaj BASIC RAM, loader changes, runtime disk I/O ani overlay transport jako domyślnego rozwiązania.
+
+BASIC RAM jest rezerwą dla problemu placementu po uzyskaniu architektury poprawnej rasterowo. Nie służy jako obejście błędu publikacji.
+
+11. Gameplay wartości stałe
+
+Bursty produkcyjne: 8/8/10.
+4/4/6 tylko diagnostycznie.
+
+12. Model wykonawczy
+
+Dla raster/timing i decyzji architektonicznych preferuj GPT-5.6 Sol / High, jeżeli dostępny. Inny model może wykonywać ograniczone zadanie, ale prompt ma jawnie zawierać wszystkie invariants, checkpoint i stop conditions.
+
+13. Reguła po nieudanym proofie
+
+Po `BLOCKED`/`REJECTED`:
+- zachowaj dowód;
+- wycofaj własny odrzucony kod produkcyjny;
+- commit dokumentacyjny jest dozwolony;
+- zaktualizuj roadmapę;
+- wskaż jeden następny eksperyment;
+- nie uruchamiaj automatycznie serii kolejnych wariantów.

@@ -1,9 +1,11 @@
 # Void Strike 65 runtime architecture
 
-This document describes the current released runtime. Exact address ownership
-is in [memory-map.md](memory-map.md), performance evidence in
-[runtime-headroom.md](runtime-headroom.md), and historical experiments in
-[history/](history/).
+This document describes the accepted runtime architecture at checkpoint
+`2df89da` (see [STATUS.md](STATUS.md)). Parts marked **OWNER-SMOKE CANDIDATE**
+describe committed or uncommitted extensions that the owner has not accepted
+yet. Exact address ownership is in [memory-map.md](memory-map.md), current
+CPU/RAM figures in [STATUS.md](STATUS.md), and historical experiments in
+[history/](history/) and [diagnostics/](diagnostics/).
 
 ## Hybrid C foundation — 2026-09-15
 
@@ -23,7 +25,7 @@ code occupies the legal post-startup `$8C7D-$8E84` range; its packed cold source
 uses `$7810-$79B6` before starfield staging reclaims that range. The loader
 format and BASIC RAM policy remain unchanged.
 
-### Light Wingman — second C EnemyArchetype (candidate, 2026-09-15)
+### OWNER-SMOKE CANDIDATE — Light Wingman M1 (`ed72e25`, `5f2f3ae`)
 
 Each Raider formation admission also admits one Light Wingman for Heavy slot 0,
 giving `2 Heavy + 1 Light`. C owns its 12-byte archetype record (HP 1,
@@ -55,6 +57,10 @@ segments, and a separate XEX entry record. Candidate, trace, final-binding, and
 verify phases bind the boot BIN, XEX, and ATR by exact size and SHA-256.
 
 ## Cold startup and loader
+
+Transport figures in this section are those of the accepted checkpoint
+`2df89da`. The Light M1 candidate occupies 175 sectors (22,400 B); exact
+candidate values are in `build/manifest.json`.
 
 The hybrid configuration uses a 103-sector initial block at `$2000-$537F` and
 enters at `$201E` with a 449-byte raw bootstrap prefix. A
@@ -198,8 +204,9 @@ visible partial list.
 Every authoritative world-row event publishes exactly one full-width ring
 recycle in `ENGINES` through `OPEN`. The capital side-band path then advances
 its hull/muzzle lifecycle against that already-published row and never consumes
-the scroll latch a second time. Far stars retain their independent 1/4 logical
-step. This keeps the centre, side bands, objects and ordinary open-space scene
+the scroll latch a second time. The white four-point starfield advances one
+scanline per PAL frame independently of world rows. This keeps the centre, side
+bands, objects and ordinary open-space scene
 at one physical cadence through the entire capital exit.
 
 Capital hulls are two independent 32x9 expanded maps assembled from engines,
@@ -262,7 +269,7 @@ transient effects then save and restore their backing. A cell vacated by an
 overlay must contain exactly the byte that the lower layers would have produced
 in the same frame.
 
-The Light Wingman's 2x1 character overlay is erased and republished only in the
+OWNER-SMOKE CANDIDATE: the Light Wingman's 2x1 character overlay is erased and republished only in the
 post-playfield PairShot window, after the PairShot erase and before the PairShot
 render, so ANTIC never scans it while it is erased. Debris and effects render
 mid-frame while the previous Light image is still visible; a captured Light code
@@ -287,7 +294,7 @@ spill, reverse two-cell unwind, and final split-glyph path are absent.
 | Broadside projectiles | 3 | 2 | capital fire; M1-M3 allocation remains unchanged |
 | Interactive entities | 4 | 2 | debris plus one pickup capsule; controller/reserve slots remain non-rendered |
 | Transient effects | 6 | 5 | debris may use one core plus four fragments; Raider destruction does not use this pool; Light destruction reuses the debris breakup |
-| Light Wingman | 1 | 1 | C-owned record in `$8100-$810B`; two ring cells; shots use the shared enemy PairShot pool |
+| Light Wingman (candidate) | 1 | 1 | C-owned record in `$8100-$810B`; two ring cells; shots use the shared enemy PairShot pool |
 
 Pool scans are bounded by compile-time counts. Normal and Spread initialize
 four PairShots, Rapid five. Their fixed glyphs preserve 8/8/10 visible pulses;
@@ -298,7 +305,7 @@ persistent projectile state.
 
 ## Enemies, debris, and boosters
 
-The movement prototype owns exactly two ordinary Raider slots. P1 draws the
+Fighter combat owns exactly two ordinary Raider slots. P1 draws the
 first body and P2 draws the second; both use the Interceptor silhouette at its
 existing double-width scale and one hostile colour, with no scanner layer. Each
 slot stores its own X, Y, signed horizontal velocity, fractional 4/5-speed
@@ -307,12 +314,12 @@ single-Interceptor soft-pursuit routine, but opposite initial velocities and
 phases prevent synchronized flight. Their opening manoeuvre crosses vertically
 before both machines leave ahead of the unchanged first capital sector.
 
-The current fighter proof enables the existing bounded Raider fire path. Five
+Raider fire uses the existing bounded path. Five
 enemy PairShot records share one burst controller across the formation; they
 reuse the same one-cell movement/erase/render foundation as player fire while
 retaining hostile colour, speed, cadence, swept collision and ten-unit damage.
 
-The Light Wingman is centred behind Heavy slot 0: its left edge is the leader X
+OWNER-SMOKE CANDIDATE: the Light Wingman is centred behind Heavy slot 0: its left edge is the leader X
 plus (16 - 8) / 2 rounded to the 4-HPOS cell grid and clamped to the last
 two-cell start, 8 + 4 scanlines above the leader, with no side switching. It is
 drawn in 8-line character rows, so its vertical gap steps between 12 and 19
@@ -414,7 +421,7 @@ therefore distinct from respawn invulnerability.
 The gameplay charset has two free glyphs. Stars use 1-6, Player Fighter PairShot
 compatibility glyphs 11-46, Spread Shot composite scratch 47-56, capital hulls
 59-89, enemy PairShot compatibility glyphs 90-109, debris 110-117, and
-fragments 118-119. Glyphs 120-121 are the Light Wingman's left/right cells,
+fragments 118-119. Glyphs 120-121 are the Light Wingman's left/right cells (candidate),
 installed at runtime in colour 3 with the hostile bit; 122-125 retain their
 source allocation and the PMG pickup has no dynamic character-pickup compositor.
 Glyphs 126-127 are the dedicated connected left/right BROADSIDE bolt halves.
@@ -432,7 +439,8 @@ before capital, where M1-M3 resume broadside warning/impact ownership. Fighter
 PairShots remain ANTIC 4 overlays, so their ten-record pool and player/enemy
 colours are independent of the missile graphics.
 
-The capsule is intentionally a 16-scanline solid fifth-player mark: every PMG
+OWNER-SMOKE CANDIDATE (uncommitted in `src/main.s`; the accepted checkpoint keeps
+the earlier decorative mask): the capsule becomes a 16-scanline solid fifth-player mark: every PMG
 source byte has M0-M3 bits 4–7 set, with `SIZEM=$00`, consecutive HPOSM0–3,
 `PRIOR=$10`, and `COLPF3`. Decorative partial-missile combinations were too
 weak to recognize at native resolution; the solid mark is the bounded,

@@ -1,10 +1,8 @@
 @AGENTS.md
 
-# CLAUDE.md — review contract
-For VS65 tasks always read current:
-- docs/reguly-projektu.txt
-- docs/plan-realizacji.md
-- docs/hybrid-c-architecture.md
+# CLAUDE.md
 
-For task workflow use the matching document from:
-docs/agent-workflows/
+This file adds no project rules of its own. Follow `AGENTS.md`, which points to
+`docs/STATUS.md`, `docs/reguly-projektu.txt`, `docs/plan-realizacji.md` and the
+source-of-truth order in `docs/README.md`. Use the matching workflow in
+`docs/agent-workflows/`.

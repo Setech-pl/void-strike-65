@@ -1,143 +1,101 @@
 VOID STRIKE 65 — reguły projektu
 
-Wersja 2.1, aktualizacja po Stage 2B.2
+Wersja 3.0 — 2026-09-15
+Generacja: hybryda C/cc65 + ca65 (Hybrid C Director owner-accepted), po Light Wingman M1.
+Zastępuje wersję 2.1 („po Stage 2B.2”), zachowaną w docs/history/reguly-projektu-v2.1.txt.
+Historyczne reguły nie mają pierwszeństwa przed tym plikiem.
 
 1. Cel
 
-Celem jest ukończenie grywalnej gry na Atari 65XE PAL 64 KB w rozsądnym czasie. Architektura ma służyć grze; nie przedłużamy projektu tylko po to, aby zachować wcześniejszy elegancki model techniczny.
+Celem jest ukończenie grywalnej gry na Atari 65XE PAL 64 KB w rozsądnym czasie. Architektura ma służyć grze; nie przedłużamy projektu, aby zachować elegancki model techniczny.
 
-2. Adaptacyjne wymagania właścicielskie
+2. Źródła prawdy i handoff
 
-Założenia wyglądu, zachowania i architektury mogą zostać zmienione po przedstawieniu mierzalnego ograniczenia sprzętowego. Nie zmieniaj samodzielnie istotnego gameplayu. Jeżeli wymaganie grozi przekroczeniem CPU/RAM, regresją lub nieproporcjonalną przebudową, przedstaw 2–3 prostsze warianty i rekomendację.
+Repozytorium jest źródłem prawdy, nie historia rozmów ani pamięć agenta. Kolejność pierwszeństwa opisuje docs/README.md:
+1. bieżący lokalny Git, kod i wyniki buildu;
+2. docs/STATUS.md;
+3. ten plik;
+4. docs/plan-realizacji.md;
+5. dokumenty domenowe (game-design, architecture, hybrid-c-architecture, memory-map);
+6. decyzje właściciela;
+7. diagnostyki;
+8. historia.
+
+Nowsze zaakceptowane decyzje mają pierwszeństwo przed starszymi diagnostykami i historią. Wygenerowane pomiary buildu/mapy mają pierwszeństwo przed ręcznie przepisanymi liczbami.
+
+docs/STATUS.md jest podstawowym handoffem pomiędzy Claude Code, Codex, agentami lokalnymi i właścicielem. Każde zadanie zaczyna się od STATUS, tego pliku, planu, właściwej architektury/workflow (docs/agent-workflows/) i git status. Każde zaakceptowane zadanie kończy się aktualizacją STATUS.
+
+3. Git
+
+- Nie resetuj, nie usuwaj, nie nadpisuj i nie stage'uj cudzych zmian; brudne drzewo może być celowe.
+- Jedno zadanie = jeden główny wynik; osobne, skupione commity lokalne są dozwolone.
+- Push, merge, tag i release wyłącznie po decyzji właściciela.
+- Git jest podstawowym mechanizmem rollbacku; przed eksperymentem zabezpiecz punkt odniesienia.
+- Nie dotykaj .claude/.
+
+4. Hybryda C/cc65 + ca65
+
+C decyduje, CO ma się wydarzyć: Encounter Director, stan sektorów, lifecycle, EnemyArchetype, HP i stan członków formacji, decyzje admission/retire/recycle, AI wysokiego poziomu, fale, polityka pickupów/boosterów, progresja, boss state machine.
+
+ASM wykonuje, JAK to zrobić na sprzęcie: VBI/DLI, ANTIC/raster, PMG, publikacja Heavy i PairShot, ring znakowy, backing/restore, gorące pętle kolizji, zapisy rejestrów, gorące ścieżki audio, loader i start XEX/ATR.
+
+Nie przenosić kodu krytycznego rasterowo/sprzętowo do C dla wygody. Granica i ABI: docs/hybrid-c-architecture.md.
+
+5. Tryby pracy
+
+Implementacja najpierw — dla odwracalnej pracy wysokiego poziomu w C (archetypy, AI, fale, reguły gameplayu): gałąź → implementacja → testy fokusowe → build XEX → krótki PAL smoke → owner smoke → commit lub rollback. Nie zastępować implementacji długim studium wykonalności.
+
+Dowód najpierw — dla rastra, ANTIC, timingu PMG, VBI/DLI, backing/restore, placementu pamięci i innych zmian sprzętowych: pomiar lub proof przed integracją produkcyjną. Przed kosztowną przebudową przedstaw 2–3 tańsze warianty (efekt dla gracza, koszt, ograniczenia, ryzyko, rekomendacja).
 
 Oddzielaj MEASURED od ESTIMATE. Nie ogłaszaj niemożliwości bez dowodu.
 
-3. Małe kroki i checkpointy
+6. Tempo pracy
 
-Najpierw mały dowód kosztowy/rasterowy, potem ograniczony grywalny przyrost. Jeden prompt wykonawczy ma mieć jeden główny wynik.
+Tempo dostarczania funkcji jest równorzędnym ograniczeniem projektu. Długie kampanie PAL/raster rezerwujemy dla zmian w kernelu sprzętowym, zmian raster/PMG/ANTIC, kamieni milowych, bramek wydania i zaobserwowanych regresji czasowych. Nie powtarzaj pomiaru identycznego XEX; zmieniony XEX nie dziedziczy pomiaru poprzednika.
 
-Każdy prompt musi wskazywać:
-- rekomendowany model;
-- reasoning/effort;
-- branch i checkpoint;
-- zakres;
-- zakazy;
-- kolejność weryfikacji;
-- stop conditions;
-- zasady commita i rollbacku.
+7. Owner smoke
 
-Nie resetuj ani nie stage'uj cudzych zmian. Lokalne commity są dozwolone. Bez push/merge/release bez decyzji właściciela.
+Każda zmiana gameplayu lub renderingu wymaga owner smoke przed uznaniem jej za zaakceptowaną. Wersję przed smoke oznaczaj jako kandydata („OWNER-SMOKE CANDIDATE”), nie PASS. Przed przekazaniem XEX: build, bramki pamięci/transportu, zimny start. Nie przekazuj wersji z rozpoznanym crashem lub uszkodzeniem pamięci. Raport: co zmieniono, co potwierdzono, co niezweryfikowane, XEX i pełny SHA-256, komenda uruchomienia.
 
-4. Źródła prawdy
+8. CPU i raster (PAL)
 
-Przed każdym zadaniem przeczytaj aktualne:
-- `AGENTS.md`;
-- reguły projektu;
-- `docs/plan-realizacji.md`;
-- odpowiedni ostatni raport diagnostyczny.
+Target: 31 200 cykli. Hard gate: 32 568 cykli. Fizyczna ramka: 35 568 cykli. Nie myl tych granic.
 
-Aktualny plan ma pierwszeństwo przed starszym promptem lub historycznym handoffem.
+Wall time jest warunkiem koniecznym, ale niewystarczającym: każdy writer pamięci widocznej przez ANTIC musi udowodnić poprawność względem rastra. Dynamiczny fence zależny od Y obiektu jest zabroniony. Znakowe nakładki fighter są publikowane w oknie po playfieldzie (wzorzec PairShot i Light).
 
-Jeżeli proof zmienia decyzję architektoniczną, roadmapa ma zostać zaktualizowana przed kolejnym promptem implementacyjnym.
+Wynik scenariusza nie jest dowodem globalnego maksimum. Porównuj CPU tylko na identycznych scenariuszach replay.
 
-5. CPU i raster
+9. Po BLOCKED / REJECTED
 
-Target: 31 200 cykli.
-Hard gate: 32 568 cykli.
-Fizyczna ramka PAL: 35 568 cykli.
-
-Wall time jest warunkiem koniecznym, ale niewystarczającym.
-
-Każdy renderer zapisujący do pamięci widocznej przez ANTIC musi udowodnić deadline względem rastra. Nie uznawaj PASS na podstawie samego `max cycles`.
-
-Dynamiczny globalny fence zależny od `pickup_y`, `projectile_y` lub innego obiektu jest zabroniony.
-
-6. Aktualna decyzja o publikacji znaków
-
-Pełny double buffer całego playfieldu został zmierzony i odrzucony:
-- maksymalny dodatkowy koszt fighter frame około 8 007 cykli;
-- projected worst około 34 820 > hard gate;
-- dodatkowe problemy placementu.
-
-Nie wracaj do niego bez nowych dowodów lub jawnej decyzji właściciela.
-
-Globalny invariant `visible ring is read-only` nie obowiązuje.
-
-Stały sync `$70` z erase wcześnie i redraw późno również został zmierzony i odrzucony:
-- CPU i placement były dobre;
-- native trace wykazał premature erase i late redraw.
-
-Stage 2B.2 wykazał, że pojedyncze stałe publication window samo w sobie ma wystarczający budżet czasu, ale jest niewystarczające architektonicznie: inne warstwy visible ring zmieniały komórki OLD należące do projectile.
-
-Aktualny blocker to **cell ownership / underlay**, nie liczba okien rastra.
-
-Aktualny kierunek:
-- oddzielać simulation od publication;
-- zdefiniować minimalny ownership/deferred-underlay dla komórek zajętych przez znakowe projectile;
-- niższa warstwa nie może niszczyć foreground projectile; aktualizuje stan underlay;
-- erase projectile przywraca najnowszy underlay;
-- nie budować centralnego compositora całego ekranu;
-- raster bands rozważać dopiero po poprawnym ownership, jeśli pozostanie niezależny problem deadline;
-- nigdy per-object moving fence.
-
-7. Pickup
-
-Docelowy fighterowy pickup:
-- M0–M3 jako jednokolorowy PMG/fifth-player candidate;
-- tylko fighter sector.
-
-Semantyka:
-- PENDING przy wejściu do capital: zamrożony/odroczony;
-- ACTIVE przy wejściu do capital: usuwany;
-- capital i boss nie aktualizują zwykłego fighterowego pickupu.
-
-PMG pickup w odrzuconym proofie był zasobowo korzystny i nie był przyczyną FAIL, ale wraca do integracji dopiero po PASS kontraktu publikacji pocisków.
-
-8. Pojemność i grywalność fighter combat
-
-Minimum projektowe: 4 przeciwników/zagrożenia jednocześnie.
-Target rozszerzony: 6.
-Model: 2 Heavy + do 4 Light.
-
-Heavy: P1/P2.
-Light: tańsze obiekty, niekoniecznie PMG.
-
-Architektura nie przechodzi finalnie tylko dlatego, że stabilnie obsługuje dwóch Raiderów. Musi zostawiać mierzalną drogę CPU/RAM do 2 Heavy + 2 Light i brak konstrukcyjnej blokady 2 Heavy + 4 Light.
-
-Fale preferują jeden dominujący archetyp + najwyżej jeden wspierający.
-
-9. Odrzucone kierunki — nie powtarzać bez nowych przesłanek
-
-- pełny double buffer całego fighter playfieldu;
-- globalny read-only visible ring jako wymóg;
-- `$70` fixed-sync z szerokim erase/redraw gap;
-- single publication window traktowane jako samodzielne rozwiązanie bez ownership niższych warstw;
-- raster bands jako obejście konfliktów ownership;
-- moving fence zależny od Y obiektu;
-- znakowi Raiderzy;
-- kolejne serie mikrooptymalizacji odrzuconej konstrukcji.
-
-10. BASIC RAM / loader
-
-Nie używaj BASIC RAM, loader changes, runtime disk I/O ani overlay transport jako domyślnego rozwiązania.
-
-BASIC RAM jest rezerwą dla problemu placementu po uzyskaniu architektury poprawnej rasterowo. Nie służy jako obejście błędu publikacji.
-
-11. Gameplay wartości stałe
-
-Bursty produkcyjne: 8/8/10.
-4/4/6 tylko diagnostycznie.
-
-12. Model wykonawczy
-
-Dla raster/timing i decyzji architektonicznych preferuj GPT-5.6 Sol / High, jeżeli dostępny. Inny model może wykonywać ograniczone zadanie, ale prompt ma jawnie zawierać wszystkie invariants, checkpoint i stop conditions.
-
-13. Reguła po nieudanym proofie
-
-Po `BLOCKED`/`REJECTED`:
-- zachowaj dowód;
+- zachowaj dowód w docs/diagnostics/;
 - wycofaj własny odrzucony kod produkcyjny;
-- commit dokumentacyjny jest dozwolony;
-- zaktualizuj roadmapę;
-- wskaż jeden następny eksperyment;
-- nie uruchamiaj automatycznie serii kolejnych wariantów.
+- nie uruchamiaj automatycznie kolejnych wariantów ani następnego punktu roadmapy;
+- zaktualizuj STATUS (i plan, jeśli zmienia się kolejność), wskaż jeden następny krok.
+
+10. Pojemność i stałe gameplayu
+
+Minimum 4 przeciwników/zagrożeń jednocześnie, target 6, model 2 Heavy (P1/P2) + do 4 Light (bez własnego PMG). Architektura musi zachować mierzalną drogę do 2 Heavy + 2 Light i brak konstrukcyjnej blokady 2 Heavy + 4 Light. Fale: jeden dominujący archetyp + najwyżej jeden wspierający.
+
+Bursty gracza 8/8/10 widocznych impulsów (4/4/5 PairShotów); 4/4/6 tylko diagnostycznie.
+
+Nowy archetyp powinien wymagać danych, małego zachowania w C i ponownego użycia istniejącej klasy renderera ASM. Jeżeli wymaga przebudowy Directora, granica architektury wymaga przeglądu.
+
+11. Pamięć i placement
+
+BASIC RAM, zmiany loadera, runtime disk I/O i nowe mechanizmy transportu nie są domyślnym rozwiązaniem problemu placementu. Aktualizuj docs/memory-map.md przy każdej zmianie zarezerwowanego adresu. Ogólny zapas RAM nie zastępuje kontroli lokalnych granic segmentów, staging i transportu.
+
+12. Kierunki odrzucone
+
+Nie wracać bez nowych dowodów lub decyzji właściciela: pełny double buffer fighter playfieldu; globalny read-only visible ring; moving fence; stały sync $70 z szerokim oknem erase→redraw; pojedyncze okno publikacji jako samodzielne rozwiązanie konfliktów writerów; raster bands jako obejście ownership; per-access ownership lookup; dodatkowy background/ring 25 Hz; znakowi Raiderzy; osobny wrak Raidera przed przebudową debris; row-baked/blue far stars.
+
+13. Kierunek capital traversal
+
+Po zaakceptowaniu fighter foundation: okrągły ring wierszy jako coarse scroll + ANTIC VSCROL fine scroll. Nie przebudowywać przy tym scrollingu fighter.
+
+14. Prompty wykonawcze
+
+Każdy prompt implementacyjny wskazuje: model i effort, checkpoint, zakres, zakazy, kolejność weryfikacji, warunek przerwania oraz zasady commita/rollbacku. Odwołuj się do tego pliku zamiast przepisywać regulamin.
+
+15. Aktualizacja reguł
+
+Zmiana procesu aktualizuje ten plik i numer wersji. AGENTS.md i CLAUDE.md wskazują ten plik zamiast utrzymywać rozbieżne kopie.

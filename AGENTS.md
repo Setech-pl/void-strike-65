@@ -99,7 +99,8 @@ Also inspect:
 - recent commits when relevant.
 
 Current local Git state and repository documentation are authoritative over
-previous prompts, conversations, summaries, or agent memory.
+previous prompts, conversations, summaries, or agent memory. When documents
+disagree, follow the precedence list in `docs/README.md`.
 
 ## Task isolation
 

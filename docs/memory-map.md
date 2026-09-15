@@ -1,6 +1,12 @@
 # Current memory map
 
-This is one current snapshot. Addresses and linked sizes come from
+Checkpoint: **LIGHT M1 OWNER-SMOKE CANDIDATE** — branch
+`experiment/hybrid-c-director`, HEAD `5f2f3ae`; the owner-smoke XEX
+`900152fe…` adds only the uncommitted pickup-mask bytes and has the same layout.
+The linked-segment and BSS tables reflect this candidate. Sections marked
+*accepted `2df89da`* were not regenerated for the candidate.
+
+This is one snapshot. Addresses and linked sizes come from
 `build/void-strike-65.map`; packed sizes, staging ranges, artifacts, and reserves
 come from `build/manifest.json`. Overlapping ranges below have different
 lifetime phases and are not additive free memory.
@@ -35,7 +41,7 @@ lifetime phases and are not additive free memory.
 | `$8F6A-$8FEE` | 133 B | `LIGHT_CODE` Light late-publication (erase + render) kernel, main-linked, carried at the tail of the extension stream |
 | `$8FEF-$8FFF` | 17 B | free extension tail |
 | `$9000-$90EC` | 237 B | relocated A2 kernel; 19 bytes reserved through `$90FF` are free |
-| `$9100-$9D57` | 3,160 B | relocated `ENTITY_CODE`, including PMG pickup lifecycle, H3.1 display lists, and frontend helpers |
+| `$9100-$9D51` | 3,154 B | relocated `ENTITY_CODE`, including PMG pickup lifecycle, H3.1 display lists, and frontend helpers; `$9D52-$9D5D` (12 B) free |
 | `$9D5E-$9D72` | 21 B | cc65 Director `5*x+1` RNG routine |
 | `$9D73-$9D74` | 2 B | free tail before Director tables |
 | `$9D75-$9E12` | 158 B | C Director constants and Level 1 tables |
@@ -45,15 +51,21 @@ lifetime phases and are not additive free memory.
 | `$21C1-$26A9` | 1,257 B | boot-only `BOOT_STAGE2` overlay; replaced by the resident suffix before runtime |
 
 The linked metric is `CODE + STARFIELD + BROADSIDE + A2_KERNEL + ENTITY_CODE +
-PICKUP_CODE = 17,521 B`. The obsolete 1,152-byte
+PICKUP_CODE = 17,452 B` for the candidate (17,521 B at `2df89da`). The obsolete 1,152-byte
 character-pickup phase bank is source-only and is not resident. With
 late-published GLUE, the collision module, 1,543-byte complete hybrid C/ABI
-payload and 16 B of C state, simultaneous feature residency is 18,914 B and
-safe residency is 3,273 B. BROADSIDE is 6,650 B and PICKUP_CODE is 871 B.
+payload and C state, simultaneous feature residency is 19,207 B and safe
+residency is 2,980 B (18,914 B / 3,273 B at `2df89da`). BROADSIDE is 6,650 B;
+the pickup/collision stream holds LIGHT_RESIDENT 226 B and PICKUP_CODE 777 B.
 The PairShot pool uses 90 fewer persistent BSS bytes; its fixed glyphs reuse the
 existing charset allocation.
 
-## Boot transport layout
+## Boot transport layout — accepted `2df89da`
+
+Light M1 candidate: 22,400 B in 175 sectors, initial content 13,113 B; the
+pickup/collision record is 964 B at sectors 149-156 publishing from `$8776`,
+the extension record is 742 B at sectors 164-169 expanding to `$8C7D-$8FEE`,
+and later records move three sectors. Exact values: `build/manifest.json`.
 
 The hybrid transport is 22,016 bytes in 172 occupied sectors. BRCNT loads the
 13,184-byte/103-sector initial block at `$2000-$537F`; the entry point remains
@@ -111,7 +123,7 @@ this lifetime.
 | `$4D20-$4E3F` | 288 B | expanded Hostile hull map, 32x9 |
 | `$4E40-$4E70` | 49 B | persistent runtime state through difficulty setting |
 | `$4E71-$4ECA` | 90 B | hull scroll, three cached final-raster bolt tops at `$4E72-$4E74`, backing, sector, lifecycle, music, muzzle, score, and two-phase engine state |
-| `$4ECB-$4ED6` | 12 B | Interceptor, damage, star RNG, one row-baked far-pattern phase byte, and three compatibility scalar bytes |
+| `$4ECB-$4ED6` | 12 B | Interceptor, damage, star RNG, one byte formerly used as the row-baked far-pattern phase (far stars retired), and three compatibility scalar bytes |
 | `$4ED7-$4ED8` | 2 B | allied/enemy fixed-divider versus ring muzzle-domain state; consumes the former compatibility pad without shifting later state |
 | `$4ED9-$4EE9` | 17 B | menu/gameplay music and tracked-muzzle state |
 | `$4EEA-$4EFD` | 20 B | ten TOP SCORES records as parallel packed-BCD low/high arrays |
@@ -155,7 +167,10 @@ starfield, so all overlaps are lifetime-safe.
 | `$8080-$80F3` | 116 B | six physical effect slots plus global state; release active limit 5 |
 | `$80F4-$80FF` | 12 B | persistent Encounter Director state, initialized after the entity/effects clear |
 | `$8100-$9B13` | 6,676 B | cold-start resident-suffix staging only |
-| `$8100-$813F` | 64 B | unowned after cold startup; the former 58-byte far-star physical-address cache is gone |
+| `$8100-$810B` | 12 B | Light M1 candidate: C Light record `$8100-$8105`, ASM render cache/scratch `$8106-$810B` |
+| `$810C-$810F` | 4 B | unowned after cold startup |
+| `$8110-$8118` | 9 B | C-owned derived archetype profile cache; ASM read-only (moved from `$8776`) |
+| `$8119-$813F` | 39 B | unowned after cold startup |
 | `$8140-$8577` | 1,080 B | 27-row physical gameplay ring, 40 bytes per row |
 | `$8578-$8592` | 27 B | logical-to-physical row low-byte table |
 | `$8593-$85AD` | 27 B | logical-to-physical row high-byte table |
@@ -170,19 +185,20 @@ starfield, so all overlaps are lifetime-safe.
 | `$8600-$86F9` | 250 B | boot-only GLUE holding buffer after resident staging is consumed; unowned after publication; its first 102 bytes formerly doubled as the rest of the logical far-record pool |
 | `$86FA-$8700` | 7 B | hybrid C Director/lifecycle mailbox and scratch; software stack 0 B, new ZP 0 B |
 | `$8701-$8775` | 117 B | hybrid C/ASM Director/lifecycle ABI veneer and startup publishers |
-| `$8776-$877E` | 9 B | C-owned derived archetype profile cache; ASM read-only |
-| `$877F-$87FF` | 129 B | unowned after cold startup |
-| `$8800-$8B66` | 871 B | PMG pickup, single-window publication scaffold, narrow effect/PairShot backing resolver in the retired primitive footprint, and admission helpers |
+| `$8776-$8857` | 226 B | Light M1 `LIGHT_RESIDENT` kernel heading the pickup/collision stream |
+| `$8858-$8B60` | 777 B | PMG pickup, single-window publication scaffold, narrow effect/PairShot backing resolver, and admission helpers |
+| `$8B61-$8B66` | 6 B | zero fill of the pickup/collision stream |
 | `$8B67-$8B87` | 33 B | inclusive 16x15-player versus final-raster swept-8x6-bolt AABB collision module |
 | `$8B88-$8C79` | 242 B | low cc65 Director code |
 | `$8C7A-$8C7C` | 3 B | free gap |
-| `$8C7D-$8C88` | 12 B | C `EnemyArchetype` RODATA, currently one Raider record |
-| `$8C89-$8E84` | 508 B | C sector/high-level enemy lifecycle code |
-| `$8E85-$8FFF` | 379 B | unowned after cold startup |
+| `$8C7D-$8C94` | 24 B | C `EnemyArchetype` RODATA: Raider + Light records |
+| `$8C95-$8F69` | 725 B | C sector/high-level enemy lifecycle and Light code |
+| `$8F6A-$8FEE` | 133 B | Light M1 `LIGHT_CODE` late-publication kernel (extension tail) |
+| `$8FEF-$8FFF` | 17 B | free extension tail |
 | `$9000-$90EC` | 237 B | A2 kernel |
 | `$90ED-$90FF` | 19 B | free A2 reservation tail |
-| `$9100-$9D57` | 3,160 B | entity/effect/booster/projectile and H3.1 frontend runtime |
-| `$9D58-$9D5D` | 6 B | free ENTITY_CODE reservation tail |
+| `$9100-$9D51` | 3,154 B | entity/effect/booster/projectile and H3.1 frontend runtime |
+| `$9D52-$9D5D` | 12 B | free ENTITY_CODE reservation tail |
 | `$9D5E-$9D72` | 21 B | cc65 Director RNG code |
 | `$9D73-$9D74` | 2 B | free ENTITY_CODE reservation tail |
 | `$9D75-$9FF7` | 643 B | C Director RODATA plus high CODE |
@@ -194,7 +210,7 @@ starfield, so all overlaps are lifetime-safe.
 Cold startup initializes every byte of `$8000-$80FF`. No current code, state,
 charset, loader data, or staging buffer uses `$A000-$BFFF`.
 
-## Boot-only ENTITY_CODE staging lifecycle
+## Boot-only ENTITY_CODE staging lifecycle — accepted `2df89da`
 
 The packed ENTITY_CODE source is `$487A-$5317`. Its backward copy to
 `$5318-$5DB5` is 2,718 B and begins exactly after the source. The staging end is
@@ -235,7 +251,8 @@ Glyphs 126-127 are the left/right halves of the connected BROADSIDE bolt.
 | 90-109 | enemy PairShot compatibility glyphs |
 | 110-117 | debris |
 | 118-119 | transient fragments |
-| 120-125 | retained source glyph allocation; no dynamic character-pickup compositor in the PMG fit candidate |
+| 120-121 | Light Wingman left/right cells (M1 candidate) |
+| 122-125 | retained source glyph allocation; unused at runtime (PMG pickup has no character compositor) |
 | 126-127 | connected BROADSIDE bolt (left/right halves; bit 7 selects the Hostile colour bank) |
 
 Build-time range assertions, linker overlap checks, payload parity tests, and

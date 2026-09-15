@@ -1,14 +1,15 @@
 # VOID STRIKE 65 — decyzje właścicielskie po Stage 2B.2b
 
 Data: 2026-09-11  
-Status: NORMATIVE / owner-approved  
-Branch roboczy: `experiment/two-pmg-raider-combat`
+Status: DZIENNIK DECYZJI — każda sekcja ma własny tag: ACTIVE, OWNER-ACCEPTED, SUPERSEDED albo REJECTED.
 
-Ten dokument utrwala zaakceptowane decyzje gameplayowe i optymalizacyjne. Powinny zostać scalone z bieżącym `docs/plan-realizacji.md` przed kolejnymi większymi proofami. Aktualna roadmapa w repo pozostaje źródłem prawdy dla numeracji etapów i checkpointów Git.
+Branch roboczy w chwili decyzji: `experiment/two-pmg-raider-combat` (od 2026-09-15 praca na `experiment/hybrid-c-director`)
+
+Ten dokument utrwala uzasadnienia decyzji właściciela. Nie jest roadmapą: kolejność prac określa `docs/plan-realizacji.md`, bieżący stan `docs/STATUS.md`, a pierwszeństwo źródeł `docs/README.md`.
 
 ---
 
-## 1. Cel optymalizacji
+## 1. Cel optymalizacji — ACTIVE
 
 Optymalizacje nie są celem samym w sobie. Ich celem jest odzyskanie realnego budżetu CPU/RAM na:
 
@@ -21,9 +22,9 @@ Po optymalizacjach fighter renderer nie powinien jedynie przechodzić hard gate.
 
 ---
 
-## 2. Pakiet optymalizacji fighter combat — ZATWIERDZONY
+## 2. Pakiet optymalizacji fighter combat — OWNER-ACCEPTED
 
-### 2.0 Starfield — decyzja nadrzędna z 2026-09-14
+### 2.0 Starfield — decyzja nadrzędna z 2026-09-14 — ACTIVE / OWNER-ACCEPTED
 
 Poniższe historyczne punkty 2.1 i 2.2 zostały zastąpione po kolejnych owner
 smoke. Produkcyjny kierunek starfield to od teraz wyłącznie:
@@ -75,7 +76,7 @@ Usunąć największą / najszybszą klasę near stars, ponieważ wizualnie myli 
 
 Duże i szybko poruszające się nieregularne obiekty mają być zarezerwowane dla debris.
 
-### 2.3 PairedProjectile — gracz
+### 2.3 PairedProjectile — gracz — OWNER-ACCEPTED (zaimplementowane)
 
 Dwa widoczne impulsy stanowią **jeden logiczny i renderowany obiekt**.
 
@@ -98,7 +99,7 @@ Produkcja:
 
 Liczby 8/8/10 pozostają wartością wizualnej liczby impulsów, a nie liczby logicznych rekordów projectile.
 
-### 2.4 PairedProjectile — fighterzy przeciwnika
+### 2.4 PairedProjectile — fighterzy przeciwnika — OWNER-ACCEPTED (Raider zaimplementowany; Interceptor i Heavy/Bomber planowane)
 
 Ten sam foundation należy wykorzystać dla fighterów przeciwnika.
 
@@ -116,7 +117,7 @@ Przykładowo:
 
 Capital/boss weaponry może używać oddzielnego kontraktu.
 
-### 2.5 Effects 25 Hz / staggered
+### 2.5 Effects 25 Hz / staggered — ACTIVE (zaimplementowane)
 
 Efekty i eksplozje nie muszą publikować nowej fazy w każdej klatce.
 
@@ -141,7 +142,7 @@ cadence capital albo rozdzielenia widocznego kadłuba od collision phase.
 Nie dodawać osobnego background/ring 25 Hz schedulera; zachować istniejący
 event-driven publish i prebuild.
 
-### 2.7 Debris 25 Hz / staggered
+### 2.7 Debris 25 Hz / staggered — ACTIVE KIERUNEK; proof 2026-09-14 REJECTED, brak implementacji
 
 Debris może aktualizować warstwę wizualną co 2–3 klatki, jeżeli ruch nadal wygląda intencjonalnie.
 
@@ -156,7 +157,7 @@ Zmniejszenie częstotliwości wizualnej ma jednocześnie spłaszczać peak workl
 
 ---
 
-## 3. Priorytet proofów optymalizacyjnych
+## 3. Priorytet proofów optymalizacyjnych — SUPERSEDED (kolejność prac: `docs/plan-realizacji.md`)
 
 Preferowana kolejność:
 
@@ -176,7 +177,7 @@ Po każdym kroku:
 
 ---
 
-## 4. Capital traversal — docelowy kierunek gameplayowy
+## 4. Capital traversal — docelowy kierunek gameplayowy — ACTIVE (planowane)
 
 ### 4.1 Kadłub
 
@@ -246,7 +247,7 @@ Nie wszystkie widoczne działa muszą być niszczalne ani aktywne jednocześnie.
 
 ---
 
-## 5. Gondole / wystająca geometria kadłuba — ZATWIERDZONE
+## 5. Gondole / wystająca geometria kadłuba — OWNER-ACCEPTED (planowane)
 
 Capital traversal ma czasami wykorzystywać wystające elementy kadłuba / gondole, aby wymuszać zmianę toru lotu.
 
@@ -273,7 +274,7 @@ Gondola nie wymaga AI i powinna korzystać z istniejącej geometrii/collision ka
 
 ---
 
-## 6. Capital traversal — rytm sektora
+## 6. Capital traversal — rytm sektora — ACTIVE (planowane)
 
 Nie dodawać fighterów podczas przelotu pomiędzy / wzdłuż kadłubów tylko po to, aby zwiększyć trudność.
 
@@ -291,7 +292,7 @@ Capital traversal ma być bardziej taktyczny i rytmiczny niż fighter combat.
 
 ---
 
-## 7. Reuse capital -> boss — ZATWIERDZONE
+## 7. Reuse capital -> boss — OWNER-ACCEPTED (planowane)
 
 Destroyable turret jest jednocześnie pierwszym **reusable boss module foundation**.
 
@@ -323,7 +324,7 @@ Boss ma mieć własny scheduler i budżet sektora.
 
 ---
 
-## 8. Zasada projektowa
+## 8. Zasada projektowa — ACTIVE
 
 Optymalizujemy elementy dekoracyjne lub technicznie drogie, jeżeli koszt wizualny/gameplayowy jest mały, po to aby zachować budżet na elementy, które gracz ma zapamiętać.
 
@@ -338,7 +339,7 @@ Nie optymalizować dla elegancji architektury kosztem ukończenia gry.
 
 ---
 
-## 9. Raider flying breakup fragments — USUNIĘTE
+## 9. Raider flying breakup fragments — OWNER-ACCEPTED (usunięte)
 
 Collisionless flying fragments po zniszczeniu Raidera są opcjonalną kosmetyką
 i zostały usunięte decyzją właściciela. Lethal hit zachowuje kompaktowy core
@@ -350,7 +351,7 @@ Przyszły Raider wreck pozostaje osobnym odroczonym feature.
 
 ---
 
-## 10. Raider character destruction effects — USUNIĘTE
+## 10. Raider character destruction effects — OWNER-ACCEPTED (usunięte)
 
 Późniejszy owner smoke odrzucił także pięcioklatkowy core w slocie 0. Raider
 lethal hit nie może tworzyć żadnego obiektu znakowego, maski aktywności, zapisu

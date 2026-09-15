@@ -4,8 +4,9 @@ Status: **Hybrid C Director is owner-accepted and is now the project
 foundation.** Branch `experiment/hybrid-c-director` contains the accepted
 Director plus the first follow-on increment: C owns the sector/high-level enemy
 lifecycle boundary and describes the current Raider through a compact
-`EnemyArchetype`. Gameplay remains equivalent to the pre-increment hybrid
-baseline.
+`EnemyArchetype` (accepted at `2df89da`). The Light Wingman (record 1,
+`ed72e25`/`5f2f3ae`) is an **OWNER-SMOKE CANDIDATE**, not accepted gameplay;
+see [STATUS.md](STATUS.md).
 
 Evidence is recorded in
 `docs/diagnostics/hybrid-c-director-behavior-ab.json`,
@@ -157,10 +158,11 @@ C-owned lifecycle field.
 | C software stack | 0 | none |
 | new zero page | 0 | none |
 
-Totals are 1,256 bytes of C CODE, 170 bytes of C RODATA, 0 bytes DATA,
+At the accepted checkpoint `2df89da`, totals are 1,256 bytes of C CODE, 170 bytes of C RODATA, 0 bytes DATA,
 16 bytes BSS, 0 bytes software stack and 0 bytes zero page. Linked runtime is
 17,521 bytes. Simultaneous feature residency is 18,914 bytes, leaving 3,273
-bytes of the feature-residency safety budget.
+bytes of the feature-residency safety budget. The Light M1 candidate measures
+17,452 B linked, 19,207 B simultaneous and 2,980 B safe.
 
 Light Wingman placement (2026-09-15). The first attempt placed the Light
 renderer in ENTITY_CODE and overflowed its packed staging by 176 B. The

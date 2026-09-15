@@ -82,5 +82,5 @@ unchanged.
 
 The current bound runtime measures 33,020 cycles with 2,548 cycles of physical
 headroom: 1,112 cycles recovered. Its source-owned reserve is 101 bytes. The
-current source of truth is [../runtime-headroom.md](../runtime-headroom.md), not
+current source of truth is [runtime-headroom-layout-d2.md](runtime-headroom-layout-d2.md), not
 this historical record.

@@ -212,6 +212,16 @@ const playerPairShotSpeedSessions = ["normal", "rapid", "spread"].map((mode) => 
   kind: "player-pairshot-speed-native",
 }));
 
+const playerPairShotReentrySessions = ["normal", "rapid", "spread"].map((mode) => ({
+  id: `player-pairshot-reentry-${mode}-xex-hard`,
+  medium: "XEX",
+  difficulty: 2,
+  policy: `pairshot-reentry-${mode}`,
+  fireDelay: 0,
+  frames: 7_000,
+  kind: "player-pairshot-reentry-native",
+}));
+
 const weaponPickupTraversalSessions = [{
   id: "weapon-pickup-traversal-2-observe-fire4",
   difficulty: 2,
@@ -1924,6 +1934,7 @@ function main() {
   const raiderRemnantOnly = process.argv.includes("--raider-remnant-only");
   const raiderFirstWriterOnly = process.argv.includes("--raider-first-writer-only");
   const playerPairShotSpeedOnly = process.argv.includes("--player-pairshot-speed-only");
+  const playerPairShotReentryOnly = process.argv.includes("--player-pairshot-reentry-only");
   const effectsStaggerOnly = process.argv.includes("--effects-stagger-only");
   const debrisSlot0BaselineOnly = process.argv.includes("--debris-slot0-baseline-only");
   const skipBootSmoke = process.argv.includes("--skip-boot-smoke");
@@ -2025,6 +2036,10 @@ function main() {
   invariant(Number.isInteger(sectorState), "Trace label CAPITAL_SECTOR_STATE is missing");
   addressEnvironment.DFTRACE_CAPITAL_DRAIN_ROWS =
     `0x${(sectorState + 1).toString(16)}`;
+  addressEnvironment.DFTRACE_CORRIDOR_PHASE_HI =
+    `0x${labels.get("CORRIDOR_PHASE_HI").toString(16)}`;
+  addressEnvironment.DFTRACE_LOADER_REPEAT_VALUE =
+    `0x${labels.get("loader_repeat_value").toString(16)}`;
   addressEnvironment.DFTRACE_ACTIVE_GAMEPLAY_FRAME_LO = "0x4ff8";
   addressEnvironment.DFTRACE_ENEMY_Y = `0x${labels.get("ENEMY_Y").toString(16)}`;
   addressEnvironment.DFTRACE_DIRECTOR_STATE = "0x80f6";
@@ -2094,7 +2109,9 @@ function main() {
       if (fs.existsSync(framePath)) fs.unlinkSync(framePath);
     }
   }
-  let sessionsToRun = debrisSlot0BaselineOnly
+  let sessionsToRun = playerPairShotReentryOnly
+    ? playerPairShotReentrySessions
+    : debrisSlot0BaselineOnly
     ? debrisSlot0BaselineSessions
     : playerPairShotSpeedOnly
     ? playerPairShotSpeedSessions
@@ -2139,7 +2156,8 @@ function main() {
       ? path.join(buildDirectory, `${session.id}-first-writer.csv`) : undefined;
     const interceptorProjectileOutput = session.kind === "raider-first-writer-native"
       ? path.join(buildDirectory, `${session.id}-enemy-projectiles.csv`) : undefined;
-    const playerPairShotOutput = session.kind === "player-pairshot-speed-native"
+    const playerPairShotOutput = session.kind === "player-pairshot-speed-native" ||
+      session.kind === "player-pairshot-reentry-native"
       ? path.join(buildDirectory, `${session.id}-player-pairshots.csv`) : undefined;
     const pickupContactPrefix = session.kind === "weapon-pickup-contact"
       ? path.join(buildDirectory, "weapon-pickup-contact-nose")
@@ -2834,6 +2852,11 @@ function main() {
   }
   if (playerPairShotSpeedOnly) {
     console.log(`Player PairShot speed raw traces: ${sessionsToRun.length} sessions, ` +
+      `${allRows.length} frames`);
+    return;
+  }
+  if (playerPairShotReentryOnly) {
+    console.log(`Player PairShot re-entry raw traces: ${sessionsToRun.length} sessions, ` +
       `${allRows.length} frames`);
     return;
   }

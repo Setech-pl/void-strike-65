@@ -366,6 +366,8 @@ static DFTraceFrame *dftrace_frames;
 static DFTraceFrame dftrace_current;
 
 #define DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT 5u
+#define DFTRACE_PLAYER_GLYPH_FIRST 11u
+#define DFTRACE_PLAYER_GLYPH_COUNT 36u
 #define DFTRACE_INTERCEPTOR_SLOT_BASE 5u
 #define DFTRACE_INTERCEPTOR_SLOT_COUNT 5u
 #define DFTRACE_PROJECTILE_SLOT_COUNT 10u
@@ -397,6 +399,17 @@ static unsigned dftrace_player_pairshot_allocations[DFTRACE_PLAYER_PROJECTILE_SL
 static unsigned dftrace_player_pairshot_releases[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
 static unsigned dftrace_player_pairshot_allocation_frame[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
 static unsigned dftrace_player_pairshot_release_frame[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
+static unsigned dftrace_player_pairshot_glyph_writes;
+static unsigned dftrace_player_pairshot_glyph_last_writer;
+static unsigned dftrace_player_pairshot_selected_code[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
+static unsigned dftrace_player_pairshot_published_code[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
+static unsigned dftrace_player_pairshot_publication_writer[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
+static unsigned dftrace_player_pairshot_gameplay_chbase_writes;
+static unsigned dftrace_player_pairshot_gameplay_chbase_writer;
+static unsigned dftrace_player_pairshot_gameplay_chbase_host;
+static unsigned dftrace_player_pairshot_hud_chbase_writes;
+static unsigned dftrace_player_pairshot_hud_chbase_writer;
+static unsigned dftrace_player_pairshot_hud_chbase_host;
 static unsigned dftrace_pairshot_recycled_count;
 static unsigned dftrace_pairshot_recycled_address[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
 static unsigned dftrace_pairshot_recycled_expected[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
@@ -492,6 +505,8 @@ static unsigned dftrace_broad_schedule_index;
 static unsigned dftrace_broad_visible_scrolls;
 static unsigned dftrace_broad_turret_fired;
 static unsigned dftrace_corridor_phase;
+static unsigned dftrace_corridor_phase_hi;
+static unsigned dftrace_loader_repeat_value;
 static unsigned dftrace_capital_drain_rows;
 static int dftrace_broadside_proof_admitted;
 static int dftrace_broadside_proof_sector_started;
@@ -588,6 +603,10 @@ static unsigned dftrace_engine_screenshot_count;
 static unsigned dftrace_engine_screenshot_generation;
 static unsigned dftrace_engine_screenshot_limit;
 static unsigned dftrace_gameplay_generation;
+static unsigned dftrace_pairshot_reentry_cycles;
+static unsigned dftrace_pairshot_reentry_open_frame;
+static unsigned dftrace_pairshot_reentry_prior_sector;
+static int dftrace_pairshot_reentry_initialised;
 static int dftrace_restart_game_over_seeded;
 static unsigned dftrace_previous_pc;
 static unsigned dftrace_pmg_last_writer[256];
@@ -2107,6 +2126,44 @@ static DFTracePhysicalBounds dftrace_bolt_physical_bounds(unsigned slot,
 	return result;
 }
 
+/* Re-enter the unmodified production capital traversal five times. Only the
+ * Director admission boundary is accelerated: every hull state change, drain,
+ * COMPLETE reconstruction and OPEN re-entry remains guest code. */
+static void dftrace_prepare_pairshot_reentry(unsigned frame)
+{
+	unsigned sector;
+	if (strncmp(dftrace_policy, "pairshot-reentry-", 17u) != 0)
+		return;
+	sector = MEMORY_mem[dftrace_sector_state];
+	/* Keep one continuous gameplay generation alive for all five traversals;
+	 * collision/update/render code still executes, but cannot end the replay. */
+	MEMORY_mem[dftrace_broad_state + 29u] = 10u;
+	MEMORY_mem[dftrace_player_lifecycle + 2u] = 2u;
+	if (!dftrace_pairshot_reentry_initialised) {
+		dftrace_pairshot_reentry_prior_sector = sector;
+		dftrace_pairshot_reentry_open_frame = frame;
+		dftrace_pairshot_reentry_initialised = 1;
+	}
+	else if (dftrace_pairshot_reentry_prior_sector != 7u && sector == 7u) {
+		++dftrace_pairshot_reentry_cycles;
+		dftrace_pairshot_reentry_open_frame = frame;
+	}
+	if (sector == 7u)
+		MEMORY_mem[dftrace_director_state + 8u] = 0x40u;
+	if (sector == 7u && dftrace_pairshot_reentry_cycles < 5u &&
+		frame - dftrace_pairshot_reentry_open_frame >= 180u) {
+		MEMORY_mem[dftrace_sector_state] = 0u;
+		MEMORY_mem[dftrace_corridor_phase] = 0u;
+		MEMORY_mem[dftrace_corridor_phase_hi] = 0u;
+		MEMORY_mem[dftrace_broad_visible_scrolls] = 0u;
+		MEMORY_mem[dftrace_capital_drain_rows] = 0u;
+		/* The diagnostic is not the final-game terminal capital sector. */
+		MEMORY_mem[dftrace_director_state + 8u] &= 0xfeu;
+		sector = 0u;
+	}
+	dftrace_pairshot_reentry_prior_sector = sector;
+}
+
 static void dftrace_set_gameplay_input(unsigned frame)
 {
 	unsigned stick = 0x0f;
@@ -2114,6 +2171,8 @@ static void dftrace_set_gameplay_input(unsigned frame)
 	unsigned x = MEMORY_mem[dftrace_player_x];
 	unsigned y = MEMORY_mem[dftrace_player_y];
 	int pairshot_speed = strncmp(dftrace_policy, "pairshot-speed-", 15u) == 0;
+	int pairshot_reentry = strncmp(dftrace_policy, "pairshot-reentry-", 17u) == 0;
+	dftrace_prepare_pairshot_reentry(frame);
 	if (pairshot_speed) {
 		/* Eight isolated tap allocations, then >=1000 held frames, a 150-frame
 		 * release, and a second long hold exercise pause/resume and pool reuse. */
@@ -2126,18 +2185,34 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		else
 			trigger = 0u;
 	}
+	else if (pairshot_reentry) {
+		/* Isolated taps establish a pre-capital baseline; held FIRE then spans
+		 * every traversal and all five fighter re-entry windows. Each re-entry
+		 * also gets a 30-frame release/resume interval after its first 60 frames. */
+		unsigned open_age = frame - dftrace_pairshot_reentry_open_frame;
+		if (MEMORY_mem[dftrace_sector_state] == 7u &&
+			dftrace_pairshot_reentry_cycles != 0u && open_age >= 60u && open_age < 90u)
+			trigger = 1u;
+		else
+			trigger = frame >= 8u && frame < 80u && (frame - 8u) % 12u == 0u ? 0u :
+				frame >= 96u ? 0u : 1u;
+	}
 	/* PairShot timing fixtures keep all gameplay and enemy scheduling native;
 	 * only the already-approved booster mode is held to isolate each weapon. */
 	if (strcmp(dftrace_policy, "pairshot-normal") == 0 ||
-		strcmp(dftrace_policy, "pairshot-speed-normal") == 0)
+		strcmp(dftrace_policy, "pairshot-speed-normal") == 0 ||
+		strcmp(dftrace_policy, "pairshot-reentry-normal") == 0)
 		MEMORY_mem[dftrace_entity_state + 2u] = 0u;
 	else if (strcmp(dftrace_policy, "pairshot-rapid") == 0 ||
 		strcmp(dftrace_policy, "pairshot-spread") == 0 ||
 		strcmp(dftrace_policy, "pairshot-speed-rapid") == 0 ||
-		strcmp(dftrace_policy, "pairshot-speed-spread") == 0) {
+		strcmp(dftrace_policy, "pairshot-speed-spread") == 0 ||
+		strcmp(dftrace_policy, "pairshot-reentry-rapid") == 0 ||
+		strcmp(dftrace_policy, "pairshot-reentry-spread") == 0) {
 		MEMORY_mem[dftrace_entity_state + 2u] =
 			(strcmp(dftrace_policy, "pairshot-rapid") == 0 ||
-			 strcmp(dftrace_policy, "pairshot-speed-rapid") == 0) ? 3u : 4u;
+			 strcmp(dftrace_policy, "pairshot-speed-rapid") == 0 ||
+			 strcmp(dftrace_policy, "pairshot-reentry-rapid") == 0) ? 3u : 4u;
 		MEMORY_mem[dftrace_entity_timer + 2u] = 0xf4u;
 		MEMORY_mem[dftrace_entity_move_accumulator + 2u] = 1u;
 		MEMORY_mem[dftrace_entity_owner + 2u] = 1u;
@@ -2318,7 +2393,8 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		strcmp(dftrace_policy, "early-hunt") == 0 ||
 		strcmp(dftrace_policy, "pairshot-normal") == 0 ||
 		strcmp(dftrace_policy, "pairshot-rapid") == 0 ||
-		strcmp(dftrace_policy, "pairshot-spread") == 0 || pairshot_speed) {
+		strcmp(dftrace_policy, "pairshot-spread") == 0 || pairshot_speed ||
+		pairshot_reentry) {
 		/* Follow the live Interceptor's PMG origin using only ordinary joystick
 		 * input. This remains a production gameplay replay: no guest state is
 		 * seeded, and held FIRE enters the canonical burst controller. */
@@ -3263,7 +3339,14 @@ static void dftrace_player_pairshot_frame_begin(void)
 		dftrace_player_pairshot_write_count[slot] = 0u;
 		dftrace_player_pairshot_allocations[slot] = 0u;
 		dftrace_player_pairshot_releases[slot] = 0u;
+		dftrace_player_pairshot_selected_code[slot] = 0xffffffffu;
+		dftrace_player_pairshot_published_code[slot] = 0xffffffffu;
+		dftrace_player_pairshot_publication_writer[slot] = 0u;
 	}
+	dftrace_player_pairshot_glyph_writes = 0u;
+	dftrace_player_pairshot_glyph_last_writer = 0u;
+	dftrace_player_pairshot_gameplay_chbase_writes = 0u;
+	dftrace_player_pairshot_hud_chbase_writes = 0u;
 }
 
 static void dftrace_player_pairshot_track(unsigned pc,
@@ -3275,10 +3358,34 @@ static void dftrace_player_pairshot_track(unsigned pc,
 	if (pc == dftrace_pc_claim_projectile &&
 		x_register < DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT)
 		++dftrace_player_pairshot_render_count[x_register];
+	if (pc == dftrace_pc_compose_start &&
+		x_register < DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT)
+		dftrace_player_pairshot_selected_code[x_register] =
+			MEMORY_mem[dftrace_loader_repeat_value] & 0x7fu;
 	if (dftrace_previous_pc == 0u ||
 		!dftrace_first_writer_effective_address(dftrace_previous_pc,
 			x_register, y_register, &address))
 		return;
+	if (address >= DFTRACE_CHARSET + DFTRACE_PLAYER_GLYPH_FIRST * 8u &&
+		address < DFTRACE_CHARSET +
+			(DFTRACE_PLAYER_GLYPH_FIRST + DFTRACE_PLAYER_GLYPH_COUNT) * 8u) {
+		++dftrace_player_pairshot_glyph_writes;
+		dftrace_player_pairshot_glyph_last_writer = dftrace_previous_pc;
+	}
+	if (address == 0xd409u) {
+		if (ANTIC_CHBASE == 0x44u) {
+			++dftrace_player_pairshot_gameplay_chbase_writes;
+			dftrace_player_pairshot_gameplay_chbase_writer = dftrace_previous_pc;
+			dftrace_player_pairshot_gameplay_chbase_host =
+				(unsigned) Atari800_nframes;
+		}
+		else if (ANTIC_CHBASE == 0x50u) {
+			++dftrace_player_pairshot_hud_chbase_writes;
+			dftrace_player_pairshot_hud_chbase_writer = dftrace_previous_pc;
+			dftrace_player_pairshot_hud_chbase_host =
+				(unsigned) Atari800_nframes;
+		}
+	}
 	if (address >= dftrace_projectile_active &&
 		address < dftrace_projectile_active + DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT) {
 		unsigned slot = address - dftrace_projectile_active;
@@ -3310,7 +3417,16 @@ static void dftrace_player_pairshot_track(unsigned pc,
 		unsigned owned = MEMORY_mem[dftrace_projectile_screen_lo + x_register] |
 			((unsigned) MEMORY_mem[dftrace_projectile_screen_hi + x_register] << 8);
 		if (address == owned)
+		{
 			++dftrace_player_pairshot_write_count[x_register];
+			dftrace_player_pairshot_published_code[x_register] =
+				MEMORY_mem[address] & 0x7fu;
+			dftrace_player_pairshot_publication_writer[x_register] =
+				dftrace_previous_pc;
+			if (dftrace_player_pairshot_selected_code[x_register] == 0xffffffffu)
+				dftrace_player_pairshot_selected_code[x_register] =
+					dftrace_player_pairshot_published_code[x_register];
+		}
 	}
 }
 
@@ -3327,7 +3443,7 @@ static void dftrace_write_player_pairshots(DFTraceFrame *frame)
 		exit(2);
 	}
 	if (!dftrace_player_pairshot_output_initialised) {
-		fputs("session,frame,host_frame,pal_frame,slot,active_before,active_after,weapon_mode,y_before,y_after,delta_y,update_count,render_count,character_write_count,lifetime_before,lifetime_after,allocation_count,release_count,allocation_frame,release_frame,rendered,screen_address,screen_code,screen_row,screen_top,render_phase,expected_phase,phase_match,visible_y,fire_input,fire_accepts,burst_state,burst_remaining,burst_timer,active_player_pairshots,active_enemy_pairshots,sector_state,world_event,effects_active,gameplay_frame,active_frame\n", file);
+		fputs("session,frame,host_frame,pal_frame,slot,active_before,active_after,weapon_mode,y_before,y_after,delta_y,update_count,render_count,character_write_count,lifetime_before,lifetime_after,allocation_count,release_count,allocation_frame,release_frame,rendered,screen_address,screen_code,screen_row,screen_top,render_phase,expected_phase,phase_match,visible_y,fire_input,fire_accepts,burst_state,burst_remaining,burst_timer,active_player_pairshots,active_enemy_pairshots,sector_state,world_event,effects_active,gameplay_frame,active_frame,chbase_end,charset_address,glyph_bank_address,glyph_bank_hash,horizontal_phase,vertical_phase,glyph_address,ring_head_address,ring_head_physical,glyph_write_count,glyph_last_writer,selected_code,published_code,publication_writer,gameplay_chbase_writes,gameplay_chbase_writer,gameplay_chbase_host,hud_chbase_writes,hud_chbase_writer,hud_chbase_host\n", file);
 		dftrace_player_pairshot_output_initialised = 1u;
 	}
 	for (slot = 0u; slot < DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT; ++slot) {
@@ -3340,9 +3456,12 @@ static void dftrace_write_player_pairshots(DFTraceFrame *frame)
 		unsigned address = MEMORY_mem[dftrace_projectile_screen_lo + slot] |
 			((unsigned) MEMORY_mem[dftrace_projectile_screen_hi + slot] << 8);
 		unsigned code = MEMORY_mem[address] & 0x7fu;
+		unsigned phase_code = dftrace_player_pairshot_selected_code[slot] !=
+			0xffffffffu ? dftrace_player_pairshot_selected_code[slot] : code;
 		unsigned row = y >= 16u && y <= 240u ? (y - 16u) / 8u : 0xffffffffu;
 		unsigned screen_top = y & 0xf8u;
-		unsigned render_phase = code >= 11u && code < 47u ? (code - 11u) % 9u :
+		unsigned render_phase = phase_code >= 11u && phase_code < 47u ?
+			(phase_code - 11u) % 9u :
 			0xffffffffu;
 		unsigned expected_phase = y & 7u;
 		unsigned shot_mask = (MEMORY_mem[dftrace_projectile_active +
@@ -3352,14 +3471,14 @@ static void dftrace_write_player_pairshots(DFTraceFrame *frame)
 		for (phase_row = 0u; phase_row < 4u; ++phase_row) {
 			unsigned row_offset = (expected_phase + (phase_row & 1u) +
 				(phase_row >= 2u ? 4u : 0u)) & 7u;
-			if ((MEMORY_mem[DFTRACE_CHARSET + code * 8u + row_offset] & shot_mask) !=
+			if ((MEMORY_mem[DFTRACE_CHARSET + phase_code * 8u + row_offset] & shot_mask) !=
 				shot_mask)
 				phase_match = 0u;
 		}
 		unsigned visible_y = render_phase != 0xffffffffu ?
 			screen_top + render_phase : 0xffffffffu;
 		unsigned delta_y = (dftrace_player_pairshot_before_y[slot] - y) & 0xffu;
-		fprintf(file, "%s,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n",
+		fprintf(file, "%s,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u",
 			dftrace_session, dftrace_count, (unsigned) Atari800_nframes,
 			MEMORY_mem[dftrace_gameplay_frame], slot,
 			dftrace_player_pairshot_before_active[slot], active,
@@ -3385,6 +3504,32 @@ static void dftrace_write_player_pairshots(DFTraceFrame *frame)
 			(frame->events & DFTRACE_EVENT_WORLD) != 0u,
 			MEMORY_mem[dftrace_effect_active_mask], frame->gameplay_frame,
 			frame->active_gameplay_frame);
+		{
+			unsigned ring_head = MEMORY_mem[dftrace_playfield_row_lo] |
+				((unsigned) MEMORY_mem[dftrace_playfield_row_hi] << 8);
+			unsigned ring_physical = ring_head >= DFTRACE_RING_SCREEN &&
+				ring_head < DFTRACE_RING_END ? (ring_head - DFTRACE_RING_SCREEN) / 40u :
+				0xffffffffu;
+			unsigned horizontal_phase = (MEMORY_mem[dftrace_projectile_active +
+				DFTRACE_PROJECTILE_ARRAY_STRIDE + slot] & 2u) != 0u ? 2u : 0u;
+			fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n",
+				ANTIC_CHBASE, (unsigned) ANTIC_CHBASE << 8, DFTRACE_CHARSET +
+				DFTRACE_PLAYER_GLYPH_FIRST * 8u,
+				dftrace_hash_bytes(DFTRACE_CHARSET + DFTRACE_PLAYER_GLYPH_FIRST * 8u,
+					DFTRACE_PLAYER_GLYPH_COUNT * 8u), horizontal_phase, expected_phase,
+				DFTRACE_CHARSET + code * 8u, ring_head, ring_physical,
+				dftrace_player_pairshot_glyph_writes,
+				dftrace_player_pairshot_glyph_last_writer,
+				dftrace_player_pairshot_selected_code[slot],
+				dftrace_player_pairshot_published_code[slot],
+				dftrace_player_pairshot_publication_writer[slot],
+				dftrace_player_pairshot_gameplay_chbase_writes,
+				dftrace_player_pairshot_gameplay_chbase_writer,
+				dftrace_player_pairshot_gameplay_chbase_host,
+				dftrace_player_pairshot_hud_chbase_writes,
+				dftrace_player_pairshot_hud_chbase_writer,
+				dftrace_player_pairshot_hud_chbase_host);
+		}
 	}
 	if (fclose(file) != 0) {
 		perror("voidstrike65 player PairShot trace close");
@@ -4410,6 +4555,8 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_broad_visible_scrolls, "DFTRACE_BROAD_VISIBLE_SCROLLS");
 	DFTRACE_ADDRESS(dftrace_broad_turret_fired, "DFTRACE_BROAD_TURRET_FIRED");
 	DFTRACE_ADDRESS(dftrace_corridor_phase, "DFTRACE_CORRIDOR_PHASE");
+	DFTRACE_ADDRESS(dftrace_corridor_phase_hi, "DFTRACE_CORRIDOR_PHASE_HI");
+	DFTRACE_ADDRESS(dftrace_loader_repeat_value, "DFTRACE_LOADER_REPEAT_VALUE");
 	DFTRACE_ADDRESS(dftrace_capital_drain_rows, "DFTRACE_CAPITAL_DRAIN_ROWS");
 	DFTRACE_ADDRESS(dftrace_far_active, "DFTRACE_FAR_ACTIVE");
 	DFTRACE_ADDRESS(dftrace_enemy_active, "DFTRACE_ENEMY_ACTIVE");

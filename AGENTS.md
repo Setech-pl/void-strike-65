@@ -70,3 +70,90 @@ the current project process rather than reproducing either one here.
 - input and timing behavior are defined for PAL;
 - documentation reflects user-visible or architectural changes;
 - code review notes distinguish confirmed bugs from optional improvements.
+
+
+# SHARED AGENT SESSION PROTOCOL
+
+This repository is worked on interchangeably by Claude Code, OpenAI Codex,
+and local coding agents.
+
+The repository is the source of truth. Chat history is not authoritative.
+
+## Session start
+
+Before any implementation task, read:
+
+1. `docs/STATUS.md`
+2. `docs/reguly-projektu.txt`
+3. `docs/plan-realizacji.md`
+4. `docs/architecture.md`
+5. `docs/hybrid-c-architecture.md` when relevant
+6. the workflow matching the task from `docs/agent-workflows/`
+7. the latest diagnostic relevant to the task
+
+Also inspect:
+
+- current Git branch;
+- current HEAD;
+- `git status --short`;
+- recent commits when relevant.
+
+Current local Git state and repository documentation are authoritative over
+previous prompts, conversations, summaries, or agent memory.
+
+## Task isolation
+
+Default rule:
+
+one task = one primary result.
+
+Do not start the next roadmap item automatically.
+
+Do not stage, reset, delete, overwrite, or commit unrelated owner changes.
+
+Do not touch `.claude/` unless explicitly requested.
+
+No push, merge, release, or tag without owner approval.
+
+Use Git as the primary rollback mechanism.
+
+## Implementation philosophy
+
+For reversible high-level gameplay work:
+
+implement first on a branch, build, test, owner-smoke, then measure as needed.
+
+Do not replace implementation with long feasibility studies.
+
+For raster, ANTIC, PMG timing, VBI/DLI, backing/restore, placement, and other
+hardware-critical changes, proof and measurement may still be required before
+production integration.
+
+## Hybrid architecture
+
+C/cc65 owns or should progressively own high-level game logic.
+
+ca65 remains the hardware-critical kernel.
+
+Do not migrate raster-critical or hardware-critical code to C merely for
+convenience.
+
+## Session end
+
+If and only if the result becomes an accepted project checkpoint:
+
+- update `docs/STATUS.md`;
+- update architecture/roadmap/owner-decision docs when required;
+- create a focused local commit when safe;
+- report branch, HEAD, XEX SHA-256, CPU/RAM deltas, tests and NEXT TASK.
+
+For BLOCKED / REJECTED / INCONCLUSIVE experiments:
+
+- preserve useful evidence;
+- revert rejected production changes;
+- do not present the experiment as the accepted baseline;
+- update `docs/STATUS.md` only if the blocker itself must become part of
+  the official current project state.
+
+Owner smoke is required after gameplay/rendering changes before treating them
+as final acceptance.

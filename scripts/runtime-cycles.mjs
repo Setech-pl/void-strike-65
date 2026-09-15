@@ -143,6 +143,7 @@ function makeMachine({
   integrationGlueRunAddress,
   directorRuntime,
   directorRunAddress,
+  directorAdditionalSegments = [],
   capitalPlayerCollisionRuntime,
   capitalPlayerCollisionRunAddress,
   labels,
@@ -159,6 +160,7 @@ function makeMachine({
   if (pickupCodeRuntime) memory.set(pickupCodeRuntime, pickupCodeRunAddress);
   if (integrationGlueRuntime) memory.set(integrationGlueRuntime, integrationGlueRunAddress);
   if (directorRuntime) memory.set(directorRuntime, directorRunAddress);
+  for (const segment of directorAdditionalSegments) memory.set(segment.data, segment.runAddress);
   if (capitalPlayerCollisionRuntime) {
     memory.set(capitalPlayerCollisionRuntime, capitalPlayerCollisionRunAddress);
   }

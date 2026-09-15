@@ -278,7 +278,8 @@ export function validateBuildDirectory(rootDirectory) {
     manifest.entityEffects.shieldPickupGlyphIndex === 120 &&
     manifest.entityEffects.pickupPhaseGlyphCount === 6 &&
     manifest.entityEffects.pickupPhaseCount === 8 &&
-    manifest.entityEffects.pickupPhaseBankAddress === 0x8800 &&
+    // The stream starts with the 2026-09-15 LIGHT_RESIDENT kernel at $8776.
+    manifest.entityEffects.pickupPhaseBankAddress === 0x8776 &&
     manifest.entityEffects.pickupPhaseBankBytes === 0 &&
     manifest.entityEffects.pickupPhaseSourceBytes === 1152 &&
     manifest.entityEffects.pickupPhaseBankRuntimeReferences === 0 &&

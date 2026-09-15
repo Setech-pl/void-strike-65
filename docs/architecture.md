@@ -23,6 +23,24 @@ code occupies the legal post-startup `$8C7D-$8E84` range; its packed cold source
 uses `$7810-$79B6` before starfield staging reclaims that range. The loader
 format and BASIC RAM policy remain unchanged.
 
+### Light Wingman — second C EnemyArchetype (candidate, 2026-09-15)
+
+Each Raider formation admission also admits one Light Wingman for Heavy slot 0,
+giving `2 Heavy + 1 Light`. C owns its 12-byte archetype record (HP 1,
+wingman-follow behavior 1, single-shot policy 2, 96/80/64-frame pauses,
+character renderer class 2, red PairShot, BCD score `$05`, Director value 1),
+admission, formation motion, fire decision, HP and recycle. A small ASM kernel
+owns only its two ANTIC 4 ring cells, their backing, the glyph install, the
+PairShot emission and the hot PairShot/contact tests. It uses no PMG, DLI, VBI,
+compositor or new loader record: five existing `JSR` operands are redirected to
+wrappers that first perform the routine they replace. The kernel resides in
+legal existing capacity only — the extension-stream tail, the head of the
+pickup/collision stream at `$8776`, the STARFIELD free tail and a retired
+17-byte BROADSIDE pad — as detailed in
+[hybrid-c-architecture.md](hybrid-c-architecture.md) and
+[memory-map.md](memory-map.md). Residency of all three code streams is now
+within a few bytes of their reviewed gates.
+
 ## Target and artifact model
 
 Void Strike 65 targets a stock 64 KB Atari 65XE in PAL mode with documented NMOS
@@ -243,6 +261,12 @@ transient effects then save and restore their backing. A cell vacated by an
 overlay must contain exactly the byte that the lower layers would have produced
 in the same frame.
 
+The Light Wingman's 2x1 character overlay renders directly after debris and
+effects and before the late PairShot publication, and is erased first at frame
+start. Its render saves the underlay of an OLD PairShot rather than the shot
+glyph, and a PairShot saving a Light cell inherits the Light's backing, so
+neither later erase can resurrect the other's glyph.
+
 Fighter weapons use a common one-cell PairShot record. Its fixed 8x8 glyph
 shows two separated impulses, while movement, lifetime and collision remain a
 single logical event. Spread uses the same path and composes one slot-owned
@@ -258,7 +282,8 @@ spill, reverse two-cell unwind, and final split-glyph path are absent.
 | Combined fighter PairShots | 10 | 10 | controlled maximum; one dynamic cell per object |
 | Broadside projectiles | 3 | 2 | capital fire; M1-M3 allocation remains unchanged |
 | Interactive entities | 4 | 2 | debris plus one pickup capsule; controller/reserve slots remain non-rendered |
-| Transient effects | 6 | 5 | debris may use one core plus four fragments; Raider destruction does not use this pool |
+| Transient effects | 6 | 5 | debris may use one core plus four fragments; Raider destruction does not use this pool; Light destruction reuses the debris breakup |
+| Light Wingman | 1 | 1 | C-owned record in `$8100-$810C`; two ring cells; shots use the shared enemy PairShot pool |
 
 Pool scans are bounded by compile-time counts. Normal and Spread initialize
 four PairShots, Rapid five. Their fixed glyphs preserve 8/8/10 visible pulses;
@@ -282,6 +307,19 @@ The current fighter proof enables the existing bounded Raider fire path. Five
 enemy PairShot records share one burst controller across the formation; they
 reuse the same one-cell movement/erase/render foundation as player fire while
 retaining hostile colour, speed, cadence, swept collision and ten-unit damage.
+
+The Light Wingman follows Heavy slot 0 with a 12-scanline lag and a 4-HPOS gap
+(offset +20 right or -12 left), switching side only beyond leader X 144/96. If
+its leader is destroyed or released, it continues straight down one scanline
+per frame and is recycled at scanline 240; a respawned slot never re-captures
+it. It fires one red PairShot after its difficulty pause (64/80/96 frames on
+HARD/MEDIUM/EASY) when fully visible and the player is alive; a full shared
+pool drops the shot. Its shots carry the leader's P1 emitter bit, so the
+existing emitter-owned cleanup applies unchanged. One player PairShot or a
+player contact destroys it (Raider contact contract: full player damage, one
+enemy damage unit), awarding `$05` BCD with the debris breakup and hit sound.
+Capital admission waits until it has retired, and any non-fighter sector
+retires it immediately.
 
 Debris is the implemented interactive entity in slot 0. It has bounded
 trajectories, two shapes, two tumble phases, three hit points, contact damage,
@@ -369,8 +407,9 @@ therefore distinct from respawn invulnerability.
 The gameplay charset has two free glyphs. Stars use 1-6, Player Fighter PairShot
 compatibility glyphs 11-46, Spread Shot composite scratch 47-56, capital hulls
 59-89, enemy PairShot compatibility glyphs 90-109, debris 110-117, and
-fragments 118-119. Glyphs 120-125 retain their source allocation but the PMG
-pickup candidate has no dynamic character-pickup compositor.
+fragments 118-119. Glyphs 120-121 are the Light Wingman's left/right cells,
+installed at runtime in colour 3 with the hostile bit; 122-125 retain their
+source allocation and the PMG pickup has no dynamic character-pickup compositor.
 Glyphs 126-127 are the dedicated connected left/right BROADSIDE bolt halves.
 
 The separate `$5000-$53FF` HUD charset keeps glyph 0 as the blank/separator,

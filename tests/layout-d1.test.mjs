@@ -59,8 +59,10 @@ function stageArtifact(artifact, fill) {
   run(memory, "init_entity_effects");
   const finalAfterClear = Buffer.from(memory.subarray(0x9000, 0x9000 + a2.length));
   run(memory, "unpack_weapon_pickup_phase_runtime");
-  assert.deepEqual(Buffer.from(memory.subarray(0x8800, 0x8800 + pickupPhaseRuntime.length)),
-    pickupPhaseRuntime);
+  const pickupStream = manifest.entityEffects.pickupPhaseBankAddress;
+  assert.equal(pickupStream, 0x8776, "Light kernel heads the pickup/collision stream");
+  assert.deepEqual(Buffer.from(memory.subarray(pickupStream,
+    pickupStream + pickupPhaseRuntime.length)), pickupPhaseRuntime);
   run(memory, "unpack_starfield_runtime");
   const finish = labels.get("finish_startup_after_loader");
   const savedFinish = memory[finish];
@@ -86,26 +88,29 @@ test("Layout D.2 startup order and call bytes are frozen", () => {
 });
 
 test("Layout D.2 exact memory and transport budgets remain frozen", () => {
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13084);
+  // Light Wingman placement (2026-09-15): the STARFIELD tail grows the initial
+  // block by 34 B, the pickup/collision record carries the $8776 kernel head,
+  // and the late-compressed extension record carries LIGHT_CODE after C.
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13118);
   assert.equal(manifest.transportCapacity.initialBootBytes, 13184);
-  assert.equal(manifest.transportCapacity.totalTransportSectors, 172);
-  assert.equal(manifest.transportCapacity.totalTransportBytes, 22016);
+  assert.equal(manifest.transportCapacity.totalTransportSectors, 175);
+  assert.equal(manifest.transportCapacity.totalTransportBytes, 22400);
   assert.equal(manifest.transportCapacity.stage2.bytes, 1257);
   assert.deepEqual(manifest.transportCapacity.manifest.parsed.records.map((record) =>
     [record.startSector, record.sectorCount, record.packedLength, record.rawLength,
       record.finalDestination]), [
-    [104, 45, 5653, 6650, 0x5e10],
-    [149, 7, 788, 788, 0x8c80],
-    [156, 3, 245, 250, 0x7bd0],
-    [159, 2, 116, 117, 0x7cca],
-    [161, 2, 210, 242, 0x7d40],
-    [163, 4, 423, 423, 0x7810],
-    [167, 1, 23, 21, 0x9d5e],
-    [168, 5, 542, 643, 0x9d75],
+    [104, 45, 5658, 6650, 0x5e10],
+    [149, 8, 964, 964, 0x8c80],
+    [157, 3, 245, 250, 0x7bd0],
+    [160, 2, 116, 117, 0x7cca],
+    [162, 2, 210, 242, 0x7d40],
+    [164, 6, 742, 742, 0x7810],
+    [170, 1, 23, 21, 0x9d5e],
+    [171, 5, 542, 643, 0x9d75],
   ]);
-  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17521);
-  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 18914);
-  assert.equal(manifest.encounterDirector.safeResidencyBytes, 3273);
+  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17463);
+  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 19223);
+  assert.equal(manifest.encounterDirector.safeResidencyBytes, 2964);
 });
 
 test("XEX and ATR preserve full A2, GLUE lifecycle, ENTITY_CODE, DIRECTOR and guard", () => {

@@ -1,0 +1,71 @@
+{
+  "id": "stage-2b2b-light-wingman-2heavy-1light",
+  "date": "2026-09-15",
+  "status": "PASS_CANDIDATE_AWAITING_OWNER_SMOKE",
+  "branch": "experiment/hybrid-c-director",
+  "accepted_baseline": {
+    "commit": "2df89da",
+    "xex_sha256": "9aa7336e5ba516bd01874b897e5c298fa5d0a734dab628258ff8597727cc50d8",
+    "pal_max_wall_cycles_2_evasive_fire3": 28505
+  },
+  "candidate": {
+    "xex_path": "build/owner-smoke/light-wingman-126b2b81/void-strike-65-light-wingman.xex",
+    "xex_bytes": 22857,
+    "xex_sha256": "126b2b81ffc57fb97df762ffae2fe24aba64d195da11d3a5e2df043c6f68afde",
+    "build_command": "npm run build:candidate -- --quiet",
+    "reproducibility_note": "Built from the working tree, which also holds the uncommitted solid fifth-player pickup mask hunk (fighter_pickup_pmg_shape). The committed Light tree alone yields a different hash."
+  },
+  "placement": {
+    "entity_code_growth_bytes": 0,
+    "light_resident": { "run": "$8776-$8857", "bytes": 226, "carrier": "existing pickup/collision record, zero-filled to the fixed $8B67 module", "stream_zero_fill_bytes": 6 },
+    "light_code": { "run": "$8F77-$8FF3", "bytes": 125, "carrier": "tail of the existing late-compressed hybrid extension record", "extension_raw_bytes": 887, "extension_packed_bytes": 742, "extension_packed_limit": 960, "bytes_before_9000": 12 },
+    "starfield_tail": { "run": "$5D45-$5D68", "bytes": 36, "packed_starfield_bytes": 1777, "correction_gate": 1798, "staging_limit": 1819 },
+    "broadside_pad": { "run": "$77A1-$77B1", "bytes": 17, "note": "retired entry-preservation pad; following BROADSIDE entries unchanged" },
+    "state": { "c_light_record": "$8100-$8106", "asm_render_cache_scratch": "$8107-$810C", "c_profile_cache_moved": "$8776 -> $8110-$8118" },
+    "forbidden_mechanisms_used": { "basic_ram": false, "runtime_disk_io": false, "new_loader_record": false, "pmg_reassignment": false, "raster_multiplexing": false, "global_compositor": false }
+  },
+  "native_pal": {
+    "emulator": "Atari800 7.1.2 PAL/XL instrumented observer",
+    "session": "2-evasive-fire3",
+    "frames": 920,
+    "artifact_sha256": "126b2b81ffc57fb97df762ffae2fe24aba64d195da11d3a5e2df043c6f68afde",
+    "max_wall_cycles": 28699,
+    "delta_vs_baseline": 194,
+    "target_headroom": 2501,
+    "hard_gate_headroom": 3869,
+    "physical_headroom": 6869,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "dli_ordering_errors": 0,
+    "deadline_overruns": 0,
+    "physical_overruns": 0,
+    "report": "build/owner-smoke/light-wingman-126b2b81/native-pal-2-evasive-fire3.json"
+  },
+  "boot_smoke": {
+    "sessions": 4,
+    "media": ["XEX", "ATR"],
+    "passed": true,
+    "artifact_sha256": "126b2b81ffc57fb97df762ffae2fe24aba64d195da11d3a5e2df043c6f68afde",
+    "coexistence_screenshot": {
+      "path": "build/owner-smoke/light-wingman-126b2b81/native-xex-frame750-2heavy-1light.png",
+      "sha256": "ab6fe6002330ff09554ba899afb2a7e7eb6632258b4c2d68c9e44c6c6115d853",
+      "observation": "two P1/P2 Heavy Raiders and the 2x1 character Light Wingman with its shot visible in the same native frame"
+    }
+  },
+  "tests": {
+    "light_wingman_focused": "12/12 pass",
+    "full_suite": { "candidate_failing": 110, "baseline_failing": 115, "new_failure_names": 0, "fixed_vs_baseline": 5 },
+    "test_adjustments": [
+      "master-pal-clock: main loop now calls the operand-only hook entity_effects_update_with_light",
+      "prepared-hull-row: ca65 include path src/hybrid; cfg LIGHTFILE placeholder aligned with the build-computed $8F77/$0089",
+      "weapon-pickup traversal: count only cells gaining the render id after creation; the PMG capsule adds 0 character footprints on both baseline and candidate"
+    ]
+  },
+  "known_limitations": [
+    "Light HP equals Heavy HP (1); Heavy is already at the one-hit minimum",
+    "Light shots carry the leader P1 emitter bit, so they expire with Heavy slot 0",
+    "Light death reuses the debris breakup and clears active transient effects",
+    "a leaderless Light can delay capital admission until it recycles at scanline 240",
+    "placement margins of 12/6/21 B: a further archetype needs a new placement decision"
+  ]
+}

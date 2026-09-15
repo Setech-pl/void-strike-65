@@ -26,6 +26,21 @@
 #define ENEMY_PENDING_DAMAGE_1   U8_AT(0x5475u)
 #define ENEMY_TARGET_SLOT        U8_AT(0x5486u)
 #define ENEMY_LIVE_COUNT         U8_AT(0x5489u)
+#define ENEMY_X_0                U8_AT(0x5478u)
+#define ENEMY_Y_0                U8_AT(0x547Au)
+#define PLAYER_LIFECYCLE         U8_AT(0x4EAAu)
+
+/* Light Wingman formation: leader is Heavy slot 0. The wingman keeps a
+ * 4-HPOS gap on one side and switches side only at a corridor edge. */
+#define LIGHT                    enemy_archetypes[ENEMY_ARCHETYPE_LIGHT_WINGMAN]
+#define LIGHT_RIGHT_OFFSET       20u
+#define LIGHT_LEFT_OFFSET        12u
+#define LIGHT_X_MIN              84u
+#define LIGHT_X_MAX              164u
+#define LIGHT_LAG_Y              12u
+#define LIGHT_FIRE_TOP           24u
+#define LIGHT_FIRE_BOTTOM        224u
+#define LIGHT_RETIRE_Y           240u
 
 #define ENEMY_INACTIVE           0u
 #define ENEMY_ACTIVE_STATE       1u
@@ -51,6 +66,17 @@ const EnemyArchetype enemy_archetypes[ENEMY_ARCHETYPE_COUNT] = {
         ENEMY_WEAPON_RED_PAIRSHOT,
         0x10u,
         1u
+    },
+    {
+        1u,
+        ENEMY_MOVEMENT_WINGMAN_FOLLOW,
+        ENEMY_FIRE_SINGLE_SHOT,
+        1u, 0u,
+        96u, 80u, 64u,
+        ENEMY_RENDERER_CHARACTER_2X1,
+        ENEMY_WEAPON_RED_PAIRSHOT,
+        0x05u,
+        1u
     }
 };
 
@@ -68,6 +94,20 @@ volatile uint8_t enemy_profile_renderer_class;
 volatile uint8_t enemy_profile_weapon_class;
 volatile uint8_t enemy_profile_score_bcd;
 volatile uint8_t enemy_profile_director_value;
+#pragma bss-name ("HYBRID_LIGHT_STATE")
+volatile uint8_t light_state;
+volatile uint8_t light_hp;
+volatile uint8_t light_x;
+volatile uint8_t light_y;
+volatile uint8_t light_fire_timer;
+volatile uint8_t light_leaderless;
+volatile uint8_t light_side;
+volatile uint8_t light_screen_lo;
+volatile uint8_t light_screen_hi;
+volatile uint8_t light_backing0;
+volatile uint8_t light_backing1;
+volatile uint8_t light_scratch;
+volatile uint8_t light_slot_save;
 #pragma bss-name ("BSS")
 
 static void publish_raider_profile(void)
@@ -99,6 +139,8 @@ void lifecycle_c_init(void)
     ENEMY_HP_0 = 0u;
     ENEMY_HP_1 = 0u;
     ENEMY_LIVE_COUNT = 0u;
+    light_state = ENEMY_INACTIVE;
+    light_screen_hi = 0u;       /* the rebuilt playfield has no Light backing */
     publish_raider_profile();
 }
 
@@ -117,7 +159,7 @@ uint8_t sector_c_update_first_capital(void)
         }
         DIRECTOR_STATE_FLAGS = DIRECTOR_FLAG_CAPITAL_DUE;
     }
-    if (asm_sector_pressure_active() != 0u ||
+    if (asm_sector_pressure_active() != 0u || light_state != ENEMY_INACTIVE ||
         CAPITAL_SECTOR_STATE != SECTOR_FIGHTER) {
         return 0u;
     }
@@ -188,6 +230,16 @@ void enemy_c_spawn_raiders(void)
     ENEMY_MEMBER_STATE_1 = ENEMY_ACTIVE_STATE;
     ENEMY_LIVE_COUNT = RAIDER_SLOT_COUNT;
     ENEMY_ACTIVE = ENEMY_ACTIVE_STATE;
+    /* The formation admission also admits one wingman for Heavy slot 0. A
+     * wingman still descending from an earlier formation keeps its lifecycle. */
+    if (light_state == ENEMY_INACTIVE) {
+        light_state = ENEMY_ACTIVE_STATE;
+        light_hp = LIGHT.hit_points;
+        light_leaderless = 0u;
+        light_side = LIGHT_RIGHT_OFFSET;
+        light_y = 0u;
+        light_fire_timer = (&LIGHT.post_burst_easy_frames)[DIFFICULTY_SETTING];
+    }
 }
 
 uint8_t enemy_c_retire_member(void)
@@ -234,4 +286,61 @@ uint8_t enemy_c_apply_pending_damage(void)
 void enemy_c_recycle(void)
 {
     ENEMY_ACTIVE = ENEMY_INACTIVE;
+}
+
+/* Once per gameplay frame. Returns 1 when the single-shot policy fires. */
+uint8_t enemy_c_light_tick(void)
+{
+    if (light_state == ENEMY_INACTIVE) {
+        return 0u;
+    }
+    if (CAPITAL_SECTOR_STATE != SECTOR_FIGHTER) {
+        light_state = ENEMY_INACTIVE;       /* fighter-only lifecycle */
+        return 0u;
+    }
+    if (ENEMY_MEMBER_STATE_0 != ENEMY_ACTIVE_STATE) {
+        light_leaderless = 1u;
+    }
+    if (light_leaderless != 0u) {
+        /* Leader lost: continue straight down until recycled. */
+        if (++light_y >= LIGHT_RETIRE_Y) {
+            light_state = ENEMY_INACTIVE;
+            return 0u;
+        }
+    } else {
+        /* light_side is the signed formation offset. Switching only beyond
+         * these leader positions gives edge-only hysteresis. */
+        if (ENEMY_X_0 > LIGHT_X_MAX - LIGHT_RIGHT_OFFSET) {
+            light_side = (uint8_t)(0u - LIGHT_LEFT_OFFSET);
+        } else if (ENEMY_X_0 < LIGHT_X_MIN + LIGHT_LEFT_OFFSET) {
+            light_side = LIGHT_RIGHT_OFFSET;
+        }
+        light_x = (uint8_t)((ENEMY_X_0 + light_side) & 0xFCu);
+        if (ENEMY_Y_0 < LIGHT_LAG_Y) {
+            light_y = 0u;
+        } else {
+            light_y = (uint8_t)(ENEMY_Y_0 - LIGHT_LAG_Y);
+        }
+    }
+    if (light_fire_timer != 0u) {
+        --light_fire_timer;
+        return 0u;
+    }
+    if (light_y < LIGHT_FIRE_TOP || light_y >= LIGHT_FIRE_BOTTOM ||
+        (PLAYER_LIFECYCLE & 1u) != 0u) {
+        return 0u;
+    }
+    light_fire_timer = (&LIGHT.post_burst_easy_frames)[DIFFICULTY_SETTING];
+    return 1u;
+}
+
+/* One damage unit from a player PairShot or contact. ASM calls this only for
+ * an active Light, whose HP is therefore at least one. Returns 1 when lethal. */
+uint8_t enemy_c_light_hit(void)
+{
+    if (--light_hp != 0u) {
+        return 0u;
+    }
+    light_state = ENEMY_INACTIVE;
+    return 1u;
 }

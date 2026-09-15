@@ -16,19 +16,24 @@ lifetime phases and are not additive free memory.
 | `$316A-$3FEB` | 3,714 B | resident `RODATA` |
 | `$5400-$5489` | 138 B | `PROJECTILES`: ten one-cell PairShot slots (five player + five enemy), burst controllers, two shared fighter explosions, and two independent Raider records |
 | `$548A-$54E3` | 90 B | free linked tail; not stable against the PairShot lifecycle clear |
-| `$54E4-$5D44` | 2,145 B | relocated `STARFIELD` runtime; reserved through `$5E0F` |
-| `$5E10-$7809` | 6,650 B | relocated `BROADSIDE`/frontend/enemy/weapon runtime plus debris-release wrapper; reserved through `$780F` |
+| `$54E4-$5D68` | 2,181 B | relocated `STARFIELD` runtime; `$5D45-$5D68` is the 36-B Light Wingman PairShot backing hook; reserved through `$5E0F` |
+| `$5E10-$7809` | 6,650 B | relocated `BROADSIDE`/frontend/enemy/weapon runtime plus debris-release wrapper; its retired 17-B entry pad `$77A1-$77B1` holds the Light BCD score add; reserved through `$780F` |
 | `$8000-$80F3` | 244 B | `ENTITY_STATE` BSS |
 | `$80F4-$80FF` | 12 B | C-owned Encounter Director semantic state at its legacy addresses |
 | `$86FA-$8700` | 7 B | hybrid ABI mailbox and cc65 Director scratch BSS; no C stack |
 | `$8701-$8775` | 117 B | hybrid C/ASM Director/lifecycle ABI veneer and startup publishers |
-| `$8776-$877E` | 9 B | C-owned derived Raider profile cache read by the ASM kernel |
-| `$8800-$8B66` | 871 B | fighter PMG pickup, projectile publication scaffold, narrow effect/PairShot backing resolver in the retired 187-B proof footprint, and provisional active-gameplay admission policy |
+| `$8100-$810C` | 13 B | C-owned Light Wingman record (`$8100-$8106`) plus ASM Light render cache/scratch (`$8107-$810C`) |
+| `$8110-$8118` | 9 B | C-owned derived Raider profile cache read by the ASM kernel (moved from `$8776`) |
+| `$8776-$8857` | 226 B | `LIGHT_RESIDENT` Light Wingman kernel (update, PairShot hit, kill, glyph) heading the pickup/collision stream |
+| `$8858-$8B60` | 777 B | fighter PMG pickup, projectile publication scaffold, narrow effect/PairShot backing resolver, and provisional active-gameplay admission policy (retired inert padding reclaimed) |
+| `$8B61-$8B66` | 6 B | zero fill of the pickup/collision stream image |
 | `$8B67-$8B87` | 33 B | shared inclusive final-raster swept-AABB capital-bolt/Player Fighter collision module |
 | `$8B88-$8C79` | 242 B | low cc65 Director code |
 | `$8C7A-$8C7C` | 3 B | free gap |
-| `$8C7D-$8C88` | 12 B | C `EnemyArchetype` table (one Raider record) |
-| `$8C89-$8E84` | 508 B | C sector and high-level enemy lifecycle code |
+| `$8C7D-$8C94` | 24 B | C `EnemyArchetype` table (Raider + Light Wingman records) |
+| `$8C95-$8F76` | 738 B | C sector, high-level enemy lifecycle and Light Wingman code |
+| `$8F77-$8FF3` | 125 B | `LIGHT_CODE` Light erase/render kernel, main-linked, carried at the tail of the extension stream |
+| `$8FF4-$8FFF` | 12 B | free extension tail |
 | `$9000-$90EC` | 237 B | relocated A2 kernel; 19 bytes reserved through `$90FF` are free |
 | `$9100-$9D57` | 3,160 B | relocated `ENTITY_CODE`, including PMG pickup lifecycle, H3.1 display lists, and frontend helpers |
 | `$9D5E-$9D72` | 21 B | cc65 Director `5*x+1` RNG routine |

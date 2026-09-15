@@ -58,11 +58,24 @@ typedef struct EnemyArchetype {
 } EnemyArchetype;
 ```
 
-The sole record is Raider: HP 1, Raider cross/pursuit behavior 0, PairShot
+Record 0 is Raider: HP 1, Raider cross/pursuit behavior 0, PairShot
 burst policy 1, 5 shots at 15-frame intervals, post-burst pauses 60/50/40,
 two-Heavy-PMG renderer class 1, red PairShot weapon class 1, BCD score `$10`,
-and Director value 1. Both current Heavy slots select that record. No third
-Raider, Light enemy, new behavior or gameplay value is present.
+and Director value 1. Both current Heavy slots select that record.
+
+Record 1 is the Light Wingman (candidate awaiting owner smoke): HP 1 (the
+Heavy is already at the one-hit minimum, so "lower HP" is equal HP),
+wingman-follow behavior 1, single-shot policy 2, burst count 1 with no
+interval, pauses 96/80/64 frames for EASY/MEDIUM/HARD, character 2x1 renderer
+class 2, red PairShot weapon class 1, BCD score `$05`, Director value 1. The
+Light is admitted together with each Raider formation, so it consumes no extra
+Director request; its Director value is recorded for later wave budgeting.
+
+C additionally owns the single Light record in `$8100-$810C`: state, HP, X
+(four-aligned HPOS), Y, fire timer, leaderless latch and signed formation
+offset. The ASM kernel owns only the render cache (screen pointer, two backing
+bytes) and two scratch bytes of that block; C writes the render cache solely
+at game initialization, when the playfield is rebuilt.
 
 ## ASM responsibilities
 
@@ -84,7 +97,13 @@ existing lifecycle boundaries:
   `sector_update_capital_phase`, `sector_begin_complete`,
   `sector_complete_scroll_tick`, `sector_force_final_drain`;
 - `enemy_spawn_raiders`, `enemy_retire_member`,
-  `enemy_apply_pending_damage`, `enemy_recycle`.
+  `enemy_apply_pending_damage`, `enemy_recycle`;
+- `enemy_light_tick` (once per gameplay frame; returns the single-shot fire
+  decision) and `enemy_light_hit` (one damage unit; returns lethal).
+
+The Light kernel calls both directly from its two wrappers; formation
+admission and capital gating stay inside the existing `enemy_spawn_raiders`
+and `sector_update_first_capital` calls.
 
 C calls only three semantic ASM primitives:
 
@@ -105,7 +124,9 @@ interrupt `RTI` path. The stock cc65 Atari startup and libc are not linked.
 | Director row, phase, timers, RNG, pending event, flags | C | `$80F4-$80FF` |
 | sector state | C lifecycle | `$4EA5` |
 | enemy archetype, active/member state, HP, live count | C lifecycle | existing `$5470-$5489` fields |
-| selected archetype's ASM-facing profile cache | C lifecycle | `$8776-$877E` |
+| selected archetype's ASM-facing profile cache | C lifecycle | `$8110-$8118` (moved from `$8776`) |
+| Light state, HP, position, fire timer, formation | C lifecycle | `$8100-$8106` |
+| Light render cache and scratch | ASM Light kernel | `$8107-$810C` |
 | ABI opcode/argument and C scratch | C/ABI boundary | `$86FA-$8700` |
 | pending enemy damage/source mailboxes | ASM kernel | existing `$5472-$5477` fields |
 | enemy coordinates, velocity, manoeuvre and projectile slots | ASM kernel | existing fixed symbols |
@@ -120,10 +141,15 @@ C-owned lifecycle field.
 | Component | Bytes | Runtime placement |
 | --- | ---: | --- |
 | ca65 ABI veneer | 117 | `$8701-$8775` |
-| C profile BSS | 9 | `$8776-$877E` |
+| C profile BSS | 9 | `$8110-$8118` |
+| C Light BSS (incl. 6 B ASM render cache/scratch) | 13 | `$8100-$810C` |
 | cc65 low CODE | 242 | `$8B88-$8C79` |
-| `EnemyArchetype` RODATA | 12 | `$8C7D-$8C88` |
-| lifecycle CODE | 508 | `$8C89-$8E84` |
+| `EnemyArchetype` RODATA (Raider + Light) | 24 | `$8C7D-$8C94` |
+| lifecycle + Light CODE | 738 | `$8C95-$8F76` |
+| Light ASM `LIGHT_CODE` (erase, render) | 125 | `$8F77-$8FF3` |
+| Light ASM `LIGHT_RESIDENT` (update, shot, kill, glyph) | 226 | `$8776-$8857` |
+| Light ASM backing hook (STARFIELD tail) | 36 | `$5D45-$5D68` |
+| Light ASM score add (retired BROADSIDE pad) | 17 | `$77A1-$77B1` |
 | cc65 RNG CODE | 21 | `$9D5E-$9D72` |
 | Director RODATA | 158 | `$9D75-$9E12` |
 | cc65 high CODE | 485 | `$9E13-$9FF7` |
@@ -135,6 +161,32 @@ Totals are 1,256 bytes of C CODE, 170 bytes of C RODATA, 0 bytes DATA,
 16 bytes BSS, 0 bytes software stack and 0 bytes zero page. Linked runtime is
 17,521 bytes. Simultaneous feature residency is 18,914 bytes, leaving 3,273
 bytes of the feature-residency safety budget.
+
+Light Wingman placement (2026-09-15). The first attempt placed the Light
+renderer in ENTITY_CODE and overflowed its packed staging by 176 B. The
+accepted candidate adds nothing to ENTITY_CODE and uses only existing records
+and expanders:
+
+1. `LIGHT_CODE` is linked with the main image directly after the measured C
+   extension and appended to the existing late-compressed extension stream:
+   887 B raw / 742 B packed of 960, expanded to `$8C7D-$8FF3` by the unchanged
+   boot call (12 B slack before A2).
+2. `LIGHT_RESIDENT` heads the existing pickup/collision stream, whose runtime
+   start moves from `$8800` to `$8776` into documented-unowned RAM; the retired
+   92 B of inert PICKUP padding and the 2-byte unreachable accounting pad are
+   reclaimed, and the zero-filled image still ends at the fixed `$8B67`
+   collision module (6 B slack). The stream expands after the veneer is
+   published and before the loader, so no lifetime overlaps.
+3. The 36-byte PairShot backing hook uses the STARFIELD resident tail; packed
+   starfield is 1,777 B against the 1,798 B correction gate and 1,819 B
+   staging limit.
+4. The 17-byte BCD score add exactly fills the retired BROADSIDE entry pad,
+   so every following BROADSIDE entry address is unchanged.
+
+All Light code is resident for the whole game; it does not depend on BASIC
+RAM, runtime disk I/O or a new loader record. The cost is that the extension,
+pickup stream and starfield gate are now within 12/6/21 B of their limits: a
+further archetype requires a new placement decision.
 
 The old high-C reservation still ends at `$9FF7`; `$9FFA-$9FFF` remains the
 protected guard. The new 520-byte archetype/lifecycle composite uses the legal
@@ -218,6 +270,8 @@ For each later high-level module:
 7. rebuild native instrumentation and run the same PAL replay;
 8. record linked size, simultaneous residency and gate headroom.
 
-The next bounded feature may add the first Light Wingman as a second archetype,
-a small C behavior handler, and an already-selected ASM renderer class without
-changing the core Director architecture.
+The first Light Wingman was added this way as the second archetype, with a
+small C behavior handler and a character renderer class, without changing the
+core Director architecture, lifecycle model, PMG allocation or raster
+architecture. The next archetype (Interceptor) should reuse the Light renderer
+and ASM primitives, but first needs resident capacity (see placement above).

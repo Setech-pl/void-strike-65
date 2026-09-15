@@ -64,6 +64,10 @@ function runRoutine(memory, labels, name, { writeLog = null, frame = null } = {}
   return cpu.cycles;
 }
 
+function publishDirectorAbiIfPresent(memory, labels) {
+  if (labels.has("publish_director_abi")) runRoutine(memory, labels, "publish_director_abi");
+}
+
 function logicalScreen(memory, labels) {
   const lo = requiredLabel(labels, "PLAYFIELD_ROW_LO");
   const hi = requiredLabel(labels, "PLAYFIELD_ROW_HI");
@@ -409,6 +413,7 @@ export function executeDebrisDestructionTrace({
   runRoutine(memory, labels, "stage_boot_streams");
   runRoutine(memory, labels, "unpack_resident_runtime");
   runRoutine(memory, labels, "unpack_entity_runtime");
+  publishDirectorAbiIfPresent(memory, labels);
   runRoutine(memory, labels, "stage_a2_kernel");
   runRoutine(memory, labels, "init_entity_effects");
   runRoutine(memory, labels, "unpack_weapon_pickup_phase_runtime");
@@ -517,6 +522,7 @@ export function executeInterceptorBreakupTrace({
   runRoutine(memory, labels, "stage_boot_streams");
   runRoutine(memory, labels, "unpack_resident_runtime");
   runRoutine(memory, labels, "unpack_entity_runtime");
+  publishDirectorAbiIfPresent(memory, labels);
   runRoutine(memory, labels, "stage_a2_kernel");
   runRoutine(memory, labels, "init_entity_effects");
   runRoutine(memory, labels, "unpack_weapon_pickup_phase_runtime");
@@ -788,6 +794,7 @@ export function executeProjectileDebrisBackingTrace({
   runRoutine(memory, labels, "stage_boot_streams");
   runRoutine(memory, labels, "unpack_resident_runtime");
   runRoutine(memory, labels, "unpack_entity_runtime");
+  publishDirectorAbiIfPresent(memory, labels);
   runRoutine(memory, labels, "stage_a2_kernel");
   runRoutine(memory, labels, "init_entity_effects");
   runRoutine(memory, labels, "unpack_weapon_pickup_phase_runtime");

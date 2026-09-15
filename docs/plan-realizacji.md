@@ -15,8 +15,8 @@ Rozszerzone deterministyczne A/B wobec zaakceptowanego hybrid baseline ma `0`
 divergencji w 12 488 klatkach. Niezmieniony native replay `2-evasive-fire3`
 kończy 920 klatek z max `28 505` (+26), headroom target/hard `2 695`/`4 063`,
 bez missed frames, extra VBI i anomalii DLI. Nowy C composite mieści się legalnie
-w `$8C7D-$8E84`; software stack i nowe ZP nadal mają 0 B. Następny osobny krok
-to pierwszy Light Wingman korzystający z istniejącej architektury archetypów.
+w `$8C7D-$8E84`; software stack i nowe ZP nadal mają 0 B. Pierwszy Light Wingman
+(`2 Heavy + 1 Light`) jest kandydatem do owner smoke — patrz Stage 2D.1.
 Aktualny XEX emitter-owned cleanup candidate: SHA-256 `a4fd121fae34766182ae16235a6772662d0fec6cdda5eded8615357918e6585a`
 
 Ten dokument jest bieżącą roadmapą wykonawczą. Starsze założenia są zachowane tylko jako historia decyzji, jeżeli późniejsze pomiary je odrzuciły.
@@ -2194,6 +2194,35 @@ Zbudować osobny harmonogram capital bez fighterowego admission/pickupu. Nie zak
 - Light jako tańsze obiekty;
 - zachować model 2 Heavy + do 4 Light;
 - Encounter Director steruje falami niezależnie od limitu jednocześnie widocznych.
+
+### Stage 2D.1 — Light Wingman — KANDYDAT OWNER SMOKE (2026-09-15)
+
+Pierwsza próba (renderer w ENTITY_CODE) przekroczyła packed staging przed
+`$5E10` o ok. 176 B i pozostaje odrzucona. Kandydat nie dodaje nic do
+ENTITY_CODE i używa wyłącznie istniejących rekordów transportu: głowy strumienia
+pickup/collision (`$8776-$8857`, 226 B), ogona strumienia extension
+(`$8F77-$8FF3`, 125 B), ogona STARFIELD (`$5D45-$5D68`, 36 B), wycofanego
+17-bajtowego padu BROADSIDE (`$77A1-$77B1`) oraz stanu `$8100-$810C`
+(cache profilu C przeniesiony do `$8110-$8118`). Bez BASIC RAM, I/O dyskowego,
+nowego rekordu loadera, zmiany PMG, multipleksu i kompozytora.
+
+Light Wingman jest drugim rekordem `EnemyArchetype` (HP 1, follow, single shot,
+pauzy 96/80/64, renderer znakowy 2x1, czerwony PairShot, score `$05`). C
+posiada lifecycle, HP, formację i decyzję ognia; ASM wyłącznie dwie komórki
+ringu, backing, glif i gorące kolizje, wpięte pięcioma przekierowaniami
+operandów istniejących `JSR`. Director bez zmian.
+
+Native Atari800 PAL `2-evasive-fire3` na XEX `126b2b81…`: 920 klatek, max
+`28 699` (+194), headroom target/hard `2 501`/`3 869`, 0 missed frames,
+extra VBI i błędów DLI; boot smoke 4/4 PASS, klatka 750 pokazuje jednocześnie
+2 Heavy i Light. Pełny zestaw testów: 0 nowych porażek względem `2df89da`.
+Raport: `docs/diagnostics/stage-2b2b-light-wingman-2heavy-1light.json`.
+
+Marginesy po zmianie: extension 12 B, strumień pickup 6 B, packed STARFIELD
+21 B. Kolejny archetyp wymaga nowej decyzji o rozmieszczeniu.
+
+Następny task: owner smoke `2 Heavy + 1 Light`; po PASS — Interceptor jako
+kolejny archetyp korzystający z renderera Light.
 
 ### Stage 2E — boss
 

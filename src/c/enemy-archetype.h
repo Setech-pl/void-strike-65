@@ -20,17 +20,38 @@ typedef struct EnemyArchetype {
 
 enum {
     ENEMY_ARCHETYPE_RAIDER = 0,
-    ENEMY_ARCHETYPE_COUNT = 1
+    ENEMY_ARCHETYPE_LIGHT_WINGMAN = 1,
+    ENEMY_ARCHETYPE_COUNT = 2
 };
 
 enum {
     ENEMY_MOVEMENT_RAIDER_CROSS_PURSUIT = 0,
+    ENEMY_MOVEMENT_WINGMAN_FOLLOW = 1,
     ENEMY_FIRE_RAIDER_PAIR_BURST = 1,
+    ENEMY_FIRE_SINGLE_SHOT = 2,
     ENEMY_RENDERER_TWO_HEAVY_PMG = 1,
+    ENEMY_RENDERER_CHARACTER_2X1 = 2,
     ENEMY_WEAPON_RED_PAIRSHOT = 1
 };
 
 extern const EnemyArchetype enemy_archetypes[ENEMY_ARCHETYPE_COUNT];
+
+/* One Light Wingman. C owns lifecycle, HP, position and fire policy; the
+ * ASM renderer owns only the screen/backing cache and scratch bytes, whose
+ * render cache C clears solely at game initialization. */
+extern volatile uint8_t light_state;
+extern volatile uint8_t light_hp;
+extern volatile uint8_t light_x;
+extern volatile uint8_t light_y;
+extern volatile uint8_t light_fire_timer;
+extern volatile uint8_t light_leaderless;
+extern volatile uint8_t light_side;
+extern volatile uint8_t light_screen_lo;
+extern volatile uint8_t light_screen_hi;
+extern volatile uint8_t light_backing0;
+extern volatile uint8_t light_backing1;
+extern volatile uint8_t light_scratch;
+extern volatile uint8_t light_slot_save;
 
 extern volatile uint8_t enemy_profile_movement_id;
 extern volatile uint8_t enemy_profile_fire_policy_id;

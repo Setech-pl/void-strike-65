@@ -130,6 +130,9 @@ export function initialiseRuntime(root, artifact, coldFill = 0) {
   ]) {
     try {
       runRoutine(memory, labels, routine);
+      if (routine === "unpack_entity_runtime" && labels.has("publish_director_abi")) {
+        runRoutine(memory, labels, "publish_director_abi");
+      }
     } catch (error) {
       throw new Error(`${routine}: ${error.message}`);
     }
@@ -529,8 +532,11 @@ export function executeWeaponPickupTraversalTrace({
     const released = pickupSnapshot(memory, labels, manifest, {
       phase: "RELEASED", frame: visible.length,
     });
+    // This harness does not initialise the ring, so cells that already held
+    // the render id before the capsule existed are boot-staging residue, not
+    // footprints. Count only cells that gained the id after creation.
     const footprintCount = (snapshot) => [...snapshot.screen]
-      .filter((code) => code === renderId).length;
+      .filter((code, index) => code === renderId && created.screen[index] !== renderId).length;
     return {
       name,
       pickupType,

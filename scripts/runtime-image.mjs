@@ -12,6 +12,12 @@ export function loadRuntimeSegments(rootDirectory) {
   const manifest = JSON.parse(fs.readFileSync(
     path.join(rootDirectory, "build", "manifest.json"), "utf8",
   ));
+  const directorCodeRuntimes = manifest.directorCodeRuntimes ??
+    (manifest.directorCodeRuntime == null ? [] : [{
+      ...manifest.directorCodeRuntime,
+      name: "encounterDirectorCode",
+      file: "encounter-director-code.bin",
+    }]);
   const definitions = [
     ["resident", "resident-runtime.bin", manifest.residentRuntime.runAddress,
       manifest.residentRuntime.rawBytes],
@@ -29,6 +35,12 @@ export function loadRuntimeSegments(rootDirectory) {
     ...(manifest.encounterDirector?.enabled === true ? [
       ["integrationGlue", "integration-glue.bin", manifest.integrationGlue.finalAddress,
         manifest.integrationGlue.bytes],
+      ...directorCodeRuntimes.map((runtime) => [
+        `encounterDirectorCode-${runtime.name}`,
+        runtime.file,
+        runtime.runAddress,
+        runtime.bytes,
+      ]),
       ["encounterDirector", "encounter-director.bin", manifest.directorRuntime.runAddress,
         manifest.directorRuntime.bytes],
       ["capitalPlayerCollision", "capital-player-collision.bin",

@@ -268,7 +268,9 @@ test("every booster type enters at the top, crosses the full playfield once and 
       `${trace.name} must visit every complete 8-scanline position`);
     assert.deepEqual(trace.visibleStates, ["2:2:1"]);
     assert.equal(trace.maximumLogicalSlots, 1);
-    assert.equal(trace.maximumVisualFootprints, 1);
+    // The accepted capsule is a PMG fifth player (M0-M3), so it must add no
+    // character footprint to the ring at any point of its traversal.
+    assert.equal(trace.maximumVisualFootprints, 0);
     assert.deepEqual(trace.released, [0, 240, 0, 0, 0],
       `${trace.name} must release immediately below its last fully visible position`);
   }

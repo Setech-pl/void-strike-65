@@ -686,7 +686,10 @@ EFFECT_FRAGMENT_GLYPH_BASE = ENTITY_DEBRIS_GLYPH_BASE+ENTITY_DEBRIS_GLYPH_COUNT
 WEAPON_PICKUP_GLYPH_BASE = EFFECT_FRAGMENT_GLYPH_BASE+EFFECT_FRAGMENT_GLYPH_COUNT
 WEAPON_PICKUP_SPREAD_GLYPH_BASE = WEAPON_PICKUP_GLYPH_BASE
 WEAPON_PICKUP_SHIELD_GLYPH_BASE = WEAPON_PICKUP_SPREAD_GLYPH_BASE
-WEAPON_PICKUP_RUNTIME = $8800
+; Runtime start of the pickup/collision stream. Its first segment is the
+; LIGHT_RESIDENT kernel from $8776 (the C profile cache moved to $8110);
+; PICKUP_CODE follows contiguously up to the fixed $8B67 collision module.
+WEAPON_PICKUP_RUNTIME = $8776
 WEAPON_PICKUP_PACKED_STAGING = $8C80
 WEAPON_PICKUP_COLD_STAGING = $4801
 PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE = PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_GLYPH_COUNT
@@ -2371,7 +2374,7 @@ main_loop_frame_active = *
     ; sized read so the frozen main-loop profiling entry points do not move.
     bit FIGHTER_PROJECTILE_ACTIVE
 profile_after_projectile_erase = *
-    jsr entity_effects_erase_with_white_starfield
+    jsr entity_effects_erase_with_white_starfield_light
 profile_after_entity_erase = *
     jsr integration_active_gameplay_tick
 profile_after_capsule = *
@@ -2409,7 +2412,7 @@ profile_after_interceptor_weapon = *
 profile_after_world = *
     jsr handle_player_hull_contact
 profile_after_hull_contact = *
-    jsr entity_effects_update
+    jsr entity_effects_update_with_light
 profile_after_entity_update = *
     jsr render_launch_flashes
     jsr render_capital_explosions
@@ -2417,7 +2420,7 @@ profile_after_entity_update = *
 profile_after_effect_visuals = *
     jsr render_capital_shell_overlays
 profile_after_broadside_render = *
-    jsr entity_effects_render
+    jsr entity_effects_render_with_light
 profile_after_entity_render = *
     jsr integration_update_sector_completion
 profile_after_sector = *
@@ -3725,7 +3728,7 @@ update_fighter_projectiles:
     adc #PLAYER_FIGHTER_SPREAD_LATERAL_STEP
     sta FIGHTER_PROJECTILE_X,x
 @player_fighter_target:
-    jsr entity_player_fighter_projectile_target
+    jsr entity_player_fighter_projectile_target_with_light
     bcc @player_fighter_next
     lda #$01
     ldy #DAMAGE_PLAYER_PROJECTILE
@@ -9186,10 +9189,9 @@ set_broadside_slot_quad:
     ora missile_quad_size_bits,x
     sta SIZEM
     rts
-; Preserve the accepted linked-runtime accounting while the collision helper
-; moves into late-published GLUE; unreachable after the tail return above.
+; The former two-byte unreachable accounting pad is reclaimed by the Light
+; Wingman kernel; the label is kept for existing trace references.
 broadside_glue_accounting_pad:
-    .byte $00,$00
 
 .segment "BROADSIDE"
 enemy_frame_heights:
@@ -9786,7 +9788,24 @@ entity_begin_sector_complete:
 .segment "BROADSIDE"
 entity_complete_scroll_tick:
     jmp HYBRID_SECTOR_COMPLETE_SCROLL_TICK
+.ifdef ENEMY_LIGHT_TICK
+; The 17-byte entry-preservation pad holds the Light Wingman BCD score add. It
+; is an exact fit, so every following BROADSIDE entry address stays fixed.
+light_add_score:
+    sed
+    clc
+    lda score_bcd_lo
+    adc LIGHT_SCORE_BCD
+    sta score_bcd_lo
+    lda score_bcd_hi
+    adc #$00
+    sta score_bcd_hi
+    cld
+    rts
+    .assert * - light_add_score = 17, error, "Light score add must exactly fill the retired pad"
+.else
     .res 17,$EA                 ; preserve fixed BROADSIDE entry addresses
+.endif
 
 .segment "ENTITY_CODE"
 
@@ -10349,7 +10368,7 @@ projectile_debris_backing_resolve = *
     ; Debris is erased and republished before the late projectile erase. If a
     ; PairShot saved either visible debris cell, restore the debris record's
     ; lower backing instead of reviving its old glyph after it moves.
-    jsr resolve_effect_backing_below_interactive_debris
+    jsr resolve_effect_backing_below_interactive_debris_and_light
 store_projectile_backing_resolving_effect_core_store:
     sta FIGHTER_PROJECTILE_BACKUP_TOP,x
     rts
@@ -10390,10 +10409,9 @@ resolve_effect_backing_below_transient_effect_regular = *
     lda EFFECT_SCRATCH0
     rts
 resolve_effect_backing_below_player_pairshot_end:
-    ; Keep the reviewed pickup/collision transport boundary byte-exact. The
-    ; rejected 187-byte generic primitive occupied this footprint; the narrow
-    ; fix uses only its prefix and leaves the remainder inert.
-    .res $BB-(resolve_effect_backing_below_player_pairshot_end-resolve_effect_backing_below_player_pairshot)
+    ; The retired 187-byte primitive's inert remainder is reclaimed by the
+    ; Light Wingman kernel. PICKUPFILE zero-fills to the fixed $8B67 collision
+    ; boundary, so no internal pad is needed to keep that boundary exact.
 .export resolve_effect_backing_below_player_pairshot
 .export resolve_effect_backing_below_enemy_pairshot
 .export resolve_effect_backing_below_transient_effect
@@ -10831,7 +10849,6 @@ retry_first_capital_admission:
     jmp weapon_pickup_clear_sector
 @done:
     rts
-    .res 49,$EA                 ; preserve fixed pickup/collision boundary
 
 .segment "CODE"
 integration_update_enemy:
@@ -10886,9 +10903,6 @@ interceptor_admission_update:
     rts
 @admitted:
     jmp reset_enemy
-    ; Inert duplicate bytes preserve the fixed collision-module boundary while
-    ; keeping the packed cold image inside its unchanged preservation range.
-    .byte $30,$12,$70,$13
 
 .segment "CODE"
 integration_update_enemy_weapon:
@@ -11790,3 +11804,24 @@ boot_chunk_manifest_end:
 .export layout_d_hold_glue, layout_d_hold_glue_end
 .export layout_d_publish_glue, layout_d_publish_glue_end
 .export layout_d_entity_unpack_complete
+
+; Light Wingman: the five hooks below are operand-only redirections of existing
+; JSRs. Each hook first performs the routine it is named after, except the
+; erase hook, which restores the Light's cells before it (reverse render order).
+; Without the hybrid C Light ABI they resolve to the original targets.
+.ifdef ENEMY_LIGHT_TICK
+.include "light-wingman.s"
+entity_effects_erase_with_white_starfield_light = light_erase
+entity_effects_update_with_light = light_update
+entity_effects_render_with_light = light_render
+entity_player_fighter_projectile_target_with_light = light_shot
+resolve_effect_backing_below_interactive_debris_and_light = light_backing
+.export light_erase, light_update, light_render, light_shot, light_backing
+.export light_destroyed, light_glyph
+.else
+entity_effects_erase_with_white_starfield_light = entity_effects_erase_with_white_starfield
+entity_effects_update_with_light = entity_effects_update
+entity_effects_render_with_light = entity_effects_render
+entity_player_fighter_projectile_target_with_light = entity_player_fighter_projectile_target
+resolve_effect_backing_below_interactive_debris_and_light = resolve_effect_backing_below_interactive_debris
+.endif

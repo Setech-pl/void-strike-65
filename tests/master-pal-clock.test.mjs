@@ -79,7 +79,8 @@ test("all main-loop simulation is admitted by one common frame gate", () => {
     "update_player_fighter_weapon",
     "integration_update_enemy_weapon",
     "update_starfield",
-    "entity_effects_update",
+    // Operand-only Light Wingman hook; it calls entity_effects_update first.
+    "entity_effects_update_with_light",
     "integration_update_sector_completion",
     "update_sound",
     "tick_respawn_invulnerability",

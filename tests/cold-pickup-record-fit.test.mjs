@@ -50,14 +50,16 @@ test("cold pickup record excludes the source-only character phase bank", () => {
 
 test("PMG runtime remains legal after retiring the rejected central primitive", () => {
   const symbol = labels();
-  assert.equal(symbol.get("__PICKUP_CODE_RUN__"), 0x8800);
-  assert.equal(symbol.get("__PICKUP_CODE_SIZE__"), 871);
+  // The stream now opens with the Light Wingman kernel at $8776; PICKUP_CODE
+  // follows it and the zero-filled image still ends at the fixed $8B67 module.
+  assert.equal(symbol.get("__LIGHT_RESIDENT_RUN__"), 0x8776);
+  assert.equal(symbol.get("__PICKUP_CODE_RUN__"),
+    0x8776 + symbol.get("__LIGHT_RESIDENT_SIZE__"));
+  assert.equal(symbol.get("__PICKUP_CODE_SIZE__"), 777);
   assert.equal(symbol.has("lower_cell_read"), false);
   assert.equal(symbol.has("lower_cell_write"), false);
-  assert.equal(manifest.capitalPlayerCollisionRuntime.packedStreamOffset,
-    symbol.get("__PICKUP_CODE_SIZE__"));
-  assert.equal(manifest.capitalPlayerCollisionRuntime.runAddress,
-    symbol.get("__PICKUP_CODE_RUN__") + symbol.get("__PICKUP_CODE_SIZE__"));
+  assert.equal(manifest.capitalPlayerCollisionRuntime.packedStreamOffset, 0x8b67 - 0x8776);
+  assert.equal(manifest.capitalPlayerCollisionRuntime.runAddress, 0x8b67);
   assert.equal(manifest.capitalPlayerCollisionRuntime.runAddress +
     manifest.capitalPlayerCollisionRuntime.bytes, 0x8b88);
 

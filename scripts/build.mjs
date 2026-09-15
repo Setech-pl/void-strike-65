@@ -103,7 +103,8 @@ const minimumWeaponPickupReserveBytes = 512;
 const residentRuntimeSuffixAddressExpected = 0x21c1;
 const packedResidentStagingAddress = 0x8100;
 const entityPackedStagingAddress = 0x5318;
-const weaponPickupRuntimeAddress = 0x8800;
+// The pickup/collision stream now starts with the LIGHT_RESIDENT kernel.
+const weaponPickupRuntimeAddress = 0x8776;
 const weaponPickupPackedStagingAddress = 0x8c80;
 const weaponPickupPackedStagingEndAddress = 0x917d;
 const weaponPickupPackedCapacityBytes =
@@ -507,6 +508,17 @@ function renderDirectorAbiInclude(labelBytes) {
     ["ENEMY_PROFILE_WEAPON_CLASS", "enemy_profile_weapon_class"],
     ["ENEMY_PROFILE_SCORE_BCD", "enemy_profile_score_bcd"],
     ["ENEMY_PROFILE_DIRECTOR_VALUE", "enemy_profile_director_value"],
+    ["ENEMY_LIGHT_TICK", "enemy_light_tick"],
+    ["ENEMY_LIGHT_HIT", "enemy_light_hit"],
+    ["LIGHT_STATE", "light_state"],
+    ["LIGHT_X", "light_x"],
+    ["LIGHT_Y", "light_y"],
+    ["LIGHT_SCREEN_LO", "light_screen_lo"],
+    ["LIGHT_SCREEN_HI", "light_screen_hi"],
+    ["LIGHT_BACKING0", "light_backing0"],
+    ["LIGHT_BACKING1", "light_backing1"],
+    ["LIGHT_SCRATCH", "light_scratch"],
+    ["LIGHT_SLOT_SAVE", "light_slot_save"],
   ];
   for (const [, name] of symbols) {
     if (!Number.isInteger(labels.get(name))) throw new Error(`Hybrid ABI symbol ${name} is missing`);
@@ -670,6 +682,8 @@ async function build() {
       "/project/build/entity-effects.inc": entityEffectsInclude,
       "/project/build/frontend-h31.inc": frontendH31Include,
       "/project/build/director-abi.inc": directorAbiInclude,
+      "/project/build/light-wingman.s": fs.readFileSync(
+        path.join(rootDirectory, "src", "hybrid", "light-wingman.s")),
     },
     [
       "--cpu",
@@ -695,11 +709,23 @@ async function build() {
   writeFile(path.join(buildDirectory, "main.o"), objectFile);
   writeFile(path.join(buildDirectory, "main.lst"), assembled.outputs["/project/build/main.lst"]);
 
+  // LIGHT_CODE is linked with the main image but runs directly after the C
+  // extension composite, whose stream later carries it. Its start therefore
+  // follows the measured C extension size; ld65 rejects any overflow of $8FFF.
+  const cExtensionSegment = directorModule.codeSegments.find(({ name }) => name === "extension");
+  const lightCodeRunAddress = cExtensionSegment
+    ? cExtensionSegment.runAddress + cExtensionSegment.data.length : null;
+  const bootConfig = lightCodeRunAddress === null ? config : Buffer.from(
+    config.toString("utf8").replace(
+      /LIGHTFILE:(\s*)start = \$[0-9A-Fa-f]+, size = \$[0-9A-Fa-f]+/,
+      `LIGHTFILE:$1start = $${lightCodeRunAddress.toString(16).toUpperCase()}, size = $${
+        (0x9000 - lightCodeRunAddress).toString(16).toUpperCase().padStart(4, "0")}`,
+    ));
   const linked = await runWasmTool(
     "ld65",
     {
       "/project/build/main.o": objectFile,
-      "/project/cfg/atari-boot.cfg": config,
+      "/project/cfg/atari-boot.cfg": bootConfig,
     },
     [
       "--large-alignment",
@@ -872,13 +898,53 @@ async function build() {
     entityCodeLoadAddress - loadAddress,
     entityCodeLoadAddress - loadAddress + entityCodeBytes,
   );
+  // The zero-filled PICKUPFILE is the complete stream image: LIGHT_RESIDENT,
+  // then PICKUP_CODE, then zero bytes up to the fixed $8B67 collision module.
+  const pickupFileBytes = labels.get("__PICKUPFILE_SIZE__");
+  const lightResidentBytes = labels.get("__LIGHT_RESIDENT_SIZE__") ?? 0;
   const pickupCodeRuntime = Buffer.from(linkedPayload.subarray(
     pickupCodeFileOffset,
-    pickupCodeFileOffset + pickupCodeBytes,
+    pickupCodeFileOffset + pickupFileBytes,
   ));
-  if (pickupCodeRunAddress !== weaponPickupRuntimeAddress ||
-    pickupCodeRuntime.length !== pickupCodeBytes || pickupCodeBytes > 0x0800) {
-    throw new Error("PMG pickup and lower-cell primitive do not fit $8800-$8FFF");
+  if ((labels.get("__LIGHT_RESIDENT_RUN__") ?? weaponPickupRuntimeAddress) !==
+      weaponPickupRuntimeAddress ||
+    pickupCodeRunAddress !== weaponPickupRuntimeAddress + lightResidentBytes ||
+    pickupCodeRuntime.length !== pickupFileBytes ||
+    lightResidentBytes + pickupCodeBytes > pickupFileBytes) {
+    throw new Error("Light kernel, PMG pickup and lower-cell primitive do not fit $8776-$8B66");
+  }
+  const lightCodeBytes = labels.get("__LIGHT_CODE_SIZE__") ?? 0;
+  const lightPlacement = {
+    residentRunAddress: weaponPickupRuntimeAddress,
+    residentBytes: lightResidentBytes,
+    extensionTailRunAddress: lightCodeRunAddress,
+    extensionTailBytes: lightCodeBytes,
+    starfieldTailRunAddress: labels.get("light_backing") ?? null,
+    starfieldTailBytes: (labels.get("light_starfield_end") ?? 0) -
+      (labels.get("light_backing") ?? 0),
+  };
+  if (lightCodeBytes > 0) {
+    const lightCodeFileOffset = labels.get("__LIGHTFILE_FILEOFFS__");
+    if (labels.get("__LIGHT_CODE_RUN__") !== lightCodeRunAddress) {
+      throw new Error("LIGHT_CODE does not directly follow the C extension composite");
+    }
+    const lightCode = linkedPayload.subarray(
+      lightCodeFileOffset, lightCodeFileOffset + lightCodeBytes);
+    cExtensionSegment.cBytes = cExtensionSegment.data.length;
+    cExtensionSegment.lightCodeBytes = lightCodeBytes;
+    cExtensionSegment.data = Buffer.concat([cExtensionSegment.data, lightCode]);
+    cExtensionSegment.packed = packBroadsideLzss(cExtensionSegment.data);
+    if (!unpackBroadsideLzss(cExtensionSegment.packed).equals(cExtensionSegment.data)) {
+      throw new Error("Hybrid extension + LIGHT_CODE LZSS round trip failed");
+    }
+    if (cExtensionSegment.runAddress + cExtensionSegment.data.length > 0x9000 ||
+      cExtensionSegment.packed.length > 0x3c0) {
+      throw new Error(`Hybrid extension + LIGHT_CODE is ${cExtensionSegment.data.length} B raw / ` +
+        `${cExtensionSegment.packed.length} B packed; limits are $8C7D-$8FFF and 960 B`);
+    }
+    directorModule.codeRaw = Buffer.concat(directorModule.codeSegments.map(({ data }) => data));
+    directorModule.codePacked = Buffer.concat(
+      directorModule.codeSegments.map(({ packed }) => packed));
   }
   const capitalPlayerCollisionModule = await buildResidentModule({
     sourcePath: path.join(rootDirectory, "src", "capital-player-collision.s"),
@@ -1228,7 +1294,7 @@ async function build() {
     pickupCodeRuntime: Buffer.concat([
       pickupCodeRuntime, capitalPlayerCollisionModule.raw,
     ]),
-    pickupCodeRunAddress,
+    pickupCodeRunAddress: weaponPickupRuntimeAddress,
     integrationGlueRuntime: glueModule.raw,
     integrationGlueRunAddress: glueFinalAddress,
     directorRuntime: directorModule.raw,
@@ -1559,6 +1625,7 @@ async function build() {
       },
     },
     directorCodeRuntime: null,
+    lightWingman: lightPlacement,
     directorCodeRuntimes: directorCodeChunks.map(({ name, runAddress, transportAddress, data,
       packed: segmentPacked, lateCompressed, record, chunk }) => ({
       name,
@@ -2260,7 +2327,12 @@ async function build() {
   writeFile(path.join(buildDirectory, "a2-kernel-runtime.bin"), a2KernelRuntime);
   writeFile(path.join(buildDirectory, "entity-code-runtime.bin"), entityCodeRuntime);
   writeFile(path.join(buildDirectory, "entity-code-runtime-packed.bin"), packedEntityCodeRuntime);
-  writeFile(path.join(buildDirectory, "pickup-code-runtime.bin"), pickupCodeRuntime);
+  // PICKUP_CODE proper (at __PICKUP_CODE_RUN__), excluding the LIGHT_RESIDENT
+  // prefix and the zero fill before the collision module.
+  writeFile(path.join(buildDirectory, "pickup-code-runtime.bin"), pickupCodeRuntime.subarray(
+    lightResidentBytes, lightResidentBytes + pickupCodeBytes));
+  writeFile(path.join(buildDirectory, "light-resident-runtime.bin"),
+    pickupCodeRuntime.subarray(0, lightResidentBytes));
   writeFile(path.join(buildDirectory, "weapon-pickup-phase-runtime.bin"), weaponPickupPhaseRuntime);
   writeFile(path.join(buildDirectory, "weapon-pickup-phase-runtime-packed.bin"), packedWeaponPickupPhaseBank);
   writeFile(path.join(buildDirectory, "void-strike-65.map"), mapFile);

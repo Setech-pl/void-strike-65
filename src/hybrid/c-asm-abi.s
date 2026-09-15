@@ -29,7 +29,11 @@ DIRECTOR_LOW_BYTES = 242
 .import _enemy_c_retire_member
 .import _enemy_c_apply_pending_damage
 .import _enemy_c_recycle
+.import _enemy_c_light_tick, _enemy_c_light_hit
 .import _enemy_archetypes
+.import _light_state, _light_hp, _light_x, _light_y, _light_fire_timer
+.import _light_screen_lo, _light_screen_hi
+.import _light_backing0, _light_backing1, _light_scratch, _light_slot_save
 .import _enemy_profile_movement_id, _enemy_profile_fire_policy_id
 .import _enemy_profile_burst_count, _enemy_profile_burst_interval
 .import _enemy_profile_post_burst_frames, _enemy_profile_renderer_class
@@ -74,6 +78,10 @@ DIRECTOR_LOW_BYTES = 242
 .export enemy_profile_post_burst_frames, enemy_profile_renderer_class
 .export enemy_profile_weapon_class, enemy_profile_score_bcd
 .export enemy_profile_director_value
+.export enemy_light_tick, enemy_light_hit
+.export light_state, light_hp, light_x, light_y, light_fire_timer
+.export light_screen_lo, light_screen_hi
+.export light_backing0, light_backing1, light_scratch, light_slot_save
 
 .segment "DIRECTOR_ABI"
 
@@ -223,3 +231,16 @@ enemy_profile_renderer_class = _enemy_profile_renderer_class
 enemy_profile_weapon_class = _enemy_profile_weapon_class
 enemy_profile_score_bcd = _enemy_profile_score_bcd
 enemy_profile_director_value = _enemy_profile_director_value
+enemy_light_tick = _enemy_c_light_tick
+enemy_light_hit = _enemy_c_light_hit
+light_state = _light_state
+light_hp = _light_hp
+light_x = _light_x
+light_y = _light_y
+light_fire_timer = _light_fire_timer
+light_screen_lo = _light_screen_lo
+light_screen_hi = _light_screen_hi
+light_backing0 = _light_backing0
+light_backing1 = _light_backing1
+light_scratch = _light_scratch
+light_slot_save = _light_slot_save

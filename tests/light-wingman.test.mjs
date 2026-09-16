@@ -113,8 +113,10 @@ test("Light kernel placement is legal, resident and inside every reviewed gate",
   // entity_effects_erase (96 B); 107 B after the debris late publication
   // (frame-start debris erase and mid-frame debris render removed from
   // ENTITY_CODE, guarded erase and cell-loop render added).
-  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 107,
-    "ENTITY_CODE staging margin tracks the debris late-publication change");
+  // 75 B after the Wingman and Interceptor art moved to the ENTITY_CODE tail
+  // (+32 B packed).
+  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 75,
+    "ENTITY_CODE staging margin tracks the Light art tables");
   assert.equal(manifest.capitalPlayerCollisionRuntime.runAddress, 0x8b67);
   // light_add_score exactly fills the retired 17-byte BROADSIDE entry pad.
   assert.equal(L("light_add_score"), L("entity_complete_scroll_tick") + 3);
@@ -232,6 +234,34 @@ test("ASM emits one red PairShot owned by the leader's P1 emitter bit", () => {
   image[L("light_fire_timer")] = 0;
   run(image, "light_update");
   assert.deepEqual([...image.subarray(active + ENEMY_BASE, active + 10)], [2, 2, 2, 2, 2]);
+});
+
+test("light_update installs the selected archetype's art into glyphs 120/121", () => {
+  const art = new Map([
+    [12, [0xf0, 0xfc, 0x3f, 0x0f, 0x0f, 0x03, 0x03, 0x00,
+      0x0f, 0x3f, 0xfc, 0xf0, 0xf0, 0xc0, 0xc0, 0x00]],
+    [24, [0x28, 0xea, 0x3a, 0x09, 0x02, 0x02, 0x03, 0x00,
+      0x28, 0xab, 0xac, 0x60, 0x80, 0x80, 0xc0, 0x00]],
+  ]);
+  for (const [offset, bytes] of art) {
+    const image = game(2);
+    image[L("_encounter_light_index")] = offset === 24 ? 1 : 0;
+    run(image, "enemy_spawn_raiders");
+    assert.equal(image[L("light_archetype_offset")], offset);
+    setLeader(image, 80, 112);
+    image.fill(0x55, CHARSET + 120 * 8, CHARSET + 122 * 8);
+    run(image, "light_update");
+    assert.deepEqual([...image.subarray(CHARSET + 120 * 8, CHARSET + 122 * 8)], bytes,
+      `archetype offset ${offset}`);
+    assert.deepEqual([image[CHARSET + 119 * 8 + 7], image[CHARSET + 122 * 8]], [0, 0],
+      "neighbouring glyphs untouched");
+  }
+  // Both 16-byte tables sit contiguously at the ENTITY_CODE tail, one page.
+  const wingman = L("light_glyph");
+  assert.equal(L("light_interceptor_glyph"), wingman + 16);
+  assert.equal(L("light_glyph_end"), wingman + 32);
+  assert.equal(wingman >> 8, (wingman + 31) >> 8, "no page crossing");
+  assert.equal(L("light_glyph_end"), L("__ENTITY_CODE_RUN__") + L("__ENTITY_CODE_SIZE__"));
 });
 
 test("a player PairShot kills only the Light, scores its record and frees the shot", () => {

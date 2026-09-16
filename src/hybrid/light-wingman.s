@@ -19,6 +19,10 @@
 LIGHT_WIDTH_HPOS = 8
 LIGHT_HEIGHT_SCANLINES = 8
 LIGHT_CELL_COUNT = 2
+LIGHT_GLYPH_BYTES = LIGHT_HEIGHT_SCANLINES*LIGHT_CELL_COUNT
+; ENEMY_ARCHETYPE_OFFSET(ENEMY_ARCHETYPE_INTERCEPTOR) in src/c/enemy-archetype.h;
+; tests/source-contracts.test.mjs cross-checks the two.
+LIGHT_OFFSET_INTERCEPTOR = 24
 LIGHT_GLYPH = WEAPON_PICKUP_GLYPH_BASE          ; 120/121: retired pickup bank
 LIGHT_SCREEN_CODE = LIGHT_GLYPH|CAPITAL_PROJECTILE_HOSTILE_ATTRIBUTE
 LIGHT_PROJECTILE_OWNER = FIGHTER_PROJECTILE_INTERCEPTOR|$04
@@ -37,6 +41,7 @@ LIGHT_RENDER_BOTTOM = ENTITY_GAMEPLAY_BOTTOM-8
 ;   LIGHT_CODE     tail of the hybrid extension composite, carried in the
 ;                  existing late-compressed extension stream
 ;   LIGHT_RESIDENT head of the pickup/collision stream at $8776
+;   ENTITY_CODE    tail: the 32-byte Wingman + Interceptor art tables
 ;   STARFIELD      free tail of the relocated starfield runtime (resolver)
 ;   BROADSIDE      light_add_score in the retired 17-byte entry pad (main.s)
 
@@ -155,11 +160,19 @@ light_update:
     lda LIGHT_STATE
     beq @done
     ; Reinstalled every active frame (16 bytes, no latch): copy_charset rebuilds
-    ; glyphs 120/121 from the frontend source at each new game.
-    ldx #(LIGHT_HEIGHT_SCANLINES*2-1)
+    ; glyphs 120/121 from the frontend source at each new game. C names the
+    ; record; ASM only picks the matching art (Y = source end, X = glyph end).
+    ldy #(LIGHT_GLYPH_BYTES-1)
+    lda LIGHT_ARCHETYPE_OFFSET
+    cmp #LIGHT_OFFSET_INTERCEPTOR
+    bne :+
+    ldy #(LIGHT_GLYPH_BYTES*2-1)
+:
+    ldx #(LIGHT_GLYPH_BYTES-1)
 @glyph:
-    lda light_glyph,x
+    lda light_glyph,y
     sta CHARSET+LIGHT_GLYPH*8,x
+    dey
     dex
     bpl @glyph
 @contact:
@@ -243,10 +256,34 @@ light_destroyed:
     jsr update_score_display
     jmp play_hit_sound
 
-; Downward swept-wing fighter, ANTIC 4 colour 3 (hostile bank), 2x1 cells.
+; Light art: Wingman then Interceptor, 16 bytes each (left cell, right cell),
+; contiguous at the ENTITY_CODE tail so light_update reads both through one
+; indexed operand without a page crossing. Codes stay 120|$80 / 121|$80, so
+; bit pattern %11 is COLPF3 (hostile red); %01 COLPF0 white, %10 COLPF1 steel.
+.segment "ENTITY_CODE"
+
+; Wingman: downward swept-wing fighter, colour 3 only.
 light_glyph:
     .byte $F0,$FC,$3F,$0F,$0F,$03,$03,$00
     .byte $0F,$3F,$FC,$F0,$F0,$C0,$C0,$00
+; Interceptor: steel dart, red wing tips, trailing edges and gun, white
+; canopy (. black, S steel, R red, W white; left cell | right cell):
+;   . S S . | . S S .
+;   R S S S | S S S R
+;   . R S S | S S R .
+;   . . S W | W S . .
+;   . . . S | S . . .
+;   . . . S | S . . .
+;   . . . R | R . . .
+;   . . . . | . . . .
+light_interceptor_glyph:
+    .byte $28,$EA,$3A,$09,$02,$02,$03,$00
+    .byte $28,$AB,$AC,$60,$80,$80,$C0,$00
+light_glyph_end:
+
+.assert light_interceptor_glyph - light_glyph = LIGHT_GLYPH_BYTES, error, "Light art tables must be contiguous"
+.assert light_glyph_end - light_glyph = LIGHT_GLYPH_BYTES*2, error, "Light art tables must be 32 bytes"
+.assert >light_glyph = >(light_glyph_end-1), error, "Light art tables must not cross a page"
 
 .segment "STARFIELD"
 

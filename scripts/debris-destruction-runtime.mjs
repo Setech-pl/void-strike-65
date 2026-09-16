@@ -436,7 +436,9 @@ export function executeDebrisDestructionTrace({
   runRoutine(memory, labels, "unpack_weapon_pickup_phase_runtime");
   runRoutine(memory, labels, "unpack_starfield_runtime");
   memory.set(fs.readFileSync(path.join(root, "build", "integration-glue.bin")), 0x4efe);
-  memory.fill(0, 0x80f4, 0x8100);
+  // Boot staging leaves residue in $8100-$810F; lifecycle_c_init clears the
+  // Light record in the game, so the harness starts with no Light as well.
+  memory.fill(0, 0x80f4, 0x8110);
   memory[0x80fb] = 0x6d;
   memory[0x80fc] = 0xff;
   memory[0x80f6] = 3;
@@ -564,7 +566,9 @@ export function executeInterceptorBreakupTrace({
       "resolve_effect_backing_below_enemy_pairshot")] = 0x60;
   }
   memory.set(fs.readFileSync(path.join(root, "build", "integration-glue.bin")), 0x4efe);
-  memory.fill(0, 0x80f4, 0x8100);
+  // Boot staging leaves residue in $8100-$810F; lifecycle_c_init clears the
+  // Light record in the game, so the harness starts with no Light as well.
+  memory.fill(0, 0x80f4, 0x8110);
   memory[0x80fb] = 0x6d;
   memory[0x80fc] = 0xff;
   memory[0x80f6] = 3;

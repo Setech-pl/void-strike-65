@@ -146,7 +146,11 @@ incrementally (`1 -> 2 -> up to 4` Light slots). Do not implement that capacity
 before a task requires it.
 
 **Shared renderer.** Wingman and Interceptor share one renderer class and one
-ASM kernel. Adding a Light-class archetype must not introduce PMG allocation,
+ASM kernel. Per-archetype art is data only: two 16-byte glyph tables at the
+ENTITY_CODE tail, of which `light_update` copies the one named by
+`light_archetype_offset` into glyphs 120/121 (`LIGHT_OFFSET_INTERCEPTOR = 24`,
+cross-checked against `ENEMY_ARCHETYPE_OFFSET(ENEMY_ARCHETYPE_INTERCEPTOR)`);
+codes, erase, render, backing and collision are shared. Adding a Light-class archetype must not introduce PMG allocation,
 PMG multiplexing, another renderer architecture, a global compositor, or a new
 raster-ownership architecture.
 
@@ -230,7 +234,8 @@ C-owned lifecycle field.
 | lifecycle + Light CODE | 725 | `$8C95-$8F69` (`41ace65`); 485 B `$8C95-$8E79` at `b4b942e` after the sector C moved to the window below; 635 B `$8CA3-$8F1D` in the 4.4 candidate |
 | sector transition C (`sector_c_*`, step 4.3) | 240 | `$8602-$86F1` (`HYBRID_C_SECTOR_RAM`, 8 B free) |
 | Light ASM `LIGHT_CODE` (late publication: erase, render) | 133 | `$8F6A-$8FEE` (`41ace65`); 203 B `$8E7A-$8F44` at `b4b942e` with the debris late-publication kernel; same 203 B at `$8F1E-$8FE8` in the 4.4 candidate, 23 B tail |
-| Light ASM `LIGHT_RESIDENT` (update, shot, kill, glyph) | 226 | `$8776-$8857`; 229 B `$8776-$885A` in the 4.4 candidate (`ldx LIGHT_ARCHETYPE_OFFSET`) |
+| Light ASM `LIGHT_RESIDENT` (update, shot, kill, glyph) | 226 | `$8776-$8857`; 229 B `$8776-$885A` in the 4.4 candidate (`ldx LIGHT_ARCHETYPE_OFFSET`); 225 B `$8776-$8856` in the 4.4b candidate (art moved out, archetype art selection added) |
+| Light ASM art tables (Wingman + Interceptor, ENTITY_CODE tail, 4.4b candidate) | 32 | `$9D31-$9D50` |
 | Light ASM lower-layer backing resolver (STARFIELD tail) | 31 | `$5D45-$5D63` |
 | Light ASM score add (retired BROADSIDE pad) | 17 | `$77A1-$77B1` |
 | cc65 RNG CODE | 21 | `$9D5E-$9D72` |

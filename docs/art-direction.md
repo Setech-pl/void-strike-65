@@ -75,10 +75,15 @@ pixels while preserving the established hull silhouette and backing behavior.
 - **Light Wingman** — small 2x1 character enemy in the gameplay charset, glyphs
   120-121, installed at runtime in colour 3 with the hostile bit. It allocates
   no PMG player.
-- **Interceptor (planned)** — Light renderer class, so a character enemy with no
-  PMG player. Its silhouette is **not decided**. The blocked 2026-09-16
-  experiment reused the Wingman glyph as a functional placeholder; that
-  placeholder is not art direction and must not be promoted to one.
+- **Interceptor** (`OWNER-SMOKE CANDIDATE`, roadmap 4.4b visual identity) —
+  Light renderer class, so a character enemy with no PMG player, sharing glyphs
+  120-121 with the Wingman; `light_update` installs the art of the selected
+  archetype. It is a narrow downward dart in three colours of the same hostile
+  cells: steel `COLPF1` body, red `COLPF3` wing tips, trailing edges and gun,
+  and a white `COLPF0` canopy. The Wingman stays a one-colour red swept wing,
+  so the two read apart by silhouette and by colour mass. A distinct
+  Interceptor projectile is deferred to roadmap 4.5; both still fire the red
+  hostile PairShot.
 
 ## Pickups
 

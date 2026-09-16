@@ -14,7 +14,8 @@ the values below.
 ### Repository HEAD
 
 `experiment/hybrid-c-director`. HEAD carries the roadmap 4.4 Interceptor
-`OWNER-SMOKE CANDIDATE` (section below) on top of `f4cb18b`, the
+`OWNER-SMOKE CANDIDATE` and its 4.4b visual identity (section below) on top of
+`f4cb18b`, the
 documentation-only reconciliation of the owner acceptance recorded here. The
 candidate is not accepted; the accepted runtime is still `b4b942e`.
 
@@ -118,8 +119,8 @@ comparing CPU.
 - test debt: the full `node --test tests/*.test.mjs` run keeps known stale
   failures — 115 at `b4b942e` (measured 2026-09-16 on a clean export, counting
   the owner's uncommitted `tests/booster-admission-diagnostic.test.mjs`) and
-  the same 115 names at the Interceptor candidate; treat a new failure name as
-  a regression signal.
+  the same 115 names at the Interceptor candidate and at its 4.4b visual
+  identity; treat a new failure name as a regression signal.
 
 ---
 
@@ -262,9 +263,60 @@ superseded blocked-experiment evidence:
 
 ---
 
+### 4.4b Interceptor visual identity (owner decision A+C) — `OWNER-SMOKE CANDIDATE`
+
+ASM publication data only; C, records, codes, erase/render, backing, collision,
+PMG, DLI/palette and the PairShot renderer are unchanged (a distinct
+Interceptor projectile is deferred to 4.5).
+
+- **Art.** A new 16-byte Interceptor table (steel `COLPF1` dart, red `COLPF3`
+  wing tips, trailing edges and gun, white `COLPF0` canopy) follows the
+  unchanged Wingman table; both moved from `LIGHT_RESIDENT` to the ENTITY_CODE
+  tail, `$9D31-$9D50`, contiguous in one page (link-time asserts).
+- **Selection.** `light_update` reads source end 15 (Wingman) or 31
+  (Interceptor) by comparing `light_archetype_offset` with the ASM equate
+  `LIGHT_OFFSET_INTERCEPTOR = 24`, which `source-contracts` cross-checks with
+  `ENEMY_ARCHETYPE_OFFSET(ENEMY_ARCHETYPE_INTERCEPTOR)`; it still writes glyphs
+  120/121 with codes `120|$80`/`121|$80`.
+- **Placement (measured, `c1c106e` → candidate).** ENTITY_CODE 3,121 → 3,153 B
+  (packed 2,701 → 2,733 B); **ENTITY_CODE free tail 45 → 13 B**;
+  `LIGHT_RESIDENT` 229 → 225 B; pickup stream fill 11 → 15 B; pickup record
+  1,161 → 1,157 B; ENTITY_CODE staging-to-BROADSIDE margin 107 → 75 B; linked
+  runtime 17,470 → 17,502 B; simultaneous / safe residency 19,459 / 2,728 →
+  19,491 / 2,696 B; **initial boot envelope 44 → 12 B**, the 12 B minimum at an
+  unchanged sector count. `HYBRID_C_EXT` tail (23 B) and packed STARFIELD
+  (1,805 B) unchanged. Both scarce margins are recorded, not gates.
+- **CPU (measured).** 6502 harness, `light_update` with a live Light: Wingman
+  472 → 515 cycles (+43), Interceptor 437 → 481 (+44; it previously installed
+  the Wingman art). Native PAL, candidate: `2-sweep-fire4` 29,918,
+  `2-sweep-fire6` 29,705, `2-neutral-fire0` 29,847, `2-evasive-fire3` 29,624
+  cycles; 0 missed frames, 0 extra VBI, 0 DLI ordering errors; the
+  `DFTRACE_LIGHT_OUTPUT` probe shows an Interceptor alive in all four (1-2
+  lives, lateral pursuit in three). Worst candidate maximum 30,406 cycles
+  (`debris-gate-0-neutral-fire0`), under the 31,200 target.
+- **Native gates.** `--boot-smoke-only`: 4 XEX/ATR cold starts pass.
+  `--debris-gate-only`: PASS on the three natural replays — 0 blank, 0 partial,
+  0 disappearances, first visible Y 24 in capital and post-capital phases,
+  0 missed frames; maxima 30,101 / 30,406 / 30,050 cycles.
+- **Tests.** `light-wingman` (glyph 120/121 bytes via `light_update` for
+  offsets 12 and 24, table contiguity), `light-interceptor` (placement
+  numbers), `source-contracts` (offset cross-check). Harness defect fixed:
+  `scripts/debris-destruction-runtime.mjs` now clears the whole Light state
+  `$8100-$810F`, as `lifecycle_c_init` does; boot-staging residue there had
+  decoded to a phantom live Light that took 6 of the 745 reproducer PairShots
+  once ENTITY_CODE grew. The reproducer is 745/745 with 0 remnants on both
+  `c1c106e` and the candidate. Full suite: 628 tests, 115 failing, the
+  identical failure-name set to `c1c106e` (626 tests, 115 failing).
+
+Candidate XEX `3adc3954…`, owner-smoke copy in
+`build/owner-smoke/interceptor-visual-3adc3954/`.
+
+---
+
 ## Current task
 
-Owner smoke of the roadmap 4.4 Interceptor candidate (section above).
+Owner smoke of the roadmap 4.4 Interceptor candidate including its 4.4b visual
+identity (section above).
 
 ## Next roadmap step
 

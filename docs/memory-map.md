@@ -134,13 +134,26 @@ only for the candidate build.
 | `$8110-$8118` | 9 B | unchanged: derived Raider profile cache |
 | `$8119` | 1 B | `encounter_light_index`: **provisional** Light schedule counter (`HYBRID_ENCOUNTER_STATE`), reset in `lifecycle_c_init`; smoke scheduling only, replaced by roadmap 4.6 |
 | `$811A-$813F` | 38 B | unowned |
-| `$8776-$885A` | 229 B | `LIGHT_RESIDENT` (+3 B `ldx LIGHT_ARCHETYPE_OFFSET` in `light_destroyed`) |
-| `$885B-$8B5B` | 769 B | `PICKUP_CODE`, same size, moved 3 B |
-| `$8B5C-$8B66` | 11 B | zero fill of the pickup/collision stream image (14 B at `b4b942e`) |
+| `$8776-$8856` | 225 B | `LIGHT_RESIDENT` (+3 B `ldx LIGHT_ARCHETYPE_OFFSET` in `light_destroyed`; 4.4b: −16 B Wingman art moved out, +12 B archetype art selection) |
+| `$8857-$8B57` | 769 B | `PICKUP_CODE`, same size (`$885B-$8B5B` before 4.4b) |
+| `$8B58-$8B66` | 15 B | zero fill of the pickup/collision stream image (14 B at `b4b942e`, 11 B before 4.4b) |
 | `$8C7D-$8CA2` | 38 B | `ENEMY_ARCHETYPE_DATA`: Raider, Wingman and Interceptor records (36 B) plus the 2 B provisional schedule table |
 | `$8CA3-$8F1D` | 635 B | `HYBRID_C_EXT`: lifecycle, Light and Interceptor C (+150 B) |
 | `$8F1E-$8FE8` | 203 B | `LIGHT_CODE`, unchanged size, moved with the longer C composite |
 | `$8FE9-$8FFF` | 23 B | free contiguous `HYBRID_C_EXT` tail — scarce (187 B at `b4b942e`; owner floor 16 B) |
+| `$9100-$9D30` | 3,121 B | ENTITY_CODE, unchanged |
+| `$9D31-$9D40` | 16 B | 4.4b `light_glyph`: Wingman art, moved from `LIGHT_RESIDENT`, bytes unchanged |
+| `$9D41-$9D50` | 16 B | 4.4b `light_interceptor_glyph`: Interceptor art (one page with the Wingman table) |
+| `$9D51-$9D5D` | 13 B | free ENTITY_CODE reservation tail — scarce (45 B before 4.4b) |
+
+Roadmap 4.4b (Interceptor visual identity) changes only the ENTITY_CODE,
+`LIGHT_RESIDENT`, `PICKUP_CODE` and stream-fill rows above: ENTITY_CODE is
+3,153 B raw / 2,733 B packed (2,701 B before), its staging-to-BROADSIDE margin
+75 B (107 B) and its source/staging overlap 88 B (56 B); the pickup/collision
+record is 1,157 B (1,161 B; stream 956 B packed); linked runtime 17,502 B,
+simultaneous residency 19,491 B, safe 2,696 B. The initial boot block keeps its
+sector count, but its envelope is 12 B — the 12 B minimum (44 B before), so the
+next byte of initial boot content adds a sector.
 
 Transport: the extension record is 876 B raw / 785 B packed of 960, staged at
 `$7810-$7B20` and expanded to `$8C7D-$8FE8`; it grows from 6 to 7 ATR sectors

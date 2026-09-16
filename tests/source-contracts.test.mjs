@@ -34,6 +34,20 @@ test("source keeps the documented PAL and PMG hardware contract", () => {
   assert.match(source, /ldx #\$70\s*\nwait_frame_at_line:\s*\n@wait_for_line:/);
 });
 
+test("the ASM Light art selector matches the C Interceptor record offset", () => {
+  const light = fs.readFileSync(path.join(rootDirectory, "src", "hybrid", "light-wingman.s"), "utf8");
+  const header = fs.readFileSync(path.join(rootDirectory, "src", "c", "enemy-archetype.h"), "utf8");
+  const asm = /^LIGHT_OFFSET_INTERCEPTOR\s*=\s*(\d+)\s*$/m.exec(light);
+  const index = /ENEMY_ARCHETYPE_INTERCEPTOR\s*=\s*(\d+)\s*,/.exec(header);
+  const recordBytes = /#define ENEMY_ARCHETYPE_RECORD_BYTES\s+(\d+)u/.exec(header);
+  assert.ok(asm && index && recordBytes, "Light art selector or archetype layout not found");
+  assert.match(header,
+    /#define ENEMY_ARCHETYPE_OFFSET\(index\) \(\(index\) \* ENEMY_ARCHETYPE_RECORD_BYTES\)/);
+  assert.equal(Number(asm[1]), Number(index[1]) * Number(recordBytes[1]),
+    "LIGHT_OFFSET_INTERCEPTOR = ENEMY_ARCHETYPE_OFFSET(ENEMY_ARCHETYPE_INTERCEPTOR)");
+  assert.match(light, /cmp #LIGHT_OFFSET_INTERCEPTOR/);
+});
+
 test("accepted gameplay screen reference and its mapping decision are versioned", () => {
   assert.ok(fs.existsSync(path.join(rootDirectory, "assets", "graphics", "void-strike-65-screen-concept-v1.png")));
   assert.ok(fs.existsSync(path.join(rootDirectory, "docs", "decisions", "ADR-002-gameplay-screen.md")));

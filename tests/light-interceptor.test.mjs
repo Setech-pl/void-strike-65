@@ -299,6 +299,14 @@ test("placement contract: legal composite and packed size, state inside its rese
   // Scarce: the owner floor is 16 B; below it the next change needs a decision.
   assert.ok(manifest.residentCapacity.tails.hybridCExtension >= 16,
     `free HYBRID_C_EXT tail ${manifest.residentCapacity.tails.hybridCExtension} B`);
+  // Visual identity (4.4b): both 16-byte Light art tables are the ENTITY_CODE
+  // tail, LIGHT_RESIDENT loses the Wingman art but gains the selection.
+  assert.equal(manifest.lightWingman.residentBytes, 225);
+  assert.equal(manifest.entityEffects.codeBytes, 3153);
+  assert.equal(manifest.residentCapacity.tails.entityCode, 13);
+  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 15);
+  assert.equal(L("light_glyph"), 0x9d31);
+  assert.equal(L("light_interceptor_glyph"), 0x9d41);
   assert.equal(L("light_archetype_offset"), 0x810c);
   assert.equal(L("_light_burst_left"), 0x810d);
   assert.equal(L("_light_target_x"), 0x810e);

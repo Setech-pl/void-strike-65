@@ -89,14 +89,23 @@ export function loadFighterWeaponsDefinition(sourcePath) {
     definition.player_fighter.rapidFireIntervalFrames === 6 &&
     definition.player_fighter.rapidFireDurationFrames === 500,
   "Rapid Fire must use five PairShots / ten pulses, a six-frame interval and exactly 500 active PAL frames");
-  invariant(definition.player_fighter.spreadShotBurstCount === definition.player_fighter.burstCount &&
+  // Spread opens with a simultaneous left/centre/right volley and then fires a
+  // single centre follow-up, so the burst is two fire events rather than four.
+  // The owner-accepted accounting is unchanged: the volley plus the follow-up
+  // are still four logical PairShots and eight visible pulses.
+  const spreadPairShots = definition.player_fighter.spreadShotProjectileCount +
+    (definition.player_fighter.spreadShotBurstCount - 1);
+  invariant(spreadPairShots === definition.player_fighter.burstCount &&
     definition.player_fighter.spreadShotVisiblePulses === 8 &&
     definition.player_fighter.spreadShotDurationFrames === 500,
-  "Spread Shot must use four PairShots / eight pulses for exactly 500 active PAL frames");
+  "Spread Shot must still total four PairShots / eight pulses for exactly 500 active PAL frames");
+  invariant(definition.player_fighter.spreadShotProjectileCount <=
+    definition.player_fighter.poolSlots - 1,
+  "A Spread volley must leave a pool slot for the centre follow-up");
   invariant(definition.player_fighter.shieldDurationFrames === 250,
     "Shield must last exactly 250 active PAL frames");
-  invariant(definition.player_fighter.spreadShotProjectileCount === 1,
-    "Each Spread emission must allocate exactly one logical PairShot");
+  invariant(definition.player_fighter.spreadShotProjectileCount === 3,
+    "A Spread volley must allocate left, centre and right together");
   invariant(definition.player_fighter.spreadShotCooldownFrames === 28,
     "Spread Shot cooldown must preserve the reduced player-fire cadence");
   invariant(definition.player_fighter.spreadShotInitialOffsetHpos === 4,

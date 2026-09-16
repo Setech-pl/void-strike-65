@@ -237,9 +237,15 @@ yellow/gold.
 
 Spread Shot lasts exactly 500 active PAL frames (10 seconds), uses four
 PairShots / eight visible impulses and retains the 12-frame post-burst pause.
-Its 28-active-frame interval produces the sequence centre, left, right, centre;
-it never combines with Rapid Fire. A blocked allocation remains one pending
-PairShot without accumulating catch-up fire.
+The burst is two fire events at the 28-active-frame interval: it opens with a
+simultaneous left/centre/right volley and then fires a single centre follow-up,
+so the fan is readable in one glance. It never combines with Rapid Fire. A
+blocked allocation remains one pending PairShot without accumulating catch-up
+fire.
+
+Until 2026-09-16 the three directions were fired one interval apart, so a side
+shot was never on screen together with the centre and the weapon read as a
+slower plain shot.
 
 Centre PairShots travel vertically. Left and right PairShots move symmetrically
 by one horizontal-position unit every two active frames. The phase comes from

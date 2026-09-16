@@ -3929,21 +3929,26 @@ allocate_player_fighter_projectile:
     jmp play_player_fighter_projectile_sound
 
 .segment "CODE"
+; The burst opens with a simultaneous left/centre/right volley so the fan is
+; readable in one glance, then fires a single centre follow-up one interval
+; later. Sequencing the three directions one per interval - the previous
+; behaviour - meant a side shot was never on screen with the centre, so the
+; weapon read as a slower plain shot. Two fire events still spend exactly four
+; logical PairShots and eight visible pulses, and the volley leaves one pool
+; slot free for the follow-up.
 allocate_player_fighter_spread_projectiles:
     ldy PLAYER_FIGHTER_BURST_REMAINING
-    lda player_fighter_spread_pairshot_kinds,y
+    cpy #PLAYER_FIGHTER_SPREAD_BURST_COUNT
+    bne @follow_up
+    lda #FIGHTER_PROJECTILE_RENDER_ID_SPREAD_LEFT
+    jsr allocate_player_fighter_projectile_one
+    lda #FIGHTER_PROJECTILE_RENDER_ID_SPREAD_RIGHT
+    jsr allocate_player_fighter_projectile_one
+@follow_up:
+    lda #FIGHTER_PROJECTILE_RENDER_ID_SPREAD_CENTER
     jsr allocate_player_fighter_projectile_one
     bcc allocate_player_fighter_projectile_rejected
     jmp play_player_fighter_projectile_sound
-
-; Remaining counts 4,3,2,1 produce centre,left,right,centre. Four one-cell
-; PairShots retain a readable fan while the burst owns only four logical hits.
-player_fighter_spread_pairshot_kinds:
-    .byte FIGHTER_PROJECTILE_RENDER_ID_SPREAD_CENTER
-    .byte FIGHTER_PROJECTILE_RENDER_ID_SPREAD_CENTER
-    .byte FIGHTER_PROJECTILE_RENDER_ID_SPREAD_RIGHT
-    .byte FIGHTER_PROJECTILE_RENDER_ID_SPREAD_LEFT
-    .byte FIGHTER_PROJECTILE_RENDER_ID_SPREAD_CENTER
 
 allocate_player_fighter_projectile_rejected:
     clc

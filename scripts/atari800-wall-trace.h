@@ -527,6 +527,9 @@ static unsigned dftrace_dli_phase;
 static unsigned dftrace_player_x;
 static unsigned dftrace_player_y;
 static unsigned dftrace_projectile_active;
+static unsigned dftrace_projectile_x;
+static unsigned dftrace_projectile_y;
+static unsigned dftrace_projectile_lifetime;
 static unsigned dftrace_projectile_rendered;
 static unsigned dftrace_projectile_screen_lo;
 static unsigned dftrace_projectile_screen_hi;
@@ -4608,6 +4611,123 @@ static void dftrace_write(void)
 	}
 }
 
+
+/* ------------------------------------------------------------------------
+ * Spread projectile probe (2026-09-16).
+ *
+ * The owner reports that collecting Spread Shot leaves only the centre line
+ * visible. Spread is implemented as a SEQUENCE (centre, left, right, centre at
+ * a 28-frame interval), not a simultaneous fan, so this probe records for every
+ * frame of a Spread burst which of the five player slots hold LEFT / CENTER /
+ * RIGHT shots and what the FINAL framebuffer actually shows on their rows.
+ * Screen-memory writes are deliberately not treated as evidence.
+ * Enabled only by DFSPREAD_PROBE_OUTPUT.
+ * ---------------------------------------------------------------------- */
+static const char *dfspread_path = NULL;
+static FILE *dfspread_file = NULL;
+static unsigned dfspread_written = 0u;
+static unsigned dfspread_limit = 200u;
+static unsigned dfspread_prev_ypos = 0xffffffffu;
+
+static void dfspread_frame_complete(void)
+{
+	unsigned slot, active_count = 0u, kinds = 0u;
+	unsigned rows[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
+	unsigned rowcount = 0u;
+	if (dfspread_file == NULL || dfspread_written >= dfspread_limit)
+		return;
+	/* WEAPON_PICKUP_STATE_SPREAD == 4 in the booster slot. */
+	if (MEMORY_mem[dftrace_entity_state + 2u] != 4u)
+		return;
+	for (slot = 0u; slot < DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT; ++slot)
+		if (MEMORY_mem[dftrace_projectile_active + slot] != 0u)
+			++active_count;
+	if (active_count == 0u)
+		return;
+
+	fprintf(dfspread_file, "%s\n{\"frame\":%u,\"player_x\":%u,\"shots\":[",
+		dfspread_written == 0u ? "" : ",",
+		(unsigned) Atari800_nframes, MEMORY_mem[dftrace_player_x]);
+	for (slot = 0u; slot < DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT; ++slot) {
+		unsigned a = MEMORY_mem[dftrace_projectile_active + slot];
+		const char *kind;
+		if (a == 0u)
+			continue;
+		/* $10 centre, $20 right, $40 left */
+		if (a & 0x40u)      { kind = "LEFT";   kinds |= 1u; }
+		else if (a & 0x20u) { kind = "RIGHT";  kinds |= 2u; }
+		else if (a & 0x10u) { kind = "CENTER"; kinds |= 4u; }
+		else                  kind = "PLAIN";
+		fprintf(dfspread_file, "%s{\"slot\":%u,\"kind\":\"%s\",\"active\":%u,"
+			"\"x\":%u,\"y\":%u,\"life\":%u}",
+			rowcount ? "," : "", slot, kind, a,
+			MEMORY_mem[dftrace_projectile_x + slot],
+			MEMORY_mem[dftrace_projectile_y + slot],
+			MEMORY_mem[dftrace_projectile_lifetime + slot]);
+		if (rowcount < DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT)
+			rows[rowcount++] = MEMORY_mem[dftrace_projectile_y + slot];
+	}
+	fprintf(dfspread_file, "],\"kinds\":%u,\"fb\":[", kinds);
+	/* Final framebuffer rows the shots occupy, run-length encoded. */
+	{
+		unsigned i;
+		int first = 1;
+		for (i = 0u; i < rowcount; ++i) {
+			unsigned y = rows[i];
+			unsigned band;
+			for (band = 0u; band < 12u; ++band) {
+			unsigned screen_row, x = 0u;
+			const UBYTE *line;
+			int firstrun = 1;
+			unsigned sample = y + band;
+			if (sample < DFTRACE_CAPTURE_DMA_Y_OFFSET + 6u || Screen_atari == NULL)
+				continue;
+			screen_row = sample - DFTRACE_CAPTURE_DMA_Y_OFFSET - 6u;
+			if (screen_row >= (unsigned) Screen_HEIGHT)
+				continue;
+			line = (const UBYTE *) Screen_atari + (size_t) screen_row * Screen_WIDTH;
+			fprintf(dfspread_file, "%s{\"y\":%u,\"row\":%u,\"runs\":[",
+				first ? "" : ",", y, screen_row);
+			first = 0;
+			while (x < (unsigned) Screen_WIDTH) {
+				unsigned start = x;
+				UBYTE v = line[x];
+				while (x < (unsigned) Screen_WIDTH && line[x] == v)
+					++x;
+				if (v != 0u) {
+					fprintf(dfspread_file, "%s[%u,%u,%u]",
+						firstrun ? "" : ",", start, x - start, (unsigned) v);
+					firstrun = 0;
+				}
+			}
+			fprintf(dfspread_file, "]}");
+			}
+		}
+	}
+	fprintf(dfspread_file, "]}");
+	fflush(dfspread_file);
+	++dfspread_written;
+}
+
+static void dfspread_observe(void)
+{
+	unsigned ypos;
+	if (dfspread_path == NULL)
+		return;
+	if (dfspread_file == NULL) {
+		dfspread_file = fopen(dfspread_path, "w");
+		if (dfspread_file == NULL) {
+			fprintf(stderr, "voidstrike65 spread probe: cannot open %s\n", dfspread_path);
+			exit(2);
+		}
+		fprintf(dfspread_file, "[");
+	}
+	ypos = ANTIC_ypos;
+	if (dfspread_prev_ypos != 0xffffffffu && ypos < dfspread_prev_ypos)
+		dfspread_frame_complete();
+	dfspread_prev_ypos = ypos;
+}
+
 /* ------------------------------------------------------------------------
  * Pickup visibility probe (2026-09-16).
  *
@@ -5008,6 +5128,9 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_score_hi, "DFTRACE_SCORE_HI");
 	DFTRACE_ADDRESS(dftrace_effect_active_mask, "DFTRACE_EFFECT_ACTIVE_MASK");
 	DFTRACE_ADDRESS(dftrace_effect_active_count, "DFTRACE_EFFECT_ACTIVE_COUNT");
+	DFTRACE_ADDRESS(dftrace_projectile_x, "DFTRACE_PROJECTILE_X");
+	DFTRACE_ADDRESS(dftrace_projectile_y, "DFTRACE_PROJECTILE_Y");
+	DFTRACE_ADDRESS(dftrace_projectile_lifetime, "DFTRACE_PROJECTILE_LIFETIME");
 	DFTRACE_ADDRESS(dftrace_effect_rendered_mask, "DFTRACE_EFFECT_RENDERED_MASK");
 	DFTRACE_ADDRESS(dftrace_effect_y, "DFTRACE_EFFECT_Y");
 	DFTRACE_ADDRESS(dftrace_effect_screen_lo, "DFTRACE_EFFECT_SCREEN_LO");
@@ -5036,6 +5159,7 @@ static void dftrace_init(void)
 			fputs("trace_frame,host_frame,gameplay_frame,scanline,cycle,clock,event,slot,pc,previous_pc,row,column,address,pointer,visible_row,physical_row,address_value,pointer_value,last_writer_pc,glyph_row0,chbase,colpf0,colpf1,sector_state,ring_flags,visible_near_cells,orphan_near_cells,first_orphan_address,first_orphan_writer_pc\n", dftrace_near_file);
 		}
 	}
+	dfspread_path = getenv("DFSPREAD_PROBE_OUTPUT");
 	dfprobe_path = getenv("DFPICKUP_PROBE_OUTPUT");
 	if (getenv("DFPICKUP_PROBE_FRAMES") != NULL)
 		dfprobe_limit = (unsigned) strtoul(getenv("DFPICKUP_PROBE_FRAMES"), NULL, 10);
@@ -5236,6 +5360,7 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 	if (!dftrace_initialised)
 		dftrace_init();
 	dfprobe_observe();
+	dfspread_observe();
 	dftrace_track_character_screen_write(x_register, y_register);
 	dftrace_first_writer_track(x_register, y_register);
 	dftrace_player_pairshot_track(pc, x_register, y_register);

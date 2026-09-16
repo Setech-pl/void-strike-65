@@ -44,15 +44,25 @@ test("Normal, Rapid and Spread retain 8/10/8 visible pulses as 4/5/4 PairShots",
     trace.manifest.fighterWeapons.player_fighter.rapidFireVisiblePulses,
     trace.manifest.fighterWeapons.player_fighter.spreadShotVisiblePulses,
   ], [8, 10, 8]);
+  // Spread opens with a simultaneous left/centre/right volley, so its burst
+  // occupies four slots rather than the two the superseded sequential design
+  // used. Owner decision 2026-09-16: the fan is the contract; firing the three
+  // directions one interval apart meant a side shot was never on screen with
+  // the centre, which read as a slower plain shot.
   assert.deepEqual([
     modes.NORMAL.maximumPoolOccupancy,
     modes.RAPID.maximumPoolOccupancy,
     modes.SPREAD.maximumPoolOccupancy,
-  ], [4, 5, 2]);
-  const spreadKinds = modes.SPREAD.records.filter(({ allocatedProjectiles }) =>
-    allocatedProjectiles > 0).slice(0, 4).map((record) =>
-    record.slots[record.allocatedSlots[0]].active & 0xf0);
-  assert.deepEqual(spreadKinds, [0x10, 0x40, 0x20, 0x10]);
+  ], [4, 5, 4]);
+  // Two fire events: the volley, then the centre follow-up.
+  const spreadEvents = modes.SPREAD.records.filter(({ allocatedProjectiles }) =>
+    allocatedProjectiles > 0).slice(0, 2);
+  assert.deepEqual(spreadEvents.map(({ allocatedProjectiles }) => allocatedProjectiles),
+    [3, 1], "the volley allocates left, centre and right together");
+  const volleyKinds = spreadEvents[0].allocatedSlots
+    .map((slot) => spreadEvents[0].slots[slot].active & 0xf0).sort();
+  assert.deepEqual(volleyKinds, [0x10, 0x20, 0x40],
+    "one volley carries centre, right and left simultaneously");
 });
 
 test("PairShot keeps one collision event per logical player or enemy record", () => {

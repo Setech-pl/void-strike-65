@@ -13,8 +13,10 @@ the values below.
 
 ### Repository HEAD
 
-`experiment/hybrid-c-director`. HEAD is this documentation-only reconciliation
-of the owner acceptance recorded below; it does not change the accepted runtime.
+`experiment/hybrid-c-director`. HEAD carries the roadmap 4.4 Interceptor
+`OWNER-SMOKE CANDIDATE` (section below) on top of `f4cb18b`, the
+documentation-only reconciliation of the owner acceptance recorded here. The
+candidate is not accepted; the accepted runtime is still `b4b942e`.
 
 ### Accepted runtime checkpoint
 
@@ -44,7 +46,8 @@ Hybrid **C/cc65 + ca65**, defined in
 [hybrid-c-architecture.md](hybrid-c-architecture.md).
 
 - C decides WHAT: Encounter Director, sector state, high-level lifecycle,
-  `EnemyArchetype` (Raider, Light Wingman), Raider and Light HP/state,
+  `EnemyArchetype` (Raider, Light Wingman; Interceptor in the candidate),
+  Raider and Light HP/state, Light archetype selection,
   admission/retire/recycle, formation motion, fire decisions, Director
   scheduling and RNG; progressively waves, AI, pickup policy, progression and
   boss state.
@@ -114,8 +117,9 @@ comparing CPU.
   purpose; moving a reviewed margin is an owner decision;
 - test debt: the full `node --test tests/*.test.mjs` run keeps known stale
   failures — 115 at `b4b942e` (measured 2026-09-16 on a clean export, counting
-  the owner's uncommitted `tests/booster-admission-diagnostic.test.mjs`); treat
-  a new failure name as a regression signal.
+  the owner's uncommitted `tests/booster-admission-diagnostic.test.mjs`) and
+  the same 115 names at the Interceptor candidate; treat a new failure name as
+  a regression signal.
 
 ---
 
@@ -163,31 +167,104 @@ transitions, first visible Y 24 in capital and post-capital phases (pre-fix
 
 ---
 
-## Interceptor (plan step 4.4) — owner GO 2026-09-16, not implemented
+## Interceptor (plan step 4.4) — `OWNER-SMOKE CANDIDATE` (2026-09-16)
 
-The 2026-09-16 attempt was `BLOCKED_PLACEMENT`: the architecture held, but the
-result did not fit `HYBRID_C_EXT_RAM`. Step 4.3 Stage 1 and the debris kernel
-leave a 187 B extension tail, which the full-pursuit design fits (143 B raw C
-estimated by the blocked experiment, on the obsolete 882 B basis). No
-candidate XEX exists yet.
+Not accepted until the owner smokes it. Built on the accepted `b4b942e`; the
+2026-09-16 `BLOCKED_PLACEMENT` attempt is superseded.
 
-Owner GO (2026-09-16): full pursuit, reusing the preserved `32f2c20` design,
-with one binding architecture change — the single Light slot is **explicitly
-archetype-selectable** (`Wingman OR Interceptor`); the rejected per-admission
-alternation must not be part of the Light lifecycle, and a separate, clearly
-labelled provisional schedule outside it (replaced by roadmap step 4.6) decides
-which archetype a smoke run shows. See owner decision 18.
+**Design (owner decision 18).** Third `EnemyArchetype` (byte offset 24): HP 1,
+pursuit movement 2, double-tap fire 3 (2 shots 10 frames apart, then 56/44/32
+frames EASY/MEDIUM/HARD), character 2x1 renderer, red PairShot, score `$15`,
+Director value 1. It has no leader: it enters at X 124, Y 0, descends 2 lines
+per frame and, every other frame, steps one 4-HPOS cell toward
+`player_x & $FC`, clamped to 48-200. It retires at Y 232 or outside the fighter
+sector, exactly like the Wingman. No P1/P2, PMG, renderer, publication,
+collision, Director or capacity change.
 
-Superseded blocked-experiment evidence (architecture proof only; its byte
-basis is obsolete):
-[diagnostics/stage-2b2c-interceptor-blocked-placement.json](diagnostics/stage-2b2c-interceptor-blocked-placement.json);
-the unbuildable tree is on `experiment/interceptor-blocked-placement`.
+**Selection contract.** The single Light slot is explicitly
+archetype-selectable (`Wingman OR Interceptor`) through the C-owned byte
+`light_archetype_offset` (12 or 24). The Light admission in
+`enemy_c_spawn_raiders` and `enemy_c_light_tick` only read it; the rejected
+per-admission alternation of `32f2c20` is removed. Its only writer is the
+separate, labelled **provisional** schedule `encounter_light_schedule_advance()`
+— table `{WINGMAN, INTERCEPTOR}` indexed by `encounter_light_index` — called
+only when the slot is free, so a fresh game shows Wingman, Interceptor,
+Wingman… Roadmap 4.6 replaces it. Schedule index finding: no existing state
+qualifies — `STATE_EVENT_INDEX` advances once per Director event (including
+deferral expiry and boss handoff), not once per Light admission, and a busy
+slot skips admission, so it cannot index the table without changing meaning;
+the accepted 1 B counter at `$8119` (`HYBRID_ENCOUNTER_STATE`, reset in
+`lifecycle_c_init`) is used. ASM changes are limited to the
+`light_archetype_offset` ABI equate, `ldx LIGHT_ARCHETYPE_OFFSET` in
+`light_destroyed` and `adc LIGHT_SCORE_BCD,x` in the unchanged 17 B pad.
+
+**Placement (measured, `b4b942e` → candidate).**
+
+| Metric | Before | After |
+| --- | ---: | ---: |
+| `ENEMY_ARCHETYPE_DATA` (3 records + 2 B schedule table) | 24 B `$8C7D-$8C94` | 38 B `$8C7D-$8CA2` |
+| `HYBRID_C_EXT` C | 485 B `$8C95-$8E79` | 635 B `$8CA3-$8F1D` |
+| `LIGHT_CODE` (unchanged size) | 203 B `$8E7A-$8F44` | 203 B `$8F1E-$8FE8` |
+| Extension record raw / packed (limit 960) | 712 / 636 B | 876 / 785 B |
+| **Free `HYBRID_C_EXT` tail** | 187 B | **23 B `$8FE9-$8FFF`** |
+| `LIGHT_RESIDENT` | 226 B | 229 B `$8776-$885A` |
+| `PICKUP_CODE` (unchanged size, 769 B) | `$8858-$8B58` | `$885B-$8B5B` |
+| Pickup stream fill / pickup record of 1,277 B cold | 14 B / 1,158 B | 11 B / 1,161 B |
+| `HYBRID_LIGHT_STATE` | `$8100-$810B` | `$8100-$810F` |
+| Provisional schedule counter | — | `$8119` (1 B) |
+| Simultaneous / safe residency | 19,295 / 2,892 B | 19,459 / 2,728 B |
+| cc65 CODE / RODATA; C stack / new ZP | 1,233 / 182 B; 0 / 0 | 1,383 / 196 B; 0 / 0 |
+
+Physical resident code/data +167 B, BSS +5 B, in previously unowned RAM;
+reserved envelopes unchanged; reusable free capacity −164 B extension tail and
+−3 B pickup fill. The extension record grows from 6 to 7 ATR sectors
+(166-172), moving the RNG record to sector 173. The **23 B extension tail is
+scarce remaining capacity**: above the 16 B owner floor, but the next
+archetype or C growth needs a placement decision. Linked runtime (17,470 B) and
+packed STARFIELD (1,805 B) are unchanged. The cc65 stack/helper audit passes.
+
+**CPU (measured).** Ten `runtime-wall-trace` baseline replays, native PAL, on
+both `b4b942e` and the candidate: 0 missed frames, 0 extra VBI, 0 DLI errors in
+all 20. Candidate worst maximum 29,918 cycles (`2-sweep-fire4`; target headroom
+1,282, hard-gate headroom 2,650) against 29,697 for `b4b942e`
+(`2-sweep-fire6`); `2-evasive-fire3` 29,258 → 29,605. Replays diverge after the
+first Light admission, so per-session deltas (−259 to +831) mix gameplay
+divergence with cost. Isolated C cost (6502 harness, HARD): Light tick worst
+case 127 → 173 cycles for the Wingman and 182 for the Interceptor (firing
+frame), formation admission 88 → 174 cycles once per formation; the score path
+adds one `ldx` (3 cycles). A native Light-slot probe
+(`DFTRACE_LIGHT_OUTPUT`, opt-in, no emulated cost) shows an Interceptor alive
+in all ten candidate replays (1-3 lives each, lateral pursuit observed).
+
+**Native gates.** `--boot-smoke-only`: 4 XEX/ATR cold-start sessions pass.
+`--debris-gate-only` on the three natural replays: PASS — 0 blank, 0 partial,
+0 disappearances, first visible Y 24 in capital and post-capital phases, 0
+publications inside the scanned playfield, 0 missed frames; maxima 30,098 /
+30,406 / 30,050 cycles against 30,008 / 29,764 / 30,022 for `b4b942e` on the
+same (diverging) replays, all under the 31,200 target.
+
+**Tests.** New `tests/light-interceptor.test.mjs` (13): selection contract, no
+toggle source contract, provisional schedule order, admission per difficulty,
+descent and retirement, pursuit clamp and alignment, independence from Heavy
+slot 0, double-tap cadence, visibility and dying gates, 15-point kill and
+fighter-only retirement, placement contract, no PMG. Updated:
+`light-wingman` (third record, explicit Wingman re-admission),
+`hybrid-lifecycle` (extension 876 B, the two static helper calls in the
+generated-C audit), `enemy-combat` (union syntax), `source-contracts`. Full
+suite: 626 tests, 115 failing, the identical failure-name set to `b4b942e`
+(613 tests, 115 failing).
+
+Candidate XEX `01a6ae07…`, owner-smoke copy in
+`build/owner-smoke/light-interceptor-01a6ae07/`. Evidence:
+[diagnostics/stage-2b2h-light-interceptor.json](diagnostics/stage-2b2h-light-interceptor.json);
+superseded blocked-experiment evidence:
+[diagnostics/stage-2b2c-interceptor-blocked-placement.json](diagnostics/stage-2b2c-interceptor-blocked-placement.json).
 
 ---
 
 ## Current task
 
-Roadmap step 4.4: implement the full-pursuit Interceptor on top of `b4b942e`.
+Owner smoke of the roadmap 4.4 Interceptor candidate (section above).
 
 ## Next roadmap step
 

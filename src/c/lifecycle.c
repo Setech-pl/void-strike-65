@@ -29,6 +29,7 @@
 #define ENEMY_X_0                U8_AT(0x5478u)
 #define ENEMY_Y_0                U8_AT(0x547Au)
 #define PLAYER_LIFECYCLE         U8_AT(0x4EAAu)
+#define PLAYER_X                 U8_AT(0x0080u)
 
 /* Light Wingman formation (owner smoke 2026-09-15): centred behind Heavy
  * slot 0 at a fixed offset, never switching sides. The Heavy is 16 HPOS wide
@@ -37,7 +38,13 @@
  * and clamped to the last two-cell start, 48 + (40 - 2) * 4. It trails 8 + 4
  * lines above (enemies fly down). It retires before the recycled bottom ring
  * row, which the late-published Light must never occupy. */
-#define LIGHT                    enemy_archetypes[ENEMY_ARCHETYPE_LIGHT_WINGMAN]
+/* The selected Light record: a constant field base indexed by the C-owned
+ * record offset. Keeping the offset a plain lvalue is what makes cc65 emit
+ * `lda enemy_archetypes+field,y` instead of building a runtime pointer. */
+#define LIGHT_FIELD(field) \
+    ((&enemy_archetypes.byte[field])[light_archetype_offset])
+#define LIGHT_OFFSET_WINGMAN     ENEMY_ARCHETYPE_OFFSET(ENEMY_ARCHETYPE_LIGHT_WINGMAN)
+#define LIGHT_OFFSET_INTERCEPTOR ENEMY_ARCHETYPE_OFFSET(ENEMY_ARCHETYPE_INTERCEPTOR)
 #define LIGHT_CENTRE_OFFSET      4u
 #define LIGHT_ROUND              2u
 #define LIGHT_X_LAST             200u
@@ -45,6 +52,16 @@
 #define LIGHT_FIRE_TOP           24u
 #define LIGHT_FIRE_BOTTOM        224u
 #define LIGHT_RETIRE_Y           232u
+/* Interceptor: no leader, no formation. It descends twice as fast as a Heavy
+ * and closes on the player's column one four-HPOS cell on every other frame,
+ * which averages the player's own maximum horizontal speed. Both bounds and
+ * the entry column are four-aligned, so stepping can never leave the ring. */
+#define LIGHT_X_FIRST            48u
+#define LIGHT_X_ENTRY            124u
+#define LIGHT_X_STEP             4u
+#define INTERCEPTOR_DESCENT      2u
+#define INTERCEPTOR_TRACK_PHASE  2u
+#define ENCOUNTER_LIGHT_SCHEDULE_LENGTH 2u
 
 #define ENEMY_INACTIVE           0u
 #define ENEMY_ACTIVE_STATE       1u
@@ -59,7 +76,7 @@
 
 extern uint8_t asm_sector_pressure_active(void);
 
-const EnemyArchetype enemy_archetypes[ENEMY_ARCHETYPE_COUNT] = {
+const EnemyArchetypeTable enemy_archetypes = { {
     {
         1u,
         ENEMY_MOVEMENT_RAIDER_CROSS_PURSUIT,
@@ -81,13 +98,37 @@ const EnemyArchetype enemy_archetypes[ENEMY_ARCHETYPE_COUNT] = {
         ENEMY_WEAPON_RED_PAIRSHOT,
         0x05u,
         1u
+    },
+    {
+        1u,
+        ENEMY_MOVEMENT_INTERCEPTOR_PURSUIT,
+        ENEMY_FIRE_LIGHT_DOUBLE_TAP,
+        2u, 10u,
+        56u, 44u, 32u,
+        ENEMY_RENDERER_CHARACTER_2X1,
+        ENEMY_WEAPON_RED_PAIRSHOT,
+        0x15u,
+        1u
     }
-};
+} };
 
 typedef char enemy_archetype_must_remain_twelve_bytes[
     sizeof(EnemyArchetype) == 12u ? 1 : -1
 ];
 
+/* PROVISIONAL smoke scheduling only, not a gameplay contract. The Light slot
+ * itself has no ordering rule (see enemy_c_spawn_raiders); this table exists
+ * only so a smoke run demonstrates the Wingman first and the Interceptor
+ * next, repeating. Roadmap step 4.6 (Director-owned wave composition)
+ * replaces this table and its counter. */
+static const uint8_t encounter_light_schedule[ENCOUNTER_LIGHT_SCHEDULE_LENGTH] = {
+    LIGHT_OFFSET_WINGMAN,
+    LIGHT_OFFSET_INTERCEPTOR
+};
+
+#pragma bss-name ("HYBRID_ENCOUNTER_STATE")
+/* PROVISIONAL smoke scheduling counter; see encounter_light_schedule above. */
+volatile uint8_t encounter_light_index;
 #pragma bss-name ("HYBRID_C_STATE")
 volatile uint8_t enemy_profile_movement_id;
 volatile uint8_t enemy_profile_fire_policy_id;
@@ -111,25 +152,45 @@ volatile uint8_t light_backing0;
 volatile uint8_t light_backing1;
 volatile uint8_t light_scratch;
 volatile uint8_t light_slot_save;
+volatile uint8_t light_archetype_offset;
+volatile uint8_t light_burst_left;
+volatile uint8_t light_target_x;
+volatile uint8_t light_post_burst_slot;
 #pragma bss-name ("BSS")
 
 static void publish_raider_profile(void)
 {
-    enemy_profile_movement_id = enemy_archetypes[0].movement_behavior_id;
-    enemy_profile_fire_policy_id = enemy_archetypes[0].fire_policy_id;
-    enemy_profile_burst_count = enemy_archetypes[0].burst_count;
-    enemy_profile_burst_interval = enemy_archetypes[0].burst_interval_frames;
-    if (DIFFICULTY_SETTING == 0u) {
-        enemy_profile_post_burst_frames = enemy_archetypes[0].post_burst_easy_frames;
-    } else if (DIFFICULTY_SETTING == 1u) {
-        enemy_profile_post_burst_frames = enemy_archetypes[0].post_burst_medium_frames;
-    } else {
-        enemy_profile_post_burst_frames = enemy_archetypes[0].post_burst_hard_frames;
+    enemy_profile_movement_id = enemy_archetypes.record[0].movement_behavior_id;
+    enemy_profile_fire_policy_id = enemy_archetypes.record[0].fire_policy_id;
+    enemy_profile_burst_count = enemy_archetypes.record[0].burst_count;
+    enemy_profile_burst_interval = enemy_archetypes.record[0].burst_interval_frames;
+    enemy_profile_post_burst_frames =
+        (&enemy_archetypes.record[0].post_burst_easy_frames)[DIFFICULTY_SETTING];
+    enemy_profile_renderer_class = enemy_archetypes.record[0].renderer_class;
+    enemy_profile_weapon_class = enemy_archetypes.record[0].weapon_class;
+    enemy_profile_score_bcd = enemy_archetypes.record[0].score_bcd;
+    enemy_profile_director_value = enemy_archetypes.record[0].director_value;
+}
+
+/* Reload the selected Light archetype's post-burst pause for this difficulty.
+ * The three per-difficulty fields are adjacent, so one 8-bit index reaches
+ * both the archetype record and the difficulty column. */
+static void light_reload(void)
+{
+    light_fire_timer =
+        (&enemy_archetypes.byte[ENEMY_ARCHETYPE_FIELD_POST_BURST])[light_post_burst_slot];
+}
+
+/* PROVISIONAL smoke scheduling only (see encounter_light_schedule above).
+ * The only writer of light_archetype_offset: the reusable Light admission
+ * below only reads it and holds no ordering or toggle logic of its own. */
+static void encounter_light_schedule_advance(void)
+{
+    light_archetype_offset = encounter_light_schedule[encounter_light_index];
+    ++encounter_light_index;
+    if (encounter_light_index >= ENCOUNTER_LIGHT_SCHEDULE_LENGTH) {
+        encounter_light_index = 0u;
     }
-    enemy_profile_renderer_class = enemy_archetypes[0].renderer_class;
-    enemy_profile_weapon_class = enemy_archetypes[0].weapon_class;
-    enemy_profile_score_bcd = enemy_archetypes[0].score_bcd;
-    enemy_profile_director_value = enemy_archetypes[0].director_value;
 }
 
 void lifecycle_c_init(void)
@@ -143,6 +204,8 @@ void lifecycle_c_init(void)
     ENEMY_HP_1 = 0u;
     ENEMY_LIVE_COUNT = 0u;
     light_state = ENEMY_INACTIVE;
+    light_burst_left = 0u;
+    encounter_light_index = 0u;
     light_screen_hi = 0u;       /* the rebuilt playfield has no Light backing */
     publish_raider_profile();
 }
@@ -235,20 +298,32 @@ uint8_t sector_c_force_final_drain(void)
 void enemy_c_spawn_raiders(void)
 {
     ENEMY_ARCHETYPE = ENEMY_ARCHETYPE_RAIDER;
-    ENEMY_HP_0 = enemy_archetypes[0].hit_points;
-    ENEMY_HP_1 = enemy_archetypes[0].hit_points;
+    ENEMY_HP_0 = enemy_archetypes.record[0].hit_points;
+    ENEMY_HP_1 = enemy_archetypes.record[0].hit_points;
     ENEMY_MEMBER_STATE_0 = ENEMY_ACTIVE_STATE;
     ENEMY_MEMBER_STATE_1 = ENEMY_ACTIVE_STATE;
     ENEMY_LIVE_COUNT = RAIDER_SLOT_COUNT;
     ENEMY_ACTIVE = ENEMY_ACTIVE_STATE;
-    /* The formation admission also admits one wingman for Heavy slot 0. A
-     * wingman still descending from an earlier formation keeps its lifecycle. */
+    /* The formation admission also admits one Light for Heavy slot 0, the
+     * archetype named by the provisional schedule below. A Light still
+     * descending from an earlier formation keeps its lifecycle. */
     if (light_state == ENEMY_INACTIVE) {
+        encounter_light_schedule_advance();
+        /* Difficulty is fixed for a game and the archetype for a life, so the
+         * post-burst column is resolved once here and stays a plain index. */
+        light_post_burst_slot =
+            (uint8_t)(light_archetype_offset + DIFFICULTY_SETTING);
         light_state = ENEMY_ACTIVE_STATE;
-        light_hp = LIGHT.hit_points;
-        light_leaderless = 0u;
+        light_hp = LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_HIT_POINTS);
+        light_burst_left = 0u;
         light_y = 0u;
-        light_fire_timer = (&LIGHT.post_burst_easy_frames)[DIFFICULTY_SETTING];
+        if (light_archetype_offset == LIGHT_OFFSET_WINGMAN) {
+            light_leaderless = 0u;      /* takes its leader's column and lag */
+        } else {
+            light_leaderless = 1u;      /* no leader, ever: free-flying hunter */
+            light_x = LIGHT_X_ENTRY;
+        }
+        light_reload();
     }
 }
 
@@ -308,12 +383,32 @@ uint8_t enemy_c_light_tick(void)
         light_state = ENEMY_INACTIVE;       /* fighter-only lifecycle */
         return 0u;
     }
-    if (ENEMY_MEMBER_STATE_0 != ENEMY_ACTIVE_STATE) {
+    if (light_leaderless == 0u && ENEMY_MEMBER_STATE_0 != ENEMY_ACTIVE_STATE) {
         light_leaderless = 1u;
     }
     if (light_leaderless != 0u) {
-        /* Leader lost: continue straight down until recycled. */
-        if (++light_y >= LIGHT_RETIRE_Y) {
+        /* Free flight. A Wingman that lost its leader drifts straight down at
+         * the Heavy descent rate; an Interceptor is born free-flying, descends
+         * at twice that rate and closes on the player's column one four-HPOS
+         * cell every other frame, which averages the player's own maximum
+         * horizontal speed. PLAYER_X_MIN equals LIGHT_X_FIRST, so only the
+         * upper bound needs clamping, exactly as the formation branch does. */
+        ++light_y;
+        if (light_archetype_offset != LIGHT_OFFSET_WINGMAN) {
+            ++light_y;
+            if ((light_y & INTERCEPTOR_TRACK_PHASE) == 0u) {
+                light_target_x = (uint8_t)(PLAYER_X & 0xFCu);
+                if (light_target_x > LIGHT_X_LAST) {
+                    light_target_x = LIGHT_X_LAST;
+                }
+                if (light_x < light_target_x) {
+                    light_x = (uint8_t)(light_x + LIGHT_X_STEP);
+                } else if (light_x > light_target_x) {
+                    light_x = (uint8_t)(light_x - LIGHT_X_STEP);
+                }
+            }
+        }
+        if (light_y >= LIGHT_RETIRE_Y) {
             light_state = ENEMY_INACTIVE;
             return 0u;
         }
@@ -336,7 +431,15 @@ uint8_t enemy_c_light_tick(void)
         (PLAYER_LIFECYCLE & 1u) != 0u) {
         return 0u;
     }
-    light_fire_timer = (&LIGHT.post_burst_easy_frames)[DIFFICULTY_SETTING];
+    if (light_burst_left == 0u) {
+        light_burst_left = LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_BURST_COUNT);
+    }
+    --light_burst_left;
+    if (light_burst_left != 0u) {
+        light_fire_timer = LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_BURST_INTERVAL);
+    } else {
+        light_reload();
+    }
     return 1u;
 }
 

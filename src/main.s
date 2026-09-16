@@ -9823,13 +9823,14 @@ entity_begin_sector_complete:
 entity_complete_scroll_tick:
     jmp HYBRID_SECTOR_COMPLETE_SCROLL_TICK
 .ifdef ENEMY_LIGHT_TICK
-; The 17-byte entry-preservation pad holds the Light Wingman BCD score add. It
+; The 17-byte entry-preservation pad holds the Light-class BCD score add. It
 ; is an exact fit, so every following BROADSIDE entry address stays fixed.
+; X selects the Light archetype record; absolute,X keeps the pad exact.
 light_add_score:
     sed
     clc
     lda score_bcd_lo
-    adc LIGHT_SCORE_BCD
+    adc LIGHT_SCORE_BCD,x
     sta score_bcd_lo
     lda score_bcd_hi
     adc #$00

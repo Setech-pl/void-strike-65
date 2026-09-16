@@ -394,6 +394,9 @@ static const char *dftrace_output;
 static const char *dftrace_interceptor_projectile_output;
 static const char *dftrace_sector_clock_output;
 static const char *dftrace_player_pairshot_output;
+static const char *dftrace_light_output;
+static unsigned dftrace_light_base;
+static unsigned dftrace_light_output_initialised;
 static DFTraceFrame *dftrace_frames;
 static DFTraceFrame dftrace_current;
 
@@ -4067,6 +4070,40 @@ static void dftrace_write_sector_clock(DFTraceFrame *frame)
 	}
 }
 
+/* Diagnostic-only Light-slot snapshot (roadmap 4.4 Interceptor evidence).
+ * Opt-in: DFTRACE_LIGHT_OUTPUT names the CSV, DFTRACE_LIGHT_BASE the C-owned
+ * HYBRID_LIGHT_STATE block. One row per admitted PAL simulation tick, sampled
+ * from Atari RAM; it adds no emulated cycles and leaves the frozen general
+ * observer CSV untouched. */
+static void dftrace_write_light(DFTraceFrame *frame)
+{
+	FILE *file;
+	if (dftrace_light_output == NULL)
+		return;
+	file = fopen(dftrace_light_output, dftrace_light_output_initialised ? "a" : "w");
+	if (file == NULL) {
+		perror("voidstrike65 light trace");
+		exit(2);
+	}
+	if (!dftrace_light_output_initialised) {
+		fprintf(file, "frame,active_frame,sector,light_state,light_hp,light_x,light_y,"
+			"light_fire_timer,light_leaderless,light_archetype_offset,light_burst_left,"
+			"light_post_burst_slot\n");
+		dftrace_light_output_initialised = 1u;
+	}
+	fprintf(file, "%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n", dftrace_count,
+		frame->active_gameplay_frame, frame->sector_state,
+		MEMORY_mem[dftrace_light_base], MEMORY_mem[dftrace_light_base + 1u],
+		MEMORY_mem[dftrace_light_base + 2u], MEMORY_mem[dftrace_light_base + 3u],
+		MEMORY_mem[dftrace_light_base + 4u], MEMORY_mem[dftrace_light_base + 5u],
+		MEMORY_mem[dftrace_light_base + 12u], MEMORY_mem[dftrace_light_base + 13u],
+		MEMORY_mem[dftrace_light_base + 15u]);
+	if (fclose(file) != 0) {
+		perror("voidstrike65 light trace close");
+		exit(2);
+	}
+}
+
 static int dftrace_is_hull_transient(unsigned value)
 {
 	return value == DFTRACE_ALLIED_MUZZLE_CODE ||
@@ -5284,6 +5321,9 @@ static void dftrace_init(void)
 	dftrace_output = getenv("DFTRACE_OUTPUT");
 	dftrace_interceptor_projectile_output = getenv("DFTRACE_INTERCEPTOR_PROJECTILE_OUTPUT");
 	dftrace_sector_clock_output = getenv("DFTRACE_SECTOR_CLOCK_OUTPUT");
+	dftrace_light_output = getenv("DFTRACE_LIGHT_OUTPUT");
+	if (dftrace_light_output != NULL)
+		dftrace_light_base = dftrace_env_u("DFTRACE_LIGHT_BASE");
 	dftrace_player_pairshot_output = getenv("DFTRACE_PLAYER_PAIRSHOT_OUTPUT");
 	dftrace_first_writer_output = getenv("DFTRACE_FIRST_WRITER_OUTPUT");
 	if (dftrace_policy == NULL || dftrace_session == NULL || dftrace_output == NULL) {
@@ -6337,6 +6377,7 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 		dftrace_pickup_frame_end(&dftrace_current);
 		dftrace_write_interceptor_projectiles(&dftrace_current);
 		dftrace_write_sector_clock(&dftrace_current);
+		dftrace_write_light(&dftrace_current);
 		dftrace_write_player_pairshots(&dftrace_current);
 		dftrace_current.end_clock = dftrace_clock();
 		dftrace_current.end_host_frame = (unsigned) Atari800_nframes;

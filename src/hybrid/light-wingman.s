@@ -22,7 +22,7 @@ LIGHT_CELL_COUNT = 2
 LIGHT_GLYPH = WEAPON_PICKUP_GLYPH_BASE          ; 120/121: retired pickup bank
 LIGHT_SCREEN_CODE = LIGHT_GLYPH|CAPITAL_PROJECTILE_HOSTILE_ATTRIBUTE
 LIGHT_PROJECTILE_OWNER = FIGHTER_PROJECTILE_INTERCEPTOR|$04
-LIGHT_SCORE_BCD = ENEMY_ARCHETYPE_TABLE+12+10   ; C-owned Light record field
+LIGHT_SCORE_BCD = ENEMY_ARCHETYPE_TABLE+10      ; indexed by LIGHT_ARCHETYPE_OFFSET
 ; The bottom ring row is recycled (overwritten by the divider copy) by
 ; rotate_playfield_rows while the late-published Light is still visible; the
 ; footprint therefore never enters it, so the late erase never writes into a
@@ -238,6 +238,7 @@ light_destroyed:
     tay
     lda LIGHT_X
     jsr spawn_breakup_effects_at
+    ldx LIGHT_ARCHETYPE_OFFSET   ; C names the selected Light record
     jsr light_add_score          ; BROADSIDE pad; C-owned record value
     jsr update_score_display
     jmp play_hit_sound

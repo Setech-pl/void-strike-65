@@ -118,6 +118,38 @@ hold ≥ the `$81D0` starfield-staging end, hold inside the ring and below the
 window, and `HYBRID_C_SECTOR` ≤ 248 B (build). Evidence:
 [diagnostics/stage-2b2f-resident-capacity-glue-window.json](diagnostics/stage-2b2f-resident-capacity-glue-window.json).
 
+## Roadmap 4.4 Interceptor placement — OWNER-SMOKE CANDIDATE (2026-09-16)
+
+Measured from the candidate link maps and `build/manifest.json` on top of the
+accepted `b4b942e`. Not accepted; these rows override the accepted rows above
+only for the candidate build.
+
+| Range | Size | Candidate owner |
+| --- | ---: | --- |
+| `$8100-$810B` | 12 B | unchanged: C Light record `$8100-$8105`, ASM render cache/scratch `$8106-$810B` |
+| `$810C` | 1 B | `light_archetype_offset`: selected Light record, `12` Wingman or `24` Interceptor (C writes, ASM reads to score) |
+| `$810D` | 1 B | `light_burst_left`: shots left in the current burst |
+| `$810E` | 1 B | `light_target_x`: last pursuit target column |
+| `$810F` | 1 B | `light_post_burst_slot`: archetype offset + difficulty, resolved at admission |
+| `$8110-$8118` | 9 B | unchanged: derived Raider profile cache |
+| `$8119` | 1 B | `encounter_light_index`: **provisional** Light schedule counter (`HYBRID_ENCOUNTER_STATE`), reset in `lifecycle_c_init`; smoke scheduling only, replaced by roadmap 4.6 |
+| `$811A-$813F` | 38 B | unowned |
+| `$8776-$885A` | 229 B | `LIGHT_RESIDENT` (+3 B `ldx LIGHT_ARCHETYPE_OFFSET` in `light_destroyed`) |
+| `$885B-$8B5B` | 769 B | `PICKUP_CODE`, same size, moved 3 B |
+| `$8B5C-$8B66` | 11 B | zero fill of the pickup/collision stream image (14 B at `b4b942e`) |
+| `$8C7D-$8CA2` | 38 B | `ENEMY_ARCHETYPE_DATA`: Raider, Wingman and Interceptor records (36 B) plus the 2 B provisional schedule table |
+| `$8CA3-$8F1D` | 635 B | `HYBRID_C_EXT`: lifecycle, Light and Interceptor C (+150 B) |
+| `$8F1E-$8FE8` | 203 B | `LIGHT_CODE`, unchanged size, moved with the longer C composite |
+| `$8FE9-$8FFF` | 23 B | free contiguous `HYBRID_C_EXT` tail — scarce (187 B at `b4b942e`; owner floor 16 B) |
+
+Transport: the extension record is 876 B raw / 785 B packed of 960, staged at
+`$7810-$7B20` and expanded to `$8C7D-$8FE8`; it grows from 6 to 7 ATR sectors
+(166-172), so the RNG record moves from sector 172 to 173. The pickup/collision
+stream is 960 B packed; the record is 1,161 of 1,277 B cold capacity. Linked
+runtime 17,470 B and packed STARFIELD 1,805 B are unchanged; simultaneous
+residency 19,459 B, safe 2,728 B. Evidence:
+[diagnostics/stage-2b2h-light-interceptor.json](diagnostics/stage-2b2h-light-interceptor.json).
+
 ## Blocked-experiment evidence — not part of this map
 
 The 2026-09-16 Interceptor experiment (`BLOCKED_PLACEMENT`) measured additional
@@ -156,7 +188,7 @@ are transport padding.
 | ATR sectors 156-158 | 384 B | GLUE: 245 B packed / 250 B raw to `$7BD0-$7CC9`, then held at `$8600-$86F9` |
 | ATR sectors 159-160 | 256 B | 116-B packed / 117-B ABI veneer staged at `$7CCA`, then published to `$8701-$8775` |
 | ATR sectors 161-162 | 256 B | 210-B packed / 242-B low C code staged at `$7D40`, then published to `$8B88-$8C79` after resident-suffix consumption |
-| ATR sectors 163-166 | 512 B | already-packed 423-B lifecycle stream staged at `$7810-$79B6`, then expanded to `$8C7D-$8E84` |
+| ATR sectors 163-166 | 512 B | already-packed lifecycle stream, 423 B packed / 520 B raw, staged at `$7810-$79B6`, then expanded to `$8C7D-$8E84` (current record: see the step 4.4 section) |
 | ATR sector 167 | 128 B | 23-B packed / 21-B C RNG code to `$9D5E-$9D72` |
 | ATR sectors 168-172 | 640 B | 542-B packed / 643-B tables and high C code to `$9D75-$9FF7` |
 
@@ -213,7 +245,7 @@ this lifetime.
 | `$780D-$780F` | 3 B | free tail of the broadside reservation |
 | `$7810-$7BCF` | 960 B | pause-screen backup after cold staging is consumed |
 | `$7BD0-$7CC9` | 250 B | GLUE staging until its byte-exact copy to `$8600-$86F9`; overwritten only by the later packed-starfield staging write |
-| `$7810-$79B6` | 423 B | cold packed lifecycle source until expansion to `$8C7D-$8E84`; later reclaimed by starfield staging |
+| `$7810-$79B6` | 423 B | `2df89da`: cold packed lifecycle source until expansion to `$8C7D-$8E84` (520 B raw); later reclaimed by starfield staging. 4.4 candidate: 785 B `$7810-$7B20` expanding to `$8C7D-$8FE8` |
 | `$7CCA-$7D3D` | 116 B | cold packed ABI source until publication to `$8701-$8775` |
 | `$7D3E-$7D3F` | 2 B | cold staging guard |
 | `$7D40-$7E11` | 210 B | cold packed low-C source until publication to `$8B88-$8C79` |

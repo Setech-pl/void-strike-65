@@ -71,6 +71,13 @@ class 2, red PairShot weapon class 1, BCD score `$05`, Director value 1. The
 Light is admitted together with each Raider formation, so it consumes no extra
 Director request; its Director value is recorded for later wave budgeting.
 
+Record 2 is the Interceptor (`OWNER-SMOKE CANDIDATE`, roadmap 4.4, full
+pursuit): HP 1, pursuit behavior 2, double-tap policy 3 (burst 2 at a 10-frame
+interval), post-burst pauses 56/44/32, character 2x1 renderer class 2, red
+PairShot weapon class 1, BCD score `$15`, Director value 1. It has no leader:
+it enters at X 124, descends 2 lines per frame and every other frame steps one
+4-HPOS cell toward `player_x & $FC`, clamped to 48-200.
+
 C additionally owns the single Light record in `$8100-$8105`: state, HP, X
 (four-aligned HPOS), Y, fire timer and leaderless latch; the formation is a
 fixed centred offset behind Heavy slot 0. The ASM kernel owns only the render cache (screen pointer, two backing
@@ -94,45 +101,45 @@ capacity is:
 LIGHT_ACTIVE_MAX = 1
 ```
 
-#### Accepted runtime today
+#### Accepted runtime (`b4b942e`)
 
-The accepted runtime still hardcodes
+The accepted runtime still hardcodes `Light == Wingman == enemy_archetypes[1]`
+and has no `light_archetype_offset`.
 
-```text
-Light == Wingman == enemy_archetypes[1]
-```
+#### Light slot selection contract — `OWNER-SMOKE CANDIDATE` (roadmap 4.4)
 
-The Light record, its HP, fire cadence and its ASM score lookup all name index 1
-directly. `light_archetype_offset` **does not exist in the accepted ABI**; the
-ABI symbols are exactly those listed under *Calling convention and ABI* below.
+Owner decision 18. The single Light slot is **explicitly
+archetype-selectable** — `Wingman OR Interceptor`, never both. No code
+hardcodes "Light == archetype index 1".
 
-#### Approved future invariant
+- **Selection byte.** `light_archetype_offset` (`$810C`, C-owned) holds the
+  byte offset of the selected record in `enemy_archetypes[]` (`12` = Wingman,
+  `24` = Interceptor). C reads fields as a constant field base indexed by that
+  plain lvalue; ASM scores a kill with `ldx LIGHT_ARCHETYPE_OFFSET` and
+  `adc LIGHT_SCORE_BCD,x`, which keeps the 17-byte BROADSIDE pad exact.
+- **The Light lifecycle holds no ordering logic.** The Light admission inside
+  `enemy_c_spawn_raiders` and `enemy_c_light_tick` only read the selection. The
+  admission admits exactly the archetype it is given; it has no memory of
+  earlier archetypes and no per-admission toggle (the `32f2c20` alternation is
+  rejected). A Light still active keeps its archetype and lifecycle.
+- **Selection is a separate, provisional concern.**
+  `encounter_light_schedule_advance()` is the only writer of the byte. It reads
+  the data table `{WINGMAN, INTERCEPTOR}` at `encounter_light_index` (`$8119`,
+  `HYBRID_ENCOUNTER_STATE`, reset in `lifecycle_c_init`) and advances it,
+  wrapping. It runs only when the slot is free. This is **smoke scheduling, not
+  a gameplay contract**; roadmap 4.6 (Director-owned wave composition) replaces
+  the table and its counter, and nothing may depend on its order. No existing
+  state could index it: `STATE_EVENT_INDEX` advances per Director event, not
+  per Light admission.
+- **Per-archetype Light state.** `light_burst_left` (`$810D`),
+  `light_target_x` (`$810E`) and `light_post_burst_slot` (`$810F`, archetype
+  offset + difficulty, resolved once at admission). No C parameters are passed;
+  the C stack stays 0 B.
 
-The single Light slot **must become archetype-selectable** — `Wingman OR
-Interceptor`, not `Wingman AND Interceptor` — before any Interceptor can be
-accepted. No code may then hardcode "Light == archetype index 1".
-
-#### Blocked experiment evidence (not accepted ABI)
-
-The 2026-09-16 experiment proved a design for that invariant: one C-owned byte
-holding the byte offset of the active record inside `enemy_archetypes[]`
-(`12` = Wingman, `24` = Interceptor), indexed by both C and ASM, with the ASM
-score add changed from an absolute to an absolute,X read so its fixed 17-byte
-pad stayed exact.
-
-That design is **evidence, not contract**. It was `BLOCKED_PLACEMENT`: the
-generalization plus a third archetype exceeded the `HYBRID_C_EXT_RAM` area by
-75 B in its reduced form and 126 B with per-frame pursuit, on the pre-4.3
-basis. Step 4.3 Stage 1 (accepted in `b4b942e`) recovered that capacity, and
-the owner gave GO (2026-09-16, decision 18) for full pursuit with an explicitly
-archetype-selectable slot and no per-admission alternation. Byte accounting and
-the recovery candidate are in
-[diagnostics/stage-2b2c-interceptor-blocked-placement.json](diagnostics/stage-2b2c-interceptor-blocked-placement.json);
-the unbuildable tree is on `experiment/interceptor-blocked-placement`.
-
-Do not write those fields or offsets into any document or ABI table as though
-they already exist. The invariants in this section stand regardless; the
-implementation is roadmap step 4.4.
+The 2026-09-16 `BLOCKED_PLACEMENT` experiment
+([diagnostics/stage-2b2c-interceptor-blocked-placement.json](diagnostics/stage-2b2c-interceptor-blocked-placement.json))
+proved the offset design; its byte basis is obsolete. Candidate accounting:
+[diagnostics/stage-2b2h-light-interceptor.json](diagnostics/stage-2b2h-light-interceptor.json).
 
 The long-term target is `2 Heavy + up to 4 Light` active threats, reached
 incrementally (`1 -> 2 -> up to 4` Light slots). Do not implement that capacity
@@ -169,8 +176,9 @@ existing lifecycle boundaries:
   `sector_complete_scroll_tick`, `sector_force_final_drain`;
 - `enemy_spawn_raiders`, `enemy_retire_member`,
   `enemy_apply_pending_damage`, `enemy_recycle`;
-- `enemy_light_tick` (once per gameplay frame; returns the single-shot fire
-  decision) and `enemy_light_hit` (one damage unit; returns lethal).
+- `enemy_light_tick` (once per gameplay frame; returns the fire decision of
+  the selected Light archetype) and `enemy_light_hit` (one damage unit;
+  returns lethal).
 
 The Light kernel calls both directly from its two wrappers; formation
 admission and capital gating stay inside the existing `enemy_spawn_raiders`
@@ -198,6 +206,8 @@ interrupt `RTI` path. The stock cc65 Atari startup and libc are not linked.
 | selected archetype's ASM-facing profile cache | C lifecycle | `$8110-$8118` (moved from `$8776`) |
 | Light state, HP, position, fire timer, leaderless latch | C lifecycle | `$8100-$8105` |
 | Light render cache and scratch | ASM Light kernel | `$8106-$810B` |
+| selected Light archetype offset, burst-left, pursuit target, resolved post-burst slot (4.4 candidate) | C lifecycle | `$810C-$810F` |
+| provisional Light schedule counter — smoke scheduling only, not a lifecycle field (4.4 candidate) | C provisional schedule | `$8119` |
 | ABI opcode/argument and C scratch | C/ABI boundary | `$86FA-$8700` |
 | pending enemy damage/source mailboxes | ASM kernel | existing `$5472-$5477` fields |
 | enemy coordinates, velocity, manoeuvre and projectile slots | ASM kernel | existing fixed symbols |
@@ -213,13 +223,14 @@ C-owned lifecycle field.
 | --- | ---: | --- |
 | ca65 ABI veneer | 117 | `$8701-$8775` |
 | C profile BSS | 9 | `$8110-$8118` |
-| C Light BSS (incl. 6 B ASM render cache/scratch) | 12 | `$8100-$810B` |
+| C Light BSS (incl. 6 B ASM render cache/scratch) | 12 | `$8100-$810B`; 16 B `$8100-$810F` in the 4.4 candidate |
+| provisional Light schedule counter BSS (4.4 candidate) | 1 | `$8119` |
 | cc65 low CODE | 242 | `$8B88-$8C79` |
-| `EnemyArchetype` RODATA (Raider + Light) | 24 | `$8C7D-$8C94` |
-| lifecycle + Light CODE | 725 | `$8C95-$8F69` (`41ace65`); 485 B `$8C95-$8E79` at `b4b942e` after the sector C moved to the window below |
+| `EnemyArchetype` RODATA (Raider + Light) | 24 | `$8C7D-$8C94`; 38 B `$8C7D-$8CA2` in the 4.4 candidate (Interceptor record + 2 B schedule table) |
+| lifecycle + Light CODE | 725 | `$8C95-$8F69` (`41ace65`); 485 B `$8C95-$8E79` at `b4b942e` after the sector C moved to the window below; 635 B `$8CA3-$8F1D` in the 4.4 candidate |
 | sector transition C (`sector_c_*`, step 4.3) | 240 | `$8602-$86F1` (`HYBRID_C_SECTOR_RAM`, 8 B free) |
-| Light ASM `LIGHT_CODE` (late publication: erase, render) | 133 | `$8F6A-$8FEE` (`41ace65`); 203 B `$8E7A-$8F44` at `b4b942e` with the debris late-publication kernel |
-| Light ASM `LIGHT_RESIDENT` (update, shot, kill, glyph) | 226 | `$8776-$8857` |
+| Light ASM `LIGHT_CODE` (late publication: erase, render) | 133 | `$8F6A-$8FEE` (`41ace65`); 203 B `$8E7A-$8F44` at `b4b942e` with the debris late-publication kernel; same 203 B at `$8F1E-$8FE8` in the 4.4 candidate, 23 B tail |
+| Light ASM `LIGHT_RESIDENT` (update, shot, kill, glyph) | 226 | `$8776-$8857`; 229 B `$8776-$885A` in the 4.4 candidate (`ldx LIGHT_ARCHETYPE_OFFSET`) |
 | Light ASM lower-layer backing resolver (STARFIELD tail) | 31 | `$5D45-$5D63` |
 | Light ASM score add (retired BROADSIDE pad) | 17 | `$77A1-$77B1` |
 | cc65 RNG CODE | 21 | `$9D5E-$9D72` |
@@ -269,11 +280,15 @@ further archetype requires a new placement decision. The owner-requested smooth
 deferred by the owner and would be `BLOCKED_PLACEMENT` for the same reason.
 
 The old high-C reservation still ends at `$9FF7`; `$9FFA-$9FFF` remains the
-protected guard. The new 520-byte archetype/lifecycle composite uses the legal
-post-startup range `$8C7D-$8E84`. Its 423-byte deterministic LZ stream is
-transported boot-only at `$7810-$79B6`, expanded before that range is reclaimed
-for starfield staging, and never coexists there with the starfield source. BASIC
-RAM and loader format are unchanged.
+protected guard. At `2df89da` the new 520-byte archetype/lifecycle composite
+used the legal post-startup range `$8C7D-$8E84`. Its 423-byte deterministic LZ
+stream was
+transported boot-only at `$7810-$79B6`, expanded before that range is
+reclaimed for starfield staging, and never coexists there with the starfield
+source. The same record now carries the whole extension composite: 712 B raw /
+636 B packed at `b4b942e`, 876 B raw / 785 B packed (`$7810-$7B20` →
+`$8C7D-$8FE8`, ATR sectors 166-172) in the 4.4 candidate. BASIC RAM and loader
+format are unchanged.
 
 Every build audits generated assembly for references to cc65 `sp`, `sreg`,
 `regsave`, `regbank`, `tmp1..4`, `ptr1..4`, `(sp)`, and compiler/runtime helper

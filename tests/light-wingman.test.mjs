@@ -87,12 +87,14 @@ function cell(image, row, column) {
   return 0x8140 + row * 40 + column;
 }
 
-test("Light EnemyArchetype is the second 12-byte C record and Raider is unchanged", () => {
+test("Light Wingman and Interceptor are the second and third 12-byte C records; Raider is unchanged", () => {
   const table = L("enemy_archetype_table");
   assert.deepEqual([...readRuntimeBytes(root, table, 12)],
     [1, 0, 1, 5, 15, 60, 50, 40, 1, 1, 0x10, 1]);
   assert.deepEqual([...readRuntimeBytes(root, table + 12, 12)],
     [1, 1, 2, 1, 0, 96, 80, 64, 2, 1, 0x05, 1]);
+  assert.deepEqual([...readRuntimeBytes(root, table + 24, 12)],
+    [1, 2, 3, 2, 10, 56, 44, 32, 2, 1, 0x15, 1]);
 });
 
 test("Light kernel placement is legal, resident and inside every reviewed gate", () => {
@@ -340,6 +342,10 @@ test("fighter->capital waits for the Light and capital->fighter re-admits a fres
 
   image[L("_light_leaderless")] = 1;
   image[state] = 7;                   // post-capital OPEN
+  // The provisional schedule advanced past Wingman on the first admission;
+  // preset it back to demonstrate the fresh Wingman re-admission explicitly,
+  // independent of the provisional Wingman/Interceptor smoke order.
+  image[L("_encounter_light_index")] = 0;
   run(image, "enemy_spawn_raiders");
   assert.deepEqual([light(image).state, light(image).hp, light(image).leaderless], [1, 1, 0]);
 });

@@ -183,14 +183,15 @@ test("no active document treats the legacy Interceptor as the planned archetype"
   assert.match(architecture,
     /do \*\*not\*\* identify the planned Light-class Interceptor `EnemyArchetype`/);
 
-  // The planned archetype has owner GO but no candidate artifact yet.
+  // Roadmap 4.4: the Interceptor is implemented and awaits owner smoke; it is
+  // never presented as accepted.
   const gameDesign = read("docs/game-design.md");
-  assert.match(gameDesign, /### Interceptor — PLANNED \(owner GO 2026-09-16\)/);
+  assert.match(gameDesign, /### Interceptor — `OWNER-SMOKE CANDIDATE`/);
   const status = read("docs/STATUS.md");
-  assert.match(status, /`BLOCKED_PLACEMENT`/);
-  assert.match(status, /No\s+candidate XEX exists yet/);
+  assert.match(status, /## Interceptor \(plan step 4\.4\) — `OWNER-SMOKE CANDIDATE`/);
+  assert.doesNotMatch(status, /Interceptor[^\n]*OWNER-ACCEPTED/);
   const roadmap = read("docs/plan-realizacji.md");
-  assert.match(roadmap, /### 4\.4 Interceptor — OWNER GO \(2026-09-16\), w realizacji/);
+  assert.match(roadmap, /### 4\.4 Interceptor — OWNER-SMOKE CANDIDATE/);
   // 4.4 must not reopen the Heavy-PMG option for a Light-class enemy.
   assert.doesNotMatch(roadmap, /znakowy Light albo Heavy PMG/,
     "owner decision 15 forbids rendering the Interceptor as a Heavy PMG");

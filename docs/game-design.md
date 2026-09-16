@@ -325,27 +325,29 @@ unspecified until boss lifecycle, boss HULL, and the large-explosion runtime
 budget are designed together. Nova Missile is not present in the current
 runtime.
 
-### Interceptor — PLANNED (owner GO 2026-09-16)
+### Interceptor — `OWNER-SMOKE CANDIDATE` (roadmap 4.4)
 
-The next ordinary enemy is the Interceptor. Only these facts are owner-approved
-(owner decision 15); everything else waits for implementation.
+The next ordinary enemy, full-pursuit variant (owner decisions 15 and 18). It
+is implemented and awaits owner smoke; the values below are the candidate's,
+not yet accepted.
 
 - **Light class.** It allocates no PMG player and is never drawn on `P1`/`P2`.
   It is not a smaller PMG Raider.
-- **Character renderer.** It shares the accepted Light renderer class with the
-  Light Wingman.
+- **Character renderer.** It shares the accepted Light renderer class and
+  glyphs with the Light Wingman; no new artwork.
 - **One Light slot.** Current capacity stays one Light-class enemy at a time,
-  selected per encounter as `Wingman OR Interceptor` — not both at once.
-- **Independent and aggressive.** Unlike the Wingman it keeps no formation and
-  follows no Heavy leader; it acts on its own against the player.
-- **Existing weapon family.** It fires through the established hostile PairShot
-  path; no new projectile renderer.
-
-Exact movement, cadence, HP, score and silhouette are **not final**. The
-2026-09-16 implementation attempt was `BLOCKED_PLACEMENT`: the architecture
-held but the result did not fit resident memory. Step 4.3 Stage 1 recovered
-that capacity and the owner gave GO for the full-pursuit variant (roadmap step
-4.4); no candidate build or owner smoke exists yet.
+  explicitly selected as `Wingman OR Interceptor` — not both at once. For
+  smoke, a provisional schedule outside the Light lifecycle shows the Wingman
+  first, then the Interceptor, repeating; real wave composition is roadmap 4.6.
+- **Independent and aggressive.** It keeps no formation and follows no Heavy
+  leader. It enters at X 124, descends 2 lines per frame (twice the Heavy
+  rate) and every other frame closes one 4-HPOS cell on the player's column,
+  clamped to 48-200.
+- **Existing weapon family.** It fires red hostile PairShots through the
+  established path: a double-tap (2 shots, 10 frames apart), then a pause of
+  56/44/32 frames for EASY/MEDIUM/HARD.
+- **HP and score.** 1 HP; a kill scores 15 points, three times the Wingman's 5.
+  Contact follows the Light contract.
 
 Longer level structures, bosses, and further audio/visual polish remain future
 work. They are not implied by the current enemy-roster descriptors or

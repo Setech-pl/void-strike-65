@@ -537,6 +537,7 @@ function renderDirectorAbiInclude(labelBytes) {
     ["LIGHT_BACKING1", "light_backing1"],
     ["LIGHT_SCRATCH", "light_scratch"],
     ["LIGHT_SLOT_SAVE", "light_slot_save"],
+    ["LIGHT_ARCHETYPE_OFFSET", "light_archetype_offset"],
   ];
   for (const [, name] of symbols) {
     if (!Number.isInteger(labels.get(name))) throw new Error(`Hybrid ABI symbol ${name} is missing`);

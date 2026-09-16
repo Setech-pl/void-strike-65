@@ -451,6 +451,8 @@ jest odłożone — nie implementować bez nowej decyzji.
 Status implementacji: próba z 2026-09-16 była `BLOCKED_PLACEMENT`
 (`docs/diagnostics/stage-2b2c-interceptor-blocked-placement.json`); 4.3 Stage 1
 odzyskała pojemność, a właściciel dał GO dla pełnego pościgu (decyzja 18).
+Wybieralny slot Light jest zaimplementowany jako `OWNER-SMOKE CANDIDATE`
+(`docs/diagnostics/stage-2b2h-light-interceptor.json`).
 Niezmienniki poniżej obowiązują niezależnie od statusu implementacji.
 
 Decyzje utrwalone przed implementacją Interceptora, aby kolejne zadania ich nie

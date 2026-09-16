@@ -1,0 +1,840 @@
+{
+  "id": "stage-2b2h-light-interceptor",
+  "date": "2026-09-16",
+  "task": "Roadmap 4.4: Light-class Interceptor, full pursuit, explicitly archetype-selectable Light slot",
+  "status": "OWNER-SMOKE CANDIDATE",
+  "owner_decisions": [
+    "15 (Heavy/Light classes, one Light slot Wingman OR Interceptor)",
+    "18 (4.4 GO: full pursuit, no per-admission alternation, provisional schedule outside the lifecycle)"
+  ],
+  "base": {
+    "commit": "b4b942e",
+    "docs_reconciliation": "f4cb18b",
+    "xex_sha256": "965468077747f527b7d3f8ffeb7c37ace27377892ea5fc6f2e8aaf062d0d8a6e",
+    "status": "OWNER-ACCEPTED 2026-09-16",
+    "reproduced_from_clean_export": true
+  },
+  "candidate": {
+    "xex_sha256": "01a6ae07dc8f7f8cd29671afe30d5a3d0b810dbf091b9eacdf806fe1ae4448ad",
+    "atr_sha256": "001a509c2ea83c2f1d0af0147e252ca1c06aff851adb3e771e18925555cb3f82",
+    "build_command": "npm run build:candidate -- --quiet",
+    "owner_smoke_copy": "build/owner-smoke/light-interceptor-01a6ae07/"
+  },
+  "reuse": "3-way cherry-pick -n of 32f2c20 (the BLOCKED_PLACEMENT evidence); only Interceptor hunks kept; no HYBRID_C_SECTOR pragma block, light_publish, debris, pickup or cfg HYBRID_C_SECTOR hunk; the LIGHT_ARCHETYPE_ALTERNATE XOR and its INTERCEPTOR init removed",
+  "design": {
+    "record": {
+      "offset": 24,
+      "bytes": [
+        1,
+        2,
+        3,
+        2,
+        10,
+        56,
+        44,
+        32,
+        2,
+        1,
+        21,
+        1
+      ],
+      "fields": "hp 1, ENEMY_MOVEMENT_INTERCEPTOR_PURSUIT, ENEMY_FIRE_LIGHT_DOUBLE_TAP, burst 2, interval 10, post-burst 56/44/32, ENEMY_RENDERER_CHARACTER_2X1, ENEMY_WEAPON_RED_PAIRSHOT, score $15, director 1"
+    },
+    "movement": "enters X 124 / Y 0; +2 lines per frame; every other frame (light_y & 2 == 0) one 4-HPOS step toward min(player_x & $FC, 200); PLAYER_X_MIN equals 48 so only the upper bound is clamped; retires at Y >= 232 or outside the fighter sector",
+    "fire": "record-driven burst counter: burst_count shots burst_interval apart, then the post-burst pause for the difficulty; Wingman (burst 1) reloads every shot exactly as before; visibility (Y 24-224) and player-dying gates unchanged",
+    "selection_contract": "light_archetype_offset ($810C) is read by the Light admission in enemy_c_spawn_raiders, by enemy_c_light_tick and by ASM light_destroyed (ldx + adc LIGHT_SCORE_BCD,x); its only writer is the static provisional encounter_light_schedule_advance()",
+    "provisional_schedule": "table {WINGMAN 12, INTERCEPTOR 24} indexed by encounter_light_index ($8119, HYBRID_ENCOUNTER_STATE, reset in lifecycle_c_init), advanced and wrapped only when the slot is free; smoke scheduling, replaced by roadmap 4.6",
+    "schedule_index_finding": "No existing state qualifies. STATE_EVENT_INDEX ($80F7, director.c) advances once per Director event, including deferral expiry and boss handoff, not once per Light admission, and a busy Light slot skips admission, so its parity cannot select the archetype without changing its meaning. The accepted 1 B counter at $8119 is used.",
+    "asm_changes": [
+      "c-asm-abi.s: import/export/equate light_archetype_offset",
+      "light-wingman.s: LIGHT_SCORE_BCD = ENEMY_ARCHETYPE_TABLE+10 and ldx LIGHT_ARCHETYPE_OFFSET before jsr light_add_score",
+      "main.s: adc LIGHT_SCORE_BCD,x inside the unchanged 17 B exact-fit pad"
+    ],
+    "unchanged": "P1/P2, PMG, Light renderer and publication, collision, debris, pickup, Director, Light capacity (LIGHT_ACTIVE_MAX 1)"
+  },
+  "placement": {
+    "basis": "MEASURED from build/*.map and build/manifest.json of b4b942e (clean export) and the candidate",
+    "enemy_archetype_data": {
+      "before": "24 B $8C7D-$8C94",
+      "after": "38 B $8C7D-$8CA2",
+      "note": "third 12 B record + 2 B provisional schedule table"
+    },
+    "hybrid_c_ext": {
+      "before": "485 B $8C95-$8E79",
+      "after": "635 B $8CA3-$8F1D"
+    },
+    "light_code": {
+      "before": "203 B $8E7A-$8F44",
+      "after": "203 B $8F1E-$8FE8"
+    },
+    "extension_record": {
+      "raw_before": 712,
+      "raw_after": 876,
+      "packed_before": 636,
+      "packed_after": 785,
+      "packed_limit": 960,
+      "atr_sectors_before": "166-171",
+      "atr_sectors_after": "166-172",
+      "staging_after": "$7810-$7B20"
+    },
+    "hybrid_c_ext_free_tail": {
+      "before": 187,
+      "after": 23,
+      "range_after": "$8FE9-$8FFF",
+      "owner_floor": 16,
+      "classification": "scarce remaining capacity; no OWNER_DECISION_REQUIRED (>= 16 B)"
+    },
+    "light_resident": {
+      "before": "226 B $8776-$8857",
+      "after": "229 B $8776-$885A"
+    },
+    "pickup_code": {
+      "bytes": 769,
+      "before": "$8858-$8B58",
+      "after": "$885B-$8B5B"
+    },
+    "pickup_stream_fill": {
+      "before": 14,
+      "after": 11
+    },
+    "pickup_record_packed": {
+      "before": 1158,
+      "after": 1161,
+      "cold_capacity": 1277
+    },
+    "hybrid_light_state": {
+      "before": "$8100-$810B (cfg $000D)",
+      "after": "$8100-$810F (cfg $0010)",
+      "fields": {
+        "$810C": "light_archetype_offset",
+        "$810D": "light_burst_left",
+        "$810E": "light_target_x",
+        "$810F": "light_post_burst_slot"
+      }
+    },
+    "hybrid_encounter_state": "$8119, 1 B, encounter_light_index",
+    "rng_record_sector": {
+      "before": 172,
+      "after": 173
+    },
+    "cc65": {
+      "code_before": 1233,
+      "code_after": 1383,
+      "rodata_before": 182,
+      "rodata_after": 196,
+      "c_stack_bytes": 0,
+      "zero_page_bytes": 0,
+      "helper_audit": "pass (build audit and tests/hybrid-lifecycle.test.mjs; only jsr targets _asm_sector_pressure_active, _encounter_light_schedule_advance, _light_reload)"
+    },
+    "packed_starfield_bytes": {
+      "before": 1805,
+      "after": 1805
+    }
+  },
+  "residency": {
+    "physical_resident_code_data_delta_bytes": 167,
+    "bss_delta_bytes": 5,
+    "reserved_envelopes": "unchanged (HYBRID_C_EXT_RAM, pickup/collision stream image); HYBRID_LIGHT_STATE_RAM grows into previously unowned $810C-$810F and HYBRID_ENCOUNTER_STATE_RAM claims unowned $8119",
+    "reusable_free_capacity_delta": {
+      "hybrid_c_ext_tail": -164,
+      "pickup_stream_fill": -3
+    },
+    "manifest_simultaneous_residency": {
+      "before": 19295,
+      "after": 19459
+    },
+    "manifest_safe_residency": {
+      "before": 2892,
+      "after": 2728
+    },
+    "linked_runtime_bytes": {
+      "before": 17470,
+      "after": 17470
+    }
+  },
+  "cpu": {
+    "pal_baseline_replays": [
+      {
+        "session": "2-neutral-fire0",
+        "b4b942e_max_wall_cycles": 29014,
+        "candidate_max_wall_cycles": 29845,
+        "delta": 831,
+        "candidate_interceptor_lives": 2,
+        "candidate_interceptor_x_values": [
+          124
+        ],
+        "candidate_frames_by_light": {
+          "interceptor": {
+            "frames": 222,
+            "max": 29845,
+            "mean": 28471
+          },
+          "wingman": {
+            "frames": 326,
+            "max": 29288,
+            "mean": 28233
+          },
+          "none": {
+            "frames": 212,
+            "max": 28342,
+            "mean": 20384
+          }
+        }
+      },
+      {
+        "session": "2-sweep-fire0",
+        "b4b942e_max_wall_cycles": 29223,
+        "candidate_max_wall_cycles": 29302,
+        "delta": 79,
+        "candidate_interceptor_lives": 2,
+        "candidate_interceptor_x_values": [
+          92,
+          96,
+          100,
+          104,
+          108,
+          112,
+          116,
+          120,
+          124,
+          128,
+          132,
+          136,
+          140,
+          144,
+          148,
+          152
+        ],
+        "candidate_frames_by_light": {
+          "interceptor": {
+            "frames": 149,
+            "max": 29302,
+            "mean": 28339
+          },
+          "wingman": {
+            "frames": 275,
+            "max": 29220,
+            "mean": 28131
+          },
+          "none": {
+            "frames": 496,
+            "max": 28823,
+            "mean": 18822
+          }
+        }
+      },
+      {
+        "session": "2-evasive-fire1",
+        "b4b942e_max_wall_cycles": 28989,
+        "candidate_max_wall_cycles": 29373,
+        "delta": 384,
+        "candidate_interceptor_lives": 2,
+        "candidate_interceptor_x_values": [
+          96,
+          100,
+          104,
+          108,
+          112,
+          116,
+          120,
+          124,
+          128,
+          132,
+          136,
+          140
+        ],
+        "candidate_frames_by_light": {
+          "interceptor": {
+            "frames": 95,
+            "max": 29373,
+            "mean": 28185
+          },
+          "wingman": {
+            "frames": 478,
+            "max": 29223,
+            "mean": 28070
+          },
+          "none": {
+            "frames": 347,
+            "max": 28550,
+            "mean": 19639
+          }
+        }
+      },
+      {
+        "session": "2-sweep-fire2",
+        "b4b942e_max_wall_cycles": 29228,
+        "candidate_max_wall_cycles": 29038,
+        "delta": -190,
+        "candidate_interceptor_lives": 1,
+        "candidate_interceptor_x_values": [
+          124,
+          128,
+          132,
+          136,
+          140,
+          144,
+          148,
+          152
+        ],
+        "candidate_frames_by_light": {
+          "interceptor": {
+            "frames": 17,
+            "max": 28757,
+            "mean": 28257
+          },
+          "wingman": {
+            "frames": 387,
+            "max": 29038,
+            "mean": 28095
+          },
+          "none": {
+            "frames": 516,
+            "max": 28745,
+            "mean": 17655
+          }
+        }
+      },
+      {
+        "session": "2-evasive-fire3",
+        "b4b942e_max_wall_cycles": 29258,
+        "candidate_max_wall_cycles": 29605,
+        "delta": 347,
+        "candidate_interceptor_lives": 2,
+        "candidate_interceptor_x_values": [
+          96,
+          100,
+          104,
+          108,
+          112,
+          116,
+          120,
+          124,
+          128,
+          132,
+          136,
+          140,
+          144,
+          148
+        ],
+        "candidate_frames_by_light": {
+          "interceptor": {
+            "frames": 148,
+            "max": 29605,
+            "mean": 28410
+          },
+          "wingman": {
+            "frames": 280,
+            "max": 29248,
+            "mean": 27902
+          },
+          "none": {
+            "frames": 492,
+            "max": 29204,
+            "mean": 16659
+          }
+        }
+      },
+      {
+        "session": "2-sweep-fire4",
+        "b4b942e_max_wall_cycles": 29412,
+        "candidate_max_wall_cycles": 29918,
+        "delta": 506,
+        "candidate_interceptor_lives": 1,
+        "candidate_interceptor_x_values": [
+          92,
+          96,
+          100,
+          104,
+          108,
+          112,
+          116,
+          120,
+          124,
+          128,
+          132,
+          136,
+          140,
+          144,
+          148,
+          152
+        ],
+        "candidate_frames_by_light": {
+          "interceptor": {
+            "frames": 111,
+            "max": 29918,
+            "mean": 28837
+          },
+          "wingman": {
+            "frames": 424,
+            "max": 29191,
+            "mean": 28178
+          },
+          "none": {
+            "frames": 385,
+            "max": 28352,
+            "mean": 17306
+          }
+        }
+      },
+      {
+        "session": "2-sweep-fire5",
+        "b4b942e_max_wall_cycles": 29409,
+        "candidate_max_wall_cycles": 29462,
+        "delta": 53,
+        "candidate_interceptor_lives": 2,
+        "candidate_interceptor_x_values": [
+          92,
+          96,
+          100,
+          104,
+          108,
+          112,
+          116,
+          120,
+          124,
+          128,
+          132,
+          136,
+          140,
+          144,
+          148,
+          152
+        ],
+        "candidate_frames_by_light": {
+          "interceptor": {
+            "frames": 175,
+            "max": 29462,
+            "mean": 28391
+          },
+          "wingman": {
+            "frames": 342,
+            "max": 29052,
+            "mean": 28034
+          },
+          "none": {
+            "frames": 403,
+            "max": 28147,
+            "mean": 16768
+          }
+        }
+      },
+      {
+        "session": "2-sweep-fire6",
+        "b4b942e_max_wall_cycles": 29697,
+        "candidate_max_wall_cycles": 29705,
+        "delta": 8,
+        "candidate_interceptor_lives": 2,
+        "candidate_interceptor_x_values": [
+          92,
+          96,
+          100,
+          104,
+          108,
+          112,
+          116,
+          120,
+          124,
+          128,
+          132,
+          136,
+          140,
+          144,
+          148,
+          152
+        ],
+        "candidate_frames_by_light": {
+          "interceptor": {
+            "frames": 101,
+            "max": 29522,
+            "mean": 28170
+          },
+          "wingman": {
+            "frames": 409,
+            "max": 29207,
+            "mean": 28296
+          },
+          "none": {
+            "frames": 410,
+            "max": 29705,
+            "mean": 19612
+          }
+        }
+      },
+      {
+        "session": "2-evasive-fire7",
+        "b4b942e_max_wall_cycles": 29245,
+        "candidate_max_wall_cycles": 28986,
+        "delta": -259,
+        "candidate_interceptor_lives": 2,
+        "candidate_interceptor_x_values": [
+          96,
+          100,
+          104,
+          108,
+          112,
+          116,
+          120,
+          124,
+          128,
+          132,
+          136,
+          140,
+          144,
+          148
+        ],
+        "candidate_frames_by_light": {
+          "interceptor": {
+            "frames": 47,
+            "max": 28343,
+            "mean": 27637
+          },
+          "wingman": {
+            "frames": 323,
+            "max": 28986,
+            "mean": 28062
+          },
+          "none": {
+            "frames": 550,
+            "max": 28768,
+            "mean": 18204
+          }
+        }
+      },
+      {
+        "session": "1-evasive-fire3",
+        "b4b942e_max_wall_cycles": 29160,
+        "candidate_max_wall_cycles": 29126,
+        "delta": -34,
+        "candidate_interceptor_lives": 3,
+        "candidate_interceptor_x_values": [
+          96,
+          100,
+          104,
+          108,
+          112,
+          116,
+          120,
+          124,
+          128,
+          132,
+          136,
+          140
+        ],
+        "candidate_frames_by_light": {
+          "interceptor": {
+            "frames": 113,
+            "max": 29126,
+            "mean": 27985
+          },
+          "wingman": {
+            "frames": 191,
+            "max": 29121,
+            "mean": 27871
+          },
+          "none": {
+            "frames": 616,
+            "max": 28850,
+            "mean": 19212
+          }
+        }
+      }
+    ],
+    "worst_maximum": {
+      "b4b942e": {
+        "session": "2-sweep-fire6",
+        "cycles": 29697
+      },
+      "candidate": {
+        "session": "2-sweep-fire4",
+        "cycles": 29918,
+        "target_headroom": 1282,
+        "hard_gate_headroom": 2650
+      }
+    },
+    "all_replays": "20/20 passed: 0 missed frames, 0 extra VBI boundaries, 0 physical/deadline overruns, 0 DLI ordering errors",
+    "comparability": "the provisional schedule changes which Light is admitted after the first formation, so candidate replays diverge from b4b942e; per-session deltas mix gameplay divergence with cost",
+    "isolated_c_cycles_6502_harness_hard": {
+      "b4b942e": {
+        "wingman": {
+          "spawn_raiders": 88,
+          "tick_max_no_fire": 99,
+          "tick_max_fire": 127
+        }
+      },
+      "candidate": {
+        "wingman": {
+          "spawn_raiders": 162,
+          "tick_max_no_fire": 106,
+          "tick_max_fire": 173
+        },
+        "interceptor": {
+          "spawn_raiders": 174,
+          "tick_max_no_fire": 133,
+          "tick_max_fire": 182
+        }
+      },
+      "score_path": "+1 ldx (3 cycles) per Light kill"
+    },
+    "native_light_probe": "scripts/atari800-wall-trace.h DFTRACE_LIGHT_OUTPUT + DFTRACE_LIGHT_BASE=0x8100 (opt-in, host-side sampling at frame end, no emulated cycles); rebuilt with --prepare; trace preflight 72/72 PC symbols"
+  },
+  "native_gates": {
+    "boot_smoke": {
+      "command": "node scripts/runtime-wall-trace.mjs --boot-smoke-only",
+      "sessions": [
+        "xex-a5",
+        "xex-5a",
+        "atr-a5",
+        "atr-5a"
+      ],
+      "passed": true
+    },
+    "debris_visibility_gate": {
+      "command": "node scripts/runtime-wall-trace.mjs --debris-gate-only",
+      "candidate": [
+        {
+          "session": "debris-gate-0-evasive-fire3",
+          "maximum_wall_cycles": 30098,
+          "missed_frames": 0,
+          "extra_vbi_boundaries": 0,
+          "dli_sequence_violations": 0,
+          "publication_inside_playfield": {
+            "erase": 0,
+            "render": 0
+          },
+          "phases": {
+            "capital": {
+              "lives": 13,
+              "frames_in_view": 1377,
+              "blank": 0,
+              "partial": 0,
+              "disappearances": 0,
+              "first_visible_y": [
+                24
+              ],
+              "bottom_row_blank": 0
+            },
+            "post-capital-fighter": {
+              "lives": 9,
+              "frames_in_view": 919,
+              "blank": 0,
+              "partial": 0,
+              "disappearances": 0,
+              "first_visible_y": [
+                24
+              ],
+              "bottom_row_blank": 0
+            }
+          }
+        },
+        {
+          "session": "debris-gate-0-neutral-fire0",
+          "maximum_wall_cycles": 30406,
+          "missed_frames": 0,
+          "extra_vbi_boundaries": 0,
+          "dli_sequence_violations": 0,
+          "publication_inside_playfield": {
+            "erase": 0,
+            "render": 0
+          },
+          "phases": {
+            "capital": {
+              "lives": 22,
+              "frames_in_view": 2291,
+              "blank": 0,
+              "partial": 0,
+              "disappearances": 0,
+              "first_visible_y": [
+                24
+              ],
+              "bottom_row_blank": 0
+            },
+            "post-capital-fighter": {
+              "lives": 7,
+              "frames_in_view": 661,
+              "blank": 0,
+              "partial": 0,
+              "disappearances": 0,
+              "first_visible_y": [
+                24
+              ],
+              "bottom_row_blank": 0
+            }
+          }
+        },
+        {
+          "session": "debris-gate-capital-muzzle-ring-2-sweep-fire4",
+          "maximum_wall_cycles": 30050,
+          "missed_frames": 0,
+          "extra_vbi_boundaries": 0,
+          "dli_sequence_violations": 0,
+          "publication_inside_playfield": {
+            "erase": 0,
+            "render": 0
+          },
+          "phases": {
+            "capital": {
+              "lives": 11,
+              "frames_in_view": 891,
+              "blank": 0,
+              "partial": 0,
+              "disappearances": 0,
+              "first_visible_y": [
+                24
+              ],
+              "bottom_row_blank": 0
+            },
+            "post-capital-fighter": {
+              "lives": 10,
+              "frames_in_view": 855,
+              "blank": 0,
+              "partial": 0,
+              "disappearances": 0,
+              "first_visible_y": [
+                24
+              ],
+              "bottom_row_blank": 0
+            }
+          }
+        }
+      ],
+      "candidate_passed": true,
+      "b4b942e": [
+        {
+          "session": "debris-gate-0-evasive-fire3",
+          "maximum_wall_cycles": 30008,
+          "missed_frames": 0,
+          "extra_vbi_boundaries": 0,
+          "dli_sequence_violations": 0,
+          "publication_inside_playfield": {
+            "erase": 0,
+            "render": 0
+          },
+          "phases": {
+            "capital": {
+              "lives": 14,
+              "frames_in_view": 1462,
+              "blank": 0,
+              "partial": 0,
+              "disappearances": 0,
+              "first_visible_y": [
+                24
+              ],
+              "bottom_row_blank": 0
+            },
+            "post-capital-fighter": {
+              "lives": 8,
+              "frames_in_view": 847,
+              "blank": 0,
+              "partial": 0,
+              "disappearances": 0,
+              "first_visible_y": [
+                24
+              ],
+              "bottom_row_blank": 0
+            }
+          }
+        },
+        {
+          "session": "debris-gate-0-neutral-fire0",
+          "maximum_wall_cycles": 29764,
+          "missed_frames": 0,
+          "extra_vbi_boundaries": 0,
+          "dli_sequence_violations": 0,
+          "publication_inside_playfield": {
+            "erase": 0,
+            "render": 0
+          },
+          "phases": {
+            "capital": {
+              "lives": 18,
+              "frames_in_view": 1672,
+              "blank": 0,
+              "partial": 0,
+              "disappearances": 0,
+              "first_visible_y": [
+                24
+              ],
+              "bottom_row_blank": 0
+            },
+            "post-capital-fighter": {
+              "lives": 13,
+              "frames_in_view": 1020,
+              "blank": 0,
+              "partial": 0,
+              "disappearances": 0,
+              "first_visible_y": [
+                24
+              ],
+              "bottom_row_blank": 0
+            }
+          }
+        },
+        {
+          "session": "debris-gate-capital-muzzle-ring-2-sweep-fire4",
+          "maximum_wall_cycles": 30022,
+          "missed_frames": 0,
+          "extra_vbi_boundaries": 0,
+          "dli_sequence_violations": 0,
+          "publication_inside_playfield": {
+            "erase": 0,
+            "render": 0
+          },
+          "phases": {
+            "capital": {
+              "lives": 8,
+              "frames_in_view": 693,
+              "blank": 0,
+              "partial": 0,
+              "disappearances": 0,
+              "first_visible_y": [
+                24
+              ],
+              "bottom_row_blank": 0
+            },
+            "post-capital-fighter": {
+              "lives": 16,
+              "frames_in_view": 1428,
+              "blank": 0,
+              "partial": 0,
+              "disappearances": 0,
+              "first_visible_y": [
+                24
+              ],
+              "bottom_row_blank": 0
+            }
+          }
+        }
+      ],
+      "b4b942e_passed": true
+    }
+  },
+  "tests": {
+    "new": "tests/light-interceptor.test.mjs: 13/13",
+    "updated": [
+      "tests/light-wingman.test.mjs (third record bytes; explicit Wingman re-admission via the schedule index)",
+      "tests/hybrid-lifecycle.test.mjs (extension 876 B; generated-C jsr audit lists the two static helpers)",
+      "tests/enemy-combat.test.mjs (enemy_archetypes.record[0] union syntax)",
+      "tests/source-contracts.test.mjs (4.4 OWNER-SMOKE CANDIDATE wording)"
+    ],
+    "focused": "light-interceptor, light-wingman, hybrid-lifecycle, debris-visibility-gate, cold-pickup-record-fit, source-contracts, enemy-combat: only the pre-existing failures (cold-pickup-record-fit x2, light-wingman starfield correction gate)",
+    "full_suite": {
+      "b4b942e": {
+        "tests": 613,
+        "fail": 115
+      },
+      "candidate": {
+        "tests": 626,
+        "fail": 115
+      },
+      "new_failure_names": 0,
+      "note": "both counts include the owner's uncommitted tests/booster-admission-diagnostic.test.mjs; failure-name sets identical"
+    }
+  },
+  "known_limits": [
+    "the HYBRID_C_EXT tail is 23 B: the next archetype or C growth needs a placement decision",
+    "the provisional Wingman/Interceptor schedule is smoke scheduling only; roadmap 4.6 replaces it",
+    "the Interceptor steps 8 lines on screen every 4 frames (character rows) and one 4-HPOS cell every other frame; whether that reads as intentional is an owner smoke question",
+    "packed STARFIELD correction gate (1,805 B vs 1,798 B) remains an open owner decision, unchanged by this task"
+  ]
+}

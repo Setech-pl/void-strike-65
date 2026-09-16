@@ -84,8 +84,8 @@ komórka, glif z dwoma impulsami). `4/4/6` wyłącznie diagnostycznie.
 - **Zaakceptowany (owner smoke PASS 2026-09-16):** `b4b942e` — widoczność
   pickupu (raster + sylwetki kapsuł), 4.3 Stage 1 (rezydentna pojemność) i
   późna publikacja debris z dokładną własnością.
-- **Następny:** Interceptor (4.4) — owner GO 2026-09-16 (pełny pościg, jawnie
-  selekcjonowalny slot Light).
+- **OWNER-SMOKE CANDIDATE:** Interceptor (4.4) — pełny pościg, jawnie
+  selekcjonowalny slot Light; oczekuje na owner smoke.
 
 ---
 
@@ -150,7 +150,7 @@ gracza, kosztem, ograniczeniami, ryzykiem i rekomendacją.
 Bez BASIC RAM, runtime disk I/O, nowej architektury loadera, przealokowania PMG
 i multipleksowania rastra.
 
-### 4.4 Interceptor — OWNER GO (2026-09-16), w realizacji
+### 4.4 Interceptor — OWNER-SMOKE CANDIDATE (2026-09-16)
 
 Kolejny `EnemyArchetype` jako dane + mały handler C, z ponownym użyciem
 istniejącej znakowej klasy renderera Light i istniejącej rodziny wrogich
@@ -173,8 +173,16 @@ projektu z `32f2c20`, z wiążącą korektą — slot Light jest jawnie
 selekcjonowalny (`Wingman ALBO Interceptor`), bez naprzemienności w lifecycle;
 kolejność na potrzeby smoke żyje poza lifecycle i zastąpi ją 4.6.
 
-Implementacja przed długimi proofami; build, testy fokusowe, krótki PAL smoke,
-owner smoke.
+Stan (2026-09-16): zaimplementowany jako `OWNER-SMOKE CANDIDATE` na `b4b942e`.
+Trzeci rekord (hp 1, wejście x 124, 2 linie/klatkę, 4 HPOS do
+`player_x & $FC` co drugą klatkę w zakresie 48-200, double-tap 2x10, pauzy
+56/44/32, wynik `$15`). Lifecycle Light tylko czyta `light_archetype_offset`;
+jedynym zapisującym jest prowizoryczny harmonogram `{WINGMAN, INTERCEPTOR}` z
+licznikiem `$8119` (żaden istniejący stan nie liczy dopuszczeń Light). Ogon
+`HYBRID_C_EXT` 187 → 23 B — skąpy zapas; kolejny archetyp wymaga decyzji o
+rozmieszczeniu. PAL: 10 replayów bazowych, maks. 29,918 cykli, 0 zgubionych
+klatek. Szczegóły i dowody: STATUS,
+`docs/diagnostics/stage-2b2h-light-interceptor.json`.
 
 ### 4.5 Bomber / Heavy Assault
 

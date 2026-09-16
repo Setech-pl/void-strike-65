@@ -54,8 +54,10 @@ test("C EnemyArchetype is a compact exact Raider record in legal extension place
   // Step 4.3: the 240 B of sector-transition C moved from the extension composite
   // (still carrying LIGHT_CODE) into the reusable resident window; 642 + 240 = 882.
   // The debris late-publication kernel then grew LIGHT_CODE by 70 B: 712 + 240.
+  // Roadmap 4.4 (Interceptor): the third EnemyArchetype record, its pursuit/
+  // burst C and the provisional encounter schedule add 164 B: 712 + 164 = 876.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
-    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 712 });
+    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 876 });
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
     ({ name }) => name === "window"), { name: "window", runAddress: 0x8602, bytes: 240 });
   assert.equal(manifest.encounterDirector.director.footprint.cStackBytes, 0);
@@ -169,5 +171,5 @@ test("ownership is singular and generated C requires neither software stack nor 
   assert.doesNotMatch(executableGenerated,
     /\b(?:c_sp|sreg|regsave|regbank|tmp[1-4]|ptr[1-4])\b/);
   assert.deepEqual([...executableGenerated.matchAll(/\bjsr\s+([^\s;]+)/g)].map((match) => match[1]),
-    ["_asm_sector_pressure_active"]);
+    ["_asm_sector_pressure_active", "_encounter_light_schedule_advance", "_light_reload"]);
 });

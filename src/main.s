@@ -690,6 +690,11 @@ WEAPON_PICKUP_SHIELD_GLYPH_BASE = WEAPON_PICKUP_SPREAD_GLYPH_BASE
 ; LIGHT_RESIDENT kernel from $8776 (the C profile cache moved to $8110);
 ; PICKUP_CODE follows contiguously up to the fixed $8B67 collision module.
 WEAPON_PICKUP_RUNTIME = $8776
+; Reusable resident window (step 4.3): the former boot-only GLUE hold, after
+; the near-star records and before the C scratch BSS at $86FA. HYBRID_C_SECTOR
+; is linked there and expanded as the pickup record's second stream.
+RESIDENT_WINDOW = $8602
+RESIDENT_WINDOW_END = $86FA
 WEAPON_PICKUP_PACKED_STAGING = $8C80
 WEAPON_PICKUP_COLD_STAGING = $4801
 PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE = PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_GLYPH_COUNT
@@ -701,6 +706,9 @@ PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE = PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYE
 .assert STARFIELD_STATE_END <= $4F00, error, "starfield scalar state exceeds reclaimed RAM"
 .assert HULL_DRAW_ROW_HI+$01 <= WEAPON_PICKUP_RUNTIME, error, "freed far-star record range overlaps pickup runtime"
 .assert STAR_NEAR_STATE_END <= WEAPON_PICKUP_RUNTIME, error, "sparse near-star records overlap pickup runtime"
+.assert STAR_NEAR_STATE_END <= RESIDENT_WINDOW, error, "sparse near-star records overlap the resident window"
+.assert RESIDENT_WINDOW_END <= WEAPON_PICKUP_RUNTIME, error, "resident window overlaps pickup runtime"
+.assert LAYOUT_D_GLUE_HOLDING+LAYOUT_D_GLUE_BYTES <= RESIDENT_WINDOW, error, "GLUE hold overlaps the resident window"
 .assert STAR_NEAR_FIRST > CH_SPACE, error, "star codes must not alias blank space"
 .assert GAMEPLAY_TOP & $07 = 0, error, "projectile row reduction requires an eight-scanline gameplay origin"
 .assert STAR_NEAR_END <= PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE, error, "star glyphs overlap PlayerFighter projectile glyphs"
@@ -1108,7 +1116,7 @@ unpack_starfield_runtime:
 ; pickup copy must precede resident staging at $8100, whose maximum write would
 ; otherwise destroy the temporary packed source at $8C80. The first four
 ; records run before resident/entity expansion. The starfield record runs only
-; after GLUE has left its cold $7BD0 staging interval for the $8600 hold.
+; after GLUE has left its cold $7BD0 staging interval for the $8300 hold.
 boot_stage_streams:
 a2_kernel_source:
     .word $FFFF
@@ -9255,6 +9263,17 @@ unpack_weapon_pickup_phase_runtime:
     lda #<WEAPON_PICKUP_RUNTIME
     sta broadside_destination+1
     stx broadside_destination+2
+.if DIRECTOR_ABI_BYTES > 0
+    ; The record carries a second, independent stream for the reusable resident
+    ; window. The decoder's read operand already points past the first stream's
+    ; terminator, so only the destination changes. The GLUE hold has left this
+    ; window for idle ring RAM, and nothing writes the window after this.
+    jsr broadside_unpack_command
+    ldx #>RESIDENT_WINDOW
+    lda #<RESIDENT_WINDOW
+    sta broadside_destination+1
+    stx broadside_destination+2
+.endif
     jmp broadside_unpack_command
 
 ; Player projectiles form the top of the character stack and are restored by
@@ -11290,10 +11309,15 @@ CHUNK_STAGING_SECTORS_MAX = 50
 LAYOUT_D_GLUE_STAGING = $7BD0
 LAYOUT_D_GLUE_FINAL = $4EFE
 ; Resident staging has been consumed before stage_a2_kernel reaches the GLUE
-; hold. This free high-RAM window survives the loader bitmap, entity clear and
-; starfield expansion until the final publication below $5000.
-LAYOUT_D_GLUE_HOLDING = $8600
+; hold. The hold uses gameplay-ring RAM, which no boot step touches: starfield
+; staging ends below it, and init_screen rebuilds every ring row before the
+; first gameplay read. It survives the loader bitmap, entity clear and starfield
+; expansion until the final publication below $5000.
+LAYOUT_D_GLUE_HOLDING = $8300
 LAYOUT_D_GLUE_BYTES = 250
+.assert LAYOUT_D_GLUE_HOLDING >= STARFIELD_STAGING+3*$300+$C0, error, "GLUE hold overlaps the deferred starfield staging copies"
+.assert LAYOUT_D_GLUE_HOLDING >= GAMEPLAY_RING_SCREEN, error, "GLUE hold must use idle ring RAM"
+.assert LAYOUT_D_GLUE_HOLDING+LAYOUT_D_GLUE_BYTES <= GAMEPLAY_RING_SCREEN_END, error, "GLUE hold leaves the gameplay ring"
 
 .macro STAGE2_FAIL_NE
     .local ok

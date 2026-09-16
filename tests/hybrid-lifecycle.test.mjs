@@ -51,8 +51,12 @@ function run(image, target, { a = 0, x = 0, y = 0 } = {}) {
 test("C EnemyArchetype is a compact exact Raider record in legal extension placement", () => {
   assert.deepEqual([...readRuntimeBytes(root, labels.get("enemy_archetype_table"), 12)],
     [1, 0, 1, 5, 15, 60, 50, 40, 1, 1, 0x10, 1]);
+  // Step 4.3: the 240 B of sector-transition C moved from the extension composite
+  // (still carrying LIGHT_CODE) into the reusable resident window; 642 + 240 = 882.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
-    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 882 });
+    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 642 });
+  assert.deepEqual(manifest.encounterDirector.director.placements.find(
+    ({ name }) => name === "window"), { name: "window", runAddress: 0x8602, bytes: 240 });
   assert.equal(manifest.encounterDirector.director.footprint.cStackBytes, 0);
   assert.equal(manifest.encounterDirector.director.footprint.zeroPageBytes, 0);
 });

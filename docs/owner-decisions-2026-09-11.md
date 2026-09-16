@@ -503,3 +503,17 @@ polityki ognia, HP, score oraz admission/recycle.
 
 ASM jest właścicielem: publikacji znakowej, backing/restore, publikacji
 PairShotów oraz gorących ścieżek kolizji i kodu wrażliwego sprzętowo.
+
+## 16. Krok 4.3 Stage 1 — pojemność rezydentna — OWNER GO (2026-09-16)
+
+Właściciel zdejmuje pauzę 4.3, ponieważ poprawna poprawka P0 debris sama
+wymaga rezydentnej pojemności wielokrotnego użytku. Zatwierdzony zakres:
+Option D = A + C1 (okno `$8602-$86F9` jako obszar C przez drugi strumień LZ
+istniejącego rekordu pickup/collision; usunięcie martwego kodu ENTITY_CODE).
+
+- C1 jest osobnym checkpointem; nowa nazwa błędu testu lub regresja runtime = STOP przed A.
+- Metryki raportowane oddzielnie: fizyczne bajty rezydentne, bajty rezerwacji/obwiedni, wolna pojemność.
+- Format DFMC na celu i topologia rekordów bez zmian (8/8, 142 B).
+- Obowiązkowy natywny write-watch `$8300-$83F9` i `$8602-$86F9` dla ATR i XEX.
+- Bez migracji polityk ASM→C jako źródła pojemności; bez debris i Interceptora w 4.3.
+- Po akceptacji 4.3 następne zadanie: poprawka debris R-pre (dokładna własność), nie Interceptor.

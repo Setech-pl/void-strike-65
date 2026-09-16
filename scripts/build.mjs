@@ -109,6 +109,11 @@ const weaponPickupPackedStagingAddress = 0x8c80;
 const weaponPickupPackedStagingEndAddress = 0x917d;
 const weaponPickupPackedCapacityBytes =
   weaponPickupPackedStagingEndAddress - weaponPickupPackedStagingAddress;
+// Reusable resident capacity (step 4.3): the former boot-only GLUE hold, after
+// the near-star records ending at $8601 and before the C scratch BSS at $86FA.
+const residentWindowAddress = 0x8602;
+const residentWindowBytes = 0x86fa - residentWindowAddress;
+const glueHoldingAddress = 0x8300;
 const bootA2StagingAddress = 0x7f2b;
 const debrisVisualPolishEntityCodeBaselineBytes = 564;
 const debrisVisualPolishEntityCodeBudgetBytes = 512;
@@ -414,14 +419,21 @@ async function buildHybridDirectorModule() {
   const rodataBytes = parsedLabels.get("__LEVEL1_DATA_SIZE__");
   const bssBytes = parsedLabels.get("__DIRECTOR_C_BSS_SIZE__");
   const lifecycleBssBytes = parsedLabels.get("__HYBRID_C_STATE_SIZE__");
+  const sectorWindowBytes = parsedLabels.get("__HYBRID_C_SECTOR_SIZE__");
   if (![abiBytes, lowCodeBytes, extensionCodeBytes, archetypeBytes, preCodeBytes,
-    cCodeBytes, rodataBytes, bssBytes, lifecycleBssBytes]
+    cCodeBytes, rodataBytes, bssBytes, lifecycleBssBytes, sectorWindowBytes]
     .every(Number.isInteger)) {
     throw new Error("Hybrid Director link is missing segment size labels");
   }
   const highBytes = rodataBytes + cCodeBytes;
-  if (combinedRaw.length !== abiBytes + lowCodeBytes + extensionBytes + preCodeBytes + highBytes) {
+  if (combinedRaw.length !==
+    abiBytes + lowCodeBytes + extensionBytes + preCodeBytes + highBytes + sectorWindowBytes) {
     throw new Error("Hybrid Director output does not match its linked CODE/RODATA segments");
+  }
+  if (parsedLabels.get("__HYBRID_C_SECTOR_RUN__") !== residentWindowAddress ||
+    sectorWindowBytes === 0 || sectorWindowBytes > residentWindowBytes) {
+    throw new Error(`HYBRID_C_SECTOR is ${sectorWindowBytes} B; the resident window is ` +
+      `${residentWindowBytes} B at $${residentWindowAddress.toString(16).toUpperCase()}`);
   }
   let offset = 0;
   const makeSegment = (name, runAddress, bytes) => {
@@ -441,11 +453,16 @@ async function buildHybridDirectorModule() {
     throw new Error(`Hybrid lifecycle extension is ${lifecycleExtension.data.length} B raw / ` +
       `${lifecycleExtension.packed.length} B packed; cold staging limit is 960 B`);
   }
-  const raw = combinedRaw.subarray(offset);
+  const raw = combinedRaw.subarray(offset, offset + highBytes);
   const packed = packBroadsideLzss(raw);
+  offset += highBytes;
+  // The window segment is not a transport record: its independent stream rides
+  // after the pickup/collision stream, so the DFMC topology stays 8 records.
+  const windowSegment = makeSegment("window", residentWindowAddress, sectorWindowBytes);
   if (!codeSegments.every(({ data, packed: segmentPacked }) =>
     unpackBroadsideLzss(segmentPacked).equals(data)) ||
-      !unpackBroadsideLzss(packed).equals(raw)) {
+      !unpackBroadsideLzss(packed).equals(raw) ||
+      !unpackBroadsideLzss(windowSegment.packed).equals(windowSegment.data)) {
     throw new Error("Hybrid Director LZSS round trip failed");
   }
   const codeRaw = Buffer.concat(codeSegments.map(({ data }) => data));
@@ -457,6 +474,7 @@ async function buildHybridDirectorModule() {
     codeRaw,
     codePacked,
     codeSegments,
+    windowSegment,
     combinedRaw,
     object: cAssembled.outputs[`${base}-c.o`],
     lifecycleObject: lifecycleAssembled.outputs[`${base}-lifecycle.o`],
@@ -718,7 +736,10 @@ async function build() {
   const bootConfig = lightCodeRunAddress === null ? config : Buffer.from(
     config.toString("utf8").replace(
       /LIGHTFILE:(\s*)start = \$[0-9A-Fa-f]+, size = \$[0-9A-Fa-f]+/,
-      `LIGHTFILE:$1start = $${lightCodeRunAddress.toString(16).toUpperCase()}, size = $${
+      // A replacer function: a replacement string would read "$01.." in a size
+      // such as $0186 as a capture-group reference.
+      (_, spacing) => `LIGHTFILE:${spacing}start = $${
+        lightCodeRunAddress.toString(16).toUpperCase()}, size = $${
         (0x9000 - lightCodeRunAddress).toString(16).toUpperCase().padStart(4, "0")}`,
     ));
   const linked = await runWasmTool(
@@ -964,8 +985,16 @@ async function build() {
   const weaponPickupPhaseRuntime = Buffer.concat([
     pickupCodeRuntime, capitalPlayerCollisionModule.raw,
   ]);
-  const packedWeaponPickupPhaseBank = packBroadsideLzss(weaponPickupPhaseRuntime);
-  if (!unpackBroadsideLzss(packedWeaponPickupPhaseBank).equals(weaponPickupPhaseRuntime)) {
+  const packedPickupStream = packBroadsideLzss(weaponPickupPhaseRuntime);
+  // The resident window's independent stream follows in the same raw record;
+  // the boot decoder expands it with a second destination (step 4.3).
+  const residentWindowSegment = directorModule.windowSegment ?? null;
+  const packedWeaponPickupPhaseBank = residentWindowSegment === null ? packedPickupStream :
+    Buffer.concat([packedPickupStream, residentWindowSegment.packed]);
+  if (!unpackBroadsideLzss(packedWeaponPickupPhaseBank).equals(weaponPickupPhaseRuntime) ||
+    (residentWindowSegment !== null && !unpackBroadsideLzss(
+      packedWeaponPickupPhaseBank.subarray(packedPickupStream.length))
+      .equals(residentWindowSegment.data))) {
     throw new Error("Weapon-pickup phase runtime LZSS round trip failed");
   }
   if (packedWeaponPickupPhaseBank.length > weaponPickupPackedCapacityBytes) {
@@ -1299,7 +1328,9 @@ async function build() {
     integrationGlueRunAddress: glueFinalAddress,
     directorRuntime: directorModule.raw,
     directorRunAddress,
-    directorAdditionalSegments: directorModule.codeSegments,
+    directorAdditionalSegments: directorModule.windowSegment === undefined
+      ? directorModule.codeSegments
+      : [...directorModule.codeSegments, directorModule.windowSegment],
     capitalPlayerCollisionRuntime: capitalPlayerCollisionModule.raw,
     capitalPlayerCollisionRunAddress: capitalPlayerCollisionAddress,
     labels,
@@ -1367,7 +1398,8 @@ async function build() {
   // New weapon code consumes only the explicit post-compaction payload reserve;
   // the live linked total remains reported below instead of being misclassified
   // as growth of either completed feature.
-  const directorTotalBytes = directorModule.codeRaw.length + directorModule.raw.length;
+  const directorTotalBytes = directorModule.codeRaw.length + directorModule.raw.length +
+    (directorModule.windowSegment?.data.length ?? 0);
   const directorAdditionalStateBytes = directorModule.implementation === "cc65-c"
     ? directorModule.footprint.bssBytes : 0;
   const directorResidencyDelta = directorTotalBytes - expectedDirectorRawBytes +
@@ -1401,7 +1433,7 @@ async function build() {
       totalMigrationResidencyDeltaBytes: hybridResidencyDelta,
       glue: {
         stagingAddress: glueStagingAddress,
-        holdingAddress: 0x8600,
+        holdingAddress: glueHoldingAddress,
         finalAddress: glueFinalAddress,
         rawBytes: glueModule.raw.length,
         packedBytes: glueModule.packed.length,
@@ -1421,6 +1453,11 @@ async function build() {
             name, runAddress, bytes: data.length,
           })),
           { name: "high", runAddress: directorRunAddress, bytes: directorModule.raw.length },
+          ...(directorModule.windowSegment === undefined ? [] : [{
+            name: "window",
+            runAddress: directorModule.windowSegment.runAddress,
+            bytes: directorModule.windowSegment.data.length,
+          }]),
         ],
         footprint: directorModule.footprint,
       },
@@ -1599,7 +1636,7 @@ async function build() {
     },
     integrationGlue: {
       transportAddress: glueStagingAddress,
-      holdingAddress: 0x8600,
+      holdingAddress: glueHoldingAddress,
       finalAddress: glueFinalAddress,
       bytes: glueModule.raw.length,
       packedBytes: glueModule.packed.length,
@@ -1626,6 +1663,33 @@ async function build() {
     },
     directorCodeRuntime: null,
     lightWingman: lightPlacement,
+    residentCapacity: residentWindowSegment === null ? null : {
+      window: {
+        address: residentWindowAddress,
+        endExclusive: residentWindowAddress + residentWindowBytes,
+        bytes: residentWindowBytes,
+        usedBytes: residentWindowSegment.data.length,
+        freeBytes: residentWindowBytes - residentWindowSegment.data.length,
+        owner: "HYBRID_C_SECTOR",
+        packedBytes: residentWindowSegment.packed.length,
+        transport: "second LZ stream of the pickup/collision record",
+        glueHoldingAddress,
+      },
+      pickupRecordPackedBytes: {
+        pickupStream: packedPickupStream.length,
+        windowStream: residentWindowSegment.packed.length,
+        combined: packedWeaponPickupPhaseBank.length,
+        coldCapacity: weaponPickupPackedCapacityBytes,
+        coldMargin: weaponPickupPackedCapacityBytes - packedWeaponPickupPhaseBank.length,
+      },
+      tails: {
+        hybridCExtension: cExtensionSegment === undefined ? null :
+          0x9000 - (cExtensionSegment.runAddress + cExtensionSegment.data.length),
+        entityCode: 0x9d5e - (entityCodeRunAddress + entityCodeBytes),
+        pickupStreamFill: pickupFileBytes - lightResidentBytes - pickupCodeBytes,
+        a2Kernel: 0x00ff - a2KernelBytes,
+      },
+    },
     directorCodeRuntimes: directorCodeChunks.map(({ name, runAddress, transportAddress, data,
       packed: segmentPacked, lateCompressed, record, chunk }) => ({
       name,
@@ -2309,6 +2373,12 @@ async function build() {
       segment.data);
     writeFile(path.join(buildDirectory, `encounter-director-code-${segment.name}-packed.bin`),
       segment.packed);
+  }
+  if (directorModule.windowSegment !== undefined) {
+    writeFile(path.join(buildDirectory, "resident-window-runtime.bin"),
+      directorModule.windowSegment.data);
+    writeFile(path.join(buildDirectory, "resident-window-runtime-packed.bin"),
+      directorModule.windowSegment.packed);
   }
   writeFile(path.join(buildDirectory, "capital-player-collision.o"),
     capitalPlayerCollisionModule.object);

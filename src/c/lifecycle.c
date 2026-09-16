@@ -147,6 +147,10 @@ void lifecycle_c_init(void)
     publish_raider_profile();
 }
 
+/* Sector-state transitions run from the reusable resident window $8602-$86F9
+ * (step 4.3), which frees the contiguous HYBRID_C_EXT tail for Light-class
+ * growth. The code itself is unchanged; only its placement moved. */
+#pragma code-name (push, "HYBRID_C_SECTOR")
 uint8_t sector_c_update_first_capital(void)
 {
     if ((DIRECTOR_STATE_FLAGS & DIRECTOR_FLAG_CAPITAL_DUE) == 0u) {
@@ -226,6 +230,7 @@ uint8_t sector_c_force_final_drain(void)
     CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_DRAIN;
     return 1u;
 }
+#pragma code-name (pop)
 
 void enemy_c_spawn_raiders(void)
 {

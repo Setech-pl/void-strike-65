@@ -9,15 +9,15 @@
     "layout": "Hybrid cc65 C Director + stable ca65 ABI veneer",
     "levelWorldRows": 3712,
     "phaseCount": 8,
-    "initialContentBytes": 13121,
-    "linkedRuntimeBytes": 17461,
-    "simultaneousResidencyBytes": 19216,
-    "safeResidencyBytes": 2971,
+    "initialContentBytes": 13130,
+    "linkedRuntimeBytes": 17474,
+    "simultaneousResidencyBytes": 19229,
+    "safeResidencyBytes": 2958,
     "residencyDeltaBytes": 1277,
-    "totalMigrationResidencyDeltaBytes": 1189,
+    "totalMigrationResidencyDeltaBytes": 1202,
     "glue": {
       "stagingAddress": 31696,
-      "holdingAddress": 34304,
+      "holdingAddress": 33536,
       "finalAddress": 20222,
       "rawBytes": 250,
       "packedBytes": 245
@@ -27,9 +27,9 @@
       "endExclusive": 40952,
       "reservedEndExclusive": 40954,
       "rawBytes": 1905,
-      "packedBytes": 1633,
+      "packedBytes": 1459,
       "codeAddress": 34561,
-      "codeBytes": 1590,
+      "codeBytes": 1350,
       "rodataAddress": 40309,
       "rodataBytes": 182,
       "placements": [
@@ -46,7 +46,7 @@
         {
           "name": "extension",
           "runAddress": 35965,
-          "bytes": 882
+          "bytes": 642
         },
         {
           "name": "pre",
@@ -57,11 +57,16 @@
           "name": "high",
           "runAddress": 40309,
           "bytes": 643
+        },
+        {
+          "name": "window",
+          "runAddress": 34306,
+          "bytes": 240
         }
       ],
       "footprint": {
         "abiBytes": 117,
-        "codeBytes": 1473,
+        "codeBytes": 1233,
         "rodataBytes": 182,
         "dataBytes": 0,
         "bssBytes": 16,
@@ -78,11 +83,11 @@
       "packedBytes": 35,
       "record": {
         "startSector": 149,
-        "sectorCount": 8,
-        "packedLength": 957,
-        "rawLength": 957,
+        "sectorCount": 10,
+        "packedLength": 1158,
+        "rawLength": 1158,
         "finalDestination": 35968,
-        "crc16": 4697,
+        "crc16": 63575,
         "type": 0,
         "stagingId": 2,
         "destination": 33024
@@ -98,9 +103,9 @@
   "startAddress": 8222,
   "bootInitAddress": 8221,
   "bootSectors": 103,
-  "payloadBytes": 22400,
+  "payloadBytes": 22528,
   "bootPayloadTrailer": {
-    "address": 21309,
+    "address": 21318,
     "bytes": 4,
     "ascii": "DFB1",
     "hex": "44464231",
@@ -145,8 +150,8 @@
       "reserveBytes": 73,
       "recoveredReserveBytes": 1097,
       "residentSuffixGrossSavingsBytes": 1056,
-      "relocatedColdInitBytes": 2387,
-      "relocatedColdInitPackedCostBytes": 2032,
+      "relocatedColdInitBytes": 2400,
+      "relocatedColdInitPackedCostBytes": 2041,
       "reserveAddress": 24499,
       "reserveEndAddress": 24571,
       "sourceOwned": true,
@@ -170,20 +175,20 @@
   "transportCapacity": {
     "format": "DFMC-v1 multi-chunk",
     "initialBootBytes": 13184,
-    "initialBootContentBytes": 13121,
-    "initialBootEnvelopeBytes": 63,
+    "initialBootContentBytes": 13130,
+    "initialBootEnvelopeBytes": 54,
     "initialBootSectors": 103,
-    "extensionBytes": 9216,
-    "extensionSectors": 72,
-    "totalTransportBytes": 22400,
-    "totalTransportSectors": 175,
-    "remainingAtrSectors": 545,
-    "remainingAtrTransportBytes": 69760,
+    "extensionBytes": 9344,
+    "extensionSectors": 73,
+    "totalTransportBytes": 22528,
+    "totalTransportSectors": 176,
+    "remainingAtrSectors": 544,
+    "remainingAtrTransportBytes": 69632,
     "architecturalAdditionalCapacityBytes": 0,
     "maximumExtensionChunkBytes": 6400,
     "maximumChunkCount": 8,
     "maximumNewSimultaneousResidencyBytes": 7993,
-    "remainingSafeResidencyBytes": 4568,
+    "remainingSafeResidencyBytes": 4555,
     "bootOnlyStaging": {
       "address": 33024,
       "bytes": 6484
@@ -200,12 +205,12 @@
     "manifest": {
       "address": 9756,
       "bytes": 142,
-      "crc16": 42121,
+      "crc16": 39713,
       "parsed": {
         "version": 1,
-        "totalOccupiedSectors": 175,
+        "totalOccupiedSectors": 176,
         "manifestBytes": 142,
-        "crc16": 42121,
+        "crc16": 39713,
         "records": [
           {
             "startSector": 104,
@@ -213,40 +218,29 @@
             "packedLength": 5658,
             "rawLength": 6650,
             "finalDestination": 24080,
-            "crc16": 60433,
+            "crc16": 28565,
             "type": 1,
             "stagingId": 1,
             "destination": 33024
           },
           {
             "startSector": 149,
-            "sectorCount": 8,
-            "packedLength": 957,
-            "rawLength": 957,
+            "sectorCount": 10,
+            "packedLength": 1158,
+            "rawLength": 1158,
             "finalDestination": 35968,
-            "crc16": 4697,
+            "crc16": 63575,
             "type": 0,
             "stagingId": 2,
             "destination": 33024
           },
           {
-            "startSector": 157,
+            "startSector": 159,
             "sectorCount": 3,
             "packedLength": 245,
             "rawLength": 250,
             "finalDestination": 31696,
-            "crc16": 53245,
-            "type": 1,
-            "stagingId": 2,
-            "destination": 33024
-          },
-          {
-            "startSector": 160,
-            "sectorCount": 2,
-            "packedLength": 116,
-            "rawLength": 117,
-            "finalDestination": 31946,
-            "crc16": 13276,
+            "crc16": 5918,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -254,43 +248,54 @@
           {
             "startSector": 162,
             "sectorCount": 2,
-            "packedLength": 210,
-            "rawLength": 242,
-            "finalDestination": 32064,
-            "crc16": 53690,
+            "packedLength": 116,
+            "rawLength": 117,
+            "finalDestination": 31946,
+            "crc16": 36430,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
           },
           {
             "startSector": 164,
-            "sectorCount": 6,
-            "packedLength": 742,
-            "rawLength": 742,
-            "finalDestination": 30736,
-            "crc16": 54069,
-            "type": 0,
-            "stagingId": 2,
-            "destination": 33024
-          },
-          {
-            "startSector": 170,
-            "sectorCount": 1,
-            "packedLength": 23,
-            "rawLength": 21,
-            "finalDestination": 40286,
-            "crc16": 10379,
+            "sectorCount": 2,
+            "packedLength": 210,
+            "rawLength": 242,
+            "finalDestination": 32064,
+            "crc16": 27688,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
           },
           {
+            "startSector": 166,
+            "sectorCount": 5,
+            "packedLength": 568,
+            "rawLength": 568,
+            "finalDestination": 30736,
+            "crc16": 56803,
+            "type": 0,
+            "stagingId": 2,
+            "destination": 33024
+          },
+          {
             "startSector": 171,
+            "sectorCount": 1,
+            "packedLength": 23,
+            "rawLength": 21,
+            "finalDestination": 40286,
+            "crc16": 38169,
+            "type": 1,
+            "stagingId": 2,
+            "destination": 33024
+          },
+          {
+            "startSector": 172,
             "sectorCount": 5,
             "packedLength": 542,
             "rawLength": 643,
             "finalDestination": 40309,
-            "crc16": 64452,
+            "crc16": 18006,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -327,7 +332,7 @@
       "transportBytes": 5760,
       "packedBytes": 5658,
       "rawBytes": 6650,
-      "crc16": 60433,
+      "crc16": 28565,
       "stagingAddress": 33024,
       "stagingEndAddress": 38783,
       "finalAddress": 24080
@@ -335,15 +340,15 @@
   },
   "integrationGlue": {
     "transportAddress": 31696,
-    "holdingAddress": 34304,
+    "holdingAddress": 33536,
     "finalAddress": 20222,
     "bytes": 250,
     "packedBytes": 245,
     "externalChunk": {
-      "startSector": 157,
+      "startSector": 159,
       "sectors": 3,
       "transportBytes": 384,
-      "crc16": 53245
+      "crc16": 5918
     }
   },
   "directorRuntime": {
@@ -354,20 +359,46 @@
     "bytes": 643,
     "packedBytes": 542,
     "externalChunk": {
-      "startSector": 171,
+      "startSector": 172,
       "sectors": 5,
       "transportBytes": 640,
-      "crc16": 64452
+      "crc16": 18006
     }
   },
   "directorCodeRuntime": null,
   "lightWingman": {
     "residentRunAddress": 34678,
     "residentBytes": 226,
-    "extensionTailRunAddress": 36714,
+    "extensionTailRunAddress": 36474,
     "extensionTailBytes": 133,
     "starfieldTailRunAddress": 23925,
     "starfieldTailBytes": 31
+  },
+  "residentCapacity": {
+    "window": {
+      "address": 34306,
+      "endExclusive": 34554,
+      "bytes": 248,
+      "usedBytes": 240,
+      "freeBytes": 8,
+      "owner": "HYBRID_C_SECTOR",
+      "packedBytes": 201,
+      "transport": "second LZ stream of the pickup/collision record",
+      "glueHoldingAddress": 33536
+    },
+    "pickupRecordPackedBytes": {
+      "pickupStream": 957,
+      "windowStream": 201,
+      "combined": 1158,
+      "coldCapacity": 1277,
+      "coldMargin": 119
+    },
+    "tails": {
+      "hybridCExtension": 257,
+      "entityCode": 41,
+      "pickupStreamFill": 14,
+      "a2Kernel": 18
+    }
   },
   "directorCodeRuntimes": [
     {
@@ -381,10 +412,10 @@
       "bytes": 117,
       "packedBytes": 116,
       "externalChunk": {
-        "startSector": 160,
+        "startSector": 162,
         "sectors": 2,
         "transportBytes": 256,
-        "crc16": 13276
+        "crc16": 36430
       }
     },
     {
@@ -398,10 +429,10 @@
       "bytes": 242,
       "packedBytes": 210,
       "externalChunk": {
-        "startSector": 162,
+        "startSector": 164,
         "sectors": 2,
         "transportBytes": 256,
-        "crc16": 53690
+        "crc16": 27688
       }
     },
     {
@@ -411,14 +442,14 @@
       "xexStagingCompression": "LZ-10/5",
       "runAddress": 35965,
       "transportAddress": 30736,
-      "endExclusive": 36847,
-      "bytes": 882,
-      "packedBytes": 742,
+      "endExclusive": 36607,
+      "bytes": 642,
+      "packedBytes": 568,
       "externalChunk": {
-        "startSector": 164,
-        "sectors": 6,
-        "transportBytes": 768,
-        "crc16": 54069
+        "startSector": 166,
+        "sectors": 5,
+        "transportBytes": 640,
+        "crc16": 56803
       }
     },
     {
@@ -432,10 +463,10 @@
       "bytes": 21,
       "packedBytes": 23,
       "externalChunk": {
-        "startSector": 170,
+        "startSector": 171,
         "sectors": 1,
         "transportBytes": 128,
-        "crc16": 10379
+        "crc16": 38169
       }
     }
   ],
@@ -447,9 +478,9 @@
     "packedBytes": 35,
     "externalChunk": {
       "startSector": 149,
-      "sectors": 8,
-      "transportBytes": 1024,
-      "crc16": 4697
+      "sectors": 10,
+      "transportBytes": 1280,
+      "crc16": 63575
     }
   },
   "starfieldRuntime": {
@@ -488,27 +519,27 @@
     "effectActiveLimit": 5,
     "codeLoadAddress": 27392,
     "codeRunAddress": 37120,
-    "codeBytes": 3112,
+    "codeBytes": 3125,
     "sharedRuntimeBytes": 160,
-    "featureCodeBytes": 2952,
+    "featureCodeBytes": 2965,
     "codeReservedBytes": 3840,
     "codeBudget": {
       "baselineBytes": 564,
       "approvedDeltaBytes": 512,
-      "actualDeltaBytes": 2388,
+      "actualDeltaBytes": 2401,
       "limitBytes": 1076,
-      "remainingBytes": -1876,
+      "remainingBytes": -1889,
       "destructibleDebris": {
         "baselineBytes": 714,
         "approvedDeltaBytes": 768,
-        "actualBytes": 2952,
-        "actualDeltaBytes": 2238,
+        "actualBytes": 2965,
+        "actualDeltaBytes": 2251,
         "limitBytes": 1482
       },
       "weaponPickupRapidFire": {
         "baselineBytes": 849,
-        "actualBytes": 2952,
-        "actualDeltaBytes": 2103
+        "actualBytes": 2965,
+        "actualDeltaBytes": 2116
       },
       "weaponPickupSpreadShot": {
         "baselineBytes": 1444,
@@ -524,28 +555,28 @@
       },
       "frontendH31": {
         "baselineBytes": 1869,
-        "actualBytes": 2952,
-        "actualDeltaBytes": 1083,
+        "actualBytes": 2965,
+        "actualDeltaBytes": 1096,
         "hardDeltaBytes": 1280
       }
     },
-    "packedBytes": 2683,
+    "packedBytes": 2692,
     "packedSourceAddress": 18626,
-    "initialPackedSourcesEndExclusive": 21309,
-    "initialPackedSourcesLastAddress": 21308,
+    "initialPackedSourcesEndExclusive": 21318,
+    "initialPackedSourcesLastAddress": 21317,
     "stagedSourceAddress": 21272,
-    "stagedEndAddress": 23954,
-    "stagedEndExclusive": 23955,
-    "sourceToStagingMarginBytes": -37,
-    "sourceStagingOverlapBytes": 37,
+    "stagedEndAddress": 23963,
+    "stagedEndExclusive": 23964,
+    "sourceToStagingMarginBytes": -46,
+    "sourceStagingOverlapBytes": 46,
     "stagingCopyDirection": "backward",
-    "stagingToBroadsideMarginBytes": 125,
+    "stagingToBroadsideMarginBytes": 116,
     "stagingLifecycle": {
       "starfieldDestinationAddress": 21732,
       "starfieldDestinationEndExclusive": 23956,
       "starfieldDestinationOverlapStartAddress": 21732,
-      "starfieldDestinationOverlapEndExclusive": 23955,
-      "starfieldDestinationOverlapBytes": 2223,
+      "starfieldDestinationOverlapEndExclusive": 23956,
+      "starfieldDestinationOverlapBytes": 2224,
       "stagingReleasedBeforeStarfieldExpansion": true
     },
     "compression": "LZ-10/5",
@@ -581,16 +612,16 @@
     "pickupCodeAddress": 34904,
     "pickupCodeBytes": 769,
     "pickupPhaseRuntimeBytes": 1042,
-    "pickupPhasePackedBytes": 957,
+    "pickupPhasePackedBytes": 1158,
     "pickupPhaseExternalChunk": {
       "startSector": 149,
-      "sectors": 8,
-      "transportBytes": 1024,
-      "crc16": 4697,
+      "sectors": 10,
+      "transportBytes": 1280,
+      "crc16": 63575,
       "stagingAddress": 35968,
       "finalRuntimeAddress": 34678,
       "coldCapacityBytes": 1277,
-      "coldMarginBytes": 320
+      "coldMarginBytes": 119
     },
     "newGlyphsFromFoundation": 7,
     "runtimeBudget": {
@@ -707,10 +738,10 @@
   "runtimeCodeBudget": {
     "measurement": "linked CODE + STARFIELD + BROADSIDE + A2_KERNEL + ENTITY_CODE bytes",
     "baselineBytes": 13697,
-    "actualBytes": 17461,
-    "actualDeltaBytes": 3764,
+    "actualBytes": 17474,
+    "actualDeltaBytes": 3777,
     "approvedDeltaBytes": 768,
-    "remainingBytes": -2996,
+    "remainingBytes": -3009,
     "enemyBreakupEffects": {
       "baselineBytes": 14184,
       "actualBytes": 14316,
@@ -726,8 +757,8 @@
     },
     "weaponPickupRapidFire": {
       "baselineBytes": 14316,
-      "actualBytes": 17461,
-      "actualDeltaBytes": 3145
+      "actualBytes": 17474,
+      "actualDeltaBytes": 3158
     },
     "weaponPickupSpreadShot": {
       "baselineBytes": 14948,
@@ -744,8 +775,8 @@
     },
     "frontendH31": {
       "baselineBytes": 15346,
-      "actualBytes": 17461,
-      "actualDeltaBytes": 2115,
+      "actualBytes": 17474,
+      "actualDeltaBytes": 2128,
       "hardDeltaBytes": 1280
     }
   },
@@ -1879,8 +1910,8 @@
         "origin": "deterministic legal replay",
         "session": "1-evasive-fire3",
         "frame": 239,
-        "activeCpuCycles": 13375,
-        "mainLoopCpuCycles": 13388,
+        "activeCpuCycles": 13374,
+        "mainLoopCpuCycles": 13387,
         "projectileOccupancy": 9,
         "player_fighterProjectileOccupancy": 3,
         "broadsideOccupancy": 1,
@@ -1933,8 +1964,8 @@
           "entity_effects_update": 614,
           "render_capital_explosions": 41,
           "render_shared_fighter_explosions": 20,
-          "render_interactive_entity_overlays": 30,
-          "entity_effects_render": 45,
+          "render_interactive_entity_overlays": 29,
+          "entity_effects_render": 44,
           "publish_dynamic_near_star_phase": 40,
           "erase_fighter_projectile_overlays": 254,
           "render_fighter_projectile_overlays": 578,
@@ -1971,8 +2002,8 @@
           "entity_effects_update": 614,
           "render_capital_explosions": 41,
           "render_shared_fighter_explosions": 20,
-          "render_interactive_entity_overlays": 30,
-          "entity_effects_render": 45,
+          "render_interactive_entity_overlays": 29,
+          "entity_effects_render": 44,
           "publish_dynamic_near_star_phase": 40,
           "erase_fighter_projectile_overlays": 254,
           "render_fighter_projectile_overlays": 578,
@@ -2009,7 +2040,7 @@
           "entity_effects_update": 406,
           "render_capital_explosions": 41,
           "render_shared_fighter_explosions": 20,
-          "render_interactive_entity_overlays": 30,
+          "render_interactive_entity_overlays": 29,
           "entity_effects_render": 15,
           "publish_dynamic_near_star_phase": 40,
           "erase_fighter_projectile_overlays": 254,
@@ -2117,7 +2148,7 @@
             "calls": 1
           },
           "entity_effects_render->render_interactive_entity_overlays": {
-            "cycles": 30,
+            "cycles": 29,
             "calls": 1
           }
         },
@@ -7342,8 +7373,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 31,
-        "activeCpuCycles": 12699,
-        "mainLoopCpuCycles": 12712,
+        "activeCpuCycles": 12698,
+        "mainLoopCpuCycles": 12711,
         "projectileOccupancy": 12,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 0,
@@ -7398,8 +7429,8 @@
           "entity_effects_update": 587,
           "render_capital_explosions": 41,
           "render_shared_fighter_explosions": 20,
-          "render_interactive_entity_overlays": 30,
-          "entity_effects_render": 45,
+          "render_interactive_entity_overlays": 29,
+          "entity_effects_render": 44,
           "publish_dynamic_near_star_phase": 40,
           "erase_fighter_projectile_overlays": 350,
           "render_fighter_projectile_overlays": 939,
@@ -7438,8 +7469,8 @@
           "entity_effects_update": 587,
           "render_capital_explosions": 41,
           "render_shared_fighter_explosions": 20,
-          "render_interactive_entity_overlays": 30,
-          "entity_effects_render": 45,
+          "render_interactive_entity_overlays": 29,
+          "entity_effects_render": 44,
           "publish_dynamic_near_star_phase": 40,
           "erase_fighter_projectile_overlays": 350,
           "render_fighter_projectile_overlays": 939,
@@ -7478,7 +7509,7 @@
           "entity_effects_update": 379,
           "render_capital_explosions": 41,
           "render_shared_fighter_explosions": 20,
-          "render_interactive_entity_overlays": 30,
+          "render_interactive_entity_overlays": 29,
           "entity_effects_render": 15,
           "publish_dynamic_near_star_phase": 40,
           "erase_fighter_projectile_overlays": 350,
@@ -7592,7 +7623,7 @@
             "calls": 1
           },
           "entity_effects_render->render_interactive_entity_overlays": {
-            "cycles": 30,
+            "cycles": 29,
             "calls": 1
           }
         },
@@ -18549,8 +18580,8 @@
         "origin": "deterministic legal replay",
         "session": "1-evasive-fire3",
         "frame": 239,
-        "activeCpuCycles": 13375,
-        "mainLoopCpuCycles": 13388,
+        "activeCpuCycles": 13374,
+        "mainLoopCpuCycles": 13387,
         "projectileOccupancy": 9,
         "player_fighterProjectileOccupancy": 3,
         "broadsideOccupancy": 1,
@@ -18603,8 +18634,8 @@
           "entity_effects_update": 614,
           "render_capital_explosions": 41,
           "render_shared_fighter_explosions": 20,
-          "render_interactive_entity_overlays": 30,
-          "entity_effects_render": 45,
+          "render_interactive_entity_overlays": 29,
+          "entity_effects_render": 44,
           "publish_dynamic_near_star_phase": 40,
           "erase_fighter_projectile_overlays": 254,
           "render_fighter_projectile_overlays": 578,
@@ -18641,8 +18672,8 @@
           "entity_effects_update": 614,
           "render_capital_explosions": 41,
           "render_shared_fighter_explosions": 20,
-          "render_interactive_entity_overlays": 30,
-          "entity_effects_render": 45,
+          "render_interactive_entity_overlays": 29,
+          "entity_effects_render": 44,
           "publish_dynamic_near_star_phase": 40,
           "erase_fighter_projectile_overlays": 254,
           "render_fighter_projectile_overlays": 578,
@@ -18679,7 +18710,7 @@
           "entity_effects_update": 406,
           "render_capital_explosions": 41,
           "render_shared_fighter_explosions": 20,
-          "render_interactive_entity_overlays": 30,
+          "render_interactive_entity_overlays": 29,
           "entity_effects_render": 15,
           "publish_dynamic_near_star_phase": 40,
           "erase_fighter_projectile_overlays": 254,
@@ -18787,7 +18818,7 @@
             "calls": 1
           },
           "entity_effects_render->render_interactive_entity_overlays": {
-            "cycles": 30,
+            "cycles": 29,
             "calls": 1
           }
         },
@@ -20251,7 +20282,7 @@
       "emptyPathCpuCycles": 117,
       "emptyPathLimitCpuCycles": 124,
       "activePathCpuCycles": 319,
-      "spawnPathCpuCycles": 684,
+      "spawnPathCpuCycles": 683,
       "contactPathCpuCycles": 2616,
       "measurement": "inclusive JSR-to-RTS cycles from executed linked release bytes"
     },
@@ -20419,12 +20450,12 @@
       },
       {
         "name": "ENTITY_CODE",
-        "bytes": 3112,
+        "bytes": 3125,
         "featureStartBytes": 714,
-        "featureDeltaBytes": 2398,
+        "featureDeltaBytes": 2411,
         "acceptedMaximumBytes": 1482,
         "reservedMaximumBytes": 3840,
-        "freeReservedBytes": 728
+        "freeReservedBytes": 715
       },
       {
         "name": "PICKUP_CODE",
@@ -20647,18 +20678,18 @@
     "artifacts": {
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
-        "bytes": 22400,
-        "sha256": "9757e80857b01f3290c828ff8010914f65e6a605e0d19275c11177a239b0a68c"
+        "bytes": 22528,
+        "sha256": "79923795ec0aa95df8db8d9a7354a80b16395b872cfbed463aa386fd77b57154"
       },
       "void-strike-65.xex": {
         "path": "dist/void-strike-65.xex",
-        "bytes": 22850,
-        "sha256": "2fd7642a70bc612da78ae43bf9da6242a69269c4a82591b95dd9f21c00597f10"
+        "bytes": 22877,
+        "sha256": "2953461e976c97e3e833323feb6d3fb5c1365b7dae76737f2d62e3294aea4444"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "c7fdf2d06fcb4ea435c1ecaa5de08ad7cedb0acb1f49a423ecccc33f387173c8"
+        "sha256": "02818b3aba5343489e02992583a55d662f9ec57967d28807c2bf80849268b8f1"
       }
     },
     "reportPath": null,
@@ -20666,16 +20697,16 @@
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
-      "bytes": 22400,
-      "sha256": "9757e80857b01f3290c828ff8010914f65e6a605e0d19275c11177a239b0a68c"
+      "bytes": 22528,
+      "sha256": "79923795ec0aa95df8db8d9a7354a80b16395b872cfbed463aa386fd77b57154"
     },
     "void-strike-65.xex": {
-      "bytes": 22850,
-      "sha256": "2fd7642a70bc612da78ae43bf9da6242a69269c4a82591b95dd9f21c00597f10"
+      "bytes": 22877,
+      "sha256": "2953461e976c97e3e833323feb6d3fb5c1365b7dae76737f2d62e3294aea4444"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "c7fdf2d06fcb4ea435c1ecaa5de08ad7cedb0acb1f49a423ecccc33f387173c8"
+      "sha256": "02818b3aba5343489e02992583a55d662f9ec57967d28807c2bf80849268b8f1"
     }
   }
 }

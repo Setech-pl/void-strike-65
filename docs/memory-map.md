@@ -81,17 +81,30 @@ Note also that `HYBRID_C_EXT_RAM` is not free down to `$8FFF`: `scripts/build.mj
 appends the 133 B `LIGHT_CODE` tail to the same expanded composite, so the free
 extension tail is `$8FEF-$8FFF` = 17 B.
 
-## Candidate capacity — `$8600-$86F9`
+## Step 4.3 Stage 1 placement — OWNER-SMOKE CANDIDATE (2026-09-16)
 
-This 250 B window is unowned once `layout_d_publish_glue` has copied the GLUE
-hold to its final home below `$5000`. Being unowned is **not** the same as being
-approved resident capacity, and this map does not list it as free.
+Applies to the candidate after `fca5e31`. The tables elsewhere in this file stay
+the accepted-checkpoint snapshot until the owner accepts 4.3; then the file is
+regenerated.
 
-Reusing it requires roadmap step 4.3 to prove: a second packed transport record,
-its own expansion call, and a startup-ordering guarantee that nothing writes
-there before the GLUE hold is drained — inside a bootstrap prefix bounded by
-`.assert *-start <= $01A3`. Until that proof exists, no document, tool or agent
-may treat `$8600-$86F9` as allocatable.
+| Range | Size | Candidate owner |
+| --- | ---: | --- |
+| `$85FE-$8601` | 4 B | `STAR_NEAR_SCREEN_HI` (live near-star state; the old "`$8600` window" never included these two bytes) |
+| `$8602-$86F9` | 248 B | `HYBRID_C_SECTOR_RAM`: the five `sector_c_*` functions, 240 B at `$8602-$86F1`; 8 B free |
+| `$8300-$83F9` | 250 B | boot-only GLUE hold (idle gameplay-ring RAM) until `layout_d_publish_glue`; `init_screen` rebuilds the ring before gameplay |
+| `$8C7D-$8E79` | 509 B | C `EnemyArchetype` RODATA 24 B + lifecycle/Light C 485 B |
+| `$8E7A-$8EFE` | 133 B | `LIGHT_CODE` (moved with the shorter C composite) |
+| `$8EFF-$8FFF` | 257 B | free contiguous `HYBRID_C_EXT` tail; cc65 code or main-linked ASM appended after `LIGHT_CODE` |
+| `$9100-$9D34` | 3,125 B | ENTITY_CODE (C1 −39 B, second-stream expansion +13 B); `$9D35-$9D5D` 41 B free |
+
+Transport: the window's independent LZ stream (201 B packed) follows the
+pickup/collision stream in the same raw DFMC record. The record is 1,158 of
+1,277 B cold capacity and 10 sectors; there are still 8 records and a 142 B manifest.
+`unpack_weapon_pickup_phase_runtime` expands stream 1 to `$8776` and then
+stream 2 to `$8602`. Asserts: `STAR_NEAR_STATE_END <= RESIDENT_WINDOW`,
+hold ≥ the `$81D0` starfield-staging end, hold inside the ring and below the
+window, and `HYBRID_C_SECTOR` ≤ 248 B (build). Evidence:
+[diagnostics/stage-2b2f-resident-capacity-glue-window.json](diagnostics/stage-2b2f-resident-capacity-glue-window.json).
 
 ## Blocked-experiment evidence — not part of this map
 
@@ -227,7 +240,7 @@ starfield, so all overlaps are lifetime-safe.
 | `$85D3` | 1 B | freshly generated enemy boundary cell, safely aliasing an unused centre byte of the prepared row |
 | `$85E6-$85EE` | 9 B | unowned after cold startup |
 | `$85EF-$85FF` | 17 B | unowned after cold startup; `$85F2-$85FF` was the head of the retired logical far-record pool |
-| `$8600-$86F9` | 250 B | boot-only GLUE holding buffer after resident staging is consumed; unowned after publication — **candidate capacity only, not allocatable** (see below); its first 102 bytes formerly doubled as the rest of the logical far-record pool |
+| `$8600-$86F9` | 250 B | accepted checkpoint: boot-only GLUE hold. **Step 4.3 candidate:** `$8600-$8601` is near-star state and `$8602-$86F9` is `HYBRID_C_SECTOR_RAM`; the hold moves to `$8300` (see the step 4.3 section) |
 | `$86FA-$8700` | 7 B | hybrid C Director/lifecycle mailbox and scratch; software stack 0 B, new ZP 0 B |
 | `$8701-$8775` | 117 B | hybrid C/ASM Director/lifecycle ABI veneer and startup publishers |
 | `$8776-$8857` | 226 B | Light M1 `LIGHT_RESIDENT` kernel heading the pickup/collision stream |

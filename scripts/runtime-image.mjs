@@ -46,6 +46,11 @@ export function loadRuntimeSegments(rootDirectory) {
       ["capitalPlayerCollision", "capital-player-collision.bin",
         manifest.capitalPlayerCollisionRuntime.runAddress,
         manifest.capitalPlayerCollisionRuntime.bytes],
+      ...(manifest.residentCapacity?.window == null ? [] : [
+        ["residentWindow", "resident-window-runtime.bin",
+          manifest.residentCapacity.window.address,
+          manifest.residentCapacity.window.usedBytes],
+      ]),
     ] : []),
   ];
   const segments = definitions.map(([name, fileName, start, expectedBytes]) => {

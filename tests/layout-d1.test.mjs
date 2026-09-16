@@ -20,6 +20,9 @@ const pickupPhaseRuntime = fs.readFileSync(
   path.join(root, "build/weapon-pickup-phase-runtime.bin"));
 const glue = fs.readFileSync(path.join(root, "build/integration-glue.bin"));
 const director = fs.readFileSync(path.join(root, "build/encounter-director.bin"));
+const residentWindow = fs.readFileSync(path.join(root, "build/resident-window-runtime.bin"));
+const glueHolding = manifest.integrationGlue.holdingAddress;
+const windowAddress = manifest.residentCapacity.window.address;
 const sha256 = (bytes) => crypto.createHash("sha256").update(bytes).digest("hex");
 
 function run(memory, target, { a = 0, x = 0, y = 0 } = {}) {
@@ -55,7 +58,7 @@ function stageArtifact(artifact, fill) {
   assert.deepEqual(Buffer.from(memory.subarray(0x9100, 0x9100 + entity.length)), entity);
   run(memory, "stage_a2_kernel");
   const finalAfterCopy = Buffer.from(memory.subarray(0x9000, 0x9000 + a2.length));
-  assert.deepEqual(Buffer.from(memory.subarray(0x8600, 0x8600 + glue.length)), glue);
+  assert.deepEqual(Buffer.from(memory.subarray(glueHolding, glueHolding + glue.length)), glue);
   run(memory, "init_entity_effects");
   const finalAfterClear = Buffer.from(memory.subarray(0x9000, 0x9000 + a2.length));
   run(memory, "unpack_weapon_pickup_phase_runtime");
@@ -63,12 +66,20 @@ function stageArtifact(artifact, fill) {
   assert.equal(pickupStream, 0x8776, "Light kernel heads the pickup/collision stream");
   assert.deepEqual(Buffer.from(memory.subarray(pickupStream,
     pickupStream + pickupPhaseRuntime.length)), pickupPhaseRuntime);
+  assert.deepEqual(Buffer.from(memory.subarray(windowAddress,
+    windowAddress + residentWindow.length)), residentWindow,
+  "the pickup record's second stream publishes the resident window");
+  assert.deepEqual(Buffer.from(memory.subarray(glueHolding, glueHolding + glue.length)), glue,
+    "the window expansion leaves the GLUE hold intact");
   run(memory, "unpack_starfield_runtime");
   const finish = labels.get("finish_startup_after_loader");
   const savedFinish = memory[finish];
   memory[finish] = 0x60;
   run(memory, "layout_d_publish_glue");
   memory[finish] = savedFinish;
+  assert.deepEqual(Buffer.from(memory.subarray(windowAddress,
+    windowAddress + residentWindow.length)), residentWindow,
+  "GLUE publication leaves the resident window intact");
   return { memory, sourceA2, packedEntity, finalAfterCopy, finalAfterClear };
 }
 
@@ -168,6 +179,10 @@ test("startup writes never intersect a source before its last read", () => {
     { name: "packed starfield source", start: manifest.starfieldRuntime.packedSourceAddress,
       end: manifest.starfieldRuntime.packedSourceAddress +
         manifest.starfieldRuntime.packedBytes, lastRead: 9 },
+    { name: "packed pickup hold", start: 0x4801,
+      end: 0x4801 + manifest.entityEffects.pickupPhasePackedBytes, born: 3, lastRead: 10 },
+    { name: "GLUE hold", start: glueHolding, end: glueHolding + glue.length, born: 8,
+      lastRead: 14 },
   ];
   const writes = [
     { sequence: 1, start: 0x7f2b, end: 0x7f2b + manifest.a2Kernel.bytes },
@@ -177,12 +192,16 @@ test("startup writes never intersect a source before its last read", () => {
       end: 0x4801 + manifest.entityEffects.pickupPhasePackedBytes },
     { sequence: 4, start: 0x8100,
       end: 0x8100 + manifest.residentRuntime.suffixPackedBytes },
-    { sequence: 8, start: 0x8600, end: 0x8600 + glue.length },
-    { sequence: 9, start: 0x7810,
-      end: 0x7810 + manifest.starfieldRuntime.packedBytes },
+    { sequence: 8, start: glueHolding, end: glueHolding + glue.length },
+    // Three 960-byte copies advancing by $300: the real extent reaches $81CF.
+    { sequence: 9, start: 0x7810, end: 0x7810 + 3 * 0x300 + 0xc0 },
+    { sequence: 10, start: manifest.entityEffects.pickupPhaseBankAddress,
+      end: manifest.entityEffects.pickupPhaseBankAddress +
+        manifest.entityEffects.pickupPhaseRuntimeBytes },
+    { sequence: 10, start: windowAddress, end: windowAddress + residentWindow.length },
   ];
   for (const write of writes) for (const live of sources) {
-    const active = write.sequence <= live.lastRead;
+    const active = write.sequence > (live.born ?? 0) && write.sequence <= live.lastRead;
     const intersects = write.start < live.end && write.end > live.start;
     const safeBackwardSelfCopy = write.backwardSource === live.name &&
       write.start >= live.start && manifest.entityEffects.stagingCopyDirection === "backward";

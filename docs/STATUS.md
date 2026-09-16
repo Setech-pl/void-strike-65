@@ -35,7 +35,7 @@ fifth-player PMG pickup mask.
 
 Previous accepted runtime checkpoint: `2df89da` (XEX `9aa7336e…`).
 
-No owner-smoke candidate is open.
+Open owner-smoke candidates: pickup visibility (P0 section) and step 4.3 Stage 1.
 
 ---
 
@@ -89,8 +89,9 @@ about 75 B of resident space (`BLOCKED_PLACEMENT`).
 | Simultaneous residency | 19,207 B |
 | Safe residency remaining | 2,980 B |
 
-Placement margins: extension 17 B, pickup stream 6 B, packed STARFIELD 24 B,
-A2 kernel 19 B, ENTITY_CODE 12 B. A new archetype or smooth Light may need a
+Placement margins at this accepted checkpoint: extension 17 B, pickup stream
+6 B, packed STARFIELD 24 B, A2 kernel 19 B, ENTITY_CODE 12 B (step 4.3 candidate
+figures are in its section below). A new archetype or smooth Light may need a
 placement decision. Use identical replays when comparing CPU.
 
 ---
@@ -219,25 +220,49 @@ The Interceptor is and stays Light class, character-rendered, never on
 
 ---
 
+## Step 4.3 Stage 1 — reusable resident capacity (2026-09-16)
+
+`OWNER-SMOKE CANDIDATE`. Owner GO for Option D = A + C1; the 4.3 pause is
+lifted because the correct debris P0 fix itself needs resident capacity. No
+debris or Interceptor work was done in 4.3.
+
+- **C1** (`fca5e31`): dead ENTITY_CODE removed (`unpack_broadside_runtime` 23 B,
+  `entity_archetype_descriptors` 16 B). Gate passed: no new test failure name,
+  identical PAL replay, native lifecycle watch PASS.
+- **A**: the GLUE hold moves `$8600` → `$8300` (idle ring RAM). The
+  former hold becomes the C area `HYBRID_C_SECTOR_RAM` **`$8602-$86F9`** (248 B;
+  `$8600-$8601` is near-star state). The five `sector_c_*` functions (240 B)
+  moved there unchanged. Their independent LZ stream rides after the
+  pickup/collision stream in the same DFMC record (8/8 records, 142 B manifest
+  unchanged) and is expanded by a second destination at boot.
+
+| Metric (measured) | Baseline `db64ca8` | Candidate |
+| --- | ---: | ---: |
+| Physical resident code/data | 19,914 B | 19,888 B |
+| C-reachable free capacity | 24 B | **272 B** (257 B contiguous `HYBRID_C_EXT` tail `$8EFF-$8FFF`, 8 B window, 7 B other) |
+| ENTITY_CODE free tail | 15 B | 41 B |
+| Pickup record packed / cold capacity | 957 / 1,277 | 1,158 / 1,277 |
+| Startup `start`→loader | 2,038,329 cycles | +8,463 cycles (one-time) |
+| PAL max wall, `2-evasive-fire3` / full capital traversal ×5 | 29,217 / 29,200 | 29,217 / 29,200 |
+
+The native write-watch (`scripts/capacity-window-watch.mjs`) ran on XEX and ATR through
+cold start, OPTIONS, BACK, START, pause/resume, game over, menu, START,
+pause/quit and menu. The hold stayed intact until publication, and the window matched
+the linked image with 0 writes. The `HYBRID_C_EXT` tail can hold C or
+main-linked ASM appended after `LIGHT_CODE`. Candidate XEX `2953461e…`. Evidence:
+[diagnostics/stage-2b2f-resident-capacity-glue-window.json](diagnostics/stage-2b2f-resident-capacity-glue-window.json).
+
+The Interceptor (full: 143 B raw C) and the debris R-pre fix now have legal
+placements. Their implementation is not started.
+
+---
+
 ## Current task
 
-Owner smoke of the pickup visibility candidate above.
-
-Paused until both P0 runtime defects are closed: roadmap step 4.3, the
-Interceptor, and the Raider-coloured residual artifact investigation.
+Owner smoke of two candidates: pickup visibility (above) and step 4.3 Stage 1.
 
 ## Next roadmap step
 
-After pickup owner smoke passes: diagnose and remove the persistent
-Raider-coloured residual artifact (the second P0 defect). Only then:
-
-**Plan step 4.3 — reusable resident-capacity recovery.** Not an Interceptor
-retry. It must recover reusable resident capacity for the Light-enemy family
-and subsequent gameplay growth, sized against the remaining deficit above.
-
-The 250 B boot-only GLUE holding window `$8600-$86F9` is a **candidate** source
-only. It is unowned after its boot lifetime but is not approved allocatable
-capacity: claiming it needs a second packed transport record, its own expansion
-call and a startup-ordering proof against `layout_d_publish_glue`.
-
-Do not retry 4.4 before capacity exists.
+After owner acceptance of 4.3: the **exact-ownership debris R-pre fix** (debris
+< effects < Light < PairShots < sparse near), not the Interceptor. The
+Raider-coloured residual artifact remains an open P0 investigation.

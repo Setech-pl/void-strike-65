@@ -120,7 +120,7 @@ test("packed startup and relocated GLUE have pairwise-safe real lifetimes", () =
     interval(0x8c80, pickup.length, 0, 3, "pickup external staging"),
     interval(0x4801, pickup.length, 3, 11, "pickup holding"),
     interval(glueStart, glue.length, 0, 8, "GLUE staging"),
-    interval(0x8600, glue.length, 8, 14, "GLUE holding"),
+    interval(0x8300, glue.length, 8, 14, "GLUE holding"),
     interval(0x4efe, glue.length, 14, 14, "GLUE runtime"),
     interval(0x7810, build.starfieldPacked.length, 9, 13, "starfield staging"),
     interval(0x21c1, 0x1e3f, 5, 14, "resident runtime suffix"),
@@ -158,7 +158,7 @@ test("packed startup and relocated GLUE have pairwise-safe real lifetimes", () =
     for (const range of [
       [0x8100, build.residentPacked], [0x5318, build.entityPacked],
       [0x7f2b, build.a2], [0x8c80, pickup], [glueStart, glue],
-      [0x8600, glue], [0x7810, build.starfieldPacked], [0x9d75, director],
+      [0x8300, glue], [0x7810, build.starfieldPacked], [0x9d75, director],
     ]) writeWithSentinels(fill, range[0], range[1]);
   }
 

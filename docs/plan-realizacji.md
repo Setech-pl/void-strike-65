@@ -99,7 +99,14 @@ Owner smoke PASS 2026-09-15; niezacommitowana praca rozstrzygnięta.
 Commit `feat: accept Light Wingman and visible PMG pickup`; zaakceptowany XEX
 odtwarzalny z Gita (hash w STATUS).
 
-### 4.3 Rezydentna pojemność wielokrotnego użytku — ACTIVE / REQUIRED
+### 4.3 Rezydentna pojemność wielokrotnego użytku — Stage 1 OWNER-SMOKE CANDIDATE
+
+Stage 1 (Option D = A + C1, owner GO 2026-09-16) jest zaimplementowany jako
+kandydat: okno C `HYBRID_C_SECTOR_RAM` `$8602-$86F9` (248 B), hold GLUE w `$8300`,
+wolny ciągły ogon `HYBRID_C_EXT` 257 B, ogon ENTITY_CODE 41 B, DFMC bez zmian
+(8 rekordów). Dowody: `docs/diagnostics/stage-2b2f-resident-capacity-glue-window.json`.
+Po akceptacji właściciela następnym zadaniem jest poprawka debris R-pre
+(dokładna własność), nie Interceptor. Poniżej: pierwotne uzasadnienie.
 
 Wymagane, ponieważ punkt 4.4 realnie się zablokował (2026-09-16).
 

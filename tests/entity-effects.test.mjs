@@ -80,7 +80,9 @@ const addresses = {
   screenLo: labels.get("ENTITY_SCREEN_LO"),
   screenHi: labels.get("ENTITY_SCREEN_HI"),
   backing: labels.get("ENTITY_BACKING0"),
-  backing1: labels.get("ENTITY_BACKING1"),
+  // Slot-zero debris keeps its right cell's backing at ENTITY_BACKING0+1 (the
+  // otherwise unused slot-1 field), the offset the A2 debris resolver reads.
+  backing1: labels.get("ENTITY_BACKING0") + 1,
   drawnMask: labels.get("ENTITY_DRAWN_MASK"),
   hp: labels.get("ENTITY_HP"),
   owner: labels.get("ENTITY_OWNER"),
@@ -195,7 +197,25 @@ function snapshotDebrisSlotZero(memory) {
   ].map((address) => memory[address]);
 }
 
-function runRoutine(memory, name, { accumulator = 0, beforeExecute } = {}) {
+// The runtime publishes the debris through entity_debris_publish (fighter:
+// post-playfield window; capital: after the entity update), so the linked
+// entity_effects_erase/render routines are effects-only. The harness keeps the
+// composite frame order these tests were written against: effects erase then
+// debris erase, debris render then effects render.
+const compositeRoutines = {
+  entity_effects_render: ["render_interactive_entity_overlays", "entity_effects_render"],
+  entity_effects_erase: ["entity_effects_erase", "erase_interactive_entity_overlays"],
+};
+
+function runRoutine(memory, name, options = {}) {
+  if (compositeRoutines[name]) {
+    return compositeRoutines[name].reduce((sum, part) =>
+      sum + runRoutineRaw(memory, part, options), 0);
+  }
+  return runRoutineRaw(memory, name, options);
+}
+
+function runRoutineRaw(memory, name, { accumulator = 0, beforeExecute } = {}) {
   const cpu = new Nmos6502(memory);
   const stop = 0x7fff;
   cpu.push((stop - 1) >> 8);
@@ -210,6 +230,22 @@ function runRoutine(memory, name, { accumulator = 0, beforeExecute } = {}) {
 }
 
 function runRoutineTrace(memory, name, watchedNames) {
+  if (compositeRoutines[name]) {
+    const merged = { cycles: 0, visited: new Set(),
+      callCounts: new Map(watchedNames.map((label) => [label, 0])) };
+    for (const part of compositeRoutines[name]) {
+      const result = runRoutineTraceRaw(memory, part, watchedNames);
+      merged.cycles += result.cycles;
+      for (const label of result.visited) merged.visited.add(label);
+      for (const [label, count] of result.callCounts)
+        merged.callCounts.set(label, merged.callCounts.get(label) + count);
+    }
+    return merged;
+  }
+  return runRoutineTraceRaw(memory, name, watchedNames);
+}
+
+function runRoutineTraceRaw(memory, name, watchedNames) {
   const cpu = new Nmos6502(memory);
   const stop = 0x7fff;
   const watched = new Map(watchedNames.map((label) => {

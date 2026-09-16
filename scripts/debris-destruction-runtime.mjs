@@ -22,7 +22,24 @@ function requiredLabel(labels, name) {
   return address;
 }
 
-function runRoutine(memory, labels, name, { writeLog = null, frame = null } = {}) {
+// The runtime publishes the debris through entity_debris_publish, so the linked
+// entity_effects_erase/render are effects-only. The harness preserves the
+// composite order (effects erase then debris erase; debris render then effects
+// render) and attributes the writes to the composite name.
+const compositeRoutines = {
+  entity_effects_render: ["render_interactive_entity_overlays", "entity_effects_render"],
+  entity_effects_erase: ["entity_effects_erase", "erase_interactive_entity_overlays"],
+};
+
+function runRoutine(memory, labels, name, options = {}) {
+  if (compositeRoutines[name]) {
+    return compositeRoutines[name].reduce((sum, part) =>
+      sum + runRoutineRaw(memory, labels, part, { ...options, logName: name }), 0);
+  }
+  return runRoutineRaw(memory, labels, name, options);
+}
+
+function runRoutineRaw(memory, labels, name, { writeLog = null, frame = null, logName = name } = {}) {
   const ringRows = requiredLabel(labels, "PLAYFIELD_RING_ROWS");
   const ringEnd = requiredLabel(labels, "PLAYFIELD_ROW_LO");
   const ringBase = ringEnd - ringRows * 40;
@@ -32,11 +49,11 @@ function runRoutine(memory, labels, name, { writeLog = null, frame = null } = {}
           (address >= ringBase && address < ringEnd)) {
         const effectBacking = labels.get("EFFECT_BACKING0");
         const entityBacking0 = labels.get("ENTITY_BACKING0");
-        const entityBacking1 = labels.get("ENTITY_BACKING1");
+        const entityBacking1 = labels.get("ENTITY_BACKING0") + 1;   // right debris cell
         const entityScreenLo = labels.get("ENTITY_SCREEN_LO");
         const entityScreenHi = labels.get("ENTITY_SCREEN_HI");
         const projectileBacking = labels.get("FIGHTER_PROJECTILE_BACKUP_TOP");
-        writeLog.push({ frame, routine: name, pc: executingCpu.pc,
+        writeLog.push({ frame, routine: logName, pc: executingCpu.pc,
           x: executingCpu.x, y: executingCpu.y,
           address, before: memory[address], after: value,
           effectBacking: Number.isInteger(effectBacking) && executingCpu.x < 5 ?
@@ -816,11 +833,17 @@ export function executeProjectileDebrisBackingTrace({
   memory[requiredLabel(labels, "ENTITY_TIMER")] = 4;
   memory[requiredLabel(labels, "player_x")] = 196;
   memory[requiredLabel(labels, "player_y")] = 184;
+  const ringBefore = Uint8Array.from(memory);
 
   const writeLog = [];
   writeLog.provenanceContext = { debrisGeneration: 1, projectileGeneration: 1 };
   const debrisRenderCycles = runRoutine(memory, labels, "entity_effects_render",
     { writeLog, frame: 0 });
+  // The exact lower backing of the PairShot's cell: the ring byte the debris
+  // overwrote there (the debris record captures it; the resolver returns it).
+  const debrisCell = (memory[requiredLabel(labels, "ENTITY_SCREEN_LO")] |
+    memory[requiredLabel(labels, "ENTITY_SCREEN_HI")] << 8) + (debrisCellOffset >> 2);
+  const lowerBacking = ringBefore[debrisCell];
   const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
   const projectileX = requiredLabel(labels, "FIGHTER_PROJECTILE_X");
   const projectileY = requiredLabel(labels, "FIGHTER_PROJECTILE_Y");
@@ -839,6 +862,7 @@ export function executeProjectileDebrisBackingTrace({
   const address = memory[screenLo + projectileSlot] |
     memory[screenHi + projectileSlot] << 8;
   const savedBacking = memory[backing + projectileSlot];
+  const projectileGlyph = memory[address];
 
   const entityEraseCycles = runRoutine(memory, labels, "entity_effects_erase",
     { writeLog, frame: 1 });
@@ -861,6 +885,8 @@ export function executeProjectileDebrisBackingTrace({
     debris: { type: memory[requiredLabel(labels, "ENTITY_TYPE")], slot: 0,
       renderId: 116, initialX: debrisX, initialY: debrisY, movedX, movedY },
     address,
+    lowerBacking,
+    projectileGlyph,
     visibleGlyph: 116 + (debrisCellOffset >> 2),
     savedBacking,
     afterEntityErase,

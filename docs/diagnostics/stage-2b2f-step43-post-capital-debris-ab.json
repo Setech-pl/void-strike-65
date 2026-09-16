@@ -1,0 +1,222 @@
+{
+  "id": "stage-2b2f-step43-post-capital-debris-ab",
+  "date": "2026-09-16",
+  "task": "Owner smoke of step 4.3 Stage 1 (candidate 0290d83): A/B of the post-capital debris observation against the pre-4.3 baseline",
+  "verdict": "PREEXISTING - the debris visibility defect is not caused by step 4.3; the candidate and the baseline behave identically",
+  "builds": {
+    "baseline": {
+      "commit": "db64ca8",
+      "xex_sha256": "4c382777acf3df9649e5bea1f6222fd02063f8b17fa2158da480cd25367b8c7d"
+    },
+    "candidate": {
+      "commit": "0290d83",
+      "xex_sha256": "2953461e976c97e3e833323feb6d3fb5c1365b7dae76737f2d62e3294aea4444",
+      "reproduced": "npm run build:candidate -- --quiet reproduces 2953461e... from a clean checkout (re-verified 2026-09-16)"
+    }
+  },
+  "replays": {
+    "natural_only": "no booster-reentry / pairshot-reentry policies (they poke sector state)",
+    "sessions": [
+      {
+        "id": "0-evasive-fire3",
+        "difficulty": 0,
+        "policy": "evasive",
+        "fire_delay": 3,
+        "frames": 9000
+      },
+      {
+        "id": "capital-muzzle-ring-2-sweep-fire4",
+        "difficulty": 2,
+        "policy": "broadside-proof",
+        "fire_delay": 4,
+        "frames": 6000
+      },
+      {
+        "id": "2-evasive-fire3",
+        "difficulty": 2,
+        "policy": "evasive",
+        "fire_delay": 3,
+        "frames": 6000
+      }
+    ],
+    "first_divergent_frame": null,
+    "divergent_frames": 0,
+    "note": "gameplay state columns identical frame by frame between baseline and candidate on all three replays"
+  },
+  "resident_window_watch": {
+    "range": "$8602-$86F9 (HYBRID_C_SECTOR_RAM, 248 B)",
+    "runtime_write_events": 0,
+    "window_checksum": "byte-identical to the linked HYBRID_C_SECTOR image on every frame of every replay",
+    "function_audit": "the five relocated sector_c_* functions (sector_c_update_first_capital, sector_c_update_capital_phase, sector_c_begin_complete, sector_c_complete_scroll_tick, sector_c_force_final_drain) are semantically identical to their pre-relocation bodies (same code, relocated addresses only)"
+  },
+  "measured_mechanism": {
+    "fighter_open_frames": "the debris was erased at scanline 21-22 (entity_effects_erase right after the master PAL frame gate) and rendered at scanline 64-114 (entity_effects_render mid-frame): ANTIC had already fetched every row above the render point, so the debris was invisible until Y~64-128 and blinked one frame at every 8-line row step",
+    "capital_frames": "erased at scanline 231-233 (the capital frame starts at VCOUNT $70) while the bottom ring row 232-239 was being scanned, rendered in the vertical blank; only the bottom row was affected",
+    "level_1_admission": "Level 1 admits no debris before phase 2 (active frame 576); the first capital is admitted at active frame 600, so the defect is only observable after the first capital sector"
+  },
+  "debris_life_statistics_pre_fix": {
+    "tool": "scripts/runtime-wall-trace.mjs --debris-gate-only (final-framebuffer glyph match per completed host frame, scripts/atari800-wall-trace.h DFDEBRIS_GATE_OUTPUT), run on the candidate XEX 2953461e (identical to db64ca8 for this observation)",
+    "owner_reference_numbers_replay_r1_post_capital": "566 blank / 1028 in-view frames, 224 flicker transitions, first visible Y 64-80 (identical at db64ca8 and 0290d83)",
+    "calibration": "the gate reproduces 1028 in-view frames and 13 post-capital lives on 0-neutral-fire0 (observer-smoke difficulty 0); blank/transition counts differ slightly because this gate also classifies partially blank frames",
+    "sessions": {
+      "debris-gate-0-evasive-fire3": {
+        "host_frames": 9459,
+        "max_wall_cycles": 29486,
+        "missed_frames": 0,
+        "capital_phase": {
+          "lives": 15,
+          "lives_in_view": 15,
+          "frames_in_view": 1463,
+          "visible": 1422,
+          "blank": 37,
+          "partial": 4,
+          "disappearances": 13,
+          "reappearances": 4,
+          "first_visible_y_values": [
+            24
+          ],
+          "bottom_row_frames": 45,
+          "bottom_row_blank": 36,
+          "bottom_row_blank_ring_step": 15
+        },
+        "post_capital_fighter_phase": {
+          "lives": 8,
+          "lives_in_view": 8,
+          "frames_in_view": 854,
+          "visible": 307,
+          "blank": 437,
+          "partial": 110,
+          "disappearances": 213,
+          "reappearances": 213,
+          "first_visible_y_values": [
+            24,
+            72,
+            80,
+            88,
+            96,
+            104
+          ],
+          "bottom_row_frames": 30,
+          "bottom_row_blank": 12,
+          "bottom_row_blank_ring_step": 12
+        },
+        "owner_bottom_row_probe": {
+          "debris_active_frames": 2446,
+          "bottom_row_frames": 75,
+          "bottom_row_player_overlap_frames": 2,
+          "max_y": 232,
+          "spawns": 23,
+          "spawns_reaching_bottom_row": 15,
+          "beam_lit_frames": 2304,
+          "beam_blank_frames": 6,
+          "bottom_row_top": 232
+        }
+      },
+      "debris-gate-0-neutral-fire0": {
+        "host_frames": 9444,
+        "max_wall_cycles": 29748,
+        "missed_frames": 0,
+        "capital_phase": {
+          "lives": 19,
+          "lives_in_view": 19,
+          "frames_in_view": 1673,
+          "visible": 1647,
+          "blank": 20,
+          "partial": 6,
+          "disappearances": 6,
+          "reappearances": 1,
+          "first_visible_y_values": [
+            24
+          ],
+          "bottom_row_frames": 25,
+          "bottom_row_blank": 19,
+          "bottom_row_blank_ring_step": 7
+        },
+        "post_capital_fighter_phase": {
+          "lives": 13,
+          "lives_in_view": 13,
+          "frames_in_view": 1028,
+          "visible": 350,
+          "blank": 549,
+          "partial": 129,
+          "disappearances": 249,
+          "reappearances": 249,
+          "first_visible_y_values": [
+            24,
+            64,
+            72,
+            80
+          ],
+          "bottom_row_frames": 10,
+          "bottom_row_blank": 4,
+          "bottom_row_blank_ring_step": 4
+        },
+        "owner_bottom_row_probe": {
+          "debris_active_frames": 2862,
+          "bottom_row_frames": 35,
+          "bottom_row_player_overlap_frames": 35,
+          "max_y": 232,
+          "spawns": 32,
+          "spawns_reaching_bottom_row": 7,
+          "beam_lit_frames": 2683,
+          "beam_blank_frames": 10,
+          "bottom_row_top": 232
+        }
+      },
+      "debris-gate-capital-muzzle-ring-2-sweep-fire4": {
+        "host_frames": 6414,
+        "max_wall_cycles": 29876,
+        "missed_frames": 0,
+        "capital_phase": {
+          "lives": 9,
+          "lives_in_view": 9,
+          "frames_in_view": 695,
+          "visible": 659,
+          "blank": 21,
+          "partial": 15,
+          "disappearances": 31,
+          "reappearances": 26,
+          "first_visible_y_values": [
+            24
+          ],
+          "bottom_row_frames": 25,
+          "bottom_row_blank": 11,
+          "bottom_row_blank_ring_step": 4
+        },
+        "post_capital_fighter_phase": {
+          "lives": 16,
+          "lives_in_view": 16,
+          "frames_in_view": 1428,
+          "visible": 417,
+          "blank": 809,
+          "partial": 202,
+          "disappearances": 417,
+          "reappearances": 417,
+          "first_visible_y_values": [
+            88,
+            96,
+            104,
+            112,
+            120,
+            128
+          ],
+          "bottom_row_frames": 56,
+          "bottom_row_blank": 28,
+          "bottom_row_blank_ring_step": 28
+        },
+        "owner_bottom_row_probe": {
+          "debris_active_frames": 2258,
+          "bottom_row_frames": 81,
+          "bottom_row_player_overlap_frames": 81,
+          "max_y": 232,
+          "spawns": 25,
+          "spawns_reaching_bottom_row": 20,
+          "beam_lit_frames": 2093,
+          "beam_blank_frames": 22,
+          "bottom_row_top": 232
+        }
+      }
+    }
+  },
+  "status": "OWNER-SMOKE CANDIDATE for 4.3 remains unchanged by this A/B; the owner's smoke verdict is recorded in docs/STATUS.md exactly as stated"
+}

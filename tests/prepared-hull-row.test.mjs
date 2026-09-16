@@ -35,9 +35,12 @@ function fixture(difficulty, fill = 0) {
   const memory = new Uint8Array(65536).fill(fill);
   installRuntimeSegments(memory, root);
   memory.set(linked.subarray(0, 8192), 0x2000);
-  for (const name of ["STARFIELD", "BROADSIDE", "A2_KERNEL", "ENTITY_CODE", "PICKUP_CODE"]) {
+  // LIGHT_CODE is main-linked too (the ring rotation's recycled-row restore
+  // and the debris late publication live there), so install this link's copy.
+  for (const name of ["STARFIELD", "BROADSIDE", "A2_KERNEL", "ENTITY_CODE", "PICKUP_CODE",
+    "LIGHT_CODE"]) {
     const offset = name === "PICKUP_CODE" ? at("__PICKUPFILE_FILEOFFS__") :
-      at(`__${name}_LOAD__`) - 0x2000;
+      name === "LIGHT_CODE" ? at("__LIGHTFILE_FILEOFFS__") : at(`__${name}_LOAD__`) - 0x2000;
     memory.set(linked.subarray(offset, offset + at(`__${name}_SIZE__`)), at(`__${name}_RUN__`));
   }
   memory[at("DIFFICULTY_SETTING")] = difficulty;

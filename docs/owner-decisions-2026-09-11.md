@@ -517,3 +517,29 @@ istniejącego rekordu pickup/collision; usunięcie martwego kodu ENTITY_CODE).
 - Obowiązkowy natywny write-watch `$8300-$83F9` i `$8602-$86F9` dla ATR i XEX.
 - Bez migracji polityk ASM→C jako źródła pojemności; bez debris i Interceptora w 4.3.
 - Po akceptacji 4.3 następne zadanie: poprawka debris R-pre (dokładna własność), nie Interceptor.
+
+## 17. Smoke 4.3 Stage 1 i późna publikacja debris — KANDYDAT (2026-09-16)
+
+Zapis smoke 4.3 (dosłownie wg właściciela): podczas smoke właściciel
+zaobserwował debris po pierwszym sektorze capital. Kandydat `0290d83`
+(XEX `2953461e…`) został wyjaśniony A/B względem `db64ca8` dla tej obserwacji:
+`PREEXISTING`, pierwsza rozbieżna klatka: brak, 0 zapisów runtime do
+`$8602-$86F9`, okno bajt-w-bajt identyczne z obrazem linkera w każdej klatce,
+przeniesione funkcje `sector_c_*` semantycznie identyczne. Właściciel nie
+ogłosił PASS; 4.3 Stage 1 pozostaje `OWNER-SMOKE CANDIDATE`.
+
+Zadanie zlecone po A/B: poprawka debris R-pre (dokładna własność) — debris
+erase+render w oknie po playfieldzie (po `wait_frame_at_line $77`) razem z
+Light/PairShot/pickup, kolejność debris < effects < Light < PairShots < sparse
+near; tylko publikacja ASM; bez migracji polityk; bez zmian PMG; rozmieszczenie
+wg `consumer_readiness.debris_r_pre`; bezpieczny recyklowany dolny wiersz
+(wybór: restore, nie skracanie życia przed Y 232); natywna bramka widoczności
+na naturalnych replayach (bez polityk reentry). Wynik: `OWNER-SMOKE
+CANDIDATE` opisany w STATUS; wybory agenta do zatwierdzenia przez właściciela:
+
+- w klatkach capital debris publikowane tuż po aktualizacji encji (w vblank),
+  po każdym restore i przed każdym capture transientów; wizualnie pociski
+  broadside są teraz nad debris (wcześniej debris nad nimi);
+- komórka, którą w chwili publikacji posiada wyrenderowany efekt 25 Hz,
+  pozostaje efektowi (dokładna własność); gdy ten efekt wygasa, komórka
+  pokazuje przez jedną klatkę podkład — efekty nadal publikują w środku klatki.

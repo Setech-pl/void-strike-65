@@ -53,8 +53,9 @@ test("C EnemyArchetype is a compact exact Raider record in legal extension place
     [1, 0, 1, 5, 15, 60, 50, 40, 1, 1, 0x10, 1]);
   // Step 4.3: the 240 B of sector-transition C moved from the extension composite
   // (still carrying LIGHT_CODE) into the reusable resident window; 642 + 240 = 882.
+  // The debris late-publication kernel then grew LIGHT_CODE by 70 B: 712 + 240.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
-    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 642 });
+    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 712 });
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
     ({ name }) => name === "window"), { name: "window", runAddress: 0x8602, bytes: 240 });
   assert.equal(manifest.encounterDirector.director.footprint.cStackBytes, 0);

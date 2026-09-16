@@ -93,15 +93,21 @@ regenerated.
 | `$8602-$86F9` | 248 B | `HYBRID_C_SECTOR_RAM`: the five `sector_c_*` functions, 240 B at `$8602-$86F1`; 8 B free |
 | `$8300-$83F9` | 250 B | boot-only GLUE hold (idle gameplay-ring RAM) until `layout_d_publish_glue`; `init_screen` rebuilds the ring before gameplay |
 | `$8C7D-$8E79` | 509 B | C `EnemyArchetype` RODATA 24 B + lifecycle/Light C 485 B |
-| `$8E7A-$8EFE` | 133 B | `LIGHT_CODE` (moved with the shorter C composite) |
-| `$8EFF-$8FFF` | 257 B | free contiguous `HYBRID_C_EXT` tail; cc65 code or main-linked ASM appended after `LIGHT_CODE` |
-| `$9100-$9D34` | 3,125 B | ENTITY_CODE (C1 −39 B, second-stream expansion +13 B); `$9D35-$9D5D` 41 B free |
+| `$8E7A-$8F44` | 203 B | `LIGHT_CODE` (moved with the shorter C composite): Light late publication 133 B plus the debris late-publication kernel 70 B (`entity_debris_publish`, capital hook `render_launch_flashes_with_capital_debris`, `restore_recycled_row_near_and_debris`) — debris candidate 2026-09-16 |
+| `$8F45-$8FFF` | 187 B | free contiguous `HYBRID_C_EXT` tail; cc65 code or main-linked ASM appended after `LIGHT_CODE` (257 B before the debris candidate) |
+| `$9100-$9D30` | 3,121 B | ENTITY_CODE (C1 −39 B, second-stream expansion +13 B, debris late publication −4 B); `$9D31-$9D5D` 45 B free |
 
 Transport: the window's independent LZ stream (201 B packed) follows the
 pickup/collision stream in the same raw DFMC record. The record is 1,158 of
 1,277 B cold capacity and 10 sectors; there are still 8 records and a 142 B manifest.
 `unpack_weapon_pickup_phase_runtime` expands stream 1 to `$8776` and then
-stream 2 to `$8602`. Asserts: `STAR_NEAR_STATE_END <= RESIDENT_WINDOW`,
+stream 2 to `$8602`. The debris late-publication candidate changes only
+`LIGHT_CODE`, the extension tail and `ENTITY_CODE` as tabled above; the A2
+kernel keeps its 237 B and frozen entry points; the extension record is 712 B
+raw / 636 B packed of 960. Slot-zero debris state: `ENTITY_BACKING0+0/+1` hold
+the two cells' lower backing and `ENTITY_BACKING2+0/+1` the two published screen
+codes (the slot-1 bytes are otherwise unused; the A2 resolver indexes them by
+cell). Asserts: `STAR_NEAR_STATE_END <= RESIDENT_WINDOW`,
 hold ≥ the `$81D0` starfield-staging end, hold inside the ring and below the
 window, and `HYBRID_C_SECTOR` ≤ 248 B (build). Evidence:
 [diagnostics/stage-2b2f-resident-capacity-glue-window.json](diagnostics/stage-2b2f-resident-capacity-glue-window.json).

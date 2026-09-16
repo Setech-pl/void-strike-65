@@ -12,6 +12,7 @@ import { readStartMenuRuntimeState } from "./preview.mjs";
 import { atari800ArtifactLaunches, validateAtari800Launch } from "./artifact-launch.mjs";
 import { focusedPalAcceptance } from "./focused-pal-acceptance.mjs";
 import { executeDebrisDestructionTrace } from "./debris-destruction-runtime.mjs";
+import { analyseDebrisGate } from "./debris-visibility-gate.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const rootDirectory = path.resolve(scriptDirectory, "..");
@@ -144,6 +145,19 @@ const debrisSlot0BaselineSessions = [0, 1, 2].map((difficulty) => ({
   frames: 5_000,
   kind: "debris-slot0-baseline",
 }));
+
+// Debris visibility gate: natural replays only (no sector-poking policies).
+// The two 9,000-frame difficulty-0 replays reach the first capital, return to
+// the fighter sector and play out post-capital debris lives; the capital
+// muzzle replay covers debris lives inside the capital sector.
+const debrisVisibilityGateSessions = [
+  { id: "debris-gate-0-evasive-fire3", difficulty: 0, policy: "evasive", fireDelay: 3,
+    frames: 9_000 },
+  { id: "debris-gate-0-neutral-fire0", difficulty: 0, policy: "neutral", fireDelay: 0,
+    frames: 9_000 },
+  { id: "debris-gate-capital-muzzle-ring-2-sweep-fire4", difficulty: 2,
+    policy: "broadside-proof", fireDelay: 4, frames: 6_000 },
+].map((session) => ({ ...session, kind: "debris-visibility-gate" }));
 
 const weaponPickupSessions = [{
   id: "weapon-pickup-2-hunt-fire4",
@@ -548,6 +562,7 @@ const traceLabels = {
   DFTRACE_ENTITY_BACKING1: "ENTITY_BACKING1",
   DFTRACE_ENTITY_BACKING2: "ENTITY_BACKING2",
   DFTRACE_ENTITY_BACKING3: "ENTITY_BACKING3",
+  DFTRACE_PLAYFIELD_PREBUILD_PENDING: "PLAYFIELD_PREBUILD_PENDING",
   DFTRACE_PLAYFIELD_ROW_LO: "PLAYFIELD_ROW_LO",
   DFTRACE_PLAYFIELD_ROW_HI: "PLAYFIELD_ROW_HI",
   DFTRACE_SCORE_LO: "score_bcd_lo",
@@ -1974,6 +1989,7 @@ function main() {
   const boosterAdmissionOnly = process.argv.includes("--booster-admission-only");
   const effectsStaggerOnly = process.argv.includes("--effects-stagger-only");
   const debrisSlot0BaselineOnly = process.argv.includes("--debris-slot0-baseline-only");
+  const debrisGateOnly = process.argv.includes("--debris-gate-only");
   const skipBootSmoke = process.argv.includes("--skip-boot-smoke");
   const tracePreflightOnly = process.argv.includes("--trace-preflight-only");
   const reuseExistingTraces = process.argv.includes("--reuse-existing-traces");
@@ -2153,6 +2169,8 @@ function main() {
     fs.unlinkSync(boosterAdmissionScreenshotPath);
   let sessionsToRun = boosterAdmissionOnly
     ? boosterAdmissionReentrySessions
+    : debrisGateOnly
+    ? debrisVisibilityGateSessions
     : playerPairShotReentryOnly
     ? playerPairShotReentrySessions
     : debrisSlot0BaselineOnly
@@ -2304,6 +2322,12 @@ function main() {
 	    DFTRACE_FRONTEND_DELAY: String(session.frontendDelay),
 	  }),
       ...(session.pauseTest ? { DFTRACE_PAUSE_TEST: "1" } : {}),
+      ...(session.kind === "debris-visibility-gate" ? {
+        DFDEBRIS_GATE_OUTPUT: path.join(buildDirectory, `${session.id}-debris-gate.csv`),
+        DFDEBRIS_ROW_OUTPUT: path.join(buildDirectory, `${session.id}-debris-row.json`),
+        DFDEBRIS_PC_ERASE: String(labels.get("erase_interactive_entity_overlays")),
+        DFDEBRIS_PC_RENDER: String(labels.get("render_interactive_entity_overlays")),
+      } : {}),
       ...(session.kind === "weapon-pickup-coverage" && !pairShotOnly ? {
         DFTRACE_PICKUP_SCREENSHOT: pickupScreenshotPath,
         DFTRACE_PICKUP_SEQUENCE_PREFIX: pickupSequencePrefix,
@@ -2917,6 +2941,63 @@ function main() {
   if (boosterAdmissionOnly) {
     console.log(`Booster admission raw traces: ${sessionsToRun.length} sessions, ` +
       `${allRows.length} frames`);
+    return;
+  }
+  if (debrisGateOnly) {
+    const sessions = sessionsToRun.map((session) => {
+      const gatePath = path.join(buildDirectory, `${session.id}-debris-gate.csv`);
+      const rowPath = path.join(buildDirectory, `${session.id}-debris-row.json`);
+      const rows = allRows.filter((row) => row.session === session.id);
+      const analysis = analyseDebrisGate(gatePath);
+      return {
+        session: session.id,
+        difficulty: session.difficulty,
+        policy: session.policy,
+        fire_delay: session.fireDelay,
+        gameplay_frames: rows.length,
+        maximum_wall_cycles: Math.max(...rows.map((row) => row.wall_cycles)),
+        missed_frames: rows.reduce((sum, row) => sum + row.missed_frames, 0),
+        extra_vbi_boundaries: rows.reduce((sum, row) => sum + row.extra_vbi_boundaries, 0),
+        dli_sequence_violations: Math.max(...rows.map((row) => row.dli_sequence_violations)),
+        host_frames: analysis.host_frames,
+        first_capital: analysis.first_capital,
+        return_to_fighter: analysis.return_to_fighter,
+        publication_inside_playfield: analysis.publication_inside_playfield,
+        summary: analysis.summary,
+        bottom_row_probe: fs.existsSync(rowPath) ? JSON.parse(fs.readFileSync(rowPath, "utf8")) : null,
+        lives: analysis.lives,
+        raw_gate_csv: path.relative(rootDirectory, gatePath),
+      };
+    });
+    const report = {
+      generated: new Date().toISOString(),
+      artifact: path.relative(rootDirectory, xexPath),
+      artifact_sha256: crypto.createHash("sha256").update(fs.readFileSync(xexPath)).digest("hex"),
+      method: "per completed host frame, Screen_atari compared with the two debris glyphs at 2*HPOS-64, expected top scanline 24+8*((Y-24)>>3), against the record sampled at the previous boundary",
+      criteria: "per life entering the playfield: first visible Y 24, 0 blank frames in view, 0 disappear/reappear transitions, ring cells hold the codes whenever RENDERED; bottom row (Y>=232) reported separately",
+      sessions,
+      passed: sessions.every(({ summary }) => summary.passed),
+    };
+    const reportPath = path.join(buildDirectory, "debris-visibility-gate-report.json");
+    fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+    for (const entry of sessions) {
+      const phases = entry.summary.by_phase;
+      console.log(`${entry.session}: ${entry.host_frames} host frames, max ${entry.maximum_wall_cycles} wall cycles, ` +
+        `missed ${entry.missed_frames}; capital ${phases.capital.lives_in_view} lives ` +
+        `(${phases.capital.blank} blank / ${phases.capital.frames_in_view} in view, ` +
+        `${phases.capital.disappearances} disappearances, first Y ${phases.capital.first_visible_y_values.join("/")}); ` +
+        `post-capital ${phases["post-capital-fighter"].lives_in_view} lives ` +
+        `(${phases["post-capital-fighter"].blank} blank / ${phases["post-capital-fighter"].frames_in_view} in view, ` +
+        `${phases["post-capital-fighter"].disappearances} disappearances, first Y ` +
+        `${phases["post-capital-fighter"].first_visible_y_values.join("/")}); ` +
+        `bottom row ${phases.capital.bottom_row_frames + phases["post-capital-fighter"].bottom_row_frames} frames, ` +
+        `${phases.capital.bottom_row_blank + phases["post-capital-fighter"].bottom_row_blank} blank ` +
+        `(${phases.capital.bottom_row_blank_ring_step + phases["post-capital-fighter"].bottom_row_blank_ring_step} on ring-step frames); ` +
+        `${entry.summary.passed ? "PASS" : "FAIL"}`);
+    }
+    console.log(`Debris visibility gate report: ${path.relative(rootDirectory, reportPath)} ` +
+      `(${report.passed ? "PASS" : "FAIL"})`);
+    if (!report.passed) process.exitCode = 1;
     return;
   }
   if (debrisSlot0BaselineOnly) {

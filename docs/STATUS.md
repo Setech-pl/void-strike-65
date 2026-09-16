@@ -35,7 +35,8 @@ fifth-player PMG pickup mask.
 
 Previous accepted runtime checkpoint: `2df89da` (XEX `9aa7336e…`).
 
-Open owner-smoke candidates: pickup visibility (P0 section) and step 4.3 Stage 1.
+Open owner-smoke candidates: pickup visibility (P0 section), step 4.3 Stage 1
+and the debris late publication (exact ownership) built on top of it.
 
 ---
 
@@ -98,14 +99,22 @@ placement decision. Use identical replays when comparing CPU.
 
 ## Known open defects
 
-- debris can appear inside the visible playfield and can flicker/disappear
-  (same early-erase / mid-frame-render window that caused the Light flicker);
+- debris visibility (measured mechanism, A/B 2026-09-16, `PREEXISTING` before
+  step 4.3): fighter frames erased the debris at scanline 21-22 and rendered
+  it at scanline 64-114, so it was invisible until Y≈64-128 and blinked one
+  frame at every 8-line row step; capital frames erased it at scanline 231-233
+  (the bottom ring row) and rendered in the vertical blank. Level 1 admits no
+  debris before phase 2 (active frame 576), so the defect is only observable
+  after the first capital. The fix is the debris late publication candidate
+  below (`OWNER-SMOKE CANDIDATE`); evidence
+  `docs/diagnostics/stage-2b2f-step43-post-capital-debris-ab.json`;
 - intermittent purple artifact after a Raider, not reproduced deterministically;
 - Spread second capsule trace / final glyph reported in plan v4.12 §11, not
   re-verified since PairShot and the PMG capsule;
 - test debt: the full `node --test tests/*.test.mjs` run keeps known stale
-  failures (110 at this checkpoint with no new failure name, 115 at `2df89da`); treat a new failure
-  name as a regression signal.
+  failures (110 at this checkpoint, 114 at `0290d83`, 115 at the debris
+  candidate counting the owner's uncommitted booster test; no new failure
+  name, 115 at `2df89da`); treat a new failure name as a regression signal.
 
 Evidence: `docs/diagnostics/stage-2b2b-light-wingman-2heavy-1light.json`,
 `docs/diagnostics/stage-2b2b-light-wingman-late-publication.json`,
@@ -252,17 +261,103 @@ the linked image with 0 writes. The `HYBRID_C_EXT` tail can hold C or
 main-linked ASM appended after `LIGHT_CODE`. Candidate XEX `2953461e…`. Evidence:
 [diagnostics/stage-2b2f-resident-capacity-glue-window.json](diagnostics/stage-2b2f-resident-capacity-glue-window.json).
 
-The Interceptor (full: 143 B raw C) and the debris R-pre fix now have legal
-placements. Their implementation is not started.
+**Owner smoke record (2026-09-16).** The owner observed post-capital debris
+during the smoke. The owner states that candidate `0290d83` (XEX `2953461e…`)
+was A/B-cleared for that observation: `PREEXISTING`, first divergent frame
+none, 0 runtime writes to `$8602-$86F9`, window byte-identical to the linked
+image on every frame, relocated `sector_c_*` functions semantically identical
+(`docs/diagnostics/stage-2b2f-step43-post-capital-debris-ab.json`). The owner
+has not stated a PASS; 4.3 Stage 1 stays `OWNER-SMOKE CANDIDATE`.
+
+The Interceptor (full: 143 B raw C) keeps a legal placement (187 B free
+extension tail after the debris kernel). The debris R-pre fix is implemented
+as the candidate below.
+
+---
+
+## Debris late publication — exact ownership (2026-09-16)
+
+`OWNER-SMOKE CANDIDATE`, built on the 4.3 Stage 1 candidate. ASM publication
+change only: no gameplay policy moved, no PMG change, no layout change beyond
+the placements below.
+
+**What changed.** The debris is erased and redrawn adjacently, never
+mid-frame: in fighter OPEN inside the post-playfield window after
+`wait_frame_at_line $77`, between the Light erase and the Light render, so
+the stack is debris < effects (mid-frame, resolver-backed) < Light <
+PairShots < sparse near; in capital frames right after the entity update, in
+the vertical blank, after every transient restore and before every transient
+capture (launch flash, capital explosion, broadside span). The erase is
+exact-ownership: a cell is restored only while it still holds the code the
+record published (`ENTITY_BACKING2/3`), so a cell a higher layer overwrote or
+the recycled bottom row belongs to that layer. The render leaves a cell a
+rendered effect still owns to the effect (`ENTITY_DRAWN_MASK` records the
+cells written). The recycled bottom ring row keeps the debris for the frame
+that rotates it: `rotate_playfield_rows` now calls a helper that republishes
+the two cells over the divider copy and re-captures their backing (the
+"restore" option; debris keeps colliding down to Y 240).
+
+**Placement (measured).** `LIGHT_CODE` 133 → 203 B (`$8E7A-$8F44`; +3 B
+call in `light_publish`, 11 B `entity_debris_publish`, 11 B capital hook, 33 B
+recycled-row restore, 23 B comment-free glue); free `HYBRID_C_EXT` tail 257 →
+187 B (`$8F45-$8FFF`, the Interceptor's 143 B still fits); `ENTITY_CODE`
+3,125 → 3,121 B (frame-start erase and mid-frame render removed, guarded erase
+and cell-loop render added; tail 41 → 45 B); A2 kernel unchanged (237 B, frozen
+entry points); extension record 712 B raw / 636 B packed of 960. Physical
+resident code/data +66 B; reserved envelopes unchanged; reusable free
+capacity: extension tail 187 B, ENTITY tail 45 B, A2 tail 18 B.
+
+**CPU (measured, `2-evasive-fire3`, 920 PAL frames).** Max wall 29,217 →
+29,258 cycles (+41; target headroom 1,942, hard-gate headroom 3,310), 0 missed frames, 0 extra VBI, 0 DLI
+anomalies. The moved publication costs about 280 cycles inside the
+post-playfield window when a debris is rendered (erase ≈ 60, render ≈ 220 with
+the two resolver fast paths); the window still ends by scanline 249 in every
+fighter frame, ahead of the Light, pickup PMG, PairShot and sparse near
+publication that follow it, and the capital publication runs at scanlines
+248-311 (never inside the scanned playfield). The recycled-row restore adds
+≈ 70 cycles on ring-step frames only.
+
+**Native gate (final framebuffer, per completed host frame).**
+| Replay (natural, no reentry policy) | Phase | Lives in view | Frames in view | Blank / partial | Transitions | First visible Y | Bottom row blank |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `0-neutral-fire0` (observer-smoke difficulty 0, 9,000 frames) | capital | 18 | 1,672 | 0 / 0 | 0 | 24 | 0 |
+| same | post-capital fighter | 13 | 1,020 | 0 / 0 | 0 | 24 | 0 |
+| `0-evasive-fire3` (9,000 frames) | capital | 14 | 1,462 | 0 / 0 | 0 | 24 | 0 |
+| same | post-capital fighter | 8 | 847 | 0 / 0 | 0 | 24 | 0 |
+| `capital-muzzle-ring-2-sweep-fire4` (6,000 frames) | capital | 8 | 693 | 0 / 0 | 0 | 24 | 0 |
+| same | post-capital fighter | 16 | 1,428 | 0 / 0 | 0 | 24 | 0 |
+
+Pre-fix on the same replays (candidate `0290d83`, identical to `db64ca8`):
+`0-neutral-fire0` post-capital 549 blank / 1,028 in view, 249 transitions,
+first visible Y 24-80 (owner's reference: 566 / 1,028 / 224 / 64-80);
+`capital-muzzle` post-capital 809 blank / 1,428 in view, 417 transitions,
+first visible Y 88-128. Every publication ran outside the scanned playfield
+(0 erase / 0 render inside scanlines 24-239 on all three replays). The gate
+runs with `node scripts/runtime-wall-trace.mjs --debris-gate-only`.
+
+**Tests.** `tests/debris-visibility-gate.test.mjs` (source contracts, the gate
+analysis, and the committed evidence); harness composites in
+`tests/entity-effects.test.mjs`, `scripts/debris-destruction-runtime.mjs` and
+`scripts/weapon-pickup-runtime.mjs` keep the old composite order for unit
+tests; `tests/prepared-hull-row.test.mjs` now installs `LIGHT_CODE` from its
+own link. Full suite: 494 pass / 116 fail; no new failure name against `0290d83` (114) except the owner's uncommitted `tests/booster-admission-diagnostic.test.mjs`, which fails identically on `0290d83`. Known limitation: a cell yielded to
+a 25 Hz effect shows the effect's lower backing for the frame in which that
+effect expires (effects still publish mid-frame; measured once in 4,600
+in-view frames).
+
+Candidate XEX `96546807…`, owner-smoke copy in
+`build/owner-smoke/debris-late-96546807/`. Evidence:
+[diagnostics/stage-2b2g-debris-late-publication.json](diagnostics/stage-2b2g-debris-late-publication.json).
 
 ---
 
 ## Current task
 
-Owner smoke of two candidates: pickup visibility (above) and step 4.3 Stage 1.
+Owner smoke of three candidates: pickup visibility, step 4.3 Stage 1 and the
+debris late publication (all above).
 
 ## Next roadmap step
 
-After owner acceptance of 4.3: the **exact-ownership debris R-pre fix** (debris
-< effects < Light < PairShots < sparse near), not the Interceptor. The
-Raider-coloured residual artifact remains an open P0 investigation.
+After owner acceptance of 4.3 and the debris candidate: the Interceptor
+(plan step 4.4, 143 B raw C into the 187 B extension tail). The Raider-coloured
+residual artifact remains an open P0 investigation.

@@ -214,7 +214,7 @@ C-owned lifecycle field.
 | cc65 low CODE | 242 | `$8B88-$8C79` |
 | `EnemyArchetype` RODATA (Raider + Light) | 24 | `$8C7D-$8C94` |
 | lifecycle + Light CODE | 725 | `$8C95-$8F69` |
-| Light ASM `LIGHT_CODE` (late publication: erase, render) | 133 | `$8F6A-$8FEE` |
+| Light ASM `LIGHT_CODE` (late publication: erase, render) | 133 | `$8F6A-$8FEE` (accepted); `$8E7A-$8EFE` after 4.3; 203 B `$8E7A-$8F44` with the debris late-publication kernel (candidate 2026-09-16) |
 | Light ASM `LIGHT_RESIDENT` (update, shot, kill, glyph) | 226 | `$8776-$8857` |
 | Light ASM lower-layer backing resolver (STARFIELD tail) | 31 | `$5D45-$5D63` |
 | Light ASM score add (retired BROADSIDE pad) | 17 | `$77A1-$77B1` |
@@ -239,7 +239,10 @@ and expanders:
 1. `LIGHT_CODE` is linked with the main image directly after the measured C
    extension and appended to the existing late-compressed extension stream:
    882 B raw / 742 B packed of 960, expanded to `$8C7D-$8FEE` by the unchanged
-   boot call (17 B slack before A2).
+   boot call (17 B slack before A2). After step 4.3 the composite is 642 B with
+   a 257 B tail; the debris late-publication kernel (candidate 2026-09-16) adds
+   70 B of main-linked ASM to `LIGHT_CODE` (712 B raw / 636 B packed, 187 B
+   tail), the documented dual use of that tail.
 2. `LIGHT_RESIDENT` heads the existing pickup/collision stream, whose runtime
    start moves from `$8800` to `$8776` into documented-unowned RAM; the retired
    92 B of inert PICKUP padding and the 2-byte unreachable accounting pad are

@@ -4612,6 +4612,348 @@ static void dftrace_write(void)
 }
 
 
+
+/* ------------------------------------------------------------------------
+ * Debris bottom-row occupancy probe (2026-09-16).
+ *
+ * rotate_playfield_rows blindly overwrites the bottom ring row with the
+ * divider, and dedicated restore helpers exist for PairShots and near stars
+ * but NOT for debris. That is safe only while debris is erased at frame start,
+ * before the rotation. Moving debris publication into the post-playfield
+ * window removes that ordering guarantee, so we first measure how much debris
+ * actually uses the recycled bottom row, and whether it can still collide
+ * with the player there.
+ * Enabled only by DFDEBRIS_ROW_OUTPUT.
+ * ---------------------------------------------------------------------- */
+static const char *dfdebris_path = NULL;
+static unsigned dfdebris_prev_ypos = 0xffffffffu;
+static unsigned dfdebris_active_frames = 0u;
+static unsigned dfdebris_bottom_frames = 0u;
+static unsigned dfdebris_bottom_overlap_frames = 0u;
+static unsigned dfdebris_max_y = 0u;
+static unsigned dfdebris_spawns = 0u;
+static unsigned dfdebris_spawns_reaching_bottom = 0u;
+static unsigned dfdebris_prev_active = 0u;
+static unsigned dfdebris_this_life_bottom = 0u;
+static unsigned dfdebris_beam_lit = 0u;
+static unsigned dfdebris_beam_blank = 0u;
+static unsigned dfdebris_scanned[312];
+static unsigned dfdebris_row_addr = 0u;
+
+#define DFDEBRIS_BOTTOM_ROW_TOP 232u   /* 24 + 26*8: the recycled ring row */
+
+static void dfdebris_frame(void)
+{
+	unsigned active = MEMORY_mem[dftrace_entity_active_mask] & 1u;
+	unsigned y, player_y;
+	if (!active) {
+		if (dfdebris_prev_active && dfdebris_this_life_bottom)
+			++dfdebris_spawns_reaching_bottom;
+		dfdebris_this_life_bottom = 0u;
+		dfdebris_prev_active = 0u;
+		return;
+	}
+	if (!dfdebris_prev_active)
+		++dfdebris_spawns;
+	dfdebris_prev_active = 1u;
+	++dfdebris_active_frames;
+	y = MEMORY_mem[dftrace_entity_y];
+	if (y > dfdebris_max_y)
+		dfdebris_max_y = y;
+	/* Beam-time visibility: was the debris cell actually present in screen
+	 * memory when ANTIC scanned its row? Sampled by dfdebris_scan below. */
+	if (dfdebris_row_addr != 0u) {
+		if (dfdebris_scanned[0])
+			++dfdebris_beam_lit;
+		else
+			++dfdebris_beam_blank;
+	}
+	dfdebris_scanned[0] = 0u;
+	dfdebris_row_addr = 0u;
+	if (y >= DFDEBRIS_BOTTOM_ROW_TOP) {
+		++dfdebris_bottom_frames;
+		dfdebris_this_life_bottom = 1u;
+		/* Debris is 8 scanlines tall; the player body spans
+		 * PLAYER_COLLISION_LAST_ROW below player_y. */
+		player_y = MEMORY_mem[dftrace_player_y];
+		if (player_y + 14u >= y && y + 8u >= player_y)
+			++dfdebris_bottom_overlap_frames;
+	}
+}
+
+static void dfdebris_report(void);
+
+static void dfdebris_observe(void)
+{
+	unsigned ypos;
+	if (dfdebris_path == NULL)
+		return;
+	ypos = ANTIC_ypos;
+	/* While the beam is inside the debris footprint, record whether the two
+	 * ring cells still hold the debris glyph. Screen memory is what ANTIC
+	 * fetches, so this is the beam-time truth rather than an end-of-frame view. */
+	/* Sample once per frame just BEFORE the visible playfield begins
+	 * (ENTITY_GAMEPLAY_TOP is 24). Publication is late, so whatever the cell
+	 * holds here is exactly what ANTIC will fetch for the whole frame. Testing
+	 * against the beam position instead would compare the screen with an
+	 * ENTITY_Y that the mid-frame update mutates part-way down the pass, which
+	 * reports false blanks for a late-published layer. */
+	if (ypos == 20u && (MEMORY_mem[dftrace_entity_active_mask] & 1u) != 0u) {
+		unsigned hi = MEMORY_mem[dftrace_entity_screen_hi];
+		if (hi != 0u) {
+			unsigned addr = (hi << 8) | MEMORY_mem[dftrace_entity_screen_lo];
+			unsigned want = MEMORY_mem[dftrace_entity_render_id];
+			dfdebris_row_addr = addr;
+			if ((MEMORY_mem[addr] & 0x7eu) == (want & 0x7eu))
+				dfdebris_scanned[0] = 1u;
+		}
+	}
+	if (dfdebris_prev_ypos != 0xffffffffu && ypos < dfdebris_prev_ypos) {
+		static unsigned flush;
+		dfdebris_frame();
+		if (++flush >= 64u) { flush = 0u; dfdebris_report(); }
+	}
+	dfdebris_prev_ypos = ypos;
+}
+
+static void dfdebris_report(void)
+{
+	FILE *f;
+	if (dfdebris_path == NULL)
+		return;
+	f = fopen(dfdebris_path, "w");
+	if (f == NULL)
+		return;
+	fprintf(f, "{\"debris_active_frames\":%u,\"bottom_row_frames\":%u,"
+		"\"bottom_row_player_overlap_frames\":%u,\"max_y\":%u,"
+		"\"spawns\":%u,\"spawns_reaching_bottom_row\":%u,"
+		"\"beam_lit_frames\":%u,\"beam_blank_frames\":%u,"
+		"\"bottom_row_top\":%u}\n",
+		dfdebris_active_frames, dfdebris_bottom_frames,
+		dfdebris_bottom_overlap_frames, dfdebris_max_y,
+		dfdebris_spawns, dfdebris_spawns_reaching_bottom,
+		dfdebris_beam_lit, dfdebris_beam_blank,
+		DFDEBRIS_BOTTOM_ROW_TOP);
+	fclose(f);
+}
+
+/* ------------------------------------------------------------------------
+ * Debris visibility gate (2026-09-16): FINAL-FRAMEBUFFER evidence.
+ *
+ * Enabled by DFDEBRIS_GATE_OUTPUT (CSV path). One row per host-frame
+ * boundary (ANTIC ypos wrap), when Screen_atari holds the frame that has just
+ * been scanned. The image a frame shows is the debris publication that
+ * executed last before that frame's playfield (fighter OPEN: the post-
+ * playfield window of the previous frame; capital: after the entity update,
+ * in the vertical blank), so the record is latched when the render entry
+ * (DFDEBRIS_PC_RENDER) executes and cleared when the erase entry
+ * (DFDEBRIS_PC_ERASE) executes, and the latch is frozen at ypos 24 (the first
+ * ring scanline) of every host frame ("pub_*" columns); a new game
+ * (DFTRACE_PC_GAMEPLAY_INIT) drops it. Screen code = RENDER_ID|cell (|$80 while
+ * OWNER != 0); glyph bytes at CHARSET+(code&$7F)*8; ANTIC 4 pairs 00 COLBK,
+ * 01 COLPF0, 10 COLPF1, 11 COLPF2 (COLPF3 when bit 7 is set); pixel
+ * x = 2*(HPOS+clock)-64; screen row = scanline-8; expected top scanline
+ * 24+8*((Y-24)>>3). Playfield colours are sampled at ypos 120 (the HUD DLI
+ * changes them before the frame ends).
+ *
+ * Per cell (c0_*, c1_*): foreground clocks expected / matching the glyph
+ * colour / showing COLBK / showing another colour. cell_holds (sampled when
+ * the beam reaches the expected row, i.e. what ANTIC fetches, against the
+ * latched codes and the record's captured backing):
+ * bit0/1 the ring byte is the published code, bit2/3 the ring byte is
+ * neither the code nor the lower backing (a higher layer owns the cell),
+ * bit4 sampled, bit6/7 the render did not write the cell (ENTITY_DRAWN_MASK:
+ * a rendered effect owned it, exact ownership). game_state 6 = gameplay.
+ * ---------------------------------------------------------------------- */
+#define DFGATE_CHARSET 0x4400u
+#define DFGATE_TOP 24u
+#define DFGATE_BOTTOM 240u
+
+struct dfgate_pub {
+	unsigned rendered, y, x, render_id, owner, sector, gameplay_frame, prebuild;
+	unsigned backing0, backing1;
+};
+
+static const char *dfgate_path = NULL;
+static FILE *dfgate_file = NULL;
+static unsigned dfgate_prev_ypos = 0xffffffffu;
+static unsigned dfgate_host_frame = 0u;
+static unsigned dfgate_col[5];
+static unsigned dfgate_col_seen = 0u;
+static unsigned dfgate_prebuild_address = 0u;
+static unsigned dfgate_pc_erase = 0u, dfgate_pc_render = 0u;
+static unsigned dfgate_erase_line = 0u, dfgate_render_line = 0u;
+static unsigned dfgate_erase_host = 0u, dfgate_render_host = 0u;
+static struct dfgate_pub dfgate_pending, dfgate_latched;
+static unsigned dfgate_holds = 0u;
+static unsigned dfgate_latched_seen = 0u;
+
+static unsigned dfgate_code(const struct dfgate_pub *s, unsigned cell)
+{
+	return ((s->render_id | cell) & 0xffu) | (s->owner != 0u ? 0x80u : 0u);
+}
+
+static void dfgate_capture_pending(void)
+{
+	unsigned y = MEMORY_mem[dftrace_entity_y];
+	dfgate_pending.y = y;
+	dfgate_pending.x = MEMORY_mem[dftrace_entity_x];
+	dfgate_pending.render_id = MEMORY_mem[dftrace_entity_render_id];
+	dfgate_pending.owner = MEMORY_mem[dftrace_entity_owner];
+	dfgate_pending.sector = MEMORY_mem[dftrace_sector_state];
+	dfgate_pending.gameplay_frame = MEMORY_mem[dftrace_active_gameplay_frame_lo] |
+		((unsigned) MEMORY_mem[dftrace_active_gameplay_frame_lo + 1u] << 8);
+	dfgate_pending.prebuild = dfgate_prebuild_address != 0u ?
+		MEMORY_mem[dfgate_prebuild_address] : 0u;
+	dfgate_pending.rendered = (MEMORY_mem[dftrace_entity_active_mask] & 1u) != 0u &&
+		y >= DFGATE_TOP && y < DFGATE_BOTTOM;
+}
+
+static unsigned dfgate_screen = 0u;
+static unsigned dfgate_holds_seen = 0u;
+static unsigned dfgate_drawn = 0u;
+
+static void dfgate_latch(void)
+{
+	dfgate_latched = dfgate_pending;
+	/* Backing bytes and the cell address are captured by the render itself. */
+	dfgate_latched.backing0 = MEMORY_mem[dftrace_entity_backing0];
+	dfgate_latched.backing1 = MEMORY_mem[dftrace_entity_backing0 + 1u];
+	dfgate_screen = MEMORY_mem[dftrace_entity_screen_lo] |
+		((unsigned) MEMORY_mem[dftrace_entity_screen_hi] << 8);
+	dfgate_drawn = MEMORY_mem[dftrace_entity_drawn_mask] & 3u;
+	dfgate_holds = 0u;
+	dfgate_holds_seen = 0u;
+	dfgate_latched_seen = 1u;
+}
+
+/* Beam-time ownership: sampled on the first scanline of the debris row. */
+static void dfgate_sample_holds(void)
+{
+	unsigned cell;
+	dfgate_holds = 0x10u | ((~dfgate_drawn & 3u) << 6);
+	if (dfgate_screen != 0u) {
+		for (cell = 0u; cell < 2u; ++cell) {
+			unsigned byte = MEMORY_mem[(dfgate_screen + cell) & 0xffffu];
+			unsigned code = dfgate_code(&dfgate_latched, cell);
+			unsigned backing = cell == 0u ? dfgate_latched.backing0 : dfgate_latched.backing1;
+			if (byte == code)
+				dfgate_holds |= 1u << cell;
+			else if (byte != backing)
+				dfgate_holds |= 4u << cell;
+		}
+	}
+	dfgate_holds_seen = 1u;
+}
+
+static void dfgate_boundary(void)
+{
+	unsigned expected[2] = { 0u, 0u }, matched[2] = { 0u, 0u };
+	unsigned background[2] = { 0u, 0u }, other[2] = { 0u, 0u };
+	unsigned in_view = 0u, bottom = 0u, exp_row = 0u;
+	const struct dfgate_pub *pub = &dfgate_latched;
+	if (dfgate_latched_seen && pub->rendered && Screen_atari != NULL && dfgate_col_seen) {
+		unsigned cell, r, cc;
+		in_view = 1u;
+		exp_row = DFGATE_TOP + 8u * ((pub->y - DFGATE_TOP) >> 3);
+		bottom = pub->y >= 232u;
+		for (cell = 0u; cell < 2u; ++cell) {
+			unsigned code = dfgate_code(pub, cell);
+			unsigned hpos = pub->x + 4u * cell;
+			for (r = 0u; r < 8u; ++r) {
+				unsigned glyph = MEMORY_mem[DFGATE_CHARSET + (code & 0x7fu) * 8u + r];
+				unsigned line_index = exp_row + r;
+				const UBYTE *line;
+				if (line_index < DFTRACE_CAPTURE_DMA_Y_OFFSET ||
+					line_index - DFTRACE_CAPTURE_DMA_Y_OFFSET >= (unsigned) Screen_HEIGHT)
+					continue;
+				line = (const UBYTE *) Screen_atari +
+					(size_t) (line_index - DFTRACE_CAPTURE_DMA_Y_OFFSET) * Screen_WIDTH;
+				for (cc = 0u; cc < 4u; ++cc) {
+					unsigned v = (glyph >> (6u - 2u * cc)) & 3u;
+					unsigned x = 2u * (hpos + cc);
+					unsigned px, want;
+					if (v == 0u || x < 64u || x - 64u >= (unsigned) Screen_WIDTH)
+						continue;
+					px = line[x - 64u];
+					want = v == 1u ? dfgate_col[1] : v == 2u ? dfgate_col[2] :
+						(code & 0x80u) != 0u ? dfgate_col[4] : dfgate_col[3];
+					++expected[cell];
+					if (px == want)
+						++matched[cell];
+					else if (px == dfgate_col[0])
+						++background[cell];
+					else
+						++other[cell];
+				}
+			}
+		}
+	}
+	if (dfgate_file != NULL) {
+		fprintf(dfgate_file,
+			"%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n",
+			dfgate_host_frame, MEMORY_mem[dftrace_game_state],
+			MEMORY_mem[dftrace_active_gameplay_frame_lo] |
+				((unsigned) MEMORY_mem[dftrace_active_gameplay_frame_lo + 1u] << 8),
+			MEMORY_mem[dftrace_sector_state], MEMORY_mem[dftrace_entity_active_mask] & 1u,
+			dfgate_latched_seen ? pub->rendered : 0u, pub->y, pub->x, pub->render_id,
+			pub->owner, pub->sector, pub->gameplay_frame, pub->prebuild,
+			in_view, bottom, exp_row,
+			expected[0], matched[0], background[0], other[0],
+			expected[1], matched[1], background[1], other[1],
+			dfgate_holds, dfgate_erase_host != 0u ? dfgate_erase_line : 9999u,
+			dfgate_render_host != 0u ? dfgate_render_line : 9999u);
+	}
+	dfgate_erase_host = dfgate_render_host = 0u;
+	++dfgate_host_frame;
+}
+
+static void dfgate_observe(unsigned pc)
+{
+	unsigned ypos;
+	if (dfgate_path == NULL)
+		return;
+	ypos = ANTIC_ypos;
+	if (pc == dfgate_pc_erase && pc != 0u) {
+		dfgate_erase_line = ypos;
+		dfgate_erase_host = 1u;
+		dfgate_pending.rendered = 0u;
+	}
+	if (pc == dfgate_pc_render && pc != 0u) {
+		dfgate_render_line = ypos;
+		dfgate_render_host = 1u;
+		dfgate_capture_pending();
+	}
+	if (pc == dftrace_pc_gameplay_init && pc != 0u)
+		dfgate_pending.rendered = 0u;      /* a new game rebuilds the ring */
+	if (ypos == DFGATE_TOP && !dfgate_latched_seen)
+		dfgate_latch();
+	if (dfgate_latched_seen && !dfgate_holds_seen && dfgate_latched.rendered &&
+		ypos == DFGATE_TOP + 8u * ((dfgate_latched.y - DFGATE_TOP) >> 3))
+		dfgate_sample_holds();
+	if (ypos == 120u && !dfgate_col_seen) {
+		dfgate_col[0] = GTIA_COLBK;
+		dfgate_col[1] = GTIA_COLPF0;
+		dfgate_col[2] = GTIA_COLPF1;
+		dfgate_col[3] = GTIA_COLPF2;
+		dfgate_col[4] = GTIA_COLPF3;
+		dfgate_col_seen = 1u;
+	}
+	if (dfgate_prev_ypos != 0xffffffffu && ypos < dfgate_prev_ypos) {
+		if (dfgate_file == NULL) {
+			dfgate_file = fopen(dfgate_path, "w");
+			if (dfgate_file != NULL)
+				fputs("host_frame,game_state,gameplay_frame,sector,active,pub_rendered,pub_y,pub_x,pub_render_id,pub_owner,pub_sector,pub_gameplay_frame,pub_prebuild,in_view,bottom_row,exp_row,c0_expected,c0_matched,c0_background,c0_other,c1_expected,c1_matched,c1_background,c1_other,cell_holds,erase_line,render_line\n", dfgate_file);
+		}
+		dfgate_boundary();
+		dfgate_col_seen = 0u;
+		dfgate_latched_seen = 0u;
+		if (dfgate_file != NULL && (dfgate_host_frame & 63u) == 0u)
+			fflush(dfgate_file);
+	}
+	dfgate_prev_ypos = ypos;
+}
+
 /* ------------------------------------------------------------------------
  * Spread projectile probe (2026-09-16).
  *
@@ -5159,6 +5501,14 @@ static void dftrace_init(void)
 			fputs("trace_frame,host_frame,gameplay_frame,scanline,cycle,clock,event,slot,pc,previous_pc,row,column,address,pointer,visible_row,physical_row,address_value,pointer_value,last_writer_pc,glyph_row0,chbase,colpf0,colpf1,sector_state,ring_flags,visible_near_cells,orphan_near_cells,first_orphan_address,first_orphan_writer_pc\n", dftrace_near_file);
 		}
 	}
+	dfdebris_path = getenv("DFDEBRIS_ROW_OUTPUT");
+	dfgate_path = getenv("DFDEBRIS_GATE_OUTPUT");
+	if (getenv("DFDEBRIS_PC_ERASE") != NULL)
+		dfgate_pc_erase = dftrace_env_u("DFDEBRIS_PC_ERASE");
+	if (getenv("DFDEBRIS_PC_RENDER") != NULL)
+		dfgate_pc_render = dftrace_env_u("DFDEBRIS_PC_RENDER");
+	if (getenv("DFTRACE_PLAYFIELD_PREBUILD_PENDING") != NULL)
+		dfgate_prebuild_address = dftrace_env_u("DFTRACE_PLAYFIELD_PREBUILD_PENDING");
 	dfspread_path = getenv("DFSPREAD_PROBE_OUTPUT");
 	dfprobe_path = getenv("DFPICKUP_PROBE_OUTPUT");
 	if (getenv("DFPICKUP_PROBE_FRAMES") != NULL)
@@ -5361,6 +5711,8 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 		dftrace_init();
 	dfprobe_observe();
 	dfspread_observe();
+	dfdebris_observe();
+	dfgate_observe(pc);
 	dftrace_track_character_screen_write(x_register, y_register);
 	dftrace_first_writer_track(x_register, y_register);
 	dftrace_player_pairshot_track(pc, x_register, y_register);

@@ -108,9 +108,11 @@ test("Light kernel placement is legal, resident and inside every reviewed gate",
   assert.ok(manifest.starfieldRuntime.packedBytes <= 0x706, "starfield correction gate");
   assert.ok(L("light_starfield_end") <= L("hud_booster_backing"));
   // 93 B before the early-frame pickup PMG erase was removed from
-  // entity_effects_erase; ENTITY_CODE lost that JSR and the margin grew by 3.
-  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 96,
-    "ENTITY_CODE staging margin tracks the removed frame-start pickup erase");
+  // entity_effects_erase (96 B); 107 B after the debris late publication
+  // (frame-start debris erase and mid-frame debris render removed from
+  // ENTITY_CODE, guarded erase and cell-loop render added).
+  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 107,
+    "ENTITY_CODE staging margin tracks the debris late-publication change");
   assert.equal(manifest.capitalPlayerCollisionRuntime.runAddress, 0x8b67);
   // light_add_score exactly fills the retired 17-byte BROADSIDE entry pad.
   assert.equal(L("light_add_score"), L("entity_complete_scroll_tick") + 3);
@@ -348,7 +350,7 @@ test("hooks are operand-only redirections and the Light publishes only in the la
     ["erase_fighter_projectile_overlays_with_light", 1],
     ["entity_player_fighter_projectile_target_with_light", 1],
     ["resolve_effect_backing_below_interactive_debris_and_light", 1],
-    ["debris_capture_resolve", 2],
+    ["debris_capture_resolve", 1],
   ]) {
     assert.equal((mainSource.match(new RegExp(`jsr ${hook}\\b`, "g")) ?? []).length, count, hook);
   }

@@ -8,10 +8,13 @@
 ; Light blank while ANTIC scanned the upper playfield, so it flickered). The
 ; Light is now erased and republished only inside the post-playfield PairShot
 ; window (after wait_frame_at_line $77), between the PairShot erase and render:
-;   debris/effects (mid-frame) < Light < PairShots < sparse near (CH_SPACE only)
-; Debris and effects render while the previous Light image is still visible;
-; light_cell_resolve gives them the Light's lower backing, and the late Light
-; erase leaves a cell alone once such a lower layer has overwritten it.
+;   debris (window, below) < effects (mid-frame) < Light < PairShots < near
+; Since 2026-09-16 the debris is published in this window too, between the
+; Light erase and the Light render (entity_debris_publish), so the Light
+; captures the debris glyph exactly. Effects still render mid-frame while the
+; previous Light image is visible; light_cell_resolve gives them the Light's
+; lower backing, and the late Light erase leaves a cell alone once such a
+; lower layer has overwritten it.
 
 LIGHT_WIDTH_HPOS = 8
 LIGHT_HEIGHT_SCANLINES = 8
@@ -61,6 +64,7 @@ light_publish:
     iny
     sty LIGHT_SCREEN_HI
 @render:
+    jsr entity_debris_publish    ; debris below the Light, same window
     lda LIGHT_STATE
     beq @done
     jsr light_top

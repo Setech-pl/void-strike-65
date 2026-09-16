@@ -468,6 +468,16 @@ Light Wingman. Writing it mid-frame left the rows blank for every scanline the
 beam had already passed. Movement, collection and booster policy stay on the
 ordinary mid-frame path; only publication is late.
 
+The slot-zero debris follows the same rule (candidate 2026-09-16): in fighter
+OPEN it is erased and redrawn adjacently in that window between the Light
+erase and the Light render (stack debris < effects < Light < PairShots < sparse
+near); in capital frames right after the entity update, in the vertical blank,
+after every transient restore and before every transient capture. Its erase
+restores a cell only while the cell still holds the published code, its
+render leaves a cell a rendered effect still owns to the effect, and the ring
+rotation republishes the debris over the recycled bottom row for the frame
+that rotates it.
+
 The capsule is a 16-scanline solid fifth-player mark: every PMG
 source byte has M0-M3 bits 4–7 set, with `SIZEM=$00`, consecutive HPOSM0–3,
 `PRIOR=$10`, and `COLPF3`. Decorative partial-missile combinations were too

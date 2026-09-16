@@ -35,7 +35,22 @@ function fixedStateAddress(labels, name) {
   throw new Error(`Missing linked state address ${name}`);
 }
 
-export function runRoutine(memory, labels, name, { a = 0, x = 0, y = 0 } = {}) {
+// entity_effects_erase/render are effects-only in the runtime (the debris is
+// published by entity_debris_publish); keep the composite order for the harness.
+const compositeRoutines = {
+  entity_effects_render: ["render_interactive_entity_overlays", "entity_effects_render"],
+  entity_effects_erase: ["entity_effects_erase", "erase_interactive_entity_overlays"],
+};
+
+export function runRoutine(memory, labels, name, options = {}) {
+  if (compositeRoutines[name]) {
+    return compositeRoutines[name].reduce((sum, part) =>
+      sum + runRoutineRaw(memory, labels, part, options), 0);
+  }
+  return runRoutineRaw(memory, labels, name, options);
+}
+
+function runRoutineRaw(memory, labels, name, { a = 0, x = 0, y = 0 } = {}) {
   const cpu = new Nmos6502(memory);
   const stop = 0x7fff;
   cpu.push((stop - 1) >> 8);

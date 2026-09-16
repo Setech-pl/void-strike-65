@@ -1,0 +1,508 @@
+{
+  "id": "stage-2b2g-debris-late-publication",
+  "date": "2026-09-16",
+  "task": "Debris R-pre fix: exact-ownership late publication (debris < effects < Light < PairShots < sparse near)",
+  "status": "OWNER-SMOKE CANDIDATE",
+  "base": {
+    "commit": "0290d83",
+    "xex_sha256": "2953461e976c97e3e833323feb6d3fb5c1365b7dae76737f2d62e3294aea4444",
+    "note": "step 4.3 Stage 1 candidate (itself OWNER-SMOKE CANDIDATE)"
+  },
+  "candidate": {
+    "xex_sha256": "965468077747f527b7d3f8ffeb7c37ace27377892ea5fc6f2e8aaf062d0d8a6e",
+    "atr_sha256": "94847c62cadf0f95d8acb19c21a965973658ee7ba53675876f7a47b53e9e8126",
+    "build_command": "npm run build:candidate -- --quiet",
+    "owner_smoke_copy": "build/owner-smoke/debris-late-96546807/"
+  },
+  "change": {
+    "fighter_open": "entity_debris_publish (erase + render, adjacent) runs inside the post-playfield window after wait_frame_at_line $77, called from light_publish between the Light erase and the Light render; the frame-start debris erase (entity_effects_erase) and the mid-frame debris render (entity_effects_render) are removed",
+    "capital": "the same entity_debris_publish runs right after the entity update (render_launch_flashes_with_capital_debris, operand-only hook of the main loop), in the vertical blank, after every transient restore (capital explosion tick, launch flash, muzzle, broadside erase) and before every transient capture (launch flash, capital explosion, broadside span); broadside shells are now drawn above the debris",
+    "exact_ownership_erase": "erase_interactive_entity_overlays restores a cell only while the ring byte equals the code this record published (ENTITY_BACKING2/3); cells overwritten by a higher layer or by the recycled-row divider copy are left alone",
+    "render": "one loop over the two cells; capture resolves near-star/Light (debris_capture_resolve) and a retained mid-frame effect (resolve_effect_backing_below_transient_effect); a cell a rendered effect owns is not written (ENTITY_DRAWN_MASK records written cells)",
+    "recycled_bottom_row": "restore chosen over retiring at Y 232: rotate_playfield_rows -> restore_recycled_row_near_and_debris republishes the two cells over the divider copy of the recycled row and re-captures their backing, so the frame that rotates still shows the debris and the next guarded erase restores the copied content; debris keeps colliding down to Y 240",
+    "field_contract": "slot-zero debris: ENTITY_BACKING0+0/+1 lower backing of cell 0/1, ENTITY_BACKING2+0/+1 published codes; the A2 resolver's ENTITY_BACKING0,y read (cell index) is now exact for the right cell too",
+    "not_changed": [
+      "gameplay policy (C)",
+      "PMG",
+      "A2 kernel bytes and entry points (237 B)",
+      "effects (still mid-frame, resolver-backed)",
+      "PairShot, Light, pickup PMG and sparse near publication order"
+    ]
+  },
+  "placement": {
+    "light_code": {
+      "before": 133,
+      "after": 203,
+      "range": "$8E7A-$8F44",
+      "added": {
+        "light_publish_call": 3,
+        "entity_debris_publish": 11,
+        "render_launch_flashes_with_capital_debris": 11,
+        "restore_recycled_row_near_and_debris": 33,
+        "other": 12
+      }
+    },
+    "hybrid_c_ext_free_tail": {
+      "before": 257,
+      "after": 187,
+      "range": "$8F45-$8FFF",
+      "interceptor_need": 143
+    },
+    "entity_code": {
+      "before": 3125,
+      "after": 3121,
+      "free_tail_before": 41,
+      "free_tail_after": 45
+    },
+    "a2_kernel": {
+      "bytes": 237,
+      "free_tail": 18,
+      "note": "unchanged; a 6 B in-place resolver fix was tried and rejected because it moved frozen A2 entry addresses"
+    },
+    "extension_record": {
+      "raw": 712,
+      "packed": 636,
+      "packed_limit": 960
+    },
+    "entity_code_staging_margin": {
+      "before": 96,
+      "after": 107
+    },
+    "physical_resident_delta_bytes": 66,
+    "reserved_envelopes": "unchanged",
+    "reusable_free_capacity": {
+      "hybrid_c_ext_tail": 187,
+      "entity_code_tail": 45,
+      "a2_tail": 18,
+      "window": 8
+    }
+  },
+  "cpu": {
+    "pal_replay_2_evasive_fire3": {
+      "frames": 920,
+      "baseline_max_wall_cycles": 29217,
+      "candidate_max_wall_cycles": 29258,
+      "delta": 41,
+      "missed_frames": 0,
+      "extra_vbi_boundaries": 0,
+      "dli_ordering_errors": 0,
+      "target_headroom": 1942,
+      "hard_gate_headroom": 3310
+    },
+    "window_cost_estimate": "about 280 cycles per fighter frame with a rendered debris (erase ~60, render ~220 including two resolver fast paths), moved from mid-frame into the post-playfield window; recycled-row restore ~70 cycles on ring-step frames only",
+    "window_scanlines_measured": "fighter: debris erase/render at scanlines 244-249, before the Light, pickup PMG, PairShot and sparse near publication; capital: 248-311, never inside the scanned playfield (publication_inside_playfield 0/0 on every replay)"
+  },
+  "gate": {
+    "tool": "scripts/runtime-wall-trace.mjs --debris-gate-only (scripts/atari800-wall-trace.h DFDEBRIS_GATE_OUTPUT; analysis scripts/debris-visibility-gate.mjs)",
+    "method": "per completed host frame: Screen_atari compared with the two debris glyphs (charset $4400) at pixel 2*HPOS-64, expected top scanline 24+8*((Y-24)>>3), against the record latched when the render entry executed (frozen at scanline 24); per-cell foreground colour clocks; ring-byte ownership sampled when the beam reaches the debris row",
+    "criteria": "per life entering the playfield, capital and post-capital fighter phases alike: first visible Y 24, 0 blank frames, 0 partial frames, 0 disappear/reappear transitions; bottom row (Y>=232) reported separately; PMG occlusion, cells owned by a higher layer and cells yielded to an effect count as shown",
+    "sessions": [
+      {
+        "session": "debris-gate-0-evasive-fire3",
+        "difficulty": 0,
+        "policy": "evasive",
+        "fire_delay": 3,
+        "gameplay_frames": 9000,
+        "host_frames": 9459,
+        "maximum_wall_cycles": 30008,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0,
+        "first_capital": {
+          "host_frame": 1037,
+          "gameplay_frame": 600
+        },
+        "return_to_fighter": {
+          "host_frame": 2393,
+          "gameplay_frame": 1956
+        },
+        "publication_inside_playfield": {
+          "erase": 0,
+          "render": 0
+        },
+        "by_phase": {
+          "capital": {
+            "lives": 14,
+            "lives_in_view": 14,
+            "frames_in_view": 1462,
+            "visible": 1462,
+            "occluded": 1,
+            "covered": 3,
+            "yielded": 0,
+            "blank": 0,
+            "partial": 0,
+            "disappearances": 0,
+            "reappearances": 0,
+            "first_visible_y_values": [
+              24
+            ],
+            "bottom_row_frames": 45,
+            "bottom_row_visible": 45,
+            "bottom_row_blank": 0,
+            "bottom_row_blank_ring_step": 0,
+            "bottom_row_partial": 0,
+            "erase_scanlines": [
+              248,
+              311
+            ],
+            "render_scanlines": [
+              249,
+              311
+            ],
+            "failed_lives": 0
+          },
+          "post-capital-fighter": {
+            "lives": 8,
+            "lives_in_view": 8,
+            "frames_in_view": 847,
+            "visible": 847,
+            "occluded": 14,
+            "covered": 2,
+            "yielded": 0,
+            "blank": 0,
+            "partial": 0,
+            "disappearances": 0,
+            "reappearances": 0,
+            "first_visible_y_values": [
+              24
+            ],
+            "bottom_row_frames": 30,
+            "bottom_row_visible": 30,
+            "bottom_row_blank": 0,
+            "bottom_row_blank_ring_step": 0,
+            "bottom_row_partial": 0,
+            "erase_scanlines": [
+              244,
+              248
+            ],
+            "render_scanlines": [
+              245,
+              249
+            ],
+            "failed_lives": 0
+          }
+        },
+        "passed": true,
+        "owner_bottom_row_probe": {
+          "debris_active_frames": 2446,
+          "bottom_row_frames": 75,
+          "bottom_row_player_overlap_frames": 2,
+          "max_y": 232,
+          "spawns": 23,
+          "spawns_reaching_bottom_row": 15,
+          "beam_lit_frames": 2313,
+          "beam_blank_frames": 3,
+          "bottom_row_top": 232
+        }
+      },
+      {
+        "session": "debris-gate-0-neutral-fire0",
+        "difficulty": 0,
+        "policy": "neutral",
+        "fire_delay": 0,
+        "gameplay_frames": 9000,
+        "host_frames": 9443,
+        "maximum_wall_cycles": 29764,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0,
+        "first_capital": {
+          "host_frame": 1090,
+          "gameplay_frame": 677
+        },
+        "return_to_fighter": {
+          "host_frame": 2446,
+          "gameplay_frame": 2009
+        },
+        "publication_inside_playfield": {
+          "erase": 0,
+          "render": 0
+        },
+        "by_phase": {
+          "capital": {
+            "lives": 18,
+            "lives_in_view": 18,
+            "frames_in_view": 1672,
+            "visible": 1672,
+            "occluded": 6,
+            "covered": 0,
+            "yielded": 0,
+            "blank": 0,
+            "partial": 0,
+            "disappearances": 0,
+            "reappearances": 0,
+            "first_visible_y_values": [
+              24
+            ],
+            "bottom_row_frames": 25,
+            "bottom_row_visible": 25,
+            "bottom_row_blank": 0,
+            "bottom_row_blank_ring_step": 0,
+            "bottom_row_partial": 0,
+            "erase_scanlines": [
+              250,
+              304
+            ],
+            "render_scanlines": [
+              251,
+              305
+            ],
+            "failed_lives": 0
+          },
+          "post-capital-fighter": {
+            "lives": 13,
+            "lives_in_view": 13,
+            "frames_in_view": 1020,
+            "visible": 1020,
+            "occluded": 27,
+            "covered": 9,
+            "yielded": 1,
+            "blank": 0,
+            "partial": 0,
+            "disappearances": 0,
+            "reappearances": 0,
+            "first_visible_y_values": [
+              24
+            ],
+            "bottom_row_frames": 10,
+            "bottom_row_visible": 10,
+            "bottom_row_blank": 0,
+            "bottom_row_blank_ring_step": 0,
+            "bottom_row_partial": 0,
+            "erase_scanlines": [
+              244,
+              247
+            ],
+            "render_scanlines": [
+              245,
+              248
+            ],
+            "failed_lives": 0
+          }
+        },
+        "passed": true,
+        "owner_bottom_row_probe": {
+          "debris_active_frames": 2861,
+          "bottom_row_frames": 35,
+          "bottom_row_player_overlap_frames": 35,
+          "max_y": 232,
+          "spawns": 32,
+          "spawns_reaching_bottom_row": 7,
+          "beam_lit_frames": 2689,
+          "beam_blank_frames": 10,
+          "bottom_row_top": 232
+        }
+      },
+      {
+        "session": "debris-gate-capital-muzzle-ring-2-sweep-fire4",
+        "difficulty": 2,
+        "policy": "broadside-proof",
+        "fire_delay": 4,
+        "gameplay_frames": 6000,
+        "host_frames": 6414,
+        "maximum_wall_cycles": 30022,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0,
+        "first_capital": {
+          "host_frame": 1043,
+          "gameplay_frame": 630
+        },
+        "return_to_fighter": {
+          "host_frame": 2127,
+          "gameplay_frame": 1714
+        },
+        "publication_inside_playfield": {
+          "erase": 0,
+          "render": 0
+        },
+        "by_phase": {
+          "capital": {
+            "lives": 8,
+            "lives_in_view": 8,
+            "frames_in_view": 693,
+            "visible": 693,
+            "occluded": 0,
+            "covered": 14,
+            "yielded": 0,
+            "blank": 0,
+            "partial": 0,
+            "disappearances": 0,
+            "reappearances": 0,
+            "first_visible_y_values": [
+              24
+            ],
+            "bottom_row_frames": 24,
+            "bottom_row_visible": 24,
+            "bottom_row_blank": 0,
+            "bottom_row_blank_ring_step": 0,
+            "bottom_row_partial": 0,
+            "erase_scanlines": [
+              266,
+              311
+            ],
+            "render_scanlines": [
+              266,
+              311
+            ],
+            "failed_lives": 0
+          },
+          "post-capital-fighter": {
+            "lives": 16,
+            "lives_in_view": 16,
+            "frames_in_view": 1428,
+            "visible": 1428,
+            "occluded": 11,
+            "covered": 18,
+            "yielded": 0,
+            "blank": 0,
+            "partial": 0,
+            "disappearances": 0,
+            "reappearances": 0,
+            "first_visible_y_values": [
+              24
+            ],
+            "bottom_row_frames": 56,
+            "bottom_row_visible": 56,
+            "bottom_row_blank": 0,
+            "bottom_row_blank_ring_step": 0,
+            "bottom_row_partial": 0,
+            "erase_scanlines": [
+              244,
+              247
+            ],
+            "render_scanlines": [
+              245,
+              248
+            ],
+            "failed_lives": 0
+          }
+        },
+        "passed": true,
+        "owner_bottom_row_probe": {
+          "debris_active_frames": 2258,
+          "bottom_row_frames": 81,
+          "bottom_row_player_overlap_frames": 81,
+          "max_y": 232,
+          "spawns": 25,
+          "spawns_reaching_bottom_row": 20,
+          "beam_lit_frames": 2097,
+          "beam_blank_frames": 24,
+          "bottom_row_top": 232
+        }
+      }
+    ],
+    "passed": true,
+    "totals": {
+      "frames_in_view": 7122,
+      "yielded_frames": 1
+    },
+    "pre_fix_reference": {
+      "debris-gate-0-evasive-fire3": {
+        "capital": {
+          "lives_in_view": 15,
+          "frames_in_view": 1463,
+          "visible": 1422,
+          "blank": 37,
+          "partial": 4,
+          "disappearances": 13,
+          "first_visible_y_values": [
+            24
+          ],
+          "bottom_row_blank": 36
+        },
+        "post-capital-fighter": {
+          "lives_in_view": 8,
+          "frames_in_view": 854,
+          "visible": 307,
+          "blank": 437,
+          "partial": 110,
+          "disappearances": 213,
+          "first_visible_y_values": [
+            24,
+            72,
+            80,
+            88,
+            96,
+            104
+          ],
+          "bottom_row_blank": 12
+        }
+      },
+      "debris-gate-0-neutral-fire0": {
+        "capital": {
+          "lives_in_view": 19,
+          "frames_in_view": 1673,
+          "visible": 1647,
+          "blank": 20,
+          "partial": 6,
+          "disappearances": 6,
+          "first_visible_y_values": [
+            24
+          ],
+          "bottom_row_blank": 19
+        },
+        "post-capital-fighter": {
+          "lives_in_view": 13,
+          "frames_in_view": 1028,
+          "visible": 350,
+          "blank": 549,
+          "partial": 129,
+          "disappearances": 249,
+          "first_visible_y_values": [
+            24,
+            64,
+            72,
+            80
+          ],
+          "bottom_row_blank": 4
+        }
+      },
+      "debris-gate-capital-muzzle-ring-2-sweep-fire4": {
+        "capital": {
+          "lives_in_view": 9,
+          "frames_in_view": 695,
+          "visible": 659,
+          "blank": 21,
+          "partial": 15,
+          "disappearances": 31,
+          "first_visible_y_values": [
+            24
+          ],
+          "bottom_row_blank": 11
+        },
+        "post-capital-fighter": {
+          "lives_in_view": 16,
+          "frames_in_view": 1428,
+          "visible": 417,
+          "blank": 809,
+          "partial": 202,
+          "disappearances": 417,
+          "first_visible_y_values": [
+            88,
+            96,
+            104,
+            112,
+            120,
+            128
+          ],
+          "bottom_row_blank": 28
+        }
+      }
+    },
+    "owner_baseline_numbers": "replay R1 (observer-smoke difficulty 0) post-capital: 566 blank / 1028 in-view frames, 224 flicker transitions, first visible Y 64-80 (pre-fix, identical at db64ca8 and 0290d83)"
+  },
+  "pal_replay_2_evasive_fire3": {
+    "maximum_wall_cycles": 29258,
+    "missed_frames": 0
+  },
+  "tests": {
+    "focused": "tests/debris-visibility-gate.test.mjs, tests/entity-effects.test.mjs, tests/offscreen-spawn.test.mjs, tests/remaining-mid-screen-artifact.test.mjs, tests/prepared-hull-row.test.mjs, tests/light-wingman.test.mjs, tests/hybrid-lifecycle.test.mjs",
+    "full_suite": "node --test tests/*.test.mjs: 494 pass / 116 fail; no new failure name against 0290d83 (114 failing) other than the owner's uncommitted tests/booster-admission-diagnostic.test.mjs, which fails identically on 0290d83",
+    "harness_note": "entity_effects_erase/render are effects-only in the runtime; the JS harnesses keep the composite order (effects erase then debris erase; debris render then effects render) so unit tests written against the old frame order still exercise the debris cell contract"
+  },
+  "known_limits": [
+    "a cell yielded to a rendered 25 Hz effect shows the effect's lower backing for the frame in which that effect expires (effects still publish mid-frame)",
+    "the owner's uncommitted tests/booster-admission-diagnostic.test.mjs fails identically on 0290d83 (expects 16 rows, gets 15) and is unrelated"
+  ]
+}

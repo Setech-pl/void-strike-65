@@ -908,6 +908,11 @@ ENTITY_RENDER_ID:            .res ENTITY_SLOT_COUNT
 ENTITY_COLLISION_CATEGORY:   .res ENTITY_SLOT_COUNT
 ENTITY_SCREEN_LO:            .res ENTITY_SLOT_COUNT
 ENTITY_SCREEN_HI:            .res ENTITY_SLOT_COUNT
+; Only slot zero (debris, 2x1) owns character cells; the PMG pickup owns none.
+; Its two cells index the first two bytes of ENTITY_BACKING0 (lower backing)
+; and ENTITY_BACKING2 (the published screen codes the guarded erase checks),
+; i.e. cell 1 uses the otherwise unused slot-1 byte. The A2 debris resolver
+; reads ENTITY_BACKING0,y with y = cell, so this is the resolver's contract.
 ENTITY_BACKING0:             .res ENTITY_SLOT_COUNT
 ENTITY_BACKING1:             .res ENTITY_SLOT_COUNT
 ENTITY_BACKING2:             .res ENTITY_SLOT_COUNT
@@ -2422,7 +2427,7 @@ profile_after_world = *
 profile_after_hull_contact = *
     jsr entity_effects_update_with_light
 profile_after_entity_update = *
-    jsr render_launch_flashes
+    jsr render_launch_flashes_with_capital_debris
     jsr render_capital_explosions
     jsr render_shared_fighter_explosions
 profile_after_effect_visuals = *
@@ -5403,7 +5408,7 @@ rotate_playfield_rows:
     ; Unwind only those cloned cells, in the same reverse slot order as the
     ; normal erase, while leaving the real divider ownership untouched.
     jsr restore_recycled_row_projectile_underlay
-    jsr restore_recycled_row_near_underlay
+    jsr restore_recycled_row_near_and_debris
     ldx #(PLAYFIELD_RING_ROWS-1)
 
 rotate_playfield_table_shift:
@@ -9287,8 +9292,12 @@ entity_effects_erase:
     beq profile_entity_erase_begin
     jsr erase_transient_effect_overlays
 profile_entity_erase_begin = *
-    lda ENTITY_RENDERED_MASK
-    bne erase_interactive_entity_overlays
+    ; The debris is no longer erased here. entity_debris_publish erases and
+    ; redraws it adjacently: fighter OPEN inside the post-playfield window
+    ; (after wait_frame_at_line $77, below the Light), capital frames right
+    ; after the entity update, after every transient restore and before every
+    ; transient capture. The old image therefore survives one complete ANTIC
+    ; pass and no playfield row is ever scanned blank.
     rts
 
 .export profile_entity_erase_begin
@@ -9337,21 +9346,29 @@ erase_transient_effect_overlays:
 
 erase_interactive_entity_overlays:
     ; The character layer now contains debris only. Fighter pickup ownership is
-    ; isolated in M0-M3 and cleared by entity_effects_erase above.
+    ; isolated in M0-M3. Exact ownership: a cell is restored only while it
+    ; still holds the code this record published (ENTITY_BACKING2/3). A cell a
+    ; higher layer has overwritten belongs to that layer, which saved the true
+    ; lower backing through the debris resolver; the recycled bottom ring row
+    ; already carries the divider copy and must not receive a stale byte.
     lda ENTITY_SCREEN_HI
     beq @done
     sta dst_ptr+1
     lda ENTITY_SCREEN_LO
     sta dst_ptr
     ldy #$01
-    lda ENTITY_BACKING1
+@cell:
+    lda ENTITY_BACKING2,y       ; the code this record published in cell Y
+    cmp (dst_ptr),y
+    bne :+
+    lda ENTITY_BACKING0,y
     sta (dst_ptr),y
+:
     dey
-    lda ENTITY_BACKING0
-    sta (dst_ptr),y
-    lda #$00
-    sta ENTITY_DRAWN_MASK
-    sta ENTITY_SCREEN_HI
+    bpl @cell
+    iny
+    sty ENTITY_DRAWN_MASK
+    sty ENTITY_SCREEN_HI
 @done:
     lda #$00
     sta ENTITY_RENDERED_MASK
@@ -10131,19 +10148,13 @@ clear_transient_effects:
 ; Ordinary entities cache the pointer until next-frame erase; the fixed pickup
 ; keeps its four physical A2 cells resident until release.
 entity_effects_render:
+    ; Effects only: the debris is published by entity_debris_publish (see
+    ; entity_effects_erase). Effects render above it in both sector kinds.
     lda EFFECT_ACTIVE_MASK
-    bne @with_effects
-    lda ENTITY_ACTIVE_MASK
-    and #$01
-    bne render_interactive_entity_overlays
-    rts
-@with_effects:
-    lda ENTITY_ACTIVE_MASK
-    and #$01
     beq :+
-    jsr render_interactive_entity_overlays
-:
     jmp render_transient_effect_overlays
+:
+    rts
 
 .segment "ENTITY_CODE"
 render_interactive_entity_overlays:
@@ -10180,29 +10191,44 @@ render_interactive_entity_overlays:
     adc #$00
     sta ENTITY_SCREEN_HI
     sta dst_ptr+1
+    ; X = cell: ENTITY_BACKING0,x is the lower backing and ENTITY_BACKING2,x
+    ; the published screen code (see the ENTITY_STATE layout). DRAWN_MASK
+    ; records the cells actually written; a cell yielded to an effect stays 0.
+    ldx #$00
+    stx ENTITY_DRAWN_MASK
+@cell:
     ldy #$00
     lda (dst_ptr),y
     jsr debris_capture_resolve  ; near owns no underlay; Light gives its own
-    sta ENTITY_BACKING0
-    lda ENTITY_RENDER_ID
-    ldx ENTITY_OWNER
+    ; Effects are above debris but render mid-frame, so a retained 25 Hz
+    ; effect cell may still be visible here: keep its lower backing and leave
+    ; its glyph alone (cmp EFFECT_SCRATCH0 is the resolver's unchanged test).
+    jsr resolve_effect_backing_below_transient_effect
+    sta ENTITY_BACKING0,x
+    cmp EFFECT_SCRATCH0
+    php
+    txa
+    ora ENTITY_RENDER_ID        ; even base + cell bit
+    ldy ENTITY_OWNER
     beq :+
     ora #$80
 :
+    sta ENTITY_BACKING2,x       ; the published code, checked by the erase
+    ldy #$00
+    plp
+    bne :+
     sta (dst_ptr),y
-    iny
-    lda (dst_ptr),y
-    jsr debris_capture_resolve
-    sta ENTITY_BACKING1
-    lda ENTITY_RENDER_ID
-    dex
-    bmi :+
-    ora #$80
-:
-    ora #$01
-    sta (dst_ptr),y
-    lda #$03
+    lda entity_slot_bit_masks,x
+    ora ENTITY_DRAWN_MASK
     sta ENTITY_DRAWN_MASK
+:
+    inc dst_ptr
+    bne :+
+    inc dst_ptr+1
+:
+    inx
+    cpx #ENTITY_DEBRIS_GLYPHS_PER_PHASE
+    bne @cell
     inc ENTITY_RENDERED_MASK
 @done:
     rts
@@ -10226,7 +10252,7 @@ resolve_effect_backing_below_interactive_debris:
     bne @unchanged
     cpy #$02
     bcs @unchanged
-    lda ENTITY_BACKING0,y
+    lda ENTITY_BACKING0,y       ; cell 0 / cell 1 backing (see ENTITY_BACKING0)
     ldy #$00
     rts
 @unchanged:
@@ -11895,9 +11921,77 @@ debris_capture_resolve = light_cell_resolve_sanitized
 .export light_publish, light_update, light_shot, light_backing
 .export light_cell_resolve, light_destroyed, light_glyph
 .else
-erase_fighter_projectile_overlays_with_light = erase_fighter_projectile_overlays
+erase_fighter_projectile_overlays_with_light = entity_debris_publish_after_pairshot_erase
 entity_effects_update_with_light = entity_effects_update
 entity_player_fighter_projectile_target_with_light = entity_player_fighter_projectile_target
 resolve_effect_backing_below_interactive_debris_and_light = resolve_effect_backing_below_interactive_debris
 debris_capture_resolve = sanitize_dynamic_near_backing
 .endif
+
+; Debris late publication (exact ownership, 2026-09-16). Fighter OPEN stack
+; inside the post-playfield window: debris < effects (mid-frame, resolver-
+; backed) < Light < PairShots < sparse near. The debris is erased and redrawn
+; here, between the Light erase and the Light render, never mid-frame. Resident
+; in the HYBRID_C_EXT tail after LIGHT_CODE (dual-use tail, step 4.3).
+.segment "LIGHT_CODE"
+entity_debris_publish:
+    lda ENTITY_RENDERED_MASK
+    beq :+
+    jsr erase_interactive_entity_overlays
+:
+    jmp render_interactive_entity_overlays
+
+; Capital frames (VCOUNT $70 start, work spanning the vertical blank): the
+; debris is erased and redrawn adjacently right after the entity update, so
+; the bottom ring row is never scanned blank and the beam never separates the
+; erase from the redraw. Every transient restore (capital explosion tick,
+; launch flash, muzzle, broadside erase) precedes this point in the loop and
+; every transient capture (launch flash, capital explosion, broadside span)
+; follows it, so no transient backup can ever hold a debris glyph. Fighter
+; OPEN frames publish in the window instead.
+render_launch_flashes_with_capital_debris:
+    lda FIGHTER_PROJECTILE_PUBLICATION_FRAME
+    beq :+
+    jsr entity_debris_publish
+:
+    jmp render_launch_flashes
+
+; rotate_playfield_rows has just copied the fixed divider into the physical
+; row recycled from the bottom while the current frame still displays that
+; row at the bottom. If the late-published debris image lives there, republish
+; its two cells over the copy and re-capture their backing, so this frame's
+; bottom row keeps the debris and the next guarded erase restores the copied
+; content exactly. dst_ptr = the recycled row.
+restore_recycled_row_near_and_debris:
+    jsr restore_recycled_row_near_underlay
+    lda ENTITY_SCREEN_HI
+    beq @done
+    lda ENTITY_SCREEN_LO
+    sec
+    sbc dst_ptr
+    tay
+    lda ENTITY_SCREEN_HI
+    sbc dst_ptr+1
+    bne @done
+    cpy #GAMEPLAY_SCREEN_COLUMNS
+    bcs @done
+    ldx #$00
+@cell:
+    lda (dst_ptr),y
+    sta ENTITY_BACKING0,x
+    lda ENTITY_BACKING2,x
+    sta (dst_ptr),y
+    iny
+    inx
+    cpx #ENTITY_DEBRIS_GLYPHS_PER_PHASE
+    bne @cell
+@done:
+    rts
+
+.ifndef ENEMY_LIGHT_TICK
+entity_debris_publish_after_pairshot_erase:
+    jsr erase_fighter_projectile_overlays
+    jmp entity_debris_publish
+.endif
+.export entity_debris_publish, render_launch_flashes_with_capital_debris
+.export restore_recycled_row_near_and_debris

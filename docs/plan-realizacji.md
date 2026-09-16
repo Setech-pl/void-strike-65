@@ -105,8 +105,13 @@ Stage 1 (Option D = A + C1, owner GO 2026-09-16) jest zaimplementowany jako
 kandydat: okno C `HYBRID_C_SECTOR_RAM` `$8602-$86F9` (248 B), hold GLUE w `$8300`,
 wolny ciągły ogon `HYBRID_C_EXT` 257 B, ogon ENTITY_CODE 41 B, DFMC bez zmian
 (8 rekordów). Dowody: `docs/diagnostics/stage-2b2f-resident-capacity-glue-window.json`.
-Po akceptacji właściciela następnym zadaniem jest poprawka debris R-pre
-(dokładna własność), nie Interceptor. Poniżej: pierwotne uzasadnienie.
+Smoke 4.3 (2026-09-16): obserwacja debris po capital wyjaśniona A/B jako
+`PREEXISTING` (bez PASS właściciela). Poprawka debris R-pre (dokładna własność)
+jest zaimplementowana jako osobny `OWNER-SMOKE CANDIDATE` na tym kandydacie
+(STATUS, `docs/diagnostics/stage-2b2g-debris-late-publication.json`); ogon
+`HYBRID_C_EXT` po niej: 187 B (Interceptor 143 B nadal mieści się).
+Następne zadanie po akceptacji obu: Interceptor (4.4). Poniżej: pierwotne
+uzasadnienie.
 
 Wymagane, ponieważ punkt 4.4 realnie się zablokował (2026-09-16).
 
@@ -214,8 +219,10 @@ lifecycle i HULL bossa, nigdy jako zwykły drop.
 
 Aktualna lista i priorytety są w STATUS. Na dziś:
 
-- debris czasem pojawia się w widocznym playfieldzie oraz migocze/znika — ten sam
-  mechanizm okna erase→render, który usunięto dla Light (późna publikacja);
+- debris pojawiało się w widocznym playfieldzie i migotało/znikało — zmierzony
+  mechanizm: erase na linii 21-22 i render na 64-114 w klatkach fighter
+  (capital: erase 231-233 dolnego wiersza); poprawka (późna publikacja z
+  dokładną własnością) jest `OWNER-SMOKE CANDIDATE` — patrz STATUS;
 - intermitentny fioletowy artefakt po Raiderze — bez deterministycznej reprodukcji
   nie poświęcać mu nieograniczonego czasu;
 - Spread: w v4.12 §11 zgłoszono drugi ślad kapsuły i końcowy glif pocisku Spread;

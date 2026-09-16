@@ -18,19 +18,24 @@ test("PairShot erase cannot republish gameplay debris after it moves", () => {
   assert.equal(legacy.debris.type, 1);
   assert.equal(legacy.visibleGlyph, 117);
   assert.equal(legacy.savedBacking, 117);
-  assert.equal(legacy.afterEntityErase, 0);
+  // Exact ownership: the debris erase leaves a cell a PairShot has overwritten
+  // to the PairShot, whose own erase restores the lower backing afterwards.
+  assert.equal(legacy.afterEntityErase, legacy.projectileGlyph);
   assert.equal(legacy.restored, 117);
   assert.equal(legacy.staleRestore, true);
 
-  assert.equal(fixed.savedBacking, 0);
-  assert.equal(fixed.afterEntityErase, 0);
-  assert.equal(fixed.restored, 0);
+  // The PairShot saves the debris record's exact lower backing for that cell
+  // (the ring byte the debris overwrote), never the visible debris glyph.
+  assert.notEqual(fixed.lowerBacking, 117);
+  assert.equal(fixed.savedBacking, fixed.lowerBacking);
+  assert.equal(fixed.afterEntityErase, fixed.projectileGlyph);
+  assert.equal(fixed.restored, fixed.lowerBacking);
   assert.equal(fixed.staleRestore, false);
   assert.deepEqual([fixed.debris.movedX, fixed.debris.movedY], [124, 144]);
   assert.ok(legacy.writes.some(({ routine, after }) =>
     routine === "erase_fighter_projectile_overlays" && after === 117));
   assert.ok(fixed.writes.some(({ routine, after }) =>
-    routine === "erase_fighter_projectile_overlays" && after === 0));
+    routine === "erase_fighter_projectile_overlays" && after === fixed.lowerBacking));
 });
 
 test("both cells and every PairShot slot restore debris lower backing", () => {
@@ -39,8 +44,8 @@ test("both cells and every PairShot slot restore debris lower backing", () => {
       for (const debrisCellOffset of [0, 4]) {
         const trace = executeProjectileDebrisBackingTrace({ root, projectileSlot,
           debrisX, debrisCellOffset });
-        assert.equal(trace.savedBacking, 0);
-        assert.equal(trace.restored, 0);
+        assert.equal(trace.savedBacking, trace.lowerBacking);
+        assert.equal(trace.restored, trace.lowerBacking);
         assert.equal(trace.staleRestore, false);
       }
     }

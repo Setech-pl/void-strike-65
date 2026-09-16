@@ -4608,6 +4608,139 @@ static void dftrace_write(void)
 	}
 }
 
+/* ------------------------------------------------------------------------
+ * Pickup visibility probe (2026-09-16).
+ *
+ * The pre-existing pickup "visibility" gate counts rows where
+ * (MEMORY_mem[0x3b00+row] & 0xf0) != 0.  That mask encodes the same belief as
+ * the guest comment at src/main.s ("GTIA consumes only M0-M3 bits 4-7"), so
+ * the check can only ever confirm what the implementation already assumes and
+ * it never inspects a rendered pixel.  This probe deliberately shares no
+ * assumption with the guest:
+ *
+ *   - missile bytes are sampled AS THE BEAM CROSSES each scanline, not at the
+ *     end of the frame, so an erase/late-render race is visible;
+ *   - every missile is decoded separately (M0=bits0-1 .. M3=bits6-7);
+ *   - the final framebuffer is dumped as run-length rows, so the pixel
+ *     representation is observed empirically instead of being asserted to
+ *     equal COLPF3.
+ *
+ * Enabled only by DFPICKUP_PROBE_OUTPUT; otherwise every hook is inert.
+ * ---------------------------------------------------------------------- */
+#define DFPROBE_SCANLINES 312u
+#define DFPROBE_ROWS 16u
+
+static FILE *dfprobe_file = NULL;
+static const char *dfprobe_path = NULL;
+static int dfprobe_ready = 0;
+static unsigned dfprobe_prev_ypos = 0xffffffffu;
+static unsigned char dfprobe_beam_missiles[DFPROBE_SCANLINES];
+static unsigned char dfprobe_beam_seen[DFPROBE_SCANLINES];
+static unsigned dfprobe_written = 0u;
+static unsigned dfprobe_limit = 10u;
+static unsigned dfprobe_frame_index = 0u;
+
+static void dfprobe_emit_row(unsigned screen_row)
+{
+	const UBYTE *row;
+	unsigned x = 0u;
+	int first = 1;
+	if (Screen_atari == NULL || screen_row >= (unsigned) Screen_HEIGHT)
+		return;
+	row = (const UBYTE *) Screen_atari + (size_t) screen_row * Screen_WIDTH;
+	fprintf(dfprobe_file, "{\"screen_row\":%u,\"runs\":[", screen_row);
+	while (x < (unsigned) Screen_WIDTH) {
+		unsigned start = x;
+		UBYTE value = row[x];
+		while (x < (unsigned) Screen_WIDTH && row[x] == value)
+			++x;
+		fprintf(dfprobe_file, "%s[%u,%u,%u]", first ? "" : ",",
+			start, x - start, (unsigned) value);
+		first = 0;
+	}
+	fprintf(dfprobe_file, "]}");
+}
+
+static void dfprobe_frame_complete(void)
+{
+	unsigned state, pickup_x, pickup_y, top, row;
+	if (!dfprobe_ready || dfprobe_written >= dfprobe_limit)
+		return;
+	state = MEMORY_mem[dftrace_entity_state + 1u];
+	if (state != 2u)                      /* WEAPON_PICKUP_STATE_ACTIVE */
+		return;
+	pickup_x = MEMORY_mem[dftrace_entity_x + 1u];
+	pickup_y = MEMORY_mem[dftrace_entity_y + 1u];
+	top = (pickup_y + DFTRACE_CAPTURE_DMA_Y_OFFSET) & 0xffu;
+
+	fprintf(dfprobe_file, "%s\n{\"frame\":%u,\"host_frame\":%u,"
+		"\"pickup_x\":%u,\"pickup_y\":%u,\"pmg_top\":%u,"
+		"\"hposm\":[%u,%u,%u,%u],\"sizem\":%u,\"prior\":%u,"
+		"\"gractl\":%u,\"dmactl\":%u,\"colpf3\":%u,\"colbk\":%u,\n \"rows\":[",
+		dfprobe_written == 0u ? "" : ",",
+		dfprobe_frame_index, (unsigned) Atari800_nframes,
+		pickup_x, pickup_y, top,
+		GTIA_HPOSM0, GTIA_HPOSM1, GTIA_HPOSM2, GTIA_HPOSM3,
+		GTIA_SIZEM, GTIA_PRIOR,
+		(unsigned) GTIA_GRACTL, (unsigned) ANTIC_DMACTL,
+		GTIA_COLPF3, GTIA_COLBK);
+
+	for (row = 0u; row < DFPROBE_ROWS; ++row) {
+		unsigned y = (top + row) & 0xffu;
+		unsigned beam = dfprobe_beam_seen[y] ? dfprobe_beam_missiles[y] : 0u;
+		unsigned now = MEMORY_mem[0x3b00u + y];
+		fprintf(dfprobe_file,
+			"%s{\"y\":%u,\"beam\":%u,\"end\":%u,"
+			"\"beam_m\":[%u,%u,%u,%u],\"end_m\":[%u,%u,%u,%u],\"sampled\":%u}",
+			row == 0u ? "" : ",", y, beam, now,
+			beam & 3u, (beam >> 2) & 3u, (beam >> 4) & 3u, (beam >> 6) & 3u,
+			now & 3u, (now >> 2) & 3u, (now >> 4) & 3u, (now >> 6) & 3u,
+			(unsigned) dfprobe_beam_seen[y]);
+	}
+	fprintf(dfprobe_file, "],\n \"screen\":[");
+	/* Two control rows above the capsule, the capsule itself, two below. */
+	for (row = 0u; row < DFPROBE_ROWS + 4u; ++row) {
+		unsigned y = (top + row) & 0xffu;
+		if (y < 2u + DFTRACE_CAPTURE_DMA_Y_OFFSET)
+			continue;
+		if (row != 0u)
+			fprintf(dfprobe_file, ",");
+		dfprobe_emit_row(y - DFTRACE_CAPTURE_DMA_Y_OFFSET - 2u + 2u);
+	}
+	fprintf(dfprobe_file, "]}");
+	fflush(dfprobe_file);
+	++dfprobe_written;
+}
+
+static void dfprobe_observe(void)
+{
+	unsigned ypos;
+	if (dfprobe_path == NULL)
+		return;
+	if (dfprobe_file == NULL) {
+		dfprobe_file = fopen(dfprobe_path, "w");
+		if (dfprobe_file == NULL) {
+			fprintf(stderr, "voidstrike65 probe: cannot open %s\n", dfprobe_path);
+			exit(2);
+		}
+		fprintf(dfprobe_file, "[");
+		dfprobe_ready = 1;
+	}
+	ypos = ANTIC_ypos;
+	if (ypos == dfprobe_prev_ypos)
+		return;
+	if (ypos < DFPROBE_SCANLINES) {
+		dfprobe_beam_missiles[ypos] = MEMORY_mem[0x3b00u + ypos];
+		dfprobe_beam_seen[ypos] = 1u;
+	}
+	if (dfprobe_prev_ypos != 0xffffffffu && ypos < dfprobe_prev_ypos) {
+		dfprobe_frame_complete();
+		++dfprobe_frame_index;
+		memset(dfprobe_beam_seen, 0, sizeof(dfprobe_beam_seen));
+	}
+	dfprobe_prev_ypos = ypos;
+}
+
 static void dftrace_init(void)
 {
 	const char *ram_fill = getenv("DFTRACE_RAM_FILL");
@@ -4858,6 +4991,9 @@ static void dftrace_init(void)
 			fputs("trace_frame,host_frame,gameplay_frame,scanline,cycle,clock,event,slot,pc,previous_pc,row,column,address,pointer,visible_row,physical_row,address_value,pointer_value,last_writer_pc,glyph_row0,chbase,colpf0,colpf1,sector_state,ring_flags,visible_near_cells,orphan_near_cells,first_orphan_address,first_orphan_writer_pc\n", dftrace_near_file);
 		}
 	}
+	dfprobe_path = getenv("DFPICKUP_PROBE_OUTPUT");
+	if (getenv("DFPICKUP_PROBE_FRAMES") != NULL)
+		dfprobe_limit = (unsigned) strtoul(getenv("DFPICKUP_PROBE_FRAMES"), NULL, 10);
 	dftrace_pickup_screenshot = getenv("DFTRACE_PICKUP_SCREENSHOT");
 	dftrace_pickup_sequence_prefix = getenv("DFTRACE_PICKUP_SEQUENCE_PREFIX");
 	dftrace_pickup_traversal_prefix = getenv("DFTRACE_PICKUP_TRAVERSAL_PREFIX");
@@ -5029,6 +5165,7 @@ static void dffence_observe(unsigned pc, unsigned x_register)
 	dffence_previous_pc = pc;
 }
 
+
 static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_register,
 	unsigned y_register, unsigned s_register)
 {
@@ -5051,6 +5188,7 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 	}
 	if (!dftrace_initialised)
 		dftrace_init();
+	dfprobe_observe();
 	dftrace_track_character_screen_write(x_register, y_register);
 	dftrace_first_writer_track(x_register, y_register);
 	dftrace_player_pairshot_track(pc, x_register, y_register);
@@ -5175,10 +5313,14 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 			(MEMORY_mem[dftrace_entity_active_mask] & 2u) != 0u &&
 			MEMORY_mem[dftrace_entity_screen_hi + 1u] != 0u &&
 			GTIA_PRIOR == 0x10u) {
+			/* One missile occupies two bits of each row byte (M0 = bits 0-1
+			 * .. M3 = bits 6-7). The former `& 0xf0` test only inspected M2
+			 * and M3, so it reported a solid capsule while M0/M1 were broken
+			 * on fourteen of sixteen rows. Require the whole quartet. */
 			unsigned pickup_rows = 0u;
 			unsigned row;
 			for (row = 0u; row < 256u; ++row) {
-				if ((MEMORY_mem[0x3b00u + row] & 0xf0u) != 0u)
+				if (MEMORY_mem[0x3b00u + row] == 0xffu)
 					++pickup_rows;
 			}
 			if (pickup_rows == 16u)

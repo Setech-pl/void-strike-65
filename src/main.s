@@ -2843,6 +2843,9 @@ fighter_projectile_publication_begin = *
     ; Light Wingman: PairShot erase, then the Light unwinds and republishes
     ; inside this post-playfield window, below the PairShots rendered next.
     jsr erase_fighter_projectile_overlays_with_light
+    ; The fighter pickup shares this window: its missile rows are republished
+    ; after the playfield has been scanned, never mid-frame.
+    jsr publish_fighter_pickup_pmg
 fighter_projectile_publication_capital_render:
     jsr render_fighter_projectile_overlays
     ; Sparse near is logically below every character gameplay layer. Publishing
@@ -9267,7 +9270,9 @@ unpack_weapon_pickup_phase_runtime:
 ; the caller first. Effects and interactive entities then unwind here before
 ; broadside shells are restored by their established routine.
 entity_effects_erase:
-    jsr clear_fighter_pickup_pmg
+    ; The pickup's missile plane is erased and republished in the
+    ; post-playfield window instead; erasing it here blanked the capsule
+    ; before ANTIC had fetched its rows.
     lda EFFECT_RENDERED_MASK
     beq profile_entity_erase_begin
     jsr erase_transient_effect_overlays
@@ -10224,17 +10229,15 @@ resolve_effect_backing_below_interactive_debris:
 .segment "PICKUP_CODE"
 ; Fighter-only pickup wrapper. PENDING is frozen outside OPEN; ACTIVE is
 ; updated and republished to the four missile lanes only in fighter OPEN.
+; Movement, collection and booster policy only. The missile plane is published
+; separately in the post-playfield window by publish_fighter_pickup_pmg.
 update_fighter_pickup_pmg:
     lda CAPITAL_SECTOR_STATE
     cmp #CAPITAL_HULL_STATE_OPEN
     bne @done
     ldx ENTITY_STATE+WEAPON_PICKUP_SLOT
     beq @done
-    jsr update_weapon_pickup_active
-    lda ENTITY_STATE+WEAPON_PICKUP_SLOT
-    cmp #WEAPON_PICKUP_STATE_ACTIVE
-    bne @done
-    jmp render_fighter_pickup_pmg
+    jmp update_weapon_pickup_active
 @done:
     rts
 
@@ -10251,6 +10254,17 @@ clear_fighter_pickup_pmg:
     bne @line
     sta ENTITY_SCREEN_HI+WEAPON_PICKUP_SLOT
 @done:
+    rts
+
+; ANTIC fetches one missile byte per scanline, so the plane must already hold
+; the capsule when the beam reaches its rows. Publishing here - inside the same
+; post-playfield window as the character layers - leaves the image valid for
+; the whole of the next frame's pass. Falls through into the renderer.
+publish_fighter_pickup_pmg:
+    jsr clear_fighter_pickup_pmg
+    lda ENTITY_STATE+WEAPON_PICKUP_SLOT
+    cmp #WEAPON_PICKUP_STATE_ACTIVE
+    beq render_fighter_pickup_pmg
     rts
 
 render_fighter_pickup_pmg:
@@ -10290,10 +10304,13 @@ fighter_pickup_pmg_shape:
     ; Deliberately solid fifth-player capsule: every row asserts the valid
     ; M0-M3 quartet. The previous decorative combinations were only a faint,
     ; unrecognisable trace at native GTIA resolution.
-    ; Low nibbles are intentionally retained as inert transport entropy: GTIA
-    ; consumes only M0-M3 bits 4-7, while the packed resident layout is frozen.
-    .byte $FA,$FF,$FF,$FE,$FC,$FC,$FC,$FC
-    .byte $F8,$FE,$FE,$FE,$F1,$FE,$FE,$FE
+    ; One missile occupies TWO bits of each row byte - M0 = bits 0-1, M1 = 2-3,
+    ; M2 = 4-5, M3 = 6-7 - so a solid quartet is $FF and nothing in the byte is
+    ; spare. The earlier data treated the low nibble as inert transport entropy
+    ; and left M0/M1 broken on fourteen of sixteen rows, which a high-nibble
+    ; ($F0) check could not see.
+    .byte $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
+    .byte $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
 
 ; Effects publish before the late projectile commit. When an effect lands on
 ; an OLD PairShot cell, the visible byte is still the projectile glyph even

@@ -66,7 +66,9 @@ shasum -a 256 dist/void-strike-65.xex
 
 - [ ] The fighter-sector pickup is a **solid** fifth-player PMG mark (M0-M3,
       `PRIOR=$10`, `COLPF3`) — no holes, no character capsule.
-- [ ] It is admitted deterministically and is visible for its whole descent.
+- [ ] It is admitted deterministically and **stays visible for its whole
+      descent** — this regressed silently for many releases, so check the top
+      of the descent, not only the bottom.
 - [ ] Collecting it applies Rapid Fire, Spread Shot or Shield correctly.
 - [ ] Booster HUD state matches the active booster.
 

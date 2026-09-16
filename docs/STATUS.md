@@ -65,9 +65,10 @@ Hybrid **C/cc65 + ca65**, defined in
   destructible, 5 points, retired before the capital sector; its 8-line
   vertical stepping relative to the leader is intentional and accepted;
 - debris, Encounter Director Level 1, capital broadside traversal;
-- fighter-sector pickup capsule as a solid fifth-player PMG mark (M0-M3,
-  `COLPF3`); deterministic admission (every third Raider kill by Player
-  PairShot);
+- fighter-sector pickup: deterministic admission (every third Raider kill by
+  Player PairShot), PENDING/ACTIVE lifecycle, collection and boosters. Its
+  **runtime visibility was broken** at this checkpoint — see the P0 section
+  below;
 - white four-point starfield, one scanline per frame.
 
 Deferred by the owner: smooth 1-line Light tracking (M2); it would also need
@@ -112,6 +113,54 @@ Evidence: `docs/diagnostics/stage-2b2b-light-wingman-2heavy-1light.json`,
 
 ---
 
+## P0 — pickup runtime visibility (2026-09-16)
+
+`OWNER-SMOKE CANDIDATE`. Not accepted until the owner confirms on screen.
+
+The owner reported that the booster/pickup has been **invisible for many
+releases** although it can be collected and its booster works. That is correct
+and it overrides the earlier automated "visible" conclusion.
+
+Separate the two things, and do not conflate them again:
+
+| | Status |
+| --- | --- |
+| `OWNER-APPROVED DESIGN: solid fifth-player PMG mark` (M0-M3, `PRIOR=$10`, `COLPF3`) | unchanged, owner decision 12 |
+| `RUNTIME VISIBILITY` | was `KNOWN_OPEN`; now `OWNER-SMOKE CANDIDATE` |
+| pickup admission, PENDING/ACTIVE, collection, boosters | proven working throughout |
+
+**Root cause: RASTER.** The missile plane was erased just after the frame gate
+(beam at scanline ~16) and rewritten only mid-frame. ANTIC fetches one missile
+byte per scanline, so the plane held zeroes when the beam crossed the capsule.
+Measured over 8 consecutive ACTIVE frames: **0/16 rows had missile bits at beam
+crossing, 16/16 at frame end**, and the framebuffer was pure background.
+Registers (`HPOSM`, `SIZEM`, `PRIOR`, `GRACTL`, `DMACTL`, `COLPF3`) were correct
+the whole time.
+
+**Why the old proof passed.** `src/main.s` claimed "GTIA consumes only M0-M3
+bits 4-7" and the native gate counted rows matching `& 0xf0`. One missile is two
+bits (`M0` = bits 0-1 … `M3` = bits 6-7), so that mask inspected only the half
+the data happened to set. The test encoded the same mistake as the code. A
+second, independent defect hid behind it: only 2 of 16 shape rows set the full
+quartet, so the capsule's left edge was ragged.
+
+**Fix** (ASM publication only; no gameplay policy migrated to C): the plane is
+now erased and redrawn in the existing post-playfield window after
+`wait_frame_at_line $77`, alongside the PairShot and Light Wingman publication,
+and the shape is 16 rows of `$FF`.
+
+Isolated measurements — COLPF3 pixels in the capsule window:
+**0 (baseline) → 182 (raster fix) → 224 (raster fix + solid shape)**.
+
+Evidence:
+[diagnostics/stage-2b2d-pickup-raster-invisibility.json](diagnostics/stage-2b2d-pickup-raster-invisibility.json).
+Candidate XEX `6d499d44…`, screenshot in
+`build/owner-smoke/pickup-visible-6d499d44/`.
+
+Light Wingman M1 status is unchanged.
+
+---
+
 ## Interceptor (plan step 4.4)
 
 | Aspect | State |
@@ -151,9 +200,15 @@ The Interceptor is and stays Light class, character-rendered, never on
 
 ## Current task
 
-None open.
+Owner smoke of the pickup visibility candidate above.
+
+Paused until both P0 runtime defects are closed: roadmap step 4.3, the
+Interceptor, and the Raider-coloured residual artifact investigation.
 
 ## Next roadmap step
+
+After pickup owner smoke passes: diagnose and remove the persistent
+Raider-coloured residual artifact (the second P0 defect). Only then:
 
 **Plan step 4.3 — reusable resident-capacity recovery.** Not an Interceptor
 retry. It must recover reusable resident capacity for the Light-enemy family

@@ -461,6 +461,13 @@ before capital, where M1-M3 resume broadside warning/impact ownership. Fighter
 PairShots remain ANTIC 4 overlays, so their ten-record pool and player/enemy
 colours are independent of the missile graphics.
 
+ANTIC fetches one missile byte per scanline, so the capsule's plane is erased
+and redrawn in the post-playfield publication window (after
+`wait_frame_at_line $77`), the same window that publishes PairShots and the
+Light Wingman. Writing it mid-frame left the rows blank for every scanline the
+beam had already passed. Movement, collection and booster policy stay on the
+ordinary mid-frame path; only publication is late.
+
 The capsule is a 16-scanline solid fifth-player mark: every PMG
 source byte has M0-M3 bits 4–7 set, with `SIZEM=$00`, consecutive HPOSM0–3,
 `PRIOR=$10`, and `COLPF3`. Decorative partial-missile combinations were too

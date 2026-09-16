@@ -1,0 +1,99 @@
+{
+  "id": "stage-2b2d-pickup-raster-invisibility",
+  "date": "2026-09-16",
+  "status": "PASS_CANDIDATE_AWAITING_OWNER_SMOKE",
+  "owner_report": "Booster/pickup is not visibly rendered in ordinary gameplay, for many releases, although it can be collected and the booster works.",
+  "classification": "RASTER (primary) + PMG shape data (secondary, independently proven)",
+
+  "baseline": {
+    "branch": "experiment/hybrid-c-director",
+    "commit": "027e052",
+    "xex_sha256": "900152fed5b1aec3eee200034121fbd6d930288d6a3669c13968c74c93955ce8"
+  },
+
+  "why_previous_proof_was_insufficient": {
+    "shared_misconception": "src/main.s claimed 'GTIA consumes only M0-M3 bits 4-7' and the native gate in scripts/atari800-wall-trace.h counted rows with (MEMORY_mem[0x3b00+row] & 0xf0) != 0. One missile is two bits (M0 = bits 0-1 .. M3 = bits 6-7), so the 0xf0 mask inspects only M2/M3 - exactly the half the shape data happened to set correctly. The check could only ever confirm the belief the implementation already encoded.",
+    "never_a_pixel": "No prior artifact sampled the rendered framebuffer for the production capsule. The PMG 'lab' screenshot injected a synthetic $F0 pattern and states it never enters the production XEX; the production screenshot artifact weapon-pickup-static-atari800.png did not exist in the tree before this task.",
+    "wrong_moment": "Register and memory snapshots were taken at CPU time mid-frame, never at the moment the raster crossed the capsule's scanlines."
+  },
+
+  "method": {
+    "instrumentation": "scripts/atari800-wall-trace.h, new DFPICKUP_PROBE_OUTPUT probe",
+    "beam_sampling": "MEMORY_mem[0x3b00+ypos] is sampled on the first opcode of each ANTIC scanline, so the value recorded is the one ANTIC DMA fetches for that line.",
+    "pixel_oracle": "Differential, not colour-assuming: full 384-pixel Screen_atari rows covering the capsule window are dumped run-length encoded after a complete ANTIC pass and compared against the same window without an active capsule. The value 70 ($46) was read out of the data, never asserted into it.",
+    "per_missile_decode": "Each row byte is decoded as four separate two-bit missiles instead of masked with 0xf0.",
+    "session": "weapon-pickup-2-hunt-fire4, 4000 frames, difficulty 2"
+  },
+
+  "root_cause": {
+    "layer": "RASTER",
+    "mechanism": "clear_fighter_pickup_pmg ran from entity_effects_erase immediately after the frame gate (beam at scanline ~16), while render_fighter_pickup_pmg ran mid-frame from entity_effects_update, after world_ring_playfield. ANTIC fetches one missile byte per scanline, so for every capsule row above the re-render point the plane held zeroes when the beam arrived.",
+    "evidence": "Across 8 consecutive ACTIVE frames: rows with missile bits AT BEAM CROSSING 0/16, rows AT FRAME END 16/16, framebuffer histogram 0:7680 (pure background).",
+    "why_collectable": "Collection is an AABB test on logical X/Y and is independent of the missile plane, so the pickup stayed fully functional while invisible.",
+    "registers_were_never_at_fault": "HPOSM=[94,96,98,100], SIZEM=$00, PRIOR=$10, GRACTL=$03, DMACTL=$3E, COLPF3=$46, COLBK=$00 - all correct and stable throughout."
+  },
+
+  "secondary_defect": {
+    "layer": "PMG shape data",
+    "mechanism": "fighter_pickup_pmg_shape treated the low nibble as 'inert transport entropy'. Decoded per missile, only 2 of 16 rows set the full quartet: $FC gives M0=%00, $F1 gives M1=%00. The capsule's left edge was ragged.",
+    "masked_by": "The primary raster defect made the capsule invisible regardless, and the 0xf0 gate could not see M0/M1."
+  },
+
+  "isolated_experiments": {
+    "note": "One variable per build, per owner instruction. Pixel counts are COLPF3 pixels inside the capsule window; 14 of 16 rows overlap the sampling reference because publication now lands one frame ahead, which is the intended behaviour.",
+    "baseline": { "beam_rows": "0/16", "colpf3_pixels": 0, "xex": "900152fe" },
+    "raster_fix_only": { "beam_rows": "14/16", "colpf3_pixels": 182, "xex": "9bdb4c75" },
+    "raster_fix_plus_solid_shape": { "beam_rows": "14/16", "colpf3_pixels": 224, "xex": "6d499d44" }
+  },
+
+  "fix": {
+    "c_changes": "none - the root cause is hardware publication, so no gameplay policy was migrated",
+    "asm_changes": [
+      "entity_effects_erase no longer erases the missile plane at frame start",
+      "update_fighter_pickup_pmg keeps movement, collection and booster policy and tail-calls update_weapon_pickup_active; it no longer publishes",
+      "new publish_fighter_pickup_pmg erases and redraws the plane, falling through into render_fighter_pickup_pmg",
+      "publish_fighter_pickup_pmg is called from the existing post-playfield window after wait_frame_at_line $77, the same window that already publishes PairShots and the Light Wingman",
+      "fighter_pickup_pmg_shape is now 16 rows of $FF, a genuinely solid quartet"
+    ],
+    "harness_change": "the native visibility gate now requires MEMORY_mem[0x3b00+row] == 0xff instead of a high-nibble mask"
+  },
+
+  "candidate": {
+    "xex_sha256": "6d499d44d6295da4c9b79967126caa91aa72dda9ce85f448bb22120d00d5b3d6",
+    "xex_path": "build/owner-smoke/pickup-visible-6d499d44/void-strike-65-pickup-visible.xex",
+    "screenshot": "build/owner-smoke/pickup-visible-6d499d44/weapon-pickup-static-atari800.png",
+    "build_command": "npm run build:candidate -- --quiet"
+  },
+
+  "native_pal": {
+    "session": "2-evasive-fire3",
+    "frames": 920,
+    "maximum_wall_cycles": 29216,
+    "baseline_maximum_wall_cycles": 29177,
+    "delta_cycles": 39,
+    "target_headroom": 1984,
+    "hard_gate_headroom": 3352,
+    "physical_headroom": 6352,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "dli_ordering_errors": 0,
+    "deadline_overruns": 0
+  },
+
+  "memory": {
+    "pickup_code_bytes": { "before": 777, "after": 778 },
+    "entity_code_bytes": { "before": 3154, "after": 3151 },
+    "linked_runtime_bytes": { "before": 17452, "after": 17453 },
+    "simultaneous_residency_bytes": { "before": 19207, "after": 19208 },
+    "safe_residency_bytes": { "before": 2980, "after": 2979 },
+    "transport_payload_bytes": { "before": 22400, "after": 22400 }
+  },
+
+  "tests": {
+    "added": "tests/pickup-pmg-raster-visibility.test.mjs - asserts WHEN the plane is published and that every row sets the full M0-M3 quartet",
+    "updated": "tests/cold-pickup-record-fit.test.mjs and tests/light-wingman.test.mjs exact-size and window-order contracts now track the moved publication",
+    "focused_run": "37 pass, 3 fail; all three failures are pre-existing at the baseline with identical names"
+  },
+
+  "next_step": "Owner smoke. If it passes, the next task is the persistent Raider-coloured residual artifact; roadmap 4.3 and the Interceptor stay paused."
+}

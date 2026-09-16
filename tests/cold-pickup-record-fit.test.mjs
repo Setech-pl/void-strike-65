@@ -55,7 +55,12 @@ test("PMG runtime remains legal after retiring the rejected central primitive", 
   assert.equal(symbol.get("__LIGHT_RESIDENT_RUN__"), 0x8776);
   assert.equal(symbol.get("__PICKUP_CODE_RUN__"),
     0x8776 + symbol.get("__LIGHT_RESIDENT_SIZE__"));
-  assert.equal(symbol.get("__PICKUP_CODE_SIZE__"), 777);
+  // 777 B before the pickup PMG plane moved to post-playfield publication;
+  // publish_fighter_pickup_pmg costs a net +1 B and still leaves 5 B of the
+  // zero-filled stream before the fixed $8B67 module.
+  assert.equal(symbol.get("__PICKUP_CODE_SIZE__"), 778);
+  assert.ok(0x8776 + symbol.get("__LIGHT_RESIDENT_SIZE__") +
+    symbol.get("__PICKUP_CODE_SIZE__") <= 0x8b67, "pickup stream still clears $8B67");
   assert.equal(symbol.has("lower_cell_read"), false);
   assert.equal(symbol.has("lower_cell_write"), false);
   assert.equal(manifest.capitalPlayerCollisionRuntime.packedStreamOffset, 0x8b67 - 0x8776);
@@ -63,7 +68,12 @@ test("PMG runtime remains legal after retiring the rejected central primitive", 
   assert.equal(manifest.capitalPlayerCollisionRuntime.runAddress +
     manifest.capitalPlayerCollisionRuntime.bytes, 0x8b88);
 
-  assert.match(source, /update_fighter_pickup_pmg:[\s\S]+CAPITAL_HULL_STATE_OPEN[\s\S]+update_weapon_pickup_active[\s\S]+render_fighter_pickup_pmg/);
+  // The mid-frame path owns policy only. Publication moved into the
+  // post-playfield window, so the capsule is no longer drawn from here.
+  assert.match(source,
+    /update_fighter_pickup_pmg:[\s\S]+CAPITAL_HULL_STATE_OPEN[\s\S]+jmp update_weapon_pickup_active/);
+  assert.match(source,
+    /publish_fighter_pickup_pmg:[\s\S]+jsr clear_fighter_pickup_pmg[\s\S]+render_fighter_pickup_pmg/);
   assert.match(source, /render_fighter_pickup_pmg:[\s\S]+HPOSM0[\s\S]+HPOSM3[\s\S]+MISSILES,y[\s\S]+sta PRIOR/);
   assert.match(source, /weapon_pickup_clear_sector:[\s\S]+WEAPON_PICKUP_STATE_PENDING[\s\S]+weapon_pickup_release/);
   assert.equal((source.match(/lower_cell_(?:read|write)/g) ?? []).length, 0,

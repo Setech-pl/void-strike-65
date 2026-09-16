@@ -379,7 +379,17 @@ Nie zwiększać częstotliwości dropu w celu wymuszenia obserwacji.
 
 ---
 
-## 12. Pickup PMG visibility — 2026-09-15 — OWNER-ACCEPTED
+## 12. Pickup PMG visibility — 2026-09-15 — OWNER-APPROVED DESIGN
+
+Uwaga terminologiczna (2026-09-16): ta decyzja zatwierdza **jak pickup ma
+wyglądać**, a nie że tak się renderuje. Rozdzielaj:
+
+- `OWNER-APPROVED DESIGN: solid fifth-player PMG mark` — poniżej, obowiązuje;
+- `RUNTIME VISIBILITY` — było `KNOWN_OPEN` (kapsuła niewidoczna przez wiele
+  wydań mimo działającej mechaniki), obecnie `OWNER-SMOKE CANDIDATE`.
+
+Przyczyną był wyścig z rastrem w publikacji PMG, nie sama reprezentacja.
+Dowody: `docs/diagnostics/stage-2b2d-pickup-raster-invisibility.json`.
 
 Owner preference jest rozstrzygająca: kapsuła ma być stabilna i rozpoznawalna,
 nie dekoracyjna. Zatwierdzona minimalna reprezentacja pozostaje w obecnym

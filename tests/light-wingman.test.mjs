@@ -107,8 +107,10 @@ test("Light kernel placement is legal, resident and inside every reviewed gate",
   assert.ok(extension.packedBytes <= 960, "late-compressed extension cold staging limit");
   assert.ok(manifest.starfieldRuntime.packedBytes <= 0x706, "starfield correction gate");
   assert.ok(L("light_starfield_end") <= L("hud_booster_backing"));
-  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 93,
-    "ENTITY_CODE staging is untouched");
+  // 93 B before the early-frame pickup PMG erase was removed from
+  // entity_effects_erase; ENTITY_CODE lost that JSR and the margin grew by 3.
+  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 96,
+    "ENTITY_CODE staging margin tracks the removed frame-start pickup erase");
   assert.equal(manifest.capitalPlayerCollisionRuntime.runAddress, 0x8b67);
   // light_add_score exactly fills the retired 17-byte BROADSIDE entry pad.
   assert.equal(L("light_add_score"), L("entity_complete_scroll_tick") + 3);
@@ -350,8 +352,11 @@ test("hooks are operand-only redirections and the Light publishes only in the la
   ]) {
     assert.equal((mainSource.match(new RegExp(`jsr ${hook}\\b`, "g")) ?? []).length, count, hook);
   }
+  // The fighter pickup's missile plane shares this window; it is published
+  // between the Light's erase and the PairShot render, still post-playfield.
   assert.match(mainSource, new RegExp("jsr wait_frame_at_line\\s+fighter_projectile_publication_begin = \\*" +
     "[\\s\\S]*?jsr erase_fighter_projectile_overlays_with_light\\s+" +
+    "(?:[^\\n]*\\n\\s*)*?jsr publish_fighter_pickup_pmg\\s+" +
     "fighter_projectile_publication_capital_render:\\s+jsr render_fighter_projectile_overlays"));
   assert.doesNotMatch(mainSource, /jsr entity_effects_(?:erase_with_white_starfield|render)_with_light/,
     "no frame-start Light erase and no mid-frame Light render");

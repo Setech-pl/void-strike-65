@@ -433,3 +433,58 @@ pozostaje poprawne. Obecne 8-liniowe kroki pionowe Light względem lidera są
 zamierzone i akceptowane. Solidna reprezentacja kapsuły PMG (M0–M3,
 `PRIOR=$10`, `COLPF3`) jest zaakceptowana. Płynne śledzenie pionowe Light (M2)
 jest odłożone — nie implementować bez nowej decyzji.
+
+---
+
+## 15. Klasy wrogów, pojemność Light i Interceptor — OWNER-ACCEPTED (2026-09-16)
+
+Decyzje utrwalone przed implementacją Interceptora, aby kolejne zadania ich nie
+otwierały ponownie. Normatywne odwzorowanie: `docs/hybrid-c-architecture.md`
+(sekcja „Enemy classes and Light slot ownership").
+
+### 15.1 Heavy
+
+- `P1`/`P2` pozostają slotami wrogów klasy Heavy.
+- Interceptor **nie jest** wrogiem Heavy.
+- Interceptor **nie może** zajmować `P1`/`P2`.
+- Nie wolno implementować Interceptora jako mniejszego PMG Raidera.
+
+### 15.2 Light
+
+Bieżąca pojemność pozostaje:
+
+    LIGHT_ACTIVE_MAX = 1
+
+Pojedynczy slot Light staje się **wybieralny co do archetypu**:
+
+    Wingman ALBO Interceptor
+
+a nie:
+
+    Wingman ORAZ Interceptor
+
+Docelowy encounter tego przyrostu:
+
+    2 Heavy Raiders + 1 znakowy Interceptor
+
+Architektura długoterminowo może rosnąć w stronę `2 Heavy + do 4 Light`, ale
+jest to **poza** zakresem tego zadania i nie wolno tego implementować z wyprzedzeniem.
+
+### 15.3 Renderer
+
+Wingman i Interceptor dzielą tę samą klasę renderera Light
+(`ENEMY_RENDERER_CHARACTER_2X1`). Nie wolno przy tej okazji dodawać:
+
+- alokacji PMG;
+- multipleksowania PMG;
+- kolejnej architektury renderera;
+- globalnego kompozytora;
+- nowej architektury własności rastra.
+
+### 15.4 Własność C/ASM
+
+C jest właścicielem: wyboru archetypu Light, lifecycle, zachowania ruchu,
+polityki ognia, HP, score oraz admission/recycle.
+
+ASM jest właścicielem: publikacji znakowej, backing/restore, publikacji
+PairShotów oraz gorących ścieżek kolizji i kodu wrażliwego sprzętowo.

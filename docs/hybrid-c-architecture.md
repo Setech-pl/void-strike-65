@@ -77,6 +77,43 @@ fixed centred offset behind Heavy slot 0. The ASM kernel owns only the render ca
 bytes) and two scratch bytes of that block; C writes the render cache solely
 at game initialization, when the playfield is rebuilt.
 
+## Enemy classes and Light slot ownership
+
+Normative, owner-fixed (owner decision 15, 2026-09-16). Do not reopen without a
+new owner decision.
+
+**Heavy class.** PMG players `P1`/`P2` belong to the Heavy enemy class. They are
+never allocated to a Light-class enemy. A Light-class enemy must not be
+implemented as a smaller PMG Raider.
+
+**Light class.** Light-class enemies use the character renderer
+(`ENEMY_RENDERER_CHARACTER_2X1`) and allocate no PMG player. The current
+capacity is:
+
+```text
+LIGHT_ACTIVE_MAX = 1
+```
+
+That single slot is **archetype-selectable** — `Wingman OR Interceptor`, not
+`Wingman AND Interceptor`. The selected archetype is named by one C-owned byte,
+`light_archetype_offset`, holding the byte offset of the active record inside
+`enemy_archetypes[]` (`12` = Wingman, `24` = Interceptor). C and ASM both index
+the table with it, so no code hardcodes "Light == archetype index 1" any more.
+
+The long-term target is `2 Heavy + up to 4 Light` active threats, reached
+incrementally (`1 -> 2 -> up to 4` Light slots). Do not implement that capacity
+before a task requires it.
+
+**Shared renderer.** Wingman and Interceptor share one renderer class and one
+ASM kernel. Adding a Light-class archetype must not introduce PMG allocation,
+PMG multiplexing, another renderer architecture, a global compositor, or a new
+raster-ownership architecture.
+
+**Ownership split for the Light slot.** C owns archetype selection, lifecycle,
+movement behavior, fire policy, HP, score and admission/recycle. ASM owns
+character publication, backing/restore, PairShot publication, hot collision and
+hardware-sensitive execution.
+
 ## ASM responsibilities
 
 ca65 remains authoritative for VBI/DLI, ANTIC/display-list/raster work, PMG P0

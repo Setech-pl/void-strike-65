@@ -120,16 +120,19 @@ holding the byte offset of the active record inside `enemy_archetypes[]`
 score add changed from an absolute to an absolute,X read so its fixed 17-byte
 pad stayed exact.
 
-That design is **evidence, not contract**. It is `BLOCKED_PLACEMENT`: the
-generalization plus a third archetype exceeds the `HYBRID_C_EXT_RAM` area by
-75 B in its reduced form and 126 B with per-frame pursuit. Byte accounting and
+That design is **evidence, not contract**. It was `BLOCKED_PLACEMENT`: the
+generalization plus a third archetype exceeded the `HYBRID_C_EXT_RAM` area by
+75 B in its reduced form and 126 B with per-frame pursuit, on the pre-4.3
+basis. Step 4.3 Stage 1 (accepted in `b4b942e`) recovered that capacity, and
+the owner gave GO (2026-09-16, decision 18) for full pursuit with an explicitly
+archetype-selectable slot and no per-admission alternation. Byte accounting and
 the recovery candidate are in
 [diagnostics/stage-2b2c-interceptor-blocked-placement.json](diagnostics/stage-2b2c-interceptor-blocked-placement.json);
 the unbuildable tree is on `experiment/interceptor-blocked-placement`.
 
 Do not write those fields or offsets into any document or ABI table as though
-they already exist. The invariants in this section stand regardless; only the
-implementation waits on resident capacity (roadmap step 4.3).
+they already exist. The invariants in this section stand regardless; the
+implementation is roadmap step 4.4.
 
 The long-term target is `2 Heavy + up to 4 Light` active threats, reached
 incrementally (`1 -> 2 -> up to 4` Light slots). Do not implement that capacity
@@ -213,8 +216,9 @@ C-owned lifecycle field.
 | C Light BSS (incl. 6 B ASM render cache/scratch) | 12 | `$8100-$810B` |
 | cc65 low CODE | 242 | `$8B88-$8C79` |
 | `EnemyArchetype` RODATA (Raider + Light) | 24 | `$8C7D-$8C94` |
-| lifecycle + Light CODE | 725 | `$8C95-$8F69` |
-| Light ASM `LIGHT_CODE` (late publication: erase, render) | 133 | `$8F6A-$8FEE` (accepted); `$8E7A-$8EFE` after 4.3; 203 B `$8E7A-$8F44` with the debris late-publication kernel (candidate 2026-09-16) |
+| lifecycle + Light CODE | 725 | `$8C95-$8F69` (`41ace65`); 485 B `$8C95-$8E79` at `b4b942e` after the sector C moved to the window below |
+| sector transition C (`sector_c_*`, step 4.3) | 240 | `$8602-$86F1` (`HYBRID_C_SECTOR_RAM`, 8 B free) |
+| Light ASM `LIGHT_CODE` (late publication: erase, render) | 133 | `$8F6A-$8FEE` (`41ace65`); 203 B `$8E7A-$8F44` at `b4b942e` with the debris late-publication kernel |
 | Light ASM `LIGHT_RESIDENT` (update, shot, kill, glyph) | 226 | `$8776-$8857` |
 | Light ASM lower-layer backing resolver (STARFIELD tail) | 31 | `$5D45-$5D63` |
 | Light ASM score add (retired BROADSIDE pad) | 17 | `$77A1-$77B1` |
@@ -228,8 +232,10 @@ C-owned lifecycle field.
 At the earlier `2df89da` checkpoint, totals were 1,256 bytes of C CODE, 170 bytes of C RODATA, 0 bytes DATA,
 16 bytes BSS, 0 bytes software stack and 0 bytes zero page. Linked runtime is
 17,521 bytes. Simultaneous feature residency is 18,914 bytes, leaving 3,273
-bytes of the feature-residency safety budget. The accepted Light M1 runtime measures
-17,452 B linked, 19,207 B simultaneous and 2,980 B safe.
+bytes of the feature-residency safety budget. The Light M1 runtime (`41ace65`)
+measures 17,452 B linked, 19,207 B simultaneous and 2,980 B safe; the accepted
+`b4b942e` runtime measures 17,470 B linked, 19,295 B simultaneous and 2,892 B
+safe.
 
 Light Wingman placement (2026-09-15). The first attempt placed the Light
 renderer in ENTITY_CODE and overflowed its packed staging by 176 B. The
@@ -240,7 +246,7 @@ and expanders:
    extension and appended to the existing late-compressed extension stream:
    882 B raw / 742 B packed of 960, expanded to `$8C7D-$8FEE` by the unchanged
    boot call (17 B slack before A2). After step 4.3 the composite is 642 B with
-   a 257 B tail; the debris late-publication kernel (candidate 2026-09-16) adds
+   a 257 B tail; the debris late-publication kernel (accepted in `b4b942e`) adds
    70 B of main-linked ASM to `LIGHT_CODE` (712 B raw / 636 B packed, 187 B
    tail), the documented dual use of that tail.
 2. `LIGHT_RESIDENT` heads the existing pickup/collision stream, whose runtime
@@ -351,7 +357,7 @@ architecture.
 
 The 2026-09-16 Interceptor attempt repeated the process and confirmed it: the
 third archetype again needed only data, a small C handler and the existing
-Light renderer. Steps 1-5 passed and step 5 stopped it — the linked result does
-not fit the resident placement. Steps 6-8 were therefore not run and no
-candidate exists. The next archetype stays blocked on resident capacity
-(roadmap step 4.3), not on this process.
+Light renderer. Steps 1-5 passed and step 5 stopped it — the linked result did
+not fit the resident placement, so steps 6-8 were not run. Step 4.3 Stage 1
+has since recovered that capacity; the owner-approved implementation is
+roadmap step 4.4.

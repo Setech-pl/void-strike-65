@@ -1,9 +1,11 @@
 # Current memory map
 
-Checkpoint: **accepted Light Wingman M1 + solid PMG pickup** on
-`experiment/hybrid-c-director` (`feat: accept Light Wingman and visible PMG
-pickup`, XEX `900152fe…`). The linked-segment and BSS tables reflect this
-checkpoint. Sections marked *earlier `2df89da`* were not regenerated.
+Accepted runtime checkpoint: `b4b942e` on `experiment/hybrid-c-director`
+(XEX `96546807…`, owner smoke PASS 2026-09-16). The linked-segment and BSS
+tables below are still the earlier `41ace65` snapshot (Light Wingman M1 + solid
+PMG pickup, XEX `900152fe…`); the accepted placement changes since then are
+listed in *Accepted placement since `41ace65`* and override those rows.
+Sections marked *earlier `2df89da`* were not regenerated.
 
 This is one snapshot. Addresses and linked sizes come from
 `build/void-strike-65.map`; packed sizes, staging ranges, artifacts, and reserves
@@ -78,30 +80,34 @@ Tools and agents summing free space must count `$8C7A-$8C7C` once, under
 `DIRECTOR_C_LOW_RAM`.
 
 Note also that `HYBRID_C_EXT_RAM` is not free down to `$8FFF`: `scripts/build.mjs`
-appends the 133 B `LIGHT_CODE` tail to the same expanded composite, so the free
-extension tail is `$8FEF-$8FFF` = 17 B.
+appends the `LIGHT_CODE` tail to the same expanded composite, so at `b4b942e`
+the free extension tail is `$8F45-$8FFF` = 187 B (203 B `LIGHT_CODE`).
 
-## Step 4.3 Stage 1 placement — OWNER-SMOKE CANDIDATE (2026-09-16)
+## Accepted placement since `41ace65` — pickup fix, step 4.3 Stage 1, debris late publication (`b4b942e`)
 
-Applies to the candidate after `fca5e31`. The tables elsewhere in this file stay
-the accepted-checkpoint snapshot until the owner accepts 4.3; then the file is
-regenerated.
+Owner-accepted 2026-09-16. Measured from the `b4b942e` link maps; these rows
+override the older tables in this file. The pickup raster fix also moved
+resident `CODE` to `$2000-$3174` (4,469 B), `RODATA` to `$3175-$3FF6`, and
+`STARFIELD` to `$54E4-$5D93` (2,224 B, `light_cell_resolve` at `$5D82`); packed
+STARFIELD is 1,805 B.
 
-| Range | Size | Candidate owner |
+| Range | Size | Accepted owner |
 | --- | ---: | --- |
 | `$85FE-$8601` | 4 B | `STAR_NEAR_SCREEN_HI` (live near-star state; the old "`$8600` window" never included these two bytes) |
 | `$8602-$86F9` | 248 B | `HYBRID_C_SECTOR_RAM`: the five `sector_c_*` functions, 240 B at `$8602-$86F1`; 8 B free |
 | `$8300-$83F9` | 250 B | boot-only GLUE hold (idle gameplay-ring RAM) until `layout_d_publish_glue`; `init_screen` rebuilds the ring before gameplay |
 | `$8C7D-$8E79` | 509 B | C `EnemyArchetype` RODATA 24 B + lifecycle/Light C 485 B |
-| `$8E7A-$8F44` | 203 B | `LIGHT_CODE` (moved with the shorter C composite): Light late publication 133 B plus the debris late-publication kernel 70 B (`entity_debris_publish`, capital hook `render_launch_flashes_with_capital_debris`, `restore_recycled_row_near_and_debris`) — debris candidate 2026-09-16 |
-| `$8F45-$8FFF` | 187 B | free contiguous `HYBRID_C_EXT` tail; cc65 code or main-linked ASM appended after `LIGHT_CODE` (257 B before the debris candidate) |
+| `$8776-$8857` | 226 B | `LIGHT_RESIDENT` (unchanged) heading the pickup/collision stream |
+| `$8858-$8B58` | 769 B | `PICKUP_CODE`; `$8B59-$8B66` 14 B zero fill of the stream image before the fixed `$8B67` collision module |
+| `$8E7A-$8F44` | 203 B | `LIGHT_CODE` (moved with the shorter C composite): Light late publication 133 B plus the debris late-publication kernel 70 B (`entity_debris_publish`, capital hook `render_launch_flashes_with_capital_debris`, `restore_recycled_row_near_and_debris`) |
+| `$8F45-$8FFF` | 187 B | free contiguous `HYBRID_C_EXT` tail; cc65 code or main-linked ASM appended after `LIGHT_CODE` (257 B before the debris kernel) |
 | `$9100-$9D30` | 3,121 B | ENTITY_CODE (C1 −39 B, second-stream expansion +13 B, debris late publication −4 B); `$9D31-$9D5D` 45 B free |
 
 Transport: the window's independent LZ stream (201 B packed) follows the
 pickup/collision stream in the same raw DFMC record. The record is 1,158 of
 1,277 B cold capacity and 10 sectors; there are still 8 records and a 142 B manifest.
 `unpack_weapon_pickup_phase_runtime` expands stream 1 to `$8776` and then
-stream 2 to `$8602`. The debris late-publication candidate changes only
+stream 2 to `$8602`. The debris late publication changes only
 `LIGHT_CODE`, the extension tail and `ENTITY_CODE` as tabled above; the A2
 kernel keeps its 237 B and frozen entry points; the extension record is 712 B
 raw / 636 B packed of 960. Slot-zero debris state: `ENTITY_BACKING0+0/+1` hold
@@ -117,8 +123,8 @@ window, and `HYBRID_C_SECTOR` ≤ 248 B (build). Evidence:
 The 2026-09-16 Interceptor experiment (`BLOCKED_PLACEMENT`) measured additional
 sizes for `ENEMY_ARCHETYPE_DATA`, `HYBRID_C_EXT` and `HYBRID_LIGHT_STATE`. Those
 numbers describe an **unbuildable** tree on branch
-`experiment/interceptor-blocked-placement` and are deliberately **not** merged
-into the tables above, which remain the accepted-runtime snapshot.
+`experiment/interceptor-blocked-placement`, on the obsolete pre-4.3 basis, and
+are deliberately **not** merged into the tables above.
 
 Byte accounting:
 [diagnostics/stage-2b2c-interceptor-blocked-placement.json](diagnostics/stage-2b2c-interceptor-blocked-placement.json).
@@ -246,7 +252,7 @@ starfield, so all overlaps are lifetime-safe.
 | `$85D3` | 1 B | freshly generated enemy boundary cell, safely aliasing an unused centre byte of the prepared row |
 | `$85E6-$85EE` | 9 B | unowned after cold startup |
 | `$85EF-$85FF` | 17 B | unowned after cold startup; `$85F2-$85FF` was the head of the retired logical far-record pool |
-| `$8600-$86F9` | 250 B | accepted checkpoint: boot-only GLUE hold. **Step 4.3 candidate:** `$8600-$8601` is near-star state and `$8602-$86F9` is `HYBRID_C_SECTOR_RAM`; the hold moves to `$8300` (see the step 4.3 section) |
+| `$8600-$86F9` | 250 B | `$8600-$8601` near-star state; `$8602-$86F9` `HYBRID_C_SECTOR_RAM` (step 4.3, accepted `b4b942e`); the boot-only GLUE hold is at `$8300-$83F9` |
 | `$86FA-$8700` | 7 B | hybrid C Director/lifecycle mailbox and scratch; software stack 0 B, new ZP 0 B |
 | `$8701-$8775` | 117 B | hybrid C/ASM Director/lifecycle ABI veneer and startup publishers |
 | `$8776-$8857` | 226 B | Light M1 `LIGHT_RESIDENT` kernel heading the pickup/collision stream |

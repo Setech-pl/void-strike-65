@@ -448,10 +448,10 @@ jest odłożone — nie implementować bez nowej decyzji.
 
 ## 15. Klasy wrogów, pojemność Light i Interceptor — OWNER-ACCEPTED (2026-09-16)
 
-Status implementacji: Interceptor jest `BLOCKED_PLACEMENT` (2026-09-16). Same
-niezmienniki poniżej obowiązują niezależnie od tego; blokuje wyłącznie
-rezydentna pojemność. Dowody:
-`docs/diagnostics/stage-2b2c-interceptor-blocked-placement.json`.
+Status implementacji: próba z 2026-09-16 była `BLOCKED_PLACEMENT`
+(`docs/diagnostics/stage-2b2c-interceptor-blocked-placement.json`); 4.3 Stage 1
+odzyskała pojemność, a właściciel dał GO dla pełnego pościgu (decyzja 18).
+Niezmienniki poniżej obowiązują niezależnie od statusu implementacji.
 
 Decyzje utrwalone przed implementacją Interceptora, aby kolejne zadania ich nie
 otwierały ponownie. Normatywne odwzorowanie: `docs/hybrid-c-architecture.md`
@@ -518,7 +518,7 @@ istniejącego rekordu pickup/collision; usunięcie martwego kodu ENTITY_CODE).
 - Bez migracji polityk ASM→C jako źródła pojemności; bez debris i Interceptora w 4.3.
 - Po akceptacji 4.3 następne zadanie: poprawka debris R-pre (dokładna własność), nie Interceptor.
 
-## 17. Smoke 4.3 Stage 1 i późna publikacja debris — KANDYDAT (2026-09-16)
+## 17. Smoke 4.3 Stage 1 i późna publikacja debris — OWNER-ACCEPTED (2026-09-16)
 
 Zapis smoke 4.3 (dosłownie wg właściciela): podczas smoke właściciel
 zaobserwował debris po pierwszym sektorze capital. Kandydat `0290d83`
@@ -543,3 +543,28 @@ CANDIDATE` opisany w STATUS; wybory agenta do zatwierdzenia przez właściciela:
 - komórka, którą w chwili publikacji posiada wyrenderowany efekt 25 Hz,
   pozostaje efektowi (dokładna własność); gdy ten efekt wygasa, komórka
   pokazuje przez jedną klatkę podkład — efekty nadal publikują w środku klatki.
+
+Akceptacja (2026-09-16): owner smoke PASS dla `b4b942e` (XEX `96546807…`) —
+widoczność pickupu, 4.3 Stage 1 i późna publikacja debris. Powyższe wybory
+agenta są tym samym zaakceptowane. Bramka packed STARFIELD (1,805 B wobec
+recenzowanych 1,798 B) pozostaje osobną, otwartą decyzją właściciela.
+
+## 18. Krok 4.4 Interceptor — pełny pościg, jawnie selekcjonowalny slot Light — OWNER GO (2026-09-16)
+
+- Wariant: **pełny pościg** (nie zredukowany), z ponownym użyciem projektu
+  z `32f2c20` wyłącznie przez 3-way cherry-pick (bez kopiowania plików z drzewa
+  sprzed 4.3).
+- Korekta architektoniczna (wiążąca): pojedynczy slot Light jest **jawnie
+  selekcjonowalny co do archetypu** — `WINGMAN` albo `INTERCEPTOR`.
+  Naprzemienność przy każdym dopuszczeniu (`LIGHT_ARCHETYPE_ALTERNATE`) jest
+  odrzucona i nie może być częścią kontraktu lifecycle Light. Dopuszczenie i
+  tick Light tylko czytają wybrany archetyp.
+- Kolejność pokazywana w smoke (najpierw Wingman, potem Interceptor) żyje w
+  osobnym, jawnie oznaczonym prowizorycznym harmonogramie poza lifecycle;
+  zastąpi go skład fal 4.6. Indeks: najpierw sprawdzić istniejący stan
+  formacji/encountera; tylko gdy nic się nie nadaje — 1 B licznik w `$8119`.
+- Bez parametrów C (stos C = 0), bez zmian P1/P2, PMG, renderera, publikacji,
+  kolizji, Directora i pojemności Light.
+- Twardy STOP: przepełnienie rozmieszczenia, packed > 960, bramki PAL, audyt
+  stosu/helperów cc65, nowa nazwa porażki. Ogon EXT < 16 B przy legalnym
+  rozmieszczeniu to nie blokada, lecz `OWNER_DECISION_REQUIRED`.

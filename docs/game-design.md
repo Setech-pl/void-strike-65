@@ -325,7 +325,7 @@ unspecified until boss lifecycle, boss HULL, and the large-explosion runtime
 budget are designed together. Nova Missile is not present in the current
 runtime.
 
-### Interceptor — PLANNED / `BLOCKED_PLACEMENT`
+### Interceptor — PLANNED (owner GO 2026-09-16)
 
 The next ordinary enemy is the Interceptor. Only these facts are owner-approved
 (owner decision 15); everything else waits for implementation.
@@ -342,9 +342,10 @@ The next ordinary enemy is the Interceptor. Only these facts are owner-approved
   path; no new projectile renderer.
 
 Exact movement, cadence, HP, score and silhouette are **not final**. The
-2026-09-16 implementation attempt is `BLOCKED_PLACEMENT`: the architecture held
-but the result does not fit resident memory, so no candidate build exists and
-no owner smoke has happened. Capacity recovery (roadmap step 4.3) comes first.
+2026-09-16 implementation attempt was `BLOCKED_PLACEMENT`: the architecture
+held but the result did not fit resident memory. Step 4.3 Stage 1 recovered
+that capacity and the owner gave GO for the full-pursuit variant (roadmap step
+4.4); no candidate build or owner smoke exists yet.
 
 Longer level structures, bosses, and further audio/visual polish remain future
 work. They are not implied by the current enemy-roster descriptors or

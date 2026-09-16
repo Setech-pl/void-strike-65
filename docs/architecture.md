@@ -468,7 +468,7 @@ Light Wingman. Writing it mid-frame left the rows blank for every scanline the
 beam had already passed. Movement, collection and booster policy stay on the
 ordinary mid-frame path; only publication is late.
 
-The slot-zero debris follows the same rule (candidate 2026-09-16): in fighter
+The slot-zero debris follows the same rule (accepted in `b4b942e`): in fighter
 OPEN it is erased and redrawn adjacently in that window between the Light
 erase and the Light render (stack debris < effects < Light < PairShots < sparse
 near); in capital frames right after the entity update, in the vertical blank,

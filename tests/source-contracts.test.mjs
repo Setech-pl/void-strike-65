@@ -101,9 +101,9 @@ test("accepted runtime, candidate and history stay distinguishable", () => {
   assert.match(status, /## Repository HEAD/);
   assert.match(status, /## Accepted runtime checkpoint/);
   // The accepted checkpoint is named by commit and artifact, never indirectly.
-  assert.match(status, /`41ace65`/);
+  assert.match(status, /`b4b942e`/);
   assert.match(status,
-    /900152fed5b1aec3eee200034121fbd6d930288d6a3669c13968c74c93955ce8/);
+    /965468077747f527b7d3f8ffeb7c37ace27377892ea5fc6f2e8aaf062d0d8a6e/);
   assert.doesNotMatch(status, /the commit that follows\s+`?51c97c6/,
     "the accepted checkpoint must be named, not described relative to another commit");
 
@@ -183,14 +183,14 @@ test("no active document treats the legacy Interceptor as the planned archetype"
   assert.match(architecture,
     /do \*\*not\*\* identify the planned Light-class Interceptor `EnemyArchetype`/);
 
-  // The planned archetype is planned and blocked, with no candidate artifact.
+  // The planned archetype has owner GO but no candidate artifact yet.
   const gameDesign = read("docs/game-design.md");
-  assert.match(gameDesign, /### Interceptor — PLANNED \/ `BLOCKED_PLACEMENT`/);
+  assert.match(gameDesign, /### Interceptor — PLANNED \(owner GO 2026-09-16\)/);
   const status = read("docs/STATUS.md");
   assert.match(status, /`BLOCKED_PLACEMENT`/);
-  assert.match(status, /no candidate XEX/);
+  assert.match(status, /No\s+candidate XEX exists yet/);
   const roadmap = read("docs/plan-realizacji.md");
-  assert.match(roadmap, /### 4\.4 Interceptor — BLOCKED_BY_4\.3/);
+  assert.match(roadmap, /### 4\.4 Interceptor — OWNER GO \(2026-09-16\), w realizacji/);
   // 4.4 must not reopen the Heavy-PMG option for a Light-class enemy.
   assert.doesNotMatch(roadmap, /znakowy Light albo Heavy PMG/,
     "owner decision 15 forbids rendering the Interceptor as a Heavy PMG");

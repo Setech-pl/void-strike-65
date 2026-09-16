@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-09-15
+Last update: 2026-09-16
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -108,10 +108,33 @@ Evidence: `docs/diagnostics/stage-2b2b-light-wingman-2heavy-1light.json`,
 
 ## Current task
 
-None open. The next roadmap step is below.
+None open.
+
+Plan step 4.4 (Interceptor) was attempted on 2026-09-16 and is
+**`BLOCKED_PLACEMENT`**. The accepted checkpoint above is unchanged and the
+working branch still reproduces XEX `900152fe…`.
+
+- Overflowing area: `HYBRID_C_EXT_RAM` `$8C7D-$8FFF` (899 B), which also carries
+  the 133 B `LIGHT_CODE` tail.
+- Deficit: **75 B** for the cheapest credible Interceptor, **126 B** with
+  per-frame pursuit, against **24 B** of legal slack across all four C areas.
+- Architecture held: no Director, lifecycle, PMG, renderer or collision redesign
+  was required. Only resident placement blocks it.
+- Implementation preserved, unbuildable, on branch
+  `experiment/interceptor-blocked-placement` (`32f2c20`).
+- Evidence:
+  [diagnostics/stage-2b2c-interceptor-blocked-placement.json](diagnostics/stage-2b2c-interceptor-blocked-placement.json).
+
+Owner decisions recorded before the attempt (Heavy/Light classes, single
+archetype-selectable Light slot, shared renderer, C/ASM ownership) stand:
+owner decision 15 and `hybrid-c-architecture.md`.
 
 ## Next roadmap step
 
-Interceptor as the second Light-class C `EnemyArchetype`, reusing the accepted
-Light renderer and ASM kernel (plan step 4.4). Add resident capacity (4.3) only
-if it blocks on placement.
+Owner decision on plan step 4.3 (resident capacity). The measured requirement is
+**51-58 B** for a minimal Interceptor and **102-109 B** for the tracking
+version. The most promising source is the 250 B boot-only GLUE holding window
+`$8600-$86F9`; claiming it needs a second packed transport record and a
+startup-ordering proof, so it is a 4.3 task, not part of 4.4.
+
+Do not retry 4.4 before capacity exists.

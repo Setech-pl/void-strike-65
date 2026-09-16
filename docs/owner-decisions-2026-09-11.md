@@ -438,6 +438,11 @@ jest odłożone — nie implementować bez nowej decyzji.
 
 ## 15. Klasy wrogów, pojemność Light i Interceptor — OWNER-ACCEPTED (2026-09-16)
 
+Status implementacji: Interceptor jest `BLOCKED_PLACEMENT` (2026-09-16). Same
+niezmienniki poniżej obowiązują niezależnie od tego; blokuje wyłącznie
+rezydentna pojemność. Dowody:
+`docs/diagnostics/stage-2b2c-interceptor-blocked-placement.json`.
+
 Decyzje utrwalone przed implementacją Interceptora, aby kolejne zadania ich nie
 otwierały ponownie. Normatywne odwzorowanie: `docs/hybrid-c-architecture.md`
 (sekcja „Enemy classes and Light slot ownership").

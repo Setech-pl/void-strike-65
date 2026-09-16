@@ -94,11 +94,19 @@ capacity is:
 LIGHT_ACTIVE_MAX = 1
 ```
 
-That single slot is **archetype-selectable** — `Wingman OR Interceptor`, not
-`Wingman AND Interceptor`. The selected archetype is named by one C-owned byte,
+That single slot is to be **archetype-selectable** — `Wingman OR Interceptor`,
+not `Wingman AND Interceptor`. The agreed representation is one C-owned byte,
 `light_archetype_offset`, holding the byte offset of the active record inside
-`enemy_archetypes[]` (`12` = Wingman, `24` = Interceptor). C and ASM both index
-the table with it, so no code hardcodes "Light == archetype index 1" any more.
+`enemy_archetypes[]` (`12` = Wingman, `24` = Interceptor), indexed by both C and
+ASM so that no code hardcodes "Light == archetype index 1".
+
+**Not implemented yet.** The 2026-09-16 attempt is `BLOCKED_PLACEMENT`: the
+generalization plus a third archetype overflows `HYBRID_C_EXT_RAM` by 75 B in
+its cheapest credible form. Evidence, exact byte accounting and the recovery
+candidate are in
+[diagnostics/stage-2b2c-interceptor-blocked-placement.json](diagnostics/stage-2b2c-interceptor-blocked-placement.json).
+The invariants in this section stand regardless; only the implementation waits
+on resident capacity (roadmap step 4.3).
 
 The long-term target is `2 Heavy + up to 4 Light` active threats, reached
 incrementally (`1 -> 2 -> up to 4` Light slots). Do not implement that capacity

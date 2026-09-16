@@ -210,7 +210,7 @@ test("Shield pulse is solid at all positions and never aliases respawn disappear
   assert.deepEqual([boundary(55).colpm0, boundary(55).colpm3], [0x0e, 0x28]);
   assert.equal(source.includes("sta HPOSP0\n    sta HPOSP3"), true);
   assert.doesNotMatch(source.slice(source.indexOf("update_shield_player_fighter_colors:"),
-    source.indexOf("entity_archetype_descriptors:")), /GRAFP|HPOSP|PLAYER_LIFECYCLE/);
+    source.indexOf("entity_debris_glyph:")), /GRAFP|HPOSP|PLAYER_LIFECYCLE/);
 });
 
 test("XEX and ATR Shield state are byte-for-byte deterministic for cold $A5 and $5A", () => {

@@ -9243,20 +9243,6 @@ enemy_runtime_data_end:
 
 .segment "ENTITY_CODE"
 
-; ENTITY_CODE is already resident when the boot flow reaches this second LZSS
-; stream. Re-arm the shared self-modifying decoder after ENTITY_CODE unpacking
-; changed both operands, without growing the protected resident CODE segment.
-unpack_broadside_runtime:
-    ldx #>__BROADSIDE_LOAD__
-    lda #<__BROADSIDE_LOAD__
-    sta broadside_read_source+1
-    stx broadside_read_source+2
-    ldx #>__BROADSIDE_RUN__
-    lda #<__BROADSIDE_RUN__
-    sta broadside_destination+1
-    stx broadside_destination+2
-    jmp broadside_unpack_command
-
 ; The external pickup record initially lands in its not-yet-unpacked runtime
 ; reservation. stage_boot_streams preserves it in not-yet-initialised frontend
 ; charset RAM before the final pickup-code/collision unpack overwrites that copy.
@@ -10659,9 +10645,6 @@ frontend_h31_extended_glyphs:
 frontend_h31_extended_glyphs_end:
     .assert frontend_h31_extended_glyphs_end-frontend_h31_extended_glyphs = 16*8, error, "H3.1 extended glyph source changed"
 
-entity_archetype_descriptors:
-    EMIT_ENTITY_ARCHETYPE_DESCRIPTORS
-entity_archetype_descriptors_end:
 entity_debris_glyph:
     EMIT_ENTITY_DEBRIS_GLYPHS
 entity_debris_glyph_end:
@@ -11258,7 +11241,6 @@ begin_capital_projectile_frame:
 .export integration_broadside_due, integration_broadside_release
 .export integration_pickup_pending_tick, integration_pickup_reveal_body
 
-.assert entity_archetype_descriptors_end-entity_archetype_descriptors = ENTITY_ARCHETYPE_DESCRIPTOR_BYTES, error, "entity descriptor size changed"
 .assert entity_debris_glyph_end-entity_debris_glyph = ENTITY_DEBRIS_GLYPH_BYTES, error, "debris glyph bank size changed"
 .assert effect_fragment_glyph_end-effect_fragment_glyph = EFFECT_FRAGMENT_GLYPH_BYTES, error, "fragment glyph bank size changed"
 .assert *-__ENTITY_CODE_RUN__ <= ENTITY_CODE_RESERVED_BYTES, error, "ENTITY_CODE exceeds its unconditional RAM reservation"
@@ -11285,7 +11267,7 @@ begin_capital_projectile_frame:
 .export erase_transient_effect_overlays, erase_interactive_entity_overlays
 .export render_interactive_entity_overlays
 .export update_fighter_pickup_pmg, clear_fighter_pickup_pmg
-.export entity_archetype_descriptors, entity_debris_glyph, effect_fragment_glyph
+.export entity_debris_glyph, effect_fragment_glyph
 .export entity_trajectory_vx
 
 ; -----------------------------------------------------------------------------

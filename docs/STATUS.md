@@ -117,6 +117,27 @@ Evidence: `docs/diagnostics/stage-2b2b-light-wingman-2heavy-1light.json`,
 
 `OWNER-SMOKE CANDIDATE`. Not accepted until the owner confirms on screen.
 
+**Visual increment on top of the raster fix.** The solid 8x16 rectangle that the
+raster fix produced was a temporary diagnostic visual, not artwork. Each booster
+now carries its own capsule silhouette again — Rapid a capsule with a vertical
+slot, Spread a casing with a three-shot fan, Shield a crest tapering to a point
+— recovered from `assets/graphics/entity-effects.json` and verified row by row
+against the final framebuffer. One colour (`COLPF3`) is all a fifth-player mark
+has, so identity is carried by shape; the original also used colour, which this
+representation cannot reproduce.
+
+**One open decision.** The silhouettes push the packed starfield from 1,774 B to
+1,804 B, which is **6 B over the reviewed correction gate of 1,798** while still
+15 B under the 1,819 B hard staging limit, with the packed-source-to-pickup
+margin healthy at 51 B. No new transport, GLUE window, relocation or step 4.3
+was used. Table ordering, a 4-bit symmetric encoding and even degrading the
+artwork were all measured and none fits; the gate, not the artwork, is binding.
+`tests/light-wingman.test.mjs:108` and `tests/broadside-fire.test.mjs:563` are
+deliberately left failing rather than re-baselined — moving a reviewed margin is
+an owner decision. Evidence:
+[diagnostics/stage-2b2e-pickup-capsule-silhouettes.json](diagnostics/stage-2b2e-pickup-capsule-silhouettes.json).
+Candidate XEX `fe524219…`, CPU delta 0 cycles.
+
 The owner reported that the booster/pickup has been **invisible for many
 releases** although it can be collected and its booster works. That is correct
 and it overrides the earlier automated "visible" conclusion.

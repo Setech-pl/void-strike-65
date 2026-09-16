@@ -10284,33 +10284,27 @@ render_fighter_pickup_pmg:
     sta HPOSM2
     adc #$02
     sta HPOSM3
-    ldx #$00
+    ; Each booster type keeps its own recovered silhouette; the tables are
+    ; sixteen rows apart, so the type scales straight into the source index.
+    lda ENTITY_TYPE+WEAPON_PICKUP_SLOT
+    asl
+    asl
+    asl
+    asl
+    tax
 @line:
     lda fighter_pickup_pmg_shape,x
     sta MISSILES,y
     iny
     inx
-    cpx #WEAPON_PICKUP_HEIGHT_SCANLINES
+    txa
+    and #(WEAPON_PICKUP_HEIGHT_SCANLINES-1)
     bne @line
     lda #$00
     sta SIZEM
     lda #$10                    ; GTIA fifth-player mode: M0-M3 use COLPF3
     sta PRIOR
     rts
-
-; Exact first 16 bytes previously consumed from the generated character phase
-; bank. Keeping the mask local makes the 1152-byte fallback source-only.
-fighter_pickup_pmg_shape:
-    ; Deliberately solid fifth-player capsule: every row asserts the valid
-    ; M0-M3 quartet. The previous decorative combinations were only a faint,
-    ; unrecognisable trace at native GTIA resolution.
-    ; One missile occupies TWO bits of each row byte - M0 = bits 0-1, M1 = 2-3,
-    ; M2 = 4-5, M3 = 6-7 - so a solid quartet is $FF and nothing in the byte is
-    ; spare. The earlier data treated the low nibble as inert transport entropy
-    ; and left M0/M1 broken on fourteen of sixteen rows, which a high-nibble
-    ; ($F0) check could not see.
-    .byte $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
-    .byte $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
 
 ; Effects publish before the late projectile commit. When an effect lands on
 ; an OLD PairShot cell, the visible byte is still the projectile glyph even
@@ -10673,6 +10667,57 @@ effect_fragment_glyph_end:
 ; starts. Finish the byte-exact cold initialisation from ENTITY_CODE afterwards
 ; so the verbatim boot prefix stays small and stable.
 .segment "STARFIELD"
+
+; Per-type capsule silhouettes, one sixteen-row table per booster, indexed by
+; ENTITY_TYPE+WEAPON_PICKUP_SLOT. The shapes are the original capsule artwork
+; recovered from assets/graphics/entity-effects.json, reduced to one bit per
+; colour clock because a fifth-player mark carries a single colour (COLPF3);
+; the old multi-register casing/fill/symbol palette cannot survive that.
+;
+; One missile occupies TWO bits of each row byte and the quartet is interleaved,
+; so the colour clocks left to right are bits 1,0,3,2,5,4,7,6 - the higher bit
+; of each pair is its LEFT pixel. Every row below was produced through that
+; mapping, which is verified against captured framebuffer runs; do not hand-edit
+; these bytes without re-deriving them.
+fighter_pickup_pmg_shape:
+    ; RAPID - capsule with the vertical slot left by the old "RF" letterform
+    ;   .######.   $BD
+    ;   ########   $FF
+    ;   ########   $FF
+    ;   ########   $FF
+    ;   ###..###   $DB   (x8)
+    ;   ########   $FF
+    ;   ########   $FF
+    ;   ########   $FF
+    ;   .######.   $BD
+    .byte $BD,$FF,$FF,$FF,$DB,$DB,$DB,$DB
+    .byte $DB,$DB,$DB,$DB,$FF,$FF,$FF,$BD
+    ; SPREAD - boxier casing carrying the three-shot fan across its top
+    ;   ########   $FF
+    ;   ########   $FF
+    ;   #.#..#.#   $5A
+    ;   #.#..#.#   $5A
+    ;   ##....##   $C3
+    ;   ##.##.##   $E7
+    ;   ###..###   $DB   (x7)
+    ;   ########   $FF   (x3)
+    .byte $FF,$FF,$5A,$5A,$C3,$E7,$DB,$DB
+    .byte $DB,$DB,$DB,$DB,$DB,$FF,$FF,$FF
+    ; SHIELD - crest tapering to a point, unmistakable at this size
+    ;   .######.   $BD
+    ;   ########   $FF
+    ;   ##....##   $C3
+    ;   ##.##.##   $E7   (x7)
+    ;   ##....##   $C3
+    ;   ###..###   $DB
+    ;   ###..###   $DB
+    ;   .######.   $BD
+    ;   ..####..   $3C
+    ;   ...##...   $24
+    .byte $BD,$FF,$C3,$E7,$E7,$E7,$E7,$E7
+    .byte $E7,$E7,$C3,$DB,$DB,$BD,$3C,$24
+    .assert * - fighter_pickup_pmg_shape = WEAPON_PICKUP_TYPE_COUNT*WEAPON_PICKUP_HEIGHT_SCANLINES, error, "one sixteen-row silhouette per booster type"
+
 hud_booster_label:
     .byte CH_HUD_A+1,CH_HUD_A+14,CH_HUD_A+14
     .byte CH_HUD_A+18,CH_HUD_A+19,CH_SPACE

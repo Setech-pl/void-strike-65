@@ -55,10 +55,10 @@ test("PMG runtime remains legal after retiring the rejected central primitive", 
   assert.equal(symbol.get("__LIGHT_RESIDENT_RUN__"), 0x8776);
   assert.equal(symbol.get("__PICKUP_CODE_RUN__"),
     0x8776 + symbol.get("__LIGHT_RESIDENT_SIZE__"));
-  // 777 B before the pickup PMG plane moved to post-playfield publication;
-  // publish_fighter_pickup_pmg costs a net +1 B and still leaves 5 B of the
-  // zero-filled stream before the fixed $8B67 module.
-  assert.equal(symbol.get("__PICKUP_CODE_SIZE__"), 778);
+  // 777 B originally; +1 B when publication moved post-playfield, then -9 B
+  // when the three per-type capsule silhouettes moved to the STARFIELD tail,
+  // leaving 14 B of the zero-filled stream before the fixed $8B67 module.
+  assert.equal(symbol.get("__PICKUP_CODE_SIZE__"), 769);
   assert.ok(0x8776 + symbol.get("__LIGHT_RESIDENT_SIZE__") +
     symbol.get("__PICKUP_CODE_SIZE__") <= 0x8b67, "pickup stream still clears $8B67");
   assert.equal(symbol.has("lower_cell_read"), false);

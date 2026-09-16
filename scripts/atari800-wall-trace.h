@@ -4639,14 +4639,16 @@ static unsigned char dfprobe_beam_seen[DFPROBE_SCANLINES];
 static unsigned dfprobe_written = 0u;
 static unsigned dfprobe_limit = 10u;
 static unsigned dfprobe_frame_index = 0u;
+static unsigned dfprobe_type_seen[4];
+static unsigned dfprobe_type_limit = 3u;
 
-static void dfprobe_emit_row(unsigned screen_row)
+static int dfprobe_emit_row(unsigned screen_row)
 {
 	const UBYTE *row;
 	unsigned x = 0u;
 	int first = 1;
 	if (Screen_atari == NULL || screen_row >= (unsigned) Screen_HEIGHT)
-		return;
+		return 0;
 	row = (const UBYTE *) Screen_atari + (size_t) screen_row * Screen_WIDTH;
 	fprintf(dfprobe_file, "{\"screen_row\":%u,\"runs\":[", screen_row);
 	while (x < (unsigned) Screen_WIDTH) {
@@ -4659,6 +4661,7 @@ static void dfprobe_emit_row(unsigned screen_row)
 		first = 0;
 	}
 	fprintf(dfprobe_file, "]}");
+	return 1;
 }
 
 static void dfprobe_frame_complete(void)
@@ -4669,6 +4672,14 @@ static void dfprobe_frame_complete(void)
 	state = MEMORY_mem[dftrace_entity_state + 1u];
 	if (state != 2u)                      /* WEAPON_PICKUP_STATE_ACTIVE */
 		return;
+	/* Sample a few frames of EACH booster type instead of filling the log with
+	 * the first capsule's whole descent; the type cycles once per spawn. */
+	{
+		unsigned t = MEMORY_mem[dftrace_entity_type + 1u] & 3u;
+		if (dfprobe_type_seen[t] >= dfprobe_type_limit)
+			return;
+		++dfprobe_type_seen[t];
+	}
 	pickup_x = MEMORY_mem[dftrace_entity_x + 1u];
 	pickup_y = MEMORY_mem[dftrace_entity_y + 1u];
 	top = (pickup_y + DFTRACE_CAPTURE_DMA_Y_OFFSET) & 0xffu;
@@ -4697,15 +4708,49 @@ static void dfprobe_frame_complete(void)
 			now & 3u, (now >> 2) & 3u, (now >> 4) & 3u, (now >> 6) & 3u,
 			(unsigned) dfprobe_beam_seen[y]);
 	}
-	fprintf(dfprobe_file, "],\n \"screen\":[");
-	/* Two control rows above the capsule, the capsule itself, two below. */
-	for (row = 0u; row < DFPROBE_ROWS + 4u; ++row) {
+	/* Row-by-row FINAL-FRAMEBUFFER signature: for each capsule scanline,
+	 * sample the eight colour clocks the mark occupies and record which ones
+	 * actually differ from the background this frame. This is the silhouette
+	 * as displayed, independent of what the shape table claims. */
+	fprintf(dfprobe_file, "],\n \"type\":%u,\"fb_rows\":[",
+		MEMORY_mem[dftrace_entity_type + 1u]);
+	for (row = 0u; row < DFPROBE_ROWS; ++row) {
 		unsigned y = (top + row) & 0xffu;
-		if (y < 2u + DFTRACE_CAPTURE_DMA_Y_OFFSET)
-			continue;
-		if (row != 0u)
-			fprintf(dfprobe_file, ",");
-		dfprobe_emit_row(y - DFTRACE_CAPTURE_DMA_Y_OFFSET - 2u + 2u);
+		unsigned mask = 0u;
+		unsigned cc;
+		if (y >= DFTRACE_CAPTURE_DMA_Y_OFFSET &&
+			(y - DFTRACE_CAPTURE_DMA_Y_OFFSET) < (unsigned) Screen_HEIGHT &&
+			Screen_atari != NULL) {
+			const UBYTE *line = (const UBYTE *) Screen_atari +
+				(size_t) (y - DFTRACE_CAPTURE_DMA_Y_OFFSET) * Screen_WIDTH;
+			unsigned base = 2u * GTIA_HPOSM0 - 64u;
+			for (cc = 0u; cc < 8u; ++cc) {
+				unsigned x = base + 2u * cc;
+				if (x < (unsigned) Screen_WIDTH && line[x] == GTIA_COLPF3)
+					mask |= 1u << (7u - cc);   /* bit7 = leftmost colour clock */
+			}
+		}
+		fprintf(dfprobe_file, "%s%u", row == 0u ? "" : ",", mask);
+	}
+	fprintf(dfprobe_file, "],\n \"screen\":[");
+	/* Capsule rows plus a few below, clipped rows simply omitted. A separator
+	 * is written only after a row that actually emitted, so the array stays
+	 * valid JSON when the capsule reaches the bottom of the screen. */
+	{
+		int emitted = 0;
+		for (row = 0u; row < DFPROBE_ROWS + 4u; ++row) {
+			unsigned y = (top + row) & 0xffu;
+			if (y < DFTRACE_CAPTURE_DMA_Y_OFFSET)
+				continue;
+			if (emitted)
+				fprintf(dfprobe_file, ",");
+			if (!dfprobe_emit_row(y - DFTRACE_CAPTURE_DMA_Y_OFFSET)) {
+				if (emitted)
+					fseek(dfprobe_file, -1L, SEEK_CUR);
+				continue;
+			}
+			emitted = 1;
+		}
 	}
 	fprintf(dfprobe_file, "]}");
 	fflush(dfprobe_file);
@@ -4994,6 +5039,8 @@ static void dftrace_init(void)
 	dfprobe_path = getenv("DFPICKUP_PROBE_OUTPUT");
 	if (getenv("DFPICKUP_PROBE_FRAMES") != NULL)
 		dfprobe_limit = (unsigned) strtoul(getenv("DFPICKUP_PROBE_FRAMES"), NULL, 10);
+	if (getenv("DFPICKUP_PROBE_PER_TYPE") != NULL)
+		dfprobe_type_limit = (unsigned) strtoul(getenv("DFPICKUP_PROBE_PER_TYPE"), NULL, 10);
 	dftrace_pickup_screenshot = getenv("DFTRACE_PICKUP_SCREENSHOT");
 	dftrace_pickup_sequence_prefix = getenv("DFTRACE_PICKUP_SEQUENCE_PREFIX");
 	dftrace_pickup_traversal_prefix = getenv("DFTRACE_PICKUP_TRAVERSAL_PREFIX");
@@ -5316,14 +5363,26 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 			/* One missile occupies two bits of each row byte (M0 = bits 0-1
 			 * .. M3 = bits 6-7). The former `& 0xf0` test only inspected M2
 			 * and M3, so it reported a solid capsule while M0/M1 were broken
-			 * on fourteen of sixteen rows. Require the whole quartet. */
+			 * on fourteen of sixteen rows.
+			 *
+			 * The capsule now carries a per-type silhouette, so rows are not
+			 * uniformly $FF. What the harness can still assert cheaply is that
+			 * the mark occupies its full sixteen rows and that the shape uses
+			 * the whole quartet somewhere. Row-by-row silhouette verification
+			 * belongs to the framebuffer signature (fb_rows) and to
+			 * tests/pickup-pmg-raster-visibility.test.mjs, which derives the
+			 * expected shapes from the artwork source. */
 			unsigned pickup_rows = 0u;
+			unsigned pickup_union = 0u;
 			unsigned row;
 			for (row = 0u; row < 256u; ++row) {
-				if (MEMORY_mem[0x3b00u + row] == 0xffu)
+				unsigned value = MEMORY_mem[0x3b00u + row];
+				if (value != 0u) {
 					++pickup_rows;
+					pickup_union |= value;
+				}
 			}
-			if (pickup_rows == 16u)
+			if (pickup_rows == 16u && pickup_union == 0xffu)
 				++dftrace_pickup_visible_passes;
 			else
 				dftrace_pickup_visible_passes = 0u;

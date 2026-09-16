@@ -90,8 +90,12 @@ Exactly one footprint may be visible for each active logical slot; the image
 must not hold for several frames and then jump by eight scanlines.
 
 Because the mark is a single PMG colour, pickup **type** is communicated by
-gameplay feedback and HUD state on collection, not by casing colour or a letter
-symbol. Booster HUD state must make the active booster unambiguous, and the
+**silhouette**, not by casing colour or a letter symbol: Rapid Fire is a capsule
+with a vertical slot, Spread Shot a boxier casing carrying a three-shot fan, and
+Shield a crest tapering to a point. These are the original capsule shapes from
+`assets/graphics/entity-effects.json` reduced to one bit per colour clock; the
+original also distinguished types by colour, which a fifth-player mark cannot
+reproduce. Booster HUD state must make the active booster unambiguous, and the
 Shield BOOST bar and its solid steel/white Player Fighter pulse must stay
 distinguishable from both weapon boosters and respawn blinking.
 

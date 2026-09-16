@@ -570,3 +570,22 @@ recenzowanych 1,798 B) pozostaje osobną, otwartą decyzją właściciela.
 - Twardy STOP: przepełnienie rozmieszczenia, packed > 960, bramki PAL, audyt
   stosu/helperów cc65, nowa nazwa porażki. Ogon EXT < 16 B przy legalnym
   rozmieszczeniu to nie blokada, lecz `OWNER_DECISION_REQUIRED`.
+
+## 19. Krok 4.4c — wygląd broni wrogów według `weapon_class` — OWNER GO (2026-09-16)
+
+- **Decyzja architektoniczna (wiążąca):** kolor i kształt pocisku są
+  własnością `weapon_class`, niezależnie od koloru kadłuba emitera. To wspólna
+  podstawa dla Raidera, Wingmana, Interceptora i przyszłego Bombera.
+- Mapowanie glifów zachowuje istniejące sloty bazowe:
+  `glyph = 89 + weapon_class + (X & 2 ? 10 : 0)`, kod ekranowy z bitem 7:
+  `PULSE = 1` → glify 90/100 → `$DA/$E4` (kody bez zmian);
+  `LASER = 2` → 91/101 → `$DB/$E5`; zarezerwowany `BOMBER = 3` → 92/102 →
+  `$DC/$E6`.
+- Raider i Wingman: `PULSE`, biało-stalowy pocisk smugowy
+  `$00,$A0,$50,$00,$00,$A0,$50,$00`; kadencje bez zmian.
+- Interceptor: `LASER`, pojedynczy cienki bolt
+  `$20,$20,$20,$10,$10,$10,$10,$00`; `burst_count = 1`,
+  `burst_interval = 0`, pauza 56/44/32 (1 / 2 / 3 strzały na przelot).
+- Bez zmian: `INTERCEPTOR_PROJECTILE_COLOR`/`GAMEPLAY_COLPF3`, prędkość,
+  hitbox, czas życia, PMG, DLI, paleta, kolizje. Osobna prędkość/hitbox na
+  klasę dopiero z Bomberem (4.5).

@@ -408,7 +408,7 @@ static DFTraceFrame dftrace_current;
 #define DFTRACE_PROJECTILE_SLOT_COUNT 10u
 #define DFTRACE_PROJECTILE_ARRAY_STRIDE 10u
 #define DFTRACE_INTERCEPTOR_GLYPH_FIRST 0xdau
-#define DFTRACE_INTERCEPTOR_GLYPH_LAST 0xe4u
+#define DFTRACE_INTERCEPTOR_GLYPH_LAST 0xe5u /* last published hostile weapon code: LASER right phase */
 
 static unsigned dftrace_interceptor_observed_active[DFTRACE_INTERCEPTOR_SLOT_COUNT];
 static unsigned dftrace_interceptor_previous_active[DFTRACE_INTERCEPTOR_SLOT_COUNT];

@@ -9,8 +9,9 @@ official affiliation or endorsement.
 - Space is black, with restrained star density and clear combat silhouettes.
 - Allied machinery uses cold steel, pale highlights, dark seams, and warm
   engine accents.
-- Hostile machinery uses dark metal, burgundy/red hull accents, and a distinct
-  red weapon language.
+- Hostile machinery uses dark metal and burgundy/red hull accents. Hostile
+  weapon visuals belong to the weapon class, not to the hull colour (owner
+  decision 19).
 - Damage uses short, local flashes and fragments; it must not repaint the global
   palette or obscure the HUD.
 - Pixel shapes favor readable mass, panel rhythm, and negative space over tiny
@@ -41,9 +42,21 @@ Player Fighter weapon colours are:
 - Spread Shot centre, left, and right projectiles: the same yellow Player Fighter colour;
 - Rapid Fire projectile: the established Player Fighter yellow/gold (`$1E`).
 
-Hostile PairShot pulses remain red (`$46`) and retain their wider shape. Spread
-Shot side projectiles must be identified by their symmetric fan geometry, not
-by borrowing the Hostile weapon colour.
+Hostile projectile colour and shape are properties of the EnemyArchetype
+`weapon_class`, independent of the emitter's hull colour (owner decision 19,
+`OWNER-SMOKE CANDIDATE` roadmap 4.4c). Each class is one authored one-cell
+glyph in `assets/graphics/fighter-weapons.json` (`hostileWeaponVisuals`) drawn
+only in white `COLPF0` and steel `COLPF1`, never pixel value `%11`, so neither
+the player's yellow nor the hull red appears in hostile fire and the global
+palette is untouched:
+
+- `PULSE` (Raider, Light Wingman): white/steel tracer pulse — the accepted
+  two-pulse 2-HPOS footprint, each pulse a steel tail above a white leading row;
+- `LASER` (Interceptor): a single thin 1-HPOS bolt, steel trail and white head;
+- `BOMBER` (reserved, roadmap 4.5).
+
+Spread Shot side projectiles must be identified by their symmetric fan geometry,
+not by borrowing a Hostile weapon look.
 
 ## Capital ships and engines
 
@@ -81,9 +94,9 @@ pixels while preserving the established hull silhouette and backing behavior.
   archetype. It is a narrow downward dart in three colours of the same hostile
   cells: steel `COLPF1` body, red `COLPF3` wing tips, trailing edges and gun,
   and a white `COLPF0` canopy. The Wingman stays a one-colour red swept wing,
-  so the two read apart by silhouette and by colour mass. A distinct
-  Interceptor projectile is deferred to roadmap 4.5; both still fire the red
-  hostile PairShot.
+  so the two read apart by silhouette and by colour mass. Since roadmap 4.4c
+  the Interceptor fires the thin `LASER` bolt and the Wingman the `PULSE`
+  tracer (see the weapon colours above).
 
 ## Pickups
 

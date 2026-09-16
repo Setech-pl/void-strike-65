@@ -4,6 +4,23 @@
     "player_fighterBase": 11,
     "interceptorBase": 90
   },
+  "hostileWeaponVisuals": {
+    "note": "One authored left-phase glyph per EnemyArchetype weapon_class, in class order from 1. Rows are ANTIC 4 pixels 0-1 of the cell (01 COLPF0 white, 10 COLPF1 steel); the right phase is the same glyph shifted two pixels. Class c publishes glyphs 89+c and 99+c. Colour and shape belong to the weapon class, not to the emitter's hull colour.",
+    "classes": [
+      {
+        "id": "PULSE",
+        "weaponClass": 1,
+        "description": "white/steel tracer pulse: two stacked 2-HPOS pulses, steel tail above a white leading row",
+        "leftPhaseRows": ["00000000", "10100000", "01010000", "00000000", "00000000", "10100000", "01010000", "00000000"]
+      },
+      {
+        "id": "LASER",
+        "weaponClass": 2,
+        "description": "thin laser bolt: one HPOS wide, steel trail above a white head",
+        "leftPhaseRows": ["00100000", "00100000", "00100000", "00010000", "00010000", "00010000", "00010000", "00000000"]
+      }
+    ]
+  },
   "player_fighter": {
     "poolSlots": 5,
     "activeLimit": 5,

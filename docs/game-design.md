@@ -72,7 +72,7 @@ weave at 80% of the Player Fighter's maximum horizontal speed, and separate
 X/Y coordinates, signed direction, fractional movement phase, manoeuvre timer
 and behaviour phase. Opposite opening directions and phase offsets produce
 independent turns; the opening vertical crossing reverses their vertical order.
-The formation shares one enemy burst controller: five red PairShots at 15-frame
+The formation shares one enemy burst controller: five white/steel `PULSE` PairShots at 15-frame
 intervals, then a 60/50/40-frame pause on Easy/Medium/Hard, with at most five
 enemy PairShots in flight. Enemy PairShots move two scanlines per PAL frame.
 Shots still in flight when their Raider is destroyed expire with it.
@@ -88,7 +88,7 @@ a completely hidden Raider cannot fire or collide.
 Every Raider formation brings one Light Wingman. It is a small two-cell character
 fighter that sits centred behind the first Raider, 12 scanlines above it,
 without switching sides; it moves on the character grid, so its vertical gap
-steps by up to seven lines, which is intentional. It has one hit point, fires one red PairShot every
+steps by up to seven lines, which is intentional. It has one hit point, fires one `PULSE` PairShot every
 96/80/64 frames on Easy/Medium/Hard when fully visible, and is worth 5 points.
 One Player PairShot or player contact destroys it (contact uses the Raider
 contract). If its leader is lost it flies straight down and leaves the screen.
@@ -343,9 +343,11 @@ not yet accepted.
   leader. It enters at X 124, descends 2 lines per frame (twice the Heavy
   rate) and every other frame closes one 4-HPOS cell on the player's column,
   clamped to 48-200.
-- **Existing weapon family.** It fires red hostile PairShots through the
-  established path: a double-tap (2 shots, 10 frames apart), then a pause of
-  56/44/32 frames for EASY/MEDIUM/HARD.
+- **Laser bolt (roadmap 4.4c).** It fires through the established hostile
+  PairShot path, but with its own weapon class `LASER`: a single thin bolt, then
+  a pause of 56/44/32 frames for EASY/MEDIUM/HARD — one, two or three shots per
+  pass. Fast pursuit, slow deliberate fire. Speed, hitbox, damage and lifetime
+  are those of every hostile PairShot.
 - **HP and score.** 1 HP; a kill scores 15 points, three times the Wingman's 5.
   Contact follows the Light contract.
 

@@ -62,7 +62,8 @@ test("P1 and P2 destruction remove only their own rendered projectiles", () => {
     const result = executeRaiderProjectileOwnershipIsolation({
       root, artifact: "xex", killEmitter, renderedAtKill: true,
     });
-    assert.deepEqual(result.ownership_values_after_allocation, [2, 3]);
+    // P1/P2 emitter bit | hostile bit | weapon_class PULSE (1) << 3.
+    assert.deepEqual(result.ownership_values_after_allocation, [10, 11]);
     assert.equal(result.killed_projectiles_removed, true);
     assert.equal(result.foreign_projectiles_preserved, true);
     assert.equal(result.after_resolve[killEmitter].active, 0);

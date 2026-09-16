@@ -163,6 +163,32 @@ runtime 17,470 B and packed STARFIELD 1,805 B are unchanged; simultaneous
 residency 19,459 B, safe 2,728 B. Evidence:
 [diagnostics/stage-2b2h-light-interceptor.json](diagnostics/stage-2b2h-light-interceptor.json).
 
+## Roadmap 4.4c hostile weapon visuals — OWNER-SMOKE CANDIDATE (2026-09-16)
+
+Measured on top of the 4.4b candidate (`0c90d53`). These rows override the 4.4
+rows above for this candidate only.
+
+| Range | Size | Candidate owner |
+| --- | ---: | --- |
+| `$6264-$62A9` | 70 B | BROADSIDE builder slot, same size and address: `build_interceptor_projectile_glyphs` 19 B, `hostile_weapon_visual_glyphs` 16 B (8 B per `weapon_class`), `hostile_projectile_screen_code` 23 B, 12 B pad (room for one more class without moving `free_broadside_slot` `$76A7`) |
+| `$8776-$885A` | 229 B | `LIGHT_RESIDENT` (+4 B: the Light emit shifts the returned `weapon_class` into ACTIVE) |
+| `$885B-$8B5B` | 769 B | `PICKUP_CODE`, same size (range resolver and Raider class constants are size-neutral) |
+| `$8B5C-$8B66` | 11 B | zero fill of the pickup/collision stream image |
+| `$8CA3-$8F1F` | 637 B | `HYBRID_C_EXT` (+2 B: `enemy_c_light_tick` returns the record's weapon class) |
+| `$8F20-$8FEA` | 203 B | `LIGHT_CODE`, unchanged size |
+| `$8FEB-$8FFF` | 21 B | free contiguous `HYBRID_C_EXT` tail — scarce (owner floor 16 B) |
+
+ENTITY_CODE keeps 3,153 B and its 13 B tail: the hostile screen code moved out
+of the renderer (−11 B), and the saving sits in the `.align $100` pad before
+`main_menu_display_list` `$9400`. ENTITY_CODE packs to 2,727 B (−6 B), its
+staging-to-BROADSIDE margin is 81 B and the initial boot envelope 18 B (12 B).
+BROADSIDE packs to 5,662 B (+3 B); the pickup/collision record is 1,161 of
+1,277 B (stream 960 B); the extension record 878 B raw / 786 B packed of 960.
+Linked runtime 17,502 B and packed STARFIELD 1,805 B are unchanged;
+simultaneous residency 19,493 B, safe 2,694 B. RAM, zero page, PMG, DLI and
+charset ranges are unchanged; a hostile PairShot's `weapon_class` lives in
+ACTIVE bits 3-4 of its existing slot byte (bits 3-6 for the nine-class maximum).
+
 ## Blocked-experiment evidence — not part of this map
 
 The 2026-09-16 Interceptor experiment (`BLOCKED_PLACEMENT`) measured additional
@@ -363,7 +389,7 @@ Glyphs 126-127 are the left/right halves of the connected BROADSIDE bolt.
 | 47-56 | Spread Shot overlap-composite scratch |
 | 57-58 | gameplay helpers |
 | 59-89 | capital hulls |
-| 90-109 | enemy PairShot compatibility glyphs |
+| 90-109 | hostile weapon visuals: `weapon_class` c at 89+c (left phase) and 99+c (right phase); 90/100 `PULSE`, 91/101 `LASER`, 92/102 reserved `BOMBER`; the rest are never published |
 | 110-117 | debris |
 | 118-119 | transient fragments |
 | 120-121 | Light Wingman left/right cells (M1) |

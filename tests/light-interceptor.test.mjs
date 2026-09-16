@@ -227,11 +227,14 @@ test("pursuit ignores Heavy slot 0 entirely: an alive P1 formation does not swit
   assert.equal(light(image).y, 2);
 });
 
-test("double-tap fire cadence (2 shots, 10 frames apart) and the per-difficulty post-burst pause", () => {
+test("single laser bolt cadence: burst 1, post 56/44/32, 1/2/3 shots per pass, tick returns LASER", () => {
+  // 4.4c owner decision: one deliberate bolt per burst. Zero-based frame
+  // indices; the pass fires on ticks 57 / 45, 90 / 33, 66, 99.
+  const LASER = 2;
   for (const [difficulty, fires] of [
-    [0, [56, 67]],
-    [1, [44, 55, 100]],
-    [2, [32, 43, 76, 87]],
+    [0, [56]],
+    [1, [44, 89]],
+    [2, [32, 65, 98]],
   ]) {
     const image = game(difficulty);
     selectNextLight(image, OFFSET_INTERCEPTOR);
@@ -239,7 +242,11 @@ test("double-tap fire cadence (2 shots, 10 frames apart) and the per-difficulty 
     image[L("player_x")] = 124;
     const observed = [];
     for (let frame = 0; frame < 200 && light(image).state !== 0; frame += 1) {
-      if (run(image, "enemy_light_tick").a) observed.push(frame);
+      const { a } = run(image, "enemy_light_tick");
+      if (a) {
+        observed.push(frame);
+        assert.equal(a, LASER, "a firing tick returns the record's weapon_class");
+      }
     }
     assert.deepEqual(observed, fires, `difficulty ${difficulty}`);
   }
@@ -257,7 +264,7 @@ test("fire is gated by visibility and by the player dying, exactly like the Wing
   image[L("PLAYER_LIFECYCLE")] = 1;
   assert.equal(run(image, "enemy_light_tick").a, 0, "no fire while the player is dying");
   image[L("PLAYER_LIFECYCLE")] = 0;
-  assert.equal(run(image, "enemy_light_tick").a, 1);
+  assert.equal(run(image, "enemy_light_tick").a, 2, "fires, returning weapon_class LASER");
 });
 
 test("a player PairShot kills the Interceptor, scores 0x15 BCD, and only the fighter lifecycle retires it", () => {
@@ -301,10 +308,12 @@ test("placement contract: legal composite and packed size, state inside its rese
     `free HYBRID_C_EXT tail ${manifest.residentCapacity.tails.hybridCExtension} B`);
   // Visual identity (4.4b): both 16-byte Light art tables are the ENTITY_CODE
   // tail, LIGHT_RESIDENT loses the Wingman art but gains the selection.
-  assert.equal(manifest.lightWingman.residentBytes, 225);
+  // Weapon visuals (4.4c): the Light emit tags the shot with weapon_class (+4 B).
+  assert.equal(manifest.lightWingman.residentBytes, 229);
   assert.equal(manifest.entityEffects.codeBytes, 3153);
   assert.equal(manifest.residentCapacity.tails.entityCode, 13);
-  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 15);
+  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 11);
+  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 21);
   assert.equal(L("light_glyph"), 0x9d31);
   assert.equal(L("light_interceptor_glyph"), 0x9d41);
   assert.equal(L("light_archetype_offset"), 0x810c);
@@ -328,4 +337,74 @@ test("no PMG: no P1/P2 or PMG register touched by the ASM files this task change
   // adc,x in the 17-byte pad; it must not introduce a second archetype field.
   assert.equal((mainSource.match(/adc LIGHT_SCORE_BCD,x/g) ?? []).length, 1);
   assert.equal((lightSource.match(/ldx LIGHT_ARCHETYPE_OFFSET/g) ?? []).length, 1);
+});
+
+test("weapon_class visuals: Raider PULSE publishes $DA/$E4, the Interceptor LASER bolt $E5, and the resolver restores both", () => {
+  const CHARSET = 0x4400;
+  const PULSE = 1;
+  const LASER = 2;
+  const base = 5;
+  const image = game(2);
+  run(image, "init_fighter_projectiles");
+  run(image, "build_interceptor_projectile_glyphs");
+  // Authored per class: left phase at 89+c, right phase (>> 4) at 99+c.
+  const pulse = [0x00, 0xa0, 0x50, 0x00, 0x00, 0xa0, 0x50, 0x00];
+  const laser = [0x20, 0x20, 0x20, 0x10, 0x10, 0x10, 0x10, 0x00];
+  const glyph = (index) => [...image.subarray(CHARSET + index * 8, CHARSET + (index + 1) * 8)];
+  assert.deepEqual(glyph(90), pulse);
+  assert.deepEqual(glyph(91), laser);
+  assert.deepEqual(glyph(100), pulse.map((value) => value >> 4));
+  assert.deepEqual(glyph(101), laser.map((value) => value >> 4));
+
+  // Interceptor: the real Light emit tags the shot with the C-returned class.
+  selectNextLight(image, OFFSET_INTERCEPTOR);
+  run(image, "enemy_spawn_raiders");
+  image[L("light_x")] = 100;
+  image[L("light_y")] = 100;
+  image[L("light_fire_timer")] = 0;
+  const active = L("FIGHTER_PROJECTILE_ACTIVE");
+  image.fill(0, active, active + 10);
+  run(image, "light_update");
+  assert.equal(image[active + base], 0x06 | (LASER << 3));
+
+  // Raider: the real Heavy emitter tags its shot PULSE and keeps the 0/1 cursor.
+  for (const member of [0, 1]) {
+    image[L("ENEMY_MEMBER_STATE") + member] = 1;
+    image[L("ENEMY_X") + member] = 80 + member * 40;
+    image[L("ENEMY_Y") + member] = 60;
+  }
+  image[L("ENEMY_TARGET_SLOT")] = 1;
+  assert.equal(run(image, "allocate_interceptor_projectile").carry, true);
+  assert.equal(image[active + base + 1], 0x02 | 0x01 | (PULSE << 3));
+  assert.equal(image[L("ENEMY_WEAPON_CURSOR")], 0);
+  image[L("ENEMY_TARGET_SLOT")] = 0;
+  assert.equal(run(image, "allocate_interceptor_projectile").carry, true);
+  assert.equal(image[active + base + 2], 0x02 | (PULSE << 3));
+  assert.equal(image[L("ENEMY_WEAPON_CURSOR")], 1);
+  // Pin the two Raider shots to the left and right horizontal phases.
+  image[L("FIGHTER_PROJECTILE_X") + base + 1] = 96;
+  image[L("FIGHTER_PROJECTILE_X") + base + 2] = 130;
+  image[L("FIGHTER_PROJECTILE_Y") + base + 1] = 120;
+  image[L("FIGHTER_PROJECTILE_Y") + base + 2] = 140;
+
+  run(image, "render_fighter_projectile_overlays");
+  const cell = (slot) => image[L("FIGHTER_PROJECTILE_SCREEN_LO") + slot] |
+    (image[L("FIGHTER_PROJECTILE_SCREEN_HI") + slot] << 8);
+  assert.deepEqual([base, base + 1, base + 2].map((slot) => image[cell(slot)]),
+    [0xe5, 0xda, 0xe4]);
+
+  const dst = L("dst_ptr");
+  for (const slot of [base, base + 1, base + 2]) {
+    const address = cell(slot);
+    image[dst] = address & 0xff;
+    image[dst + 1] = address >> 8;
+    const backing = image[L("FIGHTER_PROJECTILE_BACKUP_TOP") + slot];
+    assert.ok(backing < 0xda || backing > 0xe5, "the saved underlay is not a hostile shot");
+    assert.equal(run(image, "resolve_effect_backing_below_enemy_pairshot",
+      { a: image[address] }).a, backing, `slot ${slot} restores its backing`);
+    for (const outside of [0xd9, 0xe6]) {
+      assert.equal(run(image, "resolve_effect_backing_below_enemy_pairshot",
+        { a: outside }).a, outside, `code $${outside.toString(16)} is not a hostile shot`);
+    }
+  }
 });

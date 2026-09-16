@@ -417,7 +417,15 @@ ENEMY_EXPLODING_STATE = 2
 ENEMY_MOVEMENT_RAIDER_CROSS_PURSUIT = 0
 ENEMY_FIRE_RAIDER_PAIR_BURST = 1
 ENEMY_RENDERER_TWO_HEAVY_PMG = 1
-ENEMY_WEAPON_RED_PAIRSHOT = 1
+; EnemyArchetype weapon_class ids, mirrored from src/c/enemy-archetype.h
+; (tests/source-contracts.test.mjs cross-checks them). A hostile PairShot slot
+; stores ACTIVE = owner bits 0-2 | (weapon_class << 3); the renderer publishes
+; class c as glyph 89+c (left phase) or 99+c (right phase), so projectile
+; colour and shape follow the weapon class, never the emitter hull colour.
+ENEMY_WEAPON_PULSE = 1
+ENEMY_WEAPON_LASER = 2
+FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT = 3
+HOSTILE_WEAPON_GLYPH_BASE = INTERCEPTOR_PROJECTILE_GLYPH_BASE-1
 RAIDER_PMG_SLOT_COUNT = 2
 RAIDER_PMG_LAST_SLOT = RAIDER_PMG_SLOT_COUNT-1
 RAIDER_PMG_CROSS_FRAMES = 48
@@ -760,6 +768,10 @@ PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE = PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYE
 .assert PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_GLYPH_COUNT <= CAPITAL_HULL_GLYPH_BASE, error, "PlayerFighter phase glyphs overlap capital hulls"
 .assert INTERCEPTOR_PROJECTILE_GLYPH_BASE >= CAPITAL_HULL_GLYPH_BASE+CAPITAL_HULL_GLYPH_COUNT, error, "Interceptor phase glyphs overlap capital hulls"
 .assert INTERCEPTOR_PROJECTILE_GLYPH_BASE+INTERCEPTOR_PROJECTILE_GLYPH_COUNT <= 128, error, "Interceptor phase glyphs exceed the charset"
+.assert HOSTILE_WEAPON_VISUAL_COUNT >= ENEMY_WEAPON_LASER, error, "every C weapon_class needs an authored hostile visual"
+.assert HOSTILE_WEAPON_VISUAL_COUNT <= INTERCEPTOR_PROJECTILE_GLYPH_STRIDE-1, error, "hostile weapon classes must fit glyphs 90-99"
+.assert (HOSTILE_WEAPON_VISUAL_COUNT << FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT) < $100, error, "ACTIVE >> 3 must equal weapon_class"
+.assert ((INTERCEPTOR_PROJECTILE_GLYPH_BASE+INTERCEPTOR_PROJECTILE_GLYPH_STRIDE+HOSTILE_WEAPON_VISUAL_COUNT)|$80) <= (ENTITY_DEBRIS_GLYPH_BASE|$80), error, "hostile weapon codes must stay below the debris bank"
 .assert RESPAWN_INVULNERABLE_FRAMES = 250, error, "respawn invulnerability must be exactly five PAL seconds"
 .assert RESPAWN_BLINK_HALF_PERIOD_FRAMES = 8, error, "respawn blink must toggle every eight PAL frames"
 .assert BROADSIDE_WARNING_PULSE_FRAMES = 2, error, "warning pulse routine requires two-frame groups"
@@ -4050,7 +4062,7 @@ update_enemy_weapon_runtime:
     cmp #ENEMY_FIRE_RAIDER_PAIR_BURST
     bne @stop
     lda ENEMY_PROFILE_WEAPON_CLASS
-    cmp #ENEMY_WEAPON_RED_PAIRSHOT
+    cmp #ENEMY_WEAPON_PULSE
     bne @stop
     jsr select_enemy_weapon_member
     bcc @stop
@@ -4131,9 +4143,9 @@ allocate_interceptor_projectile:
     lda #INTERCEPTOR_PROJECTILE_LIFETIME
     sta FIGHTER_PROJECTILE_LIFETIME,x
     lda ENEMY_TARGET_SLOT
-    ora #FIGHTER_PROJECTILE_INTERCEPTOR
+    ora #(FIGHTER_PROJECTILE_INTERCEPTOR|(ENEMY_WEAPON_PULSE<<FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT))
     sta FIGHTER_PROJECTILE_ACTIVE,x
-    eor #(FIGHTER_PROJECTILE_INTERCEPTOR|$01)
+    eor #(FIGHTER_PROJECTILE_INTERCEPTOR|(ENEMY_WEAPON_PULSE<<FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT)|$01)
                                   ; exactly two PMG owners alternate on acceptance
     sta ENEMY_WEAPON_CURSOR
     sec
@@ -4202,14 +4214,7 @@ render_fighter_projectile_slot_loop:
     sta loader_repeat_value
     bne @code_ready
 @interceptor_code:
-    lda FIGHTER_PROJECTILE_X,x
-    and #$02                    ; Interceptor allocation explicitly masks bit zero
-    beq :+
-    lda #INTERCEPTOR_PROJECTILE_GLYPH_STRIDE
-:
-    clc
-    adc #INTERCEPTOR_PROJECTILE_GLYPH_BASE
-    ora #$80
+    jsr hostile_projectile_screen_code
     sta loader_repeat_value
 @code_ready:
     ; This mapper is used exactly once for every rendered slot. Keeping it
@@ -4306,50 +4311,51 @@ render_fighter_projectile_overlays_end = *
 
 .segment "BROADSIDE"
 
-; The red PairShot bank uses the same one-cell two-impulse silhouette at both
-; horizontal phases. Building the twenty compatibility glyphs once preserves
-; the established charset allocation without carrying resident source bytes.
+; Hostile PairShot visuals are authored per weapon_class in
+; assets/graphics/fighter-weapons.json. Class c occupies glyph 89+c at the left
+; horizontal phase and glyph 99+c, shifted right two ANTIC 4 pixels, at the
+; right phase. Glyphs past the last class are never published.
 build_interceptor_projectile_glyphs:
-    lda #$00
-    ldx #$00
-@clear:
+    ldx #(HOSTILE_WEAPON_VISUAL_COUNT*8-1)
+@row:
+    lda hostile_weapon_visual_glyphs,x
     sta CHARSET+INTERCEPTOR_PROJECTILE_GLYPH_BASE*8,x
-    inx
-    cpx #(INTERCEPTOR_PROJECTILE_GLYPH_COUNT*8)
-    bne @clear
-    lda #<(CHARSET+INTERCEPTOR_PROJECTILE_GLYPH_BASE*8)
-    sta dst_ptr
-    lda #>(CHARSET+INTERCEPTOR_PROJECTILE_GLYPH_BASE*8)
-    sta dst_ptr+1
-    lda #$F0
-    sta BROAD_WORK_VALUE
-    ldx #$00
-@glyph:
-    cpx #INTERCEPTOR_PROJECTILE_GLYPH_STRIDE
-    bne :+
-    lda #$0F
-    sta BROAD_WORK_VALUE
-:
-    ldy #$01
-    lda BROAD_WORK_VALUE
-    sta (dst_ptr),y
-    iny
-    sta (dst_ptr),y
-    ldy #$05
-    sta (dst_ptr),y
-    iny
-    sta (dst_ptr),y
-    clc
-    lda dst_ptr
-    adc #$08
-    sta dst_ptr
-    bcc :+
-    inc dst_ptr+1
-:
-    inx
-    cpx #INTERCEPTOR_PROJECTILE_GLYPH_COUNT
-    bne @glyph
+    lsr
+    lsr
+    lsr
+    lsr
+    sta CHARSET+(INTERCEPTOR_PROJECTILE_GLYPH_BASE+INTERCEPTOR_PROJECTILE_GLYPH_STRIDE)*8,x
+    dex
+    bpl @row
     rts
+
+hostile_weapon_visual_glyphs:
+    EMIT_HOSTILE_WEAPON_VISUAL_GLYPHS
+
+; X = hostile PairShot slot. Returns its screen code
+; (89 + weapon_class + (X & 2 ? 10 : 0)) | $80; clobbers loader_repeat_value.
+; Bit 7 is the hostile attribute the backing resolver matches; the authored
+; glyphs use no %11 pixels, so it never changes their colours.
+hostile_projectile_screen_code:
+    lda FIGHTER_PROJECTILE_ACTIVE,x
+    lsr
+    lsr
+    lsr
+    sta loader_repeat_value
+    lda FIGHTER_PROJECTILE_X,x
+    and #$02                    ; hostile allocation explicitly masks bit zero
+    beq :+
+    lda #INTERCEPTOR_PROJECTILE_GLYPH_STRIDE
+:
+    clc
+    adc #(HOSTILE_WEAPON_GLYPH_BASE|$80)
+    adc loader_repeat_value
+    rts
+hostile_weapon_visual_layout_end:
+    ; The former 70-byte builder slot keeps its size: every later BROADSIDE
+    ; address (the fixed $76A7 integration release target included) stays put,
+    ; and the pad absorbs one more authored class (8 B) without moving them.
+    .res 70-(hostile_weapon_visual_layout_end-build_interceptor_projectile_glyphs)
 
 .segment "BROADSIDE"
 begin_enemy_fighter_explosion = begin_enemy_fighter_explosion_tail
@@ -10369,10 +10375,12 @@ resolve_effect_backing_below_player_pairshot:
     cmp #(PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT)
     bcc resolve_effect_pairshot_candidate
 resolve_effect_backing_below_enemy_pairshot:
+    ; Every published hostile weapon code, $DA (PULSE left) through the last
+    ; class's right phase, may be a live PairShot cell.
     cmp #(INTERCEPTOR_PROJECTILE_GLYPH_BASE|$80)
-    beq resolve_effect_pairshot_candidate
-    cmp #((INTERCEPTOR_PROJECTILE_GLYPH_BASE+INTERCEPTOR_PROJECTILE_GLYPH_STRIDE)|$80)
-    bne resolve_effect_pairshot_unchanged
+    bcc resolve_effect_pairshot_unchanged
+    cmp #((INTERCEPTOR_PROJECTILE_GLYPH_BASE+INTERCEPTOR_PROJECTILE_GLYPH_STRIDE+HOSTILE_WEAPON_VISUAL_COUNT)|$80)
+    bcs resolve_effect_pairshot_unchanged
 resolve_effect_pairshot_candidate:
     sta EFFECT_SCRATCH0
     ldy #$00

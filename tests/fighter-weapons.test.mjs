@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import {
   compileFighterWeapons,
   buildInterceptorProjectileGlyphBank,
+  hostileProjectileScreenCode,
   createSharedFighterExplosion,
   createPlayerFighterBurstState,
   loadFighterWeaponsDefinition,
@@ -288,28 +289,42 @@ test("PlayerFighter glyphs and the assembled Interceptor glyph builder match aut
     const offset = labels.get(label) - manifest.broadsideRuntime.runAddress;
     return packed.subarray(offset, offset + length);
   };
+  // Hostile weapon visuals: authored class c at glyph 89+c (left phase) and
+  // 99+c (right phase, >> 4); the other glyphs of the bank are never written.
+  const bank = 0x4400 + weapons.glyphLayout.interceptorBase * 8;
+  const bankBytes = weapons.glyphs.interceptor.length * 8;
+  memory.fill(0xa5, bank, bank + bankBytes);
+  run("build_interceptor_projectile_glyphs");
   const interceptorBytes = buildInterceptorProjectileGlyphBank(weapons,
-    new Uint8Array(weapons.glyphs.interceptor.length * 8).fill(0xa5));
-  for (let group = 0; group < 2; group += 1) {
-    for (let glyph = 0; glyph < 10; glyph += 1) {
-      assert.deepEqual([...interceptorBytes.subarray((group * 10 + glyph) * 8,
-        (group * 10 + glyph + 1) * 8)],
-      [0, group === 0 ? 0xf0 : 0x0f, group === 0 ? 0xf0 : 0x0f, 0, 0,
-        group === 0 ? 0xf0 : 0x0f, group === 0 ? 0xf0 : 0x0f, 0]);
+    new Uint8Array(bankBytes).fill(0xa5));
+  assert.deepEqual([...memory.subarray(bank, bank + bankBytes)], [...interceptorBytes],
+    "assembled builder matches the authored model");
+  assert.deepEqual(weapons.hostileWeaponVisuals.map((rows) => [...rows]), [
+    [0x00, 0xa0, 0x50, 0x00, 0x00, 0xa0, 0x50, 0x00],
+    [0x20, 0x20, 0x20, 0x10, 0x10, 0x10, 0x10, 0x00],
+  ], "PULSE white/steel tracer, LASER thin white/steel bolt");
+  for (let glyph = 0; glyph < 20; glyph += 1) {
+    const cls = glyph % 10;
+    const rows = [...interceptorBytes.subarray(glyph * 8, glyph * 8 + 8)];
+    if (cls < weapons.hostileWeaponVisuals.length) {
+      const left = [...weapons.hostileWeaponVisuals[cls]];
+      assert.deepEqual(rows, glyph < 10 ? left : left.map((value) => value >> 4));
+      assert.equal(rows.some((value) => [0, 2, 4, 6].some((shift) =>
+        ((value >> shift) & 3) === 3)), false, "no %11 pixels: never red or yellow");
+    } else {
+      assert.deepEqual(rows, Array(8).fill(0xa5), `glyph ${90 + glyph} untouched`);
     }
   }
   assert.deepEqual([...player_fighterBytes], weapons.glyphs.player_fighter.flat());
-  assert.deepEqual([...interceptorBytes], weapons.glyphs.interceptor.flat());
   assert.match(source,
-    /build_interceptor_projectile_glyphs:[\s\S]+ldy #\$01[\s\S]+ldy #\$05[\s\S]+sta \(dst_ptr\),y/);
-  assert.match(source,
-    /build_interceptor_projectile_glyphs:[\s\S]+ldx #\$00[\s\S]+inx[\s\S]+cpx #\(INTERCEPTOR_PROJECTILE_GLYPH_COUNT\*8\)[\s\S]+bne @clear/);
-  const builder = runtimeBytes("build_interceptor_projectile_glyphs", 12);
+    /build_interceptor_projectile_glyphs:\s+ldx #\(HOSTILE_WEAPON_VISUAL_COUNT\*8-1\)[\s\S]+lda hostile_weapon_visual_glyphs,x[\s\S]+lsr\s+lsr\s+lsr\s+lsr[\s\S]+bpl @row/);
+  const builder = runtimeBytes("build_interceptor_projectile_glyphs", 19);
   assert.deepEqual([...builder],
-    [0xa9, 0x00, 0xa2, 0x00, 0x9d, 0xd0, 0x46, 0xe8, 0xe0, 0xa0, 0xd0, 0xf8],
-  "assembled loop clears all 160 bytes instead of terminating after the first high-bit index");
+    [0xa2, weapons.hostileWeaponVisuals.length * 8 - 1,
+      0xbd, labels.get("hostile_weapon_visual_glyphs") & 0xff, labels.get("hostile_weapon_visual_glyphs") >> 8,
+      0x9d, 0xd0, 0x46, 0x4a, 0x4a, 0x4a, 0x4a, 0x9d, 0x20, 0x47, 0xca, 0x10, 0xf0, 0x60],
+  "assembled builder writes glyphs 90+ and 100+ from the authored table");
   assert.equal(weapons.glyphs.player_fighter.some((glyph) => glyph.includes(0xc0)), true);
-  assert.equal(weapons.glyphs.interceptor.some((glyph) => glyph.includes(0xf0)), true);
 });
 
 test("Player PairShot publishes all eight logical vertical phases without changing its 36-glyph ABI", () => {
@@ -334,30 +349,39 @@ test("Player PairShot publishes all eight logical vertical phases without changi
   /@merge_projectile_phase:[\s\S]+lda \(src_ptr\),y[\s\S]+ora \(dst_ptr\),y/);
 });
 
-test("Interceptor inverse screen code selects the intended ANTIC 4 glyph and red bank", () => {
-  const charsetBase = 0x4400;
-  const glyphIndex = 7;
-  const screenByte = 0x80 | (weapons.glyphLayout.interceptorBase + glyphIndex);
-  const effectiveGlyph = screenByte & 0x7f;
-  const glyphAddress = charsetBase + effectiveGlyph * 8;
+test("hostile screen code follows weapon_class, not the emitter, and keeps the global red bank", () => {
+  const CHARSET_BASE_ADDRESS = 0x4400;
+  // ACTIVE = owner bits | (weapon_class << 3); X bit 1 selects the right phase.
+  for (const [active, x, screenByte] of [
+    [0x0a, 96, 0xda], [0x0b, 98, 0xe4],    // Raider P1/P2 PULSE
+    [0x0e, 98, 0xe4],                      // Light Wingman PULSE
+    [0x16, 98, 0xe5], [0x16, 96, 0xdb],    // Light Interceptor LASER
+    [0x1e, 96, 0xdc],                      // reserved Bomber (3)
+  ]) {
+    assert.equal(hostileProjectileScreenCode(active, x), screenByte);
+  }
   const generated = buildInterceptorProjectileGlyphBank(weapons,
     new Uint8Array(weapons.glyphs.interceptor.length * 8));
-  const glyphBytes = generated.subarray(glyphIndex * 8, glyphIndex * 8 + 8);
-
-  assert.deepEqual({ screenByte, effectiveGlyph, glyphAddress }, {
-    screenByte: 0xe1,
-    effectiveGlyph: 0x61,
-    glyphAddress: 0x4708,
-  });
-  assert.deepEqual([...glyphBytes], [0, 0xf0, 0xf0, 0, 0, 0xf0, 0xf0, 0]);
+  const screenByte = hostileProjectileScreenCode(0x16, 98);
+  const effectiveGlyph = screenByte & 0x7f;
+  assert.deepEqual({ effectiveGlyph, glyphAddress: CHARSET_BASE_ADDRESS + effectiveGlyph * 8 },
+    { effectiveGlyph: 101, glyphAddress: 0x4728 });
+  assert.deepEqual([...generated.subarray(11 * 8, 12 * 8)],
+    [0x02, 0x02, 0x02, 0x01, 0x01, 0x01, 0x01, 0x00]);
   assert.equal(screenByte >>> 7, 1,
-    "inverse ANTIC 4 code maps pixel value 3 to COLPF3 without changing glyph 97");
+    "bit 7 keeps the hostile attribute; the %11-free glyphs stay white/steel under it");
+  // Projectile colour is a glyph property: the global COLPF3 is not changed.
   assert.equal(weapons.interceptor.colourRegister, "COLPF3");
   assert.equal(weapons.interceptor.colourValue, 0x46);
+  assert.match(source, /GAMEPLAY_COLPF3 = INTERCEPTOR_PROJECTILE_COLOR/);
   const renderer = source.slice(source.indexOf("render_fighter_projectile_overlays:"),
     source.indexOf("; -----------------------------------------------------------------------------\n; Enemy"));
   assert.match(renderer,
-    /@interceptor_code:[\s\S]+adc #INTERCEPTOR_PROJECTILE_GLYPH_BASE[\s\S]+ora #\$80/);
+    /@interceptor_code:\s+jsr hostile_projectile_screen_code\s+sta loader_repeat_value\s+@code_ready:/);
+  assert.match(source,
+    /hostile_projectile_screen_code:\s+lda FIGHTER_PROJECTILE_ACTIVE,x\s+lsr\s+lsr\s+lsr\s+sta loader_repeat_value[\s\S]+adc #\(HOSTILE_WEAPON_GLYPH_BASE\|\$80\)\s+adc loader_repeat_value\s+rts/);
+  assert.match(source,
+    /resolve_effect_backing_below_enemy_pairshot:[\s\S]+?cmp #\(INTERCEPTOR_PROJECTILE_GLYPH_BASE\|\$80\)\s+bcc resolve_effect_pairshot_unchanged\s+cmp #\(\(INTERCEPTOR_PROJECTILE_GLYPH_BASE\+INTERCEPTOR_PROJECTILE_GLYPH_STRIDE\+HOSTILE_WEAPON_VISUAL_COUNT\)\|\$80\)\s+bcs resolve_effect_pairshot_unchanged/);
 });
 
 test("actual PlayerFighter projectile bank is Atari yellow without changing PlayerFighter PMG colours", () => {

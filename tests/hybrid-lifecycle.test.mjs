@@ -56,8 +56,9 @@ test("C EnemyArchetype is a compact exact Raider record in legal extension place
   // The debris late-publication kernel then grew LIGHT_CODE by 70 B: 712 + 240.
   // Roadmap 4.4 (Interceptor): the third EnemyArchetype record, its pursuit/
   // burst C and the provisional encounter schedule add 164 B: 712 + 164 = 876.
+  // 4.4c: enemy_c_light_tick returns the record's weapon_class (+2 B) = 878.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
-    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 876 });
+    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 878 });
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
     ({ name }) => name === "window"), { name: "window", runAddress: 0x8602, bytes: 240 });
   assert.equal(manifest.encounterDirector.director.footprint.cStackBytes, 0);

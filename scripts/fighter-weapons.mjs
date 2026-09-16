@@ -50,6 +50,40 @@ function binaryMask(value, name) {
   return Number.parseInt(value, 2);
 }
 
+// Hostile projectile visuals are indexed by EnemyArchetype weapon_class (1..N)
+// and published as glyphs 89+c (left phase) and 99+c (right phase), so at most
+// nine classes fit the ten-glyph phase stride. Each authored glyph occupies
+// only the high nibble (ANTIC 4 pixels 0-1) so a two-pixel shift yields the
+// right phase, and never uses pixel value %11: that value is the player's
+// yellow COLPF2 or, under the hostile bit 7, the red COLPF3 shared with hulls.
+export const HOSTILE_WEAPON_VISUAL_IDS = Object.freeze(["PULSE", "LASER"]);
+export const HOSTILE_WEAPON_VISUAL_MAX_CLASSES = 9;
+
+function hostileWeaponVisualRows(visuals) {
+  const classes = visuals?.classes;
+  invariant(Array.isArray(classes) && classes.length >= 1 &&
+    classes.length <= HOSTILE_WEAPON_VISUAL_MAX_CLASSES,
+  `hostileWeaponVisuals.classes must contain 1-${HOSTILE_WEAPON_VISUAL_MAX_CLASSES} weapon classes`);
+  return classes.map((entry, index) => {
+    const name = `hostileWeaponVisuals.classes[${index}]`;
+    invariant(entry?.weaponClass === index + 1,
+      `${name}.weaponClass must be ${index + 1}: classes are authored in id order from 1`);
+    invariant(index >= HOSTILE_WEAPON_VISUAL_IDS.length || entry.id === HOSTILE_WEAPON_VISUAL_IDS[index],
+      `${name}.id must be ${HOSTILE_WEAPON_VISUAL_IDS[index]} (ENEMY_WEAPON_* in src/c/enemy-archetype.h)`);
+    invariant(Array.isArray(entry.leftPhaseRows) && entry.leftPhaseRows.length === 8,
+      `${name}.leftPhaseRows must contain 8 rows`);
+    const rows = entry.leftPhaseRows.map((mask, row) => binaryMask(mask, `${name}.leftPhaseRows[${row}]`));
+    rows.forEach((value, row) => {
+      invariant((value & 0x0f) === 0,
+        `${name}.leftPhaseRows[${row}] must stay in the high nibble (two colour clocks)`);
+      invariant((value & 0xc0) !== 0xc0 && (value & 0x30) !== 0x30,
+        `${name}.leftPhaseRows[${row}] must not use pixel value %11`);
+    });
+    invariant(rows.some((value) => value !== 0), `${name} must draw at least one pixel`);
+    return rows;
+  });
+}
+
 export function loadFighterWeaponsDefinition(sourcePath) {
   const definition = {
     ...JSON.parse(fs.readFileSync(sourcePath, "utf8")),
@@ -121,6 +155,7 @@ export function loadFighterWeaponsDefinition(sourcePath) {
   "Rapid Fire projectiles must remain in the PlayerFighter's yellow COLPF2 bank");
   integer(definition.glyphLayout?.player_fighterBase, "glyphLayout.player_fighterBase", 0, 127);
   integer(definition.glyphLayout?.interceptorBase, "glyphLayout.interceptorBase", 0, 127);
+  hostileWeaponVisualRows(definition.hostileWeaponVisuals);
   const explosion = definition.sharedFighterExplosion;
   invariant(explosion?.frameDurationFrames === 4,
     "Shared fighter explosion frames must last four PAL frames");
@@ -194,9 +229,14 @@ export function compileFighterWeapons(definition, enemyRoster) {
   invariant(definition.glyphLayout.interceptorBase >= 90 &&
     definition.glyphLayout.interceptorBase + interceptorGlyphs.length <= 128,
   "Interceptor projectile glyphs must stay in the post-capital charset tail");
+  const hostileWeaponVisuals = hostileWeaponVisualRows(definition.hostileWeaponVisuals);
+  invariant(definition.glyphLayout.interceptorBase === 90 &&
+    hostileWeaponVisuals.length < interceptorGlyphs.length / 2,
+  "Hostile weapon visuals must publish inside glyphs 90-109 at base 89 + weapon_class");
   return Object.freeze({
     ...definition,
     interceptor,
+    hostileWeaponVisuals: Object.freeze(hostileWeaponVisuals),
     viewport: Object.freeze({
       ...definition.viewport,
       hudTop,
@@ -230,6 +270,7 @@ export function renderFighterWeaponsCa65Include(asset) {
     "INTERCEPTOR_PROJECTILE_GLYPH_STRIDE = 10",
     `PLAYER_FIGHTER_PROJECTILE_GLYPH_COUNT = ${asset.glyphs.player_fighter.length}`,
     `INTERCEPTOR_PROJECTILE_GLYPH_COUNT = ${asset.glyphs.interceptor.length}`,
+    `HOSTILE_WEAPON_VISUAL_COUNT = ${asset.hostileWeaponVisuals.length}`,
     `PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT = ${player_fighter.poolSlots}`,
     `PLAYER_FIGHTER_PROJECTILE_ACTIVE_LIMIT = ${player_fighter.activeLimit}`,
     `INTERCEPTOR_PROJECTILE_SLOT_COUNT = ${interceptor.poolSlots}`,
@@ -288,6 +329,8 @@ export function renderFighterWeaponsCa65Include(asset) {
     "",
     ...emitGlyphMacro("EMIT_INTERCEPTOR_PROJECTILE_GLYPHS", asset.glyphs.interceptor),
     "",
+    ...emitGlyphMacro("EMIT_HOSTILE_WEAPON_VISUAL_GLYPHS", asset.hostileWeaponVisuals),
+    "",
     `.macro EMIT_SHARED_FIGHTER_EXPLOSION_MASKS\n    .byte ${[...explosion.outerBytes].map(byte).join(",")}\n.endmacro`,
     `.macro EMIT_SHARED_FIGHTER_EXPLOSION_CORE_MASKS\n    .byte ${[...explosion.coreMasks].map(byte).join(",")}\n.endmacro`,
     "",
@@ -341,22 +384,28 @@ export function renderSharedFighterExplosionPmg(asset, state, {
   return { outer: nextOuter, core: nextCore };
 }
 
+// Model of build_interceptor_projectile_glyphs: the twenty-glyph bank 90-109
+// as the runtime leaves it. Class c (1..N) is written at glyph 89+c from the
+// authored left phase and at 99+c shifted right by two ANTIC 4 pixels; every
+// other glyph keeps its initial bytes and is never published.
 export function buildInterceptorProjectileGlyphBank(asset, initialBytes) {
   const expectedLength = asset.glyphs.interceptor.length * 8;
   invariant(initialBytes.length === expectedLength,
     `Interceptor projectile glyph bank must contain ${expectedLength} bytes`);
   const bytes = Uint8Array.from(initialBytes);
-  bytes.fill(0);
-  for (let group = 0; group < 2; group += 1) {
-    const mask = group === 0 ? 0xf0 : 0x0f;
-    for (let glyph = 0; glyph < 10; glyph += 1) {
-      const rows = asset.glyphs.interceptor[group * 10 + glyph];
-      for (let row = 0; row < 8; row += 1) {
-        if (rows[row] !== 0) bytes[(group * 10 + glyph) * 8 + row] = mask;
-      }
+  asset.hostileWeaponVisuals.forEach((rows, index) => {
+    for (let row = 0; row < 8; row += 1) {
+      bytes[index * 8 + row] = rows[row];
+      bytes[(10 + index) * 8 + row] = rows[row] >> 4;
     }
-  }
+  });
   return bytes;
+}
+
+// Screen code the renderer publishes for a hostile slot:
+// (89 + (ACTIVE >> 3) + (X & 2 ? 10 : 0)) | $80.
+export function hostileProjectileScreenCode(active, x) {
+  return (89 + (active >> 3) + ((x & 2) !== 0 ? 10 : 0)) | 0x80;
 }
 
 export function createPlayerFighterBurstState(asset) {

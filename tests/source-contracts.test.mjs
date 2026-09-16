@@ -48,6 +48,26 @@ test("the ASM Light art selector matches the C Interceptor record offset", () =>
   assert.match(light, /cmp #LIGHT_OFFSET_INTERCEPTOR/);
 });
 
+test("C and ASM agree on the hostile weapon_class ids and the authored visual order", () => {
+  const header = fs.readFileSync(path.join(rootDirectory, "src", "c", "enemy-archetype.h"), "utf8");
+  const source = fs.readFileSync(path.join(rootDirectory, "src", "main.s"), "utf8");
+  const asset = JSON.parse(fs.readFileSync(
+    path.join(rootDirectory, "assets", "graphics", "fighter-weapons.json"), "utf8"));
+  const ids = { PULSE: 1, LASER: 2 };
+  assert.doesNotMatch(header + source, /ENEMY_WEAPON_RED_PAIRSHOT/,
+    "the weapon class names no colour");
+  for (const [name, value] of Object.entries(ids)) {
+    const c = new RegExp(`ENEMY_WEAPON_${name}\\s*=\\s*(\\d+)`).exec(header);
+    const asm = new RegExp(`^ENEMY_WEAPON_${name}\\s*=\\s*(\\d+)\\s*$`, "m").exec(source);
+    assert.ok(c && asm, `ENEMY_WEAPON_${name} mirror missing`);
+    assert.equal(Number(c[1]), value, `C ENEMY_WEAPON_${name}`);
+    assert.equal(Number(asm[1]), value, `ASM ENEMY_WEAPON_${name}`);
+    assert.equal(asset.hostileWeaponVisuals.classes[value - 1].id, name,
+      `authored visual ${value} is ${name}`);
+  }
+  assert.match(source, /^FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT = 3$/m);
+});
+
 test("accepted gameplay screen reference and its mapping decision are versioned", () => {
   assert.ok(fs.existsSync(path.join(rootDirectory, "assets", "graphics", "void-strike-65-screen-concept-v1.png")));
   assert.ok(fs.existsSync(path.join(rootDirectory, "docs", "decisions", "ADR-002-gameplay-screen.md")));

@@ -28,7 +28,8 @@ const L = (name) => {
 
 const CHARSET = 0x4400;
 const LIGHT_CODE_LEFT = 120 | 0x80;
-const LIGHT_OWNER = 0x06;
+// Owner bits 0-2 ($06) | weapon_class PULSE (1) << 3.
+const LIGHT_OWNER = 0x06 | (1 << 3);
 const ENEMY_BASE = 5;
 
 function memory() {
@@ -93,8 +94,9 @@ test("Light Wingman and Interceptor are the second and third 12-byte C records; 
     [1, 0, 1, 5, 15, 60, 50, 40, 1, 1, 0x10, 1]);
   assert.deepEqual([...readRuntimeBytes(root, table + 12, 12)],
     [1, 1, 2, 1, 0, 96, 80, 64, 2, 1, 0x05, 1]);
+  // 4.4c: the Interceptor fires one LASER (2) bolt per burst, post 56/44/32.
   assert.deepEqual([...readRuntimeBytes(root, table + 24, 12)],
-    [1, 2, 3, 2, 10, 56, 44, 32, 2, 1, 0x15, 1]);
+    [1, 2, 3, 1, 0, 56, 44, 32, 2, 2, 0x15, 1]);
 });
 
 test("Light kernel placement is legal, resident and inside every reviewed gate", () => {
@@ -202,10 +204,10 @@ test("single-shot fire policy is slower than the Heavy burst and gated by visibi
   image[L("PLAYER_LIFECYCLE")] = 1;
   assert.equal(run(image, "enemy_light_tick").a, 0, "no fire while the player is dying");
   image[L("PLAYER_LIFECYCLE")] = 0;
-  assert.equal(run(image, "enemy_light_tick").a, 1);
+  assert.equal(run(image, "enemy_light_tick").a, 1, "fires, returning weapon_class PULSE");
 });
 
-test("ASM emits one red PairShot owned by the leader's P1 emitter bit", () => {
+test("ASM emits one PULSE PairShot owned by the leader's P1 emitter bit", () => {
   const image = game(2);
   run(image, "enemy_spawn_raiders");
   setLeader(image, 80, 112);

@@ -84,7 +84,7 @@ const EnemyArchetypeTable enemy_archetypes = { {
         5u, 15u,
         60u, 50u, 40u,
         ENEMY_RENDERER_TWO_HEAVY_PMG,
-        ENEMY_WEAPON_RED_PAIRSHOT,
+        ENEMY_WEAPON_PULSE,
         0x10u,
         1u
     },
@@ -95,7 +95,7 @@ const EnemyArchetypeTable enemy_archetypes = { {
         1u, 0u,
         96u, 80u, 64u,
         ENEMY_RENDERER_CHARACTER_2X1,
-        ENEMY_WEAPON_RED_PAIRSHOT,
+        ENEMY_WEAPON_PULSE,
         0x05u,
         1u
     },
@@ -103,10 +103,10 @@ const EnemyArchetypeTable enemy_archetypes = { {
         1u,
         ENEMY_MOVEMENT_INTERCEPTOR_PURSUIT,
         ENEMY_FIRE_LIGHT_DOUBLE_TAP,
-        2u, 10u,
+        1u, 0u,
         56u, 44u, 32u,
         ENEMY_RENDERER_CHARACTER_2X1,
-        ENEMY_WEAPON_RED_PAIRSHOT,
+        ENEMY_WEAPON_LASER,
         0x15u,
         1u
     }
@@ -373,7 +373,8 @@ void enemy_c_recycle(void)
     ENEMY_ACTIVE = ENEMY_INACTIVE;
 }
 
-/* Once per gameplay frame. Returns 1 when the single-shot policy fires. */
+/* Once per gameplay frame. Returns the selected record's weapon class (never
+ * zero) when the Light fires, 0 otherwise; ASM tags the shot with it. */
 uint8_t enemy_c_light_tick(void)
 {
     if (light_state == ENEMY_INACTIVE) {
@@ -440,7 +441,7 @@ uint8_t enemy_c_light_tick(void)
     } else {
         light_reload();
     }
-    return 1u;
+    return LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_WEAPON);
 }
 
 /* One damage unit from a player PairShot or contact. ASM calls this only for

@@ -36,6 +36,7 @@ LIGHT_RENDER_BOTTOM = ENTITY_GAMEPLAY_BOTTOM-8
 .assert LIGHT_GLYPH = 120, error, "Light glyphs must reuse the retired pickup bank"
 .assert (LIGHT_SCREEN_CODE & (LIGHT_CELL_COUNT-1)) = 0, error, "Light cell index must be the low code bits"
 .assert (LIGHT_PROJECTILE_OWNER & FIGHTER_PROJECTILE_INTERCEPTOR_EMITTER_MASK) = 0, error, "Light shots are attributed to leader slot P1"
+.assert FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT = 3 && LIGHT_PROJECTILE_OWNER < 8, error, "Light emit shifts weapon_class above the owner bits"
 
 ; Residency (all resident for the whole game, no runtime I/O):
 ;   LIGHT_CODE     tail of the hybrid extension composite, carried in the
@@ -145,7 +146,11 @@ light_update:
     bne @find
     beq @alive                   ; a full shared pool drops the single shot
 @emit:
-    lda #LIGHT_PROJECTILE_OWNER
+    tya                          ; C returned the record's weapon_class (1-9)
+    asl
+    asl
+    asl
+    ora #LIGHT_PROJECTILE_OWNER
     sta FIGHTER_PROJECTILE_ACTIVE,x
     lda #INTERCEPTOR_PROJECTILE_LIFETIME
     sta FIGHTER_PROJECTILE_LIFETIME,x

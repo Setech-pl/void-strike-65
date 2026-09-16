@@ -14,8 +14,8 @@ the values below.
 ### Repository HEAD
 
 `experiment/hybrid-c-director`. HEAD carries the roadmap 4.4 Interceptor
-`OWNER-SMOKE CANDIDATE` and its 4.4b visual identity (section below) on top of
-`f4cb18b`, the
+`OWNER-SMOKE CANDIDATE`, its 4.4b visual identity and the 4.4c hostile weapon
+visuals (sections below) on top of `f4cb18b`, the
 documentation-only reconciliation of the owner acceptance recorded here. The
 candidate is not accepted; the accepted runtime is still `b4b942e`.
 
@@ -106,7 +106,8 @@ comparing CPU.
 ## Known open defects and open decisions
 
 - intermittent purple artifact after a Raider, not reproduced
-  deterministically;
+  deterministically (hypothesis only: a stale hostile pulse — if it now shows
+  white/steel on the 4.4c candidate, that points to its source);
 - Spread second capsule trace / final glyph reported in plan v4.12 §11, not
   re-verified since PairShot and the PMG capsule;
 - debris known limitation: a cell yielded to a 25 Hz effect shows the effect's
@@ -119,8 +120,8 @@ comparing CPU.
 - test debt: the full `node --test tests/*.test.mjs` run keeps known stale
   failures — 115 at `b4b942e` (measured 2026-09-16 on a clean export, counting
   the owner's uncommitted `tests/booster-admission-diagnostic.test.mjs`) and
-  the same 115 names at the Interceptor candidate and at its 4.4b visual
-  identity; treat a new failure name as a regression signal.
+  the same 115 names at the Interceptor candidate, its 4.4b visual identity
+  and the 4.4c weapon visuals; treat a new failure name as a regression signal.
 
 ---
 
@@ -174,8 +175,9 @@ Not accepted until the owner smokes it. Built on the accepted `b4b942e`; the
 2026-09-16 `BLOCKED_PLACEMENT` attempt is superseded.
 
 **Design (owner decision 18).** Third `EnemyArchetype` (byte offset 24): HP 1,
-pursuit movement 2, double-tap fire 3 (2 shots 10 frames apart, then 56/44/32
-frames EASY/MEDIUM/HARD), character 2x1 renderer, red PairShot, score `$15`,
+pursuit movement 2, fire policy 3 (since 4.4c a single `LASER` bolt, then
+56/44/32 frames EASY/MEDIUM/HARD; originally a 2-shot double-tap), character
+2x1 renderer, score `$15`,
 Director value 1. It has no leader: it enters at X 124, Y 0, descends 2 lines
 per frame and, every other frame, steps one 4-HPOS cell toward
 `player_x & $FC`, clamped to 48-200. It retires at Y 232 or outside the fighter
@@ -313,10 +315,119 @@ Candidate XEX `3adc3954…`, owner-smoke copy in
 
 ---
 
+### 4.4c Hostile weapon visuals (owner decision 19) — `OWNER-SMOKE CANDIDATE`
+
+Projectile colour and shape belong to `weapon_class`, not to the emitter's hull
+colour. C picks the class and cadence; ASM publishes it.
+
+- **Classes.** `ENEMY_WEAPON_RED_PAIRSHOT` is renamed `ENEMY_WEAPON_PULSE = 1`
+  (Raider, Wingman); `ENEMY_WEAPON_LASER = 2` (Interceptor); 3 is reserved for
+  the Bomber. The ids are mirrored in `src/main.s` and cross-checked by
+  `source-contracts`.
+- **Per-slot class, 0 B RAM.** Hostile ACTIVE = owner bits 0-2 |
+  `weapon_class << 3`. The Raider emitter uses constant `ora`/`eor`, and the
+  cursor stays 0/1. `enemy_c_light_tick` returns the record's class (≥ 1) on
+  fire, and `light_update` shifts it into ACTIVE.
+- **Publication.** `hostile_projectile_screen_code` (BROADSIDE) returns
+  `(89 + class + (X & 2 ? 10 : 0)) | $80`, so PULSE publishes `$DA/$E4`
+  (unchanged codes) and LASER `$DB/$E5`. The resolver range check is
+  `$DA`..`$E5`. The table-driven builder writes glyphs 90+ and 100+ from the
+  authored `hostileWeaponVisuals` in `assets/graphics/fighter-weapons.json`,
+  validated by `scripts/fighter-weapons.mjs` (high nibble only, no `%11`
+  pixels).
+  - PULSE: white/steel tracer `$00,$A0,$50,$00,$00,$A0,$50,$00`.
+  - LASER: thin 1-HPOS bolt `$20,$20,$20,$10,$10,$10,$10,$00`.
+  - Unchanged: `GAMEPLAY_COLPF3`, speed, hitbox, lifetime, PMG, DLI, collision.
+- **Interceptor cadence (C data).** Burst 1, interval 0, post 56/44/32. Fire
+  ticks per pass: EASY 57; MEDIUM 45, 90; HARD 33, 66, 99 (1 / 2 / 3 shots).
+  Raider and Wingman cadences are unchanged.
+- **Trace header.** The `scripts/atari800-wall-trace.h` hostile code range now
+  ends at `$E5`, so native classifiers see the LASER bolt.
+
+**Placement (measured, `0c90d53` → candidate).**
+
+| Metric | Before | After |
+| --- | ---: | ---: |
+| `HYBRID_C_EXT` C | 635 B | 637 B `$8CA3-$8F1F` |
+| Free `HYBRID_C_EXT` tail | 23 B | **21 B** `$8FEB-$8FFF` (floor 16 B) |
+| Extension record raw / packed | 876 / 785 B | 878 / 786 B |
+| `LIGHT_RESIDENT` | 225 B | 229 B `$8776-$885A` |
+| Pickup stream fill / pickup record | 15 / 1,157 B | 11 / 1,161 B |
+| ENTITY_CODE raw / packed | 3,153 / 2,733 B | 3,153 / 2,727 B |
+| Initial boot envelope | 12 B | 18 B |
+| BROADSIDE raw / packed | 6,650 / 5,659 B | 6,650 / 5,662 B |
+| Simultaneous / safe residency | 19,491 / 2,696 B | 19,493 / 2,694 B |
+
+- **ENTITY_CODE.** The renderer's hostile-code block shrank from 16 B to 5 B.
+  The 11 B saved land in the `.align $100` pad before `$9400`, so the tail is
+  still 13 B.
+- **BROADSIDE.** The 70 B builder slot keeps its size and address (19 B
+  builder, 16 B table, 23 B helper, 12 B pad), because
+  `free_broadside_slot = $76A7` is a fixed integration address. The pad holds
+  the Bomber's 8 B glyph row without moving anything. §6 estimated −12 B here;
+  the fixed address turns that into a pad.
+- **Unchanged.** Linked runtime 17,502 B, packed STARFIELD 1,805 B, RAM, ZP,
+  PMG, DLI and charset ranges.
+
+**CPU (measured).**
+
+- **6502 harness.**
+  - `render_fighter_projectile_overlays` with 5 hostile slots: 1,056 → 1,186
+    cycles (+26 per slot; §6 estimate +27).
+  - Firing frame: Wingman `enemy_c_light_tick` 173 → 179 and `light_update`
+    647 → 662.
+  - Interceptor firing tick 147 → 163 and `light_update` 622 → 647. Burst 1
+    now takes the reload branch.
+- **Native PAL, 4 baseline replays.** 0 missed frames, 0 extra VBI, 0 DLI
+  ordering errors.
+
+  | Replay | Max cycles |
+  | --- | ---: |
+  | `2-sweep-fire4` | 29,814 |
+  | `2-sweep-fire6` | 29,856 |
+  | `2-neutral-fire0` | 29,641 |
+  | `2-evasive-fire3` | 29,522 |
+
+  The `DFTRACE_LIGHT_OUTPUT` probe shows an Interceptor alive in all four
+  replays (1-2 lives) and firing its HARD bolts.
+- **Worst candidate maximum.** 30,436 cycles (`debris-gate-0-neutral-fire0`),
+  under the 31,200 target.
+
+**Native gates.**
+
+- `--prepare --boot-smoke-only`: 4 XEX/ATR cold starts pass.
+- `--debris-gate-only`: PASS on the three natural replays.
+  - 0 blank, 0 disappearances, first visible Y 24 in capital and post-capital
+    phases.
+  - 0 publications inside the scanned playfield, 0 missed frames.
+  - Maxima: 30,232 / 30,436 / 30,207 cycles.
+
+**Tests.**
+
+- **Updated.**
+  - `fighter-weapons`: assembled builder against the authored model, exact
+    builder bytes, screen-code mapping, renderer, helper and resolver contracts.
+  - `light-interceptor`: single-bolt ticks, tick return 2, placement numbers.
+  - `light-wingman`: Interceptor record, emit ACTIVE `$0E`.
+  - `raider-projectile-ownership`: ACTIVE `$0A/$0B`.
+  - `hybrid-lifecycle`: extension 878 B.
+- **New.**
+  - `source-contracts`: C↔ASM class ids and authored order.
+  - 6502 harness in `light-interceptor`: a real Raider emit publishes
+    `$DA/$E4`, a real Interceptor emit `$E5`, and the resolver restores all
+    three and ignores `$D9`/`$E6`.
+- **Full suite.** 630 tests, 115 failing, the identical failure-name set to
+  `0c90d53` (628 tests, 115 failing, clean export reproducing XEX `3adc3954…`).
+
+Candidate XEX `3d88b35d…`, ATR `27ad309b…`, owner-smoke copy in
+`build/owner-smoke/weapon-visuals-3d88b35d/`.
+
+---
+
 ## Current task
 
-Owner smoke of the roadmap 4.4 Interceptor candidate including its 4.4b visual
-identity (section above).
+Owner smoke of the roadmap 4.4 Interceptor candidate, including its 4.4b visual
+identity and the 4.4c hostile weapon visuals (sections above).
 
 ## Next roadmap step
 

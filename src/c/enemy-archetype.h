@@ -53,7 +53,11 @@ enum {
     ENEMY_FIRE_LIGHT_DOUBLE_TAP = 3,
     ENEMY_RENDERER_TWO_HEAVY_PMG = 1,
     ENEMY_RENDERER_CHARACTER_2X1 = 2,
-    ENEMY_WEAPON_RED_PAIRSHOT = 1
+    /* Projectile colour and shape belong to the weapon class, never to the
+     * emitter's hull colour (owner decision 19). ASM publishes class c at
+     * glyphs 89+c / 99+c; 3 is reserved for the Bomber. */
+    ENEMY_WEAPON_PULSE = 1,
+    ENEMY_WEAPON_LASER = 2
 };
 
 /* One object, two views: the records are the authored data, the flat byte view

@@ -1,7 +1,7 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 5.0
-Data: 2026-09-15
+Wersja: 5.1
+Data: 2026-09-16
 Rola: **jedyna aktywna roadmapa projektu**
 Branch roboczy: `experiment/hybrid-c-director`
 
@@ -77,10 +77,11 @@ komórka, glif z dwoma impulsami). `4/4/6` wyłącznie diagnostycznie.
 
 - **Zaakceptowany fundament:** `2df89da` — Hybrid C Director, C-owned
   sector/lifecycle, Raider jako pierwszy `EnemyArchetype`; owner-accepted.
-- **Zaakceptowany (owner smoke PASS 2026-09-15):** Light Wingman M1
+- **Zaakceptowany (owner smoke PASS 2026-09-15):** `41ace65` — Light Wingman M1
   (`2 Heavy + 1 Light`, późna publikacja bez migotania, formacja wycentrowana za
   liderem, 8-liniowe kroki pionowe akceptowane) oraz solidna kapsuła PMG.
   Płynne śledzenie pionowe (M2) jest odłożone decyzją właściciela.
+- **Zablokowany:** Interceptor (4.4) — `BLOCKED_PLACEMENT` 2026-09-16.
 
 ---
 
@@ -98,26 +99,65 @@ Owner smoke PASS 2026-09-15; niezacommitowana praca rozstrzygnięta.
 Commit `feat: accept Light Wingman and visible PMG pickup`; zaakceptowany XEX
 odtwarzalny z Gita (hash w STATUS).
 
-### 4.3 Rezydentna pojemność — tylko gdy potrzebna
+### 4.3 Rezydentna pojemność wielokrotnego użytku — ACTIVE / REQUIRED
 
-Cel: legalne ~100 B rezydentnej przestrzeni dla kolejnych archetypów oraz —
-tylko po nowej decyzji właściciela — płynnego Light (kompozytor 2x2, ok. 75 B).
-Obecne marginesy: extension 17 B, strumień pickup 6 B, packed STARFIELD 24 B,
-A2 19 B, ENTITY_CODE 12 B.
+Wymagane, ponieważ punkt 4.4 realnie się zablokował (2026-09-16).
 
-- przed implementacją przedstawić 2–3 warianty (relokacja zimnego kodu w
-  istniejącym transporcie, kompaktowanie, mały rezydentny segment);
-- bez BASIC RAM, runtime disk I/O i nowej architektury loadera jako domyślnej drogi.
+Cel: **odzyskać rezydentną pojemność wielokrotnego użytku dla rodziny wrogów
+klasy Light i dalszego wzrostu gameplayu.** To nie jest jednorazowa łatka pod
+Interceptora — odzyskana przestrzeń ma obsłużyć kolejne archetypy, selekcję
+archetypu w slocie Light i późniejsze fale.
 
-Uruchamiać dopiero, gdy punkt 4.4 lub płynny Light rzeczywiście blokuje się na
-rozmieszczeniu.
+Zmierzone dowody blokady (`docs/diagnostics/stage-2b2c-interceptor-blocked-placement.json`):
 
-### 4.4 Interceptor
+| Liczba | Wariant zredukowany | Wariant z pełnym pościgiem |
+| --- | ---: | ---: |
+| Surowe zapotrzebowanie ponad zaakceptowane 882 B | 92 B | 143 B |
+| Dostępny legalny zapas | 24 B | 24 B |
+| Pozostały deficyt do odzyskania | **68 B** | **119 B** |
+
+Obszar przepełniony: `HYBRID_C_EXT_RAM` `$8C7D-$8FFF` (899 B), który mieści też
+133 B ogona `LIGHT_CODE`. Legalny zapas 24 B = 17 B wolnego ogona tego obszaru
+plus 7 B osiągalne w `DIRECTOR_C_LOW`, `DIRECTOR_RAM` i `DIRECTOR_C_PRE` przez
+relokację całych funkcji C.
+
+Kandydat na źródło pojemności: okno `$8600-$86F9` (250 B), po zakończeniu
+swojego bootowego życia nieposiadane. **Jest to wyłącznie kandydat, nie wolna
+pamięć produkcyjna.** Uznanie go za pojemność wymaga w ramach 4.3: drugiego
+pakowanego rekordu transportu, własnego wywołania ekspansji oraz dowodu
+kolejności startu względem `layout_d_publish_glue`, wewnątrz prefiksu bootstrapu
+ograniczonego przez `.assert *-start <= $01A3`.
+
+Przed implementacją przedstawić 2–3 warianty (relokacja zimnego kodu w
+istniejącym transporcie, kompaktowanie, mały rezydentny segment) z efektem dla
+gracza, kosztem, ograniczeniami, ryzykiem i rekomendacją.
+
+Bez BASIC RAM, runtime disk I/O, nowej architektury loadera, przealokowania PMG
+i multipleksowania rastra.
+
+### 4.4 Interceptor — BLOCKED_BY_4.3
 
 Kolejny `EnemyArchetype` jako dane + mały handler C, z ponownym użyciem
-istniejącej klasy renderera (znakowy Light albo Heavy PMG) i PairShotów wroga.
-Szybsze pary / krótszy cadence (decyzja właściciela 2.4). Implementacja przed
-długimi proofami; build, testy fokusowe, krótki PAL smoke, owner smoke.
+istniejącej znakowej klasy renderera Light i istniejącej rodziny wrogich
+PairShotów. Szybsze pary / krótszy cadence (decyzja właściciela 2.4).
+
+Interceptor jest zawsze i wyłącznie:
+
+- klasy **Light**;
+- renderowany znakowo;
+- **bez** `P1`/`P2` — nigdy nie jest mniejszym Raiderem PMG;
+- obsadza bieżący pojedynczy slot Light jako `Wingman ALBO Interceptor`
+  (decyzja właściciela 15).
+
+Eksperyment architektoniczny 2026-09-16 wypadł pozytywnie: nie wymagał
+przebudowy Directora, lifecycle, PMG, renderera ani kolizji. Blokuje wyłącznie
+rozmieszczenie rezydentne, dlatego punkt czeka na 4.3.
+
+Wybór między wariantem zredukowanym a pełnym pościgiem **nie jest jeszcze
+podjęty** i nastąpi przy wznowieniu implementacji.
+
+Po odblokowaniu: implementacja przed długimi proofami; build, testy fokusowe,
+krótki PAL smoke, owner smoke.
 
 ### 4.5 Bomber / Heavy Assault
 

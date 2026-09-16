@@ -11,23 +11,29 @@ the values below.
 
 ## Checkpoint
 
-Branch: `experiment/hybrid-c-director`
+### Repository HEAD
 
-### Accepted (owner smoke PASS 2026-09-15)
+`experiment/hybrid-c-director`. HEAD carries documentation-only commits made
+after the accepted runtime checkpoint (`61c4d9a` Heavy/Light decisions,
+`1526083` Interceptor `BLOCKED_PLACEMENT` evidence, plus this reconciliation).
+None of them changes the accepted runtime.
 
-`feat: accept Light Wingman and visible PMG pickup` — the commit that follows
-`51c97c6` on this branch.
+### Accepted runtime checkpoint
+
+Commit `41ace65` — `feat: accept Light Wingman and visible PMG pickup`
+(owner smoke PASS 2026-09-15).
+
+XEX SHA-256:
+`900152fed5b1aec3eee200034121fbd6d930288d6a3669c13968c74c93955ce8`
+
+`npm run build:candidate -- --quiet` from a clean checkout reproduces it;
+owner-smoke copy in `build/owner-smoke/light-wingman-late-900152fe/`.
 
 It contains the hybrid C Director foundation (`2df89da`), Light Wingman M1
 (`ed72e25` + `5f2f3ae`, late publication, centred formation) and the solid
 fifth-player PMG pickup mask.
 
-Accepted XEX SHA-256:
-`900152fed5b1aec3eee200034121fbd6d930288d6a3669c13968c74c93955ce8`
-(`npm run build:candidate -- --quiet` from a clean checkout reproduces it;
-owner-smoke copy in `build/owner-smoke/light-wingman-late-900152fe/`).
-
-Previous accepted checkpoint: `2df89da` (XEX `9aa7336e…`).
+Previous accepted runtime checkpoint: `2df89da` (XEX `9aa7336e…`).
 
 No owner-smoke candidate is open.
 
@@ -106,35 +112,56 @@ Evidence: `docs/diagnostics/stage-2b2b-light-wingman-2heavy-1light.json`,
 
 ---
 
+## Interceptor (plan step 4.4)
+
+| Aspect | State |
+| --- | --- |
+| Architecture experiment | **PASS** — no Director, lifecycle, PMG, renderer or collision redesign was required |
+| Runtime implementation | **NOT ACCEPTED** — `BLOCKED_PLACEMENT`, no candidate XEX, no owner smoke |
+
+Attempted 2026-09-16. The accepted runtime checkpoint above is unchanged.
+
+Overflowing area: `HYBRID_C_EXT_RAM` `$8C7D-$8FFF` (899 B), which also carries
+the 133 B `LIGHT_CODE` tail appended by `scripts/build.mjs`. Accepted
+occupancy is 882 B, leaving a 17 B free tail.
+
+Two variants were measured. **Reduced** commits to the player's column at
+admission and dives; **full pursuit** re-closes on the player every other
+frame. Neither has been chosen — that is a later decision.
+
+| Number | Reduced | Full pursuit | Meaning |
+| --- | ---: | ---: | --- |
+| Raw added requirement | 92 B | 143 B | bytes the experiment adds on top of the 882 B accepted occupancy |
+| Legal slack available | 24 B | 24 B | 17 B free tail in the overflowing area **plus** 7 B reachable in three other C areas by relocating whole functions |
+| Remaining deficit | **68 B** | **119 B** | new resident capacity that step 4.3 must recover |
+
+Do not quote "75 B / 126 B" as the requirement: those are the overflow against
+the 899 B area, i.e. the raw requirement with the 17 B tail already spent. Use
+the table above, or state which basis is meant.
+
+Implementation preserved, unbuildable, on branch
+`experiment/interceptor-blocked-placement` (`32f2c20`). Evidence:
+[diagnostics/stage-2b2c-interceptor-blocked-placement.json](diagnostics/stage-2b2c-interceptor-blocked-placement.json).
+
+The Interceptor is and stays Light class, character-rendered, never on
+`P1`/`P2`, and occupies the single Light slot as `Wingman OR Interceptor`
+(owner decision 15, still ACTIVE).
+
+---
+
 ## Current task
 
 None open.
 
-Plan step 4.4 (Interceptor) was attempted on 2026-09-16 and is
-**`BLOCKED_PLACEMENT`**. The accepted checkpoint above is unchanged and the
-working branch still reproduces XEX `900152fe…`.
-
-- Overflowing area: `HYBRID_C_EXT_RAM` `$8C7D-$8FFF` (899 B), which also carries
-  the 133 B `LIGHT_CODE` tail.
-- Deficit: **75 B** for the cheapest credible Interceptor, **126 B** with
-  per-frame pursuit, against **24 B** of legal slack across all four C areas.
-- Architecture held: no Director, lifecycle, PMG, renderer or collision redesign
-  was required. Only resident placement blocks it.
-- Implementation preserved, unbuildable, on branch
-  `experiment/interceptor-blocked-placement` (`32f2c20`).
-- Evidence:
-  [diagnostics/stage-2b2c-interceptor-blocked-placement.json](diagnostics/stage-2b2c-interceptor-blocked-placement.json).
-
-Owner decisions recorded before the attempt (Heavy/Light classes, single
-archetype-selectable Light slot, shared renderer, C/ASM ownership) stand:
-owner decision 15 and `hybrid-c-architecture.md`.
-
 ## Next roadmap step
 
-Owner decision on plan step 4.3 (resident capacity). The measured requirement is
-**51-58 B** for a minimal Interceptor and **102-109 B** for the tracking
-version. The most promising source is the 250 B boot-only GLUE holding window
-`$8600-$86F9`; claiming it needs a second packed transport record and a
-startup-ordering proof, so it is a 4.3 task, not part of 4.4.
+**Plan step 4.3 — reusable resident-capacity recovery.** Not an Interceptor
+retry. It must recover reusable resident capacity for the Light-enemy family
+and subsequent gameplay growth, sized against the remaining deficit above.
+
+The 250 B boot-only GLUE holding window `$8600-$86F9` is a **candidate** source
+only. It is unowned after its boot lifetime but is not approved allocatable
+capacity: claiming it needs a second packed transport record, its own expansion
+call and a startup-ordering proof against `layout_d_publish_glue`.
 
 Do not retry 4.4 before capacity exists.

@@ -14,20 +14,25 @@ detail. XEX, ATR, Atari800, and a stock PAL 65XE need one deterministic path.
 - Lines 0-163 use 320-pixel ANTIC F; lines 164-191 use 160-pixel ANTIC E. Both
   consume 40 bytes per row.
 - `loader-bitmap.json` is the editable source. The build rasterizes exactly
-  7,680 bytes and packs the current result to 1,929 bytes with bounded LZ-10/5.
-- The raw bitmap occupies `$4010-$5E0F`; a second LMS at `$5000` prevents any
-  40-byte line from crossing a 4 KiB boundary.
+  7,680 bytes and packs it with bounded LZ-10/5; the current packed size is in
+  `build/manifest.json`.
 - Two DLIs change palette registers at the title/ship and ship/footer zones.
 - PMG DMA remains off. The image is shown for 250 complete PAL frames, then the
   runtime disables loader DMA/NMI and builds frontend/gameplay memory.
 
-## Current memory lifetime
+## Memory lifetime
 
-The packed bitmap stream is `$3821-$3FA9`; `$3FAA-$3FED` is fixed transport
-padding that preserves the accepted resident layout. A separate 35-byte packed
-display-list source at `$33B1-$33D3` expands to 202 bytes at `$3C00-$3CC9` only after
-the overlapping bitmap source is consumed. After the loader, only PMG DMA pages
-`$3B00-$3FFF` are cleared; resident data below `$3B00` is preserved.
+The packed bitmap stream, its transport padding and the separately packed
+display-list source overlap by design: the display list expands only after the
+bitmap source it overlaps has been consumed. A second LMS partway down the
+image prevents any 40-byte line from crossing a 4 KiB boundary. After the
+loader, only the PMG DMA pages are cleared; resident data below them is
+preserved.
+
+Exact addresses, packed sizes and staging ranges change with every relayout and
+are therefore **not** duplicated here. The authoritative snapshot is
+[../memory-map.md](../memory-map.md), regenerated from `build/void-strike-65.map`
+and `build/manifest.json`.
 
 ## Consequences
 

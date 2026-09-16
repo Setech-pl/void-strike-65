@@ -1,160 +1,249 @@
 # AGENTS.md — Void Strike 65
 
+Provider-neutral execution contract for Claude Code, OpenAI Codex and local
+coding agents. It defines **how agents work**, not what is currently true. The
+repository is the source of truth; chat history, previous prompts and agent
+memory are not authoritative.
+
+---
+
 ## Mission
 
-Build a complete vertical space shooter for a stock Atari 65XE PAL with 64 KB
-RAM. This is a hobbyist, non-commercial project. The deliverable must work in
-an emulator and on real hardware through SIO2SD.
+Complete a playable vertical space shooter for a stock Atari 65XE PAL.
 
-## Fixed constraints
+A hobbyist, non-commercial project. Development time and feature velocity are
+project resources alongside CPU cycles and RAM; architecture exists to support
+a playable game.
 
-- Target: Atari 65XE PAL, 64 KB RAM, 6502C.
-- Timing target: 50 frames per second.
-- Input: joystick in port 1, single fire button.
-- Distribution: `void-strike-65.xex` and bootable `void-strike-65.atr`.
-- Build hosts: macOS Intel and Windows.
-- Code: documented NMOS 6502 instructions only.
-- Art direction: military, worn, dark science-fiction with readable ship
-  silhouettes, faction colours, markings, UI references, and music motifs.
+## Hard platform constraints
 
-## Engineering rules
+* Atari 65XE PAL, 64 KB RAM, NMOS 6502C, documented instructions only.
+* 50 frames per second. Target `31,200` cycles; hard gate `32,568`; physical
+  PAL frame `35,568`. Do not confuse these three.
+* Input: joystick port 1, single fire button.
+* Distribution: `void-strike-65.xex` and bootable `void-strike-65.atr`.
+* Build hosts: macOS Apple Silicon, macOS Intel where supported, Windows.
+* Must run in Atari800 and on real hardware through SIO2SD.
+* Art direction: military, worn, dark science fiction; readable silhouettes;
+  consistent faction colours and markings; coherent UI and music motifs.
 
-Before starting work, read `docs/reguly-projektu.txt`, `docs/README.md`, and the
-task-relevant sources of truth under `docs/`. Follow the source-of-truth map and
-the current project process rather than reproducing either one here.
+---
 
-1. Keep changes small, reviewable, and buildable.
-2. Validate in proportion to the change. Run the focused tests that cover the
-   changed behavior and concrete risks. Reserve full `npm test`, gauntlets, and
-   unrelated artifact validation for milestones, releases, or changes that
-   affect those paths.
-3. Never hand-edit `build/` or `dist/`; they are generated.
-4. Update `docs/memory-map.md` whenever a reserved address or memory range changes.
-5. Keep visible-frame work deterministic and bounded. Do not force a solution
-   beyond realistic cycle or memory budgets, or an acceptable regression risk.
-   Separate measurements from estimates, and record approximate worst-case
-   cycles for routines added to the main loop or VBI. Before an expensive
-   rebuild, present two or three cheaper alternatives, covering the player
-   effect, resource cost, limitations, risk, and recommendation.
-6. Avoid OS calls after takeover unless the call is explicitly documented and tested with interrupts/display state.
-7. Treat emulator success as necessary but not sufficient. Preserve a real-hardware test path and do not rely on emulator-only behavior.
-8. Keep source assets, experiment sources, conversion steps, and rebuild
-   instructions tracked in Git. Do not commit only generated Atari bytes when
-   an editable source can exist.
-9. Preserve supplied references and explicit owner decisions faithfully; do
-   not silently replace them with an alternative. Owner requirements may
-   change in response to hardware constraints. Agree significant gameplay and
-   visual changes with the owner; make routine technical decisions
-   independently. Prefer compromises that look like intentional game design.
-   Project-specific additions must not imply official status, affiliation, or
-   endorsement.
-10. Do not add dependencies without explaining why the standard library or existing toolchain is insufficient.
-11. For a new visual or gameplay idea, first make a small implementation and
-    pass its build, memory-boundary, and startup gates. Then provide the XEX for
-    owner smoke before broad measurement. After owner acceptance, complete the
-    proportional focused tests and representative native PAL measurement
-    required by the process.
-12. Preserve a working checkpoint. Local checkpoint commits are allowed
-    without renewed approval on a separate experimental branch; they do not
-    imply owner PASS or production readiness.
-13. Every implementation prompt must specify the model and effort, checkpoint,
-    scope, prohibitions, verification, stop condition, and commit or rollback
-    instructions.
+## Source of truth
 
-## Definition of done for a change
+`docs/README.md` owns the precedence list and the map of what each document is
+for. Do not restate either here or in any other document.
 
-- assembles and links without warnings;
-- XEX validation passes; ATR validation also passes when the increment covers
-  that format or its loading path, or prepares a release;
-- no overlap with reserved memory ranges;
-- input and timing behavior are defined for PAL;
-- documentation reflects user-visible or architectural changes;
-- code review notes distinguish confirmed bugs from optional improvements.
+When a genuine contradiction cannot be resolved from current code, `STATUS.md`
+and accepted owner decisions, report `OWNER_DECISION_REQUIRED` and stop. Do not
+guess.
 
-
-# SHARED AGENT SESSION PROTOCOL
-
-This repository is worked on interchangeably by Claude Code, OpenAI Codex,
-and local coding agents.
-
-The repository is the source of truth. Chat history is not authoritative.
+---
 
 ## Session start
 
-Before any implementation task, read:
+Mandatory at every new session or task boundary:
 
-1. `docs/STATUS.md`
-2. `docs/reguly-projektu.txt`
-3. `docs/plan-realizacji.md`
-4. `docs/architecture.md`
-5. `docs/hybrid-c-architecture.md` when relevant
-6. the workflow matching the task from `docs/agent-workflows/`
-7. the latest diagnostic relevant to the task
+```text
+git branch --show-current
+git rev-parse --short HEAD
+git status --short
+```
 
-Also inspect:
+then `docs/STATUS.md`.
 
-- current Git branch;
-- current HEAD;
-- `git status --short`;
-- recent commits when relevant.
+After that read **only** the documents the task actually needs, selected from
+the map in `docs/README.md`. A task does not have to reload rules, roadmap and
+architecture to change one behaviour. Do not reload unchanged documentation
+repeatedly inside one session.
 
-Current local Git state and repository documentation are authoritative over
-previous prompts, conversations, summaries, or agent memory. When documents
-disagree, follow the precedence list in `docs/README.md`.
+---
 
-## Task isolation
+## Working with the owner
 
-Default rule:
+Owner instructions may be short. Derive routine implementation detail from
+repository state and documented rules; do not ask for routine technical choices.
 
-one task = one primary result.
+Ask only when an undocumented choice would materially change gameplay,
+architecture, visual direction, resource trade-offs or accepted scope. Prefer
+one concise grouped question over several interruptions.
 
-Do not start the next roadmap item automatically.
+Preserve explicit owner decisions faithfully. Do not silently replace an owner
+decision with an agent-preferred design. Owner requirements are adaptive to
+Atari hardware limits: when the original requirement is too expensive, prefer a
+cheaper compromise that looks like intentional game design.
 
-Do not stage, reset, delete, overwrite, or commit unrelated owner changes.
+Only the owner promotes a gameplay or rendering feature from `OWNER-SMOKE
+CANDIDATE` to `OWNER-ACCEPTED`. `DEFERRED` work is not implemented unless
+explicitly requested.
 
-Do not touch `.claude/` unless explicitly requested.
+Project additions must not imply official status, affiliation or endorsement.
 
-No push, merge, release, or tag without owner approval.
+---
 
-Use Git as the primary rollback mechanism.
+## Architecture invariants
 
-## Implementation philosophy
+Owner-fixed. Do not reopen without an explicit owner decision.
 
-For reversible high-level gameplay work:
+### Enemy classes
 
-implement first on a branch, build, test, owner-smoke, then measure as needed.
+PMG players `P1`/`P2` belong to the **Heavy** enemy class and are never
+allocated to a Light-class enemy. **Light**-class enemies use the character
+renderer and allocate no PMG player. Light capacity grows incrementally
+(`1 -> 2 -> up to 4` slots) toward `2 Heavy + up to 4 Light` active threats. Do
+not implement the final capacity before a task requires it.
 
-Do not replace implementation with long feasibility studies.
+A new enemy type should be `EnemyArchetype data + small C behaviour handler +
+existing renderer class`. It should not require a Director redesign, new PMG
+allocation, new collision architecture or new renderer architecture unless
+measurement proves the existing design cannot support it. If a normal archetype
+does require a kernel redesign, treat that as evidence the architectural
+boundary needs review.
 
-For raster, ANTIC, PMG timing, VBI/DLI, backing/restore, placement, and other
-hardware-critical changes, proof and measurement may still be required before
-production integration.
+### C / ASM ownership
 
-## Hybrid architecture
+ca65 is the hardware-critical kernel. C/cc65 progressively owns high-level
+gameplay logic.
 
-C/cc65 owns or should progressively own high-level game logic.
+**C/cc65 owns by default:** EnemyArchetype data; archetype selection;
+lifecycle and state machines; AI decisions; movement policy; fire policy and
+cadence; HP and damage policy; score; admission and recycle; waves and
+progression; boss and gameplay state.
 
-ca65 remains the hardware-critical kernel.
+**ASM/ca65 owns by default:** VBI/DLI/ANTIC; PMG; character publication;
+glyph and screen-memory writes; backing/restore; PairShot publication; hot
+collision detection and execution; raster-critical timing; hardware and audio
+writes; the ABI veneers required to execute C decisions.
 
-Do not migrate raster-critical or hardware-critical code to C merely for
-convenience.
+> If a new gameplay behaviour can be expressed as a decision or a state
+> transition, it belongs in C by default.
+
+ASM consumes that decision and performs the hardware-sensitive execution and
+publication. Do not implement new enemy AI, lifecycle, movement policy or fire
+cadence in ASM merely because the renderer is written in ASM. Equally, do not
+migrate raster- or hardware-critical code into C for convenience.
+
+The detailed boundary, ABI and placement contract is
+`docs/hybrid-c-architecture.md`.
+
+---
+
+## Engineering rules
+
+1. Keep changes small, reviewable and buildable.
+2. One task produces one primary result.
+3. Never hand-edit generated artifacts under `build/` or `dist/`.
+4. Update `docs/memory-map.md` whenever a reserved address, segment or range
+   changes.
+5. Visible-frame work must be deterministic and bounded.
+6. Separate MEASURED from ESTIMATE. Do not declare something impossible
+   without evidence.
+7. Record approximate worst-case cycle cost for new main-loop, VBI, DLI or
+   other raster-critical work.
+8. At a significant hardware or resource blocker, present 2-3 compliant
+   alternatives first — player-visible effect, RAM/code cost, CPU/raster cost,
+   limitations, risk. If none fits, return `BLOCKED_<REASON>` with the exact
+   byte or cycle requirement.
+9. Do not propose solutions that violate architecture invariants merely
+   because they are easy.
+10. No OS calls after takeover unless explicitly documented and tested against
+    the active interrupt and display state.
+11. Emulator success is necessary but not sufficient. Maintain a real-hardware
+    path; do not depend on emulator-only behaviour.
+12. Track editable source assets, conversion steps and rebuild instructions in
+    Git. Do not commit only generated Atari bytes when a source can exist.
+13. Do not add dependencies unless the existing toolchain is demonstrably
+    insufficient.
+14. Do not opportunistically refactor unrelated code inside a bounded task.
+15. Git is the primary rollback mechanism.
+
+---
+
+## Implementation process
+
+**Reversible high-level gameplay work** (C archetypes, AI, waves, rules):
+
+```text
+implement -> focused tests -> build -> memory/startup gates
+-> short representative PAL/native verification -> owner smoke -> accept or roll back
+```
+
+Do not replace ordinary implementation with a long feasibility study. Moderate
+CPU/RAM overhead is acceptable when PAL gates stay safe and maintainability
+improves materially.
+
+**Hardware-critical work** — raster, ANTIC, PMG timing, VBI/DLI,
+backing/restore, placement/transport, hot collision paths — may require proof
+and measurement before production integration.
+
+### Proportional validation
+
+Validate in proportion to the change. Use focused tests for the changed
+behaviour and its concrete regression risks. Reserve full `npm test`, long
+gauntlets and broad artifact validation for milestones, releases, changes that
+touch those paths, or a suspected broad regression. Do not run expensive
+validation automatically after every small C gameplay change.
+
+Inspect the current `package.json` scripts and repository scripts before
+invoking build or test helpers. Do not invent commands from memory.
+
+---
+
+## Result semantics
+
+| Label | Meaning |
+| --- | --- |
+| `OWNER-SMOKE CANDIDATE` | Committed, builds, gates pass; owner has not smoked it. Never presented as accepted. |
+| `OWNER-ACCEPTED` | Owner smoke passed. Only the owner sets this. |
+| `BLOCKED_<REASON>` | Cannot proceed under the invariants. Must carry the exact byte/cycle requirement and the smallest recovery needed. |
+
+A local commit implies none of owner PASS, production readiness or release
+readiness.
+
+---
+
+## Git and task isolation
+
+* Do not automatically start the next roadmap item.
+* Do not stage, reset, delete, overwrite or commit unrelated owner changes.
+* Never blindly stage the entire worktree.
+* Do not touch `.claude/` unless explicitly requested.
+* No push, merge, release or tag without owner approval.
+* Local checkpoint commits on an experimental branch are allowed.
+* With multiple agents, do not modify one worktree concurrently; use branches
+  or worktrees as handoff boundaries.
+
+---
+
+## Definition of done
+
+* compiles, assembles and links cleanly;
+* relevant focused tests pass;
+* no illegal memory overlap; startup path still valid;
+* PAL timing within the required gates, with no missed frames, unexpected VBI
+  or DLI anomalies on affected paths;
+* documentation reflects architectural or player-visible changes;
+* a candidate XEX exists for owner smoke.
+
+ATR validation is required when ATR/loading or loader/startup code changed, or
+a release requires it. Review notes must distinguish confirmed bug, regression,
+optional improvement and deferred polish.
+
+---
 
 ## Session end
 
-If and only if the result becomes an accepted project checkpoint:
+**Accepted checkpoint.** Update `docs/STATUS.md`, replacing current-state
+information rather than appending history; update only the domain documents the
+change affected; record significant new owner decisions; make a focused local
+commit when safe; report branch, HEAD, XEX SHA-256, CPU delta, RAM/residency
+delta, tests, known remaining issues and NEXT TASK; STOP.
 
-- update `docs/STATUS.md`;
-- update architecture/roadmap/owner-decision docs when required;
-- create a focused local commit when safe;
-- report branch, HEAD, XEX SHA-256, CPU/RAM deltas, tests and NEXT TASK.
+**Candidate awaiting owner smoke.** Label it `OWNER-SMOKE CANDIDATE`. Do not
+present it as accepted.
 
-For BLOCKED / REJECTED / INCONCLUSIVE experiments:
-
-- preserve useful evidence;
-- revert rejected production changes;
-- do not present the experiment as the accepted baseline;
-- update `docs/STATUS.md` only if the blocker itself must become part of
-  the official current project state.
-
-Owner smoke is required after gameplay/rendering changes before treating them
-as final acceptance.
+**BLOCKED / REJECTED / INCONCLUSIVE.** Preserve useful evidence in
+`docs/diagnostics/`; revert rejected production changes where appropriate; do
+not present experimental code as an accepted baseline; update `docs/STATUS.md`
+only when the blocker itself becomes part of the official project state; report
+the exact blocker and evidence; STOP.

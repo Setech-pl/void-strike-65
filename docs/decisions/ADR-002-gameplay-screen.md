@@ -15,12 +15,27 @@ consume too much RAM and make smooth scrolling harder on a stock 65XE.
   fixed divider row above it completes the 28-row gameplay raster.
 - The playfield palette is black, cold white/steel, amber/yellow, and a switched
   red/burgundy bank.
-- P0 and P3 form the Player Fighter; P1 is the Interceptor and P2 its red scanner.
-- M0 remains reserved for a possible player weapon. Current Player Fighter projectiles
-  use restored ANTIC 4 overlays so their ten-slot pool and yellow colour do not
-  inherit `COLPM0`.
-- New independently coloured moving objects require fresh PMG, memory, and PAL
-  timing evidence before multiplexing is considered.
+- `P0` and `P3` form the Player Fighter.
+- `P1` and `P2` are the two **Heavy** enemy players, each an independent
+  monochrome body. Neither is a colour or scanner overlay of the other.
+- **Light**-class enemies allocate no PMG player at all; they use the ANTIC 4
+  character renderer over the gameplay ring.
+- `M0-M3` form the fighter-sector pickup in fifth-player mode (`PRIOR=$10`,
+  `COLPF3`). In the capital sector `M1-M3` resume broadside warning/impact
+  ownership, so an active pickup is removed before that transition.
+- Player Fighter projectiles use restored ANTIC 4 overlays, so their ten-slot
+  pool and yellow colour do not inherit `COLPM0`.
+- No PMG multiplexing. New independently coloured moving objects require fresh
+  PMG, memory and PAL timing evidence, plus an explicit owner decision, before
+  multiplexing is reconsidered.
+
+## History
+
+The original text assigned `P1` to the pre-Raider "Interceptor" and `P2` to a
+red scanner overlay for the same machine. That ownership is obsolete: the
+accepted runtime draws two independent Heavy Raiders. The planned Light-class
+Interceptor archetype is unrelated to the old `P1` assignment and never takes a
+PMG player.
 
 ## Consequences
 

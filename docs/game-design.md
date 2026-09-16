@@ -267,7 +267,7 @@ phase boundaries:
 | Phase | World rows | EASY time | MEDIUM time | HARD time |
 | --- | ---: | ---: | ---: | ---: |
 | Intro | 0-128 | 0.0-6.4 s | 0.0-5.7 s | 0.0-5.1 s |
-| Interceptor training | 128-576 | 6.4-28.8 s | 5.7-25.6 s | 5.1-23.0 s |
+| Raider training | 128-576 | 6.4-28.8 s | 5.7-25.6 s | 5.1-23.0 s |
 | Debris field | 576-1056 | 28.8-52.8 s | 25.6-46.9 s | 23.0-42.2 s |
 | Mixed pressure | 1056-1664 | 52.8-83.2 s | 46.9-74.0 s | 42.2-66.6 s |
 | Recovery | 1664-1856 | 83.2-92.8 s | 74.0-82.5 s | 66.6-74.2 s |
@@ -279,10 +279,10 @@ The intensity budgets are 3/4/5 for EASY/MEDIUM/HARD. The Director has a
 private deterministic RNG and does not consume the game's existing random
 state. It owns admission policy and budgets while the existing Raider-formation, debris,
 broadside, pickup, object-pool, and destruction lifecycles retain object
-ownership. Until the remaining ordinary roster is implemented, phases 2, 4,
-and 6 retain their authored hazard masks and budgets but also admit Hunter as
-the legal fallback. A later phase-native Striker, Weaver, or Gunship replaces
-only that temporary Hunter bit; it does not require a new scheduling policy.
+ownership. Until further ordinary archetypes exist, phases 2, 4 and 6 retain
+their authored hazard masks and budgets but also admit the current Raider
+formation as the legal fallback. A later phase-native archetype replaces only
+that temporary fallback bit; it does not require a new scheduling policy.
 With no boss consumer, `BOSS_HANDOFF` closes admissions and pickup
 state, enters DRAIN, lets active objects expire, and emits exactly one
 `LEVEL COMPLETE`; it never creates a boss.
@@ -300,7 +300,9 @@ objects until their normal cleanup, and leaves the single COMPLETE state termina
 Nova Missile is a future boss-only special-weapon pickup, not a member of the
 planned Rapid Fire / Spread Shot / Shield drop rotation. It may appear only
 during a boss encounter, never in standard sectors or through the qualifying
-Raider-kill counter. Its capsule is planned as a large, readable 2x2 missile.
+Raider-kill counter. Its mark is planned as a large, readable PMG missile
+shape, consistent with the accepted fifth-player pickup representation and not
+a revival of the retired character-capsule compositor.
 
 Collecting it arms exactly one missile independently of the current weapon
 booster and Shield. A held FIRE input at collection must not launch it: the
@@ -317,6 +319,27 @@ unspecified until boss lifecycle, boss HULL, and the large-explosion runtime
 budget are designed together. Nova Missile is not present in the current
 runtime.
 
-Additional enemy archetypes, longer level structures, bosses, and further
-audio/visual polish remain future work. They are not implied by the current
-enemy-roster descriptors or review-only asset records.
+### Interceptor — PLANNED / `BLOCKED_PLACEMENT`
+
+The next ordinary enemy is the Interceptor. Only these facts are owner-approved
+(owner decision 15); everything else waits for implementation.
+
+- **Light class.** It allocates no PMG player and is never drawn on `P1`/`P2`.
+  It is not a smaller PMG Raider.
+- **Character renderer.** It shares the accepted Light renderer class with the
+  Light Wingman.
+- **One Light slot.** Current capacity stays one Light-class enemy at a time,
+  selected per encounter as `Wingman OR Interceptor` — not both at once.
+- **Independent and aggressive.** Unlike the Wingman it keeps no formation and
+  follows no Heavy leader; it acts on its own against the player.
+- **Existing weapon family.** It fires through the established hostile PairShot
+  path; no new projectile renderer.
+
+Exact movement, cadence, HP, score and silhouette are **not final**. The
+2026-09-16 implementation attempt is `BLOCKED_PLACEMENT`: the architecture held
+but the result does not fit resident memory, so no candidate build exists and
+no owner smoke has happened. Capacity recovery (roadmap step 4.3) comes first.
+
+Longer level structures, bosses, and further audio/visual polish remain future
+work. They are not implied by the current enemy-roster descriptors or
+review-only asset records, which describe the Raider-era roster.

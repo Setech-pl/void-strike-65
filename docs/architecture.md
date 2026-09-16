@@ -305,11 +305,12 @@ persistent projectile state.
 ## Enemies, debris, and boosters
 
 Fighter combat owns exactly two ordinary Raider slots. P1 draws the
-first body and P2 draws the second; both use the Interceptor silhouette at its
-existing double-width scale and one hostile colour, with no scanner layer. Each
+first body and P2 draws the second; both use the Raider silhouette at its
+existing double-width scale and one hostile colour, with no second overlaid
+colour layer. Each
 slot stores its own X, Y, signed horizontal velocity, fractional 4/5-speed
 accumulator, manoeuvre state/timer, and behaviour phase. Both call the accepted
-single-Interceptor soft-pursuit routine, but opposite initial velocities and
+accepted single-Raider soft-pursuit routine, but opposite initial velocities and
 phases prevent synchronized flight. Their opening manoeuvre crosses vertically
 before both machines leave ahead of the unchanged first capital sector.
 
@@ -409,21 +410,41 @@ another allocation.
 Shield leaves the normal weapon cadence active. Its separate state is checked
 after `PLAYER_ALIVE` and before the ordinary 25-frame damage cooldown. A valid
 absorption consumes the frame's one damage event without changing HULL, LIFE,
-SCORE, hit flash, cooldown, or HULL-hit SFX. Interceptor shots disappear, broadside
-shots enter their established impact state, debris is consumed, and Interceptor or
+SCORE, hit flash, cooldown, or HULL-hit SFX. Hostile PairShots disappear, broadside
+shots enter their established impact state, debris is consumed, and Raider or
 hull-contact side effects retain their prior behavior. The Shield timer also
 drives a solid COLPM0/COLPM3 steel/white pulse; it never hides the Player Fighter and is
 therefore distinct from respawn invulnerability.
 
 ## Character and PMG ownership
 
-The gameplay charset has two free glyphs. Stars use 1-6, Player Fighter PairShot
+Gameplay charset allocation: glyph 0 blank, stars 1-6, Player Fighter PairShot
 compatibility glyphs 11-46, Spread Shot composite scratch 47-56, capital hulls
 59-89, enemy PairShot compatibility glyphs 90-109, debris 110-117, and
-fragments 118-119. Glyphs 120-121 are the Light Wingman's left/right cells,
-installed at runtime in colour 3 with the hostile bit; 122-125 retain their
-source allocation and the PMG pickup has no dynamic character-pickup compositor.
-Glyphs 126-127 are the dedicated connected left/right BROADSIDE bolt halves.
+fragments 118-119. Glyphs 120-125 are the retired six-glyph pickup phase bank,
+still reserved by the build asserts at `src/main.s:732-738`: 120-121 now carry
+the Light Wingman's left/right cells, installed at runtime in colour 3 with the
+hostile bit, while 122-125 are unused because the PMG pickup replaced the
+character-pickup compositor. Glyphs 126-127 are the dedicated connected
+left/right BROADSIDE bolt halves.
+
+Unlisted indices are not a proven free pool. Reclaiming 122-125, or any other
+gap, requires re-checking the asserts and the charset source before a document
+may call them available.
+
+### Legacy symbol naming
+
+Runtime identifiers such as `INTERCEPTOR_PROJECTILE_SLOT_BASE`,
+`INTERCEPTOR_PROJECTILE_GLYPH_BASE`, `FIGHTER_PROJECTILE_INTERCEPTOR` and
+`ENEMY_ROSTER_IDS[0] = "INTERCEPTOR"` pre-date the Raider naming. They refer to
+the established **Raider / hostile** projectile and roster implementation.
+
+They do **not** identify the planned Light-class Interceptor `EnemyArchetype`,
+which is a separate, currently `BLOCKED_PLACEMENT` enemy. The Light Wingman's
+own PairShot is emitted through that same legacy-named shared pool.
+
+Do not infer gameplay meaning from these identifiers. A runtime symbol rename is
+separate technical debt and is deliberately out of scope for documentation work.
 
 The separate `$5000-$53FF` HUD charset keeps glyph 0 as the blank/separator,
 uses glyphs 5 and 12 for the two low HULL plate states, glyph 7 for weapon
@@ -432,7 +453,9 @@ retain their existing allocations and colours.
 
 PMG base is `$3800`; active DMA pages are `$3B00-$3FFF`. P0 and P3 form the
 Player Fighter. P1 carries Raider slot 0 and P2 carries Raider slot 1. Both are
-independent monochrome body pages; no DLI multiplexer or scanner is used.
+independent monochrome body pages; no DLI multiplexer or per-player colour
+overlay is used. Light-class enemies allocate no PMG player: the Light Wingman
+is a character-renderer enemy.
 M0-M3 form the fighter-sector PMG pickup capsule. An ACTIVE pickup is removed
 before capital, where M1-M3 resume broadside warning/impact ownership. Fighter
 PairShots remain ANTIC 4 overlays, so their ten-record pool and player/enemy

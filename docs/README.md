@@ -48,7 +48,7 @@ specification.
 | Native capital-shell/player collision evidence | [capital-player-collision-trace.json](capital-player-collision-trace.json) |
 | Native menu lifecycle/raster evidence | [menu-raster-trace.json](menu-raster-trace.json) |
 | Visual and colour rules | [art-direction.md](art-direction.md) |
-| Atari800 and real-hardware checklist | [hardware-testing.md](hardware-testing.md) |
+| Milestone/release hardware checklist | [hardware-testing.md](hardware-testing.md) |
 | Proof reports | [diagnostics/](diagnostics/) |
 | Archived roadmap, old plan, old rules, old headroom report | [history/](history/) |
 | Runtime capture provenance | [media/manifest.json](media/manifest.json) |

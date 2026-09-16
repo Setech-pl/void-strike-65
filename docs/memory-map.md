@@ -59,6 +59,52 @@ the pickup/collision stream holds LIGHT_RESIDENT 226 B and PICKUP_CODE 777 B.
 The PairShot pool uses 90 fewer persistent BSS bytes; its fixed glyphs reuse the
 existing charset allocation.
 
+## Declared-region overlap — do not double-count
+
+`cfg/encounter-director.cfg` declares two adjacent areas that **overlap by three
+bytes**:
+
+| Area | Declared | Reaches |
+| --- | --- | --- |
+| `DIRECTOR_C_LOW_RAM` | `start = $8B88, size = $00F8` | `$8B88-$8C7F` |
+| `HYBRID_C_EXT_RAM` | `start = $8C7D, size = $0383` | `$8C7D-$8FFF` |
+
+`$8C7D-$8C7F` is claimed by both. `HYBRID_C_EXT_RAM` owns it in practice, so the
+usable free tail of `DIRECTOR_C_LOW_RAM` is **3 B (`$8C7A-$8C7C`), not the 6 B
+its declared size implies**. ld65 does not report this, because the two are
+separate memory areas.
+
+Tools and agents summing free space must count `$8C7A-$8C7C` once, under
+`DIRECTOR_C_LOW_RAM`.
+
+Note also that `HYBRID_C_EXT_RAM` is not free down to `$8FFF`: `scripts/build.mjs`
+appends the 133 B `LIGHT_CODE` tail to the same expanded composite, so the free
+extension tail is `$8FEF-$8FFF` = 17 B.
+
+## Candidate capacity — `$8600-$86F9`
+
+This 250 B window is unowned once `layout_d_publish_glue` has copied the GLUE
+hold to its final home below `$5000`. Being unowned is **not** the same as being
+approved resident capacity, and this map does not list it as free.
+
+Reusing it requires roadmap step 4.3 to prove: a second packed transport record,
+its own expansion call, and a startup-ordering guarantee that nothing writes
+there before the GLUE hold is drained — inside a bootstrap prefix bounded by
+`.assert *-start <= $01A3`. Until that proof exists, no document, tool or agent
+may treat `$8600-$86F9` as allocatable.
+
+## Blocked-experiment evidence — not part of this map
+
+The 2026-09-16 Interceptor experiment (`BLOCKED_PLACEMENT`) measured additional
+sizes for `ENEMY_ARCHETYPE_DATA`, `HYBRID_C_EXT` and `HYBRID_LIGHT_STATE`. Those
+numbers describe an **unbuildable** tree on branch
+`experiment/interceptor-blocked-placement` and are deliberately **not** merged
+into the tables above, which remain the accepted-runtime snapshot.
+
+Byte accounting:
+[diagnostics/stage-2b2c-interceptor-blocked-placement.json](diagnostics/stage-2b2c-interceptor-blocked-placement.json).
+Summary with labelled figures: [STATUS.md](STATUS.md).
+
 ## Boot transport layout — earlier `2df89da`
 
 Light M1: 22,400 B in 175 sectors, initial content 13,113 B; the
@@ -122,7 +168,7 @@ this lifetime.
 | `$4D20-$4E3F` | 288 B | expanded Hostile hull map, 32x9 |
 | `$4E40-$4E70` | 49 B | persistent runtime state through difficulty setting |
 | `$4E71-$4ECA` | 90 B | hull scroll, three cached final-raster bolt tops at `$4E72-$4E74`, backing, sector, lifecycle, music, muzzle, score, and two-phase engine state |
-| `$4ECB-$4ED6` | 12 B | Interceptor, damage, star RNG, one byte formerly used as the row-baked far-pattern phase (far stars retired), and three compatibility scalar bytes |
+| `$4ECB-$4ED6` | 12 B | Raider archetype/active state (legacy `Interceptor` naming in source), damage, star RNG, one byte formerly used as the row-baked far-pattern phase (far stars retired), and three compatibility scalar bytes |
 | `$4ED7-$4ED8` | 2 B | allied/enemy fixed-divider versus ring muzzle-domain state; consumes the former compatibility pad without shifting later state |
 | `$4ED9-$4EE9` | 17 B | menu/gameplay music and tracked-muzzle state |
 | `$4EEA-$4EFD` | 20 B | ten TOP SCORES records as parallel packed-BCD low/high arrays |
@@ -181,7 +227,7 @@ starfield, so all overlaps are lifetime-safe.
 | `$85D3` | 1 B | freshly generated enemy boundary cell, safely aliasing an unused centre byte of the prepared row |
 | `$85E6-$85EE` | 9 B | unowned after cold startup |
 | `$85EF-$85FF` | 17 B | unowned after cold startup; `$85F2-$85FF` was the head of the retired logical far-record pool |
-| `$8600-$86F9` | 250 B | boot-only GLUE holding buffer after resident staging is consumed; unowned after publication; its first 102 bytes formerly doubled as the rest of the logical far-record pool |
+| `$8600-$86F9` | 250 B | boot-only GLUE holding buffer after resident staging is consumed; unowned after publication — **candidate capacity only, not allocatable** (see below); its first 102 bytes formerly doubled as the rest of the logical far-record pool |
 | `$86FA-$8700` | 7 B | hybrid C Director/lifecycle mailbox and scratch; software stack 0 B, new ZP 0 B |
 | `$8701-$8775` | 117 B | hybrid C/ASM Director/lifecycle ABI veneer and startup publishers |
 | `$8776-$8857` | 226 B | Light M1 `LIGHT_RESIDENT` kernel heading the pickup/collision stream |
@@ -189,7 +235,7 @@ starfield, so all overlaps are lifetime-safe.
 | `$8B61-$8B66` | 6 B | zero fill of the pickup/collision stream |
 | `$8B67-$8B87` | 33 B | inclusive 16x15-player versus final-raster swept-8x6-bolt AABB collision module |
 | `$8B88-$8C79` | 242 B | low cc65 Director code |
-| `$8C7A-$8C7C` | 3 B | free gap |
+| `$8C7A-$8C7C` | 3 B | free tail of `DIRECTOR_C_LOW_RAM` (see the overlap note below) |
 | `$8C7D-$8C94` | 24 B | C `EnemyArchetype` RODATA: Raider + Light records |
 | `$8C95-$8F69` | 725 B | C sector/high-level enemy lifecycle and Light code |
 | `$8F6A-$8FEE` | 133 B | Light M1 `LIGHT_CODE` late-publication kernel (extension tail) |

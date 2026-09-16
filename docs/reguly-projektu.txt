@@ -1,6 +1,6 @@
 VOID STRIKE 65 — reguły projektu
 
-Wersja 3.0 — 2026-09-15
+Wersja 3.1 — 2026-09-16
 Generacja: hybryda C/cc65 + ca65 (Hybrid C Director owner-accepted), po Light Wingman M1.
 Zastępuje wersję 2.1 („po Stage 2B.2”), zachowaną w docs/history/reguly-projektu-v2.1.txt.
 Historyczne reguły nie mają pierwszeństwa przed tym plikiem.
@@ -23,7 +23,11 @@ Repozytorium jest źródłem prawdy, nie historia rozmów ani pamięć agenta. K
 
 Nowsze zaakceptowane decyzje mają pierwszeństwo przed starszymi diagnostykami i historią. Wygenerowane pomiary buildu/mapy mają pierwszeństwo przed ręcznie przepisanymi liczbami.
 
-docs/STATUS.md jest podstawowym handoffem pomiędzy Claude Code, Codex, agentami lokalnymi i właścicielem. Każde zadanie zaczyna się od STATUS, tego pliku, planu, właściwej architektury/workflow (docs/agent-workflows/) i git status. Każde zaakceptowane zadanie kończy się aktualizacją STATUS.
+docs/STATUS.md jest podstawowym handoffem pomiędzy Claude Code, Codex, agentami lokalnymi i właścicielem.
+
+Na granicy nowej sesji lub nowego zadania obowiązkowe są wyłącznie: stan Gita (branch, HEAD, git status) oraz docs/STATUS.md. Pozostałe dokumenty dobiera się do typu zadania zgodnie z AGENTS.md i mapą w docs/README.md — nie każde zadanie musi przeładowywać reguły, plan i architekturę. Niezmienionej dokumentacji nie wczytuje się wielokrotnie w obrębie jednej sesji.
+
+Każde zaakceptowane zadanie kończy się aktualizacją STATUS.
 
 3. Git
 
@@ -35,11 +39,11 @@ docs/STATUS.md jest podstawowym handoffem pomiędzy Claude Code, Codex, agentami
 
 4. Hybryda C/cc65 + ca65
 
-C decyduje, CO ma się wydarzyć: Encounter Director, stan sektorów, lifecycle, EnemyArchetype, HP i stan członków formacji, decyzje admission/retire/recycle, AI wysokiego poziomu, fale, polityka pickupów/boosterów, progresja, boss state machine.
+Zasada: jeżeli nowe zachowanie gameplayowe da się wyrazić jako decyzja albo przejście stanu, domyślnie należy do C. ASM konsumuje tę decyzję i wykonuje część wrażliwą sprzętowo (publikacja, raster, PMG, timing).
 
-ASM wykonuje, JAK to zrobić na sprzęcie: VBI/DLI, ANTIC/raster, PMG, publikacja Heavy i PairShot, ring znakowy, backing/restore, gorące pętle kolizji, zapisy rejestrów, gorące ścieżki audio, loader i start XEX/ATR.
+Nie przenosić kodu krytycznego rasterowo/sprzętowo do C dla wygody i nie implementować nowego AI, lifecycle, polityki ruchu ani cadence ognia w ASM tylko dlatego, że renderer jest w ASM.
 
-Nie przenosić kodu krytycznego rasterowo/sprzętowo do C dla wygody. Granica i ABI: docs/hybrid-c-architecture.md.
+Pełna macierz własności: AGENTS.md („Architecture invariants / C / ASM ownership"). Granica, ABI i placement: docs/hybrid-c-architecture.md. Tego podziału nie powiela się w tym pliku.
 
 5. Tryby pracy
 

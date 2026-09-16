@@ -15,7 +15,6 @@
     "builds": false,
     "note": "Complete implementation preserved for a later retry. Not a checkpoint and not a baseline."
   },
-
   "overflowing_segment": {
     "segment": "HYBRID_C_EXT",
     "memory_area": "HYBRID_C_EXT_RAM",
@@ -29,7 +28,6 @@
       "scripts/build.mjs cExtensionSegment.runAddress + data.length > 0x9000"
     ]
   },
-
   "measurements": {
     "method": "ld65 link of src/c/*.c with the memory area temporarily widened, reading __ENEMY_ARCHETYPE_DATA_SIZE__ and __HYBRID_C_EXT_SIZE__; the widened config was reverted and the baseline XEX re-verified.",
     "baseline": {
@@ -44,14 +42,16 @@
       "enemy_archetype_data_bytes": 36,
       "hybrid_c_ext_bytes": 856,
       "total_bytes": 1025,
-      "deficit_bytes": 126
+      "deficit_bytes": 126,
+      "raw_added_bytes_over_accepted": 143
     },
     "variant_minimal_committed_dive": {
       "description": "Cheapest credible Interceptor: commits to the player's column at admission and dives straight, no per-frame tracking. This is the measured floor, not a first draft.",
       "enemy_archetype_data_bytes": 36,
       "hybrid_c_ext_bytes": 805,
       "total_bytes": 974,
-      "deficit_bytes": 75
+      "deficit_bytes": 75,
+      "raw_added_bytes_over_accepted": 92
     },
     "growth_attribution_full_variant": {
       "enemy_archetypes_rodata": 12,
@@ -62,7 +62,6 @@
       "note": "publish_raider_profile was already reduced by replacing its three-way difficulty branch with the indexed form the Light path uses; that saving is included above."
     }
   },
-
   "available_legal_slack": {
     "hybrid_c_ext_tail_bytes": 17,
     "director_c_low_bytes": 3,
@@ -72,23 +71,27 @@
     "caveat": "DIRECTOR_C_LOW_RAM ($8B88 size $00F8) overlaps HYBRID_C_EXT_RAM by three bytes at $8C7D-$8C7F, so its usable tail is 3 B, not the 6 B the region size suggests. Only the 17 B tail is in the overflowing area; the other 7 B are reachable only by relocating whole C functions with #pragma code-name.",
     "bss_note": "HYBRID_LIGHT_STATE_RAM was grown from $000D to $0010 into the documented-unowned $810C-$810F window, which covered all four new C state bytes. BSS was never the constraint."
   },
-
   "smallest_recovery_required": {
-    "minimal_variant_bytes": 51,
-    "full_variant_bytes": 102,
-    "assumption": "Every one of the 24 B of legal slack is spent, including relocating C functions into three other areas.",
-    "conservative_extension_tail_only": { "minimal_variant_bytes": 58, "full_variant_bytes": 109 }
+    "basis": "raw added requirement minus every byte of legal slack, including the 17 B free tail of the overflowing area",
+    "minimal_variant_bytes": 68,
+    "full_variant_bytes": 119,
+    "correction_note": "An earlier revision of this file reported 51/102 B and 58/109 B. Those double-counted the 17 B free tail, which is already consumed inside the 75/126 B overflow figures. The deficit-vs-area figures (75 B and 126 B) were correct; only the recovery subtraction was wrong."
   },
-
   "recovery_candidate": {
     "window": "$8600-$86F9",
     "bytes": 250,
     "current_owner": "boot-only LAYOUT_D_GLUE_HOLDING buffer (src/main.s:11247), copied to its final home below $5000 by layout_d_publish_glue and unowned afterwards",
     "why_promising": "Larger than either deficit, adjacent to existing C territory ($86FA-$8700 scratch, $8701-$8775 ABI veneer), and reachable by the same startup publisher pattern already used for LIGHT_RESIDENT.",
     "why_not_attempted": "It needs a second packed transport record with its own expansion call and a startup-ordering proof that the block is written only after layout_d_publish_glue has drained the GLUE hold, inside a bootstrap prefix fixed by .assert *-start <= $01A3. That is roadmap step 4.3 (resident capacity), which this task was told not to start automatically.",
-    "rejected_directions_not_used": ["BASIC RAM", "runtime disk I/O", "new loader architecture", "PMG reassignment", "raster multiplexing", "compositor or ring redesign"]
+    "rejected_directions_not_used": [
+      "BASIC RAM",
+      "runtime disk I/O",
+      "new loader architecture",
+      "PMG reassignment",
+      "raster multiplexing",
+      "compositor or ring redesign"
+    ]
   },
-
   "architectural_findings": {
     "director_redesign_required": false,
     "lifecycle_architecture_redesign_required": false,
@@ -97,12 +100,10 @@
     "new_collision_architecture_required": false,
     "conclusion": "The C/ASM boundary held. A third archetype needed only data, a small C behavior handler and one archetype-neutral ASM change (an indexed score lookup, size-neutral inside the fixed 17-byte BROADSIDE pad). The blocker is purely resident placement, not architecture."
   },
-
   "cc65_finding": {
     "symptom": "Indexing the archetype table with a computed offset made cc65 build a runtime pointer (sta ptr1 / lda (ptr1),y), which the build's software-stack audit rejects.",
     "rule": "cc65 emits the wanted `ldy index / lda table+field,y` only when the index is a plain lvalue and the field constant is folded into the base, as in `(&enemy_archetypes.byte[field])[light_archetype_offset]`. A sum inside the subscript defeats it.",
     "applied": "Difficulty-resolved reload columns are precomputed once at admission into light_post_burst_slot so the hot path keeps a plain index."
   },
-
   "next_step": "Owner decision on roadmap step 4.3 (resident capacity). Do not retry 4.4 before capacity exists."
 }

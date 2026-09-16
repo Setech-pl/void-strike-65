@@ -24,31 +24,15 @@ Do not replace implementation with a long feasibility study.
 8. Owner smoke.
 9. Commit or rollback.
 
-## C owns
+## C / ASM ownership
 
-Prefer C for:
+Do not restate the matrix here. It is normative in `AGENTS.md`
+("Architecture invariants / C / ASM ownership"), with the detailed boundary and
+ABI in `docs/hybrid-c-architecture.md`.
 
-- lifecycle;
-- EnemyArchetype;
-- AI decisions;
-- waves;
-- admission;
-- sector state;
-- gameplay rules;
-- pickups/boosters policy;
-- boss state.
-
-## ASM owns
-
-Keep hardware-critical execution in ASM:
-
-- ANTIC/raster;
-- PMG;
-- publication;
-- ring/backing;
-- hot collision;
-- VBI/DLI;
-- hardware/audio hot paths.
+The short form: if the new behaviour is a decision or a state transition, it
+belongs in C; ASM consumes that decision and performs the hardware-sensitive
+execution and publication.
 
 ## Stop conditions
 

@@ -94,19 +94,42 @@ capacity is:
 LIGHT_ACTIVE_MAX = 1
 ```
 
-That single slot is to be **archetype-selectable** — `Wingman OR Interceptor`,
-not `Wingman AND Interceptor`. The agreed representation is one C-owned byte,
-`light_archetype_offset`, holding the byte offset of the active record inside
-`enemy_archetypes[]` (`12` = Wingman, `24` = Interceptor), indexed by both C and
-ASM so that no code hardcodes "Light == archetype index 1".
+#### Accepted runtime today
 
-**Not implemented yet.** The 2026-09-16 attempt is `BLOCKED_PLACEMENT`: the
-generalization plus a third archetype overflows `HYBRID_C_EXT_RAM` by 75 B in
-its cheapest credible form. Evidence, exact byte accounting and the recovery
-candidate are in
-[diagnostics/stage-2b2c-interceptor-blocked-placement.json](diagnostics/stage-2b2c-interceptor-blocked-placement.json).
-The invariants in this section stand regardless; only the implementation waits
-on resident capacity (roadmap step 4.3).
+The accepted runtime still hardcodes
+
+```text
+Light == Wingman == enemy_archetypes[1]
+```
+
+The Light record, its HP, fire cadence and its ASM score lookup all name index 1
+directly. `light_archetype_offset` **does not exist in the accepted ABI**; the
+ABI symbols are exactly those listed under *Calling convention and ABI* below.
+
+#### Approved future invariant
+
+The single Light slot **must become archetype-selectable** — `Wingman OR
+Interceptor`, not `Wingman AND Interceptor` — before any Interceptor can be
+accepted. No code may then hardcode "Light == archetype index 1".
+
+#### Blocked experiment evidence (not accepted ABI)
+
+The 2026-09-16 experiment proved a design for that invariant: one C-owned byte
+holding the byte offset of the active record inside `enemy_archetypes[]`
+(`12` = Wingman, `24` = Interceptor), indexed by both C and ASM, with the ASM
+score add changed from an absolute to an absolute,X read so its fixed 17-byte
+pad stayed exact.
+
+That design is **evidence, not contract**. It is `BLOCKED_PLACEMENT`: the
+generalization plus a third archetype exceeds the `HYBRID_C_EXT_RAM` area by
+75 B in its reduced form and 126 B with per-frame pursuit. Byte accounting and
+the recovery candidate are in
+[diagnostics/stage-2b2c-interceptor-blocked-placement.json](diagnostics/stage-2b2c-interceptor-blocked-placement.json);
+the unbuildable tree is on `experiment/interceptor-blocked-placement`.
+
+Do not write those fields or offsets into any document or ABI table as though
+they already exist. The invariants in this section stand regardless; only the
+implementation waits on resident capacity (roadmap step 4.3).
 
 The long-term target is `2 Heavy + up to 4 Light` active threats, reached
 incrementally (`1 -> 2 -> up to 4` Light slots). Do not implement that capacity
@@ -321,5 +344,11 @@ For each later high-level module:
 The first Light Wingman was added this way as the second archetype, with a
 small C behavior handler and a character renderer class, without changing the
 core Director architecture, lifecycle model, PMG allocation or raster
-architecture. The next archetype (Interceptor) should reuse the Light renderer
-and ASM primitives, but first needs resident capacity (see placement above).
+architecture.
+
+The 2026-09-16 Interceptor attempt repeated the process and confirmed it: the
+third archetype again needed only data, a small C handler and the existing
+Light renderer. Steps 1-5 passed and step 5 stopped it — the linked result does
+not fit the resident placement. Steps 6-8 were therefore not run and no
+candidate exists. The next archetype stays blocked on resident capacity
+(roadmap step 4.3), not on this process.

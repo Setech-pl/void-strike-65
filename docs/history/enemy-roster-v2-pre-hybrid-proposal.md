@@ -1,3 +1,10 @@
+> **ARCHIVED — pre-hybrid design proposal.** Written for the ASM-only enemy
+> architecture that the hybrid C/ASM `EnemyArchetype` model replaced. Its
+> Hunter / Striker / Weaver / Gunship / Mine Layer / Splitter roster is a
+> historical proposal and does **not** compete with
+> [../plan-realizacji.md](../plan-realizacji.md). Kept as evidence; not an
+> active source of truth.
+
 # VOID STRIKE 65 — six-enemy technical foundation
 
 **Design proposal / not implemented.** Audit baseline:

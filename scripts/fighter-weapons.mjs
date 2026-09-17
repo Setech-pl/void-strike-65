@@ -64,36 +64,70 @@ export const HOSTILE_WEAPON_VISUAL_MAX_CLASSES = 9;
 export const HOSTILE_WEAPON_STEP_PERIODS = Object.freeze([1, 2, 4, 8]);
 
 function hostileWeaponStepPeriods(visuals) {
-  return visuals.classes.map((entry, index) => {
+  const periods = visuals.classes.map((entry, index) => {
     invariant(HOSTILE_WEAPON_STEP_PERIODS.includes(entry.stepPeriodFrames),
       `hostileWeaponVisuals.classes[${index}].stepPeriodFrames must be one of ${HOSTILE_WEAPON_STEP_PERIODS.join(", ")}`);
     return entry.stepPeriodFrames;
   });
+  // The phase visual mirrors its class period; ACTIVE never names it, so the
+  // extra mask byte is never indexed at runtime.
+  if (visuals.classes.at(-1).animationPhaseRows !== undefined) periods.push(periods.at(-1));
+  return periods;
 }
 
-function hostileWeaponVisualRows(visuals) {
+function hostileWeaponGlyphRows(rows, name) {
+  invariant(Array.isArray(rows) && rows.length === 8, `${name} must contain 8 rows`);
+  const values = rows.map((mask, row) => binaryMask(mask, `${name}[${row}]`));
+  values.forEach((value, row) => {
+    invariant((value & 0x0f) === 0,
+      `${name}[${row}] must stay in the high nibble (two colour clocks)`);
+    invariant((value & 0xc0) !== 0xc0 && (value & 0x30) !== 0x30,
+      `${name}[${row}] must not use pixel value %11`);
+  });
+  invariant(values.some((value) => value !== 0), `${name} must draw at least one pixel`);
+  return values;
+}
+
+// Roadmap 4.5d: the BOMBER shell alternates two authored phases. The second
+// phase is not a weapon_class: it is published as visual BOMBER+1 (glyphs 93
+// and 103) while (frame_counter & HOSTILE_WEAPON_BOMBER_PHASE_MASK) is set, so
+// ACTIVE keeps class 3 and the step rate, damage and allocation are unchanged.
+// Only the last authored class may carry an animation phase, so the phase
+// visual can never alias a real class that C emits.
+export const HOSTILE_WEAPON_BOMBER_PHASE_MASK = 4;
+
+function hostileWeaponClasses(visuals) {
   const classes = visuals?.classes;
   invariant(Array.isArray(classes) && classes.length >= 1 &&
     classes.length <= HOSTILE_WEAPON_VISUAL_MAX_CLASSES,
   `hostileWeaponVisuals.classes must contain 1-${HOSTILE_WEAPON_VISUAL_MAX_CLASSES} weapon classes`);
-  return classes.map((entry, index) => {
+  classes.forEach((entry, index) => {
     const name = `hostileWeaponVisuals.classes[${index}]`;
     invariant(entry?.weaponClass === index + 1,
       `${name}.weaponClass must be ${index + 1}: classes are authored in id order from 1`);
     invariant(index >= HOSTILE_WEAPON_VISUAL_IDS.length || entry.id === HOSTILE_WEAPON_VISUAL_IDS[index],
       `${name}.id must be ${HOSTILE_WEAPON_VISUAL_IDS[index]} (ENEMY_WEAPON_* in src/c/enemy-archetype.h)`);
-    invariant(Array.isArray(entry.leftPhaseRows) && entry.leftPhaseRows.length === 8,
-      `${name}.leftPhaseRows must contain 8 rows`);
-    const rows = entry.leftPhaseRows.map((mask, row) => binaryMask(mask, `${name}.leftPhaseRows[${row}]`));
-    rows.forEach((value, row) => {
-      invariant((value & 0x0f) === 0,
-        `${name}.leftPhaseRows[${row}] must stay in the high nibble (two colour clocks)`);
-      invariant((value & 0xc0) !== 0xc0 && (value & 0x30) !== 0x30,
-        `${name}.leftPhaseRows[${row}] must not use pixel value %11`);
-    });
-    invariant(rows.some((value) => value !== 0), `${name} must draw at least one pixel`);
-    return rows;
+    invariant(entry.animationPhaseRows === undefined ||
+      (entry.id === "BOMBER" && index === classes.length - 1),
+    `${name}.animationPhaseRows is only supported on the last class, BOMBER`);
   });
+  return classes;
+}
+
+// Published visuals in glyph order: one per weapon_class, then the BOMBER
+// animation phase when authored.
+function hostileWeaponVisualRows(visuals) {
+  const classes = hostileWeaponClasses(visuals);
+  const rows = classes.map((entry, index) => hostileWeaponGlyphRows(entry.leftPhaseRows,
+    `hostileWeaponVisuals.classes[${index}].leftPhaseRows`));
+  const animated = classes.at(-1);
+  if (animated.animationPhaseRows !== undefined) {
+    rows.push(hostileWeaponGlyphRows(animated.animationPhaseRows,
+      `hostileWeaponVisuals.classes[${classes.length - 1}].animationPhaseRows`));
+  }
+  invariant(rows.length <= HOSTILE_WEAPON_VISUAL_MAX_CLASSES,
+    `hostile weapon visuals must fit glyphs 90-${89 + HOSTILE_WEAPON_VISUAL_MAX_CLASSES}`);
+  return rows;
 }
 
 export function loadFighterWeaponsDefinition(sourcePath) {
@@ -251,6 +285,7 @@ export function compileFighterWeapons(definition, enemyRoster) {
     interceptor,
     hostileWeaponVisuals: Object.freeze(hostileWeaponVisuals),
     hostileWeaponStepPeriodFrames: Object.freeze(hostileWeaponStepPeriodFrames),
+    hostileWeaponAnimated: definition.hostileWeaponVisuals.classes.at(-1).animationPhaseRows !== undefined,
     viewport: Object.freeze({
       ...definition.viewport,
       hudTop,
@@ -285,6 +320,9 @@ export function renderFighterWeaponsCa65Include(asset) {
     `PLAYER_FIGHTER_PROJECTILE_GLYPH_COUNT = ${asset.glyphs.player_fighter.length}`,
     `INTERCEPTOR_PROJECTILE_GLYPH_COUNT = ${asset.glyphs.interceptor.length}`,
     `HOSTILE_WEAPON_VISUAL_COUNT = ${asset.hostileWeaponVisuals.length}`,
+    `HOSTILE_WEAPON_CLASS_COUNT = ${asset.hostileWeaponVisuals.length - (asset.hostileWeaponAnimated ? 1 : 0)}`,
+    `HOSTILE_WEAPON_BOMBER_PHASE_VISUAL = ${asset.hostileWeaponAnimated ? asset.hostileWeaponVisuals.length : 0}`,
+    `HOSTILE_WEAPON_BOMBER_PHASE_MASK = ${HOSTILE_WEAPON_BOMBER_PHASE_MASK}`,
     `PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT = ${player_fighter.poolSlots}`,
     `PLAYER_FIGHTER_PROJECTILE_ACTIVE_LIMIT = ${player_fighter.activeLimit}`,
     `INTERCEPTOR_PROJECTILE_SLOT_COUNT = ${interceptor.poolSlots}`,
@@ -421,9 +459,11 @@ export function buildInterceptorProjectileGlyphBank(asset, initialBytes) {
 }
 
 // Screen code the renderer publishes for a hostile slot:
-// (89 + (ACTIVE >> 3) + (X & 2 ? 10 : 0)) | $80.
-export function hostileProjectileScreenCode(active, x) {
-  return (89 + (active >> 3) + ((x & 2) !== 0 ? 10 : 0)) | 0x80;
+// (89 + (ACTIVE >> 3) + (X & 2 ? 10 : 0)) | $80; a BOMBER shell (class 3)
+// publishes its animation phase, visual 4, while frame & 4 is set.
+export function hostileProjectileScreenCode(active, x, frame = 0) {
+  const phase = (active >> 3) === 3 && (frame & HOSTILE_WEAPON_BOMBER_PHASE_MASK) !== 0 ? 1 : 0;
+  return (89 + (active >> 3) + phase + ((x & 2) !== 0 ? 10 : 0)) | 0x80;
 }
 
 export function createPlayerFighterBurstState(asset) {

@@ -56,8 +56,10 @@ test("HYBRID_C_ARENA is one contiguous 832-B arena at $7BD0-$7F0F", () => {
   assert.equal(arena.usedBytes, arenaImage.length);
   assert.equal(manifest.residentCapacity.heavyWindow, undefined);
   // 4.5c: 1-B anchor + 19-B Heavy veneers, 339-B Heavy C, 33-B rodata.
-  assert.deepEqual([arena.asmBytes, arena.codeBytes, arena.rodataBytes], [20, 339, 33]);
-  assert.equal(arena.freeBytes, 440);
+  // 4.5d: + 51-B hostile glyph builder and table (moved from BROADSIDE), the
+  // Bomber attack run, charge telegraph and hit flash C, 2-B longer start data.
+  assert.deepEqual([arena.asmBytes, arena.codeBytes, arena.rodataBytes], [71, 504, 39]);
+  assert.equal(arena.freeBytes, 218);
   assert.equal(labels.get("hybrid_arena_anchor"), ARENA);
   assert.equal(arenaImage[0], 0x60, "the anchor stays first");
   for (const veneer of ["enemy_recycle", "enemy_spawn_raiders", "heavy_publish_hull_colour"]) {
@@ -119,12 +121,13 @@ test("the arena lands directly as its own DFMC record and is the only owner of i
   // 4.5M-M3 measured: 8 records, 178 transport sectors, initial block unchanged.
   // Emitter-independent hostile shots: ENTITY_CODE −27 B (−25 B packed).
   // 4.5c Bomber: arena record 355 B packed / 3 sectors; 180 transport sectors.
-  assert.deepEqual([record.packedLength, record.sectorCount], [355, 3]);
+  // 4.5d enemy identity: arena record 558 B packed / 5 sectors; 182 transport sectors.
+  assert.deepEqual([record.packedLength, record.sectorCount], [558, 5]);
   assert.equal(manifest.transportCapacity.initialBootContentBytes, 13132);
   assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 52);
   assert.equal(manifest.transportCapacity.initialBootSectors, 103);
-  assert.equal(manifest.transportCapacity.totalTransportSectors, 180);
-  assert.equal(parsed.totalOccupiedSectors, 180);
+  assert.equal(manifest.transportCapacity.totalTransportSectors, 182);
+  assert.equal(parsed.totalOccupiedSectors, 182);
 });
 
 test("the temporary Heavy window transport is retired without moving any address", () => {

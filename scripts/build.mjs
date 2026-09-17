@@ -360,7 +360,7 @@ async function buildResidentModule({ sourcePath, configPath, stem, extraInputs =
   };
 }
 
-async function buildHybridDirectorModule() {
+async function buildHybridDirectorModule(fighterWeaponsInclude) {
   const base = "/project/build/encounter-director";
   const cSource = fs.readFileSync(path.join(rootDirectory, "src", "c", "director.c"));
   const cHeader = fs.readFileSync(path.join(rootDirectory, "src", "c", "director.h"));
@@ -430,7 +430,7 @@ async function buildHybridDirectorModule() {
   );
   const abiAssembled = await runWasmTool(
     "ca65",
-    { [`${base}-abi.s`]: abiSource },
+    { [`${base}-abi.s`]: abiSource, "/project/build/fighter-weapons.inc": fighterWeaponsInclude },
     ["--cpu", "6502", "-g", "-l", `${base}-abi.lst`, "-o", `${base}-abi.o`,
       `${base}-abi.s`],
     [`${base}-abi.o`, `${base}-abi.lst`],
@@ -644,6 +644,8 @@ function renderDirectorAbiInclude(labelBytes) {
     ["ENEMY_HEAVY_TICK", "enemy_heavy_tick"],
     ["HEAVY_MEMBER_X", "heavy_member_x"],
     ["HEAVY_HULL_COLOUR", "heavy_hull_colour"],
+    ["HEAVY_MEMBER_COLOUR", "heavy_member_colour"],
+    ["HYBRID_BUILD_HOSTILE_GLYPHS", "build_hostile_weapon_glyphs"],
     ["HEAVY_ARCHETYPE_OFFSET", "heavy_archetype_offset"],
     ["ENEMY_LIGHT_TICK", "enemy_light_tick"],
     ["ENEMY_LIGHT_HIT", "enemy_light_hit"],
@@ -833,7 +835,7 @@ async function build() {
           zeroPageBytes: 0,
         },
       }
-    : await buildHybridDirectorModule();
+    : await buildHybridDirectorModule(fighterWeaponsInclude);
   if (process.argv.includes("--director-only")) {
     writeFile(path.join(buildDirectory, "encounter-director.map"), directorModule.map);
     writeFile(path.join(buildDirectory, "encounter-director.lbl"), directorModule.labels);

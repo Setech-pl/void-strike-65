@@ -8,7 +8,11 @@ COLPM1 = $D013
 COLPM2 = $D014
 ENEMY_ACTIVE = $4ECD
 FIGHTER_PROJECTILE_ACTIVE = $5400
-INTERCEPTOR_PROJECTILE_SLOT_BASE = 5
+CHARSET = $4400
+; Generated weapon constants and glyph macros (INTERCEPTOR_PROJECTILE_SLOT_BASE,
+; the hostile glyph bank layout and EMIT_HOSTILE_WEAPON_VISUAL_GLYPHS).
+.include "fighter-weapons.inc"
+.assert INTERCEPTOR_PROJECTILE_SLOT_BASE = 5, error, "hostile PairShot slots must start at slot 5"
 ; Roadmap 4.5M-M2: the low-C image heads the merged low-C/GLUE/Heavy cold
 ; record (scripts/build.mjs coldLowGlueRecordAddress; the build checks that
 ; both agree). It lands above the packed resident staging and is consumed
@@ -38,6 +42,7 @@ DIRECTOR_LOW_BYTES = 242
 .import _enemy_c_light_tick, _enemy_c_light_hit
 .import _enemy_c_heavy_tick
 .import _heavy_member_x, _heavy_hull_colour, _heavy_archetype_offset
+.import _heavy_member_colour
 .import _enemy_archetypes
 .import _light_state, _light_hp, _light_x, _light_y, _light_fire_timer
 .import _light_screen_lo, _light_screen_hi
@@ -89,6 +94,7 @@ DIRECTOR_LOW_BYTES = 242
 .export enemy_profile_director_value
 .export enemy_light_tick, enemy_light_hit
 .export enemy_heavy_tick, heavy_member_x, heavy_hull_colour, heavy_archetype_offset
+.export heavy_member_colour, build_hostile_weapon_glyphs
 .export light_state, light_hp, light_x, light_y, light_fire_timer
 .export light_screen_lo, light_screen_hi
 .export light_backing0, light_backing1, light_scratch, light_slot_save
@@ -245,6 +251,9 @@ enemy_light_tick = _enemy_c_light_tick
 enemy_heavy_tick = _enemy_c_heavy_tick
 heavy_member_x = _heavy_member_x
 heavy_hull_colour = _heavy_hull_colour
+; Per-member GTIA colour C derives each Bomber tick (charge telegraph and hit
+; flash); heavy_member_update writes it to COLPM1+slot.
+heavy_member_colour = _heavy_member_colour
 heavy_archetype_offset = _heavy_archetype_offset
 enemy_light_hit = _enemy_c_light_hit
 light_state = _light_state
@@ -297,6 +306,30 @@ heavy_publish_hull_colour:
     sta COLPM1
     sta COLPM2
     rts
+
+; Hostile PairShot glyph bank (roadmap 4.5d; formerly the head of the fixed
+; 70-B BROADSIDE slot). Init-only: init_fighter_projectiles calls it through
+; HYBRID_BUILD_HOSTILE_GLYPHS after frontend setup, never in a visible frame.
+; Visual v (weapon_class 1..N, then the BOMBER animation phase) occupies glyph
+; 89+v at the left horizontal phase and glyph 99+v, shifted right two ANTIC 4
+; pixels, at the right phase. The arena is read-only at runtime: this routine
+; only reads its table and writes CHARSET.
+build_hostile_weapon_glyphs:
+    ldx #(HOSTILE_WEAPON_VISUAL_COUNT*8-1)
+@row:
+    lda hostile_weapon_visual_glyphs,x
+    sta CHARSET+INTERCEPTOR_PROJECTILE_GLYPH_BASE*8,x
+    lsr
+    lsr
+    lsr
+    lsr
+    sta CHARSET+(INTERCEPTOR_PROJECTILE_GLYPH_BASE+INTERCEPTOR_PROJECTILE_GLYPH_STRIDE)*8,x
+    dex
+    bpl @row
+    rts
+
+hostile_weapon_visual_glyphs:
+    EMIT_HOSTILE_WEAPON_VISUAL_GLYPHS
 
 ; Declared here so that the size symbols and the contract above exist whatever
 ; the C modules place in the arena.

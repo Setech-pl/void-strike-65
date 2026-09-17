@@ -777,7 +777,8 @@ PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE = PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYE
 .assert PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_GLYPH_COUNT <= CAPITAL_HULL_GLYPH_BASE, error, "PlayerFighter phase glyphs overlap capital hulls"
 .assert INTERCEPTOR_PROJECTILE_GLYPH_BASE >= CAPITAL_HULL_GLYPH_BASE+CAPITAL_HULL_GLYPH_COUNT, error, "Interceptor phase glyphs overlap capital hulls"
 .assert INTERCEPTOR_PROJECTILE_GLYPH_BASE+INTERCEPTOR_PROJECTILE_GLYPH_COUNT <= 128, error, "Interceptor phase glyphs exceed the charset"
-.assert HOSTILE_WEAPON_VISUAL_COUNT >= ENEMY_WEAPON_BOMBER, error, "every C weapon_class needs an authored hostile visual"
+.assert HOSTILE_WEAPON_CLASS_COUNT = ENEMY_WEAPON_BOMBER, error, "every C weapon_class needs exactly one authored hostile visual"
+.assert HOSTILE_WEAPON_BOMBER_PHASE_VISUAL = ENEMY_WEAPON_BOMBER+1 && HOSTILE_WEAPON_VISUAL_COUNT = HOSTILE_WEAPON_BOMBER_PHASE_VISUAL, error, "the BOMBER animation phase must be the visual after the last weapon_class"
 .assert HOSTILE_WEAPON_VISUAL_COUNT <= INTERCEPTOR_PROJECTILE_GLYPH_STRIDE-1, error, "hostile weapon classes must fit glyphs 90-99"
 .assert (HOSTILE_WEAPON_VISUAL_COUNT << FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT) < $100, error, "ACTIVE >> 3 must equal weapon_class"
 .assert ((INTERCEPTOR_PROJECTILE_GLYPH_BASE+INTERCEPTOR_PROJECTILE_GLYPH_STRIDE+HOSTILE_WEAPON_VISUAL_COUNT)|$80) <= (ENTITY_DEBRIS_GLYPH_BASE|$80), error, "hostile weapon codes must stay below the debris bank"
@@ -3715,7 +3716,7 @@ init_fighter_projectiles:
     sta CHARSET+PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE*8,x
     dex
     bpl @player_fighter_glyph_head
-    jsr build_interceptor_projectile_glyphs
+    jsr HYBRID_BUILD_HOSTILE_GLYPHS ; init-only, in HYBRID_C_ARENA (roadmap 4.5d)
     jmp build_star_glyphs
 
 clear_fighter_projectiles:
@@ -4397,34 +4398,31 @@ render_fighter_projectile_overlays_end = *
 ; Hostile PairShot visuals are authored per weapon_class in
 ; assets/graphics/fighter-weapons.json. Class c occupies glyph 89+c at the left
 ; horizontal phase and glyph 99+c, shifted right two ANTIC 4 pixels, at the
-; right phase. Glyphs past the last class are never published.
-build_interceptor_projectile_glyphs:
-    ldx #(HOSTILE_WEAPON_VISUAL_COUNT*8-1)
-@row:
-    lda hostile_weapon_visual_glyphs,x
-    sta CHARSET+INTERCEPTOR_PROJECTILE_GLYPH_BASE*8,x
-    lsr
-    lsr
-    lsr
-    lsr
-    sta CHARSET+(INTERCEPTOR_PROJECTILE_GLYPH_BASE+INTERCEPTOR_PROJECTILE_GLYPH_STRIDE)*8,x
-    dex
-    bpl @row
-    rts
-
-hostile_weapon_visual_glyphs:
-    EMIT_HOSTILE_WEAPON_VISUAL_GLYPHS
+; right phase. Glyphs past the last visual are never published. Roadmap 4.5d:
+; the init-only builder and its glyph table live in HYBRID_C_ARENA
+; (HYBRID_BUILD_HOSTILE_GLYPHS, src/hybrid/c-asm-abi.s); this fixed 70-byte
+; slot keeps only the per-frame screen-code helper.
+hostile_weapon_visual_slot:
 
 ; X = hostile PairShot slot. Returns its screen code
-; (89 + weapon_class + (X & 2 ? 10 : 0)) | $80; clobbers loader_repeat_value.
-; Bit 7 is the hostile attribute the backing resolver matches; the authored
-; glyphs use no %11 pixels, so it never changes their colours.
+; (89 + weapon_class + (X & 2 ? 10 : 0)) | $80; a BOMBER shell publishes its
+; second authored phase (visual BOMBER+1) while frame_counter & 4 is set.
+; Clobbers loader_repeat_value. Bit 7 is the hostile attribute the backing
+; resolver matches; the authored glyphs use no %11 pixels, so it never changes
+; their colours.
 hostile_projectile_screen_code:
     lda FIGHTER_PROJECTILE_ACTIVE,x
     lsr
     lsr
     lsr
     sta loader_repeat_value
+    cmp #ENEMY_WEAPON_BOMBER
+    bne @phase_ready
+    lda frame_counter
+    and #HOSTILE_WEAPON_BOMBER_PHASE_MASK
+    beq @phase_ready
+    inc loader_repeat_value     ; visual BOMBER+1: the exhaust flicker phase
+@phase_ready:
     lda FIGHTER_PROJECTILE_X,x
     and #$02                    ; hostile allocation explicitly masks bit zero
     beq :+
@@ -4436,9 +4434,8 @@ hostile_projectile_screen_code:
     rts
 hostile_weapon_visual_layout_end:
     ; The former 70-byte builder slot keeps its size: every later BROADSIDE
-    ; address (the fixed $76A7 integration release target included) stays put,
-    ; and the pad absorbs one more authored class (8 B) without moving them.
-    .res 70-(hostile_weapon_visual_layout_end-build_interceptor_projectile_glyphs)
+    ; address (the fixed $76A7 integration release target included) stays put.
+    .res 70-(hostile_weapon_visual_layout_end-hostile_weapon_visual_slot)
 
 .segment "BROADSIDE"
 begin_enemy_fighter_explosion = begin_enemy_fighter_explosion_tail

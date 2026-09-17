@@ -327,7 +327,8 @@ test("placement contract: legal composite and packed size, state inside its rese
   assert.equal(manifest.residentCapacity.tails.entityCode, 40);
   // 4.5c Bomber: HEAVY_CODE joins the extension composite; PICKUP_CODE +4 B.
   assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 7);
-  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 28);
+  // 4.5d: the per-member colour write (+9 B HEAVY_CODE) leaves 19 B (floor 16).
+  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 19);
   assert.equal(L("light_glyph"), 0x9d16);
   assert.equal(L("light_interceptor_glyph"), 0x9d26);
   assert.equal(L("light_archetype_offset"), 0x810c);
@@ -362,7 +363,7 @@ test("weapon_class visuals: Raider PULSE publishes $DA/$E4, the Interceptor LASE
   const base = 5;
   const image = game(2);
   run(image, "init_fighter_projectiles");
-  run(image, "build_interceptor_projectile_glyphs");
+  run(image, "build_hostile_weapon_glyphs");
   // Authored per class: left phase at 89+c, right phase (>> 4) at 99+c.
   const pulse = [0x00, 0xa0, 0x50, 0x00, 0x00, 0xa0, 0x50, 0x00];
   const laser = [0x20, 0x20, 0x20, 0x10, 0x10, 0x10, 0x10, 0x00];
@@ -416,15 +417,16 @@ test("weapon_class visuals: Raider PULSE publishes $DA/$E4, the Interceptor LASE
     image[dst] = address & 0xff;
     image[dst + 1] = address >> 8;
     const backing = image[L("FIGHTER_PROJECTILE_BACKUP_TOP") + slot];
-    assert.ok(backing < 0xda || backing > 0xe6, "the saved underlay is not a hostile shot");
+    assert.ok(backing < 0xda || backing > 0xe7, "the saved underlay is not a hostile shot");
     assert.equal(run(image, "resolve_effect_backing_below_enemy_pairshot",
       { a: image[address] }).a, backing, `slot ${slot} restores its backing`);
     // 4.5b: the BOMBER class (3) extends the hostile range through $E6.
-    for (const bomber of [0xdc, 0xe6]) {
+    // 4.5d: the BOMBER exhaust phase (visual 4) extends it through $E7.
+    for (const bomber of [0xdc, 0xe6, 0xdd, 0xe7]) {
       assert.equal(run(image, "resolve_effect_backing_below_enemy_pairshot",
         { a: bomber }).a, backing, `BOMBER code $${bomber.toString(16)} is a hostile shot`);
     }
-    for (const outside of [0xd9, 0xe7]) {
+    for (const outside of [0xd9, 0xe8]) {
       assert.equal(run(image, "resolve_effect_backing_below_enemy_pairshot",
         { a: outside }).a, outside, `code $${outside.toString(16)} is not a hostile shot`);
     }

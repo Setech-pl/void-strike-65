@@ -41,7 +41,15 @@ const WEAPON_BOMBER = 3;
 const LANES = [[48, 92], [132, 176]];
 const ENTRY_DEPTH = [40, 16];
 const FIELDS = ["ENEMY_X", "ENEMY_Y", "ENEMY_VELOCITY_X", "ENEMY_MOVE_ACCUMULATOR",
-  "ENEMY_MANEUVER_STATE"];
+  "ENEMY_MANEUVER_STATE", "ENEMY_MANEUVER_TIMER"];
+// Roadmap 4.5d attack run and colours.
+const ATTACK = 0;
+const AIM_FRAMES = 20;
+const SALVO_INTERVAL = 8;
+const SALVO_SHELLS = 2;
+const HULL = 0x24;
+const CHARGE = 0x28;
+const FLASH = 0x2a;
 
 function memory() {
   const image = new Uint8Array(0x10000);
@@ -88,8 +96,8 @@ function bomberFormation(difficulty = 2) {
 
 const member = (image, slot) => FIELDS.map((field) => image[L(field) + slot]);
 
-function setMember(image, slot, [x, y, direction, fire, turn]) {
-  for (const [index, value] of [x, y, direction, fire, turn].entries())
+function setMember(image, slot, [x, y, direction, fire, turn, aux = 4]) {
+  for (const [index, value] of [x, y, direction, fire, turn, aux].entries())
     image[L(FIELDS[index]) + slot] = value;
 }
 
@@ -98,11 +106,12 @@ function tickMember(image, slot) {
   return run(image, "heavy_member_update", { x: slot });
 }
 
-test("Bomber is the fourth 12-byte C record: 4 HP, lane sweep, single shot, BOMBER class", () => {
+test("Bomber is the fourth 12-byte C record: 4 HP, lane sweep, 2-shell salvo, BOMBER class", () => {
   const table = L("enemy_archetype_table");
   const image = memory();
+  // 4.5d: fire policy HEAVY_SALVO (4), 2 shells 8 frames apart, reload 64/52/40.
   assert.deepEqual([...image.subarray(table + OFFSET_BOMBER, table + OFFSET_BOMBER + 12)],
-    [4, 3, 2, 1, 0, 80, 64, 48, 1, WEAPON_BOMBER, 0x50, 1]);
+    [4, 3, 4, 2, 8, 64, 52, 40, 1, WEAPON_BOMBER, 0x50, 1]);
   assert.deepEqual([...image.subarray(table, table + 12)],
     [1, 0, 1, 5, 15, 60, 50, 40, 1, 1, 0x10, 1], "the Raider record is unchanged");
 });
@@ -127,7 +136,7 @@ test("the temporary Heavy schedule alternates Raider and Bomber formations with 
 });
 
 test("Bomber admission publishes its profile and the lane-sweep formation start", () => {
-  for (const [difficulty, pause] of [[0, 80], [1, 64], [2, 48]]) {
+  for (const [difficulty, pause] of [[0, 64], [1, 52], [2, 40]]) {
     const image = bomberFormation(difficulty);
     assert.deepEqual([image[L("ENEMY_ACTIVE")], image[L("ENEMY_LIVE_COUNT")],
       image[L("ENEMY_MEMBER_STATE")], image[L("ENEMY_MEMBER_STATE") + 1]], [1, 2, 1, 1]);
@@ -136,8 +145,10 @@ test("Bomber admission publishes its profile and the lane-sweep formation start"
     assert.equal(image[L("enemy_profile_score_bcd")], 0x50);
     assert.equal(image[L("enemy_profile_post_burst_frames")], pause);
     // Slot 0 enters left moving right; slot 1 mirrored and fires 24 frames later.
-    assert.deepEqual(member(image, 0), [48, 0, 1, 48, 60]);
-    assert.deepEqual(member(image, 1), [176, 0, 0xff, 72, 52]);
+    // The sixth byte is the hit-flash byte: last HP 4, no flash.
+    assert.deepEqual(member(image, 0), [48, 0, 1, 48, 60, 4]);
+    assert.deepEqual(member(image, 1), [176, 0, 0xff, 72, 52, 4]);
+    assert.equal(image[L("enemy_profile_fire_policy_id")], 4, "never the ASM Raider pair burst");
   }
 });
 
@@ -166,13 +177,17 @@ test("marshalling: the member veneer ticks exactly its own slot bytes", () => {
   const image = bomberFormation();
   image[FRAME_COUNTER] = 0;
   const other = member(image, 1);
+  image[COLPM1] = 0;
+  image[COLPM2] = 0;
   tickMember(image, 0);
-  assert.deepEqual(member(image, 0), [49, 1, 1, 47, 59]);
+  assert.deepEqual(member(image, 0), [49, 1, 1, 47, 59, 4]);
   assert.deepEqual(member(image, 1), other, "slot 1 untouched");
+  assert.deepEqual([image[COLPM1], image[COLPM2]], [HULL, 0], "only its own COLPM");
   image[FRAME_COUNTER] = 1;
   tickMember(image, 1);
-  assert.deepEqual(member(image, 1), [175, 1, 0xff, 71, 51]);
-  assert.deepEqual(member(image, 0), [49, 1, 1, 47, 59], "slot 0 untouched");
+  assert.deepEqual(member(image, 1), [175, 1, 0xff, 71, 51, 4]);
+  assert.deepEqual(member(image, 0), [49, 1, 1, 47, 59, 4], "slot 0 untouched");
+  assert.deepEqual([image[COLPM1], image[COLPM2]], [HULL, HULL]);
   // Raider formations keep the ASM cross-pursuit motion.
   assert.match(memberSource,
     /heavy_member_update:\s+lda ENEMY_PROFILE_MOVEMENT_ID\s+bne @policy\s+jmp update_enemy_slot_motion/);
@@ -243,27 +258,177 @@ test("turns: an expired turn timer flips the direction and reloads (FRAME_COUNTE
   }
 });
 
-test("fire gate: visible band, living player, no capital due, own timer; returns BOMBER class", () => {
-  const fire = (setup) => {
+test("attack start: an expired reload inside the band brakes and charges instead of firing", () => {
+  const start = (setup) => {
     const image = bomberFormation();
     image[FRAME_COUNTER] = 0;
     setMember(image, 0, [70, 100, 1, 0, 30]);
     setup?.(image);
-    for (const [index, field] of FIELDS.entries())
-      image[L("heavy_member_x") + index] = image[L(field)];
-    image[L("ENEMY_TARGET_SLOT")] = 0;
-    const { a } = run(image, "enemy_heavy_tick");
-    return [a, image[L("_heavy_member_fire_timer")]];
+    const { a } = tickMember(image, 0);
+    const [, , direction, fire, turn] = member(image, 0);
+    return [a, direction, turn, fire];
   };
-  assert.deepEqual(fire(), [WEAPON_BOMBER, 48]);
-  assert.deepEqual(fire((image) => { image[L("ENEMY_Y")] = 22; }), [0, 0], "above the band");
-  assert.deepEqual(fire((image) => { image[L("ENEMY_Y")] = 200; }), [0, 0], "below the band");
-  assert.deepEqual(fire((image) => { image[L("ENEMY_Y")] = 23; }), [WEAPON_BOMBER, 48],
+  assert.deepEqual(start(), [0, ATTACK, AIM_FRAMES, SALVO_SHELLS]);
+  assert.deepEqual(start((image) => { image[L("ENEMY_Y")] = 22; }), [0, 1, 29, 0], "above the band");
+  assert.deepEqual(start((image) => { image[L("ENEMY_Y")] = 200; }), [0, 1, 29, 0], "below the band");
+  assert.deepEqual(start((image) => { image[L("ENEMY_Y")] = 23; }), [0, ATTACK, AIM_FRAMES, SALVO_SHELLS],
     "Y 23 steps to 24 before the gate");
-  assert.deepEqual(fire((image) => { image[PLAYER_LIFECYCLE] = 1; }), [0, 0], "player dying");
-  assert.deepEqual(fire((image) => { image[DIRECTOR_STATE_FLAGS] |= 0x80; }), [0, 0], "capital due");
-  assert.deepEqual(fire((image) => { image[L("ENEMY_MOVE_ACCUMULATOR")] = 5; }), [0, 4],
-    "an armed timer counts down");
+  assert.deepEqual(start((image) => { image[PLAYER_LIFECYCLE] = 1; }), [0, 1, 29, 0], "player dying");
+  assert.deepEqual(start((image) => { image[DIRECTOR_STATE_FLAGS] |= 0x80; }), [0, 1, 29, 0], "capital due");
+  assert.deepEqual(start((image) => { image[L("ENEMY_MOVE_ACCUMULATOR")] = 5; }), [0, 1, 29, 4],
+    "an armed reload counts down");
+});
+
+const shellCount = (image) => [5, 6, 7, 8, 9]
+  .filter((slot) => image[L("FIGHTER_PROJECTILE_ACTIVE") + slot] !== 0).length;
+
+// Runs one member from an attack start and records every frame. The veneer
+// tail-calls the allocator, so a shot shows as a newly occupied hostile slot.
+function attackRun(difficulty = 2, setup = null) {
+  const image = bomberFormation(difficulty);
+  const active = L("FIGHTER_PROJECTILE_ACTIVE");
+  image.fill(0, active, active + 10);
+  setMember(image, 0, [70, 100, 1, 0, 30]);
+  const frames = [];
+  for (let frame = 0; frame < 140; frame += 1) {
+    image[FRAME_COUNTER] = frame & 0xff;
+    setup?.(image, frame);
+    const before = shellCount(image);
+    tickMember(image, 0);
+    const a = shellCount(image) > before ? WEAPON_BOMBER : 0;
+    const [x, y, direction, fire, turn] = member(image, 0);
+    frames.push({ frame, a, x, y, direction, fire, turn, colour: image[COLPM1] });
+  }
+  return { image, frames };
+}
+
+test("attack run: brake, 20-frame charge, two shells 8 frames apart from one column, resume", () => {
+  for (const [difficulty, reload] of [[0, 64], [1, 52], [2, 40]]) {
+    const { image, frames } = attackRun(difficulty);
+    const shots = frames.filter(({ a }) => a !== 0);
+    // The attack starts on frame 0; the charge lasts 20 ticks; the salvo follows.
+    assert.equal(shots[0].frame, AIM_FRAMES);
+    assert.equal(shots[1].frame, AIM_FRAMES + SALVO_INTERVAL);
+    assert.ok(shots.every(({ a }) => a === WEAPON_BOMBER));
+    // The brake tick still sweeps once (70 -> 71, Y 100 -> 101); X and Y then
+    // freeze through the last shell.
+    const hold = frames.slice(0, AIM_FRAMES + SALVO_INTERVAL + 1);
+    assert.ok(hold.every(({ x, y }) => x === 71 && y === 101), `hold freezes X/Y (difficulty ${difficulty})`);
+    assert.ok(frames.slice(0, AIM_FRAMES + SALVO_INTERVAL).every(({ direction }) => direction === ATTACK));
+    // The last shell resumes the sweep with the post-burst reload.
+    const resume = frames[AIM_FRAMES + SALVO_INTERVAL];
+    assert.ok([1, 0xff].includes(resume.direction));
+    assert.equal(resume.fire, reload);
+    assert.ok(resume.turn >= 24 && resume.turn <= 55);
+    assert.notEqual(frames[AIM_FRAMES + SALVO_INTERVAL + 2].x, 71, "the member moves again");
+    // Attack period = charge + interval + reload + the attack-start tick.
+    assert.equal(shots[2].frame - shots[0].frame, AIM_FRAMES + SALVO_INTERVAL + reload + 1);
+    // Both shells leave from the same column: a two-cell heavy stream.
+    const slots = [5, 6, 7, 8, 9].filter((slot) => image[L("FIGHTER_PROJECTILE_ACTIVE") + slot] !== 0);
+    assert.ok(slots.length >= 2);
+    const xs = new Set(slots.slice(0, 2).map((slot) => image[L("FIGHTER_PROJECTILE_X") + slot]));
+    assert.equal(xs.size, 1);
+  }
+});
+
+test("resume direction follows FRAME_COUNTER bit 1, never lockstep with the pair", () => {
+  const resumeDirection = (frame) => {
+    const image = bomberFormation();
+    image[FRAME_COUNTER] = frame;
+    setMember(image, 0, [70, 100, ATTACK, 1, 1]);   // last shell due now
+    const active = L("FIGHTER_PROJECTILE_ACTIVE");
+    image.fill(0, active, active + 10);
+    tickMember(image, 0);
+    assert.equal(image[active + 5], 0x02 | (WEAPON_BOMBER << 3), "the last shell is emitted");
+    return member(image, 0)[2];
+  };
+  // bomber_turn flips the seeded direction: bit 1 clear seeds 1 and turns to $FF.
+  assert.equal(resumeDirection(0), 0xff);
+  assert.equal(resumeDirection(2), 1);
+});
+
+test("salvo abort: a dying player or a due capital skips the shell and resumes the sweep", () => {
+  for (const setup of [(image) => { image[PLAYER_LIFECYCLE] = 1; },
+    (image) => { image[DIRECTOR_STATE_FLAGS] |= 0x80; }]) {
+    const image = bomberFormation();
+    image[FRAME_COUNTER] = 0;
+    setMember(image, 0, [70, 100, ATTACK, 2, 1]);
+    setup(image);
+    const active = L("FIGHTER_PROJECTILE_ACTIVE");
+    image.fill(0, active, active + 10);
+    tickMember(image, 0);
+    const [, , direction, fire] = member(image, 0);
+    assert.equal(shellCount(image), 0);
+    assert.ok([1, 0xff].includes(direction));
+    assert.equal(fire, 40);
+  }
+});
+
+test("charge telegraph and hit flash: per-member COLPM, Raider formations untouched", () => {
+  const { frames } = attackRun(2);
+  assert.ok(frames.slice(0, AIM_FRAMES + SALVO_INTERVAL).every(({ colour }) => colour === CHARGE),
+    "the hull brightens from the brake to the last shell");
+  assert.equal(frames[AIM_FRAMES + SALVO_INTERVAL].colour, HULL, "and dims when it resumes");
+  // A hit (HP 4 -> 3) flashes the member for 6 ticks, over the charge colour.
+  const hit = attackRun(2, (image, frame) => { if (frame === 5) image[L("ENEMY_HP")] = 3; }).frames;
+  assert.deepEqual(hit.slice(4, 13).map(({ colour }) => colour),
+    [CHARGE, FLASH, FLASH, FLASH, FLASH, FLASH, FLASH, CHARGE, CHARGE]);
+  const image = bomberFormation();
+  setMember(image, 1, [150, 100, 1, 9, 30]);
+  image[L("ENEMY_HP") + 1] = 2;
+  image[COLPM1] = 0x55;
+  tickMember(image, 1);
+  assert.equal(image[COLPM2], FLASH);
+  assert.equal(image[COLPM1], 0x55, "the other member keeps its colour");
+  assert.equal(member(image, 1)[5], 0x52, "last HP 2, five flash ticks left");
+  // Raider formations run the ASM motion and never reach the colour write.
+  assert.match(memberSource,
+    /heavy_member_update:\s+lda ENEMY_PROFILE_MOVEMENT_ID\s+bne @policy\s+jmp update_enemy_slot_motion[\s\S]+@store:[\s\S]+ldx ENEMY_TARGET_SLOT\s+lda HEAVY_MEMBER_COLOUR[^\n]*\s+sta COLPM1,x/);
+  run(image, "enemy_recycle");
+  assert.deepEqual([image[COLPM1], image[COLPM2]], [0x44, 0x44], "recycle still restores $44");
+});
+
+test("pair rhythm: both Bombers attack in turn, at most four shells, bounded time on screen", () => {
+  for (const difficulty of [0, 1, 2]) {
+    const image = bomberFormation(difficulty);
+    const active = L("FIGHTER_PROJECTILE_ACTIVE");
+    image.fill(0, active, active + 10);
+    const shots = [[], []];
+    let frame = 0;
+    const alive = [true, true];
+    for (; frame < 1200 && (alive[0] || alive[1]); frame += 1) {
+      image[FRAME_COUNTER] = frame & 0xff;
+      for (const slot of [0, 1]) {
+        if (!alive[slot]) continue;
+        const before = shellCount(image);
+        tickMember(image, slot);
+        if (shellCount(image) > before) shots[slot].push(frame);
+        if (image[L("ENEMY_Y") + slot] >= 232) alive[slot] = false;   // retire depth
+      }
+      image.fill(0, active + 5, active + 10);                  // shells leave the pool
+    }
+    assert.ok(shots[0].length >= 6 && shots[1].length >= 6, `both attack (difficulty ${difficulty})`);
+    assert.ok(shots.every((list) => list.length % 2 === 0), "every salvo has two shells");
+    assert.notEqual(shots[0][0], shots[1][0], "the pair does not fire in lockstep");
+    // Formation lifetime stays bounded (MEDIUM 4.5c was ~440 frames for slot 0).
+    assert.ok(frame < 900, `formation lifetime ${frame} frames (difficulty ${difficulty})`);
+  }
+});
+
+test("animated shell: the assembled helper publishes the exhaust phase only for BOMBER", () => {
+  const image = bomberFormation();
+  const active = L("FIGHTER_PROJECTILE_ACTIVE");
+  const code = (value, x, frame) => {
+    image[active + 5] = value;
+    image[L("FIGHTER_PROJECTILE_X") + 5] = x;
+    image[FRAME_COUNTER] = frame;
+    return run(image, "hostile_projectile_screen_code", { x: 5 }).a;
+  };
+  assert.deepEqual([code(0x1a, 96, 0), code(0x1a, 96, 4), code(0x1b, 98, 3), code(0x1b, 98, 5)],
+    [0xdc, 0xdd, 0xe6, 0xe7]);
+  assert.deepEqual([code(0x0a, 96, 4), code(0x16, 98, 4)], [0xda, 0xe5], "PULSE and LASER never animate");
+  // The helper stays in its fixed 70-byte BROADSIDE slot.
+  assert.equal(L("hostile_weapon_visual_slot"), L("hostile_projectile_screen_code"));
 });
 
 test("emission: the veneer passes the returned class to the generic allocator (ACTIVE $1A/$1B)", () => {
@@ -271,15 +436,17 @@ test("emission: the veneer passes the returned class to the generic allocator (A
   const active = L("FIGHTER_PROJECTILE_ACTIVE");
   image.fill(0, active, active + 10);
   image[FRAME_COUNTER] = 0;
-  setMember(image, 0, [70, 100, 1, 0, 30]);
-  setMember(image, 1, [150, 100, 0xff, 0, 30]);
+  setMember(image, 0, [70, 100, ATTACK, 2, 1]);
+  setMember(image, 1, [150, 100, ATTACK, 2, 1]);
   tickMember(image, 0);
   tickMember(image, 1);
   assert.deepEqual([image[active + 5], image[active + 6]],
     [0x02 | (WEAPON_BOMBER << 3), 0x02 | 0x01 | (WEAPON_BOMBER << 3)]);
   assert.deepEqual([image[active + 5], image[active + 6]], [0x1a, 0x1b]);
   assert.deepEqual([image[L("ENEMY_MOVE_ACCUMULATOR")], image[L("ENEMY_MOVE_ACCUMULATOR") + 1]],
-    [48, 48], "independent per-member fire timers");
+    [1, 1], "independent per-member shells left");
+  assert.deepEqual([image[L("ENEMY_MANEUVER_STATE")], image[L("ENEMY_MANEUVER_STATE") + 1]],
+    [SALVO_INTERVAL, SALVO_INTERVAL], "the next shell follows burst_interval frames later");
 });
 
 test("source contract: the smoke scheduler is temporary data, placed in HYBRID_C_ARENA", () => {

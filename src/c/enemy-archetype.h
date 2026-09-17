@@ -53,6 +53,10 @@ enum {
     ENEMY_FIRE_RAIDER_PAIR_BURST = 1,
     ENEMY_FIRE_SINGLE_SHOT = 2,
     ENEMY_FIRE_LIGHT_DOUBLE_TAP = 3,
+    /* Bomber attack run (roadmap 4.5d): brake, charge, burst_count shells
+     * burst_interval frames apart, then post_burst reload. C-owned; the ASM
+     * Raider burst controller runs only for ENEMY_FIRE_RAIDER_PAIR_BURST. */
+    ENEMY_FIRE_HEAVY_SALVO = 4,
     ENEMY_RENDERER_TWO_HEAVY_PMG = 1,
     ENEMY_RENDERER_CHARACTER_2X1 = 2,
     /* Projectile colour and shape belong to the weapon class, never to the
@@ -107,6 +111,11 @@ extern volatile uint8_t heavy_member_y;
 extern volatile uint8_t heavy_member_direction;
 extern volatile uint8_t heavy_member_fire_timer;
 extern volatile uint8_t heavy_member_turn_timer;
+/* Sixth per-slot byte ($5482/$5483, MANEUVER_TIMER, unused by the Bomber
+ * motion): last seen HP | hit-flash frames left << 4. */
+extern volatile uint8_t heavy_member_aux;
+/* Colour C derives for the ticked member; ASM writes it to COLPM1+slot. */
+extern volatile uint8_t heavy_member_colour;
 
 extern volatile uint8_t enemy_profile_movement_id;
 extern volatile uint8_t enemy_profile_fire_policy_id;

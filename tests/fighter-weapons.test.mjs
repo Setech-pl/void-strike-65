@@ -35,11 +35,12 @@ const weapons = compileFighterWeapons(loadFighterWeaponsDefinition(
 const hulls = loadCapitalHullsDefinition(
   path.join(root, "assets", "graphics", "capital-hulls.json"));
 const labels = new Map(
-  fs.readFileSync(path.join(root, "build", "void-strike-65.lbl"), "utf8")
-    .split(/\r?\n/)
-    .map((line) => /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim()))
-    .filter(Boolean)
-    .map((match) => [match[2], Number.parseInt(match[1], 16)]),
+  ["void-strike-65.lbl", "encounter-director.lbl"].flatMap((file) =>
+    fs.readFileSync(path.join(root, "build", file), "utf8")
+      .split(/\r?\n/)
+      .map((line) => /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim()))
+      .filter(Boolean)
+      .map((match) => [match[2], Number.parseInt(match[1], 16)])),
 );
 
 function xexBytes(address, length) {
@@ -294,7 +295,7 @@ test("PlayerFighter glyphs and the assembled Interceptor glyph builder match aut
   const bank = 0x4400 + weapons.glyphLayout.interceptorBase * 8;
   const bankBytes = weapons.glyphs.interceptor.length * 8;
   memory.fill(0xa5, bank, bank + bankBytes);
-  run("build_interceptor_projectile_glyphs");
+  run("build_hostile_weapon_glyphs");
   const interceptorBytes = buildInterceptorProjectileGlyphBank(weapons,
     new Uint8Array(bankBytes).fill(0xa5));
   assert.deepEqual([...memory.subarray(bank, bank + bankBytes)], [...interceptorBytes],
@@ -302,8 +303,12 @@ test("PlayerFighter glyphs and the assembled Interceptor glyph builder match aut
   assert.deepEqual(weapons.hostileWeaponVisuals.map((rows) => [...rows]), [
     [0x00, 0xa0, 0x50, 0x00, 0x00, 0xa0, 0x50, 0x00],
     [0x20, 0x20, 0x20, 0x10, 0x10, 0x10, 0x10, 0x00],
-    [0xa0, 0x50, 0x50, 0x50, 0x50, 0x50, 0xa0, 0x00],
-  ], "PULSE white/steel tracer, LASER thin white/steel bolt, BOMBER steel-capped white shell");
+    [0x20, 0x80, 0xa0, 0x50, 0x50, 0x50, 0x50, 0x00],
+    [0x80, 0x20, 0xa0, 0x50, 0x50, 0x50, 0x50, 0x00],
+  ], "PULSE white/steel tracer, LASER thin white/steel bolt, BOMBER torpedo and its exhaust phase");
+  // 4.5d: visual 4 is the BOMBER animation phase, not a weapon_class.
+  assert.equal(weapons.hostileWeaponAnimated, true);
+  assert.deepEqual(weapons.hostileWeaponStepPeriodFrames, [1, 1, 2, 2]);
   for (let glyph = 0; glyph < 20; glyph += 1) {
     const cls = glyph % 10;
     const rows = [...interceptorBytes.subarray(glyph * 8, glyph * 8 + 8)];
@@ -317,9 +322,18 @@ test("PlayerFighter glyphs and the assembled Interceptor glyph builder match aut
     }
   }
   assert.deepEqual([...player_fighterBytes], weapons.glyphs.player_fighter.flat());
-  assert.match(source,
-    /build_interceptor_projectile_glyphs:\s+ldx #\(HOSTILE_WEAPON_VISUAL_COUNT\*8-1\)[\s\S]+lda hostile_weapon_visual_glyphs,x[\s\S]+lsr\s+lsr\s+lsr\s+lsr[\s\S]+bpl @row/);
-  const builder = runtimeBytes("build_interceptor_projectile_glyphs", 19);
+  // Roadmap 4.5d: the init-only builder and its table live in HYBRID_C_ARENA.
+  const abiSource = fs.readFileSync(path.join(root, "src", "hybrid", "c-asm-abi.s"), "utf8");
+  assert.match(abiSource,
+    /\.segment "HYBRID_ASM_ARENA"[\s\S]+build_hostile_weapon_glyphs:\s+ldx #\(HOSTILE_WEAPON_VISUAL_COUNT\*8-1\)[\s\S]+lda hostile_weapon_visual_glyphs,x[\s\S]+lsr\s+lsr\s+lsr\s+lsr[\s\S]+bpl @row/);
+  assert.doesNotMatch(source, /build_interceptor_projectile_glyphs:/);
+  assert.match(source, /jsr HYBRID_BUILD_HOSTILE_GLYPHS/);
+  for (const label of ["build_hostile_weapon_glyphs", "hostile_weapon_visual_glyphs"]) {
+    assert.ok(labels.get(label) > 0x7bd0 && labels.get(label) < 0x7f10, `${label} is in the arena`);
+  }
+  const arenaImage = fs.readFileSync(path.join(root, "build", "encounter-director-code-arena.bin"));
+  const builderOffset = labels.get("build_hostile_weapon_glyphs") - 0x7bd0;
+  const builder = arenaImage.subarray(builderOffset, builderOffset + 19);
   assert.deepEqual([...builder],
     [0xa2, weapons.hostileWeaponVisuals.length * 8 - 1,
       0xbd, labels.get("hostile_weapon_visual_glyphs") & 0xff, labels.get("hostile_weapon_visual_glyphs") >> 8,
@@ -360,6 +374,13 @@ test("hostile screen code follows weapon_class, not the emitter, and keeps the g
     [0x1e, 96, 0xdc], [0x1e, 98, 0xe6],    // Bomber (3)
   ]) {
     assert.equal(hostileProjectileScreenCode(active, x), screenByte);
+  }
+  // 4.5d: a BOMBER shell publishes its exhaust phase (visual 4) while frame & 4.
+  for (const [active, x, frame, screenByte] of [
+    [0x1e, 96, 3, 0xdc], [0x1e, 96, 4, 0xdd], [0x1f, 98, 7, 0xe7], [0x1f, 98, 8, 0xe6],
+    [0x0a, 96, 4, 0xda], [0x16, 98, 4, 0xe5],
+  ]) {
+    assert.equal(hostileProjectileScreenCode(active, x, frame), screenByte);
   }
   const generated = buildInterceptorProjectileGlyphBank(weapons,
     new Uint8Array(weapons.glyphs.interceptor.length * 8));

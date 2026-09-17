@@ -23,6 +23,7 @@
 #define ENEMY_MEMBER_STATE_1     U8_AT(0x5471u)
 #define ENEMY_HP_0               U8_AT(0x5472u)
 #define ENEMY_HP_1               U8_AT(0x5473u)
+#define ENEMY_HP_0_ADDRESS       ((volatile uint8_t*)0x5472u)
 #define ENEMY_PENDING_DAMAGE_0   U8_AT(0x5474u)
 #define ENEMY_PENDING_DAMAGE_1   U8_AT(0x5475u)
 #define ENEMY_TARGET_SLOT        U8_AT(0x5486u)
@@ -31,8 +32,8 @@
 #define ENEMY_Y_0                U8_AT(0x547Au)
 /* The Heavy member being ticked; ASM sets it before each member update. */
 #define HEAVY_SLOT               ENEMY_TARGET_SLOT
-/* First of the ten per-slot Heavy bytes $5478-$5481 (X, Y, VELOCITY_X,
- * MOVE_ACCUMULATOR, MANEUVER_STATE; two slots each). */
+/* First of the twelve per-slot Heavy bytes $5478-$5483 (X, Y, VELOCITY_X,
+ * MOVE_ACCUMULATOR, MANEUVER_STATE, MANEUVER_TIMER; two slots each). */
 #define HEAVY_SLOT_STATE         (&ENEMY_X_0)
 #define PLAYER_LIFECYCLE         U8_AT(0x4EAAu)
 #define PLAYER_X                 U8_AT(0x0080u)
@@ -81,7 +82,7 @@
 #define HULL_COLOUR_BOMBER       0x24u
 #define ENCOUNTER_HEAVY_SCHEDULE_LENGTH 2u
 #define HEAVY_PROFILE_BYTES      9u
-#define HEAVY_SLOT_STATE_LAST    9u
+#define HEAVY_SLOT_STATE_LAST    11u
 /* Bomber lane sweep (owner decision 20). X is the left edge of a 32-HPOS QUAD
  * hull; the lanes keep an 8-HPOS gap at their closest (92 + 32 = 124 < 132)
  * and the right lane ends flush with the playfield (176 + 32 = 208). */
@@ -90,6 +91,22 @@
 #define BOMBER_TURN_SPREAD       0x1Fu
 #define BOMBER_FIRE_TOP          24u
 #define BOMBER_FIRE_BOTTOM       200u
+/* Roadmap 4.5d attack run: when its reload expires inside the fire band a
+ * Bomber brakes (X and Y freeze), charges for BOMBER_AIM_FRAMES with its hull
+ * brightened, fires the record's burst_count shells burst_interval frames
+ * apart from the same column, then resumes the sweep in a fresh direction.
+ * The phase needs no extra byte: an odd direction (1 / $FF) is the sweep, 0
+ * is the attack; during the attack the turn timer counts down to the next
+ * shell and the fire timer holds the shells left. */
+#define BOMBER_ATTACK            0u
+#define BOMBER_AIM_FRAMES        20u
+#define BOMBER_CHARGE_LUMA       4u
+/* Hit flash: the sixth per-slot byte packs the last seen HP (low nibble) and
+ * the flash frames left (high nibble); a lower HP restarts the flash. */
+#define BOMBER_FLASH_FRAMES      6u
+#define BOMBER_FLASH_STEP        0x10u
+#define BOMBER_FLASH_LUMA        6u
+#define BOMBER_HP_MASK           0x0Fu
 
 #define ENEMY_INACTIVE           0u
 #define ENEMY_ACTIVE_STATE       1u
@@ -142,9 +159,9 @@ const EnemyArchetypeTable enemy_archetypes = { {
     {
         4u,
         ENEMY_MOVEMENT_BOMBER_LANE_SWEEP,
-        ENEMY_FIRE_SINGLE_SHOT,
-        1u, 0u,
-        80u, 64u, 48u,
+        ENEMY_FIRE_HEAVY_SALVO,
+        2u, 8u,
+        64u, 52u, 40u,
         ENEMY_RENDERER_TWO_HEAVY_PMG,
         ENEMY_WEAPON_BOMBER,
         0x50u,
@@ -181,10 +198,13 @@ volatile uint8_t heavy_member_y;
 volatile uint8_t heavy_member_direction;
 volatile uint8_t heavy_member_fire_timer;
 volatile uint8_t heavy_member_turn_timer;
+volatile uint8_t heavy_member_aux;
 /* cc65 stores an indexed lvalue with `sta abs,y` only when the value is a
  * plain load; arithmetic in place builds a runtime pointer (ptr1). */
 static uint8_t heavy_scratch;
 static uint8_t heavy_index;
+/* GTIA colour of the ticked member; ASM writes it to COLPM1+slot. */
+volatile uint8_t heavy_member_colour;
 #pragma bss-name ("HYBRID_C_STATE")
 volatile uint8_t enemy_profile_movement_id;
 volatile uint8_t enemy_profile_fire_policy_id;
@@ -531,15 +551,17 @@ static const uint8_t heavy_profile_fields[HEAVY_PROFILE_BYTES] = {
     ENEMY_ARCHETYPE_FIELD_DIRECTOR_VALUE
 };
 
-/* Lane-sweep formation start, $5478-$5481 by slot: X, Y, direction, first
- * fire delay, first turn delay. Slot 0 starts left moving right, slot 1
- * mirrored right moving left; slot 1 also fires 24 frames later. */
+/* Lane-sweep formation start, $5478-$5483 by slot: X, Y, direction, first
+ * fire delay, first turn delay, hit-flash byte (last HP 4, no flash). Slot 0
+ * starts left moving right, slot 1 mirrored right moving left; slot 1 also
+ * fires 24 frames later. */
 static const uint8_t bomber_formation_start[HEAVY_SLOT_STATE_LAST + 1u] = {
     48u, 176u,
     0u, 0u,
     1u, 0xFFu,
     48u, 72u,
-    60u, 52u
+    60u, 52u,
+    4u, 4u
 };
 /* Per slot: lane bounds, and the depth to which the member enters at one line
  * per frame before cruising at one line every other frame. Slot 1 slows early,
@@ -599,12 +621,59 @@ static void bomber_turn(void)
     heavy_member_turn_timer = (uint8_t)((FRAME_COUNTER & BOMBER_TURN_SPREAD) + BOMBER_TURN_MIN);
 }
 
-/* Lane-sweep tick of one live Heavy member (HEAVY_SLOT), called by the ASM
- * member loop after it captured the member's old Y. Y grows by at most one
- * line, as erase_enemy_departing_row requires. Returns 0, or the record's
- * weapon_class when this member fires; ASM emits exactly that class. */
+/* Hull colour of the ticked member: the formation colour, brightened while
+ * it charges an attack, brighter still for a few frames after a hit. Uses
+ * heavy_index only: heavy_scratch carries the tick's return value. */
+static void bomber_colour(void)
+{
+    heavy_index = ENEMY_HP_0_ADDRESS[HEAVY_SLOT];
+    if (heavy_index != (heavy_member_aux & BOMBER_HP_MASK)) {
+        heavy_member_aux = (uint8_t)(heavy_index | (BOMBER_FLASH_FRAMES << 4));
+    }
+    heavy_member_colour = heavy_hull_colour;
+    if (heavy_member_aux >= BOMBER_FLASH_STEP) {
+        heavy_member_aux -= BOMBER_FLASH_STEP;
+        heavy_member_colour += BOMBER_FLASH_LUMA;
+    } else if (heavy_member_direction == BOMBER_ATTACK) {
+        heavy_member_colour += BOMBER_CHARGE_LUMA;
+    }
+}
+
+/* Fire gates shared by the attack start and every shell of the salvo. */
+static uint8_t bomber_may_fire(void)
+{
+    return heavy_member_y >= BOMBER_FIRE_TOP && heavy_member_y <= BOMBER_FIRE_BOTTOM &&
+        (PLAYER_LIFECYCLE & PLAYER_DYING_OR_OVER) == 0u &&
+        (DIRECTOR_STATE_FLAGS & DIRECTOR_FLAG_CAPITAL_DUE) == 0u;
+}
+
+/* Heavy tick of one live Bomber member (HEAVY_SLOT), called by the ASM member
+ * loop after it captured the member's old Y. Y grows by at most one line, as
+ * erase_enemy_departing_row requires. Returns 0, or the record's weapon_class
+ * when this member fires a shell; ASM emits exactly that class and publishes
+ * heavy_member_colour for this member. */
 uint8_t enemy_c_heavy_tick(void)
 {
+    heavy_scratch = 0u;
+    if (heavy_member_direction == BOMBER_ATTACK) {
+        if (--heavy_member_turn_timer == 0u) {
+            if (bomber_may_fire() != 0u) {
+                heavy_scratch = enemy_profile_weapon_class;
+                if (--heavy_member_fire_timer != 0u) {
+                    heavy_member_turn_timer = enemy_profile_burst_interval;
+                    goto colour;
+                }
+            }
+            /* Salvo done or aborted: reload and sweep off in a fresh direction. */
+            heavy_member_fire_timer = enemy_profile_post_burst_frames;
+            heavy_member_direction = 1u;
+            if ((FRAME_COUNTER & 2u) != 0u) {
+                heavy_member_direction = 0xFFu;
+            }
+            bomber_turn();
+        }
+        goto colour;
+    }
     if (heavy_member_y < bomber_entry_depth[HEAVY_SLOT] ||
         ((FRAME_COUNTER ^ HEAVY_SLOT) & 1u) == 0u) {
         ++heavy_member_y;
@@ -612,22 +681,22 @@ uint8_t enemy_c_heavy_tick(void)
     if (--heavy_member_turn_timer == 0u) {
         bomber_turn();
     }
-    heavy_scratch = (uint8_t)(heavy_member_x + heavy_member_direction);
-    if (heavy_scratch < bomber_lane_first[HEAVY_SLOT] ||
-        heavy_scratch > bomber_lane_last[HEAVY_SLOT]) {
+    heavy_index = (uint8_t)(heavy_member_x + heavy_member_direction);
+    if (heavy_index < bomber_lane_first[HEAVY_SLOT] ||
+        heavy_index > bomber_lane_last[HEAVY_SLOT]) {
         bomber_turn();
     } else {
-        heavy_member_x = heavy_scratch;
+        heavy_member_x = heavy_index;
     }
     if (heavy_member_fire_timer != 0u) {
         --heavy_member_fire_timer;
-        return 0u;
+    } else if (bomber_may_fire() != 0u) {
+        /* Brake and charge; the salvo starts when the aim hold expires. */
+        heavy_member_direction = BOMBER_ATTACK;
+        heavy_member_turn_timer = BOMBER_AIM_FRAMES;
+        heavy_member_fire_timer = enemy_profile_burst_count;
     }
-    if (heavy_member_y < BOMBER_FIRE_TOP || heavy_member_y > BOMBER_FIRE_BOTTOM ||
-        (PLAYER_LIFECYCLE & PLAYER_DYING_OR_OVER) != 0u ||
-        (DIRECTOR_STATE_FLAGS & DIRECTOR_FLAG_CAPITAL_DUE) != 0u) {
-        return 0u;
-    }
-    heavy_member_fire_timer = enemy_profile_post_burst_frames;
-    return enemy_profile_weapon_class;
+colour:
+    bomber_colour();
+    return heavy_scratch;
 }

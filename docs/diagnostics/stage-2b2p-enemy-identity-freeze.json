@@ -1,0 +1,71 @@
+{
+  "step": "Roadmap 4.5d — Enemy Identity Freeze",
+  "date": "2026-09-17",
+  "base": "experiment/hybrid-c-director @ 2a8ff26 (4.5c Bomber candidate, XEX 0e4721b2…)",
+  "result": "INCONCLUSIVE — not committed: one hard gate failed (debris gate 0-neutral-fire0, one death-frame overrun)",
+  "implementation": {
+    "bomberMovement": "C (HYBRID_C_ARENA): sweep as 4.5c; when the reload expires inside Y 24-200 (player alive, capital not due) the member brakes (direction 0 = attack; X/Y frozen), charges 20 frames, fires burst_count 2 BOMBER shells burst_interval 8 frames apart from one column, then resumes the sweep in a direction seeded by FRAME_COUNTER bit 1 with a new 24-55-frame turn timer. Gates re-checked per shell; a failed gate aborts the salvo into the post-burst reload. No extra per-slot state.",
+    "bomberRecord": "[4, LANE_SWEEP 3, HEAVY_SALVO 4, 2, 8, 64/52/40, TWO_HEAVY_PMG, BOMBER 3, $50, 1] (4.5c: SINGLE_SHOT, 1, 0, 80/64/48). ENEMY_FIRE_HEAVY_SALVO = 4 is data only; the ASM Raider burst controller still runs only for policy 1.",
+    "bomberVisuals": "SCYTHE_BOMBER body $66,$66,$FF,$FF,$DB,$DB,$BD,$BD,$7E,$3C,$3C,$18,$18,$18,$00,$00 (QUAD, height 16 unchanged); hull $24; charge telegraph $28 (+4 luma) from brake to last shell; hit flash $2A (+6 luma) for 6 ticks when HP drops. Colour derived in C (heavy_member_colour), written by heavy_member_update to COLPM1+slot (+9 B HEAVY_CODE). Hit-flash byte = sixth per-slot byte ENEMY_MANEUVER_TIMER $5482/$5483 (last HP | flash << 4), marshalled as heavy_member_aux.",
+    "bomberWeapon": "BOMBER torpedo: phase A $20,$80,$A0,$50,$50,$50,$50,$00, phase B $80,$20,$A0,… (exhaust flicker) at visual 4 = glyphs 93/103, codes $DD/$E7, selected in hostile_projectile_screen_code while frame_counter & 4 (+12 B inside the fixed 70-B BROADSIDE slot). ACTIVE keeps class 3: step rate, damage (1 unit), allocation unchanged. Init-only builder + table moved to HYBRID_ASM_ARENA (HYBRID_BUILD_HOSTILE_GLYPHS). Trace header DFTRACE_INTERCEPTOR_GLYPH_LAST $E6 -> $E7.",
+    "raider": "no change (plan recommendation)",
+    "interceptorWingman": "no change",
+    "ownerChoiceDefaults": "damage 1 unit, white/steel shell (no %11), hull $24"
+  },
+  "placementMeasured": {
+    "arena": {"before": "392/832 B (ASM 20, C 339, RODATA 33), 440 free", "after": "614/832 B (ASM 71, C 504, RODATA 39), 218 free"},
+    "arenaRecord": {"before": "355 B packed, 3 sectors", "after": "558 B packed, 5 sectors"},
+    "transportSectors": {"before": 180, "after": 182},
+    "hybridCExtTail": {"before": 28, "after": 19, "floor": 16},
+    "extensionComposite": {"before": 871, "after": 880},
+    "entityCodeTail": {"before": 40, "after": 40},
+    "broadside": {"raw": "6,650 B unchanged; every BROADSIDE address outside the 70-B slot unchanged", "packedBefore": 5667, "packedAfter": 5641},
+    "codeAddresses": "void-strike-65.lbl diff limited to the 70-B slot internals and HEAVY_CODE @done",
+    "bss": "HYBRID_HEAVY_STATE $811B 9 -> 11 B: heavy_member_aux $8122, heavy_member_colour $8123, C scratch moved to $8124-$8125 (formerly unowned $8124-$813F). Plan estimated +1 B; the marshalled sixth scalar needs its own byte.",
+    "hostileGlyphs": "8 of 20 in use: 90-93 / 100-103 (PULSE, LASER, BOMBER, BOMBER phase B)",
+    "xexBytes": {"before": 23497, "after": 23728}
+  },
+  "behaviourMeasured": {
+    "method": "build-image 6502 harness, one unobstructed never-killed Bomber formation, heavy_member_update per member per frame",
+    "shellsPerMember": {"EASY": "4 -> 10", "MEDIUM": "5 -> 12", "HARD": "7 -> 16"},
+    "attackPeriodFrames": {"EASY": "81 -> 93 (2 shells)", "MEDIUM": "65 -> 81", "HARD": "49 -> 69"},
+    "firstShotFrame": "48/72 -> 68/92 (20-frame charge)",
+    "formationLifetimeFramesSlot0": {"EASY": "422 -> 562", "MEDIUM": "422 -> 590", "HARD": "422 -> 646"},
+    "note": "lifetime growth exceeds the plan ESTIMATE (~+85 frames MEDIUM): each attack freezes Y for 29 frames",
+    "memberTickWorstCycles": {"before": 511, "after": 646}
+  },
+  "gates": {
+    "build": "build:candidate PASS; XEX 838a9686249de0b7f338605755e4206856bbdc222cb46cb9717e921ffdf7b5dd, ATR f8fd090d47ce003d44b4e4db3283ceab100a7d7e0fe3040e4a45a745a4f5cfe9",
+    "bootSmoke": "PASS 4/4 after --prepare: XEX start 78 / loader 135 / menu 392; ATR start 239 / loader 297 / menu 554 vs deadline 190 + 2 x 182 = 554 (0 frames margin, unchanged)",
+    "arenaWriteWatch": "PASS 4/4 (xex-00, xex-a5, atr-00, atr-a5): 832-B arena exact at start, 0 window/hold/stage writes",
+    "palReplays": {
+      "2-sweep-fire6": "max 29,619 (4.5c 30,075)",
+      "2-evasive-fire3": "max 29,744 (4.5c 29,822)",
+      "2-sweep-fire4": "max 29,464 (4.5c 29,101)",
+      "2-neutral-fire0": "max 29,075 (4.5c 29,894)",
+      "all": "0 missed frames, 0 extra VBI, 0 DLI sequence violations; charge $28 and flash $2A seen on COLPM1 and COLPM2; diverging replays"
+    },
+    "bomberEncounterTrace": "DFTRACE_INTERCEPTOR_PROJECTILE_OUTPUT on natural replays: 2-neutral-fire0 410 frames with shells of both Bombers in flight, visible codes $DC/$DD/$E6/$E7; 2-sweep-fire6 278 BOMBER shell-frames after their emitter stopped being active (emitter-independent shots continue)",
+    "debrisGate": {
+      "candidate": "FAIL 2/3: 0-evasive-fire3 PASS, capital-muzzle-ring-2-sweep-fire4 PASS, 0-neutral-fire0 FAIL (post-capital 32 blank / 1,264 in view)",
+      "head2a8ff26": "PASS 3/3 on its own (different) replays, maxima 30,038 / 29,881 / 30,077"
+    },
+    "focusedTests": "15 files, 208 tests, 14 failing — all names already failing at 2a8ff26",
+    "fullSuite": "node --test tests/*.test.mjs: 667 tests, 114 failing; failure-name set identical to a clean worktree of 2a8ff26 (661 tests, 114 failing) with the owner's untracked booster diagnostic"
+  },
+  "gateFailureAnalysis": {
+    "measured": [
+      "debris-gate-0-neutral-fire0 host frame 3007: the player dies (lifecycle 0 -> 1) in a Bomber formation (COLPM1/2 $24) with 8 projectiles live and a +5 kill in the same frame; wall 62,682 cycles",
+      "per-stage clocks of frame 3007 vs 3005: world 5,153 vs 3,330, entity_update 5,716 vs 1,086, entity_render 2,027 vs 48, effect_visuals 1,208 vs 297, frame_visuals 847 vs 311; enemy stage 4,698 vs 4,638",
+      "cumulative work before the publication wait: 25,656 cycles; wait_frame_at_line $77 only exits on VCOUNT == $77 (scanline 238), so the frame waited one extra PAL frame",
+      "all 32 blank debris frames lie in host frames 3,422-4,549, while the tracer's frame boundaries are shifted by that overrun (start_scanline 250-273, every frame ~35.4k) until the next game resets alignment at host frame 4,401",
+      "largest pre-wait cost in the HEAD debris gate: 24,123 (no overrun); candidate enemy-stage maximum 5,453 vs HEAD 5,315"
+    ],
+    "estimate": [
+      "deadline ~ (238 - 18) x 114 = ~25,080 pre-wait cycles; frame 3007 exceeded it by ~576",
+      "4.5d share of that frame is at most ~270 cycles (two member ticks 511 -> 646), so the frame would very likely also overrun at 4.5c cost; the dominant cost is the death + kill + ring work",
+      "the denser Bomber fire can make such coincidences more frequent; not measured"
+    ],
+    "classification": "hard-gate failure on a diverging replay; mechanism is a death-frame budget edge not proven pre-existing (no identical-replay A/B possible because the Bomber behaviour changes the replay)"
+  }
+}

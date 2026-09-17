@@ -597,7 +597,7 @@ test("M0 remains isolated while M1-M3 masked writes and SIZEM updates preserve e
   assert.doesNotMatch(routine("allocate_player_fighter_projectile", "update_enemy_weapon_runtime"),
     /initialize_projectile_screen_pointer/,
     "unrendered allocations must defer their redundant screen-pointer calculation");
-  assert.match(routine("render_fighter_projectile_overlays", "build_interceptor_projectile_glyphs"),
+  assert.match(routine("render_fighter_projectile_overlays", "hostile_weapon_visual_slot"),
     /initialize_projectile_screen_pointer/,
     "the real overlay renderer remains the authoritative pointer owner");
   assert.match(routine("init_broadside", "update_broadside"),

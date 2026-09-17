@@ -75,7 +75,10 @@ independent turns; the opening vertical crossing reverses their vertical order.
 The formation shares one enemy burst controller: five white/steel `PULSE` PairShots at 15-frame
 intervals, then a 60/50/40-frame pause on Easy/Medium/Hard, with at most five
 enemy PairShots in flight. Enemy PairShots move two scanlines per PAL frame.
-Shots still in flight when their Raider is destroyed expire with it.
+An enemy shot already in flight is independent of its emitter (owner decision
+2026-09-17): destroying the Raider, Light Wingman, Interceptor or a future
+Bomber leaves it on its normal path until it hits the player, expires, leaves
+the playfield or a player death, respawn, new game or quit clears the pool.
 
 Every Raider activation and recycle starts the complete 14-scanline body above
 the gameplay boundary at PMG Y=2. The two machines descend by their existing

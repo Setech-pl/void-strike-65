@@ -209,7 +209,7 @@ test("single-shot fire policy is slower than the Heavy burst and gated by visibi
   assert.equal(run(image, "enemy_light_tick").a, 1, "fires, returning weapon_class PULSE");
 });
 
-test("ASM emits one PULSE PairShot owned by the leader's P1 emitter bit", () => {
+test("ASM emits one PULSE PairShot tagged with the leader's P1 emitter bit", () => {
   const image = game(2);
   run(image, "enemy_spawn_raiders");
   setLeader(image, 80, 112);
@@ -225,13 +225,12 @@ test("ASM emits one PULSE PairShot owned by the leader's P1 emitter bit", () => 
     [0xf0, 0xfc, 0x3f, 0x0f, 0x0f, 0x03, 0x03, 0x00,
       0x0f, 0x3f, 0xfc, 0xf0, 0xf0, 0xc0, 0xc0, 0x00]);
 
-  // Existing emitter-owned cleanup: P2 death keeps it, P1 (leader) death frees it.
-  image[L("ENEMY_TARGET_SLOT")] = 1;
-  run(image, "begin_enemy_fighter_explosion_with_projectile_cleanup");
-  assert.equal(image[active + ENEMY_BASE], LIGHT_OWNER);
-  image[L("ENEMY_TARGET_SLOT")] = 0;
-  run(image, "begin_enemy_fighter_explosion_with_projectile_cleanup");
-  assert.equal(image[active + ENEMY_BASE], 0);
+  // Emitter-independent shots: neither leader death frees the Light shot.
+  for (const slot of [1, 0]) {
+    image[L("ENEMY_TARGET_SLOT")] = slot;
+    run(image, "spawn_interceptor_breakup_effects");
+    assert.equal(image[active + ENEMY_BASE], LIGHT_OWNER);
+  }
 
   // A full shared enemy pool drops the single shot rather than stealing a slot.
   image.fill(2, active + ENEMY_BASE, active + 10);

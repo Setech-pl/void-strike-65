@@ -248,8 +248,8 @@ light_shot:
 @target:
     jmp entity_player_fighter_projectile_target
 
-; Lethal hit: breakup feedback, score and sound. Light shots carry the leader
-; P1 emitter bit, so they follow the existing emitter-owned cleanup unchanged.
+; Lethal hit: breakup feedback, score and sound. Already-emitted Light shots
+; are independent of the Light and of the leader: they keep their lifecycle.
 light_destroyed:
     jsr clear_transient_effects
     jsr light_top

@@ -471,8 +471,11 @@ const traceLabels = {
   DFTRACE_PC_EFFECT_RENDER: "render_transient_effect_overlays",
   DFTRACE_PC_INTERCEPTOR_BREAKUP_REQUEST: "spawn_interceptor_breakup_effects",
   DFTRACE_PC_INTERCEPTOR_BREAKUP_SPAWN: "materialize_interceptor_breakup_effects",
-  DFTRACE_PC_EMITTER_CLEANUP: "begin_enemy_fighter_explosion_with_projectile_cleanup",
-  DFTRACE_PC_EMITTER_CLEANUP_END: "begin_enemy_fighter_explosion_tail",
+  // Emitter-independent hostile PairShots: the kill boundary is the explosion
+  // entry; its first instruction touches no projectile, so the end hook proves
+  // every emitter-owned shot continues.
+  DFTRACE_PC_EMITTER_CLEANUP: "begin_enemy_fighter_explosion_tail",
+  DFTRACE_PC_EMITTER_CLEANUP_END: "begin_enemy_fighter_explosion_body",
   DFTRACE_PC_PICKUP_QUALIFIED_KILL: "weapon_pickup_record_qualified_kill",
   DFTRACE_PC_PICKUP_COLLECT: "weapon_pickup_collect",
   DFTRACE_PC_ENTITY_ERASE: "clear_fighter_pickup_pmg",
@@ -3436,10 +3439,10 @@ function main() {
         raiderSlot0Activations === 0 &&
         emitterOwnership.kills_with_emitter_projectile_active > 0 &&
         emitterOwnership.emitter_owned_projectiles_at_kill ===
-          emitterOwnership.emitter_owned_projectiles_removed &&
+          emitterOwnership.post_kill_emitter_projectile_continuations &&
+        emitterOwnership.emitter_owned_projectiles_removed === 0 &&
         emitterOwnership.foreign_projectiles_preserved > 0 &&
         emitterOwnership.foreign_projectiles_incorrectly_removed === 0 &&
-        emitterOwnership.post_kill_emitter_projectile_continuations === 0 &&
         anomalies.enemy_projectile_stale_cells === 0 &&
         genericEffectSpawnRows.length > 0 &&
         validGenericEffectSpawns === genericEffectSpawnRows.length &&

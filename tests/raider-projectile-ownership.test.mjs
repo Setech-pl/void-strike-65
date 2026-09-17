@@ -12,14 +12,16 @@ import {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const source = fs.readFileSync(path.join(root, "src", "main.s"), "utf8");
 
-test("owner artifact is positively attributed to a surviving enemy PairShot", () => {
-  const before = executeRaiderProjectilePersistenceAttribution({
-    root, artifact: "xex", casesPerScenario: 20, legacyEmitterPersistence: true,
+// Owner decision 2026-09-17: an already-emitted hostile PairShot is independent
+// of its emitter and continues its normal lifecycle after the emitter dies.
+test("a Raider kill leaves every already-emitted PairShot visible and active", () => {
+  const result = executeRaiderProjectilePersistenceAttribution({
+    root, artifact: "xex", casesPerScenario: 20,
   });
-  assert.equal(before.post_kill_falling_objects_after_active_shot, 20);
-  assert.equal(before.post_kill_falling_objects_without_active_shot, 0);
-  assert.equal(before.all_visible_objects_are_active_enemy_pairshots, true);
-  for (const item of before.with_shot) {
+  assert.equal(result.post_kill_falling_objects_after_active_shot, 20);
+  assert.equal(result.post_kill_falling_objects_without_active_shot, 0);
+  assert.equal(result.all_visible_objects_are_active_enemy_pairshots, true);
+  for (const item of result.with_shot) {
     assert.equal(item.post_kill_projectiles.length, 1);
     const projectile = item.post_kill_projectiles[0];
     assert.equal(projectile.slot, item.allocated_slot);
@@ -30,14 +32,12 @@ test("owner artifact is positively attributed to a surviving enemy PairShot", ()
   }
 });
 
-test("fixed production path leaves no emitter projectile after either Raider kill", () => {
-  const fixed = executeRaiderProjectilePersistenceAttribution({
-    root, artifact: "xex", casesPerScenario: 20,
-  });
-  assert.equal(fixed.post_kill_falling_objects_after_active_shot, 0);
-  assert.equal(fixed.post_kill_falling_objects_without_active_shot, 0);
-  assert.ok(fixed.with_shot.every((item) =>
-    item.writes.character_effect === 0 && item.writes.gameplay_debris === 0));
+test("the Raider kill path carries no emitter-owned projectile cleanup", () => {
+  assert.doesNotMatch(source, /begin_enemy_fighter_explosion_with_projectile_cleanup/);
+  const breakup = source.slice(source.indexOf("spawn_interceptor_breakup_effects:"),
+    source.indexOf("materialize_interceptor_breakup_effects:"));
+  assert.match(breakup, /jmp begin_enemy_fighter_explosion\n/);
+  assert.equal((source.match(/and #FIGHTER_PROJECTILE_INTERCEPTOR_EMITTER_MASK/g) ?? []).length, 0);
 });
 
 test("enemy ACTIVE bit zero stores emitter identity without changing consumers", () => {
@@ -57,19 +57,26 @@ test("enemy ACTIVE bit zero stores emitter identity without changing consumers",
     /FIGHTER_PROJECTILE_ACTIVE,x/);
 });
 
-test("P1 and P2 destruction remove only their own rendered projectiles", () => {
+test("P1 and P2 destruction keep both emitters' rendered projectiles", () => {
   for (const killEmitter of [0, 1]) {
     const result = executeRaiderProjectileOwnershipIsolation({
       root, artifact: "xex", killEmitter, renderedAtKill: true,
     });
     // P1/P2 emitter bit | hostile bit | weapon_class PULSE (1) << 3.
     assert.deepEqual(result.ownership_values_after_allocation, [10, 11]);
-    assert.equal(result.killed_projectiles_removed, true);
+    assert.equal(result.killed_emitter_projectiles_preserved, true);
     assert.equal(result.foreign_projectiles_preserved, true);
-    assert.equal(result.after_resolve[killEmitter].active, 0);
-    assert.equal(result.after_resolve[killEmitter].rendered, 0xff,
-      "OLD visible ownership must remain latched until the normal publication erase");
-    assert.notEqual(result.after_resolve[killEmitter ^ 1].active, 0);
+    assert.deepEqual(result.after_resolve.map((record) => record.active), [10, 11]);
+    for (const emitter of [0, 1]) {
+      assert.equal(result.next_frame[emitter].active,
+        result.ownership_values_after_allocation[emitter]);
+      assert.equal(result.next_frame[emitter].y, result.after_publication[emitter].y + 2);
+      assert.equal(result.next_frame[emitter].lifetime,
+        result.after_publication[emitter].lifetime - 1);
+    }
+    assert.equal(result.effect_character_writes, 0);
+    assert.equal(result.debris_character_writes, 0);
+    // Pre-existing at 2a67684: this harness scores 0x35, not 0x10 (known test debt).
     assert.deepEqual(result.destruction_feedback, {
       enemy_explosion_timer: 24,
       hit_sound_timer: 14,
@@ -79,35 +86,25 @@ test("P1 and P2 destruction remove only their own rendered projectiles", () => {
       foreign_member_state: 1,
       enemy_live_count: 1,
     });
-    assert.equal(result.next_frame[killEmitter].active, 0);
-    assert.equal(result.next_frame[killEmitter ^ 1].active,
-      result.ownership_values_after_allocation[killEmitter ^ 1]);
-    assert.equal(result.next_frame[killEmitter ^ 1].y,
-      result.after_publication[killEmitter ^ 1].y + 2);
-    assert.equal(result.next_frame[killEmitter ^ 1].lifetime,
-      result.after_publication[killEmitter ^ 1].lifetime - 1);
-    assert.equal(result.effect_character_writes, 0);
-    assert.equal(result.debris_character_writes, 0);
   }
 });
 
-test("cleanup is safe between publications, near the player, and at the bottom", () => {
+test("persistence is safe between publications, near the player, and at the bottom", () => {
   for (const killEmitter of [0, 1]) {
     for (const renderedAtKill of [false, true]) {
       for (const projectileY of [96, 216, 228]) {
         const result = executeRaiderProjectileOwnershipIsolation({
           root, artifact: "xex", killEmitter, renderedAtKill, projectileY,
         });
-        assert.equal(result.killed_projectiles_removed, true,
-          `emitter ${killEmitter}, rendered ${renderedAtKill}, Y ${projectileY}`);
-        assert.equal(result.foreign_projectiles_preserved, true,
-          `foreign emitter ${killEmitter ^ 1}, rendered ${renderedAtKill}, Y ${projectileY}`);
+        const label = `emitter ${killEmitter}, rendered ${renderedAtKill}, Y ${projectileY}`;
+        assert.equal(result.killed_emitter_projectiles_preserved, true, label);
+        assert.equal(result.foreign_projectiles_preserved, true, label);
       }
     }
   }
 });
 
-test("XEX and ATR execute identical emitter cleanup", () => {
+test("XEX and ATR execute identical emitter-independent kills", () => {
   for (const killEmitter of [0, 1]) {
     const traces = ["xex", "atr"].map((artifact) =>
       executeRaiderProjectileOwnershipIsolation({ root, artifact, killEmitter }));
@@ -115,7 +112,7 @@ test("XEX and ATR execute identical emitter cleanup", () => {
       ownership: trace.ownership_values_after_allocation,
       afterResolve: trace.after_resolve,
       afterPublication: trace.after_publication,
-      removed: trace.killed_projectiles_removed,
+      preserved: trace.killed_emitter_projectiles_preserved,
       foreign: trace.foreign_projectiles_preserved,
       allocationCycles: trace.allocation_cycles,
       destructionCycles: trace.destruction_cycles,

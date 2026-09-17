@@ -236,7 +236,7 @@ C-owned lifecycle field.
 | reusable runtime arena `HYBRID_C_ARENA` (roadmap 4.5M-M3 candidate; replaces the 243-B 4.5a `HYBRID_C_HEAVY` window `$7E12-$7F04`) | 1 of 832 | `$7BD0-$7F0F`, one contiguous arena for cc65 CODE (`#pragma code-name ("HYBRID_C_ARENA")`), cc65 RODATA (`#pragma rodata-name ("HYBRID_C_ARENA_RODATA")`) and explicitly assigned ca65 helpers (`.segment "HYBRID_ASM_ARENA"`, linked with the ABI veneer); its linked image is its own DFMC record landing directly at `$7BD0` (no hold, no publish copy); the only content is the 1-B `rts` record anchor `hybrid_arena_anchor`; ld65 asserts start, 832-B capacity, contents ≤ capacity and end ≤ `$7F10` (A2 display lists) |
 | Light ASM `LIGHT_CODE` (late publication: erase, render) | 133 | `$8F6A-$8FEE` (`41ace65`); 203 B `$8E7A-$8F44` at `b4b942e` with the debris late-publication kernel; same 203 B at `$8F1E-$8FE8` in the 4.4 candidate, 23 B tail |
 | Light ASM `LIGHT_RESIDENT` (update, shot, kill, glyph) | 226 | `$8776-$8857`; 229 B `$8776-$885A` in the 4.4 candidate (`ldx LIGHT_ARCHETYPE_OFFSET`); 225 B `$8776-$8856` in the 4.4b candidate (art moved out, archetype art selection added) |
-| Light ASM art tables (Wingman + Interceptor, ENTITY_CODE tail, 4.4b candidate) | 32 | `$9D31-$9D50` |
+| Light ASM art tables (Wingman + Interceptor, ENTITY_CODE tail, 4.4b candidate) | 32 | `$9D31-$9D50`; `$9D16-$9D35` since the emitter-independent hostile shots candidate |
 | Light ASM lower-layer backing resolver (STARFIELD tail) | 31 | `$5D45-$5D63` |
 | Light ASM score add (retired BROADSIDE pad) | 17 | `$77A1-$77B1` |
 | cc65 RNG CODE | 21 | `$9D5E-$9D72` |

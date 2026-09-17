@@ -75,16 +75,8 @@ function screenCoordinates(memory, labels, slot) {
   };
 }
 
-function executeCase({ root, artifact, caseIndex, withShot, legacyEmitterPersistence }) {
+function executeCase({ root, artifact, caseIndex, withShot }) {
   const { memory, labels } = initialiseRuntime(root, artifact);
-  if (legacyEmitterPersistence) {
-    const cleanup = requiredLabel(labels,
-      "begin_enemy_fighter_explosion_with_projectile_cleanup");
-    const explosion = requiredLabel(labels, "begin_enemy_fighter_explosion_tail");
-    memory[cleanup] = 0x4c;
-    memory[cleanup + 1] = explosion & 0xff;
-    memory[cleanup + 2] = explosion >> 8;
-  }
   const emitter = caseIndex & 1;
   armFormation(memory, labels, emitter, caseIndex);
   const writes = [];
@@ -155,18 +147,18 @@ function executeCase({ root, artifact, caseIndex, withShot, legacyEmitterPersist
   };
 }
 
+// Owner decision 2026-09-17: an already-emitted hostile PairShot is independent
+// of its emitter and continues its normal lifecycle after the emitter dies.
 export function executeRaiderProjectilePersistenceAttribution({
   root = defaultRoot, artifact = "xex", casesPerScenario = 20,
-  legacyEmitterPersistence = false,
 } = {}) {
   const withShot = Array.from({ length: casesPerScenario }, (_, caseIndex) =>
-    executeCase({ root, artifact, caseIndex, withShot: true, legacyEmitterPersistence }));
+    executeCase({ root, artifact, caseIndex, withShot: true }));
   const withoutShot = Array.from({ length: casesPerScenario }, (_, caseIndex) =>
-    executeCase({ root, artifact, caseIndex, withShot: false, legacyEmitterPersistence }));
+    executeCase({ root, artifact, caseIndex, withShot: false }));
   return {
-    schema_version: 1,
+    schema_version: 2,
     artifact,
-    legacy_emitter_persistence: legacyEmitterPersistence,
     cases_per_scenario: casesPerScenario,
     post_kill_falling_objects_after_active_shot: withShot.reduce((sum, item) =>
       sum + item.post_kill_projectiles.length, 0),
@@ -257,8 +249,6 @@ export function executeRaiderProjectileOwnershipIsolation({
       screen_address: address,
       screen_code: memory[address],
       backing: backgrounds.get(slot) ?? 0,
-      killed_cell_restored: emitter !== killEmitter || !renderedAtKill ||
-        memory[address] === backgrounds.get(slot),
     };
   });
   const publicationWrites = writes.slice(publicationWriteStart);
@@ -286,9 +276,9 @@ export function executeRaiderProjectileOwnershipIsolation({
     after_resolve: afterResolve,
     after_publication: afterPublication,
     next_frame: nextFrame,
-    killed_projectiles_removed: afterPublication.filter((record) =>
-      record.emitter === killEmitter).every((record) => record.active === 0 &&
-        record.rendered === 0 && record.killed_cell_restored),
+    killed_emitter_projectiles_preserved: afterPublication.filter((record) =>
+      record.emitter === killEmitter).every((record) => record.active !== 0 &&
+        record.rendered !== 0),
     foreign_projectiles_preserved: afterPublication.filter((record) =>
       record.emitter !== killEmitter).every((record) => record.active !== 0 &&
         record.rendered !== 0),

@@ -112,8 +112,9 @@ test("the arena lands directly as its own DFMC record and is the only owner of i
   assert.ok(arena.worstCaseFullArenaSectors * 128 <= 0x1954);
   assert.match(chunkLoaderSource, /\[0x7bd0, 0x7f10\]/);
   // 4.5M-M3 measured: 8 records, 178 transport sectors, initial block unchanged.
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13162);
-  assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 22);
+  // Emitter-independent hostile shots: ENTITY_CODE −27 B (−25 B packed).
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13137);
+  assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 47);
   assert.equal(manifest.transportCapacity.initialBootSectors, 103);
   assert.equal(manifest.transportCapacity.totalTransportSectors, 178);
   assert.equal(parsed.totalOccupiedSectors, 178);

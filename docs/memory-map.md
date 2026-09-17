@@ -455,6 +455,24 @@ writes through the full lifecycle. Boot smoke on that proof: XEX menu 392
 the full record costs more than the per-sector allowance). Evidence:
 [diagnostics/stage-2b2m-hybrid-c-arena.json](diagnostics/stage-2b2m-hybrid-c-arena.json).
 
+## Emitter-independent hostile shots — OWNER-SMOKE CANDIDATE (2026-09-17)
+
+Measured on top of `2a67684`. Only ENTITY_CODE contents shrink (the 27-B
+Raider-kill projectile cleanup is removed); no segment, reservation, record or
+BSS range changes. These rows override the ENTITY_CODE rows above.
+
+| Range | Size | Candidate owner |
+| --- | ---: | --- |
+| `$9100-$9D15` | 3,094 B | ENTITY_CODE code (−27 B) |
+| `$9D16-$9D25` | 16 B | `light_glyph` (Wingman art, bytes unchanged) |
+| `$9D26-$9D35` | 16 B | `light_interceptor_glyph` (one page with the Wingman table) |
+| `$9D36-$9D5D` | 40 B | free ENTITY_CODE reservation tail (13 B before) |
+
+ENTITY packed 2,717 → 2,692 B; initial boot content 13,162 → 13,137 B (103
+sectors, envelope 22 → 47 B); 178 transport sectors unchanged. Linked runtime
+17,475 B, simultaneous 19,467 B, safe 2,720 B. The merged low-C/GLUE record
+`$9B40-$9D31` stays inside the later ENTITY expansion.
+
 ## Blocked-experiment evidence — not part of this map
 
 The 2026-09-16 Interceptor experiment (`BLOCKED_PLACEMENT`) measured additional

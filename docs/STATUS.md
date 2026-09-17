@@ -18,8 +18,8 @@ the values below.
 the 4.4c hostile weapon visuals, the roadmap 4.5a Heavy window capacity
 increment (superseded by the M3 arena), the 4.5b `BOMBER` weapon class, the
 4.5M-M1 starfield staging swap and the 4.5M-M2 cold-record relocation (both
-owner smoke PASS 2026-09-17) and the 4.5M-M3 `HYBRID_C_ARENA` (sections below)
-on top of `f4cb18b`, the documentation-only reconciliation of
+owner smoke PASS 2026-09-17), the 4.5M-M3 `HYBRID_C_ARENA` and the
+emitter-independent hostile shots fix (sections below) on top of `f4cb18b`, the documentation-only reconciliation of
 the owner acceptance recorded here. None of these candidates is accepted; the
 accepted runtime is still `b4b942e`.
 
@@ -138,6 +138,18 @@ comparing CPU.
   has a contiguous idle window, and each stream is bounded by one 960-B
   resident copy (B ≤ 960 B, not 1,032 B) because the table-driven boot copier
   is stage-2 overlay code that is gone by the time the deferred copies run;
+- debris death-frame blink (found 2026-09-17, pre-existing mechanism): when a
+  player PairShot was published over a debris cell and the player dies next
+  frame, `apply_player_damage → erase_bullet` restores the shot's resolved
+  (space) backing mid-frame and the debris returns only in the late window, so
+  the cell scans blank for one frame. It fails `debris-gate-0-evasive-fire3` on
+  the hostile-shot candidate (divergent replay); first-writer proof in
+  [diagnostics/stage-2b2n-hostile-shot-emitter-independence.json](diagnostics/stage-2b2n-hostile-shot-emitter-independence.json);
+- pre-existing native gate failures (identical on `2a67684`): the default
+  wall-trace mode aborts at `weapon-pickup-contact-2-hunt-fire4` ("changed GTIA
+  priority or the single erase/draw lifecycle") after 21 sessions, and
+  `--raider-remnant-only` reports fewer main explosions than kills (139/141 at
+  `2a67684`, 134/135 on the candidate);
 - test debt: the full `node --test tests/*.test.mjs` run keeps known stale
   failures — 115 at `b4b942e` (measured 2026-09-16 on a clean export, counting
   the owner's uncommitted `tests/booster-admission-diagnostic.test.mjs`) and
@@ -861,6 +873,55 @@ collision/VBI/DLI/PMG address is unchanged (`.lbl` diff: only
 Candidate XEX `cbba293f…`, ATR `a75c62b9…`, owner-smoke copy in
 `build/owner-smoke/hybrid-c-arena-cbba293f/`. Evidence:
 [diagnostics/stage-2b2m-hybrid-c-arena.json](diagnostics/stage-2b2m-hybrid-c-arena.json).
+
+---
+
+## Emitter-independent hostile shots — `OWNER-SMOKE CANDIDATE` (2026-09-17)
+
+Owner decision 2026-09-17: an already-emitted hostile projectile is
+independent of its emitter and continues its normal lifecycle after the enemy
+dies (Raider, Light Wingman, Interceptor, future Bomber shell).
+
+- **Root cause.** Every lethal Raider hit ran
+  `begin_enemy_fighter_explosion_with_projectile_cleanup`, freeing the hostile
+  slots whose ACTIVE bit 0 matched the dead Raider; Light shots carry the P1
+  tag, so they vanished with Raider P1. The Light kill path never cleared
+  shots; no C code touches projectile slots.
+- **Change.** `spawn_interceptor_breakup_effects` jumps straight to
+  `begin_enemy_fighter_explosion`; the 27-B cleanup routine is removed.
+  Owner/class bits stay (allocation, burst alternation, tracing). Shots still
+  end on player collision, lifetime expiry, the bottom edge, player death
+  (`clear_interceptor_pulses`), respawn (`clear_fighter_projectiles`) and new
+  game/quit (`init_fighter_projectiles`); capital admission already waits for
+  released shots.
+- **Placement (measured).** ENTITY_CODE 3,153 → 3,126 B; free ENTITY tail
+  13 → 40 B; Light art `$9D31-$9D50` → `$9D16-$9D35`; linked runtime
+  17,502 → 17,475 B; simultaneous 19,494 → 19,467 B; safe 2,693 → 2,720 B;
+  initial boot content 13,162 → 13,137 B; 178 transport sectors unchanged;
+  BSS, zero page and C stack unchanged. No memory-architecture change.
+- **CPU.** No added code; per-kill cost −144 cycles (5-slot scan gone).
+  Orphaned shots live out their lifetime inside the unchanged 5-slot pool.
+  Native PAL, 21 sessions: 0 missed frames, 0 extra VBI, 0 DLI errors; worst
+  30,820 → 30,820 (`director-complete-1`); largest delta
+  `debris-effects-2-sweep-fire4` 30,216 → 30,767 (diverging replay);
+  `2-evasive-fire3` 29,519 → 29,570, `2-sweep-fire4` 29,801 unchanged.
+- **Gates.** Boot smoke PASS 4/4 (XEX menu 392; ATR 546 vs deadline 546).
+  PairShot-stale native PASS. Raider-remnant native: 200 emitter-owned shots at
+  135 kills all continued, 0 removed, 0 foreign removed, 0 stale cells / orphans
+  (report fails only on the pre-existing explosion count). Debris gate: 2/3 PASS;
+  `0-evasive-fire3` has 1 blank frame in 1,013 caused by the pre-existing
+  death-frame blink (open defects); baseline PASS 3/3 on its own diverging
+  replay.
+- **Tests.** New `tests/hostile-projectile-emitter-independence.test.mjs` (6,
+  all fail on `2a67684`); updated `raider-projectile-ownership`,
+  `light-wingman`, and the measured sizes in `light-interceptor` and
+  `hybrid-c-arena`. Full suite: failure-name set identical to `2a67684`
+  except one renamed ownership test that keeps its pre-existing harness score
+  assertion (0x35 ≠ 0x10).
+
+Candidate XEX `f9c4a96d…`, ATR `5e026009…`, owner-smoke copy in
+`build/owner-smoke/hostile-shot-independence-f9c4a96d/`. Evidence:
+[diagnostics/stage-2b2n-hostile-shot-emitter-independence.json](diagnostics/stage-2b2n-hostile-shot-emitter-independence.json).
 
 ---
 

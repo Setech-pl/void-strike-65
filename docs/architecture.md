@@ -328,8 +328,8 @@ released, it continues straight down one scanline per frame and retires at
 scanline 232; a respawned slot never re-captures
 it. It fires one red PairShot after its difficulty pause (64/80/96 frames on
 HARD/MEDIUM/EASY) when fully visible and the player is alive; a full shared
-pool drops the shot. Its shots carry the leader's P1 emitter bit, so the
-existing emitter-owned cleanup applies unchanged. One player PairShot or a
+pool drops the shot. Its shots carry the leader's P1 emitter bit as a tag
+only: no hostile shot is removed when any emitter dies. One player PairShot or a
 player contact destroys it (Raider contact contract: full player damage, one
 enemy damage unit), awarding `$05` BCD with the debris breakup and hit sound.
 Capital admission waits until it has retired and been unpublished, and any

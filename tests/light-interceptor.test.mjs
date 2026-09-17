@@ -310,12 +310,14 @@ test("placement contract: legal composite and packed size, state inside its rese
   // tail, LIGHT_RESIDENT loses the Wingman art but gains the selection.
   // Weapon visuals (4.4c): the Light emit tags the shot with weapon_class (+4 B).
   assert.equal(manifest.lightWingman.residentBytes, 229);
-  assert.equal(manifest.entityEffects.codeBytes, 3153);
-  assert.equal(manifest.residentCapacity.tails.entityCode, 13);
+  // Emitter-independent hostile shots (2026-09-17): the 27-B Raider-kill
+  // projectile cleanup left ENTITY_CODE, so the art tables moved down 27 B.
+  assert.equal(manifest.entityEffects.codeBytes, 3126);
+  assert.equal(manifest.residentCapacity.tails.entityCode, 40);
   assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 11);
   assert.equal(manifest.residentCapacity.tails.hybridCExtension, 21);
-  assert.equal(L("light_glyph"), 0x9d31);
-  assert.equal(L("light_interceptor_glyph"), 0x9d41);
+  assert.equal(L("light_glyph"), 0x9d16);
+  assert.equal(L("light_interceptor_glyph"), 0x9d26);
   assert.equal(L("light_archetype_offset"), 0x810c);
   assert.equal(L("_light_burst_left"), 0x810d);
   assert.equal(L("_light_target_x"), 0x810e);

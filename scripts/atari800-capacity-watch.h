@@ -1,4 +1,4 @@
-/* Void Strike 65 resident-capacity write-watch observer (plan step 4.3).
+/* Void Strike 65 resident-capacity write-watch observer (plan steps 4.3, 4.5a).
  *
  * Built into a private Atari800 7.1.2 copy as voidstrike65_trace.h by
  * scripts/capacity-window-watch.mjs. It watches two ranges by value change on
@@ -9,6 +9,12 @@
  *     frontend/gameplay lifecycle ends (nothing may write it after startup).
  * It also records the CPU clock at fixed startup labels. A write that stores
  * the value already present is not observable by this method.
+ *
+ * Roadmap 4.5a additions: the hold size is a parameter; an optional injection
+ * writes a deterministic pattern over a staging range at a given PC so a full
+ * window of non-zero bytes crosses the boot copies; capital sectors are counted,
+ * and the post-resume run keeps the player alive until one capital sector has
+ * completed before letting the game end.
  */
 #include <stdint.h>
 #include <stdio.h>
@@ -69,6 +75,18 @@ static int dfcap_hold_active;
 static int dfcap_hold_seen;
 static int dfcap_hold_intact;
 static int dfcap_glue_matches_hold;
+static int dfcap_window_matches_hold;
+static unsigned dfcap_capital_state;
+static unsigned dfcap_last_sector = 0xffffffffu;
+static unsigned dfcap_capital_entries;
+static unsigned dfcap_capital_completions;
+static unsigned dfcap_capital_entry_frame;
+static unsigned dfcap_capital_completion_frame;
+static unsigned dfcap_keep_alive_pokes;
+static unsigned dfcap_inject_pc;
+static unsigned dfcap_inject_start;
+static unsigned dfcap_inject_bytes;
+static int dfcap_injected;
 static int dfcap_window_active;
 static unsigned dfcap_previous_pc;
 static DFCapWrite dfcap_writes[DFCAP_MAX_WRITES];
@@ -155,6 +173,12 @@ static void dfcap_init(void)
 	dfcap_glue_final = dfcap_env_u("DFCAP_GLUE_FINAL");
 	dfcap_window_start = dfcap_env_u("DFCAP_WINDOW_START");
 	dfcap_window_bytes = dfcap_env_u("DFCAP_WINDOW_BYTES");
+	dfcap_capital_state = dfcap_env_u("DFCAP_CAPITAL_STATE");
+	if (getenv("DFCAP_INJECT_PC") != NULL) {
+		dfcap_inject_pc = dfcap_env_u("DFCAP_INJECT_PC");
+		dfcap_inject_start = dfcap_env_u("DFCAP_INJECT_START");
+		dfcap_inject_bytes = dfcap_env_u("DFCAP_INJECT_BYTES");
+	}
 	if (dfcap_fill > 0xffu || dfcap_hold_bytes == 0u || dfcap_hold_bytes > 256u ||
 		dfcap_window_bytes == 0u || dfcap_window_bytes > 256u) {
 		fprintf(stderr, "voidstrike65 capacity watch: invalid fill or range\n");
@@ -162,7 +186,9 @@ static void dfcap_init(void)
 	}
 	for (index = 0; index < DFCAP_CLOCK_POINTS; ++index)
 		dfcap_clock_pc[index] = dfcap_env_u(clock_names[index]);
-	for (address = 0x8000u; address < 0xa000u; ++address)
+	/* $7810-$7FFF covers the Heavy window, its staging and the cold staging
+	 * around it; $8000-$9FFF the resident suffix, holds and the 4.3 window. */
+	for (address = 0x7810u; address < 0xa000u; ++address)
 		MEMORY_mem[address] = (UBYTE) dfcap_fill;
 	dfcap_set_input(0x0fu, 1u);
 	dfcap_initialised = 1;
@@ -201,11 +227,17 @@ static void dfcap_finish(int status)
 	fprintf(dfcap_file,
 		"{\n  \"artifact\":\"%s\",\n  \"cold_ram_fill\":%u,\n  \"status\":%d,\n"
 		"  \"final_step\":%u,\n  \"final_frame\":%u,\n"
+		"  \"injection\":{\"pc\":%u,\"start\":%u,\"bytes\":%u,\"done\":%d},\n"
+		"  \"capital\":{\"entries\":%u,\"completions\":%u,\"keep_alive_pokes\":%u,"
+		"\"first_entry_frame\":%u,\"first_completion_frame\":%u},\n"
 		"  \"hold\":{\"start\":%u,\"bytes\":%u,\"seen\":%d,\"intact_at_publish\":%d,"
-		"\"glue_final_matches_hold\":%d,\"initial_hex\":\"",
+		"\"glue_final_matches_hold\":%d,\"window_matches_hold\":%d,\"initial_hex\":\"",
 		dfcap_artifact, dfcap_fill, status, dfcap_step, (unsigned) Atari800_nframes,
+		dfcap_inject_pc, dfcap_inject_start, dfcap_inject_bytes, dfcap_injected,
+		dfcap_capital_entries, dfcap_capital_completions, dfcap_keep_alive_pokes,
+		dfcap_capital_entry_frame, dfcap_capital_completion_frame,
 		dfcap_hold_start, dfcap_hold_bytes, dfcap_hold_seen, dfcap_hold_intact,
-		dfcap_glue_matches_hold);
+		dfcap_glue_matches_hold, dfcap_window_matches_hold);
 	dfcap_hex(dfcap_file, dfcap_hold_initial, dfcap_hold_bytes);
 	fprintf(dfcap_file,
 		"\"},\n  \"window\":{\"start\":%u,\"bytes\":%u,\"seen\":%d,\"initial_hex\":\"",
@@ -343,6 +375,13 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 			dfcap_clock_value[index] = (uint64_t) ANTIC_CPU_CLOCK;
 		}
 	}
+	/* Only after `start`: ATR stage-2 loader code occupies resident addresses. */
+	if (dfcap_inject_bytes != 0u && !dfcap_injected && dfcap_clock_seen[0] &&
+		pc == dfcap_inject_pc) {
+		for (index = 0; index < dfcap_inject_bytes; ++index)
+			MEMORY_mem[dfcap_inject_start + index] = (UBYTE) ((index * 37u + 0x5bu) & 0xffu);
+		dfcap_injected = 1;
+	}
 	if (dfcap_hold_active)
 		dfcap_record_changes(0u, dfcap_hold_snapshot, dfcap_hold_start, dfcap_hold_bytes);
 	if (dfcap_window_active)
@@ -360,6 +399,9 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 			dfcap_hold_bytes) == 0;
 		dfcap_glue_matches_hold = memcmp(dfcap_hold_initial,
 			MEMORY_mem + dfcap_glue_final, dfcap_hold_bytes) == 0;
+		dfcap_window_matches_hold = memcmp(dfcap_hold_initial,
+			MEMORY_mem + dfcap_window_start,
+			dfcap_hold_bytes < dfcap_window_bytes ? dfcap_hold_bytes : dfcap_window_bytes) == 0;
 		dfcap_window_active = 1;
 		memcpy(dfcap_window_snapshot, MEMORY_mem + dfcap_window_start, dfcap_window_bytes);
 		memcpy(dfcap_window_initial, dfcap_window_snapshot, dfcap_window_bytes);
@@ -397,16 +439,45 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 	if (!dfcap_window_active)
 		return;
 
+	/* Capital coverage: a sector byte below SECTOR_FIGHTER (7) during gameplay
+	 * is a capital sector; its return to 7 completes it. */
+	{
+		unsigned sector = MEMORY_mem[dfcap_capital_state];
+		if (state == 6u && sector < 7u && dfcap_last_sector == 7u) {
+			if (dfcap_capital_entries == 0u)
+				dfcap_capital_entry_frame = frame;
+			++dfcap_capital_entries;
+		}
+		/* Only a gameplay frame completes a capital sector; a restart that
+		 * reinitialises the byte to 7 is not a completion. */
+		if (state == 6u && sector == 7u && dfcap_last_sector < 7u &&
+			dfcap_capital_entries != 0u) {
+			if (dfcap_capital_completions == 0u)
+				dfcap_capital_completion_frame = frame;
+			++dfcap_capital_completions;
+		}
+		dfcap_last_sector = sector;
+	}
+
 	/* Gameplay: pause after 200 frames (steps 5 and 10). After the resume the
-	 * run continues to a natural game over; if none arrives in 3000 frames the
-	 * remaining lives are cleared once so the game-over path is exercised. */
+	 * player is kept alive until one capital sector has completed (bounded by
+	 * 12000 frames); then the remaining lives are cleared once so the game-over
+	 * path is exercised. */
 	if (state == 6u) {
 		unsigned age = frame - dfcap_state_frame;
 		if ((dfcap_step == 5u || dfcap_step == 10u) && age >= 200u && age <= 201u)
 			INPUT_key_consol &= ~INPUT_CONSOL_OPTION;
-		if (dfcap_step == 7u && age >= 3000u && !dfcap_lives_poked) {
-			MEMORY_mem[dfcap_player_lives] = 0u;
-			dfcap_lives_poked = 1;
+		if (dfcap_step == 7u && !dfcap_lives_poked) {
+			if (dfcap_capital_completions == 0u && age < 12000u) {
+				if (MEMORY_mem[dfcap_player_lives] < 2u) {
+					MEMORY_mem[dfcap_player_lives] = 3u;
+					++dfcap_keep_alive_pokes;
+				}
+			}
+			else {
+				MEMORY_mem[dfcap_player_lives] = 0u;
+				dfcap_lives_poked = 1;
+			}
 		}
 	}
 	dfcap_drive(pc, frame, state);

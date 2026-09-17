@@ -62,6 +62,11 @@
           "name": "window",
           "runAddress": 34306,
           "bytes": 240
+        },
+        {
+          "name": "heavy",
+          "runAddress": 32274,
+          "bytes": 0
         }
       ],
       "footprint": {
@@ -205,12 +210,12 @@
     "manifest": {
       "address": 9756,
       "bytes": 142,
-      "crc16": 56273,
+      "crc16": 45603,
       "parsed": {
         "version": 1,
         "totalOccupiedSectors": 178,
         "manifestBytes": 142,
-        "crc16": 56273,
+        "crc16": 45603,
         "records": [
           {
             "startSector": 104,
@@ -259,10 +264,10 @@
           {
             "startSector": 164,
             "sectorCount": 2,
-            "packedLength": 210,
-            "rawLength": 242,
+            "packedLength": 213,
+            "rawLength": 248,
             "finalDestination": 32064,
-            "crc16": 44577,
+            "crc16": 11279,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -386,6 +391,23 @@
       "transport": "second LZ stream of the pickup/collision record",
       "glueHoldingAddress": 33536
     },
+    "heavyWindow": {
+      "address": 32274,
+      "endExclusive": 32517,
+      "bytes": 243,
+      "usedBytes": 0,
+      "freeBytes": 243,
+      "owner": "HYBRID_C_HEAVY",
+      "stagingAddress": 32312,
+      "stagingEndExclusive": 32555,
+      "holdAddress": 33792,
+      "transport": "tail of the low-C LZ record, copied to the ring hold before starfield staging and published after starfield expansion",
+      "lowRecordRawBytes": 248,
+      "lowRecordPackedBytes": 213,
+      "lowCodeOnlyPackedBytes": 210,
+      "worstCaseFullWindowPackedBytes": 458,
+      "worstCaseFullWindowSectors": 4
+    },
     "pickupRecordPackedBytes": {
       "pickupStream": 960,
       "windowStream": 201,
@@ -421,18 +443,20 @@
     {
       "name": "low",
       "file": "encounter-director-code-low.bin",
-      "xexFile": "encounter-director-code-low.bin",
+      "xexFile": "encounter-director-code-low-transport.bin",
       "xexStagingCompression": null,
       "runAddress": 35720,
       "transportAddress": 32064,
       "endExclusive": 35962,
       "bytes": 242,
       "packedBytes": 210,
+      "transportRawBytes": 248,
+      "transportPackedBytes": 213,
       "externalChunk": {
         "startSector": 164,
         "sectors": 2,
         "transportBytes": 256,
-        "crc16": 44577
+        "crc16": 11279
       }
     },
     {
@@ -20832,17 +20856,17 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 22784,
-        "sha256": "aac9634333ad261c591c3008e89bf6494bfbc05da6fa9a2cf17b3a0718d5ceae"
+        "sha256": "44a564a405ea43fe60d01e1a6050f1dbca5b17a39240f9bb621a4d7a1961bcb1"
       },
       "void-strike-65.xex": {
         "path": "dist/void-strike-65.xex",
-        "bytes": 23098,
-        "sha256": "acb7d9bbe1daa1174b885174af2ba29705355248d3d8c8233378cfd58cbcae18"
+        "bytes": 23104,
+        "sha256": "8ac718611242474ad4e7db009e11c0bbf1ee2aac94104f345bd86e6dfdbe9ede"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "93ae8ae07b157e5835e4ff7bbadc04c83e3a85bb5626c9e477f08cdb63001c13"
+        "sha256": "6660c504eb7db203ea677cc04064cd61c6ad803c72d0d258344d17dfc793eff7"
       }
     },
     "reportPath": null,
@@ -20851,15 +20875,15 @@
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 22784,
-      "sha256": "aac9634333ad261c591c3008e89bf6494bfbc05da6fa9a2cf17b3a0718d5ceae"
+      "sha256": "44a564a405ea43fe60d01e1a6050f1dbca5b17a39240f9bb621a4d7a1961bcb1"
     },
     "void-strike-65.xex": {
-      "bytes": 23098,
-      "sha256": "acb7d9bbe1daa1174b885174af2ba29705355248d3d8c8233378cfd58cbcae18"
+      "bytes": 23104,
+      "sha256": "8ac718611242474ad4e7db009e11c0bbf1ee2aac94104f345bd86e6dfdbe9ede"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "93ae8ae07b157e5835e4ff7bbadc04c83e3a85bb5626c9e477f08cdb63001c13"
+      "sha256": "6660c504eb7db203ea677cc04064cd61c6ad803c72d0d258344d17dfc793eff7"
     }
   }
 }

@@ -114,6 +114,15 @@ const weaponPickupPackedCapacityBytes =
 const residentWindowAddress = 0x8602;
 const residentWindowBytes = 0x86fa - residentWindowAddress;
 const glueHoldingAddress = 0x8300;
+// Reusable resident window for Heavy-class C (roadmap 4.5a). Runtime-free
+// $7E12-$7F0F is cold starfield staging, so its image rides the low-C LZ record
+// at a fixed staging address after the full low reservation ($7D40 + $F8) and
+// before A2 staging ($7F2B). Boot copies it to idle ring RAM before starfield
+// staging and publishes it after the starfield expands (GLUE precedent).
+const heavyWindowAddress = 0x7e12;
+const heavyWindowStagingAddress = 0x7d40 + 0xf8;
+const heavyWindowHoldAddress = 0x8400;
+const heavyWindowCapacityBytes = 0x7f2b - heavyWindowStagingAddress;
 const bootA2StagingAddress = 0x7f2b;
 const debrisVisualPolishEntityCodeBaselineBytes = 564;
 const debrisVisualPolishEntityCodeBudgetBytes = 512;
@@ -420,20 +429,27 @@ async function buildHybridDirectorModule() {
   const bssBytes = parsedLabels.get("__DIRECTOR_C_BSS_SIZE__");
   const lifecycleBssBytes = parsedLabels.get("__HYBRID_C_STATE_SIZE__");
   const sectorWindowBytes = parsedLabels.get("__HYBRID_C_SECTOR_SIZE__");
+  const heavyWindowBytes = parsedLabels.get("__HYBRID_C_HEAVY_SIZE__");
   if (![abiBytes, lowCodeBytes, extensionCodeBytes, archetypeBytes, preCodeBytes,
-    cCodeBytes, rodataBytes, bssBytes, lifecycleBssBytes, sectorWindowBytes]
+    cCodeBytes, rodataBytes, bssBytes, lifecycleBssBytes, sectorWindowBytes, heavyWindowBytes]
     .every(Number.isInteger)) {
     throw new Error("Hybrid Director link is missing segment size labels");
   }
   const highBytes = rodataBytes + cCodeBytes;
   if (combinedRaw.length !==
-    abiBytes + lowCodeBytes + extensionBytes + preCodeBytes + highBytes + sectorWindowBytes) {
+    abiBytes + lowCodeBytes + extensionBytes + preCodeBytes + highBytes + sectorWindowBytes +
+      heavyWindowBytes) {
     throw new Error("Hybrid Director output does not match its linked CODE/RODATA segments");
   }
   if (parsedLabels.get("__HYBRID_C_SECTOR_RUN__") !== residentWindowAddress ||
     sectorWindowBytes === 0 || sectorWindowBytes > residentWindowBytes) {
     throw new Error(`HYBRID_C_SECTOR is ${sectorWindowBytes} B; the resident window is ` +
       `${residentWindowBytes} B at $${residentWindowAddress.toString(16).toUpperCase()}`);
+  }
+  if (parsedLabels.get("__HYBRID_C_HEAVY_RUN__") !== heavyWindowAddress ||
+    heavyWindowBytes > heavyWindowCapacityBytes || lowCodeBytes > 0xf8) {
+    throw new Error(`HYBRID_C_HEAVY is ${heavyWindowBytes} B; its window is ` +
+      `${heavyWindowCapacityBytes} B at $7E12 (low C ${lowCodeBytes} of 248 B)`);
   }
   let offset = 0;
   const makeSegment = (name, runAddress, bytes) => {
@@ -459,10 +475,22 @@ async function buildHybridDirectorModule() {
   // The window segment is not a transport record: its independent stream rides
   // after the pickup/collision stream, so the DFMC topology stays 8 records.
   const windowSegment = makeSegment("window", residentWindowAddress, sectorWindowBytes);
+  const heavySegment = makeSegment("heavy", heavyWindowAddress, heavyWindowBytes);
+  // The Heavy window is not a transport record either: the low-C LZ record
+  // carries its linked image at $7E38. Only the used bytes travel: the ATR
+  // boot-smoke menu deadline has no frame of margin for stage-2 decode work.
+  // The boot copies still move the full capacity; bytes past the linked image
+  // are unspecified and never executed.
+  const lowSegment = codeSegments.find(({ name }) => name === "low");
+  lowSegment.transportData = Buffer.concat([
+    lowSegment.data, Buffer.alloc(0xf8 - lowSegment.data.length), heavySegment.data,
+  ]);
+  lowSegment.transportPacked = packBroadsideLzss(lowSegment.transportData);
   if (!codeSegments.every(({ data, packed: segmentPacked }) =>
     unpackBroadsideLzss(segmentPacked).equals(data)) ||
       !unpackBroadsideLzss(packed).equals(raw) ||
-      !unpackBroadsideLzss(windowSegment.packed).equals(windowSegment.data)) {
+      !unpackBroadsideLzss(windowSegment.packed).equals(windowSegment.data) ||
+      !unpackBroadsideLzss(lowSegment.transportPacked).equals(lowSegment.transportData)) {
     throw new Error("Hybrid Director LZSS round trip failed");
   }
   const codeRaw = Buffer.concat(codeSegments.map(({ data }) => data));
@@ -475,6 +503,7 @@ async function buildHybridDirectorModule() {
     codePacked,
     codeSegments,
     windowSegment,
+    heavySegment,
     combinedRaw,
     object: cAssembled.outputs[`${base}-c.o`],
     lifecycleObject: lifecycleAssembled.outputs[`${base}-lifecycle.o`],
@@ -550,7 +579,12 @@ function renderDirectorAbiInclude(labelBytes) {
     `DIRECTOR_ABI_STAGING = $7CCA\nDIRECTOR_ABI_RUNTIME = $8701\n` +
     `DIRECTOR_ABI_BYTES = ${abiBytes}\n` +
     `HYBRID_C_EXT_STAGING = $7810\nHYBRID_C_EXT_RUNTIME = $8C7D\n` +
-    `HYBRID_C_EXT_BYTES = ${extensionBytes}\n`);
+    `HYBRID_C_EXT_BYTES = ${extensionBytes}\n` +
+    `HYBRID_C_HEAVY_RUNTIME = $${heavyWindowAddress.toString(16).toUpperCase()}\n` +
+    `HYBRID_C_HEAVY_STAGING = $${heavyWindowStagingAddress.toString(16).toUpperCase()}\n` +
+    `HYBRID_C_HEAVY_HOLD = $${heavyWindowHoldAddress.toString(16).toUpperCase()}\n` +
+    `HYBRID_C_HEAVY_CAPACITY = ${heavyWindowCapacityBytes}\n` +
+    `HYBRID_C_HEAVY_BYTES = ${labels.get("__HYBRID_C_HEAVY_SIZE__") ?? 0}\n`);
 }
 
 async function build() {
@@ -1223,15 +1257,15 @@ async function build() {
   }];
   for (const segment of directorModule.codeSegments) {
     transportChunks.push({
-      packed: segment.packed,
-      raw: segment.lateCompressed ? segment.packed : segment.data,
+      packed: segment.transportPacked ?? segment.packed,
+      raw: segment.lateCompressed ? segment.packed : segment.transportData ?? segment.data,
       finalDestination: segment.transportAddress ?? segment.runAddress,
       type: segment.lateCompressed
         ? chunkLoaderConstants.chunkTypeRaw
         : chunkLoaderConstants.chunkTypeLz,
       stagingId: chunkLoaderConstants.stagingExtension,
       destination: packedResidentStagingAddress,
-      buildTag: buildTag(segment.packed),
+      buildTag: buildTag(segment.transportPacked ?? segment.packed),
     });
   }
   transportChunks.push({
@@ -1301,7 +1335,7 @@ async function build() {
     { start: glueStagingAddress, data: glueModule.raw },
     ...directorModule.codeSegments.map((segment) => ({
       start: segment.transportAddress ?? segment.runAddress,
-      data: segment.lateCompressed ? segment.packed : segment.data,
+      data: segment.lateCompressed ? segment.packed : segment.transportData ?? segment.data,
     })),
     { start: directorRunAddress, data: directorModule.raw },
   ], bootStage2XexEntry);
@@ -1331,7 +1365,8 @@ async function build() {
     directorRunAddress,
     directorAdditionalSegments: directorModule.windowSegment === undefined
       ? directorModule.codeSegments
-      : [...directorModule.codeSegments, directorModule.windowSegment],
+      : [...directorModule.codeSegments, directorModule.windowSegment,
+        directorModule.heavySegment],
     capitalPlayerCollisionRuntime: capitalPlayerCollisionModule.raw,
     capitalPlayerCollisionRunAddress: capitalPlayerCollisionAddress,
     labels,
@@ -1400,7 +1435,8 @@ async function build() {
   // the live linked total remains reported below instead of being misclassified
   // as growth of either completed feature.
   const directorTotalBytes = directorModule.codeRaw.length + directorModule.raw.length +
-    (directorModule.windowSegment?.data.length ?? 0);
+    (directorModule.windowSegment?.data.length ?? 0) +
+    (directorModule.heavySegment?.data.length ?? 0);
   const directorAdditionalStateBytes = directorModule.implementation === "cc65-c"
     ? directorModule.footprint.bssBytes : 0;
   const directorResidencyDelta = directorTotalBytes - expectedDirectorRawBytes +
@@ -1458,6 +1494,11 @@ async function build() {
             name: "window",
             runAddress: directorModule.windowSegment.runAddress,
             bytes: directorModule.windowSegment.data.length,
+          }]),
+          ...(directorModule.heavySegment === undefined ? [] : [{
+            name: "heavy",
+            runAddress: directorModule.heavySegment.runAddress,
+            bytes: directorModule.heavySegment.data.length,
           }]),
         ],
         footprint: directorModule.footprint,
@@ -1676,6 +1717,32 @@ async function build() {
         transport: "second LZ stream of the pickup/collision record",
         glueHoldingAddress,
       },
+      heavyWindow: directorModule.heavySegment === undefined ? null : (() => {
+        const low = directorModule.codeSegments.find(({ name }) => name === "low");
+        // Worst case for sizing the record: a full window of incompressible bytes.
+        const worstImage = Buffer.from(Array.from({ length: heavyWindowCapacityBytes },
+          (_, index) => (index * 167 + 91) & 0xff));
+        const worstPacked = packBroadsideLzss(Buffer.concat([
+          low.data, Buffer.alloc(0xf8 - low.data.length), worstImage]));
+        return {
+          address: heavyWindowAddress,
+          endExclusive: heavyWindowAddress + heavyWindowCapacityBytes,
+          bytes: heavyWindowCapacityBytes,
+          usedBytes: directorModule.heavySegment.data.length,
+          freeBytes: heavyWindowCapacityBytes - directorModule.heavySegment.data.length,
+          owner: "HYBRID_C_HEAVY",
+          stagingAddress: heavyWindowStagingAddress,
+          stagingEndExclusive: heavyWindowStagingAddress + heavyWindowCapacityBytes,
+          holdAddress: heavyWindowHoldAddress,
+          transport: "tail of the low-C LZ record, copied to the ring hold before " +
+            "starfield staging and published after starfield expansion",
+          lowRecordRawBytes: low.transportData.length,
+          lowRecordPackedBytes: low.transportPacked.length,
+          lowCodeOnlyPackedBytes: low.packed.length,
+          worstCaseFullWindowPackedBytes: worstPacked.length,
+          worstCaseFullWindowSectors: Math.ceil(worstPacked.length / 128),
+        };
+      })(),
       pickupRecordPackedBytes: {
         pickupStream: packedPickupStream.length,
         windowStream: residentWindowSegment.packed.length,
@@ -1692,18 +1759,24 @@ async function build() {
       },
     },
     directorCodeRuntimes: directorCodeChunks.map(({ name, runAddress, transportAddress, data,
-      packed: segmentPacked, lateCompressed, record, chunk }) => ({
+      packed: segmentPacked, lateCompressed, transportData, transportPacked, record, chunk }) => ({
       name,
       file: `encounter-director-code-${name}.bin`,
       xexFile: lateCompressed
         ? `encounter-director-code-${name}-packed.bin`
-        : `encounter-director-code-${name}.bin`,
+        : transportData === undefined
+          ? `encounter-director-code-${name}.bin`
+          : `encounter-director-code-${name}-transport.bin`,
       xexStagingCompression: lateCompressed ? "LZ-10/5" : null,
       runAddress,
       transportAddress: transportAddress ?? runAddress,
       endExclusive: runAddress + data.length,
       bytes: data.length,
       packedBytes: segmentPacked.length,
+      ...(transportData === undefined ? {} : {
+        transportRawBytes: transportData.length,
+        transportPackedBytes: transportPacked.length,
+      }),
       externalChunk: {
         startSector: record.startSector,
         sectors: chunk.sectors,
@@ -2374,6 +2447,10 @@ async function build() {
       segment.data);
     writeFile(path.join(buildDirectory, `encounter-director-code-${segment.name}-packed.bin`),
       segment.packed);
+    if (segment.transportData !== undefined) {
+      writeFile(path.join(buildDirectory,
+        `encounter-director-code-${segment.name}-transport.bin`), segment.transportData);
+    }
   }
   if (directorModule.windowSegment !== undefined) {
     writeFile(path.join(buildDirectory, "resident-window-runtime.bin"),

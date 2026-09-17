@@ -189,6 +189,56 @@ simultaneous residency 19,493 B, safe 2,694 B. RAM, zero page, PMG, DLI and
 charset ranges are unchanged; a hostile PairShot's `weapon_class` lives in
 ACTIVE bits 3-4 of its existing slot byte (bits 3-6 for the nine-class maximum).
 
+## Roadmap 4.5a Heavy window — OWNER-SMOKE CANDIDATE (2026-09-17)
+
+Measured on top of `3838c00`. Capacity only: no code or data is placed in the
+window yet and gameplay is unchanged.
+
+| Range | Size | Candidate owner |
+| --- | ---: | --- |
+| `$219D-$21AA` | 14 B | `hybrid_c_heavy_hold`: bootstrap-prefix padding, copies staging → hold |
+| `$21AB-$21BB` | 17 B | `hybrid_c_heavy_publish`: bootstrap-prefix padding, expands the starfield, then copies hold → window |
+| `$21BC-$21C0` | 5 B | remaining zero padding of the fixed `$01A3` bootstrap prefix (36 B before) |
+| `$7D40-$7E37` | 248 B | low-C record image: 242 B low C plus 6 B zero pad to the full `$F8` reservation |
+| `$7E38-$7F2A` | 243 B | cold Heavy staging: the linked `HYBRID_C_HEAVY` image (0 B in 4.5a) travels in the low-C record |
+| `$8400-$84F2` | 243 B | boot-only Heavy hold (idle gameplay-ring RAM after the GLUE hold `$8300-$83F9`) |
+| `$7E12-$7F04` | 243 B | `HYBRID_C_HEAVY_RAM` runtime window: 0 B used, **243 B free, C-reachable** |
+
+Boot order: the loader expands the low-C record to `$7D40`;
+`publish_director_abi` publishes low C and the extension, then tail-jumps to
+`hybrid_c_heavy_hold` (the former `rts` + 2 B pad), which copies the full
+243 B to the hold before `stage_starfield_stream` writes `$7810-$81CF`.
+After `show_loader`, `hybrid_c_heavy_publish` expands the starfield and copies
+the hold to `$7E12`. `init_screen` later rebuilds the ring; nothing writes the
+window afterwards (native write-watch). Bytes past the linked image are
+unspecified and never executed.
+
+Transport: still 8 DFMC records and no new record. The low-C record is 248 B raw
+/ 213 B packed in 2 sectors (242 / 210 B before); a full window of
+incompressible bytes packs to 458 B in 4 sectors, and a real 239-B cc65 proof
+payload to 435 B in 4 sectors. The chunk loader's reviewed cold range
+`$7BD0-$7F0F` now ends at `$7F2A`: the A2 display lists at `$7F10` are built
+only at gameplay init, and A2 cold staging begins at `$7F2B`.
+
+Accounting (three separate metrics):
+
+- **Physical resident code/data:** +0 B in the linked metrics (the 31 B of boot
+  copies replace zero padding already counted in `CODE`). Linked runtime
+  17,502 B, simultaneous residency 19,493 B, safe residency 2,694 B unchanged.
+- **Reserved envelopes:** new `HYBRID_C_HEAVY_RAM` 243 B at `$7E12-$7F04`;
+  boot-only hold 243 B at `$8400-$84F2`. All others unchanged: initial content
+  13,166 B, envelope 18 B, 103 boot sectors, 178 transport sectors, extension
+  record 786/960 B packed, pickup record 1,161/1,277 B.
+- **Reusable free capacity:** +243 B contiguous C-reachable (`HYBRID_C_HEAVY`);
+  bootstrap-prefix padding 36 → 5 B; `HYBRID_C_EXT` 21 B, `HYBRID_C_SECTOR`
+  8 B, ENTITY_CODE 13 B, A2 18 B and pickup fill 11 B unchanged.
+
+Asserts: hold inside the ring and after the GLUE hold; staging after the low-C
+reservation and before A2 staging; window after the pause backup and before
+the A2 display lists; `HYBRID_C_HEAVY` ≤ capacity and capacity ≥ 235 B
+(`src/main.s`); ld65 rejects a larger segment. Evidence:
+[diagnostics/stage-2b2i-heavy-window-placement.json](diagnostics/stage-2b2i-heavy-window-placement.json).
+
 ## Blocked-experiment evidence — not part of this map
 
 The 2026-09-16 Interceptor experiment (`BLOCKED_PLACEMENT`) measured additional
@@ -287,8 +337,10 @@ this lifetime.
 | `$7810-$79B6` | 423 B | `2df89da`: cold packed lifecycle source until expansion to `$8C7D-$8E84` (520 B raw); later reclaimed by starfield staging. 4.4 candidate: 785 B `$7810-$7B20` expanding to `$8C7D-$8FE8` |
 | `$7CCA-$7D3D` | 116 B | cold packed ABI source until publication to `$8701-$8775` |
 | `$7D3E-$7D3F` | 2 B | cold staging guard |
-| `$7D40-$7E11` | 210 B | cold packed low-C source until publication to `$8B88-$8C79` |
-| `$7E12-$7F0F` | 254 B | unassigned after cold staging |
+| `$7D40-$7E31` | 242 B | cold low-C staging, expanded by the loader from its 210-B LZ record, until publication to `$8B88-$8C79` (the reservation runs to `$7E37`) |
+| `$7E38-$7F2A` | 243 B | 4.5a candidate: cold `HYBRID_C_HEAVY` staging (used bytes only travel in the low-C record) until the ring hold copy |
+| `$7E12-$7F04` | 243 B | 4.5a candidate: `HYBRID_C_HEAVY` runtime window, published after starfield expansion (see the 4.5a section) |
+| `$7F05-$7F0F` | 11 B | unassigned after cold staging |
 | `$7F10-$7F69` | 90 B | expanded A2 display list A |
 | `$7F6A-$7FC3` | 90 B | expanded A2 display list B |
 | `$7FC4-$7FFF` | 60 B | unassigned |

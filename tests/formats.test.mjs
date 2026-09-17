@@ -43,8 +43,10 @@ test("XEX contains a payload segment and RUNAD", () => {
       pickupRecord.finalDestination + pickupRecord.rawLength - 1]);
   assert.deepEqual([segments[3].start, segments[3].end], [0x7bd0, 0x7cc9]);
   directorCodeRuntimes.forEach((runtime, index) => {
+    // Roadmap 4.5a: the low-C segment also carries its reservation pad and the
+    // Heavy window image, reported as transportRawBytes.
     const xexBytes = runtime.xexStagingCompression === "LZ-10/5"
-      ? runtime.packedBytes : runtime.bytes;
+      ? runtime.packedBytes : runtime.transportRawBytes ?? runtime.bytes;
     assert.deepEqual([segments[4 + index].start, segments[4 + index].end],
       [runtime.transportAddress, runtime.transportAddress + xexBytes - 1]);
   });

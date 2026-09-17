@@ -1,4 +1,4 @@
-// Step 4.3 native write-watch proof for reusable resident capacity.
+// Steps 4.3 and 4.5a native write-watch proof for reusable resident capacity.
 //
 // Builds a private Atari800 7.1.2 copy with scripts/atari800-capacity-watch.h
 // and runs the current dist XEX and ATR through cold start, OPTIONS, BACK,
@@ -8,8 +8,15 @@
 // publication to the end of the lifecycle) against their last observed bytes.
 //
 //   node scripts/capacity-window-watch.mjs [--atari800-source=DIR]
-//     [--hold=0x8300] [--window=0x8602] [--window-bytes=248]
-//     [--expect-hold-is-glue] [--expect-window-bin=FILE] [--output=FILE]
+//     [--hold=0x8300] [--hold-bytes=250] [--window=0x8602] [--window-bytes=248]
+//     [--expect-hold-is-glue] [--expect-window-is-hold] [--expect-window-bin=FILE]
+//     [--inject=0xSTART:BYTES] [--output=FILE]
+//
+// 4.5a Heavy window: --hold=0x8400 --hold-bytes=243 --window=0x7e12
+// --window-bytes=243 --expect-window-is-hold --inject=0x7e38:243 writes a
+// deterministic non-zero pattern over the staged image when publish_director_abi
+// starts, so the full capacity must cross both boot copies byte-exactly.
+// Every session must also enter and complete at least one capital sector.
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -21,6 +28,7 @@ const headerPath = path.join(rootDirectory, "scripts", "atari800-capacity-watch.
 const GLUE_FINAL = 0x4efe;
 const GLUE_BYTES = 250;
 const PLAYER_LIVES = 0x4eab;
+const CAPITAL_SECTOR_STATE = 0x4ea5;
 
 function invariant(condition, message) {
   if (!condition) throw new Error(message);
@@ -84,7 +92,17 @@ function main() {
   const holdStart = Number(argumentValue("hold") ?? 0x8300);
   const windowStart = Number(argumentValue("window") ?? 0x8602);
   const windowBytes = Number(argumentValue("window-bytes") ?? 248);
+  const holdBytes = Number(argumentValue("hold-bytes") ?? GLUE_BYTES);
   const expectHoldIsGlue = process.argv.includes("--expect-hold-is-glue");
+  const expectWindowIsHold = process.argv.includes("--expect-window-is-hold");
+  const injectArgument = argumentValue("inject");
+  const injection = injectArgument === undefined ? null : (() => {
+    const [start, bytes] = injectArgument.split(":").map(Number);
+    invariant(Number.isInteger(start) && Number.isInteger(bytes) && bytes > 0 && bytes <= 256,
+      `invalid --inject=${injectArgument}`);
+    return { start, bytes,
+      pattern: Buffer.from(Array.from({ length: bytes }, (_, index) => (index * 37 + 0x5b) & 0xff)) };
+  })();
   const expectWindowPath = argumentValue("expect-window-bin");
   const outputPath = path.resolve(argumentValue("output") ??
     path.join(buildDirectory, "capacity-window-watch.json"));
@@ -114,7 +132,13 @@ function main() {
     DFCAP_PC_SHOW_LOADER: label("show_loader"),
     DFCAP_PC_STARFIELD_UNPACK: label("unpack_starfield_runtime"),
     DFCAP_HOLD_START: hex(holdStart),
-    DFCAP_HOLD_BYTES: String(GLUE_BYTES),
+    DFCAP_HOLD_BYTES: String(holdBytes),
+    DFCAP_CAPITAL_STATE: hex(CAPITAL_SECTOR_STATE),
+    ...(injection === null ? {} : {
+      DFCAP_INJECT_PC: label("publish_director_abi"),
+      DFCAP_INJECT_START: hex(injection.start),
+      DFCAP_INJECT_BYTES: String(injection.bytes),
+    }),
     DFCAP_GLUE_FINAL: hex(GLUE_FINAL),
     DFCAP_WINDOW_START: hex(windowStart),
     DFCAP_WINDOW_BYTES: String(windowBytes),
@@ -156,11 +180,21 @@ function main() {
       const windowWrites = raw.writes.filter((write) => write.range === "window");
       const windowInitial = Buffer.from(raw.window.initial_hex, "hex");
       const windowFinal = Buffer.from(raw.window.final_hex, "hex");
+      const holdInitial = Buffer.from(raw.hold.initial_hex, "hex");
       const checks = {
         lifecycle_completed: raw.status === 0,
         hold_observed: raw.hold.seen === 1,
         hold_untouched_until_publish: holdWrites.length === 0 && raw.hold.intact_at_publish === 1,
         glue_final_matches_hold: expectHoldIsGlue ? raw.hold.glue_final_matches_hold === 1 : null,
+        window_published_from_hold: expectWindowIsHold ?
+          raw.hold.window_matches_hold === 1 && windowInitial.subarray(0, holdBytes)
+            .equals(holdInitial) : null,
+        injection_applied: injection === null ? null : raw.injection.done === 1,
+        hold_carries_injected_pattern: injection === null ? null :
+          holdInitial.subarray(0, injection.bytes).equals(injection.pattern),
+        window_carries_injected_pattern: injection === null ? null :
+          windowInitial.subarray(0, injection.bytes).equals(injection.pattern),
+        capital_sector_completed: raw.capital.entries >= 1 && raw.capital.completions >= 1,
         window_observed: raw.window.seen === 1,
         window_untouched_after_publish: windowWrites.length === 0 &&
           windowInitial.equals(windowFinal) && raw.writes_dropped === 0,
@@ -179,6 +213,7 @@ function main() {
         final_frame: raw.final_frame,
         final_step: raw.final_step,
         lifecycle: raw.lifecycle,
+        capital: raw.capital,
         states: raw.states,
         startup_cycles: {
           start_to_show_loader: clock.start !== null && clock.show_loader !== null ?
@@ -205,10 +240,12 @@ function main() {
   const passed = sessions.every(({ checks }) =>
     Object.values(checks).every((value) => value === null || value === true));
   const report = {
-    id: "step-4.3-capacity-window-watch",
+    id: "capacity-window-watch",
     method: "value-change comparison of each watched byte before every emulated instruction " +
       "(a write storing the byte's current value is not observable)",
-    hold: { start: hex(holdStart), bytes: GLUE_BYTES, expect_hold_is_glue: expectHoldIsGlue },
+    hold: { start: hex(holdStart), bytes: holdBytes, expect_hold_is_glue: expectHoldIsGlue },
+    expect_window_is_hold: expectWindowIsHold,
+    injection: injection === null ? null : { start: hex(injection.start), bytes: injection.bytes },
     window: { start: hex(windowStart), bytes: windowBytes },
     passed,
     sessions,

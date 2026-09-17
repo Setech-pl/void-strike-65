@@ -248,3 +248,9 @@ light_scratch = _light_scratch
 light_slot_save = _light_slot_save
 ; Selected Light archetype, as a byte offset into the C archetype table.
 light_archetype_offset = _light_archetype_offset
+
+; Reusable resident window for Heavy-class C (roadmap 4.5a), $7E12-$7F04.
+; Empty until a later step places code here with #pragma code-name
+; ("HYBRID_C_HEAVY"). Its image rides the low-C transport record and is
+; published after the starfield expands (see hybrid_c_heavy_publish).
+.segment "HYBRID_C_HEAVY"

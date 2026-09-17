@@ -1062,7 +1062,11 @@ layout_d_glue_holding_complete:
     sta game_state
     jsr unpack_loader_bitmap
     jsr show_loader
+    .if DIRECTOR_ABI_BYTES > 0
+    jsr hybrid_c_heavy_publish    ; expands the starfield, then the Heavy window
+    .else
     jsr unpack_starfield_runtime
+    .endif
     jmp layout_d_publish_glue
 
 broadside_unpack_command:
@@ -1291,6 +1295,36 @@ broadside_destination:
 boot_chunk_ready:
     .byte $00
 
+.if DIRECTOR_ABI_BYTES > 0
+; Reusable resident window HYBRID_C_HEAVY (roadmap 4.5a). These two copies use
+; the zero padding of the fixed bootstrap prefix, so neither the prefix size nor
+; the initial block grows. The low-C record lands the window image at
+; HYBRID_C_HEAVY_STAGING, inside the future starfield staging copies; after the
+; low C has been published, the image moves to idle ring RAM (the GLUE hold
+; precedent) and returns to its runtime window once the starfield has expanded
+; out of $7810-$81CF. Both copies always move the full capacity.
+hybrid_c_heavy_hold:
+    ldy #$00
+@copy:
+    lda HYBRID_C_HEAVY_STAGING,y
+    sta HYBRID_C_HEAVY_HOLD,y
+    iny
+    cpy #HYBRID_C_HEAVY_CAPACITY
+    bne @copy
+    rts
+
+hybrid_c_heavy_publish:
+    jsr unpack_starfield_runtime
+    ldy #$00
+@copy:
+    lda HYBRID_C_HEAVY_HOLD,y
+    sta HYBRID_C_HEAVY_RUNTIME,y
+    iny
+    cpy #HYBRID_C_HEAVY_CAPACITY
+    bne @copy
+    rts
+.endif
+
 .assert *-start <= $01A3, error, "resident bootstrap prefix exceeds its fixed boundary"
 .res $01A3-(*-start)
 resident_runtime_suffix:
@@ -1331,8 +1365,7 @@ publish_director_abi:
     lda #>HYBRID_C_EXT_RUNTIME
     sta broadside_destination+2
     jsr broadside_unpack_command
-    rts
-    .res 2,$EA                  ; offset the restored three-byte GLUE tail-call
+    jmp hybrid_c_heavy_hold     ; same three bytes as the former rts and pad
     .assert HYBRID_C_EXT_BYTES > 0, error, "hybrid lifecycle extension must not be empty"
     .assert HYBRID_C_EXT_BYTES <= $383, error, "hybrid lifecycle extension exceeds $8C7D-$8FFF"
 .endif
@@ -11353,6 +11386,19 @@ LAYOUT_D_GLUE_BYTES = 250
 .assert LAYOUT_D_GLUE_HOLDING >= STARFIELD_STAGING+3*$300+$C0, error, "GLUE hold overlaps the deferred starfield staging copies"
 .assert LAYOUT_D_GLUE_HOLDING >= GAMEPLAY_RING_SCREEN, error, "GLUE hold must use idle ring RAM"
 .assert LAYOUT_D_GLUE_HOLDING+LAYOUT_D_GLUE_BYTES <= GAMEPLAY_RING_SCREEN_END, error, "GLUE hold leaves the gameplay ring"
+.if DIRECTOR_ABI_BYTES > 0
+; Heavy window (roadmap 4.5a): its hold shares the idle ring after GLUE; its
+; staging sits between the full low-C reservation and A2 staging; its runtime
+; window ends before the expanded A2 display lists.
+.assert HYBRID_C_HEAVY_HOLD >= LAYOUT_D_GLUE_HOLDING+LAYOUT_D_GLUE_BYTES, error, "Heavy hold overlaps the GLUE hold"
+.assert HYBRID_C_HEAVY_HOLD+HYBRID_C_HEAVY_CAPACITY <= GAMEPLAY_RING_SCREEN_END, error, "Heavy hold leaves the gameplay ring"
+.assert HYBRID_C_HEAVY_STAGING >= $7D40+$F8, error, "Heavy staging overlaps the low-C record reservation"
+.assert HYBRID_C_HEAVY_STAGING+HYBRID_C_HEAVY_CAPACITY <= BOOT_A2_STAGING, error, "Heavy staging overlaps A2 staging"
+.assert HYBRID_C_HEAVY_RUNTIME >= PAUSE_SCREEN_BACKUP+$3C0, error, "Heavy window overlaps the pause-screen backup"
+.assert HYBRID_C_HEAVY_RUNTIME+HYBRID_C_HEAVY_CAPACITY <= $7F10, error, "Heavy window overlaps the A2 display lists"
+.assert HYBRID_C_HEAVY_BYTES <= HYBRID_C_HEAVY_CAPACITY, error, "HYBRID_C_HEAVY exceeds its window"
+.assert HYBRID_C_HEAVY_CAPACITY >= 235, error, "Heavy window is below the 4.5 Bomber requirement"
+.endif
 
 .macro STAGE2_FAIL_NE
     .local ok

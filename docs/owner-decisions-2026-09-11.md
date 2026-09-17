@@ -589,3 +589,33 @@ recenzowanych 1,798 B) pozostaje osobną, otwartą decyzją właściciela.
 - Bez zmian: `INTERCEPTOR_PROJECTILE_COLOR`/`GAMEPLAY_COLPF3`, prędkość,
   hitbox, czas życia, PMG, DLI, paleta, kolizje. Osobna prędkość/hitbox na
   klasę dopiero z Bomberem (4.5).
+
+## 20. Krok 4.5 Bomber / Heavy Assault — OWNER GO dla projektu; wykonanie tylko 4.5a (2026-09-17)
+
+- **Projekt Bombera (GO):** klasa Heavy na `P1`/`P2`, formacja do dwóch
+  Bomberów; ruch „lane sweep” w C (powolne zejście, szeroki sweep w torze,
+  sporadyczna zmiana kierunku, bez pościgu); sylwetka QUAD szersza od Raidera
+  i własny kolor kadłuba; `weapon_class = BOMBER = 3` (ciężki, wolny pocisk).
+  Mieszana formacja `Raider + Bomber` nie jest wymagana w 4.5 (koszt: DROGI).
+- **Ostatni archetyp MVP:** Bomber jest ostatnim nowym archetypem wroga MVP.
+  Po 4.5 roster jest zamrożony.
+- **Pojemność Heavy pozostaje 2** (`P1`/`P2`); bez nowych kanałów PMG i bez
+  multipleksowania. Dwa Bombery mogą istnieć jednocześnie.
+- **Wygląd (i od 4.5 prędkość) pocisku zależą od `weapon_class`.**
+- **Wykonanie teraz tylko 4.5a:** okno `HYBRID_C_HEAVY` w wolnym w runtime
+  `$7E12-$7F0F`, obraz trzymany i publikowany po rozwinięciu starfield
+  (precedens GLUE), bez nowego rekordu DFMC, bez zmiany rozgrywki; relokacja
+  `LIGHT_CODE` tylko gdy okno preferowane okaże się niemożliwe — wtedy STOP i
+  raport przed zmianą wyższego ryzyka.
+- **Korekty właściciela dla 4.5b/c (jeszcze nie implementowane):**
+  1. Emisja broni Heavy koduje generycznie `weapon_class` zwrócone/wybrane
+     przez C. Nie implementować BOMBER jako „alokuj PULSE, potem `eor #$10`”,
+     chyba że udowodniono, że forma generyczna się nie mieści.
+  2. „Bez eskorty Light przy Bomberze” to wyłącznie prowizoryczna polityka
+     smoke 4.5, a nie trwałe ograniczenie architektury; sterowane danymi fale
+     4.6 mogą łączyć Light z formacją Bomberów, jeśli budżety pozwolą.
+  3. Dwa Bombery QUAD zachowują widoczną separację: tory docelowo ok.
+     slot0 `[48,92]`, slot1 `[132,176]`, zależnie od zweryfikowanej geometrii.
+- **Roadmapa po 4.5 (zastępuje kolejność w plan-realizacji §4.6+):**
+  4.6 sterowany danymi Encounter/Wave Director → 4.7 Boss → 4.8 wzbogacenie
+  capital traversal → pętla poziomu / kampania 16 poziomów jako dane.

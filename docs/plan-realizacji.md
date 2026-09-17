@@ -190,6 +190,23 @@ Cięższy archetyp z większym lub wolniejszym PairShotem; ten sam proces co 4.4
 Jeżeli dodanie archetypu wymaga przebudowy Directora, zatrzymać się i przejrzeć
 granicę architektury.
 
+Decyzja właściciela 20 (2026-09-17): GO dla projektu (Heavy na `P1`/`P2`, do
+dwóch Bomberów, ruch „lane sweep” w C, sylwetka QUAD, `weapon_class = 3`);
+Bomber jest **ostatnim** archetypem MVP. Kolejność wykonania:
+
+- **4.5a — okno rezydentne `HYBRID_C_HEAVY`** (bez zmiany rozgrywki).
+  Stan (2026-09-17): `OWNER-SMOKE CANDIDATE` — 243 B w `$7E12-$7F04`, obraz w
+  rekordzie low-C, hold w ringu, publikacja po starfield; szczegóły: STATUS.
+- **4.5b — `weapon_class = BOMBER`** (glif, prędkość klasy, generyczna emisja
+  klasy wybranej przez C).
+- **4.5c — archetyp Bomber** (C: rekord, selekcja Heavy, ruch, ogień; ASM:
+  wykonanie).
+
+Kolejność po 4.5 według decyzji 20: 4.6 sterowany danymi Encounter/Wave
+Director → 4.7 Boss → 4.8 wzbogacenie capital traversal → pętla poziomu /
+kampania 16 poziomów jako dane. Sekcje 4.6-4.11 poniżej opisują treść prac,
+nie tę kolejność.
+
 ### 4.6 Fale i progresja
 
 Director steruje falami (dominujący + najwyżej jeden wspierający archetyp),

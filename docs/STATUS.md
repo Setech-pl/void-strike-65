@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-09-16
+Last update: 2026-09-17
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -14,10 +14,11 @@ the values below.
 ### Repository HEAD
 
 `experiment/hybrid-c-director`. HEAD carries the roadmap 4.4 Interceptor
-`OWNER-SMOKE CANDIDATE`, its 4.4b visual identity and the 4.4c hostile weapon
-visuals (sections below) on top of `f4cb18b`, the
-documentation-only reconciliation of the owner acceptance recorded here. The
-candidate is not accepted; the accepted runtime is still `b4b942e`.
+`OWNER-SMOKE CANDIDATE`, its 4.4b visual identity (X/quad art since `3838c00`),
+the 4.4c hostile weapon visuals and the roadmap 4.5a Heavy window capacity
+increment (sections below) on top of `f4cb18b`, the documentation-only
+reconciliation of the owner acceptance recorded here. None of these candidates
+is accepted; the accepted runtime is still `b4b942e`.
 
 ### Accepted runtime checkpoint
 
@@ -113,6 +114,10 @@ comparing CPU.
 - debris known limitation: a cell yielded to a 25 Hz effect shows the effect's
   lower backing for the frame in which that effect expires (effects still
   publish mid-frame; measured once in 4,600 in-view frames);
+- boot-smoke margin: the ATR menu deadline (190 + 2 × transport sectors) is
+  met with 0 frames of margin at `3838c00`, at the 4.5a candidate and with a
+  239-B Heavy proof payload; boot CPU added without extra sectors can miss it
+  (it did for the first 4.5a variant);
 - open owner decision: the packed STARFIELD correction gate (1,805 B against
   the reviewed 1,798 B). `tests/light-wingman.test.mjs` ("Light kernel
   placement…") and `tests/broadside-fire.test.mjs` keep failing on that gate on
@@ -425,12 +430,82 @@ Candidate XEX `3d88b35d…`, ATR `27ad309b…`, owner-smoke copy in
 
 ---
 
+## Roadmap 4.5a — Heavy window `HYBRID_C_HEAVY` (owner decision 20) — `OWNER-SMOKE CANDIDATE` (2026-09-17)
+
+Capacity only, for the Bomber's C (4.5c). No gameplay, C, archetype, PMG, DLI,
+collision or projectile change; the window holds 0 B.
+
+- **Window.** `HYBRID_C_HEAVY_RAM` `$7E12-$7F04`, **243 B contiguous and
+  C-reachable** (`#pragma code-name ("HYBRID_C_HEAVY")`). The limit is staging,
+  not the 254-B runtime range: `$7F2B` (A2 cold staging) − `$7E38` (low-C
+  record + full `$F8` reservation).
+- **Transport.** No new DFMC record (still 8). The linked image (used bytes
+  only) follows the low-C LZ record image at `$7E38`. The low-C record is
+  248 B raw / 213 B packed in 2 sectors (242 / 210 B before). A full window of
+  incompressible bytes packs to 458 B in 4 sectors; a real 239-B cc65 proof
+  payload to 435 B in 4 sectors. The chunk loader's reviewed cold range now
+  ends at `$7F2A` instead of `$7F0F`: the A2 display lists at `$7F10` are built
+  only at gameplay init.
+- **Held publication (GLUE precedent).** `publish_director_abi` tail-jumps
+  (former `rts` + 2 B pad) to `hybrid_c_heavy_hold`, which copies the full
+  243 B to idle ring RAM `$8400-$84F2` before starfield staging overwrites
+  `$7810-$81CF`. After `show_loader`, `hybrid_c_heavy_publish` expands the
+  starfield and copies the hold to `$7E12`. Both copies (31 B) sit in the zero
+  padding of the fixed bootstrap prefix (36 → 5 B), so the initial content
+  does not grow.
+- **Accounting (measured).** Physical: linked runtime 17,502 B, simultaneous
+  19,493 B, safe 2,694 B unchanged. Reserved: +243 B `HYBRID_C_HEAVY_RAM`,
+  +243 B boot-only hold. Reusable free: +243 B C-reachable; `HYBRID_C_EXT`
+  21 B, `HYBRID_C_SECTOR` 8 B, ENTITY_CODE 13 B, A2 18 B and pickup fill 11 B
+  unchanged. Initial content 13,166 B, envelope 18 B, 103 boot sectors and
+  178 transport sectors unchanged.
+- **CPU.** One-time boot cost (6502 harness): hold copy 3,938 cycles,
+  publish copy 3,907 cycles. Native PAL focused replays are identical to
+  `3838c00`: `2-evasive-fire3` 29,522 and `2-sweep-fire4` 29,814 cycles;
+  0 missed frames, 0 extra VBI, 0 DLI ordering errors.
+- **Native write-watch** (`scripts/capacity-window-watch.mjs`, extended with a
+  hold-size parameter, full-capacity staging injection, capital
+  entry/completion counters and a keep-alive until one capital completes).
+  XEX and ATR × cold fill `$00`/`$A5`: cold start, OPTIONS, gameplay,
+  pause/resume, one capital sector entered and completed, game over, restart,
+  pause, quit.
+  - Heavy window: PASS 4/4. 0 hold writes, 0 window writes after publication,
+    and the injected 243-B pattern arrives byte-exact in hold and window.
+  - 4.3 GLUE hold and `$8602` window: PASS 4/4 (regression).
+  - Real C proof (scratch tree, not committed): a 239-B cc65 payload is
+    published equal to its linked image, PASS 4/4. One more statement makes
+    ld65 reject the build (memory area overflow).
+- **Boot smoke.** PASS 4/4, milestones identical to `3838c00`. The first
+  variant carried the zero-padded full capacity (491 B raw); its stage-2
+  decode moved ATR `start` by one frame on the `$A5` fill and missed the menu
+  deadline, so only used bytes travel now.
+- **Tests.** New `tests/heavy-window.test.mjs` (4): window contract, low-C
+  transport, size-neutral boot wiring, byte-exact full-capacity copies in the
+  6502 harness. Updated `formats` (the low-C XEX segment length is its
+  `transportRawBytes`). Full suite: 634 tests, 115 failing, the identical
+  failure-name set to a clean export of `3838c00` (630 tests, 115 failing).
+- **Fallback.** `LIGHT_CODE` relocation was not needed.
+
+Candidate XEX `8ac71861…`, ATR `6660c504…`, owner-smoke copy in
+`build/owner-smoke/heavy-window-8ac71861/`. Evidence:
+[diagnostics/stage-2b2i-heavy-window-placement.json](diagnostics/stage-2b2i-heavy-window-placement.json).
+
+Carried owner corrections for 4.5b/c (decision 20, not implemented): generic
+Heavy `weapon_class` emission chosen by C; "no Light escort with Bombers" is a
+provisional 4.5 smoke policy only; visible separation of two QUAD Bombers
+(lanes about `[48,92]` / `[132,176]`); roadmap after 4.5 is 4.6 data-driven
+Encounter/Wave Director, 4.7 Boss, 4.8 capital traversal enrichment, then level
+loop / 16-level campaign data.
+
+---
+
 ## Current task
 
-Owner smoke of the roadmap 4.4 Interceptor candidate, including its 4.4b visual
-identity and the 4.4c hostile weapon visuals (sections above).
+Owner review of the roadmap 4.5a Heavy window candidate. Owner smoke of the 4.4
+Interceptor candidate (with 4.4b and 4.4c) is still pending.
 
 ## Next roadmap step
 
-After owner acceptance of 4.4: step 4.5 per the roadmap. The Raider-coloured
-residual artifact remains an open P0 investigation.
+After owner review of 4.5a: 4.5b (`weapon_class = BOMBER`), then 4.5c (Bomber
+archetype), per decision 20. The Raider-coloured residual artifact remains an
+open P0 investigation.

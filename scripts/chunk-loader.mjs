@@ -17,7 +17,11 @@ const SAFE_EXTENSION_RANGES = Object.freeze([
   [0x5de2, 0x5e06], [0x77b9, 0x7810],
   // Hybrid C packed cold source; consumed before starfield staging reclaims it.
   [0x7810, 0x7bd0],
-  [0x7bd0, 0x7f10],
+  // GLUE, ABI and low-C cold staging. Since roadmap 4.5a the low-C record also
+  // carries the Heavy window image to $7F2A: the A2 display lists at $7F10 are
+  // built only at gameplay init, long after that image is held, and A2 cold
+  // staging begins at $7F2B.
+  [0x7bd0, 0x7f2b],
   [0x7fdb, 0x8000], [0x8130, 0x9000], [0x90cf, 0x9100], [0x992a, 0xa000],
 ]);
 // The pickup stream is consumed before A2/ENTITY publication. Its cold tail

@@ -45,7 +45,9 @@ to their prior blank contents. The optional type glyph is omitted because the
   its vertical contract and the debris 8x8 hitbox remain unchanged.
 - Contact with a Raider applies the full ten-unit hull damage through the shared
   damage gate and deals one damage unit to the Raider.
-- Losing a Player Fighter plays a 24-frame breakup. If a life remains, the replacement
+- Losing a Player Fighter plays a 24-frame breakup that begins on the frame after the
+  lethal hit (the fighter stays visible for that one frame), so the dying state lasts 25
+  frames. If a life remains, the replacement
   Player Fighter receives 250 active frames (5 seconds) of invulnerability and blinks in
   an 8-frame visible/8-frame hidden rhythm.
 - Losing the final Player Fighter enters Game Over. New Game resets score, lives, hull,

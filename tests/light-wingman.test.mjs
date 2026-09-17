@@ -264,7 +264,10 @@ test("light_update installs the selected archetype's art into glyphs 120/121", (
   assert.equal(L("light_interceptor_glyph"), wingman + 16);
   assert.equal(L("light_glyph_end"), wingman + 32);
   assert.equal(wingman >> 8, (wingman + 31) >> 8, "no page crossing");
-  assert.equal(L("light_glyph_end"), L("__ENTITY_CODE_RUN__") + L("__ENTITY_CODE_SIZE__"));
+  // Death-frame deferral (2026-09-17): the 18-B player_dying_tick follows the
+  // art tables, so they keep their addresses and the routine is the new tail.
+  assert.equal(L("player_dying_tick"), L("light_glyph_end"));
+  assert.equal(L("player_dying_tick") + 18, L("__ENTITY_CODE_RUN__") + L("__ENTITY_CODE_SIZE__"));
 });
 
 test("a player PairShot kills only the Light, scores its record and frees the shot", () => {

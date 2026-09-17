@@ -63,7 +63,7 @@
     ],
     "estimate": [
       "deadline ~ (238 - 18) x 114 = ~25,080 pre-wait cycles; frame 3007 exceeded it by ~576",
-      "4.5d share of that frame is at most ~270 cycles (two member ticks 511 -> 646), so the frame would very likely also overrun at 4.5c cost; the dominant cost is the death + kill + ring work",
+      "SUPERSEDED (measured 2026-09-17, native frame profiler, row 1945 of raider-remnant-rapid-xex-hard): the 4.5d behaviour adds +36 cycles to the death frame; the Bombers' standing cost is integration_update_enemy 4,630 cycles/frame with two live (heavy_member_update ~946, draw_enemy_member ~1,164, erase_enemy_departing_row ~56 per member); the death+kill increment over a quiet row is +6,636 (death +4,317, kill/score +3,009, projectiles -862). The earlier ~270-cycle estimate was wrong.",
       "the denser Bomber fire can make such coincidences more frequent; not measured"
     ],
     "classification": "hard-gate failure on a diverging replay; mechanism is a death-frame budget edge not proven pre-existing (no identical-replay A/B possible because the Bomber behaviour changes the replay)"

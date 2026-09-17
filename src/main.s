@@ -7485,16 +7485,15 @@ update_player_death:
     cmp #PLAYER_DYING
     beq @dying
     cmp #PLAYER_GAME_OVER
-    beq @game_over_ready
+    beq update_player_death_game_over_ready
     clc
     rts
 @dying:
-    dec BROAD_DEATH_TIMER
-    lda BROAD_DEATH_TIMER
-    beq @finished
-    clc
-    rts
-@finished:
+    ; The dying tick (deferred explosion begin, death timer) lives in the
+    ; ENTITY_CODE tail; the seven unused bytes keep BROADSIDE size-neutral.
+    jmp player_dying_tick
+    .res 7,$EA
+update_player_death_finished:
     lda PLAYER_LIVES
     beq @game_over
     jsr respawn_player
@@ -7504,7 +7503,7 @@ update_player_death:
     lda #PLAYER_GAME_OVER
     sta PLAYER_LIFECYCLE
     jsr insert_top_score
-@game_over_ready:
+update_player_death_game_over_ready:
     jsr clear_player_collision_latches
     sec
     rts
@@ -8207,11 +8206,18 @@ apply_player_damage:
     beq :+
     dec PLAYER_LIVES
 :
-    lda #SHARED_FIGHTER_EXPLOSION_TOTAL
+    ; DYING lasts one frame longer than the explosion: the PMG explosion begins
+    ; on the first DYING tick (player_dying_tick), so the death frame pays no
+    ; erase_player and no first explosion phase, and the explosion still erases
+    ; itself in the frame of, and before, the respawn.
+    lda #(SHARED_FIGHTER_EXPLOSION_TOTAL+1)
     sta BROAD_DEATH_TIMER
     jsr erase_bullet
     jsr clear_interceptor_pulses
-    jsr begin_player_fighter_explosion
+    ; begin_player_fighter_explosion moved to player_dying_tick; this lethal
+    ; tail takes the former call's three bytes, so every later BROADSIDE
+    ; address (free_broadside_slot $76A7) stays in place.
+    jmp update_hud_status
 @update_hud:
     jmp update_hud_status
 @done:
@@ -12022,6 +12028,25 @@ boot_chunk_manifest_end:
 .ifdef ENEMY_LIGHT_TICK
 .include "light-wingman.s"
 .include "heavy-member.s"
+
+; Placed after the Light art tables so they keep their ENTITY_CODE addresses.
+.segment "ENTITY_CODE"
+; First DYING tick after a lethal hit: begin the deferred PMG explosion, then
+; count the death timer down. The player explosion slot is idle exactly when
+; the begin is pending (the player must be ALIVE to die, and the previous
+; explosion ends before the previous respawn), so no pending flag is needed.
+; Entered by jmp from update_player_death; returns with its carry contract.
+player_dying_tick:
+    lda FIGHTER_EXPLOSION_TIMER+FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT
+    bne @tick
+    jsr begin_player_fighter_explosion
+@tick:
+    dec BROAD_DEATH_TIMER
+    beq @finished
+    clc
+    rts
+@finished:
+    jmp update_player_death_finished
 erase_fighter_projectile_overlays_with_light = light_publish
 entity_effects_update_with_light = light_update
 entity_player_fighter_projectile_target_with_light = light_shot

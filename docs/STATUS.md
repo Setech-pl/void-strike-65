@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-09-17
+Last update: 2026-09-18
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -13,7 +13,10 @@ the values below.
 
 ### Repository HEAD
 
-`experiment/hybrid-c-director`. HEAD carries the roadmap 4.4 Interceptor
+`wip/4.5d-gate-fail` (branched from `experiment/hybrid-c-director` at
+`2a8ff26`; adds the 4.5d Enemy Identity Freeze WIP `7b50bd6`, the PAL timing
+audit tooling and the death-frame deferral candidate, sections below).
+`experiment/hybrid-c-director` carries the roadmap 4.4 Interceptor
 `OWNER-SMOKE CANDIDATE`, its 4.4b visual identity (X/quad art since `3838c00`),
 the 4.4c hostile weapon visuals, the roadmap 4.5a Heavy window capacity
 increment (superseded by the M3 arena), the 4.5b `BOMBER` weapon class, the
@@ -142,26 +145,35 @@ are equally unusable for comparing builds: they conflate one real miss with its
 phase-shift aftermath (1,394 and 1,055 such rows for the two single miss events
 measured below).
 
-**Measured 2026-09-17.** Full gate set on both builds, 66 audited replays each.
-`wip/4.5d-gate-fail` HEAD `7b50bd6` (XEX `838a9686…`): **2 distinct miss
-events — FAIL**. `debris-gate-0-neutral-fire0` row 3007 (host frame 3421, wall
-62,682, pre-wait 25,656, margin −407, 1,393 shifted rows) and
-`raider-remnant-rapid-xex-hard` row 1945 (host frame 2359, wall 62,825,
-pre-wait 26,042, margin −765, 1,054 shifted rows); both report
-`missed_frames` 0. Worst clean margin 137 cycles
-(`memory-integrity-xex-2-hunt-fire4`, `weapon-pickup-2-hunt-fire4`).
-`2a8ff26` (XEX `0e4721b2…`): **0 distinct miss events — PASS**, worst margin
-781 cycles (`director-complete-2-natural-sweep-fire0`, pre-wait 24,484).
-Replays diverge between the builds, so per-session margin deltas mix gameplay
-divergence with cost; the comparable figures are the miss count and the worst
-margin across the whole set. Evidence:
-[diagnostics/stage-2b2q-pal-timing-audit.json](diagnostics/stage-2b2q-pal-timing-audit.json).
+**Measured 2026-09-17/18.** Full gate set (66 audited replays; 67 on the
+candidate, which also traces `weapon-pickup-overlap-2-hunt-fire4`).
+`7b50bd6` (4.5d WIP, XEX `838a9686…`): **2 distinct miss events — FAIL**:
+`debris-gate-0-neutral-fire0` row 3007 (pre-wait 25,656, margin −407) and
+`raider-remnant-rapid-xex-hard` row 1945 (pre-wait 26,042, margin −765); worst
+clean margin 137 cycles. `2a8ff26` (XEX `0e4721b2…`): 0 miss events, worst
+margin 781. **Death-frame deferral candidate (XEX `b8ed318c…`): 0 distinct miss
+events across 67 replays — PASS**; the same rows are still each replay's worst
+row (they precede any replay divergence): row 3007 pre-wait 24,206, margin
+**+1,043**; row 1945 pre-wait 24,811, margin **+466** (the worst of the set);
+the former thin rows were death frames too and rose to 1,847 / 1,920 / 2,146.
+Root cause (measured, native frame profiler): both misses are Light contact
+kills inside `light_update`, which runs after the enemy update and the ring
+rotate; the two Bombers' standing cost (`integration_update_enemy` 4,630
+cycles per frame with two live: `heavy_member_update` ~946,
+`draw_enemy_member` ~1,164, `erase_enemy_departing_row` ~56 per member) plus
+the death (+4,317) and kill (+3,009) coincidence overran the fence; the 4.5d
+behaviour itself adds +36 cycles to the death frame. Evidence:
+[diagnostics/stage-2b2q-pal-timing-audit.json](diagnostics/stage-2b2q-pal-timing-audit.json),
+[diagnostics/stage-2b2r-death-frame-deferral.json](diagnostics/stage-2b2r-death-frame-deferral.json).
 
 ## Known open defects and open decisions
 
-- the WIP branch `wip/4.5d-gate-fail` (HEAD `7b50bd6`, not a candidate) drops
-  two PAL frames that the native counters never reported; `2a8ff26` drops none
-  (section above). That is a 4.5d gameplay finding, not a tooling one;
+- PAL fence budget: with two Bombers live the standing enemy cost leaves the
+  worst death frame 466 cycles under the fence after the death-frame deferral
+  (section above); a death frame in which both Bombers also fire (~+1,090
+  harness cycles) could still miss. The standing cost (`draw_enemy_member`
+  redraws 16 P1/P2 rows every frame even when Y is unchanged) is the next
+  bounded task, before further Bomber or 4.6 content;
 - intermittent purple artifact after a Raider, not reproduced
   deterministically (hypothesis only: a stale hostile pulse — if it now shows
   white/steel on the 4.4c candidate, that points to its source);
@@ -180,7 +192,9 @@ margin across the whole set. Evidence:
   to 832 B (record 363 B packed, 3 sectors, 180 transport sectors) reaches the
   ATR menu at 551 against deadline 550, one frame late; the XEX is unaffected.
   The 4.5c Bomber candidate (arena record 355 B, 3 sectors, 180 transport
-  sectors) meets it with 0 frames: menu 550, deadline 550;
+  sectors) meets it with 0 frames: menu 550, deadline 550. The 4.5d WIP and
+  the death-frame deferral candidate carry 182 transport sectors, so the
+  derived deadline is 190 + 2 × 182 = 554: ATR menu 554 (0 frames), XEX 392;
 - open owner decision: the packed STARFIELD correction gate. At the 4.5M-M1
   candidate the single-stream gates 1,798 / 1,819 B are superseded by the
   two-stream total gates 1,804 (correction) / 1,825 B (hard) against a measured
@@ -1043,9 +1057,71 @@ Candidate XEX `0e4721b2…`, ATR `42985ceb…`, owner-smoke copy in
 
 ---
 
+## Death-frame deferral (on the 4.5d WIP) — `OWNER-SMOKE CANDIDATE` (2026-09-18)
+
+On top of the roadmap 4.5d Enemy Identity Freeze WIP (`7b50bd6`, its report:
+[diagnostics/stage-2b2p-enemy-identity-freeze-report.md](diagnostics/stage-2b2p-enemy-identity-freeze-report.md),
+corrected 2026-09-18) and the timing tooling (`423818e`). The branch now passes
+the PAL timing gate that 4.5d failed; 4.5d itself is presented to the owner
+together with this fix (the report's option 2).
+
+- **Change.** The PMG publication of the player death is deferred by one
+  frame. `apply_player_damage` keeps every decision and clear (lifecycle
+  `DYING`, life, `erase_bullet`, `clear_interceptor_pulses`,
+  `clear_transient_effects`, HUD, hit sound) but no longer calls
+  `begin_player_fighter_explosion`; the first DYING tick of
+  `update_player_death` (`player_dying_tick`, 18 B in the ENTITY_CODE tail)
+  begins it when the player explosion slot is idle, so the death frame pays
+  neither `erase_player` nor the first explosion phase. `BROAD_DEATH_TIMER` is
+  now `SHARED_FIGHTER_EXPLOSION_TOTAL+1` (25): the explosion still erases
+  itself in the respawn frame, before `respawn_player`. No C, enemy, ring,
+  backing/restore, collision, VBI/DLI or PMG-kernel change; hostile pools are
+  still zeroed on the death frame.
+- **Why not the enemy update or the ring.** Both misses are Light contact
+  kills inside `light_update`, after `integration_update_enemy` and
+  `rotate_playfield_rows` have already run in the frame; the transition
+  cannot skip work that precedes it. Skipping the Light breakup on a lethal
+  contact (C-owned) would save ~2,800 more but needs ~14 B in `HYBRID_C_EXT`
+  (tail 19 B, floor 16 B): an owner placement decision, not taken.
+- **Placement (measured).** BROADSIDE 6,650 B unchanged (size-neutral edits,
+  `free_broadside_slot` `$76A7` asserted); ENTITY_CODE 3,126 → 3,144 B
+  (`player_dying_tick` `$9D36-$9D47` behind the unmoved Light art, tail 40 →
+  22 B); 182 transport sectors, initial boot content 13,132 → 13,150 B
+  (envelope 52 → 34 B); linked runtime 17,479 → 17,497 B; `.lbl` diff: only
+  the new labels and the ENTITY_CODE size.
+- **PAL (measured).** PAL timing audit section above: 0 distinct miss events
+  across 67 replays, worst margin 466 (`raider-remnant-rapid-xex-hard` row
+  1945, −765 before), row 3007 +1,043 (−407 before); the measured saving per
+  death frame is 1,231-1,465 wall cycles. Debris gate: `0-evasive-fire3` and
+  `capital-muzzle-ring` PASS; `0-neutral-fire0` 1 blank frame in 1,558
+  post-capital frames at host frame 5426, a player-death frame with four
+  PairShots erased mid-frame — the documented pre-existing death-frame blink,
+  not caused here (its 32 blank frames at `7b50bd6` were the overrun's
+  aftermath and are gone). Raider-remnant: fails only on the pre-existing
+  explosion count (42/42 emitter shots continued, 0 stale, 0 orphans).
+- **Boot smoke.** PASS 4/4: XEX menu 392; ATR menu 554 against deadline 554.
+- **Tests.** New harness test (entity-effects): deferred begin, 25-frame
+  DYING, explosion erase before respawn. Rebaselined with the reason in each
+  file: `game-over`, `score`, `hud-status`, `entity-effects`, `broadside-fire`,
+  `light-wingman`, `light-interceptor`, `hybrid-c-arena`, and the
+  `scripts/broadside.mjs` model. Focused set 181 tests / 13 failing and full
+  suite 675 / 114, both the identical failure-name set to a clean export of
+  `423818e` (674 / 114).
+- **Owner-visible.** The fighter stays visible one extra frame after a lethal
+  hit and shows the ordinary hit flash on it before the death flash; respawn
+  and Game Over come one frame later.
+
+Candidate XEX `b8ed318c…`, ATR `6f03b9da…`, owner-smoke copy in
+`build/owner-smoke/death-frame-deferral-b8ed318c/`. Evidence:
+[diagnostics/stage-2b2r-death-frame-deferral.json](diagnostics/stage-2b2r-death-frame-deferral.json).
+
+---
+
 ## Current task
 
-Roadmap 4.5c Bomber is an **`OWNER-SMOKE CANDIDATE`** (section above); the
+The 4.5d Enemy Identity Freeze plus the death-frame deferral (sections above)
+await owner smoke on `wip/4.5d-gate-fail`. Roadmap 4.5c Bomber is an
+**`OWNER-SMOKE CANDIDATE`** (section above); the
 earlier `BLOCKED_PLACEMENT`
 ([diagnostics/stage-2b2j-bomber-blocked-placement.json](diagnostics/stage-2b2j-bomber-blocked-placement.json))
 is superseded by the M3 arena. Owner smoke is pending for it, for the 4.5M-M3
@@ -1054,8 +1130,12 @@ and the 4.4 Interceptor (with 4.4b and 4.4c).
 
 ## Next roadmap step
 
-Owner smoke of the 4.5c Bomber candidate (Raider/Bomber alternation, lane
-sweep, `BOMBER` shells, hull colours, capital broadside colours after a Bomber
-formation). Roadmap 4.6 (data-driven Encounter/Wave Director) starts only on
+Owner smoke of the 4.5d + death-frame deferral branch (Bomber attack pattern,
+torpedo shells, charge/hit colours; the one-frame-later death explosion) and of
+the 4.5c Bomber candidate (Raider/Bomber alternation, lane sweep, `BOMBER`
+shells, hull colours, capital broadside colours after a Bomber formation). Then
+the Bomber standing-cost task (`draw_enemy_member` body copy only when Y
+changed; hardware-critical, with proof) before more Bomber or 4.6 content.
+Roadmap 4.6 (data-driven Encounter/Wave Director) starts only on
 owner instruction. The Raider-coloured residual artifact and the debris
 death-frame blink remain open.

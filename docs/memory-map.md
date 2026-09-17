@@ -519,6 +519,35 @@ residency 2,720 → 2,332 B; **reserved** unchanged (arena 832 B, EXT 899 B);
 Evidence:
 [diagnostics/stage-2b2o-bomber-arena.json](diagnostics/stage-2b2o-bomber-arena.json).
 
+## Death-frame deferral — OWNER-SMOKE CANDIDATE (2026-09-17)
+
+Measured on top of the 4.5d Enemy Identity Freeze WIP (`7b50bd6`, XEX
+`838a9686…`). Only ENTITY_CODE grows (+18 B); no BROADSIDE, CODE, A2, STARFIELD,
+BSS, reservation or record range changes, and the Light art tables keep their
+addresses. These rows override the ENTITY_CODE tail rows above.
+
+| Range | Size | Candidate owner |
+| --- | ---: | --- |
+| `$9D16-$9D35` | 32 B | `light_glyph`, `light_interceptor_glyph` (unchanged) |
+| `$9D36-$9D47` | 18 B | `player_dying_tick`: first DYING tick begins the deferred player explosion, then counts `BROAD_DEATH_TIMER` (entered by `jmp` from `update_player_death`) |
+| `$9D48-$9D5D` | 22 B | free ENTITY_CODE reservation tail (40 B before) |
+
+BROADSIDE stays 6,650 B: `apply_player_damage` spends the former
+`jsr begin_player_fighter_explosion` bytes on its own `jmp update_hud_status`
+tail and `update_player_death` replaces its 10-B `@dying` body with
+`jmp player_dying_tick` + 7 B of `$EA` padding, so `free_broadside_slot`
+`$76A7` and every BROADSIDE/CODE label are unchanged (`.lbl` diff). 182
+transport sectors, initial boot content 13,150 B (envelope 34 B), ATR menu 554
+against deadline 554.
+
+4.5d Heavy BSS correction (measured from `encounter-director.lbl` and the
+lifecycle listing): `HYBRID_HEAVY_STATE` is `$811B-$8125` (11 B, was 9 B at
+4.5c). `$8122` `heavy_member_aux` (hit-flash/HP latch), `$8123`
+`heavy_member_colour` (published to `COLPM1`/`COLPM2`), `$8124-$8125` C
+scratch `heavy_scratch`, `heavy_index` (moved from `$8122-$8123`); `$8126-$813F`
+unowned. The 4.5c rows above (`$8122-$8123` scratch, `$8124-$813F` unowned)
+describe the 4.5c candidate only.
+
 ## Blocked-experiment evidence — not part of this map
 
 The 2026-09-16 Interceptor experiment (`BLOCKED_PLACEMENT`) measured additional

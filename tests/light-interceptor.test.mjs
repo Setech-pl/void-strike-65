@@ -323,8 +323,10 @@ test("placement contract: legal composite and packed size, state inside its rese
   assert.equal(manifest.lightWingman.residentBytes, 229);
   // Emitter-independent hostile shots (2026-09-17): the 27-B Raider-kill
   // projectile cleanup left ENTITY_CODE, so the art tables moved down 27 B.
-  assert.equal(manifest.entityEffects.codeBytes, 3126);
-  assert.equal(manifest.residentCapacity.tails.entityCode, 40);
+  // Death-frame deferral (2026-09-17): player_dying_tick (+18 B) is the new
+  // ENTITY_CODE tail behind the unmoved art tables.
+  assert.equal(manifest.entityEffects.codeBytes, 3144);
+  assert.equal(manifest.residentCapacity.tails.entityCode, 22);
   // 4.5c Bomber: HEAVY_CODE joins the extension composite; PICKUP_CODE +4 B.
   assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 7);
   // 4.5d: the per-member colour write (+9 B HEAVY_CODE) leaves 19 B (floor 16).

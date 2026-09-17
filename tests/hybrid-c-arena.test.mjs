@@ -123,8 +123,9 @@ test("the arena lands directly as its own DFMC record and is the only owner of i
   // 4.5c Bomber: arena record 355 B packed / 3 sectors; 180 transport sectors.
   // 4.5d enemy identity: arena record 558 B packed / 5 sectors; 182 transport sectors.
   assert.deepEqual([record.packedLength, record.sectorCount], [558, 5]);
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13132);
-  assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 52);
+  // Death-frame deferral (2026-09-17): player_dying_tick adds 18 B to ENTITY_CODE.
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13150);
+  assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 34);
   assert.equal(manifest.transportCapacity.initialBootSectors, 103);
   assert.equal(manifest.transportCapacity.totalTransportSectors, 182);
   assert.equal(parsed.totalOccupiedSectors, 182);

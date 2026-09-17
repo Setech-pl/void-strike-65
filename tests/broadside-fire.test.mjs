@@ -2070,7 +2070,7 @@ test("five hull contacts enter one guarded death lifecycle and leave source star
   assert.equal(asset.collisionBoundaries.get("allied").length, 32);
   assert.equal(asset.collisionBoundaries.get("enemy").length, 32);
   assert.match(routine("update_player_death", "respawn_player"),
-    /BROAD_DEATH_TIMER[\s\S]+PLAYER_LIVES[\s\S]+jsr respawn_player/);
+    /jmp player_dying_tick[\s\S]+PLAYER_LIVES[\s\S]+jsr respawn_player/);
   assert.match(source,
     /apply_player_damage:[\s\S]+jsr begin_player_fighter_explosion/);
 });
@@ -2149,7 +2149,9 @@ test("death decrements one life and respawns atomically at canonical corridor ce
   assert.equal(applyPlayerDamage(state, asset, 20, 25, 50), false);
   assert.equal(state.lives, 2, "same-frame and dead-state damage cannot consume another life");
 
-  for (let frame = 0; frame < SHARED_FIGHTER_EXPLOSION_TOTAL - 1; frame += 1) {
+  // Rebaselined 2026-09-17 (death-frame deferral): DYING lasts one frame longer
+  // than the 24-frame explosion, which begins on the first DYING tick.
+  for (let frame = 0; frame < SHARED_FIGHTER_EXPLOSION_TOTAL; frame += 1) {
     assert.equal(advancePlayerLifecycle(state, asset), "dying");
     assert.notEqual(state.playerX, 0, "death presentation never exposes an uninitialized X");
   }
@@ -2170,7 +2172,9 @@ test("respawn is invulnerable for exactly 250 controlled blinking PAL frames", (
   const state = createBroadsideState(asset);
   state.health = 20;
   applyPlayerDamage(state, asset, 20, 25, 0);
-  for (let frame = 0; frame < SHARED_FIGHTER_EXPLOSION_TOTAL; frame += 1) {
+  // Rebaselined 2026-09-17 (death-frame deferral): DYING lasts one frame longer
+  // than the 24-frame explosion, which begins on the first DYING tick.
+  for (let frame = 0; frame < SHARED_FIGHTER_EXPLOSION_TOTAL + 1; frame += 1) {
     advancePlayerLifecycle(state, asset);
   }
   const positions = [];
@@ -2264,7 +2268,9 @@ test("last life reaches GAME OVER after the full death animation without respawn
   state.health = 20;
   assert.equal(applyPlayerDamage(state, asset, 20, 25, 0), true);
   assert.equal(state.lives, 0);
-  for (let frame = 0; frame < SHARED_FIGHTER_EXPLOSION_TOTAL - 1; frame += 1) {
+  // Rebaselined 2026-09-17 (death-frame deferral): DYING lasts one frame longer
+  // than the 24-frame explosion, which begins on the first DYING tick.
+  for (let frame = 0; frame < SHARED_FIGHTER_EXPLOSION_TOTAL; frame += 1) {
     advancePlayerLifecycle(state, asset);
   }
   assert.equal(advancePlayerLifecycle(state, asset), "game-over");

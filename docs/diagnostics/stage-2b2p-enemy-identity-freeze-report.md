@@ -1,5 +1,14 @@
 # Roadmap 4.5d — not committed: one hard gate failed
 
+> **Update 2026-09-18.** Superseded gate result. The WIP was committed as
+> `7b50bd6` (not a candidate); `scripts/pal-timing-audit.mjs` then showed the
+> real failure was two dropped PAL frames (report option 2 was taken). With the
+> death-frame deferral candidate on top, the full audit set passes with 0
+> distinct miss events: see
+> [stage-2b2r-death-frame-deferral.json](stage-2b2r-death-frame-deferral.json)
+> and STATUS. The cost figures below were corrected on the same date.
+
+
 The 4.5d plan is implemented and builds, and every gate passes except the debris gate. So I stopped before committing and did not update STATUS, game-design, art-direction or memory-map, as you instructed. Nothing is pushed, and 4.6 is not started.
 
 ## What failed
@@ -8,7 +17,7 @@ The debris gate passes on `0-evasive-fire3` and `capital-muzzle-ring-2-sweep-fir
 - **Cause (measured):** at host frame 3007 the player dies while both Bombers are on screen. In the same frame there is a +5 kill and ring work, with 8 projectiles in flight. The work before the render wait reaches 25,656 cycles.
 - **Why that costs a whole frame:** `wait_frame_at_line` only exits when the beam is exactly on its line (scanline 238). That frame arrived too late, so it waited one extra PAL frame and measured 62,682 cycles.
 - **The 32 blank frames all follow that one overrun.** The tracer's frame alignment shifts after it and only recovers when the next game starts.
-- **How much is 4.5d (estimate):** at most about 270 cycles, from the two Bomber ticks (511 → 646). The frame was about 580 over the deadline, so most of the cost is the death, kill and ring work, not the Bomber code. Denser Bomber fire may make such pile-ups more likely. I can't prove it is pre-existing: the new Bomber behaviour changes the replay, so there is no identical-replay A/B.
+- **How much is 4.5d (MEASURED 2026-09-17, native frame profiler on `raider-remnant-rapid-xex-hard` row 1945; the original "~270 cycles" estimate was wrong):** the 4.5d behaviour adds only +36 cycles to the death frame (neither Bomber fires on it). What the Bombers cost is their **standing** per-frame price: `integration_update_enemy` is 4,630 cycles per frame with two Bombers live, 2,166-2,315 per member (`heavy_member_update` ~946 incl. the C tick, `draw_enemy_member` ~1,164, `erase_enemy_departing_row` ~56). The death frame itself is +6,636 over an identical-cadence quiet row: death +4,317, kill/score +3,009, projectiles −862. The miss is therefore the standing Bomber cost plus the death+kill+ring coincidence, and the same shape appears in both audited miss events (the death is a Light contact kill inside `light_update`, after the enemy update and the ring rotate have already run).
 
 ## Gates
 | Gate | Result |
@@ -27,7 +36,7 @@ The debris gate passes on `0-evasive-fire3` and `capital-muzzle-ring-2-sweep-fir
 - **Arena:** 392 → 614 of 832 B, 218 B free. By part: ASM 20 → 71 (the glyph builder and its table moved here from BROADSIDE), C 339 → 504, RODATA 33 → 39.
 - **Arena record and transport:** the record grows from 355 B in 3 sectors to 558 B in 5, so transport goes from 180 to 182 sectors.
 - **Tails:** EXT 28 → 19 B (floor 16), ENTITY 40 B unchanged. BROADSIDE raw size and all addresses outside its fixed 70-B slot are unchanged; packed size 5,667 → 5,641 B.
-- **BSS:** +2 B at `$8122-$8123`, in the previously unowned range. The plan estimated +1 B, but the hit-flash byte needs its own C variable as well as the colour byte.
+- **BSS:** +2 B: `HYBRID_HEAVY_STATE` grows from 9 to 11 B (`$811B-$8125`). `$8122-$8123` were the 4.5c C scratch and now hold `heavy_member_aux` (hit-flash/HP latch) and `heavy_member_colour`; the scratch moved to `$8124-$8125`, the newly owned bytes. (An earlier version of this report called `$8122-$8123` "previously unowned"; that was wrong.) The plan estimated +1 B, but the hit-flash byte needs its own C variable as well as the colour byte.
 - **Projectile glyphs:** 8 of 20 used (90–93 and 100–103).
 
 ## Per-enemy changes

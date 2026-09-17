@@ -520,11 +520,13 @@ test("assembled death and respawn preserve whole-game SCORE before the next awar
   });
   assert.equal(memory[addresses.playerLifecycle], 1, "lethal damage enters DYING");
   assert.equal(memory[addresses.playerLives], 2, "lethal damage consumes exactly one life");
-  assert.equal(memory[addresses.deathTimer], 24, "the full explosion lifecycle is retained");
+  // Rebaselined 2026-09-17 (death-frame deferral): the explosion begins on the
+  // first DYING tick, so DYING lasts 25 frames around the 24-frame explosion.
+  assert.equal(memory[addresses.deathTimer], 25, "the full explosion lifecycle is retained");
   assert.deepEqual([memory[addresses.scoreLow], memory[addresses.scoreHigh]], [0x23, 0x01]);
   assert.deepEqual([memory[addresses.topLow], memory[addresses.topHigh]], [0x23, 0x01]);
 
-  for (let frame = 0; frame < 24; frame += 1) {
+  for (let frame = 0; frame < 25; frame += 1) {
     executeScoreRoutine(memory, addresses.updatePlayerDeath, { externalCalls });
   }
   assert.equal(memory[addresses.playerLifecycle], 2,

@@ -213,7 +213,7 @@ interrupt `RTI` path. The stock cc65 Atari startup and libc are not linked.
 | selected Light archetype offset, burst-left, pursuit target, resolved post-burst slot (4.4 candidate) | C lifecycle | `$810C-$810F` |
 | provisional Light schedule counter — smoke scheduling only, not a lifecycle field (4.4 candidate) | C provisional schedule | `$8119`; `$811A` in the 4.5c candidate |
 | temporary Heavy smoke schedule counter — smoke scheduling only, replaced by 4.6 (4.5c candidate) | C temporary schedule | `$8119` |
-| selected Heavy archetype offset, formation hull colour, ticked member scalars (X, Y, direction, fire timer, turn timer) and 2 B C scratch (4.5c candidate) | C lifecycle (ASM marshals the member scalars and writes the colour to `COLPM1`/`COLPM2`) | `$811B-$8123` |
+| selected Heavy archetype offset, formation hull colour, ticked member scalars (X, Y, direction, fire timer, turn timer) and 2 B C scratch (4.5c candidate); 4.5d adds the member hit-flash/HP latch `$8122` and the published member colour `$8123`, moving the scratch to `$8124-$8125` | C lifecycle (ASM marshals the member scalars and writes the colour to `COLPM1`/`COLPM2`) | `$811B-$8123`; `$811B-$8125` in 4.5d |
 | ABI opcode/argument and C scratch | C/ABI boundary | `$86FA-$8700` |
 | pending enemy damage/source mailboxes | ASM kernel | existing `$5472-$5477` fields |
 | enemy coordinates, velocity, manoeuvre and projectile slots | ASM kernel | existing fixed symbols |
@@ -231,7 +231,7 @@ C-owned lifecycle field.
 | C profile BSS | 9 | `$8110-$8118` |
 | C Light BSS (incl. 6 B ASM render cache/scratch) | 12 | `$8100-$810B`; 16 B `$8100-$810F` in the 4.4 candidate |
 | provisional Light schedule counter BSS (4.4 candidate) | 1 | `$8119`; `$811A` in the 4.5c candidate |
-| Heavy BSS: temporary Heavy schedule counter + `HYBRID_HEAVY_STATE` (4.5c candidate) | 10 | `$8119`, `$811B-$8123` |
+| Heavy BSS: temporary Heavy schedule counter + `HYBRID_HEAVY_STATE` (4.5c candidate; 12 B in 4.5d) | 10 | `$8119`, `$811B-$8123`; `$811B-$8125` in 4.5d |
 | cc65 low CODE | 242 | `$8B88-$8C79` |
 | `EnemyArchetype` RODATA (Raider + Light) | 24 | `$8C7D-$8C94`; 38 B `$8C7D-$8CA2` in the 4.4 candidate (Interceptor record + 2 B schedule table); 50 B `$8C7D-$8CAE` in the 4.5c candidate (Bomber record at offset 36) |
 | lifecycle + Light CODE | 725 | `$8C95-$8F69` (`41ace65`); 485 B `$8C95-$8E79` at `b4b942e` after the sector C moved to the window below; 635 B `$8CA3-$8F1D` in the 4.4 candidate; 563 B `$8CAF-$8EE1` in the 4.5c candidate (formation admission and profile publication moved to the arena, Light escort admission stays) |

@@ -695,7 +695,9 @@ export function applyPlayerDamage(state, asset, damage, cooldownFrames, frame) {
   state.damageFrame = frame;
   if (state.health === 0) {
     state.playerLifecycle = PLAYER_LIFECYCLE_STATES.DYING;
-    state.deathTimer = SHARED_FIGHTER_EXPLOSION_TOTAL;
+    // DYING lasts one frame longer than the explosion: the runtime begins the
+    // PMG explosion on the first DYING tick, not on the death frame.
+    state.deathTimer = SHARED_FIGHTER_EXPLOSION_TOTAL + 1;
     state.playerVisible = false;
     state.lives = Math.max(0, state.lives - 1);
   }

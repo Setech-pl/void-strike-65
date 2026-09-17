@@ -1183,10 +1183,12 @@ test("debris damage updates HULL plates in the contact frame and enters canonica
     lifecycle: lethal.memory[addresses.playerLifecycle],
     deathTimer: lethal.memory[addresses.deathTimer],
     damageCalls: lethal.damageCallCount,
-  }, { health: 0, lives: 0, lifecycle: 1, deathTimer: 24, damageCalls: 1 });
+  // Death-frame deferral (2026-09-17): DYING lasts 25 frames; the PMG explosion
+  // begins on the first DYING tick, not in the contact frame.
+  }, { health: 0, lives: 0, lifecycle: 1, deathTimer: 25, damageCalls: 1 });
   assert.deepEqual([...lethal.memory.subarray(0x4019, 0x401d)], [12, 12, 12, 12]);
 
-  for (let frame = 0; frame < 24; frame += 1) runRoutine(lethal.memory, "update_player_death");
+  for (let frame = 0; frame < 25; frame += 1) runRoutine(lethal.memory, "update_player_death");
   assert.equal(lethal.memory[addresses.playerLifecycle], 3,
     "final-life debris death must reach the existing GAME OVER lifecycle");
 });
@@ -1241,7 +1243,7 @@ test("accepted direct Interceptor contact is lethal at every HULL and difficulty
         lifecycle: 1,
         lives: 2,
         damageCalls: 1,
-        deathCalls: 1,
+        deathCalls: 0, // deferred to the first DYING tick (player_dying_tick)
       }, `difficulty ${difficulty}, HULL ${health} did not enter one lethal contact flow`);
     }
   }
@@ -1265,7 +1267,7 @@ test("Interceptor contact geometry covers centre, edges, corners, and exact outs
       memory[addresses.playerHealth], memory[addresses.enemyActive],
       trace.callCounts.get("apply_player_damage"),
       trace.callCounts.get("begin_player_fighter_explosion"),
-    ], [0, 2, 1, 1], `legal contact offset ${dx},${dy} was missed`);
+    ], [0, 2, 1, 0], `legal contact offset ${dx},${dy} was missed`);
   }
 
   for (const [dx, dy] of [[-8, 0], [16, 0], [0, -15], [0, 14]]) {
@@ -1343,14 +1345,42 @@ test("lethal Interceptor contact updates HUD, uses one death event, and reaches 
     health: 0,
     lives: 0,
     lifecycle: 1,
-    deathTimer: 24,
+    deathTimer: 25,   // death-frame deferral: one frame longer than the explosion
     damageCalls: 1,
-    deathCalls: 1,
+    deathCalls: 0,    // begin_player_fighter_explosion runs on the first DYING tick
     hudCalls: 1,
     hullHud: [12, 12, 12, 12],
   });
-  for (let frame = 0; frame < 24; frame += 1) runRoutine(memory, "update_player_death");
+  for (let frame = 0; frame < 25; frame += 1) runRoutine(memory, "update_player_death");
   assert.equal(memory[addresses.playerLifecycle], 3);
+});
+
+test("player death defers the PMG explosion to the first DYING tick and still erases it before the respawn", () => {
+  // Death-frame deferral (2026-09-17): the lethal apply_player_damage leaves
+  // the player explosion slot idle; player_dying_tick begins it one frame
+  // later with the full 24-frame timer, and DYING lasts 25 frames so the
+  // explosion's self-erase (timer 1) still precedes the respawn draw.
+  const { memory } = exercisePlayerInterceptorContact({ playerHealth: 10, playerLives: 2 });
+  const slot = addresses.fighterExplosionTimer;   // player slot 0
+  assert.deepEqual([memory[slot], memory[addresses.deathTimer], memory[addresses.playerLifecycle]],
+    [0, 25, 1], "the death frame begins no explosion");
+
+  runRoutine(memory, "update_player_death");     // first DYING tick (N+1)
+  assert.deepEqual([memory[slot], memory[addresses.deathTimer], memory[addresses.playerLifecycle]],
+    [24, 24, 1], "the first DYING tick begins the full 24-frame explosion");
+
+  // Each later frame: tick_shared_fighter_explosions precedes update_player_death.
+  for (let frame = 0; frame < 23; frame += 1) {
+    runRoutine(memory, "tick_shared_fighter_explosions");
+    runRoutine(memory, "update_player_death");
+    assert.equal(memory[addresses.playerLifecycle], 1, `frame ${frame + 2} still DYING`);
+  }
+  assert.deepEqual([memory[slot], memory[addresses.deathTimer]], [1, 1]);
+  runRoutine(memory, "tick_shared_fighter_explosions");
+  assert.equal(memory[slot], 0, "the explosion erases itself in the respawn frame");
+  runRoutine(memory, "update_player_death");
+  assert.equal(memory[addresses.playerLifecycle], 2, "then the same frame respawns");
+  assert.equal(memory[addresses.deathTimer], 0);
 });
 
 test("Raider lifecycle and score remain canonical without scheduling a character effect", () => {
@@ -1415,7 +1445,7 @@ test("Interceptor contact result is byte-identical after XEX and ATR cold boot",
       scoreHi: 0,
       hullHud: [12, 12, 12, 12],
       damageCalls: 1,
-      deathCalls: 1,
+      deathCalls: 0,
       breakups: 1,
       hitSoundCalls: 2,
     });

@@ -4,6 +4,8 @@
 
 CAPITAL_SECTOR_STATE = $4EA5
 PLAYER_LIFECYCLE = $4EAA
+COLPM1 = $D013
+COLPM2 = $D014
 ENEMY_ACTIVE = $4ECD
 FIGHTER_PROJECTILE_ACTIVE = $5400
 INTERCEPTOR_PROJECTILE_SLOT_BASE = 5
@@ -34,6 +36,8 @@ DIRECTOR_LOW_BYTES = 242
 .import _enemy_c_apply_pending_damage
 .import _enemy_c_recycle
 .import _enemy_c_light_tick, _enemy_c_light_hit
+.import _enemy_c_heavy_tick
+.import _heavy_member_x, _heavy_hull_colour, _heavy_archetype_offset
 .import _enemy_archetypes
 .import _light_state, _light_hp, _light_x, _light_y, _light_fire_timer
 .import _light_screen_lo, _light_screen_hi
@@ -84,6 +88,7 @@ DIRECTOR_LOW_BYTES = 242
 .export enemy_profile_weapon_class, enemy_profile_score_bcd
 .export enemy_profile_director_value
 .export enemy_light_tick, enemy_light_hit
+.export enemy_heavy_tick, heavy_member_x, heavy_hull_colour, heavy_archetype_offset
 .export light_state, light_hp, light_x, light_y, light_fire_timer
 .export light_screen_lo, light_screen_hi
 .export light_backing0, light_backing1, light_scratch, light_slot_save
@@ -224,10 +229,8 @@ sector_update_capital_phase = _sector_c_update_capital_phase
 sector_begin_complete = _sector_c_begin_complete
 sector_complete_scroll_tick = _sector_c_complete_scroll_tick
 sector_force_final_drain = _sector_c_force_final_drain
-enemy_spawn_raiders = _enemy_c_spawn_raiders
 enemy_retire_member = _enemy_c_retire_member
 enemy_apply_pending_damage = _enemy_c_apply_pending_damage
-enemy_recycle = _enemy_c_recycle
 enemy_archetype_table = _enemy_archetypes
 enemy_profile_movement_id = _enemy_profile_movement_id
 enemy_profile_fire_policy_id = _enemy_profile_fire_policy_id
@@ -239,6 +242,10 @@ enemy_profile_weapon_class = _enemy_profile_weapon_class
 enemy_profile_score_bcd = _enemy_profile_score_bcd
 enemy_profile_director_value = _enemy_profile_director_value
 enemy_light_tick = _enemy_c_light_tick
+enemy_heavy_tick = _enemy_c_heavy_tick
+heavy_member_x = _heavy_member_x
+heavy_hull_colour = _heavy_hull_colour
+heavy_archetype_offset = _heavy_archetype_offset
 enemy_light_hit = _enemy_c_light_hit
 light_state = _light_state
 light_hp = _light_hp
@@ -260,10 +267,9 @@ light_archetype_offset = _light_archetype_offset
 ; explicitly assigned ca65 helpers (.segment "HYBRID_ASM_ARENA"). It replaces
 ; the temporary 243-B HYBRID_C_HEAVY window. Its linked image travels as its
 ; own DFMC record whose final destination is $7BD0: stage 2 (ATR) or the XEX
-; loader lands it in place; there is no hold and no publish copy. Nothing is
-; placed here yet except the anchor below, which keeps the record non-empty
-; (DFMC rejects a zero-length record) so the transport topology does not
-; depend on whether a later step has code in the arena.
+; loader lands it in place; there is no hold and no publish copy. The anchor
+; below stays first and keeps the record non-empty (DFMC rejects a zero-length
+; record); roadmap 4.5c places the Heavy formation C and its veneers after it.
 .import __HYBRID_C_ARENA_RAM_START__, __HYBRID_C_ARENA_RAM_SIZE__
 .import __HYBRID_ASM_ARENA_SIZE__, __HYBRID_C_ARENA_SIZE__
 .import __HYBRID_C_ARENA_RODATA_SIZE__
@@ -278,7 +284,21 @@ light_archetype_offset = _light_archetype_offset
 hybrid_arena_anchor:
     rts
 
-; Declared (empty) here so that the size symbols and the contract above exist
-; while no C module places code or read-only data in the arena.
+; Heavy formation lifecycle veneers (roadmap 4.5c). C selects the formation
+; and its hull colour; ASM writes GTIA. At recycle C restores the Raider
+; colour, which P1/P2 lend to the capital broadside missiles M1/M2 (PRIOR 0).
+enemy_recycle:
+    jsr _enemy_c_recycle
+    jmp heavy_publish_hull_colour
+enemy_spawn_raiders:
+    jsr _enemy_c_spawn_raiders
+heavy_publish_hull_colour:
+    lda _heavy_hull_colour
+    sta COLPM1
+    sta COLPM2
+    rts
+
+; Declared here so that the size symbols and the contract above exist whatever
+; the C modules place in the arena.
 .segment "HYBRID_C_ARENA"
 .segment "HYBRID_C_ARENA_RODATA"

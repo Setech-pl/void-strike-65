@@ -357,7 +357,37 @@ not yet accepted.
 Weapon classes also own their movement rate (roadmap 4.5b candidate):
 `PULSE` and `LASER` fall 2 lines every frame; `BOMBER` (3) falls 2 lines every
 second frame, 1 line per frame on average, with the same hitbox, damage and
-lifetime in steps. No enemy fires `BOMBER` until the Bomber archetype (4.5c).
+lifetime in steps. Only the Bomber archetype fires `BOMBER` (4.5c candidate).
+
+### Bomber — `OWNER-SMOKE CANDIDATE` (roadmap 4.5c)
+
+The last MVP archetype (owner decision 20). Implemented and awaiting owner
+smoke; the values below are the candidate's, not yet accepted.
+
+- **Heavy class on `P1`/`P2`.** A Bomber formation is two Bombers on the Heavy
+  PMG players, the same renderer, collision and destruction path as the Raider,
+  with the `SCYTHE_BOMBER` art as a QUAD (32-HPOS) hull in hull colour `$24`.
+  When the formation recycles, `P1`/`P2` return to the Raider colour `$44`,
+  which the capital broadside missiles M1/M2 borrow.
+- **Lane sweep.** Slot 0 sweeps the left lane (X 48-92), slot 1 the right lane
+  (X 132-176) at 1 HPOS per frame, turning at the lane edges or when a per-slot
+  timer expires (24-55 frames), so the pair never mirrors exactly. The lanes
+  keep an 8-HPOS gap at their closest.
+- **Entry and descent.** Both start wholly above the gameplay area (Y 0). Slot
+  0 enters at 1 line per frame to depth 40, slot 1 to depth 16; then each
+  descends 1 line every other frame on opposite frame parity, so slot 1 trails
+  and the pair is not phase-locked.
+- **Fire.** Each Bomber has its own timer (first shot after 48 / 72 frames) and
+  fires one `BOMBER` shell (1 line per frame on average), then waits 80/64/48
+  frames on EASY/MEDIUM/HARD. It fires only between Y 24 and 200, not while
+  the player is dying and not when the capital sector is due. Shells are
+  emitter-independent like every hostile shot.
+- **HP and score.** 4 HP; a kill scores 50 points.
+- **Escort.** A Bomber formation brings no Light escort in the smoke schedule.
+  That is wave data, not a Bomber rule; roadmap 4.6 may give it one.
+- **Smoke order.** A TEMPORARY 4.5 HEAVY SMOKE SCHEDULER alternates Raider and
+  Bomber formations (Raider first in a fresh game) so a smoke run shows both.
+  Roadmap 4.6 replaces it with the data-driven Encounter Director.
 
 Longer level structures, bosses, and further audio/visual polish remain future
 work. They are not implied by the current enemy-roster descriptors or

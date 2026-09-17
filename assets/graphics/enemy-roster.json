@@ -145,7 +145,7 @@
       "role": "Heavy bomber",
       "futureTactics": "Slow lane denial and committed approach",
       "futureWeapon": "Plasma bomb or mine",
-      "hardwareWidth": "DOUBLE",
+      "hardwareWidth": "QUAD",
       "height": 16,
       "visibleBits": [0, 7],
       "frames": 3,

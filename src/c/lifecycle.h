@@ -25,6 +25,7 @@ void enemy_c_spawn_raiders(void);
 uint8_t enemy_c_retire_member(void);
 uint8_t enemy_c_apply_pending_damage(void);
 void enemy_c_recycle(void);
+uint8_t enemy_c_heavy_tick(void);
 uint8_t enemy_c_light_tick(void);
 uint8_t enemy_c_light_hit(void);
 

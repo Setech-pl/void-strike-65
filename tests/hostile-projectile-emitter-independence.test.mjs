@@ -67,7 +67,7 @@ function raiderWithShot(artifact, emitter) {
   set("player_x", 200);                       // far from the shot column
   set("player_y", 200);
   set("ENEMY_TARGET_SLOT", emitter);
-  runRoutine(memory, labels, "allocate_interceptor_projectile");
+  runRoutine(memory, labels, "allocate_interceptor_projectile", { a: PULSE });
   runRoutine(memory, labels, "render_fighter_projectile_overlays");
   const [slot] = activeSlots(memory, labels);
   assert.equal(slot, SLOT_BASE);
@@ -118,7 +118,7 @@ test("Raider shot survives its emitter's destruction and keeps moving and ageing
 test("both Raiders dying (formation over) keeps every released shot; the pool drains cleanly", () => {
   const { memory, labels, set } = raiderWithShot("xex", 0);
   set("ENEMY_TARGET_SLOT", 1);
-  runRoutine(memory, labels, "allocate_interceptor_projectile");
+  runRoutine(memory, labels, "allocate_interceptor_projectile", { a: PULSE });
   runRoutine(memory, labels, "erase_fighter_projectile_overlays");
   runRoutine(memory, labels, "render_fighter_projectile_overlays");
   assert.deepEqual(activeSlots(memory, labels), [5, 6]);
@@ -141,7 +141,7 @@ test("both Raiders dying (formation over) keeps every released shot; the pool dr
   set("ENEMY_MEMBER_STATE", 1, 0);
   set("ENEMY_TARGET_SLOT", 0);
   for (let count = 0; count < 5; count += 1)
-    runRoutine(memory, labels, "allocate_interceptor_projectile");
+    runRoutine(memory, labels, "allocate_interceptor_projectile", { a: PULSE });
   assert.deepEqual(activeSlots(memory, labels), [5, 6, 7, 8, 9], "no pool leak");
 });
 

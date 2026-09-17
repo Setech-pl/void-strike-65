@@ -139,15 +139,26 @@ test("source contract: the Light admission and tick hold no ordering or toggle l
 });
 
 test("provisional schedule: a fresh game yields Wingman then Interceptor, then repeats", () => {
+  // 4.5c: the temporary Heavy smoke scheduler cycles Raider, Bomber; only the
+  // Raider formation carries a Light escort, so the Light schedule advances
+  // once per Raider formation and Bomber formations admit no Light.
+  const OFFSET_RAIDER = 0;
+  const OFFSET_BOMBER = 36;
   const image = game();
   const admit = () => {
     run(image, "enemy_spawn_raiders");
-    const offset = light(image).offset;
+    const formation = [image[L("heavy_archetype_offset")], image[L("light_state")],
+      image[L("light_state")] === 0 ? null : light(image).offset];
     image[L("light_state")] = 0;      // retire so the next call re-admits
-    return offset;
+    return formation;
   };
-  assert.deepEqual([admit(), admit(), admit(), admit()],
-    [OFFSET_WINGMAN, OFFSET_INTERCEPTOR, OFFSET_WINGMAN, OFFSET_INTERCEPTOR]);
+  assert.deepEqual([admit(), admit(), admit(), admit(), admit()], [
+    [OFFSET_RAIDER, 1, OFFSET_WINGMAN],
+    [OFFSET_BOMBER, 0, null],
+    [OFFSET_RAIDER, 1, OFFSET_INTERCEPTOR],
+    [OFFSET_BOMBER, 0, null],
+    [OFFSET_RAIDER, 1, OFFSET_WINGMAN],
+  ]);
 });
 
 test("admission per difficulty: entry x 124, leaderless, and the record's own post-burst pause", () => {
@@ -314,8 +325,9 @@ test("placement contract: legal composite and packed size, state inside its rese
   // projectile cleanup left ENTITY_CODE, so the art tables moved down 27 B.
   assert.equal(manifest.entityEffects.codeBytes, 3126);
   assert.equal(manifest.residentCapacity.tails.entityCode, 40);
-  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 11);
-  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 21);
+  // 4.5c Bomber: HEAVY_CODE joins the extension composite; PICKUP_CODE +4 B.
+  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 7);
+  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 28);
   assert.equal(L("light_glyph"), 0x9d16);
   assert.equal(L("light_interceptor_glyph"), 0x9d26);
   assert.equal(L("light_archetype_offset"), 0x810c);
@@ -324,9 +336,11 @@ test("placement contract: legal composite and packed size, state inside its rese
   assert.equal(L("_light_post_burst_slot"), 0x810f);
   assert.deepEqual([L("__HYBRID_LIGHT_STATE_RUN__"), L("__HYBRID_LIGHT_STATE_SIZE__")],
     [0x8100, 0x10], "HYBRID_LIGHT_STATE is exactly $8100-$810F");
-  assert.equal(L("_encounter_light_index"), 0x8119);
+  // cc65 emits the HYBRID_ENCOUNTER_STATE bytes in reverse declaration order.
+  assert.equal(L("_encounter_heavy_index"), 0x8119);
+  assert.equal(L("_encounter_light_index"), 0x811a);
   assert.deepEqual([L("__HYBRID_ENCOUNTER_STATE_RUN__"), L("__HYBRID_ENCOUNTER_STATE_SIZE__")],
-    [0x8119, 1], "the provisional schedule counter is the only byte of its segment");
+    [0x8119, 2], "the two provisional schedule counters are the only bytes of their segment");
   assert.equal(manifest.encounterDirector.director.footprint.cStackBytes, 0);
   assert.equal(manifest.encounterDirector.director.footprint.zeroPageBytes, 0);
 });
@@ -370,17 +384,18 @@ test("weapon_class visuals: Raider PULSE publishes $DA/$E4, the Interceptor LASE
   assert.equal(image[active + base], 0x06 | (LASER << 3));
 
   // Raider: the real Heavy emitter tags its shot PULSE and keeps the 0/1 cursor.
+  // Since 4.5c the caller passes the record's weapon_class in A (generic emission).
   for (const member of [0, 1]) {
     image[L("ENEMY_MEMBER_STATE") + member] = 1;
     image[L("ENEMY_X") + member] = 80 + member * 40;
     image[L("ENEMY_Y") + member] = 60;
   }
   image[L("ENEMY_TARGET_SLOT")] = 1;
-  assert.equal(run(image, "allocate_interceptor_projectile").carry, true);
+  assert.equal(run(image, "allocate_interceptor_projectile", { a: PULSE }).carry, true);
   assert.equal(image[active + base + 1], 0x02 | 0x01 | (PULSE << 3));
   assert.equal(image[L("ENEMY_WEAPON_CURSOR")], 0);
   image[L("ENEMY_TARGET_SLOT")] = 0;
-  assert.equal(run(image, "allocate_interceptor_projectile").carry, true);
+  assert.equal(run(image, "allocate_interceptor_projectile", { a: PULSE }).carry, true);
   assert.equal(image[active + base + 2], 0x02 | (PULSE << 3));
   assert.equal(image[L("ENEMY_WEAPON_CURSOR")], 1);
   // Pin the two Raider shots to the left and right horizontal phases.

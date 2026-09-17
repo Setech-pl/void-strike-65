@@ -22,12 +22,13 @@ enum {
     ENEMY_ARCHETYPE_RAIDER = 0,
     ENEMY_ARCHETYPE_LIGHT_WINGMAN = 1,
     ENEMY_ARCHETYPE_INTERCEPTOR = 2,
-    ENEMY_ARCHETYPE_COUNT = 3
+    ENEMY_ARCHETYPE_BOMBER = 3,
+    ENEMY_ARCHETYPE_COUNT = 4
 };
 
-/* Byte offset of a record inside enemy_archetypes[]. The Light slot names its
- * selected archetype this way so C and ASM can both index the table with one
- * 8-bit register, and nothing hardcodes "Light == index 1" any more. */
+/* Byte offset of a record inside enemy_archetypes[]. The Light slot and the
+ * Heavy formation name their selected archetype this way so C and ASM can both
+ * index the table with one 8-bit register; nothing hardcodes a record index. */
 #define ENEMY_ARCHETYPE_RECORD_BYTES 12u
 #define ENEMY_ARCHETYPE_OFFSET(index) ((index) * ENEMY_ARCHETYPE_RECORD_BYTES)
 
@@ -48,6 +49,7 @@ enum {
     ENEMY_MOVEMENT_RAIDER_CROSS_PURSUIT = 0,
     ENEMY_MOVEMENT_WINGMAN_FOLLOW = 1,
     ENEMY_MOVEMENT_INTERCEPTOR_PURSUIT = 2,
+    ENEMY_MOVEMENT_BOMBER_LANE_SWEEP = 3,
     ENEMY_FIRE_RAIDER_PAIR_BURST = 1,
     ENEMY_FIRE_SINGLE_SHOT = 2,
     ENEMY_FIRE_LIGHT_DOUBLE_TAP = 3,
@@ -93,6 +95,18 @@ extern volatile uint8_t light_archetype_offset;
 extern volatile uint8_t light_burst_left;
 extern volatile uint8_t light_target_x;
 extern volatile uint8_t light_post_burst_slot;
+
+/* Selected Heavy formation archetype (byte offset into enemy_archetypes[]).
+ * One archetype per formation: both P1/P2 members share it (roadmap 4.5c). */
+extern volatile uint8_t heavy_archetype_offset;
+/* GTIA hull colour of the current Heavy formation; ASM writes it to COLPM1/2. */
+extern volatile uint8_t heavy_hull_colour;
+extern volatile uint8_t encounter_heavy_index;
+extern volatile uint8_t heavy_member_x;
+extern volatile uint8_t heavy_member_y;
+extern volatile uint8_t heavy_member_direction;
+extern volatile uint8_t heavy_member_fire_timer;
+extern volatile uint8_t heavy_member_turn_timer;
 
 extern volatile uint8_t enemy_profile_movement_id;
 extern volatile uint8_t enemy_profile_fire_policy_id;

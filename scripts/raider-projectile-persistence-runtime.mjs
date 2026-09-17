@@ -14,8 +14,10 @@ const dividerBase = 0x4028;
 const dividerEnd = dividerBase + 40;
 const pmgBase = 0x3d00;
 const pmgEnd = 0x3f00;
+// allocate_interceptor_projectile takes the record's weapon_class in A (4.5c).
+const ENEMY_WEAPON_PULSE = 1;
 
-function runLogged(memory, labels, name, writes) {
+function runLogged(memory, labels, name, writes, a = 0) {
   const cpu = new Nmos6502(memory, {
     write(address, value, executingCpu) {
       const character = (address >= dividerBase && address < dividerEnd) ||
@@ -38,6 +40,7 @@ function runLogged(memory, labels, name, writes) {
   cpu.push((stop - 1) >> 8);
   cpu.push((stop - 1) & 0xff);
   cpu.pc = requiredLabel(labels, name);
+  cpu.a = a;
   for (let steps = 0; steps < 400_000 && cpu.pc !== stop; steps += 1) cpu.step();
   if (cpu.pc !== stop) throw new Error(`${name} did not return`);
   return cpu.cycles;
@@ -82,7 +85,8 @@ function executeCase({ root, artifact, caseIndex, withShot }) {
   const writes = [];
   let allocatedSlot = null;
   if (withShot) {
-    runLogged(memory, labels, "allocate_interceptor_projectile", writes);
+    runLogged(memory, labels, "allocate_interceptor_projectile", writes,
+      ENEMY_WEAPON_PULSE);
     const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
     allocatedSlot = Array.from({ length: projectileSlotCount }, (_, index) =>
       projectileSlotBase + index).find((slot) => memory[active + slot] !== 0);
@@ -193,7 +197,7 @@ export function executeRaiderProjectileOwnershipIsolation({
   for (const emitter of [0, 1]) {
     memory[target] = emitter;
     allocationCycles.push(runLogged(memory, labels,
-      "allocate_interceptor_projectile", writes));
+      "allocate_interceptor_projectile", writes, ENEMY_WEAPON_PULSE));
   }
   const slots = [projectileSlotBase, projectileSlotBase + 1];
   for (const [emitter, slot] of slots.entries()) {

@@ -211,7 +211,9 @@ interrupt `RTI` path. The stock cc65 Atari startup and libc are not linked.
 | Light state, HP, position, fire timer, leaderless latch | C lifecycle | `$8100-$8105` |
 | Light render cache and scratch | ASM Light kernel | `$8106-$810B` |
 | selected Light archetype offset, burst-left, pursuit target, resolved post-burst slot (4.4 candidate) | C lifecycle | `$810C-$810F` |
-| provisional Light schedule counter — smoke scheduling only, not a lifecycle field (4.4 candidate) | C provisional schedule | `$8119` |
+| provisional Light schedule counter — smoke scheduling only, not a lifecycle field (4.4 candidate) | C provisional schedule | `$8119`; `$811A` in the 4.5c candidate |
+| temporary Heavy smoke schedule counter — smoke scheduling only, replaced by 4.6 (4.5c candidate) | C temporary schedule | `$8119` |
+| selected Heavy archetype offset, formation hull colour, ticked member scalars (X, Y, direction, fire timer, turn timer) and 2 B C scratch (4.5c candidate) | C lifecycle (ASM marshals the member scalars and writes the colour to `COLPM1`/`COLPM2`) | `$811B-$8123` |
 | ABI opcode/argument and C scratch | C/ABI boundary | `$86FA-$8700` |
 | pending enemy damage/source mailboxes | ASM kernel | existing `$5472-$5477` fields |
 | enemy coordinates, velocity, manoeuvre and projectile slots | ASM kernel | existing fixed symbols |
@@ -228,13 +230,15 @@ C-owned lifecycle field.
 | ca65 ABI veneer | 117 | `$8701-$8775` |
 | C profile BSS | 9 | `$8110-$8118` |
 | C Light BSS (incl. 6 B ASM render cache/scratch) | 12 | `$8100-$810B`; 16 B `$8100-$810F` in the 4.4 candidate |
-| provisional Light schedule counter BSS (4.4 candidate) | 1 | `$8119` |
+| provisional Light schedule counter BSS (4.4 candidate) | 1 | `$8119`; `$811A` in the 4.5c candidate |
+| Heavy BSS: temporary Heavy schedule counter + `HYBRID_HEAVY_STATE` (4.5c candidate) | 10 | `$8119`, `$811B-$8123` |
 | cc65 low CODE | 242 | `$8B88-$8C79` |
-| `EnemyArchetype` RODATA (Raider + Light) | 24 | `$8C7D-$8C94`; 38 B `$8C7D-$8CA2` in the 4.4 candidate (Interceptor record + 2 B schedule table) |
-| lifecycle + Light CODE | 725 | `$8C95-$8F69` (`41ace65`); 485 B `$8C95-$8E79` at `b4b942e` after the sector C moved to the window below; 635 B `$8CA3-$8F1D` in the 4.4 candidate |
+| `EnemyArchetype` RODATA (Raider + Light) | 24 | `$8C7D-$8C94`; 38 B `$8C7D-$8CA2` in the 4.4 candidate (Interceptor record + 2 B schedule table); 50 B `$8C7D-$8CAE` in the 4.5c candidate (Bomber record at offset 36) |
+| lifecycle + Light CODE | 725 | `$8C95-$8F69` (`41ace65`); 485 B `$8C95-$8E79` at `b4b942e` after the sector C moved to the window below; 635 B `$8CA3-$8F1D` in the 4.4 candidate; 563 B `$8CAF-$8EE1` in the 4.5c candidate (formation admission and profile publication moved to the arena, Light escort admission stays) |
 | sector transition C (`sector_c_*`, step 4.3) | 240 | `$8602-$86F1` (`HYBRID_C_SECTOR_RAM`, 8 B free) |
-| reusable runtime arena `HYBRID_C_ARENA` (roadmap 4.5M-M3 candidate; replaces the 243-B 4.5a `HYBRID_C_HEAVY` window `$7E12-$7F04`) | 1 of 832 | `$7BD0-$7F0F`, one contiguous arena for cc65 CODE (`#pragma code-name ("HYBRID_C_ARENA")`), cc65 RODATA (`#pragma rodata-name ("HYBRID_C_ARENA_RODATA")`) and explicitly assigned ca65 helpers (`.segment "HYBRID_ASM_ARENA"`, linked with the ABI veneer); its linked image is its own DFMC record landing directly at `$7BD0` (no hold, no publish copy); the only content is the 1-B `rts` record anchor `hybrid_arena_anchor`; ld65 asserts start, 832-B capacity, contents ≤ capacity and end ≤ `$7F10` (A2 display lists) |
-| Light ASM `LIGHT_CODE` (late publication: erase, render) | 133 | `$8F6A-$8FEE` (`41ace65`); 203 B `$8E7A-$8F44` at `b4b942e` with the debris late-publication kernel; same 203 B at `$8F1E-$8FE8` in the 4.4 candidate, 23 B tail |
+| reusable runtime arena `HYBRID_C_ARENA` (roadmap 4.5M-M3 candidate; replaces the 243-B 4.5a `HYBRID_C_HEAVY` window `$7E12-$7F04`) | 1 of 832 | `$7BD0-$7F0F`, one contiguous arena for cc65 CODE (`#pragma code-name ("HYBRID_C_ARENA")`), cc65 RODATA (`#pragma rodata-name ("HYBRID_C_ARENA_RODATA")`) and explicitly assigned ca65 helpers (`.segment "HYBRID_ASM_ARENA"`, linked with the ABI veneer); its linked image is its own DFMC record landing directly at `$7BD0` (no hold, no publish copy); the only content is the 1-B `rts` record anchor `hybrid_arena_anchor`; ld65 asserts start, 832-B capacity, contents ≤ capacity and end ≤ `$7F10` (A2 display lists). 4.5c candidate: 392 of 832 B — anchor first, 19 B Heavy lifecycle veneers (`enemy_recycle`, `enemy_spawn_raiders`, `heavy_publish_hull_colour`), 339 B Heavy formation C (`heavy_publish_profile`, `enemy_c_spawn_raiders`, `bomber_turn`, `enemy_c_heavy_tick`), 33 B RODATA (temporary Heavy smoke scheduler and lane-sweep data); 440 B free; record 355 B packed, 3 sectors |
+| Light ASM `LIGHT_CODE` (late publication: erase, render) | 133 | `$8F6A-$8FEE` (`41ace65`); 203 B `$8E7A-$8F44` at `b4b942e` with the debris late-publication kernel; same 203 B at `$8F1E-$8FE8` in the 4.4 candidate, 23 B tail; `$8EE2-$8FAC` in the 4.5c candidate |
+| Heavy ASM `HEAVY_CODE` `heavy_member_update` (member marshalling, class emission; 4.5c candidate) | 55 | `$8FAD-$8FE3`, after `LIGHT_CODE` in the extension stream; 28 B `HYBRID_C_EXT` tail |
 | Light ASM `LIGHT_RESIDENT` (update, shot, kill, glyph) | 226 | `$8776-$8857`; 229 B `$8776-$885A` in the 4.4 candidate (`ldx LIGHT_ARCHETYPE_OFFSET`); 225 B `$8776-$8856` in the 4.4b candidate (art moved out, archetype art selection added) |
 | Light ASM art tables (Wingman + Interceptor, ENTITY_CODE tail, 4.4b candidate) | 32 | `$9D31-$9D50`; `$9D16-$9D35` since the emitter-independent hostile shots candidate |
 | Light ASM lower-layer backing resolver (STARFIELD tail) | 31 | `$5D45-$5D63` |

@@ -21,6 +21,7 @@ for (const file of ["build/void-strike-65.lbl", "build/integration-glue.lbl"]) {
 const GAMEPLAY_TOP = canonicalPlayfield.gameplayTop;
 const ENTITY_GAMEPLAY_TOP = GAMEPLAY_TOP + 8;
 const HEAVY_HEIGHT = 14;
+const BOMBER_HEIGHT = 16;
 const DEBRIS_HEIGHT = 8;
 const PLAYER1 = 0x3d00;
 const PLAYER2 = 0x3e00;
@@ -84,10 +85,16 @@ test("Heavy activation, respawn and both PMG slots begin wholly above gameplay",
         },
       },
     });
+    // 4.5c: the temporary Heavy smoke scheduler alternates Raider and Bomber
+    // formations; the Bomber lane sweep starts its 16-line QUAD hull at Y 0
+    // (also wholly above gameplay) with its per-slot turn timers.
+    const bomber = generation % 2 === 1;
+    const [startY, maneuver] = bomber
+      ? [GAMEPLAY_TOP - BOMBER_HEIGHT, [60, 52]] : [GAMEPLAY_TOP - HEAVY_HEIGHT, [0, 0]];
     assert.deepEqual([...image.subarray(address("ENEMY_Y"), address("ENEMY_Y") + 2)],
-      [GAMEPLAY_TOP - HEAVY_HEIGHT, GAMEPLAY_TOP - HEAVY_HEIGHT]);
+      [startY, startY]);
     assert.deepEqual([...image.subarray(address("ENEMY_MANEUVER_STATE"),
-      address("ENEMY_MANEUVER_STATE") + 2)], [0, 0]);
+      address("ENEMY_MANEUVER_STATE") + 2)], maneuver);
     assert.equal(visiblePmgWrites(writes, PLAYER1).length, 0);
     assert.equal(visiblePmgWrites(writes, PLAYER2).length, 0);
     assert.equal(image.subarray(PLAYER1 + GAMEPLAY_TOP,

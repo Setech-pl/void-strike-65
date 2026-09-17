@@ -119,7 +119,8 @@ test("anchor masks are non-empty, structurally distinct, and preserve player-fac
   const [interceptor, talon, bomber] = asset.implemented;
   assert.equal(interceptor.visibleWidth, 16);
   assert.equal(talon.visibleWidth, 6);
-  assert.equal(bomber.visibleWidth, 16);
+  // 4.5c: SCYTHE_BOMBER is a QUAD (32-HPOS) hull.
+  assert.equal(bomber.visibleWidth, 32);
   assert.ok(talon.visibleWidth < interceptor.visibleWidth);
   assert.ok(bomber.occupiedArea > talon.occupiedArea * 1.5);
   assert.ok(interceptor.occupiedArea > talon.occupiedArea);
@@ -231,7 +232,11 @@ test("release gameplay remains one Interceptor with the accepted behaviour and s
     ["NONE", "NONE"]);
   assert.deepEqual([asset.implemented[0].hitPoints, asset.implemented[0].score], [1, 10]);
   assert.match(source, /reset_enemy:[\s\S]+jsr HYBRID_ENEMY_SPAWN_RAIDERS/);
-  assert.match(lifecycleSource, /ENEMY_ARCHETYPE = ENEMY_ARCHETYPE_RAIDER/);
+  // 4.5c: the roster shape comes from the selected Heavy formation; a fresh
+  // game starts on the Raider shape.
+  assert.match(lifecycleSource, /ENEMY_ARCHETYPE = ROSTER_SHAPE_RAIDER/);
+  assert.match(lifecycleSource,
+    /ENEMY_ARCHETYPE = encounter_heavy_roster_shape\[encounter_heavy_index\]/);
   assert.match(source,
     /update_fighter_projectiles:[\s\S]+DAMAGE_PLAYER_PROJECTILE[\s\S]+jsr queue_enemy_damage/);
   assert.match(source, /handle_collisions:[\s\S]+jsr resolve_enemy_damage/);

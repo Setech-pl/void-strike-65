@@ -12,8 +12,8 @@ import { installBootArtifact } from "../scripts/runtime-image.mjs";
 // It replaces the temporary 243-B HYBRID_C_HEAVY window ($7E12-$7F04, roadmap
 // 4.5a) and its 44-B transport tail in the 4.5M-M2 merged low-C/GLUE record.
 // Its linked image is its own DFMC record whose final destination is $7BD0
-// (direct landing: no hold, no publish copy). No gameplay change: the arena
-// holds only the 1-B ca65 record anchor.
+// (direct landing: no hold, no publish copy). Roadmap 4.5c places the Heavy
+// formation C (code + rodata) and its three ca65 lifecycle veneers here.
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const mainSource = fs.readFileSync(path.join(root, "src/main.s"), "utf8");
 const abiSource = fs.readFileSync(path.join(root, "src/hybrid/c-asm-abi.s"), "utf8");
@@ -55,10 +55,15 @@ test("HYBRID_C_ARENA is one contiguous 832-B arena at $7BD0-$7F0F", () => {
   assert.equal(arena.freeBytes, CAPACITY - arena.usedBytes);
   assert.equal(arena.usedBytes, arenaImage.length);
   assert.equal(manifest.residentCapacity.heavyWindow, undefined);
-  // M3 is infrastructure only: the 1-B ca65 anchor, no C code or data yet.
-  assert.deepEqual([arena.asmBytes, arena.codeBytes, arena.rodataBytes], [1, 0, 0]);
+  // 4.5c: 1-B anchor + 19-B Heavy veneers, 339-B Heavy C, 33-B rodata.
+  assert.deepEqual([arena.asmBytes, arena.codeBytes, arena.rodataBytes], [20, 339, 33]);
+  assert.equal(arena.freeBytes, 440);
   assert.equal(labels.get("hybrid_arena_anchor"), ARENA);
-  assert.deepEqual([...arenaImage], [0x60]);
+  assert.equal(arenaImage[0], 0x60, "the anchor stays first");
+  for (const veneer of ["enemy_recycle", "enemy_spawn_raiders", "heavy_publish_hull_colour"]) {
+    const address = labels.get(veneer);
+    assert.ok(address > ARENA && address < ARENA + arena.asmBytes, `${veneer} is an arena ca65 helper`);
+  }
   // Link-time (ld65) and assembly-time (main.s) contracts.
   for (const pattern of [
     /\.assert __HYBRID_C_ARENA_RAM_START__ = \$7BD0, lderror/,
@@ -113,11 +118,13 @@ test("the arena lands directly as its own DFMC record and is the only owner of i
   assert.match(chunkLoaderSource, /\[0x7bd0, 0x7f10\]/);
   // 4.5M-M3 measured: 8 records, 178 transport sectors, initial block unchanged.
   // Emitter-independent hostile shots: ENTITY_CODE −27 B (−25 B packed).
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13137);
-  assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 47);
+  // 4.5c Bomber: arena record 355 B packed / 3 sectors; 180 transport sectors.
+  assert.deepEqual([record.packedLength, record.sectorCount], [355, 3]);
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13132);
+  assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 52);
   assert.equal(manifest.transportCapacity.initialBootSectors, 103);
-  assert.equal(manifest.transportCapacity.totalTransportSectors, 178);
-  assert.equal(parsed.totalOccupiedSectors, 178);
+  assert.equal(manifest.transportCapacity.totalTransportSectors, 180);
+  assert.equal(parsed.totalOccupiedSectors, 180);
 });
 
 test("the temporary Heavy window transport is retired without moving any address", () => {

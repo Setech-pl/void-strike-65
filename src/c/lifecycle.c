@@ -15,6 +15,7 @@
 #define ENTITY_SPAWN_TIMER_LO    U8_AT(0x8003u)
 #define ENTITY_SPAWN_TIMER_HI    U8_AT(0x8004u)
 #define DIRECTOR_STATE_FLAGS     U8_AT(0x80FEu)
+#define FRAME_COUNTER            U8_AT(0x0086u)
 
 #define ENEMY_ARCHETYPE          U8_AT(0x4ECBu)
 #define ENEMY_ACTIVE             U8_AT(0x4ECDu)
@@ -28,6 +29,11 @@
 #define ENEMY_LIVE_COUNT         U8_AT(0x5489u)
 #define ENEMY_X_0                U8_AT(0x5478u)
 #define ENEMY_Y_0                U8_AT(0x547Au)
+/* The Heavy member being ticked; ASM sets it before each member update. */
+#define HEAVY_SLOT               ENEMY_TARGET_SLOT
+/* First of the ten per-slot Heavy bytes $5478-$5481 (X, Y, VELOCITY_X,
+ * MOVE_ACCUMULATOR, MANEUVER_STATE; two slots each). */
+#define HEAVY_SLOT_STATE         (&ENEMY_X_0)
 #define PLAYER_LIFECYCLE         U8_AT(0x4EAAu)
 #define PLAYER_X                 U8_AT(0x0080u)
 
@@ -43,6 +49,10 @@
  * `lda enemy_archetypes+field,y` instead of building a runtime pointer. */
 #define LIGHT_FIELD(field) \
     ((&enemy_archetypes.byte[field])[light_archetype_offset])
+#define HEAVY_FIELD(field) \
+    ((&enemy_archetypes.byte[field])[heavy_archetype_offset])
+#define HEAVY_OFFSET_RAIDER      ENEMY_ARCHETYPE_OFFSET(ENEMY_ARCHETYPE_RAIDER)
+#define HEAVY_OFFSET_BOMBER      ENEMY_ARCHETYPE_OFFSET(ENEMY_ARCHETYPE_BOMBER)
 #define LIGHT_OFFSET_WINGMAN     ENEMY_ARCHETYPE_OFFSET(ENEMY_ARCHETYPE_LIGHT_WINGMAN)
 #define LIGHT_OFFSET_INTERCEPTOR ENEMY_ARCHETYPE_OFFSET(ENEMY_ARCHETYPE_INTERCEPTOR)
 #define LIGHT_CENTRE_OFFSET      4u
@@ -63,6 +73,24 @@
 #define INTERCEPTOR_TRACK_PHASE  2u
 #define ENCOUNTER_LIGHT_SCHEDULE_LENGTH 2u
 
+/* Heavy formation presentation: the roster shape is the ASM PMG art index
+ * (build/enemy-roster.inc): 0 is the Raider art, 2 SCYTHE_BOMBER (QUAD). */
+#define ROSTER_SHAPE_RAIDER      0u
+#define ROSTER_SHAPE_BOMBER      2u
+#define HULL_COLOUR_RAIDER       0x44u
+#define HULL_COLOUR_BOMBER       0x24u
+#define ENCOUNTER_HEAVY_SCHEDULE_LENGTH 2u
+#define HEAVY_PROFILE_BYTES      9u
+#define HEAVY_SLOT_STATE_LAST    9u
+/* Bomber lane sweep (owner decision 20). X is the left edge of a 32-HPOS QUAD
+ * hull; the lanes keep an 8-HPOS gap at their closest (92 + 32 = 124 < 132)
+ * and the right lane ends flush with the playfield (176 + 32 = 208). */
+#define BOMBER_TURN_FLIP         0xFEu
+#define BOMBER_TURN_MIN          24u
+#define BOMBER_TURN_SPREAD       0x1Fu
+#define BOMBER_FIRE_TOP          24u
+#define BOMBER_FIRE_BOTTOM       200u
+
 #define ENEMY_INACTIVE           0u
 #define ENEMY_ACTIVE_STATE       1u
 #define ENEMY_EXPLODING_STATE    2u
@@ -73,6 +101,7 @@
 #define DIRECTOR_FLAG_COMPLETE   0x01u
 #define DIRECTOR_FLAG_CAPITAL_ADMITTED 0x40u
 #define DIRECTOR_FLAG_CAPITAL_DUE      0x80u
+#define PLAYER_DYING_OR_OVER     0x01u
 
 extern uint8_t asm_sector_pressure_active(void);
 
@@ -109,6 +138,17 @@ const EnemyArchetypeTable enemy_archetypes = { {
         ENEMY_WEAPON_LASER,
         0x15u,
         1u
+    },
+    {
+        4u,
+        ENEMY_MOVEMENT_BOMBER_LANE_SWEEP,
+        ENEMY_FIRE_SINGLE_SHOT,
+        1u, 0u,
+        80u, 64u, 48u,
+        ENEMY_RENDERER_TWO_HEAVY_PMG,
+        ENEMY_WEAPON_BOMBER,
+        0x50u,
+        1u
     }
 } };
 
@@ -129,6 +169,22 @@ static const uint8_t encounter_light_schedule[ENCOUNTER_LIGHT_SCHEDULE_LENGTH] =
 #pragma bss-name ("HYBRID_ENCOUNTER_STATE")
 /* PROVISIONAL smoke scheduling counter; see encounter_light_schedule above. */
 volatile uint8_t encounter_light_index;
+/* TEMPORARY 4.5 HEAVY SMOKE SCHEDULER counter; see encounter_heavy_schedule. */
+volatile uint8_t encounter_heavy_index;
+#pragma bss-name ("HYBRID_HEAVY_STATE")
+volatile uint8_t heavy_archetype_offset;
+volatile uint8_t heavy_hull_colour;
+/* The ticked member, marshalled by ASM from and back to its slot's bytes in
+ * $5478-$5481 around enemy_c_heavy_tick (same order as those arrays). */
+volatile uint8_t heavy_member_x;
+volatile uint8_t heavy_member_y;
+volatile uint8_t heavy_member_direction;
+volatile uint8_t heavy_member_fire_timer;
+volatile uint8_t heavy_member_turn_timer;
+/* cc65 stores an indexed lvalue with `sta abs,y` only when the value is a
+ * plain load; arithmetic in place builds a runtime pointer (ptr1). */
+static uint8_t heavy_scratch;
+static uint8_t heavy_index;
 #pragma bss-name ("HYBRID_C_STATE")
 volatile uint8_t enemy_profile_movement_id;
 volatile uint8_t enemy_profile_fire_policy_id;
@@ -158,19 +214,7 @@ volatile uint8_t light_target_x;
 volatile uint8_t light_post_burst_slot;
 #pragma bss-name ("BSS")
 
-static void publish_raider_profile(void)
-{
-    enemy_profile_movement_id = enemy_archetypes.record[0].movement_behavior_id;
-    enemy_profile_fire_policy_id = enemy_archetypes.record[0].fire_policy_id;
-    enemy_profile_burst_count = enemy_archetypes.record[0].burst_count;
-    enemy_profile_burst_interval = enemy_archetypes.record[0].burst_interval_frames;
-    enemy_profile_post_burst_frames =
-        (&enemy_archetypes.record[0].post_burst_easy_frames)[DIFFICULTY_SETTING];
-    enemy_profile_renderer_class = enemy_archetypes.record[0].renderer_class;
-    enemy_profile_weapon_class = enemy_archetypes.record[0].weapon_class;
-    enemy_profile_score_bcd = enemy_archetypes.record[0].score_bcd;
-    enemy_profile_director_value = enemy_archetypes.record[0].director_value;
-}
+static void heavy_publish_profile(void);
 
 /* Reload the selected Light archetype's post-burst pause for this difficulty.
  * The three per-difficulty fields are adjacent, so one 8-bit index reaches
@@ -196,7 +240,6 @@ static void encounter_light_schedule_advance(void)
 void lifecycle_c_init(void)
 {
     CAPITAL_SECTOR_STATE = SECTOR_FIGHTER;
-    ENEMY_ARCHETYPE = ENEMY_ARCHETYPE_RAIDER;
     ENEMY_ACTIVE = ENEMY_INACTIVE;
     ENEMY_MEMBER_STATE_0 = ENEMY_INACTIVE;
     ENEMY_MEMBER_STATE_1 = ENEMY_INACTIVE;
@@ -206,8 +249,12 @@ void lifecycle_c_init(void)
     light_state = ENEMY_INACTIVE;
     light_burst_left = 0u;
     encounter_light_index = 0u;
+    encounter_heavy_index = 0u;
     light_screen_hi = 0u;       /* the rebuilt playfield has no Light backing */
-    publish_raider_profile();
+    ENEMY_ARCHETYPE = ROSTER_SHAPE_RAIDER;
+    heavy_archetype_offset = HEAVY_OFFSET_RAIDER;
+    heavy_hull_colour = HULL_COLOUR_RAIDER;
+    heavy_publish_profile();
 }
 
 /* Sector-state transitions run from the reusable resident window $8602-$86F9
@@ -295,18 +342,10 @@ uint8_t sector_c_force_final_drain(void)
 }
 #pragma code-name (pop)
 
-void enemy_c_spawn_raiders(void)
+/* The Light escort admission of a Heavy formation. A Light still descending
+ * from an earlier formation keeps its lifecycle. */
+static void encounter_light_admit(void)
 {
-    ENEMY_ARCHETYPE = ENEMY_ARCHETYPE_RAIDER;
-    ENEMY_HP_0 = enemy_archetypes.record[0].hit_points;
-    ENEMY_HP_1 = enemy_archetypes.record[0].hit_points;
-    ENEMY_MEMBER_STATE_0 = ENEMY_ACTIVE_STATE;
-    ENEMY_MEMBER_STATE_1 = ENEMY_ACTIVE_STATE;
-    ENEMY_LIVE_COUNT = RAIDER_SLOT_COUNT;
-    ENEMY_ACTIVE = ENEMY_ACTIVE_STATE;
-    /* The formation admission also admits one Light for Heavy slot 0, the
-     * archetype named by the provisional schedule below. A Light still
-     * descending from an earlier formation keeps its lifecycle. */
     if (light_state == ENEMY_INACTIVE) {
         encounter_light_schedule_advance();
         /* Difficulty is fixed for a game and the archetype for a life, so the
@@ -371,6 +410,9 @@ uint8_t enemy_c_apply_pending_damage(void)
 void enemy_c_recycle(void)
 {
     ENEMY_ACTIVE = ENEMY_INACTIVE;
+    /* With no Heavy on screen P1/P2 colour only the capital broadside missiles
+     * M1/M2 (PRIOR 0): give them back the Raider faction colour. */
+    heavy_hull_colour = HULL_COLOUR_RAIDER;
 }
 
 /* Once per gameplay frame. Returns the selected record's weapon class (never
@@ -453,4 +495,139 @@ uint8_t enemy_c_light_hit(void)
     }
     light_state = ENEMY_INACTIVE;
     return 1u;
+}
+
+/* Heavy formation data and policy (roadmap 4.5c), placed in the reusable
+ * runtime arena $7BD0-$7F0F (4.5M-M3). */
+#pragma code-name ("HYBRID_C_ARENA")
+#pragma rodata-name ("HYBRID_C_ARENA_RODATA")
+
+/* TEMPORARY 4.5 HEAVY SMOKE SCHEDULER — replaced by 4.6 data-driven Encounter
+ * Director. The schedule cycles Raider, Bomber, Raider... only so a smoke run
+ * shows both; nothing in the Heavy lifecycle, the Bomber handler or the
+ * renderer depends on this order. Each column is per-formation data: record,
+ * PMG art and hull colour (owner smoke may retune the Bomber's art or colour
+ * as data). The escort column is provisional wave policy, not a Bomber rule:
+ * a 4.6 WaveDef may give a Bomber formation a Light escort. */
+static const uint8_t encounter_heavy_archetype[ENCOUNTER_HEAVY_SCHEDULE_LENGTH] = {
+    HEAVY_OFFSET_RAIDER, HEAVY_OFFSET_BOMBER
+};
+static const uint8_t encounter_heavy_roster_shape[ENCOUNTER_HEAVY_SCHEDULE_LENGTH] = {
+    ROSTER_SHAPE_RAIDER, ROSTER_SHAPE_BOMBER
+};
+static const uint8_t encounter_heavy_hull_colour[ENCOUNTER_HEAVY_SCHEDULE_LENGTH] = {
+    HULL_COLOUR_RAIDER, HULL_COLOUR_BOMBER
+};
+static const uint8_t encounter_heavy_light_escort[ENCOUNTER_HEAVY_SCHEDULE_LENGTH] = {
+    1u, 0u
+};
+
+/* Record field of each enemy_profile_* byte, in their declared order. */
+static const uint8_t heavy_profile_fields[HEAVY_PROFILE_BYTES] = {
+    ENEMY_ARCHETYPE_FIELD_MOVEMENT, ENEMY_ARCHETYPE_FIELD_FIRE_POLICY,
+    ENEMY_ARCHETYPE_FIELD_BURST_COUNT, ENEMY_ARCHETYPE_FIELD_BURST_INTERVAL,
+    ENEMY_ARCHETYPE_FIELD_POST_BURST, ENEMY_ARCHETYPE_FIELD_RENDERER,
+    ENEMY_ARCHETYPE_FIELD_WEAPON, ENEMY_ARCHETYPE_FIELD_SCORE,
+    ENEMY_ARCHETYPE_FIELD_DIRECTOR_VALUE
+};
+
+/* Lane-sweep formation start, $5478-$5481 by slot: X, Y, direction, first
+ * fire delay, first turn delay. Slot 0 starts left moving right, slot 1
+ * mirrored right moving left; slot 1 also fires 24 frames later. */
+static const uint8_t bomber_formation_start[HEAVY_SLOT_STATE_LAST + 1u] = {
+    48u, 176u,
+    0u, 0u,
+    1u, 0xFFu,
+    48u, 72u,
+    60u, 52u
+};
+/* Per slot: lane bounds, and the depth to which the member enters at one line
+ * per frame before cruising at one line every other frame. Slot 1 slows early,
+ * so it trails slot 0 vertically and the pair is never phase-locked. */
+static const uint8_t bomber_lane_first[RAIDER_SLOT_COUNT] = { 48u, 132u };
+static const uint8_t bomber_lane_last[RAIDER_SLOT_COUNT] = { 92u, 176u };
+static const uint8_t bomber_entry_depth[RAIDER_SLOT_COUNT] = { 40u, 16u };
+
+/* Publish the derived profile of the selected Heavy record: the ASM kernel
+ * reads its score, weapon cadence, movement and renderer. */
+static void heavy_publish_profile(void)
+{
+    heavy_index = HEAVY_PROFILE_BYTES - 1u;
+    do {
+        heavy_scratch = (uint8_t)(heavy_profile_fields[heavy_index] + heavy_archetype_offset);
+        heavy_scratch = enemy_archetypes.byte[heavy_scratch];
+        (&enemy_profile_movement_id)[heavy_index] = heavy_scratch;
+    } while (heavy_index-- != 0u);
+    heavy_scratch = (uint8_t)(heavy_archetype_offset + DIFFICULTY_SETTING);
+    enemy_profile_post_burst_frames =
+        (&enemy_archetypes.byte[ENEMY_ARCHETYPE_FIELD_POST_BURST])[heavy_scratch];
+}
+
+/* Heavy formation admission: one archetype for both P1/P2 members. ASM has
+ * already placed the Raider start state; a lane sweep replaces it. */
+void enemy_c_spawn_raiders(void)
+{
+    heavy_archetype_offset = encounter_heavy_archetype[encounter_heavy_index];
+    ENEMY_ARCHETYPE = encounter_heavy_roster_shape[encounter_heavy_index];
+    heavy_hull_colour = encounter_heavy_hull_colour[encounter_heavy_index];
+    heavy_publish_profile();
+    ENEMY_HP_0 = HEAVY_FIELD(ENEMY_ARCHETYPE_FIELD_HIT_POINTS);
+    ENEMY_HP_1 = ENEMY_HP_0;
+    ENEMY_MEMBER_STATE_0 = ENEMY_ACTIVE_STATE;
+    ENEMY_MEMBER_STATE_1 = ENEMY_ACTIVE_STATE;
+    ENEMY_LIVE_COUNT = RAIDER_SLOT_COUNT;
+    ENEMY_ACTIVE = ENEMY_ACTIVE_STATE;
+    if (enemy_profile_movement_id == ENEMY_MOVEMENT_BOMBER_LANE_SWEEP) {
+        heavy_index = HEAVY_SLOT_STATE_LAST;
+        do {
+            heavy_scratch = bomber_formation_start[heavy_index];
+            HEAVY_SLOT_STATE[heavy_index] = heavy_scratch;
+        } while (heavy_index-- != 0u);
+    }
+    if (encounter_heavy_light_escort[encounter_heavy_index] != 0u) {
+        encounter_light_admit();
+    }
+    ++encounter_heavy_index;
+    if (encounter_heavy_index >= ENCOUNTER_HEAVY_SCHEDULE_LENGTH) {
+        encounter_heavy_index = 0u;
+    }
+}
+
+static void bomber_turn(void)
+{
+    heavy_member_direction ^= BOMBER_TURN_FLIP;
+    heavy_member_turn_timer = (uint8_t)((FRAME_COUNTER & BOMBER_TURN_SPREAD) + BOMBER_TURN_MIN);
+}
+
+/* Lane-sweep tick of one live Heavy member (HEAVY_SLOT), called by the ASM
+ * member loop after it captured the member's old Y. Y grows by at most one
+ * line, as erase_enemy_departing_row requires. Returns 0, or the record's
+ * weapon_class when this member fires; ASM emits exactly that class. */
+uint8_t enemy_c_heavy_tick(void)
+{
+    if (heavy_member_y < bomber_entry_depth[HEAVY_SLOT] ||
+        ((FRAME_COUNTER ^ HEAVY_SLOT) & 1u) == 0u) {
+        ++heavy_member_y;
+    }
+    if (--heavy_member_turn_timer == 0u) {
+        bomber_turn();
+    }
+    heavy_scratch = (uint8_t)(heavy_member_x + heavy_member_direction);
+    if (heavy_scratch < bomber_lane_first[HEAVY_SLOT] ||
+        heavy_scratch > bomber_lane_last[HEAVY_SLOT]) {
+        bomber_turn();
+    } else {
+        heavy_member_x = heavy_scratch;
+    }
+    if (heavy_member_fire_timer != 0u) {
+        --heavy_member_fire_timer;
+        return 0u;
+    }
+    if (heavy_member_y < BOMBER_FIRE_TOP || heavy_member_y > BOMBER_FIRE_BOTTOM ||
+        (PLAYER_LIFECYCLE & PLAYER_DYING_OR_OVER) != 0u ||
+        (DIRECTOR_STATE_FLAGS & DIRECTOR_FLAG_CAPITAL_DUE) != 0u) {
+        return 0u;
+    }
+    heavy_member_fire_timer = enemy_profile_post_burst_frames;
+    return enemy_profile_weapon_class;
 }

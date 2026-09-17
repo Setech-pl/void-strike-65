@@ -18,8 +18,9 @@ the values below.
 the 4.4c hostile weapon visuals, the roadmap 4.5a Heavy window capacity
 increment (superseded by the M3 arena), the 4.5b `BOMBER` weapon class, the
 4.5M-M1 starfield staging swap and the 4.5M-M2 cold-record relocation (both
-owner smoke PASS 2026-09-17), the 4.5M-M3 `HYBRID_C_ARENA` and the
-emitter-independent hostile shots fix (sections below) on top of `f4cb18b`, the documentation-only reconciliation of
+owner smoke PASS 2026-09-17), the 4.5M-M3 `HYBRID_C_ARENA`, the
+emitter-independent hostile shots fix and the roadmap 4.5c Bomber (sections
+below) on top of `f4cb18b`, the documentation-only reconciliation of
 the owner acceptance recorded here. None of these candidates is accepted; the
 accepted runtime is still `b4b942e`.
 
@@ -125,7 +126,9 @@ comparing CPU.
   546); boot CPU added without extra sectors can miss it (it did for the
   first 4.5a variant). Measured for the Bomber retry: a throwaway arena filled
   to 832 B (record 363 B packed, 3 sectors, 180 transport sectors) reaches the
-  ATR menu at 551 against deadline 550, one frame late; the XEX is unaffected;
+  ATR menu at 551 against deadline 550, one frame late; the XEX is unaffected.
+  The 4.5c Bomber candidate (arena record 355 B, 3 sectors, 180 transport
+  sectors) meets it with 0 frames: menu 550, deadline 550;
 - open owner decision: the packed STARFIELD correction gate. At the 4.5M-M1
   candidate the single-stream gates 1,798 / 1,819 B are superseded by the
   two-stream total gates 1,804 (correction) / 1,825 B (hard) against a measured
@@ -925,35 +928,82 @@ Candidate XEX `f9c4a96d…`, ATR `5e026009…`, owner-smoke copy in
 
 ---
 
+## Roadmap 4.5c — Bomber (decision 20) — `OWNER-SMOKE CANDIDATE` (2026-09-17)
+
+The `BLOCKED_PLACEMENT` design of `experiment/bomber-4.5c-blocked-placement`
+(`8e138a8`) reapplied on top of `67bfa73` with its Heavy formation C in the
+4.5M-M3 arena. No redesign; the only adaptations are placement (arena
+pragmas and veneer segment), an `asl/asl/asl/ora` class encoding in the
+allocator (the build-time 6502 model has no `ROL A`) and the checked-in
+`LIGHTFILE` placeholder size for raw test links.
+
+- **Gameplay (candidate).** Fourth `EnemyArchetype` (offset 36): HP 4, lane
+  sweep, single shot, pause 80/64/48, `BOMBER` class, score `$50`, Heavy
+  `P1`/`P2` renderer with QUAD `SCYTHE_BOMBER` art in hull colour `$24`
+  (recycle restores `$44` for the broadside missiles). Slot 0 sweeps X 48-92,
+  slot 1 X 132-176 at 1 HPOS/frame, turning at lane edges or on a per-slot
+  24-55-frame timer; entry at 1 line/frame to depth 40 / 16, then 1 line every
+  other frame on opposite parity; each member fires on its own timer (first
+  shot 48 / 72 frames) only for Y 24-200, player alive, capital not due. A
+  **TEMPORARY 4.5 HEAVY SMOKE SCHEDULER** alternates Raider (with Light escort)
+  and Bomber (no escort) formations, Raider first; roadmap 4.6 replaces it.
+- **Ownership.** C: record, formation schedule, profile publication from the
+  selected record, admission, lane-sweep tick and fire decision. ASM:
+  `heavy_member_update` marshals the member's five slot bytes around
+  `enemy_c_heavy_tick` and emits the returned class through the generic
+  allocator (`ACTIVE = class << 3 | 2 | slot`, `$1A/$1B`); arena veneers write
+  the hull colour to `COLPM1`/`COLPM2`. Raider formations keep their ASM
+  motion.
+- **Placement (measured).** Arena 392 / 832 B (ASM 20 incl. anchor, C 339,
+  RODATA 33; 440 B free), record 355 B packed in 3 sectors. `HYBRID_C_EXT`:
+  records 50 B + C 563 B + `LIGHT_CODE` 203 B + `HEAVY_CODE` 55 B, **tail 28 B**
+  (21 B before; floor 16 B). `PICKUP_CODE` 769 → 773 B (fill 7 B). BSS +10 B:
+  `$8119` Heavy schedule counter, Light counter moved to `$811A`,
+  `HYBRID_HEAVY_STATE` `$811B-$8123`; C stack 0, new zero page 0. 180 transport
+  sectors (178); XEX 23,105 → 23,497 B.
+- **Accounting.** Physical: linked runtime 17,475 → 17,479 B, simultaneous
+  19,467 → 19,855 B, safe 2,720 → 2,332 B. Reserved: unchanged. Reusable:
+  arena 831 → 440 B, EXT tail 21 → 28 B, pickup fill 11 → 7 B.
+- **CPU.** Build harness: Bomber member tick worst 545 cycles with a shot, 374
+  without (≈1,090 per frame if both fire); admission 1,121, recycle 45 once per
+  formation. Native PAL focused replays (67bfa73 → candidate, Bomber frames
+  found by `colpm1 = $24`): `2-sweep-fire4` 29,801 → 29,101, `2-sweep-fire6`
+  29,849 → **30,075**, `2-neutral-fire0` 29,807 → 29,894, `2-evasive-fire3`
+  29,570 → 29,822; 0 missed frames, 0 extra VBI, 0 DLI errors (diverging
+  replays).
+- **Gates.** Boot smoke PASS 4/4: XEX 78/135/392; ATR start 235, loader 293,
+  menu **550 vs deadline 550** (0 frames margin). Arena write-watch PASS 4/4
+  (image exact at `start`, 0 writes). Debris gate PASS 3/3 (maxima 30,038 /
+  29,881 / 30,077, with Bomber frames); `67bfa73` fails `0-evasive-fire3` on
+  its own replay with the known death-frame blink, which is not fixed here.
+- **Tests.** New `tests/heavy-bomber.test.mjs` (12). Rebaselined
+  `hybrid-c-arena`, `hybrid-lifecycle`, `light-interceptor`, `light-wingman`,
+  `cold-pickup-record-fit`, `enemy-combat`, `raider-projectile-ownership`
+  (+ its runtime script), `hostile-projectile-emitter-independence`,
+  `enemy-roster` (QUAD width, schedule shape) and `offscreen-spawn` (Bomber
+  generation). Full suite 661 tests / 114 failing; failure names identical to
+  a clean export of `67bfa73` plus the owner's untracked booster diagnostic,
+  which fails identically there.
+
+Candidate XEX `0e4721b2…`, ATR `42985ceb…`, owner-smoke copy in
+`build/owner-smoke/bomber-4.5c-0e4721b2/`. Evidence:
+[diagnostics/stage-2b2o-bomber-arena.json](diagnostics/stage-2b2o-bomber-arena.json).
+
+---
+
 ## Current task
 
-Roadmap 4.5c (Bomber / Heavy Assault gameplay) is **`BLOCKED_PLACEMENT`**
-(2026-09-17). No 4.5c code is on this branch; the 4.5M memory/lifetime
-migration (M1 and M2 owner smoke PASS, M3 `HYBRID_C_ARENA` candidate above) is
-the accepted way forward.
-
-- The full design (Bomber record, TEMPORARY 4.5 HEAVY SMOKE SCHEDULER,
-  generic Heavy profile, per-member C lane-sweep tick, generic Heavy
-  `weapon_class` emission, QUAD art, hull colour publish/restore) is on the
-  evidence branch `experiment/bomber-4.5c-blocked-placement` (`8e138a8`). It
-  does not link and was never executed.
-- `HYBRID_C_HEAVY` needed 391 B against its 243 B window (148 B over); the
-  window is superseded by the 832-B M3 arena (831 B free).
-  `HYBRID_C_EXT` would hold 871 of 899 B, a 28 B tail (12 B above the
-  16 B floor). Total deficit: 120 B at a zero EXT tail, 136 B with the
-  floor.
-- Owner decision required: A) widen the Heavy window (move A2 cold staging and
-  the A2 display lists), recommended; B) a behaviour-neutral compaction
-  checkpoint of existing EXT C (estimated 40-90 B, not enough alone);
-  C) reduce 4.5c scope.
-- Evidence: [diagnostics/stage-2b2j-bomber-blocked-placement.json](diagnostics/stage-2b2j-bomber-blocked-placement.json).
-
-Owner review of the 4.5b candidate and owner smoke of the 4.4 Interceptor
-candidate (with 4.4b and 4.4c) are still pending.
+Roadmap 4.5c Bomber is an **`OWNER-SMOKE CANDIDATE`** (section above); the
+earlier `BLOCKED_PLACEMENT`
+([diagnostics/stage-2b2j-bomber-blocked-placement.json](diagnostics/stage-2b2j-bomber-blocked-placement.json))
+is superseded by the M3 arena. Owner smoke is pending for it, for the 4.5M-M3
+arena and the emitter-independent hostile shots candidates, the 4.5b review
+and the 4.4 Interceptor (with 4.4b and 4.4c).
 
 ## Next roadmap step
 
-Owner smoke of the 4.5M-M3 `HYBRID_C_ARENA` candidate, then retry 4.5c from
-`8e138a8` against the arena, per decision 20 (a separate task; the measured
-one-frame ATR boot-smoke overrun of a full arena is an input to it). The Raider-coloured residual artifact remains an
-open P0 investigation.
+Owner smoke of the 4.5c Bomber candidate (Raider/Bomber alternation, lane
+sweep, `BOMBER` shells, hull colours, capital broadside colours after a Bomber
+formation). Roadmap 4.6 (data-driven Encounter/Wave Director) starts only on
+owner instruction. The Raider-coloured residual artifact and the debris
+death-frame blink remain open.

@@ -205,6 +205,12 @@ Bomber jest **ostatnim** archetypem MVP. Kolejność wykonania:
   szczegóły: STATUS.
 - **4.5c — archetyp Bomber** (C: rekord, selekcja Heavy, ruch, ogień; ASM:
   wykonanie).
+  Stan (2026-09-17): `OWNER-SMOKE CANDIDATE` — projekt z `8e138a8`
+  (poprzednio `BLOCKED_PLACEMENT`) umieszczony w `HYBRID_C_ARENA` z 4.5M-M3:
+  arena 392/832 B (ASM 20, C 339, RODATA 33; 440 B wolne), ogon
+  `HYBRID_C_EXT` 28 B, 180 sektorów transportu, menu ATR 550 przy terminie
+  550; TYMCZASOWY harmonogram Heavy (Raider, Bomber…) do zastąpienia w 4.6;
+  szczegóły: STATUS.
 
 Kolejność po 4.5 według decyzji 20: 4.6 sterowany danymi Encounter/Wave
 Director → 4.7 Boss → 4.8 wzbogacenie capital traversal → pętla poziomu /

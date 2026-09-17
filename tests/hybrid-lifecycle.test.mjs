@@ -57,8 +57,10 @@ test("C EnemyArchetype is a compact exact Raider record in legal extension place
   // Roadmap 4.4 (Interceptor): the third EnemyArchetype record, its pursuit/
   // burst C and the provisional encounter schedule add 164 B: 712 + 164 = 876.
   // 4.4c: enemy_c_light_tick returns the record's weapon_class (+2 B) = 878.
+  // 4.5c (Bomber): the Heavy admission moved to HYBRID_C_ARENA while the Bomber
+  // record and HEAVY_CODE member veneer joined the extension composite = 871.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
-    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 878 });
+    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 871 });
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
     ({ name }) => name === "window"), { name: "window", runAddress: 0x8602, bytes: 240 });
   assert.equal(manifest.encounterDirector.director.footprint.cStackBytes, 0);
@@ -172,5 +174,6 @@ test("ownership is singular and generated C requires neither software stack nor 
   assert.doesNotMatch(executableGenerated,
     /\b(?:c_sp|sreg|regsave|regbank|tmp[1-4]|ptr[1-4])\b/);
   assert.deepEqual([...executableGenerated.matchAll(/\bjsr\s+([^\s;]+)/g)].map((match) => match[1]),
-    ["_asm_sector_pressure_active", "_encounter_light_schedule_advance", "_light_reload"]);
+    ["_asm_sector_pressure_active", "_heavy_publish_profile", "_encounter_light_admit",
+      "_bomber_turn", "_bomber_turn", "_light_reload", "_encounter_light_schedule_advance"]);
 });

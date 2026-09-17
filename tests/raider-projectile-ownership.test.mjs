@@ -37,7 +37,13 @@ test("the Raider kill path carries no emitter-owned projectile cleanup", () => {
   const breakup = source.slice(source.indexOf("spawn_interceptor_breakup_effects:"),
     source.indexOf("materialize_interceptor_breakup_effects:"));
   assert.match(breakup, /jmp begin_enemy_fighter_explosion\n/);
-  assert.equal((source.match(/and #FIGHTER_PROJECTILE_INTERCEPTOR_EMITTER_MASK/g) ?? []).length, 0);
+  // The allocator's own cursor update (4.5c generic emission) derives the next
+  // owner from the new shot's emitter bit; that is not kill-path cleanup.
+  const allocator = source.slice(source.indexOf("allocate_interceptor_projectile:"),
+    source.indexOf(".assert FIGHTER_PROJECTILE_INTERCEPTOR_EMITTER_MASK = 1"));
+  assert.equal((allocator.match(/and #FIGHTER_PROJECTILE_INTERCEPTOR_EMITTER_MASK/g) ?? []).length, 1);
+  assert.equal((source.replace(allocator, "")
+    .match(/and #FIGHTER_PROJECTILE_INTERCEPTOR_EMITTER_MASK/g) ?? []).length, 0);
 });
 
 test("enemy ACTIVE bit zero stores emitter identity without changing consumers", () => {

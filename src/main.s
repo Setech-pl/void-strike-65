@@ -4134,9 +4134,6 @@ update_enemy_weapon_runtime:
     lda ENEMY_PROFILE_FIRE_POLICY_ID
     cmp #ENEMY_FIRE_RAIDER_PAIR_BURST
     bne @stop
-    lda ENEMY_PROFILE_WEAPON_CLASS
-    cmp #ENEMY_WEAPON_PULSE
-    bne @stop
     jsr select_enemy_weapon_member
     bcc @stop
     lda INTERCEPTOR_BURST_STATE
@@ -4157,6 +4154,7 @@ update_enemy_weapon_runtime:
     dec INTERCEPTOR_BURST_TIMER
     bne @done
 @emit:
+    lda ENEMY_PROFILE_WEAPON_CLASS  ; the class C selected for this formation
     jsr allocate_interceptor_projectile
     bcc @done
     dec INTERCEPTOR_BURST_REMAINING
@@ -4182,7 +4180,14 @@ update_enemy_weapon_runtime:
 @done:
     rts
 
+; A = weapon_class chosen by C (1-7). Heavy emission is generic: ACTIVE =
+; owner bits | (weapon_class << 3), whatever class the caller passes.
 allocate_interceptor_projectile:
+    asl
+    asl
+    asl
+    ora #FIGHTER_PROJECTILE_INTERCEPTOR ; (weapon_class << 3) | FIGHTER_PROJECTILE_INTERCEPTOR
+    pha
     ldx #INTERCEPTOR_PROJECTILE_SLOT_BASE
 @find:
     lda FIGHTER_PROJECTILE_ACTIVE,x
@@ -4190,6 +4195,7 @@ allocate_interceptor_projectile:
     inx
     cpx #(INTERCEPTOR_PROJECTILE_SLOT_BASE+INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT)
     bne @find
+    pla                         ; a full shared pool drops the shot
     clc
     rts
 @allocate:
@@ -4215,14 +4221,18 @@ allocate_interceptor_projectile:
     sta FIGHTER_PROJECTILE_PREV_Y,x
     lda #INTERCEPTOR_PROJECTILE_LIFETIME
     sta FIGHTER_PROJECTILE_LIFETIME,x
-    lda ENEMY_TARGET_SLOT
-    ora #(FIGHTER_PROJECTILE_INTERCEPTOR|(ENEMY_WEAPON_PULSE<<FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT))
+    pla
+    ora ENEMY_TARGET_SLOT
     sta FIGHTER_PROJECTILE_ACTIVE,x
-    eor #(FIGHTER_PROJECTILE_INTERCEPTOR|(ENEMY_WEAPON_PULSE<<FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT)|$01)
+    and #FIGHTER_PROJECTILE_INTERCEPTOR_EMITTER_MASK
+    eor #FIGHTER_PROJECTILE_INTERCEPTOR_EMITTER_MASK
                                   ; exactly two PMG owners alternate on acceptance
     sta ENEMY_WEAPON_CURSOR
     sec
     rts
+.assert FIGHTER_PROJECTILE_INTERCEPTOR = 2 && FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT = 3, error, "generic Heavy emission encodes (class << 3) | 2 with asl/asl/asl/ora"
+.assert FIGHTER_PROJECTILE_INTERCEPTOR_EMITTER_MASK = 1, error, "Heavy emitter owner is the member slot bit"
+
 
 ; Preserve the existing single burst controller and admit at most five active
 ; PairShots. Each due shot starts at the next living, fully visible Raider in bounded round-robin
@@ -4522,7 +4532,7 @@ update_enemy:
     stx ENEMY_TARGET_SLOT
     lda ENEMY_Y,x
     pha
-    jsr update_enemy_slot_motion
+    jsr heavy_member_update     ; per member, after capturing its old Y
     ldx ENEMY_TARGET_SLOT
     lda ENEMY_Y,x
     cmp #GAMEPLAY_BOTTOM
@@ -11030,15 +11040,16 @@ retry_first_capital_admission:
 integration_update_enemy:
     lda ENEMY_ACTIVE
     beq integration_interceptor_retry
-    lda ENEMY_PROFILE_MOVEMENT_ID
-    cmp #ENEMY_MOVEMENT_RAIDER_CROSS_PURSUIT
-    bne @done
+    ; Every Heavy archetype on P1/P2 shares the member loop; heavy_member_update
+    ; dispatches its movement policy (Raider ASM motion or the C handler).
     lda ENEMY_PROFILE_RENDERER_CLASS
     cmp #ENEMY_RENDERER_TWO_HEAVY_PMG
     bne @done
     jmp update_enemy
 @done:
     rts
+integration_update_enemy_pad:
+    .res 7,$EA                  ; retired movement gate; later CODE entries stay put
 
 integration_interceptor_recycle:
     ldx #DIRECTOR_HAZARD_INTERCEPTOR
@@ -12013,6 +12024,7 @@ boot_chunk_manifest_end:
 ; hybrid C Light ABI they resolve to the original targets.
 .ifdef ENEMY_LIGHT_TICK
 .include "light-wingman.s"
+.include "heavy-member.s"
 erase_fighter_projectile_overlays_with_light = light_publish
 entity_effects_update_with_light = light_update
 entity_player_fighter_projectile_target_with_light = light_shot

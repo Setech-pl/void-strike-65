@@ -641,6 +641,10 @@ function renderDirectorAbiInclude(labelBytes) {
     ["ENEMY_PROFILE_WEAPON_CLASS", "enemy_profile_weapon_class"],
     ["ENEMY_PROFILE_SCORE_BCD", "enemy_profile_score_bcd"],
     ["ENEMY_PROFILE_DIRECTOR_VALUE", "enemy_profile_director_value"],
+    ["ENEMY_HEAVY_TICK", "enemy_heavy_tick"],
+    ["HEAVY_MEMBER_X", "heavy_member_x"],
+    ["HEAVY_HULL_COLOUR", "heavy_hull_colour"],
+    ["HEAVY_ARCHETYPE_OFFSET", "heavy_archetype_offset"],
     ["ENEMY_LIGHT_TICK", "enemy_light_tick"],
     ["ENEMY_LIGHT_HIT", "enemy_light_hit"],
     ["LIGHT_STATE", "light_state"],
@@ -862,6 +866,8 @@ async function build() {
       "/project/build/director-abi.inc": directorAbiInclude,
       "/project/build/light-wingman.s": fs.readFileSync(
         path.join(rootDirectory, "src", "hybrid", "light-wingman.s")),
+      "/project/build/heavy-member.s": fs.readFileSync(
+        path.join(rootDirectory, "src", "hybrid", "heavy-member.s")),
     },
     [
       "--cpu",
@@ -1096,7 +1102,10 @@ async function build() {
     lightResidentBytes + pickupCodeBytes > pickupFileBytes) {
     throw new Error("Light kernel, PMG pickup and lower-cell primitive do not fit $8776-$8B66");
   }
-  const lightCodeBytes = labels.get("__LIGHT_CODE_SIZE__") ?? 0;
+  // HEAVY_CODE (the Heavy member veneer, 4.5c) follows LIGHT_CODE in the same
+  // LIGHTFILE area, so the extension stream carries both as one ASM tail.
+  const lightCodeBytes = (labels.get("__LIGHT_CODE_SIZE__") ?? 0) +
+    (labels.get("__HEAVY_CODE_SIZE__") ?? 0);
   const lightPlacement = {
     residentRunAddress: weaponPickupRuntimeAddress,
     residentBytes: lightResidentBytes,

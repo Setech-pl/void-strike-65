@@ -308,9 +308,9 @@ test("release Interceptor enters progressively and naturally reaches burst alloc
   assert.match(source, /reset_enemy:[\s\S]+jsr HYBRID_ENEMY_SPAWN_RAIDERS/);
   // Roadmap 4.4: enemy_archetypes became a tagged union (record[]/byte[]) so
   // the Light slot can index a selected record by byte offset; Raider HP is
-  // still read from record 0.
+  // still read from record 0. 4.5c: HP comes from the selected Heavy record.
   assert.match(lifecycleSource,
-    /enemy_c_spawn_raiders[\s\S]+enemy_archetypes\.record\[0\]\.hit_points[\s\S]+ENEMY_LIVE_COUNT = RAIDER_SLOT_COUNT/);
+    /void enemy_c_spawn_raiders[\s\S]+ENEMY_HP_0 = HEAVY_FIELD\(ENEMY_ARCHETYPE_FIELD_HIT_POINTS\)[\s\S]+ENEMY_LIVE_COUNT = RAIDER_SLOT_COUNT/);
 });
 
 test("natural playfield pulse remains visible while moving two scanlines per frame", () => {

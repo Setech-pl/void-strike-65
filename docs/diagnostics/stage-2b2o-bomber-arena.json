@@ -1,0 +1,122 @@
+{
+  "id": "stage-2b2o-bomber-arena",
+  "date": "2026-09-17",
+  "task": "Roadmap 4.5c Bomber (owner decision 20): reapply the BLOCKED_PLACEMENT design of experiment/bomber-4.5c-blocked-placement @ 8e138a8 onto experiment/hybrid-c-director @ 67bfa73, placing the Heavy formation C in the 4.5M-M3 HYBRID_C_ARENA; no redesign",
+  "status": "OWNER-SMOKE CANDIDATE",
+  "baseline": {
+    "commit": "67bfa73",
+    "xex_sha256": "f9c4a96d6e0d124f40f87b7fa0f5e6be482f83f68a76ce16b5dedce20868b1fe",
+    "atr_sha256": "5e026009b5a53e7fd7ebef9224b4c44e0f45b2249e7fa7c4d3b9ad3dd679119a",
+    "note": "clean export of 67bfa73, npm run build:candidate -- --quiet"
+  },
+  "candidate": {
+    "xex_sha256": "0e4721b26c3d123bcd29ade0ea6f4e07d292636e791e56d473243acf34227f63",
+    "atr_sha256": "42985ceb98ca99a21a42acd051021b6edfdc636d8f9623da7360172a972ced00",
+    "boot_bin_sha256": "455b68ee990fb6513c58b50efaaa26f22f5684d2e0399aa08d104333e4d0e0d6",
+    "xex_bytes": 23497,
+    "boot_bin_bytes": 23040,
+    "build": "npm run build:candidate -- --quiet (the final phase requires a runtime wall trace bound to the artifacts, as at every recent candidate)",
+    "owner_smoke_copy": "build/owner-smoke/bomber-4.5c-0e4721b2/"
+  },
+  "applied": {
+    "patch": "git format-patch -1 8e138a8 | git apply --exclude=src/hybrid/c-asm-abi.s (clean)",
+    "adaptations": [
+      "src/hybrid/c-asm-abi.s by hand: COLPM1/COLPM2 equates, Heavy .import/.export lines and four aliases from the patch; the enemy_spawn_raiders and enemy_recycle aliases are deleted; the enemy_recycle / enemy_spawn_raiders / heavy_publish_hull_colour veneers live in .segment HYBRID_ASM_ARENA right after hybrid_arena_anchor (anchor stays first); arena comments no longer say it is empty",
+      "src/c/lifecycle.c: Heavy pragmas HYBRID_C_HEAVY -> HYBRID_C_ARENA (code) and HYBRID_C_ARENA_RODATA (rodata); the schedule comment is reworded without 'alternate' (source contract forbids ALTERNATE)",
+      "src/main.s allocate_interceptor_projectile: asl/sec/rol/asl -> asl/asl/asl/ora #FIGHTER_PROJECTILE_INTERCEPTOR (the build-time 6502 model has no ROL A); .assert text updated",
+      "cfg/atari-boot.cfg: the checked-in LIGHTFILE placeholder size $0100 -> $0180 (start $8F00 unchanged). The build always rewrites start/size from the measured extension; the raw ld65 link of tests/prepared-hull-row overflowed by 2 B because LIGHT_CODE 203 + HEAVY_CODE 55 = 258 B. Artifact bytes unchanged."
+    ],
+    "design_unchanged": "Bomber record, TEMPORARY 4.5 HEAVY SMOKE SCHEDULER {Raider, Bomber} with roster shape, hull colour and Light-escort columns, generic Heavy profile publication, per-member C lane-sweep tick, generic weapon_class emission, HEAVY_CODE member veneer, QUAD SCYTHE_BOMBER, hull colour publish/restore: exactly as 8e138a8 (see stage-2b2j-bomber-blocked-placement.json implemented_design)"
+  },
+  "placement_measured": {
+    "arena": {
+      "range": "$7BD0-$7F0F", "capacity_bytes": 832, "used_bytes": 392, "free_bytes": 440,
+      "asm": { "bytes": 20, "range": "$7BD0-$7BE3", "content": "anchor $7BD0 (1 B), enemy_recycle $7BD1, enemy_spawn_raiders $7BD7, heavy_publish_hull_colour $7BDA (19 B)" },
+      "c_code": { "bytes": 339, "range": "$7BE4-$7D36" },
+      "c_rodata": { "bytes": 33, "range": "$7D37-$7D57" },
+      "record": { "sectors": "173-175", "count": 3, "raw": 392, "packed": 355, "type": "LZ", "final": "$7BD0" }
+    },
+    "hybrid_c_ext": {
+      "area_bytes": 899,
+      "archetype_data": { "bytes": 50, "range": "$8C7D-$8CAE", "before": 38 },
+      "c": { "bytes": 563, "range": "$8CAF-$8EE1", "before": 637 },
+      "light_code": { "bytes": 203, "range": "$8EE2-$8FAC" },
+      "heavy_code": { "bytes": 55, "range": "$8FAD-$8FE3" },
+      "tail": { "bytes": 28, "range": "$8FE4-$8FFF", "before": 21, "owner_floor": 16 },
+      "extension_record": { "raw": { "before": 878, "after": 871 }, "packed": { "before": 786, "after": 778 }, "limit": 960 }
+    },
+    "pickup": { "pickup_code_bytes": { "before": 769, "after": 773 }, "range": "$885B-$8B5F", "stream_fill": { "before": 11, "after": 7 }, "record_bytes": { "before": 1161, "after": 1170 } },
+    "bss": {
+      "HYBRID_ENCOUNTER_STATE": "$8119 encounter_heavy_index, $811A encounter_light_index (was $8119; cc65 emits the segment in reverse declaration order)",
+      "HYBRID_HEAVY_STATE": "$811B heavy_archetype_offset, $811C heavy_hull_colour, $811D-$8121 member X/Y/direction/fire timer/turn timer, $8122-$8123 C scratch",
+      "added_bytes": 10, "c_stack": 0, "new_zero_page": 0
+    },
+    "transport": { "records": 8, "transport_sectors": { "before": 178, "after": 180 }, "atr_menu_deadline": { "before": 546, "after": 550 }, "initial_boot_content_bytes": { "before": 13137, "after": 13132 }, "initial_boot_envelope_bytes": { "before": 47, "after": 52 }, "initial_boot_sectors": 103 },
+    "residency": {
+      "physical": { "linked_runtime_bytes": { "before": 17475, "after": 17479 }, "simultaneous_residency_bytes": { "before": 19467, "after": 19855 }, "safe_residency_bytes": { "before": 2720, "after": 2332 } },
+      "reserved": "unchanged (arena 832 B, HYBRID_C_EXT 899 B); no new reservation",
+      "reusable_free": "arena 831 -> 440 B; HYBRID_C_EXT tail 21 -> 28 B; pickup fill 11 -> 7 B; HYBRID_C_SECTOR 8 B, ENTITY_CODE 40 B, A2 18 B unchanged"
+    }
+  },
+  "cpu": {
+    "build_harness_cycles": {
+      "heavy_member_update_bomber_worst_with_fire": 545,
+      "heavy_member_update_bomber_worst_without_fire": 374,
+      "per_frame_worst_estimate": "2 x 545 = 1,090 cycles when both Bombers fire in one frame (their first shots are 24 frames apart); Raider formations add one lda/bne/jmp in front of the unchanged ASM motion",
+      "enemy_spawn_raiders_bomber": 1121,
+      "enemy_recycle": 45,
+      "note": "MEASURED in the scripts/nmos6502.mjs harness; admission and recycle run once per formation"
+    },
+    "native_pal_focused_replays": {
+      "method": "node scripts/runtime-wall-trace.mjs --atari800-source=build/atari800-trace --skip-boot-smoke --only-session=<id>, candidate and a clean export of 67bfa73; Bomber frames identified by colpm1 == $24 in the session CSV",
+      "2-sweep-fire4": { "head_max": 29801, "candidate_max": 29101, "bomber_frames": 570, "bomber_ranges": "67-422, 513-726", "bomber_max": 29101 },
+      "2-sweep-fire6": { "head_max": 29849, "candidate_max": 30075, "bomber_frames": 372, "bomber_ranges": "69-288, 397-548", "bomber_max": 30075 },
+      "2-neutral-fire0": { "head_max": 29807, "candidate_max": 29894, "bomber_frames": 626, "bomber_ranges": "64-527, 598-759", "bomber_max": 29894 },
+      "2-evasive-fire3": { "head_max": 29570, "candidate_max": 29822, "bomber_frames": 380, "bomber_ranges": "64-276, 376-542", "bomber_max": 29290 },
+      "all": "0 missed frames, 0 extra VBI, 0 deadline overruns, 0 DLI ordering errors; every candidate session shows a Raider formation ($44) first, then a Bomber formation ($24)",
+      "worst": "30,075 (target 31,200: 1,125 headroom; hard gate 32,568: 2,493)",
+      "note": "replays diverge once the formation differs, so per-session deltas mix gameplay divergence with cost"
+    }
+  },
+  "gates": {
+    "boot_smoke": {
+      "result": "PASS 4/4",
+      "xex": { "start": 78, "loader": 135, "menu": 392, "deadline": 502 },
+      "atr": { "before": { "start": 231, "loader": 289, "menu": 546, "deadline": 546 }, "after": { "start": 235, "loader": 293, "menu": 550, "deadline": 550 } },
+      "margin": "ATR 0 frames (unchanged); the 355-B arena record meets the deadline the 363-B full-arena proof missed by one frame"
+    },
+    "capacity_window_watch": {
+      "command": "node scripts/capacity-window-watch.mjs --atari800-source=build/atari800-trace --hold=0x8100 --hold-done=layout_d_cold_publish_complete --expect-hold-is-glue --window=0x7bd0 --window-bytes=832 --window-from=start --expect-window-bin=build/encounter-director-code-arena.bin --stage=0x8018:117 --stage=0x9b40:498 --stage-done=start --stage-consumed=layout_d_cold_publish_complete --expect-stage-bins=build/encounter-director-code-abi.bin,build/encounter-director-code-low-transport.bin --output=build/capacity-watch/4.5c-arena-watch.json",
+      "result": "PASS 4/4 (XEX/ATR x cold fill $00/$A5): the 832-B arena equals the 392-B linked image at start, 0 writes through the full lifecycle; hold 0 writes; ABI and merged records byte-exact until consumed; startup 2,042,911 cycles"
+    },
+    "debris_visibility_gate": {
+      "result": "PASS 3/3",
+      "candidate": { "debris-gate-0-evasive-fire3": 30038, "debris-gate-0-neutral-fire0": 29881, "debris-gate-capital-muzzle-ring-2-sweep-fire4": 30077, "bomber_frames": [3051, 4325, 2293] },
+      "baseline_67bfa73": "FAIL 1/3: debris-gate-0-evasive-fire3 post-capital 1 blank of 1,013 (the known death-frame blink); maxima 30,411 / 30,475 / 30,767",
+      "note": "The death-frame blink is not fixed here; the candidate's diverging replays simply do not hit it."
+    }
+  },
+  "tests": {
+    "new": "tests/heavy-bomber.test.mjs (12): Bomber record; Raider/Bomber schedule with roster shape, COLPM $44/$24 and HP; profile and lane-sweep start per difficulty; escort column; recycle restores $44; member marshalling of exactly its slot; entry depth 40/16 then de-phased cruise; lanes [48,92]/[132,176] with edge turns; turn timer (FRAME_COUNTER & 31) + 24; fire gate (Y 24..200, player alive, capital not due, own timer) returning class 3; emission ACTIVE $1A/$1B with independent timers; arena placement source contract",
+    "rebaselined": {
+      "hybrid-c-arena": "arena 20/339/33 B (free 440), veneers inside HYBRID_ASM_ARENA after the anchor, record 355 B / 3 sectors, 180 transport sectors, initial content 13,132 B / envelope 52 B",
+      "hybrid-lifecycle": "extension composite 871 B; generated-C jsr list",
+      "light-interceptor": "schedule sequence with Bomber formations (no Light escort), EXT tail 28 B, pickup fill 7 B, HYBRID_ENCOUNTER_STATE 2 B ($8119 heavy, $811A light), allocator harness passes A = class",
+      "light-wingman": "capital re-admission presets the Raider formation",
+      "cold-pickup-record-fit": "PICKUP_CODE 773 B",
+      "enemy-combat": "spawn regex reads HP from the selected Heavy record",
+      "raider-projectile-ownership": "emitter-mask count excludes the allocator's own cursor update; scripts/raider-projectile-persistence-runtime.mjs passes A = PULSE",
+      "hostile-projectile-emitter-independence": "A = class before allocate",
+      "enemy-roster": "SCYTHE_BOMBER visible width 32 (QUAD); roster shape from the formation schedule",
+      "offscreen-spawn": "the second generation is a Bomber formation (Y 0, turn timers 60/52), still wholly above gameplay"
+    },
+    "full_suite": "node --test tests/*.test.mjs: 661 tests, 114 failing. Clean export of 67bfa73: 646 tests, 113 failing, 114 failure names. Failure-name sets identical except 'pickup admission coexists with slot-0 debris and publishes the 16-row PMG' from the owner's untracked tests/booster-admission-diagnostic.test.mjs, absent from the export; it fails identically (15 != 16) when run against 67bfa73."
+  },
+  "known_remaining": [
+    "debris death-frame blink (pre-existing, not touched)",
+    "ATR boot-smoke margin 0 frames (menu 550, deadline 550)",
+    "HYBRID_C_EXT tail 28 B (12 B above the 16 B floor)",
+    "TEMPORARY 4.5 HEAVY SMOKE SCHEDULER and the provisional Light schedule are smoke scaffolding, replaced by roadmap 4.6",
+    "pre-existing native gate failures (weapon-pickup-contact abort, remnant explosion count) and the 114 stale test names"
+  ]
+}

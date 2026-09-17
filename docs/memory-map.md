@@ -473,6 +473,52 @@ sectors, envelope 22 → 47 B); 178 transport sectors unchanged. Linked runtime
 17,475 B, simultaneous 19,467 B, safe 2,720 B. The merged low-C/GLUE record
 `$9B40-$9D31` stays inside the later ENTITY expansion.
 
+## Roadmap 4.5c Bomber — OWNER-SMOKE CANDIDATE (2026-09-17)
+
+Measured on top of `67bfa73` (emitter-independent hostile shots). The
+`experiment/bomber-4.5c-blocked-placement` design (`8e138a8`) is placed in the
+M3 arena instead of the retired `HYBRID_C_HEAVY` window; no new reservation,
+record or hold. These rows override the arena, EXT/LIGHT, pickup and
+`$8119-$813F` rows above.
+
+| Range | Size | Candidate owner |
+| --- | ---: | --- |
+| `$7BD0` | 1 B | `hybrid_arena_anchor` (`rts`), still first |
+| `$7BD1-$7BE3` | 19 B | `HYBRID_ASM_ARENA` Heavy lifecycle veneers: `enemy_recycle`, `enemy_spawn_raiders`, `heavy_publish_hull_colour` (writes `COLPM1`/`COLPM2`) |
+| `$7BE4-$7D36` | 339 B | `HYBRID_C_ARENA` cc65 CODE: `heavy_publish_profile`, `enemy_c_spawn_raiders` (formation admission), `bomber_turn`, `enemy_c_heavy_tick` |
+| `$7D37-$7D57` | 33 B | `HYBRID_C_ARENA_RODATA`: TEMPORARY 4.5 HEAVY SMOKE SCHEDULER columns (archetype, roster shape, hull colour, Light escort), profile field map, lane-sweep start, lane bounds and entry depths |
+| `$7D58-$7F0F` | 440 B | arena free (no writer: native watch 0 writes through the full lifecycle) |
+| `$8119` | 1 B | `encounter_heavy_index`: **temporary** Heavy smoke schedule counter (`HYBRID_ENCOUNTER_STATE`; cc65 emits the segment in reverse declaration order), reset in `lifecycle_c_init` |
+| `$811A` | 1 B | `encounter_light_index`: provisional Light schedule counter (was `$8119`) |
+| `$811B` | 1 B | `heavy_archetype_offset`: selected Heavy record (0 Raider, 36 Bomber) (`HYBRID_HEAVY_STATE`) |
+| `$811C` | 1 B | `heavy_hull_colour`: `$44` Raider / `$24` Bomber; ASM publishes it, recycle restores `$44` for the capital broadside missiles M1/M2 |
+| `$811D-$8121` | 5 B | ticked member scalars X, Y, direction, fire timer, turn timer (marshalled from/to `$5478-$5481` by `heavy_member_update`) |
+| `$8122-$8123` | 2 B | C scratch `heavy_scratch`, `heavy_index` |
+| `$8124-$813F` | 28 B | unowned |
+| `$8110-$8118` | 9 B | profile cache, now copied from the **selected** Heavy record (was hardcoded Raider) |
+| `$885B-$8B5F` | 773 B | `PICKUP_CODE` (+4 B: generic `weapon_class` allocator `asl/asl/asl/ora`, burst runtime passes the profile class) |
+| `$8B60-$8B66` | 7 B | pickup stream zero fill (11 B before) |
+| `$8C7D-$8CAE` | 50 B | `ENEMY_ARCHETYPE_DATA`: four 12-B records (Bomber at offset 36) + 2-B Light schedule |
+| `$8CAF-$8EE1` | 563 B | `HYBRID_C_EXT` C (was 637 B: formation admission and profile publication moved to the arena; the Light escort admission stays here as `encounter_light_admit`) |
+| `$8EE2-$8FAC` | 203 B | `LIGHT_CODE`, unchanged size |
+| `$8FAD-$8FE3` | 55 B | `HEAVY_CODE` `heavy_member_update` (member marshalling + class emission), main-linked after `LIGHT_CODE` in the extension stream |
+| `$8FE4-$8FFF` | 28 B | free contiguous `HYBRID_C_EXT` tail (21 B before; owner floor 16 B) |
+
+Transport (measured): 8 records, **180 transport sectors** (178 before; ATR
+menu deadline 550). Arena record LZ 392 B raw / 355 B packed, sectors 173-175;
+extension record 871 B raw / 778 B packed, 7 sectors; pickup record 1,170 B;
+Director moves to sectors 176-180. Initial content 13,137 → 13,132 B, envelope
+47 → 52 B, 103 sectors. XEX 23,105 → 23,497 B; boot image 22,784 → 23,040 B.
+
+Accounting (separate metrics, measured): **physical** linked runtime 17,475 →
+17,479 B (+4 pickup), simultaneous residency 19,467 → 19,855 B (+388), safe
+residency 2,720 → 2,332 B; **reserved** unchanged (arena 832 B, EXT 899 B);
+**reusable** arena 831 → 440 B free, `HYBRID_C_EXT` tail 21 → 28 B, pickup fill
+11 → 7 B, `HYBRID_C_SECTOR` 8 B, ENTITY_CODE 40 B, A2 18 B unchanged; **BSS**
++10 B in previously unowned `$811A-$8123` (C stack 0, new zero page 0).
+Evidence:
+[diagnostics/stage-2b2o-bomber-arena.json](diagnostics/stage-2b2o-bomber-arena.json).
+
 ## Blocked-experiment evidence — not part of this map
 
 The 2026-09-16 Interceptor experiment (`BLOCKED_PLACEMENT`) measured additional

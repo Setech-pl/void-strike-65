@@ -58,7 +58,8 @@ test("PMG runtime remains legal after retiring the rejected central primitive", 
   // 777 B originally; +1 B when publication moved post-playfield, then -9 B
   // when the three per-type capsule silhouettes moved to the STARFIELD tail,
   // leaving 14 B of the zero-filled stream before the fixed $8B67 module.
-  assert.equal(symbol.get("__PICKUP_CODE_SIZE__"), 769);
+  // 4.5c Bomber: generic Heavy weapon_class emission +4 B = 773.
+  assert.equal(symbol.get("__PICKUP_CODE_SIZE__"), 773);
   assert.ok(0x8776 + symbol.get("__LIGHT_RESIDENT_SIZE__") +
     symbol.get("__PICKUP_CODE_SIZE__") <= 0x8b67, "pickup stream still clears $8B67");
   assert.equal(symbol.has("lower_cell_read"), false);

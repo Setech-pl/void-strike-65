@@ -379,6 +379,9 @@ test("fighter->capital waits for the Light and capital->fighter re-admits a fres
   // preset it back to demonstrate the fresh Wingman re-admission explicitly,
   // independent of the provisional Wingman/Interceptor smoke order.
   image[L("_encounter_light_index")] = 0;
+  // 4.5c: the first admission also advanced the temporary Heavy scheduler to a
+  // Bomber formation, which carries no Light escort; preset the Raider one.
+  image[L("_encounter_heavy_index")] = 0;
   run(image, "enemy_spawn_raiders");
   assert.deepEqual([light(image).state, light(image).hp, light(image).leaderless], [1, 1, 0]);
 });

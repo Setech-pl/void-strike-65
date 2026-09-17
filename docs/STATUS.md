@@ -583,12 +583,29 @@ Candidate XEX `2fd5ace4…`, ATR `dd3977e2…`, owner-smoke copy in
 
 ## Current task
 
-Owner review of the roadmap 4.5b `BOMBER` weapon class candidate. Owner smoke
-of the 4.4 Interceptor candidate (with 4.4b and 4.4c) is still pending.
+Roadmap 4.5c (Bomber / Heavy Assault gameplay) is **`BLOCKED_PLACEMENT`**
+(2026-09-17). No 4.5c code is on this branch; HEAD stays at the 4.5b candidate
+`8a09e57`.
+
+- The full design (Bomber record, TEMPORARY 4.5 HEAVY SMOKE SCHEDULER,
+  generic Heavy profile, per-member C lane-sweep tick, generic Heavy
+  `weapon_class` emission, QUAD art, hull colour publish/restore) is on the
+  evidence branch `experiment/bomber-4.5c-blocked-placement` (`8e138a8`). It
+  does not link and was never executed.
+- `HYBRID_C_HEAVY` needs 391 B against its 243 B window (148 B over).
+  `HYBRID_C_EXT` would hold 871 of 899 B, a 28 B tail (12 B above the
+  16 B floor). Total deficit: 120 B at a zero EXT tail, 136 B with the
+  floor.
+- Owner decision required: A) widen the Heavy window (move A2 cold staging and
+  the A2 display lists), recommended; B) a behaviour-neutral compaction
+  checkpoint of existing EXT C (estimated 40-90 B, not enough alone);
+  C) reduce 4.5c scope.
+- Evidence: [diagnostics/stage-2b2j-bomber-blocked-placement.json](diagnostics/stage-2b2j-bomber-blocked-placement.json).
+
+Owner review of the 4.5b candidate and owner smoke of the 4.4 Interceptor
+candidate (with 4.4b and 4.4c) are still pending.
 
 ## Next roadmap step
 
-After owner review of 4.5b: 4.5c (Bomber archetype: C record, Heavy
-selection, lane sweep, fire; generic Heavy emission of the C-chosen
-`weapon_class`), per decision 20. The Raider-coloured residual artifact remains an
-open P0 investigation.
+After the owner's capacity decision: retry 4.5c from `8e138a8`, per decision
+20. The Raider-coloured residual artifact remains an open P0 investigation.

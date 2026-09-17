@@ -91,9 +91,9 @@ pixels while preserving the established hull silhouette and backing behavior.
 - **Interceptor** (`OWNER-SMOKE CANDIDATE`, roadmap 4.4b visual identity) —
   Light renderer class, so a character enemy with no PMG player, sharing glyphs
   120-121 with the Wingman; `light_update` installs the art of the selected
-  archetype. It is a narrow downward dart in three colours of the same hostile
-  cells: steel `COLPF1` body, red `COLPF3` wing tips, trailing edges and gun,
-  and a white `COLPF0` canopy. The Wingman stays a one-colour red swept wing,
+  archetype. It is an X/quad silhouette in three colours of the same hostile
+  cells: steel `COLPF1` arms, red `COLPF3` corner rotor pods and a white
+  `COLPF0` hub. The Wingman stays a one-colour red swept wing,
   so the two read apart by silhouette and by colour mass. Since roadmap 4.4c
   the Interceptor fires the thin `LASER` bolt and the Wingman the `PULSE`
   tracer (see the weapon colours above).

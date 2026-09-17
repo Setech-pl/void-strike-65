@@ -20832,17 +20832,17 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 22784,
-        "sha256": "bcad13dcfc8944dae13b08486b34c03df1d0dde8c6304e8229867525403e781b"
+        "sha256": "aac9634333ad261c591c3008e89bf6494bfbc05da6fa9a2cf17b3a0718d5ceae"
       },
       "void-strike-65.xex": {
         "path": "dist/void-strike-65.xex",
         "bytes": 23098,
-        "sha256": "3d88b35d2f2dff9d1a6a463d79e6b4a7e8966980220600a6fe4cf6d7c3607c1f"
+        "sha256": "acb7d9bbe1daa1174b885174af2ba29705355248d3d8c8233378cfd58cbcae18"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "27ad309b533f31c5634281c8a8e4b301950479769a626c06d6d4ff93980555bc"
+        "sha256": "93ae8ae07b157e5835e4ff7bbadc04c83e3a85bb5626c9e477f08cdb63001c13"
       }
     },
     "reportPath": null,
@@ -20851,15 +20851,15 @@
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 22784,
-      "sha256": "bcad13dcfc8944dae13b08486b34c03df1d0dde8c6304e8229867525403e781b"
+      "sha256": "aac9634333ad261c591c3008e89bf6494bfbc05da6fa9a2cf17b3a0718d5ceae"
     },
     "void-strike-65.xex": {
       "bytes": 23098,
-      "sha256": "3d88b35d2f2dff9d1a6a463d79e6b4a7e8966980220600a6fe4cf6d7c3607c1f"
+      "sha256": "acb7d9bbe1daa1174b885174af2ba29705355248d3d8c8233378cfd58cbcae18"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "27ad309b533f31c5634281c8a8e4b301950479769a626c06d6d4ff93980555bc"
+      "sha256": "93ae8ae07b157e5835e4ff7bbadc04c83e3a85bb5626c9e477f08cdb63001c13"
     }
   }
 }

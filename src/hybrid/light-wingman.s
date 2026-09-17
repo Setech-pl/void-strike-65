@@ -271,19 +271,19 @@ light_destroyed:
 light_glyph:
     .byte $F0,$FC,$3F,$0F,$0F,$03,$03,$00
     .byte $0F,$3F,$FC,$F0,$F0,$C0,$C0,$00
-; Interceptor: steel dart, red wing tips, trailing edges and gun, white
-; canopy (. black, S steel, R red, W white; left cell | right cell):
+; Interceptor: X/quad silhouette, steel arms, red corner rotor pods, white
+; hub (. black, S steel, R red, W white; left cell | right cell):
+;   R R . . | . . R R
+;   R S . . | . . S R
 ;   . S S . | . S S .
-;   R S S S | S S S R
-;   . R S S | S S R .
 ;   . . S W | W S . .
-;   . . . S | S . . .
-;   . . . S | S . . .
-;   . . . R | R . . .
+;   . S S . | . S S .
+;   R S . . | . . S R
+;   R R . . | . . R R
 ;   . . . . | . . . .
 light_interceptor_glyph:
-    .byte $28,$EA,$3A,$09,$02,$02,$03,$00
-    .byte $28,$AB,$AC,$60,$80,$80,$C0,$00
+    .byte $F0,$E0,$28,$09,$28,$E0,$F0,$00
+    .byte $0F,$0B,$28,$60,$28,$0B,$0F,$00
 light_glyph_end:
 
 .assert light_interceptor_glyph - light_glyph = LIGHT_GLYPH_BYTES, error, "Light art tables must be contiguous"

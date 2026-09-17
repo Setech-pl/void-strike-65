@@ -271,8 +271,9 @@ ASM publication data only; C, records, codes, erase/render, backing, collision,
 PMG, DLI/palette and the PairShot renderer are unchanged (a distinct
 Interceptor projectile is deferred to 4.5).
 
-- **Art.** A new 16-byte Interceptor table (steel `COLPF1` dart, red `COLPF3`
-  wing tips, trailing edges and gun, white `COLPF0` canopy) follows the
+- **Art.** A new 16-byte Interceptor table (owner-approved X/quad silhouette,
+  candidate A: steel `COLPF1` arms, red `COLPF3` corner rotor pods, white
+  `COLPF0` hub) follows the
   unchanged Wingman table; both moved from `LIGHT_RESIDENT` to the ENTITY_CODE
   tail, `$9D31-$9D50`, contiguous in one page (link-time asserts).
 - **Selection.** `light_update` reads source end 15 (Wingman) or 31

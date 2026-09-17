@@ -8,6 +8,7 @@ import { makeAtr, makeXexSegments, validateBuildDirectory } from "./formats.mjs"
 import {
   buildDfmcV1Transport,
   chunkLoaderConstants,
+  deterministicCapacityBytes,
   parseChunkManifest,
 } from "./chunk-loader.mjs";
 import {
@@ -120,29 +121,27 @@ const glueHoldingAddress = 0x8100;
 // Roadmap 4.5M-M2 cold-record relocation. The ABI cold record lands directly
 // after A2 staging inside the entity-state page ($8018-$808C; consumed by
 // publish_director_abi before init_entity_effects clears $8000-$80FF). The
-// low-C image (full $F8 reservation), the GLUE image and the Heavy window image
-// travel as ONE LZ record that lands at coldLowGlueRecordAddress, above the
+// low-C image (full $F8 reservation) and the GLUE image (the Heavy window tail
+// is retired by 4.5M-M3) travel as ONE LZ record that lands at coldLowGlueRecordAddress, above the
 // packed resident staging (checked against the measured packed size) and below
 // the direct-landing DIRECTOR_C_PRE record at $9D5E; ENTITY_CODE expands over it
-// afterwards, so every consumer runs before unpack_entity_runtime. Nothing
-// lands in $7BD0-$7E11 any more (the range M3 turns into the arena).
+// afterwards, so every consumer runs before unpack_entity_runtime.
 const bootA2StagingAddress = 0x7f2b;
 const abiColdRecordAddress = 0x8018;
 const entityStatePageEndExclusive = 0x8100;
 const coldLowGlueRecordAddress = 0x9b40;
 const directorPreRunAddress = 0x9d5e;
 const lowCodeReservationBytes = 0xf8;
-const coldRangeFreedForM3 = Object.freeze({ start: 0x7bd0, endExclusive: 0x7e12 });
-// Reusable resident window for Heavy-class C (roadmap 4.5a): the runtime window
-// keeps its 243-B capacity at $7E12-$7F04. Since 4.5M-M2 its image rides the
-// tail of the merged cold record; the transport capacity is what remains below
-// $9D5E (build enforced >= the linked image) and the single disjoint copy in
-// hybrid_c_heavy_publish moves exactly that many bytes. M3 replaces this
-// staging with the direct-landing arena.
-const heavyWindowAddress = 0x7e12;
-const heavyWindowCapacityBytes = 0x7f2b - (0x7d40 + 0xf8);
-const heavyWindowStagingAddress = coldLowGlueRecordAddress + lowCodeReservationBytes + 250;
-const heavyTransportCapacityBytes = directorPreRunAddress - heavyWindowStagingAddress;
+// Roadmap 4.5M-M3: HYBRID_C_ARENA, one contiguous reusable runtime arena for
+// cc65 code, cc65 read-only data and assigned ca65 helpers. It replaces the
+// temporary 243-B HYBRID_C_HEAVY window ($7E12-$7F04) and its 44-B transport
+// tail in the merged cold record. Its linked image (used bytes, at least the
+// ca65 anchor) is its own DFMC record whose final destination is the arena
+// itself: no hold, no publish copy. It ends before the A2 display lists.
+const hybridArenaAddress = 0x7bd0;
+const hybridArenaEndExclusive = 0x7f10;
+const hybridArenaCapacityBytes = hybridArenaEndExclusive - hybridArenaAddress;
+const a2DisplayListAddress = 0x7f10;
 const debrisVisualPolishEntityCodeBaselineBytes = 564;
 const debrisVisualPolishEntityCodeBudgetBytes = 512;
 const runtimeHeadroomHistoricalWallGate = 31568;
@@ -473,16 +472,19 @@ async function buildHybridDirectorModule() {
   const bssBytes = parsedLabels.get("__DIRECTOR_C_BSS_SIZE__");
   const lifecycleBssBytes = parsedLabels.get("__HYBRID_C_STATE_SIZE__");
   const sectorWindowBytes = parsedLabels.get("__HYBRID_C_SECTOR_SIZE__");
-  const heavyWindowBytes = parsedLabels.get("__HYBRID_C_HEAVY_SIZE__");
+  const arenaAsmBytes = parsedLabels.get("__HYBRID_ASM_ARENA_SIZE__");
+  const arenaCodeBytes = parsedLabels.get("__HYBRID_C_ARENA_SIZE__");
+  const arenaRodataBytes = parsedLabels.get("__HYBRID_C_ARENA_RODATA_SIZE__");
   if (![abiBytes, lowCodeBytes, extensionCodeBytes, archetypeBytes, preCodeBytes,
-    cCodeBytes, rodataBytes, bssBytes, lifecycleBssBytes, sectorWindowBytes, heavyWindowBytes]
-    .every(Number.isInteger)) {
+    cCodeBytes, rodataBytes, bssBytes, lifecycleBssBytes, sectorWindowBytes, arenaAsmBytes,
+    arenaCodeBytes, arenaRodataBytes].every(Number.isInteger)) {
     throw new Error("Hybrid Director link is missing segment size labels");
   }
   const highBytes = rodataBytes + cCodeBytes;
+  const arenaBytes = arenaAsmBytes + arenaCodeBytes + arenaRodataBytes;
   if (combinedRaw.length !==
     abiBytes + lowCodeBytes + extensionBytes + preCodeBytes + highBytes + sectorWindowBytes +
-      heavyWindowBytes) {
+      arenaBytes) {
     throw new Error("Hybrid Director output does not match its linked CODE/RODATA segments");
   }
   if (parsedLabels.get("__HYBRID_C_SECTOR_RUN__") !== residentWindowAddress ||
@@ -490,14 +492,22 @@ async function buildHybridDirectorModule() {
     throw new Error(`HYBRID_C_SECTOR is ${sectorWindowBytes} B; the resident window is ` +
       `${residentWindowBytes} B at $${residentWindowAddress.toString(16).toUpperCase()}`);
   }
-  if (parsedLabels.get("__HYBRID_C_HEAVY_RUN__") !== heavyWindowAddress ||
-    heavyWindowBytes > heavyWindowCapacityBytes || lowCodeBytes > lowCodeReservationBytes) {
-    throw new Error(`HYBRID_C_HEAVY is ${heavyWindowBytes} B; its window is ` +
-      `${heavyWindowCapacityBytes} B at $7E12 (low C ${lowCodeBytes} of 248 B)`);
+  if (lowCodeBytes > lowCodeReservationBytes) {
+    throw new Error(`Low C is ${lowCodeBytes} B; its reservation is 248 B`);
   }
-  if (heavyWindowBytes > heavyTransportCapacityBytes) {
-    throw new Error(`HYBRID_C_HEAVY is ${heavyWindowBytes} B; the 4.5M-M2 merged cold record ` +
-      `carries at most ${heavyTransportCapacityBytes} B below $9D5E (M3 arena pending)`);
+  // 4.5M-M3 arena contract (also asserted by ld65 through src/hybrid/c-asm-abi.s).
+  const arenaMemoryStart = parsedLabels.get("__HYBRID_C_ARENA_RAM_START__");
+  const arenaMemorySize = parsedLabels.get("__HYBRID_C_ARENA_RAM_SIZE__");
+  const arenaSegmentStart = arenaAsmBytes > 0 ? parsedLabels.get("__HYBRID_ASM_ARENA_RUN__")
+    : arenaCodeBytes > 0 ? parsedLabels.get("__HYBRID_C_ARENA_RUN__")
+      : parsedLabels.get("__HYBRID_C_ARENA_RODATA_RUN__");
+  if (arenaMemoryStart !== hybridArenaAddress || arenaMemorySize !== hybridArenaCapacityBytes ||
+    hybridArenaCapacityBytes !== 832 || hybridArenaEndExclusive > a2DisplayListAddress ||
+    arenaSegmentStart !== hybridArenaAddress || arenaAsmBytes < 1 ||
+    arenaBytes > hybridArenaCapacityBytes) {
+    throw new Error(`HYBRID_C_ARENA is ${arenaBytes} B (ASM ${arenaAsmBytes}, C ${arenaCodeBytes}, ` +
+      `RODATA ${arenaRodataBytes}) at $${(arenaMemoryStart ?? 0).toString(16)}; the arena is ` +
+      `${hybridArenaCapacityBytes} B at $7BD0-$7F0F with a non-empty ca65 anchor first`);
   }
   const abiStagingMatch = /^DIRECTOR_LOW_STAGING = \$([0-9A-Fa-f]{4})$/m.exec(abiSource.toString("utf8"));
   if (abiStagingMatch === null ||
@@ -528,13 +538,15 @@ async function buildHybridDirectorModule() {
   // The window segment is not a transport record: its independent stream rides
   // after the pickup/collision stream, so the DFMC topology stays 8 records.
   const windowSegment = makeSegment("window", residentWindowAddress, sectorWindowBytes);
-  const heavySegment = makeSegment("heavy", heavyWindowAddress, heavyWindowBytes);
-  // The Heavy window is not a transport record either: since 4.5M-M2 the
-  // merged low-C/GLUE LZ record carries its linked image after the GLUE image
-  // (assembled once the GLUE module is linked; see attachGlueToLowRecord). Only
-  // the used bytes travel: the ATR boot-smoke menu deadline has no frame of
-  // margin for stage-2 decode work. The boot copy moves the transport
-  // capacity; bytes past the linked image are unspecified and never executed.
+  // 4.5M-M3: the arena image is a direct-landing DFMC record of its own. Only
+  // the used bytes travel (the ATR boot-smoke menu deadline has no frame of
+  // margin for stage-2 decode work); bytes past the image are unspecified.
+  const arenaSegment = {
+    ...makeSegment("arena", hybridArenaAddress, arenaBytes),
+    arena: { capacityBytes: hybridArenaCapacityBytes, asmBytes: arenaAsmBytes,
+      codeBytes: arenaCodeBytes, rodataBytes: arenaRodataBytes },
+  };
+  codeSegments.push(arenaSegment);
   if (!codeSegments.every(({ data, packed: segmentPacked }) =>
     unpackBroadsideLzss(segmentPacked).equals(data)) ||
       !unpackBroadsideLzss(packed).equals(raw) ||
@@ -551,7 +563,7 @@ async function buildHybridDirectorModule() {
     codePacked,
     codeSegments,
     windowSegment,
-    heavySegment,
+    arenaSegment,
     combinedRaw,
     object: cAssembled.outputs[`${base}-c.o`],
     lifecycleObject: lifecycleAssembled.outputs[`${base}-lifecycle.o`],
@@ -576,9 +588,9 @@ async function buildHybridDirectorModule() {
 }
 
 // Roadmap 4.5M-M2: one LZ transport record carries the low-C image padded to
-// its full $F8 reservation, the 250-B GLUE image and the used bytes of the
-// Heavy window image, landing at coldLowGlueRecordAddress. The fixed offsets
-// let main.s and the ABI veneer address each part with constants.
+// its full $F8 reservation and the 250-B GLUE image, landing at
+// coldLowGlueRecordAddress (4.5M-M3 retired its Heavy window tail). The fixed
+// offsets let main.s and the ABI veneer address each part with constants.
 function attachGlueToLowRecord(directorModule, glueRaw) {
   const lowSegment = directorModule.codeSegments.find(({ name }) => name === "low");
   if (lowSegment === undefined) return null;
@@ -588,11 +600,10 @@ function attachGlueToLowRecord(directorModule, glueRaw) {
   }
   lowSegment.transportData = Buffer.concat([
     lowSegment.data, Buffer.alloc(lowCodeReservationBytes - lowSegment.data.length), glueRaw,
-    directorModule.heavySegment.data,
   ]);
   lowSegment.transportPacked = packBroadsideLzss(lowSegment.transportData);
   if (!unpackBroadsideLzss(lowSegment.transportPacked).equals(lowSegment.transportData)) {
-    throw new Error("Merged low-C/GLUE/Heavy record LZSS round trip failed");
+    throw new Error("Merged low-C/GLUE record LZSS round trip failed");
   }
   const endExclusive = coldLowGlueRecordAddress + lowSegment.transportData.length;
   if (endExclusive > directorPreRunAddress) {
@@ -656,11 +667,12 @@ function renderDirectorAbiInclude(labelBytes) {
     `DIRECTOR_ABI_BYTES = ${abiBytes}\n` +
     `HYBRID_C_EXT_STAGING = $7810\nHYBRID_C_EXT_RUNTIME = $8C7D\n` +
     `HYBRID_C_EXT_BYTES = ${extensionBytes}\n` +
-    `HYBRID_C_HEAVY_RUNTIME = $${heavyWindowAddress.toString(16).toUpperCase()}\n` +
-    `HYBRID_C_HEAVY_STAGING = $${heavyWindowStagingAddress.toString(16).toUpperCase()}\n` +
-    `HYBRID_C_HEAVY_CAPACITY = ${heavyWindowCapacityBytes}\n` +
-    `HYBRID_C_HEAVY_TRANSPORT_BYTES = ${heavyTransportCapacityBytes}\n` +
-    `HYBRID_C_HEAVY_BYTES = ${labels.get("__HYBRID_C_HEAVY_SIZE__") ?? 0}\n`);
+    `HYBRID_C_ARENA_RUNTIME = $${hybridArenaAddress.toString(16).toUpperCase()}\n` +
+    `HYBRID_C_ARENA_END = $${hybridArenaEndExclusive.toString(16).toUpperCase()}\n` +
+    `HYBRID_C_ARENA_CAPACITY = ${hybridArenaCapacityBytes}\n` +
+    `HYBRID_C_ARENA_BYTES = ${(labels.get("__HYBRID_ASM_ARENA_SIZE__") ?? 0) +
+      (labels.get("__HYBRID_C_ARENA_SIZE__") ?? 0) +
+      (labels.get("__HYBRID_C_ARENA_RODATA_SIZE__") ?? 0)}\n`);
 }
 
 // Roadmap 4.5M-M1: cut the STARFIELD runtime into two independently packed
@@ -1214,9 +1226,8 @@ async function build() {
   }
   const [starfieldStreamA, starfieldStreamB] = starfieldSplit.streams;
   if (broadsideRunAddress + broadsideRuntimeReservedBytes > starfieldStreamA.address ||
-    starfieldStreamA.address + starfieldStreamA.capacityBytes > coldRangeFreedForM3.start ||
-    starfieldStreamA.address + starfieldStreamA.capacityBytes > heavyWindowAddress) {
-    throw new Error("Starfield stream A staging overlaps BROADSIDE, $7BD0 or the Heavy window");
+    starfieldStreamA.address + starfieldStreamA.capacityBytes > hybridArenaAddress) {
+    throw new Error("Starfield stream A staging overlaps BROADSIDE or HYBRID_C_ARENA");
   }
   if (starfieldStreamB.address < glueHoldingAddress + expectedGlueRawBytes ||
     starfieldStreamB.address < packedResidentStagingAddress ||
@@ -1274,9 +1285,9 @@ async function build() {
     packedResidentStagingEndExclusive > coldLowGlueRecordAddress ||
     mergedColdRecordEndExclusive > directorPreRunAddress ||
     glueStagingAddress !== coldLowGlueRecordAddress + lowCodeReservationBytes ||
-    glueStagingEndAddress !== heavyWindowStagingAddress)) {
+    glueStagingEndAddress !== mergedColdRecordEndExclusive)) {
     throw new Error(
-      `Merged low-C/GLUE/Heavy cold record $${coldLowGlueRecordAddress.toString(16)}-$${
+      `Merged low-C/GLUE cold record $${coldLowGlueRecordAddress.toString(16)}-$${
         (mergedColdRecordEndExclusive - 1).toString(16)} must lie above the packed resident ` +
       `staging (ends $${(packedResidentStagingEndExclusive - 1).toString(16)}) and below $9D5E`,
     );
@@ -1465,9 +1476,12 @@ async function build() {
     ...directorModule.codeSegments.map((segment) =>
       segment.transportAddress ?? segment.runAddress),
     directorRunAddress];
-  // 4.5M-M2 proof: no transport record and no boot staging window touches the
-  // cold range freed for the M3 arena.
-  const coldOwnersInFreedRange = [
+  // 4.5M-M3 proof: the arena's own direct-landing record is the only transport
+  // record, staging window, hold or backup that touches $7BD0-$7F0F.
+  const arenaRecordIndex = directorModule.codeSegments.findIndex(({ name }) => name === "arena");
+  const arenaRecord = arenaRecordIndex < 0 ? null : transport.records[2 + arenaRecordIndex];
+  const arenaChunk = arenaRecordIndex < 0 ? null : transport.chunkImages[2 + arenaRecordIndex];
+  const coldOwnersInArena = [
     ...transport.records.map((record) => ({
       owner: `record ${record.finalDestination.toString(16)}`,
       start: record.finalDestination, endExclusive: record.finalDestination + record.rawLength,
@@ -1483,10 +1497,16 @@ async function build() {
     { owner: "pause-screen backup", start: starfieldStagingAddress,
       endExclusive: starfieldStagingAddress + 0x3c0 },
   ].filter(({ start, endExclusive }) =>
-    start < coldRangeFreedForM3.endExclusive && endExclusive > coldRangeFreedForM3.start);
-  if (coldOwnersInFreedRange.length !== 0) {
-    throw new Error(`4.5M-M2: $7BD0-$7E11 still has cold owners: ${
-      coldOwnersInFreedRange.map(({ owner }) => owner).join(", ")}`);
+    start < hybridArenaEndExclusive && endExclusive > hybridArenaAddress);
+  const foreignOwnersInArena = coldOwnersInArena.filter(({ start, endExclusive }) =>
+    !(arenaRecord !== null && start === hybridArenaAddress &&
+      endExclusive === hybridArenaAddress + arenaRecord.rawLength));
+  if (foreignOwnersInArena.length !== 0 || (directorModule.implementation === "cc65-c" && (
+    arenaRecord === null || arenaRecord.finalDestination !== hybridArenaAddress ||
+    arenaRecord.finalDestination + arenaRecord.rawLength > hybridArenaEndExclusive ||
+    transport.records.length > chunkLoaderConstants.maxChunks))) {
+    throw new Error(`4.5M-M3: $7BD0-$7F0F must be owned only by the arena record: ${
+      coldOwnersInArena.map(({ owner }) => owner).join(", ")}`);
   }
   if ((asmDirectorBaseline && bootSectors !== 103) ||
     transportPayload.length !== totalTransportSectors * 128 ||
@@ -1537,8 +1557,7 @@ async function build() {
     directorRunAddress,
     directorAdditionalSegments: directorModule.windowSegment === undefined
       ? directorModule.codeSegments
-      : [...directorModule.codeSegments, directorModule.windowSegment,
-        directorModule.heavySegment],
+      : [...directorModule.codeSegments, directorModule.windowSegment],
     capitalPlayerCollisionRuntime: capitalPlayerCollisionModule.raw,
     capitalPlayerCollisionRunAddress: capitalPlayerCollisionAddress,
     labels,
@@ -1607,8 +1626,7 @@ async function build() {
   // the live linked total remains reported below instead of being misclassified
   // as growth of either completed feature.
   const directorTotalBytes = directorModule.codeRaw.length + directorModule.raw.length +
-    (directorModule.windowSegment?.data.length ?? 0) +
-    (directorModule.heavySegment?.data.length ?? 0);
+    (directorModule.windowSegment?.data.length ?? 0);
   const directorAdditionalStateBytes = directorModule.implementation === "cc65-c"
     ? directorModule.footprint.bssBytes : 0;
   const directorResidencyDelta = directorTotalBytes - expectedDirectorRawBytes +
@@ -1646,7 +1664,7 @@ async function build() {
         finalAddress: glueFinalAddress,
         rawBytes: glueModule.raw.length,
         packedBytes: glueModule.packed.length,
-        transport: "4.5M-M2: offset $F8 of the merged low-C/GLUE/Heavy LZ record",
+        transport: "4.5M-M2: offset $F8 of the merged low-C/GLUE LZ record",
       },
       coldRecordRelocation: {
         step: "4.5M-M2",
@@ -1663,18 +1681,13 @@ async function build() {
               usedBytes: mergedColdRecord.data.length, runtime: 0x8b88 },
             { part: "GLUE", offset: lowCodeReservationBytes, bytes: glueModule.raw.length,
               hold: glueHoldingAddress, runtime: glueFinalAddress },
-            { part: "Heavy", offset: lowCodeReservationBytes + glueModule.raw.length,
-              bytes: heavyTransportCapacityBytes,
-              usedBytes: directorModule.heavySegment?.data.length ?? 0, runtime: heavyWindowAddress },
           ],
           packedResidentStagingEndExclusive,
           marginAbovePackedResidentBytes: coldLowGlueRecordAddress - packedResidentStagingEndExclusive,
           marginBelowDirectorPreBytes: directorPreRunAddress - mergedColdRecordEndExclusive,
-          consumedBy: "publish_director_abi -> DIRECTOR_PUBLISH_LOW, stage_glue_holding, " +
-            "hybrid_c_heavy_publish; all before unpack_entity_runtime expands $9100-$9D5D",
+          consumedBy: "publish_director_abi -> DIRECTOR_PUBLISH_LOW, stage_glue_holding; " +
+            "all before unpack_entity_runtime expands $9100-$9D5D",
         },
-        freedColdRange: { ...coldRangeFreedForM3, owners: coldOwnersInFreedRange },
-        heavyTransportCapacityBytes,
       },
       director: {
         address: directorRunAddress,
@@ -1695,11 +1708,6 @@ async function build() {
             name: "window",
             runAddress: directorModule.windowSegment.runAddress,
             bytes: directorModule.windowSegment.data.length,
-          }]),
-          ...(directorModule.heavySegment === undefined ? [] : [{
-            name: "heavy",
-            runAddress: directorModule.heavySegment.runAddress,
-            bytes: directorModule.heavySegment.data.length,
           }]),
         ],
         footprint: directorModule.footprint,
@@ -1886,7 +1894,7 @@ async function build() {
       bytes: glueModule.raw.length,
       packedBytes: glueModule.packed.length,
       externalChunk: glueRecord === null ? null : {
-        sharedWith: "low-C and Heavy window image (4.5M-M2 merged record)",
+        sharedWith: "low-C image (4.5M-M2 merged record)",
         startSector: glueRecord.startSector,
         sectors: glueChunk.sectors,
         transportBytes: glueChunk.bytes.length,
@@ -1921,42 +1929,44 @@ async function build() {
         transport: "second LZ stream of the pickup/collision record",
         glueHoldingAddress,
       },
-      heavyWindow: directorModule.heavySegment === undefined ? null : (() => {
-        const low = directorModule.codeSegments.find(({ name }) => name === "low");
-        // Worst case for sizing the record: the full transport capacity of
-        // incompressible bytes behind the low-C and GLUE images.
-        const worstImage = Buffer.from(Array.from({ length: heavyTransportCapacityBytes },
-          (_, index) => (index * 167 + 91) & 0xff));
-        const worstPacked = packBroadsideLzss(Buffer.concat([
-          low.data, Buffer.alloc(lowCodeReservationBytes - low.data.length), glueModule.raw,
-          worstImage]));
+      arena: directorModule.arenaSegment === undefined ? null : (() => {
+        const arena = directorModule.arenaSegment;
+        // Worst case for sizing the record: the full capacity of pseudo-random bytes.
+        const worstPacked = packBroadsideLzss(deterministicCapacityBytes(hybridArenaCapacityBytes));
+        const sectorsFor = (packedBytes) =>
+          Math.ceil((packedBytes + chunkLoaderConstants.chunkFooterBytes) / 128);
         return {
-          address: heavyWindowAddress,
-          endExclusive: heavyWindowAddress + heavyWindowCapacityBytes,
-          bytes: heavyWindowCapacityBytes,
-          usedBytes: directorModule.heavySegment.data.length,
-          freeBytes: heavyWindowCapacityBytes - directorModule.heavySegment.data.length,
-          owner: "HYBRID_C_HEAVY",
-          stagingAddress: heavyWindowStagingAddress,
-          stagingEndExclusive: heavyWindowStagingAddress + heavyTransportCapacityBytes,
-          transportCapacityBytes: heavyTransportCapacityBytes,
-          holdAddress: null,
-          publishCopy: {
-            sourceAddress: heavyWindowStagingAddress,
-            destinationAddress: heavyWindowAddress,
-            bytes: heavyTransportCapacityBytes,
-            direction: "disjoint source and destination",
-            site: "stage_glue_holding tail-jump to hybrid_c_heavy_publish, reached from " +
-              "publish_director_abi before unpack_entity_runtime",
+          step: "4.5M-M3",
+          owner: "HYBRID_C_ARENA",
+          address: hybridArenaAddress,
+          endExclusive: hybridArenaEndExclusive,
+          capacityBytes: hybridArenaCapacityBytes,
+          usedBytes: arena.data.length,
+          freeBytes: hybridArenaCapacityBytes - arena.data.length,
+          asmBytes: arena.arena.asmBytes,
+          codeBytes: arena.arena.codeBytes,
+          rodataBytes: arena.arena.rodataBytes,
+          segments: ["HYBRID_ASM_ARENA", "HYBRID_C_ARENA", "HYBRID_C_ARENA_RODATA"],
+          anchor: "hybrid_arena_anchor (1-B rts, HYBRID_ASM_ARENA): keeps the record non-empty",
+          replaces: "HYBRID_C_HEAVY window $7E12-$7F04 (243 B) and its 44-B transport tail " +
+            "in the merged low-C/GLUE record",
+          boundedBy: { below: "starfield stream A staging / pause-screen backup end $7BD0",
+            above: "A2 display lists $7F10" },
+          transport: arenaRecord === null ? null : {
+            record: "own DFMC record, LZ, stagingId extension",
+            finalDestination: arenaRecord.finalDestination,
+            startSector: arenaRecord.startSector,
+            sectors: arenaRecord.sectorCount,
+            rawBytes: arenaRecord.rawLength,
+            packedBytes: arenaRecord.packedLength,
+            paddingBytes: arenaChunk.sectors * 128 - arenaRecord.packedLength -
+              chunkLoaderConstants.chunkFooterBytes,
+            landing: "direct: ATR stage 2 decodes it to $7BD0, the XEX segment loads at $7BD0; " +
+              "no hold, no publish copy",
           },
-          transport: "4.5M-M2: tail of the merged low-C/GLUE/Heavy LZ record at $9B40, " +
-            "behind the GLUE image; transport capacity bounded by the DIRECTOR_C_PRE " +
-            "record at $9D5E until the M3 arena; the runtime window keeps 243 B",
-          lowRecordRawBytes: low.transportData.length,
-          lowRecordPackedBytes: low.transportPacked.length,
-          lowCodeOnlyPackedBytes: low.packed.length,
-          worstCaseFullWindowPackedBytes: worstPacked.length,
-          worstCaseFullWindowSectors: Math.ceil(worstPacked.length / 128),
+          ownersInArena: coldOwnersInArena,
+          worstCaseFullArenaPackedBytes: worstPacked.length,
+          worstCaseFullArenaSectors: sectorsFor(worstPacked.length),
         };
       })(),
       pickupRecordPackedBytes: {

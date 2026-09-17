@@ -254,8 +254,31 @@ light_slot_save = _light_slot_save
 ; Selected Light archetype, as a byte offset into the C archetype table.
 light_archetype_offset = _light_archetype_offset
 
-; Reusable resident window for Heavy-class C (roadmap 4.5a), $7E12-$7F04.
-; Empty until a later step places code here with #pragma code-name
-; ("HYBRID_C_HEAVY"). Its image rides the low-C transport record and is
-; published after the starfield expands (see hybrid_c_heavy_publish).
-.segment "HYBRID_C_HEAVY"
+; HYBRID_C_ARENA (roadmap 4.5M-M3): one contiguous reusable runtime arena
+; $7BD0-$7F0F (832 B) for cc65 code (#pragma code-name ("HYBRID_C_ARENA")),
+; cc65 read-only data (#pragma rodata-name ("HYBRID_C_ARENA_RODATA")) and
+; explicitly assigned ca65 helpers (.segment "HYBRID_ASM_ARENA"). It replaces
+; the temporary 243-B HYBRID_C_HEAVY window. Its linked image travels as its
+; own DFMC record whose final destination is $7BD0: stage 2 (ATR) or the XEX
+; loader lands it in place; there is no hold and no publish copy. Nothing is
+; placed here yet except the anchor below, which keeps the record non-empty
+; (DFMC rejects a zero-length record) so the transport topology does not
+; depend on whether a later step has code in the arena.
+.import __HYBRID_C_ARENA_RAM_START__, __HYBRID_C_ARENA_RAM_SIZE__
+.import __HYBRID_ASM_ARENA_SIZE__, __HYBRID_C_ARENA_SIZE__
+.import __HYBRID_C_ARENA_RODATA_SIZE__
+.assert __HYBRID_C_ARENA_RAM_START__ = $7BD0, lderror, "HYBRID_C_ARENA must start at $7BD0"
+.assert __HYBRID_C_ARENA_RAM_SIZE__ = 832, lderror, "HYBRID_C_ARENA capacity must be 832 B"
+.assert __HYBRID_C_ARENA_RAM_START__+__HYBRID_C_ARENA_RAM_SIZE__ <= $7F10, lderror, "HYBRID_C_ARENA overlaps the A2 display lists at $7F10"
+.assert __HYBRID_ASM_ARENA_SIZE__+__HYBRID_C_ARENA_SIZE__+__HYBRID_C_ARENA_RODATA_SIZE__ <= __HYBRID_C_ARENA_RAM_SIZE__, lderror, "HYBRID_C_ARENA contents exceed 832 B"
+.assert __HYBRID_ASM_ARENA_SIZE__ >= 1, lderror, "HYBRID_C_ARENA lost its record anchor"
+
+.segment "HYBRID_ASM_ARENA"
+; Smallest valid non-empty record anchor: a harmless return, never called.
+hybrid_arena_anchor:
+    rts
+
+; Declared (empty) here so that the size symbols and the contract above exist
+; while no C module places code or read-only data in the arena.
+.segment "HYBRID_C_ARENA"
+.segment "HYBRID_C_ARENA_RODATA"

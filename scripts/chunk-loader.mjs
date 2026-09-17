@@ -17,14 +17,16 @@ const SAFE_EXTENSION_RANGES = Object.freeze([
   [0x5de2, 0x5e06], [0x77b9, 0x7810],
   // Hybrid C packed cold source; consumed before starfield staging reclaims it.
   [0x7810, 0x7bd0],
-  // Roadmap 4.5M-M2: $7BD0-$7F2A is no longer a cold landing range (the GLUE,
-  // ABI and low-C records left it; M3 turns $7BD0-$7F0F into the arena).
+  // Roadmap 4.5M-M3: HYBRID_C_ARENA lands here directly as its own record and
+  // stays resident; it ends before the A2 display lists at $7F10 (4.5M-M2
+  // removed the GLUE, ABI and low-C cold records from this range).
+  [0x7bd0, 0x7f10],
   [0x7fdb, 0x8000],
   // 4.5M-M2 ABI cold record: the entity-state page after A2 staging, consumed
   // by publish_director_abi before init_entity_effects clears $8000-$80FF.
   [0x8018, 0x8100],
   [0x8130, 0x9000], [0x90cf, 0x9100],
-  // 4.5M-M2 merged low-C/GLUE/Heavy record ($9B40-$9D5D) among the direct
+  // 4.5M-M2 merged low-C/GLUE record ($9B40-$9D31) among the direct
   // Director landings; consumed before ENTITY_CODE expands over it.
   [0x992a, 0xa000],
 ]);

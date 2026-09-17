@@ -56,10 +56,10 @@ test("two independent streams fit their exact staging windows and keep the revie
   assert.equal(constants.get("STARFIELD_STAGING_B"), streamB.stagingAddress);
   assert.equal(constants.get("STARFIELD_STAGING_B_BYTES"), streamB.stagingCapacityBytes);
   assert.equal(constants.get("PAUSE_SCREEN_BYTES"), PAUSE_COPY_BYTES);
-  // A ends below the GLUE cold record and the Heavy window; B starts behind the
+  // A ends below HYBRID_C_ARENA (4.5M-M3); B starts behind the
   // $8100 GLUE hold and ends before the near-star state / $8602 window.
   assert.ok(streamA.stagingEndExclusive <= 0x7bd0);
-  assert.ok(streamA.stagingEndExclusive <= manifest.residentCapacity.heavyWindow.address);
+  assert.ok(streamA.stagingEndExclusive <= manifest.residentCapacity.arena.address);
   assert.equal(manifest.integrationGlue.holdingAddress, 0x8100);
   assert.ok(streamB.stagingAddress >= 0x8100 + 250);
   assert.ok(streamB.stagingEndExclusive <= 0x8602);
@@ -110,16 +110,16 @@ test("boot stages both streams with exact 960-byte copies and decodes them byte-
     installBootArtifact(memory, root, artifact);
     run(memory, "stage_boot_streams");
     run(memory, "unpack_resident_runtime");
-    // 4.5M-M2: the cold records (ABI at $8018, merged low-C/GLUE/Heavy at
+    // 4.5M-M2: the cold records (ABI at $8018, merged low-C/GLUE at
     // $9B40) are consumed before ENTITY expands over $9B40.
     run(memory, "publish_director_abi");
     run(memory, "unpack_entity_runtime");
-    // Sentinels around both staging windows and the Heavy window; the GLUE
+    // Sentinels around both staging windows and HYBRID_C_ARENA; the GLUE
     // hold ($8100-$81F9) was filled by publish_director_abi and must stay.
     const glue = fs.readFileSync(path.join(root, "build/integration-glue.bin"));
     const sentinelA = memory[0x7bd0];
     const sentinelB = memory[0x81fa + PAUSE_COPY_BYTES];
-    const heavy = Buffer.from(memory.subarray(0x7e12, 0x7e12 + 243));
+    const arena = Buffer.from(memory.subarray(0x7bd0, 0x7f10));
     run(memory, "stage_a2_kernel"); // -> stage_starfield_stream
     assert.ok(Buffer.from(memory.subarray(0x7810, 0x7810 + packedA.length)).equals(packedA),
       `${artifact} stream A staged byte-exactly`);
@@ -129,8 +129,8 @@ test("boot stages both streams with exact 960-byte copies and decodes them byte-
     assert.ok(Buffer.from(memory.subarray(0x8100, 0x8100 + glue.length)).equals(glue),
       "stream B copy leaves the GLUE hold intact");
     assert.equal(memory[0x81fa + PAUSE_COPY_BYTES], sentinelB, "stream B copy does not spill past its window");
-    assert.ok(Buffer.from(memory.subarray(0x7e12, 0x7e12 + 243)).equals(heavy),
-      "starfield staging leaves the Heavy window untouched");
+    assert.ok(Buffer.from(memory.subarray(0x7bd0, 0x7f10)).equals(arena),
+      "starfield staging leaves HYBRID_C_ARENA untouched");
     run(memory, "init_entity_effects");
     run(memory, "unpack_weapon_pickup_phase_runtime");
     memory.fill(fill, starfield.runAddress, starfield.runAddress + starfield.bytes);

@@ -1,5 +1,5 @@
-// Steps 4.3, 4.5a, 4.5M-M1 and 4.5M-M2 native write-watch proof for reusable
-// resident capacity and boot-only staging.
+// Steps 4.3, 4.5a, 4.5M-M1, 4.5M-M2 and 4.5M-M3 native write-watch proof for
+// reusable resident capacity and boot-only staging.
 //
 // Builds a private Atari800 7.1.2 copy with scripts/atari800-capacity-watch.h
 // and runs the current dist XEX and ATR through cold start, OPTIONS, BACK,
@@ -27,7 +27,14 @@
 // and the three added clock points prove cold publication < ENTITY expansion
 // < entity-state clear on every session.
 //
-// 4.5a/4.5M-M1 Heavy window: --window=0x7e12 --window-bytes=243
+// 4.5M-M3 HYBRID_C_ARENA: --window=0x7bd0 --window-bytes=832 --window-from=start
+// --expect-window-bin=build/encounter-director-code-arena.bin proves that the
+// arena's direct-landing record (ATR stage 2 or the XEX loader) has put the
+// linked image in place by `start` and that the whole 832-B arena, image and
+// unused tail alike, receives no write for the rest of the lifecycle. It
+// combines with the 4.5M-M2 --stage/--hold-done options above.
+//
+// Historical (retired by 4.5M-M3) 4.5a/4.5M-M1 Heavy window: --window=0x7e12 --window-bytes=243
 // --inject=0x7e38:243 --window-from=layout_d_entity_unpack_complete writes a
 // deterministic non-zero pattern over the staged image when publish_director_abi
 // starts, so the full capacity must cross the single ascending publish copy

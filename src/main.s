@@ -136,8 +136,8 @@ NMIEN       = $D40E
 
 PMG_BASE    = $3800
 ; Roadmap 4.5M-M1: the packed starfield is staged as two independent LZ
-; streams. Stream A reuses the consumed extension cold source below the GLUE
-; cold record; stream B uses idle boot-time RAM after the GLUE hold, inside the
+; streams. Stream A reuses the consumed extension cold source below
+; HYBRID_C_ARENA ($7BD0, 4.5M-M3); stream B uses idle boot-time RAM after the GLUE hold, inside the
 ; resident staging interval that unpack_resident_runtime has consumed and that
 ; nothing writes before gameplay init. Neither stream touches $7BD0-$7F2A.
 STARFIELD_STAGING = $7810
@@ -1056,11 +1056,12 @@ layout_d_stage_boot_streams_complete:
 :
     jsr unpack_resident_runtime
     ; Roadmap 4.5M-M2: the cold records that land inside the future ENTITY
-    ; expansion (the merged low-C/GLUE/Heavy record at COLD_LOW_GLUE_RECORD)
+    ; expansion (the merged low-C/GLUE record at COLD_LOW_GLUE_RECORD)
     ; and inside the entity-state page (the ABI record at DIRECTOR_ABI_STAGING)
     ; are consumed here, after the resident staging has been decoded and
     ; before unpack_entity_runtime; init_entity_effects clears $8000-$80FF
-    ; much later. $7BD0-$7E11 has no cold owner any more.
+    ; much later. $7BD0-$7F0F is HYBRID_C_ARENA (4.5M-M3): its own record
+    ; landed it in place before `start`, so nothing here copies it.
     .if DIRECTOR_ABI_BYTES > 0
     jsr publish_director_abi
     .else
@@ -1331,25 +1332,10 @@ boot_chunk_ready:
     .byte $00
 
 .if DIRECTOR_ABI_BYTES > 0
-; Reusable resident window HYBRID_C_HEAVY (roadmap 4.5a; direct publication
-; since 4.5M-M1; staged in the merged low-C/GLUE cold record since 4.5M-M2).
-; The record lands the window image at HYBRID_C_HEAVY_STAGING, after the GLUE
-; image and below the direct-landing Director records at $9D5E, so the
-; transport capacity is HYBRID_C_HEAVY_TRANSPORT_BYTES (build enforced >= the
-; linked image); this single copy moves that many bytes down to the runtime
-; window. Source and destination are disjoint. Reached as the tail of
-; stage_glue_holding from publish_director_abi, before unpack_entity_runtime
-; expands ENTITY_CODE over the record. The copy sits in the zero padding of the
-; fixed bootstrap prefix.
-hybrid_c_heavy_publish:
-    ldy #$00
-@copy:
-    lda HYBRID_C_HEAVY_STAGING,y
-    sta HYBRID_C_HEAVY_RUNTIME,y
-    iny
-    cpy #HYBRID_C_HEAVY_TRANSPORT_BYTES
-    bne @copy
-    rts
+; Roadmap 4.5M-M3: the retired hybrid_c_heavy_publish copy (14 B; the Heavy
+; window became part of the direct-landing HYBRID_C_ARENA) stays zero padding
+; in place, so hostile_weapon_step_masks and every later address keep theirs.
+    .res 14
 .endif
 
 ; Indexed by weapon_class-1 (roadmap 4.5b): the frame_counter mask that must be
@@ -1367,18 +1353,18 @@ stage_glue_holding:
     ; six. Since 4.5M-M2 the GLUE image travels in the merged low-C/GLUE cold
     ; record (LAYOUT_D_GLUE_STAGING) and is held at $8100 as soon as
     ; unpack_resident_runtime has consumed the resident staging: reached from
-    ; publish_director_abi, before ENTITY expands over the record. The Heavy
-    ; image from the same record is published by the tail call.
+    ; publish_director_abi, before ENTITY expands over the record.
     ldy #$06
 @hold_glue:
     lda LAYOUT_D_GLUE_STAGING-$06,y
     sta LAYOUT_D_GLUE_HOLDING-$06,y
     iny
     bne @hold_glue
-    .if DIRECTOR_ABI_BYTES > 0
-    jmp hybrid_c_heavy_publish
-    .else
     rts
+    .if DIRECTOR_ABI_BYTES > 0
+    ; 4.5M-M3: the retired Heavy publish tail-jump (3 B) leaves 2 B of padding
+    ; so that the resident suffix keeps every later address.
+    .res 2
     .endif
 
 .if DIRECTOR_ABI_BYTES > 0
@@ -1387,7 +1373,7 @@ stage_glue_holding:
 ; the resident staging interval that unpack_resident_runtime has just consumed,
 ; and init_entity_effects clears $8000-$80FF later, so publish it here: after
 ; the resident unpack and before unpack_entity_runtime, whose expansion covers
-; the merged low-C/GLUE/Heavy record consumed by the calls below.
+; the merged low-C/GLUE record consumed by the calls below.
 publish_director_abi:
     ldy #DIRECTOR_ABI_BYTES-1
 @copy:
@@ -1398,8 +1384,8 @@ publish_director_abi:
     ; The copied veneer owns the bounded low-C publisher (the head of the
     ; merged record at COLD_LOW_GLUE_RECORD). The lifecycle and archetype
     ; extension is held as a packed stream in the pause-backup range; expand
-    ; it now, then hold GLUE and publish the Heavy image from the merged record
-    ; (stage_glue_holding and its tail) before ENTITY expands over it.
+    ; it now, then hold GLUE from the merged record (stage_glue_holding)
+    ; before ENTITY expands over it.
     jsr DIRECTOR_PUBLISH_LOW
     lda #<HYBRID_C_EXT_STAGING
     sta broadside_read_source+1
@@ -1410,7 +1396,7 @@ publish_director_abi:
     lda #>HYBRID_C_EXT_RUNTIME
     sta broadside_destination+2
     jsr broadside_unpack_command
-    jmp stage_glue_holding      ; GLUE hold, then hybrid_c_heavy_publish
+    jmp stage_glue_holding      ; GLUE hold
     .assert HYBRID_C_EXT_BYTES > 0, error, "hybrid lifecycle extension must not be empty"
     .assert HYBRID_C_EXT_BYTES <= $383, error, "hybrid lifecycle extension exceeds $8C7D-$8FFF"
 .endif
@@ -11422,12 +11408,12 @@ CHUNK_STAGING_BROAD   = 1
 CHUNK_STAGING_ADDRESS = $8100
 CHUNK_FINAL_ADDRESS   = $5E10
 CHUNK_STAGING_SECTORS_MAX = 50
-; Roadmap 4.5M-M2: the low-C image (its full $F8 reservation), the GLUE image
-; and the Heavy window image travel as one LZ record that lands at
-; COLD_LOW_GLUE_RECORD, above the packed resident staging (build enforced) and
-; below the direct-landing Director records at $9D5E. ENTITY_CODE expands over
-; it afterwards, so every consumer runs before unpack_entity_runtime. Nothing
-; lands in $7BD0-$7E11 any more.
+; Roadmap 4.5M-M2: the low-C image (its full $F8 reservation) and the GLUE
+; image travel as one LZ record that lands at COLD_LOW_GLUE_RECORD, above the
+; packed resident staging (build enforced) and below the direct-landing
+; Director records at $9D5E. ENTITY_CODE expands over it afterwards, so every
+; consumer runs before unpack_entity_runtime. Since 4.5M-M3 the only record in
+; $7BD0-$7F0F is the direct-landing HYBRID_C_ARENA record.
 COLD_LOW_GLUE_RECORD = $9B40
 COLD_LOW_GLUE_RECORD_END = $9D5E
 LAYOUT_D_GLUE_STAGING = COLD_LOW_GLUE_RECORD+$F8
@@ -11447,8 +11433,8 @@ LAYOUT_D_GLUE_HOLDING = $8100
 LAYOUT_D_GLUE_BYTES = 250
 .assert LAYOUT_D_GLUE_HOLDING >= PACKED_RESIDENT_STAGING, error, "GLUE hold must use consumed resident staging RAM"
 .assert LAYOUT_D_GLUE_HOLDING+LAYOUT_D_GLUE_BYTES <= STARFIELD_STAGING_B, error, "GLUE hold overlaps starfield stream B staging"
-; Starfield staging streams (4.5M-M1): A below $7BD0 (no cold owner since
-; 4.5M-M2; reserved for the M3 arena), B behind the GLUE hold and before the
+; Starfield staging streams (4.5M-M1): A below $7BD0 (HYBRID_C_ARENA since
+; 4.5M-M3), B behind the GLUE hold and before the
 ; near-star state / HYBRID_C_SECTOR window, which the pickup record publishes
 ; at $8602 before the starfield expands.
 .assert STARFIELD_STAGING >= __BROADSIDE_RUN__+$1A00, error, "starfield stream A overlaps the BROADSIDE reservation"
@@ -11463,20 +11449,18 @@ LAYOUT_D_GLUE_BYTES = 250
 ; page, consumed by publish_director_abi before init_entity_effects clears it.
 .assert DIRECTOR_ABI_STAGING >= BOOT_A2_STAGING+__A2_KERNEL_SIZE__, error, "ABI cold record overlaps A2 staging"
 .assert DIRECTOR_ABI_STAGING+DIRECTOR_ABI_BYTES <= ENTITY_STATE_ADDRESS+ENTITY_STATE_BYTES, error, "ABI cold record leaves the entity-state page"
-; Heavy window (roadmap 4.5a, direct publication since 4.5M-M1, staged in the
-; merged cold record since 4.5M-M2): its staging follows the GLUE image and
-; ends before the Director records; the copy is disjoint; the window lies
-; above starfield stream A and ends before the expanded A2 display lists.
-.assert HYBRID_C_HEAVY_STAGING = LAYOUT_D_GLUE_STAGING+LAYOUT_D_GLUE_BYTES, error, "Heavy staging must follow the GLUE image in the merged record"
-.assert HYBRID_C_HEAVY_STAGING+HYBRID_C_HEAVY_TRANSPORT_BYTES <= COLD_LOW_GLUE_RECORD_END, error, "Heavy staging reaches the Director records"
-.assert HYBRID_C_HEAVY_TRANSPORT_BYTES >= 1 && HYBRID_C_HEAVY_TRANSPORT_BYTES <= HYBRID_C_HEAVY_CAPACITY, error, "Heavy transport capacity is out of range"
-.assert HYBRID_C_HEAVY_BYTES <= HYBRID_C_HEAVY_TRANSPORT_BYTES, error, "HYBRID_C_HEAVY exceeds its 4.5M-M2 transport capacity"
-.assert HYBRID_C_HEAVY_RUNTIME+HYBRID_C_HEAVY_CAPACITY <= HYBRID_C_HEAVY_STAGING, error, "Heavy window overlaps its cold staging"
-.assert HYBRID_C_HEAVY_RUNTIME >= STARFIELD_STAGING+STARFIELD_STAGING_BYTES, error, "Heavy window overlaps starfield stream A staging"
-.assert HYBRID_C_HEAVY_RUNTIME >= PAUSE_SCREEN_BACKUP+$3C0, error, "Heavy window overlaps the pause-screen backup"
-.assert HYBRID_C_HEAVY_RUNTIME+HYBRID_C_HEAVY_CAPACITY <= $7F10, error, "Heavy window overlaps the A2 display lists"
-.assert HYBRID_C_HEAVY_BYTES <= HYBRID_C_HEAVY_CAPACITY, error, "HYBRID_C_HEAVY exceeds its window"
-.assert HYBRID_C_HEAVY_CAPACITY >= 235, error, "Heavy window is below the 4.5 Bomber requirement"
+; HYBRID_C_ARENA (roadmap 4.5M-M3): one contiguous 832-B direct-landing arena
+; $7BD0-$7F0F, above starfield stream A staging and the pause-screen backup,
+; below the A2 display lists and A2 staging. It replaces the 243-B
+; HYBRID_C_HEAVY window; the image is non-empty (the ca65 record anchor).
+.assert HYBRID_C_ARENA_RUNTIME = $7BD0, error, "HYBRID_C_ARENA must start at $7BD0"
+.assert HYBRID_C_ARENA_CAPACITY = 832, error, "HYBRID_C_ARENA capacity must be 832 B"
+.assert HYBRID_C_ARENA_END = HYBRID_C_ARENA_RUNTIME+HYBRID_C_ARENA_CAPACITY, error, "HYBRID_C_ARENA end is inconsistent"
+.assert HYBRID_C_ARENA_END <= PLAYFIELD_DLIST_A, error, "HYBRID_C_ARENA overlaps the A2 display lists"
+.assert HYBRID_C_ARENA_END <= BOOT_A2_STAGING, error, "HYBRID_C_ARENA overlaps A2 staging"
+.assert HYBRID_C_ARENA_RUNTIME >= STARFIELD_STAGING+STARFIELD_STAGING_BYTES, error, "HYBRID_C_ARENA overlaps starfield stream A staging"
+.assert HYBRID_C_ARENA_RUNTIME >= PAUSE_SCREEN_BACKUP+$3C0, error, "HYBRID_C_ARENA overlaps the pause-screen backup"
+.assert HYBRID_C_ARENA_BYTES >= 1 && HYBRID_C_ARENA_BYTES <= HYBRID_C_ARENA_CAPACITY, error, "HYBRID_C_ARENA image is empty or exceeds 832 B"
 .endif
 
 .macro STAGE2_FAIL_NE

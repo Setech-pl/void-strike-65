@@ -11,17 +11,17 @@
     "phaseCount": 8,
     "initialContentBytes": 13162,
     "linkedRuntimeBytes": 17502,
-    "simultaneousResidencyBytes": 19493,
-    "safeResidencyBytes": 2694,
-    "residencyDeltaBytes": 1513,
-    "totalMigrationResidencyDeltaBytes": 1466,
+    "simultaneousResidencyBytes": 19494,
+    "safeResidencyBytes": 2693,
+    "residencyDeltaBytes": 1514,
+    "totalMigrationResidencyDeltaBytes": 1467,
     "glue": {
       "stagingAddress": 39992,
       "holdingAddress": 33024,
       "finalAddress": 20222,
       "rawBytes": 250,
       "packedBytes": 245,
-      "transport": "4.5M-M2: offset $F8 of the merged low-C/GLUE/Heavy LZ record"
+      "transport": "4.5M-M2: offset $F8 of the merged low-C/GLUE LZ record"
     },
     "coldRecordRelocation": {
       "step": "4.5M-M2",
@@ -49,33 +49,20 @@
             "bytes": 250,
             "hold": 33024,
             "runtime": 20222
-          },
-          {
-            "part": "Heavy",
-            "offset": 498,
-            "bytes": 44,
-            "usedBytes": 0,
-            "runtime": 32274
           }
         ],
         "packedResidentStagingEndExclusive": 39711,
         "marginAbovePackedResidentBytes": 33,
         "marginBelowDirectorPreBytes": 44,
-        "consumedBy": "publish_director_abi -> DIRECTOR_PUBLISH_LOW, stage_glue_holding, hybrid_c_heavy_publish; all before unpack_entity_runtime expands $9100-$9D5D"
-      },
-      "freedColdRange": {
-        "start": 31696,
-        "endExclusive": 32274,
-        "owners": []
-      },
-      "heavyTransportCapacityBytes": 44
+        "consumedBy": "publish_director_abi -> DIRECTOR_PUBLISH_LOW, stage_glue_holding; all before unpack_entity_runtime expands $9100-$9D5D"
+      }
     },
     "director": {
       "address": 40309,
       "endExclusive": 40952,
       "reservedEndExclusive": 40954,
-      "rawBytes": 2141,
-      "packedBytes": 1677,
+      "rawBytes": 2142,
+      "packedBytes": 1680,
       "codeAddress": 34561,
       "codeBytes": 1502,
       "rodataAddress": 40309,
@@ -102,6 +89,11 @@
           "bytes": 21
         },
         {
+          "name": "arena",
+          "runAddress": 31696,
+          "bytes": 1
+        },
+        {
           "name": "high",
           "runAddress": 40309,
           "bytes": 643
@@ -110,11 +102,6 @@
           "name": "window",
           "runAddress": 34306,
           "bytes": 240
-        },
-        {
-          "name": "heavy",
-          "runAddress": 32274,
-          "bytes": 0
         }
       ],
       "footprint": {
@@ -140,7 +127,7 @@
         "packedLength": 1161,
         "rawLength": 1161,
         "finalDestination": 35968,
-        "crc16": 15010,
+        "crc16": 57888,
         "type": 0,
         "stagingId": 2,
         "destination": 33024
@@ -156,7 +143,7 @@
   "startAddress": 8222,
   "bootInitAddress": 8221,
   "bootSectors": 103,
-  "payloadBytes": 22656,
+  "payloadBytes": 22784,
   "bootPayloadTrailer": {
     "address": 21350,
     "bytes": 4,
@@ -231,17 +218,17 @@
     "initialBootContentBytes": 13162,
     "initialBootEnvelopeBytes": 22,
     "initialBootSectors": 103,
-    "extensionBytes": 9472,
-    "extensionSectors": 74,
-    "totalTransportBytes": 22656,
-    "totalTransportSectors": 177,
-    "remainingAtrSectors": 543,
-    "remainingAtrTransportBytes": 69504,
-    "architecturalAdditionalCapacityBytes": 6400,
+    "extensionBytes": 9600,
+    "extensionSectors": 75,
+    "totalTransportBytes": 22784,
+    "totalTransportSectors": 178,
+    "remainingAtrSectors": 542,
+    "remainingAtrTransportBytes": 69376,
+    "architecturalAdditionalCapacityBytes": 0,
     "maximumExtensionChunkBytes": 6400,
     "maximumChunkCount": 8,
     "maximumNewSimultaneousResidencyBytes": 7993,
-    "remainingSafeResidencyBytes": 4291,
+    "remainingSafeResidencyBytes": 4290,
     "bootOnlyStaging": {
       "address": 33024,
       "bytes": 6484
@@ -257,13 +244,13 @@
     },
     "manifest": {
       "address": 9756,
-      "bytes": 126,
-      "crc16": 47331,
+      "bytes": 142,
+      "crc16": 8102,
       "parsed": {
         "version": 1,
-        "totalOccupiedSectors": 177,
-        "manifestBytes": 126,
-        "crc16": 47331,
+        "totalOccupiedSectors": 178,
+        "manifestBytes": 142,
+        "crc16": 8102,
         "records": [
           {
             "startSector": 104,
@@ -271,7 +258,7 @@
             "packedLength": 5666,
             "rawLength": 6650,
             "finalDestination": 24080,
-            "crc16": 430,
+            "crc16": 55596,
             "type": 1,
             "stagingId": 1,
             "destination": 33024
@@ -282,7 +269,7 @@
             "packedLength": 1161,
             "rawLength": 1161,
             "finalDestination": 35968,
-            "crc16": 15010,
+            "crc16": 57888,
             "type": 0,
             "stagingId": 2,
             "destination": 33024
@@ -293,7 +280,7 @@
             "packedLength": 116,
             "rawLength": 117,
             "finalDestination": 32792,
-            "crc16": 24438,
+            "crc16": 34804,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -304,7 +291,7 @@
             "packedLength": 457,
             "rawLength": 498,
             "finalDestination": 39744,
-            "crc16": 18257,
+            "crc16": 40915,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -315,7 +302,7 @@
             "packedLength": 786,
             "rawLength": 786,
             "finalDestination": 30736,
-            "crc16": 28815,
+            "crc16": 43021,
             "type": 0,
             "stagingId": 2,
             "destination": 33024
@@ -326,18 +313,29 @@
             "packedLength": 23,
             "rawLength": 21,
             "finalDestination": 40286,
-            "crc16": 11640,
+            "crc16": 62970,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
           },
           {
             "startSector": 173,
+            "sectorCount": 1,
+            "packedLength": 3,
+            "rawLength": 1,
+            "finalDestination": 31696,
+            "crc16": 11217,
+            "type": 1,
+            "stagingId": 2,
+            "destination": 33024
+          },
+          {
+            "startSector": 174,
             "sectorCount": 5,
             "packedLength": 542,
             "rawLength": 643,
             "finalDestination": 40309,
-            "crc16": 65079,
+            "crc16": 9909,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -374,7 +372,7 @@
       "transportBytes": 5760,
       "packedBytes": 5666,
       "rawBytes": 6650,
-      "crc16": 430,
+      "crc16": 55596,
       "stagingAddress": 33024,
       "stagingEndAddress": 38783,
       "finalAddress": 24080
@@ -389,11 +387,11 @@
     "bytes": 250,
     "packedBytes": 245,
     "externalChunk": {
-      "sharedWith": "low-C and Heavy window image (4.5M-M2 merged record)",
+      "sharedWith": "low-C image (4.5M-M2 merged record)",
       "startSector": 161,
       "sectors": 4,
       "transportBytes": 512,
-      "crc16": 18257
+      "crc16": 40915
     }
   },
   "directorRuntime": {
@@ -404,10 +402,10 @@
     "bytes": 643,
     "packedBytes": 542,
     "externalChunk": {
-      "startSector": 173,
+      "startSector": 174,
       "sectors": 5,
       "transportBytes": 640,
-      "crc16": 65079
+      "crc16": 9909
     }
   },
   "directorCodeRuntime": null,
@@ -431,30 +429,47 @@
       "transport": "second LZ stream of the pickup/collision record",
       "glueHoldingAddress": 33024
     },
-    "heavyWindow": {
-      "address": 32274,
-      "endExclusive": 32517,
-      "bytes": 243,
-      "usedBytes": 0,
-      "freeBytes": 243,
-      "owner": "HYBRID_C_HEAVY",
-      "stagingAddress": 40242,
-      "stagingEndExclusive": 40286,
-      "transportCapacityBytes": 44,
-      "holdAddress": null,
-      "publishCopy": {
-        "sourceAddress": 40242,
-        "destinationAddress": 32274,
-        "bytes": 44,
-        "direction": "disjoint source and destination",
-        "site": "stage_glue_holding tail-jump to hybrid_c_heavy_publish, reached from publish_director_abi before unpack_entity_runtime"
+    "arena": {
+      "step": "4.5M-M3",
+      "owner": "HYBRID_C_ARENA",
+      "address": 31696,
+      "endExclusive": 32528,
+      "capacityBytes": 832,
+      "usedBytes": 1,
+      "freeBytes": 831,
+      "asmBytes": 1,
+      "codeBytes": 0,
+      "rodataBytes": 0,
+      "segments": [
+        "HYBRID_ASM_ARENA",
+        "HYBRID_C_ARENA",
+        "HYBRID_C_ARENA_RODATA"
+      ],
+      "anchor": "hybrid_arena_anchor (1-B rts, HYBRID_ASM_ARENA): keeps the record non-empty",
+      "replaces": "HYBRID_C_HEAVY window $7E12-$7F04 (243 B) and its 44-B transport tail in the merged low-C/GLUE record",
+      "boundedBy": {
+        "below": "starfield stream A staging / pause-screen backup end $7BD0",
+        "above": "A2 display lists $7F10"
       },
-      "transport": "4.5M-M2: tail of the merged low-C/GLUE/Heavy LZ record at $9B40, behind the GLUE image; transport capacity bounded by the DIRECTOR_C_PRE record at $9D5E until the M3 arena; the runtime window keeps 243 B",
-      "lowRecordRawBytes": 498,
-      "lowRecordPackedBytes": 457,
-      "lowCodeOnlyPackedBytes": 210,
-      "worstCaseFullWindowPackedBytes": 501,
-      "worstCaseFullWindowSectors": 4
+      "transport": {
+        "record": "own DFMC record, LZ, stagingId extension",
+        "finalDestination": 31696,
+        "startSector": 173,
+        "sectors": 1,
+        "rawBytes": 1,
+        "packedBytes": 3,
+        "paddingBytes": 104,
+        "landing": "direct: ATR stage 2 decodes it to $7BD0, the XEX segment loads at $7BD0; no hold, no publish copy"
+      },
+      "ownersInArena": [
+        {
+          "owner": "record 7bd0",
+          "start": 31696,
+          "endExclusive": 31697
+        }
+      ],
+      "worstCaseFullArenaPackedBytes": 840,
+      "worstCaseFullArenaSectors": 7
     },
     "pickupRecordPackedBytes": {
       "pickupStream": 960,
@@ -485,7 +500,7 @@
         "startSector": 159,
         "sectors": 2,
         "transportBytes": 256,
-        "crc16": 24438
+        "crc16": 34804
       }
     },
     {
@@ -504,7 +519,7 @@
         "startSector": 161,
         "sectors": 4,
         "transportBytes": 512,
-        "crc16": 18257
+        "crc16": 40915
       }
     },
     {
@@ -521,7 +536,7 @@
         "startSector": 165,
         "sectors": 7,
         "transportBytes": 896,
-        "crc16": 28815
+        "crc16": 43021
       }
     },
     {
@@ -538,7 +553,24 @@
         "startSector": 172,
         "sectors": 1,
         "transportBytes": 128,
-        "crc16": 11640
+        "crc16": 62970
+      }
+    },
+    {
+      "name": "arena",
+      "file": "encounter-director-code-arena.bin",
+      "xexFile": "encounter-director-code-arena.bin",
+      "xexStagingCompression": null,
+      "runAddress": 31696,
+      "transportAddress": 31696,
+      "endExclusive": 31697,
+      "bytes": 1,
+      "packedBytes": 3,
+      "externalChunk": {
+        "startSector": 173,
+        "sectors": 1,
+        "transportBytes": 128,
+        "crc16": 11217
       }
     }
   ],
@@ -552,7 +584,7 @@
       "startSector": 149,
       "sectors": 10,
       "transportBytes": 1280,
-      "crc16": 15010
+      "crc16": 57888
     }
   },
   "starfieldRuntime": {
@@ -735,7 +767,7 @@
       "startSector": 149,
       "sectors": 10,
       "transportBytes": 1280,
-      "crc16": 15010,
+      "crc16": 57888,
       "stagingAddress": 35968,
       "finalRuntimeAddress": 34678,
       "coldCapacityBytes": 1277,
@@ -17356,8 +17388,8 @@
         "origin": "coherent fixed-pool stress fixture cloned from a legal director frame",
         "session": "2-sweep-fire4-projectile-stress",
         "frame": 2290,
-        "activeCpuCycles": 9924,
-        "mainLoopCpuCycles": 9937,
+        "activeCpuCycles": 10239,
+        "mainLoopCpuCycles": 10252,
         "projectileOccupancy": 19,
         "player_fighterProjectileOccupancy": 10,
         "broadsideOccupancy": 0,
@@ -17389,9 +17421,10 @@
           "update_enemy": 773,
           "player_fighter_projectile_hits_enemy": 127,
           "entity_player_fighter_projectile_target": 147,
-          "update_fighter_projectiles": 1454,
+          "interceptor_projectile_hits_player": 32,
+          "update_fighter_projectiles": 1769,
           "update_broadside": 200,
-          "handle_collisions": 1897,
+          "handle_collisions": 2212,
           "update_player_fighter_weapon": 52,
           "update_enemy_weapon": 205,
           "build_playfield_display_list": 1489,
@@ -17421,9 +17454,10 @@
           "update_enemy": 773,
           "player_fighter_projectile_hits_enemy": 635,
           "entity_player_fighter_projectile_target": 735,
-          "update_fighter_projectiles": 1454,
+          "interceptor_projectile_hits_player": 160,
+          "update_fighter_projectiles": 1769,
           "update_broadside": 200,
-          "handle_collisions": 1897,
+          "handle_collisions": 2212,
           "update_player_fighter_weapon": 52,
           "update_enemy_weapon": 205,
           "build_playfield_display_list": 1489,
@@ -17453,7 +17487,8 @@
           "update_enemy": 773,
           "player_fighter_projectile_hits_enemy": 635,
           "entity_player_fighter_projectile_target": 100,
-          "update_fighter_projectiles": 719,
+          "interceptor_projectile_hits_player": 160,
+          "update_fighter_projectiles": 874,
           "update_broadside": 200,
           "handle_collisions": 243,
           "update_player_fighter_weapon": 52,
@@ -17485,6 +17520,7 @@
           "update_enemy": 1,
           "player_fighter_projectile_hits_enemy": 5,
           "entity_player_fighter_projectile_target": 5,
+          "interceptor_projectile_hits_player": 5,
           "update_fighter_projectiles": 1,
           "update_broadside": 1,
           "handle_collisions": 1,
@@ -17515,8 +17551,12 @@
             "cycles": 735,
             "calls": 5
           },
+          "update_fighter_projectiles->interceptor_projectile_hits_player": {
+            "cycles": 160,
+            "calls": 5
+          },
           "handle_collisions->update_fighter_projectiles": {
-            "cycles": 1454,
+            "cycles": 1769,
             "calls": 1
           },
           "handle_collisions->update_broadside": {
@@ -20941,18 +20981,18 @@
     "artifacts": {
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
-        "bytes": 22656,
-        "sha256": "c2c3dd1b186a435b57150399b82adf35f86f0348c5b35e99f9e362a4cd2605e8"
+        "bytes": 22784,
+        "sha256": "78190207f10bd32a82b1948cc419a839a51525635c56cb1f83154cbd7aa720fc"
       },
       "void-strike-65.xex": {
         "path": "dist/void-strike-65.xex",
-        "bytes": 23100,
-        "sha256": "a534249496e25919c2a1b2c15e989bb1c5b1331527bb2bec3b55851b9a2549b7"
+        "bytes": 23105,
+        "sha256": "cbba293fa32ffdbf9f6c0af081ca1e3710e3271e5d04d1378467595b0e5f3633"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "c6d6ff8c2666394d6bd047e3d802550bbc52b8d877af1a5c39393556c078cf7b"
+        "sha256": "a75c62b986d6486a0799ada3bae08d3f488c876d83cf4c7de699fa2304b180b0"
       }
     },
     "reportPath": null,
@@ -20960,16 +21000,16 @@
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
-      "bytes": 22656,
-      "sha256": "c2c3dd1b186a435b57150399b82adf35f86f0348c5b35e99f9e362a4cd2605e8"
+      "bytes": 22784,
+      "sha256": "78190207f10bd32a82b1948cc419a839a51525635c56cb1f83154cbd7aa720fc"
     },
     "void-strike-65.xex": {
-      "bytes": 23100,
-      "sha256": "a534249496e25919c2a1b2c15e989bb1c5b1331527bb2bec3b55851b9a2549b7"
+      "bytes": 23105,
+      "sha256": "cbba293fa32ffdbf9f6c0af081ca1e3710e3271e5d04d1378467595b0e5f3633"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "c6d6ff8c2666394d6bd047e3d802550bbc52b8d877af1a5c39393556c078cf7b"
+      "sha256": "a75c62b986d6486a0799ada3bae08d3f488c876d83cf4c7de699fa2304b180b0"
     }
   }
 }

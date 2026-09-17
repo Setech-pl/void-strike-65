@@ -107,12 +107,13 @@ test("Layout D.2 startup order and call bytes are frozen", () => {
     /boot_stage_streams:[\s\S]+a2_kernel_source:[\s\S]+entity_packed_source:[\s\S]+pickup_packed_source:[\s\S]+resident_packed_source:[\s\S]+starfield_packed_source:/,
     "pickup must be preserved after A2/ENTITY sources and before resident staging overwrites $8C80");
   // 4.5M-M2: GLUE moves from the merged cold record to its $8100 hold as the
-  // publish_director_abi tail (then the Heavy image); stage_a2_kernel goes
+  // publish_director_abi tail (4.5M-M3 rebaseline: the Heavy publish tail-jump
+  // is retired; rts plus 2 B of padding keep every suffix address); stage_a2_kernel goes
   // straight to the two deferred starfield streams, staged by one exact
   // 960-byte copy each (A from the record stage_boot_streams prepared, B from
   // its patched table source).
   assert.match(source,
-    /stage_glue_holding:\s+(;[^\n]*\n\s*)*ldy #\$06\s+@hold_glue:\s+lda LAYOUT_D_GLUE_STAGING-\$06,y\s+sta LAYOUT_D_GLUE_HOLDING-\$06,y\s+iny\s+bne @hold_glue\s+\.if DIRECTOR_ABI_BYTES > 0\s+jmp hybrid_c_heavy_publish\s+\.else\s+rts\s+\.endif/,
+    /stage_glue_holding:\s+(;[^\n]*\n\s*)*ldy #\$06\s+@hold_glue:\s+lda LAYOUT_D_GLUE_STAGING-\$06,y\s+sta LAYOUT_D_GLUE_HOLDING-\$06,y\s+iny\s+bne @hold_glue\s+rts\s+\.if DIRECTOR_ABI_BYTES > 0\s+(;[^\n]*\n\s*)*\.res 2\s+\.endif/,
     "GLUE must be held from the merged record before ENTITY expands over it");
   assert.match(source, /bne @copy_a2\n\s+jmp stage_starfield_stream/,
     "A2 publication tail-calls the deferred starfield staging directly");
@@ -203,12 +204,13 @@ test("relocated pickup hook decrements 2 to 1 and returns", () => {
 test("startup writes never intersect a source before its last read", () => {
   // Production order (4.5M-M2): 1 A2 staging copy, 2 packed ENTITY staging
   // copy, 3 pickup hold copy, 4 resident staging copy, 5 resident expansion,
-  // 6 cold publication (ABI, low C, extension, GLUE hold, Heavy window),
+  // 6 cold publication (ABI, low C, extension, GLUE hold; 4.5M-M3: the
+  // HYBRID_C_ARENA record landed at $7BD0 before `start`, nothing copies it),
   // 7 ENTITY expansion, 8 A2 publication, 9 starfield staging, 10 entity-state
   // clear, 11 pickup/window publication, 12 loader bitmap, 13 starfield
   // expansion, 14 GLUE publication.
   const relocation = manifest.encounterDirector.coldRecordRelocation;
-  const heavy = manifest.residentCapacity.heavyWindow;
+  const arena = manifest.residentCapacity.arena;
   const sources = [
     { name: "A2 initial source", start: manifest.a2Kernel.sourceAddress,
       end: manifest.a2Kernel.sourceAddress + manifest.a2Kernel.bytes, lastRead: 1 },
@@ -223,8 +225,8 @@ test("startup writes never intersect a source before its last read", () => {
       end: 0x8100 + manifest.residentRuntime.suffixPackedBytes, born: 4, lastRead: 5 },
     { name: "ABI cold record", start: relocation.abiRecord.address,
       end: relocation.abiRecord.endExclusive, lastRead: 6 },
-    { name: "merged low-C/GLUE/Heavy cold record", start: relocation.mergedRecord.address,
-      end: heavy.stagingEndExclusive, lastRead: 6 },
+    { name: "merged low-C/GLUE cold record", start: relocation.mergedRecord.address,
+      end: relocation.mergedRecord.endExclusive, lastRead: 6 },
     { name: "packed extension cold source", start: 0x7810,
       end: 0x7810 + manifest.directorCodeRuntimes.find(({ name }) => name === "extension")
         .packedBytes, lastRead: 6 },
@@ -236,15 +238,13 @@ test("startup writes never intersect a source before its last read", () => {
     ...manifest.starfieldRuntime.streams.map((stream) => ({
       name: `staged starfield stream ${stream.id}`, start: stream.stagingAddress,
       end: stream.stagingAddress + stream.packedBytes, born: 9, lastRead: 13 })),
-    { name: "Heavy window", start: heavy.address, end: heavy.endExclusive, born: 6,
-      lastRead: 14 },
+    { name: "HYBRID_C_ARENA", start: arena.address, end: arena.endExclusive, lastRead: 14 },
     { name: "ABI runtime", start: 0x8701, end: 0x8701 + relocation.abiRecord.endExclusive -
       relocation.abiRecord.address, born: 6, lastRead: 14 },
     { name: "packed pickup hold", start: 0x4801,
       end: 0x4801 + manifest.entityEffects.pickupPhasePackedBytes, born: 3, lastRead: 11 },
     { name: "GLUE hold", start: glueHolding, end: glueHolding + glue.length, born: 6,
       lastRead: 14 },
-    { name: "freed cold range $7BD0-$7E11", start: 0x7bd0, end: 0x7e12, lastRead: 14 },
   ];
   const writes = [
     { sequence: 1, start: 0x7f2b, end: 0x7f2b + manifest.a2Kernel.bytes },
@@ -260,7 +260,6 @@ test("startup writes never intersect a source before its last read", () => {
     { sequence: 6, start: 0x8b88, end: 0x8b88 + relocation.mergedRecord.layout[0].usedBytes },
     { sequence: 6, start: 0x8c7d, end: 0x9000 },
     { sequence: 6, start: glueHolding, end: glueHolding + glue.length },
-    { sequence: 6, start: heavy.address, end: heavy.address + heavy.transportCapacityBytes },
     { sequence: 7, start: 0x9100, end: 0x9100 + entity.length },
     { sequence: 8, start: 0x9000, end: 0x9100 },
     // 4.5M-M1: one exact 960-byte copy per starfield stream, no spill.
@@ -278,7 +277,10 @@ test("startup writes never intersect a source before its last read", () => {
   ];
   assert.ok(relocation.mergedRecord.endExclusive <= 0x9d5e &&
     relocation.mergedRecord.address >= 0x8100 + manifest.residentRuntime.suffixPackedBytes);
-  assert.deepEqual(relocation.freedColdRange, { start: 0x7bd0, endExclusive: 0x7e12, owners: [] });
+  // 4.5M-M3: the arena's own direct-landing record is the only owner of $7BD0-$7F0F.
+  assert.deepEqual([arena.address, arena.endExclusive], [0x7bd0, 0x7f10]);
+  assert.deepEqual(arena.ownersInArena.map(({ start, endExclusive }) => [start, endExclusive]),
+    [[0x7bd0, 0x7bd0 + arena.usedBytes]]);
   for (const write of writes) for (const live of sources) {
     const active = write.sequence > (live.born ?? 0) && write.sequence <= live.lastRead;
     const intersects = write.start < live.end && write.end > live.start;

@@ -16,9 +16,10 @@ the values below.
 `experiment/hybrid-c-director`. HEAD carries the roadmap 4.4 Interceptor
 `OWNER-SMOKE CANDIDATE`, its 4.4b visual identity (X/quad art since `3838c00`),
 the 4.4c hostile weapon visuals, the roadmap 4.5a Heavy window capacity
-increment, the 4.5b `BOMBER` weapon class, the 4.5M-M1 starfield staging
-swap (owner smoke PASS 2026-09-17) and the 4.5M-M2 cold-record relocation
-(sections below) on top of `f4cb18b`, the documentation-only reconciliation of
+increment (superseded by the M3 arena), the 4.5b `BOMBER` weapon class, the
+4.5M-M1 starfield staging swap and the 4.5M-M2 cold-record relocation (both
+owner smoke PASS 2026-09-17) and the 4.5M-M3 `HYBRID_C_ARENA` (sections below)
+on top of `f4cb18b`, the documentation-only reconciliation of
 the owner acceptance recorded here. None of these candidates is accepted; the
 accepted runtime is still `b4b942e`.
 
@@ -119,9 +120,12 @@ comparing CPU.
 - boot-smoke margin: the ATR menu deadline (190 + 2 × transport sectors) is
   met with 0 frames of margin at `3838c00`, at the 4.5a and 4.5b candidates
   (4.5b: +6 B packed BROADSIDE alone missed it by one frame), with a 239-B
-  Heavy proof payload and at the 4.5M-M2 candidate (177 sectors: deadline 544,
-  menu 544); boot CPU added without extra sectors can miss it (it did for the
-  first 4.5a variant);
+  Heavy proof payload, at the 4.5M-M2 candidate (177 sectors: deadline 544,
+  menu 544) and at the 4.5M-M3 candidate (178 sectors: deadline 546, menu
+  546); boot CPU added without extra sectors can miss it (it did for the
+  first 4.5a variant). Measured for the Bomber retry: a throwaway arena filled
+  to 832 B (record 363 B packed, 3 sectors, 180 transport sectors) reaches the
+  ATR menu at 551 against deadline 550, one frame late; the XEX is unaffected;
 - open owner decision: the packed STARFIELD correction gate. At the 4.5M-M1
   candidate the single-stream gates 1,798 / 1,819 B are superseded by the
   two-stream total gates 1,804 (correction) / 1,825 B (hard) against a measured
@@ -777,7 +781,86 @@ identical). Goal reached: **`$7BD0-$7E11` has no boot, cold or runtime owner**
 Candidate XEX `a5342494…`, ATR `c6d6ff8c…`, owner-smoke copy in
 `build/owner-smoke/cold-record-relocation-a5342494/`. Evidence:
 [diagnostics/stage-2b2l-cold-record-relocation.json](diagnostics/stage-2b2l-cold-record-relocation.json).
-Next migration step (not started): M3 arena (`$7BD0-$7F0F`, 832 B).
+Owner smoke PASS 2026-09-17 (M2 accepted as a migration step; the runtime
+acceptance checkpoint stays `b4b942e`).
+
+---
+
+## Roadmap 4.5M-M3 — `HYBRID_C_ARENA` — `OWNER-SMOKE CANDIDATE` (2026-09-17)
+
+Infrastructure only, on top of the 4.5M-M2 candidate (`cac8657`), third step of
+the 4.5M migration. No gameplay change and no Bomber code (no C tick,
+admission, Heavy scheduler, QUAD, hull colour or Heavy marshalling; the
+`experiment/bomber-4.5c-blocked-placement` branch is untouched). Every
+CODE/BROADSIDE/LIGHT_CODE/A2/ENTITY_CODE/STARFIELD/debris/projectile/backing/
+collision/VBI/DLI/PMG address is unchanged (`.lbl` diff: only
+`hybrid_c_heavy_publish` removed and the arena symbols added).
+
+- **`$7BD0-$7F0F` = `HYBRID_C_ARENA`, 832 B**, one contiguous reusable runtime
+  arena (`HYBRID_C_ARENA_RAM` in `cfg/encounter-director.cfg`) that replaces
+  the temporary 243-B `HYBRID_C_HEAVY` window architecture. Segments:
+  `HYBRID_ASM_ARENA` (ca65 helpers, linked with the ABI veneer),
+  `HYBRID_C_ARENA` (cc65 CODE, `#pragma code-name`) and
+  `HYBRID_C_ARENA_RODATA` (cc65 RODATA, `#pragma rodata-name`). Content: the
+  1-B `rts` anchor `hybrid_arena_anchor` at `$7BD0`. Used 1 B (ASM 1, CODE 0,
+  RODATA 0), free 831 B.
+- **Assertions.** ld65 (`src/hybrid/c-asm-abi.s`): start `$7BD0`, capacity
+  832 B, end ≤ `$7F10` (A2 display lists), contents ≤ capacity, non-empty
+  anchor; `src/main.s`: end ≤ `PLAYFIELD_DLIST_A` and A2 staging, start ≥
+  starfield stream A / pause backup end; `scripts/build.mjs`: the same plus the
+  arena record as the only owner of the range.
+- **Transport (measured).** The arena is its own DFMC record in the slot M2
+  freed: LZ, final destination `$7BD0`, 1 B raw / 3 B packed, 1 sector (173),
+  104 B padding; direct landing (ATR stage 2 decode, XEX 1-B segment), no hold,
+  no publish copy. **8 records, 178 transport sectors** (177 before), initial
+  block 103 sectors / 13,162 B unchanged, XEX 23,100 → 23,105 B.
+- **Retired.** `hybrid_c_heavy_publish` (its 14 B stay zero padding in place),
+  the `stage_glue_holding` tail-jump (now `rts` + 2 B padding), the 44-B Heavy
+  tail of the merged record (now 498 B, 44 B below `$9D5E`), the
+  `HYBRID_C_HEAVY_*` equates, asserts and manifest `residentCapacity.heavyWindow`
+  (now `residentCapacity.arena`). `scripts/chunk-loader.mjs` reviews
+  `[$7BD0, $7F10)` as a landing range; `scripts/capacity-window-watch.mjs`
+  documents the arena configuration.
+- **Accounting.** Physical: linked runtime 17,502 B unchanged, simultaneous
+  19,493 → 19,494 B, safe 2,694 → 2,693 B (the anchor). Reserved: arena 832 B
+  (replaces the 243-B window). Reusable: arena 831 B free; `HYBRID_C_EXT` 21 B,
+  `HYBRID_C_SECTOR` 8 B, ENTITY_CODE 13 B, A2 18 B, pickup fill 11 B unchanged.
+  BSS unchanged (16 B C, no C stack, no new zero page). Packed record bytes
+  8,751 → 8,754 B.
+- **Boot (measured).** Native clocks `start → show_loader` XEX 2,047,758 →
+  2,046,995 (−763), ATR 2,047,766 → 2,046,995 (−771): the retired 44-B copy;
+  the extra ATR sector read and 3-B decode run before `start`. Boot smoke PASS
+  4/4: XEX menu 392 (deadline 502) unchanged; ATR start 229 → 231, menu 544 →
+  **546** against deadline 544 → **546** (formula unchanged, 0 frames margin as
+  before).
+- **Native write-watch** (XEX/ATR × cold fill `$00`/`$A5`; cold start,
+  OPTIONS, gameplay, pause/resume, one capital sector entered and completed,
+  game over, restart, pause/quit), all PASS 4/4: full arena `$7BD0-$7F0F`
+  equal to `build/encounter-director-code-arena.bin` at `start` and 0 writes
+  to the end of the lifecycle, combined with the M2 ABI (`$8018`) and merged
+  (`$9B40`) record checks and GLUE hold from `layout_d_cold_publish_complete`;
+  M1 streams A/B, decoded STARFIELD, GLUE hold `$8100` and `$8602` window.
+- **Capacity proof (throwaway, not committed).** 20 cc65 functions (775 B
+  CODE) + 34 B cc65 RODATA + 22 B ca65 helper behind the anchor: exactly 832 B
+  linked; 833 B fails in ld65. Record 363 B packed, 3 sectors (180 transport
+  sectors). Native write-watch PASS 4/4 byte-exact over all 832 B on XEX and
+  ATR. Boot smoke: XEX 392; **ATR menu 551 vs deadline 550 (one frame late)**
+  — see the boot-smoke margin under open defects; not a gate of this
+  candidate, relevant to the Bomber retry.
+- **PAL (native).** `2-evasive-fire3` 29,519 and `2-sweep-fire4` 29,801 cycles,
+  identical to M2; 0 missed frames, 0 extra VBI, 0 DLI ordering errors. Debris
+  gate PASS (maxima 30,232 / 30,439 / 30,216).
+- **Tests.** `tests/heavy-window.test.mjs` → `tests/hybrid-c-arena.test.mjs`
+  (3 tests: arena contract, direct-landing record, retired Heavy transport);
+  rebaselined `layout-d1` (suffix tail, lifetime model) and
+  `starfield-staging-streams` (arena instead of the Heavy window). Full suite:
+  643 tests, 114 failing, against 644 / 114 on a clean export of `cac8657`
+  (the renamed file has 3 tests instead of 4); the failure-name sets are
+  identical.
+
+Candidate XEX `cbba293f…`, ATR `a75c62b9…`, owner-smoke copy in
+`build/owner-smoke/hybrid-c-arena-cbba293f/`. Evidence:
+[diagnostics/stage-2b2m-hybrid-c-arena.json](diagnostics/stage-2b2m-hybrid-c-arena.json).
 
 ---
 
@@ -785,15 +868,16 @@ Next migration step (not started): M3 arena (`$7BD0-$7F0F`, 832 B).
 
 Roadmap 4.5c (Bomber / Heavy Assault gameplay) is **`BLOCKED_PLACEMENT`**
 (2026-09-17). No 4.5c code is on this branch; the 4.5M memory/lifetime
-migration (M1 accepted, M2 candidate above) is the accepted way forward and M3
-is next.
+migration (M1 and M2 owner smoke PASS, M3 `HYBRID_C_ARENA` candidate above) is
+the accepted way forward.
 
 - The full design (Bomber record, TEMPORARY 4.5 HEAVY SMOKE SCHEDULER,
   generic Heavy profile, per-member C lane-sweep tick, generic Heavy
   `weapon_class` emission, QUAD art, hull colour publish/restore) is on the
   evidence branch `experiment/bomber-4.5c-blocked-placement` (`8e138a8`). It
   does not link and was never executed.
-- `HYBRID_C_HEAVY` needs 391 B against its 243 B window (148 B over).
+- `HYBRID_C_HEAVY` needed 391 B against its 243 B window (148 B over); the
+  window is superseded by the 832-B M3 arena (831 B free).
   `HYBRID_C_EXT` would hold 871 of 899 B, a 28 B tail (12 B above the
   16 B floor). Total deficit: 120 B at a zero EXT tail, 136 B with the
   floor.
@@ -808,7 +892,7 @@ candidate (with 4.4b and 4.4c) are still pending.
 
 ## Next roadmap step
 
-Owner smoke of the 4.5M-M2 candidate, then 4.5M-M3 (the `$7BD0-$7F0F` 832-B
-direct-landing arena; a DFMC record slot is free for it), then retry 4.5c from
-`8e138a8`, per decision 20. The Raider-coloured residual artifact remains an
+Owner smoke of the 4.5M-M3 `HYBRID_C_ARENA` candidate, then retry 4.5c from
+`8e138a8` against the arena, per decision 20 (a separate task; the measured
+one-frame ATR boot-smoke overrun of a full arena is an input to it). The Raider-coloured residual artifact remains an
 open P0 investigation.

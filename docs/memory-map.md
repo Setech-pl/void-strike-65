@@ -389,6 +389,72 @@ ends ≤ `$7BD0`; no record, staging window or hold intersects `$7BD0-$7E11`
 Evidence:
 [diagnostics/stage-2b2l-cold-record-relocation.json](diagnostics/stage-2b2l-cold-record-relocation.json).
 
+## Roadmap 4.5M-M3 HYBRID_C_ARENA — OWNER-SMOKE CANDIDATE (2026-09-17)
+
+Measured on top of `cac8657` (the 4.5M-M2 candidate). Infrastructure only: no
+gameplay, PMG, DLI/VBI, collision, renderer or ENTITY-order change; every
+CODE/BROADSIDE/STARFIELD/A2/ENTITY/PICKUP/LIGHT/C/ABI/GLUE address is unchanged
+(`.lbl` diff: `hybrid_c_heavy_publish` and its `@copy` removed, the arena
+segment symbols and `hybrid_arena_anchor` `$7BD0` added; nothing moved). These
+rows override the Heavy-window rows of the 4.5a, M1 and M2 sections.
+
+**`$7BD0-$7F0F` = `HYBRID_C_ARENA`, 832 B.** It replaces the temporary 243-B
+`HYBRID_C_HEAVY` window architecture (4.5a) and its 44-B M2 transport tail.
+
+| Range | Size | Candidate owner |
+| --- | ---: | --- |
+| `$7BD0-$7F0F` | 832 B | **`HYBRID_C_ARENA_RAM`** (`cfg/encounter-director.cfg`): one contiguous reusable runtime arena, resident for the whole lifetime; segments in link order `HYBRID_ASM_ARENA` (ca65 helpers linked with the ABI veneer), `HYBRID_C_ARENA` (cc65 CODE), `HYBRID_C_ARENA_RODATA` (cc65 RODATA) |
+| `$7BD0` | 1 B | `hybrid_arena_anchor` (`rts`, never called): the smallest non-empty record anchor, so the arena record exists whatever a later step places here |
+| `$7BD1-$7F0F` | 831 B | arena free (no writer: native watch 0 writes from `start` through the full lifecycle) |
+| `$7E12-$7F04` | — | former `HYBRID_C_HEAVY_RAM` window: **part of the arena**, no separate capacity |
+| `$9D32-$9D5D` | — | former 44-B Heavy tail of the merged low-C/GLUE record: **retired** (the record is 498 B `$9B40-$9D31`, 44 B margin below `$9D5E`) |
+| `$21AD-$21BA` | 14 B | former `hybrid_c_heavy_publish`: zero padding in place (`.res 14`), so `hostile_weapon_step_masks` stays at `$21BB`; prefix padding 3 B at the tail unchanged |
+| `$21CC-$21CE` | 3 B | former `jmp hybrid_c_heavy_publish` tail of `stage_glue_holding`: now `rts` + 2 B padding (`$21CD-$21CE`), so `publish_director_abi` stays at `$21CF` |
+
+Link and assembly contracts: ld65 (`src/hybrid/c-asm-abi.s`, `lderror`) asserts
+arena start `$7BD0`, capacity 832 B, start + capacity ≤ `$7F10`, ASM + CODE +
+RODATA ≤ capacity and a non-empty anchor; ld65 also rejects any memory-area
+overflow (measured: an 833-B payload fails with "overflows memory area by 1
+byte" and the arena assertion). `src/main.s` asserts arena end ≤
+`PLAYFIELD_DLIST_A` (`$7F10`) and ≤ A2 staging (`$7F2B`), start ≥ starfield
+stream A staging end and pause-screen backup end (`$7BD0`), image 1..832 B.
+`scripts/build.mjs` rechecks the same contract and that the arena record is the
+only record, staging window, hold or backup intersecting `$7BD0-$7F0F`
+(`residentCapacity.arena.ownersInArena`).
+
+Transport (measured): **8 DFMC records** (the M2 slot is used), 177 → **178
+transport sectors** (ATR menu deadline 544 → 546 by the unchanged formula).
+The arena record: LZ, staging `$8100`, final destination `$7BD0`, sector 173, 1
+sector, 1 B raw / 3 B packed, 104 B sector padding; landing is direct (ATR
+stage 2 decodes it to `$7BD0`; the XEX carries a 1-B segment at `$7BD0`). Record
+order: BROADSIDE 104-148, pickup 149-158, ABI 159-160, merged low-C/GLUE
+161-164, extension 165-171, pre 172, **arena 173**, Director 174-178. Initial
+content 13,162 B, envelope 22 B, 103 boot sectors unchanged; manifest 126 →
+142 B inside the fixed stage-2 reservation; XEX 23,100 → 23,105 B; boot image
+22,656 → 22,784 B. Packed record bytes 8,751 → 8,754 B. Worst case: 832
+pseudo-random bytes pack to 840 B in 7 sectors (fits the 50-sector stage-2
+staging).
+
+Accounting (separate metrics, measured): **physical** linked runtime 17,502 B
+unchanged, simultaneous residency 19,493 → 19,494 B (+1, the anchor), safe
+residency 2,694 → 2,693 B; **reserved** `HYBRID_C_ARENA` 832 B (replaces the
+243-B Heavy window reservation; +589 B reserved, all in the range M2 freed);
+**reusable** arena 831 B free (was `HYBRID_C_HEAVY` 243 B), `HYBRID_C_EXT` 21 B,
+`HYBRID_C_SECTOR` 8 B, ENTITY_CODE 13 B, A2 18 B, pickup fill 11 B unchanged;
+**arena** capacity 832 B, used 1 B (ASM 1, C CODE 0, RODATA 0), free 831 B;
+**BSS** unchanged (C 16 B, C stack 0, new zero page 0). Arena capacity is a
+segment-local limit, not machine exhaustion.
+
+Capacity proof (throwaway scratch tree, not committed): 20 cc65 functions
+(775 B CODE) + a 34-B cc65 RODATA table + a 22-B ca65 helper behind the anchor
+filled the arena to exactly 832 B; the record packed to 363 B in 3 sectors (180
+transport sectors). Native write-watch PASS 4/4 (XEX/ATR × `$00`/`$A5`): the
+832-B arena equals `build/encounter-director-code-arena.bin` at `start`, 0
+writes through the full lifecycle. Boot smoke on that proof: XEX menu 392
+(deadline 502); ATR menu **551 against deadline 550** (one frame over: decoding
+the full record costs more than the per-sector allowance). Evidence:
+[diagnostics/stage-2b2m-hybrid-c-arena.json](diagnostics/stage-2b2m-hybrid-c-arena.json).
+
 ## Blocked-experiment evidence — not part of this map
 
 The 2026-09-16 Interceptor experiment (`BLOCKED_PLACEMENT`) measured additional

@@ -17,12 +17,16 @@ const SAFE_EXTENSION_RANGES = Object.freeze([
   [0x5de2, 0x5e06], [0x77b9, 0x7810],
   // Hybrid C packed cold source; consumed before starfield staging reclaims it.
   [0x7810, 0x7bd0],
-  // GLUE, ABI and low-C cold staging. Since roadmap 4.5a the low-C record also
-  // carries the Heavy window image to $7F2A: the A2 display lists at $7F10 are
-  // built only at gameplay init, long after that image is published in place
-  // ($7E38 -> $7E12, roadmap 4.5M-M1), and A2 cold staging begins at $7F2B.
-  [0x7bd0, 0x7f2b],
-  [0x7fdb, 0x8000], [0x8130, 0x9000], [0x90cf, 0x9100], [0x992a, 0xa000],
+  // Roadmap 4.5M-M2: $7BD0-$7F2A is no longer a cold landing range (the GLUE,
+  // ABI and low-C records left it; M3 turns $7BD0-$7F0F into the arena).
+  [0x7fdb, 0x8000],
+  // 4.5M-M2 ABI cold record: the entity-state page after A2 staging, consumed
+  // by publish_director_abi before init_entity_effects clears $8000-$80FF.
+  [0x8018, 0x8100],
+  [0x8130, 0x9000], [0x90cf, 0x9100],
+  // 4.5M-M2 merged low-C/GLUE/Heavy record ($9B40-$9D5D) among the direct
+  // Director landings; consumed before ENTITY_CODE expands over it.
+  [0x992a, 0xa000],
 ]);
 // The pickup stream is consumed before A2/ENTITY publication. Its cold tail
 // may therefore cross $9100 without overlapping live gameplay code.

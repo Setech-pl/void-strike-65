@@ -1055,12 +1055,19 @@ layout_d_stage_boot_streams_complete:
     jmp boot_stage2_error
 :
     jsr unpack_resident_runtime
-    jsr unpack_entity_runtime
+    ; Roadmap 4.5M-M2: the cold records that land inside the future ENTITY
+    ; expansion (the merged low-C/GLUE/Heavy record at COLD_LOW_GLUE_RECORD)
+    ; and inside the entity-state page (the ABI record at DIRECTOR_ABI_STAGING)
+    ; are consumed here, after the resident staging has been decoded and
+    ; before unpack_entity_runtime; init_entity_effects clears $8000-$80FF
+    ; much later. $7BD0-$7E11 has no cold owner any more.
     .if DIRECTOR_ABI_BYTES > 0
     jsr publish_director_abi
     .else
-    jsr stage_starfield_stream
+    jsr stage_glue_holding
     .endif
+layout_d_cold_publish_complete:
+    jsr unpack_entity_runtime
 layout_d_entity_unpack_complete:
     jsr stage_a2_kernel
     jsr init_entity_effects
@@ -1150,8 +1157,8 @@ unpack_starfield_runtime:
 ; pickup copy must precede resident staging at $8100, whose maximum write would
 ; otherwise destroy the temporary packed source at $8C80. The first four
 ; records run before resident/entity expansion. The two starfield records run
-; only after GLUE has left its cold $7BD0 staging interval for the $8100 hold
-; and A2 has been published from $7F2B.
+; only after A2 has been published from $7F2B; the GLUE hold at $8100 has been
+; filled by publish_director_abi (4.5M-M2) before that.
 boot_stage_streams:
 a2_kernel_source:
     .word $FFFF
@@ -1240,7 +1247,7 @@ stage_a2_kernel:
     sta __A2_KERNEL_RUN__,y
     iny
     bne @copy_a2
-    jmp stage_glue_holding
+    jmp stage_starfield_stream
 
 unpack_resident_runtime:
     lda #<PACKED_RESIDENT_STAGING
@@ -1275,9 +1282,10 @@ unpack_entity_runtime:
 ; A copies from the record that stage_boot_streams prepared in src_ptr/dst_ptr
 ; (its source and $7810 destination); stream B reloads its patched source from
 ; the table and lands at $81FA behind the GLUE hold. Reached through
-; stage_a2_kernel -> stage_glue_holding after A2 has been published; this
-; routine replaced the retired pre-DFMC boot BROADSIDE unpack, so the fixed
-; bootstrap prefix keeps its size.
+; stage_a2_kernel after A2 has been published (the GLUE hold was filled by
+; publish_director_abi before ENTITY expansion, 4.5M-M2); this routine replaced
+; the retired pre-DFMC boot BROADSIDE unpack, so the fixed bootstrap prefix
+; keeps its size.
 stage_starfield_stream:
     jsr copy_pause_screen
     lda starfield_packed_source_b
@@ -1324,20 +1332,22 @@ boot_chunk_ready:
 
 .if DIRECTOR_ABI_BYTES > 0
 ; Reusable resident window HYBRID_C_HEAVY (roadmap 4.5a; direct publication
-; since 4.5M-M1). The low-C record lands the window image at
-; HYBRID_C_HEAVY_STAGING; once the low C has been published this single copy
-; moves the full capacity down to its runtime window. Starfield staging no
-; longer covers $7BD0-$7F2A, so no hold and no later publish are needed. The
-; intervals overlap ($7E38-$7F04) and the destination lies below the source, so
-; an ascending copy reads every byte before it can be overwritten. The copy
-; sits in the zero padding of the fixed bootstrap prefix.
+; since 4.5M-M1; staged in the merged low-C/GLUE cold record since 4.5M-M2).
+; The record lands the window image at HYBRID_C_HEAVY_STAGING, after the GLUE
+; image and below the direct-landing Director records at $9D5E, so the
+; transport capacity is HYBRID_C_HEAVY_TRANSPORT_BYTES (build enforced >= the
+; linked image); this single copy moves that many bytes down to the runtime
+; window. Source and destination are disjoint. Reached as the tail of
+; stage_glue_holding from publish_director_abi, before unpack_entity_runtime
+; expands ENTITY_CODE over the record. The copy sits in the zero padding of the
+; fixed bootstrap prefix.
 hybrid_c_heavy_publish:
     ldy #$00
 @copy:
     lda HYBRID_C_HEAVY_STAGING,y
     sta HYBRID_C_HEAVY_RUNTIME,y
     iny
-    cpy #HYBRID_C_HEAVY_CAPACITY
+    cpy #HYBRID_C_HEAVY_TRANSPORT_BYTES
     bne @copy
     rts
 .endif
@@ -1354,20 +1364,30 @@ hostile_weapon_step_masks:
 resident_runtime_suffix:
 stage_glue_holding:
     ; 250 backward indices are equivalent to 250 forward indices offset by
-    ; six. A2 has already been published when this tail-calls the two deferred
-    ; starfield staging records; neither of them reaches A2 staging or the hold.
+    ; six. Since 4.5M-M2 the GLUE image travels in the merged low-C/GLUE cold
+    ; record (LAYOUT_D_GLUE_STAGING) and is held at $8100 as soon as
+    ; unpack_resident_runtime has consumed the resident staging: reached from
+    ; publish_director_abi, before ENTITY expands over the record. The Heavy
+    ; image from the same record is published by the tail call.
     ldy #$06
 @hold_glue:
     lda LAYOUT_D_GLUE_STAGING-$06,y
     sta LAYOUT_D_GLUE_HOLDING-$06,y
     iny
     bne @hold_glue
-    jmp stage_starfield_stream
+    .if DIRECTOR_ABI_BYTES > 0
+    jmp hybrid_c_heavy_publish
+    .else
+    rts
+    .endif
 
 .if DIRECTOR_ABI_BYTES > 0
-; The hybrid ABI arrives immediately after cold GLUE. Resident staging owns its
-; final $8701 gap until unpack_entity_runtime returns,
-; so publish it only after that lifetime ends and before starfield reuses $7CCA.
+; The hybrid ABI cold record lands in the entity-state page directly after A2
+; staging (DIRECTOR_ABI_STAGING, 4.5M-M2). Its final $8701 range lies inside
+; the resident staging interval that unpack_resident_runtime has just consumed,
+; and init_entity_effects clears $8000-$80FF later, so publish it here: after
+; the resident unpack and before unpack_entity_runtime, whose expansion covers
+; the merged low-C/GLUE/Heavy record consumed by the calls below.
 publish_director_abi:
     ldy #DIRECTOR_ABI_BYTES-1
 @copy:
@@ -1375,10 +1395,11 @@ publish_director_abi:
     sta DIRECTOR_ABI_RUNTIME,y
     dey
     bpl @copy
-    ; The copied veneer owns the bounded low-C publisher. The lifecycle and
-    ; archetype extension is held as a packed stream in the pause-backup range;
-    ; expand it after resident staging is consumed, but return before starfield
-    ; staging so stage_a2_kernel can publish its source from $7F2B first.
+    ; The copied veneer owns the bounded low-C publisher (the head of the
+    ; merged record at COLD_LOW_GLUE_RECORD). The lifecycle and archetype
+    ; extension is held as a packed stream in the pause-backup range; expand
+    ; it now, then hold GLUE and publish the Heavy image from the merged record
+    ; (stage_glue_holding and its tail) before ENTITY expands over it.
     jsr DIRECTOR_PUBLISH_LOW
     lda #<HYBRID_C_EXT_STAGING
     sta broadside_read_source+1
@@ -1389,7 +1410,7 @@ publish_director_abi:
     lda #>HYBRID_C_EXT_RUNTIME
     sta broadside_destination+2
     jsr broadside_unpack_command
-    jmp hybrid_c_heavy_publish  ; same three bytes as the former rts and pad
+    jmp stage_glue_holding      ; GLUE hold, then hybrid_c_heavy_publish
     .assert HYBRID_C_EXT_BYTES > 0, error, "hybrid lifecycle extension must not be empty"
     .assert HYBRID_C_EXT_BYTES <= $383, error, "hybrid lifecycle extension exceeds $8C7D-$8FFF"
 .endif
@@ -11401,37 +11422,56 @@ CHUNK_STAGING_BROAD   = 1
 CHUNK_STAGING_ADDRESS = $8100
 CHUNK_FINAL_ADDRESS   = $5E10
 CHUNK_STAGING_SECTORS_MAX = 50
-LAYOUT_D_GLUE_STAGING = $7BD0
+; Roadmap 4.5M-M2: the low-C image (its full $F8 reservation), the GLUE image
+; and the Heavy window image travel as one LZ record that lands at
+; COLD_LOW_GLUE_RECORD, above the packed resident staging (build enforced) and
+; below the direct-landing Director records at $9D5E. ENTITY_CODE expands over
+; it afterwards, so every consumer runs before unpack_entity_runtime. Nothing
+; lands in $7BD0-$7E11 any more.
+COLD_LOW_GLUE_RECORD = $9B40
+COLD_LOW_GLUE_RECORD_END = $9D5E
+LAYOUT_D_GLUE_STAGING = COLD_LOW_GLUE_RECORD+$F8
 LAYOUT_D_GLUE_FINAL = $4EFE
-; Resident staging has been consumed before stage_a2_kernel reaches the GLUE
-; hold. The hold uses idle boot-time RAM at the start of the consumed resident
+.assert COLD_LOW_GLUE_RECORD >= CHUNK_STAGING_ADDRESS+CHUNK_STAGING_SECTORS_MAX*$80, error, "merged cold record overlaps the stage-2 chunk staging"
+.assert LAYOUT_D_GLUE_STAGING+LAYOUT_D_GLUE_BYTES <= COLD_LOW_GLUE_RECORD_END, error, "merged cold record reaches the Director records"
+; Resident staging has been consumed before publish_director_abi reaches the
+; GLUE hold (4.5M-M2: the hold is filled right after unpack_resident_runtime).
+; The hold uses idle boot-time RAM at the start of the consumed resident
 ; staging interval (C Light state, profile cache and the first ring rows), which
 ; no boot step touches: gameplay init rewrites all of it before the first read.
 ; Since 4.5M-M1 it sits at $8100 so that starfield stream B can use the
-; contiguous idle range $81FA-$8601 behind it. It survives the loader bitmap,
-; entity clear and starfield expansion until the final publication below $5000.
+; contiguous idle range $81FA-$8601 behind it. It survives ENTITY expansion,
+; the loader bitmap, entity clear and starfield expansion until the final
+; publication below $5000.
 LAYOUT_D_GLUE_HOLDING = $8100
 LAYOUT_D_GLUE_BYTES = 250
 .assert LAYOUT_D_GLUE_HOLDING >= PACKED_RESIDENT_STAGING, error, "GLUE hold must use consumed resident staging RAM"
 .assert LAYOUT_D_GLUE_HOLDING+LAYOUT_D_GLUE_BYTES <= STARFIELD_STAGING_B, error, "GLUE hold overlaps starfield stream B staging"
-; Starfield staging streams (4.5M-M1): A below the GLUE cold record, B behind
-; the GLUE hold and before the near-star state / HYBRID_C_SECTOR window, which
-; the pickup record publishes at $8602 before the starfield expands.
+; Starfield staging streams (4.5M-M1): A below $7BD0 (no cold owner since
+; 4.5M-M2; reserved for the M3 arena), B behind the GLUE hold and before the
+; near-star state / HYBRID_C_SECTOR window, which the pickup record publishes
+; at $8602 before the starfield expands.
 .assert STARFIELD_STAGING >= __BROADSIDE_RUN__+$1A00, error, "starfield stream A overlaps the BROADSIDE reservation"
 .assert STARFIELD_STAGING_BYTES = PAUSE_SCREEN_BYTES, error, "starfield stream A is staged by one pause-screen copy"
 .assert STARFIELD_STAGING_B_BYTES = PAUSE_SCREEN_BYTES, error, "starfield stream B is staged by one pause-screen copy"
-.assert STARFIELD_STAGING+STARFIELD_STAGING_BYTES <= LAYOUT_D_GLUE_STAGING, error, "starfield stream A reaches the GLUE cold record"
+.assert STARFIELD_STAGING+STARFIELD_STAGING_BYTES <= $7BD0, error, "starfield stream A reaches $7BD0"
 .assert STARFIELD_STAGING_B >= LAYOUT_D_GLUE_HOLDING+LAYOUT_D_GLUE_BYTES, error, "starfield stream B overlaps the GLUE hold"
 .assert STARFIELD_STAGING_B+STARFIELD_STAGING_B_BYTES <= RESIDENT_WINDOW, error, "starfield stream B reaches the near-star state or HYBRID_C_SECTOR"
 .assert STARFIELD_STAGING_B+STARFIELD_STAGING_B_BYTES <= $8602, error, "starfield stream B must end at or before $8601"
 .if DIRECTOR_ABI_BYTES > 0
-; Heavy window (roadmap 4.5a, direct publication since 4.5M-M1): its staging
-; sits between the full low-C reservation and A2 staging; the ascending copy
-; needs the runtime window below its staging; the window lies above starfield
-; stream A and ends before the expanded A2 display lists.
-.assert HYBRID_C_HEAVY_STAGING >= $7D40+$F8, error, "Heavy staging overlaps the low-C record reservation"
-.assert HYBRID_C_HEAVY_STAGING+HYBRID_C_HEAVY_CAPACITY <= BOOT_A2_STAGING, error, "Heavy staging overlaps A2 staging"
-.assert HYBRID_C_HEAVY_RUNTIME < HYBRID_C_HEAVY_STAGING, error, "Heavy ascending copy needs the window below its staging"
+; ABI cold record (4.5M-M2): directly after A2 staging, inside the entity-state
+; page, consumed by publish_director_abi before init_entity_effects clears it.
+.assert DIRECTOR_ABI_STAGING >= BOOT_A2_STAGING+__A2_KERNEL_SIZE__, error, "ABI cold record overlaps A2 staging"
+.assert DIRECTOR_ABI_STAGING+DIRECTOR_ABI_BYTES <= ENTITY_STATE_ADDRESS+ENTITY_STATE_BYTES, error, "ABI cold record leaves the entity-state page"
+; Heavy window (roadmap 4.5a, direct publication since 4.5M-M1, staged in the
+; merged cold record since 4.5M-M2): its staging follows the GLUE image and
+; ends before the Director records; the copy is disjoint; the window lies
+; above starfield stream A and ends before the expanded A2 display lists.
+.assert HYBRID_C_HEAVY_STAGING = LAYOUT_D_GLUE_STAGING+LAYOUT_D_GLUE_BYTES, error, "Heavy staging must follow the GLUE image in the merged record"
+.assert HYBRID_C_HEAVY_STAGING+HYBRID_C_HEAVY_TRANSPORT_BYTES <= COLD_LOW_GLUE_RECORD_END, error, "Heavy staging reaches the Director records"
+.assert HYBRID_C_HEAVY_TRANSPORT_BYTES >= 1 && HYBRID_C_HEAVY_TRANSPORT_BYTES <= HYBRID_C_HEAVY_CAPACITY, error, "Heavy transport capacity is out of range"
+.assert HYBRID_C_HEAVY_BYTES <= HYBRID_C_HEAVY_TRANSPORT_BYTES, error, "HYBRID_C_HEAVY exceeds its 4.5M-M2 transport capacity"
+.assert HYBRID_C_HEAVY_RUNTIME+HYBRID_C_HEAVY_CAPACITY <= HYBRID_C_HEAVY_STAGING, error, "Heavy window overlaps its cold staging"
 .assert HYBRID_C_HEAVY_RUNTIME >= STARFIELD_STAGING+STARFIELD_STAGING_BYTES, error, "Heavy window overlaps starfield stream A staging"
 .assert HYBRID_C_HEAVY_RUNTIME >= PAUSE_SCREEN_BACKUP+$3C0, error, "Heavy window overlaps the pause-screen backup"
 .assert HYBRID_C_HEAVY_RUNTIME+HYBRID_C_HEAVY_CAPACITY <= $7F10, error, "Heavy window overlaps the A2 display lists"
@@ -11999,7 +12039,7 @@ boot_chunk_manifest_end:
 .export layout_d_glue_publish_complete
 .export layout_d_hold_glue, layout_d_hold_glue_end
 .export layout_d_publish_glue, layout_d_publish_glue_end
-.export layout_d_entity_unpack_complete
+.export layout_d_entity_unpack_complete, layout_d_cold_publish_complete
 
 ; Light Wingman: the hooks below are operand-only redirections of existing
 ; JSRs. Each hook first performs the routine it is named after; the debris

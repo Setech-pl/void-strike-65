@@ -110,15 +110,17 @@ test("boot stages both streams with exact 960-byte copies and decodes them byte-
     installBootArtifact(memory, root, artifact);
     run(memory, "stage_boot_streams");
     run(memory, "unpack_resident_runtime");
-    run(memory, "unpack_entity_runtime");
+    // 4.5M-M2: the cold records (ABI at $8018, merged low-C/GLUE/Heavy at
+    // $9B40) are consumed before ENTITY expands over $9B40.
     run(memory, "publish_director_abi");
+    run(memory, "unpack_entity_runtime");
     // Sentinels around both staging windows and the Heavy window; the GLUE
-    // hold ($8100-$81F9) is written by the same call and must equal GLUE after.
+    // hold ($8100-$81F9) was filled by publish_director_abi and must stay.
     const glue = fs.readFileSync(path.join(root, "build/integration-glue.bin"));
     const sentinelA = memory[0x7bd0];
     const sentinelB = memory[0x81fa + PAUSE_COPY_BYTES];
     const heavy = Buffer.from(memory.subarray(0x7e12, 0x7e12 + 243));
-    run(memory, "stage_a2_kernel"); // -> stage_glue_holding -> stage_starfield_stream
+    run(memory, "stage_a2_kernel"); // -> stage_starfield_stream
     assert.ok(Buffer.from(memory.subarray(0x7810, 0x7810 + packedA.length)).equals(packedA),
       `${artifact} stream A staged byte-exactly`);
     assert.ok(Buffer.from(memory.subarray(0x81fa, 0x81fa + packedB.length)).equals(packedB),

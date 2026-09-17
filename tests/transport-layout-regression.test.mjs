@@ -72,8 +72,9 @@ test("packed startup and relocated GLUE have pairwise-safe real lifetimes", () =
   const director = fs.readFileSync(path.join(root, "build/encounter-director.bin"));
   const pickup = fs.readFileSync(
     path.join(root, "build/weapon-pickup-phase-runtime-packed.bin"));
+  // 4.5M-M2: GLUE is at offset $F8 of the merged low-C/GLUE/Heavy cold record.
   const glueStart = Number.parseInt(
-    /LAYOUT_D_GLUE_STAGING\s*=\s*\$([0-9a-f]+)/i.exec(source)[1], 16);
+    /COLD_LOW_GLUE_RECORD\s*=\s*\$([0-9a-f]+)/i.exec(source)[1], 16) + 0xf8;
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "build/manifest.json"), "utf8"));
   const residentStart = manifest.residentRuntime.packedSourceAddress;
   const starfieldSource = residentStart + build.residentPacked.length;
@@ -98,12 +99,13 @@ test("packed startup and relocated GLUE have pairwise-safe real lifetimes", () =
     contentEnd: 0x53de,
   });
   assert.equal(glue.length, 250);
-  assert.deepEqual([glueStart, glueStart + glue.length - 1], [0x7bd0, 0x7cc9],
-    "GLUE's inclusive final byte must remain in the reviewed cold window");
+  assert.deepEqual([glueStart, glueStart + glue.length - 1], [0x9c38, 0x9d31],
+    "GLUE's inclusive final byte must stay below the DIRECTOR_C_PRE record at $9D5E");
 
   // Times describe the production order: external publication (0), four early
-  // stream copies (1..4), resident/entity expansion (5..6), A2 publish (7),
-  // GLUE hold (8), deferred starfield staging (9), final publications (10..14).
+  // stream copies (1..4), resident expansion (5), cold publication incl. the
+  // GLUE hold (6, 4.5M-M2), entity expansion (7), A2 publish (8), deferred
+  // starfield staging (9), final publications (10..14).
   const ranges = [
     interval(0x8100, 45 * 128, -4, -4, "BROADSIDE packed chunk staging"),
     interval(0x8100, 11 * 128, -3, -3, "pickup chunk staging"),
@@ -114,20 +116,20 @@ test("packed startup and relocated GLUE have pairwise-safe real lifetimes", () =
     interval(a2Source, build.a2.length, 0, 1, "A2 initial source"),
     interval(entitySource, build.entityPacked.length, 0, 2, "entity packed source"),
     interval(0x8100, build.residentPacked.length, 4, 5, "resident staging"),
-    interval(0x5318, build.entityPacked.length, 2, 6, "entity staging"),
-    interval(0x7f2b, build.a2.length, 1, 7, "A2 staging"),
-    interval(0x9000, build.a2.length, 7, 14, "A2 runtime"),
+    interval(0x5318, build.entityPacked.length, 2, 7, "entity staging"),
+    interval(0x7f2b, build.a2.length, 1, 8, "A2 staging"),
+    interval(0x9000, build.a2.length, 8, 14, "A2 runtime"),
     interval(0x8c80, pickup.length, 0, 3, "pickup external staging"),
     interval(0x4801, pickup.length, 3, 11, "pickup holding"),
-    interval(glueStart, glue.length, 0, 8, "GLUE staging"),
-    interval(0x8100, glue.length, 8, 14, "GLUE holding"),
+    interval(glueStart, glue.length, 0, 6, "GLUE staging"),
+    interval(0x8100, glue.length, 6, 14, "GLUE holding"),
     interval(0x4efe, glue.length, 14, 14, "GLUE runtime"),
     // 4.5M-M1: two exact 960-byte staging windows, A below the GLUE cold
     // record and B behind the $8100 GLUE hold.
     interval(0x7810, 0x3c0, 9, 13, "starfield staging A"),
     interval(0x81fa, 0x3c0, 9, 13, "starfield staging B"),
     interval(0x21c1, 0x1e3f, 5, 14, "resident runtime suffix"),
-    interval(0x9100, 3184, 6, 14, "ENTITY_CODE runtime"),
+    interval(0x9100, 3184, 7, 14, "ENTITY_CODE runtime"),
     interval(0x4010, 7680, 12, 12, "loader bitmap destination"),
     interval(0x552a, 2273, 13, 14, "starfield runtime"),
     interval(0x5e10, build.broadside.length, -4, 14, "BROADSIDE runtime"),
@@ -148,8 +150,8 @@ test("packed startup and relocated GLUE have pairwise-safe real lifetimes", () =
   assert.match(source,
     /stage_boot_streams:[\s\S]+lda #\$05[\s\S]+stage_boot_stream_record:[\s\S]+beq @prepared_starfield/);
   assert.match(source,
-    /stage_starfield_stream:\s+jsr copy_pause_screen\s+lda starfield_packed_source_b[\s\S]+jmp copy_pause_screen[\s\S]+stage_glue_holding:[\s\S]+jmp stage_starfield_stream/,
-    "starfield staging must follow the complete GLUE hold");
+    /jsr publish_director_abi[\s\S]{0,200}layout_d_cold_publish_complete:\s+jsr unpack_entity_runtime[\s\S]+stage_starfield_stream:\s+jsr copy_pause_screen\s+lda starfield_packed_source_b[\s\S]+jmp copy_pause_screen/,
+    "the GLUE hold (publish_director_abi tail) precedes ENTITY expansion and starfield staging");
 
   assert.ok(entitySource <= 0x5318, "backward staging must not begin below its source");
   assert.equal(initialSourcesEnd - 0x5318, 194,

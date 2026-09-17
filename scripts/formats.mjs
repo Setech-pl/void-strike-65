@@ -352,17 +352,18 @@ export function validateBuildDirectory(rootDirectory) {
     ? (manifest.directorCodeRuntimes ?? (manifest.directorCodeRuntime == null
       ? [] : [{ ...manifest.directorCodeRuntime, file: "encounter-director-code.bin" }]))
     : [];
-  invariant(parsedXex.segments.length === (directorEnabled ? 6 + directorCodeRuntimes.length : 3),
+  // 4.5M-M2: GLUE has no XEX segment of its own; it rides the low-C transport
+  // segment (merged low-C/GLUE/Heavy record) at offset $F8.
+  invariant(parsedXex.segments.length === (directorEnabled ? 5 + directorCodeRuntimes.length : 3),
     "XEX segment count does not match the enabled transport layout");
   const payloadSegment = parsedXex.segments[0];
   const broadsideSegment = parsedXex.segments[1];
   const pickupPhaseSegment = directorEnabled ? parsedXex.segments[2] : null;
-  const glueSegment = directorEnabled ? parsedXex.segments[3] : null;
   const directorCodeSegments = directorCodeRuntimes.map((runtime, index) =>
-    parsedXex.segments[4 + index]);
+    parsedXex.segments[3 + index]);
   const directorSegment = directorEnabled
-    ? parsedXex.segments[4 + directorCodeRuntimes.length] : null;
-  const runSegment = parsedXex.segments[directorEnabled ? 5 + directorCodeRuntimes.length : 2];
+    ? parsedXex.segments[3 + directorCodeRuntimes.length] : null;
+  const runSegment = parsedXex.segments[directorEnabled ? 4 + directorCodeRuntimes.length : 2];
   invariant(payloadSegment.start === manifest.loadAddress, "XEX payload load address is wrong");
   invariant(payloadSegment.data.equals(boot.subarray(0, transport.initialBootBytes)),
     "XEX initial block differs from ATR");
@@ -383,8 +384,12 @@ export function validateBuildDirectory(rootDirectory) {
       manifest.entityEffects.pickupPhaseExternalChunk.stagingAddress &&
       pickupPhaseSegment.data.equals(packedPickupPhaseRuntime),
     "XEX packed pickup phase-runtime segment is invalid");
-    invariant(glueSegment.start === manifest.integrationGlue.transportAddress &&
-      glueSegment.data.equals(glueRuntime), "XEX GLUE staging segment is invalid");
+    const lowIndex = directorCodeRuntimes.findIndex(({ name }) => name === "low");
+    const glueOffset = manifest.integrationGlue.transportRecordOffset;
+    invariant(lowIndex >= 0 && Number.isInteger(glueOffset) &&
+      directorCodeSegments[lowIndex].start + glueOffset === manifest.integrationGlue.transportAddress &&
+      directorCodeSegments[lowIndex].data.subarray(glueOffset, glueOffset + glueRuntime.length)
+        .equals(glueRuntime), "XEX merged low-C/GLUE staging segment is invalid");
     for (let index = 0; index < directorCodeRuntimes.length; index += 1) {
       const runtime = directorCodeRuntimes[index];
       const directorCodeRuntime = fs.readFileSync(path.join(rootDirectory,

@@ -16,10 +16,11 @@ the values below.
 `experiment/hybrid-c-director`. HEAD carries the roadmap 4.4 Interceptor
 `OWNER-SMOKE CANDIDATE`, its 4.4b visual identity (X/quad art since `3838c00`),
 the 4.4c hostile weapon visuals, the roadmap 4.5a Heavy window capacity
-increment, the 4.5b `BOMBER` weapon class and the 4.5M-M1 starfield staging
-swap (sections below) on top of `f4cb18b`, the documentation-only
-reconciliation of the owner acceptance recorded here. None of these candidates
-is accepted; the accepted runtime is still `b4b942e`.
+increment, the 4.5b `BOMBER` weapon class, the 4.5M-M1 starfield staging
+swap (owner smoke PASS 2026-09-17) and the 4.5M-M2 cold-record relocation
+(sections below) on top of `f4cb18b`, the documentation-only reconciliation of
+the owner acceptance recorded here. None of these candidates is accepted; the
+accepted runtime is still `b4b942e`.
 
 ### Accepted runtime checkpoint
 
@@ -117,9 +118,10 @@ comparing CPU.
   publish mid-frame; measured once in 4,600 in-view frames);
 - boot-smoke margin: the ATR menu deadline (190 + 2 × transport sectors) is
   met with 0 frames of margin at `3838c00`, at the 4.5a and 4.5b candidates
-  (4.5b: +6 B packed BROADSIDE alone missed it by one frame) and with a
-  239-B Heavy proof payload; boot CPU added without extra sectors can miss it
-  (it did for the first 4.5a variant);
+  (4.5b: +6 B packed BROADSIDE alone missed it by one frame), with a 239-B
+  Heavy proof payload and at the 4.5M-M2 candidate (177 sectors: deadline 544,
+  menu 544); boot CPU added without extra sectors can miss it (it did for the
+  first 4.5a variant);
 - open owner decision: the packed STARFIELD correction gate. At the 4.5M-M1
   candidate the single-stream gates 1,798 / 1,819 B are superseded by the
   two-stream total gates 1,804 (correction) / 1,825 B (hard) against a measured
@@ -676,7 +678,106 @@ PMG, collision, DLI/VBI and every CODE/BROADSIDE/ENTITY address are unchanged
 Candidate XEX `361cb8cf…`, ATR `b8766308…`, owner-smoke copy in
 `build/owner-smoke/starfield-staging-swap-361cb8cf/`. Evidence:
 [diagnostics/stage-2b2k-starfield-staging-swap.json](diagnostics/stage-2b2k-starfield-staging-swap.json).
-Next migration steps (not started): M2 cold-record relocation, M3 arena.
+Owner smoke PASS 2026-09-17 (M1 accepted as a migration step; the runtime
+acceptance checkpoint stays `b4b942e`).
+
+---
+
+## Roadmap 4.5M-M2 — cold-record relocation — `OWNER-SMOKE CANDIDATE` (2026-09-17)
+
+Boot-transport and cold-lifetime change only, on top of the 4.5M-M1 candidate
+(`58404c6`), second step of the 4.5M migration. No gameplay change: linked
+runtime 17,502 B, simultaneous 19,493 B, safe 2,694 B, the runtime memory map,
+every CODE/BROADSIDE/STARFIELD/A2/ENTITY/PICKUP/C address, the ABI, low-C,
+extension and GLUE runtime destinations, the `$8100` GLUE hold, the Heavy
+window `$7E12` and the ENTITY order are unchanged (`.lbl` diff: one added
+label `layout_d_cold_publish_complete` `$2040`; `encounter-director.lbl`
+identical). Goal reached: **`$7BD0-$7E11` has no boot, cold or runtime owner**
+(the M3 arena is not declared yet).
+
+- **ABI cold record → `$8018-$808C`** (117 B raw / 116 B packed, 2 sectors,
+  unchanged sizes): directly after A2 staging, inside the entity-state page;
+  consumed by `publish_director_abi` before `unpack_entity_runtime` and
+  255,216 cycles before `init_entity_effects` clears `$8000-$80FF`.
+- **low-C + GLUE merged into one LZ record → `$9B40-$9D31`** (498 B raw /
+  457 B packed, 4 sectors; separately 245 + 213 = 458 B in 3 + 2 sectors):
+  low-C image at `$9B40` (242 B used, 6 B pad to its `$F8` reservation), GLUE
+  image at `$9C38`; the Heavy window image rides the tail at `$9D32-$9D5D`.
+  Runtime destinations unchanged: low C `$8B88`, GLUE hold `$8100` →
+  `$4EFE`, Heavy `$7E12`.
+- **Boot order.** `publish_director_abi` (ABI, low C, extension, then the
+  GLUE hold and the Heavy copy as its `stage_glue_holding` tail) now runs
+  between `unpack_resident_runtime` and `unpack_entity_runtime`;
+  `stage_a2_kernel` tail-jumps `stage_starfield_stream` directly. Nothing
+  else is reordered; the resident suffix and bootstrap prefix are
+  size-neutral (prefix padding 3 B).
+- **Deviations from the task text (owner-visible).** (1) The approved `$9B14`
+  landing is inside the packed resident staging, which ends at `$9B1E`
+  (6,687 B packed; the `$9B13` figure in the memory map was stale), so the
+  record lands at `$9B40` with a build-enforced 33 B margin above the measured
+  staging end. (2) The Heavy window image cannot keep a 243-B transport
+  capacity there: `$9B40` + 498 B leaves 44 B below the direct-landing
+  `DIRECTOR_C_PRE` record at `$9D5E`. The runtime window keeps 243 B, the
+  build enforces `HYBRID_C_HEAVY_BYTES` ≤ 44 (0 B used today) and the copy
+  moves exactly 44 B; M3's arena replaces this staging. (3) The ATR menu
+  deadline follows the sector count (546 → 544): the menu also moved 546 →
+  544, so the margin is still 0 frames, not weakened or re-baselined.
+- **Transport (measured).** 8 → **7 DFMC records** (one slot free for M3);
+  178 → **177 transport sectors**; initial content 13,162 B, envelope 22 B,
+  103 boot sectors unchanged; manifest 142 → 126 B inside the fixed stage-2
+  reservation; XEX 23,104 → 23,100 B; boot image 22,784 → 22,656 B. Sector
+  padding: merged 34 B, ABI 119 B (before: GLUE 118 B, low 22 B, ABI 119 B).
+  Record order: BROADSIDE 104-148, pickup 149-158, ABI 159-160, merged
+  161-164, extension 165-171, pre 172, Director 173-177.
+- **Boot CPU (native write-watch clocks, same emulator, HEAD export vs
+  candidate).** `start → show_loader` XEX 2,051,496 → **2,047,758**
+  (−3,738), ATR 2,051,505 → 2,047,766 (−3,739): the Heavy copy moves 44
+  instead of 243 bytes (≈3,227 cycles of the saving). `start →
+  layout_d_glue_publish_complete` XEX 11,111,171 unchanged (frame-aligned
+  loader), ATR 11,120,699 → 11,113,417. Boot smoke PASS 4/4: XEX menu 392
+  (deadline 502) unchanged; ATR menu 546 → **544** against deadline 546 →
+  544 (one sector fewer; 0 frames of margin as before).
+- **Native write-watch** (`scripts/capacity-window-watch.mjs`, extended with
+  `--hold-done`, windows up to 1,024 B and three added clock points), XEX and
+  ATR × cold fill `$00`/`$A5`, lifecycle cold start, OPTIONS, START, gameplay,
+  pause/resume, one capital sector entered and completed (XEX frames
+  1257-2463, ATR 1409-2615), game over, restart, pause/quit; all PASS 4/4:
+  - ABI record `$8018` and merged record `$9B40`: byte-equal to the linked
+    images (`encounter-director-code-abi.bin`,
+    `encounter-director-code-low-transport.bin`) at `start`, 0 writes until
+    `layout_d_cold_publish_complete`, intact at consumption;
+    `layout_d_cold_publish_complete` precedes `unpack_entity_runtime` (6
+    cycles) and `init_entity_effects` (255,216 cycles);
+  - `$7BD0-$7E11` (578 B): 0 writes from `start` to the end of the lifecycle;
+    build-time: no record, XEX segment, staging window or hold intersects it;
+  - GLUE hold `$8100` watched from `layout_d_cold_publish_complete` (and, in
+    the M1 configs, from `stage_starfield_stream`): 0 writes, final GLUE
+    equals the hold; `$8602` window equals its linked image, 0 writes;
+  - STARFIELD streams A/B byte-equal and untouched, decoded STARFIELD
+    byte-equal to `build/starfield-runtime.bin`;
+  - Heavy window `$7E12`: the injected 44-B pattern at `$9D32` arrives
+    byte-exact, 0 writes from `layout_d_entity_unpack_complete` to the end.
+- **PAL (native).** `2-evasive-fire3` 29,519 and `2-sweep-fire4` 29,801
+  cycles, identical to HEAD; 0 missed frames, 0 extra VBI, 0 DLI ordering
+  errors. Debris gate PASS on the three natural replays (0 blank, 0 disappearances,
+  first Y 24; maxima 30,232 / 30,439 / 30,216, identical to M1).
+- **Tests.** Rebaselined with the reason in each file: `heavy-window` (merged
+  record, 44-B transport, 7 records, 177 sectors, disjoint copy),
+  `layout-d1` (publish before ENTITY expansion, call bytes, lifetime model),
+  `formats` (no GLUE XEX segment), `starfield-staging-streams` (order),
+  `transport-enabler` (fixture landings out of `$7BD0`),
+  `transport-layout-regression` (GLUE at `$9C38`; still failing at HEAD and
+  here on its stale numeric freezes and `light-wingman.s` include).
+  Full suite: 644 tests, 114 failing, against 644 tests / 114 failing on a
+  clean export of `58404c6` built in the same environment (candidate build
+  then `node --test tests/*.test.mjs`, counting the owner's uncommitted
+  `tests/booster-admission-diagnostic.test.mjs`); the failure-name sets are
+  identical.
+
+Candidate XEX `a5342494…`, ATR `c6d6ff8c…`, owner-smoke copy in
+`build/owner-smoke/cold-record-relocation-a5342494/`. Evidence:
+[diagnostics/stage-2b2l-cold-record-relocation.json](diagnostics/stage-2b2l-cold-record-relocation.json).
+Next migration step (not started): M3 arena (`$7BD0-$7F0F`, 832 B).
 
 ---
 
@@ -684,7 +785,8 @@ Next migration steps (not started): M2 cold-record relocation, M3 arena.
 
 Roadmap 4.5c (Bomber / Heavy Assault gameplay) is **`BLOCKED_PLACEMENT`**
 (2026-09-17). No 4.5c code is on this branch; the 4.5M memory/lifetime
-migration (M1 above) is the accepted way forward and M2/M3 are next.
+migration (M1 accepted, M2 candidate above) is the accepted way forward and M3
+is next.
 
 - The full design (Bomber record, TEMPORARY 4.5 HEAVY SMOKE SCHEDULER,
   generic Heavy profile, per-member C lane-sweep tick, generic Heavy
@@ -706,7 +808,7 @@ candidate (with 4.4b and 4.4c) are still pending.
 
 ## Next roadmap step
 
-Owner smoke of the 4.5M-M1 candidate, then 4.5M-M2 (cold-record relocation:
-ABI → `$8018`, low-C + GLUE → `$9B14`) and M3 (`$7BD0` arena), then retry 4.5c
-from `8e138a8`, per decision 20. The Raider-coloured residual artifact remains
-an open P0 investigation.
+Owner smoke of the 4.5M-M2 candidate, then 4.5M-M3 (the `$7BD0-$7F0F` 832-B
+direct-landing arena; a DFMC record slot is free for it), then retry 4.5c from
+`8e138a8`, per decision 20. The Raider-coloured residual artifact remains an
+open P0 investigation.

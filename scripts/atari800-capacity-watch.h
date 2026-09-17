@@ -1,5 +1,5 @@
 /* Void Strike 65 resident-capacity write-watch observer (plan steps 4.3, 4.5a,
- * 4.5M-M1).
+ * 4.5M-M1, 4.5M-M2).
  *
  * Built into a private Atari800 7.1.2 copy as voidstrike65_trace.h by
  * scripts/capacity-window-watch.mjs. It watches two ranges by value change on
@@ -25,6 +25,14 @@
  * runtime image can be compared byte-exactly; and DFCAP_PC_WINDOW_FROM may
  * start the capacity-window watch at an earlier startup label than the GLUE
  * publication (the Heavy window is published before the loader since M1).
+ *
+ * Roadmap 4.5M-M2 additions: the window may be up to 1024 bytes (the freed
+ * cold range $7BD0-$7E11 is watched for the whole lifecycle from `start`);
+ * three more startup clock points (layout_d_cold_publish_complete,
+ * unpack_entity_runtime, init_entity_effects) prove that the relocated ABI
+ * ($8018) and merged low-C/GLUE/Heavy ($9B40) cold records are consumed before
+ * ENTITY expansion and before the entity-state clear; the hold watch may start
+ * at any label (DFCAP_PC_HOLD_DONE is chosen by the driver).
  */
 #include <stdint.h>
 #include <stdio.h>
@@ -38,10 +46,11 @@
 #define DFCAP_MAX_WRITES 256u
 #define DFCAP_MAX_STATES 128u
 #define DFCAP_FRAME_LIMIT 90000u
-#define DFCAP_CLOCK_POINTS 8u
+#define DFCAP_CLOCK_POINTS 11u
 #define DFCAP_MAX_STAGES 3u
 #define DFCAP_STAGE_MAX_BYTES 1032u
 #define DFCAP_RANGE_MAX_BYTES 4096u
+#define DFCAP_WINDOW_MAX_BYTES 1024u
 
 typedef struct DFCapWrite {
 	unsigned range;
@@ -82,8 +91,8 @@ static int dfcap_clock_seen[DFCAP_CLOCK_POINTS];
 
 static UBYTE dfcap_hold_snapshot[256];
 static UBYTE dfcap_hold_initial[256];
-static UBYTE dfcap_window_snapshot[256];
-static UBYTE dfcap_window_initial[256];
+static UBYTE dfcap_window_snapshot[DFCAP_WINDOW_MAX_BYTES];
+static UBYTE dfcap_window_initial[DFCAP_WINDOW_MAX_BYTES];
 static int dfcap_hold_active;
 static int dfcap_hold_seen;
 static int dfcap_hold_intact;
@@ -174,7 +183,8 @@ static void dfcap_init(void)
 	static const char *clock_names[DFCAP_CLOCK_POINTS] = {
 		"DFCAP_PC_START", "DFCAP_PC_ABI_PUBLISH", "DFCAP_PC_ENTITY_UNPACK_DONE",
 		"DFCAP_PC_PICKUP_UNPACK", "DFCAP_PC_GLUE_HOLDING_DONE", "DFCAP_PC_SHOW_LOADER",
-		"DFCAP_PC_STARFIELD_UNPACK", "DFCAP_PC_PUBLISH_DONE"
+		"DFCAP_PC_STARFIELD_UNPACK", "DFCAP_PC_PUBLISH_DONE",
+		"DFCAP_PC_COLD_PUBLISH_DONE", "DFCAP_PC_ENTITY_UNPACK", "DFCAP_PC_ENTITY_CLEAR"
 	};
 	unsigned index;
 	unsigned address;
@@ -243,7 +253,7 @@ static void dfcap_init(void)
 		}
 	}
 	if (dfcap_fill > 0xffu || dfcap_hold_bytes == 0u || dfcap_hold_bytes > 256u ||
-		dfcap_window_bytes == 0u || dfcap_window_bytes > 256u) {
+		dfcap_window_bytes == 0u || dfcap_window_bytes > DFCAP_WINDOW_MAX_BYTES) {
 		fprintf(stderr, "voidstrike65 capacity watch: invalid fill or range\n");
 		exit(2);
 	}

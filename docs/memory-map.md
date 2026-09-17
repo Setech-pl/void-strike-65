@@ -323,6 +323,72 @@ its staging (ascending copy) and above stream A; Heavy window and staging
 limits as in 4.5a. Evidence:
 [diagnostics/stage-2b2k-starfield-staging-swap.json](diagnostics/stage-2b2k-starfield-staging-swap.json).
 
+## Roadmap 4.5M-M2 cold-record relocation — OWNER-SMOKE CANDIDATE (2026-09-17)
+
+Measured on top of `58404c6` (the 4.5M-M1 candidate). Boot-transport and
+cold-lifetime change only: no gameplay, runtime-map, PMG, DLI, collision or
+ENTITY-order change; linked runtime 17,502 B, simultaneous residency 19,493 B,
+safe residency 2,694 B, every CODE/BROADSIDE/STARFIELD/A2/ENTITY/PICKUP/C
+address and the GLUE hold are unchanged (`.lbl` diff: one added label,
+`layout_d_cold_publish_complete` `$2040`). The cold records that owned
+`$7BD0-$7E11` left it; M3 turns `$7BD0-$7F0F` into the direct-landing arena.
+These rows override the boot-time rows above for this candidate only.
+
+| Range | Size | Candidate owner (boot time) |
+| --- | ---: | --- |
+| `$7BD0-$7E11` | 578 B | **no boot, cold or runtime owner** (was GLUE `$7BD0`, ABI `$7CCA`, guard `$7D3E`, low-C `$7D40`): no DFMC record, XEX segment, staging window or hold intersects it; native write-watch 0 writes from `start` through the full lifecycle |
+| `$7E12-$7F04` | 243 B | `HYBRID_C_HEAVY_RAM` runtime window, unchanged; only its first 44 B are written by the boot copy (transport capacity below) |
+| `$7E38-$7F2A` | — | former cold Heavy staging in the low-C record: **gone** (`$7E12-$7F2A` keeps no cold owner) |
+| `$8018-$808C` | 117 B | **ABI cold record** (LZ, 116 B packed, 2 sectors): directly after A2 staging (`$7F2B` + 237 B), inside the entity-state page; consumed by `publish_director_abi` (copy to `$8701-$8775`) before `unpack_entity_runtime` and 255,216 cycles before `init_entity_effects` clears `$8000-$80FF` |
+| `$9B40-$9D31` | 498 B | **merged low-C/GLUE/Heavy cold record** (one LZ record, 457 B packed, 4 sectors): low-C image `$9B40-$9C37` (242 B used, 6 B pad to the `$F8` reservation, published to `$8B88` by `DIRECTOR_PUBLISH_LOW`), GLUE image `$9C38-$9D31` (250 B, held at `$8100` by `stage_glue_holding`); above the packed resident staging end `$9B1E` (33 B margin, build enforced) and inside the later ENTITY expansion `$9100-$9D50` |
+| `$9D32-$9D5D` | 44 B | Heavy window image tail of the merged record (0 B used): transport capacity bounded by `DIRECTOR_C_PRE` at `$9D5E`; `hybrid_c_heavy_publish` copies exactly 44 B to `$7E12` (disjoint copy) |
+| `$8100-$81F9` | 250 B | boot-only GLUE hold, unchanged address; filled by the `publish_director_abi` tail instead of `stage_a2_kernel` |
+| `$9B14-$9B1E` | 11 B | still packed resident staging: the planned `$9B14` landing collided with the measured staging end, hence `$9B40` |
+
+Boot order (changed where noted): `stage_boot_streams`; `unpack_resident_runtime`;
+**`publish_director_abi`** (ABI `$8018 → $8701`, low C `$9B40 → $8B88`,
+extension `$7810 → $8C7D`, then `stage_glue_holding` `$9C38 → $8100` and
+`hybrid_c_heavy_publish` `$9D32 → $7E12`) — moved before
+`unpack_entity_runtime`, whose expansion covers the merged record;
+`layout_d_cold_publish_complete`; `unpack_entity_runtime`; `stage_a2_kernel`
+(now tail-jumps `stage_starfield_stream` directly); `init_entity_effects`;
+pickup unpack; loader bitmap; `show_loader`; `unpack_starfield_runtime`;
+`layout_d_publish_glue`. Nothing else was reordered. The resident suffix is
+size-neutral (`stage_glue_holding` `jmp` → `jmp`, `publish_director_abi` `jmp`
+→ `jmp`), the bootstrap prefix keeps its 3 B of padding and every suffix address.
+
+Transport (measured): 8 → **7 DFMC records** (one slot free for M3), 178 →
+**177 transport sectors** (ATR menu deadline 546 → 544), initial content
+13,162 B, envelope 22 B and 103 boot sectors unchanged (the 142 → 126 B
+manifest sits in the fixed stage-2 reservation). Before: GLUE 250 raw / 245
+packed / 3 sectors (118 B padding) + low-C 248 / 213 / 2 (22 B) + ABI 117 /
+116 / 2 (119 B). After: merged 498 raw / 457 packed / 4 sectors (34 B padding)
++ ABI 117 / 116 / 2 at `$8018` (119 B). Record order: BROADSIDE 104-148,
+pickup 149-158, ABI 159-160, merged 161-164, extension 165-171, pre 172,
+Director 173-177. XEX 23,104 → 23,100 B (the separate GLUE segment is gone;
+its bytes ride the low-C transport segment at offset `$F8`).
+
+Accounting (three separate metrics): **physical** resident code/data 0 B
+(linked runtime, simultaneous and safe residency unchanged); **reserved
+envelopes** — boot-only ABI cold record 117 B at `$8018` (entity-state page),
+boot-only merged cold record 498 B at `$9B40` (ENTITY expansion region),
+Heavy transport capacity 243 → 44 B (transitional until the M3 arena; the
+runtime window stays 243 B; build enforces `HYBRID_C_HEAVY_BYTES` ≤ 44), cold
+`$7BD0-$7E11` 578 B released; **reusable free** unchanged (`HYBRID_C_HEAVY`
+243 B window, `HYBRID_C_EXT` 21 B, `HYBRID_C_SECTOR` 8 B, ENTITY_CODE 13 B, A2
+18 B, pickup fill 11 B, bootstrap-prefix padding 3 B).
+
+Asserts (`src/main.s`, `scripts/build.mjs`): merged record ≥ the stage-2 chunk
+staging end and above the measured packed resident staging end; merged record
++ Heavy tail ≤ `$9D5E`; Heavy staging = GLUE staging + 250; Heavy image ≤ its
+transport capacity ≤ the window; the Heavy window is disjoint from its staging;
+ABI record ≥ A2 staging + A2 size and ≤ `$80FF`; the ABI veneer's
+`DIRECTOR_LOW_STAGING` equals the build's record address; starfield stream A
+ends ≤ `$7BD0`; no record, staging window or hold intersects `$7BD0-$7E11`
+(`encounterDirector.coldRecordRelocation.freedColdRange.owners` is empty).
+Evidence:
+[diagnostics/stage-2b2l-cold-record-relocation.json](diagnostics/stage-2b2l-cold-record-relocation.json).
+
 ## Blocked-experiment evidence — not part of this map
 
 The 2026-09-16 Interceptor experiment (`BLOCKED_PLACEMENT`) measured additional
@@ -443,7 +509,7 @@ starfield, so all overlaps are lifetime-safe.
 | `$806B-$807F` | 21 B | initialized alignment reserve |
 | `$8080-$80F3` | 116 B | six physical effect slots plus global state; release active limit 5 |
 | `$80F4-$80FF` | 12 B | persistent Encounter Director state, initialized after the entity/effects clear |
-| `$8100-$9B13` | 6,676 B | cold-start resident-suffix staging only |
+| `$8100-$9B1E` | 6,687 B | cold-start resident-suffix staging only (measured packed size at the 4.5M candidates; grows and shrinks with the resident code) |
 | `$8100-$810B` | 12 B | Light M1: C Light record `$8100-$8105`, ASM render cache/scratch `$8106-$810B` |
 | `$810C-$810F` | 4 B | unowned after cold startup |
 | `$8110-$8118` | 9 B | C-owned derived archetype profile cache; ASM read-only (moved from `$8776`) |

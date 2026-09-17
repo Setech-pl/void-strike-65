@@ -1,5 +1,5 @@
-// Steps 4.3, 4.5a and 4.5M-M1 native write-watch proof for reusable resident
-// capacity and boot-only staging.
+// Steps 4.3, 4.5a, 4.5M-M1 and 4.5M-M2 native write-watch proof for reusable
+// resident capacity and boot-only staging.
 //
 // Builds a private Atari800 7.1.2 copy with scripts/atari800-capacity-watch.h
 // and runs the current dist XEX and ATR through cold start, OPTIONS, BACK,
@@ -14,7 +14,18 @@
 //     [--inject=0xSTART:BYTES] [--window-from=LABEL]
 //     [--stage=0xSTART:BYTES]... [--stage-done=LABEL] [--stage-consumed=LABEL]
 //     [--expect-stage-bins=FILE[,FILE...]] [--expect-range-bin=0xSTART:FILE]
-//     [--output=FILE]
+//     [--hold-done=LABEL] [--output=FILE]
+//
+// 4.5M-M2 cold-record relocation: --stage=0x8018:117 --stage=0x9b40:498
+// --stage-done=start --stage-consumed=layout_d_cold_publish_complete
+// --expect-stage-bins=build/encounter-director-code-abi.bin,build/encounter-director-code-low-transport.bin
+// proves that the ABI and the merged low-C/GLUE/Heavy cold records receive
+// their exact images and stay untouched from `start` until every consumer has
+// run; --hold-done=layout_d_cold_publish_complete watches the GLUE hold from
+// that earlier point; --window=0x7bd0 --window-bytes=578 --window-from=start
+// proves that the freed cold range receives no write for the whole lifecycle;
+// and the three added clock points prove cold publication < ENTITY expansion
+// < entity-state clear on every session.
 //
 // 4.5a/4.5M-M1 Heavy window: --window=0x7e12 --window-bytes=243
 // --inject=0x7e38:243 --window-from=layout_d_entity_unpack_complete writes a
@@ -126,6 +137,7 @@ function main() {
   });
   invariant(stages.length <= 3, "at most three --stage ranges");
   const stageDoneLabel = argumentValue("stage-done") ?? "init_entity_effects";
+  const holdDoneLabel = argumentValue("hold-done") ?? "stage_starfield_stream";
   const stageConsumedLabel = argumentValue("stage-consumed") ?? "unpack_starfield_runtime";
   const expectStagePaths = argumentValue("expect-stage-bins")?.split(",") ?? [];
   invariant(expectStagePaths.length === 0 || expectStagePaths.length === stages.length,
@@ -159,7 +171,7 @@ function main() {
     DFCAP_PLAYER_LIVES: hex(PLAYER_LIVES),
     DFCAP_PC_FRONTEND_POLL: label("frontend_input_poll"),
     DFCAP_PC_PAUSE_POLL: label("pause_frontend_input_poll"),
-    DFCAP_PC_HOLD_DONE: label("stage_starfield_stream"),
+    DFCAP_PC_HOLD_DONE: label(holdDoneLabel),
     DFCAP_PC_PUBLISH_DONE: label("layout_d_glue_publish_complete"),
     DFCAP_PC_START: label("start"),
     DFCAP_PC_ABI_PUBLISH: label("publish_director_abi"),
@@ -168,6 +180,9 @@ function main() {
     DFCAP_PC_GLUE_HOLDING_DONE: label("layout_d_glue_holding_complete"),
     DFCAP_PC_SHOW_LOADER: label("show_loader"),
     DFCAP_PC_STARFIELD_UNPACK: label("unpack_starfield_runtime"),
+    DFCAP_PC_COLD_PUBLISH_DONE: label("layout_d_cold_publish_complete"),
+    DFCAP_PC_ENTITY_UNPACK: label("unpack_entity_runtime"),
+    DFCAP_PC_ENTITY_CLEAR: label("init_entity_effects"),
     DFCAP_HOLD_START: hex(holdStart),
     DFCAP_HOLD_BYTES: String(holdBytes),
     DFCAP_CAPITAL_STATE: hex(CAPITAL_SECTOR_STATE),
@@ -196,7 +211,8 @@ function main() {
   };
   const clockNames = ["start", "publish_director_abi", "layout_d_entity_unpack_complete",
     "unpack_weapon_pickup_phase_runtime", "layout_d_glue_holding_complete", "show_loader",
-    "unpack_starfield_runtime", "layout_d_glue_publish_complete"];
+    "unpack_starfield_runtime", "layout_d_glue_publish_complete",
+    "layout_d_cold_publish_complete", "unpack_entity_runtime", "init_entity_effects"];
 
   const xexPath = path.join(rootDirectory, "dist", "void-strike-65.xex");
   const atrPath = path.join(rootDirectory, "dist", "void-strike-65.atr");
@@ -263,6 +279,16 @@ function main() {
         window_carries_injected_pattern: injection === null ? null :
           windowInitial.subarray(0, injection.bytes).equals(injection.pattern),
         capital_sector_completed: raw.capital.entries >= 1 && raw.capital.completions >= 1,
+        // 4.5M-M2 ordering proof: the cold records are consumed (ABI, low C,
+        // extension, GLUE hold, Heavy) before ENTITY expands over $9B40 and
+        // before init_entity_effects clears the ABI record's page.
+        cold_publish_before_entity_unpack: clock.publish_director_abi !== null &&
+          clock.layout_d_cold_publish_complete !== null && clock.unpack_entity_runtime !== null &&
+          clock.publish_director_abi < clock.layout_d_cold_publish_complete &&
+          clock.layout_d_cold_publish_complete <= clock.unpack_entity_runtime,
+        cold_publish_before_entity_clear: clock.layout_d_cold_publish_complete !== null &&
+          clock.init_entity_effects !== null &&
+          clock.layout_d_cold_publish_complete < clock.init_entity_effects,
         window_observed: raw.window.seen === 1,
         window_untouched_after_publish: windowWrites.length === 0 &&
           windowInitial.equals(windowFinal) && raw.writes_dropped === 0,
@@ -302,6 +328,15 @@ function main() {
           start_to_entity_unpack_complete:
             clock.start !== null && clock.layout_d_entity_unpack_complete !== null ?
               clock.layout_d_entity_unpack_complete - clock.start : null,
+          start_to_cold_publish_done:
+            clock.start !== null && clock.layout_d_cold_publish_complete !== null ?
+              clock.layout_d_cold_publish_complete - clock.start : null,
+          cold_publish_done_to_entity_unpack:
+            clock.layout_d_cold_publish_complete !== null && clock.unpack_entity_runtime !== null ?
+              clock.unpack_entity_runtime - clock.layout_d_cold_publish_complete : null,
+          entity_unpack_to_entity_clear:
+            clock.unpack_entity_runtime !== null && clock.init_entity_effects !== null ?
+              clock.init_entity_effects - clock.unpack_entity_runtime : null,
           entity_unpack_complete_to_glue_holding_complete:
             clock.layout_d_entity_unpack_complete !== null &&
             clock.layout_d_glue_holding_complete !== null ?
@@ -325,7 +360,8 @@ function main() {
     id: "capacity-window-watch",
     method: "value-change comparison of each watched byte before every emulated instruction " +
       "(a write storing the byte's current value is not observable)",
-    hold: { start: hex(holdStart), bytes: holdBytes, expect_hold_is_glue: expectHoldIsGlue },
+    hold: { start: hex(holdStart), bytes: holdBytes, expect_hold_is_glue: expectHoldIsGlue,
+      from_label: holdDoneLabel },
     expect_window_is_hold: expectWindowIsHold,
     injection: injection === null ? null : { start: hex(injection.start), bytes: injection.bytes },
     window: { start: hex(windowStart), bytes: windowBytes, from_label: windowFromLabel ?? null },

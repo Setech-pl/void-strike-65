@@ -7,7 +7,11 @@ PLAYER_LIFECYCLE = $4EAA
 ENEMY_ACTIVE = $4ECD
 FIGHTER_PROJECTILE_ACTIVE = $5400
 INTERCEPTOR_PROJECTILE_SLOT_BASE = 5
-DIRECTOR_LOW_STAGING = $7D40
+; Roadmap 4.5M-M2: the low-C image heads the merged low-C/GLUE/Heavy cold
+; record (scripts/build.mjs coldLowGlueRecordAddress; the build checks that
+; both agree). It lands above the packed resident staging and is consumed
+; before ENTITY_CODE expands over it.
+DIRECTOR_LOW_STAGING = $9B40
 DIRECTOR_LOW_RUNTIME = $8B88
 DIRECTOR_LOW_BYTES = 242
 
@@ -172,9 +176,10 @@ _asm_director_dispatch_event:
     lda #$00
     rts
 
-; Cold-start publication helper. The resident suffix staging interval
-; $8100-$9B13 overwrites the low C entry points after their DFMC record loads,
-; so startup tail-calls this only after the packed suffix has been consumed.
+; Cold-start publication helper. The resident suffix staging interval from
+; $8100 overwrites the low C entry points after their DFMC record loads, so
+; startup calls this only after the packed suffix has been consumed and before
+; unpack_entity_runtime expands over the merged record.
 director_publish_low:
     ldy #$00
 @byte:

@@ -31,7 +31,9 @@ test("XEX contains a payload segment and RUNAD", () => {
   const xex = fs.readFileSync(path.join(rootDirectory, "dist", "void-strike-65.xex"));
   const { segments } = parseXex(xex);
   const directorCodeRuntimes = manifest.directorCodeRuntimes ?? [];
-  assert.equal(segments.length, 6 + directorCodeRuntimes.length);
+  // 4.5M-M2: GLUE has no segment of its own; it rides the low-C transport
+  // segment (merged low-C/GLUE/Heavy record at $9B40) at offset $F8.
+  assert.equal(segments.length, 5 + directorCodeRuntimes.length);
   assert.equal(segments[0].start, 0x2000);
   assert.equal(segments[0].data.length, manifest.transportCapacity.initialBootBytes);
   assert.deepEqual([segments[1].start, segments[1].end],
@@ -41,16 +43,21 @@ test("XEX contains a payload segment and RUNAD", () => {
   assert.deepEqual([segments[2].start, segments[2].end],
     [pickupRecord.finalDestination,
       pickupRecord.finalDestination + pickupRecord.rawLength - 1]);
-  assert.deepEqual([segments[3].start, segments[3].end], [0x7bd0, 0x7cc9]);
   directorCodeRuntimes.forEach((runtime, index) => {
-    // Roadmap 4.5a: the low-C segment also carries its reservation pad and the
-    // Heavy window image, reported as transportRawBytes.
+    // Roadmap 4.5a/4.5M-M2: the low-C segment also carries its reservation
+    // pad, the GLUE image and the Heavy window image (transportRawBytes).
     const xexBytes = runtime.xexStagingCompression === "LZ-10/5"
       ? runtime.packedBytes : runtime.transportRawBytes ?? runtime.bytes;
-    assert.deepEqual([segments[4 + index].start, segments[4 + index].end],
+    assert.deepEqual([segments[3 + index].start, segments[3 + index].end],
       [runtime.transportAddress, runtime.transportAddress + xexBytes - 1]);
   });
-  const directorIndex = 4 + directorCodeRuntimes.length;
+  const lowIndex = directorCodeRuntimes.findIndex(({ name }) => name === "low");
+  const glue = fs.readFileSync(path.join(rootDirectory, "build", "integration-glue.bin"));
+  const glueOffset = manifest.integrationGlue.transportRecordOffset;
+  assert.equal(glueOffset, 0xf8);
+  assert.equal(segments[3 + lowIndex].start + glueOffset, manifest.integrationGlue.transportAddress);
+  assert.ok(segments[3 + lowIndex].data.subarray(glueOffset, glueOffset + glue.length).equals(glue));
+  const directorIndex = 3 + directorCodeRuntimes.length;
   assert.deepEqual([segments[directorIndex].start, segments[directorIndex].end],
     [manifest.directorRuntime.runAddress, manifest.directorRuntime.endExclusive - 1]);
   assert.deepEqual([segments[directorIndex + 1].start, segments[directorIndex + 1].end],

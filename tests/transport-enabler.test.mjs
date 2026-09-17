@@ -114,7 +114,7 @@ test("the opt-in initial-block ceiling accepts exactly 13440 bytes and rejects 1
 test("one and multiple records preserve order, fields, and exact sector boundaries", () => {
   const chunks = [
     rawChunk(107, 0x4efe, 1),
-    rawChunk(203, 0x7bd0, 2),
+    rawChunk(203, 0x8400, 2),
     rawChunk(511, 0x992a, 3),
   ];
   const one = buildDfmcV1Transport({
@@ -145,7 +145,7 @@ test("record overlap, invalid load range, length mismatch, truncation, and ATR o
   });
   const overlapping = [{ ...valid.records[0] }, {
     ...valid.records[0], startSector: valid.records[0].startSector,
-    finalDestination: 0x7bd0,
+    finalDestination: 0x8400,
   }];
   assert.throws(() => encodeChunkManifest({
     records: overlapping, totalOccupiedSectors: valid.totalOccupiedSectors,
@@ -183,7 +183,7 @@ test("record overlap, invalid load range, length mismatch, truncation, and ATR o
 });
 
 test("LZ payloads unpack byte-exactly into memory and preserve publication order", () => {
-  const chunks = [lzChunk(241, 0x4efe, 7), lzChunk(701, 0x7bd0, 8)];
+  const chunks = [lzChunk(241, 0x4efe, 7), lzChunk(701, 0x8600, 8)];
   const built = buildDfmcV1Transport({
     initialContent: initialContent(500),
     manifestOffset: MANIFEST_OFFSET,

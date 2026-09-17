@@ -45,6 +45,7 @@ specification.
 | Addresses, ranges and sizes for an identified checkpoint | [memory-map.md](memory-map.md) |
 | Why decisions were made | [owner-decisions-2026-09-11.md](owner-decisions-2026-09-11.md), [decisions/](decisions/) |
 | Machine-readable PAL evidence (historical binding) | [runtime-wall-trace.json](runtime-wall-trace.json) |
+| PAL frame-overrun gate (distinct miss events, line-238 margin) | [STATUS.md](STATUS.md), `scripts/pal-timing-audit.mjs` |
 | Native capital-shell/player collision evidence | [capital-player-collision-trace.json](capital-player-collision-trace.json) |
 | Native menu lifecycle/raster evidence | [menu-raster-trace.json](menu-raster-trace.json) |
 | Visual and colour rules | [art-direction.md](art-direction.md) |

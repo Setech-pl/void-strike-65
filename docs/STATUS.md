@@ -108,8 +108,60 @@ comparing CPU.
 
 ---
 
+## PAL timing gate — distinct miss events
+
+`scripts/pal-timing-audit.mjs` is the PAL frame-overrun gate. It runs on every
+traced replay of `scripts/runtime-wall-trace.mjs` (baseline, targeted, debris,
+forced and diagnostic sessions alike), reports per replay, writes
+`build/runtime-wall-trace/pal-timing-audit.json`, and fails the run on any
+distinct miss event. It also runs standalone over CSVs:
+`node scripts/pal-timing-audit.mjs [--json <path>] <csv-or-dir>...`.
+
+**The fence.** In fighter OPEN the main loop reaches `profile_after_sector` and
+calls `publish_fighter_projectile_overlays`, which waits for VCOUNT `$77`.
+`wait_frame_at_line` waits for VCOUNT `== $77` and then for `!= $77`, so arrival
+anywhere inside PAL scanlines 238-239 still catches the fence; the deadline is
+the start of scanline 240. Arriving at or after it costs one whole PAL frame.
+The audit reports worst pre-wait cycles and worst margin to that deadline, and
+confirms each verdict against the measured `profile_publication_begin` release
+(0 disagreements across both full gate sets, ~245,000 traced frames).
+
+**Distinct miss events.** An overrun row whose predecessor was still in the
+normal loop phase is one miss event. After a miss the loop keeps starting one
+phase later (fighter row start moves from scanline 18 to ~250-273) until a new
+gameplay generation resyncs it; those shifted-phase rows are attributed to the
+event that caused them, never counted as new misses. The normal phase is
+derived per replay and per publication path from the modal start scanline.
+
+**`missed_frames` and `extra_vbi_boundaries` are unreliable for overrun
+detection** and are kept in the report for continuity only: both are derived
+from `Atari800_nframes` boundaries crossed inside one traced iteration, and an
+overrunning frame simply waits for the same VCOUNT one frame later, so they
+report 0 through a real dropped frame. Raw counts of rows over 31,200 or 32,568
+are equally unusable for comparing builds: they conflate one real miss with its
+phase-shift aftermath (1,394 and 1,055 such rows for the two single miss events
+measured below).
+
+**Measured 2026-09-17.** Full gate set on both builds, 66 audited replays each.
+`wip/4.5d-gate-fail` HEAD `7b50bd6` (XEX `838a9686…`): **2 distinct miss
+events — FAIL**. `debris-gate-0-neutral-fire0` row 3007 (host frame 3421, wall
+62,682, pre-wait 25,656, margin −407, 1,393 shifted rows) and
+`raider-remnant-rapid-xex-hard` row 1945 (host frame 2359, wall 62,825,
+pre-wait 26,042, margin −765, 1,054 shifted rows); both report
+`missed_frames` 0. Worst clean margin 137 cycles
+(`memory-integrity-xex-2-hunt-fire4`, `weapon-pickup-2-hunt-fire4`).
+`2a8ff26` (XEX `0e4721b2…`): **0 distinct miss events — PASS**, worst margin
+781 cycles (`director-complete-2-natural-sweep-fire0`, pre-wait 24,484).
+Replays diverge between the builds, so per-session margin deltas mix gameplay
+divergence with cost; the comparable figures are the miss count and the worst
+margin across the whole set. Evidence:
+[diagnostics/stage-2b2q-pal-timing-audit.json](diagnostics/stage-2b2q-pal-timing-audit.json).
+
 ## Known open defects and open decisions
 
+- the WIP branch `wip/4.5d-gate-fail` (HEAD `7b50bd6`, not a candidate) drops
+  two PAL frames that the native counters never reported; `2a8ff26` drops none
+  (section above). That is a 4.5d gameplay finding, not a tooling one;
 - intermittent purple artifact after a Raider, not reproduced
   deterministically (hypothesis only: a stale hostile pulse — if it now shows
   white/steel on the 4.4c candidate, that points to its source);

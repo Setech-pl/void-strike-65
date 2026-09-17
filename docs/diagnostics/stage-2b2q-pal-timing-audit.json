@@ -1,0 +1,102 @@
+{
+  "id": "stage-2b2q-pal-timing-audit",
+  "date": "2026-09-17",
+  "task": "Timing-gate tooling only: make PAL frame overruns detectable and comparable between builds. No gameplay, enemy, renderer, raster, VBI/DLI, memory or projectile code changed; wait_frame_at_line is untouched.",
+  "status": "TOOLING",
+  "branch": "wip/4.5d-gate-fail",
+  "measured_builds": {
+    "wip": {
+      "commit": "7b50bd6",
+      "description": "WIP 4.5d Enemy Identity Freeze - NOT a candidate",
+      "xex_sha256": "838a9686249de0b7f338605755e4206856bbdc222cb46cb9717e921ffdf7b5dd"
+    },
+    "baseline": {
+      "commit": "2a8ff26",
+      "description": "feat(bomber): place the 4.5c Bomber formation in HYBRID_C_ARENA",
+      "xex_sha256": "0e4721b26c3d123bcd29ade0ea6f4e07d292636e791e56d473243acf34227f63",
+      "worktree": "scratch worktree, removed after measurement"
+    }
+  },
+  "counter_limitation": {
+    "claim": "missed_frames and extra_vbi_boundaries cannot detect a PAL frame overrun.",
+    "reason": "Both are derived from Atari800_nframes boundaries crossed inside one traced main-loop iteration. A fighter-OPEN frame that arrives at publish_fighter_projectile_overlays too late simply parks in wait_frame_at_line until the same VCOUNT $77 comes round on the next physical frame. The iteration still crosses exactly one frame boundary, so the counters report 0.",
+    "evidence": "Both miss events measured below report missed_frames 0, extra_vbi_boundaries 0 and dli_sequence_violations 0 in the same rows whose wall cycles are 62,682 and 62,825.",
+    "also_unreliable": "Raw counts of rows over 31,200 or 32,568 conflate one real miss with its phase-shift aftermath (1,394 and 1,055 such rows for the two single miss events below) and must not be used to compare builds."
+  },
+  "fence_model": {
+    "synchronization_point": "In fighter OPEN the main loop reaches profile_after_sector and calls publish_fighter_projectile_overlays, which does ldx #$77 / jsr wait_frame_at_line.",
+    "window": "wait_frame_at_line waits for VCOUNT == $77 and then for VCOUNT != $77. VCOUNT $77 covers PAL scanlines 238-239, so arrival anywhere inside those two scanlines still catches the fence and the wait exits on scanline 240.",
+    "deadline": "The start of scanline 240 of the row's own physical frame (frame base + 240 x 114 cycles). Arriving at or after it costs one whole PAL frame.",
+    "first_model_rejected": "An earlier version of this audit used the start of scanline 238 as the deadline. It produced a false positive at memory-integrity-xex-2-hunt-fire4 frame 1963 (margin -91, wall 26,781, 0 shifted-phase rows), which is a frame that arrived 91 cycles into scanline 238 and caught the fence normally.",
+    "cross_check": "The audit determines the overrun from profile_publication_begin (a caught fence releases at the window end, a missed one one physical frame later) and compares that against the arithmetic deadline. Across both full gate sets (132 replays, about 245,000 traced frames) the two agree on every row: fence_model_disagreements 0.",
+    "capital_path": "Capital frames take the other branch and do not use the $77 fence; they are bounded by wait_for_master_pal_frame, so their overrun test is wall_cycles > 35,568.",
+    "phase_shift": "After a miss the loop keeps starting one phase later (fighter row start moves from scanline 18 to ~250-273) until a new gameplay generation resyncs it. The audit derives the normal phase per replay and per publication path as the modal start scanline, and attributes shifted-phase overrun rows to the preceding miss event instead of counting new ones."
+  },
+  "tool": {
+    "path": "scripts/pal-timing-audit.mjs",
+    "promoted_from": "scripts/measure-timing-audit.mjs (uncommitted measurement script; superseded)",
+    "reports_per_replay": ["distinct miss events", "worst pre-wait cycles", "worst margin to the fence deadline", "per miss event: row index, frame, host frame, wall cycles, pre-wait, margin, shifted-phase rows until resync", "maximum wall cycles, rows over target and hard gate, shifted-phase rows", "the native counters, labelled unreliable"],
+    "wiring": "scripts/runtime-wall-trace.mjs audits every traced replay inside the session loop and reports it immediately (so an unrelated later gate invariant cannot hide the evidence), writes build/runtime-wall-trace/pal-timing-audit.json, and sets a non-zero exit code on any distinct miss event.",
+    "cli": "node scripts/pal-timing-audit.mjs [--json <path>] <csv-or-dir>...",
+    "tests": "tests/pal-timing-audit.test.mjs (7)"
+  },
+  "gate_result": {
+    "replays_audited_per_build": 66,
+    "wip_7b50bd6": {
+      "distinct_miss_events": 2,
+      "verdict": "FAIL",
+      "events": [
+        {
+          "session": "debris-gate-0-neutral-fire0",
+          "row_index": 3007,
+          "frame": 3007,
+          "host_frame": 3421,
+          "wall_cycles": 62682,
+          "pre_wait_cycles": 25656,
+          "fence_margin_cycles": -407,
+          "shifted_phase_rows_until_resync": 1393,
+          "rows_over_hard_gate_in_replay": 1394,
+          "native_counters": { "missed_frames": 0, "extra_vbi_boundaries": 0, "dli_sequence_violations": 0 }
+        },
+        {
+          "session": "raider-remnant-rapid-xex-hard",
+          "row_index": 1945,
+          "frame": 1945,
+          "host_frame": 2359,
+          "wall_cycles": 62825,
+          "pre_wait_cycles": 26042,
+          "fence_margin_cycles": -765,
+          "shifted_phase_rows_until_resync": 1054,
+          "rows_over_hard_gate_in_replay": 1055,
+          "native_counters": { "missed_frames": 0, "extra_vbi_boundaries": 0, "dli_sequence_violations": 0 }
+        }
+      ],
+      "worst_clean_margins": [
+        { "session": "memory-integrity-xex-2-hunt-fire4", "margin": 137, "pre_wait": 25128, "maximum_wall_cycles": 30028 },
+        { "session": "weapon-pickup-2-hunt-fire4", "margin": 137, "pre_wait": 25128, "maximum_wall_cycles": 30028 },
+        { "session": "director-complete-1-natural-sweep-fire0", "margin": 245, "pre_wait": 25020, "maximum_wall_cycles": 30317 },
+        { "session": "2-evasive-fire7", "margin": 469, "pre_wait": 24780, "maximum_wall_cycles": 29570 }
+      ]
+    },
+    "baseline_2a8ff26": {
+      "distinct_miss_events": 0,
+      "verdict": "PASS",
+      "worst_margins": [
+        { "session": "director-complete-2-natural-sweep-fire0", "margin": 781, "pre_wait": 24484, "maximum_wall_cycles": 30797 },
+        { "session": "debris-gate-0-evasive-fire3", "margin": 1126, "pre_wait": 24123, "maximum_wall_cycles": 30038 },
+        { "session": "memory-integrity-xex-2-hunt-fire4", "margin": 1229, "pre_wait": 24048, "maximum_wall_cycles": 29924 }
+      ]
+    },
+    "comparison_caveat": "Replays diverge between the two builds once gameplay differs, so per-session margin deltas mix gameplay divergence with cost. The comparable figure is the distinct miss count and the worst margin across the whole gate set: 2 misses / -765 cycles on the WIP build against 0 misses / +781 cycles at 2a8ff26."
+  },
+  "gate_coverage": {
+    "runs_per_build": ["node scripts/runtime-wall-trace.mjs (default full set, boot smoke included)", "the sessions after the pre-existing abort, one --only-session run each", "node scripts/runtime-wall-trace.mjs --debris-gate-only", "node scripts/runtime-wall-trace.mjs --raider-remnant-only"],
+    "pre_existing_failures_identical_on_both_builds": [
+      "weapon-pickup-contact-2-hunt-fire4: 'changed GTIA priority or the single erase/draw lifecycle' aborts the default run (already recorded in STATUS)",
+      "capital-muzzle-ring-2-sweep-fire4: 'observed a stale muzzle/flash code or invalid derived pointer'",
+      "capital-contact-allied-medium, capital-contact-hostile-medium, lower-playfield-hostile-contact-xex-hard: emulator exits with status 2"
+    ],
+    "note": "None of these is caused by the audit; each behaves identically at 7b50bd6 and 2a8ff26. Their traces were audited where a CSV exists; the three status-2 sessions produce none."
+  },
+  "next_task": "The two WIP miss events are a 4.5d gameplay finding, not a tooling finding. They belong to whoever owns the 4.5d Enemy Identity Freeze work; this session changed no runtime code."
+}

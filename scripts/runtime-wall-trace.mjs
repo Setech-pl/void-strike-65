@@ -13,6 +13,8 @@ import { atari800ArtifactLaunches, validateAtari800Launch } from "./artifact-lau
 import { focusedPalAcceptance } from "./focused-pal-acceptance.mjs";
 import { executeDebrisDestructionTrace } from "./debris-destruction-runtime.mjs";
 import { analyseDebrisGate } from "./debris-visibility-gate.mjs";
+import { auditSession as auditPalTiming, reportAudits as reportPalTimingAudits,
+  reportAudit as reportPalTimingAudit } from "./pal-timing-audit.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const rootDirectory = path.resolve(scriptDirectory, "..");
@@ -2145,6 +2147,9 @@ function main() {
   }
   const allRows = [];
   const summaries = [];
+  // Every traced replay is audited against the VCOUNT $77 fence, not only the
+  // four PAL replays: the native counters cannot see an overrun at all.
+  const palTimingAudits = [];
   const pickupScreenshotPath = path.join(buildDirectory, "weapon-pickup-static-atari800.png");
   const boosterAdmissionScreenshotPath = path.join(buildDirectory,
     "booster-admission-reentry-atari800.png");
@@ -2925,6 +2930,20 @@ function main() {
     summaries.push(sessionSummary(session, rows));
     console.log(`${session.id}: ${rows.length} frames, max ` +
       `${maximumRow(rows, (row) => row.wall_cycles).wall_cycles} wall cycles`);
+    // Reported per replay, before any later gate invariant can abort the run.
+    const palTimingAudit = auditPalTiming(session.id, rows);
+    palTimingAudits.push(palTimingAudit);
+    reportPalTimingAudit(palTimingAudit);
+    if (!palTimingAudit.passed) process.exitCode = 1;
+  }
+  {
+    const missEvents = reportPalTimingAudits(palTimingAudits, { perAudit: false });
+    fs.writeFileSync(path.join(buildDirectory, "pal-timing-audit.json"),
+      `${JSON.stringify({ distinct_miss_events: missEvents, audits: palTimingAudits },
+        null, 2)}\n`);
+    // A distinct miss event is a real dropped PAL frame, so it fails the gate
+    // whatever else the run was measuring.
+    if (missEvents !== 0) process.exitCode = 1;
   }
   if (raiderFirstWriterOnly) {
     console.log(`Raider first-writer raw traces: ${sessionsToRun.length} sessions, ` +

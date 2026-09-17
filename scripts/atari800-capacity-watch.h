@@ -1,4 +1,5 @@
-/* Void Strike 65 resident-capacity write-watch observer (plan steps 4.3, 4.5a).
+/* Void Strike 65 resident-capacity write-watch observer (plan steps 4.3, 4.5a,
+ * 4.5M-M1).
  *
  * Built into a private Atari800 7.1.2 copy as voidstrike65_trace.h by
  * scripts/capacity-window-watch.mjs. It watches two ranges by value change on
@@ -15,6 +16,15 @@
  * window of non-zero bytes crosses the boot copies; capital sectors are counted,
  * and the post-resume run keeps the player alive until one capital sector has
  * completed before letting the game end.
+ *
+ * Roadmap 4.5M-M1 additions: up to three boot-only staging ranges are watched
+ * from DFCAP_PC_STAGE_DONE (the staging copies have completed) until
+ * DFCAP_PC_STAGE_CONSUMED (the decoder starts), with their initial bytes
+ * reported so the driver can compare them with the packed streams; an optional
+ * DFCAP_RANGE_START/BYTES is dumped at DFCAP_PC_PUBLISH_DONE so the decoded
+ * runtime image can be compared byte-exactly; and DFCAP_PC_WINDOW_FROM may
+ * start the capacity-window watch at an earlier startup label than the GLUE
+ * publication (the Heavy window is published before the loader since M1).
  */
 #include <stdint.h>
 #include <stdio.h>
@@ -29,6 +39,9 @@
 #define DFCAP_MAX_STATES 128u
 #define DFCAP_FRAME_LIMIT 90000u
 #define DFCAP_CLOCK_POINTS 8u
+#define DFCAP_MAX_STAGES 3u
+#define DFCAP_STAGE_MAX_BYTES 1032u
+#define DFCAP_RANGE_MAX_BYTES 4096u
 
 typedef struct DFCapWrite {
 	unsigned range;
@@ -88,6 +101,22 @@ static unsigned dfcap_inject_start;
 static unsigned dfcap_inject_bytes;
 static int dfcap_injected;
 static int dfcap_window_active;
+static unsigned dfcap_pc_window_from;
+static unsigned dfcap_stage_count;
+static unsigned dfcap_stage_start[DFCAP_MAX_STAGES];
+static unsigned dfcap_stage_bytes[DFCAP_MAX_STAGES];
+static unsigned dfcap_pc_stage_done;
+static unsigned dfcap_pc_stage_consumed;
+static UBYTE dfcap_stage_snapshot[DFCAP_MAX_STAGES][DFCAP_STAGE_MAX_BYTES];
+static UBYTE dfcap_stage_initial[DFCAP_MAX_STAGES][DFCAP_STAGE_MAX_BYTES];
+static int dfcap_stage_active;
+static int dfcap_stage_seen;
+static int dfcap_stage_consumed_seen;
+static int dfcap_stage_intact[DFCAP_MAX_STAGES];
+static unsigned dfcap_range_start;
+static unsigned dfcap_range_bytes;
+static UBYTE dfcap_range_copy[DFCAP_RANGE_MAX_BYTES];
+static int dfcap_range_captured;
 static unsigned dfcap_previous_pc;
 static DFCapWrite dfcap_writes[DFCAP_MAX_WRITES];
 static unsigned dfcap_writes_count;
@@ -179,6 +208,40 @@ static void dfcap_init(void)
 		dfcap_inject_start = dfcap_env_u("DFCAP_INJECT_START");
 		dfcap_inject_bytes = dfcap_env_u("DFCAP_INJECT_BYTES");
 	}
+	if (getenv("DFCAP_PC_WINDOW_FROM") != NULL)
+		dfcap_pc_window_from = dfcap_env_u("DFCAP_PC_WINDOW_FROM");
+	if (getenv("DFCAP_STAGE_COUNT") != NULL) {
+		static const char *start_names[DFCAP_MAX_STAGES] = {
+			"DFCAP_STAGE0_START", "DFCAP_STAGE1_START", "DFCAP_STAGE2_START"
+		};
+		static const char *bytes_names[DFCAP_MAX_STAGES] = {
+			"DFCAP_STAGE0_BYTES", "DFCAP_STAGE1_BYTES", "DFCAP_STAGE2_BYTES"
+		};
+		dfcap_stage_count = dfcap_env_u("DFCAP_STAGE_COUNT");
+		if (dfcap_stage_count > DFCAP_MAX_STAGES) {
+			fprintf(stderr, "voidstrike65 capacity watch: too many stages\n");
+			exit(2);
+		}
+		for (index = 0; index < dfcap_stage_count; ++index) {
+			dfcap_stage_start[index] = dfcap_env_u(start_names[index]);
+			dfcap_stage_bytes[index] = dfcap_env_u(bytes_names[index]);
+			if (dfcap_stage_bytes[index] == 0u ||
+				dfcap_stage_bytes[index] > DFCAP_STAGE_MAX_BYTES) {
+				fprintf(stderr, "voidstrike65 capacity watch: invalid stage range\n");
+				exit(2);
+			}
+		}
+		dfcap_pc_stage_done = dfcap_env_u("DFCAP_PC_STAGE_DONE");
+		dfcap_pc_stage_consumed = dfcap_env_u("DFCAP_PC_STAGE_CONSUMED");
+	}
+	if (getenv("DFCAP_RANGE_START") != NULL) {
+		dfcap_range_start = dfcap_env_u("DFCAP_RANGE_START");
+		dfcap_range_bytes = dfcap_env_u("DFCAP_RANGE_BYTES");
+		if (dfcap_range_bytes == 0u || dfcap_range_bytes > DFCAP_RANGE_MAX_BYTES) {
+			fprintf(stderr, "voidstrike65 capacity watch: invalid range\n");
+			exit(2);
+		}
+	}
 	if (dfcap_fill > 0xffu || dfcap_hold_bytes == 0u || dfcap_hold_bytes > 256u ||
 		dfcap_window_bytes == 0u || dfcap_window_bytes > 256u) {
 		fprintf(stderr, "voidstrike65 capacity watch: invalid fill or range\n");
@@ -245,6 +308,19 @@ static void dfcap_finish(int status)
 	dfcap_hex(dfcap_file, dfcap_window_initial, dfcap_window_bytes);
 	fputs("\",\"final_hex\":\"", dfcap_file);
 	dfcap_hex(dfcap_file, MEMORY_mem + dfcap_window_start, dfcap_window_bytes);
+	fprintf(dfcap_file, "\"},\n  \"stages\":{\"count\":%u,\"seen\":%d,\"consumed_seen\":%d,\"items\":[",
+		dfcap_stage_count, dfcap_stage_seen, dfcap_stage_consumed_seen);
+	for (index = 0; index < dfcap_stage_count; ++index) {
+		fprintf(dfcap_file, "%s{\"start\":%u,\"bytes\":%u,\"intact_at_consume\":%d,\"initial_hex\":\"",
+			index == 0u ? "" : ",", dfcap_stage_start[index], dfcap_stage_bytes[index],
+			dfcap_stage_intact[index]);
+		dfcap_hex(dfcap_file, dfcap_stage_initial[index], dfcap_stage_bytes[index]);
+		fputs("\"}", dfcap_file);
+	}
+	fprintf(dfcap_file, "]},\n  \"range\":{\"start\":%u,\"bytes\":%u,\"captured\":%d,\"hex\":\"",
+		dfcap_range_start, dfcap_range_bytes, dfcap_range_captured);
+	if (dfcap_range_captured)
+		dfcap_hex(dfcap_file, dfcap_range_copy, dfcap_range_bytes);
 	fprintf(dfcap_file,
 		"\"},\n  \"lifecycle\":{\"options_entries\":%u,\"gameplay_entries\":%u,"
 		"\"pause_entries\":%u,\"game_over_entries\":%u,\"lives_poked\":%d},\n"
@@ -266,7 +342,9 @@ static void dfcap_finish(int status)
 		fprintf(dfcap_file,
 			"%s\n    {\"range\":\"%s\",\"address\":%u,\"pc\":%u,\"frame\":%u,"
 			"\"scanline\":%d,\"old\":%u,\"new\":%u}",
-			index == 0u ? "" : ",", write->range == 0u ? "hold" : "window",
+			index == 0u ? "" : ",", write->range == 0u ? "hold" :
+			write->range == 1u ? "window" : write->range == 2u ? "stage_0" :
+			write->range == 3u ? "stage_1" : "stage_2",
 			write->address, write->pc, write->frame, write->scanline,
 			write->old_value, write->new_value);
 	}
@@ -387,6 +465,40 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 	if (dfcap_window_active)
 		dfcap_record_changes(1u, dfcap_window_snapshot, dfcap_window_start,
 			dfcap_window_bytes);
+	if (dfcap_stage_active)
+		for (index = 0; index < dfcap_stage_count; ++index)
+			dfcap_record_changes(2u + index, dfcap_stage_snapshot[index],
+				dfcap_stage_start[index], dfcap_stage_bytes[index]);
+	/* Only after `start`: ATR stage-2 loader code occupies resident addresses. */
+	if (dfcap_stage_count != 0u && !dfcap_stage_seen && dfcap_clock_seen[0] &&
+		pc == dfcap_pc_stage_done) {
+		dfcap_stage_seen = 1;
+		dfcap_stage_active = 1;
+		for (index = 0; index < dfcap_stage_count; ++index) {
+			memcpy(dfcap_stage_snapshot[index], MEMORY_mem + dfcap_stage_start[index],
+				dfcap_stage_bytes[index]);
+			memcpy(dfcap_stage_initial[index], dfcap_stage_snapshot[index],
+				dfcap_stage_bytes[index]);
+		}
+	}
+	if (dfcap_stage_active && pc == dfcap_pc_stage_consumed) {
+		dfcap_stage_active = 0;
+		dfcap_stage_consumed_seen = 1;
+		for (index = 0; index < dfcap_stage_count; ++index)
+			dfcap_stage_intact[index] = memcmp(dfcap_stage_initial[index],
+				MEMORY_mem + dfcap_stage_start[index], dfcap_stage_bytes[index]) == 0;
+	}
+	if (dfcap_pc_window_from != 0u && !dfcap_window_active && dfcap_clock_seen[0] &&
+		pc == dfcap_pc_window_from) {
+		dfcap_window_active = 1;
+		memcpy(dfcap_window_snapshot, MEMORY_mem + dfcap_window_start, dfcap_window_bytes);
+		memcpy(dfcap_window_initial, dfcap_window_snapshot, dfcap_window_bytes);
+	}
+	if (dfcap_range_bytes != 0u && !dfcap_range_captured && dfcap_clock_seen[0] &&
+		pc == dfcap_pc_publish_done) {
+		dfcap_range_captured = 1;
+		memcpy(dfcap_range_copy, MEMORY_mem + dfcap_range_start, dfcap_range_bytes);
+	}
 	if (!dfcap_hold_seen && pc == dfcap_pc_hold_done) {
 		dfcap_hold_seen = 1;
 		dfcap_hold_active = 1;
@@ -402,15 +514,21 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 		dfcap_window_matches_hold = memcmp(dfcap_hold_initial,
 			MEMORY_mem + dfcap_window_start,
 			dfcap_hold_bytes < dfcap_window_bytes ? dfcap_hold_bytes : dfcap_window_bytes) == 0;
-		dfcap_window_active = 1;
-		memcpy(dfcap_window_snapshot, MEMORY_mem + dfcap_window_start, dfcap_window_bytes);
-		memcpy(dfcap_window_initial, dfcap_window_snapshot, dfcap_window_bytes);
+		if (!dfcap_window_active) {
+			dfcap_window_active = 1;
+			memcpy(dfcap_window_snapshot, MEMORY_mem + dfcap_window_start, dfcap_window_bytes);
+			memcpy(dfcap_window_initial, dfcap_window_snapshot, dfcap_window_bytes);
+		}
 	}
 	dfcap_previous_pc = pc;
 
 	frame = (unsigned) Atari800_nframes;
 	state = MEMORY_mem[dfcap_game_state];
 	INPUT_key_consol = INPUT_CONSOL_NONE;
+	/* The scripted lifecycle starts at GLUE publication as before, even when
+	 * the window watch itself was armed at an earlier startup label. */
+	if (!dfcap_clock_seen[7])
+		return;
 	if (dfcap_window_active && state != dfcap_last_state) {
 		if (dfcap_states_count < DFCAP_MAX_STATES) {
 			dfcap_states[dfcap_states_count].frame = frame;

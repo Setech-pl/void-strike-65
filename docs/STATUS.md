@@ -16,7 +16,8 @@ the values below.
 `experiment/hybrid-c-director`. HEAD carries the roadmap 4.4 Interceptor
 `OWNER-SMOKE CANDIDATE`, its 4.4b visual identity (X/quad art since `3838c00`),
 the 4.4c hostile weapon visuals, the roadmap 4.5a Heavy window capacity
-increment and the 4.5b `BOMBER` weapon class (sections below) on top of `f4cb18b`, the documentation-only
+increment, the 4.5b `BOMBER` weapon class and the 4.5M-M1 starfield staging
+swap (sections below) on top of `f4cb18b`, the documentation-only
 reconciliation of the owner acceptance recorded here. None of these candidates
 is accepted; the accepted runtime is still `b4b942e`.
 
@@ -119,10 +120,18 @@ comparing CPU.
   (4.5b: +6 B packed BROADSIDE alone missed it by one frame) and with a
   239-B Heavy proof payload; boot CPU added without extra sectors can miss it
   (it did for the first 4.5a variant);
-- open owner decision: the packed STARFIELD correction gate (1,805 B against
-  the reviewed 1,798 B). `tests/light-wingman.test.mjs` ("Light kernel
-  placement…") and `tests/broadside-fire.test.mjs` keep failing on that gate on
-  purpose; moving a reviewed margin is an owner decision;
+- open owner decision: the packed STARFIELD correction gate. At the 4.5M-M1
+  candidate the single-stream gates 1,798 / 1,819 B are superseded by the
+  two-stream total gates 1,804 (correction) / 1,825 B (hard) against a measured
+  1,811 B total, so the content is still 7 B over the correction gate;
+  `tests/light-wingman.test.mjs` ("Light kernel placement…") and
+  `tests/broadside-fire.test.mjs` keep failing on that gate on purpose; moving a
+  reviewed margin is an owner decision;
+- 4.5M-M1 owner-visible deviations from the task text (see the 4.5M-M1
+  section): the boot-only GLUE hold moved `$8300 → $8100` so that stream B
+  has a contiguous idle window, and each stream is bounded by one 960-B
+  resident copy (B ≤ 960 B, not 1,032 B) because the table-driven boot copier
+  is stage-2 overlay code that is gone by the time the deferred copies run;
 - test debt: the full `node --test tests/*.test.mjs` run keeps known stale
   failures — 115 at `b4b942e` (measured 2026-09-16 on a clean export, counting
   the owner's uncommitted `tests/booster-admission-diagnostic.test.mjs`) and
@@ -581,11 +590,101 @@ Candidate XEX `2fd5ace4…`, ATR `dd3977e2…`, owner-smoke copy in
 
 ---
 
+## Roadmap 4.5M-M1 — starfield staging swap — `OWNER-SMOKE CANDIDATE` (2026-09-17)
+
+Boot/lifetime change only, on top of the 4.5b candidate (`9547bf0`), first step
+of the 4.5M memory/lifetime migration (Strategy B). No gameplay change: linked
+runtime 17,502 B, simultaneous 19,493 B, safe 2,694 B, runtime memory map,
+GLUE/ABI/low-C/extension/A2/pickup publication, ENTITY order, Light, debris,
+PMG, collision, DLI/VBI and every CODE/BROADSIDE/ENTITY address are unchanged
+(`.lbl` diff: only bootstrap-prefix labels below `$21C1` moved;
+`stage_starfield_stream` left ENTITY_CODE `$9495` for the prefix `$217C`;
+`hybrid_c_heavy_hold`, `unpack_boot_broadside_runtime` and
+`broadside_packed_source` are gone; `starfield_packed_source_b/size_b` added).
+
+- **Packed STARFIELD as two independent LZ streams.** `build/starfield-runtime.bin`
+  (2,224 B, byte-identical) is cut at raw offset 985: stream A 915 B packed
+  (staged `$7810`, 960-B window, margin 45 B), stream B 896 B packed (staged
+  `$81FA`, 960-B window, margin 64 B); total **1,811 B** against 1,805 B for
+  the single stream (+6 B split overhead; the build picks the smallest total
+  among 16-byte-step cuts below the largest stream-A prefix that fits).
+  `unpack_starfield_runtime` expands A then B into the one continuous `$54E4`
+  destination. Nothing writes `$7BD0-$7F2A` for the starfield any more.
+- **Total-packed gate.** New reviewed baseline 1,811 B, hard gate **1,825 B**
+  (build error above it) and correction gate 1,804 B — the single stream's
+  14 B / −7 B content headroom carried over, not the 1,920 B of windows. The
+  1,798 / 1,819 B single-stream gates are recorded as superseded in the
+  manifest (`starfieldRuntime.packedTotalGate.supersedes`).
+- **Heavy window.** `HYBRID_C_HEAVY_RAM = $7E12`, 243 B, staging `$7E38`
+  unchanged; `hybrid_c_heavy_publish` (the retargeted former hold copy) copies
+  `$7E38 → $7E12` once, ascending, at the existing `publish_director_abi`
+  tail; the `$8400` hold and the post-loader publish (17 B) are retired and
+  `jsr unpack_starfield_runtime` follows `show_loader` again.
+- **Deviations from the task text (owner-visible).** (1) The task's stream-B
+  window `$83FA-$8601` is 520 B, not 1,032 B; 1,032 B is the idle ring
+  `$8100-$8601` minus the 250-B GLUE hold, which is contiguous only if the
+  hold sits at `$8100`. The boot-only hold therefore moved `$8300 → $8100`
+  (write-watched, PASS); the three-stream alternative around an unmoved hold
+  measured +58 B of split overhead and needed 26 B more prefix code. (2) The
+  plan assumed the table-driven `copy_boot_stream_backward` for the deferred
+  copies; it is stage-2 overlay code at `$21C1` that `unpack_resident_runtime`
+  replaces, so each stream is moved by one exact 960-B resident
+  `copy_pause_screen` copy from the bootstrap prefix (HEAD used the same copier
+  three times with a spill to `$81CF`). Hence B ≤ 960 B, not 1,032 B, and the
+  prefix keeps 3 B of padding after retiring the dead pre-DFMC
+  `unpack_boot_broadside_runtime` (27 B).
+- **Transport (measured).** Initial content 13,166 → 13,162 B, envelope
+  18 → 22 B, 103 boot sectors and 178 transport sectors unchanged (ATR deadline
+  546 unchanged); the eight DFMC records are unchanged; XEX 23,104 B.
+- **Boot CPU (native write-watch clocks, XEX).** `start → show_loader`
+  2,070,929 → 2,051,496 cycles (−19,433); `unpack_starfield_runtime →
+  layout_d_glue_publish_complete` 161,072 → 156,087 (−4,985): −24,418 fixed
+  boot cycles (≈0.69 PAL frame). Boot smoke PASS 4/4: XEX menu 393 → **392**,
+  ATR menu 546 against deadline 546 (still 0 frames of margin; the ATR loader
+  countdown is frame-aligned and absorbs the sub-frame saving).
+- **Native write-watch** (`scripts/capacity-window-watch.mjs`, extended with
+  `--stage`, `--expect-stage-bins`, `--expect-range-bin` and `--window-from`),
+  XEX and ATR × cold fill `$00`/`$A5`, lifecycle cold start, OPTIONS, START,
+  gameplay, pause/resume, one capital sector entered and completed (XEX frames
+  1257-2463, ATR 1411-2617), game over, restart, pause/quit: GLUE hold `$8100`
+  and `$8602` window (4.3 regression) PASS 4/4; Heavy window `$7E12` with the
+  243-B injected pattern at `$7E38`, watched from `layout_d_entity_unpack_complete`
+  to the end of the lifecycle, PASS 4/4; both stream stagings byte-equal to
+  the packed streams with 0 writes from `init_entity_effects` to the decoder;
+  decoded STARFIELD byte-equal to `build/starfield-runtime.bin` at GLUE
+  publication, PASS 4/4.
+- **PAL (native).** `2-evasive-fire3` 29,519 and `2-sweep-fire4` 29,801 cycles,
+  identical to HEAD; 0 missed frames, 0 extra VBI, 0 DLI ordering errors.
+  Debris gate PASS on the three natural replays (0 blank, 0 disappearances,
+  first Y 24; maxima 30,232 / 30,439 / 30,216).
+- **Tests.** New `tests/starfield-staging-streams.test.mjs` (4). Rebaselined
+  with the reason in each file: `heavy-window` (direct publish, no hold),
+  `layout-d1` (two-copy staging, `stage_a2_kernel` `$212B → $213E`, stream and
+  Heavy lifetimes), `transport-layout-regression` (hold `$8100`, two staging
+  windows), `runtime-timing` (`STARFIELD_STAGING_BYTES $03C0`, stream B
+  equates), `light-wingman` and `broadside-fire` (1,804 B correction gate, two
+  streams). Full suite: 644 tests, 115 failing, against 640 tests / 115
+  failing on a clean export of `9547bf0` (candidate build then
+  `node --test tests/*.test.mjs`); the failure-name sets are identical except
+  one explained difference: `tests/pairshot-foundation.test.mjs` "PairShot
+  uses one logical record and one character cell for two pulses" fails at HEAD
+  (one restored-cell mismatch) and passes on the candidate. Its harness
+  (`scripts/pairshot-proof.mjs`) watches the ring rows `$8140-$8577` after a
+  harness boot; HEAD's three-copy starfield spill wrote packed bytes into
+  `$8140-$81CF`, the candidate stages nothing there.
+
+Candidate XEX `361cb8cf…`, ATR `b8766308…`, owner-smoke copy in
+`build/owner-smoke/starfield-staging-swap-361cb8cf/`. Evidence:
+[diagnostics/stage-2b2k-starfield-staging-swap.json](diagnostics/stage-2b2k-starfield-staging-swap.json).
+Next migration steps (not started): M2 cold-record relocation, M3 arena.
+
+---
+
 ## Current task
 
 Roadmap 4.5c (Bomber / Heavy Assault gameplay) is **`BLOCKED_PLACEMENT`**
-(2026-09-17). No 4.5c code is on this branch; HEAD stays at the 4.5b candidate
-`8a09e57`.
+(2026-09-17). No 4.5c code is on this branch; the 4.5M memory/lifetime
+migration (M1 above) is the accepted way forward and M2/M3 are next.
 
 - The full design (Bomber record, TEMPORARY 4.5 HEAVY SMOKE SCHEDULER,
   generic Heavy profile, per-member C lane-sweep tick, generic Heavy
@@ -607,5 +706,7 @@ candidate (with 4.4b and 4.4c) are still pending.
 
 ## Next roadmap step
 
-After the owner's capacity decision: retry 4.5c from `8e138a8`, per decision
-20. The Raider-coloured residual artifact remains an open P0 investigation.
+Owner smoke of the 4.5M-M1 candidate, then 4.5M-M2 (cold-record relocation:
+ABI → `$8018`, low-C + GLUE → `$9B14`) and M3 (`$7BD0` arena), then retry 4.5c
+from `8e138a8`, per decision 20. The Raider-coloured residual artifact remains
+an open P0 investigation.

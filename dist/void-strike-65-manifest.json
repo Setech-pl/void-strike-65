@@ -9,7 +9,7 @@
     "layout": "Hybrid cc65 C Director + stable ca65 ABI veneer",
     "levelWorldRows": 3712,
     "phaseCount": 8,
-    "initialContentBytes": 13166,
+    "initialContentBytes": 13162,
     "linkedRuntimeBytes": 17502,
     "simultaneousResidencyBytes": 19493,
     "safeResidencyBytes": 2694,
@@ -17,7 +17,7 @@
     "totalMigrationResidencyDeltaBytes": 1466,
     "glue": {
       "stagingAddress": 31696,
-      "holdingAddress": 33536,
+      "holdingAddress": 33024,
       "finalAddress": 20222,
       "rawBytes": 250,
       "packedBytes": 245
@@ -110,7 +110,7 @@
   "bootSectors": 103,
   "payloadBytes": 22784,
   "bootPayloadTrailer": {
-    "address": 21354,
+    "address": 21350,
     "bytes": 4,
     "ascii": "DFB1",
     "hex": "44464231",
@@ -156,7 +156,7 @@
       "recoveredReserveBytes": 1097,
       "residentSuffixGrossSavingsBytes": 1056,
       "relocatedColdInitBytes": 2428,
-      "relocatedColdInitPackedCostBytes": 2076,
+      "relocatedColdInitPackedCostBytes": 2066,
       "reserveAddress": 24499,
       "reserveEndAddress": 24571,
       "sourceOwned": true,
@@ -180,8 +180,8 @@
   "transportCapacity": {
     "format": "DFMC-v1 multi-chunk",
     "initialBootBytes": 13184,
-    "initialBootContentBytes": 13166,
-    "initialBootEnvelopeBytes": 18,
+    "initialBootContentBytes": 13162,
+    "initialBootEnvelopeBytes": 22,
     "initialBootSectors": 103,
     "extensionBytes": 9600,
     "extensionSectors": 75,
@@ -345,7 +345,7 @@
   },
   "integrationGlue": {
     "transportAddress": 31696,
-    "holdingAddress": 33536,
+    "holdingAddress": 33024,
     "finalAddress": 20222,
     "bytes": 250,
     "packedBytes": 245,
@@ -389,7 +389,7 @@
       "owner": "HYBRID_C_SECTOR",
       "packedBytes": 201,
       "transport": "second LZ stream of the pickup/collision record",
-      "glueHoldingAddress": 33536
+      "glueHoldingAddress": 33024
     },
     "heavyWindow": {
       "address": 32274,
@@ -400,8 +400,15 @@
       "owner": "HYBRID_C_HEAVY",
       "stagingAddress": 32312,
       "stagingEndExclusive": 32555,
-      "holdAddress": 33792,
-      "transport": "tail of the low-C LZ record, copied to the ring hold before starfield staging and published after starfield expansion",
+      "holdAddress": null,
+      "publishCopy": {
+        "sourceAddress": 32312,
+        "destinationAddress": 32274,
+        "bytes": 243,
+        "direction": "ascending; destination below the overlapping source",
+        "site": "publish_director_abi tail-jump to hybrid_c_heavy_publish"
+      },
+      "transport": "tail of the low-C LZ record, copied once from $7E38 down to $7E12 at the end of publish_director_abi; starfield staging no longer covers the window (4.5M-M1), so there is no hold and no post-loader publish",
       "lowRecordRawBytes": 248,
       "lowRecordPackedBytes": 213,
       "lowCodeOnlyPackedBytes": 210,
@@ -512,19 +519,65 @@
     "runAddress": 21732,
     "bytes": 2224,
     "reservedBytes": 2348,
-    "packedBytes": 1805,
+    "packedBytes": 1811,
     "packedSourceAddress": 16585,
-    "packedSourceEndExclusive": 18390,
+    "packedSourceEndExclusive": 18396,
     "pickupColdStagingAddress": 18433,
-    "packedSourceToPickupMarginBytes": 43,
+    "packedSourceToPickupMarginBytes": 37,
     "stagingAddress": 30736,
-    "stagingBytes": 1819,
-    "compression": "LZ-10/5"
+    "stagingBytes": 1920,
+    "compression": "LZ-10/5, two independent streams expanded into one continuous destination",
+    "rawSplitOffset": 985,
+    "singleStreamPackedBytes": 1805,
+    "splitOverheadBytes": 6,
+    "streams": [
+      {
+        "id": "A",
+        "rawOffset": 0,
+        "rawBytes": 985,
+        "packedBytes": 915,
+        "packedSourceAddress": 16585,
+        "stagingAddress": 30736,
+        "stagingCapacityBytes": 960,
+        "stagingEndExclusive": 31696,
+        "idleWindowEndExclusive": 31696,
+        "copy": "one resident 960-B pause-screen copy (copy_pause_screen), exact window, no spill",
+        "stagedEndExclusive": 31651,
+        "marginBytes": 45
+      },
+      {
+        "id": "B",
+        "rawOffset": 985,
+        "rawBytes": 1239,
+        "packedBytes": 896,
+        "packedSourceAddress": 17500,
+        "stagingAddress": 33274,
+        "stagingCapacityBytes": 960,
+        "stagingEndExclusive": 34234,
+        "idleWindowEndExclusive": 34306,
+        "copy": "one resident 960-B pause-screen copy (copy_pause_screen), exact window, no spill",
+        "stagedEndExclusive": 34170,
+        "marginBytes": 64
+      }
+    ],
+    "packedTotalGate": {
+      "baselineBytes": 1811,
+      "correctionGateBytes": 1804,
+      "hardGateBytes": 1825,
+      "actualBytes": 1811,
+      "hardGateMarginBytes": 14,
+      "supersedes": {
+        "singleStreamCorrectionGateBytes": 1798,
+        "singleStreamHardStagingBytes": 1819,
+        "singleStreamPackedBytesAtSwap": 1805,
+        "note": "4.5M-M1 keeps the single-stream content headroom (+14 B to the hard gate, -7 B to the open correction-gate decision) on top of the measured two-stream total; the staging windows (960 + 1,032 B) are physical limits, not a budget"
+      }
+    }
   },
   "a2Kernel": {
     "loadAddress": 27136,
     "runAddress": 36864,
-    "sourceAddress": 18390,
+    "sourceAddress": 18396,
     "stagingAddress": 32555,
     "bytes": 237,
     "reservedBytes": 256,
@@ -584,17 +637,17 @@
         "hardDeltaBytes": 1280
       }
     },
-    "packedBytes": 2727,
-    "packedSourceAddress": 18627,
-    "initialPackedSourcesEndExclusive": 21354,
-    "initialPackedSourcesLastAddress": 21353,
+    "packedBytes": 2717,
+    "packedSourceAddress": 18633,
+    "initialPackedSourcesEndExclusive": 21350,
+    "initialPackedSourcesLastAddress": 21349,
     "stagedSourceAddress": 21272,
-    "stagedEndAddress": 23998,
-    "stagedEndExclusive": 23999,
-    "sourceToStagingMarginBytes": -82,
-    "sourceStagingOverlapBytes": 82,
+    "stagedEndAddress": 23988,
+    "stagedEndExclusive": 23989,
+    "sourceToStagingMarginBytes": -78,
+    "sourceStagingOverlapBytes": 78,
     "stagingCopyDirection": "backward",
-    "stagingToBroadsideMarginBytes": 81,
+    "stagingToBroadsideMarginBytes": 91,
     "stagingLifecycle": {
       "starfieldDestinationAddress": 21732,
       "starfieldDestinationEndExclusive": 23956,
@@ -20848,17 +20901,17 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 22784,
-        "sha256": "045582b44602105675f4d56a1255795c853ae91dcb4cb179458654116671a95d"
+        "sha256": "5842ee347f9a465dfba7bf4cfd092ab45f9718e2af7ab2ca48470dabd1f323bd"
       },
       "void-strike-65.xex": {
         "path": "dist/void-strike-65.xex",
         "bytes": 23104,
-        "sha256": "2fd5ace46a583080ec305cebcb74a4add9cacfbdbe15e85ceabf54fa85a3afd8"
+        "sha256": "361cb8cf97e0c6fc6bcdf64fd135e5b1c9c9f9e24ecb857d964f05c27bc94fd9"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "dd3977e2ebc0c1a9fcb5403e2f2a9f86242f15cc2725b14f6411a004c9aa50ec"
+        "sha256": "b8766308f2d898a6d59bdb96236c0d458d1c24899f09532d3e045561f6710f9a"
       }
     },
     "reportPath": null,
@@ -20867,15 +20920,15 @@
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 22784,
-      "sha256": "045582b44602105675f4d56a1255795c853ae91dcb4cb179458654116671a95d"
+      "sha256": "5842ee347f9a465dfba7bf4cfd092ab45f9718e2af7ab2ca48470dabd1f323bd"
     },
     "void-strike-65.xex": {
       "bytes": 23104,
-      "sha256": "2fd5ace46a583080ec305cebcb74a4add9cacfbdbe15e85ceabf54fa85a3afd8"
+      "sha256": "361cb8cf97e0c6fc6bcdf64fd135e5b1c9c9f9e24ecb857d964f05c27bc94fd9"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "dd3977e2ebc0c1a9fcb5403e2f2a9f86242f15cc2725b14f6411a004c9aa50ec"
+      "sha256": "b8766308f2d898a6d59bdb96236c0d458d1c24899f09532d3e045561f6710f9a"
     }
   }
 }

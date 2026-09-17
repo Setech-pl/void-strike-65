@@ -113,15 +113,18 @@ const weaponPickupPackedCapacityBytes =
 // the near-star records ending at $8601 and before the C scratch BSS at $86FA.
 const residentWindowAddress = 0x8602;
 const residentWindowBytes = 0x86fa - residentWindowAddress;
-const glueHoldingAddress = 0x8300;
-// Reusable resident window for Heavy-class C (roadmap 4.5a). Runtime-free
-// $7E12-$7F0F is cold starfield staging, so its image rides the low-C LZ record
-// at a fixed staging address after the full low reservation ($7D40 + $F8) and
-// before A2 staging ($7F2B). Boot copies it to idle ring RAM before starfield
-// staging and publishes it after the starfield expands (GLUE precedent).
+// Roadmap 4.5M-M1: the boot-only GLUE hold moved from $8300 to the start of the
+// consumed resident staging interval so that starfield stream B can use the
+// contiguous idle range behind it ($81FA-$8601).
+const glueHoldingAddress = 0x8100;
+// Reusable resident window for Heavy-class C (roadmap 4.5a). Its image rides
+// the low-C LZ record at a fixed staging address after the full low reservation
+// ($7D40 + $F8) and before A2 staging ($7F2B). Since 4.5M-M1 starfield staging
+// no longer covers $7BD0-$7F2A, so publish_director_abi copies the image down
+// to the window once (ascending copy, destination below source); the former
+// $8400 ring hold and the post-loader publish are retired.
 const heavyWindowAddress = 0x7e12;
 const heavyWindowStagingAddress = 0x7d40 + 0xf8;
-const heavyWindowHoldAddress = 0x8400;
 const heavyWindowCapacityBytes = 0x7f2b - heavyWindowStagingAddress;
 const bootA2StagingAddress = 0x7f2b;
 const debrisVisualPolishEntityCodeBaselineBytes = 564;
@@ -185,8 +188,33 @@ const frontendH31BaselineRuntimeCodeBytes = shieldBoosterBaselineRuntimeCodeByte
 const frontendH31BaselineEntityFeatureBytes = shieldBoosterBaselineEntityFeatureBytes;
 const frontendH31HardRuntimeDeltaBytes = 1280;
 const broadsideRuntimeReservedBytes = 0x1a00;
-const starfieldStagingAddress = 0x7810;
-const starfieldStagingBytes = 0x71b;
+// Roadmap 4.5M-M1: the packed STARFIELD travels as two independent LZ-10/5
+// streams. Stream A is staged in the consumed extension cold source below the
+// GLUE cold record ($7810-$7BCF); stream B in idle boot RAM behind the GLUE
+// hold ($81FA-$85B9, inside the idle range to $8601). Each stream is moved by
+// one exact 960-B resident pause-screen copy (the table-driven boot copier is
+// stage-2 overlay code and is gone by then), so each must pack to <= 960 B; the
+// total is gated separately (below) so the larger windows grant no content.
+const starfieldStagingStreams = Object.freeze([
+  Object.freeze({ id: "A", address: 0x7810, capacityBytes: 0x3c0, idleWindowEndExclusive: 0x7bd0 }),
+  Object.freeze({ id: "B", address: 0x81fa, capacityBytes: 0x3c0, idleWindowEndExclusive: 0x8602 }),
+]);
+const starfieldStagingAddress = starfieldStagingStreams[0].address;
+const starfieldStagingBytes = starfieldStagingStreams.reduce(
+  (sum, { capacityBytes }) => sum + capacityBytes, 0);
+// Superseded single-stream gates (kept for the record): reviewed correction
+// gate 1,798 B (open owner decision, 1,805 B measured) and hard staging limit
+// 1,819 B ($7810-$7F2A). The two-stream representation adds split overhead, so
+// the reviewed total gates carry the identical content headroom on top of the
+// measured 4.5M-M1 total rather than the sum of the staging windows.
+const starfieldSingleStreamCorrectionGateBytes = 0x706;
+const starfieldSingleStreamHardStagingBytes = 0x71b;
+const starfieldSingleStreamPackedBytesAtSwap = 1805;
+const starfieldPackedTotalBaselineBytes = 1811;
+const starfieldPackedTotalCorrectionGateBytes = starfieldPackedTotalBaselineBytes -
+  (starfieldSingleStreamPackedBytesAtSwap - starfieldSingleStreamCorrectionGateBytes);
+const starfieldPackedTotalHardGateBytes = starfieldPackedTotalBaselineBytes +
+  (starfieldSingleStreamHardStagingBytes - starfieldSingleStreamPackedBytesAtSwap);
 const encounterDirectorEnabled = true;
 const glueStagingAddress = 0x7bd0;
 const glueFinalAddress = 0x4efe;
@@ -582,9 +610,45 @@ function renderDirectorAbiInclude(labelBytes) {
     `HYBRID_C_EXT_BYTES = ${extensionBytes}\n` +
     `HYBRID_C_HEAVY_RUNTIME = $${heavyWindowAddress.toString(16).toUpperCase()}\n` +
     `HYBRID_C_HEAVY_STAGING = $${heavyWindowStagingAddress.toString(16).toUpperCase()}\n` +
-    `HYBRID_C_HEAVY_HOLD = $${heavyWindowHoldAddress.toString(16).toUpperCase()}\n` +
     `HYBRID_C_HEAVY_CAPACITY = ${heavyWindowCapacityBytes}\n` +
     `HYBRID_C_HEAVY_BYTES = ${labels.get("__HYBRID_C_HEAVY_SIZE__") ?? 0}\n`);
+}
+
+// Roadmap 4.5M-M1: cut the STARFIELD runtime into two independently packed
+// LZ streams. The largest raw prefix that packs into stream A's window is found
+// first; the cut is then moved down in 16-byte raw steps (up to 192 B) and the
+// candidate with the smallest packed total that fits both windows wins, so the
+// split overhead stays small and deterministic for a given runtime image.
+function splitStarfieldStreams(raw, stagingStreams) {
+  const [first, second] = stagingStreams;
+  const fitsFirst = (length) =>
+    packBroadsideLzss(raw.subarray(0, length)).length <= first.capacityBytes;
+  let low = 0;
+  let high = raw.length;
+  while (low < high) {
+    const middle = (low + high + 1) >> 1;
+    if (fitsFirst(middle)) low = middle; else high = middle - 1;
+  }
+  let best = null;
+  for (let cut = low; cut >= Math.max(1, low - 192); cut -= 16) {
+    const packedA = packBroadsideLzss(raw.subarray(0, cut));
+    const packedB = packBroadsideLzss(raw.subarray(cut));
+    if (packedA.length > first.capacityBytes || packedB.length > second.capacityBytes) continue;
+    const total = packedA.length + packedB.length;
+    if (best === null || total < best.total) best = { cut, packedA, packedB, total };
+  }
+  if (best === null) {
+    throw new Error(`Packed starfield does not fit two streams of ${first.capacityBytes} and ` +
+      `${second.capacityBytes} B (largest fitting stream A prefix ${low} raw B)`);
+  }
+  return {
+    rawSplitOffset: best.cut,
+    singleStreamPackedBytes: packBroadsideLzss(raw).length,
+    streams: [
+      { ...first, rawOffset: 0, rawBytes: best.cut, packed: best.packedA },
+      { ...second, rawOffset: best.cut, rawBytes: raw.length - best.cut, packed: best.packedB },
+    ],
+  };
 }
 
 async function build() {
@@ -842,9 +906,10 @@ async function build() {
   const residentPackedSizeOperand = labels.get("resident_packed_size");
   const pickupPackedSizeOperand = labels.get("pickup_packed_size");
   const weaponPickupColdStagingAddress = labels.get("WEAPON_PICKUP_COLD_STAGING");
-  const broadsidePackedSourceOperand = labels.get("broadside_packed_source");
   const starfieldPackedSourceOperand = labels.get("starfield_packed_source");
   const starfieldPackedSizeOperand = labels.get("starfield_packed_size");
+  const starfieldPackedSourceBOperand = labels.get("starfield_packed_source_b");
+  const starfieldPackedSizeBOperand = labels.get("starfield_packed_size_b");
   const a2KernelSourceOperand = labels.get("a2_kernel_source");
   const entityPackedSourceOperand = labels.get("entity_packed_source");
   const entityStagedSourceOperand = labels.get("entity_staged_source");
@@ -880,9 +945,10 @@ async function build() {
     !Number.isInteger(residentPackedSizeOperand) ||
     !Number.isInteger(pickupPackedSizeOperand) ||
     !Number.isInteger(weaponPickupColdStagingAddress) ||
-    !Number.isInteger(broadsidePackedSourceOperand) ||
     !Number.isInteger(starfieldPackedSourceOperand) ||
     !Number.isInteger(starfieldPackedSizeOperand) || !Number.isInteger(a2KernelSourceOperand) ||
+    !Number.isInteger(starfieldPackedSourceBOperand) ||
+    !Number.isInteger(starfieldPackedSizeBOperand) ||
     !Number.isInteger(entityPackedSourceOperand) || !Number.isInteger(entityStagedSourceOperand) ||
     !Number.isInteger(entityPackedSizeOperand) ||
     !Number.isInteger(loaderPackedAddress) ||
@@ -1045,9 +1111,11 @@ async function build() {
   if (bootStage2Runtime.length !== bootStage2Bytes) {
     throw new Error("Linked BOOT_STAGE2 bytes are truncated");
   }
-  const packedStarfieldRuntime = packBroadsideLzss(starfieldRuntime);
-  if (!unpackBroadsideLzss(packedStarfieldRuntime).equals(starfieldRuntime)) {
-    throw new Error("Starfield LZSS round trip failed");
+  const starfieldSplit = splitStarfieldStreams(starfieldRuntime, starfieldStagingStreams);
+  const packedStarfieldRuntime = Buffer.concat(starfieldSplit.streams.map(({ packed }) => packed));
+  if (!Buffer.concat(starfieldSplit.streams.map(({ packed }) => unpackBroadsideLzss(packed)))
+    .equals(starfieldRuntime)) {
+    throw new Error("Starfield two-stream LZSS round trip failed");
   }
   const packedEntityCodeRuntime = packBroadsideLzss(entityCodeRuntime);
   if (!unpackBroadsideLzss(packedEntityCodeRuntime).equals(entityCodeRuntime)) {
@@ -1083,20 +1151,39 @@ async function build() {
     throw new Error(`Integration glue size changed: ${glueModule.raw.length} raw / ` +
       `${glueModule.packed.length} packed`);
   }
-  if (packedStarfieldRuntime.length > starfieldStagingBytes) {
-    throw new Error(`Packed starfield ${packedStarfieldRuntime.length} B exceeds the reviewed ` +
-      `${starfieldStagingBytes} B temporary staging buffer`);
+  for (const stream of starfieldSplit.streams) {
+    if (stream.packed.length > stream.capacityBytes) {
+      throw new Error(`Packed starfield stream ${stream.id} is ${stream.packed.length} B; its ` +
+        `staging window at $${stream.address.toString(16)} holds ${stream.capacityBytes} B`);
+    }
   }
-  if (broadsideRunAddress + broadsideRuntimeReservedBytes > starfieldStagingAddress ||
-    starfieldStagingAddress + starfieldStagingBytes > 0xc000) {
-    throw new Error("Starfield staging overlaps resident RAM or the XL/XE OS ROM window");
+  if (packedStarfieldRuntime.length > starfieldPackedTotalHardGateBytes) {
+    throw new Error(`Packed starfield total ${packedStarfieldRuntime.length} B exceeds the reviewed ` +
+      `${starfieldPackedTotalHardGateBytes} B two-stream hard gate (baseline ` +
+      `${starfieldPackedTotalBaselineBytes} B)`);
   }
-  const stagingEnd = starfieldStagingAddress + packedStarfieldRuntime.length;
+  const [starfieldStreamA, starfieldStreamB] = starfieldSplit.streams;
+  if (broadsideRunAddress + broadsideRuntimeReservedBytes > starfieldStreamA.address ||
+    starfieldStreamA.address + starfieldStreamA.capacityBytes > glueStagingAddress ||
+    starfieldStreamA.address + starfieldStreamA.capacityBytes > heavyWindowAddress) {
+    throw new Error("Starfield stream A staging overlaps BROADSIDE, the GLUE cold record or the Heavy window");
+  }
+  if (starfieldStreamB.address < glueHoldingAddress + expectedGlueRawBytes ||
+    starfieldStreamB.address < packedResidentStagingAddress ||
+    starfieldStreamB.address + starfieldStreamB.capacityBytes > residentWindowAddress ||
+    starfieldStreamB.address + starfieldStreamB.capacityBytes >
+      starfieldStreamB.idleWindowEndExclusive) {
+    throw new Error("Starfield stream B staging overlaps the GLUE hold or the $8602 resident window");
+  }
   const loaderPackedEnd = loaderPackedAddress + loaderAsset.packedBitmap.length;
   const loaderBitmapEnd = loaderAsset.bitmapAddress + loaderAsset.bitmapBytes.length;
-  if (starfieldStagingAddress < loaderPackedEnd && stagingEnd > loaderPackedAddress ||
-    starfieldStagingAddress < loaderBitmapEnd && stagingEnd > loaderAsset.bitmapAddress) {
-    throw new Error("Starfield staging overlaps loader source or bitmap destination");
+  for (const stream of starfieldSplit.streams) {
+    const stagingEnd = stream.address + stream.capacityBytes;
+    if (stream.address < loaderPackedEnd && stagingEnd > loaderPackedAddress ||
+      stream.address < loaderBitmapEnd && stagingEnd > loaderAsset.bitmapAddress ||
+      stagingEnd > 0xa000) {
+      throw new Error(`Starfield stream ${stream.id} staging overlaps loader source, bitmap destination or ROM`);
+    }
   }
   const residentMain = Buffer.from(
     linkedPayload.subarray(0, broadsideLoadAddress - loadAddress),
@@ -1128,15 +1215,14 @@ async function build() {
   }
   const packedStarfieldToPickupMarginBytes =
     weaponPickupColdStagingAddress - packedStarfieldEndAddress;
-  if (!(glueStagingAddress >= 0x7bd0 &&
-    glueStagingEndAddress <= starfieldStagingAddress + starfieldStagingBytes)) {
+  if (!(glueStagingAddress >= 0x7bd0 && glueStagingEndAddress <= heavyWindowAddress &&
+    glueStagingAddress >= starfieldStreamA.address + starfieldStreamA.capacityBytes)) {
     throw new Error(
-      `GLUE cold staging is outside the deferred starfield window: initial ends ` +
-      `$${initialPackedSourcesEnd.toString(16)}, ` +
+      `GLUE cold staging must lie above starfield stream A and below the Heavy window: ` +
       `GLUE is $${glueStagingAddress.toString(16)}-$${
         (glueStagingAddress + glueModule.raw.length - 1).toString(16)}, ` +
-      `starfield staging is $${starfieldStagingAddress.toString(16)}-$${
-        (starfieldStagingAddress + starfieldStagingBytes - 1).toString(16)}`,
+      `stream A staging is $${starfieldStreamA.address.toString(16)}-$${
+        (starfieldStreamA.address + starfieldStreamA.capacityBytes - 1).toString(16)}`,
     );
   }
   const entitySourceOverlapsStaging =
@@ -1184,16 +1270,20 @@ async function build() {
     pickupPackedSizeOperand - loadAddress,
   );
   residentMain.writeUInt16LE(
-    broadsidePackedSourceAddress,
-    broadsidePackedSourceOperand - loadAddress,
-  );
-  residentMain.writeUInt16LE(
     packedStarfieldAddress,
     starfieldPackedSourceOperand - loadAddress,
   );
   residentMain.writeUInt16LE(
-    packedStarfieldRuntime.length,
+    starfieldStreamA.packed.length,
     starfieldPackedSizeOperand - loadAddress,
+  );
+  residentMain.writeUInt16LE(
+    packedStarfieldAddress + starfieldStreamA.packed.length,
+    starfieldPackedSourceBOperand - loadAddress,
+  );
+  residentMain.writeUInt16LE(
+    starfieldStreamB.packed.length,
+    starfieldPackedSizeBOperand - loadAddress,
   );
   residentMain.writeUInt16LE(
     a2KernelSourceAddress,
@@ -1733,9 +1823,17 @@ async function build() {
           owner: "HYBRID_C_HEAVY",
           stagingAddress: heavyWindowStagingAddress,
           stagingEndExclusive: heavyWindowStagingAddress + heavyWindowCapacityBytes,
-          holdAddress: heavyWindowHoldAddress,
-          transport: "tail of the low-C LZ record, copied to the ring hold before " +
-            "starfield staging and published after starfield expansion",
+          holdAddress: null,
+          publishCopy: {
+            sourceAddress: heavyWindowStagingAddress,
+            destinationAddress: heavyWindowAddress,
+            bytes: heavyWindowCapacityBytes,
+            direction: "ascending; destination below the overlapping source",
+            site: "publish_director_abi tail-jump to hybrid_c_heavy_publish",
+          },
+          transport: "tail of the low-C LZ record, copied once from $7E38 down to $7E12 " +
+            "at the end of publish_director_abi; starfield staging no longer covers " +
+            "the window (4.5M-M1), so there is no hold and no post-loader publish",
           lowRecordRawBytes: low.transportData.length,
           lowRecordPackedBytes: low.transportPacked.length,
           lowCodeOnlyPackedBytes: low.packed.length,
@@ -1809,7 +1907,40 @@ async function build() {
       packedSourceToPickupMarginBytes: packedStarfieldToPickupMarginBytes,
       stagingAddress: starfieldStagingAddress,
       stagingBytes: starfieldStagingBytes,
-      compression: "LZ-10/5",
+      compression: "LZ-10/5, two independent streams expanded into one continuous destination",
+      rawSplitOffset: starfieldSplit.rawSplitOffset,
+      singleStreamPackedBytes: starfieldSplit.singleStreamPackedBytes,
+      splitOverheadBytes: packedStarfieldRuntime.length - starfieldSplit.singleStreamPackedBytes,
+      streams: starfieldSplit.streams.map((stream, index) => ({
+        id: stream.id,
+        rawOffset: stream.rawOffset,
+        rawBytes: stream.rawBytes,
+        packedBytes: stream.packed.length,
+        packedSourceAddress: packedStarfieldAddress + starfieldSplit.streams.slice(0, index)
+          .reduce((sum, earlier) => sum + earlier.packed.length, 0),
+        stagingAddress: stream.address,
+        stagingCapacityBytes: stream.capacityBytes,
+        stagingEndExclusive: stream.address + stream.capacityBytes,
+        idleWindowEndExclusive: stream.idleWindowEndExclusive,
+        copy: "one resident 960-B pause-screen copy (copy_pause_screen), exact window, no spill",
+        stagedEndExclusive: stream.address + stream.packed.length,
+        marginBytes: stream.capacityBytes - stream.packed.length,
+      })),
+      packedTotalGate: {
+        baselineBytes: starfieldPackedTotalBaselineBytes,
+        correctionGateBytes: starfieldPackedTotalCorrectionGateBytes,
+        hardGateBytes: starfieldPackedTotalHardGateBytes,
+        actualBytes: packedStarfieldRuntime.length,
+        hardGateMarginBytes: starfieldPackedTotalHardGateBytes - packedStarfieldRuntime.length,
+        supersedes: {
+          singleStreamCorrectionGateBytes: starfieldSingleStreamCorrectionGateBytes,
+          singleStreamHardStagingBytes: starfieldSingleStreamHardStagingBytes,
+          singleStreamPackedBytesAtSwap: starfieldSingleStreamPackedBytesAtSwap,
+          note: "4.5M-M1 keeps the single-stream content headroom (+14 B to the hard gate, " +
+            "-7 B to the open correction-gate decision) on top of the measured two-stream " +
+            "total; the staging windows (960 + 1,032 B) are physical limits, not a budget",
+        },
+      },
     },
     a2Kernel: {
       loadAddress: a2KernelLoadAddress,
@@ -2472,6 +2603,10 @@ async function build() {
     capitalPlayerCollisionModule.packed);
   writeFile(path.join(buildDirectory, "starfield-runtime.bin"), starfieldRuntime);
   writeFile(path.join(buildDirectory, "starfield-runtime-packed.bin"), packedStarfieldRuntime);
+  for (const stream of starfieldSplit.streams) {
+    writeFile(path.join(buildDirectory,
+      `starfield-runtime-packed-${stream.id.toLowerCase()}.bin`), stream.packed);
+  }
   writeFile(path.join(buildDirectory, "a2-kernel-runtime.bin"), a2KernelRuntime);
   writeFile(path.join(buildDirectory, "entity-code-runtime.bin"), entityCodeRuntime);
   writeFile(path.join(buildDirectory, "entity-code-runtime-packed.bin"), packedEntityCodeRuntime);

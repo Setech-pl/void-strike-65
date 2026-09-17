@@ -19,8 +19,8 @@ const SAFE_EXTENSION_RANGES = Object.freeze([
   [0x7810, 0x7bd0],
   // GLUE, ABI and low-C cold staging. Since roadmap 4.5a the low-C record also
   // carries the Heavy window image to $7F2A: the A2 display lists at $7F10 are
-  // built only at gameplay init, long after that image is held, and A2 cold
-  // staging begins at $7F2B.
+  // built only at gameplay init, long after that image is published in place
+  // ($7E38 -> $7E12, roadmap 4.5M-M1), and A2 cold staging begins at $7F2B.
   [0x7bd0, 0x7f2b],
   [0x7fdb, 0x8000], [0x8130, 0x9000], [0x90cf, 0x9100], [0x992a, 0xa000],
 ]);

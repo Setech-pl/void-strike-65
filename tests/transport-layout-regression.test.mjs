@@ -120,9 +120,12 @@ test("packed startup and relocated GLUE have pairwise-safe real lifetimes", () =
     interval(0x8c80, pickup.length, 0, 3, "pickup external staging"),
     interval(0x4801, pickup.length, 3, 11, "pickup holding"),
     interval(glueStart, glue.length, 0, 8, "GLUE staging"),
-    interval(0x8300, glue.length, 8, 14, "GLUE holding"),
+    interval(0x8100, glue.length, 8, 14, "GLUE holding"),
     interval(0x4efe, glue.length, 14, 14, "GLUE runtime"),
-    interval(0x7810, build.starfieldPacked.length, 9, 13, "starfield staging"),
+    // 4.5M-M1: two exact 960-byte staging windows, A below the GLUE cold
+    // record and B behind the $8100 GLUE hold.
+    interval(0x7810, 0x3c0, 9, 13, "starfield staging A"),
+    interval(0x81fa, 0x3c0, 9, 13, "starfield staging B"),
     interval(0x21c1, 0x1e3f, 5, 14, "resident runtime suffix"),
     interval(0x9100, 3184, 6, 14, "ENTITY_CODE runtime"),
     interval(0x4010, 7680, 12, 12, "loader bitmap destination"),
@@ -145,7 +148,7 @@ test("packed startup and relocated GLUE have pairwise-safe real lifetimes", () =
   assert.match(source,
     /stage_boot_streams:[\s\S]+lda #\$05[\s\S]+stage_boot_stream_record:[\s\S]+beq @prepared_starfield/);
   assert.match(source,
-    /stage_glue_holding:[\s\S]+jmp stage_starfield_stream[\s\S]+stage_starfield_stream:[\s\S]+jsr copy_pause_screen\s+jsr copy_pause_screen\s+jmp copy_pause_screen/,
+    /stage_starfield_stream:\s+jsr copy_pause_screen\s+lda starfield_packed_source_b[\s\S]+jmp copy_pause_screen[\s\S]+stage_glue_holding:[\s\S]+jmp stage_starfield_stream/,
     "starfield staging must follow the complete GLUE hold");
 
   assert.ok(entitySource <= 0x5318, "backward staging must not begin below its source");
@@ -158,7 +161,7 @@ test("packed startup and relocated GLUE have pairwise-safe real lifetimes", () =
     for (const range of [
       [0x8100, build.residentPacked], [0x5318, build.entityPacked],
       [0x7f2b, build.a2], [0x8c80, pickup], [glueStart, glue],
-      [0x8300, glue], [0x7810, build.starfieldPacked], [0x9d75, director],
+      [0x8100, glue], [0x7810, build.starfieldPacked], [0x9d75, director],
     ]) writeWithSentinels(fill, range[0], range[1]);
   }
 

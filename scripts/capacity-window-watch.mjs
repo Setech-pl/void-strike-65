@@ -1,4 +1,5 @@
-// Steps 4.3 and 4.5a native write-watch proof for reusable resident capacity.
+// Steps 4.3, 4.5a and 4.5M-M1 native write-watch proof for reusable resident
+// capacity and boot-only staging.
 //
 // Builds a private Atari800 7.1.2 copy with scripts/atari800-capacity-watch.h
 // and runs the current dist XEX and ATR through cold start, OPTIONS, BACK,
@@ -8,14 +9,24 @@
 // publication to the end of the lifecycle) against their last observed bytes.
 //
 //   node scripts/capacity-window-watch.mjs [--atari800-source=DIR]
-//     [--hold=0x8300] [--hold-bytes=250] [--window=0x8602] [--window-bytes=248]
+//     [--hold=0x8100] [--hold-bytes=250] [--window=0x8602] [--window-bytes=248]
 //     [--expect-hold-is-glue] [--expect-window-is-hold] [--expect-window-bin=FILE]
-//     [--inject=0xSTART:BYTES] [--output=FILE]
+//     [--inject=0xSTART:BYTES] [--window-from=LABEL]
+//     [--stage=0xSTART:BYTES]... [--stage-done=LABEL] [--stage-consumed=LABEL]
+//     [--expect-stage-bins=FILE[,FILE...]] [--expect-range-bin=0xSTART:FILE]
+//     [--output=FILE]
 //
-// 4.5a Heavy window: --hold=0x8400 --hold-bytes=243 --window=0x7e12
-// --window-bytes=243 --expect-window-is-hold --inject=0x7e38:243 writes a
+// 4.5a/4.5M-M1 Heavy window: --window=0x7e12 --window-bytes=243
+// --inject=0x7e38:243 --window-from=layout_d_entity_unpack_complete writes a
 // deterministic non-zero pattern over the staged image when publish_director_abi
-// starts, so the full capacity must cross both boot copies byte-exactly.
+// starts, so the full capacity must cross the single ascending publish copy
+// byte-exactly and stay untouched from that label to the end of the lifecycle.
+// 4.5M-M1 starfield streams: --stage=0x7810:915 --stage=0x81fa:896
+// --expect-stage-bins=build/starfield-runtime-packed-a.bin,build/starfield-runtime-packed-b.bin
+// --expect-range-bin=0x54e4:build/starfield-runtime.bin proves that each staged
+// stream is byte-exact and receives no write between the staging copies
+// (init_entity_effects) and the decoder (unpack_starfield_runtime), and that
+// the decoded STARFIELD equals the linked runtime image at GLUE publication.
 // Every session must also enter and complete at least one capital sector.
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -89,7 +100,7 @@ function hex(value) {
 function main() {
   const sourceDirectory = path.resolve(argumentValue("atari800-source") ??
     process.env.ATARI800_TRACE_SOURCE ?? "/tmp/atari800-7.1.2");
-  const holdStart = Number(argumentValue("hold") ?? 0x8300);
+  const holdStart = Number(argumentValue("hold") ?? 0x8100);
   const windowStart = Number(argumentValue("window") ?? 0x8602);
   const windowBytes = Number(argumentValue("window-bytes") ?? 248);
   const holdBytes = Number(argumentValue("hold-bytes") ?? GLUE_BYTES);
@@ -104,6 +115,32 @@ function main() {
       pattern: Buffer.from(Array.from({ length: bytes }, (_, index) => (index * 37 + 0x5b) & 0xff)) };
   })();
   const expectWindowPath = argumentValue("expect-window-bin");
+  const windowFromLabel = argumentValue("window-from");
+  const stageArguments = process.argv.filter((argument) => argument.startsWith("--stage="))
+    .map((argument) => argument.slice("--stage=".length));
+  const stages = stageArguments.map((argument) => {
+    const [start, bytes] = argument.split(":").map(Number);
+    invariant(Number.isInteger(start) && Number.isInteger(bytes) && bytes > 0 && bytes <= 1032,
+      `invalid --stage=${argument}`);
+    return { start, bytes };
+  });
+  invariant(stages.length <= 3, "at most three --stage ranges");
+  const stageDoneLabel = argumentValue("stage-done") ?? "init_entity_effects";
+  const stageConsumedLabel = argumentValue("stage-consumed") ?? "unpack_starfield_runtime";
+  const expectStagePaths = argumentValue("expect-stage-bins")?.split(",") ?? [];
+  invariant(expectStagePaths.length === 0 || expectStagePaths.length === stages.length,
+    "--expect-stage-bins needs one file per --stage");
+  const expectedStages = expectStagePaths.map((file) => fs.readFileSync(path.resolve(file)));
+  const expectRangeArgument = argumentValue("expect-range-bin");
+  const expectedRange = expectRangeArgument === undefined ? null : (() => {
+    const separator = expectRangeArgument.indexOf(":");
+    const start = Number(expectRangeArgument.slice(0, separator));
+    const file = expectRangeArgument.slice(separator + 1);
+    const bytes = fs.readFileSync(path.resolve(file));
+    invariant(Number.isInteger(start) && bytes.length > 0 && bytes.length <= 4096,
+      `invalid --expect-range-bin=${expectRangeArgument}`);
+    return { start, bytes, file };
+  })();
   const outputPath = path.resolve(argumentValue("output") ??
     path.join(buildDirectory, "capacity-window-watch.json"));
   const expectedWindow = expectWindowPath === undefined ? null :
@@ -142,6 +179,20 @@ function main() {
     DFCAP_GLUE_FINAL: hex(GLUE_FINAL),
     DFCAP_WINDOW_START: hex(windowStart),
     DFCAP_WINDOW_BYTES: String(windowBytes),
+    ...(windowFromLabel === undefined ? {} : { DFCAP_PC_WINDOW_FROM: label(windowFromLabel) }),
+    ...(stages.length === 0 ? {} : {
+      DFCAP_STAGE_COUNT: String(stages.length),
+      ...Object.fromEntries(stages.flatMap(({ start, bytes }, index) => [
+        [`DFCAP_STAGE${index}_START`, hex(start)],
+        [`DFCAP_STAGE${index}_BYTES`, String(bytes)],
+      ])),
+      DFCAP_PC_STAGE_DONE: label(stageDoneLabel),
+      DFCAP_PC_STAGE_CONSUMED: label(stageConsumedLabel),
+    }),
+    ...(expectedRange === null ? {} : {
+      DFCAP_RANGE_START: hex(expectedRange.start),
+      DFCAP_RANGE_BYTES: String(expectedRange.bytes.length),
+    }),
   };
   const clockNames = ["start", "publish_director_abi", "layout_d_entity_unpack_complete",
     "unpack_weapon_pickup_phase_runtime", "layout_d_glue_holding_complete", "show_loader",
@@ -178,6 +229,20 @@ function main() {
         [clockNames[index], point.seen ? point.clock : null]));
       const holdWrites = raw.writes.filter((write) => write.range === "hold");
       const windowWrites = raw.writes.filter((write) => write.range === "window");
+      const stageWrites = stages.map((_, index) =>
+        raw.writes.filter((write) => write.range === `stage_${index}`));
+      const stageChecks = Object.fromEntries(stages.flatMap((stage, index) => {
+        const item = raw.stages.items[index];
+        const initial = Buffer.from(item.initial_hex, "hex");
+        return [
+          [`stage_${index}_observed`, raw.stages.seen === 1 && raw.stages.consumed_seen === 1],
+          [`stage_${index}_untouched_until_consumed`,
+            stageWrites[index].length === 0 && item.intact_at_consume === 1],
+          [`stage_${index}_matches_packed_stream`, expectedStages.length === 0 ? null :
+            initial.subarray(0, expectedStages[index].length).equals(expectedStages[index])],
+        ];
+      }));
+      const rangeBytes = expectedRange === null ? null : Buffer.from(raw.range.hex, "hex");
       const windowInitial = Buffer.from(raw.window.initial_hex, "hex");
       const windowFinal = Buffer.from(raw.window.final_hex, "hex");
       const holdInitial = Buffer.from(raw.hold.initial_hex, "hex");
@@ -190,7 +255,10 @@ function main() {
           raw.hold.window_matches_hold === 1 && windowInitial.subarray(0, holdBytes)
             .equals(holdInitial) : null,
         injection_applied: injection === null ? null : raw.injection.done === 1,
-        hold_carries_injected_pattern: injection === null ? null :
+        // The injected pattern crosses the hold only when the hold is the
+        // window's own hold (4.5a); since 4.5M-M1 the Heavy window is published
+        // directly and the watched hold is GLUE's.
+        hold_carries_injected_pattern: injection === null || !expectWindowIsHold ? null :
           holdInitial.subarray(0, injection.bytes).equals(injection.pattern),
         window_carries_injected_pattern: injection === null ? null :
           windowInitial.subarray(0, injection.bytes).equals(injection.pattern),
@@ -200,6 +268,9 @@ function main() {
           windowInitial.equals(windowFinal) && raw.writes_dropped === 0,
         window_matches_linked_image: expectedWindow === null ? null :
           windowInitial.subarray(0, expectedWindow.length).equals(expectedWindow),
+        ...stageChecks,
+        range_matches_expected_bin: expectedRange === null ? null :
+          raw.range.captured === 1 && rangeBytes.equals(expectedRange.bytes),
         options_entered: raw.lifecycle.options_entries >= 1,
         gameplay_entered_twice: raw.lifecycle.gameplay_entries >= 2,
         paused_twice: raw.lifecycle.pause_entries >= 2,
@@ -218,6 +289,16 @@ function main() {
         startup_cycles: {
           start_to_show_loader: clock.start !== null && clock.show_loader !== null ?
             clock.show_loader - clock.start : null,
+          start_to_starfield_unpack:
+            clock.start !== null && clock.unpack_starfield_runtime !== null ?
+              clock.unpack_starfield_runtime - clock.start : null,
+          starfield_unpack_to_publish_done:
+            clock.unpack_starfield_runtime !== null &&
+            clock.layout_d_glue_publish_complete !== null ?
+              clock.layout_d_glue_publish_complete - clock.unpack_starfield_runtime : null,
+          start_to_publish_done:
+            clock.start !== null && clock.layout_d_glue_publish_complete !== null ?
+              clock.layout_d_glue_publish_complete - clock.start : null,
           start_to_entity_unpack_complete:
             clock.start !== null && clock.layout_d_entity_unpack_complete !== null ?
               clock.layout_d_entity_unpack_complete - clock.start : null,
@@ -233,6 +314,7 @@ function main() {
         },
         hold_writes: holdWrites,
         window_writes: windowWrites,
+        stage_writes: stageWrites,
         checks,
       });
     }
@@ -246,7 +328,12 @@ function main() {
     hold: { start: hex(holdStart), bytes: holdBytes, expect_hold_is_glue: expectHoldIsGlue },
     expect_window_is_hold: expectWindowIsHold,
     injection: injection === null ? null : { start: hex(injection.start), bytes: injection.bytes },
-    window: { start: hex(windowStart), bytes: windowBytes },
+    window: { start: hex(windowStart), bytes: windowBytes, from_label: windowFromLabel ?? null },
+    stages: stages.map(({ start, bytes }, index) => ({ start: hex(start), bytes,
+      expected_file: expectStagePaths[index] ?? null, done_label: stageDoneLabel,
+      consumed_label: stageConsumedLabel })),
+    expected_range: expectedRange === null ? null :
+      { start: hex(expectedRange.start), bytes: expectedRange.bytes.length, file: expectedRange.file },
     passed,
     sessions,
   };
@@ -257,6 +344,7 @@ function main() {
       .filter(([, value]) => value === false).map(([name]) => name);
     console.log(`${session.id}: frames ${session.final_frame}, step ${session.final_step}, ` +
       `hold writes ${session.hold_writes.length}, window writes ${session.window_writes.length}, ` +
+      `stage writes ${session.stage_writes.map((writes) => writes.length).join("/") || "-"}, ` +
       `startup ${session.startup_cycles.start_to_show_loader} cycles` +
       (failed.length === 0 ? " PASS" : ` FAIL ${failed.join(",")}`));
   }

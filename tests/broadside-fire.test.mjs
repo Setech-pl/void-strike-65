@@ -557,10 +557,18 @@ test("packed resident broadside image round-trips before the loader and stays wi
   assert.ok(manifest.payloadBudget.entityEffectsFoundation.actualDeltaBytes <=
     manifest.payloadBudget.entityEffectsFoundation.approvedDeltaBytes);
   const starRuntime = fs.readFileSync(path.join(rootDirectory, "build", "starfield-runtime.bin"));
+  // 4.5M-M1: the packed image is two independent streams (A then B) that
+  // decode into one continuous runtime; the correction gate is 1,804 B (open
+  // owner decision carried over from the 1,798 B single-stream gate).
   const starPacked = fs.readFileSync(path.join(rootDirectory, "build", "starfield-runtime-packed.bin"));
-  assert.deepEqual(unpackBroadsideLzss(starPacked), starRuntime);
+  const [streamA, streamB] = manifest.starfieldRuntime.streams;
+  assert.deepEqual(Buffer.concat([
+    unpackBroadsideLzss(starPacked.subarray(0, streamA.packedBytes)),
+    unpackBroadsideLzss(starPacked.subarray(streamA.packedBytes)),
+  ]), starRuntime);
+  assert.equal(starPacked.length, streamA.packedBytes + streamB.packedBytes);
   assert.equal(starPacked.length, manifest.starfieldRuntime.packedBytes);
-  assert.ok(starPacked.length <= 0x706);
+  assert.ok(starPacked.length <= 1804);
   assert.match(routine("start", "broadside_unpack_command"),
     /jsr stage_boot_streams[\s\S]+boot_chunk_ready[\s\S]+jsr unpack_resident_runtime[\s\S]+jsr unpack_entity_runtime[\s\S]+jsr stage_a2_kernel[\s\S]+jsr init_entity_effects[\s\S]+jsr unpack_loader_bitmap[\s\S]+jsr show_loader[\s\S]+jsr unpack_starfield_runtime/);
   assert.match(routine("boot_stage2_atr_entry", "boot_stage2_xex_entry"),

@@ -233,7 +233,7 @@ C-owned lifecycle field.
 | `EnemyArchetype` RODATA (Raider + Light) | 24 | `$8C7D-$8C94`; 38 B `$8C7D-$8CA2` in the 4.4 candidate (Interceptor record + 2 B schedule table) |
 | lifecycle + Light CODE | 725 | `$8C95-$8F69` (`41ace65`); 485 B `$8C95-$8E79` at `b4b942e` after the sector C moved to the window below; 635 B `$8CA3-$8F1D` in the 4.4 candidate |
 | sector transition C (`sector_c_*`, step 4.3) | 240 | `$8602-$86F1` (`HYBRID_C_SECTOR_RAM`, 8 B free) |
-| Heavy-class C window (`HYBRID_C_HEAVY`, roadmap 4.5a candidate) | 0 of 243 | `$7E12-$7F04`; image in the low-C record at `$7E38`, held at `$8400`, published after starfield expansion by two boot copies in the bootstrap-prefix padding (see memory-map) |
+| Heavy-class C window (`HYBRID_C_HEAVY`, roadmap 4.5a candidate) | 0 of 243 | `$7E12-$7F04`; image in the low-C record at `$7E38`; since the 4.5M-M1 candidate published once by an ascending copy `$7E38 → $7E12` at the end of `publish_director_abi` (the `$8400` hold and the post-loader publish are retired because starfield staging no longer covers `$7BD0-$7F2A`; see memory-map) |
 | Light ASM `LIGHT_CODE` (late publication: erase, render) | 133 | `$8F6A-$8FEE` (`41ace65`); 203 B `$8E7A-$8F44` at `b4b942e` with the debris late-publication kernel; same 203 B at `$8F1E-$8FE8` in the 4.4 candidate, 23 B tail |
 | Light ASM `LIGHT_RESIDENT` (update, shot, kill, glyph) | 226 | `$8776-$8857`; 229 B `$8776-$885A` in the 4.4 candidate (`ldx LIGHT_ARCHETYPE_OFFSET`); 225 B `$8776-$8856` in the 4.4b candidate (art moved out, archetype art selection added) |
 | Light ASM art tables (Wingman + Interceptor, ENTITY_CODE tail, 4.4b candidate) | 32 | `$9D31-$9D50` |

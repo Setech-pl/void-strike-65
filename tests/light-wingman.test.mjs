@@ -109,7 +109,9 @@ test("Light kernel placement is legal, resident and inside every reviewed gate",
   assert.equal(extension.runAddress + extension.bytes, light.extensionTailRunAddress +
     light.extensionTailBytes, "LIGHT_CODE is the tail of the extension composite");
   assert.ok(extension.packedBytes <= 960, "late-compressed extension cold staging limit");
-  assert.ok(manifest.starfieldRuntime.packedBytes <= 0x706, "starfield correction gate");
+  // 4.5M-M1: the 1,798 B single-stream correction gate (open owner decision,
+  // 7 B over) becomes 1,804 B for the two-stream total (same content headroom).
+  assert.ok(manifest.starfieldRuntime.packedBytes <= 1804, "starfield correction gate");
   assert.ok(L("light_starfield_end") <= L("hud_booster_backing"));
   // 93 B before the early-frame pickup PMG erase was removed from
   // entity_effects_erase (96 B); 107 B after the debris late publication

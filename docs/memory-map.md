@@ -257,6 +257,72 @@ BROADSIDE packs to 5,666 B (+4 B); transport stays 178 sectors and the XEX
 page, PMG, DLI and charset ranges are unchanged; hostile codes now span
 `$DA-$E6`.
 
+## Roadmap 4.5M-M1 starfield staging swap — OWNER-SMOKE CANDIDATE (2026-09-17)
+
+Measured on top of `9547bf0` (the 4.5b candidate). Boot and lifetime change
+only: no gameplay, runtime-map, PMG, DLI, collision, GLUE/ABI/low-C/extension/
+A2/pickup or ENTITY-order change; linked runtime 17,502 B, simultaneous
+residency 19,493 B and safe residency 2,694 B are unchanged. These rows
+override the boot-time rows above for this candidate only.
+
+| Range | Size | Candidate owner (boot time) |
+| --- | ---: | --- |
+| `$40C9-$445B` | 915 B | packed STARFIELD stream A (raw bytes 0-984) in the initial block; staged at `$7810` |
+| `$445C-$47DB` | 896 B | packed STARFIELD stream B (raw bytes 985-2223) in the initial block; staged at `$81FA`; 37 B before the pickup cold copy at `$4801` |
+| `$7810-$7BCF` | 960 B | starfield stream A staging window (one exact `copy_pause_screen` copy, 915 B used, 45 B margin); the consumed extension cold source; ends below the GLUE cold record at `$7BD0` |
+| `$7BD0-$7F2A` | 859 B | **no longer touched by starfield staging**: GLUE/ABI/low-C cold records and the Heavy image stay in place until their own publication |
+| `$7E38-$7F2A` | 243 B | cold `HYBRID_C_HEAVY` image (unchanged); published once by `hybrid_c_heavy_publish`, an ascending copy to `$7E12-$7F04` (destination below the overlapping source) at the end of `publish_director_abi` |
+| `$8100-$81F9` | 250 B | boot-only GLUE hold (moved from `$8300`): the head of the consumed resident staging interval (C Light state, profile cache, unowned bytes and ring rows 0-2), idle until gameplay init rewrites it |
+| `$81FA-$85B9` | 960 B | starfield stream B staging window (one exact `copy_pause_screen` copy, 896 B used, 64 B margin) in idle ring/table RAM behind the GLUE hold; the idle range continues to `$8601` |
+| `$8400-$84F2` | — | former boot-only Heavy hold: **retired** |
+| `$7F2B-$81CF` | — | former three-copy starfield spill past the Heavy staging, over A2 staging and the ring head: **gone** |
+| `$217C-$2193` | 24 B | `stage_starfield_stream` in the bootstrap prefix (replaces the retired pre-DFMC `unpack_boot_broadside_runtime`, 27 B): stream A copy from the record `stage_boot_streams` prepared, stream B copy from `starfield_packed_source_b` |
+| `$20B6-$20D9` | 36 B | `unpack_starfield_runtime`: expands stream A from `$7810`, then stream B from `$81FA`, into the one continuous `$54E4` destination |
+| `$20DA-$20FD` | 36 B | `boot_stage_streams` table, six records (the two starfield records are the deferred ones) |
+| `$21AD-$21BA` | 14 B | `hybrid_c_heavy_publish` (the former `hybrid_c_heavy_hold` copy retargeted); the 17 B post-loader publish copy is retired |
+| `$21BE-$21C0` | 3 B | remaining zero padding of the fixed `$01A3` bootstrap prefix (2 B before) |
+| `$9495-$94A3` | 15 B | `.res` in ENTITY_CODE where the three pause-screen copies stood; every later ENTITY entry point keeps its address |
+
+Boot order (unchanged except where noted): `stage_boot_streams` copies A2,
+ENTITY, pickup and resident and prepares the stream A record;
+`unpack_resident_runtime`; `unpack_entity_runtime`; `publish_director_abi`
+(ABI, low C, extension) now tail-jumps to the single Heavy publish copy;
+`stage_a2_kernel`; `stage_glue_holding` (to `$8100`) tail-jumps to
+`stage_starfield_stream` (two exact 960-B copies); `init_entity_effects`;
+pickup unpack; loader bitmap; `show_loader`; `unpack_starfield_runtime` (A, then
+B, one destination); `layout_d_publish_glue`. The table-driven boot copier
+`copy_boot_stream_backward` is stage-2 overlay code at `$21C1` that the
+resident suffix replaces at step 2, which is why the deferred copies use the
+resident `copy_pause_screen` (HEAD used it too, three times with a spill to
+`$81CF`).
+
+Packed STARFIELD representation: single stream 1,805 B → two independent
+LZ-10/5 streams 915 + 896 = **1,811 B** (raw split at offset 985, chosen by
+`scripts/build.mjs` as the smallest packed total among 16-byte-step cuts below
+the largest stream-A prefix that fits 960 B; +6 B split overhead). The build
+enforces A ≤ 960 B and B ≤ 960 B (physical copy windows) and a separate
+reviewed total: baseline 1,811 B, hard gate **1,825 B** (= 1,819 − 1,805 + 1,811,
+the same 14 B content headroom the single stream had), correction gate 1,804 B
+(the open owner decision on the 1,798 B gate carried over unchanged, still 7 B
+over). The single-stream gates 1,798 / 1,819 B are **superseded**, not
+deleted; the two 960-B windows are not a content budget. Manifest:
+`starfieldRuntime.streams`, `starfieldRuntime.packedTotalGate`.
+
+Transport: initial content 13,166 → **13,162 B**, envelope 18 → 22 B, still
+103 boot sectors and 178 transport sectors (ATR menu deadline 546 unchanged);
+the eight DFMC records are unchanged. XEX 23,104 B. Reusable free capacity:
+bootstrap-prefix padding 2 → 3 B; `HYBRID_C_HEAVY` 243 B, `HYBRID_C_EXT` 21 B,
+`HYBRID_C_SECTOR` 8 B, ENTITY_CODE 13 B, A2 18 B and pickup fill 11 B
+unchanged. The cold `$7BD0-$7F0F` range is now free of every starfield write,
+which is the precondition for M2/M3 (direct-landing arena).
+
+Asserts (`src/main.s`): A ≥ BROADSIDE reservation end and A end ≤ `$7BD0`;
+B ≥ GLUE hold end and B end ≤ `$8602`; both stream windows equal one
+pause-screen copy; GLUE hold ≥ `$8100` and below stream B; Heavy window below
+its staging (ascending copy) and above stream A; Heavy window and staging
+limits as in 4.5a. Evidence:
+[diagnostics/stage-2b2k-starfield-staging-swap.json](diagnostics/stage-2b2k-starfield-staging-swap.json).
+
 ## Blocked-experiment evidence — not part of this map
 
 The 2026-09-16 Interceptor experiment (`BLOCKED_PLACEMENT`) measured additional

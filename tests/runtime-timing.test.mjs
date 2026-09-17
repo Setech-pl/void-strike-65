@@ -141,8 +141,11 @@ test("hybrid ring reservation fits after staging and before entity/effects RAM",
   for (const match of source.matchAll(/^([A-Z][A-Z0-9_]*)\s*=\s*\$([0-9A-F]+)$/gmi)) {
     constants.set(match[1], Number.parseInt(match[2], 16));
   }
+  // 4.5M-M1: two 960-byte staging streams replace the single 1,819-byte window.
   assert.equal(constants.get("STARFIELD_STAGING"), 0x7810);
-  assert.equal(constants.get("STARFIELD_STAGING_BYTES"), 0x071b);
+  assert.equal(constants.get("STARFIELD_STAGING_BYTES"), 0x03c0);
+  assert.equal(constants.get("STARFIELD_STAGING_B"), 0x81fa);
+  assert.equal(constants.get("STARFIELD_STAGING_B_BYTES"), 0x03c0);
   assert.match(source, /PLAYFIELD_RING_ROWS\s*=\s*GAMEPLAY_SCREEN_ROWS-1/);
   assert.match(source, /PLAYFIELD_DLIST_BYTES\s*=\s*3\+3\+PLAYFIELD_RING_ROWS\*3\+3/);
   assert.match(source, /PLAYFIELD_DLIST_A\s*=\s*\$7F10/);

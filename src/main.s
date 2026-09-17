@@ -135,8 +135,15 @@ NMIEN       = $D40E
 ; Reserved RAM
 
 PMG_BASE    = $3800
+; Roadmap 4.5M-M1: the packed starfield is staged as two independent LZ
+; streams. Stream A reuses the consumed extension cold source below the GLUE
+; cold record; stream B uses idle boot-time RAM after the GLUE hold, inside the
+; resident staging interval that unpack_resident_runtime has consumed and that
+; nothing writes before gameplay init. Neither stream touches $7BD0-$7F2A.
 STARFIELD_STAGING = $7810
-STARFIELD_STAGING_BYTES = $071B
+STARFIELD_STAGING_BYTES = $03C0
+STARFIELD_STAGING_B = $81FA
+STARFIELD_STAGING_B_BYTES = $03C0
 BOOT_A2_STAGING = $7F2B
 PACKED_RESIDENT_STAGING = $8100
 PAUSE_SCREEN_BACKUP = STARFIELD_STAGING
@@ -1064,11 +1071,7 @@ layout_d_glue_holding_complete:
     sta game_state
     jsr unpack_loader_bitmap
     jsr show_loader
-    .if DIRECTOR_ABI_BYTES > 0
-    jsr hybrid_c_heavy_publish    ; expands the starfield, then the Heavy window
-    .else
     jsr unpack_starfield_runtime
-    .endif
     jmp layout_d_publish_glue
 
 broadside_unpack_command:
@@ -1122,6 +1125,9 @@ broadside_match_source:
 broadside_unpack_done:
     rts
 
+; Two independent LZ streams expand into one continuous destination: the
+; decoder's write operand simply carries on after stream A's terminator, so the
+; runtime image is byte-identical to the single-stream build/starfield-runtime.bin.
 unpack_starfield_runtime:
     lda #<STARFIELD_STAGING
     sta broadside_read_source+1
@@ -1131,6 +1137,11 @@ unpack_starfield_runtime:
     sta broadside_destination+1
     lda #>__STARFIELD_RUN__
     sta broadside_destination+2
+    jsr broadside_unpack_command
+    lda #<STARFIELD_STAGING_B
+    sta broadside_read_source+1
+    lda #>STARFIELD_STAGING_B
+    sta broadside_read_source+2
     jmp broadside_unpack_command
 
 ; Patched by scripts/build.mjs. A2 and ENTITY_CODE are preserved before the
@@ -1138,8 +1149,9 @@ unpack_starfield_runtime:
 ; workspace through $4EFD; those maps are rebuilt after the loader. The
 ; pickup copy must precede resident staging at $8100, whose maximum write would
 ; otherwise destroy the temporary packed source at $8C80. The first four
-; records run before resident/entity expansion. The starfield record runs only
-; after GLUE has left its cold $7BD0 staging interval for the $8300 hold.
+; records run before resident/entity expansion. The two starfield records run
+; only after GLUE has left its cold $7BD0 staging interval for the $8100 hold
+; and A2 has been published from $7F2B.
 boot_stage_streams:
 a2_kernel_source:
     .word $FFFF
@@ -1165,6 +1177,11 @@ starfield_packed_source:
     .word $FFFF
     .word STARFIELD_STAGING
 starfield_packed_size:
+    .word $FFFF
+starfield_packed_source_b:
+    .word $FFFF
+    .word STARFIELD_STAGING_B
+starfield_packed_size_b:
     .word $FFFF
 boot_stage_streams_end:
 
@@ -1225,20 +1242,6 @@ stage_a2_kernel:
     bne @copy_a2
     jmp stage_glue_holding
 
-broadside_packed_source:
-    .word $FFFF
-
-unpack_boot_broadside_runtime:
-    lda broadside_packed_source
-    sta broadside_read_source+1
-    lda broadside_packed_source+1
-    sta broadside_read_source+2
-    lda #<__BROADSIDE_RUN__
-    sta broadside_destination+1
-    lda #>__BROADSIDE_RUN__
-    sta broadside_destination+2
-    jmp broadside_unpack_command
-
 unpack_resident_runtime:
     lda #<PACKED_RESIDENT_STAGING
     sta broadside_read_source+1
@@ -1264,6 +1267,28 @@ unpack_entity_runtime:
     lda #>__ENTITY_CODE_RUN__
     sta broadside_destination+2
     jmp broadside_unpack_command
+
+; Deferred starfield staging (roadmap 4.5M-M1). The table-driven boot copier
+; is stage-2 overlay code at $21C1 that the resident suffix replaces at
+; unpack_resident_runtime, so the two deferred records use the resident 960-byte
+; pause-screen copy instead: one exact-window copy per stream, no spill. Stream
+; A copies from the record that stage_boot_streams prepared in src_ptr/dst_ptr
+; (its source and $7810 destination); stream B reloads its patched source from
+; the table and lands at $81FA behind the GLUE hold. Reached through
+; stage_a2_kernel -> stage_glue_holding after A2 has been published; this
+; routine replaced the retired pre-DFMC boot BROADSIDE unpack, so the fixed
+; bootstrap prefix keeps its size.
+stage_starfield_stream:
+    jsr copy_pause_screen
+    lda starfield_packed_source_b
+    sta src_ptr
+    lda starfield_packed_source_b+1
+    sta src_ptr+1
+    lda #<STARFIELD_STAGING_B
+    sta dst_ptr
+    lda #>STARFIELD_STAGING_B
+    sta dst_ptr+1
+    jmp copy_pause_screen
 
 .assert __A2_KERNEL_SIZE__ > 0, error, "A2 kernel must not be empty"
 .assert __A2_KERNEL_SIZE__ < $0100, error, "A2 kernel copy loop is limited to 255 bytes"
@@ -1298,28 +1323,18 @@ boot_chunk_ready:
     .byte $00
 
 .if DIRECTOR_ABI_BYTES > 0
-; Reusable resident window HYBRID_C_HEAVY (roadmap 4.5a). These two copies use
-; the zero padding of the fixed bootstrap prefix, so neither the prefix size nor
-; the initial block grows. The low-C record lands the window image at
-; HYBRID_C_HEAVY_STAGING, inside the future starfield staging copies; after the
-; low C has been published, the image moves to idle ring RAM (the GLUE hold
-; precedent) and returns to its runtime window once the starfield has expanded
-; out of $7810-$81CF. Both copies always move the full capacity.
-hybrid_c_heavy_hold:
+; Reusable resident window HYBRID_C_HEAVY (roadmap 4.5a; direct publication
+; since 4.5M-M1). The low-C record lands the window image at
+; HYBRID_C_HEAVY_STAGING; once the low C has been published this single copy
+; moves the full capacity down to its runtime window. Starfield staging no
+; longer covers $7BD0-$7F2A, so no hold and no later publish are needed. The
+; intervals overlap ($7E38-$7F04) and the destination lies below the source, so
+; an ascending copy reads every byte before it can be overwritten. The copy
+; sits in the zero padding of the fixed bootstrap prefix.
+hybrid_c_heavy_publish:
     ldy #$00
 @copy:
     lda HYBRID_C_HEAVY_STAGING,y
-    sta HYBRID_C_HEAVY_HOLD,y
-    iny
-    cpy #HYBRID_C_HEAVY_CAPACITY
-    bne @copy
-    rts
-
-hybrid_c_heavy_publish:
-    jsr unpack_starfield_runtime
-    ldy #$00
-@copy:
-    lda HYBRID_C_HEAVY_HOLD,y
     sta HYBRID_C_HEAVY_RUNTIME,y
     iny
     cpy #HYBRID_C_HEAVY_CAPACITY
@@ -1339,8 +1354,8 @@ hostile_weapon_step_masks:
 resident_runtime_suffix:
 stage_glue_holding:
     ; 250 backward indices are equivalent to 250 forward indices offset by
-    ; six. A2 has already been published when this tail-calls the deferred
-    ; starfield staging record, whose three copies may overwrite A2 staging.
+    ; six. A2 has already been published when this tail-calls the two deferred
+    ; starfield staging records; neither of them reaches A2 staging or the hold.
     ldy #$06
 @hold_glue:
     lda LAYOUT_D_GLUE_STAGING-$06,y
@@ -1374,7 +1389,7 @@ publish_director_abi:
     lda #>HYBRID_C_EXT_RUNTIME
     sta broadside_destination+2
     jsr broadside_unpack_command
-    jmp hybrid_c_heavy_hold     ; same three bytes as the former rts and pad
+    jmp hybrid_c_heavy_publish  ; same three bytes as the former rts and pad
     .assert HYBRID_C_EXT_BYTES > 0, error, "hybrid lifecycle extension must not be empty"
     .assert HYBRID_C_EXT_BYTES <= $383, error, "hybrid lifecycle extension exceeds $8C7D-$8FFF"
 .endif
@@ -6952,17 +6967,11 @@ select_interceptor_request_phase:
 @done:
     rts
 
-; GLUE occupies the high half of the cold starfield staging window until the
-; resident and entity streams have been consumed. Three existing 960-byte
-; screen copies advance by $300 each and overlap by $C0, covering the complete
-; packed starfield stream. The bounded excess ends at $81CF: A2 has already
-; been published, resident staging has been consumed, and ENTITY_STATE is
-; cleared immediately after this boot-only copy.
-stage_starfield_stream:
-    jsr copy_pause_screen
-    jsr copy_pause_screen
-    jmp copy_pause_screen
-    .res $06                    ; keep following reviewed ENTITY entry points
+; The deferred starfield staging moved to the bootstrap prefix in roadmap
+; 4.5M-M1 (stage_starfield_stream, two exact-window copies). These 15 bytes
+; held the former three 960-byte screen copies and their pad; they stay
+; reserved so every following reviewed ENTITY entry point keeps its address.
+    .res $0F
 
 ; All module and prow boundaries leave this inner corridor open. Carry set is
 ; therefore a complete proof that the player cannot contact either capital
@@ -11395,23 +11404,35 @@ CHUNK_STAGING_SECTORS_MAX = 50
 LAYOUT_D_GLUE_STAGING = $7BD0
 LAYOUT_D_GLUE_FINAL = $4EFE
 ; Resident staging has been consumed before stage_a2_kernel reaches the GLUE
-; hold. The hold uses gameplay-ring RAM, which no boot step touches: starfield
-; staging ends below it, and init_screen rebuilds every ring row before the
-; first gameplay read. It survives the loader bitmap, entity clear and starfield
-; expansion until the final publication below $5000.
-LAYOUT_D_GLUE_HOLDING = $8300
+; hold. The hold uses idle boot-time RAM at the start of the consumed resident
+; staging interval (C Light state, profile cache and the first ring rows), which
+; no boot step touches: gameplay init rewrites all of it before the first read.
+; Since 4.5M-M1 it sits at $8100 so that starfield stream B can use the
+; contiguous idle range $81FA-$8601 behind it. It survives the loader bitmap,
+; entity clear and starfield expansion until the final publication below $5000.
+LAYOUT_D_GLUE_HOLDING = $8100
 LAYOUT_D_GLUE_BYTES = 250
-.assert LAYOUT_D_GLUE_HOLDING >= STARFIELD_STAGING+3*$300+$C0, error, "GLUE hold overlaps the deferred starfield staging copies"
-.assert LAYOUT_D_GLUE_HOLDING >= GAMEPLAY_RING_SCREEN, error, "GLUE hold must use idle ring RAM"
-.assert LAYOUT_D_GLUE_HOLDING+LAYOUT_D_GLUE_BYTES <= GAMEPLAY_RING_SCREEN_END, error, "GLUE hold leaves the gameplay ring"
+.assert LAYOUT_D_GLUE_HOLDING >= PACKED_RESIDENT_STAGING, error, "GLUE hold must use consumed resident staging RAM"
+.assert LAYOUT_D_GLUE_HOLDING+LAYOUT_D_GLUE_BYTES <= STARFIELD_STAGING_B, error, "GLUE hold overlaps starfield stream B staging"
+; Starfield staging streams (4.5M-M1): A below the GLUE cold record, B behind
+; the GLUE hold and before the near-star state / HYBRID_C_SECTOR window, which
+; the pickup record publishes at $8602 before the starfield expands.
+.assert STARFIELD_STAGING >= __BROADSIDE_RUN__+$1A00, error, "starfield stream A overlaps the BROADSIDE reservation"
+.assert STARFIELD_STAGING_BYTES = PAUSE_SCREEN_BYTES, error, "starfield stream A is staged by one pause-screen copy"
+.assert STARFIELD_STAGING_B_BYTES = PAUSE_SCREEN_BYTES, error, "starfield stream B is staged by one pause-screen copy"
+.assert STARFIELD_STAGING+STARFIELD_STAGING_BYTES <= LAYOUT_D_GLUE_STAGING, error, "starfield stream A reaches the GLUE cold record"
+.assert STARFIELD_STAGING_B >= LAYOUT_D_GLUE_HOLDING+LAYOUT_D_GLUE_BYTES, error, "starfield stream B overlaps the GLUE hold"
+.assert STARFIELD_STAGING_B+STARFIELD_STAGING_B_BYTES <= RESIDENT_WINDOW, error, "starfield stream B reaches the near-star state or HYBRID_C_SECTOR"
+.assert STARFIELD_STAGING_B+STARFIELD_STAGING_B_BYTES <= $8602, error, "starfield stream B must end at or before $8601"
 .if DIRECTOR_ABI_BYTES > 0
-; Heavy window (roadmap 4.5a): its hold shares the idle ring after GLUE; its
-; staging sits between the full low-C reservation and A2 staging; its runtime
-; window ends before the expanded A2 display lists.
-.assert HYBRID_C_HEAVY_HOLD >= LAYOUT_D_GLUE_HOLDING+LAYOUT_D_GLUE_BYTES, error, "Heavy hold overlaps the GLUE hold"
-.assert HYBRID_C_HEAVY_HOLD+HYBRID_C_HEAVY_CAPACITY <= GAMEPLAY_RING_SCREEN_END, error, "Heavy hold leaves the gameplay ring"
+; Heavy window (roadmap 4.5a, direct publication since 4.5M-M1): its staging
+; sits between the full low-C reservation and A2 staging; the ascending copy
+; needs the runtime window below its staging; the window lies above starfield
+; stream A and ends before the expanded A2 display lists.
 .assert HYBRID_C_HEAVY_STAGING >= $7D40+$F8, error, "Heavy staging overlaps the low-C record reservation"
 .assert HYBRID_C_HEAVY_STAGING+HYBRID_C_HEAVY_CAPACITY <= BOOT_A2_STAGING, error, "Heavy staging overlaps A2 staging"
+.assert HYBRID_C_HEAVY_RUNTIME < HYBRID_C_HEAVY_STAGING, error, "Heavy ascending copy needs the window below its staging"
+.assert HYBRID_C_HEAVY_RUNTIME >= STARFIELD_STAGING+STARFIELD_STAGING_BYTES, error, "Heavy window overlaps starfield stream A staging"
 .assert HYBRID_C_HEAVY_RUNTIME >= PAUSE_SCREEN_BACKUP+$3C0, error, "Heavy window overlaps the pause-screen backup"
 .assert HYBRID_C_HEAVY_RUNTIME+HYBRID_C_HEAVY_CAPACITY <= $7F10, error, "Heavy window overlaps the A2 display lists"
 .assert HYBRID_C_HEAVY_BYTES <= HYBRID_C_HEAVY_CAPACITY, error, "HYBRID_C_HEAVY exceeds its window"

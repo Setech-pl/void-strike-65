@@ -9,10 +9,15 @@ import { installBootArtifact } from "../scripts/runtime-image.mjs";
 
 // Roadmap 4.5a: reusable resident window HYBRID_C_HEAVY for the Bomber's C.
 // No gameplay change; the window is empty and must survive every lifecycle.
+// Roadmap 4.5M-M1: starfield staging no longer covers the window, so the image
+// is published once by an ascending copy from its staging ($7E38) down to the
+// window ($7E12) at the end of publish_director_abi; the $8400 ring hold and
+// the post-loader publish are retired.
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const mainSource = fs.readFileSync(path.join(root, "src/main.s"), "utf8");
 const directorConfig = fs.readFileSync(path.join(root, "cfg/encounter-director.cfg"), "utf8");
 const chunkLoaderSource = fs.readFileSync(path.join(root, "scripts/chunk-loader.mjs"), "utf8");
+const abiInclude = fs.readFileSync(path.join(root, "build/director-abi.inc"), "utf8");
 const manifest = JSON.parse(fs.readFileSync(path.join(root, "build/manifest.json"), "utf8"));
 
 const labels = new Map();
@@ -25,7 +30,6 @@ for (const file of ["build/void-strike-65.lbl", "build/encounter-director.lbl"])
 
 const WINDOW = 0x7e12;
 const STAGING = 0x7e38;
-const HOLD = 0x8400;
 const CAPACITY = 243;
 
 function run(image, address) {
@@ -49,11 +53,18 @@ test("HYBRID_C_HEAVY window keeps at least 235 B C-reachable capacity at $7E12",
   assert.equal(window.bytes, CAPACITY);
   assert.ok(window.bytes >= 235, "4.5 Bomber requirement");
   assert.equal(window.stagingAddress, STAGING);
-  assert.equal(window.holdAddress, HOLD);
+  // 4.5M-M1: no hold; the image is published in place by one ascending copy.
+  assert.equal(window.holdAddress, null);
+  assert.deepEqual([window.publishCopy.sourceAddress, window.publishCopy.destinationAddress,
+    window.publishCopy.bytes], [STAGING, WINDOW, CAPACITY]);
+  assert.doesNotMatch(abiInclude, /HYBRID_C_HEAVY_HOLD/);
   // Staging lies after the full $F8 low-C reservation and before A2 staging;
-  // the runtime window ends before the A2 display lists at $7F10.
+  // the runtime window ends before the A2 display lists at $7F10 and starts
+  // above starfield stream A staging, which ends at $7BD0.
   assert.ok(window.stagingEndExclusive <= 0x7f2b);
   assert.ok(window.endExclusive <= 0x7f10);
+  const [streamA] = manifest.starfieldRuntime.streams;
+  assert.ok(streamA.stagingEndExclusive <= window.address);
   // 4.5a places no code yet: this increment is capacity only.
   assert.equal(window.usedBytes, 0);
   assert.equal(window.freeBytes, CAPACITY);
@@ -65,7 +76,7 @@ test("the low-C record carries the window image without a new DFMC record", () =
   const low = records.find((record) => record.finalDestination === 0x7d40);
   const window = manifest.residentCapacity.heavyWindow;
   // Only the used window bytes travel (none in 4.5a) after the full low-C
-  // reservation; the boot copies still move the whole capacity.
+  // reservation; the boot copy still moves the whole capacity.
   assert.equal(low.rawLength, 0xf8 + window.usedBytes);
   assert.equal(low.type, 1);
   assert.equal(window.lowRecordRawBytes, low.rawLength);
@@ -82,42 +93,42 @@ test("the low-C record carries the window image without a new DFMC record", () =
   assert.match(chunkLoaderSource, /\[0x7bd0, 0x7f2b\]/);
 });
 
-test("boot copies live in the fixed bootstrap prefix padding and are wired size-neutrally", () => {
-  const hold = labels.get("hybrid_c_heavy_hold");
+test("the single publish copy lives in the bootstrap prefix and is wired at the early call site", () => {
   const publish = labels.get("hybrid_c_heavy_publish");
   const suffix = labels.get("resident_runtime_suffix");
-  assert.ok(labels.get("boot_chunk_ready") < hold && hold < publish && publish < suffix);
+  assert.equal(labels.get("hybrid_c_heavy_hold"), undefined, "the $8400 hold copy is retired");
+  assert.ok(labels.get("boot_chunk_ready") < publish && publish < suffix);
   assert.equal(suffix, 0x21c1, "prefix size unchanged");
   assert.match(mainSource,
-    /jsr broadside_unpack_command\n\s+jmp hybrid_c_heavy_hold\s+; same three bytes/);
+    /jsr broadside_unpack_command\n\s+jmp hybrid_c_heavy_publish\s+; same three bytes/);
+  // After the loader only the starfield expands; no Heavy publish remains.
+  assert.match(mainSource, /jsr show_loader\n\s+jsr unpack_starfield_runtime\n\s+jmp layout_d_publish_glue/);
+  assert.doesNotMatch(mainSource, /HYBRID_C_HEAVY_HOLD/);
   assert.match(mainSource,
-    /jsr show_loader\n\s+\.if DIRECTOR_ABI_BYTES > 0\n\s+jsr hybrid_c_heavy_publish/);
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13166);
-  assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 18);
+    /\.assert HYBRID_C_HEAVY_RUNTIME < HYBRID_C_HEAVY_STAGING, error, "Heavy ascending copy needs the window below its staging"/);
+  // 4.5M-M1 measured: the initial block keeps 103 sectors (content 13,162 B,
+  // envelope 22 B) and the transport 178 sectors.
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13162);
+  assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 22);
   assert.equal(manifest.transportCapacity.initialBootSectors, 103);
+  assert.equal(manifest.transportCapacity.totalTransportSectors, 178);
 });
 
-test("the hold and publish copies move the full window byte-exactly", () => {
+test("the ascending publish copy moves the full overlapping window byte-exactly", () => {
   const image = new Uint8Array(0x10000);
   installBootArtifact(image, root, "xex");
   const pattern = Uint8Array.from({ length: CAPACITY }, (_, index) => (index * 37 + 0x5b) & 0xff);
+  image.fill(0xa5, WINDOW, STAGING + CAPACITY + 1);
   image.set(pattern, STAGING);
-  image.fill(0xa5, HOLD, HOLD + CAPACITY);
-  const holdCycles = run(image, labels.get("hybrid_c_heavy_hold"));
-  assert.deepEqual([...image.subarray(HOLD, HOLD + CAPACITY)], [...pattern]);
-  assert.equal(image[HOLD + CAPACITY], 0, "no write past the hold");
-
-  // Stand in for the starfield expansion with an RTS, then publish.
-  const publish = labels.get("hybrid_c_heavy_publish");
-  assert.equal(image[publish], 0x20);
-  image[0x7ffe] = 0x60;
-  image[publish + 1] = 0xfe;
-  image[publish + 2] = 0x7f;
-  image.fill(0xa5, WINDOW, WINDOW + CAPACITY + 1);
-  const publishCycles = run(image, publish);
+  const belowWindow = image[WINDOW - 1]; // last byte of the low-C record image
+  const cycles = run(image, labels.get("hybrid_c_heavy_publish"));
   assert.deepEqual([...image.subarray(WINDOW, WINDOW + CAPACITY)], [...pattern]);
-  assert.equal(image[WINDOW + CAPACITY], 0xa5, "no write past the window");
+  // The source tail above the window ($7F05-$7F2A) is read, never written, and
+  // the byte after the staging is untouched.
+  assert.deepEqual([...image.subarray(WINDOW + CAPACITY, STAGING + CAPACITY)],
+    [...pattern.subarray(WINDOW + CAPACITY - STAGING)]);
+  assert.equal(image[STAGING + CAPACITY], 0xa5, "no write past the staging");
+  assert.equal(image[WINDOW - 1], belowWindow, "no write below the window");
   // One-time startup cost, outside any gameplay frame (MEASURED, harness).
-  assert.ok(holdCycles < 5000 && publishCycles < 5000,
-    `hold ${holdCycles}, publish ${publishCycles} cycles`);
+  assert.ok(cycles < 5000, `publish ${cycles} cycles`);
 });

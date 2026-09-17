@@ -90,12 +90,23 @@ test("Layout D.2 startup order and call bytes are frozen", () => {
   assert.match(source,
     /boot_stage_streams:[\s\S]+a2_kernel_source:[\s\S]+entity_packed_source:[\s\S]+pickup_packed_source:[\s\S]+resident_packed_source:[\s\S]+starfield_packed_source:/,
     "pickup must be preserved after A2/ENTITY sources and before resident staging overwrites $8C80");
+  // 4.5M-M1: GLUE leaves $7BD0 for its $8100 hold before the two deferred
+  // starfield streams are staged by one exact 960-byte copy each (A from the
+  // record stage_boot_streams prepared, B from its patched table source).
   assert.match(source,
-    /stage_glue_holding:[\s\S]+jmp stage_starfield_stream[\s\S]+stage_starfield_stream:[\s\S]+jsr copy_pause_screen\s+jsr copy_pause_screen\s+jmp copy_pause_screen/,
+    /stage_glue_holding:\s+(;[^\n]*\n\s*)*ldy #\$06\s+@hold_glue:\s+lda LAYOUT_D_GLUE_STAGING-\$06,y\s+sta LAYOUT_D_GLUE_HOLDING-\$06,y\s+iny\s+bne @hold_glue\s+jmp stage_starfield_stream/,
     "GLUE must leave $7BD0 before the deferred starfield staging write");
+  assert.match(source,
+    /stage_starfield_stream:\s+jsr copy_pause_screen\s+lda starfield_packed_source_b\s+sta src_ptr\s+lda starfield_packed_source_b\+1\s+sta src_ptr\+1\s+lda #<STARFIELD_STAGING_B\s+sta dst_ptr\s+lda #>STARFIELD_STAGING_B\s+sta dst_ptr\+1\s+jmp copy_pause_screen/,
+    "each starfield stream is staged by one exact 960-byte copy");
+  assert.ok(labels.get("stage_starfield_stream") < labels.get("resident_runtime_suffix"),
+    "the deferred staging lives in the bootstrap prefix");
+  // 4.5M-M1 rebaseline: the prefix table gained the stream B record and the
+  // starfield unpack its second stream, so stage_a2_kernel moved $212B -> $213E;
+  // publish_director_abi stays at $21CF (resident suffix unchanged).
   const resident = fs.readFileSync(path.join(root, "build/resident-runtime.bin"));
   assert.deepEqual([...resident.subarray(0x40, 0x46)],
-    [0x20, 0xcf, 0x21, 0x20, 0x2b, 0x21]);
+    [0x20, 0xcf, 0x21, 0x20, 0x3e, 0x21]);
 });
 
 test("Layout D.2 exact memory and transport budgets remain frozen", () => {
@@ -179,6 +190,11 @@ test("startup writes never intersect a source before its last read", () => {
     { name: "packed starfield source", start: manifest.starfieldRuntime.packedSourceAddress,
       end: manifest.starfieldRuntime.packedSourceAddress +
         manifest.starfieldRuntime.packedBytes, lastRead: 9 },
+    ...manifest.starfieldRuntime.streams.map((stream) => ({
+      name: `staged starfield stream ${stream.id}`, start: stream.stagingAddress,
+      end: stream.stagingAddress + stream.packedBytes, born: 9, lastRead: 13 })),
+    { name: "Heavy window", start: manifest.residentCapacity.heavyWindow.address,
+      end: manifest.residentCapacity.heavyWindow.endExclusive, born: 5, lastRead: 14 },
     { name: "packed pickup hold", start: 0x4801,
       end: 0x4801 + manifest.entityEffects.pickupPhasePackedBytes, born: 3, lastRead: 10 },
     { name: "GLUE hold", start: glueHolding, end: glueHolding + glue.length, born: 8,
@@ -193,8 +209,14 @@ test("startup writes never intersect a source before its last read", () => {
     { sequence: 4, start: 0x8100,
       end: 0x8100 + manifest.residentRuntime.suffixPackedBytes },
     { sequence: 8, start: glueHolding, end: glueHolding + glue.length },
-    // Three 960-byte copies advancing by $300: the real extent reaches $81CF.
-    { sequence: 9, start: 0x7810, end: 0x7810 + 3 * 0x300 + 0xc0 },
+    // 4.5M-M1: one exact 960-byte copy per starfield stream, no spill.
+    ...manifest.starfieldRuntime.streams.map((stream) => ({
+      sequence: 9, start: stream.stagingAddress,
+      end: stream.stagingAddress + stream.stagingCapacityBytes })),
+    { sequence: 5, start: manifest.residentCapacity.heavyWindow.address,
+      end: manifest.residentCapacity.heavyWindow.endExclusive },
+    { sequence: 13, start: manifest.starfieldRuntime.runAddress,
+      end: manifest.starfieldRuntime.runAddress + manifest.starfieldRuntime.bytes },
     { sequence: 10, start: manifest.entityEffects.pickupPhaseBankAddress,
       end: manifest.entityEffects.pickupPhaseBankAddress +
         manifest.entityEffects.pickupPhaseRuntimeBytes },

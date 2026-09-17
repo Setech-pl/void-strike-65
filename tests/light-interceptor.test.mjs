@@ -399,10 +399,15 @@ test("weapon_class visuals: Raider PULSE publishes $DA/$E4, the Interceptor LASE
     image[dst] = address & 0xff;
     image[dst + 1] = address >> 8;
     const backing = image[L("FIGHTER_PROJECTILE_BACKUP_TOP") + slot];
-    assert.ok(backing < 0xda || backing > 0xe5, "the saved underlay is not a hostile shot");
+    assert.ok(backing < 0xda || backing > 0xe6, "the saved underlay is not a hostile shot");
     assert.equal(run(image, "resolve_effect_backing_below_enemy_pairshot",
       { a: image[address] }).a, backing, `slot ${slot} restores its backing`);
-    for (const outside of [0xd9, 0xe6]) {
+    // 4.5b: the BOMBER class (3) extends the hostile range through $E6.
+    for (const bomber of [0xdc, 0xe6]) {
+      assert.equal(run(image, "resolve_effect_backing_below_enemy_pairshot",
+        { a: bomber }).a, backing, `BOMBER code $${bomber.toString(16)} is a hostile shot`);
+    }
+    for (const outside of [0xd9, 0xe7]) {
       assert.equal(run(image, "resolve_effect_backing_below_enemy_pairshot",
         { a: outside }).a, outside, `code $${outside.toString(16)} is not a hostile shot`);
     }

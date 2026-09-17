@@ -302,7 +302,8 @@ test("PlayerFighter glyphs and the assembled Interceptor glyph builder match aut
   assert.deepEqual(weapons.hostileWeaponVisuals.map((rows) => [...rows]), [
     [0x00, 0xa0, 0x50, 0x00, 0x00, 0xa0, 0x50, 0x00],
     [0x20, 0x20, 0x20, 0x10, 0x10, 0x10, 0x10, 0x00],
-  ], "PULSE white/steel tracer, LASER thin white/steel bolt");
+    [0xa0, 0x50, 0x50, 0x50, 0x50, 0x50, 0xa0, 0x00],
+  ], "PULSE white/steel tracer, LASER thin white/steel bolt, BOMBER steel-capped white shell");
   for (let glyph = 0; glyph < 20; glyph += 1) {
     const cls = glyph % 10;
     const rows = [...interceptorBytes.subarray(glyph * 8, glyph * 8 + 8)];
@@ -356,7 +357,7 @@ test("hostile screen code follows weapon_class, not the emitter, and keeps the g
     [0x0a, 96, 0xda], [0x0b, 98, 0xe4],    // Raider P1/P2 PULSE
     [0x0e, 98, 0xe4],                      // Light Wingman PULSE
     [0x16, 98, 0xe5], [0x16, 96, 0xdb],    // Light Interceptor LASER
-    [0x1e, 96, 0xdc],                      // reserved Bomber (3)
+    [0x1e, 96, 0xdc], [0x1e, 98, 0xe6],    // Bomber (3)
   ]) {
     assert.equal(hostileProjectileScreenCode(active, x), screenByte);
   }

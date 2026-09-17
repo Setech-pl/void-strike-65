@@ -422,8 +422,10 @@ ENEMY_RENDERER_TWO_HEAVY_PMG = 1
 ; stores ACTIVE = owner bits 0-2 | (weapon_class << 3); the renderer publishes
 ; class c as glyph 89+c (left phase) or 99+c (right phase), so projectile
 ; colour and shape follow the weapon class, never the emitter hull colour.
+; The class also owns its movement rate (hostile_weapon_step_masks).
 ENEMY_WEAPON_PULSE = 1
 ENEMY_WEAPON_LASER = 2
+ENEMY_WEAPON_BOMBER = 3
 FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT = 3
 HOSTILE_WEAPON_GLYPH_BASE = INTERCEPTOR_PROJECTILE_GLYPH_BASE-1
 RAIDER_PMG_SLOT_COUNT = 2
@@ -768,7 +770,7 @@ PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE = PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYE
 .assert PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_GLYPH_COUNT <= CAPITAL_HULL_GLYPH_BASE, error, "PlayerFighter phase glyphs overlap capital hulls"
 .assert INTERCEPTOR_PROJECTILE_GLYPH_BASE >= CAPITAL_HULL_GLYPH_BASE+CAPITAL_HULL_GLYPH_COUNT, error, "Interceptor phase glyphs overlap capital hulls"
 .assert INTERCEPTOR_PROJECTILE_GLYPH_BASE+INTERCEPTOR_PROJECTILE_GLYPH_COUNT <= 128, error, "Interceptor phase glyphs exceed the charset"
-.assert HOSTILE_WEAPON_VISUAL_COUNT >= ENEMY_WEAPON_LASER, error, "every C weapon_class needs an authored hostile visual"
+.assert HOSTILE_WEAPON_VISUAL_COUNT >= ENEMY_WEAPON_BOMBER, error, "every C weapon_class needs an authored hostile visual"
 .assert HOSTILE_WEAPON_VISUAL_COUNT <= INTERCEPTOR_PROJECTILE_GLYPH_STRIDE-1, error, "hostile weapon classes must fit glyphs 90-99"
 .assert (HOSTILE_WEAPON_VISUAL_COUNT << FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT) < $100, error, "ACTIVE >> 3 must equal weapon_class"
 .assert ((INTERCEPTOR_PROJECTILE_GLYPH_BASE+INTERCEPTOR_PROJECTILE_GLYPH_STRIDE+HOSTILE_WEAPON_VISUAL_COUNT)|$80) <= (ENTITY_DEBRIS_GLYPH_BASE|$80), error, "hostile weapon codes must stay below the debris bank"
@@ -1324,6 +1326,13 @@ hybrid_c_heavy_publish:
     bne @copy
     rts
 .endif
+
+; Indexed by weapon_class-1 (roadmap 4.5b): the frame_counter mask that must be
+; zero for a hostile shot of that class to step this frame (0 = every frame,
+; 1 = every second frame). Like the HUD tables it sits in the raw prefix
+; padding, so the compressed boot payload and its ATR decode time do not grow.
+hostile_weapon_step_masks:
+    EMIT_HOSTILE_WEAPON_STEP_MASKS
 
 .assert *-start <= $01A3, error, "resident bootstrap prefix exceeds its fixed boundary"
 .res $01A3-(*-start)
@@ -3809,26 +3818,31 @@ profile_interceptor_projectile_update_begin = *
 @interceptor_slot:
     lda FIGHTER_PROJECTILE_ACTIVE,x
     beq @interceptor_next
+    ; Per-weapon_class movement rate: a class steps once every period frames
+    ; (mask = period-1). A skipped frame leaves Y, PREV_Y and LIFETIME as they
+    ; are and runs no collision sweep; the next step's sweep still starts at
+    ; the resting Y, so the swept span stays contiguous.
+    lsr
+    lsr
+    lsr
+    tay                         ; ACTIVE >> 3 = weapon_class (1..N)
+    lda frame_counter
+    and hostile_weapon_step_masks-1,y
+    bne @interceptor_next
     dec FIGHTER_PROJECTILE_LIFETIME,x
     beq @interceptor_free
     lda FIGHTER_PROJECTILE_Y,x
     sta FIGHTER_PROJECTILE_PREV_Y,x
-    clc
-    adc #INTERCEPTOR_PROJECTILE_SPEED
+    cmp #(GAMEPLAY_BOTTOM+1-INTERCEPTOR_PROJECTILE_SPEED-INTERCEPTOR_PROJECTILE_HEIGHT)
+    bcs @interceptor_free       ; the step would reach past the viewport
+    adc #INTERCEPTOR_PROJECTILE_SPEED ; C clear
     sta FIGHTER_PROJECTILE_Y,x
-    clc
-    adc #INTERCEPTOR_PROJECTILE_HEIGHT
-    cmp #(GAMEPLAY_BOTTOM+1)
-    bcs @interceptor_free
     jsr interceptor_projectile_hits_player
     bcc @interceptor_next
-    lda #FIGHTER_PROJECTILE_FREE
-    sta FIGHTER_PROJECTILE_ACTIVE,x
     lda #ENEMY_PULSE_DAMAGE_UNITS
     stx BROAD_WORK_SLOT
-    jsr apply_player_damage
+    jsr apply_player_damage     ; a lethal hit clears every hostile slot itself
     ldx BROAD_WORK_SLOT
-    jmp @interceptor_next
 @interceptor_free:
     lda #FIGHTER_PROJECTILE_FREE
     sta FIGHTER_PROJECTILE_ACTIVE,x
@@ -3837,6 +3851,10 @@ profile_interceptor_projectile_update_begin = *
     cpx #FIGHTER_PROJECTILE_SLOT_COUNT
     bne @interceptor_slot
     rts
+    ; The class step gate (+11 B) is paid for by the shorter bottom test and
+    ; the hit path falling into @interceptor_free (-12 B). This never-executed
+    ; byte keeps every later resident CODE address where it was.
+    .res 1
 
 .export profile_interceptor_projectile_update_begin
 

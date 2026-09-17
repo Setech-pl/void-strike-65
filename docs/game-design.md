@@ -351,6 +351,11 @@ not yet accepted.
 - **HP and score.** 1 HP; a kill scores 15 points, three times the Wingman's 5.
   Contact follows the Light contract.
 
+Weapon classes also own their movement rate (roadmap 4.5b candidate):
+`PULSE` and `LASER` fall 2 lines every frame; `BOMBER` (3) falls 2 lines every
+second frame, 1 line per frame on average, with the same hitbox, damage and
+lifetime in steps. No enemy fires `BOMBER` until the Bomber archetype (4.5c).
+
 Longer level structures, bosses, and further audio/visual polish remain future
 work. They are not implied by the current enemy-roster descriptors or
 review-only asset records, which describe the Raider-era roster.

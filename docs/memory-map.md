@@ -239,6 +239,24 @@ the A2 display lists; `HYBRID_C_HEAVY` ≤ capacity and capacity ≥ 235 B
 (`src/main.s`); ld65 rejects a larger segment. Evidence:
 [diagnostics/stage-2b2i-heavy-window-placement.json](diagnostics/stage-2b2i-heavy-window-placement.json).
 
+## Roadmap 4.5b BOMBER weapon class — OWNER-SMOKE CANDIDATE (2026-09-17)
+
+Measured on top of `984f3ae`. These rows override the rows above for this
+candidate only.
+
+| Range | Size | Candidate owner |
+| --- | ---: | --- |
+| `$21BC-$21BE` | 3 B | `hostile_weapon_step_masks` (period − 1 per `weapon_class`) in raw bootstrap-prefix padding |
+| `$21BF-$21C0` | 2 B | remaining zero padding of the fixed `$01A3` bootstrap prefix (5 B before) |
+| `$2B5B-$2C54` | 0 B net | resident `CODE` `update_fighter_projectiles`: class step gate +11 B, loop −12 B, 1 B dead pad after `rts`; every later CODE address unchanged |
+| `$6264-$62A9` | 70 B | BROADSIDE builder slot, same size and address: builder 19 B, `hostile_weapon_visual_glyphs` 24 B (3 classes), `hostile_projectile_screen_code` 23 B at `$628F`, 4 B pad; `free_broadside_slot` `$76A7` unchanged |
+
+BROADSIDE packs to 5,666 B (+4 B); transport stays 178 sectors and the XEX
+23,104 B. Linked runtime 17,502 B, simultaneous residency 19,493 B, safe
+2,694 B, initial content 13,166 B and envelope 18 B are unchanged. RAM, zero
+page, PMG, DLI and charset ranges are unchanged; hostile codes now span
+`$DA-$E6`.
+
 ## Blocked-experiment evidence — not part of this map
 
 The 2026-09-16 Interceptor experiment (`BLOCKED_PLACEMENT`) measured additional

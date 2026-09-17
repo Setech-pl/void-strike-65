@@ -5,19 +5,28 @@
     "interceptorBase": 90
   },
   "hostileWeaponVisuals": {
-    "note": "One authored left-phase glyph per EnemyArchetype weapon_class, in class order from 1. Rows are ANTIC 4 pixels 0-1 of the cell (01 COLPF0 white, 10 COLPF1 steel); the right phase is the same glyph shifted two pixels. Class c publishes glyphs 89+c and 99+c. Colour and shape belong to the weapon class, not to the emitter's hull colour.",
+    "note": "One authored left-phase glyph per EnemyArchetype weapon_class, in class order from 1. Rows are ANTIC 4 pixels 0-1 of the cell (01 COLPF0 white, 10 COLPF1 steel); the right phase is the same glyph shifted two pixels. Class c publishes glyphs 89+c and 99+c. Colour and shape belong to the weapon class, not to the emitter's hull colour. stepPeriodFrames is the class movement rate: every class moves the shared hostile speed (2 scanlines) once per stepPeriodFrames frames (1, 2, 4 or 8); skipped frames leave Y, lifetime and the collision sweep untouched.",
     "classes": [
       {
         "id": "PULSE",
         "weaponClass": 1,
+        "stepPeriodFrames": 1,
         "description": "white/steel tracer pulse: two stacked 2-HPOS pulses, steel tail above a white leading row",
         "leftPhaseRows": ["00000000", "10100000", "01010000", "00000000", "00000000", "10100000", "01010000", "00000000"]
       },
       {
         "id": "LASER",
         "weaponClass": 2,
+        "stepPeriodFrames": 1,
         "description": "thin laser bolt: one HPOS wide, steel trail above a white head",
         "leftPhaseRows": ["00100000", "00100000", "00100000", "00010000", "00010000", "00010000", "00010000", "00000000"]
+      },
+      {
+        "id": "BOMBER",
+        "weaponClass": 3,
+        "stepPeriodFrames": 2,
+        "description": "heavy bomb shell: two HPOS wide, steel caps around a white five-row core; half speed",
+        "leftPhaseRows": ["10100000", "01010000", "01010000", "01010000", "01010000", "01010000", "10100000", "00000000"]
       }
     ]
   },

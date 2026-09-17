@@ -616,6 +616,11 @@ recenzowanych 1,798 B) pozostaje osobną, otwartą decyzją właściciela.
      4.6 mogą łączyć Light z formacją Bomberów, jeśli budżety pozwolą.
   3. Dwa Bombery QUAD zachowują widoczną separację: tory docelowo ok.
      slot0 `[48,92]`, slot1 `[132,176]`, zależnie od zweryfikowanej geometrii.
+- **Specyfikacja 4.5b (2026-09-17, po smoke 4.5a PASS):** glif BOMBER
+  `$A0,$50,$50,$50,$50,$50,$A0,$00` na kodach `$DC/$E6`; ten sam renderer,
+  hitbox i semantyka lifetime; efektywnie 1 linia/klatkę przez krok 2 linii co
+  drugą klatkę; PULSE/LASER bez zmian (2 linie/klatkę); stałe adresy
+  CODE/BROADSIDE zachowane; mechanizm prędkości generyczny per `weapon_class`.
 - **Roadmapa po 4.5 (zastępuje kolejność w plan-realizacji §4.6+):**
   4.6 sterowany danymi Encounter/Wave Director → 4.7 Boss → 4.8 wzbogacenie
   capital traversal → pętla poziomu / kampania 16 poziomów jako dane.

@@ -199,6 +199,10 @@ Bomber jest **ostatnim** archetypem MVP. Kolejność wykonania:
   rekordzie low-C, hold w ringu, publikacja po starfield; szczegóły: STATUS.
 - **4.5b — `weapon_class = BOMBER`** (glif, prędkość klasy, generyczna emisja
   klasy wybranej przez C).
+  Stan (2026-09-17): `OWNER-SMOKE CANDIDATE` — `BOMBER = 3`, glif `$DC/$E6`,
+  generyczny okres kroku na klasę (`stepPeriodFrames`, BOMBER 2 → 1 linia/
+  klatkę), CODE bez zmiany adresów; emisja generyczna przechodzi do 4.5c;
+  szczegóły: STATUS.
 - **4.5c — archetyp Bomber** (C: rekord, selekcja Heavy, ruch, ogień; ASM:
   wykonanie).
 

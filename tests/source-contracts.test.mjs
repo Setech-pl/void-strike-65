@@ -53,7 +53,7 @@ test("C and ASM agree on the hostile weapon_class ids and the authored visual or
   const source = fs.readFileSync(path.join(rootDirectory, "src", "main.s"), "utf8");
   const asset = JSON.parse(fs.readFileSync(
     path.join(rootDirectory, "assets", "graphics", "fighter-weapons.json"), "utf8"));
-  const ids = { PULSE: 1, LASER: 2 };
+  const ids = { PULSE: 1, LASER: 2, BOMBER: 3 };
   assert.doesNotMatch(header + source, /ENEMY_WEAPON_RED_PAIRSHOT/,
     "the weapon class names no colour");
   for (const [name, value] of Object.entries(ids)) {

@@ -53,7 +53,9 @@ palette is untouched:
 - `PULSE` (Raider, Light Wingman): white/steel tracer pulse — the accepted
   two-pulse 2-HPOS footprint, each pulse a steel tail above a white leading row;
 - `LASER` (Interceptor): a single thin 1-HPOS bolt, steel trail and white head;
-- `BOMBER` (reserved, roadmap 4.5).
+- `BOMBER` (Bomber, roadmap 4.5b candidate): a heavy shell, steel caps above
+  and below a white five-row core, 2 HPOS wide; it falls at half the speed of
+  the other classes.
 
 Spread Shot side projectiles must be identified by their symmetric fan geometry,
 not by borrowing a Hostile weapon look.

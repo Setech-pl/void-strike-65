@@ -15,8 +15,8 @@ the values below.
 
 `experiment/hybrid-c-director`. HEAD carries the roadmap 4.4 Interceptor
 `OWNER-SMOKE CANDIDATE`, its 4.4b visual identity (X/quad art since `3838c00`),
-the 4.4c hostile weapon visuals and the roadmap 4.5a Heavy window capacity
-increment (sections below) on top of `f4cb18b`, the documentation-only
+the 4.4c hostile weapon visuals, the roadmap 4.5a Heavy window capacity
+increment and the 4.5b `BOMBER` weapon class (sections below) on top of `f4cb18b`, the documentation-only
 reconciliation of the owner acceptance recorded here. None of these candidates
 is accepted; the accepted runtime is still `b4b942e`.
 
@@ -115,7 +115,8 @@ comparing CPU.
   lower backing for the frame in which that effect expires (effects still
   publish mid-frame; measured once in 4,600 in-view frames);
 - boot-smoke margin: the ATR menu deadline (190 + 2 × transport sectors) is
-  met with 0 frames of margin at `3838c00`, at the 4.5a candidate and with a
+  met with 0 frames of margin at `3838c00`, at the 4.5a and 4.5b candidates
+  (4.5b: +6 B packed BROADSIDE alone missed it by one frame) and with a
   239-B Heavy proof payload; boot CPU added without extra sectors can miss it
   (it did for the first 4.5a variant);
 - open owner decision: the packed STARFIELD correction gate (1,805 B against
@@ -497,15 +498,97 @@ provisional 4.5 smoke policy only; visible separation of two QUAD Bombers
 Encounter/Wave Director, 4.7 Boss, 4.8 capital traversal enrichment, then level
 loop / 16-level campaign data.
 
+## Roadmap 4.5b — `weapon_class = BOMBER` (decision 20) — `OWNER-SMOKE CANDIDATE` (2026-09-17)
+
+On top of the 4.5a candidate `984f3ae` (owner smoke PASS, no gameplay
+regression). Weapon class only: no emitter fires `BOMBER` yet, so gameplay is
+unchanged. No Bomber movement, spawn, Heavy scheduling, PMG, DLI or C change
+beyond the id.
+
+- **Class.** `ENEMY_WEAPON_BOMBER = 3` in C and ASM (source contract). Authored
+  glyph `$A0,$50,$50,$50,$50,$50,$A0,$00` (steel caps, white core, no `%11`),
+  published `$DC` left / `$E6` right. The backing resolver range is derived
+  from the class count and now covers `$DA-$E6`; the Atari800 trace hostile
+  range ends at `$E6`.
+- **Movement rate per class (generic).** Each class in
+  `hostileWeaponVisuals` authors `stepPeriodFrames` (1, 2, 4 or 8). The
+  generator emits `hostile_weapon_step_masks` (period − 1, indexed by
+  `weapon_class − 1`). The hostile update loop reads `ACTIVE >> 3`, then
+  `frame_counter & mask`; a non-zero result skips the slot. PULSE/LASER step
+  every frame (2 lines/frame). BOMBER steps on even frames: 2 lines every
+  second frame, 1 line/frame on average. Speed, hitbox, damage, renderer and
+  lifetime semantics are shared; lifetime counts steps, not frames. The
+  mechanism reads the class from ACTIVE, so 4.5c's generic Heavy emission of
+  the C-chosen class needs no further change here.
+- **6502 harness proof** (`tests/hostile-weapon-step-rate.test.mjs`, 6 tests).
+  - On BOMBER skipped frames, Y, PREV_Y and LIFETIME stay byte-identical and
+    `interceptor_projectile_hits_player` never runs for the slot.
+  - On active frames the shot moves exactly 2 lines, lifetime −1, one sweep.
+  - Over 40 frames: BOMBER 40 lines / 20 lifetime; PULSE 80 lines.
+  - A full 96-step lifetime covers the same travel as PULSE in 192 frames
+    instead of 96. The bottom exit stops at the same last Y.
+  - A BOMBER resting on the player during a skipped frame hits on the next
+    active step. The sweep starts at the resting Y, so detection is at most
+    one frame late and never missed.
+  - PULSE bottom exit, lifetime expiry and hit behave as before.
+- **CODE placement: size-neutral, every address fixed.** The gate costs +11 B.
+  The loop pays for it: the bottom test compares Y before the step (−4 B), and
+  the hit path falls into `@interceptor_free` (−8 B). One never-executed pad
+  byte after `rts` keeps every later CODE label at its address. The
+  lbl diff shows only local loop labels and the BROADSIDE builder slot
+  interior. `free_broadside_slot` stays at `$76A7`.
+- **Tables.**
+  - The 3-B step mask table sits in raw bootstrap-prefix padding at
+    `$21BC-$21BE` (5 → 2 B free), the HUD-table precedent.
+  - A first variant kept it in the BROADSIDE builder pad. BROADSIDE then
+    packed +6 B, and ATR `$A5` reached the menu on frame 547, one frame past
+    its 546 deadline (loader milestone 289 → 290). That variant was rejected.
+  - The 8-B glyph uses the builder pad (12 → 4 B). The helper moves
+    `$6287 → $628F` inside the fixed 70-B slot.
+- **Accounting (measured).** Linked runtime 17,502 B, simultaneous 19,493 B,
+  safe 2,694 B, initial content 13,166 B and envelope 18 B are unchanged.
+  - BROADSIDE: 6,650 B raw (unchanged), 5,662 → 5,666 B packed.
+  - Transport: 178 sectors, unchanged. XEX stays 23,104 B.
+  - Reusable free: prefix padding 5 → 2 B, BROADSIDE builder pad 12 → 4 B.
+    `HYBRID_C_HEAVY` 243 B and the others are unchanged.
+- **CPU.**
+  - Harness: +11 cycles per stepping hostile slot. Build model
+    `maximumProjectilePool` update 1,714 → 1,769 (5 slots). Legal heavy
+    main loop 13,504 → 13,515.
+  - With 5 hostile slots: PULSE 548 cycles, BOMBER skipped frame 233, BOMBER
+    step 548.
+  - Native PAL (0 missed frames, 0 extra VBI, 0 DLI ordering errors):
+
+    | Replay | 4.4c/4.5a | 4.5b |
+    | --- | ---: | ---: |
+    | `2-sweep-fire4` | 29,814 | 29,801 |
+    | `2-sweep-fire6` | 29,856 | 29,856 |
+    | `2-neutral-fire0` | 29,641 | 29,632 |
+    | `2-evasive-fire3` | 29,522 | 29,519 |
+    | debris gate worst (`0-neutral-fire0`) | 30,436 | 30,439 |
+- **Native gates.** Boot smoke PASS 4/4 with milestones identical to
+  `984f3ae`: XEX menu 393, ATR menu 546 against a 546 deadline, so there is
+  still **0 frames of margin**. Debris gate PASS on the three natural replays:
+  0 blank, 0 disappearances, first Y 24.
+- **Tests.** New `hostile-weapon-step-rate` (6). Updated `fighter-weapons`
+  (BOMBER glyph and codes), `source-contracts` (id 3), `light-interceptor`
+  (resolver boundary `$D9`/`$E7`, BOMBER `$DC`/`$E6` resolved). Full suite:
+  640 tests, 115 failing, the identical failure-name set to `984f3ae`
+  (634 tests, 115 failing, same run command).
+
+Candidate XEX `2fd5ace4…`, ATR `dd3977e2…`, owner-smoke copy in
+`build/owner-smoke/bomber-weapon-class-2fd5ace4/`.
+
 ---
 
 ## Current task
 
-Owner review of the roadmap 4.5a Heavy window candidate. Owner smoke of the 4.4
-Interceptor candidate (with 4.4b and 4.4c) is still pending.
+Owner review of the roadmap 4.5b `BOMBER` weapon class candidate. Owner smoke
+of the 4.4 Interceptor candidate (with 4.4b and 4.4c) is still pending.
 
 ## Next roadmap step
 
-After owner review of 4.5a: 4.5b (`weapon_class = BOMBER`), then 4.5c (Bomber
-archetype), per decision 20. The Raider-coloured residual artifact remains an
+After owner review of 4.5b: 4.5c (Bomber archetype: C record, Heavy
+selection, lane sweep, fire; generic Heavy emission of the C-chosen
+`weapon_class`), per decision 20. The Raider-coloured residual artifact remains an
 open P0 investigation.

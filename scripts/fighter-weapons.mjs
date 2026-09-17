@@ -56,8 +56,20 @@ function binaryMask(value, name) {
 // only the high nibble (ANTIC 4 pixels 0-1) so a two-pixel shift yields the
 // right phase, and never uses pixel value %11: that value is the player's
 // yellow COLPF2 or, under the hostile bit 7, the red COLPF3 shared with hulls.
-export const HOSTILE_WEAPON_VISUAL_IDS = Object.freeze(["PULSE", "LASER"]);
+export const HOSTILE_WEAPON_VISUAL_IDS = Object.freeze(["PULSE", "LASER", "BOMBER"]);
 export const HOSTILE_WEAPON_VISUAL_MAX_CLASSES = 9;
+// Per-class movement rate: a class moves the shared hostile speed once every
+// stepPeriodFrames frames. The runtime gates on frame_counter & (period - 1),
+// so the period must be a power of two.
+export const HOSTILE_WEAPON_STEP_PERIODS = Object.freeze([1, 2, 4, 8]);
+
+function hostileWeaponStepPeriods(visuals) {
+  return visuals.classes.map((entry, index) => {
+    invariant(HOSTILE_WEAPON_STEP_PERIODS.includes(entry.stepPeriodFrames),
+      `hostileWeaponVisuals.classes[${index}].stepPeriodFrames must be one of ${HOSTILE_WEAPON_STEP_PERIODS.join(", ")}`);
+    return entry.stepPeriodFrames;
+  });
+}
 
 function hostileWeaponVisualRows(visuals) {
   const classes = visuals?.classes;
@@ -230,6 +242,7 @@ export function compileFighterWeapons(definition, enemyRoster) {
     definition.glyphLayout.interceptorBase + interceptorGlyphs.length <= 128,
   "Interceptor projectile glyphs must stay in the post-capital charset tail");
   const hostileWeaponVisuals = hostileWeaponVisualRows(definition.hostileWeaponVisuals);
+  const hostileWeaponStepPeriodFrames = hostileWeaponStepPeriods(definition.hostileWeaponVisuals);
   invariant(definition.glyphLayout.interceptorBase === 90 &&
     hostileWeaponVisuals.length < interceptorGlyphs.length / 2,
   "Hostile weapon visuals must publish inside glyphs 90-109 at base 89 + weapon_class");
@@ -237,6 +250,7 @@ export function compileFighterWeapons(definition, enemyRoster) {
     ...definition,
     interceptor,
     hostileWeaponVisuals: Object.freeze(hostileWeaponVisuals),
+    hostileWeaponStepPeriodFrames: Object.freeze(hostileWeaponStepPeriodFrames),
     viewport: Object.freeze({
       ...definition.viewport,
       hudTop,
@@ -330,6 +344,10 @@ export function renderFighterWeaponsCa65Include(asset) {
     ...emitGlyphMacro("EMIT_INTERCEPTOR_PROJECTILE_GLYPHS", asset.glyphs.interceptor),
     "",
     ...emitGlyphMacro("EMIT_HOSTILE_WEAPON_VISUAL_GLYPHS", asset.hostileWeaponVisuals),
+    "",
+    ".macro EMIT_HOSTILE_WEAPON_STEP_MASKS",
+    `    .byte ${asset.hostileWeaponStepPeriodFrames.map((period) => byte(period - 1)).join(",")}`,
+    ".endmacro",
     "",
     `.macro EMIT_SHARED_FIGHTER_EXPLOSION_MASKS\n    .byte ${[...explosion.outerBytes].map(byte).join(",")}\n.endmacro`,
     `.macro EMIT_SHARED_FIGHTER_EXPLOSION_CORE_MASKS\n    .byte ${[...explosion.coreMasks].map(byte).join(",")}\n.endmacro`,

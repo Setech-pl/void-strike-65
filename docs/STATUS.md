@@ -15,7 +15,8 @@ the values below.
 
 `wip/4.5d-gate-fail` (branched from `experiment/hybrid-c-director` at
 `2a8ff26`; adds the 4.5d Enemy Identity Freeze WIP `7b50bd6`, the PAL timing
-audit tooling and the death-frame deferral candidate, sections below).
+audit tooling, the death-frame deferral candidate and its respawn double-image
+fix, sections below).
 `experiment/hybrid-c-director` carries the roadmap 4.4 Interceptor
 `OWNER-SMOKE CANDIDATE`, its 4.4b visual identity (X/quad art since `3838c00`),
 the 4.4c hostile weapon visuals, the roadmap 4.5a Heavy window capacity
@@ -156,7 +157,13 @@ events across 67 replays — PASS**; the same rows are still each replay's worst
 row (they precede any replay divergence): row 3007 pre-wait 24,206, margin
 **+1,043**; row 1945 pre-wait 24,811, margin **+466** (the worst of the set);
 the former thin rows were death frames too and rose to 1,847 / 1,920 / 2,146.
-Root cause (measured, native frame profiler): both misses are Light contact
+**Respawn double-image fix (XEX `3ce1a1d6…`): 0 distinct miss events across 67
+replays — PASS, and timing-neutral**: no session's worst fence margin moved in
+either direction, row 3007 still pre-wait 24,206 / margin +1,043 and row 1945
+still pre-wait 24,811 / margin +466 (still the worst of the set). The fix costs
+nothing on the death frame and removes 809 cycles from the respawn frame, which
+is not fence-bound.
+Root cause of the two 4.5d misses (measured, native frame profiler): both misses are Light contact
 kills inside `light_update`, which runs after the enemy update and the ring
 rotate; the two Bombers' standing cost (`integration_update_enemy` 4,630
 cycles per frame with two live: `heavy_member_update` ~946,
@@ -164,7 +171,8 @@ cycles per frame with two live: `heavy_member_update` ~946,
 the death (+4,317) and kill (+3,009) coincidence overran the fence; the 4.5d
 behaviour itself adds +36 cycles to the death frame. Evidence:
 [diagnostics/stage-2b2q-pal-timing-audit.json](diagnostics/stage-2b2q-pal-timing-audit.json),
-[diagnostics/stage-2b2r-death-frame-deferral.json](diagnostics/stage-2b2r-death-frame-deferral.json).
+[diagnostics/stage-2b2r-death-frame-deferral.json](diagnostics/stage-2b2r-death-frame-deferral.json),
+[diagnostics/stage-2b2s-respawn-double-image.json](diagnostics/stage-2b2s-respawn-double-image.json).
 
 ## Known open defects and open decisions
 
@@ -1111,16 +1119,73 @@ together with this fix (the report's option 2).
   hit and shows the ordinary hit flash on it before the death flash; respawn
   and Game Over come one frame later.
 
-Candidate XEX `b8ed318c…`, ATR `6f03b9da…`, owner-smoke copy in
-`build/owner-smoke/death-frame-deferral-b8ed318c/`. Evidence:
+Candidate XEX superseded by the respawn double-image fix below. Evidence:
 [diagnostics/stage-2b2r-death-frame-deferral.json](diagnostics/stage-2b2r-death-frame-deferral.json).
+
+---
+
+## Respawn double image after the deferral — fixed — `OWNER-SMOKE CANDIDATE` (2026-09-18)
+
+Owner smoke of `b8ed318c…` **FAILED**: on every death, two PlayerFighter images
+appeared during respawn — one at the corridor centre, one four colour clocks
+left — flickered, then resolved to one ship. Fixed here; the deferral itself is
+unchanged.
+
+- **Cause (measured).** `player_dying_tick` guarded the deferred begin with
+  "player explosion slot timer 0 means begin pending". On the LAST DYING frame
+  that is false: `tick_shared_fighter_explosions` runs earlier in the same
+  frame and, at `EXPL_TIMER` 1, erases the slot and decrements it to 0. The
+  guard then read 0, restarted the explosion at the still-pre-death
+  `player_x`/`player_y`, and fell through two instructions later to
+  `respawn_player` — publishing a second image into P0/P3 for a further 24
+  frames and leaving `HPOSP0`/`HPOSP3` at the explosion X instead of
+  `PLAYER_RESPAWN_X`. `BROAD_DEATH_TIMER = SHARED_FIGHTER_EXPLOSION_TOTAL+1`
+  is what makes both timers finish on that one frame. A regression of the
+  deferral, not pre-existing: `2a8ff26` has no begin call in the DYING path.
+- **Fix.** The finishing frame leaves before the idle-slot test:
+  `player_dying_tick` decrements `BROAD_DEATH_TIMER` first and branches to
+  `update_player_death_finished` on zero, so only a non-finishing DYING frame
+  reaches the idle-slot test and the begin. `apply_player_damage` is the only
+  entry into DYING and sets `PLAYER_DYING` and
+  `BROAD_DEATH_TIMER = SHARED_FIGHTER_EXPLOSION_TOTAL+1` in one unbranched
+  tail, so "not the finishing frame" is exactly "not yet begun, or still
+  running". No begin-pending flag needed, no RAM, 18 B unchanged.
+- **Unchanged.** The deferral stands: the death frame still pays neither
+  `erase_player` nor the first explosion phase, DYING still lasts 25 frames,
+  the explosion still self-erases in the respawn frame before `respawn_player`.
+  BROADSIDE 6,650 B (`free_broadside_slot` `$76A7` asserted); ENTITY_CODE
+  unchanged; `.lbl` diff is one cheap local label (`.@tick` → `.@running`).
+- **PAL (measured).** 0 distinct miss events across 67 replays; **timing-
+  neutral** — no session's worst fence margin moved. Worst margin still 466
+  (`raider-remnant-rapid-xex-hard` row 1945); row 3007 still +1,043. Death-frame
+  cost +0; respawn frame −809 cycles (`update_player_death` 1,898 → 1,562,
+  `render_shared_fighter_explosions` 493 → 20).
+- **Boot smoke.** PASS 4/4: XEX menu 392; ATR menu 554 against deadline 554.
+- **Debris gate and raider-remnant.** Byte-identical to `b8ed318c`: the one
+  `0-neutral-fire0` blank frame (pre-existing death-frame blink) and the
+  remnant explosion-count failure both persist unchanged, A/B-verified against
+  a build of `ac67d9e`.
+- **Tests.** The old deferral test could not see this: it never re-read the
+  explosion timer after the final `update_player_death`, never called
+  `render_shared_fighter_explosions`, and asserted nothing about P0/P3,
+  `HPOSP0`/`HPOSP3` or `COLBK`. Two new entity-effects tests drive the full
+  main-loop order through frame N+50 and assert one published image, the
+  respawn HPOS and no death-flash replay; both fail on a rebuilt `b8ed318c`.
+  The `game-over` `player_dying_tick` source freeze is rebaselined with the
+  reason in the file. Focused set 175 tests / 17 failing, the identical
+  failure-name set to a build of `ac67d9e` (173 / 17).
+
+Candidate XEX `3ce1a1d6…`, ATR `823b961b…`. Evidence:
+[diagnostics/stage-2b2s-respawn-double-image.json](diagnostics/stage-2b2s-respawn-double-image.json).
 
 ---
 
 ## Current task
 
-The 4.5d Enemy Identity Freeze plus the death-frame deferral (sections above)
-await owner smoke on `wip/4.5d-gate-fail`. Roadmap 4.5c Bomber is an
+The 4.5d Enemy Identity Freeze plus the death-frame deferral and its respawn
+double-image fix (sections above) await owner smoke on `wip/4.5d-gate-fail`.
+The previous smoke of `b8ed318c…` failed on the respawn double image only; that
+defect is fixed and the rest of that smoke still needs repeating. Roadmap 4.5c Bomber is an
 **`OWNER-SMOKE CANDIDATE`** (section above); the
 earlier `BLOCKED_PLACEMENT`
 ([diagnostics/stage-2b2j-bomber-blocked-placement.json](diagnostics/stage-2b2j-bomber-blocked-placement.json))
@@ -1131,7 +1196,8 @@ and the 4.4 Interceptor (with 4.4b and 4.4c).
 ## Next roadmap step
 
 Owner smoke of the 4.5d + death-frame deferral branch (Bomber attack pattern,
-torpedo shells, charge/hit colours; the one-frame-later death explosion) and of
+torpedo shells, charge/hit colours; the one-frame-later death explosion and a
+single ship on every respawn) and of
 the 4.5c Bomber candidate (Raider/Bomber alternation, lane sweep, `BOMBER`
 shells, hull colours, capital broadside colours after a Bomber formation). Then
 the Bomber standing-cost task (`draw_enemy_member` body copy only when Y

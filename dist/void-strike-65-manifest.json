@@ -1572,7 +1572,7 @@
         "update_enemy": 2493,
         "update_enemy_weapon": 423,
         "update_fighter_projectiles": 2772,
-        "update_player_death": 1898,
+        "update_player_death": 1562,
         "update_player_fighter_weapon": 450,
         "update_sound": 147,
         "update_starfield": 5351,
@@ -20971,8 +20971,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 417,
-        "activeCpuCycles": 13386,
-        "mainLoopCpuCycles": 13399,
+        "activeCpuCycles": 12575,
+        "mainLoopCpuCycles": 12588,
         "projectileOccupancy": 8,
         "player_fighterProjectileOccupancy": 0,
         "broadsideOccupancy": 1,
@@ -21000,7 +21000,7 @@
           "tick_capital_explosions": 41,
           "tick_launch_flashes": 55,
           "erase_fighter_projectile_overlays": 158,
-          "update_player_death": 1898,
+          "update_player_death": 1562,
           "read_input": 900,
           "update_fighter_projectiles": 154,
           "update_broadside": 1159,
@@ -21015,12 +21015,12 @@
           "update_transient_effects": 20,
           "entity_effects_update": 66,
           "render_capital_explosions": 41,
-          "render_shared_fighter_explosions": 493,
+          "render_shared_fighter_explosions": 20,
           "entity_effects_render": 19,
           "publish_dynamic_near_star_phase": 39,
           "render_interactive_entity_overlays": 22,
           "render_fighter_projectile_overlays": 383,
-          "update_sound": 90,
+          "update_sound": 88,
           "music_tick_gameplay": 57
         },
         "procedureTotalCycles": {
@@ -21030,7 +21030,7 @@
           "tick_capital_explosions": 41,
           "tick_launch_flashes": 55,
           "erase_fighter_projectile_overlays": 474,
-          "update_player_death": 1898,
+          "update_player_death": 1562,
           "read_input": 900,
           "update_fighter_projectiles": 154,
           "update_broadside": 1159,
@@ -21045,12 +21045,12 @@
           "update_transient_effects": 20,
           "entity_effects_update": 66,
           "render_capital_explosions": 41,
-          "render_shared_fighter_explosions": 493,
+          "render_shared_fighter_explosions": 20,
           "entity_effects_render": 19,
           "publish_dynamic_near_star_phase": 39,
           "render_interactive_entity_overlays": 22,
           "render_fighter_projectile_overlays": 383,
-          "update_sound": 90,
+          "update_sound": 88,
           "music_tick_gameplay": 57
         },
         "procedureExclusiveCycles": {
@@ -21060,7 +21060,7 @@
           "tick_capital_explosions": 41,
           "tick_launch_flashes": 55,
           "erase_fighter_projectile_overlays": 474,
-          "update_player_death": 1582,
+          "update_player_death": 1246,
           "read_input": 900,
           "update_fighter_projectiles": 154,
           "update_broadside": 1159,
@@ -21075,12 +21075,12 @@
           "update_transient_effects": 20,
           "entity_effects_update": 46,
           "render_capital_explosions": 41,
-          "render_shared_fighter_explosions": 493,
+          "render_shared_fighter_explosions": 20,
           "entity_effects_render": 19,
           "publish_dynamic_near_star_phase": 39,
           "render_interactive_entity_overlays": 22,
           "render_fighter_projectile_overlays": 383,
-          "update_sound": 90,
+          "update_sound": 88,
           "music_tick_gameplay": 57
         },
         "procedureCallCounts": {
@@ -21557,17 +21557,17 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 23296,
-        "sha256": "ba9de2f234479d043ff62dbaf4b6f5cee1cab1cca98ecccbb9aaee46e315c84e"
+        "sha256": "33cfa8c750d2507cca110633e7b670e5e80285761a0d3ae43e2cca527dd24eb0"
       },
       "void-strike-65.xex": {
         "path": "dist/void-strike-65.xex",
         "bytes": 23728,
-        "sha256": "b8ed318ccfa7ec71f0d913d6e34b42aef8658d6e3bbb91942a9a5aba7d338433"
+        "sha256": "3ce1a1d650fc365e0910a500e1b84be343e330fe4926273b6eaa3ddd3dc7e07f"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "6f03b9daf090653bb634aab84c503fc7fd5eae1e59867f417db55f4765be6eb6"
+        "sha256": "823b961ba80c67fdd6b92700ca65db14a875a4028a4c1ff32e122c7df5d7c8ad"
       }
     },
     "reportPath": null,
@@ -21576,15 +21576,15 @@
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 23296,
-      "sha256": "ba9de2f234479d043ff62dbaf4b6f5cee1cab1cca98ecccbb9aaee46e315c84e"
+      "sha256": "33cfa8c750d2507cca110633e7b670e5e80285761a0d3ae43e2cca527dd24eb0"
     },
     "void-strike-65.xex": {
       "bytes": 23728,
-      "sha256": "b8ed318ccfa7ec71f0d913d6e34b42aef8658d6e3bbb91942a9a5aba7d338433"
+      "sha256": "3ce1a1d650fc365e0910a500e1b84be343e330fe4926273b6eaa3ddd3dc7e07f"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "6f03b9daf090653bb634aab84c503fc7fd5eae1e59867f417db55f4765be6eb6"
+      "sha256": "823b961ba80c67fdd6b92700ca65db14a875a4028a4c1ff32e122c7df5d7c8ad"
     }
   }
 }

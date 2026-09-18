@@ -12032,17 +12032,26 @@ boot_chunk_manifest_end:
 ; Placed after the Light art tables so they keep their ENTITY_CODE addresses.
 .segment "ENTITY_CODE"
 ; First DYING tick after a lethal hit: begin the deferred PMG explosion, then
-; count the death timer down. The player explosion slot is idle exactly when
-; the begin is pending (the player must be ALIVE to die, and the previous
-; explosion ends before the previous respawn), so no pending flag is needed.
-; Entered by jmp from update_player_death; returns with its carry contract.
+; count the death timer down. Entered by jmp from update_player_death; returns
+; with its carry contract.
+;
+; The finishing frame must leave before the idle-slot test, not after it:
+; tick_shared_fighter_explosions runs earlier in the same frame and, at
+; EXPL_TIMER 1, erases the player slot and decrements it to 0, so on that one
+; frame an idle slot means "just finished", not "not yet begun". Testing it
+; there restarted the explosion at the pre-death player_x/player_y one
+; instruction before respawn_player and published a second image for 24 frames.
+; apply_player_damage is the only entry into DYING and always sets
+; BROAD_DEATH_TIMER to SHARED_FIGHTER_EXPLOSION_TOTAL+1 in the same unbranched
+; lethal tail, so "not the finishing frame" is exactly "the explosion has not
+; been begun yet, or is still running". No RAM and no size change: 18 bytes.
 player_dying_tick:
-    lda FIGHTER_EXPLOSION_TIMER+FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT
-    bne @tick
-    jsr begin_player_fighter_explosion
-@tick:
     dec BROAD_DEATH_TIMER
     beq @finished
+    lda FIGHTER_EXPLOSION_TIMER+FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT
+    bne @running
+    jsr begin_player_fighter_explosion
+@running:
     clc
     rts
 @finished:

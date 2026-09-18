@@ -1355,6 +1355,70 @@ test("lethal Interceptor contact updates HUD, uses one death event, and reaches 
   assert.equal(memory[addresses.playerLifecycle], 3);
 });
 
+// PMG planes, PMG horizontal registers and the corridor geometry the death and
+// respawn sequence publishes into. PLAYER0/PLAYER3 are the two halves of one
+// PlayerFighter image; a second simultaneous image in either plane is the
+// regression this covers.
+const PLANE_P0 = 0x3c00;
+const PLANE_P3 = 0x3f00;
+const HPOSP0 = 0xd000;
+const HPOSP3 = 0xd003;
+const COLBK = 0xd01a;
+const PLAYER_RESPAWN_X = 124;
+const PLAYER_RESPAWN_Y = 225;
+const GAMEPLAY_BACKGROUND_COLOR = 0x00;
+
+function occupiedPlaneRows(memory, base) {
+  const rows = [];
+  for (let row = 0; row < 256; row += 1) if (memory[base + row]) rows.push(row);
+  return rows;
+}
+
+// One published image is one contiguous run of non-empty PMG rows. Two runs, or
+// a run outside the live PlayerFighter, is a second image.
+function publishedImageRuns(memory, base) {
+  const runs = [];
+  for (const row of occupiedPlaneRows(memory, base)) {
+    const last = runs[runs.length - 1];
+    if (last && last.end === row - 1) last.end = row;
+    else runs.push({ start: row, end: row });
+  }
+  return runs;
+}
+
+// The live-frame order of main_loop around the death sequence: the explosion
+// tick (which owns the timer-1 self-erase) precedes update_player_death, and
+// the explosion render and the COLBK flash follow it.
+function runDeathSequenceFrame(memory) {
+  runRoutine(memory, "tick_shared_fighter_explosions");
+  runRoutine(memory, "update_player_death");
+  runRoutine(memory, "render_shared_fighter_explosions");
+  runRoutine(memory, "update_sound");
+}
+
+// Fresh runtime memory with the live PlayerFighter published at x,y and the PMG
+// planes otherwise empty, so every later plane row is attributable.
+function publishedPlayerFighterRuns(x, y, base = PLANE_P0) {
+  return publishedImageRuns(armPublishedPlayerFighter(x, y), base);
+}
+
+function armPublishedPlayerFighter(x, y) {
+  const memory = createRuntimeMemory();
+  initialiseRows(memory);
+  runRoutine(memory, "init_entity_effects");
+  memory.fill(0, 0x3800, 0x4000);
+  memory[addresses.playerX] = x;
+  memory[addresses.playerY] = y;
+  memory[HPOSP0] = x;
+  memory[HPOSP3] = x;
+  runRoutine(memory, "draw_player");
+  return memory;
+}
+
+// The exact PLAYER0 image draw_player publishes for a ship at the respawn
+// origin: the one image that may be on screen from the respawn frame onward.
+const respawnedShipRuns = publishedPlayerFighterRuns(PLAYER_RESPAWN_X, PLAYER_RESPAWN_Y);
+
 test("player death defers the PMG explosion to the first DYING tick and still erases it before the respawn", () => {
   // Death-frame deferral (2026-09-17): the lethal apply_player_damage leaves
   // the player explosion slot idle; player_dying_tick begins it one frame
@@ -1381,6 +1445,106 @@ test("player death defers the PMG explosion to the first DYING tick and still er
   runRoutine(memory, "update_player_death");
   assert.equal(memory[addresses.playerLifecycle], 2, "then the same frame respawns");
   assert.equal(memory[addresses.deathTimer], 0);
+});
+
+test("the deferred death sequence publishes exactly one PlayerFighter image from the respawn frame on", () => {
+  // Regression (2026-09-18): player_dying_tick guarded the deferred begin with
+  // "explosion slot idle". On the finishing frame the slot is idle because
+  // tick_shared_fighter_explosions erased it earlier in the same frame, so the
+  // guard restarted the explosion at the pre-death player_x/player_y one
+  // instruction before respawn_player and published a second image, four
+  // colour clocks left of the respawned ship, for a further 24 frames.
+  // This drives the real main-loop order through the respawn frame and beyond
+  // it, and inspects the planes, HPOSP0/HPOSP3 and COLBK, none of which the
+  // timer-only test above can see.
+  const slot = addresses.fighterExplosionTimer;
+  const explosionX = labels.get("FIGHTER_EXPLOSION_X");
+  const explosionY = labels.get("FIGHTER_EXPLOSION_Y");
+  const deathX = 124;
+  const deathY = 100;
+
+  const { memory } = exercisePlayerInterceptorContact({
+    playerX: deathX, playerY: deathY, playerHealth: 10, playerLives: 2,
+    baseMemory: armPublishedPlayerFighter(deathX, deathY),
+  });
+
+  // N+1 .. N+24: DYING, exactly one published image, and it is the explosion.
+  for (let frame = 1; frame <= 24; frame += 1) {
+    runDeathSequenceFrame(memory);
+    assert.equal(memory[addresses.playerLifecycle], 1, `frame N+${frame} must still be DYING`);
+    for (const [name, base] of [["PLAYER0", PLANE_P0], ["PLAYER3", PLANE_P3]]) {
+      for (const run of publishedImageRuns(memory, base)) {
+        assert.ok(run.start >= memory[explosionY] && run.end < memory[explosionY] + 8,
+          `frame N+${frame}: ${name} rows ${run.start}-${run.end} lie outside the explosion`);
+      }
+    }
+  }
+  assert.deepEqual([memory[slot], memory[addresses.deathTimer]], [1, 1],
+    "both timers must reach 1 together, on the frame before the respawn");
+
+  // N+25: the explosion self-erase, the respawn, and nothing else.
+  runDeathSequenceFrame(memory);
+  assert.equal(memory[addresses.playerLifecycle], 2, "N+25 respawns");
+  assert.equal(memory[slot], 0,
+    "the explosion must stay finished: no deferred begin may fire on the finishing frame");
+  assert.equal(memory[addresses.deathTimer], 0);
+  assert.deepEqual([memory[addresses.playerX], memory[addresses.playerY]],
+    [PLAYER_RESPAWN_X, PLAYER_RESPAWN_Y]);
+
+  // Exactly one image, and it is the respawned ship at the corridor centre.
+  assert.deepEqual(publishedImageRuns(memory, PLANE_P0), respawnedShipRuns,
+    "the respawn frame must publish exactly one PLAYER0 image, at the respawn rows");
+  assert.deepEqual(publishedImageRuns(memory, PLANE_P3),
+    publishedPlayerFighterRuns(PLAYER_RESPAWN_X, PLAYER_RESPAWN_Y, PLANE_P3),
+    "the respawn frame must publish exactly one PLAYER3 image, at the respawn rows");
+  assert.deepEqual([memory[HPOSP0], memory[HPOSP3]], [PLAYER_RESPAWN_X, PLAYER_RESPAWN_X],
+    "the respawn frame must end with both PMG halves at the respawn HPOS");
+  assert.equal(memory[COLBK], GAMEPLAY_BACKGROUND_COLOR,
+    "no death flash may replay in the respawn frame");
+  assert.deepEqual([memory[explosionX], memory[explosionY]], [deathX - 4, deathY + 4],
+    "the finished explosion record must stay at the pre-death origin, unrestarted");
+
+  // The 24 frames that carried the second image: still one ship, still centred.
+  for (let frame = 26; frame <= 50; frame += 1) {
+    runDeathSequenceFrame(memory);
+    assert.equal(memory[slot], 0, `frame N+${frame}: the explosion slot must stay idle`);
+    assert.deepEqual(publishedImageRuns(memory, PLANE_P0), respawnedShipRuns,
+      `frame N+${frame}: a second PLAYER0 image was published after the respawn`);
+    assert.deepEqual([memory[HPOSP0], memory[HPOSP3]], [PLAYER_RESPAWN_X, PLAYER_RESPAWN_X],
+      `frame N+${frame}: the PMG halves left the respawn HPOS`);
+    assert.equal(memory[COLBK], GAMEPLAY_BACKGROUND_COLOR,
+      `frame N+${frame}: a death flash replayed during the respawn`);
+  }
+});
+
+test("the deferred begin still fires when the player dies at the respawn row", () => {
+  // The regression is loudest when the death origin overlaps the respawn rows,
+  // because the restarted explosion then overwrites and later erases the live
+  // ship's own PMG bytes. Same sequence, death at the corridor floor.
+  const slot = addresses.fighterExplosionTimer;
+  const { memory } = exercisePlayerInterceptorContact({
+    playerX: PLAYER_RESPAWN_X, playerY: PLAYER_RESPAWN_Y,
+    enemyX: PLAYER_RESPAWN_X, enemyY: PLAYER_RESPAWN_Y,
+    playerHealth: 10, playerLives: 2,
+    baseMemory: armPublishedPlayerFighter(PLAYER_RESPAWN_X, PLAYER_RESPAWN_Y),
+  });
+  assert.deepEqual([memory[slot], memory[addresses.playerLifecycle]], [0, 1],
+    "the death frame begins no explosion");
+
+  runDeathSequenceFrame(memory);
+  assert.equal(memory[slot], 24, "the first DYING tick still begins the full explosion");
+
+  for (let frame = 2; frame <= 25; frame += 1) runDeathSequenceFrame(memory);
+  assert.equal(memory[addresses.playerLifecycle], 2, "N+25 respawns");
+  assert.equal(memory[slot], 0, "no deferred begin may fire on the finishing frame");
+  assert.deepEqual(publishedImageRuns(memory, PLANE_P0), respawnedShipRuns,
+    "the respawned ship must be whole and alone");
+  assert.deepEqual([memory[HPOSP0], memory[HPOSP3]], [PLAYER_RESPAWN_X, PLAYER_RESPAWN_X]);
+
+  // The restarted explosion used to erase live ship rows at its own expiry.
+  for (let frame = 26; frame <= 50; frame += 1) runDeathSequenceFrame(memory);
+  assert.deepEqual(publishedImageRuns(memory, PLANE_P0), respawnedShipRuns,
+    "no later erase may punch rows out of the live ship");
 });
 
 test("Raider lifecycle and score remain canonical without scheduling a character effect", () => {

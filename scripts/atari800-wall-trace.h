@@ -28,6 +28,10 @@
 #define DFTRACE_CAPITAL_GLYPH_FIRST 59u
 #define DFTRACE_CAPITAL_GLYPH_LAST 89u
 #define DFTRACE_ALLIED_MUZZLE_CODE 0x45u
+/* Visible PMG window for the enemy stale-body gate; GAMEPLAY_TOP/BOTTOM. */
+#define DFTRACE_ENEMY_PMG_TOP 16u
+#define DFTRACE_ENEMY_PMG_BOTTOM 240u
+#define DFTRACE_ENEMY_PMG_NO_ROW 256u
 #define DFTRACE_ENEMY_MUZZLE_CODE 0xd0u
 #define DFTRACE_ALLIED_FLASH_CODE 0x51u
 #define DFTRACE_ENEMY_FLASH_CODE 0xd2u
@@ -108,6 +112,9 @@ typedef struct {
 	unsigned enemy_slot_y[2];
 	unsigned enemy_hpos[2];
 	unsigned enemy_pmg_rows[2];
+	unsigned enemy_pmg_mismatch[2];
+	unsigned enemy_pmg_mismatch_row[2];
+	unsigned enemy_pmg_mismatch_writer[2];
 	unsigned enemy_member_state[3];
 	unsigned enemy_member_hp[3];
 	unsigned enemy_live_count;
@@ -649,6 +656,12 @@ static int dftrace_pairshot_reentry_initialised;
 static int dftrace_restart_game_over_seeded;
 static unsigned dftrace_previous_pc;
 static unsigned dftrace_pmg_last_writer[256];
+/* Last producer of every P1/P2 body byte, so a stale-body gate failure names
+ * the instruction that left the row behind instead of only the row. */
+static unsigned dftrace_enemy_pmg_last_writer[2][256];
+static unsigned dftrace_enemy_archetype;
+static unsigned dftrace_enemy_body_data;
+static unsigned dftrace_enemy_frame_heights;
 static unsigned dftrace_character_last_writer[65536];
 static unsigned dftrace_character_last_writer_x[65536];
 static const char *dftrace_first_writer_output;
@@ -3279,6 +3292,44 @@ static void dftrace_remember_capital_physical(unsigned slot)
 	dftrace_last_physical_frame[slot] = dftrace_count;
 }
 
+/* draw_enemy_member publishes a member's 16-row P1/P2 body only on frames where
+ * its Y moved; the licence for the skip is the invariant "the plane already
+ * holds the body at the member's current Y".  Verify it directly rather than
+ * trusting it: rebuild the expected plane from ENEMY_MEMBER_STATE, ENEMY_Y,
+ * ENEMY_ARCHETYPE and the archetype body table, and count the visible rows that
+ * differ.  A correct build reads 0 on every traced frame. */
+static void dftrace_snapshot_enemy_pmg_mismatch(DFTraceFrame *frame, int accumulate)
+{
+	unsigned slot;
+	unsigned archetype = MEMORY_mem[dftrace_enemy_archetype];
+	unsigned height = MEMORY_mem[(dftrace_enemy_frame_heights + archetype) & 0xffffu];
+	unsigned body = (dftrace_enemy_body_data + archetype * 16u) & 0xffffu;
+	for (slot = 0u; slot < 2u; ++slot) {
+		unsigned plane = 0x3d00u + slot * 0x100u;
+		unsigned live = MEMORY_mem[dftrace_enemy_member_state + slot] != 0u;
+		unsigned y = MEMORY_mem[dftrace_enemy_y + slot];
+		unsigned mismatch = 0u;
+		unsigned first = DFTRACE_ENEMY_PMG_NO_ROW;
+		unsigned row;
+		for (row = DFTRACE_ENEMY_PMG_TOP; row < DFTRACE_ENEMY_PMG_BOTTOM; ++row) {
+			unsigned expected = 0u;
+			if (live && row >= y && row < y + height)
+				expected = MEMORY_mem[(body + (row - y)) & 0xffffu];
+			if (MEMORY_mem[(plane + row) & 0xffffu] == expected)
+				continue;
+			++mismatch;
+			if (first == DFTRACE_ENEMY_PMG_NO_ROW)
+				first = row;
+		}
+		if (accumulate && frame->enemy_pmg_mismatch[slot] >= mismatch)
+			continue;
+		frame->enemy_pmg_mismatch[slot] = mismatch;
+		frame->enemy_pmg_mismatch_row[slot] = first;
+		frame->enemy_pmg_mismatch_writer[slot] = first == DFTRACE_ENEMY_PMG_NO_ROW
+			? 0u : dftrace_enemy_pmg_last_writer[slot][first];
+	}
+}
+
 static void dftrace_snapshot(DFTraceFrame *frame)
 {
 	unsigned pickup_row;
@@ -3317,6 +3368,7 @@ static void dftrace_snapshot(DFTraceFrame *frame)
 		frame->enemy_hpos[slot] = slot == 0u ? GTIA_HPOSP1 : GTIA_HPOSP2;
 		frame->enemy_pmg_rows[slot] = dftrace_count_nonzero(0x3d00u + slot * 0x100u, 256u);
 	}
+	dftrace_snapshot_enemy_pmg_mismatch(frame, 0);
 	for (unsigned member = 0u; member < 3u; ++member) {
 		frame->enemy_member_state[member] = MEMORY_mem[dftrace_enemy_member_state + member];
 		frame->enemy_member_hp[member] = MEMORY_mem[dftrace_enemy_hp + member];
@@ -4278,6 +4330,7 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 		frame->enemy_hpos[slot] = slot == 0u ? GTIA_HPOSP1 : GTIA_HPOSP2;
 		frame->enemy_pmg_rows[slot] = dftrace_count_nonzero(0x3d00u + slot * 0x100u, 256u);
 	}
+	dftrace_snapshot_enemy_pmg_mismatch(frame, 1);
 	for (unsigned member = 0u; member < 3u; ++member) {
 		frame->enemy_member_state[member] = MEMORY_mem[dftrace_enemy_member_state + member];
 		frame->enemy_member_hp[member] = MEMORY_mem[dftrace_enemy_hp + member];
@@ -4352,7 +4405,11 @@ static void dftrace_write(void)
 		",enemy_member0_hp,enemy_member1_hp,enemy_member2_hp"
 		",enemy_live_count,enemy_projectiles"
 		",enemy_x0,enemy_x1,enemy_y0,enemy_y1,enemy_hpos1,enemy_hpos2"
-		",enemy_pmg_rows1,enemy_pmg_rows2,player_projectile_recycled_checks"
+		",enemy_pmg_rows1,enemy_pmg_rows2"
+		",enemy_pmg_mismatch1,enemy_pmg_mismatch2"
+		",enemy_pmg_mismatch_row1,enemy_pmg_mismatch_row2"
+		",enemy_pmg_mismatch_writer1,enemy_pmg_mismatch_writer2"
+		",player_projectile_recycled_checks"
 		",player_projectile_stale_cells,player_projectile_orphan_cells"
 		",transient_effect_orphan_cells,transient_effect_first_address"
 		",transient_effect_first_code,transient_effect_first_writer_pc"
@@ -4569,11 +4626,14 @@ static void dftrace_write(void)
 			frame->enemy_member_state[2], frame->enemy_member_hp[0],
 			frame->enemy_member_hp[1], frame->enemy_member_hp[2],
 			frame->enemy_live_count, frame->enemy_projectiles);
-		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u",
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u",
 			frame->enemy_slot_x[0], frame->enemy_slot_x[1],
 			frame->enemy_slot_y[0], frame->enemy_slot_y[1],
 			frame->enemy_hpos[0], frame->enemy_hpos[1],
 			frame->enemy_pmg_rows[0], frame->enemy_pmg_rows[1],
+			frame->enemy_pmg_mismatch[0], frame->enemy_pmg_mismatch[1],
+			frame->enemy_pmg_mismatch_row[0], frame->enemy_pmg_mismatch_row[1],
+			frame->enemy_pmg_mismatch_writer[0], frame->enemy_pmg_mismatch_writer[1],
 			frame->player_projectile_recycled_checks,
 			frame->player_projectile_stale_cells,
 			frame->player_projectile_orphan_cells,
@@ -5472,6 +5532,9 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_gameplay_frame, "DFTRACE_GAMEPLAY_FRAME");
 	DFTRACE_ADDRESS(dftrace_active_gameplay_frame_lo, "DFTRACE_ACTIVE_GAMEPLAY_FRAME_LO");
 	DFTRACE_ADDRESS(dftrace_enemy_y, "DFTRACE_ENEMY_Y");
+	DFTRACE_ADDRESS(dftrace_enemy_archetype, "DFTRACE_ENEMY_ARCHETYPE");
+	DFTRACE_ADDRESS(dftrace_enemy_body_data, "DFTRACE_ENEMY_BODY_DATA");
+	DFTRACE_ADDRESS(dftrace_enemy_frame_heights, "DFTRACE_ENEMY_FRAME_HEIGHTS");
 	DFTRACE_ADDRESS(dftrace_director_state, "DFTRACE_DIRECTOR_STATE");
 	DFTRACE_ADDRESS(dftrace_muzzle_screen_hi, "DFTRACE_MUZZLE_SCREEN_HI");
 	DFTRACE_ADDRESS(dftrace_muzzle_screen_lo, "DFTRACE_MUZZLE_SCREEN_LO");
@@ -5736,9 +5799,14 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 	 * exact production writer for every missile byte without changing guest
 	 * code or sampling only the final framebuffer. */
 	if (dftrace_previous_pc != 0u && MEMORY_mem[dftrace_previous_pc] == 0x99u &&
-		MEMORY_mem[(dftrace_previous_pc + 1u) & 0xffffu] == 0x00u &&
-		MEMORY_mem[(dftrace_previous_pc + 2u) & 0xffffu] == 0x3bu)
-		dftrace_pmg_last_writer[y_register & 0xffu] = dftrace_previous_pc;
+		MEMORY_mem[(dftrace_previous_pc + 1u) & 0xffffu] == 0x00u) {
+		unsigned page = MEMORY_mem[(dftrace_previous_pc + 2u) & 0xffffu];
+		if (page == 0x3bu)
+			dftrace_pmg_last_writer[y_register & 0xffu] = dftrace_previous_pc;
+		else if (page == 0x3du || page == 0x3eu)
+			dftrace_enemy_pmg_last_writer[page - 0x3du][y_register & 0xffu] =
+				dftrace_previous_pc;
+	}
 	if (getenv("DFMENU_OUTPUT") != NULL) {
 		dfmenu_observe(pc);
 		return;

@@ -218,22 +218,50 @@ is not fence-bound.
 Root cause of the two 4.5d misses (measured, native frame profiler): both misses are Light contact
 kills inside `light_update`, which runs after the enemy update and the ring
 rotate; the two Bombers' standing cost (`integration_update_enemy` 4,630
-cycles per frame with two live: `heavy_member_update` ~946,
+cycles per frame with two live *before Option D*: `heavy_member_update` ~946,
 `draw_enemy_member` ~1,164, `erase_enemy_departing_row` ~56 per member) plus
 the death (+4,317) and kill (+3,009) coincidence overran the fence; the 4.5d
-behaviour itself adds +36 cycles to the death frame. Evidence:
+behaviour itself adds +36 cycles to the death frame. **After Option D that
+standing cost is 3,418-3,894 wall cycles per frame** (the range is the
+held/moved mix: a member that holds its Y republishes only `HPOSP1,x`).
+Cross-checked in the NMOS harness, where `update_enemy` with two live Bombers falls
+from a 2,195-cycle mean (min 1,901) to a 1,532-cycle mean (min 1,058) and the
+Raider stays level (1,517 → 1,467). Evidence:
 [diagnostics/stage-2b2q-pal-timing-audit.json](diagnostics/stage-2b2q-pal-timing-audit.json),
 [diagnostics/stage-2b2r-death-frame-deferral.json](diagnostics/stage-2b2r-death-frame-deferral.json),
 [diagnostics/stage-2b2s-respawn-double-image.json](diagnostics/stage-2b2s-respawn-double-image.json).
 
+**Option D — Bomber standing cost (XEX `ecc9ceda…`): 0 distinct miss events
+across 69 audited replays — PASS.** Full gate set re-run 2026-09-18 (default
+run through its pre-existing abort, the post-abort `--only-session` list, the
+`--raider-formation-only` and `--raider-sector-only` modes, `--debris-gate-only`
+and `--raider-remnant-only`; 0 rows over target, 0 over the hard gate). The
+worst fence margin is **1,464 cycles** at `raider-remnant-rapid-xex-hard` row
+1945 — the same row that was the worst of the set at **+466** before Option D,
+so the skip buys **+998 cycles** on the binding row; the next worst is 1,713 at
+row 1963. The new native stale-body gate reads **0 stale or torn rows across
+134,880 traced frames**, 78,124 of which carry a live `P1`/`P2` body: the
+emulator rebuilds the expected plane from `ENEMY_MEMBER_STATE`, `ENEMY_Y`,
+`ENEMY_ARCHETYPE` and the archetype body table on every traced frame, so the
+skip's licence is verified rather than assumed. Byte-neutral in `BROADSIDE`
+(6,653 B used, free tail still 3 B); packed transport 5,642 → 5,644 B, 45
+sectors unchanged, ATR menu 554 against a 554 deadline. Every native gate
+failure in the set is A/B-confirmed pre-existing (identical on a freshly built
+`0a90c1c` worktree), including two the recorded procedure did not list:
+`weapon-pickup-overlap-2-hunt-fire4` on the same GTIA/erase-draw invariant as
+the recorded abort, and `raider-sector-xex-hard` "did not return to post-sector
+OPEN"; the debris visibility gate's single post-capital blank on
+`debris-gate-0-neutral-fire0` is likewise identical on `0a90c1c`. Evidence:
+[diagnostics/stage-2b2t-option-d-standing-cost.json](diagnostics/stage-2b2t-option-d-standing-cost.json).
+
 ## Known open defects and open decisions
 
-- PAL fence budget: with two Bombers live the standing enemy cost leaves the
-  worst death frame 466 cycles under the fence after the death-frame deferral
-  (section above); a death frame in which both Bombers also fire (~+1,090
-  harness cycles) could still miss. The standing cost (`draw_enemy_member`
-  redraws 16 P1/P2 rows every frame even when Y is unchanged) is the next
-  bounded task, before further Bomber or 4.6 content;
+- PAL fence budget: **relieved but not closed by Option D.** With two Bombers
+  live the worst death frame now sits **1,464 cycles** under the fence (it was
+  466 after the death-frame deferral alone), so a death frame in which both
+  Bombers also fire (~+1,090 harness cycles) no longer misses on the measured
+  set. The remaining margin is still the binding constraint on 4.6 population:
+  roadmap item 2 measures it before further Bomber or 4.6 content;
 - intermittent purple artifact after a Raider, not reproduced
   deterministically (hypothesis only: a stale hostile pulse — if it now shows
   white/steel on the 4.4c candidate, that points to its source);
@@ -1308,12 +1336,13 @@ Interceptor (Light, character-rendered).
 
 ## Current task
 
-None. `0a90c1c` is the accepted runtime checkpoint and no code change is in
-flight; the last commit is documentation only.
-
-The next item is Option D, the Bomber standing cost (roadmap item 1 below). It
-is hardware-critical and starts only on owner instruction, with a High plan and
-proof first.
+None in flight. `0a90c1c` is the accepted runtime checkpoint; **Option D, the
+Bomber standing cost (roadmap item 1 below), is implemented and committed as an
+`OWNER-SMOKE CANDIDATE`** on `wip/4.5d-gate-fail` and is awaiting owner smoke.
+`draw_enemy_member` now skips the 16-row `P1`/`P2` body copy on frames where a
+member's Y is unchanged; X still goes out through `HPOSP1,x` every live frame.
+Measured result in the section above: the worst fence margin rises from
+**450/466 to 1,464 cycles** and the native stale-body gate reads 0.
 
 ## Roadmap (owner decision 21, 2026-09-18)
 
@@ -1324,13 +1353,17 @@ is in [plan-realizacji.md](plan-realizacji.md) §4.
 1. **Option D — Bomber standing cost.** Skip the 16-row `P1`/`P2` body copy in
    `draw_enemy_member` when a member's Y is unchanged (X goes through
    `HPOSP1,x` anyway). ~1,164-2,328 cycles per frame with two Bombers. This is
-   a **hardware-critical renderer invariant**: it needs a High plan with proof
-   of every `P1`/`P2` writer and of the pause and respawn paths. The worst
-   fence margin is now **450 cycles**.
+   a **hardware-critical renderer invariant**: it needed a High plan with proof
+   of every `P1`/`P2` writer and of the pause and respawn paths. **Done as an
+   `OWNER-SMOKE CANDIDATE`** (2026-09-18): the worst fence margin rises from
+   450/466 to **1,464 cycles**, and a native `enemy_pmg_mismatch` gate now
+   rebuilds the expected plane every traced frame and holds the skip to its
+   invariant.
 2. **Population budget measurement** — three numbers that gate 4.6 wave design:
    (a) how many Lights fit simultaneously with debris and a pickup capsule
-   live; (b) how many Heavy + debris + capsule (roughly known: 450 cycles of
-   margin with two Bombers); (c) what debris alone costs as object count rises.
+   live; (b) how many Heavy + debris + capsule (roughly known: 1,464 cycles of
+   margin with two Bombers after Option D, 450/466 before it); (c) what debris
+   alone costs as object count rises.
    The same task answers: does player-vs-capital-hull collision read the
    character map or assume a fixed corridor width; can the starfield colour
    change per sector, and what else uses that register; and can

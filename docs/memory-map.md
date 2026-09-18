@@ -593,6 +593,28 @@ linker guard because its tail is shared between two link units; `scripts/build.m
 refuses it there instead, and `residentCapacity.tails` now throws on any negative
 tail rather than shipping the overrun in the manifest.
 
+**Option D — Bomber standing cost (`OWNER-SMOKE CANDIDATE`, 2026-09-18).**
+**Exactly** size-neutral in every segment, by construction. The skip is paid
+for out of three retirements, netting to zero bytes: the 5-byte executable
+`.res` pad after `HYBRID_ENEMY_RETIRE_MEMBER` (-5), 1 of the 2 bytes at
+`draw_enemy_offscreen_layout_pad` (-1), and the retired `ENEMY_TARGET_Y`
+round-trip inside the body copy — `sta`/`ldy` replaced by `tay` (-3, +1) —
+against the `cmp ENEMY_Y,x` / `php` compare carried across the HPOS arithmetic
+(+4), the `plp` / `beq` that consumes it (+3), the caller's `pla` / `pha` (+2)
+and the `lda #ENEMY_Y_NEVER` sentinel (+2). So every fixed BROADSIDE
+integration target keeps its address and `free_broadside_slot = $76A7` still
+asserts. Removing those two pads also satisfies the standing rule against
+`.res $EA` padding on executed paths. **The
+table above is unchanged: `BROADSIDE` 6,653 B used / free tail 3 B,
+`ENTITY_CODE` 1 B, `HYBRID_C_ARENA` 617 / 832 B with 215 B free, and no other
+segment moved.** Only compression shifts: the packed BROADSIDE transport goes
+5,642 → 5,644 B (+2 B) in the same 45 sectors, total transport stays 182
+sectors, and the ATR menu milestone stays 554 against its 554-frame deadline
+(190 + 182 x 2) — still zero slack, so any future boot-time decode cost fails
+smoke. Evidence: 0 distinct miss events across 69 audited replays, worst fence
+margin 1,464 cycles, and 0 stale or torn `P1`/`P2` rows across 134,880 traced
+frames.
+
 **Standing rule.** Any commit that changes a segment's size must state the
 resulting free tail in its commit message and update the table above.
 

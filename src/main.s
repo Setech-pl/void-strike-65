@@ -443,6 +443,10 @@ RAIDER_PMG_START_X_1 = 152
 RAIDER_PMG_SPAWN_Y = GAMEPLAY_TOP-ENEMY_RELEASE_FRAME_HEIGHT
 RAIDER_PMG_START_Y_0 = 48
 RAIDER_PMG_START_Y_1 = 96
+; Sentinel "previous Y" handed to draw_enemy_member by the two full-draw
+; callers to force the body copy. A drawn member's Y always lies in
+; [0, GAMEPLAY_BOTTOM), so $FF never compares equal to a live member's Y.
+ENEMY_Y_NEVER = $FF
 FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT = 0
 FIGHTER_EXPLOSION_ENEMY_SLOT = 1
 PLAYER_HEALTH_UNITS = 10
@@ -4551,12 +4555,13 @@ update_enemy:
     cmp #GAMEPLAY_BOTTOM
     bcc @draw_member
     jsr HYBRID_ENEMY_RETIRE_MEMBER
-    .res 5,$EA                  ; preserve fixed BROADSIDE integration targets
     jmp @retire_departing_row
 @draw_member:
     ; Publish each independent PMG page immediately after its motion update.
     ; Clearing both full bodies first left a long zero-filled interval which
     ; ANTIC could fetch as an intermittent black/missing Raider silhouette.
+    pla                         ; the member's Y before this frame's motion;
+    pha                         ; erase_enemy_departing_row still consumes it
     jsr draw_enemy_member
 @retire_departing_row:
     pla
@@ -4581,6 +4586,7 @@ draw_enemy:
 @member:
     lda ENEMY_MEMBER_STATE,x
     beq @member_next
+    lda #ENEMY_Y_NEVER          ; a full draw never skips the body copy
     jsr draw_enemy_member
     ldx ENEMY_TARGET_SLOT
 @member_next:
@@ -4592,14 +4598,21 @@ draw_enemy:
 draw_enemy_member:
     ; Accepted motion already clamps every mutable slot before drawing. Avoid a
     ; second scratch round-trip here: it cannot change an in-bounds position.
+    ; A = the Y this member's plane was last published at (ENEMY_Y_NEVER forces
+    ; the copy). An unchanged Y means the plane already holds the body at that
+    ; Y, so only the horizontal position has to be republished.
     stx ENEMY_TARGET_SLOT
+    cmp ENEMY_Y,x
+    php
     ldy ENEMY_ARCHETYPE
     lda ENEMY_X,x
     sec
     sbc enemy_visible_left_insets,y
     sta HPOSP1,x
-    jsr enemy_member_screen_y
-    sta ENEMY_TARGET_Y
+    plp
+    beq @body_done
+    jsr enemy_member_screen_y   ; A = screen Y, and republishes ENEMY_TARGET_Y
+    tay
     ldx ENEMY_ARCHETYPE
     lda enemy_frame_heights,x
     sta row_counter
@@ -4609,7 +4622,6 @@ draw_enemy_member:
     asl
     asl
     tax
-    ldy ENEMY_TARGET_Y
     lda ENEMY_TARGET_SLOT
     clc
     adc #>PLAYER1
@@ -4630,7 +4642,7 @@ draw_enemy_member:
 @body_done:
     rts
 draw_enemy_offscreen_layout_pad:
-    .res 2,$EA                  ; preserve every following BROADSIDE integration ABI
+    .res 1,$EA                  ; preserve every following BROADSIDE integration ABI
 
 .if ENEMY_REVIEW_HARNESS
 .segment "STARFIELD"

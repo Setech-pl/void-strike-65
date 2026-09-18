@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "stage": "2b2t",
+  "title": "Option D - Bomber standing cost: skip the P1/P2 body copy on a held Y",
+  "status": "OWNER-SMOKE CANDIDATE",
+  "measured": "2026-09-18",
+  "branch": "wip/4.5d-gate-fail",
+  "base_commit": "f2831a2 (accepted runtime checkpoint 0a90c1c)",
+  "artifact": {
+    "path": "dist/void-strike-65.xex",
+    "sha256": "ecc9cedafd87f871989fc0b279343d1848c225792bf17e5be4ad9fadd1f7d3c7"
+  },
+  "change": "draw_enemy_member compares the caller-supplied previous Y against ENEMY_Y,x and skips the 16-row P1/P2 body copy when they are equal; X is still republished through HPOSP1,x every live frame. update_enemy passes the member pre-motion Y off the stack; both full-draw callers pass the ENEMY_Y_NEVER ($FF) sentinel to force the copy.",
+  "byte_ledger": {
+    "broadside_used_bytes": 6653,
+    "broadside_reserved_bytes": 6656,
+    "broadside_free_tail_bytes": 3,
+    "broadside_packed_bytes": {
+      "before": 5642,
+      "after": 5644,
+      "delta": 2
+    },
+    "broadside_transport_sectors": 45,
+    "entity_code_free_tail_bytes": 1,
+    "arena_used_bytes": 617,
+    "arena_capacity_bytes": 832,
+    "arena_free_bytes": 215,
+    "total_transport_sectors": 182,
+    "free_broadside_slot": "$76A7 (assert holds)",
+    "atr_menu_milestone_frame": 554,
+    "atr_menu_deadline_frame": 554,
+    "note": "exactly byte-neutral: the 5-B retire pad, 1 B of the offscreen pad and the retired ENEMY_TARGET_Y round-trip pay for the compare, the branch, the caller pla/pha and the sentinel"
+  },
+  "pal_timing_audit": {
+    "replays": 69,
+    "distinct_miss_events": 0,
+    "rows_over_target": 0,
+    "rows_over_hard_gate": 0,
+    "all_sessions_passed": true,
+    "worst_fence_margin_cycles": 1464,
+    "worst_fence_margin_session": "raider-remnant-rapid-xex-hard",
+    "worst_fence_margin_frame": 1945,
+    "pre_option_d_worst_fence_margin_cycles": 466,
+    "gain_on_the_binding_row_cycles": 998,
+    "six_worst": [
+      {
+        "session": "raider-remnant-rapid-xex-hard",
+        "worst_fence_margin_cycles": 1464,
+        "worst_fence_margin_frame": 1945,
+        "worst_pre_wait_cycles": 23801,
+        "maximum_wall_cycles": 30437
+      },
+      {
+        "session": "memory-integrity-atr-2-hunt-fire4",
+        "worst_fence_margin_cycles": 1713,
+        "worst_fence_margin_frame": 1963,
+        "worst_pre_wait_cycles": 23552,
+        "maximum_wall_cycles": 30093
+      },
+      {
+        "session": "memory-integrity-xex-2-hunt-fire4",
+        "worst_fence_margin_cycles": 1713,
+        "worst_fence_margin_frame": 1963,
+        "worst_pre_wait_cycles": 23552,
+        "maximum_wall_cycles": 30093
+      },
+      {
+        "session": "raider-remnant-normal-xex-hard",
+        "worst_fence_margin_cycles": 1713,
+        "worst_fence_margin_frame": 1963,
+        "worst_pre_wait_cycles": 23552,
+        "maximum_wall_cycles": 30093
+      },
+      {
+        "session": "weapon-pickup-2-hunt-fire4",
+        "worst_fence_margin_cycles": 1713,
+        "worst_fence_margin_frame": 1963,
+        "worst_pre_wait_cycles": 23552,
+        "maximum_wall_cycles": 30093
+      },
+      {
+        "session": "director-complete-1-natural-sweep-fire0",
+        "worst_fence_margin_cycles": 1831,
+        "worst_fence_margin_frame": 2557,
+        "worst_pre_wait_cycles": 23418,
+        "maximum_wall_cycles": 30315
+      }
+    ],
+    "procedure": "default run to its pre-existing abort, post-abort --only-session list, --raider-formation-only, --raider-sector-only, --debris-gate-only, --raider-remnant-only, then scripts/pal-timing-audit.mjs over every CSV; --prepare once for the new trace header; --atari800-source=build/atari800-trace"
+  },
+  "stale_body_visual_gate": {
+    "mechanism": "the instrumented emulator rebuilds the expected P1/P2 plane from ENEMY_MEMBER_STATE, ENEMY_Y, ENEMY_ARCHETYPE and the archetype body table on every traced frame and counts visible rows that differ; runtime-wall-trace.mjs fails any session with a nonzero count",
+    "enemy_trace_csvs": 69,
+    "traced_frames": 134880,
+    "frames_with_a_live_pmg_body": 78124,
+    "stale_or_torn_frames": 0,
+    "result": "PASS"
+  },
+  "pre_existing_failures_confirmed_identical_on_0a90c1c": [
+    "weapon-pickup-contact-2-hunt-fire4: GTIA priority / single erase-draw lifecycle (the recorded step-1 abort, after 21 sessions)",
+    "weapon-pickup-overlap-2-hunt-fire4: same invariant; NOT previously recorded, A/B-confirmed pre-existing",
+    "capital-muzzle-ring-2-sweep-fire4: stale muzzle/flash code (recorded)",
+    "capital-contact-allied-medium and capital-contact-hostile-medium: emulator exit 2, no CSV (recorded)",
+    "lower-playfield-hostile-contact-xex-hard: emulator exit 2 (recorded)",
+    "raider-sector-xex-hard: did not return to post-sector OPEN; NOT previously recorded, A/B-confirmed pre-existing",
+    "raider-remnant gate: main_explosions_generated 26 < raider_kill_requests.total 27, byte-identical counts on both builds",
+    "debris visibility gate: debris-gate-0-neutral-fire0 post-capital 1 blank / 1558 in view, 1 disappearance - identical on 0a90c1c (memory recorded PASS 3/3 at the older 2a67684, not at 0a90c1c)"
+  ],
+  "focused_tests": {
+    "files": 29,
+    "tests": 244,
+    "pass": 228,
+    "fail": 16,
+    "failure_name_set": "identical on 0a90c1c and on this build (diff empty)",
+    "additionally": "tests/heavy-standing-cost.test.mjs 7/7 and tests/two-pmg-raiders.test.mjs 4/4 pass here; heavy-standing-cost fails 4 of 7 on a freshly built 0a90c1c worktree (held-Bomber body, pause/resume hold, held-Raider body, source contract), so the test discriminates the fix"
+  },
+  "nmos_cross_check": {
+    "note": "update_enemy cycles per frame, two live Heavy members, real NMOS core through the production spawn path",
+    "bomber": {
+      "before": {
+        "mean": 2195,
+        "min": 1901,
+        "max": 2475
+      },
+      "after": {
+        "mean": 1532,
+        "min": 1058,
+        "max": 2299
+      }
+    },
+    "raider": {
+      "before": {
+        "mean": 1517
+      },
+      "after": {
+        "mean": 1467
+      }
+    }
+  },
+  "integration_update_enemy_wall_cycles": {
+    "before": 4630,
+    "after": "3418-3894",
+    "source": "native frame profiler (measurement session); superseded figure was recorded in docs/STATUS.md as a flat 4,630"
+  },
+  "limitations": [
+    "Emulator success is necessary but not sufficient; no real-hardware SIO2SD smoke in this session.",
+    "The ATR menu milestone meets its deadline with 0 frames of slack, unchanged by this work.",
+    "Owner smoke has not been run: this is an OWNER-SMOKE CANDIDATE, not accepted."
+  ]
+}

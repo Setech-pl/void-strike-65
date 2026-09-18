@@ -96,6 +96,7 @@ test("real NMOS Heavy update keeps P1/P2 isolated and never blanks either live p
     { name: "crossing middle", active: [1, 1], x: [116, 110], y: [104, 108] },
     { name: "bottom", active: [1, 1], x: [104, 120], y: [220, 222] },
   ];
+  let heldLiveMembers = 0;
   for (const scenario of scenarios) {
     const memory = new Uint8Array(0x10000);
     installRuntimeSegments(memory, root);
@@ -139,8 +140,23 @@ test("real NMOS Heavy update keeps P1/P2 isolated and never blanks either live p
         return false;
       },
     });
-    assert.ok(writes.length >= 14 * memory[labels.get("ENEMY_LIVE_COUNT")],
-      `${scenario.name}: every live body must publish`);
+    // Roadmap item 1 (Option D): a member recopies its body only on frames
+    // where its Y moved; a held member republishes its X and nothing else.
+    const liveSlots = [0, 1].filter((slot) => scenario.active[slot] !== 0);
+    const movedSlots = liveSlots.filter((slot) =>
+      memory[labels.get("ENEMY_Y") + slot] !== scenario.y[slot]);
+    assert.ok(movedSlots.length > 0, `${scenario.name}: no live member moved at all`);
+    heldLiveMembers += liveSlots.length - movedSlots.length;
+    for (const slot of [0, 1]) {
+      const slotWrites = writes.filter((write) => write.pageSlot === slot);
+      if (movedSlots.includes(slot)) {
+        assert.ok(slotWrites.length >= 14,
+          `${scenario.name}: a moved body must publish every visible row`);
+      } else {
+        assert.equal(slotWrites.length, 0,
+          `${scenario.name}: a held body must publish nothing`);
+      }
+    }
     for (let slot = 0; slot < 2; slot += 1) {
       if (scenario.active[slot] !== 0) {
         assert.ok(minimum[slot] > 0, `${scenario.name}: P${slot + 1} became fully blank`);
@@ -152,6 +168,8 @@ test("real NMOS Heavy update keeps P1/P2 isolated and never blanks either live p
       }
     }
   }
+  assert.ok(heldLiveMembers > 0,
+    "the scenario set no longer exercises a member that holds its Y");
 });
 
 test("packed transports have positive measured boundaries", () => {

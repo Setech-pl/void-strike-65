@@ -519,6 +519,9 @@ const traceLabels = {
   DFTRACE_ENEMY_MEMBER_STATE: "ENEMY_MEMBER_STATE",
   DFTRACE_ENEMY_HP: "ENEMY_HP",
   DFTRACE_ENEMY_LIVE_COUNT: "ENEMY_LIVE_COUNT",
+  DFTRACE_ENEMY_ARCHETYPE: "ENEMY_ARCHETYPE",
+  DFTRACE_ENEMY_BODY_DATA: "enemy_body_data",
+  DFTRACE_ENEMY_FRAME_HEIGHTS: "enemy_frame_heights",
   DFTRACE_FIGHTER_EXPLOSION_TIMER: "FIGHTER_EXPLOSION_TIMER",
   DFTRACE_CAPITAL_EXPLOSION_TIMER: "CAPITAL_EXPLOSION_TIMER",
   DFTRACE_MUSIC_ACTIVE: "MUSIC_ACTIVE",
@@ -665,6 +668,9 @@ const numericCsvFields = new Set([
   "enemy_member2_hp", "enemy_live_count", "enemy_projectiles", "director_phase", "director_rng",
   "enemy_x0", "enemy_x1", "enemy_y0", "enemy_y1", "enemy_hpos1", "enemy_hpos2",
   "enemy_pmg_rows1", "enemy_pmg_rows2",
+  "enemy_pmg_mismatch1", "enemy_pmg_mismatch2",
+  "enemy_pmg_mismatch_row1", "enemy_pmg_mismatch_row2",
+  "enemy_pmg_mismatch_writer1", "enemy_pmg_mismatch_writer2",
   "player_projectile_recycled_checks", "player_projectile_stale_cells",
   "player_projectile_orphan_cells",
   "director_intensity", "director_reaction", "director_recovery",
@@ -2392,6 +2398,27 @@ function main() {
       ], { env: environment });
     }
     const rows = parseCsv(fs.readFileSync(outputPath, "utf8"), session);
+    // draw_enemy_member publishes a member's 16-row P1/P2 body only on frames
+    // where its Y moved. The licence for that skip is "the plane already holds
+    // the body at the member's current Y", so hold every traced frame to it:
+    // the emulator rebuilds the expected plane from ENEMY_MEMBER_STATE,
+    // ENEMY_Y, ENEMY_ARCHETYPE and the archetype body table and counts the
+    // visible rows that differ. Any nonzero count is a stale or torn sprite.
+    const staleBodyRows = rows.filter((row) =>
+      (row.enemy_pmg_mismatch1 ?? 0) !== 0 || (row.enemy_pmg_mismatch2 ?? 0) !== 0);
+    invariant(staleBodyRows.length === 0, [
+      `${session.id} published a stale or torn enemy PMG body on ` +
+        `${staleBodyRows.length} frame(s)`,
+      ...staleBodyRows.slice(0, 8).flatMap((row) => [0, 1]
+        .filter((slot) => (row[`enemy_pmg_mismatch${slot + 1}`] ?? 0) !== 0)
+        .map((slot) => `  frame ${row.frame} P${slot + 1}: ` +
+          `${row[`enemy_pmg_mismatch${slot + 1}`]} visible row(s) differ, ` +
+          `member_state=${row[`enemy_member${slot}_state`]} ` +
+          `y=${row[`enemy_y${slot}`]} ` +
+          `first_row=${row[`enemy_pmg_mismatch_row${slot + 1}`]} ` +
+          `last_writer=$${(row[`enemy_pmg_mismatch_writer${slot + 1}`] ?? 0)
+            .toString(16).padStart(4, "0")}`)),
+    ].join("\n"));
     if (muzzleScreenshotPrefix !== undefined &&
         session.kind !== "broadside-transient-lifecycle") {
       const basename = path.basename(muzzleScreenshotPrefix);

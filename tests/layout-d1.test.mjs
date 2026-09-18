@@ -189,7 +189,14 @@ test("current A2 entry points and relocated release glue retain their frozen opc
   }
   assert.equal(labels.get("integration_broadside_release"), 0x4fdd);
   assert.equal(glue[0x4fdd - 0x4efe], 0x8a);
-  assert.equal(labels.get("integration_debris_release"), 0x77ec);
+  // Debris contact score (2026-09-18): ENTITY_CODE had one free byte left
+  // before the DIRECTOR_C_PRE record at $9D5E, so the second DEBRIS_SCORE award
+  // site is a 3-B prologue in BROADSIDE's reserved tail that falls through into
+  // this wrapper. The wrapper itself is unchanged; it moved $77EC -> $77EF and
+  // debris_contact_destroyed now holds $77EC. Nothing outside this assertion
+  // froze either address.
+  assert.equal(labels.get("debris_contact_destroyed"), 0x77ec);
+  assert.equal(labels.get("integration_debris_release"), 0x77ef);
 });
 
 test("relocated pickup hook decrements 2 to 1 and returns", () => {

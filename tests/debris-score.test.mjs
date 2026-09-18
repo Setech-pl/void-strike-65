@@ -1,6 +1,9 @@
-// Owner change request: destroying interactive debris awards DEBRIS_SCORE ($05),
-// difficulty-independent, and only when the player's own shot is lethal. Debris
-// released by player contact, by the despawn path or by a sector boundary must
+// Owner rule (2026-09-18): destroying something awards score regardless of
+// whether the player survives doing it, so a contact kill scores exactly what a
+// shot kill scores. Interactive debris awards DEBRIS_SCORE ($05),
+// difficulty-independent, on the lethal player shot and on the lethal player
+// contact alike. Every other release path — the despawn path, the fall past
+// ENTITY_GAMEPLAY_BOTTOM and the sector DRAIN/COMPLETE release — must still
 // leave the score untouched.
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -114,7 +117,11 @@ test("a non-lethal player shot on debris does not score", () => {
   assert.equal(score(memory), 0x0742);
 });
 
-test("player contact destroying the debris does not score", () => {
+// Inverted on 2026-09-18: the owner made scoring independent of the player
+// surviving the kill. All four enemy archetypes already converged their shot
+// and contact paths before the score call; debris was the last object that did
+// not, so a contact kill awarded nothing. It now awards DEBRIS_SCORE.
+test("player contact destroying the debris awards the same DEBRIS_SCORE", () => {
   const memory = bootedMemory();
   armDebris(memory, { hp: 1 });
   memory[at("player_x")] = 124;
@@ -128,7 +135,8 @@ test("player contact destroying the debris does not score", () => {
   run(memory, "entity_collide_player");
   assert.equal(memory[at("ENTITY_ACTIVE_MASK")] & 1, 0, "contact must release the debris");
   assert.ok(memory[BROAD_PLAYER_HEALTH] < 10, "contact must still damage the player");
-  assert.equal(score(memory), 0x0742);
+  assert.equal(score(memory), 0x0747, "a contact kill awards exactly one DEBRIS_SCORE");
+  assert.equal(0x0747 - 0x0742, DEBRIS_SCORE);
 });
 
 test("the despawn path does not score", () => {
@@ -139,12 +147,22 @@ test("the despawn path does not score", () => {
   assert.equal(score(memory), 0x0742);
 });
 
-test("only the player-shot destruction path calls add_debris_score", () => {
+// Deliberate contract change (2026-09-18): the single-call-site assertion below
+// became a two-call-site assertion when the owner rule added the contact award.
+// The two sites are the only player-caused destructions of debris; the despawn,
+// fall-through and sector-boundary releases reach integration_debris_release
+// without passing either.
+test("only the two player-caused destruction paths call add_debris_score", () => {
   const callers = source.split(/\r?\n/)
     .filter((line) => /\b(jsr|jmp)\s+add_debris_score\b/.test(line));
-  assert.equal(callers.length, 1, "add_debris_score must have exactly one call site");
+  assert.equal(callers.length, 2, "add_debris_score must have exactly two call sites");
   assert.match(source,
     /entity_debris_destroyed:\s*\n\s*jsr spawn_debris_destruction_effects\s*\n\s*jsr integration_debris_release\s*\n\s*jsr add_debris_score/);
+  // The contact site is a three-byte BROADSIDE prologue that falls through into
+  // the unchanged release wrapper, so ENTITY_CODE stays size-neutral.
+  assert.match(source,
+    /debris_contact_destroyed:\s*\n\s*jsr add_debris_score\s*\nintegration_debris_release:/);
+  assert.match(source, /entity_damage_applied:(?:\s*\n\s*;[^\n]*)*\s*\n\s*jmp debris_contact_destroyed/);
   // The shared mechanism: packed-BCD add then the shared HUD refresh, exactly
   // as light_add_score / add_archetype_score_tail do.
   assert.match(source,

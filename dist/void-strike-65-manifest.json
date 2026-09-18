@@ -9,12 +9,12 @@
     "layout": "Hybrid cc65 C Director + stable ca65 ABI veneer",
     "levelWorldRows": 3712,
     "phaseCount": 8,
-    "initialContentBytes": 13171,
-    "linkedRuntimeBytes": 17518,
-    "simultaneousResidencyBytes": 20125,
-    "safeResidencyBytes": 2062,
+    "initialContentBytes": 13172,
+    "linkedRuntimeBytes": 17521,
+    "simultaneousResidencyBytes": 20128,
+    "safeResidencyBytes": 2059,
     "residencyDeltaBytes": 2129,
-    "totalMigrationResidencyDeltaBytes": 2098,
+    "totalMigrationResidencyDeltaBytes": 2101,
     "glue": {
       "stagingAddress": 39992,
       "holdingAddress": 33024,
@@ -145,7 +145,7 @@
   "bootSectors": 103,
   "payloadBytes": 23296,
   "bootPayloadTrailer": {
-    "address": 21359,
+    "address": 21360,
     "bytes": 4,
     "ascii": "DFB1",
     "hex": "44464231",
@@ -191,7 +191,7 @@
       "recoveredReserveBytes": 1097,
       "residentSuffixGrossSavingsBytes": 1061,
       "relocatedColdInitBytes": 2440,
-      "relocatedColdInitPackedCostBytes": 2080,
+      "relocatedColdInitPackedCostBytes": 2081,
       "reserveAddress": 24499,
       "reserveEndAddress": 24571,
       "sourceOwned": true,
@@ -215,8 +215,8 @@
   "transportCapacity": {
     "format": "DFMC-v1 multi-chunk",
     "initialBootBytes": 13184,
-    "initialBootContentBytes": 13171,
-    "initialBootEnvelopeBytes": 13,
+    "initialBootContentBytes": 13172,
+    "initialBootEnvelopeBytes": 12,
     "initialBootSectors": 103,
     "extensionBytes": 10112,
     "extensionSectors": 79,
@@ -228,7 +228,7 @@
     "maximumExtensionChunkBytes": 6400,
     "maximumChunkCount": 8,
     "maximumNewSimultaneousResidencyBytes": 7993,
-    "remainingSafeResidencyBytes": 3659,
+    "remainingSafeResidencyBytes": 3656,
     "bootOnlyStaging": {
       "address": 33024,
       "bytes": 6484
@@ -245,20 +245,20 @@
     "manifest": {
       "address": 9756,
       "bytes": 142,
-      "crc16": 20277,
+      "crc16": 5249,
       "parsed": {
         "version": 1,
         "totalOccupiedSectors": 182,
         "manifestBytes": 142,
-        "crc16": 20277,
+        "crc16": 5249,
         "records": [
           {
             "startSector": 104,
             "sectorCount": 45,
-            "packedLength": 5637,
-            "rawLength": 6650,
+            "packedLength": 5640,
+            "rawLength": 6653,
             "finalDestination": 24080,
-            "crc16": 14153,
+            "crc16": 15205,
             "type": 1,
             "stagingId": 1,
             "destination": 33024
@@ -361,18 +361,18 @@
   "broadsideRuntime": {
     "loadAddress": 16384,
     "runAddress": 24080,
-    "bytes": 6650,
+    "bytes": 6653,
     "reservedBytes": 6656,
-    "packedBytes": 5637,
+    "packedBytes": 5640,
     "packedSourceAddress": 33024,
     "compression": "LZ-10/5",
     "externalChunk": {
       "startSector": 104,
       "sectors": 45,
       "transportBytes": 5760,
-      "packedBytes": 5637,
-      "rawBytes": 6650,
-      "crc16": 14153,
+      "packedBytes": 5640,
+      "rawBytes": 6653,
+      "crc16": 15205,
       "stagingAddress": 33024,
       "stagingEndAddress": 38783,
       "finalAddress": 24080
@@ -710,17 +710,17 @@
         "hardDeltaBytes": 1280
       }
     },
-    "packedBytes": 2731,
+    "packedBytes": 2732,
     "packedSourceAddress": 18628,
-    "initialPackedSourcesEndExclusive": 21359,
-    "initialPackedSourcesLastAddress": 21358,
+    "initialPackedSourcesEndExclusive": 21360,
+    "initialPackedSourcesLastAddress": 21359,
     "stagedSourceAddress": 21272,
-    "stagedEndAddress": 24002,
-    "stagedEndExclusive": 24003,
-    "sourceToStagingMarginBytes": -87,
-    "sourceStagingOverlapBytes": 87,
+    "stagedEndAddress": 24003,
+    "stagedEndExclusive": 24004,
+    "sourceToStagingMarginBytes": -88,
+    "sourceStagingOverlapBytes": 88,
     "stagingCopyDirection": "backward",
-    "stagingToBroadsideMarginBytes": 77,
+    "stagingToBroadsideMarginBytes": 76,
     "stagingLifecycle": {
       "starfieldDestinationAddress": 21732,
       "starfieldDestinationEndExclusive": 23956,
@@ -888,10 +888,10 @@
   "runtimeCodeBudget": {
     "measurement": "linked CODE + STARFIELD + BROADSIDE + A2_KERNEL + ENTITY_CODE bytes",
     "baselineBytes": 13697,
-    "actualBytes": 17518,
-    "actualDeltaBytes": 3821,
+    "actualBytes": 17521,
+    "actualDeltaBytes": 3824,
     "approvedDeltaBytes": 768,
-    "remainingBytes": -3053,
+    "remainingBytes": -3056,
     "enemyBreakupEffects": {
       "baselineBytes": 14184,
       "actualBytes": 14316,
@@ -907,8 +907,8 @@
     },
     "weaponPickupRapidFire": {
       "baselineBytes": 14316,
-      "actualBytes": 17518,
-      "actualDeltaBytes": 3202
+      "actualBytes": 17521,
+      "actualDeltaBytes": 3205
     },
     "weaponPickupSpreadShot": {
       "baselineBytes": 14948,
@@ -925,8 +925,8 @@
     },
     "frontendH31": {
       "baselineBytes": 15346,
-      "actualBytes": 17518,
-      "actualDeltaBytes": 2172,
+      "actualBytes": 17521,
+      "actualDeltaBytes": 2175,
       "hardDeltaBytes": 1280
     }
   },
@@ -1532,12 +1532,12 @@
       "procedures": {
         "advance_dst_to_next_physical_row": 68,
         "build_playfield_display_list": 1489,
-        "entity_collide_player": 1549,
-        "entity_damage_applied": 151,
+        "entity_collide_player": 1648,
+        "entity_damage_applied": 250,
         "entity_despawn_debris": 56,
         "entity_effects_erase": 246,
         "entity_effects_render": 1004,
-        "entity_effects_update": 1837,
+        "entity_effects_update": 1936,
         "entity_player_fighter_projectile_hits_debris": 47,
         "entity_player_fighter_projectile_target": 1031,
         "entity_spawn_debris": 190,
@@ -19720,8 +19720,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 513,
-        "activeCpuCycles": 12874,
-        "mainLoopCpuCycles": 12887,
+        "activeCpuCycles": 12973,
+        "mainLoopCpuCycles": 12986,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 1,
@@ -19770,9 +19770,9 @@
           "handle_player_hull_contact": 55,
           "update_transient_effects": 20,
           "entity_despawn_debris": 56,
-          "entity_damage_applied": 151,
-          "entity_collide_player": 441,
-          "entity_effects_update": 566,
+          "entity_damage_applied": 250,
+          "entity_collide_player": 540,
+          "entity_effects_update": 665,
           "render_capital_explosions": 41,
           "render_shared_fighter_explosions": 20,
           "entity_effects_render": 20,
@@ -19809,9 +19809,9 @@
           "handle_player_hull_contact": 55,
           "update_transient_effects": 20,
           "entity_despawn_debris": 56,
-          "entity_damage_applied": 151,
-          "entity_collide_player": 441,
-          "entity_effects_update": 566,
+          "entity_damage_applied": 250,
+          "entity_collide_player": 540,
+          "entity_effects_update": 665,
           "render_capital_explosions": 41,
           "render_shared_fighter_explosions": 20,
           "entity_effects_render": 20,
@@ -19848,7 +19848,7 @@
           "handle_player_hull_contact": 55,
           "update_transient_effects": 20,
           "entity_despawn_debris": 56,
-          "entity_damage_applied": 95,
+          "entity_damage_applied": 194,
           "entity_collide_player": 290,
           "entity_effects_update": 105,
           "render_capital_explosions": 41,
@@ -19955,11 +19955,11 @@
             "calls": 1
           },
           "entity_collide_player->entity_damage_applied": {
-            "cycles": 151,
+            "cycles": 250,
             "calls": 1
           },
           "entity_effects_update->entity_collide_player": {
-            "cycles": 441,
+            "cycles": 540,
             "calls": 1
           }
         },
@@ -21161,7 +21161,7 @@
       "emptyPathLimitCpuCycles": 124,
       "activePathCpuCycles": 187,
       "spawnPathCpuCycles": 626,
-      "contactPathCpuCycles": 605,
+      "contactPathCpuCycles": 704,
       "measurement": "inclusive JSR-to-RTS cycles from executed linked release bytes"
     },
     "destructibleDebris": {
@@ -21301,12 +21301,12 @@
       },
       {
         "name": "BROADSIDE",
-        "bytes": 6650,
+        "bytes": 6653,
         "featureStartBytes": 6483,
-        "featureDeltaBytes": 167,
+        "featureDeltaBytes": 170,
         "acceptedMaximumBytes": 6656,
         "reservedMaximumBytes": 6656,
-        "freeReservedBytes": 6
+        "freeReservedBytes": 3
       },
       {
         "name": "A2_KERNEL",
@@ -21557,17 +21557,17 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 23296,
-        "sha256": "2ac1c239ca4f39eb1f005b2d7be7541cefa3757bf92abb3dcfa651ccbce9cce5"
+        "sha256": "8bb801e98e12e3d3bd9496394852fcb8c04515249216b82b0c213b85b32b7575"
       },
       "void-strike-65.xex": {
         "path": "dist/void-strike-65.xex",
-        "bytes": 23728,
-        "sha256": "07dea143ec4ab8d7a5871eb1bcd80e2c8da44a26b4f414673852f2deee27c9dd"
+        "bytes": 23731,
+        "sha256": "04821731fb34cbc79e68bc3a19784802b60d932f35be17b966275bf6896914c2"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "2928276cea4f2858dd2ce3c87d72944b527bfcd33b328c29e204e6826129746c"
+        "sha256": "6aaff6fd054c99b68c82201c9c118d4a10b58b72a7795f3b34ef7db5a0f1aa3b"
       }
     },
     "reportPath": null,
@@ -21576,15 +21576,15 @@
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 23296,
-      "sha256": "2ac1c239ca4f39eb1f005b2d7be7541cefa3757bf92abb3dcfa651ccbce9cce5"
+      "sha256": "8bb801e98e12e3d3bd9496394852fcb8c04515249216b82b0c213b85b32b7575"
     },
     "void-strike-65.xex": {
-      "bytes": 23728,
-      "sha256": "07dea143ec4ab8d7a5871eb1bcd80e2c8da44a26b4f414673852f2deee27c9dd"
+      "bytes": 23731,
+      "sha256": "04821731fb34cbc79e68bc3a19784802b60d932f35be17b966275bf6896914c2"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "2928276cea4f2858dd2ce3c87d72944b527bfcd33b328c29e204e6826129746c"
+      "sha256": "6aaff6fd054c99b68c82201c9c118d4a10b58b72a7795f3b34ef7db5a0f1aa3b"
     }
   }
 }

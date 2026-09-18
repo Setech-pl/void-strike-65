@@ -101,8 +101,16 @@ The capital encounter waits until it has gone.
 
 Each Raider is worth 10 points when destroyed by a Player Fighter projectile, player
 contact, or Hostile friendly fire. A capital-ship hit or lifecycle cleanup awards
-no points. Debris has three hit points, causes fixed 20%/50%/70% maximum-hull
-damage on Easy/Medium/Hard contact, and never awards score when destroyed.
+no points. Debris has three hit points and causes fixed 20%/50%/70% maximum-hull
+damage on Easy/Medium/Hard contact.
+
+Destroying something awards its score regardless of whether the player survives
+doing it: a suicide or contact kill is worth exactly what a shot kill is worth.
+Debris follows the same rule and is worth 5 points when the player's own shot or
+the player's own contact destroys it — an obstacle value an order below an
+enemy kill, so clearing debris cannot compete with killing enemies. No other
+release awards anything: not a non-lethal hit, not the despawn path, not falling
+past the bottom of the gameplay area, and not a sector drain or completion.
 
 Raider destruction retains its 24-frame full-screen background flash and sound,
 but creates no character-cell core or flying breakup fragments. Debris destruction

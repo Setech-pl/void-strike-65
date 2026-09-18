@@ -10000,11 +10000,15 @@ entity_player_fighter_projectile_enemy_target:
     jmp player_fighter_projectile_hits_enemy
 entity_debris_shot = entity_player_fighter_projectile_debris_target
 
-; Only entity_debris_destroyed reaches this: the lethal PlayerFighter shot.
-; Debris released by player contact (entity_player_debris_overlap), by the
-; despawn path (entity_despawn_debris) or by a sector boundary never calls
-; it. Same mechanism as light_add_score/add_archetype_score_tail: one packed
-; BCD add and the shared HUD refresh. No per-object state, no new RAM.
+; Two callers, both player-caused destruction: entity_debris_destroyed (the
+; lethal PlayerFighter shot) and debris_contact_destroyed (the lethal player
+; contact through entity_player_debris_overlap). Owner rule: a kill scores
+; whether or not the player survives it, so contact awards exactly what a shot
+; awards. Debris released by the despawn path (entity_despawn_debris), by
+; falling past ENTITY_GAMEPLAY_BOTTOM or by a sector DRAIN/COMPLETE boundary
+; still never calls it. Same mechanism as light_add_score /
+; add_archetype_score_tail: one packed BCD add and the shared HUD refresh. No
+; per-object state, no new RAM.
 ; MEASURED-ESTIMATE ~105 cycles, only on a debris-kill frame.
 add_debris_score:
     sed
@@ -10076,7 +10080,12 @@ entity_player_debris_overlap = *
     lda BROAD_DAMAGE_APPLIED
     beq entity_collision_miss
 entity_damage_applied:
-    jmp integration_debris_release
+    ; Owner rule: destroying something scores whether or not the player
+    ; survives doing it, so a lethal contact awards the same DEBRIS_SCORE as a
+    ; lethal shot. ENTITY_CODE has one free byte before the DIRECTOR_C_PRE
+    ; record at $9D5E, so the award is the existing jmp retargeted at the
+    ; three-byte BROADSIDE prologue that falls through into the release.
+    jmp debris_contact_destroyed
 entity_collision_miss:
     rts
 
@@ -11261,6 +11270,16 @@ provisional_capital_broadside_request:
 ; The glue block uses its final byte while retaining every display and active-
 ; frame address. Keep the eight-byte release wrapper in BROADSIDE's existing
 ; reserved tail; debris still releases the same Director cost and slot state.
+;
+; Lethal player contact enters three bytes earlier and falls through: the award
+; first, then the unchanged release. Only entity_damage_applied reaches this
+; label, so every other caller of integration_debris_release (the despawn path,
+; the fall past ENTITY_GAMEPLAY_BOTTOM and the sector DRAIN/COMPLETE release)
+; still awards nothing. MEASURED-ESTIMATE +12 cycles for the jsr/rts pair plus
+; add_debris_score's ~105, only on the frame a contact destroys the debris —
+; a frame that already runs the release and the player-damage paths.
+debris_contact_destroyed:
+    jsr add_debris_score
 integration_debris_release:
     ldx #DIRECTOR_HAZARD_DEBRIS
     jsr DIRECTOR_RELEASE

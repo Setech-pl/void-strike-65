@@ -190,6 +190,18 @@ behaviour itself adds +36 cycles to the death frame. Evidence:
 - debris known limitation: a cell yielded to a 25 Hz effect shows the effect's
   lower backing for the frame in which that effect expires (effects still
   publish mid-frame; measured once in 4,600 in-view frames);
+- debris contact-kill inconsistency (recorded 2026-09-18, owner left as is):
+  `entity_player_debris_overlap` releases the debris only when
+  `apply_player_damage` actually sets `BROAD_DAMAGE_APPLIED`. While the player
+  is not `PLAYER_ALIVE` (dying / respawning) or inside the post-hit
+  `BROAD_DAMAGE_COOLDOWN`, the call is refused, so flying through debris in
+  that window destroys nothing and — since the award now hangs off the same
+  release — awards nothing either. An active Shield *does* set the flag, so a
+  shielded contact destroys the debris, awards `DEBRIS_SCORE` and costs no
+  hull, which is what the owner rule asks for. A lethal contact also still
+  destroys full-HP (3 HP) debris outright rather than decrementing HP, so it
+  awards the same `DEBRIS_SCORE` that three shots would. Both behaviours were
+  explicitly left unchanged by the owner in the contact-score task;
 - boot-smoke margin: the ATR menu deadline (190 + 2 × transport sectors) is
   met with 0 frames of margin at `3838c00`, at the 4.5a and 4.5b candidates
   (4.5b: +6 B packed BROADSIDE alone missed it by one frame), with a 239-B
@@ -1197,7 +1209,8 @@ Candidate XEX `3ce1a1d6…`, ATR `823b961b…`. Evidence:
   path (`entity_despawn_debris`) and the sector-boundary release all reach
   `integration_debris_release` without passing through
   `entity_debris_destroyed`, so they award nothing. A non-lethal hit awards
-  nothing.
+  nothing. *Superseded for player contact by the contact-score section below
+  (2026-09-18): contact now awards the same `DEBRIS_SCORE`.*
 - **Cost.** ENTITY_CODE `$C48` → `$C5D` (+21 B: the routine plus its call);
   ~105 cycles, only on a debris-kill frame. BROADSIDE 6,650 B unchanged
   (`free_broadside_slot` `$76A7` asserted); `HYBRID_C_ARENA` 614/832 B used,

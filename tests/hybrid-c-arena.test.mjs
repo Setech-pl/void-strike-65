@@ -126,8 +126,13 @@ test("the arena lands directly as its own DFMC record and is the only owner of i
   // Death-frame deferral (2026-09-17): player_dying_tick adds 18 B to ENTITY_CODE.
   // Debris score (2026-09-18): add_debris_score plus its call adds 21 B to
   // ENTITY_CODE; BROADSIDE, the arena and the sector counts are unchanged.
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13171);
-  assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 13);
+  // Debris contact score (2026-09-18): the ENTITY_CODE tail was down to 1 B
+  // before the DIRECTOR_C_PRE record at $9D5E, so the second award site is a
+  // 3-B prologue in BROADSIDE's reserved tail (6 B -> 3 B free) instead.
+  // ENTITY_CODE is size-neutral; the initial block packs 1 B larger, so the
+  // envelope absorbs it (13 -> 12 B) and every sector count holds.
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13172);
+  assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 12);
   assert.equal(manifest.transportCapacity.initialBootSectors, 103);
   assert.equal(manifest.transportCapacity.totalTransportSectors, 182);
   assert.equal(parsed.totalOccupiedSectors, 182);

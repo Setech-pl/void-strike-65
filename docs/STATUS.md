@@ -15,8 +15,9 @@ the values below.
 
 `wip/4.5d-gate-fail` (branched from `experiment/hybrid-c-director` at
 `2a8ff26`; adds the 4.5d Enemy Identity Freeze WIP `7b50bd6`, the PAL timing
-audit tooling, the death-frame deferral candidate and its respawn double-image
-fix, sections below).
+audit tooling, the death-frame deferral and its respawn double-image fix, and
+Option D — the Heavy body-copy skip, now the accepted runtime checkpoint;
+sections below).
 `experiment/hybrid-c-director` carries the roadmap 4.4 Interceptor,
 its 4.4b visual identity (X/quad art since `3838c00`),
 the 4.4c hostile weapon visuals, the roadmap 4.5a Heavy window capacity
@@ -31,18 +32,22 @@ below and all of it is owner-accepted under that checkpoint; no
 
 ### Accepted runtime checkpoint
 
-Commit `0a90c1c` — `feat(bomber): catamaran silhouette and a blue HP hull ramp`
-(owner smoke PASS 2026-09-18 over the whole stack, not only the silhouette:
-death, respawn, debris scoring and Bomber identity were all exercised).
+Commit `0002d84` — `perf(renderer): skip the P1/P2 body copy when a Heavy
+member holds its Y` (Option D; owner smoke PASS 2026-09-18 over the whole
+stack: the Bomber lane sweep, the Bomber attack-phase freeze — the longest skip
+runs — the Raider crossing and pause/resume all render correctly, with no stale
+or torn sprites).
 
 XEX SHA-256:
-`8940d646fcb2e59e54cb383de382ac86dfb4959f18016854919c3f5157b89d34`
+`ecc9cedafd87f871989fc0b279343d1848c225792bf17e5be4ad9fadd1f7d3c7`
 
 **Provenance of the hash.** It is measured from the existing
-`dist/void-strike-65.xex` artifact in this worktree (2026-09-18). **A
-clean-export reproduction of `8940d646…` has NOT been re-verified since the
+`dist/void-strike-65.xex` artifact in this worktree (2026-09-18) and matches
+the XEX recorded in
+[diagnostics/stage-2b2t-option-d-standing-cost.json](diagnostics/stage-2b2t-option-d-standing-cost.json).
+**A clean-export reproduction of `ecc9ceda…` has NOT been re-verified since the
 acceptance** — unlike `b4b942e`, whose reproduction was re-verified. Re-run
-`npm run build:candidate -- --quiet` from a clean export of `0a90c1c` before
+`npm run build:candidate -- --quiet` from a clean export of `0002d84` before
 relying on this hash for a release or a hardware milestone.
 
 **The stack this checkpoint carries (owner-enumerated, 2026-09-18):**
@@ -53,13 +58,17 @@ relying on this hash for a release or a hardware milestone.
 - the debris score, on a player shot and on contact;
 - the segment neighbour guards;
 - the 4.5d enemy identity freeze (catamaran silhouette, HP-driven blue hull
-  ramp).
+  ramp);
+- Option D — the `draw_enemy_member` `P1`/`P2` body-copy skip on frames where a
+  Heavy member holds its Y.
 
 **Measured state at this checkpoint:**
 
 | Measure | Value |
 | --- | --- |
-| Worst fence margin | **450 cycles** |
+| Worst fence margin | **1,464 cycles** (`raider-remnant-rapid-xex-hard` row 1945) |
+| Distinct miss events | **0** across 69 audited replays |
+| Native stale-body gate | **0** stale-body rows across 78,124 live-body frames |
 | `HYBRID_C_ARENA` | **617 / 832 B**, 215 B free |
 | `BROADSIDE` free tail | **3 B** |
 | `ENTITY_CODE` free tail | **1 B** |
@@ -68,7 +77,7 @@ relying on this hash for a release or a hardware milestone.
 increments that reached this binary as candidates — roadmap 4.4 Interceptor
 with its 4.4b visual identity and 4.4c hostile weapon visuals, roadmap 4.5a,
 4.5b, 4.5M-M1, 4.5M-M2, 4.5M-M3 and the emitter-independent hostile shots — all
-run in `0a90c1c` and were exercised in the owner smoke. They are
+run in `0002d84` and were exercised in the owner smoke. They are
 **OWNER-ACCEPTED** under this checkpoint; a candidate label is not carried for
 code that ships in an accepted binary. Each keeps its own section and its own
 history below — only the status label changed.
@@ -79,9 +88,11 @@ pickup raster fix and per-type capsule silhouettes (`f30754a`, `c2af6a6`),
 step 4.3 Stage 1 reusable resident capacity (`fca5e31`, `0290d83`) and the
 debris late publication with exact ownership (`b4b942e`).
 
-Previous accepted runtime checkpoint: `b4b942e` (XEX
+Previous accepted runtime checkpoint: `0a90c1c` (XEX
+`8940d646fcb2e59e54cb383de382ac86dfb4959f18016854919c3f5157b89d34`,
+owner smoke PASS 2026-09-18); before it `b4b942e` (XEX
 `965468077747f527b7d3f8ffeb7c37ace27377892ea5fc6f2e8aaf062d0d8a6e`,
-owner smoke PASS 2026-09-16); before it `41ace65` (XEX `900152fe…`).
+owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
 
@@ -231,9 +242,10 @@ Raider stays level (1,517 → 1,467). Evidence:
 [diagnostics/stage-2b2r-death-frame-deferral.json](diagnostics/stage-2b2r-death-frame-deferral.json),
 [diagnostics/stage-2b2s-respawn-double-image.json](diagnostics/stage-2b2s-respawn-double-image.json).
 
-**Option D — Bomber standing cost (XEX `ecc9ceda…`): 0 distinct miss events
-across 69 audited replays — PASS.** Full gate set re-run 2026-09-18 (default
-run through its pre-existing abort, the post-abort `--only-session` list, the
+**Option D — Bomber standing cost (XEX `ecc9ceda…`, commit `0002d84`) —
+OWNER-ACCEPTED (owner smoke PASS 2026-09-18): 0 distinct miss events across 69
+audited replays.** Full gate set re-run 2026-09-18 (default run through its
+pre-existing abort, the post-abort `--only-session` list, the
 `--raider-formation-only` and `--raider-sector-only` modes, `--debris-gate-only`
 and `--raider-remnant-only`; 0 rows over target, 0 over the hard gate). The
 worst fence margin is **1,464 cycles** at `raider-remnant-rapid-xex-hard` row
@@ -253,6 +265,41 @@ the recorded abort, and `raider-sector-xex-hard` "did not return to post-sector
 OPEN"; the debris visibility gate's single post-capital blank on
 `debris-gate-0-neutral-fire0` is likewise identical on `0a90c1c`. Evidence:
 [diagnostics/stage-2b2t-option-d-standing-cost.json](diagnostics/stage-2b2t-option-d-standing-cost.json).
+
+**Procedure correction (found during the Option D audit, 2026-09-18).**
+`two-pmg-raiders-xex-hard` and `raider-sector-xex-hard` are **not**
+`--only-session` ids: they are mode-gated and only run under
+`--raider-formation-only` and `--raider-sector-only` respectively. A full gate
+run driven from an `--only-session` list alone is therefore **silently two
+replays short** — it reports 67 replays where the audited set is 69, with no
+error. Both modes must be run explicitly.
+
+## Measurement tooling (`scripts/measure-*`)
+
+Rescued from a measurement session's scratchpad 2026-09-18 and committed so it
+survives. All of it is MEASUREMENT ONLY — not part of the build, the boot smoke
+or the test suite — and each file carries a header saying what it measures and
+how to run it.
+
+- [../scripts/measure-stage-profile-from-trace.mjs](../scripts/measure-stage-profile-from-trace.mjs)
+  — the most valuable of the set: turns **any existing wall-trace CSV** into a
+  per-stage native profile grouped by live population, with **no emulator
+  re-run**.
+- [../scripts/measure-population-harness.mjs](../scripts/measure-population-harness.mjs)
+  — the shared JS NMOS-6502 population harness (pre-fence cycles directly
+  comparable to the audit's `worst_pre_wait_cycles`); imported by the rest,
+  needs a linked build in `build/`.
+- `measure-population-harness-smoke.mjs` (5-frame boot check — run it first),
+  `measure-population-drive.mjs` (N driven frames, worst frame by population),
+  `measure-population-cost-deltas.mjs` and
+  `measure-population-cost-distribution.mjs` (marginal cost of a Light, a
+  debris object and each Heavy member, by A/B poking),
+  `measure-frame-stage-calibration.mjs` and `measure-routine-call-costs.mjs`
+  (inclusive JSR..RTS cost per routine),
+  `measure-heavy-body-copy-skip.mjs` (the Option D A/B itself),
+  `measure-starfield-row-cost.mjs` (per-row starfield budget for 4.6 nebulae).
+
+These are the direct inputs to roadmap item 2, the population budget.
 
 ## Known open defects and open decisions
 
@@ -1336,13 +1383,16 @@ Interceptor (Light, character-rendered).
 
 ## Current task
 
-None in flight. `0a90c1c` is the accepted runtime checkpoint; **Option D, the
-Bomber standing cost (roadmap item 1 below), is implemented and committed as an
-`OWNER-SMOKE CANDIDATE`** on `wip/4.5d-gate-fail` and is awaiting owner smoke.
-`draw_enemy_member` now skips the 16-row `P1`/`P2` body copy on frames where a
-member's Y is unchanged; X still goes out through `HPOSP1,x` every live frame.
-Measured result in the section above: the worst fence margin rises from
-**450/466 to 1,464 cycles** and the native stale-body gate reads 0.
+None in flight. `0002d84` is the accepted runtime checkpoint: **Option D, the
+Bomber standing cost (roadmap item 1 below), is OWNER-ACCEPTED** (owner smoke
+PASS 2026-09-18 on XEX `ecc9ceda…`). `draw_enemy_member` skips the 16-row
+`P1`/`P2` body copy on frames where a member's Y is unchanged; X still goes out
+through `HPOSP1,x` every live frame. Measured result in the section above: the
+worst fence margin rises from **450/466 to 1,464 cycles** and the native
+stale-body gate reads 0. No `OWNER-SMOKE CANDIDATE` is outstanding.
+
+Next: roadmap item 2, the population budget measurement, for which the rescued
+`scripts/measure-*` tooling above is the starting point.
 
 ## Roadmap (owner decision 21, 2026-09-18)
 
@@ -1354,8 +1404,9 @@ is in [plan-realizacji.md](plan-realizacji.md) §4.
    `draw_enemy_member` when a member's Y is unchanged (X goes through
    `HPOSP1,x` anyway). ~1,164-2,328 cycles per frame with two Bombers. This is
    a **hardware-critical renderer invariant**: it needed a High plan with proof
-   of every `P1`/`P2` writer and of the pause and respawn paths. **Done as an
-   `OWNER-SMOKE CANDIDATE`** (2026-09-18): the worst fence margin rises from
+   of every `P1`/`P2` writer and of the pause and respawn paths.
+   **OWNER-ACCEPTED** (owner smoke PASS 2026-09-18, `0002d84`): the worst fence
+   margin rises from
    450/466 to **1,464 cycles**, and a native `enemy_pmg_mismatch` gate now
    rebuilds the expected plane every traced frame and holds the skip to its
    invariant.
@@ -1416,6 +1467,15 @@ started without owner instruction.
   `BROAD_TURRET` is a shell field and `BROAD_TURRET_FIRED` a fire latch — no
   HP, no slot state, not a collision target. This is a **new object type**
   needing its own plan and budget, and it **must not delay the boss**.
+- **Hostile projectile motion is visibly stepped** (recorded 2026-09-18, a
+  deferred finding, **not a defect and not a regression**). Hostile projectiles
+  advance 2 scanlines per frame — the Bomber torpedo 2 scanlines every other
+  frame — drawn as glyph phases inside a single ANTIC 4 cell, so the motion
+  reads as stepping rather than gliding. The owner verified it is present in
+  every build back to 4.5c (`2a8ff26`) and earlier, so **it did not come from
+  4.5d or Option D**. Smoothing it needs either more glyph phases (12 free
+  hostile codes exist) or a different rendering approach, and it touches the
+  projectile publication hot path — so it is costed work, not polish.
 - **Starfield parallax** — ~3,000 cycles for a second scrolling layer; revisit
   after Option D.
 - **Static Andromeda** in the `SPACE` sector background, occluded during

@@ -451,6 +451,10 @@ ENEMY_PULSE_DAMAGE_UNITS = 1
 DEBRIS_DAMAGE_EASY = 2
 DEBRIS_DAMAGE_MEDIUM = 5
 DEBRIS_DAMAGE_HARD = 7
+; Packed BCD, difficulty-independent. Debris is an obstacle, not an enemy:
+; the value stays an order below the Bomber's $50 so clearing debris cannot
+; compete with killing enemies.
+DEBRIS_SCORE = $05
 ENEMY_VISIBLE_BOTTOM_EXCLUSIVE = GAMEPLAY_BOTTOM
 
 PLAYER_H    = 16
@@ -794,6 +798,7 @@ PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE = PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYE
 .assert DEBRIS_DAMAGE_EASY = 2, error, "EASY debris contact must remove two HULL units"
 .assert DEBRIS_DAMAGE_MEDIUM = 5, error, "MEDIUM debris contact must remove five HULL units"
 .assert DEBRIS_DAMAGE_HARD = 7, error, "HARD debris contact must remove seven HULL units"
+.assert DEBRIS_SCORE = $05, error, "interactive debris must award exactly $05"
 .assert ENEMY_PULSE_POOL_SLOTS = INTERCEPTOR_PROJECTILE_SLOT_COUNT, error, "Interceptor pool definitions diverged"
 .assert PLAYER_FIGHTER_PROJECTILE_ACTIVE_LIMIT <= PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT, error, "PlayerFighter active limit exceeds allocated slots"
 .assert INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT <= INTERCEPTOR_PROJECTILE_SLOT_COUNT, error, "Interceptor active limit exceeds allocated slots"
@@ -9985,6 +9990,7 @@ entity_debris_hit:
 entity_debris_destroyed:
     jsr spawn_debris_destruction_effects
     jsr integration_debris_release
+    jsr add_debris_score
     ; The empty-pool update later in this frame consumes the extra count. The
     ; transient +1 also identifies the destroyed snapshot to higher shot slots.
     inc ENTITY_SPAWN_TIMER_LO
@@ -9993,6 +9999,24 @@ entity_debris_destroyed:
 entity_player_fighter_projectile_enemy_target:
     jmp player_fighter_projectile_hits_enemy
 entity_debris_shot = entity_player_fighter_projectile_debris_target
+
+; Only entity_debris_destroyed reaches this: the lethal PlayerFighter shot.
+; Debris released by player contact (entity_player_debris_overlap), by the
+; despawn path (entity_despawn_debris) or by a sector boundary never calls
+; it. Same mechanism as light_add_score/add_archetype_score_tail: one packed
+; BCD add and the shared HUD refresh. No per-object state, no new RAM.
+; MEASURED-ESTIMATE ~105 cycles, only on a debris-kill frame.
+add_debris_score:
+    sed
+    clc
+    lda score_bcd_lo
+    adc #DEBRIS_SCORE
+    sta score_bcd_lo
+    lda score_bcd_hi
+    adc #$00
+    sta score_bcd_hi
+    cld
+    jmp update_score_display
 
 ; The projectile is one HPOS unit wide. Its two-scanline previous/current
 ; positions form the same inclusive swept interval already used for fighters.

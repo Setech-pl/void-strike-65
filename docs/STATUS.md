@@ -1180,10 +1180,54 @@ Candidate XEX `3ce1a1d6…`, ATR `823b961b…`. Evidence:
 
 ---
 
+## Debris score (owner change request) — `OWNER-SMOKE CANDIDATE` (2026-09-18)
+
+- **Request.** Destroying interactive debris awarded nothing; it must award a
+  single difficulty-independent `DEBRIS_SCORE = $05`. Debris is an obstacle,
+  not an enemy: the value stays an order below the Bomber's `$50` so clearing
+  debris cannot compete with killing enemies.
+- **Where.** `entity_debris_destroyed` (`src/main.s`, ENTITY_CODE) is reached
+  only from `entity_debris_hit`, itself reached only from
+  `entity_player_fighter_projectile_debris_target` — the lethal PlayerFighter
+  shot. It now calls the new 18-B `add_debris_score`, which is the same
+  mechanism as `light_add_score` / `add_archetype_score_tail`: one packed-BCD
+  add and `jmp update_score_display`. No per-object state, no new RAM beyond
+  the constant, no collision-architecture change.
+- **Not scored.** Player contact (`entity_player_debris_overlap`), the despawn
+  path (`entity_despawn_debris`) and the sector-boundary release all reach
+  `integration_debris_release` without passing through
+  `entity_debris_destroyed`, so they award nothing. A non-lethal hit awards
+  nothing.
+- **Cost.** ENTITY_CODE `$C48` → `$C5D` (+21 B: the routine plus its call);
+  ~105 cycles, only on a debris-kill frame. BROADSIDE 6,650 B unchanged
+  (`free_broadside_slot` `$76A7` asserted); `HYBRID_C_ARENA` 614/832 B used,
+  218 free, unchanged; transport 182 sectors, boot 103 sectors, both unchanged.
+- **PAL (measured).** 0 distinct miss events across the audited replays.
+  Worst fence margin 466 → **463** (`raider-remnant-rapid-xex-hard`, pre-wait
+  24,811 → 24,802); `debris-gate-0-neutral-fire0` row unchanged at pre-wait
+  24,206 / margin +1,043.
+- **Boot smoke.** PASS 4/4: XEX menu 392; ATR menu 554 against deadline 554.
+- **Debris gate.** A/B-identical to a rebuilt `1358ea1`: same lives per phase
+  in all three sessions and the same single `0-neutral-fire0` blank frame
+  (pre-existing death-frame blink).
+- **Pre-existing native failures, A/B-verified unchanged on `1358ea1`:** the
+  default wall-trace abort at `weapon-pickup-contact-2-hunt-fire4`, the same
+  abort on `weapon-pickup-overlap-2-hunt-fire4`, the
+  `capital-muzzle-ring-2-sweep-fire4` stale muzzle/flash abort, and the
+  emulator status-2 exits of `capital-contact-{allied,hostile}-medium` and
+  `lower-playfield-hostile-contact-xex-hard`.
+- **Tests.** New `tests/debris-score.test.mjs` (5 tests): the trace-driven
+  lethal award, a non-lethal hit, the contact path, the despawn path and a
+  single-call-site source contract. `entity-effects` debris destruction and the
+  `hybrid-c-arena` byte ledger rebaselined.
+
+Candidate XEX `07dea143…`.
+
 ## Current task
 
-The 4.5d Enemy Identity Freeze plus the death-frame deferral and its respawn
-double-image fix (sections above) await owner smoke on `wip/4.5d-gate-fail`.
+The 4.5d Enemy Identity Freeze plus the death-frame deferral, its respawn
+double-image fix and the debris score (sections above) await owner smoke on
+`wip/4.5d-gate-fail`.
 The previous smoke of `b8ed318c…` failed on the respawn double image only; that
 defect is fixed and the rest of that smoke still needs repeating. Roadmap 4.5c Bomber is an
 **`OWNER-SMOKE CANDIDATE`** (section above); the

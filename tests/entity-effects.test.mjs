@@ -1827,7 +1827,7 @@ test("debris contact reports damage gates without changing their semantics", () 
   });
 });
 
-test("three PlayerFighter hits destroy every debris form while score and enemy paths remain unchanged", () => {
+test("three PlayerFighter hits destroy every debris form, awarding DEBRIS_SCORE once while enemy paths remain unchanged", () => {
   for (const renderId of [110, 112, 114, 116]) {
     for (const vx of [0, 0xfc, 4]) {
       const memory = createRuntimeMemory();
@@ -1844,7 +1844,11 @@ test("three PlayerFighter hits destroy every debris form while score and enemy p
         runRoutine(memory, "update_fighter_projectiles");
         assert.equal(memory[addresses.projectileActive], 0,
           `hit ${hit} did not consume its projectile`);
-        assert.deepEqual([memory[addresses.scoreLo], memory[addresses.scoreHi]], [0x42, 0x07]);
+        // Owner change request: only the lethal shot scores, and it scores
+        // DEBRIS_SCORE ($05) regardless of difficulty or debris form.
+        assert.deepEqual([memory[addresses.scoreLo], memory[addresses.scoreHi]],
+          hit < 3 ? [0x42, 0x07] : [0x47, 0x07],
+          `hit ${hit} awarded the wrong debris score`);
         assert.deepEqual([
           memory[addresses.enemyPendingDamage], memory[addresses.fighterExplosionTimer],
         ], [0, 0], `hit ${hit} entered an enemy/full-screen explosion path`);

@@ -47,9 +47,14 @@ const ATTACK = 0;
 const AIM_FRAMES = 20;
 const SALVO_INTERVAL = 8;
 const SALVO_SHELLS = 2;
-const HULL = 0x24;
-const CHARGE = 0x28;
-const FLASH = 0x2a;
+// 4.5d identity: hue 8 (blue) with the remaining HP as the luminance; the
+// charge (+4) and hit flash (+6) are added on top, unclamped.
+const HULL_AT = (hp) => 0x80 | (hp << 1);
+const CHARGE_AT = (hp) => HULL_AT(hp) + 4;
+const FLASH_AT = (hp) => HULL_AT(hp) + 6;
+const HULL = HULL_AT(4);
+const CHARGE = CHARGE_AT(4);
+const FLASH = FLASH_AT(4);
 
 function memory() {
   const image = new Uint8Array(0x10000);
@@ -129,9 +134,9 @@ test("the temporary Heavy schedule alternates Raider and Bomber formations with 
   }
   assert.deepEqual(formations, [
     [OFFSET_RAIDER, 0, 0x44, 0x44, 1, 1],
-    [OFFSET_BOMBER, ROSTER_SHAPE_BOMBER, 0x24, 0x24, 4, 4],
+    [OFFSET_BOMBER, ROSTER_SHAPE_BOMBER, HULL, HULL, 4, 4],
     [OFFSET_RAIDER, 0, 0x44, 0x44, 1, 1],
-    [OFFSET_BOMBER, ROSTER_SHAPE_BOMBER, 0x24, 0x24, 4, 4],
+    [OFFSET_BOMBER, ROSTER_SHAPE_BOMBER, HULL, HULL, 4, 4],
   ]);
 });
 
@@ -166,7 +171,7 @@ test("escort column: the Bomber formation admits no Light and does not advance t
 
 test("recycle restores the Raider hull colour for the capital broadside missiles", () => {
   const image = bomberFormation();
-  assert.deepEqual([image[COLPM1], image[COLPM2]], [0x24, 0x24]);
+  assert.deepEqual([image[COLPM1], image[COLPM2]], [HULL, HULL]);
   run(image, "enemy_recycle");
   assert.equal(image[L("ENEMY_ACTIVE")], 0);
   assert.equal(image[L("heavy_hull_colour")], 0x44);
@@ -369,16 +374,47 @@ test("charge telegraph and hit flash: per-member COLPM, Raider formations untouc
   assert.ok(frames.slice(0, AIM_FRAMES + SALVO_INTERVAL).every(({ colour }) => colour === CHARGE),
     "the hull brightens from the brake to the last shell");
   assert.equal(frames[AIM_FRAMES + SALVO_INTERVAL].colour, HULL, "and dims when it resumes");
-  // A hit (HP 4 -> 3) flashes the member for 6 ticks, over the charge colour.
+  // The ramp itself: every HP step, and every charge/flash combination on it,
+  // stays inside hue 8 ($80-$8F). HP is existing state, so no new per-slot byte.
+  const ramp = [];
+  for (const hp of [4, 3, 2, 1]) {
+    const cruise = bomberFormation();
+    cruise[L("ENEMY_HP")] = hp;
+    setMember(cruise, 0, [70, 100, 1, 40, 30, hp]);
+    tickMember(cruise, 0);
+    const base = cruise[COLPM1];
+    const charged = bomberFormation();
+    charged[L("ENEMY_HP")] = hp;
+    setMember(charged, 0, [70, 100, ATTACK, 2, 5, hp]);
+    tickMember(charged, 0);
+    const flashed = bomberFormation();
+    flashed[L("ENEMY_HP")] = hp;
+    setMember(flashed, 0, [70, 100, 1, 40, 30, hp === 4 ? 3 : 4]);
+    tickMember(flashed, 0);
+    ramp.push([hp, base, charged[COLPM1], flashed[COLPM1]]);
+  }
+  assert.deepEqual(ramp, [
+    [4, 0x88, 0x8c, 0x8e],
+    [3, 0x86, 0x8a, 0x8c],
+    [2, 0x84, 0x88, 0x8a],
+    [1, 0x82, 0x86, 0x88],
+  ]);
+  assert.ok(ramp.every(([, ...colours]) => colours.every((c) => c >= 0x80 && c <= 0x8f)),
+    "no combination overflows hue 8");
+  assert.ok(ramp.every(([, base]) => base !== 0x44 && base !== 0x24),
+    "the Bomber no longer shares the Raider red family");
+  // A hit (HP 4 -> 3) flashes the member for 6 ticks, over the charge colour,
+  // and the hull stays one luma step darker afterwards.
   const hit = attackRun(2, (image, frame) => { if (frame === 5) image[L("ENEMY_HP")] = 3; }).frames;
   assert.deepEqual(hit.slice(4, 13).map(({ colour }) => colour),
-    [CHARGE, FLASH, FLASH, FLASH, FLASH, FLASH, FLASH, CHARGE, CHARGE]);
+    [CHARGE_AT(4), FLASH_AT(3), FLASH_AT(3), FLASH_AT(3), FLASH_AT(3), FLASH_AT(3),
+      FLASH_AT(3), CHARGE_AT(3), CHARGE_AT(3)]);
   const image = bomberFormation();
   setMember(image, 1, [150, 100, 1, 9, 30]);
   image[L("ENEMY_HP") + 1] = 2;
   image[COLPM1] = 0x55;
   tickMember(image, 1);
-  assert.equal(image[COLPM2], FLASH);
+  assert.equal(image[COLPM2], FLASH_AT(2));
   assert.equal(image[COLPM1], 0x55, "the other member keeps its colour");
   assert.equal(member(image, 1)[5], 0x52, "last HP 2, five flash ticks left");
   // Raider formations run the ASM motion and never reach the colour write.

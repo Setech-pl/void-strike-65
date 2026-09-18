@@ -485,13 +485,13 @@ record or hold. These rows override the arena, EXT/LIGHT, pickup and
 | --- | ---: | --- |
 | `$7BD0` | 1 B | `hybrid_arena_anchor` (`rts`), still first |
 | `$7BD1-$7BE3` | 19 B | `HYBRID_ASM_ARENA` Heavy lifecycle veneers: `enemy_recycle`, `enemy_spawn_raiders`, `heavy_publish_hull_colour` (writes `COLPM1`/`COLPM2`) |
-| `$7BE4-$7D36` | 339 B | `HYBRID_C_ARENA` cc65 CODE: `heavy_publish_profile`, `enemy_c_spawn_raiders` (formation admission), `bomber_turn`, `enemy_c_heavy_tick` |
-| `$7D37-$7D57` | 33 B | `HYBRID_C_ARENA_RODATA`: TEMPORARY 4.5 HEAVY SMOKE SCHEDULER columns (archetype, roster shape, hull colour, Light escort), profile field map, lane-sweep start, lane bounds and entry depths |
-| `$7D58-$7F0F` | 440 B | arena free (no writer: native watch 0 writes through the full lifecycle) |
+| `$7BE4-$7D39` | 342 B | `HYBRID_C_ARENA` cc65 CODE: `heavy_publish_profile`, `enemy_c_spawn_raiders` (formation admission), `bomber_turn`, `enemy_c_heavy_tick` (4.5d hull ramp: +3 B) |
+| `$7D3A-$7D5A` | 33 B | `HYBRID_C_ARENA_RODATA`: TEMPORARY 4.5 HEAVY SMOKE SCHEDULER columns (archetype, roster shape, hull colour, Light escort), profile field map, lane-sweep start, lane bounds and entry depths |
+| `$7D5B-$7F0F` | 437 B | arena free (no writer: native watch 0 writes through the full lifecycle) |
 | `$8119` | 1 B | `encounter_heavy_index`: **temporary** Heavy smoke schedule counter (`HYBRID_ENCOUNTER_STATE`; cc65 emits the segment in reverse declaration order), reset in `lifecycle_c_init` |
 | `$811A` | 1 B | `encounter_light_index`: provisional Light schedule counter (was `$8119`) |
 | `$811B` | 1 B | `heavy_archetype_offset`: selected Heavy record (0 Raider, 36 Bomber) (`HYBRID_HEAVY_STATE`) |
-| `$811C` | 1 B | `heavy_hull_colour`: `$44` Raider / `$24` Bomber; ASM publishes it, recycle restores `$44` for the capital broadside missiles M1/M2 |
+| `$811C` | 1 B | `heavy_hull_colour`: `$44` Raider / `$88` Bomber (4.5d: hue 8, full-HP entry of the HP ramp); ASM publishes it, recycle restores `$44` for the capital broadside missiles M1/M2 |
 | `$811D-$8121` | 5 B | ticked member scalars X, Y, direction, fire timer, turn timer (marshalled from/to `$5478-$5481` by `heavy_member_update`) |
 | `$8122-$8123` | 2 B | C scratch `heavy_scratch`, `heavy_index` |
 | `$8124-$813F` | 28 B | unowned |
@@ -551,14 +551,16 @@ describe the 4.5c candidate only.
 ## Segment free tails at the current checkpoint — OWNER-SMOKE CANDIDATE (2026-09-18)
 
 Measured from `build/void-strike-65.lbl`, `build/encounter-director.lbl` and
-`build/manifest.json` at HEAD (destructible debris, `5b1b6d1`, plus the segment
-neighbour guards). **These rows override every earlier free-tail row in this
-file**; earlier sections stay as history of how each tail moved.
+`build/manifest.json` at HEAD (destructible debris, `5b1b6d1`, the segment
+neighbour guards, and the 4.5d Bomber identity: `HYBRID_C_ARENA` 614 → 617 B,
+free tail 218 → **215 B**, every other segment size-neutral). **These rows
+override every earlier free-tail row in this file**; earlier sections stay as
+history of how each tail moved.
 
 | Segment | Used | Real neighbour | Free tail |
 | --- | ---: | --- | ---: |
 | `BROADSIDE` `$5E10-$780C` | 6,653 B | `BROADSIDE_RAM` end `$7810` | **3 B** (`$780D-$780F`) |
-| `HYBRID_C_ARENA` `$7BD0-$7E35` | 614 B | A2 display lists `$7F10` | **218 B** |
+| `HYBRID_C_ARENA` `$7BD0-$7E38` | 617 B | A2 display lists `$7F10` | **215 B** |
 | `DIRECTOR_ABI` `$8701-$8775` | 117 B | `PICKUP_CODE_RAM` `$8776` | **0 B** |
 | `PICKUP_CODE` `$885B-$8B5F` | 773 B | window end `$8B67` | **7 B** stream fill |
 | `DIRECTOR_C_LOW` `$8B88-$8C79` | 242 B | `HYBRID_C_EXT_RAM` `$8C7D` | **3 B** |

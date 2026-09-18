@@ -338,7 +338,7 @@ unspecified until boss lifecycle, boss HULL, and the large-explosion runtime
 budget are designed together. Nova Missile is not present in the current
 runtime.
 
-### Interceptor — `OWNER-SMOKE CANDIDATE` (roadmap 4.4)
+### Interceptor — **OWNER-ACCEPTED** (roadmap 4.4)
 
 The next ordinary enemy, full-pursuit variant (owner decisions 15 and 18). It
 is implemented and awaits owner smoke; the values below are the candidate's,

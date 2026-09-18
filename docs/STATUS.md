@@ -17,18 +17,17 @@ the values below.
 `2a8ff26`; adds the 4.5d Enemy Identity Freeze WIP `7b50bd6`, the PAL timing
 audit tooling, the death-frame deferral candidate and its respawn double-image
 fix, sections below).
-`experiment/hybrid-c-director` carries the roadmap 4.4 Interceptor
-`OWNER-SMOKE CANDIDATE`, its 4.4b visual identity (X/quad art since `3838c00`),
+`experiment/hybrid-c-director` carries the roadmap 4.4 Interceptor,
+its 4.4b visual identity (X/quad art since `3838c00`),
 the 4.4c hostile weapon visuals, the roadmap 4.5a Heavy window capacity
 increment (superseded by the M3 arena), the 4.5b `BOMBER` weapon class, the
 4.5M-M1 starfield staging swap and the 4.5M-M2 cold-record relocation (both
 owner smoke PASS 2026-09-17), the 4.5M-M3 `HYBRID_C_ARENA`, the
 emitter-independent hostile shots fix and the roadmap 4.5c Bomber (sections
 below) on top of `f4cb18b`, the documentation-only reconciliation of
-the owner acceptance recorded here. All of that is contained in the accepted
-runtime below; the increments the owner enumerated in that acceptance are
-listed there, and the sections of the older increments keep their own labels
-until the owner names them.
+the owner acceptance recorded here. All of it runs in the accepted runtime
+below and all of it is owner-accepted under that checkpoint; no
+`OWNER-SMOKE CANDIDATE` is outstanding on this branch.
 
 ### Accepted runtime checkpoint
 
@@ -39,9 +38,12 @@ death, respawn, debris scoring and Bomber identity were all exercised).
 XEX SHA-256:
 `8940d646fcb2e59e54cb383de382ac86dfb4959f18016854919c3f5157b89d34`
 
-Measured from `dist/void-strike-65.xex` in this worktree (2026-09-18). A
-reproduction from a clean export of `0a90c1c` has not been re-run since the
-acceptance.
+**Provenance of the hash.** It is measured from the existing
+`dist/void-strike-65.xex` artifact in this worktree (2026-09-18). **A
+clean-export reproduction of `8940d646…` has NOT been re-verified since the
+acceptance** — unlike `b4b942e`, whose reproduction was re-verified. Re-run
+`npm run build:candidate -- --quiet` from a clean export of `0a90c1c` before
+relying on this hash for a release or a hardware milestone.
 
 **The stack this checkpoint carries (owner-enumerated, 2026-09-18):**
 
@@ -62,16 +64,20 @@ acceptance.
 | `BROADSIDE` free tail | **3 B** |
 | `ENTITY_CODE` free tail | **1 B** |
 
-It also contains everything the earlier accepted checkpoints carried — the
+**Folded into the same acceptance (owner instruction, 2026-09-18).** The
+increments that reached this binary as candidates — roadmap 4.4 Interceptor
+with its 4.4b visual identity and 4.4c hostile weapon visuals, roadmap 4.5a,
+4.5b, 4.5M-M1, 4.5M-M2, 4.5M-M3 and the emitter-independent hostile shots — all
+run in `0a90c1c` and were exercised in the owner smoke. They are
+**OWNER-ACCEPTED** under this checkpoint; a candidate label is not carried for
+code that ships in an accepted binary. Each keeps its own section and its own
+history below — only the status label changed.
+
+It also contains everything the earlier accepted checkpoints carried: the
 hybrid C Director foundation (`2df89da`), Light Wingman M1 (`41ace65`), the PMG
 pickup raster fix and per-type capsule silhouettes (`f30754a`, `c2af6a6`),
 step 4.3 Stage 1 reusable resident capacity (`fca5e31`, `0290d83`) and the
-debris late publication with exact ownership (`b4b942e`) — plus the increments
-that reached it as candidates and that the owner has not enumerated by name
-(roadmap 4.4 with 4.4b/4.4c, 4.5a, 4.5b, 4.5M-M1/M2/M3 and the
-emitter-independent hostile shots). Those sections below keep their own labels:
-they are running in the accepted runtime, but no separate owner word is
-recorded for them.
+debris late publication with exact ownership (`b4b942e`).
 
 Previous accepted runtime checkpoint: `b4b942e` (XEX
 `965468077747f527b7d3f8ffeb7c37ace27377892ea5fc6f2e8aaf062d0d8a6e`,
@@ -343,7 +349,7 @@ transitions, first visible Y 24 in capital and post-capital phases (pre-fix
 
 ---
 
-## Interceptor (plan step 4.4) — `OWNER-SMOKE CANDIDATE` (2026-09-16)
+## Interceptor (plan step 4.4) — **OWNER-ACCEPTED** (owner smoke PASS 2026-09-18, `0a90c1c`)
 
 Not accepted until the owner smokes it. Built on the accepted `b4b942e`; the
 2026-09-16 `BLOCKED_PLACEMENT` attempt is superseded.
@@ -439,7 +445,7 @@ superseded blocked-experiment evidence:
 
 ---
 
-### 4.4b Interceptor visual identity (owner decision A+C) — `OWNER-SMOKE CANDIDATE`
+### 4.4b Interceptor visual identity (owner decision A+C) — **OWNER-ACCEPTED**
 
 ASM publication data only; C, records, codes, erase/render, backing, collision,
 PMG, DLI/palette and the PairShot renderer are unchanged (a distinct
@@ -490,7 +496,7 @@ Candidate XEX `3adc3954…`, owner-smoke copy in
 
 ---
 
-### 4.4c Hostile weapon visuals (owner decision 19) — `OWNER-SMOKE CANDIDATE`
+### 4.4c Hostile weapon visuals (owner decision 19) — **OWNER-ACCEPTED**
 
 Projectile colour and shape belong to `weapon_class`, not to the emitter's hull
 colour. C picks the class and cadence; ASM publishes it.
@@ -599,7 +605,7 @@ Candidate XEX `3d88b35d…`, ATR `27ad309b…`, owner-smoke copy in
 
 ---
 
-## Roadmap 4.5a — Heavy window `HYBRID_C_HEAVY` (owner decision 20) — `OWNER-SMOKE CANDIDATE` (2026-09-17)
+## Roadmap 4.5a — Heavy window `HYBRID_C_HEAVY` (owner decision 20) — **OWNER-ACCEPTED** (owner smoke PASS 2026-09-18)
 
 Capacity only, for the Bomber's C (4.5c). No gameplay, C, archetype, PMG, DLI,
 collision or projectile change; the window holds 0 B.
@@ -666,7 +672,7 @@ provisional 4.5 smoke policy only; visible separation of two QUAD Bombers
 Encounter/Wave Director, 4.7 Boss, 4.8 capital traversal enrichment, then level
 loop / 16-level campaign data.
 
-## Roadmap 4.5b — `weapon_class = BOMBER` (decision 20) — `OWNER-SMOKE CANDIDATE` (2026-09-17)
+## Roadmap 4.5b — `weapon_class = BOMBER` (decision 20) — **OWNER-ACCEPTED** (owner smoke PASS 2026-09-18)
 
 On top of the 4.5a candidate `984f3ae` (owner smoke PASS, no gameplay
 regression). Weapon class only: no emitter fires `BOMBER` yet, so gameplay is
@@ -749,7 +755,7 @@ Candidate XEX `2fd5ace4…`, ATR `dd3977e2…`, owner-smoke copy in
 
 ---
 
-## Roadmap 4.5M-M1 — starfield staging swap — `OWNER-SMOKE CANDIDATE` (2026-09-17)
+## Roadmap 4.5M-M1 — starfield staging swap — **OWNER-ACCEPTED** (owner smoke PASS 2026-09-18)
 
 Boot/lifetime change only, on top of the 4.5b candidate (`9547bf0`), first step
 of the 4.5M memory/lifetime migration (Strategy B). No gameplay change: linked
@@ -840,7 +846,7 @@ acceptance checkpoint stays `b4b942e`).
 
 ---
 
-## Roadmap 4.5M-M2 — cold-record relocation — `OWNER-SMOKE CANDIDATE` (2026-09-17)
+## Roadmap 4.5M-M2 — cold-record relocation — **OWNER-ACCEPTED** (owner smoke PASS 2026-09-18)
 
 Boot-transport and cold-lifetime change only, on top of the 4.5M-M1 candidate
 (`58404c6`), second step of the 4.5M migration. No gameplay change: linked
@@ -939,7 +945,7 @@ acceptance checkpoint stays `b4b942e`).
 
 ---
 
-## Roadmap 4.5M-M3 — `HYBRID_C_ARENA` — `OWNER-SMOKE CANDIDATE` (2026-09-17)
+## Roadmap 4.5M-M3 — `HYBRID_C_ARENA` — **OWNER-ACCEPTED** (owner smoke PASS 2026-09-18)
 
 Infrastructure only, on top of the 4.5M-M2 candidate (`cac8657`), third step of
 the 4.5M migration. No gameplay change and no Bomber code (no C tick,
@@ -1017,7 +1023,7 @@ Candidate XEX `cbba293f…`, ATR `a75c62b9…`, owner-smoke copy in
 
 ---
 
-## Emitter-independent hostile shots — `OWNER-SMOKE CANDIDATE` (2026-09-17)
+## Emitter-independent hostile shots — **OWNER-ACCEPTED** (owner smoke PASS 2026-09-18)
 
 Owner decision 2026-09-17: an already-emitted hostile projectile is
 independent of its emitter and continues its normal lifecycle after the enemy

@@ -90,9 +90,11 @@ komórka, glif z dwoma impulsami). `4/4/6` wyłącznie diagnostycznie.
   kontakt), strażnicy sąsiedztwa segmentów oraz 4.5d enemy identity freeze.
   XEX `8940d646…`. Zmierzony stan: najgorszy margines fence 450 cykli, arena
   617/832 B (215 B wolne), wolny ogon BROADSIDE 3 B, ENTITY_CODE 1 B.
-- **OWNER-SMOKE CANDIDATE:** Interceptor (4.4) — pełny pościg, jawnie
-  selekcjonowalny slot Light; jest w zaakceptowanym runtime, ale nie ma
-  osobnego słowa właściciela.
+- **Zaakceptowany w `0a90c1c`:** Interceptor (4.4) z 4.4b i 4.4c, 4.5a, 4.5b,
+  4.5M-M1/M2/M3 oraz emitter-independent hostile shots — wszystko to działa w
+  zaakceptowanym runtime i zostało objęte owner smoke 2026-09-18 (decyzja
+  właściciela: nie prowadzić etykiety kandydata dla kodu w zaakceptowanym
+  binarium).
 
 ---
 
@@ -157,7 +159,7 @@ gracza, kosztem, ograniczeniami, ryzykiem i rekomendacją.
 Bez BASIC RAM, runtime disk I/O, nowej architektury loadera, przealokowania PMG
 i multipleksowania rastra.
 
-### 4.4 Interceptor — OWNER-SMOKE CANDIDATE (2026-09-16)
+### 4.4 Interceptor — OWNER-ACCEPTED (owner smoke PASS 2026-09-18, `0a90c1c`)
 
 Kolejny `EnemyArchetype` jako dane + mały handler C, z ponownym użyciem
 istniejącej znakowej klasy renderera Light i istniejącej rodziny wrogich
@@ -180,7 +182,7 @@ projektu z `32f2c20`, z wiążącą korektą — slot Light jest jawnie
 selekcjonowalny (`Wingman ALBO Interceptor`), bez naprzemienności w lifecycle;
 kolejność na potrzeby smoke żyje poza lifecycle i zastąpi ją 4.6.
 
-Stan (2026-09-16): zaimplementowany jako `OWNER-SMOKE CANDIDATE` na `b4b942e`.
+Stan: zaimplementowany na `b4b942e` (2026-09-16), zaakceptowany w `0a90c1c`.
 Trzeci rekord (hp 1, wejście x 124, 2 linie/klatkę, 4 HPOS do
 `player_x & $FC` co drugą klatkę w zakresie 48-200, double-tap 2x10, pauzy
 56/44/32, wynik `$15`). Lifecycle Light tylko czyta `light_archetype_offset`;
@@ -202,11 +204,11 @@ dwóch Bomberów, ruch „lane sweep” w C, sylwetka QUAD, `weapon_class = 3`);
 Bomber jest **ostatnim** archetypem MVP. Kolejność wykonania:
 
 - **4.5a — okno rezydentne `HYBRID_C_HEAVY`** (bez zmiany rozgrywki).
-  Stan (2026-09-17): `OWNER-SMOKE CANDIDATE` — 243 B w `$7E12-$7F04`, obraz w
+  Stan: **OWNER-ACCEPTED** w `0a90c1c` — 243 B w `$7E12-$7F04`, obraz w
   rekordzie low-C, hold w ringu, publikacja po starfield; szczegóły: STATUS.
 - **4.5b — `weapon_class = BOMBER`** (glif, prędkość klasy, generyczna emisja
   klasy wybranej przez C).
-  Stan (2026-09-17): `OWNER-SMOKE CANDIDATE` — `BOMBER = 3`, glif `$DC/$E6`,
+  Stan: **OWNER-ACCEPTED** w `0a90c1c` — `BOMBER = 3`, glif `$DC/$E6`,
   generyczny okres kroku na klasę (`stepPeriodFrames`, BOMBER 2 → 1 linia/
   klatkę), CODE bez zmiany adresów; emisja generyczna przechodzi do 4.5c;
   szczegóły: STATUS.

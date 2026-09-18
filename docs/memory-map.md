@@ -548,6 +548,52 @@ scratch `heavy_scratch`, `heavy_index` (moved from `$8122-$8123`); `$8126-$813F`
 unowned. The 4.5c rows above (`$8122-$8123` scratch, `$8124-$813F` unowned)
 describe the 4.5c candidate only.
 
+## Segment free tails at the current checkpoint — OWNER-SMOKE CANDIDATE (2026-09-18)
+
+Measured from `build/void-strike-65.lbl`, `build/encounter-director.lbl` and
+`build/manifest.json` at HEAD (destructible debris, `5b1b6d1`, plus the segment
+neighbour guards). **These rows override every earlier free-tail row in this
+file**; earlier sections stay as history of how each tail moved.
+
+| Segment | Used | Real neighbour | Free tail |
+| --- | ---: | --- | ---: |
+| `BROADSIDE` `$5E10-$780C` | 6,653 B | `BROADSIDE_RAM` end `$7810` | **3 B** (`$780D-$780F`) |
+| `HYBRID_C_ARENA` `$7BD0-$7E35` | 614 B | A2 display lists `$7F10` | **218 B** |
+| `DIRECTOR_ABI` `$8701-$8775` | 117 B | `PICKUP_CODE_RAM` `$8776` | **0 B** |
+| `PICKUP_CODE` `$885B-$8B5F` | 773 B | window end `$8B67` | **7 B** stream fill |
+| `DIRECTOR_C_LOW` `$8B88-$8C79` | 242 B | `HYBRID_C_EXT_RAM` `$8C7D` | **3 B** |
+| `HYBRID_C_EXT` + `LIGHT_CODE`/`HEAVY_CODE` `$8C7D-$8FEC` | 880 B | `$9000` | **19 B** |
+| `HYBRID_C_SECTOR` `$8602-$86F1` | 240 B | window end `$86FA` | **8 B** |
+| `A2_KERNEL` `$9000-$90EC` | 237 B | `ENTITY_CODE` `$9100` | **19 B** |
+| `ENTITY_CODE` `$9100-$9D5C` | 3,165 B | `DIRECTOR_C_PRE` `$9D5E` | **1 B** (`$9D5D`) |
+
+ENTITY_CODE tail detail: Light art tables `light_glyph` /
+`light_interceptor_glyph` `$9D2B-$9D4A` (32 B), `player_dying_tick`
+`$9D4B-$9D5C` (18 B), free `$9D5D` (1 B).
+
+`ENTITY_CODE_RESERVED_BYTES = $F00` describes the `ENTITY_CODE_RAM` **area**
+(`$9000-$9FFF`), not the first real neighbour. `DIRECTOR_C_PRE` starts at
+`$9D5E`, so `$9D5E-$9FFF` (675 B) is phantom headroom that the ca65 asserts in
+`src/main.s` cannot see; the same defect class applies to `DIRECTOR_ABI`
+(1 B phantom) and `DIRECTOR_C_LOW` (3 B phantom). The link-time guards added at
+this checkpoint are the ones that actually fire:
+
+| Guard | Placed in | Link |
+| --- | --- | --- |
+| `__ENTITY_CODE_RAM_LAST__ <= $9D5E` | `src/main.s` | `void-strike-65` |
+| `__PICKUP_CODE_RAM_LAST__ <= $8B67` | `src/main.s` | `void-strike-65` |
+| `__DIRECTOR_ABI_RAM_LAST__ <= $8776` | `src/hybrid/c-asm-abi.s` | `encounter-director` |
+| `__DIRECTOR_C_LOW_RAM_LAST__ <= $8C7D` | `src/hybrid/c-asm-abi.s` | `encounter-director` |
+
+`__*_RAM_LAST__` is the address **after** the last byte used in the memory area,
+so the comparison is against the neighbour's first byte. `HYBRID_C_EXT` has no
+linker guard because its tail is shared between two link units; `scripts/build.mjs`
+refuses it there instead, and `residentCapacity.tails` now throws on any negative
+tail rather than shipping the overrun in the manifest.
+
+**Standing rule.** Any commit that changes a segment's size must state the
+resulting free tail in its commit message and update the table above.
+
 ## Blocked-experiment evidence — not part of this map
 
 The 2026-09-16 Interceptor experiment (`BLOCKED_PLACEMENT`) measured additional

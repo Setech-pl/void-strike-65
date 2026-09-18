@@ -279,6 +279,18 @@ light_archetype_offset = _light_archetype_offset
 ; loader lands it in place; there is no hold and no publish copy. The anchor
 ; below stays first and keeps the record non-empty (DFMC rejects a zero-length
 ; record); roadmap 4.5c places the Heavy formation C and its veneers after it.
+; Link-time neighbour guards. The MEMORY areas below are declared larger than
+; the first real neighbour above them, so ld65's own overflow check cannot fire
+; until foreign memory has already been overwritten:
+;   DIRECTOR_ABI_RAM  $8701+$76 = $8777, but PICKUP_CODE_RAM starts at $8776
+;                     (1 B phantom);
+;   DIRECTOR_C_LOW_RAM $8B88+$F8 = $8C80, but HYBRID_C_EXT_RAM starts at $8C7D
+;                     (3 B phantom).
+; __*_RAM_LAST__ is the address after the last byte used in the memory area.
+.import __DIRECTOR_ABI_RAM_LAST__, __DIRECTOR_C_LOW_RAM_LAST__
+.assert __DIRECTOR_ABI_RAM_LAST__ <= $8776, lderror, "DIRECTOR_ABI reaches the PICKUP_CODE window at $8776"
+.assert __DIRECTOR_C_LOW_RAM_LAST__ <= $8C7D, lderror, "DIRECTOR_C_LOW reaches the HYBRID_C_EXT window at $8C7D"
+
 .import __HYBRID_C_ARENA_RAM_START__, __HYBRID_C_ARENA_RAM_SIZE__
 .import __HYBRID_ASM_ARENA_SIZE__, __HYBRID_C_ARENA_SIZE__
 .import __HYBRID_C_ARENA_RODATA_SIZE__

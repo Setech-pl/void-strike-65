@@ -1,0 +1,80 @@
+{
+  "id": "stage-2b2t-segment-neighbour-guards",
+  "date": "2026-09-18",
+  "task": "Guard every reserved-vs-real-neighbour gap with link-time asserts, make the manifest refuse a negative free tail, prove the guards fire, and correct the stale tail figures in the documentation.",
+  "status": "OWNER-SMOKE CANDIDATE",
+  "branch": "wip/4.5d-gate-fail",
+  "base": {"commit": "5b1b6d1", "note": "destructible debris"},
+  "defect": {
+    "class": "A MEMORY area is declared larger than the first real neighbour above it, so ld65's own overflow check cannot fire until foreign memory has already been overwritten.",
+    "instances": [
+      {"segment": "ENTITY_CODE", "area": "$9000-$9FFF (ENTITY_CODE_RESERVED_BYTES = $F00)", "real_neighbour": "DIRECTOR_C_PRE $9D5E", "phantom_bytes": 675, "guarded_by_before": "src/main.s:1311 and src/main.s:11406, both against the area"},
+      {"segment": "DIRECTOR_C_LOW", "area": "$8B88+$F8 = $8C80", "real_neighbour": "HYBRID_C_EXT_RAM $8C7D", "phantom_bytes": 3},
+      {"segment": "DIRECTOR_ABI", "area": "$8701+$76 = $8777", "real_neighbour": "PICKUP_CODE_RAM $8776", "phantom_bytes": 1},
+      {"segment": "HYBRID_C_EXT", "note": "tail shared between two link units (linked C extension + main-linked LIGHT_CODE/HEAVY_CODE); no linker symbol can see the composite. scripts/build.mjs:1134 already refuses it."}
+    ],
+    "already_caused": "A 3-byte inline insert assembled cleanly, ran ENTITY_CODE past $9D5D and crashed at runtime on 2-contact-debris-fire0 frame 61."
+  },
+  "guards": [
+    {"assert": "__ENTITY_CODE_RAM_LAST__ <= $9D5E", "message": "ENTITY_CODE reaches the DIRECTOR_C_PRE record at $9D5E", "placed_in": "src/main.s", "link": "void-strike-65"},
+    {"assert": "__PICKUP_CODE_RAM_LAST__ <= $8B67", "message": "PICKUP_CODE reaches the end of its $8776-$8B66 window", "placed_in": "src/main.s", "link": "void-strike-65"},
+    {"assert": "__DIRECTOR_ABI_RAM_LAST__ <= $8776", "message": "DIRECTOR_ABI reaches the PICKUP_CODE window at $8776", "placed_in": "src/hybrid/c-asm-abi.s", "link": "encounter-director"},
+    {"assert": "__DIRECTOR_C_LOW_RAM_LAST__ <= $8C7D", "message": "DIRECTOR_C_LOW reaches the HYBRID_C_EXT window at $8C7D", "placed_in": "src/hybrid/c-asm-abi.s", "link": "encounter-director"}
+  ],
+  "symbol_placement_note": "__DIRECTOR_ABI_RAM_LAST__ and __DIRECTOR_C_LOW_RAM_LAST__ are NOT in build/void-strike-65.lbl: they exist only in build/encounter-director.lbl, a separate ld65 link. src/main.s cannot import them, so those two asserts went into src/hybrid/c-asm-abi.s, the only hand-written ca65 source in that link (alongside the existing HYBRID_C_ARENA asserts). No substitute symbol was invented.",
+  "semantics": "__<AREA>_RAM_LAST__ is the address AFTER the last byte used in the memory area, so the comparison is against the neighbour's first byte and a 0-byte tail still passes.",
+  "proof": {
+    "method": "Temporary .res 4 filler added to the segment, npm run build:candidate -- --quiet, then removed.",
+    "entity_code": {
+      "filler": ".res 4 in ENTITY_CODE after begin_capital_projectile_frame",
+      "result": "ld65 failed with status 1; no XEX produced",
+      "verbatim": "Error: ld65 failed with status 1\nmain.s:1321: Error: Assertion failed: ENTITY_CODE reaches the DIRECTOR_C_PRE record at $9D5E"
+    },
+    "director_abi": {
+      "filler": ".res 4 at the head of segment DIRECTOR_ABI",
+      "result": "ld65 failed with status 1; no XEX produced",
+      "verbatim": "Error: ld65 failed with status 1\nencounter-director-abi.s:292: Error: Assertion failed: DIRECTOR_ABI reaches the PICKUP_CODE window at $8776"
+    },
+    "note": "The pre-existing ca65 asserts (ENTITY_CODE_RESERVED_BYTES) did NOT fire in either case; that is the point."
+  },
+  "manifest": {
+    "change": "scripts/build.mjs residentCapacity.tails now throws 'segment free tail is negative: <name> <n> B' on any negative tail, and derives the ENTITY_CODE ceiling from directorPreRunAddress instead of the 0x9d5e literal.",
+    "a2_kernel_off_by_one": "0x00ff - a2KernelBytes -> 0x0100 - a2KernelBytes; reported tail 18 -> 19 B (A2_KERNEL is 237 B in a 256-B reservation)."
+  },
+  "free_tails_after": {
+    "BROADSIDE": {"used": 6653, "reserved": 6656, "free": 3, "range": "$5E10-$780C, free $780D-$780F"},
+    "HYBRID_C_ARENA": {"used": 614, "capacity": 832, "free": 218},
+    "DIRECTOR_ABI": {"used": 117, "free": 0, "range": "$8701-$8775"},
+    "HYBRID_C_SECTOR": {"used": 240, "free": 8},
+    "PICKUP_CODE_stream_fill": {"free": 7},
+    "DIRECTOR_C_LOW": {"used": 242, "free": 3},
+    "HYBRID_C_EXT_plus_LIGHT_HEAVY_CODE": {"used": 880, "free": 19},
+    "A2_KERNEL": {"used": 237, "reserved": 256, "free": 19},
+    "ENTITY_CODE": {"used": 3165, "free": 1, "range": "$9100-$9D5C, free $9D5D",
+      "detail": "Light art tables $9D2B-$9D4A (32 B), player_dying_tick $9D4B-$9D5C (18 B)"}
+  },
+  "residency": {"linked_runtime_bytes": 17521, "simultaneous_bytes": 20128, "safe_remaining_bytes": 2059,
+    "pickup_collision_record": "1,170 of 1,277 B cold capacity", "packed_starfield_bytes": 1811},
+  "transport": {"boot_sectors": 103, "payload_sectors": "104-182 (79)", "last_sector": 182,
+    "records": [{"broadside": "104 +45"}, {"pickup/collision": "149 +10"}, {"director-low/glue merged": "159 +2"},
+      {"integration-glue": "161 +4"}, {"extension": "165 +7"}, {"rng-pre": "172 +1"},
+      {"hybrid-c-arena": "173 +5"}, {"director-high": "178 +5"}]},
+  "size_neutrality": {
+    "xex_sha256_before": "04821731fb34cbc79e68bc3a19784802b60d932f35be17b966275bf6896914c2",
+    "xex_sha256_after": "04821731fb34cbc79e68bc3a19784802b60d932f35be17b966275bf6896914c2",
+    "atr_sha256": "6aaff6fd054c99b68c82201c9c118d4a10b58b72a7795f3b34ef7db5a0f1aa3b",
+    "label_diff": "build/void-strike-65.lbl and build/encounter-director.lbl byte-identical before and after",
+    "free_broadside_slot": "$76A7 still asserted"
+  },
+  "gates": {
+    "boot_smoke": "PASS 4/4 — XEX menu 392, ATR menu 554 against deadline 554",
+    "pal_timing_audit": {"replays": 28, "distinct_miss_events": 0, "all_passed": true,
+      "worst_fence_margin_cycles": 463, "worst_session": "raider-remnant-rapid-xex-hard", "worst_frame": 1945,
+      "maximum_wall_cycles": 30609, "maximum_wall_session": "director-complete-2-natural-sweep-fire0",
+      "coverage": "default run (21 sessions, pre-existing abort at weapon-pickup-contact-2-hunt-fire4) + --debris-gate-only (3) + --raider-remnant-only (3), audited together over build/runtime-wall-trace"},
+    "focused_tests": "Focused set of 10 files (source-contracts, transport-layout-regression, transport-enabler, cold-pickup-record-fit, hybrid-c-arena, entity-effects, layout-d1, formats, runtime-evidence, chunk-loader): 8 failing test names, the IDENTICAL failure-name set produced by the same run with the change stashed, so all 8 are pre-existing at 5b1b6d1",
+    "debris_gate": "FAIL 1/3 — the pre-existing debris-gate-0-neutral-fire0 blank frame, unchanged",
+    "raider_remnant": "pre-existing explosion-count failure, unchanged; PAL PASS 3/3"
+  },
+  "standing_rule": "Any commit that changes a segment's size must state the resulting free tail in its commit message and in the memory-map override section."
+}

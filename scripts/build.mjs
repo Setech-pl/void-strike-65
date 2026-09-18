@@ -1987,13 +1987,26 @@ async function build() {
         coldCapacity: weaponPickupPackedCapacityBytes,
         coldMargin: weaponPickupPackedCapacityBytes - packedWeaponPickupPhaseBank.length,
       },
-      tails: {
-        hybridCExtension: cExtensionSegment === undefined ? null :
-          0x9000 - (cExtensionSegment.runAddress + cExtensionSegment.data.length),
-        entityCode: 0x9d5e - (entityCodeRunAddress + entityCodeBytes),
-        pickupStreamFill: pickupFileBytes - lightResidentBytes - pickupCodeBytes,
-        a2Kernel: 0x00ff - a2KernelBytes,
-      },
+      tails: (() => {
+        // Free bytes between the last byte a segment uses and the first byte of
+        // its real neighbour. A negative tail means the segment has already run
+        // into somebody else's memory, so refuse the build instead of shipping
+        // the overrun in the manifest.
+        const computed = {
+          hybridCExtension: cExtensionSegment === undefined ? null :
+            0x9000 - (cExtensionSegment.runAddress + cExtensionSegment.data.length),
+          entityCode: directorPreRunAddress - (entityCodeRunAddress + entityCodeBytes),
+          pickupStreamFill: pickupFileBytes - lightResidentBytes - pickupCodeBytes,
+          a2Kernel: 0x0100 - a2KernelBytes,
+        };
+        const overrun = Object.entries(computed)
+          .filter(([, tail]) => tail !== null && tail < 0)
+          .map(([name, tail]) => `${name} ${tail} B`);
+        if (overrun.length > 0) {
+          throw new Error(`segment free tail is negative: ${overrun.join(", ")}`);
+        }
+        return computed;
+      })(),
     },
     directorCodeRuntimes: directorCodeChunks.map(({ name, runAddress, transportAddress, data,
       packed: segmentPacked, lateCompressed, transportData, transportPacked, record, chunk }) => ({

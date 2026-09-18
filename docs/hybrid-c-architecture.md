@@ -240,7 +240,7 @@ C-owned lifecycle field.
 | Light ASM `LIGHT_CODE` (late publication: erase, render) | 133 | `$8F6A-$8FEE` (`41ace65`); 203 B `$8E7A-$8F44` at `b4b942e` with the debris late-publication kernel; same 203 B at `$8F1E-$8FE8` in the 4.4 candidate, 23 B tail; `$8EE2-$8FAC` in the 4.5c candidate |
 | Heavy ASM `HEAVY_CODE` `heavy_member_update` (member marshalling, class emission; 4.5c candidate) | 55 | `$8FAD-$8FE3`, after `LIGHT_CODE` in the extension stream; 28 B `HYBRID_C_EXT` tail |
 | Light ASM `LIGHT_RESIDENT` (update, shot, kill, glyph) | 226 | `$8776-$8857`; 229 B `$8776-$885A` in the 4.4 candidate (`ldx LIGHT_ARCHETYPE_OFFSET`); 225 B `$8776-$8856` in the 4.4b candidate (art moved out, archetype art selection added) |
-| Light ASM art tables (Wingman + Interceptor, ENTITY_CODE tail, 4.4b candidate) | 32 | `$9D31-$9D50`; `$9D16-$9D35` since the emitter-independent hostile shots candidate |
+| Light ASM art tables (Wingman + Interceptor, ENTITY_CODE tail, 4.4b candidate) | 32 | `$9D31-$9D50`; `$9D16-$9D35` at the emitter-independent hostile shots candidate; **`$9D2B-$9D4A` at HEAD** (`5b1b6d1`), immediately below `player_dying_tick` `$9D4B-$9D5C` |
 | Light ASM lower-layer backing resolver (STARFIELD tail) | 31 | `$5D45-$5D63` |
 | Light ASM score add (retired BROADSIDE pad) | 17 | `$77A1-$77B1` |
 | cc65 RNG CODE | 21 | `$9D5E-$9D72` |
@@ -257,6 +257,24 @@ bytes of the feature-residency safety budget. The Light M1 runtime (`41ace65`)
 measures 17,452 B linked, 19,207 B simultaneous and 2,980 B safe; the accepted
 `b4b942e` runtime measures 17,470 B linked, 19,295 B simultaneous and 2,892 B
 safe.
+
+At HEAD (`5b1b6d1`, destructible debris) the runtime measures **17,521 B
+linked, 20,128 B simultaneous and 2,059 B safe**. The reusable tails are
+`HYBRID_C_EXT` 19 B, `HYBRID_C_SECTOR` 8 B, `HYBRID_C_ARENA` 218 of 832 B,
+`DIRECTOR_ABI` 0 B, `DIRECTOR_C_LOW` 3 B, pickup stream fill 7 B, A2 kernel
+19 B, BROADSIDE 3 B of 6,656 B (6,653 B used) and **`ENTITY_CODE` 1 B**. The
+authoritative table is the current-checkpoint override section of
+[memory-map.md](memory-map.md).
+
+`ENTITY_CODE_RESERVED_BYTES = $F00` bounds the `$9000-$9FFF` memory area, not
+the real neighbour: the `DIRECTOR_C_PRE` record starts at `$9D5E`. Since this
+checkpoint each of `ENTITY_CODE`, `PICKUP_CODE`, `DIRECTOR_ABI` and
+`DIRECTOR_C_LOW` carries an `lderror` guard on its `__*_RAM_LAST__` against the
+neighbour's first byte (`src/main.s` for the main link, `src/hybrid/c-asm-abi.s`
+for the encounter-director link), and `scripts/build.mjs` refuses a negative
+free tail instead of publishing it. Any commit that changes a segment's size
+must state the resulting free tail in its message and in the memory-map
+override section.
 
 Light Wingman placement (2026-09-15). The first attempt placed the Light
 renderer in ENTITY_CODE and overflowed its packed staging by 176 B. The

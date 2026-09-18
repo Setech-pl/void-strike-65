@@ -1310,6 +1310,17 @@ stage_starfield_stream:
 .assert __ENTITY_CODE_SIZE__ > 0, error, "ENTITY_CODE must not be empty"
 .assert __ENTITY_CODE_SIZE__ <= ENTITY_CODE_RESERVED_BYTES, error, "ENTITY_CODE exceeds $9100-$9FFF"
 
+; ENTITY_CODE_RESERVED_BYTES describes the $9000-$9FFF ENTITY_CODE_RAM area, not
+; the first real neighbour above it: the encounter-director link places the
+; DIRECTOR_C_PRE record at $9D5E, so $9D5E-$9FFF is phantom headroom that the
+; ca65 asserts above cannot see. The link-time guard below is the one that
+; actually fires before ENTITY_CODE overwrites somebody else's memory.
+; PICKUP_CODE_RAM ends at $8B67 (fill tail); DIRECTOR_C_LOW starts at $8B88.
+; __*_RAM_LAST__ is the address after the last byte used in the memory area.
+.import __ENTITY_CODE_RAM_LAST__, __PICKUP_CODE_RAM_LAST__
+.assert __ENTITY_CODE_RAM_LAST__ <= $9D5E, lderror, "ENTITY_CODE reaches the DIRECTOR_C_PRE record at $9D5E"
+.assert __PICKUP_CODE_RAM_LAST__ <= $8B67, lderror, "PICKUP_CODE reaches the end of its $8776-$8B66 window"
+
 broadside_read_source:
 @source:
     lda __BROADSIDE_LOAD__

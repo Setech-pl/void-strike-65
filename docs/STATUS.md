@@ -98,17 +98,34 @@ Deferred by the owner: smooth 1-line Light tracking (M2).
 | Target 31,200 headroom | 1,942 |
 | Hard gate 32,568 headroom | 3,310 |
 | Missed frames / extra VBI / DLI errors | 0 / 0 / 0 |
-| Linked runtime | 17,470 B |
-| Simultaneous residency | 19,295 B |
-| Safe residency remaining | 2,892 B |
+| Linked runtime | 17,521 B |
+| Simultaneous residency | 20,128 B |
+| Safe residency remaining | 2,059 B |
 
-Reusable free capacity at this checkpoint (measured, `build/manifest.json`):
-contiguous `HYBRID_C_EXT` tail 187 B (`$8F45-$8FFF`), `HYBRID_C_SECTOR` window
-8 B, ENTITY_CODE tail 45 B, A2 kernel tail 18 B, pickup stream fill 14 B,
-pickup/collision record 1,158 of 1,277 B cold capacity. Packed STARFIELD is
-1,805 B: 7 B over the reviewed 1,798 B correction gate and 14 B under the
-1,819 B hard staging limit (open decision below). Use identical replays when
-comparing CPU.
+The three residency rows are the accepted-checkpoint CPU baseline's companions
+only for the CPU columns; the byte columns above are re-measured at HEAD.
+
+Reusable free capacity at HEAD (measured, `build/manifest.json` and the `.lbl`
+files; the authoritative table is the current-checkpoint override section of
+[memory-map.md](memory-map.md)): `HYBRID_C_EXT` tail 19 B, `HYBRID_C_SECTOR`
+window 8 B, `ENTITY_CODE` tail **1 B** (`$9D5D`), A2 kernel tail 19 B, pickup
+stream fill 7 B, BROADSIDE 6,653 B with a **3 B** free tail, `HYBRID_C_ARENA`
+218 B free, `DIRECTOR_ABI` 0 B, `DIRECTOR_C_LOW` 3 B, pickup/collision record
+1,170 of 1,277 B cold capacity. Packed STARFIELD is 1,811 B: 13 B over the
+reviewed 1,798 B correction gate and 8 B under the 1,819 B hard staging limit
+(open decision below). Use identical replays when comparing CPU.
+
+`ENTITY_CODE` is effectively full: 1 B. Its ca65 asserts measure against
+`ENTITY_CODE_RESERVED_BYTES = $F00` (the `$9000-$9FFF` memory area), but the
+first real neighbour is the `DIRECTOR_C_PRE` record at `$9D5E`, so those two
+asserts guarded 675 B of phantom headroom and could not fire until 675 B of
+somebody else's memory had been overwritten. The same class of phantom existed
+for `DIRECTOR_C_LOW` (3 B) and `DIRECTOR_ABI` (1 B). Link-time
+`__*_RAM_LAST__` guards now bound all four against their real neighbours, and
+`scripts/build.mjs` refuses any negative free tail instead of publishing it in
+the manifest. **Standing rule: any commit that changes a segment's size must
+state the resulting free tail in its message and in the memory-map override
+section.**
 
 ---
 
@@ -1262,3 +1279,62 @@ changed; hardware-critical, with proof) before more Bomber or 4.6 content.
 Roadmap 4.6 (data-driven Encounter/Wave Director) starts only on
 owner instruction. The Raider-coloured residual artifact and the debris
 death-frame blink remain open.
+
+---
+
+## Segment neighbour guards — `OWNER-SMOKE CANDIDATE` (2026-09-18)
+
+- **Defect.** `ENTITY_CODE_RESERVED_BYTES = $F00` gives a `$9FFF` ceiling, but
+  the first real neighbour is the `DIRECTOR_C_PRE` record at `$9D5E`. The two
+  ca65 asserts (`src/main.s:1311`, `:11406`) therefore guarded **675 B of
+  phantom headroom** and could not fire before 675 B of somebody else's memory
+  had been overwritten. Same class: `DIRECTOR_C_LOW` (3 B phantom, real ceiling
+  `$8C7D`), `DIRECTOR_ABI` (1 B phantom, `$8776`) and `HYBRID_C_EXT` (its tail is
+  shared between two link units, so no linker symbol can see the composite).
+  This had already caused a silent overrun: a 3-byte inline insert assembled
+  cleanly, ran ENTITY_CODE past `$9D5D` and crashed at runtime on
+  `2-contact-debris-fire0` frame 61.
+- **Guards (0 bytes).** `lderror` asserts on the linker's own
+  `__*_RAM_LAST__` (the address *after* the last byte used in the memory area)
+  against the neighbour's first byte: `__ENTITY_CODE_RAM_LAST__ <= $9D5E` and
+  `__PICKUP_CODE_RAM_LAST__ <= $8B67` in `src/main.s`;
+  `__DIRECTOR_ABI_RAM_LAST__ <= $8776` and
+  `__DIRECTOR_C_LOW_RAM_LAST__ <= $8C7D` in `src/hybrid/c-asm-abi.s`. The last
+  two are **not** in `build/void-strike-65.lbl` — they exist only in
+  `build/encounter-director.lbl`, a separate ld65 link — so they had to go into
+  that link's only hand-written ca65 source, next to the existing
+  `HYBRID_C_ARENA` asserts. No substitute symbol was invented.
+  `ENTITY_CODE_RESERVED_BYTES` is unchanged and the old asserts are not
+  contradictory: `$9D5E` is simply stricter than `$9FFF`.
+- **Proof (the point of the task).** A temporary `.res 4` in ENTITY_CODE makes
+  the build fail at link, with no XEX produced:
+  `main.s:1321: Error: Assertion failed: ENTITY_CODE reaches the DIRECTOR_C_PRE record at $9D5E`.
+  The same filler at the head of `DIRECTOR_ABI` gives
+  `encounter-director-abi.s:292: Error: Assertion failed: DIRECTOR_ABI reaches the PICKUP_CODE window at $8776`.
+  In both cases the pre-existing `ENTITY_CODE_RESERVED_BYTES` asserts stayed
+  silent. Filler removed afterwards.
+- **Manifest refuses.** `residentCapacity.tails` now throws
+  `segment free tail is negative: <name> <n> B` instead of shipping the
+  overrun, and derives the ENTITY_CODE ceiling from `directorPreRunAddress`.
+  The A2 tail off-by-one is fixed (`0x00ff` → `0x0100`): reported 18 → **19 B**.
+- **Size-neutral.** XEX and ATR byte-identical to a build of the same HEAD
+  without the change (`04821731…` / `6aaff6fd…`); both `.lbl` files
+  byte-identical; `free_broadside_slot` `$76A7` still asserted.
+- **Free tails after (measured).** BROADSIDE **3 B** (6,653 of 6,656 B),
+  `HYBRID_C_ARENA` 218 of 832 B, `DIRECTOR_ABI` **0 B**, `HYBRID_C_SECTOR` 8 B,
+  pickup stream fill 7 B, `DIRECTOR_C_LOW` 3 B, `HYBRID_C_EXT` 19 B, A2 kernel
+  19 B, `ENTITY_CODE` **1 B** (`$9D5D`). Transport: 103 boot sectors + payload
+  sectors 104-182 (79), last sector 182.
+- **Gates.** Boot smoke PASS 4/4 (XEX menu 392; ATR menu 554 against deadline
+  554). PAL timing audit: **0 distinct miss events across 28 replays**, worst
+  fence margin 463 (`raider-remnant-rapid-xex-hard` row 1945), maximum wall
+  30,609 (`director-complete-2-natural-sweep-fire0`). Focused set: 8 failing
+  names, the identical failure-name set with the change stashed — all
+  pre-existing. Debris gate and raider-remnant keep their documented
+  pre-existing failures unchanged.
+- **Standing rule (new).** Any commit that changes a segment's size must state
+  the resulting free tail in its commit message and in the current-checkpoint
+  override section of [memory-map.md](memory-map.md).
+
+Evidence:
+[diagnostics/stage-2b2t-segment-neighbour-guards.json](diagnostics/stage-2b2t-segment-neighbour-guards.json).

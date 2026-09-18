@@ -1,9 +1,9 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 5.1
-Data: 2026-09-16
+Wersja: 6.0
+Data: 2026-09-18
 Rola: **jedyna aktywna roadmapa projektu**
-Branch roboczy: `experiment/hybrid-c-director`
+Branch roboczy: `wip/4.5d-gate-fail`
 
 Bieżący stan (checkpointy, XEX, CPU/RAM, otwarte defekty, kandydaci) opisuje
 wyłącznie [`STATUS.md`](STATUS.md). Zasady pracy:
@@ -212,50 +212,131 @@ Bomber jest **ostatnim** archetypem MVP. Kolejność wykonania:
   550; TYMCZASOWY harmonogram Heavy (Raider, Bomber…) do zastąpienia w 4.6;
   szczegóły: STATUS.
 
-Kolejność po 4.5 według decyzji 20: 4.6 sterowany danymi Encounter/Wave
-Director → 4.7 Boss → 4.8 wzbogacenie capital traversal → pętla poziomu /
-kampania 16 poziomów jako dane. Sekcje 4.6-4.11 poniżej opisują treść prac,
-nie tę kolejność.
+Kolejność po 4.5 (**decyzja właściciela 21, 2026-09-18** — zastępuje kolejność
+z decyzji 20 i wszystkie wcześniejsze uporządkowania §4.6+):
 
-### 4.6 Fale i progresja
+### 4.5d Enemy Identity Freeze — OWNER-ACCEPTED (2026-09-18)
+
+Owner smoke PASS: katamaranowa sylwetka Bombera i niebieska rampa kadłuba
+sterowana HP. Szczegóły i dowody: STATUS.
+
+**ROSTER FREEZE.** Roster wrogów jest zamknięty: **żaden nowy archetyp wroga
+bez nowej decyzji właściciela**. Nowa treść rozgrywki pochodzi od tego miejsca
+z fal, ścieżek lotu, sektorów i boosterów. Boss (4.7) nie jest archetypem wroga
+i freeze go nie obejmuje.
+
+### Kolejność prac
+
+#### 1. Option D — koszt stały Bombera
+
+Pominąć 16-wierszowe kopiowanie ciała `P1`/`P2` w `draw_enemy_member`, gdy Y
+członka się nie zmieniło (X i tak przechodzi przez `HPOSP1,x`). Oszczędność
+**~1 164-2 328 cykli na klatkę przy dwóch Bomberach**.
+
+Jest to **inwariant renderera krytyczny sprzętowo**: wymaga planu High z
+dowodem obejmującym *każdy* writer `P1`/`P2` oraz ścieżki pauzy i respawnu.
+Najgorszy margines fence wynosi teraz **450 cykli**.
+
+#### 2. Pomiar budżetu populacji
+
+Trzy liczby, które bramkują projekt fal 4.6:
+
+- (a) ile Lightów mieści się jednocześnie przy żywym debris i kapsule pickupu;
+- (b) ile Heavy + debris + kapsuła (z grubsza znane: 450 cykli marginesu przy
+  dwóch Bomberach);
+- (c) ile kosztuje samo debris przy rosnącej liczbie obiektów.
+
+Przy okazji rozstrzygnąć:
+
+- czy kolizja gracz–kadłub capital czyta mapę znaków, czy zakłada stałą
+  szerokość korytarza;
+- czy kolor starfieldu może zmieniać się na sektor — co jeszcze używa tego
+  rejestru;
+- czy `generate_starfield_row` może warunkowo pogrubić pole i jakim kosztem na
+  wiersz.
+
+#### 3. 4.6 — sterowany danymi Encounter / Wave Director
+
+Z trzema wiążącymi decyzjami właściciela (decyzja 21 §21.1-21.3):
+
+- **SECTOR SUBTYPES.** Poziom jest ścieżką sektorów: `SPACE`, `CAPITAL`,
+  `BOSS`. `SPACE` ma dwa podtypy: **SWARM** (wiele znakowych Lightów, bez
+  Heavy) i **ELITE** (jeden lub dwa Heavy, bez roju). Heavy i rój nigdy nie
+  współistnieją — to usuwa najgorszy przypadek populacji, na który nie stać
+  budżetu. Każdy podtyp deklaruje maksymalną jednoczesną populację, a
+  **admission ją egzekwuje**, zamiast zostawiać ją intencji projektanta
+  poziomu. Debris i pickupy działają w każdym sektorze, więc są stałym
+  podatkiem w każdym budżecie.
+- **PATH-DRIVEN WAVES.** Ścieżka lotu jest własnością fali, nie archetypu, więc
+  ten sam archetyp może lecieć sinusem, łukiem, pętlą albo wężem w różnych
+  falach (koperty w stylu Zybexa). `WaveDef` niesie: `archetype`, `path`,
+  `count`, `spacing`, `entry`.
+- **STARFIELD PER SECTOR.** Sektor `SPACE` ma wyglądać osobno: mgławice jako
+  warunkowe pogrubienie/rozjaśnienie wewnątrz `generate_starfield_row` plus
+  kolor gwiazd na sektor. Bez nowych obiektów i bez drugiej warstwy scrollu.
+
+Hierarchia: `LevelDef -> SectorDef(+subtype) -> WaveDef -> Encounter Director
+-> admission -> EnemyArchetype`. Director jest właścicielem: co / kiedy / ile /
+formacja / koniec fali. Archetyp jest właścicielem: ruch, ogień, HP, wynik,
+`weapon_class`.
 
 Director steruje falami (dominujący + najwyżej jeden wspierający archetyp),
 budżetami i fazami poziomu niezależnie od limitu jednocześnie widocznych.
+Zastępuje TYMCZASOWE harmonogramy smoke (`{WINGMAN, INTERCEPTOR}` oraz
+`4.5 HEAVY SMOKE SCHEDULER`).
 
-### 4.7 Fighter acceptance / capacity
+#### 4. Boostery broni gracza
 
-Reprezentatywny pomiar PAL: maksymalna legalna broń obu stron, pickup, debris,
-efekty, ring wrap, istotne Y. Wymagane: droga do `2 Heavy + 2 Light` i brak
-konstrukcyjnej blokady `2 Heavy + 4 Light`. Bez drogi do minimum 4 wynik to
-najwyżej `PARTIAL`.
+`weapon_class` już istnieje, kapsuły pickupu mają pełny lifecycle, a 12 glifów
+wrogich pocisków jest wolnych. Koszt ląduje w slotach pocisków gracza (2 945
+cykli w `handle_collisions`), więc preferować boostery, które **nie mnożą
+pocisków w locie** (szybsza kadencja, silniejszy strzał, przebicie) nad spread,
+który trzeba wycenić osobno. **Planować dopiero po Option D.**
 
-### 4.8 Capital traversal — ring + ANTIC VSCROL proof
+#### 5. 4.7 Boss
 
-Dopiero po zaakceptowaniu fighter foundation. Kierunek: okrągły ring wierszy jako
-coarse scroll + ANTIC VSCROL fine scroll. Nie przebudowywać przy tym scrollingu
-fighter. Osobny harmonogram capital, bez fighterowego admission/pickupu.
-
-### 4.9 Działa, gondole, uszkodzone sekcje
-
-Zgodnie z decyzjami właściciela 4–6: ograniczona liczba aktywnych baterii,
-telegraph, niszczalne turrety (`ACTIVE -> DAMAGED -> DESTROYED`), gondole jako
-przeszkody geometryczne, uszkodzone sekcje z debris, rytm sektora bez fighterów.
-
-### 4.10 Moduły capital wielokrotnego użytku
-
-Wspólny kontrakt modułu (turret, missile pod, shield emitter, engine node,
-reactor vent), przygotowany pod bossa.
-
-### 4.11 Modularny boss
-
+Projektować **sterowany danymi**: fazy, wzorzec ruchu, wzorzec ognia, HP i
+punkty słabe jako dane, tak aby kolejni bossowie byli rekordami, a nie
+implementacjami. To decyzja do podjęcia **przy planowaniu 4.7**, nie po nim.
 Boss jako kompozycja modułów poznanych w capital traversal, z własnym
-schedulerem i budżetem (decyzja właściciela 7). Najpierw jeden boss foundation
-(moduły, jedno działo, warunek zwycięstwa). Nova Missile projektować razem z
-lifecycle i HULL bossa, nigdy jako zwykły drop.
+schedulerem i budżetem (decyzja 7). Najpierw jeden boss foundation (moduły,
+jedno działo, warunek zwycięstwa). Nova Missile projektować razem z lifecycle i
+HULL bossa, nigdy jako zwykły drop.
+
+#### 6. 4.8a Geometria capital
+
+Głębsze, nierówne gondole na zmiennych wysokościach, zmienna szerokość
+korytarza, większe debris. Latanie przestrzenne w stylu River Raid. **Dane plus
+sprawdzenie kolizji** — nie nowy podsystem.
+
+#### 7. Koniec poziomu / następny poziom
+
+Pętla poziomu, kampania 16 poziomów jako dane, polish.
 
 ---
 
-## 5. Otwarte defekty i dług
+## 5. Backlog — świadomie odłożone, nie zapomniane
+
+Nie jest to lista defektów (te są w §6 i w STATUS), lecz praca celowo
+odsunięta. Nie realizować bez wskazania właściciela.
+
+- **4.8b niszczalne działa gondol.** Turrety nie są dziś obiektami:
+  `BROAD_TURRET` jest polem powłoki, `BROAD_TURRET_FIRED` zatrzaskiem ognia —
+  bez HP, bez stanu slotu, nie są celem kolizji. To **nowy typ obiektu**
+  wymagający własnego planu i budżetu i **nie może opóźnić bossa**.
+- **Paralaksa starfieldu** — ~3 000 cykli na drugą warstwę scrollującą; wrócić
+  po Option D.
+- **Statyczna Andromeda** w tle sektora `SPACE`, zasłaniana podczas przelotu
+  capital.
+- **Resync PAL po zgubionej klatce** — jedno przekroczenie kosztuje ~1 393
+  wiersze w przesuniętej fazie do następnej generacji gameplayu.
+- **Miganie debris w klatce śmierci gracza** — pre-existing, udokumentowane w
+  STATUS.
+- **Debris przeżywa kontakt z graczem** w oknie umierania/respawnu i w
+  `BROAD_DAMAGE_COOLDOWN` — pre-existing, świadomie zostawione przez
+  właściciela; opis w STATUS („debris contact-kill inconsistency”).
+
+## 6. Otwarte defekty i dług
 
 Aktualna lista i priorytety są w STATUS. Na dziś:
 
@@ -269,7 +350,7 @@ Aktualna lista i priorytety są w STATUS. Na dziś:
 
 ---
 
-## 6. Kierunki odrzucone — nie wracać bez nowych dowodów lub decyzji właściciela
+## 7. Kierunki odrzucone — nie wracać bez nowych dowodów lub decyzji właściciela
 
 - pełny double buffer fighter playfieldu;
 - globalny read-only visible ring jako wymóg;
@@ -285,7 +366,7 @@ Aktualna lista i priorytety są w STATUS. Na dziś:
 
 ---
 
-## 7. Aktualizacja planu
+## 8. Aktualizacja planu
 
 Po każdym proofie `BLOCKED`/`REJECTED`: zapisać raport w `docs/diagnostics/`,
 wycofać odrzucony kod produkcyjny, zaktualizować STATUS i — jeżeli zmienia się

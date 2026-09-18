@@ -624,3 +624,59 @@ recenzowanych 1,798 B) pozostaje osobną, otwartą decyzją właściciela.
 - **Roadmapa po 4.5 (zastępuje kolejność w plan-realizacji §4.6+):**
   4.6 sterowany danymi Encounter/Wave Director → 4.7 Boss → 4.8 wzbogacenie
   capital traversal → pętla poziomu / kampania 16 poziomów jako dane.
+
+## 21. 4.5d Enemy Identity Freeze, ROSTER FREEZE i kolejność po 4.5 — OWNER-ACCEPTED (2026-09-18)
+
+- **4.5d zaakceptowane.** Owner smoke PASS 2026-09-18: katamaranowa sylwetka
+  Bombera (`SCYTHE_BOMBER`, dwa kadłuby spięte mostkiem, bliźniacze kły) i
+  niebieska rampa kadłuba sterowana HP (`BOMBER_HULL_HUE | (HP << 1)`) czytają
+  się jako osobny typ, nie jako większy Raider. Szczegóły i dowody: STATUS.
+- **ROSTER FREEZE (wiążące).** Roster wrogów jest zamknięty. **Żaden nowy
+  archetyp wroga nie powstaje bez nowej decyzji właściciela.** To utrwalenie
+  zapowiedzi z decyzji 20 („Bomber jest ostatnim archetypem MVP”): od teraz
+  nowa treść rozgrywki pochodzi z fal, ścieżek lotu, sektorów i boosterów, a
+  nie z nowych typów wrogów. Boss (4.7) nie jest archetypem wroga i freeze go
+  nie obejmuje.
+- **Kolejność po 4.5 (zastępuje kolejność z decyzji 20 §„Roadmapa po 4.5” i
+  całą dotychczasową kolejność w `plan-realizacji.md`):**
+  1. Option D — koszt stały Bombera;
+  2. pomiar budżetu populacji;
+  3. 4.6 sterowany danymi Encounter/Wave Director;
+  4. boostery broni gracza;
+  5. 4.7 Boss (projektowany jako dane);
+  6. 4.8a geometria capital;
+  7. koniec poziomu / kampania 16 poziomów jako dane; polish.
+
+  Treść każdego punktu jest w `plan-realizacji.md` §4. Backlog (świadomie
+  odłożone, nie zapomniane) jest w `plan-realizacji.md` §5.
+
+### 21.1 SECTOR SUBTYPES (wiążące dla 4.6)
+
+Poziom jest ścieżką sektorów: `SPACE`, `CAPITAL`, `BOSS`. `SPACE` ma dwa
+podtypy:
+
+- **SWARM** — wiele znakowo renderowanych Lightów, **bez Heavy**;
+- **ELITE** — jeden lub dwa Heavy, **bez roju**.
+
+Heavy i rój **nigdy nie współistnieją**; to usuwa najgorszy przypadek
+populacji, którego budżet nie udźwignie. Każdy podtyp deklaruje maksymalną
+jednoczesną populację, a **admission ją EGZEKWUJE** — nie jest to intencja
+projektanta poziomu, lecz twarde ograniczenie runtime. Debris i pickupy
+działają w każdym sektorze, więc są stałym podatkiem w każdym budżecie.
+
+### 21.2 PATH-DRIVEN WAVES (wiążące dla 4.6)
+
+Ścieżka lotu jest własnością **fali**, nie archetypu: ten sam archetyp może
+lecieć sinusem, łukiem, pętlą albo wężem w różnych falach (koperty w stylu
+Zybexa). `WaveDef` niesie: `archetype`, `path`, `count`, `spacing`, `entry`.
+
+Hierarchia: `LevelDef -> SectorDef(+subtype) -> WaveDef -> Encounter Director
+-> admission -> EnemyArchetype`. Director jest właścicielem: co / kiedy / ile /
+formacja / koniec fali. Archetyp jest właścicielem: ruch, ogień, HP, wynik,
+`weapon_class`.
+
+### 21.3 STARFIELD PER SECTOR (wiążące dla 4.6)
+
+Sektor `SPACE` ma wyglądać osobno: mgławice jako **warunkowe pogrubienie /
+rozjaśnienie wewnątrz `generate_starfield_row`** plus kolor gwiazd na sektor.
+**Bez nowych obiektów i bez drugiej warstwy scrollu.**

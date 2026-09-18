@@ -371,14 +371,26 @@ lifetime in steps. Only the Bomber archetype fires `BOMBER` (4.5c candidate).
 
 ### Bomber — `OWNER-SMOKE CANDIDATE` (roadmap 4.5c)
 
-The last MVP archetype (owner decision 20). Implemented and awaiting owner
-smoke; the values below are the candidate's, not yet accepted.
+The last MVP archetype (owner decision 20). Its **identity** — the catamaran
+silhouette and the HP-driven blue hull ramp of roadmap 4.5d — is owner-accepted
+(owner smoke PASS 2026-09-18). The rest of the behaviour below is still the
+4.5c candidate's, awaiting owner smoke.
+
+With the Bomber the enemy roster is **frozen**: no new enemy archetype without
+a new owner decision (owner decision 21). Further variety comes from waves,
+flight paths, sector subtypes and boosters.
 
 - **Heavy class on `P1`/`P2`.** A Bomber formation is two Bombers on the Heavy
   PMG players, the same renderer, collision and destruction path as the Raider,
-  with the `SCYTHE_BOMBER` art as a QUAD (32-HPOS) hull in hull colour `$24`.
-  When the formation recycles, `P1`/`P2` return to the Raider colour `$44`,
-  which the capital broadside missiles M1/M2 borrow.
+  with the `SCYTHE_BOMBER` art as a QUAD (32-HPOS) hull.
+- **Identity (accepted, roadmap 4.5d).** The silhouette is a **catamaran** —
+  two hulls joined by a bridge, twin prongs instead of the Raider's single
+  spine — so it never reads as a bigger Raider. The hull is **blue** (hue 8)
+  and its luminance is driven by the remaining HP, which also gives a Heavy its
+  non-lethal hit feedback: 4 HP `$88`, 3 HP `$86`, 2 HP `$84`, 1 HP `$82`, with
+  the charge and flash brightening staying inside hue 8. The torpedo leaves
+  from between the prongs. When the formation recycles, `P1`/`P2` return to the
+  Raider colour `$44`, which the capital broadside missiles M1/M2 borrow.
 - **Lane sweep.** Slot 0 sweeps the left lane (X 48-92), slot 1 the right lane
   (X 132-176) at 1 HPOS per frame, turning at the lane edges or when a per-slot
   timer expires (24-55 frames), so the pair never mirrors exactly. The lanes

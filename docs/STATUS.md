@@ -17,6 +17,12 @@ the values below.
 `2a8ff26`; adds the 4.5d Enemy Identity Freeze WIP `7b50bd6`, the PAL timing
 audit tooling, the death-frame deferral candidate and its respawn double-image
 fix, sections below).
+The 4.5d Enemy Identity Freeze on this branch is **owner-accepted** (owner
+smoke PASS 2026-09-18, section below) as a *design*: the catamaran Bomber
+silhouette and the HP-driven blue hull ramp. Acceptance of a design is not
+acceptance of a runtime checkpoint — the accepted runtime is still `b4b942e`
+and every other item on this branch remains an `OWNER-SMOKE CANDIDATE`.
+
 `experiment/hybrid-c-director` carries the roadmap 4.4 Interceptor
 `OWNER-SMOKE CANDIDATE`, its 4.4b visual identity (X/quad art since `3838c00`),
 the 4.4c hostile weapon visuals, the roadmap 4.5a Heavy window capacity
@@ -1253,33 +1259,111 @@ Candidate XEX `3ce1a1d6…`, ATR `823b961b…`. Evidence:
 
 Candidate XEX `07dea143…`.
 
+## Enemy roster freeze (owner decision 21, 2026-09-18)
+
+**ROSTER FREEZE.** With the 4.5d Enemy Identity Freeze accepted, the enemy
+roster is closed: **no new enemy archetype without a new owner decision.** This
+makes binding what owner decision 20 announced ("the Bomber is the last MVP
+archetype"). From here, new gameplay content comes from waves, flight paths,
+sector subtypes and boosters — not from new enemy types. The 4.7 boss is not an
+enemy archetype and the freeze does not cover it.
+
+The accepted roster is: Raider and Bomber (Heavy, `P1`/`P2`), Wingman and
+Interceptor (Light, character-rendered).
+
 ## Current task
 
-The 4.5d Enemy Identity Freeze plus the death-frame deferral, its respawn
-double-image fix, the debris score, the segment neighbour guards and the 4.5d
-Bomber identity (catamaran silhouette and blue HP hull ramp, section below)
-await owner smoke on `wip/4.5d-gate-fail`.
-The previous smoke of `b8ed318c…` failed on the respawn double image only; that
-defect is fixed and the rest of that smoke still needs repeating. Roadmap 4.5c Bomber is an
-**`OWNER-SMOKE CANDIDATE`** (section above); the
-earlier `BLOCKED_PLACEMENT`
+Documentation only. No code change is in flight.
+
+Owner smoke is still pending for the rest of the `wip/4.5d-gate-fail` stack:
+the death-frame deferral, its respawn double-image fix, the debris score, the
+segment neighbour guards and, below them, roadmap 4.5c Bomber, the 4.5M-M3
+arena, the emitter-independent hostile shots, the 4.5b review and roadmap 4.4
+(with 4.4b and 4.4c). Each stays an `OWNER-SMOKE CANDIDATE`; the accepted
+runtime checkpoint is still `b4b942e`. The earlier `BLOCKED_PLACEMENT`
 ([diagnostics/stage-2b2j-bomber-blocked-placement.json](diagnostics/stage-2b2j-bomber-blocked-placement.json))
-is superseded by the M3 arena. Owner smoke is pending for it, for the 4.5M-M3
-arena and the emitter-independent hostile shots candidates, the 4.5b review
-and the 4.4 Interceptor (with 4.4b and 4.4c).
+is superseded by the M3 arena.
 
-## Next roadmap step
+## Roadmap (owner decision 21, 2026-09-18)
 
-Owner smoke of the 4.5d + death-frame deferral branch (Bomber attack pattern,
-torpedo shells, charge/hit colours; the one-frame-later death explosion and a
-single ship on every respawn) and of
-the 4.5c Bomber candidate (Raider/Bomber alternation, lane sweep, `BOMBER`
-shells, hull colours, capital broadside colours after a Bomber formation). Then
-the Bomber standing-cost task (`draw_enemy_member` body copy only when Y
-changed; hardware-critical, with proof) before more Bomber or 4.6 content.
-Roadmap 4.6 (data-driven Encounter/Wave Director) starts only on
-owner instruction. The Raider-coloured residual artifact and the debris
-death-frame blink remain open.
+This ordering **replaces** every earlier ordering in the documents, including
+the "roadmap after 4.5" list in owner decision 20. The full text of each item
+is in [plan-realizacji.md](plan-realizacji.md) §4.
+
+1. **Option D — Bomber standing cost.** Skip the 16-row `P1`/`P2` body copy in
+   `draw_enemy_member` when a member's Y is unchanged (X goes through
+   `HPOSP1,x` anyway). ~1,164-2,328 cycles per frame with two Bombers. This is
+   a **hardware-critical renderer invariant**: it needs a High plan with proof
+   of every `P1`/`P2` writer and of the pause and respawn paths. The worst
+   fence margin is now **450 cycles**.
+2. **Population budget measurement** — three numbers that gate 4.6 wave design:
+   (a) how many Lights fit simultaneously with debris and a pickup capsule
+   live; (b) how many Heavy + debris + capsule (roughly known: 450 cycles of
+   margin with two Bombers); (c) what debris alone costs as object count rises.
+   The same task answers: does player-vs-capital-hull collision read the
+   character map or assume a fixed corridor width; can the starfield colour
+   change per sector, and what else uses that register; and can
+   `generate_starfield_row` conditionally thicken the field, at what per-row
+   cost.
+3. **4.6 data-driven Encounter / Wave Director**, with three owner decisions
+   folded in:
+   - **SECTOR SUBTYPES.** A level is a path of sectors: `SPACE`, `CAPITAL`,
+     `BOSS`. `SPACE` has two subtypes: **SWARM** (many character-rendered
+     Lights, no Heavy) and **ELITE** (one or two Heavy, no swarm). Heavy and
+     swarms never coexist — this removes the worst-case population the budget
+     cannot afford. Each subtype declares a maximum simultaneous population and
+     **admission ENFORCES it**, rather than leaving it to level-design intent.
+     Debris and pickups run in every sector, so they are a standing tax in
+     every budget.
+   - **PATH-DRIVEN WAVES.** The flight path is a property of the wave, not of
+     the archetype, so the same archetype can fly a sine, an arc, a loop or a
+     snake in different waves (Zybex-style envelopes). `WaveDef` carries:
+     `archetype`, `path`, `count`, `spacing`, `entry`.
+   - **STARFIELD PER SECTOR.** The `SPACE` sector should look distinct:
+     nebulae as conditional thickening/brightening inside
+     `generate_starfield_row`, plus a per-sector star colour. No new objects,
+     no second scroll layer.
+
+   Hierarchy: `LevelDef -> SectorDef(+subtype) -> WaveDef -> Encounter Director
+   -> admission -> EnemyArchetype`. The Director owns what / when / how many /
+   formation / wave end; the Archetype owns movement, fire, HP, score,
+   `weapon_class`.
+4. **Player weapon boosters.** `weapon_class` already exists, pickup capsules
+   already have a full lifecycle, and 12 hostile projectile glyphs are free.
+   The cost lands in the player projectile slots (2,945 cycles in
+   `handle_collisions`), so prefer boosters that do **not** multiply shots in
+   flight (faster rate, stronger shot, piercing) over spread, which must be
+   costed separately. Scheduled **after Option D**.
+5. **4.7 Boss** — designed **data-driven** (phases, movement pattern, fire
+   pattern, HP, weak points as data) so that later bosses are records rather
+   than implementations. This is a decision to make **when planning 4.7**, not
+   afterwards.
+6. **4.8a Capital geometry** — deeper, uneven gondolas at varying heights,
+   variable corridor width, bigger debris; River Raid-style spatial flying.
+   Data plus a collision check.
+7. **Level complete / next level**; 16-level campaign as data; polish.
+
+## Backlog — deferred, not forgotten
+
+Deliberately deferred work, distinct from the open defects above. Not to be
+started without owner instruction.
+
+- **4.8b destructible gondola guns.** Turrets are not objects today:
+  `BROAD_TURRET` is a shell field and `BROAD_TURRET_FIRED` a fire latch — no
+  HP, no slot state, not a collision target. This is a **new object type**
+  needing its own plan and budget, and it **must not delay the boss**.
+- **Starfield parallax** — ~3,000 cycles for a second scrolling layer; revisit
+  after Option D.
+- **Static Andromeda** in the `SPACE` sector background, occluded during
+  capital traversal.
+- **PAL resync after a miss** — one overrun costs ~1,393 shifted-phase rows
+  until the next gameplay generation.
+- **Debris blink on the player death frame** — pre-existing, documented under
+  the open defects above.
+- **Debris survives player contact** in the dying/respawn window and inside
+  `BROAD_DAMAGE_COOLDOWN` — pre-existing, explicitly left as is by the owner;
+  described under the open defects above ("debris contact-kill
+  inconsistency").
 
 ---
 
@@ -1342,7 +1426,13 @@ Evidence:
 
 ---
 
-## 4.5d Bomber identity — silhouette and hull ramp — `OWNER-SMOKE CANDIDATE` (2026-09-18)
+## 4.5d Enemy Identity Freeze — Bomber silhouette and hull ramp — **OWNER-ACCEPTED** (owner smoke PASS 2026-09-18)
+
+Owner smoke PASS 2026-09-18: the catamaran silhouette and the HP-driven blue
+hull ramp are **owner-accepted** as the Bomber's identity. The acceptance covers
+this design; the surrounding branch work listed under *Current task* is still
+awaiting its own owner word, and the accepted runtime checkpoint below has not
+moved.
 
 Owner decision after the 4.5d smoke: the Bomber read as a bigger Raider — the
 two masks were the same family (full-width shoulders, converging V, identical

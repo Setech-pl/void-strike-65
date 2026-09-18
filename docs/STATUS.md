@@ -347,7 +347,24 @@ These are the direct inputs to roadmap item 2, the population budget.
   The 4.5c Bomber candidate (arena record 355 B, 3 sectors, 180 transport
   sectors) meets it with 0 frames: menu 550, deadline 550. The 4.5d WIP and
   the death-frame deferral candidate carry 182 transport sectors, so the
-  derived deadline is 190 + 2 × 182 = 554: ATR menu 554 (0 frames), XEX 392;
+  derived deadline is 190 + 2 × 182 = 554: ATR menu 554 (0 frames), XEX 392.
+  **Closed as a defect by owner decision 22 (2026-09-18).** The deadline is
+  re-based on the owner's real budget — the menu within 60 s ≈ 3,000 PAL
+  frames — so the zero-frame margin no longer blocks engineering work; 554
+  frames is 11.08 s, under a fifth of the budget. The gate is NOT deleted: a
+  build that suddenly boots twice as slowly is still a bug. The restatement
+  itself is an open owner decision (below) and the implementation is unchanged
+  at this HEAD;
+- open owner decision: how the ATR boot gate is restated after decision 22.
+  Three costed options — an absolute 3,000-frame ceiling; that ceiling plus a
+  delta against a committed baseline (recommended: +50 frames fail, +10 warn);
+  or the old formula with a generous constant `k` — are in
+  [diagnostics/atr-boot-deadline-rebasing.md](diagnostics/atr-boot-deadline-rebasing.md),
+  together with every site that depends on the formula. Executive note: the
+  constant alone is not enough — the boot session exits at frame 750, snapshots
+  are fixed at `1, 250, 300, 500, 750`, and
+  `tests/runtime-wall-trace.test.mjs` requires `game_state == 1` at frame 500,
+  which is today a tighter structural ceiling than the formula;
 - open owner decision: the packed STARFIELD correction gate. At the 4.5M-M1
   candidate the single-stream gates 1,798 / 1,819 B are superseded by the
   two-stream total gates 1,804 (correction) / 1,825 B (hard) against a measured

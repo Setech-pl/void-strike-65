@@ -680,3 +680,69 @@ formacja / koniec fali. Archetyp jest właścicielem: ruch, ogień, HP, wynik,
 Sektor `SPACE` ma wyglądać osobno: mgławice jako **warunkowe pogrubienie /
 rozjaśnienie wewnątrz `generate_starfield_row`** plus kolor gwiazd na sektor.
 **Bez nowych obiektów i bez drugiej warstwy scrollu.**
+
+---
+
+## 22. Re-bazowanie deadline'u ATR boot — budżet 60 sekund — OWNER-ACCEPTED (2026-09-18)
+
+Decyzja dotyczy §10.3 pkt 3 z `docs/design-4.6-data-architecture.md`
+("Czy formuła deadline'u ATR menu jest święta?"). Odpowiedź: **nie jest.**
+
+**Formuła `190 + 2 × sektory transportu` zostaje re-bazowana.** Rzeczywistym
+wymaganiem właściciela jest, aby gra doszła do menu w **60 sekundach** —
+ok. **3 000 klatek PAL** — a nie w ok. 554 klatkach, które wymusza dzisiejsza
+formuła.
+
+### Uzasadnienie
+
+1. **Deadline chroni budżet czasu ładowania, którego nikt nie wybrał.**
+   Wartość 554 nie została zmierzona ani zaakceptowana jako wymaganie; wynika
+   z liczby sektorów, którą sama mierzy. To tożsamość śledząca własny wzrost:
+   każdy nowy sektor podnosi zarówno koszt, jak i limit, więc margines z
+   definicji pozostaje zerowy. Zerowy zapas był mylnie czytany jako "ledwo
+   mieścimy się w wymaganiu", podczas gdy oznaczał wyłącznie "formuła zgadza
+   się sama ze sobą".
+2. **Realny budżet właściciela to 60 sekund.** Zmierzone ATR menu na
+   zaakceptowanym checkpoincie `0002d84` to **554 klatki = 11,08 s** — jedna
+   piąta budżetu. *Dobra gra ma prawo chwilę się wczytywać.*
+3. **Wzrost czasu bootu przestaje blokować pracę inżynierską.** Deadline
+   kształtował decyzje projektowe — odrzucał warianty 4.5a i 4.5b, wymuszał
+   pytanie o kolejność dekodowania rekordów w stage 2, i w §7.4 projektu 4.6
+   kazał zakładać porażkę każdego kandydata powiększającego rekord, dopóki nie
+   zostanie zmierzony. Właściciel nie chce, aby ta wielkość kształtowała
+   architekturę.
+
+### Co z tego wynika
+
+- **§7.4 `design-4.6-data-architecture.md` przestaje obowiązywać jako ryzyko.**
+  Przy 2 klatkach PAL na 128-bajtowy sektor i 182 sektorach transportu zapas do
+  3 000 klatek wynosi **2 446 klatek = 1 223 sektory ≈ 153 KB** transportu.
+  Cały rezydentny wniosek §7.3 (~745 B) kosztuje **≈ 12 klatek**; bank poziomów
+  4 KB z §10.1 wariant A — **≈ 64 klatki**. Zapełnienie wszystkich 538 wolnych
+  sektorów dyskietki daje menu na klatce **1 630 ≈ 32,6 s**, czyli połowę
+  budżetu przy pełnym dysku: **deadline bootu nie może już być wiążącym
+  ograniczeniem na standardowej dyskietce 90 KB**.
+- **Obejście przez kolejność dekodowania jest zbędne** — wraz z wyjątkiem od
+  reguły 89, którego wymagało.
+- **Nie zmienia się nic w budżecie RAM.** Ograniczeniem 4.6 pozostaje
+  rezydentne miejsce (`HYBRID_C_ARENA` 215 B wolne, deficyt §7.3 rzędu
+  350-450 B), a nie czas bootu. §10.3 pkt 1 i 2 pozostają otwarte.
+
+### Czego decyzja NIE oznacza
+
+Gate **nie zostaje usunięty**. Build, który nagle wstaje dwa razy dłużej, to
+nadal błąd wart wykrycia. Restatement gate'u jest osobną decyzją właściciela;
+warianty (sufit bezwzględny 3 000 klatek; sufit plus delta względem
+zapisanego baseline'u; stara formuła z hojną stałą `k`) są wycenione w
+[diagnostics/atr-boot-deadline-rebasing.md](diagnostics/atr-boot-deadline-rebasing.md).
+Rekomendacja agenta: sufit 3 000 klatek **plus** delta do commitowanego
+baseline'u (+50 klatek fail, +10 klatek warn) — dwie niezależne liczby zamiast
+jednej tożsamości.
+
+**Implementacja gate'u nie została zmieniona w tej sesji.** Uwaga wykonawcza:
+sama zmiana stałej nie wystarczy — harness bootu kończy sesję na klatce 750,
+robi zrzuty w stałych klatkach `1, 250, 300, 500, 750`, a
+`tests/runtime-wall-trace.test.mjs` wymaga `game_state == 1` na klatce **500**.
+Dzisiejszym najciaśniejszym sufitem strukturalnym jest ta klatka 500, a nie
+formuła; szczegóły i pułapka nieaktualnego `docs/runtime-wall-trace.json` — w
+raporcie diagnostycznym powyżej.

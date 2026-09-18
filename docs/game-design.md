@@ -369,12 +369,10 @@ Weapon classes also own their movement rate (roadmap 4.5b candidate):
 second frame, 1 line per frame on average, with the same hitbox, damage and
 lifetime in steps. Only the Bomber archetype fires `BOMBER` (4.5c candidate).
 
-### Bomber — `OWNER-SMOKE CANDIDATE` (roadmap 4.5c)
+### Bomber — **OWNER-ACCEPTED** (roadmap 4.5c and 4.5d)
 
-The last MVP archetype (owner decision 20). Its **identity** — the catamaran
-silhouette and the HP-driven blue hull ramp of roadmap 4.5d — is owner-accepted
-(owner smoke PASS 2026-09-18). The rest of the behaviour below is still the
-4.5c candidate's, awaiting owner smoke.
+The last MVP archetype (owner decision 20), owner-accepted with the whole
+`0a90c1c` stack (owner smoke PASS 2026-09-18), identity included.
 
 With the Bomber the enemy roster is **frozen**: no new enemy archetype without
 a new owner decision (owner decision 21). Further variety comes from waves,
@@ -383,7 +381,7 @@ flight paths, sector subtypes and boosters.
 - **Heavy class on `P1`/`P2`.** A Bomber formation is two Bombers on the Heavy
   PMG players, the same renderer, collision and destruction path as the Raider,
   with the `SCYTHE_BOMBER` art as a QUAD (32-HPOS) hull.
-- **Identity (accepted, roadmap 4.5d).** The silhouette is a **catamaran** —
+- **Identity (roadmap 4.5d).** The silhouette is a **catamaran** —
   two hulls joined by a bridge, twin prongs instead of the Raider's single
   spine — so it never reads as a bigger Raider. The hull is **blue** (hue 8)
   and its luminance is driven by the remaining HP, which also gives a Heavy its

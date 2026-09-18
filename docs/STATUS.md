@@ -17,12 +17,6 @@ the values below.
 `2a8ff26`; adds the 4.5d Enemy Identity Freeze WIP `7b50bd6`, the PAL timing
 audit tooling, the death-frame deferral candidate and its respawn double-image
 fix, sections below).
-The 4.5d Enemy Identity Freeze on this branch is **owner-accepted** (owner
-smoke PASS 2026-09-18, section below) as a *design*: the catamaran Bomber
-silhouette and the HP-driven blue hull ramp. Acceptance of a design is not
-acceptance of a runtime checkpoint — the accepted runtime is still `b4b942e`
-and every other item on this branch remains an `OWNER-SMOKE CANDIDATE`.
-
 `experiment/hybrid-c-director` carries the roadmap 4.4 Interceptor
 `OWNER-SMOKE CANDIDATE`, its 4.4b visual identity (X/quad art since `3838c00`),
 the 4.4c hostile weapon visuals, the roadmap 4.5a Heavy window capacity
@@ -31,28 +25,57 @@ increment (superseded by the M3 arena), the 4.5b `BOMBER` weapon class, the
 owner smoke PASS 2026-09-17), the 4.5M-M3 `HYBRID_C_ARENA`, the
 emitter-independent hostile shots fix and the roadmap 4.5c Bomber (sections
 below) on top of `f4cb18b`, the documentation-only reconciliation of
-the owner acceptance recorded here. None of these candidates is accepted; the
-accepted runtime is still `b4b942e`.
+the owner acceptance recorded here. All of that is contained in the accepted
+runtime below; the increments the owner enumerated in that acceptance are
+listed there, and the sections of the older increments keep their own labels
+until the owner names them.
 
 ### Accepted runtime checkpoint
 
-Commit `b4b942e` — `fix(debris): publish the debris late with exact ownership`
-(owner smoke PASS 2026-09-16 for the pickup visibility, step 4.3 Stage 1 and the
-debris late publication).
+Commit `0a90c1c` — `feat(bomber): catamaran silhouette and a blue HP hull ramp`
+(owner smoke PASS 2026-09-18 over the whole stack, not only the silhouette:
+death, respawn, debris scoring and Bomber identity were all exercised).
 
 XEX SHA-256:
-`965468077747f527b7d3f8ffeb7c37ace27377892ea5fc6f2e8aaf062d0d8a6e`
+`8940d646fcb2e59e54cb383de382ac86dfb4959f18016854919c3f5157b89d34`
 
-`npm run build:candidate -- --quiet` from a clean export of `b4b942e` reproduces
-it (re-verified 2026-09-16); owner-smoke copy in
-`build/owner-smoke/debris-late-96546807/`.
+Measured from `dist/void-strike-65.xex` in this worktree (2026-09-18). A
+reproduction from a clean export of `0a90c1c` has not been re-run since the
+acceptance.
 
-It contains the hybrid C Director foundation (`2df89da`), Light Wingman M1
-(`41ace65`), the PMG pickup raster fix and per-type capsule silhouettes
-(`f30754a`, `c2af6a6`), step 4.3 Stage 1 reusable resident capacity (`fca5e31`,
-`0290d83`) and the debris late publication with exact ownership (`b4b942e`).
+**The stack this checkpoint carries (owner-enumerated, 2026-09-18):**
 
-Previous accepted runtime checkpoint: `41ace65` (XEX `900152fe…`).
+- roadmap 4.5c Bomber;
+- the death-frame deferral (Option E);
+- the respawn double-image fix;
+- the debris score, on a player shot and on contact;
+- the segment neighbour guards;
+- the 4.5d enemy identity freeze (catamaran silhouette, HP-driven blue hull
+  ramp).
+
+**Measured state at this checkpoint:**
+
+| Measure | Value |
+| --- | --- |
+| Worst fence margin | **450 cycles** |
+| `HYBRID_C_ARENA` | **617 / 832 B**, 215 B free |
+| `BROADSIDE` free tail | **3 B** |
+| `ENTITY_CODE` free tail | **1 B** |
+
+It also contains everything the earlier accepted checkpoints carried — the
+hybrid C Director foundation (`2df89da`), Light Wingman M1 (`41ace65`), the PMG
+pickup raster fix and per-type capsule silhouettes (`f30754a`, `c2af6a6`),
+step 4.3 Stage 1 reusable resident capacity (`fca5e31`, `0290d83`) and the
+debris late publication with exact ownership (`b4b942e`) — plus the increments
+that reached it as candidates and that the owner has not enumerated by name
+(roadmap 4.4 with 4.4b/4.4c, 4.5a, 4.5b, 4.5M-M1/M2/M3 and the
+emitter-independent hostile shots). Those sections below keep their own labels:
+they are running in the accepted runtime, but no separate owner word is
+recorded for them.
+
+Previous accepted runtime checkpoint: `b4b942e` (XEX
+`965468077747f527b7d3f8ffeb7c37ace27377892ea5fc6f2e8aaf062d0d8a6e`,
+owner smoke PASS 2026-09-16); before it `41ace65` (XEX `900152fe…`).
 
 ---
 
@@ -224,7 +247,13 @@ behaviour itself adds +36 cycles to the death frame. Evidence:
   hull, which is what the owner rule asks for. A lethal contact also still
   destroys full-HP (3 HP) debris outright rather than decrementing HP, so it
   awards the same `DEBRIS_SCORE` that three shots would. Both behaviours were
-  explicitly left unchanged by the owner in the contact-score task;
+  explicitly left unchanged by the owner in the contact-score task. Enemy
+  contact is unconditional by comparison — contact scoring and destruction do
+  not depend on PlayerFighter damage, death or invulnerability, asserted by
+  "contact scoring is independent of PlayerFighter damage, death, and
+  invulnerability" in `tests/enemy-combat.test.mjs`. The asymmetry is the
+  defect's shape: it is debris, not enemies, that survives the dying/respawn
+  window. Carried in the backlog below;
 - boot-smoke margin: the ATR menu deadline (190 + 2 × transport sectors) is
   met with 0 frames of margin at `3838c00`, at the 4.5a and 4.5b candidates
   (4.5b: +6 B packed BROADSIDE alone missed it by one frame), with a 239-B
@@ -1037,7 +1066,7 @@ Candidate XEX `f9c4a96d…`, ATR `5e026009…`, owner-smoke copy in
 
 ---
 
-## Roadmap 4.5c — Bomber (decision 20) — `OWNER-SMOKE CANDIDATE` (2026-09-17)
+## Roadmap 4.5c — Bomber (decision 20) — **OWNER-ACCEPTED** (owner smoke PASS 2026-09-18)
 
 The `BLOCKED_PLACEMENT` design of `experiment/bomber-4.5c-blocked-placement`
 (`8e138a8`) reapplied on top of `67bfa73` with its Heavy formation C in the
@@ -1100,7 +1129,7 @@ Candidate XEX `0e4721b2…`, ATR `42985ceb…`, owner-smoke copy in
 
 ---
 
-## Death-frame deferral (on the 4.5d WIP) — `OWNER-SMOKE CANDIDATE` (2026-09-18)
+## Death-frame deferral (Option E) — **OWNER-ACCEPTED** (owner smoke PASS 2026-09-18)
 
 On top of the roadmap 4.5d Enemy Identity Freeze WIP (`7b50bd6`, its report:
 [diagnostics/stage-2b2p-enemy-identity-freeze-report.md](diagnostics/stage-2b2p-enemy-identity-freeze-report.md),
@@ -1159,7 +1188,7 @@ Candidate XEX superseded by the respawn double-image fix below. Evidence:
 
 ---
 
-## Respawn double image after the deferral — fixed — `OWNER-SMOKE CANDIDATE` (2026-09-18)
+## Respawn double image after the deferral — fixed — **OWNER-ACCEPTED** (owner smoke PASS 2026-09-18)
 
 Owner smoke of `b8ed318c…` **FAILED**: on every death, two PlayerFighter images
 appeared during respawn — one at the corridor centre, one four colour clocks
@@ -1215,7 +1244,7 @@ Candidate XEX `3ce1a1d6…`, ATR `823b961b…`. Evidence:
 
 ---
 
-## Debris score (owner change request) — `OWNER-SMOKE CANDIDATE` (2026-09-18)
+## Debris score (owner change request) — **OWNER-ACCEPTED** (owner smoke PASS 2026-09-18)
 
 - **Request.** Destroying interactive debris awarded nothing; it must award a
   single difficulty-independent `DEBRIS_SCORE = $05`. Debris is an obstacle,
@@ -1273,16 +1302,12 @@ Interceptor (Light, character-rendered).
 
 ## Current task
 
-Documentation only. No code change is in flight.
+None. `0a90c1c` is the accepted runtime checkpoint and no code change is in
+flight; the last commit is documentation only.
 
-Owner smoke is still pending for the rest of the `wip/4.5d-gate-fail` stack:
-the death-frame deferral, its respawn double-image fix, the debris score, the
-segment neighbour guards and, below them, roadmap 4.5c Bomber, the 4.5M-M3
-arena, the emitter-independent hostile shots, the 4.5b review and roadmap 4.4
-(with 4.4b and 4.4c). Each stays an `OWNER-SMOKE CANDIDATE`; the accepted
-runtime checkpoint is still `b4b942e`. The earlier `BLOCKED_PLACEMENT`
-([diagnostics/stage-2b2j-bomber-blocked-placement.json](diagnostics/stage-2b2j-bomber-blocked-placement.json))
-is superseded by the M3 arena.
+The next item is Option D, the Bomber standing cost (roadmap item 1 below). It
+is hardware-critical and starts only on owner instruction, with a High plan and
+proof first.
 
 ## Roadmap (owner decision 21, 2026-09-18)
 
@@ -1367,7 +1392,7 @@ started without owner instruction.
 
 ---
 
-## Segment neighbour guards — `OWNER-SMOKE CANDIDATE` (2026-09-18)
+## Segment neighbour guards — **OWNER-ACCEPTED** (owner smoke PASS 2026-09-18)
 
 - **Defect.** `ENTITY_CODE_RESERVED_BYTES = $F00` gives a `$9FFF` ceiling, but
   the first real neighbour is the `DIRECTOR_C_PRE` record at `$9D5E`. The two
@@ -1429,10 +1454,8 @@ Evidence:
 ## 4.5d Enemy Identity Freeze — Bomber silhouette and hull ramp — **OWNER-ACCEPTED** (owner smoke PASS 2026-09-18)
 
 Owner smoke PASS 2026-09-18: the catamaran silhouette and the HP-driven blue
-hull ramp are **owner-accepted** as the Bomber's identity. The acceptance covers
-this design; the surrounding branch work listed under *Current task* is still
-awaiting its own owner word, and the accepted runtime checkpoint below has not
-moved.
+hull ramp are **owner-accepted** as the Bomber's identity, as part of the whole
+`0a90c1c` stack (see *Accepted runtime checkpoint*).
 
 Owner decision after the 4.5d smoke: the Bomber read as a bigger Raider — the
 two masks were the same family (full-width shoulders, converging V, identical

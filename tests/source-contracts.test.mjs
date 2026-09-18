@@ -135,9 +135,9 @@ test("accepted runtime, candidate and history stay distinguishable", () => {
   assert.match(status, /## Repository HEAD/);
   assert.match(status, /## Accepted runtime checkpoint/);
   // The accepted checkpoint is named by commit and artifact, never indirectly.
-  assert.match(status, /`b4b942e`/);
+  assert.match(status, /`0a90c1c`/);
   assert.match(status,
-    /965468077747f527b7d3f8ffeb7c37ace27377892ea5fc6f2e8aaf062d0d8a6e/);
+    /8940d646fcb2e59e54cb383de382ac86dfb4959f18016854919c3f5157b89d34/);
   assert.doesNotMatch(status, /the commit that follows\s+`?51c97c6/,
     "the accepted checkpoint must be named, not described relative to another commit");
 

@@ -84,8 +84,15 @@ komórka, glif z dwoma impulsami). `4/4/6` wyłącznie diagnostycznie.
 - **Zaakceptowany (owner smoke PASS 2026-09-16):** `b4b942e` — widoczność
   pickupu (raster + sylwetki kapsuł), 4.3 Stage 1 (rezydentna pojemność) i
   późna publikacja debris z dokładną własnością.
+- **Zaakceptowany (owner smoke PASS 2026-09-18):** `0a90c1c` — cały stos
+  `wip/4.5d-gate-fail`: 4.5c Bomber, odroczenie klatki śmierci (Option E),
+  poprawka podwójnego obrazu przy respawnie, wynik za debris (strzał i
+  kontakt), strażnicy sąsiedztwa segmentów oraz 4.5d enemy identity freeze.
+  XEX `8940d646…`. Zmierzony stan: najgorszy margines fence 450 cykli, arena
+  617/832 B (215 B wolne), wolny ogon BROADSIDE 3 B, ENTITY_CODE 1 B.
 - **OWNER-SMOKE CANDIDATE:** Interceptor (4.4) — pełny pościg, jawnie
-  selekcjonowalny slot Light; oczekuje na owner smoke.
+  selekcjonowalny slot Light; jest w zaakceptowanym runtime, ale nie ma
+  osobnego słowa właściciela.
 
 ---
 
@@ -205,7 +212,7 @@ Bomber jest **ostatnim** archetypem MVP. Kolejność wykonania:
   szczegóły: STATUS.
 - **4.5c — archetyp Bomber** (C: rekord, selekcja Heavy, ruch, ogień; ASM:
   wykonanie).
-  Stan (2026-09-17): `OWNER-SMOKE CANDIDATE` — projekt z `8e138a8`
+  Stan: **OWNER-ACCEPTED** (owner smoke PASS 2026-09-18, `0a90c1c`) — projekt z `8e138a8`
   (poprzednio `BLOCKED_PLACEMENT`) umieszczony w `HYBRID_C_ARENA` z 4.5M-M3:
   arena 392/832 B (ASM 20, C 339, RODATA 33; 440 B wolne), ogon
   `HYBRID_C_EXT` 28 B, 180 sektorów transportu, menu ATR 550 przy terminie
@@ -333,8 +340,11 @@ odsunięta. Nie realizować bez wskazania właściciela.
 - **Miganie debris w klatce śmierci gracza** — pre-existing, udokumentowane w
   STATUS.
 - **Debris przeżywa kontakt z graczem** w oknie umierania/respawnu i w
-  `BROAD_DAMAGE_COOLDOWN` — pre-existing, świadomie zostawione przez
-  właściciela; opis w STATUS („debris contact-kill inconsistency”).
+  `BROAD_DAMAGE_COOLDOWN`: zniszczenie debris jest bramkowane przez
+  `BROAD_DAMAGE_APPLIED`, którego `apply_player_damage` nie ustawia, gdy
+  `PLAYER_LIFECYCLE != PLAYER_ALIVE`. Kontakt z wrogiem jest dla porównania
+  bezwarunkowy (asercja w `tests/enemy-combat.test.mjs`). Pre-existing,
+  świadomie zostawione przez właściciela; opis w STATUS („debris contact-kill inconsistency”).
 
 ## 6. Otwarte defekty i dług
 

@@ -20,6 +20,7 @@
   "encoding": {
     "rule": "One missile occupies two bits and the quartet is interleaved, so the colour clocks left to right are bits 1,0,3,2,5,4,7,6 - the higher bit of each pair is its LEFT pixel.",
     "verification": "Confirmed against captured framebuffer runs before use: $FC -> x128+12, $FE -> x124+2 x128+12, $F1 -> x126+2 x132+8, with screen_x = 2*HPOSM0 - 64 + 2*cc. Every row below was produced through this mapping; no byte was copied from the old data.",
+    "screen_x_correction": "CORRECTION (2026-09-19, FIX session on wip/4.5d-gate-fail): the `screen_x = 2*HPOSM0 - 64 + 2*cc` above assumes a wider crop origin than the Atari800 screenshots this project captures. Measured on the 256x192 captures of build ecc9ceda... (weapon-pickup-contact-nose-*.png, weapon-pickup-contact-edge-*.png), the capsule at HPOSM0 = 92 lands at x 56-72, i.e. `screen_x = 2*(HPOSM0 - 64) + 2*cc`, 64 pixels further left. The shapes below are unaffected - only the absolute origin is, and the relative `+2*cc` term is unchanged. The raster window of the pickup contact invariant (scripts/runtime-wall-trace.mjs) derives its x from the corrected form.",
     "every_row_derived": true
   },
 

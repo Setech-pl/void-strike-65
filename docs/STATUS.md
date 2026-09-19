@@ -395,8 +395,8 @@ re-basing.
   "menu N against deadline N" figure recorded further down this file is a
   historical measurement under the superseded formula;
 - **`docs/runtime-wall-trace.json` is stale and cannot be regenerated —
-  `BLOCKED_PICKUP_CONTACT_STEEL_WINDOW`** (measured 2026-09-19, re-measured
-  twice the same day after each pin fix). The committed
+  `BLOCKED_MUZZLE_ORPHAN_TRANSIENT`** (measured 2026-09-19, re-measured three
+  times the same day after each gate fix). The committed
   report is from 2026-09-05: `artifact.sha256` `ab682d84…` and ATR boot-smoke
   `menu` **502**, against the accepted runtime `ecc9ceda…` at menu **554**.
   `tests/runtime-wall-trace.test.mjs` reads that file rather than a live run,
@@ -436,17 +436,55 @@ re-basing.
   undetected for eight days and cost two sessions.** Standing rule from this:
   *a commit that repoints a trace PC must say so in its message and must
   re-verify every gate that reads that PC.*
-  The report is still not written. The run now advances past both pickup
-  trace-PC clauses and aborts at `runtime-wall-trace.mjs:3037` on a
-  **different kind of clause** — a screenshot pixel count, not a trace PC:
-  the steel colour `rgb(13,58,115)` is counted in the window `x 140-164,
-  y 8-216` and measures **0 on all 11 captured contact frames**, so the `>= 40`
-  head clause fails on the first frame; the steel pixels do exist (32, then 24)
-  but at `x 188-223, y 128-186`, outside the pinned x-window, and the
-  screenshots are `256 x 192` so the window's `bottom: 216` already reads past
-  the image. Two stale pins from one rebinding is a pattern; this third clause
-  has a different cause and **needs its own diagnosis** — it was not widened
-  and no further clause was touched. A **second** stale pin was found in
+  Under a third owner decision the same day the screenshot clause that then
+  blocked the run was **derived rather than repinned**. Both of its halves had
+  gone stale at `f6eee5c`, which retired the character compositor and moved the
+  capsule from character cells to the missile plane: the colour changed from
+  `$84` steel to COLPF3 and the column moved with it, so the pinned
+  `rgb(13,58,115)` in `x 140-164` counted **0 on every captured frame** and the
+  `>= 40` head clause failed on frame 00, not only at the tail. The window is
+  now computed from the trace itself — `left = 2 * (pickup_hposm0 - 64)`,
+  `right = left + 16`, colour resolved from `colpf3` through each screenshot's
+  own PLTE, y the full image — with the `>= 40` / `< 40` thresholds
+  **unchanged**. Measured: the nose session counts 216 ×6, 210, 182 then 0/0/0,
+  and the overlap session 216 ×9, 188, 156, 132 then 0/0/0, so the original
+  intent holds exactly with a head floor of 182 and 132. The taper is the
+  player's P0/P3 taking foreground priority, which the 40 floor tolerates.
+  The clause was deliberately **not** repointed at `pickup_pmg_rows`: it is the
+  only gate measuring the framebuffer rather than the memory counters, and
+  [diagnostics/stage-2b2d-pickup-raster-invisibility.json](diagnostics/stage-2b2d-pickup-raster-invisibility.json)
+  is the recorded case of those two diverging (16/16 missile rows set at frame
+  end, 0/16 at the beam crossing, framebuffer pure background). `colpf3` was
+  already numeric; `pickup_hposm0` was added to `numericCsvFields` and
+  `decodeAtari800Screenshot` now returns the decoded palette. A documentation
+  discrepancy was corrected in passing:
+  [diagnostics/stage-2b2e-pickup-capsule-silhouettes.json](diagnostics/stage-2b2e-pickup-capsule-silhouettes.json)
+  recorded `screen_x = 2*HPOSM0 - 64 + 2*cc`, which assumes a wider crop origin
+  than these 256×192 captures have; they measure `2*(HPOSM0 - 64) + 2*cc`,
+  64 pixels further left. **Both pickup sessions now pass every clause.**
+  The report is still not written. The run has left the pickup path entirely
+  and aborts at `runtime-wall-trace.mjs:2538` in
+  `capital-muzzle-ring-2-sweep-fire4`: "observed a stale muzzle/flash code or
+  invalid derived pointer". **This one is not a stale pin.**
+  `muzzle_illegal_cells` is a live scan the emulator performs on this build's
+  memory (`scripts/atari800-wall-trace.h:4212-4223`), walking the divider row
+  and the ring screen and counting hull-transient codes at addresses no live
+  muzzle pointer owns. Over 6,000 frames it fires on **68**, in seven
+  contiguous episodes of 7-14 frames (`925-938, 944-954, 1027-1034, 1362-1370,
+  1395-1402, 1444-1450, 4112-4122`); on all 68 both muzzles are healthy and a
+  **third** transient code is present that nothing accounts for.
+  `muzzle_pointer_errors` and `broad_pointer_errors` are 0 throughout. Every
+  episode begins on the frame a BROADSIDE enters its launch flash, and the
+  orphan outlives the flash countdown by about ten frames. Two readings fit
+  equally: **(a)** the launch flash is a third legitimate writer the gate's
+  ownership model never knew about, or **(b)** a real one-cell ghost lasting
+  ~0.2 s, seven times in this replay — exactly what the gate exists to catch.
+  The datum that separates them is not recorded: the emulator counts orphan
+  cells but never reports the offending address or code, and adding that pair
+  of columns needs a trace-header change and a `--prepare` rebuild. Because
+  reading (b) would make widening this clause the act that deletes a gate
+  catching a real defect, **no fourth clause was touched** and reading (a) is
+  not assumed; this needs an owner decision. A **second** stale pin was found in
   the same area and fixed: `tests/runtime-wall-trace.test.mjs` compared
   `loader_timer(250) > loader_timer(300)` unconditionally, but the frame-250
   snapshot is a loader raster only on the XEX — on the ATR the machine is still
@@ -480,7 +518,11 @@ re-basing.
   wall-trace mode aborts at `weapon-pickup-contact-2-hunt-fire4` ("changed GTIA
   priority or the single erase/draw lifecycle") after 21 sessions, and
   `--raider-remnant-only` reports fewer main explosions than kills (139/141 at
-  `2a67684`, 134/135 on the candidate);
+  `2a67684`, 134/135 on the candidate). **Superseded as of 2026-09-19** for the
+  first of those: the three pickup clauses are fixed, both pickup sessions
+  pass, and the default-mode abort has moved to
+  `capital-muzzle-ring-2-sweep-fire4` — see the
+  `BLOCKED_MUZZLE_ORPHAN_TRANSIENT` entry above;
 - test debt: the full `node --test tests/*.test.mjs` run keeps known stale
   failures — 115 at `b4b942e` (measured 2026-09-16 on a clean export, counting
   the owner's uncommitted `tests/booster-admission-diagnostic.test.mjs`) and

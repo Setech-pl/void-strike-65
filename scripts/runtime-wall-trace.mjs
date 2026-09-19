@@ -735,6 +735,9 @@ for (const name of [
   // The missile-plane row count. Read by the pickup contact/collection
   // invariants below, which need it as a number, not as CSV text.
   "pickup_pmg_rows",
+  // The capsule's missile-plane column. Read by the pickup contact raster
+  // invariant below, which derives its sample window from it.
+  "pickup_hposm0",
   "pickup_first_overwrite_pc", "pickup_first_overwrite_address",
   "pickup_first_overwrite_value", "pickup_first_overwrite_scanline",
   "engine_timer", "engine_phase", "corridor_phase", "ring_flags",
@@ -914,7 +917,9 @@ function decodeAtari800Screenshot(bytes) {
     rgb[index * 3 + 1] = palette[paletteOffset + 1];
     rgb[index * 3 + 2] = palette[paletteOffset + 2];
   }
-  return { width, height, rgb, indices };
+  // `palette` is returned so callers can resolve an Atari colour register
+  // value to RGB through the screenshot's own PLTE instead of hard-coding one.
+  return { width, height, rgb, indices, palette };
 }
 
 function encodeRgbPng(rgb, width, height) {
@@ -3031,12 +3036,62 @@ function main() {
       + `capsule on the missile plane after collection`);
       const images = paths.map((framePath) =>
         decodeAtari800Screenshot(fs.readFileSync(framePath)));
-      const steelCounts = images.map((image) => countRgb(image, [13, 58, 115], {
-        left: 140, top: 8, right: 164, bottom: 216,
-      }));
+      // This clause measures the capsule in the framebuffer, which is why it
+      // stays a raster check and is not repointed at pickup_pmg_rows: the
+      // memory counters and the beam can diverge (see
+      // docs/diagnostics/stage-2b2d-pickup-raster-invisibility.json, where
+      // 16/16 missile rows were set at frame end, 0/16 at the beam crossing,
+      // and the framebuffer was pure background). It is the only gate that
+      // would catch that case.
+      //
+      // Window and colour are DERIVED from the same contact rows the clauses
+      // above measure, not pinned as literals. Both halves of the old pin --
+      // `rgb(13,58,115)` inside `x 140-164` -- went stale at f6eee5c, which
+      // retired the character compositor: the capsule moved from character
+      // cells to the missile plane, so its colour became COLPF3 ($46 here, not
+      // $84 steel) and its column moved with it. The pin therefore counted
+      // zero on every captured frame and failed the `>= 40` head clause on
+      // frame 00, not only at the tail. The intent -- capsule present through
+      // contact, gone three frames after collection -- and the >= 40 / < 40
+      // thresholds are unchanged.
+      //
+      // Horizontal mapping. The capsule is one missile at HPOSM0 with
+      // SIZEM = $00 (src/main.s:10484), so it spans 16 pixels at this capture
+      // scale. NOTE, discrepancy:
+      // docs/diagnostics/stage-2b2e-pickup-capsule-silhouettes.json records
+      // the mapping as `2*HPOSM0 - 64 + 2*cc`, which assumes a wider crop
+      // origin than these captures have. This build's own Atari800
+      // screenshots are 256x192 and measure `2*(HPOSM0 - 64) + 2*cc`, 64
+      // pixels further left; the captures are the authority and the doc
+      // carries the annotation.
+      //
+      // Vertical extent is the full image. The old `y 8-216` was scanline
+      // space (8 = activeImageTop, 216 = gameplayBottom 240 - entityTop 24)
+      // while the capture crop starts at scanline 24, so it had always
+      // clipped -- harmlessly, but it described nothing real.
+      const capsuleHpos = contactRows[0].pickup_hposm0;
+      const capsuleColour = contactRows[0].colpf3;
+      invariant(contactRows.every((row) => row.pickup_hposm0 === capsuleHpos &&
+        row.colpf3 === capsuleColour),
+      `${session.id} moved the capsule column or changed COLPF3 during contact, `
+      + `so one derived raster window cannot describe the contact frames`);
+      const capsuleLeft = 2 * (capsuleHpos - 64);
+      const capsuleRight = capsuleLeft + 16;
+      invariant(images.every((image) => capsuleLeft >= 0 && capsuleRight <= image.width),
+        `${session.id} derived capsule window x ${capsuleLeft}-${capsuleRight} falls `
+        + `outside the captured raster`);
+      // The colour is resolved through each screenshot's own PLTE, so the
+      // count follows COLPF3 to whatever RGB Atari800's palette gives it.
+      const steelCounts = images.map((image) => countRgb(image, [
+        image.palette[capsuleColour * 3],
+        image.palette[capsuleColour * 3 + 1],
+        image.palette[capsuleColour * 3 + 2],
+      ], { left: capsuleLeft, top: 0, right: capsuleRight, bottom: image.height }));
       invariant(steelCounts.slice(0, -3).every((count) => count >= 40) &&
         steelCounts.slice(-3).every((count) => count < 40),
-      `${session.id} final raster contains a cut capsule or stale post-collection footprint`);
+      `${session.id} final raster contains a cut capsule or stale post-collection `
+      + `footprint (COLPF3 $${capsuleColour.toString(16)} in x ${capsuleLeft}-`
+      + `${capsuleRight}: ${steelCounts.join(", ")})`);
       const sheetPath = path.join(buildDirectory,
         session.kind === "weapon-pickup-contact"
           ? "weapon-pickup-player-nose-contact.png"

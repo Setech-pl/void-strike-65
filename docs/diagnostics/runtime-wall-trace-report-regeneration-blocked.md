@@ -1,16 +1,20 @@
-# `docs/runtime-wall-trace.json` cannot be regenerated — now `BLOCKED_PICKUP_CONTACT_STEEL_WINDOW`
+# `docs/runtime-wall-trace.json` cannot be regenerated — now `BLOCKED_MUZZLE_ORPHAN_TRANSIENT`
 
-> **Update, 2026-09-19 (FIX session, branch `wip/4.5d-gate-fail`, HEAD `a999af6`).**
-> The owner unblocked `BLOCKED_PICKUP_COLLECTION_DRAW_CALL`. Both stale pickup
-> trace-PC pins are repointed and now pass, with the root cause established:
-> commit `04ae0a6` silently rebound three pickup trace PCs from renderers to PMG
-> routines. The default run advances past both and now stops on a *different*
-> kind of clause — a screenshot pixel count. **§7 is the current state**; §6 is
-> the history of the pin just fixed, §1-§4 of the one before it.
+> **Update, 2026-09-19 (FIX session, branch `wip/4.5d-gate-fail`, HEAD `9a80fe2`).**
+> The owner unblocked `BLOCKED_PICKUP_CONTACT_STEEL_WINDOW`. The pickup contact
+> raster window is now **derived** from `pickup_hposm0` and `colpf3` instead of
+> pinned, and **both pickup sessions pass every clause**. The default run has
+> left the pickup path entirely and now stops in the capital-muzzle ring
+> session on a live emulator-side orphan-transient count — which, unlike the
+> three clauses before it, **may be reporting a real defect rather than a stale
+> pin**, and must not be widened on that assumption. **§8 is the current
+> state**; §7 is the history of the two pins before it, §6 of the one before
+> that, §1-§4 of the first.
 >
-> Earlier banner (SHORT FIX session): the owner unblocked
-> `BLOCKED_STALE_PICKUP_CONTACT_PIN`; the `PRIOR` clause of §3-§4 was fixed and
-> passes.
+> Earlier banner: the owner unblocked `BLOCKED_PICKUP_COLLECTION_DRAW_CALL`;
+> both stale pickup trace-PC pins were repointed, root cause commit `04ae0a6`.
+> Earlier still (SHORT FIX session): the owner unblocked
+> `BLOCKED_STALE_PICKUP_CONTACT_PIN`; the `PRIOR` clause of §3-§4 was fixed.
 
 Session: IMPLEMENTATION, 2026-09-19. Branch `wip/4.5d-gate-fail`, HEAD at the
 time of measurement `8156e66`. Build: `npm run build:candidate -- --quiet`,
@@ -360,3 +364,173 @@ Error: Runtime wall trace binding mismatch for void-strike-65-boot.bin
   `tests/pal-timing-audit.test.mjs`, which read this script's source: **28
   tests / 19 pass / 9 fail, identical with and without the change**. All nine
   read the stale committed report of §1.
+
+---
+
+## 8. The raster window derived, and a fourth clause: `BLOCKED_MUZZLE_ORPHAN_TRANSIENT`
+
+Owner decision (2026-09-19): the steel window is stale — reading (b). Restore
+its intent by **deriving** the window rather than pinning new literals. Done.
+The run now passes both pickup sessions and stops in a **different subsystem**.
+
+### 8.1 What was derived, and what it measures
+
+Applied at `scripts/runtime-wall-trace.mjs` (the clause formerly at `:3037`):
+
+| Half | Was | Now |
+| --- | --- | --- |
+| x | `left 140, right 164` | `left = 2 * (row.pickup_hposm0 - 64)`, `right = left + 16` |
+| colour | `rgb(13,58,115)` (`$84` steel) | `row.colpf3` resolved through the screenshot's own PLTE |
+| y | `top 8, bottom 216` | `0 .. image.height` |
+
+Thresholds are **unchanged**: `>= 40` on every frame but the last three, `< 40`
+on those three. `decodeAtari800Screenshot` now returns the decoded `palette` so
+the colour can be resolved per screenshot instead of hard-coded, and
+`pickup_hposm0` was added to `numericCsvFields` (it is emitted by
+`scripts/atari800-wall-trace.h` but parsed as CSV text until now, exactly as
+`pickup_pmg_rows` was last session). A precondition invariant asserts that
+`pickup_hposm0` and `colpf3` are constant across the contact rows, since a
+single window can only describe them if they are; both are, in both sessions.
+
+Why both halves were stale: `f6eee5c` retired the character compositor, moving
+the capsule from character cells to the missile plane. The colour became
+COLPF3 (`$46`, measured) instead of `$84` steel, and the column moved with it.
+Fixing x alone would still have counted zero.
+
+**Measured with the derived window** (`HPOSM0 = 92`, `COLPF3 = $46`, window
+`x 56-72`, full 192-line height; PLTE index 70 is the only palette entry
+carrying `rgb(128,48,111)`, so the count is unambiguous):
+
+| Session | Head frames | Tail frames | Verdict |
+| --- | --- | --- | --- |
+| `weapon-pickup-contact-nose-*` (11) | 216 ×6, 210, 182 | 0, 0, 0 | head floor **182** ≥ 40, tail 0 < 40 |
+| `weapon-pickup-contact-edge-*` (15) | 216 ×9, 188, 156, 132 | 0, 0, 0 | head floor **132** ≥ 40, tail 0 < 40 |
+
+The `216 -> 182` / `216 -> 132` taper is the player's P0/P3 taking foreground
+priority over the capsule, which is what the 40 floor tolerates. The original
+intent — capsule present through contact, gone three frames after collection —
+is satisfied exactly, on both sessions, with no threshold moved.
+
+The clause was **not** repointed at `pickup_pmg_rows`. It is the only gate that
+measures the framebuffer rather than the memory counters, and
+`stage-2b2d-pickup-raster-invisibility.json` is the recorded case of those two
+diverging (16/16 missile rows set at frame end, 0/16 at the beam crossing,
+framebuffer pure background). Repointing would have made it redundant with the
+clause above it and deleted the only gate that would have caught 2b2d. The
+reason is recorded at the assertion site.
+
+### 8.2 Documentation discrepancy, corrected
+
+`docs/diagnostics/stage-2b2e-pickup-capsule-silhouettes.json` records the
+mapping as `screen_x = 2*HPOSM0 - 64 + 2*cc`. That constant assumes a wider
+crop origin than this project's Atari800 captures have: on the 256×192
+screenshots of this build the capsule at `HPOSM0 = 92` measures `x 56-72`,
+i.e. `2*(HPOSM0 - 64) + 2*cc`, **64 pixels further left**. The captures are the
+authority; the doc now carries a `screen_x_correction` field stating this, and
+the assertion site states it too. Only the absolute origin is affected — the
+relative `+2*cc` term and every silhouette in that file are unchanged.
+
+### 8.3 The run advances two sessions and stops again
+
+Default mode, re-run in full on the rebuilt candidate:
+
+```
+weapon-pickup-contact-2-hunt-fire4: 1300 frames, max 29682 wall cycles   PASS
+weapon-pickup-overlap-2-hunt-fire4: 1300 frames, max 29677 wall cycles   PASS
+
+Error: capital-muzzle-ring-2-sweep-fire4 observed a stale muzzle/flash code
+or invalid derived pointer
+    at invariant (scripts/runtime-wall-trace.mjs:838:25)
+    at main (scripts/runtime-wall-trace.mjs:2538:7)
+```
+
+Both pickup sessions now clear every clause, including the derived raster one.
+The abort has moved out of the pickup path entirely, into the capital-muzzle
+ring session. **`docs/runtime-wall-trace.json` is still not written** — the
+throw is still inside the session loop, ahead of `:6074`.
+
+### 8.4 Why this one is not a stale pin
+
+The three clauses fixed so far pinned things that had been retired or rebound.
+This one does not. `muzzle_illegal_cells` is a **live scan performed by the
+emulator on this build's memory** (`scripts/atari800-wall-trace.h:4212-4223`):
+it walks the 40 cells of the divider row and the whole ring screen, and counts
+every hull-transient character code sitting at an address that is not one of
+the two live muzzle pointers. Nothing about it was rebound; it reads memory by
+address.
+
+Measured over the 6,000 frames of the fresh
+`capital-muzzle-ring-2-sweep-fire4.csv`:
+
+| Sub-clause | Failing frames |
+| --- | ---: |
+| `row.muzzle_illegal_cells === 0` | **68** |
+| `row.muzzle_code_cells === legalMuzzleCodes` | **68** (same frames: 3 observed, 2 accounted for) |
+| `legalMuzzleCodes + legalBroadsideOcclusions === row.active_muzzles` | **13** |
+| `row.muzzle_pointer_errors === 0` | 0 |
+| `row.broad_pointer_errors === 0` | 0 |
+
+On all 68 frames both muzzle slots are healthy — `muzzle0` at `$45`,
+`muzzle1` at `$D0`, both in the ring domain, pointers valid — and a **third**
+hull-transient code is present on the ring screen that no muzzle owns.
+
+The 68 frames form seven contiguous episodes of 7-14 frames:
+`925-938, 944-954, 1027-1034, 1362-1370, 1395-1402, 1444-1450, 4112-4122`.
+
+**Every episode begins on the frame a BROADSIDE enters its launch flash.**
+Frame 925: `broad0_state` goes `1 -> 2` and `broad0_flash` starts its `4,3,2,1`
+countdown; frame 4112: `broad0_state` goes `2 -> 3` with `broad1_flash` at 1.
+The orphan then persists roughly ten frames past the flash reaching 0 and
+clears without any state change (925-938 while the states stay `[2,1,0]`
+throughout, clearing at 939).
+
+The gate models only two owners of a hull-transient code — `muzzle_pointer[0]`
+and `muzzle_pointer[1]` — plus `broadsideOccludesMuzzle`, which models a
+broadside sitting *on* a muzzle pointer. Nothing models a broadside's own
+transient glyph at its own cell.
+
+**This is undetermined and is not concluded here.** Two readings fit the
+evidence equally well:
+
+* **(a) Unmodelled legitimate transient.** The BROADSIDE launch flash is a
+  third legitimate writer of a hull-transient code, and the gate's ownership
+  model has never accounted for it. If so the gate is incomplete, not the
+  runtime, and the fix is to extend the ownership model — not to widen the
+  count.
+* **(b) A real one-cell ghost.** A transient glyph written at launch outlives
+  its owner by ~10 frames and is cleared only incidentally, by the ring
+  scrolling the address out of the scanned range. That would be a real,
+  player-visible single-character ghost lasting about 0.2 s, seven times in
+  this replay — precisely what this gate exists to catch.
+
+The datum that separates them is **not recorded**: the emulator counts orphan
+cells but never reports the offending address or code. Adding that — one pair
+of columns in `scripts/atari800-wall-trace.h` beside the existing counters —
+would settle (a) against (b) immediately, at the cost of a header change and a
+`--prepare` rebuild of the traced emulator.
+
+Per the standing practice that moving a reviewed gate is an owner decision, and
+because reading (b) would make widening this clause the act that deletes the
+gate catching a real defect, **no fourth clause was touched**. Recovery
+requires an owner decision, and reading (a) should not be assumed.
+
+### 8.5 Gates for the change made here
+
+* Build: `npm run build:candidate -- --quiet`, XEX
+  `ecc9cedafd87f871989fc0b279343d1848c225792bf17e5be4ad9fadd1f7d3c7` —
+  byte-identical to the accepted runtime checkpoint `0002d84`, so nothing in
+  this change reaches the artifact.
+* Boot smoke: **4/4 PASS**. XEX menu 392/392, ATR menu 554/554, `delta_frames`
+  0 on all four sessions, no warn.
+* PAL timing audit over every replay that runs before the new abort: **all
+  PASS, 0 miss events**, worst margin **1,713 cycles**
+  (`weapon-pickup-2-hunt-fire4`); the two pickup-contact sessions that this
+  change gates report margins of 5,587 cycles each.
+* Focused tests `tests/runtime-wall-trace.test.mjs` +
+  `tests/pal-timing-audit.test.mjs`: **28 tests / 19 pass / 9 fail**, identical
+  to the figure recorded in §7.5 before this change. All nine still read the
+  stale committed report of §1.
+* Final (non-candidate) build: still refused, as expected, because the report
+  was still not written —
+  `Error: Runtime wall trace binding mismatch for void-strike-65-boot.bin` at
+  `scripts/runtime-evidence.mjs:49` / `scripts/build.mjs:1594`.

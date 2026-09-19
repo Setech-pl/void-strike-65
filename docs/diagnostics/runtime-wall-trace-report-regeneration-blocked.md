@@ -888,3 +888,245 @@ not a defect. No term is proposed and none was changed: teaching the model a
 reviewed invariant is an owner decision, as it was for writer 3 in §9.2. The
 session remains `BLOCKED`, `docs/runtime-wall-trace.json` remains stale, and a
 final (non-candidate) build is still refused at `validateRuntimeEvidenceBinding`.
+
+---
+
+## 10. Both owner decisions of 2026-09-19 implemented; a new, different blocker
+
+IMPLEMENTATION session, 2026-09-19, branch `wip/4.5d-gate-fail`, HEAD at start
+`a2cda6b`, worktree clean. Build `npm run build:candidate -- --quiet`, XEX
+`5ea523a44a345ae62fba89a077d6d8957f42a0f9d94812721f9bdd2013b618bf` — byte
+identical to §9 and §9.6. Boot smoke **4/4 PASS**. No production byte changed:
+the whole change is in `scripts/`.
+
+### 10.1 Decision 1 — term 4e taught its fourth writer, OWNER-APPROVED
+
+The occluder §9.6 measured is now part of the ownership model, in the same shape
+as writer 2 (`legalBroadsideOcclusions`).
+
+**The evidence column.** `scripts/atari800-wall-trace.h` gained
+`muzzle_projectile_occlusion[2]`, emitted as `muzzle0_projectile` /
+`muzzle1_projectile` and registered in `numericCsvFields`. It is computed by:
+
+```c
+static unsigned dftrace_projectile_occludes(unsigned address)
+{
+	unsigned code;
+	if (address == 0u)
+		return 0u;
+	code = MEMORY_mem[address];
+	if (dftrace_is_player_pairshot_code(code) && dftrace_player_pairshot_owns(address))
+		return 1u;
+	if (dftrace_is_enemy_pairshot_code(code) && dftrace_enemy_pairshot_owns(address))
+		return 1u;
+	return 0u;
+}
+```
+
+`dftrace_player_pairshot_owns` and `dftrace_enemy_pairshot_owns` already existed
+(`scripts/atari800-wall-trace.h:1671`, `:1707`) as the authority behind
+`player_projectile_orphan_cells` and `enemy_projectile_stale_cells`. Each walks
+the projectile slots, skips any slot whose `FIGHTER_PROJECTILE_RENDERED` (and,
+for hostiles, `ACTIVE`) is clear, and compares that slot's **own**
+`FIGHTER_PROJECTILE_SCREEN_LO/HI` against the address. No tracking, no new hook,
+no new array.
+
+**This is presence, not history** — the question the owner required the columns
+to answer. The moment the shot advances, the slot's pointer moves; the moment it
+is released, its rendered flag clears; either way the column reads 0 on the very
+next snapshot. A cell a projectile merely crossed earlier is never forgiven. The
+code test is a second, independent lock: the two projectile glyph families
+(`$0B`, `$1D`, `$2F-$33` allied; `$DA-$E7` hostile) are **disjoint** from the
+hull-transient codes `$45`/`$D0`/`$51`/`$D2`, so this writer can never exonerate
+a muzzle or launch-flash code.
+
+**The term, verbatim.** At `scripts/runtime-wall-trace.mjs:2598` the fifth
+conjunct changed from a sum of two mutually exclusive counts to a per-slot
+alternation of three:
+
+```js
+      const projectileOccludesMuzzle = (row, muzzleSlot) =>
+        row[`muzzle${muzzleSlot}_projectile`] === 1;
+```
+
+```js
+        const explainedMuzzles = [0, 1].filter((slot) =>
+          row[`muzzle${slot}_pointer`] !== 0 &&
+          (transientCodes.has(row[`muzzle${slot}_cell`]) ||
+            broadsideOccludesMuzzle(row, slot) ||
+            projectileOccludesMuzzle(row, slot))).length;
+```
+
+```js
+          explainedMuzzles === row.active_muzzles;     // was:
+          legalMuzzleCodes + legalBroadsideOcclusions === row.active_muzzles;
+```
+
+The sum and the alternation are equivalent on the two pre-existing writers:
+`legalMuzzleCodes` required `transientCodes.has(cell)` and
+`legalBroadsideOcclusions` required `!transientCodes.has(cell)`, so their sum was
+already the count of slots satisfying either. The alternation also makes the
+model correct for a slot explained twice — a slot is one slot, not two. Terms
+4a-4d are unchanged; `legalMuzzleCodes` is still what term 4d is summed against.
+The evidence JSON gained `legal_projectile_muzzle_occlusion_frames`.
+
+### 10.2 The narrowing proof
+
+**A/B of the predicate on the same 6,000-row CSV** of the production build,
+recomputing the old and the new term offline:
+
+| Term | frames failed |
+| --- | ---: |
+| old 4e (`legalMuzzleCodes + legalBroadsideOcclusions`) | **13** — `885, 887, 1029, 1030, 1171, 3809-3814, 3937, 3938` |
+| taught 4e (`explainedMuzzles`) | **0** |
+
+Exactly the 13 frames §9.4 named, no others. `muzzle{N}_projectile` is 1 on 19
+slot-frames; the 6 beyond the 13 (`1172, 1178, 3853-3856`) were already balanced
+by the other slot and were never failures.
+
+**Fault-injected build — the term still fails when the occlusion's discipline is
+absent.** `erase_fighter_projectile_restore` (`src/main.s:3798-3799`) was patched
+to write `#CH_SPACE` instead of `FIGHTER_PROJECTILE_BACKUP_TOP,x`, so a
+projectile that leaves a cell does **not** return the covered content. Build
+`468d6188cd476ff099b7a6ce3561ab39062c2b2d2236fe8d5e25a9b97db13351`, same session,
+same 6,000 frames:
+
+```
+CLAUSE FAILURE capital-muzzle-ring-2-sweep-fire4: capital-muzzle-ring-2-sweep-fire4
+  observed a stale muzzle/flash code or invalid derived pointer
+
+frame  886  m0 $83C8 = $00  projectile 0   m1 $8367 = $D0  active_muzzles 2
+frame  888  m0 $83C8 = $00  projectile 0   m1 $8367 = $D0  active_muzzles 2
+frame 1030  m0 $8530 = $24  projectile 0   m1 $824F = $D0  active_muzzles 2
+```
+
+| Build | taught 4e fails on | raw orphan frames |
+| --- | ---: | ---: |
+| production `5ea523a4…` | **0** | 16 (all live launch flashes, writer 3) |
+| fault-injected `468d6188…` | **3** — `886, 888, 1030` | 16 |
+
+Those are the frames *immediately after* the occlusion episodes at 885, 887 and
+1029: the muzzle cell is empty (`$00`) or foreign (`$24`), `muzzle0_projectile`
+is 0, no broadside occupies it. That is precisely the owner's required error (2),
+"a projectile's covered cell not restored after the projectile leaves", and in
+the `$00` case also (1), "a muzzle cell empty with no projectile and no
+broadside occupying it". `src/main.s` was reverted and the production XEX
+re-reproduced as `5ea523a4…` before commit.
+
+### 10.3 Decision 2 — stage 1, session failures accumulate
+
+`scripts/runtime-wall-trace.mjs`:
+
+* `const sessionFailures = []` beside `allRows` / `summaries`;
+* the session loop's assertion span is wrapped in `try` / `catch`, the catch
+  recording `{session, message}`, printing `CLAUSE FAILURE <id>: <message>` and
+  setting `process.exitCode = 1` — the precedent of the PAL timing audit in the
+  same loop;
+* `parseCsv` stays **outside** the try. A malformed or short CSV leaves no rows
+  to carry forward and remains fatal, as the owner required for stage 2;
+* `allRows.push(...rows)` and `summaries.push(...)` sit **after** the catch, so a
+  failing session still contributes its coverage and the 176 post-loop
+  aggregates cannot fail for absence;
+* the body was deliberately not reindented — reindenting ~670 lines would bury
+  the change;
+* an end-of-run summary prints the accumulated list.
+
+**`report.gate.passed`, in the same commit.** `gate` gained
+`behavioural_clause_failure_count` and `behavioural_clause_failures`, and the
+`passed` expression is now `sessionFailures.length === 0 && <the previous timing
+and DLI conjunction>`. The file's existence is no longer the pass signal, so
+`scripts/build.mjs:1594-1596` stays sound: a report written on a run that had a
+clause failure carries `gate.passed === false` and cannot authorise a final
+build. The 176 post-loop aggregates were **not** restructured; that is stage 2.
+
+The mechanism was proven by the fault-injected run above, which recorded the
+failure, continued, and exited 1 instead of aborting.
+
+### 10.4 What now runs — and the new blocker
+
+**Default mode, this build.** 30 of the 64 default sessions ran in the loop, up
+from 21, with **0** accumulated clause failures. The run then died **outside**
+the stage-1 catch, at the emulator invocation:
+
+```
+capital-contact-allied-medium
+  atari800 … failed with status 2
+  voidstrike65 trace: invalid DFTRACE_CAPITAL_CONTACT_MODE=undefined
+```
+
+`BLOCKED_CAPITAL_CONTACT_MODE_UNSET`. `capitalContactSessions`
+(`scripts/runtime-wall-trace.mjs:347-355`) and the second
+`lowerPlayfieldSessions` entry (`:441-450`) define `contactOwner` but **no
+`contactModeId`**, while `:2551-2552` sends
+`DFTRACE_CAPITAL_CONTACT_MODE: String(session.contactModeId)` for every session
+whose kind sets `DFTRACE_CAPITAL_CONTACT_PREFIX` — the literal string
+`"undefined"`, which `dftrace_env_u` rejects with `exit(2)`. Only
+`capitalPlayerGeometrySessions` carries a `contactModeId`. The defect is
+**pre-existing and untouched by this work** — the same eight lines are in
+`a2cda6b` — and it was already recorded as "exit 2, no CSV" against `0002d84`; it
+was simply unreachable while the loop aborted at
+`weapon-pickup-contact-2-hunt-fire4`. It is **not fixed here**: per the owner's
+instruction, newly surfaced failures are listed, not fixed.
+
+Because `run()` precedes `parseCsv`, such a session yields no rows, so it cannot
+be accumulated under stage 1's own constraint that a caught session must still
+push rows. Deciding what a rows-less session contributes is an owner decision.
+
+**The 34 sessions behind that abort, each run with `--only-session=`:**
+
+| Result | Count | Sessions |
+| --- | ---: | --- |
+| ran to completion, no clause failure | **31** | `memory-integrity-{xex,atr}-2-{evasive,hunt}-fire4`; `lower-playfield-xex-hard`; all 24 `engine-{xex,atr}-{a5,5a}-{0,1,2}-{immediate,delayed}`; `engine-restart-{xex,atr}-a5` |
+| hard abort, `DFTRACE_CAPITAL_CONTACT_MODE=undefined` | **3** | `capital-contact-allied-medium`, `capital-contact-hostile-medium`, `lower-playfield-hostile-contact-xex-hard` |
+
+**Mode-gated sets, all sessions to completion, 0 clause failures:**
+`--raider-formation-only` (1), `--raider-sector-only` (1),
+`--debris-gate-only` (3), `--raider-remnant-only` (3). Three of the four exit 1
+on the pre-existing native gates, not on a clause — `debris-gate-0-neutral-fire0`
+reports 1 blank post-capital debris frame (the documented death-frame blink) and
+`--raider-remnant-only` fewer main explosions than kills.
+
+**So: across all 61 sessions that can run at all on this build, zero behavioural
+clauses fail.** The 286-clause set is clean; one three-session environment-wiring
+defect stands between it and the report.
+
+### 10.5 The four answers
+
+1. **61 of 64** default-mode sessions run to completion (30 inside the default
+   loop, 31 individually); **0** accumulate a clause failure. 3 cannot start:
+   `capital-contact-allied-medium`, `capital-contact-hostile-medium`,
+   `lower-playfield-hostile-contact-xex-hard`.
+2. **No.** `docs/runtime-wall-trace.json` is still the 2026-09-05 report bound to
+   `ab682d84…`. Only the default mode writes it and the default mode still
+   aborts — now at `capital-contact-allied-medium`, not at a clause.
+3. **No**, and unchanged: `tests/runtime-wall-trace.test.mjs` fails 9 of 10 tests,
+   `:77-121` among them, because it reads the stale committed report rather than
+   a live run. **A/B: the identical 9 failures at `a2cda6b`** (`git stash` of the
+   two changed scripts, same command) — no regression from this work. §8 already
+   established that every assertion of `:77-121` passes against this build's live
+   boot-smoke report.
+4. **No** — and **not** because `gate.passed` is false. `npm run build` is refused
+   earlier, at `validateRuntimeEvidenceBinding`
+   (`scripts/runtime-evidence.mjs:49`, "Runtime wall trace binding mismatch for
+   void-strike-65-boot.bin"), because no new report was written at all. The
+   `gate.passed` AND added here has never yet been evaluated on a real run.
+5. **Newly surfaced failures from the previously dark sessions: exactly one
+   defect, in three sessions** — `BLOCKED_CAPITAL_CONTACT_MODE_UNSET` above.
+   Not fixed. No behavioural clause failed in any of the 40.
+
+### 10.6 Gates
+
+* Build: `npm run build:candidate -- --quiet` reproduces XEX
+  `5ea523a44a345ae62fba89a077d6d8957f42a0f9d94812721f9bdd2013b618bf`; `dist/`
+  byte-clean against `a2cda6b`.
+* Boot smoke: **4/4 PASS** (after `--prepare`, mandatory for the header change).
+* PAL timing audit, standalone over all 69 replays
+  (`node scripts/pal-timing-audit.mjs --json … build/runtime-wall-trace`, the set
+  being the 30 default-loop replays, the 31 individually run, the 2 mode-gated
+  Raider replays and the 3 + 3 debris-gate and remnant replays): **0 distinct
+  miss events, 69/69 PASS**, worst fence margin **1,464** cycles
+  (`raider-remnant-rapid-xex-hard` frame 1945), maximum wall **30,609** cycles —
+  identical to the accepted checkpoint.
+* `capital-muzzle-ring-2-sweep-fire4`: 6,000 frames, max **30,337** wall cycles,
+  fence margin 5,331, 0 misses — unchanged from §9.5, byte-identical binary.
+* CPU/RAM delta: **zero**. No production source changed.

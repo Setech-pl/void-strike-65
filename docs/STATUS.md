@@ -395,8 +395,11 @@ re-basing.
   "menu N against deadline N" figure recorded further down this file is a
   historical measurement under the superseded formula;
 - **`docs/runtime-wall-trace.json` is stale and cannot be regenerated —
-  `BLOCKED_MUZZLE_ORPHAN_TRANSIENT`** (measured 2026-09-19, re-measured three
-  times the same day after each gate fix). The committed
+  `BLOCKED_CAPITAL_CONTACT_MODE_UNSET`** (current blocker, measured 2026-09-19;
+  it replaces `BLOCKED_MUZZLE_ORPHAN_TRANSIENT`, which is resolved — see the
+  "current state" paragraph at the end of this entry; the narrative below is the
+  history of the four superseded blockers, kept because each one names a standing
+  rule). The committed
   report is from 2026-09-05: `artifact.sha256` `ab682d84…` and ATR boot-smoke
   `menu` **502**, against the accepted runtime `ecc9ceda…` at menu **554**.
   `tests/runtime-wall-trace.test.mjs` reads that file rather than a live run,
@@ -493,8 +496,36 @@ re-basing.
   With that corrected, every assertion of the rewritten boot-horizon test was
   run directly against the live measured boot-smoke report of this build and
   **passes**; it fails in `npm test` only because it reads the stale committed
-  report. Evidence and measurements for both blockers:
-  [diagnostics/runtime-wall-trace-report-regeneration-blocked.md](diagnostics/runtime-wall-trace-report-regeneration-blocked.md);
+  report.
+  **Current state, 2026-09-19 (supersedes every blocker above).** Both owner
+  decisions of that day are implemented on `5ea523a4…`, in `scripts/` only, with
+  no production byte changed. Term 4e knows its fourth writer — a live, *rendered*
+  fighter projectile standing on the tracked muzzle cell, evidenced by the new
+  `muzzle{0,1}_projectile` column, which reports presence and not history and
+  whose glyph families are disjoint from the hull-transient codes; the term
+  narrows, proven by a fault-injected build in which
+  `erase_fighter_projectile_restore` does not return the covered cell and the term
+  still fails, on frames `886, 888, 1030`. And the session loop now **accumulates**
+  clause failures instead of aborting, with `report.gate.passed` ANDed against
+  "zero accumulated failures" and the list published in the report, so the file's
+  existence is no longer the pass signal that `scripts/build.mjs:1594-1596`
+  depends on. Result: **61 of the 64 default sessions run and 0 behavioural
+  clauses fail anywhere** — the 286-clause set is clean. The report is still not
+  written because the run now dies *outside* the loop's catch, at the emulator
+  invocation for `capital-contact-allied-medium`:
+  `capitalContactSessions` and the second `lowerPlayfieldSessions` entry define
+  `contactOwner` but no `contactModeId`, so `runtime-wall-trace.mjs:2551-2552`
+  sends the literal `DFTRACE_CAPITAL_CONTACT_MODE=undefined` and the emulator
+  exits 2 before writing a CSV. Pre-existing (identical eight lines in `a2cda6b`,
+  already recorded as "exit 2, no CSV" against `0002d84`) and **not fixed** —
+  three sessions affected (`capital-contact-{allied,hostile}-medium`,
+  `lower-playfield-hostile-contact-xex-hard`). Because the failure precedes
+  `parseCsv` it yields no rows, so stage 1 cannot accumulate it without breaking
+  its own rule that a caught session must still push rows; what a rows-less
+  session contributes is an open owner decision. Evidence and measurements for
+  every blocker, and the verbatim model change:
+  [diagnostics/runtime-wall-trace-report-regeneration-blocked.md](diagnostics/runtime-wall-trace-report-regeneration-blocked.md)
+  10;
 - open owner decision: the packed STARFIELD correction gate. At the 4.5M-M1
   candidate the single-stream gates 1,798 / 1,819 B are superseded by the
   two-stream total gates 1,804 (correction) / 1,825 B (hard) against a measured
@@ -521,8 +552,9 @@ re-basing.
   `2a67684`, 134/135 on the candidate). **Superseded as of 2026-09-19** for the
   first of those: the three pickup clauses are fixed, both pickup sessions
   pass, and the default-mode abort has moved to
-  `capital-muzzle-ring-2-sweep-fire4` — see the
-  `BLOCKED_MUZZLE_ORPHAN_TRANSIENT` entry above;
+  `capital-muzzle-ring-2-sweep-fire4`, and from there, once term 4e was taught
+  its fourth writer, to `capital-contact-allied-medium` — see the
+  `BLOCKED_CAPITAL_CONTACT_MODE_UNSET` entry above;
 - test debt: the full `node --test tests/*.test.mjs` run keeps known stale
   failures — 115 at `b4b942e` (measured 2026-09-16 on a clean export, counting
   the owner's uncommitted `tests/booster-admission-diagnostic.test.mjs`) and

@@ -702,8 +702,9 @@ const numericCsvFields = new Set([
   "pause_timer_after", "pause_engine_timer_before", "pause_engine_timer_after",
   "pause_engine_phase_before", "pause_engine_phase_after", "pause_host_frames",
 ]);
-for (const slot of [0, 1]) for (const field of ["domain", "row", "pointer", "cell", "writer_pc"])
-  numericCsvFields.add(`muzzle${slot}_${field}`);
+for (const slot of [0, 1])
+  for (const field of ["domain", "row", "pointer", "cell", "writer_pc", "projectile"])
+    numericCsvFields.add(`muzzle${slot}_${field}`);
 for (const field of ["muzzle_code_cells", "muzzle_illegal_cells", "muzzle_pointer_errors",
   "muzzle_illegal_address", "muzzle_illegal_code",
   "muzzle_divider_allied", "muzzle_divider_enemy", "broad_pointer_errors",
@@ -1171,8 +1172,8 @@ function parseCsv(csvText, sessionDefinition) {
 // ---------------------------------------------------------------------------
 // Hull-transient ownership model
 //
-// THREE writers put a muzzle or launch-flash code into the divider row or the
-// playfield ring:
+// FOUR writers own a tracked muzzle's cell, or put a muzzle or launch-flash code
+// into the divider row or the playfield ring:
 //
 //   1. the tracked-muzzle overlay, at MUZZLE_SCREEN_LO/HI[0..1] - claimed by
 //      track_top_muzzles, moved by advance_tracked_muzzles, republished by
@@ -1182,7 +1183,16 @@ function parseCsv(csvText, sessionDefinition) {
 //   3. the BROADSIDE launch flash, at BROAD_ROW_LO/HI[slot] plus that slot's turret
 //      muzzle column - written by render_launch_flashes and backed out by
 //      restore_launch_flash_cell (src/main.s), for exactly the frames on which
-//      that slot's BROAD_FLASH_TIMER is non-zero.
+//      that slot's BROAD_FLASH_TIMER is non-zero;
+//   4. a live fighter projectile standing on one of the tracked muzzle cells -
+//      render_fighter_projectile_overlays @draw_top ($92D6, src/main.s:4396-4397)
+//      is the last writer of any cell its PairShot occupies, the tracked muzzle's
+//      included. The slot saves the covered cell into FIGHTER_PROJECTILE_BACKUP_TOP
+//      (src/main.s:4376-4381) before it draws and erase_fighter_projectile_restore
+//      ($2B48, src/main.s:3798-3799) returns it when the shot leaves, so the muzzle
+//      glyph is occluded for those frames, not lost. Exactly the shape of writer 2,
+//      which the model already credits for a broadside hull covering the same cell.
+//      See 9.6 in the diagnostics note.
 //
 // Writer 3 was invisible to the model until now. dftrace_snapshot_muzzles
 // (scripts/atari800-wall-trace.h) attributes every hull-transient code it finds to
@@ -2303,6 +2313,12 @@ function main() {
   }
   const allRows = [];
   const summaries = [];
+  // Behavioural-clause failures accumulated across the session loop instead of
+  // aborting the run at the first one (owner decision 2026-09-19, stage 1).
+  // This list is ANDed into report.gate.passed and published in the report:
+  // the file's existence is no longer the pass signal, so a report written on a
+  // run that had a clause failure can never authorise a final build.
+  const sessionFailures = [];
   // Every traced replay is audited against the VCOUNT $77 fence, not only the
   // four PAL replays: the native counters cannot see an overrun at all.
   const palTimingAudits = [];
@@ -2548,6 +2564,16 @@ function main() {
       ], { env: environment });
     }
     const rows = parseCsv(fs.readFileSync(outputPath, "utf8"), session);
+    // Stage 1 of the session-failure accumulation (owner decision 2026-09-19).
+    // A failing behavioural clause records {session, message} and the loop
+    // continues to the next replay, so the sessions that sat behind the first
+    // failure are no longer dark. The precedent is the PAL timing audit below,
+    // which reports per replay and sets process.exitCode instead of throwing.
+    // parseCsv stays OUTSIDE the try: a malformed or short CSV leaves no rows
+    // to carry forward and remains fatal.
+    // The body is deliberately left at its original indentation — reindenting
+    // ~670 lines would bury the change in whitespace.
+    try {
     // draw_enemy_member publishes a member's 16-row P1/P2 body only on frames
     // where its Y moved. The licence for that skip is "the plane already holds
     // the body at the member's current Y", so hold every traced frame to it:
@@ -2587,10 +2613,23 @@ function main() {
         return row[`broad${slot}_state`] !== 0 && column >= 0 &&
           row[`broad${slot}_pointer`] + column === row[`muzzle${muzzleSlot}_pointer`];
       });
+      // Writer 4: a live, rendered fighter projectile standing on the tracked
+      // muzzle's own cell. muzzle{N}_projectile is emitted by
+      // dftrace_projectile_occludes and is 1 only while some projectile slot's
+      // OWN screen pointer still equals that muzzle pointer AND the cell still
+      // holds that slot's glyph family — presence, never history. It cannot
+      // forgive a muzzle or launch-flash code, whose values are disjoint from
+      // both projectile glyph families.
+      const projectileOccludesMuzzle = (row, muzzleSlot) =>
+        row[`muzzle${muzzleSlot}_projectile`] === 1;
       const occludedRows = rows.filter((row) => [0, 1].some((slot) =>
         row[`muzzle${slot}_pointer`] !== 0 &&
         !transientCodes.has(row[`muzzle${slot}_cell`]) &&
         broadsideOccludesMuzzle(row, slot)));
+      const projectileOccludedRows = rows.filter((row) => [0, 1].some((slot) =>
+        row[`muzzle${slot}_pointer`] !== 0 &&
+        !transientCodes.has(row[`muzzle${slot}_cell`]) &&
+        projectileOccludesMuzzle(row, slot)));
       invariant(activeRows.length > 0 && [0, 1].every((slot) =>
         activeRows.some((row) => row[`muzzle${slot}_domain`] === 0) &&
         activeRows.some((row) => row[`muzzle${slot}_domain`] === 1)),
@@ -2599,16 +2638,26 @@ function main() {
         const legalMuzzleCodes = [0, 1].filter((slot) =>
           row[`muzzle${slot}_pointer`] !== 0 &&
           transientCodes.has(row[`muzzle${slot}_cell`])).length;
-        const legalBroadsideOcclusions = [0, 1].filter((slot) =>
+        // Every active muzzle must be accounted for: it either shows its own
+        // transient glyph, or writer 2 (a broadside hull) or writer 4 (a live
+        // rendered projectile) is standing on that exact cell this frame. The
+        // three are per-slot alternatives, not a sum: a slot explained twice is
+        // still one slot, and a slot explained by nothing at all still fails.
+        // An active muzzle whose cell is empty, with no broadside and no
+        // projectile on it, remains an error — including the frame after a
+        // projectile leaves without erase_fighter_projectile_restore returning
+        // the covered cell.
+        const explainedMuzzles = [0, 1].filter((slot) =>
           row[`muzzle${slot}_pointer`] !== 0 &&
-          !transientCodes.has(row[`muzzle${slot}_cell`]) &&
-          broadsideOccludesMuzzle(row, slot)).length;
+          (transientCodes.has(row[`muzzle${slot}_cell`]) ||
+            broadsideOccludesMuzzle(row, slot) ||
+            projectileOccludesMuzzle(row, slot))).length;
         // Writer 3 of the ownership model above: a live launch flash owns its own
         // cell. Expired flashes, unowned addresses and stray muzzle codes still fail.
         return unownedHullTransientCells(row) === 0 && row.muzzle_pointer_errors === 0 &&
           row.broad_pointer_errors === 0 &&
           row.muzzle_code_cells === legalMuzzleCodes + legalLaunchFlashCells(row) &&
-          legalMuzzleCodes + legalBroadsideOcclusions === row.active_muzzles;
+          explainedMuzzles === row.active_muzzles;
       }),
       `${session.id} observed a stale muzzle/flash code or invalid derived pointer`);
       invariant(activeRows.every((row) =>
@@ -2647,6 +2696,7 @@ function main() {
         flash_frames: flashRows.length,
         flying_frames: flyingRows.length,
         legal_broadside_muzzle_occlusion_frames: occludedRows.length,
+        legal_projectile_muzzle_occlusion_frames: projectileOccludedRows.length,
         maximum_muzzle_codes: Math.max(...rows.map((row) => row.muzzle_code_cells)),
         // Unowned by any of the three writers; a live launch flash is not an orphan.
         maximum_illegal_codes: Math.max(...rows.map(unownedHullTransientCells)),
@@ -3195,6 +3245,14 @@ function main() {
       fs.writeFileSync(path.join(buildDirectory, `${session.id}-evidence.json`),
         `${JSON.stringify(evidence, null, 2)}\n`);
     }
+    } catch (error) {
+      sessionFailures.push({ session: session.id, message: error.message });
+      console.error(`CLAUSE FAILURE ${session.id}: ${error.message}`);
+      process.exitCode = 1;
+    }
+    // Outside the catch on purpose. A failed session still contributes its rows
+    // and its summary, so the post-loop aggregates keep measuring this replay's
+    // coverage and cannot fail for absence instead of for a real defect.
     allRows.push(...rows);
     summaries.push(sessionSummary(session, rows));
     console.log(`${session.id}: ${rows.length} frames, max ` +
@@ -3213,6 +3271,14 @@ function main() {
     // A distinct miss event is a real dropped PAL frame, so it fails the gate
     // whatever else the run was measuring.
     if (missEvents !== 0) process.exitCode = 1;
+  }
+  if (sessionFailures.length === 0) {
+    console.log(`Behavioural clauses: ${sessionsToRun.length} session(s) ran to completion`);
+  } else {
+    console.error(`Behavioural clauses: ${sessionFailures.length} of ` +
+      `${sessionsToRun.length} session(s) accumulated a failure`);
+    for (const failure of sessionFailures)
+      console.error(`  ${failure.session}: ${failure.message.split("\n")[0]}`);
   }
   if (raiderFirstWriterOnly) {
     console.log(`Raider first-writer raw traces: ${sessionsToRun.length} sessions, ` +
@@ -5987,7 +6053,16 @@ function main() {
       host_vbi_boundary_crossings:
         allRows.reduce((sum, row) => sum + row.host_vbi_boundaries, 0),
       extra_vbi_boundaries: allRows.reduce((sum, row) => sum + row.extra_vbi_boundaries, 0),
-      passed: heaviest.wall_cycles <= SHIELD_BOOSTER_HARD_GATE_CYCLES &&
+      // The 286 behavioural clauses are not otherwise represented in this gate.
+      // Before stage 1 a clause could only fail by throwing, which prevented the
+      // report existing at all, so scripts/build.mjs treated the file's presence
+      // as the pass signal. Now that a report is written on a run that had a
+      // clause failure, gate.passed MUST carry those failures or that check
+      // becomes unsound.
+      behavioural_clause_failure_count: sessionFailures.length,
+      behavioural_clause_failures: sessionFailures,
+      passed: sessionFailures.length === 0 &&
+        heaviest.wall_cycles <= SHIELD_BOOSTER_HARD_GATE_CYCLES &&
         PAL_FRAME_CYCLES - heaviest.wall_cycles >=
           SHIELD_BOOSTER_MINIMUM_HEADROOM_CYCLES &&
         shieldBoosterHardOverruns.length === 0 && deadlineOverruns.length === 0 &&

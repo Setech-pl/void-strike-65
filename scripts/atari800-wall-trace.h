@@ -137,6 +137,10 @@ typedef struct {
 	 * reports — in particular the one that erased a tracked muzzle glyph
 	 * after redraw_tracked_muzzles published it. */
 	unsigned muzzle_cell_writer_pc[2];
+	/* Writer 4 of the hull-transient ownership model: 1 while a live, rendered
+	 * fighter projectile stands on this tracked muzzle's own cell, 0 otherwise.
+	 * Presence, never history — see dftrace_projectile_occludes. */
+	unsigned muzzle_projectile_occlusion[2];
 	unsigned muzzle_code_cells;
 	unsigned muzzle_illegal_cells;
 	/* Diagnostic-only: address and character code of the FIRST orphan cell
@@ -1734,6 +1738,33 @@ static void dftrace_snapshot_enemy_pairshot_orphans(DFTraceFrame *frame)
 		if (dftrace_is_enemy_pairshot_code(MEMORY_mem[address]) &&
 			!dftrace_enemy_pairshot_owns(address))
 			++frame->enemy_projectile_stale_cells;
+}
+
+/* Writer 4 of the hull-transient ownership model: a live, rendered fighter
+ * projectile standing on a cell a tracked muzzle also claims. The projectile
+ * slot saves the covered cell into FIGHTER_PROJECTILE_BACKUP_TOP before it
+ * draws and erase_fighter_projectile_restore returns it when the shot leaves,
+ * so the muzzle glyph is occluded for those frames, not lost.
+ *
+ * This reports PRESENCE, not history. It is 1 only while some projectile
+ * slot's OWN screen pointer still equals this address AND the address still
+ * holds that slot's glyph family. As soon as the shot advances, the slot's
+ * pointer moves; as soon as it is released, its rendered flag clears; either
+ * way this returns to 0 on the very next snapshot. A cell a projectile merely
+ * passed over at some earlier point is therefore never forgiven, and neither
+ * is a cell holding a muzzle or launch-flash code ($45/$D0/$51/$D2) — those
+ * are disjoint from both projectile glyph families. */
+static unsigned dftrace_projectile_occludes(unsigned address)
+{
+	unsigned code;
+	if (address == 0u)
+		return 0u;
+	code = MEMORY_mem[address];
+	if (dftrace_is_player_pairshot_code(code) && dftrace_player_pairshot_owns(address))
+		return 1u;
+	if (dftrace_is_enemy_pairshot_code(code) && dftrace_enemy_pairshot_owns(address))
+		return 1u;
+	return 0u;
 }
 
 static void dftrace_emitter_cleanup_begin(DFTraceFrame *frame)
@@ -4217,6 +4248,7 @@ static void dftrace_snapshot_muzzles(DFTraceFrame *frame)
 		frame->muzzle_cell[slot] = pointer == 0u ? 0u : MEMORY_mem[pointer];
 		frame->muzzle_cell_writer_pc[slot] = pointer == 0u ? 0u :
 			dftrace_character_last_writer[pointer];
+		frame->muzzle_projectile_occlusion[slot] = dftrace_projectile_occludes(pointer);
 		if (MEMORY_mem[dftrace_muzzle_screen_hi + slot] != 0u) {
 			++frame->active_muzzles;
 			if (pointer != expected || frame->muzzle_domain[slot] != (row == 0u ? 0u : 1u))
@@ -4418,8 +4450,8 @@ static void dftrace_write(void)
 		",player_erase_scanline,player_draw_scanline");
 	for (index = 0; index < 2u; ++index)
 		fprintf(file, ",muzzle%u_domain,muzzle%u_row,muzzle%u_pointer,muzzle%u_cell"
-			",muzzle%u_writer_pc",
-			index, index, index, index, index);
+			",muzzle%u_writer_pc,muzzle%u_projectile",
+			index, index, index, index, index, index);
 	fprintf(file, ",muzzle_code_cells,muzzle_illegal_cells"
 		",muzzle_illegal_address,muzzle_illegal_code,muzzle_pointer_errors"
 		",muzzle_divider_allied,muzzle_divider_enemy");
@@ -4623,9 +4655,10 @@ static void dftrace_write(void)
 			frame->player_erase_calls, frame->player_draw_calls,
 			frame->player_erase_scanline, frame->player_draw_scanline);
 		for (unsigned slot = 0; slot < 2u; ++slot)
-			fprintf(file, ",%u,%u,%u,%u,%u", frame->muzzle_domain[slot],
+			fprintf(file, ",%u,%u,%u,%u,%u,%u", frame->muzzle_domain[slot],
 				frame->muzzle_row[slot], frame->muzzle_pointer[slot],
-				frame->muzzle_cell[slot], frame->muzzle_cell_writer_pc[slot]);
+				frame->muzzle_cell[slot], frame->muzzle_cell_writer_pc[slot],
+				frame->muzzle_projectile_occlusion[slot]);
 		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u", frame->muzzle_code_cells,
 			frame->muzzle_illegal_cells, frame->muzzle_illegal_address,
 			frame->muzzle_illegal_code, frame->muzzle_pointer_errors,

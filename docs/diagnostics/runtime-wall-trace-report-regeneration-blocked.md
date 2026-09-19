@@ -809,3 +809,82 @@ for a review of the whole gate set rather than another single clause.
   actual: 69` (`$45`). The second new test also fails there, but only because
   `BROAD_FLASH_BACKING` does not exist on that build — it guards the new
   mechanism against regression and is **not** an independent proof of the defect.
+
+## 9.6 The 13 frames measured: the PairShot character overlay
+
+DIAGNOSTIC-AND-UNBLOCK session, 2026-09-19, branch `wip/4.5d-gate-fail`, HEAD at
+start `a8e2d93`; instrumentation `51839a4`. Build `npm run build:candidate --
+--quiet`, XEX `5ea523a44a345ae62fba89a077d6d8957f42a0f9d94812721f9bdd2013b618bf`
+— byte identical to the build §9 measured. Boot smoke 4/4 PASS.
+
+**No clause was added, widened or relaxed.** 4e stands exactly as §9.4 left it.
+
+### 9.6.1 The instrumentation
+
+`dftrace_snapshot_muzzles` now reads `dftrace_character_last_writer[pointer]` at
+each tracked muzzle's own screen pointer and emits it as
+`muzzle0_writer_pc` / `muzzle1_writer_pc`. The array was already maintained on
+every character write into the divider and ring ranges
+(`scripts/atari800-wall-trace.h:1806-1812`) and already surfaced twice
+(`transient_effect_first_writer_pc`, `broad_pmg_first_writer_pc`); this adds no
+tracking and no hook. Both columns are registered in `numericCsvFields` —
+§9.2's silent-string trap.
+
+### 9.6.2 The writer, on all 13 frames
+
+`capital-muzzle-ring-2-sweep-fire4`, 6,000 rows. Of the five terms of the
+invariant at `scripts/runtime-wall-trace.mjs:2598`, only 4e fails, on the same
+13 frames §9.4 recorded: `885, 887, 1029, 1030, 1171, 3809-3814, 3937, 3938`.
+Terms 4a-4d fail on **0** rows.
+
+On **13 of 13** frames the writer of the offending cell is the same PC:
+
+```
+$92D6  render_fighter_projectile_overlays @draw_top   sta (dst_ptr),y
+       src/main.s:4396-4397
+```
+
+The healthy slot on those same frames carries `$6627` =
+`redraw_tracked_muzzles+26`, the legitimate publisher.
+
+### 9.6.3 It is a legitimate, save/restore-disciplined occluder
+
+`render_fighter_projectile_overlays` runs at `src/main.s:2965`, long after
+`update_starfield` (`:2526`) has run `restore_active_muzzles`,
+`advance_tracked_muzzles` and `redraw_tracked_muzzles`, and after
+`render_launch_flashes_with_capital_debris` (`:2532`). A PairShot is therefore
+the **last** writer of any cell it occupies, the tracked muzzle's included.
+
+Before it draws, the slot saves the covered cell into
+`FIGHTER_PROJECTILE_BACKUP_TOP` (`:4376-4381`), and
+`erase_fighter_projectile_restore` (`$2B48`, `src/main.s:3798-3799`) returns it
+on the next frame. Measured: on every frame that follows an episode, the cell is
+back to `$45`/`$D0`, written either by `erase_fighter_projectile_restore` or by
+`redraw_tracked_muzzles`. `muzzle_illegal_cells` is 0 on all 13 frames and
+raw orphans are 0 across the replay — the saved muzzle glyph is never resurrected
+at a stale address.
+
+This is the exact analogue of `legalBroadsideOcclusions`, which 4e already
+credits for a broadside hull covering the muzzle column. The term simply does
+not know that a projectile can cover it too.
+
+### 9.6.4 The two episode families are one mechanism at two relative speeds
+
+| Family | Slot | Codes | Length | Cause |
+| --- | --- | --- | ---: | --- |
+| Allied | `m0`, column 8 | `$30`/`$31`/`$32` (player PairShot glyph) | 1-2 frames, alternating | PairShots climb faster than the ring scrolls, so each crosses the muzzle cell for one frame; a `fire4` stream re-enters on the next-but-one frame |
+| Enemy | `m1`, column 31 | `$E6`/`$E7` (hostile projectile) | 2-6 frames | hostile shots descend at roughly the scroll rate, so shot and muzzle cell stay co-located; `$E6 -> $E7` is the glyph phase advancing under a stationary pointer |
+
+The review's observation that the allied failures sit on a divider->ring domain
+transition is confirmed for 885, 1029 and 1171: at a transition the tracked
+pointer relocates to a new address chosen without regard to what occupies it,
+and lands on a cell the PairShot stream is already holding. Co-location is the
+mechanism; the transition only raises its odds.
+
+### 9.6.5 Verdict — `OWNER_DECISION_REQUIRED`
+
+4e is measuring a **fourth legitimate writer the ownership model does not know**,
+not a defect. No term is proposed and none was changed: teaching the model a
+reviewed invariant is an owner decision, as it was for writer 3 in §9.2. The
+session remains `BLOCKED`, `docs/runtime-wall-trace.json` remains stale, and a
+final (non-candidate) build is still refused at `validateRuntimeEvidenceBinding`.

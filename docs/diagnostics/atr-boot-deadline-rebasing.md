@@ -263,3 +263,72 @@ boot time. `remainingSafeResidencyBytes = 3,653`,
 free, `BROADSIDE` 3 B, `ENTITY_CODE` 1 B. The §7.3 deficit of ~350-450 B is a
 **placement** problem and remains exactly as stated. §10.3 decisions 1 and 2
 are untouched.
+
+---
+
+## 6. What was implemented — 2026-09-19
+
+Added by the follow-up implementation session on the same branch. Sections 1-5
+above are the previous session's report and stay as written.
+
+**Owner chose Option 2.** `scripts/runtime-wall-trace.mjs` (`runBootSmoke`,
+the single site of §2) now applies, per session:
+
+| Check | Rule |
+| --- | --- |
+| hard fail | `menu > 3000` and `frontend_poll > 3000` — the owner's 60-second budget |
+| hard fail | `menu > baseline + 50` |
+| warn (stderr, non-blocking) | `menu > baseline + 10` |
+
+The baseline lives in [../boot-deadline-baseline.json](../boot-deadline-baseline.json):
+XEX **392**, ATR **554**, measured 2026-09-19 from this build
+(`ecc9ceda…`, 182 transport sectors). Re-record it deliberately, in the same
+commit as a transport growth, with the reason in the commit message.
+
+The per-session result is written into the report as `boot_deadline`
+(`menu_frame`, `baseline_frames`, `delta_frames`, `warn_at_frames`,
+`fail_at_frames`, `warned`), and the deadline configuration into
+`boot_smoke.deadline`, so the committed report shows what the gate measured
+rather than only whether it passed.
+
+**The §3.1 horizon work was done with it**, because without it a 3,000-frame
+ceiling is unmeasurable:
+
+| Site | Before | After |
+| --- | --- | --- |
+| `atari800-wall-trace.h` session exit | frame 750 | frame **3300** (`DFBOOT_GAMEPLAY_FRAME`) |
+| snapshot frames | `1, 250, 300, 500, 750` | `1, 250, 300, 3050, 3300` |
+| menu proof snapshot | 500 | **3050** (`DFBOOT_MENU_FRAME`) |
+| FIRE press | frames 501-506 | frames 3051-3056 |
+| gameplay proof snapshot | 750 | **3300** |
+| `milestones.main_loop <` | 750 | 3300 |
+| report `frames_observed` / `duration_seconds_pal` | 750 / 15 | 3300 / 66 |
+
+**Why 3050 and 3300.** The menu proof must sit *above* the ceiling, or a boot
+that lands exactly at the ceiling is never observed and the gate is nominal;
+3050 is the smallest round frame above 3,000 with a little slack. Nothing
+presses FIRE before that snapshot, so the build waits in the menu and the
+`game_state == 1` proof holds for a fast boot and a slow one alike. 3300 keeps
+the same 250-frame menu→`main_loop` handoff window the old 500/750 pair gave.
+`readBootDeadline` asserts `absolute_ceiling_frames < BOOT_MENU_FRAME`, so the
+ceiling cannot be raised again without the horizon.
+
+`LOADER_DURATION_FRAMES = 250` is **unchanged**; it did not block this work —
+it is a floor between `loader` and `menu`, not a ceiling.
+
+**Cost.** The boot smoke runs 4 × 3,300 frames instead of 4 × 750: measured
+**~14.5 s** wall clock instead of ~5 s, under `-turbo`. No guest bytes added.
+
+**Measured with the new gate on this build** (`ecc9ceda…`, 182 sectors):
+
+| Session | `menu` | baseline | delta | warn at | fail at | ceiling |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `xex-a5` / `xex-5a` | 392 | 392 | 0 | 402 | 442 | 3000 |
+| `atr-a5` / `atr-5a` | 554 | 554 | 0 | 564 | 604 | 3000 |
+
+**The `transportCapacity` assertions in the six format/layout tests were not
+touched**, as §3.2 requires: they are transport-format pins, not deadline pins.
+
+**The stale committed report of §3.2 was regenerated** in the same session, as
+a separate change: `docs/runtime-wall-trace.json` was `ab682d84…` / ATR menu
+502, against the accepted runtime `ecc9ceda…` at menu 554.

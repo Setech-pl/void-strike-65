@@ -301,6 +301,38 @@ how to run it.
 
 These are the direct inputs to roadmap item 2, the population budget.
 
+## 4.6 data architecture — proposal committed, not approved
+
+[design-4.6-data-architecture.md](design-4.6-data-architecture.md) is committed
+as of 2026-09-19 as a **design proposal**: not implemented, not a build plan,
+and not an accepted scope. It is in the repository so that the owner answers
+recorded against it have something to bind to.
+
+The owner has answered six of its §10 decisions (owner decision 23): levels
+load **from disk** (§10.1 variant B; the BASIC window `$A000-$BFFF` is
+rejected), the ATR menu deadline is **re-based** (§10.3 → decision 22),
+flight paths are **piecewise-linear segments** (§10.4), aimed fire is a
+**column choice at admission** with no angled projectiles (§10.5), difficulty
+scales **spacing but not counts** (§10.6), and the SWARM ceiling to ship is
+**3** with the format allowing 4 (§10.7). §10.2 (the per-sector starfield's
+placement) and §10.8 (the level-1 mapping) remain open.
+
+**§7.4 of that design is void as a risk.** It assumed every 4.6 candidate that
+grows a record decoded before the menu must be presumed to fail boot smoke
+until measured. Under the re-based deadline that is no longer true: at 2 PAL
+frames per occupied 128-byte sector, the full ~745 B resident ask of §7.3
+costs **+6 sectors = +12 frames** (menu 554 → 566, 11.3 s), a 4 KB level bank
+costs +32 sectors = +64 frames, and filling **every** free sector of the
+single-density ATR (538 of them) still reaches the menu at ~1,630 frames
+≈ **32.6 s** — half the 60-second budget, with a completely full disk. The
+loader-ordering mitigation §7.4 proposed, and the rule-89 exception it would
+have needed, are both unnecessary.
+
+**What still constrains 4.6 is resident RAM, not boot time.** `HYBRID_C_ARENA`
+has 215 B free, `BROADSIDE` 3 B, `ENTITY_CODE` 1 B, against a §7.3 deficit of
+roughly 350-450 B. That is a placement problem and it is unchanged by the
+re-basing.
+
 ## Known open defects and open decisions
 
 - PAL fence budget: **relieved but not closed by Option D.** With two Bombers
@@ -335,36 +367,33 @@ These are the direct inputs to roadmap item 2, the population budget.
   invulnerability" in `tests/enemy-combat.test.mjs`. The asymmetry is the
   defect's shape: it is debris, not enemies, that survives the dying/respawn
   window. Carried in the backlog below;
-- boot-smoke margin: the ATR menu deadline (190 + 2 × transport sectors) is
-  met with 0 frames of margin at `3838c00`, at the 4.5a and 4.5b candidates
-  (4.5b: +6 B packed BROADSIDE alone missed it by one frame), with a 239-B
-  Heavy proof payload, at the 4.5M-M2 candidate (177 sectors: deadline 544,
-  menu 544) and at the 4.5M-M3 candidate (178 sectors: deadline 546, menu
-  546); boot CPU added without extra sectors can miss it (it did for the
-  first 4.5a variant). Measured for the Bomber retry: a throwaway arena filled
-  to 832 B (record 363 B packed, 3 sectors, 180 transport sectors) reaches the
-  ATR menu at 551 against deadline 550, one frame late; the XEX is unaffected.
-  The 4.5c Bomber candidate (arena record 355 B, 3 sectors, 180 transport
-  sectors) meets it with 0 frames: menu 550, deadline 550. The 4.5d WIP and
-  the death-frame deferral candidate carry 182 transport sectors, so the
-  derived deadline is 190 + 2 × 182 = 554: ATR menu 554 (0 frames), XEX 392.
-  **Closed as a defect by owner decision 22 (2026-09-18).** The deadline is
-  re-based on the owner's real budget — the menu within 60 s ≈ 3,000 PAL
-  frames — so the zero-frame margin no longer blocks engineering work; 554
-  frames is 11.08 s, under a fifth of the budget. The gate is NOT deleted: a
-  build that suddenly boots twice as slowly is still a bug. The restatement
-  itself is an open owner decision (below) and the implementation is unchanged
-  at this HEAD;
-- open owner decision: how the ATR boot gate is restated after decision 22.
-  Three costed options — an absolute 3,000-frame ceiling; that ceiling plus a
-  delta against a committed baseline (recommended: +50 frames fail, +10 warn);
-  or the old formula with a generous constant `k` — are in
-  [diagnostics/atr-boot-deadline-rebasing.md](diagnostics/atr-boot-deadline-rebasing.md),
-  together with every site that depends on the formula. Executive note: the
-  constant alone is not enough — the boot session exits at frame 750, snapshots
-  are fixed at `1, 250, 300, 500, 750`, and
-  `tests/runtime-wall-trace.test.mjs` requires `game_state == 1` at frame 500,
-  which is today a tighter structural ceiling than the formula;
+- boot-smoke margin: **closed.** The old ATR menu deadline
+  (190 + 2 × transport sectors) was met with 0 frames of margin at every
+  candidate that measured it (`3838c00`; 4.5a and 4.5b — 4.5b's +6 B packed
+  BROADSIDE alone missed it by one frame; a 239-B Heavy proof payload;
+  4.5M-M2 177 sectors, menu 544 / deadline 544; 4.5M-M3 178 sectors, 546/546;
+  4.5c Bomber 180 sectors, 550/550; the 4.5d WIP and the death-frame deferral
+  182 sectors, 554/554), and a throwaway 832-B arena at 180 sectors landed one
+  frame late at 551 vs 550. That zero margin was an artefact: the formula
+  tracked its own growth, so the slack was zero by construction. Owner decision
+  22 (2026-09-18) re-based it on the owner's real budget — the menu within
+  60 s ≈ 3,000 PAL frames — and the restatement is **implemented at this HEAD**
+  (2026-09-19): an absolute ceiling of 3,000 frames, a hard fail at
+  baseline + 50 and a non-blocking warn at baseline + 10, with the baseline in
+  the committed [boot-deadline-baseline.json](boot-deadline-baseline.json)
+  (XEX **392**, ATR **554**, measured on `ecc9ceda…` at 182 transport
+  sectors). The baseline is re-recorded deliberately, in the same commit that
+  grows the transport on purpose, with the reason in the commit message. The
+  gate is NOT deleted: a build that suddenly boots twice as slowly still fails
+  it, and so does an unexplained loader/decode regression with no sector
+  change, because the baseline does not move on its own. The boot harness
+  horizon moved with it — the session now runs to frame 3,300 with snapshots
+  at `1, 250, 300, 3050, 3300` — so a boot at the ceiling is observable
+  instead of nominal; details in
+  [diagnostics/atr-boot-deadline-rebasing.md](diagnostics/atr-boot-deadline-rebasing.md)
+  and in the implementation note under owner decision 22. Every per-candidate
+  "menu N against deadline N" figure recorded further down this file is a
+  historical measurement under the superseded formula;
 - open owner decision: the packed STARFIELD correction gate. At the 4.5M-M1
   candidate the single-stream gates 1,798 / 1,819 B are superseded by the
   two-stream total gates 1,804 (correction) / 1,825 B (hard) against a measured

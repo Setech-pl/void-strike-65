@@ -12,6 +12,19 @@ This is one snapshot. Addresses and linked sizes come from
 come from `build/manifest.json`. Overlapping ranges below have different
 lifetime phases and are not additive free memory.
 
+**Note on the "ATR menu deadline" figures below.** Every `ATR menu deadline N`
+in the transport paragraphs of this file was derived from the old
+`190 + 2 × transport sectors` formula, which owner decision 22 (2026-09-18)
+re-based and which the boot smoke no longer evaluates. Those figures stay as
+written because they are historical measurements, but they state a limit that
+no longer exists. The live gate, implemented 2026-09-19, is an absolute
+ceiling of **3,000 PAL frames** (the owner's 60-second budget) plus a delta
+against the committed baseline in
+[boot-deadline-baseline.json](boot-deadline-baseline.json) — hard fail at
+baseline + 50, warn at baseline + 10. A sector count in this file therefore no
+longer implies a deadline; what it costs is **2 PAL frames per occupied
+128-byte sector** of boot time, against 2,446 frames of headroom.
+
 ## Linked segments
 
 | Range | Size | Current owner |
@@ -609,14 +622,20 @@ table above is unchanged: `BROADSIDE` 6,653 B used / free tail 3 B,
 `ENTITY_CODE` 1 B, `HYBRID_C_ARENA` 617 / 832 B with 215 B free, and no other
 segment moved.** Only compression shifts: the packed BROADSIDE transport goes
 5,642 → 5,644 B (+2 B) in the same 45 sectors, total transport stays 182
-sectors, and the ATR menu milestone stays 554 against its 554-frame deadline
-(190 + 182 x 2) — still zero slack, so any future boot-time decode cost fails
-smoke. Evidence: 0 distinct miss events across 69 audited replays, worst fence
+sectors, and the ATR menu milestone stays **554**, which is the committed boot
+baseline for the ATR medium (see the note at the top of this file: the old
+554-frame identity deadline is superseded; 554 is 11.08 s against a
+3,000-frame / 60-second budget, with 2,446 frames of headroom). Evidence: 0 distinct miss events across 69 audited replays, worst fence
 margin 1,464 cycles, and 0 stale or torn `P1`/`P2` rows across 134,880 traced
 frames.
 
 **Standing rule.** Any commit that changes a segment's size must state the
 resulting free tail in its commit message and update the table above.
+
+**Standing rule.** Any commit that grows the transport on purpose must
+re-record [boot-deadline-baseline.json](boot-deadline-baseline.json) in that
+same commit and state the reason in the commit message. The baseline is data
+under review, not an identity: it must never move on its own.
 
 ## Blocked-experiment evidence — not part of this map
 

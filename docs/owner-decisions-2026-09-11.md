@@ -746,3 +746,52 @@ robi zrzuty w stałych klatkach `1, 250, 300, 500, 750`, a
 Dzisiejszym najciaśniejszym sufitem strukturalnym jest ta klatka 500, a nie
 formuła; szczegóły i pułapka nieaktualnego `docs/runtime-wall-trace.json` — w
 raporcie diagnostycznym powyżej.
+
+### Implementacja restatementu — 2026-09-19
+
+Właściciel wybrał **wariant 2** z raportu: sufit bezwzględny **plus** delta do
+commitowanego baseline'u. Zaimplementowane w `scripts/runtime-wall-trace.mjs`
+(jedno miejsce, `runBootSmoke`):
+
+- **hard fail** przy `menu > 3000` klatek — budżet 60 s właściciela;
+- **hard fail** przy `menu > baseline + 50`;
+- **warn** (niebłokujący, na stderr) przy `menu > baseline + 10`;
+- baseline w commitowanym [boot-deadline-baseline.json](boot-deadline-baseline.json):
+  XEX **392**, ATR **554** (zmierzone 2026-09-19 na `ecc9ceda…`, 182 sektory
+  transportu). Baseline re-rejestruje się **świadomie**, w tym samym commicie,
+  w którym transport rośnie celowo, z powodem w treści commita.
+
+Podniesiony został też horyzont harnessu, bo wiązał ciaśniej niż sama formuła:
+sesja bootu kończy się teraz na klatce **3300** (było 750), zrzuty stanu
+wykonywane są w klatkach `1, 250, 300, 3050, 3300` (było `1, 250, 300, 500,
+750`), dowód menu to klatka **3050** (ponad sufitem 3 000, więc boot dokładnie
+na granicy sufitu jest jeszcze obserwowalny), FIRE naciskany jest w klatkach
+3051-3056, a dowód gameplayu to klatka **3300** — te same 250 klatek na
+handoff, które dawała para 500/750. `LOADER_DURATION_FRAMES = 250` pozostaje
+bez zmian; nie blokował tej pracy. Koszt: boot smoke trwa ~14,5 s zamiast ~5 s.
+
+Gate ma teraz asercję samokontrolną: sufit musi pozostać **poniżej** klatki
+zrzutu menu, więc nie da się podnieść sufitu bez podniesienia horyzontu.
+
+---
+
+## 23. Odpowiedzi na §10 projektu 4.6 — OWNER-ACCEPTED (2026-09-19)
+
+Dotyczy [design-4.6-data-architecture.md](design-4.6-data-architecture.md) §10.
+Sam projekt **pozostaje niezatwierdzony** — jest commitowany jako propozycja
+projektowa, nie jako plan wykonawczy. Poniższe odpowiedzi wiążą, reszta §10
+jest nadal otwarta.
+
+| §10 | Decyzja |
+| --- | --- |
+| 1. Gdzie mieszka osiem poziomów | **Wariant B: poziomy ładowane z dyskietki.** Okno BASIC `$A000-$BFFF` (wariant A) **odrzucone**. Konsekwencje wariantu B obowiązują: ADR-004 zostaje zastąpione, dochodzi rezydentny czytnik `SIOV`, stan wyświetlania na czas ładowania i walidacja sprzętowa na realnym SIO2SD. |
+| 2. Starfield per-sektor | **OTWARTE.** |
+| 3. Świętość formuły deadline'u ATR | **Odpowiedziane decyzją 22** (nie jest święta; re-bazowana na 60 s). Restatement zaimplementowany 2026-09-19 — patrz nota przy decyzji 22. |
+| 4. Kształt ścieżek lotu | **Odcinki piecewise-linear** (propozycja projektu). Bez tablicy sinusów. |
+| 5. Ogień celowany | **Wybór kolumny przy admisji.** Pociski pod kątem **odrzucone** — nie otwieramy zadania renderera przed 4.6. |
+| 6. Model trudności | **Skalowane odstępy, nieskalowane liczebności**, sufity nigdy nieskalowane (propozycja projektu). Wariant „HARD +1 do liczebności Light" odrzucony. |
+| 7. Sufit SWARM do wysyłki | **3.** Format dopuszcza 4; rezydentna tablica decyduje, co runtime admituje. |
+| 8. Mapowanie poziomu 1 | **OTWARTE.** |
+
+Odpowiedź na §10.1 nie zmienia ograniczenia 4.6: wiążące pozostaje rezydentne
+RAM, nie czas bootu (decyzja 22).

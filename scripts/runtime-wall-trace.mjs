@@ -1465,7 +1465,34 @@ function sessionSummary(session, rows) {
   };
 }
 
-function runBootSmoke({ emulatorPath, labels, manifest, xexPath, atrPath }) {
+// Boot-smoke observation horizon, mirrored from scripts/atari800-wall-trace.h
+// (DFBOOT_MENU_FRAME / DFBOOT_GAMEPLAY_FRAME). The menu proof snapshot sits
+// above the 3,000-frame owner ceiling so that a slow-but-legal boot is
+// observable at all; the gameplay proof snapshot keeps the 250-frame handoff
+// window the old frame-500/750 pair provided.
+const BOOT_MENU_FRAME = 3050;
+const BOOT_GAMEPLAY_FRAME = 3300;
+const BOOT_SNAPSHOT_FRAMES = [1, 250, 300, BOOT_MENU_FRAME, BOOT_GAMEPLAY_FRAME];
+const bootDeadlineRelativePath = "docs/boot-deadline-baseline.json";
+
+function readBootDeadline() {
+  const deadline = JSON.parse(fs.readFileSync(
+    path.join(rootDirectory, bootDeadlineRelativePath), "utf8"));
+  invariant(Number.isInteger(deadline.absolute_ceiling_frames) &&
+    Number.isInteger(deadline.delta_fail_frames) &&
+    Number.isInteger(deadline.delta_warn_frames) &&
+    deadline.delta_warn_frames <= deadline.delta_fail_frames &&
+    deadline.baseline && typeof deadline.baseline === "object",
+  `${bootDeadlineRelativePath} is not a well-formed boot deadline baseline`);
+  invariant(deadline.absolute_ceiling_frames < BOOT_MENU_FRAME,
+    `${bootDeadlineRelativePath} ceiling ${deadline.absolute_ceiling_frames} is at or ` +
+    `above the boot-smoke menu snapshot frame ${BOOT_MENU_FRAME}; a boot at the ceiling ` +
+    "would not be observable, so raise the harness horizon with it");
+  return deadline;
+}
+
+function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
+  const bootDeadline = readBootDeadline();
   const outputDirectory = path.join(buildDirectory, "boot-smoke");
   fs.mkdirSync(outputDirectory, { recursive: true });
   const addressEnvironment = {};
@@ -1527,13 +1554,14 @@ function runBootSmoke({ emulatorPath, labels, manifest, xexPath, atrPath }) {
     const result = JSON.parse(fs.readFileSync(outputPath, "utf8"));
     invariant(result.artifact === definition.id && result.cold_ram_fill === definition.fill,
       `${definition.id} boot-smoke identity differs from its invocation`);
-    invariant(result.snapshots.map(({ frame }) => frame).join(",") === "1,250,300,500,750",
-      `${definition.id} did not capture all five required PAL frames`);
+    invariant(result.snapshots.map(({ frame }) => frame).join(",") ===
+      BOOT_SNAPSHOT_FRAMES.join(","),
+    `${definition.id} did not capture all five required PAL frames`);
     const byFrame = new Map(result.snapshots.map((snapshot) => [snapshot.frame, snapshot]));
     const loader250 = byFrame.get(250);
     const loader300 = byFrame.get(300);
-    const menu = byFrame.get(500);
-    const gameplay = byFrame.get(750);
+    const menu = byFrame.get(BOOT_MENU_FRAME);
+    const gameplay = byFrame.get(BOOT_GAMEPLAY_FRAME);
     const completeLoaderSnapshots = [loader250, loader300].filter((snapshot) =>
       snapshot.dma_ctl === 0x22 && snapshot.nmi_en === 0x80);
     invariant(completeLoaderSnapshots.includes(loader300),
@@ -1549,25 +1577,68 @@ function runBootSmoke({ emulatorPath, labels, manifest, xexPath, atrPath }) {
         loader250.loader_timer > loader300.loader_timer),
     `${definition.id} loader countdown did not advance through frame 300`);
     const milestones = result.milestones;
-    // Native SIO consumes at most two PAL frames per occupied 128-byte sector.
-    // Derive the ATR deadline from the manifest so a legal extension cannot
-    // fail smoke merely because its transport gained reviewed sectors.
-    const menuDeadline = definition.id.startsWith("atr")
-      ? 190 + manifest.transportCapacity.totalTransportSectors * 2
-      : 502;
-    invariant(milestones.menu <= menuDeadline && milestones.frontend_poll <= menuDeadline + 1,
-      `${definition.id} did not reach the production main-menu input path by frame ${menuDeadline + 1}`);
+    // Owner decision 22 (2026-09-18) re-bases this deadline. The old
+    // `190 + 2 x transport sectors` formula was an identity tracking its own
+    // growth: every new sector raised both the cost and the limit, so the
+    // margin stayed zero by construction and a load-time budget nobody chose
+    // shaped engineering decisions. Two independent numbers replace it:
+    //   * an absolute ceiling — the owner's real budget, the main menu within
+    //     60 s = 3,000 PAL frames;
+    //   * a delta against a committed baseline, which does not move on its
+    //     own, so an unexplained loader/decode regression with no sector
+    //     change is still caught.
+    // The gate is NOT deleted: a build that suddenly boots twice as slowly is
+    // still a bug. Growth is visible and deliberate instead of forbidden —
+    // when the transport grows on purpose, re-record
+    // `docs/boot-deadline-baseline.json` in the same commit and state the
+    // reason in the commit message.
+    const medium = definition.id.startsWith("atr") ? "atr" : "xex";
+    const baselineMenu = bootDeadline.baseline[`${medium}_menu_frames`];
+    invariant(Number.isInteger(baselineMenu),
+      `${bootDeadlineRelativePath} has no ${medium}_menu_frames baseline`);
+    const ceiling = bootDeadline.absolute_ceiling_frames;
+    invariant(milestones.menu <= ceiling && milestones.frontend_poll <= ceiling,
+      `${definition.id} did not reach the production main-menu input path within the ` +
+      `${ceiling}-frame (${(ceiling / 50).toFixed(0)} s PAL) owner budget: menu ` +
+      `${milestones.menu}, frontend_poll ${milestones.frontend_poll}`);
+    const menuDelta = milestones.menu - baselineMenu;
+    invariant(menuDelta <= bootDeadline.delta_fail_frames &&
+      milestones.frontend_poll <= baselineMenu + bootDeadline.delta_fail_frames + 1,
+    `${definition.id} reached the main menu at frame ${milestones.menu}, ` +
+      `${menuDelta} frames over the committed baseline ${baselineMenu} (fail band ` +
+      `+${bootDeadline.delta_fail_frames}). If the transport grew on purpose, ` +
+      `re-record ${bootDeadlineRelativePath} in the same commit and say why.`);
+    const menuDeadlineWarned = menuDelta > bootDeadline.delta_warn_frames;
+    if (menuDeadlineWarned) {
+      process.stderr.write(`warning: ${definition.id} reached the main menu at frame ` +
+        `${milestones.menu}, ${menuDelta} frames over the committed baseline ` +
+        `${baselineMenu} (warn band +${bootDeadline.delta_warn_frames}, fail band ` +
+        `+${bootDeadline.delta_fail_frames})\n`);
+    }
+    const bootDeadlineResult = {
+      medium: medium.toUpperCase(),
+      menu_frame: milestones.menu,
+      frontend_poll_frame: milestones.frontend_poll,
+      baseline_frames: baselineMenu,
+      delta_frames: menuDelta,
+      absolute_ceiling_frames: ceiling,
+      warn_at_frames: baselineMenu + bootDeadline.delta_warn_frames,
+      fail_at_frames: baselineMenu + bootDeadline.delta_fail_frames,
+      warned: menuDeadlineWarned,
+    };
     invariant(gameplay.game_state === 6 && gameplay.charset_address === 0x5000 &&
       gameplay.pm_base === 0x3800 && gameplay.dma_ctl === 0x3e &&
       gameplay.nmi_en === 0x80 && gameplay.vdslst === expected.gameplay_dli &&
       gameplay.dlist >= expected.playfield_dlist_a &&
       gameplay.dlist < expected.playfield_dlist_b + expected.playfield_dlist_bytes,
-    `${definition.id} did not reach the legal gameplay display/VBI path by frame 750`);
+    `${definition.id} did not reach the legal gameplay display/VBI path by frame ` +
+      `${BOOT_GAMEPLAY_FRAME}`);
     invariant(Object.values(milestones).every((frame) => frame !== 0xffffffff) &&
       milestones.start < milestones.loader && milestones.loader < milestones.menu &&
       milestones.menu <= milestones.frontend_poll &&
       milestones.frontend_poll < milestones.gameplay_init &&
-      milestones.gameplay_init <= milestones.main_loop && milestones.main_loop < 750,
+      milestones.gameplay_init <= milestones.main_loop &&
+      milestones.main_loop < BOOT_GAMEPLAY_FRAME,
     `${definition.id} did not execute the complete loader-to-gameplay handoff`);
     if (definition.id.startsWith("xex")) {
       invariant(menu.runad === expected.xex_entry,
@@ -1576,7 +1647,7 @@ function runBootSmoke({ emulatorPath, labels, manifest, xexPath, atrPath }) {
       invariant(menu.dosvec === expected.start,
         `${definition.id} ATR DOSVEC does not point at the game entry`);
     }
-    const screenshots = [1, 250, 300, 500, 750].map((frame) => {
+    const screenshots = BOOT_SNAPSHOT_FRAMES.map((frame) => {
       const screenshotPath = `${screenshotPrefix}-frame${String(frame).padStart(3, "0")}.png`;
       invariant(fs.existsSync(screenshotPath),
         `${definition.id} screenshot is missing for frame ${frame}`);
@@ -1608,6 +1679,7 @@ function runBootSmoke({ emulatorPath, labels, manifest, xexPath, atrPath }) {
       },
       snapshots: result.snapshots,
       milestones,
+      boot_deadline: bootDeadlineResult,
       screenshots,
       passed: true,
     };
@@ -1615,19 +1687,29 @@ function runBootSmoke({ emulatorPath, labels, manifest, xexPath, atrPath }) {
 
   const gameplayScreenshots = sessions.map((session) => ({
     artifact: session.artifact,
-    sha256: session.screenshots.find(({ frame }) => frame === 750).sha256,
+    sha256: session.screenshots.find(({ frame }) => frame === BOOT_GAMEPLAY_FRAME).sha256,
   }));
 
   const evidence = {
     emulator: "Atari800 7.1.2 PAL/XL",
-    frames_observed: 750,
-    duration_seconds_pal: 15,
+    frames_observed: BOOT_GAMEPLAY_FRAME,
+    duration_seconds_pal: BOOT_GAMEPLAY_FRAME / 50,
     guest_instrumentation_bytes: 0,
     cold_ram_range: "$8000-$9FFF",
-    input: "production joystick path; FIRE pressed on host frames 501-506",
+    input: `production joystick path; FIRE pressed on host frames ` +
+      `${BOOT_MENU_FRAME + 1}-${BOOT_MENU_FRAME + 6}`,
     expected_addresses: expected,
+    menu_snapshot_frame: BOOT_MENU_FRAME,
+    gameplay_snapshot_frame: BOOT_GAMEPLAY_FRAME,
+    deadline: {
+      absolute_ceiling_frames: bootDeadline.absolute_ceiling_frames,
+      delta_fail_frames: bootDeadline.delta_fail_frames,
+      delta_warn_frames: bootDeadline.delta_warn_frames,
+      baseline: bootDeadline.baseline,
+      baseline_path: bootDeadlineRelativePath,
+    },
     sessions,
-    frame_750_gameplay_sha256: gameplayScreenshots,
+    gameplay_frame_sha256: gameplayScreenshots,
     passed: sessions.every(({ passed }) => passed),
   };
   fs.writeFileSync(path.join(outputDirectory, "report.json"),
@@ -2142,7 +2224,7 @@ function main() {
     return;
   }
   const bootSmoke = skipBootSmoke ? null :
-    runBootSmoke({ emulatorPath, labels, manifest, xexPath, atrPath });
+    runBootSmoke({ emulatorPath, labels, xexPath, atrPath });
   if (bootSmoke !== null)
     console.log(`Boot smoke: ${bootSmoke.sessions.length} XEX/ATR cold-start sessions passed`);
   if (bootSmokeOnly) {

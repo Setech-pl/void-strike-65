@@ -1,0 +1,18 @@
+{
+  "description": "Boot-smoke main-menu deadline, owner decision 22 (2026-09-18). Two independent numbers replace the self-tracking `190 + 2 x transport sectors` identity: an absolute ceiling that states the owner's real budget, and a delta against the baseline below. Re-record `baseline` deliberately, in the same commit as the change that grows the transport on purpose, and state the reason in the commit message.",
+  "absolute_ceiling_frames": 3000,
+  "delta_fail_frames": 50,
+  "delta_warn_frames": 10,
+  "baseline": {
+    "xex_menu_frames": 392,
+    "atr_menu_frames": 554
+  },
+  "recorded": {
+    "date": "2026-09-19",
+    "branch": "wip/4.5d-gate-fail",
+    "runtime_checkpoint": "0002d84",
+    "xex_sha256": "ecc9cedafd87f871989fc0b279343d1848c225792bf17e5be4ad9fadd1f7d3c7",
+    "total_transport_sectors": 182,
+    "reason": "First baseline under owner decision 22; measured from the accepted runtime checkpoint."
+  }
+}

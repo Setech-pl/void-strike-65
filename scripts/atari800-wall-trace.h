@@ -798,6 +798,15 @@ static unsigned dfboot_loader_timer;
 static unsigned dfboot_game_state;
 static unsigned dfboot_main_menu_dlist;
 static unsigned dfboot_frontend_dlist_end;
+/* Boot-smoke observation horizon. Owner decision 22 re-bases the ATR menu
+ * deadline on a 60-second budget (3,000 PAL frames), so the session must stay
+ * alive past that ceiling for a slow-but-legal boot to be observable at all.
+ * The menu proof snapshot therefore sits just above the ceiling, FIRE is
+ * pressed after it, and the gameplay proof snapshot keeps the same 250-frame
+ * handoff window the frame-500/750 pair used to provide. */
+#define DFBOOT_MENU_FRAME 3050u
+#define DFBOOT_GAMEPLAY_FRAME 3300u
+
 static unsigned dfboot_snapshots_count;
 static unsigned dfboot_loader_dli_count;
 static uint64_t dfboot_same_frame_instructions;
@@ -844,7 +853,7 @@ static unsigned dfboot_checksum(unsigned address, unsigned length)
 static int dfboot_target_frame(unsigned frame)
 {
 	return frame == 1u || frame == 250u || frame == 300u ||
-		frame == 500u || frame == 750u;
+		frame == DFBOOT_MENU_FRAME || frame == DFBOOT_GAMEPLAY_FRAME;
 }
 
 static void dfboot_capture(unsigned frame, unsigned pc)
@@ -1021,16 +1030,17 @@ static void dfboot_observe(unsigned pc, unsigned a_register, unsigned x_register
 		dfboot_seen_main = frame;
 
 	/* Drive the production menu input path: neutral through the loader/menu,
-	 * then a short FIRE press after the frame-500 proof snapshot. */
+	 * then a short FIRE press after the menu proof snapshot. */
 	PIA_PORT_input[0] = (PIA_PORT_input[0] & 0xf0u) | 0x0fu;
 	fire_start = dfboot_seen_frontend == 0xffffffffu ? 0xffffffffu :
-		(dfboot_seen_frontend + 2u < 501u ? 501u : dfboot_seen_frontend + 2u);
+		(dfboot_seen_frontend + 2u < DFBOOT_MENU_FRAME + 1u ?
+			DFBOOT_MENU_FRAME + 1u : dfboot_seen_frontend + 2u);
 	GTIA_TRIG[0] = (UBYTE) (frame >= fire_start && frame <= fire_start + 5u ? 0 : 1);
 	if (frame != dfboot_last_frame) {
 		dfboot_last_frame = frame;
 		if (dfboot_target_frame(frame))
 			dfboot_capture(frame, pc);
-		if (frame > 750u) {
+		if (frame > DFBOOT_GAMEPLAY_FRAME) {
 			dfboot_write();
 			fflush(NULL);
 			exit(0);

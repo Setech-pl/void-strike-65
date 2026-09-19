@@ -74,11 +74,16 @@ test("wall trace is artifact-bound and adds no guest timing work", () => {
   assert.equal(report.instrumentation.production_nmi_en, 0x80);
 });
 
-test("real Atari800 XEX/ATR cold boots reach visible gameplay by frame 750", () => {
+test("real Atari800 XEX/ATR cold boots reach visible gameplay inside the boot horizon", () => {
   const smoke = report.boot_smoke;
   assert.equal(smoke.emulator, "Atari800 7.1.2 PAL/XL");
-  assert.equal(smoke.frames_observed, 750);
-  assert.equal(smoke.duration_seconds_pal, 15);
+  // The horizon must stay above the owner's 3,000-frame (60 s PAL) ceiling,
+  // or a slow-but-legal boot is unobservable and the gate is nominal only.
+  assert.equal(smoke.menu_snapshot_frame, 3050);
+  assert.equal(smoke.gameplay_snapshot_frame, 3300);
+  assert.ok(smoke.deadline.absolute_ceiling_frames < smoke.menu_snapshot_frame);
+  assert.equal(smoke.frames_observed, smoke.gameplay_snapshot_frame);
+  assert.equal(smoke.duration_seconds_pal, smoke.gameplay_snapshot_frame / 50);
   assert.equal(smoke.guest_instrumentation_bytes, 0);
   assert.equal(smoke.cold_ram_range, "$8000-$9FFF");
   assert.equal(smoke.sessions.length, 4);
@@ -88,30 +93,43 @@ test("real Atari800 XEX/ATR cold boots reach visible gameplay by frame 750", () 
   ]);
   for (const session of smoke.sessions) {
     assert.equal(session.passed, true);
-    assert.deepEqual(session.snapshots.map(({ frame }) => frame), [1, 250, 300, 500, 750]);
+    assert.deepEqual(session.snapshots.map(({ frame }) => frame),
+      [1, 250, 300, smoke.menu_snapshot_frame, smoke.gameplay_snapshot_frame]);
     const byFrame = new Map(session.snapshots.map((snapshot) => [snapshot.frame, snapshot]));
     assert.ok(byFrame.get(250).loader_timer > byFrame.get(300).loader_timer);
+    const menuSnapshot = byFrame.get(smoke.menu_snapshot_frame);
+    const gameplaySnapshot = byFrame.get(smoke.gameplay_snapshot_frame);
     assert.deepEqual([
-      byFrame.get(500).loader_timer,
-      byFrame.get(500).game_state,
-      byFrame.get(500).dlist,
-      byFrame.get(500).charset_address,
-      byFrame.get(500).dma_ctl,
-      byFrame.get(500).nmi_en,
+      menuSnapshot.loader_timer,
+      menuSnapshot.game_state,
+      menuSnapshot.dlist,
+      menuSnapshot.charset_address,
+      menuSnapshot.dma_ctl,
+      menuSnapshot.nmi_en,
     ], [0, 1, smoke.expected_addresses.main_menu_dlist, 0x4800, 0x22, 0x80]);
     assert.deepEqual([
-      byFrame.get(750).game_state,
-      byFrame.get(750).charset_address,
-      byFrame.get(750).dma_ctl,
-      byFrame.get(750).nmi_en,
-      byFrame.get(750).vdslst,
+      gameplaySnapshot.game_state,
+      gameplaySnapshot.charset_address,
+      gameplaySnapshot.dma_ctl,
+      gameplaySnapshot.nmi_en,
+      gameplaySnapshot.vdslst,
     ], [6, 0x5000, 0x3e, 0x80, smoke.expected_addresses.gameplay_dli]);
     assert.ok(session.milestones.start < session.milestones.loader);
     assert.ok(session.milestones.loader < session.milestones.menu);
     assert.ok(session.milestones.menu <= session.milestones.frontend_poll);
     assert.ok(session.milestones.frontend_poll < session.milestones.gameplay_init);
     assert.ok(session.milestones.gameplay_init <= session.milestones.main_loop);
-    assert.ok(session.milestones.main_loop < 750);
+    assert.ok(session.milestones.main_loop < smoke.gameplay_snapshot_frame);
+    // Owner decision 22: an absolute ceiling plus a committed baseline delta,
+    // not the old `190 + 2 x transport sectors` identity.
+    const deadline = session.boot_deadline;
+    assert.equal(deadline.menu_frame, session.milestones.menu);
+    assert.equal(deadline.baseline_frames,
+      smoke.deadline.baseline[`${deadline.medium.toLowerCase()}_menu_frames`]);
+    assert.equal(deadline.delta_frames, deadline.menu_frame - deadline.baseline_frames);
+    assert.ok(deadline.menu_frame <= smoke.deadline.absolute_ceiling_frames);
+    assert.ok(deadline.delta_frames <= smoke.deadline.delta_fail_frames);
+    assert.equal(deadline.warned, deadline.delta_frames > smoke.deadline.delta_warn_frames);
     assert.equal(session.screenshots.length, 5);
     assert.ok(session.screenshots.every(({ bytes, sha256 }) =>
       bytes > 0 && /^[0-9a-f]{64}$/.test(sha256)));

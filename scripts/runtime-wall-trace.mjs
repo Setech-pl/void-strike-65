@@ -702,7 +702,7 @@ const numericCsvFields = new Set([
   "pause_timer_after", "pause_engine_timer_before", "pause_engine_timer_after",
   "pause_engine_phase_before", "pause_engine_phase_after", "pause_host_frames",
 ]);
-for (const slot of [0, 1]) for (const field of ["domain", "row", "pointer", "cell"])
+for (const slot of [0, 1]) for (const field of ["domain", "row", "pointer", "cell", "writer_pc"])
   numericCsvFields.add(`muzzle${slot}_${field}`);
 for (const field of ["muzzle_code_cells", "muzzle_illegal_cells", "muzzle_pointer_errors",
   "muzzle_illegal_address", "muzzle_illegal_code",

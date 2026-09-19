@@ -130,6 +130,13 @@ typedef struct {
 	unsigned muzzle_row[2];
 	unsigned muzzle_pointer[2];
 	unsigned muzzle_cell[2];
+	/* Diagnostic-only: the PC that last wrote the tracked muzzle's own cell,
+	 * read straight out of dftrace_character_last_writer[] at snapshot time.
+	 * 0 when the slot is inactive or nothing has ever written that cell.
+	 * This names the writer that left the cell in the state muzzle_cell[]
+	 * reports — in particular the one that erased a tracked muzzle glyph
+	 * after redraw_tracked_muzzles published it. */
+	unsigned muzzle_cell_writer_pc[2];
 	unsigned muzzle_code_cells;
 	unsigned muzzle_illegal_cells;
 	/* Diagnostic-only: address and character code of the FIRST orphan cell
@@ -4208,6 +4215,8 @@ static void dftrace_snapshot_muzzles(DFTraceFrame *frame)
 		frame->muzzle_row[slot] = row;
 		frame->muzzle_pointer[slot] = pointer;
 		frame->muzzle_cell[slot] = pointer == 0u ? 0u : MEMORY_mem[pointer];
+		frame->muzzle_cell_writer_pc[slot] = pointer == 0u ? 0u :
+			dftrace_character_last_writer[pointer];
 		if (MEMORY_mem[dftrace_muzzle_screen_hi + slot] != 0u) {
 			++frame->active_muzzles;
 			if (pointer != expected || frame->muzzle_domain[slot] != (row == 0u ? 0u : 1u))
@@ -4408,8 +4417,9 @@ static void dftrace_write(void)
 		",player_x,player_y,prior,player_erase_calls,player_draw_calls"
 		",player_erase_scanline,player_draw_scanline");
 	for (index = 0; index < 2u; ++index)
-		fprintf(file, ",muzzle%u_domain,muzzle%u_row,muzzle%u_pointer,muzzle%u_cell",
-			index, index, index, index);
+		fprintf(file, ",muzzle%u_domain,muzzle%u_row,muzzle%u_pointer,muzzle%u_cell"
+			",muzzle%u_writer_pc",
+			index, index, index, index, index);
 	fprintf(file, ",muzzle_code_cells,muzzle_illegal_cells"
 		",muzzle_illegal_address,muzzle_illegal_code,muzzle_pointer_errors"
 		",muzzle_divider_allied,muzzle_divider_enemy");
@@ -4613,9 +4623,9 @@ static void dftrace_write(void)
 			frame->player_erase_calls, frame->player_draw_calls,
 			frame->player_erase_scanline, frame->player_draw_scanline);
 		for (unsigned slot = 0; slot < 2u; ++slot)
-			fprintf(file, ",%u,%u,%u,%u", frame->muzzle_domain[slot],
+			fprintf(file, ",%u,%u,%u,%u,%u", frame->muzzle_domain[slot],
 				frame->muzzle_row[slot], frame->muzzle_pointer[slot],
-				frame->muzzle_cell[slot]);
+				frame->muzzle_cell[slot], frame->muzzle_cell_writer_pc[slot]);
 		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u", frame->muzzle_code_cells,
 			frame->muzzle_illegal_cells, frame->muzzle_illegal_address,
 			frame->muzzle_illegal_code, frame->muzzle_pointer_errors,

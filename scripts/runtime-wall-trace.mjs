@@ -732,6 +732,9 @@ for (const name of [
   "pickup_draw_cycle",
   "pickup_glyph_cells_before", "pickup_glyph_cells_after",
   "pickup_footprints_before", "pickup_footprints_after",
+  // The missile-plane row count. Read by the pickup contact/collection
+  // invariants below, which need it as a number, not as CSV text.
+  "pickup_pmg_rows",
   "pickup_first_overwrite_pc", "pickup_first_overwrite_address",
   "pickup_first_overwrite_value", "pickup_first_overwrite_scanline",
   "engine_timer", "engine_phase", "corridor_phase", "ring_flags",
@@ -2987,17 +2990,45 @@ function main() {
       // other one: the first pickup_state 2 frame is still $00 because the
       // sample precedes that frame's PMG setup, and the release frame still
       // reads $10. No trace column separates those cases -- pickup_pmg_rows is
-      // 16 on the $00 boundary row as well -- so the gate accepts both values
-      // and keeps pinning the single erase/draw lifecycle below.
+      // 16 on the $00 boundary row as well -- so the gate accepts both values.
+      //
+      // pickup_draw_calls no longer counts draws. Commit 04ae0a6 repointed
+      // DFTRACE_PC_ENTITY_DRAW from render_weapon_pickup_overlay to
+      // update_fighter_pickup_pmg (:485), which is the movement/collection/
+      // booster policy wrapper (src/main.s:10415) and writes no pixels; the
+      // real renderer is render_fighter_pickup_pmg and is not traced. The
+      // wrapper is entered once on every gameplay frame, so `=== 1` held on
+      // all 500 post-collection frames of this trace with no capsule on
+      // screen: it asserted nothing. No column counts renderer entries, so
+      // "exactly one draw" is not assertable here. The clause is repointed to
+      // pickup_pmg_rows, which measures the published result directly -- the
+      // capsule's 16 missile rows must be on the plane for every contact
+      // frame (post-collection frames of the same trace read 0/2/4/6).
+      // pickup_erase_calls is unaffected: DFTRACE_PC_ENTITY_ERASE is
+      // clear_fighter_pickup_pmg, which does zero the missile rows.
       invariant(contactRows.every((row) => (row.prior === 0x00 || row.prior === 0x10) &&
-        row.pickup_erase_calls === 1 && row.pickup_draw_calls === 1 &&
+        row.pickup_erase_calls === 1 && row.pickup_pmg_rows === 16 &&
         row.pickup_erase_scanline > row.pickup_prev_y &&
         row.pickup_draw_scanline !== 0),
-      `${session.id} changed GTIA priority or the single erase/draw lifecycle`);
+      `${session.id} changed GTIA priority, the single erase, or the published `
+      + `16-row missile capsule at player contact`);
       const collectionRows = rows.filter((row) => (row.events & (1 << 19)) !== 0);
+      // The fourth sub-clause was `pickup_draw_calls === 0`, and it has been
+      // unsatisfiable by construction since 04ae0a6 (see the contact clause
+      // above). While DFTRACE_PC_ENTITY_DRAW was bound to
+      // render_weapon_pickup_overlay -- a character-overlay renderer reachable
+      // only when ENTITY_ACTIVE_MASK != 0 -- the three sub-clauses formed one
+      // coherent statement: collection cleared the mask, so the capsule glyph
+      // was not redrawn on the collection frame. After the rebinding the
+      // counter names the policy wrapper, through which the collection itself
+      // passes, so it reads 1 on the collection frame and can never read 0.
+      // pickup_pmg_rows restores the original intent against the plane the
+      // capsule is actually drawn on: it goes 16 -> 0 on the collection frame
+      // and stays 0.
       invariant(collectionRows.length === 1 && collectionRows[0].pickup_booster_state === 3 &&
-        collectionRows[0].entity_active_mask === 0 && collectionRows[0].pickup_draw_calls === 0,
-      `${session.id} did not collect and activate exactly once`);
+        collectionRows[0].entity_active_mask === 0 && collectionRows[0].pickup_pmg_rows === 0,
+      `${session.id} did not collect and activate exactly once, or left the `
+      + `capsule on the missile plane after collection`);
       const images = paths.map((framePath) =>
         decodeAtari800Screenshot(fs.readFileSync(framePath)));
       const steelCounts = images.map((image) => countRgb(image, [13, 58, 115], {

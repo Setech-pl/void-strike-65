@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-09-18
+Last update: 2026-09-19
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -395,8 +395,8 @@ re-basing.
   "menu N against deadline N" figure recorded further down this file is a
   historical measurement under the superseded formula;
 - **`docs/runtime-wall-trace.json` is stale and cannot be regenerated —
-  `BLOCKED_PICKUP_COLLECTION_DRAW_CALL`** (measured 2026-09-19, re-measured
-  after the pin fix the same day). The committed
+  `BLOCKED_PICKUP_CONTACT_STEEL_WINDOW`** (measured 2026-09-19, re-measured
+  twice the same day after each pin fix). The committed
   report is from 2026-09-05: `artifact.sha256` `ab682d84…` and ATR boot-smoke
   `menu` **502**, against the accepted runtime `ecc9ceda…` at menu **554**.
   `tests/runtime-wall-trace.test.mjs` reads that file rather than a live run,
@@ -413,13 +413,40 @@ re-basing.
   M0-M3 use COLPF3", released back to `$00` at `src/main.s:9823`). Under the
   owner decision of 2026-09-19 that clause now accepts **both** `$00` and `$10`
   (both are correct in the sampled window and no trace column
-  separates them), and it passes. The report is still not written: the same run
-  now aborts one clause later, at `runtime-wall-trace.mjs:2998`, on
-  `pickup_draw_calls === 0`, which measures **1** on the single collection
-  frame (frame 396; `collectionRows.length`, `pickup_booster_state` and
-  `entity_active_mask` all pass). Whether that draw is legitimate runtime
-  behaviour or a defect in the collection path is **undetermined**; the gate
-  was not widened further. A **second** stale pin was found in
+  separates them), and it passes. Under a second owner decision the same day
+  the two `pickup_draw_calls` clauses were repointed as well, with the root
+  cause established: **commit `04ae0a6` (2026-09-11, "feat: prototype row-baked
+  far stars") silently rebound three pickup trace PCs from renderers to PMG
+  routines in a single hunk** — `DFTRACE_PC_ENTITY_DRAW` went from
+  `render_weapon_pickup_overlay`, a character-overlay renderer reachable only
+  when `ENTITY_ACTIVE_MASK != 0`, to `update_fighter_pickup_pmg`, the policy
+  wrapper at `src/main.s:10415` that writes no pixels and through which the
+  collection itself passes. The collection clause `pickup_draw_calls === 0` has
+  therefore been **unsatisfiable by construction since that day**, and the
+  contact clause `pickup_draw_calls === 1` survived only by coincidence,
+  asserting merely that the wrapper was entered — true on all 500
+  post-collection frames of the same trace with no capsule on screen. Both are
+  now repointed to `pickup_pmg_rows`, which measures the missile plane
+  directly (`16` on every contact row; `16 -> 0` on collection frame 396 and 0
+  thereafter), both pass, and each assertion site records why the old pin was
+  unsatisfiable, naming `04ae0a6`. **The consequence of that rebinding was
+  documented in
+  [diagnostics/stage-2b2d-pickup-raster-invisibility.json](diagnostics/stage-2b2d-pickup-raster-invisibility.json)
+  but the rebinding itself was not — which is why an unsatisfiable pin survived
+  undetected for eight days and cost two sessions.** Standing rule from this:
+  *a commit that repoints a trace PC must say so in its message and must
+  re-verify every gate that reads that PC.*
+  The report is still not written. The run now advances past both pickup
+  trace-PC clauses and aborts at `runtime-wall-trace.mjs:3037` on a
+  **different kind of clause** — a screenshot pixel count, not a trace PC:
+  the steel colour `rgb(13,58,115)` is counted in the window `x 140-164,
+  y 8-216` and measures **0 on all 11 captured contact frames**, so the `>= 40`
+  head clause fails on the first frame; the steel pixels do exist (32, then 24)
+  but at `x 188-223, y 128-186`, outside the pinned x-window, and the
+  screenshots are `256 x 192` so the window's `bottom: 216` already reads past
+  the image. Two stale pins from one rebinding is a pattern; this third clause
+  has a different cause and **needs its own diagnosis** — it was not widened
+  and no further clause was touched. A **second** stale pin was found in
   the same area and fixed: `tests/runtime-wall-trace.test.mjs` compared
   `loader_timer(250) > loader_timer(300)` unconditionally, but the frame-250
   snapshot is a loader raster only on the XEX — on the ATR the machine is still

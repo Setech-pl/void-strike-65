@@ -1,10 +1,16 @@
-# `docs/runtime-wall-trace.json` cannot be regenerated — now `BLOCKED_PICKUP_COLLECTION_DRAW_CALL`
+# `docs/runtime-wall-trace.json` cannot be regenerated — now `BLOCKED_PICKUP_CONTACT_STEEL_WINDOW`
 
-> **Update, 2026-09-19 (SHORT FIX session, branch `wip/4.5d-gate-fail`).** The owner
-> unblocked `BLOCKED_STALE_PICKUP_CONTACT_PIN`; the `PRIOR` clause of §3-§4 is
-> fixed and now passes. The default run advances past it and stops one clause
-> later, on the collection invariant. §6 below records the new blocker; §1-§4
-> stay as the history of the pin that was removed.
+> **Update, 2026-09-19 (FIX session, branch `wip/4.5d-gate-fail`, HEAD `a999af6`).**
+> The owner unblocked `BLOCKED_PICKUP_COLLECTION_DRAW_CALL`. Both stale pickup
+> trace-PC pins are repointed and now pass, with the root cause established:
+> commit `04ae0a6` silently rebound three pickup trace PCs from renderers to PMG
+> routines. The default run advances past both and now stops on a *different*
+> kind of clause — a screenshot pixel count. **§7 is the current state**; §6 is
+> the history of the pin just fixed, §1-§4 of the one before it.
+>
+> Earlier banner (SHORT FIX session): the owner unblocked
+> `BLOCKED_STALE_PICKUP_CONTACT_PIN`; the `PRIOR` clause of §3-§4 was fixed and
+> passes.
 
 Session: IMPLEMENTATION, 2026-09-19. Branch `wip/4.5d-gate-fail`, HEAD at the
 time of measurement `8156e66`. Build: `npm run build:candidate -- --quiet`,
@@ -211,3 +217,146 @@ the abort: 21/21 PASS, 0 distinct miss events, worst margin 1,713 cycles
 both read this script's source: 28 tests / 9 failing with and without the
 change, identical names. Full suite (candidate build + `node --test`): 690
 tests, 112 failing.
+
+---
+
+## 7. The trace-PC rebinding, and a third clause: `BLOCKED_PICKUP_CONTACT_STEEL_WINDOW`
+
+Owner decision (2026-09-19): the collection clause is stale; repoint it to what
+it was always meant to measure. Done, with the root cause established.
+
+### 7.1 Root cause of §6 — commit `04ae0a6`
+
+`DFTRACE_PC_ENTITY_DRAW` was bound to `render_weapon_pickup_overlay`, a real
+character-overlay renderer reachable only when `ENTITY_ACTIVE_MASK != 0`. With
+that binding the three sub-clauses of the collection invariant formed one
+coherent statement: collection cleared the mask, so the capsule glyph was not
+redrawn on the collection frame.
+
+Commit `04ae0a6` (2026-09-11, *feat: prototype row-baked far stars*) repointed
+all three pickup trace PCs in a single hunk:
+
+```
+-  DFTRACE_PC_ENTITY_ERASE: "erase_weapon_pickup_overlay_restore",
+-  DFTRACE_PC_AFTER_ENTITY_ERASE: "weapon_pickup_erase_done",
+-  DFTRACE_PC_ENTITY_DRAW: "render_weapon_pickup_overlay",
++  DFTRACE_PC_ENTITY_ERASE: "clear_fighter_pickup_pmg",
++  DFTRACE_PC_AFTER_ENTITY_ERASE: "release_fighter_pickup_pmg_hardware",
++  DFTRACE_PC_ENTITY_DRAW: "update_fighter_pickup_pmg",
+```
+
+`update_fighter_pickup_pmg` (`src/main.s:10415`) is the movement / collection /
+booster **policy wrapper**. It writes no pixels — the renderer is
+`render_fighter_pickup_pmg` — and the collection itself passes through it. The
+counter therefore reads 1 on the collection frame and `=== 0` has been
+unsatisfiable by construction since that commit.
+
+The erase side survived the rebinding intact: `clear_fighter_pickup_pmg` does
+zero the missile rows, so `pickup_erase_calls` is still a real erase measure.
+
+### 7.2 The runtime is correct
+
+Measured on `weapon-pickup-contact-2-hunt-fire4` of this build:
+
+| Frame | `pickup_state` | `pickup_pmg_rows` | `entity_active_mask` | `pickup_draw_calls` |
+| ---: | ---: | ---: | ---: | ---: |
+| 392-395 | 2 | 16 | 2 | 1 |
+| **396** (collection) | 3 | **0** | 0 | 1 |
+| 397-403 | 3 | 0 | 0 | 1 |
+
+`pickup_pmg_rows` goes `16 -> 0` on the collection frame and stays 0. The first
+erase is at scanline 116, ahead of the capsule's own rows at 156. No ghost, no
+stale footprint.
+
+### 7.3 Changes applied
+
+Collection row (`:3028`), restoring the original intent against the plane the
+capsule is actually drawn on:
+
+```js
+-        collectionRows[0].entity_active_mask === 0 && collectionRows[0].pickup_draw_calls === 0,
+-      `${session.id} did not collect and activate exactly once`);
++        collectionRows[0].entity_active_mask === 0 && collectionRows[0].pickup_pmg_rows === 0,
++      `${session.id} did not collect and activate exactly once, or left the `
++      + `capsule on the missile plane after collection`);
+```
+
+Contact rows (`:3006`). The surviving `pickup_draw_calls === 1` asserted only
+"the policy wrapper was entered once" — **true on all 500 post-collection
+frames of this trace, with no capsule on screen at all**. No column counts
+renderer entries, so "exactly one draw" is not assertable here; the clause is
+repointed to the published result instead, which post-collection frames of the
+same trace fail (they read 0/2/4/6):
+
+```js
+-        row.pickup_erase_calls === 1 && row.pickup_draw_calls === 1 &&
++        row.pickup_erase_calls === 1 && row.pickup_pmg_rows === 16 &&
+         row.pickup_erase_scanline > row.pickup_prev_y &&
+         row.pickup_draw_scanline !== 0),
+-      `${session.id} changed GTIA priority or the single erase/draw lifecycle`);
++      `${session.id} changed GTIA priority, the single erase, or the published `
++      + `16-row missile capsule at player contact`);
+```
+
+`pickup_pmg_rows` was added to `numericCsvFields` — it is emitted by
+`scripts/atari800-wall-trace.h:4449` but was not on the script's numeric
+allowlist, so it parsed as CSV text.
+
+Both clauses now pass. The reason each pin was unsatisfiable, naming `04ae0a6`,
+is recorded at both assertion sites.
+
+### 7.4 The run still does not reach the report
+
+The default mode now advances past both pickup-trace clauses and stops at
+`scripts/runtime-wall-trace.mjs:3037`:
+
+```
+Error: weapon-pickup-contact-2-hunt-fire4 final raster contains a cut capsule
+or stale post-collection footprint
+```
+
+This is **not** a trace-PC clause. It is a screenshot pixel count, and it is a
+different defect from §6 and §7.1. Measured over the 11 captured
+`weapon-pickup-contact-nose-*.png` frames of this run:
+
+* the sampled window is `x 140-164, y 8-216`, and the steel colour
+  `rgb(13,58,115)` occurs **0 times in it on every one of the 11 frames** — so
+  the `>= 40` head clause fails on frame 00, not only at the tail;
+* the steel pixels do exist — 32 on frames 00-05, 24 on frames 08-10 — but at
+  `x 188-223, y 128-186`, entirely outside the pinned x-window;
+* the screenshots are `256 x 192`, so the window's `bottom: 216` already reads
+  past the bottom of the image.
+
+Per the owner's instruction for this session — *two stale pins from the same
+rebinding is a pattern; a third needs its own diagnosis* — the gate was **not**
+widened and no further clause was touched. The geometry above is evidence for
+that diagnosis, not a conclusion: whether the window, the colour, or the
+capsule's raster position is the stale half is undetermined here.
+
+**Consequence.** `docs/runtime-wall-trace.json` still carries `ab682d84…` / ATR
+menu `502`; `tests/runtime-wall-trace.test.mjs:77-121` ("real Atari800 XEX/ATR
+cold boots reach visible gameplay inside the boot horizon") still fails on that
+stale data; and a final (non-candidate) build is still refused —
+re-confirmed in this session:
+
+```
+Error: Runtime wall trace binding mismatch for void-strike-65-boot.bin
+    at validateRuntimeEvidenceBinding (scripts/runtime-evidence.mjs:49:13)
+    at build (scripts/build.mjs:1594:5)
+```
+
+### 7.5 Gates for the change made here
+
+* Build: `npm run build:candidate -- --quiet`, XEX
+  `ecc9cedafd87f871989fc0b279343d1848c225792bf17e5be4ad9fadd1f7d3c7` —
+  byte-identical to the accepted runtime checkpoint `0002d84`.
+* Boot smoke: **4/4 PASS**. XEX menu 392/392, ATR menu 554/554, delta 0 frames
+  on all four sessions, no warn.
+* PAL timing audit, **default-mode set** — the 21 replays that run before the
+  abort: **21/21 PASS, 0 distinct miss events**, worst margin **1,713 cycles**
+  (`weapon-pickup-2-hunt-fire4`). This is the default-mode figure, not the
+  1,464 of the full 69-replay set, which this mode does not run.
+* Focused A/B on `tests/runtime-wall-trace.test.mjs` +
+  `tests/pal-timing-audit.test.mjs`, which read this script's source: **28
+  tests / 19 pass / 9 fail, identical with and without the change**. All nine
+  read the stale committed report of §1.

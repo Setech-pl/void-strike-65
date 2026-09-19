@@ -705,6 +705,7 @@ const numericCsvFields = new Set([
 for (const slot of [0, 1]) for (const field of ["domain", "row", "pointer", "cell"])
   numericCsvFields.add(`muzzle${slot}_${field}`);
 for (const field of ["muzzle_code_cells", "muzzle_illegal_cells", "muzzle_pointer_errors",
+  "muzzle_illegal_address", "muzzle_illegal_code",
   "muzzle_divider_allied", "muzzle_divider_enemy", "broad_pointer_errors",
   "broad_screen_orphan_cells", "broad_screen_first_address", "broad_screen_first_code",
   "broad_screen_missing_cells",
@@ -1166,6 +1167,65 @@ function parseCsv(csvText, sessionDefinition) {
     return row;
   });
 }
+
+// ---------------------------------------------------------------------------
+// Hull-transient ownership model
+//
+// THREE writers put a muzzle or launch-flash code into the divider row or the
+// playfield ring:
+//
+//   1. the tracked-muzzle overlay, at MUZZLE_SCREEN_LO/HI[0..1] - claimed by
+//      track_top_muzzles, moved by advance_tracked_muzzles, republished by
+//      redraw_tracked_muzzles and backed out by restore_active_muzzles;
+//   2. a broadside occluding one of those same cells - the broadsideOccludesMuzzle
+//      term at the capital-muzzle assertion site;
+//   3. the BROADSIDE launch flash, at BROAD_ROW_LO/HI[slot] plus that slot's turret
+//      muzzle column - written by render_launch_flashes and backed out by
+//      restore_launch_flash_cell (src/main.s), for exactly the frames on which
+//      that slot's BROAD_FLASH_TIMER is non-zero.
+//
+// Writer 3 was invisible to the model until now. dftrace_snapshot_muzzles
+// (scripts/atari800-wall-trace.h) attributes every hull-transient code it finds to
+// MUZZLE_SCREEN_LO/HI alone, but the flash addresses its cell through
+// BROAD_ROW_LO/HI - an independent pointer that coincides with the tracked record
+// only at broadside admission and diverges afterwards. So a correct, live flash
+// counted as an orphan. See BLOCKED_MUZZLE_ORPHAN_TRANSIENT in
+// docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md 8.6.
+//
+// The term below NARROWS the model. It exonerates ONE cell, at ONE address,
+// carrying ONE code, on a frame with exactly one orphan. All of these remain
+// errors:
+//   - a flash code at any address no slot's live flash owns (no slot matches);
+//   - a flash code at an owned address once that slot's timer has expired
+//     (broad{N}_flash === 0, so that slot owns nothing at all);
+//   - a muzzle code anywhere but the tracked pointers - the emulator only ever
+//     reports $45/$D0 there, which never equals the side's flash code. That is the
+//     52-frame defect fixed in restore_launch_flash_cell, and this term cannot
+//     forgive it.
+// The emulator reports only the FIRST orphan cell of a frame, so a frame carrying
+// more than one orphan is never exonerated - the model cannot see the others.
+const MUZZLE_COLUMN_BY_TURRET = new Map([[0, 8], [1, 31]]);
+const LAUNCH_FLASH_CODE_BY_TURRET = new Map([[0, 0x51], [1, 0xd2]]);
+
+function liveLaunchFlashOwnsIllegalCell(row) {
+  if (row.muzzle_illegal_cells !== 1) return false;
+  return [0, 1, 2].some((slot) => {
+    if (row[`broad${slot}_flash`] === 0) return false;
+    const turret = row[`broad${slot}_turret`];
+    const column = MUZZLE_COLUMN_BY_TURRET.get(turret);
+    return column !== undefined &&
+      row[`broad${slot}_pointer`] + column === row.muzzle_illegal_address &&
+      row.muzzle_illegal_code === LAUNCH_FLASH_CODE_BY_TURRET.get(turret);
+  });
+}
+
+// Orphan cells that no writer in the model owns.
+const unownedHullTransientCells = (row) =>
+  liveLaunchFlashOwnsIllegalCell(row) ? 0 : row.muzzle_illegal_cells;
+
+// muzzle_code_cells counts every hull-transient cell on screen, the live flash
+// included, so the legality sum has to account for writer 3 as well.
+const legalLaunchFlashCells = (row) => liveLaunchFlashOwnsIllegalCell(row) ? 1 : 0;
 
 function decodeEvents(bits) {
   return [
@@ -2543,8 +2603,11 @@ function main() {
           row[`muzzle${slot}_pointer`] !== 0 &&
           !transientCodes.has(row[`muzzle${slot}_cell`]) &&
           broadsideOccludesMuzzle(row, slot)).length;
-        return row.muzzle_illegal_cells === 0 && row.muzzle_pointer_errors === 0 &&
-          row.broad_pointer_errors === 0 && row.muzzle_code_cells === legalMuzzleCodes &&
+        // Writer 3 of the ownership model above: a live launch flash owns its own
+        // cell. Expired flashes, unowned addresses and stray muzzle codes still fail.
+        return unownedHullTransientCells(row) === 0 && row.muzzle_pointer_errors === 0 &&
+          row.broad_pointer_errors === 0 &&
+          row.muzzle_code_cells === legalMuzzleCodes + legalLaunchFlashCells(row) &&
           legalMuzzleCodes + legalBroadsideOcclusions === row.active_muzzles;
       }),
       `${session.id} observed a stale muzzle/flash code or invalid derived pointer`);
@@ -2585,7 +2648,9 @@ function main() {
         flying_frames: flyingRows.length,
         legal_broadside_muzzle_occlusion_frames: occludedRows.length,
         maximum_muzzle_codes: Math.max(...rows.map((row) => row.muzzle_code_cells)),
-        maximum_illegal_codes: Math.max(...rows.map((row) => row.muzzle_illegal_cells)),
+        // Unowned by any of the three writers; a live launch flash is not an orphan.
+        maximum_illegal_codes: Math.max(...rows.map(unownedHullTransientCells)),
+        live_launch_flash_cells: rows.filter((row) => legalLaunchFlashCells(row) === 1).length,
         pointer_errors: rows.reduce((sum, row) => sum + row.muzzle_pointer_errors +
           row.broad_pointer_errors, 0),
         transitions: transitionRows.map((row) => ({
@@ -2742,7 +2807,7 @@ function main() {
       invariant(warningStarts.length > 0 && flashStarts.length > 0 && launches.length > 0,
         `${session.id} observed ${warningStarts.length}/${flashStarts.length}/${launches.length} ` +
         "enemy warning/flash/launch starts");
-      invariant(rows.every((row) => row.muzzle_illegal_cells === 0 &&
+      invariant(rows.every((row) => unownedHullTransientCells(row) === 0 &&
         row.muzzle_pointer_errors === 0 && row.broad_pointer_errors === 0),
       `${session.id} regressed tracked-muzzle legality`);
       invariant(missed === 0 && extraVbi === 0 && overruns === 0,
@@ -4311,7 +4376,7 @@ function main() {
         timingErrors.missed === 0 &&
         timingErrors.extra_vbi === 0 && timingErrors.dli === 0,
       `${session.id} failed PAL timing: max=${maximumWall}, ${JSON.stringify(timingErrors)}`);
-      invariant(rows.every((row) => row.muzzle_illegal_cells === 0 &&
+      invariant(rows.every((row) => unownedHullTransientCells(row) === 0 &&
         row.muzzle_pointer_errors === 0 && row.broad_pointer_errors === 0 &&
         row.broad_screen_orphan_cells === 0 &&
         [0, 1, 2].every((slot) => row[`broad_pmg_orphan_rows${slot}`] === 0)),

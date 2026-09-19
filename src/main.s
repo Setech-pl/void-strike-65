@@ -192,6 +192,10 @@ DIFFICULTY_SETTING          = BROAD_STATE_END        ; 1 B, persists across fron
 FRONTEND_PERSISTENT_END     = DIFFICULTY_SETTING+$01
 HULL_SCROLL_ACCUMULATOR     = FRONTEND_PERSISTENT_END
 BROAD_RASTER_TOP            = HULL_SCROLL_ACCUMULATOR+$01 ; 3 B, final capture rows
+; The launch flash overlays one turret-muzzle cell for four frames. Like the
+; tracked-muzzle overlay it must return that cell's own prior content, not a
+; per-turret constant, so each slot carries its own one-byte backing.
+BROAD_FLASH_BACKING         = BROAD_RASTER_TOP+$03    ; 3 B, pre-flash cell content
 CORRIDOR_BOUNDARY_ROWS      = CAPITAL_HULL_VISIBLE_ROWS
 ; The original 23+23 bytes remain a compatibility hole so every following
 ; resident-state address stays fixed. Expanded boundary backing lives beside
@@ -306,7 +310,7 @@ SESSION_SCORE_STATE_END      = TOP_SCORE_TABLE_END
 ; constants has no runtime footprint and avoids duplicating the resident-state
 ; layout in a host-side wall-clock tracer.
 .export BROAD_STATE, BROAD_TURRET, BROAD_ROW_LO, BROAD_ROW_HI, BROAD_FLASH_TIMER
-.export BROAD_RASTER_TOP
+.export BROAD_RASTER_TOP, BROAD_FLASH_BACKING
 .export BROAD_DAMAGE_COOLDOWN, BROAD_DAMAGE_APPLIED
 .export DIFFICULTY_SETTING, CAPITAL_SECTOR_STATE, PLAYER_LIFECYCLE
 .export CAPITAL_EXPLOSION_TIMER, CAPITAL_EXPLOSION_SOUND_TIMER, ENEMY_ACTIVE
@@ -726,6 +730,7 @@ PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE = PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYE
 
 .assert BROAD_STATE_END <= $4E80, error, "broadside resident state exceeds 64 bytes"
 .assert BROAD_RASTER_TOP+BROADSIDE_SLOT_COUNT <= BROAD_TURRET_FIRED, error, "capital-shell raster cache exceeds compatibility state hole"
+.assert BROAD_FLASH_BACKING+BROADSIDE_SLOT_COUNT <= BROAD_TURRET_FIRED, error, "launch-flash backing exceeds compatibility state hole"
 .assert CAPITAL_HULL_TURRET_COUNT = 2, error, "tracked muzzle records require exactly one turret per side"
 .assert GAMEPLAY_RESIDENT_END <= $4F00, error, "gameplay resident state exceeds reclaimed RAM"
 .assert STARFIELD_STATE_END <= $4F00, error, "starfield scalar state exceeds reclaimed RAM"
@@ -8063,11 +8068,14 @@ tick_launch_flashes:
     bne @slot
     rts
 
-render_launch_flashes:
-    ldx #$00
-@slot:
-    lda BROAD_FLASH_TIMER,x
-    beq @next
+; Bytes the shared prologue saves, returned to the segment as unreachable
+; padding so no pinned BROADSIDE address moves.
+LAUNCH_FLASH_LAYOUT_PAD_BYTES = 14
+
+; Both the flash write and its expiry address the same cell: the slot's own
+; row pointer plus its turret's muzzle column. X (the slot) is preserved and
+; Y returns the turret record offset for the caller's side test.
+set_launch_flash_cell_ptr:
     stx BROAD_WORK_SLOT
     lda BROAD_ROW_LO,x
     sta dst_ptr
@@ -8078,6 +8086,14 @@ render_launch_flashes:
     tay
     lda capital_hull_turrets+CAPITAL_TURRET_MUZZLE_COLUMN_OFFSET,y
     sta BROAD_WORK_VALUE
+    rts
+
+render_launch_flashes:
+    ldx #$00
+@slot:
+    lda BROAD_FLASH_TIMER,x
+    beq @next
+    jsr set_launch_flash_cell_ptr
     lda capital_hull_turrets+CAPITAL_TURRET_SIDE_OFFSET,y
     beq @allied
     lda #CAPITAL_HULL_ENEMY_FLASH_CODE
@@ -8086,30 +8102,39 @@ render_launch_flashes:
     lda #CAPITAL_HULL_ALLIED_FLASH_CODE
 @draw:
     ldy BROAD_WORK_VALUE
+    ; Save what this overlay is about to destroy, exactly as the tracked-muzzle
+    ; overlay saves MUZZLE_BACKING. The cell already holding this flash code is
+    ; our own write from an earlier frame of the same flash: re-saving it there
+    ; would make the flash its own backing and orphan the cell permanently.
+    cmp (dst_ptr),y
+    beq @write
+    pha
+    lda (dst_ptr),y
+    sta BROAD_FLASH_BACKING,x
+    pla
+@write:
     sta (dst_ptr),y
-    ldx BROAD_WORK_SLOT
 @next:
     inx
     cpx #BROADSIDE_SLOT_COUNT
     bne @slot
     rts
 
+; The expiry runs before the scroll that can move BROAD_ROW_LO/HI, so this is
+; always the cell render_launch_flashes wrote last and BROAD_FLASH_BACKING is
+; that cell's own prior content.
 restore_launch_flash_cell:
-    stx BROAD_WORK_SLOT
-    lda BROAD_ROW_LO,x
-    sta dst_ptr
-    lda BROAD_ROW_HI,x
-    sta dst_ptr+1
-    ldy BROAD_TURRET,x
-    lda turret_record_offsets,y
-    tay
-    lda capital_hull_turrets+CAPITAL_TURRET_MUZZLE_COLUMN_OFFSET,y
-    sta BROAD_WORK_VALUE
-    lda capital_hull_turrets+CAPITAL_TURRET_MUZZLE_SCREEN_CODE_OFFSET,y
+    jsr set_launch_flash_cell_ptr
+    lda BROAD_FLASH_BACKING,x
     ldy BROAD_WORK_VALUE
     sta (dst_ptr),y
-    ldx BROAD_WORK_SLOT
     rts
+launch_flash_layout_pad:
+    ; Factoring the shared cell-pointer prologue out of the two flash routines
+    ; freed BROADSIDE bytes. They are returned here, after an unconditional
+    ; rts and with no entry point, so every pinned later BROADSIDE address
+    ; (free_broadside_slot $76A7 and the integration release ABI) is unmoved.
+    .res LAUNCH_FLASH_LAYOUT_PAD_BYTES,$00
 
 ; Both engine banks share one bounded two-phase timer. Only their two
 ; dedicated charset glyphs change; PMG, palette, collision, and display-list

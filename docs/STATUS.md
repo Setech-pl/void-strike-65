@@ -1627,6 +1627,23 @@ started without owner instruction.
   4.5d or Option D**. Smoothing it needs either more glyph phases (12 free
   hostile codes exist) or a different rendering approach, and it touches the
   projectile publication hot path — so it is costed work, not polish.
+- **`advance_tracked_muzzles` captures `MUZZLE_BACKING` from the wrong cell**
+  (recorded 2026-09-19, **unmeasured**, a deferred finding). `src/main.s:6281-6283`
+  derives `MUZZLE_SCREEN_LO/HI` = row start + column 8/31, then reads the backing
+  byte with `lda (dst_ptr),y` at `y = 0` — the **row start**, not the muzzle cell
+  it just derived. `restore_active_muzzles` therefore returns column 0's content
+  to column 8/31. Same defect class as the launch-flash constant fixed in the
+  BLOCKED_MUZZLE_ORPHAN_TRANSIENT work below, in the tracked path instead. Found
+  while implementing that fix and deliberately left alone: outside the bounded
+  task, and no measurement yet shows a player-visible effect.
+- **Broadside admission can move `BROAD_ROW_LO` under a live flash**
+  (recorded 2026-09-19, **unmeasured**, pre-existing). `src/main.s:7829` calls
+  `set_broadside_row_ptr` for a newly admitted slot without consulting
+  `BROAD_FLASH_TIMER`. A shell released within four frames of launch frees its
+  slot while the flash is still running, so re-admission repoints the flash at a
+  new cell and abandons the old one. `scroll_broadside_scene` already treats a
+  live flash as owning the row pointer (`:7973-7975`), so admission is the one
+  path that does not. Not observed in the 6,000-frame capital-muzzle replay.
 - **Starfield parallax** — ~3,000 cycles for a second scrolling layer; revisit
   after Option D.
 - **Static Andromeda** in the `SPACE` sector background, occluded during

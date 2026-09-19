@@ -2445,3 +2445,85 @@ test("broadside state, charset, software collision, and fixed loops remain bound
     /ldx #\$00[\s\S]+cpx #BROADSIDE_SLOT_COUNT/);
   assert.doesNotMatch(routine("update_broadside", "schedule_broadside"), /VDSLST|WSYNC|NMIEN/);
 });
+
+// Regression: BLOCKED_MUZZLE_ORPHAN_TRANSIENT (docs/diagnostics/
+// runtime-wall-trace-report-regeneration-blocked.md §8.6). restore_launch_flash_cell
+// used to stamp the per-turret CAPITAL_TURRET_MUZZLE_SCREEN_CODE constant into the
+// cell instead of returning what the flash had covered, leaving a turret-muzzle
+// glyph on a hull row that has no turret for 7-14 frames.
+test("an expired launch flash restores the covered cell's own content, not a muzzle constant", () => {
+  const memory = createLinkedRuntimeMemory();
+  const broadRowLo = labels.get("BROAD_ROW_LO");
+  const broadRowHi = labels.get("BROAD_ROW_HI");
+  const broadTurret = labels.get("BROAD_TURRET");
+  const flashTimer = labels.get("BROAD_FLASH_TIMER");
+  const slotCount = 3;
+  const flashFrames = 4;
+  const turrets = [alliedTurretIndex, enemyTurretIndex];
+  const flashCodes = ["allied", "enemy"].map((side) =>
+    asset.glyphs.find(({ name }) => name === `${side}_launch_flash`).screenCode);
+  const muzzleCodes = turrets.map((index) => asset.turrets[index].muzzleScreenCode);
+  // Ordinary hull armour: neither a muzzle nor a flash, so restoring a constant
+  // and restoring the real content cannot be confused.
+  const covered = 0x3a;
+  assert.equal([...muzzleCodes, ...flashCodes].includes(covered), false);
+
+  for (const [side, turret] of turrets.entries()) {
+    const column = asset.turrets[turret].muzzleColumn;
+    const rowAddress = canonicalPlayfield.ringBufferAddress + (5 + side) * 40;
+    const cell = rowAddress + column;
+    const slot = side;
+
+    memory.fill(0, rowAddress, rowAddress + 40);
+    memory[cell] = covered;
+    for (let index = 0; index < slotCount; index += 1) memory[flashTimer + index] = 0;
+    memory[broadRowLo + slot] = rowAddress & 0xff;
+    memory[broadRowHi + slot] = rowAddress >> 8;
+    memory[broadTurret + slot] = turret;
+    memory[flashTimer + slot] = flashFrames;
+
+    // Real frame order: the expiry runs before the scroll and the scroll before
+    // the draw, so every flash frame is one render followed by one tick.
+    for (let frame = 0; frame < flashFrames; frame += 1) {
+      runAssembledRoutine(memory, "render_launch_flashes");
+      assert.equal(memory[cell], flashCodes[side],
+        `slot ${slot} frame ${frame}: the flash glyph was not published`);
+      runAssembledRoutine(memory, "tick_launch_flashes");
+    }
+
+    assert.equal(memory[flashTimer + slot], 0, `slot ${slot}: the flash did not expire`);
+    assert.notEqual(memory[cell], muzzleCodes[side],
+      `slot ${slot}: the expiry stamped the per-turret muzzle constant into the cell`);
+    assert.equal(memory[cell], covered,
+      `slot ${slot}: the expiry did not restore the covered cell content`);
+    assert.equal(memory.subarray(rowAddress, rowAddress + 40)
+      .some((value, index) => index !== column && value !== 0), false,
+      `slot ${slot}: the flash lifecycle touched a cell it does not own`);
+  }
+});
+
+// A flash that outlives a scroll is redrawn at the same cell every frame. Its
+// backing must stay the pre-flash content: re-saving the cell once it already
+// carries the flash code would make the flash its own backing and orphan it.
+test("a multi-frame launch flash does not adopt its own glyph as backing", () => {
+  const memory = createLinkedRuntimeMemory();
+  const flashTimer = labels.get("BROAD_FLASH_TIMER");
+  const backing = labels.get("BROAD_FLASH_BACKING");
+  const rowAddress = canonicalPlayfield.ringBufferAddress + 7 * 40;
+  const column = asset.turrets[alliedTurretIndex].muzzleColumn;
+  const covered = 0x3a;
+
+  memory.fill(0, rowAddress, rowAddress + 40);
+  memory[rowAddress + column] = covered;
+  for (let index = 0; index < 3; index += 1) memory[flashTimer + index] = 0;
+  memory[labels.get("BROAD_ROW_LO")] = rowAddress & 0xff;
+  memory[labels.get("BROAD_ROW_HI")] = rowAddress >> 8;
+  memory[labels.get("BROAD_TURRET")] = alliedTurretIndex;
+  memory[flashTimer] = 4;
+
+  for (let frame = 0; frame < 4; frame += 1) {
+    runAssembledRoutine(memory, "render_launch_flashes");
+    assert.equal(memory[backing], covered,
+      `frame ${frame}: the flash overwrote its own backing`);
+  }
+});

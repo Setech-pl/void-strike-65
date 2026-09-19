@@ -698,3 +698,114 @@ turret positions.
   `tests/runtime-wall-trace.test.mjs:77-121` still fails on that stale data;
   a final (non-candidate) build is still refused. The blocker is unchanged —
   it is now diagnosed rather than undetermined.
+
+## 9. §8.6 fixed, the model taught its third writer, and a new clause
+
+FIX session, 2026-09-19, branch `wip/4.5d-gate-fail`, HEAD at start `791a019`
+(the §8.6 docs commit; `4de4be9` is its parent). Build
+`npm run build:candidate -- --quiet`, XEX
+`5ea523a44a345ae62fba89a077d6d8957f42a0f9d94812721f9bdd2013b618bf`.
+Baseline reproduced `ecc9ceda…` byte-identical before any edit.
+
+### 9.1 The defect, fixed
+
+`restore_launch_flash_cell` no longer stamps
+`CAPITAL_TURRET_MUZZLE_SCREEN_CODE_OFFSET`. `render_launch_flashes` saves the
+covered cell's own content into a new 3-byte `BROAD_FLASH_BACKING`
+(`$4E75-$4E77`, one byte per broadside slot, inside the `$4E75-$4E9F`
+compatibility state hole that already holds `BROAD_RASTER_TOP`), and the expiry
+returns that byte. This is the discipline the tracked-muzzle overlay already had
+with `MUZZLE_BACKING`; the two do **not** share state — `MUZZLE_BACKING` is two
+bytes indexed by turret side and rewritten every scroll by
+`advance_tracked_muzzles`, the flash has three slots and a four-frame lifetime.
+
+**Why one backing byte per slot is unambiguous.** The two overlays do write the
+same cell in the same frame (§8.6.4 measured 63 such frames), but they nest.
+Within one `main_loop` pass: `tick_launch_flashes` (`:2493`) restores, then
+`update_starfield` → `scroll_hull_columns` runs `restore_active_muzzles`,
+`advance_tracked_muzzles` and `redraw_tracked_muzzles`, then
+`render_launch_flashes` (`:2527`) saves and writes. The flash saves **last** in
+the frame and restores **first** in the next, entirely inside the tracked
+overlay's own save/restore, and nothing between those two points moves
+`BROAD_ROW_LO/HI` — so the restore always targets exactly the cell the last
+render wrote. A guard (`cmp (dst_ptr),y`) skips the save when the cell already
+carries this flash's own code, or a multi-frame flash would become its own
+backing.
+
+Factoring the duplicated cell-pointer prologue into
+`set_launch_flash_cell_ptr` made the two routines 14 bytes smaller; the bytes
+are returned as unreachable `.res` padding after an unconditional `rts`
+(`launch_flash_layout_pad`), so `__BROADSIDE_SIZE__` stays `$19FD` and
+`free_broadside_slot` stays pinned at `$76A7`.
+
+### 9.2 The ownership model's third writer — OWNER-APPROVED
+
+Owner decision 2026-09-19: teach the model the third writer, narrowing only.
+`scripts/runtime-wall-trace.mjs` gained `liveLaunchFlashOwnsIllegalCell`,
+`unownedHullTransientCells` and `legalLaunchFlashCells`, wired into the three
+sites that tested `muzzle_illegal_cells === 0` (`:2608`, `:2810`, `:4379`). A
+broadside slot owns `BROAD_ROW_LO/HI + muzzle column` **only** while its
+`broad{N}_flash` is non-zero, and only for one cell, one address and one code on
+a frame with exactly one orphan. `muzzle_illegal_address` and
+`muzzle_illegal_code` were also added to `numericCsvFields`; they had been
+parsed as strings, so every comparison against them would have been silently
+false.
+
+**Proof that it narrows.** Re-run against the *unfixed* build: raw orphans 68,
+unowned under the new model **52**. The model exonerates the same 16 live-flash
+frames on both builds and cannot forgive the 52-frame defect — the clause still
+fails on the unfixed binary.
+
+### 9.3 Orphan counts, split by cause
+
+| Build | raw orphan frames | unowned under the model |
+| --- | ---: | ---: |
+| `4de4be9` (unfixed) | 68 | 52 |
+| this build | 16 | **0** |
+
+**52 frames came from the `src/main.s` fix** (the muzzle-constant stamp, codes
+`$45`/`$D0`) and **16 from the ownership model** (live launch flashes, codes
+`$51`/`$D2`). The two are not interchangeable: the fix removed cells that were
+really on screen; the model removed cells that were never a defect.
+
+### 9.4 Still `BLOCKED` — a different clause, pre-existing
+
+The session now fails the **fifth** term of the same invariant,
+`legalMuzzleCodes + legalBroadsideOcclusions === row.active_muzzles`, on **13
+frames**: `885, 887, 1029, 1030, 1171, 3809-3814, 3937, 3938`. A tracked muzzle
+record is active while its cell holds ordinary content and no broadside occludes
+it — a **missing** glyph, the converse of the orphan case:
+
+```
+885  m0 $83C8 = $30   m1 $8367 = $D0   every flash timer 0
+1171 m0 $4030 = $30   m1 $4047 = $D0   both on the fixed divider
+3809 m0 $8418 = $45   m1 $842F = $E6   broad1_turret 255 (free slot)
+```
+
+`$30`/`$31`/`$32`/`$E6` are not star codes (`STAR_NEAR_FIRST = 1`) and not
+transients. **A/B: the same 13 frames, identical frame numbers, on a rebuilt
+unfixed `ecc9ceda…`.** Pre-existing and independent of this work; the orphan
+clause aborted first and masked it. No term is proposed — the owner has called
+for a review of the whole gate set rather than another single clause.
+
+`docs/runtime-wall-trace.json` is therefore **still stale** and a final
+(non-candidate) build is still refused at `validateRuntimeEvidenceBinding`.
+
+### 9.5 Gates
+
+* Build: clean; `__BROADSIDE_SIZE__` `$19FD` unchanged, `free_broadside_slot`
+  `$76A7` unchanged.
+* Boot smoke: **4/4 PASS**.
+* PAL, `capital-muzzle-ring-2-sweep-fire4`, 6,000 frames, **both builds
+  identical**: worst wall **30,337** cycles, **2,231** margin to the 32,568
+  gate, 0 missed frames, 0 extra VBI boundaries, 0 DLI ordering violations. The
+  fix has no measurable cost on this session's worst frame. The full 69-replay
+  audit was **not** run: the default run still aborts in this session.
+* `tests/broadside-fire.test.mjs`: 47/54 pass, **7 failures A/B-confirmed
+  identical on a rebuilt unfixed `ecc9ceda…`** (45/52 there) — none from this
+  work. The two new tests are the delta.
+* Baseline-failure proof: on the rebuilt unfixed build the new test fails with
+  `slot 0: the expiry stamped the per-turret muzzle constant into the cell,
+  actual: 69` (`$45`). The second new test also fails there, but only because
+  `BROAD_FLASH_BACKING` does not exist on that build — it guards the new
+  mechanism against regression and is **not** an independent proof of the defect.

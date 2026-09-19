@@ -96,7 +96,16 @@ test("real Atari800 XEX/ATR cold boots reach visible gameplay inside the boot ho
     assert.deepEqual(session.snapshots.map(({ frame }) => frame),
       [1, 250, 300, smoke.menu_snapshot_frame, smoke.gameplay_snapshot_frame]);
     const byFrame = new Map(session.snapshots.map((snapshot) => [snapshot.frame, snapshot]));
-    assert.ok(byFrame.get(250).loader_timer > byFrame.get(300).loader_timer);
+    // The frame-250 snapshot is only a loader raster on the XEX; the ATR is
+    // still inside the SIO load then (DMACTL/NMIEN 0), so its countdown has not
+    // started. Mirror the rule scripts/runtime-wall-trace.mjs already applies
+    // instead of comparing a countdown that does not exist yet.
+    const loader250 = byFrame.get(250);
+    const loader300 = byFrame.get(300);
+    assert.ok(loader300.loader_timer > 0);
+    if (loader250.dma_ctl === 0x22 && loader250.nmi_en === 0x80) {
+      assert.ok(loader250.loader_timer > loader300.loader_timer);
+    }
     const menuSnapshot = byFrame.get(smoke.menu_snapshot_frame);
     const gameplaySnapshot = byFrame.get(smoke.gameplay_snapshot_frame);
     assert.deepEqual([

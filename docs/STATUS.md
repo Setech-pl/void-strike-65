@@ -394,6 +394,37 @@ re-basing.
   and in the implementation note under owner decision 22. Every per-candidate
   "menu N against deadline N" figure recorded further down this file is a
   historical measurement under the superseded formula;
+- **`docs/runtime-wall-trace.json` is stale and cannot be regenerated —
+  `BLOCKED_STALE_PICKUP_CONTACT_PIN`** (measured 2026-09-19). The committed
+  report is from 2026-09-05: `artifact.sha256` `ab682d84…` and ATR boot-smoke
+  `menu` **502**, against the accepted runtime `ecc9ceda…` at menu **554**.
+  `tests/runtime-wall-trace.test.mjs` reads that file rather than a live run,
+  so the whole file measures a five-build-old artifact, and
+  `scripts/build.mjs:1589-1597` refuses a **final** (non-candidate) build whose
+  wall trace does not bind to the current artifacts. Only the default mode
+  writes the report (`runtime-wall-trace.mjs:6074`); every focused mode returns
+  before it. The default run was executed in full on this build: 21 sessions
+  passed, all PAL-clean, then it threw at the pre-existing
+  `weapon-pickup-contact-2-hunt-fire4` invariant, inside the session loop, so
+  the report was never written. Diagnosed to a single clause: of the five
+  clauses at `runtime-wall-trace.mjs:2983-2987`, only `row.prior === 0` fails,
+  on **8 of 8** contact rows, because `PRIOR` measures `$10` — which the pickup
+  renderer sets on purpose (`src/main.s:10486`, "GTIA fifth-player mode: M0-M3
+  use COLPF3", released back to `$00` at `src/main.s:9823`). The erase/draw
+  half of the invariant is intact. The gate is pinning a value the accepted
+  runtime no longer uses. The recovery is one line — pin the contact rows to
+  `0x10` — and it was **deliberately not applied**: changing what a reviewed
+  native gate accepts is an owner decision. A **second** stale pin was found in
+  the same area and fixed: `tests/runtime-wall-trace.test.mjs` compared
+  `loader_timer(250) > loader_timer(300)` unconditionally, but the frame-250
+  snapshot is a loader raster only on the XEX — on the ATR the machine is still
+  inside the SIO load (`DMACTL $00`, `NMIEN $00`, timer 0, reaching 249 by
+  frame 300). The test now mirrors the rule the harness itself already applies.
+  With that corrected, every assertion of the rewritten boot-horizon test was
+  run directly against the live measured boot-smoke report of this build and
+  **passes**; it fails in `npm test` only because it reads the stale committed
+  report. Evidence and the exact one-line recovery for the blocker:
+  [diagnostics/runtime-wall-trace-report-regeneration-blocked.md](diagnostics/runtime-wall-trace-report-regeneration-blocked.md);
 - open owner decision: the packed STARFIELD correction gate. At the 4.5M-M1
   candidate the single-stream gates 1,798 / 1,819 B are superseded by the
   two-stream total gates 1,804 (correction) / 1,825 B (hard) against a measured

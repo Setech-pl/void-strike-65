@@ -2980,7 +2980,16 @@ function main() {
       invariant(JSON.stringify([...new Set(contactRows.map((row) =>
         row.pickup_render_phase))].sort()) === JSON.stringify([0, 2, 4, 6]),
       `${session.id} did not cover all four Hard pickup phases at player contact`);
-      invariant(contactRows.every((row) => row.prior === 0 &&
+      // PRIOR is $00 or $10 here, and both are correct. The pickup is drawn as
+      // the GTIA fifth player, so its PMG setup programs PRIOR = $10
+      // (src/main.s:10486) and release_fighter_pickup_pmg_hardware restores $00
+      // (src/main.s:9820-9823). On the boundary frames the sampled value is the
+      // other one: the first pickup_state 2 frame is still $00 because the
+      // sample precedes that frame's PMG setup, and the release frame still
+      // reads $10. No trace column separates those cases -- pickup_pmg_rows is
+      // 16 on the $00 boundary row as well -- so the gate accepts both values
+      // and keeps pinning the single erase/draw lifecycle below.
+      invariant(contactRows.every((row) => (row.prior === 0x00 || row.prior === 0x10) &&
         row.pickup_erase_calls === 1 && row.pickup_draw_calls === 1 &&
         row.pickup_erase_scanline > row.pickup_prev_y &&
         row.pickup_draw_scanline !== 0),

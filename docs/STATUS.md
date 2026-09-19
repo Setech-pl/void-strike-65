@@ -395,7 +395,8 @@ re-basing.
   "menu N against deadline N" figure recorded further down this file is a
   historical measurement under the superseded formula;
 - **`docs/runtime-wall-trace.json` is stale and cannot be regenerated —
-  `BLOCKED_STALE_PICKUP_CONTACT_PIN`** (measured 2026-09-19). The committed
+  `BLOCKED_PICKUP_COLLECTION_DRAW_CALL`** (measured 2026-09-19, re-measured
+  after the pin fix the same day). The committed
   report is from 2026-09-05: `artifact.sha256` `ab682d84…` and ATR boot-smoke
   `menu` **502**, against the accepted runtime `ecc9ceda…` at menu **554**.
   `tests/runtime-wall-trace.test.mjs` reads that file rather than a live run,
@@ -406,15 +407,19 @@ re-basing.
   before it. The default run was executed in full on this build: 21 sessions
   passed, all PAL-clean, then it threw at the pre-existing
   `weapon-pickup-contact-2-hunt-fire4` invariant, inside the session loop, so
-  the report was never written. Diagnosed to a single clause: of the five
-  clauses at `runtime-wall-trace.mjs:2983-2987`, only `row.prior === 0` fails,
-  on **8 of 8** contact rows, because `PRIOR` measures `$10` — which the pickup
-  renderer sets on purpose (`src/main.s:10486`, "GTIA fifth-player mode: M0-M3
-  use COLPF3", released back to `$00` at `src/main.s:9823`). The erase/draw
-  half of the invariant is intact. The gate is pinning a value the accepted
-  runtime no longer uses. The recovery is one line — pin the contact rows to
-  `0x10` — and it was **deliberately not applied**: changing what a reviewed
-  native gate accepts is an owner decision. A **second** stale pin was found in
+  the report was never written. The first clause to fail was
+  `row.prior === 0`, a stale pin: `PRIOR` measures `$10` because the pickup
+  renderer sets it on purpose (`src/main.s:10486`, "GTIA fifth-player mode:
+  M0-M3 use COLPF3", released back to `$00` at `src/main.s:9823`). Under the
+  owner decision of 2026-09-19 that clause now accepts **both** `$00` and `$10`
+  (both are correct in the sampled window and no trace column
+  separates them), and it passes. The report is still not written: the same run
+  now aborts one clause later, at `runtime-wall-trace.mjs:2998`, on
+  `pickup_draw_calls === 0`, which measures **1** on the single collection
+  frame (frame 396; `collectionRows.length`, `pickup_booster_state` and
+  `entity_active_mask` all pass). Whether that draw is legitimate runtime
+  behaviour or a defect in the collection path is **undetermined**; the gate
+  was not widened further. A **second** stale pin was found in
   the same area and fixed: `tests/runtime-wall-trace.test.mjs` compared
   `loader_timer(250) > loader_timer(300)` unconditionally, but the frame-250
   snapshot is a loader raster only on the XEX — on the ATR the machine is still
@@ -423,7 +428,7 @@ re-basing.
   With that corrected, every assertion of the rewritten boot-horizon test was
   run directly against the live measured boot-smoke report of this build and
   **passes**; it fails in `npm test` only because it reads the stale committed
-  report. Evidence and the exact one-line recovery for the blocker:
+  report. Evidence and measurements for both blockers:
   [diagnostics/runtime-wall-trace-report-regeneration-blocked.md](diagnostics/runtime-wall-trace-report-regeneration-blocked.md);
 - open owner decision: the packed STARFIELD correction gate. At the 4.5M-M1
   candidate the single-stream gates 1,798 / 1,819 B are superseded by the

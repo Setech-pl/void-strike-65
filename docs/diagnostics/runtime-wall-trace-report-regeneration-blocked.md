@@ -1,4 +1,10 @@
-# `docs/runtime-wall-trace.json` cannot be regenerated — `BLOCKED_STALE_PICKUP_CONTACT_PIN`
+# `docs/runtime-wall-trace.json` cannot be regenerated — now `BLOCKED_PICKUP_COLLECTION_DRAW_CALL`
+
+> **Update, 2026-09-19 (SHORT FIX session, branch `wip/4.5d-gate-fail`).** The owner
+> unblocked `BLOCKED_STALE_PICKUP_CONTACT_PIN`; the `PRIOR` clause of §3-§4 is
+> fixed and now passes. The default run advances past it and stops one clause
+> later, on the collection invariant. §6 below records the new blocker; §1-§4
+> stay as the history of the pin that was removed.
 
 Session: IMPLEMENTATION, 2026-09-19. Branch `wip/4.5d-gate-fail`, HEAD at the
 time of measurement `8156e66`. Build: `npm run build:candidate -- --quiet`,
@@ -138,3 +144,70 @@ every replay audited in this session reports 0 miss events. The boot smoke —
 including the restated deadline — passes 4/4 independently of this defect
 (`npm run boot:smoke`), because `--boot-smoke-only` returns before the session
 loop.
+
+---
+
+## 6. After the `PRIOR` fix: `BLOCKED_PICKUP_COLLECTION_DRAW_CALL`
+
+Owner decision (2026-09-19): unblock the stale pin. Applied at
+`scripts/runtime-wall-trace.mjs:2992` — the contact rows now accept **both**
+`$00` and `$10`, and only that clause changed:
+
+```js
+-      invariant(contactRows.every((row) => row.prior === 0 &&
++      invariant(contactRows.every((row) => (row.prior === 0x00 || row.prior === 0x10) &&
+```
+
+with the reason recorded in a comment at the assertion site. Both values are
+correct and **no trace column separates them**: over the whole
+`weapon-pickup-contact-2-hunt-fire4` trace the `pickup_state 2` window holds
+one row at `prior 0` (the first state-2 frame, sampled before that frame's PMG
+setup) and 61 at `prior 16`, and `pickup_pmg_rows` is `16` on both. A
+state-derived assertion would therefore have pinned an unverifiable rule, so
+the gate accepts both and keeps every other clause.
+
+**Result.** Rebuilt (XEX `ecc9ceda…`, still byte-identical to `0002d84`) and
+re-ran the default mode in full. The contact invariant at `:2992` passes. The
+run now aborts one clause later, at `scripts/runtime-wall-trace.mjs:2998`:
+
+```
+Error: weapon-pickup-contact-2-hunt-fire4 did not collect and activate exactly once
+```
+
+Measured over the fresh trace, the collection row is unique and three of the
+four sub-clauses hold:
+
+| Sub-clause | Measured |
+| --- | --- |
+| `collectionRows.length === 1` | 1 — **passes** |
+| `pickup_booster_state === 3` | 3 — **passes** |
+| `entity_active_mask === 0` | 0 — **passes** |
+| `pickup_draw_calls === 0` | **1 — fails** |
+
+Collection frame 396: `pickup_state 3, booster_state 3, entity_active_mask 0,
+pickup_erase_calls 2, pickup_draw_calls 1, player_y 164, pickup_y 148`.
+
+Both clauses were introduced by the same commit, `e187ffd`
+(`fix(render): preserve booster during player overlap`, 2026-09-01), so this is
+the same vintage as the pin just removed and is a candidate for the same
+diagnosis — but that has **not** been established here. Whether the draw on the
+collection frame is legitimate runtime behaviour or a real defect in the
+collection path is undetermined; the owner's instruction for this session was
+to stop rather than widen the gate further, so no further clause was touched.
+
+`docs/runtime-wall-trace.json` therefore still carries `ab682d84…` / ATR menu
+`502`, `tests/runtime-wall-trace.test.mjs:77-121` still fails on that stale
+data, and a final (non-candidate) build stays blocked — `npm test` itself
+cannot run for this reason (`validateRuntimeEvidenceBinding`,
+`scripts/build.mjs:1594`), so the suite must be run as a candidate build plus
+`node --test tests/*.test.mjs`.
+
+**Gates for the change made here.** Boot smoke 4/4 PASS on this build
+(XEX menu 392/392 baseline, ATR menu 554/554 baseline, delta 0 frames on all
+four sessions, no warn). PAL timing audit over all 21 replays that run before
+the abort: 21/21 PASS, 0 distinct miss events, worst margin 1,713 cycles
+(`weapon-pickup-2-hunt-fire4`). Focused A/B on
+`tests/runtime-wall-trace.test.mjs` + `tests/pal-timing-audit.test.mjs`, which
+both read this script's source: 28 tests / 9 failing with and without the
+change, identical names. Full suite (candidate build + `node --test`): 690
+tests, 112 failing.

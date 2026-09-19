@@ -1,15 +1,24 @@
 # `docs/runtime-wall-trace.json` cannot be regenerated — now `BLOCKED_MUZZLE_ORPHAN_TRANSIENT`
 
-> **Update, 2026-09-19 (FIX session, branch `wip/4.5d-gate-fail`, HEAD `9a80fe2`).**
+> **Update, 2026-09-19 (DIAGNOSTIC session, branch `wip/4.5d-gate-fail`, HEAD
+> `cdc2695`; instrumentation `4de4be9`).**
+> `BLOCKED_MUZZLE_ORPHAN_TRANSIENT` is **measured and diagnosed**, not widened.
+> The emulator now reports the offending address and code, and the answer is
+> reading **(b)**: a real one-cell ghost written by the BROADSIDE launch flash
+> and left behind by `restore_launch_flash_cell` (`src/main.s:8097-8110`),
+> visible in the central corridor for 0.14-0.28 s, seven times per replay. The
+> gate clause is correct and was **not** touched. **§8.6 is the current
+> state**; §8.1-§8.5 are how the blocker was reached.
+>
+> Earlier banner (FIX session, HEAD `9a80fe2`).
 > The owner unblocked `BLOCKED_PICKUP_CONTACT_STEEL_WINDOW`. The pickup contact
 > raster window is now **derived** from `pickup_hposm0` and `colpf3` instead of
 > pinned, and **both pickup sessions pass every clause**. The default run has
 > left the pickup path entirely and now stops in the capital-muzzle ring
 > session on a live emulator-side orphan-transient count — which, unlike the
 > three clauses before it, **may be reporting a real defect rather than a stale
-> pin**, and must not be widened on that assumption. **§8 is the current
-> state**; §7 is the history of the two pins before it, §6 of the one before
-> that, §1-§4 of the first.
+> pin**, and must not be widened on that assumption. §7 is the history of the
+> two pins before it, §6 of the one before that, §1-§4 of the first.
 >
 > Earlier banner: the owner unblocked `BLOCKED_PICKUP_COLLECTION_DRAW_CALL`;
 > both stale pickup trace-PC pins were repointed, root cause commit `04ae0a6`.
@@ -534,3 +543,158 @@ requires an owner decision, and reading (a) should not be assumed.
   was still not written —
   `Error: Runtime wall trace binding mismatch for void-strike-65-boot.bin` at
   `scripts/runtime-evidence.mjs:49` / `scripts/build.mjs:1594`.
+
+---
+
+## 8.6 The orphan measured: reading (b), the launch-flash restore
+
+Owner decision (2026-09-19): measure `BLOCKED_MUZZLE_ORPHAN_TRANSIENT`, do not
+decide it on correlation. Done. §8.4 left (a) and (b) open because the emulator
+counted orphan cells without naming one. It names them now, and the answer is
+**(b)** — a real one-cell ghost, with a named writer and a named defect. The
+gate clause was **not** touched, in either direction.
+
+DIAGNOSTIC session, branch `wip/4.5d-gate-fail`, HEAD at measurement
+`cdc2695`; instrumentation committed as `4de4be9`.
+
+### 8.6.1 The instrumentation
+
+`scripts/atari800-wall-trace.h` gained two columns beside the existing
+counters, written in both scan loops (divider row and ring screen):
+
+| Column | Meaning |
+| --- | --- |
+| `muzzle_illegal_address` | screen address of the **first** orphan cell of the frame, 0 when there is none |
+| `muzzle_illegal_code` | the character code found at that address |
+
+This is measurement only. No clause, threshold or ownership model changed, and
+every pre-existing counter keeps its meaning and its column order.
+
+Rebuilt (`--prepare`) and re-ran `capital-muzzle-ring-2-sweep-fire4`. The
+failure reproduces exactly: **68 of 6,000 frames**, the same seven episodes
+`925-938, 944-954, 1027-1034, 1362-1370, 1395-1402, 1444-1450, 4112-4122`, and
+`muzzle_illegal_cells` is **1** on every one of them.
+
+### 8.6.2 The addresses and codes
+
+| Episode | Address | Ring row / col | Codes | Frames |
+| ---: | --- | ---: | --- | ---: |
+| 925 | `$83C8` | 16 / 8 | `$51` -> `$45` | 14 |
+| 944 | `$829F` | 8 / 31 | `$D2` -> `$D0` | 11 |
+| 1027 | `$84B8` | 22 / 8 | `$51` -> `$45` | 8 |
+| 1362 | `$83DF` | 16 / 31 | `$D2` -> `$D0` | 9 |
+| 1395 | `$8148` | 0 / 8 | `$51` -> `$45` | 8 |
+| 1444 | `$81C0` | 3 / 8 | `$51` -> `$45` | 7 |
+| 4112 | `$8407` | 17 / 31 | `$D2` -> `$D0` | 11 |
+
+Every address lies in the ring screen (`$8140-$8578`) at **column 8 or column
+31** — `CORRIDOR_CENTRAL_FIRST` and `CORRIDOR_CENTRAL_END-1`, the two
+turret-muzzle columns. Code census over the 68 frames: **16** carry a launch
+flash code (`$51` allied / `$D2` enemy), **52** carry a muzzle code (`$45`
+allied / `$D0` enemy).
+
+### 8.6.3 The writer
+
+On **7 of 7 episodes**
+`muzzle_illegal_address == BROAD_ROW_LO/HI[slot] + CAPITAL_TURRET_MUZZLE_COLUMN_OFFSET`
+for the slot whose flash was running. The path is the launch flash:
+
+* `render_launch_flashes` (`src/main.s:8066-8094`) writes
+  `CAPITAL_HULL_{ALLIED,ENEMY}_FLASH_CODE` at `BROAD_ROW_LO/HI,x` plus the
+  turret's muzzle column.
+* `restore_launch_flash_cell` (`src/main.s:8097-8110`), reached from
+  `tick_launch_flashes`, writes
+  `CAPITAL_TURRET_MUZZLE_SCREEN_CODE_OFFSET` — the `$45`/`$D0` **muzzle** code
+  — into the same cell on the frame `BROAD_FLASH_TIMER` reaches 0. That is
+  exactly the measured `$51 -> $45` / `$D2 -> $D0` transition, on exactly the
+  expiry frame.
+
+**Why the gate does not model it.** `dftrace_snapshot_muzzles` attributes a
+hull-transient code only to `MUZZLE_SCREEN_LO/HI[0..1]`
+(`src/main.s:287-288`) — the single-per-side overlay record maintained by
+`track_top_muzzles`, `advance_tracked_muzzles` and `redraw_tracked_muzzles` —
+plus `broadsideOccludesMuzzle`, which models a broadside sitting *on* one of
+those pointers. The launch flash addresses its cell through `BROAD_ROW_LO/HI`,
+set by `set_broadside_row_ptr` (`src/main.s:8015`). These are two independent
+pointers into the same ring: they coincide at broadside admission
+(`src/main.s:7826-7830`) and diverge afterwards, because the broadside advances
+on its own state machine while the tracked record advances on ring scroll and
+is re-claimed at the top or retired to the divider. Nothing in the model
+describes a flash at the broadside's own row.
+
+### 8.6.4 Verdict: (b)
+
+The flash write itself is reading (a) — a legitimate writer the gate never
+modelled, with a real cleanup. **The cleanup is the defect.**
+
+1. **52 of the 68 orphan frames have every `BROAD_FLASH_TIMER` already 0.** The
+   writer's lifecycle is over and the flash path never revisits the cell. That
+   is the (b) criterion of §8.4 verbatim.
+2. `restore_launch_flash_cell` restores a **per-turret constant, not the cell's
+   prior content**; it performs no backing save. The tracked-muzzle overlay
+   maintains `MUZZLE_BACKING` and restores it through `restore_active_muzzles`
+   (`src/main.s:6233-6247`, `6281-6284`) precisely because a ring cell's prior
+   content must be preserved across an overlay. The flash path skips that
+   discipline entirely.
+3. Provable content loss in 2 of the 7 episodes: at **1027** and **1395** the
+   flash was drawn **on the tracked muzzle cell** (previous-frame
+   `muzzle0_cell == $51`), the record then left that cell for `$4030` without
+   `restore_active_muzzles` ever restoring `MUZZLE_BACKING` there, and
+   `restore_launch_flash_cell` stamped `$45` into it. Over the whole trace,
+   **63 frames** show a tracked muzzle cell holding a flash code — the flash
+   routinely clobbers the tracked cell with no save.
+4. The orphan clears 7-14 frames later with no flash-path state change and
+   while the broadside is mid-flight: incidental coverage by a later screen
+   write, not lifecycle cleanup.
+
+**Where the defect lives.** `restore_launch_flash_cell`
+(`src/main.s:8097-8110`), with the missing counterpart save in
+`render_launch_flashes` (`src/main.s:8066-8094`). The launch flash needs the
+same save/restore discipline the tracked-muzzle overlay already has, instead of
+restoring a constant muzzle glyph. Fixing it is production work in the capital
+broadside path and was **not** attempted in this session.
+
+The gate is not the thing that is wrong. Widening this clause would have been
+the act that deleted the catch, exactly as §8.4 warned.
+
+### 8.6.5 Player visibility: yes
+
+* The ring spans `$8140-$8578` = 1080 bytes = 27 x 40 = `DFTRACE_RING_ROWS`, so
+  **every ring address is mapped to a displayed row at all times**; rotation
+  changes only which raster row shows it. The cell is on screen for the whole
+  episode.
+* At onset the owning broadside sits at display rows **20-24 of 27**, raster x
+  **84-164** — inside the visible playfield, low on the screen, in the central
+  corridor.
+* It renders as the **capital-hull turret muzzle glyph** — the same character
+  `track_top_muzzles` scans for. It does not read as corruption; it reads as a
+  turret muzzle on a hull row that has no turret.
+* Duration **7-14 frames, i.e. 0.14-0.28 s**, seven times in this 6,000-frame
+  (120 s) replay, always exactly one cell.
+
+**What the trace cannot settle.** Only `broad_raster_row` is emitted, and only
+for the broadside's own pointer, so the cell can be shown to be displayed
+throughout but not tracked to a specific raster row on each later frame. And
+nothing captures the cell's original content, so the destroyed glyph cannot be
+named.
+
+**What an owner smoke must look for.** During a capital-muzzle ring sweep with
+broadsides firing: a single extra turret-muzzle character in the central
+corridor — column 8 for allied, column 31 for enemy — on a hull row that has no
+turret, appearing as the launch flash fades and lasting about a quarter of a
+second, low on the screen. Easiest to catch by frame-stepping the moments after
+a launch flash and comparing the two corridor columns against the hull's real
+turret positions.
+
+### 8.6.6 Gates for the change made here
+
+* Build: `npm run build:candidate -- --quiet`, XEX
+  `ecc9cedafd87f871989fc0b279343d1848c225792bf17e5be4ad9fadd1f7d3c7` —
+  byte-identical to the accepted runtime checkpoint `0002d84`. The header is
+  emulator-side instrumentation and does not reach the artifact.
+* Boot smoke: **4/4 PASS**. XEX menu 392/392, ATR menu 554/554.
+* Gate clause: **unchanged**, in either direction.
+* `docs/runtime-wall-trace.json` still carries `ab682d84…` / ATR menu `502`;
+  `tests/runtime-wall-trace.test.mjs:77-121` still fails on that stale data;
+  a final (non-candidate) build is still refused. The blocker is unchanged —
+  it is now diagnosed rather than undetermined.

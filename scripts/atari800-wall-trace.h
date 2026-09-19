@@ -132,6 +132,11 @@ typedef struct {
 	unsigned muzzle_cell[2];
 	unsigned muzzle_code_cells;
 	unsigned muzzle_illegal_cells;
+	/* Diagnostic-only: address and character code of the FIRST orphan cell
+	 * counted into muzzle_illegal_cells this frame, 0 when there is none.
+	 * The counter alone cannot say which writer put the code there. */
+	unsigned muzzle_illegal_address;
+	unsigned muzzle_illegal_code;
 	unsigned muzzle_pointer_errors;
 	unsigned muzzle_divider_allied;
 	unsigned muzzle_divider_enemy;
@@ -4188,6 +4193,8 @@ static void dftrace_snapshot_muzzles(DFTraceFrame *frame)
 	frame->active_muzzles = 0u;
 	frame->muzzle_code_cells = 0u;
 	frame->muzzle_illegal_cells = 0u;
+	frame->muzzle_illegal_address = 0u;
+	frame->muzzle_illegal_code = 0u;
 	frame->muzzle_pointer_errors = 0u;
 	frame->broad_pointer_errors = 0u;
 	for (slot = 0u; slot < 2u; ++slot) {
@@ -4213,15 +4220,25 @@ static void dftrace_snapshot_muzzles(DFTraceFrame *frame)
 		if (!dftrace_is_hull_transient(MEMORY_mem[address]))
 			continue;
 		++frame->muzzle_code_cells;
-		if (address != frame->muzzle_pointer[0] && address != frame->muzzle_pointer[1])
+		if (address != frame->muzzle_pointer[0] && address != frame->muzzle_pointer[1]) {
+			if (frame->muzzle_illegal_cells == 0u) {
+				frame->muzzle_illegal_address = address;
+				frame->muzzle_illegal_code = MEMORY_mem[address];
+			}
 			++frame->muzzle_illegal_cells;
+		}
 	}
 	for (address = DFTRACE_RING_SCREEN; address < DFTRACE_RING_END; ++address) {
 		if (!dftrace_is_hull_transient(MEMORY_mem[address]))
 			continue;
 		++frame->muzzle_code_cells;
-		if (address != frame->muzzle_pointer[0] && address != frame->muzzle_pointer[1])
+		if (address != frame->muzzle_pointer[0] && address != frame->muzzle_pointer[1]) {
+			if (frame->muzzle_illegal_cells == 0u) {
+				frame->muzzle_illegal_address = address;
+				frame->muzzle_illegal_code = MEMORY_mem[address];
+			}
 			++frame->muzzle_illegal_cells;
+		}
 	}
 	frame->muzzle_divider_allied = MEMORY_mem[DFTRACE_DIVIDER_SCREEN + 8u];
 	frame->muzzle_divider_enemy = MEMORY_mem[DFTRACE_DIVIDER_SCREEN + 31u];
@@ -4393,7 +4410,8 @@ static void dftrace_write(void)
 	for (index = 0; index < 2u; ++index)
 		fprintf(file, ",muzzle%u_domain,muzzle%u_row,muzzle%u_pointer,muzzle%u_cell",
 			index, index, index, index);
-	fprintf(file, ",muzzle_code_cells,muzzle_illegal_cells,muzzle_pointer_errors"
+	fprintf(file, ",muzzle_code_cells,muzzle_illegal_cells"
+		",muzzle_illegal_address,muzzle_illegal_code,muzzle_pointer_errors"
 		",muzzle_divider_allied,muzzle_divider_enemy");
 	for (index = 0; index < 3u; ++index)
 		fprintf(file, ",broad%u_state,broad%u_flash,broad%u_turret,broad%u_row,broad%u_pointer"
@@ -4598,8 +4616,9 @@ static void dftrace_write(void)
 			fprintf(file, ",%u,%u,%u,%u", frame->muzzle_domain[slot],
 				frame->muzzle_row[slot], frame->muzzle_pointer[slot],
 				frame->muzzle_cell[slot]);
-		fprintf(file, ",%u,%u,%u,%u,%u", frame->muzzle_code_cells,
-			frame->muzzle_illegal_cells, frame->muzzle_pointer_errors,
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u", frame->muzzle_code_cells,
+			frame->muzzle_illegal_cells, frame->muzzle_illegal_address,
+			frame->muzzle_illegal_code, frame->muzzle_pointer_errors,
 			frame->muzzle_divider_allied, frame->muzzle_divider_enemy);
 		for (unsigned slot = 0; slot < 3u; ++slot)
 			fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u", frame->broad_state[slot],

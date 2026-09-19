@@ -395,8 +395,9 @@ re-basing.
   "menu N against deadline N" figure recorded further down this file is a
   historical measurement under the superseded formula;
 - **`docs/runtime-wall-trace.json` is stale and cannot be regenerated —
-  `BLOCKED_CAPITAL_CONTACT_MODE_UNSET`** (current blocker, measured 2026-09-19;
-  it replaces `BLOCKED_MUZZLE_ORPHAN_TRANSIENT`, which is resolved — see the
+  `BLOCKED_PICKUP_SEQUENCE_DRAWN_MASK`** (current blocker, measured 2026-09-19;
+  it replaces `BLOCKED_CAPITAL_CONTACT_MODE_UNSET`, which is resolved, which in
+  turn had replaced `BLOCKED_MUZZLE_ORPHAN_TRANSIENT` — see the
   "current state" paragraph at the end of this entry; the narrative below is the
   history of the four superseded blockers, kept because each one names a standing
   rule). The committed
@@ -525,7 +526,65 @@ re-basing.
   session contributes is an open owner decision. Evidence and measurements for
   every blocker, and the verbatim model change:
   [diagnostics/runtime-wall-trace-report-regeneration-blocked.md](diagnostics/runtime-wall-trace-report-regeneration-blocked.md)
-  10;
+  10.
+  **Current state, later on 2026-09-19 (supersedes the paragraph above).**
+  `BLOCKED_CAPITAL_CONTACT_MODE_UNSET` is **fixed**, in `scripts/` only, with no
+  production byte changed and `dist/` still at XEX `5ea523a4…`. It was a
+  configuration defect, not a runtime or gate defect: three session definitions
+  carried `contactOwner` but no `contactModeId`. The value was **derived, not
+  chosen** — `contactModeId: 1` (`middle`) for all three. Commit `4753399`
+  replaced `DFTRACE_CAPITAL_CONTACT_DELTA` with the named mode and renamed
+  `side` to `middle`; the delta was sent only for sessions carrying
+  `contactDelta`, which these three never did, so they had always run on the
+  file-scope default `delta = 7` — and `middle` is that same geometry, in both
+  the steering (`player_top = bolt.top - 4` against the legacy
+  `target_y = shell_y - 7` with a bolt top at `shell_y - 3`) and the capture
+  predicate (`bolt.top == player.top + 4`). The third session's own policy,
+  `lower-contact-hostile`, writes `target_y = shell_y - 7u` literally. Mode 3
+  (`near`) is excluded by the sessions' own clause, which asserts a hit. **A
+  guard now makes this class impossible to repeat silently:**
+  `capitalContactPrefixKinds` is the single definition of "this kind sends the
+  capital-contact environment", `assertCapitalContactEnvironment` bounds-checks
+  both `contactModeId` (integer 0-3) and `contactOwner` (0 or 1), it is swept
+  over the session tables at module scope where they are defined, and the
+  session loop asserts that nothing outside the set sets the prefix — so the
+  failure is a named `invariant` before any emulator starts, not `exit(2)`
+  hundreds of frames in. **Second owner decision of the day, recorded and not
+  changed:** a session that produces no CSV is a **HARD** failure, not an
+  accumulated clause failure — the same boundary stage 1 already drew at
+  `parseCsv`, with `run()` and `parseCsv` both outside the session `try`.
+  Corrupt or absent data stops the run; a failing clause does not. Stage 2 must
+  not blur the two; the rule is now stated in the code above that `try`.
+  **Result: all 64 default-mode sessions run to completion — the first time the
+  whole set has executed.** PAL timing audit **0 distinct miss events across 64
+  replays (PASS)**, boot smoke **4/4 PASS**, 0 hard failures inside the loop, and
+  **3 accumulated clause failures** — the same clause in the three newly
+  reachable sessions, "did not capture 16 consecutive contact rasters". That
+  residue is a *different*, pre-existing staleness and is **not** the mode: in
+  the two `capital-contact-*` sessions no BROADSIDE is ever live (every
+  `broad{0,1,2}_state` is 0 on all 560 / 360 rows, so no mode value could
+  produce a contact, and the player is instead killed twice by ordinary
+  enemies), and in `lower-playfield-hostile-contact-xex-hard` the steering
+  branch engages only on a hostile shell with `shell_y >= 191` while every live
+  shell in the replay sits at 116 or 180. They are stale **scenarios** — frame
+  budgets and playfield rows written against an older Director and BROADSIDE
+  schedule — and repairing them is a separate owner decision. **The report is
+  still not written**, because the run now throws *outside* the loop, in the 176
+  post-loop aggregates that stage 1 deliberately left alone, at
+  `runtime-wall-trace.mjs:4599`: "Atari800 did not capture all 16 consecutive
+  pickup raster frames". Zero of the 16 `weapon-pickup-frame-NN.png` exist while
+  the three neighbouring screenshot invariants pass. Measured cause, and it is
+  the §6/§7 family again: the emulator's capture gate requires
+  `(ENTITY_DRAWN_MASK + 1) & 15 == 15`, and that byte — published as
+  `pickup_drawn_mask` — is **`0` on all 4,000 frames** of the pickup session,
+  because production writes `ENTITY_DRAWN_MASK` (slot 0) at `src/main.s:9509`,
+  `:10368`, `:10393` and never `+1`. Slot 1's character drawn-mask has been dead
+  memory since `f6eee5c` moved the capsule to the missile plane. **Unsatisfiable
+  by construction**, pre-existing, previously unreachable, and **not fixed
+  here** — what replaces it is an owner decision of the same kind as the three
+  already taken. Evidence, the verbatim guard and every measurement:
+  [diagnostics/runtime-wall-trace-report-regeneration-blocked.md](diagnostics/runtime-wall-trace-report-regeneration-blocked.md)
+  11;
 - open owner decision: the packed STARFIELD correction gate. At the 4.5M-M1
   candidate the single-stream gates 1,798 / 1,819 B are superseded by the
   two-stream total gates 1,804 (correction) / 1,825 B (hard) against a measured

@@ -352,6 +352,10 @@ const capitalContactSessions = [0, 1].map((owner) => ({
   frames: owner === 0 ? 560 : 360,
   kind: "capital-projectile-contact",
   contactOwner: owner,
+  /* Mid-body overlap: the geometry these sessions have always steered to
+   * (`target_y = shell_y - 7`, bolt top four rows below the player top),
+   * expressed as the named mode that replaced the legacy contact delta. */
+  contactModeId: 1,
 }));
 
 const capitalPlayerGeometrySessions = [["XEX", 1], ["ATR", 2]].flatMap(([medium, difficulty]) =>
@@ -442,7 +446,31 @@ const lowerPlayfieldSessions = [{
   frames: 1_200,
   kind: "lower-playfield-contact",
   contactOwner: 1,
+  /* `lower-contact-hostile` steers to the same `shell_y - 7` mid-body overlap. */
+  contactModeId: 1,
 }];
+
+/* Kinds whose runs set DFTRACE_CAPITAL_CONTACT_PREFIX, and therefore also send
+ * DFTRACE_CAPITAL_CONTACT_OWNER and DFTRACE_CAPITAL_CONTACT_MODE. */
+const capitalContactPrefixKinds = new Set([
+  "capital-projectile-contact",
+  "lower-playfield-contact",
+  "capital-player-geometry",
+]);
+
+function assertCapitalContactEnvironment(session) {
+  if (!capitalContactPrefixKinds.has(session.kind)) return;
+  invariant(Number.isInteger(session.contactModeId) &&
+    session.contactModeId >= 0 && session.contactModeId <= 3,
+  `${session.id} (${session.kind}) sets DFTRACE_CAPITAL_CONTACT_PREFIX but carries ` +
+  `contactModeId=${session.contactModeId}; the emulator requires an integer 0-3`);
+  invariant(session.contactOwner === 0 || session.contactOwner === 1,
+    `${session.id} (${session.kind}) carries contactOwner=${session.contactOwner}; ` +
+    "the emulator requires 0 (Allied) or 1 (Hostile)");
+}
+
+for (const session of [...capitalContactSessions, ...capitalPlayerGeometrySessions,
+  ...lowerPlayfieldSessions]) assertCapitalContactEnvironment(session);
 
 const traceLabels = {
   DFTRACE_PC_PLAYER_SHOT_SOUND: "play_player_fighter_projectile_sound",
@@ -2427,6 +2455,11 @@ function main() {
     const capitalGeometryPrefix = session.kind === "capital-player-geometry"
       ? path.join(buildDirectory, `${session.id}-frame`) : undefined;
     const capitalScreenshotPrefix = capitalGeometryPrefix ?? capitalContactPrefix;
+    invariant(capitalScreenshotPrefix === undefined ||
+      capitalContactPrefixKinds.has(session.kind),
+    `${session.id} sets DFTRACE_CAPITAL_CONTACT_PREFIX under kind ${session.kind}, ` +
+    "which capitalContactPrefixKinds does not cover");
+    assertCapitalContactEnvironment(session);
     const raiderScreenshotPrefix = session.kind === "two-pmg-raiders-native"
       ? path.join(buildDirectory, session.id) : undefined;
     if (pickupContactPrefix !== undefined && !reuseExistingTraces) {
@@ -2570,7 +2603,11 @@ function main() {
     // failure are no longer dark. The precedent is the PAL timing audit below,
     // which reports per replay and sets process.exitCode instead of throwing.
     // parseCsv stays OUTSIDE the try: a malformed or short CSV leaves no rows
-    // to carry forward and remains fatal.
+    // to carry forward and remains fatal. So does run() above. Owner decision
+    // 2026-09-19: a session that produces no CSV at all is a HARD failure, not
+    // an accumulated clause failure — the same boundary drawn here at parseCsv.
+    // Corrupt or absent data stops the run; a failing clause does not. Stage 2
+    // must not blur the two.
     // The body is deliberately left at its original indentation — reindenting
     // ~670 lines would bury the change in whitespace.
     try {

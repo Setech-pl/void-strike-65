@@ -1,4 +1,4 @@
-# `docs/runtime-wall-trace.json` cannot be regenerated — now `BLOCKED_MUZZLE_ORPHAN_TRANSIENT`
+# `docs/runtime-wall-trace.json` cannot be regenerated — now `BLOCKED_PICKUP_SEQUENCE_DRAWN_MASK`
 
 > **Update, 2026-09-19 (DIAGNOSTIC session, branch `wip/4.5d-gate-fail`, HEAD
 > `cdc2695`; instrumentation `4de4be9`).**
@@ -1129,4 +1129,226 @@ defect stands between it and the report.
   identical to the accepted checkpoint.
 * `capital-muzzle-ring-2-sweep-fire4`: 6,000 frames, max **30,337** wall cycles,
   fence margin 5,331, 0 misses — unchanged from §9.5, byte-identical binary.
+* CPU/RAM delta: **zero**. No production source changed.
+
+## 11. `BLOCKED_CAPITAL_CONTACT_MODE_UNSET` fixed — all 64 sessions run; the report is blocked in the post-loop aggregates
+
+FIX session, 2026-09-19, branch `wip/4.5d-gate-fail`, HEAD at start `9215013`,
+worktree clean. No rebuild: the accepted artifact in `dist/` is still XEX
+`5ea523a44a345ae62fba89a077d6d8957f42a0f9d94812721f9bdd2013b618bf`, byte
+identical to §9, §9.6 and §10, and the whole change is in
+`scripts/runtime-wall-trace.mjs`. The trace header was **not** touched, so the
+instrumented emulator is the same build; `--prepare` was re-run only because
+`/tmp/atari800-7.1.2` had been cleared, and the repo copy
+(`ATARI800_TRACE_SOURCE=build/atari800-trace`) was used. Boot smoke **4/4 PASS**.
+
+### 11.1 The mode each session needs — derived, not chosen
+
+The four modes are named by `capitalPlayerGeometrySessions` and decided by one
+expression in `dftrace_capture_capital_contact_decision`
+(`scripts/atari800-wall-trace.h:3314-3319`), against the physical player and
+bolt boxes:
+
+| `contactModeId` | name | geometry required | capture PC |
+| ---: | --- | --- | --- |
+| 0 | `top` | `bolt.bottom == player.top` | `player_aabb_hit` |
+| 1 | `middle` | `bolt.top == player.top + 4` | `player_aabb_hit` |
+| 2 | `bottom` | `bolt.top == player.bottom` | `player_aabb_hit` |
+| 3 | `near` | `bolt.bottom + 1 == player.top` | `player_aabb_**miss**` |
+
+All three affected sessions assert a **hit** — the shared
+`capitalContactPrefix` block requires `capital_player_damage_calls === 1` and 16
+captured rasters — so mode 3 is excluded by the assertions themselves.
+
+Among 0, 1 and 2 the repository decides it exactly, in two independent ways.
+
+**(a) The mode replaced a delta, and the delta had a default.** Commit `4753399`
+("fix(collision): use final raster bounds for capital bolts") replaced
+`DFTRACE_CAPITAL_CONTACT_DELTA` with `DFTRACE_CAPITAL_CONTACT_MODE`, renaming the
+geometry set `top/side/bottom/near/sweep` to `top/middle/bottom/near`. Before it,
+`DFTRACE_CAPITAL_CONTACT_DELTA` was sent **only** for sessions carrying
+`contactDelta` — which these three never did — so they ran on the file-scope
+default `static int dftrace_capital_contact_delta = 7`, i.e. the old `side`
+(delta 7), the geometry the rename folded into `middle`. The same commit dropped
+the conditional spread and began sending the mode unconditionally; that is the
+line the `"undefined"` comes from.
+
+**(b) The steering arithmetic is identical.** The legacy default steered
+`target_y = shell_y - 7`; the bolt's logical top is `shell_y - 3`, so the bolt top
+sat 4 rows below the player top. Mode 1 steers `player_top = bolt.top - 4` and its
+capture predicate is `bolt.top == player.top + 4` — the same offset, exactly.
+Mode 0 corresponds to the legacy `top` (delta −2 → `bolt.bottom == player.top`)
+and mode 2 to `bottom` (delta 17). `lower-contact-hostile`, the third session's
+policy, is not even mode-driven: it steers `target_y = shell_y - 7u`
+(`scripts/atari800-wall-trace.h:2537`) in its own branch — the same mid-body
+overlap, written out literally.
+
+So **`contactModeId: 1` for all three**, and each carries the derivation as a
+comment beside it. Nothing was tried until it passed: the value was fixed from
+history and arithmetic before the first run.
+
+### 11.2 The guard, verbatim
+
+Placed where the session tables are defined
+(`scripts/runtime-wall-trace.mjs`, immediately after `lowerPlayfieldSessions`),
+so a missing field throws by name at module scope rather than becoming
+`exit(2)` inside the emulator hundreds of frames later:
+
+```js
+/* Kinds whose runs set DFTRACE_CAPITAL_CONTACT_PREFIX, and therefore also send
+ * DFTRACE_CAPITAL_CONTACT_OWNER and DFTRACE_CAPITAL_CONTACT_MODE. */
+const capitalContactPrefixKinds = new Set([
+  "capital-projectile-contact",
+  "lower-playfield-contact",
+  "capital-player-geometry",
+]);
+
+function assertCapitalContactEnvironment(session) {
+  if (!capitalContactPrefixKinds.has(session.kind)) return;
+  invariant(Number.isInteger(session.contactModeId) &&
+    session.contactModeId >= 0 && session.contactModeId <= 3,
+  `${session.id} (${session.kind}) sets DFTRACE_CAPITAL_CONTACT_PREFIX but carries ` +
+  `contactModeId=${session.contactModeId}; the emulator requires an integer 0-3`);
+  invariant(session.contactOwner === 0 || session.contactOwner === 1,
+    `${session.id} (${session.kind}) carries contactOwner=${session.contactOwner}; ` +
+    "the emulator requires 0 (Allied) or 1 (Hostile)");
+}
+
+for (const session of [...capitalContactSessions, ...capitalPlayerGeometrySessions,
+  ...lowerPlayfieldSessions]) assertCapitalContactEnvironment(session);
+```
+
+The set is the single definition of "this kind sends the capital-contact
+environment"; the session loop now asserts against it too, so a **new** kind that
+starts setting the prefix cannot slip past the table-level sweep:
+
+```js
+    const capitalScreenshotPrefix = capitalGeometryPrefix ?? capitalContactPrefix;
+    invariant(capitalScreenshotPrefix === undefined ||
+      capitalContactPrefixKinds.has(session.kind),
+    `${session.id} sets DFTRACE_CAPITAL_CONTACT_PREFIX under kind ${session.kind}, ` +
+    "which capitalContactPrefixKinds does not cover");
+    assertCapitalContactEnvironment(session);
+```
+
+`contactOwner` is guarded with `contactModeId`: it is the other value
+`dftrace_env_u` bounds-checks in the same `exit(2)`, and a session table is the
+only place either is set.
+
+**Proven by fault injection.** With the `contactModeId: 1` line deleted again
+from the `lowerPlayfieldSessions` entry, the harness fails at import, naming the
+session and the field:
+
+```
+Error: lower-playfield-hostile-contact-xex-hard (lower-playfield-contact) sets
+DFTRACE_CAPITAL_CONTACT_PREFIX but carries contactModeId=undefined; the emulator
+requires an integer 0-3
+```
+
+Module scope means this precedes even the "Instrumented Atari800 is missing"
+check in `main()` — no emulator is started, no frames are replayed, and the
+message names the fix. The line was restored before commit.
+
+### 11.3 Rows-less sessions are a HARD failure — recorded, not changed
+
+Owner decision 2026-09-19. Stage 1's accumulation is unchanged. The boundary it
+already drew at `parseCsv` is now stated where the code draws it
+(`scripts/runtime-wall-trace.mjs`, above the session `try`): `run()` and
+`parseCsv` are **outside** the try, so a session that produces no CSV — a
+non-zero emulator exit, a truncated file — stops the run, while a failing
+behavioural clause is recorded and the loop continues. Corrupt or absent data is
+not a clause.
+
+### 11.4 What the full default run now does
+
+`ATARI800_TRACE_SOURCE=build/atari800-trace node scripts/runtime-wall-trace.mjs`,
+default mode, this build:
+
+* **64 of 64 sessions run to completion** — the first time the whole default set
+  has executed. The three that could not start now start;
+* PAL timing audit: **0 distinct miss events across 64 replays, PASS**;
+* boot smoke **4/4 PASS**;
+* **3 accumulated behavioural clause failures**, all the same clause in the three
+  newly reachable sessions: *"did not capture 16 consecutive contact rasters"*;
+* the run then throws **outside** the session loop, in the post-loop aggregates,
+  at `scripts/runtime-wall-trace.mjs:4599`: *"Atari800 did not capture all 16
+  consecutive pickup raster frames"*. Exit 1, **no report written**.
+
+`BLOCKED_PICKUP_SEQUENCE_DRAWN_MASK`.
+
+### 11.5 The three contact sessions: measured, and it is not the mode
+
+The mode fix is complete — the emulator no longer exits 2, each session runs its
+full frame budget and writes a CSV, and each is PAL-clean (max wall 28,936 /
+28,437 / 28,768 cycles, 0 misses). What they now fail is a **different,
+pre-existing staleness**: on this build no capital projectile ever contacts the
+player in these scenarios, so nothing is captured. Measured from the CSVs:
+
+| Session | frames | capital bolts seen | rows with `capital_collision_calls` | `capital_player_damage_calls` |
+| --- | ---: | --- | ---: | ---: |
+| `capital-contact-allied-medium` | 560 | **none** — every `broad{0,1,2}_state` is 0 on all 560 rows | 0 rows | 0 |
+| `capital-contact-hostile-medium` | 360 | **none** | 0 rows | 0 |
+| `lower-playfield-hostile-contact-xex-hard` | 1,200 | 234 rows with a live BROADSIDE (frames 966-1199) | 174 rows | **0** |
+
+**This is mode-independent, and provably so.** In the two `capital-contact-*`
+sessions no BROADSIDE is ever live, so no value of `contactModeId` could produce
+a contact; the mode only steers the player and tests the geometry of a bolt that
+never exists. In those 560 frames the player is instead killed twice by ordinary
+enemies (`player_health_after` 10 → 0 at frames 145 and 496, lives 3 → 2 → 1)
+while holding position at `x=148, y=112`. In the third session the mode is not
+consulted at all by the `lower-contact-hostile` steering branch, and the reason
+the player never meets a bolt is visible in the trace: the branch engages only on
+a hostile shell with `shell_y >= 191`, and every live shell in the replay sits at
+`shell_y` 116 or 180, so `target_y` stays pinned at `DFTRACE_PLAYER_MAX_Y` and the
+player never leaves `y=225`.
+
+These are stale **scenarios** — frame budgets and playfield rows written against
+an older Director and BROADSIDE schedule — not a stale pin and not a runtime
+defect. Under the stage-1 decision they are accumulated, not fatal, which is why
+the run reached the post-loop aggregates at all. Repairing them is a separate
+owner decision: it means changing what each replay does (frame budget, difficulty
+or policy) until a capital bolt reaches the player again, and the evidence each
+session then publishes is owner-facing.
+
+### 11.6 The new blocker, measured
+
+`scripts/runtime-wall-trace.mjs:4599` requires 16 files
+`build/runtime-wall-trace/weapon-pickup-frame-{00..15}.png`. **Zero exist.** The
+three neighbouring screenshot invariants in the same block pass — the static
+capsule, the Rapid projectile and the Spread fan were all rendered and captured.
+
+The capture gate is `scripts/atari800-wall-trace.h:6063-6069`, and its third
+conjunct is `(MEMORY_mem[dftrace_entity_drawn_mask + 1u] & 15u) == 15u`. That
+byte is published to the CSV as `pickup_drawn_mask`
+(`scripts/atari800-wall-trace.h:3461`, `:4365` — the same `ENTITY_DRAWN_MASK + 1`).
+Measured over `weapon-pickup-2-hunt-fire4.csv`, 4,000 frames:
+
+| Column | Distribution |
+| --- | --- |
+| `pickup_drawn_mask` | **`0` on 4,000 of 4,000 frames** |
+| `entity_active_mask` | `0`×2,289, `1`×1,478, `2`×204, `3`×29 |
+| frames with `entity_active_mask == 2` **and** `(pickup_drawn_mask & 15) == 15` | **0** |
+
+So the gate is **unsatisfiable by construction on this build**, exactly like the
+three pickup clauses §6 and §7 repaired: production writes `ENTITY_DRAWN_MASK`
+(slot 0) at `src/main.s:9509`, `:10368` and `:10393` and never `+1`. Slot 1's
+character drawn-mask is dead memory since `f6eee5c` moved the capsule from
+character cells to the missile plane — the same commit and the same cause as the
+stale screenshot clause §7 derived away. `pickup_pmg_rows` is the live
+measurement of the capsule on this build.
+
+The defect is **pre-existing and untouched by this work**; it was simply
+unreachable while the run aborted earlier. It is **not fixed here**: it sits in
+the 176 post-loop aggregates that §10.3 explicitly left to stage 2, and choosing
+what replaces an unsatisfiable capture gate — repoint the emulator's gate at the
+missile plane, or retire the sequence — is an owner decision of the same kind as
+the three already taken.
+
+### 11.7 Gates
+
+* Build: none. `dist/` untouched; XEX still `5ea523a4…`, byte-identical to §10.
+* Boot smoke: **4/4 PASS** (inside the default run).
+* PAL timing audit: **0 distinct miss events across 64 replays, PASS**.
+* Sessions: **64/64 run**; 3 accumulated clause failures; 0 hard failures inside
+  the loop.
 * CPU/RAM delta: **zero**. No production source changed.

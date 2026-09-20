@@ -1995,9 +1995,17 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, xexPath, atrPath }
     rootDirectory, "build", "resident-runtime.bin"));
   const stageTableOffset = labels.get("boot_stage_streams") -
     manifest.residentRuntime.runAddress;
-  invariant(stageTableOffset >= 0 && stageTableOffset + 5 * 6 <= residentRuntime.length,
+  // The table's length is the assembled table's own, not a count the gate carries:
+  // 4.5M-M1 split the starfield into two streams and a fixed 5 stopped describing it.
+  const stageTableBytes =
+    labels.get("boot_stage_streams_end") - labels.get("boot_stage_streams");
+  invariant(Number.isInteger(stageTableBytes / 6) && stageTableBytes > 0,
+    `boot_stage_streams spans ${stageTableBytes} B, not a whole number of six-byte entries`);
+  const stageStreamCount = stageTableBytes / 6;
+  invariant(stageTableOffset >= 0 &&
+    stageTableOffset + stageTableBytes <= residentRuntime.length,
     "boot_stage_streams does not lie inside the resident runtime image");
-  const bootStageStreams = Array.from({ length: 5 }, (_, index) => {
+  const bootStageStreams = Array.from({ length: stageStreamCount }, (_, index) => {
     const offset = stageTableOffset + index * 6;
     return {
       source: residentRuntime.readUInt16LE(offset),
@@ -2005,48 +2013,72 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, xexPath, atrPath }
       bytes: residentRuntime.readUInt16LE(offset + 4),
     };
   });
-  const expectedBootStageStreams = [
-    { source: manifest.a2Kernel.sourceAddress, destination: 0x7f2b,
-      bytes: manifest.a2Kernel.bytes },
-    { source: manifest.entityEffects.packedSourceAddress,
+  // Every figure below is manifest-owned. $4801 is the one exception: the frontend
+  // charset scratch window is a fixed architectural address, not a build-derived one.
+  const expectedStagedSources = [
+    { name: "A2 initial source", source: manifest.a2Kernel.sourceAddress,
+      destination: manifest.a2Kernel.stagingAddress, bytes: manifest.a2Kernel.bytes },
+    { name: "packed ENTITY_CODE",
+      source: manifest.entityEffects.packedSourceAddress,
       destination: manifest.entityEffects.stagedSourceAddress,
       bytes: manifest.entityEffects.packedBytes },
-    { source: manifest.entityEffects.pickupPhaseExternalChunk.stagingAddress,
+    { name: "packed pickup",
+      source: manifest.entityEffects.pickupPhaseExternalChunk.stagingAddress,
       destination: 0x4801, bytes: manifest.entityEffects.pickupPhasePackedBytes },
-    { source: manifest.residentRuntime.packedSourceAddress,
+    { name: "packed resident suffix",
+      source: manifest.residentRuntime.packedSourceAddress,
       destination: manifest.residentRuntime.stagingAddress,
       bytes: manifest.residentRuntime.suffixPackedBytes },
-    { source: manifest.starfieldRuntime.packedSourceAddress,
-      destination: manifest.starfieldRuntime.stagingAddress,
-      bytes: manifest.starfieldRuntime.packedBytes },
+    ...manifest.starfieldRuntime.streams.map((stream) => ({
+      name: `packed starfield ${stream.id}`,
+      source: stream.packedSourceAddress,
+      destination: stream.stagingAddress,
+      bytes: stream.packedBytes,
+    })),
   ];
-  invariant(JSON.stringify(bootStageStreams) === JSON.stringify(expectedBootStageStreams),
-    "assembled boot_stage_streams differs from the manifest-owned lifecycle");
-  const stagedSources = [
-    { name: "A2 initial source", start: bootStageStreams[0].source,
-      end_exclusive: bootStageStreams[0].source + bootStageStreams[0].bytes, last_read: 1 },
-    { name: "packed ENTITY_CODE", start: bootStageStreams[1].source,
-      end_exclusive: bootStageStreams[1].source + bootStageStreams[1].bytes, last_read: 2 },
-    { name: "packed pickup", start: bootStageStreams[2].source,
-      end_exclusive: bootStageStreams[2].source + bootStageStreams[2].bytes, last_read: 3 },
-    { name: "packed resident suffix", start: bootStageStreams[3].source,
-      end_exclusive: bootStageStreams[3].source + bootStageStreams[3].bytes, last_read: 4 },
-    { name: "packed starfield", start: bootStageStreams[4].source,
-      end_exclusive: bootStageStreams[4].source + bootStageStreams[4].bytes, last_read: 5 },
-  ];
+  const expectedBootStageStreams = expectedStagedSources.map(
+    ({ source, destination, bytes }) => ({ source, destination, bytes }));
+  invariant(bootStageStreams.length === expectedBootStageStreams.length,
+    `boot_stage_streams assembles ${bootStageStreams.length} streams, but the manifest ` +
+    `describes ${expectedBootStageStreams.length}`);
+  for (const [index, assembled] of bootStageStreams.entries()) {
+    const wanted = expectedBootStageStreams[index];
+    invariant(JSON.stringify(assembled) === JSON.stringify(wanted),
+      `boot stage stream ${index + 1} (${expectedStagedSources[index].name}) assembles ` +
+      `${JSON.stringify(assembled)} but the manifest describes ${JSON.stringify(wanted)}`);
+  }
+  const stagedSources = bootStageStreams.map((stream, index) => ({
+    name: expectedStagedSources[index].name,
+    start: stream.source,
+    end_exclusive: stream.source + stream.bytes,
+    last_read: index + 1,
+  }));
+  // `copy_boot_stream = copy_boot_stream_backward` (src/main.s:1271-1275): every
+  // boot preservation copy runs from the last byte down, so a record whose
+  // destination sits at or above its OWN source has memmove semantics and is
+  // safe however far the two intervals overlap -- packed ENTITY_CODE relies on
+  // exactly that. A destination below its own source, or any intersection with
+  // ANOTHER record's still-unread source, destroys bytes either way.
   const liveSourceOverwrites = [];
   for (const [index, write] of bootStageStreams.entries()) {
     const sequence = index + 1;
     const writeEnd = write.destination + write.bytes;
     for (const sourceRange of stagedSources) {
-      if (sequence <= sourceRange.last_read &&
-          write.destination < sourceRange.end_exclusive && writeEnd > sourceRange.start) {
-        liveSourceOverwrites.push({ sequence, source: sourceRange.name });
+      if (sequence > sourceRange.last_read) continue;
+      if (write.destination >= sourceRange.end_exclusive || writeEnd <= sourceRange.start) {
+        continue;
       }
+      const ownSource = sourceRange.last_read === sequence;
+      if (ownSource && write.destination >= sourceRange.start) continue;
+      liveSourceOverwrites.push({ sequence, source: sourceRange.name,
+        reason: ownSource ? "backward copy cannot move a record down into its own source"
+          : "destination covers another record's still-unread source" });
     }
   }
   invariant(liveSourceOverwrites.length === 0,
-    "boot staging overwrites a packed source before its final read");
+    `boot staging destroys a packed source before its final read: ${
+      liveSourceOverwrites.map(({ sequence, source, reason }) =>
+        `stream ${sequence} vs ${source} (${reason})`).join("; ")}`);
   const dfmcRecords = manifest.transportCapacity.manifest.parsed.records.map((record) => ({
     start_sector: record.startSector,
     sectors: record.sectorCount,
@@ -2055,16 +2087,45 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, xexPath, atrPath }
     destination: record.finalDestination,
     staging_id: record.stagingId,
   }));
-  invariant(JSON.stringify(dfmcRecords) === JSON.stringify([
-    { start_sector: 104, sectors: 45, packed_bytes: 5659, raw_bytes: 6653,
-      destination: 0x5e10, staging_id: 1 },
-    { start_sector: 149, sectors: 10, packed_bytes: 1168, raw_bytes: 1168,
-      destination: 0x8c80, staging_id: 2 },
-    { start_sector: 159, sectors: 3, packed_bytes: 245, raw_bytes: 250,
-      destination: 0x7bd0, staging_id: 2 },
-    { start_sector: 162, sectors: 5, packed_bytes: 587, raw_bytes: 644,
-      destination: 0x9d75, staging_id: 2 },
-  ]), "DFMC record order or extent changed during the menu-lifecycle repair");
+  // This audit proves the main menu raster is byte-exact across four generations,
+  // two media and four cold RAM fills. What it needs from the DFMC records is not
+  // their layout -- which tracks the transport and so changes on every content
+  // commit -- but that the transport is self-consistent and that nothing it lands
+  // sits in the memory the menu owns and regenerates. Asserting the layout instead
+  // made this a snapshot that had to be re-recorded by hand in four unrelated
+  // commits (11c48e2, cd0db3e, 2b7f299, 10f1be2) before going stale entirely.
+  const menuOwnedRanges = [
+    { name: "frontend screen", start: 0x4000, end_exclusive: 0x4400 },
+    { name: "frontend charset", start: 0x4800, end_exclusive: 0x4c00 },
+    { name: "frontend display lists", start: labels.get("main_menu_display_list"),
+      end_exclusive: labels.get("frontend_display_lists_end") },
+  ];
+  const initialBootSectors = manifest.transportCapacity.initialBootSectors;
+  let nextFreeSector = initialBootSectors + 1;
+  for (const [index, record] of dfmcRecords.entries()) {
+    const position = `DFMC record ${index + 1} of ${dfmcRecords.length}`;
+    invariant(record.start_sector === nextFreeSector,
+      `${position} starts at sector ${record.start_sector}, leaving a hole or an ` +
+      `overlap: the previous record and the ${initialBootSectors}-sector boot block ` +
+      `end at sector ${nextFreeSector - 1}, and DFMC records must be contiguous ` +
+      "and ascending");
+    invariant(record.sectors * 128 >= record.packed_bytes,
+      `${position} claims ${record.sectors} sectors (${record.sectors * 128} B) for ` +
+      `${record.packed_bytes} packed bytes, which does not fit`);
+    for (const range of menuOwnedRanges) {
+      const landingEnd = record.destination + record.raw_bytes;
+      invariant(record.destination >= range.end_exclusive || landingEnd <= range.start,
+        `${position} lands at $${record.destination.toString(16)}-` +
+        `$${(landingEnd - 1).toString(16)}, inside the ${range.name} ` +
+        `($${range.start.toString(16)}-$${(range.end_exclusive - 1).toString(16)}), ` +
+        "which the menu owns and regenerates");
+    }
+    nextFreeSector = record.start_sector + record.sectors;
+  }
+  const occupiedSectors = manifest.transportCapacity.manifest.parsed.totalOccupiedSectors;
+  invariant(nextFreeSector - 1 === occupiedSectors,
+    `the DFMC records end at sector ${nextFreeSector - 1}, but the transport manifest ` +
+    `declares ${occupiedSectors} occupied sectors`);
   const addressEnvironment = {
     DFMENU_GAME_STATE: `0x${labels.get("game_state").toString(16)}`,
     DFMENU_FRONTEND_SELECTION: `0x${labels.get("frontend_selection").toString(16)}`,

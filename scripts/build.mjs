@@ -563,8 +563,10 @@ async function buildHybridDirectorModule(fighterWeaponsInclude) {
   // after the pickup/collision stream, so the DFMC topology stays 8 records.
   const windowSegment = makeSegment("window", residentWindowAddress, sectorWindowBytes);
   // 4.5M-M3: the arena image is a direct-landing DFMC record of its own. Only
-  // the used bytes travel (the ATR boot-smoke menu deadline has no frame of
-  // margin for stage-2 decode work); bytes past the image are unspecified.
+  // the used bytes travel -- there is no reason to carry padding across the
+  // transport; bytes past the image are unspecified. (The original rationale
+  // here was the zero-margin ATR boot-smoke menu deadline; owner decision 22
+  // re-based that deadline onto the 60-second budget, so it no longer applies.)
   const arenaSegment = {
     ...makeSegment("arena", hybridArenaAddress, arenaBytes),
     arena: { capacityBytes: hybridArenaCapacityBytes, asmBytes: arenaAsmBytes,

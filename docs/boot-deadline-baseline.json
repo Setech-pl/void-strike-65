@@ -6,16 +6,16 @@
   "baseline": {
     "xex_loader_frames": 135,
     "xex_menu_frames": 392,
-    "atr_loader_frames": 297,
-    "atr_menu_frames": 554
+    "atr_loader_frames": 308,
+    "atr_menu_frames": 565
   },
   "recorded": {
     "date": "2026-09-20",
-    "branch": "wip/4.5d-gate-fail",
-    "runtime_checkpoint": "a26298f",
-    "xex_sha256": "4ff49d887e7375076214d3461f598bc6d59218789c8e3e3ac7b3ee17f2944415",
-    "atr_sha256": "62fd0a72a7c435f036465b4712f846f0d1d95eaa8124f7e7440f466f1fd21bba",
-    "total_transport_sectors": 183,
-    "reason": "Re-recorded with the loader milestone, which the re-basing of the frame-300 boot-smoke checkpoint made an explicit gate. Measured from a full 8-session boot smoke of this build. The `-nobasic` sessions are the baseline; `-basic` boots run 9 (XEX) to 16 (ATR) frames earlier and only ever pass. The menu figures are unchanged from the 2026-09-19 recording at 182 sectors; the transport has since grown to 183 without moving them."
+    "branch": "main",
+    "runtime_checkpoint": "c13548b",
+    "xex_sha256": "832e7aa136bc4e51214c9198bffe7a0724af7a312585546b27c189daa2f5d692",
+    "atr_sha256": "98da84812ab8374603df7acd48e8d8d5c8900652805a18dc2b2310f68af331e5",
+    "total_transport_sectors": 189,
+    "reason": "Re-recorded for roadmap 4.3, which adds the resident direct-SIO sector reader as the ninth DFMC record: 730 B RAW landing at $A000, +6 transport sectors (183 -> 189). MEASURED from a full 8-session boot smoke of this build, 8/8 passed. The ATR milestones move +11 frames (loader 297 -> 308, menu 554 -> 565) - inside the +50 fail band, over the +10 warn band, and well under the plan's own +20-frame estimate. The XEX milestones do NOT move (loader 135, menu 392) even though the XEX grew 1,000 B for the reader block and the XEX-only level-1 image: the binary loader places those blocks before the game's own start milestone. The `-nobasic` sessions remain the baseline; `-basic` boots still run 9 (XEX) to 18 (ATR) frames earlier and only ever pass."
   }
 }

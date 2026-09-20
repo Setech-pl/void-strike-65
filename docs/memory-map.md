@@ -937,10 +937,47 @@ registers afterwards. Recorded here because it is a measurement, not a design.
 Evidence: `build/runtime-wall-trace/boot-smoke/report.json`, per-session
 `snapshots[].sdlst` / `.memtop` / `.ramtop`.
 
+## Roadmap 4.3 — the window has an owner (2026-09-20)
+
+The sector reader claims the whole window. It links on its own
+(`src/hybrid/sector-reader.s` + `cfg/sector-reader.cfg`, plan §4 `[C5]`) and
+travels as the ninth DFMC record, RAW, landing directly at `$A000`.
+
+| Range | Bytes | Owner | Notes |
+| --- | --- | --- | --- |
+| `$A000-$A5FF` | 1,536 | `SECTOR_READER` | reader code; **730 B used, 806 B free** at `c13548b`. The loader-mode display and AI text pool (step 4) come out of this tail |
+| `$A600-$BBFF` | 5,632 | `LEVEL_BUFFER` | 44 sectors, page-aligned, `file = ""` — never in any artifact. On the XEX the level-1 image is an **XEX-only block** placed here; on the ATR it is read over SIO |
+| `$BC00-$BC13` | 20 | `READER_BSS` | reader state; 6 B still free before `$BC1A` |
+| `$BC1A-$BC1F` | 6 | `BASIC_WINDOW_GUARD` | unchanged: reserved, no segment loads there |
+| `$00A0-$00A1` | 2 | `READER_ZP` | the `(zp),y` destination pointer. `ZEROPAGE` ends at `$9F`, so this is the first free pair |
+
+**Two links must never both own `$A000`.** `cfg/encounter-director.cfg` still
+declares `BASIC_WINDOW_RAM` there from decision B's plumbing below, which is
+harmless only while it stays empty. `scripts/build.mjs` now asserts exactly
+that: a non-empty `BASIC_WINDOW` segment is a build error naming the reader as
+the owner. Content that wants the window goes through the reader's link.
+
+**Level runs on the ATR.** Level images are placed at absolute sector numbers
+from a fixed base (`levelBaseSector` = 320), outside the boot transport, by
+`makeAtr(payload, dataRuns)`. The base is a constant on purpose: the reader's
+directory holds absolute sector numbers, so deriving them from the transport
+size would make the reader's data depend on the length of its own record.
+`build/level-directory.inc` is generated from the runs the build actually
+placed and assembled into the reader, so the two cannot drift.
+
+**MEASURED transport cost:** 183 → **189 sectors** (+6 for the 730-B record).
+ATR boot milestones move **+11 frames** (loader 297 → 308, menu 554 → 565),
+inside the +50 fail band; XEX milestones do not move at all. Baseline
+re-recorded in `boot-deadline-baseline.json`; boot smoke 8/8.
+
+---
+
 ## Owner decision B plumbing — the window is open (2026-09-20)
 
-The window is now part of the build's address space. Nothing has moved into it:
-this is the plumbing, and per-record placement belongs with roadmap 4.6.
+The window is now part of the build's address space. **Superseded in part by
+roadmap 4.3 above, which put the reader in it**; the plumbing below is still
+the mechanism, and the "nothing has moved into it" note now reads as the state
+this section was written in.
 
 | Piece | Where | What it does |
 | --- | --- | --- |

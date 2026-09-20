@@ -102,7 +102,7 @@ export function parseXex(buffer) {
   return { segments };
 }
 
-export function makeAtr(bootPayload) {
+export function makeAtr(bootPayload, dataRuns = []) {
   invariant(bootPayload.length > 0, "ATR boot payload is empty");
   invariant(bootPayload.length <= ATR_SECTOR_COUNT * ATR_SECTOR_SIZE,
     "ATR transport exceeds the 720-sector image");
@@ -112,6 +112,30 @@ export function makeAtr(bootPayload) {
   const bodySize = ATR_SECTOR_SIZE * ATR_SECTOR_COUNT;
   const body = Buffer.alloc(bodySize);
   bootPayload.copy(body, 0);
+
+  // Roadmap 4.3: runs placed at absolute sector numbers, outside the boot
+  // transport, for the resident sector reader to read back at runtime. Each
+  // must be whole sectors, must start past the transport, and must not
+  // overlap another run.
+  const bootSectors = bootPayload.length / ATR_SECTOR_SIZE;
+  const placed = [];
+  for (const { startSector, data } of dataRuns) {
+    invariant(Number.isInteger(startSector) && startSector >= 1 &&
+      startSector <= ATR_SECTOR_COUNT, "ATR data run starts outside the image");
+    invariant(data.length > 0 && data.length % ATR_SECTOR_SIZE === 0,
+      "ATR data run must occupy complete sectors");
+    const sectors = data.length / ATR_SECTOR_SIZE;
+    invariant(startSector > bootSectors,
+      `ATR data run at sector ${startSector} collides with the ${bootSectors}-sector transport`);
+    invariant(startSector + sectors - 1 <= ATR_SECTOR_COUNT,
+      "ATR data run runs past the 720-sector image");
+    for (const other of placed) {
+      invariant(startSector >= other.startSector + other.sectors ||
+        other.startSector >= startSector + sectors, "ATR data runs overlap");
+    }
+    placed.push({ startSector, sectors });
+    data.copy(body, (startSector - 1) * ATR_SECTOR_SIZE);
+  }
 
   const header = Buffer.alloc(ATR_HEADER_SIZE);
   const paragraphs = bodySize / 16;
@@ -359,8 +383,12 @@ export function validateBuildDirectory(rootDirectory) {
   // later one so the binary loader calls disable_basic_rom before placing them.
   const initAd = manifest.xexInitAd ?? null;
   const initAdSegments = initAd === null ? 0 : 1;
+  // Roadmap 4.3: the reader's own block plus the level-1 image, which the XEX
+  // carries as a resident block and the ATR does not carry at all.
+  const sectorReaderSegments = manifest.sectorReader?.xexBlocks ?? 0;
   invariant(parsedXex.segments.length ===
-    (directorEnabled ? 5 + directorCodeRuntimes.length : 3) + initAdSegments,
+    (directorEnabled ? 5 + directorCodeRuntimes.length : 3) + initAdSegments +
+    sectorReaderSegments,
   "XEX segment count does not match the enabled transport layout");
   const payloadSegment = parsedXex.segments[0];
   if (initAd !== null) {
@@ -375,7 +403,15 @@ export function validateBuildDirectory(rootDirectory) {
   const pickupPhaseSegment = directorEnabled ? at(2) : null;
   const directorCodeSegments = directorCodeRuntimes.map((runtime, index) => at(3 + index));
   const directorSegment = directorEnabled ? at(3 + directorCodeRuntimes.length) : null;
-  const runSegment = at(directorEnabled ? 4 + directorCodeRuntimes.length : 2);
+  // Roadmap 4.3: the reader block and the XEX-only level-1 image sit between
+  // the Director segment and RUNAD, so RUNAD moves by however many the
+  // manifest declares.
+  const sectorReaderBase = directorEnabled ? 4 + directorCodeRuntimes.length : 2;
+  const sectorReaderSegmentList = [];
+  for (let index = 0; index < sectorReaderSegments; index += 1) {
+    sectorReaderSegmentList.push(at(sectorReaderBase + index));
+  }
+  const runSegment = at(sectorReaderBase + sectorReaderSegments);
   invariant(payloadSegment.start === manifest.loadAddress, "XEX payload load address is wrong");
   invariant(payloadSegment.data.equals(boot.subarray(0, transport.initialBootBytes)),
     "XEX initial block differs from ATR");
@@ -421,6 +457,33 @@ export function validateBuildDirectory(rootDirectory) {
       collisionOffset + capitalPlayerCollisionRuntime.length)
       .equals(capitalPlayerCollisionRuntime),
     "Packed pickup stream does not publish the capital/player collision module");
+  }
+  if (sectorReaderSegments > 0) {
+    const sectorReader = manifest.sectorReader;
+    const [readerSegment, levelSegment] = sectorReaderSegmentList;
+    const readerImage = fs.readFileSync(path.join(rootDirectory, "build", "sector-reader.bin"));
+    invariant(readerSegment.start === sectorReader.address &&
+      readerSegment.data.equals(readerImage),
+    "XEX sector reader block differs from build/sector-reader.bin");
+    invariant(sectorReader.address >= 0xa000,
+      "the sector reader must land in the window, which requires the INITAD record");
+    invariant(initAd !== null,
+      "a block at $A000 or above requires the INITAD record: RUNAD would be too late");
+    // The ATR carries no level block: it reads level 1 over SIO at START GAME.
+    // That asymmetry is owner decision 1 and is what makes the ATR boot-smoke
+    // sessions exercise the reader end to end.
+    const levelOne = sectorReader.levels.find((level) => level.id === 1);
+    invariant(levelOne !== undefined, "the manifest declares no level 1 run");
+    const levelImage = fs.readFileSync(path.join(rootDirectory, "build", levelOne.file));
+    invariant(levelSegment.start === sectorReader.levelBuffer.address &&
+      levelSegment.data.equals(levelImage),
+    `XEX level block differs from build/${levelOne.file}`);
+    invariant(levelImage.length <= sectorReader.levelBuffer.capacityBytes,
+      "the level image exceeds the level buffer");
+    const atrBody = atr.subarray(16);
+    const runOffset = (levelOne.startSector - 1) * 128;
+    invariant(atrBody.subarray(runOffset, runOffset + levelImage.length).equals(levelImage),
+      `ATR sector ${levelOne.startSector} does not hold the level 1 image`);
   }
   invariant(runSegment.start === 0x02e0 && runSegment.end === 0x02e1, "XEX RUNAD record is missing");
   invariant(readWord(runSegment.data, 0) === transport.stage2.runAddress +

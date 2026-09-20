@@ -31,16 +31,24 @@ test("XEX contains a payload segment and RUNAD", () => {
   const xex = fs.readFileSync(path.join(rootDirectory, "dist", "void-strike-65.xex"));
   const { segments } = parseXex(xex);
   const directorCodeRuntimes = manifest.directorCodeRuntimes ?? [];
+  // Owner decision B: a two-byte INITAD record sits at index 1 whenever a
+  // block lands in the window, so every later index shifts by one.
+  // Roadmap 4.3: the reader block and the XEX-only level-1 image sit between
+  // the Director segment and RUNAD.
+  const initAdSegments = manifest.xexInitAd === null ? 0 : 1;
+  const readerSegments = manifest.sectorReader?.xexBlocks ?? 0;
+  const at = (index) => segments[index + initAdSegments];
   // 4.5M-M2: GLUE has no segment of its own; it rides the low-C transport
   // segment (merged low-C/GLUE/Heavy record at $9B40) at offset $F8.
-  assert.equal(segments.length, 5 + directorCodeRuntimes.length);
+  assert.equal(segments.length,
+    5 + directorCodeRuntimes.length + initAdSegments + readerSegments);
   assert.equal(segments[0].start, 0x2000);
   assert.equal(segments[0].data.length, manifest.transportCapacity.initialBootBytes);
-  assert.deepEqual([segments[1].start, segments[1].end],
+  assert.deepEqual([at(1).start, at(1).end],
     [manifest.broadsideRuntime.runAddress,
       manifest.broadsideRuntime.runAddress + manifest.broadsideRuntime.bytes - 1]);
   const pickupRecord = manifest.transportCapacity.manifest.parsed.records[1];
-  assert.deepEqual([segments[2].start, segments[2].end],
+  assert.deepEqual([at(2).start, at(2).end],
     [pickupRecord.finalDestination,
       pickupRecord.finalDestination + pickupRecord.rawLength - 1]);
   directorCodeRuntimes.forEach((runtime, index) => {
@@ -48,21 +56,35 @@ test("XEX contains a payload segment and RUNAD", () => {
     // pad, the GLUE image and the Heavy window image (transportRawBytes).
     const xexBytes = runtime.xexStagingCompression === "LZ-10/5"
       ? runtime.packedBytes : runtime.transportRawBytes ?? runtime.bytes;
-    assert.deepEqual([segments[3 + index].start, segments[3 + index].end],
+    assert.deepEqual([at(3 + index).start, at(3 + index).end],
       [runtime.transportAddress, runtime.transportAddress + xexBytes - 1]);
   });
   const lowIndex = directorCodeRuntimes.findIndex(({ name }) => name === "low");
   const glue = fs.readFileSync(path.join(rootDirectory, "build", "integration-glue.bin"));
   const glueOffset = manifest.integrationGlue.transportRecordOffset;
   assert.equal(glueOffset, 0xf8);
-  assert.equal(segments[3 + lowIndex].start + glueOffset, manifest.integrationGlue.transportAddress);
-  assert.ok(segments[3 + lowIndex].data.subarray(glueOffset, glueOffset + glue.length).equals(glue));
+  assert.equal(at(3 + lowIndex).start + glueOffset, manifest.integrationGlue.transportAddress);
+  assert.ok(at(3 + lowIndex).data.subarray(glueOffset, glueOffset + glue.length).equals(glue));
   const directorIndex = 3 + directorCodeRuntimes.length;
-  assert.deepEqual([segments[directorIndex].start, segments[directorIndex].end],
+  assert.deepEqual([at(directorIndex).start, at(directorIndex).end],
     [manifest.directorRuntime.runAddress, manifest.directorRuntime.endExclusive - 1]);
-  assert.deepEqual([segments[directorIndex + 1].start, segments[directorIndex + 1].end],
-    [0x02e0, 0x02e1]);
-  assert.equal(segments[directorIndex + 1].data.readUInt16LE(0),
+  if (readerSegments > 0) {
+    const reader = manifest.sectorReader;
+    const readerImage = fs.readFileSync(path.join(rootDirectory, "build", "sector-reader.bin"));
+    assert.deepEqual([at(directorIndex + 1).start, at(directorIndex + 1).end],
+      [reader.address, reader.address + reader.bytes - 1]);
+    assert.ok(at(directorIndex + 1).data.equals(readerImage));
+    // Owner decision 1: only the XEX carries the level image. The ATR reads it
+    // over SIO at START GAME, which is what exercises the reader end to end.
+    const levelOne = reader.levels.find((level) => level.id === 1);
+    const levelImage = fs.readFileSync(path.join(rootDirectory, "build", levelOne.file));
+    assert.deepEqual([at(directorIndex + 2).start, at(directorIndex + 2).end],
+      [reader.levelBuffer.address, reader.levelBuffer.address + levelOne.bytes - 1]);
+    assert.ok(at(directorIndex + 2).data.equals(levelImage));
+  }
+  const runIndex = directorIndex + 1 + readerSegments;
+  assert.deepEqual([at(runIndex).start, at(runIndex).end], [0x02e0, 0x02e1]);
+  assert.equal(at(runIndex).data.readUInt16LE(0),
     manifest.transportCapacity.stage2.xexEntryAddress);
 });
 
@@ -199,9 +221,21 @@ test("the BASIC window is declared, guarded and addressable by the build", () =>
     window.capacityBytes, window.guardBytes],
   [0xa000, 0xbc1a, 0xbc20, 7194, 6]);
   assert.equal(window.usedBytes + window.freeBytes, window.capacityBytes);
-  assert.equal(window.usedBytes, 0, "placement of window content belongs with roadmap 4.6");
+  assert.equal(window.usedBytes, 0,
+    "the Director link must never place bytes in the window: roadmap 4.3 owns it");
   assert.equal(window.transport, null);
-  assert.equal(manifest.xexInitAd, null, "no INITAD record while no XEX block lands at $A000");
+  // Roadmap 4.3 claimed the window, so the INITAD record is now required: the
+  // reader block at $A000 must be placed into RAM, not into the BASIC ROM.
+  assert.notEqual(manifest.xexInitAd, null,
+    "a block lands at $A000, so the INITAD record must be present");
+  assert.equal(manifest.xexInitAd.segmentIndex, 1);
+  const reader = manifest.sectorReader;
+  assert.equal(reader.address, 0xa000);
+  assert.equal(reader.levelBuffer.address, 0xa600);
+  assert.ok(reader.address + reader.bytes <= reader.levelBuffer.address,
+    "the reader must not reach into the level buffer");
+  assert.ok(reader.levelBuffer.address + reader.levelBuffer.capacityBytes <= 0xbc00,
+    "the level buffer must stop before the reader BSS at $BC00");
 
   const config = fs.readFileSync(path.join(rootDirectory, "cfg", "encounter-director.cfg"), "utf8");
   assert.match(config,

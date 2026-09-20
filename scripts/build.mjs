@@ -125,6 +125,15 @@ const glueHoldingAddress = 0x8100;
 // reserved guard, in the same shape as the $9FFA Director guard.
 const basicWindowAddress = 0xa000;
 const basicWindowGuardAddress = 0xbc1a;
+// Roadmap 4.3 window layout: the reader owns $A000-$A5FF, the level buffer
+// $A600-$BBFF (44 sectors of 128 B) and the reader BSS $BC00-$BC19, leaving
+// the six-byte window guard at $BC1A untouched. cfg/sector-reader.cfg is the
+// other half of this contract.
+const sectorReaderAddress = 0xa000;
+const levelBufferAddress = 0xa600;
+const sectorReaderCapacityBytes = levelBufferAddress - sectorReaderAddress;
+const levelBufferSectors = 44;
+const levelBufferCapacityBytes = levelBufferSectors * 128;
 const basicWindowEndExclusive = 0xbc20;
 const basicWindowCapacityBytes = basicWindowGuardAddress - basicWindowAddress;
 // Roadmap 4.5M-M2 cold-record relocation. The ABI cold record lands directly
@@ -1182,6 +1191,19 @@ async function build() {
     configPath: path.join(rootDirectory, "cfg", "capital-player-collision.cfg"),
     stem: "capital-player-collision",
   });
+  // Roadmap 4.3: the resident direct-SIO sector reader links on its own at
+  // $A000, the shape a raw DFMC record consumes. Transport is a separate step;
+  // this builds and bounds the module so its harness test has something to run
+  // against and so an overflow is a build error rather than a link surprise.
+  const sectorReaderModule = await buildResidentModule({
+    sourcePath: path.join(rootDirectory, "src", "hybrid", "sector-reader.s"),
+    configPath: path.join(rootDirectory, "cfg", "sector-reader.cfg"),
+    stem: "sector-reader",
+  });
+  if (sectorReaderModule.raw.length > sectorReaderCapacityBytes) {
+    throw new Error(`4.3 sector reader exceeds $A000-$A5FF: ` +
+      `${sectorReaderModule.raw.length} of ${sectorReaderCapacityBytes} B`);
+  }
   if (capitalPlayerCollisionModule.raw.length > 0x21) {
     throw new Error(`Capital/player collision module exceeds $8B67-$8B87: ` +
       `${capitalPlayerCollisionModule.raw.length} B`);
@@ -2861,6 +2883,11 @@ async function build() {
     capitalPlayerCollisionModule.raw);
   writeFile(path.join(buildDirectory, "capital-player-collision-packed.bin"),
     capitalPlayerCollisionModule.packed);
+  writeFile(path.join(buildDirectory, "sector-reader.o"), sectorReaderModule.object);
+  writeFile(path.join(buildDirectory, "sector-reader.lst"), sectorReaderModule.listing);
+  writeFile(path.join(buildDirectory, "sector-reader.map"), sectorReaderModule.map);
+  writeFile(path.join(buildDirectory, "sector-reader.lbl"), sectorReaderModule.labels);
+  writeFile(path.join(buildDirectory, "sector-reader.bin"), sectorReaderModule.raw);
   writeFile(path.join(buildDirectory, "starfield-runtime.bin"), starfieldRuntime);
   writeFile(path.join(buildDirectory, "starfield-runtime-packed.bin"), packedStarfieldRuntime);
   for (const stream of starfieldSplit.streams) {

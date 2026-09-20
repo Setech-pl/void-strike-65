@@ -357,7 +357,7 @@ START GAME. Steps 1-4 of `plan-4.3-sector-reader.md`; steps 5-7 are open.
 
 **What it is.** `src/hybrid/sector-reader.s`, its own link at `$A000`
 (plan §4 `[C5]`), transported as the ninth DFMC record, RAW, direct-landing.
-**1,466 B of 1,536; 70 B free.** Level buffer `$A600-$BBFF` (44 sectors),
+**1,466 B of 1,536; 70 B free.** Steps 1-7 of the plan are complete. Level buffer `$A600-$BBFF` (44 sectors),
 BSS `$BC00-$BC14`, 2 B of zero page at `$A0`. START GAME reaches it through a
 frozen vector table at `$A000`, an operand-only change that cost MAIN nothing:
 `CODE` still ends `$3174` and `RODATA` `$3FF6`, exactly as before.
@@ -395,11 +395,32 @@ area remain. **Sixteen AI lines do not fit** — they would need a further
 line pool needs the level buffer to shrink below 44 sectors, and that is an
 owner decision.
 
-**What is NOT done.** Steps 5-7: the `sector_c_drain_clear` extraction and its
-ABI export, the trace-header counters and negative controls (so the ATR image
-is asserted byte-exact at `LEVEL_BUFFER` rather than inferred from the frame
-delta), the boot-smoke extensions, and the remaining documentation. The
-loader-mode animation is drawn but unobserved by any gate. No hardware run.
+**The read is gated, not inferred (step 6).** The boot smoke now compares the
+image at `$A600` byte for byte against `build/level-1.bin` on every session and
+counts what reached the wire: **XEX 0 command frames, ATR exactly 2 (one per
+sector), 0 wire retries anywhere**, load window 7 frames on ATR and 0 on XEX.
+Two negative controls confirm the gate is live — corrupting one byte of the
+expected image fails it (the header still matched, so a header-only check would
+not have), and breaking the resident-skip magic compare stops the XEX reaching
+gameplay at all, which proves the XEX passes *because* of the skip rather than
+because SIO happens to work with no disk. Evidence:
+[diagnostics/sio-boot-smoke-gate-2026-09-20.json](diagnostics/sio-boot-smoke-gate-2026-09-20.json).
+
+**Step 5:** `sector_c_drain_clear` extracted to the arena and exported as
+`HYBRID_SECTOR_DRAIN_CLEAR`, so 4.9's level boundary reuses the capital entry's
+drain test. Behaviour- and cycle-neutral: `2-sweep-fire4` replays to identical
+numbers across the change. Arena 215 → 187 B free.
+
+**What is NOT done.** Plan §8.3's in-emulator fault injection: there is no
+`DFTRACE_SIO_CORRUPT_BYTE`, no `DFTRACE_SIO_FORCE_ERROR` and no stripped-XEX
+flag. The reader's **success** path is gated end to end on both media; its
+**failure** paths are gated in the 6502 harness only, and **the failure screen
+has never been rendered in any automated run** — the owner's SIO2SD smoke will
+be the first time a human sees it. The loader-mode animation is drawn but
+unobserved; on a 2-sector level it steps twice, so it earns a gate when 4.6
+lands a level big enough for the sweep to show. No hardware run: both
+command-line hold windows and async receive against a real drive remain
+unverified under decision R — see `hardware-testing.md` §11.
 
 **Owner smoke.** XEX `ad06d6fb…b35205a9`, ATR `83d89fdb…d43fa18c`. See the
 section's "what to look for" in the implementation report.
@@ -2079,7 +2100,7 @@ changed for these. Full text, with rationale, in the decision journal:
 | **P** | **End screen**: eventually an animation in the top third at full width plus a text scroll below — a separate sub-project, a loaded sector, not resident. A simple message suffices for now. |
 | **Q** | **The project rules are explicitly superseded.** `plan-realizacji.md` §7 and `reguly-projektu.txt` §11 keep their "BASIC RAM, loader changes, runtime disk I/O" entries, marked SUPERSEDED with the superseding decision and why the ground changed. `reguly-projektu.txt` is now version 3.2. |
 | **R** | **Hardware measurements deferred — risk OWNER-ACCEPTED 2026-09-20.** Register below. |
-| **W** | **The between-levels reader uses DIRECT SIO, not the OS `SIOV`.** Supersedes the "resident `SIOV` reader (~80-120 B)" of decision 23 §10.1 and `project-overview.md` §4.3, which named the wrong reader *and* the wrong estimate: direct SIO is **~250-350 B** (ESTIMATE). The game has run with `sei` set, with `NMIEN` never enabling the VBI, and with nothing but the game writing `DLISTL`/`DLISTH`, `CHBASE`, `PMBASE` or the colour registers since start; the OS route would have to unwind all three and re-establish them, with a display-shadow exposure window on both sides of the call. Direct SIO unwinds none of them — no OS vector is ever taken. Implemented from the protocol specification (Altirra Hardware Reference Manual ch. 9), not vendor GPL-2 code, so `AGENTS.md` rule 13 is not strained. **Recorded only; the reader work is not started.** |
+| **W** | **The between-levels reader uses DIRECT SIO, not the OS `SIOV`.** Supersedes the "resident `SIOV` reader (~80-120 B)" of decision 23 §10.1 and `project-overview.md` §4.3, which named the wrong reader *and* the wrong estimate: direct SIO is **~250-350 B** (ESTIMATE). The game has run with `sei` set, with `NMIEN` never enabling the VBI, and with nothing but the game writing `DLISTL`/`DLISTH`, `CHBASE`, `PMBASE` or the colour registers since start; the OS route would have to unwind all three and re-establish them, with a display-shadow exposure window on both sides of the call. Direct SIO unwinds none of them — no OS vector is ever taken. Implemented from the protocol specification (Altirra Hardware Reference Manual ch. 9), not vendor GPL-2 code, so `AGENTS.md` rule 13 is not strained. **IMPLEMENTED 2026-09-20 by roadmap 4.3** (section above). The ESTIMATE was low: the core measured **682 B**, the whole module 1,466 B with its display and texts. Three register values in the plan built on this decision were wrong and were corrected against the manual before any code was written — see the 4.3 section and `diagnostics/sio-register-probe-2026-09-20.json`. |
 | **U** | **Booster level is signalled by SHAPE and SOUND**, not colour. A thicker/doubled bolt per level (the player glyph bank has three spare codes) plus a different firing sound per level (parameters on an existing POKEY channel). The two act at different moments and reinforce rather than duplicate, so neither may later be dropped as redundant. Colour was conditional on one check, the check was run, and **colour is REJECTED**: `COLPF2` is shared (below). Five levels stand; three may read more clearly if sound discrimination proves weak — settled during balancing. |
 
 ### Correction 2026-09-20 — the OS VBI does **not** rewrite the display shadows during SIO
@@ -2098,6 +2119,15 @@ OS shadows (`SDLSTL`/`SDLSTH`, `RAMTOP`, `MEMTOP`), not merely restore the
 hardware registers afterwards. Only its stated reason was wrong — and a plan
 written from the wrong reason would guard the wrong window. Corrected in
 `design-4.6-data-architecture.md` §3 and `project-overview.md` §6 on 2026-09-20.
+
+> **VOID 2026-09-20, once the reader existed.** The requirement was conditional
+> on a reader that hands control to OS SIO. Under decision W the reader is
+> direct SIO, and the one roadmap 4.3 built calls no OS routine, takes no
+> vector and writes no shadow; its loader-mode display is a DLI-free ANTIC 2
+> screen raised with `NMIEN = 0`, so there is no VBI to restore anything from,
+> and `start_gameplay` rebuilds every display register afterwards regardless.
+> Nothing needs to survive the read. The measurement behind the requirement
+> still stands; the requirement itself is withdrawn in all three documents.
 
 ### What decision N's two repo checks measured — both ANSWERED
 

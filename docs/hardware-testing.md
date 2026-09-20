@@ -121,6 +121,55 @@ shasum -a 256 dist/void-strike-65.xex
 - [ ] Load time is acceptable and the loader survives a marginal SIO cable.
 - [ ] A full session runs without lockup, memory corruption or audio breakdown.
 
+## 11. The direct-SIO sector reader (roadmap 4.3)
+
+**Everything in this section is unproven outside the emulator, and the
+emulator cannot speak to most of it.** Atari800 models no drive latency, no
+jitter, no bit errors and **no command-line hold at all**. The reader is built
+from the Altirra Hardware Reference Manual's specification — see
+[diagnostics/sio-protocol-facts.md](diagnostics/sio-protocol-facts.md) for each
+fact and its citation — so the first real drive is the first real test.
+
+Run from SIO2SD with the ATR, cold boot each time.
+
+- [ ] **START GAME reads level 1.** The loader screen appears (title,
+      `LOADING SECTOR`, one placeholder line, a stepping dotted row), then
+      gameplay starts. On a 2-sector level this is brief.
+- [ ] **START GAME a second time** (play, quit to the menu, START again): the
+      buffer already holds level 1, so the resident skip must fire and **no
+      command frame goes out**. If the loader screen dwells the same as the
+      first time, the skip is not working.
+- [ ] **The way out.** Power the SIO2SD off, then START GAME. Expect
+      `DISK READ FAILED` / `NO DRIVE` within a couple of seconds, then FIRE
+      returning to the main menu with difficulty and scores intact. **A hang
+      here is the most important defect this checklist can find.**
+- [ ] Power the drive off *during* a read, if you can time it: the reader must
+      still reach the failure screen rather than wait forever.
+- [ ] A disk with no level image at sector 320 — or a stale ATR — must give
+      `WRONG DISK` and return to the menu, not load garbage.
+- [ ] No audible click, buzz or tone during the read. The reader drives POKEY
+      channels 3+4 as the serial clock at volume 0; anything audible means
+      `AUDC3`/`AUDC4` are wrong.
+- [ ] The first gameplay frame after the loader screen is clean — no flicker,
+      no stale row, no wrong palette. `start_gameplay` rebuilds display list,
+      charset, PMG, palette and `NMIEN` from scratch and that seam is new.
+- [ ] Note the wall-clock time of the read. The emulator measures 7 PAL frames
+      for 2 sectors and that figure is **not** a hardware estimate; SIO2SD is
+      expected to be slower and a real 1050 slower still.
+
+Unverifiable anywhere but here, carried under owner decision R:
+
+- [ ] Both command-line hold windows (750-1600 µs before the frame,
+      650-950 µs after). Deterministic by construction — 16 and 12 `WSYNC`
+      stores — and checked by nothing.
+- [ ] Asynchronous receive against a real drive's clock recovery (`SKCTL $33`).
+- [ ] Real ACK and COMPLETE latency and jitter.
+- [ ] Back-to-back COMPLETE→data on a real 1050, XF551 or SIO2SD.
+- [ ] Any real bit error, and therefore the wire-retry path in anger. It has
+      never run outside the 6502 harness.
+- [ ] That a stock 65XE's POKEY latches `IRQST` exactly as the manual
+      describes with `I` set. The whole polled design rests on this.
+
 ---
 
 ## Recording the result

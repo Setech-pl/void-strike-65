@@ -945,7 +945,7 @@ travels as the ninth DFMC record, RAW, landing directly at `$A000`.
 
 | Range | Bytes | Owner | Notes |
 | --- | --- | --- | --- |
-| `$A000-$A5FF` | 1,536 | `SECTOR_READER` | reader code; **730 B used, 806 B free** at `c13548b`. The loader-mode display and AI text pool (step 4) come out of this tail |
+| `$A000-$A5FF` | 1,536 | `SECTOR_READER` | reader, loader-mode display, failure screen, 8-line AI text pool; **1,466 B used, 70 B free**. A sixteen-line pool does not fit — see plan §1.5 `[C6]`; packing the texts is the cheaper answer if it is ever wanted, not shrinking the level buffer |
 | `$A600-$BBFF` | 5,632 | `LEVEL_BUFFER` | 44 sectors, page-aligned, `file = ""` — never in any artifact. On the XEX the level-1 image is an **XEX-only block** placed here; on the ATR it is read over SIO |
 | `$BC00-$BC13` | 20 | `READER_BSS` | reader state; 6 B still free before `$BC1A` |
 | `$BC1A-$BC1F` | 6 | `BASIC_WINDOW_GUARD` | unchanged: reserved, no segment loads there |
@@ -965,10 +965,11 @@ size would make the reader's data depend on the length of its own record.
 `build/level-directory.inc` is generated from the runs the build actually
 placed and assembled into the reader, so the two cannot drift.
 
-**MEASURED transport cost:** 183 → **189 sectors** (+6 for the 730-B record).
-ATR boot milestones move **+11 frames** (loader 297 → 308, menu 554 → 565),
-inside the +50 fail band; XEX milestones do not move at all. Baseline
-re-recorded in `boot-deadline-baseline.json`; boot smoke 8/8.
+**MEASURED transport cost:** 183 → **195 sectors** over steps 3-4. ATR boot
+milestones move +22 in total (loader 297 → 319, menu 554 → 576), inside the
++50 fail band; XEX milestones do not move at all. Baseline re-recorded in
+`boot-deadline-baseline.json`; boot smoke 8/8, and the image at `$A600` is
+now verified byte-exact against `build/level-1.bin` on every session.
 
 ---
 

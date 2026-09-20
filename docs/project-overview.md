@@ -328,6 +328,15 @@ window.
 shadows to its own values before handing control to SIO**, not merely restore
 the hardware registers afterwards. Recorded as a measurement, not a design.
 
+> **RESOLVED 2026-09-20 — the requirement is void, and the hazard never
+> arises.** It was conditional on "if the between-levels reader returns to OS
+> SIO", and under owner decision W it does not: the reader built in roadmap 4.3
+> is direct SIO. It calls no OS routine, takes no vector and never revives the
+> OS VBI, so `SDLSTL`/`SDLSTH`, `MEMTOP` and `RAMTOP` are never consulted by
+> anything. The implemented reader writes none of them. The measurement above
+> stands as a measurement; only the carried requirement is withdrawn. See
+> `plan-4.3-sector-reader.md` §5 and `diagnostics/sio-protocol-facts.md`.
+
 Evidence: `build/runtime-wall-trace/boot-smoke/report.json`, per-session
 `snapshots[].sdlst` / `.memtop` / `.ramtop`. Still EMULATOR-MEASURED: decision
 R item 4 keeps it in the technical-debt register for that reason.

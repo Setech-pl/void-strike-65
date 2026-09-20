@@ -208,6 +208,36 @@ synthesizing nine zero rows. The worst insertion executes once at Game Over and
 costs 516 NMOS 6502 cycles; it is outside the visible gameplay loop and VBI. No
 disk persistence is performed.
 
+## Runtime disk I/O — one boundary only (roadmap 4.3)
+
+Until 4.3 the program read nothing from disk after hardware takeover; ADR-004
+said so, and is now superseded. There is exactly **one** runtime read, at the
+START GAME boundary, and it is deliberately the only one.
+
+`SECTOR_READER` ($A000, its own ca65 link, transported as a raw DFMC record)
+implements **direct SIO** under owner decision W: it drives POKEY and the PIA
+command line itself, calls no OS routine and takes no vector. The runtime has
+run with `I` set and `NMIEN` never enabling the OS VBI since start, and the
+reader keeps it that way — the whole protocol is polled through `IRQST` with
+interrupts masked, which is the mode the hardware documents for exactly this.
+
+The boundary is what makes it affordable. `START GAME` tears the frontend down
+(`DMACTL = 0`, `GRACTL = 0`, PMG latches cleared, audio silenced), raises a
+**DLI-free** ANTIC 2 loader screen, reads whole sectors into a page-aligned
+buffer at `$A600`, and hands to `start_gameplay`, which rebuilds display list,
+charset base, PMG, palette, DLI vector and `NMIEN` from scratch. Nothing has
+to survive the read, so nothing does. No gameplay frame contains any part of
+this: the reader costs **zero cycles** in the PAL main loop.
+
+Failure is a defined state, not a hang. Every error class — absent drive, wire
+fault, device error, wrong disk — ends on a failure screen naming the reason
+and waiting for FIRE, which returns to the menu with RAM state intact.
+
+The level boundary proper (level → level) is roadmap 4.9 and is not built. The
+reader exposes `sector_reader_load` and the drain predicate
+`sector_c_drain_clear` by name so 4.9 reuses the test the capital entry
+already runs rather than writing a second one.
+
 ## Display, scrolling, and frame publication
 
 Gameplay uses a fixed ANTIC 2 HUD and divider plus 27 ANTIC 4 logical playfield

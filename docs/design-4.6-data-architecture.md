@@ -468,6 +468,15 @@ decision W.
 > reader is direct SIO and never calls `SIOV` at all, so it neither revives the
 > OS VBI nor relies on `CRITIC`; the shadow requirement is kept because the
 > display state must be correct regardless of which reader is built.
+>
+> **SUPERSEDED 2026-09-20 — the reader is built, and the requirement is void.**
+> Roadmap 4.3 implemented the direct-SIO reader. It writes no OS shadow and
+> takes no OS vector, and its loader-mode display is a DLI-free ANTIC 2 screen
+> raised with `NMIEN = 0`, so there is no VBI to restore anything from. The
+> "regardless of which reader is built" hedge is spent: the reader that exists
+> is the one decision W chose. `start_gameplay` rebuilds display list, charset
+> base, PMG, palette, DLI vector and `NMIEN` from scratch afterwards, so
+> nothing needs to survive the read either.
 
 Where the buffer lives is the placement question of §7.3: the core page wants
 to replace `LEVEL1_DATA` in `DIRECTOR_RAM` (158 → 256 B, which forces ~100 B

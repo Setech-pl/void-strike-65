@@ -148,7 +148,7 @@ VOID STRIKE 65 is actively developed.
 - player movement, combat, scoring, damage, audio, and difficulty settings;
 - deterministic Level 1 Encounter Director;
 - open-space and capital-ship sectors with `BROADSIDE` combat;
-- destructible debris, Interceptor breakup effects, and bounded object pools;
+- destructible debris, compact Interceptor destruction effects, and bounded object pools;
 - Rapid Fire, Spread Shot, and Shield boosters;
 - XEX and bootable ATR packaging with automated format, memory, and PAL timing
   checks.

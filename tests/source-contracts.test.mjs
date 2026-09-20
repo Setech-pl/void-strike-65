@@ -34,6 +34,40 @@ test("source keeps the documented PAL and PMG hardware contract", () => {
   assert.match(source, /ldx #\$70\s*\nwait_frame_at_line:\s*\n@wait_for_line:/);
 });
 
+test("the ASM Light art selector matches the C Interceptor record offset", () => {
+  const light = fs.readFileSync(path.join(rootDirectory, "src", "hybrid", "light-wingman.s"), "utf8");
+  const header = fs.readFileSync(path.join(rootDirectory, "src", "c", "enemy-archetype.h"), "utf8");
+  const asm = /^LIGHT_OFFSET_INTERCEPTOR\s*=\s*(\d+)\s*$/m.exec(light);
+  const index = /ENEMY_ARCHETYPE_INTERCEPTOR\s*=\s*(\d+)\s*,/.exec(header);
+  const recordBytes = /#define ENEMY_ARCHETYPE_RECORD_BYTES\s+(\d+)u/.exec(header);
+  assert.ok(asm && index && recordBytes, "Light art selector or archetype layout not found");
+  assert.match(header,
+    /#define ENEMY_ARCHETYPE_OFFSET\(index\) \(\(index\) \* ENEMY_ARCHETYPE_RECORD_BYTES\)/);
+  assert.equal(Number(asm[1]), Number(index[1]) * Number(recordBytes[1]),
+    "LIGHT_OFFSET_INTERCEPTOR = ENEMY_ARCHETYPE_OFFSET(ENEMY_ARCHETYPE_INTERCEPTOR)");
+  assert.match(light, /cmp #LIGHT_OFFSET_INTERCEPTOR/);
+});
+
+test("C and ASM agree on the hostile weapon_class ids and the authored visual order", () => {
+  const header = fs.readFileSync(path.join(rootDirectory, "src", "c", "enemy-archetype.h"), "utf8");
+  const source = fs.readFileSync(path.join(rootDirectory, "src", "main.s"), "utf8");
+  const asset = JSON.parse(fs.readFileSync(
+    path.join(rootDirectory, "assets", "graphics", "fighter-weapons.json"), "utf8"));
+  const ids = { PULSE: 1, LASER: 2, BOMBER: 3 };
+  assert.doesNotMatch(header + source, /ENEMY_WEAPON_RED_PAIRSHOT/,
+    "the weapon class names no colour");
+  for (const [name, value] of Object.entries(ids)) {
+    const c = new RegExp(`ENEMY_WEAPON_${name}\\s*=\\s*(\\d+)`).exec(header);
+    const asm = new RegExp(`^ENEMY_WEAPON_${name}\\s*=\\s*(\\d+)\\s*$`, "m").exec(source);
+    assert.ok(c && asm, `ENEMY_WEAPON_${name} mirror missing`);
+    assert.equal(Number(c[1]), value, `C ENEMY_WEAPON_${name}`);
+    assert.equal(Number(asm[1]), value, `ASM ENEMY_WEAPON_${name}`);
+    assert.equal(asset.hostileWeaponVisuals.classes[value - 1].id, name,
+      `authored visual ${value} is ${name}`);
+  }
+  assert.match(source, /^FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT = 3$/m);
+});
+
 test("accepted gameplay screen reference and its mapping decision are versioned", () => {
   assert.ok(fs.existsSync(path.join(rootDirectory, "assets", "graphics", "void-strike-65-screen-concept-v1.png")));
   assert.ok(fs.existsSync(path.join(rootDirectory, "docs", "decisions", "ADR-002-gameplay-screen.md")));
@@ -51,8 +85,9 @@ test("current documentation keeps implemented, planned and historical state dist
   const gameDesign = read("docs/game-design.md");
   const architecture = read("docs/architecture.md");
   const artDirection = read("docs/art-direction.md");
-  const roadmap = read("docs/roadmap.md");
-  const runtimeHeadroom = read("docs/runtime-headroom.md");
+  // The single active roadmap and the current CPU/RAM summary.
+  const roadmap = read("docs/plan-realizacji.md");
+  const runtimeHeadroom = read("docs/STATUS.md");
   const currentSources = [gameDesign, architecture, artDirection, roadmap,
     runtimeHeadroom, read("docs/memory-map.md")].join("\n");
 
@@ -63,17 +98,161 @@ test("current documentation keeps implemented, planned and historical state dist
   assert.match(gameDesign, /Spread Shot — implemented/);
   assert.match(gameDesign, /Shield Booster — implemented/);
   assert.doesNotMatch(currentSources, /\$8100-\$99A3/);
-  assert.doesNotMatch(currentSources, /\$8100-\$(?:9AA3|9A3D)/);
-  assert.match(architecture, /stage it at\s+`\$8100-\$9ACE`/);
-  assert.match(architecture, /packs them to \*\*1,929 bytes\*\*/);
+  assert.doesNotMatch(currentSources, /\$8100-\$(?:9AA3|9A3D|9ACE)/);
   assert.doesNotMatch(currentSources, /\b2,?027[- ]bytes\b/i);
   assert.doesNotMatch(artDirection, /\bresidual\b/i);
   assert.doesNotMatch(roadmap, /next[^\n]*entity\/effects foundation/i);
   assert.doesNotMatch(runtimeHeadroom, /feature\/runtime-headroom/);
+  // Rapid Fire keeps the player's colour; it must never borrow hostile red.
   assert.match(gameDesign,
-    /Rapid Fire[\s\S]+projectiles retain the Player Fighter's established\s+yellow\/gold/);
-  assert.match(gameDesign,
-    /normal Player Fighter weapon fires an eight-projectile burst[\s\S]+Rapid Fire[\s\S]+burst to ten projectiles[\s\S]+normal eight-salvo burst/);
-  assert.doesNotMatch(gameDesign, /normal Player Fighter weapon fires a ten-projectile burst/);
+    /### Rapid Fire — implemented[\s\S]+retain the Player Fighter's established\s+yellow\/gold/);
   assert.doesNotMatch(currentSources, /Rapid Fire projectile:[^\n]*red/i);
+  // Production burst sizes, in the current PairShot terminology: 4/4/5 logical
+  // PairShots for 8/8/10 visible impulses.
+  assert.match(gameDesign,
+    /normal Player Fighter weapon fires four logical PairShots[\s\S]+preserving eight visible impulses[\s\S]+Rapid uses five PairShots for\s+ten visible impulses; Spread uses four PairShots for eight/);
+  assert.match(gameDesign,
+    /### Rapid Fire — implemented[\s\S]+expands the\s+burst to five PairShots \/ ten visible impulses/);
+  assert.doesNotMatch(gameDesign, /normal Player Fighter weapon fires a ten-projectile burst/);
+});
+
+// Documentation figures that used to be copied by hand and went stale are now
+// bound to generated build output instead of to a literal in this test.
+test("architecture quotes the generated loader figure rather than a stale copy", () => {
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(rootDirectory, "build", "manifest.json"), "utf8"));
+  const architecture = fs.readFileSync(
+    path.join(rootDirectory, "docs", "architecture.md"), "utf8");
+  const packed = manifest.loaderScreen.packedBitmapBytes.toLocaleString("en-US");
+  assert.match(architecture, new RegExp(`packs them to \\*\\*${packed} bytes\\*\\*`),
+    `architecture.md must quote the current packed loader bitmap size (${packed} B)`);
+});
+
+test("accepted runtime, candidate and history stay distinguishable", () => {
+  const status = fs.readFileSync(path.join(rootDirectory, "docs", "STATUS.md"), "utf8");
+
+  // STATUS must separate the documentation HEAD from the accepted runtime.
+  assert.match(status, /## Repository HEAD/);
+  assert.match(status, /## Accepted runtime checkpoint/);
+  // The accepted checkpoint is named by commit and artifact, never indirectly.
+  assert.match(status, /`0a90c1c`/);
+  assert.match(status,
+    /8940d646fcb2e59e54cb383de382ac86dfb4959f18016854919c3f5157b89d34/);
+  assert.doesNotMatch(status, /the commit that follows\s+`?51c97c6/,
+    "the accepted checkpoint must be named, not described relative to another commit");
+
+  // Archived documents must be archived, banner-marked, and delinked.
+  for (const gone of ["docs/enemy-roster-v2.md"]) {
+    assert.ok(!fs.existsSync(path.join(rootDirectory, gone)),
+      `${gone} is a pre-hybrid proposal and belongs under docs/history/`);
+  }
+  for (const archived of [
+    "docs/history/enemy-roster-v2-pre-hybrid-proposal.md",
+    "docs/history/hardware-testing-pre-hybrid-2026-09-15.md",
+  ]) {
+    const text = fs.readFileSync(path.join(rootDirectory, archived), "utf8");
+    assert.match(text, /^> \*\*ARCHIVED/,
+      `${archived} must open with an ARCHIVED banner`);
+  }
+});
+
+test("documentation keeps the current Heavy/Light PMG contract", () => {
+  const read = (name) => fs.readFileSync(path.join(rootDirectory, name), "utf8");
+  const adr = read("docs/decisions/ADR-002-gameplay-screen.md");
+  const architecture = read("docs/architecture.md");
+  const hybrid = read("docs/hybrid-c-architecture.md");
+
+  // P1/P2 are two independent Heavy enemy players, not one machine plus a scanner.
+  assert.match(adr, /`P1` and `P2` are the two \*\*Heavy\*\* enemy players/);
+  assert.doesNotMatch(adr, /P1 is the Interceptor and P2 its red scanner/);
+  assert.match(architecture, /P1 carries Raider slot 0 and P2 carries Raider slot 1/);
+
+  // Light-class enemies never take a PMG player.
+  assert.match(adr, /\*\*Light\*\*-class enemies allocate no PMG player/);
+  assert.match(hybrid, /PMG players `P1`\/`P2` belong to the Heavy enemy class/);
+  assert.match(hybrid, /LIGHT_ACTIVE_MAX = 1/);
+});
+
+test("documentation describes the accepted PMG pickup, not the retired capsule", () => {
+  const read = (name) => fs.readFileSync(path.join(rootDirectory, name), "utf8");
+  const artDirection = read("docs/art-direction.md");
+  const active = [artDirection, read("docs/architecture.md"),
+    read("docs/game-design.md"), read("docs/hardware-testing.md")].join("\n");
+
+  assert.match(artDirection, /solid 16-scanline fifth-player PMG\s+mark/);
+  assert.match(artDirection, /`M0-M3` in fifth-player mode, `PRIOR=\$10`, drawn in `COLPF3`/);
+  // The retired phased character capsule must not be described as current.
+  assert.doesNotMatch(active, /phase\s+zero occupies 2x2 cells/,
+    "the phased character pickup capsule is retired; the pickup is a PMG mark");
+  assert.doesNotMatch(active, /Pickup capsules are large 8x16-scanline objects/);
+});
+
+test("no active document treats the legacy Interceptor as the planned archetype", () => {
+  const activeNames = ["docs/game-design.md", "docs/architecture.md",
+    "docs/art-direction.md", "docs/hardware-testing.md",
+    "docs/decisions/ADR-002-gameplay-screen.md"];
+  const read = (name) => fs.readFileSync(path.join(rootDirectory, name), "utf8");
+
+  // Legacy prose that called the accepted ordinary enemy an "Interceptor".
+  const legacyProse = [
+    /ordinary Interceptor/i,
+    /release Interceptor/i,
+    /Interceptor silhouette/i,
+    /single-Interceptor/i,
+    /Interceptor contact/i,
+    /Interceptor shots/i,
+  ];
+  for (const name of activeNames) {
+    const text = read(name);
+    for (const pattern of legacyProse) {
+      assert.doesNotMatch(text, pattern,
+        `${name} still describes the accepted enemy as an Interceptor; it is the Raider`);
+    }
+  }
+
+  // architecture.md must explain that legacy runtime symbols are Raider-era.
+  const architecture = read("docs/architecture.md");
+  assert.match(architecture, /## Legacy symbol naming/);
+  assert.match(architecture, /INTERCEPTOR_PROJECTILE_SLOT_BASE/);
+  assert.match(architecture,
+    /do \*\*not\*\* identify the planned Light-class Interceptor `EnemyArchetype`/);
+
+  // Roadmap 4.4: the Interceptor ships in the accepted runtime 0a90c1c and is
+  // owner-accepted under it (owner smoke PASS 2026-09-18). Every document must
+  // say so with the same label; a candidate label for it is now stale.
+  const gameDesign = read("docs/game-design.md");
+  assert.match(gameDesign, /### Interceptor — \*\*OWNER-ACCEPTED\*\*/);
+  const status = read("docs/STATUS.md");
+  assert.match(status,
+    /## Interceptor \(plan step 4\.4\) — \*\*OWNER-ACCEPTED\*\*[^\n]*`0a90c1c`/);
+  assert.doesNotMatch(status, /Interceptor[^\n]*OWNER-SMOKE CANDIDATE/);
+  const roadmap = read("docs/plan-realizacji.md");
+  assert.match(roadmap, /### 4\.4 Interceptor — OWNER-ACCEPTED/);
+  // 4.4 must not reopen the Heavy-PMG option for a Light-class enemy.
+  assert.doesNotMatch(roadmap, /znakowy Light albo Heavy PMG/,
+    "owner decision 15 forbids rendering the Interceptor as a Heavy PMG");
+});
+
+test("the C/ASM ownership matrix is normative in exactly one place", () => {
+  const agents = fs.readFileSync(path.join(rootDirectory, "AGENTS.md"), "utf8");
+  const ownershipHeadings = agents.match(/^#+ .*C \/ ASM ownership.*$/gm) ?? [];
+  assert.equal(ownershipHeadings.length, 1,
+    "AGENTS.md must carry exactly one normative C/ASM ownership section");
+  assert.match(agents, /### C \/ ASM ownership/);
+  assert.match(agents,
+    /If a new gameplay behaviour can be expressed as a decision or a state\s+> transition, it belongs in C by default\./);
+
+  // Other documents reference it instead of restating it.
+  const workflow = fs.readFileSync(
+    path.join(rootDirectory, "docs", "agent-workflows", "feature.md"), "utf8");
+  assert.doesNotMatch(workflow, /^## C owns/m);
+  assert.match(workflow, /normative in `AGENTS\.md`/);
+
+  const rules = fs.readFileSync(
+    path.join(rootDirectory, "docs", "reguly-projektu.txt"), "utf8");
+  assert.match(rules, /AGENTS\.md/);
+  // Session start must be Git + STATUS, then task-selected reading.
+  assert.match(rules, /obowiązkowe są wyłącznie: stan Gita[^.]*oraz docs\/STATUS\.md/);
+  assert.match(agents, /## Session start/);
+  assert.match(agents, /read \*\*only\*\* the documents the task actually needs/);
 });

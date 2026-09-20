@@ -1,0 +1,115 @@
+{
+  "id": "stage-2b2m-hybrid-c-arena",
+  "date": "2026-09-17",
+  "task": "Roadmap 4.5M-M3: create the 832-byte HYBRID_C_ARENA $7BD0-$7F0F as one contiguous reusable runtime arena (cc65 CODE, cc65 RODATA, assigned ca65 helpers) landing directly through its own DFMC record; retire the temporary 243-B HYBRID_C_HEAVY window architecture; infrastructure only, no gameplay change, no Bomber code",
+  "status": "OWNER-SMOKE CANDIDATE",
+  "plan": "4.5M planning report (Strategy B), migration step M3 after the owner-accepted M1 and M2",
+  "baseline": { "commit": "cac8657", "xex_sha256": "a534249496e25919c2a1b2c15e989bb1c5b1331527bb2bec3b55851b9a2549b7", "atr_sha256": "c6d6ff8c2666394d6bd047e3d802550bbc52b8d877af1a5c39393556c078cf7b" },
+  "candidate": {
+    "xex_sha256": "cbba293fa32ffdbf9f6c0af081ca1e3710e3271e5d04d1378467595b0e5f3633",
+    "atr_sha256": "a75c62b986d6486a0799ada3bae08d3f488c876d83cf4c7de699fa2304b180b0",
+    "boot_bin_sha256": "78190207f10bd32a82b1948cc419a839a51525635c56cb1f83154cbd7aa720fc",
+    "xex_bytes": 23105,
+    "boot_bin_bytes": 22784,
+    "owner_smoke_copy": "build/owner-smoke/hybrid-c-arena-cbba293f/"
+  },
+  "arena": {
+    "range": "$7BD0-$7F0F", "capacity_bytes": 832, "used_bytes": 1, "free_bytes": 831,
+    "asm_bytes": 1, "c_code_bytes": 0, "c_rodata_bytes": 0,
+    "memory_area": "HYBRID_C_ARENA_RAM (cfg/encounter-director.cfg)",
+    "segments_in_link_order": ["HYBRID_ASM_ARENA", "HYBRID_C_ARENA", "HYBRID_C_ARENA_RODATA"],
+    "anchor": "hybrid_arena_anchor at $7BD0: 1-B rts, never called; keeps the DFMC record non-empty (a zero-length record is invalid)",
+    "replaces": "HYBRID_C_HEAVY_RAM $7E12-$7F04 (243 B, 4.5a) and its 44-B transport tail $9D32-$9D5D in the 4.5M-M2 merged record",
+    "bounds": { "below": "starfield stream A staging and pause-screen backup end at $7BD0", "above": "A2 display lists PLAYFIELD_DLIST_A $7F10; A2 staging $7F2B" },
+    "assertions": {
+      "ld65": "src/hybrid/c-asm-abi.s lderror: start = $7BD0; size = 832; start+size <= $7F10; ASM+CODE+RODATA <= size; ASM anchor >= 1 B; plus ld65 memory-area overflow",
+      "ca65_main": "src/main.s: RUNTIME = $7BD0; CAPACITY = 832; END = RUNTIME+CAPACITY; END <= PLAYFIELD_DLIST_A; END <= BOOT_A2_STAGING; RUNTIME >= starfield stream A end and pause backup end; 1 <= BYTES <= CAPACITY",
+      "build": "scripts/build.mjs: same contract from the ld65 labels, anchor first at $7BD0, and the arena record is the only record/staging/hold/backup intersecting $7BD0-$7F0F (manifest residentCapacity.arena.ownersInArena)"
+    }
+  },
+  "record_topology": {
+    "before": { "records": 7, "transport_sectors": 177, "atr_menu_deadline_frames": 544, "manifest_bytes": 126 },
+    "after": { "records": 8, "transport_sectors": 178, "atr_menu_deadline_frames": 546, "manifest_bytes": 142,
+      "list": [
+        { "record": "BROADSIDE", "sectors": "104-148", "count": 45, "packed": 5666, "raw": 6650, "final": "$5E10", "type": "LZ", "padding": 73 },
+        { "record": "pickup/collision", "sectors": "149-158", "count": 10, "packed": 1161, "raw": 1161, "final": "$8C80", "type": "RAW", "padding": 98 },
+        { "record": "ABI", "sectors": "159-160", "count": 2, "packed": 116, "raw": 117, "final": "$8018", "type": "LZ", "padding": 119 },
+        { "record": "merged low-C + GLUE", "sectors": "161-164", "count": 4, "packed": 457, "raw": 498, "final": "$9B40", "type": "LZ", "padding": 34 },
+        { "record": "extension", "sectors": "165-171", "count": 7, "packed": 786, "raw": 786, "final": "$7810", "type": "RAW", "padding": 89 },
+        { "record": "pre (RNG)", "sectors": "172", "count": 1, "packed": 23, "raw": 21, "final": "$9D5E", "type": "LZ", "padding": 84 },
+        { "record": "HYBRID_C_ARENA", "sectors": "173", "count": 1, "packed": 3, "raw": 1, "final": "$7BD0", "type": "LZ", "padding": 104 },
+        { "record": "Director", "sectors": "174-178", "count": 5, "packed": 542, "raw": 643, "final": "$9D75", "type": "LZ", "padding": 77 }
+      ] },
+    "landing": "direct: ATR stage 2 stages the sector at $8100 and decodes to $7BD0 before `start`; the XEX carries a 1-B segment at $7BD0; no hold, no publish copy",
+    "initial_block": { "content_bytes": 13162, "envelope_bytes": 22, "sectors": 103, "note": "unchanged" },
+    "packed_record_bytes": { "before": 8751, "after": 8754 },
+    "worst_case_full_arena": { "input": "832 pseudo-random bytes (deterministicCapacityBytes)", "packed_bytes": 840, "sectors": 7, "fits_stage2_staging": true },
+    "padding_note": "padding = sectors x 128 - packed - 21-byte footer"
+  },
+  "retired": {
+    "hybrid_c_heavy_publish": "14-B copy in the bootstrap prefix: zero padding in place (.res 14), hostile_weapon_step_masks stays $21BB",
+    "stage_glue_holding_tail": "jmp hybrid_c_heavy_publish -> rts + 2 B padding ($21CC-$21CE), publish_director_abi stays $21CF",
+    "merged_record_heavy_tail": "44-B transport capacity removed; the record is low-C 248 + GLUE 250 = 498 B",
+    "equates_asserts_manifest": "HYBRID_C_HEAVY_* equates and asserts, manifest residentCapacity.heavyWindow and coldRecordRelocation.heavyTransportCapacityBytes/freedColdRange replaced by residentCapacity.arena",
+    "tooling_kept": "capacity-window-watch.mjs watches the arena (--window=0x7bd0 --window-bytes=832 --window-from=start --expect-window-bin); chunk-loader reviewed range [$7BD0,$7F10)"
+  },
+  "runtime_address_diff": "none: .lbl diff removes hybrid_c_heavy_publish/@copy and adds the arena segment symbols and hybrid_arena_anchor; CODE, BROADSIDE, LIGHT_CODE, A2, ENTITY_CODE, STARFIELD, debris, projectile renderer, backing/restore, collision, VBI/DLI, PMG unchanged",
+  "residency": {
+    "physical": { "linked_runtime_bytes": 17502, "simultaneous_residency_bytes": { "before": 19493, "after": 19494 }, "safe_residency_bytes": { "before": 2694, "after": 2693 }, "note": "+1 B anchor" },
+    "reserved": "HYBRID_C_ARENA 832 B at $7BD0-$7F0F (replaces the 243-B HYBRID_C_HEAVY reservation, all within the range M2 freed)",
+    "reusable_free": "arena 831 B (was HYBRID_C_HEAVY 243 B); HYBRID_C_EXT 21 B, HYBRID_C_SECTOR 8 B, ENTITY_CODE 13 B, A2 18 B, pickup fill 11 B unchanged",
+    "bss": "unchanged: C BSS 16 B, C software stack 0, new zero page 0",
+    "note": "arena capacity is a segment-local limit, not machine exhaustion"
+  },
+  "boot_cpu_native_write_watch_clocks": {
+    "method": "scripts/capacity-window-watch.mjs, same emulator; HEAD from a clean export of cac8657 (npm run build:candidate)",
+    "xex": { "start_to_show_loader": { "before": 2047758, "after": 2046995, "delta": -763 }, "start_to_cold_publish_done": { "before": 1243109, "after": 1242347, "delta": -762 }, "start_to_glue_publish_complete": { "before": 11111171, "after": 11111171, "delta": 0 } },
+    "atr": { "start_to_show_loader": { "before": 2047766, "after": 2046995, "delta": -771 }, "start_to_cold_publish_done": { "before": 1243118, "after": 1242347, "delta": -771 }, "start_to_glue_publish_complete": { "before": 11113417, "after": 11119664, "delta": 6247, "note": "frame-aligned loader countdown after the start frame moved 229 -> 231" } },
+    "attribution": "MEASURED; the retired 44-B Heavy copy. The extra ATR sector read and the 3-B record decode run in stage 2 before `start` and show as +2 frames in boot smoke"
+  },
+  "boot_smoke": {
+    "result": "PASS 4/4 (XEX/ATR x cold fill $A5/$5A)",
+    "xex": { "before": { "start": 78, "loader": 135, "menu": 392 }, "after": { "start": 78, "loader": 135, "menu": 392 }, "deadline": 502 },
+    "atr": { "before": { "start": 229, "loader": 287, "menu": 544 }, "after": { "start": 231, "loader": 289, "menu": 546 }, "deadline": { "before": 544, "after": 546, "formula": "190 + 2 x transport sectors (unchanged)" } },
+    "margin": "ATR 0 frames before and after"
+  },
+  "native_write_watch": {
+    "lifecycle": "cold start, OPTIONS, BACK, START, gameplay, pause/resume, one capital sector entered and completed (XEX frames 1257-2463, ATR 1411-2617), game over, menu, START, pause, quit, menu; XEX and ATR x cold fill $00/$A5",
+    "arena_and_m2_cold_records": {
+      "command": "node scripts/capacity-window-watch.mjs --atari800-source=build/atari800-trace --hold=0x8100 --hold-done=layout_d_cold_publish_complete --expect-hold-is-glue --window=0x7bd0 --window-bytes=832 --window-from=start --expect-window-bin=build/encounter-director-code-arena.bin --stage=0x8018:117 --stage=0x9b40:498 --stage-done=start --stage-consumed=layout_d_cold_publish_complete --expect-stage-bins=build/encounter-director-code-abi.bin,build/encounter-director-code-low-transport.bin --output=build/capacity-watch/m3-arena-cold-records-watch.json",
+      "result": "PASS 4/4: arena image byte-exact at `start`, 0 writes to any of the 832 B until the end of the lifecycle; ABI and merged records byte-exact and untouched until layout_d_cold_publish_complete; GLUE hold 0 writes, final GLUE equals the hold; cold publication before ENTITY expansion and entity-state clear"
+    },
+    "m1_streams_glue_sector_window": {
+      "command": "node scripts/capacity-window-watch.mjs --atari800-source=build/atari800-trace --hold=0x8100 --expect-hold-is-glue --expect-window-bin=build/resident-window-runtime.bin --stage=0x7810:915 --stage=0x81fa:896 --expect-stage-bins=build/starfield-runtime-packed-a.bin,build/starfield-runtime-packed-b.bin --expect-range-bin=0x54e4:build/starfield-runtime.bin --output=build/capacity-watch/m3-sector-window-watch.json",
+      "result": "PASS 4/4: GLUE hold, $8602 window, starfield streams A/B and decoded STARFIELD"
+    },
+    "head_baseline": "M2 cold-record config on a clean export of cac8657: PASS 4/4 (source of the boot-clock before values)"
+  },
+  "capacity_proof": {
+    "tree": "throwaway scratch copy of the candidate tree, not committed",
+    "payload": "20 cc65 functions in #pragma code-name HYBRID_C_ARENA (775 B CODE, never called) + a 34-B static const table in #pragma rodata-name HYBRID_C_ARENA_RODATA + a 22-B ca65 loop helper in HYBRID_ASM_ARENA behind the 1-B anchor",
+    "linked": { "used_bytes": 832, "asm": 23, "code": 775, "rodata": 34, "free": 0 },
+    "overflow_check": "the same payload with a 35-B table (833 B) fails: ld65 'Segment HYBRID_C_ARENA_RODATA overflows memory area HYBRID_C_ARENA_RAM by 1 byte' and 'Assertion failed: HYBRID_C_ARENA contents exceed 832 B'; an earlier 862-B trial failed the same way (30 B)",
+    "transport": { "raw": 832, "packed": 363, "sectors": 3, "padding": 0, "transport_sectors": 180, "records": 8 },
+    "artifacts": { "xex_sha256": "74c6f5807489842c7137a0215a225c5786f8ad8da7079ead8d9d8da01fc1aefa", "atr_sha256": "5a3b5437932b1030027b534ecc4666bfd06bd06ba866ba857a350b575cd1b087" },
+    "native_write_watch": "arena + M2 cold-record config with --expect-window-bin of the 832-B proof image: PASS 4/4 on XEX and ATR x $00/$A5; the full 832 B equal the linked image at `start` and receive 0 writes through the full lifecycle (including capital completion, game over, restart, pause/quit)",
+    "boot_smoke": { "xex": { "menu": 392, "deadline": 502, "passed": true }, "atr_a5": { "start": 236, "loader": 294, "menu": 551, "deadline": 550, "passed": false }, "finding": "decoding a full 832-B arena record in ATR stage 2 costs one frame beyond the 2-frames-per-sector allowance on top of the existing 0-frame margin; not a gate of this candidate (1-B anchor); input to the Bomber retry" }
+  },
+  "pal_native": {
+    "focused_replays": {
+      "2-evasive-fire3": { "head_max": 29519, "candidate_max": 29519, "missed_frames": 0, "extra_vbi": 0, "dli_ordering_errors": 0 },
+      "2-sweep-fire4": { "head_max": 29801, "candidate_max": 29801, "missed_frames": 0, "extra_vbi": 0, "dli_ordering_errors": 0 }
+    },
+    "cycle_cost": "0: no main-loop, VBI or DLI code changed",
+    "debris_gate": { "result": "PASS on debris-gate-0-evasive-fire3, debris-gate-0-neutral-fire0 and debris-gate-capital-muzzle-ring-2-sweep-fire4: 0 blank, 0 disappearances, first visible Y 24 in capital and post-capital phases, 0 missed frames", "maxima": [30232, 30439, 30216] }
+  },
+  "tests": {
+    "renamed": "tests/heavy-window.test.mjs -> tests/hybrid-c-arena.test.mjs (3 tests: arena contract and assertions, direct-landing record decoded from ATR and loaded from XEX with nothing else written into the arena, retired Heavy transport with unchanged addresses)",
+    "rebaselined": {
+      "layout-d1": "stage_glue_holding ends rts + .res 2; lifetime model uses the arena instead of the Heavy window and freed range",
+      "starfield-staging-streams": "stream A ends below the arena; staging leaves the full arena untouched"
+    },
+    "full_suite": "node --test tests/*.test.mjs after the candidate build: 643 tests, 114 failing; clean export of cac8657: 644 tests, 114 failing; identical failure-name sets (the renamed file has 3 tests instead of 4)"
+  },
+  "unchanged": "gameplay code, ABI, low C, extension, GLUE runtime and hold, A2, pickup, ENTITY order, runtime memory map outside $7BD0-$7F0F, Light publication, debris, PMG, collision, DLI/VBI, Bomber evidence branch"
+}

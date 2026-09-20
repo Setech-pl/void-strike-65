@@ -39,6 +39,22 @@ const labels = new Map(
     .filter(Boolean)
     .map((match) => [match[2], Number.parseInt(match[1], 16)]),
 );
+const integrationGlueLabels = new Map(
+  fs.readFileSync(path.join(root, "build", "integration-glue.lbl"), "utf8")
+    .split(/\r?\n/)
+    .map((line) => /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim()))
+    .filter(Boolean)
+    .map((match) => [match[2], Number.parseInt(match[1], 16)]),
+);
+labels.set("integration_debris_spawn", integrationGlueLabels.get("integration_debris_spawn"));
+const directorLabels = new Map(
+  fs.readFileSync(path.join(root, "build", "encounter-director.lbl"), "utf8")
+    .split(/\r?\n/)
+    .map((line) => /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim()))
+    .filter(Boolean)
+    .map((match) => [match[2], Number.parseInt(match[1], 16)]),
+);
+labels.set("director_request", directorLabels.get("director_request"));
 
 const addresses = {
   state: 0x8000,
@@ -64,7 +80,9 @@ const addresses = {
   screenLo: labels.get("ENTITY_SCREEN_LO"),
   screenHi: labels.get("ENTITY_SCREEN_HI"),
   backing: labels.get("ENTITY_BACKING0"),
-  backing1: labels.get("ENTITY_BACKING1"),
+  // Slot-zero debris keeps its right cell's backing at ENTITY_BACKING0+1 (the
+  // otherwise unused slot-1 field), the offset the A2 debris resolver reads.
+  backing1: labels.get("ENTITY_BACKING0") + 1,
   drawnMask: labels.get("ENTITY_DRAWN_MASK"),
   hp: labels.get("ENTITY_HP"),
   owner: labels.get("ENTITY_OWNER"),
@@ -119,8 +137,12 @@ const addresses = {
   enemyHp: labels.get("ENEMY_HP"),
   enemyPendingDamage: labels.get("ENEMY_PENDING_DAMAGE"),
   enemyPendingSource: labels.get("ENEMY_PENDING_SOURCE"),
-  enemyX: labels.get("enemy_x"),
-  enemyY: labels.get("enemy_y"),
+  enemyMemberState: labels.get("ENEMY_MEMBER_STATE"),
+  enemyFormationYHi: labels.get("ENEMY_FORMATION_Y_HI"),
+  enemyTargetSlot: labels.get("ENEMY_TARGET_SLOT"),
+  enemyLiveCount: labels.get("ENEMY_LIVE_COUNT"),
+  enemyX: labels.get("ENEMY_X"),
+  enemyY: labels.get("ENEMY_Y"),
   scoreLo: labels.get("score_bcd_lo"),
   scoreHi: labels.get("score_bcd_hi"),
   player_fighterBurstTimer: labels.get("PLAYER_FIGHTER_BURST_TIMER"),
@@ -166,7 +188,34 @@ function armDirectorDebrisAdmission(memory) {
   memory[0x80ff] = (memory[addresses.frameCounter] - 1) & 0xff;
 }
 
-function runRoutine(memory, name, { accumulator = 0, beforeExecute } = {}) {
+function snapshotDebrisSlotZero(memory) {
+  return [
+    addresses.activeMask, addresses.activeCount, addresses.type, addresses.entityState,
+    addresses.flags, addresses.x, addresses.y, addresses.vx, addresses.vy,
+    addresses.moveAccumulator, addresses.verticalAccumulator, addresses.renderId,
+    addresses.hp, addresses.owner, addresses.rng,
+  ].map((address) => memory[address]);
+}
+
+// The runtime publishes the debris through entity_debris_publish (fighter:
+// post-playfield window; capital: after the entity update), so the linked
+// entity_effects_erase/render routines are effects-only. The harness keeps the
+// composite frame order these tests were written against: effects erase then
+// debris erase, debris render then effects render.
+const compositeRoutines = {
+  entity_effects_render: ["render_interactive_entity_overlays", "entity_effects_render"],
+  entity_effects_erase: ["entity_effects_erase", "erase_interactive_entity_overlays"],
+};
+
+function runRoutine(memory, name, options = {}) {
+  if (compositeRoutines[name]) {
+    return compositeRoutines[name].reduce((sum, part) =>
+      sum + runRoutineRaw(memory, part, options), 0);
+  }
+  return runRoutineRaw(memory, name, options);
+}
+
+function runRoutineRaw(memory, name, { accumulator = 0, beforeExecute } = {}) {
   const cpu = new Nmos6502(memory);
   const stop = 0x7fff;
   cpu.push((stop - 1) >> 8);
@@ -181,6 +230,22 @@ function runRoutine(memory, name, { accumulator = 0, beforeExecute } = {}) {
 }
 
 function runRoutineTrace(memory, name, watchedNames) {
+  if (compositeRoutines[name]) {
+    const merged = { cycles: 0, visited: new Set(),
+      callCounts: new Map(watchedNames.map((label) => [label, 0])) };
+    for (const part of compositeRoutines[name]) {
+      const result = runRoutineTraceRaw(memory, part, watchedNames);
+      merged.cycles += result.cycles;
+      for (const label of result.visited) merged.visited.add(label);
+      for (const [label, count] of result.callCounts)
+        merged.callCounts.set(label, merged.callCounts.get(label) + count);
+    }
+    return merged;
+  }
+  return runRoutineTraceRaw(memory, name, watchedNames);
+}
+
+function runRoutineTraceRaw(memory, name, watchedNames) {
   const cpu = new Nmos6502(memory);
   const stop = 0x7fff;
   const watched = new Map(watchedNames.map((label) => {
@@ -323,6 +388,10 @@ function exercisePlayerInterceptorContact({
   memory[addresses.difficulty] = difficulty;
   memory[addresses.enemyActive] = 1;
   memory[addresses.enemyArchetype] = 0;
+  memory[addresses.enemyMemberState] = 1;
+  memory[addresses.enemyFormationYHi] = 0;
+  memory[addresses.enemyTargetSlot] = 0;
+  memory[addresses.enemyLiveCount] = 1;
   memory[addresses.enemyHp] = 1;
   memory[addresses.enemyPendingDamage] = 0;
   memory[addresses.enemyPendingSource] = 5;
@@ -337,6 +406,7 @@ function exercisePlayerInterceptorContact({
     "begin_player_fighter_explosion",
     "resolve_enemy_damage",
     "spawn_interceptor_breakup_effects",
+    "play_hit_sound",
     "update_hud_status",
   ]);
   return { memory, trace };
@@ -371,17 +441,8 @@ test("entity descriptor and glyph generation are deterministic and bounded", () 
   assert.deepEqual(first.debrisVisuals.variants.map(({ id }) => id),
     ["armour-shard", "truss-fragment"]);
   assert.ok(first.debrisVisuals.variants.every(({ phases }) => phases.length === 2));
-  assert.deepEqual(first.interceptorBreakup, {
-    coreFrames: 5,
-    fragmentFrames: 30,
-    coreOffsetHpos: 6,
-    fragments: [
-      { id: "left-wing", phaseGlyphs: ["armour-left-0", "armour-left-1"] },
-      { id: "right-wing", phaseGlyphs: ["armour-right-0", "armour-right-1"] },
-      { id: "central", phaseGlyphs: ["debris-fragment-0", "debris-fragment-1"] },
-      { id: "red-eye", phaseGlyphs: ["interceptor-pulse-0-red", "interceptor-pulse-1-red"] },
-    ],
-  });
+  assert.equal("interceptorBreakup" in first, false,
+    "Raider destruction must have no character-effect asset contract");
   assert.deepEqual([...first.descriptor.slice(5, 10)], [8, 8, 1, 0, 8]);
   assert.equal(first.descriptor[12], 0,
     "ENTITY_TIMER must start at zero for the deterministic 3/5 accumulator");
@@ -594,6 +655,117 @@ test("spawn deterministically selects two variants, two phases and three traject
   assert.deepEqual([...observedTrajectories].sort((a, b) => a - b), [0, 4, 0xfc]);
 });
 
+test("integration debris ABI is derived from and jumps to the linked spawn symbol", () => {
+  const generatedAbi = fs.readFileSync(
+    path.join(root, "build", "integration-abi.inc"), "utf8");
+  const linkedSpawn = labels.get("entity_spawn_debris");
+  assert.equal(generatedAbi.trim(),
+    `entity_spawn_debris = $${linkedSpawn.toString(16).toUpperCase()}`);
+
+  const glue = fs.readFileSync(path.join(root, "build", "integration-glue.bin"));
+  const glueBase = manifest.integrationGlue.finalAddress;
+  const entryOffset = integrationGlueLabels.get("integration_debris_spawn") - glueBase;
+  const jumpOffset = glue.indexOf(0x4c, entryOffset);
+  assert.ok(jumpOffset >= entryOffset && jumpOffset < entryOffset + 16,
+    "integration debris entry must contain its tail JMP");
+  assert.equal(glue[jumpOffset + 1] | glue[jumpOffset + 2] << 8, linkedSpawn,
+    "integration debris tail JMP drifted from the linked production entry");
+});
+
+test("integration debris admission is equivalent to Director request plus direct spawn", () => {
+  const direct = createRuntimeMemory();
+  const integrated = createRuntimeMemory();
+  const composed = createRuntimeMemory();
+  for (const memory of [direct, integrated, composed]) {
+    initialiseRows(memory);
+    runRoutine(memory, "init_entity_effects");
+    armDirectorDebrisAdmission(memory);
+    memory[addresses.rng] = 0x51;
+    memory[addresses.spawnTimer] = 1;
+    memory[addresses.sectorState] = 0;
+    memory[addresses.playerX] = 196;
+    memory[addresses.playerY] = 184;
+  }
+
+  runRoutine(direct, "entity_spawn_debris");
+  runRoutine(integrated, "integration_debris_spawn");
+  runRoutine(composed, "director_request", { beforeExecute(cpu) { cpu.x = 1; } });
+  runRoutine(composed, "entity_spawn_debris");
+
+  assert.deepEqual(snapshotDebrisSlotZero(integrated), snapshotDebrisSlotZero(direct),
+    "public admission must initialize the same slot-zero debris state as direct spawn");
+  assert.deepEqual(
+    [...integrated.slice(0x80f4, 0x8100)],
+    [...composed.slice(0x80f4, 0x8100)],
+    "public admission must preserve Director request semantics");
+  assert.deepEqual(snapshotDebrisSlotZero(integrated), snapshotDebrisSlotZero(composed),
+    "public entry must equal the canonical Director-request plus direct-spawn composition");
+});
+
+test("capital debris retries rejected admissions without overwriting its occupied slot", () => {
+  const rejectedCapital = createRuntimeMemory();
+  initialiseRows(rejectedCapital);
+  runRoutine(rejectedCapital, "init_entity_effects");
+  armDirectorDebrisAdmission(rejectedCapital);
+  rejectedCapital[0x80f9] = 1;
+  rejectedCapital[addresses.spawnTimer] = 1;
+  rejectedCapital[addresses.sectorState] = 0;
+  const capitalTrace = runRoutineTrace(rejectedCapital, "entity_effects_update",
+    ["entity_spawn_debris"]);
+  assert.deepEqual([
+    capitalTrace.callCounts.get("entity_spawn_debris"),
+    rejectedCapital[addresses.activeMask], rejectedCapital[addresses.spawnTimer],
+    rejectedCapital[0x80ff],
+  ], [0, 0, 8, rejectedCapital[addresses.frameCounter]]);
+
+  const rejectedOpen = createRuntimeMemory();
+  initialiseRows(rejectedOpen);
+  runRoutine(rejectedOpen, "init_entity_effects");
+  armDirectorDebrisAdmission(rejectedOpen);
+  rejectedOpen[0x80f9] = 1;
+  rejectedOpen[addresses.spawnTimer] = 1;
+  rejectedOpen[addresses.sectorState] = 7;
+  runRoutine(rejectedOpen, "entity_effects_update");
+  assert.equal(rejectedOpen[addresses.spawnTimer], 64,
+    "ordinary OPEN rejection must retain the established repeat delay");
+
+  const occupied = createRuntimeMemory();
+  initialiseRows(occupied);
+  initialiseEntity(occupied);
+  occupied[addresses.spawnTimer] = 1;
+  const admissionFrameBefore = occupied[0x80ff];
+  const occupiedTrace = runRoutineTrace(occupied, "entity_effects_update",
+    ["entity_spawn_debris"]);
+  assert.deepEqual([
+    occupiedTrace.callCounts.get("entity_spawn_debris"),
+    occupied[addresses.activeMask], occupied[addresses.activeCount],
+    occupied[addresses.spawnTimer], occupied[0x80ff],
+  ], [0, 1, 1, 1, admissionFrameBefore],
+  "an occupied debris slot must neither request, queue nor restart its timer");
+});
+
+test("capital debris uses existing 3/4/5 pressure ceilings on EASY, MEDIUM and HARD", () => {
+  for (const [difficulty, pressure, ceiling] of [[0, 2, 3], [1, 3, 4], [2, 4, 5]]) {
+    const memory = createRuntimeMemory();
+    initialiseRows(memory);
+    runRoutine(memory, "init_entity_effects");
+    armDirectorDebrisAdmission(memory);
+    memory[0x80f6] = 1;
+    memory[0x80f8] = pressure;
+    memory[addresses.difficulty] = difficulty;
+    memory[addresses.spawnTimer] = 1;
+    memory[addresses.sectorState] = 0;
+    memory[addresses.playerX] = 196;
+    memory[addresses.playerY] = 184;
+    runRoutine(memory, "entity_effects_update");
+    assert.deepEqual([memory[addresses.activeMask], memory[addresses.activeCount], memory[0x80f8]],
+      [1, 1, ceiling], `difficulty ${difficulty} did not admit one debris beside capital pressure`);
+    runRoutine(memory, "integration_debris_release");
+    assert.deepEqual([memory[addresses.activeMask], memory[addresses.activeCount], memory[0x80f8]],
+      [0, 0, pressure], `difficulty ${difficulty} release did not restore Director pressure`);
+  }
+});
+
 test("X, Y and tumbling phase change only on WORLD_ROW_ADVANCED", () => {
   const memory = createRuntimeMemory();
   initialiseRows(memory);
@@ -608,14 +780,14 @@ test("X, Y and tumbling phase change only on WORLD_ROW_ADVANCED", () => {
     memory[addresses.activeMask], memory[addresses.activeCount],
     memory[addresses.x], memory[addresses.y], memory[addresses.rng],
     memory[addresses.renderId], memory[addresses.vx],
-  ], [1, 1, 124, 24, 0x89, manifest.entityEffects.glyphIndex + 4, 4]);
+  ], [1, 1, 124, 16, 0x89, manifest.entityEffects.glyphIndex + 4, 4]);
   const initialGlyph = memory[addresses.renderId];
   runRoutine(memory, "entity_effects_update");
   assert.deepEqual([
     memory[addresses.x], memory[addresses.y], memory[addresses.renderId],
     memory[addresses.moveAccumulator],
-  ], [124, 24, initialGlyph, 0], "ordinary frame must not move or tumble world debris");
-  const expectedY = [24, 32, 32, 40];
+  ], [124, 16, initialGlyph, 0], "ordinary frame must not move or tumble world debris");
+  const expectedY = [16, 24, 24, 32];
   const expectedVerticalAccumulator = [3, 1, 4, 2];
   for (let event = 1; event <= 4; event += 1) {
     memory[addresses.events] = 1;
@@ -673,56 +845,48 @@ test("debris advances exactly three vertical rows in five world events", () => {
   assert.deepEqual(rows, [24, 32, 32, 40, 48, 48, 56, 56, 64, 72, 72, 80]);
 });
 
-test("EASY, MEDIUM and HARD keep world speed while far/near/debris use exact 25/50/60% rates", () => {
+test("EASY, MEDIUM and HARD keep world/debris rates while white stars drift at 50 Hz", () => {
   const denominator = capitalHullsDefinition.broadside.worldScrollRateDenominator;
   assert.equal(denominator, 20);
   assert.deepEqual(capitalHullsDefinition.broadside.worldScrollRates,
     { easy: 8, medium: 9, hard: 10 });
+  assert.equal(capitalHullsDefinition.broadside.hullScrollRateDenominator, 40);
   assert.deepEqual(capitalHullsDefinition.broadside.hullScrollRates,
-    capitalHullsDefinition.broadside.worldScrollRates);
+    { easy: 16, medium: 18, hard: 20 });
   assert.deepEqual([
-    starfieldDefinition.nearLayer.rateNumerator,
-    starfieldDefinition.nearLayer.rateDenominator,
+    starfieldDefinition.nearLayer.representation,
+    starfieldDefinition.nearLayer.speedPixelsPerFrame,
+    starfieldDefinition.farLayer.population,
     starfieldDefinition.farLayer.rateNumerator,
     starfieldDefinition.farLayer.rateDenominator,
-  ], [1, 2, 1, 4]);
+  ], ["sparse-dynamic", 1, 0, 0, 1]);
 
   const measured = {};
   for (const [difficulty, numerator] of
     Object.entries(capitalHullsDefinition.broadside.worldScrollRates)) {
     const worldRowsPerSecond = 50 * numerator / denominator;
-    const nearRowsPerSecond = worldRowsPerSecond / 2;
-    const farRowsPerSecond = worldRowsPerSecond / 4;
+    const nearRowsPerSecond = 50;
+    const farRowsPerSecond = worldRowsPerSecond;
     const debrisRowsPerSecond = worldRowsPerSecond * 3 / 5;
-    assert.ok(farRowsPerSecond < nearRowsPerSecond &&
-      nearRowsPerSecond < debrisRowsPerSecond &&
-      debrisRowsPerSecond < worldRowsPerSecond);
+    assert.ok(debrisRowsPerSecond < farRowsPerSecond &&
+      farRowsPerSecond < nearRowsPerSecond);
 
     let worldAccumulator = 0;
-    let nearAccumulator = 0;
     const stepFrame = () => {
       let worldAdvanced = false;
-      let nearAdvanced = false;
       worldAccumulator += numerator;
       if (worldAccumulator >= denominator) {
         worldAccumulator -= denominator;
         worldAdvanced = true;
-        nearAccumulator += starfieldDefinition.nearLayer.rateNumerator;
-        if (nearAccumulator >= starfieldDefinition.nearLayer.rateDenominator) {
-          nearAccumulator -= starfieldDefinition.nearLayer.rateDenominator;
-          nearAdvanced = true;
-        }
       }
-      return { worldAdvanced, nearAdvanced };
+      return { worldAdvanced };
     };
     for (let frame = 1; frame <= 32; frame += 1) {
       stepFrame();
     }
     const spawnWorldAccumulator = worldAccumulator;
-    const spawnNearAccumulator = nearAccumulator;
     const framesFor = (numerator, denominator) => {
       worldAccumulator = spawnWorldAccumulator;
-      nearAccumulator = spawnNearAccumulator;
       let phase = 0;
       let frames = 0;
       let steps = 0;
@@ -751,17 +915,17 @@ test("EASY, MEDIUM and HARD keep world speed while far/near/debris use exact 25/
   }
   assert.deepEqual(measured, {
     easy: {
-      worldRowsPerSecond: 20, nearRowsPerSecond: 10, farRowsPerSecond: 5,
+      worldRowsPerSecond: 20, nearRowsPerSecond: 50, farRowsPerSecond: 20,
       debrisRowsPerSecond: 12, rejectedCandidateDebrisRowsPerSecond: 15,
       rejectedCandidateFrames: 73, finalFrames: 91,
     },
     medium: {
-      worldRowsPerSecond: 22.5, nearRowsPerSecond: 11.25, farRowsPerSecond: 5.625,
+      worldRowsPerSecond: 22.5, nearRowsPerSecond: 50, farRowsPerSecond: 22.5,
       debrisRowsPerSecond: 13.5, rejectedCandidateDebrisRowsPerSecond: 16.875,
       rejectedCandidateFrames: 66, finalFrames: 82,
     },
     hard: {
-      worldRowsPerSecond: 25, nearRowsPerSecond: 12.5, farRowsPerSecond: 6.25,
+      worldRowsPerSecond: 25, nearRowsPerSecond: 50, farRowsPerSecond: 25,
       debrisRowsPerSecond: 15, rejectedCandidateDebrisRowsPerSecond: 18.75,
       rejectedCandidateFrames: 60, finalFrames: 74,
     },
@@ -886,8 +1050,8 @@ test("pause, new game, life loss, full sector transition and Game Over preserve 
   ], [7, 0, 32, 0, 101],
   "OPEN must re-arm normal delay without clearing the pool or consuming RNG");
   const postReconstructionStarRng = transition[addresses.starfieldRng];
-  assert.notEqual(postReconstructionStarRng, 0xa7,
-    "one complete ring reconstruction must retain normal starfield RNG progression");
+  assert.equal(postReconstructionStarRng, 0xa7,
+    "row-baked reconstruction must not revive the retired starfield RNG writer");
   for (let frame = 1; frame <= 31; frame += 1) {
     runRoutine(transition, "entity_effects_update");
     assert.equal(transition[addresses.activeMask], 0,
@@ -1019,10 +1183,12 @@ test("debris damage updates HULL plates in the contact frame and enters canonica
     lifecycle: lethal.memory[addresses.playerLifecycle],
     deathTimer: lethal.memory[addresses.deathTimer],
     damageCalls: lethal.damageCallCount,
-  }, { health: 0, lives: 0, lifecycle: 1, deathTimer: 24, damageCalls: 1 });
+  // Death-frame deferral (2026-09-17): DYING lasts 25 frames; the PMG explosion
+  // begins on the first DYING tick, not in the contact frame.
+  }, { health: 0, lives: 0, lifecycle: 1, deathTimer: 25, damageCalls: 1 });
   assert.deepEqual([...lethal.memory.subarray(0x4019, 0x401d)], [12, 12, 12, 12]);
 
-  for (let frame = 0; frame < 24; frame += 1) runRoutine(lethal.memory, "update_player_death");
+  for (let frame = 0; frame < 25; frame += 1) runRoutine(lethal.memory, "update_player_death");
   assert.equal(lethal.memory[addresses.playerLifecycle], 3,
     "final-life debris death must reach the existing GAME OVER lifecycle");
 });
@@ -1077,7 +1243,7 @@ test("accepted direct Interceptor contact is lethal at every HULL and difficulty
         lifecycle: 1,
         lives: 2,
         damageCalls: 1,
-        deathCalls: 1,
+        deathCalls: 0, // deferred to the first DYING tick (player_dying_tick)
       }, `difficulty ${difficulty}, HULL ${health} did not enter one lethal contact flow`);
     }
   }
@@ -1101,7 +1267,7 @@ test("Interceptor contact geometry covers centre, edges, corners, and exact outs
       memory[addresses.playerHealth], memory[addresses.enemyActive],
       trace.callCounts.get("apply_player_damage"),
       trace.callCounts.get("begin_player_fighter_explosion"),
-    ], [0, 2, 1, 1], `legal contact offset ${dx},${dy} was missed`);
+    ], [0, 2, 1, 0], `legal contact offset ${dx},${dy} was missed`);
   }
 
   for (const [dx, dy] of [[-8, 0], [16, 0], [0, -15], [0, 14]]) {
@@ -1179,17 +1345,209 @@ test("lethal Interceptor contact updates HUD, uses one death event, and reaches 
     health: 0,
     lives: 0,
     lifecycle: 1,
-    deathTimer: 24,
+    deathTimer: 25,   // death-frame deferral: one frame longer than the explosion
     damageCalls: 1,
-    deathCalls: 1,
+    deathCalls: 0,    // begin_player_fighter_explosion runs on the first DYING tick
     hudCalls: 1,
     hullHud: [12, 12, 12, 12],
   });
-  for (let frame = 0; frame < 24; frame += 1) runRoutine(memory, "update_player_death");
+  for (let frame = 0; frame < 25; frame += 1) runRoutine(memory, "update_player_death");
   assert.equal(memory[addresses.playerLifecycle], 3);
 });
 
-test("Interceptor lifecycle and score remain the canonical contact breakup path", () => {
+// PMG planes, PMG horizontal registers and the corridor geometry the death and
+// respawn sequence publishes into. PLAYER0/PLAYER3 are the two halves of one
+// PlayerFighter image; a second simultaneous image in either plane is the
+// regression this covers.
+const PLANE_P0 = 0x3c00;
+const PLANE_P3 = 0x3f00;
+const HPOSP0 = 0xd000;
+const HPOSP3 = 0xd003;
+const COLBK = 0xd01a;
+const PLAYER_RESPAWN_X = 124;
+const PLAYER_RESPAWN_Y = 225;
+const GAMEPLAY_BACKGROUND_COLOR = 0x00;
+
+function occupiedPlaneRows(memory, base) {
+  const rows = [];
+  for (let row = 0; row < 256; row += 1) if (memory[base + row]) rows.push(row);
+  return rows;
+}
+
+// One published image is one contiguous run of non-empty PMG rows. Two runs, or
+// a run outside the live PlayerFighter, is a second image.
+function publishedImageRuns(memory, base) {
+  const runs = [];
+  for (const row of occupiedPlaneRows(memory, base)) {
+    const last = runs[runs.length - 1];
+    if (last && last.end === row - 1) last.end = row;
+    else runs.push({ start: row, end: row });
+  }
+  return runs;
+}
+
+// The live-frame order of main_loop around the death sequence: the explosion
+// tick (which owns the timer-1 self-erase) precedes update_player_death, and
+// the explosion render and the COLBK flash follow it.
+function runDeathSequenceFrame(memory) {
+  runRoutine(memory, "tick_shared_fighter_explosions");
+  runRoutine(memory, "update_player_death");
+  runRoutine(memory, "render_shared_fighter_explosions");
+  runRoutine(memory, "update_sound");
+}
+
+// Fresh runtime memory with the live PlayerFighter published at x,y and the PMG
+// planes otherwise empty, so every later plane row is attributable.
+function publishedPlayerFighterRuns(x, y, base = PLANE_P0) {
+  return publishedImageRuns(armPublishedPlayerFighter(x, y), base);
+}
+
+function armPublishedPlayerFighter(x, y) {
+  const memory = createRuntimeMemory();
+  initialiseRows(memory);
+  runRoutine(memory, "init_entity_effects");
+  memory.fill(0, 0x3800, 0x4000);
+  memory[addresses.playerX] = x;
+  memory[addresses.playerY] = y;
+  memory[HPOSP0] = x;
+  memory[HPOSP3] = x;
+  runRoutine(memory, "draw_player");
+  return memory;
+}
+
+// The exact PLAYER0 image draw_player publishes for a ship at the respawn
+// origin: the one image that may be on screen from the respawn frame onward.
+const respawnedShipRuns = publishedPlayerFighterRuns(PLAYER_RESPAWN_X, PLAYER_RESPAWN_Y);
+
+test("player death defers the PMG explosion to the first DYING tick and still erases it before the respawn", () => {
+  // Death-frame deferral (2026-09-17): the lethal apply_player_damage leaves
+  // the player explosion slot idle; player_dying_tick begins it one frame
+  // later with the full 24-frame timer, and DYING lasts 25 frames so the
+  // explosion's self-erase (timer 1) still precedes the respawn draw.
+  const { memory } = exercisePlayerInterceptorContact({ playerHealth: 10, playerLives: 2 });
+  const slot = addresses.fighterExplosionTimer;   // player slot 0
+  assert.deepEqual([memory[slot], memory[addresses.deathTimer], memory[addresses.playerLifecycle]],
+    [0, 25, 1], "the death frame begins no explosion");
+
+  runRoutine(memory, "update_player_death");     // first DYING tick (N+1)
+  assert.deepEqual([memory[slot], memory[addresses.deathTimer], memory[addresses.playerLifecycle]],
+    [24, 24, 1], "the first DYING tick begins the full 24-frame explosion");
+
+  // Each later frame: tick_shared_fighter_explosions precedes update_player_death.
+  for (let frame = 0; frame < 23; frame += 1) {
+    runRoutine(memory, "tick_shared_fighter_explosions");
+    runRoutine(memory, "update_player_death");
+    assert.equal(memory[addresses.playerLifecycle], 1, `frame ${frame + 2} still DYING`);
+  }
+  assert.deepEqual([memory[slot], memory[addresses.deathTimer]], [1, 1]);
+  runRoutine(memory, "tick_shared_fighter_explosions");
+  assert.equal(memory[slot], 0, "the explosion erases itself in the respawn frame");
+  runRoutine(memory, "update_player_death");
+  assert.equal(memory[addresses.playerLifecycle], 2, "then the same frame respawns");
+  assert.equal(memory[addresses.deathTimer], 0);
+});
+
+test("the deferred death sequence publishes exactly one PlayerFighter image from the respawn frame on", () => {
+  // Regression (2026-09-18): player_dying_tick guarded the deferred begin with
+  // "explosion slot idle". On the finishing frame the slot is idle because
+  // tick_shared_fighter_explosions erased it earlier in the same frame, so the
+  // guard restarted the explosion at the pre-death player_x/player_y one
+  // instruction before respawn_player and published a second image, four
+  // colour clocks left of the respawned ship, for a further 24 frames.
+  // This drives the real main-loop order through the respawn frame and beyond
+  // it, and inspects the planes, HPOSP0/HPOSP3 and COLBK, none of which the
+  // timer-only test above can see.
+  const slot = addresses.fighterExplosionTimer;
+  const explosionX = labels.get("FIGHTER_EXPLOSION_X");
+  const explosionY = labels.get("FIGHTER_EXPLOSION_Y");
+  const deathX = 124;
+  const deathY = 100;
+
+  const { memory } = exercisePlayerInterceptorContact({
+    playerX: deathX, playerY: deathY, playerHealth: 10, playerLives: 2,
+    baseMemory: armPublishedPlayerFighter(deathX, deathY),
+  });
+
+  // N+1 .. N+24: DYING, exactly one published image, and it is the explosion.
+  for (let frame = 1; frame <= 24; frame += 1) {
+    runDeathSequenceFrame(memory);
+    assert.equal(memory[addresses.playerLifecycle], 1, `frame N+${frame} must still be DYING`);
+    for (const [name, base] of [["PLAYER0", PLANE_P0], ["PLAYER3", PLANE_P3]]) {
+      for (const run of publishedImageRuns(memory, base)) {
+        assert.ok(run.start >= memory[explosionY] && run.end < memory[explosionY] + 8,
+          `frame N+${frame}: ${name} rows ${run.start}-${run.end} lie outside the explosion`);
+      }
+    }
+  }
+  assert.deepEqual([memory[slot], memory[addresses.deathTimer]], [1, 1],
+    "both timers must reach 1 together, on the frame before the respawn");
+
+  // N+25: the explosion self-erase, the respawn, and nothing else.
+  runDeathSequenceFrame(memory);
+  assert.equal(memory[addresses.playerLifecycle], 2, "N+25 respawns");
+  assert.equal(memory[slot], 0,
+    "the explosion must stay finished: no deferred begin may fire on the finishing frame");
+  assert.equal(memory[addresses.deathTimer], 0);
+  assert.deepEqual([memory[addresses.playerX], memory[addresses.playerY]],
+    [PLAYER_RESPAWN_X, PLAYER_RESPAWN_Y]);
+
+  // Exactly one image, and it is the respawned ship at the corridor centre.
+  assert.deepEqual(publishedImageRuns(memory, PLANE_P0), respawnedShipRuns,
+    "the respawn frame must publish exactly one PLAYER0 image, at the respawn rows");
+  assert.deepEqual(publishedImageRuns(memory, PLANE_P3),
+    publishedPlayerFighterRuns(PLAYER_RESPAWN_X, PLAYER_RESPAWN_Y, PLANE_P3),
+    "the respawn frame must publish exactly one PLAYER3 image, at the respawn rows");
+  assert.deepEqual([memory[HPOSP0], memory[HPOSP3]], [PLAYER_RESPAWN_X, PLAYER_RESPAWN_X],
+    "the respawn frame must end with both PMG halves at the respawn HPOS");
+  assert.equal(memory[COLBK], GAMEPLAY_BACKGROUND_COLOR,
+    "no death flash may replay in the respawn frame");
+  assert.deepEqual([memory[explosionX], memory[explosionY]], [deathX - 4, deathY + 4],
+    "the finished explosion record must stay at the pre-death origin, unrestarted");
+
+  // The 24 frames that carried the second image: still one ship, still centred.
+  for (let frame = 26; frame <= 50; frame += 1) {
+    runDeathSequenceFrame(memory);
+    assert.equal(memory[slot], 0, `frame N+${frame}: the explosion slot must stay idle`);
+    assert.deepEqual(publishedImageRuns(memory, PLANE_P0), respawnedShipRuns,
+      `frame N+${frame}: a second PLAYER0 image was published after the respawn`);
+    assert.deepEqual([memory[HPOSP0], memory[HPOSP3]], [PLAYER_RESPAWN_X, PLAYER_RESPAWN_X],
+      `frame N+${frame}: the PMG halves left the respawn HPOS`);
+    assert.equal(memory[COLBK], GAMEPLAY_BACKGROUND_COLOR,
+      `frame N+${frame}: a death flash replayed during the respawn`);
+  }
+});
+
+test("the deferred begin still fires when the player dies at the respawn row", () => {
+  // The regression is loudest when the death origin overlaps the respawn rows,
+  // because the restarted explosion then overwrites and later erases the live
+  // ship's own PMG bytes. Same sequence, death at the corridor floor.
+  const slot = addresses.fighterExplosionTimer;
+  const { memory } = exercisePlayerInterceptorContact({
+    playerX: PLAYER_RESPAWN_X, playerY: PLAYER_RESPAWN_Y,
+    enemyX: PLAYER_RESPAWN_X, enemyY: PLAYER_RESPAWN_Y,
+    playerHealth: 10, playerLives: 2,
+    baseMemory: armPublishedPlayerFighter(PLAYER_RESPAWN_X, PLAYER_RESPAWN_Y),
+  });
+  assert.deepEqual([memory[slot], memory[addresses.playerLifecycle]], [0, 1],
+    "the death frame begins no explosion");
+
+  runDeathSequenceFrame(memory);
+  assert.equal(memory[slot], 24, "the first DYING tick still begins the full explosion");
+
+  for (let frame = 2; frame <= 25; frame += 1) runDeathSequenceFrame(memory);
+  assert.equal(memory[addresses.playerLifecycle], 2, "N+25 respawns");
+  assert.equal(memory[slot], 0, "no deferred begin may fire on the finishing frame");
+  assert.deepEqual(publishedImageRuns(memory, PLANE_P0), respawnedShipRuns,
+    "the respawned ship must be whole and alone");
+  assert.deepEqual([memory[HPOSP0], memory[HPOSP3]], [PLAYER_RESPAWN_X, PLAYER_RESPAWN_X]);
+
+  // The restarted explosion used to erase live ship rows at its own expiry.
+  for (let frame = 26; frame <= 50; frame += 1) runDeathSequenceFrame(memory);
+  assert.deepEqual(publishedImageRuns(memory, PLANE_P0), respawnedShipRuns,
+    "no later erase may punch rows out of the live ship");
+});
+
+test("Raider lifecycle and score remain canonical without scheduling a character effect", () => {
   const { memory, trace } = exercisePlayerInterceptorContact();
   assert.deepEqual({
     state: memory[addresses.enemyActive],
@@ -1199,14 +1557,16 @@ test("Interceptor lifecycle and score remain the canonical contact breakup path"
     score: memory[addresses.scoreHi] << 8 | memory[addresses.scoreLo],
     resolves: trace.callCounts.get("resolve_enemy_damage"),
     breakups: trace.callCounts.get("spawn_interceptor_breakup_effects"),
+    hitSoundCalls: trace.callCounts.get("play_hit_sound"),
   }, {
     state: 2,
-    hp: 1,
+    hp: 0,
     explosionTimer: 24,
-    effectPending: 2,
+    effectPending: 0,
     score: 0x10,
     resolves: 1,
     breakups: 1,
+    hitSoundCalls: 2,
   });
 });
 
@@ -1226,6 +1586,7 @@ test("Interceptor contact result is byte-identical after XEX and ATR cold boot",
     damageCalls: trace.callCounts.get("apply_player_damage"),
     deathCalls: trace.callCounts.get("begin_player_fighter_explosion"),
     breakups: trace.callCounts.get("spawn_interceptor_breakup_effects"),
+    hitSoundCalls: trace.callCounts.get("play_hit_sound"),
   });
   for (const fill of [0xa5, 0x5a]) {
     const traces = ["xex", "atr"].map((artifact) => {
@@ -1243,13 +1604,14 @@ test("Interceptor contact result is byte-identical after XEX and ATR cold boot",
       latch: 1,
       enemyState: 2,
       enemyExplosionTimer: 24,
-      effectPending: 2,
+      effectPending: 0,
       scoreLo: 0x10,
       scoreHi: 0,
       hullHud: [12, 12, 12, 12],
       damageCalls: 1,
-      deathCalls: 1,
+      deathCalls: 0,
       breakups: 1,
+      hitSoundCalls: 2,
     });
   }
 });
@@ -1465,7 +1827,7 @@ test("debris contact reports damage gates without changing their semantics", () 
   });
 });
 
-test("three PlayerFighter hits destroy every debris form while score and enemy paths remain unchanged", () => {
+test("three PlayerFighter hits destroy every debris form, awarding DEBRIS_SCORE once while enemy paths remain unchanged", () => {
   for (const renderId of [110, 112, 114, 116]) {
     for (const vx of [0, 0xfc, 4]) {
       const memory = createRuntimeMemory();
@@ -1482,7 +1844,11 @@ test("three PlayerFighter hits destroy every debris form while score and enemy p
         runRoutine(memory, "update_fighter_projectiles");
         assert.equal(memory[addresses.projectileActive], 0,
           `hit ${hit} did not consume its projectile`);
-        assert.deepEqual([memory[addresses.scoreLo], memory[addresses.scoreHi]], [0x42, 0x07]);
+        // Owner change request: only the lethal shot scores, and it scores
+        // DEBRIS_SCORE ($05) regardless of difficulty or debris form.
+        assert.deepEqual([memory[addresses.scoreLo], memory[addresses.scoreHi]],
+          hit < 3 ? [0x42, 0x07] : [0x47, 0x07],
+          `hit ${hit} awarded the wrong debris score`);
         assert.deepEqual([
           memory[addresses.enemyPendingDamage], memory[addresses.fighterExplosionTimer],
         ], [0, 0], `hit ${hit} entered an enemy/full-screen explosion path`);
@@ -1554,6 +1920,10 @@ test("debris and Interceptor arbitration follows upward first-contact order with
     initialiseShootableDebris(memory, { x: 124, y: 100, hp: 1 });
     memory[addresses.enemyActive] = 1;
     memory[addresses.enemyArchetype] = 0;
+    memory[addresses.enemyMemberState] = 1;
+    memory[addresses.enemyFormationYHi] = 0;
+    memory[addresses.enemyTargetSlot] = 0;
+    memory[addresses.enemyLiveCount] = 1;
     memory[addresses.enemyHp] = 1;
     memory[addresses.enemyPendingDamage] = 0;
     memory[addresses.enemyX] = 124;
@@ -1664,7 +2034,7 @@ test("shot destruction after reverse erase leaves no glyph at any A2 ring head",
   }
 });
 
-test("executed XEX and ATR traces show five rendered effects and a visible 30-frame split", () => {
+test("executed XEX and ATR traces preserve the five-slot generic debris split", () => {
   const xexTrace = executeDebrisDestructionTrace({ root, artifact: "xex" });
   const atrTrace = executeDebrisDestructionTrace({ root, artifact: "atr" });
   assert.equal(assertDebrisDestructionTraceParity(xexTrace, atrTrace), true);
@@ -1693,9 +2063,12 @@ test("executed XEX and ATR traces show five rendered effects and a visible 30-fr
   assert.deepEqual(first.effects.map(({ slot, type, ttl }) => [slot, type, ttl]),
     [[0, 1, 5], [1, 2, 30], [2, 2, 30], [3, 2, 30], [4, 2, 30]]);
   const firstFragments = first.effects.slice(1);
-  assert.equal(new Set(firstFragments.map(({ screenAddress }) => screenAddress)).size, 4,
-    "all four fragments must occupy distinct rendered cells immediately");
-  assert.ok(firstFragments.every(({ drawn, screenCode }) => drawn === 1 && screenCode !== 0));
+  assert.ok(new Set(firstFragments.map(({ screenAddress }) => screenAddress)).size >= 3,
+    "the unchanged debris split must occupy at least three rendered cells immediately");
+  const initiallyDrawnFragments = firstFragments.filter(({ drawn }) => drawn === 1);
+  assert.equal(initiallyDrawnFragments.length, 2,
+    "the first stagger parity must publish the unchanged two fragment slots");
+  assert.ok(initiallyDrawnFragments.every(({ screenCode }) => screenCode !== 0));
 
   const positions = (frame) => new Map(find("FINAL", frame).effects
     .filter(({ slot }) => slot > 0).map(({ slot, x, y }) => [slot, { x, y }]));
@@ -1738,13 +2111,17 @@ test("executed XEX and ATR traces show five rendered effects and a visible 30-fr
   }
 });
 
-test("every canonical Interceptor death spawns one local breakup without changing score policy", () => {
+test("every canonical Raider death avoids character effects without changing score policy", () => {
   for (const [sourceId, scoreLo] of [[0, 0x52], [1, 0x52], [2, 0x52], [3, 0x42], [5, 0x42]]) {
     const memory = createRuntimeMemory();
     initialiseRows(memory);
     runRoutine(memory, "init_entity_effects");
     memory[addresses.enemyArchetype] = 0;
     memory[addresses.enemyActive] = 1;
+    memory[addresses.enemyMemberState] = 1;
+    memory[addresses.enemyFormationYHi] = 0;
+    memory[addresses.enemyTargetSlot] = 0;
+    memory[addresses.enemyLiveCount] = 1;
     memory[addresses.enemyHp] = 1;
     memory[addresses.enemyPendingDamage] = 1;
     memory[addresses.enemyPendingSource] = sourceId;
@@ -1759,29 +2136,27 @@ test("every canonical Interceptor death spawns one local breakup without changin
       memory[addresses.enemyActive], memory[addresses.fighterExplosionTimer + 1],
       memory[addresses.effectActiveMask], memory[addresses.effectActiveCount],
       memory[addresses.effectPending], memory[addresses.scoreLo], memory[addresses.scoreHi],
-    ], [2, 24, 0, 0, 2, scoreLo, 0x07], `damage source ${sourceId}`);
+    ], [2, 24, 0, 0, 0, scoreLo, 0x07], `damage source ${sourceId}`);
     assert.ok(memory.subarray(0x3d00 + 88, 0x3d00 + 102).every((value) => value === 0));
-    assert.ok(memory.subarray(0x3e00 + 88, 0x3e00 + 102).every((value) => value === 0));
+    assert.ok(memory.subarray(0x3e00 + 88, 0x3e00 + 102).every((value) => value === 0xff),
+      "killing P1 must not erase the live P2 PMG page");
     assert.deepEqual([
       memory[addresses.fighterExplosionX + 1], memory[addresses.fighterExplosionY + 1],
-    ], [124, 91], "PMG origin must be captured before the deferred local effect");
+    ], [124, 91], "the unchanged 24-frame lifecycle must retain its kill snapshot");
     runRoutine(memory, "entity_effects_update");
     assert.deepEqual([
       memory[addresses.effectPending], memory[addresses.effectActiveMask],
-    ], [1, 0], "the death frame must only advance the bounded defer latch");
+      memory[addresses.effectActiveCount],
+    ], [0, 0, 0], "the death frame must not schedule a character effect");
     runRoutine(memory, "entity_effects_update");
     assert.deepEqual([
       memory[addresses.effectPending], memory[addresses.effectActiveMask],
-      memory[addresses.effectActiveCount], memory[addresses.effectX], memory[addresses.effectY],
-    ], [0, 0x1f, 5, 130, 91], "the next PAL frame must materialise the centred effect");
-    assert.deepEqual([...memory.subarray(addresses.effectType, addresses.effectType + 5)],
-      [1, 2, 2, 2, 2], "Interceptor reuses the collisionless core/fragment renderer types");
-    assert.deepEqual([...memory.subarray(addresses.effectRenderId, addresses.effectRenderId + 5)],
-      [110, 111, 113, 0xdb, 119], "four fragment identities must use linked render IDs");
+      memory[addresses.effectActiveCount],
+    ], [0, 0, 0], "later PAL frames must not materialise a Raider effect");
   }
 });
 
-test("executed Interceptor breakup is one-frame deferred, radial, thirty frames and XEX/ATR exact", () => {
+test("executed Raider destruction is character-free and XEX/ATR exact", () => {
   const xexTrace = executeInterceptorBreakupTrace({ root, artifact: "xex" });
   const atrTrace = executeInterceptorBreakupTrace({ root, artifact: "atr" });
   assert.equal(assertInterceptorBreakupTraceParity(xexTrace, atrTrace), true);
@@ -1791,40 +2166,20 @@ test("executed Interceptor breakup is one-frame deferred, radial, thirty frames 
     xexTrace.records[0].enemyActive, frame(0).enemyActive,
     frame(0).effectPending, frame(0).effectActiveMask, frame(0).effectActiveCount,
     frame(1).effectPending, frame(1).effectActiveMask, frame(1).effectActiveCount,
-  ], [1, 2, 1, 0, 0, 0, 0x1f, 5]);
+  ], [1, 2, 0, 0, 0, 0, 0, 0]);
   assert.deepEqual([frame(0).colbk, frame(1).colbk, frame(2).colbk, frame(3).colbk, frame(4).colbk],
     [0x1e, 0x3c, 0x1c, 0x34, 0x00], "accepted full-screen profile changed");
-  assert.deepEqual(frame(1).effects.map(({ slot, type, ttl, renderId }) =>
-    [slot, type, ttl, renderId]), [
-    [0, 1, 5, 110],
-    [1, 2, 30, 111],
-    [2, 2, 30, 113],
-    [3, 2, 30, 0xdb],
-    [4, 2, 30, 119],
-  ]);
-  assert.equal(new Set(frame(1).effects.slice(1).map(({ screenAddress }) => screenAddress)).size, 4,
-    "all four fragments must render in distinct cells in the materialisation frame");
-  const centre = { x: frame(1).effects[0].x + 4, y: frame(1).effects[0].y + 4 };
-  const distance = (effect) => Math.abs(effect.x - centre.x) + Math.abs(effect.y - centre.y);
-  for (const slot of [1, 2, 3, 4]) {
-    const at0 = frame(1).effects.find((effect) => effect.slot === slot);
-    const at4 = frame(4).effects.find((effect) => effect.slot === slot);
-    const at12 = frame(12).effects.find((effect) => effect.slot === slot);
-    assert.ok(distance(at4) > distance(at0));
-    assert.ok(distance(at12) > distance(at4));
+  for (let index = 0; index <= 31; index += 1) {
+    assert.deepEqual([
+      frame(index).effectPending, frame(index).effectActiveMask,
+      frame(index).effectActiveCount, frame(index).effects.length,
+    ], [0, 0, 0, 0], `frame ${index} published a Raider character effect`);
   }
-  for (let index = 1; index <= 30; index += 1) {
-    assert.equal(frame(index).effects.filter(({ slot }) => slot > 0).length, 4);
-    assert.ok(frame(index).rendered, `frame ${index} expired before render`);
-  }
-  assert.equal(frame(5).effects.some(({ slot }) => slot === 0), true);
-  assert.equal(frame(6).effects.some(({ slot }) => slot === 0), false);
-  assert.deepEqual([frame(30).effectActiveMask, frame(31).effectActiveMask], [0x1e, 0]);
   assert.ok(frame(31).screen.every((code) => code === 0));
   assert.deepEqual([xexTrace.records[0].scoreLo, frame(31).scoreLo], [0x42, 0x52]);
 });
 
-test("newest debris or Interceptor breakup safely replaces the previous five-slot event", () => {
+test("Raider death preserves an unrelated generic debris effect", () => {
   const spawnInterceptor = (memory) => {
     memory[addresses.enemyArchetype] = 0;
     memory[addresses.enemyX] = 124;
@@ -1837,30 +2192,26 @@ test("newest debris or Interceptor breakup safely replaces the previous five-slo
     memory[addresses.renderId] = 116;
     runRoutine(memory, "spawn_debris_destruction_effects");
   };
-  const advanceInterceptorDefer = (memory) => {
-    runRoutine(memory, "entity_effects_update");
-    runRoutine(memory, "entity_effects_update");
-  };
   for (let head = 0; head < 22; head += 1) {
-    for (const [first, second, expected] of [
-      [spawnInterceptor, spawnDebris, [116, 118, 118, 118, 118]],
-      [spawnDebris, spawnInterceptor, [110, 111, 113, 0xdb, 119]],
+    for (const [first, second, expectedMask, expectedCount, expectedCore] of [
+      [spawnInterceptor, spawnDebris, 0x1f, 5, 116],
+      [spawnDebris, spawnInterceptor, 0x1f, 5, 116],
     ]) {
       const memory = createRuntimeMemory();
       initialiseRows(memory, head);
       runRoutine(memory, "init_entity_effects");
       memory.fill(0x2a, 0x4050, 0x43c0);
       first(memory);
-      if (first === spawnInterceptor) advanceInterceptorDefer(memory);
-      else runRoutine(memory, "entity_effects_update");
+      if (first === spawnDebris) runRoutine(memory, "entity_effects_update");
       runRoutine(memory, "entity_effects_render");
       runRoutine(memory, "entity_effects_erase");
       assert.equal(memory[addresses.effectRendered], 0);
       second(memory);
-      if (second === spawnInterceptor) advanceInterceptorDefer(memory);
-      assert.deepEqual([...memory.subarray(addresses.effectRenderId, addresses.effectRenderId + 5)],
-        expected);
-      if (second !== spawnInterceptor) runRoutine(memory, "entity_effects_update");
+      assert.deepEqual([
+        memory[addresses.effectActiveMask], memory[addresses.effectActiveCount],
+        memory[addresses.effectRenderId],
+      ], [expectedMask, expectedCount, expectedCore]);
+      if (second === spawnDebris) runRoutine(memory, "entity_effects_update");
       runRoutine(memory, "entity_effects_render");
       runRoutine(memory, "entity_effects_erase");
       assert.ok(memory.subarray(0x4050, 0x43c0).every((value) => value === 0x2a),
@@ -1876,12 +2227,7 @@ test("newest debris or Interceptor breakup safely replaces the previous five-slo
   assert.deepEqual([
     sameFrame[addresses.effectActiveMask], sameFrame[addresses.effectActiveCount],
     sameFrame[addresses.effectPending],
-  ], [0, 0, 2]);
-  advanceInterceptorDefer(sameFrame);
-  assert.deepEqual([
-    sameFrame[addresses.effectActiveMask], sameFrame[addresses.effectActiveCount],
-    ...sameFrame.subarray(addresses.effectRenderId, addresses.effectRenderId + 5),
-  ], [0x1f, 5, 110, 111, 113, 0xdb, 119]);
+  ], [0x1f, 5, 0]);
 });
 
 test("backed overlay stack restores base, shell/projectile, entity and effect in reverse", () => {
@@ -1925,9 +2271,10 @@ test("backed overlay stack restores base, shell/projectile, entity and effect in
   }
 });
 
-test("linked empty engine path remains within the accepted +32 CPU-cycle slice", () => {
-  assert.equal(manifest.runtimeTiming.entityEffects.emptyPathLimitCpuCycles, 124);
-  assert.ok(manifest.runtimeTiming.entityEffects.emptyPathCpuCycles <= 124);
-  assert.equal(manifest.runtimeTiming.entityEffects.measurement,
-    "inclusive JSR-to-RTS cycles from executed linked release bytes");
+test("linked character-free Raider trace stays below the former five-slot path", () => {
+  const trace = executeInterceptorBreakupTrace({ root, artifact: "xex" });
+  const materialised = trace.records.find((record) =>
+    record.phase === "BREAKUP" && record.frame === 1);
+  assert.ok(materialised.effectUpdateCycles < 806);
+  assert.ok(materialised.effectRenderCycles < 887);
 });

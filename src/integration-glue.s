@@ -1,17 +1,18 @@
 .setcpu "6502"
 .include "capital-hulls.inc"
+.include "director-abi.inc"
 PLAYER_LIFECYCLE = $4EAA
+CAPITAL_SECTOR_STATE = $4EA5
 ENTITY_SPAWN_TIMER_LO = $8003
 PLAYER_DYING = 1
 PLAYER_GAME_OVER = 3
-DIRECTOR_WORLD_ROW_TICK = $9D9B
-DIRECTOR_REQUEST = $9EA7
-DIRECTOR_RELEASE = $9F23
+ACTIVE_GAMEPLAY_FRAME_LO = $4FF8
+ACTIVE_GAMEPLAY_FRAME_HI = $4FF9
 DIRECTOR_HAZARD_DEBRIS = 1
+DIRECTOR_RETRY_FRAMES = 8
 ENTITY_REPEAT_SPAWN_DELAY = 64
-entity_spawn_debris = $98FF
-entity_despawn_debris = $9A13
-free_broadside_slot = $76C1
+.include "integration-abi.inc"
+free_broadside_slot = $76A7
 HULL_DRAW_ROW_LO = $85F0
 HULL_DRAW_ROW_HI = $85F1
 BROAD_WORK_COUNT = $4E63
@@ -35,7 +36,8 @@ CAPITAL_SHELL_LEFT_GLYPH = 126
 CORRIDOR_ALLIED_COLUMNS = 8
 CORRIDOR_ENEMY_FIRST = 32
 .segment "GLUE"
-.export integration_director_world_row, integration_debris_spawn, integration_debris_release
+.export integration_director_world_row, integration_debris_spawn
+.export integration_active_gameplay_tick
 .export integration_apply_allied_prow, integration_apply_enemy_prow
 .export capital_shell_glyph_source
 .export render_capital_shell_overlay, capital_shell_draw_begin
@@ -52,16 +54,17 @@ integration_director_world_row:
 integration_debris_spawn:
     ldx #DIRECTOR_HAZARD_DEBRIS
     jsr DIRECTOR_REQUEST
-    bcs @spawn
+    bcc @denied
+    jmp entity_spawn_debris
+@denied:
+    lda CAPITAL_SECTOR_STATE
+    cmp #CAPITAL_HULL_STATE_DRAIN
     lda #ENTITY_REPEAT_SPAWN_DELAY
+    bcs :+
+    lda #DIRECTOR_RETRY_FRAMES
+:
     sta ENTITY_SPAWN_TIMER_LO
     rts
-@spawn:
-    jmp entity_spawn_debris
-integration_debris_release:
-    ldx #DIRECTOR_HAZARD_DEBRIS
-    jsr DIRECTOR_RELEASE
-    jmp entity_despawn_debris
 
 integration_apply_allied_prow:
     jmp apply_allied_prow_profile
@@ -194,9 +197,22 @@ integration_broadside_release:
     tax
     jmp free_broadside_slot
 
-.assert integration_apply_allied_prow = $4F25, error, "allied prow glue ABI moved"
-.assert integration_apply_enemy_prow = $4F28, error, "enemy prow glue ABI moved"
-.assert capital_shell_glyph_source = $4F97, error, "capital shell glyph source ABI moved"
-.assert render_capital_shell_overlay = $4F9F, error, "capital shell renderer glue ABI moved"
-.assert integration_broadside_release = $4FDC, error, "broadside release glue ABI moved"
+; The main loop calls this only below the pause/frontend gate. Odd player
+; lifecycles are DYING/GAME OVER and freeze the active-gameplay schedule.
+integration_active_gameplay_tick:
+    lda PLAYER_LIFECYCLE
+    lsr
+    bcs @frozen
+    inc ACTIVE_GAMEPLAY_FRAME_LO
+    bne @frozen
+    inc ACTIVE_GAMEPLAY_FRAME_HI
+@frozen:
+    rts
+
+.assert integration_apply_allied_prow = $4F26, error, "allied prow glue ABI moved"
+.assert integration_apply_enemy_prow = $4F29, error, "enemy prow glue ABI moved"
+.assert capital_shell_glyph_source = $4F98, error, "capital shell glyph source ABI moved"
+.assert render_capital_shell_overlay = $4FA0, error, "capital shell renderer glue ABI moved"
+.assert integration_broadside_release = $4FDD, error, "broadside release glue ABI moved"
+.assert integration_active_gameplay_tick = $4FE9, error, "active gameplay clock glue ABI moved"
 .assert * <= $5000, error, "integration glue exceeds reviewed $4EFE-$4FFF residency"

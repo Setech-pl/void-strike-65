@@ -1,0 +1,152 @@
+{
+  "id": "stage-2b2l-cold-record-relocation",
+  "date": "2026-09-17",
+  "task": "Roadmap 4.5M-M2: remove every cold-record owner from $7BD0-$7E11 (ABI cold record -> $8018; low-C + GLUE merged into one LZ record -> $9B40 with the Heavy window image as its tail), consume all of them before unpack_entity_runtime; boot-transport and cold-lifetime change only, no gameplay change, no arena yet",
+  "status": "OWNER-SMOKE CANDIDATE",
+  "plan": "4.5M planning report (Strategy B), migration step M2 after the accepted M1; M3 (the $7BD0-$7F0F 832-B direct-landing arena) not started",
+  "baseline": { "commit": "58404c6", "xex_sha256": "361cb8cf97e0c6fc6bcdf64fd135e5b1c9c9f9e24ecb857d964f05c27bc94fd9", "atr_sha256": "b8766308f2d898a6d59bdb96236c0d458d1c24899f09532d3e045561f6710f9a" },
+  "candidate": {
+    "xex_sha256": "a534249496e25919c2a1b2c15e989bb1c5b1331527bb2bec3b55851b9a2549b7",
+    "atr_sha256": "c6d6ff8c2666394d6bd047e3d802550bbc52b8d877af1a5c39393556c078cf7b",
+    "boot_bin_sha256": "c2c3dd1b186a435b57150399b82adf35f86f0348c5b35e99f9e362a4cd2605e8",
+    "xex_bytes": 23100,
+    "boot_bin_bytes": 22656,
+    "owner_smoke_copy": "build/owner-smoke/cold-record-relocation-a5342494/"
+  },
+  "owner_visible_deviations_from_task_text": [
+    {
+      "item": "merged low-C/GLUE landing address",
+      "task_text": "land the merged record at $9B14 (verify against the currently free pre-ENTITY-expansion range)",
+      "finding": "the packed resident suffix is 6,687 B and its staging ends at $9B1E (manifest residentRuntime.stagedEndAddress); the $9B13 end quoted in memory-map was stale, so $9B14 collides by 11 B",
+      "decision": "COLD_LOW_GLUE_RECORD = $9B40: 33 B above the measured staging end (build error if the packed resident grows past it), 498 B raw ending at $9D31, below the direct-landing DIRECTOR_C_PRE record at $9D5E"
+    },
+    {
+      "item": "Heavy window image transport capacity",
+      "task_text": "runtime destinations of the Heavy window unchanged; ABI record and merged low-C + GLUE record specified without the Heavy image",
+      "finding": "the Heavy image rode the low-C record tail at $7E38 (inside the range to be freed); after low-C 248 B + GLUE 250 B the merged record leaves 44 B below $9D5E, not 243 B",
+      "decision": "the image stays the tail of the merged record ($9D32-$9D5D, 44 B transport capacity, 0 B used); the runtime window keeps 243 B at $7E12-$7F04; the build enforces HYBRID_C_HEAVY_BYTES <= 44 until the M3 arena replaces this staging; hybrid_c_heavy_publish copies exactly 44 B (disjoint source/destination)"
+    },
+    {
+      "item": "ATR menu deadline",
+      "task_text": "ATR timing remains a hard gate; do not weaken or re-baseline the deadline",
+      "finding": "the deadline is derived from the manifest (190 + 2 x transport sectors); merging GLUE (3 sectors) and low-C (2) into 4 sectors lowers it 546 -> 544",
+      "decision": "unchanged formula; the ATR menu milestone also moved 546 -> 544 (start 231 -> 229, loader 289 -> 287), so the margin stays 0 frames"
+    }
+  ],
+  "record_topology": {
+    "before": { "records": 8, "manifest_bytes": 142, "transport_sectors": 178, "atr_menu_deadline_frames": 546,
+      "list": [
+        { "record": "BROADSIDE", "sectors": "104-148", "count": 45, "packed": 5666, "raw": 6650, "final": "$5E10", "type": "LZ" },
+        { "record": "pickup/collision", "sectors": "149-158", "count": 10, "packed": 1161, "raw": 1161, "final": "$8C80", "type": "RAW" },
+        { "record": "GLUE", "sectors": "159-161", "count": 3, "packed": 245, "raw": 250, "final": "$7BD0", "type": "LZ", "padding": 118 },
+        { "record": "ABI", "sectors": "162-163", "count": 2, "packed": 116, "raw": 117, "final": "$7CCA", "type": "LZ", "padding": 119 },
+        { "record": "low-C (+Heavy tail)", "sectors": "164-165", "count": 2, "packed": 213, "raw": 248, "final": "$7D40", "type": "LZ", "padding": 22 },
+        { "record": "extension", "sectors": "166-172", "count": 7, "packed": 786, "raw": 786, "final": "$7810", "type": "RAW" },
+        { "record": "pre (RNG)", "sectors": "173", "count": 1, "packed": 23, "raw": 21, "final": "$9D5E", "type": "LZ" },
+        { "record": "Director", "sectors": "174-178", "count": 5, "packed": 542, "raw": 643, "final": "$9D75", "type": "LZ" }
+      ] },
+    "after": { "records": 7, "manifest_bytes": 126, "transport_sectors": 177, "atr_menu_deadline_frames": 544,
+      "list": [
+        { "record": "BROADSIDE", "sectors": "104-148", "count": 45, "packed": 5666, "raw": 6650, "final": "$5E10", "type": "LZ" },
+        { "record": "pickup/collision", "sectors": "149-158", "count": 10, "packed": 1161, "raw": 1161, "final": "$8C80", "type": "RAW" },
+        { "record": "ABI", "sectors": "159-160", "count": 2, "packed": 116, "raw": 117, "final": "$8018", "type": "LZ", "padding": 119 },
+        { "record": "merged low-C + GLUE (+Heavy tail)", "sectors": "161-164", "count": 4, "packed": 457, "raw": 498, "final": "$9B40", "type": "LZ", "padding": 34 },
+        { "record": "extension", "sectors": "165-171", "count": 7, "packed": 786, "raw": 786, "final": "$7810", "type": "RAW" },
+        { "record": "pre (RNG)", "sectors": "172", "count": 1, "packed": 23, "raw": 21, "final": "$9D5E", "type": "LZ" },
+        { "record": "Director", "sectors": "173-177", "count": 5, "packed": 542, "raw": 643, "final": "$9D75", "type": "LZ" }
+      ] },
+    "initial_block": { "content_bytes": 13162, "envelope_bytes": 22, "sectors": 103, "note": "unchanged; the 16 B smaller manifest sits inside the fixed stage-2 reservation" },
+    "padding_note": "padding = sectors x 128 - packed - 21-byte footer; the merged record packs 1 B smaller than GLUE + low-C separately (457 vs 245 + 213)"
+  },
+  "cold_layout": {
+    "abi_record": { "range": "$8018-$808C", "raw_bytes": 117, "packed_bytes": 116, "placement": "directly after A2 staging $7F2B-$8017, inside the entity-state page $8000-$80FF", "consumer": "publish_director_abi -> $8701-$8775", "runtime_destination_unchanged": "$8701" },
+    "merged_record": { "range": "$9B40-$9D31", "raw_bytes": 498, "packed_bytes": 457,
+      "layout": [
+        { "part": "low-C", "range": "$9B40-$9C37", "bytes": 248, "used": 242, "consumer": "DIRECTOR_PUBLISH_LOW (ABI veneer) -> $8B88" },
+        { "part": "GLUE", "range": "$9C38-$9D31", "bytes": 250, "consumer": "stage_glue_holding -> $8100 hold -> $4EFE at layout_d_publish_glue" },
+        { "part": "Heavy window image", "range": "$9D32-$9D5D", "transport_capacity_bytes": 44, "used": 0, "consumer": "hybrid_c_heavy_publish -> $7E12 (44 B, disjoint)" }
+      ],
+      "packed_resident_staging_end": "$9B1E (6,687 B packed)", "margin_above_resident_bytes": 33, "margin_below_director_pre_bytes": 0,
+      "note": "inside the later ENTITY_CODE expansion $9100-$9D50, hence consumed before unpack_entity_runtime" },
+    "freed_range": { "range": "$7BD0-$7E11", "bytes": 578, "owners": [], "proof": "build-time: no DFMC record, XEX segment, staging window, pause backup or hold intersects it (manifest encounterDirector.coldRecordRelocation.freedColdRange.owners = []); native write-watch: 0 writes from `start` through the full lifecycle on XEX/ATR x $00/$A5; chunk-loader reviewed ranges no longer include [0x7bd0, 0x7f2b]", "not_yet": "not declared as the 832-B arena; M3 does that" },
+    "heavy_window": { "runtime": "$7E12-$7F04 (243 B, 0 used) unchanged", "staging_before": "$7E38-$7F2A (low-C record tail)", "staging_after": "$9D32-$9D5D (merged record tail, 44 B)", "copy": "hybrid_c_heavy_publish: 44 B, source and destination disjoint; reached as the stage_glue_holding tail from publish_director_abi" }
+  },
+  "boot_order": {
+    "before": "stage_boot_streams; unpack_resident_runtime; unpack_entity_runtime; publish_director_abi (ABI, low C, extension) -> hybrid_c_heavy_publish; stage_a2_kernel -> stage_glue_holding ($7BD0 -> $8100) -> stage_starfield_stream; init_entity_effects; ...",
+    "after": "stage_boot_streams; unpack_resident_runtime; publish_director_abi (ABI $8018 -> $8701, low C $9B40 -> $8B88, extension $7810 -> $8C7D) -> stage_glue_holding ($9C38 -> $8100) -> hybrid_c_heavy_publish ($9D32 -> $7E12); layout_d_cold_publish_complete; unpack_entity_runtime; stage_a2_kernel -> stage_starfield_stream; init_entity_effects; unpack_weapon_pickup_phase_runtime; loader; unpack_starfield_runtime; layout_d_publish_glue",
+    "unchanged": "everything after unpack_entity_runtime except the stage_a2_kernel tail (no longer via stage_glue_holding)",
+    "size_neutrality": "resident suffix identical in size (stage_glue_holding: jmp stage_starfield_stream -> jmp hybrid_c_heavy_publish; publish_director_abi: jmp hybrid_c_heavy_publish -> jmp stage_glue_holding); bootstrap prefix keeps 3 B of padding; .lbl diff: only layout_d_cold_publish_complete ($2040) added; encounter-director.lbl identical",
+    "proofs": {
+      "targets_vs_entity_staging": "ABI $8701, low C $8B88, extension $8C7D-$8FFF, GLUE hold $8100-$81F9, Heavy $7E12-$7F04 are all outside the packed ENTITY staging $5318-$5DB5 and outside the ENTITY expansion $9100-$9D5D (tests/layout-d1 lifetime model)",
+      "merged_record_dead_before_entity": "native clocks: layout_d_cold_publish_complete -> unpack_entity_runtime = 6 cycles; the record is intact at layout_d_cold_publish_complete (stage watch) and every consumer has run by then",
+      "abi_before_state_clear": "native clocks: layout_d_cold_publish_complete -> init_entity_effects = 255,216 cycles (XEX) / 255,207 (ATR); the ABI record is intact at consumption"
+    }
+  },
+  "runtime_address_diff": "none: CODE, RODATA, BROADSIDE, STARFIELD, A2, ENTITY_CODE, PICKUP, LIGHT, ABI $8701, low C $8B88, EXT $8C7D, GLUE $4EFE (hold $8100), Heavy window $7E12, HYBRID_C_SECTOR $8602 unchanged; one label added",
+  "residency": {
+    "linked_runtime_bytes": 17502, "simultaneous_residency_bytes": 19493, "safe_residency_bytes": 2694,
+    "physical": "+0 B",
+    "reserved_envelopes": "boot-only ABI cold record 117 B at $8018 (entity-state page); boot-only merged cold record 498 B at $9B40 (ENTITY expansion region); Heavy transport capacity 243 -> 44 B (transitional); GLUE hold 250 B at $8100 unchanged; cold $7BD0-$7E11 (578 B) released",
+    "reusable_free": "unchanged: HYBRID_C_HEAVY 243 B window, HYBRID_C_EXT 21 B, HYBRID_C_SECTOR 8 B, ENTITY_CODE 13 B, A2 18 B, pickup fill 11 B, bootstrap-prefix padding 3 B"
+  },
+  "boot_cpu_native_write_watch_clocks": {
+    "method": "scripts/capacity-window-watch.mjs on the same Atari800 copy: HEAD values from a clean export of 58404c6 built with npm run build:candidate",
+    "xex": {
+      "start_to_show_loader": { "before": 2051496, "after": 2047758, "delta": -3738 },
+      "start_to_glue_publish_complete": { "before": 11111171, "after": 11111171, "delta": 0, "note": "frame-aligned loader countdown" },
+      "start_to_entity_unpack_complete": { "before": 1458623, "after": 1458905, "delta": 282, "note": "the label now follows the cold publication; not a cost" },
+      "start_to_cold_publish_done": 1243109, "cold_publish_done_to_entity_unpack": 6, "entity_unpack_to_entity_clear": 255216
+    },
+    "atr": {
+      "start_to_show_loader": { "before": 2051505, "after": 2047766, "delta": -3739 },
+      "start_to_glue_publish_complete": { "before": 11120699, "after": 11113417, "delta": -7282, "note": "one sector fewer plus loader alignment" },
+      "start_to_cold_publish_done": 1243118, "cold_publish_done_to_entity_unpack": 6, "entity_unpack_to_entity_clear": 255207
+    },
+    "attribution": "MEASURED delta -3,738; ESTIMATE: the Heavy copy moves 44 instead of 243 bytes (199 x 16 cycles + 43 page-crossing cycles = 3,227); the remaining ~510 cycles are not attributed"
+  },
+  "boot_smoke": {
+    "result": "PASS 4/4 (XEX/ATR x cold fill $A5/$5A)",
+    "milestones": {
+      "xex": { "before": { "start": 78, "loader": 135, "menu": 392 }, "after": { "start": 78, "loader": 135, "menu": 392 }, "deadline": 502 },
+      "atr": { "before": { "start": 231, "loader": 289, "menu": 546 }, "after": { "start": 229, "loader": 287, "menu": 544 }, "deadline": { "before": 546, "after": 544 } }
+    },
+    "margin": "ATR 0 frames before and after: the deadline formula follows the sector count and the one saved sector moved the menu by exactly two frames",
+    "transport_sector_delta": -1
+  },
+  "native_write_watch": {
+    "harness": "scripts/capacity-window-watch.mjs + scripts/atari800-capacity-watch.h, extended with --hold-done=LABEL, windows up to 1,024 B and three clock points (layout_d_cold_publish_complete, unpack_entity_runtime, init_entity_effects) that yield the checks cold_publish_before_entity_unpack and cold_publish_before_entity_clear",
+    "lifecycle": "cold start, OPTIONS, BACK, START, gameplay, pause/resume, one capital sector entered and completed (XEX frames 1257-2463, ATR 1409-2615), game over, menu, START, pause, quit, menu; XEX and ATR x cold fill $00/$A5 over $7810-$9FFF",
+    "cold_records_config": {
+      "command": "node scripts/capacity-window-watch.mjs --atari800-source=build/atari800-trace --hold=0x8100 --hold-done=layout_d_cold_publish_complete --expect-hold-is-glue --window=0x7bd0 --window-bytes=578 --window-from=start --stage=0x8018:117 --stage=0x9b40:498 --stage-done=start --stage-consumed=layout_d_cold_publish_complete --expect-stage-bins=build/encounter-director-code-abi.bin,build/encounter-director-code-low-transport.bin --output=build/capacity-watch/m2-cold-records-watch.json",
+      "result": "PASS 4/4: ABI record and merged record byte-equal to their linked images at `start`, 0 writes and intact at layout_d_cold_publish_complete; $7BD0-$7E11 0 writes from `start` to the end of the lifecycle; GLUE hold 0 writes from layout_d_cold_publish_complete, final GLUE equals the hold; cold publication precedes ENTITY expansion and the entity-state clear"
+    },
+    "glue_config_m1_regression": {
+      "command": "node scripts/capacity-window-watch.mjs --atari800-source=build/atari800-trace --hold=0x8100 --expect-hold-is-glue --expect-window-bin=build/resident-window-runtime.bin --stage=0x7810:915 --stage=0x81fa:896 --expect-stage-bins=build/starfield-runtime-packed-a.bin,build/starfield-runtime-packed-b.bin --expect-range-bin=0x54e4:build/starfield-runtime.bin --output=build/capacity-watch/m2-sector-window-watch.json",
+      "result": "PASS 4/4: 0 hold writes, GLUE final equals the $8100 hold, 0 $8602 window writes, window equals its linked image; streams A and B 0 writes and byte-equal; decoded STARFIELD byte-equal to build/starfield-runtime.bin"
+    },
+    "heavy_config": {
+      "command": "node scripts/capacity-window-watch.mjs --atari800-source=build/atari800-trace --hold=0x8100 --expect-hold-is-glue --window=0x7e12 --window-bytes=243 --inject=0x9d32:44 --window-from=layout_d_entity_unpack_complete --stage=0x7810:915 --stage=0x81fa:896 --expect-stage-bins=build/starfield-runtime-packed-a.bin,build/starfield-runtime-packed-b.bin --expect-range-bin=0x54e4:build/starfield-runtime.bin --output=build/capacity-watch/m2-heavy-window-watch.json",
+      "result": "PASS 4/4: the injected 44-B pattern at the new staging arrives byte-exact in the window and the window sees 0 writes from layout_d_entity_unpack_complete to the end of the lifecycle; stage and range checks as above"
+    },
+    "head_baseline": "GLUE config on a clean export of 58404c6: PASS 4/4, used for the boot-CPU before values"
+  },
+  "pal_native": {
+    "focused_replays": {
+      "2-evasive-fire3": { "head_max": 29519, "candidate_max": 29519, "missed_frames": 0, "extra_vbi": 0, "dli_ordering_errors": 0 },
+      "2-sweep-fire4": { "head_max": 29801, "candidate_max": 29801, "missed_frames": 0, "extra_vbi": 0, "dli_ordering_errors": 0 }
+    },
+    "debris_gate": { "result": "PASS on debris-gate-0-evasive-fire3, debris-gate-0-neutral-fire0 and debris-gate-capital-muzzle-ring-2-sweep-fire4: 0 blank, 0 disappearances, first visible Y 24 in capital and post-capital phases, 0 missed frames", "maxima": [30232, 30439, 30216] }
+  },
+  "tests": {
+    "rebaselined": {
+      "heavy-window": "merged record at $9B40, 44-B transport capacity, 7 records, 177 sectors, disjoint copy harness, chunk-loader ranges",
+      "layout-d1": "publish_director_abi before unpack_entity_runtime (harness order, call bytes $3D-$45, added label addresses), lifetime model with the ABI/merged records, freed range and ENTITY expansion",
+      "formats": "no separate GLUE XEX segment; GLUE at offset $F8 of the low-C transport segment",
+      "starfield-staging-streams": "harness order",
+      "transport-enabler": "synthetic fixtures land at $8400/$8600 instead of $7BD0 (no longer a reviewed cold range)",
+      "transport-layout-regression": "GLUE at $9C38 and the M2 lifetime model; the test keeps failing as at HEAD (stale numeric freezes, light-wingman.s include)"
+    },
+    "full_suite": "candidate build then node --test tests/*.test.mjs: 644 tests, 114 failing; clean export of 58404c6 in the same environment: 644 tests, 114 failing; identical failure-name sets (the known stale failures, including the open starfield correction-gate tests and transport-layout-regression)"
+  },
+  "unchanged": "gameplay code, ABI, low C, extension, GLUE runtime and hold, Heavy window, A2, pickup, ENTITY order, runtime memory map, Light publication, debris, PMG, collision, DLI/VBI, cfg (no arena declaration; M3 not started)"
+}

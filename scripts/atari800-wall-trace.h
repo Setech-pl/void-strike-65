@@ -9,6 +9,7 @@
 #include "gtia.h"
 #include "input.h"
 #include "pia.h"
+#include "pokey.h"
 #include "screen.h"
 
 #define DFTRACE_PAL_FRAME_CYCLES 35568u
@@ -27,6 +28,10 @@
 #define DFTRACE_CAPITAL_GLYPH_FIRST 59u
 #define DFTRACE_CAPITAL_GLYPH_LAST 89u
 #define DFTRACE_ALLIED_MUZZLE_CODE 0x45u
+/* Visible PMG window for the enemy stale-body gate; GAMEPLAY_TOP/BOTTOM. */
+#define DFTRACE_ENEMY_PMG_TOP 16u
+#define DFTRACE_ENEMY_PMG_BOTTOM 240u
+#define DFTRACE_ENEMY_PMG_NO_ROW 256u
 #define DFTRACE_ENEMY_MUZZLE_CODE 0xd0u
 #define DFTRACE_ALLIED_FLASH_CODE 0x51u
 #define DFTRACE_ENEMY_FLASH_CODE 0xd2u
@@ -35,6 +40,8 @@
 #define DFTRACE_PROFILE_COUNT 22u
 #define DFTRACE_PROFILE_DLI_COUNT 2u
 #define DFTRACE_CAPTURE_DMA_Y_OFFSET 8u
+#define DFTRACE_NEAR_COUNT 4u
+#define DFTRACE_NEAR_CODE 1u
 
 typedef struct {
 	uint64_t start_clock;
@@ -59,6 +66,20 @@ typedef struct {
 	unsigned capital_explosion;
 	unsigned music_active;
 	unsigned fire_sfx;
+	unsigned fire_timer_value;
+	unsigned player_burst_state;
+	unsigned player_burst_remaining;
+	unsigned player_burst_timer;
+	unsigned audf1;
+	unsigned audc1;
+	unsigned fire_accept_calls;
+	unsigned update_sound_calls;
+	uint64_t fire_accept_clock;
+	uint64_t update_sound_clock;
+	unsigned fire_accept_scanline;
+	unsigned fire_accept_cycle;
+	unsigned update_sound_scanline;
+	unsigned update_sound_cycle;
 	unsigned hit_sfx;
 	unsigned capital_sfx;
 	unsigned sound_enabled;
@@ -84,14 +105,49 @@ typedef struct {
 	unsigned player_draw_scanline;
 	unsigned sector_state;
 	unsigned gameplay_frame;
+	unsigned active_gameplay_frame;
+	unsigned enemy_state;
+	unsigned enemy_y;
+	unsigned enemy_slot_x[2];
+	unsigned enemy_slot_y[2];
+	unsigned enemy_hpos[2];
+	unsigned enemy_pmg_rows[2];
+	unsigned enemy_pmg_mismatch[2];
+	unsigned enemy_pmg_mismatch_row[2];
+	unsigned enemy_pmg_mismatch_writer[2];
+	unsigned enemy_member_state[3];
+	unsigned enemy_member_hp[3];
+	unsigned enemy_live_count;
+	unsigned enemy_projectiles;
+	unsigned director_phase;
+	unsigned director_rng;
+	unsigned director_intensity;
+	unsigned director_reaction;
+	unsigned director_recovery;
 	unsigned difficulty;
 	unsigned active_muzzles;
 	unsigned muzzle_domain[2];
 	unsigned muzzle_row[2];
 	unsigned muzzle_pointer[2];
 	unsigned muzzle_cell[2];
+	/* Diagnostic-only: the PC that last wrote the tracked muzzle's own cell,
+	 * read straight out of dftrace_character_last_writer[] at snapshot time.
+	 * 0 when the slot is inactive or nothing has ever written that cell.
+	 * This names the writer that left the cell in the state muzzle_cell[]
+	 * reports — in particular the one that erased a tracked muzzle glyph
+	 * after redraw_tracked_muzzles published it. */
+	unsigned muzzle_cell_writer_pc[2];
+	/* Writer 4 of the hull-transient ownership model: 1 while a live, rendered
+	 * fighter projectile stands on this tracked muzzle's own cell, 0 otherwise.
+	 * Presence, never history — see dftrace_projectile_occludes. */
+	unsigned muzzle_projectile_occlusion[2];
 	unsigned muzzle_code_cells;
 	unsigned muzzle_illegal_cells;
+	/* Diagnostic-only: address and character code of the FIRST orphan cell
+	 * counted into muzzle_illegal_cells this frame, 0 when there is none.
+	 * The counter alone cannot say which writer put the code there. */
+	unsigned muzzle_illegal_address;
+	unsigned muzzle_illegal_code;
 	unsigned muzzle_pointer_errors;
 	unsigned muzzle_divider_allied;
 	unsigned muzzle_divider_enemy;
@@ -138,6 +194,35 @@ typedef struct {
 	unsigned pickup_animation;
 	unsigned pickup_render_id;
 	unsigned pickup_drawn_mask;
+	unsigned pickup_admission_requests;
+	unsigned pickup_attempt_sector;
+	unsigned pickup_attempt_active_mask;
+	unsigned pickup_attempt_active_count;
+	unsigned pickup_attempt_x;
+	unsigned pickup_attempt_y;
+	unsigned pickup_attempt_timer;
+	unsigned pickup_attempt_type[4];
+	unsigned pickup_attempt_state[4];
+	unsigned pickup_attempt_director_phase;
+	unsigned pickup_attempt_director_intensity;
+	unsigned pickup_attempt_director_reaction;
+	unsigned pickup_attempt_director_recovery;
+	unsigned pickup_attempt_director_rng;
+	unsigned pickup_attempt_director_flags;
+	unsigned pickup_attempt_admission_frame;
+	unsigned pickup_attempt_gameplay_frame;
+	unsigned pickup_attempt_player_lifecycle;
+	unsigned pickup_pmg_rows;
+	unsigned pickup_hposm[4];
+	unsigned pickup_sizem;
+	unsigned pickup_screen_lo;
+	unsigned pickup_screen_hi;
+	unsigned pickup_pmg_byte_top;
+	unsigned pickup_pmg_byte_middle;
+	unsigned pickup_pmg_byte_bottom;
+	unsigned pickup_gractl;
+	unsigned entity_type[4];
+	unsigned entity_state[4];
 	unsigned score_lo;
 	unsigned score_hi;
 	unsigned colbk;
@@ -154,8 +239,31 @@ typedef struct {
 	unsigned effect_active_mask;
 	unsigned effect_active_count;
 	unsigned effect_rendered_mask;
+	unsigned transient_effect_orphan_cells;
+	unsigned transient_effect_first_address;
+	unsigned transient_effect_first_code;
+	unsigned transient_effect_first_writer_pc;
+	unsigned transient_effect_first_writer_x;
+	unsigned stale_debris_projectile_restores;
+	unsigned transient_effect_coordinate_wraps;
+	unsigned interceptor_breakup_request_slot0;
+	unsigned interceptor_breakup_request_slot1;
+	unsigned raider_character_writes;
+	unsigned raider_transient_allocations;
+	unsigned raider_slot0_activations;
+	unsigned raider_kills_with_emitter_projectile_active;
+	unsigned emitter_owned_projectiles_at_kill;
+	unsigned emitter_owned_projectiles_removed;
+	unsigned foreign_projectiles_preserved;
+	unsigned foreign_projectiles_incorrectly_removed;
+	unsigned post_kill_emitter_projectile_continuations;
+	unsigned emitter_owned_physical_slot0_at_kill;
+	unsigned enemy_projectile_stale_cells;
 	unsigned rapid_projectiles;
 	unsigned player_fighter_projectiles;
+	unsigned player_projectile_recycled_checks;
+	unsigned player_projectile_stale_cells;
+	unsigned player_projectile_orphan_cells;
 	unsigned rapid_projectile_slot;
 	unsigned rapid_projectile_address;
 	unsigned rapid_projectile_screen_code;
@@ -256,6 +364,7 @@ typedef struct {
 	unsigned profile_compose_cycles;
 	unsigned profile_pointer_calls;
 	unsigned profile_pointer_cycles;
+	uint64_t profile_publication_begin;
 	uint64_t profile_erase_player_fighter_start;
 	uint64_t profile_interceptor_update_start;
 	uint64_t profile_interceptor_render_start;
@@ -296,16 +405,77 @@ static int dftrace_initialised;
 static int dftrace_active;
 static unsigned dftrace_count;
 static unsigned dftrace_limit;
+static unsigned dftrace_active_limit;
 static unsigned dftrace_fire_delay;
 static unsigned dftrace_difficulty;
 static const char *dftrace_policy;
+static const char *dftrace_pmg_lab_screenshot;
+static unsigned dftrace_pmg_lab_presentations;
+static unsigned dftrace_pmg_lab_screenshot_frame = 0xffffffffu;
 static const char *dftrace_session;
 static const char *dftrace_output;
+static const char *dftrace_interceptor_projectile_output;
+static const char *dftrace_sector_clock_output;
+static const char *dftrace_player_pairshot_output;
+static const char *dftrace_light_output;
+static unsigned dftrace_light_base;
+static unsigned dftrace_light_output_initialised;
 static DFTraceFrame *dftrace_frames;
 static DFTraceFrame dftrace_current;
 
+#define DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT 5u
+#define DFTRACE_PLAYER_GLYPH_FIRST 11u
+#define DFTRACE_PLAYER_GLYPH_COUNT 36u
+#define DFTRACE_INTERCEPTOR_SLOT_BASE 5u
+#define DFTRACE_INTERCEPTOR_SLOT_COUNT 5u
+#define DFTRACE_PROJECTILE_SLOT_COUNT 10u
+#define DFTRACE_PROJECTILE_ARRAY_STRIDE 10u
+#define DFTRACE_INTERCEPTOR_GLYPH_FIRST 0xdau
+#define DFTRACE_INTERCEPTOR_GLYPH_LAST 0xe7u /* last published hostile weapon code: BOMBER animation phase, right */
+
+static unsigned dftrace_interceptor_observed_active[DFTRACE_INTERCEPTOR_SLOT_COUNT];
+static unsigned dftrace_interceptor_previous_active[DFTRACE_INTERCEPTOR_SLOT_COUNT];
+static unsigned dftrace_interceptor_previous_x[DFTRACE_INTERCEPTOR_SLOT_COUNT];
+static unsigned dftrace_interceptor_previous_y[DFTRACE_INTERCEPTOR_SLOT_COUNT];
+static unsigned dftrace_interceptor_previous_lifetime[DFTRACE_INTERCEPTOR_SLOT_COUNT];
+static unsigned dftrace_interceptor_last_active_writer[DFTRACE_INTERCEPTOR_SLOT_COUNT];
+static unsigned dftrace_interceptor_watched_address[DFTRACE_INTERCEPTOR_SLOT_COUNT];
+static unsigned dftrace_interceptor_watched_value[DFTRACE_INTERCEPTOR_SLOT_COUNT];
+static unsigned dftrace_interceptor_last_screen_writer[DFTRACE_INTERCEPTOR_SLOT_COUNT];
+static unsigned dftrace_interceptor_output_initialised;
+static unsigned dftrace_interceptor_first_anomaly;
+static unsigned dftrace_sector_clock_output_initialised;
+static unsigned dftrace_player_pairshot_output_initialised;
+static unsigned dftrace_player_pairshot_before_active[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
+static unsigned dftrace_player_pairshot_before_y[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
+static unsigned dftrace_player_pairshot_before_lifetime[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
+static unsigned dftrace_player_pairshot_active_shadow[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
+static unsigned dftrace_player_pairshot_update_count[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
+static unsigned dftrace_player_pairshot_render_count[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
+static unsigned dftrace_player_pairshot_write_count[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
+static unsigned dftrace_player_pairshot_allocations[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
+static unsigned dftrace_player_pairshot_releases[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
+static unsigned dftrace_player_pairshot_allocation_frame[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
+static unsigned dftrace_player_pairshot_release_frame[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
+static unsigned dftrace_player_pairshot_glyph_writes;
+static unsigned dftrace_player_pairshot_glyph_last_writer;
+static unsigned dftrace_player_pairshot_selected_code[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
+static unsigned dftrace_player_pairshot_published_code[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
+static unsigned dftrace_player_pairshot_publication_writer[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
+static unsigned dftrace_player_pairshot_gameplay_chbase_writes;
+static unsigned dftrace_player_pairshot_gameplay_chbase_writer;
+static unsigned dftrace_player_pairshot_gameplay_chbase_host;
+static unsigned dftrace_player_pairshot_hud_chbase_writes;
+static unsigned dftrace_player_pairshot_hud_chbase_writer;
+static unsigned dftrace_player_pairshot_hud_chbase_host;
+static unsigned dftrace_pairshot_recycled_count;
+static unsigned dftrace_pairshot_recycled_address[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
+static unsigned dftrace_pairshot_recycled_expected[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
+
 static unsigned dftrace_pc_active;
 static unsigned dftrace_pc_end;
+static unsigned dftrace_pc_player_shot_sound;
+static unsigned dftrace_pc_update_sound;
 static unsigned dftrace_pc_profile[DFTRACE_PROFILE_COUNT];
 static unsigned dftrace_pc_dli_end;
 static unsigned dftrace_pc_dli_hud_end;
@@ -313,9 +483,14 @@ static unsigned dftrace_pc_compose_start;
 static unsigned dftrace_pc_compose_end;
 static unsigned dftrace_pc_pointer_start;
 static unsigned dftrace_pc_pointer_end;
+static unsigned dftrace_pc_publication_begin;
 static unsigned dftrace_pc_erase_slot;
+static unsigned dftrace_pc_projectile_restore;
+static unsigned dftrace_pc_projectile_update_start;
 static unsigned dftrace_pc_interceptor_update_start;
 static unsigned dftrace_pc_render_slot;
+static unsigned dftrace_pc_render_end;
+static unsigned dftrace_pc_claim_projectile;
 static unsigned dftrace_pc_entity_erase_start;
 static unsigned dftrace_pc_effect_update_end;
 static unsigned dftrace_pc_pickup_update_end;
@@ -340,7 +515,10 @@ static unsigned dftrace_pc_effect_spawn;
 static unsigned dftrace_pc_effect_erase;
 static unsigned dftrace_pc_effect_update;
 static unsigned dftrace_pc_effect_render;
+static unsigned dftrace_pc_interceptor_breakup_request;
 static unsigned dftrace_pc_interceptor_breakup_spawn;
+static unsigned dftrace_pc_emitter_cleanup;
+static unsigned dftrace_pc_emitter_cleanup_end;
 static unsigned dftrace_pc_pickup_qualified_kill;
 static unsigned dftrace_pc_pickup_collect;
 static unsigned dftrace_pc_director_world;
@@ -368,11 +546,16 @@ static unsigned dftrace_pc_gameplay_init;
 static unsigned dftrace_pc_dlist_publish;
 static unsigned dftrace_pc_rotate_start;
 static unsigned dftrace_pc_rotate_end;
+static unsigned dftrace_pc_near_erase;
+static unsigned dftrace_pc_near_render;
 static unsigned dftrace_dli_phase;
 
 static unsigned dftrace_player_x;
 static unsigned dftrace_player_y;
 static unsigned dftrace_projectile_active;
+static unsigned dftrace_projectile_x;
+static unsigned dftrace_projectile_y;
+static unsigned dftrace_projectile_lifetime;
 static unsigned dftrace_projectile_rendered;
 static unsigned dftrace_projectile_screen_lo;
 static unsigned dftrace_projectile_screen_hi;
@@ -383,16 +566,22 @@ static unsigned dftrace_broad_schedule_index;
 static unsigned dftrace_broad_visible_scrolls;
 static unsigned dftrace_broad_turret_fired;
 static unsigned dftrace_corridor_phase;
+static unsigned dftrace_corridor_phase_hi;
+static unsigned dftrace_loader_repeat_value;
 static unsigned dftrace_capital_drain_rows;
 static int dftrace_broadside_proof_admitted;
 static int dftrace_broadside_proof_sector_started;
 static unsigned dftrace_far_active;
 static unsigned dftrace_enemy_active;
 static unsigned dftrace_enemy_x;
+static unsigned dftrace_enemy_member_state;
+static unsigned dftrace_enemy_hp;
+static unsigned dftrace_enemy_live_count;
 static unsigned dftrace_fighter_explosion_timer;
 static unsigned dftrace_capital_explosion_timer;
 static unsigned dftrace_music_active;
 static unsigned dftrace_fire_timer;
+static unsigned dftrace_player_burst_state;
 static unsigned dftrace_hit_timer;
 static unsigned dftrace_capital_sound_timer;
 static unsigned dftrace_sound_enabled;
@@ -403,6 +592,9 @@ static unsigned dftrace_frontend_selection;
 static unsigned dftrace_frontend_input_armed;
 static unsigned dftrace_difficulty_setting;
 static unsigned dftrace_gameplay_frame;
+static unsigned dftrace_active_gameplay_frame_lo;
+static unsigned dftrace_enemy_y;
+static unsigned dftrace_director_state;
 static unsigned dftrace_muzzle_screen_hi;
 static unsigned dftrace_muzzle_screen_lo;
 static unsigned dftrace_muzzle_row_domain;
@@ -423,6 +615,7 @@ static unsigned dftrace_entity_move_accumulator;
 static unsigned dftrace_entity_vertical_accumulator;
 static unsigned dftrace_entity_render_id;
 static unsigned dftrace_entity_active_mask;
+static unsigned dftrace_entity_type;
 static unsigned dftrace_entity_state;
 static unsigned dftrace_entity_hp;
 static unsigned dftrace_entity_timer;
@@ -441,20 +634,63 @@ static unsigned dftrace_score_hi;
 static unsigned dftrace_effect_active_mask;
 static unsigned dftrace_effect_active_count;
 static unsigned dftrace_effect_rendered_mask;
+static unsigned dftrace_effect_y;
+static unsigned dftrace_effect_screen_lo;
+static unsigned dftrace_effect_screen_hi;
+static unsigned dftrace_enemy_target_slot;
+static unsigned dftrace_previous_effect_active_mask;
+static unsigned dftrace_previous_effect_y[5];
+static unsigned dftrace_raider_effect_generation_active;
+static unsigned dftrace_raider_slot0_seen;
+static unsigned dftrace_emitter_cleanup_same[DFTRACE_INTERCEPTOR_SLOT_COUNT];
+static unsigned dftrace_emitter_cleanup_foreign[DFTRACE_INTERCEPTOR_SLOT_COUNT];
 static unsigned dftrace_engine_timer;
 static unsigned dftrace_engine_phase;
 static unsigned dftrace_corridor_phase;
 static unsigned dftrace_ring_flags;
 static unsigned dftrace_active_dlist_lo;
 static unsigned dftrace_next_dlist_lo;
+static unsigned dftrace_near_row;
+static unsigned dftrace_near_column;
+static unsigned dftrace_near_screen_lo;
+static unsigned dftrace_near_screen_hi;
+static unsigned dftrace_dst_ptr;
+static FILE *dftrace_near_file;
+static unsigned dftrace_near_host_frame = 0xffffffffu;
+static unsigned dftrace_near_fetch_logged[DFTRACE_NEAR_COUNT];
+static unsigned dftrace_near_force_address;
+static unsigned dftrace_near_mode;
 static const char *dftrace_engine_screenshot_prefix;
 static unsigned dftrace_engine_screenshot_count;
 static unsigned dftrace_engine_screenshot_generation;
 static unsigned dftrace_engine_screenshot_limit;
 static unsigned dftrace_gameplay_generation;
+static unsigned dftrace_pairshot_reentry_cycles;
+static unsigned dftrace_pairshot_reentry_open_frame;
+static unsigned dftrace_pairshot_reentry_prior_sector;
+static int dftrace_pairshot_reentry_initialised;
 static int dftrace_restart_game_over_seeded;
 static unsigned dftrace_previous_pc;
 static unsigned dftrace_pmg_last_writer[256];
+/* Last producer of every P1/P2 body byte, so a stale-body gate failure names
+ * the instruction that left the row behind instead of only the row. */
+static unsigned dftrace_enemy_pmg_last_writer[2][256];
+static unsigned dftrace_enemy_archetype;
+static unsigned dftrace_enemy_body_data;
+static unsigned dftrace_enemy_frame_heights;
+static unsigned dftrace_character_last_writer[65536];
+static unsigned dftrace_character_last_writer_x[65536];
+static const char *dftrace_first_writer_output;
+static FILE *dftrace_first_writer_file;
+static unsigned char dftrace_first_writer_shadow[65536];
+static unsigned dftrace_first_writer_old[65536];
+static unsigned dftrace_first_writer_new[65536];
+static unsigned dftrace_first_writer_pc[65536];
+static unsigned dftrace_first_writer_frame[65536];
+static uint64_t dftrace_first_writer_clock[65536];
+static unsigned dftrace_first_writer_scanline[65536];
+static unsigned dftrace_first_writer_cycle[65536];
+static uint64_t dftrace_clock(void);
 static unsigned dftrace_engine_previous[16];
 static int dftrace_engine_previous_valid;
 static unsigned dftrace_frontend_delay;
@@ -475,6 +711,9 @@ static const char *dftrace_pickup_traversal_prefix;
 static unsigned dftrace_pickup_traversal_count;
 static unsigned dftrace_pickup_traversal_last_y = 0xffffffffu;
 static unsigned dftrace_pickup_hunt_active_frames;
+static unsigned dftrace_raider_observed_live_count;
+static unsigned dftrace_raider_resume_fire_frame;
+static unsigned dftrace_raider_fired_live_count;
 static const char *dftrace_pickup_contact_prefix;
 static unsigned dftrace_pickup_contact_count;
 static unsigned dftrace_pickup_contact_after_collect;
@@ -545,6 +784,17 @@ typedef struct {
 	unsigned dma_ctl;
 	unsigned nmi_en;
 	unsigned vdslst;
+	/* OS-owned top-of-window state. The game takes the display over
+	 * completely, so these have never mattered to the gate; they are captured
+	 * because the $A000-$BFFF window is about to carry level data and the OS
+	 * VBI restores the display-list pointer from SDLSTL/SDLSTH during SIO.
+	 * SDLSTL/SDLSTH ($0230) say where the OS display list is, MEMTOP ($02E5)
+	 * the OS's last free RAM byte below its screen, RAMTOP ($6A) the page
+	 * above which the OS considers memory its own. Together they bound the
+	 * usable top of the window. */
+	unsigned sdlst;
+	unsigned memtop;
+	unsigned ramtop;
 	unsigned runad;
 	unsigned initad;
 	unsigned dosvec;
@@ -575,11 +825,26 @@ static unsigned dfboot_loader_timer;
 static unsigned dfboot_game_state;
 static unsigned dfboot_main_menu_dlist;
 static unsigned dfboot_frontend_dlist_end;
+/* Boot-smoke observation horizon. Owner decision 22 re-bases the ATR menu
+ * deadline on a 60-second budget (3,000 PAL frames), so the session must stay
+ * alive past that ceiling for a slow-but-legal boot to be observable at all.
+ * The menu proof snapshot therefore sits just above the ceiling, FIRE is
+ * pressed after it, and the gameplay proof snapshot keeps the same 250-frame
+ * handoff window the frame-500/750 pair used to provide. */
+#define DFBOOT_MENU_FRAME 3050u
+#define DFBOOT_GAMEPLAY_FRAME 3300u
+
 static unsigned dfboot_snapshots_count;
 static unsigned dfboot_loader_dli_count;
 static uint64_t dfboot_same_frame_instructions;
 static unsigned dfboot_instruction_frame = 0xffffffffu;
 static DFBootSnapshot dfboot_snapshots[5];
+static unsigned dfboot_trace_pc[64];
+static unsigned dfboot_trace_a[64];
+static unsigned dfboot_trace_x[64];
+static unsigned dfboot_trace_y[64];
+static unsigned dfboot_trace_s[64];
+static unsigned dfboot_trace_head;
 
 static unsigned dfboot_env_u(const char *name)
 {
@@ -615,7 +880,7 @@ static unsigned dfboot_checksum(unsigned address, unsigned length)
 static int dfboot_target_frame(unsigned frame)
 {
 	return frame == 1u || frame == 250u || frame == 300u ||
-		frame == 500u || frame == 750u;
+		frame == DFBOOT_MENU_FRAME || frame == DFBOOT_GAMEPLAY_FRAME;
 }
 
 static void dfboot_capture(unsigned frame, unsigned pc)
@@ -640,6 +905,9 @@ static void dfboot_capture(unsigned frame, unsigned pc)
 	snapshot->dma_ctl = ANTIC_DMACTL;
 	snapshot->nmi_en = ANTIC_NMIEN;
 	snapshot->vdslst = dfboot_word(0x0200u);
+	snapshot->sdlst = dfboot_word(0x0230u);
+	snapshot->memtop = dfboot_word(0x02e5u);
+	snapshot->ramtop = MEMORY_mem[0x006au];
 	snapshot->runad = dfboot_word(0x02e0u);
 	snapshot->initad = dfboot_word(0x02e2u);
 	snapshot->dosvec = dfboot_word(0x000au);
@@ -669,13 +937,15 @@ static void dfboot_write(void)
 			"    {\"frame\":%u,\"pc\":%u,\"scanline\":%d,\"cycle\":%d,"
 			"\"loader_timer\":%u,\"game_state\":%u,\"dlist\":%u,"
 			"\"charset_address\":%u,\"pm_base\":%u,\"dma_ctl\":%u,"
-			"\"nmi_en\":%u,\"vdslst\":%u,\"runad\":%u,\"initad\":%u,"
+			"\"nmi_en\":%u,\"vdslst\":%u,\"sdlst\":%u,\"memtop\":%u,"
+			"\"ramtop\":%u,\"runad\":%u,\"initad\":%u,"
 			"\"dosvec\":%u,\"screen_checksum\":%u,"
 			"\"frontend_dlist_checksum\":%u,\"loader_dli_count\":%u}%s\n",
 			snapshot->frame, snapshot->pc, snapshot->scanline, snapshot->cycle,
 			snapshot->loader_timer, snapshot->game_state, snapshot->dlist,
 			snapshot->charset_address, snapshot->pm_base, snapshot->dma_ctl,
-			snapshot->nmi_en, snapshot->vdslst, snapshot->runad, snapshot->initad,
+			snapshot->nmi_en, snapshot->vdslst, snapshot->sdlst, snapshot->memtop,
+			snapshot->ramtop, snapshot->runad, snapshot->initad,
 			snapshot->dosvec, snapshot->screen_checksum,
 			snapshot->frontend_dlist_checksum, snapshot->loader_dli_count,
 			index + 1u == dfboot_snapshots_count ? "" : ",");
@@ -725,18 +995,42 @@ static void dfboot_init(void)
 	dfboot_initialised = 1;
 }
 
-static void dfboot_observe(unsigned pc)
+static void dfboot_observe(unsigned pc, unsigned a_register, unsigned x_register,
+	unsigned y_register, unsigned s_register)
 {
 	unsigned frame;
 	unsigned fire_start;
+	unsigned trace_index;
 	if (!dfboot_initialised)
 		dfboot_init();
 	frame = (unsigned) Atari800_nframes;
+	dfboot_trace_pc[dfboot_trace_head & 63u] = pc;
+	dfboot_trace_a[dfboot_trace_head & 63u] = a_register;
+	dfboot_trace_x[dfboot_trace_head & 63u] = x_register;
+	dfboot_trace_y[dfboot_trace_head & 63u] = y_register;
+	dfboot_trace_s[dfboot_trace_head & 63u] = s_register;
+	++dfboot_trace_head;
 	if (frame > 500u && MEMORY_mem[pc] == 0x00u) {
 		fprintf(stderr, "voidstrike65 boot smoke: unexpected BRK frame=%u pc=$%04x "
-			"state=%u module=%02x,%02x,%02x,%02x\n", frame, pc,
-			MEMORY_mem[dfboot_game_state], MEMORY_mem[0x8e61u], MEMORY_mem[0x8e62u],
-			MEMORY_mem[0x8e63u], MEMORY_mem[0x8e64u]);
+			"state=%u glue=%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x\n", frame, pc,
+			MEMORY_mem[dfboot_game_state], MEMORY_mem[0x4fe8u], MEMORY_mem[0x4febu],
+			MEMORY_mem[0x4feeu], MEMORY_mem[0x4ff1u], MEMORY_mem[0x4ff3u],
+			MEMORY_mem[0x4ff6u], MEMORY_mem[0x4ff8u], MEMORY_mem[0x4ff9u]);
+		fprintf(stderr, "last instructions (oldest first):\n");
+		for (trace_index = 0u; trace_index < 64u; ++trace_index) {
+			unsigned slot = (dfboot_trace_head + trace_index) & 63u;
+			fprintf(stderr, "$%04x op=%02x a=%02x x=%02x y=%02x s=%02x\n",
+				dfboot_trace_pc[slot], MEMORY_mem[dfboot_trace_pc[slot]],
+				dfboot_trace_a[slot], dfboot_trace_x[slot], dfboot_trace_y[slot],
+				dfboot_trace_s[slot]);
+		}
+		fprintf(stderr, "stack $01f0-$01ff:");
+		for (trace_index = 0u; trace_index < 16u; ++trace_index)
+			fprintf(stderr, " %02x", MEMORY_mem[0x01f0u + trace_index]);
+		fprintf(stderr, "\nextension $8d8e-$8d9d:");
+		for (trace_index = 0u; trace_index < 16u; ++trace_index)
+			fprintf(stderr, " %02x", MEMORY_mem[0x8d8eu + trace_index]);
+		fprintf(stderr, "\n");
 		exit(98);
 	}
 	if (frame != dfboot_instruction_frame) {
@@ -746,7 +1040,7 @@ static void dfboot_observe(unsigned pc)
 	else if (++dfboot_same_frame_instructions == 20000000u) {
 		fprintf(stderr, "voidstrike65 boot smoke: stalled at frame %u pc=$%04x state=%u "
 			"module=%02x,%02x,%02x,%02x\n", frame, pc,
-			MEMORY_mem[dfboot_game_state], MEMORY_mem[0x8e61u], MEMORY_mem[0x8e62u],
+			MEMORY_mem[dfboot_game_state], MEMORY_mem[0x8ebeu], MEMORY_mem[0x8ebfu],
 			MEMORY_mem[0x8e63u], MEMORY_mem[0x8e64u]);
 		exit(2);
 	}
@@ -768,16 +1062,17 @@ static void dfboot_observe(unsigned pc)
 		dfboot_seen_main = frame;
 
 	/* Drive the production menu input path: neutral through the loader/menu,
-	 * then a short FIRE press after the frame-500 proof snapshot. */
+	 * then a short FIRE press after the menu proof snapshot. */
 	PIA_PORT_input[0] = (PIA_PORT_input[0] & 0xf0u) | 0x0fu;
 	fire_start = dfboot_seen_frontend == 0xffffffffu ? 0xffffffffu :
-		(dfboot_seen_frontend + 2u < 501u ? 501u : dfboot_seen_frontend + 2u);
+		(dfboot_seen_frontend + 2u < DFBOOT_MENU_FRAME + 1u ?
+			DFBOOT_MENU_FRAME + 1u : dfboot_seen_frontend + 2u);
 	GTIA_TRIG[0] = (UBYTE) (frame >= fire_start && frame <= fire_start + 5u ? 0 : 1);
 	if (frame != dfboot_last_frame) {
 		dfboot_last_frame = frame;
 		if (dfboot_target_frame(frame))
 			dfboot_capture(frame, pc);
-		if (frame > 750u) {
+		if (frame > DFBOOT_GAMEPLAY_FRAME) {
 			dfboot_write();
 			fflush(NULL);
 			exit(0);
@@ -1208,12 +1503,9 @@ static unsigned dftrace_count_nonzero(unsigned address, unsigned length)
 
 static unsigned dftrace_count_far_rendered(void)
 {
-	unsigned index;
-	unsigned count = 0;
-	for (index = 0; index < 29; ++index)
-		if ((MEMORY_mem[dftrace_far_active + index] & 0x80u) != 0)
-			++count;
-	return count;
+	/* `far_rendered` is a frozen CSV column name. It now carries the count of
+	 * cached white-only overlay records; no blue population exists. */
+	return dftrace_count_nonzero(dftrace_near_screen_hi, DFTRACE_NEAR_COUNT);
 }
 
 static int dftrace_is_ring_address(unsigned address)
@@ -1362,7 +1654,7 @@ static void dftrace_snapshot_rapid_projectile(DFTraceFrame *frame)
 {
 	unsigned slot;
 	frame->rapid_projectile_slot = 0xffffffffu;
-	for (slot = 0; slot < 10u; ++slot) {
+	for (slot = 0; slot < DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT; ++slot) {
 		unsigned state = MEMORY_mem[dftrace_projectile_active + slot];
 		if (state != 0u && MEMORY_mem[dftrace_projectile_rendered + slot] != 0u)
 			frame->player_fighter_projectiles++;
@@ -1372,12 +1664,14 @@ static void dftrace_snapshot_rapid_projectile(DFTraceFrame *frame)
 				(MEMORY_mem[dftrace_projectile_screen_hi + slot] << 8);
 			unsigned screen_code = MEMORY_mem[address];
 			frame->rapid_projectiles++;
-			/* Prefer the exact yellow PlayerFighter code ($0f), not merely any positive
-			 * code: a later base/broadside glyph may occupy the same cell. */
+			/* Prefer either fixed yellow PairShot phase ($0b/$1d), not merely any
+			 * positive code: a later base/broadside glyph may occupy the same cell. */
 			if (frame->rapid_projectile_slot == 0xffffffffu ||
-				((frame->rapid_projectile_screen_code != 0x0fu ||
+				(((frame->rapid_projectile_screen_code != 0x0bu &&
+				   frame->rapid_projectile_screen_code != 0x1du) ||
 				  !dftrace_is_ring_address(frame->rapid_projectile_address)) &&
-				screen_code == 0x0fu && dftrace_is_ring_address(address))) {
+				(screen_code == 0x0bu || screen_code == 0x1du) &&
+				dftrace_is_ring_address(address))) {
 				frame->rapid_projectile_slot = slot;
 				frame->rapid_projectile_address = address;
 				frame->rapid_projectile_screen_code = screen_code;
@@ -1386,6 +1680,497 @@ static void dftrace_snapshot_rapid_projectile(DFTraceFrame *frame)
 			}
 		}
 	}
+}
+
+static int dftrace_is_player_pairshot_code(unsigned value)
+{
+	return value == 0x0bu || value == 0x1du ||
+		(value >= 0x2fu && value < 0x34u);
+}
+
+static int dftrace_player_pairshot_owns(unsigned address)
+{
+	unsigned slot;
+	for (slot = 0u; slot < DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT; ++slot) {
+		unsigned owned;
+		if (MEMORY_mem[dftrace_projectile_rendered + slot] == 0u)
+			continue;
+		owned = MEMORY_mem[dftrace_projectile_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_projectile_screen_hi + slot] << 8);
+		if (owned == address)
+			return 1;
+	}
+	return 0;
+}
+
+static void dftrace_snapshot_player_pairshot_orphans(DFTraceFrame *frame)
+{
+	unsigned address;
+	frame->player_projectile_orphan_cells = 0u;
+	for (address = DFTRACE_DIVIDER_SCREEN;
+		address < DFTRACE_DIVIDER_SCREEN + 40u; ++address)
+		if (dftrace_is_player_pairshot_code(MEMORY_mem[address]) &&
+			!dftrace_player_pairshot_owns(address))
+			++frame->player_projectile_orphan_cells;
+	for (address = DFTRACE_RING_SCREEN; address < DFTRACE_RING_END; ++address)
+		if (dftrace_is_player_pairshot_code(MEMORY_mem[address]) &&
+			!dftrace_player_pairshot_owns(address))
+			++frame->player_projectile_orphan_cells;
+}
+
+static int dftrace_is_enemy_pairshot_code(unsigned value)
+{
+	return value >= DFTRACE_INTERCEPTOR_GLYPH_FIRST &&
+		value <= DFTRACE_INTERCEPTOR_GLYPH_LAST;
+}
+
+static int dftrace_enemy_pairshot_owns(unsigned address)
+{
+	unsigned slot;
+	for (slot = DFTRACE_INTERCEPTOR_SLOT_BASE;
+		slot < DFTRACE_PROJECTILE_SLOT_COUNT; ++slot) {
+		unsigned owned;
+		if (MEMORY_mem[dftrace_projectile_active + slot] == 0u ||
+			MEMORY_mem[dftrace_projectile_rendered + slot] == 0u)
+			continue;
+		owned = MEMORY_mem[dftrace_projectile_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_projectile_screen_hi + slot] << 8);
+		if (owned == address)
+			return 1;
+	}
+	return 0;
+}
+
+static void dftrace_snapshot_enemy_pairshot_orphans(DFTraceFrame *frame)
+{
+	unsigned address;
+	frame->enemy_projectile_stale_cells = 0u;
+	for (address = DFTRACE_DIVIDER_SCREEN;
+		address < DFTRACE_DIVIDER_SCREEN + 40u; ++address)
+		if (dftrace_is_enemy_pairshot_code(MEMORY_mem[address]) &&
+			!dftrace_enemy_pairshot_owns(address))
+			++frame->enemy_projectile_stale_cells;
+	for (address = DFTRACE_RING_SCREEN; address < DFTRACE_RING_END; ++address)
+		if (dftrace_is_enemy_pairshot_code(MEMORY_mem[address]) &&
+			!dftrace_enemy_pairshot_owns(address))
+			++frame->enemy_projectile_stale_cells;
+}
+
+/* Writer 4 of the hull-transient ownership model: a live, rendered fighter
+ * projectile standing on a cell a tracked muzzle also claims. The projectile
+ * slot saves the covered cell into FIGHTER_PROJECTILE_BACKUP_TOP before it
+ * draws and erase_fighter_projectile_restore returns it when the shot leaves,
+ * so the muzzle glyph is occluded for those frames, not lost.
+ *
+ * This reports PRESENCE, not history. It is 1 only while some projectile
+ * slot's OWN screen pointer still equals this address AND the address still
+ * holds that slot's glyph family. As soon as the shot advances, the slot's
+ * pointer moves; as soon as it is released, its rendered flag clears; either
+ * way this returns to 0 on the very next snapshot. A cell a projectile merely
+ * passed over at some earlier point is therefore never forgiven, and neither
+ * is a cell holding a muzzle or launch-flash code ($45/$D0/$51/$D2) — those
+ * are disjoint from both projectile glyph families. */
+static unsigned dftrace_projectile_occludes(unsigned address)
+{
+	unsigned code;
+	if (address == 0u)
+		return 0u;
+	code = MEMORY_mem[address];
+	if (dftrace_is_player_pairshot_code(code) && dftrace_player_pairshot_owns(address))
+		return 1u;
+	if (dftrace_is_enemy_pairshot_code(code) && dftrace_enemy_pairshot_owns(address))
+		return 1u;
+	return 0u;
+}
+
+static void dftrace_emitter_cleanup_begin(DFTraceFrame *frame)
+{
+	unsigned index;
+	unsigned target = MEMORY_mem[dftrace_enemy_target_slot] & 1u;
+	unsigned owned = 0u;
+	for (index = 0u; index < DFTRACE_INTERCEPTOR_SLOT_COUNT; ++index) {
+		unsigned slot = DFTRACE_INTERCEPTOR_SLOT_BASE + index;
+		unsigned active = MEMORY_mem[dftrace_projectile_active + slot];
+		dftrace_emitter_cleanup_same[index] = 0u;
+		dftrace_emitter_cleanup_foreign[index] = 0u;
+		if (active == 0u)
+			continue;
+		if ((active & 1u) == target) {
+			dftrace_emitter_cleanup_same[index] = active;
+			++owned;
+			if (index == 0u)
+				++frame->emitter_owned_physical_slot0_at_kill;
+		}
+		else
+			dftrace_emitter_cleanup_foreign[index] = active;
+	}
+	if (owned != 0u)
+		++frame->raider_kills_with_emitter_projectile_active;
+	frame->emitter_owned_projectiles_at_kill += owned;
+}
+
+static void dftrace_emitter_cleanup_end(DFTraceFrame *frame)
+{
+	unsigned index;
+	for (index = 0u; index < DFTRACE_INTERCEPTOR_SLOT_COUNT; ++index) {
+		unsigned slot = DFTRACE_INTERCEPTOR_SLOT_BASE + index;
+		unsigned active = MEMORY_mem[dftrace_projectile_active + slot];
+		if (dftrace_emitter_cleanup_same[index] != 0u) {
+			if (active == 0u)
+				++frame->emitter_owned_projectiles_removed;
+			else
+				++frame->post_kill_emitter_projectile_continuations;
+		}
+		if (dftrace_emitter_cleanup_foreign[index] != 0u) {
+			if (active == dftrace_emitter_cleanup_foreign[index])
+				++frame->foreign_projectiles_preserved;
+			else
+				++frame->foreign_projectiles_incorrectly_removed;
+		}
+		dftrace_emitter_cleanup_same[index] = 0u;
+		dftrace_emitter_cleanup_foreign[index] = 0u;
+	}
+}
+
+static int dftrace_is_transient_effect_code(unsigned value)
+{
+	unsigned code = value & 0x7fu;
+	return (code >= 110u && code < 120u) || code == 90u || code == 91u;
+}
+
+static void dftrace_track_character_screen_write(unsigned x_register, unsigned y_register)
+{
+	unsigned opcode;
+	unsigned address;
+	unsigned zp;
+	if (dftrace_previous_pc == 0u)
+		return;
+	opcode = MEMORY_mem[dftrace_previous_pc];
+	if (opcode == 0x91u) {
+		zp = MEMORY_mem[(dftrace_previous_pc + 1u) & 0xffffu];
+		address = MEMORY_mem[zp] |
+			((unsigned) MEMORY_mem[(zp + 1u) & 0xffu] << 8);
+		address = (address + y_register) & 0xffffu;
+	}
+	else if (opcode == 0x8du) {
+		address = MEMORY_mem[(dftrace_previous_pc + 1u) & 0xffffu] |
+			((unsigned) MEMORY_mem[(dftrace_previous_pc + 2u) & 0xffffu] << 8);
+	}
+	else
+		return;
+	if ((address >= DFTRACE_RING_SCREEN && address < DFTRACE_RING_END) ||
+		(address >= DFTRACE_DIVIDER_SCREEN && address < DFTRACE_DIVIDER_SCREEN + 40u)) {
+		dftrace_character_last_writer[address] = dftrace_previous_pc;
+		dftrace_character_last_writer_x[address] = x_register;
+		if (dftrace_raider_effect_generation_active)
+			++dftrace_current.raider_character_writes;
+	}
+}
+
+static int dftrace_near_visible_row(unsigned address)
+{
+	unsigned base;
+	unsigned index;
+	if (address == 0u)
+		return -1;
+	if (address >= DFTRACE_DIVIDER_SCREEN &&
+		address < DFTRACE_DIVIDER_SCREEN + 40u)
+		return 0;
+	base = 0x7f00u + dftrace_displayed_dlist_lo;
+	for (index = 0u; index < DFTRACE_RING_ROWS; ++index) {
+		unsigned row = MEMORY_mem[base + 7u + index * 3u] |
+			((unsigned) MEMORY_mem[base + 8u + index * 3u] << 8);
+		if (address >= row && address < row + 40u)
+			return (int) index + 1;
+	}
+	return -1;
+}
+
+static void dftrace_near_visible_counts(unsigned *visible, unsigned *orphan,
+	unsigned *first_orphan, unsigned *first_orphan_writer)
+{
+	unsigned base = 0x7f00u + dftrace_displayed_dlist_lo;
+	unsigned row;
+	*visible = 0u;
+	*orphan = 0u;
+	*first_orphan = 0u;
+	*first_orphan_writer = 0u;
+	for (row = 0u; row <= DFTRACE_RING_ROWS; ++row) {
+		unsigned column;
+		unsigned address = row == 0u ? DFTRACE_DIVIDER_SCREEN :
+			MEMORY_mem[base + 7u + (row - 1u) * 3u] |
+			((unsigned) MEMORY_mem[base + 8u + (row - 1u) * 3u] << 8);
+		for (column = 0u; column < 40u; ++column) {
+			unsigned slot;
+			int owned = 0;
+			if (MEMORY_mem[address + column] != DFTRACE_NEAR_CODE)
+				continue;
+			(*visible)++;
+			for (slot = 0u; slot < DFTRACE_NEAR_COUNT; ++slot) {
+				unsigned cached = MEMORY_mem[dftrace_near_screen_lo + slot] |
+					((unsigned) MEMORY_mem[dftrace_near_screen_hi + slot] << 8);
+				if (cached == address + column) {
+					owned = 1;
+					break;
+				}
+			}
+			if (!owned) {
+				if (*first_orphan == 0u) {
+					*first_orphan = address + column;
+					*first_orphan_writer = dftrace_character_last_writer[address + column];
+				}
+				(*orphan)++;
+			}
+		}
+	}
+}
+
+static void dftrace_near_event(const char *event, unsigned slot, unsigned pc)
+{
+	unsigned address = MEMORY_mem[dftrace_near_screen_lo + slot] |
+		((unsigned) MEMORY_mem[dftrace_near_screen_hi + slot] << 8);
+	unsigned pointer = MEMORY_mem[dftrace_dst_ptr] |
+		((unsigned) MEMORY_mem[(dftrace_dst_ptr + 1u) & 0xffffu] << 8);
+	int visible_row = dftrace_near_visible_row(address);
+	unsigned physical_row = address >= DFTRACE_RING_SCREEN && address < DFTRACE_RING_END
+		? (address - DFTRACE_RING_SCREEN) / 40u : 0xffffffffu;
+	unsigned visible_near = 0u;
+	unsigned orphan_near = 0u;
+	unsigned first_orphan = 0u;
+	unsigned first_orphan_writer = 0u;
+	if (dftrace_near_file == NULL)
+		return;
+	if ((event[0] == 'p' && slot == 0u) ||
+		(event[0] == 'r' && event[7] == 'e'))
+		dftrace_near_visible_counts(&visible_near, &orphan_near,
+			&first_orphan, &first_orphan_writer);
+	fprintf(dftrace_near_file,
+		"%u,%u,%u,%d,%d,%llu,%s,%u,%u,%u,%u,%u,%u,%u,%d,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n",
+		dftrace_count, (unsigned) Atari800_nframes,
+		MEMORY_mem[dftrace_gameplay_frame], ANTIC_ypos, ANTIC_XPOS,
+		(unsigned long long) dftrace_clock(), event, slot, pc, dftrace_previous_pc,
+		MEMORY_mem[dftrace_near_row + slot], MEMORY_mem[dftrace_near_column + slot],
+		address, pointer, visible_row, physical_row,
+		address == 0u ? 0u : MEMORY_mem[address],
+		pointer == 0u ? 0u : MEMORY_mem[pointer],
+		address == 0u ? 0u : dftrace_character_last_writer[address],
+		MEMORY_mem[DFTRACE_CHARSET + DFTRACE_NEAR_CODE * 8u],
+		ANTIC_CHBASE, GTIA_COLPF0, GTIA_COLPF1,
+		MEMORY_mem[dftrace_sector_state], MEMORY_mem[dftrace_ring_flags],
+		visible_near, orphan_near, first_orphan, first_orphan_writer);
+	fflush(dftrace_near_file);
+}
+
+static unsigned dftrace_near_row_address(unsigned logical_row)
+{
+	unsigned base = 0x7f00u + dftrace_displayed_dlist_lo;
+	if (logical_row == 0u)
+		return DFTRACE_DIVIDER_SCREEN;
+	return MEMORY_mem[base + 7u + (logical_row - 1u) * 3u] |
+		((unsigned) MEMORY_mem[base + 8u + (logical_row - 1u) * 3u] << 8);
+}
+
+static void dftrace_near_observe(unsigned pc, unsigned x_register)
+{
+	unsigned host;
+	unsigned slot;
+	if (dftrace_near_file == NULL || MEMORY_mem[dftrace_game_state] != 6u)
+		return;
+	/* Diagnostic-only long OPEN run: keep the production XEX untouched while
+	 * collecting more than one complete fighter sector of ANTIC observations. */
+	if (getenv("DFTRACE_NEAR_HOLD_OPEN") != NULL)
+		MEMORY_mem[dftrace_sector_state] = 7u;
+	host = (unsigned) Atari800_nframes;
+	if (host != dftrace_near_host_frame) {
+		dftrace_near_host_frame = host;
+		memset(dftrace_near_fetch_logged, 0, sizeof(dftrace_near_fetch_logged));
+		if (getenv("DFTRACE_NEAR_FORCE") != NULL && dftrace_displayed_dlist_lo != 0u) {
+			unsigned address = dftrace_near_row_address(14u) + 20u;
+			if (dftrace_near_force_address != 0u &&
+				MEMORY_mem[dftrace_near_force_address] == DFTRACE_NEAR_CODE)
+				MEMORY_mem[dftrace_near_force_address] = 0u;
+			dftrace_near_force_address = address;
+			MEMORY_mem[address] = DFTRACE_NEAR_CODE;
+		}
+		for (slot = 0u; slot < DFTRACE_NEAR_COUNT; ++slot)
+			dftrace_near_event("physical_frame_begin", slot, pc);
+	}
+	for (slot = 0u; slot < DFTRACE_NEAR_COUNT; ++slot) {
+		unsigned address;
+		int row;
+		int glyph_scanline;
+		if (dftrace_near_fetch_logged[slot])
+			continue;
+		address = MEMORY_mem[dftrace_near_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_near_screen_hi + slot] << 8);
+		row = dftrace_near_visible_row(address);
+		glyph_scanline = row < 0 ? -1 : 16 + row * 8;
+		if (glyph_scanline >= 0 && ANTIC_ypos >= glyph_scanline) {
+			dftrace_near_fetch_logged[slot] = 1u;
+			dftrace_near_event("antic_glyph_scanline", slot, pc);
+		}
+	}
+	if (pc == dftrace_pc_near_erase) {
+		dftrace_near_mode = 1u;
+		dftrace_near_event("erase_begin", 0u, pc);
+	}
+	else if (pc == dftrace_pc_near_render) {
+		dftrace_near_mode = 2u;
+		dftrace_near_event("render_begin", 0u, pc);
+	}
+	if (dftrace_near_mode != 0u && dftrace_previous_pc != 0u &&
+		MEMORY_mem[dftrace_previous_pc] == 0xb1u &&
+		MEMORY_mem[(dftrace_previous_pc + 1u) & 0xffffu] == (dftrace_dst_ptr & 0xffu))
+		dftrace_near_event(dftrace_near_mode == 1u ? "erase_attempt" : "render_attempt",
+			x_register, pc);
+	if (dftrace_near_mode != 0u && dftrace_previous_pc != 0u &&
+		MEMORY_mem[dftrace_previous_pc] == 0x91u &&
+		MEMORY_mem[(dftrace_previous_pc + 1u) & 0xffffu] == (dftrace_dst_ptr & 0xffu))
+		dftrace_near_event(dftrace_near_mode == 1u ? "erase_write_after" : "render_write_after",
+			x_register, pc);
+	if (dftrace_near_mode != 0u && dftrace_previous_pc != 0u &&
+		MEMORY_mem[dftrace_previous_pc] == 0x60u) {
+		dftrace_near_event(dftrace_near_mode == 1u ? "erase_end" : "render_end", 0u, pc);
+		dftrace_near_mode = 0u;
+	}
+}
+
+static int dftrace_transient_character_owner(unsigned address)
+{
+	unsigned slot;
+	for (slot = 0u; slot < 5u; ++slot) {
+		unsigned owned;
+		if ((MEMORY_mem[dftrace_effect_rendered_mask] & (1u << slot)) == 0u)
+			continue;
+		owned = MEMORY_mem[dftrace_effect_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_effect_screen_hi + slot] << 8);
+		if (owned == address)
+			return 1;
+	}
+	if ((MEMORY_mem[dftrace_entity_active_mask] & 1u) != 0u &&
+		MEMORY_mem[dftrace_entity_screen_hi] != 0u) {
+		unsigned owned = MEMORY_mem[dftrace_entity_screen_lo] |
+			((unsigned) MEMORY_mem[dftrace_entity_screen_hi] << 8);
+		if (owned == address || owned + 1u == address)
+			return 1;
+	}
+	for (slot = 0u; slot < DFTRACE_PROJECTILE_SLOT_COUNT; ++slot) {
+		unsigned owned;
+		if (MEMORY_mem[dftrace_projectile_rendered + slot] == 0u)
+			continue;
+		owned = MEMORY_mem[dftrace_projectile_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_projectile_screen_hi + slot] << 8);
+		if (owned == address)
+			return 1;
+	}
+	return 0;
+}
+
+static void dftrace_snapshot_transient_effect_orphans(DFTraceFrame *frame)
+{
+	unsigned address;
+	frame->transient_effect_orphan_cells = 0u;
+	frame->stale_debris_projectile_restores = 0u;
+	frame->transient_effect_first_address = 0u;
+	frame->transient_effect_first_code = 0u;
+	frame->transient_effect_first_writer_pc = 0u;
+	frame->transient_effect_first_writer_x = 0u;
+	for (address = DFTRACE_DIVIDER_SCREEN;
+		address < DFTRACE_DIVIDER_SCREEN + 40u; ++address)
+		if (dftrace_is_transient_effect_code(MEMORY_mem[address]) &&
+			!dftrace_transient_character_owner(address)) {
+			if ((MEMORY_mem[address] & 0x7fu) >= 110u &&
+				(MEMORY_mem[address] & 0x7fu) < 118u &&
+				dftrace_character_last_writer[address] == dftrace_pc_projectile_restore)
+				++frame->stale_debris_projectile_restores;
+			if (frame->transient_effect_orphan_cells == 0u) {
+				frame->transient_effect_first_address = address;
+				frame->transient_effect_first_code = MEMORY_mem[address];
+				frame->transient_effect_first_writer_pc =
+					dftrace_character_last_writer[address];
+				frame->transient_effect_first_writer_x =
+					dftrace_character_last_writer_x[address];
+			}
+			++frame->transient_effect_orphan_cells;
+		}
+	for (address = DFTRACE_RING_SCREEN; address < DFTRACE_RING_END; ++address)
+		if (dftrace_is_transient_effect_code(MEMORY_mem[address]) &&
+			!dftrace_transient_character_owner(address)) {
+			if ((MEMORY_mem[address] & 0x7fu) >= 110u &&
+				(MEMORY_mem[address] & 0x7fu) < 118u &&
+				dftrace_character_last_writer[address] == dftrace_pc_projectile_restore)
+				++frame->stale_debris_projectile_restores;
+			if (frame->transient_effect_orphan_cells == 0u) {
+				frame->transient_effect_first_address = address;
+				frame->transient_effect_first_code = MEMORY_mem[address];
+				frame->transient_effect_first_writer_pc =
+					dftrace_character_last_writer[address];
+				frame->transient_effect_first_writer_x =
+					dftrace_character_last_writer_x[address];
+			}
+			++frame->transient_effect_orphan_cells;
+		}
+}
+
+static void dftrace_snapshot_transient_effect_coordinates(DFTraceFrame *frame)
+{
+	unsigned active = MEMORY_mem[dftrace_effect_active_mask];
+	unsigned slot;
+	frame->transient_effect_coordinate_wraps = 0u;
+	for (slot = 0u; slot < 5u; ++slot) {
+		unsigned bit = 1u << slot;
+		unsigned y = MEMORY_mem[dftrace_effect_y + slot];
+		if ((active & bit) != 0u &&
+			(dftrace_previous_effect_active_mask & bit) != 0u &&
+			((dftrace_previous_effect_y[slot] >= 240u && y < 4u) ||
+			 (dftrace_previous_effect_y[slot] < 4u && y >= 240u)))
+			++frame->transient_effect_coordinate_wraps;
+		dftrace_previous_effect_y[slot] = y;
+	}
+	dftrace_previous_effect_active_mask = active;
+}
+
+static void dftrace_pairshot_rotate_begin(void)
+{
+	unsigned slot = DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT;
+	unsigned recycled = MEMORY_mem[dftrace_playfield_row_lo + DFTRACE_RING_ROWS - 1u] |
+		((unsigned) MEMORY_mem[dftrace_playfield_row_hi + DFTRACE_RING_ROWS - 1u] << 8);
+	dftrace_pairshot_recycled_count = 0u;
+	while (slot-- != 0u) {
+		unsigned address;
+		unsigned target;
+		unsigned index;
+		if (MEMORY_mem[dftrace_projectile_rendered + slot] == 0u)
+			continue;
+		address = MEMORY_mem[dftrace_projectile_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_projectile_screen_hi + slot] << 8);
+		if (address < DFTRACE_DIVIDER_SCREEN ||
+			address >= DFTRACE_DIVIDER_SCREEN + 40u)
+			continue;
+		target = recycled + address - DFTRACE_DIVIDER_SCREEN;
+		for (index = 0u; index < dftrace_pairshot_recycled_count; ++index)
+			if (dftrace_pairshot_recycled_address[index] == target)
+				break;
+		if (index == dftrace_pairshot_recycled_count) {
+			dftrace_pairshot_recycled_address[index] = target;
+			++dftrace_pairshot_recycled_count;
+		}
+		/* Production unwinds slots 4..0.  On overlap the lowest slot is the
+		 * final writer, so descending capture intentionally replaces expected. */
+		dftrace_pairshot_recycled_expected[index] =
+			MEMORY_mem[dftrace_projectile_backing_top + slot];
+	}
+}
+
+static void dftrace_pairshot_rotate_end(DFTraceFrame *frame)
+{
+	unsigned index;
+	frame->player_projectile_recycled_checks += dftrace_pairshot_recycled_count;
+	for (index = 0u; index < dftrace_pairshot_recycled_count; ++index)
+		if (MEMORY_mem[dftrace_pairshot_recycled_address[index]] !=
+			dftrace_pairshot_recycled_expected[index])
+			++frame->player_projectile_stale_cells;
+	dftrace_pairshot_recycled_count = 0u;
 }
 
 static void dftrace_set_input(unsigned stick, unsigned trigger)
@@ -1491,12 +2276,155 @@ static DFTracePhysicalBounds dftrace_bolt_physical_bounds(unsigned slot,
 	return result;
 }
 
+/* Re-enter the unmodified production capital traversal. Only the Director
+ * admission boundary is accelerated: every hull state change, drain, COMPLETE
+ * reconstruction and OPEN re-entry remains guest code. */
+static int dftrace_reentry_policy(void)
+{
+	return strncmp(dftrace_policy, "pairshot-reentry-", 17u) == 0 ||
+		strcmp(dftrace_policy, "booster-reentry") == 0;
+}
+
+/* Test-only PMG visibility laboratory. This deliberately runs after the
+ * guest renderer, so the next complete ANTIC raster contains only this fixed
+ * missile object. It never enters the production XEX. */
+static int dftrace_pmg_lab_variant(void)
+{
+	return strcmp(dftrace_policy, "pmg-lab-fifth-player") == 0 ||
+		strcmp(dftrace_policy, "pmg-lab-ordinary-missiles") == 0 ||
+		strcmp(dftrace_policy, "pmg-lab-single-missile") == 0;
+}
+
+static void dftrace_publish_pmg_lab(void)
+{
+	unsigned row;
+	unsigned value = 0xf0u;
+	if (!dftrace_pmg_lab_variant())
+		return;
+	/* $3b00 is PMBASE+$300: the exact production missile DMA page. */
+	for (row = 0u; row < 256u; ++row)
+		MEMORY_mem[0x3b00u + row] = 0u;
+	if (strcmp(dftrace_policy, "pmg-lab-single-missile") == 0)
+		value = 0x10u;
+	for (row = 0u; row < 16u; ++row)
+		MEMORY_mem[0x3b00u + 120u + row] = (UBYTE) value;
+	/* Use the emulator's real GTIA write path: direct cached-variable writes do
+	 * not update its horizontal raster pointers and are not hardware-equivalent. */
+	GTIA_PutByte(GTIA_OFFSET_HPOSM0, 94u);
+	GTIA_PutByte(GTIA_OFFSET_HPOSM1, 96u);
+	GTIA_PutByte(GTIA_OFFSET_HPOSM2, 98u);
+	GTIA_PutByte(GTIA_OFFSET_HPOSM3, 100u);
+	GTIA_PutByte(GTIA_OFFSET_GRACTL, 0x03u);
+	if (strcmp(dftrace_policy, "pmg-lab-fifth-player") == 0) {
+		GTIA_PutByte(GTIA_OFFSET_SIZEM, 0x00u);
+		GTIA_PutByte(GTIA_OFFSET_PRIOR, 0x10u);
+	}
+	else if (strcmp(dftrace_policy, "pmg-lab-ordinary-missiles") == 0) {
+		GTIA_PutByte(GTIA_OFFSET_SIZEM, 0x00u);
+		GTIA_PutByte(GTIA_OFFSET_PRIOR, 0x00u);
+	}
+	else {
+		/* M0 only, fourfold width; P0-P3 graphics and colours are untouched. */
+		GTIA_PutByte(GTIA_OFFSET_SIZEM, 0x03u);
+		GTIA_PutByte(GTIA_OFFSET_PRIOR, 0x00u);
+	}
+	++dftrace_pmg_lab_presentations;
+}
+
+static void dftrace_prepare_pairshot_reentry(unsigned frame)
+{
+	unsigned sector;
+	unsigned target_cycles;
+	unsigned fighter_frames;
+	if (!dftrace_reentry_policy())
+		return;
+	target_cycles = strcmp(dftrace_policy, "booster-reentry") == 0 ? 3u : 5u;
+	fighter_frames = strcmp(dftrace_policy, "booster-reentry") == 0 ? 480u : 180u;
+	sector = MEMORY_mem[dftrace_sector_state];
+	/* Keep one continuous gameplay generation alive for all requested traversals;
+	 * collision/update/render code still executes, but cannot end the replay. */
+	MEMORY_mem[dftrace_broad_state + 29u] = 10u;
+	MEMORY_mem[dftrace_player_lifecycle + 2u] = 2u;
+	if (!dftrace_pairshot_reentry_initialised) {
+		dftrace_pairshot_reentry_prior_sector = sector;
+		dftrace_pairshot_reentry_open_frame = frame;
+		dftrace_pairshot_reentry_initialised = 1;
+	}
+	else if (dftrace_pairshot_reentry_prior_sector != 7u && sector == 7u) {
+		++dftrace_pairshot_reentry_cycles;
+		dftrace_pairshot_reentry_open_frame = frame;
+	}
+	if (sector == 7u)
+		MEMORY_mem[dftrace_director_state + 8u] = 0x40u;
+	if (sector == 7u && dftrace_pairshot_reentry_cycles < target_cycles &&
+		frame - dftrace_pairshot_reentry_open_frame >= fighter_frames) {
+		MEMORY_mem[dftrace_sector_state] = 0u;
+		MEMORY_mem[dftrace_corridor_phase] = 0u;
+		MEMORY_mem[dftrace_corridor_phase_hi] = 0u;
+		MEMORY_mem[dftrace_broad_visible_scrolls] = 0u;
+		MEMORY_mem[dftrace_capital_drain_rows] = 0u;
+		/* The diagnostic is not the final-game terminal capital sector. */
+		MEMORY_mem[dftrace_director_state + 8u] &= 0xfeu;
+		sector = 0u;
+	}
+	dftrace_pairshot_reentry_prior_sector = sector;
+}
+
 static void dftrace_set_gameplay_input(unsigned frame)
 {
 	unsigned stick = 0x0f;
 	unsigned trigger = frame <= dftrace_fire_delay ? 1 : 0;
 	unsigned x = MEMORY_mem[dftrace_player_x];
 	unsigned y = MEMORY_mem[dftrace_player_y];
+	int pairshot_speed = strncmp(dftrace_policy, "pairshot-speed-", 15u) == 0;
+	int pairshot_reentry = strncmp(dftrace_policy, "pairshot-reentry-", 17u) == 0;
+	int booster_reentry = strcmp(dftrace_policy, "booster-reentry") == 0;
+	dftrace_prepare_pairshot_reentry(frame);
+	if (pairshot_speed) {
+		/* Eight isolated tap allocations, then >=1000 held frames, a 150-frame
+		 * release, and a second long hold exercise pause/resume and pool reuse. */
+		if (frame < 104u)
+			trigger = frame >= 8u && frame < 104u && (frame - 8u) % 12u == 0u ? 0u : 1u;
+		else if (frame < 1704u)
+			trigger = 0u;
+		else if (frame < 1854u)
+			trigger = 1u;
+		else
+			trigger = 0u;
+	}
+	else if (pairshot_reentry) {
+		/* Isolated taps establish a pre-capital baseline; held FIRE then spans
+		 * every traversal and all five fighter re-entry windows. Each re-entry
+		 * also gets a 30-frame release/resume interval after its first 60 frames. */
+		unsigned open_age = frame - dftrace_pairshot_reentry_open_frame;
+		if (MEMORY_mem[dftrace_sector_state] == 7u &&
+			dftrace_pairshot_reentry_cycles != 0u && open_age >= 60u && open_age < 90u)
+			trigger = 1u;
+		else
+			trigger = frame >= 8u && frame < 80u && (frame - 8u) % 12u == 0u ? 0u :
+				frame >= 96u ? 0u : 1u;
+	}
+	/* PairShot timing fixtures keep all gameplay and enemy scheduling native;
+	 * only the already-approved booster mode is held to isolate each weapon. */
+	if (strcmp(dftrace_policy, "pairshot-normal") == 0 ||
+		strcmp(dftrace_policy, "pairshot-speed-normal") == 0 ||
+		strcmp(dftrace_policy, "pairshot-reentry-normal") == 0)
+		MEMORY_mem[dftrace_entity_state + 2u] = 0u;
+	else if (strcmp(dftrace_policy, "pairshot-rapid") == 0 ||
+		strcmp(dftrace_policy, "pairshot-spread") == 0 ||
+		strcmp(dftrace_policy, "pairshot-speed-rapid") == 0 ||
+		strcmp(dftrace_policy, "pairshot-speed-spread") == 0 ||
+		strcmp(dftrace_policy, "pairshot-reentry-rapid") == 0 ||
+		strcmp(dftrace_policy, "pairshot-reentry-spread") == 0) {
+		MEMORY_mem[dftrace_entity_state + 2u] =
+			(strcmp(dftrace_policy, "pairshot-rapid") == 0 ||
+			 strcmp(dftrace_policy, "pairshot-speed-rapid") == 0 ||
+			 strcmp(dftrace_policy, "pairshot-reentry-rapid") == 0) ? 3u : 4u;
+		MEMORY_mem[dftrace_entity_timer + 2u] = 0xf4u;
+		MEMORY_mem[dftrace_entity_move_accumulator + 2u] = 1u;
+		MEMORY_mem[dftrace_entity_owner + 2u] = 1u;
+		MEMORY_mem[dftrace_entity_hp + 2u] = 17u;
+	}
 	if (strcmp(dftrace_policy, "capital-contact-allied") == 0 ||
 		strcmp(dftrace_policy, "capital-contact-hostile") == 0) {
 		unsigned slot;
@@ -1655,10 +2583,31 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		else if (frame % 128u >= 80u && y < DFTRACE_PLAYER_MAX_Y)
 			stick &= 0x0du;
 	}
-	else if (strcmp(dftrace_policy, "hunt") == 0) {
+	else if (strcmp(dftrace_policy, "raider-proof") == 0) {
+		/* Alternate the ordinary joystick target between the two independent
+		 * Raider slots. FIRE follows the session delay and production burst
+		 * controller; this movement-only build cannot damage either Raider. */
+		if (MEMORY_mem[dftrace_enemy_active] == 1u) {
+			unsigned slot = (frame / 48u) & 1u;
+			unsigned target = MEMORY_mem[dftrace_enemy_x + slot];
+			if (x + 3u < target)
+				stick = 0x07u;
+			else if (x > target + 3u)
+				stick = 0x0bu;
+		}
+	}
+	else if (strcmp(dftrace_policy, "hunt") == 0 ||
+		strcmp(dftrace_policy, "early-hunt") == 0 ||
+		strcmp(dftrace_policy, "pairshot-normal") == 0 ||
+		strcmp(dftrace_policy, "pairshot-rapid") == 0 ||
+		strcmp(dftrace_policy, "pairshot-spread") == 0 || pairshot_speed ||
+		pairshot_reentry || booster_reentry) {
 		/* Follow the live Interceptor's PMG origin using only ordinary joystick
 		 * input. This remains a production gameplay replay: no guest state is
 		 * seeded, and held FIRE enters the canonical burst controller. */
+		if (strcmp(dftrace_policy, "early-hunt") == 0 &&
+			MEMORY_mem[dftrace_entity_state + 2u] != 0u)
+			trigger = 1u;
 		if (MEMORY_mem[dftrace_entity_state + 1u] == 2u) {
 			unsigned target = MEMORY_mem[dftrace_entity_x + 1u];
 			++dftrace_pickup_hunt_active_frames;
@@ -2412,11 +3361,51 @@ static void dftrace_remember_capital_physical(unsigned slot)
 	dftrace_last_physical_frame[slot] = dftrace_count;
 }
 
+/* draw_enemy_member publishes a member's 16-row P1/P2 body only on frames where
+ * its Y moved; the licence for the skip is the invariant "the plane already
+ * holds the body at the member's current Y".  Verify it directly rather than
+ * trusting it: rebuild the expected plane from ENEMY_MEMBER_STATE, ENEMY_Y,
+ * ENEMY_ARCHETYPE and the archetype body table, and count the visible rows that
+ * differ.  A correct build reads 0 on every traced frame. */
+static void dftrace_snapshot_enemy_pmg_mismatch(DFTraceFrame *frame, int accumulate)
+{
+	unsigned slot;
+	unsigned archetype = MEMORY_mem[dftrace_enemy_archetype];
+	unsigned height = MEMORY_mem[(dftrace_enemy_frame_heights + archetype) & 0xffffu];
+	unsigned body = (dftrace_enemy_body_data + archetype * 16u) & 0xffffu;
+	for (slot = 0u; slot < 2u; ++slot) {
+		unsigned plane = 0x3d00u + slot * 0x100u;
+		unsigned live = MEMORY_mem[dftrace_enemy_member_state + slot] != 0u;
+		unsigned y = MEMORY_mem[dftrace_enemy_y + slot];
+		unsigned mismatch = 0u;
+		unsigned first = DFTRACE_ENEMY_PMG_NO_ROW;
+		unsigned row;
+		for (row = DFTRACE_ENEMY_PMG_TOP; row < DFTRACE_ENEMY_PMG_BOTTOM; ++row) {
+			unsigned expected = 0u;
+			if (live && row >= y && row < y + height)
+				expected = MEMORY_mem[(body + (row - y)) & 0xffffu];
+			if (MEMORY_mem[(plane + row) & 0xffffu] == expected)
+				continue;
+			++mismatch;
+			if (first == DFTRACE_ENEMY_PMG_NO_ROW)
+				first = row;
+		}
+		if (accumulate && frame->enemy_pmg_mismatch[slot] >= mismatch)
+			continue;
+		frame->enemy_pmg_mismatch[slot] = mismatch;
+		frame->enemy_pmg_mismatch_row[slot] = first;
+		frame->enemy_pmg_mismatch_writer[slot] = first == DFTRACE_ENEMY_PMG_NO_ROW
+			? 0u : dftrace_enemy_pmg_last_writer[slot][first];
+	}
+}
+
 static void dftrace_snapshot(DFTraceFrame *frame)
 {
+	unsigned pickup_row;
 	frame->dma_ctl = ANTIC_DMACTL;
 	frame->nmi_en = ANTIC_NMIEN;
-	frame->projectiles = dftrace_count_nonzero(dftrace_projectile_active, 19);
+	frame->projectiles = dftrace_count_nonzero(dftrace_projectile_active,
+		DFTRACE_PROJECTILE_ARRAY_STRIDE);
 	frame->broadside = dftrace_count_nonzero(dftrace_broad_state, 3);
 	frame->far_rendered = dftrace_count_far_rendered();
 	frame->live_interceptor = MEMORY_mem[dftrace_enemy_active] == 1;
@@ -2438,6 +3427,30 @@ static void dftrace_snapshot(DFTraceFrame *frame)
 	frame->prior = GTIA_PRIOR;
 	frame->sector_state = MEMORY_mem[dftrace_sector_state];
 	frame->gameplay_frame = MEMORY_mem[dftrace_gameplay_frame];
+	frame->active_gameplay_frame = MEMORY_mem[dftrace_active_gameplay_frame_lo] |
+		((unsigned) MEMORY_mem[dftrace_active_gameplay_frame_lo + 1u] << 8);
+	frame->enemy_state = MEMORY_mem[dftrace_enemy_active];
+	frame->enemy_y = MEMORY_mem[dftrace_enemy_y];
+	for (unsigned slot = 0u; slot < 2u; ++slot) {
+		frame->enemy_slot_x[slot] = MEMORY_mem[dftrace_enemy_x + slot];
+		frame->enemy_slot_y[slot] = MEMORY_mem[dftrace_enemy_y + slot];
+		frame->enemy_hpos[slot] = slot == 0u ? GTIA_HPOSP1 : GTIA_HPOSP2;
+		frame->enemy_pmg_rows[slot] = dftrace_count_nonzero(0x3d00u + slot * 0x100u, 256u);
+	}
+	dftrace_snapshot_enemy_pmg_mismatch(frame, 0);
+	for (unsigned member = 0u; member < 3u; ++member) {
+		frame->enemy_member_state[member] = MEMORY_mem[dftrace_enemy_member_state + member];
+		frame->enemy_member_hp[member] = MEMORY_mem[dftrace_enemy_hp + member];
+	}
+	frame->enemy_live_count = MEMORY_mem[dftrace_enemy_live_count];
+	frame->enemy_projectiles = dftrace_count_nonzero(
+		dftrace_projectile_active + DFTRACE_INTERCEPTOR_SLOT_BASE,
+		DFTRACE_INTERCEPTOR_SLOT_COUNT);
+	frame->director_phase = MEMORY_mem[dftrace_director_state];
+	frame->director_rng = MEMORY_mem[dftrace_director_state + 5u];
+	frame->director_intensity = MEMORY_mem[dftrace_director_state + 2u];
+	frame->director_reaction = MEMORY_mem[dftrace_director_state + 3u];
+	frame->director_recovery = MEMORY_mem[dftrace_director_state + 4u];
 	frame->difficulty = MEMORY_mem[dftrace_difficulty_setting];
 	frame->active_muzzles = dftrace_count_nonzero(dftrace_muzzle_screen_hi, 2);
 	frame->entity_active = MEMORY_mem[dftrace_entity_active_count];
@@ -2462,6 +3475,29 @@ static void dftrace_snapshot(DFTraceFrame *frame)
 		(frame->pickup_booster_state != 0u ? 2u : 1u)];
 	frame->pickup_render_id = MEMORY_mem[dftrace_entity_render_id + 1u];
 	frame->pickup_drawn_mask = MEMORY_mem[dftrace_entity_drawn_mask + 1u];
+	frame->pickup_pmg_rows = 0u;
+	for (pickup_row = 0u; pickup_row < 256u; ++pickup_row) {
+		if ((MEMORY_mem[0x3b00u + pickup_row] & 0xf0u) != 0u)
+			++frame->pickup_pmg_rows;
+	}
+	frame->pickup_hposm[0] = GTIA_HPOSM0;
+	frame->pickup_hposm[1] = GTIA_HPOSM1;
+	frame->pickup_hposm[2] = GTIA_HPOSM2;
+	frame->pickup_hposm[3] = GTIA_HPOSM3;
+	frame->pickup_sizem = GTIA_SIZEM;
+	frame->pickup_screen_lo = MEMORY_mem[dftrace_entity_screen_lo + 1u];
+	frame->pickup_screen_hi = MEMORY_mem[dftrace_entity_screen_hi + 1u];
+	frame->pickup_pmg_byte_top = frame->pickup_screen_hi == 0u ? 0u :
+		MEMORY_mem[0x3b00u + frame->pickup_screen_lo];
+	frame->pickup_pmg_byte_middle = frame->pickup_screen_hi == 0u ? 0u :
+		MEMORY_mem[0x3b00u + frame->pickup_screen_lo + 7u];
+	frame->pickup_pmg_byte_bottom = frame->pickup_screen_hi == 0u ? 0u :
+		MEMORY_mem[0x3b00u + frame->pickup_screen_lo + 15u];
+	frame->pickup_gractl = GTIA_GRACTL;
+	for (unsigned slot = 0u; slot < 4u; ++slot) {
+		frame->entity_type[slot] = MEMORY_mem[dftrace_entity_type + slot];
+		frame->entity_state[slot] = MEMORY_mem[dftrace_entity_state + slot];
+	}
 	frame->score_lo = MEMORY_mem[dftrace_score_lo];
 	frame->score_hi = MEMORY_mem[dftrace_score_hi];
 }
@@ -2474,6 +3510,719 @@ static unsigned dftrace_logical_row_address(unsigned row)
 		return 0u;
 	return MEMORY_mem[dftrace_playfield_row_lo + row - 1u] |
 		(MEMORY_mem[dftrace_playfield_row_hi + row - 1u] << 8);
+}
+
+static int dftrace_interceptor_display_position(unsigned address,
+	unsigned *raster_row, unsigned *raster_column)
+{
+	unsigned row;
+	if (address >= DFTRACE_DIVIDER_SCREEN && address < DFTRACE_DIVIDER_SCREEN + 40u) {
+		*raster_row = 0u;
+		*raster_column = address - DFTRACE_DIVIDER_SCREEN;
+		return 1;
+	}
+	for (row = 0u; row < DFTRACE_RING_ROWS; ++row) {
+		unsigned base = 0x7f00u + dftrace_displayed_dlist_lo;
+		unsigned pointer = MEMORY_mem[base + 7u + row * 3u] |
+			((unsigned) MEMORY_mem[base + 8u + row * 3u] << 8);
+		if (address >= pointer && address < pointer + 40u) {
+			*raster_row = row + 1u;
+			*raster_column = address - pointer;
+			return 1;
+		}
+	}
+	*raster_row = 0xffffffffu;
+	*raster_column = 0xffffffffu;
+	return 0;
+}
+
+/* Diagnostic-only first-writer journal. The observer runs immediately after
+ * the previous instruction completed, so the previous PC plus the unchanged
+ * X/Y registers identify the exact effective address of every production
+ * store used by screen, ring and PMG publishers. No guest byte is modified. */
+static int dftrace_first_writer_effective_address(unsigned pc,
+	unsigned x_register, unsigned y_register, unsigned *address)
+{
+	unsigned opcode = MEMORY_mem[pc];
+	unsigned operand = MEMORY_mem[(pc + 1u) & 0xffffu];
+	unsigned base;
+	switch (opcode) {
+	case 0x81u: /* STA (zp,X) */
+		operand = (operand + x_register) & 0xffu;
+		*address = MEMORY_mem[operand] |
+			((unsigned) MEMORY_mem[(operand + 1u) & 0xffu] << 8);
+		return 1;
+	case 0x91u: /* STA (zp),Y */
+		base = MEMORY_mem[operand] |
+			((unsigned) MEMORY_mem[(operand + 1u) & 0xffu] << 8);
+		*address = (base + y_register) & 0xffffu;
+		return 1;
+	case 0x8du: /* STA abs */
+	case 0x8eu: /* STX abs */
+	case 0x8cu: /* STY abs */
+	case 0xeeu: /* INC abs */
+	case 0xceu: /* DEC abs */
+	case 0x0eu: /* ASL abs */
+	case 0x4eu: /* LSR abs */
+	case 0x2eu: /* ROL abs */
+	case 0x6eu: /* ROR abs */
+		*address = operand |
+			((unsigned) MEMORY_mem[(pc + 2u) & 0xffffu] << 8);
+		return 1;
+	case 0x9du: /* STA abs,X */
+	case 0xfeu: /* INC abs,X */
+	case 0xdeu: /* DEC abs,X */
+	case 0x1eu: /* ASL abs,X */
+	case 0x5eu: /* LSR abs,X */
+	case 0x3eu: /* ROL abs,X */
+	case 0x7eu: /* ROR abs,X */
+		base = operand | ((unsigned) MEMORY_mem[(pc + 2u) & 0xffffu] << 8);
+		*address = (base + x_register) & 0xffffu;
+		return 1;
+	case 0x99u: /* STA abs,Y */
+		base = operand | ((unsigned) MEMORY_mem[(pc + 2u) & 0xffffu] << 8);
+		*address = (base + y_register) & 0xffffu;
+		return 1;
+	default:
+		return 0;
+	}
+}
+
+/* Diagnostic-only Player PairShot lifecycle/publication journal. It observes
+ * completed production stores and never writes guest state. */
+static void dftrace_player_pairshot_frame_begin(void)
+{
+	unsigned slot;
+	if (dftrace_player_pairshot_output == NULL)
+		return;
+	for (slot = 0u; slot < DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT; ++slot) {
+		dftrace_player_pairshot_before_active[slot] =
+			MEMORY_mem[dftrace_projectile_active + slot];
+		dftrace_player_pairshot_before_y[slot] = MEMORY_mem[dftrace_projectile_active +
+			DFTRACE_PROJECTILE_ARRAY_STRIDE * 2u + slot];
+		dftrace_player_pairshot_before_lifetime[slot] = MEMORY_mem[dftrace_projectile_active +
+			DFTRACE_PROJECTILE_ARRAY_STRIDE * 4u + slot];
+		dftrace_player_pairshot_active_shadow[slot] =
+			dftrace_player_pairshot_before_active[slot];
+		dftrace_player_pairshot_update_count[slot] = 0u;
+		dftrace_player_pairshot_render_count[slot] = 0u;
+		dftrace_player_pairshot_write_count[slot] = 0u;
+		dftrace_player_pairshot_allocations[slot] = 0u;
+		dftrace_player_pairshot_releases[slot] = 0u;
+		dftrace_player_pairshot_selected_code[slot] = 0xffffffffu;
+		dftrace_player_pairshot_published_code[slot] = 0xffffffffu;
+		dftrace_player_pairshot_publication_writer[slot] = 0u;
+	}
+	dftrace_player_pairshot_glyph_writes = 0u;
+	dftrace_player_pairshot_glyph_last_writer = 0u;
+	dftrace_player_pairshot_gameplay_chbase_writes = 0u;
+	dftrace_player_pairshot_hud_chbase_writes = 0u;
+}
+
+static void dftrace_player_pairshot_track(unsigned pc,
+	unsigned x_register, unsigned y_register)
+{
+	unsigned address;
+	if (dftrace_player_pairshot_output == NULL)
+		return;
+	if (pc == dftrace_pc_claim_projectile &&
+		x_register < DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT)
+		++dftrace_player_pairshot_render_count[x_register];
+	if (pc == dftrace_pc_compose_start &&
+		x_register < DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT)
+		dftrace_player_pairshot_selected_code[x_register] =
+			MEMORY_mem[dftrace_loader_repeat_value] & 0x7fu;
+	if (dftrace_previous_pc == 0u ||
+		!dftrace_first_writer_effective_address(dftrace_previous_pc,
+			x_register, y_register, &address))
+		return;
+	if (address >= DFTRACE_CHARSET + DFTRACE_PLAYER_GLYPH_FIRST * 8u &&
+		address < DFTRACE_CHARSET +
+			(DFTRACE_PLAYER_GLYPH_FIRST + DFTRACE_PLAYER_GLYPH_COUNT) * 8u) {
+		++dftrace_player_pairshot_glyph_writes;
+		dftrace_player_pairshot_glyph_last_writer = dftrace_previous_pc;
+	}
+	if (address == 0xd409u) {
+		if (ANTIC_CHBASE == 0x44u) {
+			++dftrace_player_pairshot_gameplay_chbase_writes;
+			dftrace_player_pairshot_gameplay_chbase_writer = dftrace_previous_pc;
+			dftrace_player_pairshot_gameplay_chbase_host =
+				(unsigned) Atari800_nframes;
+		}
+		else if (ANTIC_CHBASE == 0x50u) {
+			++dftrace_player_pairshot_hud_chbase_writes;
+			dftrace_player_pairshot_hud_chbase_writer = dftrace_previous_pc;
+			dftrace_player_pairshot_hud_chbase_host =
+				(unsigned) Atari800_nframes;
+		}
+	}
+	if (address >= dftrace_projectile_active &&
+		address < dftrace_projectile_active + DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT) {
+		unsigned slot = address - dftrace_projectile_active;
+		unsigned prior = dftrace_player_pairshot_active_shadow[slot];
+		unsigned active = MEMORY_mem[address];
+		if (prior == 0u && active != 0u) {
+			++dftrace_player_pairshot_allocations[slot];
+			dftrace_player_pairshot_allocation_frame[slot] = dftrace_count;
+		}
+		else if (prior != 0u && active == 0u) {
+			++dftrace_player_pairshot_releases[slot];
+			dftrace_player_pairshot_release_frame[slot] = dftrace_count;
+		}
+		dftrace_player_pairshot_active_shadow[slot] = active;
+	}
+	if (address >= dftrace_projectile_active + DFTRACE_PROJECTILE_ARRAY_STRIDE * 2u &&
+		address < dftrace_projectile_active + DFTRACE_PROJECTILE_ARRAY_STRIDE * 2u +
+			DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT &&
+		dftrace_previous_pc >= dftrace_pc_projectile_update_start &&
+		dftrace_previous_pc < dftrace_pc_interceptor_update_start)
+		++dftrace_player_pairshot_update_count[address -
+			(dftrace_projectile_active + DFTRACE_PROJECTILE_ARRAY_STRIDE * 2u)];
+	if (((address >= DFTRACE_DIVIDER_SCREEN &&
+		address < DFTRACE_DIVIDER_SCREEN + 40u) ||
+		(address >= DFTRACE_RING_SCREEN && address < DFTRACE_RING_END)) &&
+		dftrace_previous_pc >= dftrace_pc_render_slot &&
+		dftrace_previous_pc < dftrace_pc_render_end &&
+		x_register < DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT) {
+		unsigned owned = MEMORY_mem[dftrace_projectile_screen_lo + x_register] |
+			((unsigned) MEMORY_mem[dftrace_projectile_screen_hi + x_register] << 8);
+		if (address == owned)
+		{
+			++dftrace_player_pairshot_write_count[x_register];
+			dftrace_player_pairshot_published_code[x_register] =
+				MEMORY_mem[address] & 0x7fu;
+			dftrace_player_pairshot_publication_writer[x_register] =
+				dftrace_previous_pc;
+			if (dftrace_player_pairshot_selected_code[x_register] == 0xffffffffu)
+				dftrace_player_pairshot_selected_code[x_register] =
+					dftrace_player_pairshot_published_code[x_register];
+		}
+	}
+}
+
+static void dftrace_write_player_pairshots(DFTraceFrame *frame)
+{
+	FILE *file;
+	unsigned slot;
+	if (dftrace_player_pairshot_output == NULL)
+		return;
+	file = fopen(dftrace_player_pairshot_output,
+		dftrace_player_pairshot_output_initialised ? "a" : "w");
+	if (file == NULL) {
+		perror("voidstrike65 player PairShot trace");
+		exit(2);
+	}
+	if (!dftrace_player_pairshot_output_initialised) {
+		fputs("session,frame,host_frame,pal_frame,slot,active_before,active_after,weapon_mode,y_before,y_after,delta_y,update_count,render_count,character_write_count,lifetime_before,lifetime_after,allocation_count,release_count,allocation_frame,release_frame,rendered,screen_address,screen_code,screen_row,screen_top,render_phase,expected_phase,phase_match,visible_y,fire_input,fire_accepts,burst_state,burst_remaining,burst_timer,active_player_pairshots,active_enemy_pairshots,sector_state,world_event,effects_active,gameplay_frame,active_frame,chbase_end,charset_address,glyph_bank_address,glyph_bank_hash,horizontal_phase,vertical_phase,glyph_address,ring_head_address,ring_head_physical,glyph_write_count,glyph_last_writer,selected_code,published_code,publication_writer,gameplay_chbase_writes,gameplay_chbase_writer,gameplay_chbase_host,hud_chbase_writes,hud_chbase_writer,hud_chbase_host\n", file);
+		dftrace_player_pairshot_output_initialised = 1u;
+	}
+	for (slot = 0u; slot < DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT; ++slot) {
+		unsigned active = MEMORY_mem[dftrace_projectile_active + slot];
+		unsigned y = MEMORY_mem[dftrace_projectile_active +
+			DFTRACE_PROJECTILE_ARRAY_STRIDE * 2u + slot];
+		unsigned lifetime = MEMORY_mem[dftrace_projectile_active +
+			DFTRACE_PROJECTILE_ARRAY_STRIDE * 4u + slot];
+		unsigned rendered = MEMORY_mem[dftrace_projectile_rendered + slot];
+		unsigned address = MEMORY_mem[dftrace_projectile_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_projectile_screen_hi + slot] << 8);
+		unsigned code = MEMORY_mem[address] & 0x7fu;
+		unsigned phase_code = dftrace_player_pairshot_selected_code[slot] !=
+			0xffffffffu ? dftrace_player_pairshot_selected_code[slot] : code;
+		unsigned row = y >= 16u && y <= 240u ? (y - 16u) / 8u : 0xffffffffu;
+		unsigned screen_top = y & 0xf8u;
+		unsigned render_phase = phase_code >= 11u && phase_code < 47u ?
+			(phase_code - 11u) % 9u :
+			0xffffffffu;
+		unsigned expected_phase = y & 7u;
+		unsigned shot_mask = (MEMORY_mem[dftrace_projectile_active +
+			DFTRACE_PROJECTILE_ARRAY_STRIDE + slot] & 2u) != 0u ? 0x0cu : 0xc0u;
+		unsigned phase_match = 1u;
+		unsigned phase_row;
+		for (phase_row = 0u; phase_row < 4u; ++phase_row) {
+			unsigned row_offset = (expected_phase + (phase_row & 1u) +
+				(phase_row >= 2u ? 4u : 0u)) & 7u;
+			if ((MEMORY_mem[DFTRACE_CHARSET + phase_code * 8u + row_offset] & shot_mask) !=
+				shot_mask)
+				phase_match = 0u;
+		}
+		unsigned visible_y = render_phase != 0xffffffffu ?
+			screen_top + render_phase : 0xffffffffu;
+		unsigned delta_y = (dftrace_player_pairshot_before_y[slot] - y) & 0xffu;
+		fprintf(file, "%s,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u",
+			dftrace_session, dftrace_count, (unsigned) Atari800_nframes,
+			MEMORY_mem[dftrace_gameplay_frame], slot,
+			dftrace_player_pairshot_before_active[slot], active,
+			MEMORY_mem[dftrace_entity_state + 2u],
+			dftrace_player_pairshot_before_y[slot], y, delta_y,
+			dftrace_player_pairshot_update_count[slot],
+			dftrace_player_pairshot_render_count[slot],
+			dftrace_player_pairshot_write_count[slot],
+			dftrace_player_pairshot_before_lifetime[slot], lifetime,
+			dftrace_player_pairshot_allocations[slot],
+			dftrace_player_pairshot_releases[slot],
+			dftrace_player_pairshot_allocation_frame[slot],
+			dftrace_player_pairshot_release_frame[slot], rendered, address, code,
+			row, screen_top, render_phase, expected_phase, phase_match, visible_y,
+			GTIA_TRIG[0] == 0u, frame->fire_accept_calls,
+			MEMORY_mem[dftrace_player_burst_state],
+			MEMORY_mem[dftrace_player_burst_state + 1u],
+			MEMORY_mem[dftrace_player_burst_state + 2u],
+			dftrace_count_nonzero(dftrace_projectile_active,
+				DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT),
+			dftrace_count_nonzero(dftrace_projectile_active + DFTRACE_INTERCEPTOR_SLOT_BASE,
+				DFTRACE_INTERCEPTOR_SLOT_COUNT), frame->sector_state,
+			(frame->events & DFTRACE_EVENT_WORLD) != 0u,
+			MEMORY_mem[dftrace_effect_active_mask], frame->gameplay_frame,
+			frame->active_gameplay_frame);
+		{
+			unsigned ring_head = MEMORY_mem[dftrace_playfield_row_lo] |
+				((unsigned) MEMORY_mem[dftrace_playfield_row_hi] << 8);
+			unsigned ring_physical = ring_head >= DFTRACE_RING_SCREEN &&
+				ring_head < DFTRACE_RING_END ? (ring_head - DFTRACE_RING_SCREEN) / 40u :
+				0xffffffffu;
+			unsigned horizontal_phase = (MEMORY_mem[dftrace_projectile_active +
+				DFTRACE_PROJECTILE_ARRAY_STRIDE + slot] & 2u) != 0u ? 2u : 0u;
+			fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n",
+				ANTIC_CHBASE, (unsigned) ANTIC_CHBASE << 8, DFTRACE_CHARSET +
+				DFTRACE_PLAYER_GLYPH_FIRST * 8u,
+				dftrace_hash_bytes(DFTRACE_CHARSET + DFTRACE_PLAYER_GLYPH_FIRST * 8u,
+					DFTRACE_PLAYER_GLYPH_COUNT * 8u), horizontal_phase, expected_phase,
+				DFTRACE_CHARSET + code * 8u, ring_head, ring_physical,
+				dftrace_player_pairshot_glyph_writes,
+				dftrace_player_pairshot_glyph_last_writer,
+				dftrace_player_pairshot_selected_code[slot],
+				dftrace_player_pairshot_published_code[slot],
+				dftrace_player_pairshot_publication_writer[slot],
+				dftrace_player_pairshot_gameplay_chbase_writes,
+				dftrace_player_pairshot_gameplay_chbase_writer,
+				dftrace_player_pairshot_gameplay_chbase_host,
+				dftrace_player_pairshot_hud_chbase_writes,
+				dftrace_player_pairshot_hud_chbase_writer,
+				dftrace_player_pairshot_hud_chbase_host);
+		}
+	}
+	if (fclose(file) != 0) {
+		perror("voidstrike65 player PairShot trace close");
+		exit(2);
+	}
+}
+
+static void dftrace_first_writer_position(unsigned address,
+	unsigned *logical_row, unsigned *column, unsigned *physical_row)
+{
+	unsigned raster_row;
+	unsigned raster_column;
+	*logical_row = 0xffffffffu;
+	*column = 0xffffffffu;
+	*physical_row = 0xffffffffu;
+	if (address >= DFTRACE_RING_SCREEN && address < DFTRACE_RING_END)
+		*physical_row = (address - DFTRACE_RING_SCREEN) / 40u;
+	if (dftrace_interceptor_display_position(address, &raster_row, &raster_column)) {
+		*logical_row = raster_row;
+		*column = raster_column;
+	}
+}
+
+static void dftrace_first_writer_emit(const char *kind, unsigned address,
+	unsigned old_value, unsigned new_value, unsigned writer_pc,
+	unsigned x_register, unsigned y_register, unsigned owner_mask)
+{
+	unsigned logical_row;
+	unsigned column;
+	unsigned physical_row;
+	unsigned ring_head = dftrace_logical_row_address(1u);
+	unsigned target = MEMORY_mem[dftrace_enemy_target_slot];
+	dftrace_first_writer_position(address, &logical_row, &column, &physical_row);
+	fprintf(dftrace_first_writer_file,
+		"%s,%s,%u,%u,%u,%llu,%d,%d,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%llu,%u,%u\n",
+		dftrace_session, kind, dftrace_count,
+		MEMORY_mem[dftrace_active_gameplay_frame_lo] |
+			((unsigned) MEMORY_mem[dftrace_active_gameplay_frame_lo + 1u] << 8),
+		(unsigned) Atari800_nframes, (unsigned long long) dftrace_clock(),
+		ANTIC_ypos, ANTIC_XPOS, address, old_value, new_value, writer_pc,
+		x_register, y_register, logical_row, column, physical_row, ring_head,
+		owner_mask, target,
+		MEMORY_mem[dftrace_enemy_member_state],
+		MEMORY_mem[dftrace_enemy_member_state + 1u],
+		MEMORY_mem[dftrace_enemy_x], MEMORY_mem[dftrace_enemy_x + 1u],
+		MEMORY_mem[dftrace_enemy_y], MEMORY_mem[dftrace_enemy_y + 1u],
+		MEMORY_mem[dftrace_entity_active_mask], MEMORY_mem[dftrace_entity_x],
+		MEMORY_mem[dftrace_entity_y], MEMORY_mem[dftrace_effect_active_mask],
+		dftrace_count_nonzero(dftrace_projectile_active,
+			DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT),
+		dftrace_count_nonzero(dftrace_projectile_active +
+			DFTRACE_INTERCEPTOR_SLOT_BASE, DFTRACE_INTERCEPTOR_SLOT_COUNT),
+		MEMORY_mem[dftrace_sector_state], MEMORY_mem[dftrace_ring_flags],
+		MEMORY_mem[dftrace_gameplay_frame], dftrace_first_writer_frame[address],
+		(unsigned long long) dftrace_first_writer_clock[address],
+		dftrace_first_writer_scanline[address], dftrace_first_writer_cycle[address]);
+}
+
+static void dftrace_first_writer_track(unsigned x_register, unsigned y_register)
+{
+	unsigned address;
+	unsigned old_value;
+	unsigned new_value;
+	if (dftrace_first_writer_file == NULL || dftrace_previous_pc == 0u ||
+		!dftrace_first_writer_effective_address(dftrace_previous_pc,
+			x_register, y_register, &address))
+		return;
+	if (!((address >= DFTRACE_DIVIDER_SCREEN &&
+			address < DFTRACE_DIVIDER_SCREEN + 40u) ||
+		  (address >= DFTRACE_RING_SCREEN && address < DFTRACE_RING_END) ||
+		  (address >= 0x3b00u && address < 0x4000u)))
+		return;
+	old_value = dftrace_first_writer_shadow[address];
+	new_value = MEMORY_mem[address];
+	if (old_value == new_value)
+		return;
+	dftrace_first_writer_shadow[address] = (unsigned char) new_value;
+	dftrace_first_writer_old[address] = old_value;
+	dftrace_first_writer_new[address] = new_value;
+	dftrace_first_writer_pc[address] = dftrace_previous_pc;
+	dftrace_first_writer_frame[address] = dftrace_count;
+	dftrace_first_writer_clock[address] = dftrace_clock();
+	dftrace_first_writer_scanline[address] = ANTIC_ypos;
+	dftrace_first_writer_cycle[address] = ANTIC_XPOS;
+	dftrace_first_writer_emit(address >= 0x3b00u && address < 0x4000u
+		? "pmg_write" : "character_write", address, old_value, new_value,
+		dftrace_previous_pc, x_register, y_register, 0u);
+}
+
+static unsigned dftrace_first_writer_owner(unsigned address)
+{
+	unsigned slot;
+	unsigned mask = 0u;
+	for (slot = 0u; slot < DFTRACE_NEAR_COUNT; ++slot) {
+		unsigned owned = MEMORY_mem[dftrace_near_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_near_screen_hi + slot] << 8);
+		if (owned == address && MEMORY_mem[address] == DFTRACE_NEAR_CODE)
+			mask |= 1u;
+	}
+	for (slot = 0u; slot < DFTRACE_PROJECTILE_SLOT_COUNT; ++slot) {
+		unsigned owned;
+		if (MEMORY_mem[dftrace_projectile_active + slot] == 0u ||
+			MEMORY_mem[dftrace_projectile_rendered + slot] == 0u)
+			continue;
+		owned = MEMORY_mem[dftrace_projectile_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_projectile_screen_hi + slot] << 8);
+		if (owned == address)
+			mask |= slot < DFTRACE_INTERCEPTOR_SLOT_BASE ? 2u : 4u;
+	}
+	if ((MEMORY_mem[dftrace_entity_drawn_mask] & 1u) != 0u) {
+		unsigned owned = MEMORY_mem[dftrace_entity_screen_lo] |
+			((unsigned) MEMORY_mem[dftrace_entity_screen_hi] << 8);
+		if (address == owned || address == owned + 1u)
+			mask |= 8u;
+	}
+	for (slot = 0u; slot < 5u; ++slot) {
+		unsigned owned;
+		if ((MEMORY_mem[dftrace_effect_rendered_mask] & (1u << slot)) == 0u)
+			continue;
+		owned = MEMORY_mem[dftrace_effect_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_effect_screen_hi + slot] << 8);
+		if (owned == address)
+			mask |= 16u;
+	}
+	if (dftrace_broad_live_owns_address(address))
+		mask |= 32u;
+	for (slot = 0u; slot < 2u; ++slot) {
+		unsigned owned = MEMORY_mem[dftrace_muzzle_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_muzzle_screen_hi + slot] << 8);
+		if (MEMORY_mem[dftrace_muzzle_screen_hi + slot] != 0u && owned == address)
+			mask |= 64u;
+	}
+	return mask;
+}
+
+static void dftrace_first_writer_kill(void)
+{
+	if (dftrace_first_writer_file == NULL)
+		return;
+	dftrace_first_writer_emit("raider_kill", 0u, 0u, 0u,
+		dftrace_pc_emitter_cleanup, 0u, 0u, 0u);
+}
+
+static void dftrace_first_writer_frame_end(void)
+{
+	unsigned row;
+	unsigned column;
+	if (dftrace_first_writer_file == NULL)
+		return;
+	for (row = 0u; row <= DFTRACE_RING_ROWS; ++row) {
+		unsigned base;
+		if (row == 0u)
+			base = DFTRACE_DIVIDER_SCREEN;
+		else {
+			unsigned dlist = 0x7f00u + dftrace_displayed_dlist_lo;
+			base = MEMORY_mem[dlist + 7u + (row - 1u) * 3u] |
+				((unsigned) MEMORY_mem[dlist + 8u + (row - 1u) * 3u] << 8);
+		}
+		if (base != DFTRACE_DIVIDER_SCREEN &&
+			!(base >= DFTRACE_RING_SCREEN && base + 40u <= DFTRACE_RING_END))
+			continue;
+		for (column = 8u; column < 32u; ++column) {
+			unsigned address = base + column;
+			unsigned value = MEMORY_mem[address];
+			if (value == 0u)
+				continue;
+			dftrace_first_writer_emit("character_visible", address,
+				dftrace_first_writer_old[address], value,
+				dftrace_first_writer_pc[address], 0u, 0u,
+				dftrace_first_writer_owner(address));
+		}
+	}
+	for (row = 0u; row < 256u; ++row) {
+		unsigned missile_address = 0x3b00u + row;
+		unsigned missile_value = MEMORY_mem[missile_address];
+		unsigned missile_owner =
+			(dftrace_count_nonzero(dftrace_broad_state, 3u) != 0u ||
+			 MEMORY_mem[dftrace_entity_state + 2u] != 0u) ? 512u : 0u;
+		if (missile_value != 0u)
+			dftrace_first_writer_emit("missile_visible", missile_address,
+				dftrace_first_writer_old[missile_address], missile_value,
+				dftrace_first_writer_pc[missile_address], 4u, row, missile_owner);
+		for (unsigned player = 0u; player < 4u; ++player) {
+			unsigned address = 0x3c00u + player * 0x100u + row;
+			unsigned value = MEMORY_mem[address];
+			unsigned owner;
+			if (player == 1u || player == 2u)
+				owner = MEMORY_mem[dftrace_enemy_member_state + player - 1u] == 1u
+					? 128u : 0u;
+			else
+				owner = (MEMORY_mem[dftrace_player_lifecycle] < 3u ||
+					dftrace_count_nonzero(dftrace_fighter_explosion_timer, 2u) != 0u)
+					? 256u : 0u;
+			if (value != 0u)
+				dftrace_first_writer_emit("pmg_visible", address,
+					dftrace_first_writer_old[address], value,
+					dftrace_first_writer_pc[address], player, row, owner);
+		}
+	}
+}
+
+static int dftrace_is_interceptor_projectile_code(unsigned code)
+{
+	return code >= DFTRACE_INTERCEPTOR_GLYPH_FIRST &&
+		code <= DFTRACE_INTERCEPTOR_GLYPH_LAST;
+}
+
+static void dftrace_watch_interceptor_projectiles(void)
+{
+	unsigned index;
+	if (dftrace_interceptor_projectile_output == NULL)
+		return;
+	for (index = 0u; index < DFTRACE_INTERCEPTOR_SLOT_COUNT; ++index) {
+		unsigned slot = index + DFTRACE_INTERCEPTOR_SLOT_BASE;
+		unsigned active = MEMORY_mem[dftrace_projectile_active + slot];
+		unsigned address = MEMORY_mem[dftrace_projectile_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_projectile_screen_hi + slot] << 8);
+		if (active != dftrace_interceptor_observed_active[index]) {
+			dftrace_interceptor_observed_active[index] = active;
+			dftrace_interceptor_last_active_writer[index] = dftrace_previous_pc;
+		}
+		if (address != dftrace_interceptor_watched_address[index]) {
+			dftrace_interceptor_watched_address[index] = address;
+			dftrace_interceptor_watched_value[index] = MEMORY_mem[address];
+			dftrace_interceptor_last_screen_writer[index] = 0u;
+		}
+		else if (MEMORY_mem[address] != dftrace_interceptor_watched_value[index]) {
+			dftrace_interceptor_watched_value[index] = MEMORY_mem[address];
+			dftrace_interceptor_last_screen_writer[index] = dftrace_previous_pc;
+		}
+	}
+}
+
+static void dftrace_write_interceptor_projectiles(DFTraceFrame *frame)
+{
+	FILE *file;
+	unsigned index;
+	if (dftrace_interceptor_projectile_output == NULL)
+		return;
+	file = fopen(dftrace_interceptor_projectile_output,
+		dftrace_interceptor_output_initialised ? "a" : "w");
+	if (file == NULL) {
+		perror("voidstrike65 interceptor projectile trace");
+		exit(2);
+	}
+	if (!dftrace_interceptor_output_initialised) {
+		fprintf(file, "frame,active_frame,slot,event,prior_active,active,prior_x,x,prior_y,y,prev_y,prior_lifetime,lifetime,rendered,address,screen_code,expected_code,visible,raster_row,raster_column,backing,parent_state,parent_x,parent_y,capital_state,ring_flags,ring_head,muzzle_overlap,broadside_overlap,projectile_overlap,last_active_writer_pc,last_screen_writer_pc,ttl_terminal,boundary_terminal,player_collision_terminal\n");
+		dftrace_interceptor_output_initialised = 1u;
+	}
+	for (index = 0u; index < DFTRACE_INTERCEPTOR_SLOT_COUNT; ++index) {
+		unsigned other;
+		unsigned slot = index + DFTRACE_INTERCEPTOR_SLOT_BASE;
+		unsigned active = MEMORY_mem[dftrace_projectile_active + slot];
+		unsigned x = MEMORY_mem[dftrace_projectile_active +
+			DFTRACE_PROJECTILE_ARRAY_STRIDE + slot];
+		unsigned y = MEMORY_mem[dftrace_projectile_active +
+			DFTRACE_PROJECTILE_ARRAY_STRIDE * 2u + slot];
+		unsigned prev_y = MEMORY_mem[dftrace_projectile_active +
+			DFTRACE_PROJECTILE_ARRAY_STRIDE * 3u + slot];
+		unsigned lifetime = MEMORY_mem[dftrace_projectile_active +
+			DFTRACE_PROJECTILE_ARRAY_STRIDE * 4u + slot];
+		unsigned rendered = MEMORY_mem[dftrace_projectile_rendered + slot];
+		unsigned address = MEMORY_mem[dftrace_projectile_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_projectile_screen_hi + slot] << 8);
+		unsigned screen_code = MEMORY_mem[address];
+		unsigned expected_code = 0x80u | (90u + ((x & 2u) ? 10u : 0u));
+		unsigned raster_row;
+		unsigned raster_column;
+		unsigned displayed = dftrace_interceptor_display_position(address,
+			&raster_row, &raster_column);
+		unsigned visible = active != 0u && rendered != 0u && displayed &&
+			dftrace_is_interceptor_projectile_code(screen_code);
+		unsigned muzzle_overlap = address ==
+			(MEMORY_mem[dftrace_muzzle_screen_lo] |
+			 ((unsigned) MEMORY_mem[dftrace_muzzle_screen_hi] << 8)) ||
+			address == (MEMORY_mem[dftrace_muzzle_screen_lo + 1u] |
+			 ((unsigned) MEMORY_mem[dftrace_muzzle_screen_hi + 1u] << 8));
+		unsigned projectile_overlap = 0u;
+		unsigned next_y = (dftrace_interceptor_previous_y[index] + 5u) & 0xffu;
+		unsigned delta_y = (dftrace_interceptor_previous_y[index] - frame->player_y) & 0xffu;
+		unsigned delta_x = (dftrace_interceptor_previous_x[index] - frame->player_x) & 0xffu;
+		unsigned ttl_terminal = dftrace_interceptor_previous_lifetime[index] == 1u;
+		unsigned boundary_terminal = next_y + 3u >= 241u;
+		unsigned player_collision_terminal =
+			(delta_y < 15u || delta_y >= 249u) && (delta_x < 8u || delta_x >= 255u);
+		unsigned emitter_death_terminal =
+			dftrace_interceptor_previous_active[index] >= 2u &&
+			MEMORY_mem[dftrace_enemy_member_state +
+				(dftrace_interceptor_previous_active[index] & 1u)] == 0u;
+		const char *event = active != 0u && dftrace_interceptor_previous_active[index] == 0u
+			? "spawn" : active == 0u && dftrace_interceptor_previous_active[index] != 0u
+			? "release" : "active";
+		for (other = 0u; other < DFTRACE_INTERCEPTOR_SLOT_COUNT; ++other) {
+			unsigned other_slot = other + DFTRACE_INTERCEPTOR_SLOT_BASE;
+			unsigned other_address;
+			if (other == index || MEMORY_mem[dftrace_projectile_active + other_slot] == 0u)
+				continue;
+			other_address = MEMORY_mem[dftrace_projectile_screen_lo + other_slot] |
+				((unsigned) MEMORY_mem[dftrace_projectile_screen_hi + other_slot] << 8);
+			if (other_address == address)
+				projectile_overlap = 1u;
+		}
+		if (active != 0u || dftrace_interceptor_previous_active[index] != 0u) {
+			fprintf(file, "%u,%u,%u,%s,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n",
+				dftrace_count, frame->active_gameplay_frame, slot, event,
+				dftrace_interceptor_previous_active[index], active,
+				dftrace_interceptor_previous_x[index], x,
+				dftrace_interceptor_previous_y[index], y, prev_y,
+				dftrace_interceptor_previous_lifetime[index], lifetime, rendered,
+				address, screen_code, expected_code, visible, raster_row, raster_column,
+				MEMORY_mem[dftrace_projectile_backing_top + slot], frame->enemy_state,
+				MEMORY_mem[dftrace_enemy_x], frame->enemy_y, frame->sector_state,
+				frame->ring_flags, dftrace_logical_row_address(1u), muzzle_overlap,
+				dftrace_broad_live_owns_address(address), projectile_overlap,
+				dftrace_interceptor_last_active_writer[index],
+				dftrace_interceptor_last_screen_writer[index], ttl_terminal,
+				boundary_terminal, player_collision_terminal);
+		}
+		/* A newly allocated shot is published after the displayed-list snapshot
+		 * used by this observer. Start enforcing visibility on its next frame. */
+		if (active != 0u && dftrace_interceptor_previous_active[index] != 0u && !visible)
+			dftrace_interceptor_first_anomaly = 1u;
+		else if (active == 0u && dftrace_interceptor_previous_active[index] != 0u &&
+			!ttl_terminal && !boundary_terminal && !player_collision_terminal &&
+			!emitter_death_terminal &&
+			frame->player_lifecycle < 3u)
+			dftrace_interceptor_first_anomaly = 1u;
+		dftrace_interceptor_previous_active[index] = active;
+		dftrace_interceptor_previous_x[index] = x;
+		dftrace_interceptor_previous_y[index] = y;
+		dftrace_interceptor_previous_lifetime[index] = lifetime;
+	}
+	if (fclose(file) != 0) {
+		perror("voidstrike65 interceptor projectile trace close");
+		exit(2);
+	}
+}
+
+/* Diagnostic-only physical-frame snapshot for cross-sector clock proofs.
+ * Keep this independent from the production XEX and from the already frozen
+ * general observer CSV: one row is emitted at the end of each admitted PAL
+ * simulation tick, with all five player PairShot records and all four white
+ * star records sampled from Atari RAM. */
+static void dftrace_write_sector_clock(DFTraceFrame *frame)
+{
+	FILE *file;
+	unsigned slot;
+	if (dftrace_sector_clock_output == NULL)
+		return;
+	file = fopen(dftrace_sector_clock_output,
+		dftrace_sector_clock_output_initialised ? "a" : "w");
+	if (file == NULL) {
+		perror("voidstrike65 sector clock trace");
+		exit(2);
+	}
+	if (!dftrace_sector_clock_output_initialised) {
+		fprintf(file, "frame,host_frame,active_frame,sector,ring_event,star_phase");
+		for (slot = 0u; slot < DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT; ++slot)
+			fprintf(file, ",p%u_active,p%u_y,p%u_prev_y,p%u_lifetime",
+				slot, slot, slot, slot);
+		for (slot = 0u; slot < DFTRACE_NEAR_COUNT; ++slot)
+			fprintf(file, ",star%u_row,star%u_address", slot, slot);
+		fputc('\n', file);
+		dftrace_sector_clock_output_initialised = 1u;
+	}
+	fprintf(file, "%u,%u,%u,%u,%u,%u", dftrace_count,
+		(unsigned) Atari800_nframes, frame->active_gameplay_frame,
+		frame->sector_state, (frame->events & DFTRACE_EVENT_WORLD) != 0u,
+		MEMORY_mem[dftrace_far_active]);
+	for (slot = 0u; slot < DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT; ++slot) {
+		unsigned active = MEMORY_mem[dftrace_projectile_active + slot];
+		unsigned y = MEMORY_mem[dftrace_projectile_active +
+			DFTRACE_PROJECTILE_ARRAY_STRIDE * 2u + slot];
+		unsigned previous_y = MEMORY_mem[dftrace_projectile_active +
+			DFTRACE_PROJECTILE_ARRAY_STRIDE * 3u + slot];
+		unsigned lifetime = MEMORY_mem[dftrace_projectile_active +
+			DFTRACE_PROJECTILE_ARRAY_STRIDE * 4u + slot];
+		fprintf(file, ",%u,%u,%u,%u", active, y, previous_y, lifetime);
+	}
+	for (slot = 0u; slot < DFTRACE_NEAR_COUNT; ++slot) {
+		unsigned address = MEMORY_mem[dftrace_near_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_near_screen_hi + slot] << 8);
+		fprintf(file, ",%u,%u", MEMORY_mem[dftrace_near_row + slot], address);
+	}
+	fputc('\n', file);
+	if (fclose(file) != 0) {
+		perror("voidstrike65 sector clock trace close");
+		exit(2);
+	}
+}
+
+/* Diagnostic-only Light-slot snapshot (roadmap 4.4 Interceptor evidence).
+ * Opt-in: DFTRACE_LIGHT_OUTPUT names the CSV, DFTRACE_LIGHT_BASE the C-owned
+ * HYBRID_LIGHT_STATE block. One row per admitted PAL simulation tick, sampled
+ * from Atari RAM; it adds no emulated cycles and leaves the frozen general
+ * observer CSV untouched. */
+static void dftrace_write_light(DFTraceFrame *frame)
+{
+	FILE *file;
+	if (dftrace_light_output == NULL)
+		return;
+	file = fopen(dftrace_light_output, dftrace_light_output_initialised ? "a" : "w");
+	if (file == NULL) {
+		perror("voidstrike65 light trace");
+		exit(2);
+	}
+	if (!dftrace_light_output_initialised) {
+		fprintf(file, "frame,active_frame,sector,light_state,light_hp,light_x,light_y,"
+			"light_fire_timer,light_leaderless,light_archetype_offset,light_burst_left,"
+			"light_post_burst_slot\n");
+		dftrace_light_output_initialised = 1u;
+	}
+	fprintf(file, "%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n", dftrace_count,
+		frame->active_gameplay_frame, frame->sector_state,
+		MEMORY_mem[dftrace_light_base], MEMORY_mem[dftrace_light_base + 1u],
+		MEMORY_mem[dftrace_light_base + 2u], MEMORY_mem[dftrace_light_base + 3u],
+		MEMORY_mem[dftrace_light_base + 4u], MEMORY_mem[dftrace_light_base + 5u],
+		MEMORY_mem[dftrace_light_base + 12u], MEMORY_mem[dftrace_light_base + 13u],
+		MEMORY_mem[dftrace_light_base + 15u]);
+	if (fclose(file) != 0) {
+		perror("voidstrike65 light trace close");
+		exit(2);
+	}
 }
 
 static int dftrace_is_hull_transient(unsigned value)
@@ -2498,6 +4247,8 @@ static void dftrace_snapshot_muzzles(DFTraceFrame *frame)
 	frame->active_muzzles = 0u;
 	frame->muzzle_code_cells = 0u;
 	frame->muzzle_illegal_cells = 0u;
+	frame->muzzle_illegal_address = 0u;
+	frame->muzzle_illegal_code = 0u;
 	frame->muzzle_pointer_errors = 0u;
 	frame->broad_pointer_errors = 0u;
 	for (slot = 0u; slot < 2u; ++slot) {
@@ -2511,6 +4262,9 @@ static void dftrace_snapshot_muzzles(DFTraceFrame *frame)
 		frame->muzzle_row[slot] = row;
 		frame->muzzle_pointer[slot] = pointer;
 		frame->muzzle_cell[slot] = pointer == 0u ? 0u : MEMORY_mem[pointer];
+		frame->muzzle_cell_writer_pc[slot] = pointer == 0u ? 0u :
+			dftrace_character_last_writer[pointer];
+		frame->muzzle_projectile_occlusion[slot] = dftrace_projectile_occludes(pointer);
 		if (MEMORY_mem[dftrace_muzzle_screen_hi + slot] != 0u) {
 			++frame->active_muzzles;
 			if (pointer != expected || frame->muzzle_domain[slot] != (row == 0u ? 0u : 1u))
@@ -2523,15 +4277,25 @@ static void dftrace_snapshot_muzzles(DFTraceFrame *frame)
 		if (!dftrace_is_hull_transient(MEMORY_mem[address]))
 			continue;
 		++frame->muzzle_code_cells;
-		if (address != frame->muzzle_pointer[0] && address != frame->muzzle_pointer[1])
+		if (address != frame->muzzle_pointer[0] && address != frame->muzzle_pointer[1]) {
+			if (frame->muzzle_illegal_cells == 0u) {
+				frame->muzzle_illegal_address = address;
+				frame->muzzle_illegal_code = MEMORY_mem[address];
+			}
 			++frame->muzzle_illegal_cells;
+		}
 	}
 	for (address = DFTRACE_RING_SCREEN; address < DFTRACE_RING_END; ++address) {
 		if (!dftrace_is_hull_transient(MEMORY_mem[address]))
 			continue;
 		++frame->muzzle_code_cells;
-		if (address != frame->muzzle_pointer[0] && address != frame->muzzle_pointer[1])
+		if (address != frame->muzzle_pointer[0] && address != frame->muzzle_pointer[1]) {
+			if (frame->muzzle_illegal_cells == 0u) {
+				frame->muzzle_illegal_address = address;
+				frame->muzzle_illegal_code = MEMORY_mem[address];
+			}
 			++frame->muzzle_illegal_cells;
+		}
 	}
 	frame->muzzle_divider_allied = MEMORY_mem[DFTRACE_DIVIDER_SCREEN + 8u];
 	frame->muzzle_divider_enemy = MEMORY_mem[DFTRACE_DIVIDER_SCREEN + 31u];
@@ -2571,7 +4335,12 @@ static void dftrace_snapshot_muzzles(DFTraceFrame *frame)
 
 static void dftrace_snapshot_flash(DFTraceFrame *frame)
 {
+	unsigned pickup_row;
 	dftrace_snapshot_rapid_projectile(frame);
+	dftrace_snapshot_player_pairshot_orphans(frame);
+	dftrace_snapshot_enemy_pairshot_orphans(frame);
+	dftrace_snapshot_transient_effect_orphans(frame);
+	dftrace_snapshot_transient_effect_coordinates(frame);
 	frame->colbk = GTIA_COLBK;
 	frame->colpm0 = GTIA_COLPM0;
 	frame->colpm1 = GTIA_COLPM1;
@@ -2610,8 +4379,55 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 		(frame->pickup_booster_state != 0u ? 2u : 1u)];
 	frame->pickup_render_id = MEMORY_mem[dftrace_entity_render_id + 1u];
 	frame->pickup_drawn_mask = MEMORY_mem[dftrace_entity_drawn_mask + 1u];
+	frame->pickup_pmg_rows = 0u;
+	for (pickup_row = 0u; pickup_row < 256u; ++pickup_row) {
+		if ((MEMORY_mem[0x3b00u + pickup_row] & 0xf0u) != 0u)
+			++frame->pickup_pmg_rows;
+	}
+	frame->pickup_hposm[0] = GTIA_HPOSM0;
+	frame->pickup_hposm[1] = GTIA_HPOSM1;
+	frame->pickup_hposm[2] = GTIA_HPOSM2;
+	frame->pickup_hposm[3] = GTIA_HPOSM3;
+	frame->pickup_sizem = GTIA_SIZEM;
+	frame->pickup_screen_lo = MEMORY_mem[dftrace_entity_screen_lo + 1u];
+	frame->pickup_screen_hi = MEMORY_mem[dftrace_entity_screen_hi + 1u];
+	frame->pickup_pmg_byte_top = frame->pickup_screen_hi == 0u ? 0u :
+		MEMORY_mem[0x3b00u + frame->pickup_screen_lo];
+	frame->pickup_pmg_byte_middle = frame->pickup_screen_hi == 0u ? 0u :
+		MEMORY_mem[0x3b00u + frame->pickup_screen_lo + 7u];
+	frame->pickup_pmg_byte_bottom = frame->pickup_screen_hi == 0u ? 0u :
+		MEMORY_mem[0x3b00u + frame->pickup_screen_lo + 15u];
+	frame->pickup_gractl = GTIA_GRACTL;
+	for (unsigned slot = 0u; slot < 4u; ++slot) {
+		frame->entity_type[slot] = MEMORY_mem[dftrace_entity_type + slot];
+		frame->entity_state[slot] = MEMORY_mem[dftrace_entity_state + slot];
+	}
 	frame->score_lo = MEMORY_mem[dftrace_score_lo];
 	frame->score_hi = MEMORY_mem[dftrace_score_hi];
+	frame->active_gameplay_frame = MEMORY_mem[dftrace_active_gameplay_frame_lo] |
+		((unsigned) MEMORY_mem[dftrace_active_gameplay_frame_lo + 1u] << 8);
+	frame->enemy_state = MEMORY_mem[dftrace_enemy_active];
+	frame->enemy_y = MEMORY_mem[dftrace_enemy_y];
+	for (unsigned slot = 0u; slot < 2u; ++slot) {
+		frame->enemy_slot_x[slot] = MEMORY_mem[dftrace_enemy_x + slot];
+		frame->enemy_slot_y[slot] = MEMORY_mem[dftrace_enemy_y + slot];
+		frame->enemy_hpos[slot] = slot == 0u ? GTIA_HPOSP1 : GTIA_HPOSP2;
+		frame->enemy_pmg_rows[slot] = dftrace_count_nonzero(0x3d00u + slot * 0x100u, 256u);
+	}
+	dftrace_snapshot_enemy_pmg_mismatch(frame, 1);
+	for (unsigned member = 0u; member < 3u; ++member) {
+		frame->enemy_member_state[member] = MEMORY_mem[dftrace_enemy_member_state + member];
+		frame->enemy_member_hp[member] = MEMORY_mem[dftrace_enemy_hp + member];
+	}
+	frame->enemy_live_count = MEMORY_mem[dftrace_enemy_live_count];
+	frame->enemy_projectiles = dftrace_count_nonzero(
+		dftrace_projectile_active + DFTRACE_INTERCEPTOR_SLOT_BASE,
+		DFTRACE_INTERCEPTOR_SLOT_COUNT);
+	frame->director_phase = MEMORY_mem[dftrace_director_state];
+	frame->director_rng = MEMORY_mem[dftrace_director_state + 5u];
+	frame->director_intensity = MEMORY_mem[dftrace_director_state + 2u];
+	frame->director_reaction = MEMORY_mem[dftrace_director_state + 3u];
+	frame->director_recovery = MEMORY_mem[dftrace_director_state + 4u];
 	frame->dli_sequence_violations = dftrace_dli_sequence_violations;
 	frame->maximum_dlis_per_host_frame = dftrace_maximum_dlis_per_host_frame;
 	frame->pause_test_completed = dftrace_pause_test_completed;
@@ -2641,6 +4457,7 @@ static void dftrace_write(void)
 			index, index, index);
 	fprintf(file, ",profile_compose_calls,profile_compose_cycles"
 		",profile_pointer_calls,profile_pointer_cycles"
+		",profile_publication_begin"
 		",profile_erase_player_fighter_start,profile_interceptor_update_start"
 		",profile_interceptor_render_start,profile_entity_erase_start"
 		",profile_effect_update_end,profile_pickup_update_end"
@@ -2648,9 +4465,11 @@ static void dftrace_write(void)
 		",player_x,player_y,prior,player_erase_calls,player_draw_calls"
 		",player_erase_scanline,player_draw_scanline");
 	for (index = 0; index < 2u; ++index)
-		fprintf(file, ",muzzle%u_domain,muzzle%u_row,muzzle%u_pointer,muzzle%u_cell",
-			index, index, index, index);
-	fprintf(file, ",muzzle_code_cells,muzzle_illegal_cells,muzzle_pointer_errors"
+		fprintf(file, ",muzzle%u_domain,muzzle%u_row,muzzle%u_pointer,muzzle%u_cell"
+			",muzzle%u_writer_pc,muzzle%u_projectile",
+			index, index, index, index, index, index);
+	fprintf(file, ",muzzle_code_cells,muzzle_illegal_cells"
+		",muzzle_illegal_address,muzzle_illegal_code,muzzle_pointer_errors"
 		",muzzle_divider_allied,muzzle_divider_enemy");
 	for (index = 0; index < 3u; ++index)
 		fprintf(file, ",broad%u_state,broad%u_flash,broad%u_turret,broad%u_row,broad%u_pointer"
@@ -2666,7 +4485,48 @@ static void dftrace_write(void)
 		",player_damage_cooldown,player_damage_applied,capital_collision_calls"
 		",capital_player_damage_calls,player_lifecycle_after,player_x_after,player_y_after"
 		",player_health_after,player_lives_after,player_invulnerability_after"
-		",player_damage_cooldown_after\n");
+		",player_damage_cooldown_after,active_gameplay_frame,enemy_state,enemy_y"
+		",director_phase,director_rng,director_intensity,director_reaction,director_recovery"
+		",enemy_member0_state,enemy_member1_state,enemy_member2_state"
+		",enemy_member0_hp,enemy_member1_hp,enemy_member2_hp"
+		",enemy_live_count,enemy_projectiles"
+		",enemy_x0,enemy_x1,enemy_y0,enemy_y1,enemy_hpos1,enemy_hpos2"
+		",enemy_pmg_rows1,enemy_pmg_rows2"
+		",enemy_pmg_mismatch1,enemy_pmg_mismatch2"
+		",enemy_pmg_mismatch_row1,enemy_pmg_mismatch_row2"
+		",enemy_pmg_mismatch_writer1,enemy_pmg_mismatch_writer2"
+		",player_projectile_recycled_checks"
+		",player_projectile_stale_cells,player_projectile_orphan_cells"
+		",transient_effect_orphan_cells,transient_effect_first_address"
+		",transient_effect_first_code,transient_effect_first_writer_pc"
+		",transient_effect_first_writer_x"
+		",fire_timer_value,player_burst_state,player_burst_remaining,player_burst_timer"
+		",audf1,audc1,fire_accept_calls,update_sound_calls"
+		",fire_accept_clock,update_sound_clock"
+		",fire_accept_scanline,fire_accept_cycle,update_sound_scanline,update_sound_cycle"
+		",stale_debris_projectile_restores,transient_effect_coordinate_wraps,interceptor_breakup_request_slot0"
+		",interceptor_breakup_request_slot1,raider_character_writes"
+		",raider_transient_allocations,raider_slot0_activations"
+		",raider_kills_with_emitter_projectile_active,emitter_owned_projectiles_at_kill"
+		",emitter_owned_projectiles_removed,foreign_projectiles_preserved"
+		",foreign_projectiles_incorrectly_removed,post_kill_emitter_projectile_continuations"
+		",emitter_owned_physical_slot0_at_kill,enemy_projectile_stale_cells"
+		",pickup_admission_requests,pickup_attempt_sector,pickup_attempt_active_mask"
+		",pickup_attempt_active_count,pickup_attempt_x,pickup_attempt_y,pickup_attempt_timer"
+		",pickup_attempt_slot0_type,pickup_attempt_slot0_state"
+		",pickup_attempt_slot1_type,pickup_attempt_slot1_state"
+		",pickup_attempt_slot2_type,pickup_attempt_slot2_state"
+		",pickup_attempt_slot3_type,pickup_attempt_slot3_state"
+		",pickup_attempt_director_phase,pickup_attempt_director_intensity"
+		",pickup_attempt_director_reaction,pickup_attempt_director_recovery"
+		",pickup_attempt_director_rng,pickup_attempt_director_flags"
+		",pickup_attempt_admission_frame,pickup_attempt_gameplay_frame"
+		",pickup_attempt_player_lifecycle"
+		",pickup_pmg_rows,pickup_hposm0,pickup_hposm1,pickup_hposm2,pickup_hposm3"
+		",pickup_sizem,pickup_screen_lo,pickup_screen_hi,pickup_pmg_byte_top"
+		",pickup_pmg_byte_middle,pickup_pmg_byte_bottom,pickup_gractl"
+		",slot0_type,slot0_state,slot1_type,slot1_state"
+		",slot2_type,slot2_state,slot3_type,slot3_state\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -2794,10 +4654,11 @@ static void dftrace_write(void)
 				(unsigned long long) frame->profile_dli_start[dli],
 				(unsigned long long) frame->profile_dli_end[dli],
 				frame->profile_dli_segment[dli]);
-		fprintf(file, ",%u,%u,%u,%u,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu"
+		fprintf(file, ",%u,%u,%u,%u,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu"
 			",%u,%u,%u,%u,%u,%u,%u",
 			frame->profile_compose_calls, frame->profile_compose_cycles,
 			frame->profile_pointer_calls, frame->profile_pointer_cycles,
+			(unsigned long long) frame->profile_publication_begin,
 			(unsigned long long) frame->profile_erase_player_fighter_start,
 			(unsigned long long) frame->profile_interceptor_update_start,
 			(unsigned long long) frame->profile_interceptor_render_start,
@@ -2810,11 +4671,13 @@ static void dftrace_write(void)
 			frame->player_erase_calls, frame->player_draw_calls,
 			frame->player_erase_scanline, frame->player_draw_scanline);
 		for (unsigned slot = 0; slot < 2u; ++slot)
-			fprintf(file, ",%u,%u,%u,%u", frame->muzzle_domain[slot],
+			fprintf(file, ",%u,%u,%u,%u,%u,%u", frame->muzzle_domain[slot],
 				frame->muzzle_row[slot], frame->muzzle_pointer[slot],
-				frame->muzzle_cell[slot]);
-		fprintf(file, ",%u,%u,%u,%u,%u", frame->muzzle_code_cells,
-			frame->muzzle_illegal_cells, frame->muzzle_pointer_errors,
+				frame->muzzle_cell[slot], frame->muzzle_cell_writer_pc[slot],
+				frame->muzzle_projectile_occlusion[slot]);
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u", frame->muzzle_code_cells,
+			frame->muzzle_illegal_cells, frame->muzzle_illegal_address,
+			frame->muzzle_illegal_code, frame->muzzle_pointer_errors,
 			frame->muzzle_divider_allied, frame->muzzle_divider_enemy);
 		for (unsigned slot = 0; slot < 3u; ++slot)
 			fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u", frame->broad_state[slot],
@@ -2825,7 +4688,9 @@ static void dftrace_write(void)
 				frame->broad_raster_row[slot]);
 		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u"
 			",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u"
-			",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n",
+			",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u"
+			",%u,%u,%u,%u,%u,%u,%u,%u"
+			",%u,%u,%u,%u,%u,%u,%u,%u",
 			frame->broad_pointer_errors,
 			frame->player_health, frame->player_lives, frame->player_invulnerability,
 			frame->broad_screen_orphan_cells, frame->broad_screen_first_address,
@@ -2841,12 +4706,731 @@ static void dftrace_write(void)
 			frame->capital_collision_calls, frame->capital_player_damage_calls,
 			frame->player_lifecycle_after, frame->player_x_after, frame->player_y_after,
 			frame->player_health_after, frame->player_lives_after,
-			frame->player_invulnerability_after, frame->player_damage_cooldown_after);
+			frame->player_invulnerability_after, frame->player_damage_cooldown_after,
+			frame->active_gameplay_frame, frame->enemy_state, frame->enemy_y,
+			frame->director_phase, frame->director_rng, frame->director_intensity,
+			frame->director_reaction, frame->director_recovery,
+			frame->enemy_member_state[0], frame->enemy_member_state[1],
+			frame->enemy_member_state[2], frame->enemy_member_hp[0],
+			frame->enemy_member_hp[1], frame->enemy_member_hp[2],
+			frame->enemy_live_count, frame->enemy_projectiles);
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u",
+			frame->enemy_slot_x[0], frame->enemy_slot_x[1],
+			frame->enemy_slot_y[0], frame->enemy_slot_y[1],
+			frame->enemy_hpos[0], frame->enemy_hpos[1],
+			frame->enemy_pmg_rows[0], frame->enemy_pmg_rows[1],
+			frame->enemy_pmg_mismatch[0], frame->enemy_pmg_mismatch[1],
+			frame->enemy_pmg_mismatch_row[0], frame->enemy_pmg_mismatch_row[1],
+			frame->enemy_pmg_mismatch_writer[0], frame->enemy_pmg_mismatch_writer[1],
+			frame->player_projectile_recycled_checks,
+			frame->player_projectile_stale_cells,
+			frame->player_projectile_orphan_cells,
+			frame->transient_effect_orphan_cells,
+			frame->transient_effect_first_address,
+			frame->transient_effect_first_code,
+			frame->transient_effect_first_writer_pc,
+			frame->transient_effect_first_writer_x);
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%llu,%llu,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u",
+			frame->fire_timer_value, frame->player_burst_state,
+			frame->player_burst_remaining, frame->player_burst_timer,
+			frame->audf1, frame->audc1, frame->fire_accept_calls,
+			frame->update_sound_calls,
+			(unsigned long long) frame->fire_accept_clock,
+			(unsigned long long) frame->update_sound_clock,
+			frame->fire_accept_scanline, frame->fire_accept_cycle,
+			frame->update_sound_scanline, frame->update_sound_cycle,
+			frame->stale_debris_projectile_restores,
+			frame->transient_effect_coordinate_wraps,
+			frame->interceptor_breakup_request_slot0,
+			frame->interceptor_breakup_request_slot1,
+			frame->raider_character_writes,
+			frame->raider_transient_allocations,
+			frame->raider_slot0_activations);
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u",
+			frame->raider_kills_with_emitter_projectile_active,
+			frame->emitter_owned_projectiles_at_kill,
+			frame->emitter_owned_projectiles_removed,
+			frame->foreign_projectiles_preserved,
+			frame->foreign_projectiles_incorrectly_removed,
+			frame->post_kill_emitter_projectile_continuations,
+			frame->emitter_owned_physical_slot0_at_kill,
+			frame->enemy_projectile_stale_cells);
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u", frame->pickup_admission_requests,
+			frame->pickup_attempt_sector, frame->pickup_attempt_active_mask,
+			frame->pickup_attempt_active_count, frame->pickup_attempt_x,
+			frame->pickup_attempt_y, frame->pickup_attempt_timer);
+		for (unsigned slot = 0u; slot < 4u; ++slot)
+			fprintf(file, ",%u,%u", frame->pickup_attempt_type[slot],
+				frame->pickup_attempt_state[slot]);
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u",
+			frame->pickup_attempt_director_phase,
+			frame->pickup_attempt_director_intensity,
+			frame->pickup_attempt_director_reaction,
+			frame->pickup_attempt_director_recovery,
+			frame->pickup_attempt_director_rng,
+			frame->pickup_attempt_director_flags,
+			frame->pickup_attempt_admission_frame,
+			frame->pickup_attempt_gameplay_frame,
+			frame->pickup_attempt_player_lifecycle);
+		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u", frame->pickup_pmg_rows,
+			frame->pickup_hposm[0], frame->pickup_hposm[1],
+			frame->pickup_hposm[2], frame->pickup_hposm[3], frame->pickup_sizem,
+			frame->pickup_screen_lo, frame->pickup_screen_hi);
+		fprintf(file, ",%u,%u,%u,%u", frame->pickup_pmg_byte_top,
+			frame->pickup_pmg_byte_middle, frame->pickup_pmg_byte_bottom,
+			frame->pickup_gractl);
+		for (unsigned slot = 0u; slot < 4u; ++slot)
+			fprintf(file, ",%u,%u", frame->entity_type[slot], frame->entity_state[slot]);
+		fputc('\n', file);
 	}
 	if (fclose(file) != 0) {
 		perror("voidstrike65 trace close");
 		exit(2);
 	}
+	if (dftrace_first_writer_file != NULL) {
+		if (fclose(dftrace_first_writer_file) != 0) {
+			perror("voidstrike65 first-writer trace close");
+			exit(2);
+		}
+		dftrace_first_writer_file = NULL;
+	}
+}
+
+
+
+/* ------------------------------------------------------------------------
+ * Debris bottom-row occupancy probe (2026-09-16).
+ *
+ * rotate_playfield_rows blindly overwrites the bottom ring row with the
+ * divider, and dedicated restore helpers exist for PairShots and near stars
+ * but NOT for debris. That is safe only while debris is erased at frame start,
+ * before the rotation. Moving debris publication into the post-playfield
+ * window removes that ordering guarantee, so we first measure how much debris
+ * actually uses the recycled bottom row, and whether it can still collide
+ * with the player there.
+ * Enabled only by DFDEBRIS_ROW_OUTPUT.
+ * ---------------------------------------------------------------------- */
+static const char *dfdebris_path = NULL;
+static unsigned dfdebris_prev_ypos = 0xffffffffu;
+static unsigned dfdebris_active_frames = 0u;
+static unsigned dfdebris_bottom_frames = 0u;
+static unsigned dfdebris_bottom_overlap_frames = 0u;
+static unsigned dfdebris_max_y = 0u;
+static unsigned dfdebris_spawns = 0u;
+static unsigned dfdebris_spawns_reaching_bottom = 0u;
+static unsigned dfdebris_prev_active = 0u;
+static unsigned dfdebris_this_life_bottom = 0u;
+static unsigned dfdebris_beam_lit = 0u;
+static unsigned dfdebris_beam_blank = 0u;
+static unsigned dfdebris_scanned[312];
+static unsigned dfdebris_row_addr = 0u;
+
+#define DFDEBRIS_BOTTOM_ROW_TOP 232u   /* 24 + 26*8: the recycled ring row */
+
+static void dfdebris_frame(void)
+{
+	unsigned active = MEMORY_mem[dftrace_entity_active_mask] & 1u;
+	unsigned y, player_y;
+	if (!active) {
+		if (dfdebris_prev_active && dfdebris_this_life_bottom)
+			++dfdebris_spawns_reaching_bottom;
+		dfdebris_this_life_bottom = 0u;
+		dfdebris_prev_active = 0u;
+		return;
+	}
+	if (!dfdebris_prev_active)
+		++dfdebris_spawns;
+	dfdebris_prev_active = 1u;
+	++dfdebris_active_frames;
+	y = MEMORY_mem[dftrace_entity_y];
+	if (y > dfdebris_max_y)
+		dfdebris_max_y = y;
+	/* Beam-time visibility: was the debris cell actually present in screen
+	 * memory when ANTIC scanned its row? Sampled by dfdebris_scan below. */
+	if (dfdebris_row_addr != 0u) {
+		if (dfdebris_scanned[0])
+			++dfdebris_beam_lit;
+		else
+			++dfdebris_beam_blank;
+	}
+	dfdebris_scanned[0] = 0u;
+	dfdebris_row_addr = 0u;
+	if (y >= DFDEBRIS_BOTTOM_ROW_TOP) {
+		++dfdebris_bottom_frames;
+		dfdebris_this_life_bottom = 1u;
+		/* Debris is 8 scanlines tall; the player body spans
+		 * PLAYER_COLLISION_LAST_ROW below player_y. */
+		player_y = MEMORY_mem[dftrace_player_y];
+		if (player_y + 14u >= y && y + 8u >= player_y)
+			++dfdebris_bottom_overlap_frames;
+	}
+}
+
+static void dfdebris_report(void);
+
+static void dfdebris_observe(void)
+{
+	unsigned ypos;
+	if (dfdebris_path == NULL)
+		return;
+	ypos = ANTIC_ypos;
+	/* While the beam is inside the debris footprint, record whether the two
+	 * ring cells still hold the debris glyph. Screen memory is what ANTIC
+	 * fetches, so this is the beam-time truth rather than an end-of-frame view. */
+	/* Sample once per frame just BEFORE the visible playfield begins
+	 * (ENTITY_GAMEPLAY_TOP is 24). Publication is late, so whatever the cell
+	 * holds here is exactly what ANTIC will fetch for the whole frame. Testing
+	 * against the beam position instead would compare the screen with an
+	 * ENTITY_Y that the mid-frame update mutates part-way down the pass, which
+	 * reports false blanks for a late-published layer. */
+	if (ypos == 20u && (MEMORY_mem[dftrace_entity_active_mask] & 1u) != 0u) {
+		unsigned hi = MEMORY_mem[dftrace_entity_screen_hi];
+		if (hi != 0u) {
+			unsigned addr = (hi << 8) | MEMORY_mem[dftrace_entity_screen_lo];
+			unsigned want = MEMORY_mem[dftrace_entity_render_id];
+			dfdebris_row_addr = addr;
+			if ((MEMORY_mem[addr] & 0x7eu) == (want & 0x7eu))
+				dfdebris_scanned[0] = 1u;
+		}
+	}
+	if (dfdebris_prev_ypos != 0xffffffffu && ypos < dfdebris_prev_ypos) {
+		static unsigned flush;
+		dfdebris_frame();
+		if (++flush >= 64u) { flush = 0u; dfdebris_report(); }
+	}
+	dfdebris_prev_ypos = ypos;
+}
+
+static void dfdebris_report(void)
+{
+	FILE *f;
+	if (dfdebris_path == NULL)
+		return;
+	f = fopen(dfdebris_path, "w");
+	if (f == NULL)
+		return;
+	fprintf(f, "{\"debris_active_frames\":%u,\"bottom_row_frames\":%u,"
+		"\"bottom_row_player_overlap_frames\":%u,\"max_y\":%u,"
+		"\"spawns\":%u,\"spawns_reaching_bottom_row\":%u,"
+		"\"beam_lit_frames\":%u,\"beam_blank_frames\":%u,"
+		"\"bottom_row_top\":%u}\n",
+		dfdebris_active_frames, dfdebris_bottom_frames,
+		dfdebris_bottom_overlap_frames, dfdebris_max_y,
+		dfdebris_spawns, dfdebris_spawns_reaching_bottom,
+		dfdebris_beam_lit, dfdebris_beam_blank,
+		DFDEBRIS_BOTTOM_ROW_TOP);
+	fclose(f);
+}
+
+/* ------------------------------------------------------------------------
+ * Debris visibility gate (2026-09-16): FINAL-FRAMEBUFFER evidence.
+ *
+ * Enabled by DFDEBRIS_GATE_OUTPUT (CSV path). One row per host-frame
+ * boundary (ANTIC ypos wrap), when Screen_atari holds the frame that has just
+ * been scanned. The image a frame shows is the debris publication that
+ * executed last before that frame's playfield (fighter OPEN: the post-
+ * playfield window of the previous frame; capital: after the entity update,
+ * in the vertical blank), so the record is latched when the render entry
+ * (DFDEBRIS_PC_RENDER) executes and cleared when the erase entry
+ * (DFDEBRIS_PC_ERASE) executes, and the latch is frozen at ypos 24 (the first
+ * ring scanline) of every host frame ("pub_*" columns); a new game
+ * (DFTRACE_PC_GAMEPLAY_INIT) drops it. Screen code = RENDER_ID|cell (|$80 while
+ * OWNER != 0); glyph bytes at CHARSET+(code&$7F)*8; ANTIC 4 pairs 00 COLBK,
+ * 01 COLPF0, 10 COLPF1, 11 COLPF2 (COLPF3 when bit 7 is set); pixel
+ * x = 2*(HPOS+clock)-64; screen row = scanline-8; expected top scanline
+ * 24+8*((Y-24)>>3). Playfield colours are sampled at ypos 120 (the HUD DLI
+ * changes them before the frame ends).
+ *
+ * Per cell (c0_*, c1_*): foreground clocks expected / matching the glyph
+ * colour / showing COLBK / showing another colour. cell_holds (sampled when
+ * the beam reaches the expected row, i.e. what ANTIC fetches, against the
+ * latched codes and the record's captured backing):
+ * bit0/1 the ring byte is the published code, bit2/3 the ring byte is
+ * neither the code nor the lower backing (a higher layer owns the cell),
+ * bit4 sampled, bit6/7 the render did not write the cell (ENTITY_DRAWN_MASK:
+ * a rendered effect owned it, exact ownership). game_state 6 = gameplay.
+ * ---------------------------------------------------------------------- */
+#define DFGATE_CHARSET 0x4400u
+#define DFGATE_TOP 24u
+#define DFGATE_BOTTOM 240u
+
+struct dfgate_pub {
+	unsigned rendered, y, x, render_id, owner, sector, gameplay_frame, prebuild;
+	unsigned backing0, backing1;
+};
+
+static const char *dfgate_path = NULL;
+static FILE *dfgate_file = NULL;
+static unsigned dfgate_prev_ypos = 0xffffffffu;
+static unsigned dfgate_host_frame = 0u;
+static unsigned dfgate_col[5];
+static unsigned dfgate_col_seen = 0u;
+static unsigned dfgate_prebuild_address = 0u;
+static unsigned dfgate_pc_erase = 0u, dfgate_pc_render = 0u;
+static unsigned dfgate_erase_line = 0u, dfgate_render_line = 0u;
+static unsigned dfgate_erase_host = 0u, dfgate_render_host = 0u;
+static struct dfgate_pub dfgate_pending, dfgate_latched;
+static unsigned dfgate_holds = 0u;
+static unsigned dfgate_latched_seen = 0u;
+
+static unsigned dfgate_code(const struct dfgate_pub *s, unsigned cell)
+{
+	return ((s->render_id | cell) & 0xffu) | (s->owner != 0u ? 0x80u : 0u);
+}
+
+static void dfgate_capture_pending(void)
+{
+	unsigned y = MEMORY_mem[dftrace_entity_y];
+	dfgate_pending.y = y;
+	dfgate_pending.x = MEMORY_mem[dftrace_entity_x];
+	dfgate_pending.render_id = MEMORY_mem[dftrace_entity_render_id];
+	dfgate_pending.owner = MEMORY_mem[dftrace_entity_owner];
+	dfgate_pending.sector = MEMORY_mem[dftrace_sector_state];
+	dfgate_pending.gameplay_frame = MEMORY_mem[dftrace_active_gameplay_frame_lo] |
+		((unsigned) MEMORY_mem[dftrace_active_gameplay_frame_lo + 1u] << 8);
+	dfgate_pending.prebuild = dfgate_prebuild_address != 0u ?
+		MEMORY_mem[dfgate_prebuild_address] : 0u;
+	dfgate_pending.rendered = (MEMORY_mem[dftrace_entity_active_mask] & 1u) != 0u &&
+		y >= DFGATE_TOP && y < DFGATE_BOTTOM;
+}
+
+static unsigned dfgate_screen = 0u;
+static unsigned dfgate_holds_seen = 0u;
+static unsigned dfgate_drawn = 0u;
+
+static void dfgate_latch(void)
+{
+	dfgate_latched = dfgate_pending;
+	/* Backing bytes and the cell address are captured by the render itself. */
+	dfgate_latched.backing0 = MEMORY_mem[dftrace_entity_backing0];
+	dfgate_latched.backing1 = MEMORY_mem[dftrace_entity_backing0 + 1u];
+	dfgate_screen = MEMORY_mem[dftrace_entity_screen_lo] |
+		((unsigned) MEMORY_mem[dftrace_entity_screen_hi] << 8);
+	dfgate_drawn = MEMORY_mem[dftrace_entity_drawn_mask] & 3u;
+	dfgate_holds = 0u;
+	dfgate_holds_seen = 0u;
+	dfgate_latched_seen = 1u;
+}
+
+/* Beam-time ownership: sampled on the first scanline of the debris row. */
+static void dfgate_sample_holds(void)
+{
+	unsigned cell;
+	dfgate_holds = 0x10u | ((~dfgate_drawn & 3u) << 6);
+	if (dfgate_screen != 0u) {
+		for (cell = 0u; cell < 2u; ++cell) {
+			unsigned byte = MEMORY_mem[(dfgate_screen + cell) & 0xffffu];
+			unsigned code = dfgate_code(&dfgate_latched, cell);
+			unsigned backing = cell == 0u ? dfgate_latched.backing0 : dfgate_latched.backing1;
+			if (byte == code)
+				dfgate_holds |= 1u << cell;
+			else if (byte != backing)
+				dfgate_holds |= 4u << cell;
+		}
+	}
+	dfgate_holds_seen = 1u;
+}
+
+static void dfgate_boundary(void)
+{
+	unsigned expected[2] = { 0u, 0u }, matched[2] = { 0u, 0u };
+	unsigned background[2] = { 0u, 0u }, other[2] = { 0u, 0u };
+	unsigned in_view = 0u, bottom = 0u, exp_row = 0u;
+	const struct dfgate_pub *pub = &dfgate_latched;
+	if (dfgate_latched_seen && pub->rendered && Screen_atari != NULL && dfgate_col_seen) {
+		unsigned cell, r, cc;
+		in_view = 1u;
+		exp_row = DFGATE_TOP + 8u * ((pub->y - DFGATE_TOP) >> 3);
+		bottom = pub->y >= 232u;
+		for (cell = 0u; cell < 2u; ++cell) {
+			unsigned code = dfgate_code(pub, cell);
+			unsigned hpos = pub->x + 4u * cell;
+			for (r = 0u; r < 8u; ++r) {
+				unsigned glyph = MEMORY_mem[DFGATE_CHARSET + (code & 0x7fu) * 8u + r];
+				unsigned line_index = exp_row + r;
+				const UBYTE *line;
+				if (line_index < DFTRACE_CAPTURE_DMA_Y_OFFSET ||
+					line_index - DFTRACE_CAPTURE_DMA_Y_OFFSET >= (unsigned) Screen_HEIGHT)
+					continue;
+				line = (const UBYTE *) Screen_atari +
+					(size_t) (line_index - DFTRACE_CAPTURE_DMA_Y_OFFSET) * Screen_WIDTH;
+				for (cc = 0u; cc < 4u; ++cc) {
+					unsigned v = (glyph >> (6u - 2u * cc)) & 3u;
+					unsigned x = 2u * (hpos + cc);
+					unsigned px, want;
+					if (v == 0u || x < 64u || x - 64u >= (unsigned) Screen_WIDTH)
+						continue;
+					px = line[x - 64u];
+					want = v == 1u ? dfgate_col[1] : v == 2u ? dfgate_col[2] :
+						(code & 0x80u) != 0u ? dfgate_col[4] : dfgate_col[3];
+					++expected[cell];
+					if (px == want)
+						++matched[cell];
+					else if (px == dfgate_col[0])
+						++background[cell];
+					else
+						++other[cell];
+				}
+			}
+		}
+	}
+	if (dfgate_file != NULL) {
+		fprintf(dfgate_file,
+			"%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n",
+			dfgate_host_frame, MEMORY_mem[dftrace_game_state],
+			MEMORY_mem[dftrace_active_gameplay_frame_lo] |
+				((unsigned) MEMORY_mem[dftrace_active_gameplay_frame_lo + 1u] << 8),
+			MEMORY_mem[dftrace_sector_state], MEMORY_mem[dftrace_entity_active_mask] & 1u,
+			dfgate_latched_seen ? pub->rendered : 0u, pub->y, pub->x, pub->render_id,
+			pub->owner, pub->sector, pub->gameplay_frame, pub->prebuild,
+			in_view, bottom, exp_row,
+			expected[0], matched[0], background[0], other[0],
+			expected[1], matched[1], background[1], other[1],
+			dfgate_holds, dfgate_erase_host != 0u ? dfgate_erase_line : 9999u,
+			dfgate_render_host != 0u ? dfgate_render_line : 9999u);
+	}
+	dfgate_erase_host = dfgate_render_host = 0u;
+	++dfgate_host_frame;
+}
+
+static void dfgate_observe(unsigned pc)
+{
+	unsigned ypos;
+	if (dfgate_path == NULL)
+		return;
+	ypos = ANTIC_ypos;
+	if (pc == dfgate_pc_erase && pc != 0u) {
+		dfgate_erase_line = ypos;
+		dfgate_erase_host = 1u;
+		dfgate_pending.rendered = 0u;
+	}
+	if (pc == dfgate_pc_render && pc != 0u) {
+		dfgate_render_line = ypos;
+		dfgate_render_host = 1u;
+		dfgate_capture_pending();
+	}
+	if (pc == dftrace_pc_gameplay_init && pc != 0u)
+		dfgate_pending.rendered = 0u;      /* a new game rebuilds the ring */
+	if (ypos == DFGATE_TOP && !dfgate_latched_seen)
+		dfgate_latch();
+	if (dfgate_latched_seen && !dfgate_holds_seen && dfgate_latched.rendered &&
+		ypos == DFGATE_TOP + 8u * ((dfgate_latched.y - DFGATE_TOP) >> 3))
+		dfgate_sample_holds();
+	if (ypos == 120u && !dfgate_col_seen) {
+		dfgate_col[0] = GTIA_COLBK;
+		dfgate_col[1] = GTIA_COLPF0;
+		dfgate_col[2] = GTIA_COLPF1;
+		dfgate_col[3] = GTIA_COLPF2;
+		dfgate_col[4] = GTIA_COLPF3;
+		dfgate_col_seen = 1u;
+	}
+	if (dfgate_prev_ypos != 0xffffffffu && ypos < dfgate_prev_ypos) {
+		if (dfgate_file == NULL) {
+			dfgate_file = fopen(dfgate_path, "w");
+			if (dfgate_file != NULL)
+				fputs("host_frame,game_state,gameplay_frame,sector,active,pub_rendered,pub_y,pub_x,pub_render_id,pub_owner,pub_sector,pub_gameplay_frame,pub_prebuild,in_view,bottom_row,exp_row,c0_expected,c0_matched,c0_background,c0_other,c1_expected,c1_matched,c1_background,c1_other,cell_holds,erase_line,render_line\n", dfgate_file);
+		}
+		dfgate_boundary();
+		dfgate_col_seen = 0u;
+		dfgate_latched_seen = 0u;
+		if (dfgate_file != NULL && (dfgate_host_frame & 63u) == 0u)
+			fflush(dfgate_file);
+	}
+	dfgate_prev_ypos = ypos;
+}
+
+/* ------------------------------------------------------------------------
+ * Spread projectile probe (2026-09-16).
+ *
+ * The owner reports that collecting Spread Shot leaves only the centre line
+ * visible. Spread is implemented as a SEQUENCE (centre, left, right, centre at
+ * a 28-frame interval), not a simultaneous fan, so this probe records for every
+ * frame of a Spread burst which of the five player slots hold LEFT / CENTER /
+ * RIGHT shots and what the FINAL framebuffer actually shows on their rows.
+ * Screen-memory writes are deliberately not treated as evidence.
+ * Enabled only by DFSPREAD_PROBE_OUTPUT.
+ * ---------------------------------------------------------------------- */
+static const char *dfspread_path = NULL;
+static FILE *dfspread_file = NULL;
+static unsigned dfspread_written = 0u;
+static unsigned dfspread_limit = 200u;
+static unsigned dfspread_prev_ypos = 0xffffffffu;
+
+static void dfspread_frame_complete(void)
+{
+	unsigned slot, active_count = 0u, kinds = 0u;
+	unsigned rows[DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT];
+	unsigned rowcount = 0u;
+	if (dfspread_file == NULL || dfspread_written >= dfspread_limit)
+		return;
+	/* WEAPON_PICKUP_STATE_SPREAD == 4 in the booster slot. */
+	if (MEMORY_mem[dftrace_entity_state + 2u] != 4u)
+		return;
+	for (slot = 0u; slot < DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT; ++slot)
+		if (MEMORY_mem[dftrace_projectile_active + slot] != 0u)
+			++active_count;
+	if (active_count == 0u)
+		return;
+
+	fprintf(dfspread_file, "%s\n{\"frame\":%u,\"player_x\":%u,\"shots\":[",
+		dfspread_written == 0u ? "" : ",",
+		(unsigned) Atari800_nframes, MEMORY_mem[dftrace_player_x]);
+	for (slot = 0u; slot < DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT; ++slot) {
+		unsigned a = MEMORY_mem[dftrace_projectile_active + slot];
+		const char *kind;
+		if (a == 0u)
+			continue;
+		/* $10 centre, $20 right, $40 left */
+		if (a & 0x40u)      { kind = "LEFT";   kinds |= 1u; }
+		else if (a & 0x20u) { kind = "RIGHT";  kinds |= 2u; }
+		else if (a & 0x10u) { kind = "CENTER"; kinds |= 4u; }
+		else                  kind = "PLAIN";
+		fprintf(dfspread_file, "%s{\"slot\":%u,\"kind\":\"%s\",\"active\":%u,"
+			"\"x\":%u,\"y\":%u,\"life\":%u}",
+			rowcount ? "," : "", slot, kind, a,
+			MEMORY_mem[dftrace_projectile_x + slot],
+			MEMORY_mem[dftrace_projectile_y + slot],
+			MEMORY_mem[dftrace_projectile_lifetime + slot]);
+		if (rowcount < DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT)
+			rows[rowcount++] = MEMORY_mem[dftrace_projectile_y + slot];
+	}
+	fprintf(dfspread_file, "],\"kinds\":%u,\"fb\":[", kinds);
+	/* Final framebuffer rows the shots occupy, run-length encoded. */
+	{
+		unsigned i;
+		int first = 1;
+		for (i = 0u; i < rowcount; ++i) {
+			unsigned y = rows[i];
+			unsigned band;
+			for (band = 0u; band < 12u; ++band) {
+			unsigned screen_row, x = 0u;
+			const UBYTE *line;
+			int firstrun = 1;
+			unsigned sample = y + band;
+			if (sample < DFTRACE_CAPTURE_DMA_Y_OFFSET + 6u || Screen_atari == NULL)
+				continue;
+			screen_row = sample - DFTRACE_CAPTURE_DMA_Y_OFFSET - 6u;
+			if (screen_row >= (unsigned) Screen_HEIGHT)
+				continue;
+			line = (const UBYTE *) Screen_atari + (size_t) screen_row * Screen_WIDTH;
+			fprintf(dfspread_file, "%s{\"y\":%u,\"row\":%u,\"runs\":[",
+				first ? "" : ",", y, screen_row);
+			first = 0;
+			while (x < (unsigned) Screen_WIDTH) {
+				unsigned start = x;
+				UBYTE v = line[x];
+				while (x < (unsigned) Screen_WIDTH && line[x] == v)
+					++x;
+				if (v != 0u) {
+					fprintf(dfspread_file, "%s[%u,%u,%u]",
+						firstrun ? "" : ",", start, x - start, (unsigned) v);
+					firstrun = 0;
+				}
+			}
+			fprintf(dfspread_file, "]}");
+			}
+		}
+	}
+	fprintf(dfspread_file, "]}");
+	fflush(dfspread_file);
+	++dfspread_written;
+}
+
+static void dfspread_observe(void)
+{
+	unsigned ypos;
+	if (dfspread_path == NULL)
+		return;
+	if (dfspread_file == NULL) {
+		dfspread_file = fopen(dfspread_path, "w");
+		if (dfspread_file == NULL) {
+			fprintf(stderr, "voidstrike65 spread probe: cannot open %s\n", dfspread_path);
+			exit(2);
+		}
+		fprintf(dfspread_file, "[");
+	}
+	ypos = ANTIC_ypos;
+	if (dfspread_prev_ypos != 0xffffffffu && ypos < dfspread_prev_ypos)
+		dfspread_frame_complete();
+	dfspread_prev_ypos = ypos;
+}
+
+/* ------------------------------------------------------------------------
+ * Pickup visibility probe (2026-09-16).
+ *
+ * The pre-existing pickup "visibility" gate counts rows where
+ * (MEMORY_mem[0x3b00+row] & 0xf0) != 0.  That mask encodes the same belief as
+ * the guest comment at src/main.s ("GTIA consumes only M0-M3 bits 4-7"), so
+ * the check can only ever confirm what the implementation already assumes and
+ * it never inspects a rendered pixel.  This probe deliberately shares no
+ * assumption with the guest:
+ *
+ *   - missile bytes are sampled AS THE BEAM CROSSES each scanline, not at the
+ *     end of the frame, so an erase/late-render race is visible;
+ *   - every missile is decoded separately (M0=bits0-1 .. M3=bits6-7);
+ *   - the final framebuffer is dumped as run-length rows, so the pixel
+ *     representation is observed empirically instead of being asserted to
+ *     equal COLPF3.
+ *
+ * Enabled only by DFPICKUP_PROBE_OUTPUT; otherwise every hook is inert.
+ * ---------------------------------------------------------------------- */
+#define DFPROBE_SCANLINES 312u
+#define DFPROBE_ROWS 16u
+
+static FILE *dfprobe_file = NULL;
+static const char *dfprobe_path = NULL;
+static int dfprobe_ready = 0;
+static unsigned dfprobe_prev_ypos = 0xffffffffu;
+static unsigned char dfprobe_beam_missiles[DFPROBE_SCANLINES];
+static unsigned char dfprobe_beam_seen[DFPROBE_SCANLINES];
+static unsigned dfprobe_written = 0u;
+static unsigned dfprobe_limit = 10u;
+static unsigned dfprobe_frame_index = 0u;
+static unsigned dfprobe_type_seen[4];
+static unsigned dfprobe_type_limit = 3u;
+
+static int dfprobe_emit_row(unsigned screen_row)
+{
+	const UBYTE *row;
+	unsigned x = 0u;
+	int first = 1;
+	if (Screen_atari == NULL || screen_row >= (unsigned) Screen_HEIGHT)
+		return 0;
+	row = (const UBYTE *) Screen_atari + (size_t) screen_row * Screen_WIDTH;
+	fprintf(dfprobe_file, "{\"screen_row\":%u,\"runs\":[", screen_row);
+	while (x < (unsigned) Screen_WIDTH) {
+		unsigned start = x;
+		UBYTE value = row[x];
+		while (x < (unsigned) Screen_WIDTH && row[x] == value)
+			++x;
+		fprintf(dfprobe_file, "%s[%u,%u,%u]", first ? "" : ",",
+			start, x - start, (unsigned) value);
+		first = 0;
+	}
+	fprintf(dfprobe_file, "]}");
+	return 1;
+}
+
+static void dfprobe_frame_complete(void)
+{
+	unsigned state, pickup_x, pickup_y, top, row;
+	if (!dfprobe_ready || dfprobe_written >= dfprobe_limit)
+		return;
+	state = MEMORY_mem[dftrace_entity_state + 1u];
+	if (state != 2u)                      /* WEAPON_PICKUP_STATE_ACTIVE */
+		return;
+	/* Sample a few frames of EACH booster type instead of filling the log with
+	 * the first capsule's whole descent; the type cycles once per spawn. */
+	{
+		unsigned t = MEMORY_mem[dftrace_entity_type + 1u] & 3u;
+		if (dfprobe_type_seen[t] >= dfprobe_type_limit)
+			return;
+		++dfprobe_type_seen[t];
+	}
+	pickup_x = MEMORY_mem[dftrace_entity_x + 1u];
+	pickup_y = MEMORY_mem[dftrace_entity_y + 1u];
+	top = (pickup_y + DFTRACE_CAPTURE_DMA_Y_OFFSET) & 0xffu;
+
+	fprintf(dfprobe_file, "%s\n{\"frame\":%u,\"host_frame\":%u,"
+		"\"pickup_x\":%u,\"pickup_y\":%u,\"pmg_top\":%u,"
+		"\"hposm\":[%u,%u,%u,%u],\"sizem\":%u,\"prior\":%u,"
+		"\"gractl\":%u,\"dmactl\":%u,\"colpf3\":%u,\"colbk\":%u,\n \"rows\":[",
+		dfprobe_written == 0u ? "" : ",",
+		dfprobe_frame_index, (unsigned) Atari800_nframes,
+		pickup_x, pickup_y, top,
+		GTIA_HPOSM0, GTIA_HPOSM1, GTIA_HPOSM2, GTIA_HPOSM3,
+		GTIA_SIZEM, GTIA_PRIOR,
+		(unsigned) GTIA_GRACTL, (unsigned) ANTIC_DMACTL,
+		GTIA_COLPF3, GTIA_COLBK);
+
+	for (row = 0u; row < DFPROBE_ROWS; ++row) {
+		unsigned y = (top + row) & 0xffu;
+		unsigned beam = dfprobe_beam_seen[y] ? dfprobe_beam_missiles[y] : 0u;
+		unsigned now = MEMORY_mem[0x3b00u + y];
+		fprintf(dfprobe_file,
+			"%s{\"y\":%u,\"beam\":%u,\"end\":%u,"
+			"\"beam_m\":[%u,%u,%u,%u],\"end_m\":[%u,%u,%u,%u],\"sampled\":%u}",
+			row == 0u ? "" : ",", y, beam, now,
+			beam & 3u, (beam >> 2) & 3u, (beam >> 4) & 3u, (beam >> 6) & 3u,
+			now & 3u, (now >> 2) & 3u, (now >> 4) & 3u, (now >> 6) & 3u,
+			(unsigned) dfprobe_beam_seen[y]);
+	}
+	/* Row-by-row FINAL-FRAMEBUFFER signature: for each capsule scanline,
+	 * sample the eight colour clocks the mark occupies and record which ones
+	 * actually differ from the background this frame. This is the silhouette
+	 * as displayed, independent of what the shape table claims. */
+	fprintf(dfprobe_file, "],\n \"type\":%u,\"fb_rows\":[",
+		MEMORY_mem[dftrace_entity_type + 1u]);
+	for (row = 0u; row < DFPROBE_ROWS; ++row) {
+		unsigned y = (top + row) & 0xffu;
+		unsigned mask = 0u;
+		unsigned cc;
+		if (y >= DFTRACE_CAPTURE_DMA_Y_OFFSET &&
+			(y - DFTRACE_CAPTURE_DMA_Y_OFFSET) < (unsigned) Screen_HEIGHT &&
+			Screen_atari != NULL) {
+			const UBYTE *line = (const UBYTE *) Screen_atari +
+				(size_t) (y - DFTRACE_CAPTURE_DMA_Y_OFFSET) * Screen_WIDTH;
+			unsigned base = 2u * GTIA_HPOSM0 - 64u;
+			for (cc = 0u; cc < 8u; ++cc) {
+				unsigned x = base + 2u * cc;
+				if (x < (unsigned) Screen_WIDTH && line[x] == GTIA_COLPF3)
+					mask |= 1u << (7u - cc);   /* bit7 = leftmost colour clock */
+			}
+		}
+		fprintf(dfprobe_file, "%s%u", row == 0u ? "" : ",", mask);
+	}
+	fprintf(dfprobe_file, "],\n \"screen\":[");
+	/* Capsule rows plus a few below, clipped rows simply omitted. A separator
+	 * is written only after a row that actually emitted, so the array stays
+	 * valid JSON when the capsule reaches the bottom of the screen. */
+	{
+		int emitted = 0;
+		for (row = 0u; row < DFPROBE_ROWS + 4u; ++row) {
+			unsigned y = (top + row) & 0xffu;
+			if (y < DFTRACE_CAPTURE_DMA_Y_OFFSET)
+				continue;
+			if (emitted)
+				fprintf(dfprobe_file, ",");
+			if (!dfprobe_emit_row(y - DFTRACE_CAPTURE_DMA_Y_OFFSET)) {
+				if (emitted)
+					fseek(dfprobe_file, -1L, SEEK_CUR);
+				continue;
+			}
+			emitted = 1;
+		}
+	}
+	fprintf(dfprobe_file, "]}");
+	fflush(dfprobe_file);
+	++dfprobe_written;
+}
+
+static void dfprobe_observe(void)
+{
+	unsigned ypos;
+	if (dfprobe_path == NULL)
+		return;
+	if (dfprobe_file == NULL) {
+		dfprobe_file = fopen(dfprobe_path, "w");
+		if (dfprobe_file == NULL) {
+			fprintf(stderr, "voidstrike65 probe: cannot open %s\n", dfprobe_path);
+			exit(2);
+		}
+		fprintf(dfprobe_file, "[");
+		dfprobe_ready = 1;
+	}
+	ypos = ANTIC_ypos;
+	if (ypos == dfprobe_prev_ypos)
+		return;
+	if (ypos < DFPROBE_SCANLINES) {
+		dfprobe_beam_missiles[ypos] = MEMORY_mem[0x3b00u + ypos];
+		dfprobe_beam_seen[ypos] = 1u;
+	}
+	if (dfprobe_prev_ypos != 0xffffffffu && ypos < dfprobe_prev_ypos) {
+		dfprobe_frame_complete();
+		++dfprobe_frame_index;
+		memset(dfprobe_beam_seen, 0, sizeof(dfprobe_beam_seen));
+	}
+	dfprobe_prev_ypos = ypos;
 }
 
 static void dftrace_init(void)
@@ -2863,6 +5447,8 @@ static void dftrace_init(void)
 			MEMORY_mem[address] = (UBYTE) fill;
 	}
 	dftrace_limit = dftrace_env_u("DFTRACE_FRAMES");
+    dftrace_active_limit = getenv("DFTRACE_ACTIVE_FRAMES") == NULL ? 0u :
+        dftrace_env_u("DFTRACE_ACTIVE_FRAMES");
 	dftrace_fire_delay = dftrace_env_u("DFTRACE_FIRE_DELAY");
 	dftrace_difficulty = dftrace_env_u("DFTRACE_DIFFICULTY");
 	dftrace_frontend_delay = getenv("DFTRACE_FRONTEND_DELAY") == NULL ? 0u :
@@ -2878,11 +5464,30 @@ static void dftrace_init(void)
 		exit(2);
 	}
 	dftrace_policy = getenv("DFTRACE_POLICY");
+	dftrace_pmg_lab_screenshot = getenv("DFTRACE_PMG_LAB_SCREENSHOT");
 	dftrace_session = getenv("DFTRACE_SESSION");
 	dftrace_output = getenv("DFTRACE_OUTPUT");
+	dftrace_interceptor_projectile_output = getenv("DFTRACE_INTERCEPTOR_PROJECTILE_OUTPUT");
+	dftrace_sector_clock_output = getenv("DFTRACE_SECTOR_CLOCK_OUTPUT");
+	dftrace_light_output = getenv("DFTRACE_LIGHT_OUTPUT");
+	if (dftrace_light_output != NULL)
+		dftrace_light_base = dftrace_env_u("DFTRACE_LIGHT_BASE");
+	dftrace_player_pairshot_output = getenv("DFTRACE_PLAYER_PAIRSHOT_OUTPUT");
+	dftrace_first_writer_output = getenv("DFTRACE_FIRST_WRITER_OUTPUT");
 	if (dftrace_policy == NULL || dftrace_session == NULL || dftrace_output == NULL) {
 		fprintf(stderr, "voidstrike65 trace: missing string environment\n");
 		exit(2);
+	}
+	if (dftrace_first_writer_output != NULL && *dftrace_first_writer_output != '\0') {
+		dftrace_first_writer_file = fopen(dftrace_first_writer_output, "w");
+		if (dftrace_first_writer_file == NULL) {
+			perror("voidstrike65 first-writer trace");
+			exit(2);
+		}
+		fputs("session,kind,frame,active_frame,host_frame,clock,vcount,cycle,address,old_value,new_value,writer_pc,x_register,y_register,logical_row,column,physical_row,ring_head,owner_mask,target_slot,enemy_state0,enemy_state1,enemy_x0,enemy_x1,enemy_y0,enemy_y1,entity_active_mask,entity_x,entity_y,effect_active_mask,player_projectiles,enemy_projectiles,sector_state,ring_flags,gameplay_frame,origin_frame,origin_clock,origin_vcount,origin_cycle\n",
+			dftrace_first_writer_file);
+		memcpy(dftrace_first_writer_shadow, MEMORY_mem,
+			sizeof(dftrace_first_writer_shadow));
 	}
 	dftrace_frames = (DFTraceFrame *) calloc(dftrace_limit, sizeof(*dftrace_frames));
 	if (dftrace_frames == NULL) {
@@ -2892,6 +5497,8 @@ static void dftrace_init(void)
 #define DFTRACE_ADDRESS(field, env) field = dftrace_env_u(env)
 	DFTRACE_ADDRESS(dftrace_pc_active, "DFTRACE_PC_ACTIVE");
 	DFTRACE_ADDRESS(dftrace_pc_end, "DFTRACE_PC_END");
+	DFTRACE_ADDRESS(dftrace_pc_player_shot_sound, "DFTRACE_PC_PLAYER_SHOT_SOUND");
+	DFTRACE_ADDRESS(dftrace_pc_update_sound, "DFTRACE_PC_UPDATE_SOUND");
 	{
 		unsigned profile_index;
 		char profile_environment[32];
@@ -2907,9 +5514,14 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_pc_compose_end, "DFTRACE_PC_COMPOSE_END");
 	DFTRACE_ADDRESS(dftrace_pc_pointer_start, "DFTRACE_PC_POINTER_START");
 	DFTRACE_ADDRESS(dftrace_pc_pointer_end, "DFTRACE_PC_POINTER_END");
+	DFTRACE_ADDRESS(dftrace_pc_publication_begin, "DFTRACE_PC_PUBLICATION_BEGIN");
 	DFTRACE_ADDRESS(dftrace_pc_erase_slot, "DFTRACE_PC_ERASE_SLOT");
+	DFTRACE_ADDRESS(dftrace_pc_projectile_restore, "DFTRACE_PC_PROJECTILE_RESTORE");
+	DFTRACE_ADDRESS(dftrace_pc_projectile_update_start, "DFTRACE_PC_PROJECTILE_UPDATE_START");
 	DFTRACE_ADDRESS(dftrace_pc_interceptor_update_start, "DFTRACE_PC_INTERCEPTOR_UPDATE_START");
 	DFTRACE_ADDRESS(dftrace_pc_render_slot, "DFTRACE_PC_RENDER_SLOT");
+	DFTRACE_ADDRESS(dftrace_pc_render_end, "DFTRACE_PC_RENDER_END");
+	DFTRACE_ADDRESS(dftrace_pc_claim_projectile, "DFTRACE_PC_CLAIM_PROJECTILE");
 	DFTRACE_ADDRESS(dftrace_pc_entity_erase_start, "DFTRACE_PC_ENTITY_ERASE_START");
 	DFTRACE_ADDRESS(dftrace_pc_effect_update_end, "DFTRACE_PC_EFFECT_UPDATE_END");
 	DFTRACE_ADDRESS(dftrace_pc_pickup_update_end, "DFTRACE_PC_PICKUP_UPDATE_END");
@@ -2932,7 +5544,11 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_pc_effect_erase, "DFTRACE_PC_EFFECT_ERASE");
 	DFTRACE_ADDRESS(dftrace_pc_effect_update, "DFTRACE_PC_EFFECT_UPDATE");
 	DFTRACE_ADDRESS(dftrace_pc_effect_render, "DFTRACE_PC_EFFECT_RENDER");
+	DFTRACE_ADDRESS(dftrace_pc_interceptor_breakup_request,
+		"DFTRACE_PC_INTERCEPTOR_BREAKUP_REQUEST");
 	DFTRACE_ADDRESS(dftrace_pc_interceptor_breakup_spawn, "DFTRACE_PC_INTERCEPTOR_BREAKUP_SPAWN");
+	DFTRACE_ADDRESS(dftrace_pc_emitter_cleanup, "DFTRACE_PC_EMITTER_CLEANUP");
+	DFTRACE_ADDRESS(dftrace_pc_emitter_cleanup_end, "DFTRACE_PC_EMITTER_CLEANUP_END");
 	DFTRACE_ADDRESS(dftrace_pc_pickup_qualified_kill, "DFTRACE_PC_PICKUP_QUALIFIED_KILL");
 	DFTRACE_ADDRESS(dftrace_pc_pickup_collect, "DFTRACE_PC_PICKUP_COLLECT");
 	DFTRACE_ADDRESS(dftrace_pc_director_world, "DFTRACE_PC_DIRECTOR_WORLD");
@@ -2961,6 +5577,8 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_pc_gameplay_init, "DFTRACE_PC_GAMEPLAY_INIT");
 	DFTRACE_ADDRESS(dftrace_pc_rotate_start, "DFTRACE_PC_ROTATE_START");
 	DFTRACE_ADDRESS(dftrace_pc_rotate_end, "DFTRACE_PC_ROTATE_END");
+	DFTRACE_ADDRESS(dftrace_pc_near_erase, "DFTRACE_PC_NEAR_ERASE");
+	DFTRACE_ADDRESS(dftrace_pc_near_render, "DFTRACE_PC_NEAR_RENDER");
 	dftrace_pc_dlist_publish = dftrace_pc_dli;
 	DFTRACE_ADDRESS(dftrace_dli_phase, "DFTRACE_DLI_PHASE");
 	DFTRACE_ADDRESS(dftrace_player_x, "DFTRACE_PLAYER_X");
@@ -2976,14 +5594,20 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_broad_visible_scrolls, "DFTRACE_BROAD_VISIBLE_SCROLLS");
 	DFTRACE_ADDRESS(dftrace_broad_turret_fired, "DFTRACE_BROAD_TURRET_FIRED");
 	DFTRACE_ADDRESS(dftrace_corridor_phase, "DFTRACE_CORRIDOR_PHASE");
+	DFTRACE_ADDRESS(dftrace_corridor_phase_hi, "DFTRACE_CORRIDOR_PHASE_HI");
+	DFTRACE_ADDRESS(dftrace_loader_repeat_value, "DFTRACE_LOADER_REPEAT_VALUE");
 	DFTRACE_ADDRESS(dftrace_capital_drain_rows, "DFTRACE_CAPITAL_DRAIN_ROWS");
 	DFTRACE_ADDRESS(dftrace_far_active, "DFTRACE_FAR_ACTIVE");
 	DFTRACE_ADDRESS(dftrace_enemy_active, "DFTRACE_ENEMY_ACTIVE");
 	DFTRACE_ADDRESS(dftrace_enemy_x, "DFTRACE_ENEMY_X");
+	DFTRACE_ADDRESS(dftrace_enemy_member_state, "DFTRACE_ENEMY_MEMBER_STATE");
+	DFTRACE_ADDRESS(dftrace_enemy_hp, "DFTRACE_ENEMY_HP");
+	DFTRACE_ADDRESS(dftrace_enemy_live_count, "DFTRACE_ENEMY_LIVE_COUNT");
 	DFTRACE_ADDRESS(dftrace_fighter_explosion_timer, "DFTRACE_FIGHTER_EXPLOSION_TIMER");
 	DFTRACE_ADDRESS(dftrace_capital_explosion_timer, "DFTRACE_CAPITAL_EXPLOSION_TIMER");
 	DFTRACE_ADDRESS(dftrace_music_active, "DFTRACE_MUSIC_ACTIVE");
 	DFTRACE_ADDRESS(dftrace_fire_timer, "DFTRACE_FIRE_TIMER");
+	DFTRACE_ADDRESS(dftrace_player_burst_state, "DFTRACE_PLAYER_BURST_STATE");
 	DFTRACE_ADDRESS(dftrace_hit_timer, "DFTRACE_HIT_TIMER");
 	DFTRACE_ADDRESS(dftrace_capital_sound_timer, "DFTRACE_CAPITAL_SOUND_TIMER");
 	DFTRACE_ADDRESS(dftrace_sound_enabled, "DFTRACE_SOUND_ENABLED");
@@ -2994,6 +5618,12 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_frontend_input_armed, "DFTRACE_FRONTEND_INPUT_ARMED");
 	DFTRACE_ADDRESS(dftrace_difficulty_setting, "DFTRACE_DIFFICULTY_SETTING");
 	DFTRACE_ADDRESS(dftrace_gameplay_frame, "DFTRACE_GAMEPLAY_FRAME");
+	DFTRACE_ADDRESS(dftrace_active_gameplay_frame_lo, "DFTRACE_ACTIVE_GAMEPLAY_FRAME_LO");
+	DFTRACE_ADDRESS(dftrace_enemy_y, "DFTRACE_ENEMY_Y");
+	DFTRACE_ADDRESS(dftrace_enemy_archetype, "DFTRACE_ENEMY_ARCHETYPE");
+	DFTRACE_ADDRESS(dftrace_enemy_body_data, "DFTRACE_ENEMY_BODY_DATA");
+	DFTRACE_ADDRESS(dftrace_enemy_frame_heights, "DFTRACE_ENEMY_FRAME_HEIGHTS");
+	DFTRACE_ADDRESS(dftrace_director_state, "DFTRACE_DIRECTOR_STATE");
 	DFTRACE_ADDRESS(dftrace_muzzle_screen_hi, "DFTRACE_MUZZLE_SCREEN_HI");
 	DFTRACE_ADDRESS(dftrace_muzzle_screen_lo, "DFTRACE_MUZZLE_SCREEN_LO");
 	DFTRACE_ADDRESS(dftrace_muzzle_row_domain, "DFTRACE_MUZZLE_ROW_DOMAIN");
@@ -3013,6 +5643,7 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_entity_vertical_accumulator, "DFTRACE_ENTITY_VERTICAL_ACCUMULATOR");
 	DFTRACE_ADDRESS(dftrace_entity_render_id, "DFTRACE_ENTITY_RENDER_ID");
 	DFTRACE_ADDRESS(dftrace_entity_active_mask, "DFTRACE_ENTITY_ACTIVE_MASK");
+	DFTRACE_ADDRESS(dftrace_entity_type, "DFTRACE_ENTITY_TYPE");
 	DFTRACE_ADDRESS(dftrace_entity_state, "DFTRACE_ENTITY_STATE");
 	DFTRACE_ADDRESS(dftrace_entity_hp, "DFTRACE_ENTITY_HP");
 	DFTRACE_ADDRESS(dftrace_entity_timer, "DFTRACE_ENTITY_TIMER");
@@ -3030,14 +5661,51 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_score_hi, "DFTRACE_SCORE_HI");
 	DFTRACE_ADDRESS(dftrace_effect_active_mask, "DFTRACE_EFFECT_ACTIVE_MASK");
 	DFTRACE_ADDRESS(dftrace_effect_active_count, "DFTRACE_EFFECT_ACTIVE_COUNT");
+	DFTRACE_ADDRESS(dftrace_projectile_x, "DFTRACE_PROJECTILE_X");
+	DFTRACE_ADDRESS(dftrace_projectile_y, "DFTRACE_PROJECTILE_Y");
+	DFTRACE_ADDRESS(dftrace_projectile_lifetime, "DFTRACE_PROJECTILE_LIFETIME");
 	DFTRACE_ADDRESS(dftrace_effect_rendered_mask, "DFTRACE_EFFECT_RENDERED_MASK");
+	DFTRACE_ADDRESS(dftrace_effect_y, "DFTRACE_EFFECT_Y");
+	DFTRACE_ADDRESS(dftrace_effect_screen_lo, "DFTRACE_EFFECT_SCREEN_LO");
+	DFTRACE_ADDRESS(dftrace_effect_screen_hi, "DFTRACE_EFFECT_SCREEN_HI");
+	DFTRACE_ADDRESS(dftrace_enemy_target_slot, "DFTRACE_ENEMY_TARGET_SLOT");
 	DFTRACE_ADDRESS(dftrace_engine_timer, "DFTRACE_ENGINE_TIMER");
 	DFTRACE_ADDRESS(dftrace_engine_phase, "DFTRACE_ENGINE_PHASE");
 	DFTRACE_ADDRESS(dftrace_corridor_phase, "DFTRACE_CORRIDOR_PHASE");
 	DFTRACE_ADDRESS(dftrace_ring_flags, "DFTRACE_RING_FLAGS");
 	DFTRACE_ADDRESS(dftrace_active_dlist_lo, "DFTRACE_ACTIVE_DLIST_LO");
 	DFTRACE_ADDRESS(dftrace_next_dlist_lo, "DFTRACE_NEXT_DLIST_LO");
+	DFTRACE_ADDRESS(dftrace_near_row, "DFTRACE_NEAR_ROW");
+	DFTRACE_ADDRESS(dftrace_near_column, "DFTRACE_NEAR_COLUMN");
+	DFTRACE_ADDRESS(dftrace_near_screen_lo, "DFTRACE_NEAR_SCREEN_LO");
+	DFTRACE_ADDRESS(dftrace_near_screen_hi, "DFTRACE_NEAR_SCREEN_HI");
+	DFTRACE_ADDRESS(dftrace_dst_ptr, "DFTRACE_DST_PTR");
 #undef DFTRACE_ADDRESS
+	{
+		const char *near_output = getenv("DFTRACE_NEAR_OUTPUT");
+		if (near_output != NULL && *near_output != '\0') {
+			dftrace_near_file = fopen(near_output, "w");
+			if (dftrace_near_file == NULL) {
+				perror("voidstrike65 near-star output");
+				exit(2);
+			}
+			fputs("trace_frame,host_frame,gameplay_frame,scanline,cycle,clock,event,slot,pc,previous_pc,row,column,address,pointer,visible_row,physical_row,address_value,pointer_value,last_writer_pc,glyph_row0,chbase,colpf0,colpf1,sector_state,ring_flags,visible_near_cells,orphan_near_cells,first_orphan_address,first_orphan_writer_pc\n", dftrace_near_file);
+		}
+	}
+	dfdebris_path = getenv("DFDEBRIS_ROW_OUTPUT");
+	dfgate_path = getenv("DFDEBRIS_GATE_OUTPUT");
+	if (getenv("DFDEBRIS_PC_ERASE") != NULL)
+		dfgate_pc_erase = dftrace_env_u("DFDEBRIS_PC_ERASE");
+	if (getenv("DFDEBRIS_PC_RENDER") != NULL)
+		dfgate_pc_render = dftrace_env_u("DFDEBRIS_PC_RENDER");
+	if (getenv("DFTRACE_PLAYFIELD_PREBUILD_PENDING") != NULL)
+		dfgate_prebuild_address = dftrace_env_u("DFTRACE_PLAYFIELD_PREBUILD_PENDING");
+	dfspread_path = getenv("DFSPREAD_PROBE_OUTPUT");
+	dfprobe_path = getenv("DFPICKUP_PROBE_OUTPUT");
+	if (getenv("DFPICKUP_PROBE_FRAMES") != NULL)
+		dfprobe_limit = (unsigned) strtoul(getenv("DFPICKUP_PROBE_FRAMES"), NULL, 10);
+	if (getenv("DFPICKUP_PROBE_PER_TYPE") != NULL)
+		dfprobe_type_limit = (unsigned) strtoul(getenv("DFPICKUP_PROBE_PER_TYPE"), NULL, 10);
 	dftrace_pickup_screenshot = getenv("DFTRACE_PICKUP_SCREENSHOT");
 	dftrace_pickup_sequence_prefix = getenv("DFTRACE_PICKUP_SEQUENCE_PREFIX");
 	dftrace_pickup_traversal_prefix = getenv("DFTRACE_PICKUP_TRAVERSAL_PREFIX");
@@ -3058,6 +5726,23 @@ static void dftrace_init(void)
 	dftrace_pause_test_enabled = getenv("DFTRACE_PAUSE_TEST") != NULL;
 	dftrace_engine_screenshot_prefix = getenv("DFTRACE_ENGINE_SCREENSHOT_PREFIX");
 	{
+		unsigned index;
+		for (index = 0u; index < DFTRACE_PLAYER_PROJECTILE_SLOT_COUNT; ++index) {
+			dftrace_player_pairshot_allocation_frame[index] = 0xffffffffu;
+			dftrace_player_pairshot_release_frame[index] = 0xffffffffu;
+		}
+		for (index = 0u; index < DFTRACE_INTERCEPTOR_SLOT_COUNT; ++index) {
+			unsigned slot = index + DFTRACE_INTERCEPTOR_SLOT_BASE;
+			dftrace_interceptor_observed_active[index] =
+				MEMORY_mem[dftrace_projectile_active + slot];
+			dftrace_interceptor_watched_address[index] =
+				MEMORY_mem[dftrace_projectile_screen_lo + slot] |
+				((unsigned) MEMORY_mem[dftrace_projectile_screen_hi + slot] << 8);
+			dftrace_interceptor_watched_value[index] =
+				MEMORY_mem[dftrace_interceptor_watched_address[index]];
+		}
+	}
+	{
 		const char *compositor_output = getenv("DFTRACE_BROAD_COMPOSITOR_OUTPUT");
 		if (compositor_output != NULL && *compositor_output != '\0') {
 			dftrace_broad_compositor_file = fopen(compositor_output, "w");
@@ -3070,7 +5755,131 @@ static void dftrace_init(void)
 	dftrace_initialised = 1;
 }
 
-static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_register)
+/* Optional instruction-boundary fence audit. Host-only; no guest writes.
+ * VBI counts physical scanline-248 boundaries, even with OS VBI disabled. */
+static FILE *dffence_file;
+static unsigned dffence_wait, dffence_loop, dffence_leave, dffence_return;
+static unsigned dffence_host = 0xffffffffu, dffence_vbi = 0xffffffffu;
+static unsigned dffence_state = 0xffffffffu, dffence_previous_pc;
+static unsigned dffence_iterations, dffence_leave_iterations, dffence_selected;
+static unsigned dffence_old_top, dffence_old_bottom;
+static int dffence_waiting;
+static int dffence_drawing;
+static unsigned dffence_draw_depth;
+static UBYTE dffence_pmg_before[0x500];
+
+static void dffence_draw_end(unsigned pc)
+{
+	unsigned addresses[6] = {0}, i, address, inside = 0u, backing = 0u, pmg = 0u;
+	unsigned base = MEMORY_mem[dftrace_entity_render_id + 1u], cells = 0u;
+	dftrace_pickup_addresses(addresses);
+	for (i = 0u; i < 6u; ++i) {
+		if (!dftrace_pickup_screen_address_valid(addresses[i])) continue;
+		++cells;
+		if (MEMORY_mem[addresses[i]] == ((base + i) & 0xffu)) ++inside;
+		if ((dftrace_pickup_backing(i) & 0x7fu) >= 120u &&
+			(dftrace_pickup_backing(i) & 0x7fu) <= 125u) ++backing;
+	}
+	for (address = 0u; address < 0x500u; ++address)
+		if (dffence_pmg_before[address] != MEMORY_mem[0x3b00u + address]) ++pmg;
+	fprintf(dffence_file, "{\"event\":\"draw_audit\",\"host_frame\":%u,"
+		"\"trace_index\":%u,\"pc\":%u,\"scanline\":%d,\"clock\":%llu,"
+		"\"cells\":%u,\"matching_cells\":%u,\"orphan_glyphs\":%u,"
+		"\"backing_contamination\":%u,\"additional_pmg_scanlines\":%u}\n",
+		(unsigned) Atari800_nframes, dftrace_count, pc, ANTIC_ypos,
+		(unsigned long long) dftrace_clock(), cells, inside,
+		dftrace_pickup_glyph_cells() - inside, backing, pmg);
+}
+
+static void dffence_event(const char *event, unsigned pc)
+{
+	unsigned state = MEMORY_mem[dftrace_entity_state + 1u];
+	unsigned y = MEMORY_mem[dftrace_entity_y + 1u];
+	fprintf(dffence_file, "{\"event\":\"%s\",\"host_frame\":%u,\"clock\":%llu,"
+		"\"vbi_counter\":%u,\"scanline\":%d,\"vcount\":%u,\"cycle\":%d,"
+		"\"gameplay_counter\":%u,\"trace_index\":%u,\"pc\":%u,\"previous_pc\":%u,"
+		"\"fence\":%u,\"source\":\"%s\",\"pickup_state\":%u,\"pickup_y\":%u,"
+		"\"pending_timer\":%u,\"previous_top\":%u,\"previous_bottom\":%u,"
+		"\"current_top\":%u,\"current_bottom\":%u,\"drawn\":%u,"
+		"\"wait_iterations\":%u,\"leave_iterations\":%u}\n",
+		event, (unsigned) Atari800_nframes, (unsigned long long) dftrace_clock(),
+		dffence_vbi, ANTIC_ypos, (unsigned) ANTIC_GetByte(0xd40bu, TRUE), ANTIC_XPOS,
+		MEMORY_mem[dftrace_gameplay_frame], dftrace_count, pc, dffence_previous_pc,
+		dffence_selected, state == 0u ? "INACTIVE" : state == 1u ? "PENDING" : "ACTIVE",
+		state, y, MEMORY_mem[dftrace_entity_timer + 1u], dffence_old_top,
+		dffence_old_bottom, y, y + 16u, MEMORY_mem[dftrace_entity_drawn_mask + 1u],
+		dffence_iterations, dffence_leave_iterations);
+}
+
+static void dffence_observe(unsigned pc, unsigned x_register)
+{
+	unsigned state, host, vbi;
+	if (getenv("DFTRACE_FENCE_OUTPUT") == NULL) return;
+	if (dffence_file == NULL) {
+		dffence_file = fopen(getenv("DFTRACE_FENCE_OUTPUT"), "w");
+		if (dffence_file == NULL) { perror("pickup fence trace"); exit(2); }
+		dffence_wait = dftrace_env_u("DFTRACE_FENCE_WAIT");
+		dffence_loop = dftrace_env_u("DFTRACE_FENCE_LOOP");
+		dffence_leave = dffence_loop + 5u;
+		dffence_return = dffence_loop + 10u;
+	}
+	if (MEMORY_mem[dftrace_game_state] != 6u) return;
+	host = (unsigned) Atari800_nframes;
+	vbi = host + (ANTIC_ypos >= 248 ? 1u : 0u);
+	if (vbi != dffence_vbi) {
+		dffence_vbi = vbi; dffence_event("vbi", pc);
+		if (getenv("DFTRACE_FENCE_SCREENSHOTS") != NULL &&
+			((MEMORY_mem[dftrace_entity_state + 1u] == 1u && MEMORY_mem[dftrace_entity_timer + 1u] <= 9u) ||
+			 (MEMORY_mem[dftrace_entity_state + 1u] == 2u && MEMORY_mem[dftrace_entity_y + 1u] <= 44u))) {
+			char screenshot[1024];
+			snprintf(screenshot, sizeof(screenshot), "%s-host%u.png", getenv("DFTRACE_FENCE_OUTPUT"), host);
+			if (!Screen_SaveScreenshot(screenshot, 0)) { perror("fence screenshot"); exit(2); }
+		}
+	}
+	if (host != dffence_host) { dffence_host = host; dffence_event("host_frame", pc); }
+	state = MEMORY_mem[dftrace_entity_state + 1u];
+	if (state != dffence_state) { dffence_event("state_change", pc); dffence_state = state; }
+	if (pc == dffence_wait) {
+		dffence_iterations = dffence_leave_iterations = 0u;
+		dffence_selected = 0xffffffffu;
+		dffence_waiting = 1;
+		dffence_event("wait_enter", pc);
+	}
+	if (dffence_waiting && pc == dffence_loop) {
+		if (dffence_iterations == 0u) { dffence_selected = x_register; dffence_event("fence_selected", pc); }
+		++dffence_iterations;
+	}
+	if (dffence_waiting && pc == dffence_leave) ++dffence_leave_iterations;
+	if (dffence_waiting && pc == dffence_return) { dffence_event("wait_exit", pc); dffence_waiting = 0; }
+	if (pc == dftrace_pc_active) dffence_event("main_update", pc);
+	if (pc == dftrace_pc_end) dffence_event("main_end", pc);
+	if (pc == dftrace_pc_dli) dffence_event("dli", pc);
+	if (pc == dftrace_pc_entity_erase) dffence_event("erase", pc);
+	if (pc == dftrace_pc_after_entity_erase) { dffence_event("erase_end", pc); dffence_old_top = dffence_old_bottom = 0u; }
+	if (pc == dftrace_pc_entity_draw) {
+		dffence_event("draw", pc);
+		dffence_drawing = 1; dffence_draw_depth = 0u;
+		memcpy(dffence_pmg_before, MEMORY_mem + 0x3b00u, sizeof(dffence_pmg_before));
+		dffence_old_top = MEMORY_mem[dftrace_entity_y + 1u];
+		dffence_old_bottom = dffence_old_top + 16u;
+	}
+	if (dffence_drawing) {
+		if (MEMORY_mem[pc] == 0x20u) ++dffence_draw_depth;
+		if (MEMORY_mem[pc] == 0x60u) {
+			if (dffence_draw_depth != 0u) --dffence_draw_depth;
+			else {
+				dffence_event("draw_end", pc);
+				if (MEMORY_mem[dftrace_entity_state + 1u] == 2u) dffence_draw_end(pc);
+				dffence_drawing = 0;
+			}
+		}
+	}
+	dffence_previous_pc = pc;
+}
+
+
+static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_register,
+	unsigned y_register, unsigned s_register)
 {
 	unsigned host_frame = (unsigned) Atari800_nframes;
 	/* The hook runs immediately before PC.  A preceding STA $3B00,Y has
@@ -3078,19 +5887,34 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 	 * exact production writer for every missile byte without changing guest
 	 * code or sampling only the final framebuffer. */
 	if (dftrace_previous_pc != 0u && MEMORY_mem[dftrace_previous_pc] == 0x99u &&
-		MEMORY_mem[(dftrace_previous_pc + 1u) & 0xffffu] == 0x00u &&
-		MEMORY_mem[(dftrace_previous_pc + 2u) & 0xffffu] == 0x3bu)
-		dftrace_pmg_last_writer[y_register & 0xffu] = dftrace_previous_pc;
+		MEMORY_mem[(dftrace_previous_pc + 1u) & 0xffffu] == 0x00u) {
+		unsigned page = MEMORY_mem[(dftrace_previous_pc + 2u) & 0xffffu];
+		if (page == 0x3bu)
+			dftrace_pmg_last_writer[y_register & 0xffu] = dftrace_previous_pc;
+		else if (page == 0x3du || page == 0x3eu)
+			dftrace_enemy_pmg_last_writer[page - 0x3du][y_register & 0xffu] =
+				dftrace_previous_pc;
+	}
 	if (getenv("DFMENU_OUTPUT") != NULL) {
 		dfmenu_observe(pc);
 		return;
 	}
 	if (getenv("DFBOOT_OUTPUT") != NULL) {
-		dfboot_observe(pc);
+		dfboot_observe(pc, a_register, x_register, y_register, s_register);
 		return;
 	}
 	if (!dftrace_initialised)
 		dftrace_init();
+	dfprobe_observe();
+	dfspread_observe();
+	dfdebris_observe();
+	dfgate_observe(pc);
+	dftrace_track_character_screen_write(x_register, y_register);
+	dftrace_first_writer_track(x_register, y_register);
+	dftrace_player_pairshot_track(pc, x_register, y_register);
+	dftrace_near_observe(pc, x_register);
+	dftrace_watch_interceptor_projectiles();
+	dffence_observe(pc, x_register);
 	if (dftrace_published_dlist_lo == 0u && MEMORY_mem[dftrace_game_state] == 6u)
 		dftrace_published_dlist_lo = MEMORY_mem[dftrace_active_dlist_lo];
 	if (host_frame != dftrace_display_host_frame) {
@@ -3151,6 +5975,20 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 			dftrace_dli_integrity_count = MEMORY_mem[dftrace_dli_phase] != 0u ? 1u : 0u;
 			dftrace_maximum_dlis_per_host_frame = dftrace_dli_integrity_count;
 		}
+		/* The previous end hook published the object before this completed ANTIC
+		 * pass. Capture before the current guest frame can touch PMG state. */
+		/* Prime several full frames: the first active hook still exposes the
+		 * loader/playfield hand-off framebuffer, not a complete PMG lab raster. */
+		if (dftrace_pmg_lab_variant() && dftrace_pmg_lab_presentations >= 5u &&
+			dftrace_pmg_lab_screenshot != NULL && *dftrace_pmg_lab_screenshot != '\0' &&
+			dftrace_pmg_lab_screenshot_frame == 0xffffffffu) {
+			if (!Screen_SaveScreenshot(dftrace_pmg_lab_screenshot, 0)) {
+				fprintf(stderr, "voidstrike65 trace: PMG-lab screenshot failed: %s\n",
+					dftrace_pmg_lab_screenshot);
+				exit(2);
+			}
+			dftrace_pmg_lab_screenshot_frame = dftrace_count;
+		}
 		if (dftrace_rapid_screenshot != NULL && *dftrace_rapid_screenshot != '\0' &&
 			dftrace_rapid_screenshot_frame == 0xffffffffu &&
 			MEMORY_mem[dftrace_entity_state + 2u] == 3u) {
@@ -3192,20 +6030,45 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 		 * the existing framebuffer; the end-of-loop hook can run before the
 		 * pickup's scanline and is therefore not visual evidence. */
 		if (MEMORY_mem[dftrace_entity_state + 1u] == 2u &&
-			MEMORY_mem[dftrace_entity_active_mask] == 2u &&
-			(MEMORY_mem[dftrace_entity_drawn_mask + 1u] & 15u) == 15u &&
-			MEMORY_mem[dftrace_effect_active_count] == 0u) {
-			dftrace_pickup_visible_passes++;
+			(MEMORY_mem[dftrace_entity_active_mask] & 2u) != 0u &&
+			MEMORY_mem[dftrace_entity_screen_hi + 1u] != 0u &&
+			GTIA_PRIOR == 0x10u) {
+			/* One missile occupies two bits of each row byte (M0 = bits 0-1
+			 * .. M3 = bits 6-7). The former `& 0xf0` test only inspected M2
+			 * and M3, so it reported a solid capsule while M0/M1 were broken
+			 * on fourteen of sixteen rows.
+			 *
+			 * The capsule now carries a per-type silhouette, so rows are not
+			 * uniformly $FF. What the harness can still assert cheaply is that
+			 * the mark occupies its full sixteen rows and that the shape uses
+			 * the whole quartet somewhere. Row-by-row silhouette verification
+			 * belongs to the framebuffer signature (fb_rows) and to
+			 * tests/pickup-pmg-raster-visibility.test.mjs, which derives the
+			 * expected shapes from the artwork source. */
+			unsigned pickup_rows = 0u;
+			unsigned pickup_union = 0u;
+			unsigned row;
+			for (row = 0u; row < 256u; ++row) {
+				unsigned value = MEMORY_mem[0x3b00u + row];
+				if (value != 0u) {
+					++pickup_rows;
+					pickup_union |= value;
+				}
+			}
+			if (pickup_rows == 16u && pickup_union == 0xffu)
+				++dftrace_pickup_visible_passes;
+			else
+				dftrace_pickup_visible_passes = 0u;
 			if (dftrace_pickup_screenshot != NULL && *dftrace_pickup_screenshot != '\0' &&
 				dftrace_pickup_screenshot_frame == 0xffffffffu &&
-				dftrace_pickup_visible_passes == 2u &&
+				dftrace_pickup_visible_passes == 5u &&
 				!Screen_SaveScreenshot(dftrace_pickup_screenshot, 0)) {
 				fprintf(stderr, "voidstrike65 trace: pickup screenshot failed: %s\n",
 					dftrace_pickup_screenshot);
 				exit(2);
 			}
 			if (dftrace_pickup_screenshot_frame == 0xffffffffu &&
-				dftrace_pickup_visible_passes == 2u)
+				dftrace_pickup_visible_passes == 5u)
 				dftrace_pickup_screenshot_frame = dftrace_count;
 		}
 		else
@@ -3326,7 +6189,10 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 			previous->next_start_clock = dftrace_clock();
 			previous->next_start_host_frame = (unsigned) Atari800_nframes;
 		}
-		if (dftrace_count == dftrace_limit) {
+		if (dftrace_interceptor_first_anomaly || dftrace_count == dftrace_limit ||
+			(dftrace_active_limit != 0u &&
+            dftrace_count != 0u && dftrace_frames[dftrace_count - 1].active_gameplay_frame >=
+                dftrace_active_limit)) {
 			dftrace_write();
 			fflush(NULL);
 			exit(0);
@@ -3341,11 +6207,15 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 		dftrace_recycled_previous_valid = 0;
 		dftrace_active = 1;
 		dftrace_set_gameplay_input(dftrace_count);
+		dftrace_player_pairshot_frame_begin();
 		dftrace_prepare_broadside_proof();
 		dftrace_current.start_clock = dftrace_clock();
 		dftrace_current.start_host_frame = (unsigned) Atari800_nframes;
 		dftrace_current.start_y = ANTIC_ypos;
 		dftrace_current.start_x = ANTIC_XPOS;
+		/* Publish without touching entity state: otherwise the production erase
+		 * path quite correctly clears a fake slot before the scanline arrives. */
+		dftrace_publish_pmg_lab();
 		dftrace_snapshot(&dftrace_current);
 		dftrace_snapshot_engine(&dftrace_current);
 		dftrace_current.gameplay_generation = dftrace_gameplay_generation;
@@ -3368,6 +6238,10 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 
 	if (!dftrace_active)
 		goto observe_done;
+	if (pc == dftrace_pc_rotate_start)
+		dftrace_pairshot_rotate_begin();
+	else if (pc == dftrace_pc_rotate_end)
+		dftrace_pairshot_rotate_end(&dftrace_current);
 	dftrace_watch_engine_write(&dftrace_current);
 	dftrace_watch_display_list_write(&dftrace_current);
 	dftrace_watch_recycled_write(&dftrace_current);
@@ -3417,14 +6291,26 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 			dftrace_broad_screen_transient_cells();
 		dftrace_broad_compositor_event("before_rotate", 0xffffffffu);
 	}
+	if (pc == dftrace_pc_player_shot_sound) {
+		++dftrace_current.fire_accept_calls;
+		dftrace_current.fire_accept_clock = dftrace_clock();
+		dftrace_current.fire_accept_scanline = ANTIC_ypos;
+		dftrace_current.fire_accept_cycle = ANTIC_XPOS;
+	}
+	if (pc == dftrace_pc_update_sound) {
+		++dftrace_current.update_sound_calls;
+		dftrace_current.update_sound_clock = dftrace_clock();
+		dftrace_current.update_sound_scanline = ANTIC_ypos;
+		dftrace_current.update_sound_cycle = ANTIC_XPOS;
+	}
 
 	if (dftrace_current.profile_next < DFTRACE_PROFILE_COUNT &&
 		pc == dftrace_pc_profile[dftrace_current.profile_next]) {
 		dftrace_current.profile_clock[dftrace_current.profile_next] = dftrace_clock();
-		/* Profile 18 is the projectile-render boundary immediately before the
-		 * entity/effect renderer. Discard the earlier resident-capsule call so
-		 * the nested render markers describe only the final layer pass. */
-		if (dftrace_current.profile_next == 18u) {
+		/* Profile 17 ends broadside rendering immediately before the final
+		 * entity/effect pass. Discard the earlier resident-capsule call so the
+		 * nested render markers describe only that final layer pass. */
+		if (dftrace_current.profile_next == 17u) {
 			dftrace_current.profile_pickup_render_start = 0u;
 			dftrace_current.profile_effect_render_start = 0u;
 		}
@@ -3446,12 +6332,14 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 		dftrace_current.profile_pointer_cycles +=
 			(unsigned) (dftrace_clock() + 6u - dftrace_pointer_start_clock);
 	}
-	if (pc == dftrace_pc_erase_slot && x_register == 8u &&
+	if (pc == dftrace_pc_publication_begin)
+		dftrace_current.profile_publication_begin = dftrace_clock();
+	if (pc == dftrace_pc_erase_slot && x_register == 4u &&
 		dftrace_current.profile_erase_player_fighter_start == 0u)
 		dftrace_current.profile_erase_player_fighter_start = dftrace_clock();
 	if (pc == dftrace_pc_interceptor_update_start)
 		dftrace_current.profile_interceptor_update_start = dftrace_clock();
-	if (pc == dftrace_pc_render_slot && x_register == 10u &&
+	if (pc == dftrace_pc_render_slot && x_register == DFTRACE_INTERCEPTOR_SLOT_BASE &&
 		dftrace_current.profile_interceptor_render_start == 0u)
 		dftrace_current.profile_interceptor_render_start = dftrace_clock();
 	if (pc == dftrace_pc_entity_erase_start)
@@ -3552,25 +6440,101 @@ static void DFTrace_Observe(unsigned pc, unsigned x_register, unsigned y_registe
 		dftrace_current.events |= DFTRACE_EVENT_EFFECT_UPDATE;
 	else if (pc == dftrace_pc_effect_render)
 		dftrace_current.events |= DFTRACE_EVENT_EFFECT_RENDER;
-	else if (pc == dftrace_pc_interceptor_breakup_spawn)
+	else if (pc == dftrace_pc_interceptor_breakup_request) {
+		unsigned slot = MEMORY_mem[dftrace_enemy_target_slot];
+		if (slot == 0u)
+			++dftrace_current.interceptor_breakup_request_slot0;
+		else if (slot == 1u)
+			++dftrace_current.interceptor_breakup_request_slot1;
+	}
+	else if (pc == dftrace_pc_interceptor_breakup_spawn) {
 		dftrace_current.events |= DFTRACE_EVENT_INTERCEPTOR_BREAKUP_SPAWN;
+		++dftrace_current.raider_transient_allocations;
+		dftrace_raider_effect_generation_active = 1u;
+		dftrace_raider_slot0_seen = 0u;
+	}
+	else if (pc == dftrace_pc_emitter_cleanup) {
+		dftrace_first_writer_kill();
+		dftrace_emitter_cleanup_begin(&dftrace_current);
+	}
+	else if (pc == dftrace_pc_emitter_cleanup_end)
+		dftrace_emitter_cleanup_end(&dftrace_current);
 	else if (pc == dftrace_pc_pickup_qualified_kill)
 		dftrace_current.events |= DFTRACE_EVENT_PICKUP_QUALIFIED_KILL;
 	else if (pc == dftrace_pc_pickup_collect)
 		dftrace_current.events |= DFTRACE_EVENT_PICKUP_COLLECT;
 	else if (pc == dftrace_pc_director_world)
 		dftrace_current.events |= DFTRACE_EVENT_DIRECTOR_WORLD;
-	else if (pc == dftrace_pc_director_request)
+	else if (pc == dftrace_pc_director_request) {
 		dftrace_current.events |= DFTRACE_EVENT_DIRECTOR_REQUEST;
+		if (x_register == 3u) {
+			unsigned slot;
+			++dftrace_current.pickup_admission_requests;
+			dftrace_current.pickup_attempt_sector = MEMORY_mem[dftrace_sector_state];
+			dftrace_current.pickup_attempt_active_mask =
+				MEMORY_mem[dftrace_entity_active_mask];
+			dftrace_current.pickup_attempt_active_count =
+				MEMORY_mem[dftrace_entity_active_count];
+			dftrace_current.pickup_attempt_x = MEMORY_mem[dftrace_entity_x + 1u];
+			dftrace_current.pickup_attempt_y = MEMORY_mem[dftrace_entity_y + 1u];
+			dftrace_current.pickup_attempt_timer = MEMORY_mem[dftrace_entity_timer + 1u];
+			for (slot = 0u; slot < 4u; ++slot) {
+				dftrace_current.pickup_attempt_type[slot] =
+					MEMORY_mem[dftrace_entity_type + slot];
+				dftrace_current.pickup_attempt_state[slot] =
+					MEMORY_mem[dftrace_entity_state + slot];
+			}
+			dftrace_current.pickup_attempt_director_phase =
+				MEMORY_mem[dftrace_director_state];
+			dftrace_current.pickup_attempt_director_intensity =
+				MEMORY_mem[dftrace_director_state + 2u];
+			dftrace_current.pickup_attempt_director_reaction =
+				MEMORY_mem[dftrace_director_state + 3u];
+			dftrace_current.pickup_attempt_director_recovery =
+				MEMORY_mem[dftrace_director_state + 4u];
+			dftrace_current.pickup_attempt_director_rng =
+				MEMORY_mem[dftrace_director_state + 5u];
+			dftrace_current.pickup_attempt_director_flags =
+				MEMORY_mem[dftrace_director_state + 8u];
+			dftrace_current.pickup_attempt_admission_frame =
+				MEMORY_mem[dftrace_director_state + 9u];
+			dftrace_current.pickup_attempt_gameplay_frame =
+				MEMORY_mem[dftrace_gameplay_frame];
+			dftrace_current.pickup_attempt_player_lifecycle =
+				MEMORY_mem[dftrace_player_lifecycle];
+		}
+	}
 	else if (pc == dftrace_pc_director_event)
 		dftrace_current.events |= DFTRACE_EVENT_DIRECTOR_EVENT;
 
+	if (dftrace_raider_effect_generation_active && !dftrace_raider_slot0_seen &&
+		(MEMORY_mem[dftrace_effect_active_mask] & 1u) != 0u) {
+		++dftrace_current.raider_slot0_activations;
+		dftrace_raider_slot0_seen = 1u;
+	}
+	if (dftrace_raider_effect_generation_active && dftrace_raider_slot0_seen &&
+		MEMORY_mem[dftrace_effect_active_mask] == 0u) {
+		dftrace_raider_effect_generation_active = 0u;
+		dftrace_raider_slot0_seen = 0u;
+	}
+
 	if (pc == dftrace_pc_end) {
+		dftrace_current.fire_timer_value = MEMORY_mem[dftrace_fire_timer];
+		dftrace_current.player_burst_state = MEMORY_mem[dftrace_player_burst_state];
+		dftrace_current.player_burst_remaining = MEMORY_mem[dftrace_player_burst_state + 1u];
+		dftrace_current.player_burst_timer = MEMORY_mem[dftrace_player_burst_state + 2u];
+		dftrace_current.audf1 = POKEY_AUDF[POKEY_CHAN1];
+		dftrace_current.audc1 = POKEY_AUDC[POKEY_CHAN1];
 		dftrace_broad_compositor_event("frame_end", 0xffffffffu);
 		dftrace_snapshot_flash(&dftrace_current);
 		dftrace_snapshot_engine(&dftrace_current);
 		dftrace_snapshot_muzzles(&dftrace_current);
+		dftrace_first_writer_frame_end();
 		dftrace_pickup_frame_end(&dftrace_current);
+		dftrace_write_interceptor_projectiles(&dftrace_current);
+		dftrace_write_sector_clock(&dftrace_current);
+		dftrace_write_light(&dftrace_current);
+		dftrace_write_player_pairshots(&dftrace_current);
 		dftrace_current.end_clock = dftrace_clock();
 		dftrace_current.end_host_frame = (unsigned) Atari800_nframes;
 		dftrace_current.end_y = ANTIC_ypos;

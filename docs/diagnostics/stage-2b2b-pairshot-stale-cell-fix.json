@@ -1,0 +1,188 @@
+{
+  "schema": "void-strike-65.stage-2b2b-pairshot-stale-cell-fix.v1",
+  "stage": "Stage 2B.2b PairShot stale / scrolling player-cell fix",
+  "date": "2026-09-12",
+  "status": "PASS_PAIRSHOT_STALE_FIX",
+  "scope": "One bounded correction for player PairShot foreground cloned by divider-to-ring recycling; Raider destruction artifact and all later optimizations excluded.",
+  "model": {
+    "name": "Codex (GPT-5 family)",
+    "reasoning": "High",
+    "note": "The requested GPT-5.6 Sol product label was not exposed by this session."
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "headBefore": "671d4d95aca134b2d0c24a8ba9488bd5637c291e",
+    "headAfter": "commit containing this report",
+    "untouched": [".claude/"],
+    "preservedRefs": {
+      "refs/wip/stage2b-foreign-0803": "13597d7fb6fa6bb0d04541ed68ab6715cec1e8d4",
+      "refs/wip/stage2b0-fdb-proof": "3e5d83f2f1944d2dd90b8a23bec9eaae0dcdebc8",
+      "refs/wip/stage2b2-single-window-rejected": "7f40ee0408356bf1f431b49bf5c51d50ae72a4b3"
+    }
+  },
+  "rootCause": {
+    "sequence": [
+      "A player PairShot reaches logical row zero, whose fixed divider is at $4028-$404F.",
+      "update_fighter_projectiles retires the logical record, but FIGHTER_PROJECTILE_RENDERED intentionally remains latched until late publication erase.",
+      "rotate_playfield_rows executes before projectile publication and copies all 40 divider cells into the physical bottom row being recycled.",
+      "The copy therefore duplicates the still-visible PairShot foreground glyph into the recycled row.",
+      "Late projectile erase correctly restores the saved backing at the original divider address only; no record owns the copied cell.",
+      "The unowned copy then moves down the viewport with subsequent ring rotations."
+    ],
+    "firstDeterministicFailure": {
+      "shot": 0,
+      "oldAddress": "$403D",
+      "copiedAddress": "$8565",
+      "x": 132,
+      "y": 20,
+      "screenCode": 11,
+      "subsequentLogicalRows": [1, 2, 3, 4]
+    },
+    "hypotheses": {
+      "A_old_address_stale_after_player_motion": "rejected; exact OLD address and backing erase match in every case",
+      "B_record_freed_before_final_erase": "observed scheduling fact, but not sufficient cause because the rendered latch correctly preserves final erase",
+      "C_erase_uses_new_position": "rejected",
+      "D_ring_mapping_changes_before_erase": "partially confirmed as the copy trigger; the fixed divider is copied to a recycled physical row before erase",
+      "E_spread_rapid_slot_reuse_overwrites_backing": "rejected",
+      "F_effect_stagger_ordering": "rejected; reproducer is independent of effect activity"
+    }
+  },
+  "fix": {
+    "routine": "restore_recycled_row_projectile_underlay",
+    "location": "existing row_baked_far_broadside_layout_pad immediately before fixed free_broadside_slot $76A7",
+    "behavior": "Immediately after the unchanged divider row copy, scan the five rendered player projectile slots in the same reverse ownership order as normal erase. For any slot whose exact saved screen address is in the divider, restore its BACKUP_TOP byte only in the recycled copy. The original divider and normal late publication remain untouched.",
+    "overlapOrder": "reverse player slot order 4..0; a lower-numbered overlapping slot remains the final underlay writer exactly as in normal reverse erase",
+    "newStateBytes": 0,
+    "architectureChanged": false,
+    "raiderArtifactChanged": false
+  },
+  "deterministicReproducer": {
+    "script": "scripts/pairshot-stale-runtime.mjs",
+    "test": "tests/pairshot-stale-cell.test.mjs",
+    "shots": 1200,
+    "ringHeads": 27,
+    "movement": {
+      "stationary": {"shots": 300, "beforeStale": 75, "afterStale": 0},
+      "left": {"shots": 300, "beforeStale": 75, "afterStale": 0},
+      "right": {"shots": 300, "beforeStale": 75, "afterStale": 0},
+      "reversal": {"shots": 300, "beforeStale": 75, "afterStale": 0}
+    },
+    "weapons": {
+      "normal": {"shots": 400, "beforeStale": 100, "afterStale": 0},
+      "rapid": {"shots": 400, "beforeStale": 100, "afterStale": 0},
+      "spread": {"shots": 400, "beforeStale": 100, "afterStale": 0}
+    },
+    "releasePaths": {
+      "topBound": {"shots": 300, "beforeStale": 300, "afterStale": 0},
+      "expiry": {"shots": 300, "beforeStale": 0, "afterStale": 0},
+      "collision": {"shots": 300, "beforeStale": 0, "afterStale": 0},
+      "controlledFinalRelease": {"shots": 300, "beforeStale": 0, "afterStale": 0}
+    },
+    "after": {
+      "staleCells": 0,
+      "ghostGlyphs": 0,
+      "restoreMismatches": 0,
+      "lostErases": 0
+    },
+    "playerMovementCorrelation": "rejected; each movement class reproduced exactly 75/300 stale cells before the fix. X movement changed the visible column, not the trigger."
+  },
+  "cpu": {
+    "instructionExactAddedCyclesOnRingStep": {
+      "noRenderedProjectile": 75,
+      "oneRenderedOutsideDivider": 83,
+      "oneDividerHit": 106,
+      "legalFivePlayerSlotsWithOneDividerHit": 138,
+      "conservativeFivePlayerSlotsAllInDivider": 230
+    },
+    "peakDeltaCycles": 230,
+    "frequency": "world/ring step only, not every PAL frame",
+    "stopLimitCycles": 300,
+    "passed": true
+  },
+  "native": {
+    "emulator": "Atari800 7.1.2 PAL/XL, persistent instrumented tree",
+    "report": "build/runtime-wall-trace/pairshot-stale-native-report.json",
+    "sessions": [
+      "Normal: 3000 frames",
+      "Rapid: 3000 frames",
+      "Spread: 3000 frames"
+    ],
+    "totalFrames": 9000,
+    "durationSecondsPal": 180,
+    "fighterOpenFrames": 4724,
+    "movement": {"leftFrames": 772, "rightFrames": 641, "directionChanges": 97},
+    "exactDividerRecycleChecks": 186,
+    "stalePairshotCopies": 0,
+    "maximumStalePerFrame": 0,
+    "timing": {
+      "maximumActiveWorkCycles": 15834,
+      "maximumRawCadenceCyclesIncludingIntentionalWait": 36453,
+      "targetHeadroomCycles": 15366,
+      "hardGateHeadroomCycles": 16734,
+      "targetOverruns": 0,
+      "hardGateOverruns": 0,
+      "missedCadenceFrames": 3,
+      "extraVbi": 0,
+      "dliSequenceViolations": 0
+    },
+    "missedNote": "One cadence miss occurred in each independent 3000-frame session. They do not coincide with target/hard active-work overruns, extra VBI, DLI anomalies or stale-cell failures; they are reported rather than hidden."
+  },
+  "memoryPlacement": {
+    "before": {
+      "linkedRuntimeBytes": 17292,
+      "simultaneousResidencyBytes": 17770,
+      "safeHeadroomBytes": 4417,
+      "initialContentBytes": 12903
+    },
+    "after": {
+      "linkedRuntimeBytes": 17297,
+      "simultaneousResidencyBytes": 17775,
+      "safeHeadroomBytes": 4412,
+      "initialContentBytes": 12908
+    },
+    "delta": {
+      "linkedRuntimeBytes": 5,
+      "simultaneousResidencyBytes": 5,
+      "stateBytes": 0,
+      "implementationBlockBytes": 36,
+      "reusedPaddingBytes": 47
+    },
+    "gates": {
+      "starfieldPacked": {"bytes": 1681, "capacity": 1819, "margin": 138, "passed": true},
+      "starfieldSourceToPickup": {"margin": 154, "passed": true},
+      "coldPickup": {"bytes": 852, "capacity": 1277, "margin": 425, "passed": true},
+      "entityStaging": {"sourceToStagingMargin": 176, "stagingToBroadsideMargin": 113, "passed": true},
+      "broadsideRaw": {"bytes": 6647, "capacity": 6656, "margin": 9, "passed": true},
+      "broadsidePacked": {"before": 5620, "after": 5652, "transportSectors": 45, "passed": true},
+      "a2": {"bytes": 122, "capacity": 256, "margin": 134, "passed": true},
+      "entityCode": {"address": "$9100", "bytes": 3150, "tailMargin": 39, "aligned": true, "passed": true},
+      "initialContent": {"bytes": 12908, "capacity": 12928, "margin": 20, "passed": true}
+    },
+    "basicRamUsed": false,
+    "loaderChanged": false,
+    "transportFormatChanged": false
+  },
+  "verification": {
+    "build": "npm run build:two-pmg -- --quiet: PASS",
+    "focused": "75/75 current PairShot, stale-cell, fighter weapons, enemy combat, effects, Layout D.2 and row-baked starfield tests PASS",
+    "native": "9000 PAL frames / 180 seconds; 186 exact divider recycle checks, 0 stale copies",
+    "bootSmoke": "4/4 XEX/ATR cold-start sessions PASS",
+    "excludedHistoricalSuite": "The old character-pickup renderer test is not part of the current PMG-pickup runtime foundation and was not treated as a regression gate.",
+    "notPerformed": ["Raider destruction artifact fix", "background/ring 25 Hz", "ownership redesign", "Light implementation"]
+  },
+  "artifact": {
+    "xex": {
+      "path": "dist/void-strike-65.xex",
+      "bytes": 21349,
+      "sha256": "ed0da13c50e94962ebbe7967b05fdd6182e7c08ec39e8bf2da2199a6940a47e6",
+      "status": "PairShot stale-cell fix owner-smoke candidate"
+    },
+    "atr": {
+      "path": "dist/void-strike-65.atr",
+      "bytes": 92176,
+      "sha256": "d0f7a089929b8fe197edb1b8731994c1350188f33e37b2656d1d92b5b1d5d5a1"
+    }
+  },
+  "decision": "Minimal recycled-row underlay restoration fixes the PairShot stale-cell regression",
+  "next": "Owner smoke PairShot stale-cell fix"
+}

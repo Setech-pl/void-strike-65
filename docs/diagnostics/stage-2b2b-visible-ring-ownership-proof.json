@@ -1,0 +1,295 @@
+{
+  "schema": 1,
+  "stage": "2B.2b visible-ring ownership / deferred-underlay proof",
+  "status": "BLOCKED",
+  "decision": "Minimal ownership/deferred-underlay is rejected",
+  "date": "2026-09-11",
+  "model": {
+    "name": "Codex (GPT-5 family)",
+    "reasoning": "High",
+    "note": "The requested GPT-5.6 Sol product label was not exposed by this session."
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "headBefore": "fa7aa862b20b3a35fb180df617915045383cba30",
+    "runtimeBaseline": "Stage 2A",
+    "untouched": [".claude/"],
+    "preservedRefs": {
+      "refs/wip/stage2b-foreign-0803": "13597d7fb6fa6bb0d04541ed68ab6715cec1e8d4",
+      "refs/wip/stage2b0-fdb-proof": "3e5d83f2f1944d2dd90b8a23bec9eaae0dcdebc8",
+      "refs/wip/stage2b2-single-window-rejected": "7f40ee0408356bf1f431b49bf5c51d50ae72a4b3"
+    }
+  },
+  "stopCondition": {
+    "ids": [2, 3],
+    "finding": "A correct contract requires source/backing reads and destination writes to be intercepted across base/ring, far-star, debris, effect, and eventually pickup paths. The mandatory subset already crosses multiple fixed-placement segments; the complete Stage 2A character stack is a distributed compositor refactor. It cannot be placed without reclaiming another feature or changing transport/layout.",
+    "runtimeOwnershipImplemented": false,
+    "nativeTraceRun": false,
+    "secondRepresentationAttempted": false,
+    "rasterBandsAttempted": false,
+    "pmgPickupIntegrated": false
+  },
+  "writerMap": [
+    {
+      "writer": "base/ring rotation",
+      "path": "advance_starfield_layers -> scroll_world_columns -> rotate_playfield_rows",
+      "when": "world-row event; copies the fixed divider into the recycled physical row and rotates LMS row ownership",
+      "backing": "none; divider is the source of truth",
+      "storedAddress": "dst_ptr = previous last physical ring row, Y = 39..0",
+      "canTargetOwnedCell": true,
+      "priority": "base, below projectile",
+      "ownershipRequirement": "source reads must resolve projectile underlay and destination writes must update underlay without replacing foreground"
+    },
+    {
+      "writer": "world/ring clear and near-star generation",
+      "path": "generate_starfield_row -> generate_near_star_row",
+      "when": "after each world-row rotation",
+      "backing": "none; generated row is authoritative base",
+      "storedAddress": "dst_ptr from set_gameplay_row_ptr, Y = centre or 0..39",
+      "canTargetOwnedCell": true,
+      "priority": "base/near-star, below projectile",
+      "ownershipRequirement": "clear, occupancy read, and optional star write all require ownership-aware access"
+    },
+    {
+      "writer": "capital hull/base side copy",
+      "path": "scroll_hull_columns_copy, clear_top_hull_row, commit_prepared_hull_row, draw_hull_row",
+      "when": "capital traversal or transition, not ordinary fighter OPEN",
+      "backing": "generated hull row / previous logical row",
+      "storedAddress": "row-table dst_ptr or fixed divider",
+      "canTargetOwnedCell": true,
+      "priority": "base/hull, below projectile",
+      "ownershipRequirement": "remaining writer outside the bounded fighter-OPEN proof; would require source-aware row handling"
+    },
+    {
+      "writer": "far stars and twinkle",
+      "path": "erase_far_star_overlays, render_far_star_overlays, tick_star_twinkle",
+      "when": "quarter-rate world step, dirty redraw, and twinkle cadence",
+      "backing": "no saved byte; STAR_FAR_SCREEN_LO/HI cache physical address and erase writes CH_SPACE",
+      "storedAddress": "cached or resolved dst_ptr, Y = 0",
+      "canTargetOwnedCell": true,
+      "priority": "above blank base but below near-star/nonzero base and projectile",
+      "ownershipRequirement": "six source/destination access sites need deferred-underlay behavior"
+    },
+    {
+      "writer": "broadside shell",
+      "path": "erase_broadside_slot, render_capital_shell_overlay",
+      "when": "capital shell FLYING frames",
+      "backing": "BROAD_PREV_Y and BROAD_COLLISION",
+      "storedAddress": "BROAD_ROW_LO/HI plus previous/current column",
+      "canTargetOwnedCell": true,
+      "priority": "above base/capital effects, below entity/effect/projectile in the current call order",
+      "ownershipRequirement": "remaining capital writer; not active in fighter OPEN proof"
+    },
+    {
+      "writer": "muzzle, launch flash, capital explosion",
+      "path": "restore/redraw_tracked_muzzles, render/restore_launch_flash_cell, render/restore_capital_explosion",
+      "when": "capital hull scroll, launch flash, or capital explosion lifecycle",
+      "backing": "MUZZLE_BACKING, source-module code, CAPITAL_EXPLOSION_BACKUP",
+      "storedAddress": "tracked physical row pointer plus column",
+      "canTargetOwnedCell": true,
+      "priority": "capital-local layers above hull base and below later shell/entity/effect/projectile publication",
+      "ownershipRequirement": "remaining capital writers; not active in fighter OPEN proof"
+    },
+    {
+      "writer": "player and enemy character projectiles",
+      "path": "erase_fighter_projectile_overlays, render_fighter_projectile_overlays",
+      "when": "every active frame; Stage 2B.2 candidate moved both into the fixed post-playfield publication window",
+      "backing": "FIGHTER_PROJECTILE_BACKUP_TOP/BOTTOM",
+      "storedAddress": "FIGHTER_PROJECTILE_SCREEN_LO/HI plus optional next physical row",
+      "canTargetOwnedCell": true,
+      "priority": "highest character layer in current runtime and focused overlap tests",
+      "ownershipRequirement": "claims NEW cells, restores latest underlay on OLD release; overlapping slots require bottom-owner underlay updates"
+    },
+    {
+      "writer": "debris interactive entity",
+      "path": "erase_interactive_entity_overlays, render_interactive_entity_overlays",
+      "when": "active debris frames",
+      "backing": "ENTITY_BACKING0/1",
+      "storedAddress": "ENTITY_SCREEN_LO/HI plus Y 0/1",
+      "canTargetOwnedCell": true,
+      "priority": "below projectile, above broadside/base",
+      "ownershipRequirement": "two backing reads and four writes/restores require ownership-aware access"
+    },
+    {
+      "writer": "character pickup Stage 2A",
+      "path": "erase_weapon_pickup_overlay, render_weapon_pickup_overlay",
+      "when": "fighter pickup ACTIVE",
+      "backing": "ENTITY_BACKING0..3 across saved top/middle/bottom row pointers",
+      "storedAddress": "up to six physical cells",
+      "canTargetOwnedCell": true,
+      "priority": "below projectile in current main-loop publication order",
+      "ownershipRequirement": "18 access sites; explicitly mapped but not rebuilt in this proof. PICKUP_CODE ends exactly at the fixed collision address."
+    },
+    {
+      "writer": "transient effects/explosions",
+      "path": "erase_transient_effect_overlays, render_transient_effect_overlays",
+      "when": "debris or Raider breakup effect frames",
+      "backing": "EFFECT_BACKING0",
+      "storedAddress": "EFFECT_SCREEN_LO/HI, one cell per slot",
+      "canTargetOwnedCell": true,
+      "priority": "above interactive entity but below projectile in current code and tests",
+      "ownershipRequirement": "backing read, draw, and restore must resolve/update projectile underlay"
+    },
+    {
+      "writer": "pause/frontend/cold screen copies",
+      "path": "copy_pause_screen, init_screen, frontend renderers",
+      "when": "paused, frontend, cold init, or lifecycle transition rather than active fighter simulation",
+      "backing": "pause snapshot or immutable templates",
+      "storedAddress": "SCREEN ranges",
+      "canTargetOwnedCell": false,
+      "priority": "outside active ownership lifetime",
+      "ownershipRequirement": "none; ownership must be released before these state transitions"
+    }
+  ],
+  "priorityStack": {
+    "lowestToHighest": [
+      "base/ring/hull and near stars",
+      "far stars",
+      "capital-local muzzle/flash/explosion layers",
+      "broadside shell",
+      "interactive debris and character pickup",
+      "transient effects",
+      "character projectiles"
+    ],
+    "evidence": [
+      "current main_loop erase/render order",
+      "comments on entity_effects_erase and entity_effects_render",
+      "tests/starfield.test.mjs overlay ownership assertion",
+      "tests/weapon-pickup-spread-shot.test.mjs overlapping projectile/backing assertions",
+      "tests/entity-effects.test.mjs reverse backing-stack assertions"
+    ],
+    "ambiguousGameplayPriority": false,
+    "note": "PMG fighters and shared fighter explosions use hardware player memory and do not participate in visible-ring character ownership."
+  },
+  "representationComparison": {
+    "variantA": {
+      "description": "reuse the 19 projectile slot records; TOP address is stored, BOTTOM is derived through ring wrap, and existing BACKUP_TOP/BOTTOM holds latest underlay",
+      "maximumCurrentlyActiveProjectiles": 11,
+      "maximumOwnedCells": 22,
+      "newPersistentUnderlayRamBytes": 0,
+      "newRecordRamBytes": 0,
+      "lookup": "linear scan of up to 19 physical slots; overlapping cells update the earliest/bottom painter owner",
+      "mandatoryAccessSites": 21,
+      "accessSitesIncludingCharacterPickup": 39,
+      "referenceHelperCodeBytesEstimate": 216,
+      "referenceHelperEstimateMethod": "conservative instruction-byte count of a common 16-bit TOP/BOTTOM lookup plus ownership-aware load/store sketch; excludes claim/release and call-site growth",
+      "selected": true
+    },
+    "variantB": {
+      "description": "small hash/index or 140-byte physical-cell bitmap, while retaining underlay only in active projectile records",
+      "ramBytes": "at least 32 B for a collision-handled hash index, or 140 B for one bit across divider plus 1080-byte ring",
+      "lookup": "faster common negative lookup, but still needs exact-address validation, TOP/BOTTOM mapping, overlap ownership, claim/release code, and the same writer hooks",
+      "selected": false,
+      "reason": "adds state and code without solving fixed-segment hook placement; STOP forbids trying the second representation after the first requires a distributed refactor"
+    }
+  },
+  "staticAccessAudit": {
+    "mandatorySubset": {
+      "accessSites": 21,
+      "paths": [
+        "ring rotation 1",
+        "world clear 2",
+        "near star 2",
+        "far-star render/twinkle/erase 6",
+        "debris erase/render 6",
+        "effect erase/render 4"
+      ]
+    },
+    "characterPickupAdditionalAccessSites": 18,
+    "completeFighterOpenAccessSites": 39,
+    "whyReadsMatter": "A lower overlay that saves the visible projectile glyph as its backing creates a ghost even if its subsequent write is deferred. Ring copy likewise must copy logical underlay rather than the foreground glyph."
+  },
+  "placementAtStop": {
+    "stage2b2PublisherIntermediate": {
+      "linkedRuntimeBytes": 17659,
+      "simultaneousResidencyBytes": 19289,
+      "safeResidencyHeadroomBytes": 2898,
+      "initialContentBytes": 13300,
+      "initialContentCapacityBytes": 13312,
+      "initialContentEnvelopeBytes": 12,
+      "packedStarfieldMarginBytes": 17,
+      "starfieldRawGapBytes": 90,
+      "a2KernelGapBytes": 2,
+      "entityStagingMarginBytes": 2,
+      "broadsideRawGapBytes": 9,
+      "entityCodeGapBeforeDirectorBytes": 6,
+      "pickupCodeGrowthBeforeFixedCollisionBytes": 0
+    },
+    "productionAfterRollback": {
+      "linkedRuntimeBytes": 17653,
+      "simultaneousResidencyBytes": 19283,
+      "safeResidencyHeadroomBytes": 2904,
+      "xexSha256": "487bdff550bec1497c4c3e55d54da82c5b253773dc4f0725401a6d1528a087e3",
+      "atrSha256": "743a86f51acb568dae4100b727b9990d513a9cf9d46899dba2d161f12ada45fe",
+      "bootSha256": "64dcf5af97b40c49840f9e639a37169231616d0870fa00c28c8310e2b977f917"
+    },
+    "finding": "The helper alone exceeds the largest 90-byte local block before claim/release and hook growth. Splitting it among A2, ENTITY_CODE, PICKUP_CODE, and STARFIELD would require code compaction/relocation across the pipeline; PICKUP_CODE cannot grow because the fixed collision module must begin at $8FC9."
+  },
+  "nativeOwnershipResult": {
+    "status": "NOT_RUN_STOP_BEFORE_RUNTIME",
+    "writesTargetingOwnedCells": null,
+    "deferredLowerWrites": null,
+    "allowedHigherWrites": null,
+    "destructiveLowerWrites": null,
+    "claims": null,
+    "releases": null,
+    "correctRestores": null,
+    "staleRestores": null,
+    "ghostGlyphs": null
+  },
+  "cpu": {
+    "status": "NOT_MEASURED_STOP_BEFORE_RUNTIME",
+    "lookupMaximumCycles": null,
+    "lookupAverageCycles": null,
+    "lookupsPerFrame": null,
+    "deferredWriteCycles": null,
+    "claimCycles": null,
+    "releaseRestoreCycles": null,
+    "ownershipOverheadMaximumCycles": null,
+    "nativeFullFrameMaximumCycles": null,
+    "targetHeadroomCycles": null,
+    "hardGateHeadroomCycles": null,
+    "missed": null,
+    "overruns": null,
+    "extraVbi": null,
+    "dliAnomalies": null,
+    "reason": "STOP conditions triggered from the complete static writer/access and physical-placement proof before an ownership runtime existed."
+  },
+  "spread": {
+    "secondCapsuleTrail": "existing expected failure unchanged",
+    "finalSpreadProjectileGlyph": "existing expected failure unchanged",
+    "repairAttempted": false
+  },
+  "capacity": {
+    "netRam": "0 B in the selected A representation before code; no viable linked candidate",
+    "netCpu": "not measured",
+    "scaling": "linear O(19) lookup per intercepted access; active logical limit is 11 projectiles / 22 cells",
+    "twoHeavyTwoLight": "not constructively blocked by state RAM, but no placed/runtime-measured ownership foundation exists",
+    "twoHeavyFourLight": "worsened by linear foreign-access overhead and unavailable code placement; not proven",
+    "finding": "The rejected proof does not provide a usable path to either roster target."
+  },
+  "alternativesForOwnerDecision": [
+    {
+      "option": "combine the already measured PMG-pickup replacement with one centralized lower-cell access primitive",
+      "playerEffect": "pickup becomes the previously tested single-colour PMG form; projectile foreground semantics remain",
+      "resourceEffect": "Stage 2B.1 measured -288 B and removes the 18-site character-pickup exception, potentially creating placement for the ownership primitive",
+      "risk": "couples two previously separate proofs and requires a new bounded native acceptance trace",
+      "recommended": true
+    },
+    {
+      "option": "suppress decorative stars/effects when they collide with projectile cells",
+      "playerEffect": "brief missing decorations under fire",
+      "resourceEffect": "smaller sparse-writer hooks",
+      "risk": "does not solve source-aware ring copy or authoritative base restore, so it is incomplete",
+      "recommended": false
+    },
+    {
+      "option": "add a new resident segment/transport for a general ownership API",
+      "playerEffect": "no intended visual compromise",
+      "resourceEffect": "uses safe aggregate RAM but changes loader/transport topology",
+      "risk": "explicitly forbidden in Stage 2B.2b and expands scope",
+      "recommended": false
+    }
+  ],
+  "next": "Owner decision: authorize or reject one combined bounded proof using the already measured PMG-pickup code recovery to host a centralized projectile-safe lower-cell access primitive. Do not start it automatically."
+}

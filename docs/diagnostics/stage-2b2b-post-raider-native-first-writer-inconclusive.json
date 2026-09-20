@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-14",
+  "status": "INCONCLUSIVE",
+  "diagnostic_only": true,
+  "baseline": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "head": "a97a7a3488222e5c48bf79957895e9cd0cb6284e",
+    "xex_sha256_before_after": [
+      "a4fd121fae34766182ae16235a6772662d0fec6cdda5eded8615357918e6585a",
+      "a4fd121fae34766182ae16235a6772662d0fec6cdda5eded8615357918e6585a"
+    ],
+    "production_source_changed": false,
+    "production_artifact_changed": false
+  },
+  "instrumentation": {
+    "emulator": "Atari800 7.1.2 PAL/XL",
+    "method": "Instruction-boundary observer decodes the effective address of each completed NMOS 6502 store and journals old/new values for divider, character ring, missile DMA and P0-P3 DMA. End-of-frame displayed snapshots retain physical address, physical row, logical row, ring head, first writer and active-owner mask.",
+    "guest_writes": 0,
+    "kill_window": {
+      "before_frames": 10,
+      "after_frames": 60
+    },
+    "frames": 16200,
+    "complete_windows": 272,
+    "raw_window_events": {
+      "character_writes": 162169,
+      "pmg_writes": 183294,
+      "character_visible_snapshots": 74221,
+      "pmg_visible_snapshots": 344470,
+      "missile_visible_snapshots": 42448
+    }
+  },
+  "reproduction": {
+    "raider_kills": 274,
+    "p1": 137,
+    "p2": 137,
+    "with_gameplay_debris": 110,
+    "without_gameplay_debris": 164,
+    "with_enemy_shot": 135,
+    "without_enemy_shot": 139,
+    "two_heavy_before_kill": 137,
+    "single_heavy_before_kill": 137,
+    "kill_y": {
+      "high": 267,
+      "middle": 3,
+      "low": 4
+    },
+    "owner_equivalent_character_ring_artifacts": 0,
+    "owner_equivalent_pmg_artifacts": 0,
+    "owner_equivalent_missile_artifacts": 0
+  },
+  "result": {
+    "memory_class": "not observed",
+    "first_bad_write": null,
+    "writer_pc": null,
+    "writer_symbol": null,
+    "old_value": null,
+    "new_value": null,
+    "ring_transport_chain": null,
+    "reason_inconclusive": "No non-background visible character cell without a consistent active owner survived across ring-head changes after a Raider kill, and no ownerless P0-P3 or missile-DMA byte persisted. The automated production replay therefore did not reproduce the owner's specific artifact and cannot identify its first writer."
+  },
+  "closest_observed_confounder": {
+    "classification": "legitimate active gameplay debris, not accepted as the owner artifact",
+    "session": "raider-first-writer-spread-xex-hard",
+    "kill_frame": 3035,
+    "kill_target": "P2",
+    "raider_xy": [120, 22],
+    "debris_xy_at_kill": [124, 24],
+    "first_post_kill_publication": {
+      "frame": 3035,
+      "clock": 122583852,
+      "vcount": 144,
+      "cycle": 108,
+      "address": 33986,
+      "address_hex": "$84C2",
+      "logical_row": 1,
+      "physical_row": 22,
+      "old_value": 0,
+      "new_value": 114,
+      "writer_pc": 39526,
+      "writer_pc_hex": "$9A66",
+      "writer_procedure": "render_interactive_entity_overlays",
+      "write_class": "direct debris render",
+      "owner_mask": 8
+    },
+    "exclusion_reason": "ENTITY_ACTIVE_MASK bit 0 remained set and ENTITY_X/Y matched the displayed two-cell footprint on every sampled publication. It was present before the kill and followed the normal gameplay-debris update/render lifecycle."
+  },
+  "raw_trace_excerpt": [
+    "frame 3034: $84C3 $00->$74, PC $9A66 render_interactive_entity_overlays, owner=gameplay debris",
+    "frame 3035: Raider P2 kill, PC $9D0C, Raider XY=120/22, active debris XY=124/24",
+    "frame 3035: $84C2 $00->$72, PC $9A66, logical row 1, physical row 22, ring head $8488, owner mask $08",
+    "frame 3036: $84C2 $00->$72, PC $9A66, logical row 3, physical row 22, ring head $8488, owner mask $08",
+    "frame 3037: $84C2 $00->$74, PC $9A66, logical row 2, physical row 22, ring head $8460, owner mask $08"
+  ],
+  "raw_files": [
+    {
+      "path": "build/runtime-wall-trace/raider-first-writer-normal-xex-hard-first-writer.csv",
+      "sha256": "3e68b26517a421566fd757542ddc2b51328ff7fd32d6880d8c821dfe4491280d"
+    },
+    {
+      "path": "build/runtime-wall-trace/raider-first-writer-rapid-xex-hard-first-writer.csv",
+      "sha256": "e2256ffa8819f5540bf54884c8a7c84471e601ab1f4f66c81158587b1ae70511"
+    },
+    {
+      "path": "build/runtime-wall-trace/raider-first-writer-spread-xex-hard-first-writer.csv",
+      "sha256": "afd4fe643006480a40ba884fb856dd1bac7feb171dc94d6f3d68c9f48909ace8"
+    },
+    {
+      "path": "build/runtime-wall-trace/raider-first-writer-report.json",
+      "sha256": "2380b5fabebea2899222600bd3b860929e59ba50db31839f4f47feadb294c86f"
+    }
+  ],
+  "recommended_next_evidence": "Capture an owner reproduction with an exact gameplay frame or synchronized screenshot/video marker, then replay that input seed with the same raw journal so the visually selected cell can be followed backward to its first write.",
+  "next_task": "Minimal fix for the positively attributed post-Raider remnant writer."
+}

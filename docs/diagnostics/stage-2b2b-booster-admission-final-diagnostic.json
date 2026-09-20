@@ -1,0 +1,5583 @@
+{
+  "schema": "void-strike-65.booster-admission-final-diagnostic.v1",
+  "generated_at": "2026-09-15T07:30:44.674Z",
+  "status": "PASS",
+  "classification": "HEALTHY",
+  "taxonomy": {
+    "NO_ELIGIBILITY": false,
+    "NO_RNG_SUCCESS": false,
+    "RNG_SUCCESS_ADMISSION_REJECTED": false,
+    "ADMITTED_NOT_RENDERED": false,
+    "HEALTHY": true
+  },
+  "root_cause": "No production defect reproduced. Booster generation is deterministic rather than probabilistic; owner play can show no capsule when fewer than three qualifying Player PairShot kills occur while slot 1 is idle, and pending admissions can be visibly delayed by normal Director retry gates.",
+  "production_change": false,
+  "contract": {
+    "eligibility": "Lethal Raider damage whose source is Player PairShot, only while slot 1 is idle.",
+    "generation_rule": "Every third qualifying kill; no drop-probability or RNG evaluation.",
+    "rng_accounting": "An accepted Director admission advances its private 5*x+1 state once as shared accounting; that advance is not a booster drop roll.",
+    "pending_cooldown": "30 complete pending frames (load 32), then retry every 8 frames after rejection.",
+    "difficulty": "Generation threshold is difficulty-independent; descent is 8/9/10 twentieths of a pixel per frame on Easy/Medium/Hard; Director gates use per-difficulty budgets/reaction/recovery.",
+    "sector": "Slot-1 pickup generation/update/admission/render is fighter OPEN only. Pending freezes through capital; active pickup is released at transition; slot-2 booster survives and keeps ticking.",
+    "admission": "DIRECTOR_HAZARD_PICKUP (index 3, cost 0) through director_request and integration_pickup_reveal_body.",
+    "pool": "slot 0 debris, slot 1 pickup capsule, slot 2 timed booster/next-type controller, slot 3 reserve; global visible interactive limit 2.",
+    "collection": "Player overlap releases slot 1 and activates/replaces slot 2 as Rapid, Spread, or Shield.",
+    "expiry": "Slot 1 releases on collection, bottom despawn, active sector transition, or lifecycle clear. Slot 2 releases on timer expiry or lifecycle clear.",
+    "render": "Missile DMA page $3B00, M0-M3 in fifth-player mode, 16 rows, four consecutive HPOSM positions."
+  },
+  "scenarios": {
+    "fresh_fighter": {
+      "frame_range": [
+        0,
+        479
+      ],
+      "counters": {
+        "eligibility_events": 30,
+        "rng_evaluations": 0,
+        "rng_successes": 0,
+        "pending_capsules_created": 10,
+        "spawn_admission_requests": 105,
+        "accepted_admissions": 5,
+        "rejected_admissions": 100,
+        "rejection_reasons": {
+          "phase_disallows_pickup": 55,
+          "reaction_or_recovery": 45
+        },
+        "slot2_activations": 5,
+        "first_visible_publications": 5,
+        "collections": 5,
+        "despawns": 4,
+        "releases": 9,
+        "pending_at_range_end": 1
+      }
+    },
+    "fighter_to_capital": {
+      "entry_frame": 480,
+      "slot1_before": 1,
+      "slot1_after": 1,
+      "active_mask_after": 0
+    },
+    "capital": {
+      "frames": 5430,
+      "admission_requests": 0,
+      "active_pickup_frames": 0,
+      "published_pickup_frames": 0
+    },
+    "capital_to_fighter": {
+      "first_reentry_frame": 1566,
+      "counters": {
+        "eligibility_events": 0,
+        "rng_evaluations": 0,
+        "rng_successes": 0,
+        "pending_capsules_created": 0,
+        "spawn_admission_requests": 5,
+        "accepted_admissions": 5,
+        "rejected_admissions": 0,
+        "rejection_reasons": {},
+        "slot2_activations": 0,
+        "first_visible_publications": 5,
+        "collections": 0,
+        "despawns": 0,
+        "releases": 0,
+        "pending_at_range_end": 0
+      }
+    },
+    "repeated_transitions": {
+      "complete_cycles": 5,
+      "reentry_frames": [
+        1566,
+        1566,
+        1566,
+        1566,
+        1566
+      ]
+    }
+  },
+  "matched_opportunity_sample": {
+    "fresh_eligibility_events": 30,
+    "post_capital_first_equal_eligibility_events": 0,
+    "fresh_first_six_outcomes": [
+      {
+        "frame": 139,
+        "sector_state": 7,
+        "x": 94,
+        "y": 8,
+        "accepted_frame": 330,
+        "visible_frame": 331,
+        "state_at_trace_end": 0
+      },
+      {
+        "frame": 474,
+        "sector_state": 7,
+        "x": 92,
+        "y": 8,
+        "accepted_frame": null,
+        "visible_frame": null,
+        "state_at_trace_end": 2
+      },
+      {
+        "frame": 139,
+        "sector_state": 7,
+        "x": 94,
+        "y": 8,
+        "accepted_frame": 330,
+        "visible_frame": 331,
+        "state_at_trace_end": 0
+      },
+      {
+        "frame": 474,
+        "sector_state": 7,
+        "x": 92,
+        "y": 8,
+        "accepted_frame": null,
+        "visible_frame": null,
+        "state_at_trace_end": 2
+      },
+      {
+        "frame": 139,
+        "sector_state": 7,
+        "x": 94,
+        "y": 8,
+        "accepted_frame": 330,
+        "visible_frame": 331,
+        "state_at_trace_end": 0
+      },
+      {
+        "frame": 474,
+        "sector_state": 7,
+        "x": 92,
+        "y": 8,
+        "accepted_frame": null,
+        "visible_frame": null,
+        "state_at_trace_end": 2
+      },
+      {
+        "frame": 139,
+        "sector_state": 7,
+        "x": 94,
+        "y": 8,
+        "accepted_frame": 330,
+        "visible_frame": 331,
+        "state_at_trace_end": 0
+      },
+      {
+        "frame": 474,
+        "sector_state": 7,
+        "x": 92,
+        "y": 8,
+        "accepted_frame": null,
+        "visible_frame": null,
+        "state_at_trace_end": 2
+      },
+      {
+        "frame": 139,
+        "sector_state": 7,
+        "x": 94,
+        "y": 8,
+        "accepted_frame": 330,
+        "visible_frame": 331,
+        "state_at_trace_end": 0
+      },
+      {
+        "frame": 474,
+        "sector_state": 7,
+        "x": 92,
+        "y": 8,
+        "accepted_frame": 1590,
+        "visible_frame": 1591,
+        "state_at_trace_end": 0
+      }
+    ],
+    "post_capital_first_six_outcomes": [],
+    "interpretation": "Six fresh and six post-capital eligibility events each created two legal third-kill candidates. All four reached accepted visible admission; one candidate in each sample was deliberately carried PENDING through the following capital traversal before admission."
+  },
+  "totals": {
+    "eligibility_events": 30,
+    "rng_evaluations": 0,
+    "rng_successes": 0,
+    "pending_capsules_created": 10,
+    "spawn_admission_requests": 110,
+    "accepted_admissions": 10,
+    "rejected_admissions": 100,
+    "rejection_reasons": {
+      "phase_disallows_pickup": 55,
+      "reaction_or_recovery": 45
+    },
+    "slot2_activations": 5,
+    "first_visible_publications": 10,
+    "collections": 5,
+    "despawns": 4,
+    "releases": 9,
+    "pending_at_range_end": 0
+  },
+  "creation_outcomes": [
+    {
+      "frame": 139,
+      "sector_state": 7,
+      "x": 94,
+      "y": 8,
+      "accepted_frame": 330,
+      "visible_frame": 331,
+      "state_at_trace_end": 0
+    },
+    {
+      "frame": 474,
+      "sector_state": 7,
+      "x": 92,
+      "y": 8,
+      "accepted_frame": null,
+      "visible_frame": null,
+      "state_at_trace_end": 2
+    },
+    {
+      "frame": 139,
+      "sector_state": 7,
+      "x": 94,
+      "y": 8,
+      "accepted_frame": 330,
+      "visible_frame": 331,
+      "state_at_trace_end": 0
+    },
+    {
+      "frame": 474,
+      "sector_state": 7,
+      "x": 92,
+      "y": 8,
+      "accepted_frame": null,
+      "visible_frame": null,
+      "state_at_trace_end": 2
+    },
+    {
+      "frame": 139,
+      "sector_state": 7,
+      "x": 94,
+      "y": 8,
+      "accepted_frame": 330,
+      "visible_frame": 331,
+      "state_at_trace_end": 0
+    },
+    {
+      "frame": 474,
+      "sector_state": 7,
+      "x": 92,
+      "y": 8,
+      "accepted_frame": null,
+      "visible_frame": null,
+      "state_at_trace_end": 2
+    },
+    {
+      "frame": 139,
+      "sector_state": 7,
+      "x": 94,
+      "y": 8,
+      "accepted_frame": 330,
+      "visible_frame": 331,
+      "state_at_trace_end": 0
+    },
+    {
+      "frame": 474,
+      "sector_state": 7,
+      "x": 92,
+      "y": 8,
+      "accepted_frame": null,
+      "visible_frame": null,
+      "state_at_trace_end": 2
+    },
+    {
+      "frame": 139,
+      "sector_state": 7,
+      "x": 94,
+      "y": 8,
+      "accepted_frame": 330,
+      "visible_frame": 331,
+      "state_at_trace_end": 0
+    },
+    {
+      "frame": 474,
+      "sector_state": 7,
+      "x": 92,
+      "y": 8,
+      "accepted_frame": 1590,
+      "visible_frame": 1591,
+      "state_at_trace_end": 0
+    }
+  ],
+  "attempts": [
+    {
+      "frame": 170,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 221,
+        "flags": 64,
+        "admission_frame": 160,
+        "gameplay_frame": 171
+      }
+    },
+    {
+      "frame": 178,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 221,
+        "flags": 64,
+        "admission_frame": 171,
+        "gameplay_frame": 179
+      }
+    },
+    {
+      "frame": 186,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 182,
+        "gameplay_frame": 187
+      }
+    },
+    {
+      "frame": 194,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 187,
+        "gameplay_frame": 195
+      }
+    },
+    {
+      "frame": 202,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 195,
+        "gameplay_frame": 203
+      }
+    },
+    {
+      "frame": 210,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 203,
+        "gameplay_frame": 211
+      }
+    },
+    {
+      "frame": 218,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 211,
+        "gameplay_frame": 219
+      }
+    },
+    {
+      "frame": 226,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 224,
+        "gameplay_frame": 227
+      }
+    },
+    {
+      "frame": 234,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 227,
+        "gameplay_frame": 235
+      }
+    },
+    {
+      "frame": 242,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 155,
+        "flags": 64,
+        "admission_frame": 241,
+        "gameplay_frame": 243
+      }
+    },
+    {
+      "frame": 250,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 155,
+        "flags": 64,
+        "admission_frame": 243,
+        "gameplay_frame": 251
+      }
+    },
+    {
+      "frame": 258,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 35,
+        "recovery": 35,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 0,
+        "gameplay_frame": 3
+      }
+    },
+    {
+      "frame": 266,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 31,
+        "recovery": 31,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 3,
+        "gameplay_frame": 11
+      }
+    },
+    {
+      "frame": 274,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 27,
+        "recovery": 27,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 11,
+        "gameplay_frame": 19
+      }
+    },
+    {
+      "frame": 282,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 23,
+        "recovery": 23,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 19,
+        "gameplay_frame": 27
+      }
+    },
+    {
+      "frame": 290,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 19,
+        "recovery": 19,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 32,
+        "gameplay_frame": 35
+      }
+    },
+    {
+      "frame": 298,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 0,
+        "reaction": 15,
+        "recovery": 15,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 35,
+        "gameplay_frame": 43
+      }
+    },
+    {
+      "frame": 306,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 0,
+        "reaction": 11,
+        "recovery": 11,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 43,
+        "gameplay_frame": 51
+      }
+    },
+    {
+      "frame": 314,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 0,
+        "reaction": 7,
+        "recovery": 7,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 51,
+        "gameplay_frame": 59
+      }
+    },
+    {
+      "frame": 322,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 0,
+        "reaction": 3,
+        "recovery": 3,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 59,
+        "gameplay_frame": 67
+      }
+    },
+    {
+      "frame": 330,
+      "result": "accepted",
+      "rejection_reason": null,
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 41,
+        "flags": 64,
+        "admission_frame": 68,
+        "gameplay_frame": 75
+      },
+      "activation_position": {
+        "x": 94,
+        "y": 24
+      },
+      "first_publication": {
+        "frame": 330,
+        "missile_dma_address": "$3B20-$3B2F",
+        "pmg_rows": 16,
+        "hposm": [
+          94,
+          96,
+          98,
+          100
+        ],
+        "sizem": 0,
+        "screen_latch": {
+          "lo": "$20",
+          "hi": "$01"
+        }
+      },
+      "first_visible_frame": 331
+    },
+    {
+      "frame": 1590,
+      "result": "accepted",
+      "rejection_reason": null,
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 1,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 2,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 92,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 2,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 174,
+        "flags": 64,
+        "admission_frame": 31,
+        "gameplay_frame": 55
+      },
+      "activation_position": {
+        "x": 92,
+        "y": 24
+      },
+      "first_publication": {
+        "frame": 1590,
+        "missile_dma_address": "$3B20-$3B2F",
+        "pmg_rows": 16,
+        "hposm": [
+          92,
+          94,
+          96,
+          98
+        ],
+        "sizem": 0,
+        "screen_latch": {
+          "lo": "$20",
+          "hi": "$01"
+        }
+      },
+      "first_visible_frame": 1591
+    },
+    {
+      "frame": 170,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 221,
+        "flags": 64,
+        "admission_frame": 160,
+        "gameplay_frame": 171
+      }
+    },
+    {
+      "frame": 178,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 221,
+        "flags": 64,
+        "admission_frame": 171,
+        "gameplay_frame": 179
+      }
+    },
+    {
+      "frame": 186,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 182,
+        "gameplay_frame": 187
+      }
+    },
+    {
+      "frame": 194,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 187,
+        "gameplay_frame": 195
+      }
+    },
+    {
+      "frame": 202,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 195,
+        "gameplay_frame": 203
+      }
+    },
+    {
+      "frame": 210,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 203,
+        "gameplay_frame": 211
+      }
+    },
+    {
+      "frame": 218,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 211,
+        "gameplay_frame": 219
+      }
+    },
+    {
+      "frame": 226,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 224,
+        "gameplay_frame": 227
+      }
+    },
+    {
+      "frame": 234,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 227,
+        "gameplay_frame": 235
+      }
+    },
+    {
+      "frame": 242,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 155,
+        "flags": 64,
+        "admission_frame": 241,
+        "gameplay_frame": 243
+      }
+    },
+    {
+      "frame": 250,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 155,
+        "flags": 64,
+        "admission_frame": 243,
+        "gameplay_frame": 251
+      }
+    },
+    {
+      "frame": 258,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 35,
+        "recovery": 35,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 0,
+        "gameplay_frame": 3
+      }
+    },
+    {
+      "frame": 266,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 31,
+        "recovery": 31,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 3,
+        "gameplay_frame": 11
+      }
+    },
+    {
+      "frame": 274,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 27,
+        "recovery": 27,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 11,
+        "gameplay_frame": 19
+      }
+    },
+    {
+      "frame": 282,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 23,
+        "recovery": 23,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 19,
+        "gameplay_frame": 27
+      }
+    },
+    {
+      "frame": 290,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 19,
+        "recovery": 19,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 32,
+        "gameplay_frame": 35
+      }
+    },
+    {
+      "frame": 298,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 0,
+        "reaction": 15,
+        "recovery": 15,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 35,
+        "gameplay_frame": 43
+      }
+    },
+    {
+      "frame": 306,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 0,
+        "reaction": 11,
+        "recovery": 11,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 43,
+        "gameplay_frame": 51
+      }
+    },
+    {
+      "frame": 314,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 0,
+        "reaction": 7,
+        "recovery": 7,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 51,
+        "gameplay_frame": 59
+      }
+    },
+    {
+      "frame": 322,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 0,
+        "reaction": 3,
+        "recovery": 3,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 59,
+        "gameplay_frame": 67
+      }
+    },
+    {
+      "frame": 330,
+      "result": "accepted",
+      "rejection_reason": null,
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 41,
+        "flags": 64,
+        "admission_frame": 68,
+        "gameplay_frame": 75
+      },
+      "activation_position": {
+        "x": 94,
+        "y": 24
+      },
+      "first_publication": {
+        "frame": 330,
+        "missile_dma_address": "$3B20-$3B2F",
+        "pmg_rows": 16,
+        "hposm": [
+          94,
+          96,
+          98,
+          100
+        ],
+        "sizem": 0,
+        "screen_latch": {
+          "lo": "$20",
+          "hi": "$01"
+        }
+      },
+      "first_visible_frame": 331
+    },
+    {
+      "frame": 1590,
+      "result": "accepted",
+      "rejection_reason": null,
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 1,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 2,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 92,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 2,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 174,
+        "flags": 64,
+        "admission_frame": 31,
+        "gameplay_frame": 55
+      },
+      "activation_position": {
+        "x": 92,
+        "y": 24
+      },
+      "first_publication": {
+        "frame": 1590,
+        "missile_dma_address": "$3B20-$3B2F",
+        "pmg_rows": 16,
+        "hposm": [
+          92,
+          94,
+          96,
+          98
+        ],
+        "sizem": 0,
+        "screen_latch": {
+          "lo": "$20",
+          "hi": "$01"
+        }
+      },
+      "first_visible_frame": 1591
+    },
+    {
+      "frame": 170,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 221,
+        "flags": 64,
+        "admission_frame": 160,
+        "gameplay_frame": 171
+      }
+    },
+    {
+      "frame": 178,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 221,
+        "flags": 64,
+        "admission_frame": 171,
+        "gameplay_frame": 179
+      }
+    },
+    {
+      "frame": 186,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 182,
+        "gameplay_frame": 187
+      }
+    },
+    {
+      "frame": 194,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 187,
+        "gameplay_frame": 195
+      }
+    },
+    {
+      "frame": 202,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 195,
+        "gameplay_frame": 203
+      }
+    },
+    {
+      "frame": 210,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 203,
+        "gameplay_frame": 211
+      }
+    },
+    {
+      "frame": 218,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 211,
+        "gameplay_frame": 219
+      }
+    },
+    {
+      "frame": 226,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 224,
+        "gameplay_frame": 227
+      }
+    },
+    {
+      "frame": 234,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 227,
+        "gameplay_frame": 235
+      }
+    },
+    {
+      "frame": 242,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 155,
+        "flags": 64,
+        "admission_frame": 241,
+        "gameplay_frame": 243
+      }
+    },
+    {
+      "frame": 250,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 155,
+        "flags": 64,
+        "admission_frame": 243,
+        "gameplay_frame": 251
+      }
+    },
+    {
+      "frame": 258,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 35,
+        "recovery": 35,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 0,
+        "gameplay_frame": 3
+      }
+    },
+    {
+      "frame": 266,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 31,
+        "recovery": 31,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 3,
+        "gameplay_frame": 11
+      }
+    },
+    {
+      "frame": 274,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 27,
+        "recovery": 27,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 11,
+        "gameplay_frame": 19
+      }
+    },
+    {
+      "frame": 282,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 23,
+        "recovery": 23,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 19,
+        "gameplay_frame": 27
+      }
+    },
+    {
+      "frame": 290,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 19,
+        "recovery": 19,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 32,
+        "gameplay_frame": 35
+      }
+    },
+    {
+      "frame": 298,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 0,
+        "reaction": 15,
+        "recovery": 15,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 35,
+        "gameplay_frame": 43
+      }
+    },
+    {
+      "frame": 306,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 0,
+        "reaction": 11,
+        "recovery": 11,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 43,
+        "gameplay_frame": 51
+      }
+    },
+    {
+      "frame": 314,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 0,
+        "reaction": 7,
+        "recovery": 7,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 51,
+        "gameplay_frame": 59
+      }
+    },
+    {
+      "frame": 322,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 0,
+        "reaction": 3,
+        "recovery": 3,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 59,
+        "gameplay_frame": 67
+      }
+    },
+    {
+      "frame": 330,
+      "result": "accepted",
+      "rejection_reason": null,
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 41,
+        "flags": 64,
+        "admission_frame": 68,
+        "gameplay_frame": 75
+      },
+      "activation_position": {
+        "x": 94,
+        "y": 24
+      },
+      "first_publication": {
+        "frame": 330,
+        "missile_dma_address": "$3B20-$3B2F",
+        "pmg_rows": 16,
+        "hposm": [
+          94,
+          96,
+          98,
+          100
+        ],
+        "sizem": 0,
+        "screen_latch": {
+          "lo": "$20",
+          "hi": "$01"
+        }
+      },
+      "first_visible_frame": 331
+    },
+    {
+      "frame": 1590,
+      "result": "accepted",
+      "rejection_reason": null,
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 1,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 2,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 92,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 2,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 174,
+        "flags": 64,
+        "admission_frame": 31,
+        "gameplay_frame": 55
+      },
+      "activation_position": {
+        "x": 92,
+        "y": 24
+      },
+      "first_publication": {
+        "frame": 1590,
+        "missile_dma_address": "$3B20-$3B2F",
+        "pmg_rows": 16,
+        "hposm": [
+          92,
+          94,
+          96,
+          98
+        ],
+        "sizem": 0,
+        "screen_latch": {
+          "lo": "$20",
+          "hi": "$01"
+        }
+      },
+      "first_visible_frame": 1591
+    },
+    {
+      "frame": 170,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 221,
+        "flags": 64,
+        "admission_frame": 160,
+        "gameplay_frame": 171
+      }
+    },
+    {
+      "frame": 178,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 221,
+        "flags": 64,
+        "admission_frame": 171,
+        "gameplay_frame": 179
+      }
+    },
+    {
+      "frame": 186,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 182,
+        "gameplay_frame": 187
+      }
+    },
+    {
+      "frame": 194,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 187,
+        "gameplay_frame": 195
+      }
+    },
+    {
+      "frame": 202,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 195,
+        "gameplay_frame": 203
+      }
+    },
+    {
+      "frame": 210,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 203,
+        "gameplay_frame": 211
+      }
+    },
+    {
+      "frame": 218,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 211,
+        "gameplay_frame": 219
+      }
+    },
+    {
+      "frame": 226,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 224,
+        "gameplay_frame": 227
+      }
+    },
+    {
+      "frame": 234,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 227,
+        "gameplay_frame": 235
+      }
+    },
+    {
+      "frame": 242,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 155,
+        "flags": 64,
+        "admission_frame": 241,
+        "gameplay_frame": 243
+      }
+    },
+    {
+      "frame": 250,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 155,
+        "flags": 64,
+        "admission_frame": 243,
+        "gameplay_frame": 251
+      }
+    },
+    {
+      "frame": 258,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 35,
+        "recovery": 35,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 0,
+        "gameplay_frame": 3
+      }
+    },
+    {
+      "frame": 266,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 31,
+        "recovery": 31,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 3,
+        "gameplay_frame": 11
+      }
+    },
+    {
+      "frame": 274,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 27,
+        "recovery": 27,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 11,
+        "gameplay_frame": 19
+      }
+    },
+    {
+      "frame": 282,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 23,
+        "recovery": 23,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 19,
+        "gameplay_frame": 27
+      }
+    },
+    {
+      "frame": 290,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 19,
+        "recovery": 19,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 32,
+        "gameplay_frame": 35
+      }
+    },
+    {
+      "frame": 298,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 0,
+        "reaction": 15,
+        "recovery": 15,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 35,
+        "gameplay_frame": 43
+      }
+    },
+    {
+      "frame": 306,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 0,
+        "reaction": 11,
+        "recovery": 11,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 43,
+        "gameplay_frame": 51
+      }
+    },
+    {
+      "frame": 314,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 0,
+        "reaction": 7,
+        "recovery": 7,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 51,
+        "gameplay_frame": 59
+      }
+    },
+    {
+      "frame": 322,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 0,
+        "reaction": 3,
+        "recovery": 3,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 59,
+        "gameplay_frame": 67
+      }
+    },
+    {
+      "frame": 330,
+      "result": "accepted",
+      "rejection_reason": null,
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 41,
+        "flags": 64,
+        "admission_frame": 68,
+        "gameplay_frame": 75
+      },
+      "activation_position": {
+        "x": 94,
+        "y": 24
+      },
+      "first_publication": {
+        "frame": 330,
+        "missile_dma_address": "$3B20-$3B2F",
+        "pmg_rows": 16,
+        "hposm": [
+          94,
+          96,
+          98,
+          100
+        ],
+        "sizem": 0,
+        "screen_latch": {
+          "lo": "$20",
+          "hi": "$01"
+        }
+      },
+      "first_visible_frame": 331
+    },
+    {
+      "frame": 1590,
+      "result": "accepted",
+      "rejection_reason": null,
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 1,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 2,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 92,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 2,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 174,
+        "flags": 64,
+        "admission_frame": 31,
+        "gameplay_frame": 55
+      },
+      "activation_position": {
+        "x": 92,
+        "y": 24
+      },
+      "first_publication": {
+        "frame": 1590,
+        "missile_dma_address": "$3B20-$3B2F",
+        "pmg_rows": 16,
+        "hposm": [
+          92,
+          94,
+          96,
+          98
+        ],
+        "sizem": 0,
+        "screen_latch": {
+          "lo": "$20",
+          "hi": "$01"
+        }
+      },
+      "first_visible_frame": 1591
+    },
+    {
+      "frame": 170,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 221,
+        "flags": 64,
+        "admission_frame": 160,
+        "gameplay_frame": 171
+      }
+    },
+    {
+      "frame": 178,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 221,
+        "flags": 64,
+        "admission_frame": 171,
+        "gameplay_frame": 179
+      }
+    },
+    {
+      "frame": 186,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 182,
+        "gameplay_frame": 187
+      }
+    },
+    {
+      "frame": 194,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 187,
+        "gameplay_frame": 195
+      }
+    },
+    {
+      "frame": 202,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 195,
+        "gameplay_frame": 203
+      }
+    },
+    {
+      "frame": 210,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 203,
+        "gameplay_frame": 211
+      }
+    },
+    {
+      "frame": 218,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 211,
+        "gameplay_frame": 219
+      }
+    },
+    {
+      "frame": 226,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 224,
+        "gameplay_frame": 227
+      }
+    },
+    {
+      "frame": 234,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 82,
+        "flags": 64,
+        "admission_frame": 227,
+        "gameplay_frame": 235
+      }
+    },
+    {
+      "frame": 242,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 155,
+        "flags": 64,
+        "admission_frame": 241,
+        "gameplay_frame": 243
+      }
+    },
+    {
+      "frame": 250,
+      "result": "rejected",
+      "rejection_reason": "phase_disallows_pickup",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 0,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 155,
+        "flags": 64,
+        "admission_frame": 243,
+        "gameplay_frame": 251
+      }
+    },
+    {
+      "frame": 258,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 35,
+        "recovery": 35,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 0,
+        "gameplay_frame": 3
+      }
+    },
+    {
+      "frame": 266,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 31,
+        "recovery": 31,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 3,
+        "gameplay_frame": 11
+      }
+    },
+    {
+      "frame": 274,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 27,
+        "recovery": 27,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 11,
+        "gameplay_frame": 19
+      }
+    },
+    {
+      "frame": 282,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 23,
+        "recovery": 23,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 19,
+        "gameplay_frame": 27
+      }
+    },
+    {
+      "frame": 290,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 19,
+        "recovery": 19,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 32,
+        "gameplay_frame": 35
+      }
+    },
+    {
+      "frame": 298,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 0,
+        "reaction": 15,
+        "recovery": 15,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 35,
+        "gameplay_frame": 43
+      }
+    },
+    {
+      "frame": 306,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 0,
+        "reaction": 11,
+        "recovery": 11,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 43,
+        "gameplay_frame": 51
+      }
+    },
+    {
+      "frame": 314,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 0,
+        "reaction": 7,
+        "recovery": 7,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 51,
+        "gameplay_frame": 59
+      }
+    },
+    {
+      "frame": 322,
+      "result": "rejected",
+      "rejection_reason": "reaction_or_recovery",
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 0,
+        "reaction": 3,
+        "recovery": 3,
+        "rng_state": 8,
+        "flags": 64,
+        "admission_frame": 59,
+        "gameplay_frame": 67
+      }
+    },
+    {
+      "frame": 330,
+      "result": "accepted",
+      "rejection_reason": null,
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 0,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 0,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 94,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 1,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 41,
+        "flags": 64,
+        "admission_frame": 68,
+        "gameplay_frame": 75
+      },
+      "activation_position": {
+        "x": 94,
+        "y": 24
+      },
+      "first_publication": {
+        "frame": 330,
+        "missile_dma_address": "$3B20-$3B2F",
+        "pmg_rows": 16,
+        "hposm": [
+          94,
+          96,
+          98,
+          100
+        ],
+        "sizem": 0,
+        "screen_latch": {
+          "lo": "$20",
+          "hi": "$01"
+        }
+      },
+      "first_visible_frame": 331
+    },
+    {
+      "frame": 1590,
+      "result": "accepted",
+      "rejection_reason": null,
+      "sector_state": 7,
+      "entity_active_mask": 0,
+      "active_entity_count": 0,
+      "slots": [
+        {
+          "slot": 0,
+          "type": 1,
+          "state": 0
+        },
+        {
+          "slot": 1,
+          "type": 1,
+          "state": 1
+        },
+        {
+          "slot": 2,
+          "type": 2,
+          "state": 0
+        },
+        {
+          "slot": 3,
+          "type": 0,
+          "state": 0
+        }
+      ],
+      "pending_position": {
+        "x": 92,
+        "y": 8,
+        "timer": 0
+      },
+      "director": {
+        "phase": 2,
+        "intensity": 1,
+        "reaction": 0,
+        "recovery": 0,
+        "rng_state": 174,
+        "flags": 64,
+        "admission_frame": 31,
+        "gameplay_frame": 55
+      },
+      "activation_position": {
+        "x": 92,
+        "y": 24
+      },
+      "first_publication": {
+        "frame": 1590,
+        "missile_dma_address": "$3B20-$3B2F",
+        "pmg_rows": 16,
+        "hposm": [
+          92,
+          94,
+          96,
+          98
+        ],
+        "sizem": 0,
+        "screen_latch": {
+          "lo": "$20",
+          "hi": "$01"
+        }
+      },
+      "first_visible_frame": 1591
+    }
+  ],
+  "releases": [
+    {
+      "frame": 399,
+      "prior_state": 2,
+      "reason": "collection"
+    },
+    {
+      "frame": 0,
+      "prior_state": 2,
+      "reason": "despawn"
+    },
+    {
+      "frame": 399,
+      "prior_state": 2,
+      "reason": "collection"
+    },
+    {
+      "frame": 0,
+      "prior_state": 2,
+      "reason": "despawn"
+    },
+    {
+      "frame": 399,
+      "prior_state": 2,
+      "reason": "collection"
+    },
+    {
+      "frame": 0,
+      "prior_state": 2,
+      "reason": "despawn"
+    },
+    {
+      "frame": 399,
+      "prior_state": 2,
+      "reason": "collection"
+    },
+    {
+      "frame": 0,
+      "prior_state": 2,
+      "reason": "despawn"
+    },
+    {
+      "frame": 399,
+      "prior_state": 2,
+      "reason": "collection"
+    }
+  ],
+  "slot2_activations": [
+    {
+      "frame": 399,
+      "state": 3
+    },
+    {
+      "frame": 399,
+      "state": 3
+    },
+    {
+      "frame": 399,
+      "state": 3
+    },
+    {
+      "frame": 399,
+      "state": 3
+    },
+    {
+      "frame": 399,
+      "state": 3
+    }
+  ],
+  "interactive_pool": {
+    "maximum_active_mask": 2,
+    "maximum_active_count": 1,
+    "accepted_with_slot0_debris_active": 0,
+    "stale_active_mask_or_count_frames": 0,
+    "slot3_nonzero_frames": 0
+  },
+  "native": {
+    "emulator": "Atari800 7.1.2 PAL/XL",
+    "frames": 8000,
+    "maximum_wall_cycles": 28484,
+    "physical_headroom_cycles": 7084,
+    "target_overruns": 0,
+    "hard_overruns": 0,
+    "physical_overruns": 0,
+    "missed_frames": 0,
+    "extra_vbi": 0,
+    "dli_anomalies": 0,
+    "maximum_dlis_per_frame": 2,
+    "screenshot": "build/runtime-wall-trace/booster-admission-reentry-atari800.png",
+    "raw_traces": [
+      "build/runtime-wall-trace/booster-admission-reentry-1-xex-hard.csv",
+      "build/runtime-wall-trace/booster-admission-reentry-2-xex-hard.csv",
+      "build/runtime-wall-trace/booster-admission-reentry-3-xex-hard.csv",
+      "build/runtime-wall-trace/booster-admission-reentry-4-xex-hard.csv",
+      "build/runtime-wall-trace/booster-admission-reentry-5-xex-hard.csv"
+    ]
+  },
+  "host": {
+    "focused_current_runtime": {
+      "result": "4/4 PASS",
+      "coverage": "three deterministic admission/lifecycle/PMG tests plus the current packed-runtime early three-kill natural-pickup replay"
+    },
+    "legacy_pickup_fence": {
+      "result": "1 PASS, 1 FAIL, 1 TODO",
+      "gate": false,
+      "reason": "The failed/TODO assertions encode the retired character-pickup moving-fence contract; current production uses missile PMG and a fixed publication path."
+    }
+  },
+  "resource_impact": {
+    "production_guest_code_bytes": 0,
+    "production_state_ram_bytes": 0,
+    "production_probability_changed": false,
+    "note": "All added counters and PMG inspection are host-side Atari800 observer state."
+  },
+  "production_xex_sha256": "d53c024fbba9a0beeec197f9d6213e5e49d4017213cc1f1bfe315506b0ab9592",
+  "owner_smoke": "Start a new Hard game, hold FIRE, track each live Raider with the joystick, and count only kills visibly caused by Player PairShot. Avoid collecting a capsule while counting. The third qualifying kill while no capsule is pending/active legally creates one; if Director reaction/recovery is active it remains hidden at Y=8 and retries every 8 frames until admitted."
+}

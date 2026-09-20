@@ -842,11 +842,11 @@ export function readGameGraphicsSource(
     ["GAMEPLAY_COLPF2", fighterWeapons.player_fighter.colourValue],
     ["GAMEPLAY_COLPF3", fighterWeapons.interceptor.colourValue],
     ["STAR_FAR_CAPACITY", starfield.farLayer.population],
-    ["STAR_FAR_STEP_RATIO", starfield.farLayer.stepRatio],
-    ["STAR_NEAR_STEP_RATIO", starfield.nearLayer.stepRatio],
-    ["STAR_NEAR_DENSITY_NUMERATOR", starfield.nearLayer.densityNumerator],
-    ["STAR_DENSITY_DENOMINATOR", starfield.nearLayer.densityDenominator],
-    ["STAR_SPECIAL_FREQUENCY", starfield.nearLayer.specialFrequency],
+    ["STAR_FAR_RATE_NUMERATOR", starfield.farLayer.rateNumerator],
+    ["STAR_FAR_RATE_DENOMINATOR", starfield.farLayer.rateDenominator],
+    ["STAR_NEAR_CAPACITY", starfield.nearLayer.population],
+    ["STAR_NEAR_FINE_STEP", starfield.nearLayer.speedPixelsPerFrame],
+    ["STAR_FINE_SCANLINES", 8],
     ["STAR_TWINKLE_INTERVAL", starfield.twinkle.intervalFrames],
     ["STAR_GENERATION_SEED", starfield.generationSeed],
   ]) {
@@ -3822,7 +3822,7 @@ export function createDebrisReviewPreview(
   fillRgbRect(rgb, width, height, 34, 52, 1212, 112, panel);
   strokeRgbRect(rgb, width, height, 34, 52, 1212, 112, steel);
   drawRgbLabel(rgb, width, "NATIVE 1X", 48, 62, frontend, gold);
-  const nearStar = [starfield.nearLayer.glyphs.find(({ id }) => id === "SPARKLE").bytes];
+  const nearStar = [starfield.nearLayer.glyphs.find(({ id }) => id === "POINT").bytes];
   drawRgbLabel(rgb, width, "MAX NEAR STAR", 62, 100, frontend, white);
   drawDebrisPhaseRgb(rgb, width, height, nearStar, 180, 98, 2, 1);
   for (let phaseIndex = 0; phaseIndex < phaseLabels.length; phaseIndex += 1) {
@@ -4077,12 +4077,12 @@ export function createInterceptorBreakupPreview(
   const selected = [
     ["PRE_HIT", 0, "1 INTERCEPTOR"],
     ["BREAKUP", 0, "2 FINAL HIT"],
-    ["BREAKUP", 1, "3 YELLOW CORE"],
-    ["BREAKUP", 3, "4 RED CORE"],
-    ["BREAKUP", 5, "5 FOUR FRAGMENTS"],
-    ["BREAKUP", 12, "6 MID SPREAD"],
-    ["BREAKUP", 30, "7 MAX SPREAD"],
-    ["BREAKUP", 31, "8 CLEAN"],
+    ["BREAKUP", 1, "3 FLASH"],
+    ["BREAKUP", 2, "4 FLASH"],
+    ["BREAKUP", 3, "5 FLASH"],
+    ["BREAKUP", 4, "6 FLASH"],
+    ["BREAKUP", 5, "7 NO GLYPH"],
+    ["BREAKUP", 6, "8 NO GLYPH"],
   ].map(([phase, frame, label]) => ({
     label,
     record: trace.records.find((candidate) => candidate.phase === phase && candidate.frame === frame),
@@ -4104,7 +4104,7 @@ export function createInterceptorBreakupPreview(
   drawRgbLabel(rgb, width, "INTERCEPTOR BREAKUP  EXECUTED XEX BYTES  50 FPS", 24, 16,
     frontend, white);
   drawRgbLabel(rgb, width,
-    "FULL SCREEN FLASH UNCHANGED  LOCAL CORE 5  FOUR FRAGMENTS 30", 24, 34,
+    "FULL SCREEN FLASH UNCHANGED  NO RAIDER CHARACTER EFFECT", 24, 34,
     frontend, yellow);
   drawRgbLabel(rgb, width, "NATIVE 1 TO 1  EIGHT ACTUAL RUNTIME FRAMES", 24, 58,
     frontend, steel);

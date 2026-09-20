@@ -1,0 +1,351 @@
+{
+  "schema": "void-strike-65.stage-2b2b-row-baked-far-stars-visual-prototype.v1",
+  "date": "2026-09-11",
+  "stage": "row-baked far stars visual prototype",
+  "status": "PASS_ROW_BAKED_FAR_STARS",
+  "model": {
+    "name": "Codex (GPT-5 family)",
+    "reasoning": "High",
+    "note": "The requested GPT-5.6 Sol product label was not exposed by this session."
+  },
+  "scope": {
+    "farStarPrototypeImplemented": true,
+    "unifiedSchedulerImplemented": false,
+    "pairShotImplemented": false,
+    "lightEnemiesImplemented": false,
+    "effectsCadenceChanged": false,
+    "backgroundCadenceChanged": false,
+    "debrisCadenceChanged": false,
+    "nearStarRendererAdded": false,
+    "farStarCount": 29,
+    "purpose": "Replace 29 independent dynamic far-star overlays with a bounded pattern baked only into generated/recycled background rows."
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "headBefore": "3660b84f6cb1504984da700f3622bd2a06118f39",
+    "headAfter": "commit containing this report",
+    "untouched": [
+      ".claude/"
+    ],
+    "preservedRefs": {
+      "refs/wip/stage2b-foreign-0803": "13597d7fb6fa6bb0d04541ed68ab6715cec1e8d4",
+      "refs/wip/stage2b0-fdb-proof": "3e5d83f2f1944d2dd90b8a23bec9eaae0dcdebc8",
+      "refs/wip/stage2b2-single-window-rejected": "7f40ee0408356bf1f431b49bf5c51d50ae72a4b3"
+    }
+  },
+  "implementation": {
+    "representation": "28-row deterministic baked pattern: one far point in every row and one additional point in pattern row zero",
+    "patternEntries": 29,
+    "patternBytes": 29,
+    "rowGenerationOrder": [
+      "clear/generate base row",
+      "generate at most one near star",
+      "bake one or two far stars into an unoccupied cell"
+    ],
+    "nearCollisionPolicy": "Near wins. The far point uses one bounded +11 corridor or +17 full-width fallback; a generated row has at most one near point.",
+    "fighterColumns": "interior columns 9-30, leaving hull/muzzle boundary cells untouched",
+    "completeAndOpenColumns": "full width 0-39",
+    "twinkle": "disabled; glyph variation is deterministic pattern data",
+    "removedDynamicPaths": [
+      "init_far_star_population",
+      "erase_far_star_overlays",
+      "per-record logical-row advance and respawn",
+      "per-record ring/address resolve",
+      "render_far_star_overlays",
+      "late far redraw dispatch",
+      "tick_star_twinkle"
+    ],
+    "fullBackingAddedBytes": 0,
+    "ringArchitectureRebuilt": false
+  },
+  "visualModel": {
+    "farStars": {
+      "visibleCount": 29,
+      "motion": "full background-ring/world-row speed",
+      "colourBank": "COLPF1",
+      "glyphVariants": 3,
+      "appearance": "small and darker",
+      "dynamicTwinkle": false
+    },
+    "nearStars": {
+      "renderer": "unchanged existing generated-row path",
+      "colourBank": "COLPF0",
+      "glyphVariants": 3,
+      "appearance": "brighter and larger",
+      "speedCompensationAdded": false
+    },
+    "density": "exactly 29 far points in every warmed 28-row period; positions may differ from the retired record population",
+    "ownerSmokeQuestions": [
+      "Does the starfield still read as multilayered?",
+      "Do the far points look like intentional background rather than foreground attachments?",
+      "Do the existing brighter/larger near points provide enough motion and depth?",
+      "Is density acceptable through ring wrap and capital reconstruction?"
+    ],
+    "limitation": "No new near-star speed path was added because it would be a separate dynamic writer and CPU architecture change. Motion-depth acceptance therefore remains an owner-smoke decision."
+  },
+  "cpu": {
+    "classification": "MEASURED instruction-exact on the current linked NMOS-6502 routine",
+    "measurementMethod": "The relocated STARFIELD binary was loaded at its linked run address and generate_baked_far_star_row was executed to RTS with blank, one-near-collision, corridor, full-width and double-star fixtures.",
+    "beforeDynamicFarStarPeakCycles": 4221,
+    "afterIncrementalRowGenerationCycles": {
+      "ordinarySingleStarRow": 105,
+      "doubleStarRowNoCollision": 175,
+      "legalWorstDoubleStarRowOneNearCollision": 206,
+      "fullWidthLegalWorstOneNearCollision": 187,
+      "syntheticTwoCollisionStress": 233
+    },
+    "legalWorstReason": "The base generator introduces at most one near star before far generation, so the synthetic two-collision fixture is not a legal runtime row.",
+    "recoveredPeakCycles": 4015,
+    "minimumRequiredRecoveryCycles": 3500,
+    "recoveryGateMarginCycles": 515,
+    "earlierFeasibilityTargetCyclesPerRow": 150,
+    "targetOverrunCyclesAtLegalWorst": 56,
+    "gate": "PASS: the hard requested recovery gate is met; the prior 150-cycle estimate is exceeded only by the double-star collision worst case."
+  },
+  "writerSites": {
+    "beforeIndependentLowerLayerAccessSites": 21,
+    "removedFarStarAndTwinkleSites": 6,
+    "afterIndependentLowerLayerAccessSites": 15,
+    "newIndependentFarWriterSites": 0,
+    "mechanicalBaseRowAccess": "One bounded occupancy/write path is nested in existing base-row construction and executes before later character layers; it is not an independent late far-star writer.",
+    "remainingByLayer": {
+      "ringRotation": 1,
+      "worldClear": 2,
+      "nearStars": 2,
+      "debris": 6,
+      "effects": 4
+    }
+  },
+  "ringWrap": {
+    "hostModelStepsWithExact29": 600,
+    "explicitCompletePatternWraps": 3,
+    "explicitWrapSteps": 84,
+    "phaseAfterThreeWraps": 0,
+    "corridorSideWrites": 0,
+    "capitalReconstructionRows": 28,
+    "postCapitalOpenAdditionalSteps": 56,
+    "missingRows": 0,
+    "duplicatePatternRows": 0,
+    "staleStars": 0,
+    "verticalLineArtifactsDetectedByStructuralTests": 0,
+    "result": "PASS",
+    "note": "Final visual artifact judgement remains assigned to owner smoke; structural host tests and native cold boot do not replace that judgement."
+  },
+  "memory": {
+    "before": {
+      "linkedRuntimeBytes": 17605,
+      "simultaneousResidencyBytes": 18083,
+      "safeHeadroomBytes": 4104,
+      "starfieldRuntimeBytes": 2258,
+      "a2KernelBytes": 254,
+      "farLogicalRecordsBytes": 116,
+      "farPhysicalAddressCacheBytes": 58,
+      "farRecordAndCacheBytes": 174,
+      "starfieldMutableStateBytesInAssetModel": 122,
+      "packedStarfieldBytes": 1802
+    },
+    "after": {
+      "linkedRuntimeBytes": 17287,
+      "simultaneousResidencyBytes": 17765,
+      "safeHeadroomBytes": 4422,
+      "starfieldRuntimeBytes": 2067,
+      "a2KernelBytes": 122,
+      "farLogicalRecordsBytes": 0,
+      "farPhysicalAddressCacheBytes": 0,
+      "patternDataBytes": 29,
+      "newFarMutableStateBytes": 1,
+      "newFarMutableStateAllocationBytes": 0,
+      "starfieldMutableStateBytesInAssetModel": 2,
+      "packedStarfieldBytes": 1676
+    },
+    "delta": {
+      "linkedRuntimeBytes": -318,
+      "simultaneousResidencyBytes": -318,
+      "safeHeadroomBytes": 318,
+      "starfieldRuntimeBytes": -191,
+      "a2KernelBytes": -132,
+      "residentCodeBytes": 5,
+      "farRecordAndCacheBytes": -174,
+      "packedStarfieldBytes": -126
+    },
+    "notes": [
+      "The one pattern phase byte reuses the former far-phase address.",
+      "Three scalar compatibility bytes remain reserved so downstream reviewed state addresses do not move.",
+      "The existing 24 bytes of far glyph art remain in the shared 48-byte star glyph bank.",
+      "No full shadow screen, BASIC RAM, loader change or new transport record was introduced."
+    ]
+  },
+  "placement": {
+    "starfieldRuntime": {
+      "runRange": "$54E4-$5CF6",
+      "bytes": 2067,
+      "reservedBytes": 2348,
+      "marginBytes": 281,
+      "packedBytes": 1676,
+      "packedCapacityBytes": 1819,
+      "packedMarginBytes": 143
+    },
+    "a2Kernel": {
+      "runRange": "$9000-$9079",
+      "bytes": 122,
+      "reservedBytes": 256,
+      "marginBytes": 134
+    },
+    "broadside": {
+      "bytes": 6647,
+      "reservedBytes": 6656,
+      "marginBytes": 9
+    },
+    "pickupColdRecord": {
+      "packedBytes": 854,
+      "capacityBytes": 1277,
+      "marginBytes": 423
+    },
+    "entityCode": {
+      "runAddress": "$9100",
+      "aligned": true,
+      "stagingMarginBytes": 94
+    },
+    "initialContent": {
+      "bytes": 12949,
+      "transportBytes": 13056,
+      "marginBytes": 107
+    },
+    "transport": {
+      "format": "DFMC-v1 multi-chunk unchanged",
+      "records": 4,
+      "occupiedSectors": 162,
+      "bytes": 20736
+    },
+    "result": "PASS"
+  },
+  "unifiedCommitForecast": {
+    "classification": "ESTIMATE using measured row-baked far cost and unchanged prior per-layer measurements",
+    "conservativeWindowCycles": 9975,
+    "layerCostsCycles": {
+      "ring": 1263,
+      "worldClear": 535,
+      "nearStars": 151,
+      "rowBakedFarStarsMeasuredWorst": 206,
+      "debris": 220,
+      "effects": 1089,
+      "projectilePublication": 2650
+    },
+    "layerSubtotalCycles": 6114,
+    "schedulerEstimateCycles": {
+      "minimum": 80,
+      "maximum": 160
+    },
+    "projectedTotalCycles": {
+      "minimum": 6194,
+      "maximum": 6274
+    },
+    "marginToWindowCycles": {
+      "best": 3781,
+      "worst": 3701
+    },
+    "classificationResult": "STRONG_PASS forecast; scheduler not implemented"
+  },
+  "legalElevenProjectileEnvelope": {
+    "classification": "ESTIMATE; previous legal-envelope model with 4015 measured far-star cycles removed",
+    "ordinaryCycles": {
+      "minimum": 8121,
+      "maximum": 8201
+    },
+    "ordinaryMarginToWindowCycles": {
+      "best": 1854,
+      "worst": 1774
+    },
+    "spreadInverseCycles": {
+      "minimum": 9847,
+      "maximum": 9927
+    },
+    "spreadInverseMarginToWindowCycles": {
+      "best": 128,
+      "worst": 48
+    },
+    "note": "Spread/inverse fits arithmetically but remains intentionally unresolved and too tight for an acceptance claim. PairShot was not implemented."
+  },
+  "capacityForecast": {
+    "classification": "ESTIMATE; visual-window cost only, before Light weapons and without implementing Light",
+    "twoHeavyTwoLight": {
+      "cycles": {
+        "minimum": 6634,
+        "maximum": 6714
+      },
+      "marginToWindowCycles": {
+        "best": 3341,
+        "worst": 3261
+      },
+      "result": "window path remains realistic"
+    },
+    "twoHeavyFourLight": {
+      "cycles": {
+        "minimum": 7074,
+        "maximum": 7154
+      },
+      "marginToWindowCycles": {
+        "best": 2901,
+        "worst": 2821
+      },
+      "result": "target window path remains realistic before Light weapon cost"
+    }
+  },
+  "verification": {
+    "candidateBuild": {
+      "command": "npm run build:two-pmg",
+      "result": "PASS",
+      "reasonForCandidateMode": "This owner-smoke prototype intentionally has no new bound full PAL runtime evidence."
+    },
+    "focusedTests": {
+      "commands": [
+        "node --test tests/starfield.test.mjs",
+        "node --test tests/layout-d1.test.mjs",
+        "node --test tests/runtime-wall-trace.test.mjs tests/starfield.test.mjs tests/layout-d1.test.mjs"
+      ],
+      "rowBakedAndLayoutResult": "PASS: 18/18 focused starfield plus layout tests",
+      "traceContractResult": "observer binding/schema tests passed; historical evidence assertions correctly reject the new unbound candidate"
+    },
+    "nativeColdBoot": {
+      "command": "ATARI800_TRACE_SOURCE=~/Projects/tools/atari800-7.1.2 npm run boot:smoke",
+      "result": "PASS",
+      "sessions": 4,
+      "artifacts": [
+        "XEX",
+        "ATR"
+      ]
+    },
+    "preview": {
+      "path": "build/previews/starfield-pal-sequence.png",
+      "result": "generated and inspected; not a substitute for owner smoke"
+    },
+    "notPerformed": [
+      "unified scheduler implementation",
+      "full PAL gauntlet",
+      "ownership trace",
+      "PairShot implementation",
+      "Light implementation"
+    ],
+    "knownCandidateEvidenceState": "npm run verify rejects the artifact by design because runtimeEvidence remains candidate-awaiting-trace; this prototype task did not authorize a full PAL evidence bind."
+  },
+  "artifacts": {
+    "xex": {
+      "path": "dist/void-strike-65.xex",
+      "bytes": 21479,
+      "sha256": "2ad0c698aa4871998117a03e5632c9760ade5632fa6bd5e3f6f6a3819d654c3e",
+      "status": "row-baked far-stars owner-smoke candidate"
+    },
+    "atr": {
+      "path": "dist/void-strike-65.atr",
+      "bytes": 92176,
+      "sha256": "1ae26c92a2830bb98127d4e4b0048e8b1900661e9212856dfcb6501b310951f4"
+    },
+    "boot": {
+      "path": "dist/void-strike-65-boot.bin",
+      "bytes": 20736,
+      "sha256": "ea782f340689a1ce0a3c482c8f5d733155724ab0b1da2610b62e5a936f37ea11"
+    }
+  },
+  "decision": "Row-baked far stars are accepted for owner smoke",
+  "next": "PairShot feasibility for player + fighter enemies. Do not execute automatically."
+}

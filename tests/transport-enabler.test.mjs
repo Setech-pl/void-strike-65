@@ -49,7 +49,7 @@ function lzChunk(length, finalDestination, seed) {
   };
 }
 
-test("production gate distinguishes 100 sectors from the opt-in 101-sector layout", () => {
+test("production gate distinguishes 100 sectors from the opt-in 105-sector layout", () => {
   const hundred = buildDfmcV1Transport({
     initialContent: initialContent(100 * 128 - 12),
     manifestOffset: MANIFEST_OFFSET,
@@ -74,27 +74,47 @@ test("production gate distinguishes 100 sectors from the opt-in 101-sector layou
   assert.equal(hundredOne.initialBoot.bytes.length, 12928);
   assert.equal(hundredOne.initialBoot.sectors, 101);
   assert.equal(hundredOne.records[0].startSector, 102);
-});
 
-test("the opt-in initial-block ceiling accepts exactly 12928 bytes and rejects 12929", () => {
-  assert.deepEqual(validateInitialBlockCapacity(12928, { allowExtendedInitialBlock: true }), {
-    byteLength: 12928, sectors: 101, maximumBytes: 12928, maximumSectors: 101,
-  });
-  assert.throws(() => validateInitialBlockCapacity(12929, {
-    allowExtendedInitialBlock: true,
-  }), /exceeds 12928 bytes \/ 101 sectors/);
-  assert.throws(() => buildDfmcV1Transport({
-    initialContent: initialContent(101 * 128 - 11),
+  const hundredTwo = buildDfmcV1Transport({
+    initialContent: initialContent(102 * 128 - 12),
     manifestOffset: MANIFEST_OFFSET,
     chunks: [rawChunk(107)],
     allowExtendedInitialBlock: true,
-  }), /exceeds 12928 bytes \/ 101 sectors/);
+  });
+  assert.equal(hundredTwo.initialBoot.bytes.length, 13056);
+  assert.equal(hundredTwo.initialBoot.sectors, 102);
+  assert.equal(hundredTwo.records[0].startSector, 103);
+
+  const hundredThree = buildDfmcV1Transport({
+    initialContent: initialContent(103 * 128 - 12),
+    manifestOffset: MANIFEST_OFFSET,
+    chunks: [rawChunk(107)],
+    allowExtendedInitialBlock: true,
+  });
+  assert.equal(hundredThree.initialBoot.bytes.length, 13184);
+  assert.equal(hundredThree.initialBoot.sectors, 103);
+  assert.equal(hundredThree.records[0].startSector, 104);
+});
+
+test("the opt-in initial-block ceiling accepts exactly 13440 bytes and rejects 13441", () => {
+  assert.deepEqual(validateInitialBlockCapacity(13440, { allowExtendedInitialBlock: true }), {
+    byteLength: 13440, sectors: 105, maximumBytes: 13440, maximumSectors: 105,
+  });
+  assert.throws(() => validateInitialBlockCapacity(13441, {
+    allowExtendedInitialBlock: true,
+  }), /exceeds 13440 bytes \/ 105 sectors/);
+  assert.throws(() => buildDfmcV1Transport({
+    initialContent: initialContent(105 * 128 - 11),
+    manifestOffset: MANIFEST_OFFSET,
+    chunks: [rawChunk(107)],
+    allowExtendedInitialBlock: true,
+  }), /exceeds 13440 bytes \/ 105 sectors/);
 });
 
 test("one and multiple records preserve order, fields, and exact sector boundaries", () => {
   const chunks = [
     rawChunk(107, 0x4efe, 1),
-    rawChunk(203, 0x7bd0, 2),
+    rawChunk(203, 0x8400, 2),
     rawChunk(511, 0x992a, 3),
   ];
   const one = buildDfmcV1Transport({
@@ -125,7 +145,7 @@ test("record overlap, invalid load range, length mismatch, truncation, and ATR o
   });
   const overlapping = [{ ...valid.records[0] }, {
     ...valid.records[0], startSector: valid.records[0].startSector,
-    finalDestination: 0x7bd0,
+    finalDestination: 0x8400,
   }];
   assert.throws(() => encodeChunkManifest({
     records: overlapping, totalOccupiedSectors: valid.totalOccupiedSectors,
@@ -163,7 +183,7 @@ test("record overlap, invalid load range, length mismatch, truncation, and ATR o
 });
 
 test("LZ payloads unpack byte-exactly into memory and preserve publication order", () => {
-  const chunks = [lzChunk(241, 0x4efe, 7), lzChunk(701, 0x7bd0, 8)];
+  const chunks = [lzChunk(241, 0x4efe, 7), lzChunk(701, 0x8600, 8)];
   const built = buildDfmcV1Transport({
     initialContent: initialContent(500),
     manifestOffset: MANIFEST_OFFSET,

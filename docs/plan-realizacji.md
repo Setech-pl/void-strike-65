@@ -1,0 +1,506 @@
+# VOID STRIKE 65 — plan realizacji
+
+Wersja: 6.1
+Data: 2026-09-20
+Rola: **jedyna aktywna roadmapa projektu**
+Branch roboczy: `wip/4.5d-gate-fail`
+
+> **Skonsolidowany obraz całości** (roadmapa, architektura, zmierzona mapa
+> pamięci, decyzje, backlog, cel treściowy, metoda pracy):
+> [`project-overview.md`](project-overview.md).
+>
+> **Rozbieżności, które wskazywał jego §8.5-8.7, są rozstrzygnięte
+> 2026-09-20 i naniesione w tym pliku:**
+> §7 (odrzucone kierunki) — oznaczone SUPERSEDED, decyzja **Q**;
+> §4 pkt 7 („kampania 16 poziomów") — **obowiązuje bez zmian**, bo decyzja
+> **E** ustala szesnaście poziomów, a to cel ośmiu poziomów był nieaktualny;
+> §3 i §4.5c — liczby zastąpione pomiarem przy HEAD, z zachowaniem
+> oryginalnych jako historii.
+
+Bieżący stan (checkpointy, XEX, CPU/RAM, otwarte defekty, kandydaci) opisuje
+wyłącznie [`STATUS.md`](STATUS.md). Zasady pracy:
+[`reguly-projektu.txt`](reguly-projektu.txt). Kolejność źródeł prawdy:
+[`README.md`](README.md).
+
+Poprzednia wersja 4.12 (Stage 2A–2D.1, pełna historia proofów i ich dawne
+„Następny task”) jest zachowana bajt w bajt w
+[`history/plan-realizacji-v4.12-2026-09-15.md`](history/plan-realizacji-v4.12-2026-09-15.md).
+Jej instrukcje wykonawcze nie są aktywne.
+
+---
+
+## 1. Cel i ramy
+
+Celem jest ukończenie grywalnej gry na Atari 65XE PAL 64 KB w rozsądnym czasie.
+Architektura służy grze: stabilność, czytelność, grywalność i budżet sprzętu mają
+pierwszeństwo przed elegancją techniczną.
+
+Platforma i bramki:
+
+- Atari 65XE PAL, 64 KB, 6502C, 50 FPS; XEX i ATR;
+- target produkcyjny: `31 200` cykli w najcięższej legalnej klatce;
+- hard gate: `32 568` cykli;
+- fizyczna ramka PAL: `35 568` cykli;
+- poprawność względem rastra jest osobnym warunkiem obok wall time.
+
+Gra ma trzy rodzaje sektorów, ze wspólnymi kernelami, ale własnym
+harmonogramem krytycznych zapisów, przydziałem PMG i budżetem:
+
+1. **fighter combat** — swobodna walka;
+2. **capital traversal** — przelot wzdłuż okrętów liniowych;
+3. **boss** — modularny przeciwnik z własnym schedulerem.
+
+Fundament techniczny: hybryda **C/cc65 + ca65**. C decyduje *co* ma się
+wydarzyć (Director, sektory, lifecycle, `EnemyArchetype`, AI, fale, polityka
+pickupów, boss state). ASM wykonuje *jak* na sprzęcie (VBI/DLI, ANTIC, PMG,
+publikacja, ring/backing, gorące kolizje, audio). Szczegóły:
+[`hybrid-c-architecture.md`](hybrid-c-architecture.md).
+
+---
+
+## 2. Wymagania właścicielskie fighter combat
+
+### 2.1 Pojemność
+
+Architektura musi zachować mierzalną drogę do:
+
+- minimum **4** przeciwników/zagrożeń jednocześnie na ekranie;
+- targetu rozszerzonego **6**;
+- modelu **2 Heavy + do 4 Light**.
+
+Heavy: najwyżej dwa duże, niezależne fightery na `P1/P2`.
+Light: tańsze obiekty (znaki lub inne oszczędne techniki), bez własnego PMG.
+Liczba przeciwników w encounterze jest niezależna od liczby jednocześnie widocznych.
+
+### 2.2 Skład fal
+
+Jeden dominujący archetyp + najwyżej jeden wspierający. Jednorodne fale są
+preferowane ze względu na czytelność, współdzielenie grafiki/AI i koszt.
+
+### 2.3 Broń gracza
+
+Bursty produkcyjne w widocznych impulsach: Normal `8`, Spread `8`, Rapid `10`,
+czyli `4/4/5` logicznych PairShotów (jeden lifecycle, jedna kolizja, jedna
+komórka, glif z dwoma impulsami). `4/4/6` wyłącznie diagnostycznie.
+
+---
+
+## 3. Punkt wyjścia (szczegóły w STATUS)
+
+- **Zaakceptowany fundament:** `2df89da` — Hybrid C Director, C-owned
+  sector/lifecycle, Raider jako pierwszy `EnemyArchetype`; owner-accepted.
+- **Zaakceptowany (owner smoke PASS 2026-09-15):** `41ace65` — Light Wingman M1
+  (`2 Heavy + 1 Light`, późna publikacja bez migotania, formacja wycentrowana za
+  liderem, 8-liniowe kroki pionowe akceptowane) oraz solidna kapsuła PMG.
+  Płynne śledzenie pionowe (M2) jest odłożone decyzją właściciela.
+- **Zaakceptowany (owner smoke PASS 2026-09-16):** `b4b942e` — widoczność
+  pickupu (raster + sylwetki kapsuł), 4.3 Stage 1 (rezydentna pojemność) i
+  późna publikacja debris z dokładną własnością.
+- **Zaakceptowany (owner smoke PASS 2026-09-18):** `0a90c1c` — cały stos
+  `wip/4.5d-gate-fail`: 4.5c Bomber, odroczenie klatki śmierci (Option E),
+  poprawka podwójnego obrazu przy respawnie, wynik za debris (strzał i
+  kontakt), strażnicy sąsiedztwa segmentów oraz 4.5d enemy identity freeze.
+  XEX `8940d646…`. Zmierzony stan **w momencie tego smoke**: najgorszy margines
+  fence 450 cykli, arena 617/832 B (215 B wolne), wolny ogon BROADSIDE 3 B,
+  ENTITY_CODE 1 B.
+  **SUPERSEDED 2026-09-20 w części dotyczącej fence:** `0a90c1c` nie jest już
+  zaakceptowanym checkpointem, a margines 450 cykli pochodzi sprzed Option D —
+  patrz pozycja poniżej. Liczby bajtowe (arena 617/832 B z 215 B wolnymi,
+  BROADSIDE 3 B, ENTITY_CODE 1 B) obowiązują nadal i są potwierdzone pomiarem
+  przy HEAD.
+- **Zaakceptowany (owner smoke PASS 2026-09-18) — BIEŻĄCY CHECKPOINT:**
+  `0002d84` — Option D, pominięcie kopiowania ciała `P1`/`P2` w
+  `draw_enemy_member`, gdy Y członka się nie zmieniło. XEX `ecc9ceda…`.
+  MEASURED: najgorszy margines fence **1 464 cykli** (było 450/466),
+  0 zdarzeń zgubionej klatki na 69 audytowanych replayach, natywna bramka
+  stale-body 0 wierszy. Dokładnie size-neutral we wszystkich segmentach, więc
+  liczby bajtowe pozycji wyżej się nie zmieniają. Szczegóły: STATUS.
+- **Zaakceptowany w `0a90c1c`:** Interceptor (4.4) z 4.4b i 4.4c, 4.5a, 4.5b,
+  4.5M-M1/M2/M3 oraz emitter-independent hostile shots — wszystko to działa w
+  zaakceptowanym runtime i zostało objęte owner smoke 2026-09-18 (decyzja
+  właściciela: nie prowadzić etykiety kandydata dla kodu w zaakceptowanym
+  binarium).
+
+---
+
+## 4. Roadmapa
+
+Kolejność jest wiążąca. Nie rozpoczynać kolejnego punktu automatycznie po
+`BLOCKED`/`REJECTED`; po każdym punkcie aktualizować STATUS.
+
+### 4.1 Owner smoke i porządki Light Wingman M1 — DONE
+
+Owner smoke PASS 2026-09-15; niezacommitowana praca rozstrzygnięta.
+
+### 4.2 Czysty zaakceptowany checkpoint: Light + widoczny pickup — DONE
+
+Commit `feat: accept Light Wingman and visible PMG pickup`; zaakceptowany XEX
+odtwarzalny z Gita (hash w STATUS).
+
+### 4.3 Rezydentna pojemność wielokrotnego użytku — Stage 1 DONE (OWNER-ACCEPTED 2026-09-16)
+
+Stage 1 (Option D = A + C1, owner GO 2026-09-16) jest zaimplementowany i
+zaakceptowany przez właściciela (smoke PASS 2026-09-16, `b4b942e`): okno C `HYBRID_C_SECTOR_RAM` `$8602-$86F9` (248 B), hold GLUE w `$8300`,
+wolny ciągły ogon `HYBRID_C_EXT` 257 B, ogon ENTITY_CODE 41 B, DFMC bez zmian
+(8 rekordów). Dowody: `docs/diagnostics/stage-2b2f-resident-capacity-glue-window.json`.
+Smoke 4.3 (2026-09-16): obserwacja debris po capital wyjaśniona A/B jako
+`PREEXISTING`. Poprawka debris R-pre (dokładna własność) jest zaimplementowana
+na tym fundamencie i zaakceptowana razem z nim (`b4b942e`,
+`docs/diagnostics/stage-2b2g-debris-late-publication.json`); ogon
+`HYBRID_C_EXT` po niej: 187 B. Następne zadanie: Interceptor (4.4). Poniżej:
+pierwotne uzasadnienie.
+
+Wymagane, ponieważ punkt 4.4 realnie się zablokował (2026-09-16).
+
+Cel: **odzyskać rezydentną pojemność wielokrotnego użytku dla rodziny wrogów
+klasy Light i dalszego wzrostu gameplayu.** To nie jest jednorazowa łatka pod
+Interceptora — odzyskana przestrzeń ma obsłużyć kolejne archetypy, selekcję
+archetypu w slocie Light i późniejsze fale.
+
+Zmierzone dowody blokady (`docs/diagnostics/stage-2b2c-interceptor-blocked-placement.json`):
+
+| Liczba | Wariant zredukowany | Wariant z pełnym pościgiem |
+| --- | ---: | ---: |
+| Surowe zapotrzebowanie ponad zaakceptowane 882 B | 92 B | 143 B |
+| Dostępny legalny zapas | 24 B | 24 B |
+| Pozostały deficyt do odzyskania | **68 B** | **119 B** |
+
+Obszar przepełniony: `HYBRID_C_EXT_RAM` `$8C7D-$8FFF` (899 B), który mieści też
+133 B ogona `LIGHT_CODE`. Legalny zapas 24 B = 17 B wolnego ogona tego obszaru
+plus 7 B osiągalne w `DIRECTOR_C_LOW`, `DIRECTOR_RAM` i `DIRECTOR_C_PRE` przez
+relokację całych funkcji C.
+
+Kandydat na źródło pojemności: okno `$8600-$86F9` (250 B), po zakończeniu
+swojego bootowego życia nieposiadane. **Jest to wyłącznie kandydat, nie wolna
+pamięć produkcyjna.** Uznanie go za pojemność wymaga w ramach 4.3: drugiego
+pakowanego rekordu transportu, własnego wywołania ekspansji oraz dowodu
+kolejności startu względem `layout_d_publish_glue`, wewnątrz prefiksu bootstrapu
+ograniczonego przez `.assert *-start <= $01A3`.
+
+Przed implementacją przedstawić 2–3 warianty (relokacja zimnego kodu w
+istniejącym transporcie, kompaktowanie, mały rezydentny segment) z efektem dla
+gracza, kosztem, ograniczeniami, ryzykiem i rekomendacją.
+
+Bez BASIC RAM, runtime disk I/O, nowej architektury loadera, przealokowania PMG
+i multipleksowania rastra.
+
+### 4.4 Interceptor — OWNER-ACCEPTED (owner smoke PASS 2026-09-18, `0a90c1c`)
+
+Kolejny `EnemyArchetype` jako dane + mały handler C, z ponownym użyciem
+istniejącej znakowej klasy renderera Light i istniejącej rodziny wrogich
+PairShotów. Szybsze pary / krótszy cadence (decyzja właściciela 2.4).
+
+Interceptor jest zawsze i wyłącznie:
+
+- klasy **Light**;
+- renderowany znakowo;
+- **bez** `P1`/`P2` — nigdy nie jest mniejszym Raiderem PMG;
+- obsadza bieżący pojedynczy slot Light jako `Wingman ALBO Interceptor`
+  (decyzja właściciela 15).
+
+Eksperyment architektoniczny 2026-09-16 wypadł pozytywnie: nie wymagał
+przebudowy Directora, lifecycle, PMG, renderera ani kolizji. Blokowało
+wyłącznie rozmieszczenie rezydentne; 4.3 Stage 1 je odblokowała.
+
+Decyzja właściciela (2026-09-16, decyzja 18): **pełny pościg**, ponowne użycie
+projektu z `32f2c20`, z wiążącą korektą — slot Light jest jawnie
+selekcjonowalny (`Wingman ALBO Interceptor`), bez naprzemienności w lifecycle;
+kolejność na potrzeby smoke żyje poza lifecycle i zastąpi ją 4.6.
+
+Stan: zaimplementowany na `b4b942e` (2026-09-16), zaakceptowany w `0a90c1c`.
+Trzeci rekord (hp 1, wejście x 124, 2 linie/klatkę, 4 HPOS do
+`player_x & $FC` co drugą klatkę w zakresie 48-200, double-tap 2x10, pauzy
+56/44/32, wynik `$15`). Lifecycle Light tylko czyta `light_archetype_offset`;
+jedynym zapisującym jest prowizoryczny harmonogram `{WINGMAN, INTERCEPTOR}` z
+licznikiem `$8119` (żaden istniejący stan nie liczy dopuszczeń Light). Ogon
+`HYBRID_C_EXT` 187 → 23 B — skąpy zapas; kolejny archetyp wymaga decyzji o
+rozmieszczeniu. PAL: 10 replayów bazowych, maks. 29,918 cykli, 0 zgubionych
+klatek. Szczegóły i dowody: STATUS,
+`docs/diagnostics/stage-2b2h-light-interceptor.json`.
+
+### 4.5 Bomber / Heavy Assault
+
+Cięższy archetyp z większym lub wolniejszym PairShotem; ten sam proces co 4.4.
+Jeżeli dodanie archetypu wymaga przebudowy Directora, zatrzymać się i przejrzeć
+granicę architektury.
+
+Decyzja właściciela 20 (2026-09-17): GO dla projektu (Heavy na `P1`/`P2`, do
+dwóch Bomberów, ruch „lane sweep” w C, sylwetka QUAD, `weapon_class = 3`);
+Bomber jest **ostatnim** archetypem MVP. Kolejność wykonania:
+
+- **4.5a — okno rezydentne `HYBRID_C_HEAVY`** (bez zmiany rozgrywki).
+  Stan: **OWNER-ACCEPTED** w `0a90c1c` — 243 B w `$7E12-$7F04`, obraz w
+  rekordzie low-C, hold w ringu, publikacja po starfield; szczegóły: STATUS.
+- **4.5b — `weapon_class = BOMBER`** (glif, prędkość klasy, generyczna emisja
+  klasy wybranej przez C).
+  Stan: **OWNER-ACCEPTED** w `0a90c1c` — `BOMBER = 3`, glif `$DC/$E6`,
+  generyczny okres kroku na klasę (`stepPeriodFrames`, BOMBER 2 → 1 linia/
+  klatkę), CODE bez zmiany adresów; emisja generyczna przechodzi do 4.5c;
+  szczegóły: STATUS.
+- **4.5c — archetyp Bomber** (C: rekord, selekcja Heavy, ruch, ogień; ASM:
+  wykonanie).
+  Stan: **OWNER-ACCEPTED** (owner smoke PASS 2026-09-18, `0a90c1c`) — projekt z `8e138a8`
+  (poprzednio `BLOCKED_PLACEMENT`) umieszczony w `HYBRID_C_ARENA` z 4.5M-M3;
+  TYMCZASOWY harmonogram Heavy (Raider, Bomber…) do zastąpienia w 4.6;
+  szczegóły: STATUS.
+
+  > **Liczby z chwili 4.5c są SUPERSEDED (2026-09-20).** Zapisano wtedy: arena
+  > 392/832 B (ASM 20, C 339, RODATA 33; 440 B wolne), ogon `HYBRID_C_EXT`
+  > 28 B, 180 sektorów transportu, menu ATR 550 przy terminie 550.
+  > MEASURED przy HEAD: arena **617/832 B, 215 B wolne**; złożony ogon
+  > `HYBRID_C_EXT` + `LIGHT_CODE`/`HEAVY_CODE` **19 B**; transport **183
+  > sektory** (decyzja A dołożyła jeden). Para „550 przy terminie 550" pochodzi
+  > z formuły `190 + 2 × sektory`, **którą decyzja 22 prze-bazowała** — ten
+  > termin już nie istnieje. Dzisiejszy pomiar menu ATR to **554 klatki**
+  > wobec sufitu 3 000 klatek i commitowanego baseline'u 554.
+
+Kolejność po 4.5 (**decyzja właściciela 21, 2026-09-18** — zastępuje kolejność
+z decyzji 20 i wszystkie wcześniejsze uporządkowania §4.6+):
+
+### 4.5d Enemy Identity Freeze — OWNER-ACCEPTED (2026-09-18)
+
+Owner smoke PASS: katamaranowa sylwetka Bombera i niebieska rampa kadłuba
+sterowana HP. Szczegóły i dowody: STATUS.
+
+**ROSTER FREEZE.** Roster wrogów jest zamknięty: **żaden nowy archetyp wroga
+bez nowej decyzji właściciela**. Nowa treść rozgrywki pochodzi od tego miejsca
+z fal, ścieżek lotu, sektorów i boosterów. Boss (4.7) nie jest archetypem wroga
+i freeze go nie obejmuje.
+
+### Kolejność prac
+
+#### 1. Option D — koszt stały Bombera
+
+Pominąć 16-wierszowe kopiowanie ciała `P1`/`P2` w `draw_enemy_member`, gdy Y
+członka się nie zmieniło (X i tak przechodzi przez `HPOSP1,x`). Oszczędność
+**~1 164-2 328 cykli na klatkę przy dwóch Bomberach**.
+
+Jest to **inwariant renderera krytyczny sprzętowo**: wymaga planu High z
+dowodem obejmującym *każdy* writer `P1`/`P2` oraz ścieżki pauzy i respawnu.
+Najgorszy margines fence wynosi teraz **450 cykli**.
+
+#### 2. Pomiar budżetu populacji
+
+Trzy liczby, które bramkują projekt fal 4.6:
+
+- (a) ile Lightów mieści się jednocześnie przy żywym debris i kapsule pickupu;
+- (b) ile Heavy + debris + kapsuła (z grubsza znane: 450 cykli marginesu przy
+  dwóch Bomberach);
+- (c) ile kosztuje samo debris przy rosnącej liczbie obiektów.
+
+Przy okazji rozstrzygnąć:
+
+- czy kolizja gracz–kadłub capital czyta mapę znaków, czy zakłada stałą
+  szerokość korytarza;
+- czy kolor starfieldu może zmieniać się na sektor — co jeszcze używa tego
+  rejestru;
+- czy `generate_starfield_row` może warunkowo pogrubić pole i jakim kosztem na
+  wiersz.
+
+#### 3. 4.6 — sterowany danymi Encounter / Wave Director
+
+Z trzema wiążącymi decyzjami właściciela (decyzja 21 §21.1-21.3):
+
+- **SECTOR SUBTYPES.** Poziom jest ścieżką sektorów: `SPACE`, `CAPITAL`,
+  `BOSS`. `SPACE` ma dwa podtypy: **SWARM** (wiele znakowych Lightów, bez
+  Heavy) i **ELITE** (jeden lub dwa Heavy, bez roju). Heavy i rój nigdy nie
+  współistnieją — to usuwa najgorszy przypadek populacji, na który nie stać
+  budżetu. Każdy podtyp deklaruje maksymalną jednoczesną populację, a
+  **admission ją egzekwuje**, zamiast zostawiać ją intencji projektanta
+  poziomu. Debris i pickupy działają w każdym sektorze, więc są stałym
+  podatkiem w każdym budżecie.
+- **PATH-DRIVEN WAVES.** Ścieżka lotu jest własnością fali, nie archetypu, więc
+  ten sam archetyp może lecieć sinusem, łukiem, pętlą albo wężem w różnych
+  falach (koperty w stylu Zybexa). `WaveDef` niesie: `archetype`, `path`,
+  `count`, `spacing`, `entry`.
+- **STARFIELD PER SECTOR.** Sektor `SPACE` ma wyglądać osobno: mgławice jako
+  warunkowe pogrubienie/rozjaśnienie wewnątrz `generate_starfield_row` plus
+  kolor gwiazd na sektor. Bez nowych obiektów i bez drugiej warstwy scrollu.
+
+Hierarchia: `LevelDef -> SectorDef(+subtype) -> WaveDef -> Encounter Director
+-> admission -> EnemyArchetype`. Director jest właścicielem: co / kiedy / ile /
+formacja / koniec fali. Archetyp jest właścicielem: ruch, ogień, HP, wynik,
+`weapon_class`.
+
+Director steruje falami (dominujący + najwyżej jeden wspierający archetyp),
+budżetami i fazami poziomu niezależnie od limitu jednocześnie widocznych.
+Zastępuje TYMCZASOWE harmonogramy smoke (`{WINGMAN, INTERCEPTOR}` oraz
+`4.5 HEAVY SMOKE SCHEDULER`).
+
+#### 4. Boostery broni gracza
+
+`weapon_class` już istnieje, kapsuły pickupu mają pełny lifecycle, a 12 glifów
+wrogich pocisków jest wolnych. Koszt ląduje w slotach pocisków gracza
+(**4 407** cykli w `handle_collisions`, MEASURED przy HEAD w tabeli DMA-off
+`build/manifest.json`; wcześniej zapisane tu 2 945 jest **nieaktualne**), więc
+preferować boostery, które **nie mnożą pocisków w locie** (szybsza kadencja,
+silniejszy strzał, przebicie) nad spread, który trzeba wycenić osobno.
+**Planować dopiero po Option D.**
+
+**Decyzja właściciela N (2026-09-20) — STAŁY BOOSTER BRONI.** Zebranie podnosi
+poziom broni o jeden, maksymalnie do pięciu; poziom ustawia obrażenia **i
+kolor** pocisku, więc kolor zastępuje HUD; śmierć kosztuje **jeden** poziom, nie
+wszystkie. Architektonicznie **jedna zmienna 0-5**, z której wynikają obrażenia
+i aktywny `weapon_class`. Pozostałe boostery bez zmian. Zweryfikowane przy
+zapisie decyzji: żaden istniejący booster nie modyfikuje obrażeń
+(`src/main.s:3892`, zaszyte `lda #$01`), a pociski gracza mają własny bank
+glifów (baza 11, stride 9, dziś 36 kodów przy suficie `CAPITAL_HULL_GLYPH_BASE`
+= 59), więc pięć wyglądów się mieści. **Otwarte: kolor** — pociski gracza są
+komórkami ANTIC 4 w dzielonych rejestrach playfielda, a `art-direction.md`
+zabrania lokalnemu obiektowi zmieniać globalną paletę. Pełny zapis:
+`owner-decisions-2026-09-11.md` §N.
+
+#### 5. 4.7 Boss
+
+**Decyzja właściciela H (2026-09-20): jedna mechanika, wiele wyglądów.** Jeden
+kontroler bossa; każdy boss to **rekord** opisujący układ modułów, rozmieszczenie
+i liczbę dział oraz punkty słabe, zbudowany z podejścia powtarzalnych modułów
+uzgodnionego już dla capital. **Broń bossa używa istniejących rekordów
+`weapon_class`** (pociski Bombera, Interceptora i Raidera) — celowo, żeby
+zaoszczędzić kod na pracę nad boosterami.
+
+**Decyzja właściciela I (2026-09-20): laser bossa.** Linia rysowana **naraz** od
+działa do dołu ekranu — nie rozwijający się promień (wcześniejsze
+„rozwijający się" zostało wycofane, co czyni go znacznie tańszym niż obiekt o
+zmiennej długości). Trwa jedną sekundę. Telegrafowany widocznym nagrzewaniem
+działa z dźwiękiem przez ok. dwie sekundy, żeby gracz zdążył wyjść z kolumny.
+Niszczy wszystko na swojej drodze — właściciel przyjmuje to jako wymaganie, na
+ocenie, że stały zakres kolumn i wierszy jest tańszy niż zwykła kolizja, bo nie
+ma ruchu do śledzenia (**ESTIMATE właściciela, do zweryfikowania przy
+planowaniu 4.7**). Liczba na poziom: 1 na poziomach 1-4, 2 na 5-9, 4 na 10-16,
+do dostrojenia przy balansowaniu.
+
+Projektować **sterowany danymi**: fazy, wzorzec ruchu, wzorzec ognia, HP i
+punkty słabe jako dane, tak aby kolejni bossowie byli rekordami, a nie
+implementacjami. To decyzja do podjęcia **przy planowaniu 4.7**, nie po nim.
+Boss jako kompozycja modułów poznanych w capital traversal, z własnym
+schedulerem i budżetem (decyzja 7). Najpierw jeden boss foundation (moduły,
+jedno działo, warunek zwycięstwa). Nova Missile projektować razem z lifecycle i
+HULL bossa, nigdy jako zwykły drop.
+
+#### 6. 4.8a Geometria capital
+
+Głębsze, nierówne gondole na zmiennych wysokościach, zmienna szerokość
+korytarza, większe debris. Latanie przestrzenne w stylu River Raid. **Dane plus
+sprawdzenie kolizji** — nie nowy podsystem.
+
+#### 7. Koniec poziomu / następny poziom
+
+Pętla poziomu, kampania 16 poziomów jako dane, polish.
+
+**Potwierdzone decyzją właściciela E (2026-09-20): szesnaście poziomów.**
+Liczba w tym punkcie i w decyzji 21 pkt 7 **była poprawna**; nieaktualny był
+cel ośmiu poziomów w `design-4.6-data-architecture.md` §6 i w celu treściowym.
+Każdy poziom kończy się bossem. Najłatwiejszy poziom trudności ma być do
+przejścia dla każdego.
+
+Co jeszcze wchodzi w ten punkt po decyzjach 2026-09-20:
+
+- **Zróżnicowanie capitali jest parametryczne (decyzja F).** Cztery zestawy
+  grafiki segmentów; długość w segmentach, gęstość wieżyczek i maksymalne
+  wysunięcie gondoli to trzy niezależne parametry po cztery stopnie, nakładane
+  na wybrany zestaw. Jeden wariant kadłuba na poziom. Koszt: cztery zestawy po
+  ok. 1 253 B na dysku plus parametry na poziom — nie szesnaście zestawów.
+- **Życia (decyzja K).** Trzy na start plus jedno po każdym nieparzystym
+  poziomie od 3 w górę (3, 5, 7, 9, 11, 13, 15) — siedem dodatkowych.
+- **Wybór poziomu (decyzja L).** Start od najdalszego osiągniętego poziomu;
+  tylko w RAM; zmiana trudności w menu zeruje do poziomu 1; menu pokazuje, które
+  poziomy są dostępne.
+- **Najlepsze wyniki (decyzja M).** Tylko RAM, bez zapisu na dysk — to
+  potwierdzenie dzisiejszego zachowania, nie zmiana.
+- **Trudność (decyzja J).** Skaluje istniejące przeładowanie i odstępy **oraz**
+  obrażenia: zadawane przez gracza, otrzymywane przez gracza, od kontaktu i
+  bossa. Sufity populacji pozostają nieskalowane (decyzja 23 §10.6).
+- **Ekran loadera (decyzja O) i ekran końcowy (decyzja P).**
+
+---
+
+## 5. Backlog — świadomie odłożone, nie zapomniane
+
+Nie jest to lista defektów (te są w §6 i w STATUS), lecz praca celowo
+odsunięta. Nie realizować bez wskazania właściciela.
+
+- **Zapis na dysk (postęp, najlepsze wyniki) — ZAPARKOWANE** (2026-09-20).
+  Wymaga zapisu SIO, obsługi błędów i decyzji o tym, czy własny ATR gry ma
+  pozostać nienaruszony, kiedy ludzie wymieniają się obrazami dysków. Decyzje L
+  i M trzymają postęp i wyniki w RAM-ie właśnie dlatego.
+- **Animacja ekranu końcowego i tekst jej scrolla** (decyzja P, 2026-09-20).
+  Docelowo animacja w górnej jednej trzeciej ekranu na pełną szerokość plus
+  scroll pod nią; osobny podprojekt na koniec, doczytywany sektor, nie
+  rezydentny. Na teraz wystarczy prosta wiadomość. Tekst scrolla powstaje na
+  końcu procesu.
+- **4.8b niszczalne działa gondol.** Potwierdzone jako backlog decyzją
+  właściciela G (2026-09-20): wieżyczki capital pozostają **nieniszczalne**.
+  Turrety nie są dziś obiektami:
+  `BROAD_TURRET` jest polem powłoki, `BROAD_TURRET_FIRED` zatrzaskiem ognia —
+  bez HP, bez stanu slotu, nie są celem kolizji. To **nowy typ obiektu**
+  wymagający własnego planu i budżetu i **nie może opóźnić bossa**.
+- **Paralaksa starfieldu** — ~3 000 cykli na drugą warstwę scrollującą; wrócić
+  po Option D.
+- **Statyczna Andromeda** w tle sektora `SPACE`, zasłaniana podczas przelotu
+  capital.
+- **Resync PAL po zgubionej klatce** — jedno przekroczenie kosztuje ~1 393
+  wiersze w przesuniętej fazie do następnej generacji gameplayu.
+- **Miganie debris w klatce śmierci gracza** — pre-existing, udokumentowane w
+  STATUS.
+- **Debris przeżywa kontakt z graczem** w oknie umierania/respawnu i w
+  `BROAD_DAMAGE_COOLDOWN`: zniszczenie debris jest bramkowane przez
+  `BROAD_DAMAGE_APPLIED`, którego `apply_player_damage` nie ustawia, gdy
+  `PLAYER_LIFECYCLE != PLAYER_ALIVE`. Kontakt z wrogiem jest dla porównania
+  bezwarunkowy (asercja w `tests/enemy-combat.test.mjs`). Pre-existing,
+  świadomie zostawione przez właściciela; opis w STATUS („debris contact-kill inconsistency”).
+
+## 6. Otwarte defekty i dług
+
+Aktualna lista i priorytety są w STATUS. Na dziś:
+
+- intermitentny fioletowy artefakt po Raiderze — bez deterministycznej reprodukcji
+  nie poświęcać mu nieograniczonego czasu;
+- Spread: w v4.12 §11 zgłoszono drugi ślad kapsuły i końcowy glif pocisku Spread;
+  nie weryfikowano ponownie po PairShot i kapsule PMG — sprawdzić przed
+  zaplanowaniem naprawy;
+- dług testowy: pełny zestaw ma znane nieaktualne asercje (liczba w STATUS); nowa
+  nazwa porażki jest sygnałem regresji, stara nie.
+
+---
+
+## 7. Kierunki odrzucone — nie wracać bez nowych dowodów lub decyzji właściciela
+
+> **Ostatnia pozycja tej listy jest SUPERSEDED — czytaj ją razem z notą pod
+> listą.** Pozostałe pozycje obowiązują bez zmian.
+
+- pełny double buffer fighter playfieldu;
+- globalny read-only visible ring jako wymóg;
+- moving fence / dynamiczny fence rastra zależny od Y obiektu;
+- stały sync `$70` z szerokim oknem erase→redraw;
+- pojedyncze okno publikacji jako samodzielne rozwiązanie konfliktów kilku writerów;
+- raster bands jako obejście konfliktów ownership;
+- per-access ownership lookup (bitmap/hash/cache) bez redukcji liczby wywołań;
+- dodatkowy background/ring 25 Hz scheduler;
+- znakowi Raiderzy; osobny podsystem wraku Raidera przed przebudową debris;
+- row-baked/blue far stars i druga klasa gwiazd;
+- ~~BASIC RAM, loader changes i runtime disk I/O jako obejście.~~
+  **SUPERSEDED 2026-09-20.** Wszystkie trzy są uzgodnioną drogą: BASIC RAM —
+  decyzja **B**; zmiana loadera — decyzje **C** i **O**; runtime disk I/O —
+  decyzja **23 §10.1**. Wpis zostaje, bo jest historią tego, dlaczego tak było.
+
+**Co zmieniło grunt (decyzja Q, 2026-09-20).** Deadline bootu ATR został
+prze-bazowany na budżet 60 sekund (decyzja 22), więc runtime disk I/O nie
+kupuje się już czasem ładowania, którego nikt nie wybrał. ATR i tak wymagał
+wyłączenia BASIC-a (decyzja A), więc okno `$A000-$BFFF` jest bezwarunkowym
+RAM-em, a nie obejściem placementu. A szesnaście poziomów ze zróżnicowaną
+grafiką capital (decyzje **E** i **F**) nie mieści się rezydentnie, więc
+zmiana loadera jest wymaganiem treści, a nie skrótem zamiast inżynierii.
+Reguła była napisana wtedy, gdy te trzy rzeczy proponowano **zamiast** pracy
+inżynierskiej; dziś są decyzjami podjętymi **po** niej. Zapis decyzji:
+[`owner-decisions-2026-09-11.md`](owner-decisions-2026-09-11.md), sekcja
+„Decyzje literowe 2026-09-20".
+
+---
+
+## 8. Aktualizacja planu
+
+Po każdym proofie `BLOCKED`/`REJECTED`: zapisać raport w `docs/diagnostics/`,
+wycofać odrzucony kod produkcyjny, zaktualizować STATUS i — jeżeli zmienia się
+kolejność — ten plan, wskazać dokładnie jeden następny krok. Historia proofów
+trafia do diagnostyk i `docs/history/`, nie do tego pliku.

@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-14",
+  "status": "PASS",
+  "model": "strongest available GPT-5 Codex",
+  "reasoning_effort": "high",
+  "scope": "Raider transient breakup fragment wrong-origin reproduction and minimal fix",
+  "baseline": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "head_before": "ecac4be8b45ba8d4a30edd0a0049220112c20cb0",
+    "xex_sha256_before": "bd736c8e4a44a70dfc0bb95b54e4d693b443b3a3085ffec74f9d7f5c39af2bfb",
+    "linked_runtime_bytes": 17580,
+    "simultaneous_residency_bytes": 18058,
+    "safe_headroom_bytes": 4129,
+    "accepted_active_work_max_cycles": 22160
+  },
+  "observed_object": {
+    "type": "existing collisionless Raider breakup fragment",
+    "pool": "five-slot transient effect pool",
+    "affected_slots": [3, 4],
+    "not_pmg": true,
+    "not_gameplay_debris": true,
+    "not_future_raider_wreck": true
+  },
+  "root_cause": {
+    "summary": "The four fragments use unsigned 8-bit EFFECT_Y and continue their local +/-2 movement plus optional world carry for a 30-frame TTL. A low-screen kill lets downward slots 3/4 leave at Y>=240, cross $FF->$00, and later become render-eligible again at Y>=24. Their continued radial X motion makes the second visible origin unrelated to the kill; 25 Hz parity and occupancy commonly leave only one of the two visible.",
+    "ordering": [
+      "resolve_enemy_damage selects the correct ENEMY_TARGET_SLOT",
+      "begin_enemy_fighter_explosion snapshots ENEMY_X/Y before release or respawn",
+      "materialize_interceptor_breakup_effects consumes that snapshot one PAL frame later",
+      "spawn_breakup_effects_at initializes all five X/Y records with local offsets",
+      "update_transient_effects previously committed modulo-256 Y indefinitely until TTL expiry",
+      "render_transient_effect_overlays accepts the wrapped fragment again once Y reaches the visible top"
+    ],
+    "hypotheses": {
+      "H1_xy_not_copied": "REJECTED",
+      "H2_stale_effect_slot": "REJECTED",
+      "H3_rng_absolute_coordinate": "REJECTED: breakup origin uses no RNG",
+      "H4_wrong_heavy_record": "REJECTED for both slots",
+      "H5_raider_released_too_early": "REJECTED: snapshot precedes release/recycle",
+      "H6_coordinate_space_mismatch": "REJECTED for initial materialization",
+      "H7_renderer_backing_bug": "REJECTED for this symptom",
+      "H8_delayed_materialization_reads_reused_raider": "REJECTED",
+      "unsigned_effect_y_wrap": "CONFIRMED"
+    }
+  },
+  "deterministic_reproducer": {
+    "production_path": "resolve_enemy_damage -> spawn_interceptor_breakup_effects -> deferred materialize -> update/render",
+    "cases": 24,
+    "heavy_slots": [0, 1],
+    "kill_x": [80, 124, 160],
+    "kill_y": [24, 88, 160, 220],
+    "fragments": 96,
+    "wrong_origin_visible_before": 8,
+    "wrong_origin_visible_after": 0,
+    "coordinate_wraps_after": 0,
+    "example_before": {
+      "heavy_slot": 0,
+      "kill_xy": [124, 220],
+      "snapshotted_explosion_xy": [124, 223],
+      "fragment_slots": [3, 4],
+      "initial_fragment_xy": [[132, 229], [136, 229]],
+      "wrap_frame": 12,
+      "second_visible_frame": 22,
+      "second_visible_xy": [[90, 25], [178, 25]],
+      "writer": "render_transient_effect_overlays",
+      "writer_pc": "$30E2",
+      "physical_addresses": [33098, 33120]
+    }
+  },
+  "production_fix": {
+    "routine": "update_transient_effects",
+    "change": "Before storing the computed fragment Y, reject results 0..3 and retain the previous already-offscreen Y. This catches both downward modulo wrap and the last pre-underflow step of upward fragments while normal visible/local movement remains unchanged.",
+    "compaction": "Remove a redundant EFFECT_STATE+1 probe: a nonzero production EFFECT_ACTIVE_MASK always implies the four atomically allocated fragment slots remain alive. One unreachable pad byte preserves every reviewed downstream entry address.",
+    "ram_delta_bytes": 0,
+    "linked_runtime_delta_bytes": 0,
+    "steady_state_delta_cycles": 0
+  },
+  "position_proof": {
+    "snapshot_contract": "explosion=(killX,killY+3)",
+    "first_materialized_offsets_from_kill": {
+      "core": [6, 3],
+      "fragment_1": [8, 5],
+      "fragment_2": [12, 5],
+      "fragment_3": [8, 9],
+      "fragment_4": [12, 9]
+    },
+    "representative": [
+      {"heavy_slot": 0, "kill": [80, 24], "core": [86, 27], "fragments": [[88, 29], [92, 29], [88, 33], [92, 33]]},
+      {"heavy_slot": 0, "kill": [124, 88], "core": [130, 91], "fragments": [[132, 93], [136, 93], [132, 97], [136, 97]]},
+      {"heavy_slot": 1, "kill": [160, 160], "core": [166, 163], "fragments": [[168, 165], [172, 165], [168, 169], [172, 169]]},
+      {"heavy_slot": 1, "kill": [124, 220], "core": [130, 223], "fragments": [[132, 225], [136, 225], [132, 229], [136, 229]]}
+    ]
+  },
+  "respawn_interaction": {
+    "contributed": false,
+    "proof": "FIGHTER_EXPLOSION_X/Y are captured before the killed member can reset; deferred materialization reads only that snapshot. Two-Heavy second-kill reuse also rematerializes from the surviving Heavy snapshot, not the reset off-screen record."
+  },
+  "instruction_exact": {
+    "method": "linked NMOS 6502 execution through executeInterceptorBreakupTrace",
+    "lethal_hit_path_delta_cycles": 0,
+    "ordinary_active_breakup_update_before_cycles": 330,
+    "ordinary_active_breakup_update_after_cycles": 343,
+    "ordinary_active_breakup_delta_cycles": 13,
+    "wrap_frame_before_cycles": 322,
+    "guarded_boundary_frame_after_cycles": 327,
+    "guarded_boundary_delta_cycles": 5,
+    "steady_state_without_active_breakup_delta_cycles": 0
+  },
+  "measured_native": {
+    "emulator": "Atari800 7.1.2 PAL/XL",
+    "completed_frames": 9000,
+    "fighter_open_frames": 4838,
+    "raider_kills": 124,
+    "p1_kills": 62,
+    "p2_kills": 62,
+    "breakup_fragments_generated": 496,
+    "wrong_origin_coordinate_wraps": 0,
+    "raider_breakup_orphan_cells": 0,
+    "maximum_active_work_cycles": 20479,
+    "maximum_raw_cadence_cycles": 28906,
+    "target_headroom_cycles": 10721,
+    "hard_headroom_cycles": 12089,
+    "missed_frames": 0,
+    "target_overruns": 0,
+    "hard_overruns": 0,
+    "extra_vbi": 0,
+    "dli_anomalies": 0,
+    "two_heavy_supplement": {
+      "completed_frames": 1000,
+      "two_heavy_active_frames": 113,
+      "overlap_events": 13,
+      "black_mask_events": 0,
+      "stale_heavy_pages": 0
+    },
+    "accepted_control_signature": {
+      "baseline_head": "ecac4be8b45ba8d4a30edd0a0049220112c20cb0",
+      "raw_effect_range_orphans_before_after": [24, 24],
+      "raw_pairshot_range_orphans_before_after": [29, 29],
+      "classification": "Unchanged independent gameplay-debris/glyph-range signature in the fixed replay; its $75 cell is not one of the Raider breakup render IDs. Host generation/provenance regression remains zero."
+    }
+  },
+  "regression": {
+    "new_fragment_origin_tests": "3/3 PASS",
+    "previous_raider_remnant_tests": "8/8 PASS including >5000 kill events",
+    "effects_offscreen_pairshot_two_pmg_group": "18/18 PASS",
+    "fire_audio_group": "3/3 PASS",
+    "layout_group": "6/6 PASS",
+    "pairshot_ghosts": 0,
+    "raider_stale_generation_cells": 0,
+    "lost_erase": 0,
+    "black_mask_events": 0,
+    "offscreen_respawn": "PASS",
+    "known_baseline_entity_effects_failures": "12/12 reproduced unchanged at exact ecac4be baseline; these stale fixtures are not used as task acceptance gates"
+  },
+  "memory_placement": {
+    "linked_runtime_bytes": 17580,
+    "simultaneous_residency_bytes": 18058,
+    "safe_headroom_bytes": 4129,
+    "initial_content_bytes": 13171,
+    "initial_content_capacity_bytes": 13184,
+    "initial_content_margin_bytes": 13,
+    "starfield_raw_bytes": 2188,
+    "starfield_packed_bytes": 1787,
+    "starfield_packed_margin_bytes": 32,
+    "starfield_to_pickup_margin_bytes": 19,
+    "broadside_bytes": 6653,
+    "broadside_margin_bytes": 3,
+    "a2_bytes": 237,
+    "a2_margin_bytes": 19,
+    "entity_code_bytes": 3162,
+    "entity_code_margin_bytes": 678,
+    "pickup_code_bytes": 871,
+    "basic_ram_used": false,
+    "loader_changed": false
+  },
+  "artifact": {
+    "xex": "dist/void-strike-65.xex",
+    "xex_bytes": 21625,
+    "xex_sha256": "039960a4b62d0665f58992681c21d7d7ed42400ded770ef4cdf0e58a6fbbd5e8",
+    "atr": "dist/void-strike-65.atr",
+    "atr_bytes": 92176,
+    "atr_sha256": "fdc629f158db81bfa4ac2b0d994be6a7002fd527912f1d3f633489ae31bb0853"
+  },
+  "next_task": "Owner smoke Raider destruction fragment origin fix"
+}

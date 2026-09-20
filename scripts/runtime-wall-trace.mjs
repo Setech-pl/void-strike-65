@@ -10,6 +10,11 @@ import { runtimeArtifactSet, runtimeArtifactNames } from "./runtime-evidence.mjs
 import { canonicalPlayfield } from "./playfield.mjs";
 import { readStartMenuRuntimeState } from "./preview.mjs";
 import { atari800ArtifactLaunches, validateAtari800Launch } from "./artifact-launch.mjs";
+import { focusedPalAcceptance } from "./focused-pal-acceptance.mjs";
+import { executeDebrisDestructionTrace } from "./debris-destruction-runtime.mjs";
+import { analyseDebrisGate } from "./debris-visibility-gate.mjs";
+import { auditSession as auditPalTiming, reportAudits as reportPalTimingAudits,
+  reportAudit as reportPalTimingAudit } from "./pal-timing-audit.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const rootDirectory = path.resolve(scriptDirectory, "..");
@@ -77,6 +82,7 @@ const SHIELD_BOOSTER_TARGET_DELTA_CYCLES = 350;
 const SHIELD_BOOSTER_HARD_DELTA_CYCLES = 496;
 const SHIELD_BOOSTER_TARGET_GATE_CYCLES = 32_422;
 const SHIELD_BOOSTER_HARD_GATE_CYCLES = 32_568;
+const CAPITAL_HUNTER_ACCEPTED_CEILING_CYCLES = 31_200;
 const SHIELD_BOOSTER_MINIMUM_HEADROOM_CYCLES = 3_000;
 const EXPECTED_ATARI800_VERSION = "7.1.2";
 const OFFICIAL_SOURCE_ARCHIVE_SHA256 =
@@ -133,6 +139,28 @@ const debrisEffectsSessions = [{
   kind: "debris-effects-coverage",
 }];
 
+const debrisSlot0BaselineSessions = [0, 1, 2].map((difficulty) => ({
+  id: `debris-slot0-${difficulty}-sweep-fire4`,
+  difficulty,
+  policy: "sweep",
+  fireDelay: 4,
+  frames: 5_000,
+  kind: "debris-slot0-baseline",
+}));
+
+// Debris visibility gate: natural replays only (no sector-poking policies).
+// The two 9,000-frame difficulty-0 replays reach the first capital, return to
+// the fighter sector and play out post-capital debris lives; the capital
+// muzzle replay covers debris lives inside the capital sector.
+const debrisVisibilityGateSessions = [
+  { id: "debris-gate-0-evasive-fire3", difficulty: 0, policy: "evasive", fireDelay: 3,
+    frames: 9_000 },
+  { id: "debris-gate-0-neutral-fire0", difficulty: 0, policy: "neutral", fireDelay: 0,
+    frames: 9_000 },
+  { id: "debris-gate-capital-muzzle-ring-2-sweep-fire4", difficulty: 2,
+    policy: "broadside-proof", fireDelay: 4, frames: 6_000 },
+].map((session) => ({ ...session, kind: "debris-visibility-gate" }));
+
 const weaponPickupSessions = [{
   id: "weapon-pickup-2-hunt-fire4",
   difficulty: 2,
@@ -141,6 +169,100 @@ const weaponPickupSessions = [{
   frames: 4_000,
   kind: "weapon-pickup-coverage",
 }];
+
+const pairShotSessions = [
+  ["normal", "pairshot-normal"],
+  ["rapid", "pairshot-rapid"],
+  ["spread", "pairshot-spread"],
+].map(([mode, policy]) => ({
+  id: `pairshot-${mode}-xex-hard`,
+  medium: "XEX",
+  difficulty: 2,
+  policy,
+  fireDelay: 4,
+  frames: 480,
+  kind: "pairshot-native",
+}));
+
+const pairShotStaleSessions = [
+  ["normal", "pairshot-normal"],
+  ["rapid", "pairshot-rapid"],
+  ["spread", "pairshot-spread"],
+].map(([mode, policy]) => ({
+  id: `pairshot-stale-${mode}-xex-hard`,
+  medium: "XEX",
+  difficulty: 2,
+  policy,
+  fireDelay: 4,
+  frames: 3_000,
+  kind: "pairshot-stale-native",
+}));
+
+const raiderRemnantSessions = pairShotStaleSessions.map((session) => ({
+  ...session,
+  id: session.id.replace("pairshot-stale", "raider-remnant"),
+  kind: "raider-remnant-native",
+}));
+
+const raiderFirstWriterSessions = [
+  ["normal", "pairshot-normal", 0],
+  ["rapid", "pairshot-rapid", 2],
+  ["spread", "pairshot-spread", 4],
+].map(([mode, policy, fireDelay]) => ({
+  id: `raider-first-writer-${mode}-xex-hard`,
+  medium: "XEX",
+  difficulty: 2,
+  policy,
+  fireDelay,
+  frames: 5_400,
+  kind: "raider-first-writer-native",
+}));
+
+const playerPairShotSpeedSessions = ["normal", "rapid", "spread"].map((mode) => ({
+  id: `player-pairshot-speed-${mode}-xex-hard`,
+  medium: "XEX",
+  difficulty: 2,
+  policy: `pairshot-speed-${mode}`,
+  fireDelay: 0,
+  frames: 4_200,
+  kind: "player-pairshot-speed-native",
+}));
+
+const playerPairShotReentrySessions = ["normal", "rapid", "spread"].map((mode) => ({
+  id: `player-pairshot-reentry-${mode}-xex-hard`,
+  medium: "XEX",
+  difficulty: 2,
+  policy: `pairshot-reentry-${mode}`,
+  fireDelay: 0,
+  frames: 7_000,
+  kind: "player-pairshot-reentry-native",
+}));
+
+const boosterAdmissionReentrySessions = Array.from({ length: 5 }, (_, run) => ({
+  id: `booster-admission-reentry-${run + 1}-xex-hard`,
+  medium: "XEX",
+  difficulty: 2,
+  policy: "booster-reentry",
+  fireDelay: 0,
+  // One full capital traversal plus an OPEN re-entry, still with production
+  // gameplay/admission/pickup code; only the diagnostic sector cadence is held.
+  frames: 3_600,
+  kind: "booster-admission-native",
+}));
+
+const pmgLabSessions = [
+  ["pmg-lab-fifth-player", "pmg-lab-fifth-player"],
+  ["pmg-lab-ordinary-missiles", "pmg-lab-ordinary-missiles"],
+  ["pmg-lab-single-missile", "pmg-lab-single-missile"],
+].map(([id, policy]) => ({
+  id,
+  medium: "XEX",
+  difficulty: 2,
+  policy,
+  fireDelay: 0,
+  frames: 90,
+  kind: "pmg-visibility-lab",
+}));
 
 const weaponPickupTraversalSessions = [{
   id: "weapon-pickup-traversal-2-observe-fire4",
@@ -193,14 +315,34 @@ const broadsideTransientSessions = [
 
 const provisionalCapitalSessions = ["XEX", "ATR"].flatMap((medium) =>
   [0, 1, 2].map((difficulty) => ({
-    id: `provisional-capital-${medium.toLowerCase()}-${difficulty}-cold-sweep-fire4`,
+    id: `early-enemy-${medium.toLowerCase()}-${difficulty}-cold-hunt-fire4`,
     medium,
     difficulty,
-    policy: "sweep",
+    policy: "early-hunt",
     fireDelay: 4,
-    frames: 1_600,
-    kind: "provisional-capital-cold",
+    frames: 1_500,
+    kind: "early-enemy-cold",
   })));
+
+const raiderFormationSessions = [{
+  id: "two-pmg-raiders-xex-hard",
+  medium: "XEX",
+  difficulty: 2,
+  policy: "raider-proof",
+  fireDelay: 200,
+  frames: 1_000,
+  kind: "two-pmg-raiders-native",
+}];
+
+const raiderSectorSessions = [{
+  id: "raider-sector-xex-hard",
+  medium: "XEX",
+  difficulty: 2,
+  policy: "early-hunt",
+  fireDelay: 4,
+  frames: 1_800,
+  kind: "raider-sector-lifecycle",
+}];
 
 const capitalContactSessions = [0, 1].map((owner) => ({
   id: `capital-contact-${owner === 0 ? "allied" : "hostile"}-medium`,
@@ -210,6 +352,10 @@ const capitalContactSessions = [0, 1].map((owner) => ({
   frames: owner === 0 ? 560 : 360,
   kind: "capital-projectile-contact",
   contactOwner: owner,
+  /* Mid-body overlap: the geometry these sessions have always steered to
+   * (`target_y = shell_y - 7`, bolt top four rows below the player top),
+   * expressed as the named mode that replaced the legacy contact delta. */
+  contactModeId: 1,
 }));
 
 const capitalPlayerGeometrySessions = [["XEX", 1], ["ATR", 2]].flatMap(([medium, difficulty]) =>
@@ -250,6 +396,12 @@ const memoryIntegritySessions = ["XEX", "ATR"].flatMap((medium) =>
     kind: "memory-integrity-160s",
     pauseTest: policy === "hunt",
   })));
+
+const pickupFenceSessions = [["XEX", 2], ["ATR", 2], ["XEX", 1]].map(([medium, difficulty]) => ({
+  id: `pickup-fence-${medium.toLowerCase()}-${difficulty}-hunt`,
+  medium, difficulty, policy: "hunt", fireDelay: 4, frames: 8_000,
+  kind: "pickup-fence-cadence", pauseTest: true,
+}));
 
 const engineDiagnosticSessions = ["XEX", "ATR"].flatMap((medium) =>
   [0xa5, 0x5a].flatMap((coldFill) => [0, 1, 2].flatMap((difficulty) =>
@@ -294,17 +446,46 @@ const lowerPlayfieldSessions = [{
   frames: 1_200,
   kind: "lower-playfield-contact",
   contactOwner: 1,
+  /* `lower-contact-hostile` steers to the same `shell_y - 7` mid-body overlap. */
+  contactModeId: 1,
 }];
 
+/* Kinds whose runs set DFTRACE_CAPITAL_CONTACT_PREFIX, and therefore also send
+ * DFTRACE_CAPITAL_CONTACT_OWNER and DFTRACE_CAPITAL_CONTACT_MODE. */
+const capitalContactPrefixKinds = new Set([
+  "capital-projectile-contact",
+  "lower-playfield-contact",
+  "capital-player-geometry",
+]);
+
+function assertCapitalContactEnvironment(session) {
+  if (!capitalContactPrefixKinds.has(session.kind)) return;
+  invariant(Number.isInteger(session.contactModeId) &&
+    session.contactModeId >= 0 && session.contactModeId <= 3,
+  `${session.id} (${session.kind}) sets DFTRACE_CAPITAL_CONTACT_PREFIX but carries ` +
+  `contactModeId=${session.contactModeId}; the emulator requires an integer 0-3`);
+  invariant(session.contactOwner === 0 || session.contactOwner === 1,
+    `${session.id} (${session.kind}) carries contactOwner=${session.contactOwner}; ` +
+    "the emulator requires 0 (Allied) or 1 (Hostile)");
+}
+
+for (const session of [...capitalContactSessions, ...capitalPlayerGeometrySessions,
+  ...lowerPlayfieldSessions]) assertCapitalContactEnvironment(session);
+
 const traceLabels = {
+  DFTRACE_PC_PLAYER_SHOT_SOUND: "play_player_fighter_projectile_sound",
+  DFTRACE_PC_UPDATE_SOUND: "update_sound",
   DFTRACE_PC_ACTIVE: "main_loop_option_poll",
   DFTRACE_PC_END: "main_loop",
   DFTRACE_PC_FRONTEND_POLL: "frontend_input_poll",
   DFTRACE_PC_DLI: "gameplay_dli",
   DFTRACE_PC_WORLD: "advance_starfield_layers",
   DFTRACE_PC_NEAR: "scroll_world_columns",
-  DFTRACE_PC_FAR_ERASE: "erase_far_star_overlays",
-  DFTRACE_PC_FAR_STEP: "advance_far_stars",
+  // Preserve the established CSV schema while rebinding the retired far-star
+  // fields to the white-only layer. The names are compatibility-only: these
+  // PCs now delimit logical white motion and its shared glyph publication.
+  DFTRACE_PC_FAR_ERASE: "update_white_starfield_phase",
+  DFTRACE_PC_FAR_STEP: "publish_dynamic_near_star_phase",
   DFTRACE_PC_HULL: "scroll_hull_columns",
   DFTRACE_PC_BROADSIDE: "update_broadside",
   DFTRACE_PC_FIGHTER_EXPLOSION: "render_shared_fighter_explosions",
@@ -318,12 +499,18 @@ const traceLabels = {
   DFTRACE_PC_EFFECT_ERASE: "erase_transient_effect_overlays",
   DFTRACE_PC_EFFECT_UPDATE: "update_transient_effects",
   DFTRACE_PC_EFFECT_RENDER: "render_transient_effect_overlays",
+  DFTRACE_PC_INTERCEPTOR_BREAKUP_REQUEST: "spawn_interceptor_breakup_effects",
   DFTRACE_PC_INTERCEPTOR_BREAKUP_SPAWN: "materialize_interceptor_breakup_effects",
+  // Emitter-independent hostile PairShots: the kill boundary is the explosion
+  // entry; its first instruction touches no projectile, so the end hook proves
+  // every emitter-owned shot continues.
+  DFTRACE_PC_EMITTER_CLEANUP: "begin_enemy_fighter_explosion_tail",
+  DFTRACE_PC_EMITTER_CLEANUP_END: "begin_enemy_fighter_explosion_body",
   DFTRACE_PC_PICKUP_QUALIFIED_KILL: "weapon_pickup_record_qualified_kill",
   DFTRACE_PC_PICKUP_COLLECT: "weapon_pickup_collect",
-  DFTRACE_PC_ENTITY_ERASE: "erase_weapon_pickup_overlay_restore",
-  DFTRACE_PC_AFTER_ENTITY_ERASE: "weapon_pickup_erase_done",
-  DFTRACE_PC_ENTITY_DRAW: "render_weapon_pickup_overlay",
+  DFTRACE_PC_ENTITY_ERASE: "clear_fighter_pickup_pmg",
+  DFTRACE_PC_AFTER_ENTITY_ERASE: "release_fighter_pickup_pmg_hardware",
+  DFTRACE_PC_ENTITY_DRAW: "update_fighter_pickup_pmg",
   DFTRACE_PC_PLAYER_ERASE: "erase_player",
   DFTRACE_PC_PLAYER_DRAW: "draw_player",
   DFTRACE_PC_ENGINE_UPDATE: "update_engine_animation",
@@ -340,22 +527,34 @@ const traceLabels = {
   DFTRACE_PC_GAMEPLAY_INIT: "start_gameplay",
   DFTRACE_PC_ROTATE_START: "rotate_playfield_rows",
   DFTRACE_PC_ROTATE_END: "rotate_playfield_table_shift",
+  DFTRACE_PC_NEAR_ERASE: "erase_dynamic_near_star_overlays",
+  DFTRACE_PC_NEAR_RENDER: "render_dynamic_near_star_overlays",
   DFTRACE_DLI_PHASE: "loader_dli_phase",
   DFTRACE_PLAYER_X: "player_x",
   DFTRACE_PLAYER_Y: "player_y",
   DFTRACE_PROJECTILE_ACTIVE: "FIGHTER_PROJECTILE_ACTIVE",
+  DFTRACE_PROJECTILE_X: "FIGHTER_PROJECTILE_X",
+  DFTRACE_PROJECTILE_Y: "FIGHTER_PROJECTILE_Y",
+  DFTRACE_PROJECTILE_LIFETIME: "FIGHTER_PROJECTILE_LIFETIME",
   DFTRACE_PROJECTILE_RENDERED: "FIGHTER_PROJECTILE_RENDERED",
   DFTRACE_PROJECTILE_SCREEN_LO: "FIGHTER_PROJECTILE_SCREEN_LO",
   DFTRACE_PROJECTILE_SCREEN_HI: "FIGHTER_PROJECTILE_SCREEN_HI",
   DFTRACE_PROJECTILE_BACKING_TOP: "FIGHTER_PROJECTILE_BACKUP_TOP",
   DFTRACE_BROAD_STATE: "BROAD_STATE",
-  DFTRACE_FAR_ACTIVE: "STAR_FAR_ACTIVE",
+  DFTRACE_FAR_ACTIVE: "STAR_NEAR_FINE_PHASE",
   DFTRACE_ENEMY_ACTIVE: "ENEMY_ACTIVE",
-  DFTRACE_ENEMY_X: "enemy_x",
+  DFTRACE_ENEMY_X: "ENEMY_X",
+  DFTRACE_ENEMY_MEMBER_STATE: "ENEMY_MEMBER_STATE",
+  DFTRACE_ENEMY_HP: "ENEMY_HP",
+  DFTRACE_ENEMY_LIVE_COUNT: "ENEMY_LIVE_COUNT",
+  DFTRACE_ENEMY_ARCHETYPE: "ENEMY_ARCHETYPE",
+  DFTRACE_ENEMY_BODY_DATA: "enemy_body_data",
+  DFTRACE_ENEMY_FRAME_HEIGHTS: "enemy_frame_heights",
   DFTRACE_FIGHTER_EXPLOSION_TIMER: "FIGHTER_EXPLOSION_TIMER",
   DFTRACE_CAPITAL_EXPLOSION_TIMER: "CAPITAL_EXPLOSION_TIMER",
   DFTRACE_MUSIC_ACTIVE: "MUSIC_ACTIVE",
   DFTRACE_FIRE_TIMER: "fire_timer",
+  DFTRACE_PLAYER_BURST_STATE: "PLAYER_FIGHTER_BURST_STATE",
   DFTRACE_HIT_TIMER: "hit_timer",
   DFTRACE_CAPITAL_SOUND_TIMER: "CAPITAL_EXPLOSION_SOUND_TIMER",
   DFTRACE_SOUND_ENABLED: "sound_enabled",
@@ -387,6 +586,7 @@ const traceLabels = {
   DFTRACE_ENTITY_VERTICAL_ACCUMULATOR: "ENTITY_TIMER",
   DFTRACE_ENTITY_RENDER_ID: "ENTITY_RENDER_ID",
   DFTRACE_ENTITY_ACTIVE_MASK: "ENTITY_ACTIVE_MASK",
+  DFTRACE_ENTITY_TYPE: "ENTITY_TYPE",
   DFTRACE_ENTITY_STATE: "ENTITY_STATE",
   DFTRACE_ENTITY_HP: "ENTITY_HP",
   DFTRACE_ENTITY_TIMER: "ENTITY_TIMER",
@@ -398,6 +598,7 @@ const traceLabels = {
   DFTRACE_ENTITY_BACKING1: "ENTITY_BACKING1",
   DFTRACE_ENTITY_BACKING2: "ENTITY_BACKING2",
   DFTRACE_ENTITY_BACKING3: "ENTITY_BACKING3",
+  DFTRACE_PLAYFIELD_PREBUILD_PENDING: "PLAYFIELD_PREBUILD_PENDING",
   DFTRACE_PLAYFIELD_ROW_LO: "PLAYFIELD_ROW_LO",
   DFTRACE_PLAYFIELD_ROW_HI: "PLAYFIELD_ROW_HI",
   DFTRACE_SCORE_LO: "score_bcd_lo",
@@ -405,27 +606,41 @@ const traceLabels = {
   DFTRACE_EFFECT_ACTIVE_MASK: "EFFECT_ACTIVE_MASK",
   DFTRACE_EFFECT_ACTIVE_COUNT: "EFFECT_ACTIVE_COUNT",
   DFTRACE_EFFECT_RENDERED_MASK: "EFFECT_RENDERED_MASK",
+  DFTRACE_EFFECT_Y: "EFFECT_Y",
+  DFTRACE_EFFECT_SCREEN_LO: "EFFECT_SCREEN_LO",
+  DFTRACE_EFFECT_SCREEN_HI: "EFFECT_SCREEN_HI",
+  DFTRACE_ENEMY_TARGET_SLOT: "ENEMY_TARGET_SLOT",
   DFTRACE_CORRIDOR_PHASE: "corridor_phase",
   DFTRACE_RING_FLAGS: "PLAYFIELD_RING_FLAGS",
   DFTRACE_ACTIVE_DLIST_LO: "PLAYFIELD_ACTIVE_DLIST_LO",
   DFTRACE_NEXT_DLIST_LO: "PLAYFIELD_NEXT_DLIST_LO",
+  DFTRACE_NEAR_ROW: "STAR_NEAR_ROW",
+  DFTRACE_NEAR_COLUMN: "STAR_NEAR_COLUMN",
+  DFTRACE_NEAR_SCREEN_LO: "STAR_NEAR_SCREEN_LO",
+  DFTRACE_NEAR_SCREEN_HI: "STAR_NEAR_SCREEN_HI",
+  DFTRACE_DST_PTR: "dst_ptr",
   DFTRACE_PC_DLI_END: "profile_gameplay_dli_end",
   DFTRACE_PC_DLI_HUD_END: "profile_gameplay_dli_hud_end",
   DFTRACE_PC_COMPOSE_START: "compose_player_fighter_projectile_glyph",
   DFTRACE_PC_COMPOSE_END: "profile_projectile_compose_end",
   DFTRACE_PC_POINTER_START: "initialize_projectile_screen_pointer",
   DFTRACE_PC_POINTER_END: "profile_projectile_pointer_end",
+  DFTRACE_PC_PUBLICATION_BEGIN: "fighter_projectile_publication_begin",
   DFTRACE_PC_ERASE_SLOT: "erase_fighter_projectile_slot",
+  DFTRACE_PC_PROJECTILE_RESTORE: "erase_fighter_projectile_restore",
+  DFTRACE_PC_PROJECTILE_UPDATE_START: "update_fighter_projectiles",
   DFTRACE_PC_INTERCEPTOR_UPDATE_START: "profile_interceptor_projectile_update_begin",
   DFTRACE_PC_RENDER_SLOT: "render_fighter_projectile_slot",
+  DFTRACE_PC_RENDER_END: "render_fighter_projectile_overlays_end",
+  DFTRACE_PC_CLAIM_PROJECTILE: "claim_fighter_projectile_visual",
   DFTRACE_PC_ENTITY_ERASE_START: "profile_entity_erase_begin",
   DFTRACE_PC_EFFECT_UPDATE_END: "profile_after_transient_effect_update",
   DFTRACE_PC_PICKUP_UPDATE_END: "profile_after_pickup_booster_update",
 };
 
 const traceProfileLabels = [
-  "profile_after_entity_erase",
   "profile_after_projectile_erase",
+  "profile_after_entity_erase",
   "profile_after_capsule",
   "profile_after_frame_visuals",
   "profile_after_player",
@@ -442,9 +657,9 @@ const traceProfileLabels = [
   "profile_after_entity_update",
   "profile_after_effect_visuals",
   "profile_after_broadside_render",
-  "profile_after_projectile_render",
   "profile_after_entity_render",
   "profile_after_sector",
+  "profile_after_projectile_render",
   "profile_after_audio",
 ];
 for (let index = 0; index < traceProfileLabels.length; index += 1) {
@@ -471,13 +686,38 @@ const numericCsvFields = new Set([
   "extra_vbi_boundaries", "missed_frames", "dli_nmis", "dma_ctl", "nmi_en",
   "projectiles", "broadside", "far_rendered", "live_interceptor", "fighter_explosion",
   "capital_explosion", "music_active", "fire_sfx", "hit_sfx", "capital_sfx",
+  "fire_timer_value", "player_burst_state", "player_burst_remaining",
+  "player_burst_timer", "audf1", "audc1", "fire_accept_calls", "update_sound_calls",
+  "fire_accept_clock", "update_sound_clock", "fire_accept_scanline", "fire_accept_cycle",
+  "update_sound_scanline", "update_sound_cycle",
   "sound_enabled", "player_lifecycle", "sector_state", "gameplay_frame",
+  "active_gameplay_frame", "enemy_state", "enemy_y", "enemy_member0_state",
+  "enemy_member1_state", "enemy_member2_state", "enemy_member0_hp", "enemy_member1_hp",
+  "enemy_member2_hp", "enemy_live_count", "enemy_projectiles", "director_phase", "director_rng",
+  "enemy_x0", "enemy_x1", "enemy_y0", "enemy_y1", "enemy_hpos1", "enemy_hpos2",
+  "enemy_pmg_rows1", "enemy_pmg_rows2",
+  "enemy_pmg_mismatch1", "enemy_pmg_mismatch2",
+  "enemy_pmg_mismatch_row1", "enemy_pmg_mismatch_row2",
+  "enemy_pmg_mismatch_writer1", "enemy_pmg_mismatch_writer2",
+  "player_projectile_recycled_checks", "player_projectile_stale_cells",
+  "player_projectile_orphan_cells",
+  "director_intensity", "director_reaction", "director_recovery",
   "difficulty", "active_muzzles", "entity_active", "entity_x", "entity_y",
   "entity_vx", "entity_move_accumulator", "entity_vertical_accumulator",
   "entity_render_id", "events",
   "colbk", "colpm0", "colpm1", "colpm2", "colpm3", "colpf0", "colpf1",
   "colpf2", "colpf3", "player_fighter_explosion_timer", "enemy_explosion_timer",
   "effect_active_mask", "effect_active_count", "effect_rendered_mask",
+  "transient_effect_orphan_cells", "transient_effect_first_address",
+  "transient_effect_first_code", "transient_effect_first_writer_pc",
+  "transient_effect_first_writer_x", "stale_debris_projectile_restores",
+  "transient_effect_coordinate_wraps",
+  "interceptor_breakup_request_slot0", "interceptor_breakup_request_slot1",
+  "raider_character_writes", "raider_transient_allocations", "raider_slot0_activations",
+  "raider_kills_with_emitter_projectile_active", "emitter_owned_projectiles_at_kill",
+  "emitter_owned_projectiles_removed", "foreign_projectiles_preserved",
+  "foreign_projectiles_incorrectly_removed", "post_kill_emitter_projectile_continuations",
+  "emitter_owned_physical_slot0_at_kill", "enemy_projectile_stale_cells",
   "entity_active_mask", "pickup_state", "pickup_booster_state", "pickup_counter", "pickup_x", "pickup_y",
   "pickup_timer_lo", "pickup_timer_hi", "pickup_animation", "pickup_render_id",
   "pickup_drawn_mask", "score_lo", "score_hi", "rapid_projectiles",
@@ -490,9 +730,11 @@ const numericCsvFields = new Set([
   "pause_timer_after", "pause_engine_timer_before", "pause_engine_timer_after",
   "pause_engine_phase_before", "pause_engine_phase_after", "pause_host_frames",
 ]);
-for (const slot of [0, 1]) for (const field of ["domain", "row", "pointer", "cell"])
-  numericCsvFields.add(`muzzle${slot}_${field}`);
+for (const slot of [0, 1])
+  for (const field of ["domain", "row", "pointer", "cell", "writer_pc", "projectile"])
+    numericCsvFields.add(`muzzle${slot}_${field}`);
 for (const field of ["muzzle_code_cells", "muzzle_illegal_cells", "muzzle_pointer_errors",
+  "muzzle_illegal_address", "muzzle_illegal_code",
   "muzzle_divider_allied", "muzzle_divider_enemy", "broad_pointer_errors",
   "broad_screen_orphan_cells", "broad_screen_first_address", "broad_screen_first_code",
   "broad_screen_missing_cells",
@@ -520,6 +762,12 @@ for (const name of [
   "pickup_draw_cycle",
   "pickup_glyph_cells_before", "pickup_glyph_cells_after",
   "pickup_footprints_before", "pickup_footprints_after",
+  // The missile-plane row count. Read by the pickup contact/collection
+  // invariants below, which need it as a number, not as CSV text.
+  "pickup_pmg_rows",
+  // The capsule's missile-plane column. Read by the pickup contact raster
+  // invariant below, which derives its sample window from it.
+  "pickup_hposm0",
   "pickup_first_overwrite_pc", "pickup_first_overwrite_address",
   "pickup_first_overwrite_value", "pickup_first_overwrite_scanline",
   "engine_timer", "engine_phase", "corridor_phase", "ring_flags",
@@ -555,7 +803,8 @@ for (let index = 0; index < 2; index += 1) {
   numericCsvFields.add(`profile_dli${index}_segment`);
 }
 for (const name of ["profile_compose_calls", "profile_compose_cycles",
-  "profile_pointer_calls", "profile_pointer_cycles", "profile_erase_player_fighter_start",
+  "profile_pointer_calls", "profile_pointer_cycles", "profile_publication_begin",
+  "profile_erase_player_fighter_start",
   "profile_interceptor_update_start", "profile_interceptor_render_start",
   "profile_entity_erase_start", "profile_effect_update_end",
   "profile_pickup_update_end", "profile_pickup_render_start",
@@ -698,7 +947,9 @@ function decodeAtari800Screenshot(bytes) {
     rgb[index * 3 + 1] = palette[paletteOffset + 1];
     rgb[index * 3 + 2] = palette[paletteOffset + 2];
   }
-  return { width, height, rgb };
+  // `palette` is returned so callers can resolve an Atari colour register
+  // value to RGB through the screenshot's own PLTE instead of hard-coding one.
+  return { width, height, rgb, indices, palette };
 }
 
 function encodeRgbPng(rgb, width, height) {
@@ -861,6 +1112,10 @@ function argumentValue(name) {
   return process.argv.find((argument) => argument.startsWith(prefix))?.slice(prefix.length);
 }
 
+function tracePcSymbols(binary) {
+  return new Set(binary.toString("latin1").match(/DFTRACE_PC_[A-Z0-9_]+/g) ?? []);
+}
+
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, {
     cwd: options.cwd ?? rootDirectory,
@@ -882,7 +1137,6 @@ function prepareAtari800(sourceDirectory) {
   const configurePath = path.join(sourceDirectory, "configure");
   const cpuPath = path.join(sourceDirectory, "src", "cpu.c");
   const destinationHeader = path.join(sourceDirectory, "src", "voidstrike65_trace.h");
-  invariant(fs.existsSync(configurePath), `Atari800 configure is missing: ${configurePath}`);
   invariant(fs.existsSync(cpuPath), `Atari800 cpu.c is missing: ${cpuPath}`);
   const configureText = fs.readFileSync(path.join(sourceDirectory, "configure.ac"), "utf8");
   invariant(configureText.includes(`AC_INIT(Atari800, ${EXPECTED_ATARI800_VERSION},`),
@@ -890,6 +1144,7 @@ function prepareAtari800(sourceDirectory) {
 
   fs.copyFileSync(headerPath, destinationHeader);
   let cpuText = fs.readFileSync(cpuPath, "utf8");
+  cpuText = cpuText.replace(/^#include "darkfighter_trace\.h"\r?\n/gm, "");
   if (!cpuText.includes('#include "voidstrike65_trace.h"')) {
     const includeAnchor = "#endif /* ASAP */\n";
     invariant(cpuText.includes(includeAnchor), "Atari800 cpu.c include anchor changed");
@@ -898,19 +1153,23 @@ function prepareAtari800(sourceDirectory) {
   }
   if (cpuText.includes("DFTrace_Observe(GET_PC());"))
     cpuText = cpuText.replace("DFTrace_Observe(GET_PC());",
-      "DFTrace_Observe(GET_PC(), X, Y);");
+      "DFTrace_Observe(GET_PC(), A, X, Y, S);");
   if (cpuText.includes("DFTrace_Observe(GET_PC(), X);"))
     cpuText = cpuText.replace("DFTrace_Observe(GET_PC(), X);",
-      "DFTrace_Observe(GET_PC(), X, Y);");
-  if (!cpuText.includes("DFTrace_Observe(GET_PC(), X, Y);")) {
+      "DFTrace_Observe(GET_PC(), A, X, Y, S);");
+  if (cpuText.includes("DFTrace_Observe(GET_PC(), X, Y);"))
+    cpuText = cpuText.replace("DFTrace_Observe(GET_PC(), X, Y);",
+      "DFTrace_Observe(GET_PC(), A, X, Y, S);");
+  if (!cpuText.includes("DFTrace_Observe(GET_PC(), A, X, Y, S);")) {
     const executeAnchor = "\t\tCPU_delayed_nmi = 0;\n";
     invariant(cpuText.includes(executeAnchor), "Atari800 CPU execution anchor changed");
     cpuText = cpuText.replace(executeAnchor,
-      `${executeAnchor}\t\tDFTrace_Observe(GET_PC(), X, Y);\n`);
+      `${executeAnchor}\t\tDFTrace_Observe(GET_PC(), A, X, Y, S);\n`);
   }
   fs.writeFileSync(cpuPath, cpuText);
 
   if (!fs.existsSync(path.join(sourceDirectory, "Makefile"))) {
+    invariant(fs.existsSync(configurePath), `Atari800 configure is missing: ${configurePath}`);
     run(configurePath, ["--disable-sdltest", "--disable-riodevice"], { cwd: sourceDirectory });
   }
   run("make", ["-j4"], { cwd: sourceDirectory });
@@ -918,7 +1177,11 @@ function prepareAtari800(sourceDirectory) {
 
 function parseCsv(csvText, sessionDefinition) {
   const lines = csvText.trim().split(/\r?\n/);
-  invariant(lines.length === sessionDefinition.frames + 1,
+  invariant(sessionDefinition.activeFrames > 0
+    ? lines.length > 1 && lines.length <= sessionDefinition.activeFrames + 257 &&
+      Number(lines.at(-1).split(",")[lines[0].split(",").indexOf("active_gameplay_frame")]) ===
+        sessionDefinition.activeFrames
+    : lines.length === sessionDefinition.frames + 1,
     `${sessionDefinition.id} emitted ${lines.length - 1}/${sessionDefinition.frames} frames`);
   const headers = lines[0].split(",");
   return lines.slice(1).map((line) => {
@@ -933,6 +1196,74 @@ function parseCsv(csvText, sessionDefinition) {
     return row;
   });
 }
+
+// ---------------------------------------------------------------------------
+// Hull-transient ownership model
+//
+// FOUR writers own a tracked muzzle's cell, or put a muzzle or launch-flash code
+// into the divider row or the playfield ring:
+//
+//   1. the tracked-muzzle overlay, at MUZZLE_SCREEN_LO/HI[0..1] - claimed by
+//      track_top_muzzles, moved by advance_tracked_muzzles, republished by
+//      redraw_tracked_muzzles and backed out by restore_active_muzzles;
+//   2. a broadside occluding one of those same cells - the broadsideOccludesMuzzle
+//      term at the capital-muzzle assertion site;
+//   3. the BROADSIDE launch flash, at BROAD_ROW_LO/HI[slot] plus that slot's turret
+//      muzzle column - written by render_launch_flashes and backed out by
+//      restore_launch_flash_cell (src/main.s), for exactly the frames on which
+//      that slot's BROAD_FLASH_TIMER is non-zero;
+//   4. a live fighter projectile standing on one of the tracked muzzle cells -
+//      render_fighter_projectile_overlays @draw_top ($92D6, src/main.s:4396-4397)
+//      is the last writer of any cell its PairShot occupies, the tracked muzzle's
+//      included. The slot saves the covered cell into FIGHTER_PROJECTILE_BACKUP_TOP
+//      (src/main.s:4376-4381) before it draws and erase_fighter_projectile_restore
+//      ($2B48, src/main.s:3798-3799) returns it when the shot leaves, so the muzzle
+//      glyph is occluded for those frames, not lost. Exactly the shape of writer 2,
+//      which the model already credits for a broadside hull covering the same cell.
+//      See 9.6 in the diagnostics note.
+//
+// Writer 3 was invisible to the model until now. dftrace_snapshot_muzzles
+// (scripts/atari800-wall-trace.h) attributes every hull-transient code it finds to
+// MUZZLE_SCREEN_LO/HI alone, but the flash addresses its cell through
+// BROAD_ROW_LO/HI - an independent pointer that coincides with the tracked record
+// only at broadside admission and diverges afterwards. So a correct, live flash
+// counted as an orphan. See BLOCKED_MUZZLE_ORPHAN_TRANSIENT in
+// docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md 8.6.
+//
+// The term below NARROWS the model. It exonerates ONE cell, at ONE address,
+// carrying ONE code, on a frame with exactly one orphan. All of these remain
+// errors:
+//   - a flash code at any address no slot's live flash owns (no slot matches);
+//   - a flash code at an owned address once that slot's timer has expired
+//     (broad{N}_flash === 0, so that slot owns nothing at all);
+//   - a muzzle code anywhere but the tracked pointers - the emulator only ever
+//     reports $45/$D0 there, which never equals the side's flash code. That is the
+//     52-frame defect fixed in restore_launch_flash_cell, and this term cannot
+//     forgive it.
+// The emulator reports only the FIRST orphan cell of a frame, so a frame carrying
+// more than one orphan is never exonerated - the model cannot see the others.
+const MUZZLE_COLUMN_BY_TURRET = new Map([[0, 8], [1, 31]]);
+const LAUNCH_FLASH_CODE_BY_TURRET = new Map([[0, 0x51], [1, 0xd2]]);
+
+function liveLaunchFlashOwnsIllegalCell(row) {
+  if (row.muzzle_illegal_cells !== 1) return false;
+  return [0, 1, 2].some((slot) => {
+    if (row[`broad${slot}_flash`] === 0) return false;
+    const turret = row[`broad${slot}_turret`];
+    const column = MUZZLE_COLUMN_BY_TURRET.get(turret);
+    return column !== undefined &&
+      row[`broad${slot}_pointer`] + column === row.muzzle_illegal_address &&
+      row.muzzle_illegal_code === LAUNCH_FLASH_CODE_BY_TURRET.get(turret);
+  });
+}
+
+// Orphan cells that no writer in the model owns.
+const unownedHullTransientCells = (row) =>
+  liveLaunchFlashOwnsIllegalCell(row) ? 0 : row.muzzle_illegal_cells;
+
+// muzzle_code_cells counts every hull-transient cell on screen, the live flash
+// included, so the legality sum has to account for writer 3 as well.
+const legalLaunchFlashCells = (row) => liveLaunchFlashOwnsIllegalCell(row) ? 1 : 0;
 
 function decodeEvents(bits) {
   return [
@@ -965,6 +1296,7 @@ function decodeEvents(bits) {
 function frameState(row, includeCpuReference = false) {
   const cpuSession = row.session.replace(/^targeted-/, "");
   const cpuReference = cpuReferenceByFrame.get(`${cpuSession}:${row.frame}`);
+  const raiderSlotCount = row.trace_kind === "two-pmg-raiders-native" ? 2 : 3;
   return {
     trace_kind: row.trace_kind,
     session: row.session,
@@ -1028,6 +1360,15 @@ function frameState(row, includeCpuReference = false) {
       effect_active_count: row.effect_active_count,
       effect_rendered_mask: row.effect_rendered_mask,
       live_interceptor: Boolean(row.live_interceptor),
+      raider_formation: {
+        guide_y: row.enemy_y,
+        member_state: [row.enemy_member0_state, row.enemy_member1_state,
+          row.enemy_member2_state].slice(0, raiderSlotCount),
+        member_hp: [row.enemy_member0_hp, row.enemy_member1_hp,
+          row.enemy_member2_hp].slice(0, raiderSlotCount),
+        live_count: row.enemy_live_count,
+        active_projectiles: row.enemy_projectiles,
+      },
       fighter_explosion: Boolean(row.fighter_explosion),
       capital_explosion: Boolean(row.capital_explosion),
       music_active: Boolean(row.music_active),
@@ -1048,6 +1389,20 @@ function frameState(row, includeCpuReference = false) {
   };
 }
 
+function twoPmgFrameState(row) {
+  return {
+    ...frameState(row),
+    two_pmg_raiders: [0, 1].map((slot) => ({
+      slot,
+      player: slot + 1,
+      x: row[`enemy_x${slot}`],
+      y: row[`enemy_y${slot}`],
+      hpos: row[`enemy_hpos${slot + 1}`],
+      nonzero_pmg_rows: row[`enemy_pmg_rows${slot + 1}`],
+    })),
+  };
+}
+
 function maximumRow(rows, selector) {
   return rows.reduce((maximum, row) =>
     maximum === undefined || selector(row) > selector(maximum) ? row : maximum, undefined);
@@ -1060,8 +1415,8 @@ const profileSegmentNames = [
   "broadside_update", "enemy_damage_resolution", "collision_return",
   "player_fighter_weapon_control", "interceptor_weapon_control", "world_ring_playfield",
   "player_hull_contact", "entity_effect_update", "explosion_effect_visuals",
-  "broadside_render", "projectile_render_backing", "entity_effect_render",
-  "sector_completion", "music_sound", "main_loop_tail",
+  "broadside_render", "entity_effect_render", "sector_completion",
+  "projectile_render_backing", "music_sound", "main_loop_tail",
 ];
 
 function profileCostBreakdown(row) {
@@ -1097,33 +1452,28 @@ function profileCostBreakdown(row) {
     return cpu(validStart, validEnd);
   };
 
-  const eraseStart = boundaries[0];
-  const eraseEnd = boundaries[1];
+  const eraseStart = boundaries[1];
+  const eraseEnd = boundaries[2];
   const entityEraseStart = row.profile_entity_erase_start;
-  const projectileEraseStart = boundaries[1];
-  const projectileEraseEnd = boundaries[2];
-  const player_fighterEraseStart = row.profile_erase_player_fighter_start;
   const projectileUpdateStart = boundaries[6];
   const projectileUpdateEnd = boundaries[7];
   const interceptorUpdateStart = row.profile_interceptor_update_start;
-  const projectileRenderStart = boundaries[18];
-  const projectileRenderEnd = boundaries[19];
+  const projectileRenderStart = boundaries[20];
+  const projectileRenderEnd = boundaries[21];
   const interceptorRenderStart = row.profile_interceptor_render_start;
   const entityUpdateStart = boundaries[15];
   const entityUpdateEnd = boundaries[16];
   const effectUpdateEnd = row.profile_effect_update_end;
   const pickupUpdateEnd = row.profile_pickup_update_end;
-  const entityRenderStart = boundaries[19];
-  const entityRenderEnd = boundaries[20];
+  const entityRenderStart = boundaries[18];
+  const entityRenderEnd = boundaries[19];
   const pickupRenderStart = row.profile_pickup_render_start;
   const effectRenderStart = row.profile_effect_render_start;
 
   const effectErase = nested(eraseStart, entityEraseStart, eraseStart, eraseEnd);
   const entityErase = nested(entityEraseStart, eraseEnd, eraseStart, eraseEnd);
-  const interceptorErase = nested(projectileEraseStart, player_fighterEraseStart,
-    projectileEraseStart, projectileEraseEnd);
-  const player_fighterErase = nested(player_fighterEraseStart, projectileEraseEnd,
-    projectileEraseStart, projectileEraseEnd);
+  const interceptorErase = 0;
+  const player_fighterErase = 0;
   const player_fighterUpdate = nested(projectileUpdateStart, interceptorUpdateStart,
     projectileUpdateStart, projectileUpdateEnd);
   const interceptorUpdate = nested(interceptorUpdateStart, projectileUpdateEnd,
@@ -1159,8 +1509,8 @@ function profileCostBreakdown(row) {
     effects: effectErase + effectUpdate + segmentCpu(16) + effectRender,
     capsule_interactive_entity: segmentCpu(2) + pickupUpdate + pickupRender,
     music_sound: segmentCpu(21),
-    remaining_runtime: segmentCpu(3) + segmentCpu(4) + segmentCpu(10) +
-      segmentCpu(14) + segmentCpu(20) + segmentCpu(22),
+    remaining_runtime: segmentCpu(0) + segmentCpu(3) + segmentCpu(4) + segmentCpu(10) +
+      segmentCpu(14) + segmentCpu(19) + segmentCpu(22),
   };
   invariant(Object.values(subsystemCycles).reduce((sum, cycles) => sum + cycles, 0) ===
     row.wall_cycles, `Profile subsystem split does not sum to wall for ${row.session}:${row.frame}`);
@@ -1172,8 +1522,8 @@ function profileCostBreakdown(row) {
     synchronization_wait_cycles: 0,
     synchronization_note: "Measurement begins after wait_frame; gameplay DLI service is included in vbi_and_synchronization.",
     cross_cutting_cycles: {
-      render_mainline: segmentCpu(16) + segmentCpu(17) + segmentCpu(18) + segmentCpu(19),
-      erase_backing_mainline: segmentCpu(0) + segmentCpu(1),
+      render_mainline: segmentCpu(16) + segmentCpu(17) + segmentCpu(18) + segmentCpu(20),
+      erase_backing_mainline: segmentCpu(1) + segmentCpu(20),
       address_mapping_calls: row.profile_pointer_calls,
       address_mapping_cycles: row.profile_pointer_cycles,
       projectile_composition_calls: row.profile_compose_calls,
@@ -1221,7 +1571,34 @@ function sessionSummary(session, rows) {
   };
 }
 
+// Boot-smoke observation horizon, mirrored from scripts/atari800-wall-trace.h
+// (DFBOOT_MENU_FRAME / DFBOOT_GAMEPLAY_FRAME). The menu proof snapshot sits
+// above the 3,000-frame owner ceiling so that a slow-but-legal boot is
+// observable at all; the gameplay proof snapshot keeps the 250-frame handoff
+// window the old frame-500/750 pair provided.
+const BOOT_MENU_FRAME = 3050;
+const BOOT_GAMEPLAY_FRAME = 3300;
+const BOOT_SNAPSHOT_FRAMES = [1, 250, 300, BOOT_MENU_FRAME, BOOT_GAMEPLAY_FRAME];
+const bootDeadlineRelativePath = "docs/boot-deadline-baseline.json";
+
+function readBootDeadline() {
+  const deadline = JSON.parse(fs.readFileSync(
+    path.join(rootDirectory, bootDeadlineRelativePath), "utf8"));
+  invariant(Number.isInteger(deadline.absolute_ceiling_frames) &&
+    Number.isInteger(deadline.delta_fail_frames) &&
+    Number.isInteger(deadline.delta_warn_frames) &&
+    deadline.delta_warn_frames <= deadline.delta_fail_frames &&
+    deadline.baseline && typeof deadline.baseline === "object",
+  `${bootDeadlineRelativePath} is not a well-formed boot deadline baseline`);
+  invariant(deadline.absolute_ceiling_frames < BOOT_MENU_FRAME,
+    `${bootDeadlineRelativePath} ceiling ${deadline.absolute_ceiling_frames} is at or ` +
+    `above the boot-smoke menu snapshot frame ${BOOT_MENU_FRAME}; a boot at the ceiling ` +
+    "would not be observable, so raise the harness horizon with it");
+  return deadline;
+}
+
 function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
+  const bootDeadline = readBootDeadline();
   const outputDirectory = path.join(buildDirectory, "boot-smoke");
   fs.mkdirSync(outputDirectory, { recursive: true });
   const addressEnvironment = {};
@@ -1249,27 +1626,39 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
   invariant(publicLaunches.xex.artifact.path === xexPath &&
     publicLaunches.atr.artifact.path === atrPath,
   "Boot smoke must use the manifest-bound public artifact paths");
+  // Owner decision A (2026-09-20): the ATR must boot without the player
+  // holding OPTION. Until that fix the boot code ended in `rts` and relied on
+  // OS coldstart jumping through DOSVEC, which it only does when no cartridge
+  // is enabled; with BASIC enabled the OS started BASIC instead. Every cold
+  // session here ran `-nobasic`, so the defect was invisible to this gate.
+  // Both BASIC states are now covered on both media, at both cold RAM fills.
+  // The four `-nobasic` sessions keep their identity and their position, so
+  // the committed baseline and the historical session order are unchanged.
   const definitions = [];
-  for (const artifact of [publicLaunches.xex, publicLaunches.atr]) {
-    validateAtari800Launch(artifact);
-    for (const fill of [0xa5, 0x5a]) {
-      definitions.push({
-        ...artifact,
-        path: artifact.artifact.path,
-        arguments: artifact.mediaArguments,
-        fill,
-        id: `${artifact.id}-${fill.toString(16)}`,
-      });
+  for (const basic of [false, true]) {
+    for (const artifact of [publicLaunches.xex, publicLaunches.atr]) {
+      validateAtari800Launch(artifact);
+      for (const fill of [0xa5, 0x5a]) {
+        definitions.push({
+          ...artifact,
+          path: artifact.artifact.path,
+          arguments: [
+            "-xe", "-pal", basic ? "-basic" : "-nobasic", "-nosound", "-turbo",
+            "-no-video-accel", "-no-vsync",
+            ...artifact.mediaArguments,
+          ],
+          fill,
+          basic,
+          id: `${artifact.id}-${fill.toString(16)}${basic ? "-basic" : ""}`,
+        });
+      }
     }
   }
 
   const sessions = definitions.map((definition) => {
     const outputPath = path.join(outputDirectory, `${definition.id}.json`);
     const screenshotPrefix = path.join(outputDirectory, definition.id);
-    run(emulatorPath, [
-      "-xe", "-pal", "-nobasic", "-nosound", "-turbo", "-no-video-accel", "-no-vsync",
-      ...definition.arguments,
-    ], {
+    run(emulatorPath, definition.arguments, {
       env: {
         ...process.env,
         SDL_VIDEODRIVER: process.env.SDL_VIDEODRIVER ?? "dummy",
@@ -1283,37 +1672,91 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
     const result = JSON.parse(fs.readFileSync(outputPath, "utf8"));
     invariant(result.artifact === definition.id && result.cold_ram_fill === definition.fill,
       `${definition.id} boot-smoke identity differs from its invocation`);
-    invariant(result.snapshots.map(({ frame }) => frame).join(",") === "1,250,300,500,750",
-      `${definition.id} did not capture all five required PAL frames`);
+    invariant(result.snapshots.map(({ frame }) => frame).join(",") ===
+      BOOT_SNAPSHOT_FRAMES.join(","),
+    `${definition.id} did not capture all five required PAL frames`);
     const byFrame = new Map(result.snapshots.map((snapshot) => [snapshot.frame, snapshot]));
     const loader250 = byFrame.get(250);
     const loader300 = byFrame.get(300);
-    const menu = byFrame.get(500);
-    const gameplay = byFrame.get(750);
-    const completeLoaderSnapshots = [loader250, loader300];
+    const menu = byFrame.get(BOOT_MENU_FRAME);
+    const gameplay = byFrame.get(BOOT_GAMEPLAY_FRAME);
+    const completeLoaderSnapshots = [loader250, loader300].filter((snapshot) =>
+      snapshot.dma_ctl === 0x22 && snapshot.nmi_en === 0x80);
+    invariant(completeLoaderSnapshots.includes(loader300),
+      `${definition.id} did not reach a complete loader raster by frame 300`);
     for (const snapshot of completeLoaderSnapshots) {
       invariant(snapshot.game_state === 0 && snapshot.dlist === expected.loader_dlist &&
         snapshot.charset_address === 0xe000 && snapshot.dma_ctl === 0x22 &&
         snapshot.nmi_en === 0x80 && snapshot.vdslst === expected.loader_dli,
       `${definition.id} loader display/VBI state is invalid at frame ${snapshot.frame}`);
     }
-    invariant(loader250.loader_timer > loader300.loader_timer && loader300.loader_timer > 0,
-      `${definition.id} loader countdown did not advance between frames 250 and 300`);
+    invariant(loader300.loader_timer > 0 &&
+      (!completeLoaderSnapshots.includes(loader250) ||
+        loader250.loader_timer > loader300.loader_timer),
+    `${definition.id} loader countdown did not advance through frame 300`);
     const milestones = result.milestones;
-    const menuDeadline = definition.id.startsWith("atr") ? 503 : 502;
-    invariant(milestones.menu <= menuDeadline && milestones.frontend_poll <= menuDeadline + 1,
-      `${definition.id} did not reach the production main-menu input path by frame ${menuDeadline + 1}`);
+    // Owner decision 22 (2026-09-18) re-bases this deadline. The old
+    // `190 + 2 x transport sectors` formula was an identity tracking its own
+    // growth: every new sector raised both the cost and the limit, so the
+    // margin stayed zero by construction and a load-time budget nobody chose
+    // shaped engineering decisions. Two independent numbers replace it:
+    //   * an absolute ceiling — the owner's real budget, the main menu within
+    //     60 s = 3,000 PAL frames;
+    //   * a delta against a committed baseline, which does not move on its
+    //     own, so an unexplained loader/decode regression with no sector
+    //     change is still caught.
+    // The gate is NOT deleted: a build that suddenly boots twice as slowly is
+    // still a bug. Growth is visible and deliberate instead of forbidden —
+    // when the transport grows on purpose, re-record
+    // `docs/boot-deadline-baseline.json` in the same commit and state the
+    // reason in the commit message.
+    const medium = definition.id.startsWith("atr") ? "atr" : "xex";
+    const baselineMenu = bootDeadline.baseline[`${medium}_menu_frames`];
+    invariant(Number.isInteger(baselineMenu),
+      `${bootDeadlineRelativePath} has no ${medium}_menu_frames baseline`);
+    const ceiling = bootDeadline.absolute_ceiling_frames;
+    invariant(milestones.menu <= ceiling && milestones.frontend_poll <= ceiling,
+      `${definition.id} did not reach the production main-menu input path within the ` +
+      `${ceiling}-frame (${(ceiling / 50).toFixed(0)} s PAL) owner budget: menu ` +
+      `${milestones.menu}, frontend_poll ${milestones.frontend_poll}`);
+    const menuDelta = milestones.menu - baselineMenu;
+    invariant(menuDelta <= bootDeadline.delta_fail_frames &&
+      milestones.frontend_poll <= baselineMenu + bootDeadline.delta_fail_frames + 1,
+    `${definition.id} reached the main menu at frame ${milestones.menu}, ` +
+      `${menuDelta} frames over the committed baseline ${baselineMenu} (fail band ` +
+      `+${bootDeadline.delta_fail_frames}). If the transport grew on purpose, ` +
+      `re-record ${bootDeadlineRelativePath} in the same commit and say why.`);
+    const menuDeadlineWarned = menuDelta > bootDeadline.delta_warn_frames;
+    if (menuDeadlineWarned) {
+      process.stderr.write(`warning: ${definition.id} reached the main menu at frame ` +
+        `${milestones.menu}, ${menuDelta} frames over the committed baseline ` +
+        `${baselineMenu} (warn band +${bootDeadline.delta_warn_frames}, fail band ` +
+        `+${bootDeadline.delta_fail_frames})\n`);
+    }
+    const bootDeadlineResult = {
+      medium: medium.toUpperCase(),
+      menu_frame: milestones.menu,
+      frontend_poll_frame: milestones.frontend_poll,
+      baseline_frames: baselineMenu,
+      delta_frames: menuDelta,
+      absolute_ceiling_frames: ceiling,
+      warn_at_frames: baselineMenu + bootDeadline.delta_warn_frames,
+      fail_at_frames: baselineMenu + bootDeadline.delta_fail_frames,
+      warned: menuDeadlineWarned,
+    };
     invariant(gameplay.game_state === 6 && gameplay.charset_address === 0x5000 &&
       gameplay.pm_base === 0x3800 && gameplay.dma_ctl === 0x3e &&
       gameplay.nmi_en === 0x80 && gameplay.vdslst === expected.gameplay_dli &&
       gameplay.dlist >= expected.playfield_dlist_a &&
       gameplay.dlist < expected.playfield_dlist_b + expected.playfield_dlist_bytes,
-    `${definition.id} did not reach the legal gameplay display/VBI path by frame 750`);
+    `${definition.id} did not reach the legal gameplay display/VBI path by frame ` +
+      `${BOOT_GAMEPLAY_FRAME}`);
     invariant(Object.values(milestones).every((frame) => frame !== 0xffffffff) &&
       milestones.start < milestones.loader && milestones.loader < milestones.menu &&
       milestones.menu <= milestones.frontend_poll &&
       milestones.frontend_poll < milestones.gameplay_init &&
-      milestones.gameplay_init <= milestones.main_loop && milestones.main_loop < 750,
+      milestones.gameplay_init <= milestones.main_loop &&
+      milestones.main_loop < BOOT_GAMEPLAY_FRAME,
     `${definition.id} did not execute the complete loader-to-gameplay handoff`);
     if (definition.id.startsWith("xex")) {
       invariant(menu.runad === expected.xex_entry,
@@ -1322,7 +1765,7 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
       invariant(menu.dosvec === expected.start,
         `${definition.id} ATR DOSVEC does not point at the game entry`);
     }
-    const screenshots = [1, 250, 300, 500, 750].map((frame) => {
+    const screenshots = BOOT_SNAPSHOT_FRAMES.map((frame) => {
       const screenshotPath = `${screenshotPrefix}-frame${String(frame).padStart(3, "0")}.png`;
       invariant(fs.existsSync(screenshotPath),
         `${definition.id} screenshot is missing for frame ${frame}`);
@@ -1338,6 +1781,7 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
       id: definition.id,
       medium: definition.id.startsWith("xex") ? "XEX" : "ATR",
       cold_ram_fill: definition.fill,
+      basic_enabled: definition.basic,
       artifact: {
         path: path.relative(rootDirectory, definition.path),
         absolute_path: definition.path,
@@ -1346,14 +1790,12 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
       },
       launch: {
         emulator_path: path.resolve(emulatorPath),
-        arguments: [
-          "-xe", "-pal", "-nobasic", "-nosound", "-turbo", "-no-video-accel", "-no-vsync",
-          ...definition.arguments,
-        ],
+        arguments: definition.arguments,
         mode: definition.mode,
       },
       snapshots: result.snapshots,
       milestones,
+      boot_deadline: bootDeadlineResult,
       screenshots,
       passed: true,
     };
@@ -1361,19 +1803,30 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
 
   const gameplayScreenshots = sessions.map((session) => ({
     artifact: session.artifact,
-    sha256: session.screenshots.find(({ frame }) => frame === 750).sha256,
+    sha256: session.screenshots.find(({ frame }) => frame === BOOT_GAMEPLAY_FRAME).sha256,
   }));
 
   const evidence = {
     emulator: "Atari800 7.1.2 PAL/XL",
-    frames_observed: 750,
-    duration_seconds_pal: 15,
+    frames_observed: BOOT_GAMEPLAY_FRAME,
+    duration_seconds_pal: BOOT_GAMEPLAY_FRAME / 50,
     guest_instrumentation_bytes: 0,
     cold_ram_range: "$8000-$9FFF",
-    input: "production joystick path; FIRE pressed on host frames 501-506",
+    basic_states_covered: ["-nobasic", "-basic"],
+    input: `production joystick path; FIRE pressed on host frames ` +
+      `${BOOT_MENU_FRAME + 1}-${BOOT_MENU_FRAME + 6}`,
     expected_addresses: expected,
+    menu_snapshot_frame: BOOT_MENU_FRAME,
+    gameplay_snapshot_frame: BOOT_GAMEPLAY_FRAME,
+    deadline: {
+      absolute_ceiling_frames: bootDeadline.absolute_ceiling_frames,
+      delta_fail_frames: bootDeadline.delta_fail_frames,
+      delta_warn_frames: bootDeadline.delta_warn_frames,
+      baseline: bootDeadline.baseline,
+      baseline_path: bootDeadlineRelativePath,
+    },
     sessions,
-    frame_750_gameplay_sha256: gameplayScreenshots,
+    gameplay_frame_sha256: gameplayScreenshots,
     passed: sessions.every(({ passed }) => passed),
   };
   fs.writeFileSync(path.join(outputDirectory, "report.json"),
@@ -1441,7 +1894,7 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, xexPath, atrPath }
     };
   });
   const expectedBootStageStreams = [
-    { source: manifest.a2Kernel.sourceAddress, destination: 0x7f16,
+    { source: manifest.a2Kernel.sourceAddress, destination: 0x7f2b,
       bytes: manifest.a2Kernel.bytes },
     { source: manifest.entityEffects.packedSourceAddress,
       destination: manifest.entityEffects.stagedSourceAddress,
@@ -1491,13 +1944,13 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, xexPath, atrPath }
     staging_id: record.stagingId,
   }));
   invariant(JSON.stringify(dfmcRecords) === JSON.stringify([
-    { start_sector: 102, sectors: 45, packed_bytes: 5639, raw_bytes: 6643,
+    { start_sector: 104, sectors: 45, packed_bytes: 5659, raw_bytes: 6653,
       destination: 0x5e10, staging_id: 1 },
-    { start_sector: 147, sectors: 8, packed_bytes: 888, raw_bytes: 888,
+    { start_sector: 149, sectors: 10, packed_bytes: 1168, raw_bytes: 1168,
       destination: 0x8c80, staging_id: 2 },
-    { start_sector: 155, sectors: 2, packed_bytes: 229, raw_bytes: 234,
-      destination: 0x5259, staging_id: 2 },
-    { start_sector: 157, sectors: 5, packed_bytes: 585, raw_bytes: 645,
+    { start_sector: 159, sectors: 3, packed_bytes: 245, raw_bytes: 250,
+      destination: 0x7bd0, staging_id: 2 },
+    { start_sector: 162, sectors: 5, packed_bytes: 587, raw_bytes: 644,
       destination: 0x9d75, staging_id: 2 },
   ]), "DFMC record order or extent changed during the menu-lifecycle repair");
   const addressEnvironment = {
@@ -1734,12 +2187,34 @@ function main() {
   const menuRasterOnly = process.argv.includes("--menu-raster-only");
   const capitalPlayerCollisionOnly = process.argv.includes("--capital-player-collision-only");
   const broadsideTransientOnly = process.argv.includes("--broadside-transient-only");
+  const earlyEnemyOnly = process.argv.includes("--early-enemy-only");
+  const raiderFormationOnly = process.argv.includes("--raider-formation-only");
+  const raiderSectorOnly = process.argv.includes("--raider-sector-only");
+  const pairShotOnly = process.argv.includes("--pairshot-only");
+  const pairShotStaleOnly = process.argv.includes("--pairshot-stale-only");
+  const raiderRemnantOnly = process.argv.includes("--raider-remnant-only");
+  const raiderFirstWriterOnly = process.argv.includes("--raider-first-writer-only");
+  const playerPairShotSpeedOnly = process.argv.includes("--player-pairshot-speed-only");
+  const playerPairShotReentryOnly = process.argv.includes("--player-pairshot-reentry-only");
+  const boosterAdmissionOnly = process.argv.includes("--booster-admission-only");
+  const effectsStaggerOnly = process.argv.includes("--effects-stagger-only");
+  const debrisSlot0BaselineOnly = process.argv.includes("--debris-slot0-baseline-only");
+  const debrisGateOnly = process.argv.includes("--debris-gate-only");
+  const skipBootSmoke = process.argv.includes("--skip-boot-smoke");
+  const tracePreflightOnly = process.argv.includes("--trace-preflight-only");
   const reuseExistingTraces = process.argv.includes("--reuse-existing-traces");
   const smokeFramesArgument = argumentValue("smoke-frames");
   const smokeFrames = smokeFramesArgument === undefined ? null : Number(smokeFramesArgument);
+  const smokeDifficulty = Number(argumentValue("smoke-difficulty") ?? 2);
   const onlySession = argumentValue("only-session");
+  const activeFrames = Number(argumentValue("active-frames") ?? 0);
+  invariant(Number.isInteger(activeFrames) && activeFrames >= 0 && activeFrames <= 1800,
+    "--active-frames must be an integer from 0 to 1800");
+  const pickupFenceTrace = process.argv.includes("--pickup-fence-trace");
   invariant(smokeFrames === null || Number.isInteger(smokeFrames) && smokeFrames > 0,
     "--smoke-frames must be a positive integer");
+  invariant(Number.isInteger(smokeDifficulty) && smokeDifficulty >= 0 && smokeDifficulty <= 2,
+    "--smoke-difficulty must be 0, 1, or 2");
   if (shouldPrepare) prepareAtari800(sourceDirectory);
 
   const emulatorPath = path.join(sourceDirectory, "src", "atari800");
@@ -1824,6 +2299,35 @@ function main() {
   invariant(Number.isInteger(sectorState), "Trace label CAPITAL_SECTOR_STATE is missing");
   addressEnvironment.DFTRACE_CAPITAL_DRAIN_ROWS =
     `0x${(sectorState + 1).toString(16)}`;
+  addressEnvironment.DFTRACE_CORRIDOR_PHASE_HI =
+    `0x${labels.get("CORRIDOR_PHASE_HI").toString(16)}`;
+  addressEnvironment.DFTRACE_LOADER_REPEAT_VALUE =
+    `0x${labels.get("loader_repeat_value").toString(16)}`;
+  addressEnvironment.DFTRACE_ACTIVE_GAMEPLAY_FRAME_LO = "0x4ff8";
+  addressEnvironment.DFTRACE_ENEMY_Y = `0x${labels.get("ENEMY_Y").toString(16)}`;
+  addressEnvironment.DFTRACE_DIRECTOR_STATE = "0x80f6";
+
+  if (tracePreflightOnly) {
+    const observerSymbols = tracePcSymbols(fs.readFileSync(emulatorPath));
+    const generatedSymbols = new Set(Object.keys(addressEnvironment)
+      .filter((name) => name.startsWith("DFTRACE_PC_")));
+    const observerHasDynamicProfiles = observerSymbols.delete("DFTRACE_PC_PROFILE");
+    const generatedProfiles = [...generatedSymbols]
+      .filter((name) => /^DFTRACE_PC_PROFILE\d+$/.test(name));
+    for (const name of generatedProfiles) generatedSymbols.delete(name);
+    invariant(observerHasDynamicProfiles &&
+      generatedProfiles.length === traceProfileLabels.length,
+    "Trace profile binding family is incomplete");
+    const missingFromGenerator = [...observerSymbols]
+      .filter((name) => !generatedSymbols.has(name)).sort();
+    const missingFromObserver = [...generatedSymbols]
+      .filter((name) => !observerSymbols.has(name)).sort();
+    invariant(missingFromGenerator.length === 0 && missingFromObserver.length === 0,
+      `Trace PC binding mismatch: observer-only=${missingFromGenerator.join(",") || "none"}; ` +
+      `generator-only=${missingFromObserver.join(",") || "none"}`);
+    console.log(`Trace preflight: ${observerSymbols.size} observer PC symbols match generated labels`);
+    return;
+  }
 
   fs.mkdirSync(buildDirectory, { recursive: true });
   if (menuRasterOnly) {
@@ -1836,16 +2340,30 @@ function main() {
     console.log(`Raw report: ${path.relative(rootDirectory, menuRaster.buildReportPath)}`);
     return;
   }
-  const bootSmoke = runBootSmoke({ emulatorPath, labels, xexPath, atrPath });
-  console.log(`Boot smoke: ${bootSmoke.sessions.length} XEX/ATR cold-start sessions passed`);
+  const bootSmoke = skipBootSmoke ? null :
+    runBootSmoke({ emulatorPath, labels, xexPath, atrPath });
+  if (bootSmoke !== null)
+    console.log(`Boot smoke: ${bootSmoke.sessions.length} XEX/ATR cold-start sessions passed`);
   if (bootSmokeOnly) {
+    invariant(bootSmoke !== null, "--boot-smoke-only cannot be combined with --skip-boot-smoke");
     console.log(`Report: ${path.relative(rootDirectory,
       path.join(buildDirectory, "boot-smoke", "report.json"))}`);
     return;
   }
   const allRows = [];
   const summaries = [];
+  // Behavioural-clause failures accumulated across the session loop instead of
+  // aborting the run at the first one (owner decision 2026-09-19, stage 1).
+  // This list is ANDed into report.gate.passed and published in the report:
+  // the file's existence is no longer the pass signal, so a report written on a
+  // run that had a clause failure can never authorise a final build.
+  const sessionFailures = [];
+  // Every traced replay is audited against the VCOUNT $77 fence, not only the
+  // four PAL replays: the native counters cannot see an overrun at all.
+  const palTimingAudits = [];
   const pickupScreenshotPath = path.join(buildDirectory, "weapon-pickup-static-atari800.png");
+  const boosterAdmissionScreenshotPath = path.join(buildDirectory,
+    "booster-admission-reentry-atari800.png");
   const rapidScreenshotPath = path.join(buildDirectory,
     "weapon-pickup-rapid-projectiles-atari800.png");
   const spreadScreenshotPath = path.join(buildDirectory,
@@ -1865,7 +2383,36 @@ function main() {
       if (fs.existsSync(framePath)) fs.unlinkSync(framePath);
     }
   }
-  let sessionsToRun = broadsideTransientOnly
+  if (!reuseExistingTraces && boosterAdmissionOnly &&
+    fs.existsSync(boosterAdmissionScreenshotPath))
+    fs.unlinkSync(boosterAdmissionScreenshotPath);
+  let sessionsToRun = boosterAdmissionOnly
+    ? boosterAdmissionReentrySessions
+    : debrisGateOnly
+    ? debrisVisibilityGateSessions
+    : playerPairShotReentryOnly
+    ? playerPairShotReentrySessions
+    : debrisSlot0BaselineOnly
+    ? debrisSlot0BaselineSessions
+    : playerPairShotSpeedOnly
+    ? playerPairShotSpeedSessions
+    : raiderFirstWriterOnly
+    ? raiderFirstWriterSessions
+    : raiderRemnantOnly
+    ? raiderRemnantSessions
+    : pairShotStaleOnly
+    ? pairShotStaleSessions
+    : effectsStaggerOnly
+    ? [...pairShotSessions, ...debrisEffectsSessions]
+    : pairShotOnly
+    ? pairShotSessions
+    : raiderFormationOnly
+    ? raiderFormationSessions
+    : raiderSectorOnly
+    ? raiderSectorSessions
+    : earlyEnemyOnly
+    ? provisionalCapitalSessions
+    : broadsideTransientOnly
     ? broadsideTransientSessions
     : capitalPlayerCollisionOnly
     ? capitalPlayerGeometrySessions
@@ -1875,14 +2422,28 @@ function main() {
       ...weaponPickupTraversalSessions, ...weaponPickupContactSessions,
       ...capitalMuzzleSessions, ...provisionalCapitalSessions, ...capitalContactSessions,
       ...memoryIntegritySessions, ...lowerPlayfieldSessions]
-      .concat(engineDiagnosticSessions, engineRestartSessions)
-    : [{ ...baselineSessions[0], id: "observer-smoke", kind: "observer-smoke", frames: smokeFrames }];
+      .concat(engineDiagnosticSessions, engineRestartSessions,
+        onlySession?.startsWith("pickup-fence-") ? pickupFenceSessions : [])
+    : [{ ...baselineSessions[0], difficulty: smokeDifficulty,
+      id: "observer-smoke", kind: "observer-smoke", frames: smokeFrames }];
+  if (onlySession?.startsWith("pmg-lab-"))
+    sessionsToRun = pmgLabSessions;
   if (onlySession !== undefined) {
     sessionsToRun = sessionsToRun.filter(({ id }) => id === onlySession);
     invariant(sessionsToRun.length === 1, `Unknown trace session: ${onlySession}`);
   }
   for (const session of sessionsToRun) {
+    session.activeFrames = activeFrames;
     const outputPath = path.join(buildDirectory, `${session.id}.csv`);
+    const pmgLabScreenshotPath = session.kind === "pmg-visibility-lab"
+      ? path.join(buildDirectory, `${session.id}-atari800.png`) : undefined;
+    const firstWriterOutput = session.kind === "raider-first-writer-native"
+      ? path.join(buildDirectory, `${session.id}-first-writer.csv`) : undefined;
+    const interceptorProjectileOutput = session.kind === "raider-first-writer-native"
+      ? path.join(buildDirectory, `${session.id}-enemy-projectiles.csv`) : undefined;
+    const playerPairShotOutput = session.kind === "player-pairshot-speed-native" ||
+      session.kind === "player-pairshot-reentry-native"
+      ? path.join(buildDirectory, `${session.id}-player-pairshots.csv`) : undefined;
     const pickupContactPrefix = session.kind === "weapon-pickup-contact"
       ? path.join(buildDirectory, "weapon-pickup-contact-nose")
       : session.kind === "weapon-pickup-overlap"
@@ -1905,6 +2466,13 @@ function main() {
     const capitalGeometryPrefix = session.kind === "capital-player-geometry"
       ? path.join(buildDirectory, `${session.id}-frame`) : undefined;
     const capitalScreenshotPrefix = capitalGeometryPrefix ?? capitalContactPrefix;
+    invariant(capitalScreenshotPrefix === undefined ||
+      capitalContactPrefixKinds.has(session.kind),
+    `${session.id} sets DFTRACE_CAPITAL_CONTACT_PREFIX under kind ${session.kind}, ` +
+    "which capitalContactPrefixKinds does not cover");
+    assertCapitalContactEnvironment(session);
+    const raiderScreenshotPrefix = session.kind === "two-pmg-raiders-native"
+      ? path.join(buildDirectory, session.id) : undefined;
     if (pickupContactPrefix !== undefined && !reuseExistingTraces) {
       const basename = path.basename(pickupContactPrefix);
       for (const name of fs.readdirSync(buildDirectory)) {
@@ -1940,27 +2508,62 @@ function main() {
           fs.unlinkSync(path.join(buildDirectory, name));
       }
     }
+    if (raiderScreenshotPrefix !== undefined && !reuseExistingTraces) {
+      const basename = path.basename(raiderScreenshotPrefix);
+      for (const name of fs.readdirSync(buildDirectory)) {
+        if (name.startsWith(`${basename}-`) && name.endsWith(".png"))
+          fs.unlinkSync(path.join(buildDirectory, name));
+      }
+    }
     const environment = {
       ...process.env,
       SDL_VIDEODRIVER: process.env.SDL_VIDEODRIVER ?? "dummy",
       ...addressEnvironment,
-      DFTRACE_FRAMES: String(session.frames),
+      DFTRACE_FRAMES: String(activeFrames === 0 ? session.frames : activeFrames + 256),
+      DFTRACE_ACTIVE_FRAMES: String(activeFrames),
       DFTRACE_FIRE_DELAY: String(session.fireDelay),
       DFTRACE_DIFFICULTY: String(session.difficulty),
       DFTRACE_POLICY: session.policy,
       DFTRACE_SESSION: session.id,
       DFTRACE_OUTPUT: outputPath,
+      ...(firstWriterOutput === undefined ? {} : {
+        DFTRACE_FIRST_WRITER_OUTPUT: firstWriterOutput,
+      }),
+      ...(interceptorProjectileOutput === undefined ? {} : {
+        DFTRACE_INTERCEPTOR_PROJECTILE_OUTPUT: interceptorProjectileOutput,
+      }),
+      ...(playerPairShotOutput === undefined ? {} : {
+        DFTRACE_PLAYER_PAIRSHOT_OUTPUT: playerPairShotOutput,
+      }),
+      ...(pickupFenceTrace ? {
+        DFTRACE_FENCE_OUTPUT: path.join(buildDirectory, `${session.id}-fence.jsonl`),
+        DFTRACE_FENCE_WAIT: String(labels.get("wait_gameplay_frame")),
+        DFTRACE_FENCE_LOOP: String(labels.get("wait_frame_at_line")),
+        DFTRACE_FENCE_SCREENSHOTS: "1",
+      } : {}),
 	  ...(session.coldFill === undefined ? {} : { DFTRACE_RAM_FILL: String(session.coldFill) }),
 	  ...(session.frontendDelay === undefined ? {} : {
 	    DFTRACE_FRONTEND_DELAY: String(session.frontendDelay),
 	  }),
       ...(session.pauseTest ? { DFTRACE_PAUSE_TEST: "1" } : {}),
-      ...(session.kind === "weapon-pickup-coverage" ? {
+      ...(session.kind === "debris-visibility-gate" ? {
+        DFDEBRIS_GATE_OUTPUT: path.join(buildDirectory, `${session.id}-debris-gate.csv`),
+        DFDEBRIS_ROW_OUTPUT: path.join(buildDirectory, `${session.id}-debris-row.json`),
+        DFDEBRIS_PC_ERASE: String(labels.get("erase_interactive_entity_overlays")),
+        DFDEBRIS_PC_RENDER: String(labels.get("render_interactive_entity_overlays")),
+      } : {}),
+      ...(session.kind === "weapon-pickup-coverage" && !pairShotOnly ? {
         DFTRACE_PICKUP_SCREENSHOT: pickupScreenshotPath,
         DFTRACE_PICKUP_SEQUENCE_PREFIX: pickupSequencePrefix,
         DFTRACE_RAPID_SCREENSHOT: rapidScreenshotPath,
         DFTRACE_SPREAD_SCREENSHOT: spreadScreenshotPath,
       } : {}),
+      ...(session.kind === "booster-admission-native" ? {
+        DFTRACE_PICKUP_SCREENSHOT: boosterAdmissionScreenshotPath,
+      } : {}),
+      ...(pmgLabScreenshotPath === undefined ? {} : {
+        DFTRACE_PMG_LAB_SCREENSHOT: pmgLabScreenshotPath,
+      }),
       ...(session.kind === "weapon-pickup-traversal" ? {
         DFTRACE_PICKUP_TRAVERSAL_PREFIX: pickupTraversalPrefix,
       } : {}),
@@ -1977,6 +2580,10 @@ function main() {
 	    DFTRACE_ENGINE_SCREENSHOT_PREFIX: path.join(buildDirectory, session.id),
 	    DFTRACE_ENGINE_SCREENSHOT_LIMIT: String(session.frames),
 	  } : {}),
+	  ...(raiderScreenshotPrefix === undefined ? {} : {
+	    DFTRACE_ENGINE_SCREENSHOT_PREFIX: raiderScreenshotPrefix,
+	    DFTRACE_ENGINE_SCREENSHOT_LIMIT: String(session.frames),
+	  }),
 	  ...(provisionalEntryPrefix === undefined ? {} : {
 	    DFTRACE_ENGINE_SCREENSHOT_PREFIX: provisionalEntryPrefix,
 	  }),
@@ -2001,6 +2608,41 @@ function main() {
       ], { env: environment });
     }
     const rows = parseCsv(fs.readFileSync(outputPath, "utf8"), session);
+    // Stage 1 of the session-failure accumulation (owner decision 2026-09-19).
+    // A failing behavioural clause records {session, message} and the loop
+    // continues to the next replay, so the sessions that sat behind the first
+    // failure are no longer dark. The precedent is the PAL timing audit below,
+    // which reports per replay and sets process.exitCode instead of throwing.
+    // parseCsv stays OUTSIDE the try: a malformed or short CSV leaves no rows
+    // to carry forward and remains fatal. So does run() above. Owner decision
+    // 2026-09-19: a session that produces no CSV at all is a HARD failure, not
+    // an accumulated clause failure — the same boundary drawn here at parseCsv.
+    // Corrupt or absent data stops the run; a failing clause does not. Stage 2
+    // must not blur the two.
+    // The body is deliberately left at its original indentation — reindenting
+    // ~670 lines would bury the change in whitespace.
+    try {
+    // draw_enemy_member publishes a member's 16-row P1/P2 body only on frames
+    // where its Y moved. The licence for that skip is "the plane already holds
+    // the body at the member's current Y", so hold every traced frame to it:
+    // the emulator rebuilds the expected plane from ENEMY_MEMBER_STATE,
+    // ENEMY_Y, ENEMY_ARCHETYPE and the archetype body table and counts the
+    // visible rows that differ. Any nonzero count is a stale or torn sprite.
+    const staleBodyRows = rows.filter((row) =>
+      (row.enemy_pmg_mismatch1 ?? 0) !== 0 || (row.enemy_pmg_mismatch2 ?? 0) !== 0);
+    invariant(staleBodyRows.length === 0, [
+      `${session.id} published a stale or torn enemy PMG body on ` +
+        `${staleBodyRows.length} frame(s)`,
+      ...staleBodyRows.slice(0, 8).flatMap((row) => [0, 1]
+        .filter((slot) => (row[`enemy_pmg_mismatch${slot + 1}`] ?? 0) !== 0)
+        .map((slot) => `  frame ${row.frame} P${slot + 1}: ` +
+          `${row[`enemy_pmg_mismatch${slot + 1}`]} visible row(s) differ, ` +
+          `member_state=${row[`enemy_member${slot}_state`]} ` +
+          `y=${row[`enemy_y${slot}`]} ` +
+          `first_row=${row[`enemy_pmg_mismatch_row${slot + 1}`]} ` +
+          `last_writer=$${(row[`enemy_pmg_mismatch_writer${slot + 1}`] ?? 0)
+            .toString(16).padStart(4, "0")}`)),
+    ].join("\n"));
     if (muzzleScreenshotPrefix !== undefined &&
         session.kind !== "broadside-transient-lifecycle") {
       const basename = path.basename(muzzleScreenshotPrefix);
@@ -2019,10 +2661,23 @@ function main() {
         return row[`broad${slot}_state`] !== 0 && column >= 0 &&
           row[`broad${slot}_pointer`] + column === row[`muzzle${muzzleSlot}_pointer`];
       });
+      // Writer 4: a live, rendered fighter projectile standing on the tracked
+      // muzzle's own cell. muzzle{N}_projectile is emitted by
+      // dftrace_projectile_occludes and is 1 only while some projectile slot's
+      // OWN screen pointer still equals that muzzle pointer AND the cell still
+      // holds that slot's glyph family — presence, never history. It cannot
+      // forgive a muzzle or launch-flash code, whose values are disjoint from
+      // both projectile glyph families.
+      const projectileOccludesMuzzle = (row, muzzleSlot) =>
+        row[`muzzle${muzzleSlot}_projectile`] === 1;
       const occludedRows = rows.filter((row) => [0, 1].some((slot) =>
         row[`muzzle${slot}_pointer`] !== 0 &&
         !transientCodes.has(row[`muzzle${slot}_cell`]) &&
         broadsideOccludesMuzzle(row, slot)));
+      const projectileOccludedRows = rows.filter((row) => [0, 1].some((slot) =>
+        row[`muzzle${slot}_pointer`] !== 0 &&
+        !transientCodes.has(row[`muzzle${slot}_cell`]) &&
+        projectileOccludesMuzzle(row, slot)));
       invariant(activeRows.length > 0 && [0, 1].every((slot) =>
         activeRows.some((row) => row[`muzzle${slot}_domain`] === 0) &&
         activeRows.some((row) => row[`muzzle${slot}_domain`] === 1)),
@@ -2031,13 +2686,26 @@ function main() {
         const legalMuzzleCodes = [0, 1].filter((slot) =>
           row[`muzzle${slot}_pointer`] !== 0 &&
           transientCodes.has(row[`muzzle${slot}_cell`])).length;
-        const legalBroadsideOcclusions = [0, 1].filter((slot) =>
+        // Every active muzzle must be accounted for: it either shows its own
+        // transient glyph, or writer 2 (a broadside hull) or writer 4 (a live
+        // rendered projectile) is standing on that exact cell this frame. The
+        // three are per-slot alternatives, not a sum: a slot explained twice is
+        // still one slot, and a slot explained by nothing at all still fails.
+        // An active muzzle whose cell is empty, with no broadside and no
+        // projectile on it, remains an error — including the frame after a
+        // projectile leaves without erase_fighter_projectile_restore returning
+        // the covered cell.
+        const explainedMuzzles = [0, 1].filter((slot) =>
           row[`muzzle${slot}_pointer`] !== 0 &&
-          !transientCodes.has(row[`muzzle${slot}_cell`]) &&
-          broadsideOccludesMuzzle(row, slot)).length;
-        return row.muzzle_illegal_cells === 0 && row.muzzle_pointer_errors === 0 &&
-          row.broad_pointer_errors === 0 && row.muzzle_code_cells === legalMuzzleCodes &&
-          legalMuzzleCodes + legalBroadsideOcclusions === row.active_muzzles;
+          (transientCodes.has(row[`muzzle${slot}_cell`]) ||
+            broadsideOccludesMuzzle(row, slot) ||
+            projectileOccludesMuzzle(row, slot))).length;
+        // Writer 3 of the ownership model above: a live launch flash owns its own
+        // cell. Expired flashes, unowned addresses and stray muzzle codes still fail.
+        return unownedHullTransientCells(row) === 0 && row.muzzle_pointer_errors === 0 &&
+          row.broad_pointer_errors === 0 &&
+          row.muzzle_code_cells === legalMuzzleCodes + legalLaunchFlashCells(row) &&
+          explainedMuzzles === row.active_muzzles;
       }),
       `${session.id} observed a stale muzzle/flash code or invalid derived pointer`);
       invariant(activeRows.every((row) =>
@@ -2076,8 +2744,11 @@ function main() {
         flash_frames: flashRows.length,
         flying_frames: flyingRows.length,
         legal_broadside_muzzle_occlusion_frames: occludedRows.length,
+        legal_projectile_muzzle_occlusion_frames: projectileOccludedRows.length,
         maximum_muzzle_codes: Math.max(...rows.map((row) => row.muzzle_code_cells)),
-        maximum_illegal_codes: Math.max(...rows.map((row) => row.muzzle_illegal_cells)),
+        // Unowned by any of the three writers; a live launch flash is not an orphan.
+        maximum_illegal_codes: Math.max(...rows.map(unownedHullTransientCells)),
+        live_launch_flash_cells: rows.filter((row) => legalLaunchFlashCells(row) === 1).length,
         pointer_errors: rows.reduce((sum, row) => sum + row.muzzle_pointer_errors +
           row.broad_pointer_errors, 0),
         transitions: transitionRows.map((row) => ({
@@ -2234,7 +2905,7 @@ function main() {
       invariant(warningStarts.length > 0 && flashStarts.length > 0 && launches.length > 0,
         `${session.id} observed ${warningStarts.length}/${flashStarts.length}/${launches.length} ` +
         "enemy warning/flash/launch starts");
-      invariant(rows.every((row) => row.muzzle_illegal_cells === 0 &&
+      invariant(rows.every((row) => unownedHullTransientCells(row) === 0 &&
         row.muzzle_pointer_errors === 0 && row.broad_pointer_errors === 0),
       `${session.id} regressed tracked-muzzle legality`);
       invariant(missed === 0 && extraVbi === 0 && overruns === 0,
@@ -2339,8 +3010,8 @@ function main() {
           launches: launches.map(({ frame, gameplay_frame }) => ({ frame, gameplay_frame })),
         },
         station_counts: {
-          generated: [8, 12, 16][session.difficulty],
-          accepted: [8, 12, 16][session.difficulty],
+          generated: [10, 15, 20][session.difficulty],
+          accepted: [10, 15, 20][session.difficulty],
           shown: { allied: shownByOwner[0], enemy: shownByOwner[1] },
           warnings: { allied: warningsByOwner[0], enemy: warningsByOwner[1] },
           flashes: { allied: flashesByOwner[0], enemy: flashesByOwner[1] },
@@ -2480,23 +3151,110 @@ function main() {
       invariant(JSON.stringify([...new Set(contactRows.map((row) =>
         row.pickup_render_phase))].sort()) === JSON.stringify([0, 2, 4, 6]),
       `${session.id} did not cover all four Hard pickup phases at player contact`);
-      invariant(contactRows.every((row) => row.prior === 0 &&
-        row.pickup_erase_calls === 1 && row.pickup_draw_calls === 1 &&
+      // PRIOR is $00 or $10 here, and both are correct. The pickup is drawn as
+      // the GTIA fifth player, so its PMG setup programs PRIOR = $10
+      // (src/main.s:10486) and release_fighter_pickup_pmg_hardware restores $00
+      // (src/main.s:9820-9823). On the boundary frames the sampled value is the
+      // other one: the first pickup_state 2 frame is still $00 because the
+      // sample precedes that frame's PMG setup, and the release frame still
+      // reads $10. No trace column separates those cases -- pickup_pmg_rows is
+      // 16 on the $00 boundary row as well -- so the gate accepts both values.
+      //
+      // pickup_draw_calls no longer counts draws. Commit 04ae0a6 repointed
+      // DFTRACE_PC_ENTITY_DRAW from render_weapon_pickup_overlay to
+      // update_fighter_pickup_pmg (:485), which is the movement/collection/
+      // booster policy wrapper (src/main.s:10415) and writes no pixels; the
+      // real renderer is render_fighter_pickup_pmg and is not traced. The
+      // wrapper is entered once on every gameplay frame, so `=== 1` held on
+      // all 500 post-collection frames of this trace with no capsule on
+      // screen: it asserted nothing. No column counts renderer entries, so
+      // "exactly one draw" is not assertable here. The clause is repointed to
+      // pickup_pmg_rows, which measures the published result directly -- the
+      // capsule's 16 missile rows must be on the plane for every contact
+      // frame (post-collection frames of the same trace read 0/2/4/6).
+      // pickup_erase_calls is unaffected: DFTRACE_PC_ENTITY_ERASE is
+      // clear_fighter_pickup_pmg, which does zero the missile rows.
+      invariant(contactRows.every((row) => (row.prior === 0x00 || row.prior === 0x10) &&
+        row.pickup_erase_calls === 1 && row.pickup_pmg_rows === 16 &&
         row.pickup_erase_scanline > row.pickup_prev_y &&
         row.pickup_draw_scanline !== 0),
-      `${session.id} changed GTIA priority or the single erase/draw lifecycle`);
+      `${session.id} changed GTIA priority, the single erase, or the published `
+      + `16-row missile capsule at player contact`);
       const collectionRows = rows.filter((row) => (row.events & (1 << 19)) !== 0);
+      // The fourth sub-clause was `pickup_draw_calls === 0`, and it has been
+      // unsatisfiable by construction since 04ae0a6 (see the contact clause
+      // above). While DFTRACE_PC_ENTITY_DRAW was bound to
+      // render_weapon_pickup_overlay -- a character-overlay renderer reachable
+      // only when ENTITY_ACTIVE_MASK != 0 -- the three sub-clauses formed one
+      // coherent statement: collection cleared the mask, so the capsule glyph
+      // was not redrawn on the collection frame. After the rebinding the
+      // counter names the policy wrapper, through which the collection itself
+      // passes, so it reads 1 on the collection frame and can never read 0.
+      // pickup_pmg_rows restores the original intent against the plane the
+      // capsule is actually drawn on: it goes 16 -> 0 on the collection frame
+      // and stays 0.
       invariant(collectionRows.length === 1 && collectionRows[0].pickup_booster_state === 3 &&
-        collectionRows[0].entity_active_mask === 0 && collectionRows[0].pickup_draw_calls === 0,
-      `${session.id} did not collect and activate exactly once`);
+        collectionRows[0].entity_active_mask === 0 && collectionRows[0].pickup_pmg_rows === 0,
+      `${session.id} did not collect and activate exactly once, or left the `
+      + `capsule on the missile plane after collection`);
       const images = paths.map((framePath) =>
         decodeAtari800Screenshot(fs.readFileSync(framePath)));
-      const steelCounts = images.map((image) => countRgb(image, [13, 58, 115], {
-        left: 140, top: 8, right: 164, bottom: 216,
-      }));
+      // This clause measures the capsule in the framebuffer, which is why it
+      // stays a raster check and is not repointed at pickup_pmg_rows: the
+      // memory counters and the beam can diverge (see
+      // docs/diagnostics/stage-2b2d-pickup-raster-invisibility.json, where
+      // 16/16 missile rows were set at frame end, 0/16 at the beam crossing,
+      // and the framebuffer was pure background). It is the only gate that
+      // would catch that case.
+      //
+      // Window and colour are DERIVED from the same contact rows the clauses
+      // above measure, not pinned as literals. Both halves of the old pin --
+      // `rgb(13,58,115)` inside `x 140-164` -- went stale at f6eee5c, which
+      // retired the character compositor: the capsule moved from character
+      // cells to the missile plane, so its colour became COLPF3 ($46 here, not
+      // $84 steel) and its column moved with it. The pin therefore counted
+      // zero on every captured frame and failed the `>= 40` head clause on
+      // frame 00, not only at the tail. The intent -- capsule present through
+      // contact, gone three frames after collection -- and the >= 40 / < 40
+      // thresholds are unchanged.
+      //
+      // Horizontal mapping. The capsule is one missile at HPOSM0 with
+      // SIZEM = $00 (src/main.s:10484), so it spans 16 pixels at this capture
+      // scale. NOTE, discrepancy:
+      // docs/diagnostics/stage-2b2e-pickup-capsule-silhouettes.json records
+      // the mapping as `2*HPOSM0 - 64 + 2*cc`, which assumes a wider crop
+      // origin than these captures have. This build's own Atari800
+      // screenshots are 256x192 and measure `2*(HPOSM0 - 64) + 2*cc`, 64
+      // pixels further left; the captures are the authority and the doc
+      // carries the annotation.
+      //
+      // Vertical extent is the full image. The old `y 8-216` was scanline
+      // space (8 = activeImageTop, 216 = gameplayBottom 240 - entityTop 24)
+      // while the capture crop starts at scanline 24, so it had always
+      // clipped -- harmlessly, but it described nothing real.
+      const capsuleHpos = contactRows[0].pickup_hposm0;
+      const capsuleColour = contactRows[0].colpf3;
+      invariant(contactRows.every((row) => row.pickup_hposm0 === capsuleHpos &&
+        row.colpf3 === capsuleColour),
+      `${session.id} moved the capsule column or changed COLPF3 during contact, `
+      + `so one derived raster window cannot describe the contact frames`);
+      const capsuleLeft = 2 * (capsuleHpos - 64);
+      const capsuleRight = capsuleLeft + 16;
+      invariant(images.every((image) => capsuleLeft >= 0 && capsuleRight <= image.width),
+        `${session.id} derived capsule window x ${capsuleLeft}-${capsuleRight} falls `
+        + `outside the captured raster`);
+      // The colour is resolved through each screenshot's own PLTE, so the
+      // count follows COLPF3 to whatever RGB Atari800's palette gives it.
+      const steelCounts = images.map((image) => countRgb(image, [
+        image.palette[capsuleColour * 3],
+        image.palette[capsuleColour * 3 + 1],
+        image.palette[capsuleColour * 3 + 2],
+      ], { left: capsuleLeft, top: 0, right: capsuleRight, bottom: image.height }));
       invariant(steelCounts.slice(0, -3).every((count) => count >= 40) &&
         steelCounts.slice(-3).every((count) => count < 40),
-      `${session.id} final raster contains a cut capsule or stale post-collection footprint`);
+      `${session.id} final raster contains a cut capsule or stale post-collection `
+      + `footprint (COLPF3 $${capsuleColour.toString(16)} in x ${capsuleLeft}-`
+      + `${capsuleRight}: ${steelCounts.join(", ")})`);
       const sheetPath = path.join(buildDirectory,
         session.kind === "weapon-pickup-contact"
           ? "weapon-pickup-player-nose-contact.png"
@@ -2535,21 +3293,1292 @@ function main() {
       fs.writeFileSync(path.join(buildDirectory, `${session.id}-evidence.json`),
         `${JSON.stringify(evidence, null, 2)}\n`);
     }
+    } catch (error) {
+      sessionFailures.push({ session: session.id, message: error.message });
+      console.error(`CLAUSE FAILURE ${session.id}: ${error.message}`);
+      process.exitCode = 1;
+    }
+    // Outside the catch on purpose. A failed session still contributes its rows
+    // and its summary, so the post-loop aggregates keep measuring this replay's
+    // coverage and cannot fail for absence instead of for a real defect.
     allRows.push(...rows);
     summaries.push(sessionSummary(session, rows));
     console.log(`${session.id}: ${rows.length} frames, max ` +
       `${maximumRow(rows, (row) => row.wall_cycles).wall_cycles} wall cycles`);
+    // Reported per replay, before any later gate invariant can abort the run.
+    const palTimingAudit = auditPalTiming(session.id, rows);
+    palTimingAudits.push(palTimingAudit);
+    reportPalTimingAudit(palTimingAudit);
+    if (!palTimingAudit.passed) process.exitCode = 1;
+  }
+  {
+    const missEvents = reportPalTimingAudits(palTimingAudits, { perAudit: false });
+    fs.writeFileSync(path.join(buildDirectory, "pal-timing-audit.json"),
+      `${JSON.stringify({ distinct_miss_events: missEvents, audits: palTimingAudits },
+        null, 2)}\n`);
+    // A distinct miss event is a real dropped PAL frame, so it fails the gate
+    // whatever else the run was measuring.
+    if (missEvents !== 0) process.exitCode = 1;
+  }
+  if (sessionFailures.length === 0) {
+    console.log(`Behavioural clauses: ${sessionsToRun.length} session(s) ran to completion`);
+  } else {
+    console.error(`Behavioural clauses: ${sessionFailures.length} of ` +
+      `${sessionsToRun.length} session(s) accumulated a failure`);
+    for (const failure of sessionFailures)
+      console.error(`  ${failure.session}: ${failure.message.split("\n")[0]}`);
+  }
+  if (raiderFirstWriterOnly) {
+    console.log(`Raider first-writer raw traces: ${sessionsToRun.length} sessions, ` +
+      `${allRows.length} frames`);
+    return;
+  }
+  if (playerPairShotSpeedOnly) {
+    console.log(`Player PairShot speed raw traces: ${sessionsToRun.length} sessions, ` +
+      `${allRows.length} frames`);
+    return;
+  }
+  if (playerPairShotReentryOnly) {
+    console.log(`Player PairShot re-entry raw traces: ${sessionsToRun.length} sessions, ` +
+      `${allRows.length} frames`);
+    return;
+  }
+  if (boosterAdmissionOnly) {
+    console.log(`Booster admission raw traces: ${sessionsToRun.length} sessions, ` +
+      `${allRows.length} frames`);
+    return;
+  }
+  if (debrisGateOnly) {
+    const sessions = sessionsToRun.map((session) => {
+      const gatePath = path.join(buildDirectory, `${session.id}-debris-gate.csv`);
+      const rowPath = path.join(buildDirectory, `${session.id}-debris-row.json`);
+      const rows = allRows.filter((row) => row.session === session.id);
+      const analysis = analyseDebrisGate(gatePath);
+      return {
+        session: session.id,
+        difficulty: session.difficulty,
+        policy: session.policy,
+        fire_delay: session.fireDelay,
+        gameplay_frames: rows.length,
+        maximum_wall_cycles: Math.max(...rows.map((row) => row.wall_cycles)),
+        missed_frames: rows.reduce((sum, row) => sum + row.missed_frames, 0),
+        extra_vbi_boundaries: rows.reduce((sum, row) => sum + row.extra_vbi_boundaries, 0),
+        dli_sequence_violations: Math.max(...rows.map((row) => row.dli_sequence_violations)),
+        host_frames: analysis.host_frames,
+        first_capital: analysis.first_capital,
+        return_to_fighter: analysis.return_to_fighter,
+        publication_inside_playfield: analysis.publication_inside_playfield,
+        summary: analysis.summary,
+        bottom_row_probe: fs.existsSync(rowPath) ? JSON.parse(fs.readFileSync(rowPath, "utf8")) : null,
+        lives: analysis.lives,
+        raw_gate_csv: path.relative(rootDirectory, gatePath),
+      };
+    });
+    const report = {
+      generated: new Date().toISOString(),
+      artifact: path.relative(rootDirectory, xexPath),
+      artifact_sha256: crypto.createHash("sha256").update(fs.readFileSync(xexPath)).digest("hex"),
+      method: "per completed host frame, Screen_atari compared with the two debris glyphs at 2*HPOS-64, expected top scanline 24+8*((Y-24)>>3), against the record sampled at the previous boundary",
+      criteria: "per life entering the playfield: first visible Y 24, 0 blank frames in view, 0 disappear/reappear transitions, ring cells hold the codes whenever RENDERED; bottom row (Y>=232) reported separately",
+      sessions,
+      passed: sessions.every(({ summary }) => summary.passed),
+    };
+    const reportPath = path.join(buildDirectory, "debris-visibility-gate-report.json");
+    fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+    for (const entry of sessions) {
+      const phases = entry.summary.by_phase;
+      console.log(`${entry.session}: ${entry.host_frames} host frames, max ${entry.maximum_wall_cycles} wall cycles, ` +
+        `missed ${entry.missed_frames}; capital ${phases.capital.lives_in_view} lives ` +
+        `(${phases.capital.blank} blank / ${phases.capital.frames_in_view} in view, ` +
+        `${phases.capital.disappearances} disappearances, first Y ${phases.capital.first_visible_y_values.join("/")}); ` +
+        `post-capital ${phases["post-capital-fighter"].lives_in_view} lives ` +
+        `(${phases["post-capital-fighter"].blank} blank / ${phases["post-capital-fighter"].frames_in_view} in view, ` +
+        `${phases["post-capital-fighter"].disappearances} disappearances, first Y ` +
+        `${phases["post-capital-fighter"].first_visible_y_values.join("/")}); ` +
+        `bottom row ${phases.capital.bottom_row_frames + phases["post-capital-fighter"].bottom_row_frames} frames, ` +
+        `${phases.capital.bottom_row_blank + phases["post-capital-fighter"].bottom_row_blank} blank ` +
+        `(${phases.capital.bottom_row_blank_ring_step + phases["post-capital-fighter"].bottom_row_blank_ring_step} on ring-step frames); ` +
+        `${entry.summary.passed ? "PASS" : "FAIL"}`);
+    }
+    console.log(`Debris visibility gate report: ${path.relative(rootDirectory, reportPath)} ` +
+      `(${report.passed ? "PASS" : "FAIL"})`);
+    if (!report.passed) process.exitCode = 1;
+    return;
+  }
+  if (debrisSlot0BaselineOnly) {
+    const rows = allRows;
+    const profileComplete = (row) => {
+      const clocks = [row.start_clock,
+        ...traceProfileLabels.map((unused, index) => row[`profile_clock${index}`]),
+        row.end_clock];
+      return clocks.every((clock, index) => Number.isInteger(clock) &&
+        (index === 0 || clock >= clocks[index - 1])) &&
+        row.profile_publication_begin >= row.profile_clock19 && row.profile_clock19 > 0;
+    };
+    const dliOverlap = (row, start, end) => Array.from({ length: 2 }, (unused, index) => ({
+      start: row[`profile_dli${index}_start`], end: row[`profile_dli${index}_end`],
+    })).reduce((sum, dli) => sum + Math.max(0,
+      Math.min(end, dli.end) - Math.max(start, dli.start)), 0);
+    const activeWorkCycles = (row) => row.wall_cycles -
+      (row.profile_publication_begin - row.profile_clock19) +
+      dliOverlap(row, row.profile_clock19, row.profile_publication_begin) + 32;
+    const completed = rows.filter(profileComplete);
+    const event = (row, bit) => (row.events & (1 << bit)) !== 0;
+    const maximum = (selected, metric) => selected.length === 0 ? null :
+      Math.max(...selected.map(metric));
+    const scenario = (selected) => ({
+      sample_count: selected.length,
+      maximum_full_frame_cycles: maximum(selected, (row) => row.wall_cycles),
+      maximum_active_work_cycles: maximum(selected.filter(profileComplete), activeWorkCycles),
+    });
+    const debrisActive = rows.filter((row) => (row.entity_active_mask & 1) !== 0);
+    const spawnRows = rows.filter((row) => event(row, 7));
+    const hiddenSpawnRows = spawnRows.filter((row) => row.entity_y + 8 <= 24);
+    const visibleSpawnRows = spawnRows.filter((row) => row.entity_y + 8 > 24);
+    const contactRows = rows.filter((row) => event(row, 8));
+    const despawnRows = rows.filter((row) => event(row, 9));
+    const shotRows = rows.filter((row) => event(row, 12));
+    const destructionRows = rows.filter((row) => event(row, 13));
+    const worldEventRows = debrisActive.filter((row) => event(row, 0));
+    const pairshotMissRows = debrisActive.filter((row) =>
+      row.player_fighter_projectiles > 0 && !event(row, 12));
+    let horizontalSteps = 0;
+    let verticalCarries = 0;
+    let respawnsAfterRelease = 0;
+    let sectorTransitions = 0;
+    const seenRelease = new Set();
+    for (let index = 1; index < rows.length; index += 1) {
+      const previous = rows[index - 1];
+      const current = rows[index];
+      if (previous.session !== current.session) continue;
+      if (previous.sector_state !== current.sector_state) sectorTransitions += 1;
+      if (event(previous, 9)) seenRelease.add(previous.session);
+      if (event(current, 7) && seenRelease.has(current.session)) respawnsAfterRelease += 1;
+      if ((previous.entity_active_mask & 1) !== 0 && (current.entity_active_mask & 1) !== 0) {
+        if (previous.entity_x !== current.entity_x) horizontalSteps += 1;
+        if (previous.entity_y !== current.entity_y) verticalCarries += 1;
+      }
+    }
+    const byDifficulty = debrisSlot0BaselineSessions.map((session) => {
+      const selected = rows.filter((row) => row.difficulty === session.difficulty);
+      return {
+        difficulty: session.difficulty,
+        completed_frames: selected.length,
+        spawns: selected.filter((row) => event(row, 7)).length,
+        active_debris_frames: selected.filter((row) =>
+          (row.entity_active_mask & 1) !== 0).length,
+        active_world_events: selected.filter((row) =>
+          (row.entity_active_mask & 1) !== 0 && event(row, 0)).length,
+        pairshot_hits: selected.filter((row) => event(row, 12)).length,
+        destructions: selected.filter((row) => event(row, 13)).length,
+        player_collisions: selected.filter((row) => event(row, 8)).length,
+        despawns: selected.filter((row) => event(row, 9)).length,
+      };
+    });
+    const missedFrames = rows.reduce((sum, row) => sum + row.missed_frames, 0);
+    const extraVbi = rows.reduce((sum, row) => sum + row.extra_vbi_boundaries, 0);
+    const dliAnomalies = rows.reduce((sum, row) => sum + row.dli_sequence_violations, 0);
+    const activeValues = completed.map(activeWorkCycles).sort((left, right) => left - right);
+    const percentile = (fraction) => activeValues[Math.ceil(activeValues.length * fraction) - 1];
+    invariant(rows.length === 15_000 && byDifficulty.every(({ completed_frames }) =>
+      completed_frames === 5_000), "Slot-zero debris baseline did not complete all PAL frames");
+    invariant(byDifficulty.every(({ spawns, active_debris_frames, active_world_events }) =>
+      spawns > 0 && active_debris_frames > 0 && active_world_events > 0),
+    "Slot-zero debris baseline did not exercise every difficulty");
+    invariant(contactRows.length > 0 && shotRows.length > 0 && destructionRows.length > 0 &&
+      despawnRows.length > 0, "Slot-zero debris baseline missed a required lifecycle path");
+    invariant(spawnRows.length > 0 && hiddenSpawnRows.length === spawnRows.length &&
+      visibleSpawnRows.length === 0,
+    "Slot-zero debris baseline admitted visible debris");
+    invariant(missedFrames === 0 && extraVbi === 0 && dliAnomalies === 0,
+      "Slot-zero debris baseline observed a PAL timing/raster anomaly");
+    invariant(completed.every((row) => activeWorkCycles(row) <= 32_568),
+      "Slot-zero debris baseline exceeded the hard active-work gate");
+    const report = {
+      status: "PASS",
+      emulator: "Atari800 7.1.2 PAL/XL",
+      production_artifacts: runtimeArtifacts,
+      sessions: summaries,
+      coverage: {
+        completed_frames: rows.length,
+        by_difficulty: byDifficulty,
+        spawns: spawnRows.length,
+        active_debris_frames: debrisActive.length,
+        active_world_events: worldEventRows.length,
+        horizontal_steps: horizontalSteps,
+        vertical_carries: verticalCarries,
+        pairshot_miss_frames: pairshotMissRows.length,
+        pairshot_hits: shotRows.length,
+        nonlethal_pairshot_hits: shotRows.length - destructionRows.length,
+        destructions: destructionRows.length,
+        player_collisions: contactRows.length,
+        despawns: despawnRows.length,
+        bottom_despawns: despawnRows.filter((row) =>
+          !event(row, 8) && !event(row, 12)).length,
+        respawns_after_release: respawnsAfterRelease,
+        sector_state_transitions: sectorTransitions,
+        sector_states_observed: [...new Set(rows.map((row) => row.sector_state))].sort(),
+      },
+      spawn_contract: {
+        visible_top_y: 24,
+        height_scanlines: 8,
+        spawn_y_values: [...new Set(spawnRows.map((row) => row.entity_y))].sort(),
+        fully_hidden_at_activation: hiddenSpawnRows.length,
+        visible_at_activation_defects: visibleSpawnRows.length,
+        respawns_after_release: respawnsAfterRelease,
+      },
+      cpu: {
+        overall: scenario(rows),
+        fighter_open: scenario(rows.filter((row) => row.sector_state === 7)),
+        debris_active: scenario(debrisActive),
+        debris_ordinary: scenario(debrisActive.filter((row) => !event(row, 0))),
+        debris_world_event: scenario(worldEventRows),
+        debris_spawn: scenario(spawnRows),
+        debris_pairshot_hit: scenario(shotRows),
+        debris_pairshot_miss: scenario(pairshotMissRows),
+        debris_destruction: scenario(destructionRows),
+        debris_player_collision: scenario(contactRows),
+        debris_despawn: scenario(despawnRows),
+        average_active_work_cycles: activeValues.reduce((sum, value) => sum + value, 0) /
+          activeValues.length,
+        p95_active_work_cycles: percentile(0.95),
+        p99_active_work_cycles: percentile(0.99),
+      },
+      timing_raster: {
+        missed_frames: missedFrames,
+        extra_vbi_boundaries: extraVbi,
+        dli_sequence_anomalies: dliAnomalies,
+        target_overruns: completed.filter((row) => activeWorkCycles(row) > 31_200).length,
+        hard_gate_overruns: completed.filter((row) => activeWorkCycles(row) > 32_568).length,
+        player_projectile_stale_maximum:
+          maximum(rows, (row) => row.player_projectile_stale_cells),
+        player_projectile_orphan_maximum:
+          maximum(rows, (row) => row.player_projectile_orphan_cells),
+      },
+      passed: true,
+    };
+    const reportPath = path.join(buildDirectory, "debris-slot0-native-report.json");
+    fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+    console.log(`Debris slot-zero native report: ${path.relative(rootDirectory, reportPath)}`);
+    return;
+  }
+  if (pairShotStaleOnly) {
+    const rows = allRows;
+    const fighterRows = rows.filter((row) => row.sector_state === 7 &&
+      row.player_lifecycle === 0 && row.player_fighter_explosion_timer === 0);
+    const profileComplete = (row) => {
+      const clocks = [row.start_clock,
+        ...traceProfileLabels.map((unused, index) => row[`profile_clock${index}`]),
+        row.end_clock];
+      return clocks.every((clock, index) => Number.isInteger(clock) &&
+        (index === 0 || clock >= clocks[index - 1]));
+    };
+    const dliOverlap = (row, start, end) => Array.from({ length: 2 }, (unused, index) => ({
+      start: row[`profile_dli${index}_start`], end: row[`profile_dli${index}_end`],
+    })).reduce((sum, dli) => sum + Math.max(0,
+      Math.min(end, dli.end) - Math.max(start, dli.start)), 0);
+    const activeWorkCycles = (row) => {
+      const waitStart = row.profile_clock19;
+      const waitEnd = row.profile_publication_begin;
+      invariant(waitEnd >= waitStart && waitStart > 0,
+        `PairShot stale publication interval missing at ${row.session}:${row.frame}`);
+      return row.wall_cycles - (waitEnd - waitStart) +
+        dliOverlap(row, waitStart, waitEnd) + 32;
+    };
+    const completeRows = fighterRows.filter(profileComplete);
+    invariant(completeRows.length > 0, "PairShot stale native mode has no profiled OPEN frames");
+    const heaviest = maximumRow(completeRows, activeWorkCycles);
+    let leftFrames = 0;
+    let rightFrames = 0;
+    let directionChanges = 0;
+    let previousDelta = 0;
+    for (let index = 1; index < rows.length; index += 1) {
+      if (rows[index].session !== rows[index - 1].session) {
+        previousDelta = 0;
+        continue;
+      }
+      const delta = rows[index].player_x - rows[index - 1].player_x;
+      if (delta < 0) leftFrames += 1;
+      if (delta > 0) rightFrames += 1;
+      if (delta !== 0 && previousDelta !== 0 && Math.sign(delta) !== Math.sign(previousDelta))
+        directionChanges += 1;
+      if (delta !== 0) previousDelta = delta;
+    }
+    const anomalies = {
+      recycled_checks: rows.reduce((sum, row) =>
+        sum + row.player_projectile_recycled_checks, 0),
+      stale_cells: rows.reduce((sum, row) => sum + row.player_projectile_stale_cells, 0),
+      maximum_stale_cells: Math.max(...rows.map((row) => row.player_projectile_stale_cells)),
+      orphan_cells: rows.reduce((sum, row) => sum + row.player_projectile_orphan_cells, 0),
+      maximum_orphan_cells: Math.max(...rows.map((row) => row.player_projectile_orphan_cells)),
+      missed: rows.reduce((sum, row) => sum + row.missed_frames, 0),
+      target_overruns: completeRows.filter((row) => activeWorkCycles(row) > 31_200).length,
+      hard_overruns: completeRows.filter((row) => activeWorkCycles(row) > 32_568).length,
+      extra_vbi: rows.reduce((sum, row) => sum + row.extra_vbi_boundaries, 0),
+      dli: rows.reduce((sum, row) => sum + row.dli_sequence_violations, 0),
+    };
+    const report = {
+      schema_version: 1,
+      generated_by: "scripts/runtime-wall-trace.mjs --pairshot-stale-only",
+      emulator: "Atari800 7.1.2 PAL/XL",
+      artifact_sha256: runtimeArtifacts,
+      sessions: sessionsToRun.map(({ id, policy, frames }) => ({ id, policy, frames })),
+      frames: rows.length,
+      fighter_open_frames: fighterRows.length,
+      movement: { left_frames: leftFrames, right_frames: rightFrames, direction_changes: directionChanges },
+      stale_cells: { recycled_checks: anomalies.recycled_checks, sum: anomalies.stale_cells,
+        maximum_per_frame: anomalies.maximum_stale_cells,
+        orphan_sum: anomalies.orphan_cells,
+        maximum_orphans_per_frame: anomalies.maximum_orphan_cells },
+      timing: {
+        maximum_active_work_cycles: activeWorkCycles(heaviest),
+        maximum_raw_cadence_cycles: Math.max(...rows.map((row) => row.wall_cycles)),
+        target_headroom_cycles: 31_200 - activeWorkCycles(heaviest),
+        hard_gate_headroom_cycles: 32_568 - activeWorkCycles(heaviest),
+        ...anomalies,
+      },
+      csv: sessionsToRun.map(({ id }) => path.relative(rootDirectory,
+        path.join(buildDirectory, `${id}.csv`))),
+      passed: anomalies.recycled_checks > 0 && anomalies.stale_cells === 0 &&
+        anomalies.orphan_cells === 0 &&
+        activeWorkCycles(heaviest) <= 32_568 &&
+        anomalies.hard_overruns === 0 && anomalies.extra_vbi === 0 &&
+        anomalies.dli === 0 && leftFrames > 0 && rightFrames > 0 && directionChanges > 0,
+    };
+    const reportPath = path.join(buildDirectory, "pairshot-stale-native-report.json");
+    fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+    console.log(`PairShot stale native report: ${path.relative(rootDirectory, reportPath)}`);
+    if (!report.passed) process.exitCode = 1;
+    return;
+  }
+  if (raiderRemnantOnly) {
+    const rows = allRows;
+    const fighterRows = rows.filter((row) => row.sector_state === 7 &&
+      row.player_lifecycle === 0 && row.player_fighter_explosion_timer === 0);
+    const profileComplete = (row) => {
+      const clocks = [row.start_clock,
+        ...traceProfileLabels.map((unused, index) => row[`profile_clock${index}`]),
+        row.end_clock];
+      return clocks.every((clock, index) => Number.isInteger(clock) &&
+        (index === 0 || clock >= clocks[index - 1]));
+    };
+    const dliOverlap = (row, start, end) => Array.from({ length: 2 }, (unused, index) => ({
+      start: row[`profile_dli${index}_start`], end: row[`profile_dli${index}_end`],
+    })).reduce((sum, dli) => sum + Math.max(0,
+      Math.min(end, dli.end) - Math.max(start, dli.start)), 0);
+    const activeWorkCycles = (row) => {
+      const waitStart = row.profile_clock19;
+      const waitEnd = row.profile_publication_begin;
+      invariant(waitEnd >= waitStart && waitStart > 0,
+        `Raider remnant publication interval missing at ${row.session}:${row.frame}`);
+      return row.wall_cycles - (waitEnd - waitStart) +
+        dliOverlap(row, waitStart, waitEnd) + 32;
+    };
+    const completeRows = fighterRows.filter(profileComplete);
+    invariant(completeRows.length > 0,
+      "Raider remnant native mode has no profiled OPEN frames");
+    const heaviest = maximumRow(completeRows, activeWorkCycles);
+    const killRows = rows.filter((row) =>
+      row.interceptor_breakup_request_slot0 + row.interceptor_breakup_request_slot1 > 0);
+    const requestedKills = [0, 1].map((slot) => rows.reduce((sum, row) =>
+      sum + row[`interceptor_breakup_request_slot${slot}`], 0));
+    const kills = requestedKills[0] + requestedKills[1];
+    const mainExplosionsGenerated = killRows.filter((row) =>
+      row.enemy_explosion_timer === 24 && row.colbk === 0x1e).length;
+    const raiderCharacterWrites = rows.reduce((sum, row) =>
+      sum + row.raider_character_writes, 0);
+    const raiderTransientAllocations = rows.reduce((sum, row) =>
+      sum + row.raider_transient_allocations, 0);
+    const raiderSlot0Activations = rows.reduce((sum, row) =>
+      sum + row.raider_slot0_activations, 0);
+    const emitterOwnership = {
+      kills_with_emitter_projectile_active: rows.reduce((sum, row) =>
+        sum + row.raider_kills_with_emitter_projectile_active, 0),
+      emitter_owned_projectiles_at_kill: rows.reduce((sum, row) =>
+        sum + row.emitter_owned_projectiles_at_kill, 0),
+      emitter_owned_projectiles_removed: rows.reduce((sum, row) =>
+        sum + row.emitter_owned_projectiles_removed, 0),
+      foreign_projectiles_preserved: rows.reduce((sum, row) =>
+        sum + row.foreign_projectiles_preserved, 0),
+      foreign_projectiles_incorrectly_removed: rows.reduce((sum, row) =>
+        sum + row.foreign_projectiles_incorrectly_removed, 0),
+      post_kill_emitter_projectile_continuations: rows.reduce((sum, row) =>
+        sum + row.post_kill_emitter_projectile_continuations, 0),
+      emitter_owned_physical_slot0_at_kill: rows.reduce((sum, row) =>
+        sum + row.emitter_owned_physical_slot0_at_kill, 0),
+    };
+    const debrisSpawns = rows.filter((row) => (row.events & (1 << 7)) !== 0).length;
+    const genericEffectSpawnRows = rows.filter((row) => (row.events & (1 << 13)) !== 0);
+    const validGenericEffectSpawns = genericEffectSpawnRows.filter((row) =>
+      row.effect_active_mask === 0x1f && row.effect_active_count === 5).length;
+    let debrisLifecycle = null;
+    let debrisSession = null;
+    let debrisFirstVisible = 0;
+    let debrisFirstVisibleInvalid = 0;
+    for (const row of rows) {
+      if (row.session !== debrisSession) {
+        debrisSession = row.session;
+        debrisLifecycle = null;
+      }
+      if ((row.events & (1 << 7)) !== 0) {
+        debrisLifecycle = { sawOffscreen: row.entity_y < 24, visible: false };
+        if (row.entity_y >= 24) debrisFirstVisibleInvalid += 1;
+      }
+      if (debrisLifecycle !== null && (row.entity_active_mask & 1) !== 0) {
+        if (row.entity_y < 24) debrisLifecycle.sawOffscreen = true;
+        if (!debrisLifecycle.visible && row.entity_y >= 24) {
+          debrisFirstVisible += 1;
+          if (!debrisLifecycle.sawOffscreen || row.entity_y !== 24)
+            debrisFirstVisibleInvalid += 1;
+          debrisLifecycle.visible = true;
+        }
+      } else if ((row.entity_active_mask & 1) === 0) {
+        debrisLifecycle = null;
+      }
+    }
+    // The prior 45898e8 candidate produced 24 frames of orphan $75 restored
+    // by PairShot erase plus 29 broad PairShot-range matches. The former is
+    // this task's positively attributed gameplay-debris remnant and must now
+    // be zero; retain both old counts as an explicit before/after signature.
+    const priorCandidate = { effect_orphan_sum: 24, pairshot_orphan_sum: 29 };
+    const raiderEffectCodes = new Set([110, 111, 112, 113, 118, 119, 218, 219]);
+    const anomalies = {
+      effect_orphan_sum: rows.reduce((sum, row) =>
+        sum + row.transient_effect_orphan_cells, 0),
+      maximum_effect_orphans: Math.max(...rows.map((row) =>
+        row.transient_effect_orphan_cells)),
+      pairshot_orphan_sum: rows.reduce((sum, row) =>
+        sum + row.player_projectile_orphan_cells, 0),
+      maximum_pairshot_orphans: Math.max(...rows.map((row) =>
+        row.player_projectile_orphan_cells)),
+      transient_effect_coordinate_wraps: rows.reduce((sum, row) =>
+        sum + row.transient_effect_coordinate_wraps, 0),
+      stale_debris_projectile_restores: rows.reduce((sum, row) =>
+        sum + row.stale_debris_projectile_restores, 0),
+      enemy_projectile_stale_cells: rows.reduce((sum, row) =>
+        sum + row.enemy_projectile_stale_cells, 0),
+      maximum_enemy_projectile_stale_cells: Math.max(...rows.map((row) =>
+        row.enemy_projectile_stale_cells)),
+      raider_breakup_orphan_sum: rows.reduce((sum, row) => sum +
+        (raiderEffectCodes.has(row.transient_effect_first_code)
+          ? row.transient_effect_orphan_cells : 0), 0),
+      missed: rows.reduce((sum, row) => sum + row.missed_frames, 0),
+      target_overruns: completeRows.filter((row) => activeWorkCycles(row) > 31_200).length,
+      hard_overruns: completeRows.filter((row) => activeWorkCycles(row) > 32_568).length,
+      extra_vbi: rows.reduce((sum, row) => sum + row.extra_vbi_boundaries, 0),
+      dli: rows.reduce((sum, row) => sum + row.dli_sequence_violations, 0),
+    };
+    const report = {
+      schema_version: 1,
+      generated_by: "scripts/runtime-wall-trace.mjs --raider-remnant-only",
+      emulator: "Atari800 7.1.2 PAL/XL",
+      artifact_sha256: runtimeArtifacts,
+      sessions: sessionsToRun.map(({ id, policy, frames }) => ({ id, policy, frames })),
+      frames: rows.length,
+      fighter_open_frames: fighterRows.length,
+      raider_breakup_events: kills,
+      raider_kill_requests: {
+        slot_0: requestedKills[0],
+        slot_1: requestedKills[1],
+        total: requestedKills[0] + requestedKills[1],
+      },
+      main_explosions_generated: mainExplosionsGenerated,
+      raider_generated_character_writes: raiderCharacterWrites,
+      raider_generated_transient_effect_allocations: raiderTransientAllocations,
+      raider_slot0_effect_activations: raiderSlot0Activations,
+      emitter_projectile_cleanup: emitterOwnership,
+      post_kill_owner_symptom_objects:
+        emitterOwnership.post_kill_emitter_projectile_continuations,
+      enemy_projectile_stale_cells: {
+        sum: anomalies.enemy_projectile_stale_cells,
+        maximum_per_frame: anomalies.maximum_enemy_projectile_stale_cells,
+      },
+      breakup_fragments_generated: 0,
+      wrong_origin_fragments: anomalies.transient_effect_coordinate_wraps,
+      gameplay_debris_spawns: debrisSpawns,
+      generic_debris_destruction_effect_spawns: genericEffectSpawnRows.length,
+      valid_generic_debris_destruction_effect_spawns: validGenericEffectSpawns,
+      gameplay_debris_first_visible_publications: debrisFirstVisible,
+      gameplay_debris_invalid_first_visible_publications: debrisFirstVisibleInvalid,
+      breakup_cores: 0,
+      suspicious_first_visible_publications:
+        debrisFirstVisibleInvalid + anomalies.transient_effect_coordinate_wraps +
+        anomalies.raider_breakup_orphan_sum,
+      post_expiry_publications: anomalies.raider_breakup_orphan_sum,
+      stale_backing_object_glyph_restores:
+        anomalies.stale_debris_projectile_restores,
+      owner_symptom_equivalent_events:
+        anomalies.stale_debris_projectile_restores,
+      previous_candidate_signature: {
+        head: "45898e82d7d82e3d8334170cd9cfd1ce67bfc4c6",
+        ...priorCandidate,
+        effect_orphan_delta: anomalies.effect_orphan_sum - priorCandidate.effect_orphan_sum,
+        pairshot_orphan_delta:
+          anomalies.pairshot_orphan_sum - priorCandidate.pairshot_orphan_sum,
+        classification: "The 24-frame $75 trail was a real stale gameplay-debris restore " +
+          "by PairShot erase. The unchanged 29 count is a broad glyph-range detector " +
+          "signature, not a live PairShot ownership failure.",
+      },
+      remnants: {
+        sum: anomalies.effect_orphan_sum,
+        maximum_per_frame: anomalies.maximum_effect_orphans,
+      },
+      pairshot_regression: {
+        orphan_sum: anomalies.pairshot_orphan_sum,
+        maximum_per_frame: anomalies.maximum_pairshot_orphans,
+      },
+      timing: {
+        maximum_active_work_cycles: activeWorkCycles(heaviest),
+        maximum_raw_cadence_cycles: Math.max(...rows.map((row) => row.wall_cycles)),
+        target_headroom_cycles: 31_200 - activeWorkCycles(heaviest),
+        hard_gate_headroom_cycles: 32_568 - activeWorkCycles(heaviest),
+        ...anomalies,
+      },
+      csv: sessionsToRun.map(({ id }) => path.relative(rootDirectory,
+        path.join(buildDirectory, `${id}.csv`))),
+      passed: kills >= 100 && killRows.length === kills && mainExplosionsGenerated === kills &&
+        raiderCharacterWrites === 0 && raiderTransientAllocations === 0 &&
+        raiderSlot0Activations === 0 &&
+        emitterOwnership.kills_with_emitter_projectile_active > 0 &&
+        emitterOwnership.emitter_owned_projectiles_at_kill ===
+          emitterOwnership.post_kill_emitter_projectile_continuations &&
+        emitterOwnership.emitter_owned_projectiles_removed === 0 &&
+        emitterOwnership.foreign_projectiles_preserved > 0 &&
+        emitterOwnership.foreign_projectiles_incorrectly_removed === 0 &&
+        anomalies.enemy_projectile_stale_cells === 0 &&
+        genericEffectSpawnRows.length > 0 &&
+        validGenericEffectSpawns === genericEffectSpawnRows.length &&
+        requestedKills[0] > 0 && requestedKills[1] > 0 &&
+        anomalies.transient_effect_coordinate_wraps === 0 &&
+        anomalies.raider_breakup_orphan_sum === 0 &&
+        debrisFirstVisibleInvalid === 0 &&
+        anomalies.effect_orphan_sum === 0 &&
+        anomalies.stale_debris_projectile_restores === 0 &&
+        anomalies.pairshot_orphan_sum <= priorCandidate.pairshot_orphan_sum &&
+        activeWorkCycles(heaviest) <= 32_568 &&
+        anomalies.hard_overruns === 0 && anomalies.extra_vbi === 0 &&
+        anomalies.dli === 0,
+    };
+    const reportPath = path.join(buildDirectory, "raider-remnant-native-report.json");
+    fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+    console.log(`Raider remnant native report: ${path.relative(rootDirectory, reportPath)}`);
+    if (!report.passed) process.exitCode = 1;
+    return;
+  }
+  if (effectsStaggerOnly) {
+    const rows = allRows.filter((row) => row.sector_state === 7 &&
+      row.player_lifecycle === 0 && row.player_fighter_explosion_timer === 0);
+    const profileComplete = (row) => {
+      const clocks = [row.start_clock,
+        ...traceProfileLabels.map((unused, index) => row[`profile_clock${index}`]),
+        row.end_clock];
+      return clocks.every((clock, index) => Number.isInteger(clock) &&
+        (index === 0 || clock >= clocks[index - 1]));
+    };
+    const dliOverlap = (row, start, end) => Array.from({ length: 2 }, (unused, index) => ({
+      start: row[`profile_dli${index}_start`], end: row[`profile_dli${index}_end`],
+    })).reduce((sum, dli) => sum + Math.max(0,
+      Math.min(end, dli.end) - Math.max(start, dli.start)), 0);
+    const activeWorkCycles = (row) => {
+      const waitStart = row.profile_clock19;
+      const waitEnd = row.profile_publication_begin;
+      invariant(waitEnd >= waitStart && waitStart > 0,
+        `Effects publication interval missing at ${row.session}:${row.frame}`);
+      return row.wall_cycles - (waitEnd - waitStart) +
+        dliOverlap(row, waitStart, waitEnd) + 32;
+    };
+    const completeRows = rows.filter(profileComplete);
+    const stableFighterRows = completeRows.filter((row, index) => {
+      const next = completeRows[index + 1];
+      return next === undefined || next.session !== row.session || next.frame === row.frame + 1;
+    });
+    const effectRows = completeRows.filter((row) => row.effect_active_count === 5);
+    invariant(effectRows.length > 0, "Effects trace did not cover all five active slots");
+    const effectMetrics = (row) => {
+      const detail = profileCostBreakdown(row).entity_effect_detail;
+      return {
+        erase: detail.effect_erase,
+        update: detail.effect_update,
+        render: detail.effect_render,
+        visual: detail.effect_erase + detail.effect_render,
+        total: detail.effect_erase + detail.effect_update + detail.effect_render,
+      };
+    };
+    const effectPeak = maximumRow(effectRows, (row) => effectMetrics(row).visual);
+    const linkedEffectFrames = Array.from({ length: 22 }, (unused, ringHead) =>
+      executeDebrisDestructionTrace({ root: rootDirectory, artifact: "xex", ringHead })
+        .records.filter((row) => row.phase === "FINAL")).flat();
+    const linkedEffectPeak = maximumRow(linkedEffectFrames, (row) =>
+      row.effectEraseCycles + row.effectRenderCycles);
+    const fullPeak = maximumRow(completeRows, activeWorkCycles);
+    const combinedRows = completeRows.filter((row) => row.player_fighter_projectiles > 0 &&
+      row.enemy_projectiles > 0);
+    const twoHeavyRows = completeRows.filter((row) => row.enemy_member0_state === 1 &&
+      row.enemy_member1_state === 1 && row.enemy_pmg_rows1 > 0 && row.enemy_pmg_rows2 > 0);
+    invariant(combinedRows.length > 0, "Effects trace did not cover player + enemy PairShots");
+    invariant(twoHeavyRows.length > 0, "Effects trace did not cover two Heavy fighters");
+    const scenario = (selected) => {
+      const peak = maximumRow(selected, activeWorkCycles);
+      return { frames: selected.length, maximum_active_work_cycles: activeWorkCycles(peak),
+        maximum_raw_cadence_cycles: Math.max(...selected.map((row) => row.wall_cycles)),
+        frame: frameState(peak) };
+    };
+    const spawnLatencies = [];
+    let expiryErrors = 0;
+    for (let index = 0; index < rows.length; index += 1) {
+      const row = rows[index];
+      const next = rows[index + 1]?.session === row.session ? rows[index + 1] : null;
+      const previous = rows[index - 1]?.session === row.session ? rows[index - 1] : null;
+      if (row.effect_active_count === 5 &&
+          (previous === null || previous.effect_active_count !== 5)) {
+        for (let slot = 0; slot < 5; slot += 1) {
+          const bit = 1 << slot;
+          spawnLatencies.push((row.effect_rendered_mask & bit) !== 0 ? 0 :
+            next !== null && (next.effect_rendered_mask & bit) !== 0 ? 1 : 2);
+        }
+      }
+      if (row.effect_active_count === 0 && row.effect_rendered_mask !== 0 &&
+          (next === null || next.effect_active_count === 0 &&
+            next.effect_rendered_mask !== 0)) expiryErrors += 1;
+    }
+    invariant(spawnLatencies.length > 0, "Effects trace did not observe a five-slot effect spawn");
+    const anomalies = {
+      missed: rows.reduce((sum, row) => sum + row.missed_frames, 0),
+      missed_with_effects_active:
+        effectRows.reduce((sum, row) => sum + row.missed_frames, 0),
+      missed_stable_fighter_open:
+        stableFighterRows.reduce((sum, row) => sum + row.missed_frames, 0),
+      missed_at_fighter_to_capital_boundary:
+        rows.reduce((sum, row, index) => {
+          const next = rows[index + 1];
+          return sum + (row.missed_frames > 0 && next?.session === row.session &&
+            next.frame !== row.frame + 1 ? row.missed_frames : 0);
+        }, 0),
+      target_overruns: completeRows.filter((row) => activeWorkCycles(row) > 31_200).length,
+      hard_overruns: completeRows.filter((row) => activeWorkCycles(row) > 32_568).length,
+      extra_vbi: rows.reduce((sum, row) => sum + row.extra_vbi_boundaries, 0),
+      dli: rows.reduce((sum, row) => sum + row.dli_sequence_violations, 0),
+    };
+    const report = {
+      schema_version: 1,
+      generated_by: "scripts/runtime-wall-trace.mjs --effects-stagger-only",
+      emulator: "Atari800 7.1.2 PAL/XL",
+      artifact_sha256: runtimeArtifacts,
+      sessions: sessionsToRun.map(({ id, policy, frames }) => ({ id, policy, frames })),
+      measured_frames: rows.length,
+      five_slot_effect_frames: effectRows.length,
+      effects_peak: {
+        instruction_exact_post_playfield: {
+          erase: linkedEffectPeak.effectEraseCycles,
+          render: linkedEffectPeak.effectRenderCycles,
+          visual: linkedEffectPeak.effectEraseCycles + linkedEffectPeak.effectRenderCycles,
+        },
+        native_in_place_dma_on_interval: {
+          ...effectMetrics(effectPeak),
+          note: "Includes ANTIC DMA stalls at the current pre-scheduler raster position; it is not the post-playfield commit gate.",
+        },
+        frame: frameState(effectPeak),
+        maximum_active_work_cycles: activeWorkCycles(effectPeak),
+        raw_cadence_cycles: effectPeak.wall_cycles,
+      },
+      visual_spawn_latency_frames: { maximum: Math.max(...spawnLatencies),
+        observations: spawnLatencies.length },
+      expiry_rendered_mask_errors: expiryErrors,
+      fighter_open: scenario(completeRows),
+      player_and_enemy: scenario(combinedRows),
+      two_heavy: scenario(twoHeavyRows),
+      timing: {
+        maximum_active_work_cycles: activeWorkCycles(fullPeak),
+        maximum_raw_cadence_cycles: Math.max(...rows.map((row) => row.wall_cycles)),
+        target_headroom_cycles: 31_200 - activeWorkCycles(fullPeak),
+        hard_gate_headroom_cycles: 32_568 - activeWorkCycles(fullPeak),
+        ...anomalies,
+      },
+      csv: sessionsToRun.map(({ id }) => path.relative(rootDirectory,
+        path.join(buildDirectory, `${id}.csv`))),
+      passed: linkedEffectPeak.effectEraseCycles + linkedEffectPeak.effectRenderCycles <= 750 &&
+        Math.max(...spawnLatencies) <= 1 && expiryErrors === 0 &&
+        activeWorkCycles(fullPeak) <= 32_568 && anomalies.missed_with_effects_active === 0 &&
+        anomalies.missed_stable_fighter_open === 0 && anomalies.hard_overruns === 0 &&
+        anomalies.extra_vbi === 0 && anomalies.dli === 0,
+    };
+    const focusedReportPath = path.join(buildDirectory, "effects-stagger-native-report.json");
+    fs.writeFileSync(focusedReportPath, `${JSON.stringify(report, null, 2)}\n`);
+    console.log(`Effects stagger native report: ${path.relative(rootDirectory, focusedReportPath)}`);
+    if (!report.passed) process.exitCode = 1;
+    return;
+  }
+  if (pairShotOnly) {
+    const rows = allRows.filter((row) => row.sector_state === 7 &&
+      row.player_lifecycle === 0 && row.player_fighter_explosion_timer === 0);
+    const modeRows = (mode) => rows.filter((row) => row.session ===
+      `pairshot-${mode}-xex-hard` && row.player_fighter_projectiles > 0);
+    const normalRows = modeRows("normal");
+    const rapidRows = modeRows("rapid");
+    const spreadRows = modeRows("spread");
+    const combinedRows = rows.filter((row) => row.player_fighter_projectiles > 0 &&
+      row.enemy_projectiles > 0);
+    const twoHeavyRows = rows.filter((row) => row.enemy_member0_state === 1 &&
+      row.enemy_member1_state === 1 && row.enemy_pmg_rows1 > 0 && row.enemy_pmg_rows2 > 0);
+    for (const [name, selected] of [["NORMAL", normalRows], ["RAPID", rapidRows],
+      ["SPREAD", spreadRows], ["PLAYER_ENEMY", combinedRows], ["TWO_HEAVY", twoHeavyRows]]) {
+      invariant(selected.length > 0, `PairShot native trace did not cover ${name}`);
+    }
+    const profileComplete = (row) => {
+      const clocks = [row.start_clock,
+        ...traceProfileLabels.map((unused, index) => row[`profile_clock${index}`]),
+        row.end_clock];
+      return clocks.every((clock, index) => Number.isInteger(clock) &&
+        (index === 0 || clock >= clocks[index - 1]));
+    };
+    const dliOverlap = (row, start, end) => Array.from({ length: 2 }, (unused, index) => ({
+      start: row[`profile_dli${index}_start`], end: row[`profile_dli${index}_end`],
+    })).reduce((sum, dli) => sum + Math.max(0,
+      Math.min(end, dli.end) - Math.max(start, dli.start)), 0);
+    const cpuInterval = (row, start, end) => end - start - dliOverlap(row, start, end);
+    const activeWorkCycles = (row) => {
+      const waitStart = row.profile_clock19;
+      const waitEnd = row.profile_publication_begin;
+      invariant(waitEnd >= waitStart && waitStart > 0,
+        `PairShot publication interval missing at ${row.session}:${row.frame}`);
+      const dliInWait = dliOverlap(row, waitStart, waitEnd);
+      return row.wall_cycles - (waitEnd - waitStart) + dliInWait + 32;
+    };
+    const modeEvidence = (selected) => {
+      const profiledRows = selected.filter(profileComplete);
+      invariant(profiledRows.length > 0, "PairShot native mode has no complete profile frame");
+      const heaviest = maximumRow(profiledRows, activeWorkCycles);
+      const projectileDetail = {
+        update_collision: cpuInterval(heaviest, heaviest.profile_clock5,
+          heaviest.profile_clock6),
+        player_weapon_control: cpuInterval(heaviest, heaviest.profile_clock10,
+          heaviest.profile_clock11),
+        enemy_weapon_control: cpuInterval(heaviest, heaviest.profile_clock11,
+          heaviest.profile_clock12),
+        publication_erase_render: cpuInterval(heaviest,
+          heaviest.profile_publication_begin, heaviest.profile_clock20),
+        address_mapping_calls: heaviest.profile_pointer_calls,
+        address_mapping_cycles: heaviest.profile_pointer_cycles,
+        composition_calls: heaviest.profile_compose_calls,
+        composition_cycles: heaviest.profile_compose_cycles,
+      };
+      const projectileCycles = Object.entries(projectileDetail)
+        .filter(([name]) => !name.endsWith("_calls") && name !== "address_mapping_cycles" &&
+          name !== "composition_cycles")
+        .reduce((sum, [, cycles]) => sum + cycles, 0);
+      return {
+        frames: selected.length,
+        maximum_active_player_pairshots: Math.max(...selected.map((row) =>
+          row.player_fighter_projectiles)),
+        maximum_active_enemy_pairshots: Math.max(...selected.map((row) =>
+          row.enemy_projectiles)),
+        maximum_raw_cadence_cycles: Math.max(...selected.map((row) => row.wall_cycles)),
+        maximum_active_work_cycles: activeWorkCycles(heaviest),
+        frame: frameState(heaviest),
+        projectile_cycles_at_heaviest: projectileCycles,
+        projectile_detail: projectileDetail,
+      };
+    };
+    const completeRows = rows.filter(profileComplete);
+    const heaviest = maximumRow(completeRows, activeWorkCycles);
+    const anomalies = {
+      missed: rows.reduce((sum, row) => sum + row.missed_frames, 0),
+      target_overruns: completeRows.filter((row) => activeWorkCycles(row) > 31_200).length,
+      hard_overruns: completeRows.filter((row) => activeWorkCycles(row) > 32_568).length,
+      extra_vbi: rows.reduce((sum, row) => sum + row.extra_vbi_boundaries, 0),
+      dli: rows.reduce((sum, row) => sum + row.dli_sequence_violations, 0),
+    };
+    const report = {
+      schema_version: 1,
+      generated_by: "scripts/runtime-wall-trace.mjs --pairshot-only",
+      emulator: "Atari800 7.1.2 PAL/XL",
+      artifact_sha256: runtimeArtifacts,
+      sessions: sessionsToRun.map(({ id, policy }) => ({ id, policy,
+        state_injection: policy !== "pairshot-normal" })),
+      frames: rows.length,
+      fighter_open: modeEvidence(rows),
+      normal: modeEvidence(normalRows),
+      rapid: modeEvidence(rapidRows),
+      spread: modeEvidence(spreadRows),
+      player_and_enemy: modeEvidence(combinedRows),
+      two_heavy: modeEvidence(twoHeavyRows),
+      timing: {
+        maximum_active_work_cycles: activeWorkCycles(heaviest),
+        maximum_raw_cadence_cycles: Math.max(...rows.map((row) => row.wall_cycles)),
+        target_headroom_cycles: 31_200 - activeWorkCycles(heaviest),
+        hard_gate_headroom_cycles: 32_568 - activeWorkCycles(heaviest),
+        ...anomalies,
+      },
+      csv: sessionsToRun.map(({ id }) => path.relative(rootDirectory,
+        path.join(buildDirectory, `${id}.csv`))),
+      passed: activeWorkCycles(heaviest) <= 32_568 && anomalies.missed === 0 &&
+        anomalies.hard_overruns === 0 && anomalies.extra_vbi === 0 && anomalies.dli === 0,
+    };
+    const focusedReportPath = path.join(buildDirectory, "pairshot-native-report.json");
+    fs.writeFileSync(focusedReportPath, `${JSON.stringify(report, null, 2)}\n`);
+    console.log(`PairShot native report: ${path.relative(rootDirectory, focusedReportPath)}`);
+    return;
+  }
+  if (raiderFormationOnly) {
+    const session = sessionsToRun[0];
+    const rows = allRows.filter((row) => row.session === session.id);
+    const activationRows = rows.filter((row, index) => row.enemy_state === 1 &&
+      (index === 0 || rows[index - 1].enemy_state !== 1));
+    const hiddenActivations = activationRows.filter((row) => [0, 1].every((slot) =>
+      row[`enemy_member${slot}_state`] !== 1 || row[`enemy_y${slot}`] + 14 <= 16));
+    const twoActive = rows.filter((row) => row.enemy_state === 1 &&
+      row.enemy_member0_state === 1 && row.enemy_member1_state === 1 &&
+      row.enemy_pmg_rows1 > 0 && row.enemy_pmg_rows2 > 0);
+    const bothVisible = twoActive.filter((row) =>
+      // The first accepted anchor row still intersects the fixed top-edge
+      // clipping boundary in the screenshot oracle. Begin overlap comparison
+      // one scanline below it; spawn/top clipping is proved independently.
+      row.enemy_y0 > 48 && row.enemy_y1 > 48 &&
+      row.enemy_pmg_rows1 > 0 && row.enemy_pmg_rows2 > 0);
+    invariant(activationRows.length > 0 && hiddenActivations.length === activationRows.length,
+      `${session.id} admitted a Raider inside the visible playfield`);
+    invariant(bothVisible.length > 48,
+      `${session.id} did not show both PMG Raider slots long enough`);
+    const sameHeight = bothVisible.find((row) => row.enemy_y0 === row.enemy_y1);
+    const swapped = bothVisible.find((row) => row.enemy_y0 > row.enemy_y1);
+    invariant(sameHeight !== undefined,
+      `${session.id} never showed both Raiders at one height`);
+    invariant(swapped !== undefined,
+      `${session.id} did not reverse the initial vertical ordering`);
+    const xDeltas = new Set(twoActive.map((row) => row.enemy_x1 - row.enemy_x0));
+    invariant(xDeltas.size > 4,
+      `${session.id} retained a fixed horizontal formation offset`);
+    const signedSteps = (slot) => twoActive.slice(1).map((row, index) =>
+      Math.sign(row[`enemy_x${slot}`] - twoActive[index][`enemy_x${slot}`]));
+    invariant([0, 1].every((slot) => {
+      const steps = signedSteps(slot);
+      return steps.includes(-1) && steps.includes(1);
+    }), `${session.id} did not show an independent turn in both slots`);
+    invariant(bothVisible.every((row) =>
+      row.enemy_hpos2 - row.enemy_hpos1 === row.enemy_x1 - row.enemy_x0),
+    `${session.id} HPOSP1/HPOSP2 ownership diverged from the two slot X values`);
+    invariant(Math.max(...rows.map((row) => row.player_fighter_projectiles)) > 0,
+      `${session.id} did not exercise active PlayerFighter fire`);
+    invariant(new Set(rows.map((row) => row.engine_active_dlist_lo)).size > 1 &&
+      new Set(rows.map((row) => row.engine_a2_head)).size > 1,
+      `${session.id} did not exercise playfield-ring rotation`);
+    const dliOverlap = (row, start, end) => Array.from({ length: 2 }, (unused, index) => ({
+      start: row[`profile_dli${index}_start`], end: row[`profile_dli${index}_end`],
+    })).reduce((sum, dli) => sum + Math.max(0,
+      Math.min(end, dli.end) - Math.max(start, dli.start)), 0);
+    const activeWorkCycles = (row) => {
+      const waitStart = row.profile_clock19;
+      const waitEnd = row.profile_publication_begin;
+      invariant(waitEnd >= waitStart && waitStart > 0,
+        `Two-Heavy publication interval missing at ${row.session}:${row.frame}`);
+      return row.wall_cycles - (waitEnd - waitStart) +
+        dliOverlap(row, waitStart, waitEnd) + 32;
+    };
+    const completeRows = rows.filter((row) => row.profile_clock19 > 0 &&
+      row.profile_publication_begin >= row.profile_clock19);
+    const maximumWall = Math.max(...rows.map((row) => row.wall_cycles));
+    const maximumActive = Math.max(...completeRows.map(activeWorkCycles));
+    const movementPmgCosts = bothVisible.map((row) =>
+      row.profile_clock5 - row.profile_clock4);
+    const timingErrors = rows.reduce((counts, row) => ({
+      missed: counts.missed + row.missed_frames,
+      extra_vbi: counts.extra_vbi + row.extra_vbi_boundaries,
+      dli: counts.dli + row.dli_sequence_violations,
+    }), { missed: 0, extra_vbi: 0, dli: 0 });
+    invariant(maximumWall <= CAPITAL_HUNTER_ACCEPTED_CEILING_CYCLES &&
+      maximumWall <= SHIELD_BOOSTER_HARD_GATE_CYCLES &&
+      timingErrors.missed === 0 && timingErrors.extra_vbi === 0 && timingErrors.dli === 0,
+    `${session.id} failed PAL timing: max=${maximumWall}, ${JSON.stringify(timingErrors)}`);
+    const firstVisible = bothVisible[0];
+    const heaviestCaptured = maximumRow(
+      bothVisible.filter((row) => row.frame < 149), (row) => row.wall_cycles);
+    const selectedRows = [firstVisible, sameHeight, swapped, heaviestCaptured];
+    /* The screenshot taken on entry to frame F+1 is the completed Atari raster
+     * produced by trace row F, after its member-state transition. */
+    const screenshots = selectedRows.map((row) => path.join(buildDirectory,
+      `${session.id}-${String(row.frame + 1).padStart(3, "0")}.png`));
+    invariant(screenshots.every((screenshot) => fs.existsSync(screenshot)),
+      `${session.id} is missing a selected native Raider raster`);
+    const sheetPath = path.join(buildDirectory, `${session.id}-proof.png`);
+    writeScreenshotContact(screenshots, sheetPath, 4);
+    const raiderBody = JSON.parse(fs.readFileSync(path.join(rootDirectory,
+      "assets", "graphics", "enemy-roster.json"), "utf8"))
+      .archetypes.find(({ id }) => id === "INTERCEPTOR").body
+      .map((bits) => Number.parseInt(bits, 2));
+    let overlapEvents = 0;
+    let blackMaskEvents = 0;
+    let blackMaskPixels = 0;
+    let maximumBlackMaskPixels = 0;
+    const corruptedFrames = [];
+    for (const row of bothVisible) {
+      const framePath = path.join(buildDirectory,
+        `${session.id}-${String(row.frame + 1).padStart(3, "0")}.png`);
+      invariant(fs.existsSync(framePath), `${session.id} is missing raster ${row.frame + 1}`);
+      const screenshot = decodeAtari800Screenshot(fs.readFileSync(framePath));
+      const bounds = [0, 1].map((slot) => ({
+        left: 2 * (row[`enemy_hpos${slot + 1}`] - 64),
+        top: row[`enemy_y${slot}`] - 32,
+        right: 2 * (row[`enemy_hpos${slot + 1}`] - 64) + 32,
+        bottom: row[`enemy_y${slot}`] - 32 + raiderBody.length,
+      }));
+      if (bounds[0].left < bounds[1].right && bounds[1].left < bounds[0].right &&
+        bounds[0].top < bounds[1].bottom && bounds[1].top < bounds[0].bottom) {
+        overlapEvents += 1;
+      }
+      const expected = new Set();
+      for (const bound of bounds) for (let bodyY = 0; bodyY < raiderBody.length; bodyY += 1) {
+        for (let bit = 0; bit < 8; bit += 1) {
+          if ((raiderBody[bodyY] & (0x80 >> bit)) === 0) continue;
+          for (let pixel = 0; pixel < 4; pixel += 1) {
+            const x = bound.left + bit * 4 + pixel;
+            const y = bound.top + bodyY;
+            if (x >= 0 && x < screenshot.width && y >= 0 && y < screenshot.height)
+              expected.add(y * screenshot.width + x);
+          }
+        }
+      }
+      const missing = [...expected].filter((offset) => screenshot.indices[offset] === 0).length;
+      if (missing > 0) {
+        blackMaskEvents += 1;
+        blackMaskPixels += missing;
+        maximumBlackMaskPixels = Math.max(maximumBlackMaskPixels, missing);
+        if (corruptedFrames.length < 16) corruptedFrames.push({ frame: row.frame, missing });
+      }
+    }
+    const staleHeavyPageFrames = rows.reduce((count, row) => count +
+      [0, 1].filter((slot) => row[`enemy_member${slot}_state`] === 0 &&
+        row[`enemy_pmg_rows${slot + 1}`] > 0).length, 0);
+    const report = {
+      schema_version: 1,
+      generated_by: "scripts/runtime-wall-trace.mjs --raider-formation-only",
+      emulator: "Atari800 7.1.2 PAL/XL",
+      artifact_sha256: runtimeArtifacts,
+      session: session.id,
+      difficulty: "HARD",
+      frames: rows.length,
+      input: { policy: session.policy, state_injection: false },
+      spawn_contract: {
+        visible_top_y: 16,
+        height_scanlines: 14,
+        spawn_y_values: activationRows.map((row) => [row.enemy_y0, row.enemy_y1]),
+        spawns: activationRows.length,
+        respawns: Math.max(0, activationRows.length - 1),
+        fully_hidden_at_activation: hiddenActivations.length,
+        visible_at_activation_defects: activationRows.length - hiddenActivations.length,
+      },
+      first_visible: twoPmgFrameState(firstVisible),
+      same_height_different_x: twoPmgFrameState(sameHeight),
+      vertical_order_swapped: twoPmgFrameState(swapped),
+      maximum_live_members: Math.max(...rows.map((row) => row.enemy_live_count)),
+      independence: {
+        horizontal_offset_values: xDeltas.size,
+        p1_and_p2_both_turned: true,
+        hpos_tracks_slot_x: true,
+        maximum_p1_nonzero_rows: Math.max(...rows.map((row) => row.enemy_pmg_rows1)),
+        maximum_p2_nonzero_rows: Math.max(...rows.map((row) => row.enemy_pmg_rows2)),
+      },
+      workload: {
+        player_fighter_fire_active: true,
+        maximum_player_fighter_projectiles:
+          Math.max(...rows.map((row) => row.player_fighter_projectiles)),
+        playfield_ring_rotation_active: true,
+        maximum_raider_projectiles: Math.max(...rows.map((row) => row.enemy_projectiles), 0),
+        raider_combat_cost_included: true,
+        maximum_enemy_movement_pmg_wall_cycles:
+          Math.max(...movementPmgCosts),
+      },
+      overlap_raster: {
+        two_heavy_active_frames: bothVisible.length,
+        overlap_events: overlapEvents,
+        black_mask_events: blackMaskEvents,
+        black_mask_pixels: blackMaskPixels,
+        maximum_black_mask_pixels: maximumBlackMaskPixels,
+        first_corrupted_frames: corruptedFrames,
+        inactive_slot_stale_page_frames: staleHeavyPageFrames,
+      },
+      timing: {
+        maximum_active_work_cycles: maximumActive,
+        maximum_raw_cadence_cycles: maximumWall,
+        target_headroom_cycles: CAPITAL_HUNTER_ACCEPTED_CEILING_CYCLES - maximumActive,
+        hard_gate_headroom_cycles: SHIELD_BOOSTER_HARD_GATE_CYCLES - maximumActive,
+        ...timingErrors,
+      },
+      screenshot_sequence: path.relative(rootDirectory, sheetPath),
+      csv: path.relative(rootDirectory, path.join(buildDirectory, `${session.id}.csv`)),
+      passed: blackMaskEvents === 0 && staleHeavyPageFrames === 0 &&
+        maximumActive <= SHIELD_BOOSTER_HARD_GATE_CYCLES &&
+        timingErrors.missed === 0 && timingErrors.extra_vbi === 0 && timingErrors.dli === 0,
+    };
+    const focusedReportPath = path.join(buildDirectory, "two-pmg-raiders-native-report.json");
+    fs.writeFileSync(focusedReportPath, `${JSON.stringify(report, null, 2)}\n`);
+    console.log(`Two-PMG Raider report: ${path.relative(rootDirectory, focusedReportPath)}`);
+    invariant(report.passed,
+      `${session.id} retained ${blackMaskEvents} black-mask frames or failed PAL timing`);
+    return;
+  }
+  if (raiderSectorOnly) {
+    const session = sessionsToRun[0];
+    const rows = allRows.filter((row) => row.session === session.id);
+    const capitalStartIndex = rows.findIndex((row, index) => index !== 0 &&
+      row.sector_state !== 7 && rows[index - 1].sector_state === 7);
+    invariant(capitalStartIndex > 0, `${session.id} did not enter the capital sector`);
+    const postOpenIndex = rows.findIndex((row, index) => index > capitalStartIndex &&
+      row.sector_state === 7 && rows[index - 1].sector_state !== 7);
+    invariant(postOpenIndex > capitalStartIndex,
+      `${session.id} did not return to post-sector OPEN`);
+    const preSector = rows.slice(0, capitalStartIndex);
+    const initialFormation = preSector.find((row) => row.enemy_state === 1 &&
+      row.enemy_live_count === 3);
+    invariant(initialFormation !== undefined,
+      `${session.id} did not run a three-Raider formation before the sector`);
+    const releasedShots = preSector.findLast((row) => row.enemy_state === 0 &&
+      row.enemy_projectiles > 0);
+    invariant(releasedShots !== undefined,
+      `${session.id} did not preserve released Raider shots after formation release`);
+    const capitalStart = rows[capitalStartIndex];
+    invariant(capitalStart.enemy_state === 0 && capitalStart.enemy_live_count === 0 &&
+      capitalStart.enemy_projectiles === 0,
+    `${session.id} entered the capital sector before ordinary pressure drained`);
+    const capitalRows = rows.slice(capitalStartIndex, postOpenIndex + 1);
+    invariant(capitalRows.every((row) => row.enemy_state === 0 &&
+      row.enemy_live_count === 0),
+    `${session.id} admitted ordinary machines during the capital lifecycle`);
+    const readmission = rows.slice(postOpenIndex + 1).find((row) =>
+      row.enemy_state === 1 && row.enemy_live_count === 3);
+    invariant(readmission !== undefined,
+      `${session.id} did not readmit a formation after post-sector OPEN`);
+    const maximumWall = Math.max(...rows.map((row) => row.wall_cycles));
+    const timingErrors = rows.reduce((counts, row) => ({
+      missed: counts.missed + row.missed_frames,
+      extra_vbi: counts.extra_vbi + row.extra_vbi_boundaries,
+      dli: counts.dli + row.dli_sequence_violations,
+    }), { missed: 0, extra_vbi: 0, dli: 0 });
+    invariant(maximumWall <= CAPITAL_HUNTER_ACCEPTED_CEILING_CYCLES &&
+      maximumWall <= SHIELD_BOOSTER_HARD_GATE_CYCLES &&
+      timingErrors.missed === 0 && timingErrors.extra_vbi === 0 && timingErrors.dli === 0,
+    `${session.id} failed PAL timing: max=${maximumWall}, ${JSON.stringify(timingErrors)}`);
+    const report = {
+      schema_version: 1,
+      generated_by: "scripts/runtime-wall-trace.mjs --raider-sector-only",
+      emulator: "Atari800 7.1.2 PAL/XL",
+      artifact_sha256: runtimeArtifacts,
+      session: session.id,
+      difficulty: "HARD",
+      frames: rows.length,
+      input: { policy: session.policy, state_injection: false },
+      initial_formation: frameState(initialFormation),
+      released_shots_finish_independently: frameState(releasedShots),
+      capital_start_empty: frameState(capitalStart),
+      post_sector_open: frameState(rows[postOpenIndex]),
+      formation_readmitted: frameState(readmission),
+      blocked_capital_frames: capitalRows.length,
+      timing: {
+        maximum_wall_cycles: maximumWall,
+        target_headroom_cycles: CAPITAL_HUNTER_ACCEPTED_CEILING_CYCLES - maximumWall,
+        hard_gate_headroom_cycles: SHIELD_BOOSTER_HARD_GATE_CYCLES - maximumWall,
+        ...timingErrors,
+      },
+      csv: path.relative(rootDirectory, path.join(buildDirectory, `${session.id}.csv`)),
+      passed: true,
+    };
+    const focusedReportPath = path.join(buildDirectory, "raider-sector-native-report.json");
+    fs.writeFileSync(focusedReportPath, `${JSON.stringify(report, null, 2)}\n`);
+    console.log(`Raider sector report: ${path.relative(rootDirectory, focusedReportPath)}`);
+    return;
+  }
+  if (earlyEnemyOnly) {
+    const limits = [60, 45, 30];
+    const evidence = sessionsToRun.map((session) => {
+      const rows = allRows.filter((row) => row.session === session.id);
+      const admissions = [];
+      const releases = [];
+      for (let index = 0; index < rows.length; ++index) {
+        const row = rows[index];
+        const previous = index === 0 ? undefined : rows[index - 1];
+        if (row.enemy_state === 1 && (previous === undefined || previous.enemy_state === 0))
+          admissions.push(row);
+        if (row.enemy_state === 0 && previous?.enemy_state === 2) releases.push(row);
+      }
+      const visible = admissions.map((admission, admissionIndex) => rows.find((row) =>
+        row.frame >= admission.frame &&
+        (admissionIndex + 1 === admissions.length || row.frame < admissions[admissionIndex + 1].frame) &&
+        row.enemy_state === 1 && row.enemy_y + 14 > 16)).filter(Boolean);
+      const kills = rows.filter((row) => (row.events & (1 << 18)) !== 0);
+      const pending = rows.find((row) => row.pickup_state === 1);
+      const active = rows.find((row) => row.pickup_state === 2);
+      const pickupEpisodes = rows.filter((row, index) => row.pickup_state === 1 &&
+        (index === 0 || rows[index - 1].pickup_state === 0));
+      const pickupCollections = rows.filter((row) => (row.events & (1 << 19)) !== 0);
+      const capital = rows.find((row, index) => row.sector_state !== 7 &&
+        (index === 0 || rows[index - 1].sector_state === 7));
+      const capitalVisible = capital === undefined ? undefined : rows.find((row) =>
+        row.frame >= capital.frame &&
+        (row.capital_visible_allied_cells !== 0 || row.capital_visible_enemy_cells !== 0));
+      const capitalEnd = capital === undefined ? undefined : rows.find((row) =>
+        row.frame > capital.frame && row.sector_state >= 5);
+      const simultaneous = capital === undefined ? undefined : rows.find((row) =>
+        row.frame >= capital.frame && row.frame < (capitalEnd?.frame ?? Number.POSITIVE_INFINITY) &&
+        row.enemy_state === 1 && row.enemy_y + 14 > 16 &&
+        (row.capital_visible_allied_cells !== 0 || row.capital_visible_enemy_cells !== 0));
+      const simultaneousAdmission = simultaneous === undefined ? undefined :
+        admissions.findLast((row) => row.frame <= simultaneous.frame);
+      const capitalRelease = simultaneous === undefined ? undefined : releases.find((row) =>
+        row.frame > simultaneous.frame && row.frame <
+          (capitalEnd?.frame ?? Number.POSITIVE_INFINITY));
+      const capitalReadmission = capitalRelease === undefined ? undefined : admissions.find((row) =>
+        row.frame > capitalRelease.frame && row.frame <
+          (capitalEnd?.frame ?? Number.POSITIVE_INFINITY));
+      const broadsideDuringCapital = capital === undefined ? undefined : rows.find((row) =>
+        row.frame >= capital.frame && row.frame < (capitalEnd?.frame ?? Number.POSITIVE_INFINITY) &&
+        row.broadside > 0);
+      const rejectedCapitalRequests = rows.filter((row, index) => {
+        const previous = index === 0 ? undefined : rows[index - 1];
+        return previous !== undefined && capital !== undefined &&
+          row.frame >= capital.frame && row.frame <
+            (capitalEnd?.frame ?? Number.POSITIVE_INFINITY) &&
+          (row.events & (1 << 21)) !== 0 && previous.enemy_state === 0 &&
+          row.enemy_state === 0;
+      });
+      const visibilityGaps = releases.slice(0, Math.max(0, visible.length - 1))
+        .map((release, index) => visible[index + 1].active_gameplay_frame -
+          release.active_gameplay_frame);
+      const maximumWall = Math.max(...rows.map((row) => row.wall_cycles));
+      const gateOverruns = rows.filter((row) =>
+        row.wall_cycles > CAPITAL_HUNTER_ACCEPTED_CEILING_CYCLES).length;
+      const physicalOverruns = rows.filter((row) => row.wall_cycles >= PAL_FRAME_CYCLES).length;
+      const timingErrors = rows.reduce((counts, row) => ({
+        missed: counts.missed + row.missed_frames,
+        extra_vbi: counts.extra_vbi + row.extra_vbi_boundaries,
+        dli: counts.dli + row.dli_sequence_violations,
+      }), { missed: 0, extra_vbi: 0, dli: 0 });
+      invariant(admissions.length >= 3,
+        `${session.id} observed ${admissions.length} admissions`);
+      const activeReservationAtEnd = rows.at(-1).enemy_state === 0 ? 0 : 1;
+      invariant(releases.length + activeReservationAtEnd === admissions.length,
+        `${session.id} charged ${admissions.length} ordinary admissions but accounted for ` +
+        `${releases.length} releases and ${activeReservationAtEnd} active reservation`);
+      invariant(visible.length >= 3 && visible[0].active_gameplay_frame <= 60,
+        `${session.id} first visible frame was ${visible[0]?.active_gameplay_frame}`);
+      invariant(visibilityGaps.every((gap) => gap <= limits[session.difficulty]),
+        `${session.id} visibility gaps ${visibilityGaps} exceed ${limits[session.difficulty]}`);
+      invariant(kills.filter((row) => row.active_gameplay_frame < 600).length >= 3,
+        `${session.id} observed fewer than three qualified kills before frame 600`);
+      invariant(pending !== undefined && active !== undefined &&
+        pending.active_gameplay_frame <= active.active_gameplay_frame &&
+        active.active_gameplay_frame < (capital?.active_gameplay_frame ?? 600),
+      `${session.id} did not naturally expose PENDING then ACTIVE before capital admission`);
+      invariant(pickupEpisodes.length >= 1,
+        `${session.id} created no pickup episodes`);
+      invariant(pickupCollections.length >= 1 &&
+        pickupCollections.length <= pickupEpisodes.length,
+      `${session.id} observed ${pickupEpisodes.length} pickup episodes but ` +
+        `${pickupCollections.length} natural collections`);
+      invariant(capital?.active_gameplay_frame >= 600 && capitalVisible !== undefined,
+        `${session.id} capital admission/visibility was ${capital?.active_gameplay_frame}/` +
+        `${capitalVisible?.active_gameplay_frame}`);
+      invariant(simultaneous !== undefined && simultaneousAdmission !== undefined,
+        `${session.id} did not show a visible Hunter with the capital hull`);
+      invariant(capitalRelease !== undefined && capitalReadmission !== undefined,
+        `${session.id} did not release and readmit a Hunter during the capital traversal`);
+      invariant(broadsideDuringCapital !== undefined,
+        `${session.id} did not retain natural BROADSIDE fire during coexistence`);
+      invariant(rejectedCapitalRequests.length > 0 && rejectedCapitalRequests.every((row) => {
+        const previous = rows[row.frame - 1];
+        return previous !== undefined && row.director_rng === previous.director_rng;
+      }), `${session.id} rejected ordinary admission advanced Director RNG`);
+      invariant(maximumWall <= CAPITAL_HUNTER_ACCEPTED_CEILING_CYCLES &&
+        timingErrors.missed === 0 &&
+        timingErrors.extra_vbi === 0 && timingErrors.dli === 0,
+      `${session.id} failed PAL timing: max=${maximumWall}, ${JSON.stringify(timingErrors)}`);
+      invariant(rows.every((row) => unownedHullTransientCells(row) === 0 &&
+        row.muzzle_pointer_errors === 0 && row.broad_pointer_errors === 0 &&
+        row.broad_screen_orphan_cells === 0 &&
+        [0, 1, 2].every((slot) => row[`broad_pmg_orphan_rows${slot}`] === 0)),
+      `${session.id} observed backing, pointer, or orphan-glyph contamination`);
+      const compact = (row) => row === undefined ? null : ({
+        trace_frame: row.frame,
+        active_gameplay_frame: row.active_gameplay_frame,
+        enemy_y: row.enemy_y,
+        intensity: row.director_intensity,
+        rng: row.director_rng,
+      });
+      return {
+        session: session.id,
+        artifact: session.medium,
+        difficulty: ["BEGINNER", "MEDIUM", "HARD"][session.difficulty],
+        frames: rows.length,
+        input: { policy: session.policy, fire_delay: session.fireDelay, state_injection: false },
+        first_attempt_active_gameplay_frame: admissions[0].active_gameplay_frame,
+        admissions: admissions.map(compact),
+        visible: visible.map(compact),
+        releases: releases.map(compact),
+        maximum_release_to_visibility_gap: Math.max(0, ...visibilityGaps),
+        qualified_kills_before_frame_600: kills.filter((row) =>
+          row.active_gameplay_frame < 600).map(compact),
+        third_qualified_kill: compact(kills[2]),
+        pickup: { pending: compact(pending), active: compact(active),
+          collected: compact(pickupCollections[0]), episodes: pickupEpisodes.length },
+        capital: { configured_due_active_gameplay_frame: 600,
+          admission: compact(capital), first_visible: compact(capitalVisible),
+          traversal_end: compact(capitalEnd), broadside: compact(broadsideDuringCapital) },
+        coexistence: { simultaneous: compact(simultaneous),
+          first_admission: compact(simultaneousAdmission),
+          release: compact(capitalRelease), readmission: compact(capitalReadmission) },
+        director: {
+          ordinary_charges: admissions.length,
+          ordinary_releases: releases.length,
+          active_ordinary_reservations_at_end: activeReservationAtEnd,
+          charge_release_balanced:
+            releases.length + activeReservationAtEnd === admissions.length,
+          maximum_intensity: Math.max(...rows.map((row) => row.director_intensity)),
+          rng_sequence_at_admission: admissions.map((row) => row.director_rng),
+          rejected_capital_requests_without_rng_advance: rejectedCapitalRequests.length,
+          rng_sequence_checksum_sha256: sha256(Buffer.from(
+            admissions.map((row) => row.director_rng))),
+        },
+        timing: { maximum_wall_cycles: maximumWall,
+          physical_headroom_cycles: PAL_FRAME_CYCLES - maximumWall,
+          focused_gate_headroom_cycles:
+            CAPITAL_HUNTER_ACCEPTED_CEILING_CYCLES - maximumWall,
+          deadline_overruns: timingErrors.missed,
+          physical_pal_overruns: physicalOverruns,
+          focused_gate_overruns: gateOverruns,
+          ...timingErrors },
+        integrity: { backing_contamination: 0, orphan_glyphs: 0,
+          extra_pmg_scanlines: 0,
+          maximum_active_ordinary_enemies: Math.max(...rows.map((row) =>
+            row.enemy_state === 0 ? 0 : 1)) },
+        csv: path.relative(rootDirectory,
+          path.join(buildDirectory, `${session.id}.csv`)),
+        passed: true,
+      };
+    });
+    const focusedReportPath = path.join(buildDirectory, "early-enemy-native-report.json");
+    fs.writeFileSync(focusedReportPath, `${JSON.stringify({
+      schema_version: 1,
+      generated_by: "scripts/runtime-wall-trace.mjs --early-enemy-only",
+      emulator: "Atari800 7.1.2 PAL/XL",
+      artifact_sha256: runtimeArtifacts,
+      cold_boot: bootSmoke,
+      sessions: evidence,
+      passed: evidence.every((entry) => entry.passed),
+    }, null, 2)}\n`);
+    console.log(`Early enemy report: ${path.relative(rootDirectory, focusedReportPath)}`);
+    return;
   }
   if (onlySession !== undefined) {
     const focusedReportPath = path.join(buildDirectory, `${onlySession}-focused-run.json`);
+    const acceptance = focusedPalAcceptance(allRows);
     fs.writeFileSync(focusedReportPath, `${JSON.stringify({
       emulator: "Atari800 7.1.2 PAL/XL",
       guest_instrumentation_bytes: 0,
       artifact_sha256: runtimeArtifacts,
       sessions: summaries,
-      passed: true,
+      acceptance,
+      passed: acceptance.passed,
     }, null, 2)}\n`);
     console.log(`Focused report: ${path.relative(rootDirectory, focusedReportPath)}`);
+    invariant(acceptance.passed, `Focused PAL acceptance failed: ${JSON.stringify(acceptance)}`);
     return;
   }
   if (broadsideTransientOnly) {
@@ -3305,6 +5334,8 @@ function main() {
   const shotRows = allRows.filter((row) => (row.events & (1 << 12)) !== 0);
   const effectSpawnRows = allRows.filter((row) => (row.events & (1 << 13)) !== 0);
   const interceptorBreakupRows = allRows.filter((row) => (row.events & (1 << 17)) !== 0);
+  const interceptorKillRows = allRows.filter((row) =>
+    row.interceptor_breakup_request_slot0 + row.interceptor_breakup_request_slot1 > 0);
   const pickupQualifiedKillRows = weaponPickupRows.filter((row) =>
     (row.events & (1 << 18)) !== 0);
   // The deterministic pickup showcase proves capsule/render semantics, while
@@ -3408,9 +5439,9 @@ function main() {
   const pickupPhysicalAddressChanges = pickupActiveTransitions.filter(({ previous, row }) =>
     Array.from({ length: 6 }, (_, index) => row[`pickup_new_address${index}`] !==
       previous[`pickup_new_address${index}`]).some(Boolean)).length;
-  const interceptorFlashPairs = interceptorBreakupRows.filter((row) => {
-    const deathFrame = rowsBySessionFrame.get(`${row.session}:${row.frame - 1}`);
-    return deathFrame?.colbk === 0x1e && row.colbk === 0x3c;
+  const interceptorFlashPairs = interceptorKillRows.filter((row) => {
+    const nextFrame = rowsBySessionFrame.get(`${row.session}:${row.frame + 1}`);
+    return row.colbk === 0x1e && nextFrame?.colbk === 0x3c;
   });
   const fullEffectRows = allRows.filter((row) =>
     row.effect_active_mask === 0x1f && row.effect_active_count === 5);
@@ -3438,12 +5469,12 @@ function main() {
     "Active debris fragments were never erased on the following frame");
   invariant(effectSpawnRows.some((row) => row.sector_state === 7),
     "Trace did not spawn the five-slot destruction effect after the capital sector");
-  invariant(interceptorBreakupRows.length > 0,
-    "Trace did not execute the Interceptor breakup spawner");
-  invariant(interceptorBreakupRows.every((row) =>
-    row.effect_active_mask === 0x1f && row.effect_active_count === 5 &&
-    (row.events & ((1 << 15) | (1 << 16))) === ((1 << 15) | (1 << 16))),
-  "Interceptor death did not update and render all five local effects in its spawn frame");
+  invariant(interceptorKillRows.length > 0,
+    "Trace did not execute the Interceptor destruction path");
+  invariant(interceptorBreakupRows.length === 0 && interceptorKillRows.every((row) =>
+    row.raider_character_writes === 0 && row.raider_transient_allocations === 0 &&
+    row.raider_slot0_activations === 0),
+  "Interceptor death entered the deleted character-effect materialization path");
   invariant(interceptorFlashPairs.length > 0,
     "Trace did not preserve the accepted yellow-to-red full-screen flash across deferred breakup");
   invariant(pickupQualifiedKillRows.length >= 3,
@@ -3505,7 +5536,7 @@ function main() {
     pickupShieldRows[0].pickup_timer_hi === 0,
   "Atari800 replay did not load the exact 250-frame Shield timer");
   invariant(rapidProjectileRows.length > 0 && rapidProjectileRows.every((row) =>
-    row.rapid_projectile_slot < 10 && row.pickup_booster_state === 3) &&
+    row.rapid_projectile_slot < 5 && row.pickup_booster_state === 3) &&
     rapidProjectileVisibleRows.length > 0,
   "Atari800 replay did not preserve yellow Rapid Fire projectile screen codes");
   invariant(rapidScreenshotRow,
@@ -3656,9 +5687,11 @@ function main() {
   "Trace did not preserve the exact debris 3/5 vertical cadence");
 
   const expectedLayerSpeeds = [
-    { difficulty: 0, world: 20, near: 20, far: 5, debris: 12 },
-    { difficulty: 1, world: 22.5, near: 22.5, far: 5.625, debris: 13.5 },
-    { difficulty: 2, world: 25, near: 25, far: 6.25, debris: 15 },
+    // The legacy `far` event bit is now the shared white-glyph publication;
+    // it runs every PAL frame. The `near` bit remains the world/ring event.
+    { difficulty: 0, world: 20, near: 20, far: 50, debris: 12 },
+    { difficulty: 1, world: 22.5, near: 22.5, far: 50, debris: 13.5 },
+    { difficulty: 2, world: 25, near: 25, far: 50, debris: 15 },
   ];
   const parallaxCadence = expectedLayerSpeeds.map((expected) => {
     const rows = cadenceRows.filter((row) => row.difficulty === expected.difficulty);
@@ -4068,7 +6101,16 @@ function main() {
       host_vbi_boundary_crossings:
         allRows.reduce((sum, row) => sum + row.host_vbi_boundaries, 0),
       extra_vbi_boundaries: allRows.reduce((sum, row) => sum + row.extra_vbi_boundaries, 0),
-      passed: heaviest.wall_cycles <= SHIELD_BOOSTER_HARD_GATE_CYCLES &&
+      // The 286 behavioural clauses are not otherwise represented in this gate.
+      // Before stage 1 a clause could only fail by throwing, which prevented the
+      // report existing at all, so scripts/build.mjs treated the file's presence
+      // as the pass signal. Now that a report is written on a run that had a
+      // clause failure, gate.passed MUST carry those failures or that check
+      // becomes unsound.
+      behavioural_clause_failure_count: sessionFailures.length,
+      behavioural_clause_failures: sessionFailures,
+      passed: sessionFailures.length === 0 &&
+        heaviest.wall_cycles <= SHIELD_BOOSTER_HARD_GATE_CYCLES &&
         PAL_FRAME_CYCLES - heaviest.wall_cycles >=
           SHIELD_BOOSTER_MINIMUM_HEADROOM_CYCLES &&
         shieldBoosterHardOverruns.length === 0 && deadlineOverruns.length === 0 &&
@@ -4132,24 +6174,24 @@ function main() {
       active_muzzles: coverageRecord(allRows, (row) => row.active_muzzles > 0),
       maximum_projectile_pool: {
         scope: "combined active PlayerFighter and Interceptor fighter-projectile slots in legal Atari800 replays",
-        combined_physical_capacity: 19,
+        combined_physical_capacity: 10,
         maximum_combined_active_observed:
           Math.max(...allRows.map((row) => row.projectiles)),
         full_combined_capacity_observed:
-          allRows.some((row) => row.projectiles === 19),
+          allRows.some((row) => row.projectiles === 10),
         full_combined_capacity_matching_frames:
-          allRows.filter((row) => row.projectiles === 19).length,
+          allRows.filter((row) => row.projectiles === 10).length,
         heaviest_at_full_combined_capacity:
-          allRows.some((row) => row.projectiles === 19)
-            ? frameState(maximumRow(allRows.filter((row) => row.projectiles === 19),
+          allRows.some((row) => row.projectiles === 10)
+            ? frameState(maximumRow(allRows.filter((row) => row.projectiles === 10),
               (row) => row.wall_cycles))
             : null,
         component_physical_capacities: {
-          player_fighter: 10,
-          interceptor: 9,
+          player_fighter: 5,
+          interceptor: 5,
         },
-        evidence_note: allRows.some((row) => row.projectiles === 19)
-          ? "The physical 19-slot allocation was reached by a legal replay; 19/19 is observed rather than inferred or artificially seeded."
+        evidence_note: allRows.some((row) => row.projectiles === 10)
+          ? "The physical 10-slot PairShot allocation was reached by a legal replay; 10/10 is observed rather than inferred or artificially seeded."
           : "The combined capacity is physical; the report does not claim a full state unless a legal replay actually observes it.",
       },
       broadside_projectiles: {
@@ -4189,14 +6231,19 @@ function main() {
         post_capital_spawn_observed: effectSpawnRows.some((row) => row.sector_state === 7),
       },
       interceptor_breakup_effects: {
-        ...coverageRecord(interceptorBreakupRows, () => true),
-        spawner_frames: interceptorBreakupRows.length,
-        active_mask: 0x1f,
-        active_count: 5,
-        spawn_updated_and_rendered: interceptorBreakupRows.every((row) =>
-          (row.events & ((1 << 15) | (1 << 16))) === ((1 << 15) | (1 << 16))),
+        ...coverageRecord(interceptorKillRows, () => true),
+        kill_frames: interceptorKillRows.length,
+        character_materializer_frames: interceptorBreakupRows.length,
+        character_writes: allRows.reduce((sum, row) => sum + row.raider_character_writes, 0),
+        transient_allocations: allRows.reduce((sum, row) =>
+          sum + row.raider_transient_allocations, 0),
+        slot0_activations: allRows.reduce((sum, row) =>
+          sum + row.raider_slot0_activations, 0),
+        active_mask: 0,
+        active_count: 0,
+        flying_fragment_count: 0,
         full_screen_flash_preserved: interceptorFlashPairs.length > 0,
-        yellow_death_then_red_materialisation_frames: interceptorFlashPairs.length,
+        yellow_death_then_red_flash_pairs: interceptorFlashPairs.length,
       },
       weapon_pickup_rapid_fire: {
         qualified_kills: pickupQualifiedKillRows.map((row) => frameState(row)),

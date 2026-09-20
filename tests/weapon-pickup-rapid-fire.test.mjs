@@ -27,8 +27,10 @@ import {
   executeWeaponPickupTrace,
   executeWeaponPickupTraversalTrace,
   executePlayerFighterBurstBalanceTrace,
+  executePlayerFighterEmissionVisibilityTrace,
   executePlayerFighterProjectileColourTrace,
   executePlayerFighterProjectileColourLifecycleTrace,
+  executePlayerFighterSectorClearVisibilityTrace,
   weaponPickupTraceCsv,
 } from "../scripts/weapon-pickup-runtime.mjs";
 
@@ -169,6 +171,32 @@ test("three eight-phase banks preserve one tapered 8x16 capsule through 2x2/2x3 
   assert.doesNotMatch(renderer, /@render_pickup_pair/);
 });
 
+test("runtime compositor publishes the exact capsule pixels for all types and phases", () => {
+  const { entities } = assets();
+  const glyphBase = manifest.entityEffects.weaponPickupGlyphIndex;
+  for (const [pickupType, typeIndex] of [["rapid", 0], ["spread", 1], ["shield", 2]]) {
+    for (let phase = 0; phase < 8; phase += 1) {
+      const trace = executeWeaponPickupBackingTrace({
+        root, artifact: "xex", pickupType, y: 104 + phase,
+      });
+      const actualBank = trace.charset.slice(glyphBase * 8, glyphBase * 8 + 48);
+      const expectedStart = (typeIndex * 8 + phase) * 48;
+      const expectedBank = Array.from(entities.pickupPhaseBank.subarray(
+        expectedStart, expectedStart + 48,
+      ));
+      assert.deepEqual(actualBank, expectedBank,
+        `${pickupType} phase ${phase} selected the wrong phase-bank bytes`);
+
+      const pixels = pickupPhasePixels(Uint8Array.from(actualBank), 0);
+      const occupiedRows = pixels.map((row) => row.some(Boolean));
+      assert.equal(occupiedRows.findIndex(Boolean), phase,
+        `${pickupType} phase ${phase} shifted the capsule's first visible row`);
+      assert.equal(occupiedRows.findLastIndex(Boolean), phase + 15,
+        `${pickupType} phase ${phase} shifted the capsule's last visible row`);
+    }
+  }
+});
+
 test("release XEX and ATR execute 0→1→2→pending only for consumed PlayerFighter kills", () => {
   const xex = executeWeaponPickupTrace({ root, artifact: "xex" });
   const atr = executeWeaponPickupTrace({ root, artifact: "atr" });
@@ -198,7 +226,7 @@ test("non-projectile causes and repeated resolution never advance the drop count
   assert.deepEqual(causes.map(({ first }) => first.scoreLo), [0x10, 0x10, 0, 0, 0]);
 });
 
-test("pending is hidden and non-colliding for thirty full frames after Interceptor breakup", () => {
+test("pickup pending remains hidden and non-colliding for thirty full frames", () => {
   const trace = executeWeaponPickupTrace({ root, artifact: "xex" });
   const pending = trace.records.filter(({ phase }) => phase === "PENDING");
   assert.equal(pending.length, 30);
@@ -211,7 +239,7 @@ test("pending is hidden and non-colliding for thirty full frames after Intercept
   assert.deepEqual([
     firstActive.state, firstActive.activeMask, firstActive.activeCount,
     firstActive.effectActiveMask, firstActive.effectActiveCount, firstActive.y,
-  ], [2, 2, 1, 0, 0, 24], "Interceptor fragments must expire before the capsule enters at the top");
+  ], [2, 2, 1, 0, 0, 24], "Raider core must be inactive before the capsule enters at the top");
 });
 
 test("every booster type enters at the top, crosses the full playfield once and releases below it", () => {
@@ -240,7 +268,9 @@ test("every booster type enters at the top, crosses the full playfield once and 
       `${trace.name} must visit every complete 8-scanline position`);
     assert.deepEqual(trace.visibleStates, ["2:2:1"]);
     assert.equal(trace.maximumLogicalSlots, 1);
-    assert.equal(trace.maximumVisualFootprints, 1);
+    // The accepted capsule is a PMG fifth player (M0-M3), so it must add no
+    // character footprint to the ring at any point of its traversal.
+    assert.equal(trace.maximumVisualFootprints, 0);
     assert.deepEqual(trace.released, [0, 240, 0, 0, 0],
       `${trace.name} must release immediately below its last fully visible position`);
   }
@@ -360,7 +390,7 @@ test("the main frame has one guarded late pickup publication", () => {
   assert.equal((source.match(/jsr render_weapon_pickup_overlay/g) ?? []).length, 0);
   assert.equal((source.match(/jmp render_weapon_pickup_overlay/g) ?? []).length, 1);
   assert.match(source,
-    /main_loop:\n\s+jsr wait_gameplay_frame[\s\S]+wait_gameplay_frame:\n\s+lda ENTITY_STATE\+WEAPON_PICKUP_SLOT\n\s+beq wait_frame\n\s+cmp #WEAPON_PICKUP_STATE_ACTIVE\n\s+beq @visible\n\s+ldx #\$50[\s\S]+@visible:\n\s+lda ENTITY_Y\+WEAPON_PICKUP_SLOT\n\s+clc\n\s+adc #WEAPON_PICKUP_HEIGHT_SCANLINES\n\s+lsr[\s\S]+wait_frame:\n\s+ldx #\$70[\s\S]+cpx VCOUNT/);
+    /main_loop:\n\s+jsr wait_gameplay_frame[\s\S]+wait_gameplay_frame:\n\s+lda ENTITY_STATE\+WEAPON_PICKUP_SLOT\n\s+beq wait_frame\n\s+cmp #WEAPON_PICKUP_STATE_ACTIVE\n\s+beq @visible\n\s+jsr pickup_pending_fence\n\s+bne wait_frame_at_line[\s\S]+@visible:\n\s+lda ENTITY_Y\+WEAPON_PICKUP_SLOT\n\s+lsr[\s\S]+adc #\(WEAPON_PICKUP_HEIGHT_SCANLINES\/2\)[\s\S]+wait_frame:\n\s+ldx #\$70[\s\S]+cpx VCOUNT/);
   assert.match(source,
     /render_weapon_pickup_overlay:[\s\S]+lda ENTITY_DRAWN_MASK\+WEAPON_PICKUP_SLOT[\s\S]+beq :\+[\s\S]+rts/);
   assert.match(source,
@@ -588,10 +618,10 @@ test("HULL plates and the ten-cell BOOST field remain distinct at native screen 
   ]);
 });
 
-test("Rapid Fire lasts 500 active frames and keeps its ten-shot accelerated burst", () => {
+test("Rapid Fire lasts 500 active frames and keeps its accepted accelerated burst", () => {
   const trace = executeWeaponPickupTrace({ root, artifact: "xex" });
-  assert.deepEqual(trace.normalBurstFrames, [0, 3, 6, 9, 12, 15, 18, 21]);
-  assert.deepEqual(trace.rapidBurstFrames, [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]);
+  assert.deepEqual(trace.normalBurstFrames, [0, 9, 18, 27, 36, 45, 54, 63]);
+  assert.deepEqual(trace.rapidBurstFrames, [0, 6, 12, 18, 24, 30, 36, 42, 48, 54]);
   assert.equal(trace.activeRapidFrames, 500);
   assert.equal(trace.rapidTimerFrames.length, 500);
   assert.deepEqual(trace.rapidTimerFrames.map(({ timer }) => timer),
@@ -626,10 +656,10 @@ test("Rapid Fire lasts 500 active frames and keeps its ten-shot accelerated burs
     weapons.player_fighter.rapidFireIntervalFrames, weapons.player_fighter.rapidFireDurationFrames,
     weapons.player_fighter.poolSlots, weapons.player_fighter.speedScanlines,
     weapons.player_fighter.widthHpos, weapons.player_fighter.heightScanlines,
-  ], [8, 10, 8, 3, 2, 500, 10, 6, 1, 2]);
+  ], [8, 10, 8, 9, 6, 500, 10, 6, 1, 2]);
 });
 
-test("packed runtime distinguishes 8-shot normal, 10-shot Rapid and 8-salvo Spread", () => {
+test("packed runtime distinguishes accepted Normal, Rapid and Spread cadence", () => {
   const xex = executePlayerFighterBurstBalanceTrace({ root, artifact: "xex" });
   const atr = executePlayerFighterBurstBalanceTrace({ root, artifact: "atr" });
   assert.deepEqual({ ...xex, artifact: "release" }, { ...atr, artifact: "release" });
@@ -639,19 +669,73 @@ test("packed runtime distinguishes 8-shot normal, 10-shot Rapid and 8-salvo Spre
     mode.maximumPoolOccupancy,
   ]);
   assert.deepEqual(summary, [
-    ["NORMAL", 8, 3, 12, 8, 8, 21, 9],
-    ["RAPID", 10, 2, 12, 10, 10, 25, 10],
-    ["SPREAD", 8, 10, 12, 8, 20, 20, 10],
-    ["SHIELD", 8, 3, 12, 8, 8, 21, 9],
+    ["NORMAL", 8, 9, 12, 8, 8, 9, 4],
+    ["RAPID", 10, 6, 12, 10, 10, 13, 6],
+    ["SPREAD", 8, 28, 12, 3, 9, 9, 6],
+    ["SHIELD", 8, 9, 12, 8, 8, 9, 4],
   ]);
   const firstBurstFrames = (mode) => mode.records
     .filter(({ allocatedProjectiles }) => allocatedProjectiles > 0)
     .slice(0, mode.expectedBurst)
     .map(({ frame }) => frame);
-  assert.deepEqual(firstBurstFrames(xex.traces[0]), [0, 3, 6, 9, 12, 15, 18, 21]);
+  assert.deepEqual(firstBurstFrames(xex.traces[0]), [0, 9, 18, 27, 36, 45, 54, 63]);
   assert.deepEqual(firstBurstFrames(xex.traces[1]),
-    [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]);
-  assert.deepEqual(firstBurstFrames(xex.traces[2]), [0, 10, 20, 30, 40, 50, 60, 70]);
+    [0, 6, 12, 18, 24, 30, 36, 42, 48, 54]);
+  assert.deepEqual(firstBurstFrames(xex.traces[2]), [0, 28, 56]);
+});
+
+test("released FIRE emits a visible centred first frame across X, Y and ring phases", () => {
+  const trace = executePlayerFighterEmissionVisibilityTrace({ root, artifact: "xex" });
+  assert.equal(trace.cases.length, 216);
+  assert.equal(trace.cases.every(({ slots }) =>
+    slots.length > 0 && slots.every(({ visible }) => visible)), true);
+  // Playfield geometry: ANTIC 4 cells are four one-HPOS pixels wide and the
+  // normal playfield spans HPOS 48..207; the double-width fighter is 16 HPOS.
+  const leftHpos = 48;
+  const lastHpos = leftHpos + 40 * 4 - 1;
+  const silhouetteHalf = 16 / 2;
+  const pixelMasks = [0xc0, 0x30, 0x0c, 0x03];
+  for (const record of trace.cases) {
+    const offsets = record.mode === "SPREAD" ? [8, 4, 12] : [8];
+    assert.deepEqual(record.slots.map(({ x }) => x),
+      offsets.map((offset) => Math.min(record.playerX + offset, lastHpos)));
+    if (record.mode === "SPREAD") continue; // Spread composes with backing
+    const [{ screenAddress, glyphBytes }] = record.slots;
+    const rowOffset = (screenAddress - canonicalPlayfield.ringBufferAddress) % 40;
+    const pixel = pixelMasks.findIndex((mask) => glyphBytes.some((byte) => byte & mask));
+    const pixelCentre = leftHpos + rowOffset * 4 + pixel + 0.5;
+    const silhouetteCentre = record.playerX + silhouetteHalf;
+    // At PLAYER_X_MAX the silhouette centre (208) lies beyond the last
+    // playfield HPOS; the two-phase renderer's nearest pixel is 206.
+    const tolerance = silhouetteCentre > lastHpos ? 1.5 : 0.5;
+    assert.ok(Math.abs(pixelCentre - silhouetteCentre) <= tolerance,
+      `${record.mode} x=${record.playerX}: pixel ${pixelCentre} vs ${silhouetteCentre}`);
+  }
+  assert.match(source,
+    /allocate_player_fighter_projectile_at_slot:[\s\S]+adc #\(PLAYER_VISIBLE_WIDTH_HPOS\/2\)/);
+});
+
+test("sector pickup clear republishes still-live PlayerFighter projectiles in the same frame", () => {
+  const trace = executePlayerFighterSectorClearVisibilityTrace({ root, artifact: "xex" });
+  assert.deepEqual([trace.before.active, trace.before.rendered], [1, 1]);
+  assert.deepEqual([trace.after.active, trace.after.rendered], [1, 1]);
+  assert.notEqual(trace.after.screenCode, 0);
+  assert.match(source,
+    /profile_after_entity_render[\s\S]+jsr integration_update_sector_completion[\s\S]+jsr render_fighter_projectile_overlays/);
+});
+
+test("both Raider shots leave the centred first frame visible across ring rotation", () => {
+  const trace = executePlayerFighterEmissionVisibilityTrace({
+    root,
+    artifact: "xex",
+    playerXs: [48, 124, 200],
+    playerYs: [184, 191],
+    ringHeads: [0, 1, 26],
+    raiderFire: true,
+  });
+  assert.equal(trace.cases.length, 54);
+  assert.equal(trace.cases.every(({ slots, raiderProjectiles }) =>
+    raiderProjectiles >= 2 && slots.length > 0 && slots.every(({ visible }) => visible)), true);
 });
 
 test("Normal and Rapid projectiles render through the PlayerFighter yellow bank", () => {

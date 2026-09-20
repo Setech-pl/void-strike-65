@@ -1,0 +1,61 @@
+{
+  "id": "stage-2b2r-death-frame-deferral",
+  "date": "2026-09-18",
+  "task": "Clear the two PAL fence misses of wip/4.5d-gate-fail by shedding work on the player-death frame; safest-for-correctness variant. Plan: ~/.claude/plans/smooth-herding-star.md (Option E).",
+  "status": "OWNER-SMOKE CANDIDATE",
+  "branch": "wip/4.5d-gate-fail",
+  "base": {"commit": "423818e", "runtime": "7b50bd6 (XEX 838a9686…), tooling commits only above it"},
+  "candidate": {"xex_sha256": "b8ed318ccfa7ec71f0d913d6e34b42aef8658d6e3bbb91942a9a5aba7d338433", "atr_sha256": "6f03b9daf090653bb634aab84c503fc7fd5eae1e59867f417db55f4765be6eb6"},
+  "finding": {
+    "measured": "Per-function profile of raider-remnant-rapid-xex-hard row 1945 (native frame profiler, scripts/measure-frame-profile.mjs) and the per-stage clocks of debris-gate-0-neutral-fire0 row 3007 (stage-2b2p json): both misses are Light contact kills. The death happens inside light_update (entity_effects_update_with_light), which the main loop runs AFTER integration_update_enemy, handle_collisions and update_starfield/rotate_playfield_rows.",
+    "consequence": "On the death frame the lifecycle 0->1 transition exists only after the Bomber update (4,630 wall cycles with two live) and the ring rotate (3,190) have been paid. No in-frame condition derived from the transition can skip them; the brief's four candidates (enemy update, ring rotate, Heavy draw, Heavy tick) are unreachable without reordering the loop or deferring gameplay ticks, both excluded.",
+    "bomber_cost_correction": "integration_update_enemy 4,630 cycles/frame with two Bombers (heavy_member_update ~946, draw_enemy_member ~1,164, erase_enemy_departing_row ~56 per member); 4.5d behaviour on the death frame +36. The 4.5d report's '~270 cycles' estimate was wrong and is corrected."
+  },
+  "change": {
+    "what": "Defer the PMG publication of the player death by one frame. apply_player_damage keeps every decision and every character/pool clear (lifecycle DYING, life, erase_bullet, clear_interceptor_pulses, clear_transient_effects, HUD, hit sound) but no longer calls begin_player_fighter_explosion; the first DYING tick of update_player_death (new player_dying_tick, ENTITY_CODE) begins it when the player explosion slot timer is 0. BROAD_DEATH_TIMER = SHARED_FIGHTER_EXPLOSION_TOTAL+1 (25) so the explosion's self-erase at timer 1 still runs in the respawn frame before respawn_player.",
+    "detection": "Transition frame N: the lethal branch of apply_player_damage (only writer of PLAYER_DYING). Deferred frame N+1: PLAYER_LIFECYCLE == DYING and FIGHTER_EXPLOSION_TIMER[player] == 0 (no new RAM: the slot is idle exactly when the begin is pending).",
+    "ownership": "No C-owned state or decision changes; ASM publication timing only (HOW). Hostile pools are still zeroed on frame N; the emitter-independence owner decision (enemy death) is untouched.",
+    "placement": {
+      "broadside": "6,650 B unchanged: the former jsr bytes become the lethal path's own jmp update_hud_status; @dying becomes jmp player_dying_tick + 7 B $EA never-executed padding; free_broadside_slot $76A7 asserted",
+      "entity_code": "3,126 -> 3,144 B (+18 B player_dying_tick at $9D36-$9D47 behind the unmoved Light art $9D16-$9D35); tail 40 -> 22 B; packed 2,692 -> 2,710 B",
+      "transport": "182 sectors unchanged; initial boot content 13,132 -> 13,150 B, envelope 52 -> 34 B; XEX/ATR rebuilt",
+      "lbl_diff": "only ENTITY_CODE size/file offsets, the new labels player_dying_tick / update_player_death_finished / update_player_death_game_over_ready and their cheap locals; no BROADSIDE/CODE/A2/STARFIELD label moves"
+    }
+  },
+  "pal_timing_audit": {
+    "procedure": "Full gate set as stage-2b2q: default run (aborts at the pre-existing weapon-pickup-contact invariant after 21 sessions), every later default session with --only-session, --debris-gate-only, --raider-remnant-only; then node scripts/pal-timing-audit.mjs over all CSVs.",
+    "result": {"replays_audited": 67, "distinct_miss_events": 0, "verdict": "PASS", "note": "67 = the previous 66 + weapon-pickup-overlap-2-hunt-fire4, which was never traced before; it aborts on the same pre-existing GTIA/erase invariant as weapon-pickup-contact (reproduced on a clean export of HEAD) but its CSV is complete and audited."},
+    "former_miss_events": [
+      {"session": "debris-gate-0-neutral-fire0", "row": 3007, "pre_wait_before": 25656, "margin_before": -407, "pre_wait_after": 24206, "margin_after": 1043, "saved": 1450},
+      {"session": "raider-remnant-rapid-xex-hard", "row": 1945, "pre_wait_before": 26042, "margin_before": -765, "pre_wait_after": 24811, "margin_after": 466, "saved": 1231}
+    ],
+    "former_thin_margins": [
+      {"session": "memory-integrity-xex-2-hunt-fire4", "row": 1963, "margin_before": 137, "margin_after": 1847},
+      {"session": "weapon-pickup-2-hunt-fire4", "row": 1963, "margin_before": 137, "margin_after": 1847},
+      {"session": "director-complete-1-natural-sweep-fire0", "row": 2557, "margin_before": 245, "margin_after": 1920},
+      {"session": "2-evasive-fire7", "row": 209, "margin_before": 469, "margin_after": 2146}
+    ],
+    "worst_margins_after": [
+      {"session": "raider-remnant-rapid-xex-hard", "margin": 466, "pre_wait": 24811, "maximum_wall_cycles": 30440},
+      {"session": "debris-gate-0-neutral-fire0", "margin": 1043, "pre_wait": 24206, "maximum_wall_cycles": 30066},
+      {"session": "director-complete-2-natural-sweep-fire0", "margin": 1447, "pre_wait": 23802}
+    ],
+    "interpretation": "The same rows remain each replay's worst row (they precede any replay divergence, so the deltas are identical-replay deltas). Measured savings 1,231-1,465 wall cycles per death frame against the 1,660 estimate: erase_player and the first explosion phase ran at raster positions with less DMA stealing than assumed. All formerly thin rows were death frames too. The worst margin of the set is still only 466 cycles: the Bomber standing cost remains the structural problem (NEXT)."
+  },
+  "other_gates": {
+    "build": "npm run build:candidate -- --quiet PASS; ld65 asserts incl. free_broadside_slot $76A7",
+    "boot_smoke": "PASS 4/4 after --prepare: XEX menu 392; ATR menu 554 against deadline 554 = 190 + 2 x 182 (0 frames of margin, as before)",
+    "debris_gate": {"0-evasive-fire3": "PASS (0 blank / 2,304 + 523 in view)", "capital-muzzle-ring-2-sweep-fire4": "PASS (0 blank / 712 + 1,434)", "0-neutral-fire0": "1 blank frame in 1,558 post-capital in-view frames, host frame 5426 = a player-death frame (lifecycle 0->1, 4 player PairShots erased mid-frame by erase_bullet): the documented pre-existing death-frame blink (STATUS open defects), unchanged by this task, which leaves erase_bullet on frame N. On 7b50bd6 this replay showed 32 blank frames, all the aftermath of the row-3007 overrun; those are gone."},
+    "raider_remnant": "report fails only on the pre-existing explosion-count check (passed:false, 26 main explosions generated); 42/42 emitter-owned shots continued after their kill, 0 removed, 0 foreign removed, 0 stale cells, 0 orphans",
+    "pre_existing_failures_reproduced": ["weapon-pickup-contact-2-hunt-fire4 and weapon-pickup-overlap-2-hunt-fire4: 'changed GTIA priority or the single erase/draw lifecycle' (overlap reproduced on the HEAD export)", "capital-muzzle-ring-2-sweep-fire4: stale muzzle/flash code", "capital-contact-allied-medium, capital-contact-hostile-medium, lower-playfield-hostile-contact-xex-hard: emulator status 2, no CSV"]
+  },
+  "tests": {
+    "harness_new": "tests/entity-effects.test.mjs 'player death defers the PMG explosion to the first DYING tick and still erases it before the respawn': slot 0 / death timer 25 on the contact frame; 24 / 24 after the first update_player_death; tick_shared_fighter_explosions erases at timer 1 in the same frame in which update_player_death then respawns.",
+    "rebaselined_with_reason": ["scripts/broadside.mjs model deathTimer = TOTAL + 1", "tests/game-over.test.mjs", "tests/score.test.mjs", "tests/hud-status.test.mjs", "tests/entity-effects.test.mjs (deathCalls 0 on the contact frame, 25 ticks)", "tests/broadside-fire.test.mjs (three lifecycle loops, update_player_death regex)", "tests/light-wingman.test.mjs (player_dying_tick is the ENTITY_CODE tail)", "tests/light-interceptor.test.mjs (ENTITY_CODE 3,144 B, tail 22 B)", "tests/hybrid-c-arena.test.mjs (initial boot content 13,150 B, envelope 34 B)"],
+    "focused_set": "181 tests, 13 failing, the identical failure-name set to a clean export of HEAD (423818e)",
+    "full_suite": "candidate 675 tests / 114 failing after the rebaselines vs HEAD export 674 / 114; failure-name sets identical (the +1 is the new harness test)"
+  },
+  "owner_visible": ["the fighter stays visible for one extra frame after a lethal hit and shows the ordinary hit flash on that frame before the death flash sequence", "respawn and Game Over arrive one frame later (25 DYING frames around the unchanged 24-frame explosion)"],
+  "doc_corrections": ["4.5d report/json: Bomber standing cost replaces the ~270-cycle estimate", "memory-map/hybrid-c-architecture: HYBRID_HEAVY_STATE $811B-$8125, $8122 heavy_member_aux, $8123 heavy_member_colour, scratch $8124-$8125 (the report's 'previously unowned $8122-$8123' was wrong)", "STATUS: ATR deadline 554 at 182 sectors, derived from the sector count"],
+  "next_task": "Option D from the plan: skip the 16-row P1/P2 body copy in draw_enemy_member when the member's Y did not change (HPOSP1,x still written): -1,164 to -2,328 wall cycles on every two-Bomber frame. Hardware-critical renderer work: proof of every P1/P2 writer (pause/resume, member death, retire) and BROADSIDE placement (7 B of pads) before integration."
+}

@@ -1,0 +1,211 @@
+{
+  "schema": 1,
+  "stage": "combined PMG pickup plus central lower-cell primitive: writer hooks and native trace",
+  "status": "BLOCKED",
+  "decision": "Combined ownership foundation is rejected",
+  "date": "2026-09-11",
+  "model": {
+    "name": "Codex (GPT-5 family)",
+    "reasoning": "High",
+    "note": "The requested GPT-5.6 Sol product label was not exposed by this session."
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "headBefore": "f6eee5ce7f405dde6a3a6164a408638bab30bdd7",
+    "runtimeBaseline": "PASS_FIT combined PMG pickup plus unhooked 187-byte primitive",
+    "runtimeResult": "all rejected writer-hook, primitive-ABI, build, test and trace-tool changes rolled back to HEAD after the CPU/correctness STOP",
+    "untouched": [".claude/"],
+    "preservedRefs": {
+      "refs/wip/stage2b-foreign-0803": "13597d7fb6fa6bb0d04541ed68ab6715cec1e8d4",
+      "refs/wip/stage2b0-fdb-proof": "3e5d83f2f1944d2dd90b8a23bec9eaae0dcdebc8",
+      "refs/wip/stage2b2-single-window-rejected": "7f40ee0408356bf1f431b49bf5c51d50ae72a4b3"
+    }
+  },
+  "scope": {
+    "implementedBeforeStop": [
+      "all 21 reviewed fighter lower-layer read/write hooks in the required layer order",
+      "X-preserving ABI for the existing contiguous Variant A primitive",
+      "focused NMOS 6502 tests for no-owner, miss, TOP, BOTTOM, wrap, latest-underlay restore and projectile overlap",
+      "host-only instruction-boundary instrumentation in persistent Atari800 7.1.2",
+      "two native PAL traces covering debris/effects and two Heavy"
+    ],
+    "notAttemptedAfterStop": [
+      "Variant B, bitmap, hash, cache or secondary index",
+      "raster bands, BASIC RAM, loader changes or runtime disk I/O",
+      "Light implementation, owner smoke or Stage 2B.4"
+    ]
+  },
+  "hooks": {
+    "expected": 21,
+    "actual": 21,
+    "hooked": 21,
+    "reads": 6,
+    "writes": 15,
+    "groups": [
+      { "layer": "ring rotation", "sites": 1 },
+      { "layer": "world clear", "sites": 2 },
+      { "layer": "near stars", "sites": 2 },
+      { "layer": "far stars and twinkle", "sites": 6 },
+      { "layer": "debris", "sites": 6 },
+      { "layer": "effects", "sites": 4 }
+    ],
+    "capitalOnly": "capital muzzle/flash/explosion and broadside character paths remained gated outside fighter OPEN and were not hooked",
+    "semanticRefactor": false
+  },
+  "primitiveCandidate": {
+    "representation": "Variant A using the existing 19 physical projectile records",
+    "contiguousRange": "$8A12-$8AD2",
+    "codeBytes": 193,
+    "fitPrimitiveBytes": 187,
+    "abiGrowthBytes": 6,
+    "abi": "dst_ptr+Y address; write value in A; X, Y and dst_ptr restored; lower_read returns the logical lower value in A",
+    "fastPath": "FIGHTER_PROJECTILE_OWNED_COUNT == 0",
+    "lookup": "ascending linear TOP/BOTTOM scan, with BOTTOM derived through the production physical-row/wrap helper",
+    "persistentUnderlayRamBytes": 0,
+    "newStateRamBytes": 0,
+    "maximumPhysicalRecords": 19,
+    "maximumActiveProjectiles": 11,
+    "maximumOwnedCells": 22
+  },
+  "nativeTrace": {
+    "emulator": "Atari800 7.1.2 PAL/XL with a host-only instruction-boundary observer",
+    "guestMemoryModifiedByObserver": false,
+    "sessions": [
+      {
+        "id": "ownership-debris-effects-xex-hard",
+        "completedFrames": 5000,
+        "maximumProjectiles": 9,
+        "maximumEffects": 5,
+        "maximumWallCycles": 355647
+      },
+      {
+        "id": "ownership-two-heavy-xex-hard",
+        "completedFrames": 1800,
+        "maximumProjectiles": 9,
+        "maximumEffects": 5,
+        "maximumWallCycles": 355453
+      }
+    ],
+    "calls": {
+      "lowerReads": 84433,
+      "lowerWrites": 469970,
+      "ownershipLookups": 554403,
+      "deferredWrites": 1117,
+      "maximumCallsPerFrame": 1185
+    },
+    "ownership": {
+      "claims": 30299,
+      "claimedCells": 38044,
+      "releases": 30291,
+      "releasedCells": 38076,
+      "correctRestores": 58846
+    },
+    "correctness": {
+      "destructiveLowerWrites": 2,
+      "lostDeferredLowerUpdates": 0,
+      "staleRestores": 1736,
+      "ghostGlyphs": 339,
+      "hardGatesPassed": false,
+      "note": "The nonzero correctness counters independently reject the candidate. The ghost total may include the historical Spread final-glyph failure; no Spread repair or attribution refactor was attempted after the mandatory CPU STOP."
+    },
+    "verticalCoverage": {
+      "claimsHighMidLow": [8285, 11895, 10119],
+      "deferredWritesHighMidLow": [437, 315, 365]
+    }
+  },
+  "lookupCpu": {
+    "nativeInclusiveCycles": {
+      "noActive": { "calls": 162380, "average": 148.777, "maximumIncludingInterrupts": 459 },
+      "activeMiss": { "calls": 390630, "average": 1020.173, "maximumIncludingInterrupts": 2414 },
+      "topHit": { "calls": 1141, "average": 516.067, "maximumIncludingInterrupts": 1805 },
+      "bottomHit": { "calls": 245, "average": 667.457, "maximumIncludingInterrupts": 1606 },
+      "wrapHit": { "calls": 7, "average": 771.143, "maximumIncludingInterrupts": 1290 }
+    },
+    "controlledNmos6502CyclesIncludingJsrRts": {
+      "noActive": { "read": 91, "write": 95 },
+      "activeMissWith11Records": { "read": 726, "write": 730 },
+      "topHitFirstRecord": { "read": 142, "write": 143 },
+      "bottomHitAtSlot10": { "read": 679, "write": 680 },
+      "wrappedBottomHitFirstRecord": { "read": 255, "write": 256 }
+    },
+    "finding": "The fast path is already 91/95 cycles, while the normal active miss is hundreds to more than one thousand cycles. A legal clear/rotation frame issued 1185 primitive calls, so O(19) is not viable for this writer topology."
+  },
+  "frameCpu": {
+    "maximumOwnershipOverheadCycles": 302455,
+    "nativeMaximumCycles": 355647,
+    "fighterOpenMaximumCycles": 355647,
+    "twoHeavyMaximumCycles": 355567,
+    "targetCycles": 31200,
+    "hardGateCycles": 32568,
+    "targetHeadroomCycles": -324447,
+    "hardGateHeadroomCycles": -323079,
+    "missedFrames": 12064,
+    "targetOverruns": 5714,
+    "hardGateOverruns": 5714,
+    "extraVbiBoundaries": 10979,
+    "dliAnomalies": 0,
+    "stopConditions": [3, 4]
+  },
+  "memoryPlacementBeforeRollback": {
+    "stage2aLinkedRuntimeBytes": 17653,
+    "fitBaselineLinkedRuntimeBytes": 17605,
+    "hookCandidateLinkedRuntimeBytes": 17627,
+    "deltaToFitBytes": 22,
+    "deltaToStage2aBytes": -26,
+    "simultaneousResidencyBytes": 18105,
+    "safeHeadroomBytes": 4082,
+    "coldRecordBytes": 864,
+    "coldRecordCapacityBytes": 1277,
+    "coldRecordMarginBytes": 413,
+    "initialContentBytes": 13242,
+    "initialContentMarginBytes": 70,
+    "segmentGates": {
+      "packedStarfield": { "bytes": 1807, "capacity": 1819, "margin": 12, "sourceToPickupMargin": 4 },
+      "pickupPreservation": { "bytes": 864, "capacity": 1277, "margin": 413 },
+      "entityStaging": { "packedBytes": 2746, "margin": 62 },
+      "broadside": { "rawBytes": 6647, "capacity": 6656, "margin": 9 },
+      "a2Kernel": { "rawBytes": 255, "capacity": 256, "margin": 1 },
+      "entityCode": { "runAddress": "$9100", "aligned": true },
+      "initialContent": { "bytes": 13242, "capacity": 13312, "margin": 70 }
+    },
+    "placementPassed": true
+  },
+  "capacityForecast": {
+    "classification": "architecture blocks the minimum four-threat path on CPU",
+    "measuredScaling": "an active miss with 11 rendered records costs 635 cycles more than the no-owner write path in the controlled NMOS test; activating one additional ordinary record adds approximately 28 cycles to every miss before any BOTTOM-row helper cost",
+    "peakWriterCallsPerFrame": 1185,
+    "twoHeavyTwoLight": {
+      "additionalOwnedCellsMinimum": 2,
+      "estimatedAdditionalMissWorkCyclesAtPeak": 66360,
+      "stateRamDeltaIfUsingDormantPhysicalRecords": 0,
+      "result": "not realistic; the measured two-Heavy candidate already exceeds the hard gate by more than 323000 cycles"
+    },
+    "twoHeavyFourLight": {
+      "additionalOwnedCellsMinimum": 4,
+      "estimatedAdditionalMissWorkCyclesAtPeak": 132720,
+      "stateRamDeltaIfUsingDormantPhysicalRecords": 0,
+      "result": "not realistic; linear scan pressure worsens with each newly active record"
+    },
+    "estimateBasis": "28 cycles per additional active non-BOTTOM record times 1185 peak calls; estimates exclude extra bottom-row derivation and therefore are optimistic"
+  },
+  "spread": {
+    "secondCapsuleTrail": "structurally absent in the retained PMG pickup candidate",
+    "finalSpreadProjectileGlyph": "historical expected failure remains; not repaired",
+    "repairAttempted": false
+  },
+  "verification": {
+    "candidateAssemblerAndLinker": "PASS",
+    "focusedOwnershipTests": "PASS 5/5 before native STOP",
+    "transportTests": "PASS 6/6",
+    "nativeOwnershipTrace": "FAIL",
+    "placement": "PASS",
+    "hardCpuGate": "FAIL",
+    "ownerSmoke": "NOT_RUN_BY_SCOPE"
+  },
+  "artifacts": {
+    "rejectedTraceXexSha256": "10c7fd02d20908c2c35e881323e2b1e048d4f6328b6dd8bcca3e42b5521eecd2",
+    "retainedOwnershipCandidate": false,
+    "restoredFitXexSha256": "c2dff8ef37dfa6fde8abef40db2375266cc1da4bbff2f716fe2c65ba89b9cb34"
+  },
+  "next": "Owner decision: either authorize one bounded non-linear ownership-index proof (Variant B) or abandon this character-projectile ownership route. Do not execute automatically."
+}

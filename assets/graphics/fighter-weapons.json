@@ -4,17 +4,51 @@
     "player_fighterBase": 11,
     "interceptorBase": 90
   },
+  "hostileWeaponVisuals": {
+    "note": "One authored left-phase glyph per EnemyArchetype weapon_class, in class order from 1. Rows are ANTIC 4 pixels 0-1 of the cell (01 COLPF0 white, 10 COLPF1 steel); the right phase is the same glyph shifted two pixels. Class c publishes glyphs 89+c and 99+c. Colour and shape belong to the weapon class, not to the emitter's hull colour. stepPeriodFrames is the class movement rate: every class moves the shared hostile speed (2 scanlines) once per stepPeriodFrames frames (1, 2, 4 or 8); skipped frames leave Y, lifetime and the collision sweep untouched. animationPhaseRows (last class, BOMBER, only) is a second published phase at glyphs 93/103, selected by the renderer while frame_counter & 4 is set; it is not a weapon_class.",
+    "classes": [
+      {
+        "id": "PULSE",
+        "weaponClass": 1,
+        "stepPeriodFrames": 1,
+        "description": "white/steel tracer pulse: two stacked 2-HPOS pulses, steel tail above a white leading row",
+        "leftPhaseRows": ["00000000", "10100000", "01010000", "00000000", "00000000", "10100000", "01010000", "00000000"]
+      },
+      {
+        "id": "LASER",
+        "weaponClass": 2,
+        "stepPeriodFrames": 1,
+        "description": "thin laser bolt: one HPOS wide, steel trail above a white head",
+        "leftPhaseRows": ["00100000", "00100000", "00100000", "00010000", "00010000", "00010000", "00010000", "00000000"]
+      },
+      {
+        "id": "BOMBER",
+        "weaponClass": 3,
+        "stepPeriodFrames": 2,
+        "description": "heavy torpedo (roadmap 4.5d): two HPOS wide, a two-row steel exhaust above a steel tail cap and a white four-row core and nose; the exhaust flickers between two authored phases every four frames; half speed",
+        "leftPhaseRows": ["00100000", "10000000", "10100000", "01010000", "01010000", "01010000", "01010000", "00000000"],
+        "animationPhaseRows": ["10000000", "00100000", "10100000", "01010000", "01010000", "01010000", "01010000", "00000000"]
+      }
+    ]
+  },
   "player_fighter": {
-    "poolSlots": 10,
-    "burstCount": 8,
-    "burstIntervalFrames": 3,
-    "rapidFireBurstCount": 10,
-    "rapidFireIntervalFrames": 2,
+    "poolSlots": 5,
+    "activeLimit": 5,
+    "visiblePulsesPerObject": 2,
+    "pairGlyphRows": [1, 2, 5, 6],
+    "verticalPhases": 8,
+    "burstCount": 4,
+    "visibleBurstPulses": 8,
+    "burstIntervalFrames": 9,
+    "rapidFireBurstCount": 5,
+    "rapidFireVisiblePulses": 10,
+    "rapidFireIntervalFrames": 6,
     "rapidFireDurationFrames": 500,
     "spreadShotDurationFrames": 500,
     "shieldDurationFrames": 250,
-    "spreadShotBurstCount": 8,
-    "spreadShotCooldownFrames": 10,
+    "spreadShotBurstCount": 2,
+    "spreadShotVisiblePulses": 8,
+    "spreadShotCooldownFrames": 28,
     "spreadShotProjectileCount": 3,
     "spreadShotInitialOffsetHpos": 4,
     "spreadShotLateralStepHpos": 1,

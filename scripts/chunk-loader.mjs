@@ -12,12 +12,27 @@ const CHUNK_TYPE_LZ = 1;
 const STAGING_BROADSIDE = 1;
 const STAGING_EXTENSION = 2;
 const SAFE_EXTENSION_RANGES = Object.freeze([
-  [0x4efe, 0x5000], [0x5261, 0x534b],
+  [0x4efe, 0x5000], [0x52a3, 0x535a],
+  [0x548a, 0x54e4],
   [0x5de2, 0x5e06], [0x77b9, 0x7810],
+  // Hybrid C packed cold source; consumed before starfield staging reclaims it.
+  [0x7810, 0x7bd0],
+  // Roadmap 4.5M-M3: HYBRID_C_ARENA lands here directly as its own record and
+  // stays resident; it ends before the A2 display lists at $7F10 (4.5M-M2
+  // removed the GLUE, ABI and low-C cold records from this range).
   [0x7bd0, 0x7f10],
-  [0x7fdb, 0x8000], [0x8130, 0x9000], [0x90cf, 0x9100], [0x992a, 0xa000],
+  [0x7fdb, 0x8000],
+  // 4.5M-M2 ABI cold record: the entity-state page after A2 staging, consumed
+  // by publish_director_abi before init_entity_effects clears $8000-$80FF.
+  [0x8018, 0x8100],
+  [0x8130, 0x9000], [0x90cf, 0x9100],
+  // 4.5M-M2 merged low-C/GLUE record ($9B40-$9D31) among the direct
+  // Director landings; consumed before ENTITY_CODE expands over it.
+  [0x992a, 0xa000],
 ]);
-const PICKUP_COLD_RANGE = Object.freeze([0x8c80, 0x9062]);
+// The pickup stream is consumed before A2/ENTITY publication. Its cold tail
+// may therefore cross $9100 without overlapping live gameplay code.
+const PICKUP_COLD_RANGE = Object.freeze([0x8c80, 0x917d]);
 
 const INITIAL_ENVELOPE_MAGIC = Buffer.from("DFI2", "ascii");
 const INITIAL_ENVELOPE_MIN_BYTES = 12;
@@ -243,7 +258,7 @@ export function deterministicCapacityBytes(length, seed = 0x6d2b79f5) {
 export function validateInitialBlockCapacity(byteLength, { allowExtendedInitialBlock = false } = {}) {
   invariant(Number.isInteger(byteLength) && byteLength >= ATR_SECTOR_BYTES,
     "initial block length is invalid");
-  const maximumSectors = allowExtendedInitialBlock ? 101 : 100;
+  const maximumSectors = allowExtendedInitialBlock ? 105 : 100;
   const maximumBytes = maximumSectors * ATR_SECTOR_BYTES;
   invariant(byteLength <= maximumBytes,
     `initial block exceeds ${maximumBytes} bytes / ${maximumSectors} sectors`);

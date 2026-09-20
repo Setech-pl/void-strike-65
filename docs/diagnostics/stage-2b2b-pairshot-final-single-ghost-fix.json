@@ -1,0 +1,169 @@
+{
+  "schema": "void-strike-65.stage-2b2b-pairshot-final-single-ghost-fix.v1",
+  "date": "2026-09-12",
+  "status": "PASS_PAIRSHOT_STALE_FIX",
+  "model": {
+    "used": "Codex (GPT-5 family)",
+    "reasoning": "High",
+    "requested_label_not_exposed": "GPT-5.6 Sol"
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "head_before": "0f5cc6c024fd29a83ae53ec0480484e0165b9cd1",
+    "wip_refs_preserved": [
+      "refs/wip/stage2b-foreign-0803",
+      "refs/wip/stage2b0-fdb-proof",
+      "refs/wip/stage2b2-single-window-rejected"
+    ],
+    "claude_untouched": true
+  },
+  "scope": {
+    "fixed": "one stale PlayerFighter PairShot glyph restored later from a staggered effect backing record",
+    "unchanged": [
+      "PairShot logical, collision and publication model",
+      "Effects 25 Hz/staggered lifecycle",
+      "row-baked far-star runtime and assets",
+      "Raider destruction artifact",
+      "background/ring cadence"
+    ]
+  },
+  "root_cause": {
+    "sequence": [
+      "OLD PairShot remains visible until the fixed late projectile publication window",
+      "a lower-priority effect publishes earlier into that exact OLD screen address",
+      "the effect captures the visible PairShot glyph as EFFECT_BACKING0",
+      "late projectile erase restores the real PairShot underlay",
+      "the other effect parity leaves the poisoned backing record resident for one PAL frame",
+      "the next matching-parity effect erase restores the PairShot glyph into an unowned screen cell",
+      "the ring subsequently scrolls that stale character as background"
+    ],
+    "movement_correlation": "rejected; player X movement changes only the address/intersection probability",
+    "effect_stagger_exposure": "the two-frame backing lifetime makes the resurrection intermittent"
+  },
+  "reproducer_before": {
+    "artifact": "HEAD 0f5cc6c runtime",
+    "old_address_decimal": 33469,
+    "old_address_hex": "$82BD",
+    "pairshot_glyph": 11,
+    "pairshot_underlay": 0,
+    "effect_backing_after_capture": 11,
+    "screen_after_projectile_erase": 0,
+    "screen_after_opposite_parity_erase": 0,
+    "screen_after_matching_parity_erase": 11,
+    "ghosts": "1/1"
+  },
+  "fix": {
+    "routine": "resolve_effect_backing_below_player_pairshot",
+    "call_site": "render_transient_effect_overlays immediately after visible-cell read",
+    "fast_path": "reject values outside $0B, $1D and composite $2F-$33 without scanning projectile records",
+    "hit_path": "scan only five player records; exact rendered screen-address match returns the lowest matching slot's BACKUP_TOP",
+    "overlap_semantics": "ascending player-slot scan returns the underlay below the complete player projectile stack",
+    "new_state_bytes": 0,
+    "live_resolver_bytes": 60,
+    "removed_dead_proof_bytes": 187,
+    "inert_boundary_padding_bytes": 127,
+    "placement": "the resolver replaces the rejected, uncalled per-access primitive inside the same fixed 187-byte PICKUP_CODE footprint",
+    "loader_or_transport_format_changed": false,
+    "starfield_changed": false
+  },
+  "focused_verification": {
+    "script": "scripts/pairshot-stale-runtime.mjs",
+    "test": "tests/pairshot-stale-cell.test.mjs",
+    "artifacts": ["XEX", "ATR"],
+    "cases_per_artifact": 1200,
+    "effect_slots": 5,
+    "effect_parities": 2,
+    "modes": ["NORMAL", "RAPID", "SPREAD"],
+    "movement": ["STATIONARY", "LEFT", "RIGHT", "REVERSAL"],
+    "per_movement_per_artifact": 300,
+    "per_mode_per_artifact": 400,
+    "result_per_artifact": {
+      "stale_cells": 0,
+      "ghost_glyphs": 0,
+      "restore_mismatches": 0,
+      "lost_erases": 0,
+      "effect_render_cycles_max": 325,
+      "projectile_erase_cycles_max": 184
+    },
+    "focused_suites": {
+      "tests": 28,
+      "passed": 28,
+      "failed": 0
+    }
+  },
+  "cpu": {
+    "historical_effect_publication_peak_before": 744,
+    "effect_publication_peak_after": 822,
+    "fix_peak_delta": 78,
+    "local_stop_gate_delta": 300,
+    "gate_passed": true,
+    "native_maximum_active_work_cycles": 14077,
+    "target_cycles": 31200,
+    "target_headroom_cycles": 17123,
+    "hard_gate_cycles": 32568,
+    "hard_gate_headroom_cycles": 18491
+  },
+  "native": {
+    "emulator": "Atari800 7.1.2 PAL/XL instrumented",
+    "command": "ATARI800_TRACE_SOURCE=~/Projects/tools/atari800-7.1.2 node scripts/runtime-wall-trace.mjs --prepare --pairshot-stale-only",
+    "sessions": 3,
+    "frames_per_session": 3000,
+    "total_frames": 9000,
+    "fighter_open_frames": 5414,
+    "left_frames": 543,
+    "right_frames": 466,
+    "direction_changes": 67,
+    "divider_recycle_checks": 122,
+    "stale_recycled_cells": 0,
+    "orphan_pairshot_cells_full_screen_scan": 0,
+    "maximum_orphans_per_frame": 0,
+    "missed_frames": 3,
+    "target_overruns": 0,
+    "hard_overruns": 0,
+    "extra_vbi": 0,
+    "dli_anomalies": 0,
+    "maximum_raw_cadence_cycles": 36413,
+    "interpretation": "one cadence miss per independent long session; active work stayed far below target and no raster/VBI gate failed",
+    "report": "build/runtime-wall-trace/pairshot-stale-native-report.json",
+    "passed": true
+  },
+  "memory_and_placement": {
+    "linked_runtime_before": 17297,
+    "linked_runtime_after": 17302,
+    "linked_delta": 5,
+    "simultaneous_residency_before": 17775,
+    "simultaneous_residency_after": 17780,
+    "safe_headroom_after": 4407,
+    "pickup_code_runtime_bytes": 871,
+    "pickup_collision_runtime_bytes": 904,
+    "cold_record_before": 852,
+    "cold_record_after": 754,
+    "cold_capacity": 1277,
+    "cold_margin_after": 523,
+    "initial_content": 12912,
+    "initial_capacity": 12928,
+    "initial_margin": 16,
+    "starfield_packed_bytes": 1681,
+    "starfield_staging_capacity": 1819,
+    "starfield_margin": 138,
+    "entity_staging_margin": 113,
+    "broadside_margin": 9,
+    "a2_margin": 134,
+    "entity_code_alignment": "$9100",
+    "basic_ram": false,
+    "loader_change": false
+  },
+  "build": {
+    "successful_command": "npm run build:two-pmg",
+    "boot_smoke": "4/4 XEX/ATR cold-start PASS",
+    "standard_host_timing_limitation": "the current HEAD integration-glue source still hardcodes entity_spawn_debris=$98FF while the linked symbol is $98C0; this pre-existing out-of-scope Raider/debris issue prevents the generic host timing gauntlet and was not modified"
+  },
+  "artifact": {
+    "path": "dist/void-strike-65.xex",
+    "bytes": 21251,
+    "sha256": "c2643fa8aca308c18de026777b7067a93f0b755f91b7df6a037aece0f42ba798",
+    "status": "owner-smoke candidate"
+  },
+  "decision": "Final single PairShot ghost fix is viable",
+  "next": "Owner smoke PairShot stale-cell fix; only after owner PASS, address the separate blue row-baked far-star stepping/doubling issue"
+}

@@ -1,0 +1,82 @@
+{
+  "id": "stage-2b2n-hostile-shot-emitter-independence",
+  "date": "2026-09-17",
+  "task": "Bounded gameplay fix before the Bomber retry: an already-emitted hostile projectile is independent of its emitter and continues its normal lifecycle after the enemy dies (owner decision 2026-09-17)",
+  "status": "OWNER-SMOKE CANDIDATE",
+  "baseline": {
+    "commit": "2a67684",
+    "xex_sha256": "cbba293fa32ffdbf9f6c0af081ca1e3710e3271e5d04d1378467595b0e5f3633",
+    "atr_sha256": "a75c62b986d6486a0799ada3bae08d3f488c876d83cf4c7de699fa2304b180b0"
+  },
+  "candidate": {
+    "xex_sha256": "f9c4a96d6e0d124f40f87b7fa0f5e6be482f83f68a76ce16b5dedce20868b1fe",
+    "atr_sha256": "5e026009b5a53e7fd7ebef9224b4c44e0f45b2249e7fa7c4d3b9ad3dd679119a",
+    "boot_bin_sha256": "8d0f79ccd690cdacd5b1f77e01c90c4d3731bb430c7ebabb1a129d05038718ed",
+    "xex_bytes": 23105,
+    "owner_smoke_copy": "build/owner-smoke/hostile-shot-independence-f9c4a96d/"
+  },
+  "root_cause": {
+    "coupling": "spawn_interceptor_breakup_effects (every lethal Raider hit) jumped to begin_enemy_fighter_explosion_with_projectile_cleanup, which freed every hostile PairShot slot whose ACTIVE bit 0 matched ENEMY_TARGET_SLOT. Light Wingman/Interceptor shots are tagged with the leader P1 bit ($06|class<<3), so they also vanished when Raider P1 died. light_destroyed itself never cleared shots.",
+    "other_paths_checked": "No C code (lifecycle.c, director.c) touches projectile slots; capital admission (ordinary_wave_pressure_active, _asm_sector_pressure_active) already waits for released shots to leave naturally; no other reader of FIGHTER_PROJECTILE_INTERCEPTOR_EMITTER_MASK exists."
+  },
+  "change": {
+    "asm": "spawn_interceptor_breakup_effects now jumps straight to begin_enemy_fighter_explosion; the 27-B cleanup routine is removed from ENTITY_CODE. A zero-byte label begin_enemy_fighter_explosion_body after the first instruction keeps a trace boundary.",
+    "owner_bits": "Unchanged: ACTIVE still carries emitter/Light tag bits 0-2 and weapon_class << 3 (allocation, ENEMY_WEAPON_CURSOR alternation, tracing).",
+    "retained_termination": ["player collision (update_fighter_projectiles -> apply_player_damage, slot freed)", "LIFETIME expiry", "bottom playfield edge", "player death: apply_player_damage -> erase_bullet + clear_interceptor_pulses", "respawn: clear_fighter_projectiles", "new game / quit: init_fighter_projectiles"],
+    "trace": "scripts/runtime-wall-trace.mjs maps DFTRACE_PC_EMITTER_CLEANUP to begin_enemy_fighter_explosion_tail and _END to begin_enemy_fighter_explosion_body (no header change, no --prepare); the --raider-remnant-only gate now requires every emitter-owned shot at a kill to continue and none to be removed."
+  },
+  "placement_measured": {
+    "entity_code_bytes": { "before": 3153, "after": 3126 },
+    "entity_code_tail_free": { "before": 13, "after": 40 },
+    "light_art_tables": { "before": "$9D31-$9D50", "after": "$9D16-$9D35" },
+    "linked_runtime_bytes": { "before": 17502, "after": 17475 },
+    "simultaneous_residency_bytes": { "before": 19494, "after": 19467 },
+    "safe_residency_bytes": { "before": 2693, "after": 2720 },
+    "initial_boot_content_bytes": { "before": 13162, "after": 13137 },
+    "entity_packed_bytes": { "before": 2717, "after": 2692 },
+    "transport_sectors": { "before": 178, "after": 178 },
+    "bss_zero_page_c_stack": "unchanged",
+    "memory_architecture": "unchanged; only ENTITY_CODE contents shrink"
+  },
+  "cpu": {
+    "removed_path": "spawn_interceptor_breakup_effects build-harness cost 243 -> 99 cycles per Raider kill (the 5-slot scan is gone)",
+    "added_cost": "none in code; orphaned shots now live their full lifetime, so average hostile occupancy rises (bounded by the unchanged 5-slot pool, so the worst case is the already-legal 5 hostile shots)",
+    "native_pal_21_sessions": {
+      "missed_frames": 0, "extra_vbi": 0, "dli_sequence_violations": 0,
+      "worst_before": 30820, "worst_after": 30820, "worst_session": "director-complete-1-natural-sweep-fire0",
+      "largest_delta": { "session": "debris-effects-2-sweep-fire4", "before": 30216, "after": 30767 },
+      "2-evasive-fire3": { "before": 29519, "after": 29570 },
+      "2-sweep-fire4": { "before": 29801, "after": 29801 },
+      "note": "replays diverge after the first kill with a shot in flight, so per-session deltas mix gameplay divergence with cost; all under the 31,200 target"
+    }
+  },
+  "gates": {
+    "boot_smoke": { "result": "PASS 4/4", "xex_menu": 392, "atr_menu": 546, "atr_deadline": 546 },
+    "raider_remnant_native": {
+      "kills": 135, "kills_with_emitter_projectile_active": 99,
+      "emitter_owned_projectiles_at_kill": 200, "continued": 200, "removed": 0,
+      "foreign_preserved": 115, "foreign_incorrectly_removed": 0,
+      "enemy_projectile_stale_cells": 0, "pairshot_orphans": 0, "effect_orphans": 0,
+      "stale_debris_projectile_restores": 0, "missed": 0, "extra_vbi": 0, "dli": 0,
+      "report_passed": false,
+      "failing_condition": "main_explosions_generated 134 != kills 135",
+      "classification": "PREEXISTING: the baseline 2a67684 fails the same condition (141 kills, 139 explosions)"
+    },
+    "pairshot_stale_native": { "result": "PASS", "stale_sum": 0, "orphan_sum": 0 },
+    "debris_visibility_gate": {
+      "result": "FAIL (1 of 3 replays)",
+      "baseline_2a67684": "PASS 3/3 (maxima 30,232 / 30,439 / 30,216)",
+      "candidate_maxima": [30411, 30475, 30767],
+      "failure": "debris-gate-0-evasive-fire3 post-capital: 1 blank frame of 1,013 in view (host frame 4261, gameplay frame 3848)",
+      "first_writer_proof": "Instrumented first-writer log (temporary, uncommitted hook): host 4260 render_interactive_entity_overlays publishes debris code 114 at $84EA (scanline 248), then render_fighter_projectile_overlays @draw_top writes PLAYER PairShot slot 0 glyph 36 over it (scanline 254) with its backing resolved to space. Host 4261: the player takes a lethal hit; apply_player_damage -> erase_bullet runs erase_fighter_projectile_restore mid-frame (scanline 83, X=0) restoring space; the debris is republished only in the late window (scanline 247), so the beam scans Y 208 blank once.",
+      "classification": "PREEXISTING mechanism exposed by replay divergence: the writer is a player PairShot on the player-death clear path, both unchanged by this commit; no hostile slot and no removed code participates. Not fixed here (out of scope).",
+      "other_nonzero_counters": "transient_effect_orphan_cells 28 in debris-effects-2-sweep-fire4 and the capital-muzzle debris replay, identical to the baseline"
+    },
+    "pal_suite_known_failure": "weapon-pickup-contact-2-hunt-fire4 'changed GTIA priority or the single erase/draw lifecycle' aborts the default mode after 21 sessions on both baseline and candidate (PREEXISTING)"
+  },
+  "tests": {
+    "new": "tests/hostile-projectile-emitter-independence.test.mjs (6): Raider shot survives P1/P2 kill on XEX and ATR and moves/ages/republishes for 12 frames with old cells restored; formation-over drain with no stale slot, no backing artifact and no pool leak; orphaned shot still ends on collision (1 damage unit), lifetime expiry and the bottom edge; player death, respawn and new-game resets clear it; a BOMBER-class record keeps its every-second-frame rate after the kill; Wingman and Interceptor shots survive Light destruction and a later leader death. All 6 fail on 2a67684.",
+    "updated": "raider-projectile-ownership (persistence instead of cleanup), light-wingman (leader deaths keep the Light shot), light-interceptor and hybrid-c-arena (measured ENTITY_CODE / boot-content sizes)",
+    "full_suite": "649 tests / 116 failing before the two size rebaselines; after them the failure-name set equals 2a67684 except the renamed 'P1 and P2 destruction keep both emitters' rendered projectiles' (pre-existing harness score 0x35 != 0x10, same assertion as the old name)"
+  }
+}

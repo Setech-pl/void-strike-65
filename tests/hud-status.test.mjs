@@ -82,7 +82,9 @@ test("canonical damage and lifecycle drive LIFE 3→2 and HULL 100→0→100", (
   assert.deepEqual([...hudStatusBytes(state)].slice(1).map(([, code]) => code), [12, 12, 12, 12]);
   assert.equal(state.playerLifecycle, PLAYER_LIFECYCLE_STATES.DYING);
 
-  for (let frame = 0; frame < SHARED_FIGHTER_EXPLOSION_TOTAL - 1; frame += 1) {
+  // Rebaselined 2026-09-17 (death-frame deferral): DYING lasts one frame longer
+  // than the explosion, which begins on the first DYING tick.
+  for (let frame = 0; frame < SHARED_FIGHTER_EXPLOSION_TOTAL; frame += 1) {
     assert.equal(advancePlayerLifecycle(state, asset), "dying");
     assert.equal(statusText(state), "LIFE 2 HULL 0%",
       "explosion frames cannot decrement life or restore hull");
@@ -99,7 +101,9 @@ test("final playable life reaches LIFE 0 / HULL 0 and the existing Game Over pat
   assert.equal(applyPlayerDamage(state, asset, 10, 25, 500), true);
   assert.equal(statusText(state), "LIFE 0 HULL 0%");
   assert.equal(state.playerLifecycle, PLAYER_LIFECYCLE_STATES.DYING);
-  for (let frame = 0; frame < SHARED_FIGHTER_EXPLOSION_TOTAL - 1; frame += 1) {
+  // Rebaselined 2026-09-17 (death-frame deferral): DYING lasts one frame longer
+  // than the explosion, which begins on the first DYING tick.
+  for (let frame = 0; frame < SHARED_FIGHTER_EXPLOSION_TOTAL; frame += 1) {
     advancePlayerLifecycle(state, asset);
     assert.equal(state.lives, 0);
   }

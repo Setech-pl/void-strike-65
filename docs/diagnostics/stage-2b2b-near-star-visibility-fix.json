@@ -1,0 +1,215 @@
+{
+  "schema": "void-strike-65.stage-2b2b-near-star-visibility-fix.v1",
+  "date": "2026-09-13",
+  "stage": "invisible white near stars diagnostic and fix",
+  "status": "PASS_NEAR_STAR_VISIBILITY_FIX",
+  "model": {
+    "name": "Codex (GPT-5 family)",
+    "reasoning": "High",
+    "note": "The requested GPT-5.6 Sol product label was not exposed by this session."
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "headBefore": "41d136f5a9a91e05c0b0886519c8e348d2753508",
+    "headAfter": "commit containing this report",
+    "claudeUntouched": true,
+    "pushMergeRelease": false,
+    "preservedRefs": {
+      "refs/wip/stage2b-foreign-0803": "13597d7fb6fa6bb0d04541ed68ab6715cec1e8d4",
+      "refs/wip/stage2b0-fdb-proof": "3e5d83f2f1944d2dd90b8a23bec9eaae0dcdebc8",
+      "refs/wip/stage2b2-single-window-rejected": "7f40ee0408356bf1f431b49bf5c51d50ae72a4b3"
+    }
+  },
+  "scope": {
+    "changed": "Near-star erase/publication lifetime, authoritative ring-step cache flag, recycle clone cleanup and transient-near backing normalization.",
+    "unchanged": [
+      "four near-star records",
+      "near speed of 8 scanlines per PAL frame",
+      "near columns and glyph",
+      "29 row-baked far stars and fine phase",
+      "PairShot gameplay and visuals",
+      "Effects 25 Hz/staggered",
+      "player fire cadence and audio",
+      "capital gameplay, ring cadence and debris"
+    ],
+    "backgroundRing25HzImplemented": false
+  },
+  "rootCause": {
+    "sequence": [
+      "publish_fighter_projectile_overlays rendered dynamic near after the gameplay playfield at VCOUNT $77",
+      "main_loop immediately began the next logical iteration",
+      "entity_effects_erase_with_two_layer_starfield erased that newly published near image",
+      "the erase completed 298-935 cycles after render, before ANTIC fetched the corresponding gameplay row in the next physical frame"
+    ],
+    "baselineNative": {
+      "fighterFrames": 200,
+      "renderAttempts": 804,
+      "successfulWrites": 764,
+      "occupancySkips": 40,
+      "anticFetchObservations": 805,
+      "nearGlyphFetches": 5,
+      "note": "Four of the five were initialization-bound observations; steady fighter publication was effectively invisible."
+    },
+    "playerCountWasNotEvidence": "The four active logical records and immediate screen writes existed, but their glyph lifetime did not overlap the next ANTIC fetch.",
+    "speedWasNotCause": true
+  },
+  "forcedStarProof": {
+    "diagnosticOnly": true,
+    "position": {
+      "logicalRow": 14,
+      "column": 20
+    },
+    "frames": 110,
+    "occupancyRejectionDisabled": true,
+    "productionGlyphAndColourContract": true,
+    "visible": true,
+    "result": "YES",
+    "productionMarkerCommitted": false
+  },
+  "glyphAnticColour": {
+    "anticMode": 4,
+    "characterCode": 2,
+    "characterHighBits": 0,
+    "charsetBase": "$4400",
+    "glyphBytes": [16, 0, 0, 0, 0, 0, 0, 0],
+    "pixelValue": 1,
+    "colourRegister": "COLPF0",
+    "fighterColpf0": "$0E",
+    "farCharacterCode": 1,
+    "farColourRegister": "COLPF1",
+    "fighterColpf1": "$84",
+    "proof": "ANTIC 4 interprets the near glyph's one non-zero pixel pair as playfield colour 0; the native forced-star screenshot showed a bright white point."
+  },
+  "addressMapping": {
+    "logicalRow0": "$4028 fixed divider",
+    "logicalRows1To27": "PLAYFIELD_ROW_LO/HI through the currently published display-list ring",
+    "physicalRing": "$8140-$8577",
+    "oldAddress": "STAR_NEAR_SCREEN_LO/HI retains the exact previously published physical cell until post-playfield erase",
+    "newAddress": "Resolved from logical row and current ring table; cached +40 is used only when the ring did not advance.",
+    "ringFix": "STAR_NEAR_RING_ADVANCED is a dedicated reused byte; ENTITY_FRAME_EVENTS could not be used because entity_effects_update consumes it before late publication.",
+    "result": "PASS across 1000 host-mode frames and repeated full wraps"
+  },
+  "fix": {
+    "erase": "erase_dynamic_near_star_overlays moved from frame-start effect erase to fighter_projectile_publication_begin in the following post-playfield window",
+    "render": "render_dynamic_near_star_overlays remains the final character publication and writes only CH_SPACE",
+    "ringRecycle": "restore_recycled_row_near_underlay removes a transient near copy created when the fixed divider is copied into a recycled row",
+    "backing": "debris, effects and PairShots normalize transient near code 2 to CH_SPACE before saving persistent backing",
+    "newRamBytes": 0,
+    "largeRendererRefactor": false
+  },
+  "publication": {
+    "nativeHarness": "persistent Atari800 7.1.2 PAL/XL with host-only DFTRACE_NEAR_HOLD_OPEN",
+    "fighterOpenFrames": 1100,
+    "renderAttempts": 4404,
+    "successfulCharacterWrites": 4225,
+    "occupancySkips": 179,
+    "occupancyHistogram": {
+      "blueFarCode1": 156,
+      "character11": 1,
+      "character110": 1,
+      "character112": 1,
+      "character218": 2,
+      "character219": 2,
+      "character228": 16
+    },
+    "immediateOverwrittenWrites": 0,
+    "anticFetchOpportunities": 4396,
+    "anticFetchesSeeingNear": 4076,
+    "framesWithAtLeastOneVisibleNear": 1099,
+    "visibleNearPerFrameHistogram": {
+      "one": 1,
+      "two": 3,
+      "three": 311,
+      "four": 784
+    },
+    "publicationOrphanCells": 0,
+    "staleCellsIn1000FrameHostWrapTest": 0,
+    "note": "Non-near fetch values are legal later occupancy/occlusion by current background or higher gameplay characters, not disappearance of the entire near layer. Temporary divider clones observed only in a scanline-0 snapshot between copy and cleanup were gone before gameplay fetch and after publication."
+  },
+  "cpu": {
+    "classification": "MEASURED instruction-exact for starfield routines; native active-work from observer trace",
+    "beforeStarfieldWorstCycles": 692,
+    "afterStarfieldWorstCycles": 766,
+    "deltaCycles": 74,
+    "historicalDynamicStarfieldCycles": 4221,
+    "retainedSavingCycles": 3455,
+    "hardStarfieldCeilingCycles": 900,
+    "effectResolverPeakBeforeCycles": 1092,
+    "effectResolverPeakAfterCycles": 1110,
+    "nativeActiveWorkMaxCycles": 26828,
+    "nativeRawCadenceMaxCycles": 36050,
+    "targetHeadroomCycles": 4372,
+    "hardGateHeadroomCycles": 5740,
+    "missedFrames": 0,
+    "targetOverruns": 0,
+    "hardGateOverruns": 0,
+    "extraVbiBoundaries": 0,
+    "dliOrderingErrors": 0,
+    "rawCadenceNote": "The raw value includes the intentional post-playfield wait and is not active work."
+  },
+  "memory": {
+    "before": {
+      "linkedRuntimeBytes": 17502,
+      "simultaneousResidencyBytes": 17980,
+      "safeHeadroomBytes": 4207
+    },
+    "after": {
+      "linkedRuntimeBytes": 17543,
+      "simultaneousResidencyBytes": 18021,
+      "safeHeadroomBytes": 4166,
+      "starfieldRawBytes": 2205,
+      "starfieldRawCapacityBytes": 2348,
+      "starfieldPackedBytes": 1792,
+      "starfieldPackedCapacityBytes": 1819,
+      "a2KernelBytes": 190,
+      "a2KernelCapacityBytes": 256,
+      "entityCodeBytes": 3162,
+      "pickupColdBytes": 865,
+      "pickupColdCapacityBytes": 1277,
+      "broadsideBytes": 6647,
+      "broadsideCapacityBytes": 6656,
+      "initialContentBytes": 13137,
+      "initialContentCapacityBytes": 13184
+    },
+    "delta": {
+      "linkedRuntimeBytes": 41,
+      "simultaneousResidencyBytes": 41,
+      "safeHeadroomBytes": -41,
+      "newStateBytes": 0
+    },
+    "placement": {
+      "starfieldRawMarginBytes": 143,
+      "starfieldPackedMarginBytes": 27,
+      "starfieldPackedSourceToPickupMarginBytes": 6,
+      "a2MarginBytes": 66,
+      "pickupColdMarginBytes": 412,
+      "broadsideMarginBytes": 9,
+      "initialContentMarginBytes": 47,
+      "entityCodeAligned": "$9100",
+      "loaderChanged": false,
+      "transportFormatChanged": false,
+      "basicRamUsed": false,
+      "result": "PASS"
+    }
+  },
+  "regression": {
+    "focusedSuites": "PASS 46/46",
+    "starfieldFrames": 1000,
+    "pairshotShots": 1200,
+    "pairshotGhosts": 0,
+    "staggeredEffects": 1200,
+    "staleEffectRemnants": 0,
+    "raiderKills": 5000,
+    "deadGenerationCells": 0,
+    "fireAudio": "PASS",
+    "coldBoot": "PASS 4/4 XEX/ATR",
+    "knownOutOfScopeHarnessIssue": "transport-layout-regression requires a host-native ca65 executable and returned macOS errno -86 in this environment; the WASM candidate build and byte-exact XEX/ATR staging tests passed."
+  },
+  "artifact": {
+    "path": "dist/void-strike-65.xex",
+    "sha256": "c5bdc93b8b2b822bad22e19f402c9347de4fa1996cf58871c05b3ec0eba0b826",
+    "status": "owner smoke candidate"
+  },
+  "decision": "White near-star publication is technically fixed; ready for owner smoke white near stars plus parallax.",
+  "next": "Owner smoke white near stars + parallax. Do not begin background/ring 25 Hz."
+}

@@ -1,0 +1,72 @@
+{
+  "id": "stage-2b2s-respawn-double-image",
+  "date": "2026-09-18",
+  "task": "Owner smoke of the death-frame deferral candidate (XEX b8ed318c…) FAILED: on every death, two PlayerFighter images appear during respawn — one centred, one offset left — flicker briefly and then resolve to one ship. Diagnose, then fix without re-planning Option E.",
+  "status": "OWNER-SMOKE CANDIDATE",
+  "branch": "wip/4.5d-gate-fail",
+  "base": {"commit": "ac67d9e", "runtime": "death-frame deferral candidate, XEX b8ed318c…"},
+  "candidate": {
+    "xex_sha256": "3ce1a1d650fc365e0910a500e1b84be343e330fe4926273b6eaa3ddd3dc7e07f",
+    "atr_sha256": "823b961ba80c67fdd6b92700ca65db14a875a4028a4c1ff32e122c7df5d7c8ad"
+  },
+  "regression": {
+    "introduced_by": "ac67d9e (Option E, death-frame deferral). NOT pre-existing: 2a8ff26 has no begin call in the DYING path at all, and the same reproduction there ends the respawn frame with FIGHTER_EXPLOSION_TIMER 0, one published image and HPOSP0/P3 at PLAYER_RESPAWN_X.",
+    "root_cause": "player_dying_tick guarded the deferred begin with FIGHTER_EXPLOSION_TIMER[player] == 0, read as 'begin pending'. On the LAST DYING frame that test is wrong: tick_shared_fighter_explosions (main_loop, before integration_update_player_death) erases the player slot at timer 1 and decrements it to 0 earlier in the same frame. player_dying_tick then read 0, called begin_player_fighter_explosion at the still-pre-death player_x/player_y, and fell through two instructions later to respawn_player.",
+    "why_that_frame": "BROAD_DEATH_TIMER = SHARED_FIGHTER_EXPLOSION_TOTAL+1 makes the death timer and the explosion timer finish on the same frame — the single frame on which an idle slot means 'just finished' rather than 'not yet begun'.",
+    "measured_symptom": {
+      "harness": "tests/entity-effects.test.mjs runtime image, lethal Interceptor contact at player_x 124 / player_y 100, PMG RAM zeroed first, driven in main_loop order tick_shared_fighter_explosions -> update_player_death -> render_shared_fighter_explosions.",
+      "frame_N_plus_25": {
+        "tick_shared_fighter_explosions": "PLAYER3 rows 104-111 cleared; FIGHTER_EXPLOSION_TIMER 1 -> 0",
+        "update_player_death": "begin_player_fighter_explosion x1 (timer 0 -> 24, origin 120/104) then respawn_player: PLAYER0 -> 225-239, PLAYER3 -> 229-239, HPOSP0/P3 120 -> 124",
+        "render_shared_fighter_explosions": "phase 0 republished at rows 107-108 in both planes; HPOSP0/P3 124 -> 120",
+        "result": "two published images for a further 24 frames (N+25..N+48), 4 colour clocks apart; HPOSP0/P3 end the frame at the explosion X, not PLAYER_RESPAWN_X"
+      },
+      "call_counts_in_the_respawn_frame": {"begin_player_fighter_explosion": 1, "respawn_player": 1, "erase_player": 2, "draw_player": 1},
+      "ordering_was_correct": "The intended erase-before-respawn ordering held throughout: tick_shared_fighter_explosions at +0 cycles (cost 305), update_player_death at +305 (cost 1,892), render_shared_fighter_explosions at +2,197 (cost 487). The defect was the re-begin inside update_player_death, after the erase."
+    }
+  },
+  "fix": {
+    "shape": "Option (a): the finishing frame leaves before the idle-slot test. player_dying_tick decrements BROAD_DEATH_TIMER first and branches to update_player_death_finished on zero; only a non-finishing DYING frame reaches the idle-slot test and the deferred begin.",
+    "why_provably_correct": "apply_player_damage (lethal tail) is the only writer of PLAYER_LIFECYCLE = PLAYER_DYING and the only writer of BROAD_DEATH_TIMER other than respawn_player's zero, and it sets both in one unbranched straight-line tail. DYING is therefore always entered with BROAD_DEATH_TIMER = SHARED_FIGHTER_EXPLOSION_TOTAL+1, so 'not the finishing frame' is exactly 'the explosion has not been begun yet, or is still running'. No begin-pending flag (option b) is needed.",
+    "deferral_unchanged": "BROAD_DEATH_TIMER stays SHARED_FIGHTER_EXPLOSION_TOTAL+1; the death frame still pays neither erase_player nor the first explosion phase; DYING still lasts 25 frames; the explosion still self-erases in the respawn frame, before respawn_player.",
+    "cost": {
+      "ram": 0,
+      "bytes": "18 B unchanged (dec/beq/lda/bne/jsr/clc/rts/jmp)",
+      "death_frame_cycles": 0,
+      "respawn_frame_cycles": "-809 (update_player_death 1,898 -> 1,562; render_shared_fighter_explosions 493 -> 20; measured, build/manifest.json runtimeTiming)"
+    }
+  },
+  "placement": {
+    "broadside": "6,650 B unchanged; free_broadside_slot $76A7 asserted",
+    "entity_code": "unchanged; player_dying_tick still 18 B at the ENTITY_CODE tail (the light-wingman placement freeze holds)",
+    "lbl_diff": "one line: the cheap local .@tick $9D3E becomes .@running $9D43. No global label moved, no segment size changed."
+  },
+  "gates": {
+    "build": "build:candidate clean",
+    "boot_smoke": {"result": "PASS 4/4", "xex_menu": 392, "atr_menu": 554, "atr_deadline": 554, "transport_sectors": 182},
+    "pal_timing_audit": {
+      "procedure": "Full gate set as stage-2b2q/2b2r: default run (aborts at the pre-existing weapon-pickup-contact invariant after 21 sessions), every later default session with --skip-boot-smoke --only-session, --debris-gate-only, --raider-remnant-only; then scripts/pal-timing-audit.mjs over all CSVs.",
+      "replays_audited": 67,
+      "distinct_miss_events": 0,
+      "verdict": "PASS",
+      "worst_margin": {"session": "raider-remnant-rapid-xex-hard", "row": 1945, "pre_wait": 24811, "margin": 466},
+      "rows_of_record": [
+        {"session": "debris-gate-0-neutral-fire0", "row": 3007, "pre_wait_before": 24206, "margin_before": 1043, "pre_wait_after": 24206, "margin_after": 1043},
+        {"session": "raider-remnant-rapid-xex-hard", "row": 1945, "pre_wait_before": 24811, "margin_before": 466, "pre_wait_after": 24811, "margin_after": 466}
+      ],
+      "regressions": "none: no session's worst fence margin moved in either direction across all 67 replays. The fix adds no cost to the death frame and removes cost from the respawn frame, which is not fence-bound."
+    },
+    "debris_gate": {"result": "unchanged from b8ed318c", "detail": "0-evasive-fire3 PASS, capital-muzzle-ring PASS, 0-neutral-fire0 1 blank frame / 1 disappearance in the post-capital life spanning host frames 5324-5436 (1,558 post-capital frames in view) — the documented pre-existing death-frame blink"},
+    "raider_remnant": {"result": "unchanged from b8ed318c", "detail": "PAL rows all PASS (margins 466 / 1,847 / 4,892); the gate's own explosion-count invariant still fails, as it already did at 2a67684"},
+    "focused_tests": {"files": 14, "tests": 175, "failing": 17, "note": "failure-name set identical to a build of ac67d9e in a scratch worktree (173 tests / 17 failing); the two added tests both pass"}
+  },
+  "test_coverage": {
+    "why_the_old_test_missed_it": "The ac67d9e deferral test read the explosion timer only BEFORE the final update_player_death, never called render_shared_fighter_explosions, and asserted nothing about PLAYER0/PLAYER3, HPOSP0/HPOSP3 or COLBK. It is a timer/lifecycle test and cannot see a second published image.",
+    "added": [
+      "entity-effects: 'the deferred death sequence publishes exactly one PlayerFighter image from the respawn frame on' — drives tick_shared_fighter_explosions -> update_player_death -> render_shared_fighter_explosions -> update_sound for frames N+1..N+50 and asserts: explosion timer 0 after the final update_player_death; exactly one contiguous published image in PLAYER0 and PLAYER3, equal to what draw_player publishes at the respawn origin; HPOSP0/HPOSP3 = PLAYER_RESPAWN_X at the end of the respawn frame and every frame after it; COLBK = GAMEPLAY_BACKGROUND_COLOR throughout the respawn (no death-flash replay); the finished explosion record left unrestarted at the pre-death origin.",
+      "entity-effects: 'the deferred begin still fires when the player dies at the respawn row' — the same sequence with the death origin overlapping the respawn rows, where the restarted explosion used to overwrite and later erase the live ship's own PMG bytes.",
+      "game-over: the player_dying_tick source freeze rebaselined to the corrected instruction order, with the reason in the file."
+    ],
+    "proof_of_coverage": "Both new tests were run against a rebuilt b8ed318c (the exact smoked artifact) and FAIL there — 'no deferred begin may fire on the finishing frame' — while the pre-existing timer-only test passes on both builds."
+  }
+}

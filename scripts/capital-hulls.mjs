@@ -312,7 +312,7 @@ function compileSector(definition, rowsBySide, depthsBySide, glyphs, screenCodes
   const turretLayout = source.turretLayout;
   invariant(turretLayout && typeof turretLayout === "object",
     "Capital hull sector must define seeded difficulty-scaled turret geometry");
-  const expectedTurretCounts = { easy: 8, medium: 12, hard: 16 };
+  const expectedTurretCounts = { easy: 10, medium: 15, hard: 20 };
   for (const [difficulty, count] of Object.entries(expectedTurretCounts)) {
     invariant(turretLayout.counts?.[difficulty] === count,
       `${difficulty} hulls must expose exactly ${count} functional turrets`);
@@ -949,7 +949,8 @@ export function compileCapitalHulls(definition, options = {}) {
   };
   const broadsideTiming = {
     provisionalFirstCapitalGameplayFrame:
-      boundedByte("provisionalFirstCapitalGameplayFrame", 1),
+      boundedWord("provisionalFirstCapitalGameplayFrame", 1),
+    activeLimit: boundedByte("activeLimit", 1),
     initialDelayFrames: boundedByte("initialDelayFrames", 1),
     retryDelayFrames: boundedByte("retryDelayFrames", 1),
     scheduleDelayScale: boundedByte("scheduleDelayScale", 1),
@@ -977,6 +978,8 @@ export function compileCapitalHulls(definition, options = {}) {
     respawnInvulnerableFrames: boundedWord("respawnInvulnerableFrames", 1),
     respawnBlinkHalfPeriodFrames: boundedByte("respawnBlinkHalfPeriodFrames", 1),
   };
+  invariant(broadsideTiming.activeLimit <= 3,
+    "broadside.activeLimit cannot exceed the three allocated M1-M3 slots");
   const projectileVisuals = broadside.projectileVisuals;
   invariant(projectileVisuals && typeof projectileVisuals === "object",
     "Capital hull source must define projectile visual language");
@@ -1325,6 +1328,7 @@ export function renderCapitalHullsCa65Include(asset) {
     `PROVISIONAL_FIRST_CAPITAL_FRAME = ${asset.broadside.provisionalFirstCapitalGameplayFrame}`,
     `BROADSIDE_SCHEDULE_COUNT = ${asset.schedule.length}`,
     "BROADSIDE_SCHEDULE_RECORD_BYTES = 2",
+    `BROADSIDE_ACTIVE_LIMIT = ${asset.broadside.activeLimit}`,
     `BROADSIDE_INITIAL_DELAY = ${asset.broadside.initialDelayFrames}`,
     `BROADSIDE_RETRY_DELAY = ${asset.broadside.retryDelayFrames}`,
     `BROADSIDE_WARNING_FRAMES = ${asset.broadside.warningFrames}`,

@@ -15,23 +15,19 @@ function byte(value) {
   return `$${value.toString(16).padStart(2, "0").toUpperCase()}`;
 }
 
-function projectileGlyphs(width, horizontalPhases, height) {
+function pairShotGlyphs(width, horizontalPhases, pairRows, phaseStride,
+  verticalPhases = 0) {
   const glyphs = [];
   for (const horizontalPhase of horizontalPhases) {
-    for (let verticalPhase = 0; verticalPhase < 8; verticalPhase += 1) {
+    const activeVerticalPhases = (horizontalPhase & 1) === 0 ? verticalPhases : 0;
+    for (let phase = 0; phase < phaseStride; phase += 1) {
       const rows = Array(8).fill(0);
-      for (let line = 0; line < height && verticalPhase + line < 8; line += 1) {
+      const verticalPhase = phase < activeVerticalPhases ? phase : 0;
+      for (const sourceRow of pairRows) {
+        const row = activeVerticalPhases === 0 ? sourceRow :
+          (sourceRow + verticalPhase - pairRows[0] + 8) & 7;
         for (let pixel = 0; pixel < width; pixel += 1) {
-          rows[verticalPhase + line] |= 3 << ((3 - horizontalPhase - pixel) * 2);
-        }
-      }
-      glyphs.push(rows);
-    }
-    for (let overflowPhase = 8 - height + 1; overflowPhase < 8; overflowPhase += 1) {
-      const rows = Array(8).fill(0);
-      for (let line = 8 - overflowPhase; line < height; line += 1) {
-        for (let pixel = 0; pixel < width; pixel += 1) {
-          rows[overflowPhase + line - 8] |= 3 << ((3 - horizontalPhase - pixel) * 2);
+          rows[row] |= 3 << ((3 - horizontalPhase - pixel) * 2);
         }
       }
       glyphs.push(rows);
@@ -54,6 +50,86 @@ function binaryMask(value, name) {
   return Number.parseInt(value, 2);
 }
 
+// Hostile projectile visuals are indexed by EnemyArchetype weapon_class (1..N)
+// and published as glyphs 89+c (left phase) and 99+c (right phase), so at most
+// nine classes fit the ten-glyph phase stride. Each authored glyph occupies
+// only the high nibble (ANTIC 4 pixels 0-1) so a two-pixel shift yields the
+// right phase, and never uses pixel value %11: that value is the player's
+// yellow COLPF2 or, under the hostile bit 7, the red COLPF3 shared with hulls.
+export const HOSTILE_WEAPON_VISUAL_IDS = Object.freeze(["PULSE", "LASER", "BOMBER"]);
+export const HOSTILE_WEAPON_VISUAL_MAX_CLASSES = 9;
+// Per-class movement rate: a class moves the shared hostile speed once every
+// stepPeriodFrames frames. The runtime gates on frame_counter & (period - 1),
+// so the period must be a power of two.
+export const HOSTILE_WEAPON_STEP_PERIODS = Object.freeze([1, 2, 4, 8]);
+
+function hostileWeaponStepPeriods(visuals) {
+  const periods = visuals.classes.map((entry, index) => {
+    invariant(HOSTILE_WEAPON_STEP_PERIODS.includes(entry.stepPeriodFrames),
+      `hostileWeaponVisuals.classes[${index}].stepPeriodFrames must be one of ${HOSTILE_WEAPON_STEP_PERIODS.join(", ")}`);
+    return entry.stepPeriodFrames;
+  });
+  // The phase visual mirrors its class period; ACTIVE never names it, so the
+  // extra mask byte is never indexed at runtime.
+  if (visuals.classes.at(-1).animationPhaseRows !== undefined) periods.push(periods.at(-1));
+  return periods;
+}
+
+function hostileWeaponGlyphRows(rows, name) {
+  invariant(Array.isArray(rows) && rows.length === 8, `${name} must contain 8 rows`);
+  const values = rows.map((mask, row) => binaryMask(mask, `${name}[${row}]`));
+  values.forEach((value, row) => {
+    invariant((value & 0x0f) === 0,
+      `${name}[${row}] must stay in the high nibble (two colour clocks)`);
+    invariant((value & 0xc0) !== 0xc0 && (value & 0x30) !== 0x30,
+      `${name}[${row}] must not use pixel value %11`);
+  });
+  invariant(values.some((value) => value !== 0), `${name} must draw at least one pixel`);
+  return values;
+}
+
+// Roadmap 4.5d: the BOMBER shell alternates two authored phases. The second
+// phase is not a weapon_class: it is published as visual BOMBER+1 (glyphs 93
+// and 103) while (frame_counter & HOSTILE_WEAPON_BOMBER_PHASE_MASK) is set, so
+// ACTIVE keeps class 3 and the step rate, damage and allocation are unchanged.
+// Only the last authored class may carry an animation phase, so the phase
+// visual can never alias a real class that C emits.
+export const HOSTILE_WEAPON_BOMBER_PHASE_MASK = 4;
+
+function hostileWeaponClasses(visuals) {
+  const classes = visuals?.classes;
+  invariant(Array.isArray(classes) && classes.length >= 1 &&
+    classes.length <= HOSTILE_WEAPON_VISUAL_MAX_CLASSES,
+  `hostileWeaponVisuals.classes must contain 1-${HOSTILE_WEAPON_VISUAL_MAX_CLASSES} weapon classes`);
+  classes.forEach((entry, index) => {
+    const name = `hostileWeaponVisuals.classes[${index}]`;
+    invariant(entry?.weaponClass === index + 1,
+      `${name}.weaponClass must be ${index + 1}: classes are authored in id order from 1`);
+    invariant(index >= HOSTILE_WEAPON_VISUAL_IDS.length || entry.id === HOSTILE_WEAPON_VISUAL_IDS[index],
+      `${name}.id must be ${HOSTILE_WEAPON_VISUAL_IDS[index]} (ENEMY_WEAPON_* in src/c/enemy-archetype.h)`);
+    invariant(entry.animationPhaseRows === undefined ||
+      (entry.id === "BOMBER" && index === classes.length - 1),
+    `${name}.animationPhaseRows is only supported on the last class, BOMBER`);
+  });
+  return classes;
+}
+
+// Published visuals in glyph order: one per weapon_class, then the BOMBER
+// animation phase when authored.
+function hostileWeaponVisualRows(visuals) {
+  const classes = hostileWeaponClasses(visuals);
+  const rows = classes.map((entry, index) => hostileWeaponGlyphRows(entry.leftPhaseRows,
+    `hostileWeaponVisuals.classes[${index}].leftPhaseRows`));
+  const animated = classes.at(-1);
+  if (animated.animationPhaseRows !== undefined) {
+    rows.push(hostileWeaponGlyphRows(animated.animationPhaseRows,
+      `hostileWeaponVisuals.classes[${classes.length - 1}].animationPhaseRows`));
+  }
+  invariant(rows.length <= HOSTILE_WEAPON_VISUAL_MAX_CLASSES,
+    `hostile weapon visuals must fit glyphs 90-${89 + HOSTILE_WEAPON_VISUAL_MAX_CLASSES}`);
+  return rows;
+}
+
 export function loadFighterWeaponsDefinition(sourcePath) {
   const definition = {
     ...JSON.parse(fs.readFileSync(sourcePath, "utf8")),
@@ -69,7 +145,16 @@ export function loadFighterWeaponsDefinition(sourcePath) {
 
   for (const [id, weapon] of [["player_fighter", definition.player_fighter]]) {
     integer(weapon?.poolSlots, `${id}.poolSlots`, 1, 16);
-    invariant(weapon.burstCount === 8, `${id} normal burst must contain exactly eight shots`);
+    integer(weapon.activeLimit, `${id}.activeLimit`, 1, weapon.poolSlots);
+    invariant(weapon.visiblePulsesPerObject === 2,
+      `${id} PairShot must depict exactly two visible pulses`);
+    invariant(Array.isArray(weapon.pairGlyphRows) &&
+      weapon.pairGlyphRows.join(",") === "1,2,5,6",
+    `${id} PairShot base phase must contain two two-row impulses`);
+    invariant(weapon.verticalPhases === 8,
+      `${id} PairShot must encode every logical scanline phase`);
+    invariant(weapon.burstCount === 4 && weapon.visibleBurstPulses === 8,
+      `${id} normal burst must contain four PairShots / eight visible pulses`);
     integer(weapon.burstIntervalFrames, `${id}.burstIntervalFrames`, 1, 16);
     integer(weapon.speedScanlines, `${id}.speedScanlines`, 1, 16);
     integer(weapon.widthHpos, `${id}.widthHpos`, 1, 2);
@@ -78,20 +163,31 @@ export function loadFighterWeaponsDefinition(sourcePath) {
   }
   invariant(definition.player_fighter.postBurstFrames === 12,
     "PlayerFighter post-burst pause must be 12 PAL frames");
-  invariant(definition.player_fighter.rapidFireBurstCount === 10 &&
+  invariant(definition.player_fighter.rapidFireBurstCount === 5 &&
+    definition.player_fighter.rapidFireVisiblePulses === 10 &&
     definition.player_fighter.rapidFireBurstCount <= definition.player_fighter.poolSlots &&
-    definition.player_fighter.rapidFireIntervalFrames === 2 &&
+    definition.player_fighter.rapidFireIntervalFrames === 6 &&
     definition.player_fighter.rapidFireDurationFrames === 500,
-  "Rapid Fire must use ten shots, a two-frame interval and exactly 500 active PAL frames");
-  invariant(definition.player_fighter.spreadShotBurstCount === definition.player_fighter.burstCount &&
+  "Rapid Fire must use five PairShots / ten pulses, a six-frame interval and exactly 500 active PAL frames");
+  // Spread opens with a simultaneous left/centre/right volley and then fires a
+  // single centre follow-up, so the burst is two fire events rather than four.
+  // The owner-accepted accounting is unchanged: the volley plus the follow-up
+  // are still four logical PairShots and eight visible pulses.
+  const spreadPairShots = definition.player_fighter.spreadShotProjectileCount +
+    (definition.player_fighter.spreadShotBurstCount - 1);
+  invariant(spreadPairShots === definition.player_fighter.burstCount &&
+    definition.player_fighter.spreadShotVisiblePulses === 8 &&
     definition.player_fighter.spreadShotDurationFrames === 500,
-  "Spread Shot must use the eight-salvo normal burst for exactly 500 active PAL frames");
+  "Spread Shot must still total four PairShots / eight pulses for exactly 500 active PAL frames");
+  invariant(definition.player_fighter.spreadShotProjectileCount <=
+    definition.player_fighter.poolSlots - 1,
+  "A Spread volley must leave a pool slot for the centre follow-up");
   invariant(definition.player_fighter.shieldDurationFrames === 250,
     "Shield must last exactly 250 active PAL frames");
   invariant(definition.player_fighter.spreadShotProjectileCount === 3,
-    "Spread Shot must allocate exactly three logical projectiles");
-  invariant(definition.player_fighter.spreadShotCooldownFrames === 10,
-    "Spread Shot cooldown must preserve one reserve slot at maximum legal lifetime");
+    "A Spread volley must allocate left, centre and right together");
+  invariant(definition.player_fighter.spreadShotCooldownFrames === 28,
+    "Spread Shot cooldown must preserve the reduced player-fire cadence");
   invariant(definition.player_fighter.spreadShotInitialOffsetHpos === 4,
     "Spread Shot side projectiles must start one character from the centre shot");
   invariant(definition.player_fighter.spreadShotLateralStepHpos === 1 &&
@@ -105,6 +201,7 @@ export function loadFighterWeaponsDefinition(sourcePath) {
   "Rapid Fire projectiles must remain in the PlayerFighter's yellow COLPF2 bank");
   integer(definition.glyphLayout?.player_fighterBase, "glyphLayout.player_fighterBase", 0, 127);
   integer(definition.glyphLayout?.interceptorBase, "glyphLayout.interceptorBase", 0, 127);
+  hostileWeaponVisualRows(definition.hostileWeaponVisuals);
   const explosion = definition.sharedFighterExplosion;
   invariant(explosion?.frameDurationFrames === 4,
     "Shared fighter explosion frames must last four PAL frames");
@@ -129,8 +226,12 @@ export function compileFighterWeapons(definition, enemyRoster) {
   const pulse = enemyRoster?.runtime?.weaponPolicy?.singlePulse;
   invariant(pulse?.renderer === "ANTIC4_GLYPH_POOL",
     "Fighter weapons require the Interceptor ANTIC 4 glyph-pool policy");
+  invariant(pulse.visiblePulsesPerObject === 2 &&
+    pulse.pairGlyphRows?.join(",") === "1,2,5,6",
+  "Interceptor fire must use the shared one-cell two-pulse PairShot form");
   const interceptor = Object.freeze({
     poolSlots: pulse.poolSlots,
+    activeLimit: pulse.activeLimit,
     burstCount: pulse.burstCount,
     burstIntervalFrames: pulse.burstIntervalFrames,
     postBurstFrames: pulse.postBurstFrames,
@@ -141,6 +242,8 @@ export function compileFighterWeapons(definition, enemyRoster) {
     lifetimeFrames: pulse.lifetimeFrames,
     colourRegister: pulse.colourRegister,
     colourValue: pulse.colourValue,
+    visiblePulsesPerObject: pulse.visiblePulsesPerObject,
+    pairGlyphRows: pulse.pairGlyphRows,
   });
   const player_fighter = definition.player_fighter;
   const activeImageTop = definition.viewport.activeImageTop;
@@ -161,8 +264,10 @@ export function compileFighterWeapons(definition, enemyRoster) {
     coreMasks: Uint8Array.from(definition.sharedFighterExplosion.coreMasks),
     slots: 2,
   });
-  const player_fighterGlyphs = projectileGlyphs(player_fighter.widthHpos, [0, 1, 2, 3], player_fighter.heightScanlines);
-  const interceptorGlyphs = projectileGlyphs(interceptor.widthHpos, [0, 2], interceptor.heightScanlines);
+  const player_fighterGlyphs = pairShotGlyphs(player_fighter.widthHpos, [0, 1, 2, 3],
+    player_fighter.pairGlyphRows, 9, player_fighter.verticalPhases);
+  const interceptorGlyphs = pairShotGlyphs(interceptor.widthHpos, [0, 2],
+    interceptor.pairGlyphRows, 10);
   invariant(player_fighterGlyphs.length === 36 && interceptorGlyphs.length === 20,
     "Fighter projectile phase glyph count changed");
   invariant(definition.glyphLayout.player_fighterBase + player_fighterGlyphs.length <= 59,
@@ -170,9 +275,17 @@ export function compileFighterWeapons(definition, enemyRoster) {
   invariant(definition.glyphLayout.interceptorBase >= 90 &&
     definition.glyphLayout.interceptorBase + interceptorGlyphs.length <= 128,
   "Interceptor projectile glyphs must stay in the post-capital charset tail");
+  const hostileWeaponVisuals = hostileWeaponVisualRows(definition.hostileWeaponVisuals);
+  const hostileWeaponStepPeriodFrames = hostileWeaponStepPeriods(definition.hostileWeaponVisuals);
+  invariant(definition.glyphLayout.interceptorBase === 90 &&
+    hostileWeaponVisuals.length < interceptorGlyphs.length / 2,
+  "Hostile weapon visuals must publish inside glyphs 90-109 at base 89 + weapon_class");
   return Object.freeze({
     ...definition,
     interceptor,
+    hostileWeaponVisuals: Object.freeze(hostileWeaponVisuals),
+    hostileWeaponStepPeriodFrames: Object.freeze(hostileWeaponStepPeriodFrames),
+    hostileWeaponAnimated: definition.hostileWeaponVisuals.classes.at(-1).animationPhaseRows !== undefined,
     viewport: Object.freeze({
       ...definition.viewport,
       hudTop,
@@ -202,13 +315,24 @@ export function renderFighterWeaponsCa65Include(asset) {
     `PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE = ${asset.glyphLayout.player_fighterBase}`,
     `INTERCEPTOR_PROJECTILE_GLYPH_BASE = ${asset.glyphLayout.interceptorBase}`,
     "PLAYER_FIGHTER_PROJECTILE_GLYPH_STRIDE = 9",
+    `PLAYER_FIGHTER_PROJECTILE_VERTICAL_PHASE_COUNT = ${player_fighter.verticalPhases}`,
     "INTERCEPTOR_PROJECTILE_GLYPH_STRIDE = 10",
     `PLAYER_FIGHTER_PROJECTILE_GLYPH_COUNT = ${asset.glyphs.player_fighter.length}`,
     `INTERCEPTOR_PROJECTILE_GLYPH_COUNT = ${asset.glyphs.interceptor.length}`,
+    `HOSTILE_WEAPON_VISUAL_COUNT = ${asset.hostileWeaponVisuals.length}`,
+    `HOSTILE_WEAPON_CLASS_COUNT = ${asset.hostileWeaponVisuals.length - (asset.hostileWeaponAnimated ? 1 : 0)}`,
+    `HOSTILE_WEAPON_BOMBER_PHASE_VISUAL = ${asset.hostileWeaponAnimated ? asset.hostileWeaponVisuals.length : 0}`,
+    `HOSTILE_WEAPON_BOMBER_PHASE_MASK = ${HOSTILE_WEAPON_BOMBER_PHASE_MASK}`,
     `PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT = ${player_fighter.poolSlots}`,
+    `PLAYER_FIGHTER_PROJECTILE_ACTIVE_LIMIT = ${player_fighter.activeLimit}`,
     `INTERCEPTOR_PROJECTILE_SLOT_COUNT = ${interceptor.poolSlots}`,
+    `INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT = ${interceptor.activeLimit}`,
     `FIGHTER_PROJECTILE_SLOT_COUNT = ${asset.totalSlots}`,
     `INTERCEPTOR_PROJECTILE_SLOT_BASE = ${player_fighter.poolSlots}`,
+    `PAIRSHOT_VISIBLE_PULSES_PER_OBJECT = ${player_fighter.visiblePulsesPerObject}`,
+    `PLAYER_FIGHTER_NORMAL_VISIBLE_PULSES = ${player_fighter.visibleBurstPulses}`,
+    `PLAYER_FIGHTER_RAPID_VISIBLE_PULSES = ${player_fighter.rapidFireVisiblePulses}`,
+    `PLAYER_FIGHTER_SPREAD_VISIBLE_PULSES = ${player_fighter.spreadShotVisiblePulses}`,
     "WEAPON_BURST_WAITING = 0",
     "WEAPON_BURST_FIRING = 1",
     "WEAPON_BURST_POST = 2",
@@ -256,6 +380,12 @@ export function renderFighterWeaponsCa65Include(asset) {
     ...emitGlyphMacro("EMIT_PLAYER_FIGHTER_PROJECTILE_GLYPHS_TAIL", asset.glyphs.player_fighter.slice(5)),
     "",
     ...emitGlyphMacro("EMIT_INTERCEPTOR_PROJECTILE_GLYPHS", asset.glyphs.interceptor),
+    "",
+    ...emitGlyphMacro("EMIT_HOSTILE_WEAPON_VISUAL_GLYPHS", asset.hostileWeaponVisuals),
+    "",
+    ".macro EMIT_HOSTILE_WEAPON_STEP_MASKS",
+    `    .byte ${asset.hostileWeaponStepPeriodFrames.map((period) => byte(period - 1)).join(",")}`,
+    ".endmacro",
     "",
     `.macro EMIT_SHARED_FIGHTER_EXPLOSION_MASKS\n    .byte ${[...explosion.outerBytes].map(byte).join(",")}\n.endmacro`,
     `.macro EMIT_SHARED_FIGHTER_EXPLOSION_CORE_MASKS\n    .byte ${[...explosion.coreMasks].map(byte).join(",")}\n.endmacro`,
@@ -310,22 +440,30 @@ export function renderSharedFighterExplosionPmg(asset, state, {
   return { outer: nextOuter, core: nextCore };
 }
 
+// Model of build_interceptor_projectile_glyphs: the twenty-glyph bank 90-109
+// as the runtime leaves it. Class c (1..N) is written at glyph 89+c from the
+// authored left phase and at 99+c shifted right by two ANTIC 4 pixels; every
+// other glyph keeps its initial bytes and is never published.
 export function buildInterceptorProjectileGlyphBank(asset, initialBytes) {
   const expectedLength = asset.glyphs.interceptor.length * 8;
   invariant(initialBytes.length === expectedLength,
     `Interceptor projectile glyph bank must contain ${expectedLength} bytes`);
   const bytes = Uint8Array.from(initialBytes);
-  bytes.fill(0);
-  for (let group = 0; group < 2; group += 1) {
-    const mask = group === 0 ? 0xf0 : 0x0f;
-    for (let glyph = 0; glyph < 10; glyph += 1) {
-      const rows = asset.glyphs.interceptor[group * 10 + glyph];
-      for (let row = 0; row < 8; row += 1) {
-        if (rows[row] !== 0) bytes[(group * 10 + glyph) * 8 + row] = mask;
-      }
+  asset.hostileWeaponVisuals.forEach((rows, index) => {
+    for (let row = 0; row < 8; row += 1) {
+      bytes[index * 8 + row] = rows[row];
+      bytes[(10 + index) * 8 + row] = rows[row] >> 4;
     }
-  }
+  });
   return bytes;
+}
+
+// Screen code the renderer publishes for a hostile slot:
+// (89 + (ACTIVE >> 3) + (X & 2 ? 10 : 0)) | $80; a BOMBER shell (class 3)
+// publishes its animation phase, visual 4, while frame & 4 is set.
+export function hostileProjectileScreenCode(active, x, frame = 0) {
+  const phase = (active >> 3) === 3 && (frame & HOSTILE_WEAPON_BOMBER_PHASE_MASK) !== 0 ? 1 : 0;
+  return (89 + (active >> 3) + phase + ((x & 2) !== 0 ? 10 : 0)) | 0x80;
 }
 
 export function createPlayerFighterBurstState(asset) {
@@ -347,6 +485,7 @@ export function stepPlayerFighterBurst(asset, state, {
   gameplayActive = true,
   drain = false,
   sectorComplete = false,
+  playerVisibleWidthHpos = 16,
 } = {}) {
   invariant(["NORMAL", "RAPID"].includes(weaponMode),
     "PlayerFighter burst simulation supports NORMAL or RAPID mode");
@@ -396,11 +535,12 @@ export function stepPlayerFighterBurst(asset, state, {
   }
   if (next.timer > 0) next.timer -= 1;
   if (next.timer > 0) return next;
-  const slot = next.pool.findIndex((shot) => shot === null);
+  const slot = next.pool.findIndex((shot, index) =>
+    index < asset.player_fighter.activeLimit && shot === null);
   if (slot < 0) return next;
   next.pool[slot] = {
     owner: "PLAYER_FIGHTER",
-    x: playerX + 4,
+    x: playerX + playerVisibleWidthHpos / 2,
     y: playerY - asset.player_fighter.heightScanlines,
     previousY: playerY - asset.player_fighter.heightScanlines,
     width: asset.player_fighter.widthHpos,

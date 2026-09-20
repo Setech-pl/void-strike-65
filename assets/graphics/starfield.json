@@ -6,30 +6,33 @@
     "endColumn": 32
   },
   "farLayer": {
-    "population": 29,
-    "rateNumerator": 1,
-    "rateDenominator": 4,
+    "population": 0,
+    "representation": "disabled",
+    "rateNumerator": 0,
+    "rateDenominator": 1,
+    "finePhase": false,
     "colourRegister": "COLPF1",
-    "glyphs": [
-      { "id": "DIM", "screenCode": 1, "bytes": [0, 0, 0, 32, 0, 0, 0, 0] },
-      { "id": "BRIGHT", "screenCode": 2, "bytes": [0, 0, 8, 0, 0, 0, 0, 0] },
-      { "id": "SHIFTED", "screenCode": 3, "bytes": [0, 0, 0, 0, 2, 0, 0, 0] }
-    ]
+    "pattern": {
+      "rows": 0,
+      "columns": [],
+      "glyphs": []
+    },
+    "glyphs": []
   },
   "nearLayer": {
-    "rateNumerator": 1,
-    "rateDenominator": 2,
-    "densityNumerator": 3,
-    "densityDenominator": 8,
-    "specialFrequency": 8,
+    "representation": "sparse-dynamic",
+    "population": 4,
+    "speedPixelsPerFrame": 1,
+    "initialRows": [2, 9, 16, 23],
+    "initialColumns": [11, 18, 25, 29],
+    "initialGlyphs": ["POINT", "POINT", "POINT", "POINT"],
     "colourRegister": "COLPF0",
     "glyphs": [
-      { "id": "POINT", "screenCode": 4, "bytes": [0, 0, 0, 16, 0, 0, 0, 0] },
-      { "id": "DOUBLE", "screenCode": 5, "bytes": [0, 0, 0, 20, 0, 0, 0, 0] },
-      { "id": "SPARKLE", "screenCode": 6, "bytes": [0, 0, 16, 84, 16, 0, 0, 0] }
+      { "id": "POINT", "screenCode": 1, "bytes": [16, 0, 0, 0, 0, 0, 0, 0] }
     ]
   },
   "twinkle": {
+    "enabled": false,
     "intervalFrames": 16,
     "starsPerInterval": 1
   }

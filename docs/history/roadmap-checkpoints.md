@@ -16,4 +16,4 @@ following sequence is retained for provenance, not as the current queue:
 
 At several checkpoints the next feature was described as entity/effects
 foundation or debris work. Those statements were correct only at the time and
-are superseded by [../roadmap.md](../roadmap.md).
+are superseded by [roadmap-2026-09-15.md](roadmap-2026-09-15.md).

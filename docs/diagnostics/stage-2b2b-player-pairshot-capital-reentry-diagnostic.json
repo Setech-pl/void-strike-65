@@ -1,0 +1,139 @@
+{
+  "schema": "void-strike-65.player-pairshot-capital-reentry-diagnostic.v1",
+  "status": "INCONCLUSIVE",
+  "baseline": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "head": "a6bc79e2eb0ff521304a24f5e01ef6ade1556b3d",
+    "production_xex_sha256": "cde949e54eef956709daf0c29de44613de1ea1a9259fc357f91f85c8a17cce8c",
+    "production_changed": false
+  },
+  "scope": "Diagnostic reproduction of Player PairShot publication before, during and after repeated capital traversals; no gameplay or booster change.",
+  "reproduction": {
+    "emulator": "Atari800 7.1.2 PAL",
+    "completed_pal_frames": 21000,
+    "modes": ["Normal", "Rapid", "Spread"],
+    "frames_per_mode": 7000,
+    "capital_traversals_per_mode": 5,
+    "fighter_reentry_frames": [1266, 2532, 3798, 5064, 6330],
+    "owner_equivalent_post_reentry_slowdown_reproduced": false,
+    "note": "The harness accelerates only Director admission. Production hull-state progression, drain, COMPLETE reconstruction, OPEN re-entry, projectile simulation and projectile publication execute unchanged."
+  },
+  "classification": {
+    "result": "NONE_PROVEN_FOR_OWNER_REENTRY_DEFECT",
+    "A_logical_movement": "rejected in all 3353 post-reentry active samples",
+    "B_simulation_update_frequency": "rejected in all 3353 post-reentry active samples",
+    "C_visual_glyph_phase_selection": "rejected in all 3353 post-reentry active samples",
+    "D_glyph_data_overwrite_or_restore": "rejected: one hash and zero writes across all 21000 frames",
+    "E_charset_chbase_selection": "rejected: the same gameplay and HUD DLI writers remain active",
+    "F_alternate_renderer": "rejected: one publication writer PC in all modes/sectors",
+    "G_screen_ring_mapping": "no post-reentry publication-address or phase violation observed",
+    "H_other": "not identified"
+  },
+  "samples": {
+    "before_capital_active": 889,
+    "post_reentry_first_120_frames_active": 2533,
+    "post_reentry_logical_delta_violations": 0,
+    "post_reentry_update_count_violations": 0,
+    "post_reentry_publication_count_violations": 0,
+    "post_reentry_phase_selection_violations": 0,
+    "post_reentry_visible_publication_violations": 0,
+    "each_of_15_reentry_windows_individually_clean": true
+  },
+  "post_reentry_fire_phases": {
+    "immediate_fire_active_samples": {"Normal": 598, "Rapid": 859, "Spread": 282},
+    "immediate_fire_allocations": {"Normal": 31, "Rapid": 40, "Spread": 10},
+    "deliberate_30_frame_release_allocations": 0,
+    "resume_active_samples": {"Normal": 199, "Rapid": 288, "Spread": 74},
+    "resume_allocations": {"Normal": 20, "Rapid": 25, "Spread": 9},
+    "movement_or_publication_violations": 0
+  },
+  "representative_before": [
+    {"frame": 60, "slot": 0, "y_before": 133, "y_after": 127, "delta": 6, "updates": 1, "visible_y": 127, "vertical_phase": 7, "glyph": 18, "screen": 33461},
+    {"frame": 61, "slot": 0, "y_before": 127, "y_after": 121, "delta": 6, "updates": 1, "visible_y": 121, "vertical_phase": 1, "glyph": 12, "screen": 33421},
+    {"frame": 62, "slot": 0, "y_before": 121, "y_after": 115, "delta": 6, "updates": 1, "visible_y": 115, "vertical_phase": 3, "glyph": 14, "screen": 33381},
+    {"frame": 63, "slot": 0, "y_before": 115, "y_after": 109, "delta": 6, "updates": 1, "visible_y": 109, "vertical_phase": 5, "glyph": 16, "screen": 33301},
+    {"frame": 64, "slot": 0, "y_before": 109, "y_after": 103, "delta": 6, "updates": 1, "visible_y": 103, "vertical_phase": 7, "glyph": 18, "screen": 33261},
+    {"frame": 65, "slot": 0, "y_before": 103, "y_after": 97, "delta": 6, "updates": 1, "visible_y": 97, "vertical_phase": 1, "glyph": 12, "screen": 33221}
+  ],
+  "representative_after_first_reentry": [
+    {"frame": 1266, "slot": 0, "y_before": 157, "y_after": 151, "delta": 6, "updates": 1, "visible_y": 151, "vertical_phase": 7, "glyph": 18, "screen": 33220},
+    {"frame": 1267, "slot": 0, "y_before": 151, "y_after": 145, "delta": 6, "updates": 1, "visible_y": 145, "vertical_phase": 1, "glyph": 12, "screen": 33180},
+    {"frame": 1268, "slot": 0, "y_before": 145, "y_after": 139, "delta": 6, "updates": 1, "visible_y": 139, "vertical_phase": 3, "glyph": 14, "screen": 33140},
+    {"frame": 1269, "slot": 0, "y_before": 139, "y_after": 133, "delta": 6, "updates": 1, "visible_y": 133, "vertical_phase": 5, "glyph": 16, "screen": 34140},
+    {"frame": 1270, "slot": 0, "y_before": 133, "y_after": 127, "delta": 6, "updates": 1, "visible_y": 127, "vertical_phase": 7, "glyph": 18, "screen": 34100},
+    {"frame": 1271, "slot": 0, "y_before": 127, "y_after": 121, "delta": 6, "updates": 1, "visible_y": 121, "vertical_phase": 1, "glyph": 12, "screen": 34060}
+  ],
+  "runtime_glyph_charset": {
+    "player_pairshot_glyph_bank": "$4458-$4577",
+    "hash": "FNV1a32 $18018891",
+    "hash_before_capital": "$18018891",
+    "hash_during_capital": "$18018891",
+    "hash_after_reentry": "$18018891",
+    "writes_to_bank": 0,
+    "gameplay_chbase": "$44",
+    "gameplay_chbase_writer": "$622F gameplay_dli",
+    "gameplay_chbase_host_correlation": "same Atari800 host frame before capital and on every sampled re-entry frame",
+    "hud_chbase": "$50",
+    "hud_chbase_writer": "$6251 gameplay_dli_hud",
+    "hud_chbase_host_correlation": "same Atari800 host frame before capital and on every sampled re-entry frame",
+    "projectile_publication_writer": "$92E1 render_fighter_projectile_overlays/@draw_top",
+    "alternate_renderer_seen": false
+  },
+  "fire_cadence": {
+    "changed": false,
+    "normal_post_reentry_intervals": {"9": 36, "12": 5, "33": 1, "39": 4},
+    "rapid_post_reentry_intervals": {"6": 45, "12": 10, "36": 5},
+    "spread_post_reentry_intervals": {"28": 9, "36": 1, "52": 1, "58": 2, "80": 1},
+    "interpretation": "The 9/12 Normal, 6/12 Rapid and 28 Spread production intervals remain present. Longer gaps cross the diagnostic's deliberate 30-frame FIRE release or ordinary pool pressure; no cadence code changed."
+  },
+  "preliminary_held_fire_observation": {
+    "owner_equivalent": false,
+    "frame": 5781,
+    "mode": "Rapid",
+    "sector_state": 2,
+    "slot": 2,
+    "y_before": 56,
+    "y_after": 44,
+    "delta": 12,
+    "updates": 2,
+    "lifetime_before": 229,
+    "lifetime_after": 227,
+    "publication_count": 1,
+    "visible_y": 44,
+    "note": "A preliminary held-FIRE-only trial captured one isolated double logical update deep inside the fifth capital traversal, 549 frames before re-entry. It did not persist, was absent from the final immediate-fire plus pause/resume run, and no post-reentry window contained it. It is reported, not repaired or attributed to the owner's slower-after-reentry observation."
+  },
+  "native_gates": {
+    "maximum_wall_cycles_by_mode": {"Normal": 28461, "Rapid": 28508, "Spread": 28461},
+    "target_overruns": 0,
+    "hard_overruns": 0,
+    "missed_frames": 0,
+    "extra_vbi": 0,
+    "dli_sequence_anomalies": 0,
+    "maximum_dlis_per_host_frame": 2,
+    "pairshot_stale_cells": 0,
+    "pairshot_orphan_cells": 0,
+    "enemy_projectile_stale_cells": 0
+  },
+  "validation": {
+    "focused_tests": "94/96 PASS",
+    "focused_failures": [
+      "capital-traversal-timing.test.mjs retains an old ignored-trace maximum tuple (expected 1455/1432/31997, current baseline file 77/78/28667)",
+      "effects-stagger.test.mjs retains an old exact peak (expected 1032, current baseline executes 1008)"
+    ],
+    "production_source_changed_by_task": false,
+    "boot_smoke": "4/4 XEX/ATR cold-start sessions PASS",
+    "diagnostic_analyser": "scripts/player-pairshot-reentry-analysis.mjs"
+  },
+  "cpu_memory": {
+    "linked_code_delta_bytes": 0,
+    "runtime_ram_delta_bytes": 0,
+    "post_transition_initialization_delta_cycles": 0,
+    "projectile_publication_delta_cycles": 0,
+    "maximum_wall_cycles_in_this_diagnostic": 28508,
+    "target_headroom_cycles": 2692,
+    "hard_headroom_cycles": 4060,
+    "comparison_note": "The diagnostic maximum is from a repeated-transition scenario and is not compared as a delta against the earlier different replay maximum."
+  },
+  "fix": "None. The owner-equivalent post-capital slowdown was not reproduced, so a runtime change would be speculative.",
+  "next_task": "Diagnose missing booster admission/spawn across fighter and capital sector transitions."
+}

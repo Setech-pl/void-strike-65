@@ -178,7 +178,8 @@ test("both ships share one finite progression and retain an immutable eight-row 
   assert.equal(world.corridorPhase, 488);
   assert.equal(world.drainRows, 28);
   assert.equal(world.hullAdvances, 516);
-  assert.equal(frame, 1032);
+  assert.equal(frame, 1032,
+    "restored capital cadence must match the pre-tuning full traversal");
 });
 
 test("assembled sector dictionaries, sequences, and overlays match the source asset", () => {
@@ -209,22 +210,22 @@ test("assembled sector dictionaries, sequences, and overlays match the source as
   }
 });
 
-test("seeded layouts expose exact 8/12/16 independent functional cannons", () => {
+test("seeded layouts expose exact 10/15/20 independent functional cannons", () => {
   const allied = asset.sector.cannonRowsBySide.get("allied");
   const enemy = asset.sector.cannonRowsBySide.get("enemy");
-  assert.deepEqual(allied, [33, 65, 89, 113, 153, 177, 201, 225,
-    249, 289, 313, 337, 361, 385, 409, 441]);
-  assert.deepEqual(enemy, [33, 57, 97, 121, 145, 169, 193, 233,
-    257, 281, 305, 329, 353, 393, 417, 441]);
-  assert.equal(allied.filter((row) => enemy.includes(row)).length, 2);
+  assert.deepEqual(allied, [33, 65, 81, 97, 113, 137, 169, 185, 209, 225,
+    241, 273, 297, 321, 337, 361, 385, 401, 417, 441]);
+  assert.deepEqual(enemy, [33, 65, 81, 97, 121, 145, 161, 177, 201, 233,
+    249, 273, 289, 305, 337, 361, 385, 409, 425, 441]);
+  assert.equal(allied.filter((row) => enemy.includes(row)).length, 9);
   for (const rows of [allied, enemy]) {
-    assert.equal(rows.length, 16);
+    assert.equal(rows.length, 20);
     assert.equal(rows.every((row) => row >= 32 && row < 448), true);
-    assert.equal(rows.every((row, index) => index === 0 || row - rows[index - 1] >= 24), true);
+    assert.equal(rows.every((row, index) => index === 0 || row - rows[index - 1] >= 16), true);
   }
   for (const side of ["allied", "enemy"]) {
     assert.deepEqual(["easy", "medium", "hard"].map((difficulty) =>
-      asset.sector.cannonRowsByDifficulty.get(side).get(difficulty).length), [8, 12, 16]);
+      asset.sector.cannonRowsByDifficulty.get(side).get(difficulty).length), [10, 15, 20]);
   }
   for (let phase = 0; phase <= asset.sector.totalRows; phase += 1) {
     for (const side of ["allied", "enemy"]) {
@@ -237,14 +238,14 @@ test("seeded layouts expose exact 8/12/16 independent functional cannons", () =>
   }
 });
 
-test("flagship keeps the provisional cadence, warning, speed, damage, and M0 ownership", () => {
-  assert.deepEqual([...asset.scheduleBytes], [1, 68, 1, 68, 1, 68, 0, 138]);
+test("flagship keeps the restored traversal cadence, warning, speed, damage, and M0 ownership", () => {
+  assert.deepEqual([...asset.scheduleBytes], [1, 210, 1, 210, 1, 210, 0, 254]);
   assert.equal(asset.broadside.warningFrames, 25);
   assert.equal(asset.broadside.projectileSpeed, 2);
   assert.equal(asset.broadside.playerDamage, 20);
   assert.deepEqual(asset.broadside.worldScrollRates, { easy: 8, medium: 9, hard: 10 });
-  assert.deepEqual(asset.broadside.hullScrollRates, { easy: 8, medium: 9, hard: 10 });
-  assert.equal(asset.broadside.hullScrollRateDenominator, 20);
+  assert.deepEqual(asset.broadside.hullScrollRates, { easy: 16, medium: 18, hard: 20 });
+  assert.equal(asset.broadside.hullScrollRateDenominator, 40);
   assert.equal(updateMissileByte(0xff, 1, false), 0xf3);
   assert.equal(updateMissileSize(0x01, 1, 1) & 0x03, 0x01,
     "changing M1 size preserves M0's pair");
@@ -632,6 +633,8 @@ test("assembled explosion tables, restoration, collision isolation, and sound ow
     source.indexOf("tick_capital_explosions:"));
   assert.match(soundRoutine, /sound_enabled[\s\S]+AUDCTL[\s\S]+CAPITAL_EXPLOSION_SOUND_TIMER/);
   assert.doesNotMatch(soundRoutine, /COLPM|COLPF|SIZEM|PRIOR/);
+  assert.match(source, /@hit:\s+lda hit_timer\s+beq @capital[\s\S]+@capital:\s+lda CAPITAL_EXPLOSION_SOUND_TIMER/,
+    "an idle hit channel must still advance and release the capital SFX channel");
   assert.match(source, /AUDF4\s*= \$D206[\s\S]+AUDC4\s*= \$D207/);
 });
 

@@ -29,13 +29,15 @@ const rootDirectory = path.resolve(testDirectory, "..");
 const rosterPath = path.join(rootDirectory, "assets", "graphics", "enemy-roster.json");
 const hullsPath = path.join(rootDirectory, "assets", "graphics", "capital-hulls.json");
 const source = fs.readFileSync(path.join(rootDirectory, "src", "main.s"), "utf8");
+const lifecycleSource = fs.readFileSync(
+  path.join(rootDirectory, "src", "c", "lifecycle.c"), "utf8");
 const definition = loadEnemyRosterDefinition(rosterPath);
 const asset = compileEnemyRoster(definition, rootDirectory);
 const hulls = loadCapitalHullsDefinition(hullsPath);
 const manifest = JSON.parse(fs.readFileSync(path.join(rootDirectory, "build", "manifest.json"), "utf8"));
 const labels = new Map(
-  fs.readFileSync(path.join(rootDirectory, "build", "void-strike-65.lbl"), "utf8")
-    .split(/\r?\n/)
+  ["build/void-strike-65.lbl", "build/encounter-director.lbl"]
+    .flatMap((file) => fs.readFileSync(path.join(rootDirectory, file), "utf8").split(/\r?\n/))
     .map((line) => /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim()))
     .filter(Boolean)
     .map((match) => [match[2], Number.parseInt(match[1], 16)]),
@@ -117,7 +119,8 @@ test("anchor masks are non-empty, structurally distinct, and preserve player-fac
   const [interceptor, talon, bomber] = asset.implemented;
   assert.equal(interceptor.visibleWidth, 16);
   assert.equal(talon.visibleWidth, 6);
-  assert.equal(bomber.visibleWidth, 16);
+  // 4.5c: SCYTHE_BOMBER is a QUAD (32-HPOS) hull.
+  assert.equal(bomber.visibleWidth, 32);
   assert.ok(talon.visibleWidth < interceptor.visibleWidth);
   assert.ok(bomber.occupiedArea > talon.occupiedArea * 1.5);
   assert.ok(interceptor.occupiedArea > talon.occupiedArea);
@@ -134,6 +137,28 @@ test("anchor masks are non-empty, structurally distinct, and preserve player-fac
       .reduce((max, value) => Math.max(max, value.toString(2).replaceAll("0", "").length), 0);
     assert.ok(upperWidth >= noseWidth, `${archetype.id} narrows toward its player-facing lower nose`);
   }
+});
+
+test("4.5d Bomber silhouette: a catamaran, not a larger Raider", () => {
+  const [, talon, bomber] = asset.implemented;
+  // Two hulls joined by a bridge (rows 3-5) and twin prongs, so the Raider's
+  // full-width shoulders / converging V / single spine tail all disappear.
+  assert.deepEqual([...bomber.bodyRows], [
+    0xc3, 0xe7, 0xe7, 0xdb, 0xff, 0xff, 0xdb, 0xe7,
+    0xe7, 0xe7, 0xc3, 0xc3, 0x81, 0x00, 0x00, 0x00,
+  ]);
+  assert.equal(bomber.height, 16, "height stays 16 rows");
+  assert.deepEqual(bomber.visibleBits, [0, 7]);
+  assert.equal(bomber.connectedComponents, 1, "the bridge joins the two masses");
+  assert.equal(bomber.occupiedArea, 72);
+  assert.ok(bomber.occupiedArea > talon.occupiedArea * 1.5);
+  // The torpedo leaves between the prongs, one row above the old origin.
+  assert.equal(bomber.projectileSpawnYOffset, 13);
+  assert.deepEqual([...readRuntimeBytes(labels.get("enemy_projectile_spawn_y_offsets"), 3)],
+    [13, 15, 13]);
+  assert.deepEqual([...readRuntimeBytes(labels.get("enemy_frame_heights"), 3)], [14, 16, 16],
+    "frame heights are unchanged, so the hit box, departing-row erase and "
+    + "explosion anchor are untouched");
 });
 
 test("three scanner phases stay centred inside each native hull envelope", () => {
@@ -165,9 +190,6 @@ test("assembled descriptor tables and PMG frame bytes exactly match the editable
     ["enemy_visible_widths", asset.implemented.map(({ visibleWidth }) => visibleWidth)],
     ["enemy_logical_x_maxs", asset.implemented.map(({ logicalBounds }) => logicalBounds[1])],
     ["enemy_accent_rows", asset.implemented.map(({ accentRow }) => accentRow)],
-    ["enemy_hit_points", asset.implemented.map(({ hitPoints }) => hitPoints)],
-    ["enemy_scores", asset.implemented.map(({ scoreBcd }) => scoreBcd)],
-    ["enemy_weapon_profiles", asset.implemented.map(({ weaponProfileId }) => weaponProfileId)],
     ["enemy_projectile_spawn_y_offsets",
       asset.implemented.map(({ projectileSpawnYOffset }) => projectileSpawnYOffset)],
   ];
@@ -179,6 +201,9 @@ test("assembled descriptor tables and PMG frame bytes exactly match the editable
   assert.deepEqual([...readRuntimeBytes(labels.get("enemy_accent_data"), asset.accentBytes.length)],
     [...asset.accentBytes]);
   assert.equal(labels.get("enemy_runtime_data_end") - labels.get("enemy_frame_heights"), 84);
+  assert.deepEqual([...readRuntimeBytes(labels.get("_enemy_archetypes"), 12)],
+    [1, 0, 1, 5, 15, 60, 50, 40, 1, 1, 0x10, 1],
+  "the C Raider record owns gameplay configuration formerly held by ASM tables");
   assert.match(source, /clamp_enemy_x:[\s\S]+cmp #CORRIDOR_LEFT_HPOS/);
   assert.match(source, /draw_enemy:[\s\S]+asl[\s\S]+asl[\s\S]+asl[\s\S]+asl/,
     "fixed sixteen-byte body frames derive their offsets without a resident table");
@@ -228,11 +253,16 @@ test("release gameplay remains one Interceptor with the accepted behaviour and s
   assert.deepEqual(asset.implemented.slice(1).map(({ weaponProfile }) => weaponProfile),
     ["NONE", "NONE"]);
   assert.deepEqual([asset.implemented[0].hitPoints, asset.implemented[0].score], [1, 10]);
-  assert.match(source, /lda #ENEMY_RELEASE_ARCHETYPE\s+sta ENEMY_ARCHETYPE/);
+  assert.match(source, /reset_enemy:[\s\S]+jsr HYBRID_ENEMY_SPAWN_RAIDERS/);
+  // 4.5c: the roster shape comes from the selected Heavy formation; a fresh
+  // game starts on the Raider shape.
+  assert.match(lifecycleSource, /ENEMY_ARCHETYPE = ROSTER_SHAPE_RAIDER/);
+  assert.match(lifecycleSource,
+    /ENEMY_ARCHETYPE = encounter_heavy_roster_shape\[encounter_heavy_index\]/);
   assert.match(source,
     /update_fighter_projectiles:[\s\S]+DAMAGE_PLAYER_PROJECTILE[\s\S]+jsr queue_enemy_damage/);
   assert.match(source, /handle_collisions:[\s\S]+jsr resolve_enemy_damage/);
-  assert.match(source, /add_archetype_score:[\s\S]+adc enemy_scores,x/);
+  assert.match(source, /add_archetype_score_tail:[\s\S]+adc ENEMY_PROFILE_SCORE_BCD/);
   assert.doesNotMatch(source, /ENEMY_ARCHETYPE_TALON\s+sta ENEMY_ARCHETYPE/);
   assert.doesNotMatch(source, /ENEMY_ARCHETYPE_SCYTHE_BOMBER\s+sta ENEMY_ARCHETYPE/);
 });

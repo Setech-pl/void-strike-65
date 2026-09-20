@@ -21,7 +21,7 @@ function labelsFromFile(sourcePath) {
     .map((match) => [match[2], Number.parseInt(match[1], 16)]));
 }
 
-function requiredLabel(labels, name) {
+export function requiredLabel(labels, name) {
   const address = labels.get(name);
   if (!Number.isInteger(address)) throw new Error(`Missing linked label ${name}`);
   return address;
@@ -35,7 +35,22 @@ function fixedStateAddress(labels, name) {
   throw new Error(`Missing linked state address ${name}`);
 }
 
-function runRoutine(memory, labels, name, { a = 0, x = 0, y = 0 } = {}) {
+// entity_effects_erase/render are effects-only in the runtime (the debris is
+// published by entity_debris_publish); keep the composite order for the harness.
+const compositeRoutines = {
+  entity_effects_render: ["render_interactive_entity_overlays", "entity_effects_render"],
+  entity_effects_erase: ["entity_effects_erase", "erase_interactive_entity_overlays"],
+};
+
+export function runRoutine(memory, labels, name, options = {}) {
+  if (compositeRoutines[name]) {
+    return compositeRoutines[name].reduce((sum, part) =>
+      sum + runRoutineRaw(memory, labels, part, options), 0);
+  }
+  return runRoutineRaw(memory, labels, name, options);
+}
+
+function runRoutineRaw(memory, labels, name, { a = 0, x = 0, y = 0 } = {}) {
   const cpu = new Nmos6502(memory);
   const stop = 0x7fff;
   cpu.push((stop - 1) >> 8);
@@ -73,7 +88,7 @@ function drawRuntimeHullScene(memory, labels, { head, topPhase }) {
   }
 }
 
-function initialiseRows(memory, labels, head = 0) {
+export function initialiseRows(memory, labels, head = 0) {
   const lo = requiredLabel(labels, "PLAYFIELD_ROW_LO");
   const hi = requiredLabel(labels, "PLAYFIELD_ROW_HI");
   for (let logical = 0; logical < ringRows; logical += 1) {
@@ -108,7 +123,7 @@ function logicalDisplay(memory, labels) {
   return display;
 }
 
-function initialiseRuntime(root, artifact, coldFill = 0) {
+export function initialiseRuntime(root, artifact, coldFill = 0) {
   const manifest = JSON.parse(fs.readFileSync(
     path.join(root, "dist", "void-strike-65-manifest.json"), "utf8"));
   const labels = labelsFromFile(path.join(root, "build", "void-strike-65.lbl"));
@@ -130,6 +145,9 @@ function initialiseRuntime(root, artifact, coldFill = 0) {
   ]) {
     try {
       runRoutine(memory, labels, routine);
+      if (routine === "unpack_entity_runtime" && labels.has("publish_director_abi")) {
+        runRoutine(memory, labels, "publish_director_abi");
+      }
     } catch (error) {
       throw new Error(`${routine}: ${error.message}`);
     }
@@ -297,11 +315,19 @@ function armLethalPlayerFighterShot(memory, labels, y = 109) {
 function killInterceptorWithPlayerFighter(memory, labels) {
   memory[requiredLabel(labels, "ENEMY_ARCHETYPE")] = 0;
   memory[requiredLabel(labels, "ENEMY_ACTIVE")] = 1;
-  memory[requiredLabel(labels, "ENEMY_HP")] = 1;
-  memory[requiredLabel(labels, "ENEMY_PENDING_DAMAGE")] = 0;
-  memory[requiredLabel(labels, "ENEMY_PENDING_SOURCE")] = 5;
-  memory[requiredLabel(labels, "enemy_x")] = 124;
-  memory[requiredLabel(labels, "enemy_y")] = 40;
+  const memberState = requiredLabel(labels, "ENEMY_MEMBER_STATE");
+  const hp = requiredLabel(labels, "ENEMY_HP");
+  const pendingDamage = requiredLabel(labels, "ENEMY_PENDING_DAMAGE");
+  const pendingSource = requiredLabel(labels, "ENEMY_PENDING_SOURCE");
+  memory.fill(0, memberState, memberState + 2);
+  memory.fill(0, hp, hp + 2);
+  memory.fill(0, pendingDamage, pendingDamage + 2);
+  memory.fill(5, pendingSource, pendingSource + 2);
+  memory[memberState] = 1;
+  memory[hp] = 1;
+  memory[requiredLabel(labels, "ENEMY_LIVE_COUNT")] = 1;
+  memory[requiredLabel(labels, "ENEMY_X")] = 124;
+  memory[requiredLabel(labels, "ENEMY_Y")] = 40;
   armLethalPlayerFighterShot(memory, labels, 54);
   runRoutine(memory, labels, "update_fighter_projectiles");
   const damageSource = memory[requiredLabel(labels, "ENEMY_PENDING_SOURCE")];
@@ -323,12 +349,16 @@ function runBurst(memory, labels, { rapid, expectedCount, onFrame = () => {} }) 
   memory[0xd010] = 0;
   const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
   const emissions = [];
-  let previousCount = 0;
-  for (let frame = 0; frame < 48 && emissions.length < expectedCount; frame += 1) {
+  for (let frame = 0; frame < 160 && emissions.length < expectedCount; frame += 1) {
     runRoutine(memory, labels, "update_player_fighter_weapon");
     const currentCount = countActive(memory, active, 10);
-    if (currentCount > previousCount) emissions.push(frame);
-    previousCount = currentCount;
+    if (currentCount > 0) {
+      emissions.push(frame);
+      // Isolate controller cadence from the independently tested active-pool
+      // limit. The harness consumes only the accepted slot; it must not call
+      // the production teardown that also resets the burst controller.
+      memory.fill(0, active, active + 10);
+    }
     if (rapid) runRoutine(memory, labels, "update_weapon_booster_active", { x: 3 });
     onFrame({ frame, emitted: emissions.at(-1) === frame });
   }
@@ -517,8 +547,11 @@ export function executeWeaponPickupTraversalTrace({
     const released = pickupSnapshot(memory, labels, manifest, {
       phase: "RELEASED", frame: visible.length,
     });
+    // This harness does not initialise the ring, so cells that already held
+    // the render id before the capsule existed are boot-staging residue, not
+    // footprints. Count only cells that gained the id after creation.
     const footprintCount = (snapshot) => [...snapshot.screen]
-      .filter((code) => code === renderId).length;
+      .filter((code, index) => code === renderId && created.screen[index] !== renderId).length;
     return {
       name,
       pickupType,
@@ -752,6 +785,106 @@ export function player_fighterBurstBalanceTraceCsv(trace) {
     }
   }
   return `${rows.join("\n")}\n`;
+}
+
+export function executePlayerFighterEmissionVisibilityTrace({
+  root = defaultRoot, artifact = "xex", coldFill = 0,
+  playerXs = [48, 50, 124, 126, 198, 200],
+  playerYs = [184, 185, 190, 191], ringHeads = [0, 1, 26],
+  modes = [["NORMAL", 0], ["RAPID", 3], ["SPREAD", 4]],
+  raiderFire = false,
+} = {}) {
+  const cases = [];
+  for (const [mode, boosterState] of modes) {
+    for (const playerX of playerXs) {
+      for (const playerY of playerYs) {
+        for (const ringHead of ringHeads) {
+          const { memory, labels } = initialiseRuntime(root, artifact, coldFill);
+          initialiseRows(memory, labels, ringHead);
+          memory.fill(0, 0x3800, 0x4400);
+          memory[requiredLabel(labels, "player_x")] = playerX;
+          memory[requiredLabel(labels, "player_y")] = playerY;
+          memory[requiredLabel(labels, "PLAYER_LIFECYCLE")] = 0;
+          memory[requiredLabel(labels, "gameplay_fire_gate")] = 1;
+          memory[requiredLabel(labels, "ENTITY_STATE") + 2] = boosterState;
+          if (raiderFire) {
+            runRoutine(memory, labels, "reset_enemy");
+            for (let slot = 0; slot < 2; slot += 1) {
+              memory[requiredLabel(labels, "ENEMY_TARGET_SLOT")] = slot;
+              runRoutine(memory, labels, "allocate_interceptor_projectile");
+            }
+          }
+          memory[0xd010] = 1;
+          runRoutine(memory, labels, "update_player_fighter_weapon");
+          memory[0xd010] = 0;
+          runRoutine(memory, labels, "erase_fighter_projectile_overlays");
+          runRoutine(memory, labels, "update_fighter_projectiles");
+          runRoutine(memory, labels, "update_player_fighter_weapon");
+          runRoutine(memory, labels, "render_fighter_projectile_overlays");
+
+          const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
+          const xAddress = requiredLabel(labels, "FIGHTER_PROJECTILE_X");
+          const yAddress = requiredLabel(labels, "FIGHTER_PROJECTILE_Y");
+          const rendered = requiredLabel(labels, "FIGHTER_PROJECTILE_RENDERED");
+          const screenLow = requiredLabel(labels, "FIGHTER_PROJECTILE_SCREEN_LO");
+          const screenHigh = requiredLabel(labels, "FIGHTER_PROJECTILE_SCREEN_HI");
+          const slots = [];
+          for (let slot = 0; slot < 10; slot += 1) {
+            if (memory[active + slot] === 0) continue;
+            const screenAddress = memory[screenLow + slot] |
+              memory[screenHigh + slot] << 8;
+            const screenCode = memory[screenAddress];
+            const glyphAddress = 0x4400 + (screenCode & 0x7f) * 8;
+            const glyphBytes = Array.from(memory.subarray(glyphAddress, glyphAddress + 8));
+            slots.push({
+              slot,
+              renderId: memory[active + slot],
+              x: memory[xAddress + slot],
+              y: memory[yAddress + slot],
+              rendered: memory[rendered + slot],
+              screenAddress,
+              screenCode,
+              glyphBytes,
+              visible: memory[rendered + slot] !== 0 && glyphBytes.some(Boolean),
+            });
+          }
+          cases.push({
+            mode, playerX, playerY, ringHead, slots,
+            raiderProjectiles: countActive(memory, active + 10, 9),
+          });
+        }
+      }
+    }
+  }
+  return { artifact, coldFill, cases };
+}
+
+export function executePlayerFighterSectorClearVisibilityTrace({
+  root = defaultRoot, artifact = "xex", coldFill = 0,
+} = {}) {
+  const { memory, labels } = initialiseRuntime(root, artifact, coldFill);
+  memory.fill(0, ringBase, ringEnd);
+  memory[requiredLabel(labels, "player_x")] = 124;
+  memory[requiredLabel(labels, "player_y")] = 191;
+  runRoutine(memory, labels, "allocate_player_fighter_projectile");
+  runRoutine(memory, labels, "render_fighter_projectile_overlays");
+  const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
+  const rendered = requiredLabel(labels, "FIGHTER_PROJECTILE_RENDERED");
+  const screenLow = requiredLabel(labels, "FIGHTER_PROJECTILE_SCREEN_LO");
+  const screenHigh = requiredLabel(labels, "FIGHTER_PROJECTILE_SCREEN_HI");
+  const screenAddress = memory[screenLow] | memory[screenHigh] << 8;
+  const capture = () => ({
+    active: memory[active],
+    rendered: memory[rendered],
+    screenAddress,
+    screenCode: memory[screenAddress],
+  });
+  const before = capture();
+  memory[requiredLabel(labels, "ENTITY_STATE") + 1] = 1;
+  runRoutine(memory, labels, "weapon_pickup_clear_sector");
+  runRoutine(memory, labels, "render_fighter_projectile_overlays");
+  const after = capture();
+  return { artifact, before, after };
 }
 
 export function executePlayerFighterProjectileColourTrace({
@@ -1115,11 +1248,13 @@ export function executeWeaponPickupCauseTrace({ root = defaultRoot, artifact = "
     memory[requiredLabel(labels, "ENTITY_HP") + 1] = 1;
     memory[requiredLabel(labels, "ENEMY_ACTIVE")] = 1;
     memory[requiredLabel(labels, "ENEMY_ARCHETYPE")] = 0;
+    memory[requiredLabel(labels, "ENEMY_MEMBER_STATE")] = 1;
+    memory[requiredLabel(labels, "ENEMY_LIVE_COUNT")] = 1;
     memory[requiredLabel(labels, "ENEMY_HP")] = 1;
     memory[requiredLabel(labels, "ENEMY_PENDING_DAMAGE")] = 1;
     memory[requiredLabel(labels, "ENEMY_PENDING_SOURCE")] = source;
-    memory[requiredLabel(labels, "enemy_x")] = 124;
-    memory[requiredLabel(labels, "enemy_y")] = 95;
+    memory[requiredLabel(labels, "ENEMY_X")] = 124;
+    memory[requiredLabel(labels, "ENEMY_Y")] = 95;
     runRoutine(memory, labels, "resolve_enemy_damage");
     const first = pickupSnapshot(memory, labels, manifest,
       { phase: "CAUSE", frame: 0, damageSource: source });
@@ -1550,10 +1685,11 @@ export function executeSpreadShotPoolTrace({ root = defaultRoot, artifact = "xex
   return {
     artifact,
     empty: runCase(0),
-    sevenOccupied: runCase(7),
-    eightOccupied: runCase(8),
-    nineOccupied: runCase(9),
-    full: runCase(10),
+    threeOccupied: runCase(3),
+    fourOccupied: runCase(4),
+    fiveOccupied: runCase(5),
+    activeFull: runCase(6),
+    physicalFull: runCase(10),
   };
 }
 
@@ -1591,8 +1727,8 @@ export function executeSpreadShotCooldownSafetyTrace({
   return {
     artifact,
     frames,
-    unsafe: runCandidate(9),
-    minimumSafe: runCandidate(10),
+    tooFast: runCandidate(17),
+    configured: runCandidate(28),
   };
 }
 
@@ -1649,15 +1785,17 @@ export function executeSpreadShotCollisionTrace({ root = defaultRoot, artifact =
     const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
     memory[requiredLabel(labels, "ENTITY_STATE") + 2] = 4;
     memory[requiredLabel(labels, "player_x")] = 124;
-    memory[requiredLabel(labels, "player_y")] = playerMaximumY;
+    memory[requiredLabel(labels, "player_y")] = 184;
     runRoutine(memory, labels, "allocate_player_fighter_projectile");
     memory[requiredLabel(labels, "ENEMY_ACTIVE")] = 1;
     memory[requiredLabel(labels, "ENEMY_ARCHETYPE")] = 0;
+    memory[requiredLabel(labels, "ENEMY_MEMBER_STATE")] = 1;
+    memory[requiredLabel(labels, "ENEMY_LIVE_COUNT")] = 1;
     memory[requiredLabel(labels, "ENEMY_HP")] = 3;
     memory[requiredLabel(labels, "ENEMY_PENDING_DAMAGE")] = 0;
     memory[requiredLabel(labels, "ENEMY_PENDING_SOURCE")] = 5;
-    memory[requiredLabel(labels, "enemy_x")] = 120;
-    memory[requiredLabel(labels, "enemy_y")] = 170;
+    memory[requiredLabel(labels, "ENEMY_X")] = 124;
+    memory[requiredLabel(labels, "ENEMY_Y")] = 170;
     memory[requiredLabel(labels, "score_bcd_lo")] = 0;
     memory[requiredLabel(labels, "score_bcd_hi")] = 0;
     runRoutine(memory, labels, "update_fighter_projectiles");
@@ -1681,7 +1819,7 @@ export function executeSpreadShotCollisionTrace({ root = defaultRoot, artifact =
     const projectileX = requiredLabel(labels, "FIGHTER_PROJECTILE_X");
     memory[requiredLabel(labels, "ENTITY_STATE") + 2] = 4;
     memory[requiredLabel(labels, "player_x")] = 124;
-    memory[requiredLabel(labels, "player_y")] = playerMaximumY;
+    memory[requiredLabel(labels, "player_y")] = 184;
     runRoutine(memory, labels, "allocate_player_fighter_projectile");
     for (let slot = 0; slot < 3; slot += 1) {
       if (slot !== selectedSlot) memory[active + slot] = 0;
@@ -2102,8 +2240,10 @@ export function executeShieldBoosterTrace({
     m[requiredLabel(l, "player_y")] = playerMaximumY;
     m[requiredLabel(l, "FIGHTER_PROJECTILE_ACTIVE") + slot] = 2;
     m[requiredLabel(l, "FIGHTER_PROJECTILE_X") + slot] = 124;
-    m[requiredLabel(l, "FIGHTER_PROJECTILE_Y") + slot] = 178;
-    m[requiredLabel(l, "FIGHTER_PROJECTILE_PREV_Y") + slot] = 178;
+    // Collision uses PREV_Y as the start of the swept projectile envelope.
+    // Keep the fixture aligned with the player now clamped at the playfield bottom.
+    m[requiredLabel(l, "FIGHTER_PROJECTILE_Y") + slot] = playerMaximumY;
+    m[requiredLabel(l, "FIGHTER_PROJECTILE_PREV_Y") + slot] = playerMaximumY;
     m[requiredLabel(l, "FIGHTER_PROJECTILE_LIFETIME") + slot] = 10;
     interceptorProjectileCycles = runRoutine(m, l, "update_fighter_projectiles");
   }

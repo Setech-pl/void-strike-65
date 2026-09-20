@@ -1,0 +1,87 @@
+{
+  "id": "stage-2b2f-resident-capacity-glue-window",
+  "date": "2026-09-16",
+  "task": "Plan step 4.3 Stage 1 - reusable resident capacity (Option D = A + C1)",
+  "status": "OWNER-SMOKE CANDIDATE",
+  "owner_decision": "GO for Stage 1; the 4.3 pause is lifted because the correct debris P0 fix itself needs reusable resident capacity. No debris or Interceptor work inside 4.3. After acceptance the next task is the exact-ownership debris R-pre fix, not the Interceptor.",
+  "baseline": {
+    "branch": "experiment/hybrid-c-director",
+    "commit": "db64ca8",
+    "xex_sha256": "4c382777acf3df9649e5bea1f6222fd02063f8b17fa2158da480cd25367b8c7d",
+    "atr_sha256": "b2d894cfe9173befc9645e5c74b856c1e16b12d1d7ef0ff5818b56fe150f8569"
+  },
+  "checkpoints": {
+    "c1": {
+      "commit": "fca5e31",
+      "change": "remove dead ENTITY_CODE unpack_broadside_runtime (23 B, no caller) and entity_archetype_descriptors (16 B, never read at runtime)",
+      "xex_sha256": "2fd7642a70bc612da78ae43bf9da6242a69269c4a82591b95dd9f21c00597f10",
+      "atr_sha256": "c7fdf2d06fcb4ea435c1ecaa5de08ad7cedb0acb1f49a423ecccc33f387173c8",
+      "gate": "PASS - no new test failure name (607 tests / 115 failing, identical names to baseline); identical 2-evasive-fire3 PAL replay; native write-watch lifecycle PASS on XEX and ATR"
+    },
+    "a": {
+      "change": "GLUE hold $8600 -> $8300 (idle ring RAM); new cc65 area HYBRID_C_SECTOR_RAM $8602-$86F9 hosting the five sector_c_* functions; its independent LZ stream rides after the pickup/collision stream in the same DFMC record and is expanded by a second destination in unpack_weapon_pickup_phase_runtime",
+      "xex_sha256": "2953461e976c97e3e833323feb6d3fb5c1365b7dae76737f2d62e3294aea4444",
+      "atr_sha256": "02818b3aba5343489e02992583a55d662f9ec57967d28807c2bf80849268b8f1"
+    }
+  },
+  "measured_sizes": {
+    "window": { "range": "$8602-$86F9", "bytes": 248, "why_not_8600": "STAR_NEAR_SCREEN_HI occupies $85FE-$8601 (now asserted)", "owner": "HYBRID_C_SECTOR", "used": 240, "free": 8, "packed": 201 },
+    "hybrid_c_sector_functions": { "sector_c_update_first_capital": 100, "sector_c_update_capital_phase": 78, "sector_c_begin_complete": 11, "sector_c_complete_scroll_tick": 23, "sector_c_force_final_drain": 28, "linked_total": 240, "limit": 248 },
+    "pickup_record_packed": { "pickup_stream": 957, "window_stream": 201, "combined": 1158, "cold_capacity": 1277, "margin": 119, "sectors_before": 8, "sectors_after": 10 },
+    "hybrid_c_ext": { "before": "24 archetype + 725 C + 133 LIGHT_CODE = 882, free tail 17", "after": "24 archetype + 485 C + 133 LIGHT_CODE = 642, free tail 257 ($8EFF-$8FFF)", "packed_before": 742, "packed_after": 568, "packed_limit": 960 },
+    "entity_code": { "baseline": 3151, "after_c1": 3112, "after_a": 3125, "tail_baseline": 15, "tail_after_c1": 54, "tail_after_a": 41, "second_expansion_call_bytes": 13 },
+    "dfmc": { "records_before": 8, "records_after": 8, "manifest_bytes": 142, "record_order_and_final_destinations": "unchanged", "total_transport_sectors": "175 -> 176", "boot_sectors": 103, "initial_content_bytes": "13150 -> 13121 (C1) -> 13130 (A), envelope 13184" },
+    "unchanged_gates": { "starfield_packed": "1804 / 1819 limit / 1798 reviewed gate (open owner decision, untouched)", "starfield_source_to_pickup_margin": 44, "a2_tail": 18, "pickup_stream_fill": 14, "broadside_tail": 6 }
+  },
+  "residency_metrics": {
+    "note": "Three separate metrics; relocated code is counted once.",
+    "physical_resident_code_data_bytes": {
+      "definition": "linked main runtime (CODE+RODATA+STARFIELD+BROADSIDE+A2+ENTITY_CODE+PICKUP_CODE) + LIGHT_RESIDENT + all C/ABI placements incl. LIGHT_CODE and the window + GLUE + collision module",
+      "baseline": 19914, "after_c1": 19875, "after_a": 19888,
+      "delta_total": -26,
+      "c_and_abi_bytes": { "baseline": 1905, "after_a": 1905, "note": "240 B moved from extension to window" },
+      "build_manifest_simultaneousResidencyBytes": { "baseline": 19255, "after_c1": 19216, "after_a": 19229 }
+    },
+    "reserved_envelope_bytes": {
+      "new_reserved_area": "HYBRID_C_SECTOR_RAM $8602-$86F9, 248 B (previously an unowned boot-only hold, not allocatable)",
+      "unchanged": "HYBRID_C_EXT 899, ENTITY_CODE $9100-$9D5D 3166, A2 255, pickup stream 1009, STARFIELD RAM 2348, BROADSIDE 6656, initial block 13184, pickup cold capacity 1277, extension packed staging 960, DFMC 8 records / 142 B"
+    },
+    "reusable_free_capacity_bytes": {
+      "c_reachable": { "baseline": 24, "after_a": 272, "breakdown_after_a": { "hybrid_c_ext_tail_contiguous": 257, "window": 8, "director_c_low": 3, "director_c_pre": 2, "director_ram": 2 } },
+      "asm_linkable_tails": { "entity_code": "15 -> 41", "a2": "18 -> 18", "pickup_fill": "14 -> 14", "broadside": "6 -> 6" },
+      "note": "The HYBRID_C_EXT tail is dual-use: cc65 code or main-linked ASM appended after LIGHT_CODE (existing precedent)."
+    }
+  },
+  "cpu": {
+    "startup_cycles_start_to_show_loader": { "baseline_xex": 2038329, "c1_xex": 2033859, "a_xex": 2046792, "a_atr": 2046801, "delta_vs_baseline": 8463, "note": "one-time, before the loader display; window stream decode +17434 (pickup expansion 71921 -> 89355), smaller extension stream -4505" },
+    "pal_replay_2_evasive_fire3": { "baseline_max": 29217, "c1_max": 29217, "a_max": 29217, "missed_frames": 0, "extra_vbi": 0, "dli_ordering_errors": 0, "deadline_overruns": 0 },
+    "full_capital_traversal_booster_admission_reentry_1_to_5": { "frames": 18000, "sector_state_sequence": "7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 (identical)", "baseline_max": 29200, "a_max": 29200, "mean_delta_per_frame": 0.10, "per_frame_delta_range": [-28, 77], "gameplay_state_columns": "identical except capital_visible_enemy_cells at session frame 0 (162 vs 164, start-of-session sample)", "note": "timing columns shift by absolute-address effects (branch page crossings, scanline-gated waits); maximum unchanged" }
+  },
+  "native_write_watch": {
+    "tool": "scripts/capacity-window-watch.mjs + scripts/atari800-capacity-watch.h (private Atari800 7.1.2 build)",
+    "method": "value-change comparison of every watched byte before each emulated instruction; a write storing the byte's current value is not observable",
+    "lifecycle": "cold start -> menu -> OPTIONS -> BACK -> START -> gameplay -> pause -> resume -> natural game over -> menu -> START -> gameplay -> pause -> quit -> menu",
+    "sessions": ["xex fill $00", "xex fill $A5", "atr fill $00", "atr fill $A5"],
+    "baseline_db64ca8": "PASS: $8300-$83F9 0 writes from hold copy to GLUE publication (proves ring RAM idle); $8602-$86F9 0 writes after publication",
+    "c1": "PASS (same checks)",
+    "a": "PASS: $8300-$83F9 hold intact, published GLUE equals hold, 0 writes; $8602-$86F9 equals the linked HYBRID_C_SECTOR image and 0 writes through the whole lifecycle; game over reached naturally (no poke)"
+  },
+  "tests": {
+    "full_suite": "607 tests; baseline 115 failing; A adds one re-baselined name only",
+    "rebaselined": "tests/hybrid-lifecycle.test.mjs 'C EnemyArchetype ... legal extension placement': extension 882 -> 642 plus window 240 (sum unchanged)",
+    "updated": ["tests/layout-d1.test.mjs: hold at manifest address, window byte-exact after pickup expansion and after GLUE publication, real 3x960 starfield staging extent, GLUE hold and pickup hold as live sources", "tests/transport-layout-regression.test.mjs: hold address (test was already failing at baseline)", "tests/weapon-pickup-shield.test.mjs: slice anchor after C1"],
+    "boot_smoke": "runtime-wall-trace --boot-smoke-only: 4 XEX/ATR cold-start sessions passed",
+    "verify": "npm run verify is release-only (rejects every candidate by design); not applicable"
+  },
+  "fixed_latent_build_bug": "scripts/build.mjs rewrote LIGHTFILE with a replacement string; a size such as $0186 was read as capture group $01. Any smaller C extension would have corrupted the link config. Now a replacer function.",
+  "not_changed": ["gameplay", "PMG allocation", "raster/DLI/VBI code", "BASIC RAM", "runtime disk I/O", "DFMC on-target format and record topology", "ASM->C policy migration", "debris", "Interceptor"],
+  "known_limits": [
+    "RESET via DOSVEC re-enters start and is not re-runnable; pre-existing, unchanged",
+    "The 1277 B pickup cold capacity bound ($917D) is the reviewed value and was not re-derived"
+  ],
+  "consumer_readiness": {
+    "interceptor_full": "raw C need 143 B (12 RODATA + 131 CODE) fits the 257 B HYBRID_C_EXT tail, leaving 114 B",
+    "debris_r_pre": "fixed in-place parts: LIGHT_CODE +3, ENTITY +9..+14 of 41, A2 +2; relocatable helper/guard (58..73 B) in A2 after deleting the 38 B debris resolver or appended to the EXT tail",
+    "headroom_after_both_estimate": "about 111 B contiguous dual-use EXT tail, 8 B window, ENTITY ~27-32 B"
+  }
+}

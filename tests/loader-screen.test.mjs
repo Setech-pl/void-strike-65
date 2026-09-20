@@ -492,7 +492,7 @@ test("assembled display list contains 157 ANTIC F and 35 ANTIC E lines", () => {
     0x0c, 0x30, 0xc0, 0xf3, 0xcf, 0x3f,
     0x04, 0x10, 0x40, 0x0c, 0x30, 0xc0,
   ]);
-  assert.equal(missileMasks, 0x37fe);
+  assert.equal(missileMasks, 0x37fc);
   assert.ok(displayListAddress >= missileMasks + missileTables.length,
     "loader display-list publication must not overlap runtime PMG tables");
   assert.deepEqual(Buffer.from(memory.subarray(

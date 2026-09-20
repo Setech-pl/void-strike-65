@@ -1,0 +1,388 @@
+{
+  "schema": "void-strike-65.stage-2b2b-authoritative-pal-gameplay-clock-proof.v1",
+  "date": "2026-09-14",
+  "status": "PASS_MASTER_PAL_CLOCK",
+  "model": {
+    "name": "GPT-5 Codex",
+    "reasoning": "High",
+    "note": "GPT-5.6 Sol was not an available selectable model in this session."
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "headBefore": "db172a3bd23e2af400fc0b25e4cd1da7b0ac8b67",
+    "headAfter": "local commit containing this report",
+    "pushMergeRelease": false,
+    "claudeUntouched": true
+  },
+  "scope": {
+    "implemented": [
+      "one hardware-derived physical PAL token",
+      "one common main-loop simulation admission gate",
+      "removal of obsolete OPEN-to-capital fire and audio catch-up ticks",
+      "frame-exact host and native timing regression coverage"
+    ],
+    "unchanged": [
+      "white-star visuals, count, speed and capital visibility policy",
+      "PairShot dy, representation, damage and cadence values",
+      "enemy projectile dy and weapon tuning",
+      "effects 25 Hz visual staggering",
+      "world and capital scroll rates",
+      "capital gameplay, ring cadence, debris and boss work"
+    ]
+  },
+  "beforeArchitecture": {
+    "frameCounter": "incremented once per main-loop iteration",
+    "activeGameplayCounter": "incremented once per eligible main-loop iteration",
+    "fighterAnchor": "$77 late publication wait",
+    "capitalAnchor": "$70 start-side wait",
+    "fighterToCapital": "one host PAL frame had no projectile, world or effects tick; fire and audio alone received special catch-up calls",
+    "capitalToFighter": "two main-loop iterations could start inside one host PAL frame",
+    "leak": "loop/raster-anchor cadence, rather than a physical-frame event, owned simulation admission"
+  },
+  "physicalFrameSource": {
+    "source": "first gameplay display-list DLI",
+    "producer": "INC PHYSICAL_PAL_FRAME_ID before gameplay CHBASE/palette publication",
+    "frequency": "exactly once per PAL display frame",
+    "whyOnce": "gameplay_dli_phase routes the final HUD DLI around the increment",
+    "hardwareSafe": true,
+    "hostTimeUsed": false,
+    "tokenBits": 8,
+    "wrapProof": "$ff -> $00 instruction-exact test PASS"
+  },
+  "masterClockContract": {
+    "producerState": "PHYSICAL_PAL_FRAME_ID",
+    "consumerState": "GAMEPLAY_PAL_FRAME_CONSUMED",
+    "storage": "two existing bytes in STARFIELD_COMPAT_STATE",
+    "gate": "wait_for_master_pal_frame at the first instruction of main_loop",
+    "newToken": "copy producer to consumed and run the existing common gameplay path",
+    "sameToken": "busy-wait until the next first gameplay DLI; no second simulation iteration",
+    "rasterContract": "$77/$70 and post-playfield waits remain sector publication scheduling only",
+    "steadyCycles": {
+      "firstDliIncrement": 6,
+      "gateRoutineImmediate": 20,
+      "gateJsr": 6,
+      "total": 32
+    },
+    "newRamBytes": 0,
+    "newFunctionalCodeBytes": 18,
+    "removedTransitionCatchupCodeBytes": 24
+  },
+  "routineMap": [
+    {
+      "routine": "integration_active_gameplay_tick",
+      "caller": "main_loop",
+      "fighterCallsPerAdmittedTick": 1,
+      "capitalCallsPerAdmittedTick": 1,
+      "transitionCallsPerPhysicalFrameAfter": 1,
+      "kind": "simulation",
+      "mutation": "ACTIVE_GAMEPLAY_FRAME_LO/HI when player lifecycle is logically active"
+    },
+    {
+      "routine": "read_input / update_player",
+      "caller": "main_loop",
+      "fighterCallsPerAdmittedTick": 1,
+      "capitalCallsPerAdmittedTick": 1,
+      "transitionCallsPerPhysicalFrameAfter": 1,
+      "kind": "simulation",
+      "mutation": "player position and input state; lifecycle gates are unchanged"
+    },
+    {
+      "routine": "integration_update_enemy / update_enemy_slot_motion",
+      "caller": "main_loop",
+      "fighterCallsPerAdmittedTick": 1,
+      "capitalCallsPerAdmittedTick": 1,
+      "transitionCallsPerPhysicalFrameAfter": 1,
+      "kind": "simulation",
+      "mutation": "Raider member movement/animation or ordinary-wave retry; capital blocking remains intentional"
+    },
+    {
+      "routine": "handle_collisions / update_fighter_projectiles",
+      "caller": "main_loop",
+      "fighterCallsPerAdmittedTick": 1,
+      "capitalCallsPerAdmittedTick": 1,
+      "transitionCallsPerPhysicalFrameAfter": 1,
+      "kind": "simulation",
+      "mutation": "player and enemy PairShot Y, previous Y, lifetime and collision state"
+    },
+    {
+      "routine": "update_player_fighter_weapon",
+      "caller": "main_loop",
+      "fighterCallsPerAdmittedTick": 1,
+      "capitalCallsPerAdmittedTick": 1,
+      "transitionCallsPerPhysicalFrameAfter": 1,
+      "kind": "simulation",
+      "mutation": "player burst state, remaining count, timer and accepted allocation"
+    },
+    {
+      "routine": "integration_update_enemy_weapon / update_enemy_weapon",
+      "caller": "main_loop",
+      "fighterCallsPerAdmittedTick": 1,
+      "capitalCallsPerAdmittedTick": 1,
+      "transitionCallsPerPhysicalFrameAfter": 1,
+      "kind": "simulation",
+      "mutation": "shared Raider burst state/timer; intentionally stopped while ordinary waves are capital-blocked"
+    },
+    {
+      "routine": "update_starfield",
+      "caller": "main_loop",
+      "fighterCallsPerAdmittedTick": 1,
+      "capitalCallsPerAdmittedTick": 1,
+      "transitionCallsPerPhysicalFrameAfter": 1,
+      "kind": "simulation plus event emission",
+      "mutation": "scroll_accumulator and HULL_SCROLL_ACCUMULATOR exactly once; carry emits one world/hull row event"
+    },
+    {
+      "routine": "advance_starfield_layers / rotate_playfield_rows",
+      "caller": "update_starfield only on world accumulator carry",
+      "fighterCallsPerAdmittedTick": "0 or 1",
+      "capitalCallsPerAdmittedTick": "0 or 1",
+      "transitionCallsPerPhysicalFrameAfter": "0 or 1",
+      "kind": "simulation event plus ring publication",
+      "mutation": "one physical row rotation per emitted world event"
+    },
+    {
+      "routine": "scroll_hull_columns",
+      "caller": "update_starfield only on hull accumulator carry",
+      "fighterCallsPerAdmittedTick": "0 or 1",
+      "capitalCallsPerAdmittedTick": "0 or 1",
+      "transitionCallsPerPhysicalFrameAfter": "0 or 1",
+      "kind": "capital state/publication",
+      "mutation": "one hull row event; rates remain difficulty-derived"
+    },
+    {
+      "routine": "entity_effects_erase_with_white_starfield / update_white_starfield_phase",
+      "caller": "main_loop",
+      "fighterCallsPerAdmittedTick": 1,
+      "capitalCallsPerAdmittedTick": 1,
+      "transitionCallsPerPhysicalFrameAfter": 1,
+      "kind": "decorative local simulation followed by erase publication",
+      "mutation": "star-local phase/cache only; never writes either world/hull accumulator or the master token"
+    },
+    {
+      "routine": "entity_effects_update / update_transient_effects",
+      "caller": "main_loop",
+      "fighterCallsPerAdmittedTick": 1,
+      "capitalCallsPerAdmittedTick": 1,
+      "transitionCallsPerPhysicalFrameAfter": 1,
+      "kind": "simulation",
+      "mutation": "logical effects at 50 Hz; visual even/odd publication remains staggered at 25 Hz"
+    },
+    {
+      "routine": "entity_effects_update debris path",
+      "caller": "main_loop",
+      "fighterCallsPerAdmittedTick": 1,
+      "capitalCallsPerAdmittedTick": 1,
+      "transitionCallsPerPhysicalFrameAfter": 1,
+      "kind": "simulation",
+      "mutation": "debris lifecycle every admitted tick; position advances only on the existing world-row event"
+    },
+    {
+      "routine": "update_weapon_booster_active / update_fighter_pickup_pmg",
+      "caller": "entity_effects_update",
+      "fighterCallsPerAdmittedTick": "0 or 1 when active",
+      "capitalCallsPerAdmittedTick": "0 or 1 with existing freeze/remove semantics",
+      "transitionCallsPerPhysicalFrameAfter": "at most 1",
+      "kind": "simulation",
+      "mutation": "pickup/booster lifecycle and PMG position"
+    },
+    {
+      "routine": "update_sound",
+      "caller": "main_loop only",
+      "fighterCallsPerAdmittedTick": 1,
+      "capitalCallsPerAdmittedTick": 1,
+      "transitionCallsPerPhysicalFrameAfter": 1,
+      "kind": "audio simulation/publication",
+      "mutation": "software SFX sequence timers and POKEY writes"
+    },
+    {
+      "routine": "publish_fighter_projectile_overlays / entity_effects_render",
+      "caller": "main_loop",
+      "fighterCallsPerAdmittedTick": 1,
+      "capitalCallsPerAdmittedTick": 1,
+      "transitionCallsPerPhysicalFrameAfter": 1,
+      "kind": "publication",
+      "mutation": "visible character cells only; fighter may wait at $77, capital follows its $70 schedule"
+    }
+  ],
+  "transitionBefore": {
+    "nativeRuns": 20,
+    "fighterToCapital": {
+      "instances": 20,
+      "hostFrameDelta": 2,
+      "skippedSimulationFrames": 20,
+      "specialFireAudioCatchup": true
+    },
+    "capitalToFighter": {
+      "instances": 20,
+      "hostFrameDelta": 0,
+      "doubleSimulationFrames": 20
+    }
+  },
+  "transitionAfter": {
+    "nativeRuns": 50,
+    "framesPerRun": 1750,
+    "physicalFrames": 87500,
+    "simulationTicks": 87500,
+    "fighterToCapital": 50,
+    "capitalToFighter": 50,
+    "hostFrameDeltaSet": [1],
+    "activeGameplayFrameDeltaSet": [1],
+    "skippedSimulationTicks": 0,
+    "doubleSimulationTicks": 0,
+    "all22ProfilePathsPresentEveryTick": true
+  },
+  "playerProjectiles": {
+    "logicalTicksPerActivePalFrame": 1,
+    "pixelsPerTick": -6,
+    "pixelsPerSecondPal": -300,
+    "lifetimeDeltaPerTick": -1,
+    "sectorDependentDisplacement": false,
+    "doubleTicks": 0,
+    "skippedTransitionTicks": 0
+  },
+  "raiderProjectiles": {
+    "nativeDetailedRows": 623,
+    "nativeConsecutiveActiveTicks": 587,
+    "displacementSet": [5],
+    "pixelsPerTick": 5,
+    "pixelsPerSecondPal": 250,
+    "spawns": 18,
+    "releases": 18,
+    "clockDefectRemaining": false,
+    "tuningRecommendation": "Owner still sees these shots as too fast. After normalization the cause is dy=5, not multiple physical ticks; review a lower dy in a separate gameplay-tuning task."
+  },
+  "playerFire": {
+    "clock": "physical PAL frames after master gate",
+    "normalHistogram": { "9": 36, "12": 12 },
+    "rapidHistogram": { "6": 53, "12": 13 },
+    "spreadHistogram": { "12": 4, "28": 15 },
+    "longNativeBySector": {
+      "normal": {
+        "open": { "9": 1700, "12": 500 },
+        "capital": { "9": 4050, "12": 1300 },
+        "crossBoundary": { "12": 50 }
+      },
+      "rapid": {
+        "open": { "6": 1200, "12": 250 },
+        "capital": { "6": 200 },
+        "crossBoundary": { "12": 50 }
+      },
+      "spread": "covered by the separate focused native run: 12/28 only"
+    },
+    "expected": {
+      "normal": "9 intra-burst, 12 post-burst",
+      "rapid": "6 intra-burst, 12 post-burst",
+      "spread": "28 intra-burst, 12 post-burst"
+    },
+    "specialTransitionCatchupRemoved": true,
+    "deniedAdmissionsInFocusedTrace": 0
+  },
+  "enemyFire": {
+    "intendedControllerCadence": {
+      "intraBurstFrames": 15,
+      "postBurstFrames": { "easy": 60, "medium": 50, "hard": 40 }
+    },
+    "controllerCallsPerAdmittedPalTick": 1,
+    "nativeAcceptedSpawnIntervalHistogramHard": {
+      "15": 9,
+      "26": 1,
+      "27": 1,
+      "34": 2,
+      "36": 1,
+      "40": 1,
+      "101": 1,
+      "161": 1
+    },
+    "interpretation": "15 and 40 are designed firing intervals. Other accepted-allocation gaps are pool, living/visible parent and ordinary-wave admission effects; they are not extra timer decrements. Parent fire is intentionally stopped in capital while already released PairShots continue to tick."
+  },
+  "worldCapital": {
+    "accumulatorCallsPerPhysicalFrame": 1,
+    "oneCarryOneRowEvent": true,
+    "difficulty": {
+      "easy": { "nativeFrames": 400, "events": 160, "eventsPerSecond": 20, "pixelsPerSecond": 160, "averagePixelsPerPalFrame": 3.2 },
+      "medium": { "nativeFrames": 400, "events": 180, "eventsPerSecond": 22.5, "pixelsPerSecond": 180, "averagePixelsPerPalFrame": 3.6 },
+      "hard": { "nativeFrames": 400, "events": 200, "eventsPerSecond": 25, "pixelsPerSecond": 200, "averagePixelsPerPalFrame": 4.0 }
+    },
+    "unexpectedDoubleEvents": 0,
+    "ratesChangedFromPreWhiteRuntime": false
+  },
+  "effectsAudio": {
+    "effectsLogicalRate": "50 Hz, max one tick per admitted active PAL frame",
+    "effectsVisualPublication": "unchanged even/odd 25 Hz stagger",
+    "audioCallsPerTick": { "min": 1, "max": 1 },
+    "shotSequenceHex": ["$33", "$34", "$35", "$36", "$37", "$38"],
+    "missingTones": 0,
+    "duplicateBoundaryAudioTicks": 0,
+    "pot0Regression": false
+  },
+  "starReentryDiagnosticOnly": {
+    "visualFixAttempted": false,
+    "completeIterationHostFrame": 2136,
+    "sectorSetOpenAndRender": "same COMPLETE iteration, scanlines 285-289",
+    "firstAnticFetchHostFrame": 2137,
+    "delay": "one next-display fetch; no skipped star timer",
+    "starWritesMasterOrWorldClock": false
+  },
+  "cpu": {
+    "gateSteadyDeltaCycles": 32,
+    "maximumActiveWorkCycles": 21948,
+    "targetCycles": 31200,
+    "targetHeadroomCycles": 9252,
+    "hardGateCycles": 32568,
+    "hardGateHeadroomCycles": 10620,
+    "maximumFrameBodyWallCycles": 28213,
+    "minimumRawStartCadenceCycles": 11335,
+    "maximumRawStartCadenceCycles": 59870,
+    "rawCadenceInterpretation": "Adjacent physical frames retain different within-frame execution phases at $77/$70. Host-frame delta remains exactly one; raw start-to-start cycles are not a second simulation clock.",
+    "targetOverruns": 0,
+    "hardOverruns": 0,
+    "missedFrames": 0,
+    "extraVbiBoundaries": 0,
+    "dliAnomalies": 0
+  },
+  "memoryPlacement": {
+    "linkedRuntimeBeforeBytes": 17518,
+    "linkedRuntimeAfterBytes": 17513,
+    "linkedRuntimeDeltaBytes": -5,
+    "simultaneousResidencyBeforeBytes": 17996,
+    "simultaneousResidencyAfterBytes": 17991,
+    "safeHeadroomBeforeBytes": 4191,
+    "safeHeadroomAfterBytes": 4196,
+    "stateBytesAdded": 0,
+    "starfieldRaw": { "used": 2190, "reserved": 2348, "margin": 158 },
+    "starfieldPacked": { "used": 1785, "capacity": 1819, "margin": 34 },
+    "starfieldPackedToPickupMarginBytes": 37,
+    "coldPickup": { "used": 866, "capacity": 1277, "margin": 411 },
+    "entityStagingMarginBytes": 100,
+    "broadside": { "used": 6647, "capacity": 6656, "margin": 9 },
+    "a2": { "used": 197, "capacity": 256, "margin": 59 },
+    "initialContent": { "used": 13113, "capacity": 13184, "margin": 71 },
+    "basicRam": false,
+    "loaderChanged": false,
+    "transportTopologyChanged": false
+  },
+  "native": {
+    "emulator": "instrumented Atari800 7.1.2 PAL/XL",
+    "source": "/Users/marcinkrzetowski/Projects/tools/atari800-7.1.2",
+    "masterReport": "build/runtime-wall-trace/master-pal-clock-native-report.json",
+    "pairShotReport": "build/runtime-wall-trace/pairshot-native-report.json",
+    "artifactSha256": "0702caf6c5ae635cfb2352ef8dcf7afd92ed69defff9425b2f11339504baf598",
+    "passed": true
+  },
+  "verification": {
+    "candidateBuild": "PASS",
+    "focusedMasterFireAudioPauseStarfieldLayout": "PASS 36/36",
+    "pairShotFoundationAndStale": "PASS",
+    "effectsStaggerAnd backingFocused": "PASS",
+    "raiderRemnantGenerationMatrix": "PASS >5000 kills",
+    "bootSmoke": "PASS 4 XEX/ATR cold-start sessions",
+    "broaderSelection": "81/106 PASS; 25 known stale/missing-fixture failures are unrelated to this diff, including legacy debris $98FF replay and absent historical timing CSV. They were not weakened or presented as candidate regressions."
+  },
+  "decision": "One hardware-derived PAL token is viable as the authoritative simulation clock. Sector-specific raster anchors remain publication details and no longer create skipped or double gameplay ticks.",
+  "xex": {
+    "path": "dist/void-strike-65.xex",
+    "sha256": "0702caf6c5ae635cfb2352ef8dcf7afd92ed69defff9425b2f11339504baf598",
+    "status": "master PAL clock owner-smoke candidate"
+  },
+  "next": "Owner smoke master timing: capital speed + player shots + Raider shots"
+}

@@ -1,0 +1,224 @@
+{
+  "schema": "void-strike-65.stage-2b2b-capital-speed-restore-clock-verify.v1",
+  "date": "2026-09-14",
+  "status": "PASS_CAPITAL_SPEED_RESTORE_CLOCK_VERIFY",
+  "model": { "name": "GPT-5 Codex", "reasoning": "High" },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "headBefore": "9658ab52d81e15438053a1926df2ea866b9cec1c",
+    "referenceOnlyPreTuningHead": "0625b8a6c8bd1331b29038d36a891a4f478679a6",
+    "headAfter": "local commit containing this report",
+    "push": false,
+    "merge": false,
+    "release": false
+  },
+  "scope": {
+    "capitalTraversalRateOnly": true,
+    "masterPalClockChanged": false,
+    "fighterWorldRateChanged": false,
+    "raiderProjectileChanged": false,
+    "playerProjectileFireAudioMovementChanged": false,
+    "whiteStarSpeedCountLifecycleOrOcclusionChanged": false,
+    "capitalWhiteStarBackingSanitizerPreserved": true
+  },
+  "selectiveRestore": {
+    "referenceContract": {
+      "denominator": 20,
+      "numeratorsEasyMediumHard": [8, 9, 10]
+    },
+    "currentEquivalentRepresentation": {
+      "denominator": 40,
+      "numeratorsEasyMediumHard": [16, 18, 20],
+      "reason": "the current sector-local ring/hull implementation has a common denominator of 40; doubling both numerator and denominator is exactly equivalent to the reference rates"
+    },
+    "rejectedCandidate": {
+      "denominator": 40,
+      "numeratorsEasyMediumHard": [10, 12, 13],
+      "eventsPerSecond": [12.5, 15, 16.25]
+    },
+    "implementation": "asset-generated rate bytes only; existing accumulators and one-PAL-token scheduler are unchanged",
+    "runtimeCodeBytesDelta": 0,
+    "stateBytesDelta": 0
+  },
+  "capitalTraversal": {
+    "pixelsPerEvent": 8,
+    "measured": [
+      {
+        "difficulty": "EASY",
+        "runs": 17,
+        "eventsPer400PalFrames": 160,
+        "eventsPerSecond": 20,
+        "pixelsPerSecond": 160,
+        "averagePixelsPerPalFrame": 3.2
+      },
+      {
+        "difficulty": "MEDIUM",
+        "runs": 17,
+        "eventsPer400PalFrames": 180,
+        "eventsPerSecond": 22.5,
+        "pixelsPerSecond": 180,
+        "averagePixelsPerPalFrame": 3.6
+      },
+      {
+        "difficulty": "HARD",
+        "runs": 16,
+        "eventsPer400PalFrames": 200,
+        "eventsPerSecond": 25,
+        "pixelsPerSecond": 200,
+        "averagePixelsPerPalFrame": 4.0
+      }
+    ],
+    "hullSmoothnessContract": "restored cadence is instruction-for-instruction accumulator-equivalent to the pre-tuning 8/9/10-over-20 behavior",
+    "ringAndHullEventsRemainPhaseAligned": true
+  },
+  "nativeCrossSectorClock": {
+    "emulator": "/Users/marcinkrzetowski/Projects/tools/atari800-7.1.2",
+    "physicalFrames": 105000,
+    "runs": 50,
+    "fighterToCapitalTransitions": 50,
+    "capitalToFighterTransitions": 50,
+    "skippedSimulationTicks": 0,
+    "doubleSimulationTicks": 0,
+    "missedFrames": 0,
+    "extraVbi": 0,
+    "dliAnomalies": 0,
+    "report": "build/runtime-wall-trace/capital-speed-clock-verify-native-report.json"
+  },
+  "playerPairShot": {
+    "pixelsPerTick": 6,
+    "ticksPerActivePalFrame": 1,
+    "pixelsPerSecond": 300,
+    "nativeDisplacementSet": [6],
+    "nativeSamplesBySector": {
+      "fighter": 112102,
+      "transitionIn": 233,
+      "capital": 217694,
+      "transitionOut": 184,
+      "fighterReturn": 36553
+    },
+    "activeAcrossEntryRuns": 50,
+    "activeAcrossExitRuns": 50,
+    "lifetimeDeltaPerTick": 1,
+    "sectorDependentChange": false
+  },
+  "raiderEnemyPairShot": {
+    "pixelsPerTick": 2,
+    "ticksPerActivePalFrame": 1,
+    "pixelsPerSecond": 100,
+    "nativeConsecutiveActiveSamples": 72302,
+    "nativeDisplacementSet": [2],
+    "oldFivePixelFallbackObserved": false,
+    "capitalPresenceInvented": false,
+    "sectorBoundaryLifecycle": "natural fighter projectile drain/removal retained"
+  },
+  "whiteStarClock": {
+    "count": 4,
+    "pixelsPerPalFrame": 1,
+    "pixelsPerSecond": 50,
+    "phasePeriodPalFrames": 8,
+    "nativePhaseResets": 0,
+    "nativeSkippedSteps": 0,
+    "nativeDoubleSteps": 0,
+    "nativeEventCases": {
+      "fineNoRing": 53351,
+      "fineRing": 38499,
+      "coarseNoRing": 4454,
+      "coarseRing": 8646
+    },
+    "nativeTransitionPhasesObserved": [0, 1, 2, 4, 5, 7],
+    "assembledAllPhaseSectorMatrix": "PASS: phases 0..7 in sector states 0..7",
+    "capitalVisibility": [
+      { "difficulty": "EASY", "attempts": 5400, "writes": 5400, "anticVisibleFetches": 5404, "orphanMaximum": 0 },
+      { "difficulty": "MEDIUM", "attempts": 4804, "writes": 4800, "anticVisibleFetches": 4804, "orphanMaximum": 0 },
+      { "difficulty": "HARD", "attempts": 4320, "writes": 4305, "anticVisibleFetches": 4299, "orphanMaximum": 0 }
+    ],
+    "sectorDependentAbsoluteSpeedChange": false
+  },
+  "relativeMotion": [
+    { "difficulty": "EASY", "starPixelsPerSecond": 50, "hullPixelsPerSecond": 160, "starToHullRatio": 0.3125, "absoluteDifferencePixelsPerSecond": 110 },
+    { "difficulty": "MEDIUM", "starPixelsPerSecond": 50, "hullPixelsPerSecond": 180, "starToHullRatio": 0.2777778, "absoluteDifferencePixelsPerSecond": 130 },
+    { "difficulty": "HARD", "starPixelsPerSecond": 50, "hullPixelsPerSecond": 200, "starToHullRatio": 0.25, "absoluteDifferencePixelsPerSecond": 150 }
+  ],
+  "playerFireCadence": {
+    "native": {
+      "normal": { "9": 7088, "12": 2335 },
+      "rapid": { "6": 1326, "12": 332 },
+      "spread": {}
+    },
+    "deterministicFrameExactCompanion": {
+      "normal": { "9": 462, "12": 153 },
+      "rapid": { "6": 667, "12": 166 },
+      "spread": { "12": 62, "28": 187 },
+      "acceptedShots": 1701,
+      "deniedAdmissions": 0,
+      "shotSfx": "$33..$38 complete"
+    },
+    "note": "the deterministic native attract/input sequence sampled Normal and Rapid but did not naturally acquire Spread; the assembled frame-exact companion covers all modes across the same master PAL gate"
+  },
+  "cpuRaster": {
+    "maximumActiveWorkCycles": 22644,
+    "maximumCapitalActiveWorkCycles": 14500,
+    "maximumRawCadenceCycles": 28774,
+    "targetCycles": 31200,
+    "hardGateCycles": 32568,
+    "targetHeadroomCycles": 8556,
+    "hardGateHeadroomCycles": 9924,
+    "targetOverruns": 0,
+    "hardOverruns": 0,
+    "missedFrames": 0,
+    "extraVbi": 0,
+    "dliAnomalies": 0,
+    "rateRestoreSteadyCostCycles": 0
+  },
+  "memoryPlacement": {
+    "beforeAndAfter": {
+      "linkedRuntimeBytes": 17526,
+      "simultaneousResidencyBytes": 18004,
+      "safeHeadroomBytes": 4183,
+      "initialContentBytes": 13123,
+      "initialContentCapacityBytes": 13184,
+      "initialContentMarginBytes": 61,
+      "starfieldRawBytes": 2188,
+      "starfieldRawCapacityBytes": 2348,
+      "starfieldPackedBytes": 1787,
+      "starfieldPackedCapacityBytes": 1819,
+      "starfieldPackedMarginBytes": 32,
+      "starfieldPackedSourceToPickupMarginBytes": 27,
+      "broadsideRawBytes": 6653,
+      "broadsideCapacityBytes": 6656,
+      "broadsideMarginBytes": 3,
+      "a2Bytes": 197,
+      "a2CapacityBytes": 256,
+      "a2MarginBytes": 59,
+      "entityStagingToBroadsideMarginBytes": 100,
+      "coldPickupBytes": 866,
+      "coldPickupCapacityBytes": 1277,
+      "coldPickupMarginBytes": 411
+    },
+    "linkedRuntimeDeltaBytes": 0,
+    "stateDeltaBytes": 0,
+    "basicRamUsed": false,
+    "loaderChanged": false,
+    "transportChanged": false,
+    "entityCodeAligned": true
+  },
+  "regression": {
+    "focusedGameplayStarfieldFire": "PASS 21/21",
+    "enemyCombat": "PASS 31/31 after updating stale 5 px expectations to the owner-approved 2 px contract",
+    "broadsideAndFlagshipSelected": "PASS 5/5",
+    "masterPairShotEffectsRaiderFire": "PASS 26/26 including >5000 Raider kills",
+    "pairShotGhosts": 0,
+    "raiderStaleRemnants": 0,
+    "effectBackingErrors": 0,
+    "whiteStarStaleOrOrphanCells": 0,
+    "bootSmoke": "PASS 4/4 XEX/ATR cold starts",
+    "knownUnrelatedSuiteState": "historic Spread/pickup backing fixtures remain failing/expected and were not changed; one parallel wildcard run also exhausted an assembler process slot, while the same serial focused builds pass"
+  },
+  "artifact": {
+    "path": "dist/void-strike-65.xex",
+    "sha256": "91ec98e9dc8334a1054dfbb902863af2fad7f6a3de7d3c4e8c72d3d1e6fa2147",
+    "status": "owner-smoke candidate"
+  },
+  "decision": "The pre-tuning capital traversal cadence is restored without changing the accepted projectile, fire, audio, white-star, backing, or master PAL clock contracts",
+  "next": "Owner smoke restored capital speed + cross-sector clock consistency"
+}

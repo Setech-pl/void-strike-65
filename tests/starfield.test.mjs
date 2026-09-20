@@ -1,437 +1,300 @@
 import assert from "node:assert/strict";
-import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { Nmos6502 } from "../scripts/nmos6502.mjs";
+import { installRuntimeSegments } from "../scripts/runtime-image.mjs";
 import {
-  clearBackgroundOverlay,
   compileStarfield,
   composeStarfield,
-  createBackgroundOwnership,
   createStarfieldState,
   loadStarfieldDefinition,
-  renderBackgroundOwnership,
   renderStarfieldCa65Include,
-  setBackgroundOverlay,
   setStarfieldFullWidth,
   starfieldGeometry,
   stepStarfieldFrame,
   stepStarfieldWorld,
-  updateBackgroundOwnership,
 } from "../scripts/starfield.mjs";
 
 const directory = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(directory, "..");
-const definitionPath = path.join(root, "assets", "graphics", "starfield.json");
-const asset = compileStarfield(loadStarfieldDefinition(definitionPath));
+const asset = compileStarfield(loadStarfieldDefinition(
+  path.join(root, "assets", "graphics", "starfield.json")));
 const source = fs.readFileSync(path.join(root, "src", "main.s"), "utf8");
 const generated = fs.readFileSync(path.join(root, "build", "starfield.inc"), "utf8");
 const manifest = JSON.parse(fs.readFileSync(path.join(root, "build", "manifest.json"), "utf8"));
-const starRuntime = fs.readFileSync(path.join(root, "build", "starfield-runtime.bin"));
-const labels = new Map(
-  fs.readFileSync(path.join(root, "build", "void-strike-65.lbl"), "utf8")
-    .split(/\r?\n/)
-    .map((line) => /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim()))
-    .filter(Boolean)
-    .map((match) => [match[2], Number.parseInt(match[1], 16)]),
-);
+const labels = new Map(fs.readFileSync(path.join(root, "build", "void-strike-65.lbl"), "utf8")
+  .split(/\r?\n/)
+  .map((line) => /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim()))
+  .filter(Boolean)
+  .map((match) => [match[2], Number.parseInt(match[1], 16)]));
 
-function runtimeBytes(label, length) {
-  const offset = labels.get(label) - manifest.starfieldRuntime.runAddress;
-  assert.ok(offset >= 0 && offset + length <= starRuntime.length,
-    `${label} lies outside relocated starfield runtime`);
-  return starRuntime.subarray(offset, offset + length);
+function runRoutine(memory, name) {
+  const cpu = new Nmos6502(memory);
+  const stop = 0x7fff;
+  cpu.push((stop - 1) >>> 8);
+  cpu.push((stop - 1) & 0xff);
+  cpu.pc = labels.get(name);
+  assert.ok(Number.isInteger(cpu.pc), `missing linked routine ${name}`);
+  for (let steps = 0; steps < 100_000 && cpu.pc !== stop; steps += 1) cpu.step();
+  assert.equal(cpu.pc, stop, `${name} did not return`);
+  return cpu.cycles;
 }
 
-// Executes the assembled rate dispatcher itself. Calls into the bounded screen
-// movers are counted as external effects so this focused runner needs only the
-// documented NMOS 6502 instructions present in advance_starfield_layers.
-function executeRateDispatcher(memory, startAddress, externalCalls) {
-  let accumulator = 0;
-  let carry = false;
-  let zero = false;
-  let pc = startAddress;
-  let instructions = 0;
-  const readByte = () => memory[pc++];
-  const readWord = () => {
-    const low = readByte();
-    return low | readByte() << 8;
-  };
-  const setZero = (value) => {
-    zero = (value & 0xff) === 0;
-    return value & 0xff;
-  };
-  const branch = (condition) => {
-    const encodedOffset = readByte();
-    if (!condition) return;
-    const offset = encodedOffset < 0x80 ? encodedOffset : encodedOffset - 0x100;
-    pc = pc + offset & 0xffff;
-  };
+function createRuntime() {
+  const memory = new Uint8Array(0x10000);
+  installRuntimeSegments(memory, root);
+  runRoutine(memory, "init_playfield_row_table");
+  runRoutine(memory, "init_starfield_state");
+  memory[labels.get("CAPITAL_SECTOR_STATE")] = 7;
+  return memory;
+}
 
-  while (instructions++ < 128) {
-    const opcodeAddress = pc;
-    const opcode = readByte();
-    switch (opcode) {
-      case 0x09: // ORA #imm
-        accumulator = setZero(accumulator | readByte());
-        break;
-      case 0x18: // CLC
-        carry = false;
-        break;
-      case 0x20: { // JSR abs
-        const target = readWord();
-        assert.ok(externalCalls.has(target),
-          `unexpected nested JSR $${target.toString(16)} at $${opcodeAddress.toString(16)}`);
-        externalCalls.set(target, externalCalls.get(target) + 1);
-        break;
-      }
-      case 0x29: // AND #imm
-        accumulator = setZero(accumulator & readByte());
-        break;
-      case 0x4c: // JMP abs
-        pc = readWord();
-        break;
-      case 0x60: // RTS
-        return instructions;
-      case 0x69: { // ADC #imm
-        const sum = accumulator + readByte() + Number(carry);
-        carry = sum > 0xff;
-        accumulator = setZero(sum);
-        break;
-      }
-      case 0x8d: // STA abs
-        memory[readWord()] = accumulator;
-        break;
-      case 0xa9: // LDA #imm
-        accumulator = setZero(readByte());
-        break;
-      case 0xad: // LDA abs
-        accumulator = setZero(memory[readWord()]);
-        break;
-      case 0xb0: // BCS rel
-        branch(carry);
-        break;
-      case 0xc9: { // CMP #imm
-        const value = readByte();
-        carry = accumulator >= value;
-        zero = accumulator === value;
-        break;
-      }
-      case 0xe9: { // SBC #imm
-        const difference = accumulator - readByte() - Number(!carry);
-        carry = difference >= 0;
-        accumulator = setZero(difference);
-        break;
-      }
-      case 0xd0: // BNE rel
-        branch(!zero);
-        break;
-      case 0xf0: // BEQ rel
-        branch(zero);
-        break;
-      default:
-        assert.fail(
-          `unsupported opcode $${opcode.toString(16)} at $${opcodeAddress.toString(16)}`,
-        );
+function ringEvent(memory) {
+  memory[labels.get("STAR_NEAR_RING_ADVANCED")] |= 1;
+  return runRoutine(memory, "rotate_playfield_rows");
+}
+
+function renderedWhiteAddresses(memory) {
+  const result = [];
+  for (let slot = 0; slot < asset.nearLayer.population; slot += 1) {
+    const row = memory[labels.get("STAR_NEAR_ROW") + slot];
+    const column = memory[labels.get("STAR_NEAR_COLUMN") + slot];
+    let address;
+    if (row === 0) {
+      address = 0x4028 + column;
+    } else {
+      const table = row - 1;
+      address = memory[labels.get("PLAYFIELD_ROW_LO") + table] |
+        memory[labels.get("PLAYFIELD_ROW_HI") + table] << 8;
+      address += column;
     }
+    result.push(address);
   }
-  assert.fail("advance_starfield_layers exceeded its bounded instruction budget");
+  return result;
 }
 
-function counts(screen) {
-  return [...screen].reduce((result, code) => {
-    if (code >= 1 && code <= 3) result.far += 1;
-    if (code >= 4 && code <= 6) result.near += 1;
-    return result;
-  }, { far: 0, near: 0 });
+function countWhiteCells(memory) {
+  const divider = memory.subarray(0x4028, 0x4028 + 40);
+  const ring = memory.subarray(0x8140, 0x8140 + 27 * 40);
+  return [...divider, ...ring].filter((code) =>
+    code === asset.nearLayer.glyphs[0].screenCode).length;
 }
 
-function screenHash(screen) {
-  return crypto.createHash("sha256").update(screen).digest("hex");
+function publish(memory) {
+  const erase = runRoutine(memory, "erase_dynamic_near_star_overlays");
+  const phase = runRoutine(memory, "publish_dynamic_near_star_phase");
+  const render = runRoutine(memory, "render_dynamic_near_star_overlays");
+  return { erase, phase, render };
 }
 
-test("starfield source is compact, table-driven, and assembled byte-for-byte", () => {
+test("asset and generated include define one four-point white-only layer", () => {
   assert.deepEqual({
-    seed: asset.generationSeed,
+    farRepresentation: asset.farLayer.representation,
     farPopulation: asset.farLayer.population,
-    farRate: [asset.farLayer.rateNumerator, asset.farLayer.rateDenominator],
-    nearRate: [asset.nearLayer.rateNumerator, asset.nearLayer.rateDenominator],
-    nearDensity: [asset.nearLayer.densityNumerator, asset.nearLayer.densityDenominator],
-    twinkle: asset.twinkle.intervalFrames,
+    farPatternBytes: asset.farLayer.pattern.bytes.length,
+    farGlyphs: asset.farLayer.glyphs.length,
+    nearRepresentation: asset.nearLayer.representation,
+    nearPopulation: asset.nearLayer.population,
+    nearSpeed: asset.nearLayer.speedPixelsPerFrame,
     glyphBytes: asset.glyphBytes.length,
     stateBytes: asset.stateBytes,
   }, {
-    seed: 0xa7,
-    farPopulation: 29,
-    farRate: [1, 4],
-    nearRate: [1, 2],
-    nearDensity: [3, 8],
-    twinkle: 16,
-    glyphBytes: 48,
-    stateBytes: 122,
+    farRepresentation: "disabled",
+    farPopulation: 0,
+    farPatternBytes: 0,
+    farGlyphs: 0,
+    nearRepresentation: "sparse-dynamic",
+    nearPopulation: 4,
+    nearSpeed: 1,
+    glyphBytes: 8,
+    stateBytes: 18,
   });
   assert.equal(generated, renderStarfieldCa65Include(asset));
-  assert.deepEqual([...runtimeBytes("star_glyph_bytes", asset.glyphBytes.length)],
-    [...asset.glyphBytes]);
-  assert.equal(manifest.starfield.source, "assets/graphics/starfield.json");
+  assert.deepEqual(asset.glyphs.map(({ screenCode }) => screenCode), [1]);
+  assert.equal(asset.nearLayer.colourRegister, "COLPF0");
+  assert.deepEqual(asset.nearLayer.glyphs[0].bytes, [16, 0, 0, 0, 0, 0, 0, 0]);
 });
 
-test("ANTIC 4 star screen codes select six isolated glyphs and two safe colour banks", () => {
-  assert.deepEqual(asset.glyphs.map(({ screenCode }) => screenCode), [1, 2, 3, 4, 5, 6]);
-  const pixelValues = (glyph) => glyph.bytes.flatMap((byte) =>
-    [6, 4, 2, 0].map((shift) => (byte >>> shift) & 3)).filter(Boolean);
-  assert.ok(asset.farLayer.glyphs.every((glyph) =>
-    pixelValues(glyph).every((value) => value === 2)), "far glyphs select COLPF1");
-  assert.ok(asset.nearLayer.glyphs.every((glyph) =>
-    pixelValues(glyph).every((value) => value === 1)), "near glyphs select COLPF0");
-  assert.ok(asset.glyphs.every(({ screenCode }) => screenCode < 11));
-  assert.equal(manifest.fighterWeapons.player_fighter.colourValue, 0x1e);
-  assert.equal(manifest.fighterWeapons.interceptor.colourValue, 0x46);
-  assert.deepEqual([manifest.starfield.farLayer.colourRegister,
-    manifest.starfield.nearLayer.colourRegister], ["COLPF1", "COLPF0"]);
-});
-
-test("deterministic seed reproduces layouts while a different seed changes them", () => {
-  const first = composeStarfield(asset, createStarfieldState(asset));
-  const repeat = composeStarfield(asset, createStarfieldState(asset));
-  const different = composeStarfield(asset, createStarfieldState(asset, { seed: 0x53 }));
-  assert.equal(screenHash(first), screenHash(repeat));
-  assert.notEqual(screenHash(first), screenHash(different));
-  assert.deepEqual(counts(first), { far: 19, near: 8 });
-});
-
-test("hulls keep the legacy world rate while stars hold exact 50% and 25% ratios", () => {
-  for (const [difficulty, rate] of [["easy", 8], ["medium", 9], ["hard", 10]]) {
-    let state = createStarfieldState(asset);
-    let accumulator = 0;
-    let worldSteps = 0;
-    for (let frame = 0; frame < 400; frame += 1) {
-      accumulator += rate;
-      if (accumulator < 20) continue;
-      accumulator -= 20;
-      state = stepStarfieldWorld(asset, state);
-      worldSteps += 1;
-    }
-    assert.equal(state.worldSteps, worldSteps, `${difficulty} hull follows legacy world events`);
-    assert.equal(state.nearSteps, Math.floor(worldSteps / 2),
-      `${difficulty} near layer remains exactly 50% of hull speed`);
-    assert.equal(state.farSteps, Math.floor(worldSteps / 4),
-      `${difficulty} far layer remains exactly 25% of hull speed`);
-    assert.equal(state.nearPhase, worldSteps % 2);
-    assert.equal(state.farPhase, worldSteps % 4);
-    assert.equal(state.nearSteps * 2, state.farSteps * 4,
-      `${difficulty} complete rate windows preserve the 2:1 parallax split`);
-  }
-  assert.deepEqual([
-    manifest.starfield.nearLayer.rateNumerator,
-    manifest.starfield.nearLayer.rateDenominator,
-    manifest.starfield.farLayer.rateNumerator,
-    manifest.starfield.farLayer.rateDenominator,
-  ], [1, 2, 1, 4]);
-});
-
-test("assembled 6502 keeps physical scene recycle at 100% and far stars at 25%", () => {
-  const memory = new Uint8Array(0x10000);
-  memory.set(starRuntime, manifest.starfieldRuntime.runAddress);
-  const addresses = {
-    nearPhase: 0x4ed2,
-    farPhase: 0x4ed3,
-    flags: 0x4ed6,
-    advance: labels.get("advance_starfield_layers"),
-    erase: labels.get("erase_far_star_overlays"),
-    nearStep: labels.get("scroll_world_columns"),
-    farStep: labels.get("advance_far_stars"),
-  };
-  assert.ok(Object.values(addresses).every(Number.isInteger));
-  assert.match(source,
-    /STAR_RNG_STATE\s*=\s*GAMEPLAY_RESIDENT_END[\s\S]+STAR_NEAR_PHASE\s*=\s*STAR_RNG_STATE\+\$01[\s\S]+STAR_FAR_PHASE\s*=\s*STAR_NEAR_PHASE\+\$01/);
-
-  const calls = new Map([
-    [addresses.erase, 0],
-    [addresses.nearStep, 0],
-    [addresses.farStep, 0],
-    [0x4efe, 0],
-  ]);
-  const gcd = (left, right) => right === 0 ? left : gcd(right, left % right);
-  const period = asset.nearLayer.rateDenominator * asset.farLayer.rateDenominator /
-    gcd(asset.nearLayer.rateDenominator, asset.farLayer.rateDenominator);
-  const phaseTrace = [];
-  for (let hullEvent = 0; hullEvent < period; hullEvent += 1) {
-    executeRateDispatcher(memory, addresses.advance, calls);
-    phaseTrace.push([memory[addresses.nearPhase], memory[addresses.farPhase]]);
-  }
-
-  const hullSteps = period;
-  const nearSteps = calls.get(addresses.nearStep);
-  const farSteps = calls.get(addresses.farStep);
-  assert.deepEqual([hullSteps, nearSteps, farSteps], [4, 4, 1]);
-  assert.deepEqual([hullSteps * 100 / hullSteps, nearSteps * 100 / hullSteps,
-    farSteps * 100 / hullSteps], [100, 100, 25]);
-  assert.deepEqual(phaseTrace.at(-1), [0, 0],
-    "both assembled accumulators close exactly over the common period");
-  assert.ok(phaseTrace.every(([near, far]) =>
-    near < asset.nearLayer.rateDenominator && far < asset.farLayer.rateDenominator));
-});
-
-test("stars enter at the top, leave at the bottom, and remain sparse over time", () => {
+test("host model advances white stars exactly one scanline per PAL frame", () => {
   let state = createStarfieldState(asset);
-  let nearSum = 0;
-  let farMin = Infinity;
-  let farMax = 0;
-  for (let step = 0; step < 600; step += 1) {
-    const before = composeStarfield(asset, state);
-    const next = stepStarfieldWorld(asset, state);
-    const after = composeStarfield(asset, next);
-    if (next.nearSteps > state.nearSteps) {
-      for (let row = 2; row < starfieldGeometry.gameplayRows; row += 1) {
-        for (let column = 9; column < 31; column += 1) {
-          const oldCode = before[(row - 1) * 40 + column];
-          const newCode = after[row * 40 + column];
-          if (oldCode >= 4 && oldCode <= 6) assert.equal(newCode, oldCode,
-            "near stars move only from the immediately preceding row");
-        }
-      }
-    }
-    state = next;
-    const visible = counts(after);
-    nearSum += visible.near;
-    farMin = Math.min(farMin, visible.far);
-    farMax = Math.max(farMax, visible.far);
-  }
-  assert.ok(nearSum / 600 >= 6 && nearSum / 600 <= 12);
-  assert.ok(farMin >= 17 && farMax <= asset.farLayer.population);
-  assert.ok(state.far.every(({ row }) => row >= 0 && row < starfieldGeometry.gameplayRows));
-});
-
-test("twinkle changes one covered-safe far phase every sixteen PAL frames", () => {
-  let state = createStarfieldState(asset);
-  const original = state.far.map(({ code }) => code);
-  for (let frame = 1; frame < asset.twinkle.intervalFrames; frame += 1) {
+  const initialRows = state.dynamicNear.map(({ row }) => row);
+  for (let frame = 1; frame <= 64; frame += 1) {
     state = stepStarfieldFrame(asset, state);
-    assert.deepEqual(state.far.map(({ code }) => code), original);
+    assert.equal(state.nearPhase, frame % 8);
+    assert.deepEqual(state.dynamicNear.map(({ row }) => row),
+      initialRows.map((row) => (row + Math.floor(frame / 8)) % 28));
+    assert.equal([...composeStarfield(asset, state)].filter(Boolean).length, 4);
   }
-  state = stepStarfieldFrame(asset, state);
-  const changed = state.far.filter(({ code }, index) => code !== original[index]);
-  assert.equal(changed.length, 1);
 });
 
-test("broadside stars stay inside the corridor and never touch hull ownership", () => {
-  let state = createStarfieldState(asset);
-  for (let step = 0; step < 120; step += 1) {
-    const screen = composeStarfield(asset, state);
-    for (let row = 0; row < starfieldGeometry.gameplayRows; row += 1) {
-      assert.ok(screen.subarray(row * 40, row * 40 + 8).every((code) => code === 0));
-      assert.ok(screen.subarray(row * 40 + 32, row * 40 + 40).every((code) => code === 0));
+test("background reconstruction and ring recycling contain no blue or orphan star bytes", () => {
+  for (const fullWidth of [false, true]) {
+    let state = setStarfieldFullWidth(createStarfieldState(asset), fullWidth);
+    for (let step = 0; step < 112; step += 1) {
+      state = stepStarfieldWorld(asset, state);
+      assert.equal([...state.near].filter(Boolean).length, 0);
+      assert.equal([...composeStarfield(asset, state)].filter(Boolean).length,
+        fullWidth ? 0 : 4);
     }
-    assert.ok(state.far.every(({ column }) => column >= 9 && column <= 30));
-    state = stepStarfieldWorld(asset, state);
   }
-  assert.match(source, /STAR_FAR_SCREEN_LO\s*=\s*\$8100[\s\S]+STAR_FAR_SCREEN_HI\s*=\s*STAR_FAR_SCREEN_LO\+STAR_FAR_CAPACITY/);
-  assert.match(source, /render_far_star_overlays:[\s\S]+RESOLVE_FAR_STAR_PTR[\s\S]+ldy #\$00[\s\S]+lda \(dst_ptr\),y\s+bne render_far_star_next[\s\S]+sta STAR_FAR_SCREEN_LO,x[\s\S]+sta STAR_FAR_SCREEN_HI,x/);
-  assert.match(source, /erase_far_star_overlays:[\s\S]+lda STAR_FAR_SCREEN_LO,x\s+sta dst_ptr[\s\S]+lda STAR_FAR_SCREEN_HI,x\s+sta dst_ptr\+1[\s\S]+sta \(dst_ptr\),y/);
-  assert.doesNotMatch(source.slice(source.indexOf("handle_collisions:"),
-    source.indexOf("update_score_display:")), /STAR_FAR|STAR_NEAR|star_glyph/);
 });
 
-test("ordinary-space reconstruction expands deterministically after COMPLETE", () => {
-  let state = setStarfieldFullWidth(createStarfieldState(asset), true);
-  const outsideCounts = [];
-  for (let step = 0; step < 23; step += 1) {
-    state = stepStarfieldWorld(asset, state);
-    const screen = composeStarfield(asset, state);
-    let outside = 0;
-    for (let row = 0; row < 23; row += 1) {
-      for (const column of [0, 1, 2, 3, 4, 5, 6, 7, 32, 33, 34, 35, 36, 37, 38, 39]) {
-        if (screen[row * 40 + column] !== 0) outside += 1;
-      }
-    }
-    outsideCounts.push(outside);
+test("all four coarse/ring combinations preserve exact physical addresses", () => {
+  for (const { name, phaseBefore, rotate, expectedFlags } of [
+    { name: "no coarse, no ring", phaseBefore: 0, rotate: false, expectedFlags: 0 },
+    { name: "coarse only", phaseBefore: 7, rotate: false, expectedFlags: 2 },
+    { name: "ring only", phaseBefore: 0, rotate: true, expectedFlags: 1 },
+    { name: "coarse plus ring", phaseBefore: 7, rotate: true, expectedFlags: 3 },
+  ]) {
+    const memory = createRuntime();
+    runRoutine(memory, "render_dynamic_near_star_overlays");
+    memory[labels.get("STAR_NEAR_FINE_PHASE")] = phaseBefore;
+    const update = runRoutine(memory, "update_white_starfield_phase");
+    if (rotate) ringEvent(memory);
+    assert.equal(memory[labels.get("STAR_NEAR_RING_ADVANCED")], expectedFlags, name);
+    const { erase, phase, render } = publish(memory);
+    assert.equal(countWhiteCells(memory), 4, name);
+    assert.deepEqual(renderedWhiteAddresses(memory), [0, 1, 2, 3].map((slot) =>
+      memory[labels.get("STAR_NEAR_SCREEN_LO") + slot] |
+      memory[labels.get("STAR_NEAR_SCREEN_HI") + slot] << 8), name);
+    assert.ok(update > 0 && erase > 0 && phase > 0 && render > 0);
   }
-  assert.ok(outsideCounts.some((count) => count > 0));
-  assert.match(source,
-    /scroll_world_columns:[\s\S]+jsr rotate_playfield_rows[\s\S]+jsr generate_starfield_row/,
-    "COMPLETE must use the same bounded row recycle as the corridor");
-  assert.match(source,
-    /generate_starfield_row:[\s\S]+ldx CAPITAL_SECTOR_STATE[\s\S]+cpx #CAPITAL_HULL_STATE_COMPLETE[\s\S]+ldy #CORRIDOR_CENTRAL_FIRST[\s\S]+@full_limit:[\s\S]+cpy #40/,
-    "COMPLETE must regenerate all 40 cells of the recycled row");
 });
 
-test("overlay ownership restores the current background and respects overlap order", () => {
-  let state = createStarfieldState(asset);
-  let ownership = createBackgroundOwnership(asset, state);
-  const target = composeStarfield(asset, state).findIndex((code) => code !== 0);
-  assert.ok(target >= 0);
-  const initial = ownership.background[target];
-  ownership = setBackgroundOverlay(ownership, "projectile", [{ index: target, code: 0x7e }]);
-  ownership = setBackgroundOverlay(ownership, "explosion", [{ index: target, code: 0x6d }]);
-  assert.equal(renderBackgroundOwnership(ownership)[target], 0x6d);
-  state = stepStarfieldWorld(asset, state);
-  ownership = updateBackgroundOwnership(ownership, asset, state);
-  ownership = clearBackgroundOverlay(ownership, "projectile");
-  assert.equal(renderBackgroundOwnership(ownership)[target], 0x6d,
-    "clearing a covered lower owner cannot erase the upper owner");
-  ownership = clearBackgroundOverlay(ownership, "explosion");
-  assert.equal(renderBackgroundOwnership(ownership)[target], ownership.background[target]);
-  assert.notEqual(initial, undefined);
+test("1000-frame mixed cadence has no stale, clone, or lost white cells", () => {
+  const memory = createRuntime();
+  runRoutine(memory, "render_dynamic_near_star_overlays");
+  const events = new Set();
+  for (let frame = 0; frame < 1000; frame += 1) {
+    assert.equal(countWhiteCells(memory), 4, `ANTIC-visible count before frame ${frame}`);
+    runRoutine(memory, "update_white_starfield_phase");
+    const coarse = memory[labels.get("STAR_NEAR_RING_ADVANCED")] === 2;
+    const rotate = frame % 3 === 0 || frame % 17 === 5;
+    if (rotate) ringEvent(memory);
+    events.add(`${coarse ? 1 : 0}${rotate ? 1 : 0}`);
+    runRoutine(memory, "erase_dynamic_near_star_overlays");
+    assert.equal(countWhiteCells(memory), 0, `stale/clone at frame ${frame}`);
+    runRoutine(memory, "publish_dynamic_near_star_phase");
+    runRoutine(memory, "render_dynamic_near_star_overlays");
+    assert.equal(countWhiteCells(memory), 4, `lost publish at frame ${frame}`);
+    assert.deepEqual(renderedWhiteAddresses(memory), [0, 1, 2, 3].map((slot) =>
+      memory[labels.get("STAR_NEAR_SCREEN_LO") + slot] |
+      memory[labels.get("STAR_NEAR_SCREEN_HI") + slot] << 8));
+    const phase = memory[labels.get("STAR_NEAR_FINE_PHASE")];
+    const glyph = memory.subarray(0x4400 + 8, 0x4400 + 16);
+    assert.deepEqual([...glyph], Array.from({ length: 8 }, (_, row) => row === phase ? 16 : 0));
+  }
+  assert.deepEqual([...events].sort(), ["00", "01", "10", "11"]);
 });
 
-test("assembly erases overlays before scroll and renders them in stacking order", () => {
-  const mainLoop = source.slice(source.indexOf("main_loop:"), source.indexOf("; -----------------------------------------------------------------------------\n; Frame"));
-  const order = [
-    "erase_fighter_projectile_overlays",
-    "update_starfield",
-    "render_far_star_overlays_if_needed",
-    "render_capital_explosions",
-    "render_shared_fighter_explosions",
-    "render_capital_shell_overlays",
-    "render_fighter_projectile_overlays",
-  ].map((label) => mainLoop.indexOf(label));
-  assert.ok(order.every((offset) => offset >= 0));
-  assert.deepEqual([...order].sort((a, b) => a - b), order);
-  assert.match(source, /erase_fighter_projectile_overlays:[\s\S]+FIGHTER_PROJECTILE_BACKUP_TOP[\s\S]+FIGHTER_PROJECTILE_BACKUP_BOTTOM/);
-  assert.match(source, /render_capital_shell_overlays:[\s\S]+BROAD_PREV_Y[\s\S]+BROAD_COLLISION/);
-  assert.match(source, /update_starfield:[\s\S]+jsr erase_far_star_overlays[\s\S]+jsr scroll_world_columns/);
-  assert.match(source,
-    /advance_starfield_layers:[\s\S]+STAR_NEAR_RATE_NUMERATOR[\s\S]+STAR_NEAR_RATE_DENOMINATOR[\s\S]+STAR_FAR_RATE_NUMERATOR[\s\S]+STAR_FAR_RATE_DENOMINATOR/);
+test("capital keeps white-star time continuous and CH_SPACE-only publication occludes hull", () => {
+  const memory = createRuntime();
+  runRoutine(memory, "render_dynamic_near_star_overlays");
+  const phase = memory[labels.get("STAR_NEAR_FINE_PHASE")];
+  runRoutine(memory, "erase_dynamic_near_star_overlays");
+  memory[labels.get("CAPITAL_SECTOR_STATE")] = 1;
+  runRoutine(memory, "update_white_starfield_phase");
+  assert.equal(memory[labels.get("STAR_NEAR_FINE_PHASE")], (phase + 1) & 7);
+  const covered = memory[labels.get("STAR_NEAR_SCREEN_LO")] |
+    memory[labels.get("STAR_NEAR_SCREEN_HI")] << 8;
+  memory[covered] = 42;
+  runRoutine(memory, "publish_dynamic_near_star_phase");
+  runRoutine(memory, "render_dynamic_near_star_overlays");
+  assert.equal(memory[covered], 42, "capital hull must occlude the star");
+  assert.equal(countWhiteCells(memory), 3);
+  runRoutine(memory, "erase_dynamic_near_star_overlays");
+  memory[covered] = 0;
+  runRoutine(memory, "update_white_starfield_phase");
+  runRoutine(memory, "publish_dynamic_near_star_phase");
+  runRoutine(memory, "render_dynamic_near_star_overlays");
+  assert.equal(countWhiteCells(memory), 4, "the moving star returns naturally after open space");
+  memory[labels.get("CAPITAL_SECTOR_STATE")] = 7;
+  runRoutine(memory, "erase_dynamic_near_star_overlays");
+  runRoutine(memory, "update_white_starfield_phase");
+  runRoutine(memory, "publish_dynamic_near_star_phase");
+  runRoutine(memory, "render_dynamic_near_star_overlays");
+  assert.equal(countWhiteCells(memory), 4, "fighter re-entry has no reconstruction delay");
 });
 
-test("starfield relocation preserves broadside and protected finale memory", () => {
-  assert.equal(manifest.starfieldRuntime.runAddress, 0x552a);
+test("white publication retains the proven post-playfield ANTIC contract", () => {
+  const publication = source.slice(source.indexOf("publish_fighter_projectile_overlays:"),
+    source.indexOf("fighter_projectile_publication_end = *"));
+  assert.match(publication,
+    /fighter_projectile_publication_begin = \*[\s\S]+jsr erase_dynamic_near_star_overlays[\s\S]+jsr publish_dynamic_near_star_phase[\s\S]+jsr erase_fighter_projectile_overlays[\s\S]+jmp render_dynamic_near_star_overlays/);
+  const frameStart = source.slice(source.indexOf("entity_effects_erase_with_white_starfield:"),
+    source.indexOf("update_white_starfield_phase:"));
+  assert.doesNotMatch(frameStart, /erase_dynamic_near_star_overlays/);
+});
+
+test("instruction-exact white-only starfield peak remains within the 850-cycle gate", () => {
+  const measure = ({ phaseBefore, rotate }) => {
+    const memory = createRuntime();
+    runRoutine(memory, "render_dynamic_near_star_overlays");
+    memory[labels.get("STAR_NEAR_FINE_PHASE")] = phaseBefore;
+    const update = runRoutine(memory, "update_white_starfield_phase");
+    let recycle = 0;
+    if (rotate) recycle = ringEvent(memory);
+    const { erase, phase, render } = publish(memory);
+    const cleanup = rotate ? runRoutine(memory, "restore_recycled_row_near_underlay") : 0;
+    return { update, erase, phase, render, recycle, cleanup,
+      total: update + erase + phase + render + cleanup };
+  };
+  const cases = {
+    ordinary: measure({ phaseBefore: 0, rotate: false }),
+    coarse: measure({ phaseBefore: 7, rotate: false }),
+    ring: measure({ phaseBefore: 0, rotate: true }),
+    combined: measure({ phaseBefore: 7, rotate: true }),
+  };
+  const peak = Math.max(...Object.values(cases).map(({ total }) => total));
+  assert.ok(peak <= 850, `white-only peak ${peak} exceeds gate: ${JSON.stringify(cases)}`);
+});
+
+test("blue-far production code, data, glyphs and state are absent", () => {
+  assert.doesNotMatch(source,
+    /STAR_FAR|generate_baked_far_star_row|draw_baked_far_star|far_baked_pattern|update_far_star_fine_phase/);
+  assert.doesNotMatch(generated, /STAR_FAR_DIM|EMIT_FAR_STAR_PATTERN/);
+  assert.equal(labels.has("generate_baked_far_star_row"), false);
+  assert.equal(labels.has("STAR_FAR_PATTERN_ROW"), false);
+  assert.equal(labels.has("STAR_FAR_FINE_PHASE"), false);
+});
+
+test("layout and transport gates remain legal after blue-far removal", () => {
+  assert.equal(labels.get("free_broadside_slot"), 0x76a7);
+  assert.equal(manifest.starfieldRuntime.runAddress, 0x54e4);
   assert.ok(manifest.starfieldRuntime.bytes <= manifest.starfieldRuntime.reservedBytes);
-  assert.ok(manifest.starfieldRuntime.packedBytes <= 0x706);
-  assert.equal(manifest.broadsideRuntime.runAddress, 0x5e10);
-  assert.ok(manifest.broadsideRuntime.bytes <= manifest.broadsideRuntime.reservedBytes);
-  assert.ok(manifest.broadsideRuntime.runAddress + manifest.broadsideRuntime.bytes <= 0x7810);
-  assert.equal(manifest.starfield.pmgBytes, 0);
-  assert.equal(labels.get("STAR_FAR_STATE_END"), undefined,
-    "absolute star state constants are not exported linker symbols");
+  assert.ok(manifest.starfieldRuntime.packedBytes <= manifest.starfieldRuntime.stagingBytes);
+  assert.ok(manifest.a2Kernel.bytes <= manifest.a2Kernel.reservedBytes);
+  assert.equal(manifest.broadsideRuntime.reservedBytes - manifest.broadsideRuntime.bytes, 3);
+  // 103 -> 104 with owner decision A (2026-09-20): the boot block was exactly
+  // full (13,172 content + 12 envelope = 103 x 128), so the six bytes of
+  // disable_basic_rom call sites that make the ATR boot without OPTION cost a
+  // sector. Deliberate transport growth, visible here and in the boot smoke,
+  // which still measures the ATR menu at frame 554 (delta 0 to the committed
+  // baseline). This is a transport-format pin, not a deadline pin: re-record
+  // it only for a deliberate change, never to accommodate an unexplained one.
+  assert.equal(manifest.transportCapacity.initialBootSectors, 104);
+  assert.ok(manifest.transportCapacity.initialBootEnvelopeBytes >= 0);
+  assert.equal(labels.get("ENTITY_CODE_START") & 0xff, 0);
 });
 
-test("starfield staging is disjoint from the packed loader and loader bitmap", () => {
-  const stagingStart = manifest.starfieldRuntime.stagingAddress;
-  const stagingEnd = stagingStart + manifest.starfieldRuntime.packedBytes - 1;
-  const loaderStart = labels.get("loader_bitmap_lzss");
-  const loaderEnd = loaderStart + manifest.loaderScreen.packedBitmapBytes - 1;
-  const bitmapStart = manifest.loaderScreen.bitmapAddress;
-  const bitmapEnd = bitmapStart + manifest.loaderScreen.unpackedBitmapBytes - 1;
-  const overlaps = (firstStart, firstEnd, secondStart, secondEnd) =>
-    firstStart <= secondEnd && secondStart <= firstEnd;
-  const stagingConstant = /STARFIELD_STAGING\s*=\s*\$([0-9A-F]+)/i.exec(source);
+test("accepted 1 px/frame stars stay independent of restored capital hull cadence", () => {
+  const hull = [16, 18, 20].map((rate) => rate * 8 / 40);
+  assert.deepEqual(hull, [3.2, 3.6, 4]);
+  assert.deepEqual(hull.map((speed) => Number((1 / speed).toFixed(4))),
+    [0.3125, 0.2778, 0.25]);
+  assert.match(source, /world_scroll_rates:\s*\n\s*EMIT_WORLD_SCROLL_RATES\s*\nhull_scroll_rates:\s*\n\s*EMIT_HULL_SCROLL_RATES/);
+});
 
-  assert.ok(stagingConstant);
-  assert.equal(Number.parseInt(stagingConstant[1], 16), stagingStart);
-  assert.equal(loaderEnd - loaderStart + 1, manifest.loaderScreen.packedBitmapBytes);
-  assert.ok(loaderStart >= manifest.loadAddress);
-  assert.ok(loaderEnd < manifest.broadsideRuntime.loadAddress);
-  assert.equal(stagingStart, 0x7810);
-  assert.ok(stagingEnd < stagingStart + manifest.starfieldRuntime.stagingBytes);
-  assert.equal(stagingStart + manifest.starfieldRuntime.stagingBytes - 1, 0x7f15);
-  assert.equal(overlaps(stagingStart, stagingEnd, loaderStart, loaderEnd), false);
-  assert.equal(overlaps(stagingStart, stagingEnd, bitmapStart, bitmapEnd), false);
-  assert.ok(stagingStart >= manifest.broadsideRuntime.runAddress +
-    manifest.broadsideRuntime.reservedBytes);
-  assert.ok(stagingStart + manifest.starfieldRuntime.stagingBytes <= 0xc000);
-  assert.match(source,
-    /unpack_starfield_runtime:[\s\S]+#<STARFIELD_STAGING[\s\S]+starfield_packed_source:[\s\S]+\.word STARFIELD_STAGING/);
+test("pause cannot advance the white-star phase or logical rows", () => {
+  const pausePath = source.slice(source.indexOf("enter_pause:"),
+    source.indexOf("pause_silence_audio:"));
+  assert.match(pausePath, /jsr backup_gameplay_screen/);
+  assert.match(pausePath, /resume_gameplay:[\s\S]+jsr restore_gameplay_screen/);
+  assert.doesNotMatch(pausePath, /STAR_NEAR_FINE_PHASE|STAR_NEAR_ROW|update_white_starfield_phase/);
+});
+
+test("geometry remains the canonical 40 by 28 PAL playfield", () => {
+  assert.deepEqual(starfieldGeometry, { screenColumns: 40, gameplayRows: 28 });
 });

@@ -1,0 +1,285 @@
+{
+  "schema": 1,
+  "stage": "2B.2 projectile publication window proof",
+  "status": "BLOCKED",
+  "decision": "Single publication window is rejected",
+  "stopCondition": "Other visible-ring layers modify published OLD projectile cells before ANTIC has fetched them; zero premature erase and zero late redraw are impossible without expanding this proof into a multi-layer compositor/backing refactor.",
+  "date": "2026-09-11",
+  "model": {
+    "name": "Codex (GPT-5 family)",
+    "reasoning": "High",
+    "note": "The requested GPT-5.6 Sol product label was not exposed by this session."
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "headBefore": "4605fed53f74edfa3c0192c896f5bda12eeb4349",
+    "candidateRef": "refs/wip/stage2b2-single-window-rejected",
+    "candidateRefCommit": "7f40ee0408356bf1f431b49bf5c51d50ae72a4b3",
+    "productionResult": "candidate runtime, tests, generated artifacts, and trace tooling rolled back to Stage 2A after the negative raster proof",
+    "preservedRefs": {
+      "refs/wip/stage2b-foreign-0803": "13597d7fb6fa6bb0d04541ed68ab6715cec1e8d4",
+      "refs/wip/stage2b0-fdb-proof": "3e5d83f2f1944d2dd90b8a23bec9eaae0dcdebc8"
+    },
+    "untouched": [
+      ".claude/"
+    ]
+  },
+  "scope": {
+    "candidateImplemented": [
+      "separate fighter projectile simulation from visible-ring publication",
+      "retain OLD screen address, backing, logical Y, and one/two-cell footprint latch",
+      "publish adjacent OLD erase plus NEW render after the final gameplay row",
+      "native observation of projectile stores and every subsequent change to published OLD cells"
+    ],
+    "explicitlyNotImplemented": [
+      "full double buffer or read-only visible ring",
+      "raster bands or per-object synchronization",
+      "PMG pickup",
+      "Spread repair",
+      "Light enemies",
+      "capital or boss changes",
+      "BASIC RAM, loader, runtime disk I/O, or overlay transport changes"
+    ]
+  },
+  "publicationContract": {
+    "simulationEnd": {
+      "label": "profile_after_sector",
+      "meaning": "Projectile movement, lifetime, collision, effects, entities, starfield, ring, and sector simulation have completed. The candidate has not directly called projectile erase or render before this point."
+    },
+    "publication": {
+      "routine": "publish_fighter_projectile_overlays",
+      "fixedVcount": "$77",
+      "observedBegin": "physical scanline 240, cycle 53-57",
+      "operations": [
+        "erase every saved OLD projectile footprint",
+        "immediately render every NEW active projectile footprint"
+      ]
+    },
+    "displayList": {
+      "hudScanlines": [8, 15],
+      "dividerScanlines": [16, 23],
+      "gameplayRingScanlines": [24, 239],
+      "firstSafePublicationScanline": 240,
+      "earliestNextRelevantFetchScanline": 16
+    },
+    "windowCycles": {
+      "nominalLine240ToNextLine16": 10032,
+      "conservativeAtLatestObservedBegin": 9975,
+      "worstPublication": 2650,
+      "minimumObservedCommitMargin": 7329
+    },
+    "dynamicSynchronizationDependencies": [],
+    "pickupStateOrYDependency": false,
+    "projectileYDependency": false,
+    "finding": "The fixed projectile commit itself fits. The complete publication contract fails because lower visible-ring layers mutate the saved OLD cells outside the commit window."
+  },
+  "candidateImplementationCost": {
+    "simulationRoutines": "unchanged Stage 2A logical simulation",
+    "simulationSideSchedulerCycles": {
+      "fighterEntryIncludingCallerJsr": 24,
+      "mainLoopPlaceholder": 4,
+      "total": 28
+    },
+    "publisherFixedCyclesExcludingEraseAndRender": 41,
+    "publicationMaximumNativeCycles": 2650,
+    "largestNewContiguousBlock": "24 B: fixed publisher plus OPTION debounce in CODE"
+  },
+  "nativeTrace": {
+    "emulator": {
+      "name": "Atari800 7.1.2 PAL/XL persistent instrumented build",
+      "path": "~/Projects/tools/atari800-7.1.2/src/atari800",
+      "sha256": "9f5da96089a7ec046ffa5090c79d1c64afc1ccd6f0b7078666107b3a562561fb"
+    },
+    "candidateArtifacts": {
+      "xexSha256": "436abc55cee0d23db7d60df3399e06f35cc7c89a72fc1f241d1180a62be405a8",
+      "atrSha256": "bc901fcde9fe145e2c2166d3dccb902ca0f9ede9be627f21f65d310325570423",
+      "bootSha256": "4b27b1275caa4bf987e85d6557f10996e19e70e8b0ff3802ba590c5621c8f083"
+    },
+    "sessions": [
+      {
+        "name": "two-pmg-raiders-xex-hard",
+        "frames": 320,
+        "command": "node scripts/runtime-wall-trace.mjs --raider-formation-only --active-frames=320 --skip-boot-smoke --stage2b2-raster-trace --atari800-source=/Users/marcinkrzetowski/Projects/tools/atari800-7.1.2",
+        "csvSha256": "7a313b4b323643ae0e0e2fe34ccc05e995cc98d3294862275d830413eddd285a",
+        "rasterSha256": "1ab1df895dc867a79c059b36e3381cdba1867371b3ea11242658fd643520fbca"
+      },
+      {
+        "name": "raider-sector-xex-hard",
+        "frames": 600,
+        "command": "node scripts/runtime-wall-trace.mjs --raider-sector-only --active-frames=600 --skip-boot-smoke --stage2b2-raster-trace --atari800-source=/Users/marcinkrzetowski/Projects/tools/atari800-7.1.2",
+        "csvSha256": "6201aa237590a47bd12b1906b3382eca46251af740134f467fad62d4f75d0180",
+        "rasterSha256": "d854b71d55d910f8f36034aa4539102d6893a091e3c727cef6f7246abed03a23"
+      }
+    ],
+    "coverage": {
+      "fighterOpenFrames": 920,
+      "publicationWindows": 920,
+      "projectileScreenStores": 9054,
+      "eraseStores": 4525,
+      "redrawStores": 4529,
+      "maximumSimultaneousProjectiles": 7,
+      "maximumPlayerProjectiles": 5,
+      "maximumEnemyProjectiles": 3,
+      "twoHeavyFrames": 258,
+      "legalPlayerBurstLimitsCoveredByFocusedTest": [8, 8, 10],
+      "maximumEffects": 5,
+      "debrisFrames": 69,
+      "maximumFarStars": 29,
+      "twinkleCadencePresent": true,
+      "allRingHeadsObserved": 27,
+      "ringWrapObserved": true,
+      "movement": [
+        "high to high",
+        "mid to mid",
+        "low to low",
+        "natural row-band boundary crossings"
+      ],
+      "pickup": "Unmodified Stage 2A character pickup; not part of the proof and not used for synchronization. Its writes were intentionally visible to the all-writer audit."
+    }
+  },
+  "eraseRedrawCommitExamples": {
+    "deadlineModel": "Conservative earliest relevant fetch is max(16, floor(targetY/8)*8-8) in the next physical frame.",
+    "high": {
+      "frame": 1,
+      "slot": 10,
+      "oldY": 61,
+      "newY": 66,
+      "eraseRaster": "242:16",
+      "redrawRaster": "247:70",
+      "earliestRelevantAnticFetch": "next frame scanline 56",
+      "redrawMarginCycles": 13718
+    },
+    "mid": {
+      "frame": 5,
+      "slot": 10,
+      "oldY": 81,
+      "newY": 86,
+      "eraseRaster": "242:16",
+      "redrawRaster": "247:79",
+      "earliestRelevantAnticFetch": "next frame scanline 72",
+      "redrawMarginCycles": 15533
+    },
+    "low": {
+      "frame": 10,
+      "slot": 0,
+      "oldY": 223,
+      "newY": 217,
+      "eraseRaster": "244:24",
+      "redrawRaster": "246:92",
+      "earliestRelevantAnticFetch": "next frame scanline 208",
+      "redrawMarginCycles": 31138
+    }
+  },
+  "allWriterRasterResult": {
+    "method": "After each completed publication, the observer protects the actual screen addresses and values written for every NEW projectile cell. It checks the cells after every subsequent 6502 instruction, records the true previous writer PC for any change, and relates that change to the next ANTIC fetch interval. This catches starfield, ring, effect, entity, and pickup stores that the earlier projectile-PC-only observer missed.",
+    "foreignOldCellChangesOutsideWindow": 186,
+    "prematureErase": 170,
+    "lateRedraw": 124,
+    "partialPublicationVisibleToAntic": 131,
+    "byBand": {
+      "high": { "foreignChanges": 36, "prematureErase": 24, "lateRedraw": 17, "partial": 24 },
+      "mid": { "foreignChanges": 77, "prematureErase": 73, "lateRedraw": 49, "partial": 49 },
+      "low": { "foreignChanges": 73, "prematureErase": 73, "lateRedraw": 58, "partial": 58 }
+    },
+    "representativePrematureChanges": {
+      "high": { "targetY": 19, "raster": "304:91", "writerPc": "$669F", "value": "14 -> 0", "cyclesBeforeFetch": 2645 },
+      "mid": { "targetY": 80, "raster": "302:101", "writerPc": "$9484 erase_far_star_slot", "value": "19 -> 0", "cyclesBeforeFetch": 9247 },
+      "low": { "targetY": 187, "raster": "301:68", "writerPc": "$9484 erase_far_star_slot", "value": "14 -> 0", "cyclesBeforeFetch": 21250 }
+    },
+    "writerSources": {
+      "farStarErase": { "changes": 64, "premature": 64 },
+      "ringDividerCopy": { "changes": 20, "premature": 20 },
+      "farStarRender": { "changes": 30, "premature": 27 },
+      "ringOrWorldClear": { "changes": 28, "premature": 18 },
+      "effects": { "changes": 14, "premature": 13 },
+      "characterPickupRender": { "changes": 14, "premature": 12 },
+      "characterPickupErase": { "changes": 16, "premature": 16 }
+    },
+    "invalidatedEarlierResult": "The preliminary 0/0/0 result observed only STA instructions inside projectile erase/render PC ranges and therefore was not a complete OLD-cell proof."
+  },
+  "cpu": {
+    "measurement": "Native active-work reconstruction excludes the deliberate fixed wait and adds DLI work occurring inside that wait.",
+    "publicationMaxCycles": 2650,
+    "fullFrameNativeActiveMaxCycles": 25307,
+    "fighterOpenMaxCycles": 25307,
+    "twoHeavyMaxCycles": 22915,
+    "targetCycles": 31200,
+    "targetHeadroomCycles": 5893,
+    "hardGateCycles": 32568,
+    "hardGateHeadroomCycles": 7261,
+    "missed": 0,
+    "overruns31200": 0,
+    "overruns32568": 0,
+    "extraVbiBoundaries": 0,
+    "dliSequenceViolations": 0,
+    "maximumDlisPerHostFrame": 2,
+    "maximumRawCadenceIntervalIncludingFixedWaitCycles": 35971,
+    "finding": "CPU passed and was not the blocker."
+  },
+  "memoryAndPlacement": {
+    "linkedRuntimeBytes": { "before": 17653, "candidate": 17659, "delta": 6 },
+    "simultaneousResidencyBytes": { "before": 19283, "candidate": 19289, "delta": 6 },
+    "safeResidencyHeadroomBytes": { "before": 2904, "candidate": 2898, "delta": -6 },
+    "segments": {
+      "CODE": { "before": "$2000-$317A / 4475 B", "candidate": "$2000-$317B / 4476 B" },
+      "STARFIELD": { "candidate": "$54E4-$5DB5 / 2258 B" },
+      "BROADSIDE": { "candidate": "$5E10-$7806 / 6647 B" },
+      "PICKUP_CODE": { "candidate": "$8C80-$8FC8 / 841 B" },
+      "A2_KERNEL": { "candidate": "$9000-$90FD / 254 B", "alignmentPreserved": true },
+      "ENTITY_CODE": { "before": "$9100-$9D69 / 3178 B", "candidate": "$9100-$9D6E / 3183 B" }
+    },
+    "transportAndStaging": {
+      "initialContentBytes": { "before": 13295, "candidate": 13300, "capacity": 13312, "envelopeBytes": 12 },
+      "transportTopologyChanged": false,
+      "packedStarfieldBytes": 1802,
+      "packedStarfieldCapacityBytes": 1819,
+      "packedStarfieldMarginBytes": 17,
+      "starfieldSourceToPickupPreservationMarginBytes": 5,
+      "pickupPreservationPackedBytes": 1267,
+      "pickupPreservationChanged": false,
+      "packedEntityBytes": 2806,
+      "packedEntityStagingMarginBeforeBroadsideBytes": 2,
+      "basicRamUsed": false,
+      "loaderChanged": false,
+      "runtimeDiskIoAdded": false,
+      "overlayTransportChanged": false
+    },
+    "finding": "Placement passed, but the rejected publisher slightly worsened RAM headroom."
+  },
+  "tests": {
+    "candidateBuild": "PASS, warning-free after synchronizing the candidate's frozen layout expectations and fixed-wait host profiling",
+    "focused": {
+      "command": "node --test tests/pickup-fence.test.mjs tests/pause.test.mjs tests/weapon-pickup-rapid-fire.test.mjs",
+      "pass": 41,
+      "fail": 0,
+      "todo": 1
+    },
+    "spread": {
+      "command": "node --test tests/weapon-pickup-spread-shot.test.mjs",
+      "pass": 14,
+      "fail": 0,
+      "todo": 2,
+      "secondCapsuleTrail": "EXPECTED FAIL remains: frame 0 observed 15 cells instead of 6",
+      "finalSpreadProjectileGlyph": "EXPECTED FAIL remains: reverse erase assertion is false"
+    }
+  },
+  "gameplayCapacity": {
+    "assessment": "The candidate adds 6 B of linked/runtime residency and 69 measured fixed scheduler/bookkeeping cycles while retaining substantial CPU headroom. It therefore slightly worsens, but does not materially consume, the numerical path toward 2 Heavy + 2 Light or 2 Heavy + 4 Light. Raster rejection means it provides no usable architectural path to either target.",
+    "minimumFourThreatsImplementedHere": false,
+    "lightsImplementedHere": false
+  },
+  "stopAndRollback": {
+    "reason": "STOP conditions 1 and 3: the single window fails 0/0 raster gates, and fixing all foreign writers requires a larger backing/compositor refactor.",
+    "secondVariantAttempted": false,
+    "rasterBandsAttempted": false,
+    "pmgPickupIntegrated": false,
+    "productionRuntimeRolledBack": true
+  },
+  "elapsedApproximate": {
+    "diagnosisMinutes": 12,
+    "implementationAndInstrumentationMinutes": 8,
+    "buildAndFocusedTestsMinutes": 1,
+    "nativeTraceMinutes": 1
+  },
+  "next": "Stage 2B.2b raster bands requires owner decision"
+}

@@ -10,8 +10,10 @@ import { installRuntimeSegments } from "../scripts/runtime-image.mjs";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const mainSource = fs.readFileSync(path.join(root, "src/main.s"), "utf8");
 const directorSource = fs.readFileSync(path.join(root, "src/encounter-director.s"), "utf8");
+const lifecycleSource = fs.readFileSync(path.join(root, "src/c/lifecycle.c"), "utf8");
 const labels = new Map();
-for (const file of ["build/void-strike-65.lbl", "build/encounter-director.lbl"]) {
+for (const file of ["build/void-strike-65.lbl", "build/encounter-director.lbl",
+  "build/integration-glue.lbl"]) {
   for (const line of fs.readFileSync(path.join(root, file), "utf8").split(/\r?\n/)) {
     const match = /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim());
     if (match) labels.set(match[2], Number.parseInt(match[1], 16));
@@ -24,15 +26,26 @@ const state = {
   pending: 0x80fc, defer: 0x80fd, flags: 0x80fe, admissionFrame: 0x80ff,
 };
 const provisionalCapital = {
-  frame: 50,
+  frame: 600,
+  frameLo: 0x4ff8,
+  frameHi: 0x4ff9,
   due: 0x80,
   admitted: 0x40,
 };
+
+function setActiveGameplayFrame(image, frame) {
+  image[provisionalCapital.frameLo] = frame & 0xff;
+  image[provisionalCapital.frameHi] = frame >> 8 & 0xff;
+}
 
 function memory() {
   const result = new Uint8Array(0x10000);
   installRuntimeSegments(result, root);
   return result;
+}
+
+function currentMemory() {
+  return memory();
 }
 
 function run(memoryImage, target, { a = 0, x = 0, y = 0 } = {}) {
@@ -49,7 +62,8 @@ function run(memoryImage, target, { a = 0, x = 0, y = 0 } = {}) {
     cpu.step();
   }
   assert.equal(cpu.pc, stop, `${target} did not return`);
-  return { visited, carry: (cpu.p & nmos6502Flags.carry) !== 0, cycles: cpu.cycles };
+  return { visited, carry: (cpu.p & nmos6502Flags.carry) !== 0, cycles: cpu.cycles,
+    a: cpu.a, x: cpu.x, y: cpu.y };
 }
 
 function byteTable(memoryImage, label, length) {
@@ -83,6 +97,80 @@ function armMuzzle(image, turret, row) {
   image[labels.get("MUZZLE_VISIBLE_ROW") + turret] = row;
   image[labels.get("MUZZLE_SCREEN_LO") + turret] = address & 0xff;
   image[labels.get("MUZZLE_SCREEN_HI") + turret] = address >> 8;
+}
+
+function runEarlyEnemyReplay(difficulty, frames = 600) {
+  const image = memory();
+  const frameCounter = labels.get("frame_counter");
+  const enemyActive = labels.get("ENEMY_ACTIVE");
+  const enemyY = labels.get("ENEMY_Y");
+  const enemyHp = labels.get("ENEMY_HP");
+  const enemyMemberState = labels.get("ENEMY_MEMBER_STATE");
+  const enemyTargetSlot = labels.get("ENEMY_TARGET_SLOT");
+  const pickupState = labels.get("ENTITY_STATE") + 1;
+  const pickupCounter = labels.get("ENTITY_HP") + 1;
+  image[labels.get("DIFFICULTY_SETTING")] = difficulty;
+  image[labels.get("PLAYER_LIFECYCLE")] = 0;
+  run(image, "init_state");
+  run(image, "init_entity_effects");
+  run(image, "director_init", { a: 0x6d ^ difficulty });
+  run(image, "init_broadside");
+  const rate = [8, 9, 10][difficulty];
+  let worldAccumulator = 0;
+  const admissions = [];
+  const visible = [];
+  const releases = [];
+  const kills = [];
+  const pickup = { pending: null, active: null };
+  const rng = [];
+  let maximumActive = 0;
+  for (let frame = 1; frame <= frames; frame += 1) {
+    image[frameCounter] = image[frameCounter] + 1 & 0xff;
+    run(image, "integration_active_gameplay_tick");
+    run(image, "tick_shared_fighter_explosions");
+    worldAccumulator += rate;
+    if (worldAccumulator >= 20) {
+      worldAccumulator -= 20;
+      run(image, "director_world_row_tick");
+    }
+    run(image, "integration_update_first_capital");
+    const before = image[enemyActive];
+    const beforeRng = image[state.rng];
+    const update = run(image, "integration_update_enemy");
+    const after = image[enemyActive];
+    if (before !== 1 && after === 1) {
+      admissions.push(frame);
+      rng.push([beforeRng, image[state.rng]]);
+    }
+    if (before === 2 && after === 0) releases.push(frame);
+    maximumActive = Math.max(maximumActive, after === 1 ? 1 : 0);
+    if (after === 1 && [0, 1].some((slot) =>
+      image[enemyMemberState + slot] === 1 && image[enemyY + slot] + 14 > 16) &&
+      visible.length < admissions.length) {
+      visible.push(frame);
+    }
+    if (after === 1 && kills.length < 3) {
+      const target = [0, 1, 2].find((slot) =>
+        image[enemyMemberState + slot] === 1 && image[enemyY + slot] + 14 > 16);
+      if (target !== undefined) {
+        image[enemyTargetSlot] = target;
+        image[labels.get("ENEMY_PENDING_DAMAGE") + target] = 0;
+        image[labels.get("ENEMY_PENDING_SOURCE") + target] = 5;
+        run(image, "queue_enemy_damage", { a: image[enemyHp + target], y: 0 });
+        run(image, "resolve_enemy_damage");
+        kills.push(frame);
+      }
+    }
+    if (image[pickupState] !== 0) {
+      if (image[pickupState] === 1 && pickup.pending === null) pickup.pending = frame;
+      run(image, "update_weapon_pickup_active", { x: image[pickupState] });
+      if (image[pickupState] === 2 && pickup.active === null) pickup.active = frame;
+    }
+    assert.ok(update.visited.filter((pc) => pc === labels.get("reset_enemy")).length <= 1,
+      "one frame cannot admit the sole ordinary slot twice");
+  }
+  return { image, admissions, visible, releases, kills, pickup,
+    pickupCounter: image[pickupCounter], rng, maximumActive };
 }
 
 test("Level 1 has exactly eight gapless phases and ends at row 3712", () => {
@@ -261,6 +349,42 @@ test("BOSS_HANDOFF falls back to COMPLETE exactly once and closes admissions", (
   assert.equal(run(image, "director_request", { x: 0 }).carry, false);
 });
 
+test("phase-one debris admission is local to the active capital traversal", () => {
+  const image = memory();
+  const sectorState = labels.get("CAPITAL_SECTOR_STATE");
+  const frameCounter = labels.get("frame_counter");
+  image[labels.get("PLAYER_LIFECYCLE")] = 0;
+  image[labels.get("DIFFICULTY_SETTING")] = 2;
+  image[frameCounter] = 10;
+  run(image, "director_init", { a: 0x6d });
+  image[state.phase] = 1;
+  image[state.reaction] = 0;
+  image[state.recovery] = 0;
+  image[sectorState] = 7;
+  const rngBefore = image[state.rng];
+
+  assert.equal(run(image, "director_request", { x: 1 }).carry, false,
+    "phase-one OPEN space must retain its authored no-debris mask");
+  assert.deepEqual([image[state.intensity], image[state.rng]], [0, rngBefore]);
+
+  image[frameCounter] += 1;
+  image[sectorState] = 0;
+  assert.equal(run(image, "director_request", { x: 1 }).carry, true,
+    "the same debris request must be admitted once the capital traversal is active");
+  assert.equal(image[state.intensity], 1);
+  run(image, "director_release", { x: 1 });
+
+  for (const blockedState of [5, 6, 7]) {
+    image[frameCounter] += 1;
+    image[state.reaction] = 0;
+    image[state.recovery] = 0;
+    image[sectorState] = blockedState;
+    assert.equal(run(image, "director_request", { x: 1 }).carry, false,
+      `capital state ${blockedState} must not inherit the traversal exception`);
+    assert.equal(image[state.intensity], 0);
+  }
+});
+
 test("BOSS_HANDOFF maps every capital state once and leaves final COMPLETE terminal", () => {
   const expected = [5, 5, 5, 5, 5, 5, 6, 5];
   const entityState = labels.get("ENTITY_STATE");
@@ -291,7 +415,7 @@ test("BOSS_HANDOFF maps every capital state once and leaves final COMPLETE termi
   run(draining, "director_init", { a: 0x6d });
   draining[state.flags] = 1;
   draining[labels.get("CAPITAL_SECTOR_STATE")] = 7;
-  draining[labels.get("CAPITAL_SECTOR_STATE") + 1] = 23;
+  draining[labels.get("CAPITAL_SECTOR_STATE") + 1] = 28;
   draining[broadside.state] = 1;
   run(draining, "integration_update_sector_completion");
   assert.equal(draining[labels.get("CAPITAL_SECTOR_STATE")], 5);
@@ -316,19 +440,238 @@ test("scheduler ownership remains single-source and lifecycle-owned", () => {
   assert.doesNotMatch(directorSource, /rng_state|STAR_RNG_STATE/);
 });
 
-test("provisional first capital admission is frame-50, resettable and retry-safe", () => {
+test("focused production replay exposes three early qualified kills and one natural pickup", () => {
+  const limits = [60, 45, 30];
+  for (const difficulty of [0, 1, 2]) {
+    const trace = runEarlyEnemyReplay(difficulty);
+    assert.ok(trace.visible[0] <= 60, `difficulty ${difficulty} first visible ${trace.visible[0]}`);
+    assert.ok(trace.kills.length >= 3, `difficulty ${difficulty} produced ${trace.kills.length} kills`);
+    assert.equal(trace.pickup.pending, trace.kills[2], "third legal kill must create PENDING once");
+    assert.ok(trace.pickup.active !== null && trace.pickup.active < provisionalCapital.frame,
+      `difficulty ${difficulty} pickup did not become ACTIVE in the early window`);
+    assert.equal(trace.pickupCounter, 0, "the three-kill counter must reset after one drop");
+    assert.equal(trace.maximumActive, 1);
+    for (let index = 1; index < Math.min(trace.visible.length, trace.releases.length + 1);
+      index += 1) {
+      const release = trace.releases[index - 1];
+      assert.ok(trace.visible[index] - release <= limits[difficulty],
+        `difficulty ${difficulty} visibility gap ${trace.visible[index] - release}`);
+    }
+    assert.equal(trace.rng.every(([before, after]) => after === (5 * before + 1 & 0xff)), true,
+      "each accepted enemy must consume exactly one Director RNG value");
+  }
+});
+
+test("ordinary admission is slot-safe, RNG-stable and pre-sector compatible", () => {
+  const image = memory();
+  image[labels.get("DIFFICULTY_SETTING")] = 2;
+  image[labels.get("PLAYER_LIFECYCLE")] = 0;
+  run(image, "init_state");
+  run(image, "init_entity_effects");
+  run(image, "director_init", { a: 0x6f });
+  run(image, "init_broadside");
+  const frameCounter = labels.get("frame_counter");
+  image[state.reaction] = 0;
+  image[frameCounter] += 1;
+  run(image, "integration_active_gameplay_tick");
+  image[state.phase] = 1;
+  run(image, "integration_update_enemy");
+  assert.equal(image[labels.get("ENEMY_ACTIVE")], 1);
+  const rngWithOccupiedSlot = image[state.rng];
+  run(image, "integration_update_enemy");
+  assert.equal(image[labels.get("ENEMY_ACTIVE")], 1, "occupied slot spawned a second enemy");
+  assert.equal(image[state.rng], rngWithOccupiedSlot, "occupied slot consumed Director RNG");
+
+  run(image, "director_release", { x: 0 });
+  image[labels.get("ENEMY_ACTIVE")] = 0;
+  image[state.reaction] = 0;
+  const rngBeforeSameFrameRetry = image[state.rng];
+  assert.equal(run(image, "provisional_interceptor_director_request", { x: 0 }).carry, false,
+    "a second admission in the same gameplay frame must be rejected");
+  assert.equal(image[state.intensity], 0, "same-frame rejection leaked a Director charge");
+  assert.equal(image[state.rng], rngBeforeSameFrameRetry,
+    "same-frame rejection consumed Director RNG");
+
+  image[frameCounter] += 1;
+  run(image, "integration_active_gameplay_tick");
+  image[labels.get("CAPITAL_SECTOR_STATE")] = 7;
+  image[state.flags] = 0;
+  image[labels.get("INTERCEPTOR_BURST_TIMER")] = 0;
+  const rngBeforeCapitalAdmission = image[state.rng];
+  run(image, "integration_update_enemy");
+  assert.equal(image[labels.get("ENEMY_ACTIVE")], 1,
+    "pre-sector OPEN must retain ordinary admission");
+  assert.equal(image[state.intensity], 1);
+  assert.equal(image[state.rng], 5 * rngBeforeCapitalAdmission + 1 & 0xff,
+    "pre-sector admission must consume exactly one Director RNG value");
+});
+
+test("two PMG Raiders keep separate HP, score once, and preserve the surviving machine", () => {
+  const image = currentMemory();
+  image[labels.get("DIFFICULTY_SETTING")] = 1;
+  image[labels.get("PLAYER_LIFECYCLE")] = 0;
+  run(image, "director_init", { a: 0x6d });
+  run(image, "init_entity_effects");
+  run(image, "reset_enemy");
+  image[state.flags] = 0;
+  image[labels.get("ENEMY_ARCHETYPE")] = 0;
+  const member = labels.get("ENEMY_MEMBER_STATE");
+  const hp = labels.get("ENEMY_HP");
+  const pendingDamage = labels.get("ENEMY_PENDING_DAMAGE");
+  const pendingSource = labels.get("ENEMY_PENDING_SOURCE");
+  const target = labels.get("ENEMY_TARGET_SLOT");
+  const live = labels.get("ENEMY_LIVE_COUNT");
+  const enemyX = labels.get("ENEMY_X");
+  const enemyY = labels.get("ENEMY_Y");
+  const score = labels.get("score_bcd_lo");
+  assert.deepEqual([...image.subarray(member, member + 2)], [1, 1]);
+  assert.deepEqual([...image.subarray(hp, hp + 2)], [1, 1]);
+  assert.deepEqual([image[live], image[enemyY], image[enemyY + 1]], [2, 2, 2]);
+
+  for (let frame = 0; frame < 94; frame += 1) run(image, "update_enemy");
+  assert.deepEqual([image[enemyY], image[enemyY + 1]], [48, 96],
+    "both Raiders must enter naturally at their old formation anchors");
+
+  run(image, "clear_pmg");
+  run(image, "draw_enemy");
+  assert.ok(image.subarray(0x3d00 + image[enemyY], 0x3d00 + image[enemyY] + 14).some(Boolean));
+  assert.ok(image.subarray(0x3e00 + image[enemyY + 1], 0x3e00 + image[enemyY + 1] + 14)
+    .some(Boolean));
+  const survivorP2 = image.slice(0x3e00, 0x3f00);
+  const survivorState = [image[enemyX + 1], image[enemyY + 1],
+    image[labels.get("ENEMY_VELOCITY_X") + 1], image[labels.get("ENEMY_MANEUVER_TIMER") + 1]];
+
+  image[target] = 0;
+  image[pendingDamage] = 1;
+  image[pendingSource] = 0;
+  run(image, "resolve_enemy_damage");
+  assert.deepEqual([...image.subarray(member, member + 2)], [0, 1]);
+  assert.deepEqual([...image.subarray(hp, hp + 2)], [0, 1]);
+  assert.deepEqual([image[live], image[labels.get("ENEMY_ACTIVE")], image[score]], [1, 1, 0x10]);
+  assert.deepEqual([image[enemyX + 1], image[enemyY + 1],
+    image[labels.get("ENEMY_VELOCITY_X") + 1], image[labels.get("ENEMY_MANEUVER_TIMER") + 1]],
+  survivorState, "destroying P1 must not mutate P2 movement state");
+  assert.deepEqual([...image.subarray(0x3e00, 0x3f00)], [...survivorP2],
+    "destroying P1 must not redraw or erase the live P2 machine");
+  run(image, "render_shared_fighter_explosions");
+  assert.deepEqual([...image.subarray(0x3e00, 0x3f00)], [...survivorP2],
+    "Raider breakup must not borrow the surviving PMG");
+  run(image, "resolve_enemy_damage");
+  assert.equal(image[score], 0x10, "re-resolving the frame must not award score twice");
+  assert.equal(run(image, "ordinary_wave_pressure_active").a, 1,
+    "one aggregate owner keeps capital admission blocked while any Raider survives");
+
+  run(image, "update_enemy");
+  assert.deepEqual([...image.subarray(member, member + 2)], [0, 1]);
+  assert.equal(image[enemyY + 1], survivorState[1] - 1,
+    "the surviving P2 continues its accepted independent crossing motion");
+  assert.ok(image[enemyX + 1] >= 48 && image[enemyX + 1] <= 208);
+  assert.equal(image[labels.get("ENEMY_VELOCITY_X") + 1], survivorState[2]);
+  assert.equal(image[labels.get("ENEMY_MANEUVER_TIMER") + 1], survivorState[3] - 1);
+
+  image[target] = 1;
+  image[pendingDamage + 1] = 1;
+  image[pendingSource + 1] = 0;
+  run(image, "resolve_enemy_damage");
+  assert.deepEqual([...image.subarray(member, member + 2)], [0, 0]);
+  assert.deepEqual([image[live], image[labels.get("ENEMY_ACTIVE")], image[score]], [0, 2, 0x20]);
+  assert.equal(image[labels.get("FIGHTER_EXPLOSION_TIMER") + 1], 24,
+    "the last loss leaves the shared explosion lifecycle active");
+});
+
+test("the shared burst alternates two real Raider origins and skips a destroyed owner", () => {
+  const image = currentMemory();
+  image[labels.get("DIFFICULTY_SETTING")] = 1;
+  image[labels.get("PLAYER_LIFECYCLE")] = 0;
+  run(image, "director_init", { a: 0x6d });
+  run(image, "init_entity_effects");
+  run(image, "reset_enemy");
+  image[state.flags] = 0;
+  image[labels.get("ENEMY_ARCHETYPE")] = 0;
+  const target = labels.get("ENEMY_TARGET_SLOT");
+  const cursor = labels.get("ENEMY_WEAPON_CURSOR");
+  const projectileActive = labels.get("FIGHTER_PROJECTILE_ACTIVE");
+  const projectileY = labels.get("FIGHTER_PROJECTILE_Y");
+  const enemyY = labels.get("ENEMY_Y");
+  for (let frame = 0; frame < 95; frame += 1) run(image, "update_enemy");
+  const origins = [image[enemyY], image[enemyY + 1]];
+  assert.equal(run(image, "select_enemy_weapon_member").carry, true,
+    "fully entered Raiders must be eligible emitters");
+  run(image, "update_enemy_weapon_runtime");
+  image[labels.get("INTERCEPTOR_BURST_TIMER")] = 0;
+  run(image, "update_enemy_weapon_runtime");
+  assert.deepEqual([...image.subarray(projectileActive + 5, projectileActive + 7)], [2, 3]);
+  assert.deepEqual([...image.subarray(projectileY + 5, projectileY + 7)],
+    origins.map((value) => value + 13));
+  assert.equal(image[cursor], 0);
+
+  image[target] = 0;
+  image[labels.get("ENEMY_PENDING_DAMAGE")] = 1;
+  image[labels.get("ENEMY_PENDING_SOURCE")] = 0;
+  run(image, "resolve_enemy_damage");
+  const releasedY = image[projectileY + 5];
+  run(image, "update_fighter_projectiles");
+  assert.equal(image[projectileActive + 5], 2,
+    "an already released pulse survives the death of its emitter");
+  assert.equal(image[projectileY + 5], releasedY + 2);
+
+  image[cursor] = 0;
+  assert.equal(run(image, "select_enemy_weapon_member").carry, true);
+  assert.equal(image[target], 1, "the round robin skips the destroyed owner");
+});
+
+test("ordinary wave tables remain intact while the capital gate stays local", () => {
+  const image = currentMemory();
+  const originalMasks = [0x00, 0x09, 0x0a, 0x0f, 0x08, 0x0f, 0x08, 0x0f];
+  const fallbackPhases = [2, 4, 6];
+  const masks = byteTable(image, "level1_phase_hazards", 8);
+  for (const phase of fallbackPhases) {
+    assert.equal(masks[phase], originalMasks[phase] | 0x01,
+      `phase ${phase} must preserve authored hazards and add only Hunter`);
+  }
+  for (const phase of [0, 1, 3, 5, 7]) {
+    assert.equal(masks[phase], originalMasks[phase],
+      `phase ${phase} policy changed unexpectedly`);
+  }
+  assert.deepEqual(byteTable(image, "interceptor_admission_retry_frames", 3), [48, 36, 24]);
+  assert.match(mainSource,
+    /ordinary_wave_capital_blocked:[\s\S]+bit DIRECTOR_STATE_FLAGS[\s\S]+cmp #CAPITAL_HULL_STATE_OPEN/);
+  assert.match(mainSource,
+    /interceptor_admission_update:[\s\S]+jsr ordinary_wave_capital_blocked[\s\S]+bmi @blocked/);
+  assert.match(mainSource,
+    /update_enemy_weapon_runtime:[\s\S]+jsr ordinary_wave_capital_blocked[\s\S]+bmi @stop/);
+});
+
+test("active-gameplay schedule freezes across pause and odd player lifecycles", () => {
+  const image = memory();
+  image[labels.get("PLAYER_LIFECYCLE")] = 0;
+  for (let frame = 0; frame < 100; frame += 1) run(image, "integration_active_gameplay_tick");
+  const beforePause = image[provisionalCapital.frameLo] |
+    image[provisionalCapital.frameHi] << 8;
+  assert.equal(beforePause, 100);
+  image[labels.get("PLAYER_LIFECYCLE")] = 1;
+  for (let frame = 0; frame < 80; frame += 1) run(image, "integration_active_gameplay_tick");
+  assert.equal(image[provisionalCapital.frameLo] |
+    image[provisionalCapital.frameHi] << 8, beforePause);
+  image[labels.get("PLAYER_LIFECYCLE")] = 2;
+  for (let frame = 0; frame < 500; frame += 1) run(image, "integration_active_gameplay_tick");
+  assert.equal(image[provisionalCapital.frameLo] |
+    image[provisionalCapital.frameHi] << 8, provisionalCapital.frame);
+});
+
+test("provisional first capital admission uses the 16-bit active-gameplay clock", () => {
   const sectorState = labels.get("CAPITAL_SECTOR_STATE");
   const frameCounter = labels.get("frame_counter");
   const legal = memory();
   run(legal, "director_init", { a: 0x6d });
   run(legal, "init_broadside");
-  legal[frameCounter] = provisionalCapital.frame - 1;
+  setActiveGameplayFrame(legal, provisionalCapital.frame - 1);
   run(legal, "integration_update_first_capital");
   assert.equal(legal[sectorState], 7);
   assert.equal(legal[state.flags], 0);
-  legal[frameCounter] = provisionalCapital.frame;
+  setActiveGameplayFrame(legal, provisionalCapital.frame);
   run(legal, "integration_update_first_capital");
-  assert.equal(legal[sectorState], 0, "the first legal attempt must admit at gameplay frame 50");
+  assert.equal(legal[sectorState], 0, "the first legal attempt must admit at active frame 600");
   assert.equal(legal[state.flags], provisionalCapital.admitted);
 
   run(legal, "director_init", { a: 0x6d });
@@ -339,13 +682,16 @@ test("provisional first capital admission is frame-50, resettable and retry-safe
   const blocked = memory();
   run(blocked, "director_init", { a: 0x6d });
   run(blocked, "init_broadside");
-  blocked[frameCounter] = provisionalCapital.frame;
-  blocked[state.intensity] = 2;
+  setActiveGameplayFrame(blocked, provisionalCapital.frame);
+  blocked[labels.get("ENEMY_ACTIVE")] = 1;
+  blocked[state.intensity] = 1;
   run(blocked, "integration_update_first_capital");
   assert.equal(blocked[sectorState], 7);
   assert.equal(blocked[state.flags], provisionalCapital.due,
-    "a legal budget block must retain a deterministic pending admission");
+    "a live ordinary enemy must retain a deterministic pending admission");
+  setActiveGameplayFrame(blocked, provisionalCapital.frame + 1);
   blocked[frameCounter] += 1;
+  blocked[labels.get("ENEMY_ACTIVE")] = 0;
   blocked[state.intensity] = 0;
   run(blocked, "integration_update_first_capital");
   assert.equal(blocked[sectorState], 0);
@@ -360,8 +706,11 @@ test("the provisional gate moves rather than duplicates the one capital encounte
     [128, 32, 64, 128, 0, 128]);
   assert.deepEqual(byteTable(image, "level1_event_row_hi", 6), [0, 4, 7, 11, 14, 14]);
   assert.equal((mainSource.match(/jsr integration_update_first_capital\n/g) ?? []).length, 1);
-  assert.match(mainSource,
-    /cmp #PROVISIONAL_FIRST_CAPITAL_FRAME[\s\S]+jmp retry_first_capital_admission/);
+  assert.match(mainSource, /integration_update_first_capital:[\s\S]+jsr HYBRID_SECTOR_UPDATE_FIRST_CAPITAL/);
+  assert.match(lifecycleSource,
+    /FIRST_CAPITAL_FRAME\s+600u[\s\S]+ACTIVE_GAMEPLAY_FRAME_HI[\s\S]+asm_sector_pressure_active/);
+  assert.equal((lifecycleSource.match(/FIRST_CAPITAL_FRAME/g) ?? []).length, 4,
+    "the high-level C lifecycle must own exactly one first-capital threshold");
 
   run(image, "director_init", { a: 0x6d });
   image[labels.get("CAPITAL_SECTOR_STATE")] = 2;
@@ -397,11 +746,16 @@ test("natural Level 1 reaches a visible two-sided BROADSIDE without state inject
     const previousStates = [0, 0, 0];
     const previousFlashes = [0, 0, 0];
     const hostileCycles = { warnings: 0, flashes: 0, launches: 0 };
+    const debrisAdmissions = [];
+    const debrisReleases = [];
+    let debrisWasActive = false;
+    let maximumActiveDebris = 0;
     let admittedAtFrame = null;
     let enteredCapitalAtRow = null;
     let completedCapital = false;
     for (let frame = 0; frame < 10_000; frame += 1) {
       image[frameCounter] = image[frameCounter] + 1 & 0xff;
+      run(image, "integration_active_gameplay_tick");
       const stateBeforeAdmission = image[sectorState];
       run(image, "integration_update_first_capital");
       if (admittedAtFrame === null && stateBeforeAdmission === 7 && image[sectorState] === 0)
@@ -409,7 +763,14 @@ test("natural Level 1 reaches a visible two-sided BROADSIDE without state inject
       run(image, "tick_launch_flashes");
       run(image, "update_broadside");
       run(image, "update_starfield");
+      const debrisBeforeUpdate = image[labels.get("ENTITY_ACTIVE_MASK")] & 1;
       run(image, "entity_effects_update");
+      const debrisActive = image[labels.get("ENTITY_ACTIVE_MASK")] & 1;
+      if (debrisBeforeUpdate && !debrisActive) debrisReleases.push(frame + 1);
+      if (debrisActive && !debrisWasActive && image[sectorState] < 5)
+        debrisAdmissions.push(frame + 1);
+      maximumActiveDebris = Math.max(maximumActiveDebris, debrisActive);
+      debrisWasActive = debrisActive !== 0;
       run(image, "render_launch_flashes");
       run(image, "integration_update_sector_completion");
       const row = image[state.rowLo] | image[state.rowHi] << 8;
@@ -443,9 +804,9 @@ test("natural Level 1 reaches a visible two-sided BROADSIDE without state inject
     }
 
     assert.equal(admittedAtFrame, provisionalCapital.frame,
-      `difficulty ${difficulty} capital admission must occur at active gameplay frame 50`);
-    assert.ok(enteredCapitalAtRow < 32,
-      `difficulty ${difficulty} moved capital section must begin during the provisional intro`);
+      `difficulty ${difficulty} capital admission must occur at active gameplay frame 600`);
+    assert.ok(enteredCapitalAtRow >= 200,
+      `difficulty ${difficulty} capital section must follow the early ordinary-enemy window`);
     assert.ok(visibleByOwner.has(1),
       `difficulty ${difficulty} must render a natural Hostile projectile`);
     assert.deepEqual([...motionByOwner].sort(), [...visibleByOwner].sort(),
@@ -456,6 +817,19 @@ test("natural Level 1 reaches a visible two-sided BROADSIDE without state inject
       `difficulty ${difficulty} warning/flash lifecycle mismatch`);
     assert.equal(hostileCycles.launches, hostileCycles.warnings,
       `difficulty ${difficulty} warning/launch lifecycle mismatch`);
+    assert.ok(debrisAdmissions.length >= 3,
+      `difficulty ${difficulty} capital debris admissions ${debrisAdmissions.join(",")}`);
+    assert.equal(maximumActiveDebris, 1,
+      `difficulty ${difficulty} exceeded the single debris-slot limit`);
+    const admissionIntervals = debrisAdmissions.slice(1)
+      .map((frame, index) => frame - debrisAdmissions[index]);
+    const emptyIntervals = debrisAdmissions.slice(1)
+      .map((frame, index) => frame - debrisReleases[index]);
+    assert.ok(Math.max(...admissionIntervals) <= 384,
+      `difficulty ${difficulty} capital admission gap ${Math.max(...admissionIntervals)} frames; ` +
+      `admissions=${debrisAdmissions.join(",")}; releases=${debrisReleases.join(",")}`);
+    assert.ok(Math.max(...emptyIntervals) <= 272,
+      `difficulty ${difficulty} empty debris gap ${Math.max(...emptyIntervals)} frames`);
     for (const owner of visibleByOwner) ownersAcrossDifficulties.add(owner);
     assert.equal(completedCapital, true, `difficulty ${difficulty} capital section must drain`);
     assert.equal(image[state.intensity], 0,
@@ -486,6 +860,7 @@ test("natural capital exit performs one scene recycle on every world row", () =>
   let sawComplete = false;
   for (let frame = 0; frame < 5_000; frame += 1) {
     image[frameCounter] = image[frameCounter] + 1 & 0xff;
+    run(image, "integration_active_gameplay_tick");
     run(image, "integration_update_first_capital");
     run(image, "tick_launch_flashes");
     run(image, "update_broadside");
@@ -505,7 +880,7 @@ test("natural capital exit performs one scene recycle on every world row", () =>
     }
   }
   assert.equal(sawComplete, true, "natural capital DRAIN did not reach COMPLETE");
-  assert.equal(drainWorldRows, 23, "DRAIN must consume every visible hull row exactly once");
+  assert.equal(drainWorldRows, 28, "DRAIN must consume every visible hull row exactly once");
   assert.equal(drainRecycles, drainWorldRows,
     "the exit cannot fall back to the half-rate near-layer recycle");
 });

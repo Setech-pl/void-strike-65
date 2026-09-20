@@ -1,0 +1,64 @@
+{
+  "id": "stage-2b2i-heavy-window-placement",
+  "date": "2026-09-17",
+  "task": "Roadmap 4.5a: reusable resident C window HYBRID_C_HEAVY for the Bomber, no gameplay change",
+  "status": "OWNER-SMOKE CANDIDATE",
+  "owner_decision": "Decision 20: GO for the Bomber design, execute only 4.5a with the preferred $7E12-$7F0F window, held publication after starfield expansion (GLUE precedent), no new DFMC record; LIGHT_CODE relocation only if the preferred window is impossible.",
+  "baseline": { "commit": "3838c00", "xex_sha256": "acb7d9bbe1daa1174b885174af2ba29705355248d3d8c8233378cfd58cbcae18" },
+  "candidate": {
+    "xex_sha256": "8ac718611242474ad4e7db009e11c0bbf1ee2aac94104f345bd86e6dfdbe9ede",
+    "atr_sha256": "6660c504eb7db203ea677cc04064cd61c6ad803c72d0d258344d17dfc793eff7",
+    "owner_smoke_copy": "build/owner-smoke/heavy-window-8ac71861/"
+  },
+  "design": {
+    "runtime_window": { "range": "$7E12-$7F04", "bytes": 243, "owner": "HYBRID_C_HEAVY (cc65 memory area HYBRID_C_HEAVY_RAM)", "used": 0 },
+    "window_limit": "243 B = $7F2B (A2 cold staging) - $7E38 (low-C record start $7D40 + full $F8 reservation); the 254-B runtime range $7E12-$7F0F would allow more, but staging bounds it",
+    "transport": "the linked image (used bytes only) follows the low-C LZ record image at $7E38; still 8 DFMC records",
+    "hold": { "range": "$8400-$84F2", "why": "idle gameplay-ring RAM after the GLUE hold; written after unpack_resident_runtime consumed the $8100 staging and before stage_starfield_stream writes $7810-$81CF" },
+    "boot_code": [
+      "hybrid_c_heavy_hold $219D-$21AA (14 B) and hybrid_c_heavy_publish $21AB-$21BB (17 B) in the zero padding of the fixed $01A3 bootstrap prefix; initial content unchanged",
+      "publish_director_abi tail: rts + 2 B pad replaced by jmp hybrid_c_heavy_hold (same 3 B)",
+      "after show_loader: jsr unpack_starfield_runtime replaced by jsr hybrid_c_heavy_publish (same 3 B), which expands the starfield then copies the hold to the window"
+    ],
+    "reviewed_range_change": "scripts/chunk-loader.mjs cold range [$7BD0,$7F10) -> [$7BD0,$7F2B): the A2 display lists at $7F10 are built only by init_playfield_display_lists at gameplay init; A2 cold staging starts at $7F2B",
+    "rejected_first_variant": "transporting the full zero-padded capacity (491 B raw) added stage-2 LZ decode work and moved ATR boot-smoke 'start' 231 -> 232 on the $A5 fill, missing the menu deadline 546 by one frame (HEAD itself reaches 546 exactly); only used bytes now travel"
+  },
+  "measured_sizes": {
+    "low_c_record": { "before": { "raw": 242, "packed": 210, "sectors": 2 }, "after": { "raw": 248, "packed": 213, "sectors": 2 } },
+    "worst_case_full_window_incompressible": { "packed": 458, "sectors": 4 },
+    "real_cc65_proof_payload_239_B": { "packed_record": 435, "raw_record": 487, "sectors": 4, "total_transport_sectors": 180 },
+    "unchanged": "initial content 13,166 B, envelope 18 B, 103 boot sectors, 178 transport sectors, extension record 786/960 B packed, pickup record 1,161/1,277 B, packed STARFIELD 1,805 B, ENTITY_CODE 3,153/2,727 B, linked runtime 17,502 B"
+  },
+  "residency_metrics": {
+    "physical_resident_code_data_bytes": "+0 in the linked metrics: 31 B of boot copies replace zero padding already counted in CODE; simultaneous 19,493 B and safe 2,694 B unchanged",
+    "reserved_envelope_bytes": "new HYBRID_C_HEAVY_RAM 243 B ($7E12-$7F04); boot-only hold 243 B ($8400-$84F2); all other envelopes unchanged",
+    "reusable_free_capacity_bytes": { "hybrid_c_heavy": "0 -> 243 (contiguous, C-reachable)", "bootstrap_prefix_padding": "36 -> 5", "unchanged": "HYBRID_C_EXT 21, HYBRID_C_SECTOR 8, ENTITY_CODE 13, A2 18, pickup fill 11" }
+  },
+  "cpu": {
+    "startup_one_time_harness": { "hybrid_c_heavy_hold": 3938, "hybrid_c_heavy_publish_copy_including_stub_call": 3907, "note": "boot only, never inside a gameplay frame" },
+    "native_pal_focused_replays": {
+      "2-evasive-fire3": { "head_max": 29522, "candidate_max": 29522, "missed_frames": 0, "extra_vbi": 0, "dli_ordering_errors": 0 },
+      "2-sweep-fire4": { "head_max": 29814, "candidate_max": 29814, "missed_frames": 0, "extra_vbi": 0, "dli_ordering_errors": 0 }
+    }
+  },
+  "native_write_watch": {
+    "script": "node scripts/capacity-window-watch.mjs --atari800-source=build/atari800-trace --hold=0x8400 --hold-bytes=243 --window=0x7e12 --window-bytes=243 --expect-window-is-hold --inject=0x7e38:243",
+    "sessions": "XEX and ATR x cold fill $00/$A5 ($7810-$9FFF)",
+    "lifecycle": "cold start, OPTIONS, BACK, START, gameplay, pause/resume, one capital sector entered and completed (XEX frames 1258-2464, ATR 1411-2617), game over, menu, START, pause, quit, menu",
+    "result": "PASS 4/4: 0 hold writes, 0 window writes after publication, injected 243-B pattern byte-exact in hold and window",
+    "regression_4_3": "--expect-hold-is-glue --expect-window-bin=build/resident-window-runtime.bin: PASS 4/4 with the same lifecycle including capital",
+    "real_c_payload_proof": "scratch tree only (not committed): 239 B of cc65 CODE+RODATA linked into HYBRID_C_HEAVY; --expect-window-bin: PASS 4/4 (window equals the linked image); boot smoke PASS; one more statement overflows HYBRID_C_HEAVY_RAM and ld65 fails the build",
+    "harness_changes": "hold size parameter, optional staging injection gated on `start` (ATR stage-2 code occupies resident addresses), capital entry/completion counters, keep-alive until one capital completes, cold fill extended to $7810"
+  },
+  "boot_smoke": {
+    "candidate": "PASS 4/4; milestones identical to HEAD (XEX menu 393, ATR menu 546 against deadline 546)",
+    "known_limit": "the ATR boot-smoke menu deadline (190 + 2 x transport sectors) has 0 frames of margin at HEAD and with the 239-B proof payload (menu 550, deadline 550); extra boot CPU without extra sectors can miss it"
+  },
+  "fallback": "LIGHT_CODE relocation was not needed and not investigated further",
+  "carried_owner_corrections_for_4_5b_c": [
+    "generic weapon_class emission chosen by C, not allocate-PULSE-then-eor",
+    "no Light escort with Bombers is provisional 4.5 smoke policy only",
+    "visible separation of two QUAD Bombers, lanes about [48,92] and [132,176]",
+    "roadmap after 4.5: 4.6 data-driven Encounter/Wave Director, 4.7 Boss, 4.8 capital traversal enrichment, then level loop / 16-level campaign data"
+  ]
+}

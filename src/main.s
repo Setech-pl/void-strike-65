@@ -16,15 +16,12 @@
 .include "entity-effects.inc"
 .include "loader-display-list.inc"
 .include "frontend-h31.inc"
+.include "director-abi.inc"
 
-DIRECTOR_INIT = $9D75
-DIRECTOR_WORLD_ROW_TICK = $9D9B
-DIRECTOR_REQUEST = $9EA7
-DIRECTOR_RELEASE = $9F23
-DIRECTOR_RNG_ADVANCE = $9F32
 DIRECTOR_STATE_REACTION = $80F9
 DIRECTOR_STATE_RECOVERY = $80FA
 DIRECTOR_STATE_INTENSITY = $80F8
+DIRECTOR_STATE_PHASE = $80F6
 DIRECTOR_STATE_FLAGS = $80FE
 DIRECTOR_STATE_ADMISSION_FRAME = $80FF
 DIRECTOR_FLAG_COMPLETE = $01
@@ -35,16 +32,18 @@ DIRECTOR_HAZARD_DEBRIS = 1
 DIRECTOR_HAZARD_BROADSIDE = 2
 DIRECTOR_HAZARD_PICKUP = 3
 DIRECTOR_RETRY_FRAMES = 8
+ACTIVE_GAMEPLAY_FRAME_LO = $4FF8
+ACTIVE_GAMEPLAY_FRAME_HI = $4FF9
 PROVISIONAL_CAPITAL_BROADSIDE_REACTION_ROWS = 12
 integration_director_world_row = $4EFE
+integration_active_gameplay_tick = $4FE9
 integration_debris_spawn = $4F0D
-integration_debris_release = $4F1D
-integration_apply_allied_prow = $4F25
-integration_apply_enemy_prow = $4F28
-CAPITAL_SHELL_GLYPH_SOURCE = $4F97
-render_capital_shell_overlay = $4F9F
-integration_broadside_release = $4FDC
-CAPITAL_PLAYER_COLLISION = $8E61
+integration_apply_allied_prow = $4F26
+integration_apply_enemy_prow = $4F29
+CAPITAL_SHELL_GLYPH_SOURCE = $4F98
+render_capital_shell_overlay = $4FA0
+integration_broadside_release = $4FDD
+CAPITAL_PLAYER_COLLISION = $8B67
 
 .import __A2_KERNEL_RUN__, __A2_KERNEL_SIZE__
 .import __BOOT_STAGE2_LOAD__, __BOOT_STAGE2_RUN__, __BOOT_STAGE2_SIZE__
@@ -54,6 +53,7 @@ CAPITAL_PLAYER_COLLISION = $8E61
 
 DOSVEC      = $000A
 APPMHI      = $0014
+BASICF      = $03F8         ; OS BASIC flag: 0 = enabled, non-zero = disabled
 VDSLST      = $0200
 MEMLO       = $02E7
 SIOV        = $E459
@@ -123,6 +123,7 @@ AUDCTL      = $D208
 ; PIA and ANTIC
 
 STICK0      = $D300
+PORTB       = $D301         ; bit 1: 0 = BASIC ROM mapped at $A000-$BFFF
 DMACTL      = $D400
 DLISTL      = $D402
 DLISTH      = $D403
@@ -136,9 +137,16 @@ NMIEN       = $D40E
 ; Reserved RAM
 
 PMG_BASE    = $3800
+; Roadmap 4.5M-M1: the packed starfield is staged as two independent LZ
+; streams. Stream A reuses the consumed extension cold source below
+; HYBRID_C_ARENA ($7BD0, 4.5M-M3); stream B uses idle boot-time RAM after the GLUE hold, inside the
+; resident staging interval that unpack_resident_runtime has consumed and that
+; nothing writes before gameplay init. Neither stream touches $7BD0-$7F2A.
 STARFIELD_STAGING = $7810
-STARFIELD_STAGING_BYTES = $0700
-BOOT_A2_STAGING = $7F16
+STARFIELD_STAGING_BYTES = $03C0
+STARFIELD_STAGING_B = $81FA
+STARFIELD_STAGING_B_BYTES = $03C0
+BOOT_A2_STAGING = $7F2B
 PACKED_RESIDENT_STAGING = $8100
 PAUSE_SCREEN_BACKUP = STARFIELD_STAGING
 PAUSE_SCREEN_BYTES = $03C0
@@ -186,15 +194,42 @@ DIFFICULTY_SETTING          = BROAD_STATE_END        ; 1 B, persists across fron
 FRONTEND_PERSISTENT_END     = DIFFICULTY_SETTING+$01
 HULL_SCROLL_ACCUMULATOR     = FRONTEND_PERSISTENT_END
 BROAD_RASTER_TOP            = HULL_SCROLL_ACCUMULATOR+$01 ; 3 B, final capture rows
+; The launch flash overlays one turret-muzzle cell for four frames. Like the
+; tracked-muzzle overlay it must return that cell's own prior content, not a
+; per-turret constant, so each slot carries its own one-byte backing.
+BROAD_FLASH_BACKING         = BROAD_RASTER_TOP+$03    ; 3 B, pre-flash cell content
 CORRIDOR_BOUNDARY_ROWS      = CAPITAL_HULL_VISIBLE_ROWS
 ; The original 23+23 bytes remain a compatibility hole so every following
 ; resident-state address stays fixed. Expanded boundary backing lives beside
 ; the high-RAM ring tables after cold staging.
 CORRIDOR_BOUNDARY_LEFT      = PLAYFIELD_RING_STATE_END
 CORRIDOR_BOUNDARY_RIGHT     = CORRIDOR_BOUNDARY_LEFT+CORRIDOR_BOUNDARY_ROWS
+; Rows one and two of the old boundary cache are no longer shifted in the hot
+; path.  They retain two per-muzzle backing bytes while row zero remains the
+; authoritative freshly generated boundary value for a newly tracked muzzle.
+MUZZLE_BACKING              = CORRIDOR_BOUNDARY_LEFT+$01 ; 2 B, allied/enemy
+; Reuse the retired boundary rows. Only side cells 0..8/31..39 are cached;
+; the historical RIGHT row-zero byte aliases unused centre cell 25.
+PREPARED_HULL_ROW           = CORRIDOR_BOUNDARY_LEFT+$03 ; 40 B
+PREPARED_HULL_LO            = PREPARED_HULL_ROW+40
+PREPARED_HULL_HI            = PREPARED_HULL_LO+1
+PREPARED_HULL_SECTOR        = PREPARED_HULL_LO+2
+PREPARED_HULL_RING_LO       = PREPARED_HULL_LO+3
+.assert PREPARED_HULL_RING_LO < CORRIDOR_BOUNDARY_RIGHT+CORRIDOR_BOUNDARY_ROWS, error, "prepared hull exceeds retired backing"
+.export PREPARED_HULL_ROW, PREPARED_HULL_SECTOR
+.export STAR_RNG_STATE
 CORRIDOR_PHASE_HI           = CORRIDOR_BOUNDARY_RIGHT+CORRIDOR_BOUNDARY_ROWS
 HULL_DRAW_ROW_LO            = CORRIDOR_PHASE_HI+$01
 HULL_DRAW_ROW_HI            = HULL_DRAW_ROW_LO+$01
+; The sparse white near layer reuses the head of the retired 29-record far
+; pool. Four fixed records keep row/column and the last rendered physical
+; address. They claim blank cells, so CH_SPACE is their complete lower-layer
+; contract and no per-record backing byte is needed.
+STAR_NEAR_ROW               = HULL_DRAW_ROW_HI+$01
+STAR_NEAR_COLUMN            = STAR_NEAR_ROW+STAR_NEAR_CAPACITY
+STAR_NEAR_SCREEN_LO         = STAR_NEAR_COLUMN+STAR_NEAR_CAPACITY
+STAR_NEAR_SCREEN_HI         = STAR_NEAR_SCREEN_LO+STAR_NEAR_CAPACITY
+STAR_NEAR_STATE_END         = STAR_NEAR_SCREEN_HI+STAR_NEAR_CAPACITY
 BROAD_TURRET_FIRED          = HULL_SCROLL_ACCUMULATOR+$2F
 BROAD_FLASH_TIMER           = BROAD_TURRET_FIRED+CAPITAL_HULL_TURRET_COUNT ; 3 B
 CAPITAL_SECTOR_STATE        = BROAD_FLASH_TIMER+$03
@@ -217,36 +252,27 @@ ENGINE_ANIMATION_PHASE      = ENGINE_ANIMATION_TIMER+$01
 ENEMY_ARCHETYPE             = ENGINE_ANIMATION_PHASE+$01
 INTERCEPTOR_MOVE_ACCUMULATOR     = ENEMY_ARCHETYPE+$01
 ENEMY_ACTIVE                = INTERCEPTOR_MOVE_ACCUMULATOR+$01
-ENEMY_HP                    = ENEMY_ACTIVE+$01
-ENEMY_PENDING_DAMAGE        = ENEMY_HP+$01
-ENEMY_PENDING_SOURCE        = ENEMY_PENDING_DAMAGE+$01
-GAMEPLAY_RESIDENT_END       = ENEMY_PENDING_SOURCE+$01
+; Four legacy scalar bytes stay reserved so the following reviewed resident
+; addresses do not move. Raider member state lives in the projectile BSS,
+; where the former single-enemy fields can be indexed without consuming ZP.
+ENEMY_LEGACY_STATE          = ENEMY_ACTIVE+$01
+GAMEPLAY_RESIDENT_END       = ENEMY_LEGACY_STATE+$03
 
-; Sparse far stars are decorative overlays above the authoritative near-layer
-; cells.  Their row is logical and their column physical within that row, so a
-; 50%-rate LMS rotation cannot accidentally drag the independent 25%-rate
-; layer. The logical records live beside the post-loader ring state so the
-; late-published integration glue can use the complete contiguous $4EFE-$4FFF
-; helper window without overlapping stars.
-STAR_FAR_ACTIVE              = HULL_DRAW_ROW_HI+$01
-STAR_FAR_ROW                 = STAR_FAR_ACTIVE+STAR_FAR_CAPACITY
-STAR_FAR_COLUMN              = STAR_FAR_ROW+STAR_FAR_CAPACITY
-STAR_FAR_CODE                = STAR_FAR_COLUMN+STAR_FAR_CAPACITY
-STAR_FAR_STATE_END           = STAR_FAR_CODE+STAR_FAR_CAPACITY
-; The packed resident suffix only occupies this area during cold startup.
-; Once restored, cache the exact physical cell used by each drawn far star so
-; reverse erase does not have to resolve the rotated LMS row a second time.
-STAR_FAR_SCREEN_LO           = $8100
-STAR_FAR_SCREEN_HI           = STAR_FAR_SCREEN_LO+STAR_FAR_CAPACITY
-STAR_FAR_SCREEN_END          = STAR_FAR_SCREEN_HI+STAR_FAR_CAPACITY
-
+; The production starfield is four sparse white overlays only. The former
+; 116-byte far pool and 58-byte address cache remain reclaimed. Two scalar
+; bytes track the near fine-Y phase and whether its coarse row and the ring
+; moved in the current iteration; downstream reviewed addresses stay fixed.
 STAR_RNG_STATE               = GAMEPLAY_RESIDENT_END
-STAR_NEAR_PHASE              = STAR_RNG_STATE+$01
-STAR_FAR_PHASE               = STAR_NEAR_PHASE+$01
-STAR_TWINKLE_TIMER           = STAR_FAR_PHASE+$01
-STAR_TWINKLE_SLOT            = STAR_TWINKLE_TIMER+$01
-STAR_GENERATION_FLAGS        = STAR_TWINKLE_SLOT+$01
-STARFIELD_STATE_END          = STAR_GENERATION_FLAGS+$01
+STAR_NEAR_RING_ADVANCED      = STAR_RNG_STATE+$01
+STAR_NEAR_FINE_PHASE         = STAR_NEAR_RING_ADVANCED+$01
+STARFIELD_COMPAT_STATE       = STAR_NEAR_FINE_PHASE+$01
+STARFIELD_STATE_END          = STARFIELD_COMPAT_STATE+$03
+; The first gameplay DLI is the one event that occurs exactly once in every
+; physical PAL display frame in both fighter and capital sectors. Two bytes
+; from the already-reserved compatibility tail turn it into a token consumed
+; once by the gameplay loop, independently of its later publication anchor.
+PHYSICAL_PAL_FRAME_ID        = STARFIELD_COMPAT_STATE
+GAMEPLAY_PAL_FRAME_CONSUMED  = STARFIELD_COMPAT_STATE+$01
 SESSION_SCORE_COMPAT_BYTES   = 2
 MUZZLE_ROW_DOMAIN            = STARFIELD_STATE_END          ; 2 B, fixed divider/ring
 SESSION_SCORE_COMPAT_END     = MUZZLE_ROW_DOMAIN+SESSION_SCORE_COMPAT_BYTES
@@ -280,17 +306,25 @@ TOP_SCORE_TABLE_END          = TOP_SCORE_TABLE+TOP_SCORE_TABLE_BYTES
 SESSION_SCORE_STATE_END      = TOP_SCORE_TABLE_END
 
 .export MUZZLE_ROW_DOMAIN, MUZZLE_VISIBLE_ROW, MUZZLE_SCREEN_LO, MUZZLE_SCREEN_HI
+.export MUZZLE_BACKING
 .export CORRIDOR_BOUNDARY_LEFT, CORRIDOR_BOUNDARY_RIGHT, BROAD_TURRET_FIRED
 ; Build/debug tooling reads these symbols from the linker label file. Exporting
 ; constants has no runtime footprint and avoids duplicating the resident-state
 ; layout in a host-side wall-clock tracer.
 .export BROAD_STATE, BROAD_TURRET, BROAD_ROW_LO, BROAD_ROW_HI, BROAD_FLASH_TIMER
-.export BROAD_RASTER_TOP
+.export BROAD_RASTER_TOP, BROAD_FLASH_BACKING
 .export BROAD_DAMAGE_COOLDOWN, BROAD_DAMAGE_APPLIED
 .export DIFFICULTY_SETTING, CAPITAL_SECTOR_STATE, PLAYER_LIFECYCLE
 .export CAPITAL_EXPLOSION_TIMER, CAPITAL_EXPLOSION_SOUND_TIMER, ENEMY_ACTIVE
 .export ENEMY_ARCHETYPE, ENEMY_HP, ENEMY_PENDING_DAMAGE, ENEMY_PENDING_SOURCE
-.export STAR_FAR_ACTIVE, MUSIC_ACTIVE
+.export ENEMY_MEMBER_STATE, ENEMY_X, ENEMY_Y, ENEMY_VELOCITY_X
+.export ENEMY_MOVE_ACCUMULATOR, ENEMY_MANEUVER_STATE, ENEMY_MANEUVER_TIMER
+.export ENEMY_BEHAVIOUR_PHASE, ENEMY_LIVE_COUNT
+.export WEAPON_PICKUP_COLD_STAGING
+.export STAR_NEAR_RING_ADVANCED, STAR_NEAR_FINE_PHASE
+.export PHYSICAL_PAL_FRAME_ID, GAMEPLAY_PAL_FRAME_CONSUMED
+.export STAR_NEAR_ROW, STAR_NEAR_COLUMN, STAR_NEAR_SCREEN_LO, STAR_NEAR_SCREEN_HI
+.export MUSIC_ACTIVE
 .export TOP_SCORE_TABLE, TOP_SCORE_TABLE_LO, TOP_SCORE_TABLE_HI, TOP_SCORE_TABLE_END
 .export TOP_SCORE_RECORD_COUNT, TOP_SCORE_RECORD_BYTES, TOP_SCORE_STORAGE_COUNT
 .export TOP_SCORE_TABLE_BYTES
@@ -305,7 +339,9 @@ SESSION_SCORE_STATE_END      = TOP_SCORE_TABLE_END
 ; physical ring and lookup/state bytes reuse post-loader RAM at $8140.
 PLAYFIELD_RING_ROWS = GAMEPLAY_SCREEN_ROWS-1
 PLAYFIELD_DLIST_BYTES = 3+3+PLAYFIELD_RING_ROWS*3+3
-PLAYFIELD_DLIST_A = STARFIELD_STAGING+STARFIELD_STAGING_BYTES
+; The cold starfield stream may temporarily cross this address; the display
+; lists are initialized only after the packed stream has been published.
+PLAYFIELD_DLIST_A = $7F10
 PLAYFIELD_DLIST_B = PLAYFIELD_DLIST_A+PLAYFIELD_DLIST_BYTES
 PLAYFIELD_DLIST_END = PLAYFIELD_DLIST_B+PLAYFIELD_DLIST_BYTES
 PLAYFIELD_ROW_LO = GAMEPLAY_RING_SCREEN_END
@@ -323,9 +359,8 @@ PLAYFIELD_RING_STATE_END = PLAYFIELD_PREBUILD_PENDING+$01
 .assert PLAYFIELD_DLIST_BYTES = 90, error, "expanded per-row LMS display list size changed"
 .assert >PLAYFIELD_DLIST_A = >PLAYFIELD_DLIST_B, error, "hybrid display lists must share one page"
 .assert PLAYFIELD_DLIST_END <= $8000, error, "expanded display lists overlap entity/effects RAM"
-.assert PLAYFIELD_RING_STATE_END <= WEAPON_PICKUP_PHASE_BANK, error, "expanded ring overlaps pickup phases"
-.assert HULL_DRAW_ROW_HI+$01 <= WEAPON_PICKUP_PHASE_BANK, error, "expanded hull coordinate state overlaps pickup phases"
-.assert STAR_FAR_STATE_END <= WEAPON_PICKUP_PHASE_BANK, error, "far-star logical state overlaps pickup phases"
+.assert PLAYFIELD_RING_STATE_END <= WEAPON_PICKUP_RUNTIME, error, "expanded ring overlaps pickup runtime"
+.assert HULL_DRAW_ROW_HI+$01 <= WEAPON_PICKUP_RUNTIME, error, "expanded hull coordinate state overlaps pickup runtime"
 .export PLAYFIELD_DLIST_A, PLAYFIELD_DLIST_B, PLAYFIELD_ROW_LO, PLAYFIELD_ROW_HI
 .export PLAYFIELD_RING_ROWS
 .export PLAYFIELD_ACTIVE_DLIST_LO, PLAYFIELD_NEXT_DLIST_LO, PLAYFIELD_RING_FLAGS
@@ -356,6 +391,9 @@ DAMAGE_CLEANUP           = 5
 FIGHTER_PROJECTILE_FREE   = 0
 FIGHTER_PROJECTILE_PLAYER_FIGHTER  = 1
 FIGHTER_PROJECTILE_INTERCEPTOR = 2
+FIGHTER_PROJECTILE_INTERCEPTOR_EMITTER_MASK = $01
+FIGHTER_PROJECTILE_INTERCEPTOR_P1 = FIGHTER_PROJECTILE_INTERCEPTOR
+FIGHTER_PROJECTILE_INTERCEPTOR_P2 = FIGHTER_PROJECTILE_INTERCEPTOR|FIGHTER_PROJECTILE_INTERCEPTOR_EMITTER_MASK
 FIGHTER_PROJECTILE_SPREAD_CENTER = $10
 FIGHTER_PROJECTILE_SPREAD_RIGHT = $20
 FIGHTER_PROJECTILE_SPREAD_LEFT = $40
@@ -389,6 +427,32 @@ ENEMY_SLOT_INDEX = 0
 ENEMY_INACTIVE = 0
 ENEMY_ACTIVE_STATE = 1
 ENEMY_EXPLODING_STATE = 2
+ENEMY_MOVEMENT_RAIDER_CROSS_PURSUIT = 0
+ENEMY_FIRE_RAIDER_PAIR_BURST = 1
+ENEMY_RENDERER_TWO_HEAVY_PMG = 1
+; EnemyArchetype weapon_class ids, mirrored from src/c/enemy-archetype.h
+; (tests/source-contracts.test.mjs cross-checks them). A hostile PairShot slot
+; stores ACTIVE = owner bits 0-2 | (weapon_class << 3); the renderer publishes
+; class c as glyph 89+c (left phase) or 99+c (right phase), so projectile
+; colour and shape follow the weapon class, never the emitter hull colour.
+; The class also owns its movement rate (hostile_weapon_step_masks).
+ENEMY_WEAPON_PULSE = 1
+ENEMY_WEAPON_LASER = 2
+ENEMY_WEAPON_BOMBER = 3
+FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT = 3
+HOSTILE_WEAPON_GLYPH_BASE = INTERCEPTOR_PROJECTILE_GLYPH_BASE-1
+RAIDER_PMG_SLOT_COUNT = 2
+RAIDER_PMG_LAST_SLOT = RAIDER_PMG_SLOT_COUNT-1
+RAIDER_PMG_CROSS_FRAMES = 48
+RAIDER_PMG_START_X_0 = 88
+RAIDER_PMG_START_X_1 = 152
+RAIDER_PMG_SPAWN_Y = GAMEPLAY_TOP-ENEMY_RELEASE_FRAME_HEIGHT
+RAIDER_PMG_START_Y_0 = 48
+RAIDER_PMG_START_Y_1 = 96
+; Sentinel "previous Y" handed to draw_enemy_member by the two full-draw
+; callers to force the body copy. A drawn member's Y always lies in
+; [0, GAMEPLAY_BOTTOM), so $FF never compares equal to a live member's Y.
+ENEMY_Y_NEVER = $FF
 FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT = 0
 FIGHTER_EXPLOSION_ENEMY_SLOT = 1
 PLAYER_HEALTH_UNITS = 10
@@ -397,6 +461,10 @@ ENEMY_PULSE_DAMAGE_UNITS = 1
 DEBRIS_DAMAGE_EASY = 2
 DEBRIS_DAMAGE_MEDIUM = 5
 DEBRIS_DAMAGE_HARD = 7
+; Packed BCD, difficulty-independent. Debris is an obstacle, not an enemy:
+; the value stays an order below the Bomber's $50 so clearing debris cannot
+; compete with killing enemies.
+DEBRIS_SCORE = $05
 ENEMY_VISIBLE_BOTTOM_EXCLUSIVE = GAMEPLAY_BOTTOM
 
 PLAYER_H    = 16
@@ -436,8 +504,6 @@ CH_HUD_A    = 33
 CH_COLON    = 26
 CH_QUESTION = 31
 
-STAR_GENERATE_NEAR = $01
-STAR_GENERATE_FAR  = $02
 
 KAWASAKI_GREEN = $D8
 GAMEPLAY_COLPF0 = $0E
@@ -485,7 +551,7 @@ HUD_SHIELD_TWO_SEGMENT_MIN = 63
 HUD_SHIELD_THREE_SEGMENT_MIN = 126
 HUD_SHIELD_FOUR_SEGMENT_MIN = 188
 .assert PLAYER_FIGHTER_RAPID_FIRE_DURATION = PLAYER_FIGHTER_SPREAD_SHOT_DURATION, error, "weapon boosters must share one HUD duration"
-.assert PLAYER_FIGHTER_SPREAD_COOLDOWN = 10, error, "Spread cooldown must retain one reserve projectile slot"
+.assert PLAYER_FIGHTER_SPREAD_COOLDOWN = 28, error, "Spread cooldown must retain the further-reduced player-fire cadence"
 .assert PLAYER_FIGHTER_SPREAD_LATERAL_STEP = 1, error, "Spread side step must be one HPOS unit"
 .assert PLAYER_FIGHTER_SPREAD_LATERAL_PERIOD = 2, error, "Spread side step must occur every two active frames"
 .assert HUD_BOOSTER_QUARTER*4 = PLAYER_FIGHTER_RAPID_FIRE_DURATION, error, "weapon-booster duration must divide into four exact HUD quarters"
@@ -651,21 +717,31 @@ EFFECT_FRAGMENT_GLYPH_BASE = ENTITY_DEBRIS_GLYPH_BASE+ENTITY_DEBRIS_GLYPH_COUNT
 WEAPON_PICKUP_GLYPH_BASE = EFFECT_FRAGMENT_GLYPH_BASE+EFFECT_FRAGMENT_GLYPH_COUNT
 WEAPON_PICKUP_SPREAD_GLYPH_BASE = WEAPON_PICKUP_GLYPH_BASE
 WEAPON_PICKUP_SHIELD_GLYPH_BASE = WEAPON_PICKUP_SPREAD_GLYPH_BASE
-WEAPON_PICKUP_PHASE_BANK = $8800
+; Runtime start of the pickup/collision stream. Its first segment is the
+; LIGHT_RESIDENT kernel from $8776 (the C profile cache moved to $8110);
+; PICKUP_CODE follows contiguously up to the fixed $8B67 collision module.
+WEAPON_PICKUP_RUNTIME = $8776
+; Reusable resident window (step 4.3): the former boot-only GLUE hold, after
+; the near-star records and before the C scratch BSS at $86FA. HYBRID_C_SECTOR
+; is linked there and expanded as the pickup record's second stream.
+RESIDENT_WINDOW = $8602
+RESIDENT_WINDOW_END = $86FA
 WEAPON_PICKUP_PACKED_STAGING = $8C80
 WEAPON_PICKUP_COLD_STAGING = $4801
 PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE = PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_GLYPH_COUNT
 
 .assert BROAD_STATE_END <= $4E80, error, "broadside resident state exceeds 64 bytes"
 .assert BROAD_RASTER_TOP+BROADSIDE_SLOT_COUNT <= BROAD_TURRET_FIRED, error, "capital-shell raster cache exceeds compatibility state hole"
+.assert BROAD_FLASH_BACKING+BROADSIDE_SLOT_COUNT <= BROAD_TURRET_FIRED, error, "launch-flash backing exceeds compatibility state hole"
 .assert CAPITAL_HULL_TURRET_COUNT = 2, error, "tracked muzzle records require exactly one turret per side"
 .assert GAMEPLAY_RESIDENT_END <= $4F00, error, "gameplay resident state exceeds reclaimed RAM"
 .assert STARFIELD_STATE_END <= $4F00, error, "starfield scalar state exceeds reclaimed RAM"
-.assert STAR_FAR_ACTIVE >= HULL_DRAW_ROW_HI+$01, error, "far-star records overlap hull ring state"
-.assert STAR_FAR_STATE_END <= WEAPON_PICKUP_PHASE_BANK, error, "far-star records overlap pickup phases"
-.assert STAR_FAR_SCREEN_LO >= $8100, error, "far-star screen cache overlaps initialized entity state"
-.assert STAR_FAR_SCREEN_END <= $9000, error, "far-star screen cache overlaps A2 kernel"
-.assert STAR_FAR_FIRST > CH_SPACE, error, "star codes must not alias blank space"
+.assert HULL_DRAW_ROW_HI+$01 <= WEAPON_PICKUP_RUNTIME, error, "freed far-star record range overlaps pickup runtime"
+.assert STAR_NEAR_STATE_END <= WEAPON_PICKUP_RUNTIME, error, "sparse near-star records overlap pickup runtime"
+.assert STAR_NEAR_STATE_END <= RESIDENT_WINDOW, error, "sparse near-star records overlap the resident window"
+.assert RESIDENT_WINDOW_END <= WEAPON_PICKUP_RUNTIME, error, "resident window overlaps pickup runtime"
+.assert LAYOUT_D_GLUE_HOLDING+LAYOUT_D_GLUE_BYTES <= RESIDENT_WINDOW, error, "GLUE hold overlaps the resident window"
+.assert STAR_NEAR_FIRST > CH_SPACE, error, "star codes must not alias blank space"
 .assert GAMEPLAY_TOP & $07 = 0, error, "projectile row reduction requires an eight-scanline gameplay origin"
 .assert STAR_NEAR_END <= PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE, error, "star glyphs overlap PlayerFighter projectile glyphs"
 .assert PLAYER_RESPAWN_X = 124, error, "player respawn must center the eight-HPOS envelope in the 24-column corridor"
@@ -716,6 +792,11 @@ PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE = PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYE
 .assert PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_GLYPH_COUNT <= CAPITAL_HULL_GLYPH_BASE, error, "PlayerFighter phase glyphs overlap capital hulls"
 .assert INTERCEPTOR_PROJECTILE_GLYPH_BASE >= CAPITAL_HULL_GLYPH_BASE+CAPITAL_HULL_GLYPH_COUNT, error, "Interceptor phase glyphs overlap capital hulls"
 .assert INTERCEPTOR_PROJECTILE_GLYPH_BASE+INTERCEPTOR_PROJECTILE_GLYPH_COUNT <= 128, error, "Interceptor phase glyphs exceed the charset"
+.assert HOSTILE_WEAPON_CLASS_COUNT = ENEMY_WEAPON_BOMBER, error, "every C weapon_class needs exactly one authored hostile visual"
+.assert HOSTILE_WEAPON_BOMBER_PHASE_VISUAL = ENEMY_WEAPON_BOMBER+1 && HOSTILE_WEAPON_VISUAL_COUNT = HOSTILE_WEAPON_BOMBER_PHASE_VISUAL, error, "the BOMBER animation phase must be the visual after the last weapon_class"
+.assert HOSTILE_WEAPON_VISUAL_COUNT <= INTERCEPTOR_PROJECTILE_GLYPH_STRIDE-1, error, "hostile weapon classes must fit glyphs 90-99"
+.assert (HOSTILE_WEAPON_VISUAL_COUNT << FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT) < $100, error, "ACTIVE >> 3 must equal weapon_class"
+.assert ((INTERCEPTOR_PROJECTILE_GLYPH_BASE+INTERCEPTOR_PROJECTILE_GLYPH_STRIDE+HOSTILE_WEAPON_VISUAL_COUNT)|$80) <= (ENTITY_DEBRIS_GLYPH_BASE|$80), error, "hostile weapon codes must stay below the debris bank"
 .assert RESPAWN_INVULNERABLE_FRAMES = 250, error, "respawn invulnerability must be exactly five PAL seconds"
 .assert RESPAWN_BLINK_HALF_PERIOD_FRAMES = 8, error, "respawn blink must toggle every eight PAL frames"
 .assert BROADSIDE_WARNING_PULSE_FRAMES = 2, error, "warning pulse routine requires two-frame groups"
@@ -728,7 +809,11 @@ PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE = PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYE
 .assert DEBRIS_DAMAGE_EASY = 2, error, "EASY debris contact must remove two HULL units"
 .assert DEBRIS_DAMAGE_MEDIUM = 5, error, "MEDIUM debris contact must remove five HULL units"
 .assert DEBRIS_DAMAGE_HARD = 7, error, "HARD debris contact must remove seven HULL units"
+.assert DEBRIS_SCORE = $05, error, "interactive debris must award exactly $05"
 .assert ENEMY_PULSE_POOL_SLOTS = INTERCEPTOR_PROJECTILE_SLOT_COUNT, error, "Interceptor pool definitions diverged"
+.assert PLAYER_FIGHTER_PROJECTILE_ACTIVE_LIMIT <= PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT, error, "PlayerFighter active limit exceeds allocated slots"
+.assert INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT <= INTERCEPTOR_PROJECTILE_SLOT_COUNT, error, "Interceptor active limit exceeds allocated slots"
+.assert ENEMY_PULSE_ACTIVE_LIMIT = INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT, error, "Interceptor active-limit definitions diverged"
 .assert ENEMY_PULSE_BURST_COUNT = INTERCEPTOR_BURST_COUNT, error, "Interceptor burst definitions diverged"
 .assert ENEMY_PULSE_BURST_INTERVAL = INTERCEPTOR_BURST_INTERVAL, error, "Interceptor interval definitions diverged"
 .assert ENEMY_PULSE_SPEED = INTERCEPTOR_PROJECTILE_SPEED, error, "Interceptor projectile speeds diverged"
@@ -742,9 +827,10 @@ PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE = PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYE
 .assert INTERCEPTOR_HORIZONTAL_STEP_HPOS = PLAYER_FIGHTER_HORIZONTAL_STEP_HPOS, error, "fighter step units diverged"
 .assert INTERCEPTOR_SPEED_NUMERATOR*5 = INTERCEPTOR_SPEED_DENOMINATOR*4, error, "Interceptor maximum speed must remain exactly 4/5 of PlayerFighter"
 .assert INTERCEPTOR_SPEED_NUMERATOR < INTERCEPTOR_SPEED_DENOMINATOR, error, "Interceptor fractional rate must skip at least one frame"
-.assert WORLD_SCROLL_RATE_EASY = HULL_SCROLL_RATE_EASY, error, "world/hull easy cadence must remain phase-aligned"
-.assert WORLD_SCROLL_RATE_MEDIUM = HULL_SCROLL_RATE_MEDIUM, error, "world/hull medium cadence must remain phase-aligned"
-.assert WORLD_SCROLL_RATE_HARD = HULL_SCROLL_RATE_HARD, error, "world/hull hard cadence must remain phase-aligned"
+.assert HULL_SCROLL_RATE_DENOMINATOR = WORLD_SCROLL_RATE_DENOMINATOR*2, error, "capital rate conversion assumes a doubled denominator"
+.assert WORLD_SCROLL_RATE_EASY*2 = HULL_SCROLL_RATE_EASY, error, "capital EASY traversal must match the restored pre-tuning cadence"
+.assert WORLD_SCROLL_RATE_MEDIUM*2 = HULL_SCROLL_RATE_MEDIUM, error, "capital MEDIUM traversal must match the restored pre-tuning cadence"
+.assert WORLD_SCROLL_RATE_HARD*2 = HULL_SCROLL_RATE_HARD, error, "capital HARD traversal must match the restored pre-tuning cadence"
 .assert WORLD_SCROLL_RATE_HARD*2 <= WORLD_SCROLL_RATE_DENOMINATOR, error, "hard cadence must leave one light frame for LMS prebuild"
 .assert INTERCEPTOR_WEAVE_PERIOD_FRAMES = 32, error, "Interceptor weave hot path assumes a 32-frame period"
 .assert INTERCEPTOR_ATTACK_ACTIVE_TOP = GAMEPLAY_TOP, error, "Interceptor pursuit begins at the gameplay viewport"
@@ -807,9 +893,24 @@ INTERCEPTOR_BURST_TIMER:               .res 1
 FIGHTER_EXPLOSION_TIMER:          .res SHARED_FIGHTER_EXPLOSION_SLOT_COUNT
 FIGHTER_EXPLOSION_X:              .res SHARED_FIGHTER_EXPLOSION_SLOT_COUNT
 FIGHTER_EXPLOSION_Y:              .res SHARED_FIGHTER_EXPLOSION_SLOT_COUNT
+ENEMY_MEMBER_STATE:               .res RAIDER_PMG_SLOT_COUNT
+ENEMY_HP:                         .res RAIDER_PMG_SLOT_COUNT
+ENEMY_PENDING_DAMAGE:             .res RAIDER_PMG_SLOT_COUNT
+ENEMY_PENDING_SOURCE:             .res RAIDER_PMG_SLOT_COUNT
+ENEMY_X:                          .res RAIDER_PMG_SLOT_COUNT
+ENEMY_Y:                          .res RAIDER_PMG_SLOT_COUNT
+ENEMY_VELOCITY_X:                 .res RAIDER_PMG_SLOT_COUNT
+ENEMY_MOVE_ACCUMULATOR:           .res RAIDER_PMG_SLOT_COUNT
+ENEMY_MANEUVER_STATE:             .res RAIDER_PMG_SLOT_COUNT
+ENEMY_MANEUVER_TIMER:             .res RAIDER_PMG_SLOT_COUNT
+ENEMY_BEHAVIOUR_PHASE:            .res RAIDER_PMG_SLOT_COUNT
+ENEMY_TARGET_SLOT:                .res 1
+ENEMY_TARGET_Y:                   .res 1
+ENEMY_WEAPON_CURSOR:              .res 1
+ENEMY_LIVE_COUNT:                 .res 1
 FIGHTER_PROJECTILE_STATE_END:
 
-.assert FIGHTER_PROJECTILE_STATE_END-FIGHTER_PROJECTILE_ACTIVE = 202, error, "fighter projectile and explosion state budget changed"
+.assert FIGHTER_PROJECTILE_STATE_END-FIGHTER_PROJECTILE_ACTIVE = 138, error, "PairShot, explosion and two-Raider PMG state budget changed"
 
 ; The complete page is explicit BSS, but no byte is trusted after cold boot.
 ; init_entity_effects clears all 256 bytes before installing deterministic
@@ -845,6 +946,11 @@ ENTITY_RENDER_ID:            .res ENTITY_SLOT_COUNT
 ENTITY_COLLISION_CATEGORY:   .res ENTITY_SLOT_COUNT
 ENTITY_SCREEN_LO:            .res ENTITY_SLOT_COUNT
 ENTITY_SCREEN_HI:            .res ENTITY_SLOT_COUNT
+; Only slot zero (debris, 2x1) owns character cells; the PMG pickup owns none.
+; Its two cells index the first two bytes of ENTITY_BACKING0 (lower backing)
+; and ENTITY_BACKING2 (the published screen codes the guarded erase checks),
+; i.e. cell 1 uses the otherwise unused slot-1 byte. The A2 debris resolver
+; reads ENTITY_BACKING0,y with y = cell, so this is the resolver's contract.
 ENTITY_BACKING0:             .res ENTITY_SLOT_COUNT
 ENTITY_BACKING1:             .res ENTITY_SLOT_COUNT
 ENTITY_BACKING2:             .res ENTITY_SLOT_COUNT
@@ -855,7 +961,20 @@ ENTITY_OWNER:                .res ENTITY_SLOT_COUNT
 ENTITY_INTERACTIVE_END:
 
 .assert ENTITY_INTERACTIVE_END-ENTITY_ACTIVE_MASK = 96, error, "interactive entity state must remain 96 bytes"
-.res $20
+; Reuse the existing alignment hole for the bounded projectile publication and
+; lower-cell lookup scratch. init_entity_effects clears the complete page.
+FIGHTER_PROJECTILE_PUBLICATION_FRAME: .res 1
+FIGHTER_PROJECTILE_OWNED_COUNT:       .res 1
+LOWER_CELL_ADDR_LO:                   .res 1
+LOWER_CELL_ADDR_HI:                   .res 1
+LOWER_CELL_SAVED_DST_LO:              .res 1
+LOWER_CELL_SAVED_DST_HI:              .res 1
+LOWER_CELL_SAVED_X:                   .res 1
+LOWER_CELL_SAVED_Y:                   .res 1
+LOWER_CELL_VALUE:                     .res 1
+LOWER_CELL_OWNER_SLOT:                .res 1
+LOWER_CELL_OWNER_PART:                .res 1
+.res $15
 
 EFFECT_ACTIVE_MASK:          .res 1
 EFFECT_RENDERED_MASK:        .res 1
@@ -914,7 +1033,6 @@ boot_header:
 ; The OS enters at BOOTAD+6 after loading the consecutive boot sectors.
 boot_entry:
     jsr boot_stage2_atr_entry
-    nop                         ; preserve the reviewed $201E runtime entry
     lda #<$3B00
     sta MEMLO
     sta APPMHI
@@ -925,11 +1043,28 @@ boot_entry:
     lda #<start
     sta DOSVEC
 
-    clc
-boot_return:
-    rts
+    ; Owner decision A (2026-09-20): do not hand control back to the OS here.
+    ; Returning made the game depend on OS coldstart jumping through DOSVEC,
+    ; which it only does when no cartridge is enabled. With BASIC enabled the
+    ; OS started BASIC instead (measured: PC $A8AA at frame 223, menu never
+    ; reached), so the disk required the player to hold OPTION. Enter the game
+    ; directly; DOSVEC stays published for the warm-start path and for the
+    ; boot-smoke entry-identity invariant. The OS boot routine's return
+    ; addresses are abandoned on the stack, exactly as the XEX path already
+    ; abandons the binary loader's (boot_stage2_xex_entry).
+    jmp start
 
-; XEX builds use RUNAD=start. Disk boot reaches start through DOSVEC.
+; boot_entry is exactly 24 bytes, so `start` still begins at $201E. That address
+; is not decorative: scripts/build.mjs requires resident_runtime_suffix at
+; $21C1 = start + $01A3, which is also BOOT_STAGE2's reviewed run address. The
+; three bytes of `jmp start` replace the `nop` that used to hold the alignment
+; and the `clc`/`rts` pair that returned to the OS; `boot_return`, the init
+; vector the OS JSRs once before entering here, now shares the `rts` of
+; `disable_basic_rom` below and is still patched into the boot header from the
+; link map.
+
+; XEX builds use RUNAD=boot_stage2_xex_entry. Disk boot enters start directly
+; from boot_entry.
 start:
     sei
 
@@ -953,6 +1088,19 @@ layout_d_stage_boot_streams_complete:
     jmp boot_stage2_error
 :
     jsr unpack_resident_runtime
+    ; Roadmap 4.5M-M2: the cold records that land inside the future ENTITY
+    ; expansion (the merged low-C/GLUE record at COLD_LOW_GLUE_RECORD)
+    ; and inside the entity-state page (the ABI record at DIRECTOR_ABI_STAGING)
+    ; are consumed here, after the resident staging has been decoded and
+    ; before unpack_entity_runtime; init_entity_effects clears $8000-$80FF
+    ; much later. $7BD0-$7F0F is HYBRID_C_ARENA (4.5M-M3): its own record
+    ; landed it in place before `start`, so nothing here copies it.
+    .if DIRECTOR_ABI_BYTES > 0
+    jsr publish_director_abi
+    .else
+    jsr stage_glue_holding
+    .endif
+layout_d_cold_publish_complete:
     jsr unpack_entity_runtime
 layout_d_entity_unpack_complete:
     jsr stage_a2_kernel
@@ -1018,6 +1166,9 @@ broadside_match_source:
 broadside_unpack_done:
     rts
 
+; Two independent LZ streams expand into one continuous destination: the
+; decoder's write operand simply carries on after stream A's terminator, so the
+; runtime image is byte-identical to the single-stream build/starfield-runtime.bin.
 unpack_starfield_runtime:
     lda #<STARFIELD_STAGING
     sta broadside_read_source+1
@@ -1027,13 +1178,21 @@ unpack_starfield_runtime:
     sta broadside_destination+1
     lda #>__STARFIELD_RUN__
     sta broadside_destination+2
+    jsr broadside_unpack_command
+    lda #<STARFIELD_STAGING_B
+    sta broadside_read_source+1
+    lda #>STARFIELD_STAGING_B
+    sta broadside_read_source+2
     jmp broadside_unpack_command
 
 ; Patched by scripts/build.mjs. A2 and ENTITY_CODE are preserved before the
-; pickup stream moves to $4801 and destroys their initial-source tail. The
+; pickup stream moves to $4801 and may overwrite the one-shot capital-map
+; workspace through $4EFD; those maps are rebuilt after the loader. The
 ; pickup copy must precede resident staging at $8100, whose maximum write would
-; otherwise destroy the temporary packed source at $8C80. All three are safe
-; before the final starfield staging copy.
+; otherwise destroy the temporary packed source at $8C80. The first four
+; records run before resident/entity expansion. The two starfield records run
+; only after A2 has been published from $7F2B; the GLUE hold at $8100 has been
+; filled by publish_director_abi (4.5M-M2) before that.
 boot_stage_streams:
 a2_kernel_source:
     .word $FFFF
@@ -1060,6 +1219,11 @@ starfield_packed_source:
     .word STARFIELD_STAGING
 starfield_packed_size:
     .word $FFFF
+starfield_packed_source_b:
+    .word $FFFF
+    .word STARFIELD_STAGING_B
+starfield_packed_size_b:
+    .word $FFFF
 boot_stage_streams_end:
 
 stage_boot_streams:
@@ -1069,6 +1233,7 @@ stage_boot_streams:
     sta frontend_data_ptr+1
     lda #$05
     sta loader_dli_phase
+stage_boot_stream_record:
 @record:
     ldy #$00
     lda (frontend_data_ptr),y
@@ -1088,6 +1253,9 @@ stage_boot_streams:
     iny
     lda (frontend_data_ptr),y
     sta row_counter
+    lda loader_dli_phase
+    cmp #$01
+    beq @prepared_starfield
     jsr copy_boot_stream
     clc
     lda frontend_data_ptr
@@ -1095,34 +1263,16 @@ stage_boot_streams:
     sta frontend_data_ptr
     dec loader_dli_phase
     bne @record
+@prepared_starfield:
     rts
 
 .assert >boot_stage_streams = >(boot_stage_streams_end-1), error, "boot staging records cross a page"
 
-copy_boot_stream:
-    ldy #$00
-    lda row_counter
-    beq @tail_setup
-@page:
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    iny
-    bne @page
-    inc src_ptr+1
-    inc dst_ptr+1
-    dec row_counter
-    bne @page
-@tail_setup:
-    ldx loader_repeat_value
-    beq @done
-@tail:
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    iny
-    dex
-    bne @tail
-@done:
-    rts
+; All boot preservation copies run backwards. Most records are disjoint, but
+; packed ENTITY_CODE moves upward into a staging interval which overlaps the
+; unread tail of its source. Backward copy gives that record memmove semantics
+; without adding a gameplay-time renderer or another permanent buffer.
+copy_boot_stream = copy_boot_stream_backward
 
 stage_a2_kernel:
     ldy #$00
@@ -1131,21 +1281,7 @@ stage_a2_kernel:
     sta __A2_KERNEL_RUN__,y
     iny
     bne @copy_a2
-    jmp stage_glue_holding
-
-broadside_packed_source:
-    .word $FFFF
-
-unpack_boot_broadside_runtime:
-    lda broadside_packed_source
-    sta broadside_read_source+1
-    lda broadside_packed_source+1
-    sta broadside_read_source+2
-    lda #<__BROADSIDE_RUN__
-    sta broadside_destination+1
-    lda #>__BROADSIDE_RUN__
-    sta broadside_destination+2
-    jmp broadside_unpack_command
+    jmp stage_starfield_stream
 
 unpack_resident_runtime:
     lda #<PACKED_RESIDENT_STAGING
@@ -1173,10 +1309,44 @@ unpack_entity_runtime:
     sta broadside_destination+2
     jmp broadside_unpack_command
 
+; Deferred starfield staging (roadmap 4.5M-M1). The table-driven boot copier
+; is stage-2 overlay code at $21C1 that the resident suffix replaces at
+; unpack_resident_runtime, so the two deferred records use the resident 960-byte
+; pause-screen copy instead: one exact-window copy per stream, no spill. Stream
+; A copies from the record that stage_boot_streams prepared in src_ptr/dst_ptr
+; (its source and $7810 destination); stream B reloads its patched source from
+; the table and lands at $81FA behind the GLUE hold. Reached through
+; stage_a2_kernel after A2 has been published (the GLUE hold was filled by
+; publish_director_abi before ENTITY expansion, 4.5M-M2); this routine replaced
+; the retired pre-DFMC boot BROADSIDE unpack, so the fixed bootstrap prefix
+; keeps its size.
+stage_starfield_stream:
+    jsr copy_pause_screen
+    lda starfield_packed_source_b
+    sta src_ptr
+    lda starfield_packed_source_b+1
+    sta src_ptr+1
+    lda #<STARFIELD_STAGING_B
+    sta dst_ptr
+    lda #>STARFIELD_STAGING_B
+    sta dst_ptr+1
+    jmp copy_pause_screen
+
 .assert __A2_KERNEL_SIZE__ > 0, error, "A2 kernel must not be empty"
 .assert __A2_KERNEL_SIZE__ < $0100, error, "A2 kernel copy loop is limited to 255 bytes"
 .assert __ENTITY_CODE_SIZE__ > 0, error, "ENTITY_CODE must not be empty"
 .assert __ENTITY_CODE_SIZE__ <= ENTITY_CODE_RESERVED_BYTES, error, "ENTITY_CODE exceeds $9100-$9FFF"
+
+; ENTITY_CODE_RESERVED_BYTES describes the $9000-$9FFF ENTITY_CODE_RAM area, not
+; the first real neighbour above it: the encounter-director link places the
+; DIRECTOR_C_PRE record at $9D5E, so $9D5E-$9FFF is phantom headroom that the
+; ca65 asserts above cannot see. The link-time guard below is the one that
+; actually fires before ENTITY_CODE overwrites somebody else's memory.
+; PICKUP_CODE_RAM ends at $8B67 (fill tail); DIRECTOR_C_LOW starts at $8B88.
+; __*_RAM_LAST__ is the address after the last byte used in the memory area.
+.import __ENTITY_CODE_RAM_LAST__, __PICKUP_CODE_RAM_LAST__
+.assert __ENTITY_CODE_RAM_LAST__ <= $9D5E, lderror, "ENTITY_CODE reaches the DIRECTOR_C_PRE record at $9D5E"
+.assert __PICKUP_CODE_RAM_LAST__ <= $8B67, lderror, "PICKUP_CODE reaches the end of its $8776-$8B66 window"
 
 broadside_read_source:
 @source:
@@ -1205,18 +1375,96 @@ broadside_destination:
 boot_chunk_ready:
     .byte $00
 
+; Roadmap 4.5M-M3 left 14 B of zero padding here (the retired
+; hybrid_c_heavy_publish copy; the Heavy window became part of the
+; direct-landing HYBRID_C_ARENA) so that hostile_weapon_step_masks and every
+; later address keep theirs. Owner decision A (2026-09-20) spends it, exactly:
+; the routine below is 14 B including the rts, so in the shipping configuration
+; every later address is unchanged and the compressed boot payload does not
+; grow. The padding only existed when DIRECTOR_ABI_BYTES > 0; the routine is
+; unconditional, so a DIRECTOR_ABI_BYTES = 0 link would grow the fixed
+; bootstrap prefix by 14 B and say so at assembly time.
+disable_basic_rom:
+    ; Read-modify-write, so bit 0 (OS ROM enable) and bit 7 (self-test disable)
+    ; are preserved, as are the 130XE bank-select bits a stock 65XE leaves set;
+    ; only bit 1 is forced to 1, which unmaps the BASIC ROM from $A000-$BFFF.
+    lda PORTB
+    ora #$02
+    sta PORTB
+    ; BASICF is the flag the OS warm start re-reads to decide PORTB bit 1.
+    ; Non-zero means disabled, so RESET does not map the ROM back in.
+    lda #$01
+    sta BASICF
+; The OS boot init vector (boot header word at $2004) shares this rts. The OS
+; JSRs it once, before it enters boot_entry at $2006, and the game has nothing
+; to do there; sharing the byte costs the fixed bootstrap prefix nothing, and
+; boot_entry has no spare byte left - its 24 bytes are what keeps start at
+; $201E, which scripts/build.mjs requires (resident_runtime_suffix = $21C1).
+boot_return:
+    rts
+
+; Indexed by weapon_class-1 (roadmap 4.5b): the frame_counter mask that must be
+; zero for a hostile shot of that class to step this frame (0 = every frame,
+; 1 = every second frame). Like the HUD tables it sits in the raw prefix
+; padding, so the compressed boot payload and its ATR decode time do not grow.
+hostile_weapon_step_masks:
+    EMIT_HOSTILE_WEAPON_STEP_MASKS
+
 .assert *-start <= $01A3, error, "resident bootstrap prefix exceeds its fixed boundary"
 .res $01A3-(*-start)
 resident_runtime_suffix:
 stage_glue_holding:
-    ldy #(LAYOUT_D_GLUE_BYTES-1)
+    ; 250 backward indices are equivalent to 250 forward indices offset by
+    ; six. Since 4.5M-M2 the GLUE image travels in the merged low-C/GLUE cold
+    ; record (LAYOUT_D_GLUE_STAGING) and is held at $8100 as soon as
+    ; unpack_resident_runtime has consumed the resident staging: reached from
+    ; publish_director_abi, before ENTITY expands over the record.
+    ldy #$06
 @hold_glue:
-    lda LAYOUT_D_GLUE_STAGING,y
-    sta LAYOUT_D_GLUE_HOLDING,y
-    dey
-    cpy #$FF
+    lda LAYOUT_D_GLUE_STAGING-$06,y
+    sta LAYOUT_D_GLUE_HOLDING-$06,y
+    iny
     bne @hold_glue
     rts
+    .if DIRECTOR_ABI_BYTES > 0
+    ; 4.5M-M3: the retired Heavy publish tail-jump (3 B) leaves 2 B of padding
+    ; so that the resident suffix keeps every later address.
+    .res 2
+    .endif
+
+.if DIRECTOR_ABI_BYTES > 0
+; The hybrid ABI cold record lands in the entity-state page directly after A2
+; staging (DIRECTOR_ABI_STAGING, 4.5M-M2). Its final $8701 range lies inside
+; the resident staging interval that unpack_resident_runtime has just consumed,
+; and init_entity_effects clears $8000-$80FF later, so publish it here: after
+; the resident unpack and before unpack_entity_runtime, whose expansion covers
+; the merged low-C/GLUE record consumed by the calls below.
+publish_director_abi:
+    ldy #DIRECTOR_ABI_BYTES-1
+@copy:
+    lda DIRECTOR_ABI_STAGING,y
+    sta DIRECTOR_ABI_RUNTIME,y
+    dey
+    bpl @copy
+    ; The copied veneer owns the bounded low-C publisher (the head of the
+    ; merged record at COLD_LOW_GLUE_RECORD). The lifecycle and archetype
+    ; extension is held as a packed stream in the pause-backup range; expand
+    ; it now, then hold GLUE from the merged record (stage_glue_holding)
+    ; before ENTITY expands over it.
+    jsr DIRECTOR_PUBLISH_LOW
+    lda #<HYBRID_C_EXT_STAGING
+    sta broadside_read_source+1
+    lda #>HYBRID_C_EXT_STAGING
+    sta broadside_read_source+2
+    lda #<HYBRID_C_EXT_RUNTIME
+    sta broadside_destination+1
+    lda #>HYBRID_C_EXT_RUNTIME
+    sta broadside_destination+2
+    jsr broadside_unpack_command
+    jmp stage_glue_holding      ; GLUE hold
+    .assert HYBRID_C_EXT_BYTES > 0, error, "hybrid lifecycle extension must not be empty"
+    .assert HYBRID_C_EXT_BYTES <= $383, error, "hybrid lifecycle extension exceeds $8C7D-$8FFF"
+.endif
 
 frontend_loop:
     jsr wait_frame
@@ -1682,6 +1930,9 @@ render_frontend_state:
     jmp update_frontend_marker
 @done:
     rts
+
+.segment "ENTITY_RUN_PAD"
+    .res 1
 
 .segment "ENTITY_CODE"
 
@@ -2205,7 +2456,6 @@ start_gameplay:
     jsr unpack_capital_hull_maps
     jsr init_broadside
     jsr init_screen
-    jsr init_far_star_population
     lda player_x
     sta HPOSP0
     sta HPOSP3
@@ -2239,8 +2489,9 @@ start_gameplay:
     sta COLPF3
     lda #$00
     sta COLBK
-    lda #ENEMY_RUNTIME_BODY_COLOR ; new game cannot inherit an interrupted explosion colour
+    lda #ENEMY_RUNTIME_BODY_COLOR ; both prototype Raiders use one solid faction colour
     sta COLPM1
+    sta COLPM2
 
     lda sound_enabled
     beq @display
@@ -2264,7 +2515,8 @@ start_gameplay_end:
 .segment "BROADSIDE"
 
 main_loop:
-    jsr wait_gameplay_frame
+    jsr wait_for_master_pal_frame
+    jsr begin_fighter_projectile_frame
     lda #CONSOL_OPTION_MASK
     bit CONSOL
     beq main_loop_option_pressed
@@ -2272,13 +2524,13 @@ main_loop:
     sta pause_option_latched
 main_loop_frame_active = *
     inc frame_counter
-    jsr entity_effects_erase
-profile_after_entity_erase = *
-    jsr erase_fighter_projectile_overlays
+    ; Publication owns the old visual erase in fighter OPEN. Keep this operand-
+    ; sized read so the frozen main-loop profiling entry points do not move.
+    bit FIGHTER_PROJECTILE_ACTIVE
 profile_after_projectile_erase = *
-    nop
-    nop
-    nop                         ; capsule draws only at the late entity fence
+    jsr entity_effects_erase_with_white_starfield
+profile_after_entity_erase = *
+    jsr integration_active_gameplay_tick
 profile_after_capsule = *
     jsr tick_shared_fighter_explosions
     jsr tick_capital_explosions
@@ -2311,25 +2563,23 @@ profile_after_player_fighter_weapon = *
     jsr integration_update_enemy_weapon
 profile_after_interceptor_weapon = *
     jsr update_starfield
-    jsr tick_star_twinkle
-    jsr render_far_star_overlays_if_needed
 profile_after_world = *
     jsr handle_player_hull_contact
 profile_after_hull_contact = *
-    jsr entity_effects_update
+    jsr entity_effects_update_with_light
 profile_after_entity_update = *
-    jsr render_launch_flashes
+    jsr render_launch_flashes_with_capital_debris
     jsr render_capital_explosions
     jsr render_shared_fighter_explosions
 profile_after_effect_visuals = *
     jsr render_capital_shell_overlays
 profile_after_broadside_render = *
-    jsr render_fighter_projectile_overlays
-profile_after_projectile_render = *
     jsr entity_effects_render
 profile_after_entity_render = *
     jsr integration_update_sector_completion
 profile_after_sector = *
+    jsr publish_fighter_projectile_overlays
+profile_after_projectile_render = *
     jsr update_sound
     lda MUSIC_ACTIVE
     beq :+
@@ -2343,13 +2593,13 @@ profile_after_audio = *
 main_loop_option_pressed = *
     lda pause_option_latched
     beq :+
-    jmp main_loop                ; debounce: no simulation until OPTION release
+    jmp fighter_projectile_option_debounce_wait
 :
     inc pause_option_latched
     jmp enter_pause
 
-main_loop_option_poll = main_loop+3
-main_loop_active = main_loop+14
+main_loop_option_poll = main_loop+6
+main_loop_active = main_loop+17
 .export frontend_input_poll, main_loop_option_poll, main_loop_active
 .export profile_after_entity_erase, profile_after_projectile_erase
 .export profile_after_capsule, profile_after_frame_visuals, profile_after_player
@@ -2564,10 +2814,6 @@ resume_gameplay_audio:
 
     lda fire_timer
     beq @hit
-    sta loader_repeat_value
-    lda #$39                    ; $32 + (7 - remaining shot frames)
-    sec
-    sbc loader_repeat_value
     sta AUDF1
     lda #$A8
     sta AUDC1
@@ -2604,6 +2850,7 @@ resume_gameplay_audio:
 @restore_music:
     jsr music_restore_gameplay_channels
 @done:
+resume_gameplay_audio_done:
     rts
 
 music_stop_gameplay:
@@ -2646,11 +2893,6 @@ quit_gameplay_to_menu:
     sta HULL_SCROLL_ACCUMULATOR,x
     dex
     bpl @clear_gameplay
-    ldx #(STAR_FAR_STATE_END-STAR_FAR_ACTIVE)-1
-@clear_far_stars:
-    sta STAR_FAR_ACTIVE,x
-    dex
-    bpl @clear_far_stars
     ldx #(STARFIELD_STATE_END-STAR_RNG_STATE)-1
 @clear_starfield:
     sta STAR_RNG_STATE,x
@@ -2715,27 +2957,11 @@ copy_pause_screen:
 ; -----------------------------------------------------------------------------
 ; Frame and initialization
 
-; A pending or visible capsule starts its one update immediately after ANTIC
-; has scanned the preceding footprint's bottom edge. This preserves the old
-; backed footprint for the complete current raster, then leaves almost one PAL
-; frame for erase/update/ring rotation and the sole late redraw before ANTIC
-; reaches the new position. The moving wait phase still admits exactly one
-; simulation update per host frame and changes neither scroll nor pickup rate.
+; Capital traversal retains the reviewed Stage 2A start-of-frame cadence.
+; Fighter OPEN bypasses this wait and publishes character projectiles in the
+; single fixed post-playfield window below. Pickup state and Y are deliberately
+; absent from both synchronization paths.
 wait_gameplay_frame:
-    lda ENTITY_STATE+WEAPON_PICKUP_SLOT
-    beq wait_frame
-    cmp #WEAPON_PICKUP_STATE_ACTIVE
-    beq @visible
-    ldx #$50                    ; hidden PENDING keeps the transition within one PAL frame
-    bne wait_frame_at_line
-@visible:
-    lda ENTITY_Y+WEAPON_PICKUP_SLOT
-    clc
-    adc #WEAPON_PICKUP_HEIGHT_SCANLINES
-    lsr                         ; VCOUNT advances once per two PAL scanlines
-    tax
-    bne wait_frame_at_line
-
 wait_frame:
     ldx #$70
 wait_frame_at_line:
@@ -2747,6 +2973,46 @@ wait_frame_at_line:
     beq @leave_line
     rts
 
+; VCOUNT $77 covers PAL scanlines 238-239, the final ANTIC 4 row of the
+; gameplay ring. The wait exits on scanline 240. The ownership hooks are not
+; part of this fit proof; this is the already measured publication scaffold.
+publish_fighter_projectile_overlays:
+    lda FIGHTER_PROJECTILE_PUBLICATION_FRAME
+    beq @fighter_window
+    ; Capital starts its frame at $70, but sparse white publication still runs
+    ; here after active work, beyond the gameplay playfield. Commit OLD/phase
+    ; before the shared render path; omitting this pair would clone every prior
+    ; white point into the scrolling ring.
+    jsr erase_dynamic_near_star_overlays
+    jsr publish_dynamic_near_star_phase
+    jmp fighter_projectile_publication_capital_render
+@fighter_window:
+    ldx #$77
+    jsr wait_frame_at_line
+fighter_projectile_publication_begin = *
+    ; The previous sparse near image has now survived one complete ANTIC pass.
+    ; Retire it inside the same safe post-playfield window as character shots.
+    jsr erase_dynamic_near_star_overlays
+    jsr publish_dynamic_near_star_phase
+    ; Light Wingman: PairShot erase, then the Light unwinds and republishes
+    ; inside this post-playfield window, below the PairShots rendered next.
+    jsr erase_fighter_projectile_overlays_with_light
+    ; The fighter pickup shares this window: its missile rows are republished
+    ; after the playfield has been scanned, never mid-frame.
+    jsr publish_fighter_pickup_pmg
+fighter_projectile_publication_capital_render:
+    jsr render_fighter_projectile_overlays
+    ; Sparse near is logically below every character gameplay layer. Publishing
+    ; it last is safe because it writes CH_SPACE cells only, so existing
+    ; projectile/effect/debris foreground always wins without backing hooks.
+    jmp render_dynamic_near_star_overlays
+.export fighter_projectile_publication_begin
+
+fighter_projectile_option_debounce_wait:
+    ldx #$77
+    jsr wait_frame_at_line
+    jmp main_loop
+
 ; Returns just after VCOUNT leaves zero, before the visible display begins.
 wait_frame_start:
 @wait_for_zero:
@@ -2756,6 +3022,7 @@ wait_frame_start:
     lda VCOUNT
     beq @leave_zero
     rts
+
 
 ; The loader uses ANTIC F for lines 0-163 and ANTIC E for the studio footer.
 ; PMG remains disabled. Two DLIs switch colours at exact scanline boundaries.
@@ -2798,10 +3065,10 @@ show_loader:
     rts
 
 set_loader_title_palette:
-    lda #LOADER_TITLE_COLPF1
-    sta COLPF1
     lda #LOADER_TITLE_COLPF2
     sta COLPF2
+    lda #LOADER_TITLE_COLPF1
+    sta COLPF1
     lda #LOADER_TITLE_COLBK
     sta COLBK
     rts
@@ -2865,27 +3132,19 @@ init_state:
 
     lda #ENEMY_SPAWN_X
     sta enemy_x
-    lda #ENEMY_RELEASE_ARCHETYPE
-    sta ENEMY_ARCHETYPE
-    ldx #ENEMY_RELEASE_ARCHETYPE
     lda #(GAMEPLAY_TOP-ENEMY_RELEASE_FRAME_HEIGHT) ; progressive entry below HUD
     sta enemy_y
-    lda #ENEMY_INACTIVE
-    sta ENEMY_ACTIVE
-    lda enemy_hit_points,x
-    sta ENEMY_HP
 
     lda #$00
     sta enemy_velocity_x
     sta INTERCEPTOR_MOVE_ACCUMULATOR
     lda #$A7
     sta rng_state
-    lda #STAR_GENERATION_SEED
-    sta STAR_RNG_STATE
-
     lda #$00
     sta scanner_phase
     sta frame_counter
+    sta ACTIVE_GAMEPLAY_FRAME_LO
+    sta ACTIVE_GAMEPLAY_FRAME_HI
     sta fire_timer
     sta hit_timer
     sta damage_timer
@@ -3165,6 +3424,9 @@ gameplay_dli:
     ; restarting the HUD instruction and creating an odd third DLI.
     lda gameplay_dli_phase
     bne gameplay_dli_sync_hud
+    ; Hardware PAL-frame source. The final-row DLI takes the branch above, so
+    ; the display list produces exactly one token despite having two DLIs.
+    inc PHYSICAL_PAL_FRAME_ID
     lda PLAYFIELD_ACTIVE_DLIST_LO
     clc
     adc #$03
@@ -3289,7 +3551,7 @@ init_screen:
 @corridor_rows:
     lda BROAD_WORK_COUNT
     jsr set_gameplay_row_ptr
-    jsr generate_starfield_row  ; initial near background uses its independent seed
+    jsr generate_starfield_row  ; blank base; white stars publish separately
     ldx BROAD_WORK_COUNT
     ldy #CORRIDOR_CENTRAL_FIRST
     lda (dst_ptr),y
@@ -3303,7 +3565,9 @@ init_screen:
     lda BROAD_WORK_COUNT
     cmp #GAMEPLAY_SCREEN_ROWS
     bne @corridor_rows
-    rts
+    lda #$FF                    ; invalidate any cold prepared hull row
+    sta PREPARED_HULL_SECTOR
+    jmp render_dynamic_near_star_overlays
 
 ; -----------------------------------------------------------------------------
 ; Player and input
@@ -3387,8 +3651,12 @@ read_input:
     lda PLAYER_LIFECYCLE
     cmp #PLAYER_RESPAWN_INVULNERABLE
     bne @position
-    ; Blink visibility still changes on stationary/horizontal invulnerable
-    ; frames, so only that lifecycle retains the old bounded PMG refresh.
+    ; Horizontal/stationary motion does not move PMG bytes. Refresh them only
+    ; on the exact eight-frame blink boundary instead of erasing and redrawing
+    ; the same image on the seven intervening frames.
+    lda RESPAWN_BLINK_FRAME
+    and #(RESPAWN_BLINK_HALF_PERIOD_FRAMES-1)
+    bne @position
     jsr erase_player
     jsr draw_player_for_lifecycle
 @position:
@@ -3471,11 +3739,9 @@ tick_shared_fighter_explosions:
     beq @next
     cmp #$01
     bne @tick
-    jsr erase_shared_fighter_explosion_slot
     cpx #FIGHTER_EXPLOSION_ENEMY_SLOT
-    bne @tick
-    lda #ENEMY_RUNTIME_BODY_COLOR
-    sta COLPM1                 ; restore the Interceptor body as its explosion expires
+    beq @tick                  ; Raider breakup is playfield-only; never clear P1/P2
+    jsr erase_shared_fighter_explosion_slot
 @tick:
     dec FIGHTER_EXPLOSION_TIMER,x
 @next:
@@ -3489,13 +3755,13 @@ update_bullet = update_fighter_projectiles
 erase_bullet:
     jmp clear_player_fighter_projectiles
 
-; Nineteen fixed playfield slots provide independent launch positions without
-; consuming M0 or the three capital-warning missiles. Shared precomputed phase
-; glyphs avoid rewriting 16 charset bytes for every active shot every frame;
-; each slot retains exact screen backing and a bounded swept-collision lifecycle.
+; Ten fixed PairShot slots provide five PlayerFighter and five fighter-enemy
+; launch positions without consuming M0 or the three capital-warning missiles.
+; Each logical object owns one screen cell and one exact backing byte while its
+; glyph depicts two visible impulses. Collision remains one bounded swept event.
 init_fighter_projectiles:
     ; All ten slot arrays, both burst controllers and both explosion records
-    ; are one contiguous 202-byte owned block. A single cold/reset loop is
+    ; are one contiguous 112-byte owned block. A single cold/reset loop is
     ; byte-exact with the former field-by-field loops and saves resident code;
     ; its extra setup cycles never execute in the visible-frame hot path.
     lda #$00
@@ -3514,7 +3780,7 @@ init_fighter_projectiles:
     sta CHARSET+PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE*8,x
     dex
     bpl @player_fighter_glyph_head
-    jsr build_interceptor_projectile_glyphs
+    jsr HYBRID_BUILD_HOSTILE_GLYPHS ; init-only, in HYBRID_C_ARENA (roadmap 4.5d)
     jmp build_star_glyphs
 
 clear_fighter_projectiles:
@@ -3557,46 +3823,32 @@ clear_interceptor_projectiles:
     rts
 
 erase_fighter_projectile_overlays:
-    lda #(9-INTERCEPTOR_PROJECTILE_HEIGHT)
-    sta loader_repeat_value
     ldx #(FIGHTER_PROJECTILE_SLOT_COUNT-1)
 erase_fighter_projectile_slot = *
-@slot:
+erase_fighter_projectile_slot_loop:
     lda FIGHTER_PROJECTILE_RENDERED,x
-    beq @next
+    beq erase_fighter_projectile_next
     lda FIGHTER_PROJECTILE_SCREEN_LO,x
     sta dst_ptr
     lda FIGHTER_PROJECTILE_SCREEN_HI,x
     sta dst_ptr+1
     ldy #$00
     lda FIGHTER_PROJECTILE_BACKUP_TOP,x
+erase_fighter_projectile_restore = *
     sta (dst_ptr),y
-    lda FIGHTER_PROJECTILE_Y,x
-    and #$07
-    cmp loader_repeat_value
-    bcc @restored
-    lda FIGHTER_PROJECTILE_RENDERED,x
-    cmp #$FF                    ; hull/composite boundary used one physical row
-    beq @restored
-    jsr advance_dst_to_next_physical_row
-    ldy #$00
-    lda FIGHTER_PROJECTILE_BACKUP_BOTTOM,x
-    sta (dst_ptr),y
-@restored:
     lda #$00
     sta FIGHTER_PROJECTILE_RENDERED,x
-@next:
+erase_fighter_projectile_next:
     dex
-    bmi @done
-    cpx #(INTERCEPTOR_PROJECTILE_SLOT_BASE-1)
-    bne @slot
-    lda #(9-PLAYER_FIGHTER_PROJECTILE_HEIGHT)
-    sta loader_repeat_value
-    bne @slot
-@done:
+    bmi erase_fighter_projectile_done
+    jmp erase_fighter_projectile_slot_loop
+erase_fighter_projectile_done:
+    lda #$00
+    sta FIGHTER_PROJECTILE_OWNED_COUNT
     rts
 
 .export erase_fighter_projectile_slot
+.export erase_fighter_projectile_restore
 
 update_fighter_projectiles:
     ldx #$00
@@ -3635,7 +3887,7 @@ update_fighter_projectiles:
     adc #PLAYER_FIGHTER_SPREAD_LATERAL_STEP
     sta FIGHTER_PROJECTILE_X,x
 @player_fighter_target:
-    jsr entity_player_fighter_projectile_target
+    jsr entity_player_fighter_projectile_target_with_light
     bcc @player_fighter_next
     lda #$01
     ldy #DAMAGE_PLAYER_PROJECTILE
@@ -3653,26 +3905,31 @@ profile_interceptor_projectile_update_begin = *
 @interceptor_slot:
     lda FIGHTER_PROJECTILE_ACTIVE,x
     beq @interceptor_next
+    ; Per-weapon_class movement rate: a class steps once every period frames
+    ; (mask = period-1). A skipped frame leaves Y, PREV_Y and LIFETIME as they
+    ; are and runs no collision sweep; the next step's sweep still starts at
+    ; the resting Y, so the swept span stays contiguous.
+    lsr
+    lsr
+    lsr
+    tay                         ; ACTIVE >> 3 = weapon_class (1..N)
+    lda frame_counter
+    and hostile_weapon_step_masks-1,y
+    bne @interceptor_next
     dec FIGHTER_PROJECTILE_LIFETIME,x
     beq @interceptor_free
     lda FIGHTER_PROJECTILE_Y,x
     sta FIGHTER_PROJECTILE_PREV_Y,x
-    clc
-    adc #INTERCEPTOR_PROJECTILE_SPEED
+    cmp #(GAMEPLAY_BOTTOM+1-INTERCEPTOR_PROJECTILE_SPEED-INTERCEPTOR_PROJECTILE_HEIGHT)
+    bcs @interceptor_free       ; the step would reach past the viewport
+    adc #INTERCEPTOR_PROJECTILE_SPEED ; C clear
     sta FIGHTER_PROJECTILE_Y,x
-    clc
-    adc #INTERCEPTOR_PROJECTILE_HEIGHT
-    cmp #(GAMEPLAY_BOTTOM+1)
-    bcs @interceptor_free
     jsr interceptor_projectile_hits_player
     bcc @interceptor_next
-    lda #FIGHTER_PROJECTILE_FREE
-    sta FIGHTER_PROJECTILE_ACTIVE,x
     lda #ENEMY_PULSE_DAMAGE_UNITS
     stx BROAD_WORK_SLOT
-    jsr apply_player_damage
+    jsr apply_player_damage     ; a lethal hit clears every hostile slot itself
     ldx BROAD_WORK_SLOT
-    jmp @interceptor_next
 @interceptor_free:
     lda #FIGHTER_PROJECTILE_FREE
     sta FIGHTER_PROJECTILE_ACTIVE,x
@@ -3681,48 +3938,73 @@ profile_interceptor_projectile_update_begin = *
     cpx #FIGHTER_PROJECTILE_SLOT_COUNT
     bne @interceptor_slot
     rts
+    ; The class step gate (+11 B) is paid for by the shorter bottom test and
+    ; the hit path falling into @interceptor_free (-12 B). This never-executed
+    ; byte keeps every later resident CODE address where it was.
+    .res 1
 
 .export profile_interceptor_projectile_update_begin
 
 player_fighter_projectile_hits_enemy:
     lda ENEMY_ACTIVE
     cmp #ENEMY_ACTIVE_STATE
-    bne @miss
+    bne @early_miss
+    stx BROAD_WORK_SLOT
+    ldx #$00
+@member:
+    lda ENEMY_MEMBER_STATE,x
+    cmp #ENEMY_ACTIVE_STATE
+    bne @next
+    stx ENEMY_TARGET_SLOT
+    jsr enemy_member_screen_y
+    bcc @next
+    sta ENEMY_TARGET_Y
+    ldx BROAD_WORK_SLOT
     ldy ENEMY_ARCHETYPE
-    lda FIGHTER_PROJECTILE_X,x
-    sec
-    sbc enemy_x
-    cmp enemy_visible_widths,y
-    bcs @miss
     lda FIGHTER_PROJECTILE_Y,x
     sec
-    sbc enemy_y
+    sbc ENEMY_TARGET_Y
     cmp enemy_frame_heights,y
-    bcc @hit
+    bcc @vertical_overlap
     cmp #(256-(PLAYER_FIGHTER_PROJECTILE_SPEED+PLAYER_FIGHTER_PROJECTILE_HEIGHT-1))
-    bcc @miss
-@hit:
+    bcc @member_miss
+@vertical_overlap:
+    lda FIGHTER_PROJECTILE_X,x
+    ldy ENEMY_TARGET_SLOT
+    sec
+    sbc ENEMY_X,y
+    ldy ENEMY_ARCHETYPE
+    cmp enemy_visible_widths,y
+    bcs @member_miss
     sec
     rts
+@member_miss:
+    ldx ENEMY_TARGET_SLOT
+@next:
+    inx
+    cpx #RAIDER_PMG_SLOT_COUNT
+    bne @member
 @miss:
+    ldx BROAD_WORK_SLOT
+@early_miss:
     clc
     rts
 
 interceptor_projectile_hits_player:
-    lda FIGHTER_PROJECTILE_X,x
-    sec
-    sbc player_x
-    cmp #PLAYER_COLLISION_WIDTH
-    bcc @horizontal_overlap
-    cmp #(256-(INTERCEPTOR_PROJECTILE_WIDTH_HPOS-1))
-    bcc @miss
-@horizontal_overlap:
     lda FIGHTER_PROJECTILE_PREV_Y,x
     sec
     sbc player_y
     cmp #(PLAYER_COLLISION_LAST_ROW+1)
-    bcc @hit
+    bcc @vertical_overlap
     cmp #(256-(INTERCEPTOR_PROJECTILE_SPEED+INTERCEPTOR_PROJECTILE_HEIGHT-1))
+    bcc @miss
+@vertical_overlap:
+    lda FIGHTER_PROJECTILE_X,x
+    sec
+    sbc player_x
+    cmp #PLAYER_COLLISION_WIDTH
+    bcc @hit
+    cmp #(256-(INTERCEPTOR_PROJECTILE_WIDTH_HPOS-1))
     bcc @miss
 @hit:
     sec
@@ -3734,63 +4016,67 @@ interceptor_projectile_hits_player:
 update_player_fighter_weapon:
     lda PLAYER_LIFECYCLE
     cmp #PLAYER_DYING
-    beq @released
+    beq update_player_fighter_weapon_released
     cmp #PLAYER_GAME_OVER
-    beq @released
+    beq update_player_fighter_weapon_released
     lda gameplay_fire_gate
-    beq @released
+    beq update_player_fighter_weapon_released
     lda TRIG0
-    bne @released
+    bne update_player_fighter_weapon_released
+update_player_fighter_weapon_controller:
     lda PLAYER_FIGHTER_BURST_STATE
     cmp #WEAPON_BURST_FIRING
-    beq @firing
+    beq update_player_fighter_weapon_firing
     cmp #WEAPON_BURST_POST
-    beq @post
-@begin:
+    beq update_player_fighter_weapon_post
+update_player_fighter_weapon_begin:
     lda #WEAPON_BURST_FIRING
     sta PLAYER_FIGHTER_BURST_STATE
-    lda ENTITY_STATE+WEAPON_BOOSTER_SLOT
-    and #(PLAYER_FIGHTER_RAPID_FIRE_BURST_COUNT-PLAYER_FIGHTER_NORMAL_BURST_COUNT)
-    ora #PLAYER_FIGHTER_NORMAL_BURST_COUNT
+    ldy ENTITY_STATE+WEAPON_BOOSTER_SLOT
+    lda player_fighter_pairshot_burst_counts,y
     sta PLAYER_FIGHTER_BURST_REMAINING
     lda #$00
     sta PLAYER_FIGHTER_BURST_TIMER
-@firing:
+update_player_fighter_weapon_firing:
     lda PLAYER_FIGHTER_BURST_TIMER
-    beq @emit
+    beq update_player_fighter_weapon_emit
     dec PLAYER_FIGHTER_BURST_TIMER
-    bne @done
-@emit:
+    bne update_player_fighter_weapon_done
+update_player_fighter_weapon_emit:
     jsr allocate_player_fighter_projectile
-    bcc @done                   ; rejected allocation is retried, not counted
+    bcc update_player_fighter_weapon_done ; rejected allocation is retried, not counted
     dec PLAYER_FIGHTER_BURST_REMAINING
-    beq @finish
+    beq update_player_fighter_weapon_finish
     ldy ENTITY_STATE+WEAPON_BOOSTER_SLOT
     lda player_fighter_fire_intervals,y
     sta PLAYER_FIGHTER_BURST_TIMER
     rts
-@finish:
+update_player_fighter_weapon_finish:
     lda #WEAPON_BURST_POST
     sta PLAYER_FIGHTER_BURST_STATE
     lda #PLAYER_FIGHTER_POST_BURST_PAUSE
     sta PLAYER_FIGHTER_BURST_TIMER
     rts
-@post:
+update_player_fighter_weapon_post:
     dec PLAYER_FIGHTER_BURST_TIMER
-    bne @done
-    jmp @begin
-@released:
+    bne update_player_fighter_weapon_done
+    jmp update_player_fighter_weapon_begin
+update_player_fighter_weapon_released:
     lda #WEAPON_BURST_WAITING
     sta PLAYER_FIGHTER_BURST_STATE
     lda #$00
     sta PLAYER_FIGHTER_BURST_REMAINING
     sta PLAYER_FIGHTER_BURST_TIMER
-@done:
+update_player_fighter_weapon_done:
     rts
 
 player_fighter_fire_intervals:
     .byte PLAYER_FIGHTER_BURST_INTERVAL,PLAYER_FIGHTER_BURST_INTERVAL,PLAYER_FIGHTER_BURST_INTERVAL
     .byte PLAYER_FIGHTER_RAPID_FIRE_INTERVAL,PLAYER_FIGHTER_SPREAD_COOLDOWN,PLAYER_FIGHTER_BURST_INTERVAL
+player_fighter_pairshot_burst_counts:
+    .byte PLAYER_FIGHTER_NORMAL_BURST_COUNT,PLAYER_FIGHTER_NORMAL_BURST_COUNT
+    .byte PLAYER_FIGHTER_NORMAL_BURST_COUNT,PLAYER_FIGHTER_RAPID_FIRE_BURST_COUNT
+    .byte PLAYER_FIGHTER_SPREAD_BURST_COUNT,PLAYER_FIGHTER_NORMAL_BURST_COUNT
 
 allocate_player_fighter_projectile:
     ldy ENTITY_STATE+WEAPON_BOOSTER_SLOT
@@ -3806,73 +4092,71 @@ allocate_player_fighter_projectile:
     jmp play_player_fighter_projectile_sound
 
 .segment "CODE"
+; The burst opens with a simultaneous left/centre/right volley so the fan is
+; readable in one glance, then fires a single centre follow-up one interval
+; later. Sequencing the three directions one per interval - the previous
+; behaviour - meant a side shot was never on screen with the centre, so the
+; weapon read as a slower plain shot. Two fire events still spend exactly four
+; logical PairShots and eight visible pulses, and the volley leaves one pool
+; slot free for the follow-up.
 allocate_player_fighter_spread_projectiles:
-    ldy #$00
-    ldx #$00
-@find:
-    lda FIGHTER_PROJECTILE_ACTIVE,x
-    bne @next
-    txa
-    sta ENTITY_SCRATCH0,y
-    iny
-    cpy #PLAYER_FIGHTER_SPREAD_PROJECTILE_COUNT
-    beq @allocate_full
-@next:
-    inx
-    cpx #PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT
-    bne @find
-    cpy #$00
-    beq allocate_player_fighter_projectile_rejected
-    ; Transitional saturation always admits the centre. Two remaining slots
-    ; are useful only as an atomic pair, so one unpaired side slot stays free.
-    ldx ENTITY_SCRATCH0
-    lda #FIGHTER_PROJECTILE_RENDER_ID_SPREAD_CENTER
-    jsr allocate_player_fighter_projectile_at_slot
-    jmp play_player_fighter_projectile_sound
-@allocate_full:
-    ldx ENTITY_SCRATCH0
-    lda #FIGHTER_PROJECTILE_RENDER_ID_SPREAD_CENTER
-    jsr allocate_player_fighter_projectile_at_slot
-    ldx ENTITY_SCRATCH1
+    ldy PLAYER_FIGHTER_BURST_REMAINING
+    cpy #PLAYER_FIGHTER_SPREAD_BURST_COUNT
+    bne @follow_up
     lda #FIGHTER_PROJECTILE_RENDER_ID_SPREAD_LEFT
-    jsr allocate_player_fighter_projectile_at_slot
-    ldx ENTITY_SCRATCH2
+    jsr allocate_player_fighter_projectile_one
     lda #FIGHTER_PROJECTILE_RENDER_ID_SPREAD_RIGHT
-    jsr allocate_player_fighter_projectile_at_slot
+    jsr allocate_player_fighter_projectile_one
+@follow_up:
+    lda #FIGHTER_PROJECTILE_RENDER_ID_SPREAD_CENTER
+    jsr allocate_player_fighter_projectile_one
+    bcc allocate_player_fighter_projectile_rejected
     jmp play_player_fighter_projectile_sound
 
 allocate_player_fighter_projectile_rejected:
     clc
     rts
 
+; Last HPOS whose one-HPOS projectile still lies in ANTIC column
+; GAMEPLAY_SCREEN_COLUMNS-1. The renderer maps (X-GAMEPLAY_LEFT_HPOS)/4 to a
+; column without a bound, so X=LEFT+COLUMNS*4 would draw into column 0 of the
+; next row. The silhouette centre player_x+PLAYER_VISIBLE_WIDTH_HPOS/2 reaches
+; that value at PLAYER_X_MAX, and Spread's right offset reaches it earlier.
+PLAYER_FIGHTER_PROJECTILE_X_LIMIT = GAMEPLAY_LEFT_HPOS+GAMEPLAY_SCREEN_COLUMNS*4-PLAYER_FIGHTER_PROJECTILE_WIDTH_HPOS
+.assert PLAYER_X_MAX+PLAYER_VISIBLE_WIDTH_HPOS/2+PLAYER_FIGHTER_SPREAD_INITIAL_OFFSET < 256, error, "PlayerFighter emission X must not wrap before its playfield clamp"
+
 .segment "CODE"
 allocate_player_fighter_projectile_one:
-    sta ENTITY_SCRATCH0
-    ldx #$00
+    pha                         ; projectile kind; the stack is three bytes
+    ldx #$00                    ; smaller than ENTITY_SCRATCH0 save/restore
 @find:
     lda FIGHTER_PROJECTILE_ACTIVE,x
     beq @allocate
     inx
-    cpx #PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT
+    cpx #PLAYER_FIGHTER_PROJECTILE_ACTIVE_LIMIT
     bne @find
+    pla
     clc
     rts
 @allocate:
-    lda ENTITY_SCRATCH0
+    pla
 allocate_player_fighter_projectile_at_slot:
     sta FIGHTER_PROJECTILE_ACTIVE,x
     tay
     lda player_x
     clc
-    adc #(PLAYER_COLLISION_WIDTH/2)
+    adc #(PLAYER_VISIBLE_WIDTH_HPOS/2)
     cpy #FIGHTER_PROJECTILE_RENDER_ID_SPREAD_LEFT
     bne :+
     sbc #PLAYER_FIGHTER_SPREAD_INITIAL_OFFSET
 :
     cpy #FIGHTER_PROJECTILE_RENDER_ID_SPREAD_RIGHT
     bne :+
-    clc
-    adc #PLAYER_FIGHTER_SPREAD_INITIAL_OFFSET
+    adc #(PLAYER_FIGHTER_SPREAD_INITIAL_OFFSET-1) ; CPY equality left C=1
+:
+    cmp #(PLAYER_FIGHTER_PROJECTILE_X_LIMIT+1)
+    bcc :+
+    lda #PLAYER_FIGHTER_PROJECTILE_X_LIMIT
 :
     sta FIGHTER_PROJECTILE_X,x
     lda player_y
@@ -3893,17 +4177,16 @@ play_player_fighter_projectile_sound:
     sta AUDF1
     lda #$A8
     sta AUDC1
-    lda #$07
+    lda #$32                    ; software-owned phase; AUDF1 itself is write-only
     sta fire_timer
 @accepted:
     sec
     rts
 
+.segment "PICKUP_CODE"
 update_enemy_weapon_runtime:
-    lda CAPITAL_SECTOR_STATE
-    cmp #CAPITAL_HULL_STATE_DRAIN
-    bne @player_state
-    jmp clear_interceptor_projectiles
+    jsr ordinary_wave_capital_blocked
+    bmi @stop                    ; stop the parent weapon, not its released shots
 @player_state:
     lda PLAYER_LIFECYCLE
     cmp #PLAYER_DYING
@@ -3913,17 +4196,11 @@ update_enemy_weapon_runtime:
     lda ENEMY_ACTIVE
     cmp #ENEMY_ACTIVE_STATE
     bne @stop
-    ldx ENEMY_ARCHETYPE
-    lda enemy_weapon_profiles,x
-    cmp #ENEMY_WEAPON_SINGLE_PULSE
+    lda ENEMY_PROFILE_FIRE_POLICY_ID
+    cmp #ENEMY_FIRE_RAIDER_PAIR_BURST
     bne @stop
-    lda enemy_y
-    cmp #GAMEPLAY_TOP
+    jsr select_enemy_weapon_member
     bcc @stop
-    clc
-    adc enemy_frame_heights,x
-    cmp #(GAMEPLAY_BOTTOM+1)
-    bcs @stop
     lda INTERCEPTOR_BURST_STATE
     cmp #WEAPON_BURST_FIRING
     beq @firing
@@ -3932,7 +4209,7 @@ update_enemy_weapon_runtime:
 @begin:
     lda #WEAPON_BURST_FIRING
     sta INTERCEPTOR_BURST_STATE
-    lda #INTERCEPTOR_BURST_COUNT
+    lda ENEMY_PROFILE_BURST_COUNT
     sta INTERCEPTOR_BURST_REMAINING
     lda #$00
     sta INTERCEPTOR_BURST_TIMER
@@ -3942,18 +4219,18 @@ update_enemy_weapon_runtime:
     dec INTERCEPTOR_BURST_TIMER
     bne @done
 @emit:
+    lda ENEMY_PROFILE_WEAPON_CLASS  ; the class C selected for this formation
     jsr allocate_interceptor_projectile
     bcc @done
     dec INTERCEPTOR_BURST_REMAINING
     beq @finish
-    lda #INTERCEPTOR_BURST_INTERVAL
+    lda ENEMY_PROFILE_BURST_INTERVAL
     sta INTERCEPTOR_BURST_TIMER
     rts
 @finish:
     lda #WEAPON_BURST_POST
     sta INTERCEPTOR_BURST_STATE
-    ldx DIFFICULTY_SETTING
-    lda interceptor_post_burst_frames,x
+    lda ENEMY_PROFILE_POST_BURST_FRAMES
     sta INTERCEPTOR_BURST_TIMER
     rts
 @post:
@@ -3961,39 +4238,47 @@ update_enemy_weapon_runtime:
     bne @done
     jmp @begin
 @stop:
-    lda #WEAPON_BURST_WAITING
-    sta INTERCEPTOR_BURST_STATE
     lda #$00
-    sta INTERCEPTOR_BURST_REMAINING
     sta INTERCEPTOR_BURST_TIMER
+    sta INTERCEPTOR_BURST_STATE
+    sta INTERCEPTOR_BURST_REMAINING
 @done:
     rts
 
+; A = weapon_class chosen by C (1-7). Heavy emission is generic: ACTIVE =
+; owner bits | (weapon_class << 3), whatever class the caller passes.
 allocate_interceptor_projectile:
+    asl
+    asl
+    asl
+    ora #FIGHTER_PROJECTILE_INTERCEPTOR ; (weapon_class << 3) | FIGHTER_PROJECTILE_INTERCEPTOR
+    pha
     ldx #INTERCEPTOR_PROJECTILE_SLOT_BASE
 @find:
     lda FIGHTER_PROJECTILE_ACTIVE,x
     beq @allocate
     inx
-    cpx #FIGHTER_PROJECTILE_SLOT_COUNT
+    cpx #(INTERCEPTOR_PROJECTILE_SLOT_BASE+INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT)
     bne @find
+    pla                         ; a full shared pool drops the shot
     clc
     rts
 @allocate:
-    lda #FIGHTER_PROJECTILE_INTERCEPTOR
-    sta FIGHTER_PROJECTILE_ACTIVE,x
     stx BROAD_WORK_SLOT
     ldy ENEMY_ARCHETYPE
     lda enemy_visible_widths,y
     lsr
     clc
-    adc enemy_x
+    ldx ENEMY_TARGET_SLOT
+    adc ENEMY_X,x
     sec
     sbc #(INTERCEPTOR_PROJECTILE_WIDTH_HPOS/2)
     and #$FE                    ; two-pixel red core stays inside one ANTIC cell
     ldx BROAD_WORK_SLOT
     sta FIGHTER_PROJECTILE_X,x
-    lda enemy_y
+    ldx ENEMY_TARGET_SLOT
+    jsr enemy_member_screen_y
+    ldx BROAD_WORK_SLOT
     ldy ENEMY_ARCHETYPE
     clc
     adc enemy_projectile_spawn_y_offsets,y
@@ -4001,6 +4286,49 @@ allocate_interceptor_projectile:
     sta FIGHTER_PROJECTILE_PREV_Y,x
     lda #INTERCEPTOR_PROJECTILE_LIFETIME
     sta FIGHTER_PROJECTILE_LIFETIME,x
+    pla
+    ora ENEMY_TARGET_SLOT
+    sta FIGHTER_PROJECTILE_ACTIVE,x
+    and #FIGHTER_PROJECTILE_INTERCEPTOR_EMITTER_MASK
+    eor #FIGHTER_PROJECTILE_INTERCEPTOR_EMITTER_MASK
+                                  ; exactly two PMG owners alternate on acceptance
+    sta ENEMY_WEAPON_CURSOR
+    sec
+    rts
+.assert FIGHTER_PROJECTILE_INTERCEPTOR = 2 && FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT = 3, error, "generic Heavy emission encodes (class << 3) | 2 with asl/asl/asl/ora"
+.assert FIGHTER_PROJECTILE_INTERCEPTOR_EMITTER_MASK = 1, error, "Heavy emitter owner is the member slot bit"
+
+
+; Preserve the existing single burst controller and admit at most five active
+; PairShots. Each due shot starts at the next living, fully visible Raider in bounded round-robin
+; order, so formation size does not multiply projectile pressure.
+select_enemy_weapon_member:
+    lda #RAIDER_PMG_SLOT_COUNT
+    sta row_counter
+    ldx ENEMY_WEAPON_CURSOR
+@member:
+    lda ENEMY_MEMBER_STATE,x
+    cmp #ENEMY_ACTIVE_STATE
+    bne @next
+    stx ENEMY_TARGET_SLOT
+    jsr enemy_member_screen_y
+    cmp #GAMEPLAY_TOP
+    bcc @next
+    sta ENEMY_TARGET_Y
+    ldy ENEMY_ARCHETYPE
+    clc
+    adc enemy_frame_heights,y
+    cmp #(GAMEPLAY_BOTTOM+1)
+    bcc @found
+@next:
+    txa
+    eor #$01                    ; bounded two-slot round robin
+    tax
+    dec row_counter
+    bne @member
+    clc
+    rts
+@found:
     sec
     rts
 
@@ -4013,53 +4341,29 @@ render_fighter_projectile_slot_loop:
     bne :+
     jmp render_fighter_projectile_next
 :
-    ; The nonzero projectile kind already in A is a sufficient erase latch.
-    ; $FF remains reserved below for a composite that touched only one cell.
-    sta FIGHTER_PROJECTILE_RENDERED,x
+    ; Every PairShot claims exactly one character cell. Its fixed glyph carries
+    ; both impulses; logical scanline Y remains authoritative for collision.
+    jsr claim_fighter_projectile_visual
     lda FIGHTER_PROJECTILE_Y,x
-    and #$07
-    sta row_counter
+    sta FIGHTER_PROJECTILE_PREV_Y,x
     cpx #INTERCEPTOR_PROJECTILE_SLOT_BASE
     bcs @interceptor_code
+    lda FIGHTER_PROJECTILE_Y,x
+    and #$07                    ; publish the exact logical scanline phase
+    sta loader_repeat_value
     lda FIGHTER_PROJECTILE_X,x
     and #$02                    ; allocation and two-HPOS movement keep even X
     beq :+
     lda #(PLAYER_FIGHTER_PROJECTILE_GLYPH_STRIDE*2)
 :
     clc
-    adc row_counter
+    adc loader_repeat_value
     adc #PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE
     sta loader_repeat_value
-    lda #$00
-    sta src_ptr+1
-    lda row_counter
-    cmp #$07
-    bne @code_ready
-    lda loader_repeat_value
-    clc
-    adc #$01
-    sta src_ptr+1
     bne @code_ready
 @interceptor_code:
-    lda FIGHTER_PROJECTILE_X,x
-    and #$02                    ; Interceptor allocation explicitly masks bit zero
-    beq :+
-    lda #INTERCEPTOR_PROJECTILE_GLYPH_STRIDE
-:
-    clc
-    adc row_counter
-    adc #INTERCEPTOR_PROJECTILE_GLYPH_BASE
-    ora #$80
+    jsr hostile_projectile_screen_code
     sta loader_repeat_value
-    lda #$00
-    sta src_ptr+1
-    lda row_counter
-    cmp #$06
-    bcc @code_ready
-    lda loader_repeat_value
-    clc
-    adc #$02
-    sta src_ptr+1
 @code_ready:
     ; This mapper is used exactly once for every rendered slot. Keeping it
     ; inline removes one JSR/RTS pair per active projectile while retaining the
@@ -4106,7 +4410,14 @@ profile_projectile_pointer_end = *
     ; the slot arrays; only the composite helper below mutates it and reloads.
     ldy #$00
     lda (dst_ptr),y
-    sta FIGHTER_PROJECTILE_BACKUP_TOP,x
+    cmp #STAR_NEAR_POINT
+    bne :+
+    lda #CH_SPACE               ; near is transient visual state, not backing
+:
+enemy_projectile_effect_backing_resolve = *
+    ; PairShots can cross a staggered Raider breakup cell. Saving that moving
+    ; effect glyph would resurrect it when the projectile later erases.
+    jsr store_projectile_backing_resolving_effect_core
     cpx #INTERCEPTOR_PROJECTILE_SLOT_BASE
     bcs @draw_top
     cmp #CH_SPACE
@@ -4124,14 +4435,6 @@ profile_projectile_pointer_end = *
 @draw_top:
     lda loader_repeat_value
     sta (dst_ptr),y
-    lda src_ptr+1
-    beq @rendered
-    jsr advance_dst_to_next_physical_row
-    ldy #$00
-    lda (dst_ptr),y
-    sta FIGHTER_PROJECTILE_BACKUP_BOTTOM,x
-    lda src_ptr+1
-    sta (dst_ptr),y
 @rendered:
 render_fighter_projectile_next:
     inx
@@ -4141,9 +4444,13 @@ render_fighter_projectile_next:
 :
     rts
 
+render_fighter_projectile_overlays_end = *
+
 .export render_fighter_projectile_slot
+.export render_fighter_projectile_overlays_end
 .export initialize_projectile_screen_pointer
 .export profile_projectile_pointer_end
+.export enemy_projectile_effect_backing_resolve
 
 ; -----------------------------------------------------------------------------
 ; Enemy
@@ -4152,78 +4459,50 @@ render_fighter_projectile_next:
 
 .segment "BROADSIDE"
 
-; The red pulse bank is a regular three-scanline shape at two horizontal
-; phases. Building its twenty glyphs once saves 160 resident source bytes while
-; producing the exact same charset bytes consumed by the release renderer.
-build_interceptor_projectile_glyphs:
-    lda #$00
-    ldx #$00
-@clear:
-    sta CHARSET+INTERCEPTOR_PROJECTILE_GLYPH_BASE*8,x
-    inx
-    cpx #(INTERCEPTOR_PROJECTILE_GLYPH_COUNT*8)
-    bne @clear
-    lda #<(CHARSET+INTERCEPTOR_PROJECTILE_GLYPH_BASE*8)
-    sta dst_ptr
-    lda #>(CHARSET+INTERCEPTOR_PROJECTILE_GLYPH_BASE*8)
-    sta dst_ptr+1
-    lda #$00
-    sta BROAD_WORK_SLOT
-@group:
-    ldy BROAD_WORK_SLOT
-    lda interceptor_projectile_group_masks,y
-    sta BROAD_WORK_VALUE
-    ldx #$00
-@glyph:
-    ldy interceptor_projectile_start_rows,x
-    lda interceptor_projectile_row_counts,x
-    sta row_counter
-@paint:
-    lda BROAD_WORK_VALUE
-    sta (dst_ptr),y
-    iny
-    dec row_counter
-    bne @paint
-    clc
-    lda dst_ptr
-    adc #$08
-    sta dst_ptr
-    bcc :+
-    inc dst_ptr+1
-:
-    inx
-    cpx #$0A
-    bne @glyph
-    inc BROAD_WORK_SLOT
-    lda BROAD_WORK_SLOT
-    cmp #$02
-    bne @group
-    rts
+; Hostile PairShot visuals are authored per weapon_class in
+; assets/graphics/fighter-weapons.json. Class c occupies glyph 89+c at the left
+; horizontal phase and glyph 99+c, shifted right two ANTIC 4 pixels, at the
+; right phase. Glyphs past the last visual are never published. Roadmap 4.5d:
+; the init-only builder and its glyph table live in HYBRID_C_ARENA
+; (HYBRID_BUILD_HOSTILE_GLYPHS, src/hybrid/c-asm-abi.s); this fixed 70-byte
+; slot keeps only the per-frame screen-code helper.
+hostile_weapon_visual_slot:
 
-interceptor_projectile_group_masks:
-    .byte $F0,$0F
-interceptor_projectile_start_rows:
-    .byte 0,1,2,3,4,5,6,7,0,0
-interceptor_projectile_row_counts:
-    .byte 3,3,3,3,3,3,2,1,1,2
-
-begin_enemy_fighter_explosion:
-    ldx ENEMY_ARCHETYPE
-    lda enemy_x
-    sec
-    sbc enemy_visible_left_insets,x
-    sta FIGHTER_EXPLOSION_X+FIGHTER_EXPLOSION_ENEMY_SLOT
-    lda enemy_frame_heights,x
-    sec
-    sbc #SHARED_FIGHTER_EXPLOSION_HEIGHT
+; X = hostile PairShot slot. Returns its screen code
+; (89 + weapon_class + (X & 2 ? 10 : 0)) | $80; a BOMBER shell publishes its
+; second authored phase (visual BOMBER+1) while frame_counter & 4 is set.
+; Clobbers loader_repeat_value. Bit 7 is the hostile attribute the backing
+; resolver matches; the authored glyphs use no %11 pixels, so it never changes
+; their colours.
+hostile_projectile_screen_code:
+    lda FIGHTER_PROJECTILE_ACTIVE,x
     lsr
+    lsr
+    lsr
+    sta loader_repeat_value
+    cmp #ENEMY_WEAPON_BOMBER
+    bne @phase_ready
+    lda frame_counter
+    and #HOSTILE_WEAPON_BOMBER_PHASE_MASK
+    beq @phase_ready
+    inc loader_repeat_value     ; visual BOMBER+1: the exhaust flicker phase
+@phase_ready:
+    lda FIGHTER_PROJECTILE_X,x
+    and #$02                    ; hostile allocation explicitly masks bit zero
+    beq :+
+    lda #INTERCEPTOR_PROJECTILE_GLYPH_STRIDE
+:
     clc
-    adc enemy_y
-    sta FIGHTER_EXPLOSION_Y+FIGHTER_EXPLOSION_ENEMY_SLOT
-    lda #SHARED_FIGHTER_EXPLOSION_TOTAL
-    sta FIGHTER_EXPLOSION_TIMER+FIGHTER_EXPLOSION_ENEMY_SLOT
+    adc #(HOSTILE_WEAPON_GLYPH_BASE|$80)
+    adc loader_repeat_value
     rts
+hostile_weapon_visual_layout_end:
+    ; The former 70-byte builder slot keeps its size: every later BROADSIDE
+    ; address (the fixed $76A7 integration release target included) stays put.
+    .res 70-(hostile_weapon_visual_layout_end-hostile_weapon_visual_slot)
 
+.segment "BROADSIDE"
+begin_enemy_fighter_explosion = begin_enemy_fighter_explosion_tail
 ; Explosion PMG bytes are stationary and each visual phase is held for four
 ; frames. Clear them once at expiry instead of restoring/redrawing every PAL
 ; frame; the phase renderer overwrites all eight bytes on each phase boundary.
@@ -4237,14 +4516,8 @@ erase_shared_fighter_explosion_slot:
     cpy #GAMEPLAY_BOTTOM
     bcs @advance
     lda #$00
-    cpx #FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT
-    bne @enemy
     sta PLAYER0,y
     sta PLAYER3,y
-    jmp @advance
-@enemy:
-    sta PLAYER1,y
-    sta PLAYER2,y
 @advance:
     iny
     dec loader_repeat_value
@@ -4252,16 +4525,13 @@ erase_shared_fighter_explosion_slot:
     rts
 
 render_shared_fighter_explosions:
-    ldx #$00
-@slot:
-    lda FIGHTER_EXPLOSION_TIMER,x
-    beq @next
+    lda FIGHTER_EXPLOSION_TIMER+FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT
+    beq @done
     and #(SHARED_FIGHTER_EXPLOSION_FRAME_DURATION-1)
-    bne @next
-    stx BROAD_WORK_SLOT
+    bne @done
     lda #SHARED_FIGHTER_EXPLOSION_TOTAL
     sec
-    sbc FIGHTER_EXPLOSION_TIMER,x
+    sbc FIGHTER_EXPLOSION_TIMER+FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT
     lsr
     lsr
     tay
@@ -4272,18 +4542,10 @@ render_shared_fighter_explosions:
     asl
     asl
     tax
-    ldy BROAD_WORK_SLOT
-    lda FIGHTER_EXPLOSION_X,y
-    cpy #FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT
-    bne @enemy_hpos
+    lda FIGHTER_EXPLOSION_X+FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT
     sta HPOSP0
     sta HPOSP3
-    jmp @positioned
-@enemy_hpos:
-    sta HPOSP1
-    sta HPOSP2
-@positioned:
-    lda FIGHTER_EXPLOSION_Y,y
+    lda FIGHTER_EXPLOSION_Y+FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT
     sta row_counter
     lda #SHARED_FIGHTER_EXPLOSION_HEIGHT
     sta BROAD_WORK_VALUE
@@ -4295,28 +4557,16 @@ render_shared_fighter_explosions:
     bcc @row_done
     cpy #GAMEPLAY_BOTTOM
     bcs @row_done
-    lda BROAD_WORK_SLOT
-    bne @enemy_row
     lda loader_repeat_value
     sta PLAYER3,y
     and BROAD_WORK_COUNT
     sta PLAYER0,y
-    jmp @row_done
-@enemy_row:
-    lda loader_repeat_value
-    sta PLAYER2,y
-    and BROAD_WORK_COUNT
-    sta PLAYER1,y
 @row_done:
     inc row_counter
     inx
     dec BROAD_WORK_VALUE
     bne @row
-    ldx BROAD_WORK_SLOT
-@next:
-    inx
-    cpx #SHARED_FIGHTER_EXPLOSION_SLOT_COUNT
-    bne @slot
+@done:
     rts
 
 update_enemy:
@@ -4336,31 +4586,78 @@ update_enemy:
     beq @live
     rts
 @live:
-    jsr erase_enemy
-
-    inc enemy_y
-    lda enemy_y
+    ldx #$00
+@move_member:
+    lda ENEMY_MEMBER_STATE,x
+    beq @move_next
+    stx ENEMY_TARGET_SLOT
+    lda ENEMY_Y,x
+    pha
+    jsr heavy_member_update     ; per member, after capturing its old Y
+    ldx ENEMY_TARGET_SLOT
+    lda ENEMY_Y,x
     cmp #GAMEPLAY_BOTTOM
-    bcc @horizontal
+    bcc @draw_member
+    jsr HYBRID_ENEMY_RETIRE_MEMBER
+    jmp @retire_departing_row
+@draw_member:
+    ; Publish each independent PMG page immediately after its motion update.
+    ; Clearing both full bodies first left a long zero-filled interval which
+    ; ANTIC could fetch as an intermittent black/missing Raider silhouette.
+    pla                         ; the member's Y before this frame's motion;
+    pha                         ; erase_enemy_departing_row still consumes it
+    jsr draw_enemy_member
+@retire_departing_row:
+    pla
+    jsr erase_enemy_departing_row
+    ldx ENEMY_TARGET_SLOT
+@move_next:
+    inx
+    cpx #RAIDER_PMG_SLOT_COUNT
+    bne @move_member
+    lda ENEMY_LIVE_COUNT
+    bne @done
     jmp integration_interceptor_recycle
-
-@horizontal:
-    jsr update_interceptor_soft_pursuit
-
-@scanner:
-    jsr update_enemy_animation
+@done:
+    rts
 
 draw_enemy:
-    jsr clamp_enemy_x
     ldx ENEMY_ARCHETYPE
     lda enemy_size_modes,x
     sta SIZEP1
     sta SIZEP2
-    lda enemy_x
+    ldx #$00
+@member:
+    lda ENEMY_MEMBER_STATE,x
+    beq @member_next
+    lda #ENEMY_Y_NEVER          ; a full draw never skips the body copy
+    jsr draw_enemy_member
+    ldx ENEMY_TARGET_SLOT
+@member_next:
+    inx
+    cpx #RAIDER_PMG_SLOT_COUNT
+    bne @member
+    rts
+
+draw_enemy_member:
+    ; Accepted motion already clamps every mutable slot before drawing. Avoid a
+    ; second scratch round-trip here: it cannot change an in-bounds position.
+    ; A = the Y this member's plane was last published at (ENEMY_Y_NEVER forces
+    ; the copy). An unchanged Y means the plane already holds the body at that
+    ; Y, so only the horizontal position has to be republished.
+    stx ENEMY_TARGET_SLOT
+    cmp ENEMY_Y,x
+    php
+    ldy ENEMY_ARCHETYPE
+    lda ENEMY_X,x
     sec
-    sbc enemy_visible_left_insets,x
-    sta HPOSP1
-    sta HPOSP2
+    sbc enemy_visible_left_insets,y
+    sta HPOSP1,x
+    plp
+    beq @body_done
+    jsr enemy_member_screen_y   ; A = screen Y, and republishes ENEMY_TARGET_Y
+    tay
+    ldx ENEMY_ARCHETYPE
     lda enemy_frame_heights,x
     sta row_counter
     txa                           ; fixed 16-byte frame stride
@@ -4369,106 +4666,188 @@ draw_enemy:
     asl
     asl
     tax
-    ldy enemy_y
+    lda ENEMY_TARGET_SLOT
+    clc
+    adc #>PLAYER1
+    sta @body_store+2
 @body_loop:
-    lda enemy_body_data,x
     cpy #GAMEPLAY_TOP
     bcc @body_next
+    lda enemy_body_data,x
     cpy #GAMEPLAY_BOTTOM
     bcs @body_done
-    sta PLAYER1,y
+@body_store:
+    sta PLAYER1,y              ; high operand byte selects P1 or P2 per slot
 @body_next:
     iny
     inx
     dec row_counter
     bne @body_loop
 @body_done:
-
-    ldx ENEMY_ARCHETYPE
-    ldy enemy_y
-    tya
-    clc
-    adc enemy_accent_rows,x
-    tay
-    cpy #GAMEPLAY_TOP
-    bcc @accent_done
-    cpy #GAMEPLAY_BOTTOM
-    bcs @accent_done
-    lda scanner_phase
-    lsr
-    lsr
-    lsr
-    clc
-    adc enemy_accent_offsets,x
-    tax
-    lda enemy_accent_data,x
-    sta PLAYER2,y
-@accent_done:
     rts
+draw_enemy_offscreen_layout_pad:
+    .res 1,$EA                  ; preserve every following BROADSIDE integration ABI
 
+.if ENEMY_REVIEW_HARNESS
+.segment "STARFIELD"
 erase_enemy:
+    ldx #$00
+@member:
+    lda ENEMY_MEMBER_STATE,x
+    beq @next
+    stx ENEMY_TARGET_SLOT
+    jsr erase_enemy_member
+    ldx ENEMY_TARGET_SLOT
+@next:
+    inx
+    cpx #RAIDER_PMG_SLOT_COUNT
+    bne @member
+    rts
+.endif
+
+.segment "CODE"
+erase_enemy_member:
+    ldx ENEMY_TARGET_SLOT
+    jsr enemy_member_screen_y
+    lda ENEMY_TARGET_SLOT
+    clc
+    adc #>PLAYER1
+    sta erase_enemy_rows_store+2
     ldx ENEMY_ARCHETYPE
     lda enemy_frame_heights,x
     tax
-    ldy enemy_y
+erase_enemy_rows:
     lda #$00
-@loop:
-    cpy #GAMEPLAY_TOP
-    bcc @erase_next
+    ldy ENEMY_TARGET_Y
+erase_enemy_rows_loop:
     cpy #GAMEPLAY_BOTTOM
-    bcs @erase_done
+    bcs erase_enemy_rows_done
+erase_enemy_rows_store:
     sta PLAYER1,y
-    sta PLAYER2,y
 @erase_next:
     iny
     dex
-    bne @loop
-@erase_done:
+    bne erase_enemy_rows_loop
+erase_enemy_rows_done:
     rts
 
-reset_enemy:
-    lda #ENEMY_INACTIVE
-    sta ENEMY_ACTIVE
-    ldx ENEMY_ARCHETYPE
-    lda #GAMEPLAY_TOP
+; Each prototype Raider owns an independent visible Y coordinate.
+enemy_member_screen_y:
+    lda ENEMY_Y,x
+    sta ENEMY_TARGET_Y
     sec
-    sbc enemy_frame_heights,x
-    sta enemy_y
-    lda enemy_logical_x_maxs,x
-    sec
-    sbc #CORRIDOR_LEFT_HPOS
-    clc
-    adc #$01
-    sta row_counter
-    jsr random_byte
-    and #$7F
-    cmp row_counter
-    bcc :+
-    eor #$7F
-:
-    ldx ENEMY_ARCHETYPE
-    clc
-    adc #CORRIDOR_LEFT_HPOS
+    rts
+
+; Load one Raider into the accepted single-machine pursuit scratch, execute the
+; same 4/5-speed turn logic, then return every mutable field to that slot. The
+; first 48 frames deliberately cross vertically: P1 descends while P2 climbs.
+; Both then descend and release before the unchanged first-capital deadline.
+update_enemy_slot_motion:
+    ldx ENEMY_TARGET_SLOT
+    lda ENEMY_X,x
     sta enemy_x
+    lda ENEMY_VELOCITY_X,x
+    sta enemy_velocity_x
+    lda ENEMY_MOVE_ACCUMULATOR,x
+    sta INTERCEPTOR_MOVE_ACCUMULATOR
+    jsr update_interceptor_soft_pursuit
+    ldx ENEMY_TARGET_SLOT
+    lda enemy_x
+    sta ENEMY_X,x
+    lda enemy_velocity_x
+    sta ENEMY_VELOCITY_X,x
+    lda INTERCEPTOR_MOVE_ACCUMULATOR
+    sta ENEMY_MOVE_ACCUMULATOR,x
+
+    ; Admission is a normal one-scanline descent from a wholly hidden Y. The
+    ; unchanged 48-frame maneuver timer doubles as the cheap admission latch:
+    ; after the crossing begins it is below 48, so P2 may climb below its old
+    ; anchor without being mistaken for a new entry.
+    lda ENEMY_MANEUVER_TIMER,x
+    cmp #RAIDER_PMG_CROSS_FRAMES
+    bcc @formation_motion
+    lda ENEMY_Y,x
+    cmp raider_pmg_entry_y,x
+    bcs @accepted_motion
+    inc ENEMY_Y,x
+    rts
+@accepted_motion:
+    ; P1 reaches its old upper anchor first. Keep it there until P2 reaches
+    ; the old lower anchor, then run the accepted crossing path unchanged.
+    lda ENEMY_Y+1
+    cmp #RAIDER_PMG_START_Y_1
+    bcc @done
+@formation_motion:
+    lda ENEMY_MANEUVER_STATE,x
+    bne @egress
+    cpx #$00
+    bne @cross_up
+    inc ENEMY_Y,x
+    jmp @cross_tick
+@cross_up:
+    dec ENEMY_Y,x
+@cross_tick:
+    dec ENEMY_MANEUVER_TIMER,x
+    bne @done
+    inc ENEMY_MANEUVER_STATE,x
+    rts
+@egress:
+    inc ENEMY_Y,x
+@done:
+    rts
+
+.segment "CODE"
+; No release caller reaches this legacy single-Heavy random-X helper. Its old
+; 21-byte footprint now absorbs 12 bytes of the bounded off-screen entry gate
+; so every reviewed CODE entry which follows retains its established address.
+reset_enemy_x:
+    .res 9,$EA
+
+.segment "STARFIELD"
+
+raider_pmg_entry_y:
+    .byte RAIDER_PMG_START_Y_0,RAIDER_PMG_START_Y_1
+
+reset_enemy:
     lda #$00
     sta enemy_velocity_x
     sta INTERCEPTOR_MOVE_ACCUMULATOR
-    lda #ENEMY_ACTIVE_STATE
-    sta ENEMY_ACTIVE
-    ldx ENEMY_ARCHETYPE
-    lda enemy_hit_points,x
-    sta ENEMY_HP
+    sta ENEMY_WEAPON_CURSOR
+    ldx #RAIDER_PMG_LAST_SLOT
+@member:
+    lda #$00
+    sta ENEMY_PENDING_DAMAGE,x
+    sta ENEMY_PENDING_SOURCE,x
+    sta ENEMY_MANEUVER_STATE,x
+    lda #RAIDER_PMG_CROSS_FRAMES
+    sta ENEMY_MANEUVER_TIMER,x
+    dex
+    bpl @member
+    lda #RAIDER_PMG_START_X_0
+    sta ENEMY_X
+    lda #RAIDER_PMG_START_X_1
+    sta ENEMY_X+1
+    lda #RAIDER_PMG_SPAWN_Y
+    sta ENEMY_Y
+    sta ENEMY_Y+1
+    lda #$01
+    sta ENEMY_VELOCITY_X
+    lda #$FF
+    sta ENEMY_VELOCITY_X+1
+    lda #$00
+    sta ENEMY_MOVE_ACCUMULATOR
+    sta ENEMY_BEHAVIOUR_PHASE
+    lda #$02
+    sta ENEMY_MOVE_ACCUMULATOR+1
+    lda #12
+    sta ENEMY_BEHAVIOUR_PHASE+1
+    jsr HYBRID_ENEMY_SPAWN_RAIDERS
     jsr reset_enemy_fire_cooldown
     jmp draw_enemy
 
-reset_enemy_fire_cooldown:
-    lda #WEAPON_BURST_WAITING
-    sta INTERCEPTOR_BURST_STATE
-    lda #$00
-    sta INTERCEPTOR_BURST_REMAINING
-    sta INTERCEPTOR_BURST_TIMER
-    rts
+reset_enemy_fire_cooldown = reset_enemy_fire_cooldown_tail
 
+.segment "BROADSIDE"
 ; Public lifecycle/tracing names are direct aliases; callers do not need a
 ; three-byte trampoline before the canonical implementations.
 update_enemy_weapon = update_enemy_weapon_runtime
@@ -4507,12 +4886,17 @@ clamp_enemy_x:
 ; fractional movement clock advances two HPOS on exactly four of five active
 ; frames, giving a maximum 8/10 = 4/5 of PlayerFighter lateral speed.
 update_interceptor_soft_pursuit:
+    ldx ENEMY_TARGET_SLOT
     lda frame_counter
+    clc
+    adc ENEMY_BEHAVIOUR_PHASE,x
     and #(INTERCEPTOR_TARGET_SAMPLE_INTERVAL-1)
     bne @move
 
     ; Signed target delta: PlayerFighter centre minus Interceptor centre, plus weave.
     lda frame_counter
+    clc
+    adc ENEMY_BEHAVIOUR_PHASE,x
     and #(INTERCEPTOR_WEAVE_PERIOD_FRAMES/2)
     beq @weave_left
     lda #INTERCEPTOR_WEAVE_AMPLITUDE
@@ -4574,6 +4958,7 @@ update_interceptor_soft_pursuit:
 @clamp:
     jmp clamp_enemy_x
 
+.if ENEMY_REVIEW_HARNESS
 update_enemy_animation:
     inc scanner_phase
     lda scanner_phase
@@ -4601,7 +4986,6 @@ set_enemy_archetype:
     sec
     rts
 
-.if ENEMY_REVIEW_HARNESS
 ; Compile-time-only deterministic review cycle. Normal release assembly omits
 ; this routine and always spawns ENEMY_RELEASE_ARCHETYPE through init_state.
 update_enemy_review_harness:
@@ -4662,9 +5046,14 @@ update_enemy_review_harness:
 
 handle_collisions:
     lda #$00
-    sta ENEMY_PENDING_DAMAGE
+    ldx #RAIDER_PMG_LAST_SLOT
+@clear_enemy_damage:
+    sta ENEMY_PENDING_DAMAGE,x
     lda #DAMAGE_CLEANUP
-    sta ENEMY_PENDING_SOURCE
+    sta ENEMY_PENDING_SOURCE,x
+    lda #$00
+    dex
+    bpl @clear_enemy_damage
 
     jsr update_fighter_projectiles
 profile_after_fighter_projectile_update = *
@@ -4693,57 +5082,58 @@ handle_collisions_clear_latches = *
 .export profile_after_player_enemy_collision, profile_after_broadside_update
 .export profile_after_enemy_damage_resolution
 
+.segment "BROADSIDE"
+
 ; A carries a bounded damage amount and Y an explicit credit source. Multiple
 ; hits in one PAL frame accumulate damage but retain the highest score-credit
 ; priority (the lowest source value). Destruction is resolved exactly once.
 queue_enemy_damage:
+    sta BROAD_WORK_VALUE
+    txa
     pha
-    lda ENEMY_ACTIVE
-    cmp #ENEMY_ACTIVE_STATE
-    bne @inactive
-    pla
-    clc
-    adc ENEMY_PENDING_DAMAGE
-    bcc :+
-    lda #$FF
-:
-    sta ENEMY_PENDING_DAMAGE
-    tya
-    cmp ENEMY_PENDING_SOURCE
-    bcs @done
-    sta ENEMY_PENDING_SOURCE
-@done:
-    rts
-@inactive:
-    pla
-    rts
-
-resolve_enemy_damage:
-    lda ENEMY_PENDING_DAMAGE
-    beq @done
-    lda ENEMY_ACTIVE
+    ldx ENEMY_TARGET_SLOT
+    lda ENEMY_MEMBER_STATE,x
     cmp #ENEMY_ACTIVE_STATE
     bne @done
-    lda ENEMY_HP
-    sec
-    sbc ENEMY_PENDING_DAMAGE
-    bcc @destroy
-    beq @destroy
-    sta ENEMY_HP
+    lda BROAD_WORK_VALUE
+    clc
+    adc ENEMY_PENDING_DAMAGE,x
+    ; Physical pools cap a frame far below 255 damage units, so wrapping is
+    ; impossible and a saturation branch would only consume resident bytes.
+    sta ENEMY_PENDING_DAMAGE,x
+    tya
+    cmp ENEMY_PENDING_SOURCE,x
+    bcs @done
+    sta ENEMY_PENDING_SOURCE,x
+@done:
+    pla
+    tax
     rts
-@destroy:
-    lda ENEMY_PENDING_SOURCE
+
+.segment "STARFIELD"
+
+resolve_enemy_damage:
+    ldx #$00
+@member:
+    lda ENEMY_PENDING_DAMAGE,x
+    beq @next
+    stx ENEMY_TARGET_SLOT
+    jsr HYBRID_ENEMY_APPLY_PENDING_DAMAGE
+    beq @restore_next            ; includes nonlethal and already-dead members
+    ldx ENEMY_TARGET_SLOT
+    lda ENEMY_PENDING_SOURCE,x
     pha
-    jsr erase_enemy
-    lda #ENEMY_EXPLODING_STATE
-    sta ENEMY_ACTIVE
+    jsr erase_enemy_member
+    lda ENEMY_ACTIVE
+    cmp #ENEMY_EXPLODING_STATE
+    bne @damage_feedback
     lda #$00
     sta enemy_velocity_x
-    sta HITCLR
-    lda #ENEMY_EXPLOSION_CORE_COLOR ; preserve the accepted $84/$46 explosion
-    sta COLPM1
-    jsr spawn_interceptor_breakup_effects
     jsr reset_enemy_fire_cooldown
+@damage_feedback:
+    lda #$00
+    sta HITCLR
+    jsr spawn_interceptor_breakup_effects
     pla
     cmp #(DAMAGE_CAPITAL_HOSTILE+1)
     bcs @no_score
@@ -4757,12 +5147,20 @@ resolve_enemy_damage:
     jsr weapon_pickup_record_qualified_kill
 @no_score:
     jsr play_hit_sound
+@restore_next:
+    ldx ENEMY_TARGET_SLOT
+@next:
+    inx
+    cpx #RAIDER_PMG_SLOT_COUNT
+    bne @member
 @done:
     rts
 
 ; The score is descriptor data, not a Interceptor collision constant. A is the
 ; already-arbitrated lethal source; all score-awarding sources share this path.
-add_archetype_score:
+add_archetype_score = add_archetype_score_tail
+.if 0
+add_archetype_score_obsolete:
     ldx ENEMY_ARCHETYPE
     sed
     clc
@@ -4774,6 +5172,7 @@ add_archetype_score:
     sta score_bcd_hi
     cld
     jmp update_score_display
+.endif
 
 .segment "STARFIELD"
 
@@ -4874,31 +5273,48 @@ draw_top_score_bcd_byte:
     iny
     rts
 
-.segment "STARFIELD"
+.segment "BROADSIDE"
 
 player_contacts_enemy:
     lda ENEMY_ACTIVE
     cmp #ENEMY_ACTIVE_STATE
     bne @miss
+    ldx #$00
+@member:
+    lda ENEMY_MEMBER_STATE,x
+    cmp #ENEMY_ACTIVE_STATE
+    bne @next
+    stx ENEMY_TARGET_SLOT
+    jsr enemy_member_screen_y
+    bcc @next
+    sta ENEMY_TARGET_Y
     ldx ENEMY_ARCHETYPE
     lda player_x
+    ldy ENEMY_TARGET_SLOT
     sec
-    sbc enemy_x
+    sbc ENEMY_X,y
+    ldx ENEMY_ARCHETYPE
     cmp enemy_visible_widths,x
     bcc @horizontal_overlap
     cmp #(256-(PLAYER_COLLISION_WIDTH-1))
-    bcc @miss
+    bcc @member_miss
 @horizontal_overlap:
     lda player_y
     sec
-    sbc enemy_y
+    sbc ENEMY_TARGET_Y
     cmp enemy_frame_heights,x
     bcc @hit
     cmp #(256-PLAYER_COLLISION_LAST_ROW)
-    bcc @miss
+    bcc @member_miss
 @hit:
     lda #$01
     rts
+@member_miss:
+    ldx ENEMY_TARGET_SLOT
+@next:
+    inx
+    cpx #RAIDER_PMG_SLOT_COUNT
+    bne @member
 @miss:
     lda #$00
     rts
@@ -4950,28 +5366,45 @@ update_starfield:
     lda #$00
     sta PLAYFIELD_RING_FLAGS
     sta PLAYFIELD_PREBUILD_PENDING
+    lda STAR_NEAR_RING_ADVANCED
+    and #$02                    ; retain this frame's near coarse-row event
+    sta STAR_NEAR_RING_ADVANCED
+    ; Keep the owner-approved fighter world rates unchanged. During a capital
+    ; traversal both the background ring and hull consume the restored capital
+    ; numerator, so geometry remains phase-aligned without touching the PAL
+    ; gameplay token or adding ad-hoc frame skips. The common working
+    ; denominator is 40; the pre-tuning 8/9/10 over 20 is doubled exactly.
     ldx DIFFICULTY_SETTING
-    lda scroll_accumulator
+    lda CAPITAL_SECTOR_STATE
+    cmp #CAPITAL_HULL_STATE_OPEN
+    bne @capital_rate
+    lda world_scroll_rates,x
+    asl
+    bne @rate_ready
+@capital_rate:
+    lda hull_scroll_rates,x
+@rate_ready:
+    pha
     clc
-    adc world_scroll_rates,x
-    cmp #WORLD_SCROLL_RATE_DENOMINATOR
+    adc scroll_accumulator
+    cmp #HULL_SCROLL_RATE_DENOMINATOR
     bcs @world_scroll
     sta scroll_accumulator
     jmp @hull_rate
 @world_scroll:
-    sbc #WORLD_SCROLL_RATE_DENOMINATOR
+    sbc #HULL_SCROLL_RATE_DENOMINATOR
     sta scroll_accumulator
     jsr advance_starfield_layers
 @hull_rate:
-    ldx DIFFICULTY_SETTING
-    lda HULL_SCROLL_ACCUMULATOR
+    pla
     clc
-    adc hull_scroll_rates,x
+    adc HULL_SCROLL_ACCUMULATOR
     cmp #HULL_SCROLL_RATE_DENOMINATOR
     bcs @hull_scroll
     sta HULL_SCROLL_ACCUMULATOR
     ; Preserve the legacy accumulator postcondition; both comparison outcomes
     ; returned through this same bounded no-hull path.
+    jsr prepare_next_hull_row
     lda scroll_accumulator
     rts
 @hull_scroll:
@@ -4985,62 +5418,21 @@ update_starfield:
 ; segments. These bytes replace the removed duplicate-return dispatch and are
 ; unreachable after update_starfield returns.
 starfield_layout_d2_cadence_pad:
-    .byte $00,$60
 
-; The legacy world clock is now the 100% hull reference. Near and far layers
-; use independent exact fixed-point ratios against each hull/world event:
-; 1/2 (50%) and 1/4 (25%). Both remain bounded to at most one row per event.
+; One authoritative world event rotates the physical background exactly once.
+; Bit zero records that mapping change for the sparse white cache; bit one was
+; set earlier only if the 1-pixel near motion crossed a character boundary.
 advance_starfield_layers:
     lda #ENTITY_EVENT_WORLD_ROW_ADVANCED
     sta ENTITY_FRAME_EVENTS
+    lda STAR_NEAR_RING_ADVANCED
+    ora #$01
+    sta STAR_NEAR_RING_ADVANCED
     jsr integration_director_world_row
-    lda #$00
-    sta STAR_GENERATION_FLAGS
-    lda STAR_NEAR_PHASE
-    clc
-    adc #STAR_NEAR_RATE_NUMERATOR
-    cmp #STAR_NEAR_RATE_DENOMINATOR
-    bcs @near_step
-    sta STAR_NEAR_PHASE
-    jmp @far_rate
-@near_step:
-    sbc #STAR_NEAR_RATE_DENOMINATOR
-    sta STAR_NEAR_PHASE
-    lda #STAR_GENERATE_NEAR
-    sta STAR_GENERATION_FLAGS
-@far_rate:
-    lda STAR_FAR_PHASE
-    clc
-    adc #STAR_FAR_RATE_NUMERATOR
-    cmp #STAR_FAR_RATE_DENOMINATOR
-    bcs @far_step
-    sta STAR_FAR_PHASE
-    jmp @dispatch
-@far_step:
-    sbc #STAR_FAR_RATE_DENOMINATOR
-    sta STAR_FAR_PHASE
-    lda STAR_GENERATION_FLAGS
-    ora #STAR_GENERATE_FAR
-    sta STAR_GENERATION_FLAGS
-@dispatch:
-    ; Advance the physical scene exactly once per authoritative world row.
-    ; Far stars are erased before row publication and redrawn at their own
-    ; logical 1/4 cadence, so the capital exit cannot expose a half-rate centre
-    ; while the side bands drain at the full world rate.
-    jsr erase_far_star_overlays
-    jsr scroll_world_columns
-    lda STAR_GENERATION_FLAGS
-    and #STAR_GENERATE_FAR
-    beq @mark_dirty
-    jsr advance_far_stars
-@mark_dirty:
-    lda #$80
-    sta STAR_GENERATION_FLAGS
-@done:
-    rts
+    jmp scroll_world_columns
 
-; A near/ring step is selected from, and always coincident with, the 100%-rate
-; hull/world clock. Keep
+; A ring step is selected from the same sector-local numerator as the hull,
+; so the two mappings remain coincident at the restored pre-tuning cadence. Keep
 ; logical row zero at the fixed divider LMS, rotate the 27 rows below it, copy
 ; the prior divider into logical row one, then regenerate logical row zero.
 ; Hull generation follows; hull-only events retain their side-band copy path.
@@ -5058,25 +5450,22 @@ scroll_world_columns:
     jsr entity_complete_scroll_tick
 :
 
-    ldx #(CAPITAL_HULL_VISIBLE_ROWS-1)
-@shift_boundaries:
-    lda CORRIDOR_BOUNDARY_LEFT-1,x
-    sta CORRIDOR_BOUNDARY_LEFT,x
-    lda CORRIDOR_BOUNDARY_RIGHT-1,x
-    sta CORRIDOR_BOUNDARY_RIGHT,x
-    dex
-    bne @shift_boundaries
-
     lda #$00
     jsr set_gameplay_row_ptr
     jsr generate_starfield_row
     ldy #CORRIDOR_CENTRAL_FIRST
     lda (dst_ptr),y
     sta CORRIDOR_BOUNDARY_LEFT
+    sta MUZZLE_BACKING
     ldy #(CORRIDOR_CENTRAL_END-1)
     lda (dst_ptr),y
     sta CORRIDOR_BOUNDARY_RIGHT
+    sta MUZZLE_BACKING+1
     rts
+
+    ; Retain every following cross-segment entry point while removing the
+    ; former 17-byte full boundary-table shift from the executed world path.
+world_boundary_shift_compat_pad:
 
 ; Both runtime display lists keep HUD=$4000 and divider=$4028 immutable. Only
 ; the following 22 LMS addresses differ after a rotation. The inactive list is
@@ -5165,16 +5554,20 @@ rotate_playfield_rows:
     sta dst_ptr
     lda PLAYFIELD_ROW_HI,x
     sta dst_ptr+1
-    lda #<GAMEPLAY_DIVIDER_SCREEN
-    sta src_ptr
-    lda #>GAMEPLAY_DIVIDER_SCREEN
-    sta src_ptr+1
     ldy #39
 @copy_divider:
-    lda (src_ptr),y
+    lda GAMEPLAY_DIVIDER_SCREEN,y
     sta (dst_ptr),y
     dey
     bpl @copy_divider
+    ; Projectile publication is intentionally later in the OPEN frame. If a
+    ; retiring PairShot still covers the fixed divider, the raw row copy above
+    ; would otherwise clone its foreground glyph into the recycled ring row.
+    ; Unwind only those cloned cells, in the same reverse slot order as the
+    ; normal erase, while leaving the real divider ownership untouched.
+    jsr restore_recycled_row_projectile_underlay
+    jsr restore_recycled_row_near_and_debris
+    ldx #(PLAYFIELD_RING_ROWS-1)
 
 rotate_playfield_table_shift:
 @row:
@@ -5199,335 +5592,250 @@ rotate_playfield_table_shift_end:
     inc PLAYFIELD_PREBUILD_PENDING
     rts
 
-; Scalar state is reset before the initial near rows are generated. Sparse far
-; records are populated afterwards so they only claim completed blank cells.
+; Reset the white-only sparse overlay before initial publication.
 init_starfield_state:
     lda #$00
-    sta STAR_NEAR_PHASE
-    sta STAR_FAR_PHASE
-    sta STAR_TWINKLE_SLOT
-    sta STAR_GENERATION_FLAGS
-    lda #STAR_TWINKLE_INTERVAL
-    sta STAR_TWINKLE_TIMER
-    ldx #(STAR_FAR_CAPACITY-1)
-@clear:
+    sta STAR_NEAR_FINE_PHASE
+    sta STAR_NEAR_RING_ADVANCED
+    sta PHYSICAL_PAL_FRAME_ID
+    sta GAMEPLAY_PAL_FRAME_CONSUMED
+    ldx #(STAR_NEAR_CAPACITY-1)
+@near:
+    lda near_star_initial_rows,x
+    sta STAR_NEAR_ROW,x
+    lda near_star_initial_columns,x
+    sta STAR_NEAR_COLUMN,x
     lda #$00
-    sta STAR_FAR_ACTIVE,x
-    sta STAR_FAR_ROW,x
-    sta STAR_FAR_COLUMN,x
-    sta STAR_FAR_CODE,x
+    sta STAR_NEAR_SCREEN_HI,x
     dex
-    bpl @clear
+    bpl @near
     rts
 
 build_star_glyphs:
     ldx #$00
 @byte:
     lda star_glyph_bytes,x
-    sta CHARSET+STAR_FAR_FIRST*8,x
+    sta CHARSET+STAR_NEAR_FIRST*8,x
     inx
-    cpx #((STAR_NEAR_END-STAR_FAR_FIRST)*8)
+    cpx #((STAR_NEAR_END-STAR_NEAR_FIRST)*8)
     bne @byte
     rts
 
-; Initial setup distributes the configured logical far stars over all gameplay
-; rows. Cells already occupied by a near star remain logically present but are
-; not drawn until their next 25%-rate step reaches clear background.
-init_far_star_population:
+.segment "STARFIELD"
+near_star_initial_rows:
+    EMIT_NEAR_STAR_INITIAL_ROWS
+near_star_initial_columns:
+    EMIT_NEAR_STAR_INITIAL_COLUMNS
+.segment "CODE"
+entity_effects_erase_with_white_starfield:
+    ; Advance the logical star state at 50 Hz. Sparse near remains resident
+    ; until the following post-playfield window; erasing it here would remove
+    ; the just-published glyph before ANTIC can fetch the next raster.
+    jsr update_white_starfield_phase
+    jmp entity_effects_erase
+
+.segment "STARFIELD"
+update_white_starfield_phase:
+    ; Four small white points move exactly one scanline per PAL gameplay tick.
+    ; Their state is sector-independent: capital geometry only occludes visual
+    ; publication, so entry/exit cannot freeze, reset, or delay the layer.
+    lda #$00
+    sta STAR_NEAR_RING_ADVANCED
+    lda STAR_NEAR_FINE_PHASE
+    clc
+    adc #STAR_NEAR_FINE_STEP
+    cmp #STAR_FINE_SCANLINES
+    bcc @fine_only
+    sbc #STAR_FINE_SCANLINES
+    sta STAR_NEAR_FINE_PHASE
+    lda #$02
+    sta STAR_NEAR_RING_ADVANCED
+    .repeat STAR_NEAR_CAPACITY, I
+        inc STAR_NEAR_ROW+I
+        lda STAR_NEAR_ROW+I
+        cmp #GAMEPLAY_SCREEN_ROWS
+        bcc :+
+        lda #$00
+        sta STAR_NEAR_ROW+I
+:
+    .endrepeat
+    rts
+@fine_only:
+    sta STAR_NEAR_FINE_PHASE
+    rts
+
+.segment "A2_KERNEL"
+; Capital no longer invalidates the four white-star address caches. Preserve
+; the reviewed A2 entry-point ABI with inert bytes instead of retaining the
+; obsolete freeze/invalidate routine as callable production code.
+continuous_white_star_a2_layout_pad:
+    .res 11, $EA
+
+.segment "STARFIELD"
+; Reverse the four sparse white overlays before ring reuse. The cached address
+; is the exact physical OLD cell from the prior render, independent of a later
+; logical-ring rotation. Near was published only into CH_SPACE after every
+; higher layer, so a foreground glyph means this erase must leave it untouched.
+erase_dynamic_near_star_overlays:
+    ldx #(STAR_NEAR_CAPACITY-1)
+    ldy #$00
+@slot:
+    lda STAR_NEAR_SCREEN_HI,x
+    sta dst_ptr+1
+    lda STAR_NEAR_SCREEN_LO,x
+    sta dst_ptr
+    lda (dst_ptr),y
+    cmp #STAR_NEAR_POINT
+    bne @next
+    lda #CH_SPACE
+    sta (dst_ptr),y
+@next:
+    dex
+    bpl @slot
+    rts
+
+; After OLD cells are gone, move the one shared white pixel to the fine-Y
+; phase selected by simulation. All four records use this glyph, so the cost
+; is constant and no screen-cell address is resolved here.
+publish_dynamic_near_star_phase:
+    ldx STAR_NEAR_FINE_PHASE
+    dex
+    bpl :+
+    ldx #(STAR_FINE_SCANLINES-1)
+:
+    lda #$00
+    sta CHARSET+STAR_NEAR_POINT*8,x
+    ldx STAR_NEAR_FINE_PHASE
+    lda #$10
+    sta CHARSET+STAR_NEAR_POINT*8,x
+    rts
+
+; Publish four small white points after the ring and all higher character
+; layers have reached their new mapping. Only CH_SPACE is claimable, so the
+; late physical write still implements the intended lowest dynamic priority.
+.segment "STARFIELD"
+render_dynamic_near_star_overlays:
     ldx #$00
 @slot:
-    lda #$01
-    sta STAR_FAR_ACTIVE,x
-    jsr star_random_byte
-    and #$1F
-    cmp #GAMEPLAY_SCREEN_ROWS
-    bcc :+
-    sec
-    sbc #GAMEPLAY_SCREEN_ROWS
-:
-    sta STAR_FAR_ROW,x
-@column:
-    jsr choose_far_star_column
-    sta STAR_FAR_COLUMN,x
-    jsr choose_far_star_code
-    sta STAR_FAR_CODE,x
-    inx
-    cpx #STAR_FAR_CAPACITY
-    bne @slot
-    jmp render_far_star_overlays
-
-; The near layer is authoritative character background. At most one star is
-; introduced in a newly exposed row, keeping generation bounded and sparse.
-generate_near_star_row:
-    jsr star_random_byte
-    and #(STAR_DENSITY_DENOMINATOR-1)
-    cmp #STAR_NEAR_DENSITY_NUMERATOR
-    bcs @done
-    jsr choose_star_column
-    tay
-    lda (dst_ptr),y
-    bne @done
-    jsr star_random_byte
-    and #(STAR_SPECIAL_FREQUENCY-1)
-    beq @sparkle
+    ; Cached addresses change only when the shared fine phase crosses a row,
+    ; the physical ring rotates, or both. Coarse+ring cancel; coarse-only moves
+    ; +40 and ring-only moves -40. Divider crossings use the row table.
+    lda STAR_NEAR_SCREEN_HI,x
+    beq @resolve
+    lda STAR_NEAR_ROW,x
     cmp #$02
-    bcc @double
-    lda #STAR_NEAR_POINT
-    bne @store
-@double:
-    lda #STAR_NEAR_DOUBLE
-    bne @store
-@sparkle:
-    lda #STAR_NEAR_SPARKLE
-@store:
-    sta (dst_ptr),y
-@done:
-    rts
-
-choose_star_column:
-    jsr star_random_byte
-    lda CAPITAL_SECTOR_STATE
-    cmp #CAPITAL_HULL_STATE_COMPLETE
-    bcc @corridor
-    lda STAR_RNG_STATE
-    and #$3F
-    cmp #40
-    bcc @done
-    sec
-    sbc #40
-@done:
-    rts
-@corridor:
-    lda STAR_RNG_STATE
-    and #$1F
-    cmp #22
-    bcc :+
-    sec
-    sbc #22
+    bcc @resolve
+    lda STAR_NEAR_RING_ADVANCED
+    bne :+
+    jmp @cached_ready
 :
+    cmp #$03
+    bne :+
+    jmp @cached_ready
+:
+    cmp #$01
+    beq @retreat_cached
+    lda STAR_NEAR_SCREEN_HI,x
+    cmp #>GAMEPLAY_RING_SCREEN_END
+    bne @advance_cached
+    lda STAR_NEAR_SCREEN_LO,x
+    cmp #<(GAMEPLAY_RING_SCREEN_END-GAMEPLAY_SCREEN_COLUMNS)
+    bcs @wrap_cached
+@advance_cached:
     clc
-    adc #(CORRIDOR_CENTRAL_FIRST+1)
-    rts
-
-; Boundary cells 8/31 are part of the legal flight corridor, but the hull
-; projection code temporarily owns them for source muzzles. Persistent far
-; overlays therefore use the safe 22-cell interior until COMPLETE.
-choose_far_star_column:
-    jsr star_random_byte
-    lda CAPITAL_SECTOR_STATE
-    cmp #CAPITAL_HULL_STATE_COMPLETE
-    bcc @corridor
-    lda STAR_RNG_STATE
-    and #$3F
-    cmp #40
-    bcc @done
+    lda STAR_NEAR_SCREEN_LO,x
+    adc #GAMEPLAY_SCREEN_COLUMNS
+    sta STAR_NEAR_SCREEN_LO,x
+    lda STAR_NEAR_SCREEN_HI,x
+    adc #$00
+    sta STAR_NEAR_SCREEN_HI,x
+    bne @cached_ready
+@retreat_cached:
     sec
-    sbc #40
-@done:
-    rts
-@corridor:
-    lda STAR_RNG_STATE
-    and #$1F
-    cmp #22
-    bcc :+
-    sec
-    sbc #22
-:
+    lda STAR_NEAR_SCREEN_LO,x
+    sbc #GAMEPLAY_SCREEN_COLUMNS
+    sta STAR_NEAR_SCREEN_LO,x
+    lda STAR_NEAR_SCREEN_HI,x
+    sbc #$00
+    sta STAR_NEAR_SCREEN_HI,x
+    cmp #>GAMEPLAY_RING_SCREEN
+    bne @cached_ready
+    lda STAR_NEAR_SCREEN_LO,x
+    cmp #<GAMEPLAY_RING_SCREEN
+    bcs @cached_ready
     clc
-    adc #(CORRIDOR_CENTRAL_FIRST+1)
-    rts
-
-choose_far_star_code:
-    jsr star_random_byte
-    and #$07
-    cmp #$05
-    bcc @dim
-    beq @bright
-    lda #STAR_FAR_SHIFTED
-    rts
-@bright:
-    lda #STAR_FAR_BRIGHT
-    rts
-@dim:
-    lda #STAR_FAR_DIM
-    rts
-
-star_random_byte:
-    lda STAR_RNG_STATE
-    lsr
-    bcc :+
-    eor #$B8
-:
-    sta STAR_RNG_STATE
-    rts
-
-.macro RESOLVE_FAR_STAR_PTR
-.local ring, column, ready
-    lda STAR_FAR_ROW,x
-    bne ring
-    lda #<GAMEPLAY_DIVIDER_SCREEN
-    sta dst_ptr
-    lda #>GAMEPLAY_DIVIDER_SCREEN
-    sta dst_ptr+1
-    bne column
-ring:
+    adc #<(GAMEPLAY_RING_SCREEN_END-GAMEPLAY_RING_SCREEN)
+    sta STAR_NEAR_SCREEN_LO,x
+    lda #>GAMEPLAY_RING_SCREEN_END
+    sta STAR_NEAR_SCREEN_HI,x
+    bne @cached_ready
+@wrap_cached:
+    clc
+    lda #<GAMEPLAY_RING_SCREEN
+    adc STAR_NEAR_COLUMN,x
+    sta STAR_NEAR_SCREEN_LO,x
+    lda #>GAMEPLAY_RING_SCREEN
+    sta STAR_NEAR_SCREEN_HI,x
+    bne @cached_ready
+@resolve:
+    lda STAR_NEAR_ROW,x
     tay
+    beq @divider
     dey
     lda PLAYFIELD_ROW_LO,y
     sta dst_ptr
     lda PLAYFIELD_ROW_HI,y
+    bne @row_ready
+@divider:
+    lda #<GAMEPLAY_DIVIDER_SCREEN
+    sta dst_ptr
+    lda #>GAMEPLAY_DIVIDER_SCREEN
+@row_ready:
     sta dst_ptr+1
-column:
     clc
     lda dst_ptr
-    adc STAR_FAR_COLUMN,x
-    sta dst_ptr
-    bcc ready
+    adc STAR_NEAR_COLUMN,x
+    sta STAR_NEAR_SCREEN_LO,x
+    bcc :+
     inc dst_ptr+1
-ready:
-.endmacro
-
-.segment "A2_KERNEL"
-
-erase_far_star_overlays:
-    ldx #(STAR_FAR_CAPACITY-1)
-erase_far_star_slot:
-    lda STAR_FAR_ACTIVE,x
-    bpl erase_far_star_next
-    and #$7F
-    sta STAR_FAR_ACTIVE,x
-    lda STAR_FAR_SCREEN_LO,x
+:
+    lda dst_ptr+1
+    sta STAR_NEAR_SCREEN_HI,x
+@cached_ready:
+    lda STAR_NEAR_SCREEN_LO,x
     sta dst_ptr
-    lda STAR_FAR_SCREEN_HI,x
+    lda STAR_NEAR_SCREEN_HI,x
     sta dst_ptr+1
     ldy #$00
-    lda #CH_SPACE
+    lda (dst_ptr),y
+    bne @next
+    lda #STAR_NEAR_POINT
     sta (dst_ptr),y
-erase_far_star_next:
-    dex
-    bpl erase_far_star_slot
+@next:
+    inx
+    cpx #STAR_NEAR_CAPACITY
+    beq @done
+    jmp @slot
+@done:
     rts
 
-render_far_star_overlays:
-    ldx #$00
-render_far_star_slot:
-    lda STAR_FAR_ACTIVE,x
-    cmp #$01
-    bne render_far_star_next
-    RESOLVE_FAR_STAR_PTR
-    ldy #$00
-    lda (dst_ptr),y
-    bne render_far_star_next        ; near stars and gameplay backing win
-    lda dst_ptr
-    sta STAR_FAR_SCREEN_LO,x
-    lda dst_ptr+1
-    sta STAR_FAR_SCREEN_HI,x
-    lda STAR_FAR_CODE,x
-    sta (dst_ptr),y
-    lda #$81
-    sta STAR_FAR_ACTIVE,x
-render_far_star_next:
-    inx
-    cpx #STAR_FAR_CAPACITY
-    bne render_far_star_slot
+; Capital shells are a higher character layer and may capture a transient
+; white point while crossing open space. Such a point has no persistent
+; backing ownership; restoring it after the star moves would create an orphan
+; that scrolls with the ring. Keep the sanitizer A-only so both shell cells can
+; use it without disturbing the slot/index registers.
+sanitize_dynamic_near_backing:
+    cmp #STAR_NEAR_POINT
+    bne :+
+    lda #CH_SPACE
+:
     rts
 
 .segment "STARFIELD"
-
-; Far stars persist as composed background until a world-scroll step erases
-; them.  Revisit the bounded 24-slot population only after that step rather
-; than scanning it on every PAL frame.
-render_far_star_overlays_if_needed:
-    lda STAR_GENERATION_FLAGS
-    beq @done
-    lda #$00
-    sta STAR_GENERATION_FLAGS
-    jmp render_far_star_overlays
-@done:
-    rts
-
-advance_far_stars:
-    ldx #$00
-@slot:
-    lda STAR_FAR_ACTIVE,x
-    beq @next
-    inc STAR_FAR_ROW,x
-    lda STAR_FAR_ROW,x
-    cmp #GAMEPLAY_SCREEN_ROWS
-    bcc @next
-@respawn:
-    lda #$00
-    sta STAR_FAR_ROW,x
-    jsr choose_far_star_column
-    sta STAR_FAR_COLUMN,x
-    jsr choose_far_star_code
-    sta STAR_FAR_CODE,x
-    lda #$01
-    sta STAR_FAR_ACTIVE,x
-@next:
-    inx
-    cpx #STAR_FAR_CAPACITY
-    bne @slot
-    rts
-
-tick_star_twinkle:
-    dec STAR_TWINKLE_TIMER
-    bne @done
-    lda #STAR_TWINKLE_INTERVAL
-    sta STAR_TWINKLE_TIMER
-    inc STAR_TWINKLE_SLOT
-    lda STAR_TWINKLE_SLOT
-    cmp #STAR_FAR_CAPACITY
-    bcc :+
-    lda #$00
-    sta STAR_TWINKLE_SLOT
-:
-    tax
-    lda STAR_FAR_ACTIVE,x
-    bpl @done                         ; hidden/covered stars hold their phase
-    lda STAR_FAR_CODE,x
-    sta loader_repeat_value
-    jsr set_far_star_ptr
-    ldy #$00
-    lda (dst_ptr),y
-    cmp loader_repeat_value
-    bne @done                         ; never change through an overlay owner
-    lda loader_repeat_value
-    cmp #STAR_FAR_BRIGHT
-    beq @dim
-    lda #STAR_FAR_BRIGHT
-    bne @store
-@dim:
-    lda #STAR_FAR_DIM
-@store:
-    sta STAR_FAR_CODE,x
-    lda STAR_FAR_CODE,x
-    sta (dst_ptr),y
-@done:
-    rts
-
-; Resolve one far-star record to its current physical LMS row while preserving
-; X as the slot index.  The column remains unchanged across every ring head.
-set_far_star_ptr:
-    txa
-    pha
-    lda STAR_FAR_ROW,x
-    jsr set_gameplay_row_ptr
-    pla
-    tax
-    clc
-    lda dst_ptr
-    adc STAR_FAR_COLUMN,x
-    sta dst_ptr
-    bcc :+
-    inc dst_ptr+1
-:
-    rts
-
 star_glyph_bytes:
     EMIT_STAR_GLYPHS
 
-.assert * - star_glyph_bytes = (STAR_NEAR_END-STAR_FAR_FIRST)*8, error, "star glyph byte count changed"
+.assert * - star_glyph_bytes = (STAR_NEAR_END-STAR_NEAR_FIRST)*8, error, "star glyph byte count changed"
 
 ; -----------------------------------------------------------------------------
 ; Shared POKEY music transport. The menu owns all voices. Gameplay uses only
@@ -5780,10 +6088,8 @@ music_restore_gameplay_channels:
     sta AUDC2
     rts
 
-game_music_read_token:
-game_music_pattern_read:
-    lda $FFFF,y
-    rts
+game_music_read_token = game_music_read_token_tail
+game_music_pattern_read = game_music_read_token_tail
 
 game_music_load_pattern:
     ldx MUSIC_SEQUENCE_INDEX
@@ -5800,8 +6106,39 @@ game_music_player_end:
 EMIT_MENU_MUSIC_DATA
 EMIT_GAMEPLAY_MUSIC_DATA
 
+; Capital admission runs before enemy and projectile movement. Keep the hull
+; out until the ordinary owner has completed its finite downward lifecycle and
+; every released pulse has left naturally; the following update may admit it.
+.segment "CODE"
+ordinary_wave_pressure_active:
+    lda ENEMY_ACTIVE
+    bne @done
+    ldx #(FIGHTER_PROJECTILE_SLOT_COUNT-INTERCEPTOR_PROJECTILE_SLOT_BASE-1)
+@scan:
+    lda FIGHTER_PROJECTILE_ACTIVE+INTERCEPTOR_PROJECTILE_SLOT_BASE,x
+    bne @done
+    dex
+    bpl @scan
+    inx                         ; exhausted scan returns Z=1 without state writes
+@done:
+    rts
+
+; N=1 from first-capital DUE through the complete hull/drain/reconstruction
+; lifecycle. The pre-sector OPEN and the post-sector OPEN both return N=0.
+.segment "CODE"
+ordinary_wave_capital_blocked:
+    bit DIRECTOR_STATE_FLAGS
+    bmi @done
+    bvc @done
+    lda CAPITAL_SECTOR_STATE
+    cmp #CAPITAL_HULL_STATE_OPEN
+@done:
+    rts
+
+.segment "STARFIELD"
+
 .assert * <= HUD_BOOSTER_BACKING, error, "starfield runtime overlaps BOOST HUD backing"
-.assert * - __STARFIELD_RUN__ <= $08E6, error, "starfield runtime exceeds the pre-broadside gap"
+.assert * - __STARFIELD_RUN__ <= $092C, error, "starfield runtime exceeds the expanded pre-broadside gap"
 
 .segment "BROADSIDE"
 
@@ -5851,53 +6188,14 @@ scroll_hull_copy_source_ready:
     lda (src_ptr),y
     sta (dst_ptr),y
     dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
+    bpl @copy_allied
     ldy #39
 @copy_enemy:
     lda (src_ptr),y
     sta (dst_ptr),y
     dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
-    lda (src_ptr),y
-    sta (dst_ptr),y
-    dey
+    cpy #(CORRIDOR_ENEMY_FIRST-1)
+    bne @copy_enemy
 
     dex
     bpl scroll_hull_copy_row
@@ -5910,7 +6208,7 @@ scroll_hull_columns_advance_scene:
     lda CAPITAL_SECTOR_STATE
     cmp #CAPITAL_HULL_STATE_DRAIN
     bcs @drain_row
-    jsr draw_hull_row
+    jsr commit_prepared_hull_row
     jsr track_top_muzzles
     inc corridor_phase
     bne :+
@@ -5965,44 +6263,8 @@ clear_top_hull_row:
 .segment "CODE"
 
 update_sector_state:
-    lda CORRIDOR_PHASE_HI
-    beq @low_page
-    cmp #$01
-    bne @drain
-    lda corridor_phase
-    cmp #<CAPITAL_HULL_SECTION_COMBAT_END
-    bcc @combat
-    cmp #<CAPITAL_HULL_SECTION_FORWARD_END
-    bcc @forward
-    cmp #<CAPITAL_HULL_STREAM_ROWS
-    bcc @prow
-@drain:
-    lda #CAPITAL_HULL_STATE_DRAIN
-    bne @store
-@low_page:
-    lda corridor_phase
-    cmp #<CAPITAL_HULL_SECTION_ENGINES_END
-    bcc @engines
-    cmp #<CAPITAL_HULL_SECTION_AFT_END
-    bcc @aft
-    bcs @combat
-@engines:
-    lda #CAPITAL_HULL_STATE_ENGINES
-    beq @store
-@aft:
-    lda #CAPITAL_HULL_STATE_AFT
-    bne @store
-@combat:
-    lda #CAPITAL_HULL_STATE_COMBAT
-    bne @store
-@forward:
-    lda #CAPITAL_HULL_STATE_FORWARD
-    bne @store
-@prow:
-    lda #CAPITAL_HULL_STATE_PROW
-@store:
-    sta CAPITAL_SECTOR_STATE
-    rts
+    jmp HYBRID_SECTOR_UPDATE_CAPITAL_PHASE
+    .res 58,$EA                  ; preserve reviewed following CODE addresses
 
 .segment "BROADSIDE"
 
@@ -6020,14 +6282,7 @@ restore_active_muzzles:
     sta dst_ptr+1
     lda MUZZLE_SCREEN_LO,x
     sta dst_ptr
-    ldy MUZZLE_VISIBLE_ROW,x
-    cpx #$00
-    bne @enemy
-    lda CORRIDOR_BOUNDARY_LEFT,y
-    jmp @store
-@enemy:
-    lda CORRIDOR_BOUNDARY_RIGHT,y
-@store:
+    lda MUZZLE_BACKING,x
     ldy #$00
     sta (dst_ptr),y
 @next:
@@ -6063,7 +6318,13 @@ advance_tracked_muzzles:
     lda dst_ptr+1
     adc #$00
     sta MUZZLE_SCREEN_HI,x
-    bne @next
+    ; The projection may advance on a hull-only event while the central stars
+    ; remain stationary. Capture the exact new cell instead of maintaining and
+    ; shifting two complete 28-byte logical backing tables every world event.
+    ldy #$00
+    lda (dst_ptr),y
+    sta MUZZLE_BACKING,x
+    jmp @next
 @deactivate:
     lda #$00
     sta MUZZLE_ROW_DOMAIN,x
@@ -6178,23 +6439,24 @@ generate_corridor_row:
 ; the two streams are independent and source-derived muzzles are overlaid later.
 generate_starfield_row:
     lda #CH_SPACE
-    ldy #$00
     ldx CAPITAL_SECTOR_STATE
     cpx #CAPITAL_HULL_STATE_COMPLETE
-    bcs @clear_central
+    bcs @full
     ldy #CORRIDOR_CENTRAL_FIRST
 @clear_central:
     sta (dst_ptr),y
     iny
-    cpx #CAPITAL_HULL_STATE_COMPLETE
-    bcs @full_limit
     cpy #CORRIDOR_CENTRAL_END
     bne @clear_central
-    jmp generate_near_star_row
-@full_limit:
+    rts
+@full:
+    ldy #$00
+@clear_full:
+    sta (dst_ptr),y
+    iny
     cpy #40
-    bne @clear_central
-    jmp generate_near_star_row
+    bne @clear_full
+    rts
 
 .segment "BROADSIDE"
 
@@ -6311,7 +6573,7 @@ select_sector_module:
 
 .segment "PICKUP_CODE"
 turret_layout_pickup_compat_pad:
-    .byte $00,$00,$00,$00,$00,$00,$00,$00
+    ; Retired: the 16-bit provisional capital gate consumes this old padding.
 
 .segment "BROADSIDE"
 
@@ -6462,7 +6724,7 @@ draw_hull_row:
 .segment "BROADSIDE"
 
 fill_starfield_empty_cells:
-    jmp generate_near_star_row
+    rts
 
 ; Initial rows preserve the historical RNG sequence: a hull projection stores
 ; black behind itself rather than leaking a capital-hull screen code into the
@@ -6470,7 +6732,7 @@ fill_starfield_empty_cells:
 store_boundary_star:
     pha
     and #$7F
-    cmp #CAPITAL_HULL_GLYPH_BASE
+    cmp #(PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT)
     pla
     bcc :+
     lda #CH_SPACE
@@ -6513,16 +6775,23 @@ update_sound:
 @enabled:
     lda fire_timer
     beq @hit
-    dec fire_timer
-    inc AUDF1
+    ; AUDF1 is write-only: INC would read POT0 and turn paddle noise into the
+    ; next frequency. Keep the $32..$38 phase in ordinary zero-page state.
+    ; The accepted-shot frame advances to $33; Rapid's six-frame interval then
+    ; leaves the $38 tail audible for one full PAL frame before the next shot.
+    inc fire_timer
     lda fire_timer
-    bne @hit
+    sta AUDF1                   ; $39 is silenced below before it can be heard
+    cmp #$39
+    bcc @hit
+@fire_done:
     lda #$00
+    sta fire_timer
     sta AUDC1
 
 @hit:
     lda hit_timer
-    beq @damage
+    beq @capital
     dec hit_timer
     inc AUDF2
     inc AUDF2
@@ -6620,8 +6889,8 @@ frontend_screen_data:
     .word ended_screen_data, game_over_screen_data ; gameplay is never rendered here
     .word pause_screen_data, pause_quit_screen_data
 
-interceptor_post_burst_frames:
-    .byte INTERCEPTOR_POST_BURST_EASY,INTERCEPTOR_POST_BURST_MEDIUM,INTERCEPTOR_POST_BURST_HARD
+interceptor_post_burst_frames_legacy_pad:
+    .res 3,$00
 .segment "RODATA"
 shared_fighter_explosion_masks:
     EMIT_SHARED_FIGHTER_EXPLOSION_MASKS
@@ -6669,6 +6938,41 @@ player_engine_shape:
 ; display-list counter wraps at that boundary instead of carrying into the
 ; next kilobyte, so these bytes must move together as resident data grows.
 ; H3.1 display lists reproduce the accepted 216-scanline ANTIC contract.
+; Commit at the original draw point; key changes invalidate stale preparation.
+; 27 rows at a 40-byte stride have distinct low bytes (repeat period 32), so
+; this low-byte identity binds the complete physical destination, including wrap.
+commit_prepared_hull_row:
+    lda CAPITAL_SECTOR_STATE
+    cmp PREPARED_HULL_SECTOR
+    bne @miss
+    lda corridor_phase
+    cmp PREPARED_HULL_LO
+    bne @miss
+    lda CORRIDOR_PHASE_HI
+    cmp PREPARED_HULL_HI
+    bne @miss
+    lda PLAYFIELD_ROW_LO
+    cmp PREPARED_HULL_RING_LO
+    bne @miss
+    ; The sole caller has resolved the fixed divider. The two static sides can
+    ; share one index, with their last cells outside the loop. An unrotated
+    ; hull-only path fails the physical-row key above, without a second flag.
+    lda PREPARED_HULL_ROW+8
+    sta GAMEPLAY_DIVIDER_SCREEN+8
+    lda PREPARED_HULL_ROW+39
+    sta GAMEPLAY_DIVIDER_SCREEN+39
+    ldy #7
+@sides:
+    lda PREPARED_HULL_ROW,y
+    sta GAMEPLAY_DIVIDER_SCREEN,y
+    lda PREPARED_HULL_ROW+31,y
+    sta GAMEPLAY_DIVIDER_SCREEN+31,y
+    dey
+    bpl @sides
+    rts
+@miss:
+    jmp draw_hull_row
+
 .align $100
 main_menu_display_list:
     .byte $70,$70,$70,$47,<SCREEN,>SCREEN
@@ -6718,6 +7022,88 @@ option_label_difficulty:
 options_persistent_tables_end:
 
     .assert options_persistent_tables_end <= $9500, error, "OPTIONS tables exceed persistent frontend RODATA gap"
+
+integration_pickup_pending_tick:
+    dec ENTITY_TIMER+WEAPON_PICKUP_SLOT
+    bne @done
+    ldx #DIRECTOR_HAZARD_PICKUP
+    jsr DIRECTOR_REQUEST
+    bcs @reveal
+    lda #DIRECTOR_RETRY_FRAMES
+    sta ENTITY_TIMER+WEAPON_PICKUP_SLOT
+@done:
+    rts
+@reveal:
+    jmp integration_pickup_reveal_body
+
+; Select only the policy used by the following production Director request.
+; The caller has already saved the authoritative phase and restores it before
+; returning, so world-row phase progression remains unchanged.
+select_interceptor_request_phase:
+    lda CAPITAL_SECTOR_STATE
+    cmp #CAPITAL_HULL_STATE_DRAIN
+    bcs @ordinary
+    lda #$03                    ; existing all-hazards 3/4/5 policy
+    sta DIRECTOR_STATE_PHASE
+    rts
+@ordinary:
+    lda DIRECTOR_STATE_PHASE
+    bne @done
+    inc DIRECTOR_STATE_PHASE    ; phase zero borrows phase one's Interceptor bit
+@done:
+    rts
+
+; The deferred starfield staging moved to the bootstrap prefix in roadmap
+; 4.5M-M1 (stage_starfield_stream, two exact-window copies). These 15 bytes
+; held the former three 960-byte screen copies and their pad; they stay
+; reserved so every following reviewed ENTITY entry point keeps its address.
+    .res $0F
+
+; All module and prow boundaries leave this inner corridor open. Carry set is
+; therefore a complete proof that the player cannot contact either capital
+; hull; carry clear asks the exact source-row resolver to handle an edge case.
+player_inside_universal_hull_corridor:
+    lda player_x
+    cmp #$54
+    bcc @edge
+    adc #(PLAYER_COLLISION_WIDTH-2) ; CMP left C=1: add the remaining width
+    cmp #$AC
+    bcs @edge
+    sec
+    rts
+@edge:
+    clc
+    rts
+
+; Only immutable source cells are prepared. Difficulty is immutable throughout
+; gameplay (including pause); restart invalidates after init_screen. The key
+; binds both capital owners' shared 16-bit row, section and recycled ring row.
+prepare_next_hull_row:
+    lda CAPITAL_SECTOR_STATE
+    ; COMBAT is the measured peak and both source projections exist throughout
+    ; it. Entry/exit edges retain the raw path, which can leave a boundary star
+    ; untouched when one owner has no source row.
+    cmp #CAPITAL_HULL_STATE_COMBAT
+    bne @done
+    sta PREPARED_HULL_SECTOR
+    lda corridor_phase
+    sta PREPARED_HULL_LO
+    lda CORRIDOR_PHASE_HI
+    sta PREPARED_HULL_HI
+    lda PLAYFIELD_ROW_LO+PLAYFIELD_RING_ROWS-1
+    sta PREPARED_HULL_RING_LO
+    jmp prepare_hull_cells
+@done:
+    rts
+
+prepare_hull_cells:
+    lda #<PREPARED_HULL_ROW
+    sta dst_ptr
+    lda #>PREPARED_HULL_ROW
+    sta dst_ptr+1
+    jmp draw_hull_row
+
+.segment "ENTITY_CODE"
 
 .align $100
 options_display_list:
@@ -7146,8 +7532,10 @@ init_broadside:
     sta PLAYER_LIFECYCLE
     lda #PLAYER_STARTING_LIVES
     sta PLAYER_LIVES
-    lda #CAPITAL_HULL_STATE_OPEN
-    sta CAPITAL_SECTOR_STATE
+    ; The accepted C lifecycle initialized the authoritative sector byte.
+    bit CAPITAL_SECTOR_STATE
+    nop
+    nop
     lda #PLAYER_HEALTH_UNITS    ; ten 10-point units, directly deriving 100%
     sta BROAD_PLAYER_HEALTH
     lda #BROADSIDE_INITIAL_DELAY
@@ -7169,16 +7557,15 @@ update_player_death:
     cmp #PLAYER_DYING
     beq @dying
     cmp #PLAYER_GAME_OVER
-    beq @game_over_ready
+    beq update_player_death_game_over_ready
     clc
     rts
 @dying:
-    dec BROAD_DEATH_TIMER
-    lda BROAD_DEATH_TIMER
-    beq @finished
-    clc
-    rts
-@finished:
+    ; The dying tick (deferred explosion begin, death timer) lives in the
+    ; ENTITY_CODE tail; the seven unused bytes keep BROADSIDE size-neutral.
+    jmp player_dying_tick
+    .res 7,$EA
+update_player_death_finished:
     lda PLAYER_LIVES
     beq @game_over
     jsr respawn_player
@@ -7188,7 +7575,7 @@ update_player_death:
     lda #PLAYER_GAME_OVER
     sta PLAYER_LIFECYCLE
     jsr insert_top_score
-@game_over_ready:
+update_player_death_game_over_ready:
     jsr clear_player_collision_latches
     sec
     rts
@@ -7381,6 +7768,7 @@ update_broadside:
     nop                         ; preserve the fixed BROADSIDE layout
 
 schedule_broadside:
+    .assert BROADSIDE_ACTIVE_LIMIT <= BROADSIDE_SLOT_COUNT, error, "broadside active limit exceeds allocated slots"
     lda CAPITAL_SECTOR_STATE
     cmp #CAPITAL_HULL_STATE_DRAIN
     bcc :+
@@ -7391,7 +7779,7 @@ schedule_broadside:
     lda BROAD_STATE,x
     beq @have_slot
     inx
-    cpx #BROADSIDE_SLOT_COUNT
+    cpx #BROADSIDE_ACTIVE_LIMIT
     bne @free_slot
     jmp @retry
 @have_slot:
@@ -7719,11 +8107,14 @@ tick_launch_flashes:
     bne @slot
     rts
 
-render_launch_flashes:
-    ldx #$00
-@slot:
-    lda BROAD_FLASH_TIMER,x
-    beq @next
+; Bytes the shared prologue saves, returned to the segment as unreachable
+; padding so no pinned BROADSIDE address moves.
+LAUNCH_FLASH_LAYOUT_PAD_BYTES = 14
+
+; Both the flash write and its expiry address the same cell: the slot's own
+; row pointer plus its turret's muzzle column. X (the slot) is preserved and
+; Y returns the turret record offset for the caller's side test.
+set_launch_flash_cell_ptr:
     stx BROAD_WORK_SLOT
     lda BROAD_ROW_LO,x
     sta dst_ptr
@@ -7734,6 +8125,14 @@ render_launch_flashes:
     tay
     lda capital_hull_turrets+CAPITAL_TURRET_MUZZLE_COLUMN_OFFSET,y
     sta BROAD_WORK_VALUE
+    rts
+
+render_launch_flashes:
+    ldx #$00
+@slot:
+    lda BROAD_FLASH_TIMER,x
+    beq @next
+    jsr set_launch_flash_cell_ptr
     lda capital_hull_turrets+CAPITAL_TURRET_SIDE_OFFSET,y
     beq @allied
     lda #CAPITAL_HULL_ENEMY_FLASH_CODE
@@ -7742,30 +8141,39 @@ render_launch_flashes:
     lda #CAPITAL_HULL_ALLIED_FLASH_CODE
 @draw:
     ldy BROAD_WORK_VALUE
+    ; Save what this overlay is about to destroy, exactly as the tracked-muzzle
+    ; overlay saves MUZZLE_BACKING. The cell already holding this flash code is
+    ; our own write from an earlier frame of the same flash: re-saving it there
+    ; would make the flash its own backing and orphan the cell permanently.
+    cmp (dst_ptr),y
+    beq @write
+    pha
+    lda (dst_ptr),y
+    sta BROAD_FLASH_BACKING,x
+    pla
+@write:
     sta (dst_ptr),y
-    ldx BROAD_WORK_SLOT
 @next:
     inx
     cpx #BROADSIDE_SLOT_COUNT
     bne @slot
     rts
 
+; The expiry runs before the scroll that can move BROAD_ROW_LO/HI, so this is
+; always the cell render_launch_flashes wrote last and BROAD_FLASH_BACKING is
+; that cell's own prior content.
 restore_launch_flash_cell:
-    stx BROAD_WORK_SLOT
-    lda BROAD_ROW_LO,x
-    sta dst_ptr
-    lda BROAD_ROW_HI,x
-    sta dst_ptr+1
-    ldy BROAD_TURRET,x
-    lda turret_record_offsets,y
-    tay
-    lda capital_hull_turrets+CAPITAL_TURRET_MUZZLE_COLUMN_OFFSET,y
-    sta BROAD_WORK_VALUE
-    lda capital_hull_turrets+CAPITAL_TURRET_MUZZLE_SCREEN_CODE_OFFSET,y
+    jsr set_launch_flash_cell_ptr
+    lda BROAD_FLASH_BACKING,x
     ldy BROAD_WORK_VALUE
     sta (dst_ptr),y
-    ldx BROAD_WORK_SLOT
     rts
+launch_flash_layout_pad:
+    ; Factoring the shared cell-pointer prologue out of the two flash routines
+    ; freed BROADSIDE bytes. They are returned here, after an unconditional
+    ; rts and with no entry point, so every pinned later BROADSIDE address
+    ; (free_broadside_slot $76A7 and the integration release ABI) is unmoved.
+    .res LAUNCH_FLASH_LAYOUT_PAD_BYTES,$00
 
 ; Both engine banks share one bounded two-phase timer. Only their two
 ; dedicated charset glyphs change; PMG, palette, collision, and display-list
@@ -7890,11 +8298,18 @@ apply_player_damage:
     beq :+
     dec PLAYER_LIVES
 :
-    lda #SHARED_FIGHTER_EXPLOSION_TOTAL
+    ; DYING lasts one frame longer than the explosion: the PMG explosion begins
+    ; on the first DYING tick (player_dying_tick), so the death frame pays no
+    ; erase_player and no first explosion phase, and the explosion still erases
+    ; itself in the frame of, and before, the respawn.
+    lda #(SHARED_FIGHTER_EXPLOSION_TOTAL+1)
     sta BROAD_DEATH_TIMER
     jsr erase_bullet
     jsr clear_interceptor_pulses
-    jsr begin_player_fighter_explosion
+    ; begin_player_fighter_explosion moved to player_dying_tick; this lethal
+    ; tail takes the former call's three bytes, so every later BROADSIDE
+    ; address (free_broadside_slot $76A7) stays in place.
+    jmp update_hud_status
 @update_hud:
     jmp update_hud_status
 @done:
@@ -8222,7 +8637,7 @@ render_capital_explosion:
     ldx BROAD_WORK_VALUE
     sta CAPITAL_EXPLOSION_BACKUP,x
     and #$7F
-    cmp #CAPITAL_HULL_GLYPH_BASE
+    cmp #(PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT)
     bcc @skip
     cmp #(CAPITAL_HULL_GLYPH_BASE+CAPITAL_HULL_GLYPH_COUNT)
     bcs @skip
@@ -8305,7 +8720,13 @@ capital_shell_hits_enemy:
     lda ENEMY_ACTIVE
     cmp #ENEMY_ACTIVE_STATE
     bne @miss
-    lda enemy_x
+    ldx #$00
+@member:
+    lda ENEMY_MEMBER_STATE,x
+    cmp #ENEMY_ACTIVE_STATE
+    bne @next
+    stx ENEMY_TARGET_SLOT
+    lda ENEMY_X,x
     sta dst_ptr
     ldy ENEMY_ARCHETYPE
     clc
@@ -8313,18 +8734,32 @@ capital_shell_hits_enemy:
     sec
     sbc #$01
     sta dst_ptr+1
-    lda enemy_y
+    jsr enemy_member_screen_y
+    bcc @next
+    sta ENEMY_TARGET_Y
     sec
     sbc #(CAPITAL_PROJECTILE_VISIBLE_HEIGHT/2-1)
     sta frontend_data_ptr
     clc
     lda frontend_data_ptr
+    ldy ENEMY_ARCHETYPE
     adc enemy_frame_heights,y
     adc #(CAPITAL_PROJECTILE_VISIBLE_HEIGHT-1)
     sta frontend_data_ptr+1
-    jmp capital_shell_hits_target
+    jsr capital_shell_hits_target
+    bcs @hit
+    ldx ENEMY_TARGET_SLOT
+@next:
+    inx
+    cpx #RAIDER_PMG_SLOT_COUNT
+    bne @member
 @miss:
+    ldx BROAD_WORK_SLOT
     clc
+    rts
+@hit:
+    ldx BROAD_WORK_SLOT
+    sec
     rts
 
 capital_shell_hits_player:
@@ -8393,8 +8828,9 @@ capital_shell_collision_flags_shared:
     beq @right_order
     ; Left-moving: greatest target right edge is spatially first. A tie keeps
     ; the existing deterministic fighter precedence.
+    ldy ENEMY_TARGET_SLOT
+    lda ENEMY_X,y
     ldy ENEMY_ARCHETYPE
-    lda enemy_x
     clc
     adc enemy_visible_widths,y
     sta row_counter
@@ -8409,7 +8845,8 @@ capital_shell_collision_flags_shared:
     ; Right-moving: smallest target left edge is spatially first. Equal edges
     ; retain the same fighter precedence used by the opposite direction.
     lda player_x
-    cmp enemy_x
+    ldy ENEMY_TARGET_SLOT
+    cmp ENEMY_X,y
     bcc @done
 @fighter_first:
     lda #$02
@@ -8639,6 +9076,10 @@ handle_player_hull_contact:
     bne :+
     rts
 :
+    jsr player_inside_universal_hull_corridor
+    bcc @resolve_rows
+    rts
+@resolve_rows:
     lda player_y
     sec
     sbc #BROADSIDE_SCREEN_TOP
@@ -8769,8 +9210,59 @@ handle_player_hull_contact:
 
 ; Preserve the reviewed integration-glue target after replacing the former
 ; periodic cannon-mask decoder with the smaller encoded-layout selector.
+; The separately assembled integration glue calls free_broadside_slot at the
+; fixed $76A7 ABI. Replacing the transition catch-ups with the common master
+; gate retires this six-byte source pad while preserving that real boundary.
+white_starfield_broadside_abi_pad:
+    .res 0
 free_broadside_slot_layout_lead_pad:
-    .res 3,$00
+projectile_recycle_broadside_layout_pad:
+restore_recycled_row_projectile_underlay:
+    ldx #(PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT-1)
+@slot:
+    lda FIGHTER_PROJECTILE_RENDERED,x
+    beq @next
+    lda FIGHTER_PROJECTILE_SCREEN_HI,x
+    cmp #>GAMEPLAY_DIVIDER_SCREEN
+    bne @next
+    lda FIGHTER_PROJECTILE_SCREEN_LO,x
+    sec
+    sbc #<GAMEPLAY_DIVIDER_SCREEN
+    cmp #GAMEPLAY_SCREEN_COLUMNS
+    bcs @next
+    tay
+    lda FIGHTER_PROJECTILE_BACKUP_TOP,x
+    sta (dst_ptr),y
+@next:
+    dex
+    bpl @slot
+    rts
+restore_recycled_row_projectile_underlay_end:
+; Wait for and atomically consume one token produced by the first gameplay DLI.
+; A second sector-loop entry in the same physical frame stalls here; a changed
+; token admits exactly one complete simulation/publication iteration.
+wait_for_master_pal_frame:
+@wait:
+    lda PHYSICAL_PAL_FRAME_ID
+    cmp GAMEPLAY_PAL_FRAME_CONSUMED
+    beq @wait
+    sta GAMEPLAY_PAL_FRAME_CONSUMED
+    rts
+wait_for_master_pal_frame_end:
+; PairShot collision runs before the debris simulation tick. A newly admitted,
+; wholly hidden slot must not enter geometry. This 11-byte tail replaces ABI
+; padding rather than growing runtime or shifting the fixed $76A7 entry.
+entity_player_fighter_projectile_hits_visible_debris:
+    lda ENTITY_Y
+    cmp #ENTITY_GAMEPLAY_TOP
+    bcc @miss
+    jmp entity_player_fighter_projectile_hits_debris
+@miss:
+    rts
+debris_spawn_gate_broadside_layout_end:
+    .res $39-(debris_spawn_gate_broadside_layout_end-projectile_recycle_broadside_layout_pad)
+                                ; consume the remaining fixed-slot ABI padding while
+                                ; preserving the fixed integration release ABI
 free_broadside_slot:
     jsr erase_broadside_slot
     lda #BROAD_FREE
@@ -8781,7 +9273,8 @@ free_broadside_slot:
     rts
 free_broadside_slot_layout_pad:
                                 ; former three-byte layout pad now resets Y
-.assert free_broadside_slot = $76C1, error, "integration release target moved"
+.assert free_broadside_slot = $76A7, lderror, "integration release target moved"
+.export wait_for_master_pal_frame
 
 .segment "BROADSIDE"
 
@@ -8802,9 +9295,11 @@ broadside_erase_begin:
     sbc #$01
     tay
     lda BROAD_PREV_Y,x
+    jsr sanitize_dynamic_near_backing
     sta (dst_ptr),y
     iny
     lda BROAD_COLLISION,x
+    jsr sanitize_dynamic_near_backing
     sta (dst_ptr),y
 broadside_erase_cells_restored:
     jmp broadside_erase_clear_previous
@@ -8895,10 +9390,9 @@ set_broadside_slot_quad:
     ora missile_quad_size_bits,x
     sta SIZEM
     rts
-; Preserve the accepted linked-runtime accounting while the collision helper
-; moves into late-published GLUE; unreachable after the tail return above.
+; The former two-byte unreachable accounting pad is reclaimed by the Light
+; Wingman kernel; the label is kept for existing trace references.
 broadside_glue_accounting_pad:
-    .byte $00,$00
 
 .segment "BROADSIDE"
 enemy_frame_heights:
@@ -8916,13 +9410,11 @@ enemy_accent_rows:
 enemy_accent_offsets:
     EMIT_ENEMY_ACCENT_OFFSETS
 .segment "CODE"
-enemy_hit_points:
-    EMIT_ENEMY_HIT_POINTS
-enemy_scores:
-    EMIT_ENEMY_SCORES
+enemy_high_level_profile_legacy_pad:
+    .res ENEMY_IMPLEMENTED_COUNT*2,$00
 .segment "BROADSIDE"
-enemy_weapon_profiles:
-    EMIT_ENEMY_WEAPON_PROFILES
+enemy_weapon_profile_legacy_pad:
+    .res ENEMY_IMPLEMENTED_COUNT,$00
 enemy_projectile_spawn_y_offsets:
     EMIT_ENEMY_PROJECTILE_SPAWN_Y_OFFSETS
 enemy_body_data:
@@ -8942,52 +9434,68 @@ enemy_runtime_data_end:
 
 .segment "ENTITY_CODE"
 
-; ENTITY_CODE is already resident when the boot flow reaches this second LZSS
-; stream. Re-arm the shared self-modifying decoder after ENTITY_CODE unpacking
-; changed both operands, without growing the protected resident CODE segment.
-unpack_broadside_runtime:
-    ldx #>__BROADSIDE_LOAD__
-    lda #<__BROADSIDE_LOAD__
-    sta broadside_read_source+1
-    stx broadside_read_source+2
-    ldx #>__BROADSIDE_RUN__
-    lda #<__BROADSIDE_RUN__
-    sta broadside_destination+1
-    stx broadside_destination+2
-    jmp broadside_unpack_command
-
 ; The external pickup record initially lands in its not-yet-unpacked runtime
 ; reservation. stage_boot_streams preserves it in not-yet-initialised frontend
-; charset RAM before the final $8800-$8FFF unpack overwrites that packed copy.
+; charset RAM before the final pickup-code/collision unpack overwrites that copy.
 unpack_weapon_pickup_phase_runtime:
     ldx #>WEAPON_PICKUP_COLD_STAGING
     lda #<WEAPON_PICKUP_COLD_STAGING
     sta broadside_read_source+1
     stx broadside_read_source+2
-    ldx #>WEAPON_PICKUP_PHASE_BANK
-    lda #<WEAPON_PICKUP_PHASE_BANK
+    ldx #>WEAPON_PICKUP_RUNTIME
+    lda #<WEAPON_PICKUP_RUNTIME
     sta broadside_destination+1
     stx broadside_destination+2
+.if DIRECTOR_ABI_BYTES > 0
+    ; The record carries a second, independent stream for the reusable resident
+    ; window. The decoder's read operand already points past the first stream's
+    ; terminator, so only the destination changes. The GLUE hold has left this
+    ; window for idle ring RAM, and nothing writes the window after this.
+    jsr broadside_unpack_command
+    ldx #>RESIDENT_WINDOW
+    lda #<RESIDENT_WINDOW
+    sta broadside_destination+1
+    stx broadside_destination+2
+.endif
     jmp broadside_unpack_command
 
-; New backed overlays form the top of the character stack. Effects are
-; restored first, then interactive entities. Existing fighter projectiles and
-; broadside shells are restored later by their established routines.
+; Player projectiles form the top of the character stack and are restored by
+; the caller first. Effects and interactive entities then unwind here before
+; broadside shells are restored by their established routine.
 entity_effects_erase:
+    ; The pickup's missile plane is erased and republished in the
+    ; post-playfield window instead; erasing it here blanked the capsule
+    ; before ANTIC had fetched its rows.
     lda EFFECT_RENDERED_MASK
     beq profile_entity_erase_begin
     jsr erase_transient_effect_overlays
 profile_entity_erase_begin = *
-    lda ENTITY_RENDERED_MASK
-    bne erase_interactive_entity_overlays
+    ; The debris is no longer erased here. entity_debris_publish erases and
+    ; redraws it adjacently: fighter OPEN inside the post-playfield window
+    ; (after wait_frame_at_line $77, below the Light), capital frames right
+    ; after the entity update, after every transient restore and before every
+    ; transient capture. The old image therefore survives one complete ANTIC
+    ; pass and no playfield row is ever scanned blank.
     rts
 
 .export profile_entity_erase_begin
 
 erase_transient_effect_overlays:
     ; Slot five is physical reserve and can never acquire valid backing while
-    ; EFFECT_ACTIVE_LIMIT is five.
-    ldx #(EFFECT_ACTIVE_LIMIT-1)
+    ; EFFECT_ACTIVE_LIMIT is five. Character effects publish at 25 Hz: one
+    ; parity owns slots 0/1/2 and the other owns slots 3/4. The other parity
+    ; remains visible for its second PAL frame, so preserve both its backing
+    ; record and its rendered bit until the following frame.
+    lda frame_counter
+    and #$01
+    tay
+    lda effect_stagger_masks,y
+    eor #$FF
+    sta EFFECT_SCRATCH2
+    lda effect_stagger_erase_start,y
+    tax
+    lda effect_stagger_render_start,y
+    sta EFFECT_SCRATCH1
 @slot:
     lda entity_slot_bit_masks,x
     and EFFECT_RENDERED_MASK
@@ -9004,88 +9512,44 @@ erase_transient_effect_overlays:
     sta EFFECT_DRAWN_MASK,x
     sta EFFECT_SCREEN_HI,x
 @next:
+    cpx EFFECT_SCRATCH1
+    beq @finished
     dex
-    bpl @slot
+    jmp @slot
+@finished:
+    lda EFFECT_RENDERED_MASK
+    and EFFECT_SCRATCH2
     sta EFFECT_RENDERED_MASK
     rts
 
 erase_interactive_entity_overlays:
-    ; Remove both interactive layers at frame start. The pickup is remapped
-    ; from logical Y after A2 rotates, so its 1/2 cadence cannot inherit every
-    ; physical ring step or wrap into a second visual pass.
-@debris:
+    ; The character layer now contains debris only. Fighter pickup ownership is
+    ; isolated in M0-M3. Exact ownership: a cell is restored only while it
+    ; still holds the code this record published (ENTITY_BACKING2/3). A cell a
+    ; higher layer has overwritten belongs to that layer, which saved the true
+    ; lower backing through the debris resolver; the recycled bottom ring row
+    ; already carries the divider copy and must not receive a stale byte.
     lda ENTITY_SCREEN_HI
     beq @done
     sta dst_ptr+1
     lda ENTITY_SCREEN_LO
     sta dst_ptr
     ldy #$01
-    lda ENTITY_BACKING1
+@cell:
+    lda ENTITY_BACKING2,y       ; the code this record published in cell Y
+    cmp (dst_ptr),y
+    bne :+
+    lda ENTITY_BACKING0,y
     sta (dst_ptr),y
+:
     dey
-    lda ENTITY_BACKING0
-    sta (dst_ptr),y
-    lda #$00
-    sta ENTITY_DRAWN_MASK
-    sta ENTITY_SCREEN_HI
+    bpl @cell
+    iny
+    sty ENTITY_DRAWN_MASK
+    sty ENTITY_SCREEN_HI
 @done:
-    lda ENTITY_ACTIVE_MASK
-    and #WEAPON_PICKUP_ACTIVE_MASK
-    sta ENTITY_RENDERED_MASK
-    ; Both branch paths deliberately restore the old physical footprint. The
-    ; active path is republished at its current logical row by the late render.
-    bne erase_weapon_pickup_overlay
-
-; Restore the exact last-rendered 2x2/2x3 footprint in reverse draw order.
-; Logical X/Y and the A2 head may already describe another row, so erase uses
-; only saved physical addresses. Reserved slot three owns the optional third
-; row pointer and its two backing bytes; it is never allocator-visible.
-erase_weapon_pickup_overlay:
-    ldx ENTITY_SCREEN_HI+WEAPON_PICKUP_SLOT
-    beq weapon_pickup_erase_done
-erase_weapon_pickup_overlay_restore:
-    lda ENTITY_SCREEN_HI+3
-    beq @middle
-    sta dst_ptr+1
-    lda ENTITY_SCREEN_LO+3
-    sta dst_ptr
-    ldy #$01
-    lda ENTITY_BACKING1+3
-    sta (dst_ptr),y
-    dey
-    lda ENTITY_BACKING0+3
-    sta (dst_ptr),y
-@middle:
-    lda ENTITY_VY+WEAPON_PICKUP_SLOT
-    beq @top
-    sta dst_ptr+1
-    lda ENTITY_VX+WEAPON_PICKUP_SLOT
-    sta dst_ptr
-    ldy #$01
-    lda ENTITY_BACKING3+WEAPON_PICKUP_SLOT
-    sta (dst_ptr),y
-    dey
-    lda ENTITY_BACKING2+WEAPON_PICKUP_SLOT
-    sta (dst_ptr),y
-@top:
-    stx dst_ptr+1
-    lda ENTITY_SCREEN_LO+WEAPON_PICKUP_SLOT
-    sta dst_ptr
-    ldy #$01
-    lda ENTITY_BACKING1+WEAPON_PICKUP_SLOT
-    sta (dst_ptr),y
-    dey
-    lda ENTITY_BACKING0+WEAPON_PICKUP_SLOT
-    sta (dst_ptr),y
     lda #$00
-    sta ENTITY_DRAWN_MASK+WEAPON_PICKUP_SLOT
-    sta ENTITY_SCREEN_HI+WEAPON_PICKUP_SLOT
-    sta ENTITY_SCREEN_HI+3
-    sta ENTITY_VY+WEAPON_PICKUP_SLOT
-    lda ENTITY_RENDERED_MASK
-    and #($FF-WEAPON_PICKUP_ACTIVE_MASK)
     sta ENTITY_RENDERED_MASK
-weapon_pickup_erase_done:
     rts
 
 ; The only entity event bit is consumed in place on the active path. A
@@ -9101,9 +9565,7 @@ profile_after_transient_effect_update = *
     beq @pickup
     jsr update_weapon_booster_active
 @pickup:
-    ldx ENTITY_STATE+WEAPON_PICKUP_SLOT
-    beq :+
-    jsr update_weapon_pickup_active
+    jsr update_fighter_pickup_pmg
 :
 profile_after_pickup_booster_update = *
     lda ENTITY_ACTIVE_MASK
@@ -9189,9 +9651,9 @@ profile_after_pickup_booster_update = *
     lda #$00
     sta ENTITY_VX
 @collision:
-    ; Active update has already proved that Y remains in gameplay. Direct
-    ; calls retain the guarded public entry below for boundary tests.
-    jmp entity_collide_player_active
+    ; Slot zero may now be active while its 2x1 cell remains wholly above the
+    ; ring. Keep the public Y gate on the live path as well as direct tests.
+    jmp entity_collide_player
 
 ; Slot one is never offered to the debris allocator. Its dormant fields own
 ; the qualified-kill counter and the pending/visible capsule. The non-rendered
@@ -9311,20 +9773,11 @@ weapon_pickup_rapid_tick:
 @expired:
     jmp weapon_booster_release
 
-weapon_pickup_pending_tick:
-    dec ENTITY_TIMER+WEAPON_PICKUP_SLOT
-    bne weapon_pickup_collision_done
 integration_pickup_reveal_body:
-    ; Preserve the fixed resident layout while collapsing the former
-    ; kill-relative safe range to the one canonical top-entry coordinate.
-    lda ENTITY_Y+WEAPON_PICKUP_SLOT
-    cmp #WEAPON_PICKUP_ACTIVATION_TOP
-    beq :+
+    ; Activation has one canonical Y. Retain the original carry=1 contract;
+    ; compressible padding below preserves every following ENTITY_CODE ABI.
     lda #WEAPON_PICKUP_ACTIVATION_TOP
     cmp #(WEAPON_PICKUP_ACTIVATION_TOP-1)
-    bne :+
-    lda #$00                    ; unreachable packed-layout sentinel
-:
     sta ENTITY_Y+WEAPON_PICKUP_SLOT
     lda #$00
     sta ENTITY_TIMER+WEAPON_PICKUP_SLOT
@@ -9334,6 +9787,17 @@ integration_pickup_reveal_body:
     sta ENTITY_ACTIVE_MASK
     inc ENTITY_ACTIVE_COUNT
     rts
+; Zero is the OPEN frame latch; every non-OPEN state bypasses fighter
+; publication and retains the reviewed capital frame start.
+begin_fighter_projectile_frame:
+    lda CAPITAL_SECTOR_STATE
+    eor #CAPITAL_HULL_STATE_OPEN
+    sta FIGHTER_PROJECTILE_PUBLICATION_FRAME
+    bne @capital
+    rts
+@capital:
+    jmp begin_capital_projectile_frame
+    .byte $00,$00
 
 ; Called only after the authoritative score path has accepted a lethal PlayerFighter
 ; projectile source. Other deaths never reach this counter.
@@ -9361,9 +9825,6 @@ weapon_pickup_record_qualified_kill:
     sta ENTITY_HP+WEAPON_PICKUP_SLOT
     lda ENTITY_TYPE+WEAPON_PICKUP_NEXT_TYPE_SLOT
     sta ENTITY_TYPE+WEAPON_PICKUP_SLOT
-    tax
-    lda weapon_pickup_render_ids,x
-    sta ENTITY_RENDER_ID+WEAPON_PICKUP_SLOT
     inc ENTITY_TYPE+WEAPON_PICKUP_NEXT_TYPE_SLOT
     lda ENTITY_TYPE+WEAPON_PICKUP_NEXT_TYPE_SLOT
     cmp #WEAPON_PICKUP_TYPE_COUNT
@@ -9406,9 +9867,7 @@ weapon_pickup_release_active_mask:
     eor ENTITY_ACTIVE_MASK
     sta ENTITY_ACTIVE_MASK
     dec ENTITY_ACTIVE_COUNT
-    ; Normal pickup release occurs after lower-layer reverse erase and before
-    ; their late redraw, so restoring the resident capsule is sufficient.
-    jmp erase_weapon_pickup_overlay
+    jmp release_fighter_pickup_pmg_hardware
 @done:
     rts
 
@@ -9420,6 +9879,14 @@ weapon_pickup_release:
     ; Pending/visible fields are never read in state zero. The separately
     ; reserved booster controller and its HUD remain untouched.
     sta ENTITY_HP+WEAPON_PICKUP_SLOT
+    rts
+
+release_fighter_pickup_pmg_hardware:
+    jsr clear_fighter_pickup_pmg
+    lda #$00
+    sta PRIOR
+    lda #$54                    ; restore reviewed fighter/capital missile sizes
+    sta SIZEM
     rts
 
 weapon_booster_release:
@@ -9450,9 +9917,8 @@ weapon_pickup_clear_lifecycle:
 weapon_pickup_clear_sector:
     lda ENTITY_STATE+WEAPON_PICKUP_SLOT
     beq @done
-    ; COMPLETE is entered after late overlay rendering. Projectiles can remain
-    ; alive across that boundary, so unwind their screen backing first.
-    jsr erase_fighter_projectile_overlays
+    cmp #WEAPON_PICKUP_STATE_PENDING
+    beq @done                    ; preserve and freeze pending across capital
     jmp weapon_pickup_release
 @done:
     rts
@@ -9486,7 +9952,7 @@ entity_spawn_debris:
     asl
     adc #ENTITY_SAFE_SPAWN_LEFT_HPOS
     sta ENTITY_X
-    lda #ENTITY_GAMEPLAY_TOP
+    lda #(ENTITY_GAMEPLAY_TOP-ENTITY_DEBRIS_HEIGHT_SCANLINES)
     sta ENTITY_Y
     lda #ENTITY_DEBRIS_INITIAL_FLAGS
     sta ENTITY_FLAGS
@@ -9525,10 +9991,7 @@ entity_next_rng:
 entity_begin_sector_complete:
     jsr clear_transient_effects
     jsr weapon_pickup_clear_sector
-    lda #PLAYFIELD_RING_ROWS
-    sta ENTITY_SPAWN_TIMER_HI
-    inc CAPITAL_SECTOR_STATE
-    rts
+    jmp HYBRID_SECTOR_BEGIN_COMPLETE
 
 ; COMPLETE receives exactly one full ring reconstruction pass. The
 ; following OPEN frame starts with the normal delayed entity scheduler. This
@@ -9536,16 +9999,26 @@ entity_begin_sector_complete:
 ; remaining BROADSIDE reservation rather than expanding packed ENTITY_CODE.
 .segment "BROADSIDE"
 entity_complete_scroll_tick:
-    lda DIRECTOR_STATE_FLAGS
-    lsr
-    bcs @done                    ; final Director COMPLETE is terminal
-    dec ENTITY_SPAWN_TIMER_HI
-    bne @done
-    inc CAPITAL_SECTOR_STATE
-    lda #ENTITY_INITIAL_SPAWN_DELAY
-    sta ENTITY_SPAWN_TIMER_LO
-@done:
+    jmp HYBRID_SECTOR_COMPLETE_SCROLL_TICK
+.ifdef ENEMY_LIGHT_TICK
+; The 17-byte entry-preservation pad holds the Light-class BCD score add. It
+; is an exact fit, so every following BROADSIDE entry address stays fixed.
+; X selects the Light archetype record; absolute,X keeps the pad exact.
+light_add_score:
+    sed
+    clc
+    lda score_bcd_lo
+    adc LIGHT_SCORE_BCD,x
+    sta score_bcd_lo
+    lda score_bcd_hi
+    adc #$00
+    sta score_bcd_hi
+    cld
     rts
+    .assert * - light_add_score = 17, error, "Light score add must exactly fill the retired pad"
+.else
+    .res 17,$EA                 ; preserve fixed BROADSIDE entry addresses
+.endif
 
 .segment "ENTITY_CODE"
 
@@ -9566,7 +10039,7 @@ entity_player_fighter_projectile_target:
     clc
     rts
 @active:
-    jsr entity_player_fighter_projectile_hits_debris
+    jsr entity_player_fighter_projectile_hits_visible_debris
     bcc entity_player_fighter_projectile_enemy_target
     ; Consult the per-frame shootable latch only after the cheap swept
     ; geometry says this slot could hit. Ordinary misses therefore retain the
@@ -9582,7 +10055,7 @@ entity_player_fighter_projectile_target:
     ; signed bottom-edge delta is bounded and cannot cross the sign boundary.
     lda ENTITY_Y
     sec
-    sbc enemy_y
+    sbc ENEMY_TARGET_Y
     bmi @enemy_first
     cmp #(ENEMY_RELEASE_FRAME_HEIGHT-ENTITY_DEBRIS_HEIGHT_SCANLINES)
     bcs entity_player_fighter_projectile_debris_target
@@ -9604,6 +10077,7 @@ entity_debris_hit:
 entity_debris_destroyed:
     jsr spawn_debris_destruction_effects
     jsr integration_debris_release
+    jsr add_debris_score
     ; The empty-pool update later in this frame consumes the extra count. The
     ; transient +1 also identifies the destroyed snapshot to higher shot slots.
     inc ENTITY_SPAWN_TIMER_LO
@@ -9612,6 +10086,28 @@ entity_debris_destroyed:
 entity_player_fighter_projectile_enemy_target:
     jmp player_fighter_projectile_hits_enemy
 entity_debris_shot = entity_player_fighter_projectile_debris_target
+
+; Two callers, both player-caused destruction: entity_debris_destroyed (the
+; lethal PlayerFighter shot) and debris_contact_destroyed (the lethal player
+; contact through entity_player_debris_overlap). Owner rule: a kill scores
+; whether or not the player survives it, so contact awards exactly what a shot
+; awards. Debris released by the despawn path (entity_despawn_debris), by
+; falling past ENTITY_GAMEPLAY_BOTTOM or by a sector DRAIN/COMPLETE boundary
+; still never calls it. Same mechanism as light_add_score /
+; add_archetype_score_tail: one packed BCD add and the shared HUD refresh. No
+; per-object state, no new RAM.
+; MEASURED-ESTIMATE ~105 cycles, only on a debris-kill frame.
+add_debris_score:
+    sed
+    clc
+    lda score_bcd_lo
+    adc #DEBRIS_SCORE
+    sta score_bcd_lo
+    lda score_bcd_hi
+    adc #$00
+    sta score_bcd_hi
+    cld
+    jmp update_score_display
 
 ; The projectile is one HPOS unit wide. Its two-scanline previous/current
 ; positions form the same inclusive swept interval already used for fighters.
@@ -9671,7 +10167,12 @@ entity_player_debris_overlap = *
     lda BROAD_DAMAGE_APPLIED
     beq entity_collision_miss
 entity_damage_applied:
-    jmp integration_debris_release
+    ; Owner rule: destroying something scores whether or not the player
+    ; survives doing it, so a lethal contact awards the same DEBRIS_SCORE as a
+    ; lethal shot. ENTITY_CODE has one free byte before the DIRECTOR_C_PRE
+    ; record at $9D5E, so the award is the existing jmp retargeted at the
+    ; three-byte BROADSIDE prologue that falls through into the release.
+    jmp debris_contact_destroyed
 entity_collision_miss:
     rts
 
@@ -9747,44 +10248,24 @@ spawn_breakup_effects_at:
     tax
     rts
 
-; Reuse the proven debris five-slot allocator, then restore the still-live
-; neutral entity and retag only the visual roles. Every legal death runs after
-; the frame-start reverse erase, so a prior event has no valid backing left;
-; a same-frame debris event has not rendered yet and is atomically replaced.
+; Keep the legacy entry point used by the lethal-hit dispatcher, but do not
+; enter the generic debris allocator or clear any already-active effect.
 .segment "CODE"
 spawn_interceptor_breakup_effects:
-    jsr clear_transient_effects
-    lda #$02
-    sta EFFECT_ALLOCATION_RESULT
+    ; Raider destruction is PMG/background feedback only. Do not touch the
+    ; shared character-effect pool: a legitimate debris breakup may be active.
+    ; Already-emitted hostile PairShots are independent of their emitter (owner
+    ; decision 2026-09-17): they keep their normal lifecycle after the kill.
     jmp begin_enemy_fighter_explosion
 
+; Retain an unreachable instrumentation symbol so native traces positively
+; prove that no delayed Raider character materialisation executes.
 materialize_interceptor_breakup_effects:
-    lda FIGHTER_EXPLOSION_X+FIGHTER_EXPLOSION_ENEMY_SLOT
-    ; The releasing LSR enters with C=1; fold it into the centred offset.
-    adc #(EFFECT_INTERCEPTOR_CORE_X_OFFSET-1)
-    ldy FIGHTER_EXPLOSION_Y+FIGHTER_EXPLOSION_ENEMY_SLOT
-    jsr spawn_breakup_effects_at
-    ldx #(EFFECT_ACTIVE_LIMIT-1)
-@render_id:
-    lda entity_interceptor_fragment_render_ids,x
-    sta EFFECT_RENDER_ID,x
-    dex
-    bpl @render_id
     rts
 
-; Fragment slots receive a deterministic local radial step every active PAL
-; frame plus one scanline for each WORLD_ROW_ADVANCED event. Local motion is
-; therefore visually dominant while the fragments still inherit world travel.
-; The core is stationary and all TTLs are frozen automatically while paused.
+; Only gameplay-debris destruction owns this generic five-slot path. All TTLs
+; freeze while paused.
 update_transient_effects:
-    ; The two-step pending latch isolates a Interceptor kill from materialising five
-    ; backed overlays in the same world/hull-copy frame. A set carry calls the
-    ; materialiser on the following PAL frame, then the ordinary update
-    ; gives all four fragments their first radial step before the first draw.
-    lsr EFFECT_ALLOCATION_RESULT
-    bcc :+
-    jsr materialize_interceptor_breakup_effects
-:
     lda EFFECT_ACTIVE_MASK
     beq @done
     lda EFFECT_STATE
@@ -9795,11 +10276,17 @@ update_transient_effects:
     dec EFFECT_ACTIVE_COUNT
     lsr EFFECT_STATE
 @fragments:
-    lda EFFECT_STATE+1
-    beq @done
+    ; A non-zero pool mask always implies the four fixed fragment slots are
+    ; alive: every production allocator creates all five slots atomically and
+    ; only the core expires independently. Avoid a redundant slot-one probe.
     lda ENTITY_FRAME_EVENTS
     and #ENTITY_EVENT_WORLD_ROW_ADVANCED
     sta EFFECT_SCRATCH0
+    lda frame_counter
+    and #$01
+    tay
+    lda effect_stagger_masks,y
+    sta EFFECT_SCRATCH1
     ldx #EFFECT_DEBRIS_FRAGMENT_COUNT
 @slot:
     dec EFFECT_TIMER,x
@@ -9807,14 +10294,26 @@ update_transient_effects:
     clc
     adc effect_fragment_vx,x
     sta EFFECT_X,x
+    ; The two fragment shapes remain part of the visual language, but advance
+    ; only on this slot's 25 Hz publication tick. Toggling at 50 Hz would
+    ; sample the same shape on every staggered draw.
+    lda entity_slot_bit_masks,x
+    and EFFECT_SCRATCH1
+    beq :+
     lda EFFECT_RENDER_ID,x
     eor #$01
     sta EFFECT_RENDER_ID,x
+:
     lda EFFECT_Y,x
     clc
     adc effect_fragment_vy,x
     clc
     adc EFFECT_SCRATCH0
+    ; A local +/-2 step can approach either unsigned wrap only after leaving
+    ; the playfield. Do not commit modulo results 0..3: retaining the previous
+    ; off-screen Y keeps that fragment hidden until the common TTL expires.
+    cmp #$04
+    bcc @next
     sta EFFECT_Y,x
 @next:
     dex
@@ -9823,6 +10322,10 @@ update_transient_effects:
     beq clear_transient_effects
 @done:
     rts
+    ; Preserve the reviewed entry points below this routine. The wrap guard
+    ; replaces a five-byte redundant probe with four live bytes; one cold pad
+    ; keeps every existing integration ABI address unchanged.
+    .res 1,$EA
 
 ; Lifecycle reset releases collisionless effects but deliberately preserves
 ; a current frame's backing records. If called after rendering (sector COMPLETE),
@@ -9849,34 +10352,30 @@ clear_transient_effects:
 
 .segment "ENTITY_CODE"
 
-; Render after scroll and after existing shell/projectile rendering. Logical Y
-; is authoritative. Ordinary entities cache the pointer until next-frame erase;
-; the fixed pickup keeps its four physical A2 cells resident until release.
+; Render after scroll and shell publication but before PlayerFighter projectiles,
+; which remain readable over debris and effects. Logical Y is authoritative.
+; Ordinary entities cache the pointer until next-frame erase; the fixed pickup
+; keeps its four physical A2 cells resident until release.
 entity_effects_render:
+    ; Effects only: the debris is published by entity_debris_publish (see
+    ; entity_effects_erase). Effects render above it in both sector kinds.
     lda EFFECT_ACTIVE_MASK
-    bne @with_effects
-    lda ENTITY_ACTIVE_MASK
-    bne render_interactive_entity_overlays
-    rts
-@with_effects:
-    lda ENTITY_ACTIVE_MASK
     beq :+
-    jsr render_interactive_entity_overlays
-:
     jmp render_transient_effect_overlays
+:
+    rts
 
 .segment "ENTITY_CODE"
 render_interactive_entity_overlays:
-    ; Keep the accepted slot-zero path specialised, then append one fixed-slot
-    ; capsule path. Both retain byte-exact two-cell backing and layer order.
+    ; Character ownership is now limited to the accepted slot-zero debris path.
     lda ENTITY_ACTIVE_MASK
     lsr
-    bcc @pickup
+    bcc @done
     lda ENTITY_Y
     cmp #ENTITY_GAMEPLAY_TOP
-    bcc @pickup
+    bcc @done
     cmp #ENTITY_GAMEPLAY_BOTTOM
-    bcs @pickup
+    bcs @done
     sec
     sbc #ENTITY_GAMEPLAY_TOP
     lsr
@@ -9901,193 +10400,284 @@ render_interactive_entity_overlays:
     adc #$00
     sta ENTITY_SCREEN_HI
     sta dst_ptr+1
+    ; X = cell: ENTITY_BACKING0,x is the lower backing and ENTITY_BACKING2,x
+    ; the published screen code (see the ENTITY_STATE layout). DRAWN_MASK
+    ; records the cells actually written; a cell yielded to an effect stays 0.
+    ldx #$00
+    stx ENTITY_DRAWN_MASK
+@cell:
     ldy #$00
     lda (dst_ptr),y
-    sta ENTITY_BACKING0
-    lda ENTITY_RENDER_ID
-    ldx ENTITY_OWNER
+    jsr debris_capture_resolve  ; near owns no underlay; Light gives its own
+    ; Effects are above debris but render mid-frame, so a retained 25 Hz
+    ; effect cell may still be visible here: keep its lower backing and leave
+    ; its glyph alone (cmp EFFECT_SCRATCH0 is the resolver's unchanged test).
+    jsr resolve_effect_backing_below_transient_effect
+    sta ENTITY_BACKING0,x
+    cmp EFFECT_SCRATCH0
+    php
+    txa
+    ora ENTITY_RENDER_ID        ; even base + cell bit
+    ldy ENTITY_OWNER
     beq :+
     ora #$80
 :
+    sta ENTITY_BACKING2,x       ; the published code, checked by the erase
+    ldy #$00
+    plp
+    bne :+
     sta (dst_ptr),y
-    iny
-    lda (dst_ptr),y
-    sta ENTITY_BACKING1
-    lda ENTITY_RENDER_ID
-    dex
-    bmi :+
-    ora #$80
-:
-    ora #$01
-    sta (dst_ptr),y
-    lda #$03
+    lda entity_slot_bit_masks,x
+    ora ENTITY_DRAWN_MASK
     sta ENTITY_DRAWN_MASK
-    inc ENTITY_RENDERED_MASK
-@pickup:
-    jmp render_weapon_pickup_overlay
-
-.segment "PICKUP_CODE"
-render_weapon_pickup_overlay:
-    lda ENTITY_ACTIVE_MASK
-    lsr
-    lsr
-    bcs :+
-    rts
 :
-    lda ENTITY_DRAWN_MASK+WEAPON_PICKUP_SLOT
-    beq :+
-    rts
-:
-    jsr compose_weapon_pickup_phase
-    lda #$00
-    sta ENTITY_VY+WEAPON_PICKUP_SLOT
-    sta ENTITY_SCREEN_HI+3
-
-    ; Map once, after A2 has published its final ring head for this frame.
-    ; Every touched row saves its exact physical pointer and prior two bytes.
-    lda ENTITY_Y+WEAPON_PICKUP_SLOT
-    sec
-    sbc #ENTITY_GAMEPLAY_TOP
-    lsr
-    lsr
-    lsr
-    tax
-    stx ENTITY_SCRATCH_SLOT
-    lda PLAYFIELD_ROW_LO,x
-    sta dst_ptr
-    lda PLAYFIELD_ROW_HI,x
-    sta dst_ptr+1
-    lda ENTITY_X+WEAPON_PICKUP_SLOT
-    sec
-    sbc #GAMEPLAY_LEFT_HPOS
-    lsr
-    lsr
-    clc
-    adc dst_ptr
-    sta dst_ptr
-    sta ENTITY_SCREEN_LO+WEAPON_PICKUP_SLOT
-    bcc :+
+    inc dst_ptr
+    bne :+
     inc dst_ptr+1
 :
-    lda dst_ptr+1
-    sta ENTITY_SCREEN_HI+WEAPON_PICKUP_SLOT
-    ldx #$00
-    ldy #$00
-    lda (dst_ptr),y
-    sta ENTITY_BACKING0+WEAPON_PICKUP_SLOT
-    iny
-    lda (dst_ptr),y
-    sta ENTITY_BACKING1+WEAPON_PICKUP_SLOT
-    ldy #$00
-    lda ENTITY_RENDER_ID+WEAPON_PICKUP_SLOT
-    sta (dst_ptr),y
-    clc
-    adc #$01
-    iny
-    sta (dst_ptr),y
+    inx
+    cpx #ENTITY_DEBRIS_GLYPHS_PER_PHASE
+    bne @cell
+    inc ENTITY_RENDERED_MASK
+@done:
+    rts
 
-    ; Slot one's dormant VX/VY pair retains the middle physical pointer. At
-    ; the final ring row only the still-visible top slice is published.
-    lda ENTITY_SCRATCH_SLOT
-    cmp #(ENTITY_LOGICAL_ROWS-1)
-    bcs @one_row
-    jsr advance_dst_to_next_ring_row
+; Effects render above the moving character debris. If an effect claims either
+; currently-rendered debris cell, its backing must be the debris record's lower
+; backing rather than the visible debris glyph. The 16-bit subtraction handles
+; the legal row-end crossing and leaves A/Y in the form expected by the effect
+; publisher. This is deliberately local to the one accepted debris record.
+.segment "A2_KERNEL"
+resolve_effect_backing_below_interactive_debris:
+    sta EFFECT_SCRATCH0
+    lda ENTITY_SCREEN_HI
+    beq @unchanged
     lda dst_ptr
-    sta ENTITY_VX+WEAPON_PICKUP_SLOT
+    sec
+    sbc ENTITY_SCREEN_LO
+    tay
     lda dst_ptr+1
-    sta ENTITY_VY+WEAPON_PICKUP_SLOT
+    sbc ENTITY_SCREEN_HI
+    bne @unchanged
+    cpy #$02
+    bcs @unchanged
+    lda ENTITY_BACKING0,y       ; cell 0 / cell 1 backing (see ENTITY_BACKING0)
     ldy #$00
-    lda (dst_ptr),y
-    sta ENTITY_BACKING2+WEAPON_PICKUP_SLOT
+    rts
+@unchanged:
+    ldy #$00
+    lda EFFECT_SCRATCH0
+    rts
+
+.export resolve_effect_backing_below_interactive_debris
+
+.segment "PICKUP_CODE"
+; Fighter-only pickup wrapper. PENDING is frozen outside OPEN; ACTIVE is
+; updated and republished to the four missile lanes only in fighter OPEN.
+; Movement, collection and booster policy only. The missile plane is published
+; separately in the post-playfield window by publish_fighter_pickup_pmg.
+update_fighter_pickup_pmg:
+    lda CAPITAL_SECTOR_STATE
+    cmp #CAPITAL_HULL_STATE_OPEN
+    bne @done
+    ldx ENTITY_STATE+WEAPON_PICKUP_SLOT
+    beq @done
+    jmp update_weapon_pickup_active
+@done:
+    rts
+
+clear_fighter_pickup_pmg:
+    lda ENTITY_SCREEN_HI+WEAPON_PICKUP_SLOT
+    beq @done
+    ldy ENTITY_SCREEN_LO+WEAPON_PICKUP_SLOT
+    ldx #WEAPON_PICKUP_HEIGHT_SCANLINES
+    lda #$00
+@line:
+    sta MISSILES,y
     iny
-    lda (dst_ptr),y
-    sta ENTITY_BACKING3+WEAPON_PICKUP_SLOT
-    ldy #$00
-    lda ENTITY_RENDER_ID+WEAPON_PICKUP_SLOT
+    dex
+    bne @line
+    sta ENTITY_SCREEN_HI+WEAPON_PICKUP_SLOT
+@done:
+    rts
+
+; ANTIC fetches one missile byte per scanline, so the plane must already hold
+; the capsule when the beam reaches its rows. Publishing here - inside the same
+; post-playfield window as the character layers - leaves the image valid for
+; the whole of the next frame's pass. Falls through into the renderer.
+publish_fighter_pickup_pmg:
+    jsr clear_fighter_pickup_pmg
+    lda ENTITY_STATE+WEAPON_PICKUP_SLOT
+    cmp #WEAPON_PICKUP_STATE_ACTIVE
+    beq render_fighter_pickup_pmg
+    rts
+
+render_fighter_pickup_pmg:
+    lda ENTITY_Y+WEAPON_PICKUP_SLOT
+    clc
+    adc #PMG_DMA_CAPTURE_Y_OFFSET
+    tay
+    sta ENTITY_SCREEN_LO+WEAPON_PICKUP_SLOT
+    lda #$01
+    sta ENTITY_SCREEN_HI+WEAPON_PICKUP_SLOT
+    lda ENTITY_X+WEAPON_PICKUP_SLOT
+    sta HPOSM0
     clc
     adc #$02
-    sta (dst_ptr),y
-    adc #$01
-    iny
-    sta (dst_ptr),y
-
-    ; A non-zero phase spills the shifted 16-scanline source into a third row.
-    ; Clip that row at the bottom of the ring viewport. Reserved slot three
-    ; records both its address and backing for exact next-frame reverse erase.
-    lda ENTITY_SCRATCH0
-    beq @two_rows
-    lda ENTITY_SCRATCH_SLOT
-    cmp #(ENTITY_LOGICAL_ROWS-2)
-    bcs @two_rows
-    jsr advance_dst_to_next_ring_row
-    lda dst_ptr
-    sta ENTITY_SCREEN_LO+3
-    lda dst_ptr+1
-    sta ENTITY_SCREEN_HI+3
-    ldy #$00
-    lda (dst_ptr),y
-    sta ENTITY_BACKING0+3
-    iny
-    lda (dst_ptr),y
-    sta ENTITY_BACKING1+3
-    ldy #$00
-    lda ENTITY_RENDER_ID+WEAPON_PICKUP_SLOT
-    clc
-    adc #$04
-    sta (dst_ptr),y
-    adc #$01
-    iny
-    sta (dst_ptr),y
-@two_rows:
-    lda #$0F
-    sta ENTITY_DRAWN_MASK+WEAPON_PICKUP_SLOT
-    lda ENTITY_ACTIVE_MASK
-    sta ENTITY_RENDERED_MASK
-    rts
-@one_row:
-    lda #$03
-    sta ENTITY_DRAWN_MASK+WEAPON_PICKUP_SLOT
-    lda ENTITY_ACTIVE_MASK
-    sta ENTITY_RENDERED_MASK
-render_weapon_pickup_overlay_done:
-    rts
-
-; Publish one build-generated vertical phase in the six private glyphs 120-125.
-; The immutable 3-type x 8-phase bank is loaded after cold staging into free
-; runtime RAM at $8800. A phase is 48 contiguous bytes (three row pairs).
-compose_weapon_pickup_phase:
-    lda ENTITY_Y+WEAPON_PICKUP_SLOT
-    sec
-    sbc #ENTITY_GAMEPLAY_TOP
-    and #(WEAPON_PICKUP_VERTICAL_PHASE_COUNT-1)
-    sta ENTITY_SCRATCH0
+    sta HPOSM1
+    adc #$02
+    sta HPOSM2
+    adc #$02
+    sta HPOSM3
+    ; Each booster type keeps its own recovered silhouette; the tables are
+    ; sixteen rows apart, so the type scales straight into the source index.
+    lda ENTITY_TYPE+WEAPON_PICKUP_SLOT
+    asl
+    asl
+    asl
+    asl
     tax
-    ldy ENTITY_TYPE+WEAPON_PICKUP_SLOT
-    lda weapon_pickup_type_base_lo,y
-    clc
-    adc weapon_pickup_phase_offset_lo,x
-    sta src_ptr
-    lda weapon_pickup_type_base_hi,y
-    adc weapon_pickup_phase_offset_hi,x
-    sta src_ptr+1
-    ldy #(WEAPON_PICKUP_PHASE_GLYPH_COUNT*8-1)
-@copy:
-    lda (src_ptr),y
-    sta CHARSET+WEAPON_PICKUP_GLYPH_BASE*8,y
-    dey
-    bpl @copy
+@line:
+    lda fighter_pickup_pmg_shape,x
+    sta MISSILES,y
+    iny
+    inx
+    txa
+    and #(WEAPON_PICKUP_HEIGHT_SCANLINES-1)
+    bne @line
+    lda #$00
+    sta SIZEM
+    lda #$10                    ; GTIA fifth-player mode: M0-M3 use COLPF3
+    sta PRIOR
     rts
 
-weapon_pickup_type_base_lo:
-    .byte <(WEAPON_PICKUP_PHASE_BANK+$000),<(WEAPON_PICKUP_PHASE_BANK+$180),<(WEAPON_PICKUP_PHASE_BANK+$300)
-weapon_pickup_type_base_hi:
-    .byte >(WEAPON_PICKUP_PHASE_BANK+$000),>(WEAPON_PICKUP_PHASE_BANK+$180),>(WEAPON_PICKUP_PHASE_BANK+$300)
-weapon_pickup_phase_offset_lo:
-    .byte <$000,<$030,<$060,<$090,<$0C0,<$0F0,<$120,<$150
-weapon_pickup_phase_offset_hi:
-    .byte >$000,>$030,>$060,>$090,>$0C0,>$0F0,>$120,>$150
-weapon_pickup_render_ids:
-    .byte WEAPON_PICKUP_GLYPH_BASE,WEAPON_PICKUP_GLYPH_BASE|$80,WEAPON_PICKUP_GLYPH_BASE
+; Effects publish before the late projectile commit. When an effect lands on
+; an OLD PairShot cell, the visible byte is still the projectile glyph even
+; though effects are logically below projectiles. Resolve that transient case
+; to the matching player or enemy slot's saved underlay so a later staggered
+; effect erase cannot resurrect the projectile. Ordinary effect cells take the
+; glyph-range fast path and never scan the shot pool.
+.segment "PICKUP_CODE"
+resolve_effect_backing_below_player_pairshot:
+    cmp #STAR_NEAR_POINT
+    bne :+
+    lda #CH_SPACE               ; an expired higher layer must not revive near
+    rts
+:
+    cmp #PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE
+    bcc resolve_effect_backing_below_enemy_pairshot
+    cmp #(PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_VERTICAL_PHASE_COUNT)
+    bcc resolve_effect_pairshot_candidate
+    cmp #(PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_GLYPH_STRIDE*2)
+    bcc resolve_effect_backing_below_enemy_pairshot
+    cmp #(PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_GLYPH_STRIDE*2+PLAYER_FIGHTER_PROJECTILE_VERTICAL_PHASE_COUNT)
+    bcc resolve_effect_pairshot_candidate
+    cmp #PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE
+    bcc resolve_effect_backing_below_enemy_pairshot
+    cmp #(PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE+PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT)
+    bcc resolve_effect_pairshot_candidate
+resolve_effect_backing_below_enemy_pairshot:
+    ; Every published hostile weapon code, $DA (PULSE left) through the last
+    ; class's right phase, may be a live PairShot cell.
+    cmp #(INTERCEPTOR_PROJECTILE_GLYPH_BASE|$80)
+    bcc resolve_effect_pairshot_unchanged
+    cmp #((INTERCEPTOR_PROJECTILE_GLYPH_BASE+INTERCEPTOR_PROJECTILE_GLYPH_STRIDE+HOSTILE_WEAPON_VISUAL_COUNT)|$80)
+    bcs resolve_effect_pairshot_unchanged
+resolve_effect_pairshot_candidate:
+    sta EFFECT_SCRATCH0
+    ldy #$00
+@projectile:
+    lda FIGHTER_PROJECTILE_RENDERED,y
+    beq @next
+    lda FIGHTER_PROJECTILE_SCREEN_LO,y
+    cmp dst_ptr
+    bne @next
+    lda FIGHTER_PROJECTILE_SCREEN_HI,y
+    cmp dst_ptr+1
+    bne @next
+    lda FIGHTER_PROJECTILE_BACKUP_TOP,y
+    ldy #$00
+    rts
+@next:
+    iny
+    cpy #FIGHTER_PROJECTILE_SLOT_COUNT
+    bne @projectile
+@restore_y:
+    ldy #$00
+    lda EFFECT_SCRATCH0
+resolve_effect_pairshot_unchanged:
+    rts
+
+; Two stagger groups can briefly quantise different radial fragments into the
+; same character cell. The later group must inherit the already-rendered
+; effect's lower backing, not its visible glyph, or its later erase resurrects
+; one detached fragment. The glyph fast path keeps ordinary effect draws out
+; of the bounded five-slot address scan.
+store_projectile_backing_resolving_effect_core:
+    ; Most projectile cells contain blank/base/star codes below 90. Keep that
+    ; legal ten-slot frame to +17 cycles/slot; only effect/debris glyph-range
+    ; candidates pay the bounded address resolvers.
+    cmp #ENTITY_DEBRIS_GLYPH_BASE
+    bcc store_projectile_backing_resolving_effect_core_store
+@resolve:
+    ; Projectile and effect pools use independent indices, so every rendered
+    ; effect slot must be considered even when its number equals X.
+    jsr resolve_effect_backing_below_transient_effect
+projectile_debris_backing_resolve = *
+    ; Debris is erased and republished before the late projectile erase. If a
+    ; PairShot saved either visible debris cell, restore the debris record's
+    ; lower backing instead of reviving its old glyph after it moves. The
+    ; Light is published just below the PairShots, so its glyph is a legal
+    ; PairShot backing here and needs no substitution.
+    jsr resolve_effect_backing_below_interactive_debris
+store_projectile_backing_resolving_effect_core_store:
+    sta FIGHTER_PROJECTILE_BACKUP_TOP,x
+    rts
+resolve_effect_backing_below_transient_effect:
+    sta EFFECT_SCRATCH0
+resolve_effect_backing_below_transient_effect_regular = *
+    and #$7F
+    cmp #ENTITY_DEBRIS_GLYPH_BASE
+    bcc @restore
+    cmp #(EFFECT_FRAGMENT_GLYPH_BASE+EFFECT_FRAGMENT_GLYPH_COUNT)
+    bcs @restore
+@candidate:
+    ldy #$00
+@slot:
+    ; The current 25 Hz parity was erased before this render pass; therefore
+    ; a rendered bit can only name a lower, retained effect from the opposite
+    ; parity. No self-slot exclusion is needed, and omitting it also prevents
+    ; independent projectile/effect slot indices from aliasing.
+    lda entity_slot_bit_masks,y
+    and EFFECT_RENDERED_MASK
+    beq @next
+    lda EFFECT_SCREEN_LO,y
+    cmp dst_ptr
+    bne @next
+    lda EFFECT_SCREEN_HI,y
+    cmp dst_ptr+1
+    bne @next
+    lda EFFECT_BACKING0,y
+    ldy #$00
+    rts
+@next:
+    iny
+    cpy #EFFECT_ACTIVE_LIMIT
+    bne @slot
+@restore_y:
+    ldy #$00
+@restore:
+    lda EFFECT_SCRATCH0
+    rts
+resolve_effect_backing_below_player_pairshot_end:
+    ; The retired 187-byte primitive's inert remainder is reclaimed by the
+    ; Light Wingman kernel. PICKUPFILE zero-fills to the fixed $8B67 collision
+    ; boundary, so no internal pad is needed to keep that boundary exact.
+.export resolve_effect_backing_below_player_pairshot
+.export resolve_effect_backing_below_enemy_pairshot
+.export resolve_effect_backing_below_transient_effect
+.export resolve_effect_backing_below_transient_effect_regular
+.export projectile_debris_backing_resolve
 
 ; Effects render after the interactive layer. Slot order is core then the four
 ; fragments; erase scans the physical pool in the exact opposite direction.
@@ -10096,17 +10686,28 @@ weapon_pickup_render_ids:
 ; provides the dark fade.
 .segment "CODE"
 render_transient_effect_overlays:
-    ldx #$00
+    lda frame_counter
+    and #$01
+    tay
+    lda effect_stagger_render_start,y
+    tax
+    lda effect_stagger_render_end,y
+    sta EFFECT_SCRATCH2
+    tya
+    bne @slot
     lda EFFECT_ACTIVE_MASK
     lsr
     bcs @slot
-    inx                         ; mask $1E means the five-frame core expired
+    inx                         ; the five-frame core expired; slots 1/2 remain
 @slot:
     lda EFFECT_Y,x
     cmp #ENTITY_GAMEPLAY_TOP
     bcc @outside_y
     cmp #ENTITY_GAMEPLAY_BOTTOM
-    bcs @outside_y
+    bcc @inside_y
+@outside_y:
+    jmp @next_saved
+@inside_y:
     sec
     sbc #ENTITY_GAMEPLAY_TOP
     lsr
@@ -10141,6 +10742,9 @@ render_transient_effect_overlays:
     sta EFFECT_SCREEN_HI,x
     ldy #$00
     lda (dst_ptr),y
+    jsr resolve_effect_backing_below_player_pairshot
+    jsr resolve_effect_backing_below_interactive_debris_and_light
+    jsr resolve_effect_backing_below_transient_effect
     sta EFFECT_BACKING0,x
     cpx #$00
     beq @core
@@ -10178,7 +10782,6 @@ render_transient_effect_overlays:
 @yellow_core:
     lda EFFECT_RENDER_ID,x
     bne @core_codes
-@outside_y:
     jmp @next_saved
 @dark_core:
     lda #EFFECT_FRAGMENT_GLYPH_BASE|$80
@@ -10193,7 +10796,7 @@ render_transient_effect_overlays:
 @next_saved:
 @next:
     inx
-    cpx #EFFECT_ACTIVE_LIMIT
+    cpx EFFECT_SCRATCH2
     beq :+
     jmp @slot
 :
@@ -10298,26 +10901,67 @@ frontend_h31_extended_glyphs:
 frontend_h31_extended_glyphs_end:
     .assert frontend_h31_extended_glyphs_end-frontend_h31_extended_glyphs = 16*8, error, "H3.1 extended glyph source changed"
 
-entity_archetype_descriptors:
-    EMIT_ENTITY_ARCHETYPE_DESCRIPTORS
-entity_archetype_descriptors_end:
 entity_debris_glyph:
     EMIT_ENTITY_DEBRIS_GLYPHS
 entity_debris_glyph_end:
 effect_fragment_glyph:
     EMIT_EFFECT_FRAGMENT_GLYPHS
 effect_fragment_glyph_end:
-entity_interceptor_fragment_render_ids:
-    ; Complete physical-pool template: core, two wings, red eye, central
-    ; fragment, then the mandatory inactive sixth-slot sentinel.
-    .byte ENTITY_DEBRIS_GLYPH_BASE
-    .byte ENTITY_DEBRIS_GLYPH_BASE,ENTITY_DEBRIS_GLYPH_BASE+2
-    .byte INTERCEPTOR_PROJECTILE_GLYPH_BASE|$80,EFFECT_FRAGMENT_GLYPH_BASE,$00
-
 ; The bootstrap restores the packed resident suffix before the loader display
 ; starts. Finish the byte-exact cold initialisation from ENTITY_CODE afterwards
 ; so the verbatim boot prefix stays small and stable.
 .segment "STARFIELD"
+
+; Per-type capsule silhouettes, one sixteen-row table per booster, indexed by
+; ENTITY_TYPE+WEAPON_PICKUP_SLOT. The shapes are the original capsule artwork
+; recovered from assets/graphics/entity-effects.json, reduced to one bit per
+; colour clock because a fifth-player mark carries a single colour (COLPF3);
+; the old multi-register casing/fill/symbol palette cannot survive that.
+;
+; One missile occupies TWO bits of each row byte and the quartet is interleaved,
+; so the colour clocks left to right are bits 1,0,3,2,5,4,7,6 - the higher bit
+; of each pair is its LEFT pixel. Every row below was produced through that
+; mapping, which is verified against captured framebuffer runs; do not hand-edit
+; these bytes without re-deriving them.
+fighter_pickup_pmg_shape:
+    ; RAPID - capsule with the vertical slot left by the old "RF" letterform
+    ;   .######.   $BD
+    ;   ########   $FF
+    ;   ########   $FF
+    ;   ########   $FF
+    ;   ###..###   $DB   (x8)
+    ;   ########   $FF
+    ;   ########   $FF
+    ;   ########   $FF
+    ;   .######.   $BD
+    .byte $BD,$FF,$FF,$FF,$DB,$DB,$DB,$DB
+    .byte $DB,$DB,$DB,$DB,$FF,$FF,$FF,$BD
+    ; SPREAD - boxier casing carrying the three-shot fan across its top
+    ;   ########   $FF
+    ;   ########   $FF
+    ;   #.#..#.#   $5A
+    ;   #.#..#.#   $5A
+    ;   ##....##   $C3
+    ;   ##.##.##   $E7
+    ;   ###..###   $DB   (x7)
+    ;   ########   $FF   (x3)
+    .byte $FF,$FF,$5A,$5A,$C3,$E7,$DB,$DB
+    .byte $DB,$DB,$DB,$DB,$DB,$FF,$FF,$FF
+    ; SHIELD - crest tapering to a point, unmistakable at this size
+    ;   .######.   $BD
+    ;   ########   $FF
+    ;   ##....##   $C3
+    ;   ##.##.##   $E7   (x7)
+    ;   ##....##   $C3
+    ;   ###..###   $DB
+    ;   ###..###   $DB
+    ;   .######.   $BD
+    ;   ..####..   $3C
+    ;   ...##...   $24
+    .byte $BD,$FF,$C3,$E7,$E7,$E7,$E7,$E7
+    .byte $E7,$E7,$C3,$DB,$DB,$BD,$3C,$24
+    .assert * - fighter_pickup_pmg_shape = WEAPON_PICKUP_TYPE_COUNT*WEAPON_PICKUP_HEIGHT_SCANLINES, error, "one sixteen-row silhouette per booster type"
+
 hud_booster_label:
     .byte CH_HUD_A+1,CH_HUD_A+14,CH_HUD_A+14
     .byte CH_HUD_A+18,CH_HUD_A+19,CH_SPACE
@@ -10368,7 +11012,6 @@ finish_startup_after_loader:
     sta COLPM0
     lda #ENEMY_RUNTIME_BODY_COLOR
     sta COLPM1
-    lda #ENEMY_SCANNER_COLOR
     sta COLPM2
     lda #$28                    ; amber engine plume
     sta COLPM3
@@ -10399,14 +11042,9 @@ finish_startup_after_loader:
     jmp frontend_loop
 .endif
 
-; Character projectiles normally draw over empty space with the fixed phase
-; bank. If a PlayerFighter shot meets any lower character layer (hull, shell, star or
-; an earlier projectile), build one slot-owned glyph from the current backing
-; and merge the two-scanline yellow/red mask into it. This preserves the exact
-; lower silhouette without a broadside redraw. At phase seven only the top
-; scanline is merged; rendered flag $FF tells reverse erase that no bottom cell
-; was touched. Codes 47..56 are the ten already-reserved gap glyphs between the
-; fixed PlayerFighter phase bank and the capital-hull bank.
+; If a PlayerFighter Spread PairShot meets a lower character layer, build one
+; slot-owned glyph from that backing and merge both two-row impulses into it.
+; The pair is always contained in the same character cell.
 compose_player_fighter_projectile_glyph:
     and #$7F
     sta ENTITY_SCRATCH0
@@ -10462,31 +11100,29 @@ compose_player_fighter_projectile_glyph:
     bpl @copy_inverse_row
 @copied:
 
-    lda FIGHTER_PROJECTILE_X,x
-    and #$02
-    beq :+
-    lda #$30
-    bne @mask_ready
-:
-    lda #$C0
-@mask_ready:
-    sta ENTITY_SCRATCH2
-    ldy row_counter
+    ; Merge the already-selected horizontal/vertical phase into the slot-owned
+    ; composite. This preserves the moving phase even over a nonblank underlay.
+    lda loader_repeat_value
+    asl
+    asl
+    asl
+    sta src_ptr
+    lda loader_repeat_value
+    lsr
+    lsr
+    lsr
+    lsr
+    lsr
+    clc
+    adc #>CHARSET
+    sta src_ptr+1
+    ldy #$07
+@merge_projectile_phase:
+    lda (src_ptr),y
     ora (dst_ptr),y
     sta (dst_ptr),y
-    iny
-    cpy #$08
-    beq @single_row
-    lda (dst_ptr),y
-    ora ENTITY_SCRATCH2
-    sta (dst_ptr),y
-    bne @code
-@single_row:
-    lda #$FF
-    sta FIGHTER_PROJECTILE_RENDERED,x ; erase skips the untouched bottom cell
-@code:
-    lda #$00                    ; composite never writes a second screen cell
-    sta src_ptr+1
+    dey
+    bpl @merge_projectile_phase
     lda ENTITY_SCRATCH1
     sta loader_repeat_value
 profile_projectile_compose_end = *
@@ -10494,39 +11130,32 @@ profile_projectile_compose_end = *
 
 .export profile_projectile_compose_end
 
-.segment "CODE"
+.segment "ENTITY_CODE"
 entity_slot_bit_masks:
     .byte $01,$02,$04,$08,$10
+effect_stagger_masks:
+    ; Core and fragment one can share a cell during the first two logical
+    ; frames. Keeping slots 0/1/2 in one publication group preserves their
+    ; reverse backing order; slots 3/4 form the second group.
+    .byte $07,$18
+effect_stagger_render_start:
+    .byte $00,$03
+effect_stagger_render_end:
+    .byte $03,$05
+effect_stagger_erase_start:
+    .byte $02,$04
 entity_trajectory_vx:
     EMIT_ENTITY_TRAJECTORY_VX
 
 
-; Encounter Director adapters own admission and policy only. Object lifecycle
-; remains in the existing production routines reached by these gates.
+; The C lifecycle owns the high-level sector transition. ASM performs only the
+; sector-local pickup action requested by the returned semantic token.
 .segment "PICKUP_CODE"
 integration_update_first_capital:
-    bit DIRECTOR_STATE_FLAGS
-    bmi @retry
-    bvs @done
-    lda frame_counter
-    cmp #PROVISIONAL_FIRST_CAPITAL_FRAME
-    bne @done
-@retry:
-    jmp retry_first_capital_admission
-@done:
-    rts
-
 retry_first_capital_admission:
-    lda #DIRECTOR_FLAG_FIRST_CAPITAL_DUE
-    sta DIRECTOR_STATE_FLAGS
-    lda DIRECTOR_STATE_INTENSITY
-    bne @done
-    lda CAPITAL_SECTOR_STATE
-    cmp #CAPITAL_HULL_STATE_OPEN
-    bne @done
-    lda #CAPITAL_HULL_STATE_ENGINES
-    sta CAPITAL_SECTOR_STATE
-    lsr DIRECTOR_STATE_FLAGS     ; DUE $80 becomes ADMITTED $40 atomically
+    jsr HYBRID_SECTOR_UPDATE_FIRST_CAPITAL
+    beq @done
+    jmp weapon_pickup_clear_sector
 @done:
     rts
 
@@ -10534,23 +11163,41 @@ retry_first_capital_admission:
 integration_update_enemy:
     lda ENEMY_ACTIVE
     beq integration_interceptor_retry
+    ; Every Heavy archetype on P1/P2 shares the member loop; heavy_member_update
+    ; dispatches its movement policy (Raider ASM motion or the C handler).
+    lda ENEMY_PROFILE_RENDERER_CLASS
+    cmp #ENEMY_RENDERER_TWO_HEAVY_PMG
+    bne @done
     jmp update_enemy
+@done:
+    rts
+integration_update_enemy_pad:
+    .res 7,$EA                  ; retired movement gate; later CODE entries stay put
 
 integration_interceptor_recycle:
     ldx #DIRECTOR_HAZARD_INTERCEPTOR
     jsr DIRECTOR_RELEASE
-    ; DIRECTOR_RELEASE preserves X. Hazard Interceptor is zero, so make the ended
-    ; lifecycle explicitly inactive before a retry may be deferred by capital
-    ; ownership or by the Director budget.
-    stx ENEMY_ACTIVE
+    jsr HYBRID_ENEMY_RECYCLE
+    ldx DIFFICULTY_SETTING
+    lda interceptor_admission_retry_frames,x
+    sta INTERCEPTOR_BURST_TIMER
+    rts
 integration_interceptor_retry:
-    ; The finite capital corridor owns new admissions while its hull is live.
-    ; An already active Interceptor keeps its ordinary lifecycle, but an inactive
-    ; slot cannot reserve the small EASY/MEDIUM budget ahead of ship-to-ship
-    ; fire and starve every naturally visible muzzle.
-    lda CAPITAL_SECTOR_STATE
-    cmp #CAPITAL_HULL_STATE_DRAIN
-    bcc @blocked
+    jmp interceptor_admission_update
+
+.segment "PICKUP_CODE"
+interceptor_admission_update:
+    ; Freeze the existing retry across the full capital lifecycle. It resumes
+    ; after the reconstruction pass reaches post-sector OPEN, without catch-up.
+    jsr ordinary_wave_capital_blocked
+    bmi @blocked
+    ; DYING/GAME OVER frames neither consume cadence nor attempt admission.
+    ; ALIVE and respawn-invulnerable are the two even gameplay lifecycles.
+    lda PLAYER_LIFECYCLE
+    lsr
+    bcs @blocked
+    ; Capital presence is spatial pressure, not an ordinary-admission mask.
+    ; The production Director budget remains the sole coexistence gate.
     lda INTERCEPTOR_BURST_TIMER
     beq @request
     dec INTERCEPTOR_BURST_TIMER
@@ -10558,14 +11205,16 @@ integration_interceptor_retry:
     rts
 @request:
     ldx #DIRECTOR_HAZARD_INTERCEPTOR
-    jsr DIRECTOR_REQUEST
+    jsr provisional_interceptor_director_request
     bcs @admitted
-    lda #DIRECTOR_RETRY_FRAMES
+    ldx DIFFICULTY_SETTING
+    lda interceptor_admission_retry_frames,x
     sta INTERCEPTOR_BURST_TIMER
     rts
 @admitted:
     jmp reset_enemy
 
+.segment "CODE"
 integration_update_enemy_weapon:
     lda INTERCEPTOR_BURST_STATE
     cmp #WEAPON_BURST_FIRING
@@ -10582,7 +11231,8 @@ integration_update_player_death:
     jsr update_player_death
     php
     lda PLAYER_LIFECYCLE
-    beq @restore
+    lsr                         ; ALIVE/RESPAWN may admit; DYING/GAME OVER may not
+    bcc @restore
     lda frame_counter
     sta DIRECTOR_STATE_ADMISSION_FRAME
 @restore:
@@ -10591,15 +11241,9 @@ integration_update_player_death:
 
 integration_update_sector_completion:
     jsr update_sector_completion
-    lda DIRECTOR_STATE_FLAGS
-    lsr
-    bcc @done
-    jsr weapon_pickup_clear_sector
-    lda CAPITAL_SECTOR_STATE
-    cmp #CAPITAL_HULL_STATE_COMPLETE
+    jsr HYBRID_SECTOR_FORCE_FINAL_DRAIN
     beq @done
-    lda #CAPITAL_HULL_STATE_DRAIN
-    sta CAPITAL_SECTOR_STATE
+    jmp weapon_pickup_clear_sector
 @done:
     rts
 
@@ -10623,6 +11267,57 @@ turret_warning_last_safe_rows:
     EMIT_TURRET_WARNING_LAST_SAFE_ROWS
 integration_broadside_glue_accounting_pad:
     .byte $00,$00
+
+; A ring step copies the fixed divider before sparse near is retired in the
+; post-playfield window. Remove only a copied near point from the recycled
+; destination; the real divider cell remains owned until normal publication.
+restore_recycled_row_near_underlay:
+    ldx #(STAR_NEAR_CAPACITY-1)
+@slot:
+    ; The row copy can clone only an OLD point that was physically on the
+    ; fixed divider. Test the exact cached OLD page rather than the already
+    ; advanced logical row; this remains correct for coarse+ring frames.
+    lda STAR_NEAR_SCREEN_HI,x
+    cmp #>GAMEPLAY_DIVIDER_SCREEN
+    bne @next
+    ldy STAR_NEAR_COLUMN,x
+    lda (dst_ptr),y
+    cmp #STAR_NEAR_POINT
+    bne @next
+    lda #CH_SPACE
+    sta (dst_ptr),y
+@next:
+    dex
+    bpl @slot
+    rts
+
+; Motion changes a Raider's Y by at most one scanline per gameplay tick. The
+; new body overwrites every shared row, so only the row which left the sprite
+; footprint must be retired. Appending this local repair preserves every
+; established A2 entry address used by the integration glue.
+erase_enemy_departing_row:
+    ldx ENEMY_TARGET_SLOT
+    cmp ENEMY_Y,x
+    beq @done
+    bcc @down
+    ldx ENEMY_ARCHETYPE          ; upward: retire old bottom row
+    clc
+    adc enemy_frame_heights,x
+    sec
+    sbc #$01
+@down:                           ; downward: retire old top row
+    cmp #GAMEPLAY_BOTTOM
+    bcs @done
+    tay
+    lda #$00
+    ldx ENEMY_TARGET_SLOT
+    bne @player2
+    sta PLAYER1,y
+    rts
+@player2:
+    sta PLAYER2,y
+@done:
+    rts
 
 .segment "BROADSIDE"
 ; The moved development encounter spans the ordinary phase-0/1 boundary.
@@ -10659,10 +11354,78 @@ provisional_capital_broadside_request:
     clc
     rts
 
+; The glue block uses its final byte while retaining every display and active-
+; frame address. Keep the eight-byte release wrapper in BROADSIDE's existing
+; reserved tail; debris still releases the same Director cost and slot state.
+;
+; Lethal player contact enters three bytes earlier and falls through: the award
+; first, then the unchanged release. Only entity_damage_applied reaches this
+; label, so every other caller of integration_debris_release (the despawn path,
+; the fall past ENTITY_GAMEPLAY_BOTTOM and the sector DRAIN/COMPLETE release)
+; still awards nothing. MEASURED-ESTIMATE +12 cycles for the jsr/rts pair plus
+; add_debris_score's ~105, only on the frame a contact destroys the debris —
+; a frame that already runs the release and the player-damage paths.
+debris_contact_destroyed:
+    jsr add_debris_score
+integration_debris_release:
+    ldx #DIRECTOR_HAZARD_DEBRIS
+    jsr DIRECTOR_RELEASE
+    jmp entity_despawn_debris
+
 ; Reuse the established global intensity ceilings without changing any normal
 ; phase table: EASY 3, MEDIUM 4, HARD 5.
 provisional_capital_budgets:
     .byte $03,$04,$05
+
+add_archetype_score_tail:
+    sed
+    clc
+    lda score_bcd_lo
+    adc ENEMY_PROFILE_SCORE_BCD
+    sta score_bcd_lo
+    lda score_bcd_hi
+    adc #$00
+    sta score_bcd_hi
+    cld
+    jmp update_score_display
+
+.segment "PICKUP_CODE"
+; The provisional ordinary cadence is active-frame based, independent of the
+; Director's world-row reaction/recovery clocks. Preserve those clocks around
+; the production request so its phase mask, budget, allocation, one charge and
+; one private-RNG advance remain authoritative. Phase zero borrows phase one's
+; established Interceptor policy before the hull arrives. During the admitted
+; traversal, borrow phase three's existing all-hazards 3/4/5 policy: those are
+; the same ceilings used by the capital-local BROADSIDE gate, so one live bolt
+; cannot permanently mask later ordinary lifecycles.
+provisional_interceptor_director_request:
+    lda DIRECTOR_STATE_REACTION
+    pha
+    lda DIRECTOR_STATE_RECOVERY
+    pha
+    lda #$00
+    sta DIRECTOR_STATE_REACTION
+    sta DIRECTOR_STATE_RECOVERY
+    lda DIRECTOR_STATE_PHASE
+    pha
+    jsr select_interceptor_request_phase
+    jsr DIRECTOR_REQUEST
+    ldy #$00
+    bcc :+
+    iny
+:
+    pla
+    sta DIRECTOR_STATE_PHASE
+    pla
+    sta DIRECTOR_STATE_RECOVERY
+    pla
+    sta DIRECTOR_STATE_REACTION
+    cpy #$01                    ; restore the production request carry result
+    rts
+
+; Rejected admission and post-release cadence in active gameplay frames.
+interceptor_admission_retry_frames:
+    .byte 48,36,24
 
 .segment "ENTITY_CODE"
 allied_engine_overlay_masks:
@@ -10670,19 +11433,54 @@ allied_engine_overlay_masks:
 enemy_engine_overlay_masks:
     EMIT_ENEMY_ENGINE_OVERLAY_MASKS
 
-.segment "A2_KERNEL"
-integration_pickup_pending_tick:
-    dec ENTITY_TIMER+WEAPON_PICKUP_SLOT
-    bne @done
-    ldx #DIRECTOR_HAZARD_PICKUP
-    jsr DIRECTOR_REQUEST
-    bcs @reveal
-    lda #DIRECTOR_RETRY_FRAMES
-    sta ENTITY_TIMER+WEAPON_PICKUP_SLOT
-@done:
+claim_fighter_projectile_visual:
+    lda #$FF
+    sta FIGHTER_PROJECTILE_RENDERED,x
+    inc FIGHTER_PROJECTILE_OWNED_COUNT
     rts
-@reveal:
-    jmp integration_pickup_reveal_body
+
+; Tail placement consumes only the post-H3.1 ENTITY_CODE slack and therefore
+; leaves the fixed frontend tables and their page-local pointers untouched.
+begin_enemy_fighter_explosion_tail:
+    ldx #FIGHTER_EXPLOSION_ENEMY_SLOT
+begin_enemy_fighter_explosion_body:  ; trace-only boundary, no code
+    ; The existing 24-frame timer owns the background flash and lifecycle.
+    ; Raider destruction deliberately publishes no character-cell effect.
+    ldy ENEMY_TARGET_SLOT
+    lda ENEMY_X,y
+    ldx ENEMY_ARCHETYPE
+    sec
+    sbc enemy_visible_left_insets,x
+    sta FIGHTER_EXPLOSION_X+FIGHTER_EXPLOSION_ENEMY_SLOT
+    ldx ENEMY_TARGET_SLOT
+    jsr enemy_member_screen_y
+    sta ENEMY_TARGET_Y
+    ldx ENEMY_ARCHETYPE
+    lda enemy_frame_heights,x
+    sec
+    sbc #SHARED_FIGHTER_EXPLOSION_HEIGHT
+    lsr
+    clc
+    adc ENEMY_TARGET_Y
+    sta FIGHTER_EXPLOSION_Y+FIGHTER_EXPLOSION_ENEMY_SLOT
+    lda #SHARED_FIGHTER_EXPLOSION_TOTAL
+    sta FIGHTER_EXPLOSION_TIMER+FIGHTER_EXPLOSION_ENEMY_SLOT
+    rts
+
+reset_enemy_fire_cooldown_tail:
+    lda #WEAPON_BURST_WAITING
+    sta INTERCEPTOR_BURST_STATE
+    sta INTERCEPTOR_BURST_REMAINING
+    sta INTERCEPTOR_BURST_TIMER
+    rts
+
+game_music_read_token_tail:
+    lda $FFFF,y
+    rts
+
+begin_capital_projectile_frame:
+    jsr wait_gameplay_frame
+    jmp erase_fighter_projectile_overlays
 
 .export integration_update_enemy, integration_interceptor_recycle, integration_interceptor_retry
 .export integration_update_enemy_weapon, integration_update_player_death
@@ -10690,17 +11488,15 @@ integration_pickup_pending_tick:
 .export integration_broadside_due, integration_broadside_release
 .export integration_pickup_pending_tick, integration_pickup_reveal_body
 
-.assert entity_archetype_descriptors_end-entity_archetype_descriptors = ENTITY_ARCHETYPE_DESCRIPTOR_BYTES, error, "entity descriptor size changed"
 .assert entity_debris_glyph_end-entity_debris_glyph = ENTITY_DEBRIS_GLYPH_BYTES, error, "debris glyph bank size changed"
 .assert effect_fragment_glyph_end-effect_fragment_glyph = EFFECT_FRAGMENT_GLYPH_BYTES, error, "fragment glyph bank size changed"
 .assert *-__ENTITY_CODE_RUN__ <= ENTITY_CODE_RESERVED_BYTES, error, "ENTITY_CODE exceeds its unconditional RAM reservation"
 
 .export init_entity_effects, install_entity_effects_glyph
-.export compose_weapon_pickup_phase
 .export unpack_weapon_pickup_phase_runtime
 .export ENTITY_DEBRIS_GLYPH_BASE
 .export WEAPON_PICKUP_GLYPH_BASE, WEAPON_PICKUP_SPREAD_GLYPH_BASE, WEAPON_PICKUP_SHIELD_GLYPH_BASE
-.export WEAPON_PICKUP_PHASE_BANK
+.export WEAPON_PICKUP_RUNTIME
 .export entity_effects_erase, entity_effects_update, entity_effects_render
 .export entity_spawn_debris, entity_player_debris_overlap, entity_damage_applied, entity_despawn_debris
 .export entity_begin_sector_complete, entity_complete_scroll_tick
@@ -10716,10 +11512,10 @@ integration_pickup_pending_tick:
 .export materialize_interceptor_breakup_effects
 .export update_transient_effects, render_transient_effect_overlays
 .export erase_transient_effect_overlays, erase_interactive_entity_overlays
-.export erase_weapon_pickup_overlay
 .export render_interactive_entity_overlays
-.export entity_archetype_descriptors, entity_debris_glyph, effect_fragment_glyph
-.export entity_interceptor_fragment_render_ids, entity_trajectory_vx
+.export update_fighter_pickup_pmg, clear_fighter_pickup_pmg
+.export entity_debris_glyph, effect_fragment_glyph
+.export entity_trajectory_vx
 
 ; -----------------------------------------------------------------------------
 ; Transient second-stage disk loader. The linker gives this segment the run
@@ -10738,10 +11534,60 @@ CHUNK_STAGING_BROAD   = 1
 CHUNK_STAGING_ADDRESS = $8100
 CHUNK_FINAL_ADDRESS   = $5E10
 CHUNK_STAGING_SECTORS_MAX = 50
-LAYOUT_D_GLUE_STAGING = $5261
+; Roadmap 4.5M-M2: the low-C image (its full $F8 reservation) and the GLUE
+; image travel as one LZ record that lands at COLD_LOW_GLUE_RECORD, above the
+; packed resident staging (build enforced) and below the direct-landing
+; Director records at $9D5E. ENTITY_CODE expands over it afterwards, so every
+; consumer runs before unpack_entity_runtime. Since 4.5M-M3 the only record in
+; $7BD0-$7F0F is the direct-landing HYBRID_C_ARENA record.
+COLD_LOW_GLUE_RECORD = $9B40
+COLD_LOW_GLUE_RECORD_END = $9D5E
+LAYOUT_D_GLUE_STAGING = COLD_LOW_GLUE_RECORD+$F8
 LAYOUT_D_GLUE_FINAL = $4EFE
-LAYOUT_D_GLUE_HOLDING = $7F16
-LAYOUT_D_GLUE_BYTES = 234
+.assert COLD_LOW_GLUE_RECORD >= CHUNK_STAGING_ADDRESS+CHUNK_STAGING_SECTORS_MAX*$80, error, "merged cold record overlaps the stage-2 chunk staging"
+.assert LAYOUT_D_GLUE_STAGING+LAYOUT_D_GLUE_BYTES <= COLD_LOW_GLUE_RECORD_END, error, "merged cold record reaches the Director records"
+; Resident staging has been consumed before publish_director_abi reaches the
+; GLUE hold (4.5M-M2: the hold is filled right after unpack_resident_runtime).
+; The hold uses idle boot-time RAM at the start of the consumed resident
+; staging interval (C Light state, profile cache and the first ring rows), which
+; no boot step touches: gameplay init rewrites all of it before the first read.
+; Since 4.5M-M1 it sits at $8100 so that starfield stream B can use the
+; contiguous idle range $81FA-$8601 behind it. It survives ENTITY expansion,
+; the loader bitmap, entity clear and starfield expansion until the final
+; publication below $5000.
+LAYOUT_D_GLUE_HOLDING = $8100
+LAYOUT_D_GLUE_BYTES = 250
+.assert LAYOUT_D_GLUE_HOLDING >= PACKED_RESIDENT_STAGING, error, "GLUE hold must use consumed resident staging RAM"
+.assert LAYOUT_D_GLUE_HOLDING+LAYOUT_D_GLUE_BYTES <= STARFIELD_STAGING_B, error, "GLUE hold overlaps starfield stream B staging"
+; Starfield staging streams (4.5M-M1): A below $7BD0 (HYBRID_C_ARENA since
+; 4.5M-M3), B behind the GLUE hold and before the
+; near-star state / HYBRID_C_SECTOR window, which the pickup record publishes
+; at $8602 before the starfield expands.
+.assert STARFIELD_STAGING >= __BROADSIDE_RUN__+$1A00, error, "starfield stream A overlaps the BROADSIDE reservation"
+.assert STARFIELD_STAGING_BYTES = PAUSE_SCREEN_BYTES, error, "starfield stream A is staged by one pause-screen copy"
+.assert STARFIELD_STAGING_B_BYTES = PAUSE_SCREEN_BYTES, error, "starfield stream B is staged by one pause-screen copy"
+.assert STARFIELD_STAGING+STARFIELD_STAGING_BYTES <= $7BD0, error, "starfield stream A reaches $7BD0"
+.assert STARFIELD_STAGING_B >= LAYOUT_D_GLUE_HOLDING+LAYOUT_D_GLUE_BYTES, error, "starfield stream B overlaps the GLUE hold"
+.assert STARFIELD_STAGING_B+STARFIELD_STAGING_B_BYTES <= RESIDENT_WINDOW, error, "starfield stream B reaches the near-star state or HYBRID_C_SECTOR"
+.assert STARFIELD_STAGING_B+STARFIELD_STAGING_B_BYTES <= $8602, error, "starfield stream B must end at or before $8601"
+.if DIRECTOR_ABI_BYTES > 0
+; ABI cold record (4.5M-M2): directly after A2 staging, inside the entity-state
+; page, consumed by publish_director_abi before init_entity_effects clears it.
+.assert DIRECTOR_ABI_STAGING >= BOOT_A2_STAGING+__A2_KERNEL_SIZE__, error, "ABI cold record overlaps A2 staging"
+.assert DIRECTOR_ABI_STAGING+DIRECTOR_ABI_BYTES <= ENTITY_STATE_ADDRESS+ENTITY_STATE_BYTES, error, "ABI cold record leaves the entity-state page"
+; HYBRID_C_ARENA (roadmap 4.5M-M3): one contiguous 832-B direct-landing arena
+; $7BD0-$7F0F, above starfield stream A staging and the pause-screen backup,
+; below the A2 display lists and A2 staging. It replaces the 243-B
+; HYBRID_C_HEAVY window; the image is non-empty (the ca65 record anchor).
+.assert HYBRID_C_ARENA_RUNTIME = $7BD0, error, "HYBRID_C_ARENA must start at $7BD0"
+.assert HYBRID_C_ARENA_CAPACITY = 832, error, "HYBRID_C_ARENA capacity must be 832 B"
+.assert HYBRID_C_ARENA_END = HYBRID_C_ARENA_RUNTIME+HYBRID_C_ARENA_CAPACITY, error, "HYBRID_C_ARENA end is inconsistent"
+.assert HYBRID_C_ARENA_END <= PLAYFIELD_DLIST_A, error, "HYBRID_C_ARENA overlaps the A2 display lists"
+.assert HYBRID_C_ARENA_END <= BOOT_A2_STAGING, error, "HYBRID_C_ARENA overlaps A2 staging"
+.assert HYBRID_C_ARENA_RUNTIME >= STARFIELD_STAGING+STARFIELD_STAGING_BYTES, error, "HYBRID_C_ARENA overlaps starfield stream A staging"
+.assert HYBRID_C_ARENA_RUNTIME >= PAUSE_SCREEN_BACKUP+$3C0, error, "HYBRID_C_ARENA overlaps the pause-screen backup"
+.assert HYBRID_C_ARENA_BYTES >= 1 && HYBRID_C_ARENA_BYTES <= HYBRID_C_ARENA_CAPACITY, error, "HYBRID_C_ARENA image is empty or exceeds 832 B"
+.endif
 
 .macro STAGE2_FAIL_NE
     .local ok
@@ -10774,7 +11620,62 @@ ok:
 ok:
 .endmacro
 
+; Copy the 16-bit byte count in row_counter:loader_repeat_value from src_ptr
+; to dst_ptr, starting at the last byte. This is boot-only code and permits a
+; destination above the source even when the two intervals overlap.
+copy_boot_stream_backward:
+    clc
+    lda src_ptr
+    adc loader_repeat_value
+    sta src_ptr
+    lda src_ptr+1
+    adc row_counter
+    sta src_ptr+1
+    clc
+    lda dst_ptr
+    adc loader_repeat_value
+    sta dst_ptr
+    lda dst_ptr+1
+    adc row_counter
+    sta dst_ptr+1
+    ldy #$00
+@byte:
+    lda loader_repeat_value
+    ora row_counter
+    beq @done
+    lda src_ptr
+    bne :+
+    dec src_ptr+1
+:
+    dec src_ptr
+    lda dst_ptr
+    bne :+
+    dec dst_ptr+1
+:
+    dec dst_ptr
+    lda (src_ptr),y
+    sta (dst_ptr),y
+    lda loader_repeat_value
+    bne :+
+    dec row_counter
+:
+    dec loader_repeat_value
+    jmp @byte
+@done:
+    rts
+
 boot_stage2_atr_entry:
+    ; Owner decision A (2026-09-20): unmap the BASIC ROM as the first thing the
+    ; disk path does with control, ahead of the SIO chunk load and therefore
+    ; ahead of every write this build makes. The BASIC ROM window is RAM from
+    ; here on, so no write into it can be swallowed by a mapped ROM. (Nothing
+    ; targets that window today - the chunk staging buffer is $8100 and no
+    ; segment in cfg/atari-boot.cfg loads above $9FFF - the ordering makes that
+    ; structural instead of incidental.) The call sites are here and in
+    ; boot_stage2_xex_entry rather than in start because the fixed $01A3
+    ; bootstrap prefix has fewer than three bytes free; both are strictly
+    ; earlier than start, and this overlay is not part of that prefix.
+    jsr disable_basic_rom
     jsr boot_stage2_validate_manifest
 layout_d_manifest_validation_complete:
     lda #<(boot_chunk_manifest+CHUNK_RECORD)
@@ -10919,6 +11820,9 @@ stage2_chunk_published:
     rts
 
 boot_stage2_xex_entry:
+    ; Owner decision A: the XEX never executes boot_entry (RUNAD lands here),
+    ; so the file path unmaps the BASIC ROM for itself, before jmp start.
+    jsr disable_basic_rom
     lda #$02
     sta boot_chunk_ready
     jmp start
@@ -11259,4 +12163,122 @@ boot_chunk_manifest_end:
 .export layout_d_glue_publish_complete
 .export layout_d_hold_glue, layout_d_hold_glue_end
 .export layout_d_publish_glue, layout_d_publish_glue_end
-.export layout_d_entity_unpack_complete
+.export layout_d_entity_unpack_complete, layout_d_cold_publish_complete
+
+; Light Wingman: the hooks below are operand-only redirections of existing
+; JSRs. Each hook first performs the routine it is named after; the debris
+; capture hook also keeps the near-star sanitising it replaces. Without the
+; hybrid C Light ABI they resolve to the original targets.
+.ifdef ENEMY_LIGHT_TICK
+.include "light-wingman.s"
+.include "heavy-member.s"
+
+; Placed after the Light art tables so they keep their ENTITY_CODE addresses.
+.segment "ENTITY_CODE"
+; First DYING tick after a lethal hit: begin the deferred PMG explosion, then
+; count the death timer down. Entered by jmp from update_player_death; returns
+; with its carry contract.
+;
+; The finishing frame must leave before the idle-slot test, not after it:
+; tick_shared_fighter_explosions runs earlier in the same frame and, at
+; EXPL_TIMER 1, erases the player slot and decrements it to 0, so on that one
+; frame an idle slot means "just finished", not "not yet begun". Testing it
+; there restarted the explosion at the pre-death player_x/player_y one
+; instruction before respawn_player and published a second image for 24 frames.
+; apply_player_damage is the only entry into DYING and always sets
+; BROAD_DEATH_TIMER to SHARED_FIGHTER_EXPLOSION_TOTAL+1 in the same unbranched
+; lethal tail, so "not the finishing frame" is exactly "the explosion has not
+; been begun yet, or is still running". No RAM and no size change: 18 bytes.
+player_dying_tick:
+    dec BROAD_DEATH_TIMER
+    beq @finished
+    lda FIGHTER_EXPLOSION_TIMER+FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT
+    bne @running
+    jsr begin_player_fighter_explosion
+@running:
+    clc
+    rts
+@finished:
+    jmp update_player_death_finished
+erase_fighter_projectile_overlays_with_light = light_publish
+entity_effects_update_with_light = light_update
+entity_player_fighter_projectile_target_with_light = light_shot
+resolve_effect_backing_below_interactive_debris_and_light = light_backing
+debris_capture_resolve = light_cell_resolve_sanitized
+.export light_publish, light_update, light_shot, light_backing
+.export light_cell_resolve, light_destroyed, light_glyph
+.else
+erase_fighter_projectile_overlays_with_light = entity_debris_publish_after_pairshot_erase
+entity_effects_update_with_light = entity_effects_update
+entity_player_fighter_projectile_target_with_light = entity_player_fighter_projectile_target
+resolve_effect_backing_below_interactive_debris_and_light = resolve_effect_backing_below_interactive_debris
+debris_capture_resolve = sanitize_dynamic_near_backing
+.endif
+
+; Debris late publication (exact ownership, 2026-09-16). Fighter OPEN stack
+; inside the post-playfield window: debris < effects (mid-frame, resolver-
+; backed) < Light < PairShots < sparse near. The debris is erased and redrawn
+; here, between the Light erase and the Light render, never mid-frame. Resident
+; in the HYBRID_C_EXT tail after LIGHT_CODE (dual-use tail, step 4.3).
+.segment "LIGHT_CODE"
+entity_debris_publish:
+    lda ENTITY_RENDERED_MASK
+    beq :+
+    jsr erase_interactive_entity_overlays
+:
+    jmp render_interactive_entity_overlays
+
+; Capital frames (VCOUNT $70 start, work spanning the vertical blank): the
+; debris is erased and redrawn adjacently right after the entity update, so
+; the bottom ring row is never scanned blank and the beam never separates the
+; erase from the redraw. Every transient restore (capital explosion tick,
+; launch flash, muzzle, broadside erase) precedes this point in the loop and
+; every transient capture (launch flash, capital explosion, broadside span)
+; follows it, so no transient backup can ever hold a debris glyph. Fighter
+; OPEN frames publish in the window instead.
+render_launch_flashes_with_capital_debris:
+    lda FIGHTER_PROJECTILE_PUBLICATION_FRAME
+    beq :+
+    jsr entity_debris_publish
+:
+    jmp render_launch_flashes
+
+; rotate_playfield_rows has just copied the fixed divider into the physical
+; row recycled from the bottom while the current frame still displays that
+; row at the bottom. If the late-published debris image lives there, republish
+; its two cells over the copy and re-capture their backing, so this frame's
+; bottom row keeps the debris and the next guarded erase restores the copied
+; content exactly. dst_ptr = the recycled row.
+restore_recycled_row_near_and_debris:
+    jsr restore_recycled_row_near_underlay
+    lda ENTITY_SCREEN_HI
+    beq @done
+    lda ENTITY_SCREEN_LO
+    sec
+    sbc dst_ptr
+    tay
+    lda ENTITY_SCREEN_HI
+    sbc dst_ptr+1
+    bne @done
+    cpy #GAMEPLAY_SCREEN_COLUMNS
+    bcs @done
+    ldx #$00
+@cell:
+    lda (dst_ptr),y
+    sta ENTITY_BACKING0,x
+    lda ENTITY_BACKING2,x
+    sta (dst_ptr),y
+    iny
+    inx
+    cpx #ENTITY_DEBRIS_GLYPHS_PER_PHASE
+    bne @cell
+@done:
+    rts
+
+.ifndef ENEMY_LIGHT_TICK
+entity_debris_publish_after_pairshot_erase:
+    jsr erase_fighter_projectile_overlays
+    jmp entity_debris_publish
+.endif
+.export entity_debris_publish, render_launch_flashes_with_capital_debris
+.export restore_recycled_row_near_and_debris

@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "status": "PASS",
+  "generated_at": "2026-09-15",
+  "blocked_checkpoint": "499877b90c315cd86a43da9603b22741d152f7e0",
+  "failure": {
+    "frame": 507,
+    "landing_pc": "0x028D",
+    "first_divergence": {
+      "pc": "0x8BC0",
+      "linked_expected_bytes": "AD F4 80",
+      "native_actual_bytes": "80 54 D0",
+      "expected_instruction": "LDA $80F4",
+      "actual_origin": "resident-runtime-suffix-packed.bin offset 0x1132"
+    },
+    "control_transfers": [
+      "0x56CB JSR 0x4EFE (ASM frame path to active-gameplay clock)",
+      "0x4F09 JMP 0x8707 (tail transfer to Director veneer)",
+      "0x8707 JMP 0x8BC0 (tail transfer to director_c_world_row_tick)",
+      "0x8BC0 executes overwritten staging bytes instead of C",
+      "0x8C44 JSR 0x028D (instruction synthesized by overwritten bytes)",
+      "0x028D BRK"
+    ],
+    "last_transfer_registers": {
+      "at_pc_0x8C44": {"a": "0x02", "x": "0x02", "y": "0x00", "s": "0xF2", "p": "0x34"},
+      "at_pc_0x028D": {"a": "0x02", "x": "0x02", "y": "0x00", "s": "0xF0", "p": "0x34"}
+    },
+    "hardware_stack_0x01E0_0x01FF": "00 00 00 00 00 00 00 00 00 00 00 00 AF 9E 11 87 00 46 8C CD 56 9F 56 14 02 5F 15 22 20 C6 0F C4",
+    "jsr_return_proof": {
+      "pushed_high_at_0x01F2": "0x8C",
+      "pushed_low_at_0x01F1": "0x46",
+      "encoded_return_operand": "0x8C46",
+      "rts_would_resume": "0x8C47",
+      "stack_delta": -2,
+      "conclusion": "The JSR and hardware stack are correct; the target operand came from overwritten code."
+    }
+  },
+  "root_cause": {
+    "overwriter": "packed resident suffix cold staging",
+    "overwriter_range": "0x8100-0x9B0B",
+    "victim_range": "0x8B88-0x8C7C",
+    "victim_bytes": 245,
+    "invalid_invariant": "Executable low C was published before a later cold staging write that overlapped its final address. No return-address invariant failed."
+  },
+  "asm_vs_c_first_event": {
+    "asm_baseline": "At row 128, director_world_row_tick at 0x9D95 calls director_try_event at 0x9E51, which calls hook_dispatch_event at 0x9F48; all three return normally.",
+    "c_linked_intent": "At row 128, director_c_world_row_tick at 0x8BC0 calls director_c_try_event at 0x9F92, which calls the ABI dispatcher at 0x8749; the fixed native trace shows all returns normally.",
+    "smallest_correctness_divergence": "Before any C instruction or event-dispatch crossing, native byte 0 at 0x8BC0 is 0x80 instead of the linked 0xAD. State and decision traces before this point are equivalent.",
+    "post_fix_behavioral_divergences": 0
+  },
+  "expected_fixed_event_path": [
+    "0x56CB JSR 0x4EFE: ASM frame path enters active-gameplay clock with S=0xF4",
+    "0x4F09 JMP 0x8707: ASM tail transfer to Director veneer with S=0xF2",
+    "0x8707 JMP 0x8BC0: veneer tail transfer to director_c_world_row_tick with S=0xF2",
+    "0x8BE7 JSR 0x9F48: C phase check enters with S=0xF0 and RTS returns at 0x9F91 to 0x8BEA with S=0xF2",
+    "0x8C50 JSR 0x9F92: C enters director_c_try_event with S=0xF0",
+    "0x9FB2 JSR 0x8749: C enters ASM semantic dispatcher with A/X/Y=0x01/0x00/0x00 and S=0xEE",
+    "0x8755 RTS: dispatcher returns to 0x9FB5 with A/X/Y=0x01/0x01/0x00 and S=0xF0",
+    "0x9FC0 JSR 0x9D5E: C RNG helper enters with S=0xEE and RTS returns to 0x9FC3 with S=0xF0",
+    "0x9FF7 RTS: director_c_try_event returns to 0x8C53 with S=0xF2",
+    "0x8C7C RTS: director_c_world_row_tick consumes the original ASM JSR return and resumes at 0x56CE with S=0xF4",
+    "No RTI occurs; the whole path is mainline code"
+  ],
+  "rejected_hypotheses": {
+    "jsr_vs_tail_jmp_mismatch": "rejected",
+    "rts_vs_rti_mismatch": "rejected",
+    "interrupt_sensitive_c_return": "rejected",
+    "cc65_register_preservation_violation": "rejected",
+    "callback_destroyed_required_register_or_flags": "rejected",
+    "hardware_stack_imbalance": "rejected",
+    "cc65_software_stack_initialization": "rejected",
+    "missing_generated_runtime_helper": "rejected",
+    "pure_asm_dispatch_return_path": "rejected",
+    "mailbox_or_indirect_vector_overwrite": "rejected"
+  },
+  "cc65_runtime_audit": {
+    "generated_importzp_header_symbols": ["c_sp", "sreg", "regsave", "regbank", "tmp1", "tmp2", "tmp3", "tmp4", "ptr1", "ptr2", "ptr3", "ptr4"],
+    "emitted_references_to_importzp_symbols": 0,
+    "linked_importzp_symbols": 0,
+    "generated_runtime_helper_calls": 0,
+    "c_software_stack_bytes": 0,
+    "new_zero_page_bytes": 0
+  },
+  "fix": {
+    "low_c_staging_range": "0x7D40-0x7E34",
+    "low_c_runtime_range": "0x8B88-0x8C7C",
+    "publisher": "director_publish_low",
+    "publisher_bytes": 14,
+    "publication_time": "after resident suffix source has been consumed",
+    "gameplay_changes": 0
+  },
+  "validation": {
+    "cold_boot_sessions_passed": 4,
+    "native_observer_frames": 4000,
+    "native_scheduled_dispatches": 3,
+    "behavioral_divergences": 0,
+    "pal_replay_frames": 920,
+    "pal_maximum_wall_cycles": 28479,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "dli_ordering_errors": 0
+  }
+}

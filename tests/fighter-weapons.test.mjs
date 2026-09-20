@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import {
   compileFighterWeapons,
   buildInterceptorProjectileGlyphBank,
+  hostileProjectileScreenCode,
   createSharedFighterExplosion,
   createPlayerFighterBurstState,
   loadFighterWeaponsDefinition,
@@ -26,6 +27,7 @@ import { canonicalPlayfield } from "../scripts/playfield.mjs";
 const directory = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(directory, "..");
 const source = fs.readFileSync(path.join(root, "src", "main.s"), "utf8");
+const integrationSource = fs.readFileSync(path.join(root, "src", "integration-glue.s"), "utf8");
 const roster = compileEnemyRoster(loadEnemyRosterDefinition(
   path.join(root, "assets", "graphics", "enemy-roster.json")), root);
 const weapons = compileFighterWeapons(loadFighterWeaponsDefinition(
@@ -33,11 +35,12 @@ const weapons = compileFighterWeapons(loadFighterWeaponsDefinition(
 const hulls = loadCapitalHullsDefinition(
   path.join(root, "assets", "graphics", "capital-hulls.json"));
 const labels = new Map(
-  fs.readFileSync(path.join(root, "build", "void-strike-65.lbl"), "utf8")
-    .split(/\r?\n/)
-    .map((line) => /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim()))
-    .filter(Boolean)
-    .map((match) => [match[2], Number.parseInt(match[1], 16)]),
+  ["void-strike-65.lbl", "encounter-director.lbl"].flatMap((file) =>
+    fs.readFileSync(path.join(root, "build", file), "utf8")
+      .split(/\r?\n/)
+      .map((line) => /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim()))
+      .filter(Boolean)
+      .map((match) => [match[2], Number.parseInt(match[1], 16)])),
 );
 
 function xexBytes(address, length) {
@@ -54,7 +57,7 @@ test("assembled gameplay display keeps HUD, divider and 27 ring rows distinct", 
   assert.deepEqual(weapons.viewport, canonicalPlayfield);
 });
 
-test("Interceptor PMG drawing clips every frame to the gameplay viewport", () => {
+test("Interceptor PMG drawing retains the accepted bounded viewport lifecycle", () => {
   const interceptor = roster.implemented[0];
   const visibleCounts = [];
   for (let logicalY = weapons.viewport.gameplayTop - interceptor.height;
@@ -76,31 +79,33 @@ test("Interceptor PMG drawing clips every frame to the gameplay viewport", () =>
   assert.ok(visibleCounts.at(-1) > visibleCounts.find((count) => count > 0),
     "successive occupied body rows enter progressively instead of appearing fully formed");
   const renderer = source.slice(source.indexOf("draw_enemy:"), source.indexOf("reset_enemy:"));
-  assert.match(renderer, /cpy #GAMEPLAY_TOP[\s\S]+bcc @body_next/);
-  assert.match(renderer, /cpy #GAMEPLAY_TOP[\s\S]+bcc @accent_done/);
+  assert.match(renderer, /cpy #GAMEPLAY_BOTTOM[\s\S]+bcs @body_done/);
+  assert.match(renderer,
+    /update_enemy_slot_motion:[\s\S]+jsr update_interceptor_soft_pursuit[\s\S]+ENEMY_MANEUVER_STATE,x/);
 });
 
-test("held FIRE emits an exact eight-shot normal PlayerFighter burst at three-frame intervals", () => {
-  const simulation = simulatePlayerFighterBurst(weapons, 40);
+test("held FIRE emits four PairShots / eight visible pulses at nine-frame intervals", () => {
+  const simulation = simulatePlayerFighterBurst(weapons, 90);
   const allocations = simulation.trace.filter(({ allocationResult }) =>
     allocationResult === "ALLOCATED");
-  assert.deepEqual(allocations.slice(0, 8).map(({ frame }) => frame),
-    [1, 4, 7, 10, 13, 16, 19, 22]);
-  assert.equal(allocations[7].burstState, "POST_BURST_COOLDOWN");
-  assert.equal(allocations[7].timer, 12);
-  assert.equal(allocations[8].frame, 34);
-  assert.ok(Math.max(...simulation.trace.map(({ active }) => active.length)) >= 8);
+  assert.deepEqual(allocations.slice(0, 4).map(({ frame }) => frame), [1, 10, 19, 28]);
+  assert.equal(allocations[3].burstState, "POST_BURST_COOLDOWN");
+  assert.equal(allocations[3].timer, 12);
+  assert.equal(allocations[4].frame, 40);
+  assert.equal(weapons.player_fighter.visibleBurstPulses, 8);
+  assert.ok(Math.max(...simulation.trace.map(({ active }) => active.length)) <= 5);
 });
 
-test("Rapid keeps ten shots, its two-frame interval and the common post-burst pause", () => {
-  const simulation = simulatePlayerFighterBurst(weapons, 32, { weaponMode: "RAPID" });
+test("Rapid emits five PairShots / ten visible pulses within the five-object limit", () => {
+  const simulation = simulatePlayerFighterBurst(weapons, 90, { weaponMode: "RAPID" });
   const allocations = simulation.trace.filter(({ allocationResult }) =>
     allocationResult === "ALLOCATED");
-  assert.deepEqual(allocations.slice(0, 10).map(({ frame }) => frame),
-    [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]);
-  assert.equal(allocations[9].burstState, "POST_BURST_COOLDOWN");
-  assert.equal(allocations[9].timer, 12);
-  assert.equal(allocations[10].frame, 31);
+  assert.deepEqual(allocations.slice(0, 5).map(({ frame }) => frame), [1, 7, 13, 19, 25]);
+  assert.equal(allocations[4].burstState, "POST_BURST_COOLDOWN");
+  assert.equal(allocations[4].timer, 12);
+  assert.equal(allocations[5].frame, 37);
+  assert.equal(weapons.player_fighter.rapidFireVisiblePulses, 10);
+  assert.ok(Math.max(...simulation.trace.map(({ active }) => active.length)) <= 5);
 });
 
 test("FIRE release stops new emissions while launched PlayerFighter shots remain independent", () => {
@@ -116,18 +121,25 @@ test("FIRE release stops new emissions while launched PlayerFighter shots remain
 
 test("PlayerFighter pool rejection neither overwrites shots nor counts a rejected emission", () => {
   let state = createPlayerFighterBurstState(weapons);
-  state.pool = state.pool.map((_, index) => ({ owner: "PLAYER_FIGHTER", x: 80 + index, y: 100,
-    previousY: 100, width: 1, height: 2, colour: 0x1e }));
-  const before = state.pool.map(({ x }) => x);
+  state.pool = state.pool.map((_, index) => index < weapons.player_fighter.activeLimit ?
+    { owner: "PLAYER_FIGHTER", x: 80 + index, y: 100,
+      previousY: 100, width: 1, height: 2, colour: 0x1e } : null);
+  const before = state.pool.map((shot) => shot?.x ?? null);
   state = stepPlayerFighterBurst(weapons, state, { fireHeld: true });
   assert.equal(state.shotsEmitted, 0);
-  assert.deepEqual(state.pool.map(({ x }) => x), before);
-  assert.equal(state.burstRemaining, 8);
+  assert.deepEqual(state.pool.map((shot) => shot?.x ?? null), before);
+  assert.equal(state.burstRemaining, 4);
+  state.pool[0] = null;
+  state = stepPlayerFighterBurst(weapons, state, { fireHeld: true });
+  assert.equal(state.shotsEmitted, 1, "one deferred shot uses the newly free slot");
+  state = stepPlayerFighterBurst(weapons, state, { fireHeld: true });
+  assert.equal(state.shotsEmitted, 1, "rejection does not accumulate a catch-up salvo");
 });
 
 test("fighter projectiles use fixed pools and remain independent of DRAIN and M0-M3", () => {
   assert.deepEqual([weapons.player_fighter.poolSlots, weapons.interceptor.poolSlots, weapons.totalSlots],
-    [10, 9, 19]);
+    [5, 5, 10]);
+  assert.deepEqual([weapons.player_fighter.activeLimit, weapons.interceptor.activeLimit], [5, 5]);
   let state = simulatePlayerFighterBurst(weapons, 12).state;
   assert.ok(state.pool.some(Boolean));
   state = stepPlayerFighterBurst(weapons, state, { drain: true });
@@ -144,7 +156,7 @@ test("PlayerFighter fire remains continuous through DRAIN and COMPLETE", () => {
   assert.equal(held.pool.some(Boolean), true);
   assert.notEqual(held.burstState, "WAITING");
   held = stepPlayerFighterBurst(weapons, held, { fireHeld: true, sectorComplete: true });
-  assert.equal(held.shotsEmitted, 4,
+  assert.equal(held.shotsEmitted, 2,
     "COMPLETE preserves the canonical burst cadence rather than forcing a new shot");
   assert.ok(held.pool.some(Boolean));
 
@@ -228,7 +240,7 @@ test("explosion adapters keep a stable centre and clear the full eight-row union
     /begin_player_fighter_explosion:[\s\S]+sbc #\(\(SHARED_FIGHTER_EXPLOSION_WIDTH_BITS\*2-PLAYER_COLLISION_WIDTH\)\/2\)/);
 });
 
-test("assembled PMG renderer shares one explosion bank between PlayerFighter and Interceptor slots", () => {
+test("assembled explosion bank stays on PlayerFighter PMGs and cannot commandeer either Raider", () => {
   const explosion = weapons.sharedFighterExplosion;
   assert.deepEqual([...xexBytes(labels.get("shared_fighter_explosion_masks"),
     explosion.outerBytes.length)], [...explosion.outerBytes]);
@@ -237,16 +249,17 @@ test("assembled PMG renderer shares one explosion bank between PlayerFighter and
   const renderer = source.slice(source.indexOf("erase_shared_fighter_explosion_slot:"),
     source.indexOf("update_enemy:"));
   assert.match(renderer, /GAMEPLAY_TOP[\s\S]+GAMEPLAY_BOTTOM/);
-  assert.match(renderer, /PLAYER0,y[\s\S]+PLAYER3,y[\s\S]+PLAYER1,y[\s\S]+PLAYER2,y/);
+  assert.match(renderer, /PLAYER0,y[\s\S]+PLAYER3,y/);
+  assert.doesNotMatch(renderer, /PLAYER1,y|PLAYER2,y|HPOSP1|HPOSP2/);
   assert.doesNotMatch(renderer, /COLPM|COLPF|SIZEM|SIZEP|MISSILES/);
   assert.match(source,
-    /resolve_enemy_damage:[\s\S]+ENEMY_EXPLODING_STATE[\s\S]+begin_enemy_fighter_explosion/);
+    /resolve_enemy_damage:[\s\S]+ENEMY_EXPLODING_STATE[\s\S]+spawn_interceptor_breakup_effects/);
   assert.match(source,
     /apply_player_damage:[\s\S]+PLAYER_DYING[\s\S]+begin_player_fighter_explosion/);
   assert.match(source,
     /main_loop:[\s\S]+tick_shared_fighter_explosions[\s\S]+render_shared_fighter_explosions/);
   assert.match(renderer,
-    /and #\(SHARED_FIGHTER_EXPLOSION_FRAME_DURATION-1\)[\s\S]+bne @next/);
+    /and #\(SHARED_FIGHTER_EXPLOSION_FRAME_DURATION-1\)[\s\S]+bne @done/);
   assert.match(source,
     /tick_shared_fighter_explosions:[\s\S]+cmp #\$01[\s\S]+erase_shared_fighter_explosion_slot/);
 });
@@ -277,57 +290,120 @@ test("PlayerFighter glyphs and the assembled Interceptor glyph builder match aut
     const offset = labels.get(label) - manifest.broadsideRuntime.runAddress;
     return packed.subarray(offset, offset + length);
   };
-  const groupMasks = runtimeBytes("interceptor_projectile_group_masks", 2);
-  const startRows = runtimeBytes("interceptor_projectile_start_rows", 10);
-  const rowCounts = runtimeBytes("interceptor_projectile_row_counts", 10);
+  // Hostile weapon visuals: authored class c at glyph 89+c (left phase) and
+  // 99+c (right phase, >> 4); the other glyphs of the bank are never written.
+  const bank = 0x4400 + weapons.glyphLayout.interceptorBase * 8;
+  const bankBytes = weapons.glyphs.interceptor.length * 8;
+  memory.fill(0xa5, bank, bank + bankBytes);
+  run("build_hostile_weapon_glyphs");
   const interceptorBytes = buildInterceptorProjectileGlyphBank(weapons,
-    new Uint8Array(weapons.glyphs.interceptor.length * 8).fill(0xa5));
-  for (let group = 0; group < 2; group += 1) {
-    for (let glyph = 0; glyph < 10; glyph += 1) {
-      for (let row = 0; row < rowCounts[glyph]; row += 1) {
-        assert.equal(interceptorBytes[(group * 10 + glyph) * 8 + startRows[glyph] + row],
-          groupMasks[group]);
-      }
+    new Uint8Array(bankBytes).fill(0xa5));
+  assert.deepEqual([...memory.subarray(bank, bank + bankBytes)], [...interceptorBytes],
+    "assembled builder matches the authored model");
+  assert.deepEqual(weapons.hostileWeaponVisuals.map((rows) => [...rows]), [
+    [0x00, 0xa0, 0x50, 0x00, 0x00, 0xa0, 0x50, 0x00],
+    [0x20, 0x20, 0x20, 0x10, 0x10, 0x10, 0x10, 0x00],
+    [0x20, 0x80, 0xa0, 0x50, 0x50, 0x50, 0x50, 0x00],
+    [0x80, 0x20, 0xa0, 0x50, 0x50, 0x50, 0x50, 0x00],
+  ], "PULSE white/steel tracer, LASER thin white/steel bolt, BOMBER torpedo and its exhaust phase");
+  // 4.5d: visual 4 is the BOMBER animation phase, not a weapon_class.
+  assert.equal(weapons.hostileWeaponAnimated, true);
+  assert.deepEqual(weapons.hostileWeaponStepPeriodFrames, [1, 1, 2, 2]);
+  for (let glyph = 0; glyph < 20; glyph += 1) {
+    const cls = glyph % 10;
+    const rows = [...interceptorBytes.subarray(glyph * 8, glyph * 8 + 8)];
+    if (cls < weapons.hostileWeaponVisuals.length) {
+      const left = [...weapons.hostileWeaponVisuals[cls]];
+      assert.deepEqual(rows, glyph < 10 ? left : left.map((value) => value >> 4));
+      assert.equal(rows.some((value) => [0, 2, 4, 6].some((shift) =>
+        ((value >> shift) & 3) === 3)), false, "no %11 pixels: never red or yellow");
+    } else {
+      assert.deepEqual(rows, Array(8).fill(0xa5), `glyph ${90 + glyph} untouched`);
     }
   }
   assert.deepEqual([...player_fighterBytes], weapons.glyphs.player_fighter.flat());
-  assert.deepEqual([...interceptorBytes], weapons.glyphs.interceptor.flat());
-  assert.match(source,
-    /build_interceptor_projectile_glyphs:[\s\S]+interceptor_projectile_start_rows[\s\S]+sta \(dst_ptr\),y/);
-  assert.match(source,
-    /build_interceptor_projectile_glyphs:[\s\S]+ldx #\$00[\s\S]+inx[\s\S]+cpx #\(INTERCEPTOR_PROJECTILE_GLYPH_COUNT\*8\)[\s\S]+bne @clear/);
-  const builder = runtimeBytes("build_interceptor_projectile_glyphs", 12);
+  // Roadmap 4.5d: the init-only builder and its table live in HYBRID_C_ARENA.
+  const abiSource = fs.readFileSync(path.join(root, "src", "hybrid", "c-asm-abi.s"), "utf8");
+  assert.match(abiSource,
+    /\.segment "HYBRID_ASM_ARENA"[\s\S]+build_hostile_weapon_glyphs:\s+ldx #\(HOSTILE_WEAPON_VISUAL_COUNT\*8-1\)[\s\S]+lda hostile_weapon_visual_glyphs,x[\s\S]+lsr\s+lsr\s+lsr\s+lsr[\s\S]+bpl @row/);
+  assert.doesNotMatch(source, /build_interceptor_projectile_glyphs:/);
+  assert.match(source, /jsr HYBRID_BUILD_HOSTILE_GLYPHS/);
+  for (const label of ["build_hostile_weapon_glyphs", "hostile_weapon_visual_glyphs"]) {
+    assert.ok(labels.get(label) > 0x7bd0 && labels.get(label) < 0x7f10, `${label} is in the arena`);
+  }
+  const arenaImage = fs.readFileSync(path.join(root, "build", "encounter-director-code-arena.bin"));
+  const builderOffset = labels.get("build_hostile_weapon_glyphs") - 0x7bd0;
+  const builder = arenaImage.subarray(builderOffset, builderOffset + 19);
   assert.deepEqual([...builder],
-    [0xa9, 0x00, 0xa2, 0x00, 0x9d, 0xd0, 0x46, 0xe8, 0xe0, 0xa0, 0xd0, 0xf8],
-  "assembled loop clears all 160 bytes instead of terminating after the first high-bit index");
+    [0xa2, weapons.hostileWeaponVisuals.length * 8 - 1,
+      0xbd, labels.get("hostile_weapon_visual_glyphs") & 0xff, labels.get("hostile_weapon_visual_glyphs") >> 8,
+      0x9d, 0xd0, 0x46, 0x4a, 0x4a, 0x4a, 0x4a, 0x9d, 0x20, 0x47, 0xca, 0x10, 0xf0, 0x60],
+  "assembled builder writes glyphs 90+ and 100+ from the authored table");
   assert.equal(weapons.glyphs.player_fighter.some((glyph) => glyph.includes(0xc0)), true);
-  assert.equal(weapons.glyphs.interceptor.some((glyph) => glyph.includes(0xf0)), true);
 });
 
-test("Interceptor inverse screen code selects the intended ANTIC 4 glyph and red bank", () => {
-  const charsetBase = 0x4400;
-  const glyphIndex = 7;
-  const screenByte = 0x80 | (weapons.glyphLayout.interceptorBase + glyphIndex);
-  const effectiveGlyph = screenByte & 0x7f;
-  const glyphAddress = charsetBase + effectiveGlyph * 8;
-  const generated = buildInterceptorProjectileGlyphBank(weapons,
-    new Uint8Array(weapons.glyphs.interceptor.length * 8));
-  const glyphBytes = generated.subarray(glyphIndex * 8, glyphIndex * 8 + 8);
-
-  assert.deepEqual({ screenByte, effectiveGlyph, glyphAddress }, {
-    screenByte: 0xe1,
-    effectiveGlyph: 0x61,
-    glyphAddress: 0x4708,
-  });
-  assert.deepEqual([...glyphBytes], [0, 0, 0, 0, 0, 0, 0, 0xf0]);
-  assert.equal(screenByte >>> 7, 1,
-    "inverse ANTIC 4 code maps pixel value 3 to COLPF3 without changing glyph 97");
-  assert.equal(weapons.interceptor.colourRegister, "COLPF3");
-  assert.equal(weapons.interceptor.colourValue, 0x46);
+test("Player PairShot publishes all eight logical vertical phases without changing its 36-glyph ABI", () => {
+  assert.equal(weapons.player_fighter.verticalPhases, 8);
+  assert.equal(weapons.glyphs.player_fighter.length, 36);
+  for (const bank of [0, 18]) {
+    for (let phase = 0; phase < 8; phase += 1) {
+      const glyph = weapons.glyphs.player_fighter[bank + phase];
+      const occupiedRows = glyph.flatMap((value, row) => value === 0 ? [] : [row]);
+      assert.deepEqual(occupiedRows,
+        [phase, phase + 1, phase + 4, phase + 5].map((row) => row & 7).sort((a, b) => a - b));
+    }
+    assert.deepEqual(weapons.glyphs.player_fighter[bank + 8],
+      weapons.glyphs.player_fighter[bank], "reserved ninth glyph remains phase-zero compatible");
+  }
   const renderer = source.slice(source.indexOf("render_fighter_projectile_overlays:"),
     source.indexOf("; -----------------------------------------------------------------------------\n; Enemy"));
   assert.match(renderer,
-    /@interceptor_code:[\s\S]+adc #INTERCEPTOR_PROJECTILE_GLYPH_BASE[\s\S]+ora #\$80/);
+    /lda FIGHTER_PROJECTILE_Y,x[\s\S]+and #\$07[\s\S]+adc loader_repeat_value[\s\S]+adc #PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE/);
+  assert.match(source.slice(source.indexOf("compose_player_fighter_projectile_glyph:"),
+    source.indexOf("profile_projectile_compose_end")),
+  /@merge_projectile_phase:[\s\S]+lda \(src_ptr\),y[\s\S]+ora \(dst_ptr\),y/);
+});
+
+test("hostile screen code follows weapon_class, not the emitter, and keeps the global red bank", () => {
+  const CHARSET_BASE_ADDRESS = 0x4400;
+  // ACTIVE = owner bits | (weapon_class << 3); X bit 1 selects the right phase.
+  for (const [active, x, screenByte] of [
+    [0x0a, 96, 0xda], [0x0b, 98, 0xe4],    // Raider P1/P2 PULSE
+    [0x0e, 98, 0xe4],                      // Light Wingman PULSE
+    [0x16, 98, 0xe5], [0x16, 96, 0xdb],    // Light Interceptor LASER
+    [0x1e, 96, 0xdc], [0x1e, 98, 0xe6],    // Bomber (3)
+  ]) {
+    assert.equal(hostileProjectileScreenCode(active, x), screenByte);
+  }
+  // 4.5d: a BOMBER shell publishes its exhaust phase (visual 4) while frame & 4.
+  for (const [active, x, frame, screenByte] of [
+    [0x1e, 96, 3, 0xdc], [0x1e, 96, 4, 0xdd], [0x1f, 98, 7, 0xe7], [0x1f, 98, 8, 0xe6],
+    [0x0a, 96, 4, 0xda], [0x16, 98, 4, 0xe5],
+  ]) {
+    assert.equal(hostileProjectileScreenCode(active, x, frame), screenByte);
+  }
+  const generated = buildInterceptorProjectileGlyphBank(weapons,
+    new Uint8Array(weapons.glyphs.interceptor.length * 8));
+  const screenByte = hostileProjectileScreenCode(0x16, 98);
+  const effectiveGlyph = screenByte & 0x7f;
+  assert.deepEqual({ effectiveGlyph, glyphAddress: CHARSET_BASE_ADDRESS + effectiveGlyph * 8 },
+    { effectiveGlyph: 101, glyphAddress: 0x4728 });
+  assert.deepEqual([...generated.subarray(11 * 8, 12 * 8)],
+    [0x02, 0x02, 0x02, 0x01, 0x01, 0x01, 0x01, 0x00]);
+  assert.equal(screenByte >>> 7, 1,
+    "bit 7 keeps the hostile attribute; the %11-free glyphs stay white/steel under it");
+  // Projectile colour is a glyph property: the global COLPF3 is not changed.
+  assert.equal(weapons.interceptor.colourRegister, "COLPF3");
+  assert.equal(weapons.interceptor.colourValue, 0x46);
+  assert.match(source, /GAMEPLAY_COLPF3 = INTERCEPTOR_PROJECTILE_COLOR/);
+  const renderer = source.slice(source.indexOf("render_fighter_projectile_overlays:"),
+    source.indexOf("; -----------------------------------------------------------------------------\n; Enemy"));
+  assert.match(renderer,
+    /@interceptor_code:\s+jsr hostile_projectile_screen_code\s+sta loader_repeat_value\s+@code_ready:/);
+  assert.match(source,
+    /hostile_projectile_screen_code:\s+lda FIGHTER_PROJECTILE_ACTIVE,x\s+lsr\s+lsr\s+lsr\s+sta loader_repeat_value[\s\S]+adc #\(HOSTILE_WEAPON_GLYPH_BASE\|\$80\)\s+adc loader_repeat_value\s+rts/);
+  assert.match(source,
+    /resolve_effect_backing_below_enemy_pairshot:[\s\S]+?cmp #\(INTERCEPTOR_PROJECTILE_GLYPH_BASE\|\$80\)\s+bcc resolve_effect_pairshot_unchanged\s+cmp #\(\(INTERCEPTOR_PROJECTILE_GLYPH_BASE\+INTERCEPTOR_PROJECTILE_GLYPH_STRIDE\+HOSTILE_WEAPON_VISUAL_COUNT\)\|\$80\)\s+bcs resolve_effect_pairshot_unchanged/);
 });
 
 test("actual PlayerFighter projectile bank is Atari yellow without changing PlayerFighter PMG colours", () => {
@@ -349,12 +425,14 @@ test("capital shells remain materially longer than both fighter projectile class
   assert.deepEqual([capital.widthHpos, capital.height], [8, 6]);
   assert.ok(capital.widthHpos >= player.widthHpos * 2);
   assert.ok(capital.widthHpos >= interceptor.widthHpos * 2);
-  assert.match(source, /render_capital_shell_overlay:[\s\S]+sta \(dst_ptr\),y[\s\S]+iny[\s\S]+sta \(dst_ptr\),y/);
+  assert.match(integrationSource,
+    /render_capital_shell_overlay:[\s\S]+sta \(dst_ptr\),y[\s\S]+iny[\s\S]+sta \(dst_ptr\),y/);
 });
 
 test("assembled burst controllers use accepted counts, intervals, speeds and damage", () => {
   assert.deepEqual({
     player_fighterCount: weapons.player_fighter.burstCount,
+    player_fighterActiveLimit: weapons.player_fighter.activeLimit,
     player_fighterRapidCount: weapons.player_fighter.rapidFireBurstCount,
     player_fighterSpreadCount: weapons.player_fighter.spreadShotBurstCount,
     player_fighterSpreadCooldown: weapons.player_fighter.spreadShotCooldownFrames,
@@ -362,18 +440,20 @@ test("assembled burst controllers use accepted counts, intervals, speeds and dam
     player_fighterSpeed: weapons.player_fighter.speedScanlines,
     player_fighterPost: weapons.player_fighter.postBurstFrames,
     interceptorCount: weapons.interceptor.burstCount,
+    interceptorActiveLimit: weapons.interceptor.activeLimit,
     interceptorInterval: weapons.interceptor.burstIntervalFrames,
     interceptorSpeed: weapons.interceptor.speedScanlines,
     interceptorPost: weapons.interceptor.postBurstFrames,
     interceptorDamage: weapons.interceptor.damage,
   }, {
-    player_fighterCount: 8, player_fighterRapidCount: 10, player_fighterSpreadCount: 8, player_fighterSpreadCooldown: 10,
-    player_fighterInterval: 3, player_fighterSpeed: 6, player_fighterPost: 12,
-    interceptorCount: 10, interceptorInterval: 4, interceptorSpeed: 5,
+    player_fighterCount: 4, player_fighterActiveLimit: 5, player_fighterRapidCount: 5,
+    player_fighterSpreadCount: 4, player_fighterSpreadCooldown: 28,
+    player_fighterInterval: 9, player_fighterSpeed: 6, player_fighterPost: 12,
+    interceptorCount: 5, interceptorActiveLimit: 5, interceptorInterval: 15, interceptorSpeed: 2,
     interceptorPost: [60, 50, 40], interceptorDamage: 10,
   });
   assert.match(source,
-    /update_player_fighter_weapon:[\s\S]+PLAYER_FIGHTER_RAPID_FIRE_BURST_COUNT-PLAYER_FIGHTER_NORMAL_BURST_COUNT[\s\S]+player_fighter_fire_intervals/);
+    /update_player_fighter_weapon:[\s\S]+player_fighter_pairshot_burst_counts[\s\S]+player_fighter_fire_intervals/);
   assert.match(source, /update_enemy_weapon_runtime:[\s\S]+INTERCEPTOR_BURST_COUNT[\s\S]+INTERCEPTOR_BURST_INTERVAL/);
   assert.match(source, /update_fighter_projectiles:[\s\S]+interceptor_projectile_hits_player[\s\S]+ENEMY_PULSE_DAMAGE_UNITS[\s\S]+apply_player_damage/);
 });

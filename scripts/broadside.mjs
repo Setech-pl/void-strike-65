@@ -695,7 +695,9 @@ export function applyPlayerDamage(state, asset, damage, cooldownFrames, frame) {
   state.damageFrame = frame;
   if (state.health === 0) {
     state.playerLifecycle = PLAYER_LIFECYCLE_STATES.DYING;
-    state.deathTimer = SHARED_FIGHTER_EXPLOSION_TOTAL;
+    // DYING lasts one frame longer than the explosion: the runtime begins the
+    // PMG explosion on the first DYING tick, not on the death frame.
+    state.deathTimer = SHARED_FIGHTER_EXPLOSION_TOTAL + 1;
     state.playerVisible = false;
     state.lives = Math.max(0, state.lives - 1);
   }
@@ -826,6 +828,7 @@ export function simulateBroadsideCadence(asset, { frames = 1000, difficulty = "h
   let scheduleAttempts = 0;
   let cancelledWarnings = 0;
   let maximumStartsPerFrame = 0;
+  let maximumActiveSlots = 0;
   let activeSlotFrames = 0;
   const slotFrameCounts = { warning: 0, flying: 0, impact: 0 };
 
@@ -877,8 +880,8 @@ export function simulateBroadsideCadence(asset, { frames = 1000, difficulty = "h
     if (world.sectorState < CAPITAL_SECTOR_STATES.DRAIN) state.scheduleTimer -= 1;
     if (world.sectorState < CAPITAL_SECTOR_STATES.DRAIN && state.scheduleTimer === 0) {
       scheduleAttempts += 1;
-      const slotIndex = state.slots.findIndex(({ state: slotState }) =>
-        slotState === BROADSIDE_STATES.FREE);
+      const slotIndex = state.slots.findIndex(({ state: slotState }, index) =>
+        index < asset.broadside.activeLimit && slotState === BROADSIDE_STATES.FREE);
       if (slotIndex < 0) {
         deferred.busy += 1;
         state.scheduleTimer = asset.broadside.retryDelayFrames;
@@ -955,6 +958,7 @@ export function simulateBroadsideCadence(asset, { frames = 1000, difficulty = "h
       if (slot.state === BROADSIDE_STATES.FLYING) slotFrameCounts.flying += 1;
       if (slot.state === BROADSIDE_STATES.IMPACT) slotFrameCounts.impact += 1;
     }
+    maximumActiveSlots = Math.max(maximumActiveSlots, activeProjectileCount(state));
     updateSectorCompletion(world, state);
   }
 
@@ -970,6 +974,7 @@ export function simulateBroadsideCadence(asset, { frames = 1000, difficulty = "h
     deferred,
     cancelledWarnings,
     maximumStartsPerFrame,
+    maximumActiveSlots,
     activeSlotsAtEnd: activeProjectileCount(state),
     activeSlotFrames,
     slotFrameCounts,

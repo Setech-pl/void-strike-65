@@ -1,8 +1,10 @@
 # Void Strike 65 game design
 
-This document defines the current player-visible rules. Technical implementation
+This document defines the player-visible rules of the accepted checkpoint named
+in [STATUS.md](STATUS.md). Technical implementation
 belongs in [architecture.md](architecture.md), numeric memory ownership in
-[memory-map.md](memory-map.md), and future work in [roadmap.md](roadmap.md).
+[memory-map.md](memory-map.md), and planned work in
+[plan-realizacji.md](plan-realizacji.md).
 
 ## Implemented game
 
@@ -35,47 +37,94 @@ to their prior blank contents. The optional type glyph is omitted because the
 40-column HUD has exactly ten unclaimed cells and one active booster at a time.
 
 - A new game starts with three playable Player Fighters and a full 100% hull.
-- The hull has ten health units. An ordinary Interceptor pulse removes one unit
+  **Planned (owner decision K, 2026-09-20):** one extra life after completing
+  each odd level from 3 onward — levels 3, 5, 7, 9, 11, 13, 15, seven extra
+  across the sixteen-level campaign (decision E). Not implemented.
+- The hull has ten health units. An ordinary Raider PairShot removes one unit
   (10%), while capital-ship fire removes two units (20%). Debris contact removes
   a fixed two, five, or seven units on Easy, Medium, or Hard (20%/50%/70% of
   maximum HULL); it never computes a percentage of remaining HULL. Debris
   contact tests the Player Fighter's complete double-width 16-HPOS visible envelope;
   its vertical contract and the debris 8x8 hitbox remain unchanged.
-- An accepted direct Interceptor collision destroys the current Player Fighter at any HULL
-  from one through ten. Shield absorbs it; respawn invulnerability, the shared
-  post-hit cooldown, and an earlier same-frame damage event retain their normal
-  gates. The Interceptor still follows its established scored breakup lifecycle.
-- Losing a Player Fighter plays a 24-frame breakup. If a life remains, the replacement
+- Contact with a Raider applies the full ten-unit hull damage through the shared
+  damage gate and deals one damage unit to the Raider.
+- Losing a Player Fighter plays a 24-frame breakup that begins on the frame after the
+  lethal hit (the fighter stays visible for that one frame), so the dying state lasts 25
+  frames. If a life remains, the replacement
   Player Fighter receives 250 active frames (5 seconds) of invulnerability and blinks in
   an 8-frame visible/8-frame hidden rhythm.
 - Losing the final Player Fighter enters Game Over. New Game resets score, lives, hull,
   sector state, active projectiles, entities, effects, and boosters.
 - TOP SCORES keeps ten packed-BCD results in RAM, ordered from highest to
-  lowest. A completed non-zero game is inserted once on the Game Over
+  lowest. **Owner decision M (2026-09-20) confirms this as final: RAM only, no
+  disk write.** Disk save is backlog. A completed non-zero game is inserted once on the Game Over
   transition; equal scores follow existing equal entries. New Game resets only
   the current score, while a cold program start clears the table.
 
 ### Combat and scoring
 
-The normal Player Fighter weapon fires an eight-projectile burst at one projectile every
-three active frames, followed by a 12-frame pause. Projectiles travel upward by
-six scanlines per active frame. The physical Player Fighter pool has ten slots.
+The normal Player Fighter weapon fires four logical PairShots at one PairShot
+every nine active frames, followed by a 12-frame pause. Each one-cell PairShot
+glyph contains two separated pulses, preserving eight visible impulses. Shots
+travel upward by six scanlines per active frame. Rapid uses five PairShots for
+ten visible impulses; Spread uses four PairShots for eight. One PairShot is one
+movement/lifecycle object and produces one collision event, so the visual pair
+does not double damage.
 
-The implemented Interceptor has one hit point. It uses soft horizontal pursuit with
-a readable weave and moves at 80% of the Player Fighter's maximum horizontal speed. Its
-single-pulse weapon fires ten shots at four-frame intervals, then waits 60, 50,
-or 40 frames on Easy, Medium, or Hard. Interceptor pulses travel five scanlines per
-frame, live for at most 96 frames, and use a separate nine-slot pool.
+Ordinary fighter combat uses up to two Heavy Raiders, each a monochrome PMG body
+(P1/P2), admitted together as one formation by the Encounter Director. Raider is
+the first C `EnemyArchetype`: one hit point, sampled soft pursuit with a readable
+weave at 80% of the Player Fighter's maximum horizontal speed, and separate
+X/Y coordinates, signed direction, fractional movement phase, manoeuvre timer
+and behaviour phase. Opposite opening directions and phase offsets produce
+independent turns; the opening vertical crossing reverses their vertical order.
+The formation shares one enemy burst controller: five white/steel `PULSE` PairShots at 15-frame
+intervals, then a 60/50/40-frame pause on Easy/Medium/Hard, with at most five
+enemy PairShots in flight. Enemy PairShots move two scanlines per PAL frame.
+An enemy shot already in flight is independent of its emitter (owner decision
+2026-09-17): destroying the Raider, Light Wingman, Interceptor or a future
+Bomber leaves it on its normal path until it hits the player, expires, leaves
+the playfield or a player death, respawn, new game or quit clears the pool.
 
-An Interceptor is worth 10 points when destroyed by a Player Fighter projectile, player
+Every Raider activation and recycle starts the complete 14-scanline body above
+the gameplay boundary at PMG Y=2. The two machines descend by their existing
+one-scanline movement into the old Y=48/Y=96 formation anchors before the
+crossing continues. Top clipping publishes only the portion that has entered;
+a completely hidden Raider cannot fire or collide.
+
+### Light Wingman
+
+Every Raider formation brings one Light Wingman. It is a small two-cell character
+fighter that sits centred behind the first Raider, 12 scanlines above it,
+without switching sides; it moves on the character grid, so its vertical gap
+steps by up to seven lines, which is intentional. It has one hit point, fires one `PULSE` PairShot every
+96/80/64 frames on Easy/Medium/Hard when fully visible, and is worth 5 points.
+One Player PairShot or player contact destroys it (contact uses the Raider
+contract). If its leader is lost it flies straight down and leaves the screen.
+The capital encounter waits until it has gone.
+
+Each Raider is worth 10 points when destroyed by a Player Fighter projectile, player
 contact, or Hostile friendly fire. A capital-ship hit or lifecycle cleanup awards
-no points. Debris has three hit points, causes fixed 20%/50%/70% maximum-hull
-damage on Easy/Medium/Hard contact, and never awards score when destroyed.
+no points. Debris has three hit points and causes fixed 20%/50%/70% maximum-hull
+damage on Easy/Medium/Hard contact.
 
-Interceptor and debris destruction use the implemented entity/effects foundation.
-Interceptor breakup has a core, two wing fragments, a central fragment, and a red
-eye fragment. Debris destruction has one core plus four fragments. These are
-transient effects, not interactive enemies.
+Destroying something awards its score regardless of whether the player survives
+doing it: a suicide or contact kill is worth exactly what a shot kill is worth.
+Debris follows the same rule and is worth 5 points when the player's own shot or
+the player's own contact destroys it — an obstacle value an order below an
+enemy kill, so clearing debris cannot compete with killing enemies. No other
+release awards anything: not a non-lethal hit, not the despawn path, not falling
+past the bottom of the gameplay area, and not a sector drain or completion.
+
+Raider destruction retains its 24-frame full-screen background flash and sound,
+but creates no character-cell core or flying breakup fragments. Debris destruction
+still has one core plus four
+fragments. These are transient effects, not interactive enemies.
+
+Gameplay debris is admitted at character Y=16, one complete eight-scanline row
+above its first legal entity row Y=24. It remains non-rendered and non-colliding
+until the existing world-event carry moves it to Y=24, then keeps its established
+HP, tumble, movement, collision and destruction contract.
 
 ### World and difficulty
 
@@ -85,28 +134,50 @@ engines, aft, combat, forward, and prow sections, followed by drain, complete,
 and open-space transition states. Capital-ship engines alternate between dim
 and bright phases, each lasting eight active frames.
 
-Difficulty changes the measured vertical rates:
+Difficulty changes the measured vertical rates.
 
-| Difficulty | World/scene and hull | Far stars | Debris |
-| --- | ---: | ---: | ---: |
-| Easy | 20 rows/s | 5 rows/s | 12 rows/s |
-| Medium | 22.5 rows/s | 5.625 rows/s | 13.5 rows/s |
-| Hard | 25 rows/s | 6.25 rows/s | 15 rows/s |
+> **Planned change — owner decision J (2026-09-20), not implemented.**
+> Difficulty is to scale the existing reload and spacing scaling **and
+> damage**: damage the player deals, damage the player takes, contact damage
+> and boss damage. Today only some of that exists: the vertical rates below,
+> the fire pauses 56/44/32, and debris contact damage at 2/5/7 HULL units.
+> Player-dealt damage is a hardcoded `lda #$01` (`src/main.s:3892`) that no
+> difficulty or booster touches. Population **ceilings are never scaled**
+> (owner decision 23 §10.6).
+>
+> **Open contradiction, older than decision J.** The paragraph below on the
+> provisional Hostile firing schedule says admission "continues to obey the
+> existing EASY/MEDIUM/HARD intensity ceilings (3/4/5)", which is scaling a
+> ceiling — what decision 23 §10.6 forbids. Settle this when planning 4.6.
+
+
+| Difficulty | World/scene and hull | Debris |
+| --- | ---: | ---: |
+| Easy | 20 rows/s | 12 rows/s |
+| Medium | 22.5 rows/s | 13.5 rows/s |
+| Hard | 25 rows/s | 15 rows/s |
 
 Broadside warnings, launch flashes, heavy projectiles, hull contact, and
 capital explosions are implemented. World, stars, debris, and both hulls keep
 their relative rates through sector transitions. Once the last capital row has
 left the screen, the ordinary full-width background still advances at the
-listed world rate. Far-star overlays retain their 25% logical parallax step;
-no capital lifecycle state changes the physical scene cadence.
+listed world rate. The starfield is one decorative layer of four small white
+stars moving one scanline per PAL frame in every sector; they occupy only empty
+cells, so hull, gondola and turret graphics always stay in front. No capital
+lifecycle state changes the physical scene cadence.
 
-During construction, the existing first capital encounter is provisionally
-admitted on active gameplay frame 50 (about one PAL second after New Game or a
-level restart). Menu, OPTIONS, loader, and initialization frames do not advance
-this counter. A legal pool/budget refusal leaves one pending request which is
-retried deterministically at the first legal frame; the ships still enter from
-above at the ordinary world rate. This moves the original encounter rather than
-adding another one at its former phase boundary. Later encounters,
+During construction, the existing first capital encounter is provisionally due
+on active gameplay frame 600. Menu, OPTIONS, loader, pause, and initialization
+frames do not advance this counter. A live Raider-formation lifecycle or legal
+budget refusal delays actual admission until the first legal frame. Once the
+capital encounter is due, ordinary admission remains closed through its entire
+lifecycle; an already emitted Raider pulse may finish its own bounded lifetime.
+Admissions before and after the traversal use the same one-formation Director
+budget, retry, RNG, and lifecycle policy. This provisional development schedule
+creates a natural early test window for three qualifying Raider kills and the
+resulting `FREE -> PENDING -> ACTIVE` pickup. It moves the original
+encounter rather than adding another one at frame 50 or its former phase
+boundary. Later encounters,
 `BOSS_HANDOFF`, and level timing remain at their established rows.
 
 The provisional Hostile firing schedule exposes at least three evenly spaced
@@ -138,7 +209,7 @@ one-damage-event-per-frame latch retain their existing precedence.
 ## Implemented boosters
 
 Only one pickup capsule may exist at a time. A qualifying kill is specifically
-an Interceptor destroyed by a consumed Player Fighter projectile. Broadside fire, player
+a Raider destroyed by a Player Fighter PairShot while no capsule exists. Broadside fire, player
 collision, debris destruction, and lifecycle cleanup do not advance the drop
 counter.
 
@@ -150,20 +221,20 @@ any admission retry, remains at that off-screen coordinate. Admission publishes
 the capsule at the first fully visible position, Y=24; it then crosses every
 scanline phase through the last visible scanline Y=239 and releases its slot at
 the exclusive boundary Y=240. Thus
-PENDING cannot consume any collectible screen travel. The current three-kill
-cadence describes shipped behavior, not accepted final balance; a separate
-owner-playtest tuning task is recorded in the roadmap.
+PENDING cannot consume any collectible screen travel. The three-kill cadence is
+deterministic (no random drop roll); changing it requires an explicit owner
+decision.
 
-Each type is one logical slot and exactly one non-flickering visual capsule.
-Its shifted 8x16 source occupies a 2x2 footprint at phase zero and a 2x3
-footprint between character rows. HARD moves it exactly two scanlines per PAL
-frame; EASY and MEDIUM retain their slower fractional rates without an
-eight-scanline jump. The collection hitbox follows the same effective visual
-Y. During contact the Player Fighter's opaque hull/engine pixels remain in front, while
-transparent PMG pixels reveal the capsule until the single accepted collection
-removes it. Picking up the same active type
-refreshes it. Picking up another type
-replaces it, so Rapid Fire, Spread Shot, and Shield are mutually exclusive.
+Each type is one logical slot and one fighter-sector capsule drawn as a
+16-scanline fifth-player PMG object (missiles M0-M3 in `COLPF3`), not as
+characters. It moves 8/9/10 twentieths of a scanline per PAL frame on
+Easy/Medium/Hard, and the collection hitbox follows the same Y. An ACTIVE capsule
+is removed before the capital sector; a PENDING capsule is frozen and resumes
+afterwards. Picking up the same active type refreshes it. Picking up another
+type replaces it, so Rapid Fire, Spread Shot, and Shield are mutually exclusive.
+
+The capsule mask is solid (every M0-M3 bit set) so it stays readable at native
+resolution.
 
 ## Canonical gameplay raster
 
@@ -189,29 +260,30 @@ phase.
 ### Rapid Fire — implemented
 
 Rapid Fire lasts exactly 500 active PAL frames (10 seconds). It expands the
-burst to ten projectiles, keeps the 12-frame post-burst pause, and reduces the
-in-burst interval from three frames to two. Its projectiles retain the Player Fighter's established
-yellow/gold. The 2x2 capsule uses a steel/yellow casing with a black `RF` symbol.
+burst to five PairShots / ten visible impulses, keeps the 12-frame post-burst
+pause, and reduces the in-burst interval from nine frames to six. At most five
+PairShots remain active, and they retain the Player Fighter's established
+yellow/gold.
 
 ### Spread Shot — implemented
 
-Spread Shot lasts exactly 500 active PAL frames (10 seconds) and retains the
-normal eight-salvo burst and 12-frame post-burst pause, but uses a ten-active-
-frame cooldown between salvos; it never combines with Rapid Fire. With three
-free slots a salvo creates centre, left, and right together. Under transitional
-saturation the centre has priority, while the side pair is created together or
-not at all. Continuous FIRE produces 49 salvos and 147 projectiles during the
-500-frame boost, with no rejected full salvo in steady state and at most nine
-simultaneous Spread projectiles in the ten-slot Player Fighter pool.
+Spread Shot lasts exactly 500 active PAL frames (10 seconds), uses four
+PairShots / eight visible impulses and retains the 12-frame post-burst pause.
+The burst is two fire events at the 28-active-frame interval: it opens with a
+simultaneous left/centre/right volley and then fires a single centre follow-up,
+so the fan is readable in one glance. It never combines with Rapid Fire. A
+blocked allocation remains one pending PairShot without accumulating catch-up
+fire.
 
-The volley begins as a compact formation. The centre projectile travels
-vertically; the side projectiles start four horizontal-position units from the
-centre and move symmetrically left or right by one unit every two active frames.
-The phase comes from the existing projectile lifetime, so no extra timer or
-projectile-state array is required. All
-three travel upward at the normal Player Fighter speed, use the yellow Player Fighter weapon
-colour, collide with Interceptor and debris, and obey ordinary score rules. The 2x2
-capsule has a bright red casing and a black three-shot fan symbol.
+Until 2026-09-16 the three directions were fired one interval apart, so a side
+shot was never on screen together with the centre and the weapon read as a
+slower plain shot.
+
+Centre PairShots travel vertically. Left and right PairShots move symmetrically
+by one horizontal-position unit every two active frames. The phase comes from
+the existing projectile lifetime, so no extra timer or state array is required.
+All travel upward at the normal Player Fighter speed, use the yellow weapon
+colour, create one collision event, and obey ordinary score rules.
 
 ### Shield Booster — implemented
 
@@ -233,19 +305,23 @@ phase boundaries:
 | Phase | World rows | EASY time | MEDIUM time | HARD time |
 | --- | ---: | ---: | ---: | ---: |
 | Intro | 0-128 | 0.0-6.4 s | 0.0-5.7 s | 0.0-5.1 s |
-| Interceptor training | 128-576 | 6.4-28.8 s | 5.7-25.6 s | 5.1-23.0 s |
+| Raider training | 128-576 | 6.4-28.8 s | 5.7-25.6 s | 5.1-23.0 s |
 | Debris field | 576-1056 | 28.8-52.8 s | 25.6-46.9 s | 23.0-42.2 s |
 | Mixed pressure | 1056-1664 | 52.8-83.2 s | 46.9-74.0 s | 42.2-66.6 s |
 | Recovery | 1664-1856 | 83.2-92.8 s | 74.0-82.5 s | 66.6-74.2 s |
-| Former capital/broadside escalation window; encounter provisionally moved to gameplay frame 50 | 1856-2752 | 92.8-137.6 s | 82.5-122.3 s | 74.2-110.1 s |
+| Former capital/broadside escalation window; encounter uses the provisional active-frame-600 development gate | 1856-2752 | 92.8-137.6 s | 82.5-122.3 s | 74.2-110.1 s |
 | Recovery | 2752-2944 | 137.6-147.2 s | 122.3-130.8 s | 110.1-117.8 s |
 | Final approach | 2944-3712 | 147.2-185.6 s | 130.8-165.0 s | 117.8-148.5 s |
 
 The intensity budgets are 3/4/5 for EASY/MEDIUM/HARD. The Director has a
 private deterministic RNG and does not consume the game's existing random
-state. It owns admission policy and budgets while the existing Interceptor, debris,
+state. It owns admission policy and budgets while the existing Raider-formation, debris,
 broadside, pickup, object-pool, and destruction lifecycles retain object
-ownership. With no boss consumer, `BOSS_HANDOFF` closes admissions and pickup
+ownership. Until further ordinary archetypes exist, phases 2, 4 and 6 retain
+their authored hazard masks and budgets but also admit the current Raider
+formation as the legal fallback. A later phase-native archetype replaces only
+that temporary fallback bit; it does not require a new scheduling policy.
+With no boss consumer, `BOSS_HANDOFF` closes admissions and pickup
 state, enters DRAIN, lets active objects expire, and emits exactly one
 `LEVEL COMPLETE`; it never creates a boss.
 
@@ -257,12 +333,77 @@ objects until their normal cleanup, and leaves the single COMPLETE state termina
 
 ## Planned
 
+### Campaign, progression and screens — owner decisions E-P (2026-09-20)
+
+Recorded here as player-visible rules. **None of it is implemented.** Full text
+and rationale: [owner-decisions-2026-09-11.md](owner-decisions-2026-09-11.md),
+section "Decyzje literowe 2026-09-20".
+
+- **Sixteen levels (E).** A boss ends every level. The easiest difficulty is to
+  be beatable by anyone.
+- **Capital variety is parametric (F).** Four segment-art sets; length in
+  segments, turret density and maximum gondola protrusion are three
+  independent parameters, four steps each, layered on a chosen set. One hull
+  variant per level, so each level reads as a new region.
+- **Capital turrets stay non-destructible (G).** Backlog 4.8b.
+- **Boss: one controller, a record per boss (H).** Module layout, weapon
+  placement and count, weak points. Boss weapons reuse the existing
+  `weapon_class` shells — Bomber, Interceptor, Raider.
+- **Boss laser (I).** Drawn at once from the gun to the bottom of the screen —
+  not an unfolding beam. Lasts one second. Telegraphed by the gun visibly
+  heating, with sound, for about two seconds, so the player must move out of
+  the column. Destroys everything in its path. One per level on 1-4, two on
+  5-9, four on 10-16, to be tuned during balancing.
+- **Difficulty scales reload, spacing and damage (J).** See "World and
+  difficulty" above.
+- **Lives (K).** Three at start, plus one after each odd level from 3.
+- **Level select (L).** The player may start from the furthest level reached.
+  RAM only, so it is lost at power-off; changing difficulty in the menu resets
+  it to level 1; the menu shows which levels are available, so the player is
+  not guessing.
+- **High scores (M).** RAM only — confirms existing behaviour.
+- **Permanent weapon booster (N).** Collecting it raises the player's weapon
+  level by one, up to five; collecting the same booster again raises another
+  level. The level sets projectile damage, and the player reads his current
+  strength off the shot itself **with no HUD**. Dying costs **one** level, not
+  all of them. The other boosters keep working as they do today. No existing
+  booster modifies damage (MEASURED: `src/main.s:3892`), so the level stays
+  one variable rather than a system of composing modifiers.
+- **Booster level signalling (U).** **Shape and sound, not colour.**
+  - **Shape.** A thicker or doubled bolt per level. Player projectile glyphs
+    are their own bank — 45 glyphs, codes 11-55, ceiling
+    `CAPITAL_HULL_GLYPH_BASE = 59` — so five looks fit with three codes to
+    spare, and a shape change reads inside the same colour register and
+    conflicts with nothing.
+  - **Sound.** A different firing sound per level: parameters on the existing
+    POKEY firing channel, not a new channel. It works while the player's eyes
+    are on the enemies rather than on his own shots.
+  - **Both, deliberately.** Shape reads when the player is watching his shot,
+    sound when he is not. They reinforce rather than duplicate; neither is
+    redundant and neither is to be dropped later.
+  - **Colour: rejected.** `COLPF2` is not exclusively the player's — the
+    debris breakup's yellow phase, three allied capital-hull glyphs and the
+    capital explosion core all render in it, so recolouring it per level would
+    repaint them (evidence in STATUS, "Decision U — the COLPF2 check").
+    Player projectiles stay `$1E` at every level.
+  - **Five levels stand for now**, but three may read more clearly than five
+    if sound discrimination proves weak in play. Settled during balancing, not
+    assumed.
+- **Loader screen (O).** A randomly chosen line from a pool of 8-16 short
+  English texts, plus an animation stepped one frame per sector read — not a
+  progress bar. The texts are spoken by the fighter's onboard AI: cynical,
+  having seen too much.
+- **End screen (P).** Eventually an animation in the top third at full width
+  with a text scroll below. A simple message suffices for now.
+
 ### Nova Missile — planned
 
 Nova Missile is a future boss-only special-weapon pickup, not a member of the
 planned Rapid Fire / Spread Shot / Shield drop rotation. It may appear only
 during a boss encounter, never in standard sectors or through the qualifying
-Interceptor-kill counter. Its capsule is planned as a large, readable 2x2 missile.
+Raider-kill counter. Its mark is planned as a large, readable PMG missile
+shape, consistent with the accepted fifth-player pickup representation and not
+a revival of the retired character-capsule compositor.
 
 Collecting it arms exactly one missile independently of the current weapon
 booster and Shield. A held FIRE input at collection must not launch it: the
@@ -279,6 +420,80 @@ unspecified until boss lifecycle, boss HULL, and the large-explosion runtime
 budget are designed together. Nova Missile is not present in the current
 runtime.
 
-Additional enemy archetypes, longer level structures, bosses, and further
-audio/visual polish remain future work. They are not implied by the current
-Interceptor descriptors or review-only asset records.
+### Interceptor — **OWNER-ACCEPTED** (roadmap 4.4)
+
+The next ordinary enemy, full-pursuit variant (owner decisions 15 and 18).
+**Owner-accepted** with the whole `0a90c1c` stack (owner smoke PASS
+2026-09-18); the values below are the accepted ones. The sentence that
+previously stood here — "awaits owner smoke; the values below are the
+candidate's" — contradicted this section's own heading and was corrected
+2026-09-20.
+
+- **Light class.** It allocates no PMG player and is never drawn on `P1`/`P2`.
+  It is not a smaller PMG Raider.
+- **Character renderer.** It shares the accepted Light renderer class and
+  glyphs with the Light Wingman; no new artwork.
+- **One Light slot.** Current capacity stays one Light-class enemy at a time,
+  explicitly selected as `Wingman OR Interceptor` — not both at once. For
+  smoke, a provisional schedule outside the Light lifecycle shows the Wingman
+  first, then the Interceptor, repeating; real wave composition is roadmap 4.6.
+- **Independent and aggressive.** It keeps no formation and follows no Heavy
+  leader. It enters at X 124, descends 2 lines per frame (twice the Heavy
+  rate) and every other frame closes one 4-HPOS cell on the player's column,
+  clamped to 48-200.
+- **Laser bolt (roadmap 4.4c).** It fires through the established hostile
+  PairShot path, but with its own weapon class `LASER`: a single thin bolt, then
+  a pause of 56/44/32 frames for EASY/MEDIUM/HARD — one, two or three shots per
+  pass. Fast pursuit, slow deliberate fire. Speed, hitbox, damage and lifetime
+  are those of every hostile PairShot.
+- **HP and score.** 1 HP; a kill scores 15 points, three times the Wingman's 5.
+  Contact follows the Light contract.
+
+Weapon classes also own their movement rate (roadmap 4.5b candidate):
+`PULSE` and `LASER` fall 2 lines every frame; `BOMBER` (3) falls 2 lines every
+second frame, 1 line per frame on average, with the same hitbox, damage and
+lifetime in steps. Only the Bomber archetype fires `BOMBER` (4.5c candidate).
+
+### Bomber — **OWNER-ACCEPTED** (roadmap 4.5c and 4.5d)
+
+The last MVP archetype (owner decision 20), owner-accepted with the whole
+`0a90c1c` stack (owner smoke PASS 2026-09-18), identity included.
+
+With the Bomber the enemy roster is **frozen**: no new enemy archetype without
+a new owner decision (owner decision 21). Further variety comes from waves,
+flight paths, sector subtypes and boosters.
+
+- **Heavy class on `P1`/`P2`.** A Bomber formation is two Bombers on the Heavy
+  PMG players, the same renderer, collision and destruction path as the Raider,
+  with the `SCYTHE_BOMBER` art as a QUAD (32-HPOS) hull.
+- **Identity (roadmap 4.5d).** The silhouette is a **catamaran** —
+  two hulls joined by a bridge, twin prongs instead of the Raider's single
+  spine — so it never reads as a bigger Raider. The hull is **blue** (hue 8)
+  and its luminance is driven by the remaining HP, which also gives a Heavy its
+  non-lethal hit feedback: 4 HP `$88`, 3 HP `$86`, 2 HP `$84`, 1 HP `$82`, with
+  the charge and flash brightening staying inside hue 8. The torpedo leaves
+  from between the prongs. When the formation recycles, `P1`/`P2` return to the
+  Raider colour `$44`, which the capital broadside missiles M1/M2 borrow.
+- **Lane sweep.** Slot 0 sweeps the left lane (X 48-92), slot 1 the right lane
+  (X 132-176) at 1 HPOS per frame, turning at the lane edges or when a per-slot
+  timer expires (24-55 frames), so the pair never mirrors exactly. The lanes
+  keep an 8-HPOS gap at their closest.
+- **Entry and descent.** Both start wholly above the gameplay area (Y 0). Slot
+  0 enters at 1 line per frame to depth 40, slot 1 to depth 16; then each
+  descends 1 line every other frame on opposite frame parity, so slot 1 trails
+  and the pair is not phase-locked.
+- **Fire.** Each Bomber has its own timer (first shot after 48 / 72 frames) and
+  fires one `BOMBER` shell (1 line per frame on average), then waits 80/64/48
+  frames on EASY/MEDIUM/HARD. It fires only between Y 24 and 200, not while
+  the player is dying and not when the capital sector is due. Shells are
+  emitter-independent like every hostile shot.
+- **HP and score.** 4 HP; a kill scores 50 points.
+- **Escort.** A Bomber formation brings no Light escort in the smoke schedule.
+  That is wave data, not a Bomber rule; roadmap 4.6 may give it one.
+- **Smoke order.** A TEMPORARY 4.5 HEAVY SMOKE SCHEDULER alternates Raider and
+  Bomber formations (Raider first in a fresh game) so a smoke run shows both.
+  Roadmap 4.6 replaces it with the data-driven Encounter Director.
+
+Longer level structures, bosses, and further audio/visual polish remain future
+work. They are not implied by the current enemy-roster descriptors or
+review-only asset records, which describe the Raider-era roster.

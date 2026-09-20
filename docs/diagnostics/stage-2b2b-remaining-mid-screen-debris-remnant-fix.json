@@ -1,0 +1,197 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-14",
+  "status": "PASS",
+  "model": "strongest available GPT-5 Codex",
+  "reasoning_effort": "high",
+  "scope": "remaining mid-screen debris/Raider-remnant attribution and minimal fix",
+  "baseline": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "head_before": "45898e82d7d82e3d8334170cd9cfd1ce67bfc4c6",
+    "xex_sha256_before": "039960a4b62d0665f58992681c21d7d7ed42400ded770ef4cdf0e58a6fbbd5e8",
+    "linked_runtime_bytes": 17580,
+    "simultaneous_residency_bytes": 18058,
+    "safe_headroom_bytes": 4129
+  },
+  "owner_artifact": {
+    "object_class": "stale restore of gameplay debris slot 0",
+    "slot": 0,
+    "type": 1,
+    "render_id": 116,
+    "glyph": "$75 (right cell of the 2x1 phase)",
+    "first_illegal_writer": "erase_fighter_projectile_slot",
+    "writer_pc": "$2B2F",
+    "publication_class": "PairShot backing restore, not a new debris render",
+    "lifecycle_identity": "old debris footprint after the live debris record moved"
+  },
+  "root_cause": {
+    "summary": "PairShot publication saved a visible gameplay-debris glyph as FIGHTER_PROJECTILE_BACKUP_TOP. On the next PAL frame entity erase removed the old debris footprint, world movement moved and republished the live debris, then the late PairShot erase restored the historical debris glyph into the old cell. The orphan cell had no active gameplay record or collision and could subsequently travel with the ring.",
+    "why_previous_fix_missed": "The previous fix prevented transient EFFECT_Y modulo wrap. This path contains no effect-coordinate violation: the bad byte is the lower-layer debris glyph captured and later restored by a foreground PairShot.",
+    "hypotheses": {
+      "H1_second_debris_spawn_path": "REJECTED",
+      "H2_stale_slot0_lifecycle": "REJECTED: live debris remains valid at its new position",
+      "H3_backing_restore_republishes_debris": "CONFIRMED",
+      "H4_effect_slot_reuse": "REJECTED",
+      "H5_breakup_core": "REJECTED",
+      "H6_other_coordinate_wrap": "REJECTED for the attributed event",
+      "H7_delayed_first_render": "REJECTED",
+      "H8_object_aliasing": "REJECTED",
+      "H9_alternate_director_admission": "REJECTED",
+      "H10_legitimate_debris_with_bypassed_spawn": "REJECTED"
+    }
+  },
+  "deterministic_reproducer": {
+    "object": "gameplay debris slot 0 TYPE=1 render ID 116",
+    "initial_xy": [124, 136],
+    "moved_xy": [124, 144],
+    "pairshot_slot": 1,
+    "screen_address": "$8384",
+    "before_fix_writes": [
+      {"frame": 0, "writer": "render_interactive_entity_overlays", "transition": "$00->$75"},
+      {"frame": 0, "writer": "render_fighter_projectile_overlays", "transition": "$75->$0B", "saved_backing": "$75"},
+      {"frame": 1, "writer": "erase_interactive_entity_overlays", "transition": "$0B->$00"},
+      {"frame": 1, "writer": "erase_fighter_projectile_slot", "pc": "$2B2F", "transition": "$00->$75", "illegal": true}
+    ],
+    "after_fix_final_transition": "$00->$00",
+    "matrix": {
+      "pairshot_slots": 10,
+      "debris_cells": 2,
+      "x_positions": 3,
+      "cases": 60,
+      "failures_after": 0
+    },
+    "native_before": {
+      "first_frame": 1779,
+      "physical_address": "$83CE",
+      "glyph": "$75",
+      "pairshot_slot": 1,
+      "consecutive_visible_frames": 24,
+      "last_writer_pc": "$2B2F"
+    }
+  },
+  "production_fix": {
+    "routine": "store_projectile_backing_resolving_effect_core",
+    "change": "After resolving retained transient effects, pass candidate foreground codes through the existing exact-address resolve_effect_backing_below_interactive_debris helper before storing PairShot backing.",
+    "new_state_bytes": 0,
+    "linked_runtime_delta_bytes": 0,
+    "architecture_change": false,
+    "slot3_changed": false
+  },
+  "gameplay_debris_admission_audit": {
+    "production_reachable_activation_paths": [
+      {
+        "path": "entity_effects_update -> integration_debris_spawn -> DIRECTOR_REQUEST -> entity_spawn_debris",
+        "writes_slot0_active": true,
+        "initial_y": 16,
+        "first_visible_y": 24,
+        "canonical": true
+      }
+    ],
+    "other_mask_writers": [
+      "weapon pickup slot-1 admission/release only",
+      "entity_despawn_debris clears slot 0 only",
+      "init_entity_effects clears the complete state page",
+      "host tests may call entity_spawn_debris directly but are not production paths"
+    ],
+    "alternate_visible_spawn": false
+  },
+  "instruction_exact": {
+    "method": "linked NMOS 6502 execution through executeProjectileDebrisBackingTrace",
+    "overlap_projectile_render_before_cycles": 515,
+    "overlap_projectile_render_after_cycles": 553,
+    "affected_path_delta_cycles": 38,
+    "ordinary_blank_cell_delta_cycles": 0,
+    "steady_state_without_candidate_overlap_delta_cycles": 0,
+    "erase_delta_cycles": 0
+  },
+  "measured_native": {
+    "emulator": "Atari800 7.1.2 PAL/XL",
+    "completed_frames": 9000,
+    "fighter_open_frames": 4838,
+    "raider_kills": 124,
+    "p1_kills": 62,
+    "p2_kills": 62,
+    "gameplay_debris_spawns": 41,
+    "gameplay_debris_first_visible_publications": 41,
+    "gameplay_debris_invalid_first_visible_publications": 0,
+    "breakup_cores": 124,
+    "breakup_fragments": 496,
+    "suspicious_first_visible_publications": 0,
+    "post_expiry_publications": 0,
+    "stale_backing_object_glyph_restores": 0,
+    "owner_symptom_equivalent_events": 0,
+    "effect_coordinate_wraps": 0,
+    "effect_orphan_cells": 0,
+    "maximum_active_work_cycles": 20479,
+    "maximum_raw_cadence_cycles": 28906,
+    "target_headroom_cycles": 10721,
+    "hard_headroom_cycles": 12089,
+    "missed_frames": 0,
+    "target_overruns": 0,
+    "hard_overruns": 0,
+    "extra_vbi": 0,
+    "dli_anomalies": 0,
+    "previous_candidate_signature": {
+      "stale_debris_frames_before_after": [24, 0],
+      "broad_pairshot_range_before_after": [29, 29],
+      "pairshot_note": "The unchanged broad range count is not an owned PairShot lifecycle failure; focused 1200-shot provenance reports zero ghosts/orphans."
+    },
+    "two_heavy_supplement": {
+      "completed_frames": 1000,
+      "two_heavy_active_frames": 113,
+      "overlap_events": 13,
+      "black_mask_events": 0,
+      "stale_heavy_pages": 0,
+      "maximum_active_work_cycles": 20636,
+      "missed_frames": 0,
+      "extra_vbi": 0,
+      "dli_anomalies": 0
+    }
+  },
+  "memory_placement": {
+    "linked_runtime_bytes": 17580,
+    "simultaneous_residency_bytes": 18058,
+    "safe_headroom_bytes": 4129,
+    "initial_content_bytes": 13171,
+    "initial_content_capacity_bytes": 13184,
+    "initial_content_margin_bytes": 13,
+    "starfield_raw_bytes": 2188,
+    "starfield_packed_bytes": 1787,
+    "starfield_packed_margin_bytes": 32,
+    "starfield_to_pickup_margin_bytes": 19,
+    "broadside_bytes": 6653,
+    "broadside_margin_bytes": 3,
+    "a2_bytes": 237,
+    "a2_margin_bytes": 19,
+    "entity_code_bytes": 3162,
+    "entity_code_margin_bytes": 678,
+    "pickup_code_bytes": 871,
+    "pickup_code_margin_bytes": 411,
+    "basic_ram_used": false,
+    "loader_changed": false
+  },
+  "regression": {
+    "remaining_artifact_tests": "3/3 PASS including 60-cell/slot cases",
+    "raider_fragment_origin": "3/3 PASS",
+    "previous_raider_remnant": "8/8 PASS including >5000 kills",
+    "offscreen_effects_pairshot_two_pmg": "18/18 PASS",
+    "fire_audio_layout": "9/9 PASS",
+    "focused_entity_admission_backing": "6/6 PASS",
+    "boot_smoke": "4/4 XEX/ATR PASS",
+    "raider_spawn_visible_at_activation_defects": 0,
+    "debris_spawn_visible_at_activation_defects": 0,
+    "two_heavy_black_mask_events": 0,
+    "pmg_cross_writes": 0,
+    "raider_stale_remnants": 0,
+    "pairshot_ghosts_host": 0
+  },
+  "artifact": {
+    "xex": "dist/void-strike-65.xex",
+    "xex_bytes": 21625,
+    "xex_sha256": "e5ba24034ec007c2c8316df1f5d7fbaffe1603e2a25dc5814cc43ab653829c1f",
+    "atr": "dist/void-strike-65.atr",
+    "atr_bytes": 92176,
+    "atr_sha256": "3275a96527cf04ab241385b12c047bbf65285925eb9cd150f607ea0b7f06f461"
+  },
+  "next_task": "Owner smoke remaining mid-screen debris/remnant fix"
+}

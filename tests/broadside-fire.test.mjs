@@ -469,7 +469,8 @@ test("broadside source timing and schedule are deterministic and generated with 
   assert.equal(renderCapitalHullsCa65Include(second), renderCapitalHullsCa65Include(asset));
   const { capitalExplosion, ...timing } = asset.broadside;
   assert.deepEqual(timing, {
-    provisionalFirstCapitalGameplayFrame: 50,
+    provisionalFirstCapitalGameplayFrame: 600,
+    activeLimit: 2,
     initialDelayFrames: 2,
     retryDelayFrames: 7,
     scheduleDelayScale: 2,
@@ -481,7 +482,7 @@ test("broadside source timing and schedule are deterministic and generated with 
     warningEarlyHeight: 2,
     warningMediumHeight: 4,
     worldScrollRateDenominator: 20,
-    hullScrollRateDenominator: 20,
+    hullScrollRateDenominator: 40,
     projectileSpeed: 2,
     warningHeight: 6,
     flyingHeight: 4,
@@ -513,7 +514,7 @@ test("broadside source timing and schedule are deterministic and generated with 
     respawnInvulnerableFrames: 250,
     respawnBlinkHalfPeriodFrames: 8,
     worldScrollRates: { easy: 8, medium: 9, hard: 10 },
-    hullScrollRates: { easy: 8, medium: 9, hard: 10 },
+    hullScrollRates: { easy: 16, medium: 18, hard: 20 },
   });
   assert.deepEqual(
     [capitalExplosion.durationFrames, capitalExplosion.phaseFrames,
@@ -522,14 +523,18 @@ test("broadside source timing and schedule are deterministic and generated with 
     [24, 4, 3, 3, 6, 4, 0],
   );
   assert.deepEqual([...asset.worldScrollRateBytes], [8, 9, 10]);
-  assert.deepEqual([...asset.hullScrollRateBytes], [8, 9, 10]);
+  assert.deepEqual([...asset.hullScrollRateBytes], [16, 18, 20]);
   assert.deepEqual(asset.schedule.map(({ side }) => side), [
     "enemy", "enemy", "enemy", "allied",
   ]);
   assert.deepEqual(asset.schedule.map(({ baseDelayAfterFrames }) => baseDelayAfterFrames),
-    [2, 2, 2, 37]);
+    [73, 73, 73, 95]);
   assert.deepEqual(asset.schedule.map(({ delayAfterFrames }) => delayAfterFrames),
-    [68, 68, 68, 138]);
+    [210, 210, 210, 254]);
+  const cadence = simulateBroadsideCadence(asset, { frames: 1800, difficulty: "hard" });
+  assert.ok(cadence.maximumActiveSlots <= 2);
+  assert.match(routine("schedule_broadside", "render_broadside_warning"),
+    /cpx #BROADSIDE_ACTIVE_LIMIT/);
   assert.equal(asset.scheduleBytes.length, 8);
   assert.equal(asset.turretBytes.length, 14);
 });
@@ -552,10 +557,18 @@ test("packed resident broadside image round-trips before the loader and stays wi
   assert.ok(manifest.payloadBudget.entityEffectsFoundation.actualDeltaBytes <=
     manifest.payloadBudget.entityEffectsFoundation.approvedDeltaBytes);
   const starRuntime = fs.readFileSync(path.join(rootDirectory, "build", "starfield-runtime.bin"));
+  // 4.5M-M1: the packed image is two independent streams (A then B) that
+  // decode into one continuous runtime; the correction gate is 1,804 B (open
+  // owner decision carried over from the 1,798 B single-stream gate).
   const starPacked = fs.readFileSync(path.join(rootDirectory, "build", "starfield-runtime-packed.bin"));
-  assert.deepEqual(unpackBroadsideLzss(starPacked), starRuntime);
+  const [streamA, streamB] = manifest.starfieldRuntime.streams;
+  assert.deepEqual(Buffer.concat([
+    unpackBroadsideLzss(starPacked.subarray(0, streamA.packedBytes)),
+    unpackBroadsideLzss(starPacked.subarray(streamA.packedBytes)),
+  ]), starRuntime);
+  assert.equal(starPacked.length, streamA.packedBytes + streamB.packedBytes);
   assert.equal(starPacked.length, manifest.starfieldRuntime.packedBytes);
-  assert.ok(starPacked.length <= 0x706);
+  assert.ok(starPacked.length <= 1804);
   assert.match(routine("start", "broadside_unpack_command"),
     /jsr stage_boot_streams[\s\S]+boot_chunk_ready[\s\S]+jsr unpack_resident_runtime[\s\S]+jsr unpack_entity_runtime[\s\S]+jsr stage_a2_kernel[\s\S]+jsr init_entity_effects[\s\S]+jsr unpack_loader_bitmap[\s\S]+jsr show_loader[\s\S]+jsr unpack_starfield_runtime/);
   assert.match(routine("boot_stage2_atr_entry", "boot_stage2_xex_entry"),
@@ -584,7 +597,7 @@ test("M0 remains isolated while M1-M3 masked writes and SIZEM updates preserve e
   assert.doesNotMatch(routine("allocate_player_fighter_projectile", "update_enemy_weapon_runtime"),
     /initialize_projectile_screen_pointer/,
     "unrendered allocations must defer their redundant screen-pointer calculation");
-  assert.match(routine("render_fighter_projectile_overlays", "build_interceptor_projectile_glyphs"),
+  assert.match(routine("render_fighter_projectile_overlays", "hostile_weapon_visual_slot"),
     /initialize_projectile_screen_pointer/,
     "the real overlay renderer remains the authoritative pointer owner");
   assert.match(routine("init_broadside", "update_broadside"),
@@ -885,18 +898,18 @@ test("assembled BROADSIDE overlap unwinds 0->2 draw with 2->0 erase for every sl
     /sta BROAD_PREV_H,x[\s\S]+sta BROAD_PREV_Y,x[\s\S]+sta BROAD_COLLISION,x[\s\S]+CAPITAL_SHELL_LEFT_GLYPH[\s\S]+adc #\$01/);
 });
 
-test("assembled fractional cadence makes hull movement 100% of the legacy world rate", () => {
+test("capital cadence restores the legacy world rate without changing fighter timing", () => {
   assert.deepEqual(HULL_SCROLL_DIFFICULTIES, { easy: 0, medium: 1, hard: 2 });
   assert.equal(asset.broadside.worldScrollRateDenominator, 20);
-  assert.equal(asset.broadside.hullScrollRateDenominator, 20);
+  assert.equal(asset.broadside.hullScrollRateDenominator, 40);
   const expected = {
-    easy: { rate: 8, world: [8, 40, 400], hull: [8, 40, 400], scanlines: [160, 160] },
-    medium: { rate: 9, world: [9, 45, 450], hull: [9, 45, 450], scanlines: [180, 180] },
-    hard: { rate: 10, world: [10, 50, 500], hull: [10, 50, 500], scanlines: [200, 200] },
+    easy: { worldRate: 8, hullRate: 16, world: [8, 40, 400], hull: [8, 40, 400], scanlines: [160, 160] },
+    medium: { worldRate: 9, hullRate: 18, world: [9, 45, 450], hull: [9, 45, 450], scanlines: [180, 180] },
+    hard: { worldRate: 10, hullRate: 20, world: [10, 50, 500], hull: [10, 50, 500], scanlines: [200, 200] },
   };
   for (const [difficulty, contract] of Object.entries(expected)) {
-    assert.equal(worldScrollRate(asset, difficulty), contract.rate);
-    assert.equal(hullScrollRate(asset, difficulty), contract.rate);
+    assert.equal(worldScrollRate(asset, difficulty), contract.worldRate);
+    assert.equal(hullScrollRate(asset, difficulty), contract.hullRate);
     for (const [index, frames] of [20, 100, 1000].entries()) {
       const world = createWorldScrollState(asset, { difficulty });
       let worldAdvances = 0;
@@ -913,7 +926,7 @@ test("assembled fractional cadence makes hull movement 100% of the legacy world 
       assert.equal(hullAdvances, contract.hull[index]);
       assert.equal(world.accumulator, 0, "complete rate windows have no temporal drift");
       assert.equal(world.hullAccumulator,
-        frames * contract.rate % asset.broadside.hullScrollRateDenominator,
+        frames * contract.hullRate % asset.broadside.hullScrollRateDenominator,
         "hull accumulator keeps its exact fractional remainder without drift");
     }
     assert.equal(worldScrollRate(asset, difficulty) * 50 * 8 /
@@ -946,23 +959,17 @@ test("assembled fractional cadence makes hull movement 100% of the legacy world 
   assert.equal(slot.x - x, 2, "shell movement remains two HPOS units per PAL frame");
   assert.match(routine("init_state", "clear_pmg"), /lda #\$00[\s\S]+sta scroll_accumulator/);
   assert.match(routine("update_starfield", "generate_corridor_row"),
-    /ldx DIFFICULTY_SETTING[\s\S]+adc hull_scroll_rates,x[\s\S]+cmp #HULL_SCROLL_RATE_DENOMINATOR[\s\S]+sbc #HULL_SCROLL_RATE_DENOMINATOR/);
+    /cmp #CAPITAL_HULL_STATE_OPEN[\s\S]+lda world_scroll_rates,x[\s\S]+asl[\s\S]+lda hull_scroll_rates,x[\s\S]+cmp #HULL_SCROLL_RATE_DENOMINATOR[\s\S]+sbc #HULL_SCROLL_RATE_DENOMINATOR/);
   assert.match(routine("main_loop", "wait_frame"),
-    /jsr wait_gameplay_frame[\s\S]+jsr update_starfield[\s\S]+jmp main_loop/);
+    /jsr wait_for_master_pal_frame[\s\S]+jsr update_starfield[\s\S]+jmp main_loop/);
   const rateTableAddress = labels.get("hull_scroll_rates");
   const difficultyAddress = readGameGraphicsSource(source, definition).constants.get(
     "DIFFICULTY_SETTING",
   );
-  assert.deepEqual([...broadsideRuntimeBytesAt(rateTableAddress, 3)], [8, 9, 10]);
-  const update = xexBytesAt(labels.get("update_starfield"), 56);
-  assert.notEqual(update.indexOf(Buffer.from([
-    0xae, difficultyAddress & 0xff,
-    difficultyAddress >> 8,
-    0xa5, labels.get("scroll_accumulator"), 0x18, 0x7d,
-    labels.get("world_scroll_rates") & 0xff,
-    labels.get("world_scroll_rates") >> 8, 0xc9, 20,
-  ])), -1);
-  assert.notEqual(update.indexOf(Buffer.from([0xe9, 20, 0x85,
+  assert.deepEqual([...broadsideRuntimeBytesAt(rateTableAddress, 3)], [16, 18, 20]);
+  const update = xexBytesAt(labels.get("update_starfield"), 80);
+  assert.notEqual(update.indexOf(Buffer.from([0xc9, 40])), -1);
+  assert.notEqual(update.indexOf(Buffer.from([0xe9, 40, 0x85,
     labels.get("scroll_accumulator")])), -1);
   const init = xexBytesAt(
     labels.get("init_state"),
@@ -1015,6 +1022,7 @@ test("assembled muzzle records preserve backing and complete the full visible li
   const muzzleHi = labels.get("MUZZLE_SCREEN_HI");
   const leftBacking = labels.get("CORRIDOR_BOUNDARY_LEFT");
   const rightBacking = labels.get("CORRIDOR_BOUNDARY_RIGHT");
+  const muzzleBacking = leftBacking + 1;
   const turretFired = labels.get("BROAD_TURRET_FIRED");
   const destination = labels.get("dst_ptr");
   const gameplayScreen = 0x4028;
@@ -1032,6 +1040,8 @@ test("assembled muzzle records preserve backing and complete the full visible li
   memory[destination + 1] = gameplayScreen >> 8;
   memory[gameplayScreen + alliedColumn] = 0x45;
   memory[gameplayScreen + enemyColumn] = 0xd0;
+  memory[muzzleBacking] = 0x10;
+  memory[muzzleBacking + 1] = 0x30;
   memory[muzzleDomain] = 1;
   memory[muzzleDomain + 1] = 1;
   memory[muzzleRow] = 24;
@@ -1226,6 +1236,7 @@ test("hybrid world ring and hull-only copy preserve every logical row and both h
   const rowHi = labels.get("PLAYFIELD_ROW_HI");
   const leftBacking = labels.get("CORRIDOR_BOUNDARY_LEFT");
   const rightBacking = labels.get("CORRIDOR_BOUNDARY_RIGHT");
+  const muzzleBacking = leftBacking + 1;
   const logicalAddress = (memory, row) => row === 0
     ? gameplayScreen
     : memory[rowLo + row - 1] | memory[rowHi + row - 1] << 8;
@@ -1260,9 +1271,13 @@ test("hybrid world ring and hull-only copy preserve every logical row and both h
       assert.equal(corridorMemory[address + column],
         corridorBefore[(row - 1) * 40 + column], `corridor ${row},${column}`);
     }
-    assert.equal(corridorMemory[leftBacking + row], 0x20 + row - 1);
-    assert.equal(corridorMemory[rightBacking + row], 0x60 + row - 1);
   }
+  assert.equal(corridorMemory[muzzleBacking], corridorMemory[leftBacking]);
+  assert.equal(corridorMemory[muzzleBacking + 1], corridorMemory[rightBacking]);
+  for (let row = 3; row < canonicalPlayfield.gameplayRows; row += 1)
+    assert.equal(corridorMemory[leftBacking + row], 0x20 + row);
+  for (let row = 1; row < canonicalPlayfield.gameplayRows; row += 1)
+    assert.equal(corridorMemory[rightBacking + row], 0x60 + row);
 
   const completeMemory = createLinkedRuntimeMemory();
   const completeBefore = fillScreen(completeMemory);
@@ -2055,7 +2070,7 @@ test("five hull contacts enter one guarded death lifecycle and leave source star
   assert.equal(asset.collisionBoundaries.get("allied").length, 32);
   assert.equal(asset.collisionBoundaries.get("enemy").length, 32);
   assert.match(routine("update_player_death", "respawn_player"),
-    /BROAD_DEATH_TIMER[\s\S]+PLAYER_LIVES[\s\S]+jsr respawn_player/);
+    /jmp player_dying_tick[\s\S]+PLAYER_LIVES[\s\S]+jsr respawn_player/);
   assert.match(source,
     /apply_player_damage:[\s\S]+jsr begin_player_fighter_explosion/);
 });
@@ -2134,7 +2149,9 @@ test("death decrements one life and respawns atomically at canonical corridor ce
   assert.equal(applyPlayerDamage(state, asset, 20, 25, 50), false);
   assert.equal(state.lives, 2, "same-frame and dead-state damage cannot consume another life");
 
-  for (let frame = 0; frame < SHARED_FIGHTER_EXPLOSION_TOTAL - 1; frame += 1) {
+  // Rebaselined 2026-09-17 (death-frame deferral): DYING lasts one frame longer
+  // than the 24-frame explosion, which begins on the first DYING tick.
+  for (let frame = 0; frame < SHARED_FIGHTER_EXPLOSION_TOTAL; frame += 1) {
     assert.equal(advancePlayerLifecycle(state, asset), "dying");
     assert.notEqual(state.playerX, 0, "death presentation never exposes an uninitialized X");
   }
@@ -2155,7 +2172,9 @@ test("respawn is invulnerable for exactly 250 controlled blinking PAL frames", (
   const state = createBroadsideState(asset);
   state.health = 20;
   applyPlayerDamage(state, asset, 20, 25, 0);
-  for (let frame = 0; frame < SHARED_FIGHTER_EXPLOSION_TOTAL; frame += 1) {
+  // Rebaselined 2026-09-17 (death-frame deferral): DYING lasts one frame longer
+  // than the 24-frame explosion, which begins on the first DYING tick.
+  for (let frame = 0; frame < SHARED_FIGHTER_EXPLOSION_TOTAL + 1; frame += 1) {
     advancePlayerLifecycle(state, asset);
   }
   const positions = [];
@@ -2249,7 +2268,9 @@ test("last life reaches GAME OVER after the full death animation without respawn
   state.health = 20;
   assert.equal(applyPlayerDamage(state, asset, 20, 25, 0), true);
   assert.equal(state.lives, 0);
-  for (let frame = 0; frame < SHARED_FIGHTER_EXPLOSION_TOTAL - 1; frame += 1) {
+  // Rebaselined 2026-09-17 (death-frame deferral): DYING lasts one frame longer
+  // than the 24-frame explosion, which begins on the first DYING tick.
+  for (let frame = 0; frame < SHARED_FIGHTER_EXPLOSION_TOTAL; frame += 1) {
     advancePlayerLifecycle(state, asset);
   }
   assert.equal(advancePlayerLifecycle(state, asset), "game-over");
@@ -2394,11 +2415,11 @@ test("cadence preview plots source-derived warning, launch, and world-scroll tim
   const state = readBroadsideCadenceSequenceRuntimeState(source, definition);
   assert.deepEqual(
     [state.baseline.warningStats.count, state.baseline.launchStats.count],
-    [7, 7],
+    [9, 9],
   );
-  assert.deepEqual([state.final.warningStats.count, state.final.launchStats.count], [24, 24]);
+  assert.deepEqual([state.final.warningStats.count, state.final.launchStats.count], [22, 22]);
   assert.equal(state.final.warningStats.minimumGap, 16);
-  assert.equal(state.final.warningStats.averageGap, 832 / 23);
+  assert.equal(state.final.warningStats.averageGap, 832 / 21);
   assert.ok(state.final.warningScrolls.some(({ frame }) => frame % 4 === 0));
 
   const png = createBroadsideCadenceSequencePreview(source, definition);
@@ -2423,4 +2444,86 @@ test("broadside state, charset, software collision, and fixed loops remain bound
   assert.match(routine("update_broadside", "schedule_broadside"),
     /ldx #\$00[\s\S]+cpx #BROADSIDE_SLOT_COUNT/);
   assert.doesNotMatch(routine("update_broadside", "schedule_broadside"), /VDSLST|WSYNC|NMIEN/);
+});
+
+// Regression: BLOCKED_MUZZLE_ORPHAN_TRANSIENT (docs/diagnostics/
+// runtime-wall-trace-report-regeneration-blocked.md §8.6). restore_launch_flash_cell
+// used to stamp the per-turret CAPITAL_TURRET_MUZZLE_SCREEN_CODE constant into the
+// cell instead of returning what the flash had covered, leaving a turret-muzzle
+// glyph on a hull row that has no turret for 7-14 frames.
+test("an expired launch flash restores the covered cell's own content, not a muzzle constant", () => {
+  const memory = createLinkedRuntimeMemory();
+  const broadRowLo = labels.get("BROAD_ROW_LO");
+  const broadRowHi = labels.get("BROAD_ROW_HI");
+  const broadTurret = labels.get("BROAD_TURRET");
+  const flashTimer = labels.get("BROAD_FLASH_TIMER");
+  const slotCount = 3;
+  const flashFrames = 4;
+  const turrets = [alliedTurretIndex, enemyTurretIndex];
+  const flashCodes = ["allied", "enemy"].map((side) =>
+    asset.glyphs.find(({ name }) => name === `${side}_launch_flash`).screenCode);
+  const muzzleCodes = turrets.map((index) => asset.turrets[index].muzzleScreenCode);
+  // Ordinary hull armour: neither a muzzle nor a flash, so restoring a constant
+  // and restoring the real content cannot be confused.
+  const covered = 0x3a;
+  assert.equal([...muzzleCodes, ...flashCodes].includes(covered), false);
+
+  for (const [side, turret] of turrets.entries()) {
+    const column = asset.turrets[turret].muzzleColumn;
+    const rowAddress = canonicalPlayfield.ringBufferAddress + (5 + side) * 40;
+    const cell = rowAddress + column;
+    const slot = side;
+
+    memory.fill(0, rowAddress, rowAddress + 40);
+    memory[cell] = covered;
+    for (let index = 0; index < slotCount; index += 1) memory[flashTimer + index] = 0;
+    memory[broadRowLo + slot] = rowAddress & 0xff;
+    memory[broadRowHi + slot] = rowAddress >> 8;
+    memory[broadTurret + slot] = turret;
+    memory[flashTimer + slot] = flashFrames;
+
+    // Real frame order: the expiry runs before the scroll and the scroll before
+    // the draw, so every flash frame is one render followed by one tick.
+    for (let frame = 0; frame < flashFrames; frame += 1) {
+      runAssembledRoutine(memory, "render_launch_flashes");
+      assert.equal(memory[cell], flashCodes[side],
+        `slot ${slot} frame ${frame}: the flash glyph was not published`);
+      runAssembledRoutine(memory, "tick_launch_flashes");
+    }
+
+    assert.equal(memory[flashTimer + slot], 0, `slot ${slot}: the flash did not expire`);
+    assert.notEqual(memory[cell], muzzleCodes[side],
+      `slot ${slot}: the expiry stamped the per-turret muzzle constant into the cell`);
+    assert.equal(memory[cell], covered,
+      `slot ${slot}: the expiry did not restore the covered cell content`);
+    assert.equal(memory.subarray(rowAddress, rowAddress + 40)
+      .some((value, index) => index !== column && value !== 0), false,
+      `slot ${slot}: the flash lifecycle touched a cell it does not own`);
+  }
+});
+
+// A flash that outlives a scroll is redrawn at the same cell every frame. Its
+// backing must stay the pre-flash content: re-saving the cell once it already
+// carries the flash code would make the flash its own backing and orphan it.
+test("a multi-frame launch flash does not adopt its own glyph as backing", () => {
+  const memory = createLinkedRuntimeMemory();
+  const flashTimer = labels.get("BROAD_FLASH_TIMER");
+  const backing = labels.get("BROAD_FLASH_BACKING");
+  const rowAddress = canonicalPlayfield.ringBufferAddress + 7 * 40;
+  const column = asset.turrets[alliedTurretIndex].muzzleColumn;
+  const covered = 0x3a;
+
+  memory.fill(0, rowAddress, rowAddress + 40);
+  memory[rowAddress + column] = covered;
+  for (let index = 0; index < 3; index += 1) memory[flashTimer + index] = 0;
+  memory[labels.get("BROAD_ROW_LO")] = rowAddress & 0xff;
+  memory[labels.get("BROAD_ROW_HI")] = rowAddress >> 8;
+  memory[labels.get("BROAD_TURRET")] = alliedTurretIndex;
+  memory[flashTimer] = 4;
+
+  for (let frame = 0; frame < 4; frame += 1) {
+    runAssembledRoutine(memory, "render_launch_flashes");
+    assert.equal(memory[backing], covered,
+      `frame ${frame}: the flash overwrote its own backing`);
+  }
 });

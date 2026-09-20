@@ -1,0 +1,109 @@
+{
+  "id": "stage-2b2e-pickup-capsule-silhouettes",
+  "date": "2026-09-16",
+  "status": "PASS_CANDIDATE_AWAITING_OWNER_SMOKE",
+  "open_decision": "STARFIELD_CORRECTION_GATE_6_BYTES",
+  "task": "Restore a recognisable per-type capsule look for the fighter pickup",
+
+  "baseline": {
+    "commit": "f30754a",
+    "xex_sha256": "6d499d44d6295da4c9b79967126caa91aa72dda9ce85f448bb22120d00d5b3d6",
+    "visual": "16 rows of $FF - a solid 8x16 rectangle, the temporary diagnostic visual from the raster fix"
+  },
+
+  "artwork_recovery": {
+    "source": "assets/graphics/entity-effects.json (weaponPickupRapidFire, weaponPickupSpreadShot, weaponPickupShield)",
+    "note": "The original per-type capsule artwork was never deleted; only the character compositor that consumed it was retired in f6eee5c. The silhouettes below are derived from that data, not invented.",
+    "colour_loss": "The original distinguished types largely by COLOUR (Rapid steel $84 + yellow $1E, Spread + red $46, Shield + bright $0E). A fifth-player mark carries one colour (COLPF3), so only the silhouette survives; identity is now carried by shape."
+  },
+
+  "encoding": {
+    "rule": "One missile occupies two bits and the quartet is interleaved, so the colour clocks left to right are bits 1,0,3,2,5,4,7,6 - the higher bit of each pair is its LEFT pixel.",
+    "verification": "Confirmed against captured framebuffer runs before use: $FC -> x128+12, $FE -> x124+2 x128+12, $F1 -> x126+2 x132+8, with screen_x = 2*HPOSM0 - 64 + 2*cc. Every row below was produced through this mapping; no byte was copied from the old data.",
+    "screen_x_correction": "CORRECTION (2026-09-19, FIX session on wip/4.5d-gate-fail): the `screen_x = 2*HPOSM0 - 64 + 2*cc` above assumes a wider crop origin than the Atari800 screenshots this project captures. Measured on the 256x192 captures of build ecc9ceda... (weapon-pickup-contact-nose-*.png, weapon-pickup-contact-edge-*.png), the capsule at HPOSM0 = 92 lands at x 56-72, i.e. `screen_x = 2*(HPOSM0 - 64) + 2*cc`, 64 pixels further left. The shapes below are unaffected - only the absolute origin is, and the relative `+2*cc` term is unchanged. The raster window of the pickup contact invariant (scripts/runtime-wall-trace.mjs) derives its x from the corrected form.",
+    "every_row_derived": true
+  },
+
+  "shapes": {
+    "rapid":  { "type": 0, "bytes": ["$BD","$FF","$FF","$FF","$DB","$DB","$DB","$DB","$DB","$DB","$DB","$DB","$FF","$FF","$FF","$BD"], "reads_as": "capsule with the vertical slot left by the old RF letterform" },
+    "spread": { "type": 1, "bytes": ["$FF","$FF","$5A","$5A","$C3","$E7","$DB","$DB","$DB","$DB","$DB","$DB","$DB","$FF","$FF","$FF"], "reads_as": "boxier casing carrying the three-shot fan across its top" },
+    "shield": { "type": 2, "bytes": ["$BD","$FF","$C3","$E7","$E7","$E7","$E7","$E7","$E7","$E7","$C3","$DB","$DB","$BD","$3C","$24"], "reads_as": "crest tapering to a point" }
+  },
+
+  "row_by_row_framebuffer_signature": {
+    "method": "DFPICKUP_PROBE_OUTPUT fb_rows: for each capsule scanline the eight colour clocks the mark occupies are sampled from the FINAL Screen_atari after a complete ANTIC pass and compared with the silhouette recovered from the artwork source.",
+    "result": "ALL THREE MATCH, row for row",
+    "rapid":  "14/14 comparable rows identical",
+    "spread": "14/14 comparable rows identical",
+    "shield": "14/14 comparable rows identical",
+    "two_row_offset_note": "The plane is published one frame ahead, so the two rows at the trailing edge of the sampling window belong to the previous position. This is the intended late-publication behaviour, not a gap.",
+    "distinct_pixel_signatures": { "rapid": 216, "spread": 200, "shield": 176, "solid_rectangle_would_be": 256 }
+  },
+
+  "full_descent_visibility": {
+    "checked": "missile bytes non-zero at beam crossing and fb_rows lit across the descent, all three types",
+    "result": "lit from the second ACTIVE frame (y=26) onward; the first frame is dark because publication lands at the end of that frame, which is inherent to late publication and invisible to the player at 50 Hz"
+  },
+
+  "changes": {
+    "asm": [
+      "fighter_pickup_pmg_shape replaced by three sixteen-row silhouettes indexed by ENTITY_TYPE+WEAPON_PICKUP_SLOT",
+      "render_fighter_pickup_pmg scales the type into the source stride (asl x4) and terminates on the sixteen-row boundary",
+      "the tables moved from PICKUP_CODE to the STARFIELD tail, the same existing slack the Light Wingman resolver already uses"
+    ],
+    "unchanged": "late-publication raster fix, publish_fighter_pickup_pmg, PRIOR/SIZEM/HPOSM, lifecycle, movement, admission, collection and booster logic"
+  },
+
+  "memory": {
+    "pickup_code_bytes": { "before": 778, "after": 769, "stream_slack_after": 14 },
+    "starfield_raw_bytes": { "before": 2176, "after": 2224 },
+    "starfield_packed_bytes": { "before": 1774, "after": 1804 },
+    "linked_runtime_bytes": { "before": 17453, "after": 17492 },
+    "simultaneous_residency_bytes": { "before": 19208, "after": 19247 },
+    "safe_residency_bytes": { "before": 2979, "after": 2940 },
+    "transport_payload_bytes": { "before": 22400, "after": 22400 }
+  },
+
+  "placement_decision_required": {
+    "gate": "starfield correction gate, packedBytes <= 0x706 (1798)",
+    "enforced_by": ["tests/light-wingman.test.mjs:108", "tests/broadside-fire.test.mjs:563"],
+    "measured": 1804,
+    "over_by": 6,
+    "hard_staging_limit": 1819,
+    "margin_to_hard_limit": 15,
+    "packed_source_to_pickup_margin": 51,
+    "what_was_NOT_used": "no new transport record, no boot-only GLUE window, no large relocation, no roadmap step 4.3",
+    "alternatives_measured": {
+      "table_ordering": "all six permutations tested offline; best is the current Rapid/Spread/Shield at 1804, worst 1808",
+      "four_bit_symmetric_rows": "data alone reaches exactly 1798, but the nibble-reverse decoder must live in PICKUP_CODE, which has 14 B free against roughly 30 B needed, and moving the decoder into STARFIELD costs more raw bytes than the 24 B it saves",
+      "degrading_the_artwork": "replacing SHIELD's inner slot and SPREAD's fan recovers only 2 of the 6 bytes (1802), so the gate rather than the artwork is the binding constraint"
+    },
+    "note": "The assertion was deliberately left failing rather than re-baselined. Moving a reviewed margin is an owner decision."
+  },
+
+  "native_pal": {
+    "session": "2-evasive-fire3",
+    "frames": 920,
+    "maximum_wall_cycles": 29216,
+    "previous_checkpoint_cycles": 29216,
+    "delta_cycles": 0,
+    "target_headroom": 1984,
+    "hard_gate_headroom": 3352,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "dli_ordering_errors": 0,
+    "deadline_overruns": 0
+  },
+
+  "boot_smoke": "4 XEX/ATR cold-start sessions passed",
+
+  "tests": {
+    "added": "tests/pickup-pmg-raster-visibility.test.mjs now derives the expected silhouettes from assets/graphics/entity-effects.json, so the assembled table cannot drift from the artwork source",
+    "regression": "one new failure: the starfield correction gate above. All other failures are pre-existing at f30754a with identical names."
+  },
+
+  "candidate": {
+    "xex_sha256": "fe524219847bcbb50c134fdf6c374d6b715b6516aad294ec080e9c47f7a6bf50",
+    "build_command": "npm run build:candidate -- --quiet"
+  }
+}

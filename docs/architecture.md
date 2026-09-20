@@ -1,9 +1,47 @@
 # Void Strike 65 runtime architecture
 
-This document describes the current released runtime. Exact address ownership
-is in [memory-map.md](memory-map.md), performance evidence in
-[runtime-headroom.md](runtime-headroom.md), and historical experiments in
-[history/](history/).
+This document describes the accepted runtime architecture of the checkpoint named in
+[STATUS.md](STATUS.md): the hybrid C foundation plus Light Wingman M1 and the
+solid PMG pickup. Exact address ownership is in [memory-map.md](memory-map.md), current
+CPU/RAM figures in [STATUS.md](STATUS.md), and historical experiments in
+[history/](history/) and [diagnostics/](diagnostics/).
+
+## Hybrid C foundation — 2026-09-15
+
+**Hybrid C Director is owner-accepted and is now the project foundation.**
+Branch `experiment/hybrid-c-director` integrates cc65 into the existing
+ca65/ld65 and DFMC build. C owns the 1:1 Encounter Director, high-level sector
+state/lifecycle, both current Raider lifecycle records, and the compact Raider
+`EnemyArchetype`. ASM still owns the Atari hardware kernel, coordinates and hot
+movement, collisions, PMG/PairShot publication, raster, audio and hardware
+writes. Detailed ownership, ABI and placement are defined in
+[hybrid-c-architecture.md](hybrid-c-architecture.md).
+
+The expanded deterministic A/B has zero divergences across 12,488 compared
+frames. The unchanged native replay completes at 28,505 cycles, 26 cycles above
+the accepted hybrid baseline and below both PAL gates. New archetype/lifecycle
+code occupies the legal post-startup `$8C7D-$8E84` range; its packed cold source
+uses `$7810-$79B6` before starfield staging reclaims that range. The loader
+format and BASIC RAM policy remain unchanged.
+
+### Light Wingman M1 — owner-accepted (`ed72e25`, `5f2f3ae`)
+
+Each Raider formation admission also admits one Light Wingman for Heavy slot 0,
+giving `2 Heavy + 1 Light`. C owns its 12-byte archetype record (HP 1,
+wingman-follow behavior 1, single-shot policy 2, 96/80/64-frame pauses,
+character renderer class 2, red PairShot, BCD score `$05`, Director value 1),
+admission, formation motion, fire decision, HP and recycle. A small ASM kernel
+owns only its two ANTIC 4 ring cells, their backing, the glyph install, the
+PairShot emission and the hot PairShot/contact tests. It uses no PMG, DLI, VBI,
+compositor or new loader record: six existing `JSR` operands are redirected to
+wrappers that first perform the routine they replace; the Light is published in
+the post-playfield PairShot window, centred behind its leader. The kernel resides in
+legal existing capacity only — the extension-stream tail, the head of the
+pickup/collision stream at `$8776`, the STARFIELD free tail and a retired
+17-byte BROADSIDE pad — as detailed in
+[hybrid-c-architecture.md](hybrid-c-architecture.md) and
+[memory-map.md](memory-map.md). Residency of all three code streams is now
+within a few bytes of their reviewed gates.
 
 ## Target and artifact model
 
@@ -19,36 +57,57 @@ verify phases bind the boot BIN, XEX, and ATR by exact size and SHA-256.
 
 ## Cold startup and loader
 
-The Encounter Director configuration uses a 101-sector initial block at
-`$2000-$527F` and enters at `$201E` with a 449-byte raw bootstrap prefix. A
-1,191-byte stage-2 overlay runs at `$21C1-$2667`; after it validates
+Transport figures in this section are those of the earlier `2df89da`
+checkpoint. The accepted Light M1 runtime occupies 175 sectors (22,400 B);
+exact values are in `build/manifest.json`.
+
+The hybrid configuration uses a 103-sector initial block at `$2000-$537F` and
+enters at `$201E` with a 449-byte raw bootstrap prefix. A
+1,257-byte stage-2 overlay runs at `$21C1-$26A9`; after it validates
 the complete manifest, it reads extension sectors through standard OS SIOV
 while OS IRQ/NMI and disk services are still available. Each chunk is fully
 read, CRC16-CCITT checked, and only then copied or decompressed to its manifest-
 controlled destination. Any failure blanks DMA, selects a fixed red error
 background, and halts before partially loaded code can execute.
 
-The four ordered DFMC records are BROADSIDE in sectors 102-146, the packed
-pickup phase/code/collision stream in sectors 147-154, 234-byte integration glue
-in sectors 155-156, and the Encounter Director in sectors 157-161. ATR stages
-each record at `$8100`; BROADSIDE expands 6,643 bytes to `$5E10-$7802`, the
-921-byte pickup stream is published temporarily at `$8C80-$9018`, and glue
-expands to `$5261-$534A`. Packed ENTITY_CODE stages at `$534B-$5D39`, directly
-after glue. Startup holds glue at `$7F16-$7FFF` after publishing
-the A2 kernel, then copies it to `$4EFE-$4FE7`; the 645-byte Director expands to
-`$9D75-$9FF9`. The last BROADSIDE source read makes `$8100` reusable;
-only then does startup copy the packed resident suffix and stage it at
-`$8100-$9ACE`. The 7,743-byte suffix is stored as a 6,607-byte LZ-10/5 stream
-and restores `$21C1-$3FFF`, overwriting all stage-2 code and its maximum
-eight-record manifest. The pickup stream is preserved at `$4801-$4B93` before
-its cold source overlaps the future A2 range, then expands atomically to
-`$8800-$8E81`; the final 33 bytes are the final-raster capital/player collision module.
-No loader byte remains resident or enters gameplay.
+Owner decision A (2026-09-20) fixed the handoff into the game. The disk boot
+used to end in `rts` and let OS coldstart jump through `DOSVEC`; coldstart only
+does that when no cartridge is enabled, so with BASIC enabled the OS started
+BASIC and the game never ran unless the player held OPTION. `boot_entry` now
+ends in `jmp start`, and `disable_basic_rom` unmaps the BASIC ROM (`PORTB`
+bit 1, bits 0 and 7 preserved) and records `BASICF = $01` for the warm start.
+It is called from `boot_stage2_atr_entry` before the SIO chunk load and from
+`boot_stage2_xex_entry` before `jmp start`. `DOSVEC` is still published, for
+the warm-start path and for the boot-smoke entry-identity invariant.
+`boot_entry` stays exactly 24 bytes, so `start` is still at `$201E` and
+`resident_runtime_suffix` still at `$21C1`; the OS init vector shares the `rts`
+of `disable_basic_rom`. The six bytes of call sites cost one sector, because the
+initial block was exactly full: the block is **104 sectors** and the transport
+183.
+
+The eight ordered DFMC records are BROADSIDE (sectors 104-148), pickup and
+collision (149-155), integration glue (156-158), hybrid ABI (159-160), low C
+(161-162), the packed archetype/lifecycle extension (163-166), C RNG (167), and
+Director tables/high C (168-172). The extension's record is deliberately RAW:
+its 423-byte payload is already an LZ stream which startup expands from
+`$7810-$79B6` to `$8C7D-$8E84`. XEX stores that same staged payload rather than
+the 520-byte expanded image.
+
+ATR stages ordinary records at `$8100`; BROADSIDE expands 6,650 bytes to
+`$5E10-$7809`, the 788-byte pickup/collision record publishes 904 bytes to
+`$8800-$8B87`, and glue expands to `$7BD0-$7CC9` before its temporary hold at
+`$8600-$86F9`. Startup consumes/publishes records in the required order:
+C extension, A2 kernel, held glue, then starfield. This prevents starfield
+staging from destroying either the extension source or the A2 cold source.
+The ABI and low C are published only after the resident-suffix source at
+`$8100-$9B13` has been consumed. The 7,743-byte suffix is stored as a
+6,676-byte LZ-10/5 stream and overwrites stage 2 after validation. No loader
+byte remains resident or enters gameplay.
 
 The manifest uses 16-bit sector numbers, supports eight sequential chunks, and
-accepts RAW or LZ records. The current initial block and four records use 161
-sectors (20,608 B). The ATR itself has 559 unused sectors (71,552 B); runtime
-residency remains a separate constraint.
+accepts RAW or LZ records. The current initial block and eight records use 172
+sectors (22,016 B). The ATR has 548 unused sectors (70,144 B); runtime residency
+remains a separate constraint.
 
 ### DFMC v1 byte format
 
@@ -68,18 +127,17 @@ Each 16-byte record stores, in order: 16-bit start sector, 16-bit sector count,
 16-bit packed length, 16-bit raw length, 16-bit final destination, 16-bit CRC of
 the complete sector image, one-byte type (`0=RAW`, `1=LZ`), one-byte controlled
 staging identifier, and a 16-bit staging address. All words are little-endian.
-Production records begin at sectors 102, 147, 155, and 157. Their packed/raw
-lengths are respectively 5,660/6,643 B, 921/921 B, 229/234 B, and 585/645 B.
-The second record carries the compressed immutable pickup phase bank plus its
-late compositor and the 33-byte collision module. Its cold copy at
-`$8C80-$9018` is first preserved at `$4801-$4B99`, then decompressed to
-`$8800-$8E81`; source and destination never overlap while live. Glue is
-transported to `$5261`, held at `$7F16-$7FFF` while ENTITY_CODE is unpacked,
-and late-published to `$4EFE-$4FE7`. The Director ends
-at `$9FF9`; `$9FFA-$9FFF` is a six-byte untouched guard.
+Production records begin at sectors 104, 149, 156, 159, 161, 163, 167, and
+168. Their packed/raw lengths are 5,653/6,650 B, 788/788 B, 245/250 B,
+116/117 B, 210/242 B, 423/423 B, 23/21 B, and 542/643 B. The second record
+carries the PMG pickup/publication/primitive code plus the 33-byte collision
+module; the obsolete character-pickup phase bank is absent. Glue is transported
+to `$7BD0-$7CC9`, held at `$8600-$86F9`, and late-published to
+`$4EFE-$4FF7`. The Director still ends at `$9FF7`; `$9FF8-$9FF9` is free and
+`$9FFA-$9FFF` is the untouched guard.
 
 The loader bitmap source is declarative. The build rasterizes 7,680 bytes for a
-mixed ANTIC F/E screen and packs them to **1,929 bytes**. It expands to
+mixed ANTIC F/E screen and packs them to **1,967 bytes**. It expands to
 `$4010-$5E0F`; a second LMS at `$5000` prevents a 4 KiB ANTIC boundary crossing.
 A separate 35-byte stream expands the 202-byte loader display list to
 `$3C00-$3CC9` only after the overlapping bitmap source has been consumed.
@@ -91,23 +149,22 @@ footer palette zones. The loader remains visible for 250 complete PAL frames
 
 Cold staging also copies:
 
-- validated external broadside/runtime data to `$5E10-$780F` before takeover;
-- packed starfield/music data through `$7810-$7F0F` to `$552A-$5DF3`;
-- the 255-byte A2 kernel through `$7F16-$8014` to `$9000-$90FE`, before the
+- validated external broadside/runtime data to `$5E10-$7809` before takeover;
+- packed starfield/music data through `$7810-$7F2A` to `$54E4-$5D44`;
+- the 237-byte A2 kernel through `$7F2B-$8017` to `$9000-$90EC`, before the
   `$8000-$80FF` entity/effects clear destroys the consumed source;
-- packed entity/effect/frontend code through boot-only staging at `$5300-$5CEF`
-  to the resident `$9100-$9D74` range. The staging write begins only after the
-  initial packed source ending at `$5254` has been consumed. Its end-exclusive
-  `$5CF0` remains 288 bytes below the BROADSIDE destination at `$5E10`.
+- packed entity/effect/frontend code through backward boot-only staging at
+  `$5318-$5DB5` to the resident `$9100-$9D57` range. The staging write begins
+  at the initial-source end, so source and staging do not overlap. Its
+  end-exclusive `$5DB6` remains below the BROADSIDE destination at `$5E10`.
 
-The initial packed sources end exclusively at `$5255`, leaving 171 bytes before
-the `$5300` staging start. Startup copies ENTITY_CODE there, expands the stream
-to its current live `$9100-$9D74` range, and immediately releases the staging
-range. `unpack_loader_bitmap` may then overwrite it while preparing the loader;
-after the loader display completes, `unpack_starfield_runtime` expands to
-`$552A-$5DFC`, overlapping 1,990 bytes of the already inactive ENTITY_CODE
-staging range. This ordering is mandatory; the overlap is temporal, not
-simultaneous residency.
+The initial packed sources end exclusively at `$5318`. Startup copies
+ENTITY_CODE backward to `$5318-$5DB5`, expands it to `$9100-$9D57`, and
+immediately releases the staging range. `unpack_loader_bitmap` may then reuse
+it while preparing the loader; after the loader display completes,
+`unpack_starfield_runtime` expands to `$54E4-$5D44`, overlapping the already
+inactive ENTITY_CODE staging range. This ordering is mandatory; the overlap is
+temporal, not simultaneous residency.
 
 The BSS is exactly `$8000-$80FF` and is initialized deterministically. The
 runtime does not use `$A000-$BFFF`; compatibility never assumes that BASIC ROM
@@ -161,8 +218,9 @@ visible partial list.
 Every authoritative world-row event publishes exactly one full-width ring
 recycle in `ENGINES` through `OPEN`. The capital side-band path then advances
 its hull/muzzle lifecycle against that already-published row and never consumes
-the scroll latch a second time. Far stars retain their independent 1/4 logical
-step. This keeps the centre, side bands, objects and ordinary open-space scene
+the scroll latch a second time. The white four-point starfield advances one
+scanline per PAL frame independently of world rows. This keeps the centre, side
+bands, objects and ordinary open-space scene
 at one physical cadence through the entire capital exit.
 
 Capital hulls are two independent 32x9 expanded maps assembled from engines,
@@ -225,53 +283,72 @@ transient effects then save and restore their backing. A cell vacated by an
 overlay must contain exactly the byte that the lower layers would have produced
 in the same frame.
 
-Spread Shot uses the common projectile path. For overlapping or diagonal
-projectiles it composes slot-owned scratch glyphs from the current lower-layer
-byte, including a capital hull that moved during the frame. Erase and redraw
-are overlap-aware: one departing projectile cannot erase another live
-projectile, and the last departing projectile restores the current broadside or
-base byte. This contract covers module boundaries, prow, engines, every A2
-head, and ring wrap.
+The Light Wingman's 2x1 character overlay is erased and republished only in the
+post-playfield PairShot window, after the PairShot erase and before the PairShot
+render, so ANTIC never scans it while it is erased. Debris and effects render
+mid-frame while the previous Light image is still visible; a captured Light code
+names its cell, so they store the Light's lower backing, and the late Light
+erase leaves any cell such a lower layer has overwritten. PairShots above it keep
+the Light glyph as their backing in true reverse order. The footprint stays above
+the ring row recycled by `rotate_playfield_rows`.
+
+Fighter weapons use a common one-cell PairShot record. Its fixed 8x8 glyph
+shows two separated impulses, while movement, lifetime and collision remain a
+single logical event. Spread uses the same path and composes one slot-owned
+scratch glyph when it meets a lower character layer. The former TOP/BOTTOM
+spill, reverse two-cell unwind, and final split-glyph path are absent.
 
 ## Bounded pools
 
 | Pool | Physical capacity | Release active limit | Purpose |
 | --- | ---: | ---: | --- |
-| Player Fighter projectiles | 10 | 10 | normal, Rapid Fire, and Spread Shot |
-| Interceptor projectiles | 9 | 9 | single-pulse burst |
-| Combined fighter projectiles | 19 | 19 | contiguous physical allocation |
-| Broadside projectiles | 3 | production scheduler has 2 source turrets | capital fire |
+| Player Fighter PairShots | 5 | 5 | four Normal/Spread or five Rapid objects; 8/8/10 visible pulses |
+| Fighter-enemy PairShots | 5 | 5 | shared enemy controller and one-cell PairShot renderer |
+| Combined fighter PairShots | 10 | 10 | controlled maximum; one dynamic cell per object |
+| Broadside projectiles | 3 | 2 | capital fire; M1-M3 allocation remains unchanged |
 | Interactive entities | 4 | 2 | debris plus one pickup capsule; controller/reserve slots remain non-rendered |
-| Transient effects | 6 | 5 | one core plus four fragments |
+| Transient effects | 6 | 5 | debris may use one core plus four fragments; Raider destruction does not use this pool; Light destruction reuses the debris breakup |
+| Light Wingman | 1 | 1 | C-owned record in `$8100-$810B`; two ring cells; shots use the shared enemy PairShot pool |
 
-Pool scans are bounded by compile-time counts. Spread Shot admits its centre
-whenever at least one Player Fighter slot is free and admits the two side shots only as
-an atomic pair. Its ten-frame cooldown is the minimum safe value for the
-28-update maximum legal projectile lifetime: nine frames can reach a
-centre-only tenth slot, while ten frames holds the steady state to three full
-salvos and nine projectiles. Normal and Spread initialize an eight-shot/eight-
-salvo burst; Normal uses a three-frame interval, Spread ten, and Rapid alone
-initializes ten shots at two frames. All modes retain the 12-frame post-burst
-pause. The effects pool is not used for pickup capsules or persistent
-projectile state.
+Pool scans are bounded by compile-time counts. Normal and Spread initialize
+four PairShots, Rapid five. Their fixed glyphs preserve 8/8/10 visible pulses;
+Normal uses a nine-frame interval, Spread 28, and Rapid six. Spread emits the
+recognizable centre/left/right/centre sequence. All modes retain the 12-frame
+post-burst pause. The effects pool is not used for pickup capsules or
+persistent projectile state.
 
 ## Enemies, debris, and boosters
 
-The released ordinary enemy is the Interceptor. Its descriptor selects hit points,
-score, pursuit profile, weapon profile, and PMG appearance. Interceptor projectiles
-share the fighter-projectile state allocation but use separate slots, red
-glyphs, collision ownership, and lifetime rules.
+Fighter combat owns exactly two ordinary Raider slots. P1 draws the
+first body and P2 draws the second; both use the Raider silhouette at its
+existing double-width scale and one hostile colour, with no second overlaid
+colour layer. Each
+slot stores its own X, Y, signed horizontal velocity, fractional 4/5-speed
+accumulator, manoeuvre state/timer, and behaviour phase. Both call the accepted
+accepted single-Raider soft-pursuit routine, but opposite initial velocities and
+phases prevent synchronized flight. Their opening manoeuvre crosses vertically
+before both machines leave ahead of the unchanged first capital sector.
 
-Direct Interceptor/Player Fighter overlap is resolved after fighter projectiles and before
-broadside work. It queues the existing one-point contact hit against the
-Interceptor, then passes all ten HULL units to the canonical player-damage routine.
-An accepted unshielded contact therefore saturates HULL at zero and uses the
-existing HUD, breakup, life-loss, respawn, and Game Over flow in one event.
-`PLAYER_LIFECYCLE`, Shield, the 25-frame post-hit cooldown, and the per-frame
-damage latch remain the ordered gates. Interceptor destruction is resolved
-independently afterward through the established scored `EXPLODING`/breakup
-path, including when a player-side gate suppresses damage. Collision geometry,
-movement, scheduling, and persistent state are unchanged.
+Raider fire uses the existing bounded path. Five
+enemy PairShot records share one burst controller across the formation; they
+reuse the same one-cell movement/erase/render foundation as player fire while
+retaining hostile colour, speed, cadence, swept collision and ten-unit damage.
+
+The Light Wingman is centred behind Heavy slot 0: its left edge is the leader X
+plus (16 - 8) / 2 rounded to the 4-HPOS cell grid and clamped to the last
+two-cell start, 8 + 4 scanlines above the leader, with no side switching. It is
+drawn in 8-line character rows, so its vertical gap steps between 12 and 19
+lines, which the owner accepted; smooth tracking is deferred. If its leader is destroyed or
+released, it continues straight down one scanline per frame and retires at
+scanline 232; a respawned slot never re-captures
+it. It fires one red PairShot after its difficulty pause (64/80/96 frames on
+HARD/MEDIUM/EASY) when fully visible and the player is alive; a full shared
+pool drops the shot. Its shots carry the leader's P1 emitter bit as a tag
+only: no hostile shot is removed when any emitter dies. One player PairShot or a
+player contact destroys it (Raider contact contract: full player damage, one
+enemy damage unit), awarding `$05` BCD with the debris breakup and hit sound.
+Capital admission waits until it has retired and been unpublished, and any
+non-fighter sector retires it immediately.
 
 Debris is the implemented interactive entity in slot 0. It has bounded
 trajectories, two shapes, two tumble phases, three hit points, contact damage,
@@ -279,39 +356,48 @@ and no score award. Player/debris contact uses the full 16-HPOS width of the
 double-width Player Fighter PMG, while retaining the existing vertical player envelope
 and 8x8 debris box. Its single accepted damage event indexes a three-byte
 Easy/Medium/Hard table containing 2/5/7 HULL units, then uses the canonical
-atomic saturating damage/death/HUD path. Its destruction and Interceptor breakup
-materialize into the five-slot active effects envelope and are erased before
+atomic saturating damage/death/HUD path. Debris destruction may materialize the
+five-slot effects envelope. Raider destruction creates no character effect and
+leaves any unrelated generic effect intact. Generic effects are erased before
 lower layers move. The difficulty lookup replaces the former immediate load
 with `LDX abs` plus `LDA abs,X`: +6 CPU cycles only after a geometric overlap
 passes the earlier latch check, with no cost on inactive or collision-miss
 paths and no persistent-RAM allocation.
 
-Slot 1 owns the sole pickup capsule. A qualifying Player Fighter-projectile Interceptor
-kill advances the three-kill drop counter. The next-type selector rotates
-successful capsule creation through Rapid Fire, Spread Shot, and Shield,
-starting with Rapid Fire on New Game. Slot 2 holds the non-rendered timed-
-booster controller and next-type selector. All three states are mutually
-exclusive. Rapid Fire and Spread Shot last 500 active frames; Shield lasts 250.
-The capsule is created at Y=8, wholly above the gameplay display. PENDING and
-Director admission retries cannot change that coordinate. Admission activates
-it at Y=24; the one authoritative late renderer runs once after the A2 ring
-update and publishes one phased 2x2/2x3 footprint through Y=239, clipping only
-the scanlines that have actually crossed the exclusive boundary. The slot is
-released at exactly Y=240. At frame start the interactive erase pass restores
-the exact four or six physical cells saved by the preceding draw, in reverse
-row order. Capsule codes are never committed to ring backing, tail repair, or
-wrap-copy sources, so an old footprint cannot return after a ring wrap. The
-logical Y is also the collection hitbox Y. EASY/MEDIUM/HARD accumulate 8/9/10
-scanlines per five PAL frames; HARD therefore renders +2 scanlines every frame
-instead of holding and jumping by one character row. PENDING retains the early
-fixed wait needed for its ACTIVE transition. Once ACTIVE, each update begins
-immediately after ANTIC has scanned the preceding footprint's bottom edge. The
-saved character cells therefore remain intact for that complete raster; reverse
-erase, ring rotation, and the single late redraw then finish before ANTIC returns
-to the new position on the next PAL frame. The Player Fighter remains the P0/P3 foreground
-at `PRIOR=0`: only set PMG bits cover capsule pixels, while zero PMG bits remain
-transparent. Simulation order, world rates, ring rotation, and global scrolling
-are unchanged.
+During the active capital traversal, the existing debris request remains slot-0
+bounded and borrows the established phase-three 3/4/5 intensity ceilings for
+Easy/Medium/Hard. All shared frame, reaction, recovery, allocator and RNG gates
+still apply. A rejected traversal request retries after eight active frames;
+successful release keeps the ordinary 64-frame repeat delay. OPEN keeps its
+authored phase mask and ordinary retry, while DRAIN and COMPLETE admit no new
+debris. No retry debt accumulates while slot 0 is occupied.
+
+Slot 1 owns the sole pickup capsule. Only a lethal Raider hit attributed to
+Player PairShot qualifies, and qualifying kills are ignored while slot 1 is
+already PENDING or ACTIVE. There is no probabilistic drop check: every third
+qualifying kill creates a capsule. The next-type selector rotates successful
+creation through Rapid Fire, Spread Shot, and Shield, starting with Rapid Fire
+on New Game. Slot 2 holds the non-rendered timed-booster controller and the
+next-type selector. Rapid Fire and Spread Shot last 500 active frames; Shield
+lasts 250.
+
+Creation starts at Y=8 with a 30-complete-frame hidden delay. In fighter OPEN,
+slot 1 requests zero-cost `DIRECTOR_HAZARD_PICKUP` admission; a rejection by the
+complete, same-frame, reaction/recovery, phase, budget, or allocator gates
+reloads an eight-frame retry without losing the capsule. Acceptance moves it to
+Y=24, sets active-mask bit `$02`, and increments the global active count. Slot-0
+debris and slot-1 pickup may coexist at the global limit of two.
+
+The active capsule is a 16-scanline missile-PMG object in `$3B00`: M0-M3 use
+four consecutive HPOS positions, `SIZEM=$00`, `PRIOR=$10` fifth-player mode,
+and `COLPF3`. `ENTITY_SCREEN_HI+1` is its PMG publication latch; it is not a
+character-ring writer. EASY/MEDIUM/HARD motion accumulates 8/9/10 twentieths
+of a scanline per PAL frame, and release occurs at Y=240. Player overlap releases
+slot 1 and activates or replaces the slot-2 booster. Life loss and gameplay
+teardown clear both states. On fighter-to-capital transition an ACTIVE capsule
+is released so missiles return to capital ownership, while a PENDING capsule is
+preserved and frozen. It resumes retries after capital-to-fighter OPEN re-entry.
+The slot-2 booster survives a live sector transition and continues its timer.
 
 The fixed ANTIC 2 HUD uses cells `$4019-$401C` for four permanent HULL plates.
 Glyph 5 is a low intact plate and glyph 12 a low cracked plate; the stored
@@ -330,29 +416,50 @@ writable backing bytes at `$5E06-$5E0F` preserve and restore the complete prior
 field across refresh, replacement, expiry, life loss, and teardown. No PMG,
 bitmap overlay, DLI, palette, or gameplay-charset allocation is involved.
 
-Rapid Fire uses the existing Player Fighter projectile renderer and yellow colour bank.
-Spread Shot uses three logical Player Fighter projectiles: centre, left, and right. All
-three use the yellow Player Fighter colour. Side directions are encoded in the existing
-render/state byte, and the parity of the existing lifetime supplies their
-one-HPOS-per-two-updates fixed phase, avoiding another allocation.
+Rapid Fire uses the shared PairShot renderer and yellow colour bank. Spread
+Shot emits four one-cell PairShots in a centre/left/right/centre sequence. Side
+directions are encoded in the existing render/state byte, and the parity of the
+existing lifetime supplies their one-HPOS-per-two-updates fixed phase, avoiding
+another allocation.
 
 Shield leaves the normal weapon cadence active. Its separate state is checked
 after `PLAYER_ALIVE` and before the ordinary 25-frame damage cooldown. A valid
 absorption consumes the frame's one damage event without changing HULL, LIFE,
-SCORE, hit flash, cooldown, or HULL-hit SFX. Interceptor shots disappear, broadside
-shots enter their established impact state, debris is consumed, and Interceptor or
+SCORE, hit flash, cooldown, or HULL-hit SFX. Hostile PairShots disappear, broadside
+shots enter their established impact state, debris is consumed, and Raider or
 hull-contact side effects retain their prior behavior. The Shield timer also
 drives a solid COLPM0/COLPM3 steel/white pulse; it never hides the Player Fighter and is
 therefore distinct from respawn invulnerability.
 
 ## Character and PMG ownership
 
-The gameplay charset has two free glyphs. Stars use 1-6, Player Fighter projectile
-phases 11-46, Spread Shot composite scratch 47-56, capital hulls 59-89,
-Interceptor/projectile phases 90-109, debris 110-117, and fragments 118-119. Glyphs
-120-125 are the single-owner dynamic pickup compositor bank; one of the three
-type-specific, eight-phase sources is copied there before the sole late draw.
-Glyphs 126-127 are the dedicated connected left/right BROADSIDE bolt halves.
+Gameplay charset allocation: glyph 0 blank, stars 1-6, Player Fighter PairShot
+compatibility glyphs 11-46, Spread Shot composite scratch 47-56, capital hulls
+59-89, enemy PairShot compatibility glyphs 90-109, debris 110-117, and
+fragments 118-119. Glyphs 120-125 are the retired six-glyph pickup phase bank,
+still reserved by the build asserts at `src/main.s:732-738`: 120-121 now carry
+the Light Wingman's left/right cells, installed at runtime in colour 3 with the
+hostile bit, while 122-125 are unused because the PMG pickup replaced the
+character-pickup compositor. Glyphs 126-127 are the dedicated connected
+left/right BROADSIDE bolt halves.
+
+Unlisted indices are not a proven free pool. Reclaiming 122-125, or any other
+gap, requires re-checking the asserts and the charset source before a document
+may call them available.
+
+### Legacy symbol naming
+
+Runtime identifiers such as `INTERCEPTOR_PROJECTILE_SLOT_BASE`,
+`INTERCEPTOR_PROJECTILE_GLYPH_BASE`, `FIGHTER_PROJECTILE_INTERCEPTOR` and
+`ENEMY_ROSTER_IDS[0] = "INTERCEPTOR"` pre-date the Raider naming. They refer to
+the established **Raider / hostile** projectile and roster implementation.
+
+They do **not** identify the planned Light-class Interceptor `EnemyArchetype`,
+which is a separate, currently `BLOCKED_PLACEMENT` enemy. The Light Wingman's
+own PairShot is emitted through that same legacy-named shared pool.
+
+Do not infer gameplay meaning from these identifiers. A runtime symbol rename is
+separate technical debt and is deliberately out of scope for documentation work.
 
 The separate `$5000-$53FF` HUD charset keeps glyph 0 as the blank/separator,
 uses glyphs 5 and 12 for the two low HULL plate states, glyph 7 for weapon
@@ -360,9 +467,37 @@ energy, and glyph 8 for the distinct continuous Shield bar. Digits and letters
 retain their existing allocations and colours.
 
 PMG base is `$3800`; active DMA pages are `$3B00-$3FFF`. P0 and P3 form the
-Player Fighter, P1 is the Interceptor, and P2 is its scanner. M1-M3 serve broadside warnings
-and impacts. M0 remains reserved; current Player Fighter weapons are ANTIC 4 overlays so
-the ten-slot pool and yellow colour are independent of `COLPM0`.
+Player Fighter. P1 carries Raider slot 0 and P2 carries Raider slot 1. Both are
+independent monochrome body pages; no DLI multiplexer or per-player colour
+overlay is used. Light-class enemies allocate no PMG player: the Light Wingman
+is a character-renderer enemy.
+M0-M3 form the fighter-sector PMG pickup capsule. An ACTIVE pickup is removed
+before capital, where M1-M3 resume broadside warning/impact ownership. Fighter
+PairShots remain ANTIC 4 overlays, so their ten-record pool and player/enemy
+colours are independent of the missile graphics.
+
+ANTIC fetches one missile byte per scanline, so the capsule's plane is erased
+and redrawn in the post-playfield publication window (after
+`wait_frame_at_line $77`), the same window that publishes PairShots and the
+Light Wingman. Writing it mid-frame left the rows blank for every scanline the
+beam had already passed. Movement, collection and booster policy stay on the
+ordinary mid-frame path; only publication is late.
+
+The slot-zero debris follows the same rule (accepted in `b4b942e`): in fighter
+OPEN it is erased and redrawn adjacently in that window between the Light
+erase and the Light render (stack debris < effects < Light < PairShots < sparse
+near); in capital frames right after the entity update, in the vertical blank,
+after every transient restore and before every transient capture. Its erase
+restores a cell only while the cell still holds the published code, its
+render leaves a cell a rendered effect still owns to the effect, and the ring
+rotation republishes the debris over the recycled bottom row for the frame
+that rotates it.
+
+The capsule is a 16-scanline solid fifth-player mark: every PMG
+source byte has M0-M3 bits 4–7 set, with `SIZEM=$00`, consecutive HPOSM0–3,
+`PRIOR=$10`, and `COLPF3`. Decorative partial-missile combinations were too
+weak to recognize at native resolution; the solid mark is the bounded,
+allocation-neutral replacement.
 
 ## Determinism and verification
 

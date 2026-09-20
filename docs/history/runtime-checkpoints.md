@@ -3,7 +3,7 @@ Historical record — not a current source of truth.
 # Runtime checkpoints
 
 This file preserves milestone measurements that previously appeared beside the
-current PAL result. Use [../runtime-headroom.md](../runtime-headroom.md) for all
+current PAL result. Use [runtime-headroom-layout-d2.md](runtime-headroom-layout-d2.md) for all
 current acceptance decisions.
 
 | Milestone | Accepted worst wall | Physical headroom | Context |

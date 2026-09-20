@@ -33,6 +33,8 @@ const SHIELD_BOOSTER_RUNTIME_BASELINE_BYTES = 15346;
 const SHIELD_BOOSTER_ENTITY_BASELINE_BYTES = 1869;
 const SHIELD_BOOSTER_RUNTIME_HARD_DELTA_BYTES = 512;
 const FRONTEND_H31_RUNTIME_HARD_DELTA_BYTES = 1280;
+const RAIDER_FORMATION_RUNTIME_BASELINE_BYTES = 17277;
+const RAIDER_FORMATION_RUNTIME_HARD_DELTA_BYTES = 512;
 const MINIMUM_SPREAD_SHOT_RESERVE_BYTES = 64;
 const BOOT_PAYLOAD_TRAILER = Buffer.from([0x44, 0x46, 0x42, 0x31]); // "DFB1"
 
@@ -187,10 +189,11 @@ export function validateBuildDirectory(rootDirectory) {
   "Historical runtime-headroom payload gate is missing");
   invariant(transport.remainingAtrSectors === ATR_SECTOR_COUNT - transport.totalTransportSectors &&
     transport.remainingAtrTransportBytes === transport.remainingAtrSectors * ATR_SECTOR_SIZE &&
-    transport.maximumNewSimultaneousResidencyBytes === 6841 &&
+    transport.maximumNewSimultaneousResidencyBytes === 7993 &&
     transport.remainingSafeResidencyBytes ===
-      6841 - manifest.runtimeCodeBudget.frontendH31.actualDeltaBytes -
-        (manifest.capitalPlayerCollisionRuntime?.bytes ?? 0) &&
+      7993 - manifest.runtimeCodeBudget.frontendH31.actualDeltaBytes -
+        (manifest.capitalPlayerCollisionRuntime?.bytes ?? 0) -
+        (manifest.encounterDirector?.residencyDeltaBytes ?? 0) &&
     transport.loaderResidentBytes === 0,
   "Transport and runtime residency capacities are conflated or inconsistent");
   invariant(manifest.broadsideRuntime?.loadAddress === 0x4000,
@@ -199,8 +202,8 @@ export function validateBuildDirectory(rootDirectory) {
     "Broadside runtime must begin at reclaimed RAM $5E10");
   invariant(manifest.broadsideRuntime?.bytes <= manifest.broadsideRuntime?.reservedBytes,
     "Broadside runtime exceeds its reserved relocation block");
-  invariant(manifest.starfieldRuntime?.runAddress === 0x552a,
-    "Starfield runtime must begin in the reviewed pre-broadside gap $552A");
+  invariant(manifest.starfieldRuntime?.runAddress === 0x54e4,
+    "Starfield runtime must begin in the reviewed pre-broadside gap $54E4");
   invariant(manifest.starfieldRuntime?.bytes <= manifest.starfieldRuntime?.reservedBytes,
     "Starfield runtime exceeds its reserved relocation block");
   invariant(manifest.starfieldRuntime?.packedBytes <= manifest.starfieldRuntime?.stagingBytes,
@@ -223,13 +226,17 @@ export function validateBuildDirectory(rootDirectory) {
     manifest.entityEffects.codeBytes > 0 &&
     manifest.entityEffects.codeBytes <= manifest.entityEffects.codeReservedBytes,
   "ENTITY_CODE exceeds its $9100-$9FFF runtime reservation");
-  invariant(manifest.entityEffects.stagedSourceAddress === 0x534b &&
-    manifest.entityEffects.initialPackedSourcesEndExclusive <=
+  invariant(manifest.entityEffects.stagedSourceAddress === 0x5318 &&
+    manifest.entityEffects.packedSourceAddress <=
       manifest.entityEffects.stagedSourceAddress &&
+    manifest.entityEffects.stagingCopyDirection === "backward" &&
     manifest.entityEffects.stagedEndExclusive <= manifest.broadsideRuntime.runAddress &&
     manifest.entityEffects.sourceToStagingMarginBytes ===
       manifest.entityEffects.stagedSourceAddress -
         manifest.entityEffects.initialPackedSourcesEndExclusive &&
+    manifest.entityEffects.sourceStagingOverlapBytes === Math.max(
+      0, manifest.entityEffects.initialPackedSourcesEndExclusive -
+        manifest.entityEffects.stagedSourceAddress) &&
     manifest.entityEffects.stagingToBroadsideMarginBytes ===
       manifest.broadsideRuntime.runAddress - manifest.entityEffects.stagedEndExclusive,
   "ENTITY_CODE cold staging ranges or reported margins are inconsistent");
@@ -271,10 +278,14 @@ export function validateBuildDirectory(rootDirectory) {
     manifest.entityEffects.shieldPickupGlyphIndex === 120 &&
     manifest.entityEffects.pickupPhaseGlyphCount === 6 &&
     manifest.entityEffects.pickupPhaseCount === 8 &&
-    manifest.entityEffects.pickupPhaseBankAddress === 0x8800 &&
-    manifest.entityEffects.dynamicPickupGlyphBankShared === true &&
+    // The stream starts with the 2026-09-15 LIGHT_RESIDENT kernel at $8776.
+    manifest.entityEffects.pickupPhaseBankAddress === 0x8776 &&
+    manifest.entityEffects.pickupPhaseBankBytes === 0 &&
+    manifest.entityEffects.pickupPhaseSourceBytes === 1152 &&
+    manifest.entityEffects.pickupPhaseBankRuntimeReferences === 0 &&
+    manifest.entityEffects.dynamicPickupGlyphBankShared === false &&
     manifest.entityEffects.newGlyphsFromFoundation === DEBRIS_VISUAL_POLISH_NEW_GLYPHS,
-  "Weapon pickups must retain debris/effects and safely share phased glyphs 120-125");
+  "PMG pickup must retain debris/effects while the character phase bank stays source-only");
   invariant(manifest.payloadBudget?.destructibleDebris?.limitBytes ===
     DEBRIS_VISUAL_POLISH_PAYLOAD_LIMIT &&
     manifest.runtimeCodeBudget?.baselineBytes ===
@@ -315,10 +326,12 @@ export function validateBuildDirectory(rootDirectory) {
   invariant(manifest.runtimeCodeBudget?.frontendH31?.baselineBytes ===
     SHIELD_BOOSTER_RUNTIME_BASELINE_BYTES &&
     (manifest.encounterDirector?.enabled === true
-      ? manifest.encounterDirector.linkedRuntimeBytes === 17203
+      ? manifest.encounterDirector.linkedRuntimeBytes <=
+        RAIDER_FORMATION_RUNTIME_BASELINE_BYTES +
+          RAIDER_FORMATION_RUNTIME_HARD_DELTA_BYTES
       : manifest.runtimeCodeBudget.frontendH31.actualDeltaBytes <=
         FRONTEND_H31_RUNTIME_HARD_DELTA_BYTES),
-  "H3.1 exceeds its linked runtime hard budget");
+  "Raider formation exceeds its linked runtime hard budget");
   invariant(manifest.residentRuntime?.loadAddress === 0x2000 &&
     manifest.residentRuntime.runAddress === 0x2000 &&
     manifest.residentRuntime.rawBytes === 0x2000 &&
@@ -335,14 +348,22 @@ export function validateBuildDirectory(rootDirectory) {
 
   const parsedXex = parseXex(xex);
   const directorEnabled = manifest.encounterDirector?.enabled === true;
-  invariant(parsedXex.segments.length === (directorEnabled ? 6 : 3),
+  const directorCodeRuntimes = directorEnabled
+    ? (manifest.directorCodeRuntimes ?? (manifest.directorCodeRuntime == null
+      ? [] : [{ ...manifest.directorCodeRuntime, file: "encounter-director-code.bin" }]))
+    : [];
+  // 4.5M-M2: GLUE has no XEX segment of its own; it rides the low-C transport
+  // segment (merged low-C/GLUE/Heavy record) at offset $F8.
+  invariant(parsedXex.segments.length === (directorEnabled ? 5 + directorCodeRuntimes.length : 3),
     "XEX segment count does not match the enabled transport layout");
   const payloadSegment = parsedXex.segments[0];
   const broadsideSegment = parsedXex.segments[1];
   const pickupPhaseSegment = directorEnabled ? parsedXex.segments[2] : null;
-  const glueSegment = directorEnabled ? parsedXex.segments[3] : null;
-  const directorSegment = directorEnabled ? parsedXex.segments[4] : null;
-  const runSegment = parsedXex.segments[directorEnabled ? 5 : 2];
+  const directorCodeSegments = directorCodeRuntimes.map((runtime, index) =>
+    parsedXex.segments[3 + index]);
+  const directorSegment = directorEnabled
+    ? parsedXex.segments[3 + directorCodeRuntimes.length] : null;
+  const runSegment = parsedXex.segments[directorEnabled ? 4 + directorCodeRuntimes.length : 2];
   invariant(payloadSegment.start === manifest.loadAddress, "XEX payload load address is wrong");
   invariant(payloadSegment.data.equals(boot.subarray(0, transport.initialBootBytes)),
     "XEX initial block differs from ATR");
@@ -363,8 +384,21 @@ export function validateBuildDirectory(rootDirectory) {
       manifest.entityEffects.pickupPhaseExternalChunk.stagingAddress &&
       pickupPhaseSegment.data.equals(packedPickupPhaseRuntime),
     "XEX packed pickup phase-runtime segment is invalid");
-    invariant(glueSegment.start === manifest.integrationGlue.transportAddress &&
-      glueSegment.data.equals(glueRuntime), "XEX GLUE staging segment is invalid");
+    const lowIndex = directorCodeRuntimes.findIndex(({ name }) => name === "low");
+    const glueOffset = manifest.integrationGlue.transportRecordOffset;
+    invariant(lowIndex >= 0 && Number.isInteger(glueOffset) &&
+      directorCodeSegments[lowIndex].start + glueOffset === manifest.integrationGlue.transportAddress &&
+      directorCodeSegments[lowIndex].data.subarray(glueOffset, glueOffset + glueRuntime.length)
+        .equals(glueRuntime), "XEX merged low-C/GLUE staging segment is invalid");
+    for (let index = 0; index < directorCodeRuntimes.length; index += 1) {
+      const runtime = directorCodeRuntimes[index];
+      const directorCodeRuntime = fs.readFileSync(path.join(rootDirectory,
+        "build", runtime.xexFile ?? runtime.file));
+      invariant(directorCodeSegments[index].start ===
+        (runtime.transportAddress ?? runtime.runAddress) &&
+        directorCodeSegments[index].data.equals(directorCodeRuntime),
+      `XEX C Director CODE segment ${runtime.name ?? index} is invalid`);
+    }
     invariant(directorSegment.start === manifest.directorRuntime.runAddress &&
       directorSegment.data.equals(directorRuntime), "XEX DIRECTOR segment is invalid");
     const pickupPhaseRuntime = unpackBroadsideLzss(packedPickupPhaseRuntime);

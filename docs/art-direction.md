@@ -9,8 +9,9 @@ official affiliation or endorsement.
 - Space is black, with restrained star density and clear combat silhouettes.
 - Allied machinery uses cold steel, pale highlights, dark seams, and warm
   engine accents.
-- Hostile machinery uses dark metal, burgundy/red hull accents, and a distinct red
-  scanner and weapon language.
+- Hostile machinery uses dark metal and burgundy/red hull accents. Hostile
+  weapon visuals belong to the weapon class, not to the hull colour (owner
+  decision 19).
 - Damage uses short, local flashes and fragments; it must not repaint the global
   palette or obscure the HUD.
 - Pixel shapes favor readable mass, panel rhythm, and negative space over tiny
@@ -41,9 +42,37 @@ Player Fighter weapon colours are:
 - Spread Shot centre, left, and right projectiles: the same yellow Player Fighter colour;
 - Rapid Fire projectile: the established Player Fighter yellow/gold (`$1E`).
 
-Hostile Interceptor pulses remain red (`$46`) and retain their wider shape. Spread
-Shot side projectiles must be identified by their symmetric fan geometry, not
-by borrowing the Hostile weapon colour.
+**`COLPF2` is shared, so Player Fighter weapon colour is fixed at `$1E`**
+(owner decision U, 2026-09-20). In the gameplay field `COLPF2` is the register
+for pixel value `%11` in a positive screen code, and three live objects besides
+player projectiles render in it: the debris-destruction effect in its yellow
+flicker phase, the allied capital-hull glyphs `allied_service`,
+`allied_turret_housing` and `allied_turret_muzzle`, and the capital explosion
+core in its `pf2`-banked cells. The declared-but-unemitted allied capital shell
+would be a fourth. Recolouring `COLPF2` for a local effect therefore repaints
+other objects, which the rule above forbids. Consequently the **permanent
+booster level (decision N) is signalled by shape and sound, never by colour**:
+a thicker or doubled bolt per level out of the player projectile glyph bank,
+and a different firing sound per level. Shape reads when the player watches his
+shot and sound when he does not, so both are kept; neither is redundant.
+
+Hostile projectile colour and shape are properties of the EnemyArchetype
+`weapon_class`, independent of the emitter's hull colour (owner decision 19,
+`OWNER-SMOKE CANDIDATE` roadmap 4.4c). Each class is one authored one-cell
+glyph in `assets/graphics/fighter-weapons.json` (`hostileWeaponVisuals`) drawn
+only in white `COLPF0` and steel `COLPF1`, never pixel value `%11`, so neither
+the player's yellow nor the hull red appears in hostile fire and the global
+palette is untouched:
+
+- `PULSE` (Raider, Light Wingman): white/steel tracer pulse — the accepted
+  two-pulse 2-HPOS footprint, each pulse a steel tail above a white leading row;
+- `LASER` (Interceptor): a single thin 1-HPOS bolt, steel trail and white head;
+- `BOMBER` (Bomber, roadmap 4.5b candidate): a heavy shell, steel caps above
+  and below a white five-row core, 2 HPOS wide; it falls at half the speed of
+  the other classes.
+
+Spread Shot side projectiles must be identified by their symmetric fan geometry,
+not by borrowing a Hostile weapon look.
 
 ## Capital ships and engines
 
@@ -51,10 +80,10 @@ Both capital hulls must remain continuous through prow, forward modules, combat
 modules, aft modules, and engines. Overlays may not leave blank segments,
 vertical lines, stale glyphs, or wrap artifacts.
 
-The accepted H4 gameplay set keeps the existing PMG and character footprints:
-the Player Fighter reads as a narrow top-down fighter, the Interceptor retains a crescent
-silhouette and three scanner phases, and capital armour uses the fixed glyph
-range 59-89. H4.1 debris remains two characters by eight scanlines in glyphs
+The accepted gameplay set keeps the existing PMG and character footprints: the
+Player Fighter reads as a narrow top-down fighter, the Heavy Raider is a
+monochrome double-width PMG body with a crescent silhouette and a single hostile
+colour, and capital armour uses the fixed glyph range 59-89. H4.1 debris remains two characters by eight scanlines in glyphs
 110-117, with four asymmetric white/steel silhouettes. Fighter and capital
 explosions retain exactly six phases and their existing timing.
 
@@ -68,30 +97,49 @@ Engine banks have exactly two phases: `dim` and `bright`. Each phase lasts eight
 active PAL frames, producing a 16-frame loop. The phases change only the engine
 pixels while preserving the established hull silhouette and backing behavior.
 
+## Enemy visual roles
+
+- **Heavy Raider** — monochrome PMG body on `P1`/`P2`, double-width, one hostile
+  colour, no second overlaid colour layer.
+- **Light Wingman** — small 2x1 character enemy in the gameplay charset, glyphs
+  120-121, installed at runtime in colour 3 with the hostile bit. It allocates
+  no PMG player.
+- **Interceptor** (`OWNER-SMOKE CANDIDATE`, roadmap 4.4b visual identity) —
+  Light renderer class, so a character enemy with no PMG player, sharing glyphs
+  120-121 with the Wingman; `light_update` installs the art of the selected
+  archetype. It is an X/quad silhouette in three colours of the same hostile
+  cells: steel `COLPF1` arms, red `COLPF3` corner rotor pods and a white
+  `COLPF0` hub. The Wingman stays a one-colour red swept wing,
+  so the two read apart by silhouette and by colour mass. Since roadmap 4.4c
+  the Interceptor fires the thin `LASER` bolt and the Wingman the `PULSE`
+  tracer (see the weapon colours above).
+
 ## Pickups
 
-Pickup capsules are large 8x16-scanline objects. Eight generated vertical
-phases keep the silhouette coherent while it crosses character rows: phase
-zero occupies 2x2 cells and shifted phases occupy 2x3 cells. Exactly one final
-footprint may be visible for each active logical slot; the image must not hold
-for several frames and then jump by eight scanlines.
+The accepted fighter-sector pickup is a **solid 16-scanline fifth-player PMG
+mark**: missiles `M0-M3` in fifth-player mode, `PRIOR=$10`, drawn in `COLPF3`.
+It is one solid shape, not a phased character capsule and not a per-type glyph.
 
-- **Rapid Fire:** steel/yellow casing with a black `RF` symbol. It must remain
-  readable against space and either capital hull.
-- **Spread Shot:** bright red casing with a black fan/three-projectile symbol.
-- **Shield:** steel-blue `$84` outline, bright `$0E` fill, and a black shield
-  symbol. Its dense cross-core BOOST bar and solid steel/white Player Fighter pulse must
-  remain distinguishable from both weapon boosters and respawn blinking.
-  The dark symbol is formed by the capsule interior, not white text.
-Pickup erase restores the exact physical cells and lower-layer bytes saved by
-the previous frame, never a pointer recalculated from the new ring phase.
-Capsule glyph codes must not enter backing or wrap-copy sources. Visual review
-therefore covers empty space, both hulls, module boundaries, prow, engine banks,
-and display-list wrap.
-When the P0/P3 Player Fighter overlaps a capsule, set hull or engine bits remain in the
-foreground. Zero bits in the Player Fighter PMG masks are transparent and must leave the
-capsule visible; a restored black playfield rectangle or clipped capsule edge
-is never an acceptable substitute for pixel-level overlap.
+Exactly one footprint may be visible for each active logical slot; the image
+must not hold for several frames and then jump by eight scanlines.
+
+Because the mark is a single PMG colour, pickup **type** is communicated by
+**silhouette**, not by casing colour or a letter symbol: Rapid Fire is a capsule
+with a vertical slot, Spread Shot a boxier casing carrying a three-shot fan, and
+Shield a crest tapering to a point. These are the original capsule shapes from
+`assets/graphics/entity-effects.json` reduced to one bit per colour clock; the
+original also distinguished types by colour, which a fifth-player mark cannot
+reproduce. Booster HUD state must make the active booster unambiguous, and the
+Shield BOOST bar and its solid steel/white Player Fighter pulse must stay
+distinguishable from both weapon boosters and respawn blinking.
+
+When the P0/P3 Player Fighter overlaps the mark, set hull or engine bits remain
+in the foreground. Zero bits in the Player Fighter PMG masks are transparent and
+must leave the mark visible; a restored black playfield rectangle or a clipped
+edge is never an acceptable substitute for pixel-level overlap.
+
+Visual review covers empty space, both hulls, module boundaries, prow, engine
+banks, and display-list wrap.
 
 ## Motion and effects
 
@@ -102,7 +150,7 @@ weapon speed. Normal and Spread use the normal eight-event burst envelope;
 Rapid uses a longer ten-shot burst as well as its faster in-burst cadence.
 
 Breakups are brief and local. Debris uses two shapes and two tumble phases;
-Interceptor breakup preserves the recognizable wings, central body, and red eye.
+Raider breakup preserves the recognizable wings, central body, and red eye.
 Transient effects are erased in reverse layer order and may not damage hulls,
 stars, HUD characters, or the gameplay charset.
 

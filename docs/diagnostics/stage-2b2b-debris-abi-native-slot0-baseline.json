@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "stage": "stage-2b2b-debris-abi-native-slot0-baseline",
+  "date": "2026-09-14",
+  "status": "PASS",
+  "scope": "repair stale separately-linked debris spawn ABI and measure the unchanged single slot-0 debris contract natively; no debris redesign, slot 3, or Raider wreck",
+  "baseline": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "head_before": "fcdc2e555a9786dc5d470c8c5337cbba371d8b38",
+    "worktree_before": ["?? .claude/"],
+    "xex_before": {
+      "path": "dist/void-strike-65.xex",
+      "bytes": 21625,
+      "sha256": "91ec98e9dc8334a1054dfbb902863af2fad7f6a3de7d3c4e8c72d3d1e6fa2147"
+    },
+    "cpu_before": {
+      "classification": "MEASURED_NATIVE from the previously accepted PAL trace",
+      "active_work_maximum_cycles": 22644,
+      "average_active_work_cycles": 10226.74496,
+      "target_headroom_cycles": 8556,
+      "hard_headroom_cycles": 9924
+    },
+    "memory_bytes": {
+      "classification": "MEASURED_LINKED",
+      "linked_runtime": 17526,
+      "simultaneous_residency": 18004,
+      "safe_headroom": 4183
+    },
+    "authoritative_sources_read": [
+      "AGENTS.md",
+      "docs/reguly-projektu.txt",
+      "docs/README.md",
+      "docs/plan-realizacji.md v4.6",
+      "docs/owner-decisions-2026-09-11.md",
+      "docs/diagnostics/stage-2b2b-debris-25hz-slot03-feasibility.json",
+      "src/main.s",
+      "src/integration-glue.s",
+      "src/encounter-director.s",
+      "scripts/build.mjs",
+      "scripts/runtime-wall-trace.mjs",
+      "scripts/runtime-image.mjs",
+      "tests/entity-effects.test.mjs"
+    ]
+  },
+  "abi": {
+    "before": {
+      "integration_glue_literal": "0x98FF",
+      "linked_entity_spawn_debris": "0x98C0",
+      "byte_at_stale_address": "0x80",
+      "host_result": "unsupported NMOS opcode at stale mid-routine address"
+    },
+    "root_cause": {
+      "classification": "stale copied linked address, not a permanent external ABI",
+      "introduced_by_commit": "effe71c0d1a3e5c2cf797130543c7135281279c6",
+      "evidence": [
+        "git blame shows the numeric spawn address was copied into integration-glue.s and never updated",
+        "main.s exports entity_spawn_debris but has no fixed 0x98FF placement assertion or reserved ABI trampoline",
+        "integration glue is assembled and linked separately after the authoritative main link is available",
+        "current production map exports entity_spawn_debris at 0x98C0"
+      ]
+    },
+    "after": {
+      "canonical_source": "entity_spawn_debris in build/void-strike-65.lbl from the main link",
+      "generated_include": "build/integration-abi.inc",
+      "generated_value": "0x98C0",
+      "emitted_tail_jump": "4C C0 98",
+      "runtime_code_size_delta_bytes": 0,
+      "runtime_state_delta_bytes": 0,
+      "future_drift_guard": "focused host test compares generated include and encoded JMP operand with the linked production symbol"
+    },
+    "consumers": {
+      "production_entity_scheduler": "main.s jumps to integration_debris_spawn at 0x4F0D",
+      "integration_glue": "Director admission followed by tail JMP to generated linked entity_spawn_debris",
+      "host_nmos": "runtime-image installs the rebuilt integration-glue.bin and executes the same public entry",
+      "native_trace": "PC event address comes from the current linked entity_spawn_debris label",
+      "production_fixed_0x98ff_dependency": false,
+      "stale_despawn_literal": "removed; it had no emitted consumer because release is the current main.s BROADSIDE wrapper"
+    }
+  },
+  "host_equivalence": {
+    "classification": "MEASURED_NMOS_HOST",
+    "tests": [
+      {
+        "scenario": "inactive slot 0 and admitted Director request",
+        "result": "integration/public record state equals direct entity_spawn_debris record state"
+      },
+      {
+        "scenario": "Director admission semantics",
+        "result": "integration/public memory equals canonical DIRECTOR_REQUEST plus direct spawn composition"
+      },
+      {
+        "scenario": "occupied slot 0",
+        "result": "production entity_effects_update makes zero integration/spawn calls and preserves mask, count, timer and admission frame"
+      }
+    ],
+    "compared_slot_state": [
+      "active mask", "active count", "TYPE", "STATE", "FLAGS", "X", "Y",
+      "VX", "VY", "movement accumulators", "render ID", "HP", "OWNER", "RNG"
+    ],
+    "expected_initial_hp": 3,
+    "active_mask_after_spawn": 1,
+    "result": "PASS"
+  },
+  "measured_native": {
+    "emulator": "Atari800 7.1.2 PAL/XL",
+    "source_report": {
+      "path": "build/runtime-wall-trace/debris-slot0-native-report.json",
+      "sha256": "ffc1490c7517c241008833ebebeada06ffcc991598404b0bf56430678689df24"
+    },
+    "trace_coverage": {
+      "completed_frames": 15000,
+      "frames_by_difficulty": {"EASY": 5000, "MEDIUM": 5000, "HARD": 5000},
+      "spawns": 55,
+      "active_debris_frames": 5303,
+      "world_events_while_active": 2372,
+      "horizontal_steps": 252,
+      "vertical_carries": 1383,
+      "pairshot_miss_frames": 5142,
+      "pairshot_hits": 45,
+      "nonlethal_hits": 42,
+      "destructions": 3,
+      "player_collisions": 4,
+      "despawns": 53,
+      "bottom_despawns": 46,
+      "respawns_after_release": 52,
+      "sector_state_transitions": 24,
+      "sector_states_observed": [0, 1, 2, 3, 4, 5, 6, 7]
+    },
+    "cpu_cycles": {
+      "overall": {"samples": 15000, "full_frame_max": 29214, "active_work_max": 23794, "target_headroom": 7406, "hard_headroom": 8774},
+      "fighter_open": {"samples": 11355, "full_frame_max": 29214, "active_work_max": 23794, "target_headroom": 7406, "hard_headroom": 8774},
+      "debris_active": {"samples": 5303, "full_frame_max": 28881, "active_work_max": 22271, "target_headroom": 8929, "hard_headroom": 10297},
+      "debris_ordinary": {"samples": 2931, "full_frame_max": 28876, "active_work_max": 20540, "target_headroom": 10660, "hard_headroom": 12028},
+      "debris_world_event": {"samples": 2372, "full_frame_max": 28881, "active_work_max": 22271, "target_headroom": 8929, "hard_headroom": 10297},
+      "debris_spawn": {"samples": 55, "full_frame_max": 28649, "active_work_max": 21468, "target_headroom": 9732, "hard_headroom": 11100},
+      "debris_pairshot_hit": {"samples": 45, "full_frame_max": 28228, "active_work_max": 20540, "target_headroom": 10660, "hard_headroom": 12028},
+      "debris_destruction": {"samples": 3, "full_frame_max": 27177, "active_work_max": 13863, "target_headroom": 17337, "hard_headroom": 18705},
+      "debris_player_collision": {"samples": 4, "full_frame_max": 27772, "active_work_max": 20791, "target_headroom": 10409, "hard_headroom": 11777},
+      "debris_despawn": {"samples": 53, "full_frame_max": 28402, "active_work_max": 20791, "target_headroom": 10409, "hard_headroom": 11777},
+      "average_active_work": 14545.97965653897,
+      "p95_active_work": 18996,
+      "p99_active_work": 20500
+    },
+    "timing_raster": {
+      "missed_frames": 0,
+      "extra_vbi_boundaries": 0,
+      "dli_sequence_anomalies": 0,
+      "target_overruns": 0,
+      "hard_gate_overruns": 0,
+      "player_projectile_stale_maximum": 0,
+      "player_projectile_orphan_maximum": 0
+    },
+    "difficulty_coverage": {
+      "EASY": {"spawns": 17, "active_frames": 1796, "active_world_events": 714, "hits": 17, "destructions": 1, "player_collisions": 0, "despawns": 16},
+      "MEDIUM": {"spawns": 19, "active_frames": 1818, "active_world_events": 814, "hits": 20, "destructions": 2, "player_collisions": 0, "despawns": 18},
+      "HARD": {"spawns": 19, "active_frames": 1689, "active_world_events": 844, "hits": 8, "destructions": 0, "player_collisions": 4, "despawns": 19}
+    }
+  },
+  "instruction_exact": {
+    "classification": "INSTRUCTION_EXACT from the preceding direct-entry proof; unchanged by this ABI-only repair",
+    "cycles": {
+      "spawn_direct": 182,
+      "simulation_player_miss_no_world": 59,
+      "world_no_vertical_carry": 99,
+      "vertical_carry": 118,
+      "vertical_and_horizontal": 160,
+      "erase": 38,
+      "render": 184,
+      "visual_publication": 222,
+      "player_collision_miss": 36,
+      "player_collision_hit": 53,
+      "pairshot_miss": 62,
+      "pairshot_nonlethal": 124,
+      "pairshot_lethal": 691,
+      "breakup_materialization": 475,
+      "despawn": 50,
+      "ordinary_active_isolated_frame": 281,
+      "worst_world_event_isolated_frame": 382
+    },
+    "native_comparison_limit": "native scenario maxima are complete concurrent gameplay frames, whereas these are isolated routine paths; native results prove envelope/headroom and execution coverage, not equality to isolated cycle counts"
+  },
+  "estimated": {},
+  "visual_backing_verification": {
+    "native": "all admission, movement, ring/world, hit, destruction, contact, despawn and respawn events completed with zero timing/raster deadline anomalies; native player projectile stale/orphan counters remained zero",
+    "focused_nmos": {
+      "tests": 19,
+      "passed": 19,
+      "coverage": "all four debris glyph forms, every A2 ring head, phase/movement backing, reverse erase, PairShot hit/destruction, player collision and reverse overlay stack",
+      "ghost_or_stale_failures": 0
+    },
+    "limitation": "the native observer has no standalone full-screen debris-provenance counter; debris-specific stale/backing absence is therefore established by exhaustive NMOS ring/backing tests plus native lifecycle/raster execution, not mislabeled as a native provenance measurement"
+  },
+  "memory_placement": {
+    "classification": "MEASURED_LINKED",
+    "changed": false,
+    "linked_runtime_bytes": 17526,
+    "simultaneous_residency_bytes": 18004,
+    "safe_headroom_bytes": 4183,
+    "initial_content": {"used": 13123, "capacity": 13184, "margin": 61},
+    "starfield_packed": {"used": 1787, "capacity": 1819, "margin": 32},
+    "pickup_code_raw": {"used": 871, "capacity": 896, "margin": 25},
+    "pickup_cold_record": {"used": 866, "capacity": 1277, "margin": 411},
+    "entity_code": {"used": 3162, "end_exclusive": "0x9D5A", "director_start": "0x9D75", "margin": 27},
+    "broadside": {"used": 6653, "capacity": 6656, "margin": 3},
+    "a2": {"used": 197, "capacity": 256, "margin": 59},
+    "integration_glue": {"bytes_before": 250, "bytes_after": 250, "packed_bytes_after": 245}
+  },
+  "production_binary": {
+    "xex_after": {"path": "dist/void-strike-65.xex", "bytes": 21625, "sha256": "28fe399bf86b7ece78479d18facbba80d7fde9d723197dcf1761299c43d65863"},
+    "atr_after": {"path": "dist/void-strike-65.atr", "bytes": 92176, "sha256": "27c404eb77115608d9bf752216f080467b5d597dfa57502d6f2f443a17850a6c"},
+    "xex_byte_diff_count": 7,
+    "semantic_runtime_diff": "one low operand byte in integration glue: JMP 0x98FF becomes JMP 0x98C0",
+    "other_xex_differences": "six dependent transport CRC/manifest bytes",
+    "size_delta_bytes": 0,
+    "unexpected_differences": 0
+  },
+  "tests": {
+    "build": "PASS: npm run build:two-pmg -- --quiet",
+    "abi_and_debris_focused": "PASS: 19/19",
+    "effects_regression": "PASS: 4/4",
+    "trace_preflight": "PASS: 65 observer PC symbols",
+    "boot_smoke": "PASS: 4/4 XEX/ATR cold starts",
+    "native_slot0": "PASS: 15000/15000 PAL frames",
+    "candidate_verify": "EXPECTED NOT APPLICABLE: npm run verify rejects candidate artifacts without final bound runtime evidence"
+  },
+  "slot_3": {
+    "modified": false,
+    "implemented": false
+  },
+  "conclusion": "YES — the public integration entry is tied to the authoritative linked symbol, host semantics agree, and a bounded 15000-frame native PAL baseline now covers the legal single slot-0 lifecycle without timing or hard-gate failures.",
+  "next_task": "bounded slot-0 + slot-3 debris kernel compaction/placement proof"
+}

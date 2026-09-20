@@ -69,7 +69,10 @@ function stepFrontendGate(armed, { stickNeutral, fireReleased }) {
   return { armed: false, dispatched: true };
 }
 
-test("last-life death enters GAME OVER once after all 24 explosion frames", () => {
+// Rebaselined 2026-09-17 (death-frame deferral): DYING lasts
+// SHARED_FIGHTER_EXPLOSION_TOTAL+1 frames because the explosion begins on the
+// first DYING tick (player_dying_tick, ENTITY_CODE), not on the death frame.
+test("last-life death enters GAME OVER once after the deferred 24-frame explosion", () => {
   const state = createBroadsideState(asset);
   state.lives = 1;
   state.health = 10;
@@ -77,20 +80,28 @@ test("last-life death enters GAME OVER once after all 24 explosion frames", () =
   assert.equal(applyPlayerDamage(state, asset, 10, 25, 1), true);
   assert.equal(state.lives, 0);
   assert.equal(state.playerLifecycle, PLAYER_LIFECYCLE_STATES.DYING);
-  assert.equal(state.deathTimer, SHARED_FIGHTER_EXPLOSION_TOTAL);
+  assert.equal(state.deathTimer, SHARED_FIGHTER_EXPLOSION_TOTAL + 1);
 
   const transitions = [];
-  for (let frame = 0; frame < SHARED_FIGHTER_EXPLOSION_TOTAL - 1; frame += 1) {
+  for (let frame = 0; frame < SHARED_FIGHTER_EXPLOSION_TOTAL; frame += 1) {
     transitions.push(advancePlayerLifecycle(state, asset));
   }
-  assert.deepEqual(transitions, Array(23).fill("dying"));
+  assert.deepEqual(transitions, Array(24).fill("dying"));
   assert.equal(advancePlayerLifecycle(state, asset), "game-over");
   assert.equal(state.playerLifecycle, PLAYER_LIFECYCLE_STATES.GAME_OVER);
   assert.equal(advancePlayerLifecycle(state, asset), "unchanged");
 
   const lifecycle = block("update_player_death", "respawn_player");
   assert.match(lifecycle,
-    /PLAYER_DYING[\s\S]+dec BROAD_DEATH_TIMER[\s\S]+beq @finished[\s\S]+PLAYER_LIVES[\s\S]+beq @game_over/);
+    /PLAYER_DYING[\s\S]+jmp player_dying_tick[\s\S]+update_player_death_finished:\s+lda PLAYER_LIVES\s+beq @game_over/);
+  // Rebaselined 2026-09-18: the finishing frame must leave before the idle-slot
+  // test, not after it. tick_shared_fighter_explosions erases the player slot
+  // earlier in the same frame, so an idle slot tested after the countdown meant
+  // "just finished" on that one frame and restarted the explosion at the
+  // pre-death origin, one instruction before respawn_player. The order of these
+  // two tests is the fix; freeze it.
+  assert.match(source,
+    /player_dying_tick:\s+dec BROAD_DEATH_TIMER\s+beq @finished\s+lda FIGHTER_EXPLOSION_TIMER\+FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT\s+bne @running\s+jsr begin_player_fighter_explosion\s+@running:\s+clc\s+rts\s+@finished:\s+jmp update_player_death_finished/);
   assert.match(lifecycle,
     /@game_over:[\s\S]+PLAYER_GAME_OVER[\s\S]+sta PLAYER_LIFECYCLE[\s\S]+insert_top_score[\s\S]+clear_player_collision_latches[\s\S]+sec/);
 });

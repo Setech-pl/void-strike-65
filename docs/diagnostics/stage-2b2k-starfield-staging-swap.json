@@ -1,0 +1,132 @@
+{
+  "id": "stage-2b2k-starfield-staging-swap",
+  "date": "2026-09-17",
+  "task": "Roadmap 4.5M-M1: stage the packed STARFIELD as two independent LZ streams in idle boot-time RAM, retire the three 960-B pause-screen staging copies with their $81CF spill and the Heavy hold/publish; boot and lifetime change only, no gameplay change",
+  "status": "OWNER-SMOKE CANDIDATE",
+  "plan": "4.5M planning report (Strategy B), migration step M1; M2/M3 not started",
+  "baseline": { "commit": "9547bf0", "xex_sha256": "2fd5ace46a583080ec305cebcb74a4add9cacfbdbe15e85ceabf54fa85a3afd8", "atr_sha256": "dd3977e2ebc0c1a9fcb5403e2f2a9f86242f15cc2725b14f6411a004c9aa50ec" },
+  "candidate": {
+    "xex_sha256": "361cb8cf97e0c6fc6bcdf64fd135e5b1c9c9f9e24ecb857d964f05c27bc94fd9",
+    "atr_sha256": "b8766308f2d898a6d59bdb96236c0d458d1c24899f09532d3e045561f6710f9a",
+    "xex_bytes": 23104,
+    "owner_smoke_copy": "build/owner-smoke/starfield-staging-swap-361cb8cf/"
+  },
+  "owner_visible_deviations_from_task_text": [
+    {
+      "item": "stream B window and GLUE hold",
+      "task_text": "B at $83FA, B <= 1,032 B, B end <= $8601, GLUE hold $8300-$83F9 unchanged",
+      "finding": "$83FA-$8601 is 520 B, not 1,032 B; with A <= 960 B two streams then hold 1,480 B < 1,805 B packed. The plan's 1,032 B is the idle ring $8100-$8601 (1,282 B) minus the 250-B GLUE hold, which is contiguous only if the hold sits at $8100.",
+      "decision": "boot-only GLUE hold moved $8300 -> $8100 (runtime map untouched; write-watched PASS 4/4); stream B staged at $81FA behind it",
+      "rejected_alternative": "three streams around an unmoved hold (A $7810 <= 960, B $8100 <= 512, C $83FA <= 520): measured +58 B split overhead (1,863 B total) against +6 B, and 26 B more bootstrap-prefix code plus a third decoder call"
+    },
+    {
+      "item": "table-driven deferred copies",
+      "task_text": "boot_stage_streams must stage the two deferred STARFIELD streams using the existing table-driven boot-stream machinery",
+      "finding": "copy_boot_stream_backward is BOOT_STAGE2 overlay code at $21C1; unpack_resident_runtime replaces it with the resident suffix before any deferred copy can run (the 6502 harness hung at $2115 when the table copier was used). HEAD used the resident copy_pause_screen three times for the same reason.",
+      "decision": "the two starfield records stay in the table (patched sources, prepared stream A record); the deferred copies are two exact 960-B copy_pause_screen copies from the bootstrap prefix, one per stream, no spill; therefore B <= 960 B (idle window would allow 1,032 B)"
+    }
+  ],
+  "starfield_representation": {
+    "runtime_bytes": 2224,
+    "single_stream_packed_bytes_before": 1805,
+    "raw_split_offset": 985,
+    "split_policy": "smallest packed total among 16-byte-step raw cuts (up to 192 B) below the largest stream-A prefix that packs to <= 960 B; deterministic for a given runtime image",
+    "streams": [
+      { "id": "A", "raw_bytes": 985, "packed_bytes": 915, "initial_block_source": "$40C9-$445B", "staging": "$7810-$7BA2", "window": "$7810-$7BCF (960 B, one copy_pause_screen)", "margin_bytes": 45 },
+      { "id": "B", "raw_bytes": 1239, "packed_bytes": 896, "initial_block_source": "$445C-$47DB", "staging": "$81FA-$8579", "window": "$81FA-$85B9 (960 B, one copy_pause_screen; idle range continues to $8601)", "margin_bytes": 64 }
+    ],
+    "total_packed_bytes": 1811,
+    "split_overhead_bytes": 6,
+    "total_staging_capacity_bytes": 1920,
+    "gates": {
+      "per_stream_physical": "A <= 960 B, B <= 960 B (build error)",
+      "total_baseline_bytes": 1811,
+      "total_hard_gate_bytes": 1825,
+      "total_correction_gate_bytes": 1804,
+      "rule": "the single stream's headroom carried over: hard 1,819 - 1,805 = +14 B, correction 1,798 - 1,805 = -7 B; the 1,920 B of staging windows are not a content budget",
+      "superseded": { "single_stream_correction_gate_bytes": 1798, "single_stream_hard_staging_bytes": 1819, "note": "recorded as superseded in build/manifest.json starfieldRuntime.packedTotalGate.supersedes; the open owner decision on the correction gate (7 B over) is unchanged" }
+    },
+    "decoded_image": "byte-identical to build/starfield-runtime.bin (6502 harness on XEX/ATR with $A5/$00/$5A fills; native write-watch --expect-range-bin PASS 4/4)"
+  },
+  "heavy_window": {
+    "runtime_window": "$7E12-$7F04 (243 B, 0 used) unchanged",
+    "staging": "$7E38-$7F2A unchanged (low-C LZ record tail)",
+    "publish": "hybrid_c_heavy_publish (the former hybrid_c_heavy_hold copy retargeted): ascending copy $7E38 -> $7E12, destination below the overlapping source, at the publish_director_abi tail-jump (same 3 B)",
+    "retired": "$8400-$84F2 ring hold; 17-B post-loader hybrid_c_heavy_publish; jsr unpack_starfield_runtime follows show_loader again (same 3 B)",
+    "harness": "tests/heavy-window.test.mjs: 243-B pattern crosses the overlapping copy byte-exactly, no write below the window or past the staging"
+  },
+  "bootstrap_prefix": {
+    "fixed_size_bytes": 419,
+    "changes": "boot_stage_streams +6 B (stream B record, $20DA-$20FD, no page crossing); unpack_starfield_runtime 23 -> 36 B ($20B6-$20D9); stage_starfield_stream 24 B at $217C-$2193 replaces the retired pre-DFMC unpack_boot_broadside_runtime + broadside_packed_source (27 B, dead since DFMC stage 2 expands BROADSIDE; harness paths only call it for a director-disabled build); hybrid_c_heavy_publish 14 B at $21AD-$21BA; post-loader publish 17 B retired",
+    "padding_bytes": { "before": 2, "after": 3 },
+    "entity_code": ".res 15 at $9495-$94A3 where the three copies stood; every later ENTITY entry point unchanged"
+  },
+  "lbl_diff_summary": "only bootstrap-prefix labels below $21C1 moved (stage_a2_kernel $212B -> $213E, stage_boot_streams $20EB -> $20FE, boot_chunk_ready $219C -> $21AF, ...); stage_starfield_stream ENTITY_CODE $9495 -> prefix $217C; removed hybrid_c_heavy_hold, unpack_boot_broadside_runtime, broadside_packed_source; added starfield_packed_source_b, starfield_packed_size_b; no CODE, RODATA, BROADSIDE, STARFIELD, A2, ENTITY_CODE, PICKUP or C address changed",
+  "transport": {
+    "initial_content_bytes": { "before": 13166, "after": 13162 },
+    "initial_envelope_bytes": { "before": 18, "after": 22 },
+    "initial_boot_sectors": { "before": 103, "after": 103 },
+    "total_transport_sectors": { "before": 178, "after": 178 },
+    "atr_menu_deadline_frames": 546,
+    "dfmc_records": "8/8 unchanged (same sectors, lengths and destinations)"
+  },
+  "residency": {
+    "linked_runtime_bytes": 17502,
+    "simultaneous_residency_bytes": 19493,
+    "safe_residency_bytes": 2694,
+    "reserved_envelopes": "HYBRID_C_HEAVY 243 B unchanged; boot-only Heavy hold 243 B retired; boot-only GLUE hold 250 B moved $8300 -> $8100; starfield staging envelope 1,819 B at $7810-$7F2A replaced by 960 B at $7810-$7BCF + 960 B at $81FA-$85B9",
+    "reusable_free": "bootstrap-prefix padding 2 -> 3 B; HYBRID_C_HEAVY 243, HYBRID_C_EXT 21, HYBRID_C_SECTOR 8, ENTITY_CODE 13, A2 18, pickup fill 11 unchanged; $7BD0-$7F0F is now free of every starfield write (precondition for M2/M3)"
+  },
+  "boot_cpu_native_write_watch_clocks": {
+    "xex": {
+      "start_to_show_loader": { "before": 2070929, "after": 2051496, "delta": -19433 },
+      "unpack_starfield_runtime_to_glue_publish_complete": { "before": 161072, "after": 156087, "delta": -4985 },
+      "start_to_glue_publish_complete": { "before": 11151730, "after": 11111171, "delta": -40559, "note": "includes the 250-frame loader; the XEX loader ended one frame earlier" }
+    },
+    "atr": {
+      "start_to_show_loader": { "before": 2070930, "after": 2051505, "delta": -19425 },
+      "unpack_starfield_runtime_to_glue_publish_complete": { "before": 161072, "after": 156087, "delta": -4985 },
+      "start_to_glue_publish_complete": { "before": 11125690, "after": 11120699, "delta": -4991, "note": "the frame-aligned loader countdown absorbs the pre-loader saving" }
+    },
+    "fixed_boot_cycles_removed": 24418,
+    "pal_frames_equivalent": 0.69
+  },
+  "boot_smoke": {
+    "result": "PASS 4/4 (XEX/ATR x cold fill $A5/$5A)",
+    "milestones": { "xex_menu": { "before": 393, "after": 392, "deadline": 502 }, "atr_menu": { "before": 546, "after": 546, "deadline": 546 } },
+    "margin": "ATR still 0 frames at the menu deadline; the saving did not cross a frame boundary on ATR"
+  },
+  "native_write_watch": {
+    "harness": "scripts/capacity-window-watch.mjs + scripts/atari800-capacity-watch.h, extended with --stage=ADDR:BYTES (up to three staging ranges watched from --stage-done=init_entity_effects to --stage-consumed=unpack_starfield_runtime, initial bytes reported), --expect-stage-bins, --expect-range-bin=ADDR:FILE (dumped at layout_d_glue_publish_complete) and --window-from=LABEL; hold_carries_injected_pattern now applies only with --expect-window-is-hold",
+    "lifecycle": "cold start, OPTIONS, BACK, START, gameplay, pause/resume, one capital sector entered and completed (XEX frames 1257-2463, ATR 1411-2617), game over, menu, START, pause, quit, menu; XEX and ATR x cold fill $00/$A5 over $7810-$9FFF",
+    "glue_config": {
+      "command": "node scripts/capacity-window-watch.mjs --atari800-source=build/atari800-trace --hold=0x8100 --expect-hold-is-glue --expect-window-bin=build/resident-window-runtime.bin --stage=0x7810:915 --stage=0x81fa:896 --expect-stage-bins=build/starfield-runtime-packed-a.bin,build/starfield-runtime-packed-b.bin --expect-range-bin=0x54e4:build/starfield-runtime.bin",
+      "result": "PASS 4/4: 0 hold writes, GLUE final equals the $8100 hold, 0 $8602 window writes, window equals its linked image; stage A and B 0 writes and byte-equal to the packed streams; decoded STARFIELD byte-equal to build/starfield-runtime.bin"
+    },
+    "heavy_config": {
+      "command": "node scripts/capacity-window-watch.mjs --atari800-source=build/atari800-trace --hold=0x8100 --expect-hold-is-glue --window=0x7e12 --window-bytes=243 --inject=0x7e38:243 --window-from=layout_d_entity_unpack_complete --stage=0x7810:915 --stage=0x81fa:896 --expect-stage-bins=build/starfield-runtime-packed-a.bin,build/starfield-runtime-packed-b.bin --expect-range-bin=0x54e4:build/starfield-runtime.bin",
+      "result": "PASS 4/4: the injected 243-B pattern arrives byte-exact in the window through the ascending copy and the window sees 0 writes from layout_d_entity_unpack_complete to the end of the lifecycle; stage and range checks as above"
+    },
+    "head_baseline": "4.3 GLUE config on 9547bf0 artifacts (hold $8300): PASS 4/4, used for the boot-CPU before values"
+  },
+  "pal_native": {
+    "focused_replays": {
+      "2-evasive-fire3": { "head_max": 29519, "candidate_max": 29519, "missed_frames": 0, "extra_vbi": 0, "dli_ordering_errors": 0 },
+      "2-sweep-fire4": { "head_max": 29801, "candidate_max": 29801, "missed_frames": 0, "extra_vbi": 0, "dli_ordering_errors": 0 }
+    },
+    "debris_gate": { "result": "PASS on 0-evasive-fire3, 0-neutral-fire0 and capital-muzzle-ring-2-sweep-fire4: 0 blank, 0 disappearances, first visible Y 24 in capital and post-capital phases, 0 missed frames", "maxima": [30232, 30439, 30216] }
+  },
+  "tests": {
+    "new": "tests/starfield-staging-streams.test.mjs (4): stream/window/gate contract, independent packing and identical decode, 6502-harness staging (no spill, GLUE hold and Heavy window intact) and byte-exact decode on XEX/ATR fills, table and prefix wiring",
+    "rebaselined": {
+      "heavy-window": "direct publish, no hold; initial content 13,162 B / envelope 22 B / 103 sectors / 178 transport sectors",
+      "layout-d1": "two-copy staging regex; stage_a2_kernel call bytes $212B -> $213E; stream and Heavy lifetimes in the write/source intersection model",
+      "transport-layout-regression": "GLUE hold $8100; two 960-B staging windows (numeric freezes untouched, still failing as at HEAD)",
+      "runtime-timing": "STARFIELD_STAGING_BYTES $03C0, STARFIELD_STAGING_B $81FA/$03C0",
+      "light-wingman, broadside-fire": "correction gate 1,804 B (still failing on purpose: open owner decision); two-stream decode"
+    },
+    "full_suite": "candidate build then node --test tests/*.test.mjs: 644 tests, 115 failing; clean export of 9547bf0: 640 tests, 115 failing; failure-name sets identical except 'PairShot uses one logical record and one character cell for two pulses', which fails at HEAD and passes on the candidate (see note)",
+    "pairshot_note": "scripts/pairshot-proof.mjs watches SCREEN_RANGES incl. the ring $8140-$8578 after a harness boot and counts restored-cell mismatches; HEAD's three-copy starfield spill wrote packed bytes into $8140-$81CF (one mismatch), the candidate stages nothing there (0)"
+  },
+  "unchanged": "gameplay code, GLUE staging/publish, ABI, low-C, extension, A2, pickup, ENTITY order, runtime memory map, Light publication, debris, PMG, collision, DLI/VBI, cfg/runtime arena (M2/M3 not started)"
+}

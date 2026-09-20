@@ -1,0 +1,241 @@
+{
+  "schema_version": 1,
+  "stage": "owner-decision-A",
+  "title": "ATR boots without OPTION: boot_entry enters start, start's path unmaps the BASIC ROM",
+  "status": "OWNER-SMOKE CANDIDATE",
+  "measured": "2026-09-20",
+  "branch": "wip/4.5d-gate-fail",
+  "base_commit": "80bf1e2 (accepted runtime checkpoint 0002d84)",
+  "artifact": {
+    "xex": "dist/void-strike-65.xex",
+    "xex_sha256": "276433cd15d4e983935888ca064ad00e1f3d6d901d3712e0f05bb73f3dee949b",
+    "atr": "dist/void-strike-65.atr",
+    "atr_sha256": "ab2d50fadb67ff9b51a0af1b0c3687a583386e1be5581ae0c476f0763a895b6a"
+  },
+  "defect": {
+    "class": "distribution defect",
+    "symptom": "the free ATR only reached the game when the player held OPTION at power-on",
+    "cause": "boot_entry ended in rts and relied on OS coldstart jumping through DOSVEC. Coldstart only does that when no cartridge is enabled; with BASIC enabled it starts BASIC instead.",
+    "prior_measurement": "feasibility session, trace emulator: with BASIC enabled the ATR loads all 182 sectors and PC then lands at $A8AA inside the BASIC ROM at frame 223; the menu never arrives by frame 2500. With BASIC off the menu arrives at frame 555.",
+    "why_it_was_unnoticed": "all four boot-smoke cold sessions ran the emulator with -nobasic, so no gate ever exercised the OS path that fails."
+  },
+  "boot_sequence_change": {
+    "before": [
+      "boot_entry: jsr boot_stage2_atr_entry; nop; MEMLO/APPMHI = $3B00; DOSVEC lo = <start; clc; boot_return: rts",
+      "OS coldstart resumes and jumps through DOSVEC only if no cartridge is enabled"
+    ],
+    "after": [
+      "boot_stage2_atr_entry: jsr disable_basic_rom, then the manifest validation and the SIO chunk load as before",
+      "boot_entry: jsr boot_stage2_atr_entry; MEMLO/APPMHI = $3B00; DOSVEC lo = <start; jmp start",
+      "the OS is never returned to; boot_return is an rts the OS JSRs once as the init vector, and now shares the rts of disable_basic_rom",
+      "boot_stage2_xex_entry: jsr disable_basic_rom, then boot_chunk_ready = $02; jmp start (unchanged otherwise)"
+    ],
+    "disable_basic_rom": "lda PORTB / ora #$02 / sta PORTB / lda #$01 / sta BASICF / rts",
+    "portb_contract": "read-modify-write, so bit 0 (OS ROM enable), bit 7 (self-test disable) and the bank-select bits are all preserved; only bit 1 is forced to 1",
+    "warm_start": "BASICF ($03F8) = $01 is the OS flag the warm start re-reads to set PORTB bit 1, so RESET does not map the ROM back in",
+    "dosvec": "still published (lo in boot_entry, hi in boot_stage2_atr_entry) for the warm-start path and for the boot-smoke ATR entry-identity invariant"
+  },
+  "ordering": {
+    "question": "writes into a mapped ROM window are lost, so when is the window unmapped?",
+    "chosen": "at each medium's stage-2 entry, i.e. before the ATR's SIO chunk load and before the XEX's jmp start - strictly earlier than every write either medium makes",
+    "why": "nothing in this build targets $A000-$BFFF today (the ATR chunk staging buffer is $8100 and no segment in cfg/atari-boot.cfg loads above $9FFF), so no write was being lost before the change either. Unmapping first makes that structural instead of incidental: the window is RAM for the whole runtime and a later change cannot silently lose a write into it.",
+    "why_not_start": "start would be the single natural site, but the fixed $01A3 resident bootstrap prefix has fewer than three bytes free and could not hold even the jsr. Both stage-2 entries are outside that prefix and both run before start.",
+    "why_not_boot_entry": "boot_entry must stay exactly 24 bytes: start is pinned at $201E because scripts/build.mjs requires resident_runtime_suffix at $21C1 = start + $01A3, which is also BOOT_STAGE2's reviewed run address."
+  },
+  "placement": {
+    "routine_bytes": 14,
+    "routine_location": "the 14 B of retired 4.5M-M3 padding (the removed hybrid_c_heavy_publish copy) inside the bootstrap prefix; the routine is exactly 14 B including the rts, so hostile_weapon_step_masks and every later address are unchanged",
+    "call_site_bytes": 6,
+    "boot_block_before": {
+      "content_bytes": 13172,
+      "envelope_bytes": 12,
+      "sector_bytes": 13184,
+      "sectors": 103,
+      "slack_bytes": 0
+    },
+    "boot_block_after": {
+      "content_bytes": 13178,
+      "envelope_bytes": 12,
+      "sector_bytes": 13312,
+      "sectors": 104
+    },
+    "total_transport_sectors": {
+      "before": 182,
+      "after": 183
+    },
+    "note": "the initial block was exactly full, so any byte of boot-path code costs a sector. Deliberate growth under owner decision 22; docs/boot-deadline-baseline.json was NOT re-recorded because the measured ATR menu frame did not move."
+  },
+  "boot_smoke": {
+    "command": "node scripts/runtime-wall-trace.mjs --boot-smoke-only --atari800-source=build/atari800-trace",
+    "emulator": "Atari800 7.1.2 PAL/XL, instrumented observer, 0 guest bytes",
+    "sessions_before": 4,
+    "sessions_after": 8,
+    "added": "the BASIC-enabled half of the matrix: -basic instead of -nobasic, both media, both cold RAM fills",
+    "result": "8/8 passed",
+    "measured_menu_frames": [
+      {
+        "session": "xex-a5",
+        "medium": "XEX",
+        "cold_ram_fill": "$A5",
+        "basic": "off",
+        "menu": 392,
+        "frontend_poll": 393,
+        "baseline": 392,
+        "delta": 0
+      },
+      {
+        "session": "xex-5a",
+        "medium": "XEX",
+        "cold_ram_fill": "$5A",
+        "basic": "off",
+        "menu": 392,
+        "frontend_poll": 393,
+        "baseline": 392,
+        "delta": 0
+      },
+      {
+        "session": "atr-a5",
+        "medium": "ATR",
+        "cold_ram_fill": "$A5",
+        "basic": "off",
+        "menu": 554,
+        "frontend_poll": 555,
+        "baseline": 554,
+        "delta": 0
+      },
+      {
+        "session": "atr-5a",
+        "medium": "ATR",
+        "cold_ram_fill": "$5A",
+        "basic": "off",
+        "menu": 554,
+        "frontend_poll": 555,
+        "baseline": 554,
+        "delta": 0
+      },
+      {
+        "session": "xex-a5-basic",
+        "medium": "XEX",
+        "cold_ram_fill": "$A5",
+        "basic": "on",
+        "menu": 383,
+        "frontend_poll": 384,
+        "baseline": 392,
+        "delta": -9
+      },
+      {
+        "session": "xex-5a-basic",
+        "medium": "XEX",
+        "cold_ram_fill": "$5A",
+        "basic": "on",
+        "menu": 383,
+        "frontend_poll": 384,
+        "baseline": 392,
+        "delta": -9
+      },
+      {
+        "session": "atr-a5-basic",
+        "medium": "ATR",
+        "cold_ram_fill": "$A5",
+        "basic": "on",
+        "menu": 538,
+        "frontend_poll": 539,
+        "baseline": 554,
+        "delta": -16
+      },
+      {
+        "session": "atr-5a-basic",
+        "medium": "ATR",
+        "cold_ram_fill": "$5A",
+        "basic": "on",
+        "menu": 538,
+        "frontend_poll": 539,
+        "baseline": 554,
+        "delta": -16
+      }
+    ],
+    "observations": [
+      "the ATR menu frame did not move on the BASIC-off sessions despite the extra transport sector (554, delta 0 against the committed baseline)",
+      "with BASIC enabled both media reach the menu EARLIER (XEX 383, ATR 538) - OS coldstart takes a different, shorter path when a cartridge is enabled. Both are far inside the 3,000-frame ceiling and inside the +10 warn band measured downward."
+    ]
+  },
+  "negative_control": {
+    "method": "the pre-fix src/main.s was rebuilt and run against the new eight-session gate",
+    "result": "atr-a5-basic FAILS (\"did not reach a complete loader raster by frame 300\"); the four -nobasic sessions and both xex-*-basic sessions pass",
+    "conclusion": "the new coverage reproduces exactly the reported defect and localises it to ATR x BASIC-enabled. The XEX was never affected: it enters at RUNAD = boot_stage2_xex_entry and never executes boot_entry, so it never depended on DOSVEC."
+  },
+  "test_suite": {
+    "method": "full node --test tests/*.test.mjs, A/B against HEAD 80bf1e2 on the same machine",
+    "before": {
+      "pass": 577,
+      "fail": 112
+    },
+    "after": {
+      "pass": 577,
+      "fail": 112
+    },
+    "new_failures": 0,
+    "note": "the 112 failures are the pre-existing set caused by the stale, currently un-regenerable docs/runtime-wall-trace.json; see runtime-wall-trace-report-regeneration-blocked.md. npm test itself is blocked at HEAD too - it runs a final build, which refuses to bind to that stale report.",
+    "pins_re_recorded": [
+      "tests/starfield.test.mjs: manifest.transportCapacity.initialBootSectors 103 -> 104, deliberate, with the reason in place",
+      "tests/runtime-wall-trace.test.mjs: the boot-smoke session list is now asserted as a (medium, cold RAM fill) matrix per BASIC state instead of a pinned count of 4, so it validates both the stale committed 4-session report and a live 8-session one exactly"
+    ]
+  },
+  "documentation": {
+    "docs/hardware-testing.md": "the \"No BASIC dependency\" line was WRONG before this fix and is RIGHT after it; the correction is recorded inline, with two new cold-start boxes and a real-hardware box",
+    "docs/memory-map.md": "$A000-$BFFF is now unconditionally RAM from disable_basic_rom onward, not a window whose contents depended on how the player started the machine",
+    "docs/architecture.md": "cold startup section records the new handoff and the 104-sector initial block"
+  },
+  "not_proven": [
+    "real hardware. This changes the boot contract and no session can run a 65XE. The ATR must be booted from SIO2SD on a machine with BASIC enabled, nothing held on the keyboard, and again with OPTION held; and RESET during gameplay must not bring the ROM back. Emulator success is necessary but not sufficient."
+  ],
+  "pal_timing_audit": {
+    "procedure": "default runtime-wall-trace run, then --raider-formation-only, --raider-sector-only, --debris-gate-only, --raider-remnant-only, then the standalone summary over build/runtime-wall-trace",
+    "replays": 72,
+    "traced_frames": 137000,
+    "distinct_miss_events": 0,
+    "rows_over_target": 0,
+    "rows_over_hard_gate": 0,
+    "fence_model_disagreements": 0,
+    "all_sessions_passed": true,
+    "worst_fence_margin_cycles": 1464,
+    "worst_fence_margin_session": "raider-remnant-rapid-xex-hard",
+    "worst_fence_margin_frame": 1945,
+    "worst_fence_margin_max_wall_cycles": 30437,
+    "next_five": [
+      {
+        "cycles": 1713,
+        "session": "memory-integrity-atr-2-hunt-fire4",
+        "frame": 1963
+      },
+      {
+        "cycles": 1713,
+        "session": "memory-integrity-xex-2-hunt-fire4",
+        "frame": 1963
+      },
+      {
+        "cycles": 1713,
+        "session": "raider-remnant-normal-xex-hard",
+        "frame": 1963
+      },
+      {
+        "cycles": 1713,
+        "session": "weapon-pickup-2-hunt-fire4",
+        "frame": 1963
+      },
+      {
+        "cycles": 1831,
+        "session": "director-complete-1-natural-sweep-fire0",
+        "frame": 2557
+      }
+    ],
+    "note": "1,464 cycles on raider-remnant-rapid-xex-hard frame 1945 is byte-for-byte the Option D worst margin: this change adds no gameplay-time work, only 14 B of one-shot boot code and 6 B of call sites.",
+    "replay_set_named": "the default wall-trace set (64 replays, including the eleven baseline-9040 sessions, targeted, parallax cadence, fighter flash, debris effects, weapon pickup and its traversal/contact/overlap sessions, the three director-completion runs, early-enemy, memory-integrity, lower-playfield, engine startup and engine-restart) plus two-pmg-raiders-xex-hard, raider-sector-xex-hard, the three debris-gate replays and the three raider-remnant replays",
+    "pre_existing_behavioural_failures_unchanged": [
+      "capital-contact-allied-medium / capital-contact-hostile-medium / lower-playfield-hostile-contact-xex-hard: did not capture 16 consecutive contact rasters",
+      "the default run's terminal abort: Atari800 did not capture all 16 consecutive pickup raster frames",
+      "raider-sector-xex-hard: did not return to post-sector OPEN (A/B-confirmed pre-existing at 0a90c1c)",
+      "debris visibility gate: debris-gate-0-neutral-fire0 post-capital 1 blank / 1558 in view, 1 disappearance - identical counts to the recorded 0a90c1c baseline"
+    ]
+  }
+}

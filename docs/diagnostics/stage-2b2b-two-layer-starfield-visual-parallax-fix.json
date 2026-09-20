@@ -1,0 +1,318 @@
+{
+  "schema": "void-strike-65.stage-2b2b-two-layer-starfield-visual-parallax-fix.v1",
+  "date": "2026-09-13",
+  "stage": "two-layer starfield visual and parallax proof",
+  "status": "PASS_TWO_LAYER_STARFIELD_CANDIDATE",
+  "model": {
+    "name": "Codex (GPT-5 family)",
+    "reasoning": "High",
+    "note": "The requested GPT-5.6 Sol product label was not exposed by this session."
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "headBefore": "baeb300f659da99609831b2fd0a35f73b04e80ce",
+    "headAfter": "commit containing this report",
+    "claudeUntouched": true,
+    "pushMergeRelease": false,
+    "preservedRefs": {
+      "refs/wip/stage2b-foreign-0803": "13597d7fb6fa6bb0d04541ed68ab6715cec1e8d4",
+      "refs/wip/stage2b0-fdb-proof": "3e5d83f2f1944d2dd90b8a23bec9eaae0dcdebc8",
+      "refs/wip/stage2b2-single-window-rejected": "7f40ee0408356bf1f431b49bf5c51d50ae72a4b3"
+    }
+  },
+  "scope": {
+    "implemented": "Exactly two star layers: fine-phased row-baked blue far points and four sparse dynamic white near points.",
+    "raiderWreck": "DEFERRED to debris 25 Hz / visual redesign; no wreck runtime was restored.",
+    "unchanged": [
+      "PairShot model, visuals, cadence, damage and ghost fixes",
+      "Effects 25 Hz/staggered",
+      "player fire cadence and cross-sector shot SFX",
+      "ring publication cadence",
+      "gameplay debris",
+      "capital gameplay and boss"
+    ],
+    "unifiedSchedulerImplemented": false,
+    "basicRamUsed": false,
+    "loaderChanged": false
+  },
+  "rootCause": {
+    "confirmedCurrentModel": {
+      "nearRowGeneration": "The retired generate_near_star_row wrote a white near glyph into each newly generated/recycled row before generate_baked_far_star_row.",
+      "farRowGeneration": "generate_baked_far_star_row then wrote the blue far glyph into the same physical row.",
+      "transport": "Both classes subsequently moved only when that shared physical ring row changed logical position.",
+      "independentDynamicFarPath": false
+    },
+    "jump": "Both row-baked classes moved in complete eight-scanline character-row steps; no fine vertical phase existed.",
+    "noParallax": "Blue and white glyphs shared the same row and therefore the same coarse ring velocity despite being named far and near.",
+    "verticalDouble": "The old asset used vertically shifted far variants and a multi-scanline near SPARKLE/DOUBLE vocabulary. There was no second far record writer; the apparent stacked motif came from glyph/row presentation. The candidate removes every shifted or multi-scanline star variant and prevents adjacent-lane ambiguity structurally."
+  },
+  "farModel": {
+    "representation": "row-baked deterministic 28-row pattern",
+    "visibleCount": 29,
+    "colourRegister": "COLPF1 blue",
+    "glyphs": 1,
+    "glyphScreenCode": 1,
+    "activeScanlinesPerGlyph": 1,
+    "finePhases": [0, 1, 2, 3, 4],
+    "phaseSource": "floor(((scroll_accumulator + world_scroll_rate[difficulty]) mod 20) / 4)",
+    "independentTimer": false,
+    "perStarAddressResolution": false,
+    "dynamicTwinkle": false,
+    "maximumAdjacentMotionScanlines": 6,
+    "oldCoarseJumpScanlines": 8,
+    "reservedNearColumns": [11, 18, 25, 29],
+    "costCycles": {
+      "sharedFinePhase": 47,
+      "ordinaryRecycledRow": 83,
+      "doubleStarRecycledRowWorst": 136
+    }
+  },
+  "nearModel": {
+    "representation": "sparse dynamic character overlay",
+    "activeRecords": 4,
+    "initialLogicalRows": [2, 9, 16, 23],
+    "columns": [11, 18, 25, 29],
+    "colourRegister": "COLPF0 white",
+    "glyphs": 1,
+    "glyphScreenCode": 2,
+    "activeScanlinesPerGlyph": 1,
+    "speedScanlinesPerPalFrame": 8,
+    "screenCellsPerRecord": 1,
+    "oldAddressCacheBytes": 8,
+    "rowAndColumnBytes": 8,
+    "backingBytes": 0,
+    "collisionPolicy": "Four near columns are absent from the far pattern; a near point claims only CH_SPACE and remains visible without underlay state.",
+    "capital": "Disabled and frozen outside fighter OPEN. OLD cells are erased, physical caches invalidated, and all positions are resolved from the rebuilt ring when OPEN resumes.",
+    "costCycles": {
+      "movementAndBookkeeping": 75,
+      "oldErase": 155,
+      "newRenderNoRingStep": 415,
+      "newRenderWithRingStep": 271,
+      "noRingPeak": 645,
+      "ringStepPeak": 501,
+      "additionalPeakOverOldRowBakedNear": 494
+    },
+    "gate": "PASS: additional peak is inside the 351-500 cycle requested band."
+  },
+  "removedStarClass": {
+    "removedGlyphIds": ["BRIGHT", "SHIFTED", "DOUBLE", "SPARKLE"],
+    "removedGlyphBytes": 32,
+    "largestFastClassPresent": false,
+    "thirdLayerPresent": false,
+    "reason": "The large multi-scanline white motif could read as debris; only a one-scanline POINT remains for near stars."
+  },
+  "cpu": {
+    "classification": "MEASURED instruction-exact for linked NMOS-6502 routines; unified totals remain ESTIMATE because the scheduler is not implemented.",
+    "historicalDynamicStarfieldPeakCycles": 4221,
+    "rowBakedTechnicalBaselineCycles": 206,
+    "candidateCorrelatedWorstCycles": {
+      "noRingStep": 692,
+      "ringStepWithDoubleFarRow": 684,
+      "maximum": 692
+    },
+    "candidateHardMaximumCycles": 900,
+    "retainedSavingCycles": 3529,
+    "minimumRequiredRetainedSavingCycles": 3500,
+    "retainedSavingGateMarginCycles": 29,
+    "result": "PASS"
+  },
+  "parallax": {
+    "farAverageScanlinesPerFrame": {
+      "easy": 3.2,
+      "medium": 3.6,
+      "hard": 4.0
+    },
+    "nearScanlinesPerFrame": 8,
+    "nearToFarSpeedRatio": {
+      "easy": 2.5,
+      "medium": 2.22,
+      "hard": 2.0
+    },
+    "visualContract": "White near points always move materially faster than blue far points on every difficulty; owner smoke remains the final perceptual gate."
+  },
+  "writerSites": {
+    "beforeCandidate": 15,
+    "afterCandidate": 15,
+    "independentFarVisibleRingSites": 0,
+    "nearVisibleRingSites": 2,
+    "farFinePhaseCharsetWritesPerFrame": 2,
+    "note": "The shared charset phase update is not a per-cell visible-ring writer and performs no 29-record lookup."
+  },
+  "ringWrap": {
+    "hostPatternFrames": 600,
+    "nearLaneCollisionFrames": 0,
+    "nearVisibleCountEveryFrame": 4,
+    "explicitRuntimeLogicalAndPhysicalWrapFrames": 112,
+    "explicitFullWraps": 4,
+    "staleNearCells": 0,
+    "farCountEveryWarmedPeriod": 29,
+    "difficultyRatesCovered": [8, 9, 10],
+    "maximumFinePhaseJump": 6,
+    "capitalReconstruction": "PASS",
+    "capitalToFighterCacheRebuild": "PASS",
+    "pauseResumeContract": "No independent star timer exists; far phase is derived from authoritative scroll state and near is sector-local.",
+    "result": "PASS"
+  },
+  "memory": {
+    "before": {
+      "linkedRuntimeBytes": 17359,
+      "simultaneousResidencyBytes": 17837,
+      "safeHeadroomBytes": 4350,
+      "starfieldRuntimeBytes": 2072,
+      "starfieldPackedBytes": 1681,
+      "a2KernelBytes": 122,
+      "entityCodeBytes": 3188,
+      "starGlyphBytes": 48,
+      "starfieldAssetStateBytes": 2,
+      "farRecordBytes": 0,
+      "farAddressCacheBytes": 0
+    },
+    "after": {
+      "linkedRuntimeBytes": 17502,
+      "simultaneousResidencyBytes": 17980,
+      "safeHeadroomBytes": 4207,
+      "starfieldRuntimeBytes": 2195,
+      "starfieldPackedBytes": 1783,
+      "a2KernelBytes": 171,
+      "entityCodeBytes": 3150,
+      "starGlyphBytes": 16,
+      "starfieldAssetStateBytes": 18,
+      "farPatternBytes": 29,
+      "farMutableScalars": 2,
+      "nearRowAndColumnBytes": 8,
+      "nearAddressCacheBytes": 8,
+      "nearBackingBytes": 0,
+      "farRecordBytes": 0,
+      "farAddressCacheBytes": 0
+    },
+    "delta": {
+      "linkedRuntimeBytes": 143,
+      "simultaneousResidencyBytes": 143,
+      "safeHeadroomBytes": -143,
+      "starfieldRuntimeBytes": 123,
+      "starfieldPackedBytes": 102,
+      "a2KernelBytes": 49,
+      "entityCodeBytes": -38,
+      "starGlyphBytes": -32,
+      "starfieldAssetStateBytes": 16
+    }
+  },
+  "placement": {
+    "starfield": {
+      "rawBytes": 2195,
+      "rawCapacityBytes": 2348,
+      "rawMarginBytes": 153,
+      "packedBytes": 1783,
+      "packedCapacityBytes": 1819,
+      "packedMarginBytes": 36,
+      "packedSourceToPickupMarginBytes": 10
+    },
+    "a2Kernel": {
+      "bytes": 171,
+      "capacityBytes": 256,
+      "marginBytes": 85
+    },
+    "entityCode": {
+      "runAddress": "$9100",
+      "bytes": 3150,
+      "endExclusive": "$9D4E",
+      "directorStart": "$9D75",
+      "runtimeMarginBytes": 39,
+      "stagingToBroadsideMarginBytes": 112,
+      "safeBackwardSourceOverlapBytes": 13
+    },
+    "broadside": {
+      "bytes": 6647,
+      "capacityBytes": 6656,
+      "marginBytes": 9
+    },
+    "pickupColdRecord": {
+      "bytes": 860,
+      "capacityBytes": 1277,
+      "marginBytes": 417
+    },
+    "initialContent": {
+      "contentBytes": 13097,
+      "transportBytes": 13184,
+      "marginBytes": 87,
+      "sectors": 103
+    },
+    "transport": {
+      "format": "DFMC-v1 multi-chunk unchanged",
+      "records": 4,
+      "totalSectors": 163,
+      "newRecord": false
+    },
+    "result": "PASS"
+  },
+  "unifiedWindowForecast": {
+    "classification": "ESTIMATE from the accepted Effects 25 Hz/PairShot model with its old 357-cycle near+far term replaced by the measured 692-cycle starfield peak.",
+    "conservativeWindowCycles": 9975,
+    "normal": {
+      "cycles": [4664, 4744],
+      "margin": [5231, 5311]
+    },
+    "rapid": {
+      "cycles": [4860, 4940],
+      "margin": [5035, 5115]
+    },
+    "spread": {
+      "cycles": [5121, 5201],
+      "margin": [4774, 4854]
+    },
+    "playerFiveEnemyFive": {
+      "cycles": [5776, 5856],
+      "margin": [4119, 4199]
+    },
+    "schedulerImplemented": false
+  },
+  "verification": {
+    "candidateBuild": {
+      "command": "npm run build:two-pmg -- --quiet",
+      "result": "PASS"
+    },
+    "deterministicBuild": {
+      "result": "PASS",
+      "starfieldRuntimeSha256": "3590d73c92af9554cb7622b62cd763021abf48d0b1c73517b338e2f7acf7a47a",
+      "a2KernelSha256": "68d8d2c2094943e831ed9fc640ccfe5d569c4574148f133a11f98f2a7a1a3a8b"
+    },
+    "focusedTests": {
+      "result": "PASS 49/49",
+      "coverage": [
+        "far density and reserved near lanes",
+        "all difficulty scroll rates and fine-phase drift",
+        "four complete logical/physical wraps",
+        "capital reconstruction and capital-to-fighter cache invalidation",
+        "pause/resume clock freeze and screen preservation",
+        "PairShot 1200-shot stale/ghost matrix",
+        "fighter weapons",
+        "XEX/ATR staging and cold initialisation",
+        "effect/debris backing stack"
+      ]
+    },
+    "nativeColdBoot": {
+      "command": "ATARI800_TRACE_SOURCE=~/Projects/tools/atari800-7.1.2 npm run boot:smoke",
+      "sessions": 4,
+      "artifacts": ["XEX", "ATR"],
+      "result": "PASS"
+    },
+    "releaseVerifier": {
+      "command": "npm run verify",
+      "result": "EXPECTED REJECTION",
+      "reason": "The project release verifier intentionally rejects candidate artifacts until full native runtime evidence is bound after owner smoke. XEX/ATR reconstruction and four native cold boots passed."
+    },
+    "preview": {
+      "png": "build/previews/starfield-pal-sequence.png",
+      "trace": "build/previews/starfield-pal-trace.csv",
+      "result": "29 blue and four white points preserved in every captured frame; not a substitute for owner smoke"
+    },
+    "fullNativePerformanceTrace": "Not rerun: instruction-exact bounded star routines and cold-boot validation are proportional to this visual prototype; owner smoke is the required next gate."
+  },
+  "artifact": {
+    "path": "dist/void-strike-65.xex",
+    "sha256": "242fa14107d76d2d5e8f6641de94b60b0ccacbbca3b626db7418eee7c5001390",
+    "status": "two-layer starfield owner-smoke candidate"
+  },
+  "decision": "Ready for owner starfield smoke",
+  "next": "After owner PASS only: Background/ring 25 Hz / staggered feasibility. Do not execute automatically."
+}

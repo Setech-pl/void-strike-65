@@ -53,10 +53,14 @@ const hulls = loadCapitalHullsDefinition(
 const asset = compileEnemyRoster(loadEnemyRosterDefinition(definitionPath), rootDirectory);
 const [interceptor, talon, bomber] = asset.implemented;
 const source = fs.readFileSync(path.join(rootDirectory, "src", "main.s"), "utf8");
+const lifecycleSource = fs.readFileSync(
+  path.join(rootDirectory, "src", "c", "lifecycle.c"), "utf8");
+const glueSource = fs.readFileSync(
+  path.join(rootDirectory, "src", "integration-glue.s"), "utf8");
 const manifest = JSON.parse(fs.readFileSync(path.join(rootDirectory, "build", "manifest.json"), "utf8"));
 const labels = new Map(
-  fs.readFileSync(path.join(rootDirectory, "build", "void-strike-65.lbl"), "utf8")
-    .split(/\r?\n/)
+  ["build/void-strike-65.lbl", "build/encounter-director.lbl"]
+    .flatMap((file) => fs.readFileSync(path.join(rootDirectory, file), "utf8").split(/\r?\n/))
     .map((line) => /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim()))
     .filter(Boolean)
     .map((match) => [match[2], Number.parseInt(match[1], 16)]),
@@ -95,16 +99,20 @@ test("selected Interceptor palette matches the Hostile hull hue with independent
   assert.deepEqual(
     [graphics.hardwareState.get("COLPM0"), graphics.hardwareState.get("COLPM1"),
       graphics.hardwareState.get("COLPM2"), graphics.hardwareState.get("COLPM3")],
-    [0x0e, 0x44, 0x46, 0x28],
+    [0x0e, 0x44, 0x44, 0x28],
   );
+  const resolver = source.slice(source.indexOf("resolve_enemy_damage:"),
+    source.indexOf("insert_top_score:"));
+  assert.doesNotMatch(resolver, /COLPM1|COLPM2|HPOSP1|HPOSP2/);
   assert.match(source,
-    /resolve_enemy_damage:[\s\S]+lda #ENEMY_EXPLOSION_CORE_COLOR[\s\S]+sta COLPM1[\s\S]+jsr spawn_interceptor_breakup_effects/);
+    /spawn_interceptor_breakup_effects:[\s\S]+jmp begin_enemy_fighter_explosion/);
   assert.match(source,
-    /spawn_interceptor_breakup_effects:[\s\S]+jsr clear_transient_effects[\s\S]+sta EFFECT_ALLOCATION_RESULT[\s\S]+jmp begin_enemy_fighter_explosion/);
+    /materialize_interceptor_breakup_effects:\s+rts/);
+  assert.doesNotMatch(source.slice(source.indexOf("spawn_interceptor_breakup_effects:"),
+    source.indexOf("update_transient_effects:")),
+  /EFFECT_|clear_transient_effects|erase_transient_effect_overlays/);
   assert.match(source,
-    /materialize_interceptor_breakup_effects:[\s\S]+jsr spawn_breakup_effects_at[\s\S]+entity_interceptor_fragment_render_ids/);
-  assert.match(source,
-    /tick_shared_fighter_explosions:[\s\S]+cpx #FIGHTER_EXPLOSION_ENEMY_SLOT[\s\S]+lda #ENEMY_RUNTIME_BODY_COLOR[\s\S]+sta COLPM1/);
+    /tick_shared_fighter_explosions:[\s\S]+cpx #FIGHTER_EXPLOSION_ENEMY_SLOT[\s\S]+beq @tick/);
   assert.match(source,
     /start_gameplay:[\s\S]+lda #ENEMY_RUNTIME_BODY_COLOR[\s\S]+sta COLPM1[\s\S]+music_start_gameplay/,
   "a new game must restore the Interceptor body even after an interrupted explosion");
@@ -237,23 +245,22 @@ test("Interceptor pursuit reverses gradually and preserves a small deterministic
     /update_interceptor_soft_pursuit:[\s\S]+INTERCEPTOR_TARGET_SAMPLE_INTERVAL[\s\S]+player_x[\s\S]+enemy_velocity_x/);
 });
 
-test("assembled archetype descriptors assign only Interceptor single-pulse fire", () => {
+test("assembled archetype descriptors assign only Interceptor PairShot fire", () => {
   assert.deepEqual(asset.implemented.map(({ weaponProfileId }) => weaponProfileId),
     [ENEMY_WEAPON_PROFILES.SINGLE_PULSE, ENEMY_WEAPON_PROFILES.NONE,
       ENEMY_WEAPON_PROFILES.NONE]);
-  assert.deepEqual(
-    [...readRuntimeBytes(labels.get("enemy_weapon_profiles"), 3)],
-    [ENEMY_WEAPON_PROFILES.SINGLE_PULSE, 0, 0],
-  );
-  assert.deepEqual([...readRuntimeBytes(labels.get("interceptor_post_burst_frames"), 3)],
-    [60, 50, 40]);
+  assert.deepEqual([...readRuntimeBytes(labels.get("_enemy_archetypes"), 12)],
+    [1, 0, 1, 5, 15, 60, 50, 40, 1, 1, 0x10, 1]);
   assert.deepEqual(asset.runtime.weaponPolicy.singlePulse, {
     renderer: "ANTIC4_GLYPH_POOL",
-    poolSlots: 9,
-    burstCount: 10,
-    burstIntervalFrames: 4,
+    poolSlots: 5,
+    activeLimit: 5,
+    visiblePulsesPerObject: 2,
+    pairGlyphRows: [1, 2, 5, 6],
+    burstCount: 5,
+    burstIntervalFrames: 15,
     postBurstFrames: [60, 50, 40],
-    speed: 5,
+    speed: 2,
     height: 3,
     widthHpos: 2,
     damage: 10,
@@ -264,7 +271,7 @@ test("assembled archetype descriptors assign only Interceptor single-pulse fire"
   assert.equal(asset.inventory.slice(3).every(({ implemented }) => implemented === false), true);
 });
 
-test("ten-shot burst intervals and post-burst difficulty pauses are exact", () => {
+test("five-shot burst uses the further-reduced interval and existing difficulty pauses", () => {
   assert.deepEqual([0, 1, 2].map((difficulty) => enemyFireCooldown(asset, difficulty)),
     [60, 50, 40]);
   for (const [difficulty, postBurst] of [[0, 60], [1, 50], [2, 40]]) {
@@ -275,10 +282,10 @@ test("ten-shot burst intervals and post-burst difficulty pauses are exact", () =
     });
     const allocations = simulation.trace.filter(({ allocationResult }) =>
       allocationResult === "ALLOCATED");
-    assert.deepEqual(allocations.slice(0, 10).map(({ frame }) => frame),
-      [1, 5, 9, 13, 17, 21, 25, 29, 33, 42]);
-    assert.equal(allocations[9].cooldown, postBurst);
-    assert.equal(allocations[10]?.frame, 42 + postBurst);
+    assert.deepEqual(allocations.slice(0, 5).map(({ frame }) => frame),
+      [1, 16, 31, 46, 61]);
+    assert.equal(allocations[4].cooldown, postBurst);
+    assert.equal(allocations[5]?.frame, 61 + postBurst);
   }
 });
 
@@ -286,7 +293,7 @@ test("release Interceptor enters progressively and naturally reaches burst alloc
   for (const difficulty of [0, 1, 2]) {
     const { state, trace } = simulateNaturalInterceptorFire(asset, {
       difficulty,
-      frameCount: 55,
+      frameCount: 100,
       initialEnemyY: ENEMY_FULLY_VISIBLE_TOP - interceptor.height,
     });
     const allocation = trace.find(({ allocationResult }) => allocationResult === "ALLOCATED");
@@ -296,20 +303,17 @@ test("release Interceptor enters progressively and naturally reaches burst alloc
     assert.equal(allocation.renderSlot, "PF0");
     assert.equal(allocation.hpos, 127);
     assert.equal(allocation.activePlayfieldProjectiles.length, 1);
-    assert.ok(state.shotsFired >= 10);
+    assert.ok(state.shotsFired >= 5);
   }
-  const enemyY = labels.get("enemy_y");
-  const initBytes = readRuntimeBytes(labels.get("init_state"),
-    labels.get("clear_pmg") - labels.get("init_state"));
-  const resetBytes = readRuntimeBytes(labels.get("reset_enemy"),
-    labels.get("reset_enemy_fire_cooldown") - labels.get("reset_enemy"));
-  assert.notEqual(initBytes.indexOf(Buffer.from([0xa9, 0x02, 0x85, enemyY])), -1,
-    "assembled initial lifecycle starts one Interceptor height above GAMEPLAY_TOP");
-  assert.notEqual(resetBytes.indexOf(Buffer.from([0x38, 0xfd])), -1,
-    "assembled slot reuse subtracts the active archetype height from GAMEPLAY_TOP");
+  assert.match(source, /reset_enemy:[\s\S]+jsr HYBRID_ENEMY_SPAWN_RAIDERS/);
+  // Roadmap 4.4: enemy_archetypes became a tagged union (record[]/byte[]) so
+  // the Light slot can index a selected record by byte offset; Raider HP is
+  // still read from record 0. 4.5c: HP comes from the selected Heavy record.
+  assert.match(lifecycleSource,
+    /void enemy_c_spawn_raiders[\s\S]+ENEMY_HP_0 = HEAVY_FIELD\(ENEMY_ARCHETYPE_FIELD_HIT_POINTS\)[\s\S]+ENEMY_LIVE_COUNT = RAIDER_SLOT_COUNT/);
 });
 
-test("natural playfield pulse remains visible while moving five scanlines per frame", () => {
+test("natural playfield pulse remains visible while moving two scanlines per frame", () => {
   const { trace } = simulateNaturalInterceptorFire(asset, {
     difficulty: 1,
     frameCount: 12,
@@ -319,7 +323,7 @@ test("natural playfield pulse remains visible while moving five scanlines per fr
   const frames = trace.slice(allocationIndex, allocationIndex + 4);
   assert.deepEqual(frames.map(({ activePlayfieldProjectiles }) =>
     activePlayfieldProjectiles.find(({ renderSlot }) => renderSlot === 0)?.y),
-  [38, 43, 48, 53]);
+  [38, 40, 42, 44]);
   assert.equal(frames.every(({ sizeM }) => sizeM === 0x54), true,
     "fighter playfield rendering leaves every capital SIZEM pair unchanged");
 });
@@ -338,7 +342,7 @@ test("inactive, exploding, off-screen, and weaponless enemies cannot fire", () =
   }
 });
 
-test("pulse origin follows the active frame centre and moves down five scanlines per frame", () => {
+test("pulse origin follows the active frame centre and moves down two scanlines per frame", () => {
   const policy = asset.runtime.weaponPolicy.singlePulse;
   const origin = enemyPulseSpawnPosition(interceptor, 120, 56, policy);
   assert.deepEqual(origin, {
@@ -349,13 +353,13 @@ test("pulse origin follows the active frame centre and moves down five scanlines
   state = stepEnemyCombatFrame(asset, state, { enemyX: 120, enemyY: 56 });
   const spawned = state.pool.find(Boolean);
   assert.deepEqual([spawned.x, spawned.y, spawned.speed, spawned.damage],
-    [origin.x, origin.y, 5, 10]);
+    [origin.x, origin.y, 2, 10]);
   state = stepEnemyCombatFrame(asset, state, {
     enemyX: 120,
     enemyY: 56,
     player: { x: 80, y: 200, width: 8, height: 16 },
   });
-  assert.equal(state.pool.find(Boolean).y, origin.y + 5);
+  assert.equal(state.pool.find(Boolean).y, origin.y + 2);
 });
 
 test("swept collision catches between-frame crossings and one pulse causes one ten-point hit", () => {
@@ -396,21 +400,42 @@ test("respawn invulnerability consumes intersecting pulses without player damage
     enemyY: 166,
     playerInvulnerable: true,
   });
+  assert.deepEqual([state.playerHits, state.playerDamage, state.playerHealth], [0, 0, 100]);
+  state = stepEnemyCombatFrame(asset, state, {
+    enemyX: 120,
+    enemyY: 166,
+    playerInvulnerable: true,
+  });
   assert.deepEqual([state.playerHits, state.playerDamage, state.playerHealth], [1, 0, 100]);
   assert.equal(state.pool[0], null);
 });
 
 test("Interceptor playfield pool cannot overwrite M0 or active capital missiles", () => {
   let state = createEnemyCombatState(asset);
-  for (let frame = 0; frame < 40; frame += 1) {
+  for (let frame = 0; frame < 70; frame += 1) {
     state = stepEnemyCombatFrame(asset, state, { enemyX: 120, enemyY: 56 });
   }
-  assert.equal(state.shotsFired, 10);
-  assert.equal(state.pool.length, 9);
+  assert.equal(state.shotsFired, 5);
+  assert.equal(state.pool.length, 5);
   assert.match(source, /MISSILE_M0_MASK = \$03/);
   const fighterRenderer = source.slice(source.indexOf("render_fighter_projectile_overlays:"),
     source.indexOf("; -----------------------------------------------------------------------------\n; Enemy"));
   assert.doesNotMatch(fighterRenderer, /MISSILES|HPOSM|SIZEM|COLPM/);
+});
+
+test("Raider active-limit rejection defers one pulse without catch-up", () => {
+  let state = createEnemyCombatState(asset);
+  state.pool = state.pool.map((_, index) => index < 5 ? {
+    active: true, owner: "INTERCEPTOR", x: 80 + index * 4, y: 80,
+    previousY: 80, speed: 2, damage: 10, lifetime: 96,
+  } : null);
+  state = stepEnemyCombatFrame(asset, state, { enemyX: 120, enemyY: 56 });
+  assert.deepEqual([state.shotsFired, state.burstRemaining, state.fireTimer], [0, 5, 0]);
+  state.pool[0] = null;
+  state = stepEnemyCombatFrame(asset, state, { enemyX: 120, enemyY: 56 });
+  assert.equal(state.shotsFired, 1);
+  state = stepEnemyCombatFrame(asset, state, { enemyX: 120, enemyY: 56 });
+  assert.deepEqual([state.shotsFired, state.fireTimer], [1, 14]);
 });
 
 test("EXPLODING and inactive Interceptors never fall through to the live PMG renderer", () => {
@@ -419,7 +444,9 @@ test("EXPLODING and inactive Interceptors never fall through to the live PMG ren
   assert.match(update,
     /cmp #ENEMY_EXPLODING_STATE[\s\S]+FIGHTER_EXPLOSION_TIMER\+FIGHTER_EXPLOSION_ENEMY_SLOT[\s\S]+beq @reset\s+rts/);
   assert.match(update,
-    /cmp #ENEMY_ACTIVE_STATE[\s\S]+beq @live\s+rts\s+@live:\s+jsr erase_enemy/);
+    /cmp #ENEMY_ACTIVE_STATE[\s\S]+beq @live\s+rts\s+@live:[\s\S]+jsr draw_enemy_member[\s\S]+jsr erase_enemy_departing_row/);
+  assert.doesNotMatch(update, /jsr erase_enemy(?:\s|$)/,
+    "live movement must not blank both complete PMG bodies before redraw");
   assert.match(source,
     /reset_enemy:[\s\S]+jsr reset_enemy_fire_cooldown\s+jmp draw_enemy/);
 });
@@ -430,7 +457,7 @@ test("natural broadside firing uses an independent pool and preserves capital re
     frameCount: 80,
     initialSizeM: 0x44,
   });
-  assert.ok(broadside.state.shotsFired >= 8,
+  assert.ok(broadside.state.shotsFired >= 5,
     "capital M1-M3 ownership cannot starve the independent Interceptor pool");
   assert.equal(broadside.trace.every(({ sizeM }) => sizeM === 0x44), true);
   assert.match(source, /jsr update_broadside[\s\S]+jsr resolve_enemy_damage/);
@@ -450,19 +477,25 @@ test("natural-fire trace records burst allocation and playfield movement", () =>
   assert.match(openAllocation, /PF0:[0-9]+:[0-9]+>[0-9]+:2x3/);
 });
 
-test("pulse cleanup is deterministic across drain, complete, death, and respawn paths", () => {
+test("released pulses survive the capital gate while terminal player lifecycle still clears them", () => {
   let state = { ...createEnemyCombatState(asset), fireTimer: 0 };
   state = stepEnemyCombatFrame(asset, state);
   assert.ok(state.pool[0]);
   state = stepEnemyCombatFrame(asset, state, {
     sectorState: ENEMY_COMBAT_SECTOR_STATES.DRAIN,
   });
-  assert.equal(state.pool[0], null);
+  assert.ok(state.pool[0], "DRAIN stops the parent weapon without releasing its projectile");
+  assert.equal(state.burstState, "WAITING");
   state = stepEnemyCombatFrame(asset, state, {
     sectorState: ENEMY_COMBAT_SECTOR_STATES.COMPLETE,
   });
-  assert.ok(state.pool[0], "ordinary Interceptor fire resumes after the finite sector exits DRAIN");
-  assert.match(source, /update_enemy_weapon_runtime:[\s\S]+cmp #CAPITAL_HULL_STATE_DRAIN[\s\S]+clear_interceptor_projectiles/);
+  assert.ok(state.pool[0], "the independent projectile also survives COMPLETE");
+  state = stepEnemyCombatFrame(asset, state, { playerActive: false });
+  assert.equal(state.pool[0], null, "terminal player lifecycle retains full projectile cleanup");
+  assert.match(source,
+    /update_enemy_weapon_runtime:[\s\S]+jsr ordinary_wave_capital_blocked[\s\S]+bmi @stop/);
+  assert.doesNotMatch(source.slice(source.indexOf("update_enemy_weapon_runtime:"),
+    source.indexOf("allocate_interceptor_projectile:")), /clear_interceptor_projectiles/);
   assert.match(source, /apply_player_damage:[\s\S]+jsr clear_interceptor_pulses/);
   assert.match(source, /respawn_player:[\s\S]+jsr clear_fighter_projectiles/);
 });
@@ -527,7 +560,7 @@ test("Hostile capital friendly fire consumes the first shell hit and starts one 
     source: ENEMY_DAMAGE_SOURCES.CLEANUP,
   });
   assert.match(source,
-    /capital_shell_hits_enemy:[\s\S]+cmp #ENEMY_ACTIVE_STATE[\s\S]+jmp capital_shell_hits_target/);
+    /capital_shell_hits_enemy:[\s\S]+cmp #ENEMY_ACTIVE_STATE[\s\S]+ENEMY_MEMBER_STATE,x[\s\S]+jsr enemy_member_screen_y[\s\S]+jsr capital_shell_hits_target/);
   assert.match(source,
     /@flying:[\s\S]+DAMAGE_CAPITAL_HOSTILE[\s\S]+jsr queue_enemy_damage/);
 });
@@ -613,10 +646,10 @@ test("projectile definitions preserve PMG colours and make capital fire material
     "capital travel-axis length is at least twice fighter fire");
   assert.ok(visuals.allied.occupiedPixels > visuals.interceptor.occupiedPixels * 2);
   assert.equal(visuals.allied.occupiedPixels, visuals.hostile.occupiedPixels);
-  assert.match(source,
+  assert.match(glueSource,
     /render_capital_shell_overlay:[\s\S]+CAPITAL_PROJECTILE_HOSTILE_ATTRIBUTE[\s\S]+sta \(dst_ptr\),y/);
-  assert.doesNotMatch(source.slice(source.indexOf("render_capital_shell_overlay:"),
-    source.indexOf("draw_broadside_span:")), /COLPM[0-3]|SIZEM/);
+  assert.doesNotMatch(glueSource.slice(glueSource.indexOf("render_capital_shell_overlay:"),
+    glueSource.indexOf("integration_broadside_release:")), /COLPM[0-3]|SIZEM/);
   assert.deepEqual(manifest.enemyRoster.projectileVisuals, hulls.broadside.projectileVisuals);
   assert.deepEqual(manifest.enemyRoster.damagePolicy, {
     priority: ["PLAYER_PROJECTILE", "PLAYER_CONTACT", "CAPITAL_HOSTILE",

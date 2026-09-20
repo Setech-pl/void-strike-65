@@ -1,0 +1,184 @@
+{
+  "schema_version": 1,
+  "stage": "stage-2b2b-two-heavy-overlap-black-mask-fix",
+  "date": "2026-09-14",
+  "status": "PASS",
+  "scope": "reproduce and minimally repair intermittent two-Heavy PMG black masking; spawn positioning, debris and roster work excluded",
+  "baseline": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "head_before": "76a2d7d02915a31c1e8eda9eb8b323be4a5b5b12",
+    "worktree_before": ["?? .claude/"],
+    "xex": {
+      "path": "dist/void-strike-65.xex",
+      "bytes": 21625,
+      "sha256": "28fe399bf86b7ece78479d18facbba80d7fde9d723197dcf1761299c43d65863"
+    },
+    "memory_bytes": {
+      "classification": "MEASURED_LINKED",
+      "linked_runtime": 17526,
+      "simultaneous_residency": 18004,
+      "safe_headroom": 4183
+    },
+    "authoritative_sources_read": [
+      "AGENTS.md",
+      "docs/reguly-projektu.txt",
+      "docs/README.md",
+      "docs/plan-realizacji.md v4.7",
+      "docs/owner-decisions-2026-09-11.md",
+      "docs/diagnostics/stage-2b2b-debris-abi-native-slot0-baseline.json",
+      "docs/diagnostics/stage-2b2b-final-remaining-raider-remnant-fix.json",
+      "src/main.s",
+      "assets/graphics/enemy-roster.json",
+      "tests/two-pmg-raiders.test.mjs",
+      "tests/enemy-combat.test.mjs",
+      "scripts/runtime-wall-trace.mjs",
+      "scripts/atari800-wall-trace.h"
+    ]
+  },
+  "reproducer": {
+    "classification": "MEASURED_NATIVE",
+    "artifact": "baseline HEAD 76a2d7d, rebuilt and run only in an isolated temporary directory",
+    "emulator": "Atari800 7.1.2 PAL/XL",
+    "policy": "raider-proof, production movement/render path, no synthetic renderer bypass",
+    "completed_frames": 320,
+    "two_heavy_active_frames": 97,
+    "geometric_overlap_frames": 13,
+    "black_mask_frames": 16,
+    "black_mask_pixels_total": 1308,
+    "black_mask_pixels_maximum": 220,
+    "corrupted_frames": [7, 71, 72, 118, 119, 120, 121, 182, 183, 184, 185, 250, 251, 252, 253, 255],
+    "examples": [
+      "frame 71: P1 Raider absent while P2 remains visible and both final PMG page snapshots report 13 nonzero rows",
+      "frame 119: one full 220-pixel opaque silhouette interval is black",
+      "frame 255: P1 is reduced to a partial line while P2 remains intact"
+    ],
+    "overlap_interpretation": "The controlled geometric overlap itself renders the correct union under normal P1 priority. It makes the failure conspicuous but is not the cause; the same clear-to-redraw DMA race can fire while the two objects are close or separated."
+  },
+  "root_cause": {
+    "classification": "PROVEN_BY_NATIVE_RASTER_PLUS_LINKED_CONTROL_FLOW",
+    "before_sequence": [
+      "update_enemy calls erase_enemy",
+      "erase_enemy_member writes zero through all 14 rows of P1 and then P2 at writer PC 0x2D77",
+      "both movement simulations run",
+      "draw_enemy republishes both full bodies; body store PC 0x63AB",
+      "ANTIC PMG DMA may fetch between the full clear and the later redraw"
+    ],
+    "blank_interval_cycles": {
+      "classification": "MEASURED_NATIVE_PROFILE",
+      "two_heavy_live_min": 3050,
+      "two_heavy_live_max": 4326,
+      "two_heavy_live_average": 4078.154639175258,
+      "geometric_overlap_min": 3950,
+      "geometric_overlap_max": 4157,
+      "geometric_overlap_average": 4051.923076923077
+    },
+    "why_memory_snapshots_looked_correct": "The final per-frame P1/P2 pages each contained 13 nonzero rows; corruption occurred at DMA fetch time while those pages temporarily contained zeros.",
+    "hypotheses": {
+      "H1_pmg_range_overclear": "REJECTED: clipped 14-row stores never cross the selected 256-byte P1/P2 page",
+      "H2_old_new_ordering": "CONFIRMED: full erase of both bodies precedes both simulations and both redraws",
+      "H3_wrong_pmg_base": "REJECTED: slot selects page high 0x3D or 0x3E with explicit CLC",
+      "H4_pointer_index_overflow": "REJECTED: GAMEPLAY_BOTTOM clipping and page-local Y keep all stores in range",
+      "H5_shared_scratch": "REJECTED: exact host write provenance retains the selected slot/page",
+      "H6_gtia_priority": "REJECTED: overlapping opaque union is correct with PRIOR=0 and equal COLPM1/COLPM2",
+      "H7_sprite_asset": "REJECTED: the same 14-row asset renders correctly on safe frames",
+      "H8_double_render_lifecycle": "REJECTED: master PAL trace admits one update_enemy invocation per active frame"
+    }
+  },
+  "fix": {
+    "classification": "IMPLEMENTED_MINIMAL_RUNTIME",
+    "contract": [
+      "update and draw each active Raider immediately on its own PMG page",
+      "after the new body is published, clear only the single scanline which departed the old +/-1 footprint",
+      "retain full erase_enemy_member for destruction",
+      "retain full two-member erase only in ENEMY_REVIEW_HARNESS builds"
+    ],
+    "new_writer_pcs": {
+      "body_store": "0x63C9",
+      "departing_row_P1": "0x90E5",
+      "departing_row_P2": "0x90E9"
+    },
+    "architectural_changes": "none: no compositor, buffer, ownership map, PMG reassignment or gameplay change"
+  },
+  "pmg_memory_proof": {
+    "classification": "MEASURED_NMOS_HOST",
+    "scenarios": ["one Heavy", "two separated at top", "partial overlap", "maximum overlap", "crossing middle", "bottom"],
+    "p1_range": "0x3D00-0x3DFF",
+    "p2_range": "0x3E00-0x3EFF",
+    "foreign_page_writes": 0,
+    "live_page_full_blank_states": 0,
+    "final_nonzero_rows_per_live_page": 13,
+    "player_P0_P3_changed": false,
+    "native_note": "Native final-page snapshots and the raster oracle show no cross-corruption; exact writer ownership is asserted by the host NMOS write hook."
+  },
+  "cpu": {
+    "classification": "MEASURED_NATIVE_PROFILE",
+    "before_two_heavy_live": {"samples": 97, "min": 3050, "max": 4326, "average": 4078.154639175258},
+    "after_two_heavy_live": {"samples": 156, "min": 2876, "max": 3264, "average": 3071.24358974359},
+    "live_peak_delta_cycles": -1062,
+    "live_average_delta_cycles": -1006.911049431668,
+    "before_overlap": {"samples": 13, "min": 3950, "max": 4157, "average": 4051.923076923077},
+    "after_overlap": {"samples": 13, "min": 2887, "max": 3070, "average": 2977.769230769231},
+    "overlap_peak_delta_cycles": -1087,
+    "overlap_average_delta_cycles": -1074.153846153846,
+    "candidate_full_frame": {
+      "completed_frames": 1000,
+      "maximum_active_work": 21719,
+      "maximum_raw_cadence": 28837,
+      "target_headroom": 9481,
+      "hard_headroom": 10849
+    }
+  },
+  "measured_native": {
+    "source_report": "build/runtime-wall-trace/two-pmg-raiders-native-report.json",
+    "emulator": "Atari800 7.1.2 PAL/XL",
+    "completed_frames": 1000,
+    "two_heavy_active_frames": 156,
+    "overlap_frames": 13,
+    "maximum_player_pairshots": 5,
+    "maximum_raider_pairshots": 5,
+    "ring_rotation_active": true,
+    "black_mask_events": 0,
+    "black_mask_pixels": 0,
+    "stale_heavy_remnants": 0,
+    "inactive_slot_stale_page_frames": 0,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "dli_anomalies": 0,
+    "target_overruns": 0,
+    "hard_gate_overruns": 0
+  },
+  "memory_placement": {
+    "classification": "MEASURED_LINKED",
+    "code_delta_bytes": 40,
+    "ram_delta_bytes": 0,
+    "pmg_memory_delta_bytes": 0,
+    "linked_runtime": {"before": 17526, "after": 17566},
+    "simultaneous_residency": {"before": 18004, "after": 18044},
+    "safe_headroom": {"before": 4183, "after": 4143},
+    "initial_content": {"used": 13163, "capacity": 13184, "margin": 21},
+    "starfield": {"raw": 2188, "capacity": 2348, "packed": 1787, "packed_staging_capacity": 1819, "packed_source_margin": 27},
+    "a2": {"used": 237, "capacity": 256, "margin": 19},
+    "broadside": {"raw": 6653, "capacity": 6656, "margin": 3, "packed_before": 5665, "packed_after": 5662},
+    "pickup_code": {"used": 871, "capacity": 896, "margin": 25},
+    "pickup_cold": {"used": 866, "capacity": 1277, "margin": 411},
+    "entity_code": {"used": 3162, "director_gap": 27},
+    "basic_ram": false,
+    "loader_change": false,
+    "transport_sector_topology_change": false
+  },
+  "tests": {
+    "build": "PASS: npm run build:two-pmg -- --quiet",
+    "focused": "PASS: 41/41 two-pmg-raiders + enemy-combat + layout-d1",
+    "host_pmg_provenance": "PASS: 6 geometries, 0 foreign-page writes, 0 full-page blank states",
+    "native": "PASS: 1000 PAL frames, 0 black masks",
+    "boot_smoke": "PASS: 4/4 XEX/ATR cold starts",
+    "protected_regressions": "PASS: master PAL, PairShot foundation/stale, effects stagger, fire/audio and Raider-remnant focused tests",
+    "known_preexisting_failures": "entity-effects.test.mjs remains 33 PASS / 12 FAIL on both baseline 76a2d7d and candidate; failures are stale multi-slot/contact/effect fixture expectations and were not changed in this task"
+  },
+  "production_binary": {
+    "xex": {"path": "dist/void-strike-65.xex", "bytes": 21625, "sha256": "c5dfc33846dc71b996d0445d3371f00458e6c24bb2f3f3dc676dc94730d2dd32"},
+    "atr": {"path": "dist/void-strike-65.atr", "bytes": 92176, "sha256": "39d50d757310bdb9ea237272b362e09a41b0c69c8f24e4e86775e533e846d914"}
+  },
+  "decision": "PASS — the black mask was a full-clear raster race, and the bounded departing-row update removes it without PMG cross-corruption or gameplay changes.",
+  "next_task": "Fix off-screen spawn contract for Raider and gameplay debris."
+}

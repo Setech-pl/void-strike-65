@@ -3,11 +3,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { fileURLToPath } from "node:url";
-import { toolchain } from "romdev-toolchain-cc65";
+import { shareDir, toolchain } from "romdev-toolchain-cc65";
 import { makeAtr, makeXexSegments, validateBuildDirectory } from "./formats.mjs";
 import {
   buildDfmcV1Transport,
   chunkLoaderConstants,
+  deterministicCapacityBytes,
   parseChunkManifest,
 } from "./chunk-loader.mjs";
 import {
@@ -72,6 +73,9 @@ const packageDefinition = JSON.parse(fs.readFileSync(path.join(rootDirectory, "p
 const gameVersion = packageDefinition.version;
 const quiet = process.argv.includes("--quiet");
 const candidateBuild = runtimeEvidencePhase(process.argv) === "candidate";
+const asmDirectorBaseline = process.argv.includes("--asm-director");
+const skipRuntimeMeasurement = process.argv.includes("--skip-runtime-measurement");
+const twoPmgRaiderPrototype = process.argv.includes("--two-pmg-raiders");
 const enemyReviewHarness = process.argv.includes("--enemy-review");
 const enemyCombatReviewHarness = process.argv.includes("--enemy-combat-review");
 const enemyPaletteArgument = process.argv.find((argument) => argument.startsWith("--enemy-palette="));
@@ -99,10 +103,45 @@ const acceptedRuntimeCompactionReserveBytes = 1097;
 const minimumWeaponPickupReserveBytes = 512;
 const residentRuntimeSuffixAddressExpected = 0x21c1;
 const packedResidentStagingAddress = 0x8100;
-const entityPackedStagingAddress = 0x534b;
-const weaponPickupPhaseBankAddress = 0x8800;
+const entityPackedStagingAddress = 0x5318;
+// The pickup/collision stream now starts with the LIGHT_RESIDENT kernel.
+const weaponPickupRuntimeAddress = 0x8776;
 const weaponPickupPackedStagingAddress = 0x8c80;
-const bootA2StagingAddress = 0x7f16;
+const weaponPickupPackedStagingEndAddress = 0x917d;
+const weaponPickupPackedCapacityBytes =
+  weaponPickupPackedStagingEndAddress - weaponPickupPackedStagingAddress;
+// Reusable resident capacity (step 4.3): the former boot-only GLUE hold, after
+// the near-star records ending at $8601 and before the C scratch BSS at $86FA.
+const residentWindowAddress = 0x8602;
+const residentWindowBytes = 0x86fa - residentWindowAddress;
+// Roadmap 4.5M-M1: the boot-only GLUE hold moved from $8300 to the start of the
+// consumed resident staging interval so that starfield stream B can use the
+// contiguous idle range behind it ($81FA-$8601).
+const glueHoldingAddress = 0x8100;
+// Roadmap 4.5M-M2 cold-record relocation. The ABI cold record lands directly
+// after A2 staging inside the entity-state page ($8018-$808C; consumed by
+// publish_director_abi before init_entity_effects clears $8000-$80FF). The
+// low-C image (full $F8 reservation) and the GLUE image (the Heavy window tail
+// is retired by 4.5M-M3) travel as ONE LZ record that lands at coldLowGlueRecordAddress, above the
+// packed resident staging (checked against the measured packed size) and below
+// the direct-landing DIRECTOR_C_PRE record at $9D5E; ENTITY_CODE expands over it
+// afterwards, so every consumer runs before unpack_entity_runtime.
+const bootA2StagingAddress = 0x7f2b;
+const abiColdRecordAddress = 0x8018;
+const entityStatePageEndExclusive = 0x8100;
+const coldLowGlueRecordAddress = 0x9b40;
+const directorPreRunAddress = 0x9d5e;
+const lowCodeReservationBytes = 0xf8;
+// Roadmap 4.5M-M3: HYBRID_C_ARENA, one contiguous reusable runtime arena for
+// cc65 code, cc65 read-only data and assigned ca65 helpers. It replaces the
+// temporary 243-B HYBRID_C_HEAVY window ($7E12-$7F04) and its 44-B transport
+// tail in the merged cold record. Its linked image (used bytes, at least the
+// ca65 anchor) is its own DFMC record whose final destination is the arena
+// itself: no hold, no publish copy. It ends before the A2 display lists.
+const hybridArenaAddress = 0x7bd0;
+const hybridArenaEndExclusive = 0x7f10;
+const hybridArenaCapacityBytes = hybridArenaEndExclusive - hybridArenaAddress;
+const a2DisplayListAddress = 0x7f10;
 const debrisVisualPolishEntityCodeBaselineBytes = 564;
 const debrisVisualPolishEntityCodeBudgetBytes = 512;
 const runtimeHeadroomHistoricalWallGate = 31568;
@@ -164,22 +203,47 @@ const frontendH31BaselineRuntimeCodeBytes = shieldBoosterBaselineRuntimeCodeByte
 const frontendH31BaselineEntityFeatureBytes = shieldBoosterBaselineEntityFeatureBytes;
 const frontendH31HardRuntimeDeltaBytes = 1280;
 const broadsideRuntimeReservedBytes = 0x1a00;
-const starfieldStagingAddress = 0x7810;
-const starfieldStagingBytes = 0x706;
+// Roadmap 4.5M-M1: the packed STARFIELD travels as two independent LZ-10/5
+// streams. Stream A is staged in the consumed extension cold source below the
+// GLUE cold record ($7810-$7BCF); stream B in idle boot RAM behind the GLUE
+// hold ($81FA-$85B9, inside the idle range to $8601). Each stream is moved by
+// one exact 960-B resident pause-screen copy (the table-driven boot copier is
+// stage-2 overlay code and is gone by then), so each must pack to <= 960 B; the
+// total is gated separately (below) so the larger windows grant no content.
+const starfieldStagingStreams = Object.freeze([
+  Object.freeze({ id: "A", address: 0x7810, capacityBytes: 0x3c0, idleWindowEndExclusive: 0x7bd0 }),
+  Object.freeze({ id: "B", address: 0x81fa, capacityBytes: 0x3c0, idleWindowEndExclusive: 0x8602 }),
+]);
+const starfieldStagingAddress = starfieldStagingStreams[0].address;
+const starfieldStagingBytes = starfieldStagingStreams.reduce(
+  (sum, { capacityBytes }) => sum + capacityBytes, 0);
+// Superseded single-stream gates (kept for the record): reviewed correction
+// gate 1,798 B (open owner decision, 1,805 B measured) and hard staging limit
+// 1,819 B ($7810-$7F2A). The two-stream representation adds split overhead, so
+// the reviewed total gates carry the identical content headroom on top of the
+// measured 4.5M-M1 total rather than the sum of the staging windows.
+const starfieldSingleStreamCorrectionGateBytes = 0x706;
+const starfieldSingleStreamHardStagingBytes = 0x71b;
+const starfieldSingleStreamPackedBytesAtSwap = 1805;
+const starfieldPackedTotalBaselineBytes = 1811;
+const starfieldPackedTotalCorrectionGateBytes = starfieldPackedTotalBaselineBytes -
+  (starfieldSingleStreamPackedBytesAtSwap - starfieldSingleStreamCorrectionGateBytes);
+const starfieldPackedTotalHardGateBytes = starfieldPackedTotalBaselineBytes +
+  (starfieldSingleStreamHardStagingBytes - starfieldSingleStreamPackedBytesAtSwap);
 const encounterDirectorEnabled = true;
-const glueStagingAddress = 0x5261;
+const glueStagingAddress = coldLowGlueRecordAddress + lowCodeReservationBytes;
 const glueFinalAddress = 0x4efe;
 const directorRunAddress = 0x9d75;
 const directorGuardAddress = 0x9ffa;
-// Frontend branding and the PMG-latch clear remain inside the existing
-// 101-sector initial envelope; extension chunk topology remains frozen.
-const expectedInitialContentBytes = 12900;
-const expectedLinkedRuntimeBytes = 17203;
-const expectedDirectorRawBytes = 645;
-const expectedDirectorPackedBytes = 585;
-const expectedGlueRawBytes = 234;
-const expectedGluePackedBytes = 229;
-const capitalPlayerCollisionAddress = 0x8e61;
+// White-only stars and one-cell PairShots retain the same loader implementation.
+// The two-Heavy raster repair adds one 40-byte departing-row helper to A2.
+const expectedInitialContentBytes = 13165;
+const expectedLinkedRuntimeBytes = 17549;
+const expectedDirectorRawBytes = 644;
+const expectedDirectorPackedBytes = 587;
+const expectedGlueRawBytes = 250;
+const expectedGluePackedBytes = 245;
+const capitalPlayerCollisionAddress = 0x8b67;
 
 function ensureDirectory(fsApi, directory) {
   const parts = directory.split("/").filter(Boolean);
@@ -296,6 +360,364 @@ async function buildResidentModule({ sourcePath, configPath, stem, extraInputs =
   };
 }
 
+async function buildHybridDirectorModule(fighterWeaponsInclude) {
+  const base = "/project/build/encounter-director";
+  const cSource = fs.readFileSync(path.join(rootDirectory, "src", "c", "director.c"));
+  const cHeader = fs.readFileSync(path.join(rootDirectory, "src", "c", "director.h"));
+  const lifecycleSource = fs.readFileSync(path.join(rootDirectory, "src", "c", "lifecycle.c"));
+  const lifecycleHeader = fs.readFileSync(path.join(rootDirectory, "src", "c", "lifecycle.h"));
+  const archetypeHeader = fs.readFileSync(
+    path.join(rootDirectory, "src", "c", "enemy-archetype.h"),
+  );
+  const stdintHeader = fs.readFileSync(path.join(shareDir, "include", "stdint.h"));
+  const longBranchMacros = fs.readFileSync(path.join(shareDir, "asminc", "longbranch.mac"));
+  const abiSource = fs.readFileSync(path.join(rootDirectory, "src", "hybrid", "c-asm-abi.s"));
+  const config = fs.readFileSync(path.join(rootDirectory, "cfg", "encounter-director.cfg"));
+  const compiled = await runWasmTool(
+    "cc65",
+    {
+      "/project/src/c/director.c": cSource,
+      "/project/src/c/director.h": cHeader,
+      "/project/src/c/lifecycle.h": lifecycleHeader,
+      "/cc65/include/stdint.h": stdintHeader,
+    },
+    ["--cpu", "6502", "-Oirs", "-I", "/project/src/c", "-I", "/cc65/include",
+      "-o", `${base}-generated.s`, "/project/src/c/director.c"],
+    [`${base}-generated.s`],
+  );
+  const generatedAssembly = compiled.outputs[`${base}-generated.s`];
+  const lifecycleCompiled = await runWasmTool(
+    "cc65",
+    {
+      "/project/src/c/lifecycle.c": lifecycleSource,
+      "/project/src/c/lifecycle.h": lifecycleHeader,
+      "/project/src/c/enemy-archetype.h": archetypeHeader,
+      "/cc65/include/stdint.h": stdintHeader,
+    },
+    ["--cpu", "6502", "-Oirs", "-I", "/project/src/c", "-I", "/cc65/include",
+      "-o", `${base}-lifecycle-generated.s`, "/project/src/c/lifecycle.c"],
+    [`${base}-lifecycle-generated.s`],
+  );
+  const lifecycleGeneratedAssembly =
+    lifecycleCompiled.outputs[`${base}-lifecycle-generated.s`];
+  for (const [moduleName, assembly] of [
+    ["Director", generatedAssembly],
+    ["lifecycle/archetype", lifecycleGeneratedAssembly],
+  ]) {
+    const generatedText = assembly.toString("utf8");
+    const executableText = generatedText.replace(/^\s*\.importzp.*$/gmi, "");
+    if (/^\s*(?:jsr|jmp)\s+(?:push|pop|incsp|decsp|tos|addysp|subysp)/mi.test(generatedText) ||
+        /\(sp\)/.test(generatedText) ||
+        /\b(?:c_sp|sreg|regsave|regbank|tmp[1-4]|ptr[1-4])\b/.test(executableText)) {
+      const helperLines = generatedText.split(/\r?\n/).filter((line) =>
+        /^\s*(?:jsr|jmp)\s+(?:push|pop|incsp|decsp|tos|addysp|subysp)/i.test(line) ||
+        /\(sp\)/.test(line) ||
+        (!/^\s*\.importzp/i.test(line) &&
+          /\b(?:c_sp|sreg|regsave|regbank|tmp[1-4]|ptr[1-4])\b/.test(line)));
+      throw new Error(`C ${moduleName} unexpectedly requires cc65 software-stack/zero-page state: ` +
+        helperLines.slice(0, 8).join(" | "));
+    }
+  }
+  const cAssembled = await runWasmTool(
+    "ca65",
+    {
+      [`${base}-generated.s`]: generatedAssembly,
+      "/cc65/asminc/longbranch.mac": longBranchMacros,
+    },
+    ["--cpu", "6502", "-g", "-I", "/cc65/asminc", "-l", `${base}-c.lst`,
+      "-o", `${base}-c.o`, `${base}-generated.s`],
+    [`${base}-c.o`, `${base}-c.lst`],
+  );
+  const abiAssembled = await runWasmTool(
+    "ca65",
+    { [`${base}-abi.s`]: abiSource, "/project/build/fighter-weapons.inc": fighterWeaponsInclude },
+    ["--cpu", "6502", "-g", "-l", `${base}-abi.lst`, "-o", `${base}-abi.o`,
+      `${base}-abi.s`],
+    [`${base}-abi.o`, `${base}-abi.lst`],
+  );
+  const lifecycleAssembled = await runWasmTool(
+    "ca65",
+    {
+      [`${base}-lifecycle-generated.s`]: lifecycleGeneratedAssembly,
+      "/cc65/asminc/longbranch.mac": longBranchMacros,
+    },
+    ["--cpu", "6502", "-g", "-I", "/cc65/asminc", "-l", `${base}-lifecycle.lst`,
+      "-o", `${base}-lifecycle.o`, `${base}-lifecycle-generated.s`],
+    [`${base}-lifecycle.o`, `${base}-lifecycle.lst`],
+  );
+  const linked = await runWasmTool(
+    "ld65",
+    {
+      [`${base}-c.o`]: cAssembled.outputs[`${base}-c.o`],
+      [`${base}-lifecycle.o`]: lifecycleAssembled.outputs[`${base}-lifecycle.o`],
+      [`${base}-abi.o`]: abiAssembled.outputs[`${base}-abi.o`],
+      [`${base}.cfg`]: config,
+    },
+    ["-C", `${base}.cfg`, "-o", `${base}-combined.bin`, "-m", `${base}.map`,
+      "-Ln", `${base}.lbl`, `${base}-abi.o`, `${base}-c.o`, `${base}-lifecycle.o`],
+    [`${base}-combined.bin`, `${base}.map`, `${base}.lbl`],
+  );
+  const combinedRaw = Buffer.from(linked.outputs[`${base}-combined.bin`]);
+  const map = linked.outputs[`${base}.map`];
+  const labels = linked.outputs[`${base}.lbl`];
+  const parsedLabels = parseViceLabels(labels.toString("utf8"));
+  const abiBytes = parsedLabels.get("__DIRECTOR_ABI_SIZE__");
+  const lowCodeBytes = parsedLabels.get("__DIRECTOR_C_LOW_SIZE__");
+  const extensionCodeBytes = parsedLabels.get("__HYBRID_C_EXT_SIZE__");
+  const archetypeBytes = parsedLabels.get("__ENEMY_ARCHETYPE_DATA_SIZE__");
+  const extensionBytes = extensionCodeBytes + archetypeBytes;
+  const preCodeBytes = parsedLabels.get("__DIRECTOR_C_PRE_SIZE__");
+  const cCodeBytes = parsedLabels.get("__DIRECTOR_C_CODE_SIZE__");
+  const rodataBytes = parsedLabels.get("__LEVEL1_DATA_SIZE__");
+  const bssBytes = parsedLabels.get("__DIRECTOR_C_BSS_SIZE__");
+  const lifecycleBssBytes = parsedLabels.get("__HYBRID_C_STATE_SIZE__");
+  const sectorWindowBytes = parsedLabels.get("__HYBRID_C_SECTOR_SIZE__");
+  const arenaAsmBytes = parsedLabels.get("__HYBRID_ASM_ARENA_SIZE__");
+  const arenaCodeBytes = parsedLabels.get("__HYBRID_C_ARENA_SIZE__");
+  const arenaRodataBytes = parsedLabels.get("__HYBRID_C_ARENA_RODATA_SIZE__");
+  if (![abiBytes, lowCodeBytes, extensionCodeBytes, archetypeBytes, preCodeBytes,
+    cCodeBytes, rodataBytes, bssBytes, lifecycleBssBytes, sectorWindowBytes, arenaAsmBytes,
+    arenaCodeBytes, arenaRodataBytes].every(Number.isInteger)) {
+    throw new Error("Hybrid Director link is missing segment size labels");
+  }
+  const highBytes = rodataBytes + cCodeBytes;
+  const arenaBytes = arenaAsmBytes + arenaCodeBytes + arenaRodataBytes;
+  if (combinedRaw.length !==
+    abiBytes + lowCodeBytes + extensionBytes + preCodeBytes + highBytes + sectorWindowBytes +
+      arenaBytes) {
+    throw new Error("Hybrid Director output does not match its linked CODE/RODATA segments");
+  }
+  if (parsedLabels.get("__HYBRID_C_SECTOR_RUN__") !== residentWindowAddress ||
+    sectorWindowBytes === 0 || sectorWindowBytes > residentWindowBytes) {
+    throw new Error(`HYBRID_C_SECTOR is ${sectorWindowBytes} B; the resident window is ` +
+      `${residentWindowBytes} B at $${residentWindowAddress.toString(16).toUpperCase()}`);
+  }
+  if (lowCodeBytes > lowCodeReservationBytes) {
+    throw new Error(`Low C is ${lowCodeBytes} B; its reservation is 248 B`);
+  }
+  // 4.5M-M3 arena contract (also asserted by ld65 through src/hybrid/c-asm-abi.s).
+  const arenaMemoryStart = parsedLabels.get("__HYBRID_C_ARENA_RAM_START__");
+  const arenaMemorySize = parsedLabels.get("__HYBRID_C_ARENA_RAM_SIZE__");
+  const arenaSegmentStart = arenaAsmBytes > 0 ? parsedLabels.get("__HYBRID_ASM_ARENA_RUN__")
+    : arenaCodeBytes > 0 ? parsedLabels.get("__HYBRID_C_ARENA_RUN__")
+      : parsedLabels.get("__HYBRID_C_ARENA_RODATA_RUN__");
+  if (arenaMemoryStart !== hybridArenaAddress || arenaMemorySize !== hybridArenaCapacityBytes ||
+    hybridArenaCapacityBytes !== 832 || hybridArenaEndExclusive > a2DisplayListAddress ||
+    arenaSegmentStart !== hybridArenaAddress || arenaAsmBytes < 1 ||
+    arenaBytes > hybridArenaCapacityBytes) {
+    throw new Error(`HYBRID_C_ARENA is ${arenaBytes} B (ASM ${arenaAsmBytes}, C ${arenaCodeBytes}, ` +
+      `RODATA ${arenaRodataBytes}) at $${(arenaMemoryStart ?? 0).toString(16)}; the arena is ` +
+      `${hybridArenaCapacityBytes} B at $7BD0-$7F0F with a non-empty ca65 anchor first`);
+  }
+  const abiStagingMatch = /^DIRECTOR_LOW_STAGING = \$([0-9A-Fa-f]{4})$/m.exec(abiSource.toString("utf8"));
+  if (abiStagingMatch === null ||
+    Number.parseInt(abiStagingMatch[1], 16) !== coldLowGlueRecordAddress) {
+    throw new Error("src/hybrid/c-asm-abi.s DIRECTOR_LOW_STAGING must equal coldLowGlueRecordAddress");
+  }
+  let offset = 0;
+  const makeSegment = (name, runAddress, bytes) => {
+    const data = combinedRaw.subarray(offset, offset + bytes);
+    offset += bytes;
+    return { name, runAddress, data, packed: packBroadsideLzss(data) };
+  };
+  const codeSegments = [
+    { ...makeSegment("abi", 0x8701, abiBytes), transportAddress: abiColdRecordAddress },
+    { ...makeSegment("low", 0x8b88, lowCodeBytes), transportAddress: coldLowGlueRecordAddress },
+    { ...makeSegment("extension", 0x8c7d, extensionBytes), transportAddress: 0x7810,
+      lateCompressed: true },
+    makeSegment("pre", 0x9d5e, preCodeBytes),
+  ];
+  const lifecycleExtension = codeSegments.find(({ name }) => name === "extension");
+  if (lifecycleExtension.packed.length > 0x3c0) {
+    throw new Error(`Hybrid lifecycle extension is ${lifecycleExtension.data.length} B raw / ` +
+      `${lifecycleExtension.packed.length} B packed; cold staging limit is 960 B`);
+  }
+  const raw = combinedRaw.subarray(offset, offset + highBytes);
+  const packed = packBroadsideLzss(raw);
+  offset += highBytes;
+  // The window segment is not a transport record: its independent stream rides
+  // after the pickup/collision stream, so the DFMC topology stays 8 records.
+  const windowSegment = makeSegment("window", residentWindowAddress, sectorWindowBytes);
+  // 4.5M-M3: the arena image is a direct-landing DFMC record of its own. Only
+  // the used bytes travel (the ATR boot-smoke menu deadline has no frame of
+  // margin for stage-2 decode work); bytes past the image are unspecified.
+  const arenaSegment = {
+    ...makeSegment("arena", hybridArenaAddress, arenaBytes),
+    arena: { capacityBytes: hybridArenaCapacityBytes, asmBytes: arenaAsmBytes,
+      codeBytes: arenaCodeBytes, rodataBytes: arenaRodataBytes },
+  };
+  codeSegments.push(arenaSegment);
+  if (!codeSegments.every(({ data, packed: segmentPacked }) =>
+    unpackBroadsideLzss(segmentPacked).equals(data)) ||
+      !unpackBroadsideLzss(packed).equals(raw) ||
+      !unpackBroadsideLzss(windowSegment.packed).equals(windowSegment.data)) {
+    throw new Error("Hybrid Director LZSS round trip failed");
+  }
+  const codeRaw = Buffer.concat(codeSegments.map(({ data }) => data));
+  const codePacked = Buffer.concat(codeSegments.map(({ packed: segmentPacked }) => segmentPacked));
+  return {
+    implementation: "cc65-c",
+    raw,
+    packed,
+    codeRaw,
+    codePacked,
+    codeSegments,
+    windowSegment,
+    arenaSegment,
+    combinedRaw,
+    object: cAssembled.outputs[`${base}-c.o`],
+    lifecycleObject: lifecycleAssembled.outputs[`${base}-lifecycle.o`],
+    abiObject: abiAssembled.outputs[`${base}-abi.o`],
+    listing: cAssembled.outputs[`${base}-c.lst`],
+    lifecycleListing: lifecycleAssembled.outputs[`${base}-lifecycle.lst`],
+    abiListing: abiAssembled.outputs[`${base}-abi.lst`],
+    generatedAssembly,
+    lifecycleGeneratedAssembly,
+    map,
+    labels,
+    footprint: {
+      abiBytes,
+      codeBytes: lowCodeBytes + extensionCodeBytes + preCodeBytes + cCodeBytes,
+      rodataBytes: rodataBytes + archetypeBytes,
+      dataBytes: 0,
+      bssBytes: bssBytes + lifecycleBssBytes,
+      cStackBytes: 0,
+      zeroPageBytes: 0,
+    },
+  };
+}
+
+// Roadmap 4.5M-M2: one LZ transport record carries the low-C image padded to
+// its full $F8 reservation and the 250-B GLUE image, landing at
+// coldLowGlueRecordAddress (4.5M-M3 retired its Heavy window tail). The fixed
+// offsets let main.s and the ABI veneer address each part with constants.
+function attachGlueToLowRecord(directorModule, glueRaw) {
+  const lowSegment = directorModule.codeSegments.find(({ name }) => name === "low");
+  if (lowSegment === undefined) return null;
+  if (glueRaw.length !== expectedGlueRawBytes) {
+    throw new Error(`GLUE image is ${glueRaw.length} B; the merged cold record assumes ` +
+      `${expectedGlueRawBytes} B`);
+  }
+  lowSegment.transportData = Buffer.concat([
+    lowSegment.data, Buffer.alloc(lowCodeReservationBytes - lowSegment.data.length), glueRaw,
+  ]);
+  lowSegment.transportPacked = packBroadsideLzss(lowSegment.transportData);
+  if (!unpackBroadsideLzss(lowSegment.transportPacked).equals(lowSegment.transportData)) {
+    throw new Error("Merged low-C/GLUE record LZSS round trip failed");
+  }
+  const endExclusive = coldLowGlueRecordAddress + lowSegment.transportData.length;
+  if (endExclusive > directorPreRunAddress) {
+    throw new Error(`Merged cold record $${coldLowGlueRecordAddress.toString(16)}-$${
+      (endExclusive - 1).toString(16)} reaches the DIRECTOR_C_PRE record at $9D5E`);
+  }
+  return lowSegment;
+}
+
+function renderDirectorAbiInclude(labelBytes) {
+  const labels = parseViceLabels(labelBytes.toString("utf8"));
+  const symbols = [
+    ["DIRECTOR_INIT", "director_init"],
+    ["DIRECTOR_WORLD_ROW_TICK", "director_world_row_tick"],
+    ["DIRECTOR_REQUEST", "director_request"],
+    ["DIRECTOR_RELEASE", "director_release"],
+    ["DIRECTOR_RNG_ADVANCE", "director_rng_advance"],
+    ["DIRECTOR_PUBLISH_LOW", "director_publish_low"],
+    ["HYBRID_SECTOR_UPDATE_FIRST_CAPITAL", "sector_update_first_capital"],
+    ["HYBRID_SECTOR_UPDATE_CAPITAL_PHASE", "sector_update_capital_phase"],
+    ["HYBRID_SECTOR_BEGIN_COMPLETE", "sector_begin_complete"],
+    ["HYBRID_SECTOR_COMPLETE_SCROLL_TICK", "sector_complete_scroll_tick"],
+    ["HYBRID_SECTOR_FORCE_FINAL_DRAIN", "sector_force_final_drain"],
+    ["HYBRID_ENEMY_SPAWN_RAIDERS", "enemy_spawn_raiders"],
+    ["HYBRID_ENEMY_RETIRE_MEMBER", "enemy_retire_member"],
+    ["HYBRID_ENEMY_APPLY_PENDING_DAMAGE", "enemy_apply_pending_damage"],
+    ["HYBRID_ENEMY_RECYCLE", "enemy_recycle"],
+    ["ENEMY_ARCHETYPE_TABLE", "enemy_archetype_table"],
+    ["ENEMY_PROFILE_MOVEMENT_ID", "enemy_profile_movement_id"],
+    ["ENEMY_PROFILE_FIRE_POLICY_ID", "enemy_profile_fire_policy_id"],
+    ["ENEMY_PROFILE_BURST_COUNT", "enemy_profile_burst_count"],
+    ["ENEMY_PROFILE_BURST_INTERVAL", "enemy_profile_burst_interval"],
+    ["ENEMY_PROFILE_POST_BURST_FRAMES", "enemy_profile_post_burst_frames"],
+    ["ENEMY_PROFILE_RENDERER_CLASS", "enemy_profile_renderer_class"],
+    ["ENEMY_PROFILE_WEAPON_CLASS", "enemy_profile_weapon_class"],
+    ["ENEMY_PROFILE_SCORE_BCD", "enemy_profile_score_bcd"],
+    ["ENEMY_PROFILE_DIRECTOR_VALUE", "enemy_profile_director_value"],
+    ["ENEMY_HEAVY_TICK", "enemy_heavy_tick"],
+    ["HEAVY_MEMBER_X", "heavy_member_x"],
+    ["HEAVY_HULL_COLOUR", "heavy_hull_colour"],
+    ["HEAVY_MEMBER_COLOUR", "heavy_member_colour"],
+    ["HYBRID_BUILD_HOSTILE_GLYPHS", "build_hostile_weapon_glyphs"],
+    ["HEAVY_ARCHETYPE_OFFSET", "heavy_archetype_offset"],
+    ["ENEMY_LIGHT_TICK", "enemy_light_tick"],
+    ["ENEMY_LIGHT_HIT", "enemy_light_hit"],
+    ["LIGHT_STATE", "light_state"],
+    ["LIGHT_X", "light_x"],
+    ["LIGHT_Y", "light_y"],
+    ["LIGHT_SCREEN_LO", "light_screen_lo"],
+    ["LIGHT_SCREEN_HI", "light_screen_hi"],
+    ["LIGHT_BACKING0", "light_backing0"],
+    ["LIGHT_BACKING1", "light_backing1"],
+    ["LIGHT_SCRATCH", "light_scratch"],
+    ["LIGHT_SLOT_SAVE", "light_slot_save"],
+    ["LIGHT_ARCHETYPE_OFFSET", "light_archetype_offset"],
+  ];
+  for (const [, name] of symbols) {
+    if (!Number.isInteger(labels.get(name))) throw new Error(`Hybrid ABI symbol ${name} is missing`);
+  }
+  const abiBytes = labels.get("__DIRECTOR_ABI_SIZE__") ?? 0;
+  const extensionBytes = (labels.get("__ENEMY_ARCHETYPE_DATA_SIZE__") ?? 0) +
+    (labels.get("__HYBRID_C_EXT_SIZE__") ?? 0);
+  return Buffer.from(symbols.map(([constant, name]) =>
+    `${constant} = $${labels.get(name).toString(16).toUpperCase()}\n`).join("") +
+    `DIRECTOR_ABI_STAGING = $${abiColdRecordAddress.toString(16).toUpperCase()}\n` +
+    `DIRECTOR_ABI_RUNTIME = $8701\n` +
+    `DIRECTOR_ABI_BYTES = ${abiBytes}\n` +
+    `HYBRID_C_EXT_STAGING = $7810\nHYBRID_C_EXT_RUNTIME = $8C7D\n` +
+    `HYBRID_C_EXT_BYTES = ${extensionBytes}\n` +
+    `HYBRID_C_ARENA_RUNTIME = $${hybridArenaAddress.toString(16).toUpperCase()}\n` +
+    `HYBRID_C_ARENA_END = $${hybridArenaEndExclusive.toString(16).toUpperCase()}\n` +
+    `HYBRID_C_ARENA_CAPACITY = ${hybridArenaCapacityBytes}\n` +
+    `HYBRID_C_ARENA_BYTES = ${(labels.get("__HYBRID_ASM_ARENA_SIZE__") ?? 0) +
+      (labels.get("__HYBRID_C_ARENA_SIZE__") ?? 0) +
+      (labels.get("__HYBRID_C_ARENA_RODATA_SIZE__") ?? 0)}\n`);
+}
+
+// Roadmap 4.5M-M1: cut the STARFIELD runtime into two independently packed
+// LZ streams. The largest raw prefix that packs into stream A's window is found
+// first; the cut is then moved down in 16-byte raw steps (up to 192 B) and the
+// candidate with the smallest packed total that fits both windows wins, so the
+// split overhead stays small and deterministic for a given runtime image.
+function splitStarfieldStreams(raw, stagingStreams) {
+  const [first, second] = stagingStreams;
+  const fitsFirst = (length) =>
+    packBroadsideLzss(raw.subarray(0, length)).length <= first.capacityBytes;
+  let low = 0;
+  let high = raw.length;
+  while (low < high) {
+    const middle = (low + high + 1) >> 1;
+    if (fitsFirst(middle)) low = middle; else high = middle - 1;
+  }
+  let best = null;
+  for (let cut = low; cut >= Math.max(1, low - 192); cut -= 16) {
+    const packedA = packBroadsideLzss(raw.subarray(0, cut));
+    const packedB = packBroadsideLzss(raw.subarray(cut));
+    if (packedA.length > first.capacityBytes || packedB.length > second.capacityBytes) continue;
+    const total = packedA.length + packedB.length;
+    if (best === null || total < best.total) best = { cut, packedA, packedB, total };
+  }
+  if (best === null) {
+    throw new Error(`Packed starfield does not fit two streams of ${first.capacityBytes} and ` +
+      `${second.capacityBytes} B (largest fitting stream A prefix ${low} raw B)`);
+  }
+  return {
+    rawSplitOffset: best.cut,
+    singleStreamPackedBytes: packBroadsideLzss(raw).length,
+    streams: [
+      { ...first, rawOffset: 0, rawBytes: best.cut, packed: best.packedA },
+      { ...second, rawOffset: best.cut, rawBytes: raw.length - best.cut, packed: best.packedB },
+    ],
+  };
+}
+
 async function build() {
   fs.mkdirSync(buildDirectory, { recursive: true });
   fs.mkdirSync(distDirectory, { recursive: true });
@@ -392,6 +814,43 @@ async function build() {
   const frontendH31Include = Buffer.from(renderFrontendH31Ca65Include(frontendH31Asset));
   writeFile(path.join(buildDirectory, "frontend-h31.inc"), frontendH31Include);
 
+  const directorModule = asmDirectorBaseline
+    ? {
+        ...(await buildResidentModule({
+          sourcePath: path.join(rootDirectory, "src", "encounter-director.s"),
+          configPath: path.join(rootDirectory, "cfg", "encounter-director-asm.cfg"),
+          stem: "encounter-director",
+        })),
+        implementation: "ca65-asm",
+        codeRaw: Buffer.alloc(0),
+        codePacked: Buffer.alloc(0),
+        codeSegments: [],
+        footprint: {
+          abiBytes: 0,
+          codeBytes: expectedDirectorRawBytes - 158,
+          rodataBytes: 158,
+          dataBytes: 0,
+          bssBytes: 12,
+          cStackBytes: 0,
+          zeroPageBytes: 0,
+        },
+      }
+    : await buildHybridDirectorModule(fighterWeaponsInclude);
+  if (process.argv.includes("--director-only")) {
+    writeFile(path.join(buildDirectory, "encounter-director.map"), directorModule.map);
+    writeFile(path.join(buildDirectory, "encounter-director.lbl"), directorModule.labels);
+    writeFile(path.join(buildDirectory, "encounter-director-generated.s"),
+      directorModule.generatedAssembly ?? Buffer.alloc(0));
+    writeFile(path.join(buildDirectory, "encounter-director.bin"), directorModule.raw);
+    for (const segment of directorModule.codeSegments) {
+      writeFile(path.join(buildDirectory, `encounter-director-code-${segment.name}.bin`),
+        segment.data);
+    }
+    return;
+  }
+  const directorAbiInclude = renderDirectorAbiInclude(directorModule.labels);
+  writeFile(path.join(buildDirectory, "director-abi.inc"), directorAbiInclude);
+
   const assembled = await runWasmTool(
     "ca65",
     {
@@ -406,6 +865,11 @@ async function build() {
       "/project/build/gameplay-music.inc": gameplayMusicInclude,
       "/project/build/entity-effects.inc": entityEffectsInclude,
       "/project/build/frontend-h31.inc": frontendH31Include,
+      "/project/build/director-abi.inc": directorAbiInclude,
+      "/project/build/light-wingman.s": fs.readFileSync(
+        path.join(rootDirectory, "src", "hybrid", "light-wingman.s")),
+      "/project/build/heavy-member.s": fs.readFileSync(
+        path.join(rootDirectory, "src", "hybrid", "heavy-member.s")),
     },
     [
       "--cpu",
@@ -431,13 +895,29 @@ async function build() {
   writeFile(path.join(buildDirectory, "main.o"), objectFile);
   writeFile(path.join(buildDirectory, "main.lst"), assembled.outputs["/project/build/main.lst"]);
 
+  // LIGHT_CODE is linked with the main image but runs directly after the C
+  // extension composite, whose stream later carries it. Its start therefore
+  // follows the measured C extension size; ld65 rejects any overflow of $8FFF.
+  const cExtensionSegment = directorModule.codeSegments.find(({ name }) => name === "extension");
+  const lightCodeRunAddress = cExtensionSegment
+    ? cExtensionSegment.runAddress + cExtensionSegment.data.length : null;
+  const bootConfig = lightCodeRunAddress === null ? config : Buffer.from(
+    config.toString("utf8").replace(
+      /LIGHTFILE:(\s*)start = \$[0-9A-Fa-f]+, size = \$[0-9A-Fa-f]+/,
+      // A replacer function: a replacement string would read "$01.." in a size
+      // such as $0186 as a capture-group reference.
+      (_, spacing) => `LIGHTFILE:${spacing}start = $${
+        lightCodeRunAddress.toString(16).toUpperCase()}, size = $${
+        (0x9000 - lightCodeRunAddress).toString(16).toUpperCase().padStart(4, "0")}`,
+    ));
   const linked = await runWasmTool(
     "ld65",
     {
       "/project/build/main.o": objectFile,
-      "/project/cfg/atari-boot.cfg": config,
+      "/project/cfg/atari-boot.cfg": bootConfig,
     },
     [
+      "--large-alignment",
       "-C",
       "/project/cfg/atari-boot.cfg",
       "-o",
@@ -494,9 +974,11 @@ async function build() {
   const residentPackedSourceOperand = labels.get("resident_packed_source");
   const residentPackedSizeOperand = labels.get("resident_packed_size");
   const pickupPackedSizeOperand = labels.get("pickup_packed_size");
-  const broadsidePackedSourceOperand = labels.get("broadside_packed_source");
+  const weaponPickupColdStagingAddress = labels.get("WEAPON_PICKUP_COLD_STAGING");
   const starfieldPackedSourceOperand = labels.get("starfield_packed_source");
   const starfieldPackedSizeOperand = labels.get("starfield_packed_size");
+  const starfieldPackedSourceBOperand = labels.get("starfield_packed_source_b");
+  const starfieldPackedSizeBOperand = labels.get("starfield_packed_size_b");
   const a2KernelSourceOperand = labels.get("a2_kernel_source");
   const entityPackedSourceOperand = labels.get("entity_packed_source");
   const entityStagedSourceOperand = labels.get("entity_staged_source");
@@ -531,9 +1013,11 @@ async function build() {
     !Number.isInteger(residentPackedSourceOperand) ||
     !Number.isInteger(residentPackedSizeOperand) ||
     !Number.isInteger(pickupPackedSizeOperand) ||
-    !Number.isInteger(broadsidePackedSourceOperand) ||
+    !Number.isInteger(weaponPickupColdStagingAddress) ||
     !Number.isInteger(starfieldPackedSourceOperand) ||
     !Number.isInteger(starfieldPackedSizeOperand) || !Number.isInteger(a2KernelSourceOperand) ||
+    !Number.isInteger(starfieldPackedSourceBOperand) ||
+    !Number.isInteger(starfieldPackedSizeBOperand) ||
     !Number.isInteger(entityPackedSourceOperand) || !Number.isInteger(entityStagedSourceOperand) ||
     !Number.isInteger(entityPackedSizeOperand) ||
     !Number.isInteger(loaderPackedAddress) ||
@@ -559,8 +1043,8 @@ async function build() {
     broadsideRuntimeBytes > broadsideRuntimeReservedBytes) {
     throw new Error("Broadside relocation lies outside its reviewed load/run ranges");
   }
-  if (starfieldLoadAddress !== 0x5a00 || starfieldRunAddress !== 0x552a ||
-    starfieldRuntimeBytes > 0x08e6) {
+  if (starfieldLoadAddress !== 0x5a00 || starfieldRunAddress !== 0x54e4 ||
+    starfieldRuntimeBytes > 0x092c) {
     throw new Error("Starfield relocation lies outside its reviewed load/run ranges");
   }
   if (a2KernelLoadAddress !== 0x6a00 || a2KernelRunAddress !== 0x9000 ||
@@ -605,13 +1089,56 @@ async function build() {
     entityCodeLoadAddress - loadAddress,
     entityCodeLoadAddress - loadAddress + entityCodeBytes,
   );
+  // The zero-filled PICKUPFILE is the complete stream image: LIGHT_RESIDENT,
+  // then PICKUP_CODE, then zero bytes up to the fixed $8B67 collision module.
+  const pickupFileBytes = labels.get("__PICKUPFILE_SIZE__");
+  const lightResidentBytes = labels.get("__LIGHT_RESIDENT_SIZE__") ?? 0;
   const pickupCodeRuntime = Buffer.from(linkedPayload.subarray(
     pickupCodeFileOffset,
-    pickupCodeFileOffset + pickupCodeBytes,
+    pickupCodeFileOffset + pickupFileBytes,
   ));
-  if (pickupCodeRunAddress !== weaponPickupPhaseBankAddress + weaponPickupPhaseBank.length ||
-    pickupCodeRuntime.length !== pickupCodeBytes || pickupCodeBytes > 0x0380) {
-    throw new Error("Pickup compositor code does not fit its reviewed $8C80-$8FFF range");
+  if ((labels.get("__LIGHT_RESIDENT_RUN__") ?? weaponPickupRuntimeAddress) !==
+      weaponPickupRuntimeAddress ||
+    pickupCodeRunAddress !== weaponPickupRuntimeAddress + lightResidentBytes ||
+    pickupCodeRuntime.length !== pickupFileBytes ||
+    lightResidentBytes + pickupCodeBytes > pickupFileBytes) {
+    throw new Error("Light kernel, PMG pickup and lower-cell primitive do not fit $8776-$8B66");
+  }
+  // HEAVY_CODE (the Heavy member veneer, 4.5c) follows LIGHT_CODE in the same
+  // LIGHTFILE area, so the extension stream carries both as one ASM tail.
+  const lightCodeBytes = (labels.get("__LIGHT_CODE_SIZE__") ?? 0) +
+    (labels.get("__HEAVY_CODE_SIZE__") ?? 0);
+  const lightPlacement = {
+    residentRunAddress: weaponPickupRuntimeAddress,
+    residentBytes: lightResidentBytes,
+    extensionTailRunAddress: lightCodeRunAddress,
+    extensionTailBytes: lightCodeBytes,
+    starfieldTailRunAddress: labels.get("light_backing") ?? null,
+    starfieldTailBytes: (labels.get("light_starfield_end") ?? 0) -
+      (labels.get("light_backing") ?? 0),
+  };
+  if (lightCodeBytes > 0) {
+    const lightCodeFileOffset = labels.get("__LIGHTFILE_FILEOFFS__");
+    if (labels.get("__LIGHT_CODE_RUN__") !== lightCodeRunAddress) {
+      throw new Error("LIGHT_CODE does not directly follow the C extension composite");
+    }
+    const lightCode = linkedPayload.subarray(
+      lightCodeFileOffset, lightCodeFileOffset + lightCodeBytes);
+    cExtensionSegment.cBytes = cExtensionSegment.data.length;
+    cExtensionSegment.lightCodeBytes = lightCodeBytes;
+    cExtensionSegment.data = Buffer.concat([cExtensionSegment.data, lightCode]);
+    cExtensionSegment.packed = packBroadsideLzss(cExtensionSegment.data);
+    if (!unpackBroadsideLzss(cExtensionSegment.packed).equals(cExtensionSegment.data)) {
+      throw new Error("Hybrid extension + LIGHT_CODE LZSS round trip failed");
+    }
+    if (cExtensionSegment.runAddress + cExtensionSegment.data.length > 0x9000 ||
+      cExtensionSegment.packed.length > 0x3c0) {
+      throw new Error(`Hybrid extension + LIGHT_CODE is ${cExtensionSegment.data.length} B raw / ` +
+        `${cExtensionSegment.packed.length} B packed; limits are $8C7D-$8FFF and 960 B`);
+    }
+    directorModule.codeRaw = Buffer.concat(directorModule.codeSegments.map(({ data }) => data));
+    directorModule.codePacked = Buffer.concat(
+      directorModule.codeSegments.map(({ packed }) => packed));
   }
   const capitalPlayerCollisionModule = await buildResidentModule({
     sourcePath: path.join(rootDirectory, "src", "capital-player-collision.s"),
@@ -619,24 +1146,34 @@ async function build() {
     stem: "capital-player-collision",
   });
   if (capitalPlayerCollisionModule.raw.length > 0x21) {
-    throw new Error(`Capital/player collision module exceeds $8E61-$8E81: ` +
+    throw new Error(`Capital/player collision module exceeds $8B67-$8B87: ` +
       `${capitalPlayerCollisionModule.raw.length} B`);
   }
-  if (weaponPickupPhaseBankAddress + weaponPickupPhaseBank.length + pickupCodeRuntime.length !==
+  if (weaponPickupRuntimeAddress + pickupCodeRuntime.length !==
     capitalPlayerCollisionAddress) {
-    throw new Error("Capital/player collision does not immediately follow pickup runtime");
+    throw new Error("Capital/player collision does not immediately follow pickup runtime: " +
+      `$${(weaponPickupRuntimeAddress + pickupCodeRuntime.length).toString(16)} != ` +
+      `$${capitalPlayerCollisionAddress.toString(16)}`);
   }
   const weaponPickupPhaseRuntime = Buffer.concat([
-    weaponPickupPhaseBank, pickupCodeRuntime, capitalPlayerCollisionModule.raw,
+    pickupCodeRuntime, capitalPlayerCollisionModule.raw,
   ]);
-  const packedWeaponPickupPhaseBank = packBroadsideLzss(weaponPickupPhaseRuntime);
-  if (!unpackBroadsideLzss(packedWeaponPickupPhaseBank).equals(weaponPickupPhaseRuntime)) {
+  const packedPickupStream = packBroadsideLzss(weaponPickupPhaseRuntime);
+  // The resident window's independent stream follows in the same raw record;
+  // the boot decoder expands it with a second destination (step 4.3).
+  const residentWindowSegment = directorModule.windowSegment ?? null;
+  const packedWeaponPickupPhaseBank = residentWindowSegment === null ? packedPickupStream :
+    Buffer.concat([packedPickupStream, residentWindowSegment.packed]);
+  if (!unpackBroadsideLzss(packedWeaponPickupPhaseBank).equals(weaponPickupPhaseRuntime) ||
+    (residentWindowSegment !== null && !unpackBroadsideLzss(
+      packedWeaponPickupPhaseBank.subarray(packedPickupStream.length))
+      .equals(residentWindowSegment.data))) {
     throw new Error("Weapon-pickup phase runtime LZSS round trip failed");
   }
-  if (packedWeaponPickupPhaseBank.length > 0x03ff) {
+  if (packedWeaponPickupPhaseBank.length > weaponPickupPackedCapacityBytes) {
     throw new Error(`Packed pickup runtime ${packedWeaponPickupPhaseBank.length} B from ` +
       `${pickupCodeBytes} B code plus ${capitalPlayerCollisionModule.raw.length} B collision ` +
-      `exceeds the reviewed 1023 B cold staging range; ` +
+      `exceeds the reviewed ${weaponPickupPackedCapacityBytes} B cold staging range; ` +
       `BROADSIDE=${broadsideRuntimeBytes} B, ENTITY_CODE=${entityCodeBytes} B`);
   }
   const bootStage2Runtime = Buffer.from(linkedPayload.subarray(
@@ -646,27 +1183,38 @@ async function build() {
   if (bootStage2Runtime.length !== bootStage2Bytes) {
     throw new Error("Linked BOOT_STAGE2 bytes are truncated");
   }
-  const packedStarfieldRuntime = packBroadsideLzss(starfieldRuntime);
-  if (!unpackBroadsideLzss(packedStarfieldRuntime).equals(starfieldRuntime)) {
-    throw new Error("Starfield LZSS round trip failed");
+  const starfieldSplit = splitStarfieldStreams(starfieldRuntime, starfieldStagingStreams);
+  const packedStarfieldRuntime = Buffer.concat(starfieldSplit.streams.map(({ packed }) => packed));
+  if (!Buffer.concat(starfieldSplit.streams.map(({ packed }) => unpackBroadsideLzss(packed)))
+    .equals(starfieldRuntime)) {
+    throw new Error("Starfield two-stream LZSS round trip failed");
   }
   const packedEntityCodeRuntime = packBroadsideLzss(entityCodeRuntime);
   if (!unpackBroadsideLzss(packedEntityCodeRuntime).equals(entityCodeRuntime)) {
     throw new Error("ENTITY_CODE LZSS round trip failed");
   }
-  const directorModule = await buildResidentModule({
-    sourcePath: path.join(rootDirectory, "src", "encounter-director.s"),
-    configPath: path.join(rootDirectory, "cfg", "encounter-director.cfg"),
-    stem: "encounter-director",
-  });
+  const entitySpawnDebrisAddress = labels.get("entity_spawn_debris");
+  if (!Number.isInteger(entitySpawnDebrisAddress)) {
+    throw new Error("Linked entity_spawn_debris symbol is missing");
+  }
+  // Integration glue is assembled as a separately linked resident module.
+  // Derive its one cross-module debris entry from the authoritative main link
+  // instead of copying a relocatable ENTITY_CODE address into its source.
+  const integrationAbiInclude = Buffer.from(
+    `entity_spawn_debris = $${entitySpawnDebrisAddress.toString(16).toUpperCase()}\n`,
+  );
   const glueModule = await buildResidentModule({
     sourcePath: path.join(rootDirectory, "src", "integration-glue.s"),
     configPath: path.join(rootDirectory, "cfg", "integration-glue.cfg"),
     stem: "integration-glue",
-    extraInputs: { "/project/build/capital-hulls.inc": capitalHullsInclude },
+    extraInputs: {
+      "/project/build/capital-hulls.inc": capitalHullsInclude,
+      "/project/build/integration-abi.inc": integrationAbiInclude,
+      "/project/build/director-abi.inc": directorAbiInclude,
+    },
   });
-  if (directorModule.raw.length !== expectedDirectorRawBytes ||
-    directorModule.packed.length !== expectedDirectorPackedBytes) {
+  if (asmDirectorBaseline && (directorModule.raw.length !== expectedDirectorRawBytes ||
+    directorModule.packed.length !== expectedDirectorPackedBytes)) {
     throw new Error(`Encounter Director size changed: ${directorModule.raw.length} raw / ` +
       `${directorModule.packed.length} packed`);
   }
@@ -675,20 +1223,39 @@ async function build() {
     throw new Error(`Integration glue size changed: ${glueModule.raw.length} raw / ` +
       `${glueModule.packed.length} packed`);
   }
-  if (packedStarfieldRuntime.length > starfieldStagingBytes) {
-    throw new Error(`Packed starfield ${packedStarfieldRuntime.length} B exceeds the reviewed ` +
-      `${starfieldStagingBytes} B temporary staging buffer`);
+  const mergedColdRecord = attachGlueToLowRecord(directorModule, glueModule.raw);
+  for (const stream of starfieldSplit.streams) {
+    if (stream.packed.length > stream.capacityBytes) {
+      throw new Error(`Packed starfield stream ${stream.id} is ${stream.packed.length} B; its ` +
+        `staging window at $${stream.address.toString(16)} holds ${stream.capacityBytes} B`);
+    }
   }
-  if (broadsideRunAddress + broadsideRuntimeReservedBytes > starfieldStagingAddress ||
-    starfieldStagingAddress + starfieldStagingBytes > 0xc000) {
-    throw new Error("Starfield staging overlaps resident RAM or the XL/XE OS ROM window");
+  if (packedStarfieldRuntime.length > starfieldPackedTotalHardGateBytes) {
+    throw new Error(`Packed starfield total ${packedStarfieldRuntime.length} B exceeds the reviewed ` +
+      `${starfieldPackedTotalHardGateBytes} B two-stream hard gate (baseline ` +
+      `${starfieldPackedTotalBaselineBytes} B)`);
   }
-  const stagingEnd = starfieldStagingAddress + packedStarfieldRuntime.length;
+  const [starfieldStreamA, starfieldStreamB] = starfieldSplit.streams;
+  if (broadsideRunAddress + broadsideRuntimeReservedBytes > starfieldStreamA.address ||
+    starfieldStreamA.address + starfieldStreamA.capacityBytes > hybridArenaAddress) {
+    throw new Error("Starfield stream A staging overlaps BROADSIDE or HYBRID_C_ARENA");
+  }
+  if (starfieldStreamB.address < glueHoldingAddress + expectedGlueRawBytes ||
+    starfieldStreamB.address < packedResidentStagingAddress ||
+    starfieldStreamB.address + starfieldStreamB.capacityBytes > residentWindowAddress ||
+    starfieldStreamB.address + starfieldStreamB.capacityBytes >
+      starfieldStreamB.idleWindowEndExclusive) {
+    throw new Error("Starfield stream B staging overlaps the GLUE hold or the $8602 resident window");
+  }
   const loaderPackedEnd = loaderPackedAddress + loaderAsset.packedBitmap.length;
   const loaderBitmapEnd = loaderAsset.bitmapAddress + loaderAsset.bitmapBytes.length;
-  if (starfieldStagingAddress < loaderPackedEnd && stagingEnd > loaderPackedAddress ||
-    starfieldStagingAddress < loaderBitmapEnd && stagingEnd > loaderAsset.bitmapAddress) {
-    throw new Error("Starfield staging overlaps loader source or bitmap destination");
+  for (const stream of starfieldSplit.streams) {
+    const stagingEnd = stream.address + stream.capacityBytes;
+    if (stream.address < loaderPackedEnd && stagingEnd > loaderPackedAddress ||
+      stream.address < loaderBitmapEnd && stagingEnd > loaderAsset.bitmapAddress ||
+      stagingEnd > 0xa000) {
+      throw new Error(`Starfield stream ${stream.id} staging overlaps loader source, bitmap destination or ROM`);
+    }
   }
   const residentMain = Buffer.from(
     linkedPayload.subarray(0, broadsideLoadAddress - loadAddress),
@@ -709,19 +1276,51 @@ async function build() {
   const entityStagedEndAddress = entityStagedSourceAddress + packedEntityCodeRuntime.length;
   const initialPackedSourcesEnd = entityPackedSourceAddress + packedEntityCodeRuntime.length;
   const initialPackedSourcesLastAddress = initialPackedSourcesEnd - 1;
-  if (!(initialPackedSourcesEnd <= glueStagingAddress &&
-    glueStagingAddress + glueModule.raw.length <= entityStagedSourceAddress)) {
+  const glueStagingEndAddress = glueStagingAddress + glueModule.raw.length;
+  const packedStarfieldEndAddress = packedStarfieldAddress + packedStarfieldRuntime.length;
+  if (packedStarfieldEndAddress > weaponPickupColdStagingAddress) {
     throw new Error(
-      `Cold sources/staging overlap: initial ends $${initialPackedSourcesEnd.toString(16)}, ` +
-      `GLUE is $${glueStagingAddress.toString(16)}-$${
-        (glueStagingAddress + glueModule.raw.length - 1).toString(16)}, ` +
-      `ENTITY staging starts $${entityStagedSourceAddress.toString(16)}`,
+      `Packed STARFIELD $${packedStarfieldAddress.toString(16)}-$${
+        (packedStarfieldEndAddress - 1).toString(16)} overlaps pickup staging from $${
+        weaponPickupColdStagingAddress.toString(16)}`,
     );
   }
-  if (!(initialPackedSourcesEnd <= entityStagedSourceAddress)) {
+  const packedStarfieldToPickupMarginBytes =
+    weaponPickupColdStagingAddress - packedStarfieldEndAddress;
+  // 4.5M-M2 cold placement (measured against this build, not the plan).
+  const packedResidentStagingEndExclusive =
+    packedResidentStagingAddress + packedResidentRuntime.length;
+  const mergedColdRecordEndExclusive = mergedColdRecord === null ? null :
+    coldLowGlueRecordAddress + mergedColdRecord.transportData.length;
+  if (mergedColdRecord !== null && (
+    packedResidentStagingEndExclusive > coldLowGlueRecordAddress ||
+    mergedColdRecordEndExclusive > directorPreRunAddress ||
+    glueStagingAddress !== coldLowGlueRecordAddress + lowCodeReservationBytes ||
+    glueStagingEndAddress !== mergedColdRecordEndExclusive)) {
     throw new Error(
-      `Initial packed sources ending exclusively at $${initialPackedSourcesEnd.toString(16)} ` +
-      `must precede ENTITY_CODE staging $${entityStagedSourceAddress.toString(16)}`,
+      `Merged low-C/GLUE cold record $${coldLowGlueRecordAddress.toString(16)}-$${
+        (mergedColdRecordEndExclusive - 1).toString(16)} must lie above the packed resident ` +
+      `staging (ends $${(packedResidentStagingEndExclusive - 1).toString(16)}) and below $9D5E`,
+    );
+  }
+  const abiSegment = directorModule.codeSegments.find(({ name }) => name === "abi");
+  if (abiSegment !== undefined && (
+    bootA2StagingAddress + a2KernelRuntime.length > abiColdRecordAddress ||
+    abiColdRecordAddress + abiSegment.data.length > entityStatePageEndExclusive)) {
+    throw new Error(`ABI cold record $${abiColdRecordAddress.toString(16)}-$${
+      (abiColdRecordAddress + abiSegment.data.length - 1).toString(16)} must follow A2 staging ` +
+      `and stay inside the entity-state page`);
+  }
+  const entitySourceOverlapsStaging =
+    entityPackedSourceAddress < entityStagedEndAddress &&
+    entityStagedSourceAddress < initialPackedSourcesEnd;
+  if (entitySourceOverlapsStaging &&
+      !(entityStagedSourceAddress >= entityPackedSourceAddress)) {
+    throw new Error(
+      `Overlapping ENTITY_CODE staging $${entityStagedSourceAddress.toString(16)}-$${
+        (entityStagedEndAddress - 1).toString(16)} must begin at or above its source $${
+        entityPackedSourceAddress.toString(16)}-$${
+        initialPackedSourcesLastAddress.toString(16)} for backward-copy safety`,
     );
   }
   if (!(entityStagedEndAddress <= broadsideRunAddress)) {
@@ -757,16 +1356,20 @@ async function build() {
     pickupPackedSizeOperand - loadAddress,
   );
   residentMain.writeUInt16LE(
-    broadsidePackedSourceAddress,
-    broadsidePackedSourceOperand - loadAddress,
-  );
-  residentMain.writeUInt16LE(
     packedStarfieldAddress,
     starfieldPackedSourceOperand - loadAddress,
   );
   residentMain.writeUInt16LE(
-    packedStarfieldRuntime.length,
+    starfieldStreamA.packed.length,
     starfieldPackedSizeOperand - loadAddress,
+  );
+  residentMain.writeUInt16LE(
+    packedStarfieldAddress + starfieldStreamA.packed.length,
+    starfieldPackedSourceBOperand - loadAddress,
+  );
+  residentMain.writeUInt16LE(
+    starfieldStreamB.packed.length,
+    starfieldPackedSizeBOperand - loadAddress,
   );
   residentMain.writeUInt16LE(
     a2KernelSourceAddress,
@@ -796,56 +1399,74 @@ async function build() {
     a2KernelRuntime, packedEntityCodeRuntime, bootPayloadTrailer,
   ];
   const placeholderInitial = Buffer.concat(initialContentParts(bootStage2Runtime));
-  if (placeholderInitial.length !== expectedInitialContentBytes) {
+  if (asmDirectorBaseline && placeholderInitial.length !== expectedInitialContentBytes) {
     throw new Error(`Layout D.2 initial content changed: ${placeholderInitial.length} B; ` +
       `expected ${expectedInitialContentBytes} B; packed ENTITY_CODE ` +
       `${packedEntityCodeRuntime.length} B; BROADSIDE ${broadsideRuntimeBytes} B; ` +
       `ENTITY_CODE ${entityCodeBytes} B; PICKUP_CODE ${pickupCodeBytes} B`);
   }
   const buildTag = (bytes) => crypto.createHash("sha256").update(bytes).digest().subarray(0, 5);
+  const transportChunks = [{
+    packed: packedBroadsideRuntime,
+    raw: broadsideRuntime,
+    finalDestination: broadsideRunAddress,
+    type: chunkLoaderConstants.chunkTypeLz,
+    stagingId: chunkLoaderConstants.stagingBroadside,
+    destination: packedResidentStagingAddress,
+    buildTag: buildTag(packedBroadsideRuntime),
+  }, {
+    packed: packedWeaponPickupPhaseBank,
+    raw: packedWeaponPickupPhaseBank,
+    finalDestination: weaponPickupPackedStagingAddress,
+    type: chunkLoaderConstants.chunkTypeRaw,
+    stagingId: chunkLoaderConstants.stagingExtension,
+    destination: packedResidentStagingAddress,
+    buildTag: buildTag(packedWeaponPickupPhaseBank),
+  }];
+  // 4.5M-M2: GLUE has no record of its own; it rides the merged low-C record.
+  for (const segment of directorModule.codeSegments) {
+    transportChunks.push({
+      packed: segment.transportPacked ?? segment.packed,
+      raw: segment.lateCompressed ? segment.packed : segment.transportData ?? segment.data,
+      finalDestination: segment.transportAddress ?? segment.runAddress,
+      type: segment.lateCompressed
+        ? chunkLoaderConstants.chunkTypeRaw
+        : chunkLoaderConstants.chunkTypeLz,
+      stagingId: chunkLoaderConstants.stagingExtension,
+      destination: packedResidentStagingAddress,
+      buildTag: buildTag(segment.transportPacked ?? segment.packed),
+    });
+  }
+  transportChunks.push({
+    packed: directorModule.packed,
+    raw: directorModule.raw,
+    finalDestination: directorRunAddress,
+    type: chunkLoaderConstants.chunkTypeLz,
+    stagingId: chunkLoaderConstants.stagingExtension,
+    destination: packedResidentStagingAddress,
+    buildTag: buildTag(directorModule.packed),
+  });
   const transport = buildDfmcV1Transport({
     initialContent: placeholderInitial,
     manifestOffset: residentPrefix.length + manifestOffsetInStage2,
     allowExtendedInitialBlock: encounterDirectorEnabled,
-    chunks: [{
-      packed: packedBroadsideRuntime,
-      raw: broadsideRuntime,
-      finalDestination: broadsideRunAddress,
-      type: chunkLoaderConstants.chunkTypeLz,
-      stagingId: chunkLoaderConstants.stagingBroadside,
-      destination: packedResidentStagingAddress,
-      buildTag: buildTag(packedBroadsideRuntime),
-    }, {
-      packed: packedWeaponPickupPhaseBank,
-      raw: packedWeaponPickupPhaseBank,
-      finalDestination: weaponPickupPackedStagingAddress,
-      type: chunkLoaderConstants.chunkTypeRaw,
-      stagingId: chunkLoaderConstants.stagingExtension,
-      destination: packedResidentStagingAddress,
-      buildTag: buildTag(packedWeaponPickupPhaseBank),
-    }, {
-      packed: glueModule.packed,
-      raw: glueModule.raw,
-      finalDestination: glueStagingAddress,
-      type: chunkLoaderConstants.chunkTypeLz,
-      stagingId: chunkLoaderConstants.stagingExtension,
-      destination: packedResidentStagingAddress,
-      buildTag: buildTag(glueModule.packed),
-    }, {
-      packed: directorModule.packed,
-      raw: directorModule.raw,
-      finalDestination: directorRunAddress,
-      type: chunkLoaderConstants.chunkTypeLz,
-      stagingId: chunkLoaderConstants.stagingExtension,
-      destination: packedResidentStagingAddress,
-      buildTag: buildTag(directorModule.packed),
-    }],
+    chunks: transportChunks,
     unpackLz: unpackBroadsideLzss,
   });
   const { initialBoot, manifest: chunkManifest, transportPayload,
     totalOccupiedSectors: totalTransportSectors } = transport;
-  const [broadsideChunk, pickupPhaseChunk, glueChunk, directorChunk] = transport.chunkImages;
-  const [broadsideRecord, pickupPhaseRecord, glueRecord, directorRecord] = transport.records;
+  const [broadsideChunk, pickupPhaseChunk] = transport.chunkImages;
+  const [broadsideRecord, pickupPhaseRecord] = transport.records;
+  const directorCodeChunks = directorModule.codeSegments.map((segment, index) => ({
+    ...segment,
+    chunk: transport.chunkImages[2 + index],
+    record: transport.records[2 + index],
+  }));
+  const mergedColdChunk = directorCodeChunks.find(({ name }) => name === "low") ?? null;
+  const glueChunk = mergedColdChunk?.chunk ?? null;
+  const glueRecord = mergedColdChunk?.record ?? null;
+  const directorChunk = transport.chunkImages.at(-1);
+  const directorRecord = transport.records.at(-1);
   const extensionSectors = transport.chunkImages.reduce((sum, chunk) => sum + chunk.sectors, 0);
   const extensionStartSector = broadsideRecord.startSector;
   const initialContent = transport.patchedInitialContent;
@@ -862,14 +1483,46 @@ async function build() {
     record.startSector, record.sectorCount, record.packedLength,
     record.rawLength, record.finalDestination,
   ]);
-  if (bootSectors !== 101 || totalTransportSectors !== 161 ||
-    transportPayload.length !== 20608 || JSON.stringify(frozenRecordShape) !== JSON.stringify([
-      [102, 45, 5660, 6643, 0x5e10],
-      [147, 8, packedWeaponPickupPhaseBank.length, packedWeaponPickupPhaseBank.length,
-        weaponPickupPackedStagingAddress],
-      [155, 2, 229, 234, glueStagingAddress],
-      [157, 5, 585, 645, directorRunAddress],
-    ])) {
+  const expectedDestinations = [broadsideRunAddress, weaponPickupPackedStagingAddress,
+    ...directorModule.codeSegments.map((segment) =>
+      segment.transportAddress ?? segment.runAddress),
+    directorRunAddress];
+  // 4.5M-M3 proof: the arena's own direct-landing record is the only transport
+  // record, staging window, hold or backup that touches $7BD0-$7F0F.
+  const arenaRecordIndex = directorModule.codeSegments.findIndex(({ name }) => name === "arena");
+  const arenaRecord = arenaRecordIndex < 0 ? null : transport.records[2 + arenaRecordIndex];
+  const arenaChunk = arenaRecordIndex < 0 ? null : transport.chunkImages[2 + arenaRecordIndex];
+  const coldOwnersInArena = [
+    ...transport.records.map((record) => ({
+      owner: `record ${record.finalDestination.toString(16)}`,
+      start: record.finalDestination, endExclusive: record.finalDestination + record.rawLength,
+    })),
+    ...starfieldSplit.streams.map((stream) => ({
+      owner: `starfield stream ${stream.id} staging`,
+      start: stream.address, endExclusive: stream.address + stream.capacityBytes,
+    })),
+    { owner: "A2 staging", start: bootA2StagingAddress,
+      endExclusive: bootA2StagingAddress + a2KernelRuntime.length },
+    { owner: "GLUE hold", start: glueHoldingAddress,
+      endExclusive: glueHoldingAddress + glueModule.raw.length },
+    { owner: "pause-screen backup", start: starfieldStagingAddress,
+      endExclusive: starfieldStagingAddress + 0x3c0 },
+  ].filter(({ start, endExclusive }) =>
+    start < hybridArenaEndExclusive && endExclusive > hybridArenaAddress);
+  const foreignOwnersInArena = coldOwnersInArena.filter(({ start, endExclusive }) =>
+    !(arenaRecord !== null && start === hybridArenaAddress &&
+      endExclusive === hybridArenaAddress + arenaRecord.rawLength));
+  if (foreignOwnersInArena.length !== 0 || (directorModule.implementation === "cc65-c" && (
+    arenaRecord === null || arenaRecord.finalDestination !== hybridArenaAddress ||
+    arenaRecord.finalDestination + arenaRecord.rawLength > hybridArenaEndExclusive ||
+    transport.records.length > chunkLoaderConstants.maxChunks))) {
+    throw new Error(`4.5M-M3: $7BD0-$7F0F must be owned only by the arena record: ${
+      coldOwnersInArena.map(({ owner }) => owner).join(", ")}`);
+  }
+  if ((asmDirectorBaseline && bootSectors !== 103) ||
+    transportPayload.length !== totalTransportSectors * 128 ||
+    JSON.stringify(frozenRecordShape.map((record) => record[4])) !==
+      JSON.stringify(expectedDestinations)) {
     throw new Error(`Layout D.2 transport topology changed: ${JSON.stringify(frozenRecordShape)}`);
   }
   if (initialBoot.bytes.readUInt16LE(2) !== loadAddress) {
@@ -883,12 +1536,16 @@ async function build() {
     { start: loadAddress, data: initialBoot.bytes },
     { start: broadsideRunAddress, data: broadsideRuntime },
     { start: weaponPickupPackedStagingAddress, data: packedWeaponPickupPhaseBank },
-    { start: glueStagingAddress, data: glueModule.raw },
+    ...directorModule.codeSegments.map((segment) => ({
+      start: segment.transportAddress ?? segment.runAddress,
+      data: segment.lateCompressed ? segment.packed : segment.transportData ?? segment.data,
+    })),
     { start: directorRunAddress, data: directorModule.raw },
   ], bootStage2XexEntry);
   const atr = makeAtr(transportPayload);
   const runtimeArtifacts = runtimeArtifactSet({ boot: transportPayload, xex, atr });
-  const cpuRuntimeTiming = isReviewVariant ? null : measureRuntimeCycles({
+  const cpuRuntimeTiming = isReviewVariant || twoPmgRaiderPrototype || skipRuntimeMeasurement
+    ? null : measureRuntimeCycles({
     residentMain,
     loadAddress,
     broadsideRuntime,
@@ -899,14 +1556,19 @@ async function build() {
     a2KernelRunAddress,
     entityCodeRuntime,
     entityCodeRunAddress,
-    weaponPickupPhaseBank,
-    weaponPickupPhaseBankAddress,
-    pickupCodeRuntime,
-    pickupCodeRunAddress,
+    weaponPickupPhaseBank: null,
+    weaponPickupPhaseBankAddress: weaponPickupRuntimeAddress,
+    pickupCodeRuntime: Buffer.concat([
+      pickupCodeRuntime, capitalPlayerCollisionModule.raw,
+    ]),
+    pickupCodeRunAddress: weaponPickupRuntimeAddress,
     integrationGlueRuntime: glueModule.raw,
     integrationGlueRunAddress: glueFinalAddress,
     directorRuntime: directorModule.raw,
     directorRunAddress,
+    directorAdditionalSegments: directorModule.windowSegment === undefined
+      ? directorModule.codeSegments
+      : [...directorModule.codeSegments, directorModule.windowSegment],
     capitalPlayerCollisionRuntime: capitalPlayerCollisionModule.raw,
     capitalPlayerCollisionRunAddress: capitalPlayerCollisionAddress,
     labels,
@@ -960,7 +1622,8 @@ async function build() {
   };
   const destructibleDebrisRuntimeCodeBytes = codeBytes + starfieldRuntimeBytes +
     broadsideRuntimeBytes + a2KernelBytes + entityCodeBytes + pickupCodeBytes;
-  if (encounterDirectorEnabled && destructibleDebrisRuntimeCodeBytes !== expectedLinkedRuntimeBytes) {
+  if (asmDirectorBaseline && encounterDirectorEnabled &&
+    destructibleDebrisRuntimeCodeBytes !== expectedLinkedRuntimeBytes) {
     throw new Error(`Layout D.2 linked runtime changed: ${destructibleDebrisRuntimeCodeBytes} B; ` +
       `expected ${expectedLinkedRuntimeBytes} B`);
   }
@@ -973,6 +1636,19 @@ async function build() {
   // New weapon code consumes only the explicit post-compaction payload reserve;
   // the live linked total remains reported below instead of being misclassified
   // as growth of either completed feature.
+  const directorTotalBytes = directorModule.codeRaw.length + directorModule.raw.length +
+    (directorModule.windowSegment?.data.length ?? 0);
+  const directorAdditionalStateBytes = directorModule.implementation === "cc65-c"
+    ? directorModule.footprint.bssBytes : 0;
+  const directorResidencyDelta = directorTotalBytes - expectedDirectorRawBytes +
+    directorAdditionalStateBytes;
+  const hybridResidencyDelta = directorResidencyDelta +
+    (destructibleDebrisRuntimeCodeBytes - expectedLinkedRuntimeBytes);
+  const baselineSimultaneousResidencyBytes = 17648 + capitalPlayerCollisionModule.raw.length +
+    (expectedLinkedRuntimeBytes - 17203);
+  const simultaneousResidencyBytes = baselineSimultaneousResidencyBytes + hybridResidencyDelta;
+  const safeResidencyBytes = 4539 - capitalPlayerCollisionModule.raw.length -
+    (expectedLinkedRuntimeBytes - 17203) - hybridResidencyDelta;
 
   const manifest = {
     formatVersion: 1,
@@ -981,30 +1657,76 @@ async function build() {
     toolchain: "romdev-toolchain-cc65@0.1.3",
     encounterDirector: {
       enabled: encounterDirectorEnabled,
-      layout: "Layout D.2 — post-clear director init + intensity-preserving admission ABI",
+      implementation: directorModule.implementation,
+      layout: directorModule.implementation === "cc65-c"
+        ? "Hybrid cc65 C Director + stable ca65 ABI veneer"
+        : "Layout D.2 ca65 ASM baseline",
       levelWorldRows: 3712,
       phaseCount: 8,
-      initialContentBytes: expectedInitialContentBytes,
-      linkedRuntimeBytes: expectedLinkedRuntimeBytes,
-      simultaneousResidencyBytes: 18800 + capitalPlayerCollisionModule.raw.length,
-      safeResidencyBytes: 3387 - capitalPlayerCollisionModule.raw.length,
+      initialContentBytes: placeholderInitial.length,
+      linkedRuntimeBytes: destructibleDebrisRuntimeCodeBytes,
+      simultaneousResidencyBytes,
+      safeResidencyBytes,
+      residencyDeltaBytes: directorResidencyDelta,
+      totalMigrationResidencyDeltaBytes: hybridResidencyDelta,
       glue: {
         stagingAddress: glueStagingAddress,
-        holdingAddress: 0x7f16,
+        holdingAddress: glueHoldingAddress,
         finalAddress: glueFinalAddress,
         rawBytes: glueModule.raw.length,
         packedBytes: glueModule.packed.length,
+        transport: "4.5M-M2: offset $F8 of the merged low-C/GLUE LZ record",
+      },
+      coldRecordRelocation: {
+        step: "4.5M-M2",
+        abiRecord: { address: abiColdRecordAddress,
+          endExclusive: abiColdRecordAddress + directorModule.footprint.abiBytes,
+          consumedBy: "publish_director_abi, before unpack_entity_runtime and init_entity_effects" },
+        mergedRecord: mergedColdRecord === null ? null : {
+          address: coldLowGlueRecordAddress,
+          endExclusive: mergedColdRecordEndExclusive,
+          rawBytes: mergedColdRecord.transportData.length,
+          packedBytes: mergedColdRecord.transportPacked.length,
+          layout: [
+            { part: "low-C", offset: 0, bytes: lowCodeReservationBytes,
+              usedBytes: mergedColdRecord.data.length, runtime: 0x8b88 },
+            { part: "GLUE", offset: lowCodeReservationBytes, bytes: glueModule.raw.length,
+              hold: glueHoldingAddress, runtime: glueFinalAddress },
+          ],
+          packedResidentStagingEndExclusive,
+          marginAbovePackedResidentBytes: coldLowGlueRecordAddress - packedResidentStagingEndExclusive,
+          marginBelowDirectorPreBytes: directorPreRunAddress - mergedColdRecordEndExclusive,
+          consumedBy: "publish_director_abi -> DIRECTOR_PUBLISH_LOW, stage_glue_holding; " +
+            "all before unpack_entity_runtime expands $9100-$9D5D",
+        },
       },
       director: {
         address: directorRunAddress,
-        endExclusive: directorGuardAddress,
-        rawBytes: directorModule.raw.length,
-        packedBytes: directorModule.packed.length,
+        endExclusive: directorRunAddress + directorModule.raw.length,
+        reservedEndExclusive: directorGuardAddress,
+        rawBytes: directorTotalBytes,
+        packedBytes: directorModule.codePacked.length + directorModule.packed.length,
+        codeAddress: directorModule.codeSegments[0]?.runAddress ?? null,
+        codeBytes: directorModule.footprint.abiBytes + directorModule.footprint.codeBytes,
+        rodataAddress: directorRunAddress,
+        rodataBytes: directorModule.footprint.rodataBytes,
+        placements: [
+          ...directorModule.codeSegments.map(({ name, runAddress, data }) => ({
+            name, runAddress, bytes: data.length,
+          })),
+          { name: "high", runAddress: directorRunAddress, bytes: directorModule.raw.length },
+          ...(directorModule.windowSegment === undefined ? [] : [{
+            name: "window",
+            runAddress: directorModule.windowSegment.runAddress,
+            bytes: directorModule.windowSegment.data.length,
+          }]),
+        ],
+        footprint: directorModule.footprint,
       },
       capitalPlayerCollision: {
         address: capitalPlayerCollisionAddress,
         transportAddress: weaponPickupPackedStagingAddress,
-        packedStreamOffset: weaponPickupPhaseBank.length + pickupCodeRuntime.length,
+        packedStreamOffset: pickupCodeRuntime.length,
         endExclusive: capitalPlayerCollisionAddress + capitalPlayerCollisionModule.raw.length,
         rawBytes: capitalPlayerCollisionModule.raw.length,
         packedBytes: capitalPlayerCollisionModule.packed.length,
@@ -1119,10 +1841,10 @@ async function build() {
         ),
       maximumExtensionChunkBytes: 50 * chunkLoaderConstants.atrSectorBytes,
       maximumChunkCount: chunkLoaderConstants.maxChunks,
-      maximumNewSimultaneousResidencyBytes: 6841,
+      maximumNewSimultaneousResidencyBytes: 7993,
       remainingSafeResidencyBytes:
-        6841 - (destructibleDebrisRuntimeCodeBytes - shieldBoosterBaselineRuntimeCodeBytes) -
-          capitalPlayerCollisionModule.raw.length,
+        7993 - (destructibleDebrisRuntimeCodeBytes - shieldBoosterBaselineRuntimeCodeBytes) -
+          capitalPlayerCollisionModule.raw.length - directorResidencyDelta,
       bootOnlyStaging: { address: packedResidentStagingAddress, bytes: 0x1954 },
       loaderResidentBytes: 0,
       stage2: {
@@ -1176,11 +1898,14 @@ async function build() {
     },
     integrationGlue: {
       transportAddress: glueStagingAddress,
-      holdingAddress: 0x7f16,
+      transportRecordAddress: coldLowGlueRecordAddress,
+      transportRecordOffset: lowCodeReservationBytes,
+      holdingAddress: glueHoldingAddress,
       finalAddress: glueFinalAddress,
       bytes: glueModule.raw.length,
       packedBytes: glueModule.packed.length,
-      externalChunk: {
+      externalChunk: glueRecord === null ? null : {
+        sharedWith: "low-C image (4.5M-M2 merged record)",
         startSector: glueRecord.startSector,
         sectors: glueChunk.sectors,
         transportBytes: glueChunk.bytes.length,
@@ -1188,8 +1913,10 @@ async function build() {
       },
     },
     directorRuntime: {
+      implementation: directorModule.implementation,
       runAddress: directorRunAddress,
-      endExclusive: directorGuardAddress,
+      endExclusive: directorRunAddress + directorModule.raw.length,
+      reservedEndExclusive: directorGuardAddress,
       bytes: directorModule.raw.length,
       packedBytes: directorModule.packed.length,
       externalChunk: {
@@ -1199,10 +1926,118 @@ async function build() {
         crc16: directorChunk.storageCrc16,
       },
     },
+    directorCodeRuntime: null,
+    lightWingman: lightPlacement,
+    residentCapacity: residentWindowSegment === null ? null : {
+      window: {
+        address: residentWindowAddress,
+        endExclusive: residentWindowAddress + residentWindowBytes,
+        bytes: residentWindowBytes,
+        usedBytes: residentWindowSegment.data.length,
+        freeBytes: residentWindowBytes - residentWindowSegment.data.length,
+        owner: "HYBRID_C_SECTOR",
+        packedBytes: residentWindowSegment.packed.length,
+        transport: "second LZ stream of the pickup/collision record",
+        glueHoldingAddress,
+      },
+      arena: directorModule.arenaSegment === undefined ? null : (() => {
+        const arena = directorModule.arenaSegment;
+        // Worst case for sizing the record: the full capacity of pseudo-random bytes.
+        const worstPacked = packBroadsideLzss(deterministicCapacityBytes(hybridArenaCapacityBytes));
+        const sectorsFor = (packedBytes) =>
+          Math.ceil((packedBytes + chunkLoaderConstants.chunkFooterBytes) / 128);
+        return {
+          step: "4.5M-M3",
+          owner: "HYBRID_C_ARENA",
+          address: hybridArenaAddress,
+          endExclusive: hybridArenaEndExclusive,
+          capacityBytes: hybridArenaCapacityBytes,
+          usedBytes: arena.data.length,
+          freeBytes: hybridArenaCapacityBytes - arena.data.length,
+          asmBytes: arena.arena.asmBytes,
+          codeBytes: arena.arena.codeBytes,
+          rodataBytes: arena.arena.rodataBytes,
+          segments: ["HYBRID_ASM_ARENA", "HYBRID_C_ARENA", "HYBRID_C_ARENA_RODATA"],
+          anchor: "hybrid_arena_anchor (1-B rts, HYBRID_ASM_ARENA): keeps the record non-empty",
+          replaces: "HYBRID_C_HEAVY window $7E12-$7F04 (243 B) and its 44-B transport tail " +
+            "in the merged low-C/GLUE record",
+          boundedBy: { below: "starfield stream A staging / pause-screen backup end $7BD0",
+            above: "A2 display lists $7F10" },
+          transport: arenaRecord === null ? null : {
+            record: "own DFMC record, LZ, stagingId extension",
+            finalDestination: arenaRecord.finalDestination,
+            startSector: arenaRecord.startSector,
+            sectors: arenaRecord.sectorCount,
+            rawBytes: arenaRecord.rawLength,
+            packedBytes: arenaRecord.packedLength,
+            paddingBytes: arenaChunk.sectors * 128 - arenaRecord.packedLength -
+              chunkLoaderConstants.chunkFooterBytes,
+            landing: "direct: ATR stage 2 decodes it to $7BD0, the XEX segment loads at $7BD0; " +
+              "no hold, no publish copy",
+          },
+          ownersInArena: coldOwnersInArena,
+          worstCaseFullArenaPackedBytes: worstPacked.length,
+          worstCaseFullArenaSectors: sectorsFor(worstPacked.length),
+        };
+      })(),
+      pickupRecordPackedBytes: {
+        pickupStream: packedPickupStream.length,
+        windowStream: residentWindowSegment.packed.length,
+        combined: packedWeaponPickupPhaseBank.length,
+        coldCapacity: weaponPickupPackedCapacityBytes,
+        coldMargin: weaponPickupPackedCapacityBytes - packedWeaponPickupPhaseBank.length,
+      },
+      tails: (() => {
+        // Free bytes between the last byte a segment uses and the first byte of
+        // its real neighbour. A negative tail means the segment has already run
+        // into somebody else's memory, so refuse the build instead of shipping
+        // the overrun in the manifest.
+        const computed = {
+          hybridCExtension: cExtensionSegment === undefined ? null :
+            0x9000 - (cExtensionSegment.runAddress + cExtensionSegment.data.length),
+          entityCode: directorPreRunAddress - (entityCodeRunAddress + entityCodeBytes),
+          pickupStreamFill: pickupFileBytes - lightResidentBytes - pickupCodeBytes,
+          a2Kernel: 0x0100 - a2KernelBytes,
+        };
+        const overrun = Object.entries(computed)
+          .filter(([, tail]) => tail !== null && tail < 0)
+          .map(([name, tail]) => `${name} ${tail} B`);
+        if (overrun.length > 0) {
+          throw new Error(`segment free tail is negative: ${overrun.join(", ")}`);
+        }
+        return computed;
+      })(),
+    },
+    directorCodeRuntimes: directorCodeChunks.map(({ name, runAddress, transportAddress, data,
+      packed: segmentPacked, lateCompressed, transportData, transportPacked, record, chunk }) => ({
+      name,
+      file: `encounter-director-code-${name}.bin`,
+      xexFile: lateCompressed
+        ? `encounter-director-code-${name}-packed.bin`
+        : transportData === undefined
+          ? `encounter-director-code-${name}.bin`
+          : `encounter-director-code-${name}-transport.bin`,
+      xexStagingCompression: lateCompressed ? "LZ-10/5" : null,
+      runAddress,
+      transportAddress: transportAddress ?? runAddress,
+      endExclusive: runAddress + data.length,
+      bytes: data.length,
+      packedBytes: segmentPacked.length,
+      ...(transportData === undefined ? {} : {
+        transportRawBytes: transportData.length,
+        transportPackedBytes: transportPacked.length,
+      }),
+      externalChunk: {
+        startSector: record.startSector,
+        sectors: chunk.sectors,
+        transportBytes: chunk.bytes.length,
+        crc16: chunk.storageCrc16,
+      },
+    })),
     capitalPlayerCollisionRuntime: {
       runAddress: capitalPlayerCollisionAddress,
       transportAddress: weaponPickupPackedStagingAddress,
-      packedStreamOffset: weaponPickupPhaseBank.length + pickupCodeRuntime.length,
+      packedStreamOffset: pickupCodeRuntime.length,
       bytes: capitalPlayerCollisionModule.raw.length,
       packedBytes: capitalPlayerCollisionModule.packed.length,
       externalChunk: {
@@ -1216,12 +2051,48 @@ async function build() {
       loadAddress: starfieldLoadAddress,
       runAddress: starfieldRunAddress,
       bytes: starfieldRuntimeBytes,
-      reservedBytes: 0x08e6,
+      reservedBytes: 0x092c,
       packedBytes: packedStarfieldRuntime.length,
       packedSourceAddress: packedStarfieldAddress,
+      packedSourceEndExclusive: packedStarfieldEndAddress,
+      pickupColdStagingAddress: weaponPickupColdStagingAddress,
+      packedSourceToPickupMarginBytes: packedStarfieldToPickupMarginBytes,
       stagingAddress: starfieldStagingAddress,
       stagingBytes: starfieldStagingBytes,
-      compression: "LZ-10/5",
+      compression: "LZ-10/5, two independent streams expanded into one continuous destination",
+      rawSplitOffset: starfieldSplit.rawSplitOffset,
+      singleStreamPackedBytes: starfieldSplit.singleStreamPackedBytes,
+      splitOverheadBytes: packedStarfieldRuntime.length - starfieldSplit.singleStreamPackedBytes,
+      streams: starfieldSplit.streams.map((stream, index) => ({
+        id: stream.id,
+        rawOffset: stream.rawOffset,
+        rawBytes: stream.rawBytes,
+        packedBytes: stream.packed.length,
+        packedSourceAddress: packedStarfieldAddress + starfieldSplit.streams.slice(0, index)
+          .reduce((sum, earlier) => sum + earlier.packed.length, 0),
+        stagingAddress: stream.address,
+        stagingCapacityBytes: stream.capacityBytes,
+        stagingEndExclusive: stream.address + stream.capacityBytes,
+        idleWindowEndExclusive: stream.idleWindowEndExclusive,
+        copy: "one resident 960-B pause-screen copy (copy_pause_screen), exact window, no spill",
+        stagedEndExclusive: stream.address + stream.packed.length,
+        marginBytes: stream.capacityBytes - stream.packed.length,
+      })),
+      packedTotalGate: {
+        baselineBytes: starfieldPackedTotalBaselineBytes,
+        correctionGateBytes: starfieldPackedTotalCorrectionGateBytes,
+        hardGateBytes: starfieldPackedTotalHardGateBytes,
+        actualBytes: packedStarfieldRuntime.length,
+        hardGateMarginBytes: starfieldPackedTotalHardGateBytes - packedStarfieldRuntime.length,
+        supersedes: {
+          singleStreamCorrectionGateBytes: starfieldSingleStreamCorrectionGateBytes,
+          singleStreamHardStagingBytes: starfieldSingleStreamHardStagingBytes,
+          singleStreamPackedBytesAtSwap: starfieldSingleStreamPackedBytesAtSwap,
+          note: "4.5M-M1 keeps the single-stream content headroom (+14 B to the hard gate, " +
+            "-7 B to the open correction-gate decision) on top of the measured two-stream " +
+            "total; the staging windows (960 + 1,032 B) are physical limits, not a budget",
+        },
+      },
     },
     a2Kernel: {
       loadAddress: a2KernelLoadAddress,
@@ -1298,6 +2169,10 @@ async function build() {
       stagedEndAddress: entityStagedEndAddress - 1,
       stagedEndExclusive: entityStagedEndAddress,
       sourceToStagingMarginBytes: entityStagedSourceAddress - initialPackedSourcesEnd,
+      sourceStagingOverlapBytes: Math.max(
+        0, initialPackedSourcesEnd - entityStagedSourceAddress,
+      ),
+      stagingCopyDirection: "backward",
       stagingToBroadsideMarginBytes: broadsideRunAddress - entityStagedEndAddress,
       stagingLifecycle: {
         starfieldDestinationAddress: starfieldRunAddress,
@@ -1332,11 +2207,13 @@ async function build() {
       spreadPickupGlyphIndex: labels.get("WEAPON_PICKUP_SPREAD_GLYPH_BASE"),
       shieldPickupGlyphCount: entityEffectsAsset.shieldPickupGlyphs.length / 8,
       shieldPickupGlyphIndex: labels.get("WEAPON_PICKUP_SHIELD_GLYPH_BASE"),
-      dynamicPickupGlyphBankShared: true,
+      dynamicPickupGlyphBankShared: false,
       pickupPhaseGlyphCount: entityEffectsAsset.weaponPickupRapidFire.maximumFootprintRows * 2,
       pickupPhaseCount: entityEffectsAsset.weaponPickupRapidFire.verticalPhaseCount,
-      pickupPhaseBankAddress: weaponPickupPhaseBankAddress,
-      pickupPhaseBankBytes: weaponPickupPhaseBank.length,
+      pickupPhaseBankAddress: weaponPickupRuntimeAddress,
+      pickupPhaseBankBytes: 0,
+      pickupPhaseSourceBytes: weaponPickupPhaseBank.length,
+      pickupPhaseBankRuntimeReferences: 0,
       pickupCodeAddress: pickupCodeRunAddress,
       pickupCodeBytes,
       pickupPhaseRuntimeBytes: weaponPickupPhaseRuntime.length,
@@ -1347,7 +2224,9 @@ async function build() {
         transportBytes: pickupPhaseChunk.bytes.length,
         crc16: pickupPhaseChunk.storageCrc16,
         stagingAddress: weaponPickupPackedStagingAddress,
-        finalRuntimeAddress: weaponPickupPhaseBankAddress,
+        finalRuntimeAddress: weaponPickupRuntimeAddress,
+        coldCapacityBytes: weaponPickupPackedCapacityBytes,
+        coldMarginBytes: weaponPickupPackedCapacityBytes - packedWeaponPickupPhaseBank.length,
       },
       newGlyphsFromFoundation: entityEffectsAsset.glyphs.length / 8 - 1,
       runtimeBudget: {
@@ -1493,7 +2372,7 @@ async function build() {
       },
     },
     runtimeCodeBudget: {
-      measurement: "linked CODE + STARFIELD + BROADSIDE + A2_KERNEL + ENTITY_CODE bytes",
+      measurement: "linked CODE + STARFIELD + BROADSIDE + A2_KERNEL + ENTITY_CODE + PICKUP_CODE bytes",
       baselineBytes: destructibleDebrisRuntimeCodeBaselineBytes,
       actualBytes: destructibleDebrisRuntimeCodeBytes,
       actualDeltaBytes: destructibleDebrisRuntimeCodeBytes -
@@ -1573,6 +2452,11 @@ async function build() {
       previewStartPhase: capitalHullsAsset.previewStartPhase,
       contourTransitions: Object.fromEntries(capitalHullsAsset.contourTransitionCounts),
       broadsideScheduleBytes: capitalHullsAsset.scheduleBytes.length,
+      broadsideFire: {
+        allocatedSlots: 3,
+        activeLimit: capitalHullsAsset.broadside.activeLimit,
+        delaysAfterFrames: capitalHullsAsset.schedule.map(({ delayAfterFrames }) => delayAfterFrames),
+      },
       flagshipSector: {
         totalRows: capitalHullsAsset.sector.totalRows,
         streamRows: capitalHullsAsset.sector.streamRows,
@@ -1630,6 +2514,22 @@ async function build() {
         scannerValue: enemyRosterAsset.runtime.colourPolicy.accentValue,
       },
       movementPolicy: enemyRosterAsset.runtime.movementPolicy,
+      raiderFormation: {
+        memberCount: 3,
+        guideVisible: false,
+        memberVerticalOffsetsScanlines: [0, -24, -48],
+        sharedPmgPlayers: ["P1", "P2"],
+        independentStateAndHp: true,
+        retainDestroyedGaps: true,
+        replacementDuringFlight: false,
+        leaderTransfer: false,
+        maximumOrdinaryMachines: 3,
+        lifecycleEndsAfterAllMembersLeaveOrAreDestroyed: true,
+        blocksCapitalAdmissionUntilLifecycleEnd: true,
+        weaponPoolSlots: 9,
+        weaponActiveLimit: enemyRosterAsset.runtime.weaponPolicy.singlePulse.activeLimit,
+        weaponOriginSelection: "round-robin living member",
+      },
       weaponPolicy: enemyRosterAsset.runtime.weaponPolicy,
       projectileVisuals: capitalHullsAsset.broadside.projectileVisuals,
       damagePolicy: {
@@ -1665,6 +2565,12 @@ async function build() {
         interceptor: fighterWeaponsAsset.interceptor.poolSlots,
         total: fighterWeaponsAsset.totalSlots,
       },
+      activeLimits: {
+        player_fighter: fighterWeaponsAsset.player_fighter.activeLimit,
+        interceptor: fighterWeaponsAsset.interceptor.activeLimit,
+        total: fighterWeaponsAsset.player_fighter.activeLimit +
+          fighterWeaponsAsset.interceptor.activeLimit,
+      },
       runtimeStateBytes: fighterWeaponsAsset.stateBytes,
       sharedFighterExplosion: {
         frameCount: fighterWeaponsAsset.sharedFighterExplosion.frameCount,
@@ -1686,20 +2592,23 @@ async function build() {
       corridor: starfieldAsset.corridor,
       farLayer: {
         population: starfieldAsset.farLayer.population,
+        representation: starfieldAsset.farLayer.representation,
         rateNumerator: starfieldAsset.farLayer.rateNumerator,
         rateDenominator: starfieldAsset.farLayer.rateDenominator,
+        patternRows: starfieldAsset.farLayer.pattern.rows,
+        patternBytes: starfieldAsset.farLayer.pattern.bytes.length,
         colourRegister: starfieldAsset.farLayer.colourRegister,
         glyphs: starfieldAsset.farLayer.glyphs.map(({ id, screenCode }) => ({ id, screenCode })),
       },
       nearLayer: {
-        rateNumerator: starfieldAsset.nearLayer.rateNumerator,
-        rateDenominator: starfieldAsset.nearLayer.rateDenominator,
-        densityNumerator: starfieldAsset.nearLayer.densityNumerator,
-        densityDenominator: starfieldAsset.nearLayer.densityDenominator,
+        representation: starfieldAsset.nearLayer.representation,
+        population: starfieldAsset.nearLayer.population,
+        speedPixelsPerFrame: starfieldAsset.nearLayer.speedPixelsPerFrame,
         expectedVisible: starfieldAsset.expectedNearVisible,
         colourRegister: starfieldAsset.nearLayer.colourRegister,
         glyphs: starfieldAsset.nearLayer.glyphs.map(({ id, screenCode }) => ({ id, screenCode })),
       },
+      twinkleEnabled: starfieldAsset.twinkle.enabled,
       twinkleIntervalFrames: starfieldAsset.twinkle.intervalFrames,
       glyphBytes: starfieldAsset.glyphBytes.length,
       runtimeStateBytes: starfieldAsset.stateBytes,
@@ -1794,12 +2703,44 @@ async function build() {
   writeFile(path.join(buildDirectory, "integration-glue.lbl"), glueModule.labels);
   writeFile(path.join(buildDirectory, "integration-glue.bin"), glueModule.raw);
   writeFile(path.join(buildDirectory, "integration-glue-packed.bin"), glueModule.packed);
+  writeFile(path.join(buildDirectory, "integration-abi.inc"), integrationAbiInclude);
   writeFile(path.join(buildDirectory, "encounter-director.o"), directorModule.object);
+  if (directorModule.abiObject) {
+    writeFile(path.join(buildDirectory, "encounter-director-abi.o"), directorModule.abiObject);
+    writeFile(path.join(buildDirectory, "encounter-director-abi.lst"), directorModule.abiListing);
+    writeFile(path.join(buildDirectory, "encounter-director-generated.s"),
+      directorModule.generatedAssembly);
+    writeFile(path.join(buildDirectory, "encounter-director-lifecycle.o"),
+      directorModule.lifecycleObject);
+    writeFile(path.join(buildDirectory, "encounter-director-lifecycle.lst"),
+      directorModule.lifecycleListing);
+    writeFile(path.join(buildDirectory, "encounter-director-lifecycle-generated.s"),
+      directorModule.lifecycleGeneratedAssembly);
+  }
   writeFile(path.join(buildDirectory, "encounter-director.lst"), directorModule.listing);
   writeFile(path.join(buildDirectory, "encounter-director.map"), directorModule.map);
   writeFile(path.join(buildDirectory, "encounter-director.lbl"), directorModule.labels);
   writeFile(path.join(buildDirectory, "encounter-director.bin"), directorModule.raw);
   writeFile(path.join(buildDirectory, "encounter-director-packed.bin"), directorModule.packed);
+  writeFile(path.join(buildDirectory, "encounter-director-code.bin"), directorModule.codeRaw);
+  writeFile(path.join(buildDirectory, "encounter-director-code-packed.bin"),
+    directorModule.codePacked);
+  for (const segment of directorModule.codeSegments) {
+    writeFile(path.join(buildDirectory, `encounter-director-code-${segment.name}.bin`),
+      segment.data);
+    writeFile(path.join(buildDirectory, `encounter-director-code-${segment.name}-packed.bin`),
+      segment.packed);
+    if (segment.transportData !== undefined) {
+      writeFile(path.join(buildDirectory,
+        `encounter-director-code-${segment.name}-transport.bin`), segment.transportData);
+    }
+  }
+  if (directorModule.windowSegment !== undefined) {
+    writeFile(path.join(buildDirectory, "resident-window-runtime.bin"),
+      directorModule.windowSegment.data);
+    writeFile(path.join(buildDirectory, "resident-window-runtime-packed.bin"),
+      directorModule.windowSegment.packed);
+  }
   writeFile(path.join(buildDirectory, "capital-player-collision.o"),
     capitalPlayerCollisionModule.object);
   writeFile(path.join(buildDirectory, "capital-player-collision.lst"),
@@ -1814,10 +2755,19 @@ async function build() {
     capitalPlayerCollisionModule.packed);
   writeFile(path.join(buildDirectory, "starfield-runtime.bin"), starfieldRuntime);
   writeFile(path.join(buildDirectory, "starfield-runtime-packed.bin"), packedStarfieldRuntime);
+  for (const stream of starfieldSplit.streams) {
+    writeFile(path.join(buildDirectory,
+      `starfield-runtime-packed-${stream.id.toLowerCase()}.bin`), stream.packed);
+  }
   writeFile(path.join(buildDirectory, "a2-kernel-runtime.bin"), a2KernelRuntime);
   writeFile(path.join(buildDirectory, "entity-code-runtime.bin"), entityCodeRuntime);
   writeFile(path.join(buildDirectory, "entity-code-runtime-packed.bin"), packedEntityCodeRuntime);
-  writeFile(path.join(buildDirectory, "pickup-code-runtime.bin"), pickupCodeRuntime);
+  // PICKUP_CODE proper (at __PICKUP_CODE_RUN__), excluding the LIGHT_RESIDENT
+  // prefix and the zero fill before the collision module.
+  writeFile(path.join(buildDirectory, "pickup-code-runtime.bin"), pickupCodeRuntime.subarray(
+    lightResidentBytes, lightResidentBytes + pickupCodeBytes));
+  writeFile(path.join(buildDirectory, "light-resident-runtime.bin"),
+    pickupCodeRuntime.subarray(0, lightResidentBytes));
   writeFile(path.join(buildDirectory, "weapon-pickup-phase-runtime.bin"), weaponPickupPhaseRuntime);
   writeFile(path.join(buildDirectory, "weapon-pickup-phase-runtime-packed.bin"), packedWeaponPickupPhaseBank);
   writeFile(path.join(buildDirectory, "void-strike-65.map"), mapFile);
@@ -1835,7 +2785,7 @@ async function build() {
   writeFile(path.join(artifactDirectory, "void-strike-65.atr"), atr);
   writeFile(path.join(artifactDirectory, "void-strike-65-manifest.json"), manifestBytes);
 
-  if (!isReviewVariant) validateBuildDirectory(rootDirectory);
+  if (!isReviewVariant && !skipRuntimeMeasurement) validateBuildDirectory(rootDirectory);
 
   if (!quiet) {
     console.log(candidateBuild

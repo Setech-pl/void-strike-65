@@ -1,0 +1,299 @@
+{
+  "schema": 1,
+  "stage": "2B.1 fighter-sector PMG pickup plus fixed synchronization spike",
+  "status": "BLOCKED",
+  "stopCondition": "fixed-sync permits ANTIC to observe erase-before-redraw in legal fighter frames",
+  "date": "2026-09-11",
+  "model": {
+    "name": "Codex (GPT-5 family)",
+    "reasoning": "High"
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "headBefore": "dd515abae976f516e1d0001055de668721976f70",
+    "productionResult": "rolled back to the preflight HEAD after the negative raster proof",
+    "preservedRefs": {
+      "refs/wip/stage2b-foreign-0803": "13597d7",
+      "refs/wip/stage2b0-fdb-proof": "3e5d83f"
+    },
+    "untouched": [
+      ".claude/"
+    ]
+  },
+  "candidate": {
+    "xexSha256": "1221030c2311eea5894b11b1e5d35ee86a7a44b99a8cf2e1abae1805a790a64d",
+    "ownerSmoke": "none",
+    "reason": "stop condition 1 failed"
+  },
+  "implementationMeasuredBeforeRollback": {
+    "pickup": {
+      "hardware": "M0-M3 in PRIOR fifth-player mode; P0/P3 player and P1/P2 two Heavy/Raiders unchanged",
+      "sectorSemantics": {
+        "pendingAtCapitalAdmission": "preserved and not updated during traversal",
+        "activeAtCapitalAdmission": "removed; PRIOR restored to 0 and SIZEM restored to $54",
+        "capitalAndBossSpawnOrdinaryPickup": false
+      },
+      "phaseBankBytesPreserved": 1152,
+      "hostNmos6502Cycles": {
+        "capitalNoOp": 15,
+        "fighterIdleOrPending": 54,
+        "firstActiveDraw": 387,
+        "activeMoveClearAndRedraw": 585
+      }
+    },
+    "fixedSync": {
+      "entryAddress": "$26CC",
+      "vcount": "$70",
+      "physicalRasterStartObserved": "scanline 226, cycles 13-18 in representative frames",
+      "dynamicDependencies": [],
+      "selectorCpuCyclesRemoved": {
+        "idle": 7,
+        "active": 22,
+        "pendingSettled": 36,
+        "pendingFirst": 43
+      },
+      "note": "These are removed selector instructions only; waiting time is synchronization, not executed CPU work."
+    },
+    "codeDeltaBytes": {
+      "removed": 439,
+      "added": 151,
+      "net": -288,
+      "accounting": {
+        "fixedSyncSelectorRemoved": 23,
+        "characterPickupCompositorAndTablesRemoved": 284,
+        "characterPickupEraseAndDispatchRemoved": 108,
+        "pendingFenceRemoved": 16,
+        "oldSectorClearBranchSequenceRemoved": 5,
+        "oldCharacterRenderJumpRemoved": 3,
+        "pmgWrapperUpdateClearAndShapeAdded": 104,
+        "capitalAdmissionSemanticsAdded": 24,
+        "replacementEraseTailAdded": 6,
+        "capitalUpdateGateAdded": 8,
+        "newSectorClearBranchSequenceAdded": 4,
+        "characterEntityMasksAdded": 4,
+        "replacementRenderReturnAdded": 1
+      },
+      "segmentNet": {
+        "CODE": -23,
+        "PICKUP_CODE": -156,
+        "ENTITY_CODE": -109
+      }
+    }
+  },
+  "nativeTrace": {
+    "emulator": "Atari800 7.1.2 PAL/XL, persistent instrumented build at ~/Projects/tools/atari800-7.1.2",
+    "command": "node scripts/runtime-wall-trace.mjs --raider-sector-only --skip-boot-smoke --active-frames=1800 --atari800-source=~/Projects/tools/atari800-7.1.2",
+    "session": "raider-sector-xex-hard",
+    "csv": {
+      "path": "build/runtime-wall-trace/raider-sector-xex-hard.csv",
+      "sha256": "f6ecd706c8ff802fb51b1a89dd83c901cc2df7563b644a42657bca8a63ee7e8f"
+    },
+    "rasterEvents": {
+      "path": "build/runtime-wall-trace/raider-sector-xex-hard-stage2b1-raster.jsonl",
+      "sha256": "f33919f02ed512129d907d3443bd362e1222f97dcad20e5acfbe89050ea2796d"
+    },
+    "framesRecorded": 1824,
+    "requestedActiveFrames": 1800,
+    "timing": {
+      "nativeMaxWallCycles": 24123,
+      "fighterOpenMaxWallCycles": 23872,
+      "twoHeavyMaxWallCycles": 22922,
+      "targetHeadroomCycles": 7077,
+      "hardGateHeadroomCycles": 8445,
+      "missed": 0,
+      "overruns31200": 0,
+      "overruns32568": 0,
+      "extraVbiBoundaries": 0,
+      "dliSequenceViolations": 0,
+      "maximumDlisPerHostFrame": 2,
+      "comparisonToStage2b0BaselineOpenMaxCycles": -2941
+    },
+    "coverage": {
+      "pickupStateFrameCounts": {
+        "absent": 1190,
+        "pending": 247,
+        "active": 69,
+        "complete": 318
+      },
+      "twoHeavyFrames": 162,
+      "maximumPlayerProjectiles": 4,
+      "maximumEnemyProjectiles": 3,
+      "configuredPlayerBursts": {
+        "normal": 8,
+        "spread": 8,
+        "rapid": 10
+      },
+      "effectFrames": 382,
+      "debrisFrames": 69,
+      "farStarFrames": 1824,
+      "farStarFramesOnTwinkleCadence": 114,
+      "ringWraps": 34,
+      "heavyLegalFrame": {
+        "frame": 131,
+        "wallCycles": 22922,
+        "twoHeavy": true,
+        "playerProjectiles": 4,
+        "enemyProjectiles": 1,
+        "pickup": "PENDING",
+        "effectMask": 30,
+        "farStars": 28
+      }
+    }
+  },
+  "rasterProof": {
+    "method": "Host observer records each actual STA (dst_ptr),Y in projectile erase/redraw. The hook is before the six-cycle NMOS store, so completeClock=startClock+6. Each deadline is the next target scanline after the fixed frame start, using 312 PAL scanlines, 114 cycles per scanline, and 35568 cycles per physical frame.",
+    "events": 15381,
+    "prematureEraseEvents": 17,
+    "lateRedrawEvents": 617,
+    "anticCanObserveErasedStateBeforeRedraw": true,
+    "bands": {
+      "highY16To79": {
+        "eraseEvents": 1938,
+        "redrawEvents": 1939,
+        "prematureEraseEvents": 0,
+        "lateRedrawEvents": 549,
+        "eraseRasterScanlineRange": [229, 246],
+        "redrawRasterScanlineRange": [0, 311],
+        "worstRedrawSlackCycles": -8467,
+        "representative": {
+          "frame": 131,
+          "slot": 2,
+          "oldY": 31,
+          "eraseCompleteClock": 19411369,
+          "eraseRaster": "235:13",
+          "newY": 25,
+          "redrawCompleteClock": 19431445,
+          "redrawRaster": "99:25",
+          "deadlineClock": 19422978,
+          "result": "redraw 8467 cycles late"
+        }
+      },
+      "midY80To159": {
+        "eraseEvents": 3139,
+        "redrawEvents": 3142,
+        "prematureEraseEvents": 0,
+        "lateRedrawEvents": 30,
+        "eraseRasterScanlineRange": [229, 246],
+        "redrawRasterScanlineRange": [0, 311],
+        "worstRedrawSlackCycles": -3157,
+        "representative": {
+          "frame": 359,
+          "slot": 12,
+          "targetY": 80,
+          "redrawCompleteClock": 27541909,
+          "redrawRaster": "107:73",
+          "deadlineClock": 27538752,
+          "result": "redraw 3157 cycles late"
+        }
+      },
+      "lowY160To240": {
+        "eraseEvents": 2611,
+        "redrawEvents": 2612,
+        "prematureEraseEvents": 17,
+        "lateRedrawEvents": 38,
+        "eraseRasterScanlineRange": [229, 246],
+        "redrawRasterScanlineRange": [0, 311],
+        "worstRedrawSlackCycles": -20919,
+        "representativePrematureErase": {
+          "frame": 111,
+          "slot": 11,
+          "targetY": 236,
+          "eraseCompleteClock": 18699451,
+          "eraseRaster": "230:25",
+          "deadlineClock": 18700104,
+          "result": "erase 653 cycles before ANTIC reaches the old projectile"
+        },
+        "representativeLateRedraw": {
+          "frame": 363,
+          "slot": 10,
+          "targetY": 232,
+          "redrawCompleteClock": 27683703,
+          "redrawRaster": "103:51 in the following physical frame",
+          "deadlineClock": 27662784,
+          "result": "redraw 20919 cycles late"
+        }
+      }
+    }
+  },
+  "placementMeasuredBeforeRollback": {
+    "linkedRuntimeBytes": {
+      "before": 17653,
+      "candidate": 17365,
+      "delta": -288
+    },
+    "simultaneousResidencyBytes": {
+      "before": 19283,
+      "candidate": 18995,
+      "delta": -288
+    },
+    "safeResidencyHeadroomBytes": {
+      "before": 2904,
+      "candidate": 3192,
+      "delta": 288
+    },
+    "segments": {
+      "CODE": {
+        "before": "$2000-$317A / 4475 B",
+        "candidate": "$2000-$3163 / 4452 B"
+      },
+      "RODATA": {
+        "before": "$317B-$3FFC / 3714 B",
+        "candidate": "$3164-$3FE5 / 3714 B"
+      },
+      "PICKUP_CODE": {
+        "before": "$8C80-$8FC8 / 841 B",
+        "candidate": "$8C80-$8F2C / 685 B"
+      },
+      "capitalCollision": {
+        "before": "$8FC9-$8FE9 / 33 B",
+        "candidate": "$8F2D-$8F4D / 33 B"
+      },
+      "ENTITY_CODE": {
+        "before": "$9100-$9D69 / 3178 B",
+        "candidate": "$9100-$9CFC / 3069 B"
+      }
+    },
+    "candidateContinuousLoadableGaps": {
+      "afterRODATA": "$3FE6-$3FFF / 26 B",
+      "afterSTARFIELD": "$5DB6-$5E0F / 90 B",
+      "afterBROADSIDE": "$7807-$780F / 9 B",
+      "afterPickupAndCollision": "$8F4E-$8FFF / 178 B",
+      "afterA2Kernel": "$90FE-$90FF / 2 B",
+      "afterEntityCode": "$9CFD-$9D74 / 120 B",
+      "afterDirector": "$9FF9 / 1 B"
+    },
+    "largestNewCode": {
+      "singleRoutineBytes": 62,
+      "routine": "update_fighter_pickup_pmg",
+      "contiguousPmgBlockBytesIncludingWrapperClearAndShape": 104
+    },
+    "transportAndStaging": {
+      "totalTransport": "167 sectors / 21376 B",
+      "packedStarfieldGate": "1802 <= 1819 B; 17 B headroom",
+      "starfieldSourceToPickupPreservationMarginBytes": 25,
+      "pickupExternalRecord": "10 sectors; 1137 B raw/packed; publishes retained 1152-B phase bank plus 685-B code plus 33-B collision",
+      "entityPackedBytes": 2705,
+      "entityStaging": "$5318-$5DA8; 95-B backward-copy overlap; 103 B before BROADSIDE $5E10",
+      "entityRun": "$9100-$9CFC, page aligned; 120 B before Director $9D75",
+      "basicRamUsed": false,
+      "loaderChanged": false,
+      "runtimeDiskIoAdded": false,
+      "overlayTransportAdded": false
+    }
+  },
+  "tests": {
+    "candidateBuild": "PASS, warning-free",
+    "fixedSyncTest": "PASS: executed wait remained $70 for IDLE/PENDING/ACTIVE and multiple Y values; source slice contained no pickup/projectile/object reference",
+    "pmgPickupTest": "PASS: M0-M3/PRIOR/SIZEM, old footprint clear, character ring byte-exact, PENDING capital freeze and ACTIVE capital removal",
+    "historicalPendingMovingFenceReproducer": "EXPECTED FAIL retained during candidate test: active projectile byte was erased before late redraw",
+    "spreadSecondCapsuleTrail": "The character-pickup trail disappears structurally with PMG and the PMG test proves the ring remains byte-exact; the legacy expected-failure assertion still expects character glyphs and therefore is not a valid PMG visual oracle.",
+    "spreadFinalProjectileGlyph": "EXPECTED FAIL remains at the original reverse-erase assertion; no Spread repair attempted."
+  },
+  "gameplayCapacity": {
+    "assessment": "RAM and wall-cycle headroom improved relative to the Stage 2B.0 baseline, so the rejected candidate would improve the resource path toward 2 Heavy + 2 Light and 2 Heavy + 4 Light. Raster correctness regressed catastrophically, so it provides no acceptable architectural path to either roster target.",
+    "minimumFourThreatsImplementedHere": false,
+    "lightsImplementedHere": false
+  },
+  "decision": "Reject and roll back production code. Do not create an owner-smoke XEX.",
+  "next": "Design one bounded publication/deadline contract for character projectiles that is independent of pickup state and prove it at high, middle, and low Y before reintroducing the PMG pickup."
+}

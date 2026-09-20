@@ -1,0 +1,48 @@
+{
+  "date": "2026-09-15",
+  "status": "pass",
+  "scope": "fighter slot-1 PMG pickup visibility only",
+  "root_cause": "The decorative fifth-player source used partial M0-M3 combinations, producing an owner-unrecognisable trace. The old observer's low-nibble publication check was not a GTIA-pixel proof.",
+  "allocation": {
+    "pm_base": "$3800",
+    "missile_dma": "$3B00",
+    "hposm": [94, 96, 98, 100],
+    "sizem": "$00",
+    "gractl": "$03",
+    "dmactl": "$3E",
+    "prior": "$10",
+    "colour": "COLPF3=$46"
+  },
+  "native_lab": {
+    "atari800": "7.1.2 PAL",
+    "variants": {
+      "A_fifth_player": "PASS: solid M0-M3 source $F0 for 16 rows gives a clear purple block",
+      "B_ordinary_missiles": "visible but rejected: multicolour stripe",
+      "C_single_missile": "visible but rejected: too narrow"
+    },
+    "screenshots": [
+      "build/runtime-wall-trace/pmg-lab-fifth-player-atari800.png",
+      "build/runtime-wall-trace/pmg-lab-ordinary-missiles-atari800.png",
+      "build/runtime-wall-trace/pmg-lab-single-missile-atari800.png"
+    ]
+  },
+  "production_mask": "all 16 rows have high nibble $F; lower nibble is display-inert packed-layout entropy",
+  "production_trace": {
+    "fresh_fighter_pickups": 5,
+    "post_capital_pickups": 5,
+    "collections": 5,
+    "representative": {
+      "frame": 331,
+      "x": 94,
+      "y": 26,
+      "bytes": [250, 252, 254],
+      "hposm": [94, 96, 98, 100],
+      "prior": 16,
+      "gractl": 3,
+      "dmactl": 62,
+      "colpf3": 70
+    },
+    "note": "The retired production Screen_SaveScreenshot hook samples a stale framebuffer and is explicitly not visual evidence. The native PMG lab screenshots use the same source bits/registers and prove the resulting GTIA pixels."
+  },
+  "focused_tests": ["node --test tests/booster-admission-diagnostic.test.mjs"]
+}

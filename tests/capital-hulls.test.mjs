@@ -293,8 +293,8 @@ test("generated include, packed maps, codebooks, and turret records match assemb
   );
   assert.deepEqual(
     readXexBytes(labels.get("broadside_schedule"), asset.scheduleBytes.length),
-    Buffer.from([1, 68, 1, 68, 1, 68, 0, 138]),
-    "assembled opportunities retain their PAL delays but select a faction side",
+    Buffer.from([1, 210, 1, 210, 1, 210, 0, 254]),
+    "assembled opportunities retain their further-reduced PAL delays and faction side",
   );
   assert.deepEqual(
     readXexBytes(labels.get("turret_warning_last_safe_rows"), 3),
@@ -358,10 +358,10 @@ test("turret metadata points to complete multi-cell emplacements and real muzzle
   ], "the two sides are deliberately staggered rather than mirrored");
   assert.deepEqual(asset.schedule.map(({ side, delayAfterFrames }) =>
     [side, delayAfterFrames]), [
-    ["enemy", 68],
-    ["enemy", 68],
-    ["enemy", 68],
-    ["allied", 138],
+    ["enemy", 210],
+    ["enemy", 210],
+    ["enemy", 210],
+    ["allied", 254],
   ]);
   for (const turret of asset.turrets) {
     const relative = turret.side === "allied" ? turret.muzzleColumn : turret.muzzleColumn - 31;

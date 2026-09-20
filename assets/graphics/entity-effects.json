@@ -74,17 +74,6 @@
       [0, 0, 12, 15, 60, 12, 0, 0]
     ]
   },
-  "interceptorBreakup": {
-    "coreFrames": 5,
-    "fragmentFrames": 30,
-    "coreOffsetHpos": 6,
-    "fragments": [
-      { "id": "left-wing", "phaseGlyphs": ["armour-left-0", "armour-left-1"] },
-      { "id": "right-wing", "phaseGlyphs": ["armour-right-0", "armour-right-1"] },
-      { "id": "central", "phaseGlyphs": ["debris-fragment-0", "debris-fragment-1"] },
-      { "id": "red-eye", "phaseGlyphs": ["interceptor-pulse-0-red", "interceptor-pulse-1-red"] }
-    ]
-  },
   "weaponPickupRapidFire": {
     "slot": 1,
     "qualifiedKillsPerDrop": 3,

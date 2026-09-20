@@ -1,0 +1,322 @@
+{
+  "schema": "void-strike-65-diagnostic-v1",
+  "stage": "unified fighter visual commit feasibility proof",
+  "date": "2026-09-11",
+  "status": "REJECTED",
+  "decision": "Unified fighter visual commit is rejected",
+  "model": {
+    "name": "Codex (GPT-5 family)",
+    "reasoning": "High",
+    "note": "The requested GPT-5.6 Sol product label was not exposed by this session."
+  },
+  "scope": {
+    "runtimeChanged": false,
+    "schedulerImplemented": false,
+    "nativeTraceRun": false,
+    "includedFighterCharacterLayers": [
+      "ring rotation, row copy and publication bookkeeping",
+      "world-row clear",
+      "near-star generation/write",
+      "far-star erase and re-resolution/render",
+      "twinkle",
+      "debris",
+      "effects",
+      "player and enemy character projectiles"
+    ],
+    "excluded": [
+      "PMG pickup, because it is not a character layer",
+      "capital-only writers",
+      "Variant B or any per-access ownership lookup",
+      "ownership hooks, bitmap/hash, raster bands and double buffering",
+      "Light implementation, loader changes, BASIC RAM and gameplay changes"
+    ]
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "headBefore": "0fa1ea9c733db566d758d8d1fbfb4139b50c842d",
+    "headAfter": "commit containing this report",
+    "runtimeBaseline": "PASS_FIT combined PMG pickup plus unhooked 187-byte primitive",
+    "untouched": [
+      ".claude/"
+    ],
+    "preservedRefs": {
+      "refs/wip/stage2b-foreign-0803": "13597d7fb6fa6bb0d04541ed68ab6715cec1e8d4",
+      "refs/wip/stage2b0-fdb-proof": "3e5d83f2f1944d2dd90b8a23bec9eaae0dcdebc8",
+      "refs/wip/stage2b2-single-window-rejected": "7f40ee0408356bf1f431b49bf5c51d50ae72a4b3"
+    }
+  },
+  "ownerDecision": {
+    "variantA": "REJECTED",
+    "variantBPerAccess": "not worth implementing without a new call-count architecture",
+    "reason": "The rejected hook candidate reached 1185 primitive calls in one frame; replacing O(19) with O(1) would retain a structurally excessive per-access call count.",
+    "characterProjectilePathClosed": false
+  },
+  "method": {
+    "measurement": "Instruction-exact NMOS 6502 execution of the current linked PASS_FIT routines, with controlled maximum active records and visible-screen write counting.",
+    "nativeEvidenceReused": "Stage 2B.2 PAL trace for the display window, 2650-cycle observed projectile publication maximum and 25307-cycle active full-frame maximum.",
+    "aggregation": "ESTIMATE formed by summing instruction-exact per-layer maxima that can legally coincide with a world step; it is not claimed as one observed native frame. Twinkle's 166-cycle visible update is excluded because erase_far_star_overlays makes records positive before tick_star_twinkle, so a due twinkle performs no screen write on a world-step frame.",
+    "importantOrderingConstraint": "A correct scheduler needs an OLD-unwind subphase, highest to lowest, before the requested NEW composition order base/ring -> stars -> debris -> effects -> projectiles. Keeping projectile restore at the end would overwrite lower-layer updates already committed to its OLD cell."
+  },
+  "window": {
+    "source": "Stage 2B.2 display-list and native raster proof, rechecked against the unchanged VCOUNT $77 publisher and current display-list geometry",
+    "gameplayFetchEndScanline": 239,
+    "firstSafeScanline": 240,
+    "earliestNextRelevantFetchScanline": 16,
+    "nominalCycles": 10032,
+    "conservativeCycles": 9975,
+    "stage2b2ObservedProjectilePublicationMaxCycles": 2650
+  },
+  "visualCommitCost": [
+    {
+      "layer": "ring rotation / row copy / clear",
+      "measuredCycles": 1263,
+      "visibleScreenWrites": 40,
+      "breakdown": {
+        "dividerToRecycledRowCopy": 617,
+        "publicationOnlyRowTableAndDlistBookkeeping": 646
+      },
+      "simulationExcluded": "world cadence, Director tick and hull preparation",
+      "reasonBookkeepingStaysInWindow": "The one live 27-row address table and selected DLIST define the currently fetched physical rows. Mutating them before ANTIC finishes the playfield would expose the new mapping in the old frame."
+    },
+    {
+      "layer": "world clear",
+      "measuredCycles": 535,
+      "visibleScreenWrites": 40,
+      "breakdown": "fighter OPEN full-width clear of the newly exposed divider row"
+    },
+    {
+      "layer": "near stars",
+      "measuredCycles": 151,
+      "visibleScreenWrites": 1,
+      "breakdown": "conservative current-path maximum including two RNG steps, column/code selection and one write",
+      "separableSimulation": "RNG and selection can move before the window if 3 bytes of pending valid/column/code state are added; this saving is not credited to the reject calculation."
+    },
+    {
+      "layer": "far stars",
+      "measuredCycles": 4221,
+      "visibleScreenWrites": 58,
+      "breakdown": {
+        "erase29": 1240,
+        "resolveAndRender29AfterNonFarRingStep": 2981,
+        "cachedRender29ForComparison": 1641
+      },
+      "simulationExcluded": "logical row advance, respawn RNG and phase cadence",
+      "reasonResolutionStaysInWindow": "The visible screen is the authoritative near/base backing. Without a shadow layer, final coverage and the post-rotation physical address must be resolved after OLD overlays are unwound and the new ring mapping is published."
+    },
+    {
+      "layer": "twinkle",
+      "measuredCycles": 166,
+      "visibleScreenWrites": 1,
+      "peakContributionCycles": 0,
+      "reason": "The visible twinkle path cannot coincide with the worst world-step far erase/resolve path; it is a separate lighter-frame commit."
+    },
+    {
+      "layer": "debris",
+      "measuredCycles": 220,
+      "visibleScreenWrites": 4,
+      "breakdown": {
+        "eraseOneTwoCellDebris": 62,
+        "renderOneTwoCellDebris": 158
+      },
+      "simulationExcluded": "trajectory, TTL, collision and spawn logic"
+    },
+    {
+      "layer": "effects",
+      "measuredCycles": 1089,
+      "visibleScreenWrites": 10,
+      "breakdown": {
+        "eraseFive": 276,
+        "renderFive": 813
+      },
+      "simulationExcluded": "effect motion, timers, allocation and lifecycle"
+    },
+    {
+      "layer": "character projectiles",
+      "measuredCycles": 2650,
+      "source": "Stage 2B.2 native maximum over 920 fighter OPEN frames",
+      "coverage": "maximum 7 simultaneous projectiles observed; 5 player and 3 enemy maxima occurred in the trace",
+      "simulationExcluded": "movement, lifetime, collision and weapon control",
+      "legalPoolSensitivity": {
+        "maximumActive": 11,
+        "controlledNormalTwoCellEraseRenderCycles": 4577,
+        "controlledSpreadOverInverseLowerLayerCycles": 6303,
+        "classification": "ESTIMATE for legal-envelope sensitivity, not substituted into the primary observed-profile subtotal"
+      }
+    }
+  ],
+  "total": {
+    "measuredLayerMaxSubtotalCycles": 10129,
+    "newSchedulerAndDispatchEstimateCycles": {
+      "minimum": 80,
+      "maximum": 160
+    },
+    "projectedObservedProfileCommitCycles": {
+      "minimum": 10209,
+      "maximum": 10289
+    },
+    "marginToConservativeWindowCycles": {
+      "best": -234,
+      "worst": -314
+    },
+    "marginToNominalWindowCycles": {
+      "best": -177,
+      "worst": -257
+    },
+    "excessOverRejectThreshold9500Cycles": {
+      "minimum": 709,
+      "maximum": 789
+    },
+    "optimisticNearStarSensitivity": {
+      "assumption": "credit all 151 current near-star cycles as simulation moved out of the window, an intentionally optimistic bound",
+      "projectedCommitCycles": {
+        "minimum": 10058,
+        "maximum": 10138
+      },
+      "finding": "still exceeds the 9975-cycle conservative window and the 9500-cycle reject threshold"
+    },
+    "classification": "REJECT",
+    "legalPoolSensitivity": {
+      "normal11ProjectedCommitCycles": {
+        "minimum": 12136,
+        "maximum": 12216
+      },
+      "spreadInverse11ProjectedCommitCycles": {
+        "minimum": 13862,
+        "maximum": 13942
+      }
+    }
+  },
+  "fullFrame": {
+    "classification": "projected full-frame CPU passes; the single-window length fails independently",
+    "baselineNativeActiveMaxCycles": 25307,
+    "baselineSource": "Stage 2B.2; conservative because the current PMG candidate removed character-pickup work but has no replacement native feasibility trace",
+    "existingCpuMovedInTime": "10129-cycle subtotal already executes in the current frame and is not added again",
+    "newSchedulingOverheadCycles": {
+      "minimum": 80,
+      "maximum": 160
+    },
+    "projectedObservedProfileCycles": {
+      "minimum": 25387,
+      "maximum": 25467,
+      "targetHeadroomMinimum": 5733,
+      "hardGateHeadroomMinimum": 7101
+    },
+    "projectedLegal11SpreadEnvelopeCycles": {
+      "minimum": 29040,
+      "maximum": 29120,
+      "targetHeadroom": {
+        "minimum": 2080,
+        "maximum": 2160
+      },
+      "hardGateHeadroom": {
+        "minimum": 3448,
+        "maximum": 3528
+      },
+      "note": "Adds the controlled 11-projectile Spread/inverse publication delta over the 2650-cycle observed publication maximum; it is an estimate, not a native co-occurrence measurement."
+    }
+  },
+  "stateCost": {
+    "requiredNewRamEstimateBytes": {
+      "minimum": 3,
+      "maximum": 6
+    },
+    "requiredState": [
+      "pending unified-commit/world-step latch, potentially reusable with existing frame flags",
+      "near-star pending valid/column/code if its RNG logic is moved before the window"
+    ],
+    "alreadyPresent": [
+      "projectile OLD screen address/backing plus NEW X/Y and PREV_Y",
+      "far-star logical row/column/code and OLD cached address",
+      "debris/effect logical X/Y plus OLD screen/backing records",
+      "dual playfield DLISTs and current row tables"
+    ],
+    "newCodeEstimateBytes": {
+      "minimum": 64,
+      "maximum": 128
+    },
+    "potentialLaterRecovery": "The rejected, unhooked lower-cell primitive occupies 187 B and could be removed only in a separately authorized implementation; no byte is removed in this docs-only proof.",
+    "notSelected": "Moving far-star address resolution out of the window needs at least 58 B for NEW addresses, plus draw/coverage state or a logical backing layer. A second 54-B row mapping would also require broad consumer changes. Neither is a small scheduler proof."
+  },
+  "capacityForecast": {
+    "basis": "Unified commit removes the writers-times-owned-projectiles term. Cost scales approximately with actual character cells erased/rendered, while Light simulation/AI remains unknown.",
+    "measuredReference": {
+      "oneTwoCellDebrisEraseRenderCycles": 220,
+      "oneEffectCellAverageEraseRenderCycles": 218,
+      "ordinaryProjectileIncrementApproxCycles": "351-363 per additional active record in the controlled two-cell path"
+    },
+    "twoHeavyTwoLight": {
+      "additionalCharacterCommitEstimateCycles": 440,
+      "estimatedLightStateRamBytes": "16-24",
+      "windowResult": "at least 10649-10729 cycles before Light weapons; does not fit",
+      "fullFrameResult": "numerically plausible, but the single-window architecture does not preserve the minimum-four path"
+    },
+    "twoHeavyFourLight": {
+      "additionalCharacterCommitEstimateCycles": 880,
+      "estimatedLightStateRamBytes": "32-48",
+      "windowResult": "at least 11089-11169 cycles before Light weapons; does not fit",
+      "fullFrameResult": "numerically plausible, but the single-window architecture does not preserve the six-object target"
+    },
+    "classification": "The O(1)-per-dirty-cell scaling is much healthier than per-access ownership, but the existing visual layers already overflow the one-window budget before Light is added."
+  },
+  "simplificationOptions": [
+    {
+      "rank": 1,
+      "layer": "far-star animation",
+      "commitCycles": 4221,
+      "gameplayValue": "decorative depth/parallax; no collision or combat information",
+      "visualImpact": "Reducing 29 to 23 active far stars lowers far-star density by about 21% while preserving parallax and twinkle for the survivors.",
+      "estimatedSavingCycles": 873,
+      "projectedCommitCycles": "9336-9416",
+      "recommendation": "Smallest measured visual compromise that clears the 9500 reject threshold with more margin than a five-star cut; owner decision required. A strong <=8500 result would require about 16 far stars, not 23."
+    },
+    {
+      "rank": 2,
+      "layer": "character effects",
+      "commitCycles": 1089,
+      "gameplayValue": "hit/death feedback and combat readability",
+      "visualImpact": "Suppressing or delaying five effects on world-step frames causes visible cadence/jitter and weakens feedback.",
+      "estimatedSavingCycles": 1089,
+      "projectedCommitCycles": "9120-9200",
+      "recommendation": "Numerically sufficient but less desirable than reducing a decorative far-star population."
+    },
+    {
+      "rank": 3,
+      "layer": "debris",
+      "commitCycles": 220,
+      "gameplayValue": "shootable hazard and battlefield readability",
+      "visualImpact": "Removing it deletes gameplay, not just decoration.",
+      "estimatedSavingCycles": 220,
+      "projectedCommitCycles": "9989-10069",
+      "recommendation": "Insufficient alone and not recommended."
+    },
+    {
+      "rank": 4,
+      "layer": "twinkle",
+      "commitCycles": 166,
+      "gameplayValue": "decorative animation",
+      "visualImpact": "Far stars become less lively.",
+      "estimatedPeakSavingCycles": 0,
+      "projectedCommitCycles": "unchanged 10209-10289",
+      "recommendation": "Does not reduce the world-step peak because its visible write is mutually exclusive with that peak."
+    },
+    {
+      "rank": 5,
+      "layer": "ring/background updates",
+      "commitCycles": 1798,
+      "gameplayValue": "authoritative scrolling world and newly exposed row",
+      "visualImpact": "Disabling or slowing it changes movement/gameplay and can expose stale rows.",
+      "estimatedSavingCycles": "not safely removable",
+      "recommendation": "Do not simplify as a visual-only compromise."
+    }
+  ],
+  "verification": {
+    "focusedColdFitTest": "PASS 3/3",
+    "candidateBuild": "BLOCKED by the existing runtime timing executor: it did not reach $5EA9 or $21CF and stopped at $26D1 after 20000000 steps. No source/runtime change was made by this proof.",
+    "widerFocusedRun": "18 pass, 11 fail, 2 expected-failure todos. Failures included the absent historical timing CSV, platform ca65 error -86, and tests still asserting the removed character-pickup runtime; both historical Spread failures remained visible.",
+    "artifact": {
+      "xexSha256": "c2dff8ef37dfa6fde8abef40db2375266cc1da4bbff2f716fe2c65ba89b9cb34",
+      "status": "unchanged PASS_FIT ownership proof candidate; not rebuilt or promoted by this docs-only feasibility proof"
+    }
+  },
+  "next": "Owner decision: authorize one bounded unified-commit implementation proof only with the measured 29-to-23 far-star population compromise, or reject the unified single-window route. Do not execute automatically."
+}

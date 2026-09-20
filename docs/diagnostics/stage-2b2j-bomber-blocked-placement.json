@@ -1,0 +1,114 @@
+{
+  "id": "stage-2b2j-bomber-blocked-placement",
+  "date": "2026-09-17",
+  "status": "BLOCKED_PLACEMENT",
+  "task": "Roadmap 4.5c: Bomber / Heavy Assault gameplay (owner decision 20)",
+  "baseline": {
+    "branch": "experiment/hybrid-c-director",
+    "commit": "8a09e57",
+    "xex_sha256": "2fd5ace46a583080ec305cebcb74a4add9cacfbdbe15e85ceabf54fa85a3afd8",
+    "atr_sha256": "dd3977e2ebc0c1a9fcb5403e2f2a9f86242f15cc2725b14f6411a004c9aa50ec",
+    "note": "Reproduced with npm run build:candidate -- --quiet before and after the experiment. Full suite at a clean export: 640 tests, 115 failing (unchanged)."
+  },
+  "evidence_branch": {
+    "branch": "experiment/bomber-4.5c-blocked-placement",
+    "commit": "8e138a8",
+    "builds": false,
+    "note": "Complete 4.5c implementation kept for a retry once capacity exists. ld65 rejects the link. Not a candidate and not a baseline. Behaviour was never executed, so gameplay correctness is unverified."
+  },
+  "implemented_design": {
+    "c": [
+      "EnemyArchetype record 4 (offset 36): HP 4, movement BOMBER_LANE_SWEEP = 3, fire SINGLE_SHOT, burst 1, interval 0, pause 80/64/48, renderer TWO_HEAVY_PMG, weapon_class BOMBER = 3, score $50",
+      "TEMPORARY 4.5 HEAVY SMOKE SCHEDULER {Raider, Bomber}: per-formation record offset, roster shape (0 / 2 SCYTHE_BOMBER), hull colour ($44 / $24) and a provisional Light-escort column (1 / 0). The escort rule lives only in schedule data.",
+      "heavy_publish_profile: the enemy_profile_* cache is copied from the selected record offset (was hardcoded record 0)",
+      "enemy_c_spawn_raiders: selects the formation, publishes the profile, sets HP from the record and, for a lane sweep, writes the formation start data (X 48/176, Y 0/0, direction +1/-1, first shot 48/72, first turn 60/52)",
+      "enemy_c_heavy_tick (per member): entry at 1 line/frame to depth 40 (slot 0) or 16 (slot 1), then 1 line every other frame, de-phased by slot; 1 HPOS/frame sweep; turns at lane bounds [48,92] / [132,176] or on a per-slot timer reloaded to 24 + (frame & 31); independent fire timer; fires only for Y 24..200, player not dying, capital not due; returns 0 or the record weapon_class"
+    ],
+    "asm": [
+      "update_enemy: operand-only redirection jsr update_enemy_slot_motion -> jsr heavy_member_update (per member, after the old Y is captured, before draw and erase_enemy_departing_row)",
+      "heavy_member_update (HEAVY_CODE, LIGHTFILE after LIGHT_CODE): Raider movement id keeps the ASM motion; otherwise marshals the member's five slot bytes $5478-$5481 into C scalars, calls enemy_c_heavy_tick, stores them back and emits the returned class",
+      "allocate_interceptor_projectile: generic class in A, ACTIVE = (class << 3) | 2 | slot via asl/sec/rol/asl; the Raider runtime passes ENEMY_PROFILE_WEAPON_CLASS and loses its PULSE-only check (no eor to BOMBER)",
+      "integration_update_enemy: the Raider-only movement gate is retired (7 B NOP pad keeps CODE addresses)",
+      "c-asm-abi.s (HYBRID_C_HEAVY): spawn and recycle veneers write heavy_hull_colour to COLPM1/COLPM2; C recycle restores $44 because P1/P2 colour the capital broadside missiles M1/M2 under PRIOR 0",
+      "enemy-roster.json: SCYTHE_BOMBER hardwareWidth DOUBLE -> QUAD (32 HPOS visible and collision width, table data only)"
+    ]
+  },
+  "measurements": {
+    "method": "ld65 link of the experiment (HYBRID_C_HEAVY_RAM widened in a scratch copy only) reading __HYBRID_C_HEAVY_SIZE__, __HYBRID_C_EXT_SIZE__ and __ENEMY_ARCHETYPE_DATA_SIZE__; per-function sizes from the ca65 listing of the cc65 output; main-link segment sizes from build/main.lst. The production link fails with 'Segment HYBRID_C_HEAVY overflows memory area HYBRID_C_HEAVY_RAM by 148 bytes'.",
+    "hybrid_c_heavy": {
+      "window_bytes": 243,
+      "required_bytes": 391,
+      "overflow_bytes": 148,
+      "breakdown": {
+        "enemy_c_heavy_tick": 127,
+        "enemy_c_spawn_raiders": 127,
+        "heavy_publish_profile": 66,
+        "bomber_turn": 19,
+        "rodata": 33,
+        "abi_colour_veneers": 19
+      }
+    },
+    "hybrid_c_ext": {
+      "area_bytes": 899,
+      "baseline": { "c_and_archetype_data": 675, "light_code": 203, "tail": 21 },
+      "experiment": { "c": 563, "archetype_data": 50, "light_code": 203, "heavy_code": 55, "tail": 28 },
+      "owner_floor_bytes": 16,
+      "usable_above_floor_bytes": 12,
+      "note": "The formation admission and profile publication moved to HYBRID_C_HEAVY (EXT C+data 675 -> 613 B); the Light escort admission stays in EXT as encounter_light_admit (69 B)."
+    },
+    "other_main_link": {
+      "pickup_code_bytes": "769 -> 772 (+3), pickup stream fill 11 -> 8 B",
+      "code_broadside_starfield_a2_entity_code": "unchanged size and addresses (operand-only hooks)"
+    },
+    "bss": {
+      "HYBRID_ENCOUNTER_STATE": "$8119-$811A (+1 B encounter_heavy_index)",
+      "HYBRID_HEAVY_STATE": "$811B-$8123 (9 B: archetype offset, hull colour, five member scalars, two scratch bytes), previously unowned"
+    },
+    "deficit": {
+      "total_required_bytes": 1262,
+      "total_capacity_bytes": 1142,
+      "deficit_at_zero_ext_tail_bytes": 120,
+      "deficit_with_16_b_ext_floor_bytes": 136,
+      "note": "Same order in any arrangement: keeping admission/profile in EXT fits HEAVY (173 B) but overflows EXT by about 192 B."
+    },
+    "rejected_compactions": [
+      "Per-slot C arrays indexed by ENEMY_TARGET_SLOT: cc65 builds a ptr1 pointer for any indexed update (helper audit fails); the scratch-store form avoids ptr1 but the tick grows to about 237-277 B",
+      "cc65 --codesize 50: lifecycle C grows (HEAVY 376 -> 641 B listing count)"
+    ]
+  },
+  "not_measured": [
+    "PAL cycles, boot smoke, debris gate and native replays: the image does not link",
+    "Transport sectors and ATR menu deadline for a 391-B heavy image (ESTIMATE: +2 low-C record sectors; the 4.5a 239-B proof met the deadline with 0 frames of margin)"
+  ],
+  "alternatives": [
+    {
+      "id": "A",
+      "name": "Capacity step: widen the Heavy window",
+      "change": "Move the A2 cold staging ($7F2B) and the gameplay-init A2 display lists ($7F10) so HYBRID_C_HEAVY grows by at least 148 B; the 8-bit hold/publish copies would need a 16-bit or two-part copy.",
+      "player_visible_effect": "none",
+      "ram_code_cost": "reserved envelope +148 B or more, physical +148 B at runtime; boot copy code grows in the bootstrap prefix, which has only 2 B of padding left after 4.5b",
+      "cpu_cost": "ESTIMATE one-time hold + publish copies about +4,800 cycles (4.5a measured about 16 cycles/B per copy); no gameplay cost",
+      "risk": "memory-architecture change on the boot path with 0 frames of ATR menu margin; needs a 4.5a-style write-watch and boot smoke",
+      "owner_decision": true
+    },
+    {
+      "id": "B",
+      "name": "Behaviour-neutral compaction checkpoint of existing EXT C",
+      "change": "Rewrite enemy_c_apply_pending_damage (105 B, duplicated per slot) and other EXT C with the scratch/scalar patterns found here, proven behaviourally equivalent in the 6502 harness, before retrying 4.5c.",
+      "player_visible_effect": "none",
+      "ram_code_cost": "ESTIMATE 40-90 B recovered; not shown to reach 136 B",
+      "cpu_cost": "small, measured per routine",
+      "risk": "touches accepted Heavy HP / Light code; may still fall short and need A as well",
+      "owner_decision": true
+    },
+    {
+      "id": "C",
+      "name": "Owner-approved scope reduction for 4.5c",
+      "change": "For example drop timer-driven turns (about 25 B) or the generic profile loop. Measured savings do not close the 136 B gap alone.",
+      "player_visible_effect": "less varied Bomber sweep or a non-generic Heavy profile",
+      "risk": "contradicts explicit 4.5c requirements",
+      "owner_decision": true
+    }
+  ],
+  "recommendation": "A: a bounded capacity step for the Heavy window (the 4.5a pattern), then retry 4.5c from 8e138a8 unchanged."
+}

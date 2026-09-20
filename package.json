@@ -10,6 +10,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "build:candidate": "node scripts/build.mjs --candidate",
+    "build:two-pmg": "node scripts/build.mjs --candidate --two-pmg-raiders",
     "enemy:review": "node scripts/build.mjs --enemy-review",
     "enemy:combat-review": "node scripts/build.mjs --enemy-combat-review",
     "enemy:palette:hostile-oxblood": "node scripts/build.mjs --enemy-palette=hostile-oxblood",

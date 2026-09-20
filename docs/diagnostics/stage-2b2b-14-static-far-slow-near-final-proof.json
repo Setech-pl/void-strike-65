@@ -1,0 +1,156 @@
+{
+  "schema": "void-strike-65.stage-2b2b-14-static-far-slow-near-final-proof.v1",
+  "date": "2026-09-14",
+  "stage": "14 static far stars plus slow near final proof",
+  "status": "BLOCKED",
+  "model": {
+    "name": "Codex (GPT-5 family)",
+    "reasoning": "High",
+    "note": "The requested GPT-5.6 Sol product label was not exposed by this session."
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "headBefore": "56671a6fa7aba1abefa9c4863093ed916a9b732b",
+    "headAfter": "commit containing this docs-only report",
+    "runtimeRolledBack": true,
+    "claudeUntouched": true,
+    "pushMergeRelease": false
+  },
+  "ownerContractTested": {
+    "far": {
+      "count": 14,
+      "representation": "screen-static decorative character overlay",
+      "velocityPixelsPerFrame": 0,
+      "twinkle": false,
+      "lifecycle": false,
+      "individualSimulation": false,
+      "glyphVariants": [
+        { "id": "DIM_A", "screenCode": 1, "bytes": [32, 0, 0, 0, 0, 0, 0, 0] },
+        { "id": "DIM_B", "screenCode": 2, "bytes": [0, 0, 0, 8, 0, 0, 0, 0] }
+      ],
+      "screenRows": [1, 2, 5, 7, 9, 12, 13, 15, 18, 20, 21, 23, 26, 27],
+      "columns": [12, 27, 20, 14, 30, 17, 23, 10, 26, 19, 13, 28, 16, 22]
+    },
+    "near": {
+      "count": 4,
+      "velocityPixelsPerFrame": 2,
+      "phase": [0, 2, 4, 6],
+      "fractionalAccumulator": false,
+      "visibilityAndBackingFixPreserved": true
+    }
+  },
+  "prototype": {
+    "farAddressing": "Exact physical cell addresses cached in the released $8100 loader-time staging prefix; every ring-head change performed a complete OLD pass before a complete NEW pass.",
+    "farRemap": "Each cached address moved by one 40-byte physical row with a bounded 27-row wrap. OLD was cleared only when it still contained the expected far code; NEW claimed CH_SPACE only.",
+    "backing": "Projectile, debris and effect capture normalized character codes 0..3 to CH_SPACE, preventing a moved static far or near glyph from becoming persistent backing.",
+    "capitalOcclusion": "NEW far publication claimed CH_SPACE only, so hull/background geometry retained priority.",
+    "newFarStateBytes": 28,
+    "fullScreenShadowBytes": 0
+  },
+  "correctness": {
+    "classification": "MEASURED host execution of linked NMOS 6502 prototype",
+    "frames": 1000,
+    "ringSteps": 333,
+    "fullRingWraps": 12,
+    "farPositionChecks": 28000,
+    "farPositionFailures": 0,
+    "farCountMismatchFrames": 0,
+    "nearVisiblePerFrameMinimum": 4,
+    "nearVisiblePerFrameMaximum": 4,
+    "scrollingStaleBlueCells": 0,
+    "verticalDoubleByGlyphConstruction": 0
+  },
+  "cpu": {
+    "classification": "MEASURED instruction-exact NMOS 6502 prototype",
+    "far": {
+      "initialOrReconstructionCycles": 925,
+      "oldPassCycles": 535,
+      "newPassWorstCycles": 941,
+      "completeRemapBodyCycles": 1476,
+      "completeRemapRoutineCycles": 1482
+    },
+    "near": {
+      "oldEraseCycles": 155,
+      "ordinaryPhaseUpdateCycles": 38,
+      "coarsePhaseUpdateCycles": 91,
+      "glyphPublicationCycles": 37,
+      "unchangedAddressRenderCycles": 267,
+      "coarseOnlyRenderCycles": 439,
+      "ringOnlyRenderCycles": 503,
+      "recycledCloneCleanupCycles": 90,
+      "ordinaryFrameCycles": 497,
+      "coarseNoRingPeakCycles": 722
+    },
+    "frames": {
+      "normalFramePeakCycles": 722,
+      "ringStepPeakCycles": 2305,
+      "ringWrapPeakCycles": 2305,
+      "sectorReconstructionCycles": 1340
+    },
+    "gate": {
+      "strongPassMaximumCycles": 1400,
+      "passMaximumCycles": 1500,
+      "measuredPeakCycles": 2305,
+      "overLimitCycles": 805,
+      "result": "BLOCKED"
+    },
+    "retainedSavingAgainstHistorical4221Cycles": 1916
+  },
+  "memoryPlacementPrototype": {
+    "baselineLinkedRuntimeBytes": 17543,
+    "prototypeLinkedRuntimeBytes": 17686,
+    "linkedDeltaBytes": 143,
+    "baselineSimultaneousResidencyBytes": 18021,
+    "prototypeSimultaneousResidencyBytes": 18164,
+    "prototypeSafeHeadroomBytes": 4023,
+    "starfieldRawBytes": 2348,
+    "starfieldRawCapacityBytes": 2348,
+    "starfieldRawMarginBytes": 0,
+    "starfieldPackedBytes": 1908,
+    "starfieldPackedCapacityBytes": 1819,
+    "starfieldPackedOverflowBytes": 89,
+    "packedColdBoundaryOverflowBytes": 116,
+    "initialContentBytes": 13259,
+    "baselineInitialContentBytes": 13137,
+    "initialContentDeltaBytes": 122,
+    "bootSectors": 104,
+    "baselineBootSectors": 103,
+    "a2KernelBytes": 190,
+    "a2KernelCapacityBytes": 256,
+    "broadsideBytes": 6641,
+    "broadsideCapacityBytes": 6656,
+    "coldPickupBytes": 867,
+    "coldPickupCapacityBytes": 1277,
+    "basicRamUsed": false,
+    "loaderChanged": false,
+    "transportFormatChanged": false,
+    "result": "FAIL: candidate does not fit the existing packed STARFIELD/cold layout"
+  },
+  "stop": {
+    "reason": "The complete legal starfield peak is 2305 cycles, above the fixed 1500-cycle gate. Independently, the packed candidate crosses the current cold boundary by 116 bytes.",
+    "notAttempted": [
+      "reducing the owner-fixed count below 14",
+      "a second addressing architecture",
+      "slow blue drift",
+      "background/ring 25 Hz",
+      "loader or transport changes",
+      "BASIC RAM"
+    ]
+  },
+  "rollback": {
+    "productionRuntime": "Restored byte-for-byte to HEAD 56671a6",
+    "currentFar": "29 row-baked blue stars at ring speed",
+    "currentNear": "4 white stars at 8 px/frame",
+    "currentXexSha256": "c5bdc93b8b2b822bad22e19f402c9347de4fa1996cf58871c05b3ec0eba0b826",
+    "ownerCandidateBuilt": false
+  },
+  "verification": {
+    "prototypeAssemblyAndLink": "PASS only with diagnostic build-gate bypasses; production placement FAIL",
+    "prototypeCorrectness": "PASS 1000 frames / 12 wraps before CPU STOP",
+    "rollbackBuild": "PASS: npm run build:two-pmg -- --quiet",
+    "rollbackFocusedStarfield": "PASS 19/19",
+    "nativeTrace": "Not run after mandatory CPU/placement STOP; there is no legal owner candidate."
+  },
+  "decision": "Fourteen screen-static far stars plus four 2 px/frame near stars are rejected in the current ring and cold-layout architecture.",
+  "next": "Owner decision required; no owner-smoke XEX was produced. Do not begin background/ring 25 Hz automatically."
+}

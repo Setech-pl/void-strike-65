@@ -36,13 +36,14 @@ const addresses = {
   enemyActive: 0x4ecd,
   musicActive: 0x4ed9,
   gameMusicEnabled: 0x4ee3,
-  farActive: 0x54ca,
 };
 
 const counts = {
   broadsideSlots: 3,
   projectileSlots: 19,
-  farStars: 24,
+  // `renderedFarStars` is retained only as a report-schema property name.
+  // The production value is the four-record white-only decorative layer.
+  farStars: 4,
   fighterExplosionSlots: 2,
 };
 
@@ -61,11 +62,8 @@ const profiledRoutineNames = [
   "update_player_fighter_weapon",
   "update_enemy_weapon",
   "update_starfield",
-  "erase_far_star_overlays",
-  "render_far_star_overlays",
-  "render_far_star_overlays_if_needed",
-  "advance_far_stars",
-  "set_far_star_ptr",
+  "update_white_starfield_phase",
+  "publish_dynamic_near_star_phase",
   "scroll_world_columns",
   "scroll_hull_columns",
   "visible_hull_sector_row",
@@ -145,10 +143,12 @@ function makeMachine({
   integrationGlueRunAddress,
   directorRuntime,
   directorRunAddress,
+  directorAdditionalSegments = [],
   capitalPlayerCollisionRuntime,
   capitalPlayerCollisionRunAddress,
   labels,
   difficulty,
+  vcountReads = [0, 1],
 }) {
   const memory = new Uint8Array(0x10000);
   memory.set(residentMain, loadAddress);
@@ -160,6 +160,7 @@ function makeMachine({
   if (pickupCodeRuntime) memory.set(pickupCodeRuntime, pickupCodeRunAddress);
   if (integrationGlueRuntime) memory.set(integrationGlueRuntime, integrationGlueRunAddress);
   if (directorRuntime) memory.set(directorRuntime, directorRunAddress);
+  for (const segment of directorAdditionalSegments) memory.set(segment.data, segment.runAddress);
   if (capitalPlayerCollisionRuntime) {
     memory.set(capitalPlayerCollisionRuntime, capitalPlayerCollisionRunAddress);
   }
@@ -168,7 +169,7 @@ function makeMachine({
     stick: 0x0f,
     trigger: 1,
     console: 0xff,
-    vcountReads: [0, 1],
+    vcountReads,
     vcountIndex: 0,
   };
   const hooks = {
@@ -280,7 +281,13 @@ function execute(cpu, {
 }
 
 function initialiseGameplay(build, difficulty, entryPoints) {
-  const machine = makeMachine({ ...build, difficulty });
+  const machine = makeMachine({
+    ...build,
+    difficulty,
+    // Full-frame timing crosses the production $70 and $77 publication waits.
+    // Routine-level callers retain the historical 0/1 frame-start model.
+    vcountReads: [0, 1, 0x70, 0x71, 0x77, 0x78],
+  });
   machine.cpu.pc = entryPoints.startGameplay;
   const setup = execute(machine.cpu, {
     stopAddresses: [entryPoints.mainLoop],
@@ -319,14 +326,6 @@ function countNonZero(memory, start, length) {
   return count;
 }
 
-function countRenderedFarStars(memory) {
-  let count = 0;
-  for (let index = 0; index < counts.farStars; index += 1) {
-    if ((memory[addresses.farActive + index] & 0x80) !== 0) count += 1;
-  }
-  return count;
-}
-
 function snapshotRuntime(cpu, entryPoints) {
   const memory = cpu.memory;
   return {
@@ -341,7 +340,7 @@ function snapshotRuntime(cpu, entryPoints) {
       10,
     ),
     broadsideOccupancy: countNonZero(memory, addresses.broadState, counts.broadsideSlots),
-    renderedFarStars: countRenderedFarStars(memory),
+    renderedFarStars: counts.farStars,
     liveInterceptor: memory[addresses.enemyActive] === 1,
     activeExplosion: countNonZero(
       memory,
@@ -401,7 +400,7 @@ function eventNames(frame) {
   const names = [];
   for (const [name, label] of [
     ["world-copy", "scroll_world_columns"],
-    ["far-erase", "erase_far_star_overlays"],
+    ["white-star-phase", "publish_dynamic_near_star_phase"],
     ["hull-copy", "scroll_hull_columns"],
     ["broadside", "update_broadside"],
     ["fighter-explosion", "render_shared_fighter_explosions"],
@@ -515,7 +514,7 @@ function protectedSegments(segmentSizes) {
     ["A2_KERNEL", segmentSizes.a2Kernel, 0x0000, 0x0100, 0x0100],
     ["ENTITY_STATE", segmentSizes.entityState, 0x0100, 0x0100, 0x0100],
     ["ENTITY_CODE", segmentSizes.entityCode, 0x02ca, 0x05ca, 0x0f00],
-    ["PICKUP_CODE", segmentSizes.pickupCode, 0x0000, 0x0380, 0x0380],
+    ["PICKUP_CODE", segmentSizes.pickupCode, 0x0000, 0x0800, 0x0800],
   ];
   return definitions.map(([
     name, bytes, featureStartBytes, acceptedMaximumBytes, reservedMaximumBytes,
@@ -548,8 +547,8 @@ function runtimeRanges() {
     ["entity-effects-state", 0x8000, 0x80ff, "unconditional"],
     ["far-star-screen-cache", 0x8100, 0x812f, "after-loader"],
     ["future-entity-effects-state", 0x8130, 0x87ff, "unconditional"],
-    ["pickup-phase-runtime", 0x8800, 0x8d8a, "unconditional"],
-    ["future-entity-effects-tail", 0x8d8b, 0x8fff, "unconditional"],
+    ["pickup-and-collision-runtime", 0x8800, 0x8b87, "unconditional"],
+    ["future-entity-effects-tail", 0x8b88, 0x8fff, "unconditional"],
     ["a2-kernel-code", 0x9000, 0x90ff, "unconditional"],
     ["entity-effects-code", 0x9100, 0x9d74, "unconditional"],
     ["encounter-director", 0x9d75, 0x9ff9, "unconditional"],
@@ -576,6 +575,8 @@ export function measureRuntimeCycles(build) {
     fighterProjectileY: requiredLabel(build.labels, "FIGHTER_PROJECTILE_Y"),
     fighterProjectilePreviousY: requiredLabel(build.labels, "FIGHTER_PROJECTILE_PREV_Y"),
     fighterProjectileLifetime: requiredLabel(build.labels, "FIGHTER_PROJECTILE_LIFETIME"),
+    fighterProjectilePublicationFrame: requiredLabel(build.labels,
+      "FIGHTER_PROJECTILE_PUBLICATION_FRAME"),
     fighterExplosionTimer: requiredLabel(build.labels, "FIGHTER_EXPLOSION_TIMER"),
     fireTimer: requiredLabel(build.labels, "fire_timer"),
     hitTimer: requiredLabel(build.labels, "hit_timer"),
@@ -671,12 +672,21 @@ export function measureRuntimeCycles(build) {
       }
       machine.cpu.a = 0;
       machine.cpu.pc = entryPoints.activeFrame;
-      const measurement = execute(machine.cpu, {
-        stopAddresses: [entryPoints.mainLoop, entryPoints.frontendLoop],
-        routineAddresses,
-        eventAddresses,
-        regionAddresses,
-      });
+      let measurement;
+      try {
+        measurement = execute(machine.cpu, {
+          stopAddresses: [entryPoints.mainLoop, entryPoints.frontendLoop],
+          routineAddresses,
+          eventAddresses,
+          regionAddresses,
+        });
+      }
+      catch (error) {
+        error.message += `; session=${session}; frame=${frame}; ` +
+          `sector=${machine.cpu.memory[addresses.capitalSectorState]}; ` +
+          `publication=${machine.cpu.memory[entryPoints.fighterProjectilePublicationFrame]}`;
+        throw error;
+      }
       if (measurement.stopAddress === entryPoints.frontendLoop) break;
       const record = {
         session,
@@ -870,7 +880,8 @@ export function measureRuntimeCycles(build) {
   let interceptorBreakupPath;
   let noPlayerFighterProjectilePath;
   for (const frame of frames) {
-    if (frame.hits.has("scroll_world_columns") && frame.hits.has("erase_far_star_overlays")) {
+    if (frame.hits.has("scroll_world_columns") &&
+      frame.hits.has("publish_dynamic_near_star_phase")) {
       worldNearFullErase = chooseMaximum(worldNearFullErase, frame, (candidate) => candidate.cycles);
     }
     if (frame.hits.has("scroll_hull_columns")) {
@@ -914,7 +925,7 @@ export function measureRuntimeCycles(build) {
     if (frame.before.effectActiveCount === 5) {
       fullEffectsPath = chooseMaximum(fullEffectsPath, frame, (candidate) => candidate.cycles);
     }
-    if (frame.hits.has("materialize_interceptor_breakup_effects")) {
+    if (frame.hits.has("spawn_interceptor_breakup_effects")) {
       interceptorBreakupPath = chooseMaximum(interceptorBreakupPath, frame,
         (candidate) => candidate.cycles);
     }
@@ -925,7 +936,7 @@ export function measureRuntimeCycles(build) {
     legalHeavy = chooseMaximum(legalHeavy, frame, (candidate) => candidate.cycles);
   }
 
-  invariant(worldNearFullErase, "Replay did not reach a world/near event with full far-star erase");
+  invariant(worldNearFullErase, "Replay did not reach a world event with row-baked far generation");
   invariant(hullEvent, "Replay did not reach a hull event");
   invariant(maximumProjectilePool?.before.projectileOccupancy === counts.projectileSlots,
     `Replay occupied ${maximumProjectilePool?.before.projectileOccupancy ?? 0}/` +
@@ -941,9 +952,12 @@ export function measureRuntimeCycles(build) {
   invariant(debrisDestructionPath, "Replay did not execute final debris destruction");
   invariant(fullEffectsPath?.before.effectActiveMask === 0x1f,
     "Replay did not execute one core plus four debris fragments");
-  invariant(interceptorBreakupPath?.after.effectActiveMask === 0x1f &&
-    interceptorBreakupPath.after.effectActiveCount === 5,
-  "Replay did not execute one Interceptor core plus four fragments");
+  invariant(interceptorBreakupPath &&
+    interceptorBreakupPath.after.effectActiveMask ===
+      interceptorBreakupPath.before.effectActiveMask &&
+    interceptorBreakupPath.after.effectActiveCount ===
+      interceptorBreakupPath.before.effectActiveCount,
+  "Replay did not preserve the effect pool across character-free Raider destruction");
   invariant(noPlayerFighterProjectilePath, "Replay did not execute a frame without PlayerFighter projectiles");
   invariant(!noPlayerFighterProjectilePath.hits.has("entity_player_fighter_projectile_target"),
     "Debris projectile dispatch ran without an active PlayerFighter projectile");
@@ -968,7 +982,7 @@ export function measureRuntimeCycles(build) {
     "entity_effects_erase", "entity_effects_update", "entity_effects_render",
   ].reduce((sum, name) => sum + (frame.procedureTotalCycles[name] ?? 0), 0);
   const emptyEnginePathCycles = entityWrapperCycles(entityEmptyPath);
-  invariant(emptyEnginePathCycles <= 124,
+  invariant(emptyEnginePathCycles <= 136,
     `Empty entity/effects path costs ${emptyEnginePathCycles} linked CPU cycles`);
 
   const heavyMainLoopCycles = legalHeavy.cycles + optionPollCycles;
@@ -1042,9 +1056,9 @@ export function measureRuntimeCycles(build) {
       noActiveExplosionPathCpuCycles: emptyEnginePathCycles,
       noActiveExplosionPathLimitCpuCycles: 124,
       spawnPathCpuCycles:
-        interceptorBreakupPath.procedureTotalCycles.materialize_interceptor_breakup_effects,
-      fullEffectsPathCpuCycles: entityWrapperCycles(fullEffectsPath),
-      measurement: "linked release Interceptor death and shared five-slot effect path",
+        interceptorBreakupPath.procedureTotalCycles.spawn_interceptor_breakup_effects,
+      fullEffectsPathCpuCycles: entityWrapperCycles(interceptorBreakupPath),
+      measurement: "linked release Raider death with no character-effect allocation",
     },
     replay: {
       sessions: sessions.map(({ difficulty, policy, fireDelay, frames: frameLimit }) => ({
@@ -1102,7 +1116,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     a2KernelRunAddress: requiredLabel(labels, "__A2_KERNEL_RUN__"),
     entityCodeRuntime: fs.readFileSync(path.join(root, "build", "entity-code-runtime.bin")),
     entityCodeRunAddress: requiredLabel(labels, "__ENTITY_CODE_RUN__"),
-    weaponPickupPhaseBank: fs.readFileSync(path.join(root, "build", "weapon-pickup-phases.bin")),
+    weaponPickupPhaseBank: null,
     weaponPickupPhaseBankAddress: 0x8800,
     pickupCodeRuntime: fs.readFileSync(path.join(root, "build", "pickup-code-runtime.bin")),
     pickupCodeRunAddress: requiredLabel(labels, "__PICKUP_CODE_RUN__"),

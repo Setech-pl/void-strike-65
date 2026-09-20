@@ -1,0 +1,315 @@
+{
+ "schema": 1,
+ "stage": "2B.0 fighter double-buffer feasibility proof",
+ "status": "REJECTED",
+ "evidence": "host NMOS 6502 simulator (scripts/fdb-proof-harness.mjs in refs/wip/stage2b0-fdb-proof), CPU cycles only: no ANTIC DMA, gameplay DLI modelled at scanline 16; identical scripted HARD input on both images, fire held, lives held at 3",
+ "baseline": {
+  "commit": "9f23d2d4d60a0c25cf4e5b1bc7eb00003f0e4f2c",
+  "xexSha256": "487bdff550bec1497c4c3e55d54da82c5b253773dc4f0725401a6d1528a087e3"
+ },
+ "proof": {
+  "ref": "refs/wip/stage2b0-fdb-proof",
+  "layout": "measurement-only: plan-B phase bank omitted, runtime images only, not bootable"
+ },
+ "nativeBaselineRaiderSectorHard": {
+  "emulator": "Atari800 7.1.2 PAL, instrumented",
+  "frames": 1800,
+  "openMaxWall": 26813,
+  "openP99Wall": 26128,
+  "capitalMaxWall": 24620,
+  "missed": 0,
+  "extraVbi": 0,
+  "dliViolations": 0
+ },
+ "openFighterFrames": {
+  "count": 1612,
+  "cpuCycles": {
+   "baseline": {
+    "max": 14361,
+    "p99": 12810,
+    "p50": 9505,
+    "mean": 9105
+   },
+   "proof": {
+    "max": 21585,
+    "p99": 20283,
+    "p50": 15986,
+    "mean": 14979
+   },
+   "delta": {
+    "max": 8007,
+    "p99": 7745,
+    "p50": 6742,
+    "mean": 5875
+   },
+   "catchUp": {
+    "max": 4485,
+    "p99": 4387,
+    "p50": 775,
+    "mean": 2386
+   },
+   "toggle": {
+    "max": 465,
+    "p99": 465,
+    "p50": 465,
+    "mean": 465
+   },
+   "rotationRows": {
+    "max": 1370,
+    "p99": 1370,
+    "p50": 0,
+    "mean": 669
+   },
+   "cellReplay": {
+    "max": 2666,
+    "p99": 2584,
+    "p50": 310,
+    "mean": 1252
+   },
+   "eraseHooks": {
+    "max": 4122,
+    "p99": 3943,
+    "p50": 3207,
+    "mean": 1882
+   },
+   "farStarLog": {
+    "max": 759,
+    "p99": 759,
+    "p50": 707,
+    "mean": 375
+   },
+   "listBuild": {
+    "max": 1491,
+    "p99": 1491,
+    "p50": 1491,
+    "mean": 1491
+   },
+   "baselineListBuild": {
+    "max": 1489,
+    "p99": 1489,
+    "p50": 0,
+    "mean": 744
+   },
+   "pickupPmg": {
+    "max": 29,
+    "p99": 29,
+    "p50": 29,
+    "mean": 29
+   },
+   "publish": {
+    "max": 67,
+    "p99": 67,
+    "p50": 67,
+    "mean": 67
+   },
+   "logCount": {
+    "max": 65,
+    "p99": 63,
+    "p50": 53,
+    "mean": 30
+   }
+  }
+ },
+ "capitalFrames": {
+  "count": 1084,
+  "deltaCpu": {
+   "max": 4228,
+   "p99": 2823,
+   "p50": 155,
+   "mean": 1351
+  }
+ },
+ "oneTime": {
+  "enter": [
+   {
+    "frame": 0,
+    "begin": 20471,
+    "proof": 26750
+   },
+   {
+    "frame": 1830,
+    "begin": 20471,
+    "proof": 28974
+   }
+  ],
+  "leave": [
+   {
+    "frame": 745,
+    "leave": 4107,
+    "proof": 17663
+   }
+  ]
+ },
+ "projectedWorstOpenWall": {
+  "estimate": 34820,
+  "method": "native baseline OPEN max wall + host max CPU delta (ESTIMATE; DMA unchanged)",
+  "target": 31200,
+  "hardGate": 32568
+ },
+ "correctness": {
+  "fdb-full-2700": {
+   "frames": 2700,
+   "openFramesCompared": 1614,
+   "imageMismatchFrames": 0,
+   "visibleWriteViolations": 0,
+   "logOverflows": 0,
+   "pauses": [
+    0,
+    0
+   ],
+   "pauseForeignWrites": [],
+   "fill": 0,
+   "enterFrames": [
+    {
+     "frame": 0,
+     "begin": 20471,
+     "proof": 26750
+    },
+    {
+     "frame": 1830,
+     "begin": 20471,
+     "proof": 28974
+    }
+   ],
+   "leaveFrames": [
+    {
+     "frame": 745,
+     "leave": 4107,
+     "proof": 17663
+    }
+   ]
+  },
+  "fdb-full-1800": {
+   "frames": 1800,
+   "openFramesCompared": 744,
+   "imageMismatchFrames": 0,
+   "visibleWriteViolations": 0,
+   "logOverflows": 0,
+   "pauses": [
+    0,
+    0
+   ],
+   "pauseForeignWrites": [],
+   "fill": 0,
+   "enterFrames": [
+    {
+     "frame": 0,
+     "begin": 20471,
+     "proof": 26750
+    }
+   ],
+   "leaveFrames": [
+    {
+     "frame": 745,
+     "leave": 4107,
+     "proof": 17663
+    }
+   ]
+  },
+  "fdb-pause": {
+   "frames": 420,
+   "openFramesCompared": 420,
+   "imageMismatchFrames": 0,
+   "visibleWriteViolations": 0,
+   "logOverflows": 0,
+   "pauses": [
+    2,
+    2
+   ],
+   "pauseForeignWrites": [
+    "200",
+    "201"
+   ],
+   "fill": 0,
+   "enterFrames": [
+    {
+     "frame": 0,
+     "begin": 20471,
+     "proof": 26750
+    }
+   ],
+   "leaveFrames": []
+  },
+  "fdb-fill": {
+   "frames": 300,
+   "openFramesCompared": 300,
+   "imageMismatchFrames": 0,
+   "visibleWriteViolations": 0,
+   "logOverflows": 0,
+   "pauses": [
+    0,
+    0
+   ],
+   "pauseForeignWrites": [],
+   "fill": 165,
+   "enterFrames": [
+    {
+     "frame": 0,
+     "begin": 20471,
+     "proof": 26750
+    }
+   ],
+   "leaveFrames": []
+  }
+ },
+ "linkedCodeBytes": {
+  "baseline": 17653,
+  "proofMeasurement": 17851,
+  "delta": 198,
+  "note": "proof total includes the zero-byte BROADSIDE/CODE pads that preserve ABI addresses",
+  "segments": {
+   "CODE": {
+    "baseline": 4475,
+    "proof": 4475,
+    "delta": 0
+   },
+   "STARFIELD": {
+    "baseline": 2258,
+    "proof": 2270,
+    "delta": 12
+   },
+   "BROADSIDE": {
+    "baseline": 6647,
+    "proof": 6647,
+    "delta": 0
+   },
+   "A2_KERNEL": {
+    "baseline": 254,
+    "proof": 253,
+    "delta": -1
+   },
+   "ENTITY_CODE": {
+    "baseline": 3178,
+    "proof": 3176,
+    "delta": -2
+   },
+   "PICKUP_CODE": {
+    "baseline": 841,
+    "proof": 1030,
+    "delta": 189
+   },
+   "RODATA": {
+    "baseline": 3714,
+    "proof": 3714,
+    "delta": 0
+   }
+  }
+ },
+ "placementGatesProductionLayout": [
+  "PICKUP_CODE overflows PICKUP_CODE_RAM/PICKUPFILE by 84 B (ld65); the fixed 33-B collision module must follow it",
+  "packed STARFIELD 1825 B > 1819 B cold staging with the in-place hooks, before the rotation branch moved out",
+  "measurement layout: packed STARFIELD $40F4-$4809 overlaps pickup preservation from $4801 by 9 B",
+  "measurement layout: packed ENTITY_CODE cold staging ends at $5E2B, 27 B past BROADSIDE $5E10",
+  "ENTITY_CODE gap before the .align $100 near main.s line 7140 is full: +22 B there moved the aligned block by one page"
+ ],
+ "ram": {
+  "ringB": "$7940-$7D77 1080 B",
+  "dividerB": "$7F28-$7F4F plus 40 B spill",
+  "dividerA": "$8728-$874F plus 40 B spill",
+  "log": "$7860-$793F 224 B",
+  "state": "$7D78-$7D82 11 B",
+  "displayLists": "$7E10-$7EC3 (moved from $7F10)",
+  "pause": "$7810-$785F 80 B (was 960 B)",
+  "finding": "far-star logical state occupies $85F2-$8665; docs/memory-map.md still lists part of it as unowned"
+ }
+}

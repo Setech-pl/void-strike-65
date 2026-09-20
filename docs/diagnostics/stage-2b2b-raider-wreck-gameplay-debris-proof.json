@@ -1,0 +1,234 @@
+{
+  "schema": "void-strike-65.stage-2b2b-raider-wreck-gameplay-debris-proof.v1",
+  "date": "2026-09-13",
+  "status": "BLOCKED",
+  "model": {
+    "used": "Codex (GPT-5 family)",
+    "reasoning": "High",
+    "requested_label_not_exposed": "GPT-5.6 Sol"
+  },
+  "git": {
+    "branch": "experiment/two-pmg-raider-combat",
+    "head_before": "e196e52faa100a16a6f39c343c1597e341e48129",
+    "runtime_candidate_rolled_back": true,
+    "claude_untouched": true,
+    "push_merge_release": false
+  },
+  "scope": {
+    "requested": "Approximately one quarter of Raider kills may promote one breakup fragment into HP=2 gameplay debris, with at most one wreck per kill and two active wrecks, reusing the existing pool.",
+    "result": "Stopped at the existing-pool and physical-placement gate before writer-complete runtime integration.",
+    "unchanged": [
+      "PairShot visuals, cadence, damage and final ghost fix",
+      "player fire cadence and cross-sector shot SFX",
+      "Effects 25 Hz/staggered",
+      "row-baked far stars",
+      "ring cadence",
+      "capital and boss"
+    ]
+  },
+  "existing_debris_audit": {
+    "physical_interactive_records": 4,
+    "interactive_active_limit": 2,
+    "record_layout": {
+      "header_bytes": 16,
+      "soa_arrays": 20,
+      "bytes_per_physical_record": 20,
+      "interactive_state_bytes_total": 96
+    },
+    "physical_slot_roles": [
+      {"slot": 0, "role": "the only implemented gameplay debris record"},
+      {"slot": 1, "role": "PMG weapon pickup and qualified-kill counter"},
+      {"slot": 2, "role": "non-rendered weapon-booster controller and pickup next-type state"},
+      {"slot": 3, "role": "reserved physical record; no implemented debris lifecycle"}
+    ],
+    "implemented_gameplay_debris_capacity": 1,
+    "allocation": "Director admission followed by fixed slot-zero allocation; release returns the one Director debris cost.",
+    "type": 1,
+    "hit_points": 3,
+    "render": {
+      "screen_cells": 2,
+      "glyph_indices": [110, 111, 112, 113, 114, 115, 116, 117],
+      "visual_variants": ["armour-shard", "truss-fragment"],
+      "phases_per_variant": 2,
+      "backing_bytes_per_record": 2
+    },
+    "movement": {
+      "world_attached": true,
+      "vertical_rows_per_world_events": "3/5",
+      "vertical_step_scanlines": 8,
+      "horizontal_step_period_world_rows": 4,
+      "maximum_horizontal_steps": 9,
+      "trajectories_hpos": [0, -4, 4]
+    },
+    "player_collision": {
+      "existing_path_reusable": true,
+      "damage_units_easy_medium_hard": [2, 5, 7],
+      "accepted_contact_releases_debris": true
+    },
+    "pairshot_collision": {
+      "existing_path_reusable": true,
+      "one_pairshot_is_one_hit_event": true,
+      "ordinary_debris_hits_to_destroy": 3
+    },
+    "destruction": {
+      "existing_effect": "one core plus four collisionless fragments in the five active effect slots",
+      "score_before": 0,
+      "pool_expansion_required_for_one_wreck": false
+    },
+    "instruction_exact_one_record_baseline_cycles": {
+      "erase": 95,
+      "steady_update": 104,
+      "world_step_update": 144,
+      "render": 175,
+      "steady_total": 374,
+      "world_step_total": 414,
+      "source": "assembled XEX routines through scripts/debris-destruction-runtime.mjs"
+    }
+  },
+  "breakup_fragment_mapping": {
+    "core": {"effect_slot": 0, "render_id": 110, "vx": 0, "vy": 0},
+    "left_wing": {"effect_slot": 1, "render_id": 111, "vx": -2, "vy": -2},
+    "right_wing": {"effect_slot": 2, "render_id": 113, "vx": 2, "vy": -2},
+    "red_eye": {"effect_slot": 3, "render_id": 219, "vx": -2, "vy": 2},
+    "central": {"effect_slot": 4, "render_id": 119, "vx": 2, "vy": 2},
+    "candidate_choice": "central downward fragment origin with the existing two-cell truss-fragment debris silhouette (render-id base 114)",
+    "reason": "The central fragment has downward breakup motion; the existing truss glyph is asymmetric, metallic, distinct from stars and PairShot, and needs no new asset bank."
+  },
+  "reuse_candidate": {
+    "representation": "Reuse physical interactive slots 0 and 3 as a two-record gameplay-debris slice; preserve slot 1 pickup and slot 2 booster.",
+    "new_pool": false,
+    "new_state_ram_bytes": 0,
+    "subtype_storage": "existing ENTITY_TYPE byte",
+    "hp_storage": "existing ENTITY_HP byte",
+    "wreck_hp": 2,
+    "maximum_wrecks": 2,
+    "global_active_limit_preserved": 2,
+    "pickup_competes_for_capacity": true,
+    "required_generalisation_sites": [
+      "reverse erase for slots 3 then 0",
+      "world motion/tumble/update for slots 0 and 3",
+      "player-contact collision for both slots",
+      "PairShot target selection and nearest-target arbitration across both slots",
+      "damage/destruction/release by selected slot",
+      "render for slots 0 then 3",
+      "effect and PairShot backing resolution across both moving debris records"
+    ]
+  },
+  "spawn_probability": {
+    "algorithm": "one sample of the existing entity-local full-period 8-bit LFSR; eligible when low two bits are zero",
+    "expensive_rng_added": false,
+    "static_5000_kill_sequence": {
+      "kills": 5000,
+      "rng_eligible_attempts": 1229,
+      "skipped_by_rng": 3771,
+      "eligible_percent": 24.58
+    },
+    "runtime_successes": null,
+    "skipped_by_max_two": null,
+    "skipped_by_full_pool": null,
+    "note": "Only the probability source was verified because placement STOP occurred before a valid runtime candidate existed."
+  },
+  "placement_stop": {
+    "baseline": {
+      "pickup_code_raw_bytes": 871,
+      "pickup_file_capacity_bytes": 896,
+      "pickup_raw_margin_bytes": 25,
+      "entity_code_raw_bytes": 3188,
+      "entity_code_end": "$9D73",
+      "director_start": "$9D75",
+      "entity_raw_margin_bytes": 1,
+      "linked_runtime_bytes": 17359,
+      "simultaneous_residency_bytes": 17837,
+      "safe_headroom_bytes": 4350,
+      "cold_pickup_packed_bytes": 859,
+      "cold_pickup_capacity_bytes": 1277,
+      "cold_pickup_packed_margin_bytes": 418,
+      "starfield_raw_margin_bytes": 276,
+      "a2_raw_margin_bytes": 134,
+      "broadside_raw_margin_bytes": 9,
+      "main_raw_margin_bytes": 19
+    },
+    "minimal_writer_complete_draft": {
+      "pickup_code_raw_bytes": 1231,
+      "pickup_code_added_bytes": 360,
+      "pickup_file_overflow_bytes": 335,
+      "entity_code_raw_bytes": 3264,
+      "entity_code_added_bytes": 76,
+      "entity_code_overflow_into_director_bytes": 75,
+      "total_linked_code_delta_bytes": 436,
+      "new_state_ram_bytes": 0,
+      "linked": false,
+      "failure": "PICKUPFILE overflow and fixed capital/player collision boundary moved from $8B67 to $8CCF."
+    },
+    "why_local_fit_failed": "The two semantically related contiguous destinations provide only 26 raw bytes combined. Fitting the 436-byte bounded generalisation would require splitting hot debris lifecycle code across the unrelated STARFIELD and A2 reservations and then reopening their packed/initial-content gates.",
+    "stop_condition": "Existing debris is implemented as one hard-coded record; meeting the required two-wreck test is no longer a subtype-only reuse and does not fit without a distributed layout/refactor.",
+    "basic_ram_used": false,
+    "loader_changed": false,
+    "transport_changed": false,
+    "new_record_added": false
+  },
+  "cpu": {
+    "one_existing_debris_measured_steady_cycles": 374,
+    "one_existing_debris_measured_world_step_cycles": 414,
+    "one_wreck_marginal_cycles": null,
+    "two_wreck_peak_cycles": null,
+    "native_full_frame": null,
+    "reason_not_measured": "No physically legal two-record runtime candidate existed after the required placement-first gate."
+  },
+  "gameplay_and_regression": {
+    "player_collision_runtime_tested": false,
+    "pairshot_hp_2_to_1_to_0_runtime_tested": false,
+    "two_wreck_runtime_tested": false,
+    "collisionless_long_lived_fragments_added": 0,
+    "previous_pairshot_and_remnant_fixes_in_final_runtime": "unchanged after rollback",
+    "starfield_changed": false
+  },
+  "unified_window": {
+    "baseline_player_five_enemy_five_cycles": [5789, 5869],
+    "conservative_window_cycles": 9975,
+    "two_wreck_delta_cycles": null,
+    "margin_cycles": null,
+    "reason": "A measured two-wreck publication path is required; extrapolation was not substituted for the requested measured result."
+  },
+  "options_requiring_owner_decision": [
+    {
+      "option": "Defer wrecks to the already-planned debris 25 Hz / visual redesign",
+      "cost": "No current runtime or placement regression",
+      "limitation": "No gameplay wreck in the present owner candidate",
+      "risk": "Lowest",
+      "recommendation": true
+    },
+    {
+      "option": "Authorize a dedicated two-record debris-kernel and layout proof",
+      "cost": "At least 436 raw code bytes in the first writer-complete draft; requires reclaim/re-layout before CPU proof",
+      "limitation": "Reopens STARFIELD/A2 or other transport placement and is not a small subtype feature",
+      "risk": "High",
+      "recommendation": false
+    },
+    {
+      "option": "Change the contract to at most one active Raider wreck",
+      "cost": "Likely permits slot-zero subtype reuse with substantially less code",
+      "limitation": "Does not satisfy the approved two-wreck gameplay matrix and competes directly with ordinary debris",
+      "risk": "Medium gameplay compromise",
+      "recommendation": false
+    }
+  ],
+  "verification": {
+    "baseline_build": "npm run build:two-pmg -- --quiet: PASS",
+    "baseline_xex_sha256": "134d47c96361fc00d4cd4a8ebcb29ae240c092958f58eb16b1c050db1ed09db5",
+    "baseline_pairshot_effects_regression": "7/7 PASS",
+    "baseline_raider_remnant_regression": "8/8 PASS, including the >5000-kill provenance matrix",
+    "legacy_entity_suite_note": "Tests entering through src/integration-glue.s still jump to historical entity_spawn_debris $98FF while the current linked symbol is $98C0; the resulting unsupported-opcode failures are a pre-existing host-replay issue and were not fixed in this proof.",
+    "draft_assembly": "PASS after local branch-range corrections",
+    "draft_link": "FAIL at physical PICKUPFILE/collision boundary; temporary capacity measurement only",
+    "draft_rolled_back": true,
+    "native_trace": "not run after placement STOP"
+  },
+  "artifact": {
+    "new_candidate": false,
+    "unchanged_baseline_path": "dist/void-strike-65.xex",
+    "unchanged_baseline_sha256": "134d47c96361fc00d4cd4a8ebcb29ae240c092958f58eb16b1c050db1ed09db5"
+  },
+  "decision": "Raider wreck gameplay debris is rejected at the current one-record debris architecture and placement",
+  "next": "Owner decision: preferably defer Raider wreck integration to the planned debris 25 Hz / visual redesign"
+}

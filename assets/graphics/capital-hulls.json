@@ -443,10 +443,10 @@
       }
     ],
     "turretLayout": {
-      "seed": 109,
-      "counts": { "easy": 8, "medium": 12, "hard": 16 },
-      "minimumSpacingRows": 24,
-      "maximumGapRows": { "easy": 80, "medium": 56, "hard": 40 },
+      "seed": 13,
+      "counts": { "easy": 10, "medium": 15, "hard": 20 },
+      "minimumSpacingRows": 16,
+      "maximumGapRows": { "easy": 64, "medium": 48, "hard": 32 },
       "turretModule": {
         "allied": "combat_1",
         "enemy": "combat_1"
@@ -462,7 +462,8 @@
     "enemy_void_lance": 2
   },
   "broadside": {
-    "provisionalFirstCapitalGameplayFrame": 50,
+    "provisionalFirstCapitalGameplayFrame": 600,
+    "activeLimit": 2,
     "initialDelayFrames": 2,
     "retryDelayFrames": 7,
     "scheduleDelayScale": 2,
@@ -479,11 +480,11 @@
       "medium": 9,
       "hard": 10
     },
-    "hullScrollRateDenominator": 20,
+    "hullScrollRateDenominator": 40,
     "hullScrollRates": {
-      "easy": 8,
-      "medium": 9,
-      "hard": 10
+      "easy": 16,
+      "medium": 18,
+      "hard": 20
     },
     "projectileSpeed": 2,
     "warningHeight": 6,
@@ -546,10 +547,10 @@
       }
     },
     "schedule": [
-      { "side": "enemy", "baseDelayAfterFrames": 2 },
-      { "side": "enemy", "baseDelayAfterFrames": 2 },
-      { "side": "enemy", "baseDelayAfterFrames": 2 },
-      { "side": "allied", "baseDelayAfterFrames": 37 }
+      { "side": "enemy", "baseDelayAfterFrames": 73 },
+      { "side": "enemy", "baseDelayAfterFrames": 73 },
+      { "side": "enemy", "baseDelayAfterFrames": 73 },
+      { "side": "allied", "baseDelayAfterFrames": 95 }
     ]
   },
   "turrets": [

@@ -131,8 +131,18 @@ test("post-loader runtime and future entity ranges are non-overlapping", () => {
     bytes: 203,
     availability: "after-loader",
   });
-  assert.deepEqual(timing.memory.basicRomConditionalRange,
-    { start: 0xa000, end: 0xbfff, reserved: false });
+  // Owner decision B (2026-09-20): the window is unconditional RAM and the
+  // build owns $A000-$BC1F; $BC20-$BFFF stays the OS screen.
+  assert.deepEqual(timing.memory.basicWindowRange, {
+    start: 0xa000, guardStart: 0xbc1a, end: 0xbc1f, bytes: 0x1c1a,
+    availability: "unconditional", inRuntimeRanges: false,
+  });
+  assert.deepEqual(timing.memory.osScreenRange,
+    { start: 0xbc20, end: 0xbfff, bytes: 0x03e0, owner: "OS, RAMTOP $C0" });
+  for (const range of timing.memory.runtimeRanges) {
+    assert.ok(range.end < 0xbc1a || range.start > 0xbfff,
+      `${range.name} enters the window guard or the OS screen at $BC1A-$BFFF`);
+  }
 });
 
 test("hybrid ring reservation fits after staging and before entity/effects RAM", () => {

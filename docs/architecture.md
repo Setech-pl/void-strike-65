@@ -166,9 +166,15 @@ it while preparing the loader; after the loader display completes,
 inactive ENTITY_CODE staging range. This ordering is mandatory; the overlap is
 temporal, not simultaneous residency.
 
-The BSS is exactly `$8000-$80FF` and is initialized deterministically. The
-runtime does not use `$A000-$BFFF`; compatibility never assumes that BASIC ROM
-has been banked out.
+The BSS is exactly `$8000-$80FF` and is initialized deterministically. No
+runtime range lives in `$A000-$BFFF` yet, but the window is no longer outside
+the build: owner decision A made it unconditionally RAM (`disable_basic_rom` at
+both stage-2 entries) and owner decision B opened it. Since 2026-09-20 the
+build owns `$A000-$BC1F` through the `BASIC_WINDOW` region, with a six-byte
+guard at `$BC1A-$BC1F` and the OS screen left at `$BC20-$BFFF`; the chunk
+loader accepts records there on both media, and the XEX emits an `INITAD`
+record so a block in the window is placed into RAM even when the player starts
+with BASIC enabled. See `memory-map.md`, "Owner decision B plumbing".
 
 ## Frontend and state transitions
 

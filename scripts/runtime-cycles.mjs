@@ -1076,13 +1076,26 @@ export function measureRuntimeCycles(build) {
       futureEntityEffectsRange: { start: 0x8000, end: 0x8fff, bytes: 0x1000 },
       entityEffectsStateRange: { start: 0x8000, end: 0x80ff, bytes: 0x0100 },
       entityEffectsCodeRange: { start: 0x9100, end: 0x9fff, bytes: 0x0f00 },
-      basicRomConditionalRange: { start: 0xa000, end: 0xbfff, reserved: false },
+      // Owner decision B (2026-09-20) supersedes the old "conditional BASIC-ROM
+      // window" entry. disable_basic_rom forces PORTB bit 1 and writes BASICF
+      // at every stage-2 entry, so the range is unconditionally RAM; the build
+      // owns $A000-$BC1F through the BASIC_WINDOW region, with $BC1A-$BC1F
+      // reserved as its guard and $BC20-$BFFF left to the OS screen. No
+      // runtime range lives there yet: this is declared capacity, not use, and
+      // it is still excluded from the runtime-range list below.
+      basicWindowRange: {
+        start: 0xa000, guardStart: 0xbc1a, end: 0xbc1f, bytes: 0x1c1a,
+        availability: "unconditional", inRuntimeRanges: false,
+      },
+      osScreenRange: { start: 0xbc20, end: 0xbfff, bytes: 0x03e0, owner: "OS, RAMTOP $C0" },
     },
     limitations: [
       "The legal-heavy result is the maximum of bounded deterministic replays, not a proof over every possible input history.",
       "CPU counts execute the linked NMOS 6502 bytes with DMA disabled for before/after comparison.",
       "estimatedAdditive is a diagnostic bus-budget sum, not a measured PAL frame and never a physical headroom value.",
-      "The conditional BASIC-ROM window $A000-$BFFF is excluded from available runtime RAM.",
+      "The window under the BASIC ROM is unconditional RAM (owner decision B) and the build " +
+        "owns $A000-$BC1F, but no runtime range uses it yet, so it contributes nothing to the " +
+        "runtime ranges or the CPU accounting.",
     ],
   };
 }

@@ -489,7 +489,7 @@ frame; required before two appearances can be live).
 | --- | ---: | --- | --- |
 | LevelDef core page | 256 B | `LEVEL_BUFFER` in `DIRECTOR_RAM` (replaces `LEVEL1_DATA`, 158 B) | level 1 image in the Director DFMC record, as today |
 | LevelDef payload page | 256 B | `LEVEL_BUFFER+$100`, only with the level bank | copied by `level_select` |
-| Level bank (levels 1-8, both pages) | 4 KB | `$A000-$AFFF` if opened (§10.1 A) | one new DFMC record or merged into the Director record; `MAX_CHUNKS` 8 → 9 is a constant in `scripts/chunk-loader.mjs` and 16 B of manifest inside the fixed stage-2 reservation (ESTIMATE) |
+| Level bank (levels 1-8, both pages) | 4 KB | `$A000-$AFFF` — **the window is open (owner decision B, 2026-09-20): `BASIC_WINDOW` `$A000-$BC19`, 7,194 B, empty)** | one new DFMC record: **MEASURED 2026-09-20**, `MAX_CHUNKS` / `CHUNK_MAX_COUNT` 8 → 9 costs **exactly 16 B** of the stage-2 overlay (`$4EF` → `$4FF` of `$800`) and is already done; the chunk loader accepts window destinations on both media. Cost still to pay: **one ATR transport sector** per record (~2 ATR menu frames), and the boot smoke's fixed frame-300 loader checkpoint, which has 3 frames of margin |
 | SectorDef / WaveDef | inside the core page | — | — |
 | PathDef library (8) | 96 B | arena RODATA | arena record |
 | Archetype records | 48 B | `ENEMY_ARCHETYPE_DATA` (unchanged) | extension stream |

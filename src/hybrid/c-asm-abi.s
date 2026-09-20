@@ -347,3 +347,22 @@ hostile_weapon_visual_glyphs:
 ; the C modules place in the arena.
 .segment "HYBRID_C_ARENA"
 .segment "HYBRID_C_ARENA_RODATA"
+
+; Owner decision B (2026-09-20): the RAM under the BASIC ROM, $A000-$BC1F =
+; 7,200 B. The MEMORY area stops at $BC19; $BC1A-$BC1F is BASIC_WINDOW_GUARD,
+; reserved in the same shape as the $9FFA Director guard. The lderror below is
+; the named guard: it is what a reader sees when window content grows into
+; those six bytes, instead of a bare memory-area overflow.
+.import __BASIC_WINDOW_RAM_LAST__, __BASIC_WINDOW_GUARD_START__
+.assert __BASIC_WINDOW_GUARD_START__ = $BC1A, lderror, "BASIC_WINDOW_GUARD must start at $BC1A"
+.assert __BASIC_WINDOW_RAM_LAST__ <= __BASIC_WINDOW_GUARD_START__, lderror, "BASIC_WINDOW reaches the window guard at $BC1A"
+
+; Declared empty so that the size symbols and the guard above exist before any
+; content is placed. This task is plumbing only: placement of real content in
+; the window is a per-record decision that belongs with roadmap 4.6. A 16-byte
+; inert probe was landed here and read back byte-exact on all eight cold boot
+; sessions (see docs/diagnostics/owner-decision-b-basic-window.json); it was
+; removed again because its own DFMC record costs one ATR transport sector,
+; which moves the loader raster past the boot smoke's fixed frame-300
+; observation. The first real window record pays that sector.
+.segment "BASIC_WINDOW"

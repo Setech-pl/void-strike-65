@@ -1578,7 +1578,22 @@ function sessionSummary(session, rows) {
 // window the old frame-500/750 pair provided.
 const BOOT_MENU_FRAME = 3050;
 const BOOT_GAMEPLAY_FRAME = 3300;
-const BOOT_SNAPSHOT_FRAMES = [1, 250, 300, BOOT_MENU_FRAME, BOOT_GAMEPLAY_FRAME];
+// Loader-raster observation, mirrored from scripts/atari800-wall-trace.h
+// (DFBOOT_LOADER_OBSERVE_OFFSET / DFBOOT_LOADER_OBSERVE_SPAN). The two loader
+// snapshots are taken relative to the measured `loader` milestone instead of
+// at the old fixed frames 250 and 300, which were a second constant tracking
+// the transport's growth. The mirror is not a comment-only claim: every
+// session asserts that the emulator captured exactly these frames.
+const BOOT_LOADER_OBSERVE_OFFSET = 3;
+const BOOT_LOADER_OBSERVE_SPAN = 50;
+const LOADER_HOLD_FRAMES = 250;
+const bootSnapshotFrames = (loaderFrame) => [
+  1,
+  loaderFrame + BOOT_LOADER_OBSERVE_OFFSET,
+  loaderFrame + BOOT_LOADER_OBSERVE_OFFSET + BOOT_LOADER_OBSERVE_SPAN,
+  BOOT_MENU_FRAME,
+  BOOT_GAMEPLAY_FRAME,
+];
 const bootDeadlineRelativePath = "docs/boot-deadline-baseline.json";
 
 function readBootDeadline() {
@@ -1594,10 +1609,17 @@ function readBootDeadline() {
     `${bootDeadlineRelativePath} ceiling ${deadline.absolute_ceiling_frames} is at or ` +
     `above the boot-smoke menu snapshot frame ${BOOT_MENU_FRAME}; a boot at the ceiling ` +
     "would not be observable, so raise the harness horizon with it");
+  // The loader state proof is observed inside the LOADER_DURATION_FRAMES = 250
+  // hold. The far observation point is OFFSET + SPAN frames past the milestone,
+  // so it can only stay inside the hold while that sum is below it. This keeps
+  // the harness from being re-tuned into a window that does not exist.
+  invariant(BOOT_LOADER_OBSERVE_OFFSET + BOOT_LOADER_OBSERVE_SPAN < LOADER_HOLD_FRAMES,
+    `The loader observation span ${BOOT_LOADER_OBSERVE_OFFSET + BOOT_LOADER_OBSERVE_SPAN} ` +
+    `reaches past the ${LOADER_HOLD_FRAMES}-frame loader hold`);
   return deadline;
 }
 
-function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
+function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
   const bootDeadline = readBootDeadline();
   const outputDirectory = path.join(buildDirectory, "boot-smoke");
   fs.mkdirSync(outputDirectory, { recursive: true });
@@ -1621,6 +1643,21 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
   };
   invariant(Object.values(expected).every(Number.isInteger),
     "Boot-smoke expected-address labels are incomplete");
+
+  // Owner decision B (2026-09-20): the RAM under the BASIC ROM. The build
+  // lands an inert 16-byte probe record at the foot of the window; every cold
+  // session must read it back byte-exact. Under `-basic` a mismatch would mean
+  // the ROM is still mapped, which is precisely what decision B stands on.
+  const basicWindow = manifest.residentCapacity?.basicWindow ?? null;
+  invariant(basicWindow !== null && Number.isInteger(basicWindow.address),
+    "Boot smoke needs the manifest's BASIC window accounting");
+  const windowImagePath = path.join(rootDirectory, "build",
+    "encounter-director-code-basic-window.bin");
+  const windowProbe = basicWindow.usedBytes === 0 ? null : fs.readFileSync(windowImagePath);
+  invariant(windowProbe === null || windowProbe.length === 16,
+    `BASIC window content is ${windowProbe?.length} B; the boot smoke reads back 16`);
+  const windowProbeHex = windowProbe === null ? null : windowProbe.toString("hex");
+  addressEnvironment.DFBOOT_WINDOW_ADDRESS = `0x${basicWindow.address.toString(16)}`;
 
   const publicLaunches = atari800ArtifactLaunches(rootDirectory);
   invariant(publicLaunches.xex.artifact.path === xexPath &&
@@ -1672,29 +1709,40 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
     const result = JSON.parse(fs.readFileSync(outputPath, "utf8"));
     invariant(result.artifact === definition.id && result.cold_ram_fill === definition.fill,
       `${definition.id} boot-smoke identity differs from its invocation`);
+    const milestones = result.milestones;
+    invariant(Number.isInteger(milestones.loader) && milestones.loader !== 0xffffffff,
+      `${definition.id} never reached the loader entry point`);
+    // The loader raster is a STATE proof, observed relative to the measured
+    // `loader` milestone. The frames it lands on are therefore the harness's
+    // own prediction, and the equality below is what keeps the mirrored
+    // OFFSET/SPAN in scripts/atari800-wall-trace.h honest.
+    const snapshotFrames = bootSnapshotFrames(milestones.loader);
     invariant(result.snapshots.map(({ frame }) => frame).join(",") ===
-      BOOT_SNAPSHOT_FRAMES.join(","),
-    `${definition.id} did not capture all five required PAL frames`);
+      snapshotFrames.join(","),
+    `${definition.id} did not capture all five required PAL frames ` +
+      `(${snapshotFrames.join(", ")}) for loader milestone ${milestones.loader}`);
     const byFrame = new Map(result.snapshots.map((snapshot) => [snapshot.frame, snapshot]));
-    const loader250 = byFrame.get(250);
-    const loader300 = byFrame.get(300);
+    const [, loaderNearFrame, loaderFarFrame] = snapshotFrames;
+    const loaderNear = byFrame.get(loaderNearFrame);
+    const loaderFar = byFrame.get(loaderFarFrame);
     const menu = byFrame.get(BOOT_MENU_FRAME);
     const gameplay = byFrame.get(BOOT_GAMEPLAY_FRAME);
-    const completeLoaderSnapshots = [loader250, loader300].filter((snapshot) =>
-      snapshot.dma_ctl === 0x22 && snapshot.nmi_en === 0x80);
-    invariant(completeLoaderSnapshots.includes(loader300),
-      `${definition.id} did not reach a complete loader raster by frame 300`);
-    for (const snapshot of completeLoaderSnapshots) {
+    // Both observation points now sit inside the loader hold by construction,
+    // so both must be complete. Under the old fixed pair the earlier snapshot
+    // fell before the ATR loader raster and was waved through, which meant the
+    // countdown-advance proof quietly did not run on the ATR at all.
+    for (const snapshot of [loaderNear, loaderFar]) {
       invariant(snapshot.game_state === 0 && snapshot.dlist === expected.loader_dlist &&
         snapshot.charset_address === 0xe000 && snapshot.dma_ctl === 0x22 &&
         snapshot.nmi_en === 0x80 && snapshot.vdslst === expected.loader_dli,
-      `${definition.id} loader display/VBI state is invalid at frame ${snapshot.frame}`);
+      `${definition.id} loader display/VBI state is invalid at frame ${snapshot.frame} ` +
+        `(loader milestone ${milestones.loader})`);
     }
-    invariant(loader300.loader_timer > 0 &&
-      (!completeLoaderSnapshots.includes(loader250) ||
-        loader250.loader_timer > loader300.loader_timer),
-    `${definition.id} loader countdown did not advance through frame 300`);
-    const milestones = result.milestones;
+    invariant(loaderFar.loader_timer > 0 &&
+      loaderNear.loader_timer - loaderFar.loader_timer === BOOT_LOADER_OBSERVE_SPAN,
+    `${definition.id} loader countdown did not advance one frame per PAL frame between ` +
+      `frames ${loaderNearFrame} and ${loaderFarFrame}: ` +
+      `${loaderNear.loader_timer} -> ${loaderFar.loader_timer}`);
     // Owner decision 22 (2026-09-18) re-bases this deadline. The old
     // `190 + 2 x transport sectors` formula was an identity tracking its own
     // growth: every new sector raised both the cost and the limit, so the
@@ -1715,6 +1763,20 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
     invariant(Number.isInteger(baselineMenu),
       `${bootDeadlineRelativePath} has no ${medium}_menu_frames baseline`);
     const ceiling = bootDeadline.absolute_ceiling_frames;
+    // The loader milestone gets the same two independent numbers, re-based
+    // 2026-09-20 in the shape of decision 22. It used to be gated only by
+    // accident, through the hard-coded frame-300 observation point: the loader
+    // raster arrives at `start + stage-2 decode`, so each added transport
+    // sector pushed it later, and at the measured ATR milestone 297 the
+    // checkpoint had 3 frames of slack left. That constant tracked the
+    // transport exactly as the old `190 + 2 x sectors` menu formula did, and
+    // the first real record landed in the BASIC window would have tripped it —
+    // reported as "the loader raster never came up", which is not what would
+    // have happened. The observation point now follows the measurement and the
+    // budget is stated here instead.
+    const baselineLoader = bootDeadline.baseline[`${medium}_loader_frames`];
+    invariant(Number.isInteger(baselineLoader),
+      `${bootDeadlineRelativePath} has no ${medium}_loader_frames baseline`);
     invariant(milestones.menu <= ceiling && milestones.frontend_poll <= ceiling,
       `${definition.id} did not reach the production main-menu input path within the ` +
       `${ceiling}-frame (${(ceiling / 50).toFixed(0)} s PAL) owner budget: menu ` +
@@ -1726,6 +1788,22 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
       `${menuDelta} frames over the committed baseline ${baselineMenu} (fail band ` +
       `+${bootDeadline.delta_fail_frames}). If the transport grew on purpose, ` +
       `re-record ${bootDeadlineRelativePath} in the same commit and say why.`);
+    invariant(milestones.loader <= ceiling,
+      `${definition.id} did not raise the loader raster within the ${ceiling}-frame ` +
+      `(${(ceiling / 50).toFixed(0)} s PAL) owner budget: loader ${milestones.loader}`);
+    const loaderDelta = milestones.loader - baselineLoader;
+    invariant(loaderDelta <= bootDeadline.delta_fail_frames,
+      `${definition.id} raised the loader raster at frame ${milestones.loader}, ` +
+      `${loaderDelta} frames over the committed baseline ${baselineLoader} (fail band ` +
+      `+${bootDeadline.delta_fail_frames}). If the transport grew on purpose, ` +
+      `re-record ${bootDeadlineRelativePath} in the same commit and say why.`);
+    const loaderDeadlineWarned = loaderDelta > bootDeadline.delta_warn_frames;
+    if (loaderDeadlineWarned) {
+      process.stderr.write(`warning: ${definition.id} raised the loader raster at frame ` +
+        `${milestones.loader}, ${loaderDelta} frames over the committed baseline ` +
+        `${baselineLoader} (warn band +${bootDeadline.delta_warn_frames}, fail band ` +
+        `+${bootDeadline.delta_fail_frames})\n`);
+    }
     const menuDeadlineWarned = menuDelta > bootDeadline.delta_warn_frames;
     if (menuDeadlineWarned) {
       process.stderr.write(`warning: ${definition.id} reached the main menu at frame ` +
@@ -1743,6 +1821,13 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
       warn_at_frames: baselineMenu + bootDeadline.delta_warn_frames,
       fail_at_frames: baselineMenu + bootDeadline.delta_fail_frames,
       warned: menuDeadlineWarned,
+      loader_frame: milestones.loader,
+      loader_baseline_frames: baselineLoader,
+      loader_delta_frames: loaderDelta,
+      loader_warn_at_frames: baselineLoader + bootDeadline.delta_warn_frames,
+      loader_fail_at_frames: baselineLoader + bootDeadline.delta_fail_frames,
+      loader_warned: loaderDeadlineWarned,
+      loader_observation_frames: [loaderNearFrame, loaderFarFrame],
     };
     invariant(gameplay.game_state === 6 && gameplay.charset_address === 0x5000 &&
       gameplay.pm_base === 0x3800 && gameplay.dma_ctl === 0x3e &&
@@ -1758,6 +1843,15 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
       milestones.gameplay_init <= milestones.main_loop &&
       milestones.main_loop < BOOT_GAMEPLAY_FRAME,
     `${definition.id} did not execute the complete loader-to-gameplay handoff`);
+    for (const snapshot of [menu, gameplay]) {
+      invariant(windowProbeHex === null || snapshot.window === windowProbeHex,
+        `${definition.id} BASIC window probe at $${basicWindow.address.toString(16)} reads ` +
+        `${snapshot.window} at frame ${snapshot.frame}, expected ${windowProbeHex}` +
+        `${definition.basic ? " (BASIC enabled: the ROM may still be mapped)" : ""}`);
+      invariant((snapshot.portb & 0x02) === 0x02,
+        `${definition.id} PORTB bit 1 is clear at frame ${snapshot.frame}: the BASIC ROM is ` +
+        "mapped over the window");
+    }
     if (definition.id.startsWith("xex")) {
       invariant(menu.runad === expected.xex_entry,
         `${definition.id} XEX RUNAD does not point at the stage-2 parity entry`);
@@ -1765,7 +1859,7 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
       invariant(menu.dosvec === expected.start,
         `${definition.id} ATR DOSVEC does not point at the game entry`);
     }
-    const screenshots = BOOT_SNAPSHOT_FRAMES.map((frame) => {
+    const screenshots = snapshotFrames.map((frame) => {
       const screenshotPath = `${screenshotPrefix}-frame${String(frame).padStart(3, "0")}.png`;
       invariant(fs.existsSync(screenshotPath),
         `${definition.id} screenshot is missing for frame ${frame}`);
@@ -1812,12 +1906,30 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
     duration_seconds_pal: BOOT_GAMEPLAY_FRAME / 50,
     guest_instrumentation_bytes: 0,
     cold_ram_range: "$8000-$9FFF",
+    basic_window: {
+      address: basicWindow.address,
+      guard_address: basicWindow.guardAddress,
+      end_exclusive: basicWindow.endExclusive,
+      capacity_bytes: basicWindow.capacityBytes,
+      used_bytes: basicWindow.usedBytes,
+      free_bytes: basicWindow.freeBytes,
+      probe_bytes: windowProbe === null ? 0 : windowProbe.length,
+      probe_hex: windowProbeHex,
+      window_read_back_at_frames: [BOOT_MENU_FRAME, BOOT_GAMEPLAY_FRAME],
+      portb_bit1_asserted_at_frames: [BOOT_MENU_FRAME, BOOT_GAMEPLAY_FRAME],
+    },
     basic_states_covered: ["-nobasic", "-basic"],
     input: `production joystick path; FIRE pressed on host frames ` +
       `${BOOT_MENU_FRAME + 1}-${BOOT_MENU_FRAME + 6}`,
     expected_addresses: expected,
     menu_snapshot_frame: BOOT_MENU_FRAME,
     gameplay_snapshot_frame: BOOT_GAMEPLAY_FRAME,
+    loader_observation: {
+      offset_frames: BOOT_LOADER_OBSERVE_OFFSET,
+      span_frames: BOOT_LOADER_OBSERVE_SPAN,
+      loader_hold_frames: LOADER_HOLD_FRAMES,
+      relative_to: "milestones.loader",
+    },
     deadline: {
       absolute_ceiling_frames: bootDeadline.absolute_ceiling_frames,
       delta_fail_frames: bootDeadline.delta_fail_frames,
@@ -1883,9 +1995,17 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, xexPath, atrPath }
     rootDirectory, "build", "resident-runtime.bin"));
   const stageTableOffset = labels.get("boot_stage_streams") -
     manifest.residentRuntime.runAddress;
-  invariant(stageTableOffset >= 0 && stageTableOffset + 5 * 6 <= residentRuntime.length,
+  // The table's length is the assembled table's own, not a count the gate carries:
+  // 4.5M-M1 split the starfield into two streams and a fixed 5 stopped describing it.
+  const stageTableBytes =
+    labels.get("boot_stage_streams_end") - labels.get("boot_stage_streams");
+  invariant(Number.isInteger(stageTableBytes / 6) && stageTableBytes > 0,
+    `boot_stage_streams spans ${stageTableBytes} B, not a whole number of six-byte entries`);
+  const stageStreamCount = stageTableBytes / 6;
+  invariant(stageTableOffset >= 0 &&
+    stageTableOffset + stageTableBytes <= residentRuntime.length,
     "boot_stage_streams does not lie inside the resident runtime image");
-  const bootStageStreams = Array.from({ length: 5 }, (_, index) => {
+  const bootStageStreams = Array.from({ length: stageStreamCount }, (_, index) => {
     const offset = stageTableOffset + index * 6;
     return {
       source: residentRuntime.readUInt16LE(offset),
@@ -1893,48 +2013,72 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, xexPath, atrPath }
       bytes: residentRuntime.readUInt16LE(offset + 4),
     };
   });
-  const expectedBootStageStreams = [
-    { source: manifest.a2Kernel.sourceAddress, destination: 0x7f2b,
-      bytes: manifest.a2Kernel.bytes },
-    { source: manifest.entityEffects.packedSourceAddress,
+  // Every figure below is manifest-owned. $4801 is the one exception: the frontend
+  // charset scratch window is a fixed architectural address, not a build-derived one.
+  const expectedStagedSources = [
+    { name: "A2 initial source", source: manifest.a2Kernel.sourceAddress,
+      destination: manifest.a2Kernel.stagingAddress, bytes: manifest.a2Kernel.bytes },
+    { name: "packed ENTITY_CODE",
+      source: manifest.entityEffects.packedSourceAddress,
       destination: manifest.entityEffects.stagedSourceAddress,
       bytes: manifest.entityEffects.packedBytes },
-    { source: manifest.entityEffects.pickupPhaseExternalChunk.stagingAddress,
+    { name: "packed pickup",
+      source: manifest.entityEffects.pickupPhaseExternalChunk.stagingAddress,
       destination: 0x4801, bytes: manifest.entityEffects.pickupPhasePackedBytes },
-    { source: manifest.residentRuntime.packedSourceAddress,
+    { name: "packed resident suffix",
+      source: manifest.residentRuntime.packedSourceAddress,
       destination: manifest.residentRuntime.stagingAddress,
       bytes: manifest.residentRuntime.suffixPackedBytes },
-    { source: manifest.starfieldRuntime.packedSourceAddress,
-      destination: manifest.starfieldRuntime.stagingAddress,
-      bytes: manifest.starfieldRuntime.packedBytes },
+    ...manifest.starfieldRuntime.streams.map((stream) => ({
+      name: `packed starfield ${stream.id}`,
+      source: stream.packedSourceAddress,
+      destination: stream.stagingAddress,
+      bytes: stream.packedBytes,
+    })),
   ];
-  invariant(JSON.stringify(bootStageStreams) === JSON.stringify(expectedBootStageStreams),
-    "assembled boot_stage_streams differs from the manifest-owned lifecycle");
-  const stagedSources = [
-    { name: "A2 initial source", start: bootStageStreams[0].source,
-      end_exclusive: bootStageStreams[0].source + bootStageStreams[0].bytes, last_read: 1 },
-    { name: "packed ENTITY_CODE", start: bootStageStreams[1].source,
-      end_exclusive: bootStageStreams[1].source + bootStageStreams[1].bytes, last_read: 2 },
-    { name: "packed pickup", start: bootStageStreams[2].source,
-      end_exclusive: bootStageStreams[2].source + bootStageStreams[2].bytes, last_read: 3 },
-    { name: "packed resident suffix", start: bootStageStreams[3].source,
-      end_exclusive: bootStageStreams[3].source + bootStageStreams[3].bytes, last_read: 4 },
-    { name: "packed starfield", start: bootStageStreams[4].source,
-      end_exclusive: bootStageStreams[4].source + bootStageStreams[4].bytes, last_read: 5 },
-  ];
+  const expectedBootStageStreams = expectedStagedSources.map(
+    ({ source, destination, bytes }) => ({ source, destination, bytes }));
+  invariant(bootStageStreams.length === expectedBootStageStreams.length,
+    `boot_stage_streams assembles ${bootStageStreams.length} streams, but the manifest ` +
+    `describes ${expectedBootStageStreams.length}`);
+  for (const [index, assembled] of bootStageStreams.entries()) {
+    const wanted = expectedBootStageStreams[index];
+    invariant(JSON.stringify(assembled) === JSON.stringify(wanted),
+      `boot stage stream ${index + 1} (${expectedStagedSources[index].name}) assembles ` +
+      `${JSON.stringify(assembled)} but the manifest describes ${JSON.stringify(wanted)}`);
+  }
+  const stagedSources = bootStageStreams.map((stream, index) => ({
+    name: expectedStagedSources[index].name,
+    start: stream.source,
+    end_exclusive: stream.source + stream.bytes,
+    last_read: index + 1,
+  }));
+  // `copy_boot_stream = copy_boot_stream_backward` (src/main.s:1271-1275): every
+  // boot preservation copy runs from the last byte down, so a record whose
+  // destination sits at or above its OWN source has memmove semantics and is
+  // safe however far the two intervals overlap -- packed ENTITY_CODE relies on
+  // exactly that. A destination below its own source, or any intersection with
+  // ANOTHER record's still-unread source, destroys bytes either way.
   const liveSourceOverwrites = [];
   for (const [index, write] of bootStageStreams.entries()) {
     const sequence = index + 1;
     const writeEnd = write.destination + write.bytes;
     for (const sourceRange of stagedSources) {
-      if (sequence <= sourceRange.last_read &&
-          write.destination < sourceRange.end_exclusive && writeEnd > sourceRange.start) {
-        liveSourceOverwrites.push({ sequence, source: sourceRange.name });
+      if (sequence > sourceRange.last_read) continue;
+      if (write.destination >= sourceRange.end_exclusive || writeEnd <= sourceRange.start) {
+        continue;
       }
+      const ownSource = sourceRange.last_read === sequence;
+      if (ownSource && write.destination >= sourceRange.start) continue;
+      liveSourceOverwrites.push({ sequence, source: sourceRange.name,
+        reason: ownSource ? "backward copy cannot move a record down into its own source"
+          : "destination covers another record's still-unread source" });
     }
   }
   invariant(liveSourceOverwrites.length === 0,
-    "boot staging overwrites a packed source before its final read");
+    `boot staging destroys a packed source before its final read: ${
+      liveSourceOverwrites.map(({ sequence, source, reason }) =>
+        `stream ${sequence} vs ${source} (${reason})`).join("; ")}`);
   const dfmcRecords = manifest.transportCapacity.manifest.parsed.records.map((record) => ({
     start_sector: record.startSector,
     sectors: record.sectorCount,
@@ -1943,16 +2087,45 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, xexPath, atrPath }
     destination: record.finalDestination,
     staging_id: record.stagingId,
   }));
-  invariant(JSON.stringify(dfmcRecords) === JSON.stringify([
-    { start_sector: 104, sectors: 45, packed_bytes: 5659, raw_bytes: 6653,
-      destination: 0x5e10, staging_id: 1 },
-    { start_sector: 149, sectors: 10, packed_bytes: 1168, raw_bytes: 1168,
-      destination: 0x8c80, staging_id: 2 },
-    { start_sector: 159, sectors: 3, packed_bytes: 245, raw_bytes: 250,
-      destination: 0x7bd0, staging_id: 2 },
-    { start_sector: 162, sectors: 5, packed_bytes: 587, raw_bytes: 644,
-      destination: 0x9d75, staging_id: 2 },
-  ]), "DFMC record order or extent changed during the menu-lifecycle repair");
+  // This audit proves the main menu raster is byte-exact across four generations,
+  // two media and four cold RAM fills. What it needs from the DFMC records is not
+  // their layout -- which tracks the transport and so changes on every content
+  // commit -- but that the transport is self-consistent and that nothing it lands
+  // sits in the memory the menu owns and regenerates. Asserting the layout instead
+  // made this a snapshot that had to be re-recorded by hand in four unrelated
+  // commits (11c48e2, cd0db3e, 2b7f299, 10f1be2) before going stale entirely.
+  const menuOwnedRanges = [
+    { name: "frontend screen", start: 0x4000, end_exclusive: 0x4400 },
+    { name: "frontend charset", start: 0x4800, end_exclusive: 0x4c00 },
+    { name: "frontend display lists", start: labels.get("main_menu_display_list"),
+      end_exclusive: labels.get("frontend_display_lists_end") },
+  ];
+  const initialBootSectors = manifest.transportCapacity.initialBootSectors;
+  let nextFreeSector = initialBootSectors + 1;
+  for (const [index, record] of dfmcRecords.entries()) {
+    const position = `DFMC record ${index + 1} of ${dfmcRecords.length}`;
+    invariant(record.start_sector === nextFreeSector,
+      `${position} starts at sector ${record.start_sector}, leaving a hole or an ` +
+      `overlap: the previous record and the ${initialBootSectors}-sector boot block ` +
+      `end at sector ${nextFreeSector - 1}, and DFMC records must be contiguous ` +
+      "and ascending");
+    invariant(record.sectors * 128 >= record.packed_bytes,
+      `${position} claims ${record.sectors} sectors (${record.sectors * 128} B) for ` +
+      `${record.packed_bytes} packed bytes, which does not fit`);
+    for (const range of menuOwnedRanges) {
+      const landingEnd = record.destination + record.raw_bytes;
+      invariant(record.destination >= range.end_exclusive || landingEnd <= range.start,
+        `${position} lands at $${record.destination.toString(16)}-` +
+        `$${(landingEnd - 1).toString(16)}, inside the ${range.name} ` +
+        `($${range.start.toString(16)}-$${(range.end_exclusive - 1).toString(16)}), ` +
+        "which the menu owns and regenerates");
+    }
+    nextFreeSector = record.start_sector + record.sectors;
+  }
+  const occupiedSectors = manifest.transportCapacity.manifest.parsed.totalOccupiedSectors;
+  invariant(nextFreeSector - 1 === occupiedSectors,
+    `the DFMC records end at sector ${nextFreeSector - 1}, but the transport manifest ` +
+    `declares ${occupiedSectors} occupied sectors`);
   const addressEnvironment = {
     DFMENU_GAME_STATE: `0x${labels.get("game_state").toString(16)}`,
     DFMENU_FRONTEND_SELECTION: `0x${labels.get("frontend_selection").toString(16)}`,
@@ -2341,7 +2514,7 @@ function main() {
     return;
   }
   const bootSmoke = skipBootSmoke ? null :
-    runBootSmoke({ emulatorPath, labels, xexPath, atrPath });
+    runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest });
   if (bootSmoke !== null)
     console.log(`Boot smoke: ${bootSmoke.sessions.length} XEX/ATR cold-start sessions passed`);
   if (bootSmokeOnly) {

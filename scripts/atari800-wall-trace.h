@@ -801,6 +801,12 @@ typedef struct {
 	unsigned screen_checksum;
 	unsigned frontend_dlist_checksum;
 	unsigned loader_dli_count;
+	/* Owner decision B (2026-09-20): the first sixteen bytes of the RAM under
+	 * the BASIC ROM, where the inert BASIC_WINDOW probe record lands. Captured
+	 * raw rather than checksummed so that a wrong value is readable: if the ROM
+	 * were still mapped these would be the BASIC cartridge's own bytes. */
+	UBYTE window[16];
+	unsigned portb;
 } DFBootSnapshot;
 
 static int dfboot_initialised;
@@ -825,6 +831,7 @@ static unsigned dfboot_loader_timer;
 static unsigned dfboot_game_state;
 static unsigned dfboot_main_menu_dlist;
 static unsigned dfboot_frontend_dlist_end;
+static unsigned dfboot_window_address;
 /* Boot-smoke observation horizon. Owner decision 22 re-bases the ATR menu
  * deadline on a 60-second budget (3,000 PAL frames), so the session must stay
  * alive past that ceiling for a slow-but-legal boot to be observable at all.
@@ -833,6 +840,24 @@ static unsigned dfboot_frontend_dlist_end;
  * handoff window the frame-500/750 pair used to provide. */
 #define DFBOOT_MENU_FRAME 3050u
 #define DFBOOT_GAMEPLAY_FRAME 3300u
+/* Loader-raster observation, re-based 2026-09-20 in the shape of owner
+ * decision 22. The old fixed pair (frames 250 and 300) was a second constant
+ * that silently tracked the transport: the loader raster comes up at
+ * `start + stage-2 decode`, so every added sector moves it later, and the
+ * frame-300 checkpoint sat 3 frames above the measured ATR loader milestone
+ * (297) with no margin left. The two observation points are now taken
+ * relative to the measured `loader` milestone, so they are inside the
+ * LOADER_DURATION_FRAMES = 250 hold window by construction and never need
+ * re-pinning. This is a STATE proof, not a deadline — the load-time budget it
+ * used to carry by accident now lives in the explicit loader ceiling/baseline
+ * gate in scripts/runtime-wall-trace.mjs.
+ * OFFSET is 3 because the loader countdown is armed 2 frames after the
+ * `show_loader` milestone on both media (measured: XEX loader 135, timer 250
+ * at frame 137; ATR loader 297, timer 249 at frame 300). SPAN keeps the
+ * 50-frame countdown-advance gap the frame-250/300 pair provided; both stay
+ * far below the 250-frame hold. */
+#define DFBOOT_LOADER_OBSERVE_OFFSET 3u
+#define DFBOOT_LOADER_OBSERVE_SPAN 50u
 
 static unsigned dfboot_snapshots_count;
 static unsigned dfboot_loader_dli_count;
@@ -879,13 +904,19 @@ static unsigned dfboot_checksum(unsigned address, unsigned length)
 
 static int dfboot_target_frame(unsigned frame)
 {
-	return frame == 1u || frame == 250u || frame == 300u ||
+	if (dfboot_seen_loader != 0xffffffffu &&
+		(frame == dfboot_seen_loader + DFBOOT_LOADER_OBSERVE_OFFSET ||
+		frame == dfboot_seen_loader + DFBOOT_LOADER_OBSERVE_OFFSET +
+			DFBOOT_LOADER_OBSERVE_SPAN))
+		return 1;
+	return frame == 1u ||
 		frame == DFBOOT_MENU_FRAME || frame == DFBOOT_GAMEPLAY_FRAME;
 }
 
 static void dfboot_capture(unsigned frame, unsigned pc)
 {
 	DFBootSnapshot *snapshot;
+	unsigned index_window;
 	char screenshot[FILENAME_MAX];
 	if (dfboot_snapshots_count >= 5u) {
 		fprintf(stderr, "voidstrike65 boot smoke: too many target frames\n");
@@ -915,6 +946,10 @@ static void dfboot_capture(unsigned frame, unsigned pc)
 	snapshot->frontend_dlist_checksum = dfboot_checksum(dfboot_main_menu_dlist,
 		dfboot_frontend_dlist_end - dfboot_main_menu_dlist);
 	snapshot->loader_dli_count = dfboot_loader_dli_count;
+	for (index_window = 0; index_window < 16u; ++index_window)
+		snapshot->window[index_window] =
+			MEMORY_mem[(dfboot_window_address + index_window) & 0xffffu];
+	snapshot->portb = PIA_PORTB;
 	if (dfboot_screenshot_prefix != NULL && *dfboot_screenshot_prefix != '\0') {
 		snprintf(screenshot, sizeof(screenshot), "%s-frame%03u.png",
 			dfboot_screenshot_prefix, frame);
@@ -940,7 +975,9 @@ static void dfboot_write(void)
 			"\"nmi_en\":%u,\"vdslst\":%u,\"sdlst\":%u,\"memtop\":%u,"
 			"\"ramtop\":%u,\"runad\":%u,\"initad\":%u,"
 			"\"dosvec\":%u,\"screen_checksum\":%u,"
-			"\"frontend_dlist_checksum\":%u,\"loader_dli_count\":%u}%s\n",
+			"\"frontend_dlist_checksum\":%u,\"loader_dli_count\":%u,"
+			"\"portb\":%u,\"window\":\"%02x%02x%02x%02x%02x%02x%02x%02x"
+			"%02x%02x%02x%02x%02x%02x%02x%02x\"}%s\n",
 			snapshot->frame, snapshot->pc, snapshot->scanline, snapshot->cycle,
 			snapshot->loader_timer, snapshot->game_state, snapshot->dlist,
 			snapshot->charset_address, snapshot->pm_base, snapshot->dma_ctl,
@@ -948,6 +985,13 @@ static void dfboot_write(void)
 			snapshot->ramtop, snapshot->runad, snapshot->initad,
 			snapshot->dosvec, snapshot->screen_checksum,
 			snapshot->frontend_dlist_checksum, snapshot->loader_dli_count,
+			snapshot->portb,
+			snapshot->window[0], snapshot->window[1], snapshot->window[2],
+			snapshot->window[3], snapshot->window[4], snapshot->window[5],
+			snapshot->window[6], snapshot->window[7], snapshot->window[8],
+			snapshot->window[9], snapshot->window[10], snapshot->window[11],
+			snapshot->window[12], snapshot->window[13], snapshot->window[14],
+			snapshot->window[15],
 			index + 1u == dfboot_snapshots_count ? "" : ",");
 	}
 	fprintf(dfboot_file,
@@ -992,6 +1036,7 @@ static void dfboot_init(void)
 	dfboot_game_state = dfboot_env_u("DFBOOT_GAME_STATE");
 	dfboot_main_menu_dlist = dfboot_env_u("DFBOOT_MAIN_MENU_DLIST");
 	dfboot_frontend_dlist_end = dfboot_env_u("DFBOOT_FRONTEND_DLIST_END");
+	dfboot_window_address = dfboot_env_u("DFBOOT_WINDOW_ADDRESS");
 	dfboot_initialised = 1;
 }
 

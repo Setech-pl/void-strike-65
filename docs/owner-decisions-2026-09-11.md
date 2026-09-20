@@ -787,6 +787,37 @@ bez zmian; nie blokował tej pracy. Koszt: boot smoke trwa ~14,5 s zamiast ~5 s.
 Gate ma teraz asercję samokontrolną: sufit musi pozostać **poniżej** klatki
 zrzutu menu, więc nie da się podnieść sufitu bez podniesienia horyzontu.
 
+### Re-bazowanie checkpointu loadera — 2026-09-20
+
+Przegląd przy decyzji 22 znalazł **jedno** miejsce z formułą i przeoczył
+drugie. Boot smoke obserwował rastr loadera w **zakodowanej na sztywno klatce
+300**, a rastr loadera pojawia się w `start + dekodowanie stage 2`, więc ta
+stała śledziła transport dokładnie tak samo jak stara formuła menu. Przy
+zmierzonym kamieniu milowym ATR `loader = 297` zostawały **3 klatki** zapasu;
+pierwszy prawdziwy rekord w oknie BASIC (loader 297 → 299) przewróciłby ją,
+raportując „rastr loadera nie wstał" — co nie byłoby prawdą.
+
+Właściciel polecił re-bazować ją w kształcie decyzji 22. Checkpoint robił
+**dwie** prace jedną liczbą, więc został rozdzielony:
+
+- **czas** — jawna bramka w kształcie decyzji 22: `milestones.loader` przeciw
+  temu samemu sufitowi 3 000 klatek oraz commitowanemu baseline'owi per
+  nośnik (`xex_loader_frames` **135**, `atr_loader_frames` **297**), z tymi
+  samymi pasmami +10 warn / +50 fail;
+- **stan** — DLIST loadera, charset, DMACTL/NMIEN, VDSLST i odliczanie —
+  obserwowany w klatkach `loader + 3` i `loader + 53`, wyprowadzonych ze
+  zmierzonego kamienia milowego w tym samym przebiegu. Leżą wewnątrz
+  250-klatkowego okna loadera z konstrukcji. Śledzenie własnego wzrostu jest
+  tu **poprawne**, bo ta połowa nie niesie już żadnego budżetu.
+
+Przy okazji wyszły dwie rzeczy: dawny zrzut z klatki 250 wypadał *przed*
+rastrem loadera ATR, więc dowód odliczania był na obu sesjach ATR po cichu
+pomijany (teraz jest bezwarunkowy), a sam dowód jest dokładny (50 klatek
+timera na 50 klatek PAL) zamiast „malejący". Zrzuty to teraz
+`1, loader+3, loader+53, 3050, 3300`. Baseline
+[boot-deadline-baseline.json](boot-deadline-baseline.json) prze-nagrany ze
+zmierzonego przebiegu tego builda; wartości menu bez zmian (392 / 554).
+
 ---
 
 ## 23. Odpowiedzi na §10 projektu 4.6 — OWNER-ACCEPTED (2026-09-19)
@@ -836,6 +867,23 @@ sektory. Skutek uboczny, na którym stoi decyzja B: `$A000-$BFFF` jest
 sprawdzić na SIO2SD: STATUS, sekcja „Owner decision A".
 
 ## B. Otwieramy okno `$A000-$BFFF` — OWNER-ACCEPTED (2026-09-20)
+
+> **Instalacja, 2026-09-20 (`OWNER-SMOKE CANDIDATE`).** Samo okablowanie jest
+> zrobione: region linkera `BASIC_WINDOW_RAM $A000-$BC19` (7 194 B) plus
+> sześciobajtowa straż `BASIC_WINDOW_GUARD $BC1A-$BC1F` w kształcie straży
+> `$9FFA`, nazwany assert `lderror` (udowodniony przez wymuszone
+> niepowodzenie linkowania), zniesiony zakaz `>= $A000` w loaderze chunków po
+> obu stronach ABI z granicą `$BC20`, `MAX_CHUNKS` 8 → 9 (MEASURED: +16 B w
+> overlayu stage 2, mieści się) oraz rekord `INITAD` w XEX-ie, bez którego blok
+> w oknie ginąłby przy starcie z włączonym BASIC-iem. **Nic nie zostało
+> przeniesione do okna** — rozmieszczenie to decyzja per rekord i należy do 4.6.
+> Dowód, że okno jest realne: inertny 16-bajtowy rekord wylądował pod `$A000` i
+> został odczytany bajt w bajt w ośmiu na osiem sesji zimnego bootu, po czym
+> został usunięty, bo jego własny rekord DFMC kosztuje jeden sektor transportu
+> ATR, a ten sektor przesuwa raster loadera za **stałą** klatkę 300 bramki
+> boot-smoke (margines tam to 3 klatki). To jest jedyna rzecz, którą właściciel
+> musi rozstrzygnąć przed pierwszym prawdziwym rekordem w oknie. Szczegóły:
+> `STATUS.md`, sekcja „Owner decision B".
 
 Okno jest używalnym RAM-em i **będzie używane**. Zastępuje odpowiedź na §10.1
 z decyzji 23 (gdzie wariant A — okno — został odrzucony) oraz regułę
@@ -1331,6 +1379,42 @@ okaże się w praktyce słaba, **trzy poziomy czytałyby się wyraźniej niż pi
 To jest do **rozstrzygnięcia podczas balansowania**, nie do założenia z góry.
 Sufit glifów (trzy kody zapasu przy pięciu wyglądach) nie jest tu argumentem w
 żadną stronę — mniej poziomów tylko zwalnia kody.
+
+---
+
+## V. DOKUMENTACJA PUBLICZNA JEST DWUJĘZYCZNA — OWNER-ACCEPTED (2026-09-20)
+
+**Reguła stojąca, nie decyzja o jednym dokumencie.** Obowiązuje wszystkie
+przyszłe dokumenty skierowane do gracza i do czytelnika repozytorium.
+
+- **Angielski jest wersją domyślną**, z **widocznym przełącznikiem na polski**.
+- **Obie wersje trzyma się w zgodzie.** Zmiana w jednej **nie jest skończona**,
+  dopóki druga jej nie niesie. Nie ma stanu „polska wersja nadrobi później".
+- Przełącznik jest jedną linią odnośników nad tytułem, w obu plikach
+  angielski pierwszy, i ma działać przy czytaniu na GitHubie — bo tam te pliki
+  będą oglądane.
+
+### V.1 CZEGO TO NIE DOTYCZY
+
+**Dotyczy dokumentacji PUBLICZNEJ, SKIEROWANEJ DO GRACZA.**
+
+Dokumenty inżynierskie — `STATUS.md`, `memory-map.md`, `diagnostics/`,
+dokumenty projektowe i decyzyjne, `plan-realizacji.md`, `architecture.md`,
+`hybrid-c-architecture.md`, `game-design.md` — **zostają jak są**. Mają jednego
+odbiorcę, a tłumaczenie ich podwoiłoby koszt utrzymywania ich w prawdzie. To
+jest rozróżnienie celowe i zapisane, żeby nikt go później nie „ujednolicił".
+
+Granica przebiega po odbiorcy, nie po katalogu: jeżeli dokument jest pisany
+dla kogoś, kto w grę gra albo o niej czyta, a nie dla kogoś, kto ją buduje —
+jest dwujęzyczny.
+
+### V.2 GDZIE TO JEST ZAPISANE
+
+Poza tym wpisem reguła stoi w `AGENTS.md` (reguły inżynierskie) i w
+`docs/README.md` (§„Documentation language"), żeby przyszła sesja trafiła na
+nią **zanim** napisze dokument dla użytkownika, a nie po fakcie.
+
+Pierwsze zastosowanie: `docs/how-to-play.md` i `docs/how-to-play.pl.md`.
 
 ---
 

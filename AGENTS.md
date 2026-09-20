@@ -156,6 +156,10 @@ The detailed boundary, ABI and placement contract is
     insufficient.
 14. Do not opportunistically refactor unrelated code inside a bounded task.
 15. Git is the primary rollback mechanism.
+16. User-facing documents ship in English and Polish (owner decision V). A
+    change to one is incomplete until the other carries it. Engineering
+    documents stay single-language. `docs/README.md` §"Documentation language"
+    holds the rule.
 
 ---
 

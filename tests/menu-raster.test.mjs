@@ -75,23 +75,39 @@ test("menu evidence preserves the audited boot streams and independent charsets"
   assert.equal(audit.passed, true);
   assert.equal(audit.no_live_source_overwrite, true);
   assert.deepEqual(audit.live_source_overwrites, []);
-  assert.deepEqual(audit.boot_stage_streams, [
-    { source: 0x4766, destination: 0x7f16, bytes: 255 },
-    { source: 0x4865, destination: 0x5348, bytes: 2543 },
-    { source: 0x8c80, destination: 0x4801, bytes: 888 },
-    { source: 0x2668, destination: 0x8100, bytes: 6653 },
-    { source: 0x4065, destination: 0x7810, bytes: 1793 },
-  ]);
-  assert.deepEqual(audit.dfmc_records, [
-    { start_sector: 102, sectors: 45, packed_bytes: 5639, raw_bytes: 6643,
-      destination: 0x5e10, staging_id: 1 },
-    { start_sector: 147, sectors: 8, packed_bytes: 888, raw_bytes: 888,
-      destination: 0x8c80, staging_id: 2 },
-    { start_sector: 155, sectors: 2, packed_bytes: 229, raw_bytes: 234,
-      destination: 0x5259, staging_id: 2 },
-    { start_sector: 157, sectors: 5, packed_bytes: 585, raw_bytes: 645,
-      destination: 0x9d75, staging_id: 2 },
-  ]);
+  // Both tables are transport-derived: they move on every content commit. The
+  // test asserts the properties the menu raster depends on, not a snapshot of
+  // the figures -- the snapshot was re-recorded by hand four times upstream and
+  // then went stale unnoticed. scripts/runtime-wall-trace.mjs checks the same
+  // properties against the manifest at generation time.
+  assert.ok(audit.boot_stage_streams.length >= 5,
+    "the boot lifecycle must still stage at least five streams");
+  assert.equal(audit.boot_stage_streams.length, audit.staged_source_lifetimes.length);
+  for (const [index, stream] of audit.boot_stage_streams.entries()) {
+    assert.ok(stream.bytes > 0, `boot stage stream ${index + 1} carries no bytes`);
+    const lifetime = audit.staged_source_lifetimes[index];
+    assert.deepEqual([lifetime.start, lifetime.end_exclusive, lifetime.last_read],
+      [stream.source, stream.source + stream.bytes, index + 1],
+      `staged source ${index + 1} does not describe its own stream`);
+  }
+
+  const menuOwned = [audit.ranges.frontend_screen, audit.ranges.frontend_charset,
+    audit.ranges.main_menu_display_list];
+  assert.ok(audit.dfmc_records.length > 0);
+  for (const [index, record] of audit.dfmc_records.entries()) {
+    const previous = audit.dfmc_records[index - 1];
+    if (previous !== undefined) {
+      assert.equal(record.start_sector, previous.start_sector + previous.sectors,
+        `DFMC record ${index + 1} is not contiguous with the record before it`);
+    }
+    assert.ok(record.sectors * 128 >= record.packed_bytes,
+      `DFMC record ${index + 1} does not fit the sectors it claims`);
+    for (const range of menuOwned) {
+      assert.ok(record.destination >= range.end_exclusive ||
+        record.destination + record.raw_bytes <= range.start,
+        `DFMC record ${index + 1} lands in memory the menu owns`);
+    }
+  }
   assert.deepEqual(audit.ranges.a2_runtime,
     { start: 0x9000, end_exclusive: 0x90ff });
   assert.deepEqual(audit.ranges.glue_holding,

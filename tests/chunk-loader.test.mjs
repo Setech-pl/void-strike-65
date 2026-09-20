@@ -149,8 +149,19 @@ test("transport corruption, truncation, length and destination failures stop bef
   assert.throws(() => encodeChunkManifest({ records: [
     { ...fixture.records[0], packedLength: fixture.records[0].sectorCount * 128 + 1 },
   ], totalOccupiedSectors: fixture.total }));
+  // Owner decision B (2026-09-20): $A000-$BC1F is usable RAM and records may
+  // land in it; $BC20 upwards is the OS screen and is still refused.
   assert.throws(() => encodeChunkManifest({ records: [
+    { ...fixture.records[0], finalDestination: 0xbc20 },
+  ], totalOccupiedSectors: fixture.total }), /OS screen above \$BC1F/);
+  assert.throws(() => encodeChunkManifest({ records: [
+    { ...fixture.records[0], finalDestination: 0xbc1f },
+  ], totalOccupiedSectors: fixture.total }), /OS screen above \$BC1F/);
+  assert.doesNotThrow(() => encodeChunkManifest({ records: [
     { ...fixture.records[0], finalDestination: 0xa000 },
+  ], totalOccupiedSectors: fixture.total }));
+  assert.doesNotThrow(() => encodeChunkManifest({ records: [
+    { ...fixture.records[0], finalDestination: 0xbc20 - fixture.records[0].rawLength },
   ], totalOccupiedSectors: fixture.total }));
   assert.throws(() => encodeChunkManifest({ records: [
     { ...fixture.records[0], finalDestination: 0x8130 },

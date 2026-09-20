@@ -1351,6 +1351,42 @@ Sufit glifów (trzy kody zapasu przy pięciu wyglądach) nie jest tu argumentem 
 
 ---
 
+## V. DOKUMENTACJA PUBLICZNA JEST DWUJĘZYCZNA — OWNER-ACCEPTED (2026-09-20)
+
+**Reguła stojąca, nie decyzja o jednym dokumencie.** Obowiązuje wszystkie
+przyszłe dokumenty skierowane do gracza i do czytelnika repozytorium.
+
+- **Angielski jest wersją domyślną**, z **widocznym przełącznikiem na polski**.
+- **Obie wersje trzyma się w zgodzie.** Zmiana w jednej **nie jest skończona**,
+  dopóki druga jej nie niesie. Nie ma stanu „polska wersja nadrobi później".
+- Przełącznik jest jedną linią odnośników nad tytułem, w obu plikach
+  angielski pierwszy, i ma działać przy czytaniu na GitHubie — bo tam te pliki
+  będą oglądane.
+
+### V.1 CZEGO TO NIE DOTYCZY
+
+**Dotyczy dokumentacji PUBLICZNEJ, SKIEROWANEJ DO GRACZA.**
+
+Dokumenty inżynierskie — `STATUS.md`, `memory-map.md`, `diagnostics/`,
+dokumenty projektowe i decyzyjne, `plan-realizacji.md`, `architecture.md`,
+`hybrid-c-architecture.md`, `game-design.md` — **zostają jak są**. Mają jednego
+odbiorcę, a tłumaczenie ich podwoiłoby koszt utrzymywania ich w prawdzie. To
+jest rozróżnienie celowe i zapisane, żeby nikt go później nie „ujednolicił".
+
+Granica przebiega po odbiorcy, nie po katalogu: jeżeli dokument jest pisany
+dla kogoś, kto w grę gra albo o niej czyta, a nie dla kogoś, kto ją buduje —
+jest dwujęzyczny.
+
+### V.2 GDZIE TO JEST ZAPISANE
+
+Poza tym wpisem reguła stoi w `AGENTS.md` (reguły inżynierskie) i w
+`docs/README.md` (§„Documentation language"), żeby przyszła sesja trafiła na
+nią **zanim** napisze dokument dla użytkownika, a nie po fakcie.
+
+Pierwsze zastosowanie: `docs/how-to-play.md` i `docs/how-to-play.pl.md`.
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

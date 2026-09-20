@@ -1,3 +1,5 @@
+**English** · [Polski](how-to-play.pl.md)
+
 # Void Strike 65 — how to play
 
 Void Strike 65 is a vertical space shooter for the Atari 65XE. You fly a single

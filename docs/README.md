@@ -40,6 +40,22 @@ owner-accepted behavior; it never overrides the accepted checkpoint in STATUS.
 The root [README](../README.md) is a public showcase, not a technical
 specification.
 
+## Documentation language
+
+**User-facing documents ship in English and Polish. A change to one is
+incomplete until the other carries it.** English is the default; the Polish
+version is reached from a switch at the top of the page. Owner decision V
+(2026-09-20).
+
+This covers documents written for someone who plays the game or reads about it
+— [how-to-play.md](how-to-play.md) / [how-to-play.pl.md](how-to-play.pl.md),
+the root README, release notes and anything else addressed to a player.
+
+Engineering documents stay single-language: STATUS, the roadmap, the domain
+documents, the memory map, the decision journal and everything under
+`diagnostics/`. They have one audience, and translating them would double the
+cost of keeping them true. The line follows the audience, not the directory.
+
 ## Where to look
 
 | Need | Source |
@@ -49,7 +65,7 @@ specification.
 | Development rules and process | [reguly-projektu.txt](reguly-projektu.txt) |
 | What we do next | [plan-realizacji.md](plan-realizacji.md) |
 | Task workflows for agents | [agent-workflows/](agent-workflows/) |
-| How the game plays, for a player | [how-to-play.md](how-to-play.md) |
+| How the game plays, for a player | [how-to-play.md](how-to-play.md) — also [po polsku](how-to-play.pl.md) |
 | Player-visible rules | [game-design.md](game-design.md) |
 | Runtime layers, flows, pools and contracts | [architecture.md](architecture.md) |
 | C/ASM boundary, ABI and placement | [hybrid-c-architecture.md](hybrid-c-architecture.md) |

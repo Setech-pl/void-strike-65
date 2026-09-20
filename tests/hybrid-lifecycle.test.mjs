@@ -62,8 +62,10 @@ test("C EnemyArchetype is a compact exact Raider record in legal extension place
   // 4.5d: the veneer publishes the per-member colour to COLPM1+slot (+9 B) = 880.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
     ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 880 });
+  // 4.3 step 5: the drain clause left sector_c_update_first_capital for the
+  // arena as sector_c_drain_clear, so the window composite loses 10 B.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
-    ({ name }) => name === "window"), { name: "window", runAddress: 0x8602, bytes: 240 });
+    ({ name }) => name === "window"), { name: "window", runAddress: 0x8602, bytes: 230 });
   assert.equal(manifest.encounterDirector.director.footprint.cStackBytes, 0);
   assert.equal(manifest.encounterDirector.director.footprint.zeroPageBytes, 0);
 });
@@ -174,8 +176,13 @@ test("ownership is singular and generated C requires neither software stack nor 
   const executableGenerated = generatedSource.replace(/^\s*\.importzp.*$/gm, "");
   assert.doesNotMatch(executableGenerated,
     /\b(?:c_sp|sreg|regsave|regbank|tmp[1-4]|ptr[1-4])\b/);
+  // _sector_c_drain_clear is 4.3 step 5: the capital entry's drain test, named
+  // so roadmap 4.9's level boundary reuses it rather than writing a second one.
+  // It is a C function in the arena calling out of the window composite, which
+  // is why it appears here; it still needs no stack and no runtime helper.
   assert.deepEqual([...executableGenerated.matchAll(/\bjsr\s+([^\s;]+)/g)].map((match) => match[1]),
-    ["_asm_sector_pressure_active", "_heavy_publish_profile", "_encounter_light_admit",
+    ["_asm_sector_pressure_active", "_sector_c_drain_clear", "_heavy_publish_profile",
+      "_encounter_light_admit",
       "_bomber_may_fire", "_bomber_turn", "_bomber_turn", "_bomber_turn", "_bomber_may_fire",
       "_bomber_colour", "_light_reload", "_encounter_light_schedule_advance"]);
 });

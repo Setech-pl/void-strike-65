@@ -16,6 +16,9 @@ enum SectorLifecycleState {
 };
 
 void lifecycle_c_init(void);
+/* Roadmap 4.3 step 5: the drained-playfield predicate, shared by the capital
+ * entry and (roadmap 4.9) the level boundary. */
+uint8_t sector_c_drain_clear(void);
 uint8_t sector_c_update_first_capital(void);
 void sector_c_update_capital_phase(void);
 void sector_c_begin_complete(void);

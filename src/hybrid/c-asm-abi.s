@@ -30,6 +30,7 @@ DIRECTOR_LOW_BYTES = 242
 .import _director_event_opcode_abi, _director_event_arg0_abi
 .import _director_argument_abi
 .import _lifecycle_c_init
+.import _sector_c_drain_clear
 .import _sector_c_update_first_capital
 .import _sector_c_update_capital_phase
 .import _sector_c_begin_complete
@@ -84,6 +85,7 @@ DIRECTOR_LOW_BYTES = 242
 .export _asm_director_dispatch_event
 .export director_publish_low
 .export lifecycle_init, sector_update_first_capital, sector_update_capital_phase
+.export sector_drain_clear
 .export sector_begin_complete, sector_complete_scroll_tick, sector_force_final_drain
 .export enemy_spawn_raiders, enemy_retire_member, enemy_apply_pending_damage
 .export enemy_recycle, enemy_archetype_table
@@ -230,6 +232,7 @@ level1_event_arg1 = _level1_event_arg1
 director_level1_data_end = _level1_event_arg1 + 6
 
 lifecycle_init = _lifecycle_c_init
+sector_drain_clear = _sector_c_drain_clear
 sector_update_first_capital = _sector_c_update_first_capital
 sector_update_capital_phase = _sector_c_update_capital_phase
 sector_begin_complete = _sector_c_begin_complete

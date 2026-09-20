@@ -207,6 +207,19 @@
  display driver (150-200) and the v1 text pool (320) still to land at step 4, the window total is tracking toward ~1,200-1,250 B of the 7,194 available — inside 9's envelope, at its top end rather than
  its middle. Step 4 should size the text pool knowing that, rather than discovering it.
 
+ [C6] MEASURED 2026-09-20, step 4 (commit eb1a1c0), owner-decided.
+
+ The AI text pool ships at EIGHT lines of 38 characters, not sixteen. With the reader core, the loader-mode display driver, the failure screen and an eight-line pool, the module is 1,466 B of the
+ 1,536-B $A000-$A5FF area: 70 B free. Sixteen lines cost 608 B against eight lines' 304, so they would overflow by roughly 234 B. Decision O specifies 8-16 and eight is inside it; the owner's real
+ lines replace the placeholders one-for-one at the same width, so the tail does not move when they are written.
+
+ If sixteen lines are ever wanted, there are two ways and they are not equal:
+   * shrink the level buffer below 44 sectors - REJECTED by the owner 2026-09-20. Those sectors are 4.6's LevelDef space (sector path, wave and path definitions, hull parameters, weapon_class
+     records). Trading foundation for decoration is the wrong way round.
+   * pack the texts - the cheaper answer, and the one to reach for first. The pool is stored as fixed 38-byte records of plain ASCII drawn from a ~43-glyph alphabet, so it is paying 8 bits for
+     roughly 5.4 bits of entropy per character and paying full width for every short line. Either a terminator-and-index scheme or a nibble/5-bit packing recovers most of the difference, at the cost
+     of an unpack step into the existing 38-byte slot that render_frontend_data already reads. Not built: v1 does not need it.
+
  1.6 Cycle cost
 
  Not a visible-frame cost: the reader runs only with gameplay torn down. Polling latency per byte ≤ ~60 CPU cycles (~120 wall with DMA stealing) against a 931-cycle byte period: 7-15× margin. Emulator-measured wall time per sector ≈ 3.8 PAL frames (5×8 + 15 + 12 + 44 + 32 + 129×8 lines); a 2-sector v1 level ≈ 8 frames, a full 44-sector level ≈ 170 frames. Hardware ESTIMATE only: SIO2SD 4-6 frames/sector, real 1050 5-10 (debt item 5, interleave).

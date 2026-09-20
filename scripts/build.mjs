@@ -752,6 +752,9 @@ function renderDirectorAbiInclude(labelBytes) {
     ["DIRECTOR_RELEASE", "director_release"],
     ["DIRECTOR_RNG_ADVANCE", "director_rng_advance"],
     ["DIRECTOR_PUBLISH_LOW", "director_publish_low"],
+    // Roadmap 4.3 step 5: exposed by name so roadmap 4.9's level boundary
+    // reuses the capital entry's drain test instead of writing a second one.
+    ["HYBRID_SECTOR_DRAIN_CLEAR", "sector_drain_clear"],
     ["HYBRID_SECTOR_UPDATE_FIRST_CAPITAL", "sector_update_first_capital"],
     ["HYBRID_SECTOR_UPDATE_CAPITAL_PHASE", "sector_update_capital_phase"],
     ["HYBRID_SECTOR_BEGIN_COMPLETE", "sector_begin_complete"],

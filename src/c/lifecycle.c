@@ -314,10 +314,11 @@ uint8_t sector_c_update_first_capital(void)
         DIRECTOR_STATE_FLAGS = DIRECTOR_FLAG_CAPITAL_DUE;
     }
     /* Capital frames skip the fighter publication window, so the Light must
-     * also be unpublished (its late erase done) before the sector leaves. */
-    if (asm_sector_pressure_active() != 0u || light_state != ENEMY_INACTIVE ||
-        light_screen_hi != 0u ||
-        CAPITAL_SECTOR_STATE != SECTOR_FIGHTER) {
+     * also be unpublished (its late erase done) before the sector leaves.
+     * The drain half of that test is sector_c_drain_clear (roadmap 4.3 step
+     * 5); the sector-state half stays here because each caller wants a
+     * different state. */
+    if (sector_c_drain_clear() == 0u || CAPITAL_SECTOR_STATE != SECTOR_FIGHTER) {
         return 0u;
     }
     CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_ENGINES;
@@ -538,6 +539,29 @@ uint8_t enemy_c_light_hit(void)
  * runtime arena $7BD0-$7F0F (4.5M-M3). */
 #pragma code-name ("HYBRID_C_ARENA")
 #pragma rodata-name ("HYBRID_C_ARENA_RODATA")
+
+/* Roadmap 4.3 step 5, plan §5. "Is the playfield drained?" - no hostile
+ * pressure, no live Light, no Light backing still published. It was written
+ * inline inside sector_c_update_first_capital, where the whole gate set has
+ * run it clean on every capital entry; extracting it by name lets roadmap
+ * 4.9's level boundary reuse exactly the same test instead of writing a
+ * second one that drifts.
+ *
+ * NOTE, deliberate deviation from the plan's literal wording: §5 quotes the
+ * clause as including `CAPITAL_SECTOR_STATE != SECTOR_FIGHTER`, but §5 also
+ * gives 4.9's predicate as `... && CAPITAL_SECTOR_STATE ==
+ * SECTOR_CAPITAL_COMPLETE && sector_c_drain_clear() && ...`. Those two cannot
+ * both hold. The sector-state test is therefore left at each call site and
+ * only the drain itself is extracted, which is what the name means and what
+ * makes it reusable at both boundaries. */
+uint8_t sector_c_drain_clear(void)
+{
+    if (asm_sector_pressure_active() != 0u || light_state != ENEMY_INACTIVE ||
+        light_screen_hi != 0u) {
+        return 0u;
+    }
+    return 1u;
+}
 
 /* TEMPORARY 4.5 HEAVY SMOKE SCHEDULER — replaced by 4.6 data-driven Encounter
  * Director. The schedule cycles Raider, Bomber, Raider... only so a smoke run

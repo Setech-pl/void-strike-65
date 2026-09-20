@@ -190,9 +190,22 @@
 
  Reader BSS (≈ 12 B): requested_id, attempts, frames_left, vcount_last, sector_lo/hi, sectors_left, status, anim_phase, text_index; plus 2 B zero page for the destination pointer (ZEROPAGE ends $9F; take $A0-$A1 with an assert in main.sthat the segment stays below $A0).
 
- 1.5 Byte estimate — reader core 300-360 B (ESTIMATE)
+ 1.5 Byte estimate — reader core 300-360 B (ESTIMATE) — [C4] MEASURED 682 B, see below
 
  POKEY setup 20 · command frame send 50 · wait-with-timeout primitive 40 · ACK / C-E handling 35 · data loop + checksum 50 · retry shell + settle 60 · sector loop + directory 45 · header validation + resident skip 35 · equates/status 10. What makes it larger: a per-level CRC-16 (+~45 B; deliberately not in v1 — the wire checksum plus the header check covers the failure modes the gates can produce), a status command before the first read (+40), any write path (forbidden), a second device or unit (+20), high-speed negotiation (rejected), any bounce buffer (rejected).
+
+ [C4] MEASURED 2026-09-20 at commit cfa044d, implementation step 2.
+
+ The core is 682 B, not 300-360. The whole module is 730 B: 682 B of code plus the 48-B level directory, which 9 already counted separately. Linked at $A000 by
+ cfg/sector-reader.cfg; read the figure out of build/sector-reader.map, not out of this paragraph.
+
+ Where the estimate went: it costed the reader as one routine with a retry shell around it and did not carry build_frame (41 B), lookup (49 B), resident_hit (33 B), validate (27 B), quiesce (19 B),
+ begin_receive (19 B) or pokey_setup (39 B) as separate routines — 227 B between them. The rest is the error taxonomy of 3 being real branches rather than a line in a table. Nothing here is bloat and
+ nothing was traded away to shrink it (rule 14); the figure is recorded so the window budget is planned against it rather than against the estimate.
+
+ What this changes downstream: nothing is displaced and no placement fails, but 4's "~1.2-1.5 KB raw" for the record and 9's "~830-1,260 B" window total must now be read against 682 + 48. With the
+ display driver (150-200) and the v1 text pool (320) still to land at step 4, the window total is tracking toward ~1,200-1,250 B of the 7,194 available — inside 9's envelope, at its top end rather than
+ its middle. Step 4 should size the text pool knowing that, rather than discovering it.
 
  1.6 Cycle cost
 
@@ -243,6 +256,27 @@
  ---
 
  4. Placement
+
+ [C5] AMENDED 2026-09-20, implementation step 2 (commit cfa044d), owner-approved.
+
+ This section said: a new segment in the MAIN link, because the reader must call clear_screen, render_frontend_data, wait_frame_start, pause_silence_audio, clear_pmg_graphics_latches,
+ frontend_text_display_list and start_gameplay, and "linking the reader with main.s needs zero ABI plumbing".
+
+ What is being done instead: the reader is its OWN link — src/hybrid/sector-reader.s with cfg/sector-reader.cfg, built by buildResidentModule the way capital-player-collision.s already is — and reaches
+ the main-link symbols above through a generated include, the pattern director-abi.inc and integration-abi.inc already establish in this repository. Run address, record shape, window layout and the
+ $A000 destination are all unchanged; only which link owns the object changes.
+
+ Why:
+   1. It is what made step 2 testable. The core has no main-link dependency at all — it touches hardware registers and its own BSS — so it assembles, links and runs on the 6502 harness before any
+      transport exists. In the main link it could not have been unit-tested until step 3 had landed, which is the ordering the plan itself chose to avoid for the register probe.
+   2. main.s is a single-object link today. Putting the reader in it means either making the link multi-object or .include-ing 700+ B of hardware code into a 12,300-line source file. The plan costed
+      neither; "zero ABI plumbing" was true only against an assumption about the link that this section did not state.
+   3. A raw DFMC record wants exactly what a standalone link produces: one contiguous image with a fixed final destination. The arena record already works this way.
+
+ Cost of the change: one generated include (the display's symbols, step 4), against a multi-object main link that was never budgeted. The ABI direction is the same one director-abi.inc already runs.
+
+ Everything below stands as approved, with "main-link segment" read as "its own link, same run address".
+
 
  Where: a new main-link segment SECTOR_READER (ca65, src/hybrid/sector-reader.s), run address $A000, transported as its own raw DFMC record (the ninth slot decision B opened), holding the reader, the loader-mode display driver, the AI text pool, the level directory and the reader BSS. The level buffer is the rest of the window: LEVEL_BUFFER = $A600, 5,632 B = 44 sectors, ending $BBFF; $BC00-$BC19 (26 B) takes the BSS; the six-byte guard at $BC1A stays.
 
@@ -307,6 +341,11 @@
  ---
 
  9. Byte and cycle budget (ESTIMATE unless marked)
+
+ [C4] MEASURED 2026-09-20, step 2: the "Reader core 300-360" row is 682 B, and "Reader BSS ~12 + 2 ZP" is 20 B at $BC00-$BC13 plus 2 B at $A0-$A1. The "Level directory 48" row is exact. The window
+ total therefore starts from 730 B, not from 348-408, and the "~830-1,260" row should be read as tracking its top end once the display driver and text pool land. See 1.5 [C4] for where the estimate
+ went and why nothing was traded away to close the gap. Every other row in this table is still ESTIMATE.
+
 
  ┌─────────────────────────────────────────────┬─────────────────────────────────────────────────────────────┬──────────────────────────────┐
  │                    Item                     │                            Bytes                            │            Where             │

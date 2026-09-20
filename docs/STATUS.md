@@ -352,6 +352,32 @@ re-basing.
 
 ## Known open defects and open decisions
 
+- **`npm test` is red at HEAD, and has been before roadmap 4.3 started.**
+  A/B-confirmed on 2026-09-20 at `e48335f` by stashing all local changes and
+  rebuilding clean, so none of it belongs to 4.3. Four separate failures:
+  - `node scripts/build.mjs --quiet` throws `Runtime wall trace binding
+    mismatch for void-strike-65-boot.bin` (`runtime-evidence.mjs:49`). Because
+    the `test` script is `build --quiet && node --test tests/*.test.mjs`, this
+    alone means **`npm test` cannot reach the tests at all**;
+    `npm run build:candidate` succeeds — `--candidate` defers the evidence
+    binding and reports "runtime evidence pending";
+  - `tests/formats.test.mjs`: "resident compaction proof survives and Spread
+    Shot leaves at least 64 source-owned bytes";
+  - `tests/hybrid-c-arena.test.mjs`: "HYBRID_C_ARENA is one contiguous 832-B
+    arena at `$7BD0-$7F0F`" and "the arena lands directly as its own DFMC
+    record and is the only owner of its range" — the arena assertion reads
+    `[562, 5]` against an expected `[558, 5]`, a 4-byte drift.
+
+  This is the **stale-report blocker resurfacing**
+  (`diagnostics/runtime-wall-trace-report-regeneration-blocked.md`): the
+  committed evidence no longer binds to the artifacts the build produces, so
+  the one gate that would notice is the one that cannot run. Recorded here as
+  project state rather than left for the next session to rediscover. Until it
+  is cleared, a session working on anything else must run focused test files
+  directly and **A/B any failure against a clean tree before calling it a
+  regression** — these four will otherwise be attributed to whatever landed
+  last.
+
 - **ATR boot contract is proven in Atari800 only.** Owner decision A
   (2026-09-20) makes the disk boot without OPTION; it is an
   `OWNER-SMOKE CANDIDATE` and the SIO2SD checks listed in its section below —

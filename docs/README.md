@@ -49,6 +49,7 @@ specification.
 | Development rules and process | [reguly-projektu.txt](reguly-projektu.txt) |
 | What we do next | [plan-realizacji.md](plan-realizacji.md) |
 | Task workflows for agents | [agent-workflows/](agent-workflows/) |
+| How the game plays, for a player | [how-to-play.md](how-to-play.md) |
 | Player-visible rules | [game-design.md](game-design.md) |
 | Runtime layers, flows, pools and contracts | [architecture.md](architecture.md) |
 | C/ASM boundary, ABI and placement | [hybrid-c-architecture.md](hybrid-c-architecture.md) |

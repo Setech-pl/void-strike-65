@@ -829,7 +829,7 @@ jest nadal otwarta.
 
 | §10 | Decyzja |
 | --- | --- |
-| 1. Gdzie mieszka osiem poziomów | **Wariant B: poziomy ładowane z dyskietki.** Okno BASIC `$A000-$BFFF` (wariant A) **odrzucone**. Konsekwencje wariantu B obowiązują: ADR-004 zostaje zastąpione, dochodzi rezydentny czytnik `SIOV`, stan wyświetlania na czas ładowania i walidacja sprzętowa na realnym SIO2SD. |
+| 1. Gdzie mieszka osiem poziomów | **Wariant B: poziomy ładowane z dyskietki.** Okno BASIC `$A000-$BFFF` (wariant A) **odrzucone**. Konsekwencje wariantu B obowiązują: ADR-004 zostaje zastąpione, dochodzi rezydentny czytnik sektorów, stan wyświetlania na czas ładowania i walidacja sprzętowa na realnym SIO2SD. **[ZASTĄPIONE w części dot. czytnika — decyzja W, 2026-09-20: bezpośredni SIO, nie `SIOV`; ~250-350 B, nie ~80-120 B.]** |
 | 2. Starfield per-sektor | **OTWARTE.** |
 | 3. Świętość formuły deadline'u ATR | **Odpowiedziane decyzją 22** (nie jest święta; re-bazowana na 60 s). Restatement zaimplementowany 2026-09-19 — patrz nota przy decyzji 22. |
 | 4. Kształt ścieżek lotu | **Odcinki piecewise-linear** (propozycja projektu). Bez tablicy sinusów. |
@@ -1415,6 +1415,46 @@ Poza tym wpisem reguła stoi w `AGENTS.md` (reguły inżynierskie) i w
 nią **zanim** napisze dokument dla użytkownika, a nie po fakcie.
 
 Pierwsze zastosowanie: `docs/how-to-play.md` i `docs/how-to-play.pl.md`.
+
+---
+
+## W. CZYTNIK MIĘDZYPOZIOMOWY UŻYWA BEZPOŚREDNIEGO SIO, NIE OS SIOV — OWNER-ACCEPTED (2026-09-20)
+
+Czytnik sektorów między poziomami rozmawia ze stopką SIO **bezpośrednio**,
+implementując protokół na rejestrach POKEY/PIA. **Nie** wywołuje `SIOV`
+(`$E459`).
+
+**To zastępuje** „rezydentny czytnik `SIOV` (~80-120 B)" z decyzji 23 §10.1
+(wariant B) oraz z [project-overview.md](project-overview.md) §4.3. Tamten
+zapis był podwójnie błędny: wskazywał **nie ten czytnik** i **nie ten
+kosztorys**. Bezpośredni SIO to **~250-350 B** (ESTIMATE). Różnicę trzeba
+zaplanować w budżecie rezydentnym; nie jest to ten sam rząd wielkości.
+
+### Uzasadnienie
+
+Gra od startu działa w trzech stanach, które OS SIO musiałby odwrócić:
+
+* `sei` — przerwania IRQ maskowane;
+* `NMIEN` nigdy nie włącza VBI;
+* nic poza grą nie zapisuje `DLISTL`/`DLISTH`, `CHBASE`, `PMBASE` ani
+  rejestrów koloru.
+
+Droga przez OS SIO wymagałaby rozplecenia wszystkich trzech niezmienników i
+odtworzenia ich po powrocie, z oknem ekspozycji cieni ekranowych **po obu
+stronach** wywołania. Bezpośredni SIO nie rozplata niczego: żaden wektor OS
+nie jest brany, a stan wyświetlania pozostaje wyłącznie w rękach gry.
+
+### Skąd pochodzi implementacja
+
+Z **specyfikacji protokołu** — Altirra Hardware Reference Manual, rozdz. 9 —
+a nie z kodu vendorowego na GPL-2. Projekt pozostaje w całości własnością
+właściciela, a reguła 13 `AGENTS.md` (bez nowych zależności) nie jest
+naciągana.
+
+### Czego decyzja NIE oznacza
+
+Nie otwiera zadania czytnika. Praca nad nim zaczyna się dopiero na wyraźne
+wskazanie właściciela.
 
 ---
 

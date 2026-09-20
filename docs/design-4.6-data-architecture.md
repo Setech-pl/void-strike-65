@@ -442,16 +442,32 @@ resident game RAM**, not in the BASIC window. That range holds the
 **does not move the OS shadows**.
 
 Nothing breaks today, because MEASURED `NMIEN = $80` from frame 250 on: the OS
-VBI NMI is off and no one rewrites the display list from those shadows. The
-reader is what changes that. It calls `SIOV`, and an in-game `SIOV` path that
-revives the OS VBI hands the OS a display-list pointer of `$9C20` — into
-Director code. Restoring `DMACTL`, `DLISTL`/`DLISTH`, the colours, `CHBASE`
-and `PMBASE` *after* the read is too late: the OS VBI acts during it. The
-loader-mode display state therefore owns `SDLSTL`/`SDLSTH`, `RAMTOP` and
-`MEMTOP` — it writes its own values into them before the first `SIOV` call, and
-this is part of the reader's definition of done, not a later hardening step.
-See decision O and decision R in
-[owner-decisions-2026-09-11.md](owner-decisions-2026-09-11.md) §R.1.
+VBI NMI is off and no one rewrites the display list from those shadows. A
+reader that ever revives the OS VBI is what changes that: it would hand the OS
+a display-list pointer of `$9C20` — into Director code. The loader-mode display
+state therefore owns `SDLSTL`/`SDLSTH`, `RAMTOP` and `MEMTOP`: it writes its own
+values into them, rather than merely restoring hardware registers afterwards,
+and that is part of the reader's definition of done, not a later hardening step.
+See decision O, decision R in
+[owner-decisions-2026-09-11.md](owner-decisions-2026-09-11.md) §R.1, and
+decision W.
+
+> **CORRECTION 2026-09-20 — the requirement stands, its stated reason did
+> not.** This section used to say that the OS VBI rewrites `DMACTL`, the
+> display list, the colours, `CHBASE` and `PMBASE` from its shadows **during**
+> SIO, and that restoring the hardware registers after the read is "too late
+> because the OS VBI acts during it". **It does not act during it.** OS SIO
+> sets `CRITIC`, which suppresses VBI stage 2 for the whole call (*Mapping the
+> Atari*, location 66 `$42`; corroborated by HiassofT's OS-SIO replacement,
+> which sets `CRITIC` as its third instruction after `SEI`). The real exposure
+> is narrower: a window on either side of the call — between re-enabling the
+> VBI and SIO setting `CRITIC`, and again after SIO clears it. A plan written
+> from the old reason would guard the wrong window. The hard requirement that a
+> loader-mode display must **set** the OS shadows rather than merely restore
+> hardware registers survives intact. Note also that under owner decision W the
+> reader is direct SIO and never calls `SIOV` at all, so it neither revives the
+> OS VBI nor relies on `CRITIC`; the shadow requirement is kept because the
+> display state must be correct regardless of which reader is built.
 
 Where the buffer lives is the placement question of §7.3: the core page wants
 to replace `LEVEL1_DATA` in `DIRECTOR_RAM` (158 → 256 B, which forces ~100 B
@@ -792,8 +808,10 @@ answer, the roadmap does not.
      and a boot smoke that may lose a frame (§7.4). Consequence: fresh hull art per level
      stays unaffordable; hull variants are parameters.
    - **B. A between-level loader into the resident buffer.** Supersedes
-     ADR-004, adds a resident `SIOV` reader (~80-120 B) and a loader-mode
-     display state, hardware-critical validation on real SIO2SD. Consequence:
+     ADR-004, adds a resident sector reader and a loader-mode
+     display state, hardware-critical validation on real SIO2SD.
+     **[SUPERSEDED 2026-09-20 — owner decision W: the reader is direct SIO,
+     not the OS `SIOV`, and costs ~250-350 B, not the ~80-120 B written here.]** Consequence:
      the disk's 537 free sectors (MEASURED at HEAD; 538 before decision A) become the content budget, fresh hulls and
      per-level payloads become cheap, and 4.6 grows a hardware task.
    - **C. Neither.** One or two levels resident; the eight-level target is

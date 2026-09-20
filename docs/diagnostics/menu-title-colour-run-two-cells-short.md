@@ -1,5 +1,28 @@
 # Main-menu title colour run is two cells short — `BLOCKED_MENU_TITLE_COLOUR_RUN`
 
+> **RESOLVED 2026-09-20 — owner chose candidate 1, implemented as a derivation
+> rather than a corrected literal.** The title string now exists once, as
+> `.define MAIN_MENU_TITLE_TEXT` in `src/main.s`, and
+> `MAIN_MENU_TITLE_LENGTH = .strlen(MAIN_MENU_TITLE_TEXT)` is what
+> `style_main_menu_title` loads into X. `scripts/preview.mjs` keeps deriving its
+> run from the title record and no longer carries the title as a literal of its
+> own. `tests/frontend.test.mjs` ("the runtime highlights the whole main-menu
+> title, however long the title is") evaluates the routine's own `ldx` operand
+> and compares it with the record's length, so neither side can be given a
+> number by hand again. Cost: **0 bytes, 0 cycles** — the label file is
+> byte-identical to the pre-fix build and every segment size is unchanged.
+>
+> `--menu-raster-only` now clears the title clause and every other per-snapshot
+> clause, and stops one clause further along, on the harness's hard-coded
+> `canonicalRasterSha256` (`runtime-wall-trace.mjs:1992`) — an accepted-raster
+> hash captured before the fix. All ten required checkpoints agree on one new
+> raster, `ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a`.
+> Re-accepting that hash is the owner's call, because it *is* the player-visible
+> image; it was deliberately not changed in the fix session. With the hash
+> temporarily swapped locally the audit runs to completion, 8/8 sessions — so
+> the stale hash is the only thing left in its way.
+
+
 Session: FIX, 2026-09-20. Branch `wip/4.5d-gate-fail`, HEAD `4f72614`.
 Build: `npm run build:candidate -- --quiet`, XEX
 `4ff49d887e7375076214d3461f598bc6d59218789c8e3e3ac7b3ee17f2944415` —

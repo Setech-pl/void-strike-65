@@ -520,6 +520,25 @@ function stripComment(line) {
   return line;
 }
 
+function expandDefines(source) {
+  const defines = new Map();
+  const lines = source.split(/\r?\n/).map((rawLine) => {
+    const definition = /^\s*\.define\s+([A-Za-z_][A-Za-z0-9_]*)\s+(.+?)\s*$/.exec(
+      stripComment(rawLine),
+    );
+    if (definition) {
+      defines.set(definition[1], definition[2]);
+      return "";
+    }
+    return rawLine;
+  });
+  if (defines.size === 0) {
+    return source;
+  }
+  const pattern = new RegExp(`\\b(?:${[...defines.keys()].join("|")})\\b`, "g");
+  return lines.map((line) => line.replace(pattern, (name) => defines.get(name))).join("\n");
+}
+
 function normalizeExpression(expression, constants) {
   let normalized = expression
     .replace(/\$([0-9a-f]+)/gi, "0x$1")
@@ -538,8 +557,12 @@ function normalizeExpression(expression, constants) {
   return normalized;
 }
 
-function evaluateExpression(expression, constants) {
-  const trimmed = expression.trim();
+export function evaluateExpression(expression, constants) {
+  const trimmed = expression
+    .trim()
+    .replace(/\.strlen\(\s*("(?:[^"\\]|\\.)*")\s*\)/g, (_match, literal) =>
+      String(JSON.parse(literal).length),
+    );
   if (trimmed.startsWith("<")) {
     return evaluateExpression(trimmed.slice(1), constants) & 0xff;
   }
@@ -555,6 +578,7 @@ function evaluateExpression(expression, constants) {
 }
 
 function parseConstants(source) {
+  source = expandDefines(source);
   const pending = [];
   for (const rawLine of source.split(/\r?\n/)) {
     const line = stripComment(rawLine).trim();
@@ -683,6 +707,7 @@ function parseDataLines(lines, constants) {
 }
 
 function extractLabeledData(source, label, constants, endLabel) {
+  source = expandDefines(source);
   const lines = source.split(/\r?\n/);
   const labelPattern = new RegExp(`^${label}:\\s*$`);
   const startIndex = lines.findIndex((line) => labelPattern.test(stripComment(line).trim()));
@@ -705,6 +730,7 @@ function extractLabeledData(source, label, constants, endLabel) {
 }
 
 function extractRoutine(source, label) {
+  source = expandDefines(source);
   const lines = source.split(/\r?\n/);
   const labelPattern = new RegExp(`^${label}:\\s*$`);
   const startIndex = lines.findIndex((line) => labelPattern.test(stripComment(line).trim()));
@@ -1424,7 +1450,9 @@ function createStartMenuScreen(graphics, selection) {
     screen[requireValue(graphics.constants, "MAIN_MENU_PLAYER_FIGHTER_TOP_OFFSET") + 18 + x] = player_fighter + x;
     screen[requireValue(graphics.constants, "MAIN_MENU_PLAYER_FIGHTER_BOTTOM_OFFSET") + 18 + x] = player_fighter + 3 + x;
   }
-  const title = graphics.mainMenuRecords.find(({ text }) => text === "VOID STRIKE 65");
+  // The run follows the title record. The runtime takes the same figure from
+  // MAIN_MENU_TITLE_LENGTH; tests/frontend.test.mjs holds the two together.
+  const title = graphics.mainMenuRecords[0];
   for (let index = 0; index < title.text.length; index += 1) {
     screen[title.address - screenAddress + index] |=
       requireValue(graphics.constants, "ANTIC67_COLOR_PF1");

@@ -64,7 +64,7 @@
  ├────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
  │ PBCTL $D303        │ $34 assert command / $3C release         │ PIA CB2 drives the SIO command line                                                                                                                  │
  ├────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
- │ SKCTL $D20F        │ $13                                      │ async receive (bit 4), transmit/receive clock from channel 4, keyboard scan bits left as the OS set them; $00 then $13 resets the serial shift logic │
+ │ SKCTL $D20F        │ $13  [C1] SUPERSEDED -> $23 / $33        │ async receive (bit 4), transmit/receive clock from channel 4, keyboard scan bits left as the OS set them; $00 then $13 resets the serial shift logic │
  ├────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
  │ AUDCTL $D208       │ $28                                      │ ch3 at 1.79 MHz, ch3+ch4 joined = the 19040-baud clock                                                                                               │
  ├────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
@@ -76,14 +76,53 @@
  ├────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
  │ IRQEN/IRQST $D20E  │ $20 in, $10 out-needed, $08 XMTDONE      │ polled with I set; no vector is ever taken                                                                                                           │
  ├────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
- │ SKSTAT $D20F read  │ bit 7 framing, bit 6 overrun (0 = error) │ checked after every received byte; SKRES $D20A clears                                                                                                │
+ │ SKSTAT $D20F read  │ b7 framing, b6 ovr [C2] -> b5            │ checked after every received byte; SKRES $D20A clears                                                                                                │
  ├────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
  │ WSYNC $D40A        │ 12 stores                                │ the 650-950 µs command hold (see 1.3)                                                                                                                │
  ├────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
  │ VCOUNT $D40B       │ —                                        │ the timeout clock (§2)                                                                                                                               │
  └────────────────────┴──────────────────────────────────────────┴──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
- Audio must already be silent (pause_silence_audio zeroes AUDCTL); the reader owns POKEY from sector_reader_load entry until it returns, then leaves AUDCTL = 0, IRQEN = 0, SKCTL = $13.
+ Audio must already be silent (pause_silence_audio zeroes AUDCTL); the reader owns POKEY from sector_reader_load entry until it returns, then leaves AUDCTL = 0, IRQEN = 0, SKCTL = $13. [C1: the resting value $13 is unchanged and correct — it is a receive-side mode. Only the value used while TRANSMITTING was wrong.]
+
+ CORRECTIONS TO THIS SECTION — measured 2026-09-20, implementation session, commit e9f3a19
+
+ This table was approved with three errors in it. Every value was checked against the Altirra Hardware Reference Manual 2026-01-02 edition ch. 9 and §5.6, as this section's own
+ heading instructs, and three did not survive. The rows above are left as approved and marked [C1]/[C2] so the change is visible rather than silent; the contract the implementation
+ is built against is the one below. Evidence: docs/diagnostics/sio-register-probe-2026-09-20.json; facts and citations: docs/diagnostics/sio-protocol-facts.md.
+
+ [C1] SKCTL — the serious one.
+      Plan said:  $13 for both directions.
+      It is:      $23 to transmit the command frame, $33 to receive the reply and data.
+      Source:     HRM §5.6 Table 10 (p.115) gives the mode table; Figure 9 (p.116) captures both values by name — "transmitting $4F at 19200 baud with SKCTL=$23" and "receiving
+                  $43 at 19200 baud with SKCTL=$33 (asynchronous)". Corroborated independently by Atari800 src/pokey.c:301, which hands SEROUT to the SIO device model only when
+                  (POKEY_SKCTL & 0x70) == 0x20.
+      Why:        $13 is clock mode %001, whose OUTPUT clock is the external clock — a line nothing on a standard SIO bus drives. A command frame written to SEROUT in that mode is
+                  never clocked onto the wire.
+      Measured:   with $13 a mounted ATR answers silence, byte-identical to having no disk. As approved, this reader would have returned NO_DEVICE on every medium, forever, and
+                  every automated gate would have passed it: the XEX sessions expect silence, and the ATR boot smoke did not yet assert an image.
+
+ [C2] SKSTAT error mask.
+      Plan said:  bit 7 framing, bit 6 overrun (mask $C0).
+      It is:      bit 7 framing, bit 5 serial overrun (mask $A0). Bit 6 is the KEYBOARD overrun.
+      Source:     HRM SKSTAT register reference (D7 SF, D6 KO, D5 SO, D4 SI). HRM §5.6 n.21 (p.114) footnotes this exact confusion: "Credit to HiassofT for noting that the SKSTAT
+                  reference on [ATA82] III.18 has D5 and D6 swapped."
+      Why:        mask $C0 watches the keyboard, not the wire. Every real serial overrun would read as clean and land a corrupt byte in the buffer, leaving the data-frame checksum
+                  as the only defence against a class the hardware can report directly.
+
+ [C3] The command frame is missing its first delay — see §1.2.
+      Plan said:  one hold, 650-950 us, after the five bytes and before the command line is raised (12 x WSYNC).
+      It is:      TWO delays. HRM ch.9 step 1 (p.218) also requires 750-1600 us AFTER asserting the command line and BEFORE the first byte: "A delay of 750us-1600us is introduced
+                  for the peripheral to notice the command line state."
+      Note:       the manual's "the OS violates the minimum on this" caveat attaches to the SECOND delay, not this one.
+      Why:        without it a peripheral may still be sampling the command line when the first byte arrives, and miss the frame.
+      Visibility: the emulator models no command-line hold at all, so this one cannot fail a gate in either direction. It is hardware-only correctness — emulator-green, and
+                  intermittently deaf on a real drive. 16 x WSYNC ~ 1028 us sits inside the window with margin at both ends.
+
+ Verified correct and unchanged, with citations, in sio-protocol-facts.md: PBCTL $34/$3C (HRM ch.2 p.34, verbatim), AUDCTL $28, AUDF3/AUDF4 $28/$00 (HRM §5.6 p.115: "for disk
+ operation at 19200 baud, it is $0028"), AUDC3/AUDC4 $A0, the IRQEN/IRQST bit assignments and their latching behaviour (bits 5 and 4 latched, bit 3 not), SKRES, WSYNC/VCOUNT, and
+ the 19040-baud byte period (HRM §5.6 p.116, verbatim) = 931 PAL CPU cycles per byte, which confirms §1.6's figure.
+
 
  1.2 Control flow
 
@@ -95,21 +134,28 @@
        attempts = 3
        read_one_sector:                               ; §3 decides what consumes an attempt
            POKEY setup; IRQEN = $00 ; IRQEN = $20|$10  ; receiver ARMED before the command
+           SKCTL = $23                                ; [C1] transmit mode %010, NOT $13
            PBCTL = $34
+           16 x sta WSYNC                             ; [C3] 750-1600 us: let the device see the line
            for b in {$31, $52, sec_lo, sec_hi, sum}:  ; sum = carry-wrapped 8-bit sum of the 4
                IRQEN = $20 ; IRQEN = $30              ; re-arm "out needed" latch
                SEROUT = b
                wait IRQST bit4 == 0, budget 2 frames  ; emulator clears it 8 lines after the write
-           wait IRQST bit3 == 0, budget 2 frames      ; XMTDONE, not latched
-           12 x sta WSYNC                             ; 707-771 us hold
+           wait IRQST bit3 == 0, budget 2 frames      ; XMTDONE, not latched; ready-before-complete
+           12 x sta WSYNC                             ; 707-771 us hold (the SECOND delay)
            PBCTL = $3C
+           SKCTL = $33                                ; [C1] async receive mode %011
+           IRQEN = $00 ; IRQEN = $20 ; SKRES          ; arm the input latch, clear sticky SKSTAT
            wait byte, budget 3 frames  -> $41 ACK | $4E NAK -> wire | silence -> NO_DEVICE
            wait byte, budget 200 frames -> $43 COMPLETE | $45 ERROR -> DEVICE | other -> wire
            y = 0; sum = 0
-           128 x: wait byte, budget 2 frames; check SKSTAT; (dst),y = byte; sum += byte (adc, adc #0)
+           128 x: wait byte, budget 2 frames; check SKSTAT & $A0 ([C2], not $C0); (dst),y = byte; sum += byte (adc, adc #0)
+                  ; every received byte re-arms IRQEN bit 5: that reset IS the acknowledgement, and
+                  ; overruns are not detected at all while the interrupt is unarmed (HRM §5.6 p.114)
            wait byte (checksum), budget 2 frames; != sum -> wire
            ok: dst += 128; sector++; sectors_left--; animation_step(); next sector
-       on wire/timeout: settle (SKCTL $00, IRQEN $00, wait 2 frames, SKCTL $13); attempts--; retry or fail
+       on wire/timeout: settle (SKCTL $00, IRQEN $00, wait 2 frames); attempts--; retry or fail
+                       ; SKCTL $00 is a full serial reset (HRM §5.6 p.117); the next attempt sets $23 itself
    validate header (magic 'V','S'; version; id == requested; sector count == directory) -> OK | BAD_IMAGE
 
  Status codes: 0 OK, 1 NO_DEVICE (no ACK, twice), 2 WIRE_EXHAUSTED, 3 DEVICE_ERROR, 4 BAD_IMAGE. Bytes land directly in the buffer through (zp),y; no bounce buffer (design-4.6 §3). A failed sector leaves a partial buffer, which is fine because the buffer is invalid until the final header check passes.

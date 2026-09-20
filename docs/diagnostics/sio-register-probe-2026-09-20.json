@@ -88,5 +88,13 @@
     "WSYNC/VCOUNT": "$D40A / $D40B",
     "19040_baud": "HRM §5.6 p.116 verbatim: 'the actual transmission rate for the SIO bus is 19040 baud'. 10 bit cells = 525.2us = 931 PAL CPU cycles = 8.17 scanlines per byte."
   },
-  "protocol_facts_record": "docs/diagnostics/sio-protocol-facts.md"
+  "protocol_facts_record": "docs/diagnostics/sio-protocol-facts.md",
+  "process_finding": {
+    "claim": "A register-level probe belongs BEFORE hardware-critical work, not only after it.",
+    "evidence": "Step 1 was specified only as a path-proof: show that one command frame gets an ACK on the ATR path and silence on the XEX path. It was not asked to audit the plan. It nevertheless found three defects in an approved, owner-reviewed plan, one of which (correction 1, SKCTL) would have made the reader non-functional on every medium.",
+    "why_the_gates_would_not_have_caught_it": "With SKCTL $13 the reader returns NO_DEVICE always. The XEX sessions expect silence and would have passed unchanged. The ATR boot smoke does not yet assert a level image - that assertion is itself part of this task (plan 8.2) - so it would have passed too. The failure would have surfaced only as a loader-mode failure screen during owner smoke, or later on real hardware, with the cause several hundred bytes of new assembly away from the one-byte register value that caused it.",
+    "cost": "The probe is ~120 lines of throwaway assembly and two emulator runs. It ran before any reader code existed, so the corrections cost nothing to apply: no code was written against the wrong contract and none had to be unwound.",
+    "recommendation": "For work whose correctness depends on hardware register semantics the project has never exercised, spend the probe first. Its value is not the green result it was asked for; it is that it exercises the register contract in isolation, where a defect is one value away from its symptom instead of buried in a subsystem.",
+    "related": "The same session found that the plan governing this task had never been committed, and that decision W's prior-art survey was lost the same way. Evidence and contracts that live only in a planning session do not survive it."
+  }
 }

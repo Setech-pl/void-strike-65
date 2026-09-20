@@ -515,6 +515,18 @@ sector kind — are expensive because of placement, not cycles.
 
 ## 6. Eight levels, each with something new — does the budget carry the promise?
 
+> **SUPERSEDED 2026-09-20 in its premise — owner decision E: the campaign is
+> SIXTEEN levels, not eight.** The table below stays as the demonstration it
+> was: it shows that the novelty axes and the budget line up, and every row is
+> still a valid level. It is no longer the campaign. Its "Bytes: not without an
+> owner decision" verdict is **answered**: owner decisions **B** (open the
+> window) and **C** (the loader carries data per level, not code) take *both*
+> §10.1 variants A and B, so the campaign has a home. And owner decision **F**
+> makes capital variety parametric — four segment-art sets with length, turret
+> density and gondola protrusion as independent 4-step parameters — so sixteen
+> levels do not mean sixteen art sets. See
+> [project-overview.md](project-overview.md) §3.6 and §6.1.
+
 Not a level design; a demonstration that the novelty axes and the budget line
 up. Novelty sources available from this architecture: 4 archetypes × N paths ×
 3 live appearances × 5 projectile looks × subtypes × volley/conditional flags ×
@@ -612,6 +624,21 @@ the schedulers and phase machinery alone. The design does not change with
 where the bytes come from, but the roadmap does (§10.1).
 
 ### 7.4 Boot-smoke risk, either way
+
+> **VOID as a risk since owner decision 22 (2026-09-18).** The
+> `190 + 2 × transport sectors` deadline this section is built on was re-based
+> on the owner's real 60-second budget: an absolute ceiling of 3,000 PAL frames
+> plus a delta against a committed baseline (fail at +50, warn at +10). The
+> zero-slack "met with 0 frames" framing below described a formula agreeing
+> with itself, not a requirement. STATUS has said so since 2026-09-18; this
+> banner was added 2026-09-20 so the section does not state the risk in its own
+> voice.
+>
+> Two further corrections, MEASURED 2026-09-20: the free-sector figure below is
+> **537**, not 538 (decision A spent one), and **"+2 frames per sector" is not
+> an identity** — with the same 183 sectors the ATR menu arrives at 554 frames
+> cold-started without BASIC and 538 with BASIC enabled. Use it to size a
+> budget, never to predict a frame.
 
 The ATR menu deadline is `190 + 2 × transport sectors` frames and is met with
 0 frames of slack at every candidate since `3838c00` (MEASURED). Two measured
@@ -723,7 +750,14 @@ it; the level format already allows 4.
 Each is phrased as a decision with its consequence; the design works under any
 answer, the roadmap does not.
 
-1. **Where do eight levels live?**
+1. **Where do eight levels live?** — **ANSWERED AND SUPERSEDED TWICE.**
+   Owner decision 23 §10.1 (2026-09-19) chose **variant B** and rejected
+   variant A. Owner decisions **B** and **C** (2026-09-20) then took **both**:
+   the window *is* opened, and the disk carries per-level **data**, not code.
+   The variants below no longer describe the choice that was made, and the
+   question's own premise changed: owner decision **E** makes it **sixteen**
+   levels. Variant C ("one or two levels resident, the target deferred") is
+   dead. Kept for the reasoning and the costs, which are still sound.
    - **A. Open the BASIC window `$A000-$BFFF` as a boot-loaded level bank
      (recommended for 4.6).** 4 KB of LevelDef pages plus the 4.6 code that
      does not fit the arena. Keeps ADR-004 (no disk I/O after boot), needs a
@@ -736,7 +770,7 @@ answer, the roadmap does not.
    - **B. A between-level loader into the resident buffer.** Supersedes
      ADR-004, adds a resident `SIOV` reader (~80-120 B) and a loader-mode
      display state, hardware-critical validation on real SIO2SD. Consequence:
-     the disk's 538 free sectors become the content budget, fresh hulls and
+     the disk's 537 free sectors (MEASURED at HEAD; 538 before decision A) become the content budget, fresh hulls and
      per-level payloads become cheap, and 4.6 grows a hardware task.
    - **C. Neither.** One or two levels resident; the eight-level target is
      deferred with the campaign. Consequence: 4.6 still ships subtypes, waves
@@ -759,7 +793,11 @@ answer, the roadmap does not.
    projectiles.** Angled projectiles are hot-path ASM in full segments and
    would be `BLOCKED_PLACEMENT` today; approving them means approving a
    renderer task before 4.6 can author them.
-6. **Difficulty model.** Proposed: waves authored for MEDIUM, spacing scaled
+6. **Difficulty model.** *(Answered by decision 23 §10.6: scaled spacing,
+   unscaled counts, ceilings never scaled. Extended by owner decision **J**,
+   2026-09-20: difficulty scales the existing reload and spacing scaling **and**
+   damage — player-dealt, player-taken, contact and boss. Ceilings still never
+   scale.)* Proposed: waves authored for MEDIUM, spacing scaled
    by shifts, counts unscaled, ceilings never scaled. Alternative: HARD adds
    +1 to Light wave counts (a 1 B header rule) — cheap, but it makes HARD
    swarms hit the ceiling sooner rather than feel different.

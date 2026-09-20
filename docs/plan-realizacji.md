@@ -1,17 +1,21 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 6.0
-Data: 2026-09-18
+Wersja: 6.1
+Data: 2026-09-20
 Rola: **jedyna aktywna roadmapa projektu**
 Branch roboczy: `wip/4.5d-gate-fail`
 
 > **Skonsolidowany obraz całości** (roadmapa, architektura, zmierzona mapa
-> pamięci, decyzje, backlog, cel treściowy, metoda pracy) przypięty do HEAD
-> `c31b220`: [`project-overview.md`](project-overview.md). Jego §8.5-8.7
-> wymieniają rozbieżności znalezione **w tym pliku** — §7 (odrzucone kierunki)
-> wobec decyzji 23/B/C, §4 pkt 7 („16 poziomów") wobec celu ośmiu poziomów, i
-> nieaktualne liczby w §3 oraz §4.5c. Ten plik pozostaje jedyną aktywną
-> roadmapą; poprawki w nim wymagają decyzji właściciela.
+> pamięci, decyzje, backlog, cel treściowy, metoda pracy):
+> [`project-overview.md`](project-overview.md).
+>
+> **Rozbieżności, które wskazywał jego §8.5-8.7, są rozstrzygnięte
+> 2026-09-20 i naniesione w tym pliku:**
+> §7 (odrzucone kierunki) — oznaczone SUPERSEDED, decyzja **Q**;
+> §4 pkt 7 („kampania 16 poziomów") — **obowiązuje bez zmian**, bo decyzja
+> **E** ustala szesnaście poziomów, a to cel ośmiu poziomów był nieaktualny;
+> §3 i §4.5c — liczby zastąpione pomiarem przy HEAD, z zachowaniem
+> oryginalnych jako historii.
 
 Bieżący stan (checkpointy, XEX, CPU/RAM, otwarte defekty, kandydaci) opisuje
 wyłącznie [`STATUS.md`](STATUS.md). Zasady pracy:
@@ -96,8 +100,21 @@ komórka, glif z dwoma impulsami). `4/4/6` wyłącznie diagnostycznie.
   `wip/4.5d-gate-fail`: 4.5c Bomber, odroczenie klatki śmierci (Option E),
   poprawka podwójnego obrazu przy respawnie, wynik za debris (strzał i
   kontakt), strażnicy sąsiedztwa segmentów oraz 4.5d enemy identity freeze.
-  XEX `8940d646…`. Zmierzony stan: najgorszy margines fence 450 cykli, arena
-  617/832 B (215 B wolne), wolny ogon BROADSIDE 3 B, ENTITY_CODE 1 B.
+  XEX `8940d646…`. Zmierzony stan **w momencie tego smoke**: najgorszy margines
+  fence 450 cykli, arena 617/832 B (215 B wolne), wolny ogon BROADSIDE 3 B,
+  ENTITY_CODE 1 B.
+  **SUPERSEDED 2026-09-20 w części dotyczącej fence:** `0a90c1c` nie jest już
+  zaakceptowanym checkpointem, a margines 450 cykli pochodzi sprzed Option D —
+  patrz pozycja poniżej. Liczby bajtowe (arena 617/832 B z 215 B wolnymi,
+  BROADSIDE 3 B, ENTITY_CODE 1 B) obowiązują nadal i są potwierdzone pomiarem
+  przy HEAD.
+- **Zaakceptowany (owner smoke PASS 2026-09-18) — BIEŻĄCY CHECKPOINT:**
+  `0002d84` — Option D, pominięcie kopiowania ciała `P1`/`P2` w
+  `draw_enemy_member`, gdy Y członka się nie zmieniło. XEX `ecc9ceda…`.
+  MEASURED: najgorszy margines fence **1 464 cykli** (było 450/466),
+  0 zdarzeń zgubionej klatki na 69 audytowanych replayach, natywna bramka
+  stale-body 0 wierszy. Dokładnie size-neutral we wszystkich segmentach, więc
+  liczby bajtowe pozycji wyżej się nie zmieniają. Szczegóły: STATUS.
 - **Zaakceptowany w `0a90c1c`:** Interceptor (4.4) z 4.4b i 4.4c, 4.5a, 4.5b,
   4.5M-M1/M2/M3 oraz emitter-independent hostile shots — wszystko to działa w
   zaakceptowanym runtime i zostało objęte owner smoke 2026-09-18 (decyzja
@@ -223,11 +240,19 @@ Bomber jest **ostatnim** archetypem MVP. Kolejność wykonania:
 - **4.5c — archetyp Bomber** (C: rekord, selekcja Heavy, ruch, ogień; ASM:
   wykonanie).
   Stan: **OWNER-ACCEPTED** (owner smoke PASS 2026-09-18, `0a90c1c`) — projekt z `8e138a8`
-  (poprzednio `BLOCKED_PLACEMENT`) umieszczony w `HYBRID_C_ARENA` z 4.5M-M3:
-  arena 392/832 B (ASM 20, C 339, RODATA 33; 440 B wolne), ogon
-  `HYBRID_C_EXT` 28 B, 180 sektorów transportu, menu ATR 550 przy terminie
-  550; TYMCZASOWY harmonogram Heavy (Raider, Bomber…) do zastąpienia w 4.6;
+  (poprzednio `BLOCKED_PLACEMENT`) umieszczony w `HYBRID_C_ARENA` z 4.5M-M3;
+  TYMCZASOWY harmonogram Heavy (Raider, Bomber…) do zastąpienia w 4.6;
   szczegóły: STATUS.
+
+  > **Liczby z chwili 4.5c są SUPERSEDED (2026-09-20).** Zapisano wtedy: arena
+  > 392/832 B (ASM 20, C 339, RODATA 33; 440 B wolne), ogon `HYBRID_C_EXT`
+  > 28 B, 180 sektorów transportu, menu ATR 550 przy terminie 550.
+  > MEASURED przy HEAD: arena **617/832 B, 215 B wolne**; złożony ogon
+  > `HYBRID_C_EXT` + `LIGHT_CODE`/`HEAVY_CODE` **19 B**; transport **183
+  > sektory** (decyzja A dołożyła jeden). Para „550 przy terminie 550" pochodzi
+  > z formuły `190 + 2 × sektory`, **którą decyzja 22 prze-bazowała** — ten
+  > termin już nie istnieje. Dzisiejszy pomiar menu ATR to **554 klatki**
+  > wobec sufitu 3 000 klatek i commitowanego baseline'u 554.
 
 Kolejność po 4.5 (**decyzja właściciela 21, 2026-09-18** — zastępuje kolejność
 z decyzji 20 i wszystkie wcześniejsze uporządkowania §4.6+):
@@ -305,12 +330,45 @@ Zastępuje TYMCZASOWE harmonogramy smoke (`{WINGMAN, INTERCEPTOR}` oraz
 #### 4. Boostery broni gracza
 
 `weapon_class` już istnieje, kapsuły pickupu mają pełny lifecycle, a 12 glifów
-wrogich pocisków jest wolnych. Koszt ląduje w slotach pocisków gracza (2 945
-cykli w `handle_collisions`), więc preferować boostery, które **nie mnożą
-pocisków w locie** (szybsza kadencja, silniejszy strzał, przebicie) nad spread,
-który trzeba wycenić osobno. **Planować dopiero po Option D.**
+wrogich pocisków jest wolnych. Koszt ląduje w slotach pocisków gracza
+(**4 407** cykli w `handle_collisions`, MEASURED przy HEAD w tabeli DMA-off
+`build/manifest.json`; wcześniej zapisane tu 2 945 jest **nieaktualne**), więc
+preferować boostery, które **nie mnożą pocisków w locie** (szybsza kadencja,
+silniejszy strzał, przebicie) nad spread, który trzeba wycenić osobno.
+**Planować dopiero po Option D.**
+
+**Decyzja właściciela N (2026-09-20) — STAŁY BOOSTER BRONI.** Zebranie podnosi
+poziom broni o jeden, maksymalnie do pięciu; poziom ustawia obrażenia **i
+kolor** pocisku, więc kolor zastępuje HUD; śmierć kosztuje **jeden** poziom, nie
+wszystkie. Architektonicznie **jedna zmienna 0-5**, z której wynikają obrażenia
+i aktywny `weapon_class`. Pozostałe boostery bez zmian. Zweryfikowane przy
+zapisie decyzji: żaden istniejący booster nie modyfikuje obrażeń
+(`src/main.s:3892`, zaszyte `lda #$01`), a pociski gracza mają własny bank
+glifów (baza 11, stride 9, dziś 36 kodów przy suficie `CAPITAL_HULL_GLYPH_BASE`
+= 59), więc pięć wyglądów się mieści. **Otwarte: kolor** — pociski gracza są
+komórkami ANTIC 4 w dzielonych rejestrach playfielda, a `art-direction.md`
+zabrania lokalnemu obiektowi zmieniać globalną paletę. Pełny zapis:
+`owner-decisions-2026-09-11.md` §N.
 
 #### 5. 4.7 Boss
+
+**Decyzja właściciela H (2026-09-20): jedna mechanika, wiele wyglądów.** Jeden
+kontroler bossa; każdy boss to **rekord** opisujący układ modułów, rozmieszczenie
+i liczbę dział oraz punkty słabe, zbudowany z podejścia powtarzalnych modułów
+uzgodnionego już dla capital. **Broń bossa używa istniejących rekordów
+`weapon_class`** (pociski Bombera, Interceptora i Raidera) — celowo, żeby
+zaoszczędzić kod na pracę nad boosterami.
+
+**Decyzja właściciela I (2026-09-20): laser bossa.** Linia rysowana **naraz** od
+działa do dołu ekranu — nie rozwijający się promień (wcześniejsze
+„rozwijający się" zostało wycofane, co czyni go znacznie tańszym niż obiekt o
+zmiennej długości). Trwa jedną sekundę. Telegrafowany widocznym nagrzewaniem
+działa z dźwiękiem przez ok. dwie sekundy, żeby gracz zdążył wyjść z kolumny.
+Niszczy wszystko na swojej drodze — właściciel przyjmuje to jako wymaganie, na
+ocenie, że stały zakres kolumn i wierszy jest tańszy niż zwykła kolizja, bo nie
+ma ruchu do śledzenia (**ESTIMATE właściciela, do zweryfikowania przy
+planowaniu 4.7**). Liczba na poziom: 1 na poziomach 1-4, 2 na 5-9, 4 na 10-16,
+do dostrojenia przy balansowaniu.
 
 Projektować **sterowany danymi**: fazy, wzorzec ruchu, wzorzec ognia, HP i
 punkty słabe jako dane, tak aby kolejni bossowie byli rekordami, a nie
@@ -330,6 +388,31 @@ sprawdzenie kolizji** — nie nowy podsystem.
 
 Pętla poziomu, kampania 16 poziomów jako dane, polish.
 
+**Potwierdzone decyzją właściciela E (2026-09-20): szesnaście poziomów.**
+Liczba w tym punkcie i w decyzji 21 pkt 7 **była poprawna**; nieaktualny był
+cel ośmiu poziomów w `design-4.6-data-architecture.md` §6 i w celu treściowym.
+Każdy poziom kończy się bossem. Najłatwiejszy poziom trudności ma być do
+przejścia dla każdego.
+
+Co jeszcze wchodzi w ten punkt po decyzjach 2026-09-20:
+
+- **Zróżnicowanie capitali jest parametryczne (decyzja F).** Cztery zestawy
+  grafiki segmentów; długość w segmentach, gęstość wieżyczek i maksymalne
+  wysunięcie gondoli to trzy niezależne parametry po cztery stopnie, nakładane
+  na wybrany zestaw. Jeden wariant kadłuba na poziom. Koszt: cztery zestawy po
+  ok. 1 253 B na dysku plus parametry na poziom — nie szesnaście zestawów.
+- **Życia (decyzja K).** Trzy na start plus jedno po każdym nieparzystym
+  poziomie od 3 w górę (3, 5, 7, 9, 11, 13, 15) — siedem dodatkowych.
+- **Wybór poziomu (decyzja L).** Start od najdalszego osiągniętego poziomu;
+  tylko w RAM; zmiana trudności w menu zeruje do poziomu 1; menu pokazuje, które
+  poziomy są dostępne.
+- **Najlepsze wyniki (decyzja M).** Tylko RAM, bez zapisu na dysk — to
+  potwierdzenie dzisiejszego zachowania, nie zmiana.
+- **Trudność (decyzja J).** Skaluje istniejące przeładowanie i odstępy **oraz**
+  obrażenia: zadawane przez gracza, otrzymywane przez gracza, od kontaktu i
+  bossa. Sufity populacji pozostają nieskalowane (decyzja 23 §10.6).
+- **Ekran loadera (decyzja O) i ekran końcowy (decyzja P).**
+
 ---
 
 ## 5. Backlog — świadomie odłożone, nie zapomniane
@@ -337,7 +420,18 @@ Pętla poziomu, kampania 16 poziomów jako dane, polish.
 Nie jest to lista defektów (te są w §6 i w STATUS), lecz praca celowo
 odsunięta. Nie realizować bez wskazania właściciela.
 
-- **4.8b niszczalne działa gondol.** Turrety nie są dziś obiektami:
+- **Zapis na dysk (postęp, najlepsze wyniki) — ZAPARKOWANE** (2026-09-20).
+  Wymaga zapisu SIO, obsługi błędów i decyzji o tym, czy własny ATR gry ma
+  pozostać nienaruszony, kiedy ludzie wymieniają się obrazami dysków. Decyzje L
+  i M trzymają postęp i wyniki w RAM-ie właśnie dlatego.
+- **Animacja ekranu końcowego i tekst jej scrolla** (decyzja P, 2026-09-20).
+  Docelowo animacja w górnej jednej trzeciej ekranu na pełną szerokość plus
+  scroll pod nią; osobny podprojekt na koniec, doczytywany sektor, nie
+  rezydentny. Na teraz wystarczy prosta wiadomość. Tekst scrolla powstaje na
+  końcu procesu.
+- **4.8b niszczalne działa gondol.** Potwierdzone jako backlog decyzją
+  właściciela G (2026-09-20): wieżyczki capital pozostają **nieniszczalne**.
+  Turrety nie są dziś obiektami:
   `BROAD_TURRET` jest polem powłoki, `BROAD_TURRET_FIRED` zatrzaskiem ognia —
   bez HP, bez stanu slotu, nie są celem kolizji. To **nowy typ obiektu**
   wymagający własnego planu i budżetu i **nie może opóźnić bossa**.
@@ -372,6 +466,9 @@ Aktualna lista i priorytety są w STATUS. Na dziś:
 
 ## 7. Kierunki odrzucone — nie wracać bez nowych dowodów lub decyzji właściciela
 
+> **Ostatnia pozycja tej listy jest SUPERSEDED — czytaj ją razem z notą pod
+> listą.** Pozostałe pozycje obowiązują bez zmian.
+
 - pełny double buffer fighter playfieldu;
 - globalny read-only visible ring jako wymóg;
 - moving fence / dynamiczny fence rastra zależny od Y obiektu;
@@ -382,7 +479,22 @@ Aktualna lista i priorytety są w STATUS. Na dziś:
 - dodatkowy background/ring 25 Hz scheduler;
 - znakowi Raiderzy; osobny podsystem wraku Raidera przed przebudową debris;
 - row-baked/blue far stars i druga klasa gwiazd;
-- BASIC RAM, loader changes i runtime disk I/O jako obejście.
+- ~~BASIC RAM, loader changes i runtime disk I/O jako obejście.~~
+  **SUPERSEDED 2026-09-20.** Wszystkie trzy są uzgodnioną drogą: BASIC RAM —
+  decyzja **B**; zmiana loadera — decyzje **C** i **O**; runtime disk I/O —
+  decyzja **23 §10.1**. Wpis zostaje, bo jest historią tego, dlaczego tak było.
+
+**Co zmieniło grunt (decyzja Q, 2026-09-20).** Deadline bootu ATR został
+prze-bazowany na budżet 60 sekund (decyzja 22), więc runtime disk I/O nie
+kupuje się już czasem ładowania, którego nikt nie wybrał. ATR i tak wymagał
+wyłączenia BASIC-a (decyzja A), więc okno `$A000-$BFFF` jest bezwarunkowym
+RAM-em, a nie obejściem placementu. A szesnaście poziomów ze zróżnicowaną
+grafiką capital (decyzje **E** i **F**) nie mieści się rezydentnie, więc
+zmiana loadera jest wymaganiem treści, a nie skrótem zamiast inżynierii.
+Reguła była napisana wtedy, gdy te trzy rzeczy proponowano **zamiast** pracy
+inżynierskiej; dziś są decyzjami podjętymi **po** niej. Zapis decyzji:
+[`owner-decisions-2026-09-11.md`](owner-decisions-2026-09-11.md), sekcja
+„Decyzje literowe 2026-09-20".
 
 ---
 

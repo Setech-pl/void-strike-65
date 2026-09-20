@@ -1,11 +1,18 @@
 # VOID STRIKE 65 — decyzje właścicielskie po Stage 2B.2b
 
 > **Skonsolidowana lista wszystkich obowiązujących decyzji** — numerowanych
-> 1-23, czterech z 2026-09-19 (bramki/trace) i literowych A-D z 2026-09-20 —
+> 1-23, czterech z 2026-09-19 (bramki/trace) i literowych **A-R** z 2026-09-20 —
 > wraz z ich konsekwencjami i tym, co je zastąpiło:
-> [project-overview.md](project-overview.md) §5. Decyzje B, C i D **nie są
-> zapisane w tym pliku**; istnieją wyłącznie tam. Decyzja 23 §10.1 została
-> zastąpiona przez decyzje B i C.
+> [project-overview.md](project-overview.md) §5. Cała seria literowa jest
+> zapisana **w tym pliku**, na jego końcu (sekcja „Decyzje literowe
+> 2026-09-20"); A-D zapisano tam pierwotnie tylko w `project-overview.md` §5.3
+> i przeniesiono 2026-09-20. Decyzja 23 §10.1 została zastąpiona przez decyzje
+> B i C.
+>
+> **Decyzje E-R (2026-09-20) domykają koncepcję gry i zastępują reguły oraz
+> dokumenty projektowe wszędzie tam, gdzie mówią co innego** — w
+> szczególności `plan-realizacji.md` §7 i `reguly-projektu.txt` §11
+> (decyzja Q) oraz cel ośmiu poziomów (decyzja E).
 
 Data: 2026-09-11  
 Status: DZIENNIK DECYZJI — każda sekcja ma własny tag: ACTIVE, OWNER-ACCEPTED, SUPERSEDED albo REJECTED.
@@ -802,3 +809,433 @@ jest nadal otwarta.
 
 Odpowiedź na §10.1 nie zmienia ograniczenia 4.6: wiążące pozostaje rezydentne
 RAM, nie czas bootu (decyzja 22).
+
+---
+
+# Decyzje literowe 2026-09-20 — koncepcja gry ustalona
+
+Właściciel jest architektem projektu. Poniższe decyzje domykają koncepcję gry.
+Od tego miejsca **to one są kierunkiem**, a zasady i architektura zapisane
+wcześniej w repozytorium ustępują im wszędzie tam, gdzie mówią co innego.
+Decyzje A-D zapisano pierwotnie wyłącznie w
+[project-overview.md](project-overview.md) §5.3; zostają tu przeniesione,
+żeby cała seria literowa miała jedno miejsce w dzienniku.
+
+Nic z tego **nie jest zaimplementowane**. To zapis decyzji, nie stan gry;
+bieżący stan opisuje [STATUS.md](STATUS.md).
+
+---
+
+## A. ATR ma bootować bez OPTION — OWNER-SMOKE CANDIDATE (2026-09-20)
+
+Zaimplementowane na HEAD. `disable_basic_rom` (14 B w stałym prefiksie
+bootstrapu) wymusza bit 1 `PORTB` i zapisuje `BASICF = $01`, wywoływane z
+`boot_stage2_atr_entry` i `boot_stage2_xex_entry`. Transport 182 → 183
+sektory. Skutek uboczny, na którym stoi decyzja B: `$A000-$BFFF` jest
+**bezwarunkowo RAM-em** przez cały runtime. Dowody i to, co właściciel musi
+sprawdzić na SIO2SD: STATUS, sekcja „Owner decision A".
+
+## B. Otwieramy okno `$A000-$BFFF` — OWNER-ACCEPTED (2026-09-20)
+
+Okno jest używalnym RAM-em i **będzie używane**. Zastępuje odpowiedź na §10.1
+z decyzji 23 (gdzie wariant A — okno — został odrzucony) oraz regułę
+`reguly-projektu.txt` §11 w części „BASIC RAM". Deficyt rozmieszczenia 4.6
+(§7.3 projektu 4.6, rzędu 350-450 B) przestaje być blokerem.
+
+## C. Kontenerów kodu nie budujemy teraz — OWNER-ACCEPTED (2026-09-20)
+
+Przy otwartym oknie wszystkie warianty handlerów mieszczą się rezydentnie bez
+swapowania, więc **loader niesie DANE na poziom, nie kod**. Szew pod przyszłe
+swapowanie przygotowujemy wewnątrz 4.6 (tablica skoków dla czterech wejść
+zachowań; wybór grafiki po slocie, nie po stałej archetypu; nazwany predykat
+granicy drenażu przed capital) — każdy z tych trzech i tak mieści się w
+zakresie 4.6.
+
+Uzasadnienie: zestaw bramek jest ślepy na rodzinę awarii kontenera (własność
+zapisu w kontenerze, domena wykonania, domena archetypu per slot), a
+warunkiem koniecznym dla wszystkich trzech jest replay przekraczający granicę
+poziomu — taki nie istnieje, bo poziom jest jeden. Pełny wywód:
+[project-overview.md](project-overview.md) §3.3.
+
+> **Korekta uzasadnienia, 2026-09-20.** Wywód §3.3 opierał się m.in. na
+> zdaniu, że „jedyny natywny write-watch, jaki istnieje, dowodzi odwrotnego
+> inwariantu". To prawda, ale **słabsza, niż brzmiała**: `capacity-window-watch`
+> nie jest bramką stojącą — patrz decyzja Q i `project-overview.md` §8.11.
+> Projekt nie ma stojącego write-watcha; ma write-watcha, którego można
+> uruchomić ręcznie. Decyzja C pozostaje w mocy: brak replaya przez granicę
+> poziomu jest wystarczającym powodem sam w sobie.
+
+## D. Pomiar sprzętowy jest odroczony — OWNER-ACCEPTED (2026-09-20)
+
+Każda liczba dotycząca czasu bootu i tempa czytania sektorów pozostaje
+EMULATOR-MEASURED. Rejestr długu: decyzja R.
+
+---
+
+## E. Szesnaście poziomów, nie osiem — OWNER-ACCEPTED (2026-09-20)
+
+**Kampania ma szesnaście poziomów.** Każdy kończy się bossem.
+
+Wcześniejsza liczba osiem — w `design-4.6-data-architecture.md` §6 i w celu
+treściowym `project-overview.md` §6.1 — zostaje **ZASTĄPIONA**.
+`plan-realizacji.md` §4 pkt 7 i decyzja 21 pkt 7 („kampania 16 poziomów jako
+dane") **obowiązują**; to nie one były nieaktualne.
+
+Uzasadnienie właściciela: szesnaście poziomów daje graczowi czas, żeby się grą
+nacieszyć, a projektantowi miejsce, żeby wprowadzać nowe rzeczy w mierzonym
+tempie, zamiast upychać całą nowość w ośmiu krokach. **Najłatwiejszy poziom
+trudności ma być do przejścia dla każdego.**
+
+Konsekwencja, którą trzeba nieść dalej: budżet dyskietki. MEASURED na tym
+HEAD: 537 wolnych sektorów = 68 736 B. Szesnaście wariantów kadłuba po
+1 253 B ≈ 160 sektorów. Dysk nadal nie jest ograniczeniem — ale to decyzja F
+sprawia, że nie jest.
+
+## F. Zróżnicowanie capitali jest parametryczne, nie per-poziom — OWNER-ACCEPTED (2026-09-20)
+
+**Cztery odrębne zestawy grafiki segmentów.** Na wybrany zestaw nakłada się
+trzy niezależne parametry, każdy w czterech stopniach:
+
+1. **długość w segmentach**;
+2. **gęstość wieżyczek**;
+3. **maksymalne wysunięcie gondoli**.
+
+Jeden wariant kadłuba na poziom, żeby gracz czuł, że każdy poziom to nowy
+rejon przestrzeni.
+
+Koszt: cztery zestawy grafiki po ok. **1 253 B** na dysku (MEASURED:
+`capitalHulls.glyphBytes` 248 + `capitalHulls.packedMapAndMetadataBytes`
+1 005) plus parametry na poziom, zamiast szesnastu zestawów grafiki. To jest
+powód, dla którego decyzja E nie rozsadza budżetu treści: nowość poziomu
+niesie kombinacja parametrów, nie nowy rysunek.
+
+## G. Wieżyczki capital pozostają NIENISZCZALNE — OWNER-ACCEPTED (2026-09-20)
+
+Potwierdzone przez właściciela. Wieżyczki nie są dziś obiektami: `BROAD_TURRET`
+jest polem powłoki, `BROAD_TURRET_FIRED` zatrzaskiem ognia — bez HP, bez stanu
+slotu, nie są celem kolizji. Uczynienie ich niszczalnymi to **nowy typ
+obiektu**, a skan pocisków gracza jest już najdroższą pozycją w kolizjach.
+Pozostaje pozycją backlogu **4.8b** i nie może opóźnić bossa.
+
+Nie unieważnia to decyzji 4.5 („destroyable turrets") jako kierunku — odsuwa
+ją poza obecny zakres, tak jak dotąd robił to backlog.
+
+---
+
+## H. Boss: jedna mechanika, wiele wyglądów — OWNER-ACCEPTED (2026-09-20)
+
+**Jeden kontroler bossa.** Każdy boss to **rekord** opisujący:
+
+- układ modułów;
+- rozmieszczenie i liczbę dział;
+- punkty słabe.
+
+Zbudowany z tego samego podejścia „powtarzalnych modułów", które zostało już
+uzgodnione dla capital (decyzja 7).
+
+**Broń bossa używa istniejących rekordów `weapon_class`** — pocisków Bombera,
+Interceptora i Raidera — **celowo**, żeby zaoszczędzić kod na pracę nad
+boosterami. To jest jawny wybór właściciela, nie oszczędność wymuszona
+pomiarem: boss ma różnić się układem, liczbą dział i punktami słabymi, a nie
+nowymi pociskami.
+
+Wzmacnia to decyzję 21 (ROSTER FREEZE): szesnastu bossów nie wprowadza
+szesnastu nowych zestawów pocisków.
+
+## I. Laser bossa — OWNER-ACCEPTED (2026-09-20)
+
+- **Linia rysowana naraz** od działa do dołu ekranu. **Nie** rozwijający się
+  promień. Wcześniejsze „rozwijający się" właściciela było skrótem myślowym i
+  **zostaje wycofane** — a to właśnie czyni laser znacznie tańszym niż obiekt
+  o zmiennej długości.
+- **Trwa jedną sekundę** (50 klatek PAL).
+- **Telegraf: działo widocznie się nagrzewa, z dźwiękiem, przez ok. dwie
+  sekundy.** Gracz ma zdążyć wyjść z kolumny. Telegraf jest częścią
+  mechaniki, nie ozdobą.
+- **Niszczy wszystko na swojej drodze.** Właściciel przyjmuje to jako
+  wymaganie, przy ocenie, że **stały zakres kolumn i wierszy jest tańszy niż
+  zwykła kolizja, bo nie ma ruchu do śledzenia**.
+- **Liczba na poziom:** 1 na poziomach 1-4, 2 na 5-9, 4 na 10-16. Do
+  dostrojenia przy balansowaniu.
+
+Ocena kosztu jest **ESTIMATE właściciela**, nie pomiarem. Zweryfikować przy
+planowaniu 4.7, razem z resztą budżetu bossa.
+
+---
+
+## J. Trudność skaluje JEDNO I DRUGIE — OWNER-ACCEPTED (2026-09-20)
+
+Trudność skaluje **istniejące skalowanie przeładowania i odstępów ORAZ
+obrażenia**:
+
+- obrażenia zadawane przez gracza;
+- obrażenia otrzymywane przez gracza;
+- obrażenia od kontaktu;
+- obrażenia bossa.
+
+Właściciel proponował najpierw **wyłącznie obrażenia**; zostało to zmienione
+w trakcie rozmowy, bo przy samych obrażeniach EASY i HARD wyglądają tak samo i
+różnią się jedynie tempem, w jakim gracz ginie — podczas gdy skalowanie
+przeładowania i odstępów **już istnieje i nic nie kosztuje**.
+
+MEASURED, stan dzisiejszy: obrażenia pocisku gracza to zaszyta stała
+`lda #$01` (`src/main.s:3892`); żaden booster ani poziom trudności jej nie
+dotyka. Obrażenia od kontaktu z debris **już** skalują się trudnością (2/5/7
+jednostek HULL na Easy/Medium/Hard, `game-design.md` §„HUD and player
+lifecycle"), a tempa pionowe i pauzy ognia 56/44/32 już są skalowane.
+
+Uwaga na granicę z decyzją 23 §10.6: **sufity nigdy nie są skalowane**.
+Skalowanie obrażeń jej nie narusza — ale `game-design.md` §„World and
+difficulty" mówi dziś o „istniejących sufitach intensywności EASY/MEDIUM/HARD
+(3/4/5)", co jest **sprzeczne z decyzją 23 §10.6** niezależnie od tej decyzji.
+Do rozstrzygnięcia przy planowaniu 4.6 (patrz lista w decyzji Q).
+
+## K. Życia — OWNER-ACCEPTED (2026-09-20)
+
+**Trzy na start** (tak jak dziś) **plus jedno po ukończeniu każdego nieparzystego
+poziomu od 3 w górę**: poziomy 3, 5, 7, 9, 11, 13, 15 — **siedem dodatkowych
+przez całą kampanię**.
+
+## L. Wybór poziomu — OWNER-ACCEPTED (2026-09-20)
+
+Gracz może zacząć od **najdalszego osiągniętego poziomu**.
+
+- trzymane **tylko w RAM**, więc ginie po wyłączeniu zasilania;
+- **zmiana poziomu trudności w menu zeruje to do poziomu 1**;
+- menu **pokazuje, które poziomy są dostępne** — gracz nie ma zgadywać.
+
+## M. Najlepsze wyniki — OWNER-ACCEPTED (2026-09-20)
+
+**Tylko RAM, bez zapisu na dysk.** To potwierdza zachowanie, które już
+istnieje: `game-design.md` §„HUD and player lifecycle" — TOP SCORES trzyma
+dziesięć wyników w upakowanym BCD w RAM, a zimny start programu czyści
+tablicę. Decyzja zamyka temat, zamiast zostawiać zapis na dysk jako
+domniemany kierunek; zapis na dysk trafia do backlogu.
+
+## N. STAŁY BOOSTER BRONI — OWNER-ACCEPTED (2026-09-20)
+
+- Zebranie boostera **podnosi poziom broni gracza o jeden, maksymalnie do
+  pięciu**. Zebranie tego samego boostera ponownie podnosi kolejny poziom.
+- Poziom ustawia **obrażenia pocisku ORAZ kolor pocisku** — kolor mówi
+  graczowi, jak silny jest teraz, **bez żadnego HUD-u**.
+- **Śmierć kosztuje JEDEN poziom, nie wszystkie.**
+- Pozostałe boostery działają tak jak dziś (Rapid Fire, Spread Shot, Shield —
+  czasowe i wzajemnie wykluczające się).
+
+Architektonicznie ma to być **jedna zmienna — „poziom boostera 0-5"** — z
+której wynikają obrażenia i aktywny `weapon_class`. Nie dwa liczniki, nie
+tablica stanów.
+
+### N.1 Dwa pytania do weryfikacji w repozytorium — odpowiedziane pomiarem
+
+Właściciel polecił zapisać je jako otwarte. Dało się je rozstrzygnąć na tym
+HEAD, więc zapisane są **z dowodem**; co zostaje otwarte, jest nazwane niżej.
+
+1. **Czy jakiś istniejący booster modyfikuje obrażenia?**
+   **NIE.** MEASURED: obrażenia od trafienia pociskiem gracza to zaszyta stała
+   `lda #$01` w `src/main.s:3892`, przekazana do `queue_enemy_damage`. Trzy
+   miejsca wywołania tej procedury to pocisk gracza (1), kontakt gracza z
+   wrogiem (1) i pocisk capital (`CAPITAL_DAMAGE_UNITS`) — żadne nie czyta
+   stanu boostera. Rapid Fire zmienia **kadencję** i liczbę PairShotów, Spread
+   liczbę pocisków, Shield pochłania obrażenia gracza. **Poziom boostera może
+   więc być jedynym źródłem tej liczby** — nie ma drugiego źródła, które
+   zamieniłoby ją z liczby w system.
+2. **Czy klasy pocisków gracza dzielą limit `HOSTILE_WEAPON_VISUAL_COUNT <= 9`?**
+   **NIE — mają własny bank.** MEASURED (`build/fighter-weapons.inc`,
+   generowane z `assets/graphics/fighter-weapons.json`):
+   `PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE = 11`, `STRIDE = 9`, `COUNT = 36`
+   (cztery wyglądy po dziewięć faz). Wrogie wizualizacje siedzą osobno przy
+   `INTERCEPTOR_PROJECTILE_GLYPH_BASE = 90`, a asercja
+   `HOSTILE_WEAPON_VISUAL_COUNT <= INTERCEPTOR_PROJECTILE_GLYPH_STRIDE-1`
+   (`src/main.s:797`) ogranicza **tylko je**.
+   Sufit gracza to `src/main.s:792`:
+   `PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE + COUNT <= CAPITAL_HULL_GLYPH_BASE`,
+   a `CAPITAL_HULL_GLYPH_BASE = 59`. **Pięć wyglądów = 45 glifów, kody 11-55,
+   mieści się z zapasem trzech kodów.** Piąty wygląd jest do wzięcia; szósty
+   już nie.
+
+**Co zostaje OTWARTE — kolor.** `art-direction.md` §„Gameplay palette
+ownership" stawia wiążącą zasadę: *„A local object must not change the global
+palette in a way that recolours other objects"*. Pociski gracza są komórkami
+ANTIC 4 w dzielonych rejestrach playfielda (dziś wszystkie żółte `$1E`), więc
+„kolor na poziom boostera" **nie jest darmowy**: albo pięć poziomów mieści się
+w wartościach pikseli już przypisanych rejestrom playfielda, albo potrzebny
+jest inny mechanizm. To trzeba rozstrzygnąć **zanim** N zostanie zaplanowane,
+bo to właśnie kolor niesie całą informację dla gracza.
+
+---
+
+## O. Ekran loadera — OWNER-ACCEPTED (2026-09-20)
+
+- **Losowo wybrana linia z puli 8-16 krótkich tekstów po ANGIELSKU.**
+- **Animacja krokowana o jedną klatkę na przeczytany sektor** — nie pasek
+  postępu.
+
+Teksty wypowiada **pokładowa SI myśliwca** — cyniczna, widziała już za dużo.
+Mrugają okiem do *Autostopem przez Galaktykę*, *Gwiezdnych wojen*, *Avengers*
+i *Battlestar Galactica*, **nie cytując ich**: sytuacja, która przywołuje
+odniesienie, nigdy samo odniesienie. Teksty powstaną w osobnej, późniejszej
+sesji.
+
+Czytnik i tak potrzebuje **trybu wyświetlania na czas ładowania**, bo OS-owe
+VBI przepisuje `DMACTL`, listę wyświetlania, kolory, `CHBASE` i `PMBASE` ze
+swoich cieni w trakcie SIO. Skoro tryb i tak musi istnieć, ma coś pokazywać.
+
+Dlaczego animacja, a nie pasek: animacja czyta się dobrze przy **dowolnym**
+czasie trwania, a realne tempo czytania sektora na sprzęcie jest niezmierzone
+(decyzja D). Pasek obiecuje proporcję, której nie dotrzyma; animacja nie
+obiecuje nic i nadal mówi „żyję". Nierówne krokowanie jest przy okazji
+diagnostyką: widocznie zacinająca się animacja to wolny sektor na prawdziwym
+napędzie, widoczny dla właściciela bez żadnego oprzyrządowania.
+
+**Teksty muszą być rezydentne, zanim zacznie się czytanie**, bo w trakcie
+czytania nie da się nic doczytać. ESTIMATE: ok. **640 B** na 16 linii (16 × 40
+kolumn; krótsze linie proporcjonalnie taniej). To koszt rezydentny **czytnika**
+i budżetuje się go razem z nim, nie po nim.
+
+## P. Ekran końcowy — OWNER-ACCEPTED (2026-09-20)
+
+Docelowo: **animacja w górnej jednej trzeciej ekranu, na pełną szerokość, plus
+scroll tekstu pod nią**. Osobny podprojekt na sam koniec, być może w jakości
+demoscenowej, i **doczytywany sektor, nie rezydentny**.
+
+**Na teraz wystarczy prosta wiadomość.** Tekst scrolla powstaje na końcu
+procesu, kiedy będzie o nim coś prawdziwego do powiedzenia.
+
+---
+
+## Q. REGUŁY PROJEKTU SĄ ZASTĄPIONE — JAWNIE — OWNER-ACCEPTED (2026-09-20)
+
+`plan-realizacji.md` §7 i `reguly-projektu.txt` §11 wymieniają **„BASIC RAM,
+loader changes i runtime disk I/O"** jako kierunki odrzucone, do których się
+nie wraca. **Wszystkie trzy są uzgodnioną drogą** — odpowiednio: decyzja B,
+decyzja C wraz z O, i decyzja 23 §10.1.
+
+Wpisów **nie usuwamy**. Każdy zostaje oznaczony `SUPERSEDED`, z nazwą decyzji,
+która go zastąpiła, i jednym zdaniem o tym, co zmieniło grunt:
+
+- **ATR boot deadline został prze-bazowany na budżet 60 sekund** (decyzja 22),
+  więc runtime disk I/O nie kupuje się już czasem bootu, którego nikt nie
+  wybrał;
+- **ATR i tak wymagał wyłączenia BASIC-a** (decyzja A), więc „BASIC RAM" nie
+  jest już obejściem placementu, tylko następstwem poprawki bootu, którą
+  trzeba było zrobić z innego powodu;
+- **szesnaście poziomów ze zróżnicowaną grafiką capital nie mieści się
+  rezydentnie** (decyzje E i F), więc zmiana loadera jest wymaganiem treści, a
+  nie skrótem zamiast inżynierii.
+
+Reguła była napisana wtedy, gdy te trzy rzeczy proponowano **zamiast** pracy
+inżynierskiej. Dziś są decyzjami właściciela podjętymi **po** tej pracy.
+
+### Q.1 Co jeszcze w regułach i architekturze kłóci się z bieżącą drogą
+
+Przegląd całości, zgodnie z poleceniem — **lista, nie edycja**. Poza wpisami
+wyżej i poza rozbieżnościami §8 z `project-overview.md`, sprzeczne z bieżącą
+drogą są:
+
+1. **`reguly-projektu.txt` §11 zdanie drugie i trzecie.** Poza trzema
+   kierunkami powyżej reguła wymienia też „nowe mechanizmy transportu" jako
+   niedomyślne rozwiązanie placementu. Czytnik między poziomami (4.3) **jest**
+   nowym mechanizmem transportu. Nie jest to ta sama sprawa co BASIC RAM —
+   reguła nadal słusznie broni przed sięganiem po transport zamiast po
+   lokalną kontrolę granic segmentów — ale przy decyzji 23 §10.1 trzeba ją
+   czytać jako „nie domyślnie", a nie „nie".
+2. **`plan-realizacji.md` §4.3, akapit ostatni:** *„Bez BASIC RAM, runtime
+   disk I/O, nowej architektury loadera, przealokowania PMG i
+   multipleksowania rastra"*. To był zakaz **na czas kroku 4.3 Stage 1**,
+   który jest DONE i zaakceptowany — historia, nie obowiązująca reguła. Zdanie
+   nadal czyta się jak stojący zakaz.
+3. **`decisions/ADR-004-single-resident-gameplay.md`:** *„Perform no disk I/O
+   or package loading between normal sectors/levels"* — **SUPERSEDED** przez
+   decyzję 23 §10.1 i potwierdzone przez B i C. `project-overview.md` §5.4 już
+   to odnotowuje; sam ADR nie nosi znacznika.
+4. **`hybrid-c-architecture.md:304`** opisuje rozwiązanie placementu
+   uzyskane *„bez BASIC RAM, runtime disk I/O ani nowego rekordu loadera"* jako
+   zaletę. Po decyzjach B i C to zdanie opisuje wybór, którego już nie
+   dokonujemy — nie jest błędne jako historia, ale czyta się jak zasada.
+5. **`design-4.6-data-architecture.md` §9** („czego ta architektura celowo nie
+   wspiera") i §10.1 wariant C („jeden lub dwa poziomy rezydentnie; cel
+   ośmiu poziomów odroczony wraz z kampanią") — cel jest szesnaście poziomów
+   (E), a wariant, który wybrano, to B **plus** okno. §10.1 jest zastąpione
+   podwójnie.
+6. **`game-design.md` §„World and difficulty":** „sufity intensywności
+   EASY/MEDIUM/HARD (3/4/5)" wobec decyzji 23 §10.6 („sufity **nigdy** nie
+   skalowane"). To sprzeczność **wcześniejsza niż ta sesja** i niezależna od
+   decyzji J; do rozstrzygnięcia przy planowaniu 4.6.
+7. **`capacity-window-watch` opisywany jak bramka stojąca.** MEASURED i
+   zweryfikowane ponownie w tej sesji: ciąg `capacity-window-watch` nie
+   występuje w `package.json`, `scripts/build.mjs`, `scripts/runtime-wall-trace.mjs`
+   ani w `tests/`. To narzędzie dowodowe uruchamiane ręcznie. Ma to znaczenie
+   nie tylko opisowe: **uzasadnienie decyzji C powoływało się na nie** — patrz
+   nota przy decyzji C.
+8. **Reguły `reguly-projektu.txt` §12 i `plan-realizacji.md` §7 w pozostałej
+   części** (double buffer, moving fence, raster bands, znakowi Raiderzy,
+   row-baked far stars itd.) **nie kolidują** z niczym w tej serii decyzji i
+   zostają w mocy bez zmian. Sprawdzone, żeby lista była zamknięta.
+
+## R. POMIARY SPRZĘTOWE ODROCZONE — RYZYKO PRZYJĘTE PRZEZ WŁAŚCICIELA (2026-09-20)
+
+**OWNER-ACCEPTED RISK, 2026-09-20.** Rejestr długu technicznego. Każda pozycja
+z tym, co unieważnia, jeżeli pójdzie źle.
+
+| # | Dług | Co unieważnia, jeżeli pójdzie źle |
+| --- | --- | --- |
+| 1 | **RESET w trakcie rozgrywki może z powrotem zmapować ROM BASIC na `$A000-$BFFF`.** Zapis `BASICF = $01` ma temu zapobiec; emulator dowodzi tego najsłabiej. | **Decyzja B stoi na tym w całości.** Jeżeli RESET przywraca ROM, okno przestaje być RAM-em w trakcie gry, a wszystko, co w nim leży, znika. |
+| 2 | **Realne tempo czytania sektora** — SIO emulatora jest patchowane. | Pauza między poziomami i to, **ile treści mieści się na dysku** w akceptowalnym czasie. Decyzja O jest zaprojektowana tak, żeby jej to nie obchodziło; reszta planu treści (E, F) tak. |
+| 3 | **Poprawka bootu ATR bez OPTION jest dowiedziona tylko w emulatorze.** | Decyzja A, a przez nią bezwarunkowość okna (B) i cała droga §4 roadmapy na prawdziwym sprzęcie. |
+| 4 | **Co OS zajmuje powyżej `$BC20`, było niezmierzone**, więc okno mogło być mniejsze niż 8 KB. | **Zmierzone w tej sesji — patrz niżej.** Pozycja zostaje w rejestrze, bo pomiar jest EMULATOR-MEASURED i dotyczy Atari800, nie sprzętu. |
+
+### R.1 Pomiar wierzchołka okna — wykonany 2026-09-20
+
+Obserwator boot smoke (`scripts/atari800-wall-trace.h`) zapisuje teraz w
+migawce także `SDLSTL`/`SDLSTH` (`$0230`), `MEMTOP` (`$02E5`) i `RAMTOP`
+(`$6A`). Osiem sesji, 8/8 PASS. **EMULATOR-MEASURED, Atari800 7.1.2 PAL/XL:**
+
+| Stan BASIC przy zimnym starcie | RAMTOP | MEMTOP | `SDLSTL`/`SDLSTH` | Ekran OS | Używalny wierzchołek okna |
+| --- | --- | --- | --- | --- | --- |
+| **wyłączony** (`-nobasic`), XEX i ATR | `$C0` | `$BC1F` | `$BC20` | `$BC20-$BFFF` (992 B) | `$A000-$BC1F` = **7 200 B** |
+| **włączony** (`-basic`), XEX i ATR | `$A0` | `$9C1F` | `$9C20` | `$9C20-$9FFF` (992 B) | całe `$A000-$BFFF` = 8 192 B |
+
+Identyczne na obu nośnikach i obu wypełnieniach zimnego RAM-u (`$A5`, `$5A`).
+Migawka klatki 1 jest zerowa na wszystkich ośmiu sesjach — OS nie zdążył
+jeszcze zainicjować tych komórek; wartości powyżej pochodzą z klatek 250, 300,
+3050 i 3300 i są **stałe przez całą sesję**.
+
+**Liczba do planowania: `$A000-$BC1F`, czyli 7 200 B**, a nie 8 192 B. Szacunek
+właściciela (ok. 992 B ekranu OS na górze okna) okazał się dokładny — ale tylko
+dla zimnego startu **bez** BASIC-a.
+
+**Drugi wynik, którego nikt nie szukał, i on jest ważniejszy.** Przy zimnym
+starcie **z włączonym BASIC-iem** OS ustawia `RAMTOP = $A0` i kładzie swój ekran
+na `$9C20-$9FFF` — **nie w oknie, tylko wewnątrz rezydentnej pamięci gry**.
+Ten zakres zajmują dziś: ogon `ENTITY_CODE` (`$9C20-$9D5C`), `DIRECTOR_C_PRE`,
+`LEVEL1_DATA` i `DIRECTOR_C_CODE` (`$9E13-$9FF7`) — 992 B żywego kodu i danych
+C Directora. `disable_basic_rom` odmapowuje ROM, **ale nie przestawia cieni
+OS-a**: `RAMTOP`, `MEMTOP` i `SDLSTL`/`SDLSTH` zostają tam, gdzie ustawił je
+zimny start.
+
+Dziś nic się nie psuje — gra przejmuje ekran w całości, a MEASURED w tej samej
+migawce `NMIEN = $80` od klatki 250 wzwyż, czyli **VBI NMI OS-a jest
+wyłączone**. Ale to jest dokładnie ta sprawa, na którą powołuje się decyzja O:
+jeżeli czytnik między poziomami wróci do OS-owego SIO i wraz z nim ożywi VBI
+OS-a, ten przywróci listę wyświetlania z `SDLSTL`/`SDLSTH` — i na maszynie
+zimno wystartowanej z BASIC-iem wskaże `$9C20`, w środek kodu Directora. Nie
+w okno.
+
+**Wniosek do przeniesienia do 4.3:** tryb wyświetlania na czas ładowania musi
+**ustawić cienie OS-a na swoje wartości, zanim odda sterowanie do SIO**, a nie
+tylko przywrócić rejestry po. Zapisane tutaj, bo jest to pomiar, nie projekt.
+
+---
+
+## Backlog — dopisane 2026-09-20
+
+Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5
+i STATUS §„Backlog".
+
+- **Zapis na dysk (postęp, najlepsze wyniki) — ZAPARKOWANE.** Wymaga zapisu
+  SIO, obsługi błędów i decyzji o tym, czy własny ATR gry ma pozostać
+  nienaruszony, kiedy ludzie wymieniają się obrazami dysków. Decyzje L i M
+  trzymają jedno i drugie w RAM-ie właśnie dlatego.
+- **Niszczalne działa gondol (4.8b)** — potwierdzone jako backlog decyzją G.
+- **Animacja ekranu końcowego i tekst jej scrolla** — decyzja P.

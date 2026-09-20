@@ -886,7 +886,7 @@
     }
   },
   "runtimeCodeBudget": {
-    "measurement": "linked CODE + STARFIELD + BROADSIDE + A2_KERNEL + ENTITY_CODE bytes",
+    "measurement": "linked CODE + STARFIELD + BROADSIDE + A2_KERNEL + ENTITY_CODE + PICKUP_CODE bytes",
     "baselineBytes": 13697,
     "actualBytes": 17521,
     "actualDeltaBytes": 3824,

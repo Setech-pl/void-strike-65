@@ -37,6 +37,9 @@ to their prior blank contents. The optional type glyph is omitted because the
 40-column HUD has exactly ten unclaimed cells and one active booster at a time.
 
 - A new game starts with three playable Player Fighters and a full 100% hull.
+  **Planned (owner decision K, 2026-09-20):** one extra life after completing
+  each odd level from 3 onward — levels 3, 5, 7, 9, 11, 13, 15, seven extra
+  across the sixteen-level campaign (decision E). Not implemented.
 - The hull has ten health units. An ordinary Raider PairShot removes one unit
   (10%), while capital-ship fire removes two units (20%). Debris contact removes
   a fixed two, five, or seven units on Easy, Medium, or Hard (20%/50%/70% of
@@ -53,7 +56,8 @@ to their prior blank contents. The optional type glyph is omitted because the
 - Losing the final Player Fighter enters Game Over. New Game resets score, lives, hull,
   sector state, active projectiles, entities, effects, and boosters.
 - TOP SCORES keeps ten packed-BCD results in RAM, ordered from highest to
-  lowest. A completed non-zero game is inserted once on the Game Over
+  lowest. **Owner decision M (2026-09-20) confirms this as final: RAM only, no
+  disk write.** Disk save is backlog. A completed non-zero game is inserted once on the Game Over
   transition; equal scores follow existing equal entries. New Game resets only
   the current score, while a cold program start clears the table.
 
@@ -130,7 +134,22 @@ engines, aft, combat, forward, and prow sections, followed by drain, complete,
 and open-space transition states. Capital-ship engines alternate between dim
 and bright phases, each lasting eight active frames.
 
-Difficulty changes the measured vertical rates:
+Difficulty changes the measured vertical rates.
+
+> **Planned change — owner decision J (2026-09-20), not implemented.**
+> Difficulty is to scale the existing reload and spacing scaling **and
+> damage**: damage the player deals, damage the player takes, contact damage
+> and boss damage. Today only some of that exists: the vertical rates below,
+> the fire pauses 56/44/32, and debris contact damage at 2/5/7 HULL units.
+> Player-dealt damage is a hardcoded `lda #$01` (`src/main.s:3892`) that no
+> difficulty or booster touches. Population **ceilings are never scaled**
+> (owner decision 23 §10.6).
+>
+> **Open contradiction, older than decision J.** The paragraph below on the
+> provisional Hostile firing schedule says admission "continues to obey the
+> existing EASY/MEDIUM/HARD intensity ceilings (3/4/5)", which is scaling a
+> ceiling — what decision 23 §10.6 forbids. Settle this when planning 4.6.
+
 
 | Difficulty | World/scene and hull | Debris |
 | --- | ---: | ---: |
@@ -313,6 +332,50 @@ final-approach handoff from post-capital OPEN enters DRAIN, preserves active
 objects until their normal cleanup, and leaves the single COMPLETE state terminal.
 
 ## Planned
+
+### Campaign, progression and screens — owner decisions E-P (2026-09-20)
+
+Recorded here as player-visible rules. **None of it is implemented.** Full text
+and rationale: [owner-decisions-2026-09-11.md](owner-decisions-2026-09-11.md),
+section "Decyzje literowe 2026-09-20".
+
+- **Sixteen levels (E).** A boss ends every level. The easiest difficulty is to
+  be beatable by anyone.
+- **Capital variety is parametric (F).** Four segment-art sets; length in
+  segments, turret density and maximum gondola protrusion are three
+  independent parameters, four steps each, layered on a chosen set. One hull
+  variant per level, so each level reads as a new region.
+- **Capital turrets stay non-destructible (G).** Backlog 4.8b.
+- **Boss: one controller, a record per boss (H).** Module layout, weapon
+  placement and count, weak points. Boss weapons reuse the existing
+  `weapon_class` shells — Bomber, Interceptor, Raider.
+- **Boss laser (I).** Drawn at once from the gun to the bottom of the screen —
+  not an unfolding beam. Lasts one second. Telegraphed by the gun visibly
+  heating, with sound, for about two seconds, so the player must move out of
+  the column. Destroys everything in its path. One per level on 1-4, two on
+  5-9, four on 10-16, to be tuned during balancing.
+- **Difficulty scales reload, spacing and damage (J).** See "World and
+  difficulty" above.
+- **Lives (K).** Three at start, plus one after each odd level from 3.
+- **Level select (L).** The player may start from the furthest level reached.
+  RAM only, so it is lost at power-off; changing difficulty in the menu resets
+  it to level 1; the menu shows which levels are available, so the player is
+  not guessing.
+- **High scores (M).** RAM only — confirms existing behaviour.
+- **Permanent weapon booster (N).** Collecting it raises the player's weapon
+  level by one, up to five; collecting the same booster again raises another
+  level. The level sets both projectile damage and projectile colour, so the
+  colour tells the player his current strength **with no HUD**. Dying costs
+  **one** level, not all of them. The other boosters keep working as they do
+  today. Open: how five levels get five colours without changing the global
+  palette (see "Gameplay palette ownership" in
+  [art-direction.md](art-direction.md)).
+- **Loader screen (O).** A randomly chosen line from a pool of 8-16 short
+  English texts, plus an animation stepped one frame per sector read — not a
+  progress bar. The texts are spoken by the fighter's onboard AI: cynical,
+  having seen too much.
+- **End screen (P).** Eventually an animation in the top third at full width
+  with a text scroll below. A simple message suffices for now.
 
 ### Nova Missile — planned
 

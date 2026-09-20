@@ -3,6 +3,16 @@
 **Pinned to HEAD `c31b2208e9ae85678c02a20ed2e11a3ef4b38cfa` (`c31b220`), branch
 `wip/4.5d-gate-fail`, worktree clean. Written 2026-09-20.**
 
+> **Reconciliation pass, 2026-09-20 (HEAD `ac71df7`, this file's own commit
+> plus the reconciliation commit).** The owner settled the game's concept.
+> Owner decisions **E-R** are recorded in
+> [owner-decisions-2026-09-11.md](owner-decisions-2026-09-11.md), section
+> "Decyzje literowe 2026-09-20", together with A-D which had lived only in §5.3
+> of this file. Every disagreement in §8 below is now marked **RESOLVED** with
+> where it was corrected, or **STANDING** with why. Two figures in this file
+> were themselves wrong and are corrected in place: the near-star row in §2.1,
+> and the §2.5 ESTIMATE, which is now MEASURED.
+
 This document exists because the picture had scattered across eight documents
 and the copies had gone stale in ways that cost real work. The immediate cause:
 [STATUS.md](STATUS.md) and [memory-map.md](memory-map.md) both stated a **45 B**
@@ -179,7 +189,9 @@ reservation. This distinction is the one that caused the runtime crash: the
 | `HYBRID_C_STATE` (BSS) | `$8110-$8118` | 9 | `$8119` | 0 |
 | `HYBRID_ENCOUNTER_STATE` (BSS) | `$8119-$811A` | 2 | `$811B` | 0 |
 | `HYBRID_HEAVY_STATE` (BSS) | `$811B-$8125` | 11 | `$8140` gameplay ring | **26** (`$8126-$813F`) |
-| *(gameplay ring + row tables + publication/prepared-row state)* | `$8140-$85E5` | 1,190 | `$85FE` near-star state | **24** (`$85E6-$85FD`) |
+| *(gameplay ring + row tables + publication/prepared-row state)* | `$8140-$85E5` | 1,190 | `$85EF` `CORRIDOR_PHASE_HI` | **9** (`$85E6-$85EE`) |
+| *(corridor phase + hull draw row)* | `$85EF-$85F1` | 3 | `$85F2` near-star state | 0 |
+| *(near-star state — hand-placed BSS, 4 × 4 B)* | `$85F2-$8601` | 16 | `$8602` `HYBRID_C_SECTOR` | 0 |
 | `HYBRID_C_SECTOR` | `$8602-$86F1` | 240 | `$86FA` `DIRECTOR_C_BSS` | **8** (`$86F2-$86F9`) |
 | `DIRECTOR_C_BSS` (BSS) | `$86FA-$8700` | 7 | `$8701` | 0 |
 | `DIRECTOR_ABI` | `$8701-$8775` | 117 | `$8776` `PICKUP_CODE_RAM` | **0** |
@@ -204,9 +216,11 @@ reservation. This distinction is the one that caused the runtime crash: the
 
 ### 2.2 Real free RAM below `$A000`
 
-MEASURED total of the gaps above: **593 B**, in fifteen fragments, the largest
+MEASURED total of the gaps above: **578 B**, in fifteen fragments, the largest
 being the arena's 215 B and the starfield reservation's 114 B. Plus **6 B** at
-`$4FFA-$4FFF` in the fixed low block. Nothing in that list is a contiguous
+`$4FFA-$4FFF` in the fixed low block. (Corrected 2026-09-20 from 593 B: the
+gap before the near-star state is 9 B, not 24 — see §8.1's near-star row, now
+settled from the source.) Nothing in that list is a contiguous
 block big enough for the ~350-450 B code/data deficit that
 [design-4.6-data-architecture.md](design-4.6-data-architecture.md) §7.3
 projects for 4.6 (ESTIMATE), except the arena tail — which is where 4.6's code
@@ -230,10 +244,12 @@ MEASURED at this HEAD from `build/manifest.json`:
 | Remaining safe residency (transport view) | **3,653 B** | `transportCapacity.remainingSafeResidencyBytes` |
 | Maximum new simultaneous residency | **7,993 B** | `transportCapacity.maximumNewSimultaneousResidencyBytes` |
 
-> The manifest's own `runtimeCodeBudget.measurement` string names five
-> segments; the value 17,521 is the sum of **six** — `PICKUP_CODE` is included
-> and unnamed. MEASURED: 4,469 + 2,224 + 6,653 + 237 + 3,165 + 773 = 17,521.
-> The label is wrong, the number is right.
+> **Corrected 2026-09-20.** The manifest's `runtimeCodeBudget.measurement`
+> string named five segments while the value 17,521 is the sum of **six** —
+> `PICKUP_CODE` was included and unnamed. `scripts/build.mjs:2375` now names
+> all six. MEASURED: 4,469 + 2,224 + 6,653 + 237 + 3,165 + 773 = 17,521, and
+> the expression at `scripts/build.mjs:1623-1624` sums exactly those six. The
+> number never moved and the XEX is byte-identical across the change.
 
 ### 2.4 Transport and disk
 
@@ -264,27 +280,57 @@ RAM for the whole runtime**: still unused, but now *reliably* unused rather
 than avoided because its contents were unknowable. That is the technical
 precondition for decision B.
 
-**What the OS occupies above `$BC20` — NOT MEASURED, and it must be.**
-The owner states that the OS's default GRAPHICS 0 screen — its display list
-around `$BC20` and its screen RAM to `$BFFF`, roughly 992 B — sits at the top
-of this window after coldstart on a 64 KB XL/XE with no cartridge enabled.
-**ESTIMATE.** Nothing in this repository measures it: no document records it,
-no gate reads it, and the game takes the display over completely, so it has
-never mattered.
+**What the OS occupies above `$BC20` — MEASURED 2026-09-20.** This was the
+one ESTIMATE in this file that nothing in the repository measured. It is now
+measured, and the answer has two halves, the second of which nobody was
+looking for.
 
-It starts mattering the moment the window carries level data, because the OS
-VBI is alive during SIO (§6.2) and restores `DMACTL`, the display-list pointer,
-colours, `CHBASE` and `PMBASE` from its shadows. If `SDLSTL`/`SDLSTH` still
-point into `$BCxx`, a between-levels read would put the OS's own screen back on
-the display — and level bytes stored there would be *shown*, not merely at
-risk.
+The boot-smoke observer (`scripts/atari800-wall-trace.h`) now records
+`SDLSTL`/`SDLSTH` (`$0230`), `MEMTOP` (`$02E5`) and `RAMTOP` (`$6A`) in every
+snapshot, alongside the display list, `CHBASE`, `PMBASE`, `DMACTL` and `NMIEN`
+it already took. Eight cold sessions, **8/8 pass**.
+**EMULATOR-MEASURED**, Atari800 7.1.2 PAL/XL:
 
-**The measurement is cheap and already half-built.** The boot smoke's observer
-(`scripts/atari800-wall-trace.h`) already snapshots the display list, `CHBASE`,
-`PMBASE`, `DMACTL` and `NMIEN` at fixed frames. Recording `SDLSTL`/`SDLSTH`,
-`MEMTOP` and `RAMTOP` at the frame-1 snapshot would settle the exact top-of-
-window extent in one boot-smoke run. **Do this before any work places bytes
-above `$B800`.**
+| BASIC at coldstart | `RAMTOP` | `MEMTOP` | `SDLSTL`/`SDLSTH` | OS screen | Usable window |
+| --- | ---: | ---: | ---: | --- | ---: |
+| **disabled** (`-nobasic`), XEX and ATR | `$C0` | `$BC1F` | `$BC20` | `$BC20-$BFFF`, 992 B | `$A000-$BC1F` = **7,200 B** |
+| **enabled** (`-basic`), XEX and ATR | `$A0` | `$9C1F` | `$9C20` | `$9C20-$9FFF`, 992 B | all `$A000-$BFFF` = 8,192 B |
+
+Identical on both media and both cold RAM fills (`$A5`, `$5A`), and constant
+across the frame-250, 300, 3050 and 3300 snapshots. The frame-1 snapshot reads
+zero on all eight sessions: the OS has not initialised those cells that early,
+so frame 1 is the wrong frame to read them at — a finding worth keeping, since
+frame 1 is where this measurement was expected to land.
+
+**The number to plan against is `$A000-$BC1F` = 7,200 B**, not 8,192 B. A
+machine cold-started without BASIC has the OS screen at the top of the window,
+and the game does not get to choose how the player powers the machine on. The
+owner's ESTIMATE — roughly 992 B of OS screen at the top — was exactly right
+for that case.
+
+**The half nobody was looking for.** Cold-started **with** BASIC enabled, the
+OS sets `RAMTOP = $A0` and puts its screen at `$9C20-$9FFF` — **not in the
+window at all, but inside the game's own resident RAM**. MEASURED, that range
+holds the `ENTITY_CODE` tail (`$9C20-$9D5C`), `DIRECTOR_C_PRE`, `LEVEL1_DATA`
+and `DIRECTOR_C_CODE` (`$9E13-$9FF7`): 992 B of live C Director code and data.
+`disable_basic_rom` unmaps the ROM but **does not move the OS's shadows** —
+`RAMTOP`, `MEMTOP` and `SDLSTL`/`SDLSTH` stay wherever coldstart put them.
+
+Nothing breaks today, and the measurement says why: `NMIEN = $80` from frame
+250 onward in every session, so the **OS VBI NMI is disabled** and the game
+owns the display outright. But this is precisely the hazard §6.2 is built
+around. If the between-levels reader returns to OS SIO and revives the OS VBI,
+that VBI restores the display-list pointer from `SDLSTL`/`SDLSTH` — and on a
+BASIC-enabled cold boot it points at `$9C20`, into Director code. Not into the
+window.
+
+**Carry into roadmap 4.3:** the loader-mode display state must **set the OS
+shadows to its own values before handing control to SIO**, not merely restore
+the hardware registers afterwards. Recorded as a measurement, not a design.
+
+Evidence: `build/runtime-wall-trace/boot-smoke/report.json`, per-session
+`snapshots[].sdlst` / `.memtop` / `.ramtop`. Still EMULATOR-MEASURED: decision
+R item 4 keeps it in the technical-debt register for that reason.
 
 ### 2.6 Above the window
 
@@ -414,11 +460,12 @@ replaced by the resident suffix before runtime.
 **Today: nothing. 8,192 B, MEASURED, zero bytes used.**
 
 Under decision B the window becomes the reusable, overwritable area of the
-owner's model. **ESTIMATE, pending §2.5's measurement:** usable extent is
-`$A000` up to wherever the OS screen begins — the whole 8,192 B if the game's
-takeover makes the OS screen area reclaimable, or roughly 7,200 B
-(`$A000-$BC1F`) if it does not. **Do not plan against 8,192 B until §2.5 is
-measured.**
+owner's model. **MEASURED 2026-09-20 (§2.5): plan against `$A000-$BC1F` =
+7,200 B.** On a machine cold-started without BASIC the OS screen occupies
+`$BC20-$BFFF`; on one cold-started with BASIC the whole 8,192 B is free but the
+OS screen lands at `$9C20-$9FFF`, inside resident Director memory instead. The
+game cannot choose which, so 7,200 B is the planning figure and the `$9C20`
+case is a constraint on the reader, not on the window.
 
 ### 3.6 What arrives per level
 
@@ -436,13 +483,22 @@ order of cost:
 
 The capital hull variant is the item that decides the shape of the whole plan:
 **it is an order of magnitude larger than everything else per level put
-together, it is different on every level by the content target (§5.1), and 8 of
-them is ~10 KB** — which does not fit the window alongside anything else and
-never fits resident. That is why the between-levels sector reader is **in
-scope, not optional**.
+together** — which does not fit the window alongside anything else and never
+fits resident. That is why the between-levels sector reader is **in scope, not
+optional**.
 
-**Disk budget, MEASURED:** 537 free ATR sectors = 68,736 B. Eight hull variants
-at 1,253 B ≈ 80 sectors. The disk is not the constraint.
+**Updated by owner decisions E and F, 2026-09-20.** The campaign is **sixteen
+levels**, not eight — and capital variety is **parametric, not per-level art**.
+Four distinct segment-art sets; length in segments, turret density and maximum
+gondola protrusion are three independent parameters, four steps each, layered
+on a chosen art set. One hull variant per level, so the player feels he is
+flying through a new region each level, but the art behind it is one of four.
+
+**Disk budget, MEASURED:** 537 free ATR sectors = 68,736 B. **Four** art sets
+at 1,253 B ≈ 40 sectors, plus per-level parameters. Sixteen *independent* art
+sets would have been ≈ 160 sectors — still affordable on disk, but decision F
+buys it back for content instead. The disk is not the constraint either way;
+decision F is what keeps it that way as the campaign doubled.
 
 ---
 
@@ -463,7 +519,7 @@ from `plan-realizacji.md` §4, §8 says so.
 | 4.6 | **Player weapon boosters** | 21 §4 | 4.5 | — |
 | 4.7 | **4.7 Boss** (data-driven) | 21 §5, 7 | 4.5 | the campaign |
 | 4.8 | **4.8a Capital geometry** | 21 §6 | 4.5 | per-level hull variety |
-| 4.9 | **The campaign** — level complete, next level, eight levels as data | 21 §7, content target §5.1 | 4.3, 4.7, 4.8 | — |
+| 4.9 | **The campaign** — level complete, next level, **sixteen** levels as data (decision E) | 21 §7, content target §6.1, E, F, J, K, L, M | 4.3, 4.7, 4.8 | — |
 
 ### 4.1 ATR boot fix (owner decision A) — `OWNER-SMOKE CANDIDATE`
 Implemented at this HEAD. Needs owner smoke **and** the SIO2SD checks in §7.2.
@@ -513,12 +569,69 @@ DMA-off procedure table), so prefer boosters that do **not** multiply shots in
 flight — faster rate, stronger shot, piercing — over spread, which must be
 costed separately.
 
+**Owner decision N (2026-09-20): a PERMANENT weapon booster.** Collecting it
+raises the player's weapon level by one, up to five; collecting the same
+booster again raises it another level. The level sets **both projectile damage
+and projectile colour**, so the colour tells the player his current strength
+with no HUD. Dying costs **one** level, not all of them. The other boosters
+keep working as they do today. Architecturally this is **one variable, "booster
+level 0-5"**, from which damage and the active `weapon_class` follow.
+
+The owner asked for two repo checks before this is planned. Both were answered
+at this HEAD:
+
+- **Does any existing booster already modify damage?** **No.** MEASURED: the
+  player-shot damage is a hardcoded `lda #$01` at `src/main.s:3892` feeding
+  `queue_enemy_damage`; the routine's only other callers are player-enemy
+  contact (1) and capital fire (`CAPITAL_DAMAGE_UNITS`). Rapid Fire changes
+  cadence, Spread changes count, Shield absorbs player damage. So the booster
+  level can be the sole source of that number — there is no second source to
+  turn it from a number into a system.
+- **Do player projectile classes share the `HOSTILE_WEAPON_VISUAL_COUNT <= 9`
+  limit?** **No — they have their own bank.** MEASURED
+  (`build/fighter-weapons.inc`): `PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE = 11`,
+  `STRIDE = 9`, `COUNT = 36` (four looks × nine phases). The `<= 9` assert at
+  `src/main.s:797` bounds the *hostile* bank at base 90 only. The player's
+  ceiling is `src/main.s:792`, `BASE + COUNT <= CAPITAL_HULL_GLYPH_BASE = 59`.
+  **Five looks = 45 glyphs, codes 11-55, fits with three codes to spare.** A
+  sixth would not.
+
+**What stays open, and it is the part the decision depends on: colour.**
+`art-direction.md` binds every object with *"a local object must not change the
+global palette in a way that recolours other objects"*. Player projectiles are
+ANTIC 4 cells in shared playfield registers, all yellow `$1E` today. So "a
+colour per booster level" is not free: either five levels fit inside pixel
+values already assigned to playfield registers, or a different mechanism is
+needed. Settle this **before** planning N, because the colour carries the whole
+signal to the player.
+
 ### 4.7 4.7 Boss
 Designed **data-driven** — phases, movement pattern, fire pattern, HP and weak
 points as data — so that later bosses are records, not implementations. This is
 a decision to make when *planning* 4.7, not after it. One boss foundation
 first: modules, one gun, a victory condition. Nova Missile is designed together
 with boss lifecycle and boss HULL, never as an ordinary drop.
+
+**Owner decision H (2026-09-20): one mechanic, many appearances.** A single
+boss controller; each boss is a record describing module layout, weapon
+placement and count, and weak points, built from the repeating-module approach
+already agreed for the capital. **Boss weapons reuse the existing
+`weapon_class` records** — Bomber, Interceptor and Raider shells —
+deliberately, to save code for the booster work. With sixteen levels and a boss
+on each (decision E), this is what keeps sixteen bosses from meaning sixteen
+new projectile families.
+
+**Owner decision I (2026-09-20): the boss laser.** A line drawn **at once**
+from the gun down to the bottom of the screen — *not* an unfolding beam; the
+owner's earlier "unfolding" was shorthand and is withdrawn, which is what makes
+this far cheaper than a variable-length object. It lasts one second. It is
+telegraphed by the gun visibly heating, with sound, for about two seconds, so
+the player must move out of the column. It destroys everything in its path; the
+owner accepts that as a requirement, on the assessment that a fixed column and
+row range is cheaper than ordinary collision because there is no movement to
+track. **That assessment is an owner ESTIMATE and is not measured** — cost it
+when planning 4.7. Count per level: one on levels 1-4, two on 5-9, four on
+10-16, to be tuned during balancing.
 
 ### 4.8 4.8a Capital geometry
 Deeper, uneven gondolas at varying heights, variable corridor width, bigger
@@ -527,7 +640,13 @@ new subsystem.** This is also where hull variants stop being parameters and
 become the per-level art of §3.6.
 
 ### 4.9 The campaign
-Level complete, next level, eight levels as data, polish.
+Level complete, next level, **sixteen** levels as data, polish. A boss ends
+every level, and the easiest difficulty must be beatable by anyone (decision
+E). Capital variety is parametric (F). Lives: three plus one after each odd
+level from 3 (K). Level select from the furthest level reached, RAM-only, reset
+by a difficulty change, with the menu showing what is available (L). High
+scores stay RAM-only (M). Difficulty scales reload and spacing **and** damage
+(J).
 
 ---
 
@@ -590,12 +709,31 @@ established a standing rule.
 
 ### 5.3 The lettered decisions of 2026-09-20
 
+All of A-R are now recorded in
+[owner-decisions-2026-09-11.md](owner-decisions-2026-09-11.md), section
+"Decyzje literowe 2026-09-20", in the journal's usual Polish. A-D lived only in
+this table until 2026-09-20.
+
 | Letter | Decision | Status | Consequence |
 | --- | --- | --- | --- |
 | **A** | The ATR must boot without OPTION | Implemented, `OWNER-SMOKE CANDIDATE` | Recorded in the repo (STATUS, architecture.md, memory-map.md, hardware-testing.md). Transport 182 → 183 sectors. `$A000-$BFFF` becomes unconditionally RAM. Unproven on hardware. |
 | **B** | Open the window | **Recorded here for the first time** | `$A000-$BFFF` is usable RAM and is used. Supersedes decision 23 §10.1's rejection of variant A and `reguly-projektu.txt` rule 11's "BASIC RAM is not the default answer". The ~350-450 B 4.6 placement deficit stops being a blocker. |
 | **C** | Code containers are not built now | **Recorded here for the first time** | With the window open, all variant handlers fit resident with no swapping. The loader carries **DATA per level, not code**. The seam is prepared inside 4.6 (§3.2) so swapping later is bounded. Rationale: the gate set is blind to the container failure family (§3.3). |
-| **D** | The hardware measurement is deferred | **Recorded here for the first time** | Every boot-time and per-sector figure in this project stays EMULATOR-MEASURED. §7 is where a future session learns not to spend those numbers as headroom. |
+| **D** | The hardware measurement is deferred | Now in the journal | Every boot-time and per-sector figure in this project stays EMULATOR-MEASURED. §7 is where a future session learns not to spend those numbers as headroom. Its technical-debt register is decision R. |
+| **E** | **Sixteen levels, not eight**; a boss ends every level; the easiest difficulty beatable by anyone | Recorded 2026-09-20 | Supersedes design-4.6 §6 and §6.1 below. `plan-realizacji.md` §4 item 7 and decision 21 item 7 ("16 poziomów") were **right all along**. |
+| **F** | Capital variety is **parametric**, not per-level art | Recorded 2026-09-20 | Four segment-art sets; length, turret density and maximum gondola protrusion are independent 4-step parameters. One hull variant per level. ≈ 4 × 1,253 B on disk, not 16 sets. |
+| **G** | Capital turrets stay **non-destructible** | Recorded 2026-09-20 | Confirms backlog 4.8b. Turrets are not objects (no HP, no slot state, not a collision target) and the player-shot scan is already the most expensive item in collisions. |
+| **H** | Boss: **one mechanic, many appearances** | Recorded 2026-09-20 | One controller; each boss a record (module layout, weapon placement and count, weak points). Boss weapons reuse existing `weapon_class` records, to save code for the boosters. |
+| **I** | The **boss laser** | Recorded 2026-09-20 | Drawn at once, gun to bottom of screen — the earlier "unfolding beam" is **withdrawn**. One second, telegraphed by ~2 s of visible gun heating with sound. Destroys everything in its path. 1 / 2 / 4 per level on 1-4 / 5-9 / 10-16. Cost assessment is an owner ESTIMATE. |
+| **J** | Difficulty scales reload and spacing **and** damage | Recorded 2026-09-20 | Player-dealt, player-taken, contact and boss damage. Revised from the owner's initial damage-only proposal: with damage alone EASY and HARD differ only in how fast the player dies. |
+| **K** | **Lives**: three, plus one after each odd level from 3 | Recorded 2026-09-20 | Levels 3, 5, 7, 9, 11, 13, 15 — seven extra across the campaign. |
+| **L** | **Level select** from the furthest level reached | Recorded 2026-09-20 | RAM only, lost at power-off; a difficulty change in the menu resets it to level 1; the menu shows which levels are available. |
+| **M** | **High scores**: RAM only, no disk write | Recorded 2026-09-20 | Confirms today's behaviour (`game-design.md`: ten packed-BCD entries in RAM, cleared by a cold program start). Disk save goes to the backlog. |
+| **N** | **PERMANENT weapon booster**, level 0-5 | Recorded 2026-09-20 | One variable; level sets damage **and** colour, so colour replaces a HUD. Death costs one level. Two repo checks answered (§4.6); **colour remains open**. |
+| **O** | **Loader screen**: one random line of 8-16 English texts + an animation stepped per sector read | Recorded 2026-09-20 | Spoken by the fighter's onboard AI — cynical, seen too much; winks at Hitchhiker's, Star Wars, Avengers and BSG without quoting them. Texts written later. ~640 B resident before the read starts. |
+| **P** | **End screen** | Recorded 2026-09-20 | Eventually an animation in the top third plus a text scroll below — a separate sub-project, a loaded sector, not resident. A simple message suffices for now. |
+| **Q** | **The project rules are superseded, explicitly** | Recorded 2026-09-20 | `plan-realizacji.md` §7 and `reguly-projektu.txt` §11 keep their entries, marked SUPERSEDED with the superseding decision and why the ground changed. See §8.5. |
+| **R** | **Hardware measurements deferred — risk OWNER-ACCEPTED 2026-09-20** | Recorded 2026-09-20 | A four-item technical-debt register, each with what it invalidates. Item 4 (what the OS holds above `$BC20`) was measured in this session; the register keeps it because the measurement is emulator-only. |
 
 ### 5.4 ADRs
 
@@ -610,20 +748,28 @@ established a standing rule.
 
 ## 6. Content target and the loader screen
 
-Both exist only in the owner's conversation and nowhere in the repository until
-this document. Recorded as owner requirements, not as agent proposals.
+Both were recorded here first, from the owner's conversation. Since
+2026-09-20 they are owner decisions E, F, O and P in the journal.
 
 ### 6.1 The content target
 
-- **Eight levels.**
-- **A different boss on each.**
-- **Capital ships that get LONGER on later levels AND look different.** This is
-  the requirement that puts fresh hull art on the disk rather than in the
-  window: MEASURED, one hull variant is **1,253 B**
-  (248 B glyphs + 1,005 B packed map and metadata). Eight of them is roughly
-  10 KB. That does not fit the window alongside anything else and never fits
-  resident — **which is why the sector reader is in scope rather than
-  optional.**
+**Superseded in one figure and sharpened in another, 2026-09-20.**
+
+- **Sixteen levels** (owner decision **E**). The "eight" that stood here until
+  2026-09-20 is withdrawn. Sixteen gives the player time to enjoy the game and
+  the designer room to introduce something new at a measured pace.
+- **A boss ends every level**, and the boss is one controller with a record per
+  boss (decision **H**), not sixteen implementations.
+- **The easiest difficulty is to be beatable by anyone** (decision **E**).
+- **Capital ships that get LONGER on later levels AND look different** — but
+  **parametrically** (decision **F**), not as sixteen sets of art. Four
+  segment-art sets; length in segments, turret density and maximum gondola
+  protrusion are three independent parameters, four steps each, layered on a
+  chosen set. One hull variant per level, so each level reads as a new region.
+  MEASURED, one hull variant is **1,253 B** (248 B glyphs + 1,005 B packed map
+  and metadata); **four** sets ≈ 40 ATR sectors. Per-level payload still does
+  not fit resident — **the sector reader stays in scope rather than optional**
+  — but decision F is why doubling the campaign did not double the art budget.
 - **At least today's enemy count plus swarms.** Today, MEASURED: four
   archetypes, 2 Heavy on `P1`/`P2` + 1 Light slot. The 4.6 target is
   2 Heavy + up to 4 Light, with SWARM shipping a ceiling of 3 (decision 23
@@ -634,7 +780,24 @@ this document. Recorded as owner requirements, not as agent proposals.
 - **The owner's standard: someone who knows Atari should finish it and say
   "wow".**
 
+Player progression, added 2026-09-20: lives three plus one after each odd level
+from 3 (decision **K**); level select from the furthest level reached, RAM-only
+(**L**); high scores RAM-only (**M**); difficulty scaling reload, spacing
+**and** damage (**J**); a permanent weapon booster, level 0-5, whose colour
+replaces a HUD (**N**).
+
 ### 6.2 The loader screen — part of the reader, not an extra
+
+**Owner decision O (2026-09-20)** confirms everything in this section and adds
+the voice: the texts are spoken by the fighter's **onboard AI** — cynical,
+having seen too much — winking at The Hitchhiker's Guide, Star Wars, Avengers
+and Battlestar Galactica **without quoting them**: a situation that evokes the
+reference, never the reference itself. The texts are written in a later
+session. **Owner decision P** covers the end screen: eventually an animation in
+the top third at full width with a text scroll below, a separate sub-project at
+the end, possibly demoscene-grade, and a loaded sector rather than resident; a
+simple message suffices for now, and the scroll text is written at the end of
+the process, when there is something true to say about it.
 
 When a level is read between levels, a display must exist, because
 **the OS VBI rewrites `DMACTL`, the display list, colours, `CHBASE` and
@@ -725,11 +888,26 @@ measured in Atari800 7.1.2 PAL/XL and **nowhere else**.
 | Headroom to the 60 s ceiling | 2,446 frames = 1,223 sectors ≈ 153 KB | DERIVED from the above |
 | Full-disk menu arrival | ~1,630 frames ≈ 32.6 s | DERIVED |
 
-**The "exactly +2 frames per sector" rule already has a measured exception.**
-Decision A grew the transport from 182 to **183** sectors and the ATR menu
-frame **did not move** — still 554 on both BASIC-off sessions. The rule is
-frame-quantised, not linear, and it was calibrated over a 177→182 range on one
-emulator. Treat it as an approximation with ±1 sector of slop, not an identity.
+**"Exactly +2 PAL frames per sector" is NOT an identity. Do not state it as
+one.** Two measured facts, both at this HEAD:
+
+1. Decision A grew the transport from 182 to **183** sectors and the ATR menu
+   frame **did not move** — still 554 on both BASIC-off sessions.
+2. Re-measured 2026-09-20 across all eight boot-smoke sessions: with the
+   **same** 183 sectors, the ATR menu arrives at **554** frames cold-started
+   without BASIC and at **538** with BASIC enabled; XEX at **392** and **383**
+   respectively. A 16-frame spread on the ATR — eight sectors' worth by the
+   rule — from a variable that has nothing to do with sector count, because
+   coldstart with BASIC sets `RAMTOP = $A0` and gives the OS less memory to
+   clear (§2.5).
+
+The rule is **frame-quantised, not linear**, it was calibrated over a single
+177→182 range on one emulator, and the BASIC state alone moves it further than
+several sectors would. Treat it as an approximation for sizing a budget, never
+as an arithmetic that predicts a frame. The committed baselines in
+`boot-deadline-baseline.json` (XEX 392, ATR 554) are the BASIC-off figures and
+the gate's fail band is ±50 frames, which absorbs this comfortably — but a plan
+that converts sectors to frames by multiplying by two is wrong by construction.
 
 **Why none of it is hardware headroom.** SIO timing on a real 65XE through
 SIO2SD depends on the device, the cable, the drive emulation's sector gap and
@@ -768,8 +946,25 @@ and every plan in §3 and §4 rests.
   (`runtimeTiming.cpuDmaOff`), and the `estimatedAdditive.cycles` figure of
   27,926, which the manifest itself labels "diagnostic estimate only; not a
   measured PAL frame or physical headroom".
-- **The OS's occupation of the top of the window** (§2.5) — not even
-  emulator-measured; ESTIMATE only.
+- **The OS's occupation of the top of the window** (§2.5) — **now
+  EMULATOR-MEASURED** as of 2026-09-20, no longer ESTIMATE. It stays in this
+  section, and in decision R's register as item 4, because Atari800 is not a
+  65XE: `RAMTOP`, `MEMTOP` and the display-list shadows are OS behaviour the
+  emulator models from the same ROM, but the OS revision in a given machine and
+  what a SIO2SD's own boot leaves behind are not covered by it.
+
+### 7.4 The technical-debt register (owner decision R)
+
+**OWNER-ACCEPTED RISK, 2026-09-20.** The owner accepts, today, that the
+hardware measurements are deferred. Each entry says what it invalidates if it
+goes wrong.
+
+| # | Debt | What it invalidates |
+| --- | --- | --- |
+| 1 | **RESET during gameplay may re-map the BASIC ROM over `$A000-$BFFF`.** The `BASICF = $01` write is what should prevent it, and it is the part an emulator proves least well. | **Decision B stands entirely on it.** If RESET brings the ROM back mid-game, the window stops being RAM during play and everything stored there is gone. |
+| 2 | **The real per-sector read rate** — the emulator's SIO is patched. | The inter-level pause, and how much content fits on disk inside an acceptable wait. Decision O is designed not to care; the rest of the content plan (E, F) does. |
+| 3 | **The ATR boot-without-OPTION fix is emulator-proven only.** | Decision A, and through it the unconditional window (B) and every item in §4 on real hardware. |
+| 4 | **What the OS occupies above `$BC20`** was unmeasured, so the window might have been smaller than 8 KB. | **Measured 2026-09-20 (§2.5): `$A000-$BC1F`, 7,200 B usable, plus the `$9C20` finding.** The entry stays because the measurement is Atari800-only. |
 
 ---
 
@@ -778,7 +973,20 @@ and every plan in §3 and §4 rests.
 Every place a document contradicts another document or the repo. The measured
 value is given; nothing is silently picked.
 
+> **Resolution pass, 2026-09-20.** All eleven are addressed. Each subsection
+> below carries a **RESOLVED** line naming where the correction was made, or a
+> **STANDING** line saying why it was not. Two of them — §8.3 and §8.8 — had
+> already been corrected in their own files before this pass and are marked as
+> such. Two figures in **this** file turned out to be wrong and are corrected
+> in §2.1 and §2.2.
+
 ### 8.1 memory-map.md — stale segment rows
+
+**RESOLVED 2026-09-20.** Every row below is now marked `[SUPERSEDED …]` or
+`[CLARIFIED …]` **inline, in `memory-map.md`, at the point a reader hits it**,
+and the file gained a "Superseded rows — the measured values, in one place"
+section directly under its top warning. The near-star row is settled from the
+source; see §8.1a.
 
 The "Linked segments" table (memory-map.md §"Linked segments") is explicitly a
 `41ace65` snapshot and the "BSS and high relocated runtime" table repeats it.
@@ -796,14 +1004,61 @@ Both are wrong at this HEAD in ways that matter:
 | `$8119-$813F` 39 B unowned | `HYBRID_ENCOUNTER_STATE` `$8119-$811A` and `HYBRID_HEAVY_STATE` `$811B-$8125` occupy 13 B of it; real free is **`$8126-$813F`, 26 B** |
 | `$5CF7-$5E05` 271 B free starfield tail | `STARFIELD` now ends `$5D93`; real free is **`$5D94-$5E05`, 114 B** |
 | `$7F05-$7F0F` 11 B "unassigned after cold staging" | Inside the arena's 215 B free tail `$7E39-$7F0F`. **Double-counted** if both rows are summed. |
-| `$8600-$8601` near-star state (BSS table) vs `$85FE-$8601` 4 B `STAR_NEAR_SCREEN_HI` (accepted-placement section) | The two sections of the same file disagree by 2 B. Not resolvable from the maps (the near-star bytes are hand-placed BSS, not a linker segment). **Unresolved — needs a source read or an owner answer.** |
+| `$8600-$8601` near-star state (BSS table) vs `$85FE-$8601` 4 B `STAR_NEAR_SCREEN_HI` (accepted-placement section) | **RESOLVED from the source 2026-09-20 — see §8.1a. Both rows understate it: the near-star state is `$85F2-$8601`, 16 B.** |
 
 The file's own "Segment free tails at the current checkpoint" section **is**
 correct at this HEAD and matches the measurement exactly. The stale rows are in
 the older sections above it, which the file says are overridden — but which a
-reader hits first.
+reader hits first. That is why the 2026-09-20 pass marked them inline rather
+than only listing them here.
+
+### 8.1a The near-star state — settled from the source
+
+`memory-map.md` disagreed with itself by 2 B and neither figure could be
+resolved from a link map, because the near-star records are **hand-placed BSS,
+not a linker segment**. Settled by reading the address chain and confirming it
+against the label file. **MEASURED:**
+
+| Symbol | Source | Address |
+| --- | --- | ---: |
+| `STAR_NEAR_ROW` | `src/main.s:228` (`= HULL_DRAW_ROW_HI+$01`) | `$85F2-$85F5` |
+| `STAR_NEAR_COLUMN` | `src/main.s:229` | `$85F6-$85F9` |
+| `STAR_NEAR_SCREEN_LO` | `src/main.s:230` | `$85FA-$85FD` |
+| `STAR_NEAR_SCREEN_HI` | `src/main.s:231` | `$85FE-$8601` |
+| `STAR_NEAR_STATE_END` | `src/main.s:232` | `$8602` |
+
+Each table is `STAR_NEAR_CAPACITY` bytes, and `STAR_NEAR_CAPACITY = 4`,
+generated into `build/starfield.inc:7` from `near.population` by
+`scripts/starfield.mjs:110`. `build/void-strike-65.lbl` gives `$85F2`, `$85F6`,
+`$85FA`, `$85FE` for the four tables, confirming the stride independently.
+`HULL_DRAW_ROW_HI = $85F1` in the same label file.
+
+**The answer: `$85F2-$8601`, 16 B, four 4-byte tables.** The source is not
+ambiguous.
+
+Both of `memory-map.md`'s rows were wrong about the extent and neither was
+wrong about what it named: `$85FE-$8601` is `STAR_NEAR_SCREEN_HI` exactly, and
+`$8600-$8601` is the last two bytes of it. The file's `$85EF-$85FF` "17 B
+unowned" row is wrong outright: `CORRIDOR_PHASE_HI`, `HULL_DRAW_ROW_LO`/`HI`
+and the near-star tables own all of it.
+
+**This corrected a figure in this document too.** §2.1's row gave the gap
+before the near-star state as 24 B (`$85E6-$85FD`), derived from the wrong
+start address. The real gap is **9 B (`$85E6-$85EE`)**, and §2.2's total falls
+from 593 B to **578 B**. Both are corrected above.
+
+`STAR_NEAR_STATE_END` is bounded by `.assert STAR_NEAR_STATE_END <=
+RESIDENT_WINDOW` (`src/main.s:741`) with `RESIDENT_WINDOW = $8602`
+(`src/main.s:727`): the state ends **exactly** where the resident window
+begins, with zero slack. Anything that raises `STAR_NEAR_CAPACITY` moves
+`HYBRID_C_SECTOR`.
 
 ### 8.2 The 45 B → 1 B `ENTITY_CODE` tail
+
+**RESOLVED 2026-09-20.** Both statements now carry an inline `[SUPERSEDED …]`
+marker in `memory-map.md` — the 45 B row in *Accepted placement since
+`41ace65`* and the 13 B row in the 4.4c section — so neither can be read as
+capacity without seeing the measured 1 B beside it.
 
 memory-map.md §"Accepted placement since `41ace65`" states
 "`$9D31-$9D5D` 45 B free" and §4.4b states "ENTITY_CODE free tail 45 → 13 B".
@@ -813,6 +1068,11 @@ correct when written; neither is marked as superseded at the point of reading.
 
 ### 8.3 STATUS.md — internal contradiction about the outstanding candidate
 
+**ALREADY RESOLVED, before this pass.** `STATUS.md` §"Current task" now reads
+"Exactly one `OWNER-SMOKE CANDIDATE` is outstanding: owner decision A", and
+states explicitly that the old sentence was a leftover, corrected 2026-09-20.
+Verified at HEAD; no further edit needed.
+
 `docs/STATUS.md` §"Current task" opens with "Owner decision A … is an
 `OWNER-SMOKE CANDIDATE`" and closes the same paragraph with "**No
 `OWNER-SMOKE CANDIDATE` is outstanding.**" The second sentence is a leftover
@@ -821,6 +1081,11 @@ outstanding — decision A.**
 
 ### 8.4 STATUS.md — residency figures 3 B stale
 
+**RESOLVED 2026-09-20.** `STATUS.md`'s CPU / RAM baseline table now reads
+**20,131 B** and **2,056 B**, matching `build/manifest.json`
+(`encounterDirector.simultaneousResidencyBytes` / `.safeResidencyBytes`).
+Linked runtime 17,521 B was already correct.
+
 STATUS's "CPU / RAM baseline" table gives simultaneous residency **20,128 B**
 and safe residency remaining **2,059 B**, under a note saying the byte columns
 are re-measured at HEAD. MEASURED at this HEAD: **20,131 B** and **2,056 B**
@@ -828,6 +1093,16 @@ are re-measured at HEAD. MEASURED at this HEAD: **20,131 B** and **2,056 B**
 runtime 17,521 B, which **is** correct.
 
 ### 8.5 `plan-realizacji.md` §7 and `reguly-projektu.txt` §11-12 vs decisions 23, B and C
+
+**RESOLVED 2026-09-20 by owner decision Q — the owner made the edit this
+document said it lacked the standing to make.** Both entries are **kept** and
+marked `SUPERSEDED`, each naming the superseding decision and one line on why
+the ground changed. `reguly-projektu.txt` went to version 3.2 for it. Note the
+precise location: the "BASIC RAM, loader changes i runtime disk I/O" entry is
+in `plan-realizacji.md` **§7** and `reguly-projektu.txt` **§11**;
+`reguly-projektu.txt` §12 is a different list and contains none of the three —
+it was checked and none of its entries conflicts with the current path.
+Decision Q.1 lists the eight further contradictions found in the wider review.
 
 Both documents list, as *rejected directions not to revisit*:
 
@@ -846,12 +1121,27 @@ not have the standing to make it.
 
 ### 8.6 `plan-realizacji.md` §4 item 7 and decision 21 item 7 vs the content target
 
+**RESOLVED 2026-09-20 — and it resolved the other way.** Owner decision E:
+**sixteen levels**. `plan-realizacji.md` §4 item 7 and decision 21 item 7 were
+right; the eight-level content target in §6.1 above and in design-4.6 §6 was
+the stale figure. Corrected in §6.1 here, in design-4.6 §6, and confirmed in
+`plan-realizacji.md` §4 item 7.
+
 Both say **"kampania 16 poziomów jako dane"** — a 16-level campaign. The
 owner's content target (§6.1) is **eight levels**. design-4.6 §6 is also built
 on eight. **Measured/authoritative: eight.** The "16" appears to be an older
 figure that survived into decision 21's text.
 
 ### 8.7 `plan-realizacji.md` §3 and §4.5c — superseded per-candidate figures
+
+**RESOLVED 2026-09-20.** `plan-realizacji.md` §3 keeps the `0a90c1c` row as
+history, marks its 450-cycle fence margin superseded, and gains the `0002d84`
+row as the current accepted checkpoint with 1,464 cycles. §4.5c keeps its
+candidate-time figures inside an explicit `SUPERSEDED` block beside the
+measured ones (arena 617/832 B with 215 B free, composite `HYBRID_C_EXT` tail
+19 B, transport 183 sectors, ATR menu 554 against a 3,000-frame ceiling). The
+"550 przy terminie 550" pair is called out as coming from the formula decision
+22 re-based.
 
 §3 states the accepted checkpoint as `0a90c1c` with "najgorszy margines fence
 450 cykli, arena 617/832 B". §4.5c states "arena 392/832 B … 440 B wolne",
@@ -864,12 +1154,23 @@ longer exists.
 
 ### 8.8 `game-design.md` — Interceptor section contradicts its own heading
 
+**ALREADY RESOLVED, before this pass.** `game-design.md` now reads
+"Owner-accepted with the whole `0a90c1c` stack (owner smoke PASS 2026-09-18)"
+and records that the contradicting sentence was corrected 2026-09-20. Verified
+at HEAD.
+
 The heading reads "**OWNER-ACCEPTED** (roadmap 4.4)"; the first paragraph under
 it reads "It is implemented and awaits owner smoke; the values below are the
 candidate's, not yet accepted." **Correct: owner-accepted**, owner smoke PASS
 2026-09-18 under `0a90c1c`.
 
 ### 8.9 design-4.6-data-architecture.md §7.4 and §10.1
+
+**RESOLVED 2026-09-20.** design-4.6 §6, §7.4 and §10.1 now each open with a
+SUPERSEDED banner: §6's eight-level table is superseded by decision E
+(sixteen), §7.4's boot-smoke risk is void per decision 22, §10.1's A/B/C
+variants no longer describe the choice made (B **and** the window, decisions B
+and C), and §7.4's "538 free sectors" is corrected to the measured **537**.
 
 - **§7.4 is void as a risk**, per decision 22 — STATUS already says so, the
   design file still states the risk in its own voice.
@@ -882,12 +1183,39 @@ candidate's, not yet accepted." **Correct: owner-accepted**, owner smoke PASS
 
 ### 8.10 `build/manifest.json` — mislabelled measurement
 
+**RESOLVED 2026-09-20.** `scripts/build.mjs:2375` now reads "linked CODE +
+STARFIELD + BROADSIDE + A2_KERNEL + ENTITY_CODE + PICKUP_CODE bytes", matching
+the six-term expression at `scripts/build.mjs:1623-1624`. The value 17,521 is
+unchanged and `dist/void-strike-65.xex` is byte-identical
+(`276433cd…`) across the change — it is a manifest label, not a build input.
+
 `runtimeCodeBudget.measurement` reads "linked CODE + STARFIELD + BROADSIDE +
 A2_KERNEL + ENTITY_CODE bytes". The value 17,521 is the sum of those five plus
 `PICKUP_CODE` (773 B). The number is right and matches memory-map.md's own
 six-segment formula; **the manifest's label is wrong**.
 
 ### 8.11 The `capacity-window-watch` tooling is not a gate
+
+**RESOLVED 2026-09-20, and the correction goes further than the description.**
+Re-verified independently at HEAD: the string `capacity-window-watch` appears
+in `scripts/capacity-window-watch.mjs`, `scripts/atari800-capacity-watch.h`,
+this file, `STATUS.md` and six diagnostics — and **nowhere** in
+`package.json`, `scripts/build.mjs`, `scripts/runtime-wall-trace.mjs` or
+`tests/`. `STATUS.md`'s descriptions now say "manually invoked proof tool, run
+once per relevant step", not "gate".
+
+**Where decision C's rationale relied on it, stated plainly.** §3.3 above
+argues that code containers are not built now partly because "the one native
+write-watch that exists proves the opposite invariant". That is true, but it
+**reads stronger than it is**: it implies the project has a standing
+write-watch pointed the wrong way, when in fact the project has no standing
+write-watch at all — it has one it can choose to run. The correct form of the
+argument is the weaker one: *no gate in the automated set watches a code region
+for writes or for execution, and the one tool that could was never wired into
+the gate set.* Decision C still holds on its own: the prerequisite it names —
+a replay that crosses a level boundary — does not exist, because the game has
+one level. That reason needs no tooling claim at all. Recorded as a correction
+inside decision C in the journal.
 
 memory-map.md and STATUS describe "the native write-watch
 (`scripts/capacity-window-watch.mjs`) passed on XEX and ATR" in a way that

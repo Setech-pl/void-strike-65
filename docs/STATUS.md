@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-09-19
+Last update: 2026-09-20
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -155,11 +155,16 @@ Deferred by the owner: smooth 1-line Light tracking (M2).
 | Hard gate 32,568 headroom | 3,310 |
 | Missed frames / extra VBI / DLI errors | 0 / 0 / 0 |
 | Linked runtime | 17,521 B |
-| Simultaneous residency | 20,128 B |
-| Safe residency remaining | 2,059 B |
+| Simultaneous residency | 20,131 B |
+| Safe residency remaining | 2,056 B |
 
 The three residency rows are the accepted-checkpoint CPU baseline's companions
 only for the CPU columns; the byte columns above are re-measured at HEAD.
+(Corrected 2026-09-20: simultaneous residency and safe residency remaining read
+20,128 / 2,059 here while `build/manifest.json` measured 20,131 / 2,056. Linked
+runtime 17,521 B was and is correct. The manifest's own
+`runtimeCodeBudget.measurement` label was also corrected in the same pass: it
+named five segments for a six-segment sum that includes `PICKUP_CODE`.)
 
 Reusable free capacity at HEAD (measured, `build/manifest.json` and the `.lbl`
 files; the authoritative table is the current-checkpoint override section of
@@ -658,7 +663,10 @@ GLUE hold from `$8600` to `$8300` and turned the former hold into the C area
 `HYBRID_C_SECTOR_RAM` `$8602-$86F9` (248 B), carrying the five `sector_c_*`
 functions (240 B) as a second LZ stream of the pickup/collision DFMC record
 (8/8 records, 142 B manifest unchanged). The native write-watch
-(`scripts/capacity-window-watch.mjs`) passed on XEX and ATR. Startup costs
+(`scripts/capacity-window-watch.mjs` — a **manually invoked proof tool**, not a
+standing gate: it is referenced by nothing in `package.json`,
+`scripts/build.mjs`, `scripts/runtime-wall-trace.mjs` or `tests/`, and it ran
+once for this step) passed on XEX and ATR. Startup costs
 +8,463 cycles once. Evidence:
 [diagnostics/stage-2b2f-resident-capacity-glue-window.json](diagnostics/stage-2b2f-resident-capacity-glue-window.json);
 the owner's post-capital debris observation was A/B-cleared as `PREEXISTING`:
@@ -970,7 +978,9 @@ collision or projectile change; the window holds 0 B.
   publish copy 3,907 cycles. Native PAL focused replays are identical to
   `3838c00`: `2-evasive-fire3` 29,522 and `2-sweep-fire4` 29,814 cycles;
   0 missed frames, 0 extra VBI, 0 DLI ordering errors.
-- **Native write-watch** (`scripts/capacity-window-watch.mjs`, extended with a
+- **Native write-watch** (`scripts/capacity-window-watch.mjs` — manually
+  invoked proof tool, not a standing gate; see the note under "Step 4.3
+  Stage 1" — extended with a
   hold-size parameter, full-capacity staging injection, capital
   entry/completion counters and a keep-alive until one capital completes).
   XEX and ATR × cold fill `$00`/`$A5`: cold start, OPTIONS, gameplay,
@@ -1139,7 +1149,8 @@ PMG, collision, DLI/VBI and every CODE/BROADSIDE/ENTITY address are unchanged
   boot cycles (≈0.69 PAL frame). Boot smoke PASS 4/4: XEX menu 393 → **392**,
   ATR menu 546 against deadline 546 (still 0 frames of margin; the ATR loader
   countdown is frame-aligned and absorbs the sub-frame saving).
-- **Native write-watch** (`scripts/capacity-window-watch.mjs`, extended with
+- **Native write-watch** (`scripts/capacity-window-watch.mjs` — manually
+  invoked proof tool, not a standing gate — extended with
   `--stage`, `--expect-stage-bins`, `--expect-range-bin` and `--window-from`),
   XEX and ATR × cold fill `$00`/`$A5`, lifecycle cold start, OPTIONS, START,
   gameplay, pause/resume, one capital sector entered and completed (XEX frames
@@ -1232,7 +1243,8 @@ identical). Goal reached: **`$7BD0-$7E11` has no boot, cold or runtime owner**
   loader), ATR 11,120,699 → 11,113,417. Boot smoke PASS 4/4: XEX menu 392
   (deadline 502) unchanged; ATR menu 546 → **544** against deadline 546 →
   544 (one sector fewer; 0 frames of margin as before).
-- **Native write-watch** (`scripts/capacity-window-watch.mjs`, extended with
+- **Native write-watch** (`scripts/capacity-window-watch.mjs` — manually
+  invoked proof tool, not a standing gate — extended with
   `--hold-done`, windows up to 1,024 B and three added clock points), XEX and
   ATR × cold fill `$00`/`$A5`, lifecycle cold start, OPTIONS, START, gameplay,
   pause/resume, one capital sector entered and completed (XEX frames
@@ -1856,10 +1868,15 @@ is in [plan-realizacji.md](plan-realizacji.md) §4.
    `weapon_class`.
 4. **Player weapon boosters.** `weapon_class` already exists, pickup capsules
    already have a full lifecycle, and 12 hostile projectile glyphs are free.
-   The cost lands in the player projectile slots (2,945 cycles in
-   `handle_collisions`), so prefer boosters that do **not** multiply shots in
-   flight (faster rate, stronger shot, piercing) over spread, which must be
-   costed separately. Scheduled **after Option D**.
+   The cost lands in the player projectile slots (**4,407** cycles in
+   `handle_collisions`, MEASURED at HEAD in `build/manifest.json`
+   `runtimeTiming.cpuDmaOff`; the 2,945 previously stated here is stale), so
+   prefer boosters that do **not** multiply shots in flight (faster rate,
+   stronger shot, piercing) over spread, which must be costed separately.
+   Scheduled **after Option D**. **Owner decision N (2026-09-20) makes the
+   headline booster permanent:** one variable, "booster level 0-5", setting
+   both projectile damage and projectile colour, with death costing one level.
+   See the new decisions section below.
 5. **4.7 Boss** — designed **data-driven** (phases, movement pattern, fire
    pattern, HP, weak points as data) so that later bosses are records rather
    than implementations. This is a decision to make **when planning 4.7**, not
@@ -1868,13 +1885,115 @@ is in [plan-realizacji.md](plan-realizacji.md) §4.
    variable corridor width, bigger debris; River Raid-style spatial flying.
    Data plus a collision check.
 7. **Level complete / next level**; 16-level campaign as data; polish.
+   **Confirmed by owner decision E (2026-09-20): sixteen levels**, a boss on
+   each, easiest difficulty beatable by anyone. The eight-level content target
+   that appeared in `project-overview.md` §6.1 and design-4.6 §6 is withdrawn —
+   this item's figure was the correct one.
+
+## Owner decisions E-R (2026-09-20) — the game concept is settled
+
+**Recorded, not implemented.** No gameplay, renderer, engine or build behaviour
+changed for these. Full text, with rationale, in the decision journal:
+[owner-decisions-2026-09-11.md](owner-decisions-2026-09-11.md), section
+"Decyzje literowe 2026-09-20". A-D were moved into the same section from
+`project-overview.md` §5.3.
+
+| Letter | Decision |
+| --- | --- |
+| **E** | **Sixteen levels**, not eight; a boss ends every level; the easiest difficulty beatable by anyone. Supersedes design-4.6 §6 and the eight-level content target; `plan-realizacji.md` §4 item 7 and decision 21 item 7 stand. |
+| **F** | Capital variety is **parametric**: four segment-art sets, with length in segments, turret density and maximum gondola protrusion as three independent 4-step parameters. One hull variant per level. ≈ 4 × 1,253 B on disk instead of sixteen art sets. |
+| **G** | Capital turrets stay **non-destructible**. Confirms backlog 4.8b. |
+| **H** | Boss: **one controller, a record per boss** (module layout, weapon placement and count, weak points). Boss weapons reuse existing `weapon_class` records, to save code for the boosters. |
+| **I** | **Boss laser**: drawn at once from gun to bottom of screen — the earlier "unfolding beam" is withdrawn. One second, telegraphed by ~2 s of visible gun heating with sound, destroys everything in its path. 1 / 2 / 4 per level on 1-4 / 5-9 / 10-16. Cost assessment is an owner ESTIMATE, to be costed at 4.7. |
+| **J** | Difficulty scales the existing reload/spacing scaling **and** damage: player-dealt, player-taken, contact and boss. |
+| **K** | Lives: three at start, **+1 after each odd level from 3** (3, 5, 7, 9, 11, 13, 15) — seven extra. |
+| **L** | Level select from the furthest level reached. RAM only; a difficulty change in the menu resets it to level 1; the menu shows which levels are available. |
+| **M** | High scores: **RAM only, no disk write.** Confirms today's behaviour. |
+| **N** | **Permanent weapon booster**, level 0-5. One variable; level sets damage **and** colour, so colour replaces a HUD; death costs one level. Two repo checks answered (below); **colour is open**. |
+| **O** | **Loader screen**: a random line from 8-16 short English texts spoken by the fighter's cynical onboard AI, plus an animation stepped one frame per sector read — not a progress bar. Texts (~640 B for 16 lines) resident before the read starts. Written in a later session. |
+| **P** | **End screen**: eventually an animation in the top third at full width plus a text scroll below — a separate sub-project, a loaded sector, not resident. A simple message suffices for now. |
+| **Q** | **The project rules are explicitly superseded.** `plan-realizacji.md` §7 and `reguly-projektu.txt` §11 keep their "BASIC RAM, loader changes, runtime disk I/O" entries, marked SUPERSEDED with the superseding decision and why the ground changed. `reguly-projektu.txt` is now version 3.2. |
+| **R** | **Hardware measurements deferred — risk OWNER-ACCEPTED 2026-09-20.** Register below. |
+
+### What decision N's two repo checks measured
+
+- **No existing booster modifies damage.** MEASURED: player-shot damage is a
+  hardcoded `lda #$01` at `src/main.s:3892`; `queue_enemy_damage`'s only other
+  callers are player-enemy contact and capital fire. Rapid Fire changes
+  cadence, Spread changes count, Shield absorbs. The booster level can be the
+  sole source of the number.
+- **Player projectile classes do not share the hostile `<= 9` limit.**
+  MEASURED (`build/fighter-weapons.inc`): player glyphs are their own bank at
+  base 11, stride 9, 36 codes; the `<= 9` assert (`src/main.s:797`) bounds the
+  hostile bank at base 90 only. The player ceiling is `src/main.s:792`,
+  `BASE + COUNT <= CAPITAL_HULL_GLYPH_BASE = 59`, so **five looks (45 glyphs,
+  codes 11-55) fit with three to spare**; a sixth does not.
+- **OPEN — colour.** `art-direction.md` forbids a local object changing the
+  global palette. Player projectiles are ANTIC 4 cells in shared playfield
+  registers, all `$1E` today. Settle how five levels get five colours before
+  planning N.
+
+## Technical-debt register — OWNER-ACCEPTED RISK 2026-09-20 (decision R)
+
+| # | Debt | What it invalidates if it goes wrong |
+| --- | --- | --- |
+| 1 | **RESET during gameplay may re-map the BASIC ROM over `$A000-$BFFF`.** The `BASICF = $01` write should prevent it; an emulator proves this least well. | Decision B stands entirely on it. |
+| 2 | **Real per-sector read rate** — the emulator's SIO is patched. | The inter-level pause and how much content fits on disk. Decision O is designed not to care; E and F do. |
+| 3 | **The ATR boot-without-OPTION fix is emulator-proven only.** | Decision A, and through it the unconditional window (B) and the whole roadmap on real hardware. |
+| 4 | **What the OS occupies above `$BC20`** was unmeasured. | **Measured 2026-09-20 — see below.** Entry retained because the measurement is Atari800-only. |
+
+### The window measurement (debt item 4, done)
+
+The boot-smoke observer now records `SDLSTL`/`SDLSTH` (`$0230`), `MEMTOP`
+(`$02E5`) and `RAMTOP` (`$6A`) in every snapshot. **8/8 sessions pass.**
+EMULATOR-MEASURED, Atari800 7.1.2 PAL/XL, identical on both media and both cold
+RAM fills:
+
+| BASIC at coldstart | `RAMTOP` | `MEMTOP` | `SDLSTL`/`SDLSTH` | OS screen | Usable window |
+| --- | ---: | ---: | ---: | --- | ---: |
+| disabled | `$C0` | `$BC1F` | `$BC20` | `$BC20-$BFFF`, 992 B | `$A000-$BC1F` = **7,200 B** |
+| enabled | `$A0` | `$9C1F` | `$9C20` | `$9C20-$9FFF`, 992 B | all 8,192 B |
+
+**Plan against 7,200 B.** The frame-1 snapshot reads zero in all eight sessions
+— the OS has not initialised those cells that early; the values above come from
+frames 250 onward and are constant thereafter.
+
+**Second result, not looked for:** cold-started **with** BASIC the OS puts its
+screen at `$9C20-$9FFF` — inside resident game RAM (`ENTITY_CODE` tail,
+`DIRECTOR_C_PRE`, `LEVEL1_DATA`, `DIRECTOR_C_CODE`), not in the window.
+`disable_basic_rom` unmaps the ROM but does not move the OS shadows. Nothing
+breaks today — MEASURED `NMIEN = $80` from frame 250 on, so the OS VBI NMI is
+off — but the between-levels reader must **set the OS shadows before handing
+control to SIO**, not just restore hardware registers afterwards. Carry into
+roadmap 4.3. Evidence: `build/runtime-wall-trace/boot-smoke/report.json`,
+`snapshots[].sdlst` / `.memtop` / `.ramtop`.
+
+### Boot-frame note, re-measured 2026-09-20
+
+"**+2 PAL frames per occupied sector**" is **not an identity**. With the same
+183 sectors the ATR menu arrives at **554** frames cold-started without BASIC
+and **538** with BASIC enabled (XEX: 392 and 383). A 16-frame ATR spread —
+eight sectors' worth by the rule — from a variable unrelated to sector count.
+Combined with decision A's +1 sector not moving the frame at all, the rule is
+frame-quantised and was calibrated over one 177→182 range on one emulator. Use
+it to size a budget, never to predict a frame. The committed baselines
+(XEX 392, ATR 554) are the BASIC-off figures.
 
 ## Backlog — deferred, not forgotten
 
 Deliberately deferred work, distinct from the open defects above. Not to be
 started without owner instruction.
 
-- **4.8b destructible gondola guns.** Turrets are not objects today:
+- **Disk save (progress, high scores) — PARKED** (2026-09-20). Needs SIO write,
+  error handling, and a decision about whether the game's own ATR stays
+  pristine when people share disk images. Decisions L and M keep both in RAM
+  for exactly that reason.
+- **End-screen animation and its scroll text** (decision P, 2026-09-20). The
+  scroll text is written at the end of the process.
+
+- **4.8b destructible gondola guns.** Confirmed as backlog by **owner decision
+  G (2026-09-20): capital turrets stay non-destructible.** Turrets are not
+  objects today:
   `BROAD_TURRET` is a shell field and `BROAD_TURRET_FIRED` a fire latch — no
   HP, no slot state, not a collision target. This is a **new object type**
   needing its own plan and budget, and it **must not delay the boss**.

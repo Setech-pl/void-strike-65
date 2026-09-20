@@ -15,6 +15,74 @@ Sections marked *earlier `2df89da`* were not regenerated.
 > further down, and a full re-measured segment table with real neighbours and
 > real free tails is in [project-overview.md](project-overview.md) §2, which
 > also lists every stale row in this file individually (§8.1, §8.2).
+>
+> **Corrected 2026-09-20.** Every stale row named in `project-overview.md`
+> §8.1 and §8.2 now carries its measured value **inline, at the point a reader
+> hits it**, instead of only being listed elsewhere. The historical row is kept
+> beside it, because the history of how a tail moved is the reason these
+> sections exist. Rows corrected this way are marked `[SUPERSEDED …]`.
+
+## Superseded rows — the measured values, in one place (2026-09-20)
+
+MEASURED at HEAD `ac71df7` from `build/void-strike-65.map`,
+`build/void-strike-65.lbl`, `build/encounter-director.map` and
+`build/manifest.json`. Each row below replaces the one named in the left
+column wherever it appears earlier or later in this file.
+
+| Row as written somewhere in this file | MEASURED at HEAD |
+| --- | --- |
+| `$8C7D-$8C94` 24 B `EnemyArchetype` table, "Raider + Light Wingman records" | `$8C7D-$8CAE` **50 B** — four 12 B records + a 2 B provisional Light schedule table |
+| `$8C95-$8F69` 725 B C sector/lifecycle/Light | `HYBRID_C_EXT` `$8CAF-$8EE1` **563 B** |
+| `$8F6A-$8FEE` 133 B `LIGHT_CODE` | `LIGHT_CODE` `$8EE2-$8FAC` **203 B**, plus `HEAVY_CODE` `$8FAD-$8FEC` **64 B**, which is absent from the old tables entirely |
+| `$8FEF-$8FFF` 17 B free extension tail | `$8FED-$8FFF` **19 B** |
+| `$9100-$9D51` 3,154 B `ENTITY_CODE`; `$9D52-$9D5D` 12 B free | `$9100-$9D5C` **3,165 B**; free **1 B** (`$9D5D`) |
+| `$9D31-$9D5D` **45 B** free `ENTITY_CODE` tail (*Accepted placement* section) | **1 B** (`$9D5D`). **This is the pair that cost real work**: a 3-byte inline insert assembled cleanly against a reservation ceiling, ran `ENTITY_CODE` past `$9D5D` and crashed at runtime. |
+| §4.4b "ENTITY_CODE free tail 45 → 13 B" | **1 B** at HEAD |
+| `$9D73-$9D74` 2 B "free ENTITY_CODE reservation tail" | 2 B, but it is the gap between `DIRECTOR_C_PRE` and `LEVEL1_DATA` — **not** an `ENTITY_CODE` tail |
+| `$8100-$810B` 12 B Light record; `$810C-$810F` 4 B unowned | `HYBRID_LIGHT_STATE` is **`$8100-$810F`, 16 B**; nothing there is unowned |
+| `$8119-$813F` 39 B unowned | `HYBRID_ENCOUNTER_STATE` `$8119-$811A` and `HYBRID_HEAVY_STATE` `$811B-$8125` occupy 13 B of it; real free is **`$8126-$813F`, 26 B** |
+| `$5CF7-$5E05` 271 B free starfield tail | `STARFIELD` now ends `$5D93`; real free is **`$5D94-$5E05`, 114 B** |
+| `$7F05-$7F0F` 11 B "unassigned after cold staging" | Inside the arena's 215 B free tail `$7E39-$7F0F`. **Double-counted** if both rows are summed |
+| `$8600-$8601` near-star state (BSS table) **vs** `$85FE-$8601` 4 B `STAR_NEAR_SCREEN_HI` (*Accepted placement*) | **Both are wrong about the extent; neither is wrong about what it names.** Settled from the source — see the next section |
+
+### Near-star state — settled from the source, 2026-09-20
+
+The two sections of this file disagreed by 2 B and neither could be resolved
+from a link map, because the near-star records are **hand-placed BSS, not a
+linker segment**. Settled by reading the address chain and confirming it
+against `build/void-strike-65.lbl`:
+
+| Symbol | Source | Address, MEASURED |
+| --- | --- | ---: |
+| `STAR_NEAR_ROW` | `src/main.s:228` (`= HULL_DRAW_ROW_HI+$01`) | `$85F2-$85F5` |
+| `STAR_NEAR_COLUMN` | `src/main.s:229` | `$85F6-$85F9` |
+| `STAR_NEAR_SCREEN_LO` | `src/main.s:230` | `$85FA-$85FD` |
+| `STAR_NEAR_SCREEN_HI` | `src/main.s:231` | `$85FE-$8601` |
+| `STAR_NEAR_STATE_END` | `src/main.s:232` | `$8602` (= `RESIDENT_WINDOW`) |
+
+Each table is `STAR_NEAR_CAPACITY` bytes; `STAR_NEAR_CAPACITY = 4`, generated
+into `build/starfield.inc:7` from `near.population` by `scripts/starfield.mjs:110`.
+The four `.lbl` addresses (`$85F2`, `$85F6`, `$85FA`, `$85FE`) confirm the
+stride independently.
+
+**The answer: the near-star state is `$85F2-$8601`, 16 B, four 4-byte tables.**
+
+- The *Accepted placement* row `$85FE-$8601` 4 B is right about
+  `STAR_NEAR_SCREEN_HI` and wrong only if read as the whole near-star state.
+- The BSS row `$8600-$8601` "near-star state" is **wrong**: those two bytes are
+  the tail of `STAR_NEAR_SCREEN_HI`, not the state.
+- The BSS row `$85EF-$85FF` "17 B unowned after cold startup" is **wrong**:
+  `CORRIDOR_PHASE_HI` (`$85EF`), `HULL_DRAW_ROW_LO`/`HI` (`$85F0-$85F1`) and
+  the near-star tables own all of it.
+- Consequently the free gap before the near-star state is **`$85E6-$85EE`,
+  9 B** — not the 24 B (`$85E6-$85FD`) that `project-overview.md` §2.1 derived
+  from the wrong start address. That row is corrected there too.
+
+Asserts that bound it: `STAR_NEAR_STATE_END <= WEAPON_PICKUP_RUNTIME`
+(`src/main.s:740`) and `STAR_NEAR_STATE_END <= RESIDENT_WINDOW`
+(`src/main.s:741`), with `RESIDENT_WINDOW = $8602` (`src/main.s:727`). The
+state therefore ends **exactly** where the resident window begins; it has zero
+slack, and anything that raises `STAR_NEAR_CAPACITY` moves `HYBRID_C_SECTOR`.
 
 This is one snapshot. Addresses and linked sizes come from
 `build/void-strike-65.map`; packed sizes, staging ranges, artifacts, and reserves
@@ -51,7 +119,7 @@ longer implies a deadline; what it costs is **2 PAL frames per occupied
 | `$80F4-$80FF` | 12 B | C-owned Encounter Director semantic state at its legacy addresses |
 | `$86FA-$8700` | 7 B | hybrid ABI mailbox and cc65 Director scratch BSS; no C stack |
 | `$8701-$8775` | 117 B | hybrid C/ASM Director/lifecycle ABI veneer and startup publishers |
-| `$8100-$810B` | 12 B | C-owned Light Wingman record (`$8100-$8105`) plus ASM Light render cache/scratch (`$8106-$810B`); `$810C` free |
+| `$8100-$810B` | 12 B | C-owned Light Wingman record (`$8100-$8105`) plus ASM Light render cache/scratch (`$8106-$810B`); `$810C` free — **[SUPERSEDED 2026-09-20: `HYBRID_LIGHT_STATE` is `$8100-$810F`, 16 B; nothing there is unowned]** |
 | `$8110-$8118` | 9 B | C-owned derived Raider profile cache read by the ASM kernel (moved from `$8776`) |
 | `$8776-$8857` | 226 B | `LIGHT_RESIDENT` Light Wingman kernel (update, PairShot hit, kill, glyph) heading the pickup/collision stream |
 | `$8858-$8B60` | 777 B | fighter PMG pickup, projectile publication scaffold, narrow effect/PairShot backing resolver, and provisional active-gameplay admission policy (retired inert padding reclaimed) |
@@ -59,14 +127,14 @@ longer implies a deadline; what it costs is **2 PAL frames per occupied
 | `$8B67-$8B87` | 33 B | shared inclusive final-raster swept-AABB capital-bolt/Player Fighter collision module |
 | `$8B88-$8C79` | 242 B | low cc65 Director code |
 | `$8C7A-$8C7C` | 3 B | free gap |
-| `$8C7D-$8C94` | 24 B | C `EnemyArchetype` table (Raider + Light Wingman records) |
-| `$8C95-$8F69` | 725 B | C sector, high-level enemy lifecycle and Light Wingman code |
-| `$8F6A-$8FEE` | 133 B | `LIGHT_CODE` Light late-publication (erase + render) kernel, main-linked, carried at the tail of the extension stream |
-| `$8FEF-$8FFF` | 17 B | free extension tail |
+| `$8C7D-$8C94` | 24 B | C `EnemyArchetype` table (Raider + Light Wingman records) — **[SUPERSEDED 2026-09-20: `$8C7D-$8CAE`, 50 B, four records + a 2 B Light schedule table]** |
+| `$8C95-$8F69` | 725 B | C sector, high-level enemy lifecycle and Light Wingman code — **[SUPERSEDED 2026-09-20: `HYBRID_C_EXT` `$8CAF-$8EE1`, 563 B]** |
+| `$8F6A-$8FEE` | 133 B | `LIGHT_CODE` Light late-publication (erase + render) kernel, main-linked, carried at the tail of the extension stream — **[SUPERSEDED 2026-09-20: `LIGHT_CODE` `$8EE2-$8FAC`, 203 B, plus `HEAVY_CODE` `$8FAD-$8FEC`, 64 B, missing from this table]** |
+| `$8FEF-$8FFF` | 17 B | free extension tail — **[SUPERSEDED 2026-09-20: `$8FED-$8FFF`, 19 B]** |
 | `$9000-$90EC` | 237 B | relocated A2 kernel; 19 bytes reserved through `$90FF` are free |
-| `$9100-$9D51` | 3,154 B | relocated `ENTITY_CODE`, including PMG pickup lifecycle, H3.1 display lists, and frontend helpers; `$9D52-$9D5D` (12 B) free |
+| `$9100-$9D51` | 3,154 B | relocated `ENTITY_CODE`, including PMG pickup lifecycle, H3.1 display lists, and frontend helpers; `$9D52-$9D5D` (12 B) free — **[SUPERSEDED 2026-09-20: `$9100-$9D5C`, 3,165 B; free tail 1 B at `$9D5D`]** |
 | `$9D5E-$9D72` | 21 B | cc65 Director `5*x+1` RNG routine |
-| `$9D73-$9D74` | 2 B | free tail before Director tables |
+| `$9D73-$9D74` | 2 B | free tail before Director tables — **[CLARIFIED 2026-09-20: correct as 2 B, but it is the gap between `DIRECTOR_C_PRE` and `LEVEL1_DATA`, not an `ENTITY_CODE` reservation tail]** |
 | `$9D75-$9E12` | 158 B | C Director constants and Level 1 tables |
 | `$9E13-$9FF7` | 485 B | remaining cc65 Director code |
 | `$9FF8-$9FF9` | 2 B | free Director reservation tail |
@@ -115,7 +183,7 @@ STARFIELD is 1,805 B.
 
 | Range | Size | Accepted owner |
 | --- | ---: | --- |
-| `$85FE-$8601` | 4 B | `STAR_NEAR_SCREEN_HI` (live near-star state; the old "`$8600` window" never included these two bytes) |
+| `$85FE-$8601` | 4 B | `STAR_NEAR_SCREEN_HI` (the old "`$8600` window" never included these two bytes) — **[CLARIFIED 2026-09-20: right about `STAR_NEAR_SCREEN_HI`, but it is not the whole near-star state, which is `$85F2-$8601`, 16 B — see "Near-star state — settled from the source"]** |
 | `$8602-$86F9` | 248 B | `HYBRID_C_SECTOR_RAM`: the five `sector_c_*` functions, 240 B at `$8602-$86F1`; 8 B free |
 | `$8300-$83F9` | 250 B | boot-only GLUE hold (idle gameplay-ring RAM) until `layout_d_publish_glue`; `init_screen` rebuilds the ring before gameplay |
 | `$8C7D-$8E79` | 509 B | C `EnemyArchetype` RODATA 24 B + lifecycle/Light C 485 B |
@@ -123,7 +191,7 @@ STARFIELD is 1,805 B.
 | `$8858-$8B58` | 769 B | `PICKUP_CODE`; `$8B59-$8B66` 14 B zero fill of the stream image before the fixed `$8B67` collision module |
 | `$8E7A-$8F44` | 203 B | `LIGHT_CODE` (moved with the shorter C composite): Light late publication 133 B plus the debris late-publication kernel 70 B (`entity_debris_publish`, capital hook `render_launch_flashes_with_capital_debris`, `restore_recycled_row_near_and_debris`) |
 | `$8F45-$8FFF` | 187 B | free contiguous `HYBRID_C_EXT` tail; cc65 code or main-linked ASM appended after `LIGHT_CODE` (257 B before the debris kernel) |
-| `$9100-$9D30` | 3,121 B | ENTITY_CODE (C1 −39 B, second-stream expansion +13 B, debris late publication −4 B); `$9D31-$9D5D` 45 B free |
+| `$9100-$9D30` | 3,121 B | ENTITY_CODE (C1 −39 B, second-stream expansion +13 B, debris late publication −4 B); `$9D31-$9D5D` 45 B free — **[SUPERSEDED 2026-09-20: `$9100-$9D5C`, 3,165 B; free tail 1 B at `$9D5D`. This 45 B row is the one a 3-byte insert trusted before it overran `ENTITY_CODE` and crashed at runtime — do not plan against it]** |
 
 Transport: the window's independent LZ stream (201 B packed) follows the
 pickup/collision stream in the same raw DFMC record. The record is 1,158 of
@@ -166,7 +234,7 @@ only for the candidate build.
 | `$9100-$9D30` | 3,121 B | ENTITY_CODE, unchanged |
 | `$9D31-$9D40` | 16 B | 4.4b `light_glyph`: Wingman art, moved from `LIGHT_RESIDENT`, bytes unchanged |
 | `$9D41-$9D50` | 16 B | 4.4b `light_interceptor_glyph`: Interceptor art (one page with the Wingman table) |
-| `$9D51-$9D5D` | 13 B | free ENTITY_CODE reservation tail — scarce (45 B before 4.4b) |
+| `$9D51-$9D5D` | 13 B | free ENTITY_CODE reservation tail — scarce (45 B before 4.4b) — **[SUPERSEDED 2026-09-20: 1 B at HEAD, `$9D5D`. Both this 13 B and the 45 B it came from are historical; neither is capacity]** |
 
 Roadmap 4.4b (Interceptor visual identity) changes only the ENTITY_CODE,
 `LIGHT_RESIDENT`, `PICKUP_CODE` and stream-fill rows above: ENTITY_CODE is
@@ -736,7 +804,7 @@ this lifetime.
 | `$5478-$547F` | 8 B | independent X, Y, signed velocity, and fractional movement accumulators |
 | `$5480-$5485` | 6 B | independent manoeuvre state, timer, and behaviour phase |
 | `$5486-$5489` | 4 B | ASM selected-slot/Y scratch and weapon cursor plus C-owned live count |
-| `$5CF7-$5E05` | 271 B | free tail of the starfield reservation before BOOST backing |
+| `$5CF7-$5E05` | 271 B | free tail of the starfield reservation before BOOST backing — **[SUPERSEDED 2026-09-20: `STARFIELD` now ends `$5D93`; real free is `$5D94-$5E05`, 114 B]** |
 | `$5E06-$5E0F` | 10 B | exact prior-content backing for HUD cells `$401E-$4027` while BOOST is active |
 | `$780D-$780F` | 3 B | free tail of the broadside reservation |
 | `$7810-$7BCF` | 960 B | pause-screen backup after cold staging is consumed |
@@ -747,7 +815,7 @@ this lifetime.
 | `$7D40-$7E31` | 242 B | cold low-C staging, expanded by the loader from its 210-B LZ record, until publication to `$8B88-$8C79` (the reservation runs to `$7E37`) |
 | `$7E38-$7F2A` | 243 B | 4.5a candidate: cold `HYBRID_C_HEAVY` staging (used bytes only travel in the low-C record) until the ring hold copy |
 | `$7E12-$7F04` | 243 B | 4.5a candidate: `HYBRID_C_HEAVY` runtime window, published after starfield expansion (see the 4.5a section) |
-| `$7F05-$7F0F` | 11 B | unassigned after cold staging |
+| `$7F05-$7F0F` | 11 B | unassigned after cold staging — **[SUPERSEDED 2026-09-20: inside the `HYBRID_C_ARENA` free tail `$7E39-$7F0F` (215 B); double-counted if both rows are summed]** |
 | `$7F10-$7F69` | 90 B | expanded A2 display list A |
 | `$7F6A-$7FC3` | 90 B | expanded A2 display list B |
 | `$7FC4-$7FFF` | 60 B | unassigned |
@@ -767,10 +835,10 @@ starfield, so all overlaps are lifetime-safe.
 | `$8080-$80F3` | 116 B | six physical effect slots plus global state; release active limit 5 |
 | `$80F4-$80FF` | 12 B | persistent Encounter Director state, initialized after the entity/effects clear |
 | `$8100-$9B1E` | 6,687 B | cold-start resident-suffix staging only (measured packed size at the 4.5M candidates; grows and shrinks with the resident code) |
-| `$8100-$810B` | 12 B | Light M1: C Light record `$8100-$8105`, ASM render cache/scratch `$8106-$810B` |
-| `$810C-$810F` | 4 B | unowned after cold startup |
+| `$8100-$810B` | 12 B | Light M1: C Light record `$8100-$8105`, ASM render cache/scratch `$8106-$810B` — **[SUPERSEDED 2026-09-20: `HYBRID_LIGHT_STATE` is `$8100-$810F`, 16 B]** |
+| `$810C-$810F` | 4 B | unowned after cold startup — **[SUPERSEDED 2026-09-20: owned, inside `HYBRID_LIGHT_STATE` `$8100-$810F`]** |
 | `$8110-$8118` | 9 B | C-owned derived archetype profile cache; ASM read-only (moved from `$8776`) |
-| `$8119-$813F` | 39 B | unowned after cold startup |
+| `$8119-$813F` | 39 B | unowned after cold startup — **[SUPERSEDED 2026-09-20: `HYBRID_ENCOUNTER_STATE` `$8119-$811A` and `HYBRID_HEAVY_STATE` `$811B-$8125` take 13 B; real free is `$8126-$813F`, 26 B]** |
 | `$8140-$8577` | 1,080 B | 27-row physical gameplay ring, 40 bytes per row |
 | `$8578-$8592` | 27 B | logical-to-physical row low-byte table |
 | `$8593-$85AD` | 27 B | logical-to-physical row high-byte table |
@@ -781,8 +849,8 @@ starfield, so all overlaps are lifetime-safe.
 | `$85E2-$85E5` | 4 B | prepared-row logical row, capital section, and physical ring-destination key |
 | `$85D3` | 1 B | freshly generated enemy boundary cell, safely aliasing an unused centre byte of the prepared row |
 | `$85E6-$85EE` | 9 B | unowned after cold startup |
-| `$85EF-$85FF` | 17 B | unowned after cold startup; `$85F2-$85FF` was the head of the retired logical far-record pool |
-| `$8600-$86F9` | 250 B | `$8600-$8601` near-star state; `$8602-$86F9` `HYBRID_C_SECTOR_RAM` (step 4.3, accepted `b4b942e`); the boot-only GLUE hold is at `$8300-$83F9` |
+| `$85EF-$85FF` | 17 B | unowned after cold startup; `$85F2-$85FF` was the head of the retired logical far-record pool — **[SUPERSEDED 2026-09-20: all of it is owned. `CORRIDOR_PHASE_HI` `$85EF`, `HULL_DRAW_ROW_LO`/`HI` `$85F0-$85F1`, near-star tables `$85F2-$8601`. The free gap is `$85E6-$85EE`, 9 B]** |
+| `$8600-$86F9` | 250 B | `$8600-$8601` near-star state — **[SUPERSEDED 2026-09-20: those two bytes are the tail of `STAR_NEAR_SCREEN_HI`; the near-star state is `$85F2-$8601`, 16 B, and `$8602` is exactly where it ends]**; `$8602-$86F9` `HYBRID_C_SECTOR_RAM` (step 4.3, accepted `b4b942e`); the boot-only GLUE hold is at `$8300-$83F9` |
 | `$86FA-$8700` | 7 B | hybrid C Director/lifecycle mailbox and scratch; software stack 0 B, new ZP 0 B |
 | `$8701-$8775` | 117 B | hybrid C/ASM Director/lifecycle ABI veneer and startup publishers |
 | `$8776-$8857` | 226 B | Light M1 `LIGHT_RESIDENT` kernel heading the pickup/collision stream |
@@ -791,20 +859,20 @@ starfield, so all overlaps are lifetime-safe.
 | `$8B67-$8B87` | 33 B | inclusive 16x15-player versus final-raster swept-8x6-bolt AABB collision module |
 | `$8B88-$8C79` | 242 B | low cc65 Director code |
 | `$8C7A-$8C7C` | 3 B | free tail of `DIRECTOR_C_LOW_RAM` (see the overlap note below) |
-| `$8C7D-$8C94` | 24 B | C `EnemyArchetype` RODATA: Raider + Light records |
-| `$8C95-$8F69` | 725 B | C sector/high-level enemy lifecycle and Light code |
-| `$8F6A-$8FEE` | 133 B | Light M1 `LIGHT_CODE` late-publication kernel (extension tail) |
-| `$8FEF-$8FFF` | 17 B | free extension tail |
+| `$8C7D-$8C94` | 24 B | C `EnemyArchetype` RODATA: Raider + Light records — **[SUPERSEDED 2026-09-20: `$8C7D-$8CAE`, 50 B]** |
+| `$8C95-$8F69` | 725 B | C sector/high-level enemy lifecycle and Light code — **[SUPERSEDED 2026-09-20: `HYBRID_C_EXT` `$8CAF-$8EE1`, 563 B]** |
+| `$8F6A-$8FEE` | 133 B | Light M1 `LIGHT_CODE` late-publication kernel (extension tail) — **[SUPERSEDED 2026-09-20: `LIGHT_CODE` `$8EE2-$8FAC`, 203 B, plus `HEAVY_CODE` `$8FAD-$8FEC`, 64 B]** |
+| `$8FEF-$8FFF` | 17 B | free extension tail — **[SUPERSEDED 2026-09-20: `$8FED-$8FFF`, 19 B]** |
 | `$9000-$90EC` | 237 B | A2 kernel |
 | `$90ED-$90FF` | 19 B | free A2 reservation tail |
-| `$9100-$9D51` | 3,154 B | entity/effect/booster/projectile and H3.1 frontend runtime |
-| `$9D52-$9D5D` | 12 B | free ENTITY_CODE reservation tail |
+| `$9100-$9D51` | 3,154 B | entity/effect/booster/projectile and H3.1 frontend runtime — **[SUPERSEDED 2026-09-20: `$9100-$9D5C`, 3,165 B]** |
+| `$9D52-$9D5D` | 12 B | free ENTITY_CODE reservation tail — **[SUPERSEDED 2026-09-20: the free tail is 1 B, `$9D5D`]** |
 | `$9D5E-$9D72` | 21 B | cc65 Director RNG code |
-| `$9D73-$9D74` | 2 B | free ENTITY_CODE reservation tail |
+| `$9D73-$9D74` | 2 B | free ENTITY_CODE reservation tail — **[CLARIFIED 2026-09-20: 2 B is right, but it is the `DIRECTOR_C_PRE` → `LEVEL1_DATA` gap, not an `ENTITY_CODE` tail]** |
 | `$9D75-$9FF7` | 643 B | C Director RODATA plus high CODE |
 | `$9FF8-$9FF9` | 2 B | free Director reservation tail |
 | `$9FFA-$9FFF` | 6 B | untouched guard; not available capacity |
-| `$A000-$BFFF` | 8,192 B | deliberately unused; RAM from `disable_basic_rom` onward |
+| `$A000-$BFFF` | 8,192 B | deliberately unused; RAM from `disable_basic_rom` onward. **Owner decision B (2026-09-20) opens it: it is usable RAM and will be used.** Usable extent is NOT the full 8,192 B — see "The window at `$A000-$BFFF` — measured top" below |
 | `$C000-$FFFF` | 16,384 B | OS ROM and I/O; not gameplay RAM |
 
 Cold startup initializes every byte of `$8000-$80FF`. No current code, state,
@@ -820,6 +888,50 @@ chunk load and from `boot_stage2_xex_entry` before `jmp start`, i.e. earlier
 than every write either medium makes. The window is therefore unconditionally
 RAM for the whole runtime: still unused, but now *reliably* unused rather than
 avoided because its contents were unknowable.
+
+## The window at `$A000-$BFFF` — measured top (2026-09-20)
+
+**EMULATOR-MEASURED**, Atari800 7.1.2 PAL/XL, boot smoke 8/8 PASS. The boot
+smoke observer (`scripts/atari800-wall-trace.h`) now records `SDLSTL`/`SDLSTH`
+(`$0230`), `MEMTOP` (`$02E5`) and `RAMTOP` (`$6A`) in every snapshot. Until
+this measurement the OS's occupation of the top of the window was an
+**ESTIMATE** recorded nowhere in this repository.
+
+| BASIC at coldstart | `RAMTOP` | `MEMTOP` | `SDLSTL`/`SDLSTH` | OS screen | Usable window |
+| --- | ---: | ---: | ---: | --- | ---: |
+| **disabled** (`-nobasic`), XEX and ATR | `$C0` | `$BC1F` | `$BC20` | `$BC20-$BFFF`, 992 B | `$A000-$BC1F` = **7,200 B** |
+| **enabled** (`-basic`), XEX and ATR | `$A0` | `$9C1F` | `$9C20` | `$9C20-$9FFF`, 992 B | all `$A000-$BFFF` = 8,192 B |
+
+Identical on both media and both cold RAM fills (`$A5`, `$5A`), and constant
+across frames 250, 300, 3050 and 3300. The frame-1 snapshot reads zero on all
+eight sessions — the OS has not yet initialised those cells that early.
+
+**Plan against `$A000-$BC1F` = 7,200 B**, not 8,192 B: a machine cold-started
+without BASIC has the OS screen at the top of the window, and the game cannot
+choose how the player powers the machine on.
+
+**The second result matters more, and nobody was looking for it.** Cold-started
+**with** BASIC enabled, the OS puts `RAMTOP` at `$A0` and its screen at
+`$9C20-$9FFF` — **not in the window, but inside the game's own resident RAM**.
+That range is occupied today by the `ENTITY_CODE` tail (`$9C20-$9D5C`),
+`DIRECTOR_C_PRE`, `LEVEL1_DATA` and `DIRECTOR_C_CODE` (`$9E13-$9FF7`): 992 B of
+live C Director code and data. `disable_basic_rom` unmaps the ROM but **does
+not move the OS's shadows**; `RAMTOP`, `MEMTOP` and `SDLSTL`/`SDLSTH` stay
+wherever coldstart put them.
+
+Nothing breaks today: the game takes the display over completely, and MEASURED
+in the same snapshots `NMIEN = $80` from frame 250 onward, so the **OS VBI NMI
+is disabled**. But this is exactly the hazard the between-levels reader (roadmap
+4.3) has to handle: if the reader returns to OS SIO and revives the OS VBI, that
+VBI restores the display-list pointer from `SDLSTL`/`SDLSTH`, and on a
+BASIC-enabled cold boot that points at `$9C20`, into Director code.
+
+**Carry into 4.3:** the loader-mode display state must **set the OS shadows to
+its own values before handing control to SIO**, not merely restore the hardware
+registers afterwards. Recorded here because it is a measurement, not a design.
+
+Evidence: `build/runtime-wall-trace/boot-smoke/report.json`, per-session
+`snapshots[].sdlst` / `.memtop` / `.ramtop`.
 
 ## Boot-only ENTITY_CODE staging lifecycle — earlier `2df89da`
 

@@ -784,6 +784,17 @@ typedef struct {
 	unsigned dma_ctl;
 	unsigned nmi_en;
 	unsigned vdslst;
+	/* OS-owned top-of-window state. The game takes the display over
+	 * completely, so these have never mattered to the gate; they are captured
+	 * because the $A000-$BFFF window is about to carry level data and the OS
+	 * VBI restores the display-list pointer from SDLSTL/SDLSTH during SIO.
+	 * SDLSTL/SDLSTH ($0230) say where the OS display list is, MEMTOP ($02E5)
+	 * the OS's last free RAM byte below its screen, RAMTOP ($6A) the page
+	 * above which the OS considers memory its own. Together they bound the
+	 * usable top of the window. */
+	unsigned sdlst;
+	unsigned memtop;
+	unsigned ramtop;
 	unsigned runad;
 	unsigned initad;
 	unsigned dosvec;
@@ -894,6 +905,9 @@ static void dfboot_capture(unsigned frame, unsigned pc)
 	snapshot->dma_ctl = ANTIC_DMACTL;
 	snapshot->nmi_en = ANTIC_NMIEN;
 	snapshot->vdslst = dfboot_word(0x0200u);
+	snapshot->sdlst = dfboot_word(0x0230u);
+	snapshot->memtop = dfboot_word(0x02e5u);
+	snapshot->ramtop = MEMORY_mem[0x006au];
 	snapshot->runad = dfboot_word(0x02e0u);
 	snapshot->initad = dfboot_word(0x02e2u);
 	snapshot->dosvec = dfboot_word(0x000au);
@@ -923,13 +937,15 @@ static void dfboot_write(void)
 			"    {\"frame\":%u,\"pc\":%u,\"scanline\":%d,\"cycle\":%d,"
 			"\"loader_timer\":%u,\"game_state\":%u,\"dlist\":%u,"
 			"\"charset_address\":%u,\"pm_base\":%u,\"dma_ctl\":%u,"
-			"\"nmi_en\":%u,\"vdslst\":%u,\"runad\":%u,\"initad\":%u,"
+			"\"nmi_en\":%u,\"vdslst\":%u,\"sdlst\":%u,\"memtop\":%u,"
+			"\"ramtop\":%u,\"runad\":%u,\"initad\":%u,"
 			"\"dosvec\":%u,\"screen_checksum\":%u,"
 			"\"frontend_dlist_checksum\":%u,\"loader_dli_count\":%u}%s\n",
 			snapshot->frame, snapshot->pc, snapshot->scanline, snapshot->cycle,
 			snapshot->loader_timer, snapshot->game_state, snapshot->dlist,
 			snapshot->charset_address, snapshot->pm_base, snapshot->dma_ctl,
-			snapshot->nmi_en, snapshot->vdslst, snapshot->runad, snapshot->initad,
+			snapshot->nmi_en, snapshot->vdslst, snapshot->sdlst, snapshot->memtop,
+			snapshot->ramtop, snapshot->runad, snapshot->initad,
 			snapshot->dosvec, snapshot->screen_checksum,
 			snapshot->frontend_dlist_checksum, snapshot->loader_dli_count,
 			index + 1u == dfboot_snapshots_count ? "" : ",");

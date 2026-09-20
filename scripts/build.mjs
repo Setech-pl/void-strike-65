@@ -2372,7 +2372,7 @@ async function build() {
       },
     },
     runtimeCodeBudget: {
-      measurement: "linked CODE + STARFIELD + BROADSIDE + A2_KERNEL + ENTITY_CODE bytes",
+      measurement: "linked CODE + STARFIELD + BROADSIDE + A2_KERNEL + ENTITY_CODE + PICKUP_CODE bytes",
       baselineBytes: destructibleDebrisRuntimeCodeBaselineBytes,
       actualBytes: destructibleDebrisRuntimeCodeBytes,
       actualDeltaBytes: destructibleDebrisRuntimeCodeBytes -

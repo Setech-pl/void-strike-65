@@ -16,69 +16,106 @@
     "screen": "$4000-$43FF generated main-menu state",
     "charset": "$4800-$4BFF generated frontend charset",
     "display_list": "$9400",
-    "canonical_raster_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04",
-    "screen_sha256": "6cee41783e1f6519ca7ebe617670b7aeaf9c1ab3d1180ee8661086bab9733152",
+    "canonical_raster_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a",
+    "screen_sha256": "3f61e7e05f36aff6c60a522ba07ba25db156f4d64f100e9cc5594c6c30f6baa6",
     "charset_sha256": "3da52d8d1f360a24f246b0363fc5817f7b8de2f36caafba40da0de5922351f9d",
     "display_list_sha256": "64a08acb2e68e4fb61c2626ea4f9cb9eba668162358c4262d7a19f0f156f3eec"
   },
   "memory_audit": {
     "boot_stage_streams": [
       {
-        "source": 18278,
-        "destination": 32534,
-        "bytes": 255
+        "source": 18415,
+        "destination": 32555,
+        "bytes": 237
       },
       {
-        "source": 18533,
-        "destination": 21320,
-        "bytes": 2543
+        "source": 18652,
+        "destination": 21272,
+        "bytes": 2732
       },
       {
         "source": 35968,
         "destination": 18433,
-        "bytes": 888
+        "bytes": 1170
       },
       {
-        "source": 9832,
+        "source": 9922,
         "destination": 33024,
-        "bytes": 6653
+        "bytes": 6682
       },
       {
-        "source": 16485,
+        "source": 16604,
         "destination": 30736,
-        "bytes": 1793
+        "bytes": 915
+      },
+      {
+        "source": 17519,
+        "destination": 33274,
+        "bytes": 896
       }
     ],
     "dfmc_records": [
       {
-        "start_sector": 102,
+        "start_sector": 105,
         "sectors": 45,
-        "packed_bytes": 5639,
-        "raw_bytes": 6643,
+        "packed_bytes": 5661,
+        "raw_bytes": 6653,
         "destination": 24080,
         "staging_id": 1
       },
       {
-        "start_sector": 147,
-        "sectors": 8,
-        "packed_bytes": 888,
-        "raw_bytes": 888,
+        "start_sector": 150,
+        "sectors": 10,
+        "packed_bytes": 1170,
+        "raw_bytes": 1170,
         "destination": 35968,
         "staging_id": 2
       },
       {
-        "start_sector": 155,
+        "start_sector": 160,
         "sectors": 2,
-        "packed_bytes": 229,
-        "raw_bytes": 234,
-        "destination": 21081,
+        "packed_bytes": 116,
+        "raw_bytes": 117,
+        "destination": 32792,
         "staging_id": 2
       },
       {
-        "start_sector": 157,
+        "start_sector": 162,
+        "sectors": 4,
+        "packed_bytes": 457,
+        "raw_bytes": 498,
+        "destination": 39744,
+        "staging_id": 2
+      },
+      {
+        "start_sector": 166,
+        "sectors": 7,
+        "packed_bytes": 787,
+        "raw_bytes": 787,
+        "destination": 30736,
+        "staging_id": 2
+      },
+      {
+        "start_sector": 173,
+        "sectors": 1,
+        "packed_bytes": 23,
+        "raw_bytes": 21,
+        "destination": 40286,
+        "staging_id": 2
+      },
+      {
+        "start_sector": 174,
         "sectors": 5,
-        "packed_bytes": 585,
-        "raw_bytes": 645,
+        "packed_bytes": 562,
+        "raw_bytes": 617,
+        "destination": 31696,
+        "staging_id": 2
+      },
+      {
+        "start_sector": 179,
+        "sectors": 5,
+        "packed_bytes": 542,
+        "raw_bytes": 643,
         "destination": 40309,
         "staging_id": 2
       }
@@ -97,44 +134,44 @@
         "end_exclusive": 19456
       },
       "glue_transport": {
-        "start": 21081,
-        "end_exclusive": 21315
+        "start": 39992,
+        "end_exclusive": 40242
       },
       "glue_final": {
         "start": 20222,
-        "end_exclusive": 20456
+        "end_exclusive": 20472
       },
       "broadside": {
         "start": 24080,
-        "end_exclusive": 30723
+        "end_exclusive": 30733
       },
       "post_loader_workspace": {
         "start": 30736,
         "end_exclusive": 32768
       },
       "glue_holding": {
-        "start": 32534,
-        "end_exclusive": 32768
+        "start": 33024,
+        "end_exclusive": 33274
       },
       "entity_state_bss": {
         "start": 32768,
         "end_exclusive": 33024
       },
       "pickup_phase_bank": {
-        "start": 34816,
-        "end_exclusive": 35968
+        "start": 34678,
+        "end_exclusive": 34678
       },
       "pickup_code": {
-        "start": 35968,
-        "end_exclusive": 36449
+        "start": 34907,
+        "end_exclusive": 35680
       },
       "a2_runtime": {
         "start": 36864,
-        "end_exclusive": 37119
+        "end_exclusive": 37101
       },
       "entity_code": {
         "start": 37120,
-        "end_exclusive": 40232
+        "end_exclusive": 40285
       },
       "main_menu_display_list": {
         "start": 37888,
@@ -142,48 +179,54 @@
       },
       "director": {
         "start": 40309,
-        "end_exclusive": 40954
+        "end_exclusive": 40952
       }
     },
     "entity_packed_source": {
-      "start": 18533,
-      "end_exclusive": 21076,
-      "staged_start": 21320,
-      "staged_end_exclusive": 23863,
-      "source_to_staging_margin_bytes": 244,
-      "staging_to_broadside_margin_bytes": 217,
+      "start": 18652,
+      "end_exclusive": 21384,
+      "staged_start": 21272,
+      "staged_end_exclusive": 24004,
+      "source_to_staging_margin_bytes": -112,
+      "staging_to_broadside_margin_bytes": 76,
       "released_before_starfield_expansion": true
     },
     "staged_source_lifetimes": [
       {
         "name": "A2 initial source",
-        "start": 18278,
-        "end_exclusive": 18533,
+        "start": 18415,
+        "end_exclusive": 18652,
         "last_read": 1
       },
       {
         "name": "packed ENTITY_CODE",
-        "start": 18533,
-        "end_exclusive": 21076,
+        "start": 18652,
+        "end_exclusive": 21384,
         "last_read": 2
       },
       {
         "name": "packed pickup",
         "start": 35968,
-        "end_exclusive": 36856,
+        "end_exclusive": 37138,
         "last_read": 3
       },
       {
         "name": "packed resident suffix",
-        "start": 9832,
-        "end_exclusive": 16485,
+        "start": 9922,
+        "end_exclusive": 16604,
         "last_read": 4
       },
       {
-        "name": "packed starfield",
-        "start": 16485,
-        "end_exclusive": 18278,
+        "name": "packed starfield A",
+        "start": 16604,
+        "end_exclusive": 17519,
         "last_read": 5
+      },
+      {
+        "name": "packed starfield B",
+        "start": 17519,
+        "end_exclusive": 18415,
+        "last_read": 6
       }
     ],
     "glyph_126_127": {
@@ -210,11 +253,11 @@
       "cold_ram_fill": 0,
       "artifact": {
         "path": "dist/void-strike-65.xex",
-        "bytes": 21366,
-        "sha256": "6ae79dd43f585cfcf694c7328c1fbac4c9513bbd0b48220f73394fd212a71aa0"
+        "bytes": 23862,
+        "sha256": "04935dbb522693c1144ea3872446fde424df74c54b1d5429373c75fd3d56a187"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/xex-00.json",
-      "first_complete_menu_frame": 381,
+      "first_complete_menu_frame": 395,
       "transitions_completed": 3,
       "pause_entries": 3,
       "pause_latch_failures": 0,
@@ -222,7 +265,7 @@
         {
           "generation": 0,
           "menu_age": 3,
-          "host_frame": 381,
+          "host_frame": 395,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -235,7 +278,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -257,12 +300,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-00-menu0-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 0,
           "menu_age": 20,
-          "host_frame": 398,
+          "host_frame": 412,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -275,7 +318,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -297,12 +340,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-00-menu0-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 0,
           "menu_age": 500,
-          "host_frame": 878,
+          "host_frame": 892,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -315,7 +358,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -337,12 +380,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-00-menu0-age500.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 1,
           "menu_age": 3,
-          "host_frame": 950,
+          "host_frame": 963,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -355,7 +398,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -377,12 +420,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-00-menu1-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 1,
           "menu_age": 20,
-          "host_frame": 967,
+          "host_frame": 980,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -395,7 +438,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -417,12 +460,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-00-menu1-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 2,
           "menu_age": 3,
-          "host_frame": 1039,
+          "host_frame": 1051,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -435,7 +478,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -457,12 +500,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-00-menu2-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 2,
           "menu_age": 20,
-          "host_frame": 1056,
+          "host_frame": 1068,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -475,7 +518,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -497,12 +540,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-00-menu2-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 3,
           "menu_age": 3,
-          "host_frame": 1128,
+          "host_frame": 1139,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -515,7 +558,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -537,12 +580,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-00-menu3-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 3,
           "menu_age": 20,
-          "host_frame": 1145,
+          "host_frame": 1156,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -555,7 +598,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -577,12 +620,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-00-menu3-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 3,
           "menu_age": 500,
-          "host_frame": 1625,
+          "host_frame": 1636,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -595,7 +638,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -617,7 +660,7 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-00-menu3-age500.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         }
       ],
       "passed": true
@@ -628,11 +671,11 @@
       "cold_ram_fill": 165,
       "artifact": {
         "path": "dist/void-strike-65.xex",
-        "bytes": 21366,
-        "sha256": "6ae79dd43f585cfcf694c7328c1fbac4c9513bbd0b48220f73394fd212a71aa0"
+        "bytes": 23862,
+        "sha256": "04935dbb522693c1144ea3872446fde424df74c54b1d5429373c75fd3d56a187"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/xex-a5.json",
-      "first_complete_menu_frame": 381,
+      "first_complete_menu_frame": 395,
       "transitions_completed": 3,
       "pause_entries": 3,
       "pause_latch_failures": 0,
@@ -640,7 +683,7 @@
         {
           "generation": 0,
           "menu_age": 3,
-          "host_frame": 381,
+          "host_frame": 395,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -653,7 +696,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -675,12 +718,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-a5-menu0-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 0,
           "menu_age": 20,
-          "host_frame": 398,
+          "host_frame": 412,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -693,7 +736,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -715,12 +758,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-a5-menu0-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 0,
           "menu_age": 500,
-          "host_frame": 878,
+          "host_frame": 892,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -733,7 +776,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -755,12 +798,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-a5-menu0-age500.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 1,
           "menu_age": 3,
-          "host_frame": 950,
+          "host_frame": 963,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -773,7 +816,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -795,12 +838,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-a5-menu1-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 1,
           "menu_age": 20,
-          "host_frame": 967,
+          "host_frame": 980,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -813,7 +856,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -835,12 +878,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-a5-menu1-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 2,
           "menu_age": 3,
-          "host_frame": 1039,
+          "host_frame": 1051,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -853,7 +896,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -875,12 +918,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-a5-menu2-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 2,
           "menu_age": 20,
-          "host_frame": 1056,
+          "host_frame": 1068,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -893,7 +936,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -915,12 +958,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-a5-menu2-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 3,
           "menu_age": 3,
-          "host_frame": 1128,
+          "host_frame": 1139,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -933,7 +976,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -955,12 +998,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-a5-menu3-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 3,
           "menu_age": 20,
-          "host_frame": 1145,
+          "host_frame": 1156,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -973,7 +1016,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -995,12 +1038,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-a5-menu3-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 3,
           "menu_age": 500,
-          "host_frame": 1625,
+          "host_frame": 1636,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1013,7 +1056,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -1035,7 +1078,7 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-a5-menu3-age500.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         }
       ],
       "passed": true
@@ -1046,11 +1089,11 @@
       "cold_ram_fill": 90,
       "artifact": {
         "path": "dist/void-strike-65.xex",
-        "bytes": 21366,
-        "sha256": "6ae79dd43f585cfcf694c7328c1fbac4c9513bbd0b48220f73394fd212a71aa0"
+        "bytes": 23862,
+        "sha256": "04935dbb522693c1144ea3872446fde424df74c54b1d5429373c75fd3d56a187"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/xex-5a.json",
-      "first_complete_menu_frame": 381,
+      "first_complete_menu_frame": 395,
       "transitions_completed": 3,
       "pause_entries": 3,
       "pause_latch_failures": 0,
@@ -1058,7 +1101,7 @@
         {
           "generation": 0,
           "menu_age": 3,
-          "host_frame": 381,
+          "host_frame": 395,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1071,7 +1114,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -1093,12 +1136,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-5a-menu0-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 0,
           "menu_age": 20,
-          "host_frame": 398,
+          "host_frame": 412,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1111,7 +1154,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -1133,12 +1176,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-5a-menu0-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 0,
           "menu_age": 500,
-          "host_frame": 878,
+          "host_frame": 892,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1151,7 +1194,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -1173,12 +1216,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-5a-menu0-age500.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 1,
           "menu_age": 3,
-          "host_frame": 950,
+          "host_frame": 963,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1191,7 +1234,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -1213,12 +1256,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-5a-menu1-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 1,
           "menu_age": 20,
-          "host_frame": 967,
+          "host_frame": 980,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1231,7 +1274,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -1253,12 +1296,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-5a-menu1-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 2,
           "menu_age": 3,
-          "host_frame": 1039,
+          "host_frame": 1051,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1271,7 +1314,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -1293,12 +1336,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-5a-menu2-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 2,
           "menu_age": 20,
-          "host_frame": 1056,
+          "host_frame": 1068,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1311,7 +1354,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -1333,12 +1376,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-5a-menu2-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 3,
           "menu_age": 3,
-          "host_frame": 1128,
+          "host_frame": 1139,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1351,7 +1394,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -1373,12 +1416,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-5a-menu3-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 3,
           "menu_age": 20,
-          "host_frame": 1145,
+          "host_frame": 1156,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1391,7 +1434,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -1413,12 +1456,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-5a-menu3-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 3,
           "menu_age": 500,
-          "host_frame": 1625,
+          "host_frame": 1636,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1431,7 +1474,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -1453,7 +1496,7 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-5a-menu3-age500.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         }
       ],
       "passed": true
@@ -1464,11 +1507,11 @@
       "cold_ram_fill": 255,
       "artifact": {
         "path": "dist/void-strike-65.xex",
-        "bytes": 21366,
-        "sha256": "6ae79dd43f585cfcf694c7328c1fbac4c9513bbd0b48220f73394fd212a71aa0"
+        "bytes": 23862,
+        "sha256": "04935dbb522693c1144ea3872446fde424df74c54b1d5429373c75fd3d56a187"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/xex-ff.json",
-      "first_complete_menu_frame": 381,
+      "first_complete_menu_frame": 395,
       "transitions_completed": 3,
       "pause_entries": 3,
       "pause_latch_failures": 0,
@@ -1476,7 +1519,7 @@
         {
           "generation": 0,
           "menu_age": 3,
-          "host_frame": 381,
+          "host_frame": 395,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1489,7 +1532,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -1511,12 +1554,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-ff-menu0-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 0,
           "menu_age": 20,
-          "host_frame": 398,
+          "host_frame": 412,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1529,7 +1572,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -1551,12 +1594,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-ff-menu0-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 0,
           "menu_age": 500,
-          "host_frame": 878,
+          "host_frame": 892,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1569,7 +1612,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -1591,12 +1634,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-ff-menu0-age500.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 1,
           "menu_age": 3,
-          "host_frame": 950,
+          "host_frame": 963,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1609,7 +1652,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -1631,12 +1674,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-ff-menu1-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 1,
           "menu_age": 20,
-          "host_frame": 967,
+          "host_frame": 980,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1649,7 +1692,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -1671,12 +1714,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-ff-menu1-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 2,
           "menu_age": 3,
-          "host_frame": 1039,
+          "host_frame": 1051,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1689,7 +1732,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -1711,12 +1754,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-ff-menu2-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 2,
           "menu_age": 20,
-          "host_frame": 1056,
+          "host_frame": 1068,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1729,7 +1772,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -1751,12 +1794,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-ff-menu2-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 3,
           "menu_age": 3,
-          "host_frame": 1128,
+          "host_frame": 1139,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1769,7 +1812,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -1791,12 +1834,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-ff-menu3-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 3,
           "menu_age": 20,
-          "host_frame": 1145,
+          "host_frame": 1156,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1809,7 +1852,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -1831,12 +1874,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-ff-menu3-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 3,
           "menu_age": 500,
-          "host_frame": 1625,
+          "host_frame": 1636,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1849,7 +1892,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -1871,7 +1914,7 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/xex-ff-menu3-age500.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         }
       ],
       "passed": true
@@ -1883,10 +1926,10 @@
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "d6379ea57d87b81920f767088fdece368b65c3469170764e136599fae0f2d67c"
+        "sha256": "4873ca915ea20c7d27ae9630397bb35348801fa0e9eb660b34d54f6db39d6f80"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/atr-00.json",
-      "first_complete_menu_frame": 505,
+      "first_complete_menu_frame": 557,
       "transitions_completed": 3,
       "pause_entries": 3,
       "pause_latch_failures": 0,
@@ -1894,7 +1937,7 @@
         {
           "generation": 0,
           "menu_age": 3,
-          "host_frame": 505,
+          "host_frame": 557,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1907,7 +1950,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -1929,12 +1972,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-00-menu0-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 0,
           "menu_age": 20,
-          "host_frame": 522,
+          "host_frame": 574,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1947,7 +1990,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -1969,12 +2012,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-00-menu0-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 0,
           "menu_age": 500,
-          "host_frame": 1002,
+          "host_frame": 1054,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1987,7 +2030,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -2009,12 +2052,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-00-menu0-age500.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 1,
           "menu_age": 3,
-          "host_frame": 1074,
+          "host_frame": 1125,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2027,7 +2070,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -2049,12 +2092,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-00-menu1-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 1,
           "menu_age": 20,
-          "host_frame": 1091,
+          "host_frame": 1142,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2067,7 +2110,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -2089,12 +2132,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-00-menu1-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 2,
           "menu_age": 3,
-          "host_frame": 1163,
+          "host_frame": 1213,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2107,7 +2150,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -2129,12 +2172,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-00-menu2-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 2,
           "menu_age": 20,
-          "host_frame": 1180,
+          "host_frame": 1230,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2147,7 +2190,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -2169,12 +2212,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-00-menu2-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 3,
           "menu_age": 3,
-          "host_frame": 1252,
+          "host_frame": 1301,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2187,7 +2230,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -2209,12 +2252,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-00-menu3-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 3,
           "menu_age": 20,
-          "host_frame": 1269,
+          "host_frame": 1318,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2227,7 +2270,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -2249,12 +2292,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-00-menu3-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 3,
           "menu_age": 500,
-          "host_frame": 1749,
+          "host_frame": 1798,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2267,7 +2310,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -2289,7 +2332,7 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-00-menu3-age500.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         }
       ],
       "passed": true
@@ -2301,10 +2344,10 @@
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "d6379ea57d87b81920f767088fdece368b65c3469170764e136599fae0f2d67c"
+        "sha256": "4873ca915ea20c7d27ae9630397bb35348801fa0e9eb660b34d54f6db39d6f80"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/atr-a5.json",
-      "first_complete_menu_frame": 505,
+      "first_complete_menu_frame": 557,
       "transitions_completed": 3,
       "pause_entries": 3,
       "pause_latch_failures": 0,
@@ -2312,7 +2355,7 @@
         {
           "generation": 0,
           "menu_age": 3,
-          "host_frame": 505,
+          "host_frame": 557,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2325,7 +2368,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -2347,12 +2390,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-a5-menu0-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 0,
           "menu_age": 20,
-          "host_frame": 522,
+          "host_frame": 574,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2365,7 +2408,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -2387,12 +2430,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-a5-menu0-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 0,
           "menu_age": 500,
-          "host_frame": 1002,
+          "host_frame": 1054,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2405,7 +2448,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -2427,12 +2470,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-a5-menu0-age500.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 1,
           "menu_age": 3,
-          "host_frame": 1074,
+          "host_frame": 1125,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2445,7 +2488,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -2467,12 +2510,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-a5-menu1-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 1,
           "menu_age": 20,
-          "host_frame": 1091,
+          "host_frame": 1142,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2485,7 +2528,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -2507,12 +2550,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-a5-menu1-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 2,
           "menu_age": 3,
-          "host_frame": 1163,
+          "host_frame": 1213,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2525,7 +2568,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -2547,12 +2590,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-a5-menu2-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 2,
           "menu_age": 20,
-          "host_frame": 1180,
+          "host_frame": 1230,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2565,7 +2608,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -2587,12 +2630,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-a5-menu2-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 3,
           "menu_age": 3,
-          "host_frame": 1252,
+          "host_frame": 1301,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2605,7 +2648,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -2627,12 +2670,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-a5-menu3-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 3,
           "menu_age": 20,
-          "host_frame": 1269,
+          "host_frame": 1318,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2645,7 +2688,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -2667,12 +2710,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-a5-menu3-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 3,
           "menu_age": 500,
-          "host_frame": 1749,
+          "host_frame": 1798,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2685,7 +2728,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -2707,7 +2750,7 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-a5-menu3-age500.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         }
       ],
       "passed": true
@@ -2719,10 +2762,10 @@
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "d6379ea57d87b81920f767088fdece368b65c3469170764e136599fae0f2d67c"
+        "sha256": "4873ca915ea20c7d27ae9630397bb35348801fa0e9eb660b34d54f6db39d6f80"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/atr-5a.json",
-      "first_complete_menu_frame": 505,
+      "first_complete_menu_frame": 557,
       "transitions_completed": 3,
       "pause_entries": 3,
       "pause_latch_failures": 0,
@@ -2730,7 +2773,7 @@
         {
           "generation": 0,
           "menu_age": 3,
-          "host_frame": 505,
+          "host_frame": 557,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2743,7 +2786,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -2765,12 +2808,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-5a-menu0-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 0,
           "menu_age": 20,
-          "host_frame": 522,
+          "host_frame": 574,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2783,7 +2826,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -2805,12 +2848,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-5a-menu0-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 0,
           "menu_age": 500,
-          "host_frame": 1002,
+          "host_frame": 1054,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2823,7 +2866,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -2845,12 +2888,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-5a-menu0-age500.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 1,
           "menu_age": 3,
-          "host_frame": 1074,
+          "host_frame": 1125,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2863,7 +2906,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -2885,12 +2928,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-5a-menu1-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 1,
           "menu_age": 20,
-          "host_frame": 1091,
+          "host_frame": 1142,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2903,7 +2946,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -2925,12 +2968,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-5a-menu1-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 2,
           "menu_age": 3,
-          "host_frame": 1163,
+          "host_frame": 1213,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2943,7 +2986,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -2965,12 +3008,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-5a-menu2-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 2,
           "menu_age": 20,
-          "host_frame": 1180,
+          "host_frame": 1230,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2983,7 +3026,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -3005,12 +3048,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-5a-menu2-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 3,
           "menu_age": 3,
-          "host_frame": 1252,
+          "host_frame": 1301,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -3023,7 +3066,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -3045,12 +3088,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-5a-menu3-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 3,
           "menu_age": 20,
-          "host_frame": 1269,
+          "host_frame": 1318,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -3063,7 +3106,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -3085,12 +3128,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-5a-menu3-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 3,
           "menu_age": 500,
-          "host_frame": 1749,
+          "host_frame": 1798,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -3103,7 +3146,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -3125,7 +3168,7 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-5a-menu3-age500.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         }
       ],
       "passed": true
@@ -3137,10 +3180,10 @@
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "d6379ea57d87b81920f767088fdece368b65c3469170764e136599fae0f2d67c"
+        "sha256": "4873ca915ea20c7d27ae9630397bb35348801fa0e9eb660b34d54f6db39d6f80"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/atr-ff.json",
-      "first_complete_menu_frame": 505,
+      "first_complete_menu_frame": 557,
       "transitions_completed": 3,
       "pause_entries": 3,
       "pause_latch_failures": 0,
@@ -3148,7 +3191,7 @@
         {
           "generation": 0,
           "menu_age": 3,
-          "host_frame": 505,
+          "host_frame": 557,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -3161,7 +3204,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -3183,12 +3226,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-ff-menu0-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 0,
           "menu_age": 20,
-          "host_frame": 522,
+          "host_frame": 574,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -3201,7 +3244,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -3223,12 +3266,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-ff-menu0-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 0,
           "menu_age": 500,
-          "host_frame": 1002,
+          "host_frame": 1054,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -3241,7 +3284,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -3263,12 +3306,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-ff-menu0-age500.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 1,
           "menu_age": 3,
-          "host_frame": 1074,
+          "host_frame": 1125,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -3281,7 +3324,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -3303,12 +3346,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-ff-menu1-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 1,
           "menu_age": 20,
-          "host_frame": 1091,
+          "host_frame": 1142,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -3321,7 +3364,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -3343,12 +3386,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-ff-menu1-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 2,
           "menu_age": 3,
-          "host_frame": 1163,
+          "host_frame": 1213,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -3361,7 +3404,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -3383,12 +3426,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-ff-menu2-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 2,
           "menu_age": 20,
-          "host_frame": 1180,
+          "host_frame": 1230,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -3401,7 +3444,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -3423,12 +3466,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-ff-menu2-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 3,
           "menu_age": 3,
-          "host_frame": 1252,
+          "host_frame": 1301,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -3441,7 +3484,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -3463,12 +3506,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-ff-menu3-age003.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 3,
           "menu_age": 20,
-          "host_frame": 1269,
+          "host_frame": 1318,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -3481,7 +3524,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -3503,12 +3546,12 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-ff-menu3-age020.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         },
         {
           "generation": 3,
           "menu_age": 500,
-          "host_frame": 1749,
+          "host_frame": 1798,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -3521,7 +3564,7 @@
             "vscroll": 0,
             "hscroll": 0,
             "nmien": 128,
-            "vdslst": 9175,
+            "vdslst": 9229,
             "colpf": [
               14,
               30,
@@ -3543,16 +3586,11 @@
             "vertical": 11
           },
           "screenshot": "build/runtime-wall-trace/menu-raster/atr-ff-menu3-age500.png",
-          "screenshot_sha256": "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04"
+          "screenshot_sha256": "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a"
         }
       ],
       "passed": true
     }
   ],
-  "passed": true,
-  "evidence_status": {
-    "status": "historical_pre_rebrand_raster",
-    "current_brand_validation": "build/runtime-wall-trace/boot-smoke/report.json",
-    "note": "Retained as historical lifecycle and memory evidence; its expected raster hashes are not presented as current brand-screen measurements."
-  }
+  "passed": true
 }

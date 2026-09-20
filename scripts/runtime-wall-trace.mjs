@@ -1989,8 +1989,16 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, xexPath, atrPath }
   const expectedScreen = Buffer.from(expected.screen);
   const expectedCharset = Buffer.from(expected.graphics.frontendCharset);
   const expectedDisplayList = Buffer.from(expected.graphics.mainMenuDisplayList);
+  // The owner-accepted main-menu image, pinned deliberately: this is a description of
+  // a player-visible artifact, not a transport or build figure that should be derived.
+  // Nothing in the repository can regenerate it, and a raster that moves without an
+  // owner smoke is exactly what this clause exists to catch. Re-accepted 2026-09-20
+  // after 9d22ee2: style_main_menu_title hard-coded `ldx #11` against a fourteen-
+  // character title, so the highlight run was two cells short and "65" stayed plain.
+  // Both runs now derive from MAIN_MENU_TITLE_TEXT in src/main.s, the image changed
+  // for that known reason, and all ten required checkpoints agree on the new raster.
   const canonicalRasterSha256 =
-    "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04";
+    "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a";
   const residentRuntime = fs.readFileSync(path.join(
     rootDirectory, "build", "resident-runtime.bin"));
   const stageTableOffset = labels.get("boot_stage_streams") -

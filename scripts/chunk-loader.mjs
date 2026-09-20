@@ -3,9 +3,17 @@ const MANIFEST_VERSION = 1;
 const MANIFEST_HEADER_BYTES = 12;
 const MANIFEST_RECORD_BYTES = 16;
 const MANIFEST_CRC_BYTES = 2;
-const MAX_CHUNKS = 8;
+// Owner decision B (2026-09-20): a ninth slot, so a window record can be added
+// without touching the loader again. The cap is mirrored by CHUNK_MAX_COUNT in
+// src/main.s; MEASURED, raising it cost exactly 16 B of the stage-2 manifest
+// reservation inside the transient $21C1-$29C0 overlay. Eight records ship
+// today; the ninth slot is unused until content moves into the window.
+const MAX_CHUNKS = 9;
 const ATR_SECTOR_BYTES = 128;
 const ATR_SECTORS = 720;
+
+const BASIC_WINDOW_START = 0xa000;
+const BASIC_WINDOW_END_EXCLUSIVE = 0xbc20;
 
 const CHUNK_TYPE_RAW = 0;
 const CHUNK_TYPE_LZ = 1;
@@ -29,6 +37,11 @@ const SAFE_EXTENSION_RANGES = Object.freeze([
   // 4.5M-M2 merged low-C/GLUE record ($9B40-$9D31) among the direct
   // Director landings; consumed before ENTITY_CODE expands over it.
   [0x992a, 0xa000],
+  // Owner decision B (2026-09-20): the RAM under the BASIC ROM. PORTB bit 1 is
+  // forced at both stage-2 entries before any record is published, so the
+  // window is plain RAM by then. It stops at $BC1F: with BASIC off at
+  // coldstart the OS sets RAMTOP $C0 and keeps its screen at $BC20-$BFFF.
+  [BASIC_WINDOW_START, BASIC_WINDOW_END_EXCLUSIVE],
 ]);
 // The pickup stream is consumed before A2/ENTITY publication. Its cold tail
 // may therefore cross $9100 without overlapping live gameplay code.
@@ -69,8 +82,12 @@ export function manifestBytesFor(chunkCount) {
 function validateDestination(record) {
   const end = record.finalDestination + record.rawLength;
   invariant(end <= 0x10000, "chunk destination overflows 16-bit address space");
-  invariant(record.finalDestination < 0xa000 && end <= 0xa000,
-    "chunk destination enters the forbidden BASIC-ROM window");
+  // Owner decision B (2026-09-20): $A000-$BC1F is usable RAM and records may
+  // land in it. $BC20-$BFFF is not: that is where the OS keeps its screen once
+  // BASIC is disabled at coldstart (RAMTOP $C0).
+  invariant(record.finalDestination < BASIC_WINDOW_END_EXCLUSIVE &&
+    end <= BASIC_WINDOW_END_EXCLUSIVE,
+  "chunk destination enters the OS screen above $BC1F");
   invariant(!(record.finalDestination < 0x2000 && end > 0x0000),
     "chunk destination enters protected low RAM");
   if (record.stagingId === STAGING_BROADSIDE) {

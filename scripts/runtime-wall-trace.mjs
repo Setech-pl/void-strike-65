@@ -1597,7 +1597,7 @@ function readBootDeadline() {
   return deadline;
 }
 
-function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
+function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
   const bootDeadline = readBootDeadline();
   const outputDirectory = path.join(buildDirectory, "boot-smoke");
   fs.mkdirSync(outputDirectory, { recursive: true });
@@ -1621,6 +1621,21 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
   };
   invariant(Object.values(expected).every(Number.isInteger),
     "Boot-smoke expected-address labels are incomplete");
+
+  // Owner decision B (2026-09-20): the RAM under the BASIC ROM. The build
+  // lands an inert 16-byte probe record at the foot of the window; every cold
+  // session must read it back byte-exact. Under `-basic` a mismatch would mean
+  // the ROM is still mapped, which is precisely what decision B stands on.
+  const basicWindow = manifest.residentCapacity?.basicWindow ?? null;
+  invariant(basicWindow !== null && Number.isInteger(basicWindow.address),
+    "Boot smoke needs the manifest's BASIC window accounting");
+  const windowImagePath = path.join(rootDirectory, "build",
+    "encounter-director-code-basic-window.bin");
+  const windowProbe = basicWindow.usedBytes === 0 ? null : fs.readFileSync(windowImagePath);
+  invariant(windowProbe === null || windowProbe.length === 16,
+    `BASIC window content is ${windowProbe?.length} B; the boot smoke reads back 16`);
+  const windowProbeHex = windowProbe === null ? null : windowProbe.toString("hex");
+  addressEnvironment.DFBOOT_WINDOW_ADDRESS = `0x${basicWindow.address.toString(16)}`;
 
   const publicLaunches = atari800ArtifactLaunches(rootDirectory);
   invariant(publicLaunches.xex.artifact.path === xexPath &&
@@ -1758,6 +1773,15 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
       milestones.gameplay_init <= milestones.main_loop &&
       milestones.main_loop < BOOT_GAMEPLAY_FRAME,
     `${definition.id} did not execute the complete loader-to-gameplay handoff`);
+    for (const snapshot of [menu, gameplay]) {
+      invariant(windowProbeHex === null || snapshot.window === windowProbeHex,
+        `${definition.id} BASIC window probe at $${basicWindow.address.toString(16)} reads ` +
+        `${snapshot.window} at frame ${snapshot.frame}, expected ${windowProbeHex}` +
+        `${definition.basic ? " (BASIC enabled: the ROM may still be mapped)" : ""}`);
+      invariant((snapshot.portb & 0x02) === 0x02,
+        `${definition.id} PORTB bit 1 is clear at frame ${snapshot.frame}: the BASIC ROM is ` +
+        "mapped over the window");
+    }
     if (definition.id.startsWith("xex")) {
       invariant(menu.runad === expected.xex_entry,
         `${definition.id} XEX RUNAD does not point at the stage-2 parity entry`);
@@ -1812,6 +1836,18 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
     duration_seconds_pal: BOOT_GAMEPLAY_FRAME / 50,
     guest_instrumentation_bytes: 0,
     cold_ram_range: "$8000-$9FFF",
+    basic_window: {
+      address: basicWindow.address,
+      guard_address: basicWindow.guardAddress,
+      end_exclusive: basicWindow.endExclusive,
+      capacity_bytes: basicWindow.capacityBytes,
+      used_bytes: basicWindow.usedBytes,
+      free_bytes: basicWindow.freeBytes,
+      probe_bytes: windowProbe === null ? 0 : windowProbe.length,
+      probe_hex: windowProbeHex,
+      window_read_back_at_frames: [BOOT_MENU_FRAME, BOOT_GAMEPLAY_FRAME],
+      portb_bit1_asserted_at_frames: [BOOT_MENU_FRAME, BOOT_GAMEPLAY_FRAME],
+    },
     basic_states_covered: ["-nobasic", "-basic"],
     input: `production joystick path; FIRE pressed on host frames ` +
       `${BOOT_MENU_FRAME + 1}-${BOOT_MENU_FRAME + 6}`,
@@ -2341,7 +2377,7 @@ function main() {
     return;
   }
   const bootSmoke = skipBootSmoke ? null :
-    runBootSmoke({ emulatorPath, labels, xexPath, atrPath });
+    runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest });
   if (bootSmoke !== null)
     console.log(`Boot smoke: ${bootSmoke.sessions.length} XEX/ATR cold-start sessions passed`);
   if (bootSmokeOnly) {

@@ -181,7 +181,43 @@ test("resident compaction proof survives and Spread Shot leaves at least 64 sour
   for (const range of manifest.runtimeTiming.memory.runtimeRanges) {
     assert.ok(range.end < 0x0600 || range.start > 0x1fff,
       `${range.name} enters excluded low RAM $0600-$1FFF`);
-    assert.ok(range.end < 0xa000 || range.start > 0xbfff,
-      `${range.name} enters conditional BASIC-ROM RAM $A000-$BFFF`);
+    // Owner decision B (2026-09-20): $A000-$BC19 is the usable window; only its
+    // six-byte guard and the OS screen above it are forbidden.
+    assert.ok(range.end < 0xbc1a || range.start > 0xbfff,
+      `${range.name} enters the BASIC_WINDOW guard or the OS screen $BC1A-$BFFF`);
   }
+});
+
+// Owner decision B (2026-09-20): the RAM under the BASIC ROM is open to the
+// build. This task is plumbing only - the window carries no content yet - so
+// what is worth freezing is the region, its guard, the loader bound and the
+// ca65 assert that makes an overrun a link error.
+test("the BASIC window is declared, guarded and addressable by the build", () => {
+  const { manifest } = validateBuildDirectory(rootDirectory);
+  const window = manifest.residentCapacity.basicWindow;
+  assert.deepEqual([window.address, window.guardAddress, window.endExclusive,
+    window.capacityBytes, window.guardBytes],
+  [0xa000, 0xbc1a, 0xbc20, 7194, 6]);
+  assert.equal(window.usedBytes + window.freeBytes, window.capacityBytes);
+  assert.equal(window.usedBytes, 0, "placement of window content belongs with roadmap 4.6");
+  assert.equal(window.transport, null);
+  assert.equal(manifest.xexInitAd, null, "no INITAD record while no XEX block lands at $A000");
+
+  const config = fs.readFileSync(path.join(rootDirectory, "cfg", "encounter-director.cfg"), "utf8");
+  assert.match(config,
+    /^ {2}BASIC_WINDOW_RAM: start = \$A000, size = \$1C1A, type = ro, file = %O, define = yes;$/m);
+  assert.match(config,
+    /^ {2}BASIC_WINDOW_GUARD: start = \$BC1A, size = \$0006, type = ro, file = "", define = yes;$/m);
+  assert.match(config, /^ {2}BASIC_WINDOW: {4}load = BASIC_WINDOW_RAM, type = ro, define = yes;$/m);
+
+  const abi = fs.readFileSync(path.join(rootDirectory, "src", "hybrid", "c-asm-abi.s"), "utf8");
+  assert.match(abi,
+    /\.assert __BASIC_WINDOW_RAM_LAST__ <= __BASIC_WINDOW_GUARD_START__, lderror, "BASIC_WINDOW reaches the window guard at \$BC1A"/);
+  assert.match(abi,
+    /\.assert __BASIC_WINDOW_GUARD_START__ = \$BC1A, lderror, "BASIC_WINDOW_GUARD must start at \$BC1A"/);
+
+  // The loader bound is mirrored on both sides of the ABI: JS refuses a record
+  // above $BC1F before it is encoded, ca65 refuses it again in stage 2.
+  assert.match(source, /^CHUNK_MAX_COUNT {7}= 9$/m);
+  assert.match(source, /cmp #\$BD\s+STAGE2_FAIL_CS\s+cmp #\$BC\s+bne :\+\s+lda stage2_final_end_lo\s+cmp #\$21\s+STAGE2_FAIL_CS/);
 });

@@ -354,16 +354,28 @@ export function validateBuildDirectory(rootDirectory) {
     : [];
   // 4.5M-M2: GLUE has no XEX segment of its own; it rides the low-C transport
   // segment (merged low-C/GLUE/Heavy record) at offset $F8.
-  invariant(parsedXex.segments.length === (directorEnabled ? 5 + directorCodeRuntimes.length : 3),
-    "XEX segment count does not match the enabled transport layout");
+  // Owner decision B (2026-09-20): when a block lands in the window under the
+  // BASIC ROM, a two-byte INITAD record sits between the first block and every
+  // later one so the binary loader calls disable_basic_rom before placing them.
+  const initAd = manifest.xexInitAd ?? null;
+  const initAdSegments = initAd === null ? 0 : 1;
+  invariant(parsedXex.segments.length ===
+    (directorEnabled ? 5 + directorCodeRuntimes.length : 3) + initAdSegments,
+  "XEX segment count does not match the enabled transport layout");
   const payloadSegment = parsedXex.segments[0];
-  const broadsideSegment = parsedXex.segments[1];
-  const pickupPhaseSegment = directorEnabled ? parsedXex.segments[2] : null;
-  const directorCodeSegments = directorCodeRuntimes.map((runtime, index) =>
-    parsedXex.segments[3 + index]);
-  const directorSegment = directorEnabled
-    ? parsedXex.segments[3 + directorCodeRuntimes.length] : null;
-  const runSegment = parsedXex.segments[directorEnabled ? 4 + directorCodeRuntimes.length : 2];
+  if (initAd !== null) {
+    const initAdSegment = parsedXex.segments[initAd.segmentIndex];
+    invariant(initAd.segmentIndex === 1 && initAdSegment.start === 0x02e2 &&
+      initAdSegment.data.length === 2 &&
+      initAdSegment.data.readUInt16LE(0) === initAd.target,
+    "XEX INITAD record does not call the manifest's disable_basic_rom address");
+  }
+  const at = (index) => parsedXex.segments[index + initAdSegments];
+  const broadsideSegment = at(1);
+  const pickupPhaseSegment = directorEnabled ? at(2) : null;
+  const directorCodeSegments = directorCodeRuntimes.map((runtime, index) => at(3 + index));
+  const directorSegment = directorEnabled ? at(3 + directorCodeRuntimes.length) : null;
+  const runSegment = at(directorEnabled ? 4 + directorCodeRuntimes.length : 2);
   invariant(payloadSegment.start === manifest.loadAddress, "XEX payload load address is wrong");
   invariant(payloadSegment.data.equals(boot.subarray(0, transport.initialBootBytes)),
     "XEX initial block differs from ATR");

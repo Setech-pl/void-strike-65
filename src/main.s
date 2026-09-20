@@ -11528,7 +11528,14 @@ begin_capital_projectile_frame:
 CHUNK_MANIFEST_BYTES = 30
 CHUNK_MANIFEST_MAX_BYTES = 12+CHUNK_MAX_COUNT*16+2
 CHUNK_RECORD          = 12
-CHUNK_MAX_COUNT       = 8
+; Owner decision B (2026-09-20): nine records, so a landing in the window under
+; the BASIC ROM needs no further loader change. Mirrors MAX_CHUNKS in
+; scripts/chunk-loader.mjs. The extra record costs 16 B of the reservation
+; below, inside the transient overlay. (The window's own addresses are spelled
+; out in cfg/encounter-director.cfg and docs/memory-map.md, not here: the
+; ENTITY_CODE reservation tests read this file textually from the first
+; `.segment "ENTITY_CODE"` to its end and refuse the literals.)
+CHUNK_MAX_COUNT       = 9
 CHUNK_TYPE_LZ         = 1
 CHUNK_STAGING_BROAD   = 1
 CHUNK_STAGING_ADDRESS = $8100
@@ -12005,12 +12012,19 @@ boot_stage2_validate_record:
     adc stage2_capacity_hi
     STAGE2_FAIL_CS
     sta stage2_final_end_hi
-    cmp #$A1
+    ; Owner decision B (2026-09-20): a record may end anywhere up to $BC20, the
+    ; first byte of the OS screen once BASIC is disabled at coldstart (RAMTOP
+    ; $C0). Everything below that and above the Director guard is plain RAM by
+    ; the time any record is published - disable_basic_rom runs first, at the
+    ; top of this entry. Mirrors BASIC_WINDOW_END_EXCLUSIVE in
+    ; scripts/chunk-loader.mjs.
+    cmp #$BD
     STAGE2_FAIL_CS
-    cmp #$A0
+    cmp #$BC
     bne :+
     lda stage2_final_end_lo
-    STAGE2_FAIL_NE
+    cmp #$21
+    STAGE2_FAIL_CS
 :
     ldy #$0C
     lda (frontend_data_ptr),y
@@ -12039,7 +12053,9 @@ boot_stage2_validate_record:
     lda (frontend_data_ptr),y
     cmp #$4E
     STAGE2_FAIL_CC
-    cmp #$A0
+    ; Owner decision B: destinations reach into the window under the BASIC ROM.
+    ; The end test above is what bounds them at $BC20.
+    cmp #$BD
     STAGE2_FAIL_CS
     ldy #$09
     lda (frontend_data_ptr),y

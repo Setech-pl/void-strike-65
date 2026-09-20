@@ -872,11 +872,15 @@ starfield, so all overlaps are lifetime-safe.
 | `$9D75-$9FF7` | 643 B | C Director RODATA plus high CODE |
 | `$9FF8-$9FF9` | 2 B | free Director reservation tail |
 | `$9FFA-$9FFF` | 6 B | untouched guard; not available capacity |
-| `$A000-$BFFF` | 8,192 B | deliberately unused; RAM from `disable_basic_rom` onward. **Owner decision B (2026-09-20) opens it: it is usable RAM and will be used.** Usable extent is NOT the full 8,192 B — see "The window at `$A000-$BFFF` — measured top" below |
+| `$A000-$BC19` | 7,194 B | `BASIC_WINDOW` region (owner decision B, 2026-09-20). Declared, guarded, addressable by the build and reachable by a DFMC record; **empty at this checkpoint** — placement of content is a per-record 4.6 decision |
+| `$BC1A-$BC1F` | 6 B | `BASIC_WINDOW_GUARD`: reserved, no segment, in the same shape as the `$9FFA` Director guard |
+| `$BC20-$BFFF` | 992 B | OS screen when BASIC is disabled at coldstart (`RAMTOP $C0`); never available to the build |
 | `$C000-$FFFF` | 16,384 B | OS ROM and I/O; not gameplay RAM |
 
 Cold startup initializes every byte of `$8000-$80FF`. No current code, state,
-charset, loader data, or staging buffer uses `$A000-$BFFF`.
+charset, loader data, or staging buffer uses `$A000-$BFFF` — but since owner
+decision B the build *owns* `$A000-$BC1F`: see "Owner decision B plumbing"
+below.
 
 Owner decision A (2026-09-20) changed what that window *is*. Before it, whether
 `$A000-$BFFF` held RAM or the BASIC ROM depended on how the player started the
@@ -932,6 +936,57 @@ registers afterwards. Recorded here because it is a measurement, not a design.
 
 Evidence: `build/runtime-wall-trace/boot-smoke/report.json`, per-session
 `snapshots[].sdlst` / `.memtop` / `.ramtop`.
+
+## Owner decision B plumbing — the window is open (2026-09-20)
+
+The window is now part of the build's address space. Nothing has moved into it:
+this is the plumbing, and per-record placement belongs with roadmap 4.6.
+
+| Piece | Where | What it does |
+| --- | --- | --- |
+| `BASIC_WINDOW_RAM` | `cfg/encounter-director.cfg` | `start = $A000, size = $1C1A, type = ro, file = %O` — the usable window minus its guard |
+| `BASIC_WINDOW_GUARD` | same | `start = $BC1A, size = $0006, type = ro, file = ""` — reserved, no segment loads there |
+| `BASIC_WINDOW` segment | same | `load = BASIC_WINDOW_RAM, type = ro` — the last MEMORY area in the config, so its bytes close `encounter-director-combined.bin` |
+| ld65 assert | `src/hybrid/c-asm-abi.s` | `__BASIC_WINDOW_RAM_LAST__ <= __BASIC_WINDOW_GUARD_START__`, `lderror`, `"BASIC_WINDOW reaches the window guard at $BC1A"` |
+| Chunk loader (host) | `scripts/chunk-loader.mjs` | destinations up to `$BC1F` accepted; `$BC20` upwards refused as `"chunk destination enters the OS screen above $BC1F"`. `MAX_CHUNKS` 8 → 9 |
+| Chunk loader (guest) | `src/main.s` `BOOT_STAGE2` | the same bound, twice: record end `<= $BC20` and destination page `< $BD`. `CHUNK_MAX_COUNT` 8 → 9 |
+| XEX | `scripts/build.mjs` | a 2-B `INITAD` record is emitted between the first block and every later one **whenever a block lands at or above `$A000`**, so the binary loader calls `disable_basic_rom` before placing it |
+
+**Why the XEX needs the INITAD record.** The ATR is safe by construction:
+`boot_stage2_atr_entry` calls `disable_basic_rom` before the first SIO read, so
+every record is published into RAM. The XEX is not: its blocks are placed by the
+binary loader, and `RUNAD` (`boot_stage2_xex_entry`) only runs *after* the whole
+file is loaded. A block at `$A000` in a XEX started with BASIC enabled would be
+written into the ROM and lost. `INITAD` (`$02E2`) is called by the loader as
+soon as the record that writes it has been placed, and `disable_basic_rom`
+already lives in the fixed bootstrap prefix at `$21AD`, inside the first block.
+
+**MEASURED cost of `MAX_CHUNKS` 8 → 9:** `BOOT_STAGE2` `$4EF` → `$4FF` B, +16 B
+exactly (the extra manifest record), inside its `$800` reservation — 767 B
+still free. The boot payload stays 104 sectors, so the ATR menu frames do not
+move.
+
+**MEASURED proof that the window is real.** An inert 16-byte record
+(`"VS65WINDOW" $A0 $00 $BC $1F $DE $AD`) was landed at `$A000` as the ninth DFMC
+record and read back **byte-exact at frames 3050 and 3300 on all eight cold boot
+sessions** — XEX and ATR, cold RAM fills `$A5` and `$5A`, BASIC enabled and
+disabled — with `PORTB` bit 1 set in every snapshot. The two BASIC-enabled XEX
+sessions are the interesting ones: they prove both that the ROM is unmapped and
+that the `INITAD` record works. The probe was then removed, because its own DFMC
+record costs one ATR transport sector (183 → 184, ATR menu 554 → 556 of a +50
+band) and that sector pushes the `-nobasic` ATR loader raster past the boot
+smoke's **fixed frame-300** observation — the margin there is only 3 frames
+(loader milestone 297 → 299). The first real window record pays that sector and
+must deal with the frame-300 checkpoint; the boot smoke keeps a standing
+`PORTB` bit 1 assertion and reads the window back automatically as soon as it
+carries content again. Evidence:
+[diagnostics/owner-decision-b-basic-window.json](diagnostics/owner-decision-b-basic-window.json).
+
+**Free tails after this change (measured, size-neutral below `$A000`).**
+`BASIC_WINDOW` 7,194 of 7,194 B free; `BOOT_STAGE2` 767 B free (785 before);
+every other tail unchanged: BROADSIDE 3 B, `HYBRID_C_ARENA` 440 B,
+`DIRECTOR_ABI` 0 B, `HYBRID_C_SECTOR` 8 B, pickup stream fill 7 B,
+`DIRECTOR_C_LOW` 3 B, `HYBRID_C_EXT` 28 B, A2 kernel 19 B, `ENTITY_CODE` 22 B.
 
 ## Boot-only ENTITY_CODE staging lifecycle — earlier `2df89da`
 

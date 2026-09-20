@@ -118,6 +118,15 @@ const residentWindowBytes = 0x86fa - residentWindowAddress;
 // consumed resident staging interval so that starfield stream B can use the
 // contiguous idle range behind it ($81FA-$8601).
 const glueHoldingAddress = 0x8100;
+// Owner decision B (2026-09-20): the RAM under the BASIC ROM. PORTB bit 1 is
+// forced at every stage-2 entry, so $A000-$BFFF is unconditionally RAM; with
+// BASIC off at coldstart the OS screen sits at $BC20-$BFFF, so the usable
+// window is $A000-$BC1F = 7,200 B. The top six bytes ($BC1A-$BC1F) are the
+// reserved guard, in the same shape as the $9FFA Director guard.
+const basicWindowAddress = 0xa000;
+const basicWindowGuardAddress = 0xbc1a;
+const basicWindowEndExclusive = 0xbc20;
+const basicWindowCapacityBytes = basicWindowGuardAddress - basicWindowAddress;
 // Roadmap 4.5M-M2 cold-record relocation. The ABI cold record lands directly
 // after A2 staging inside the entity-state page ($8018-$808C; consumed by
 // publish_director_abi before init_entity_effects clears $8000-$80FF). The
@@ -475,16 +484,17 @@ async function buildHybridDirectorModule(fighterWeaponsInclude) {
   const arenaAsmBytes = parsedLabels.get("__HYBRID_ASM_ARENA_SIZE__");
   const arenaCodeBytes = parsedLabels.get("__HYBRID_C_ARENA_SIZE__");
   const arenaRodataBytes = parsedLabels.get("__HYBRID_C_ARENA_RODATA_SIZE__");
+  const basicWindowBytes = parsedLabels.get("__BASIC_WINDOW_SIZE__");
   if (![abiBytes, lowCodeBytes, extensionCodeBytes, archetypeBytes, preCodeBytes,
     cCodeBytes, rodataBytes, bssBytes, lifecycleBssBytes, sectorWindowBytes, arenaAsmBytes,
-    arenaCodeBytes, arenaRodataBytes].every(Number.isInteger)) {
+    arenaCodeBytes, arenaRodataBytes, basicWindowBytes].every(Number.isInteger)) {
     throw new Error("Hybrid Director link is missing segment size labels");
   }
   const highBytes = rodataBytes + cCodeBytes;
   const arenaBytes = arenaAsmBytes + arenaCodeBytes + arenaRodataBytes;
   if (combinedRaw.length !==
     abiBytes + lowCodeBytes + extensionBytes + preCodeBytes + highBytes + sectorWindowBytes +
-      arenaBytes) {
+      arenaBytes + basicWindowBytes) {
     throw new Error("Hybrid Director output does not match its linked CODE/RODATA segments");
   }
   if (parsedLabels.get("__HYBRID_C_SECTOR_RUN__") !== residentWindowAddress ||
@@ -508,6 +518,20 @@ async function buildHybridDirectorModule(fighterWeaponsInclude) {
     throw new Error(`HYBRID_C_ARENA is ${arenaBytes} B (ASM ${arenaAsmBytes}, C ${arenaCodeBytes}, ` +
       `RODATA ${arenaRodataBytes}) at $${(arenaMemoryStart ?? 0).toString(16)}; the arena is ` +
       `${hybridArenaCapacityBytes} B at $7BD0-$7F0F with a non-empty ca65 anchor first`);
+  }
+  // Owner decision B: the window region and its six-byte guard are fixed.
+  const basicWindowMemoryStart = parsedLabels.get("__BASIC_WINDOW_RAM_START__");
+  const basicWindowMemorySize = parsedLabels.get("__BASIC_WINDOW_RAM_SIZE__");
+  const basicWindowGuardStart = parsedLabels.get("__BASIC_WINDOW_GUARD_START__");
+  const basicWindowGuardSize = parsedLabels.get("__BASIC_WINDOW_GUARD_SIZE__");
+  if (basicWindowMemoryStart !== basicWindowAddress ||
+    basicWindowMemoryStart + basicWindowMemorySize !== basicWindowGuardAddress ||
+    basicWindowGuardStart !== basicWindowGuardAddress || basicWindowGuardSize !== 6 ||
+    basicWindowGuardStart + basicWindowGuardSize !== basicWindowEndExclusive ||
+    basicWindowBytes > basicWindowMemorySize) {
+    throw new Error(`BASIC_WINDOW is ${basicWindowBytes} B at ` +
+      `$${(basicWindowMemoryStart ?? 0).toString(16)}; the window is ` +
+      `${basicWindowCapacityBytes} B at $A000-$BC19 with a 6-B guard at $BC1A-$BC1F`);
   }
   const abiStagingMatch = /^DIRECTOR_LOW_STAGING = \$([0-9A-Fa-f]{4})$/m.exec(abiSource.toString("utf8"));
   if (abiStagingMatch === null ||
@@ -547,6 +571,15 @@ async function buildHybridDirectorModule(fighterWeaponsInclude) {
       codeBytes: arenaCodeBytes, rodataBytes: arenaRodataBytes },
   };
   codeSegments.push(arenaSegment);
+  // Owner decision B (2026-09-20): the window's own direct-landing record. It
+  // is the last MEMORY area in the config, so its bytes close combinedRaw.
+  if (basicWindowBytes > 0) {
+    codeSegments.push({
+      ...makeSegment("basic-window", basicWindowAddress, basicWindowBytes),
+      basicWindow: { capacityBytes: basicWindowCapacityBytes,
+        guardAddress: basicWindowGuardAddress, endExclusive: basicWindowEndExclusive },
+    });
+  }
   if (!codeSegments.every(({ data, packed: segmentPacked }) =>
     unpackBroadsideLzss(segmentPacked).equals(data)) ||
       !unpackBroadsideLzss(packed).equals(raw) ||
@@ -559,6 +592,8 @@ async function buildHybridDirectorModule(fighterWeaponsInclude) {
     implementation: "cc65-c",
     raw,
     packed,
+    basicWindowBytes,
+    basicWindowCapacityBytes,
     codeRaw,
     codePacked,
     codeSegments,
@@ -1489,6 +1524,19 @@ async function build() {
     directorRunAddress];
   // 4.5M-M3 proof: the arena's own direct-landing record is the only transport
   // record, staging window, hold or backup that touches $7BD0-$7F0F.
+  const basicWindowSegmentIndex =
+    directorModule.codeSegments.findIndex(({ name }) => name === "basic-window");
+  const basicWindowSegment = basicWindowSegmentIndex < 0
+    ? null : directorModule.codeSegments[basicWindowSegmentIndex];
+  const basicWindowRecord = basicWindowSegmentIndex < 0
+    ? null : transport.records[2 + basicWindowSegmentIndex];
+  const basicWindowChunk = basicWindowSegmentIndex < 0
+    ? null : transport.chunkImages[2 + basicWindowSegmentIndex];
+  if (basicWindowRecord !== null && (basicWindowRecord.finalDestination !== basicWindowAddress ||
+    basicWindowRecord.finalDestination + basicWindowRecord.rawLength > basicWindowGuardAddress)) {
+    throw new Error(`Owner decision B: the window record must land inside ` +
+      `$A000-$BC19, not $${basicWindowRecord.finalDestination.toString(16)}`);
+  }
   const arenaRecordIndex = directorModule.codeSegments.findIndex(({ name }) => name === "arena");
   const arenaRecord = arenaRecordIndex < 0 ? null : transport.records[2 + arenaRecordIndex];
   const arenaChunk = arenaRecordIndex < 0 ? null : transport.chunkImages[2 + arenaRecordIndex];
@@ -1532,8 +1580,25 @@ async function build() {
     throw new Error("Assembled boot header has an unexpected init address");
   }
 
+  // Owner decision B (2026-09-20): the XEX must keep working with BASIC both
+  // enabled and disabled. The binary loader places blocks before RUNAD is
+  // reached, so a block at $A000 would be written into the BASIC ROM and lost
+  // whenever the player starts with BASIC enabled. A two-byte INITAD record
+  // right after the first block - which is where disable_basic_rom already
+  // lives, inside the fixed bootstrap prefix at $21AD - makes the loader call
+  // it before any later block is placed. It is idempotent: it forces PORTB
+  // bit 1 and writes BASICF, and the stage-2 entries still call it themselves.
+  const disableBasicRomAddress = labels.get("disable_basic_rom");
+  if (!Number.isInteger(disableBasicRomAddress)) {
+    throw new Error("disable_basic_rom is missing from the link");
+  }
+  const initAdRecord = Buffer.alloc(2);
+  initAdRecord.writeUInt16LE(disableBasicRomAddress, 0);
+  const xexWindowSegments = directorModule.codeSegments.filter((segment) =>
+    (segment.transportAddress ?? segment.runAddress) >= basicWindowAddress);
   const xex = makeXexSegments([
     { start: loadAddress, data: initialBoot.bytes },
+    ...(xexWindowSegments.length === 0 ? [] : [{ start: 0x02e2, data: initAdRecord }]),
     { start: broadsideRunAddress, data: broadsideRuntime },
     { start: weaponPickupPackedStagingAddress, data: packedWeaponPickupPhaseBank },
     ...directorModule.codeSegments.map((segment) => ({
@@ -1927,6 +1992,16 @@ async function build() {
       },
     },
     directorCodeRuntime: null,
+    // Owner decision B (2026-09-20): a two-byte INITAD record placed between
+    // the first XEX block and every later one, so the binary loader calls
+    // disable_basic_rom before it places a block inside $A000-$BC1F. Without
+    // it, a XEX started with BASIC enabled would write that block into ROM.
+    xexInitAd: xexWindowSegments.length === 0 ? null : {
+      segmentIndex: 1,
+      address: 0x02e2,
+      target: disableBasicRomAddress,
+      reason: "owner decision B: the window block must be placed into RAM, not BASIC ROM",
+    },
     lightWingman: lightPlacement,
     residentCapacity: residentWindowSegment === null ? null : {
       window: {
@@ -1980,6 +2055,37 @@ async function build() {
           worstCaseFullArenaSectors: sectorsFor(worstPacked.length),
         };
       })(),
+      basicWindow: {
+        step: "owner decision B",
+        owner: "BASIC_WINDOW",
+        address: basicWindowAddress,
+        guardAddress: basicWindowGuardAddress,
+        endExclusive: basicWindowEndExclusive,
+        capacityBytes: basicWindowCapacityBytes,
+        guardBytes: basicWindowEndExclusive - basicWindowGuardAddress,
+        usedBytes: directorModule.basicWindowBytes,
+        freeBytes: basicWindowCapacityBytes - directorModule.basicWindowBytes,
+        availability: "unconditional: disable_basic_rom forces PORTB bit 1 and writes " +
+          "BASICF at every stage-2 entry",
+        boundedBy: { below: "Director guard $9FFA-$9FFF", above: "OS screen $BC20-$BFFF " +
+          "(RAMTOP $C0 when BASIC is disabled at coldstart)" },
+        guard: "BASIC_WINDOW_GUARD $BC1A-$BC1F, reserved with no segment, plus the ld65 " +
+          "assert \"BASIC_WINDOW reaches the window guard at $BC1A\"",
+        contents: basicWindowSegment === null ? null
+          : "basic_window_probe: inert 16-B known pattern, never read by the game",
+        transport: basicWindowRecord === null ? null : {
+          record: "own DFMC record, LZ, stagingId extension",
+          finalDestination: basicWindowRecord.finalDestination,
+          startSector: basicWindowRecord.startSector,
+          sectors: basicWindowRecord.sectorCount,
+          rawBytes: basicWindowRecord.rawLength,
+          packedBytes: basicWindowRecord.packedLength,
+          paddingBytes: basicWindowChunk.sectors * 128 - basicWindowRecord.packedLength -
+            chunkLoaderConstants.chunkFooterBytes,
+          landing: "direct: ATR stage 2 decodes it to $A000 after disable_basic_rom; the XEX " +
+            "block loads at $A000 after the INITAD record has called disable_basic_rom",
+        },
+      },
       pickupRecordPackedBytes: {
         pickupStream: packedPickupStream.length,
         windowStream: residentWindowSegment.packed.length,

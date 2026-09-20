@@ -2244,3 +2244,116 @@ collision change, no new PMG allocation, no multiplexing, no accent plane.
   every charge and flash combination. Focused set: the same two pre-existing
   failure names with the change stashed (`PMG ownership…`, `compile-time review
   harness…`, both artefacts of the candidate build variant).
+
+---
+
+## Owner decision B — the BASIC window is open to the build — `OWNER-SMOKE CANDIDATE` (2026-09-20)
+
+**Plumbing only. Nothing moved into the window.** Placement of content is a
+per-record decision and belongs with roadmap 4.6.
+
+- **Region and guard.** `cfg/encounter-director.cfg` declares
+  `BASIC_WINDOW_RAM` `$A000-$BC19` (7,194 B, `type = ro, file = %O`) and
+  `BASIC_WINDOW_GUARD` `$BC1A-$BC1F` (6 B, `file = ""`, no segment), in the
+  same shape as the `$9FFA` Director guard. The `BASIC_WINDOW` segment is the
+  last MEMORY area in the config, so its bytes close the combined image.
+  7,200 B measured usable minus the 6-byte guard = 7,194 B addressable.
+- **The assert fires.** `src/hybrid/c-asm-abi.s` carries
+  `.assert __BASIC_WINDOW_RAM_LAST__ <= __BASIC_WINDOW_GUARD_START__, lderror,
+  "BASIC_WINDOW reaches the window guard at $BC1A"`. A temporary `.res 7179,
+  $00` in the segment — one byte past `$BC19` — fails the build at link with
+  `encounter-director-abi.s:358: Error: Assertion failed: BASIC_WINDOW reaches
+  the window guard at $BC1A`, with no XEX or ATR produced. Filler removed.
+- **Loader bound lifted, on both sides of the ABI.**
+  `scripts/chunk-loader.mjs` accepts destinations up to `$BC1F` and refuses
+  `$BC20` upwards as `chunk destination enters the OS screen above $BC1F`; the
+  stage-2 validator in `src/main.s` enforces the same bound in 6502 (record end
+  `<= $BC20`, destination page `< $BD`), 18 B. `MAX_CHUNKS` / `CHUNK_MAX_COUNT`
+  8 → 9: **MEASURED** `BOOT_STAGE2` `$4EF` → `$4FF` = +16 B exactly, inside its
+  `$800` reservation (767 B still free), boot payload unchanged at 104 sectors.
+- **The XEX needed one more thing.** The ATR is safe by construction —
+  `boot_stage2_atr_entry` unmaps BASIC before the first SIO read. The XEX is
+  not: its blocks are placed by the binary loader and `RUNAD` only runs after
+  the whole file is loaded, so a block at `$A000` started with BASIC enabled
+  would be written into ROM and lost. `scripts/build.mjs` now emits a 2-byte
+  `INITAD` (`$02E2`) record after the first block **whenever a block lands at
+  or above `$A000`**, pointing at `disable_basic_rom` (`$21AD`, already inside
+  that first block). It emits nothing while the window is empty.
+- **MEASURED proof that the window is real.** An inert 16-byte record
+  (`"VS65WINDOW" $A0 $00 $BC $1F $DE $AD`) was landed at `$A000` as the ninth
+  DFMC record and read back **byte-exact at frames 3050 and 3300 on all eight
+  cold boot sessions** — XEX and ATR, cold RAM fills `$A5` and `$5A`, BASIC
+  enabled and disabled — with `PORTB` bit 1 set in every snapshot. The two
+  BASIC-enabled XEX sessions prove both that the ROM is unmapped and that the
+  `INITAD` record is honoured.
+- **The probe was then removed, and this is the one thing the owner should
+  weigh.** Its own DFMC record costs one ATR transport sector (183 → 184). The
+  ATR menu deadline is fine — 554 → 556 against a +50 band — but the
+  `-nobasic` ATR loader milestone moves 297 → 299 and the loader raster is no
+  longer complete at the boot smoke's **fixed frame-300** observation. That
+  checkpoint has only **3 frames of margin** and was never re-based when owner
+  decision 22 re-based the menu deadline; it is the same "zero margin by
+  construction" class as the reservation-vs-neighbour guards of `254ca16`.
+  **The first real window record will trip it.** Options are to re-base the
+  loader observation frame, to give it a recorded baseline with a band like the
+  menu deadline, or to accept the loader screen appearing ~2 frames later per
+  added sector. This task did not decide that.
+- **What stays.** The boot smoke keeps a standing `PORTB` bit 1 assertion at
+  frames 3050 and 3300 on all eight sessions, records the first 16 bytes of the
+  window in every snapshot, and reads them back automatically as soon as
+  `BASIC_WINDOW` carries content again.
+- **Accounting.** `manifest.residentCapacity.basicWindow`: address `$A000`,
+  guard `$BC1A`, end `$BC20`, capacity 7,194 B, used 0, free 7,194, transport
+  `null`. `manifest.xexInitAd` is `null` while the window is empty.
+  `transportCapacity.maximumChunkCount` 8 → 9 and, with it,
+  `architecturalAdditionalCapacityBytes` **0 → 6,400 B**: the ninth record slot
+  is real additional transport capacity (one record, up to 50 sectors) where
+  the build had none.
+  `runtime-cycles` replaces the old `basicRomConditionalRange` entry with
+  `basicWindowRange` (unconditional, `inRuntimeRanges: false`) and
+  `osScreenRange` `$BC20-$BFFF`; its limitation text no longer claims the
+  window is excluded because it is conditional.
+- **The one narrow margin this cost.** The 18 B of stage-2 validation code sit
+  inside the boot payload, so every packed source after `BOOT_STAGE2` moves up
+  18 B: `starfieldRuntime.packedSourceToPickupMarginBytes` **36 → 18 B**
+  (packed STARFIELD now ends `$47EF`, pickup cold staging starts `$4801`). It
+  is hard-gated — `scripts/build.mjs` throws on overlap — but 18 B is thin, and
+  anything that grows the fixed prefix or the packed resident/starfield images
+  eats it next.
+- **Size-neutral below `$A000`.** Transport 183 sectors, XEX 23,862 B, boot 104
+  sectors — the same shape as HEAD. Every runtime address that moved is inside
+  `BOOT_STAGE2` `$21C1-$26C2`, the transient overlay `unpack_resident_runtime`
+  overwrites before gameplay; no gameplay, renderer, raster, PMG or collision
+  address changed.
+- **Free tails.** `BASIC_WINDOW` 7,194 of 7,194 B free; `BOOT_STAGE2` 767 B
+  free (785 before). Every other tail unchanged: BROADSIDE 3 B,
+  `HYBRID_C_ARENA` 440 B, `DIRECTOR_ABI` 0 B, `HYBRID_C_SECTOR` 8 B, pickup
+  stream fill 7 B, `DIRECTOR_C_LOW` 3 B, `HYBRID_C_EXT` 28 B, A2 kernel 19 B,
+  `ENTITY_CODE` 22 B.
+
+- **Gates.** `build:candidate` PASS. Boot smoke **8/8 PASS**, menu frames
+  identical to HEAD: XEX 392/392 (`-nobasic`) and 383/383 (`-basic`); ATR
+  554/554 (`-nobasic`) and 538/538 (`-basic`), all delta 0 against the
+  committed baseline. PAL timing audit: **0 distinct miss events across 72
+  replays**, 0 rows over target, 0 over the hard gate; worst fence margin
+  **1,464** (`raider-remnant-rapid-xex-hard` row 1945), maximum wall 30,609
+  (`director-complete-2-natural-sweep-fire0`). Replay set: the default
+  wall-trace set plus `--raider-formation-only`, `--raider-sector-only`,
+  `--debris-gate-only` and `--raider-remnant-only`. Focused tests: 92 pass /
+  17 fail, the 17 being exactly HEAD's failure set (A/B-verified with the
+  change stashed; HEAD is 91/17, the extra pass is the new window test).
+  Pre-existing native failures unchanged: the `capital-contact-*` and
+  `lower-playfield-hostile-contact-xex-hard` contact-raster clauses and the
+  `raider-sector-xex-hard` post-sector OPEN abort.
+- **One test this change had to move.** The ENTITY_CODE reservation tests read
+  `src/main.s` textually from the first `.segment "ENTITY_CODE"` to its end and
+  refuse the literals `$A000`/`$BFFF`. The new stage-2 comments were reworded
+  rather than the tests relaxed: ENTITY_CODE still must not address the window,
+  and decision B does not change that.
+
+XEX SHA-256 `4ff49d887e7375076214d3461f598bc6d59218789c8e3e3ac7b3ee17f2944415`;
+ATR `62fd0a72a7c435f036465b4712f846f0d1d95eaa8124f7e7440f466f1fd21bba`.
+
+Evidence:
+[diagnostics/owner-decision-b-basic-window.json](diagnostics/owner-decision-b-basic-window.json).
+Memory map: [memory-map.md](memory-map.md), "Owner decision B plumbing".

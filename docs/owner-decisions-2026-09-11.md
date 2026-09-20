@@ -837,6 +837,23 @@ sprawdzić na SIO2SD: STATUS, sekcja „Owner decision A".
 
 ## B. Otwieramy okno `$A000-$BFFF` — OWNER-ACCEPTED (2026-09-20)
 
+> **Instalacja, 2026-09-20 (`OWNER-SMOKE CANDIDATE`).** Samo okablowanie jest
+> zrobione: region linkera `BASIC_WINDOW_RAM $A000-$BC19` (7 194 B) plus
+> sześciobajtowa straż `BASIC_WINDOW_GUARD $BC1A-$BC1F` w kształcie straży
+> `$9FFA`, nazwany assert `lderror` (udowodniony przez wymuszone
+> niepowodzenie linkowania), zniesiony zakaz `>= $A000` w loaderze chunków po
+> obu stronach ABI z granicą `$BC20`, `MAX_CHUNKS` 8 → 9 (MEASURED: +16 B w
+> overlayu stage 2, mieści się) oraz rekord `INITAD` w XEX-ie, bez którego blok
+> w oknie ginąłby przy starcie z włączonym BASIC-iem. **Nic nie zostało
+> przeniesione do okna** — rozmieszczenie to decyzja per rekord i należy do 4.6.
+> Dowód, że okno jest realne: inertny 16-bajtowy rekord wylądował pod `$A000` i
+> został odczytany bajt w bajt w ośmiu na osiem sesji zimnego bootu, po czym
+> został usunięty, bo jego własny rekord DFMC kosztuje jeden sektor transportu
+> ATR, a ten sektor przesuwa raster loadera za **stałą** klatkę 300 bramki
+> boot-smoke (margines tam to 3 klatki). To jest jedyna rzecz, którą właściciel
+> musi rozstrzygnąć przed pierwszym prawdziwym rekordem w oknie. Szczegóły:
+> `STATUS.md`, sekcja „Owner decision B".
+
 Okno jest używalnym RAM-em i **będzie używane**. Zastępuje odpowiedź na §10.1
 z decyzji 23 (gdzie wariant A — okno — został odrzucony) oraz regułę
 `reguly-projektu.txt` §11 w części „BASIC RAM". Deficyt rozmieszczenia 4.6

@@ -795,11 +795,22 @@ starfield, so all overlaps are lifetime-safe.
 | `$9D75-$9FF7` | 643 B | C Director RODATA plus high CODE |
 | `$9FF8-$9FF9` | 2 B | free Director reservation tail |
 | `$9FFA-$9FFF` | 6 B | untouched guard; not available capacity |
-| `$A000-$BFFF` | 8,192 B | deliberately unused BASIC-ROM window |
+| `$A000-$BFFF` | 8,192 B | deliberately unused; RAM from `disable_basic_rom` onward |
 | `$C000-$FFFF` | 16,384 B | OS ROM and I/O; not gameplay RAM |
 
 Cold startup initializes every byte of `$8000-$80FF`. No current code, state,
 charset, loader data, or staging buffer uses `$A000-$BFFF`.
+
+Owner decision A (2026-09-20) changed what that window *is*. Before it, whether
+`$A000-$BFFF` held RAM or the BASIC ROM depended on how the player started the
+machine. `disable_basic_rom` (14 B, inside the fixed bootstrap prefix, reusing
+the retired 4.5M-M3 padding) now forces `PORTB` bit 1 — preserving bit 0, bit 7
+and the bank-select bits — and writes `BASICF = $01` so a warm start does not
+map the ROM back in. It is called from `boot_stage2_atr_entry` before the SIO
+chunk load and from `boot_stage2_xex_entry` before `jmp start`, i.e. earlier
+than every write either medium makes. The window is therefore unconditionally
+RAM for the whole runtime: still unused, but now *reliably* unused rather than
+avoided because its contents were unknowable.
 
 ## Boot-only ENTITY_CODE staging lifecycle — earlier `2df89da`
 

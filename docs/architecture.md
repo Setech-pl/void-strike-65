@@ -70,6 +70,21 @@ read, CRC16-CCITT checked, and only then copied or decompressed to its manifest-
 controlled destination. Any failure blanks DMA, selects a fixed red error
 background, and halts before partially loaded code can execute.
 
+Owner decision A (2026-09-20) fixed the handoff into the game. The disk boot
+used to end in `rts` and let OS coldstart jump through `DOSVEC`; coldstart only
+does that when no cartridge is enabled, so with BASIC enabled the OS started
+BASIC and the game never ran unless the player held OPTION. `boot_entry` now
+ends in `jmp start`, and `disable_basic_rom` unmaps the BASIC ROM (`PORTB`
+bit 1, bits 0 and 7 preserved) and records `BASICF = $01` for the warm start.
+It is called from `boot_stage2_atr_entry` before the SIO chunk load and from
+`boot_stage2_xex_entry` before `jmp start`. `DOSVEC` is still published, for
+the warm-start path and for the boot-smoke entry-identity invariant.
+`boot_entry` stays exactly 24 bytes, so `start` is still at `$201E` and
+`resident_runtime_suffix` still at `$21C1`; the OS init vector shares the `rts`
+of `disable_basic_rom`. The six bytes of call sites cost one sector, because the
+initial block was exactly full: the block is **104 sectors** and the transport
+183.
+
 The eight ordered DFMC records are BROADSIDE (sectors 104-148), pickup and
 collision (149-155), integration glue (156-158), hybrid ABI (159-160), low C
 (161-162), the packed archetype/lifecycle extension (163-166), C RNG (167), and

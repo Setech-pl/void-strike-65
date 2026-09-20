@@ -267,7 +267,14 @@ test("layout and transport gates remain legal after blue-far removal", () => {
   assert.ok(manifest.starfieldRuntime.packedBytes <= manifest.starfieldRuntime.stagingBytes);
   assert.ok(manifest.a2Kernel.bytes <= manifest.a2Kernel.reservedBytes);
   assert.equal(manifest.broadsideRuntime.reservedBytes - manifest.broadsideRuntime.bytes, 3);
-  assert.equal(manifest.transportCapacity.initialBootSectors, 103);
+  // 103 -> 104 with owner decision A (2026-09-20): the boot block was exactly
+  // full (13,172 content + 12 envelope = 103 x 128), so the six bytes of
+  // disable_basic_rom call sites that make the ATR boot without OPTION cost a
+  // sector. Deliberate transport growth, visible here and in the boot smoke,
+  // which still measures the ATR menu at frame 554 (delta 0 to the committed
+  // baseline). This is a transport-format pin, not a deadline pin: re-record
+  // it only for a deliberate change, never to accommodate an unexplained one.
+  assert.equal(manifest.transportCapacity.initialBootSectors, 104);
   assert.ok(manifest.transportCapacity.initialBootEnvelopeBytes >= 0);
   assert.equal(labels.get("ENTITY_CODE_START") & 0xff, 0);
 });

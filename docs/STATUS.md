@@ -27,8 +27,11 @@ owner smoke PASS 2026-09-17), the 4.5M-M3 `HYBRID_C_ARENA`, the
 emitter-independent hostile shots fix and the roadmap 4.5c Bomber (sections
 below) on top of `f4cb18b`, the documentation-only reconciliation of
 the owner acceptance recorded here. All of it runs in the accepted runtime
-below and all of it is owner-accepted under that checkpoint; no
-`OWNER-SMOKE CANDIDATE` is outstanding on this branch.
+below and all of it is owner-accepted under that checkpoint.
+
+**One `OWNER-SMOKE CANDIDATE` is outstanding: owner decision A, the ATR boot
+fix** (section "Owner decision A" below). It changes the boot contract, so it
+also needs a real-hardware smoke this session could not run.
 
 ### Accepted runtime checkpoint
 
@@ -335,6 +338,11 @@ re-basing.
 
 ## Known open defects and open decisions
 
+- **ATR boot contract is proven in Atari800 only.** Owner decision A
+  (2026-09-20) makes the disk boot without OPTION; it is an
+  `OWNER-SMOKE CANDIDATE` and the SIO2SD checks listed in its section below —
+  BASIC enabled with nothing held, OPTION still held, and RESET during
+  gameplay not re-mapping the ROM — have not been run on hardware;
 - PAL fence budget: **relieved but not closed by Option D.** With two Bombers
   live the worst death frame now sits **1,464 cycles** under the fence (it was
   466 after the death-frame deferral alone), so a death frame in which both
@@ -1625,7 +1633,9 @@ Interceptor (Light, character-rendered).
 
 ## Current task
 
-None in flight. `0002d84` is the accepted runtime checkpoint: **Option D, the
+**Owner decision A — the ATR must boot without OPTION — is implemented and is
+an `OWNER-SMOKE CANDIDATE`; see the section below.** It is the only outstanding
+candidate. `0002d84` is still the accepted runtime checkpoint: **Option D, the
 Bomber standing cost (roadmap item 1 below), is OWNER-ACCEPTED** (owner smoke
 PASS 2026-09-18 on XEX `ecc9ceda…`). `draw_enemy_member` skips the 16-row
 `P1`/`P2` body copy on frames where a member's Y is unchanged; X still goes out
@@ -1635,6 +1645,154 @@ stale-body gate reads 0. No `OWNER-SMOKE CANDIDATE` is outstanding.
 
 Next: roadmap item 2, the population budget measurement, for which the rescued
 `scripts/measure-*` tooling above is the starting point.
+
+## Owner decision A (2026-09-20) — the ATR must boot without OPTION — **OWNER-SMOKE CANDIDATE**
+
+**Not accepted. Needs owner smoke AND a real-hardware smoke this session could
+not run** (see "What the owner must verify on SIO2SD" below).
+
+### The defect
+
+Distribution defect, not a gameplay one. The free ATR only reached the game if
+the player held OPTION at power-on. `boot_entry` ended in `rts` and relied on
+OS coldstart jumping through `DOSVEC`; coldstart only does that when no
+cartridge is enabled. Measured by the feasibility session in the trace
+emulator: with BASIC enabled the ATR loads all 182 sectors and the PC then
+lands at **$A8AA inside the BASIC ROM at frame 223**, and the menu never
+arrives by frame 2500; with BASIC off the menu arrives at frame 555.
+
+It went unnoticed because **all four boot-smoke cold sessions ran `-nobasic`**.
+No gate ever exercised the OS path that fails.
+
+### The boot sequence change
+
+- `boot_stage2_atr_entry` now begins `jsr disable_basic_rom`, ahead of the SIO
+  chunk load; `boot_stage2_xex_entry` likewise, ahead of `jmp start`.
+- `boot_entry` ends `jmp start` instead of `clc` / `rts`. The OS is never
+  returned to. `DOSVEC` is still published — for the warm-start path and for
+  the boot-smoke ATR entry-identity invariant.
+- `disable_basic_rom` is `lda PORTB / ora #$02 / sta PORTB / lda #$01 /
+  sta BASICF / rts`. Read-modify-write, so **bit 0 (OS ROM) and bit 7
+  (self-test) are preserved** and only bit 1 is forced to 1; `BASICF` ($03F8)
+  = $01 is the flag the OS warm start re-reads, so RESET does not map the ROM
+  back in.
+- **Ordering.** Writes into a mapped ROM window are lost, so the unmap runs at
+  each medium's stage-2 entry — strictly earlier than every write either medium
+  makes. Nothing in this build targets `$A000-$BFFF` today (ATR chunk staging
+  is `$8100`; no segment in `cfg/atari-boot.cfg` loads above `$9FFF`), so no
+  write was being lost before the change either; unmapping first makes that
+  structural rather than incidental.
+- It is not in `start` because the fixed `$01A3` bootstrap prefix has fewer
+  than three bytes free, and not at the top of `boot_entry` because
+  `boot_entry` must stay exactly 24 bytes: `start` is pinned at `$201E` since
+  `scripts/build.mjs` requires `resident_runtime_suffix` at `$21C1` = `start` +
+  `$01A3`. The 14-byte routine reuses the retired 4.5M-M3 padding exactly, so
+  every later address is unchanged, and `boot_return` (the OS init vector)
+  shares its `rts`.
+
+### Cost
+
+The initial boot block was **exactly full** (13,172 content + 12 envelope =
+103 × 128), so the six bytes of call sites cost one sector: initial block
+**103 → 104**, transport **182 → 183**. Deliberate growth under owner decision
+22. `docs/boot-deadline-baseline.json` was **not** re-recorded — the measured
+ATR menu frame did not move. `tests/starfield.test.mjs` re-records
+`initialBootSectors` 103 → 104 (a transport-format pin, not a deadline pin).
+
+### Boot smoke — now eight cold sessions, 8/8 pass
+
+`-basic` sessions added on both media at both cold RAM fills.
+
+| Session | Medium | Cold fill | BASIC | `menu` | `frontend_poll` | baseline | delta |
+| --- | --- | --- | --- | ---: | ---: | ---: | ---: |
+| `xex-a5` | XEX | `$A5` | off | 392 | 393 | 392 | 0 |
+| `xex-5a` | XEX | `$5A` | off | 392 | 393 | 392 | 0 |
+| `atr-a5` | ATR | `$A5` | off | **554** | 555 | 554 | 0 |
+| `atr-5a` | ATR | `$5A` | off | **554** | 555 | 554 | 0 |
+| `xex-a5-basic` | XEX | `$A5` | **on** | 383 | 384 | 392 | -9 |
+| `xex-5a-basic` | XEX | `$5A` | **on** | 383 | 384 | 392 | -9 |
+| `atr-a5-basic` | ATR | `$A5` | **on** | **538** | 539 | 554 | -16 |
+| `atr-5a-basic` | ATR | `$5A` | **on** | **538** | 539 | 554 | -16 |
+
+The ATR menu frame did **not** move on the BASIC-off sessions despite the extra
+sector. With BASIC enabled both media reach the menu *earlier* — OS coldstart
+takes a shorter path when a cartridge is enabled.
+
+**Negative control.** The pre-fix source was rebuilt and run against the new
+eight-session gate: `atr-a5-basic` fails ("did not reach a complete loader
+raster by frame 300") while the four `-nobasic` sessions and both
+`xex-*-basic` sessions pass. The new coverage reproduces the reported defect
+and localises it to ATR × BASIC-enabled. **The XEX was never affected**: it
+enters at `RUNAD = boot_stage2_xex_entry` and never executes `boot_entry`, so
+it never depended on `DOSVEC`.
+
+### PAL timing audit
+
+Full set re-run on this build: default wall-trace run, then
+`--raider-formation-only`, `--raider-sector-only`, `--debris-gate-only`,
+`--raider-remnant-only`, then the standalone summary over
+`build/runtime-wall-trace`.
+
+**72 replays, 137,000 traced frames, 0 distinct miss events**, 0 rows over
+target, 0 over the hard gate, 0 fence-model disagreements, every session
+`passed`. Worst fence margin **1,464 cycles** on `raider-remnant-rapid-xex-hard`
+frame 1945 (max wall 30,437) — byte-for-byte the Option D worst margin, as
+expected: this change adds no gameplay-time work, only 14 B of one-shot boot
+code and 6 B of call sites. Next five: 1,713 on
+`memory-integrity-{xex,atr}-2-hunt-fire4`, `raider-remnant-normal-xex-hard` and
+`weapon-pickup-2-hunt-fire4` (frame 1963), then 1,831 on
+`director-complete-1-natural-sweep-fire0`.
+
+The replay set covers the 64-replay default run (the eleven `baseline-9040`
+sessions, targeted, parallax cadence, fighter flash, debris effects, weapon
+pickup and its traversal/contact/overlap sessions, the three director-completion
+runs, early-enemy, memory-integrity, lower-playfield, engine startup and
+engine-restart) plus `two-pmg-raiders-xex-hard`, `raider-sector-xex-hard`, the
+three debris-gate replays and the three raider-remnant replays.
+
+Every behavioural failure in the set is the recorded pre-existing one, with
+unchanged numbers: the three "did not capture 16 consecutive contact rasters"
+sessions, the default run's terminal pickup-raster abort, `raider-sector-xex-hard`
+"did not return to post-sector OPEN", and the debris visibility gate's
+`debris-gate-0-neutral-fire0` post-capital 1 blank / 1,558 in view / 1
+disappearance — identical counts to the recorded `0a90c1c` baseline.
+
+### Test suite
+
+`node --test tests/*.test.mjs` A/B against HEAD `80bf1e2` on the same machine:
+**577 pass / 112 fail before and after, 0 new failures.** The 112 are the
+pre-existing set caused by the stale, currently un-regenerable
+`docs/runtime-wall-trace.json`; `npm test` itself is blocked at HEAD too,
+because it runs a *final* build which refuses to bind to that stale report.
+`tests/runtime-wall-trace.test.mjs` now asserts the boot-smoke session list as
+a (medium, cold RAM fill) matrix per BASIC state instead of a pinned count of
+four, so it validates the stale committed four-session report and a live
+eight-session one exactly, and does not become a trap when that report is
+finally regenerated.
+
+### What the owner must verify on SIO2SD
+
+Emulator success is necessary but not sufficient, and this changes the boot
+contract. On a stock 65XE PAL from SIO2SD:
+
+1. the ATR boots to the main menu with **BASIC enabled and nothing held on the
+   keyboard**;
+2. the ATR still boots with **OPTION held**;
+3. the XEX still runs in both cases;
+4. **RESET during gameplay does not bring the BASIC ROM back** (this is what
+   the `BASICF` write is for and it is the part an emulator proves least well);
+5. load time is unchanged in practice — the transport grew by one sector.
+
+Until 1-4 pass on hardware, the ATR boot contract is proven in Atari800 only.
+
+### Evidence
+
+[diagnostics/atr-basic-enabled-boot.json](diagnostics/atr-basic-enabled-boot.json).
+Documentation corrected with it: `hardware-testing.md` (the "No BASIC
+dependency" line was **wrong before this fix and is right after it**; the
+correction is recorded inline, with new cold-start and real-hardware boxes),
+`memory-map.md` (`$A000-$BFFF` is now unconditionally RAM), `architecture.md`
+(cold-startup handoff, 104-sector initial block).
 
 ## Roadmap (owner decision 21, 2026-09-18)
 

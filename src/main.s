@@ -53,6 +53,7 @@ CAPITAL_PLAYER_COLLISION = $8B67
 
 DOSVEC      = $000A
 APPMHI      = $0014
+BASICF      = $03F8         ; OS BASIC flag: 0 = enabled, non-zero = disabled
 VDSLST      = $0200
 MEMLO       = $02E7
 SIOV        = $E459
@@ -122,6 +123,7 @@ AUDCTL      = $D208
 ; PIA and ANTIC
 
 STICK0      = $D300
+PORTB       = $D301         ; bit 1: 0 = BASIC ROM mapped at $A000-$BFFF
 DMACTL      = $D400
 DLISTL      = $D402
 DLISTH      = $D403
@@ -1031,7 +1033,6 @@ boot_header:
 ; The OS enters at BOOTAD+6 after loading the consecutive boot sectors.
 boot_entry:
     jsr boot_stage2_atr_entry
-    nop                         ; preserve the reviewed $201E runtime entry
     lda #<$3B00
     sta MEMLO
     sta APPMHI
@@ -1042,11 +1043,28 @@ boot_entry:
     lda #<start
     sta DOSVEC
 
-    clc
-boot_return:
-    rts
+    ; Owner decision A (2026-09-20): do not hand control back to the OS here.
+    ; Returning made the game depend on OS coldstart jumping through DOSVEC,
+    ; which it only does when no cartridge is enabled. With BASIC enabled the
+    ; OS started BASIC instead (measured: PC $A8AA at frame 223, menu never
+    ; reached), so the disk required the player to hold OPTION. Enter the game
+    ; directly; DOSVEC stays published for the warm-start path and for the
+    ; boot-smoke entry-identity invariant. The OS boot routine's return
+    ; addresses are abandoned on the stack, exactly as the XEX path already
+    ; abandons the binary loader's (boot_stage2_xex_entry).
+    jmp start
 
-; XEX builds use RUNAD=start. Disk boot reaches start through DOSVEC.
+; boot_entry is exactly 24 bytes, so `start` still begins at $201E. That address
+; is not decorative: scripts/build.mjs requires resident_runtime_suffix at
+; $21C1 = start + $01A3, which is also BOOT_STAGE2's reviewed run address. The
+; three bytes of `jmp start` replace the `nop` that used to hold the alignment
+; and the `clc`/`rts` pair that returned to the OS; `boot_return`, the init
+; vector the OS JSRs once before entering here, now shares the `rts` of
+; `disable_basic_rom` below and is still patched into the boot header from the
+; link map.
+
+; XEX builds use RUNAD=boot_stage2_xex_entry. Disk boot enters start directly
+; from boot_entry.
 start:
     sei
 
@@ -1357,12 +1375,33 @@ broadside_destination:
 boot_chunk_ready:
     .byte $00
 
-.if DIRECTOR_ABI_BYTES > 0
-; Roadmap 4.5M-M3: the retired hybrid_c_heavy_publish copy (14 B; the Heavy
-; window became part of the direct-landing HYBRID_C_ARENA) stays zero padding
-; in place, so hostile_weapon_step_masks and every later address keep theirs.
-    .res 14
-.endif
+; Roadmap 4.5M-M3 left 14 B of zero padding here (the retired
+; hybrid_c_heavy_publish copy; the Heavy window became part of the
+; direct-landing HYBRID_C_ARENA) so that hostile_weapon_step_masks and every
+; later address keep theirs. Owner decision A (2026-09-20) spends it, exactly:
+; the routine below is 14 B including the rts, so in the shipping configuration
+; every later address is unchanged and the compressed boot payload does not
+; grow. The padding only existed when DIRECTOR_ABI_BYTES > 0; the routine is
+; unconditional, so a DIRECTOR_ABI_BYTES = 0 link would grow the fixed
+; bootstrap prefix by 14 B and say so at assembly time.
+disable_basic_rom:
+    ; Read-modify-write, so bit 0 (OS ROM enable) and bit 7 (self-test disable)
+    ; are preserved, as are the 130XE bank-select bits a stock 65XE leaves set;
+    ; only bit 1 is forced to 1, which unmaps the BASIC ROM from $A000-$BFFF.
+    lda PORTB
+    ora #$02
+    sta PORTB
+    ; BASICF is the flag the OS warm start re-reads to decide PORTB bit 1.
+    ; Non-zero means disabled, so RESET does not map the ROM back in.
+    lda #$01
+    sta BASICF
+; The OS boot init vector (boot header word at $2004) shares this rts. The OS
+; JSRs it once, before it enters boot_entry at $2006, and the game has nothing
+; to do there; sharing the byte costs the fixed bootstrap prefix nothing, and
+; boot_entry has no spare byte left - its 24 bytes are what keeps start at
+; $201E, which scripts/build.mjs requires (resident_runtime_suffix = $21C1).
+boot_return:
+    rts
 
 ; Indexed by weapon_class-1 (roadmap 4.5b): the frame_counter mask that must be
 ; zero for a hostile shot of that class to step this frame (0 = every frame,
@@ -11626,6 +11665,17 @@ copy_boot_stream_backward:
     rts
 
 boot_stage2_atr_entry:
+    ; Owner decision A (2026-09-20): unmap the BASIC ROM as the first thing the
+    ; disk path does with control, ahead of the SIO chunk load and therefore
+    ; ahead of every write this build makes. The BASIC ROM window is RAM from
+    ; here on, so no write into it can be swallowed by a mapped ROM. (Nothing
+    ; targets that window today - the chunk staging buffer is $8100 and no
+    ; segment in cfg/atari-boot.cfg loads above $9FFF - the ordering makes that
+    ; structural instead of incidental.) The call sites are here and in
+    ; boot_stage2_xex_entry rather than in start because the fixed $01A3
+    ; bootstrap prefix has fewer than three bytes free; both are strictly
+    ; earlier than start, and this overlay is not part of that prefix.
+    jsr disable_basic_rom
     jsr boot_stage2_validate_manifest
 layout_d_manifest_validation_complete:
     lda #<(boot_chunk_manifest+CHUNK_RECORD)
@@ -11770,6 +11820,9 @@ stage2_chunk_published:
     rts
 
 boot_stage2_xex_entry:
+    ; Owner decision A: the XEX never executes boot_entry (RUNAD lands here),
+    ; so the file path unmaps the BASIC ROM for itself, before jmp start.
+    jsr disable_basic_rom
     lda #$02
     sta boot_chunk_ready
     jmp start

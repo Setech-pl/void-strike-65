@@ -9,7 +9,7 @@
     "layout": "Hybrid cc65 C Director + stable ca65 ABI veneer",
     "levelWorldRows": 3712,
     "phaseCount": 8,
-    "initialContentBytes": 13172,
+    "initialContentBytes": 13178,
     "linkedRuntimeBytes": 17521,
     "simultaneousResidencyBytes": 20131,
     "safeResidencyBytes": 2056,
@@ -122,12 +122,12 @@
       "rawBytes": 33,
       "packedBytes": 35,
       "record": {
-        "startSector": 149,
+        "startSector": 150,
         "sectorCount": 10,
         "packedLength": 1170,
         "rawLength": 1170,
         "finalDestination": 35968,
-        "crc16": 35667,
+        "crc16": 13106,
         "type": 0,
         "stagingId": 2,
         "destination": 33024
@@ -141,11 +141,11 @@
   "buildVariant": "candidate",
   "loadAddress": 8192,
   "startAddress": 8222,
-  "bootInitAddress": 8221,
-  "bootSectors": 103,
-  "payloadBytes": 23296,
+  "bootInitAddress": 8634,
+  "bootSectors": 104,
+  "payloadBytes": 23424,
   "bootPayloadTrailer": {
-    "address": 21360,
+    "address": 21366,
     "bytes": 4,
     "ascii": "DFB1",
     "hex": "44464231",
@@ -214,16 +214,16 @@
   },
   "transportCapacity": {
     "format": "DFMC-v1 multi-chunk",
-    "initialBootBytes": 13184,
-    "initialBootContentBytes": 13172,
-    "initialBootEnvelopeBytes": 12,
-    "initialBootSectors": 103,
+    "initialBootBytes": 13312,
+    "initialBootContentBytes": 13178,
+    "initialBootEnvelopeBytes": 134,
+    "initialBootSectors": 104,
     "extensionBytes": 10112,
     "extensionSectors": 79,
-    "totalTransportBytes": 23296,
-    "totalTransportSectors": 182,
-    "remainingAtrSectors": 538,
-    "remainingAtrTransportBytes": 68864,
+    "totalTransportBytes": 23424,
+    "totalTransportSectors": 183,
+    "remainingAtrSectors": 537,
+    "remainingAtrTransportBytes": 68736,
     "architecturalAdditionalCapacityBytes": 0,
     "maximumExtensionChunkBytes": 6400,
     "maximumChunkCount": 8,
@@ -237,105 +237,105 @@
     "stage2": {
       "runAddress": 8641,
       "loadAddress": 31232,
-      "bytes": 1257,
-      "xexEntryAddress": 9010,
-      "xexEntryOffset": 369,
+      "bytes": 1263,
+      "xexEntryAddress": 9013,
+      "xexEntryOffset": 372,
       "overwrittenByResidentSuffix": true
     },
     "manifest": {
-      "address": 9756,
+      "address": 9762,
       "bytes": 142,
-      "crc16": 8026,
+      "crc16": 43494,
       "parsed": {
         "version": 1,
-        "totalOccupiedSectors": 182,
+        "totalOccupiedSectors": 183,
         "manifestBytes": 142,
-        "crc16": 8026,
+        "crc16": 43494,
         "records": [
           {
-            "startSector": 104,
+            "startSector": 105,
             "sectorCount": 45,
             "packedLength": 5661,
             "rawLength": 6653,
             "finalDestination": 24080,
-            "crc16": 11680,
+            "crc16": 38337,
             "type": 1,
             "stagingId": 1,
             "destination": 33024
           },
           {
-            "startSector": 149,
+            "startSector": 150,
             "sectorCount": 10,
             "packedLength": 1170,
             "rawLength": 1170,
             "finalDestination": 35968,
-            "crc16": 35667,
+            "crc16": 13106,
             "type": 0,
             "stagingId": 2,
             "destination": 33024
           },
           {
-            "startSector": 159,
+            "startSector": 160,
             "sectorCount": 2,
             "packedLength": 116,
             "rawLength": 117,
             "finalDestination": 32792,
-            "crc16": 17970,
+            "crc16": 65107,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
           },
           {
-            "startSector": 161,
+            "startSector": 162,
             "sectorCount": 4,
             "packedLength": 457,
             "rawLength": 498,
             "finalDestination": 39744,
-            "crc16": 8062,
+            "crc16": 42783,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
           },
           {
-            "startSector": 165,
+            "startSector": 166,
             "sectorCount": 7,
             "packedLength": 787,
             "rawLength": 787,
             "finalDestination": 30736,
-            "crc16": 50546,
+            "crc16": 32019,
             "type": 0,
-            "stagingId": 2,
-            "destination": 33024
-          },
-          {
-            "startSector": 172,
-            "sectorCount": 1,
-            "packedLength": 23,
-            "rawLength": 21,
-            "finalDestination": 40286,
-            "crc16": 13372,
-            "type": 1,
             "stagingId": 2,
             "destination": 33024
           },
           {
             "startSector": 173,
-            "sectorCount": 5,
-            "packedLength": 562,
-            "rawLength": 617,
-            "finalDestination": 31696,
-            "crc16": 22976,
+            "sectorCount": 1,
+            "packedLength": 23,
+            "rawLength": 21,
+            "finalDestination": 40286,
+            "crc16": 35933,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
           },
           {
-            "startSector": 178,
+            "startSector": 174,
+            "sectorCount": 5,
+            "packedLength": 562,
+            "rawLength": 617,
+            "finalDestination": 31696,
+            "crc16": 57761,
+            "type": 1,
+            "stagingId": 2,
+            "destination": 33024
+          },
+          {
+            "startSector": 179,
             "sectorCount": 5,
             "packedLength": 542,
             "rawLength": 643,
             "finalDestination": 40309,
-            "crc16": 59251,
+            "crc16": 24338,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -353,7 +353,7 @@
     "suffixAddress": 8641,
     "suffixRawBytes": 7743,
     "suffixPackedBytes": 6682,
-    "packedSourceAddress": 9898,
+    "packedSourceAddress": 9904,
     "stagingAddress": 33024,
     "stagedEndAddress": 39705,
     "compression": "LZ-10/5"
@@ -367,12 +367,12 @@
     "packedSourceAddress": 33024,
     "compression": "LZ-10/5",
     "externalChunk": {
-      "startSector": 104,
+      "startSector": 105,
       "sectors": 45,
       "transportBytes": 5760,
       "packedBytes": 5661,
       "rawBytes": 6653,
-      "crc16": 11680,
+      "crc16": 38337,
       "stagingAddress": 33024,
       "stagingEndAddress": 38783,
       "finalAddress": 24080
@@ -388,10 +388,10 @@
     "packedBytes": 245,
     "externalChunk": {
       "sharedWith": "low-C image (4.5M-M2 merged record)",
-      "startSector": 161,
+      "startSector": 162,
       "sectors": 4,
       "transportBytes": 512,
-      "crc16": 8062
+      "crc16": 42783
     }
   },
   "directorRuntime": {
@@ -402,10 +402,10 @@
     "bytes": 643,
     "packedBytes": 542,
     "externalChunk": {
-      "startSector": 178,
+      "startSector": 179,
       "sectors": 5,
       "transportBytes": 640,
-      "crc16": 59251
+      "crc16": 24338
     }
   },
   "directorCodeRuntime": null,
@@ -454,7 +454,7 @@
       "transport": {
         "record": "own DFMC record, LZ, stagingId extension",
         "finalDestination": 31696,
-        "startSector": 173,
+        "startSector": 174,
         "sectors": 5,
         "rawBytes": 617,
         "packedBytes": 562,
@@ -497,10 +497,10 @@
       "bytes": 117,
       "packedBytes": 116,
       "externalChunk": {
-        "startSector": 159,
+        "startSector": 160,
         "sectors": 2,
         "transportBytes": 256,
-        "crc16": 17970
+        "crc16": 65107
       }
     },
     {
@@ -516,10 +516,10 @@
       "transportRawBytes": 498,
       "transportPackedBytes": 457,
       "externalChunk": {
-        "startSector": 161,
+        "startSector": 162,
         "sectors": 4,
         "transportBytes": 512,
-        "crc16": 8062
+        "crc16": 42783
       }
     },
     {
@@ -533,10 +533,10 @@
       "bytes": 880,
       "packedBytes": 787,
       "externalChunk": {
-        "startSector": 165,
+        "startSector": 166,
         "sectors": 7,
         "transportBytes": 896,
-        "crc16": 50546
+        "crc16": 32019
       }
     },
     {
@@ -550,10 +550,10 @@
       "bytes": 21,
       "packedBytes": 23,
       "externalChunk": {
-        "startSector": 172,
+        "startSector": 173,
         "sectors": 1,
         "transportBytes": 128,
-        "crc16": 13372
+        "crc16": 35933
       }
     },
     {
@@ -567,10 +567,10 @@
       "bytes": 617,
       "packedBytes": 562,
       "externalChunk": {
-        "startSector": 173,
+        "startSector": 174,
         "sectors": 5,
         "transportBytes": 640,
-        "crc16": 22976
+        "crc16": 57761
       }
     }
   ],
@@ -581,10 +581,10 @@
     "bytes": 33,
     "packedBytes": 35,
     "externalChunk": {
-      "startSector": 149,
+      "startSector": 150,
       "sectors": 10,
       "transportBytes": 1280,
-      "crc16": 35667
+      "crc16": 13106
     }
   },
   "starfieldRuntime": {
@@ -593,10 +593,10 @@
     "bytes": 2224,
     "reservedBytes": 2348,
     "packedBytes": 1811,
-    "packedSourceAddress": 16580,
-    "packedSourceEndExclusive": 18391,
+    "packedSourceAddress": 16586,
+    "packedSourceEndExclusive": 18397,
     "pickupColdStagingAddress": 18433,
-    "packedSourceToPickupMarginBytes": 42,
+    "packedSourceToPickupMarginBytes": 36,
     "stagingAddress": 30736,
     "stagingBytes": 1920,
     "compression": "LZ-10/5, two independent streams expanded into one continuous destination",
@@ -609,7 +609,7 @@
         "rawOffset": 0,
         "rawBytes": 985,
         "packedBytes": 915,
-        "packedSourceAddress": 16580,
+        "packedSourceAddress": 16586,
         "stagingAddress": 30736,
         "stagingCapacityBytes": 960,
         "stagingEndExclusive": 31696,
@@ -623,7 +623,7 @@
         "rawOffset": 985,
         "rawBytes": 1239,
         "packedBytes": 896,
-        "packedSourceAddress": 17495,
+        "packedSourceAddress": 17501,
         "stagingAddress": 33274,
         "stagingCapacityBytes": 960,
         "stagingEndExclusive": 34234,
@@ -650,7 +650,7 @@
   "a2Kernel": {
     "loadAddress": 27136,
     "runAddress": 36864,
-    "sourceAddress": 18391,
+    "sourceAddress": 18397,
     "stagingAddress": 32555,
     "bytes": 237,
     "reservedBytes": 256,
@@ -711,14 +711,14 @@
       }
     },
     "packedBytes": 2732,
-    "packedSourceAddress": 18628,
-    "initialPackedSourcesEndExclusive": 21360,
-    "initialPackedSourcesLastAddress": 21359,
+    "packedSourceAddress": 18634,
+    "initialPackedSourcesEndExclusive": 21366,
+    "initialPackedSourcesLastAddress": 21365,
     "stagedSourceAddress": 21272,
     "stagedEndAddress": 24003,
     "stagedEndExclusive": 24004,
-    "sourceToStagingMarginBytes": -88,
-    "sourceStagingOverlapBytes": 88,
+    "sourceToStagingMarginBytes": -94,
+    "sourceStagingOverlapBytes": 94,
     "stagingCopyDirection": "backward",
     "stagingToBroadsideMarginBytes": 76,
     "stagingLifecycle": {
@@ -764,10 +764,10 @@
     "pickupPhaseRuntimeBytes": 1042,
     "pickupPhasePackedBytes": 1170,
     "pickupPhaseExternalChunk": {
-      "startSector": 149,
+      "startSector": 150,
       "sectors": 10,
       "transportBytes": 1280,
-      "crc16": 35667,
+      "crc16": 13106,
       "stagingAddress": 35968,
       "finalRuntimeAddress": 34678,
       "coldCapacityBytes": 1277,
@@ -21558,18 +21558,18 @@
     "artifacts": {
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
-        "bytes": 23296,
-        "sha256": "ba262762477dea3914c3a7963d845587e3b61c3f22a68a1a1516862fec820ca9"
+        "bytes": 23424,
+        "sha256": "10e5fcbacc352c1d18d8b09ec3ac032bfe4f62be0633f5096805ac9f7390f1ad"
       },
       "void-strike-65.xex": {
         "path": "dist/void-strike-65.xex",
-        "bytes": 23734,
-        "sha256": "5ea523a44a345ae62fba89a077d6d8957f42a0f9d94812721f9bdd2013b618bf"
+        "bytes": 23862,
+        "sha256": "276433cd15d4e983935888ca064ad00e1f3d6d901d3712e0f05bb73f3dee949b"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "b59355f6e8c41f1552960c7767f45fccd44296a3f4155fd1f3c0cd993846ecbc"
+        "sha256": "ab2d50fadb67ff9b51a0af1b0c3687a583386e1be5581ae0c476f0763a895b6a"
       }
     },
     "reportPath": null,
@@ -21577,16 +21577,16 @@
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
-      "bytes": 23296,
-      "sha256": "ba262762477dea3914c3a7963d845587e3b61c3f22a68a1a1516862fec820ca9"
+      "bytes": 23424,
+      "sha256": "10e5fcbacc352c1d18d8b09ec3ac032bfe4f62be0633f5096805ac9f7390f1ad"
     },
     "void-strike-65.xex": {
-      "bytes": 23734,
-      "sha256": "5ea523a44a345ae62fba89a077d6d8957f42a0f9d94812721f9bdd2013b618bf"
+      "bytes": 23862,
+      "sha256": "276433cd15d4e983935888ca064ad00e1f3d6d901d3712e0f05bb73f3dee949b"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "b59355f6e8c41f1552960c7767f45fccd44296a3f4155fd1f3c0cd993846ecbc"
+      "sha256": "ab2d50fadb67ff9b51a0af1b0c3687a583386e1be5581ae0c476f0763a895b6a"
     }
   }
 }

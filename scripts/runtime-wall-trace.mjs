@@ -1626,27 +1626,39 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
   invariant(publicLaunches.xex.artifact.path === xexPath &&
     publicLaunches.atr.artifact.path === atrPath,
   "Boot smoke must use the manifest-bound public artifact paths");
+  // Owner decision A (2026-09-20): the ATR must boot without the player
+  // holding OPTION. Until that fix the boot code ended in `rts` and relied on
+  // OS coldstart jumping through DOSVEC, which it only does when no cartridge
+  // is enabled; with BASIC enabled the OS started BASIC instead. Every cold
+  // session here ran `-nobasic`, so the defect was invisible to this gate.
+  // Both BASIC states are now covered on both media, at both cold RAM fills.
+  // The four `-nobasic` sessions keep their identity and their position, so
+  // the committed baseline and the historical session order are unchanged.
   const definitions = [];
-  for (const artifact of [publicLaunches.xex, publicLaunches.atr]) {
-    validateAtari800Launch(artifact);
-    for (const fill of [0xa5, 0x5a]) {
-      definitions.push({
-        ...artifact,
-        path: artifact.artifact.path,
-        arguments: artifact.mediaArguments,
-        fill,
-        id: `${artifact.id}-${fill.toString(16)}`,
-      });
+  for (const basic of [false, true]) {
+    for (const artifact of [publicLaunches.xex, publicLaunches.atr]) {
+      validateAtari800Launch(artifact);
+      for (const fill of [0xa5, 0x5a]) {
+        definitions.push({
+          ...artifact,
+          path: artifact.artifact.path,
+          arguments: [
+            "-xe", "-pal", basic ? "-basic" : "-nobasic", "-nosound", "-turbo",
+            "-no-video-accel", "-no-vsync",
+            ...artifact.mediaArguments,
+          ],
+          fill,
+          basic,
+          id: `${artifact.id}-${fill.toString(16)}${basic ? "-basic" : ""}`,
+        });
+      }
     }
   }
 
   const sessions = definitions.map((definition) => {
     const outputPath = path.join(outputDirectory, `${definition.id}.json`);
     const screenshotPrefix = path.join(outputDirectory, definition.id);
-    run(emulatorPath, [
-      "-xe", "-pal", "-nobasic", "-nosound", "-turbo", "-no-video-accel", "-no-vsync",
-      ...definition.arguments,
-    ], {
+    run(emulatorPath, definition.arguments, {
       env: {
         ...process.env,
         SDL_VIDEODRIVER: process.env.SDL_VIDEODRIVER ?? "dummy",
@@ -1769,6 +1781,7 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
       id: definition.id,
       medium: definition.id.startsWith("xex") ? "XEX" : "ATR",
       cold_ram_fill: definition.fill,
+      basic_enabled: definition.basic,
       artifact: {
         path: path.relative(rootDirectory, definition.path),
         absolute_path: definition.path,
@@ -1777,10 +1790,7 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
       },
       launch: {
         emulator_path: path.resolve(emulatorPath),
-        arguments: [
-          "-xe", "-pal", "-nobasic", "-nosound", "-turbo", "-no-video-accel", "-no-vsync",
-          ...definition.arguments,
-        ],
+        arguments: definition.arguments,
         mode: definition.mode,
       },
       snapshots: result.snapshots,
@@ -1802,6 +1812,7 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath }) {
     duration_seconds_pal: BOOT_GAMEPLAY_FRAME / 50,
     guest_instrumentation_bytes: 0,
     cold_ram_range: "$8000-$9FFF",
+    basic_states_covered: ["-nobasic", "-basic"],
     input: `production joystick path; FIRE pressed on host frames ` +
       `${BOOT_MENU_FRAME + 1}-${BOOT_MENU_FRAME + 6}`,
     expected_addresses: expected,

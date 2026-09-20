@@ -26,8 +26,21 @@ shasum -a 256 dist/void-strike-65.xex
 
 - [ ] XEX cold-starts from power-on, not from a warm reset.
 - [ ] ATR boots from sector 1 on the same cold path.
+- [ ] **ATR boots to the menu with BASIC enabled, without holding OPTION**, and
+      with BASIC disabled; the XEX runs in both cases too.
 - [ ] No BASIC dependency; no OS call failure after takeover.
+- [ ] RESET after the game is running does not bring the BASIC ROM back.
 - [ ] Loader screen appears and completes without a visible stall or garbage.
+
+> The "no BASIC dependency" line above was **wrong until owner decision A
+> (2026-09-20)**. The boot code ended in `rts` and relied on OS coldstart
+> jumping through `DOSVEC`, which it only does when no cartridge is enabled:
+> with BASIC enabled the OS started BASIC and the disk never ran, so the ATR
+> *did* depend on the player holding OPTION. Since that decision `boot_entry`
+> jumps to `start` itself and `disable_basic_rom` unmaps the ROM, so the line
+> is now true — and the two new boxes above are how it is kept true. The
+> emulator half is gated by `npm run boot:smoke` (eight cold sessions: XEX and
+> ATR, cold RAM fill `$A5` and `$5A`, BASIC on and off).
 
 ## 2. Frontend
 
@@ -99,6 +112,10 @@ shasum -a 256 dist/void-strike-65.xex
 ## 10. Real hardware
 
 - [ ] Runs on a stock 65XE PAL with 64 KB from SIO2SD.
+- [ ] **Owner decision A is unproven on hardware until this passes:** the ATR
+      boots to the menu from SIO2SD on a machine with BASIC enabled, with
+      nothing held on the keyboard, and again with OPTION held. Only the
+      emulator half of that change has been measured.
 - [ ] Behaviour matches Atari800; note every divergence — emulator success is
       necessary but not sufficient.
 - [ ] Load time is acceptable and the loader survives a marginal SIO cable.

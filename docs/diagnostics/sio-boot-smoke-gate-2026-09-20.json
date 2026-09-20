@@ -1,0 +1,64 @@
+{
+  "id": "sio-boot-smoke-gate-2026-09-20",
+  "date": "2026-09-20",
+  "task": "Roadmap 4.3 step 6 (plan 8.1-8.2): turn the ATR read from an inference into something a gate holds. Before this, the only evidence the reader worked end to end was a 7-frame difference in gameplay_init between media plus the argument that every failure class diverts away from start_gameplay.",
+  "status": "PASS - the gate is live and both controls fail it",
+  "branch": "main",
+  "base": {
+    "commit": "78c33c8",
+    "note": "refactor(4.3): extract sector_c_drain_clear and export it by name"
+  },
+  "what_was_added": {
+    "observer": "scripts/atari800-wall-trace.h: DFBootSnapshot gains level_header[8] captured raw and level_checksum over the whole image; three PC-driven counters (command frames at sector_reader_begin_receive, wire retries at sector_reader_settle, the load window from sector_reader_load to the gameplay milestone). The counters ride the reader's own PCs rather than bus traffic - the observer sees one instruction at a time, and a hit at a known label is as good a signal while costing nothing.",
+    "gate": "scripts/runtime-wall-trace.mjs: at the frame-3300 gameplay snapshot every session's image at LEVEL_BUFFER is compared byte for byte against the build's own build/level-1.bin, XEX sessions must show 0 command frames, ATR sessions exactly one per sector, and no session may need a wire retry - the emulator's wire is lossless, so any retry is a reader defect."
+  },
+  "measured": {
+    "xex_sessions": {
+      "count": 4,
+      "command_frames": 0,
+      "wire_retries": 0,
+      "level_load_frames": 0,
+      "path": "resident skip: the XEX carries the level image as a block (owner decision 1) and never reaches SIO"
+    },
+    "atr_sessions": {
+      "count": 4,
+      "command_frames": 2,
+      "expected_command_frames": 2,
+      "wire_retries": 0,
+      "level_load_frames": 7,
+      "path": "direct SIO: exactly one command frame per sector at START GAME"
+    },
+    "level_image": {
+      "header_hex": "5653010102f80000",
+      "meaning": "'V','S', version 1, level 1, 2 sectors, payload 248 B, reserved 0",
+      "verified": "byte-exact against build/level-1.bin on all eight sessions, both media, both cold RAM fills, BASIC enabled and disabled"
+    },
+    "note": "The 7-frame ATR load window is EMULATOR-MEASURED and is a regression signal for the reader's own overhead only. Atari800 spaces bytes at 8 scanlines and models no drive latency, jitter, errors or command-line hold; it is never a hardware figure."
+  },
+  "negative_controls": [
+    {
+      "control": "A - the image assertion",
+      "mutation": "flip one byte (offset 100) of build/level-1.bin AFTER the artifacts are built, so only the expectation changes",
+      "result": "FAILED as required: 'xex-a5 has the wrong level image at $a600: header 5653010102f80000 checksum 2410047369, expected ... / 1194891394'",
+      "why_it_matters": "the header still matched. A header-only check would have passed this. The whole-image checksum is what catches a payload that arrives wrong."
+    },
+    {
+      "control": "B - the resident-skip path",
+      "mutation": "compare the level magic against LEVEL_MAGIC_0 + 1 in sector_reader_resident_hit, so the skip can never hit",
+      "result": "FAILED as required: 'xex-a5 did not reach the legal gameplay display/VBI path by frame 3300'",
+      "why_it_matters": "proves two things at once - that the XEX sessions pass BECAUSE of the resident skip and not because SIO happens to work without a disk, and that a NO_DEVICE really does divert to the failure screen instead of falling through into gameplay."
+    }
+  ],
+  "not_built": {
+    "claim": "Plan 8.3's in-emulator fault injection is NOT implemented. Do not read this file as covering it.",
+    "missing": [
+      "DFTRACE_SIO_CORRUPT_BYTE=n: flip one SERIN byte once, so the reader must succeed with exactly one wire retry. Nothing here exercises the wire-retry path in the emulator; it is covered only by the 6502 harness (tests/sector-reader.test.mjs), where the POKEY stub is scripted.",
+      "DFTRACE_SIO_FORCE_ERROR=1: substitute $45 at the C/E position, so the DEVICE_ERROR screen appears and FIRE returns to the menu. The failure SCREEN has never been rendered in any automated run - only its code path is unit-tested.",
+      "a stripped-XEX build flag for the NO_DEVICE path. Control B above reaches that state by accident rather than by design, and it asserts nothing about what the player sees."
+    ],
+    "consequence": "The reader's success path is gated end to end on both media. Its failure paths are gated in the 6502 harness only. The first time a human sees the failure screen will be the owner's SIO2SD smoke."
+  },
+  "also_not_observed": {
+    "animation": "The loader-mode animation is drawn (one step per completed sector) but no gate observes it. On a 2-sector level it steps twice, so there is little to see; it becomes worth asserting when 4.6 lands a level large enough for the sweep to be visible."
+  }
+}

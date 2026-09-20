@@ -806,6 +806,13 @@ typedef struct {
 	 * raw rather than checksummed so that a wrong value is readable: if the ROM
 	 * were still mapped these would be the BASIC cartridge's own bytes. */
 	UBYTE window[16];
+	/* Roadmap 4.3: the level image the reader is supposed to have put at
+	 * LEVEL_BUFFER. The header is captured raw so a wrong value is readable,
+	 * and the checksum covers the whole image so the gate can compare it
+	 * against build/level-1.bin byte for byte rather than inferring the read
+	 * happened from a frame delta. */
+	UBYTE level_header[8];
+	unsigned level_checksum;
 	unsigned portb;
 } DFBootSnapshot;
 
@@ -832,6 +839,19 @@ static unsigned dfboot_game_state;
 static unsigned dfboot_main_menu_dlist;
 static unsigned dfboot_frontend_dlist_end;
 static unsigned dfboot_window_address;
+/* Roadmap 4.3 SIO observation. The counters are driven off the reader's own
+ * PCs rather than off bus traffic: the observer sees one instruction at a
+ * time, and a PC hit at a known label is exactly as good a signal while
+ * costing nothing. */
+static unsigned dfboot_level_address;
+static unsigned dfboot_level_bytes;
+static unsigned dfboot_pc_sio_frame;
+static unsigned dfboot_pc_sio_retry;
+static unsigned dfboot_pc_level_load;
+static unsigned dfboot_sio_command_frames;
+static unsigned dfboot_sio_wire_retries;
+static unsigned dfboot_level_load_begin = 0xffffffffu;
+static unsigned dfboot_level_load_end = 0xffffffffu;
 /* Boot-smoke observation horizon. Owner decision 22 re-bases the ATR menu
  * deadline on a 60-second budget (3,000 PAL frames), so the session must stay
  * alive past that ceiling for a slow-but-legal boot to be observable at all.
@@ -949,6 +969,10 @@ static void dfboot_capture(unsigned frame, unsigned pc)
 	for (index_window = 0; index_window < 16u; ++index_window)
 		snapshot->window[index_window] =
 			MEMORY_mem[(dfboot_window_address + index_window) & 0xffffu];
+	for (index_window = 0; index_window < 8u; ++index_window)
+		snapshot->level_header[index_window] =
+			MEMORY_mem[(dfboot_level_address + index_window) & 0xffffu];
+	snapshot->level_checksum = dfboot_checksum(dfboot_level_address, dfboot_level_bytes);
 	snapshot->portb = PIA_PORTB;
 	if (dfboot_screenshot_prefix != NULL && *dfboot_screenshot_prefix != '\0') {
 		snprintf(screenshot, sizeof(screenshot), "%s-frame%03u.png",
@@ -977,7 +1001,9 @@ static void dfboot_write(void)
 			"\"dosvec\":%u,\"screen_checksum\":%u,"
 			"\"frontend_dlist_checksum\":%u,\"loader_dli_count\":%u,"
 			"\"portb\":%u,\"window\":\"%02x%02x%02x%02x%02x%02x%02x%02x"
-			"%02x%02x%02x%02x%02x%02x%02x%02x\"}%s\n",
+			"%02x%02x%02x%02x%02x%02x%02x%02x\","
+			"\"level_header\":\"%02x%02x%02x%02x%02x%02x%02x%02x\","
+			"\"level_checksum\":%u}%s\n",
 			snapshot->frame, snapshot->pc, snapshot->scanline, snapshot->cycle,
 			snapshot->loader_timer, snapshot->game_state, snapshot->dlist,
 			snapshot->charset_address, snapshot->pm_base, snapshot->dma_ctl,
@@ -992,10 +1018,21 @@ static void dfboot_write(void)
 			snapshot->window[9], snapshot->window[10], snapshot->window[11],
 			snapshot->window[12], snapshot->window[13], snapshot->window[14],
 			snapshot->window[15],
+			snapshot->level_header[0], snapshot->level_header[1],
+			snapshot->level_header[2], snapshot->level_header[3],
+			snapshot->level_header[4], snapshot->level_header[5],
+			snapshot->level_header[6], snapshot->level_header[7],
+			snapshot->level_checksum,
 			index + 1u == dfboot_snapshots_count ? "" : ",");
 	}
 	fprintf(dfboot_file,
-		"  ],\n  \"milestones\": {\"start\":%u,\"loader\":%u,\"menu\":%u,"
+		"  ],\n  \"sio\": {\"command_frames\":%u,\"wire_retries\":%u,"
+		"\"level_load_begin\":%d,\"level_load_end\":%d},\n",
+		dfboot_sio_command_frames, dfboot_sio_wire_retries,
+		dfboot_level_load_begin == 0xffffffffu ? -1 : (int) dfboot_level_load_begin,
+		dfboot_level_load_end == 0xffffffffu ? -1 : (int) dfboot_level_load_end);
+	fprintf(dfboot_file,
+		"  \"milestones\": {\"start\":%u,\"loader\":%u,\"menu\":%u,"
 		"\"frontend_poll\":%u,\"gameplay_init\":%u,\"main_loop\":%u}\n}\n",
 		dfboot_seen_start, dfboot_seen_loader, dfboot_seen_menu,
 		dfboot_seen_frontend, dfboot_seen_gameplay, dfboot_seen_main);
@@ -1037,6 +1074,11 @@ static void dfboot_init(void)
 	dfboot_main_menu_dlist = dfboot_env_u("DFBOOT_MAIN_MENU_DLIST");
 	dfboot_frontend_dlist_end = dfboot_env_u("DFBOOT_FRONTEND_DLIST_END");
 	dfboot_window_address = dfboot_env_u("DFBOOT_WINDOW_ADDRESS");
+	dfboot_level_address = dfboot_env_u("DFBOOT_LEVEL_ADDRESS");
+	dfboot_level_bytes = dfboot_env_u("DFBOOT_LEVEL_BYTES");
+	dfboot_pc_sio_frame = dfboot_env_u("DFBOOT_PC_SIO_FRAME");
+	dfboot_pc_sio_retry = dfboot_env_u("DFBOOT_PC_SIO_RETRY");
+	dfboot_pc_level_load = dfboot_env_u("DFBOOT_PC_LEVEL_LOAD");
 	dfboot_initialised = 1;
 }
 
@@ -1055,6 +1097,15 @@ static void dfboot_observe(unsigned pc, unsigned a_register, unsigned x_register
 	dfboot_trace_y[dfboot_trace_head & 63u] = y_register;
 	dfboot_trace_s[dfboot_trace_head & 63u] = s_register;
 	++dfboot_trace_head;
+	/* Roadmap 4.3 SIO counters. One hit at begin_receive is one command frame
+	 * that reached the wire; one hit at settle is one wire-class retry. The
+	 * load window is the reader's own entry to the frame gameplay starts. */
+	if (pc == dfboot_pc_sio_frame)
+		++dfboot_sio_command_frames;
+	if (pc == dfboot_pc_sio_retry)
+		++dfboot_sio_wire_retries;
+	if (pc == dfboot_pc_level_load && dfboot_level_load_begin == 0xffffffffu)
+		dfboot_level_load_begin = frame;
 	if (frame > 500u && MEMORY_mem[pc] == 0x00u) {
 		fprintf(stderr, "voidstrike65 boot smoke: unexpected BRK frame=%u pc=$%04x "
 			"state=%u glue=%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x\n", frame, pc,
@@ -1101,8 +1152,12 @@ static void dfboot_observe(unsigned pc, unsigned a_register, unsigned x_register
 	if (pc == dfboot_pc_frontend && dfboot_seen_frontend == 0xffffffffu &&
 		MEMORY_mem[dfboot_game_state] == 1u)
 		dfboot_seen_frontend = frame;
-	if (pc == dfboot_pc_gameplay && dfboot_seen_gameplay == 0xffffffffu)
+	if (pc == dfboot_pc_gameplay && dfboot_seen_gameplay == 0xffffffffu) {
 		dfboot_seen_gameplay = frame;
+		/* The reader has handed over, so the load window closes here. */
+		if (dfboot_level_load_end == 0xffffffffu)
+			dfboot_level_load_end = frame;
+	}
 	if (pc == dfboot_pc_main && dfboot_seen_main == 0xffffffffu)
 		dfboot_seen_main = frame;
 

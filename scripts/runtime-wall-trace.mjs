@@ -22,6 +22,12 @@ const buildDirectory = path.join(rootDirectory, "build", "runtime-wall-trace");
 const reportPath = path.join(rootDirectory, "docs", "runtime-wall-trace.json");
 const headerPath = path.join(scriptDirectory, "atari800-wall-trace.h");
 const PAL_FRAME_CYCLES = 35_568;
+// Roadmap 4.3 plan §10.3: a two-sector load that takes far longer than this
+// means the wait primitive is wrong rather than the budget being tight. The
+// emulator's wire is lossless and its byte spacing is 8 scanlines, so the
+// MEASURED figure is a regression signal for the reader's own overhead only -
+// never a hardware number.
+const BOOT_LEVEL_LOAD_CEILING_FRAMES = 120;
 const RING_SCREEN = canonicalPlayfield.ringBufferAddress;
 const RING_END = canonicalPlayfield.ringBufferEnd;
 const HISTORICAL_PHYSICAL_GATE_CYCLES = 31_568;
@@ -1659,6 +1665,43 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
   const windowProbeHex = windowProbe === null ? null : windowProbe.toString("hex");
   addressEnvironment.DFBOOT_WINDOW_ADDRESS = `0x${basicWindow.address.toString(16)}`;
 
+  // Roadmap 4.3. The reader's own PCs are the SIO counters: a hit at
+  // begin_receive is a command frame that reached the wire, a hit at settle is
+  // a wire-class retry, and the level load window runs from the reader's entry
+  // to the frame gameplay starts. The image at LEVEL_BUFFER is read back and
+  // compared against build/level-1.bin byte for byte, which is what turns
+  // "the ATR took seven frames longer" into something a gate can hold.
+  const sectorReader = manifest.sectorReader ?? null;
+  invariant(sectorReader !== null && Number.isInteger(sectorReader.levelBuffer?.address),
+    "Boot smoke needs the manifest's sector-reader accounting");
+  const levelOne = sectorReader.levels.find((level) => level.id === 1);
+  invariant(levelOne !== undefined, "the manifest declares no level 1 run");
+  const levelImage = fs.readFileSync(path.join(rootDirectory, "build", levelOne.file));
+  invariant(levelImage.length === levelOne.bytes, "level image size differs from the manifest");
+  const levelImageHex = levelImage.subarray(0, 8).toString("hex");
+  // The same djb2-style rolling checksum dfboot_checksum uses, in 32-bit
+  // unsigned arithmetic so the two agree bit for bit.
+  const levelImageChecksum = levelImage.reduce(
+    (value, byte) => ((Math.imul(value, 33) + byte) >>> 0), 0);
+  const readerLabels = new Map();
+  for (const line of fs.readFileSync(path.join(rootDirectory, "build", "sector-reader.lbl"),
+    "utf8").split(/\r?\n/)) {
+    const match = /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim());
+    if (match && !readerLabels.has(match[2])) {
+      readerLabels.set(match[2], Number.parseInt(match[1], 16));
+    }
+  }
+  const readerPc = (name) => {
+    const address = readerLabels.get(name);
+    invariant(Number.isInteger(address), `sector reader label ${name} is missing`);
+    return `0x${address.toString(16)}`;
+  };
+  addressEnvironment.DFBOOT_LEVEL_ADDRESS = `0x${sectorReader.levelBuffer.address.toString(16)}`;
+  addressEnvironment.DFBOOT_LEVEL_BYTES = `${levelImage.length}`;
+  addressEnvironment.DFBOOT_PC_SIO_FRAME = readerPc("sector_reader_begin_receive");
+  addressEnvironment.DFBOOT_PC_SIO_RETRY = readerPc("sector_reader_settle");
+  addressEnvironment.DFBOOT_PC_LEVEL_LOAD = readerPc("sector_reader_load");
+
   const publicLaunches = atari800ArtifactLaunches(rootDirectory);
   invariant(publicLaunches.xex.artifact.path === xexPath &&
     publicLaunches.atr.artifact.path === atrPath,
@@ -1811,6 +1854,17 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
         `${baselineMenu} (warn band +${bootDeadline.delta_warn_frames}, fail band ` +
         `+${bootDeadline.delta_fail_frames})\n`);
     }
+    const sectorReaderResult = {
+      medium: medium.toUpperCase(),
+      command_frames: result.sio.command_frames,
+      expected_command_frames: definition.id.startsWith("xex") ? 0 : levelOne.sectors,
+      wire_retries: result.sio.wire_retries,
+      level_load_frames: result.sio.level_load_end - result.sio.level_load_begin,
+      level_image_verified: true,
+      path: definition.id.startsWith("xex")
+        ? "resident skip: the XEX carries the image as a block and never reaches SIO"
+        : "direct SIO: one command frame per sector at START GAME",
+    };
     const bootDeadlineResult = {
       medium: medium.toUpperCase(),
       menu_frame: milestones.menu,
@@ -1859,6 +1913,40 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
       invariant(menu.dosvec === expected.start,
         `${definition.id} ATR DOSVEC does not point at the game entry`);
     }
+
+    // --- roadmap 4.3: the level image, and how it got there -----------------
+    //
+    // The gameplay snapshot is taken after START GAME, so by then the reader
+    // has run on both media. What differs is the route: the XEX carries the
+    // image as a block and must take the resident skip without touching SIO,
+    // the ATR must read it over the wire. Both must end with the same bytes
+    // in the same place.
+    invariant(gameplay.level_header === levelImageHex &&
+      gameplay.level_checksum === levelImageChecksum,
+    `${definition.id} has the wrong level image at ` +
+    `$${sectorReader.levelBuffer.address.toString(16)}: header ${gameplay.level_header} ` +
+    `checksum ${gameplay.level_checksum}, expected ${levelImageHex} / ${levelImageChecksum}`);
+    const sio = result.sio;
+    invariant(sio !== undefined, `${definition.id} recorded no SIO counters`);
+    invariant(sio.wire_retries === 0,
+      `${definition.id} needed ${sio.wire_retries} wire retries; the emulator's ` +
+      "wire is lossless, so any retry is a reader defect");
+    if (definition.id.startsWith("xex")) {
+      invariant(sio.command_frames === 0,
+        `${definition.id} put ${sio.command_frames} command frames on the wire; the XEX ` +
+        "carries the level image as a block and must take the resident-skip path");
+    } else {
+      invariant(sio.command_frames === levelOne.sectors,
+        `${definition.id} put ${sio.command_frames} command frames on the wire, ` +
+        `expected exactly ${levelOne.sectors} - one per sector, no retries`);
+    }
+    invariant(sio.level_load_begin >= 0 && sio.level_load_end >= sio.level_load_begin,
+      `${definition.id} did not record a level load window`);
+    const loadFrames = sio.level_load_end - sio.level_load_begin;
+    invariant(loadFrames <= BOOT_LEVEL_LOAD_CEILING_FRAMES,
+      `${definition.id} spent ${loadFrames} frames in the level load, ceiling ` +
+      `${BOOT_LEVEL_LOAD_CEILING_FRAMES}; if this is far over, the wait primitive is ` +
+      "wrong, not the budget (plan §10.3)");
     const screenshots = snapshotFrames.map((frame) => {
       const screenshotPath = `${screenshotPrefix}-frame${String(frame).padStart(3, "0")}.png`;
       invariant(fs.existsSync(screenshotPath),
@@ -1890,6 +1978,7 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
       snapshots: result.snapshots,
       milestones,
       boot_deadline: bootDeadlineResult,
+      sector_reader: sectorReaderResult,
       screenshots,
       passed: true,
     };
@@ -1906,6 +1995,25 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
     duration_seconds_pal: BOOT_GAMEPLAY_FRAME / 50,
     guest_instrumentation_bytes: 0,
     cold_ram_range: "$8000-$9FFF",
+    // Roadmap 4.3: what the reader actually did on each medium, so the read is
+    // evidence rather than an inference from a frame delta.
+    sector_reader: {
+      address: sectorReader.address,
+      bytes: sectorReader.bytes,
+      free_bytes: sectorReader.freeBytes,
+      level_buffer_address: sectorReader.levelBuffer.address,
+      level_image_file: levelOne.file,
+      level_image_bytes: levelImage.length,
+      level_image_checksum: levelImageChecksum,
+      level_image_header_hex: levelImageHex,
+      verified_at_frames: [BOOT_GAMEPLAY_FRAME],
+      per_session: sessions.map((session) => ({
+        id: session.id, ...session.sector_reader,
+      })),
+      note: "XEX sessions must put 0 command frames on the wire (resident skip, owner " +
+        "decision 1); ATR sessions exactly one per sector with 0 retries. The image at " +
+        "LEVEL_BUFFER is compared byte for byte against the build's own level image.",
+    },
     basic_window: {
       address: basicWindow.address,
       guard_address: basicWindow.guardAddress,

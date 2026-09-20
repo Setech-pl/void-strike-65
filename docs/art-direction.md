@@ -42,6 +42,20 @@ Player Fighter weapon colours are:
 - Spread Shot centre, left, and right projectiles: the same yellow Player Fighter colour;
 - Rapid Fire projectile: the established Player Fighter yellow/gold (`$1E`).
 
+**`COLPF2` is shared, so Player Fighter weapon colour is fixed at `$1E`**
+(owner decision U, 2026-09-20). In the gameplay field `COLPF2` is the register
+for pixel value `%11` in a positive screen code, and three live objects besides
+player projectiles render in it: the debris-destruction effect in its yellow
+flicker phase, the allied capital-hull glyphs `allied_service`,
+`allied_turret_housing` and `allied_turret_muzzle`, and the capital explosion
+core in its `pf2`-banked cells. The declared-but-unemitted allied capital shell
+would be a fourth. Recolouring `COLPF2` for a local effect therefore repaints
+other objects, which the rule above forbids. Consequently the **permanent
+booster level (decision N) is signalled by shape and sound, never by colour**:
+a thicker or doubled bolt per level out of the player projectile glyph bank,
+and a different firing sound per level. Shape reads when the player watches his
+shot and sound when he does not, so both are kept; neither is redundant.
+
 Hostile projectile colour and shape are properties of the EnemyArchetype
 `weapon_class`, independent of the emitter's hull colour (owner decision 19,
 `OWNER-SMOKE CANDIDATE` roadmap 4.4c). Each class is one authored one-cell

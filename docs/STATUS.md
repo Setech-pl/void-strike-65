@@ -1875,8 +1875,11 @@ is in [plan-realizacji.md](plan-realizacji.md) §4.
    stronger shot, piercing) over spread, which must be costed separately.
    Scheduled **after Option D**. **Owner decision N (2026-09-20) makes the
    headline booster permanent:** one variable, "booster level 0-5", setting
-   both projectile damage and projectile colour, with death costing one level.
-   See the new decisions section below.
+   projectile damage, with death costing one level. **Decision U** settles the
+   signalling: **shape and sound**, not colour — a per-level bolt from the
+   player glyph bank's three spare codes, plus a different firing sound as
+   parameters on the existing POKEY channel. Colour is rejected; `COLPF2` is
+   shared. See the new decisions section below.
 5. **4.7 Boss** — designed **data-driven** (phases, movement pattern, fire
    pattern, HP, weak points as data) so that later bosses are records rather
    than implementations. This is a decision to make **when planning 4.7**, not
@@ -1909,29 +1912,76 @@ changed for these. Full text, with rationale, in the decision journal:
 | **K** | Lives: three at start, **+1 after each odd level from 3** (3, 5, 7, 9, 11, 13, 15) — seven extra. |
 | **L** | Level select from the furthest level reached. RAM only; a difficulty change in the menu resets it to level 1; the menu shows which levels are available. |
 | **M** | High scores: **RAM only, no disk write.** Confirms today's behaviour. |
-| **N** | **Permanent weapon booster**, level 0-5. One variable; level sets damage **and** colour, so colour replaces a HUD; death costs one level. Two repo checks answered (below); **colour is open**. |
+| **N** | **Permanent weapon booster**, level 0-5. One variable; the level sets damage; death costs one level. Both repo checks **ANSWERED** (below). Colour no longer carries the signal — see **U**. |
 | **O** | **Loader screen**: a random line from 8-16 short English texts spoken by the fighter's cynical onboard AI, plus an animation stepped one frame per sector read — not a progress bar. Texts (~640 B for 16 lines) resident before the read starts. Written in a later session. |
 | **P** | **End screen**: eventually an animation in the top third at full width plus a text scroll below — a separate sub-project, a loaded sector, not resident. A simple message suffices for now. |
 | **Q** | **The project rules are explicitly superseded.** `plan-realizacji.md` §7 and `reguly-projektu.txt` §11 keep their "BASIC RAM, loader changes, runtime disk I/O" entries, marked SUPERSEDED with the superseding decision and why the ground changed. `reguly-projektu.txt` is now version 3.2. |
 | **R** | **Hardware measurements deferred — risk OWNER-ACCEPTED 2026-09-20.** Register below. |
+| **U** | **Booster level is signalled by SHAPE and SOUND**, not colour. A thicker/doubled bolt per level (the player glyph bank has three spare codes) plus a different firing sound per level (parameters on an existing POKEY channel). The two act at different moments and reinforce rather than duplicate, so neither may later be dropped as redundant. Colour was conditional on one check, the check was run, and **colour is REJECTED**: `COLPF2` is shared (below). Five levels stand; three may read more clearly if sound discrimination proves weak — settled during balancing. |
 
-### What decision N's two repo checks measured
+### What decision N's two repo checks measured — both ANSWERED
 
-- **No existing booster modifies damage.** MEASURED: player-shot damage is a
-  hardcoded `lda #$01` at `src/main.s:3892`; `queue_enemy_damage`'s only other
-  callers are player-enemy contact and capital fire. Rapid Fire changes
-  cadence, Spread changes count, Shield absorbs. The booster level can be the
-  sole source of the number.
-- **Player projectile classes do not share the hostile `<= 9` limit.**
-  MEASURED (`build/fighter-weapons.inc`): player glyphs are their own bank at
-  base 11, stride 9, 36 codes; the `<= 9` assert (`src/main.s:797`) bounds the
-  hostile bank at base 90 only. The player ceiling is `src/main.s:792`,
+- **No existing booster modifies damage. ANSWERED: no.** MEASURED:
+  player-shot damage is a hardcoded `lda #$01` at `src/main.s:3892`;
+  `queue_enemy_damage`'s only other callers are player-enemy contact and
+  capital fire. Rapid Fire changes cadence, Spread changes count, Shield
+  absorbs. The booster level can be the sole source of the number, so "one
+  variable, level 0-5" stays one variable and does not become a system of
+  composing modifiers.
+- **Player projectile classes do not share the hostile `<= 9` limit.
+  ANSWERED: they have their own bank.** MEASURED
+  (`build/fighter-weapons.inc`): player glyphs are their own bank at base 11,
+  stride 9, 36 codes; the `<= 9` assert (`src/main.s:797`) bounds the hostile
+  bank at base 90 only. The player ceiling is `src/main.s:792`,
   `BASE + COUNT <= CAPITAL_HULL_GLYPH_BASE = 59`, so **five looks (45 glyphs,
-  codes 11-55) fit with three to spare**; a sixth does not.
-- **OPEN — colour.** `art-direction.md` forbids a local object changing the
-  global palette. Player projectiles are ANTIC 4 cells in shared playfield
-  registers, all `$1E` today. Settle how five levels get five colours before
-  planning N.
+  codes 11-55) fit with three to spare**; a sixth does not. This is what pays
+  for decision U's per-level bolt shape.
+
+### Decision U — the COLPF2 check, and why colour is REJECTED
+
+MEASURED at HEAD `95eac61`. In the gameplay field,
+`GAMEPLAY_COLPF2 = PLAYER_FIGHTER_PROJECTILE_COLOR` (`src/main.s:511`) is the
+register for pixel value `%11` **in a positive screen code** (a code with D7
+set goes to `COLPF3` instead). Three live objects besides player projectiles
+draw in it, and a fourth is declared:
+
+1. **The debris-destruction effect, in its yellow phase.** Fragments and core
+   at `EFFECT_FRAGMENT_GLYPH_BASE = 118` (`src/main.s:716`, assert `:771`) are
+   deliberately alternated between a positive code and `code|$80` —
+   `@fragment_yellow`/`@fragment_red` and `@yellow_core`/`@red_core`
+   (`src/main.s:10754-10789`). The fragment glyphs
+   (`build/entity-effects.inc:122-124`: `$C0,$F0,$3C,$30`) carry `%11` pixels,
+   so the yellow half of that two-phase flicker is drawn in `COLPF2`.
+2. **Three allied capital-hull glyphs.** Every allied glyph is `screenBank:
+   pf2`, i.e. a positive code (`EMIT_ALLIED_HULL_CODEBOOK` =
+   `$3D,$3E,$3B,$41,$3C,$3F,$40,$42,$43,$44,$45`; the enemy codebook is
+   `$CC,$C9,…`, all inverse). `allied_service`, `allied_turret_housing` and
+   `allied_turret_muzzle` carry `%11` pixels, and all three are placed in
+   `EMIT_ALLIED_HULL_PACKED_MAP` (nibbles `6`, `9`, `B`).
+3. **The capital explosion core in its `pf2`-banked cells.**
+   `EMIT_CAPITAL_EXPLOSION_PHASES` (`build/capital-hulls.inc:259-264`) emits
+   `$57` (positive → `COLPF2`) alongside `$D7` (inverse → `COLPF3`) for the
+   same glyph, which carries `%11` pixels.
+4. **The allied capital shell — declared, not yet emitted.**
+   `projectileVisuals.capital.alliedRegister = COLPF2` and
+   `CAPITAL_PROJECTILE_ALLIED_ATTRIBUTE = 0`
+   (`build/capital-hulls.inc:83`), but nothing in `src/` uses it: only the
+   hostile attribute is written (`src/integration-glue.s:177`).
+
+**Checked and not sharing it:** stars (`COLPF0`/`COLPF1`); debris glyphs
+110-117 (no `%11` pairs at all); hostile projectiles (`COLPF0`/`COLPF1` by
+contract, never `%11`); Light Wingman and Interceptor
+(`src/hybrid/light-wingman.s:27`, inverse code → `COLPF3`); Heavy Raider (PMG);
+the HUD (its own DLI zone, `HUD_COLPF2 = $00`, `src/main.s:515`); allied
+engines. **Dead data, not a user:** `weaponPickupRapidFire`'s
+`fillRegister: COLPF2` — the `EMIT_WEAPON_PICKUP_*` macros are invoked nowhere
+in `src/`; the character capsule was replaced by the fifth-player PMG mark in
+`COLPF3`.
+
+Recolouring `COLPF2` per booster level would therefore recolour the debris
+breakup, three allied hull glyphs and the capital explosion core — exactly what
+`art-direction.md` forbids. **Colour stays `$1E` at every level**; shape and
+sound carry the signal.
 
 ## Technical-debt register — OWNER-ACCEPTED RISK 2026-09-20 (decision R)
 
@@ -1964,8 +2014,9 @@ screen at `$9C20-$9FFF` — inside resident game RAM (`ENTITY_CODE` tail,
 `disable_basic_rom` unmaps the ROM but does not move the OS shadows. Nothing
 breaks today — MEASURED `NMIEN = $80` from frame 250 on, so the OS VBI NMI is
 off — but the between-levels reader must **set the OS shadows before handing
-control to SIO**, not just restore hardware registers afterwards. Carry into
-roadmap 4.3. Evidence: `build/runtime-wall-trace/boot-smoke/report.json`,
+control to SIO**, not just restore hardware registers afterwards. This is now a
+**hard requirement on the sector reader**, written where the reader is
+specified: `design-4.6-data-architecture.md` §3. Evidence: `build/runtime-wall-trace/boot-smoke/report.json`,
 `snapshots[].sdlst` / `.memtop` / `.ramtop`.
 
 ### Boot-frame note, re-measured 2026-09-20

@@ -429,6 +429,30 @@ hardware-critical work (OS call after takeover, against the live VBI/DLI and
 display). The buffer discipline is what makes that a later, bounded task
 instead of a redesign.
 
+**HARD REQUIREMENT on that reader — the loader-mode display must set the OS
+shadows before it hands control to SIO.** Not merely restore hardware
+registers afterwards. EMULATOR-MEASURED 2026-09-20 (Atari800 7.1.2 PAL/XL,
+boot smoke 8/8, `build/runtime-wall-trace/boot-smoke/report.json`,
+`snapshots[].sdlst` / `.memtop` / `.ramtop`): on a machine cold-started **with
+BASIC enabled**, the OS sets `RAMTOP = $A0`, `MEMTOP = $9C1F` and
+`SDLSTL`/`SDLSTH` = `$9C20`, putting its screen at `$9C20-$9FFF` — **inside
+resident game RAM**, not in the BASIC window. That range holds the
+`ENTITY_CODE` tail (`$9C20-$9D5C`), `DIRECTOR_C_PRE`, `LEVEL1_DATA` and
+`DIRECTOR_C_CODE` (`$9E13-$9FF7`). `disable_basic_rom` unmaps the ROM but
+**does not move the OS shadows**.
+
+Nothing breaks today, because MEASURED `NMIEN = $80` from frame 250 on: the OS
+VBI NMI is off and no one rewrites the display list from those shadows. The
+reader is what changes that. It calls `SIOV`, and an in-game `SIOV` path that
+revives the OS VBI hands the OS a display-list pointer of `$9C20` — into
+Director code. Restoring `DMACTL`, `DLISTL`/`DLISTH`, the colours, `CHBASE`
+and `PMBASE` *after* the read is too late: the OS VBI acts during it. The
+loader-mode display state therefore owns `SDLSTL`/`SDLSTH`, `RAMTOP` and
+`MEMTOP` — it writes its own values into them before the first `SIOV` call, and
+this is part of the reader's definition of done, not a later hardening step.
+See decision O and decision R in
+[owner-decisions-2026-09-11.md](owner-decisions-2026-09-11.md) §R.1.
+
 Where the buffer lives is the placement question of §7.3: the core page wants
 to replace `LEVEL1_DATA` in `DIRECTOR_RAM` (158 → 256 B, which forces ~100 B
 of Director code out to the arena), and the payload page only exists if the

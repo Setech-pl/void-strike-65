@@ -364,12 +364,31 @@ section "Decyzje literowe 2026-09-20".
 - **High scores (M).** RAM only — confirms existing behaviour.
 - **Permanent weapon booster (N).** Collecting it raises the player's weapon
   level by one, up to five; collecting the same booster again raises another
-  level. The level sets both projectile damage and projectile colour, so the
-  colour tells the player his current strength **with no HUD**. Dying costs
-  **one** level, not all of them. The other boosters keep working as they do
-  today. Open: how five levels get five colours without changing the global
-  palette (see "Gameplay palette ownership" in
-  [art-direction.md](art-direction.md)).
+  level. The level sets projectile damage, and the player reads his current
+  strength off the shot itself **with no HUD**. Dying costs **one** level, not
+  all of them. The other boosters keep working as they do today. No existing
+  booster modifies damage (MEASURED: `src/main.s:3892`), so the level stays
+  one variable rather than a system of composing modifiers.
+- **Booster level signalling (U).** **Shape and sound, not colour.**
+  - **Shape.** A thicker or doubled bolt per level. Player projectile glyphs
+    are their own bank — 45 glyphs, codes 11-55, ceiling
+    `CAPITAL_HULL_GLYPH_BASE = 59` — so five looks fit with three codes to
+    spare, and a shape change reads inside the same colour register and
+    conflicts with nothing.
+  - **Sound.** A different firing sound per level: parameters on the existing
+    POKEY firing channel, not a new channel. It works while the player's eyes
+    are on the enemies rather than on his own shots.
+  - **Both, deliberately.** Shape reads when the player is watching his shot,
+    sound when he is not. They reinforce rather than duplicate; neither is
+    redundant and neither is to be dropped later.
+  - **Colour: rejected.** `COLPF2` is not exclusively the player's — the
+    debris breakup's yellow phase, three allied capital-hull glyphs and the
+    capital explosion core all render in it, so recolouring it per level would
+    repaint them (evidence in STATUS, "Decision U — the COLPF2 check").
+    Player projectiles stay `$1E` at every level.
+  - **Five levels stand for now**, but three may read more clearly than five
+    if sound discrimination proves weak in play. Settled during balancing, not
+    assumed.
 - **Loader screen (O).** A randomly chosen line from a pool of 8-16 short
   English texts, plus an animation stepped one frame per sector read — not a
   progress bar. The texts are spoken by the fighter's onboard AI: cynical,

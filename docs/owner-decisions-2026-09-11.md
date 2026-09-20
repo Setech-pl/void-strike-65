@@ -1,7 +1,7 @@
 # VOID STRIKE 65 — decyzje właścicielskie po Stage 2B.2b
 
 > **Skonsolidowana lista wszystkich obowiązujących decyzji** — numerowanych
-> 1-23, czterech z 2026-09-19 (bramki/trace) i literowych **A-R** z 2026-09-20 —
+> 1-23, czterech z 2026-09-19 (bramki/trace) i literowych **A-R oraz U** z 2026-09-20 —
 > wraz z ich konsekwencjami i tym, co je zastąpiło:
 > [project-overview.md](project-overview.md) §5. Cała seria literowa jest
 > zapisana **w tym pliku**, na jego końcu (sekcja „Decyzje literowe
@@ -1026,12 +1026,13 @@ Architektonicznie ma to być **jedna zmienna — „poziom boostera 0-5"** — z
 której wynikają obrażenia i aktywny `weapon_class`. Nie dwa liczniki, nie
 tablica stanów.
 
-### N.1 Dwa pytania do weryfikacji w repozytorium — odpowiedziane pomiarem
+### N.1 Dwa pytania do weryfikacji w repozytorium — OBA ODPOWIEDZIANE
 
 Właściciel polecił zapisać je jako otwarte. Dało się je rozstrzygnąć na tym
-HEAD, więc zapisane są **z dowodem**; co zostaje otwarte, jest nazwane niżej.
+HEAD, więc zapisane są **z dowodem**. Oba są **ODPOWIEDZIANE** i zamknięte;
+trzecia sprawa — kolor — została rozstrzygnięta przez **decyzję U** poniżej.
 
-1. **Czy jakiś istniejący booster modyfikuje obrażenia?**
+1. **Czy jakiś istniejący booster modyfikuje obrażenia? — ODPOWIEDZIANE.**
    **NIE.** MEASURED: obrażenia od trafienia pociskiem gracza to zaszyta stała
    `lda #$01` w `src/main.s:3892`, przekazana do `queue_enemy_damage`. Trzy
    miejsca wywołania tej procedury to pocisk gracza (1), kontakt gracza z
@@ -1040,8 +1041,8 @@ HEAD, więc zapisane są **z dowodem**; co zostaje otwarte, jest nazwane niżej.
    liczbę pocisków, Shield pochłania obrażenia gracza. **Poziom boostera może
    więc być jedynym źródłem tej liczby** — nie ma drugiego źródła, które
    zamieniłoby ją z liczby w system.
-2. **Czy klasy pocisków gracza dzielą limit `HOSTILE_WEAPON_VISUAL_COUNT <= 9`?**
-   **NIE — mają własny bank.** MEASURED (`build/fighter-weapons.inc`,
+2. **Czy klasy pocisków gracza dzielą limit `HOSTILE_WEAPON_VISUAL_COUNT <= 9`?
+   — ODPOWIEDZIANE.** **NIE — mają własny bank.** MEASURED (`build/fighter-weapons.inc`,
    generowane z `assets/graphics/fighter-weapons.json`):
    `PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE = 11`, `STRIDE = 9`, `COUNT = 36`
    (cztery wyglądy po dziewięć faz). Wrogie wizualizacje siedzą osobno przy
@@ -1054,14 +1055,14 @@ HEAD, więc zapisane są **z dowodem**; co zostaje otwarte, jest nazwane niżej.
    mieści się z zapasem trzech kodów.** Piąty wygląd jest do wzięcia; szósty
    już nie.
 
-**Co zostaje OTWARTE — kolor.** `art-direction.md` §„Gameplay palette
-ownership" stawia wiążącą zasadę: *„A local object must not change the global
-palette in a way that recolours other objects"*. Pociski gracza są komórkami
-ANTIC 4 w dzielonych rejestrach playfielda (dziś wszystkie żółte `$1E`), więc
-„kolor na poziom boostera" **nie jest darmowy**: albo pięć poziomów mieści się
-w wartościach pikseli już przypisanych rejestrom playfielda, albo potrzebny
-jest inny mechanizm. To trzeba rozstrzygnąć **zanim** N zostanie zaplanowane,
-bo to właśnie kolor niesie całą informację dla gracza.
+**Kolor — ZAMKNIĘTE przez decyzję U (2026-09-20).** Zapis oryginalnego
+problemu zostaje, bo jest uzasadnieniem U: `art-direction.md` §„Gameplay
+palette ownership" stawia wiążącą zasadę: *„A local object must not change the
+global palette in a way that recolours other objects"*. Pociski gracza są
+komórkami ANTIC 4 w dzielonych rejestrach playfielda (dziś wszystkie żółte
+`$1E`), więc „kolor na poziom boostera" **nie jest darmowy**. Decyzja U
+przenosi sygnał na **kształt i dźwięk**, a kolor warunkuje jednym sprawdzeniem
+repozytorium — sprawdzenie zostało wykonane i **kolor jest ODRZUCONY**.
 
 ---
 
@@ -1225,6 +1226,111 @@ w okno.
 **Wniosek do przeniesienia do 4.3:** tryb wyświetlania na czas ładowania musi
 **ustawić cienie OS-a na swoje wartości, zanim odda sterowanie do SIO**, a nie
 tylko przywrócić rejestry po. Zapisane tutaj, bo jest to pomiar, nie projekt.
+
+---
+
+## U. SYGNALIZACJA POZIOMU BOOSTERA — OWNER-ACCEPTED (2026-09-20)
+
+Domyka jedyną otwartą sprawę decyzji **N**. W N kolor niósł **całą**
+informację; ta decyzja rozkłada ją na **KSZTAŁT i DŹWIĘK**, a kolor dopuszcza
+warunkowo — po jednym sprawdzeniu repozytorium, które wykonano w tej sesji.
+
+### U.1 KSZTAŁT — podstawowy sygnał
+
+Grubszy albo zdwojony pocisk na każdy poziom. Bank glifów pocisków gracza jest
+**własny**: 45 glifów, kody 11-55, sufit `CAPITAL_HULL_GLYPH_BASE = 59`, więc
+**trzy kody zapasu** (pomiar z N.1 punkt 2). Kształt czyta się **w tym samym
+rejestrze koloru**, więc nie koliduje z niczym: ani z zasadą
+`art-direction.md`, ani z żadnym innym obiektem na ekranie.
+
+### U.2 DŹWIĘK — drugi sygnał
+
+Inny dźwięk wystrzału na każdy poziom. POKEY ma cztery kanały, a dźwięk
+wystrzału **już istnieje** — to więc parametry na istniejącym kanale, nie nowy
+kanał i nie nowy podsystem.
+
+- **Przewaga nad kolorem:** działa, kiedy gracz patrzy na wrogów, a nie na
+  własne pociski.
+- **Ograniczenie — rozróżnialność.** Pięć wyraźnie różnych stopni może być
+  nierozróżnialnych w środku akcji; **trzy czytałyby się wyraźniej niż pięć**.
+
+### U.3 DWA SYGNAŁY, NIE JEDEN — i dlaczego żadnego nie wolno później wyrzucić
+
+Kształt i dźwięk działają **w różnych momentach**: kształt wtedy, kiedy gracz
+patrzy na swoje pociski, dźwięk wtedy, kiedy nie patrzy. **Wzmacniają się, a
+nie dublują.** Zapisane wprost, żeby późniejsza sesja nie usunęła jednego z
+nich jako „redundantnego".
+
+### U.4 KOLOR — warunkowo; sprawdzenie WYKONANE, kolor **ODRZUCONY**
+
+Warunek postawiony przez właściciela: kolor wraca jako trzeci darmowy sygnał
+**tylko wtedy**, gdy `COLPF2` (dziś `$1E`) należy wyłącznie do pocisków
+gracza — wtedy przemalowanie go na poziom boostera nie psuje żadnego innego
+obiektu i zasada `art-direction.md` nie ma zastosowania, bo nic innego nie jest
+dotknięte.
+
+**WYNIK: NIE należy. Kolor — REJECTED.** MEASURED na HEAD `95eac61`.
+
+`GAMEPLAY_COLPF2 = PLAYER_FIGHTER_PROJECTILE_COLOR` (`src/main.s:511`) jest w
+polu gry rejestrem **wartości piksela `%11` w komórce o dodatnim kodzie
+ekranowym** (kod z ustawionym D7 idzie do `COLPF3`). Dzielą go z pociskami
+gracza:
+
+1. **Efekt rozpadu debris — fragmenty i rdzeń w fazie żółtej.**
+   `EFFECT_FRAGMENT_GLYPH_BASE = 118` (`src/main.s:716`, asercja `:771`).
+   Renderer **celowo** przełącza te komórki między kodem dodatnim a
+   `kod|$80`: `@fragment_yellow` / `@fragment_red` i `@yellow_core` /
+   `@red_core` (`src/main.s:10754-10789`). Glify fragmentu
+   (`EMIT_EFFECT_FRAGMENT_GLYPHS`, `build/entity-effects.inc:122-124`:
+   `$C0,$F0,$3C,$30`) zawierają piksele `%11`, więc **żółta faza migotania
+   fragmentów i rdzenia jest rysowana w `COLPF2`**. To nie jest martwa
+   ścieżka — to połowa dwufazowego efektu.
+2. **Trzy glify kadłuba sojuszniczego capitala.** Wszystkie glify sojusznicze
+   mają `screenBank: pf2` (kod dodatni; wrogie mają `pf3`, kod ujemny —
+   `EMIT_ALLIED_HULL_CODEBOOK` = `$3D,$3E,$3B,$41,$3C,$3F,$40,$42,$43,$44,$45`
+   wobec `EMIT_ENEMY_HULL_CODEBOOK` = `$CC,$C9,…`). Trzy z nich niosą piksel
+   `%11`, więc rysują się w `COLPF2`: **`allied_service`** (blok 2x2 w
+   wierszach 4-5), **`allied_turret_housing`**, **`allied_turret_muzzle`**
+   (`assets/graphics/capital-hulls.json`). Wszystkie trzy są realnie użyte w
+   `EMIT_ALLIED_HULL_PACKED_MAP` (nibble `6`, `9`, `B`).
+3. **Rdzeń eksplozji capitala w komórkach bankowanych `pf2`.**
+   `capitalExplosion.phases` stawia `capital_explosion_core` raz jako `pf2`, a
+   raz jako `pf3`; `EMIT_CAPITAL_EXPLOSION_PHASES`
+   (`build/capital-hulls.inc:259-264`) emituje odpowiednio `$57` (dodatni,
+   `COLPF2`) i `$D7` (ujemny, `COLPF3`). Glif zawiera piksele `%11`.
+4. **Pocisk sojuszniczego capitala — zadeklarowany, jeszcze nieemitowany.**
+   `projectileVisuals.capital.alliedRegister = COLPF2`,
+   `alliedValue = 30`, `alliedAttribute = 0`; `build/capital-hulls.inc:83`
+   definiuje `CAPITAL_PROJECTILE_ALLIED_ATTRIBUTE = 0`, ale **żaden plik w
+   `src/` go nie używa** — dziś strzela wyłącznie wrogi capital
+   (`CAPITAL_PROJECTILE_HOSTILE_ATTRIBUTE`, `src/integration-glue.s:177`).
+   Nie jest to więc dzisiejszy użytkownik rejestru, ale jest zaplanowany.
+
+**Sprawdzone i NIE dzielą `COLPF2`:** gwiazdy (`COLPF0` near, `COLPF1` far —
+`assets/graphics/starfield.json`); glify debris 110-117 (`EMIT_ENTITY_DEBRIS_GLYPHS`
+— zero par `%11`); wrogie pociski (z definicji tylko `COLPF0`/`COLPF1`, nigdy
+`%11`); Light Wingman i Interceptor (`LIGHT_GLYPH|CAPITAL_PROJECTILE_HOSTILE_ATTRIBUTE`,
+`src/hybrid/light-wingman.s:27` — kod ujemny, `COLPF3`); Heavy Raider (PMG,
+rejestry `COLPM*`); HUD (własna strefa DLI, `HUD_COLPF2 = $00`,
+`src/main.s:515`); sojusznicze silniki (`allied_engine_energy` — piksele `2`
+i `1`, bez `%11`). **Martwe dane, nie użytkownik:**
+`weaponPickupRapidFire.palette.fillRegister = COLPF2` w
+`assets/graphics/entity-effects.json` — makra `EMIT_WEAPON_PICKUP_*` nie są
+wywołane nigdzie w `src/`; znakowa kapsuła została zastąpiona przez znak PMG
+piątego gracza w `COLPF3` (`art-direction.md` §„Pickups").
+
+**Wniosek.** Przemalowanie `COLPF2` na poziom boostera przemalowałoby żółtą
+fazę rozpadu debris, trzy glify kadłuba sojusznika i rdzeń eksplozji capitala —
+dokładnie to, czego zabrania `art-direction.md`. **Kolor pozostaje `$1E` na
+wszystkich poziomach.** Sygnał niosą kształt i dźwięk.
+
+### U.5 LICZBA POZIOMÓW
+
+**Pięć zostaje na teraz.** Zapisane wprost: jeżeli rozróżnialność dźwięku
+okaże się w praktyce słaba, **trzy poziomy czytałyby się wyraźniej niż pięć**.
+To jest do **rozstrzygnięcia podczas balansowania**, nie do założenia z góry.
+Sufit glifów (trzy kody zapasu przy pięciu wyglądach) nie jest tu argumentem w
+żadną stronę — mniej poziomów tylko zwalnia kody.
 
 ---
 

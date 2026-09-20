@@ -709,7 +709,7 @@ established a standing rule.
 
 ### 5.3 The lettered decisions of 2026-09-20
 
-All of A-R are now recorded in
+All of A-R, and U, are now recorded in
 [owner-decisions-2026-09-11.md](owner-decisions-2026-09-11.md), section
 "Decyzje literowe 2026-09-20", in the journal's usual Polish. A-D lived only in
 this table until 2026-09-20.
@@ -729,11 +729,12 @@ this table until 2026-09-20.
 | **K** | **Lives**: three, plus one after each odd level from 3 | Recorded 2026-09-20 | Levels 3, 5, 7, 9, 11, 13, 15 — seven extra across the campaign. |
 | **L** | **Level select** from the furthest level reached | Recorded 2026-09-20 | RAM only, lost at power-off; a difficulty change in the menu resets it to level 1; the menu shows which levels are available. |
 | **M** | **High scores**: RAM only, no disk write | Recorded 2026-09-20 | Confirms today's behaviour (`game-design.md`: ten packed-BCD entries in RAM, cleared by a cold program start). Disk save goes to the backlog. |
-| **N** | **PERMANENT weapon booster**, level 0-5 | Recorded 2026-09-20 | One variable; level sets damage **and** colour, so colour replaces a HUD. Death costs one level. Two repo checks answered (§4.6); **colour remains open**. |
+| **N** | **PERMANENT weapon booster**, level 0-5 | Recorded 2026-09-20 | One variable; the level sets damage and replaces a HUD. Death costs one level. Both repo checks **ANSWERED** (§4.6). How the level is signalled is decision **U**. |
 | **O** | **Loader screen**: one random line of 8-16 English texts + an animation stepped per sector read | Recorded 2026-09-20 | Spoken by the fighter's onboard AI — cynical, seen too much; winks at Hitchhiker's, Star Wars, Avengers and BSG without quoting them. Texts written later. ~640 B resident before the read starts. |
 | **P** | **End screen** | Recorded 2026-09-20 | Eventually an animation in the top third plus a text scroll below — a separate sub-project, a loaded sector, not resident. A simple message suffices for now. |
 | **Q** | **The project rules are superseded, explicitly** | Recorded 2026-09-20 | `plan-realizacji.md` §7 and `reguly-projektu.txt` §11 keep their entries, marked SUPERSEDED with the superseding decision and why the ground changed. See §8.5. |
 | **R** | **Hardware measurements deferred — risk OWNER-ACCEPTED 2026-09-20** | Recorded 2026-09-20 | A four-item technical-debt register, each with what it invalidates. Item 4 (what the OS holds above `$BC20`) was measured in this session; the register keeps it because the measurement is emulator-only. |
+| **U** | **Booster level is signalled by SHAPE and SOUND** | Recorded 2026-09-20 | A thicker or doubled bolt per level (the player glyph bank has three spare codes, §4.6) and a different firing sound per level (parameters on the existing POKEY firing channel). The two act at different moments — shape when the player watches his shot, sound when he does not — so they reinforce rather than duplicate and neither may later be dropped as redundant. Colour was conditional on one repo check; the check was run at `95eac61` and **colour is REJECTED**: `COLPF2` is also the debris breakup's yellow phase, three allied capital-hull glyphs and the capital explosion core. Five levels stand; three may read more clearly if sound discrimination proves weak — settled during balancing. |
 
 ### 5.4 ADRs
 
@@ -783,8 +784,11 @@ Both were recorded here first, from the owner's conversation. Since
 Player progression, added 2026-09-20: lives three plus one after each odd level
 from 3 (decision **K**); level select from the furthest level reached, RAM-only
 (**L**); high scores RAM-only (**M**); difficulty scaling reload, spacing
-**and** damage (**J**); a permanent weapon booster, level 0-5, whose colour
-replaces a HUD (**N**).
+**and** damage (**J**); a permanent weapon booster, level 0-5, whose level sets
+damage and replaces a HUD (**N**), signalled by **shape and sound** — a
+thicker or doubled bolt plus a different firing sound per level — with colour
+rejected because `COLPF2` is shared with the debris breakup, three allied
+capital-hull glyphs and the capital explosion core (**U**).
 
 ### 6.2 The loader screen — part of the reader, not an extra
 

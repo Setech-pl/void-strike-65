@@ -6,16 +6,16 @@
   "baseline": {
     "xex_loader_frames": 135,
     "xex_menu_frames": 392,
-    "atr_loader_frames": 308,
-    "atr_menu_frames": 565
+    "atr_loader_frames": 319,
+    "atr_menu_frames": 576
   },
   "recorded": {
     "date": "2026-09-20",
     "branch": "main",
-    "runtime_checkpoint": "c13548b",
-    "xex_sha256": "832e7aa136bc4e51214c9198bffe7a0724af7a312585546b27c189daa2f5d692",
-    "atr_sha256": "98da84812ab8374603df7acd48e8d8d5c8900652805a18dc2b2310f68af331e5",
-    "total_transport_sectors": 189,
-    "reason": "Re-recorded for roadmap 4.3, which adds the resident direct-SIO sector reader as the ninth DFMC record: 730 B RAW landing at $A000, +6 transport sectors (183 -> 189). MEASURED from a full 8-session boot smoke of this build, 8/8 passed. The ATR milestones move +11 frames (loader 297 -> 308, menu 554 -> 565) - inside the +50 fail band, over the +10 warn band, and well under the plan's own +20-frame estimate. The XEX milestones do NOT move (loader 135, menu 392) even though the XEX grew 1,000 B for the reader block and the XEX-only level-1 image: the binary loader places those blocks before the game's own start milestone. The `-nobasic` sessions remain the baseline; `-basic` boots still run 9 (XEX) to 18 (ATR) frames earlier and only ever pass."
+    "runtime_checkpoint": "95b527c",
+    "xex_sha256": "ad06d6fb032fa24b2fdbd8741c65f836cef59d0e0f35e37751129991b35205a9",
+    "atr_sha256": "83d89fdb2dea27e9ed597afcceec31568f39bcdd84283415daa0134ad43fa18c",
+    "total_transport_sectors": 195,
+    "reason": "Re-recorded for roadmap 4.3 step 4, which adds the loader-mode display, the failure screen and the START GAME redirect: the reader grows 730 -> 1,466 B and the transport 189 -> 195 sectors. MEASURED from a full 8-session boot smoke, 8/8 passed. ATR milestones move a further +11 frames (loader 308 -> 319, menu 565 -> 576); XEX milestones stay at 135/392 for the third recording running, because the binary loader places the XEX blocks before the game's start milestone. The gameplay handoff is the new figure worth watching: gameplay_init is frame 3060 on ATR against 3053 on XEX. That 7-frame difference IS the two-sector SIO read - the XEX takes the resident-skip path because it carries the level image as a block, the ATR reads it over the wire - and it sits close to the plan's 1.6 estimate of about 3.8 frames per sector. Both media still reach game_state 6 at frame 3300, which is only reachable if the read completed AND the header validated, since every failure class diverts to the failure screen instead."
   }
 }

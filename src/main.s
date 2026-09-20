@@ -158,6 +158,16 @@ PLAYER3     = PMG_BASE + $0700
 SCREEN      = $4000
 CHARSET     = $4400
 FRONTEND_CHARSET = $4800
+
+; Roadmap 4.3: the sector reader's fixed entry vectors at the base of the
+; window. The reader is its own link (plan 4 [C5]), so main.s reaches it
+; through these addresses rather than through a symbol; the reader asserts
+; that its vector table really sits at $A000. Hooking START GAME here costs
+; MAIN nothing: `jmp start_gameplay` and `jmp SECTOR_READER_ENTRY` are both
+; three bytes.
+SECTOR_READER_ENTRY = $A000     ; teardown, loader screen, read, start_gameplay
+SECTOR_READER_LOAD  = $A003     ; A = level id (roadmap 4.9)
+SECTOR_READER_DRAIN = $A006     ; reserved for roadmap 4.9
 HUD_CHARSET = $5000
 CAPITAL_HULL_RUNTIME_ALLIED = $4C00
 CAPITAL_HULL_RUNTIME_ENEMY  = $4D20
@@ -1541,7 +1551,7 @@ handle_main_menu_input:
 
     lda frontend_selection
     bne :+
-    jmp start_gameplay
+    jmp SECTOR_READER_ENTRY     ; 4.3: loader screen + level read, then start_gameplay
 :
     cmp #$01
     beq @options

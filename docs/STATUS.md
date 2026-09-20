@@ -350,6 +350,62 @@ has 215 B free, `BROADSIDE` 3 B, `ENTITY_CODE` 1 B, against a §7.3 deficit of
 roughly 350-450 B. That is a placement problem and it is unchanged by the
 re-basing.
 
+## Roadmap 4.3 — resident direct-SIO sector reader — `OWNER-SMOKE CANDIDATE` (2026-09-20)
+
+Owner decision W's reader exists, is transported on both media, and runs at
+START GAME. Steps 1-4 of `plan-4.3-sector-reader.md`; steps 5-7 are open.
+
+**What it is.** `src/hybrid/sector-reader.s`, its own link at `$A000`
+(plan §4 `[C5]`), transported as the ninth DFMC record, RAW, direct-landing.
+**1,466 B of 1,536; 70 B free.** Level buffer `$A600-$BBFF` (44 sectors),
+BSS `$BC00-$BC14`, 2 B of zero page at `$A0`. START GAME reaches it through a
+frozen vector table at `$A000`, an operand-only change that cost MAIN nothing:
+`CODE` still ends `$3174` and `RODATA` `$3FF6`, exactly as before.
+
+**Three corrections to the approved plan, measured not assumed.** A register
+probe run before any reader code existed found three defects in plan §1.1 that
+no automated gate would have caught. `SKCTL` is `$23`/`$33`, not a single
+`$13` — `$13` clocks the output from the external clock, so the command frame
+never reaches the wire and the reader would have returned `NO_DEVICE` on every
+medium. The `SKSTAT` mask is `$A0`, not `$C0` — bit 6 is the *keyboard*
+overrun. And the command frame needs the 750-1600 µs pre-frame delay that
+§1.2 omitted. All three are folded into the plan in place and guarded by
+tests. Evidence:
+[diagnostics/sio-register-probe-2026-09-20.json](diagnostics/sio-register-probe-2026-09-20.json);
+protocol facts with citations:
+[diagnostics/sio-protocol-facts.md](diagnostics/sio-protocol-facts.md).
+
+**MEASURED.** Transport 183 → **195 sectors**. ATR boot milestones
+297/554 → **319/576** (+22 over two steps, inside the +50 band); XEX
+milestones unmoved at 135/392. Boot smoke **8/8**. The figure that proves the
+reader works end to end is the gameplay handoff: `gameplay_init` is frame
+**3060 on ATR against 3053 on XEX**. That 7-frame difference *is* the
+two-sector SIO read — the XEX carries the level image as a block and takes the
+resident-skip path without touching SIO, the ATR reads it over the wire — and
+it matches plan §1.6's ~3.8 frames/sector. Both media reach `game_state 6`,
+which is reachable only if the read completed *and* the header validated,
+since every failure class diverts to the failure screen instead. Three PAL
+replays clean, 0 distinct miss events, max wall 30,375 cycles.
+
+**The window budget is now the binding constraint.** The reader core measured
+**682 B against a 300-360 B estimate** (plan §1.5 `[C4]`). With the display
+driver, failure screen and an eight-line AI text pool, 70 B of the 1,536-B
+area remain. **Sixteen AI lines do not fit** — they would need a further
+304 B. Eight is decision O's v1 shape, so nothing is lost now, but a sixteen-
+line pool needs the level buffer to shrink below 44 sectors, and that is an
+owner decision.
+
+**What is NOT done.** Steps 5-7: the `sector_c_drain_clear` extraction and its
+ABI export, the trace-header counters and negative controls (so the ATR image
+is asserted byte-exact at `LEVEL_BUFFER` rather than inferred from the frame
+delta), the boot-smoke extensions, and the remaining documentation. The
+loader-mode animation is drawn but unobserved by any gate. No hardware run.
+
+**Owner smoke.** XEX `ad06d6fb…b35205a9`, ATR `83d89fdb…d43fa18c`. See the
+section's "what to look for" in the implementation report.
+
+---
+
 ## Known open defects and open decisions
 
 - **`npm test` is red at HEAD, and has been before roadmap 4.3 started.**

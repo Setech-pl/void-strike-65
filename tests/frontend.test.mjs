@@ -114,12 +114,16 @@ test("UP and DOWN move once per neutral release and wrap at both bounds", () => 
 });
 
 test("an idle main menu has no path to gameplay without a gated FIRE event", () => {
-  assert.doesNotMatch(routine("frontend_loop"), /start_gameplay|main_loop/);
+  assert.doesNotMatch(routine("frontend_loop"), /SECTOR_READER_ENTRY|start_gameplay|main_loop/);
+  // Roadmap 4.3: the gated FIRE now enters the sector reader, which tears the
+  // frontend down, shows the loader screen, reads the level and only then
+  // reaches start_gameplay. The gate itself is unchanged.
   assert.match(
     routine("handle_main_menu_input"),
-    /lda TRIG0\s+bne @done[\s\S]+lda frontend_selection\s+bne[\s\S]+jmp start_gameplay/,
+    /lda TRIG0\s+bne @done[\s\S]+lda frontend_selection\s+bne[\s\S]+jmp SECTOR_READER_ENTRY/,
   );
-  assert.doesNotMatch(routine("render_frontend_state"), /start_gameplay|main_loop/);
+  assert.doesNotMatch(routine("render_frontend_state"),
+    /SECTOR_READER_ENTRY|start_gameplay|main_loop/);
 });
 
 test("frontend text records explicitly test the byte returned by the reader", () => {
@@ -141,7 +145,11 @@ test("FIRE is release-gated across screens and into gameplay", () => {
 
 test("menu actions use explicit transitions and one gameplay reset path", () => {
   const mainInput = routine("handle_main_menu_input");
-  assert.match(mainInput, /jmp start_gameplay/);
+  // 4.3: START GAME dispatches to the reader's fixed entry vector at $A000,
+  // an operand-only change - both forms are three bytes, so MAIN pays nothing.
+  assert.match(mainInput, /jmp SECTOR_READER_ENTRY/);
+  assert.doesNotMatch(mainInput, /jmp start_gameplay/,
+    "START GAME must go through the reader, not straight into gameplay");
   assert.match(mainInput, /jmp enter_options/);
   assert.match(mainInput, /jmp enter_top_scores/);
   assert.match(mainInput, /jmp enter_exit_confirmation/);

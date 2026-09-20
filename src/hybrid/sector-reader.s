@@ -17,10 +17,38 @@
 ; Read-only, one device (D1:), standard speed, whole sectors into a
 ; page-aligned buffer. Runs only at a level boundary with gameplay torn down.
 
+; Main-link entry points, generated after main.s links (plan 4 [C5]).
+.include "main-abi.inc"
+
 ; ---------------------------------------------------------------------------
 ; Hardware. The game defines none of these: it has never written IRQEN, SKCTL,
 ; SEROUT or PBCTL, so the equates live here rather than costing MAIN anything.
 ; ---------------------------------------------------------------------------
+TRIG0           = $D010
+COLPF1          = $D017
+COLPF2          = $D018
+COLBK           = $D01A
+GRACTL          = $D01D
+DMACTL          = $D400
+DLISTL          = $D402
+DLISTH          = $D403
+CHBASE          = $D409
+NMIEN           = $D40E
+
+SCREEN           = $4000
+FRONTEND_CHARSET = $4800
+CH_FRONT_SPACE   = 0
+CH_FRONT_DASH    = 37
+
+; Loader-mode screen rows (ANTIC 2, 40 columns).
+LOADER_TITLE_ROW  = SCREEN + 2 * 40 + 13
+LOADER_STATUS_ROW = SCREEN + 5 * 40 + 12
+LOADER_TEXT_ROW   = SCREEN + 8 * 40 + 1
+LOADER_ANIM_ROW   = SCREEN + 12 * 40
+LOADER_PROMPT_ROW = SCREEN + 20 * 40 + 15
+
+AI_LINE_BYTES  = 38
+AI_LINE_COUNT  = 8
 PBCTL           = $D303         ; PIA port B control; CB2 is the command line
 AUDF3           = $D204
 AUDC3           = $D205
@@ -124,9 +152,210 @@ sr_checksum:        .res 1
 sr_rx_byte:         .res 1
 sr_rx_status:       .res 1
 sr_scratch:         .res 1
+sr_anim:            .res 1      ; animation phase / small multiply scratch
 sr_frame:           .res 5      ; the five-byte command frame
 
 .segment "SECTOR_READER"
+
+; ===========================================================================
+; Fixed entry vectors at $A000. main.s reaches the reader through these
+; addresses alone, so the two links need no generated include in that
+; direction and the START GAME hook stays an operand-only change: the
+; `jmp start_gameplay` at main.s:1544 becomes `jmp SECTOR_READER_ENTRY`,
+; three bytes either way. The order is frozen; append, never reorder.
+; ===========================================================================
+sector_reader_vectors:
+        jmp sector_reader_start_gameplay        ; $A000 — the START GAME hook
+        jmp sector_reader_load                  ; $A003 — A = level id (4.9)
+        jmp sector_reader_drain_ready           ; $A006 — reserved for 4.9
+
+.assert sector_reader_vectors = $A000, error, "the sector reader vectors must sit at $A000"
+
+; ===========================================================================
+; The START GAME boundary (plan 5). Entered from the frontend, so the state
+; being torn down is the menu's. Nothing here needs to survive: start_gameplay
+; rebuilds display lists, charset base, PMG, palette, DLI vector and NMIEN
+; from scratch, which is why the reader can own POKEY outright and why the
+; loader-mode display can be DLI-free.
+; ===========================================================================
+sector_reader_start_gameplay:
+        lda #$00
+        sta DMACTL                      ; display off while the state changes
+        sta GRACTL
+        jsr clear_pmg_graphics_latches  ; also stores NMIEN = 0
+        jsr pause_silence_audio         ; AUDCTL = 0: POKEY is the reader's now
+        jsr clear_pmg
+
+        jsr sector_reader_show_loader
+
+        lda #$01                        ; level 1; 4.9 supplies the real id
+        jsr sector_reader_load
+        bcc @loaded
+        jmp sector_reader_failure_screen
+@loaded:
+        jmp start_gameplay
+
+; ===========================================================================
+; The loader-mode display (owner decision O, plan 6).
+;
+; No new display path: frontend_text_display_list is the ANTIC 2 screen the
+; confirmation and pause screens already use, FRONTEND_CHARSET survives
+; gameplay, and the text goes through render_frontend_data. NMIEN stays 0, so
+; there is no DLI to service while the receive loop holds the CPU; ANTIC needs
+; no CPU once the list and screen are set, and the only interaction with the
+; wire is DMA cycle stealing, already inside the plan 1.6 margin.
+; ===========================================================================
+sector_reader_show_loader:
+        jsr sector_reader_pick_line
+        lda #<loader_records
+        sta frontend_data_ptr
+        lda #>loader_records
+        sta frontend_data_ptr+1
+        jmp sector_reader_publish_screen
+
+; Shared by the loader and failure screens: render, then bring the display up
+; on a frame boundary.
+sector_reader_publish_screen:
+        lda #>FRONTEND_CHARSET
+        sta CHBASE
+        lda #<frontend_text_display_list
+        sta DLISTL
+        lda #>frontend_text_display_list
+        sta DLISTH
+        lda #$0E                        ; ANTIC 2 neutral-white foreground
+        sta COLPF1
+        lda #$00                        ; black hue/background
+        sta COLPF2
+        sta COLBK
+        sta NMIEN                       ; DLI-free: nothing to service
+        jsr render_frontend_data        ; clears the screen, then draws
+        jsr wait_frame_start
+        lda #$22                        ; normal playfield DMA, no PMG
+        sta DMACTL
+        rts
+
+; Copy one AI line into the record list's reserved slot. v1 ships eight
+; PLACEHOLDER lines; the owner writes the real ones later. The choice is the
+; Director RNG if it has been seeded, otherwise VCOUNT, masked to the pool.
+sector_reader_pick_line:
+        lda VCOUNT
+        and #(AI_LINE_COUNT - 1)
+        ; index x 38 = x32 + x4 + x2
+        sta sr_scratch
+        asl
+        sta sr_anim                     ; x2 (scratch, reused below)
+        asl                             ; x4
+        clc
+        adc sr_anim                     ; x6
+        sta sr_anim
+        lda sr_scratch
+        asl
+        asl
+        asl
+        asl
+        asl                             ; x32
+        clc
+        adc sr_anim                     ; x38
+        tay
+        ldx #$00
+@copy:
+        lda ai_line_pool,y
+        sta loader_ai_slot,x
+        iny
+        inx
+        cpx #AI_LINE_BYTES
+        bne @copy
+        rts
+
+; ===========================================================================
+; The failure screen (plan 3 and 6).
+;
+; Built before the animation on purpose: a reader that exhausts its retries
+; and leaves the player on a frozen loader screen is worse than one that never
+; existed. This is the way out, so it is the part that does not get trimmed.
+; A is the status code on entry; it never returns.
+; ===========================================================================
+sector_reader_failure_screen:
+        sta sr_status
+        jsr sector_reader_quiesce        ; the wire is done with either way
+
+        ; Replace the AI line with the two-word reason for this status.
+        lda sr_status
+        cmp #SR_BAD_IMAGE + 1
+        bcc :+
+        lda #SR_WIRE_EXHAUSTED           ; an unknown code reads as a wire fault
+:
+        sec
+        sbc #$01                         ; status 1..4 -> reason 0..3
+        ; index x 10
+        asl
+        sta sr_anim
+        asl
+        asl
+        clc
+        adc sr_anim
+        tay
+        ldx #$00
+@reason:
+        lda failure_reasons,y
+        sta failure_reason_slot,x
+        iny
+        inx
+        cpx #10
+        bne @reason
+
+        lda #<failure_records
+        sta frontend_data_ptr
+        lda #>failure_records
+        sta frontend_data_ptr+1
+        jsr sector_reader_publish_screen
+
+        jsr sector_reader_wait_for_fire
+        jmp quit_gameplay_to_menu
+
+; Wait for a clean press: release first, so the FIRE that started the game
+; cannot dismiss the screen it just produced.
+sector_reader_wait_for_fire:
+@release:
+        jsr wait_frame_start
+        lda TRIG0
+        beq @release
+@press:
+        jsr wait_frame_start
+        lda TRIG0
+        bne @press
+        rts
+
+; One animation step per completed sector: a sweeping dotted row, eight
+; phases, drawn from glyphs the frontend charset already has. This is decision
+; O's "one frame per sector, not a progress bar" - it hesitates visibly when
+; the drive does, which is the diagnostic. It runs between sectors, where the
+; drive is idle and no byte is in flight.
+sector_reader_animate:
+        inc sr_anim
+        ldx #$00
+@cell:
+        txa
+        clc
+        adc sr_anim
+        and #$07
+        beq @mark
+        lda #CH_FRONT_SPACE
+        bne @store
+@mark:
+        lda #CH_FRONT_DASH
+@store:
+        sta LOADER_ANIM_ROW,x
+        inx
+        cpx #40
+        bne @cell
+        rts
+
+; Reserved for roadmap 4.9: the level-to-level boundary predicate. The drain
+; clause itself is sector_c_drain_clear in the arena (step 5); this vector
+; exists so 4.9 can reach it at a fixed address without relinking.
+sector_reader_drain_ready:
+        rts
 
 ; ===========================================================================
 ; sector_reader_load(A = level id, 1..LEVEL_MAX_ID)
@@ -602,10 +831,60 @@ sector_reader_validate:
         sec
         rts
 
-; One animation step per completed sector (owner decision O). The loader-mode
-; display fills this in; plan §6, step 4.
-sector_reader_animate:
-        rts
+
+; ---------------------------------------------------------------------------
+; Loader-mode screen content.
+;
+; Record lists are {dst_lo, dst_hi, text..., $00} repeated, terminated by $FF,
+; exactly as render_frontend_data reads them. Only the frontend's own glyph
+; contract is used: A-Z, 0-9, space and a little punctuation.
+; ---------------------------------------------------------------------------
+loader_records:
+        .byte <LOADER_TITLE_ROW, >LOADER_TITLE_ROW
+        .byte "VOID STRIKE 65", $00
+        .byte <LOADER_STATUS_ROW, >LOADER_STATUS_ROW
+        .byte "LOADING SECTOR", $00
+        .byte <LOADER_TEXT_ROW, >LOADER_TEXT_ROW
+loader_ai_slot:
+        .res AI_LINE_BYTES, $20         ; filled from the pool at entry
+        .byte $00
+        .byte $FF
+
+failure_records:
+        .byte <LOADER_TITLE_ROW, >LOADER_TITLE_ROW
+        .byte "VOID STRIKE 65", $00
+        .byte <LOADER_STATUS_ROW, >LOADER_STATUS_ROW
+        .byte "DISK READ FAILED", $00
+        .byte <LOADER_TEXT_ROW, >LOADER_TEXT_ROW
+failure_reason_slot:
+        .res 10, $20                    ; filled from failure_reasons
+        .byte $00
+        .byte <LOADER_PROMPT_ROW, >LOADER_PROMPT_ROW
+        .byte "PRESS FIRE", $00
+        .byte $FF
+
+; Two words per status, in status order, ten characters each.
+failure_reasons:
+        .byte "NO DRIVE  "   ; status 1 NO_DEVICE
+        .byte "READ ERROR"   ; status 2 WIRE_EXHAUSTED
+        .byte "BAD DISK  "   ; status 3 DEVICE_ERROR
+        .byte "WRONG DISK"   ; status 4 BAD_IMAGE
+
+; v1 ships eight PLACEHOLDER lines of 38 characters (owner decision O). The
+; owner writes the real ones in a later session; the pool's shape is what this
+; step fixes. Sixteen lines do not fit - see the note in plan 1.5 [C4].
+ai_line_pool:
+        .byte "PLACEHOLDER 01 - OWNER WRITES THESE   "   ; line 1
+        .byte "PLACEHOLDER 02 - AI CHATTER LINE      "   ; line 2
+        .byte "PLACEHOLDER 03 - SECTOR TELEMETRY     "   ; line 3
+        .byte "PLACEHOLDER 04 - HULL DIAGNOSTICS     "   ; line 4
+        .byte "PLACEHOLDER 05 - NAV LOCK ACQUIRED    "   ; line 5
+        .byte "PLACEHOLDER 06 - WEAPON BAY CHECK     "   ; line 6
+        .byte "PLACEHOLDER 07 - THREAT BOARD CLEAR   "   ; line 7
+        .byte "PLACEHOLDER 08 - STANDBY FOR DROP     "   ; line 8
+ai_line_pool_end:
+
+.assert (ai_line_pool_end - ai_line_pool) = AI_LINE_COUNT * AI_LINE_BYTES, error, "the AI text pool is not 8 x 38 B"
 
 ; ---------------------------------------------------------------------------
 ; Level directory, 16 x 3 B, generated by scripts/build.mjs from the runs it

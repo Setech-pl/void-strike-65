@@ -571,3 +571,66 @@ test("the reader hands POKEY back quiesced", () => {
   assert.equal(stub.skctl, 0x13, "SKCTL must be left at rest");
   assert.equal(stub.commandLine, false, "the command line must be released");
 });
+
+// --- the step 4 boundary ----------------------------------------------------
+
+test("the entry vectors sit at $A000 in a frozen order", () => {
+  // main.s reaches the reader through these three addresses alone, so their
+  // order is an ABI. Each is a JMP ($4C) to a routine inside the reader.
+  const vectors = ["sector_reader_start_gameplay", "sector_reader_load",
+    "sector_reader_drain_ready"];
+  vectors.forEach((name, index) => {
+    const offset = index * 3;
+    assert.equal(readerImage[offset], 0x4c, `vector ${index} is not a JMP`);
+    const target = readerImage[offset + 1] | (readerImage[offset + 2] << 8);
+    assert.equal(target, labels.get(name), `vector ${index} does not reach ${name}`);
+    assert.ok(target >= READER_BASE && target < READER_BASE + readerImage.length,
+      `vector ${index} leaves the reader`);
+  });
+});
+
+test("main.s enters the reader by constant, and START GAME costs MAIN nothing", () => {
+  const source = fs.readFileSync(path.join(root, "src/main.s"), "utf8");
+  assert.match(source, /^SECTOR_READER_ENTRY = \$A000/m);
+  assert.match(source, /^SECTOR_READER_LOAD {2}= \$A003/m);
+  assert.match(source, /^SECTOR_READER_DRAIN = \$A006/m);
+  // Operand-only: `jmp start_gameplay` and `jmp SECTOR_READER_ENTRY` are both
+  // three bytes, which is why the hook needs no room in MAIN.
+  assert.match(source, /jmp SECTOR_READER_ENTRY/);
+  // The review-harness variants keep the direct jump (plan §4).
+  const directJumps = source.split(/\r?\n/)
+    .filter((line) => /^\s+jmp start_gameplay\s*(;.*)?$/.test(line));
+  assert.equal(directJumps.length, 2,
+    "only the two review-harness sites may still jump straight into gameplay");
+});
+
+test("the AI text pool is eight lines of 38 characters", () => {
+  // Owner decision O's v1 shape. Sixteen lines do not fit alongside the
+  // driver and the failure screen; see plan §1.5 [C4].
+  const source = fs.readFileSync(path.join(root, "src/hybrid/sector-reader.s"), "utf8");
+  assert.match(source, /^AI_LINE_BYTES {2}= 38$/m);
+  assert.match(source, /^AI_LINE_COUNT {2}= 8$/m);
+  const pool = source.slice(source.indexOf("ai_line_pool:"), source.indexOf("ai_line_pool_end:"));
+  const lines = [...pool.matchAll(/\.byte "([^"]*)"/g)].map((match) => match[1]);
+  assert.equal(lines.length, 8);
+  for (const line of lines) {
+    assert.equal(line.length, 38, `"${line}" is not 38 characters`);
+    assert.match(line, /^[A-Z0-9 \-./:?]*$/,
+      "the frontend charset has no glyph for this line");
+  }
+});
+
+test("the failure screen names every status and offers a way out", () => {
+  const source = fs.readFileSync(path.join(root, "src/hybrid/sector-reader.s"), "utf8");
+  // One ten-character reason per status code 1..4, in status order.
+  const reasons = source.slice(source.indexOf("failure_reasons:"),
+    source.indexOf("ai_line_pool:"));
+  const words = [...reasons.matchAll(/\.byte "([^"]*)"/g)].map((match) => match[1]);
+  assert.deepEqual(words, ["NO DRIVE  ", "READ ERROR", "BAD DISK  ", "WRONG DISK"]);
+  assert.match(source, /"DISK READ FAILED"/);
+  assert.match(source, /"PRESS FIRE"/);
+  // The way out: wait for a clean press, then hand back to the menu. A reader
+  // that exhausts its retries must never leave the player on a frozen screen.
+  assert.match(source, /sector_reader_wait_for_fire:[\s\S]*?jsr wait_frame_start[\s\S]*?lda TRIG0/);
+  assert.match(source, /jsr sector_reader_wait_for_fire\s+jmp quit_gameplay_to_menu/);
+});

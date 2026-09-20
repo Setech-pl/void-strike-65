@@ -1,0 +1,92 @@
+{
+  "id": "sio-register-probe-2026-09-20",
+  "date": "2026-09-20",
+  "task": "Roadmap 4.3 step 1 (plan-4.3-sector-reader.md §10.1): prove at the register level that one direct-SIO command frame gets an ACK on the ATR path and silence on the XEX path, before any reader code is written.",
+  "status": "PASS, with three corrections to plan §1.1",
+  "branch": "main",
+  "base": {
+    "commit": "5c026ca",
+    "note": "docs: record the approved 4.3 sector reader plan"
+  },
+  "method": {
+    "probe": "A standalone 6502 program (scratchpad only, not committed): POKEY/PIA setup, one five-byte command frame, one timed wait for a reply byte, results written to $0600-$0605, then a self-jump. No OS call, no SIOV, sei and NMIEN=0 throughout.",
+    "command_frame": "$31 $52 $01 $00 $84 - D1:, read sector, sector 1, carry wrap-around checksum",
+    "emulator": "Atari800 7.1.2, a STOCK copy built in the scratchpad from build/atari800-trace with the voidstrike65_trace.h include and the DFTrace_Observe call removed, so no instrumentation is in the path",
+    "flags": "-xe -pal -nobasic -nosound -turbo -no-video-accel -no-vsync -monitor",
+    "observation": "monitor BPC at the probe's terminal self-jump, then M 0600 060F",
+    "note": "The instrumented emulator was not used: it requires the full DFTRACE_*/DFBOOT_* environment contract and its observer runs on every instruction. A probe must not depend on either."
+  },
+  "results": [
+    {
+      "setup": "SKCTL $23 transmit / $33 receive (corrected)",
+      "medium": "ATR mounted as D1: (dist/void-strike-65.atr)",
+      "result_flag": 1,
+      "byte": "$41",
+      "byte_meaning": "ACK",
+      "skstat": "$FF",
+      "skstat_meaning": "bit 7 framing OK, bit 5 serial overrun OK (0 = error in both)",
+      "transmit_stage": 5,
+      "verdict": "PASS - the device answered the command frame"
+    },
+    {
+      "setup": "SKCTL $23 transmit / $33 receive (corrected)",
+      "medium": "XEX, no disk mounted",
+      "result_flag": 0,
+      "byte": null,
+      "skstat": null,
+      "transmit_stage": 5,
+      "verdict": "PASS - silence, the receive budget expired with no byte. The frame still shifted out of POKEY (stage 5): with no listener there is simply no reply."
+    },
+    {
+      "setup": "SKCTL $13 for both directions (plan §1.1 as written)",
+      "medium": "ATR mounted as D1:",
+      "result_flag": 0,
+      "byte": null,
+      "skstat": null,
+      "transmit_stage": 5,
+      "verdict": "FAIL - silence, indistinguishable from having no disk at all. Negative control for row 2: it proves row 1's ACK is caused by the register setup, not by the presence of a disk."
+    }
+  ],
+  "corrections_to_plan_1_1": [
+    {
+      "value": "SKCTL",
+      "plan": "$13 for both directions",
+      "corrected": "$23 to transmit, $33 to receive",
+      "source": "Altirra HRM 2026-01-02 §5.6 Table 10 (p.115) and Figure 9 (p.116), which captures 'transmitting $4F ... with SKCTL=$23' and 'receiving $43 ... with SKCTL=$33 (asynchronous)'",
+      "why_it_matters": "$13 is clock mode %001, whose OUTPUT clock is the external clock - a line nothing on a standard SIO bus drives. The command frame is never clocked onto the wire. Corroborated by Atari800 src/pokey.c:301, which passes SEROUT to the SIO device model only when (POKEY_SKCTL & 0x70) == 0x20, and measured by row 3 above.",
+      "consequence_if_unfixed": "The reader would have returned NO_DEVICE on every medium, including a healthy ATR."
+    },
+    {
+      "value": "SKSTAT error mask",
+      "plan": "bit 7 framing, bit 6 overrun ($C0)",
+      "corrected": "bit 7 framing, bit 5 serial overrun ($A0)",
+      "source": "Altirra HRM SKSTAT register reference: D7 SF, D6 KO (KEYBOARD overrun), D5 SO (serial overrun). §5.6 n.21 (p.114) footnotes this exact confusion: 'Credit to HiassofT for noting that the SKSTAT reference on [ATA82] III.18 has D5 and D6 swapped.'",
+      "why_it_matters": "Masking bit 6 watches the keyboard, not the wire: every real serial overrun would pass as clean and land a corrupt byte in the buffer, caught only later by the frame checksum - or not at all if two errors cancelled.",
+      "consequence_if_unfixed": "Silent corruption class promoted to a checksum-only defence."
+    },
+    {
+      "value": "command frame delays",
+      "plan": "only the 650-950us post-frame hold (12 x WSYNC)",
+      "corrected": "also the 750-1600us pre-frame delay (16 x WSYNC) after asserting the command line and before the first byte",
+      "source": "Altirra HRM ch.9 step 1 (p.218): 'A delay of 750us-1600us is introduced for the peripheral to notice the command line state.' The manual's 'the OS violates the minimum' note attaches to the SECOND delay, not this one.",
+      "why_it_matters": "Without it a peripheral may still be sampling the command line when the first byte arrives and miss the frame. The emulator models no hold at all, so this cannot fail a gate - it is a hardware-only correctness item.",
+      "consequence_if_unfixed": "Emulator-green, intermittently deaf on real hardware."
+    }
+  ],
+  "stop_condition_10_1": {
+    "text": "Stop if the emulator never delivers a byte on the register path with SKCTL $13 / AUDCTL $28 / AUDF3 $28: verify POKEY_siocheck and the PIA writes first; if the model rejects the setup, the setup is wrong for hardware too - do not 'fix' it by patching the emulator.",
+    "outcome": "NOT a stop. The condition's own instruction was followed: POKEY_siocheck and the PIA writes were verified first, against the Altirra HRM and then against Atari800's source. The model rejected the setup because the setup was wrong, exactly as §10.1 predicts. It was corrected from the specification, not worked around, and the emulator was not modified. AUDCTL $28 and AUDF3/AUDF4 $28/$00 verified correct and unchanged."
+  },
+  "verified_unchanged": {
+    "PBCTL": "$34 assert / $3C release - HRM ch.2 'Control lines' p.34, verbatim: 'Typically the values $34 and $3C are written to PACTL/PBCTL'",
+    "AUDCTL": "$28 - D5 channel 3 fast clock + D3 channels 3+4 linked 16-bit (HRM AUDCTL register reference)",
+    "AUDF3/AUDF4": "$28/$00 - HRM §5.6 p.115: 'for disk operation at 19200 baud, it is $0028'",
+    "AUDC3/AUDC4": "$A0 - pure tone, volume 0; serial clocks are 'not affected by any of the audio control bits in the AUDC1-4 registers'",
+    "SEROUT/SERIN": "$D20D, one register, write/read",
+    "IRQEN/IRQST": "$20 serial in, $10 output ready, $08 output complete; bits 5 and 4 latched, bit 3 not latched (HRM §5.6 p.113)",
+    "SKRES": "$D20A clears SKSTAT bits 5-7",
+    "WSYNC/VCOUNT": "$D40A / $D40B",
+    "19040_baud": "HRM §5.6 p.116 verbatim: 'the actual transmission rate for the SIO bus is 19040 baud'. 10 bit cells = 525.2us = 931 PAL CPU cycles = 8.17 scanlines per byte."
+  },
+  "protocol_facts_record": "docs/diagnostics/sio-protocol-facts.md"
+}

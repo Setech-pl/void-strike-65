@@ -1,5 +1,12 @@
 # VOID STRIKE 65 — decyzje właścicielskie po Stage 2B.2b
 
+> **Skonsolidowana lista wszystkich obowiązujących decyzji** — numerowanych
+> 1-23, czterech z 2026-09-19 (bramki/trace) i literowych A-D z 2026-09-20 —
+> wraz z ich konsekwencjami i tym, co je zastąpiło:
+> [project-overview.md](project-overview.md) §5. Decyzje B, C i D **nie są
+> zapisane w tym pliku**; istnieją wyłącznie tam. Decyzja 23 §10.1 została
+> zastąpiona przez decyzje B i C.
+
 Data: 2026-09-11  
 Status: DZIENNIK DECYZJI — każda sekcja ma własny tag: ACTIVE, OWNER-ACCEPTED, SUPERSEDED albo REJECTED.
 

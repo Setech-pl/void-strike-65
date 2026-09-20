@@ -5,6 +5,14 @@ Data: 2026-09-18
 Rola: **jedyna aktywna roadmapa projektu**
 Branch roboczy: `wip/4.5d-gate-fail`
 
+> **Skonsolidowany obraz całości** (roadmapa, architektura, zmierzona mapa
+> pamięci, decyzje, backlog, cel treściowy, metoda pracy) przypięty do HEAD
+> `c31b220`: [`project-overview.md`](project-overview.md). Jego §8.5-8.7
+> wymieniają rozbieżności znalezione **w tym pliku** — §7 (odrzucone kierunki)
+> wobec decyzji 23/B/C, §4 pkt 7 („16 poziomów") wobec celu ośmiu poziomów, i
+> nieaktualne liczby w §3 oraz §4.5c. Ten plik pozostaje jedyną aktywną
+> roadmapą; poprawki w nim wymagają decyzji właściciela.
+
 Bieżący stan (checkpointy, XEX, CPU/RAM, otwarte defekty, kandydaci) opisuje
 wyłącznie [`STATUS.md`](STATUS.md). Zasady pracy:
 [`reguly-projektu.txt`](reguly-projektu.txt). Kolejność źródeł prawdy:

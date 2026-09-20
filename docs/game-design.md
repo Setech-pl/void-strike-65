@@ -340,9 +340,12 @@ runtime.
 
 ### Interceptor — **OWNER-ACCEPTED** (roadmap 4.4)
 
-The next ordinary enemy, full-pursuit variant (owner decisions 15 and 18). It
-is implemented and awaits owner smoke; the values below are the candidate's,
-not yet accepted.
+The next ordinary enemy, full-pursuit variant (owner decisions 15 and 18).
+**Owner-accepted** with the whole `0a90c1c` stack (owner smoke PASS
+2026-09-18); the values below are the accepted ones. The sentence that
+previously stood here — "awaits owner smoke; the values below are the
+candidate's" — contradicted this section's own heading and was corrected
+2026-09-20.
 
 - **Light class.** It allocates no PMG player and is never drawn on `P1`/`P2`.
   It is not a smaller PMG Raider.

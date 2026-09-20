@@ -3,6 +3,15 @@
 Start here before making a technical or gameplay decision. Current sources of
 truth are intentionally separated from evidence and history.
 
+**If you want the whole picture in one place, read
+[project-overview.md](project-overview.md) first.** It consolidates the
+roadmap, the architecture, the measured memory map, every owner decision in
+force, the backlog, the content target and the working method, pinned to a
+named HEAD, with every figure labelled MEASURED / EMULATOR-MEASURED / ESTIMATE
+and every disagreement between these documents listed explicitly. It is an
+entry point, not a new tier of truth: the precedence list below is unchanged,
+and once the repo moves past its pinned HEAD the build output wins.
+
 ## Source-of-truth precedence
 
 When sources disagree, the higher entry wins:
@@ -35,6 +44,7 @@ specification.
 
 | Need | Source |
 | --- | --- |
+| The whole picture in one document, pinned to a HEAD | [project-overview.md](project-overview.md) |
 | Current state, accepted vs candidate, CPU/RAM, current task | [STATUS.md](STATUS.md) |
 | Development rules and process | [reguly-projektu.txt](reguly-projektu.txt) |
 | What we do next | [plan-realizacji.md](plan-realizacji.md) |

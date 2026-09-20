@@ -7,6 +7,15 @@ PMG pickup, XEX `900152fe…`); the accepted placement changes since then are
 listed in *Accepted placement since `41ace65`* and override those rows.
 Sections marked *earlier `2df89da`* were not regenerated.
 
+> **STALE ROWS — read this first.** The *Linked segments* table below and the
+> *BSS and high relocated runtime* table near the end are `41ace65` snapshots
+> and are wrong at the current HEAD in ways that have already caused a runtime
+> crash (they state a 45 B `ENTITY_CODE` tail where the measured tail is 1 B).
+> The authoritative rows are in *Segment free tails at the current checkpoint*
+> further down, and a full re-measured segment table with real neighbours and
+> real free tails is in [project-overview.md](project-overview.md) §2, which
+> also lists every stale row in this file individually (§8.1, §8.2).
+
 This is one snapshot. Addresses and linked sizes come from
 `build/void-strike-65.map`; packed sizes, staging ranges, artifacts, and reserves
 come from `build/manifest.json`. Overlapping ranges below have different

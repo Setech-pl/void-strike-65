@@ -7,6 +7,13 @@ What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [README.md](README.md). Always verify local HEAD and artifacts before relying on
 the values below.
 
+> **One-document picture:** [project-overview.md](project-overview.md)
+> consolidates roadmap, architecture, the measured memory map, decisions,
+> backlog, the content target and the working method at HEAD `c31b220`, and
+> lists every disagreement it found between these documents and the repo — this
+> file's included (see its §8.3 and §8.4). It does not replace this file; this
+> file stays the primary handoff.
+
 ---
 
 ## Checkpoint
@@ -1641,7 +1648,11 @@ PASS 2026-09-18 on XEX `ecc9ceda…`). `draw_enemy_member` skips the 16-row
 `P1`/`P2` body copy on frames where a member's Y is unchanged; X still goes out
 through `HPOSP1,x` every live frame. Measured result in the section above: the
 worst fence margin rises from **450/466 to 1,464 cycles** and the native
-stale-body gate reads 0. No `OWNER-SMOKE CANDIDATE` is outstanding.
+stale-body gate reads 0. **Exactly one `OWNER-SMOKE CANDIDATE` is outstanding:
+owner decision A, the ATR boot fix** (section below). The sentence that
+previously stood here, "No `OWNER-SMOKE CANDIDATE` is outstanding", was a
+leftover from before decision A and contradicted both the paragraph above it
+and the Checkpoint section; corrected 2026-09-20.
 
 Next: roadmap item 2, the population budget measurement, for which the rescued
 `scripts/measure-*` tooling above is the starting point.

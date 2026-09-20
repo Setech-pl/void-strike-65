@@ -1,5 +1,12 @@
 # 4.6 data architecture — LevelDef, SectorDef, WaveDef, paths and the Director boundary
 
+> **Status note (2026-09-20).** §7.4 is void as a risk (owner decision 22) and
+> §10.1's variants no longer describe the choice that was made: owner decisions
+> B and C take **both** the window and the disk — the window is opened and
+> carries code, the disk carries per-level DATA. See
+> [project-overview.md](project-overview.md) §3, §5.3 and §8.9. This file
+> remains a design proposal, not an accepted scope.
+
 **Status: DESIGN PROPOSAL, 2026-09-18. Not implemented, not committed, not an
 owner decision.** Written on `wip/4.5d-gate-fail` at `cf650eb` (clean
 worktree, accepted runtime checkpoint `0002d84`). It is a data architecture,

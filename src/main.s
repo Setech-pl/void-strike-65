@@ -643,6 +643,14 @@ FRONTEND_DEFAULT_SELECTION = 0
 
 MAIN_MENU_DMA = $22
 
+; The main-menu title text lives here once, and both sides that colour it take
+; their run from MAIN_MENU_TITLE_LENGTH: `style_main_menu_title` below and
+; scripts/preview.mjs, which emits the expected screen. The 2026-09-04 rename
+; to a 14-character title left a hard-coded `ldx #11` behind and highlighted
+; twelve cells; deriving the figure is what stops that recurring.
+.define MAIN_MENU_TITLE_TEXT "VOID STRIKE 65"
+MAIN_MENU_TITLE_LENGTH = .strlen(MAIN_MENU_TITLE_TEXT)
+
 ; H3.1 mixed-mode screen bytes are sequential; blank display-list rows do not
 ; consume screen RAM. ANTIC 6/7 rows use 20 B and ANTIC 2/4 rows use 40 B.
 MAIN_MENU_TITLE_OFFSET = 0
@@ -1963,7 +1971,7 @@ draw_main_menu_scene:
 .segment "ENTITY_CODE"
 
 style_main_menu_title:
-    ldx #11
+    ldx #MAIN_MENU_TITLE_LENGTH-1
 @title:
     lda SCREEN+MAIN_MENU_TITLE_OFFSET+4,x
     ora #ANTIC67_COLOR_PF1
@@ -7262,7 +7270,7 @@ charset_data_end:
 frontend_screen_records:
 main_menu_screen_data:
     .word SCREEN+MAIN_MENU_TITLE_OFFSET+4
-    .byte "VOID STRIKE 65",0
+    .byte MAIN_MENU_TITLE_TEXT,0
     .word SCREEN+MAIN_MENU_OPTION_0_OFFSET+4
     .byte "START GAME",0
     .word SCREEN+MAIN_MENU_OPTION_1_OFFSET+6

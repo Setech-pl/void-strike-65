@@ -534,9 +534,22 @@ what the OS holds at the top. **This supersedes design-4.6 §10.1's framing,
 where opening the window was variant A and was rejected; see §5 and §8.**
 
 ### 4.3 Between-levels sector reader
-A resident `SIOV` reader (~80-120 B, ESTIMATE, design-4.6 §10.1 B) plus a
+A resident **direct-SIO** reader (**~250-350 B, ESTIMATE**) plus a
 loader-mode display state, plus the loader screen of §6. **Supersedes
-ADR-004.** Needs hardware validation on real SIO2SD; decision D defers that
+ADR-004.**
+
+> **SUPERSEDED 2026-09-20 — owner decision W.** This section previously read
+> "a resident `SIOV` reader (~80-120 B, ESTIMATE, design-4.6 §10.1 B)". That
+> was the wrong reader *and* the wrong estimate. The reader drives the SIO
+> protocol on the POKEY/PIA registers itself and never calls `SIOV` (`$E459`),
+> because the game has run with `sei` set, with `NMIEN` never enabling the VBI,
+> and with nothing but the game writing `DLISTL`/`DLISTH`, `CHBASE`, `PMBASE`
+> or the colour registers since start. The OS route would have to unwind all
+> three invariants and re-establish them, with a display-shadow exposure window
+> on both sides of the call; direct SIO unwinds none of them. Implemented from
+> the protocol specification (Altirra Hardware Reference Manual ch. 9), not
+> from vendor GPL-2 code, so `AGENTS.md` rule 13 is not strained. The ~130-230 B
+> difference has to be planned for in the resident budget. Needs hardware validation on real SIO2SD; decision D defers that
 measurement, so the reader lands with an explicitly unmeasured per-sector rate
 on hardware — which is exactly what §6 designs around.
 
@@ -733,7 +746,7 @@ this table until 2026-09-20.
 | **O** | **Loader screen**: one random line of 8-16 English texts + an animation stepped per sector read | Recorded 2026-09-20 | Spoken by the fighter's onboard AI — cynical, seen too much; winks at Hitchhiker's, Star Wars, Avengers and BSG without quoting them. Texts written later. ~640 B resident before the read starts. |
 | **P** | **End screen** | Recorded 2026-09-20 | Eventually an animation in the top third plus a text scroll below — a separate sub-project, a loaded sector, not resident. A simple message suffices for now. |
 | **Q** | **The project rules are superseded, explicitly** | Recorded 2026-09-20 | `plan-realizacji.md` §7 and `reguly-projektu.txt` §11 keep their entries, marked SUPERSEDED with the superseding decision and why the ground changed. See §8.5. |
-| **R** | **Hardware measurements deferred — risk OWNER-ACCEPTED 2026-09-20** | Recorded 2026-09-20 | A four-item technical-debt register, each with what it invalidates. Item 4 (what the OS holds above `$BC20`) was measured in this session; the register keeps it because the measurement is emulator-only. |
+| **R** | **Hardware measurements deferred — risk OWNER-ACCEPTED 2026-09-20** | Recorded 2026-09-20 | A **five**-item technical-debt register, each with what it invalidates. Item 4 (what the OS holds above `$BC20`) was measured in this session; the register keeps it because the measurement is emulator-only. Item 5 (ATR sector interleave) was added 2026-09-20. |
 | **U** | **Booster level is signalled by SHAPE and SOUND** | Recorded 2026-09-20 | A thicker or doubled bolt per level (the player glyph bank has three spare codes, §4.6) and a different firing sound per level (parameters on the existing POKEY firing channel). The two act at different moments — shape when the player watches his shot, sound when he does not — so they reinforce rather than duplicate and neither may later be dropped as redundant. Colour was conditional on one repo check; the check was run at `95eac61` and **colour is REJECTED**: `COLPF2` is also the debris breakup's yellow phase, three allied capital-hull glyphs and the capital explosion core. Five levels stand; three may read more clearly if sound discrimination proves weak — settled during balancing. |
 
 ### 5.4 ADRs
@@ -804,10 +817,23 @@ simple message suffices for now, and the scroll text is written at the end of
 the process, when there is something true to say about it.
 
 When a level is read between levels, a display must exist, because
-**the OS VBI rewrites `DMACTL`, the display list, colours, `CHBASE` and
-`PMBASE` from its shadows during SIO**. The reader therefore needs a
-loader-mode display state whether or not anything is shown in it. Given that it
-needs one, it shows this:
+**a loader-mode display must set the OS shadows — `SDLSTL`/`SDLSTH`, `RAMTOP`,
+`MEMTOP` — and not merely restore the hardware registers afterwards**: the OS
+left its own screen at `$9C20`, inside resident game RAM (§2.5). The reader
+therefore needs a loader-mode display state whether or not anything is shown in
+it. Given that it needs one, it shows this:
+
+> **CORRECTION 2026-09-20 — the requirement stands, its stated reason did
+> not.** This paragraph used to say the OS VBI rewrites `DMACTL`, the display
+> list, the colours, `CHBASE` and `PMBASE` from its shadows **during** SIO. It
+> does not: OS SIO sets `CRITIC`, which suppresses VBI stage 2 for the whole
+> call (*Mapping the Atari*, location 66 `$42`; corroborated by HiassofT's
+> OS-SIO replacement, which sets `CRITIC` as its third instruction after
+> `SEI`). The real exposure is a window on either side of the call — between
+> re-enabling the VBI and SIO setting `CRITIC`, and again after SIO clears it.
+> A plan written from the old reason would guard the wrong window. See
+> design-4.6 §3 and owner decision W, under which the reader is direct SIO and
+> never takes the OS path at all.
 
 - **A randomly chosen line from a pool of 8-16 short ENGLISH texts.**
 - **An animation stepped one frame per sector read — not a progress bar.**
@@ -961,7 +987,7 @@ and every plan in §3 and §4 rests.
 
 **OWNER-ACCEPTED RISK, 2026-09-20.** The owner accepts, today, that the
 hardware measurements are deferred. Each entry says what it invalidates if it
-goes wrong.
+goes wrong. Five entries; item 5 was added 2026-09-20.
 
 | # | Debt | What it invalidates |
 | --- | --- | --- |
@@ -969,6 +995,7 @@ goes wrong.
 | 2 | **The real per-sector read rate** — the emulator's SIO is patched. | The inter-level pause, and how much content fits on disk inside an acceptable wait. Decision O is designed not to care; the rest of the content plan (E, F) does. |
 | 3 | **The ATR boot-without-OPTION fix is emulator-proven only.** | Decision A, and through it the unconditional window (B) and every item in §4 on real hardware. |
 | 4 | **What the OS occupies above `$BC20`** was unmeasured, so the window might have been smaller than 8 KB. | **Measured 2026-09-20 (§2.5): `$A000-$BC1F`, 7,200 B usable, plus the `$9C20` finding.** The entry stays because the measurement is Atari800-only. |
+| 5 | **The ATR's sector interleave is not a documented property of the build.** Added 2026-09-20, OWNER-ACCEPTED. Sectors are laid out logically ordered. | Nothing on SIO2SD or in emulation, where interleave is meaningless. On a **real 1050** reading logically-ordered sectors the drive "blows a rev" between sectors and reads at roughly **half speed — ~208 ms per sector instead of ~104**. That doubles every load figure derived from disk on real hardware, including the inter-level pause of §6 and, through it, how much content fits inside an acceptable wait. The owner will verify on a CA2001 once he has a monitor for it, and notes that in practice almost everyone will run this on an emulator or SIO2SD. |
 
 ---
 

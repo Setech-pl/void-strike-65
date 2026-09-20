@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { readRuntimeBytes } from "../scripts/runtime-image.mjs";
 import { LOADER_DISPLAY_LIST_ADDRESS } from "../scripts/loader-assets.mjs";
 import {
+  evaluateExpression,
   readFrontendGraphicsSource,
   readStartMenuRuntimeState,
 } from "../scripts/preview.mjs";
@@ -418,6 +419,36 @@ test("OPTIONS persistent tables stay outside the loader display-list destination
   assert.equal(optionsEnd <= loaderStart || optionsStart >= loaderEnd, true,
     `OPTIONS tables $${optionsStart.toString(16)}-$${(optionsEnd - 1).toString(16)} ` +
     `overlap loader DLIST $${loaderStart.toString(16)}-$${(loaderEnd - 1).toString(16)}`);
+});
+
+test("the runtime highlights the whole main-menu title, however long the title is", () => {
+  // Both sides must take the run from the title record itself. A number written
+  // out here would go stale exactly the way `ldx #11` did across the 2026-09-04
+  // rename, so the expectation is derived and never spelled.
+  const state = readStartMenuRuntimeState(source);
+  const title = state.graphics.mainMenuRecords[0];
+  assert.equal(title.mode, 7, "record 0 is the ANTIC 7 title row");
+
+  const loadMatch = /^\s*ldx\s+#(.+)$/m.exec(routine("style_main_menu_title"));
+  assert.ok(loadMatch, "style_main_menu_title loads a run length into X");
+  const runLength =
+    evaluateExpression(loadMatch[1], state.graphics.constants) + 1;
+  assert.equal(
+    runLength,
+    title.text.length,
+    "style_main_menu_title must colour every cell of the title record",
+  );
+
+  // …and the rendered screen agrees, so the generator cannot drift either.
+  const screenAddress = state.graphics.constants.get("SCREEN");
+  const start = title.address - screenAddress;
+  const highlighted = [...state.screen]
+    .map((byte, index) => ((byte & 0x40) !== 0 ? index : -1))
+    .filter((index) => index >= 0 && index < 20);
+  assert.deepEqual(
+    highlighted,
+    Array.from({ length: title.text.length }, (_value, index) => start + index),
+  );
 });
 
 test("mixed display list, screen offsets, title, menu, and hint are bounded", () => {

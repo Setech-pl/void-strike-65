@@ -36,9 +36,11 @@ below) on top of `f4cb18b`, the documentation-only reconciliation of
 the owner acceptance recorded here. All of it runs in the accepted runtime
 below and all of it is owner-accepted under that checkpoint.
 
-**One `OWNER-SMOKE CANDIDATE` is outstanding: owner decision A, the ATR boot
-fix** (section "Owner decision A" below). It changes the boot contract, so it
-also needs a real-hardware smoke this session could not run.
+**Three `OWNER-SMOKE CANDIDATE`s are outstanding: owner decision A, the ATR
+boot fix** (section "Owner decision A" below) — it changes the boot contract,
+so it also needs a real-hardware smoke this session could not run —
+**owner decision B, the open BASIC window**, and **the main-menu title colour
+run** (sections below).
 
 ### Accepted runtime checkpoint
 
@@ -1673,21 +1675,79 @@ Interceptor (Light, character-rendered).
 ## Current task
 
 **Owner decision A — the ATR must boot without OPTION — is implemented and is
-an `OWNER-SMOKE CANDIDATE`; see the section below.** It is the only outstanding
-candidate. `0002d84` is still the accepted runtime checkpoint: **Option D, the
+an `OWNER-SMOKE CANDIDATE`; see the section below.** It is not the only
+outstanding candidate: owner decision B (the open BASIC window) and the
+main-menu title colour run are also awaiting smoke. `0002d84` is still the accepted runtime checkpoint: **Option D, the
 Bomber standing cost (roadmap item 1 below), is OWNER-ACCEPTED** (owner smoke
 PASS 2026-09-18 on XEX `ecc9ceda…`). `draw_enemy_member` skips the 16-row
 `P1`/`P2` body copy on frames where a member's Y is unchanged; X still goes out
 through `HPOSP1,x` every live frame. Measured result in the section above: the
 worst fence margin rises from **450/466 to 1,464 cycles** and the native
-stale-body gate reads 0. **Exactly one `OWNER-SMOKE CANDIDATE` is outstanding:
-owner decision A, the ATR boot fix** (section below). The sentence that
-previously stood here, "No `OWNER-SMOKE CANDIDATE` is outstanding", was a
-leftover from before decision A and contradicted both the paragraph above it
-and the Checkpoint section; corrected 2026-09-20.
+stale-body gate reads 0. **Three `OWNER-SMOKE CANDIDATE`s are outstanding: owner decision A (the ATR
+boot fix), owner decision B (the open BASIC window) and the main-menu title
+colour run** (sections below). The sentence that previously stood here, "No
+`OWNER-SMOKE CANDIDATE` is outstanding", was a leftover from before decision A
+and contradicted both the paragraph above it and the Checkpoint section;
+corrected 2026-09-20, and corrected again the same day as candidates B and the
+title fix landed.
 
 Next: roadmap item 2, the population budget measurement, for which the rescued
 `scripts/measure-*` tooling above is the starting point.
+
+## Main-menu title colour run — fixed — `OWNER-SMOKE CANDIDATE` (2026-09-20)
+
+The menu title coloured **12** cells of a **14**-character title: on screen
+`VOID STRIKE` was highlighted and `65` was left in the plain colour. Two sides
+encoded the title's length and only one followed the 2026-09-04 rename
+(`d72dd6a`): `scripts/preview.mjs` derived its run from the title record,
+`src/main.s`'s `style_main_menu_title` hard-coded `ldx #11`. The defect stood
+from 2026-09-04 and was masked because `--menu-raster-only` aborted in its
+static clauses before reaching a live session. Diagnostic:
+[diagnostics/menu-title-colour-run-two-cells-short.md](diagnostics/menu-title-colour-run-two-cells-short.md).
+
+**Fixed by derivation, not by a corrected literal.** The title string now
+exists once in the repository, as `.define MAIN_MENU_TITLE_TEXT` in
+`src/main.s`; `MAIN_MENU_TITLE_LENGTH = .strlen(MAIN_MENU_TITLE_TEXT)` is what
+`style_main_menu_title` loads, and the screen record emits the same define.
+`scripts/preview.mjs` gained a ca65 `.define` expansion pass and `.strlen`
+support, and no longer carries the title as a literal of its own.
+`tests/frontend.test.mjs` evaluates the routine's `ldx` operand and compares it
+with the record's own length, so neither side can be handed a number again;
+the test reads `12 !== 14` at `6190d2e`.
+
+**Cost: 0 bytes, 0 cycles.** `build/void-strike-65.lbl` is byte-identical to
+the pre-fix build and every segment size is unchanged; the only map difference
+is the `main.s` line number of a segment's first contribution. The loop runs
+two iterations more per menu build, outside the visible frame.
+
+**`--menu-raster-only` now clears the title clause** and every other
+per-snapshot clause, and stops one clause further along, on the harness's
+hard-coded `canonicalRasterSha256` (`runtime-wall-trace.mjs:1992`) — an
+accepted-raster hash captured before the fix. All ten required checkpoints
+agree on one new raster,
+`ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a`. That hash
+was deliberately **not** updated here: it is the accepted player-visible image,
+so re-accepting it is the owner's call. With it swapped locally the audit runs
+to completion, 8/8 sessions — it is the only thing left in the way.
+
+**Gates.** Boot smoke **8/8**. PAL timing audit over every replay that runs —
+the default set to its pre-existing abort, each post-abort session by
+`--only-session=`, then `--raider-formation-only`, `--raider-sector-only`,
+`--debris-gate-only` and `--raider-remnant-only` — **72 replays, 137,000
+frames, 0 distinct miss events, every replay PASS**. Worst fence margin
+**1,464 cycles** (`raider-remnant-rapid-xex-hard`, frame 1945, maxWall 30,437);
+maximum wall across the set 30,609 cycles. The worst margin is unchanged from
+the accepted Option D figure, as a 0-cycle change should leave it.
+
+**Test suite**: `npm test` cannot complete at this HEAD and could not before
+this change either — its final (non-candidate) build requires
+`docs/runtime-wall-trace.json` to bind to the current artifacts, and the
+committed report still binds to XEX `ab682d84…`, 21,399 B. Verified by A/B:
+`node scripts/build.mjs --quiet` fails with the identical
+`Runtime wall trace binding mismatch` with this session's source changes
+stashed. Against a candidate build the suite reads **694 tests / 578 pass /
+113 fail**, versus **693 / 577 / 113** at `6190d2e`, and the two failing-test
+name sets are **identical** — one new test, one new pass, no regression.
 
 ## Owner decision A (2026-09-20) — the ATR must boot without OPTION — **OWNER-SMOKE CANDIDATE**
 
@@ -1913,7 +1973,7 @@ is in [plan-realizacji.md](plan-realizacji.md) §4.
    that appeared in `project-overview.md` §6.1 and design-4.6 §6 is withdrawn —
    this item's figure was the correct one.
 
-## Owner decisions E-R (2026-09-20) — the game concept is settled
+## Owner decisions E-W (2026-09-20) — the game concept is settled
 
 **Recorded, not implemented.** No gameplay, renderer, engine or build behaviour
 changed for these. Full text, with rationale, in the decision journal:
@@ -1937,7 +1997,25 @@ changed for these. Full text, with rationale, in the decision journal:
 | **P** | **End screen**: eventually an animation in the top third at full width plus a text scroll below — a separate sub-project, a loaded sector, not resident. A simple message suffices for now. |
 | **Q** | **The project rules are explicitly superseded.** `plan-realizacji.md` §7 and `reguly-projektu.txt` §11 keep their "BASIC RAM, loader changes, runtime disk I/O" entries, marked SUPERSEDED with the superseding decision and why the ground changed. `reguly-projektu.txt` is now version 3.2. |
 | **R** | **Hardware measurements deferred — risk OWNER-ACCEPTED 2026-09-20.** Register below. |
+| **W** | **The between-levels reader uses DIRECT SIO, not the OS `SIOV`.** Supersedes the "resident `SIOV` reader (~80-120 B)" of decision 23 §10.1 and `project-overview.md` §4.3, which named the wrong reader *and* the wrong estimate: direct SIO is **~250-350 B** (ESTIMATE). The game has run with `sei` set, with `NMIEN` never enabling the VBI, and with nothing but the game writing `DLISTL`/`DLISTH`, `CHBASE`, `PMBASE` or the colour registers since start; the OS route would have to unwind all three and re-establish them, with a display-shadow exposure window on both sides of the call. Direct SIO unwinds none of them — no OS vector is ever taken. Implemented from the protocol specification (Altirra Hardware Reference Manual ch. 9), not vendor GPL-2 code, so `AGENTS.md` rule 13 is not strained. **Recorded only; the reader work is not started.** |
 | **U** | **Booster level is signalled by SHAPE and SOUND**, not colour. A thicker/doubled bolt per level (the player glyph bank has three spare codes) plus a different firing sound per level (parameters on an existing POKEY channel). The two act at different moments and reinforce rather than duplicate, so neither may later be dropped as redundant. Colour was conditional on one check, the check was run, and **colour is REJECTED**: `COLPF2` is shared (below). Five levels stand; three may read more clearly if sound discrimination proves weak — settled during balancing. |
+
+### Correction 2026-09-20 — the OS VBI does **not** rewrite the display shadows during SIO
+
+Several documents, `design-4.6-data-architecture.md` §3 and
+`project-overview.md` §6 among them, stated that the OS VBI rewrites `DMACTL`,
+the display list, the colours, `CHBASE` and `PMBASE` from its shadows **during**
+SIO. **It does not.** OS SIO sets `CRITIC`, which suppresses VBI stage 2 for the
+whole call (*Mapping the Atari*, location 66 `$42`; corroborated by HiassofT's
+OS-SIO replacement, which sets `CRITIC` as its third instruction after `SEI`).
+The real exposure is narrower: a window on either side of the call — between
+re-enabling the VBI and SIO setting `CRITIC`, and again after SIO clears it.
+
+**The hard requirement survives intact**: a loader-mode display must **set** the
+OS shadows (`SDLSTL`/`SDLSTH`, `RAMTOP`, `MEMTOP`), not merely restore the
+hardware registers afterwards. Only its stated reason was wrong — and a plan
+written from the wrong reason would guard the wrong window. Corrected in
+`design-4.6-data-architecture.md` §3 and `project-overview.md` §6 on 2026-09-20.
 
 ### What decision N's two repo checks measured — both ANSWERED
 
@@ -2011,6 +2089,7 @@ sound carry the signal.
 | 2 | **Real per-sector read rate** — the emulator's SIO is patched. | The inter-level pause and how much content fits on disk. Decision O is designed not to care; E and F do. |
 | 3 | **The ATR boot-without-OPTION fix is emulator-proven only.** | Decision A, and through it the unconditional window (B) and the whole roadmap on real hardware. |
 | 4 | **What the OS occupies above `$BC20`** was unmeasured. | **Measured 2026-09-20 — see below.** Entry retained because the measurement is Atari800-only. |
+| 5 | **The ATR's sector interleave is not a documented property of the build** (added 2026-09-20). Sectors are laid out logically ordered. | Nothing on SIO2SD or in emulation. On a **real 1050**, logically-ordered sectors make the drive "blow a rev" between reads: roughly **half speed, ~208 ms per sector instead of ~104**. Every real-hardware load figure derived from disk doubles, including the inter-level pause (decision O) and how much content fits inside an acceptable wait. The owner will verify on a CA2001 once he has a monitor for it, and notes that in practice almost everyone will run this on an emulator or SIO2SD. |
 
 ### The window measurement (debt item 4, done)
 

@@ -787,6 +787,37 @@ bez zmian; nie blokował tej pracy. Koszt: boot smoke trwa ~14,5 s zamiast ~5 s.
 Gate ma teraz asercję samokontrolną: sufit musi pozostać **poniżej** klatki
 zrzutu menu, więc nie da się podnieść sufitu bez podniesienia horyzontu.
 
+### Re-bazowanie checkpointu loadera — 2026-09-20
+
+Przegląd przy decyzji 22 znalazł **jedno** miejsce z formułą i przeoczył
+drugie. Boot smoke obserwował rastr loadera w **zakodowanej na sztywno klatce
+300**, a rastr loadera pojawia się w `start + dekodowanie stage 2`, więc ta
+stała śledziła transport dokładnie tak samo jak stara formuła menu. Przy
+zmierzonym kamieniu milowym ATR `loader = 297` zostawały **3 klatki** zapasu;
+pierwszy prawdziwy rekord w oknie BASIC (loader 297 → 299) przewróciłby ją,
+raportując „rastr loadera nie wstał" — co nie byłoby prawdą.
+
+Właściciel polecił re-bazować ją w kształcie decyzji 22. Checkpoint robił
+**dwie** prace jedną liczbą, więc został rozdzielony:
+
+- **czas** — jawna bramka w kształcie decyzji 22: `milestones.loader` przeciw
+  temu samemu sufitowi 3 000 klatek oraz commitowanemu baseline'owi per
+  nośnik (`xex_loader_frames` **135**, `atr_loader_frames` **297**), z tymi
+  samymi pasmami +10 warn / +50 fail;
+- **stan** — DLIST loadera, charset, DMACTL/NMIEN, VDSLST i odliczanie —
+  obserwowany w klatkach `loader + 3` i `loader + 53`, wyprowadzonych ze
+  zmierzonego kamienia milowego w tym samym przebiegu. Leżą wewnątrz
+  250-klatkowego okna loadera z konstrukcji. Śledzenie własnego wzrostu jest
+  tu **poprawne**, bo ta połowa nie niesie już żadnego budżetu.
+
+Przy okazji wyszły dwie rzeczy: dawny zrzut z klatki 250 wypadał *przed*
+rastrem loadera ATR, więc dowód odliczania był na obu sesjach ATR po cichu
+pomijany (teraz jest bezwarunkowy), a sam dowód jest dokładny (50 klatek
+timera na 50 klatek PAL) zamiast „malejący". Zrzuty to teraz
+`1, loader+3, loader+53, 3050, 3300`. Baseline
+[boot-deadline-baseline.json](boot-deadline-baseline.json) prze-nagrany ze
+zmierzonego przebiegu tego builda; wartości menu bez zmian (392 / 554).
+
 ---
 
 ## 23. Odpowiedzi na §10 projektu 4.6 — OWNER-ACCEPTED (2026-09-19)

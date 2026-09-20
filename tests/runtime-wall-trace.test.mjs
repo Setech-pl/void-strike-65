@@ -106,19 +106,30 @@ test("real Atari800 XEX/ATR cold boots reach visible gameplay inside the boot ho
   assert.equal(smoke.sessions.length, bootMatrix.length * bootStates.length);
   for (const session of smoke.sessions) {
     assert.equal(session.passed, true);
+    // Re-based 2026-09-20 in the shape of owner decision 22. The two loader
+    // snapshots used to be pinned at frames 250 and 300; the loader raster
+    // arrives at `start + stage-2 decode`, so that pair tracked the transport
+    // and frame 300 sat 3 frames above the measured ATR milestone. Both points
+    // are now taken relative to the measured milestone, which also means both
+    // are inside the loader hold on both media — the old frame-250 snapshot
+    // fell before the ATR raster and its countdown check was skipped there.
+    const { offset_frames: offset, span_frames: span } = smoke.loader_observation;
+    const loaderNearFrame = session.milestones.loader + offset;
+    const loaderFarFrame = loaderNearFrame + span;
     assert.deepEqual(session.snapshots.map(({ frame }) => frame),
-      [1, 250, 300, smoke.menu_snapshot_frame, smoke.gameplay_snapshot_frame]);
+      [1, loaderNearFrame, loaderFarFrame,
+        smoke.menu_snapshot_frame, smoke.gameplay_snapshot_frame]);
+    assert.ok(offset + span < smoke.loader_observation.loader_hold_frames);
     const byFrame = new Map(session.snapshots.map((snapshot) => [snapshot.frame, snapshot]));
-    // The frame-250 snapshot is only a loader raster on the XEX; the ATR is
-    // still inside the SIO load then (DMACTL/NMIEN 0), so its countdown has not
-    // started. Mirror the rule scripts/runtime-wall-trace.mjs already applies
-    // instead of comparing a countdown that does not exist yet.
-    const loader250 = byFrame.get(250);
-    const loader300 = byFrame.get(300);
-    assert.ok(loader300.loader_timer > 0);
-    if (loader250.dma_ctl === 0x22 && loader250.nmi_en === 0x80) {
-      assert.ok(loader250.loader_timer > loader300.loader_timer);
+    const loaderNear = byFrame.get(loaderNearFrame);
+    const loaderFar = byFrame.get(loaderFarFrame);
+    for (const snapshot of [loaderNear, loaderFar]) {
+      assert.deepEqual([snapshot.game_state, snapshot.dma_ctl, snapshot.nmi_en,
+        snapshot.charset_address, snapshot.vdslst],
+      [0, 0x22, 0x80, 0xe000, smoke.expected_addresses.loader_dli]);
     }
+    assert.ok(loaderFar.loader_timer > 0);
+    assert.equal(loaderNear.loader_timer - loaderFar.loader_timer, span);
     const menuSnapshot = byFrame.get(smoke.menu_snapshot_frame);
     const gameplaySnapshot = byFrame.get(smoke.gameplay_snapshot_frame);
     assert.deepEqual([
@@ -152,6 +163,18 @@ test("real Atari800 XEX/ATR cold boots reach visible gameplay inside the boot ho
     assert.ok(deadline.menu_frame <= smoke.deadline.absolute_ceiling_frames);
     assert.ok(deadline.delta_frames <= smoke.deadline.delta_fail_frames);
     assert.equal(deadline.warned, deadline.delta_frames > smoke.deadline.delta_warn_frames);
+    // The loader milestone now carries the same two numbers instead of being
+    // gated by accident through a hard-coded observation frame.
+    assert.equal(deadline.loader_frame, session.milestones.loader);
+    assert.equal(deadline.loader_baseline_frames,
+      smoke.deadline.baseline[`${deadline.medium.toLowerCase()}_loader_frames`]);
+    assert.equal(deadline.loader_delta_frames,
+      deadline.loader_frame - deadline.loader_baseline_frames);
+    assert.ok(deadline.loader_frame <= smoke.deadline.absolute_ceiling_frames);
+    assert.ok(deadline.loader_delta_frames <= smoke.deadline.delta_fail_frames);
+    assert.equal(deadline.loader_warned,
+      deadline.loader_delta_frames > smoke.deadline.delta_warn_frames);
+    assert.deepEqual(deadline.loader_observation_frames, [loaderNearFrame, loaderFarFrame]);
     assert.equal(session.screenshots.length, 5);
     assert.ok(session.screenshots.every(({ bytes, sha256 }) =>
       bytes > 0 && /^[0-9a-f]{64}$/.test(sha256)));

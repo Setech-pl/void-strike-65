@@ -1578,7 +1578,22 @@ function sessionSummary(session, rows) {
 // window the old frame-500/750 pair provided.
 const BOOT_MENU_FRAME = 3050;
 const BOOT_GAMEPLAY_FRAME = 3300;
-const BOOT_SNAPSHOT_FRAMES = [1, 250, 300, BOOT_MENU_FRAME, BOOT_GAMEPLAY_FRAME];
+// Loader-raster observation, mirrored from scripts/atari800-wall-trace.h
+// (DFBOOT_LOADER_OBSERVE_OFFSET / DFBOOT_LOADER_OBSERVE_SPAN). The two loader
+// snapshots are taken relative to the measured `loader` milestone instead of
+// at the old fixed frames 250 and 300, which were a second constant tracking
+// the transport's growth. The mirror is not a comment-only claim: every
+// session asserts that the emulator captured exactly these frames.
+const BOOT_LOADER_OBSERVE_OFFSET = 3;
+const BOOT_LOADER_OBSERVE_SPAN = 50;
+const LOADER_HOLD_FRAMES = 250;
+const bootSnapshotFrames = (loaderFrame) => [
+  1,
+  loaderFrame + BOOT_LOADER_OBSERVE_OFFSET,
+  loaderFrame + BOOT_LOADER_OBSERVE_OFFSET + BOOT_LOADER_OBSERVE_SPAN,
+  BOOT_MENU_FRAME,
+  BOOT_GAMEPLAY_FRAME,
+];
 const bootDeadlineRelativePath = "docs/boot-deadline-baseline.json";
 
 function readBootDeadline() {
@@ -1594,6 +1609,13 @@ function readBootDeadline() {
     `${bootDeadlineRelativePath} ceiling ${deadline.absolute_ceiling_frames} is at or ` +
     `above the boot-smoke menu snapshot frame ${BOOT_MENU_FRAME}; a boot at the ceiling ` +
     "would not be observable, so raise the harness horizon with it");
+  // The loader state proof is observed inside the LOADER_DURATION_FRAMES = 250
+  // hold. The far observation point is OFFSET + SPAN frames past the milestone,
+  // so it can only stay inside the hold while that sum is below it. This keeps
+  // the harness from being re-tuned into a window that does not exist.
+  invariant(BOOT_LOADER_OBSERVE_OFFSET + BOOT_LOADER_OBSERVE_SPAN < LOADER_HOLD_FRAMES,
+    `The loader observation span ${BOOT_LOADER_OBSERVE_OFFSET + BOOT_LOADER_OBSERVE_SPAN} ` +
+    `reaches past the ${LOADER_HOLD_FRAMES}-frame loader hold`);
   return deadline;
 }
 
@@ -1687,29 +1709,40 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
     const result = JSON.parse(fs.readFileSync(outputPath, "utf8"));
     invariant(result.artifact === definition.id && result.cold_ram_fill === definition.fill,
       `${definition.id} boot-smoke identity differs from its invocation`);
+    const milestones = result.milestones;
+    invariant(Number.isInteger(milestones.loader) && milestones.loader !== 0xffffffff,
+      `${definition.id} never reached the loader entry point`);
+    // The loader raster is a STATE proof, observed relative to the measured
+    // `loader` milestone. The frames it lands on are therefore the harness's
+    // own prediction, and the equality below is what keeps the mirrored
+    // OFFSET/SPAN in scripts/atari800-wall-trace.h honest.
+    const snapshotFrames = bootSnapshotFrames(milestones.loader);
     invariant(result.snapshots.map(({ frame }) => frame).join(",") ===
-      BOOT_SNAPSHOT_FRAMES.join(","),
-    `${definition.id} did not capture all five required PAL frames`);
+      snapshotFrames.join(","),
+    `${definition.id} did not capture all five required PAL frames ` +
+      `(${snapshotFrames.join(", ")}) for loader milestone ${milestones.loader}`);
     const byFrame = new Map(result.snapshots.map((snapshot) => [snapshot.frame, snapshot]));
-    const loader250 = byFrame.get(250);
-    const loader300 = byFrame.get(300);
+    const [, loaderNearFrame, loaderFarFrame] = snapshotFrames;
+    const loaderNear = byFrame.get(loaderNearFrame);
+    const loaderFar = byFrame.get(loaderFarFrame);
     const menu = byFrame.get(BOOT_MENU_FRAME);
     const gameplay = byFrame.get(BOOT_GAMEPLAY_FRAME);
-    const completeLoaderSnapshots = [loader250, loader300].filter((snapshot) =>
-      snapshot.dma_ctl === 0x22 && snapshot.nmi_en === 0x80);
-    invariant(completeLoaderSnapshots.includes(loader300),
-      `${definition.id} did not reach a complete loader raster by frame 300`);
-    for (const snapshot of completeLoaderSnapshots) {
+    // Both observation points now sit inside the loader hold by construction,
+    // so both must be complete. Under the old fixed pair the earlier snapshot
+    // fell before the ATR loader raster and was waved through, which meant the
+    // countdown-advance proof quietly did not run on the ATR at all.
+    for (const snapshot of [loaderNear, loaderFar]) {
       invariant(snapshot.game_state === 0 && snapshot.dlist === expected.loader_dlist &&
         snapshot.charset_address === 0xe000 && snapshot.dma_ctl === 0x22 &&
         snapshot.nmi_en === 0x80 && snapshot.vdslst === expected.loader_dli,
-      `${definition.id} loader display/VBI state is invalid at frame ${snapshot.frame}`);
+      `${definition.id} loader display/VBI state is invalid at frame ${snapshot.frame} ` +
+        `(loader milestone ${milestones.loader})`);
     }
-    invariant(loader300.loader_timer > 0 &&
-      (!completeLoaderSnapshots.includes(loader250) ||
-        loader250.loader_timer > loader300.loader_timer),
-    `${definition.id} loader countdown did not advance through frame 300`);
-    const milestones = result.milestones;
+    invariant(loaderFar.loader_timer > 0 &&
+      loaderNear.loader_timer - loaderFar.loader_timer === BOOT_LOADER_OBSERVE_SPAN,
+    `${definition.id} loader countdown did not advance one frame per PAL frame between ` +
+      `frames ${loaderNearFrame} and ${loaderFarFrame}: ` +
+      `${loaderNear.loader_timer} -> ${loaderFar.loader_timer}`);
     // Owner decision 22 (2026-09-18) re-bases this deadline. The old
     // `190 + 2 x transport sectors` formula was an identity tracking its own
     // growth: every new sector raised both the cost and the limit, so the
@@ -1730,6 +1763,20 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
     invariant(Number.isInteger(baselineMenu),
       `${bootDeadlineRelativePath} has no ${medium}_menu_frames baseline`);
     const ceiling = bootDeadline.absolute_ceiling_frames;
+    // The loader milestone gets the same two independent numbers, re-based
+    // 2026-09-20 in the shape of decision 22. It used to be gated only by
+    // accident, through the hard-coded frame-300 observation point: the loader
+    // raster arrives at `start + stage-2 decode`, so each added transport
+    // sector pushed it later, and at the measured ATR milestone 297 the
+    // checkpoint had 3 frames of slack left. That constant tracked the
+    // transport exactly as the old `190 + 2 x sectors` menu formula did, and
+    // the first real record landed in the BASIC window would have tripped it —
+    // reported as "the loader raster never came up", which is not what would
+    // have happened. The observation point now follows the measurement and the
+    // budget is stated here instead.
+    const baselineLoader = bootDeadline.baseline[`${medium}_loader_frames`];
+    invariant(Number.isInteger(baselineLoader),
+      `${bootDeadlineRelativePath} has no ${medium}_loader_frames baseline`);
     invariant(milestones.menu <= ceiling && milestones.frontend_poll <= ceiling,
       `${definition.id} did not reach the production main-menu input path within the ` +
       `${ceiling}-frame (${(ceiling / 50).toFixed(0)} s PAL) owner budget: menu ` +
@@ -1741,6 +1788,22 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
       `${menuDelta} frames over the committed baseline ${baselineMenu} (fail band ` +
       `+${bootDeadline.delta_fail_frames}). If the transport grew on purpose, ` +
       `re-record ${bootDeadlineRelativePath} in the same commit and say why.`);
+    invariant(milestones.loader <= ceiling,
+      `${definition.id} did not raise the loader raster within the ${ceiling}-frame ` +
+      `(${(ceiling / 50).toFixed(0)} s PAL) owner budget: loader ${milestones.loader}`);
+    const loaderDelta = milestones.loader - baselineLoader;
+    invariant(loaderDelta <= bootDeadline.delta_fail_frames,
+      `${definition.id} raised the loader raster at frame ${milestones.loader}, ` +
+      `${loaderDelta} frames over the committed baseline ${baselineLoader} (fail band ` +
+      `+${bootDeadline.delta_fail_frames}). If the transport grew on purpose, ` +
+      `re-record ${bootDeadlineRelativePath} in the same commit and say why.`);
+    const loaderDeadlineWarned = loaderDelta > bootDeadline.delta_warn_frames;
+    if (loaderDeadlineWarned) {
+      process.stderr.write(`warning: ${definition.id} raised the loader raster at frame ` +
+        `${milestones.loader}, ${loaderDelta} frames over the committed baseline ` +
+        `${baselineLoader} (warn band +${bootDeadline.delta_warn_frames}, fail band ` +
+        `+${bootDeadline.delta_fail_frames})\n`);
+    }
     const menuDeadlineWarned = menuDelta > bootDeadline.delta_warn_frames;
     if (menuDeadlineWarned) {
       process.stderr.write(`warning: ${definition.id} reached the main menu at frame ` +
@@ -1758,6 +1821,13 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
       warn_at_frames: baselineMenu + bootDeadline.delta_warn_frames,
       fail_at_frames: baselineMenu + bootDeadline.delta_fail_frames,
       warned: menuDeadlineWarned,
+      loader_frame: milestones.loader,
+      loader_baseline_frames: baselineLoader,
+      loader_delta_frames: loaderDelta,
+      loader_warn_at_frames: baselineLoader + bootDeadline.delta_warn_frames,
+      loader_fail_at_frames: baselineLoader + bootDeadline.delta_fail_frames,
+      loader_warned: loaderDeadlineWarned,
+      loader_observation_frames: [loaderNearFrame, loaderFarFrame],
     };
     invariant(gameplay.game_state === 6 && gameplay.charset_address === 0x5000 &&
       gameplay.pm_base === 0x3800 && gameplay.dma_ctl === 0x3e &&
@@ -1789,7 +1859,7 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
       invariant(menu.dosvec === expected.start,
         `${definition.id} ATR DOSVEC does not point at the game entry`);
     }
-    const screenshots = BOOT_SNAPSHOT_FRAMES.map((frame) => {
+    const screenshots = snapshotFrames.map((frame) => {
       const screenshotPath = `${screenshotPrefix}-frame${String(frame).padStart(3, "0")}.png`;
       invariant(fs.existsSync(screenshotPath),
         `${definition.id} screenshot is missing for frame ${frame}`);
@@ -1854,6 +1924,12 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
     expected_addresses: expected,
     menu_snapshot_frame: BOOT_MENU_FRAME,
     gameplay_snapshot_frame: BOOT_GAMEPLAY_FRAME,
+    loader_observation: {
+      offset_frames: BOOT_LOADER_OBSERVE_OFFSET,
+      span_frames: BOOT_LOADER_OBSERVE_SPAN,
+      loader_hold_frames: LOADER_HOLD_FRAMES,
+      relative_to: "milestones.loader",
+    },
     deadline: {
       absolute_ceiling_frames: bootDeadline.absolute_ceiling_frames,
       delta_fail_frames: bootDeadline.delta_fail_frames,

@@ -840,6 +840,24 @@ static unsigned dfboot_window_address;
  * handoff window the frame-500/750 pair used to provide. */
 #define DFBOOT_MENU_FRAME 3050u
 #define DFBOOT_GAMEPLAY_FRAME 3300u
+/* Loader-raster observation, re-based 2026-09-20 in the shape of owner
+ * decision 22. The old fixed pair (frames 250 and 300) was a second constant
+ * that silently tracked the transport: the loader raster comes up at
+ * `start + stage-2 decode`, so every added sector moves it later, and the
+ * frame-300 checkpoint sat 3 frames above the measured ATR loader milestone
+ * (297) with no margin left. The two observation points are now taken
+ * relative to the measured `loader` milestone, so they are inside the
+ * LOADER_DURATION_FRAMES = 250 hold window by construction and never need
+ * re-pinning. This is a STATE proof, not a deadline — the load-time budget it
+ * used to carry by accident now lives in the explicit loader ceiling/baseline
+ * gate in scripts/runtime-wall-trace.mjs.
+ * OFFSET is 3 because the loader countdown is armed 2 frames after the
+ * `show_loader` milestone on both media (measured: XEX loader 135, timer 250
+ * at frame 137; ATR loader 297, timer 249 at frame 300). SPAN keeps the
+ * 50-frame countdown-advance gap the frame-250/300 pair provided; both stay
+ * far below the 250-frame hold. */
+#define DFBOOT_LOADER_OBSERVE_OFFSET 3u
+#define DFBOOT_LOADER_OBSERVE_SPAN 50u
 
 static unsigned dfboot_snapshots_count;
 static unsigned dfboot_loader_dli_count;
@@ -886,7 +904,12 @@ static unsigned dfboot_checksum(unsigned address, unsigned length)
 
 static int dfboot_target_frame(unsigned frame)
 {
-	return frame == 1u || frame == 250u || frame == 300u ||
+	if (dfboot_seen_loader != 0xffffffffu &&
+		(frame == dfboot_seen_loader + DFBOOT_LOADER_OBSERVE_OFFSET ||
+		frame == dfboot_seen_loader + DFBOOT_LOADER_OBSERVE_OFFSET +
+			DFBOOT_LOADER_OBSERVE_SPAN))
+		return 1;
+	return frame == 1u ||
 		frame == DFBOOT_MENU_FRAME || frame == DFBOOT_GAMEPLAY_FRAME;
 }
 

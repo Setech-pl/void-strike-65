@@ -407,13 +407,33 @@ re-basing.
   gate is NOT deleted: a build that suddenly boots twice as slowly still fails
   it, and so does an unexplained loader/decode regression with no sector
   change, because the baseline does not move on its own. The boot harness
-  horizon moved with it — the session now runs to frame 3,300 with snapshots
-  at `1, 250, 300, 3050, 3300` — so a boot at the ceiling is observable
-  instead of nominal; details in
+  horizon moved with it — the session now runs to frame 3,300 — so a boot at
+  the ceiling is observable instead of nominal; details in
   [diagnostics/atr-boot-deadline-rebasing.md](diagnostics/atr-boot-deadline-rebasing.md)
   and in the implementation note under owner decision 22. Every per-candidate
   "menu N against deadline N" figure recorded further down this file is a
   historical measurement under the superseded formula;
+- boot-smoke **loader** checkpoint: **re-based** (2026-09-20, owner decision,
+  same shape as decision 22). Decision 22's survey found one formula site and
+  missed this one: the boot smoke observed the loader raster at a hard-coded
+  frame **300**, and the loader raster arrives at `start + stage-2 decode`, so
+  that constant tracked the transport exactly as the menu formula had. At the
+  measured ATR milestone **297** it had 3 frames of slack, and the first real
+  record landed in the BASIC window (loader 297 → 299) would have tripped it
+  and reported "the loader raster never came up". The checkpoint is now split
+  in two, because it was doing two jobs with one number. The **timing** half is
+  an explicit gate in decision 22's shape: `milestones.loader` against the same
+  3,000-frame ceiling and a committed per-medium baseline (`xex_loader_frames`
+  **135**, `atr_loader_frames` **297**) with the same +10 warn / +50 fail
+  bands. The **state** half — loader DLIST, charset, DMACTL/NMIEN, VDSLST and
+  the countdown — is observed at `loader + 3` and `loader + 53`, derived from
+  the measured milestone in the same run, inside the 250-frame loader hold by
+  construction. Self-tracking is correct there because that half no longer
+  carries a budget. Two side effects: the old frame-250 snapshot fell *before*
+  the ATR loader raster and its countdown check was silently skipped on both
+  ATR sessions, which is now fixed and unconditional; and the countdown proof
+  is exact (50 frames of timer across 50 PAL frames) instead of "strictly
+  decreasing". Snapshots are now `1, loader+3, loader+53, 3050, 3300`;
 - **`docs/runtime-wall-trace.json` is stale and cannot be regenerated —
   `BLOCKED_PICKUP_SEQUENCE_DRAWN_MASK`** (current blocker, measured 2026-09-19;
   it replaces `BLOCKED_CAPITAL_CONTACT_MODE_UNSET`, which is resolved, which in

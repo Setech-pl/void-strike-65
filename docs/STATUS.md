@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-09-20
+Last update: 2026-09-21
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -351,6 +351,67 @@ have needed, are both unnecessary.
 has 215 B free, `BROADSIDE` 3 B, `ENTITY_CODE` 1 B, against a §7.3 deficit of
 roughly 350-450 B. That is a placement problem and it is unchanged by the
 re-basing.
+
+## Roadmap 4.6 prerequisite — Light multiplicity — `OWNER-SMOKE CANDIDATE` (2026-09-21)
+
+Branch `experiment/light-multiplicity`, from `main` at `82c155b`.
+`docs/plan-light-multiplicity.md` steps 0-4, under **owner decision X** (the
+level buffer 44 → 32 sectors) and four in-flight corrections recorded in the
+plan as `[C1]`-`[C5]`.
+
+**What it is.** The single Light slot became **four SoA slots**, 48 B at
+`$7FC4-$7FF3`, with a shipped SWARM ceiling of **3** (format and ceiling are
+separate; see `hybrid-c-architecture.md`). `light_leaderless` and
+`light_post_burst_slot` are gone — the first is the `light_state` value, the
+second one add at reload. The backing resolver is keyed by **screen address**
+rather than glyph code, because with several slots the code no longer names a
+cell and two slots may carry the same code. The glyph install is **hoisted out
+of every frame** onto the admission frame. A **one-expensive-event token**
+serialises the five things that can collide on a frame: the deferred breakup
+spawn, the appearance install, an admission, a fire and a lethal hit.
+
+**The provisional swarm wave is NOT in the default build.** It is measurement
+scaffolding behind `--force-light-population`; real waves arrive with 4.6's
+Director and WaveDef. The default build runs one Light exactly as before, so
+every replay and every reviewed coverage clause passes unchanged (plan §2.4
+`[C4]`, owner decision 2026-09-21).
+
+**Placement.** The Light kernel is its **own link after main**
+(`src/hybrid/light-kernel.s`, `cfg/light-kernel.cfg`), built by
+`buildResidentModule` the way the sector reader is, landing in decision X's
+code window above the Director link's C half. The boundary between the two
+links is not a constant: `HYBRID_ASM_WINDOW_BASE` in `director-abi.inc` **is**
+`__HYBRID_C_WINDOW_RAM_LAST__` from the same build, asserted at link time and
+again against the XEX block. `main.s` reaches the kernel through a frozen
+five-entry vector table and nothing else; the kernel reaches `main.s` through
+the generated `build/light-kernel-abi.inc`.
+
+**MEASURED.** Marginal cost of one Light, pre-fence, harness (n = 282):
+**412 → 257 mean**, −38 %, because the install hoist is −234 and steps 1a-1c
+added +79. Native `2-sweep-fire4`, 920 frames: worst pre-fence 19,186 →
+19,676, margin 5,573, 0 miss events. Transport 195 → 203 sectors, eleven DFMC
+records. Free tails: `HYBRID_C_EXT` 19 → **70 B**, pickup stream fill 7 →
+**236 B**, code window **58 B**, `HYBRID_LIGHT_SLOTS` 5 B,
+`HYBRID_LIGHT_STATE` 1 B, `DIRECTOR_ABI` 0 → **11 B**, `HYBRID_C_ARENA` 165 B.
+**`STARFIELD` 1,811 → 1,780 B packed** — the resolver left it, which closed
+the open correction-gate decision (below).
+
+**GO for the ceiling of 3, MEASURED.** M1, eight sessions, 9,300 frames,
+un-serialised: worst fence margin at three live Lights **6,227 standing /
+4,941 where a slot emptied**, against a ≥ 500 requirement. The binding row of
+the whole set is a **one-Light admission frame** (margin 2,205) — Light count
+is not what binds, which is why admission became the token's fourth consumer.
+M2 forces the coincidence the replays cannot guarantee (three Lights, a kill
+and a volley on one frame) and measures the token saving at **513 cycles at
+three Lights and 942 at four**, with a negative control that must show the
+same frame costing more without it. Evidence:
+[diagnostics/light-population-m1-2026-09-21.md](diagnostics/light-population-m1-2026-09-21.md).
+
+**Not shipped:** a fourth live slot. The format allows it, no ceiling grants
+it, and M2's four-Light result is recorded as evidence for a later owner
+decision only.
+
+---
 
 ## Roadmap 4.3 — resident direct-SIO sector reader — `OWNER-SMOKE CANDIDATE` (2026-09-20)
 

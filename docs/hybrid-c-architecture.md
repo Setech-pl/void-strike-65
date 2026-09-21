@@ -94,17 +94,31 @@ never allocated to a Light-class enemy. A Light-class enemy must not be
 implemented as a smaller PMG Raider.
 
 **Light class.** Light-class enemies use the character renderer
-(`ENEMY_RENDERER_CHARACTER_2X1`) and allocate no PMG player. The current
-capacity is:
+(`ENEMY_RENDERER_CHARACTER_2X1`) and allocate no PMG player. The capacity is:
 
 ```text
-LIGHT_ACTIVE_MAX = 1
+LIGHT_SLOT_COUNT = 4        ; the declared FORMAT: four SoA slots
+LIGHT_CEILING_SWARM = 3     ; how many a SPACE/SWARM sector may fill
+LIGHT_CEILING_ELITE = 1     ; with a Heavy formation on screen: its escort
+LIGHT_CEILING_CAPITAL = 0   ; CAPITAL is fighter-only
 ```
 
-#### Accepted runtime (`b4b942e`)
+Format and ceiling are separate on purpose (roadmap 4.6, owner decision 23
+§10.7). The four slots are a fixed 48-byte structure of arrays at
+`$7FC4-$7FF3`; the ceilings are **policy bytes** that `lifecycle_c_init`
+restores, so a harness test can raise one without a build flag and 4.6's
+WaveDef can lower one per sector. The shipped SWARM ceiling of 3 is
+MEASURED-safe: see `docs/diagnostics/light-population-m1-2026-09-21.md`.
 
-The accepted runtime still hardcodes `Light == Wingman == enemy_archetypes[1]`
-and has no `light_archetype_offset`.
+A Light-class enemy is still never a smaller PMG Raider, and a fourth live
+slot is not shipped — the format allows it, no ceiling grants it.
+
+#### Superseded: capacity before roadmap 4.6
+
+`LIGHT_ACTIVE_MAX = 1` was the capacity from owner decision 15 until roadmap
+4.6's Light multiplicity. The accepted runtime at `b4b942e` went further back
+still: it hardcoded `Light == Wingman == enemy_archetypes[1]` and had no
+`light_archetype_offset` at all.
 
 #### Light slot selection contract — `OWNER-SMOKE CANDIDATE` (roadmap 4.4)
 

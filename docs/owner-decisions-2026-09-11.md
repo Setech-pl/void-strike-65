@@ -2,7 +2,7 @@
 
 > **Skonsolidowana lista wszystkich obowiązujących decyzji** — numerowanych
 > 1-23, czterech z 2026-09-19 (bramki/trace), literowych **A-R oraz U-W** z
-> 2026-09-20 i **X** z 2026-09-21 —
+> 2026-09-20 i **X-Z** z 2026-09-21 —
 > wraz z ich konsekwencjami i tym, co je zastąpiło:
 > [project-overview.md](project-overview.md) §5. Cała seria literowa jest
 > zapisana **w tym pliku**, na jego końcu (sekcja „Decyzje literowe
@@ -1507,6 +1507,49 @@ się i raportuje**; obniżenie sufitu do 2 jest decyzją właściciela, nie sesj
 
 Nie otwiera też szesnastoliniowej puli tekstów AI z decyzji O — zwolnione
 1,5 KB idzie w całości na kod Light, nie na teksty.
+
+---
+
+## Y. SUFIT TRZECH LIGHTÓW — OWNER GO, WARUNKOWY SPEŁNIONY (2026-09-21)
+
+Decyzja 23 §10.7 dopuszczała sufit **3** aktywnych Lightów przy formacie
+czterech slotów. Warunek — natywny pomiar marginesu przy trzech żywych
+Lightach — **został spełniony**.
+
+MEASURED (M1, osiem sesji, 9 300 klatek, bez tokenu, czyli kontrola ujemna):
+najgorszy margines bramki przy trzech Lightach **6 227 klatka bieżąca /
+4 941 klatka, w której slot się zwolnił**, przy wymaganiu ≥ 500.
+MEASURED (M2, wymuszona koincydencja: trzy Lighty, zabicie i salwa w jednej
+klatce): token oszczędza **513 cykli przy trzech Lightach i 942 przy
+czterech**. Dowód: `docs/diagnostics/light-population-m1-2026-09-21.md`.
+
+**Wiążąca nie jest liczba Lightów, tylko KLATKA ADMISJI** — najgorszy wiersz
+całego zestawu to admisja przy jednym Lighcie (margines 2 205). Dlatego
+admisja stała się czwartym konsumentem tokenu jednego drogiego zdarzenia.
+
+### Czego decyzja NIE oznacza
+
+**Sufit 4 nie jest podniesiony.** Format czterech slotów na to pozwala, żaden
+sufit tego nie przyznaje. Wynik M2 przy czterech Lightach jest zapisany jako
+materiał dowodowy do ewentualnej późniejszej decyzji właściciela, nie jako
+podstawa do działania.
+
+**Prowizoryczna fala rojowa nie jest zachowaniem gry.** Jest rusztowaniem
+pomiarowym za `--force-light-population`. Prawdziwe fale przychodzą z
+Dyrektorem 4.6 i rekordami WaveDef. Domyślna kompilacja prowadzi dokładnie
+jeden Light, tak jak dotąd.
+
+---
+
+## Z. BRAMKA KOREKCYJNA STARFIELD — ZAMKNIĘTA SAMOCZYNNIE (2026-09-21)
+
+Otwarta pozycja z 4.5M-M1 (zawartość 7 B ponad dwustrumieniową bramką
+korekcyjną 1 804 B) **jest zamknięta i bramka NIE została przesunięta**.
+Segment zmieścił się sam: 31-bajtowy `light_cell_resolve` wyszedł ze
+`STARFIELD` do własnego linku jądra Light. MEASURED: **1 811 → 1 780 B po
+spakowaniu**, czyli 24 B pod bramką korekcyjną i 45 B pod twardym limitem
+1 825 B. Recenzowany margines pozostaje nietknięty, więc nie ma czego
+ponownie recenzować.
 
 ---
 

@@ -170,7 +170,15 @@ test("documentation keeps the current Heavy/Light PMG contract", () => {
   // Light-class enemies never take a PMG player.
   assert.match(adr, /\*\*Light\*\*-class enemies allocate no PMG player/);
   assert.match(hybrid, /PMG players `P1`\/`P2` belong to the Heavy enemy class/);
-  assert.match(hybrid, /LIGHT_ACTIVE_MAX = 1/);
+  // REBASELINED for roadmap 4.6 Light multiplicity: the capacity is a four-slot
+  // FORMAT plus per-sector ceilings, which are separate things. The old
+  // LIGHT_ACTIVE_MAX = 1 survives only in the superseded section, so assert
+  // the new contract and that the old line is not still stated as current.
+  assert.match(hybrid, /LIGHT_SLOT_COUNT = 4\b/);
+  assert.match(hybrid, /LIGHT_CEILING_SWARM = 3\b/);
+  assert.match(hybrid, /LIGHT_CEILING_ELITE = 1\b/);
+  assert.match(hybrid, /LIGHT_CEILING_CAPITAL = 0\b/);
+  assert.match(hybrid, /#### Superseded: capacity before roadmap 4\.6/);
 });
 
 test("documentation describes the accepted PMG pickup, not the retired capsule", () => {

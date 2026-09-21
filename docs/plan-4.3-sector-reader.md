@@ -216,6 +216,10 @@
  If sixteen lines are ever wanted, there are two ways and they are not equal:
    * shrink the level buffer below 44 sectors - REJECTED by the owner 2026-09-20. Those sectors are 4.6's LevelDef space (sector path, wave and path definitions, hull parameters, weapon_class
      records). Trading foundation for decoration is the wrong way round.
+     [C7] SUPERSEDED IN PART, 2026-09-21, owner decision X. The buffer DID shrink, 44 -> 32 sectors, and the freed $B600-$BBFF became the Light kernel's code window. The rejection above still
+     stands as written: the buffer was not traded for TEXT. It was re-sized because owner decision F made capital art parametric after this plan was approved - four art sets for the whole game
+     instead of one per level - so the per-level need is ~512 B of LevelDef plus ~1,253 B of one art set, and 32 sectors still leave over 2 KB of headroom. A sixteen-line AI pool is still not
+     funded from here: packing the texts remains the answer, as the next bullet says.
    * pack the texts - the cheaper answer, and the one to reach for first. The pool is stored as fixed 38-byte records of plain ASCII drawn from a ~43-glyph alphabet, so it is paying 8 bits for
      roughly 5.4 bits of entropy per character and paying full width for every short line. Either a terminator-and-index scheme or a nibble/5-bit packing recovers most of the difference, at the cost
      of an unpack step into the existing 38-byte slot that render_frontend_data already reads. Not built: v1 does not need it.
@@ -291,7 +295,7 @@
  Everything below stands as approved, with "main-link segment" read as "its own link, same run address".
 
 
- Where: a new main-link segment SECTOR_READER (ca65, src/hybrid/sector-reader.s), run address $A000, transported as its own raw DFMC record (the ninth slot decision B opened), holding the reader, the loader-mode display driver, the AI text pool, the level directory and the reader BSS. The level buffer is the rest of the window: LEVEL_BUFFER = $A600, 5,632 B = 44 sectors, ending $BBFF; $BC00-$BC19 (26 B) takes the BSS; the six-byte guard at $BC1A stays.
+ Where: a new main-link segment SECTOR_READER (ca65, src/hybrid/sector-reader.s), run address $A000, transported as its own raw DFMC record (the ninth slot decision B opened), holding the reader, the loader-mode display driver, the AI text pool, the level directory and the reader BSS. The level buffer is the rest of the window: LEVEL_BUFFER = $A600, 5,632 B = 44 sectors, ending $BBFF [C7: 4,096 B = 32 sectors, ending $B5FF since owner decision X]; $BC00-$BC19 (26 B) takes the BSS; the six-byte guard at $BC1A stays.
 
  Why the main link, not the encounter-director link where BASIC_WINDOW is declared: the reader must call clear_screen, render_frontend_data, wait_frame_start, pause_silence_audio, clear_pmg_graphics_latches, frontend_text_display_list andfinally start_gameplay. Those are main-link symbols; the director link only receives addresses through the generated director-abi.inc in the other direction, and integration-abi.inc (main → glue) is generated after main links. Linking the reader with main.s needs zero ABI plumbing. The director link's BASIC_WINDOW_RAM shrinks to nothing or is retargeted so the two links never both own $A000; scripts/build.mjs's "window record must land at $A000" check learns the newrecord. Decision B's INITAD emission already covers XEX blocks ≥ $A000.
 

@@ -978,6 +978,32 @@ milestones move +22 in total (loader 297 → 319, menu 554 → 576), inside the
 `boot-deadline-baseline.json`; boot smoke 8/8, and the image at `$A600` is
 now verified byte-exact against `build/level-1.bin` on every session.
 
+### Light multiplicity steps 3-4 (2026-09-21) — multi-slot, appearance pairs, the token
+
+| Range | Bytes | Owner |
+| --- | ---: | --- |
+| `$7FC4-$7FFA` | 55 | `HYBRID_LIGHT_SLOTS`: ten four-byte per-slot arrays, the cell-major backing, `light_resolve_save`, `light_cell_end`, `light_appearance_installed[3]`, three ceiling bytes and four wave bytes |
+| `$7FFB-$7FFF` | **5 free** | — |
+| `$8100-$810E` | 15 | `HYBRID_LIGHT_STATE`: the shared scratch, the three token bytes and the four admission/pair statics the C-stack contract forces |
+| `$810F` | **1 free** | — |
+| `$B600-$B92B` | 812 | `HYBRID_C_WINDOW` — the Light C, Director link |
+| `$B92C-$BBC5` | 666 | `LIGHT_KERNEL` — the Light ASM kernel, its own link |
+| `$BBC6-$BBFF` | **58 free** | — |
+
+**Placement pressure moved twice, and the guards caught it both times.** Step
+3's multi-slot ASM overran the 1,536-B window by **143 B**, so the cold
+admission path went to the `HYBRID_C_EXT` tail decision X created. Step 4's
+token then took that tail to **10 B — below the 16-B owner floor** — so the
+token primitive, the ceiling and the live count moved back to the window with
+the hot path that asks them. Settled: extension tail **70 B**, code window
+**58 B**. The window is the scarce segment now, not the extension.
+
+**Free tails (MEASURED).** `HYBRID_C_EXT` 70, pickup stream fill 236,
+`HYBRID_C_ARENA` 165, `DIRECTOR_ABI` 11, `ENTITY_CODE` 1, A2 kernel 19,
+`SECTOR_READER` 70, BROADSIDE 3, `HYBRID_LIGHT_SLOTS` 5,
+`HYBRID_LIGHT_STATE` 1, code window 58. Extension record 448 → 829 B.
+Transport 198 → **203 sectors**, eleven DFMC records.
+
 ### Light multiplicity step 2 (2026-09-21) — the glyph install is hoisted; ceilings
 
 The 16-byte bitmap copy used to run on **every frame of a Light's life**,

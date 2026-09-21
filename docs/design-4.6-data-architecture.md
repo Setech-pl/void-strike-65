@@ -497,6 +497,11 @@ expensive-event token (§8), 2 B live counts — 6 B, from the unowned windows.
 
 Four slots as SoA, 12 arrays × 4 = 48 B plus 2 shared (BRIEF figure), split
 across the two unowned windows `$8126-$813F` (26 B) and `$85E6-$85FF` (26 B):
+<!-- CORRECTED 2026-09-21 (roadmap 4.6 Light multiplicity): the second window
+     is 9 B, not 26 - PREPARED_HULL_SECTOR ends $85E5 and CORRIDOR_PHASE_HI is
+     at $85EF. docs/memory-map.md carried the correction on 2026-09-20. Both
+     windows are still unspent: the Light slots took $7FC4-$7FF3 instead, so
+     these 35 B remain available to the 4.6 Director state. -->
 state, hp, x, y, fire_timer, burst_left, archetype_offset, path_id,
 path_seg|appearance, seg_timer, screen_lo, screen_hi. Backing0/backing1 move
 to the ASM render cache side per slot. The single-slot record at `$8100-$810F`

@@ -191,6 +191,27 @@ validation automatically after every small C gameplay change.
 Inspect the current `package.json` scripts and repository scripts before
 invoking build or test helpers. Do not invent commands from memory.
 
+**The default target is the one that counts.** `npm run build:candidate`
+defers the runtime-evidence binding and reports "runtime evidence pending";
+`npm test` builds the default target, which refuses to link against evidence
+that no longer binds to the artifacts the tree produces. A session that only
+ever ran `--candidate` and focused test files cannot see that gate at all —
+that is how the committed evidence went stale across 175 commits
+(`d72dd6a..4d12d6e`). So:
+
+* a session that changed anything the runtime evidence covers runs `npm test`
+  on the **default** build before reporting its gates, not `--candidate`
+  alone;
+* `tests/runtime-evidence-binding.test.mjs` is the cheap standalone check —
+  it compares `docs/runtime-wall-trace.json` against `dist/` in milliseconds.
+  Include it in any focused set. When it goes red the evidence owes a
+  regeneration pass (`build:candidate` -> `runtime:wall-trace` -> `build`);
+  never hand-edit the SHAs in `docs/runtime-wall-trace.json`.
+
+`npm run boot:smoke` and `npm run runtime:wall-trace` need an Atari800 source
+tree. Pass the in-repo copy — `--atari800-source=build/atari800-trace`. A
+`/tmp` build of the emulator does not survive a reboot.
+
 ---
 
 ## Result semantics
@@ -221,7 +242,8 @@ readiness.
 
 ## Definition of done
 
-* compiles, assembles and links cleanly;
+* compiles, assembles and links cleanly **on the default target**, not only
+  under `--candidate`;
 * relevant focused tests pass;
 * no illegal memory overlap; startup path still valid;
 * PAL timing within the required gates, with no missed frames, unexpected VBI

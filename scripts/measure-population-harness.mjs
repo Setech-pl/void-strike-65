@@ -22,7 +22,8 @@ const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..")
 
 const labels = new Map();
 for (const file of ["build/void-strike-65.lbl", "build/encounter-director.lbl",
-  "build/integration-glue.lbl", "build/capital-player-collision.lbl"]) {
+  "build/integration-glue.lbl", "build/capital-player-collision.lbl",
+  "build/light-kernel.lbl"]) {
   const p = path.join(root, file);
   if (!fs.existsSync(p)) continue;
   for (const line of fs.readFileSync(p, "utf8").split(/\r?\n/)) {

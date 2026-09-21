@@ -111,3 +111,78 @@ because a Light exists only in a fighter sector.
 * **Coverage** (plan §5.1): 342 standing rows with three live Lights against
   the >= 200 clause, and 13 rows where a slot emptied while two others were
   live against the >= 5 clause. Both met without a new session.
+
+---
+
+# M2 — the token, 2026-09-21
+
+## The proof: a FORCED coincidence, not a replay that happened to produce one
+
+Plan §4.3 [C5]. M1's comfortable margins at three and four Lights were a
+property of those 9,300 frames' raster phase; nothing makes a replay put three
+Lights, a kill, an admission and a volley on one frame. `tests/light-multiplicity.test.mjs`
+constructs that frame on production frames driven through the real main loop:
+every live slot has a spent reload, so each wants to fire, and a player
+PairShot sits on slot 0's cells, so that slot also dies.
+
+MEASURED pre-fence cycles of that constructed frame (harness units, comparable
+to each other and NOT to the native figures below):
+
+| live Lights | with the token | budget poked to 4 | the token saves |
+| ---: | ---: | ---: | ---: |
+| 1 | 6,519 | 6,519 | **0** |
+| 3 | 8,617 | 9,130 | **513** |
+| 4 | 9,516 | 10,458 | **942** |
+
+The zero at one Light is the right answer, not a failure: with one Light there
+is only one expensive event on the frame, so there is nothing to serialise.
+The token earns its keep exactly where the coincidence exists, and the saving
+grows with the population - 513 at three, 942 at four.
+
+The negative control is what makes this evidence: the same constructed frame
+with `light_token_budget` poked to 4 runs every deferred event at once and
+costs materially more. The test asserts that gap is at least 300 cycles, so if
+the control ever stops firing the test fails rather than quietly proving
+nothing.
+
+## Native confirmation (not the proof): four sessions, forced population
+
+```
+== ALL SESSIONS ==
+ 0 live Light(s)
+   standing  {"n":1909,"min":5020,"mean":10858,"max":22256}
+   admission {"n":0}
+   kill/exit {"n":0}
+   vectors   {"n":1921,"min":6,"mean":16,"max":30}
+   MARGIN    worst -12310, worst on a kill/exit frame -
+ 1 live Light(s)
+   standing  {"n":944,"min":8822,"mean":12900,"max":20130}
+   admission {"n":8,"min":10677,"mean":14832,"max":23191}
+   kill/exit {"n":12,"min":10314,"mean":15237,"max":19996}
+   vectors   {"n":968,"min":6,"mean":16,"max":27}
+   MARGIN    worst 2058, worst on a kill/exit frame 5253
+ 2 live Light(s)
+   standing  {"n":642,"min":10000,"mean":13551,"max":18398}
+   admission {"n":16,"min":11570,"mean":14442,"max":17364}
+   kill/exit {"n":16,"min":14224,"mean":16202,"max":20572}
+   vectors   {"n":666,"min":12,"mean":17,"max":27}
+   MARGIN    worst 4655, worst on a kill/exit frame 4677
+ 3 live Light(s)
+   standing  {"n":117,"min":12177,"mean":14719,"max":17924}
+   admission {"n":8,"min":13794,"mean":15498,"max":16888}
+   kill/exit {"n":8,"min":16102,"mean":17991,"max":20622}
+   vectors   {"n":125,"min":12,"mean":17,"max":24}
+   MARGIN    worst 7325, worst on a kill/exit frame 4655
+```
+
+Worst fence margin at three live Lights **7,325 standing / 4,655 where a slot
+emptied**, against 6,757 / 4,941 at M1 without the token - unchanged within
+the noise of which frames the replays happen to produce, which is precisely
+why the constructed frame above is the evidence and this is confirmation.
+Four replays, 0 distinct miss events in each.
+
+## Four Lights: evidence, not a decision
+
+The forced coincidence clears at four Lights as well (9,516 pre-fence, 942
+saved). Recorded for a later owner decision as instructed; the shipped ceiling
+stays 3.

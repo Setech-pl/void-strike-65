@@ -43,7 +43,21 @@ function memory() {
   return image;
 }
 
+// Light multiplicity step 4: the one-expensive-event token keys on
+// FRAME_COUNTER, so a harness that never advances it would spend the token on
+// the first consumer and starve every later one FOREVER - one frame, forever.
+// The per-frame entries advance it here, which is what the runtime does.
+// light_shot is included because handle_collisions is the FIRST Light entry
+// of a runtime frame, before the tick: a kill therefore meets a fresh token,
+// which is exactly what these kill tests are about. The frame where a kill
+// and a volley SHARE one token is constructed deliberately in
+// tests/light-multiplicity.test.mjs, not stumbled into here.
+const FRAME_ENTRIES = new Set(["light_update", "enemy_light_tick", "light_shot",
+  "enemy_spawn_raiders"]);
 function run(image, target, { a = 0, x = 0, y = 0 } = {}) {
+  if (typeof target === "string" && FRAME_ENTRIES.has(target)) {
+    image[L("frame_counter")] = (image[L("frame_counter")] + 1) & 0xff;
+  }
   const address = typeof target === "string" ? L(target) : target;
   const cpu = new Nmos6502(image);
   const stop = 0x7fff;
@@ -371,8 +385,11 @@ test("placement contract: legal composite and packed size, state inside its rese
   // took the scarce 19-B tail to 451; step 3's multi-slot ASM then overran the
   // 1,536-B window by 143 B, so the COLD admission path came back here and
   // spent most of it. 34 B is above the 16-B owner floor asserted at the top
-  // of this test, and the next Light-class growth goes to the window's 256 B.
-  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 34);
+  // of this test. Step 4 took it to 10 B - BELOW that floor - and the token
+  // primitive, the ceiling and the live count moved to the window with the hot
+  // path that asks them, which brought it back to 70. The code window is the
+  // scarce one now: 58 B free.
+  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 70);
   assert.equal(L("light_glyph"), 0x9d2b);
   assert.equal(L("light_interceptor_glyph"), 0x9d3b);
   // REBASELINED for Light multiplicity: HYBRID_LIGHT_STATE keeps only the
@@ -386,7 +403,9 @@ test("placement contract: legal composite and packed size, state inside its rese
   // will occupy.
   assert.deepEqual([L("__HYBRID_LIGHT_STATE_RAM_START__"), L("__HYBRID_LIGHT_STATE_RAM_SIZE__")],
     [0x8100, 0x10], "HYBRID_LIGHT_STATE is exactly $8100-$810F");
-  assert.equal(L("__HYBRID_LIGHT_STATE_SIZE__"), 8, "shared Light scalars, 8 B of the 16");
+  // Step 4 spent seven of the eight free bytes: the three token bytes of plan
+  // §2.5 and the four admission/pair statics the C-stack contract forces.
+  assert.equal(L("__HYBRID_LIGHT_STATE_SIZE__"), 15, "shared Light scalars, 15 B of the 16");
   assert.deepEqual([L("__HYBRID_LIGHT_SLOTS_RUN__"), L("__HYBRID_LIGHT_SLOTS_SIZE__")],
     [0x7fc4, 48], "the four SoA slots are 48 B at $7FC4-$7FF3");
   assert.ok(L("__HYBRID_LIGHT_SLOTS_RAM_LAST__") <= 0x8000,

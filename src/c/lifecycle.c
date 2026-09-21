@@ -85,6 +85,10 @@
  * "non-zero is alive", so both values read as alive without an ASM change. */
 #define LIGHT_ACTIVE_ESCORT      1u
 #define LIGHT_ACTIVE_FREE        2u
+/* Erased, scored and sounded, waiting only for a free token to spawn its
+ * breakup (plan §2.5). Deliberately the HIGHEST state value: the kernel's
+ * hittable test is `>= LIGHT_BREAKUP_PENDING means no`, one compare. */
+#define LIGHT_BREAKUP_PENDING    3u
 /* The slot's left screen code: LIGHT_GLYPH (120) | the hostile attribute bit,
  * spelled LIGHT_SCREEN_CODE in src/hybrid/light-wingman.s. Step 3 gives the
  * three appearance pairs 120/121, 122/123 and 124/125; until then every slot
@@ -108,6 +112,16 @@
  * 0 nothing; 1-3 fire, the record's weapon_class; $40 install the appearance.
  * $80 (spawn the deferred breakup) arrives with the token at step 4. */
 #define LIGHT_RETURN_INSTALL     0x40u
+#define LIGHT_RETURN_BREAKUP     0x80u
+/* enemy_c_light_hit's return: 0 not lethal, 1 lethal and the breakup spawns
+ * now, 2 lethal with the breakup deferred (ASM scores and sounds, nothing
+ * spawns). */
+#define LIGHT_HIT_LETHAL_NOW     1u
+#define LIGHT_HIT_LETHAL_DEFER   2u
+/* One expensive event per frame (plan §2.5). The budget is a policy BYTE so a
+ * harness test can poke it and watch the same frame overrun without the
+ * token - the negative control M2's proof rests on ([C5]). */
+#define LIGHT_TOKEN_BUDGET       1u
 /* PROVISIONAL standalone Interceptor wave (plan §2.4). TEMPORARY, in the same
  * sense as encounter_heavy_schedule: it exists so a smoke run and the native
  * replays produce multi-Light frames naturally, and roadmap 4.6's WaveDef
@@ -374,6 +388,15 @@ static uint8_t light_pair_free;
  * on the C software stack and the audit requires zero. */
 static uint8_t light_admit_entry;
 static uint8_t light_admit_state;
+/* The one-expensive-event token (plan §2.5), in the shared 16-byte area the
+ * plan reserved for it. No frame-start hook and no ASM write: every consumer
+ * resets it when it sees a new FRAME_COUNTER, so the kill path
+ * (handle_collisions, which runs BEFORE the tick loop) and the tick share one
+ * budget. The budget is not static - the harness pokes it by label to run the
+ * negative control. */
+uint8_t light_token;
+uint8_t light_token_frame;
+uint8_t light_token_budget;
 /* The post-burst column: archetype offset + difficulty, resolved at admission
  * and, like light_record, kept a plain index. */
 static uint8_t light_post_burst_slot;
@@ -391,6 +414,51 @@ static void heavy_publish_profile(void);
  * where plan §3.1 puts it; only the timing is earlier than §6 expected. */
 #pragma code-name (push, "HYBRID_C_WINDOW")
 #pragma rodata-name (push, "HYBRID_C_WINDOW_RODATA")
+
+/* Claim this frame's expensive-event token. Returns 1 when the caller may go
+ * ahead. The reset is lazy - whoever asks first on a new frame refills it -
+ * which is what lets the kill path and the tick share one budget with no
+ * frame-start hook and no ASM write (plan §2.5). */
+static uint8_t light_take_token(void)
+{
+    if (light_token_frame != FRAME_COUNTER) {
+        light_token_frame = FRAME_COUNTER;
+        light_token = light_token_budget;
+    }
+    if (light_token == 0u) {
+        return 0u;
+    }
+    --light_token;
+    return 1u;
+}
+
+/* How many slots this sector may hold live at once. CAPITAL is fighter-only,
+ * so no Light survives it; a Heavy formation on screen leaves room for its
+ * escort and nothing more (plan §2.4); otherwise the swarm ceiling applies. */
+static uint8_t light_ceiling(void)
+{
+    if (CAPITAL_SECTOR_STATE != SECTOR_FIGHTER) {
+        return light_ceiling_capital;
+    }
+    if (ENEMY_ACTIVE != ENEMY_INACTIVE) {
+        return light_ceiling_elite;
+    }
+    return light_ceiling_swarm;
+}
+
+/* Live slots, counted rather than kept: a four-byte scan, at admission only. */
+static uint8_t light_live_count(void)
+{
+    light_work = 0u;
+    light_slot = LIGHT_SLOT_COUNT;
+    do {
+        --light_slot;
+        if (light_state[light_slot] != ENEMY_INACTIVE) {
+            ++light_work;
+        }
+    } while (light_slot != 0u);
+    return light_work;
+}
 
 static void light_reload(void)
 {
@@ -451,6 +519,9 @@ void lifecycle_c_init(void)
         --light_slot;
         light_appearance_installed[light_slot] = LIGHT_APPEARANCE_NONE;
     } while (light_slot != 0u);
+    light_token_budget = LIGHT_TOKEN_BUDGET;
+    light_token = LIGHT_TOKEN_BUDGET;
+    light_token_frame = FRAME_COUNTER;
     light_wave_lock = 0u;
     light_wave_remaining = 0u;
     light_wave_timer = 0u;
@@ -562,34 +633,6 @@ uint8_t sector_c_force_final_drain(void)
 #pragma code-name (push, "HYBRID_C_EXT")
 #pragma rodata-name (push, "RODATA")
 
-/* How many slots this sector may hold live at once. CAPITAL is fighter-only,
- * so no Light survives it; a Heavy formation on screen leaves room for its
- * escort and nothing more (plan §2.4); otherwise the swarm ceiling applies. */
-static uint8_t light_ceiling(void)
-{
-    if (CAPITAL_SECTOR_STATE != SECTOR_FIGHTER) {
-        return light_ceiling_capital;
-    }
-    if (ENEMY_ACTIVE != ENEMY_INACTIVE) {
-        return light_ceiling_elite;
-    }
-    return light_ceiling_swarm;
-}
-
-/* Live slots, counted rather than kept: a four-byte scan, at admission only. */
-static uint8_t light_live_count(void)
-{
-    light_work = 0u;
-    light_slot = LIGHT_SLOT_COUNT;
-    do {
-        --light_slot;
-        if (light_state[light_slot] != ENEMY_INACTIVE) {
-            ++light_work;
-        }
-    } while (light_slot != 0u);
-    return light_work;
-}
-
 /* The first free slot, or LIGHT_SLOT_COUNT when every slot is taken. */
 static uint8_t light_free_slot(void)
 {
@@ -659,6 +702,15 @@ static uint8_t light_admit(void)
         return 0u;
     }
     if (light_free_slot() == LIGHT_SLOT_COUNT) {
+        return 0u;
+    }
+    /* Plan §2.5 [C3]: admission is the fourth consumer. M1 MEASURED the
+     * admission frame as the binding row of the whole replay set - +1,629
+     * cycles over a standing frame - so an admission that would land on a
+     * frame whose token is spent slips one frame, which nobody sees, rather
+     * than stacking two expensive events. Claimed LAST, after every cheap
+     * refusal above, so a refused admission never burns a token. */
+    if (light_take_token() == 0u) {
         return 0u;
     }
     light_slot_save = light_slot;   /* light_pair_for_record walks the slots */
@@ -813,9 +865,18 @@ void enemy_c_recycle(void)
 
 static uint8_t light_tick_body(void)
 {
-    /* ASM sets light_slot before the call; step 1a always passes slot 0. */
+    /* ASM sets light_slot before the call. */
     if (light_state[light_slot] == ENEMY_INACTIVE) {
         return 0u;
+    }
+    if (light_state[light_slot] == LIGHT_BREAKUP_PENDING) {
+        /* Erased, scored and sounded already: it does nothing but wait for a
+         * free token, then hands the spawn to ASM and frees the slot. */
+        if (light_take_token() == 0u) {
+            return 0u;
+        }
+        light_state[light_slot] = ENEMY_INACTIVE;
+        return LIGHT_RETURN_BREAKUP;
     }
     if (CAPITAL_SECTOR_STATE != SECTOR_FIGHTER) {
         /* fighter-only lifecycle */
@@ -883,6 +944,12 @@ static uint8_t light_tick_body(void)
         (PLAYER_LIFECYCLE & 1u) != 0u) {
         return 0u;
     }
+    /* Plan §2.5: a slot whose reload expires on a spent frame fires next
+     * frame instead. The timer is simply not taken past zero, so no cadence
+     * state moves and nothing is lost but one frame. */
+    if (light_take_token() == 0u) {
+        return 0u;
+    }
     light_fire_work = light_burst_left[light_slot];
     if (light_fire_work == 0u) {
         light_fire_work = LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_BURST_COUNT);
@@ -919,6 +986,14 @@ uint8_t enemy_c_light_tick(void)
     light_work = (uint8_t)(light_code[light_slot] - LIGHT_SCREEN_CODE);
     light_work >>= 1u;
     if (light_appearance_installed[light_work] != light_record) {
+        /* A consumer too (plan §2.5): the 16-byte copy is expensive and the
+         * admission frame is the binding one. If the token is spent the
+         * install simply happens next frame - the slot renders one frame with
+         * whatever the pair held, which cannot be a different Light's bitmap
+         * because §2.3 rule 2 only reassigns a pair no live slot still shows. */
+        if (light_take_token() == 0u) {
+            return light_tick_result;
+        }
         /* Marked as it is returned: asking the tick CONSUMES the decision, and
          * the kernel is trusted to act on that same return. Nothing calls the
          * tick twice in a frame, and nothing may start. */
@@ -937,8 +1012,15 @@ uint8_t enemy_c_light_hit(void)
     if (light_work != 0u) {
         return 0u;
     }
-    light_state[light_slot] = ENEMY_INACTIVE;
-    return 1u;
+    /* The slot's own erase happens in this frame's late window either way -
+     * that is the cheap part. What defers is the breakup SPAWN, which is
+     * ~1,000 cycles of effect allocation and the first stagger render. */
+    if (light_take_token() != 0u) {
+        light_state[light_slot] = ENEMY_INACTIVE;
+        return LIGHT_HIT_LETHAL_NOW;
+    }
+    light_state[light_slot] = LIGHT_BREAKUP_PENDING;
+    return LIGHT_HIT_LETHAL_DEFER;
 }
 
 #pragma code-name (pop)

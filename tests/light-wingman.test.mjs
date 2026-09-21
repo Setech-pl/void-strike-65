@@ -44,7 +44,21 @@ function memory() {
   return image;
 }
 
+// Light multiplicity step 4: the one-expensive-event token keys on
+// FRAME_COUNTER, so a harness that never advances it would spend the token on
+// the first consumer and starve every later one FOREVER - one frame, forever.
+// The per-frame entries advance it here, which is what the runtime does.
+// light_shot is included because handle_collisions is the FIRST Light entry
+// of a runtime frame, before the tick: a kill therefore meets a fresh token,
+// which is exactly what these kill tests are about. The frame where a kill
+// and a volley SHARE one token is constructed deliberately in
+// tests/light-multiplicity.test.mjs, not stumbled into here.
+const FRAME_ENTRIES = new Set(["light_update", "enemy_light_tick", "light_shot",
+  "enemy_spawn_raiders"]);
 function run(image, target, { a = 0, x = 0, y = 0 } = {}) {
+  if (typeof target === "string" && FRAME_ENTRIES.has(target)) {
+    image[L("frame_counter")] = (image[L("frame_counter")] + 1) & 0xff;
+  }
   const address = typeof target === "string" ? L(target) : target;
   const cpu = new Nmos6502(image);
   const stop = 0x7fff;
@@ -82,7 +96,9 @@ function game(difficulty = 2) {
 const LIGHT_RETURN_INSTALL = 0x40;
 const LIGHT_X_ENTRY = 124;
 const SLOT = 0;
+const LIGHT_BREAKUP_PENDING = 3;
 const light = (image, slot = SLOT) => ({
+  raw: image[L("light_state") + slot],
   state: image[L("light_state") + slot] === 0 ? 0 : 1,
   hp: image[L("light_hp") + slot],
   x: image[L("light_x") + slot],
@@ -185,7 +201,7 @@ test("formation admission yields 2 Heavy + 1 Light with independent lifecycles",
     // last held. The escort overwrites it from its leader on its first tick,
     // so only this moment can see the difference.
     assert.deepEqual(light(image), {
-      state: 1, hp: 1, x: LIGHT_X_ENTRY, y: 0, timer: pause, leaderless: 0,
+      raw: 1, state: 1, hp: 1, x: LIGHT_X_ENTRY, y: 0, timer: pause, leaderless: 0,
     });
     // A wingman still flying from an earlier formation keeps its lifecycle.
     image[L("light_y")] = 100;
@@ -365,8 +381,16 @@ test("player contact follows the Raider contract and destroys the Light", () => 
   image[L("player_x")] = 100;           // Light x 104: overlaps the player
   image[L("player_y")] = 100;
   run(image, "light_update");
-  assert.equal(light(image).state, 0);
+  // Step 4: a contact kill happens inside light_update, AFTER the tick, so it
+  // competes with the tick's own fire or install for that frame's one
+  // expensive event. Here the tick took it, so the kill is deferred: the slot
+  // is erased, scored and sounded now and parks in BREAKUP_PENDING, which is
+  // not live, not hittable and never redrawn.
+  assert.equal(light(image).raw, LIGHT_BREAKUP_PENDING);
   assert.equal(image[0x4e5d], 0, "full player damage through the shared gate");
+  // The next frame's token frees the slot and spawns the fragments.
+  run(image, "light_update");
+  assert.equal(light(image).raw, 0, "the deferred breakup spawns one frame later");
 });
 
 test("late publication erases PairShots first, then unwinds and republishes the Light", () => {

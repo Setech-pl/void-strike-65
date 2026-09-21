@@ -75,8 +75,11 @@ test("C EnemyArchetype is a compact exact Raider record in legal extension place
   // light_admit, the escort admission, the ceiling and the live count - came
   // back here, into the tail owner decision X created. It runs on an admission
   // attempt, not every frame, so the window keeps the hot path: 448 + 417 = 865.
+  // Step 4: the token primitive, the ceiling and the live count went to the
+  // window with the hot path that asks them, taking the extension back to 829
+  // and its free tail from 10 B - below the 16-B owner floor - to 70 B.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
-    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 865 });
+    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 829 });
   const window = manifest.residentCapacity.basicWindow;
   assert.equal(window.address, 0xb600, "the Light C lives in the code window");
   assert.ok(window.usedBytes > 0 && window.usedBytes <= window.capacityBytes,
@@ -206,12 +209,20 @@ test("ownership is singular and generated C requires neither software stack nor 
   // searches it calls. _light_live_count appears twice: the wave stepper asks
   // it to decide when the lock lifts, and light_admit asks it against the
   // ceiling.
-  assert.deepEqual([...executableGenerated.matchAll(/\bjsr\s+([^\s;]+)/g)].map((match) => match[1]),
+  // Step 4 adds _light_take_token, five times: the deferred breakup and the
+  // appearance install in the tick, the admission, the fire cadence, and the
+  // lethal hit. Those five ARE the consumer list of plan §2.5 with [C3]; a
+  // sixth call here would be a consumer nobody reviewed.
+  const jsrs = [...executableGenerated.matchAll(/\bjsr\s+([^\s;]+)/g)].map((match) => match[1]);
+  assert.deepEqual(jsrs,
     ["_asm_sector_pressure_active", "_sector_c_drain_clear", "_heavy_publish_profile",
       "_encounter_light_admit",
       "_bomber_may_fire", "_bomber_turn", "_bomber_turn", "_bomber_turn", "_bomber_may_fire",
-      "_bomber_colour", "_light_tick_body", "_light_admit", "_light_live_count",
-      "_light_ceiling", "_light_live_count", "_light_free_slot",
-      "_light_pair_for_record", "_light_reload",
-      "_encounter_light_schedule_advance", "_light_reload"]);
+      "_bomber_colour", "_light_tick_body", "_light_take_token", "_light_take_token",
+      "_light_admit", "_light_live_count", "_light_ceiling", "_light_live_count",
+      "_light_free_slot", "_light_take_token", "_light_pair_for_record", "_light_reload",
+      "_encounter_light_schedule_advance", "_light_take_token", "_light_take_token",
+      "_light_reload"]);
+  assert.equal(jsrs.filter((name) => name === "_light_take_token").length, 5,
+    "exactly the five token consumers of plan §2.5 with [C3]");
 });

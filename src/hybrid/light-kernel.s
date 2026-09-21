@@ -55,6 +55,12 @@ LIGHT_APPEARANCE_PAIRS = 3
 LIGHT_CODE_COUNT = LIGHT_APPEARANCE_PAIRS*LIGHT_CELL_COUNT
 ; The tick's exclusive return byte; src/c/lifecycle.c holds the same value.
 LIGHT_RETURN_INSTALL = $40
+LIGHT_RETURN_BREAKUP = $80
+; light_state values C owns. BREAKUP_PENDING is the highest on purpose: a slot
+; is hittable only below it, which is one compare.
+LIGHT_BREAKUP_PENDING = 3
+; enemy_light_hit's return: 1 lethal, spawn now; 2 lethal, breakup deferred.
+LIGHT_HIT_LETHAL_DEFER = 2
 LIGHT_GLYPH_BYTES = LIGHT_HEIGHT_SCANLINES*LIGHT_CELL_COUNT
 ; ENEMY_ARCHETYPE_OFFSET(ENEMY_ARCHETYPE_INTERCEPTOR) in src/c/enemy-archetype.h;
 ; tests/source-contracts.test.mjs cross-checks the two.
@@ -149,6 +155,8 @@ light_publish:
     ldy LIGHT_SLOT
     lda LIGHT_STATE,y
     beq @render_next
+    cmp #LIGHT_BREAKUP_PENDING   ; erased on its kill frame; never redrawn
+    bcs @render_next
     jsr light_top
     cmp #ENTITY_GAMEPLAY_TOP
     bcc @render_next
@@ -251,6 +259,10 @@ light_update:
     bne :+
     jmp @install
 :
+    cpy #LIGHT_RETURN_BREAKUP
+    bne :+
+    jmp @breakup                 ; a deferred breakup finally got its token
+:
     ldx #INTERCEPTOR_PROJECTILE_SLOT_BASE
 @find:
     lda FIGHTER_PROJECTILE_ACTIVE,x
@@ -280,6 +292,8 @@ light_update:
     ldx LIGHT_SLOT
     lda LIGHT_STATE,x
     beq @next                    ; the tick may have retired it
+    cmp #LIGHT_BREAKUP_PENDING   ; dead and erased: no contact either
+    bcs @next
 @contact:
     lda PLAYER_LIFECYCLE
     lsr                          ; DYING/GAME OVER are odd: no contact
@@ -318,6 +332,14 @@ light_update:
     rts
 :
     jmp @slot
+
+; Plan §2.5: the deferred breakup. The slot was erased, scored and sounded on
+; the frame it died; this is the ~1,000-cycle part - the effect allocation and
+; the first stagger render - arriving one frame later, which is 20 ms. C has
+; already freed the slot, so nothing here may touch its state.
+@breakup:
+    jsr light_spawn_breakup
+    jmp @next
 
 ; The 16-byte bitmap copy, hoisted out of every frame (plan §2.2). It used to
 ; run on every frame of a Light's life because nothing tracked what the glyph
@@ -370,6 +392,8 @@ light_shot:
     ldx LIGHT_SLOT
     lda LIGHT_STATE,x
     beq @next
+    cmp #LIGHT_BREAKUP_PENDING   ; already dead and erased: not a target
+    bcs @next
     jsr light_top
     cmp #ENTITY_GAMEPLAY_TOP
     bcc @next
@@ -404,22 +428,34 @@ light_shot:
     ldx LIGHT_SLOT_SAVE          ; no slot owns the cell: the old target path
     jmp entity_player_fighter_projectile_target
 
-; Lethal hit: breakup feedback, score and sound, for the slot in LIGHT_SLOT.
-; Already-emitted Light shots are independent of the Light and of the leader:
-; they keep their lifecycle.
+; Lethal hit, for the slot in LIGHT_SLOT. Already-emitted Light shots are
+; independent of the Light and of the leader: they keep their lifecycle.
+;
+; Plan §2.5 splits this. Score and sound ALWAYS happen on the frame the Light
+; dies - the player must see and hear the kill when it lands. The breakup
+; spawn is the expensive half and happens now only if C could take this
+; frame's token; otherwise C parked the slot in BREAKUP_PENDING and the tick
+; spawns it on the first later frame with a free token. A = the hit return.
 light_destroyed:
-    jsr clear_transient_effects
-    jsr light_top
-    tay
-    ldx LIGHT_SLOT
-    lda LIGHT_X,x
-    jsr spawn_breakup_effects_at
+    cmp #LIGHT_HIT_LETHAL_DEFER
+    beq @score                   ; deferred: the cheap half only
+    jsr light_spawn_breakup
+@score:
     ldx LIGHT_SLOT
     lda LIGHT_ARCHETYPE_OFFSET,x ; C names the selected Light record
     tax
     jsr light_add_score          ; BROADSIDE pad; C-owned record value
     jsr update_score_display
     jmp play_hit_sound
+
+; The expensive half on its own, so the deferred path can reach it.
+light_spawn_breakup:
+    jsr clear_transient_effects
+    jsr light_top
+    tay
+    ldx LIGHT_SLOT
+    lda LIGHT_X,x
+    jmp spawn_breakup_effects_at
 
 ; Effects: the existing debris resolver, then the Light resolver below.
 light_backing:

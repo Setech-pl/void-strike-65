@@ -264,7 +264,21 @@ function lightGame(archetypeIndex) {
   return image;
 }
 
+// Light multiplicity step 4: the one-expensive-event token keys on
+// FRAME_COUNTER, so a harness that never advances it would spend the token on
+// the first consumer and starve every later one forever. The per-frame entries
+// advance it here, which is what the runtime does.
+// light_shot is included because handle_collisions is the FIRST Light entry
+// of a runtime frame, before the tick: a kill therefore meets a fresh token,
+// which is exactly what these kill tests are about. The frame where a kill
+// and a volley SHARE one token is constructed deliberately in
+// tests/light-multiplicity.test.mjs, not stumbled into here.
+const FRAME_ENTRIES = new Set(["light_update", "enemy_light_tick", "light_shot",
+  "enemy_spawn_raiders"]);
 function run(image, name, { a = 0, x = 0, y = 0 } = {}) {
+  if (FRAME_ENTRIES.has(name)) {
+    image[L("frame_counter")] = (image[L("frame_counter")] + 1) & 0xff;
+  }
   const cpu = new Nmos6502(image);
   const stop = 0x7fff;
   cpu.push((stop - 1) >> 8);

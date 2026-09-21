@@ -6,16 +6,16 @@
   "baseline": {
     "xex_loader_frames": 135,
     "xex_menu_frames": 392,
-    "atr_loader_frames": 333,
-    "atr_menu_frames": 590
+    "atr_loader_frames": 336,
+    "atr_menu_frames": 593
   },
   "recorded": {
     "date": "2026-09-21",
     "branch": "experiment/light-multiplicity",
-    "runtime_checkpoint": "5c96578",
-    "xex_sha256": "fad00b1998ffa6152bfda21875689a1ba1e7b38aaa248fcfb6b1e0cad6d87404",
-    "atr_sha256": "f1b6fae6357dccddcc3d0d7bf2ba5917ccdecf2c7c3a93c1eef58a61994b60dc",
-    "total_transport_sectors": 202,
-    "reason": "Re-recorded for Light multiplicity step 3, the multi-slot loops. Transport 198 -> 202 sectors: the Light kernel grew 468 -> 634 B for the slot loops and the cold admission path returned to HYBRID_C_EXT, which grew the extension record 448 -> 865 B. MEASURED from a full 8-session boot smoke, 8/8 passed. ATR milestones move +8/+8 (325/582 -> 333/590) and XEX +1/+1 (134/391 -> 135/392); both inside the +10 warn band, ATR close to it. gameplay_init stays at frame 3060 on ATR against 3053 on XEX, the level image at $A600 still compares byte-exact, and command frames stay XEX 0 / ATR 2 with 0 retries. This is the DEFAULT build, which runs one Light exactly as before: the provisional swarm wave is measurement scaffolding behind --force-light-population (owner decision 2026-09-21) and ships in nothing."
+    "runtime_checkpoint": "50cdb88",
+    "xex_sha256": "aa3f6b668c1de67b94c7ea329c068ccdd0e1f5e7c2ed0d934c6fde22c97371c6",
+    "atr_sha256": "7669e402b471739b2434166f054e239a55849a1dbfbe7fd631441de524a5ed61",
+    "total_transport_sectors": 203,
+    "reason": "Re-recorded for Light multiplicity step 4, the one-expensive-event token and the deferred breakup. Transport 202 -> 203 sectors. MEASURED from a full 8-session boot smoke, 8/8 passed. ATR milestones move +3/+3 (333/590 -> 336/593); XEX unmoved at 135/392. Inside the +10 warn band. This is the DEFAULT build: the provisional swarm wave stays behind --force-light-population and ships in nothing."
   }
 }

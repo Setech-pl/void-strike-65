@@ -36,8 +36,11 @@ below) on top of `f4cb18b`, the documentation-only reconciliation of
 the owner acceptance recorded here. All of it runs in the accepted runtime
 below and all of it is owner-accepted under that checkpoint.
 
-**Three `OWNER-SMOKE CANDIDATE`s are outstanding: owner decision A, the ATR
-boot fix** (section "Owner decision A" below) — it changes the boot contract,
+**Four `OWNER-SMOKE CANDIDATE`s are outstanding: the roadmap 4.6 ring-rotate
+token gate** (section "Roadmap 4.6 — the ring-rotate token gate" below;
+72-replay PAL audit PASS with the worst fence margin 552 → 2,981, boot smoke
+8/8, full-suite failure list identical to `4cd3024`), **owner decision A, the
+ATR boot fix** (section "Owner decision A" below) — it changes the boot contract,
 so it also needs a real-hardware smoke this session could not run —
 **owner decision B, the open BASIC window**, and **the main-menu title colour
 run** (sections below).
@@ -506,12 +509,15 @@ of Light multiplicity** — four slots, shared appearance pairs and the C/ASM
 boundary — and not as a defect to chase with bytes 4.6 will need. Several
 hundred cycles a frame is the price of swarms.
 
-**What 4.6 inherits.** The worst margin is materially thinner than 4.6's design
-assumed: **1,713 / 1,831 → 951 / 896**. **4.6 must set an explicit per-frame
-cycle budget in its own plan before implementation begins**, derived from the
-measured worst margin at the checkpoint it branches from — not from the
-historical margins recorded elsewhere in this file. See
-`plan-light-multiplicity.md` §4.4.
+**What 4.6 inherits — SUPERSEDED by the rotate-frame token gate below.** At
+step 5 the worst margin was materially thinner than 4.6's design assumed:
+**1,713 / 1,831 → 951 / 896**, with the set's own binding row at **552**. The
+gate took the set's worst margin to **2,981** (section "Roadmap 4.6 — the
+ring-rotate token gate" below), so that is the number 4.6 branches from.
+**4.6 must still set an explicit per-frame cycle budget in its own plan before
+implementation begins**, derived from the measured worst margin at the
+checkpoint it branches from — not from the historical margins recorded
+elsewhere in this file. See `plan-light-multiplicity.md` §4.4.
 
 **Placement after fix (a).** The change needed 19 B in a kernel with a 17-B
 window tail; the link guards caught the overrun.
@@ -555,8 +561,9 @@ the two sessions this work profiled.** MEASURED, and A/B'd against a clean
 | `weapon-pickup-2-hunt-fire4` frame 1963 | 1,713 | 951 | −762 |
 | `raider-remnant-normal-xex-hard` frame 1963 | 1,713 | 951 | −762 |
 
-**552 clears the plan's 500-cycle GO threshold by 52 cycles.** It satisfies the
-owner's two stated requirements — zero distinct miss events, and ≥ 500 — and it
+**552 clears the plan's 500-cycle GO threshold by 52 cycles** (and is
+superseded by the gate section below, which takes the same row to 3,972).
+It satisfies the owner's two stated requirements — zero distinct miss events, and ≥ 500 — and it
 is the same row and the same replay that `0002d84` recorded as its worst
 (1,464), so the delta is like-for-like and is the Light-class cost measured
 elsewhere in this section, not a new mechanism. **But it is 52 cycles of
@@ -645,6 +652,147 @@ nobody has explained would launder a pre-existing defect into this commit, so
 they stay red and stay listed. What this work *did* move in them is stated for
 whoever clears them: arena `asmBytes` 71 → 90 and `codeBytes` 535 → 589,
 free 187 → 114; `layout-d1`'s figure 13,196 → 13,197; DFMC records 9 → 11.
+
+---
+
+## Roadmap 4.6 — the ring-rotate token gate — `OWNER-SMOKE CANDIDATE` (2026-09-21)
+
+Branch `main`. XEX SHA-256
+`d667d88d742b9febf3c8c4a45d79f9500b3391278011428b68b8bf5c21f5283f`, ATR
+SHA-256 `514dba491a61111ec33d69bb883312a3cf1c333e466adb938a27fc478054fb26`,
+reproduced by `node scripts/build.mjs --candidate --quiet` from this worktree.
+`plan-light-multiplicity.md` §4.6 costed it; §4.7 records what shipped.
+
+**What it is.** A DEFERRABLE consumer may not claim the one-expensive-event
+token on a frame the background ring rotates. `advance_starfield_layers` — the
+one place a rotate is decided, reached exactly once per rotate — stores
+`frame_counter` in `light_rotate_frame`, 1 B at `$8127`;
+`light_take_deferrable_token()` compares it against `FRAME_COUNTER` and
+refuses without burning a token. The two deferrable consumers are the breakup
+spawn and the appearance install. **The kill, its score and its sound are not
+gated** and land on the frame the Light dies, as before.
+
+**The starvation bound, which is why §4.6 stopped short before.** Rotate frames
+are never consecutive, so the gate need only apply to an event's FIRST attempt.
+`BREAKUP_PENDING` is already the one bit of per-slot history that says "this
+event has been deferred once", so the retry in `light_tick_body` is now
+**ungated — no rotate marker, no budget** — and the delay is bounded at two
+frames by construction, with no counter. That also removes the unbounded
+"first later frame with a free token" wait the token had before this change.
+
+**Never consecutive, proved against the source and not the replays.**
+`src/main.s` asserts `WORLD_SCROLL_RATE_HARD*2 <= WORLD_SCROLL_RATE_DENOMINATOR`
+(10*2 <= 20), with the accumulator proof beside it: both branches of
+`update_starfield` run the same fraction r/D, `scroll_accumulator` is the
+residue so it is always < D, a rotate leaves acc' = acc + r - D, and a second
+one would need acc >= 2D - 2r >= D. `scripts/capital-hulls.mjs` fixes
+EASY < MEDIUM < HARD on the source data, so HARD is the bound.
+
+**PAL timing audit — 72 replays, 137,000 frames, 0 distinct miss events, 0 rows
+over the 31,200 target, 0 over the 32,568 hard gate. PASS.** Evidence:
+[diagnostics/light-rotate-gate-pal-audit-2026-09-21.json](diagnostics/light-rotate-gate-pal-audit-2026-09-21.json).
+A/B against `4cd3024` on the same instrumented Atari800 build:
+
+| replay | frame | `4cd3024` | candidate | Δ |
+| --- | ---: | ---: | ---: | ---: |
+| `raider-remnant-rapid-xex-hard` | 1945 | **552** | **3,972** | **+3,420** |
+| `director-complete-1-natural-sweep-fire0` | 2557 → 3631 | 896 | **2,981** | +2,085 |
+| `raider-remnant-normal-xex-hard` | 1963 | 951 | 4,179 | +3,228 |
+| `memory-integrity-{xex,atr}-2-hunt-fire4` | 1963 | 951 | 4,179 | +3,228 |
+| `debris-effects-2-sweep-fire4` | 4189 | 3,740 | 3,737 | **−3** |
+| `memory-integrity-atr-2-evasive-fire4` | 2013 | 3,899 | 3,868 | **−31** |
+
+**Worst fence margin across the whole set 552 → 2,981**, on
+`director-complete-1-natural-sweep-fire0` frame **3631**. The three binding
+rows of the candidate are **2,981**, then `debris-effects-2-sweep-fire4` 3,737
+and `memory-integrity-{xex,atr}-2-evasive-fire4` 3,868. The last two rows of
+the table are frames where the gate does not fire: they pay its overhead and
+nothing else, which is **3 to 31 cycles** and is the honest cost of the
+change.
+
+**The recovery is larger than the ~1,000-cycle ESTIMATE, and the reason is
+measured.** §4.6 costed `light_spawn_breakup` alone at 1,063 cycles. Moving the
+spawn off the frame also moves the FIRST RENDER of the effects it allocates,
+which happens later in the same pre-fence window. `maximum_wall_cycles` is
+unchanged on both remnant rows (30,605 → 30,602; 30,373 → 30,373) while
+`worst_pre_wait_cycles` falls 24,713 → 21,293 and 24,298 → 21,070: the same
+work, on a different frame.
+
+**Behavioural clauses, every one A/B-confirmed pre-existing and byte-identical
+to the figures recorded for step 5:** the two `capital-contact-*` and
+`lower-playfield-hostile-contact-xex-hard` raster clauses, the default run's
+terminal pickup-raster abort, `raider-sector-xex-hard` "did not return to
+post-sector OPEN", and the debris gate at 2/3 with
+`debris-gate-0-neutral-fire0` post-capital 1 blank / 1,558 in view, 1
+disappearance.
+
+**Harness measurement of the constructed frame** (`measure-population-harness`
+units, NOT comparable to the native figures above), three Lights, contact kill,
+token budget 8:
+
+| frame | `4cd3024` | candidate |
+| --- | ---: | ---: |
+| rotate frame, pre-fence | 10,099 (spawn lands) | **7,827** (spawn deferred) |
+| the next frame, pre-fence | 7,308 | 7,598 (spawn lands) |
+| non-rotate frame, pre-fence | 8,961 | 9,030 |
+
+The §5.2 negative control had to be re-based: its constructed frame was a
+rotate frame by accident, and on one of those the gate denies the deferrable
+half in BOTH arms, so the control measured the gate instead of the token
+(saving 513 → 212 at three Lights). It now runs on a deliberately non-rotate
+frame, where only the token can act: **528 saved at three Lights, 985 at
+four** against 514 / 943 at `4cd3024`.
+
+**Boot smoke 8/8** on both media against a re-recorded
+`boot-deadline-baseline.json`. Transport 204 → **205 sectors**: 6 B of marker
+store in `STARFIELD` re-packs that stream 1,780 → **1,785 packed B**. ATR
+milestones 338 / 595 → **339 / 596**, +1/+1, inside the +10 warn band; XEX
+unmoved at 135 / 392. The level image at `$A600` compares byte-exact in every
+session and command frames stay **XEX 0 / ATR 2** with 0 wire retries.
+
+**Placement.**
+
+| segment | before | after |
+| --- | ---: | ---: |
+| `HYBRID_C_WINDOW` (C half) | 796 B | **801 B** |
+| code window free tail | 32 B | **27 B** |
+| extension composite | 877 B | **880 B** (tail 19 B) |
+| unowned `$8127-$813F` | 25 B | **24 B** (`$8128-$813F`) |
+| packed `STARFIELD` | 1,780 B | **1,785 B** |
+
+`HYBRID_LIGHT_STATE` (16 of 16) and `HYBRID_LIGHT_SLOTS` (60 of 60) are still
+exactly full and neither grew; the marker took `$8127` as its own 1-byte
+`HYBRID_LIGHT_ROTATE` segment with named ld65 asserts against
+`HYBRID_LIGHT_SCREEN` below and the gap's end above, the same answer fix (a)
+gave at `$8126`.
+
+**Two deviations from the §4.6 costing, both stated in
+`plan-light-multiplicity.md` §4.7.** The appearance install has no per-slot
+deferred-once bit, so its gate applies to every attempt — still bounded at one
+frame by the cadence itself. And the marker is one frame stale on the PairShot
+kill path, because `update_starfield` runs after
+`update_player_fighter_weapon`; that is conservative in the only direction that
+matters (it can miss a saving, it can never deny on a non-rotate frame), and
+the contact-kill path §4.6 measured on the binding frame is inside
+`light_update`, which runs after the rotate and sees the marker exactly.
+
+**Tests.** Three new in `tests/light-multiplicity.test.mjs`, each A/B'd against
+a build with the gate removed and a build with the forcing rule removed: the
+breakup spawn does not land on a rotate frame (fails without the gate); a
+breakup deferred once lands on the very next frame with the budget poked to
+zero (fails without the forcing rule); two ring rotates can never land on
+consecutive frames (the premise, re-run over the linked rate table for all
+three difficulties). Five frozen contracts rebaselined with the reason in
+place: `hybrid-lifecycle` (extension 880 B; the token call-site freeze, now
+four claim sites with the two deferrable ones behind the wrapper),
+`light-interceptor` (`HYBRID_C_EXT` tail 19 B), `light-wingman`
+(`ENTITY_CODE` staging margin 77 B) and `entity-effects` (the
+`advance_starfield_layers` source shape).
+
+**Full suite: 732 tests, 613 pass, 116 fail — the failure list is IDENTICAL to
+`4cd3024`'s**, 0 new and 0 fixed, A/B'd from a clean worktree export of that
+commit built the same way. The 116 are the pre-existing set recorded under
+"Known open defects".
 
 ---
 

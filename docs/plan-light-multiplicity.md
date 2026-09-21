@@ -684,12 +684,17 @@ reading state that had moved on. The three rules above exist because of them.
 **Generalise only if five or more consumers show a clear pattern.** Until then
 the token stays what it is — five named consumers and a one-frame budget.
 
-### 4.6 ASSESS 2026-09-21 — deny the token to DEFERRABLE consumers on ring-rotate frames
+### 4.6 Deny the token to DEFERRABLE consumers on ring-rotate frames — IMPLEMENTED 2026-09-21
 
-Owner ASSESS. **Outcome: a costed follow-up with a GO recommendation, NOT
-implemented in this task** — the compare is one compare and the saving is
-large and MEASURED, but the bounded-delay confirmation the ASSESS made a
-precondition **fails as the token stands today**.
+**IMPLEMENTED** as an `OWNER-SMOKE CANDIDATE`, with the forcing rule the owner
+supplied for the starvation bound. §4.7 records what shipped and how it
+differs from the costing below; the costing is kept as written because it is
+the evidence the decision rests on.
+
+Owner ASSESS, as first recorded. **Outcome at the time: a costed follow-up with
+a GO recommendation, NOT implemented in that task** — the compare is one
+compare and the saving is large and MEASURED, but the bounded-delay
+confirmation the ASSESS made a precondition **failed as the token then stood**.
 
 **The hypothesis is confirmed on the real frames.** MEASURED, native, from the
 instruction trace: **both binding frames are ring-rotate frames.**
@@ -774,7 +779,90 @@ assertions are that the spawn does not land on it, and that it does land on
 the next frame whatever that frame is), and a re-run of the full replay audit,
 since it changes which frame work lands on.
 
-**NOT implemented in this session** (owner instruction, 2026-09-21).
+**NOT implemented in that session** (owner instruction, 2026-09-21); see §4.7.
+
+---
+
+### 4.7 What shipped (2026-09-21) — the gate, the forcing rule, and two deviations
+
+**The marker.** `light_rotate_frame`, 1 B at `$8127` as its own
+`HYBRID_LIGHT_ROTATE` segment with named ld65 asserts against both neighbours,
+leaving `$8128-$813F`, 24 B, unowned. `advance_starfield_layers` stores
+`frame_counter` there (7 cycles, on rotate frames only — 0 on every other
+frame). C reads it as a plain global.
+
+**The claim.** `light_take_deferrable_token()` — 13 B, `lda abs` / `cmp $86` /
+`bne` / return 0 / `jmp _light_take_token` — refuses WITHOUT burning a token
+when the marker names this frame. The two DEFERRABLE consumers claim through
+it: the breakup spawn in `enemy_c_light_hit` and the appearance install in
+`enemy_c_light_tick`. The fire cadence and the two admissions still claim
+directly, exactly as §4.6 requires.
+
+**The forcing rule.** The `BREAKUP_PENDING` branch of `light_tick_body` no
+longer claims a token at all. `BREAKUP_PENDING` IS the one bit of per-slot
+history the rule needs — a slot reaches it only by having been deferred once —
+so **no second pending state value was added**: the second attempt is simply
+ungated and spawns whatever the marker and the budget say. That is what bounds
+the delay at two frames, and it also removes the unbounded wait the token had
+before this change. Net code: +13 B for the wrapper, −8 B for the token test
+the rule deleted, so **+5 B in the code window** (tail 32 → 27).
+
+**Deviation 1: the install has no deferred-once bit, so its gate applies to
+every attempt.** Its pending condition (`light_appearance_installed[pair] !=
+light_record`) is per PAIR, not per slot, and there is no room for a per-pair
+bit. The bound is still one frame and comes from the cadence rather than from
+state: the frame after a rotate frame is never a rotate frame. What the token
+BUDGET does beyond that is unchanged from before this task.
+
+**Deviation 2: the marker is one frame stale on the PairShot kill path.**
+`update_starfield` runs after `handle_collisions` and
+`update_player_fighter_weapon` but before `entity_effects_update_with_light`,
+so inside `light_update` — the tick, the install, and the contact kill §4.6
+MEASURED claiming the token on the binding frame — the marker describes this
+frame exactly, while `light_shot`'s kill sees the previous frame's value. That
+is conservative in the only direction that matters: a stale marker names frame
+N-1, and because rotate frames are never consecutive frame N cannot rotate
+either, so the compare answers "not a rotate frame", which is the right
+answer. It can miss a saving on a PairShot kill that lands on a rotate frame;
+it can never deny on a frame that does not rotate. The alternative — predicting
+the next frame's rotate at the tail of `update_starfield` — is exact for both
+paths but costs ~15 cycles on EVERY frame, including the binding one, which is
+the opposite of the point.
+
+**Never consecutive, proved against the source rather than the replays.**
+`src/main.s` asserts `WORLD_SCROLL_RATE_HARD*2 <= WORLD_SCROLL_RATE_DENOMINATOR`
+(10*2 <= 20) with the proof written beside it: both branches of
+`update_starfield` run the same fraction r/D (the fighter branch doubles
+`world_scroll_rates`, the capital branch reads `hull_scroll_rates`, which the
+adjacent asserts fix at exactly twice `world_scroll_rates`), `scroll_accumulator`
+is the residue so it is always < D, a rotate leaves acc' = acc + r - D, and a
+second rotate would need acc >= 2D - 2r >= D. `scripts/capital-hulls.mjs`
+enforces EASY < MEDIUM < HARD on the source data, so HARD is the bound.
+`tests/light-multiplicity.test.mjs` re-runs that arithmetic over the linked
+rate table for all three difficulties.
+
+**The tests.** Three in `tests/light-multiplicity.test.mjs`, all A/B'd against
+builds with the gate and with the forcing rule removed:
+
+| test | fails without |
+| --- | --- |
+| the breakup spawn does not land on a ring-rotate frame | the rotate gate |
+| a breakup deferred once lands on the very next frame, spent token or not | the forcing rule (and the gate) |
+| two ring rotates can never land on consecutive frames | — (it is the premise, not the change) |
+
+The first drives the forced coincidence onto a rotate frame with a contact
+kill — the path §4.6 measured — and a token budget of eight, so the only thing
+that can refuse the claim is the gate. It also asserts what is NOT gated: the
+score rises on the kill frame. The second sets the budget to zero, which
+refuses every gated claim there is, and the spawn still lands on the next
+frame.
+
+**One thing the gate changed that had to be re-based.** The §5.2 constructed
+frame was a rotate frame by accident, and on one of those the gate now denies
+the deferrable half in BOTH arms, so the negative control measured the gate
+instead of the token (saving 513 → 212 cycles at three Lights). The constructed
+frame is now deliberately a NON-rotate frame, where only the token can act, and
+the control's claim is intact.
 
 ---
 

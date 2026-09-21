@@ -367,9 +367,11 @@ light_update:
     jmp @slot
 
 ; Plan §2.5: the deferred breakup. The slot was erased, scored and sounded on
-; the frame it died; this is the ~1,000-cycle part - the effect allocation and
-; the first stagger render - arriving one frame later, which is 20 ms. C has
-; already freed the slot, so nothing here may touch its state.
+; the frame it died; this is the MEASURED 1,063-cycle part - the effect
+; allocation and the first stagger render - arriving exactly one frame later,
+; which is 20 ms. C has already freed the slot, so nothing here may touch its
+; state. Since plan §4.6 the arrival is not merely likely but guaranteed: the
+; second attempt takes neither the rotate gate nor the token budget.
 @breakup:
     jsr light_spawn_breakup
     jmp @next
@@ -480,8 +482,9 @@ light_shot:
 ; Plan §2.5 splits this. Score and sound ALWAYS happen on the frame the Light
 ; dies - the player must see and hear the kill when it lands. The breakup
 ; spawn is the expensive half and happens now only if C could take this
-; frame's token; otherwise C parked the slot in BREAKUP_PENDING and the tick
-; spawns it on the first later frame with a free token. A = the hit return.
+; frame's token; otherwise C parked the slot in BREAKUP_PENDING and the NEXT
+; frame's tick spawns it unconditionally - the forcing rule, plan §4.6, which
+; is what bounds the wait at two frames. A = the hit return.
 light_destroyed:
     cmp #LIGHT_HIT_LETHAL_DEFER
     beq @score                   ; deferred: the cheap half only

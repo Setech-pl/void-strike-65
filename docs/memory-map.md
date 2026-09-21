@@ -40,7 +40,7 @@ column wherever it appears earlier or later in this file.
 | §4.4b "ENTITY_CODE free tail 45 → 13 B" | **1 B** at HEAD |
 | `$9D73-$9D74` 2 B "free ENTITY_CODE reservation tail" | 2 B, but it is the gap between `DIRECTOR_C_PRE` and `LEVEL1_DATA` — **not** an `ENTITY_CODE` tail |
 | `$8100-$810B` 12 B Light record; `$810C-$810F` 4 B unowned | `HYBRID_LIGHT_STATE` is **`$8100-$810F`, 16 B**; nothing there is unowned |
-| `$8119-$813F` 39 B unowned | `HYBRID_ENCOUNTER_STATE` `$8119-$811A` and `HYBRID_HEAVY_STATE` `$811B-$8125` occupy 13 B of it; real free was **`$8126-$813F`, 26 B**, and is **25 B (`$8127-$813F`)** since owner fix (a) put `HYBRID_LIGHT_SCREEN` at `$8126` |
+| `$8119-$813F` 39 B unowned | `HYBRID_ENCOUNTER_STATE` `$8119-$811A` and `HYBRID_HEAVY_STATE` `$811B-$8125` occupy 13 B of it; real free was **`$8126-$813F`, 26 B**, then 25 B after owner fix (a) put `HYBRID_LIGHT_SCREEN` at `$8126`, and is **24 B (`$8128-$813F`)** since the rotate gate put `HYBRID_LIGHT_ROTATE` at `$8127` |
 | `$5CF7-$5E05` 271 B free starfield tail | `STARFIELD` now ends `$5D93`; real free is **`$5D94-$5E05`, 114 B** |
 | `$7F05-$7F0F` 11 B "unassigned after cold staging" | Inside the arena's 215 B free tail `$7E39-$7F0F`. **Double-counted** if both rows are summed |
 | `$8600-$8601` near-star state (BSS table) **vs** `$85FE-$8601` 4 B `STAR_NEAR_SCREEN_HI` (*Accepted placement*) | **Both are wrong about the extent; neither is wrong about what it names.** Settled from the source — see the next section |
@@ -122,6 +122,7 @@ longer implies a deadline; what it costs is **2 PAL frames per occupied
 | `$8100-$810B` | 12 B | C-owned Light Wingman record (`$8100-$8105`) plus ASM Light render cache/scratch (`$8106-$810B`); `$810C` free — **[SUPERSEDED 2026-09-20: `HYBRID_LIGHT_STATE` is `$8100-$810F`, 16 B; nothing there is unowned]** |
 | `$8110-$8118` | 9 B | C-owned derived Raider profile cache read by the ASM kernel (moved from `$8776`) |
 | `$8126` | 1 B | `HYBRID_LIGHT_SCREEN` — the Light kernel's published-slot bound (`light_screen_slot_limit`), owner fix (a) 2026-09-21. ASM-maintained by `light_publish` from `screen_hi`, ASM-read by `light_cell_resolve`, cleared once by `lifecycle_c_init`. It is here and not in `HYBRID_LIGHT_STATE` (16 of 16) or `HYBRID_LIGHT_SLOTS` (60 of 60) because both are exactly full; it takes the **first** byte of the unowned gap that starts where `HYBRID_HEAVY_STATE` ends, leaving `$8127-$813F`, **25 B**, unowned. `src/hybrid/c-asm-abi.s` asserts it against both neighbours at link time |
+| `$8127` | 1 B | `HYBRID_LIGHT_ROTATE` — the ring-rotate marker (`light_rotate_frame`), plan-light-multiplicity.md §4.6, owner 2026-09-21. ASM-written by `advance_starfield_layers`, which is reached exactly once per ring rotate and stores `frame_counter` there; C-read by `light_take_deferrable_token`, which denies the one-expensive-event token to a DEFERRABLE consumer when the marker equals `FRAME_COUNTER`. Cleared once by `lifecycle_c_init`. Here for the same reason as `$8126`: both Light RAM areas are exactly full. Leaves `$8128-$813F`, **24 B**, unowned. `src/hybrid/c-asm-abi.s` asserts it against `HYBRID_LIGHT_SCREEN` below and the gap's end above |
 | `$8776-$8857` | 226 B | `LIGHT_RESIDENT` Light Wingman kernel (update, PairShot hit, kill, glyph) heading the pickup/collision stream |
 | `$8858-$8B60` | 777 B | fighter PMG pickup, projectile publication scaffold, narrow effect/PairShot backing resolver, and provisional active-gameplay admission policy (retired inert padding reclaimed) |
 | `$8B61-$8B66` | 6 B | zero fill of the pickup/collision stream image |
@@ -988,10 +989,11 @@ The current Light layout. It supersedes the steps 3-4 table below.
 | `$7FC4-$7FFF` | 60 | `HYBRID_LIGHT_SLOTS` — **0 free, exactly full**: ten four-byte per-slot arrays, the cell-major backing, `light_resolve_save`, `light_cell_end`, `light_appearance_installed[]`, the three ceiling bytes and the wave bytes |
 | `$8100-$810F` | 16 | `HYBRID_LIGHT_STATE` — **0 free, exactly full**: the shared scratch, the three token bytes, the admission/pair statics and `light_slot_limit` |
 | `$8126` | 1 | `HYBRID_LIGHT_SCREEN` — `light_screen_slot_limit`, the published-slot bound: maintained by `light_publish` from `screen_hi`, read by `light_cell_resolve` |
-| `$8127-$813F` | **25 free** | unowned, reserved for 4.6 Director state (was 26) |
-| `$B600-$B91B` | 796 | `HYBRID_C_WINDOW` — the Light C, Director link |
-| `$B91C-$BBDF` | 708 | `LIGHT_KERNEL` — the Light ASM kernel, its own link |
-| `$BBE0-$BBFF` | **32 free** | — |
+| `$8127` | 1 | `HYBRID_LIGHT_ROTATE` — `light_rotate_frame`, the ring-rotate marker: stored by `advance_starfield_layers`, read by `light_take_deferrable_token` |
+| `$8128-$813F` | **24 free** | unowned, reserved for 4.6 Director state (was 26, then 25) |
+| `$B600-$B920` | 801 | `HYBRID_C_WINDOW` — the Light C, Director link |
+| `$B921-$BBE4` | 708 | `LIGHT_KERNEL` — the Light ASM kernel, its own link |
+| `$BBE5-$BBFF` | **27 free** | — |
 
 **What fix (a) moved.** 19 B into a kernel with a 17-B window tail, so the
 coldest thing in the window — `encounter_light_schedule_advance`, at most once
@@ -999,12 +1001,22 @@ per admission — went to `HYBRID_C_ARENA`, and the bound's byte, which fits
 neither full Light RAM area, became its own segment at `$8126` with named ld65
 asserts against `HYBRID_HEAVY_STATE` below and the gap's end above.
 
-**Free tails (MEASURED at the candidate).** `HYBRID_C_EXT` **22**, pickup
+**Free tails (MEASURED at the candidate).** `HYBRID_C_EXT` **19**, pickup
 stream fill 236, `HYBRID_C_ARENA` **114** (718 / 832), `ENTITY_CODE` 1, A2
-kernel 19, `HYBRID_C_SECTOR` window 18, BROADSIDE 3, code window **32**,
-`HYBRID_LIGHT_SLOTS` **0**, `HYBRID_LIGHT_STATE` **0**, unowned `$8127-$813F`
-**25**. Extension composite 874 → **877 B**. Transport 203 → **204 sectors**,
-eleven DFMC records. Packed `STARFIELD` 1,780 B, unchanged.
+kernel 19, `HYBRID_C_SECTOR` window 18, BROADSIDE 3, code window **27**,
+`HYBRID_LIGHT_SLOTS` **0**, `HYBRID_LIGHT_STATE` **0**, unowned `$8128-$813F`
+**24**. Extension composite 874 → 877 → **880 B**. Transport 203 → 204 →
+**205 sectors**, eleven DFMC records. Packed `STARFIELD` 1,780 → **1,785 B**.
+
+**What the rotate gate moved (2026-09-21, plan §4.6).** 1 B of state to
+`$8127`, its own segment with named ld65 asserts against both neighbours; 5 B
+net into `HYBRID_C_WINDOW` (`light_take_deferrable_token`, 13 B, less the
+8-byte token test the forcing rule removed from the deferred-breakup retry),
+which takes the code window tail 32 → **27**; 3 B into `HYBRID_C_EXT` for
+`lifecycle_c_init`'s clear, tail 22 → **19**; and 6 B into `STARFIELD` for the
+marker store in `advance_starfield_layers`, which re-packs that stream and
+costs one transport sector (204 → **205**). Both Light RAM areas are still
+exactly full and neither grew.
 
 ### Light multiplicity steps 3-4 (2026-09-21) — multi-slot, appearance pairs, the token
 

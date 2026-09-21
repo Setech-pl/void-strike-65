@@ -394,7 +394,13 @@ test("placement contract: legal composite and packed size, state inside its rese
   // tail 25 -> 22 B, and the code window tail 17 -> 32 B. Both are tight; the
   // next Light-class growth needs a placement decision rather than a spare
   // byte.
-  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 22);
+  // Plan §4.6, 2026-09-21: the rotate gate confirms that. Its 1 B of state
+  // took $8127 rather than either full Light area, its compare cost the code
+  // window 5 B net (the new claim wrapper, less the token test the forcing
+  // rule removed from the deferred-breakup retry), and lifecycle_c_init's
+  // clear cost this composite 3: extension 877 -> 880 B, tail 22 -> 19 B, and
+  // the code window tail 32 -> 27 B.
+  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 19);
   assert.equal(L("light_glyph"), 0x9d2b);
   assert.equal(L("light_interceptor_glyph"), 0x9d3b);
   // REBASELINED for Light multiplicity: HYBRID_LIGHT_STATE keeps only the

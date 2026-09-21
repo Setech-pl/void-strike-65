@@ -931,7 +931,7 @@ test("EASY, MEDIUM and HARD keep world/debris rates while white stars drift at 5
     },
   });
   assert.match(source,
-    /advance_starfield_layers:\s+lda #ENTITY_EVENT_WORLD_ROW_ADVANCED\s+sta ENTITY_FRAME_EVENTS/);
+    /advance_starfield_layers:\s+lda frame_counter\s+sta LIGHT_ROTATE_FRAME\s+lda #ENTITY_EVENT_WORLD_ROW_ADVANCED\s+sta ENTITY_FRAME_EVENTS/);
   assert.doesNotMatch(source.slice(source.indexOf("rotate_playfield_rows:"),
     source.indexOf("init_starfield_state:")), /sta ENTITY_FRAME_EVENTS/,
   "WORLD_ROW_ADVANCED must follow legacy world, not the slower near/ring step");

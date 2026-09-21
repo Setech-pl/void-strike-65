@@ -64,11 +64,17 @@ function populate(m, count) {
     frame(m);
     assert.ok((guard += 1) < 96, `could not admit ${count} Lights`);
   }
-  // Settle them into the fire band, visible and hittable.
+  settle(m, count);
+  return liveCount(m);
+}
+
+// Put the admitted slots into the fire band, visible and hittable. Re-applied
+// whenever frames have been advanced since admission, because those frames
+// descend them.
+function settle(m, count) {
   for (let slot = 0; slot < count; slot += 1) {
     m.memory[L("light_y") + slot] = 100 + slot * 8;
   }
-  return liveCount(m);
 }
 
 // The constructed frame: every live slot has a spent reload, so each wants to
@@ -86,8 +92,16 @@ function armCoincidence(m, count) {
 }
 
 function measure(count, budget) {
-  const m = boot({ difficulty: 2 });
+  const m = boot({ difficulty: DIFFICULTY });
   assert.equal(populate(m, count), count, `admitted ${count} Lights`);
+  // Since the rotate gate (§4.6) the constructed frame is deliberately a
+  // NON-rotate frame. It used to be a rotate frame by accident, and on one of
+  // those the gate now denies the deferrable half in both arms, so the control
+  // would be measuring the gate rather than the token. What this test claims
+  // is the token, so it is measured where only the token can act. The gate's
+  // own evidence is the rotate-frame tests at the foot of this file.
+  advanceTo(m, false);
+  settle(m, count);
   m.memory[L("_light_token_budget")] = budget;
   armCoincidence(m, count);
   const before = liveCount(m);
@@ -125,3 +139,133 @@ for (const count of [3, 4]) {
 // is tests/hybrid-lifecycle.test.mjs, which freezes the five _light_take_token
 // call sites - the deferred breakup, the install, the admission, the fire
 // cadence and the lethal hit - so a consumer cannot be added or lost silently.
+
+// ---------------------------------------------------------------------------
+// The ring-rotate gate and its forcing rule (plan-light-multiplicity.md §4.6,
+// owner 2026-09-21).
+//
+// §4.6 MEASURED that both binding frames of the whole 72-replay audit are ring
+// -rotate frames, and that on the profiled one the frame's deferrable
+// expensive event - light_spawn_breakup, 1,063 cycles - was claimed by the
+// contact-kill path INSIDE light_update, which runs after update_starfield and
+// therefore after the rotate. The gate denies the token to a deferrable
+// consumer on its FIRST attempt on such a frame; the forcing rule is that the
+// second attempt is not gated at all, which bounds the delay at two frames
+// without a counter.
+//
+// The kill itself is not gated and must not be: light_destroyed scores and
+// sounds on the frame the Light dies whichever return it gets.
+const ROTATE_DENOMINATOR = 40;     // HULL_SCROLL_RATE_DENOMINATOR, src/main.s
+const LIGHT_ACTIVE_FREE = 2;
+const DIFFICULTY = 2;              // HARD: the largest rate, the tightest case
+
+// The fighter branch of update_starfield takes world_scroll_rates*2 over
+// HULL_SCROLL_RATE_DENOMINATOR; the capital branch takes hull_scroll_rates
+// (= world*2, asserted in src/main.s) over the same denominator. One fraction,
+// read from the linked bytes rather than restated here.
+const rotateStep = (m, difficulty) =>
+  m.memory[L("world_scroll_rates") + difficulty] * 2;
+const nextFrameRotates = (m, difficulty) =>
+  m.memory[L("scroll_accumulator")] + rotateStep(m, difficulty) >= ROTATE_DENOMINATOR;
+const rotatedThisFrame = (m) =>
+  m.memory[L("light_rotate_frame")] === m.memory[L("frame_counter")];
+const score = (m) => m.memory[L("score_bcd_hi")] * 256 + m.memory[L("score_bcd_lo")];
+
+// Put slot 0 on the player so that THIS frame's light_update contact test
+// fires - the path §4.6 MEASURED claiming the token on the binding frame. The
+// player fighter sits at a fixed row; the Light is moved onto it rather than
+// the other way round, so nothing else about the frame is disturbed. The tick
+// runs first and descends the slot by one or two scanlines, so the row must
+// survive that: light_top is light_y & $F8, and the two rows the slot can
+// reach share it.
+function armContact(m) {
+  const top = m.memory[L("player_y")] & 0xf8;
+  m.memory[L("light_y")] = top;
+  m.memory[L("light_x")] = m.memory[L("player_x")] & 0xfc;
+  m.memory[L("light_hp")] = 1;                     // the next contact is lethal
+}
+
+// Advance production frames until the NEXT one is (or is not) a rotate frame.
+function advanceTo(m, wantRotate) {
+  for (let guard = 0; guard < 16; guard += 1) {
+    if (nextFrameRotates(m, DIFFICULTY) === wantRotate) return;
+    frame(m);
+  }
+  assert.fail(`no ${wantRotate ? "" : "non-"}rotate frame within 16 frames`);
+}
+
+function armedOnARotateFrame(budget) {
+  const m = boot({ difficulty: DIFFICULTY });
+  assert.equal(populate(m, 3), 3, "admitted 3 Lights");
+  // Free flight for every slot, so the descent below is the only thing that
+  // moves them and armContact's row arithmetic holds. A Wingman that outlived
+  // its leader is exactly this state.
+  for (let slot = 0; slot < 3; slot += 1) m.memory[L("light_state") + slot] = LIGHT_ACTIVE_FREE;
+  // Budget, not the gate, is what these tests must NOT be measuring: a budget
+  // of eight can refuse nobody, so every refusal below is the rotate gate.
+  m.memory[L("_light_token_budget")] = budget;
+  advanceTo(m, true);
+  armCoincidence(m, 3);
+  armContact(m);
+  return m;
+}
+
+test("the breakup spawn does not land on a ring-rotate frame", () => {
+  const m = armedOnARotateFrame(8);
+  const before = score(m);
+  const { samples } = frame(m, ["spawn_breakup_effects_at"]);
+
+  assert.ok(rotatedThisFrame(m), "the constructed frame must be a rotate frame");
+  // The gate, and the only thing it moves. Without it the contact kill takes
+  // the token it is freely offered here and spawns on this very frame.
+  assert.equal(samples.get("spawn_breakup_effects_at"), undefined,
+    "a deferrable breakup must not spawn on a rotate frame");
+  assert.equal(state(m, 0), BREAKUP_PENDING,
+    `slot 0 must park in BREAKUP_PENDING; state ${state(m, 0)}`);
+  // What is NOT gated: the player sees and hears the kill on the frame it
+  // lands, because light_destroyed scores and sounds on both returns.
+  assert.ok(score(m) > before,
+    `the kill must score on its own frame: ${before} -> ${score(m)}`);
+});
+
+test("a breakup deferred once lands on the very next frame, spent token or not", () => {
+  const m = armedOnARotateFrame(8);
+  frame(m);
+  assert.equal(state(m, 0), BREAKUP_PENDING, "slot 0 deferred on the rotate frame");
+
+  // THE BOUND. A budget of zero refuses every gated claim there is, so if the
+  // retry were gated at all - by the token, by the rotate marker, by anything
+  // - it could not land, and before the forcing rule it demonstrably did not:
+  // the pending slot waited for "the first later frame with a free token",
+  // which had no bound. The second attempt is not gated, so it lands here.
+  m.memory[L("_light_token_budget")] = 0;
+  assert.equal(nextFrameRotates(m, DIFFICULTY), false,
+    "the frame after a rotate frame is never a rotate frame");
+  const { samples } = frame(m, ["spawn_breakup_effects_at"]);
+
+  assert.equal(samples.get("spawn_breakup_effects_at")?.length, 1,
+    "the deferred breakup must spawn on the next frame");
+  assert.equal(state(m, 0), 0, "the slot is freed by the spawn");
+});
+
+test("two ring rotates can never land on consecutive frames", () => {
+  // Not a measurement of the replays: the accumulator arithmetic of
+  // update_starfield, run over the linked rate table, which is what the
+  // forcing rule's two-frame bound rests on. The .assert in src/main.s states
+  // the same inequality at assembly time.
+  const m = boot({ difficulty: DIFFICULTY });
+  for (let difficulty = 0; difficulty < 3; difficulty += 1) {
+    const step = rotateStep(m, difficulty);
+    assert.ok(step > 0 && step * 2 <= ROTATE_DENOMINATOR,
+      `rate ${step}/${ROTATE_DENOMINATOR} at difficulty ${difficulty} could rotate twice in a row`);
+    let accumulator = 0;
+    let previous = false;
+    for (let f = 0; f < 4096; f += 1) {
+      const rotates = accumulator + step >= ROTATE_DENOMINATOR;
+      assert.ok(!(rotates && previous),
+        `consecutive rotates at difficulty ${difficulty}, frame ${f}`);
+      accumulator = rotates ? accumulator + step - ROTATE_DENOMINATOR : accumulator + step;
+      previous = rotates;
+    }
+  }
+});

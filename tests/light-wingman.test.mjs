@@ -188,7 +188,11 @@ test("Light kernel placement is legal, resident and inside every reviewed gate",
   // 75 B after the Wingman and Interceptor art moved to the ENTITY_CODE tail
   // (+32 B packed).
   // 76 after step 1b: the art tables stayed, the kernel left.
-  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 76,
+  // 77 after plan §4.6's rotate-marker store in advance_starfield_layers:
+  // ENTITY_CODE itself is unchanged, but the 6 new STARFIELD bytes re-pack the
+  // starfield runtime stream (1,780 -> 1,785 packed B), which is what this
+  // margin is measured against.
+  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 77,
     "ENTITY_CODE staging margin tracks the Light art tables");
   assert.equal(manifest.capitalPlayerCollisionRuntime.runAddress, 0x8b67);
   // light_add_score exactly fills the retired 17-byte BROADSIDE entry pad.

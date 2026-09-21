@@ -50,7 +50,7 @@ DIRECTOR_LOW_BYTES = 242
 .import _light_backing, _light_resolve_save, _light_cell_end
 .import _light_scratch, _light_slot_save
 .import _light_slot, _light_archetype, _light_code, _light_wave_lock
-.import _light_slot_limit, _light_screen_slot_limit
+.import _light_slot_limit, _light_screen_slot_limit, _light_rotate_frame
 .import _enemy_profile_movement_id, _enemy_profile_fire_policy_id
 .import _enemy_profile_burst_count, _enemy_profile_burst_interval
 .import _enemy_profile_post_burst_frames, _enemy_profile_renderer_class
@@ -104,6 +104,7 @@ DIRECTOR_LOW_BYTES = 242
 .export light_backing0, light_backing1, light_scratch, light_slot_save
 .export light_slot, light_slot_limit, light_archetype_offset, light_code
 .export light_screen_slot_limit
+.export light_rotate_frame
 .export light_resolve_save
 .export light_cell_end
 
@@ -287,6 +288,13 @@ light_slot_limit = _light_slot_limit
 ; with light_slot_limit above: that one is state-derived and does not cover a
 ; slot that retired this frame with its cells still on screen.
 light_screen_slot_limit = _light_screen_slot_limit
+; The rotate-frame gate (plan §4.6). ASM writes it - advance_starfield_layers
+; stores frame_counter here, which it reaches exactly once per ring rotate -
+; and the Light class in C compares it against FRAME_COUNTER before a
+; DEFERRABLE consumer claims the one-expensive-event token. Exported rather
+; than named by constant so the single writer goes through this ABI like every
+; other shared byte.
+light_rotate_frame = _light_rotate_frame
 ; Selected Light archetype per slot, as a byte offset into the C archetype
 ; table, and the slot's left screen code.
 light_archetype_offset = _light_archetype
@@ -415,6 +423,13 @@ hostile_weapon_visual_glyphs:
 .import __HYBRID_HEAVY_STATE_RAM_LAST__
 .assert __HYBRID_LIGHT_SCREEN_RAM_START__ >= __HYBRID_HEAVY_STATE_RAM_LAST__, lderror, "HYBRID_LIGHT_SCREEN overlaps HYBRID_HEAVY_STATE"
 .assert __HYBRID_LIGHT_SCREEN_RAM_LAST__ <= $8140, lderror, "HYBRID_LIGHT_SCREEN leaves the unowned gap at $8140"
+; Plan §4.6, owner 2026-09-21: the rotate marker takes the next byte of the
+; same gap. Its real lower neighbour is HYBRID_LIGHT_SCREEN, not
+; HYBRID_HEAVY_STATE, so assert against that one; $8128-$813F, 24 B, is what
+; is left unowned above it.
+.import __HYBRID_LIGHT_ROTATE_RAM_START__, __HYBRID_LIGHT_ROTATE_RAM_LAST__
+.assert __HYBRID_LIGHT_ROTATE_RAM_START__ >= __HYBRID_LIGHT_SCREEN_RAM_LAST__, lderror, "HYBRID_LIGHT_ROTATE overlaps HYBRID_LIGHT_SCREEN"
+.assert __HYBRID_LIGHT_ROTATE_RAM_LAST__ <= $8140, lderror, "HYBRID_LIGHT_ROTATE leaves the unowned gap at $8140"
 
 .import __HYBRID_C_WINDOW_RAM_LAST__, __HYBRID_C_WINDOW_GUARD_START__
 .assert __HYBRID_C_WINDOW_GUARD_START__ = $BC1A, lderror, "HYBRID_C_WINDOW_GUARD must start at $BC1A"

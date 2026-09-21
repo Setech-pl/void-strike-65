@@ -423,6 +423,32 @@ static uint8_t light_post_burst_slot;
  * a range nothing else zeroes, so it may not be assumed zero at gameplay
  * init. After that it is bounded 0..LIGHT_SLOT_COUNT by construction. */
 uint8_t light_screen_slot_limit;
+#pragma bss-name ("HYBRID_LIGHT_ROTATE")
+/* The rotate-frame gate (plan §4.6). ASM-owned, C only reads it and clears it
+ * at gameplay init: advance_starfield_layers stores FRAME_COUNTER here, which
+ * it reaches exactly once per ring rotate, so `light_rotate_frame ==
+ * FRAME_COUNTER` is the whole test and costs one absolute load and one
+ * compare. ENTITY_FRAME_EVENTS cannot serve: entity_effects_update lsrs it and
+ * light_update calls that first, so the bit is gone before the tick asks.
+ *
+ * It is here and not in HYBRID_LIGHT_STATE (16 of 16) or HYBRID_LIGHT_SLOTS
+ * (60 of 60) for the same reason light_screen_slot_limit is: both are exactly
+ * full. It takes the byte above it in the same unowned gap.
+ *
+ * WHAT IT MEANS WHERE IT IS READ. update_starfield runs after
+ * handle_collisions and update_player_fighter_weapon but BEFORE
+ * entity_effects_update_with_light, so:
+ *   - inside light_update (the contact kill, the tick, the install) the marker
+ *     describes THIS frame exactly - the rotate has already happened;
+ *   - inside the PairShot path it is one frame stale. That is conservative in
+ *     the only direction that matters: a stale marker names frame N-1, and
+ *     because rotate frames are never consecutive frame N cannot rotate
+ *     either, so the compare answers "not a rotate frame", which is the right
+ *     answer. It can miss a saving; it can never deny on a frame that does not
+ *     rotate.
+ * Also a bss segment with no file image: lifecycle_c_init clears it so a
+ * garbage value cannot match FRAME_COUNTER once at startup. */
+uint8_t light_rotate_frame;
 #pragma bss-name ("BSS")
 
 static void heavy_publish_profile(void);
@@ -453,6 +479,31 @@ static uint8_t light_take_token(void)
     }
     --light_token;
     return 1u;
+}
+
+/* Claim the token for a DEFERRABLE (visual-only) event on its FIRST attempt.
+ * Plan §4.6, owner 2026-09-21: a ring rotate is the single most expensive
+ * thing the frame does that the Light class cannot influence, and MEASURED the
+ * binding frames of the whole replay set are rotate frames, so a deferrable
+ * event that lands on one stacks ~1,000 cycles onto the worst frame there is.
+ * It is refused here WITHOUT burning a token - the frame's token stays
+ * available to a consumer that is not deferrable.
+ *
+ * The delay this can add is exactly one frame, and that is a property of the
+ * scroll cadence rather than of this code: rotate frames are never
+ * consecutive (src/main.s asserts it - WORLD_SCROLL_RATE_HARD*2 <=
+ * WORLD_SCROLL_RATE_DENOMINATOR, the largest rate over the shared
+ * denominator, so the accumulator can never carry twice in a row), so the
+ * frame after a denial is never a rotate frame.
+ *
+ * The forcing rule that BOUNDS the wait is not here, it is at the retry: see
+ * the BREAKUP_PENDING branch of light_tick_body. */
+static uint8_t light_take_deferrable_token(void)
+{
+    if (light_rotate_frame == FRAME_COUNTER) {
+        return 0u;
+    }
+    return light_take_token();
 }
 
 /* Live slots, counted rather than kept: a four-byte scan, at admission only. */
@@ -538,6 +589,7 @@ void lifecycle_c_init(void)
         light_appearance_installed[light_slot] = LIGHT_APPEARANCE_NONE;
     } while (light_slot != 0u);
     light_screen_slot_limit = 0u;
+    light_rotate_frame = 0u;
     light_token_budget = LIGHT_TOKEN_BUDGET;
     light_token = LIGHT_TOKEN_BUDGET;
     light_token_frame = FRAME_COUNTER;
@@ -972,11 +1024,20 @@ static uint8_t light_tick_body(void)
         return 0u;
     }
     if (light_state[light_slot] == LIGHT_BREAKUP_PENDING) {
-        /* Erased, scored and sounded already: it does nothing but wait for a
-         * free token, then hands the spawn to ASM and frees the slot. */
-        if (light_take_token() == 0u) {
-            return 0u;
-        }
+        /* Erased, scored and sounded already. THE FORCING RULE (plan §4.6,
+         * owner 2026-09-21): this state IS the one bit of per-slot history the
+         * rule needs - a slot only reaches it by having been deferred once -
+         * so this second attempt is not gated at all. It ignores the rotate
+         * marker AND the token budget and spawns now.
+         *
+         * That is what bounds the wait at two frames by construction, with no
+         * counter and no comparison against a deadline. Before the rule the
+         * pending slot waited for "the first later frame with a free token",
+         * which had no bound at all; a rotate gate on top of an unbounded wait
+         * was the reason §4.6 stopped short of shipping. One frame of extra
+         * work here is the price of that bound, and it is the cheap direction:
+         * the frame it lands on is never a rotate frame when the deferral came
+         * from the rotate gate. */
         light_state[light_slot] = ENEMY_INACTIVE;
         return LIGHT_RETURN_BREAKUP;
     }
@@ -1092,8 +1153,15 @@ uint8_t enemy_c_light_tick(void)
          * admission frame is the binding one. If the token is spent the
          * install simply happens next frame - the slot renders one frame with
          * whatever the pair held, which cannot be a different Light's bitmap
-         * because §2.3 rule 2 only reassigns a pair no live slot still shows. */
-        if (light_take_token() == 0u) {
+         * because §2.3 rule 2 only reassigns a pair no live slot still shows.
+         * DEFERRABLE (plan §4.6): visual-only, already has a pending state,
+         * already tolerates a frame. The pending condition
+         * (light_appearance_installed != light_record) is per PAIR and carries
+         * no deferred-once bit, so unlike the breakup this claim is gated on
+         * every attempt - which still adds at most one frame, because the
+         * frame after a rotate frame is never a rotate frame. What the budget
+         * does beyond that is unchanged from before this gate. */
+        if (light_take_deferrable_token() == 0u) {
             return light_tick_result;
         }
         /* Marked as it is returned: asking the tick CONSUMES the decision, and
@@ -1116,8 +1184,15 @@ uint8_t enemy_c_light_hit(void)
     }
     /* The slot's own erase happens in this frame's late window either way -
      * that is the cheap part. What defers is the breakup SPAWN, which is
-     * ~1,000 cycles of effect allocation and the first stagger render. */
-    if (light_take_token() != 0u) {
+     * MEASURED 1,063 cycles of effect allocation and the first stagger render.
+     * The kill itself, its score and its sound are NOT gated: light_destroyed
+     * does them unconditionally on this frame whichever return this is, so the
+     * player sees and hears the kill when it lands (plan §4.6).
+     *
+     * This is the event's FIRST attempt, so it takes the rotate gate. Its
+     * second attempt is the BREAKUP_PENDING branch of light_tick_body, which
+     * is not gated at all - the forcing rule. */
+    if (light_take_deferrable_token() != 0u) {
         light_state[light_slot] = ENEMY_INACTIVE;
         return LIGHT_HIT_LETHAL_NOW;
     }

@@ -6,16 +6,16 @@
   "baseline": {
     "xex_loader_frames": 135,
     "xex_menu_frames": 392,
-    "atr_loader_frames": 338,
-    "atr_menu_frames": 595
+    "atr_loader_frames": 339,
+    "atr_menu_frames": 596
   },
   "recorded": {
     "date": "2026-09-21",
-    "branch": "experiment/light-multiplicity",
-    "runtime_checkpoint": "step 5, owner fix (a)",
-    "xex_sha256": "3bbee68dad5f24966ffca0254e8bfe95b6862fe548ecfb991d1434852281bb19",
-    "atr_sha256": "e3fdd326e6117505d79b3917acd07fd0189211333943ecd16363fed7c8e58a93",
-    "total_transport_sectors": 204,
-    "reason": "Re-recorded for Light multiplicity step 5 and owner fix (a), the published-slot bound. Transport 203 -> 204 sectors: the kernel grew 689 -> 708 B and encounter_light_schedule_advance moved from HYBRID_C_WINDOW to HYBRID_C_ARENA. MEASURED from a full 8-session boot smoke, 8/8 passed. ATR milestones move +2/+2 (336/593 -> 338/595); XEX unmoved at 135/392. Inside the +10 warn band. The level image at $A600 still compares byte-exact and command frames stay XEX 0 / ATR 2 with 0 retries. This is the DEFAULT build: the provisional swarm wave stays behind --force-light-population and ships in nothing."
+    "branch": "main",
+    "runtime_checkpoint": "plan-light-multiplicity.md \u00a74.6/\u00a74.7, the ring-rotate token gate",
+    "xex_sha256": "d667d88d742b9febf3c8c4a45d79f9500b3391278011428b68b8bf5c21f5283f",
+    "atr_sha256": "514dba491a61111ec33d69bb883312a3cf1c333e466adb938a27fc478054fb26",
+    "total_transport_sectors": 205,
+    "reason": "Re-recorded for the ring-rotate token gate (plan \u00a74.6/\u00a74.7). Transport 204 -> 205 sectors: the gate puts 6 B of marker store into STARFIELD (advance_starfield_layers), which re-packs that stream 1,780 -> 1,785 packed B, and 5 B net into HYBRID_C_WINDOW plus 3 B into HYBRID_C_EXT. MEASURED from a full 8-session boot smoke, 8/8 passed. ATR milestones move +1/+1 (338/595 -> 339/596); XEX unmoved at 135/392. Inside the +10 warn band. The level image at $A600 still compares byte-exact and command frames stay XEX 0 / ATR 2 with 0 retries."
   }
 }

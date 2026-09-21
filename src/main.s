@@ -850,6 +850,22 @@ PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE = PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYE
 .assert WORLD_SCROLL_RATE_MEDIUM*2 = HULL_SCROLL_RATE_MEDIUM, error, "capital MEDIUM traversal must match the restored pre-tuning cadence"
 .assert WORLD_SCROLL_RATE_HARD*2 = HULL_SCROLL_RATE_HARD, error, "capital HARD traversal must match the restored pre-tuning cadence"
 .assert WORLD_SCROLL_RATE_HARD*2 <= WORLD_SCROLL_RATE_DENOMINATOR, error, "hard cadence must leave one light frame for LMS prebuild"
+; The same inequality, restated for the second thing that now depends on it:
+; the Light class's rotate-frame token gate (plan-light-multiplicity.md §4.6)
+; bounds its own delay at ONE frame purely because two ring rotates can never
+; land on consecutive frames, and this is where that is true.
+;
+; PROOF, from update_starfield below. Both branches run the same fraction: the
+; fighter branch takes world_scroll_rates*2 over HULL_SCROLL_RATE_DENOMINATOR
+; (= WORLD_SCROLL_RATE_DENOMINATOR*2, asserted above) and the capital branch
+; takes hull_scroll_rates over the same denominator, and hull = world*2 on
+; every difficulty (the three asserts above). So the step is r/D with
+; r <= D/2 by this assert, EASY and MEDIUM being below HARD by the ascending
+; invariant scripts/capital-hulls.mjs enforces on the source data.
+; scroll_accumulator is the residue, so it is always < D. A rotate leaves
+; acc' = acc + r - D; the next frame rotates only if acc' + r >= D, i.e.
+; acc + 2r >= 2D, i.e. acc >= 2D - 2r >= D. Impossible. Two rotates in a row
+; cannot happen at any rate this assert admits.
 .assert INTERCEPTOR_WEAVE_PERIOD_FRAMES = 32, error, "Interceptor weave hot path assumes a 32-frame period"
 .assert INTERCEPTOR_ATTACK_ACTIVE_TOP = GAMEPLAY_TOP, error, "Interceptor pursuit begins at the gameplay viewport"
 .assert INTERCEPTOR_ATTACK_ACTIVE_BOTTOM = GAMEPLAY_BOTTOM, error, "Interceptor pursuit ends at the gameplay viewport"
@@ -5440,7 +5456,15 @@ starfield_layout_d2_cadence_pad:
 ; One authoritative world event rotates the physical background exactly once.
 ; Bit zero records that mapping change for the sparse white cache; bit one was
 ; set earlier only if the 1-pixel near motion crossed a character boundary.
+; Plan-light-multiplicity.md §4.6, owner 2026-09-21. This is the one place the
+; ring rotate is decided and it is reached exactly once per rotate, so the
+; marker the Light class reads is published at the head of it: 7 cycles on a
+; rotate frame and 0 on every other. ENTITY_FRAME_EVENTS below cannot serve
+; that purpose - entity_effects_update lsrs it and light_update calls that
+; first, so the bit is gone before the Light tick asks.
 advance_starfield_layers:
+    lda frame_counter
+    sta LIGHT_ROTATE_FRAME
     lda #ENTITY_EVENT_WORLD_ROW_ADVANCED
     sta ENTITY_FRAME_EVENTS
     lda STAR_NEAR_RING_ADVANCED

@@ -1,0 +1,1919 @@
+{
+  "audits": [
+    {
+      "session": "1-evasive-fire3",
+      "frames": 920,
+      "fence_bound_frames": 753,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 19697,
+      "worst_pre_wait_frame": 71,
+      "worst_fence_margin_cycles": 5568,
+      "worst_fence_margin_frame": 71,
+      "maximum_wall_cycles": 29229,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "2-evasive-fire1",
+      "frames": 920,
+      "fence_bound_frames": 793,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 20354,
+      "worst_pre_wait_frame": 233,
+      "worst_fence_margin_cycles": 4911,
+      "worst_fence_margin_frame": 233,
+      "maximum_wall_cycles": 29771,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "2-evasive-fire3",
+      "frames": 920,
+      "fence_bound_frames": 824,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 19929,
+      "worst_pre_wait_frame": 71,
+      "worst_fence_margin_cycles": 5348,
+      "worst_fence_margin_frame": 71,
+      "maximum_wall_cycles": 30023,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "2-evasive-fire7",
+      "frames": 920,
+      "fence_bound_frames": 839,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 18680,
+      "worst_pre_wait_frame": 159,
+      "worst_fence_margin_cycles": 6597,
+      "worst_fence_margin_frame": 159,
+      "maximum_wall_cycles": 29865,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "2-neutral-fire0",
+      "frames": 760,
+      "fence_bound_frames": 726,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 18550,
+      "worst_pre_wait_frame": 31,
+      "worst_fence_margin_cycles": 6727,
+      "worst_fence_margin_frame": 31,
+      "maximum_wall_cycles": 29162,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "2-sweep-fire0",
+      "frames": 920,
+      "fence_bound_frames": 677,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 19698,
+      "worst_pre_wait_frame": 225,
+      "worst_fence_margin_cycles": 5579,
+      "worst_fence_margin_frame": 225,
+      "maximum_wall_cycles": 29709,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "2-sweep-fire2",
+      "frames": 920,
+      "fence_bound_frames": 723,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 19042,
+      "worst_pre_wait_frame": 111,
+      "worst_fence_margin_cycles": 6207,
+      "worst_fence_margin_frame": 111,
+      "maximum_wall_cycles": 29739,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "2-sweep-fire4",
+      "frames": 920,
+      "fence_bound_frames": 758,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 231
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 19251,
+      "worst_pre_wait_frame": 591,
+      "worst_fence_margin_cycles": 6026,
+      "worst_fence_margin_frame": 591,
+      "maximum_wall_cycles": 30080,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "2-sweep-fire5",
+      "frames": 920,
+      "fence_bound_frames": 857,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 18844,
+      "worst_pre_wait_frame": 175,
+      "worst_fence_margin_cycles": 6421,
+      "worst_fence_margin_frame": 175,
+      "maximum_wall_cycles": 29714,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "2-sweep-fire6",
+      "frames": 920,
+      "fence_bound_frames": 730,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 18887,
+      "worst_pre_wait_frame": 243,
+      "worst_fence_margin_cycles": 6362,
+      "worst_fence_margin_frame": 243,
+      "maximum_wall_cycles": 29744,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "cadence-0-sweep-nofire",
+      "frames": 400,
+      "fence_bound_frames": 400,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 14773,
+      "worst_pre_wait_frame": 199,
+      "worst_fence_margin_cycles": 10476,
+      "worst_fence_margin_frame": 199,
+      "maximum_wall_cycles": 28794,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "cadence-1-sweep-nofire",
+      "frames": 400,
+      "fence_bound_frames": 400,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 16053,
+      "worst_pre_wait_frame": 293,
+      "worst_fence_margin_cycles": 9212,
+      "worst_fence_margin_frame": 293,
+      "maximum_wall_cycles": 28857,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "cadence-2-sweep-nofire",
+      "frames": 400,
+      "fence_bound_frames": 400,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 15410,
+      "worst_pre_wait_frame": 95,
+      "worst_fence_margin_cycles": 9839,
+      "worst_fence_margin_frame": 95,
+      "maximum_wall_cycles": 28762,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "capital-contact-allied-medium",
+      "frames": 560,
+      "fence_bound_frames": 560,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 15964,
+      "worst_pre_wait_frame": 95,
+      "worst_fence_margin_cycles": 9285,
+      "worst_fence_margin_frame": 95,
+      "maximum_wall_cycles": 29012,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "capital-contact-hostile-medium",
+      "frames": 360,
+      "fence_bound_frames": 360,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 15968,
+      "worst_pre_wait_frame": 135,
+      "worst_fence_margin_cycles": 9309,
+      "worst_fence_margin_frame": 135,
+      "maximum_wall_cycles": 28697,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "capital-muzzle-ring-2-sweep-fire4",
+      "frames": 6000,
+      "fence_bound_frames": 3671,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 20434,
+      "worst_pre_wait_frame": 2535,
+      "worst_fence_margin_cycles": 4843,
+      "worst_fence_margin_frame": 2535,
+      "maximum_wall_cycles": 31079,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "debris-effects-2-sweep-fire4",
+      "frames": 5000,
+      "fence_bound_frames": 3916,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 21512,
+      "worst_pre_wait_frame": 4189,
+      "worst_fence_margin_cycles": 3737,
+      "worst_fence_margin_frame": 4189,
+      "maximum_wall_cycles": 31079,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "debris-gate-0-evasive-fire3",
+      "frames": 9000,
+      "fence_bound_frames": 4492,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 228
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 20182,
+      "worst_pre_wait_frame": 483,
+      "worst_fence_margin_cycles": 5095,
+      "worst_fence_margin_frame": 483,
+      "maximum_wall_cycles": 29695,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "debris-gate-0-neutral-fire0",
+      "frames": 9000,
+      "fence_bound_frames": 5725,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 228
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 20594,
+      "worst_pre_wait_frame": 3007,
+      "worst_fence_margin_cycles": 4655,
+      "worst_fence_margin_frame": 3007,
+      "maximum_wall_cycles": 30333,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "debris-gate-capital-muzzle-ring-2-sweep-fire4",
+      "frames": 6000,
+      "fence_bound_frames": 3671,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 20434,
+      "worst_pre_wait_frame": 2535,
+      "worst_fence_margin_cycles": 4843,
+      "worst_fence_margin_frame": 2535,
+      "maximum_wall_cycles": 31079,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "director-complete-0-natural-sweep-fire0",
+      "frames": 10500,
+      "fence_bound_frames": 6859,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 228
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 21071,
+      "worst_pre_wait_frame": 2714,
+      "worst_fence_margin_cycles": 4206,
+      "worst_fence_margin_frame": 2714,
+      "maximum_wall_cycles": 30741,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "director-complete-1-natural-sweep-fire0",
+      "frames": 10500,
+      "fence_bound_frames": 6885,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 228
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 22268,
+      "worst_pre_wait_frame": 3631,
+      "worst_fence_margin_cycles": 2981,
+      "worst_fence_margin_frame": 3631,
+      "maximum_wall_cycles": 30587,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "director-complete-2-natural-sweep-fire0",
+      "frames": 10500,
+      "fence_bound_frames": 6472,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 228
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 20271,
+      "worst_pre_wait_frame": 2859,
+      "worst_fence_margin_cycles": 5006,
+      "worst_fence_margin_frame": 2859,
+      "maximum_wall_cycles": 30892,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "early-enemy-atr-0-cold-hunt-fire4",
+      "frames": 1500,
+      "fence_bound_frames": 732,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 228
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 17976,
+      "worst_pre_wait_frame": 135,
+      "worst_fence_margin_cycles": 7301,
+      "worst_fence_margin_frame": 135,
+      "maximum_wall_cycles": 29756,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "early-enemy-atr-1-cold-hunt-fire4",
+      "frames": 1500,
+      "fence_bound_frames": 740,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 19950,
+      "worst_pre_wait_frame": 135,
+      "worst_fence_margin_cycles": 5299,
+      "worst_fence_margin_frame": 135,
+      "maximum_wall_cycles": 29864,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "early-enemy-atr-2-cold-hunt-fire4",
+      "frames": 1500,
+      "fence_bound_frames": 768,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 19956,
+      "worst_pre_wait_frame": 135,
+      "worst_fence_margin_cycles": 5293,
+      "worst_fence_margin_frame": 135,
+      "maximum_wall_cycles": 29778,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "early-enemy-xex-0-cold-hunt-fire4",
+      "frames": 1500,
+      "fence_bound_frames": 732,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 228
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 17976,
+      "worst_pre_wait_frame": 135,
+      "worst_fence_margin_cycles": 7301,
+      "worst_fence_margin_frame": 135,
+      "maximum_wall_cycles": 29756,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "early-enemy-xex-1-cold-hunt-fire4",
+      "frames": 1500,
+      "fence_bound_frames": 740,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 19950,
+      "worst_pre_wait_frame": 135,
+      "worst_fence_margin_cycles": 5299,
+      "worst_fence_margin_frame": 135,
+      "maximum_wall_cycles": 29864,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "early-enemy-xex-2-cold-hunt-fire4",
+      "frames": 1500,
+      "fence_bound_frames": 768,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 19956,
+      "worst_pre_wait_frame": 135,
+      "worst_fence_margin_cycles": 5293,
+      "worst_fence_margin_frame": 135,
+      "maximum_wall_cycles": 29778,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-atr-5a-0-delayed",
+      "frames": 150,
+      "fence_bound_frames": 150,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 14514,
+      "worst_pre_wait_frame": 119,
+      "worst_fence_margin_cycles": 10751,
+      "worst_fence_margin_frame": 119,
+      "maximum_wall_cycles": 28786,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-atr-5a-0-immediate",
+      "frames": 150,
+      "fence_bound_frames": 150,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 14514,
+      "worst_pre_wait_frame": 119,
+      "worst_fence_margin_cycles": 10751,
+      "worst_fence_margin_frame": 119,
+      "maximum_wall_cycles": 28786,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-atr-5a-1-delayed",
+      "frames": 150,
+      "fence_bound_frames": 150,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 15018,
+      "worst_pre_wait_frame": 95,
+      "worst_fence_margin_cycles": 10247,
+      "worst_fence_margin_frame": 95,
+      "maximum_wall_cycles": 28842,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-atr-5a-1-immediate",
+      "frames": 150,
+      "fence_bound_frames": 150,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 15018,
+      "worst_pre_wait_frame": 95,
+      "worst_fence_margin_cycles": 10247,
+      "worst_fence_margin_frame": 95,
+      "maximum_wall_cycles": 28842,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-atr-5a-2-delayed",
+      "frames": 150,
+      "fence_bound_frames": 150,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 15202,
+      "worst_pre_wait_frame": 95,
+      "worst_fence_margin_cycles": 10063,
+      "worst_fence_margin_frame": 95,
+      "maximum_wall_cycles": 28729,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-atr-5a-2-immediate",
+      "frames": 150,
+      "fence_bound_frames": 150,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 15202,
+      "worst_pre_wait_frame": 95,
+      "worst_fence_margin_cycles": 10063,
+      "worst_fence_margin_frame": 95,
+      "maximum_wall_cycles": 28729,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-atr-a5-0-delayed",
+      "frames": 150,
+      "fence_bound_frames": 150,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 14514,
+      "worst_pre_wait_frame": 119,
+      "worst_fence_margin_cycles": 10751,
+      "worst_fence_margin_frame": 119,
+      "maximum_wall_cycles": 28786,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-atr-a5-0-immediate",
+      "frames": 150,
+      "fence_bound_frames": 150,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 14514,
+      "worst_pre_wait_frame": 119,
+      "worst_fence_margin_cycles": 10751,
+      "worst_fence_margin_frame": 119,
+      "maximum_wall_cycles": 28786,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-atr-a5-1-delayed",
+      "frames": 150,
+      "fence_bound_frames": 150,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 15018,
+      "worst_pre_wait_frame": 95,
+      "worst_fence_margin_cycles": 10247,
+      "worst_fence_margin_frame": 95,
+      "maximum_wall_cycles": 28842,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-atr-a5-1-immediate",
+      "frames": 150,
+      "fence_bound_frames": 150,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 15018,
+      "worst_pre_wait_frame": 95,
+      "worst_fence_margin_cycles": 10247,
+      "worst_fence_margin_frame": 95,
+      "maximum_wall_cycles": 28842,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-atr-a5-2-delayed",
+      "frames": 150,
+      "fence_bound_frames": 150,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 15202,
+      "worst_pre_wait_frame": 95,
+      "worst_fence_margin_cycles": 10063,
+      "worst_fence_margin_frame": 95,
+      "maximum_wall_cycles": 28729,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-atr-a5-2-immediate",
+      "frames": 150,
+      "fence_bound_frames": 150,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 15202,
+      "worst_pre_wait_frame": 95,
+      "worst_fence_margin_cycles": 10063,
+      "worst_fence_margin_frame": 95,
+      "maximum_wall_cycles": 28729,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-restart-atr-a5",
+      "frames": 3200,
+      "fence_bound_frames": 2116,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 228
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 19202,
+      "worst_pre_wait_frame": 491,
+      "worst_fence_margin_cycles": 6047,
+      "worst_fence_margin_frame": 491,
+      "maximum_wall_cycles": 29464,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-restart-xex-a5",
+      "frames": 3200,
+      "fence_bound_frames": 2116,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 228
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 19202,
+      "worst_pre_wait_frame": 491,
+      "worst_fence_margin_cycles": 6047,
+      "worst_fence_margin_frame": 491,
+      "maximum_wall_cycles": 29464,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-xex-5a-0-delayed",
+      "frames": 150,
+      "fence_bound_frames": 150,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 14514,
+      "worst_pre_wait_frame": 119,
+      "worst_fence_margin_cycles": 10751,
+      "worst_fence_margin_frame": 119,
+      "maximum_wall_cycles": 28786,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-xex-5a-0-immediate",
+      "frames": 150,
+      "fence_bound_frames": 150,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 14514,
+      "worst_pre_wait_frame": 119,
+      "worst_fence_margin_cycles": 10751,
+      "worst_fence_margin_frame": 119,
+      "maximum_wall_cycles": 28786,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-xex-5a-1-delayed",
+      "frames": 150,
+      "fence_bound_frames": 150,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 15018,
+      "worst_pre_wait_frame": 95,
+      "worst_fence_margin_cycles": 10247,
+      "worst_fence_margin_frame": 95,
+      "maximum_wall_cycles": 28842,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-xex-5a-1-immediate",
+      "frames": 150,
+      "fence_bound_frames": 150,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 15018,
+      "worst_pre_wait_frame": 95,
+      "worst_fence_margin_cycles": 10247,
+      "worst_fence_margin_frame": 95,
+      "maximum_wall_cycles": 28842,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-xex-5a-2-delayed",
+      "frames": 150,
+      "fence_bound_frames": 150,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 15202,
+      "worst_pre_wait_frame": 95,
+      "worst_fence_margin_cycles": 10063,
+      "worst_fence_margin_frame": 95,
+      "maximum_wall_cycles": 28729,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-xex-5a-2-immediate",
+      "frames": 150,
+      "fence_bound_frames": 150,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 15202,
+      "worst_pre_wait_frame": 95,
+      "worst_fence_margin_cycles": 10063,
+      "worst_fence_margin_frame": 95,
+      "maximum_wall_cycles": 28729,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-xex-a5-0-delayed",
+      "frames": 150,
+      "fence_bound_frames": 150,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 14514,
+      "worst_pre_wait_frame": 119,
+      "worst_fence_margin_cycles": 10751,
+      "worst_fence_margin_frame": 119,
+      "maximum_wall_cycles": 28786,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-xex-a5-0-immediate",
+      "frames": 150,
+      "fence_bound_frames": 150,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 14514,
+      "worst_pre_wait_frame": 119,
+      "worst_fence_margin_cycles": 10751,
+      "worst_fence_margin_frame": 119,
+      "maximum_wall_cycles": 28786,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-xex-a5-1-delayed",
+      "frames": 150,
+      "fence_bound_frames": 150,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 15018,
+      "worst_pre_wait_frame": 95,
+      "worst_fence_margin_cycles": 10247,
+      "worst_fence_margin_frame": 95,
+      "maximum_wall_cycles": 28842,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-xex-a5-1-immediate",
+      "frames": 150,
+      "fence_bound_frames": 150,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 15018,
+      "worst_pre_wait_frame": 95,
+      "worst_fence_margin_cycles": 10247,
+      "worst_fence_margin_frame": 95,
+      "maximum_wall_cycles": 28842,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-xex-a5-2-delayed",
+      "frames": 150,
+      "fence_bound_frames": 150,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 15202,
+      "worst_pre_wait_frame": 95,
+      "worst_fence_margin_cycles": 10063,
+      "worst_fence_margin_frame": 95,
+      "maximum_wall_cycles": 28729,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "engine-xex-a5-2-immediate",
+      "frames": 150,
+      "fence_bound_frames": 150,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 15202,
+      "worst_pre_wait_frame": 95,
+      "worst_fence_margin_cycles": 10063,
+      "worst_fence_margin_frame": 95,
+      "maximum_wall_cycles": 28729,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "flash-2-neutral-nofire",
+      "frames": 1600,
+      "fence_bound_frames": 900,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 228
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 19202,
+      "worst_pre_wait_frame": 331,
+      "worst_fence_margin_cycles": 6047,
+      "worst_fence_margin_frame": 331,
+      "maximum_wall_cycles": 28828,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "lower-playfield-hostile-contact-xex-hard",
+      "frames": 1200,
+      "fence_bound_frames": 900,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 228
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 19202,
+      "worst_pre_wait_frame": 331,
+      "worst_fence_margin_cycles": 6047,
+      "worst_fence_margin_frame": 331,
+      "maximum_wall_cycles": 28828,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "lower-playfield-xex-hard",
+      "frames": 420,
+      "fence_bound_frames": 420,
+      "normal_start_scanline": {
+        "fighter": 18
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 17154,
+      "worst_pre_wait_frame": 129,
+      "worst_fence_margin_cycles": 8095,
+      "worst_fence_margin_frame": 129,
+      "maximum_wall_cycles": 28994,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "memory-integrity-atr-2-evasive-fire4",
+      "frames": 4000,
+      "fence_bound_frames": 2686,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 21381,
+      "worst_pre_wait_frame": 2013,
+      "worst_fence_margin_cycles": 3868,
+      "worst_fence_margin_frame": 2013,
+      "maximum_wall_cycles": 30326,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "memory-integrity-atr-2-hunt-fire4",
+      "frames": 4000,
+      "fence_bound_frames": 2916,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 21070,
+      "worst_pre_wait_frame": 1963,
+      "worst_fence_margin_cycles": 4179,
+      "worst_fence_margin_frame": 1963,
+      "maximum_wall_cycles": 30373,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "memory-integrity-xex-2-evasive-fire4",
+      "frames": 4000,
+      "fence_bound_frames": 2686,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 21381,
+      "worst_pre_wait_frame": 2013,
+      "worst_fence_margin_cycles": 3868,
+      "worst_fence_margin_frame": 2013,
+      "maximum_wall_cycles": 30326,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "memory-integrity-xex-2-hunt-fire4",
+      "frames": 4000,
+      "fence_bound_frames": 2916,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 21070,
+      "worst_pre_wait_frame": 1963,
+      "worst_fence_margin_cycles": 4179,
+      "worst_fence_margin_frame": 1963,
+      "maximum_wall_cycles": 30373,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "raider-remnant-normal-xex-hard",
+      "frames": 3000,
+      "fence_bound_frames": 1916,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 21070,
+      "worst_pre_wait_frame": 1963,
+      "worst_fence_margin_cycles": 4179,
+      "worst_fence_margin_frame": 1963,
+      "maximum_wall_cycles": 30373,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "raider-remnant-rapid-xex-hard",
+      "frames": 3000,
+      "fence_bound_frames": 1916,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 21293,
+      "worst_pre_wait_frame": 1945,
+      "worst_fence_margin_cycles": 3972,
+      "worst_fence_margin_frame": 1945,
+      "maximum_wall_cycles": 30602,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "raider-remnant-spread-xex-hard",
+      "frames": 3000,
+      "fence_bound_frames": 1916,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 20610,
+      "worst_pre_wait_frame": 2719,
+      "worst_fence_margin_cycles": 4655,
+      "worst_fence_margin_frame": 2719,
+      "maximum_wall_cycles": 30718,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "raider-sector-xex-hard",
+      "frames": 1800,
+      "fence_bound_frames": 768,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 19956,
+      "worst_pre_wait_frame": 135,
+      "worst_fence_margin_cycles": 5293,
+      "worst_fence_margin_frame": 135,
+      "maximum_wall_cycles": 29778,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "targeted-2-sweep-fire4",
+      "frames": 920,
+      "fence_bound_frames": 758,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 231
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 19251,
+      "worst_pre_wait_frame": 591,
+      "worst_fence_margin_cycles": 6026,
+      "worst_fence_margin_frame": 591,
+      "maximum_wall_cycles": 30080,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "two-pmg-raiders-xex-hard",
+      "frames": 1000,
+      "fence_bound_frames": 653,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 16608,
+      "worst_pre_wait_frame": 281,
+      "worst_fence_margin_cycles": 8641,
+      "worst_fence_margin_frame": 281,
+      "maximum_wall_cycles": 29454,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "weapon-pickup-2-hunt-fire4",
+      "frames": 4000,
+      "fence_bound_frames": 2916,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 21070,
+      "worst_pre_wait_frame": 1963,
+      "worst_fence_margin_cycles": 4179,
+      "worst_fence_margin_frame": 1963,
+      "maximum_wall_cycles": 30373,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "weapon-pickup-contact-2-hunt-fire4",
+      "frames": 1300,
+      "fence_bound_frames": 768,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 19956,
+      "worst_pre_wait_frame": 135,
+      "worst_fence_margin_cycles": 5293,
+      "worst_fence_margin_frame": 135,
+      "maximum_wall_cycles": 29779,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "weapon-pickup-overlap-2-hunt-fire4",
+      "frames": 1300,
+      "fence_bound_frames": 768,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 230
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 19956,
+      "worst_pre_wait_frame": 135,
+      "worst_fence_margin_cycles": 5293,
+      "worst_fence_margin_frame": 135,
+      "maximum_wall_cycles": 29769,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    },
+    {
+      "session": "weapon-pickup-traversal-2-observe-fire4",
+      "frames": 1800,
+      "fence_bound_frames": 756,
+      "normal_start_scanline": {
+        "fighter": 18,
+        "capital": 229
+      },
+      "distinct_miss_events": 0,
+      "miss_events": [],
+      "overrun_rows": 0,
+      "fence_model_disagreements": 0,
+      "shifted_phase_rows": 0,
+      "worst_pre_wait_cycles": 17747,
+      "worst_pre_wait_frame": 45,
+      "worst_fence_margin_cycles": 7518,
+      "worst_fence_margin_frame": 45,
+      "maximum_wall_cycles": 29452,
+      "rows_over_target": 0,
+      "rows_over_hard_gate": 0,
+      "unreliable_counters": {
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "dli_sequence_violations": 0
+      },
+      "passed": true
+    }
+  ],
+  "distinct_miss_events": 0
+}

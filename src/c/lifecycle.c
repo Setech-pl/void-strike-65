@@ -108,6 +108,15 @@
  * 0 nothing; 1-3 fire, the record's weapon_class; $40 install the appearance.
  * $80 (spawn the deferred breakup) arrives with the token at step 4. */
 #define LIGHT_RETURN_INSTALL     0x40u
+/* PROVISIONAL standalone Interceptor wave (plan §2.4). TEMPORARY, in the same
+ * sense as encounter_heavy_schedule: it exists so a smoke run and the native
+ * replays produce multi-Light frames naturally, and roadmap 4.6's WaveDef
+ * replaces it wholesale. Nothing in the lifecycle depends on this order. */
+#define LIGHT_WAVE_COUNT         3u
+/* Difficulty scales the SPACING, not the count (owner decision 23 §10.6). */
+#define LIGHT_WAVE_SPACING_EASY   64u
+#define LIGHT_WAVE_SPACING_MEDIUM 48u
+#define LIGHT_WAVE_SPACING_HARD   32u
 
 /* Heavy formation presentation: the roster shape is the ASM PMG art index
  * (build/enemy-roster.inc): 0 is the Raider art, 2 SCYTHE_BOMBER (QUAD). */
@@ -235,6 +244,14 @@ static const uint8_t encounter_light_schedule[ENCOUNTER_LIGHT_SCHEDULE_LENGTH] =
     LIGHT_OFFSET_INTERCEPTOR
 };
 
+/* PROVISIONAL wave tables (plan §2.4), replaced by 4.6's WaveDef. Frames
+ * between admissions by difficulty, and the entry columns the members cycle:
+ * four-aligned and inside 48-200, so a member can never step out of the ring. */
+static const uint8_t light_wave_spacing[3] = {
+    LIGHT_WAVE_SPACING_EASY, LIGHT_WAVE_SPACING_MEDIUM, LIGHT_WAVE_SPACING_HARD
+};
+static const uint8_t light_wave_entry_x[LIGHT_WAVE_COUNT] = { 92u, 124u, 156u };
+
 #pragma bss-name ("HYBRID_ENCOUNTER_STATE")
 /* PROVISIONAL smoke scheduling counter; see encounter_light_schedule above. */
 volatile uint8_t encounter_light_index;
@@ -307,6 +324,10 @@ uint8_t light_backing[LIGHT_SLOT_COUNT * LIGHT_CELL_COUNT];
  * shared area so that area stays whole for the token and wave bytes of plan
  * §2.5 and §2.4. */
 uint8_t light_resolve_save;
+/* ASM-owned, C never touches it: the kernel's loop bound for the two-cell
+ * render and for the sixteen-byte glyph copy, both of which need an index
+ * register for the destination and cannot spare one for the count. */
+uint8_t light_cell_end;
 /* The archetype offset whose bitmap each appearance pair currently holds, or
  * LIGHT_APPEARANCE_NONE. This is what makes the glyph install run ONCE per
  * admission instead of on every frame of a Light's life. Policy and
@@ -316,6 +337,13 @@ uint8_t light_appearance_installed[LIGHT_APPEARANCE_PAIRS];
 uint8_t light_ceiling_swarm;
 uint8_t light_ceiling_elite;
 uint8_t light_ceiling_capital;
+/* PROVISIONAL wave state (plan §2.4). light_wave_lock is read by ASM through
+ * _asm_director_can_allocate: a Heavy formation is refused while a wave is
+ * live, which is how Heavy and swarm are kept from ever coexisting. */
+volatile uint8_t light_wave_lock;
+uint8_t light_wave_remaining;
+uint8_t light_wave_timer;
+uint8_t light_wave_entry;
 #pragma bss-name ("HYBRID_LIGHT_STATE")
 /* Shared scalars. light_slot is the slot ASM is ticking and C is indexing;
  * everything else is per-tick scratch. The rest of the 16-byte area is free
@@ -339,6 +367,13 @@ static uint8_t light_fire_work;
 /* The tick body's own return, held while the appearance install decides
  * whether it outranks it. */
 static uint8_t light_tick_result;
+/* Set while a candidate appearance pair is checked against every slot. A flag
+ * rather than a negated compound test: cc65 links bnega for the latter. */
+static uint8_t light_pair_free;
+/* light_admit's inputs. Statics, not parameters: cc65 passes a second argument
+ * on the C software stack and the audit requires zero. */
+static uint8_t light_admit_entry;
+static uint8_t light_admit_state;
 /* The post-burst column: archetype offset + difficulty, resolved at admission
  * and, like light_record, kept a plain index. */
 static uint8_t light_post_burst_slot;
@@ -416,6 +451,10 @@ void lifecycle_c_init(void)
         --light_slot;
         light_appearance_installed[light_slot] = LIGHT_APPEARANCE_NONE;
     } while (light_slot != 0u);
+    light_wave_lock = 0u;
+    light_wave_remaining = 0u;
+    light_wave_timer = 0u;
+    light_wave_entry = 0u;
     light_ceiling_swarm = LIGHT_CEILING_SWARM;
     light_ceiling_elite = LIGHT_CEILING_ELITE;
     light_ceiling_capital = LIGHT_CEILING_CAPITAL;
@@ -515,8 +554,13 @@ uint8_t sector_c_force_final_drain(void)
 
 /* The Light escort admission of a Heavy formation. A Light still descending
  * from an earlier formation keeps its lifecycle. */
-#pragma code-name (push, "HYBRID_C_WINDOW")
-#pragma rodata-name (push, "HYBRID_C_WINDOW_RODATA")
+/* Light-class ADMISSION is cold: it runs on an admission attempt, not on
+ * every frame, so it stays in the resident extension rather than competing
+ * with the hot tick and the ASM kernel for the 1,536-B code window. That
+ * tail is the one owner decision X created: 451 B free before this block.
+ * Cross-segment calls cost nothing - every call here is already a jsr. */
+#pragma code-name (push, "HYBRID_C_EXT")
+#pragma rodata-name (push, "RODATA")
 
 /* How many slots this sector may hold live at once. CAPITAL is fighter-only,
  * so no Light survives it; a Heavy formation on screen leaves room for its
@@ -546,33 +590,148 @@ static uint8_t light_live_count(void)
     return light_work;
 }
 
+/* The first free slot, or LIGHT_SLOT_COUNT when every slot is taken. */
+static uint8_t light_free_slot(void)
+{
+    light_slot = 0u;
+    while (light_slot != LIGHT_SLOT_COUNT) {
+        if (light_state[light_slot] == ENEMY_INACTIVE) {
+            return light_slot;
+        }
+        ++light_slot;
+    }
+    return LIGHT_SLOT_COUNT;
+}
+
+/* Which appearance pair an admission of `light_record` may use, or
+ * LIGHT_APPEARANCE_PAIRS when none may be taken (plan §2.3):
+ *   1. a pair that already holds this archetype - share it, no install;
+ *   2. else a pair no live slot still has on screen - take it and rewrite;
+ *   3. else refuse; the caller retries next frame.
+ * Rule 2's screen test is what stops a freshly freed pair from being
+ * rewritten while its last user's cells are still published: the erase
+ * happens in the kill frame's late window, so the next frame sees hi = 0. */
+static uint8_t light_pair_for_record(void)
+{
+    light_work = 0u;
+    while (light_work != LIGHT_APPEARANCE_PAIRS) {
+        if (light_appearance_installed[light_work] == light_record) {
+            return light_work;
+        }
+        ++light_work;
+    }
+    light_work = 0u;
+    while (light_work != LIGHT_APPEARANCE_PAIRS) {
+        light_fire_work = (uint8_t)(LIGHT_SCREEN_CODE + light_work + light_work);
+        light_pair_free = 1u;
+        light_slot = LIGHT_SLOT_COUNT;
+        do {
+            --light_slot;
+            if (light_code[light_slot] == light_fire_work &&
+                light_screen_hi[light_slot] != 0u) {
+                light_pair_free = 0u;   /* still on screen: the pair is in use */
+            }
+        } while (light_slot != 0u);
+        if (light_pair_free != 0u) {
+            return light_work;
+        }
+        ++light_work;
+    }
+    return LIGHT_APPEARANCE_PAIRS;
+}
+
+/* THE one place a slot is filled. Both admission paths - the Heavy escort and
+ * the provisional wave - come through here, which is what lets plan §2.5 [C3]
+ * make admission a token consumer at step 4 in a single edit. Returns 1 when
+ * a slot was taken.
+ *
+ * Its three inputs are statics, not parameters: cc65 passes a second argument
+ * on the C software stack, and the C-stack audit requires zero. light_record
+ * names the archetype; the entry column is ignored by an escort, which takes
+ * its leader's on its first tick. */
+static uint8_t light_admit(void)
+{
+    light_fire_work = light_ceiling();
+    if (light_fire_work == 0u) {
+        return 0u;                  /* CAPITAL is fighter-only */
+    }
+    if (light_live_count() >= light_fire_work) {
+        return 0u;
+    }
+    if (light_free_slot() == LIGHT_SLOT_COUNT) {
+        return 0u;
+    }
+    light_slot_save = light_slot;   /* light_pair_for_record walks the slots */
+    light_work = light_pair_for_record();
+    if (light_work == LIGHT_APPEARANCE_PAIRS) {
+        return 0u;                  /* rule 3: retry next frame */
+    }
+    light_scratch = (uint8_t)(LIGHT_SCREEN_CODE + light_work + light_work);
+    light_slot = light_slot_save;
+    light_code[light_slot] = light_scratch;
+    light_archetype[light_slot] = light_record;
+    light_work = LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_HIT_POINTS);
+    light_hp[light_slot] = light_work;
+    light_burst_left[light_slot] = 0u;
+    light_y[light_slot] = 0u;
+    light_x[light_slot] = light_admit_entry;
+    light_state[light_slot] = light_admit_state;
+    light_reload();
+    return 1u;
+}
+
+/* The Light escort admission of a Heavy formation. A Light still descending
+ * from an earlier formation keeps its lifecycle. */
 static void encounter_light_admit(void)
 {
-    /* Two calls in one comparison make cc65 push a result; through a scalar it
-     * is a plain cmp, and the C-stack audit stays at zero. */
-    light_fire_work = light_ceiling();
-    if (light_live_count() >= light_fire_work) {
+    encounter_light_schedule_advance();
+    light_admit_entry = LIGHT_X_ENTRY;
+    light_admit_state = light_record == LIGHT_OFFSET_WINGMAN
+        ? LIGHT_ACTIVE_ESCORT       /* takes its leader's column and lag */
+        : LIGHT_ACTIVE_FREE;        /* no leader, ever: free-flying hunter */
+    light_admit();
+}
+
+/* PROVISIONAL standalone Interceptor wave (plan §2.4), once per frame from the
+ * kernel. TEMPORARY, like encounter_heavy_schedule: 4.6's WaveDef replaces it.
+ * enemy_c_recycle arms it when a Heavy formation leaves, so a smoke run and
+ * every native replay alternate Raider + escort, swarm, Bomber pair, swarm.
+ *
+ * The lock is what keeps Heavy and swarm from ever coexisting: ASM's Heavy
+ * retry asks _asm_director_can_allocate, which refuses while it is set. */
+/* The stepper itself runs EVERY frame, unlike the admission it calls, so it
+ * belongs in the window with the rest of the per-frame path. */
+#pragma code-name (push, "HYBRID_C_WINDOW")
+void enemy_c_light_wave(void)
+{
+    if (light_wave_lock == 0u) {
         return;
     }
-    light_slot = 0u;                    /* step 2 still fills slot 0 only */
-    if (light_state[light_slot] == ENEMY_INACTIVE) {
-        encounter_light_schedule_advance();
-        light_work = LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_HIT_POINTS);
-        light_hp[light_slot] = light_work;
-        light_burst_left[light_slot] = 0u;
-        light_y[light_slot] = 0u;
-        light_code[light_slot] = LIGHT_SCREEN_CODE;
-        if (light_record == LIGHT_OFFSET_WINGMAN) {
-            /* takes its leader's column and lag */
-            light_state[light_slot] = LIGHT_ACTIVE_ESCORT;
-        } else {
-            /* no leader, ever: free-flying hunter */
-            light_state[light_slot] = LIGHT_ACTIVE_FREE;
-            light_x[light_slot] = LIGHT_X_ENTRY;
+    if (light_wave_remaining != 0u) {
+        if (light_wave_timer != 0u) {
+            --light_wave_timer;
+            return;                 /* spacing-limited: no admission attempt */
         }
-        light_reload();
+        light_record = LIGHT_OFFSET_INTERCEPTOR;
+        light_admit_entry = light_wave_entry_x[light_wave_entry];
+        light_admit_state = LIGHT_ACTIVE_FREE;
+        if (light_admit() == 0u) {
+            return;                 /* refused: retry next frame */
+        }
+        --light_wave_remaining;
+        ++light_wave_entry;
+        if (light_wave_entry >= LIGHT_WAVE_COUNT) {
+            light_wave_entry = 0u;
+        }
+        light_wave_timer = light_wave_spacing[DIFFICULTY_SETTING];
+        return;
+    }
+    /* The wave is spent; the lock lifts once its last member has gone. */
+    if (light_live_count() == 0u) {
+        light_wave_lock = 0u;
     }
 }
+#pragma code-name (pop)
 
 #pragma code-name (pop)
 #pragma rodata-name (pop)
@@ -624,6 +783,12 @@ void enemy_c_recycle(void)
     /* With no Heavy on screen P1/P2 colour only the capital broadside missiles
      * M1/M2 (PRIOR 0): give them back the Raider faction colour. */
     heavy_hull_colour = HULL_COLOUR_RAIDER;
+    /* PROVISIONAL (plan §2.4): arm the standalone Interceptor wave. The lock
+     * goes up first, so the ASM Heavy retry cannot slip a formation in before
+     * the first member is admitted. */
+    light_wave_lock = 1u;
+    light_wave_remaining = LIGHT_WAVE_COUNT;
+    light_wave_timer = 0u;
 }
 
 /* Once per gameplay frame, per slot. Returns the selected record's weapon
@@ -787,14 +952,20 @@ uint8_t enemy_c_light_hit(void)
  * makes it reusable at both boundaries. */
 uint8_t sector_c_drain_clear(void)
 {
-    /* Step 1a: slot 0 only. Step 3 widens this to every slot, which is why the
-     * clause is written against light_slot rather than against a constant. */
-    light_slot = 0u;
-    if (asm_sector_pressure_active() != 0u ||
-        light_state[light_slot] != ENEMY_INACTIVE ||
-        light_screen_hi[light_slot] != 0u) {
+    if (asm_sector_pressure_active() != 0u) {
         return 0u;
     }
+    /* Step 3: every slot, live or still published. A slot that died in the
+     * kill frame's late window has state 0 but a non-zero screen_hi until the
+     * next window erases it, and the capital must not scroll over that cell. */
+    light_slot = LIGHT_SLOT_COUNT;
+    do {
+        --light_slot;
+        if (light_state[light_slot] != ENEMY_INACTIVE ||
+            light_screen_hi[light_slot] != 0u) {
+            return 0u;
+        }
+    } while (light_slot != 0u);
     return 1u;
 }
 

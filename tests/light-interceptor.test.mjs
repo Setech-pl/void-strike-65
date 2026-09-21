@@ -404,10 +404,15 @@ test("no PMG: no P1/P2 or PMG register touched by the ASM files this task change
   const pmgPattern = /\b(?:PLAYER0|PLAYER1|PLAYER2|PLAYER3|MISSILE0|MISSILE1|MISSILE2|MISSILE3|HPOSP\d|SIZEP\d|GRACTL|PMBASE)\b/;
   assert.doesNotMatch(lightSource, pmgPattern);
   assert.doesNotMatch(abiSource, pmgPattern);
-  // ASM is limited to the ABI equate, the ldx before the score add and the
+  // ASM is limited to the ABI equate, the read before the score add and the
   // adc,x in the 17-byte pad; it must not introduce a second archetype field.
+  // Step 3: the archetype is per-slot, so the two reads are indexed by slot -
+  // one to score a kill, one to pick the art the install copies.
   assert.equal((mainSource.match(/adc LIGHT_SCORE_BCD,x/g) ?? []).length, 1);
-  assert.equal((lightSource.match(/ldx LIGHT_ARCHETYPE_OFFSET/g) ?? []).length, 1);
+  assert.equal((lightSource.match(/lda LIGHT_ARCHETYPE_OFFSET,x/g) ?? []).length, 2);
+  // Only the comment on the LIGHT_SCORE_BCD equate names it unindexed.
+  assert.equal((lightSource.match(/^\s+\S+\s+LIGHT_ARCHETYPE_OFFSET(?!,x)/gm) ?? []).length, 0,
+    "the archetype is never read as a scalar now that it is per-slot");
 });
 
 test("weapon_class visuals: Raider PULSE publishes $DA/$E4, the Interceptor LASER bolt $E5, and the resolver restores both", () => {

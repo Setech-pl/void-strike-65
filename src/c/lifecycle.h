@@ -31,5 +31,7 @@ void enemy_c_recycle(void);
 uint8_t enemy_c_heavy_tick(void);
 uint8_t enemy_c_light_tick(void);
 uint8_t enemy_c_light_hit(void);
+/* PROVISIONAL standalone Interceptor wave (plan §2.4), once per frame. */
+void enemy_c_light_wave(void);
 
 #endif

@@ -40,15 +40,16 @@ DIRECTOR_LOW_BYTES = 242
 .import _enemy_c_retire_member
 .import _enemy_c_apply_pending_damage
 .import _enemy_c_recycle
-.import _enemy_c_light_tick, _enemy_c_light_hit
+.import _enemy_c_light_tick, _enemy_c_light_hit, _enemy_c_light_wave
 .import _enemy_c_heavy_tick
 .import _heavy_member_x, _heavy_hull_colour, _heavy_archetype_offset
 .import _heavy_member_colour
 .import _enemy_archetypes
 .import _light_state, _light_hp, _light_x, _light_y, _light_fire_timer
 .import _light_screen_lo, _light_screen_hi
-.import _light_backing, _light_resolve_save, _light_scratch, _light_slot_save
-.import _light_slot, _light_archetype, _light_code
+.import _light_backing, _light_resolve_save, _light_cell_end
+.import _light_scratch, _light_slot_save
+.import _light_slot, _light_archetype, _light_code, _light_wave_lock
 .import _enemy_profile_movement_id, _enemy_profile_fire_policy_id
 .import _enemy_profile_burst_count, _enemy_profile_burst_interval
 .import _enemy_profile_post_burst_frames, _enemy_profile_renderer_class
@@ -94,13 +95,14 @@ DIRECTOR_LOW_BYTES = 242
 .export enemy_profile_post_burst_frames, enemy_profile_renderer_class
 .export enemy_profile_weapon_class, enemy_profile_score_bcd
 .export enemy_profile_director_value
-.export enemy_light_tick, enemy_light_hit
+.export enemy_light_tick, enemy_light_hit, enemy_light_wave
 .export enemy_heavy_tick, heavy_member_x, heavy_hull_colour, heavy_archetype_offset
 .export heavy_member_colour, build_hostile_weapon_glyphs
 .export light_state, light_hp, light_x, light_y, light_fire_timer
 .export light_screen_lo, light_screen_hi
 .export light_backing0, light_backing1, light_scratch, light_slot_save
 .export light_slot, light_archetype_offset, light_code, light_resolve_save
+.export light_cell_end
 
 .segment "DIRECTOR_ABI"
 
@@ -250,6 +252,8 @@ heavy_hull_colour = _heavy_hull_colour
 heavy_member_colour = _heavy_member_colour
 heavy_archetype_offset = _heavy_archetype_offset
 enemy_light_hit = _enemy_c_light_hit
+; PROVISIONAL standalone wave stepper, once per frame (plan §2.4).
+enemy_light_wave = _enemy_c_light_wave
 light_state = _light_state
 light_hp = _light_hp
 light_x = _light_x
@@ -268,6 +272,7 @@ light_backing0 = _light_backing
 light_backing1 = _light_backing+1
 ; ASM-owned scratch: the resolver's hold for the caller's X.
 light_resolve_save = _light_resolve_save
+light_cell_end = _light_cell_end
 light_scratch = _light_scratch
 light_slot_save = _light_slot_save
 ; The slot C indexes and ASM is ticking. Step 1a writes 0 and nothing else.
@@ -318,12 +323,21 @@ hybrid_arena_anchor:
 ; Nothing reaches it by address - C calls it by name - so only the arena's own
 ; size changes. Step 3 adds the wave lock here, where there is room for it.
 _asm_director_can_allocate:
+    ; Plan §2.4: Heavy and swarm never coexist. A live provisional wave refuses
+    ; the ASM Heavy retry here, where there is room for the test, rather than
+    ; in director_c_request, which has none. The other direction needs no test:
+    ; the wave is armed by enemy_c_recycle, after the formation has gone.
+    lda _light_wave_lock
+    bne @deny
     lda PLAYER_LIFECYCLE
     lsr
     lda #$00
     bcs :+
     lda #$01
 :
+    rts
+@deny:
+    lda #$00
     rts
 
 ; Heavy formation lifecycle veneers (roadmap 4.5c). C selects the formation

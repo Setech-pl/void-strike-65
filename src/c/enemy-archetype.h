@@ -102,6 +102,7 @@ extern uint8_t light_screen_hi[LIGHT_SLOT_COUNT_ABI];
 extern uint8_t light_backing[LIGHT_SLOT_COUNT_ABI * LIGHT_CELL_COUNT_ABI];
 /* ASM-owned scratch for the backing resolver; C never touches it. */
 extern uint8_t light_resolve_save;
+extern uint8_t light_cell_end;
 extern volatile uint8_t light_scratch;
 extern volatile uint8_t light_slot_save;
 /* Selected Light archetype per slot (byte offset into enemy_archetypes[]),

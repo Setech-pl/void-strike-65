@@ -68,8 +68,10 @@ test("C EnemyArchetype is a compact exact Raider record in legal extension place
   // Step 1b then took light_publish and light_top out of LIGHT_CODE into the
   // kernel's own link, leaving only the shared debris publication: 548 - 136
   // = 412. What remains in LIGHT_CODE was never Light-only.
+  // Step 2: lifecycle_c_init gained the appearance and ceiling reset, which is
+  // the only Light-class code still in this composite: 412 + 36 = 448.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
-    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 412 });
+    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 448 });
   const window = manifest.residentCapacity.basicWindow;
   assert.equal(window.address, 0xb600, "the Light C lives in the code window");
   assert.ok(window.usedBytes > 0 && window.usedBytes <= window.capacityBytes,
@@ -192,9 +194,14 @@ test("ownership is singular and generated C requires neither software stack nor 
   // so roadmap 4.9's level boundary reuses it rather than writing a second one.
   // It is a C function in the arena calling out of the window composite, which
   // is why it appears here; it still needs no stack and no runtime helper.
+  // Step 2 adds three: enemy_c_light_tick wraps _light_tick_body so the
+  // appearance install can replace the return without swallowing the body's
+  // motion and cadence, and the admission asks _light_ceiling and
+  // _light_live_count before it fills a slot.
   assert.deepEqual([...executableGenerated.matchAll(/\bjsr\s+([^\s;]+)/g)].map((match) => match[1]),
     ["_asm_sector_pressure_active", "_sector_c_drain_clear", "_heavy_publish_profile",
       "_encounter_light_admit",
       "_bomber_may_fire", "_bomber_turn", "_bomber_turn", "_bomber_turn", "_bomber_may_fire",
-      "_bomber_colour", "_light_reload", "_encounter_light_schedule_advance"]);
+      "_bomber_colour", "_light_tick_body", "_light_ceiling", "_light_live_count",
+      "_encounter_light_schedule_advance", "_light_reload"]);
 });

@@ -155,15 +155,6 @@ director_rng_advance:
     lda _director_argument_abi
     rts
 
-; No-argument C primitive. Current allocator gate is player lifecycle state.
-_asm_director_can_allocate:
-    lda PLAYER_LIFECYCLE
-    lsr
-    lda #$00
-    bcs :+
-    lda #$01
-:
-    rts
 
 ; No-argument C semantic query. A is nonzero while either the current Heavy
 ; formation or one of its five already-released PairShots remains active.
@@ -319,6 +310,20 @@ light_code = _light_code
 .segment "HYBRID_ASM_ARENA"
 ; Smallest valid non-empty record anchor: a harmless return, never called.
 hybrid_arena_anchor:
+    rts
+
+; No-argument C primitive. Current allocator gate is player lifecycle state.
+; Light multiplicity step 2: moved here from DIRECTOR_ABI, which had a 0-byte
+; free tail against its real neighbour PICKUP_CODE at $8776 and now has 8.
+; Nothing reaches it by address - C calls it by name - so only the arena's own
+; size changes. Step 3 adds the wave lock here, where there is room for it.
+_asm_director_can_allocate:
+    lda PLAYER_LIFECYCLE
+    lsr
+    lda #$00
+    bcs :+
+    lda #$01
+:
     rts
 
 ; Heavy formation lifecycle veneers (roadmap 4.5c). C selects the formation

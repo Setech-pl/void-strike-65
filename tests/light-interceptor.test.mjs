@@ -74,6 +74,10 @@ function game(difficulty = 2) {
 // free); and light_post_burst_slot is gone, recomputed per reload from the
 // archetype offset and the difficulty (plan §2.1 "derived and dropped"), so
 // the assertion that used to read it now reads the pause it produces.
+// Step 2: the appearance install is hoisted onto the admission frame, so a
+// freshly admitted Light spends its FIRST tick returning this instead of 0.
+// The body still runs in full there, so every frame index below is unchanged.
+const LIGHT_RETURN_INSTALL = 0x40;
 const SLOT = 0;
 const light = (image, slot = SLOT) => ({
   state: image[L("light_state") + slot] === 0 ? 0 : 1,
@@ -144,8 +148,12 @@ test("source contract: the Light admission and tick hold no ordering or toggle l
     lifecycleSource.indexOf("uint8_t enemy_c_retire_member"));
   assert.doesNotMatch(spawnRaiders, /light_archetype\[[^\]]*\]\s*=(?!=)/,
     "enemy_c_spawn_raiders must not itself assign the offset outside the schedule call");
+  // Step 2: the motion and cadence live in light_tick_body; enemy_c_light_tick
+  // wraps it so the appearance install can replace the return without
+  // swallowing the body. The offset is hoisted once, in the body, and nowhere
+  // else - which is the contract this test is about.
   const lightTick = lifecycleSource.slice(
-    lifecycleSource.indexOf("uint8_t enemy_c_light_tick"));
+    lifecycleSource.indexOf("static uint8_t light_tick_body"));
   assert.doesNotMatch(lightTick, /light_archetype\[[^\]]*\]\s*=(?!=)/,
     "enemy_c_light_tick only reads the offset");
   // The tick hoists it once, and only there.
@@ -272,7 +280,9 @@ test("single laser bolt cadence: burst 1, post 56/44/32, 1/2/3 shots per pass, t
     const observed = [];
     for (let frame = 0; frame < 200 && light(image).state !== 0; frame += 1) {
       const { a } = run(image, "enemy_light_tick");
-      if (a) {
+      if (a === LIGHT_RETURN_INSTALL) {
+        assert.equal(frame, 0, "only the admission frame installs an appearance");
+      } else if (a) {
         observed.push(frame);
         assert.equal(a, LASER, "a firing tick returns the record's weapon_class");
       }
@@ -285,6 +295,8 @@ test("fire is gated by visibility and by the player dying, exactly like the Wing
   const image = game();
   selectNextLight(image, OFFSET_INTERCEPTOR);
   run(image, "enemy_spawn_raiders");
+  // Spend the admission frame's appearance install before poking the cadence.
+  assert.equal(run(image, "enemy_light_tick").a, LIGHT_RETURN_INSTALL);
   image[L("light_fire_timer")] = 0;
   image[L("light_y")] = 10;           // below LIGHT_FIRE_TOP (24)
   assert.equal(run(image, "enemy_light_tick").a, 0);
@@ -335,10 +347,9 @@ test("placement contract: legal composite and packed size, state inside its rese
   // Scarce: the owner floor is 16 B; below it the next change needs a decision.
   assert.ok(manifest.residentCapacity.tails.hybridCExtension >= 16,
     `free HYBRID_C_EXT tail ${manifest.residentCapacity.tails.hybridCExtension} B`);
-  // Visual identity (4.4b): both 16-byte Light art tables are the ENTITY_CODE
-  // tail, LIGHT_RESIDENT loses the Wingman art but gains the selection.
-  // Weapon visuals (4.4c): the Light emit tags the shot with weapon_class (+4 B).
-  assert.equal(manifest.lightWingman.residentBytes, 229);
+  // Step 1b: LIGHT_RESIDENT is gone from the main link - the whole kernel is
+  // its own link in the code window - so the pickup stream starts $8776 itself.
+  assert.equal(manifest.lightWingman.residentBytes, 0);
   // Emitter-independent hostile shots (2026-09-17): the 27-B Raider-kill
   // projectile cleanup left ENTITY_CODE, so the art tables moved down 27 B.
   // Death-frame deferral (2026-09-17): player_dying_tick (+18 B) is the new
@@ -349,13 +360,15 @@ test("placement contract: legal composite and packed size, state inside its rese
   // here rather than left red under a placement change.
   assert.equal(manifest.entityEffects.codeBytes, 3165);
   assert.equal(manifest.residentCapacity.tails.entityCode, 1);
-  // 4.5c Bomber: HEAVY_CODE joins the extension composite; PICKUP_CODE +4 B.
-  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 7);
-  // Owner decision X + Light multiplicity step 1a: the Light C left the
-  // extension for the code window at $B600, so the scarce 19-B tail that
-  // needed an owner floor is now 351 B - the largest resident hole since
-  // 4.3 Stage 1, and one of the two reasons the decision was taken.
-  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 351);
+  // Step 1b: LIGHT_RESIDENT's 229 B left the pickup stream with the kernel.
+  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 236);
+  // Owner decision X + Light multiplicity steps 1a-2: the Light C left the
+  // extension for the code window at $B600 and the kernel left for its own
+  // link, so the scarce 19-B tail that needed an owner floor is now 451 B -
+  // the largest resident hole since 4.3 Stage 1, and one of the two reasons
+  // the decision was taken. (Step 2 spent 36 B of it on the appearance and
+  // ceiling reset in lifecycle_c_init, which stays in this composite.)
+  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 451);
   assert.equal(L("light_glyph"), 0x9d2b);
   assert.equal(L("light_interceptor_glyph"), 0x9d3b);
   // REBASELINED for Light multiplicity: HYBRID_LIGHT_STATE keeps only the
@@ -417,6 +430,11 @@ test("weapon_class visuals: Raider PULSE publishes $DA/$E4, the Interceptor LASE
   // Interceptor: the real Light emit tags the shot with the C-returned class.
   selectNextLight(image, OFFSET_INTERCEPTOR);
   run(image, "enemy_spawn_raiders");
+  image[L("light_x")] = 100;
+  image[L("light_y")] = 100;
+  // Spend the admission frame's appearance install first: it is the one return
+  // that outranks a fire, and this test pokes the cadence to zero.
+  run(image, "light_update");
   image[L("light_x")] = 100;
   image[L("light_y")] = 100;
   image[L("light_fire_timer")] = 0;

@@ -978,6 +978,66 @@ milestones move +22 in total (loader 297 → 319, menu 554 → 576), inside the
 `boot-deadline-baseline.json`; boot smoke 8/8, and the image at `$A600` is
 now verified byte-exact against `build/level-1.bin` on every session.
 
+### Light multiplicity step 2 (2026-09-21) — the glyph install is hoisted; ceilings
+
+The 16-byte bitmap copy used to run on **every frame of a Light's life**,
+because nothing tracked what the glyph pair held and `copy_charset` rebuilds
+glyphs 120-125 at each new game. C now owns that bookkeeping
+(`light_appearance_installed[3]`, reset to `$FF` by `lifecycle_c_init`) and
+asks for the copy once, through the tick's exclusive return `$40`.
+
+`enemy_c_light_tick` became a wrapper around `light_tick_body`: the body runs
+in **full** on the admission frame — motion, retirement and fire cadence are
+unchanged — and the install only replaces the RETURN, because the kernel can
+perform one action per tick. Asking the tick consumes the decision (C marks the
+pair as it returns), which is safe because nothing calls it twice in a frame.
+
+**CPU, MEASURED (`measure-population-cost-deltas.mjs`, HARD, 700 frames,
+n = 282 Light-alive frames), marginal cost of one Light, pre-fence:**
+
+| | mean | min | max |
+| --- | ---: | ---: | ---: |
+| `82c155b`, before this work | 412 | 381 | 1,771 |
+| after step 1c | 491 | 454 | 1,886 |
+| **after step 2** | **257** | **221** | **1,652** |
+
+So the hoist itself is **−234 mean**, and steps 1a-1c had added +79 (the SoA
+indexing and the vector table). Net against `82c155b`: **−155 mean, −38 %**.
+The plan expected ~147; the difference is the +79 its estimate did not carry.
+
+**The worst frame moved the other way.** Native `2-sweep-fire4`, 920 frames:
+worst pre-fence 19,222 → **19,294 (+72)**, margin 6,043 → **5,983**, max wall
+29,455 → 29,456, 0 miss events. The install always ran on the admission frame
+too, so that frame loses nothing and gains the new admission bookkeeping —
+`light_ceiling()` and the four-slot `light_live_count()`, which
+`encounter_light_admit` now asks on every `enemy_spawn_raiders`. The hoist
+trades ~234 cycles off every standing Light frame for ~72 on the admission
+frame, which in this replay is the binding one.
+
+| Range | Bytes | Owner |
+| --- | ---: | --- |
+| `$7FC4-$7FFA` | 55 | `HYBRID_LIGHT_SLOTS`: the slot arrays, `light_resolve_save`, `light_appearance_installed[3]` and the three ceiling policy bytes |
+| `$7FFB-$7FFF` | **5 free** | — |
+| `$B600-$B8D9` | 730 | `HYBRID_C_WINDOW` — the Light C |
+| `$B8DA-$BAAD` | 468 | `LIGHT_KERNEL` — the Light ASM kernel |
+| `$BAAE-$BBFF` | **338 free** | — |
+
+The ceilings are policy BYTES, not constants, so a harness test can poke one
+without a build flag; `lifecycle_c_init` restores 3 / 1 / 0 (SWARM / ELITE /
+CAPITAL). The shipped SWARM ceiling stays conditional on the native
+three-Light measurement of plan §4.3.
+
+**Free tails (MEASURED).** `DIRECTOR_ABI` **0 → 11 B**:
+`_asm_director_can_allocate` moved to `HYBRID_ASM_ARENA`, which is where step 3
+adds the wave lock and where there is room for it; the arena is 165 B free
+(was 176). `HYBRID_C_EXT` 487 → **451 B** — `lifecycle_c_init` gained the
+appearance and ceiling reset, the only Light-class code still in that
+composite. Code window tail 485 → 338 B. Unchanged: pickup stream fill 236,
+`ENTITY_CODE` 1, A2 19, `SECTOR_READER` 70, BROADSIDE 3,
+`HYBRID_LIGHT_STATE` 8. Transport unchanged at 198 sectors and the boot
+milestones do not move (XEX 134/391, ATR 325/582), so the baseline is not
+re-recorded.
+
 ### Light multiplicity step 1c (2026-09-21) — the backing resolver is keyed by screen address
 
 `light_cell_resolve` used to read the Light code as a cell index. That was

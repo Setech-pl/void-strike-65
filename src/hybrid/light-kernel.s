@@ -53,6 +53,8 @@ LIGHT_CELL_COUNT = 2
 LIGHT_SLOT_COUNT = 4
 LIGHT_APPEARANCE_PAIRS = 3
 LIGHT_CODE_COUNT = LIGHT_APPEARANCE_PAIRS*LIGHT_CELL_COUNT
+; The tick's exclusive return byte; src/c/lifecycle.c holds the same value.
+LIGHT_RETURN_INSTALL = $40
 LIGHT_GLYPH_BYTES = LIGHT_HEIGHT_SCANLINES*LIGHT_CELL_COUNT
 ; ENEMY_ARCHETYPE_OFFSET(ENEMY_ARCHETYPE_INTERCEPTOR) in src/c/enemy-archetype.h;
 ; tests/source-contracts.test.mjs cross-checks the two.
@@ -179,11 +181,19 @@ light_top:
 
 ; After entity/effect simulation: C decides motion and fire; ASM performs the
 ; PairShot emission, the glyph install and the player contact test.
+;
+; The tick's return byte is EXCLUSIVE - one action per tick (plan §2.2):
+;   0        nothing
+;   1-3      fire, the record's weapon_class
+;   $40      install this slot's appearance (admission frame only)
+; $80, the deferred breakup spawn, arrives with the token at step 4.
 light_update:
     jsr entity_effects_update
     jsr ENEMY_LIGHT_TICK
     tay
     beq @alive
+    cpy #LIGHT_RETURN_INSTALL
+    beq @install
     ldx #INTERCEPTOR_PROJECTILE_SLOT_BASE
 @find:
     lda FIGHTER_PROJECTILE_ACTIVE,x
@@ -211,22 +221,6 @@ light_update:
 @alive:
     lda LIGHT_STATE
     beq @done
-    ; Reinstalled every active frame (16 bytes, no latch): copy_charset rebuilds
-    ; glyphs 120/121 from the frontend source at each new game. C names the
-    ; record; ASM only picks the matching art (Y = source end, X = glyph end).
-    ldy #(LIGHT_GLYPH_BYTES-1)
-    lda LIGHT_ARCHETYPE_OFFSET
-    cmp #LIGHT_OFFSET_INTERCEPTOR
-    bne :+
-    ldy #(LIGHT_GLYPH_BYTES*2-1)
-:
-    ldx #(LIGHT_GLYPH_BYTES-1)
-@glyph:
-    lda light_glyph,y
-    sta CHARSET+LIGHT_GLYPH*8,x
-    dey
-    dex
-    bpl @glyph
 @contact:
     lda PLAYER_LIFECYCLE
     lsr                          ; DYING/GAME OVER are odd: no contact
@@ -259,6 +253,32 @@ light_update:
     bne light_destroyed
 @done:
     rts
+
+; The 16-byte bitmap copy, hoisted out of every frame (plan §2.2). It used to
+; run on every frame of a Light's life because nothing tracked what the glyph
+; pair held - copy_charset rebuilds glyphs 120-125 from the frontend source at
+; each new game, so the kernel simply rewrote them constantly. C now owns that
+; bookkeeping (light_appearance_installed) and asks for the copy once, on the
+; admission frame. MEASURED saving: see the commit for this step.
+;
+; C names the record; ASM only picks the matching art (Y = source end,
+; X = glyph end). The destination is pair 0's bitmap: step 3 introduces the
+; other two pairs and is where this operand becomes the slot's own code.
+@install:
+    ldy #(LIGHT_GLYPH_BYTES-1)
+    lda LIGHT_ARCHETYPE_OFFSET
+    cmp #LIGHT_OFFSET_INTERCEPTOR
+    bne :+
+    ldy #(LIGHT_GLYPH_BYTES*2-1)
+:
+    ldx #(LIGHT_GLYPH_BYTES-1)
+@glyph:
+    lda light_glyph,y
+    sta CHARSET+LIGHT_GLYPH*8,x
+    dey
+    dex
+    bpl @glyph
+    jmp @alive
 
 ; Player PairShot scan, X = projectile slot. Carry clear consumes the slot as
 ; the debris path does; otherwise defer to the existing debris/Raider target.

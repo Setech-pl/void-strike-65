@@ -288,6 +288,10 @@ test("Light Wingman and Interceptor shots survive the Light's destruction", () =
     image[L("PLAYER_LIFECYCLE")] = 0;
     image[L("player_x")] = 200;
     image[L("player_y")] = 60;
+    // Light multiplicity step 2: the appearance install is hoisted onto the
+    // admission frame and is the one tick return that outranks a fire, so
+    // spend that frame before poking the cadence to zero.
+    run(image, "light_update");
     if (offset === 24) image[L("light_y")] = 100;  // leaderless: fully visible
     image[L("light_fire_timer")] = 0;
     run(image, "light_update");

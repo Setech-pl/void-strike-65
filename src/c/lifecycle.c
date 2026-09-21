@@ -90,6 +90,24 @@
  * three appearance pairs 120/121, 122/123 and 124/125; until then every slot
  * carries pair 0 and the ASM uses its own constant. */
 #define LIGHT_SCREEN_CODE        0xF8u
+/* Three appearance pairs share the six retired pickup codes (120/121,
+ * 122/123, 124/125). Step 2 only ever uses pair 0; step 3 allocates them. */
+#define LIGHT_APPEARANCE_PAIRS   3u
+/* No bitmap has been written into a pair yet. copy_charset rebuilds glyphs
+ * 120-125 from the frontend source at every new game, so this is the value
+ * lifecycle_c_init must restore - not zero, which is a real archetype offset. */
+#define LIGHT_APPEARANCE_NONE    0xFFu
+/* How many slots a sector may fill (owner decision 23 §10.7; the shipped
+ * SWARM ceiling stays conditional on the native three-Light measurement,
+ * plan §4.3). They are policy BYTES, not constants, so a harness test can
+ * poke one without a build flag; these are the values init restores. */
+#define LIGHT_CEILING_SWARM      3u
+#define LIGHT_CEILING_ELITE      1u
+#define LIGHT_CEILING_CAPITAL    0u
+/* enemy_c_light_tick's return byte is exclusive: one action per tick.
+ * 0 nothing; 1-3 fire, the record's weapon_class; $40 install the appearance.
+ * $80 (spawn the deferred breakup) arrives with the token at step 4. */
+#define LIGHT_RETURN_INSTALL     0x40u
 
 /* Heavy formation presentation: the roster shape is the ASM PMG art index
  * (build/enemy-roster.inc): 0 is the Raider art, 2 SCYTHE_BOMBER (QUAD). */
@@ -289,6 +307,15 @@ uint8_t light_backing[LIGHT_SLOT_COUNT * LIGHT_CELL_COUNT];
  * shared area so that area stays whole for the token and wave bytes of plan
  * §2.5 and §2.4. */
 uint8_t light_resolve_save;
+/* The archetype offset whose bitmap each appearance pair currently holds, or
+ * LIGHT_APPEARANCE_NONE. This is what makes the glyph install run ONCE per
+ * admission instead of on every frame of a Light's life. Policy and
+ * bookkeeping rather than hot scratch, so they live here beside the slots and
+ * leave the 16-byte shared area for the token and wave state. */
+uint8_t light_appearance_installed[LIGHT_APPEARANCE_PAIRS];
+uint8_t light_ceiling_swarm;
+uint8_t light_ceiling_elite;
+uint8_t light_ceiling_capital;
 #pragma bss-name ("HYBRID_LIGHT_STATE")
 /* Shared scalars. light_slot is the slot ASM is ticking and C is indexing;
  * everything else is per-tick scratch. The rest of the 16-byte area is free
@@ -309,6 +336,9 @@ static uint8_t light_record;
  * and one for the fire cadence at the same time. Deliberately NOT the volatile
  * light_scratch, which ASM owns inside light_update and light_shot. */
 static uint8_t light_fire_work;
+/* The tick body's own return, held while the appearance install decides
+ * whether it outranks it. */
+static uint8_t light_tick_result;
 /* The post-burst column: archetype offset + difficulty, resolved at admission
  * and, like light_record, kept a plain index. */
 static uint8_t light_post_burst_slot;
@@ -379,6 +409,16 @@ void lifecycle_c_init(void)
         light_code[light_slot] = LIGHT_SCREEN_CODE;
         light_archetype[light_slot] = LIGHT_OFFSET_WINGMAN;
     } while (light_slot != 0u);
+    /* copy_charset has just rebuilt glyphs 120-125 from the frontend source,
+     * so no pair holds a Light bitmap however this game was reached. */
+    light_slot = LIGHT_APPEARANCE_PAIRS;
+    do {
+        --light_slot;
+        light_appearance_installed[light_slot] = LIGHT_APPEARANCE_NONE;
+    } while (light_slot != 0u);
+    light_ceiling_swarm = LIGHT_CEILING_SWARM;
+    light_ceiling_elite = LIGHT_CEILING_ELITE;
+    light_ceiling_capital = LIGHT_CEILING_CAPITAL;
     encounter_light_index = 0u;
     encounter_heavy_index = 0u;
     ENEMY_ARCHETYPE = ROSTER_SHAPE_RAIDER;
@@ -478,9 +518,43 @@ uint8_t sector_c_force_final_drain(void)
 #pragma code-name (push, "HYBRID_C_WINDOW")
 #pragma rodata-name (push, "HYBRID_C_WINDOW_RODATA")
 
+/* How many slots this sector may hold live at once. CAPITAL is fighter-only,
+ * so no Light survives it; a Heavy formation on screen leaves room for its
+ * escort and nothing more (plan §2.4); otherwise the swarm ceiling applies. */
+static uint8_t light_ceiling(void)
+{
+    if (CAPITAL_SECTOR_STATE != SECTOR_FIGHTER) {
+        return light_ceiling_capital;
+    }
+    if (ENEMY_ACTIVE != ENEMY_INACTIVE) {
+        return light_ceiling_elite;
+    }
+    return light_ceiling_swarm;
+}
+
+/* Live slots, counted rather than kept: a four-byte scan, at admission only. */
+static uint8_t light_live_count(void)
+{
+    light_work = 0u;
+    light_slot = LIGHT_SLOT_COUNT;
+    do {
+        --light_slot;
+        if (light_state[light_slot] != ENEMY_INACTIVE) {
+            ++light_work;
+        }
+    } while (light_slot != 0u);
+    return light_work;
+}
+
 static void encounter_light_admit(void)
 {
-    light_slot = 0u;                    /* step 1a fills slot 0 only */
+    /* Two calls in one comparison make cc65 push a result; through a scalar it
+     * is a plain cmp, and the C-stack audit stays at zero. */
+    light_fire_work = light_ceiling();
+    if (light_live_count() >= light_fire_work) {
+        return;
+    }
+    light_slot = 0u;                    /* step 2 still fills slot 0 only */
     if (light_state[light_slot] == ENEMY_INACTIVE) {
         encounter_light_schedule_advance();
         light_work = LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_HIT_POINTS);
@@ -552,12 +626,14 @@ void enemy_c_recycle(void)
     heavy_hull_colour = HULL_COLOUR_RAIDER;
 }
 
-/* Once per gameplay frame. Returns the selected record's weapon class (never
- * zero) when the Light fires, 0 otherwise; ASM tags the shot with it. */
+/* Once per gameplay frame, per slot. Returns the selected record's weapon
+ * class (never zero) when the Light fires, 0 otherwise; ASM tags the shot
+ * with it. enemy_c_light_tick below wraps this to apply the appearance
+ * install, which is the one return that outranks a fire. */
 #pragma code-name (push, "HYBRID_C_WINDOW")
 #pragma rodata-name (push, "HYBRID_C_WINDOW_RODATA")
 
-uint8_t enemy_c_light_tick(void)
+static uint8_t light_tick_body(void)
 {
     /* ASM sets light_slot before the call; step 1a always passes slot 0. */
     if (light_state[light_slot] == ENEMY_INACTIVE) {
@@ -642,6 +718,36 @@ uint8_t enemy_c_light_tick(void)
         light_reload();
     }
     return LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_WEAPON);
+}
+
+/* The tick ASM calls. The body above runs in full - motion, retirement and
+ * fire cadence all happen on the admission frame exactly as before - and the
+ * appearance install only replaces the RETURN, because the tick's return byte
+ * is exclusive (plan §2.2) and ASM can perform one action per tick.
+ *
+ * Dropping a fire to install is possible in principle and unreachable in
+ * practice: an install is pending only on a slot's first tick, and admission
+ * has just called light_reload, so its fire timer is 56-96 frames from zero.
+ * The install wins if they ever did collide, because the bitmap has to be
+ * right before the slot's first render, whereas a shot can wait a frame. */
+uint8_t enemy_c_light_tick(void)
+{
+    light_tick_result = light_tick_body();
+    if (light_state[light_slot] == ENEMY_INACTIVE) {
+        return light_tick_result;      /* retired, or never admitted */
+    }
+    /* Which appearance pair this slot's code names. Narrowed before the shift:
+     * on the promoted int cc65 links shrax1. */
+    light_work = (uint8_t)(light_code[light_slot] - LIGHT_SCREEN_CODE);
+    light_work >>= 1u;
+    if (light_appearance_installed[light_work] != light_record) {
+        /* Marked as it is returned: asking the tick CONSUMES the decision, and
+         * the kernel is trusted to act on that same return. Nothing calls the
+         * tick twice in a frame, and nothing may start. */
+        light_appearance_installed[light_work] = light_record;
+        return LIGHT_RETURN_INSTALL;
+    }
+    return light_tick_result;
 }
 
 /* One damage unit from a player PairShot or contact. ASM calls this only for

@@ -74,6 +74,12 @@ function game(difficulty = 2) {
 // four-byte array and slot 0 is what these tests drive. light_leaderless is
 // gone - it is now the light_state VALUE (1 escort, 2 free), so the derived
 // field below keeps the old assertions readable without keeping the byte.
+// Step 2: the appearance install is hoisted out of every frame onto the
+// admission frame, so a freshly admitted Light spends its FIRST tick returning
+// LIGHT_RETURN_INSTALL instead of 0. The tick body still runs in full there -
+// motion, retirement and fire cadence are all unchanged - so only that one
+// return differs, and the frame indices below are the same as before.
+const LIGHT_RETURN_INSTALL = 0x40;
 const SLOT = 0;
 const light = (image, slot = SLOT) => ({
   state: image[L("light_state") + slot] === 0 ? 0 : 1,
@@ -233,7 +239,10 @@ test("single-shot fire policy is slower than the Heavy burst and gated by visibi
   setLeader(image, 100, 100);
   const fires = [];
   for (let frame = 0; frame < 200; frame += 1) fires.push(run(image, "enemy_light_tick").a);
-  assert.deepEqual(fires.flatMap((value, frame) => value ? [frame] : []), [64, 129, 194]);
+  assert.equal(fires[0], LIGHT_RETURN_INSTALL, "the admission frame installs the appearance");
+  assert.deepEqual(
+    fires.flatMap((value, frame) => value && value !== LIGHT_RETURN_INSTALL ? [frame] : []),
+    [64, 129, 194], "the cadence itself is unchanged by the hoist");
   image[L("light_fire_timer")] = 0;
   setLeader(image, 100, 20);    // wingman top would be 8: not fully visible
   assert.equal(run(image, "enemy_light_tick").a, 0);
@@ -249,6 +258,14 @@ test("ASM emits one PULSE PairShot tagged with the leader's P1 emitter bit", () 
   const image = game(2);
   run(image, "enemy_spawn_raiders");
   setLeader(image, 80, 112);
+  // The admission frame belongs to the appearance install, and this is where
+  // the 16-byte bitmap copy now happens - once, not on every frame. Only after
+  // it has been spent can a poked fire timer produce a shot.
+  run(image, "light_update");
+  assert.deepEqual([...image.subarray(CHARSET + 120 * 8, CHARSET + 122 * 8)],
+    [0xf0, 0xfc, 0x3f, 0x0f, 0x0f, 0x03, 0x03, 0x00,
+      0x0f, 0x3f, 0xfc, 0xf0, 0xf0, 0xc0, 0xc0, 0x00],
+  "the install frame wrote the Wingman bitmap");
   image[L("light_fire_timer")] = 0;
   run(image, "light_update");
   const active = L("FIGHTER_PROJECTILE_ACTIVE");
@@ -488,6 +505,45 @@ test("the resolver answers by screen address, so two slots sharing a code stay a
   // X and Y survive the slot scan on both paths.
   const kept = resolveAt(one, LIGHT_CODE_LEFT);
   assert.deepEqual([kept.x, kept.y], [7, 1]);
+});
+
+// Step 2, plan §5.4. The saving is only real if the copy stops happening, so
+// prove that directly rather than through a cycle count: scribble on the glyph
+// pair after the admission frame and watch it stay scribbled.
+test("the appearance install runs on the admission frame only, not every frame", () => {
+  const image = game();
+  const wingman = [0xf0, 0xfc, 0x3f, 0x0f, 0x0f, 0x03, 0x03, 0x00,
+    0x0f, 0x3f, 0xfc, 0xf0, 0xf0, 0xc0, 0xc0, 0x00];
+  image.fill(0, CHARSET + 120 * 8, CHARSET + 122 * 8);
+  run(image, "enemy_spawn_raiders");
+  setLeader(image, 100, 100);
+  assert.deepEqual([...image.subarray(CHARSET + 120 * 8, CHARSET + 122 * 8)],
+    new Array(16).fill(0), "admission alone installs nothing: the tick does");
+
+  // Only through light_update: asking the tick directly CONSUMES the decision,
+  // because C marks the pair installed as it returns $40 and relies on the
+  // kernel to act on that same return. Nothing calls the tick twice a frame.
+  run(image, "light_update");
+  assert.deepEqual([...image.subarray(CHARSET + 120 * 8, CHARSET + 122 * 8)], wingman);
+
+  // From here the kernel must not touch the pair again for this Light's life.
+  image.fill(0x5a, CHARSET + 120 * 8, CHARSET + 122 * 8);
+  for (let frame = 0; frame < 40; frame += 1) {
+    setLeader(image, 100, 100);
+    run(image, "light_update");
+  }
+  assert.deepEqual([...image.subarray(CHARSET + 120 * 8, CHARSET + 122 * 8)],
+    new Array(16).fill(0x5a), "40 frames of a live Light rewrite nothing");
+
+  // A new game re-installs: copy_charset has rebuilt glyphs 120-125, so the
+  // bookkeeping must be reset or the Light would render the frontend's art.
+  run(image, "director_init", { a: 0x6d });
+  image[L("DIFFICULTY_SETTING")] = 2;
+  run(image, "enemy_spawn_raiders");
+  setLeader(image, 100, 100);
+  run(image, "light_update");
+  assert.deepEqual([...image.subarray(CHARSET + 120 * 8, CHARSET + 122 * 8)], wingman,
+    "lifecycle_c_init forgets what the pairs held, so a new game re-installs");
 });
 
 test("hooks are operand-only redirections and the Light publishes only in the late window", () => {

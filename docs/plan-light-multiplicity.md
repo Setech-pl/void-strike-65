@@ -303,7 +303,7 @@ Under the owner decision in §0 (level buffer 44 → 32 sectors):
 | Item | Segment / address | Bytes |
 | --- | --- | ---: |
 | Light C: multi-slot tick, admission (escort + provisional wave), `light_hit`, reload, appearance allocation, token, deferred breakup, ceilings | `HYBRID_C_WINDOW` (cc65 `#pragma code-name`), `HYBRID_C_WINDOW_RODATA` | ~760 ESTIMATE (600-850) |
-| Light ASM kernel: `light_update` loop, `light_shot`, `light_destroyed`, `light_publish`, `light_top`, install, address resolver, sanitised resolve | `HYBRID_ASM_WINDOW` (ca65, linked in the Director link like `HYBRID_ASM_ARENA`) | ~590 ESTIMATE (229 + 130 + 31 moved, + 150-250 growth) |
+| Light ASM kernel: `light_update` loop, `light_shot`, `light_destroyed`, `light_publish`, `light_top`, install, address resolver, sanitised resolve | `HYBRID_ASM_WINDOW` (ca65, linked in the Director link like `HYBRID_ASM_ARENA`) — **[C1] SUPERSEDED → its own link after main, reached through a vector table at `$B600`** | ~590 ESTIMATE (229 + 136 + 31 moved, + 150-250 growth) |
 | **Total / free tail** | | **~1,350 / ~190 B** (range 40-400) |
 
 Mechanics the executor must do, all with precedent: re-base `BASIC_WINDOW_RAM`
@@ -325,6 +325,69 @@ Runtime safety of the window: unconditionally RAM (decision B plumbing,
 `disable_basic_rom` at every stage-2 entry), never written by the reader once
 the buffer bound is 32 sectors, written by nothing else (the write-watch in
 §5.6 proves it, as it did for the arena).
+
+#### [C1] AMENDED 2026-09-21, implementation step 1 (branch `experiment/light-multiplicity`, after `d07d80d`), owner-approved
+
+The row above is left as approved and marked `SUPERSEDED` so the change is
+visible rather than silent. The contract the implementation is built against is
+the one below. The C half is **unchanged**: `HYBRID_C_WINDOW` /
+`HYBRID_C_WINDOW_RODATA` in the Director link is correct and already plumbed by
+step 0.
+
+**This section said:** the Light ASM kernel goes into `HYBRID_ASM_WINDOW`,
+"ca65, linked in the Director link like `HYBRID_ASM_ARENA`".
+
+**Why that cannot work.** MEASURED from `scripts/build.mjs` at `d07d80d`, the
+build links in this order: the **Director link** (`:1001`, which emits
+`build/director-abi.inc`), then **`main.s`** assemble + link (`:1064`, which
+emits `build/main-abi.inc`), then the **sector-reader link** (`:1311`). The
+Director link is produced *before* `main.s` and can know no main address.
+
+The `HYBRID_ASM_ARENA` precedent does not transfer, because that code reaches
+main through exactly three fixed hardware/asset constants (`COLPM1`, `COLPM2`,
+`CHARSET`). MEASURED from `src/hybrid/light-wingman.s`, the Light ASM needs
+**13 main-link call targets** — `apply_player_damage`,
+`clear_transient_effects`, `entity_debris_publish`, `entity_effects_update`,
+`entity_player_fighter_projectile_target`,
+`erase_fighter_projectile_overlays`, `light_add_score`, `play_hit_sound`,
+`spawn_breakup_effects_at`, `update_score_display` and the three
+`resolve_effect_backing_below_*` helpers — plus **12 main-link data symbols**
+(`dst_ptr`, `PLAYFIELD_ROW_LO`/`HI`, `player_x`, `player_y`, the five
+`FIGHTER_PROJECTILE_*` arrays, `STAR_NEAR_POINT`, `hud_booster_backing`). None
+of those addresses exists when the Director link runs.
+
+**What is being done instead (owner decision, 2026-09-21).** The Light ASM is
+its **own link after main** — a new ca65 source with its own `cfg`, built by
+`buildResidentModule` exactly as `src/hybrid/sector-reader.s` is — reaching the
+main-link symbols above through a generated include in the shape of
+`build/main-abi.inc`, and reached *by* `main.s` through a **fixed vector table
+at the window base `$B600`**, the way `main.s` reaches the reader at `$A000`
+(`SECTOR_READER_ENTRY` and friends). Window address, record shape and the
+`$B600-$BBFF` destination are unchanged; only which link owns the object
+changes, and the window stays **one 1,536-B pool allocated at link time**
+across both halves.
+
+**Why this and not a fixed byte split of the window** (the rejected option A:
+Director C at `$B600-$B9FF`, main-link ASM at `$BA00-$BBFF`, no new link): a
+fixed boundary has to be chosen against two ESTIMATEs, and estimates in this
+window have been badly wrong before — plan-4.3 §1.5 `[C4]` costed the reader
+core at 300-360 B and MEASURED 682 B. A boundary set wrong has to be moved,
+which means re-linking both records and re-running the transport, boot and
+write-watch gates. One pool has no boundary to get wrong.
+
+**Cost of the change, accepted by the owner:** the vector table, ~15 B
+(5 entries × 3 B) at `$B600`; one `jmp` on each of the hot
+`light_publish` / `light_shot` / `light_update` entries, **+3 cycles per call,
+≈ 9 cycles per frame ESTIMATE**; and one generated include carrying the 25
+symbols above. The native three-Light measurement of §4.3 accounts for all of
+it, because it measures the built kernel and not the plan's arithmetic.
+
+**Consequences elsewhere in this plan.** §3.2's "`STARFIELD` tail −31 B
+linked" and "`HYBRID_C_EXT` ~518 B tail" rows are unchanged — the ASM still
+leaves those segments, only its destination link differs. §4.1's ASM rows gain
+the ~15 B table. §6 step 1 gains the link itself as its first result (see the
+`[C1]` note there). §5.6's write-watch of `$B600-$BBFF` is unchanged and now
+covers both halves.
 
 ### 3.2 What is displaced, and the free tails afterwards
 
@@ -387,6 +450,7 @@ the level buffer.
 | ASM: `light_publish` erase/render loops, resolver in the render chain | 130 + ~60 | |
 | ASM: address resolver + sanitised entry | ~45 | replaces 31 |
 | ASM: `_asm_director_can_allocate` with wave lock | ~20 | arena |
+| ASM: vector table at `$B600` (§3.1 `[C1]`) | ~15 | 5 entries × 3 B; main.s reaches the kernel by constant, as it reaches the reader at `$A000` |
 | Stage-2 `MAX_CHUNKS` 10 | 16 | MEASURED for the 8 → 9 step |
 | BSS | 48 + 16 | §2.1 |
 
@@ -554,6 +618,19 @@ death-frame blink stays). cc65 audit: C stack 0, no runtime helpers.
    scalars at `$8100`; the address resolver replaces `light_cell_resolve`;
    `light_publish`/`light_update`/`light_shot` index slot 0. Behaviour-neutral:
    `2-sweep-fire4` replays to identical numbers. Checkpoint: rendering tests.
+
+   **[C1] AMENDED 2026-09-21** (see §3.1 `[C1]`). The step splits in three
+   commits, because the resolver cannot move until the kernel has a home and
+   the kernel's home is now a link that does not exist yet:
+   **1a** the SoA arrays and shared scalars alone — single-slot,
+   behaviour-neutral and ASM-neutral, since at one slot `LIGHT_X` simply
+   becomes the base of `light_x[]`;
+   **1b** the fourth link: the Light ASM moved verbatim out of `LIGHT_CODE`,
+   `LIGHT_RESIDENT` and the `STARFIELD` tail into `$B600-$BBFF`, with the
+   vector table and the generated include, no behaviour change. This is the
+   commit that pays the tenth DFMC record, so it re-records
+   `boot-deadline-baseline.json` and re-runs boot smoke and the write-watch;
+   **1c** the address resolver, now able to grow in the window.
 2. **Hoisted install + ceilings + `_asm_director_can_allocate` move**, still
    one physical slot. Checkpoint: rendering tests (§5.4 install cases), the
    Light delta re-measured in the harness (expect ~147 mean, down from 412).

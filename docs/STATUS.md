@@ -2209,6 +2209,15 @@ placement that fits — the gameplay player and data in the level image at
 the summed-volume question (Q-V1) and the tests that must go red first. Two
 implementation sessions, menu then gameplay; five owner questions in its §9.
 
+**OPTIONS difficulty names (2026-09-22).** The menu now reads ROOKIE /
+PILOT / ACE, easiest first, as `how-to-play.md` has said since decision V; the
+internal `DIFFICULTY_EASY/MEDIUM/HARD` symbols and their order are unchanged.
+Eighteen table bytes in `ENTITY_CODE`, size-neutral, boot layout identical
+(13,201 B initial content, 104 boot sectors, 205 transport sectors); the
+runtime evidence was regenerated for the new artifacts with the recorded-
+failure list unchanged. `tests/difficulty-labels.test.mjs` decodes the shipped
+bytes. `OWNER-SMOKE CANDIDATE` (look at the OPTIONS row).
+
 **NEXT TASK.** Owner smoke of the Light multiplicity candidate. After that, the
 first of these two, in this order:
 

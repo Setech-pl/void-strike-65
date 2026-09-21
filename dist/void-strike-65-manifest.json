@@ -21665,11 +21665,11 @@
     "estimated_additive_cycles": 28117,
     "wallTrace": {
       "reportPath": "docs/runtime-wall-trace.json",
-      "reportSha256": "7b944da7d3f59f2f8146fb6bf7a01926eefb988a06befbc8a1df20d187574ba7",
+      "reportSha256": "06c8044574e56108dd7ccc3f7eb794452da81ad50b9e974794d038a4e3216c60",
       "artifact": {
         "path": "dist/void-strike-65.xex",
         "bytes": 26986,
-        "sha256": "d667d88d742b9febf3c8c4a45d79f9500b3391278011428b68b8bf5c21f5283f"
+        "sha256": "e7ba0ba2cb52bcb7b388c25944ca4c01e7c8e4fe0f636f8b9d68948b515942a9"
       },
       "emulator": {
         "name": "Atari800",
@@ -24364,34 +24364,34 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 26240,
-        "sha256": "dee4495f07d3e292a8329cb74ed02c8d77af36464b714b2354274da9e5f43e4d"
+        "sha256": "4ccd37fad69222c98bd8cb53ab8992bf79fe01d77dffa8719b25f8f341670539"
       },
       "void-strike-65.xex": {
         "path": "dist/void-strike-65.xex",
         "bytes": 26986,
-        "sha256": "d667d88d742b9febf3c8c4a45d79f9500b3391278011428b68b8bf5c21f5283f"
+        "sha256": "e7ba0ba2cb52bcb7b388c25944ca4c01e7c8e4fe0f636f8b9d68948b515942a9"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "514dba491a61111ec33d69bb883312a3cf1c333e466adb938a27fc478054fb26"
+        "sha256": "2f3c35b266b462ef950e7bccfc2a0fd0f188e420fc8adcc27b5f18869617196e"
       }
     },
     "reportPath": "docs/runtime-wall-trace.json",
-    "reportSha256": "7b944da7d3f59f2f8146fb6bf7a01926eefb988a06befbc8a1df20d187574ba7"
+    "reportSha256": "06c8044574e56108dd7ccc3f7eb794452da81ad50b9e974794d038a4e3216c60"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 26240,
-      "sha256": "dee4495f07d3e292a8329cb74ed02c8d77af36464b714b2354274da9e5f43e4d"
+      "sha256": "4ccd37fad69222c98bd8cb53ab8992bf79fe01d77dffa8719b25f8f341670539"
     },
     "void-strike-65.xex": {
       "bytes": 26986,
-      "sha256": "d667d88d742b9febf3c8c4a45d79f9500b3391278011428b68b8bf5c21f5283f"
+      "sha256": "e7ba0ba2cb52bcb7b388c25944ca4c01e7c8e4fe0f636f8b9d68948b515942a9"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "514dba491a61111ec33d69bb883312a3cf1c333e466adb938a27fc478054fb26"
+      "sha256": "2f3c35b266b462ef950e7bccfc2a0fd0f188e420fc8adcc27b5f18869617196e"
     }
   }
 }

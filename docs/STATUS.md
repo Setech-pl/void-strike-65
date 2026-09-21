@@ -885,45 +885,23 @@ section's "what to look for" in the implementation report.
 
 ## Known open defects and open decisions
 
-- **BLOCKED: the runtime evidence cannot be regenerated, so the default build
-  cannot link.** Owner-directed attempt on **2026-09-21 at `4d12d6e`**, running
-  the exact route the build names (`build:candidate` -> `runtime:wall-trace`
-  -> `build`, with `--atari800-source=build/atari800-trace`).
-
-  **What ran:** boot smoke **8/8 PASS**; all **64** default-mode replays ran to
-  completion; PAL timing audit **0 distinct miss events across 64 replays
-  (PASS)**; 3 behavioural clause failures — the three recorded pre-existing
-  "did not capture 16 consecutive contact rasters" sessions, unchanged.
-
-  **What blocked it:** the run then threw *outside* the replay loop, in the
-  post-loop aggregates, at `scripts/runtime-wall-trace.mjs:4930`: *"Atari800
-  did not capture all 16 consecutive pickup raster frames"*. So
-  `docs/runtime-wall-trace.json` **was never written** and still binds to the
-  `d72dd6a` artifacts. This is the previously recorded, **unsatisfiable by
-  construction** guard, re-confirmed from the fresh trace rather than taken on
-  record: the capture gate requires `(pickup_drawn_mask & 15) === 15`, and
-  `pickup_drawn_mask` is **`0` on all 4,000 rows** of
-  `build/runtime-wall-trace/weapon-pickup-2-hunt-fire4.csv`, because slot 1's
-  character drawn-mask has been dead memory since `f6eee5c` moved the capsule
-  to the missile plane. Full evidence:
-  [diagnostics/runtime-wall-trace-report-regeneration-blocked.md](diagnostics/runtime-wall-trace-report-regeneration-blocked.md).
-
-  **Consequence:** the default build gate is unreachable, and `npm test`
-  therefore still cannot reach the tests. Clearing this needs an owner
-  decision on what replaces that guard — it is the same class of decision as
-  the three already taken, and it is **not** a rebaselining of any threshold.
-  `tests/runtime-evidence-binding.test.mjs` is red for exactly this reason and
-  is expected to stay red until the decision lands.
+- ~~BLOCKED: the runtime evidence cannot be regenerated, so the default build
+  cannot link~~ — **CLOSED.** `docs/runtime-wall-trace.json` was regenerated on
+  2026-09-21 (64/64 sessions, one unbroken run) and binds to the artifacts this
+  tree builds; the `pickup_drawn_mask` guard that blocked the write is repointed
+  at the missile plane, and the deadlock in the release gate itself is resolved
+  by owner decision 1 below. `tests/runtime-evidence-binding.test.mjs` is
+  **green**, and `npm test` runs on the default build. History and the seven
+  classified blockers:
+  [diagnostics/runtime-wall-trace-report-regeneration-blocked.md](diagnostics/runtime-wall-trace-report-regeneration-blocked.md)
+  §11-§15.
 
 - **`npm test` is red at HEAD, and has been before roadmap 4.3 started.**
   A/B-confirmed on 2026-09-20 at `e48335f` by stashing all local changes and
-  rebuilding clean, so none of it belongs to 4.3. Four separate failures:
-  - `node scripts/build.mjs --quiet` throws `Runtime wall trace binding
-    mismatch for void-strike-65-boot.bin` (`runtime-evidence.mjs:49`). Because
-    the `test` script is `build --quiet && node --test tests/*.test.mjs`, this
-    alone means **`npm test` cannot reach the tests at all**;
-    `npm run build:candidate` succeeds — `--candidate` defers the evidence
-    binding and reports "runtime evidence pending";
+  rebuilding clean, so none of it belongs to 4.3. **The first of its four
+  causes is gone as of 2026-09-21** — `node scripts/build.mjs --quiet` no longer
+  throws, so the suite reaches the tests and the default-build baseline further
+  down this file is the current failure list. The rest stand:
   - `tests/formats.test.mjs`: "resident compaction proof survives and Spread
     Shot leaves at least 64 source-owned bytes";
   - `tests/hybrid-c-arena.test.mjs`: "HYBRID_C_ARENA is one contiguous 832-B
@@ -931,14 +909,12 @@ section's "what to look for" in the implementation report.
     record and is the only owner of its range" — the arena assertion reads
     `[562, 5]` against an expected `[558, 5]`, a 4-byte drift.
 
-  This is the **stale-report blocker resurfacing**
-  (`diagnostics/runtime-wall-trace-report-regeneration-blocked.md`): the
-  committed evidence no longer binds to the artifacts the build produces, so
-  the one gate that would notice is the one that cannot run. Recorded here as
-  project state rather than left for the next session to rediscover. Until it
-  is cleared, a session working on anything else must run focused test files
-  directly and **A/B any failure against a clean tree before calling it a
-  regression** — they will otherwise be attributed to whatever landed last.
+  These were symptoms of the **stale-report blocker**
+  (`diagnostics/runtime-wall-trace-report-regeneration-blocked.md`), now closed:
+  the committed evidence again binds to the artifacts the build produces, and the
+  gate that notices runs. The working rule stands regardless — **A/B any failure
+  against the default-build baseline below before calling it a regression**, or
+  it will be attributed to whatever landed last.
 
   **RE-ENUMERATED 2026-09-21** against a clean `82c155b` export, built with
   `--candidate` and its `node_modules` linked, running the focused set of
@@ -946,8 +922,9 @@ section's "what to look for" in the implementation report.
   not four. **SUPERSEDED as the reference baseline 2026-09-21** — that figure is
   a focused set on a clean `82c155b` export and is kept only as the history of
   this A/B. The current reference baseline is the whole-suite A/B further down
-  this file ("Full-suite failure baseline, A/B measured 2026-09-21"): 117
-  failures at `be91d17` against 118 now. `hybrid-c-arena` ×2 (the arena assertion reads `codeBytes` 535
+  this file ("Full-suite failure baseline — the DEFAULT build, measured
+  2026-09-21"): **110 failures on the default build**, against 118 on a
+  candidate build at `d4f085c` and 117 at `be91d17`. `hybrid-c-arena` ×2 (the arena assertion reads `codeBytes` 535
   against an expected 504, and the DFMC record count 9 against 8),
   `entity-effects` ×3, `runtime-timing` ×3, `layout-d1` (13,196 against 13,113),
   `transport-layout-regression` and `formats`. Most are frozen budgets that
@@ -1085,62 +1062,60 @@ section's "what to look for" in the implementation report.
   The 184-commit range carries 4.4 Interceptor, 4.5b `BOMBER`, 4.5c Bomber and
   the hostile weapon visuals; it was not narrowed further.
 
-  **The 40 recorded gate failures** (`gate.behavioural_clause_failures`),
-  pinned by `tests/runtime-evidence-binding.test.mjs`: 24 A2-select (a) +
-  12 XEX/ATR parity (c) + 3 pre-existing contact-raster + 1 booster release
-  (c). `gate.passed` is **false** and that is correct — the evidence is a
-  truthful description of the build, failures included.
+  **The 40 recorded gate failures** (`gate.behavioural_clause_failures`) live in
+  **one data file**, `docs/recorded-gate-failures.json`, each entry carrying its
+  class and its measurement reference: 24 A2-select (a) + 12 XEX/ATR parity (c)
+  + 3 pre-existing contact-raster + 1 booster release (c). `scripts/build.mjs`
+  and `tests/runtime-evidence-binding.test.mjs` both read that one file through
+  the same evaluator, so the release gate and the tripwire cannot disagree.
+  `gate.passed` is **false** and that is correct — the evidence is a truthful
+  description of the build, failures included.
 
-- **`npm test` on the DEFAULT build cannot run — OWNER DECISION REQUIRED.**
-  `scripts/build.mjs:2039` refuses a final build unless
-  `wallTrace.gate.passed === true`; the owner's rule requires recorded failures
-  to ship with `gate.passed === false`. The two are mutually exclusive, so the
-  default build throws *"Final build requires runtime evidence that passes
-  every current gate"* before any test runs. **The release gate was not
-  touched** — a build with 40 open recorded failures must not produce a final
-  artifact. Clearing this needs either the recorded failures fixed, or
-  `build.mjs` taught the recorded-vs-unrecorded distinction (which would mean
-  duplicating the recorded list into the build). See §14.15.
+- ~~`npm test` on the DEFAULT build cannot run — OWNER DECISION REQUIRED~~ —
+  **RESOLVED 2026-09-21 by owner decision 1 (release gate semantics).** The
+  default build passes when there is **no UNRECORDED gate failure** and
+  `gate.timing_and_dli_passed` is true; `gate.passed` keeps its meaning (false
+  while any failure is recorded) and is still published. The recorded list is one
+  data file, `docs/recorded-gate-failures.json`, read by `scripts/build.mjs` and
+  by the tripwire through the same evaluator in `scripts/runtime-evidence.mjs`,
+  so neither duplicates it and neither can drift from the other. Proven through
+  the real default build: it is refused on an injected unrecorded failure, on a
+  silently cleared recorded one, on `timing_and_dli_passed: false` and on a
+  `gate.passed` that contradicts the published list, and passes on the real
+  report. Standing regression test `tests/release-gate-semantics.test.mjs`;
+  evidence §15.1 and
+  [diagnostics/release-gate-and-pin-conversion-injection-proof.md](diagnostics/release-gate-and-pin-conversion-injection-proof.md).
 
-- **Full-suite failure baseline, A/B measured 2026-09-21 — replaces the stale
-  "11 failing tests in 6 files".** Both sides: candidate build, XEX
-  `d667d88d…` (identical on both), `node --test tests/*.test.mjs`, in a
-  separate `git worktree` at `be91d17` for the baseline so the working tree was
-  never at risk.
+- **Full-suite failure baseline — the DEFAULT build, measured 2026-09-21.**
+  `npm test` (`node scripts/build.mjs --quiet && node --test tests/*.test.mjs`)
+  runs to completion on the **default target** for the first time since the
+  evidence went stale. This is the reference baseline; the candidate-build
+  figures it replaces are kept only as the A/B below.
 
   | | tests | pass | fail |
   | --- | --- | --- | --- |
-  | `be91d17` baseline | 737 | 617 | **117** |
-  | this session | 737 | 616 | **118** |
+  | candidate build at `d4f085c` (re-measured in a `git worktree`) | 737 | 616 | **118** |
+  | **default build at HEAD** | **744** | **631** | **110** |
 
-  **Net delta +1**, and every one of it is accounted for:
+  `744 − 737 = 7` new tests, all of `tests/release-gate-semantics.test.mjs`, all
+  passing. **110 failures, every one of them already on the `d4f085c` list —
+  0 NEW.** Eight cleared: three by owner decision 2 (the converted pins) and
+  decision 1 (the `gate.passed` meaning), and **five by the default target
+  itself**, which fills in the measured manifest fields `--candidate` leaves
+  `null` (`runtime-wall-trace` Spread Shot / debris visual polish / destructible
+  debris, `runtime-timing` "measured DMA-on fields …", `enemy-roster`
+  "compile-time review harness …"). Full classification: §15.3 of
+  [diagnostics/runtime-wall-trace-report-regeneration-blocked.md](diagnostics/runtime-wall-trace-report-regeneration-blocked.md).
 
-  * **4 failures FIXED**, including the binding tripwire *"the committed
-    runtime evidence binds to the artifacts in dist/"* — the gate that went
-    unseen for 175 commits is **green** for the first time since `d72dd6a`;
-    also *"wall trace is artifact-bound and adds no guest timing work"*,
-    *"real Atari800 XEX/ATR cold boots reach visible gameplay inside the boot
-    horizon"* and *"real Atari800 pickup trace retains one phased footprint
-    through native A2 motion"*;
-  * **5 failures NEW, all in `tests/runtime-wall-trace.test.mjs`, all the same
-    kind**: that file pins numbers copied from the stale `d72dd6a` evidence,
-    and the regenerated file now carries this build's true measurements —
-    24,264 → **31,079** cycles, 11,304 → **4,489** headroom, 2,688 → **2,048**,
-    960 → **768**, 24,264 → **30,373**. These are NOT runtime regressions:
-    timing passes everywhere (0 deadline overruns, 0 missed frames, 0 extra VBI
-    boundaries, 0 distinct miss events across 64 replays). They are stale pins
-    of exactly the kind the owner ordered replaced for the director frames, and
-    they are left failing rather than silently re-pinned — re-pinning is how
-    the evidence went stale in the first place. **Their disposition is an owner
-    decision**, the same call as the director pins: convert each to the
-    relation it actually owns, or re-pin deliberately.
-
-  The remaining 113 failures are pre-existing at `be91d17` under this
-  condition. A large share are preview/showcase/manifest determinism tests that
-  the DEFAULT build's generated outputs satisfy and a candidate build does not;
-  separating those from genuine pre-existing failures needs the default build,
-  which is blocked above. Running the suite also regenerates tracked media
-  (`docs/media/assets/*.png`, `docs/media/manifest.json`); those were restored
+  The remaining 110 are pre-existing. Five are in
+  `tests/runtime-wall-trace.test.mjs` and are stale pins of the same family as
+  the five converted, each a different number (`a2_heads` 27 vs 22; coverage
+  `[10, 10, true]` vs `[19, 13, false]`; the explosion `colpm1`/`colpm2` sets;
+  the enemy-breakup five-slot path; no frame carrying a `cpu_dma_off_reference`);
+  their disposition is the same owner call and is **not** in scope of this
+  session. A large share of the rest are preview/showcase/manifest determinism
+  tests. Running the suite regenerates tracked media
+  (`docs/media/assets/*.png`, `docs/media/manifest.json`); those are restored
   with `git checkout` and are not part of this session's commits.
 
 - ~~open owner decision: the packed STARFIELD correction gate~~ — **RESOLVED
@@ -2216,6 +2191,15 @@ above for what it is, what it measured and the three owner decisions of
 2026-09-21 (the margin threshold, effect scheduling, and the rotate-frame gate
 recorded as a costed follow-up).
 
+**Tooling, 2026-09-21 (this session, no production code):** the two owner
+decisions on the release gate and the five stale pins are implemented. `npm test`
+runs to completion on the **default** build — 744 tests, 631 pass, **110 fail,
+0 new** against the 118 of `d4f085c` — and that default-build list is now the
+reference baseline for every "is this a regression?" question. The recorded gate
+failures live in `docs/recorded-gate-failures.json`, the one file the build gate
+and the tripwire share. The XEX, ATR and boot BIN are byte-identical to
+`d4f085c`; nothing about the runtime changed, so no owner smoke is owed for it.
+
 **NEXT TASK.** Owner smoke of the Light multiplicity candidate. After that, the
 first of these two, in this order:
 
@@ -2752,6 +2736,29 @@ started without owner instruction.
   after Option D.
 - **Static Andromeda** in the `SPACE` sector background, occluded during
   capital traversal.
+- **XEX/ATR engine screenshot parity, frames 0-4** — known, low priority, **not
+  in scope**. MEASURED across all 12 XEX/ATR pairings: exactly frames **0-4**
+  differ and frames 5-149 are byte-identical, in every pairing; the only
+  non-clock traced-state difference is `capital_visible_allied_cells` **6 (XEX)
+  vs 8 (ATR)** on frame 0, identically in all 12. A five-frame medium-dependent
+  entry transient; pre-existing, and neither the engine nor the boot path was
+  touched by the sessions that found it. It is one of the 40 recorded gate
+  failures (12 entries, class `c-real-failure`) in
+  `docs/recorded-gate-failures.json`, so it cannot disappear unnoticed. Whether
+  it is acceptable is an owner judgement. Evidence:
+  [diagnostics/runtime-wall-trace-report-regeneration-blocked.md](diagnostics/runtime-wall-trace-report-regeneration-blocked.md)
+  §14.7.
+
+- **Double erase on booster release** — known, low priority, **not in scope**.
+  The missile plane IS cleared on every release frame
+  (`pickup_missile_rows === 0`), but `pickup_erase_calls` is **2** where the
+  clause asserts 1, on exactly the 4 release frames of the replay; ACTIVE frames
+  (233 of them) do exactly one erase and one draw. Whether the second erase in
+  the collection frame is real waste or an intended belt-and-braces teardown is
+  an owner judgement; `release_frame_detail` in the evidence carries the
+  per-frame numbers. Recorded gate failure, class `c-real-failure`. Evidence:
+  §14.8 of the same document.
+
 - **PAL resync after a miss** — one overrun costs ~1,393 shifted-phase rows
   until the next gameplay generation.
 - **Debris blink on the player death frame** — pre-existing, documented under

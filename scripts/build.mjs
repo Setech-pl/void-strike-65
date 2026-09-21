@@ -60,6 +60,9 @@ import {
 import { packBroadsideLzss, unpackBroadsideLzss } from "./broadside-lzss.mjs";
 import { measureRuntimeCycles } from "./runtime-cycles.mjs";
 import {
+  evaluateReleaseGate,
+  loadRecordedGateFailures,
+  releaseGateFailureMessage,
   runtimeArtifactSet,
   runtimeEvidencePhase,
   validateRuntimeEvidenceBinding,
@@ -2036,9 +2039,13 @@ async function build() {
     }
     wallTrace = JSON.parse(fs.readFileSync(wallTracePath, "utf8"));
     validateRuntimeEvidenceBinding(wallTrace, runtimeArtifacts);
-    if (wallTrace.gate?.passed !== true) {
-      throw new Error("Final build requires runtime evidence that passes every current gate");
-    }
+    // Owner decision 2026-09-21 — release gate semantics. `gate.passed` is
+    // false while any behavioural clause failure is recorded, so it cannot be
+    // the release gate. The gate is "no UNRECORDED gate failure, and
+    // gate.timing_and_dli_passed", evaluated against the one recorded list in
+    // docs/recorded-gate-failures.json that the tripwire test reads too.
+    const releaseGate = evaluateReleaseGate(wallTrace, loadRecordedGateFailures(rootDirectory));
+    if (!releaseGate.passed) throw new Error(releaseGateFailureMessage(releaseGate));
   }
   const runtimeTiming = cpuRuntimeTiming === null ? null : {
     ...cpuRuntimeTiming,

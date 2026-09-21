@@ -46,10 +46,19 @@ test("wall trace keeps CPU comparison, measured wall time and additive estimate 
     report.gate.pal_frame_cycles - values.measured_wall_cycles_dma_on);
   assert.equal(report.gate.measured_wall_cycles_dma_on,
     values.measured_wall_cycles_dma_on);
-  assert.equal(report.gate.passed,
-    values.measured_wall_cycles_dma_on <= report.gate.maximum_wall_cycles &&
-    report.gate.deadline_overrun_frames === 0 && report.gate.missed_frames === 0 &&
-    report.gate.extra_vbi_boundaries === 0);
+  // Owner decision 2026-09-21. This used to compare the timing conjunction to
+  // gate.passed, which is only true while NO behavioural clause fails; the
+  // timing-and-DLI half is published separately for exactly this reason. The
+  // timing terms are a necessary condition of that half, and gate.passed keeps
+  // its meaning: both halves, together.
+  if (report.gate.timing_and_dli_passed) {
+    assert.ok(values.measured_wall_cycles_dma_on <= report.gate.maximum_wall_cycles);
+    assert.equal(report.gate.deadline_overrun_frames, 0);
+    assert.equal(report.gate.missed_frames, 0);
+    assert.equal(report.gate.extra_vbi_boundaries, 0);
+  }
+  assert.equal(report.gate.passed, report.gate.behavioural_clause_failure_count === 0 &&
+    report.gate.timing_and_dli_passed);
   assert.notEqual(values.estimated_additive_cycles, values.measured_wall_cycles_dma_on);
 });
 
@@ -323,17 +332,31 @@ test("real XEX/ATR startup traces keep one atomic two-phase engine pulse", () =>
     new Set([0, 1, 2]));
   assert.deepEqual(new Set(engines.sessions.map(({ start_mode }) => start_mode)),
     new Set(["immediate", "delayed-menu"]));
-  assert.deepEqual([
-    engines.evidence.source_session,
-    engines.evidence.first_32_contact.frames,
-    engines.evidence.first_32_contact.columns,
-    engines.evidence.first_32_contact.width,
-    engines.evidence.first_32_contact.height,
-    engines.evidence.two_cycles_contact.frames,
-    engines.evidence.two_cycles_contact.columns,
-    engines.evidence.compact_trace.rows,
-    engines.evidence.xex_atr_screenshot_parity,
-  ], ["engine-xex-a5-0-immediate", 32, 8, 2688, 960, 32, 8, 150, true]);
+  // Owner decision 2026-09-21. The contact-sheet width and height used to be
+  // pinned at 2,688 x 960 — the emulator's own PAL screenshot size times the
+  // sheet layout, which is not a gate this file owns and moved the moment the
+  // traced Atari800 build changed its screenshot geometry. They are now
+  // asserted as the relation to their inputs: a sheet is exactly its frames
+  // laid out `columns` wide, and both sheets are cut from the same frame size.
+  // The measured pixel sizes stay in docs/runtime-wall-trace.json as data.
+  assert.equal(engines.evidence.source_session, "engine-xex-a5-0-immediate");
+  assert.equal(engines.evidence.xex_atr_screenshot_parity, true);
+  assert.equal(engines.evidence.compact_trace.rows, engines.screenshots_per_session);
+  const contactTiles = [engines.evidence.first_32_contact,
+    engines.evidence.two_cycles_contact].map((sheet) => {
+    // Two full engine cycles at 16 frames each, and the sheet layout is 8 wide.
+    assert.equal(sheet.frames, 2 * engines.full_cycle_frames);
+    assert.equal(sheet.columns, 8);
+    const rows = Math.ceil(sheet.frames / sheet.columns);
+    assert.equal(sheet.width % sheet.columns, 0);
+    assert.equal(sheet.height % rows, 0);
+    const tile = { width: sheet.width / sheet.columns, height: sheet.height / rows };
+    assert.ok(tile.width > 0 && tile.height > 0,
+      `contact sheet ${sheet.path} is ${sheet.width}x${sheet.height} for ` +
+      `${sheet.frames} frames in ${sheet.columns} columns`);
+    return tile;
+  });
+  assert.deepEqual(contactTiles[0], contactTiles[1]);
   for (const artifact of [
     engines.evidence.first_32_contact,
     engines.evidence.two_cycles_contact,
@@ -773,11 +796,37 @@ test("ten heaviest frames retain exact clock positions, VBI IDs and state", () =
 });
 
 test("current frontend maximum, subsystem profile and accepted PAL-recovery baseline are exact", () => {
+  // Owner decision 2026-09-21. This clause used to pin the measured DMA-on
+  // maximum and its physical headroom at 24,264 / 11,304 — data about one
+  // build, re-pinned after every regeneration, which is how the evidence went
+  // stale. It now asserts the budget the pair stands for, using only thresholds
+  // the report already carries: the PAL frame (gate.pal_frame_cycles, 35,568),
+  // the hard gate (gate.maximum_wall_cycles, 32,568) and the headroom floor the
+  // shield gate owns. The two loose literals that went with the pins, 32,584
+  // and 2,984, matched no documented threshold at all — 32,584 is 16 cycles
+  // above the hard gate — so they are replaced, not re-pinned. The exact
+  // numbers stay in docs/runtime-wall-trace.json as data.
   const maximum = report.five_heaviest_frames[0];
-  assert.deepEqual([maximum.wall_cycles, maximum.physical_headroom], [24_264, 11_304]);
-  assert.ok(maximum.wall_cycles <= 32_584);
-  assert.ok(maximum.physical_headroom >= 2_984);
+  const palFrameCycles = report.gate.pal_frame_cycles;
+  const hardGateCycles = report.gate.maximum_wall_cycles;
+  const headroomFloorCycles = report.gate.weapon_pickup_shield.minimum_physical_headroom;
   assert.equal(maximum.wall_cycles, report.semantics.measured_wall_cycles_dma_on);
+  assert.equal(maximum.physical_headroom, report.semantics.measured_physical_headroom);
+  // Headroom is the rest of the physical PAL frame, not an independent number.
+  assert.equal(maximum.wall_cycles + maximum.physical_headroom, palFrameCycles);
+  assert.ok(maximum.wall_cycles <= hardGateCycles,
+    `heaviest frame ${maximum.session}:${maximum.frame} is ${maximum.wall_cycles} ` +
+    `wall cycles, over the ${hardGateCycles} hard gate`);
+  assert.ok(maximum.physical_headroom > 0,
+    `heaviest frame ${maximum.session}:${maximum.frame} leaves ` +
+    `${maximum.physical_headroom} cycles of physical headroom`);
+  assert.ok(maximum.physical_headroom >= headroomFloorCycles,
+    `heaviest frame leaves ${maximum.physical_headroom} cycles, under the ` +
+    `${headroomFloorCycles} floor`);
+  // The existing overrun rule: the maximum is legal only with no overrun and no
+  // missed frame anywhere in the run.
+  assert.equal(report.gate.deadline_overrun_frames, 0);
+  assert.equal(report.gate.missed_frames, 0);
   assert.ok(report.five_heaviest_frames.every((frame, index, frames) =>
     index === 0 || frames[index - 1].wall_cycles >= frame.wall_cycles));
 
@@ -801,12 +850,38 @@ test("current frontend maximum, subsystem profile and accepted PAL-recovery base
     gate.recovered_cycles, gate.preserved_as_accepted_baseline, gate.passed],
   [33_020, 32_068, 3_500, 952, 32_040, 3_528, 980, true, true]);
 
+  // Owner decision 2026-09-21. Same treatment: the measured half of this tuple
+  // (24,264 / -7,808 / 11,304 / 8,158 / 8,304 / 500) was five numbers derived
+  // from one measurement plus a coverage count, all re-pinned per regeneration.
+  // The accepted PRE-implementation baseline stays pinned — it is a fixed input,
+  // not a measurement of this build — and everything else is asserted as the
+  // relation to its inputs or against the gate's own limits.
   const shield = report.gate.weapon_pickup_shield;
-  assert.deepEqual([shield.baseline_wall_cycles, shield.measured_wall_cycles,
-    shield.actual_delta_cycles, shield.measured_physical_headroom,
-    shield.remaining_target_cycles, shield.remaining_hard_cycles,
-    shield.shield_frames, shield.passed],
-  [32_072, 24_264, -7_808, 11_304, 8_158, 8_304, 500, true]);
+  assert.equal(shield.baseline_wall_cycles, 32_072);
+  assert.equal(shield.target_wall_cycles,
+    shield.baseline_wall_cycles + shield.target_delta_cycles);
+  assert.equal(shield.maximum_wall_cycles,
+    shield.baseline_wall_cycles + shield.hard_delta_cycles);
+  assert.equal(shield.maximum_wall_cycles, hardGateCycles);
+  assert.equal(shield.measured_wall_cycles, report.semantics.measured_wall_cycles_dma_on);
+  assert.equal(shield.measured_physical_headroom, palFrameCycles - shield.measured_wall_cycles);
+  assert.equal(shield.actual_delta_cycles,
+    shield.measured_wall_cycles - shield.baseline_wall_cycles);
+  assert.equal(shield.remaining_target_cycles,
+    shield.target_wall_cycles - shield.measured_wall_cycles);
+  assert.equal(shield.remaining_hard_cycles,
+    shield.maximum_wall_cycles - shield.measured_wall_cycles);
+  assert.ok(shield.measured_wall_cycles <= shield.maximum_wall_cycles);
+  assert.ok(shield.measured_physical_headroom >= shield.minimum_physical_headroom);
+  assert.equal(shield.target_overrun_frames, 0);
+  assert.equal(shield.hard_overrun_frames, 0);
+  // Coverage, not a budget: the run must actually contain an active Shield
+  // booster, whose documented duration is 250 active PAL frames
+  // (docs/game-design.md "Shield ... 250"), and at least one collection.
+  assert.ok(shield.pickup_events > 0);
+  assert.ok(shield.shield_frames >= 250,
+    `only ${shield.shield_frames} Shield-active frames in the whole run`);
+  assert.equal(shield.passed, true);
 });
 
 test("every difficulty preserves exact introductory parallax cadence before debris admission", () => {
@@ -824,9 +899,35 @@ test("every difficulty preserves exact introductory parallax cadence before debr
 test("XEX and ATR legal hunt traces have identical maxima and a reproducible fingerprint", () => {
   const sessions = report.replay.sessions.filter(({ kind, policy }) =>
     kind === "memory-integrity-160s" && policy === "hunt");
-  assert.deepEqual(sessions.map(({ medium, maximum_wall_cycles }) =>
-    [medium, maximum_wall_cycles]), [["XEX", 24_264], ["ATR", 24_264]]);
-  assert.equal(report.determinism.replay_fingerprint_sha256,
-    "a9fd33b54b57f06d776580f13d25809c72c60110e7dbc300cc43d8febaebe734");
+  // Owner decision 2026-09-21. The pin was [["XEX", 24_264], ["ATR", 24_264]]:
+  // one measured number twice. What this clause owns is that the two media are
+  // IDENTICAL and both legal, so that is what it now asserts — the equality
+  // between them, and each against the hard gate and the physical frame.
+  assert.deepEqual(sessions.map(({ medium }) => medium), ["XEX", "ATR"]);
+  const [xexSession, atrSession] = sessions;
+  assert.equal(xexSession.maximum_wall_cycles, atrSession.maximum_wall_cycles,
+    `XEX peaks at ${xexSession.maximum_wall_cycles} and ATR at ` +
+    `${atrSession.maximum_wall_cycles}: the media are not identical`);
+  assert.equal(xexSession.measured_frames, atrSession.measured_frames);
+  for (const session of sessions) {
+    assert.ok(session.maximum_wall_cycles <= report.gate.maximum_wall_cycles,
+      `${session.id} peaks at ${session.maximum_wall_cycles}, over the ` +
+      `${report.gate.maximum_wall_cycles} hard gate`);
+    assert.ok(report.gate.pal_frame_cycles - session.maximum_wall_cycles > 0);
+    assert.equal(session.deadline_overrun_frames, 0);
+    assert.equal(session.missed_frames, 0);
+  }
+  // The fingerprint itself had no threshold behind it — it is a digest of this
+  // build's rows, and re-pinning it after every regeneration is the staleness
+  // mechanism this session is removing. The anti-staleness gate that DOES exist
+  // is the artifact binding (tests/runtime-evidence-binding.test.mjs), so what
+  // stays here is the digest's shape and the relation that makes it meaningful:
+  // it covers every ordered row of every required session, and nothing less.
+  assert.match(report.determinism.replay_fingerprint_sha256, /^[0-9a-f]{64}$/);
+  assert.equal(report.determinism.basis,
+    "ordered decoded CSV rows from every required legal replay");
+  assert.equal(report.replay.sessions.length, report.evidence.required_sessions);
+  assert.equal(report.determinism.ordered_frames, report.replay.sessions
+    .reduce((sum, session) => sum + session.measured_frames, 0));
   assert.ok(report.determinism.ordered_frames > 0);
 });

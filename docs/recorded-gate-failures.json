@@ -1,0 +1,293 @@
+{
+  "schema_version": 1,
+  "purpose": "The single source of truth for behavioural clause failures the owner has accepted as open in docs/runtime-wall-trace.json. Read by scripts/build.mjs (the release gate) and by tests/runtime-evidence-binding.test.mjs (the tripwire), so the build and the tripwire cannot disagree about what is recorded.",
+  "owner_decision": "2026-09-21 — release gate semantics. The default build passes when there is no UNRECORDED gate failure and gate.timing_and_dli_passed is true. A new failure, or a recorded failure that silently disappears, fails the build exactly as it fails the tripwire. gate.passed keeps its meaning: false while any failure is recorded.",
+  "classes": {
+    "a-stale-scenario": "(a) The scenario cannot contain the behaviour; the assertion is right. Fixed by extending the scenario, never by loosening the assertion — recorded when extending is not cheap.",
+    "b-wrong-selection": "(b) The clause reads the wrong coverage; fixed by correcting the selection and proving the corrected clause still fails when the behaviour is missing.",
+    "c-real-failure": "(c) A real failure of the build. Neither fixed nor weakened here; recorded so the evidence stays a truthful description of the build.",
+    "pre-existing-unclassified": "Pre-existing failure carried unchanged; no session has classified it into (a), (b) or (c) yet."
+  },
+  "failures": [
+    {
+      "session": "engine-xex-a5-0-immediate",
+      "message": "engine-xex-a5-0-immediate first DLI did not select byte three of the active A2 list",
+      "class": "a-stale-scenario",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.6",
+      "note": "One measurement, not 24: 5,874 firing rows and 0 violations across the 41 sessions that observe it; 150 cold-start frames cannot contain a load-dependent coincidence. Extending the engine-first-150 contract is not cheap, so it is recorded with the assertion unchanged."
+    },
+    {
+      "session": "engine-xex-a5-0-delayed",
+      "message": "engine-xex-a5-0-delayed first DLI did not select byte three of the active A2 list",
+      "class": "a-stale-scenario",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.6",
+      "note": "One measurement, not 24: 5,874 firing rows and 0 violations across the 41 sessions that observe it; 150 cold-start frames cannot contain a load-dependent coincidence. Extending the engine-first-150 contract is not cheap, so it is recorded with the assertion unchanged."
+    },
+    {
+      "session": "engine-xex-a5-1-immediate",
+      "message": "engine-xex-a5-1-immediate first DLI did not select byte three of the active A2 list",
+      "class": "a-stale-scenario",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.6",
+      "note": "One measurement, not 24: 5,874 firing rows and 0 violations across the 41 sessions that observe it; 150 cold-start frames cannot contain a load-dependent coincidence. Extending the engine-first-150 contract is not cheap, so it is recorded with the assertion unchanged."
+    },
+    {
+      "session": "engine-xex-a5-1-delayed",
+      "message": "engine-xex-a5-1-delayed first DLI did not select byte three of the active A2 list",
+      "class": "a-stale-scenario",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.6",
+      "note": "One measurement, not 24: 5,874 firing rows and 0 violations across the 41 sessions that observe it; 150 cold-start frames cannot contain a load-dependent coincidence. Extending the engine-first-150 contract is not cheap, so it is recorded with the assertion unchanged."
+    },
+    {
+      "session": "engine-xex-a5-2-immediate",
+      "message": "engine-xex-a5-2-immediate first DLI did not select byte three of the active A2 list",
+      "class": "a-stale-scenario",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.6",
+      "note": "One measurement, not 24: 5,874 firing rows and 0 violations across the 41 sessions that observe it; 150 cold-start frames cannot contain a load-dependent coincidence. Extending the engine-first-150 contract is not cheap, so it is recorded with the assertion unchanged."
+    },
+    {
+      "session": "engine-xex-a5-2-delayed",
+      "message": "engine-xex-a5-2-delayed first DLI did not select byte three of the active A2 list",
+      "class": "a-stale-scenario",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.6",
+      "note": "One measurement, not 24: 5,874 firing rows and 0 violations across the 41 sessions that observe it; 150 cold-start frames cannot contain a load-dependent coincidence. Extending the engine-first-150 contract is not cheap, so it is recorded with the assertion unchanged."
+    },
+    {
+      "session": "engine-xex-5a-0-immediate",
+      "message": "engine-xex-5a-0-immediate first DLI did not select byte three of the active A2 list",
+      "class": "a-stale-scenario",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.6",
+      "note": "One measurement, not 24: 5,874 firing rows and 0 violations across the 41 sessions that observe it; 150 cold-start frames cannot contain a load-dependent coincidence. Extending the engine-first-150 contract is not cheap, so it is recorded with the assertion unchanged."
+    },
+    {
+      "session": "engine-xex-5a-0-delayed",
+      "message": "engine-xex-5a-0-delayed first DLI did not select byte three of the active A2 list",
+      "class": "a-stale-scenario",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.6",
+      "note": "One measurement, not 24: 5,874 firing rows and 0 violations across the 41 sessions that observe it; 150 cold-start frames cannot contain a load-dependent coincidence. Extending the engine-first-150 contract is not cheap, so it is recorded with the assertion unchanged."
+    },
+    {
+      "session": "engine-xex-5a-1-immediate",
+      "message": "engine-xex-5a-1-immediate first DLI did not select byte three of the active A2 list",
+      "class": "a-stale-scenario",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.6",
+      "note": "One measurement, not 24: 5,874 firing rows and 0 violations across the 41 sessions that observe it; 150 cold-start frames cannot contain a load-dependent coincidence. Extending the engine-first-150 contract is not cheap, so it is recorded with the assertion unchanged."
+    },
+    {
+      "session": "engine-xex-5a-1-delayed",
+      "message": "engine-xex-5a-1-delayed first DLI did not select byte three of the active A2 list",
+      "class": "a-stale-scenario",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.6",
+      "note": "One measurement, not 24: 5,874 firing rows and 0 violations across the 41 sessions that observe it; 150 cold-start frames cannot contain a load-dependent coincidence. Extending the engine-first-150 contract is not cheap, so it is recorded with the assertion unchanged."
+    },
+    {
+      "session": "engine-xex-5a-2-immediate",
+      "message": "engine-xex-5a-2-immediate first DLI did not select byte three of the active A2 list",
+      "class": "a-stale-scenario",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.6",
+      "note": "One measurement, not 24: 5,874 firing rows and 0 violations across the 41 sessions that observe it; 150 cold-start frames cannot contain a load-dependent coincidence. Extending the engine-first-150 contract is not cheap, so it is recorded with the assertion unchanged."
+    },
+    {
+      "session": "engine-xex-5a-2-delayed",
+      "message": "engine-xex-5a-2-delayed first DLI did not select byte three of the active A2 list",
+      "class": "a-stale-scenario",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.6",
+      "note": "One measurement, not 24: 5,874 firing rows and 0 violations across the 41 sessions that observe it; 150 cold-start frames cannot contain a load-dependent coincidence. Extending the engine-first-150 contract is not cheap, so it is recorded with the assertion unchanged."
+    },
+    {
+      "session": "engine-atr-a5-0-immediate",
+      "message": "engine-atr-a5-0-immediate first DLI did not select byte three of the active A2 list",
+      "class": "a-stale-scenario",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.6",
+      "note": "One measurement, not 24: 5,874 firing rows and 0 violations across the 41 sessions that observe it; 150 cold-start frames cannot contain a load-dependent coincidence. Extending the engine-first-150 contract is not cheap, so it is recorded with the assertion unchanged."
+    },
+    {
+      "session": "engine-atr-a5-0-delayed",
+      "message": "engine-atr-a5-0-delayed first DLI did not select byte three of the active A2 list",
+      "class": "a-stale-scenario",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.6",
+      "note": "One measurement, not 24: 5,874 firing rows and 0 violations across the 41 sessions that observe it; 150 cold-start frames cannot contain a load-dependent coincidence. Extending the engine-first-150 contract is not cheap, so it is recorded with the assertion unchanged."
+    },
+    {
+      "session": "engine-atr-a5-1-immediate",
+      "message": "engine-atr-a5-1-immediate first DLI did not select byte three of the active A2 list",
+      "class": "a-stale-scenario",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.6",
+      "note": "One measurement, not 24: 5,874 firing rows and 0 violations across the 41 sessions that observe it; 150 cold-start frames cannot contain a load-dependent coincidence. Extending the engine-first-150 contract is not cheap, so it is recorded with the assertion unchanged."
+    },
+    {
+      "session": "engine-atr-a5-1-delayed",
+      "message": "engine-atr-a5-1-delayed first DLI did not select byte three of the active A2 list",
+      "class": "a-stale-scenario",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.6",
+      "note": "One measurement, not 24: 5,874 firing rows and 0 violations across the 41 sessions that observe it; 150 cold-start frames cannot contain a load-dependent coincidence. Extending the engine-first-150 contract is not cheap, so it is recorded with the assertion unchanged."
+    },
+    {
+      "session": "engine-atr-a5-2-immediate",
+      "message": "engine-atr-a5-2-immediate first DLI did not select byte three of the active A2 list",
+      "class": "a-stale-scenario",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.6",
+      "note": "One measurement, not 24: 5,874 firing rows and 0 violations across the 41 sessions that observe it; 150 cold-start frames cannot contain a load-dependent coincidence. Extending the engine-first-150 contract is not cheap, so it is recorded with the assertion unchanged."
+    },
+    {
+      "session": "engine-atr-a5-2-delayed",
+      "message": "engine-atr-a5-2-delayed first DLI did not select byte three of the active A2 list",
+      "class": "a-stale-scenario",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.6",
+      "note": "One measurement, not 24: 5,874 firing rows and 0 violations across the 41 sessions that observe it; 150 cold-start frames cannot contain a load-dependent coincidence. Extending the engine-first-150 contract is not cheap, so it is recorded with the assertion unchanged."
+    },
+    {
+      "session": "engine-atr-5a-0-immediate",
+      "message": "engine-atr-5a-0-immediate first DLI did not select byte three of the active A2 list",
+      "class": "a-stale-scenario",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.6",
+      "note": "One measurement, not 24: 5,874 firing rows and 0 violations across the 41 sessions that observe it; 150 cold-start frames cannot contain a load-dependent coincidence. Extending the engine-first-150 contract is not cheap, so it is recorded with the assertion unchanged."
+    },
+    {
+      "session": "engine-atr-5a-0-delayed",
+      "message": "engine-atr-5a-0-delayed first DLI did not select byte three of the active A2 list",
+      "class": "a-stale-scenario",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.6",
+      "note": "One measurement, not 24: 5,874 firing rows and 0 violations across the 41 sessions that observe it; 150 cold-start frames cannot contain a load-dependent coincidence. Extending the engine-first-150 contract is not cheap, so it is recorded with the assertion unchanged."
+    },
+    {
+      "session": "engine-atr-5a-1-immediate",
+      "message": "engine-atr-5a-1-immediate first DLI did not select byte three of the active A2 list",
+      "class": "a-stale-scenario",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.6",
+      "note": "One measurement, not 24: 5,874 firing rows and 0 violations across the 41 sessions that observe it; 150 cold-start frames cannot contain a load-dependent coincidence. Extending the engine-first-150 contract is not cheap, so it is recorded with the assertion unchanged."
+    },
+    {
+      "session": "engine-atr-5a-1-delayed",
+      "message": "engine-atr-5a-1-delayed first DLI did not select byte three of the active A2 list",
+      "class": "a-stale-scenario",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.6",
+      "note": "One measurement, not 24: 5,874 firing rows and 0 violations across the 41 sessions that observe it; 150 cold-start frames cannot contain a load-dependent coincidence. Extending the engine-first-150 contract is not cheap, so it is recorded with the assertion unchanged."
+    },
+    {
+      "session": "engine-atr-5a-2-immediate",
+      "message": "engine-atr-5a-2-immediate first DLI did not select byte three of the active A2 list",
+      "class": "a-stale-scenario",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.6",
+      "note": "One measurement, not 24: 5,874 firing rows and 0 violations across the 41 sessions that observe it; 150 cold-start frames cannot contain a load-dependent coincidence. Extending the engine-first-150 contract is not cheap, so it is recorded with the assertion unchanged."
+    },
+    {
+      "session": "engine-atr-5a-2-delayed",
+      "message": "engine-atr-5a-2-delayed first DLI did not select byte three of the active A2 list",
+      "class": "a-stale-scenario",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.6",
+      "note": "One measurement, not 24: 5,874 firing rows and 0 violations across the 41 sessions that observe it; 150 cold-start frames cannot contain a load-dependent coincidence. Extending the engine-first-150 contract is not cheap, so it is recorded with the assertion unchanged."
+    },
+    {
+      "session": "engine-xex-a5-0-immediate",
+      "message": "engine-xex-a5-0-immediate screenshot sequence differs between XEX and ATR",
+      "class": "c-real-failure",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.7",
+      "note": "Exactly frames 0-4 differ in all 12 pairings, frames 5-149 are byte-identical. Pre-existing; an owner judgement on a five-frame medium-dependent entry transient."
+    },
+    {
+      "session": "engine-xex-a5-0-delayed",
+      "message": "engine-xex-a5-0-delayed screenshot sequence differs between XEX and ATR",
+      "class": "c-real-failure",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.7",
+      "note": "Exactly frames 0-4 differ in all 12 pairings, frames 5-149 are byte-identical. Pre-existing; an owner judgement on a five-frame medium-dependent entry transient."
+    },
+    {
+      "session": "engine-xex-a5-1-immediate",
+      "message": "engine-xex-a5-1-immediate screenshot sequence differs between XEX and ATR",
+      "class": "c-real-failure",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.7",
+      "note": "Exactly frames 0-4 differ in all 12 pairings, frames 5-149 are byte-identical. Pre-existing; an owner judgement on a five-frame medium-dependent entry transient."
+    },
+    {
+      "session": "engine-xex-a5-1-delayed",
+      "message": "engine-xex-a5-1-delayed screenshot sequence differs between XEX and ATR",
+      "class": "c-real-failure",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.7",
+      "note": "Exactly frames 0-4 differ in all 12 pairings, frames 5-149 are byte-identical. Pre-existing; an owner judgement on a five-frame medium-dependent entry transient."
+    },
+    {
+      "session": "engine-xex-a5-2-immediate",
+      "message": "engine-xex-a5-2-immediate screenshot sequence differs between XEX and ATR",
+      "class": "c-real-failure",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.7",
+      "note": "Exactly frames 0-4 differ in all 12 pairings, frames 5-149 are byte-identical. Pre-existing; an owner judgement on a five-frame medium-dependent entry transient."
+    },
+    {
+      "session": "engine-xex-a5-2-delayed",
+      "message": "engine-xex-a5-2-delayed screenshot sequence differs between XEX and ATR",
+      "class": "c-real-failure",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.7",
+      "note": "Exactly frames 0-4 differ in all 12 pairings, frames 5-149 are byte-identical. Pre-existing; an owner judgement on a five-frame medium-dependent entry transient."
+    },
+    {
+      "session": "engine-xex-5a-0-immediate",
+      "message": "engine-xex-5a-0-immediate screenshot sequence differs between XEX and ATR",
+      "class": "c-real-failure",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.7",
+      "note": "Exactly frames 0-4 differ in all 12 pairings, frames 5-149 are byte-identical. Pre-existing; an owner judgement on a five-frame medium-dependent entry transient."
+    },
+    {
+      "session": "engine-xex-5a-0-delayed",
+      "message": "engine-xex-5a-0-delayed screenshot sequence differs between XEX and ATR",
+      "class": "c-real-failure",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.7",
+      "note": "Exactly frames 0-4 differ in all 12 pairings, frames 5-149 are byte-identical. Pre-existing; an owner judgement on a five-frame medium-dependent entry transient."
+    },
+    {
+      "session": "engine-xex-5a-1-immediate",
+      "message": "engine-xex-5a-1-immediate screenshot sequence differs between XEX and ATR",
+      "class": "c-real-failure",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.7",
+      "note": "Exactly frames 0-4 differ in all 12 pairings, frames 5-149 are byte-identical. Pre-existing; an owner judgement on a five-frame medium-dependent entry transient."
+    },
+    {
+      "session": "engine-xex-5a-1-delayed",
+      "message": "engine-xex-5a-1-delayed screenshot sequence differs between XEX and ATR",
+      "class": "c-real-failure",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.7",
+      "note": "Exactly frames 0-4 differ in all 12 pairings, frames 5-149 are byte-identical. Pre-existing; an owner judgement on a five-frame medium-dependent entry transient."
+    },
+    {
+      "session": "engine-xex-5a-2-immediate",
+      "message": "engine-xex-5a-2-immediate screenshot sequence differs between XEX and ATR",
+      "class": "c-real-failure",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.7",
+      "note": "Exactly frames 0-4 differ in all 12 pairings, frames 5-149 are byte-identical. Pre-existing; an owner judgement on a five-frame medium-dependent entry transient."
+    },
+    {
+      "session": "engine-xex-5a-2-delayed",
+      "message": "engine-xex-5a-2-delayed screenshot sequence differs between XEX and ATR",
+      "class": "c-real-failure",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.7",
+      "note": "Exactly frames 0-4 differ in all 12 pairings, frames 5-149 are byte-identical. Pre-existing; an owner judgement on a five-frame medium-dependent entry transient."
+    },
+    {
+      "session": "capital-contact-allied-medium",
+      "message": "capital-contact-allied-medium did not capture 16 consecutive contact rasters",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.3",
+      "note": "Pre-existing behavioural clause, not classified into (a)/(b)/(c) by any session so far."
+    },
+    {
+      "session": "capital-contact-hostile-medium",
+      "message": "capital-contact-hostile-medium did not capture 16 consecutive contact rasters",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.3",
+      "note": "Pre-existing behavioural clause, not classified into (a)/(b)/(c) by any session so far."
+    },
+    {
+      "session": "lower-playfield-hostile-contact-xex-hard",
+      "message": "lower-playfield-hostile-contact-xex-hard did not capture 16 consecutive contact rasters",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.3",
+      "note": "Pre-existing behavioural clause, not classified into (a)/(b)/(c) by any session so far."
+    },
+    {
+      "session": "weapon-pickup-2-hunt-fire4",
+      "message": "Booster release did not clear the capsule from the missile plane in the release frame",
+      "class": "c-real-failure",
+      "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.8",
+      "note": "The plane IS cleared (pickup_missile_rows === 0 on every release frame); pickup_erase_calls is 2 where the clause asserts 1, on exactly the 4 release frames of the replay."
+    }
+  ]
+}

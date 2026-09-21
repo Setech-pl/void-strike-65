@@ -1960,3 +1960,210 @@ build, XEX `d667d88d…`, byte-identical to the artifact the trace measured.
 * CPU/RAM delta: **zero** — no production source changed. The only runtime-side
   file touched is the trace-only emulator observer, which is not part of any
   artifact.
+
+---
+
+## 15. The default build is unblocked — `npm test` runs to completion, and the five stale pins are relations now
+
+FIX session, 2026-09-21, branch `main`, HEAD at the start `d4f085c`, worktree
+clean apart from the owner's untracked `assets/music/v2-drafts/`. Two owner
+decisions were given, both implemented here. **No production source changed:
+CPU and RAM delta zero**; the XEX, ATR and boot BIN this tree builds are the
+same bytes the committed evidence binds to.
+
+### 15.1 Owner decision 1 — release gate semantics
+
+§14.15 named the deadlock: `scripts/build.mjs:2039` refused a final build
+unless `wallTrace.gate.passed === true`, while the owner's rule requires
+recorded behavioural clause failures to ship in the evidence with
+`gate.passed === false`. With 40 recorded failures the default build threw
+before a single test ran, so `npm test` — which builds the default target
+first — could not run at all.
+
+**The gate is now: no UNRECORDED gate failure, and `gate.timing_and_dli_passed`.**
+
+The recorded list is **one data file**, `docs/recorded-gate-failures.json`, and
+both consumers read it through the same loader and the same evaluator in
+`scripts/runtime-evidence.mjs`:
+
+| Consumer | Reads |
+| --- | --- |
+| `scripts/build.mjs` (the release gate) | `evaluateReleaseGate(wallTrace, loadRecordedGateFailures(rootDirectory))` |
+| `tests/runtime-evidence-binding.test.mjs` (the tripwire) | the same two functions, same file |
+
+Neither carries a list of its own — `tests/runtime-evidence-binding.test.mjs`
+previously built the 40 entries inline, and that copy is gone. Every entry
+carries its `class` (`a-stale-scenario`, `b-wrong-selection`, `c-real-failure`,
+`pre-existing-unclassified`) and its `measurement` reference into this document,
+and the loader **refuses the list itself** if an entry carries neither, or
+carries the same failure twice. `message` is still matched verbatim against
+`gate.behavioural_clause_failures`, so an entry cannot be a placeholder for
+whatever happens to fail.
+
+`gate.passed` is untouched in meaning and still published: false while any
+failure is recorded. The evaluator additionally refuses a report that
+contradicts itself — a `behavioural_clause_failure_count` that disagrees with
+the list, or a `gate.passed` that disagrees with both.
+
+**Proof, through the real default build** (full log:
+[release-gate-and-pin-conversion-injection-proof.md](release-gate-and-pin-conversion-injection-proof.md)).
+Each case mutates `docs/runtime-wall-trace.json` in place, runs
+`node scripts/build.mjs --quiet`, and restores the file — verified
+byte-identical afterwards (`7b944da7…`):
+
+| Injected into the evidence | Default build |
+| --- | --- |
+| an UNRECORDED clause failure (`raider-remnant-rapid-xex-hard`) | **REFUSED** — "UNRECORDED gate failure(s): …" |
+| a recorded failure silently cleared (the booster release clause) | **REFUSED** — "recorded failure(s) no longer failing, so docs/recorded-gate-failures.json over-states what this build fails" |
+| `gate.timing_and_dli_passed: false` | **REFUSED** — "timing or the DLI sequence regressed" |
+| `gate.passed: true` against a 40-entry list | **REFUSED** — "gate.passed disagrees with the failure list the report publishes" |
+| nothing — the real report | **PASSES** |
+
+The tripwire goes red on the same first three injections, from the same
+evaluator. `tests/release-gate-semantics.test.mjs` is the standing regression
+test: it exercises all four refusal cases and the pass case against
+`evaluateReleaseGate`, which is the whole of the decision the build makes — the
+build calls it and nothing else — and it also proves the loader refuses an
+entry without a class or a measurement, and a duplicated entry.
+
+### 15.2 Owner decision 2 — the five stale pins, converted not re-pinned
+
+The five pins the A/B of `d4f085c` named (24,264 / 11,304 / 2,688 / 960, and
+the second 24,264 in the XEX/ATR clause). None was re-pinned to a new number.
+Every threshold used already existed in the repository; the exact measurements
+stay in `docs/runtime-wall-trace.json` as data.
+
+| Pin | Was | Now asserts | Threshold source |
+| --- | --- | --- | --- |
+| `:777` heaviest frame | `[wall_cycles, physical_headroom] === [24_264, 11_304]` | equals `semantics.measured_*`; `wall + headroom === pal_frame_cycles`; `wall <= gate.maximum_wall_cycles`; `headroom > 0`; `headroom >= weapon_pickup_shield.minimum_physical_headroom`; 0 deadline overruns and 0 missed frames | `gate.pal_frame_cycles` 35,568; `gate.maximum_wall_cycles` 32,568; the shield gate's own headroom floor 3,000 |
+| `:809` shield gate | the measured half of an 8-tuple (`24_264 / -7_808 / 11_304 / 8_158 / 8_304 / 500`) | target and hard limits as baseline + delta; hard limit === the hard gate; measured === `semantics.measured_wall_cycles_dma_on`; headroom === PAL − measured; all three deltas as measured-minus-input; measured within limit and above the floor; `target_overrun_frames` and `hard_overrun_frames` 0 | the gate's own fields; the accepted **pre-implementation baseline 32,072 stays pinned** — it is a fixed input, not a measurement of this build |
+| `:336` contact sheets | `width === 2_688`, `height === 960` | sheet is exactly its frames laid out `columns` wide: `width % columns === 0`, `height % rows === 0`, and both sheets cut from the same frame size; `frames === 2 × full_cycle_frames` | relation to inputs. **No repo threshold exists for the emulator's PAL screenshot size**, so none is invented — see §15.5 |
+| `:828` XEX/ATR maxima | `[["XEX", 24_264], ["ATR", 24_264]]` | the two media are **identical** (maxima and measured frames equal), each within the hard gate, each with positive headroom, 0 overruns and 0 missed frames | `gate.maximum_wall_cycles`, `gate.pal_frame_cycles` |
+| `:830` replay fingerprint | `=== "a9fd33b5…"` | digest shape `^[0-9a-f]{64}$`; documented basis unchanged; `replay.sessions.length === evidence.required_sessions`; `determinism.ordered_frames === Σ session.measured_frames` | relation to inputs. **No threshold exists behind the digest value** — see §15.5 |
+
+Two loose literals travelled with the first pin and are **replaced, not
+re-pinned**: `wall_cycles <= 32_584` and `physical_headroom >= 2_984` matched no
+documented threshold at all — 32,584 is 16 cycles *above* the 32,568 hard gate,
+so the clause was weaker than the gate it stood for.
+
+One further clause encoded the OLD meaning of `gate.passed` and is corrected by
+decision 1 rather than by decision 2: `:49` compared the timing-only
+conjunction to `gate.passed`, which is only true when no behavioural clause
+fails. It now asserts those terms as a necessary condition of
+`gate.timing_and_dli_passed` — the half published for exactly this purpose —
+and `gate.passed === (behavioural_clause_failure_count === 0 &&
+timing_and_dli_passed)`.
+
+**Falsifiability — every converted clause fails on an injected violation**
+(same harness, same restore proof):
+
+| Injection | Result |
+| --- | --- |
+| sheet width no longer `columns × tile` | CAUGHT |
+| the two sheets cut from different frame sizes | CAUGHT |
+| heaviest frame over the 32,568 hard gate | CAUGHT |
+| heaviest frame headroom not > 0 | CAUGHT |
+| headroom not the rest of the PAL frame | CAUGHT |
+| a deadline overrun anywhere in the run | CAUGHT |
+| `remaining_hard_cycles` no longer limit − measured | CAUGHT |
+| Shield coverage under one complete 250-frame booster | CAUGHT |
+| a hard overrun frame in the shield gate | CAUGHT |
+| XEX and ATR maxima differ by 1 cycle | CAUGHT |
+| both media over the hard gate | CAUGHT |
+| `ordered_frames` no longer covers every row | CAUGHT |
+| the digest is not a SHA-256 | CAUGHT |
+| a required session missing from the replay list | CAUGHT |
+| `gate.passed: true` with 40 recorded failures | CAUGHT |
+| `timing_and_dli_passed: false` | CAUGHT by the tripwire (the release gate's own half) |
+
+The Shield clause keeps one coverage floor: the run must contain at least one
+complete Shield booster, whose documented duration is **250 active PAL frames**
+(`docs/game-design.md`, `docs/architecture.md`). That is an existing documented
+constant, not a new pin; the measured count (750, three boosters) stays data.
+
+### 15.3 `npm test` on the DEFAULT build — the new honest baseline
+
+`npm test` = `node scripts/build.mjs --quiet && node --test tests/*.test.mjs`.
+It now runs to completion on the **default** target for the first time since the
+evidence went stale.
+
+| | tests | pass | fail |
+| --- | --- | --- | --- |
+| candidate build at `d4f085c` (re-measured in a worktree this session) | 737 | 616 | **118** |
+| **default build at this HEAD** | **744** | **631** | **110** |
+
+`744 − 737 = 7`: the seven new tests are `tests/release-gate-semantics.test.mjs`
+(all pass). **110 failures, and every one of them is on the `d4f085c` list —
+0 NEW.** Eight failures cleared, classified:
+
+| Cleared | Cause |
+| --- | --- |
+| `runtime-wall-trace` — current frontend maximum … are exact | decision 2 (pins `:777`, `:809`) |
+| `runtime-wall-trace` — XEX and ATR legal hunt traces … fingerprint | decision 2 (pins `:828`, `:830`) |
+| `runtime-wall-trace` — wall trace keeps CPU comparison … distinct | decision 1 (`gate.passed` meaning) |
+| `runtime-wall-trace` — Spread Shot passes PAL wall budget … | **the default target itself**: `--candidate` leaves the measured manifest fields `null` |
+| `runtime-wall-trace` — debris visual polish … +256 PAL gate | the default target itself |
+| `runtime-wall-trace` — destructible debris passes PAL … budgets | the default target itself |
+| `runtime-timing` — measured DMA-on fields come only from an artifact-matched Atari800 trace | the default target itself |
+| `enemy-roster` — compile-time review harness cycles anchors but is excluded from the release artifact | the default target itself |
+
+Five of the eleven `runtime-wall-trace` failures survive, and none is in scope
+of either decision — each is a different pre-existing pin:
+
+| Clause | Reads | Pinned |
+| --- | --- | --- |
+| `:312` engine pulse | `a2_heads.length` **27** | 22 |
+| `:482` legal runtime coverage | `[10, 10, true]` | `[19, 13, false]` |
+| `:623` explosion colour flash | `colpm1 [68, 136, 140]`, `colpm2 [68, 136, 140]` | `[68, 132]`, `[70]` |
+| `:713` enemy breakup five-slot path | `false` | `true` |
+| `:779` ten heaviest frames | no frame carries a `cpu_dma_off_reference` | at least one does |
+
+The `:336` conversion did not make the engine-pulse clause pass, because the
+same test carries the unrelated `a2_heads` pin above; that is visible in the A/B
+as "still failing" and is honest — the pin the owner named is converted, the one
+they did not is untouched.
+
+### 15.4 Gates
+
+* Build: **DEFAULT** target, `npm run build:candidate` not used for the gate.
+  XEX SHA-256 `d667d88d742b9febf3c8c4a45d79f9500b3391278011428b68b8bf5c21f5283f`,
+  26,986 B — unchanged, and still the artifact the committed evidence binds to
+  (`tests/runtime-evidence-binding.test.mjs` green).
+* `npm test` on the default build: **744 tests, 631 pass, 110 fail**, A/B above,
+  **0 new**.
+* Boot smoke: **8/8 PASS** (`--atari800-source=build/atari800-trace`).
+* CPU / RAM delta: **zero**. No `src/` file, no linker configuration and no
+  asset changed; the artifacts are byte-identical to `d4f085c`.
+* No full 64-session trace regeneration was needed or run: the evidence binds
+  to these artifacts already.
+
+### 15.5 Two thresholds that do not exist — proposed, not invented
+
+Owner decision 2 asks for the existing threshold behind each pin, and for the
+gap to be stated rather than filled silently. Two pins had none:
+
+1. **The contact-sheet frame size.** 2,688 × 960 was the traced Atari800 build's
+   own PAL screenshot size (336 × 240) times the sheet layout; it is now
+   2,048 × 768 (256 × 192). Nothing in the repository states what the emulator's
+   screenshot geometry must be, and it is not a property of the Atari artifact at
+   all. **Proposal:** if the owner wants it gated, the trace generator should
+   publish the per-frame screenshot geometry it observed as its own evidence
+   field, and the clause assert that both media and all sessions of one run share
+   it — a consistency gate, not a pinned pixel count. Not implemented.
+2. **The replay fingerprint.** The digest is a property of this build's rows, and
+   re-pinning it after every regeneration is precisely the staleness mechanism
+   being removed here. The anti-staleness gate that *does* exist is the artifact
+   binding: `tests/runtime-evidence-binding.test.mjs` fails in milliseconds when
+   the committed evidence stops describing what the tree builds. **Proposal:**
+   leave the digest as evidence, and if a stronger determinism gate is wanted,
+   re-derive it from the committed CSVs in a separate milestone-only check
+   rather than pinning it in a per-run test. Not implemented.
+
+### 15.6 Recorded as backlog, out of scope
+
+The two `(c)` items of §14.7 and §14.8 — XEX/ATR engine screenshot parity on
+frames 0-4, and the second erase on booster release — are now listed in
+`docs/STATUS.md` "Backlog — deferred, not forgotten" as **known, low priority,
+not in scope**. They remain recorded gate failures in
+`docs/recorded-gate-failures.json` with their classes and measurements, so
+neither can disappear unnoticed.

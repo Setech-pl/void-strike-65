@@ -2200,6 +2200,15 @@ failures live in `docs/recorded-gate-failures.json`, the one file the build gate
 and the tripwire share. The XEX, ATR and boot BIN are byte-identical to
 `d4f085c`; nothing about the runtime changed, so no owner smoke is owed for it.
 
+**Music v2 is planned, not implemented (2026-09-22).**
+[plan-music-v2.md](plan-music-v2.md) costs the owner-approved menu "sketch B"
+and gameplay "GRA-2" drafts (`assets/music/v2-drafts/`): prototype-measured
+players (gameplay tick worst 322 cycles against the 1,985 binding margin), the
+placement that fits — the gameplay player and data in the level image at
+`$A608`, the menu in `STARFIELD` — the SFX channel decision it needs (Q-S1),
+the summed-volume question (Q-V1) and the tests that must go red first. Two
+implementation sessions, menu then gameplay; five owner questions in its §9.
+
 **NEXT TASK.** Owner smoke of the Light multiplicity candidate. After that, the
 first of these two, in this order:
 

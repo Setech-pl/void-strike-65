@@ -25,6 +25,13 @@ for (const line of fs.readFileSync(path.join(root, "build/sector-reader.lbl"), "
 }
 const readerImage = fs.readFileSync(path.join(root, "build/sector-reader.bin"));
 
+// Music v2 §1.4 put the gameplay music player inside the level image, so the
+// build's level-1 run is no longer two sectors. The fixtures follow the
+// build's own directory rather than a literal, which is what the reader
+// validates the header against.
+const manifest = JSON.parse(fs.readFileSync(path.join(root, "build/manifest.json"), "utf8"));
+const LEVEL_ONE_SECTORS = manifest.sectorReader.levels
+  .find((level) => level.id === 1).sectors;
 const READER_BASE = 0xa000;
 const LEVEL_BUFFER = 0xa600;
 const SECTOR_BYTES = 128;
@@ -60,7 +67,7 @@ function carryWrapChecksum(bytes) {
 }
 
 // A level image: header per plan §1.4 plus a pattern payload.
-function levelImage({ id = 1, sectors = 2, version = 1, magic = "VS" } = {}) {
+function levelImage({ id = 1, sectors = LEVEL_ONE_SECTORS, version = 1, magic = "VS" } = {}) {
   const bytes = Buffer.alloc(sectors * SECTOR_BYTES);
   bytes[0] = magic.charCodeAt(0);
   bytes[1] = magic.charCodeAt(1);
@@ -278,13 +285,13 @@ function healthyDevice(image, base = 320) {
 }
 
 test("a healthy drive delivers the level image byte-exactly", () => {
-  const image = levelImage({ id: 1, sectors: 2 });
+  const image = levelImage({ id: 1 });
   const stub = new PokeyStub({ respond: healthyDevice(image) });
   const result = runLoad(stub);
 
   assert.equal(result.failed, false);
   assert.equal(result.status, status.OK);
-  assert.equal(stub.commandFrames.length, 2, "one command frame per sector");
+  assert.equal(stub.commandFrames.length, LEVEL_ONE_SECTORS, "one command frame per sector");
   assert.deepEqual(
     Buffer.from(result.memory.subarray(LEVEL_BUFFER, LEVEL_BUFFER + image.length)),
     image,
@@ -292,7 +299,7 @@ test("a healthy drive delivers the level image byte-exactly", () => {
 });
 
 test("the command frame is D1:, read sector, with a carry wrap-around checksum", () => {
-  const image = levelImage({ id: 1, sectors: 2 });
+  const image = levelImage({ id: 1 });
   const stub = new PokeyStub({ respond: healthyDevice(image) });
   runLoad(stub);
 
@@ -305,7 +312,7 @@ test("the command frame is D1:, read sector, with a carry wrap-around checksum",
 });
 
 test("a buffer that already holds the image sends no command frame at all", () => {
-  const image = levelImage({ id: 1, sectors: 2 });
+  const image = levelImage({ id: 1 });
   const stub = new PokeyStub({ respond: () => { throw new Error("SIO was touched"); } });
   const result = runLoad(stub, { buffer: image });
 
@@ -316,13 +323,13 @@ test("a buffer that already holds the image sends no command frame at all", () =
 });
 
 test("a buffer holding a DIFFERENT level is not mistaken for a hit", () => {
-  const resident = levelImage({ id: 3, sectors: 2 });
-  const wanted = levelImage({ id: 1, sectors: 2 });
+  const resident = levelImage({ id: 3 });
+  const wanted = levelImage({ id: 1 });
   const stub = new PokeyStub({ respond: healthyDevice(wanted) });
   const result = runLoad(stub, { buffer: resident, levelId: 1 });
 
   assert.equal(result.status, status.OK);
-  assert.equal(stub.commandFrames.length, 2, "the stale image must be re-read");
+  assert.equal(stub.commandFrames.length, LEVEL_ONE_SECTORS, "the stale image must be re-read");
 });
 
 // --- plan §3 error taxonomy -------------------------------------------------
@@ -345,7 +352,7 @@ test("wire: NAK three times is WIRE_EXHAUSTED, not NO_DEVICE", () => {
 });
 
 test("wire: a framing error on a data byte retries, and the retry succeeds", () => {
-  const image = levelImage({ id: 1, sectors: 2 });
+  const image = levelImage({ id: 1 });
   let frames = 0;
   const stub = new PokeyStub({
     respond: (frame) => {
@@ -359,11 +366,12 @@ test("wire: a framing error on a data byte retries, and the retry succeeds", () 
   const result = runLoad(stub);
 
   assert.equal(result.status, status.OK);
-  assert.equal(stub.commandFrames.length, 3, "one retry on sector 0, then sector 1");
+  assert.equal(stub.commandFrames.length, LEVEL_ONE_SECTORS + 1,
+    "one retry on sector 0, then the remaining sectors");
 });
 
 test("wire: a serial overrun on a data byte retries", () => {
-  const image = levelImage({ id: 1, sectors: 2 });
+  const image = levelImage({ id: 1 });
   let frames = 0;
   const stub = new PokeyStub({
     respond: (frame) => {
@@ -377,11 +385,11 @@ test("wire: a serial overrun on a data byte retries", () => {
   const result = runLoad(stub);
 
   assert.equal(result.status, status.OK);
-  assert.equal(stub.commandFrames.length, 3);
+  assert.equal(stub.commandFrames.length, LEVEL_ONE_SECTORS + 1);
 });
 
 test("wire: a bad data checksum retries, and the retry succeeds", () => {
-  const image = levelImage({ id: 1, sectors: 2 });
+  const image = levelImage({ id: 1 });
   let frames = 0;
   const stub = new PokeyStub({
     respond: (frame) => {
@@ -395,7 +403,7 @@ test("wire: a bad data checksum retries, and the retry succeeds", () => {
   const result = runLoad(stub);
 
   assert.equal(result.status, status.OK);
-  assert.equal(stub.commandFrames.length, 3);
+  assert.equal(stub.commandFrames.length, LEVEL_ONE_SECTORS + 1);
 });
 
 test("device: $45 ERROR fails immediately with no retry (owner decision 3)", () => {
@@ -419,17 +427,17 @@ test("no device: silence ends in NO_DEVICE after exactly 2 probes", () => {
 });
 
 test("image: a clean read of the wrong level id is BAD_IMAGE", () => {
-  const image = levelImage({ id: 7, sectors: 2 });    // the disk holds level 7
+  const image = levelImage({ id: 7 });    // the disk holds level 7
   const stub = new PokeyStub({ respond: healthyDevice(image) });
   const result = runLoad(stub, { levelId: 1 });       // the game asked for 1
 
   assert.equal(result.failed, true);
   assert.equal(result.status, status.BAD_IMAGE);
-  assert.equal(stub.commandFrames.length, 2, "no retry: the disk is simply wrong");
+  assert.equal(stub.commandFrames.length, LEVEL_ONE_SECTORS, "no retry: the disk is simply wrong");
 });
 
 test("image: a clean read with the wrong magic is BAD_IMAGE", () => {
-  const image = levelImage({ id: 1, sectors: 2, magic: "XX" });
+  const image = levelImage({ id: 1, magic: "XX" });
   const stub = new PokeyStub({ respond: healthyDevice(image) });
   const result = runLoad(stub);
 
@@ -437,7 +445,7 @@ test("image: a clean read with the wrong magic is BAD_IMAGE", () => {
 });
 
 test("image: a clean read with the wrong format version is BAD_IMAGE", () => {
-  const image = levelImage({ id: 1, sectors: 2, version: 2 });
+  const image = levelImage({ id: 1, version: 2 });
   const stub = new PokeyStub({ respond: healthyDevice(image) });
   const result = runLoad(stub);
 
@@ -445,8 +453,8 @@ test("image: a clean read with the wrong format version is BAD_IMAGE", () => {
 });
 
 test("image: a header sector count disagreeing with the directory is BAD_IMAGE", () => {
-  const image = levelImage({ id: 1, sectors: 2 });
-  image[4] = 3;                                        // header claims 3, directory says 2
+  const image = levelImage({ id: 1 });
+  image[4] = LEVEL_ONE_SECTORS + 1;                    // header claims one sector too many
   const stub = new PokeyStub({ respond: healthyDevice(image) });
   const result = runLoad(stub);
 
@@ -538,7 +546,7 @@ test("wait_serial counts frames on the VCOUNT wrap, not on VCOUNT falling", () =
 // negative controls for docs/diagnostics/sio-register-probe-2026-09-20.json.
 
 test("[C1] SKCTL is $23 while transmitting and $33 while receiving, never $13", () => {
-  const image = levelImage({ id: 1, sectors: 2 });
+  const image = levelImage({ id: 1 });
   const stub = new PokeyStub({ respond: healthyDevice(image) });
   runLoad(stub);
 
@@ -553,7 +561,7 @@ test("[C1] SKCTL is $23 while transmitting and $33 while receiving, never $13", 
 test("[C2] a keyboard overrun is not a wire error", () => {
   // SKSTAT bit 6 is the KEYBOARD overrun. The plan's $C0 mask would have read
   // this as a corrupt byte and burned all three attempts on a clean sector.
-  const image = levelImage({ id: 1, sectors: 2 });
+  const image = levelImage({ id: 1 });
   const stub = new PokeyStub({
     respond: (frame) => {
       const sector = frame[2] | (frame[3] << 8);
@@ -563,11 +571,11 @@ test("[C2] a keyboard overrun is not a wire error", () => {
   const result = runLoad(stub);
 
   assert.equal(result.status, status.OK);
-  assert.equal(stub.commandFrames.length, 2, "no retry may be spent on the keyboard");
+  assert.equal(stub.commandFrames.length, LEVEL_ONE_SECTORS, "no retry may be spent on the keyboard");
 });
 
 test("[C3] both command-line hold windows are spent in WSYNC", () => {
-  const image = levelImage({ id: 1, sectors: 2 });
+  const image = levelImage({ id: 1 });
   const stub = new PokeyStub({ respond: healthyDevice(image) });
   runLoad(stub);
 
@@ -584,17 +592,17 @@ test("every received byte re-arms the serial input latch", () => {
   // re-arm is the acknowledgement, not housekeeping. The stub refuses to
   // deliver a byte while the latch is still asserted, so a reader that
   // stopped re-arming would stall and fail this as a timeout.
-  const image = levelImage({ id: 1, sectors: 2 });
+  const image = levelImage({ id: 1 });
   const stub = new PokeyStub({ respond: healthyDevice(image) });
   const result = runLoad(stub);
 
   assert.equal(result.status, status.OK);
-  assert.ok(stub.skresWrites >= 2 * (SECTOR_BYTES + 3),
+  assert.ok(stub.skresWrites >= LEVEL_ONE_SECTORS * (SECTOR_BYTES + 3),
     `SKRES clears the sticky overrun bit after every byte, saw ${stub.skresWrites}`);
 });
 
 test("the reader hands POKEY back quiesced", () => {
-  const image = levelImage({ id: 1, sectors: 2 });
+  const image = levelImage({ id: 1 });
   const stub = new PokeyStub({ respond: healthyDevice(image) });
   runLoad(stub);
 

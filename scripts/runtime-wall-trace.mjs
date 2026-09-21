@@ -521,7 +521,6 @@ const traceLabels = {
   DFTRACE_PC_BROADSIDE: "update_broadside",
   DFTRACE_PC_FIGHTER_EXPLOSION: "render_shared_fighter_explosions",
   DFTRACE_PC_CAPITAL_EXPLOSION: "render_capital_explosions",
-  DFTRACE_PC_MUSIC_TICK: "music_tick_gameplay",
   DFTRACE_PC_ENTITY_SPAWN: "entity_spawn_debris",
   DFTRACE_PC_ENTITY_CONTACT: "entity_damage_applied",
   DFTRACE_PC_ENTITY_DESPAWN: "entity_despawn_debris",
@@ -2586,6 +2585,10 @@ function main() {
   const collisionLabelPath = path.join(rootDirectory, "build", "capital-player-collision.lbl");
   invariant(fs.existsSync(collisionLabelPath), "Capital/player collision labels are missing");
   const collisionLabels = parseViceLabels(fs.readFileSync(collisionLabelPath, "utf8"));
+  // Music v2 §1.4: the gameplay music player links on its own into the level image.
+  const gameplayMusicLabelPath = path.join(rootDirectory, "build", "gameplay-music.lbl");
+  invariant(fs.existsSync(gameplayMusicLabelPath), "Gameplay music labels are missing");
+  const gameplayMusicLabels = parseViceLabels(fs.readFileSync(gameplayMusicLabelPath, "utf8"));
   // Light multiplicity step 1b: the Light ASM kernel is its own link.
   const kernelLabelPath = path.join(rootDirectory, "build", "light-kernel.lbl");
   const kernelLabels = fs.existsSync(kernelLabelPath)
@@ -2622,6 +2625,15 @@ function main() {
   })) {
     const address = directorLabels.get(labelName);
     invariant(Number.isInteger(address), `Director trace label ${labelName} is missing`);
+    addressEnvironment[environmentName] = `0x${address.toString(16)}`;
+  }
+  // Music v2 §1.4: the gameplay music player is its own link inside the
+  // per-level image, so its tick PC comes from that link's label file.
+  for (const [environmentName, labelName] of Object.entries({
+    DFTRACE_PC_MUSIC_TICK: "music_tick_gameplay",
+  })) {
+    const address = gameplayMusicLabels.get(labelName);
+    invariant(Number.isInteger(address), `Gameplay music trace label ${labelName} is missing`);
     addressEnvironment[environmentName] = `0x${address.toString(16)}`;
   }
   for (const [environmentName, labelName] of Object.entries({

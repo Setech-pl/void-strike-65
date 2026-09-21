@@ -418,22 +418,43 @@ The PAL audit's worst margin is reported against 1,985 (§2).
 
 ## 9. Owner questions
 
+> **ANSWERED 2026-09-22.** The owner's answers are recorded in
+> `owner-decisions-2026-09-11.md` §AB and repeated at each question below.
+> Q-Z1 and Q-A1 are unanswered and belong to the menu session; this session
+> (§10 step 2a) needed neither.
+
+
 * **Q-S1 (must answer before the gameplay session): where does the shot SFX
   go?** S1 — onto channel 2 with the hit, as your proposal reads; while a
   shot and a hit overlap the hit is heard. Or S3 — onto channel 4 with the
   capital explosion; every envelope stays intact and the lead stops only for
   hits, shots are silent during a capital explosion. *Recommended: S1 as
   written, unless you want the shot never masked.*
+  **ANSWER: S3.** The shot moves to channel 4 with the capital-hull
+  explosion, so channel 1 (bass) is never preempted and channel 2 (lead) only
+  by the hit. **Condition:** session 2b must verify that
+  `CAPITAL_EXPLOSION_SOUND_AUDCTL` does not change the shot's sound while
+  both are active; if it does, STOP and report — the fallback is S1.
+  Belongs to session 2b; this session changed no SFX routing.
 * **Q-V1: the summed volume.** Sketch B peaks at 41 (410 of 768 frames above
   the old 13). Judge it in the emulator when the menu candidate lands; the
   plan does not rescale. If it clips, the choices are per-instrument volume
   edits in the JSON (music change, re-auditioned through the renderer) — not
   a player change.
+  **ANSWER: no rescale.** Sketch B stays at peak sum 41; the owner judges it
+  in the emulator. Gameplay levels stay as drafted (~60 %) and are tuned in
+  owner smoke.
 * **Q-P1: code in the level payload (G1).** The gameplay player executes from
   `$A608` inside the per-level image, 640 B per level on the ATR, and 4.6's
   LevelDef starts at sector 6 with 27 sectors left. Yes/no. If no, G2 (window
   record, coupled to plan-4.6 option (a)) is the alternative, with its boot
   costs.
+  **ANSWER: ACCEPTED, G1.** Consequence recorded, not implemented: the
+  per-level payload grows by the music (~534 B at v2), so the pending owner
+  decision **Q-1** (`LEVEL_BUFFER` 16 vs 24 sectors, `plan-4.6-placement.md`)
+  must be re-costed with it — the owner leans to 24. Also recorded:
+  **per-level music becomes possible later** (one theme per region), not in
+  scope now.
 * **Q-Z1: 10 bytes of zero page at `$A2`** for the menu's column pointers, or
   16 B of self-modified code instead. *Recommended: zero page.*
 * **Q-A1: the sketch generators and the MP3s** — keep as provenance under
@@ -446,6 +467,30 @@ only if the owner decides so.
 ---
 
 ## 10. Effort
+
+> **PROGRESS 2026-09-22 — step 2a is DONE, as `OWNER-SMOKE CANDIDATE`.**
+> The order below was inverted for the reason §1.3 already gives: menu v2
+> alone is +143 B raw against a packed gate with 19 B (correction) / 40 B
+> (hard) of headroom, so **the move has to come first** or an intermediate
+> commit breaks the gate. The landed order is therefore
+> **2a → menu v2 → 2b**. What 2a landed:
+>
+> * the v1 gameplay player and its score moved into the level image behind
+>   three frozen vectors at `$A608`; the POKEY write stream is byte-identical
+>   over a full loop plus one row (`tests/gameplay-music-placement.test.mjs`);
+> * the level image grew 2 → 7 sectors — sized for the **v2** player, so
+>   session 2b moves no sectors and pays no further transport cost;
+> * `STARFIELD` −346 B raw / −280 B packed, **reserved for the starfield
+>   expansion** by owner decision (see `memory-map.md`, *Music v2 §1.4*);
+> * two deliberate deviations from §1.4, both recorded there: the vector
+>   table is **three** entries, not two (`music_restore_gameplay_channels` is
+>   a real call site in `resume_gameplay_audio`), and the four-byte
+>   self-modified read tail **stays in `ENTITY_CODE`**, because the boot
+>   smoke checksums the level buffer during gameplay and a self-modifying
+>   block would fail it. `ENTITY_CODE`'s tail therefore stays 1 B, not 5.
+>
+> Still to do: the menu session (§10.1), then 2b (the v2 gameplay player, the
+> Q-S1 channel move and its AUDCTL condition, tests (a)/(b)/(c)).
 
 Two implementation sessions, in this order — **agreed, with one split
 inside the second**:

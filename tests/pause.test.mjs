@@ -56,7 +56,7 @@ test("PAUSED runs no world, combat, animation, score, death, or respawn tick", (
     "update_player_fighter_weapon", "update_enemy_weapon", "handle_collisions",
     "tick_shared_fighter_explosions", "tick_capital_explosions",
     "update_engine_animation", "update_player_death", "tick_respawn_invulnerability",
-    "update_score", "music_tick_gameplay", "update_sound",
+    "update_score", "music_tick_gameplay", "GAMEPLAY_MUSIC_TICK", "update_sound",
   ]) {
     assert.doesNotMatch(paused, new RegExp(forbidden));
   }
@@ -112,9 +112,11 @@ test("pause preserves music transport and resume continues only when enabled", (
   assert.doesNotMatch(enter, /music_stop|music_tick|MUSIC_SEQUENCE_INDEX|MUSIC_PATTERN_ROW/);
 
   const resumeAudio = routine("resume_gameplay_audio", "music_stop_gameplay");
+  // Music v2 §1.4: the player moved into the per-level image, so main reaches
+  // it only through the frozen vectors in build/gameplay-music-abi.inc.
   assert.match(resumeAudio,
-    /lda GAME_MUSIC_ENABLED\s+beq @done\s+lda MUSIC_ACTIVE\s+bne @restore_music\s+jsr music_start_gameplay/);
-  assert.match(resumeAudio, /jsr music_restore_gameplay_channels/);
+    /lda GAME_MUSIC_ENABLED\s+beq @done\s+lda MUSIC_ACTIVE\s+bne @restore_music\s+jsr GAMEPLAY_MUSIC_START/);
+  assert.match(resumeAudio, /jsr GAMEPLAY_MUSIC_RESTORE/);
   assert.doesNotMatch(routine("pause_loop", "poll_pause_option_edge"), /music_tick/);
 });
 

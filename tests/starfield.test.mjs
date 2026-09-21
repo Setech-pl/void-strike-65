@@ -274,7 +274,15 @@ test("layout and transport gates remain legal after blue-far removal", () => {
   // which still measures the ATR menu at frame 554 (delta 0 to the committed
   // baseline). This is a transport-format pin, not a deadline pin: re-record
   // it only for a deliberate change, never to accommodate an unexplained one.
-  assert.equal(manifest.transportCapacity.initialBootSectors, 104);
+  //
+  // 104 -> 102, re-recorded 2026-09-22 for music v2 §1.4: the gameplay music
+  // player and its score (346 B raw) left STARFIELD for the per-level image,
+  // so the packed STARFIELD stream fell 1,785 -> 1,505 B and the initial
+  // block lost two sectors. Deliberate SHRINK, and the boot smoke measures
+  // it: XEX menu 392 -> 391, ATR menu 596 -> 595, both a single frame early
+  // and inside the +-10 warn band, so boot-deadline-baseline.json is NOT
+  // re-recorded (its rule is about deliberate growth).
+  assert.equal(manifest.transportCapacity.initialBootSectors, 102);
   assert.ok(manifest.transportCapacity.initialBootEnvelopeBytes >= 0);
   assert.equal(labels.get("ENTITY_CODE_START") & 0xff, 0);
 });

@@ -1585,6 +1585,41 @@ spada, bo sojusznik przestaje się mnożyć przez regiony. Liczby z F
 parę i **nie są już bezpośrednio porównywalne** z sufitem ~700 B na styl
 wroga; przeliczenie należy do sesji kodu, która ustali pulę sojusznika.
 
+---
+
+## AB. MUZYKA v2 — ODPOWIEDZI WŁAŚCICIELA NA §9 PLANU (2026-09-22)
+
+Dotyczy `plan-music-v2.md` §9. Aneks datowany; plan nosi te same odpowiedzi
+przy swoich pytaniach.
+
+1. **Q-P1 — ZAAKCEPTOWANE (rekomendacja planu, wariant G1).** Odtwarzacz
+   muzyki rozgrywki i jego dane przenoszą się do **obrazu poziomu** i
+   wykonują się spod `$A608`, za ośmiobajtowym nagłówkiem czytnika, przez
+   zamrożoną tablicę wektorów. Konsekwencja **do zapisania, nie do
+   wykonania**: ładunek każdego poziomu rośnie o muzykę (~534 B przy v2),
+   więc **otwarta decyzja Q-1** (`LEVEL_BUFFER` 16 czy 24 sektory,
+   `plan-4.6-placement.md`) **musi zostać przeliczona razem z nią** —
+   właściciel skłania się ku 24. Zapisane również: muzyka **per poziom**
+   (jeden motyw na region) staje się dzięki temu możliwa **później**, poza
+   zakresem tych sesji.
+2. **Q-S1 — SFX strzału myśliwca gracza przechodzi na kanał 4**, dzielony z
+   rzadką i krótką eksplozją kadłuba kapitalnego. Dzięki temu kanał 1 (bas)
+   **nigdy** nie jest wywłaszczany, a kanał 2 (lead) tylko przez SFX
+   trafienia. **Warunek:** sesja wdrożeniowa ma sprawdzić, że ustawienie
+   `AUDCTL` eksplozji kapitalnej nie zmienia brzmienia strzału, gdy oba grają
+   naraz; jeśli zmienia — STOP i raport, a rozwiązaniem zastępczym jest
+   kanał 2 razem z trafieniem. **Należy do sesji 2b**, nie do przenosin.
+3. **Q-V1 — miks menu NIE jest przeskalowywany** (szczyt sumy 41). Właściciel
+   ocenia go w emulatorze. Poziomy rozgrywki zostają jak w szkicu (~60 %) i
+   są strojone w owner smoke.
+4. **Rezerwacja STARFIELD.** Bajty, które `STARFIELD` zyskuje po wyjściu
+   muzyki rozgrywki (netto po menu v2), są **ZAREZERWOWANE** na rozbudowę
+   gwiezdnego tła (roadmapa „STARFIELD PER SECTOR": warunkowe pogrubienie w
+   `generate_starfield_row` i kolor gwiazd per sektor). Nie wolno ich wydać na
+   nic innego w sesjach muzycznych. Każdy commit muzyczny raportuje dokładną
+   zarezerwowaną wielkość — surową i po spakowaniu — a STATUS oraz
+   `memory-map.md` noszą ją jako „reserved: starfield expansion".
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

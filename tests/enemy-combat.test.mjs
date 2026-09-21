@@ -114,7 +114,7 @@ test("selected Interceptor palette matches the Hostile hull hue with independent
   assert.match(source,
     /tick_shared_fighter_explosions:[\s\S]+cpx #FIGHTER_EXPLOSION_ENEMY_SLOT[\s\S]+beq @tick/);
   assert.match(source,
-    /start_gameplay:[\s\S]+lda #ENEMY_RUNTIME_BODY_COLOR[\s\S]+sta COLPM1[\s\S]+music_start_gameplay/,
+    /start_gameplay:[\s\S]+lda #ENEMY_RUNTIME_BODY_COLOR[\s\S]+sta COLPM1[\s\S]+GAMEPLAY_MUSIC_START/,
   "a new game must restore the Interceptor body even after an interrupted explosion");
   assert.match(source, /ENEMY_EXPLOSION_CORE_COLOR = \$84/);
 });

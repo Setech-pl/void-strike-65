@@ -12,7 +12,7 @@
 
 .include "starfield.inc"
 .include "menu-music.inc"
-.include "gameplay-music.inc"
+.include "gameplay-music-abi.inc"
 .include "entity-effects.inc"
 .include "loader-display-list.inc"
 .include "frontend-h31.inc"
@@ -2534,7 +2534,7 @@ start_gameplay:
     lda #$22
     sta AUDC3
 @display:
-    jsr music_start_gameplay
+    jsr GAMEPLAY_MUSIC_START
     jsr wait_frame_start
     lda #$80                    ; two bounded DLIs switch HUD/gameplay CHBASE
     sta NMIEN
@@ -2617,7 +2617,7 @@ profile_after_projectile_render = *
     jsr update_sound
     lda MUSIC_ACTIVE
     beq :+
-    jsr music_tick_gameplay
+    jsr GAMEPLAY_MUSIC_TICK
 :
 profile_after_audio = *
     jsr tick_respawn_invulnerability
@@ -2880,9 +2880,9 @@ resume_gameplay_audio:
     beq @done
     lda MUSIC_ACTIVE
     bne @restore_music
-    jsr music_start_gameplay
+    jsr GAMEPLAY_MUSIC_START
 @restore_music:
-    jsr music_restore_gameplay_channels
+    jsr GAMEPLAY_MUSIC_RESTORE
 @done:
 resume_gameplay_audio_done:
     rts
@@ -6009,144 +6009,23 @@ music_apply_token:
 
 music_player_end:
 
-; Gameplay has a specialized two-channel renderer so its row-boundary path is
-; bounded below the remaining PAL worst-frame budget. Each packed score byte
-; holds a channel-1 event in its high nibble and channel-2 event in its low
-; nibble. HOLD is zero, REST is one, and notes 2-15 reuse the leading entries
-; of music_frequency_table. AUDCTL is never touched here.
-
-game_music_player_start:
-music_start_gameplay:
-    lda GAME_MUSIC_ENABLED
-    beq @done
-    lda sound_enabled
-    beq @done
-    lda #GAME_MUSIC_CHANNEL_MASK
-    sta MUSIC_CHANNEL_MASK
-    lda #$01
-    sta MUSIC_ACTIVE
-    sta MUSIC_ROW_TIMER
-    jsr game_music_load_pattern
-@done:
-    rts
-
-; Called only when MUSIC_ACTIVE is nonzero. The transport advances through
-; player death, but idle music voices are muted until respawn. Active shot/hit
-; timers suppress every music write to their channel, preserving the complete
-; existing SFX envelope. The cached note is restored after the timer expires.
-music_tick_gameplay:
-    .assert GAME_MUSIC_EVENTS_PER_TICK_LIMIT = 1, error, "gameplay music tick must remain one fixed-width event"
-    dec MUSIC_ROW_TIMER
-    bne @restore
-    lda #GAME_MUSIC_FRAMES_PER_ROW
-    sta MUSIC_ROW_TIMER
-    ldy MUSIC_PATTERN_ROW
-    jsr game_music_read_token
-    sta MUSIC_TOKEN
-
-    and #$0F
-    beq @channel_1
-    cmp #GAME_MUSIC_TOKEN_REST
-    beq @rest_2
-    sec
-    sbc #GAME_MUSIC_TOKEN_NOTE_BASE
-    tay
-    lda music_frequency_table,y
-    sta GAME_MUSIC_CH2_FREQUENCY
-    lda #GAME_MUSIC_CH2_AUDC
-    sta GAME_MUSIC_CH2_CONTROL
-    bne @channel_1
-@rest_2:
-    lda #$00
-    sta GAME_MUSIC_CH2_CONTROL
-
-@channel_1:
-    lda MUSIC_TOKEN
-    lsr
-    lsr
-    lsr
-    lsr
-    beq @advance
-    cmp #GAME_MUSIC_TOKEN_REST
-    beq @rest_1
-    sec
-    sbc #GAME_MUSIC_TOKEN_NOTE_BASE
-    tay
-    lda music_frequency_table,y
-    sta GAME_MUSIC_CH1_FREQUENCY
-    lda #GAME_MUSIC_CH1_AUDC
-    sta GAME_MUSIC_CH1_CONTROL
-    bne @advance
-@rest_1:
-    lda #$00
-    sta GAME_MUSIC_CH1_CONTROL
-
-@advance:
-    inc MUSIC_PATTERN_ROW
-    lda MUSIC_PATTERN_ROW
-    cmp #GAME_MUSIC_PATTERN_ROWS
-    bcc @restore
-    lda #$00
-    sta MUSIC_PATTERN_ROW
-    inc MUSIC_SEQUENCE_INDEX
-    lda MUSIC_SEQUENCE_INDEX
-    cmp #GAME_MUSIC_SEQUENCE_LENGTH
-    bcc :+
-    lda #$00
-    sta MUSIC_SEQUENCE_INDEX
-:
-    jsr game_music_load_pattern
-
-@restore:
-music_restore_gameplay_channels:
-    lda PLAYER_LIFECYCLE
-    cmp #PLAYER_DYING
-    beq @mute
-    lda fire_timer
-    bne :+
-    lda GAME_MUSIC_CH1_FREQUENCY
-    sta AUDF1
-    lda GAME_MUSIC_CH1_CONTROL
-    sta AUDC1
-:
-    lda hit_timer
-    bne @done
-    lda GAME_MUSIC_CH2_FREQUENCY
-    sta AUDF2
-    lda GAME_MUSIC_CH2_CONTROL
-    sta AUDC2
-@done:
-    rts
-
-@mute:
-    lda fire_timer
-    bne :+
-    lda #$00
-    sta AUDC1
-:
-    lda hit_timer
-    bne @done
-    lda #$00
-    sta AUDC2
-    rts
-
-game_music_read_token = game_music_read_token_tail
-game_music_pattern_read = game_music_read_token_tail
-
-game_music_load_pattern:
-    ldx MUSIC_SEQUENCE_INDEX
-    lda game_music_sequence,x
-    tax
-    lda game_music_pattern_lo,x
-    sta game_music_pattern_read+1
-    lda game_music_pattern_hi,x
-    sta game_music_pattern_read+2
-    rts
-
-game_music_player_end:
+; The gameplay music player used to live here. Music v2 §1.4 placement G1
+; (owner answer Q-P1 ACCEPTED, 2026-09-22) moved its code and its score into
+; the per-level image, where it executes from $A608 behind the three frozen
+; vectors in build/gameplay-music-abi.inc. Its source is
+; src/hybrid/gameplay-music.s, its link cfg/gameplay-music.cfg. Main keeps
+; only the state block at $4ED9, music_stop_gameplay, and the four-byte
+; self-modified read tail in ENTITY_CODE the player still calls.
+; Exports below are how that separate link reaches this one.
+.export sound_enabled, fire_timer, hit_timer, music_frequency_table
+.export game_music_read_token_tail
+.export MUSIC_ROW_TIMER, MUSIC_SEQUENCE_INDEX, MUSIC_PATTERN_ROW
+.export MUSIC_CHANNEL_MASK, MUSIC_TOKEN, GAME_MUSIC_ENABLED
+.export GAME_MUSIC_CH1_FREQUENCY, GAME_MUSIC_CH1_CONTROL
+.export GAME_MUSIC_CH2_FREQUENCY, GAME_MUSIC_CH2_CONTROL
+.export PLAYER_DYING
 
 EMIT_MENU_MUSIC_DATA
-EMIT_GAMEPLAY_MUSIC_DATA
 
 ; Capital admission runs before enemy and projectile movement. Keep the hull
 ; out until the ordinary owner has completed its finite downward lifecycle and

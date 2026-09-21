@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-09-21
+Last update: 2026-09-22
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -2200,7 +2200,8 @@ failures live in `docs/recorded-gate-failures.json`, the one file the build gate
 and the tripwire share. The XEX, ATR and boot BIN are byte-identical to
 `d4f085c`; nothing about the runtime changed, so no owner smoke is owed for it.
 
-**Music v2 is planned, not implemented (2026-09-22).**
+**Music v2 — step 2a (the placement move) is implemented and is an
+`OWNER-SMOKE CANDIDATE`; see its section below. The rest is still planned.**
 [plan-music-v2.md](plan-music-v2.md) costs the owner-approved menu "sketch B"
 and gameplay "GRA-2" drafts (`assets/music/v2-drafts/`): prototype-measured
 players (gameplay tick worst 322 cycles against the 1,985 binding margin), the
@@ -2208,6 +2209,10 @@ placement that fits — the gameplay player and data in the level image at
 `$A608`, the menu in `STARFIELD` — the SFX channel decision it needs (Q-S1),
 the summed-volume question (Q-V1) and the tests that must go red first. Two
 implementation sessions, menu then gameplay; five owner questions in its §9.
+Three of the five are **answered** (2026-09-22, `owner-decisions-2026-09-11.md`
+§AB): Q-P1 ACCEPTED (the gameplay player in the level image), Q-S1 = **S3**
+(the shot SFX moves to channel 4, with the AUDCTL condition session 2b must
+verify), Q-V1 = no rescale. Q-Z1 and Q-A1 belong to the menu session.
 
 **OPTIONS difficulty names (2026-09-22).** The menu now reads ROOKIE /
 PILOT / ACE, easiest first, as `how-to-play.md` has said since decision V; the
@@ -2218,8 +2223,17 @@ runtime evidence was regenerated for the new artifacts with the recorded-
 failure list unchanged. `tests/difficulty-labels.test.mjs` decodes the shipped
 bytes. `OWNER-SMOKE CANDIDATE` (look at the OPTIONS row).
 
-**NEXT TASK.** Owner smoke of the Light multiplicity candidate. After that, the
-first of these two, in this order:
+**NEXT TASK — the music v2 MENU session** (`plan-music-v2.md` §10.1): the
+converter, the validation and oracle, the asset moves, the v2 menu player in
+`STARFIELD`, the menu halves of tests (a) and (b), the v1 menu test retired,
+and the emulator listening check of the buzz bass and the kick (§5). It runs
+before gameplay 2b because 2a already freed the `STARFIELD` room menu v2 needs
+(+143 B raw against 486 B of tail and 299 B of correction-gate margin) — but
+that room is **reserved for the starfield expansion** beyond what menu v2
+takes, so the menu session reports what it leaves.
+
+Unchanged and still owed: owner smoke of the Light multiplicity candidate,
+then the first of these two, in this order:
 
 1. **The rotate-frame token gate** — costed, GO recommended, ~1,000 cycles of
    margin on the binding frames, with the two-frame bound already designed
@@ -2228,6 +2242,107 @@ first of these two, in this order:
    cycle budget in its own plan, against the measured worst margin at the
    checkpoint it branches from — not against the historical margins in this
    file. See §4.4 of the same plan.
+
+## Music v2 step 2a — the gameplay player moves into the level image — `OWNER-SMOKE CANDIDATE` (2026-09-22)
+
+Owner answer **Q-P1 ACCEPTED** (`owner-decisions-2026-09-11.md` §AB,
+`plan-music-v2.md` §1.4 placement G1). The gameplay music player and its score
+left `STARFIELD` and became the fifth independent link,
+`src/hybrid/gameplay-music.s` + `cfg/gameplay-music.cfg`, spliced into every
+level image behind the reader's eight-byte header and executing from `$A608`.
+
+**This commit changes nothing the owner hears.** It is a pure move: the v1
+score, encoding, tick and POKEY write stream are unchanged.
+`tests/gameplay-music-placement.test.mjs` proves it by running the moved
+player through its vector in the NMOS harness for a full loop plus one row
+(1,542 frames) and comparing the final `AUDF1/AUDC1/AUDF2/AUDC2` state of
+every frame with the committed v1 JS player model — 0 differences, and no
+write ever reaches `AUDCTL` or channels 3 and 4.
+
+**Why this came before menu v2.** `plan-music-v2.md` §10 ordered the menu
+first; §1.3 of the same plan shows why that order cannot hold — menu v2 alone
+is +143 B raw against a packed gate with 19 B of correction-gate headroom, so
+an intermediate menu-first commit would break the gate. The landed order is
+**2a → menu v2 → 2b**.
+
+**Measured, against `278199a`:**
+
+| | before | after |
+| --- | ---: | ---: |
+| `STARFIELD` raw | 2,198 B | **1,852 B** (−346) |
+| `STARFIELD` free run tail | 140 B | **486 B** |
+| `STARFIELD` packed | 1,785 B | **1,505 B** (−280) |
+| margin to the 1,804 B correction gate | 19 B | **299 B** |
+| margin to the 1,825 B hard gate | 40 B | **320 B** |
+| staging stream margins A / B | 44 / 91 B | **44 / 371 B** |
+| boot transport | 205 sectors | **203 sectors**; initial block 104 → **102** |
+| level 1 image | 2 sectors (256 B) | **7 sectors (896 B)** |
+| ATR START GAME read | 7 frames, 2 command frames | **26 frames, 7 command frames** (+19, exactly as planned) |
+| `music_tick_gameplay` min / max | 42 / 246 cycles | **41 / 246** (the min path lost a page-crossing branch penalty) |
+| worst fence margin | 1,985 | **1,977** (`director-complete-2-natural-sweep-fire0` f6629, pre-wait 23,272) |
+| `ENTITY_CODE` free tail | 1 B | **1 B** (unchanged, deliberately — see below) |
+| music state `$4ED9-$4EE9` | 17 B | **17 B**, byte-neutral |
+
+**Reserved: starfield expansion.** Owner decision 2026-09-22 — the room
+`STARFIELD` gained (346 B raw / 280 B packed, net of what menu v2 will take)
+is reserved for the roadmap's "STARFIELD PER SECTOR" work (conditional
+thickening in `generate_starfield_row`, per-sector star colour) and is not
+available to anything else in the music sessions.
+
+**Two deliberate deviations from plan §1.4**, both recorded in
+`memory-map.md` and `plan-music-v2.md`:
+
+1. The vector table is **three** entries (`START`, `TICK`, `RESTORE`), not
+   two: `resume_gameplay_audio` really does call
+   `music_restore_gameplay_channels`, so a two-entry table would have meant
+   inventing a behaviour change inside a pure move.
+2. The four-byte self-modified read tail `game_music_read_token_tail`
+   **stays in `ENTITY_CODE`** at `$9D21`. The boot smoke checksums the whole
+   level buffer at its gameplay snapshot (frame 3300, after
+   `start_gameplay`), so a block that modified itself would fail that
+   comparison. The block is strictly read-only at runtime; `ENTITY_CODE`'s
+   tail stays 1 B rather than the 5 B the plan predicted.
+
+**Gates (MEASURED this session).**
+
+* Default build links and the **release gate is green**: no unrecorded gate
+  failure, `timing_and_dli_passed = true`, `docs/recorded-gate-failures.json`
+  unedited.
+* Runtime evidence regenerated as this commit's own change: 64 sessions,
+  **0 distinct miss events**, every session PASS. Worst fence margin **1,977**
+  (`director-complete-2-natural-sweep-fire0` f6629); next binding rows
+  **2,981** (`director-complete-1-natural-sweep-fire0` f3631) and **3,742**
+  (`debris-effects-2-sweep-fire4` f4189). Measured DMA-on maximum 31,081,
+  physical headroom 4,487.
+* Boot smoke **8/8**, `--atari800-source=build/atari800-trace`. The level
+  image is verified byte-exact at `$A600` on every session, 0 wire retries.
+  Milestones move −1 frame (XEX menu 392 → 391, ATR menu 596 → 595): a
+  shrink, inside the ±10 warn band, so `boot-deadline-baseline.json` is
+  **not** re-recorded — its rule is about deliberate growth.
+* The four mode-gated native replays were A/B'd against a clean `278199a`
+  build: `--raider-formation-only` PASS; `--raider-sector-only`,
+  `--raider-remnant-only` and `--debris-gate-only` fail **identically** before
+  and after (same message, same session, same single blank frame in
+  `debris-gate-0-neutral-fire0`). **0 new.**
+* `npm test` on the default build: **0 new failures** against the `278199a`
+  list, and one that was red there now passes (`assembly preserves SFX
+  ownership, lifecycle, and GAME MUSIC persistence`). One pin re-recorded
+  deliberately in the same commit, with the reason in the test:
+  `tests/starfield.test.mjs` initial boot sectors 104 → 102.
+
+**What it costs roadmap 4.6.** LevelDef starts at image sector **6** (header
+byte 7, previously reserved and zero, now records it), leaving **27 sectors /
+3,456 B** of the 32-sector buffer. The reservation inside the image is sized
+for the **v2** player (632 B, 355 used, 277 free), so session 2b moves no
+sectors and pays no further transport cost. The owner's recorded consequence:
+pending decision **Q-1** (`LEVEL_BUFFER` 16 vs 24 sectors,
+`plan-4.6-placement.md`) must be re-costed with the per-level music — the
+owner leans to 24.
+
+**What the owner must smoke.** That gameplay music still sounds exactly as it
+did, on the XEX and — because the player now arrives over SIO — on the ATR,
+including a START GAME that takes about 0.4 s longer, and on SIO2SD, where
+the level read is real hardware.
 
 ## Main-menu title colour run — fixed — `OWNER-SMOKE CANDIDATE` (2026-09-20)
 

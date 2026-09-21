@@ -9,12 +9,12 @@
     "layout": "Hybrid cc65 C Director + stable ca65 ABI veneer",
     "levelWorldRows": 3712,
     "phaseCount": 8,
-    "initialContentBytes": 13201,
-    "linkedRuntimeBytes": 17495,
-    "simultaneousResidencyBytes": 20986,
-    "safeResidencyBytes": 1201,
+    "initialContentBytes": 12921,
+    "linkedRuntimeBytes": 17149,
+    "simultaneousResidencyBytes": 20640,
+    "safeResidencyBytes": 1547,
     "residencyDeltaBytes": 3013,
-    "totalMigrationResidencyDeltaBytes": 2959,
+    "totalMigrationResidencyDeltaBytes": 2613,
     "glue": {
       "stagingAddress": 39992,
       "holdingAddress": 33024,
@@ -127,12 +127,12 @@
       "rawBytes": 33,
       "packedBytes": 35,
       "record": {
-        "startSector": 150,
+        "startSector": 148,
         "sectorCount": 8,
         "packedLength": 976,
         "rawLength": 976,
         "finalDestination": 35968,
-        "crc16": 3906,
+        "crc16": 60873,
         "type": 0,
         "stagingId": 2,
         "destination": 33024
@@ -148,10 +148,10 @@
   "loadAddress": 8192,
   "startAddress": 8222,
   "bootInitAddress": 8634,
-  "bootSectors": 104,
-  "payloadBytes": 26240,
+  "bootSectors": 102,
+  "payloadBytes": 25984,
   "bootPayloadTrailer": {
-    "address": 21389,
+    "address": 21109,
     "bytes": 4,
     "ascii": "DFB1",
     "hex": "44464231",
@@ -220,21 +220,21 @@
   },
   "transportCapacity": {
     "format": "DFMC-v1 multi-chunk",
-    "initialBootBytes": 13312,
-    "initialBootContentBytes": 13201,
-    "initialBootEnvelopeBytes": 111,
-    "initialBootSectors": 104,
+    "initialBootBytes": 13056,
+    "initialBootContentBytes": 12921,
+    "initialBootEnvelopeBytes": 135,
+    "initialBootSectors": 102,
     "extensionBytes": 12928,
     "extensionSectors": 101,
-    "totalTransportBytes": 26240,
-    "totalTransportSectors": 205,
-    "remainingAtrSectors": 515,
-    "remainingAtrTransportBytes": 65920,
+    "totalTransportBytes": 25984,
+    "totalTransportSectors": 203,
+    "remainingAtrSectors": 517,
+    "remainingAtrTransportBytes": 66176,
     "architecturalAdditionalCapacityBytes": 0,
     "maximumExtensionChunkBytes": 6400,
     "maximumChunkCount": 11,
     "maximumNewSimultaneousResidencyBytes": 7993,
-    "remainingSafeResidencyBytes": 2798,
+    "remainingSafeResidencyBytes": 3144,
     "bootOnlyStaging": {
       "address": 33024,
       "bytes": 6484
@@ -251,130 +251,130 @@
     "manifest": {
       "address": 9764,
       "bytes": 190,
-      "crc16": 56279,
+      "crc16": 20459,
       "parsed": {
         "version": 1,
-        "totalOccupiedSectors": 205,
+        "totalOccupiedSectors": 203,
         "manifestBytes": 190,
-        "crc16": 56279,
+        "crc16": 20459,
         "records": [
           {
-            "startSector": 105,
+            "startSector": 103,
             "sectorCount": 45,
             "packedLength": 5661,
             "rawLength": 6653,
             "finalDestination": 24080,
-            "crc16": 37798,
+            "crc16": 37569,
             "type": 1,
             "stagingId": 1,
             "destination": 33024
           },
           {
-            "startSector": 150,
+            "startSector": 148,
             "sectorCount": 8,
             "packedLength": 976,
             "rawLength": 976,
             "finalDestination": 35968,
-            "crc16": 3906,
+            "crc16": 60873,
             "type": 0,
             "stagingId": 2,
             "destination": 33024
           },
           {
-            "startSector": 158,
+            "startSector": 156,
             "sectorCount": 1,
             "packedLength": 105,
             "rawLength": 106,
             "finalDestination": 32792,
-            "crc16": 55477,
+            "crc16": 31120,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
           },
           {
-            "startSector": 159,
+            "startSector": 157,
             "sectorCount": 4,
             "packedLength": 457,
             "rawLength": 498,
             "finalDestination": 39744,
-            "crc16": 62995,
+            "crc16": 22326,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
           },
           {
-            "startSector": 163,
+            "startSector": 161,
             "sectorCount": 7,
             "packedLength": 762,
             "rawLength": 762,
             "finalDestination": 30736,
-            "crc16": 31920,
+            "crc16": 56725,
             "type": 0,
             "stagingId": 2,
             "destination": 33024
           },
           {
-            "startSector": 170,
+            "startSector": 168,
             "sectorCount": 1,
             "packedLength": 23,
             "rawLength": 21,
             "finalDestination": 40286,
-            "crc16": 64370,
+            "crc16": 23127,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
           },
           {
-            "startSector": 171,
+            "startSector": 169,
             "sectorCount": 6,
             "packedLength": 651,
             "rawLength": 718,
             "finalDestination": 31696,
-            "crc16": 16278,
+            "crc16": 40627,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
           },
           {
-            "startSector": 177,
+            "startSector": 175,
             "sectorCount": 6,
             "packedLength": 629,
             "rawLength": 801,
             "finalDestination": 46592,
-            "crc16": 25034,
+            "crc16": 49391,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
           },
           {
-            "startSector": 183,
+            "startSector": 181,
             "sectorCount": 6,
             "packedLength": 637,
             "rawLength": 708,
             "finalDestination": 47393,
-            "crc16": 11897,
+            "crc16": 36700,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
           },
           {
-            "startSector": 189,
+            "startSector": 187,
             "sectorCount": 12,
             "packedLength": 1466,
             "rawLength": 1466,
             "finalDestination": 40960,
-            "crc16": 347,
+            "crc16": 56016,
             "type": 0,
             "stagingId": 2,
             "destination": 33024
           },
           {
-            "startSector": 201,
+            "startSector": 199,
             "sectorCount": 5,
             "packedLength": 542,
             "rawLength": 643,
             "finalDestination": 40309,
-            "crc16": 64942,
+            "crc16": 23691,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -406,12 +406,12 @@
     "packedSourceAddress": 33024,
     "compression": "LZ-10/5",
     "externalChunk": {
-      "startSector": 105,
+      "startSector": 103,
       "sectors": 45,
       "transportBytes": 5760,
       "packedBytes": 5661,
       "rawBytes": 6653,
-      "crc16": 37798,
+      "crc16": 37569,
       "stagingAddress": 33024,
       "stagingEndAddress": 38783,
       "finalAddress": 24080
@@ -427,10 +427,10 @@
     "packedBytes": 245,
     "externalChunk": {
       "sharedWith": "low-C image (4.5M-M2 merged record)",
-      "startSector": 159,
+      "startSector": 157,
       "sectors": 4,
       "transportBytes": 512,
-      "crc16": 62995
+      "crc16": 22326
     }
   },
   "directorRuntime": {
@@ -441,10 +441,10 @@
     "bytes": 643,
     "packedBytes": 542,
     "externalChunk": {
-      "startSector": 201,
+      "startSector": 199,
       "sectors": 5,
       "transportBytes": 640,
-      "crc16": 64942
+      "crc16": 23691
     }
   },
   "directorCodeRuntime": null,
@@ -469,8 +469,8 @@
       {
         "id": 1,
         "startSector": 320,
-        "sectors": 2,
-        "bytes": 256,
+        "sectors": 7,
+        "bytes": 896,
         "file": "level-1.bin",
         "origin": "ATR: read over SIO at START GAME; XEX: resident block, no SIO"
       }
@@ -538,7 +538,7 @@
       "transport": {
         "record": "own DFMC record, LZ, stagingId extension",
         "finalDestination": 31696,
-        "startSector": 171,
+        "startSector": 169,
         "sectors": 6,
         "rawBytes": 718,
         "packedBytes": 651,
@@ -577,7 +577,7 @@
       "transport": {
         "record": "own DFMC record, LZ, stagingId extension",
         "finalDestination": 46592,
-        "startSector": 177,
+        "startSector": 175,
         "sectors": 6,
         "rawBytes": 801,
         "packedBytes": 629,
@@ -611,10 +611,10 @@
       "bytes": 106,
       "packedBytes": 105,
       "externalChunk": {
-        "startSector": 158,
+        "startSector": 156,
         "sectors": 1,
         "transportBytes": 128,
-        "crc16": 55477
+        "crc16": 31120
       }
     },
     {
@@ -630,10 +630,10 @@
       "transportRawBytes": 498,
       "transportPackedBytes": 457,
       "externalChunk": {
-        "startSector": 159,
+        "startSector": 157,
         "sectors": 4,
         "transportBytes": 512,
-        "crc16": 62995
+        "crc16": 22326
       }
     },
     {
@@ -647,10 +647,10 @@
       "bytes": 880,
       "packedBytes": 762,
       "externalChunk": {
-        "startSector": 163,
+        "startSector": 161,
         "sectors": 7,
         "transportBytes": 896,
-        "crc16": 31920
+        "crc16": 56725
       }
     },
     {
@@ -664,10 +664,10 @@
       "bytes": 21,
       "packedBytes": 23,
       "externalChunk": {
-        "startSector": 170,
+        "startSector": 168,
         "sectors": 1,
         "transportBytes": 128,
-        "crc16": 64370
+        "crc16": 23127
       }
     },
     {
@@ -681,10 +681,10 @@
       "bytes": 718,
       "packedBytes": 651,
       "externalChunk": {
-        "startSector": 171,
+        "startSector": 169,
         "sectors": 6,
         "transportBytes": 768,
-        "crc16": 16278
+        "crc16": 40627
       }
     },
     {
@@ -698,10 +698,10 @@
       "bytes": 801,
       "packedBytes": 629,
       "externalChunk": {
-        "startSector": 177,
+        "startSector": 175,
         "sectors": 6,
         "transportBytes": 768,
-        "crc16": 25034
+        "crc16": 49391
       }
     }
   ],
@@ -712,28 +712,28 @@
     "bytes": 33,
     "packedBytes": 35,
     "externalChunk": {
-      "startSector": 150,
+      "startSector": 148,
       "sectors": 8,
       "transportBytes": 1024,
-      "crc16": 3906
+      "crc16": 60873
     }
   },
   "starfieldRuntime": {
     "loadAddress": 23040,
     "runAddress": 21732,
-    "bytes": 2198,
+    "bytes": 1852,
     "reservedBytes": 2348,
-    "packedBytes": 1785,
+    "packedBytes": 1505,
     "packedSourceAddress": 16636,
-    "packedSourceEndExclusive": 18421,
+    "packedSourceEndExclusive": 18141,
     "pickupColdStagingAddress": 18433,
-    "packedSourceToPickupMarginBytes": 12,
+    "packedSourceToPickupMarginBytes": 292,
     "stagingAddress": 30736,
     "stagingBytes": 1920,
     "compression": "LZ-10/5, two independent streams expanded into one continuous destination",
     "rawSplitOffset": 986,
-    "singleStreamPackedBytes": 1779,
-    "splitOverheadBytes": 6,
+    "singleStreamPackedBytes": 1500,
+    "splitOverheadBytes": 5,
     "streams": [
       {
         "id": "A",
@@ -752,24 +752,24 @@
       {
         "id": "B",
         "rawOffset": 986,
-        "rawBytes": 1212,
-        "packedBytes": 869,
+        "rawBytes": 866,
+        "packedBytes": 589,
         "packedSourceAddress": 17552,
         "stagingAddress": 33274,
         "stagingCapacityBytes": 960,
         "stagingEndExclusive": 34234,
         "idleWindowEndExclusive": 34306,
         "copy": "one resident 960-B pause-screen copy (copy_pause_screen), exact window, no spill",
-        "stagedEndExclusive": 34143,
-        "marginBytes": 91
+        "stagedEndExclusive": 33863,
+        "marginBytes": 371
       }
     ],
     "packedTotalGate": {
       "baselineBytes": 1811,
       "correctionGateBytes": 1804,
       "hardGateBytes": 1825,
-      "actualBytes": 1785,
-      "hardGateMarginBytes": 40,
+      "actualBytes": 1505,
+      "hardGateMarginBytes": 320,
       "supersedes": {
         "singleStreamCorrectionGateBytes": 1798,
         "singleStreamHardStagingBytes": 1819,
@@ -781,7 +781,7 @@
   "a2Kernel": {
     "loadAddress": 27136,
     "runAddress": 36864,
-    "sourceAddress": 18421,
+    "sourceAddress": 18141,
     "stagingAddress": 32555,
     "bytes": 237,
     "reservedBytes": 256,
@@ -842,22 +842,22 @@
       }
     },
     "packedBytes": 2731,
-    "packedSourceAddress": 18658,
-    "initialPackedSourcesEndExclusive": 21389,
-    "initialPackedSourcesLastAddress": 21388,
+    "packedSourceAddress": 18378,
+    "initialPackedSourcesEndExclusive": 21109,
+    "initialPackedSourcesLastAddress": 21108,
     "stagedSourceAddress": 21272,
     "stagedEndAddress": 24002,
     "stagedEndExclusive": 24003,
-    "sourceToStagingMarginBytes": -117,
-    "sourceStagingOverlapBytes": 117,
+    "sourceToStagingMarginBytes": 163,
+    "sourceStagingOverlapBytes": 0,
     "stagingCopyDirection": "backward",
     "stagingToBroadsideMarginBytes": 77,
     "stagingLifecycle": {
       "starfieldDestinationAddress": 21732,
-      "starfieldDestinationEndExclusive": 23930,
+      "starfieldDestinationEndExclusive": 23584,
       "starfieldDestinationOverlapStartAddress": 21732,
-      "starfieldDestinationOverlapEndExclusive": 23930,
-      "starfieldDestinationOverlapBytes": 2198,
+      "starfieldDestinationOverlapEndExclusive": 23584,
+      "starfieldDestinationOverlapBytes": 1852,
       "stagingReleasedBeforeStarfieldExpansion": true
     },
     "compression": "LZ-10/5",
@@ -895,10 +895,10 @@
     "pickupPhaseRuntimeBytes": 1042,
     "pickupPhasePackedBytes": 976,
     "pickupPhaseExternalChunk": {
-      "startSector": 150,
+      "startSector": 148,
       "sectors": 8,
       "transportBytes": 1024,
-      "crc16": 3906,
+      "crc16": 60873,
       "stagingAddress": 35968,
       "finalRuntimeAddress": 34678,
       "coldCapacityBytes": 1277,
@@ -1008,8 +1008,8 @@
         "targetWallLimitCycles": 32422,
         "hardWallLimitCycles": 32568,
         "minimumPhysicalHeadroomCycles": 3000,
-        "measuredWallCycles": 31079,
-        "actualDeltaCycles": -993,
+        "measuredWallCycles": 31081,
+        "actualDeltaCycles": -991,
         "missedSynchronization": 0,
         "deadlineOverruns": 0,
         "extraVbiBoundaries": 0
@@ -1019,10 +1019,10 @@
   "runtimeCodeBudget": {
     "measurement": "linked CODE + STARFIELD + BROADSIDE + A2_KERNEL + ENTITY_CODE + PICKUP_CODE bytes",
     "baselineBytes": 13697,
-    "actualBytes": 17495,
-    "actualDeltaBytes": 3798,
+    "actualBytes": 17149,
+    "actualDeltaBytes": 3452,
     "approvedDeltaBytes": 768,
-    "remainingBytes": -3030,
+    "remainingBytes": -2684,
     "enemyBreakupEffects": {
       "baselineBytes": 14184,
       "actualBytes": 14316,
@@ -1038,8 +1038,8 @@
     },
     "weaponPickupRapidFire": {
       "baselineBytes": 14316,
-      "actualBytes": 17495,
-      "actualDeltaBytes": 3179
+      "actualBytes": 17149,
+      "actualDeltaBytes": 2833
     },
     "weaponPickupSpreadShot": {
       "baselineBytes": 14948,
@@ -1056,8 +1056,8 @@
     },
     "frontendH31": {
       "baselineBytes": 15346,
-      "actualBytes": 17495,
-      "actualDeltaBytes": 2149,
+      "actualBytes": 17149,
+      "actualDeltaBytes": 1803,
       "hardDeltaBytes": 1280
     }
   },
@@ -1640,15 +1640,33 @@
     "audctlProfile": 0,
     "runtimeCodeBytes": 222,
     "runtimeDataBytes": 124,
+    "placement": {
+      "home": "per-level image, behind the eight-byte header",
+      "file": "gameplay-music.bin",
+      "source": "src/hybrid/gameplay-music.s",
+      "config": "cfg/gameplay-music.cfg",
+      "blockAddress": 42504,
+      "blockBytes": 355,
+      "blockReservedBytes": 632,
+      "blockFreeBytes": 277,
+      "blockSectors": 5,
+      "levelDefFirstSector": 6,
+      "vectors": {
+        "GAMEPLAY_MUSIC_START": 42504,
+        "GAMEPLAY_MUSIC_TICK": 42507,
+        "GAMEPLAY_MUSIC_RESTORE": 42510
+      },
+      "readTokenTail": 40225
+    },
     "runtimeStateBytes": 5,
     "eventsPerTickLimit": 1,
-    "normalFrameCycles": 42,
+    "normalFrameCycles": 41,
     "worstRowFrameCycles": 246,
     "pauseOptionPollCycles": 13,
-    "cpuWorstFrameCyclesDmaOff": 15219,
-    "cpuComparisonHeadroomCycles": 20349,
-    "measuredWallCyclesDmaOn": 31079,
-    "measuredPhysicalHeadroomCycles": 4489
+    "cpuWorstFrameCyclesDmaOff": 15221,
+    "cpuComparisonHeadroomCycles": 20347,
+    "measuredWallCyclesDmaOn": 31081,
+    "measuredPhysicalHeadroomCycles": 4487
   },
   "runtimeTiming": {
     "method": "NMOS-6502 execution of linked release bytes with replayed legal gameplay sessions",
@@ -1656,9 +1674,9 @@
     "thresholdCycles": 32500,
     "cpuDmaOff": {
       "optionPollCycles": 13,
-      "heaviestActiveFrameCycles": 15206,
-      "heaviestMainLoopCycles": 15219,
-      "gameplayMusicTickMinimumCycles": 42,
+      "heaviestActiveFrameCycles": 15208,
+      "heaviestMainLoopCycles": 15221,
+      "gameplayMusicTickMinimumCycles": 41,
       "gameplayMusicTickMaximumCycles": 246,
       "procedures": {
         "advance_dst_to_next_physical_row": 68,
@@ -1715,7 +1733,7 @@
       }
     },
     "estimatedAdditive": {
-      "mainLoopCycles": 15219,
+      "mainLoopCycles": 15221,
       "dma": {
         "refresh": 2808,
         "playerMissile": 1200,
@@ -1733,15 +1751,15 @@
         "maximumWsyncStallCycles": 228,
         "conservativeCycles": 367
       },
-      "cycles": 28117,
+      "cycles": 28119,
       "classification": "diagnostic estimate only; not a measured PAL frame or physical headroom"
     },
     "legalHeavyCombination": {
       "origin": "deterministic legal replay",
       "session": "2-evasive-fire1",
       "frame": 535,
-      "activeCpuCycles": 15206,
-      "mainLoopCpuCycles": 15219,
+      "activeCpuCycles": 15208,
+      "mainLoopCpuCycles": 15221,
       "projectileOccupancy": 15,
       "player_fighterProjectileOccupancy": 7,
       "broadsideOccupancy": 0,
@@ -1799,7 +1817,7 @@
         "render_interactive_entity_overlays": 369,
         "render_fighter_projectile_overlays": 1567,
         "update_sound": 110,
-        "music_tick_gameplay": 57
+        "music_tick_gameplay": 56
       },
       "procedureTotalCycles": {
         "update_white_starfield_phase": 102,
@@ -1836,7 +1854,7 @@
         "render_interactive_entity_overlays": 369,
         "render_fighter_projectile_overlays": 1567,
         "update_sound": 110,
-        "music_tick_gameplay": 57
+        "music_tick_gameplay": 56
       },
       "procedureExclusiveCycles": {
         "update_white_starfield_phase": 102,
@@ -1873,7 +1891,7 @@
         "render_interactive_entity_overlays": 369,
         "render_fighter_projectile_overlays": 1567,
         "update_sound": 110,
-        "music_tick_gameplay": 57
+        "music_tick_gameplay": 56
       },
       "procedureCallCounts": {
         "update_white_starfield_phase": 1,
@@ -1987,8 +2005,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 535,
-        "activeCpuCycles": 15206,
-        "mainLoopCpuCycles": 15219,
+        "activeCpuCycles": 15208,
+        "mainLoopCpuCycles": 15221,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -2046,7 +2064,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1567,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -2083,7 +2101,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1567,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -2120,7 +2138,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1567,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -2233,8 +2251,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire3",
         "frame": 535,
-        "activeCpuCycles": 15206,
-        "mainLoopCpuCycles": 15219,
+        "activeCpuCycles": 15208,
+        "mainLoopCpuCycles": 15221,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -2292,7 +2310,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1567,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -2329,7 +2347,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1567,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -2366,7 +2384,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1567,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -2479,8 +2497,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire7",
         "frame": 535,
-        "activeCpuCycles": 15206,
-        "mainLoopCpuCycles": 15219,
+        "activeCpuCycles": 15208,
+        "mainLoopCpuCycles": 15221,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -2538,7 +2556,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1567,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -2575,7 +2593,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1567,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -2612,7 +2630,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1567,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -2725,8 +2743,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 619,
-        "activeCpuCycles": 14820,
-        "mainLoopCpuCycles": 14833,
+        "activeCpuCycles": 14822,
+        "mainLoopCpuCycles": 14835,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 2,
@@ -2781,7 +2799,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1818,
           "update_sound": 118,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -2816,7 +2834,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1818,
           "update_sound": 118,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -2851,7 +2869,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1818,
           "update_sound": 118,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -2950,8 +2968,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire3",
         "frame": 219,
-        "activeCpuCycles": 14781,
-        "mainLoopCpuCycles": 14794,
+        "activeCpuCycles": 14783,
+        "mainLoopCpuCycles": 14796,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 1,
@@ -3009,7 +3027,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1844,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -3046,7 +3064,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1844,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -3083,7 +3101,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1844,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -3196,8 +3214,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire4",
         "frame": 1671,
-        "activeCpuCycles": 14739,
-        "mainLoopCpuCycles": 14752,
+        "activeCpuCycles": 14741,
+        "mainLoopCpuCycles": 14754,
         "projectileOccupancy": 19,
         "player_fighterProjectileOccupancy": 10,
         "broadsideOccupancy": 0,
@@ -3254,7 +3272,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2208,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -3291,7 +3309,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2208,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -3328,7 +3346,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2208,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -3425,8 +3443,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire7",
         "frame": 223,
-        "activeCpuCycles": 14631,
-        "mainLoopCpuCycles": 14644,
+        "activeCpuCycles": 14633,
+        "mainLoopCpuCycles": 14646,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 1,
@@ -3484,7 +3502,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1824,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -3521,7 +3539,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1824,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -3558,7 +3576,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1824,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -3671,8 +3689,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 223,
-        "activeCpuCycles": 14496,
-        "mainLoopCpuCycles": 14509,
+        "activeCpuCycles": 14498,
+        "mainLoopCpuCycles": 14511,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 1,
@@ -3730,7 +3748,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2016,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -3767,7 +3785,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2016,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -3804,7 +3822,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2016,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -3917,8 +3935,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 249,
-        "activeCpuCycles": 14495,
-        "mainLoopCpuCycles": 14508,
+        "activeCpuCycles": 14497,
+        "mainLoopCpuCycles": 14510,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 2,
@@ -3973,7 +3991,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1826,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -4008,7 +4026,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1826,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -4043,7 +4061,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1826,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -4142,8 +4160,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire5",
         "frame": 151,
-        "activeCpuCycles": 14487,
-        "mainLoopCpuCycles": 14500,
+        "activeCpuCycles": 14489,
+        "mainLoopCpuCycles": 14502,
         "projectileOccupancy": 11,
         "player_fighterProjectileOccupancy": 5,
         "broadsideOccupancy": 2,
@@ -4202,7 +4220,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 977,
           "update_sound": 138,
-          "music_tick_gameplay": 42
+          "music_tick_gameplay": 41
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 107,
@@ -4241,7 +4259,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 977,
           "update_sound": 138,
-          "music_tick_gameplay": 42
+          "music_tick_gameplay": 41
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 107,
@@ -4280,7 +4298,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 977,
           "update_sound": 138,
-          "music_tick_gameplay": 42
+          "music_tick_gameplay": 41
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -4399,8 +4417,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 255,
-        "activeCpuCycles": 14478,
-        "mainLoopCpuCycles": 14491,
+        "activeCpuCycles": 14480,
+        "mainLoopCpuCycles": 14493,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 1,
@@ -4456,7 +4474,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2016,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -4491,7 +4509,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2016,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -4526,7 +4544,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2016,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -4629,8 +4647,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 575,
-        "activeCpuCycles": 14427,
-        "mainLoopCpuCycles": 14440,
+        "activeCpuCycles": 14429,
+        "mainLoopCpuCycles": 14442,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 1,
@@ -4686,7 +4704,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2014,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -4721,7 +4739,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2014,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -4756,7 +4774,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2014,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -4859,8 +4877,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 199,
-        "activeCpuCycles": 14410,
-        "mainLoopCpuCycles": 14423,
+        "activeCpuCycles": 14412,
+        "mainLoopCpuCycles": 14425,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 2,
@@ -4916,7 +4934,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1804,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -4952,7 +4970,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1804,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -4988,7 +5006,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1804,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -5088,8 +5106,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 303,
-        "activeCpuCycles": 14409,
-        "mainLoopCpuCycles": 14422,
+        "activeCpuCycles": 14411,
+        "mainLoopCpuCycles": 14424,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 2,
@@ -5145,7 +5163,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2016,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -5180,7 +5198,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2016,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -5215,7 +5233,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2016,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -5314,8 +5332,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 299,
-        "activeCpuCycles": 14402,
-        "mainLoopCpuCycles": 14415,
+        "activeCpuCycles": 14404,
+        "mainLoopCpuCycles": 14417,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 2,
@@ -5369,7 +5387,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1902,
           "update_sound": 94,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -5404,7 +5422,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1902,
           "update_sound": 94,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -5439,7 +5457,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1902,
           "update_sound": 94,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -5538,8 +5556,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire7",
         "frame": 221,
-        "activeCpuCycles": 14390,
-        "mainLoopCpuCycles": 14403,
+        "activeCpuCycles": 14392,
+        "mainLoopCpuCycles": 14405,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 1,
@@ -5597,7 +5615,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1848,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -5634,7 +5652,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1848,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -5671,7 +5689,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1848,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -5784,8 +5802,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 219,
-        "activeCpuCycles": 14284,
-        "mainLoopCpuCycles": 14297,
+        "activeCpuCycles": 14286,
+        "mainLoopCpuCycles": 14299,
         "projectileOccupancy": 14,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 1,
@@ -5843,7 +5861,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1657,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -5880,7 +5898,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1657,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -5917,7 +5935,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1657,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -6030,8 +6048,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 219,
-        "activeCpuCycles": 14277,
-        "mainLoopCpuCycles": 14290,
+        "activeCpuCycles": 14279,
+        "mainLoopCpuCycles": 14292,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 1,
@@ -6089,7 +6107,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1846,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -6126,7 +6144,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1846,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -6163,7 +6181,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1846,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -6276,8 +6294,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire4",
         "frame": 1923,
-        "activeCpuCycles": 14262,
-        "mainLoopCpuCycles": 14275,
+        "activeCpuCycles": 14264,
+        "mainLoopCpuCycles": 14277,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 0,
@@ -6337,7 +6355,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1784,
           "update_sound": 100,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -6377,7 +6395,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1784,
           "update_sound": 100,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -6417,7 +6435,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1784,
           "update_sound": 100,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -6525,8 +6543,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 215,
-        "activeCpuCycles": 14257,
-        "mainLoopCpuCycles": 14270,
+        "activeCpuCycles": 14259,
+        "mainLoopCpuCycles": 14272,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 1,
@@ -6584,7 +6602,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1808,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -6621,7 +6639,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1808,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -6658,7 +6676,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1808,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -6771,8 +6789,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire0",
         "frame": 91,
-        "activeCpuCycles": 14243,
-        "mainLoopCpuCycles": 14256,
+        "activeCpuCycles": 14245,
+        "mainLoopCpuCycles": 14258,
         "projectileOccupancy": 14,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 1,
@@ -6832,7 +6850,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1572,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -6871,7 +6889,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1572,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -6910,7 +6928,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1572,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -7025,8 +7043,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire7",
         "frame": 219,
-        "activeCpuCycles": 14235,
-        "mainLoopCpuCycles": 14248,
+        "activeCpuCycles": 14237,
+        "mainLoopCpuCycles": 14250,
         "projectileOccupancy": 14,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 1,
@@ -7084,7 +7102,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1657,
           "update_sound": 94,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -7121,7 +7139,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1657,
           "update_sound": 94,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -7158,7 +7176,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1657,
           "update_sound": 94,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -7271,8 +7289,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 197,
-        "activeCpuCycles": 14197,
-        "mainLoopCpuCycles": 14210,
+        "activeCpuCycles": 14199,
+        "mainLoopCpuCycles": 14212,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 2,
@@ -7328,7 +7346,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1820,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -7364,7 +7382,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1820,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -7400,7 +7418,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1820,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -7500,8 +7518,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 463,
-        "activeCpuCycles": 14183,
-        "mainLoopCpuCycles": 14196,
+        "activeCpuCycles": 14185,
+        "mainLoopCpuCycles": 14198,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 0,
@@ -7561,7 +7579,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2018,
           "update_sound": 118,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -7599,7 +7617,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2018,
           "update_sound": 118,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -7637,7 +7655,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2018,
           "update_sound": 118,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -7751,8 +7769,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 215,
-        "activeCpuCycles": 14178,
-        "mainLoopCpuCycles": 14191,
+        "activeCpuCycles": 14180,
+        "mainLoopCpuCycles": 14193,
         "projectileOccupancy": 14,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 1,
@@ -7810,7 +7828,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1620,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -7847,7 +7865,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1620,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -7884,7 +7902,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1620,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -7997,8 +8015,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 191,
-        "activeCpuCycles": 14167,
-        "mainLoopCpuCycles": 14180,
+        "activeCpuCycles": 14169,
+        "mainLoopCpuCycles": 14182,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 2,
@@ -8053,7 +8071,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1860,
           "update_sound": 72,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -8089,7 +8107,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1860,
           "update_sound": 72,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -8125,7 +8143,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1860,
           "update_sound": 72,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -8225,8 +8243,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 207,
-        "activeCpuCycles": 14136,
-        "mainLoopCpuCycles": 14149,
+        "activeCpuCycles": 14138,
+        "mainLoopCpuCycles": 14151,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 2,
@@ -8284,7 +8302,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1812,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 107,
@@ -8321,7 +8339,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1812,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 107,
@@ -8358,7 +8376,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1812,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -8467,8 +8485,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire6",
         "frame": 95,
-        "activeCpuCycles": 14136,
-        "mainLoopCpuCycles": 14149,
+        "activeCpuCycles": 14138,
+        "mainLoopCpuCycles": 14151,
         "projectileOccupancy": 12,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 1,
@@ -8528,7 +8546,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1366,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 107,
@@ -8567,7 +8585,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1366,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 107,
@@ -8606,7 +8624,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1366,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -8721,8 +8739,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 203,
-        "activeCpuCycles": 14123,
-        "mainLoopCpuCycles": 14136,
+        "activeCpuCycles": 14125,
+        "mainLoopCpuCycles": 14138,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 2,
@@ -8778,7 +8796,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1630,
           "update_sound": 94,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -8815,7 +8833,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1630,
           "update_sound": 94,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -8852,7 +8870,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1630,
           "update_sound": 94,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -8961,8 +8979,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire5",
         "frame": 95,
-        "activeCpuCycles": 14117,
-        "mainLoopCpuCycles": 14130,
+        "activeCpuCycles": 14119,
+        "mainLoopCpuCycles": 14132,
         "projectileOccupancy": 12,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 1,
@@ -9022,7 +9040,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1365,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 107,
@@ -9061,7 +9079,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1365,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 107,
@@ -9100,7 +9118,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1365,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -9215,8 +9233,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 217,
-        "activeCpuCycles": 14111,
-        "mainLoopCpuCycles": 14124,
+        "activeCpuCycles": 14113,
+        "mainLoopCpuCycles": 14126,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 1,
@@ -9274,7 +9292,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1616,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -9311,7 +9329,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1616,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -9348,7 +9366,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1616,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -9461,8 +9479,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire3",
         "frame": 223,
-        "activeCpuCycles": 14109,
-        "mainLoopCpuCycles": 14122,
+        "activeCpuCycles": 14111,
+        "mainLoopCpuCycles": 14124,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 1,
@@ -9520,7 +9538,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1637,
           "update_sound": 118,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -9557,7 +9575,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1637,
           "update_sound": 118,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -9594,7 +9612,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1637,
           "update_sound": 118,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -9707,8 +9725,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 459,
-        "activeCpuCycles": 14095,
-        "mainLoopCpuCycles": 14108,
+        "activeCpuCycles": 14097,
+        "mainLoopCpuCycles": 14110,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 0,
@@ -9768,7 +9786,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2034,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -9806,7 +9824,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2034,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -9844,7 +9862,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2034,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -9958,8 +9976,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire4",
         "frame": 95,
-        "activeCpuCycles": 14095,
-        "mainLoopCpuCycles": 14108,
+        "activeCpuCycles": 14097,
+        "mainLoopCpuCycles": 14110,
         "projectileOccupancy": 12,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 1,
@@ -10019,7 +10037,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1175,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 107,
@@ -10058,7 +10076,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1175,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 107,
@@ -10097,7 +10115,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1175,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -10212,8 +10230,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 223,
-        "activeCpuCycles": 14085,
-        "mainLoopCpuCycles": 14098,
+        "activeCpuCycles": 14087,
+        "mainLoopCpuCycles": 14100,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 1,
@@ -10271,7 +10289,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1637,
           "update_sound": 94,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -10308,7 +10326,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1637,
           "update_sound": 94,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -10345,7 +10363,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1637,
           "update_sound": 94,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -10458,8 +10476,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 451,
-        "activeCpuCycles": 14062,
-        "mainLoopCpuCycles": 14075,
+        "activeCpuCycles": 14064,
+        "mainLoopCpuCycles": 14077,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 1,
@@ -10519,7 +10537,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2034,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -10557,7 +10575,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2034,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -10595,7 +10613,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2034,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -10705,8 +10723,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire3",
         "frame": 221,
-        "activeCpuCycles": 14059,
-        "mainLoopCpuCycles": 14072,
+        "activeCpuCycles": 14061,
+        "mainLoopCpuCycles": 14074,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 1,
@@ -10764,7 +10782,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1657,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -10801,7 +10819,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1657,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -10838,7 +10856,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1657,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -10951,8 +10969,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire0",
         "frame": 97,
-        "activeCpuCycles": 14055,
-        "mainLoopCpuCycles": 14068,
+        "activeCpuCycles": 14057,
+        "mainLoopCpuCycles": 14070,
         "projectileOccupancy": 13,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 1,
@@ -11011,7 +11029,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1572,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -11050,7 +11068,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1572,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -11089,7 +11107,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1572,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -11204,8 +11222,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 441,
-        "activeCpuCycles": 14052,
-        "mainLoopCpuCycles": 14065,
+        "activeCpuCycles": 14054,
+        "mainLoopCpuCycles": 14067,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 1,
@@ -11263,7 +11281,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2022,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -11300,7 +11318,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2022,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -11337,7 +11355,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2022,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -11442,8 +11460,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 159,
-        "activeCpuCycles": 14040,
-        "mainLoopCpuCycles": 14053,
+        "activeCpuCycles": 14042,
+        "mainLoopCpuCycles": 14055,
         "projectileOccupancy": 12,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 1,
@@ -11501,7 +11519,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1378,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -11538,7 +11556,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1378,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -11575,7 +11593,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1378,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -11688,8 +11706,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 221,
-        "activeCpuCycles": 14034,
-        "mainLoopCpuCycles": 14047,
+        "activeCpuCycles": 14036,
+        "mainLoopCpuCycles": 14049,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 1,
@@ -11747,7 +11765,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1657,
           "update_sound": 118,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -11784,7 +11802,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1657,
           "update_sound": 118,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -11821,7 +11839,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1657,
           "update_sound": 118,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -11934,8 +11952,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 209,
-        "activeCpuCycles": 14030,
-        "mainLoopCpuCycles": 14043,
+        "activeCpuCycles": 14032,
+        "mainLoopCpuCycles": 14045,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 1,
@@ -11993,7 +12011,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1804,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -12030,7 +12048,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1804,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -12067,7 +12085,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1804,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -12180,8 +12198,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 217,
-        "activeCpuCycles": 14024,
-        "mainLoopCpuCycles": 14037,
+        "activeCpuCycles": 14026,
+        "mainLoopCpuCycles": 14039,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 1,
@@ -12239,7 +12257,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1808,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -12276,7 +12294,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1808,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -12313,7 +12331,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1808,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -12426,8 +12444,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 237,
-        "activeCpuCycles": 14019,
-        "mainLoopCpuCycles": 14032,
+        "activeCpuCycles": 14021,
+        "mainLoopCpuCycles": 14034,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 2,
@@ -12483,7 +12501,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1523,
           "update_sound": 116,
-          "music_tick_gameplay": 42
+          "music_tick_gameplay": 41
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -12519,7 +12537,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1523,
           "update_sound": 116,
-          "music_tick_gameplay": 42
+          "music_tick_gameplay": 41
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -12555,7 +12573,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1523,
           "update_sound": 116,
-          "music_tick_gameplay": 42
+          "music_tick_gameplay": 41
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -12655,8 +12673,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 221,
-        "activeCpuCycles": 14001,
-        "mainLoopCpuCycles": 14014,
+        "activeCpuCycles": 14003,
+        "mainLoopCpuCycles": 14016,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 1,
@@ -12714,7 +12732,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1846,
           "update_sound": 94,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -12751,7 +12769,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1846,
           "update_sound": 94,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -12788,7 +12806,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1846,
           "update_sound": 94,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -12901,8 +12919,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 305,
-        "activeCpuCycles": 13998,
-        "mainLoopCpuCycles": 14011,
+        "activeCpuCycles": 14000,
+        "mainLoopCpuCycles": 14013,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 1,
@@ -12958,7 +12976,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2016,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -12993,7 +13011,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2016,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -13028,7 +13046,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2016,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -13127,8 +13145,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 257,
-        "activeCpuCycles": 13993,
-        "mainLoopCpuCycles": 14006,
+        "activeCpuCycles": 13995,
+        "mainLoopCpuCycles": 14008,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 1,
@@ -13184,7 +13202,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2012,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -13219,7 +13237,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2012,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -13254,7 +13272,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2012,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -13353,8 +13371,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 307,
-        "activeCpuCycles": 13993,
-        "mainLoopCpuCycles": 14006,
+        "activeCpuCycles": 13995,
+        "mainLoopCpuCycles": 14008,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 1,
@@ -13410,7 +13428,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2036,
           "update_sound": 118,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -13445,7 +13463,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2036,
           "update_sound": 118,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -13480,7 +13498,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2036,
           "update_sound": 118,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -13579,8 +13597,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 189,
-        "activeCpuCycles": 13992,
-        "mainLoopCpuCycles": 14005,
+        "activeCpuCycles": 13994,
+        "mainLoopCpuCycles": 14007,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 2,
@@ -13636,7 +13654,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1820,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -13672,7 +13690,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1820,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -13708,7 +13726,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1820,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -13808,8 +13826,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 443,
-        "activeCpuCycles": 13990,
-        "mainLoopCpuCycles": 14003,
+        "activeCpuCycles": 13992,
+        "mainLoopCpuCycles": 14005,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 1,
@@ -13867,7 +13885,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2030,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -13904,7 +13922,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2030,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -13941,7 +13959,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2030,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -14046,8 +14064,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire4",
         "frame": 1713,
-        "activeCpuCycles": 13986,
-        "mainLoopCpuCycles": 13999,
+        "activeCpuCycles": 13988,
+        "mainLoopCpuCycles": 14001,
         "projectileOccupancy": 19,
         "player_fighterProjectileOccupancy": 10,
         "broadsideOccupancy": 0,
@@ -14109,7 +14127,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2001,
           "update_sound": 116,
-          "music_tick_gameplay": 42
+          "music_tick_gameplay": 41
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -14150,7 +14168,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2001,
           "update_sound": 116,
-          "music_tick_gameplay": 42
+          "music_tick_gameplay": 41
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -14191,7 +14209,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2001,
           "update_sound": 116,
-          "music_tick_gameplay": 42
+          "music_tick_gameplay": 41
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -14304,8 +14322,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 247,
-        "activeCpuCycles": 13984,
-        "mainLoopCpuCycles": 13997,
+        "activeCpuCycles": 13986,
+        "mainLoopCpuCycles": 13999,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 2,
@@ -14359,7 +14377,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2020,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -14393,7 +14411,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2020,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -14427,7 +14445,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 2020,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -14517,8 +14535,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 461,
-        "activeCpuCycles": 13978,
-        "mainLoopCpuCycles": 13991,
+        "activeCpuCycles": 13980,
+        "mainLoopCpuCycles": 13993,
         "projectileOccupancy": 17,
         "player_fighterProjectileOccupancy": 9,
         "broadsideOccupancy": 0,
@@ -14578,7 +14596,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2034,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -14616,7 +14634,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2034,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -14654,7 +14672,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2034,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -14768,8 +14786,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 439,
-        "activeCpuCycles": 13974,
-        "mainLoopCpuCycles": 13987,
+        "activeCpuCycles": 13976,
+        "mainLoopCpuCycles": 13989,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 1,
@@ -14826,7 +14844,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2014,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -14863,7 +14881,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2014,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -14900,7 +14918,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2014,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -15005,8 +15023,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 455,
-        "activeCpuCycles": 13974,
-        "mainLoopCpuCycles": 13987,
+        "activeCpuCycles": 13976,
+        "mainLoopCpuCycles": 13989,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 1,
@@ -15066,7 +15084,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1828,
           "update_sound": 94,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -15104,7 +15122,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1828,
           "update_sound": 94,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -15142,7 +15160,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1828,
           "update_sound": 94,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -15256,8 +15274,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire0",
         "frame": 109,
-        "activeCpuCycles": 13945,
-        "mainLoopCpuCycles": 13958,
+        "activeCpuCycles": 13947,
+        "mainLoopCpuCycles": 13960,
         "projectileOccupancy": 14,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 1,
@@ -15317,7 +15335,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1572,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -15356,7 +15374,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1572,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -15395,7 +15413,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1572,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -15510,8 +15528,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire3",
         "frame": 217,
-        "activeCpuCycles": 13945,
-        "mainLoopCpuCycles": 13958,
+        "activeCpuCycles": 13947,
+        "mainLoopCpuCycles": 13960,
         "projectileOccupancy": 14,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 1,
@@ -15569,7 +15587,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1620,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -15606,7 +15624,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1620,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -15643,7 +15661,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1620,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -15756,8 +15774,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 251,
-        "activeCpuCycles": 13926,
-        "mainLoopCpuCycles": 13939,
+        "activeCpuCycles": 13928,
+        "mainLoopCpuCycles": 13941,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 2,
@@ -15813,7 +15831,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1846,
           "update_sound": 94,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -15848,7 +15866,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1846,
           "update_sound": 94,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -15883,7 +15901,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1846,
           "update_sound": 94,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -15982,8 +16000,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire4",
         "frame": 1711,
-        "activeCpuCycles": 13926,
-        "mainLoopCpuCycles": 13939,
+        "activeCpuCycles": 13928,
+        "mainLoopCpuCycles": 13941,
         "projectileOccupancy": 19,
         "player_fighterProjectileOccupancy": 10,
         "broadsideOccupancy": 0,
@@ -16042,7 +16060,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2196,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -16080,7 +16098,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2196,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -16118,7 +16136,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2196,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -16216,8 +16234,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 91,
-        "activeCpuCycles": 13905,
-        "mainLoopCpuCycles": 13918,
+        "activeCpuCycles": 13907,
+        "mainLoopCpuCycles": 13920,
         "projectileOccupancy": 12,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 1,
@@ -16277,7 +16295,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1362,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -16316,7 +16334,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1362,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -16355,7 +16373,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1362,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -16470,8 +16488,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire6",
         "frame": 97,
-        "activeCpuCycles": 13899,
-        "mainLoopCpuCycles": 13912,
+        "activeCpuCycles": 13901,
+        "mainLoopCpuCycles": 13914,
         "projectileOccupancy": 12,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 1,
@@ -16531,7 +16549,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1179,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -16570,7 +16588,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1179,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -16609,7 +16627,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1179,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -16724,8 +16742,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 543,
-        "activeCpuCycles": 13898,
-        "mainLoopCpuCycles": 13911,
+        "activeCpuCycles": 13900,
+        "mainLoopCpuCycles": 13913,
         "projectileOccupancy": 14,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 0,
@@ -16785,7 +16803,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1576,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 107,
@@ -16823,7 +16841,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1576,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 107,
@@ -16861,7 +16879,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1576,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -16975,8 +16993,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire3",
         "frame": 543,
-        "activeCpuCycles": 13898,
-        "mainLoopCpuCycles": 13911,
+        "activeCpuCycles": 13900,
+        "mainLoopCpuCycles": 13913,
         "projectileOccupancy": 14,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 0,
@@ -17036,7 +17054,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1576,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 107,
@@ -17074,7 +17092,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1576,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 107,
@@ -17112,7 +17130,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1576,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -17226,8 +17244,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire7",
         "frame": 543,
-        "activeCpuCycles": 13898,
-        "mainLoopCpuCycles": 13911,
+        "activeCpuCycles": 13900,
+        "mainLoopCpuCycles": 13913,
         "projectileOccupancy": 14,
         "player_fighterProjectileOccupancy": 6,
         "broadsideOccupancy": 0,
@@ -17287,7 +17305,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1576,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 107,
@@ -17325,7 +17343,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1576,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 107,
@@ -17363,7 +17381,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1576,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -17479,8 +17497,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 535,
-        "activeCpuCycles": 15206,
-        "mainLoopCpuCycles": 15219,
+        "activeCpuCycles": 15208,
+        "mainLoopCpuCycles": 15221,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -17538,7 +17556,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1567,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -17575,7 +17593,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1567,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -17612,7 +17630,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1567,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -17725,8 +17743,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 535,
-        "activeCpuCycles": 15206,
-        "mainLoopCpuCycles": 15219,
+        "activeCpuCycles": 15208,
+        "mainLoopCpuCycles": 15221,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -17784,7 +17802,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1567,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -17821,7 +17839,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1567,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -17858,7 +17876,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1567,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -17971,8 +17989,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire4",
         "frame": 1671,
-        "activeCpuCycles": 14739,
-        "mainLoopCpuCycles": 14752,
+        "activeCpuCycles": 14741,
+        "mainLoopCpuCycles": 14754,
         "projectileOccupancy": 19,
         "player_fighterProjectileOccupancy": 10,
         "broadsideOccupancy": 0,
@@ -18029,7 +18047,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2208,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -18066,7 +18084,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2208,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -18103,7 +18121,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 2208,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -18200,8 +18218,8 @@
         "origin": "synthetic fixed-pool cycle stress; excluded from natural gameplay evidence",
         "session": "2-neutral-fire0-broadside-stress",
         "frame": 718,
-        "activeCpuCycles": 10767,
-        "mainLoopCpuCycles": 10780,
+        "activeCpuCycles": 10769,
+        "mainLoopCpuCycles": 10782,
         "projectileOccupancy": 11,
         "player_fighterProjectileOccupancy": 3,
         "broadsideOccupancy": 3,
@@ -18254,7 +18272,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 762,
           "update_sound": 118,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -18288,7 +18306,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 762,
           "update_sound": 118,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -18322,7 +18340,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 762,
           "update_sound": 118,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -18406,8 +18424,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 619,
-        "activeCpuCycles": 14820,
-        "mainLoopCpuCycles": 14833,
+        "activeCpuCycles": 14822,
+        "mainLoopCpuCycles": 14835,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 2,
@@ -18462,7 +18480,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1818,
           "update_sound": 118,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -18497,7 +18515,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1818,
           "update_sound": 118,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -18532,7 +18550,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1818,
           "update_sound": 118,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -18631,8 +18649,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 535,
-        "activeCpuCycles": 15206,
-        "mainLoopCpuCycles": 15219,
+        "activeCpuCycles": 15208,
+        "mainLoopCpuCycles": 15221,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -18690,7 +18708,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1567,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -18727,7 +18745,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1567,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -18764,7 +18782,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1567,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -18877,8 +18895,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 535,
-        "activeCpuCycles": 15206,
-        "mainLoopCpuCycles": 15219,
+        "activeCpuCycles": 15208,
+        "mainLoopCpuCycles": 15221,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -18936,7 +18954,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1567,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -18973,7 +18991,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1567,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -19010,7 +19028,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1567,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -19123,8 +19141,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 619,
-        "activeCpuCycles": 14820,
-        "mainLoopCpuCycles": 14833,
+        "activeCpuCycles": 14822,
+        "mainLoopCpuCycles": 14835,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 2,
@@ -19179,7 +19197,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1818,
           "update_sound": 118,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -19214,7 +19232,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1818,
           "update_sound": 118,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -19249,7 +19267,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1818,
           "update_sound": 118,
-          "music_tick_gameplay": 72
+          "music_tick_gameplay": 71
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -19348,8 +19366,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 535,
-        "activeCpuCycles": 15206,
-        "mainLoopCpuCycles": 15219,
+        "activeCpuCycles": 15208,
+        "mainLoopCpuCycles": 15221,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 0,
@@ -19407,7 +19425,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1567,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -19444,7 +19462,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1567,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -19481,7 +19499,7 @@
           "render_interactive_entity_overlays": 369,
           "render_fighter_projectile_overlays": 1567,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -19594,8 +19612,8 @@
         "origin": "deterministic legal replay",
         "session": "1-evasive-fire3",
         "frame": 239,
-        "activeCpuCycles": 13861,
-        "mainLoopCpuCycles": 13874,
+        "activeCpuCycles": 13863,
+        "mainLoopCpuCycles": 13876,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 1,
@@ -19654,7 +19672,7 @@
           "render_interactive_entity_overlays": 29,
           "render_fighter_projectile_overlays": 1617,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 102,
@@ -19692,7 +19710,7 @@
           "render_interactive_entity_overlays": 29,
           "render_fighter_projectile_overlays": 1617,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 102,
@@ -19730,7 +19748,7 @@
           "render_interactive_entity_overlays": 29,
           "render_fighter_projectile_overlays": 1617,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -19840,8 +19858,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 513,
-        "activeCpuCycles": 12661,
-        "mainLoopCpuCycles": 12674,
+        "activeCpuCycles": 12663,
+        "mainLoopCpuCycles": 12676,
         "projectileOccupancy": 15,
         "player_fighterProjectileOccupancy": 7,
         "broadsideOccupancy": 1,
@@ -19902,7 +19920,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1402,
           "update_sound": 117,
-          "music_tick_gameplay": 42
+          "music_tick_gameplay": 41
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -19941,7 +19959,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1402,
           "update_sound": 117,
-          "music_tick_gameplay": 42
+          "music_tick_gameplay": 41
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -19980,7 +19998,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1402,
           "update_sound": 117,
-          "music_tick_gameplay": 42
+          "music_tick_gameplay": 41
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -20091,8 +20109,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 333,
-        "activeCpuCycles": 13422,
-        "mainLoopCpuCycles": 13435,
+        "activeCpuCycles": 13424,
+        "mainLoopCpuCycles": 13437,
         "projectileOccupancy": 16,
         "player_fighterProjectileOccupancy": 8,
         "broadsideOccupancy": 1,
@@ -20151,7 +20169,7 @@
           "render_interactive_entity_overlays": 371,
           "render_fighter_projectile_overlays": 1633,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -20188,7 +20206,7 @@
           "render_interactive_entity_overlays": 371,
           "render_fighter_projectile_overlays": 1633,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -20225,7 +20243,7 @@
           "render_interactive_entity_overlays": 371,
           "render_fighter_projectile_overlays": 1633,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -20330,8 +20348,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 354,
-        "activeCpuCycles": 12435,
-        "mainLoopCpuCycles": 12448,
+        "activeCpuCycles": 12438,
+        "mainLoopCpuCycles": 12451,
         "projectileOccupancy": 13,
         "player_fighterProjectileOccupancy": 5,
         "broadsideOccupancy": 0,
@@ -20587,8 +20605,8 @@
         "origin": "deterministic legal replay",
         "session": "2-neutral-fire0",
         "frame": 357,
-        "activeCpuCycles": 12652,
-        "mainLoopCpuCycles": 12665,
+        "activeCpuCycles": 12654,
+        "mainLoopCpuCycles": 12667,
         "projectileOccupancy": 12,
         "player_fighterProjectileOccupancy": 4,
         "broadsideOccupancy": 0,
@@ -20647,7 +20665,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1221,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -20684,7 +20702,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1221,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -20721,7 +20739,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 1221,
           "update_sound": 110,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -20834,8 +20852,8 @@
         "origin": "deterministic legal replay",
         "session": "2-sweep-fire5",
         "frame": 151,
-        "activeCpuCycles": 14487,
-        "mainLoopCpuCycles": 14500,
+        "activeCpuCycles": 14489,
+        "mainLoopCpuCycles": 14502,
         "projectileOccupancy": 11,
         "player_fighterProjectileOccupancy": 5,
         "broadsideOccupancy": 2,
@@ -20894,7 +20912,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 977,
           "update_sound": 138,
-          "music_tick_gameplay": 42
+          "music_tick_gameplay": 41
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 107,
@@ -20933,7 +20951,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 977,
           "update_sound": 138,
-          "music_tick_gameplay": 42
+          "music_tick_gameplay": 41
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 107,
@@ -20972,7 +20990,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 977,
           "update_sound": 138,
-          "music_tick_gameplay": 42
+          "music_tick_gameplay": 41
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -21091,8 +21109,8 @@
         "origin": "deterministic legal replay",
         "session": "2-evasive-fire1",
         "frame": 417,
-        "activeCpuCycles": 12700,
-        "mainLoopCpuCycles": 12713,
+        "activeCpuCycles": 12702,
+        "mainLoopCpuCycles": 12715,
         "projectileOccupancy": 8,
         "player_fighterProjectileOccupancy": 0,
         "broadsideOccupancy": 1,
@@ -21141,7 +21159,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 383,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureTotalCycles": {
           "update_white_starfield_phase": 35,
@@ -21171,7 +21189,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 383,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureExclusiveCycles": {
           "update_white_starfield_phase": 35,
@@ -21201,7 +21219,7 @@
           "render_interactive_entity_overlays": 21,
           "render_fighter_projectile_overlays": 383,
           "update_sound": 88,
-          "music_tick_gameplay": 57
+          "music_tick_gameplay": 56
         },
         "procedureCallCounts": {
           "update_white_starfield_phase": 1,
@@ -21412,12 +21430,12 @@
       },
       {
         "name": "STARFIELD",
-        "bytes": 2198,
+        "bytes": 1852,
         "featureStartBytes": 2263,
-        "featureDeltaBytes": -65,
+        "featureDeltaBytes": -411,
         "acceptedMaximumBytes": 2278,
         "reservedMaximumBytes": 2278,
-        "freeReservedBytes": 80
+        "freeReservedBytes": 426
       },
       {
         "name": "BROADSIDE",
@@ -21658,18 +21676,18 @@
       "estimatedAdditive is a diagnostic bus-budget sum, not a measured PAL frame and never a physical headroom value.",
       "The window under the BASIC ROM is unconditional RAM (owner decision B) and the build owns $A000-$BC1F, but no runtime range uses it yet, so it contributes nothing to the runtime ranges or the CPU accounting."
     ],
-    "cpu_cycles_dma_off": 15219,
-    "cpu_comparison_headroom": 20349,
-    "measured_wall_cycles_dma_on": 31079,
-    "measured_physical_headroom": 4489,
-    "estimated_additive_cycles": 28117,
+    "cpu_cycles_dma_off": 15221,
+    "cpu_comparison_headroom": 20347,
+    "measured_wall_cycles_dma_on": 31081,
+    "measured_physical_headroom": 4487,
+    "estimated_additive_cycles": 28119,
     "wallTrace": {
       "reportPath": "docs/runtime-wall-trace.json",
-      "reportSha256": "06c8044574e56108dd7ccc3f7eb794452da81ad50b9e974794d038a4e3216c60",
+      "reportSha256": "f661d4354e5f75ca852285e1e9c40c4db9b2d87402b064b41de3eeee424fa09c",
       "artifact": {
         "path": "dist/void-strike-65.xex",
-        "bytes": 26986,
-        "sha256": "e7ba0ba2cb52bcb7b388c25944ca4c01e7c8e4fe0f636f8b9d68948b515942a9"
+        "bytes": 27370,
+        "sha256": "7c316bcaafd461341884ac3bcfb242621ee88c19db2700397451cf383ac4106b"
       },
       "emulator": {
         "name": "Atari800",
@@ -21688,11 +21706,11 @@
         "audio_note": "-nosound disables host playback only; guest sound/music state and POKEY register writes remain active"
       },
       "semantics": {
-        "cpu_cycles_dma_off": 15219,
-        "cpu_comparison_headroom": 20349,
-        "measured_wall_cycles_dma_on": 31079,
-        "measured_physical_headroom": 4489,
-        "estimated_additive_cycles": 28117
+        "cpu_cycles_dma_off": 15221,
+        "cpu_comparison_headroom": 20347,
+        "measured_wall_cycles_dma_on": 31081,
+        "measured_physical_headroom": 4487,
+        "estimated_additive_cycles": 28119
       },
       "gate": {
         "pal_frame_cycles": 35568,
@@ -21783,23 +21801,23 @@
             "frame": 2544,
             "gameplay_frame": 240,
             "difficulty": 2,
-            "wall_cycles": 30844,
-            "physical_headroom": 4724,
+            "wall_cycles": 30847,
+            "physical_headroom": 4721,
             "start": {
-              "clock": 105247823,
-              "host_frame": 2959,
+              "clock": 105212255,
+              "host_frame": 2958,
               "scanline": 18,
               "cycle": 59
             },
             "end": {
-              "clock": 105278667,
-              "host_frame": 2959,
+              "clock": 105243102,
+              "host_frame": 2958,
               "scanline": 289,
-              "cycle": 9
+              "cycle": 12
             },
             "next_start": {
-              "clock": 105283391,
-              "host_frame": 2960
+              "clock": 105247807,
+              "host_frame": 2959
             },
             "host_vbi_boundaries": 0,
             "extra_vbi_boundaries": 0,
@@ -22037,23 +22055,23 @@
             "frame": 2085,
             "gameplay_frame": 37,
             "difficulty": 2,
-            "wall_cycles": 30023,
-            "physical_headroom": 5545,
+            "wall_cycles": 30010,
+            "physical_headroom": 5558,
             "start": {
-              "clock": 88922083,
-              "host_frame": 2500,
+              "clock": 88886527,
+              "host_frame": 2499,
               "scanline": 18,
-              "cycle": 31
+              "cycle": 43
             },
             "end": {
-              "clock": 88952106,
-              "host_frame": 2500,
+              "clock": 88916537,
+              "host_frame": 2499,
               "scanline": 281,
-              "cycle": 72
+              "cycle": 71
             },
             "next_start": {
-              "clock": 88957663,
-              "host_frame": 2501
+              "clock": 88922095,
+              "host_frame": 2500
             },
             "host_vbi_boundaries": 0,
             "extra_vbi_boundaries": 0,
@@ -22146,11 +22164,11 @@
           "target_wall_cycles": 32422,
           "maximum_wall_cycles": 32568,
           "minimum_physical_headroom": 3000,
-          "measured_wall_cycles": 31079,
-          "measured_physical_headroom": 4489,
-          "actual_delta_cycles": -993,
-          "remaining_target_cycles": 1343,
-          "remaining_hard_cycles": 1489,
+          "measured_wall_cycles": 31081,
+          "measured_physical_headroom": 4487,
+          "actual_delta_cycles": -991,
+          "remaining_target_cycles": 1341,
+          "remaining_hard_cycles": 1487,
           "target_overrun_frames": 0,
           "hard_overrun_frames": 0,
           "shield_frames": 750,
@@ -22270,7 +22288,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "7a6db79df81012df647af2ebe0f912900695f26b74f0cf919f2988c2b63942de"
+              "screenshot_sequence_sha256": "a79424163436e77d6d744600b1568405766ba40a901b4cd6a2c7e7e243c9830d"
             },
             {
               "id": "engine-xex-a5-0-delayed",
@@ -22340,7 +22358,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "7a6db79df81012df647af2ebe0f912900695f26b74f0cf919f2988c2b63942de"
+              "screenshot_sequence_sha256": "a79424163436e77d6d744600b1568405766ba40a901b4cd6a2c7e7e243c9830d"
             },
             {
               "id": "engine-xex-a5-1-immediate",
@@ -22410,7 +22428,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "a57de9680f4911512a0aa90cd051ac294076c025b9a5b183e11aa1f862778143"
+              "screenshot_sequence_sha256": "c63bb5d832bb267cce9643b10e7d9fccd43ae9b99857b879a017aaa2418ede63"
             },
             {
               "id": "engine-xex-a5-1-delayed",
@@ -22480,7 +22498,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "a57de9680f4911512a0aa90cd051ac294076c025b9a5b183e11aa1f862778143"
+              "screenshot_sequence_sha256": "c63bb5d832bb267cce9643b10e7d9fccd43ae9b99857b879a017aaa2418ede63"
             },
             {
               "id": "engine-xex-a5-2-immediate",
@@ -22550,7 +22568,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "ea96c83355a66615f37eb166262141da9b5a20aa034030d288cf9b13b6ce6f92"
+              "screenshot_sequence_sha256": "bc8bb2d8a347adf84a8979e3e2c8e7a8adcc8c27c19f3bdf9741407b87365e49"
             },
             {
               "id": "engine-xex-a5-2-delayed",
@@ -22620,7 +22638,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "ea96c83355a66615f37eb166262141da9b5a20aa034030d288cf9b13b6ce6f92"
+              "screenshot_sequence_sha256": "bc8bb2d8a347adf84a8979e3e2c8e7a8adcc8c27c19f3bdf9741407b87365e49"
             },
             {
               "id": "engine-xex-5a-0-immediate",
@@ -22690,7 +22708,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "7a6db79df81012df647af2ebe0f912900695f26b74f0cf919f2988c2b63942de"
+              "screenshot_sequence_sha256": "a79424163436e77d6d744600b1568405766ba40a901b4cd6a2c7e7e243c9830d"
             },
             {
               "id": "engine-xex-5a-0-delayed",
@@ -22760,7 +22778,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "7a6db79df81012df647af2ebe0f912900695f26b74f0cf919f2988c2b63942de"
+              "screenshot_sequence_sha256": "a79424163436e77d6d744600b1568405766ba40a901b4cd6a2c7e7e243c9830d"
             },
             {
               "id": "engine-xex-5a-1-immediate",
@@ -22830,7 +22848,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "a57de9680f4911512a0aa90cd051ac294076c025b9a5b183e11aa1f862778143"
+              "screenshot_sequence_sha256": "c63bb5d832bb267cce9643b10e7d9fccd43ae9b99857b879a017aaa2418ede63"
             },
             {
               "id": "engine-xex-5a-1-delayed",
@@ -22900,7 +22918,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "a57de9680f4911512a0aa90cd051ac294076c025b9a5b183e11aa1f862778143"
+              "screenshot_sequence_sha256": "c63bb5d832bb267cce9643b10e7d9fccd43ae9b99857b879a017aaa2418ede63"
             },
             {
               "id": "engine-xex-5a-2-immediate",
@@ -22970,7 +22988,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "ea96c83355a66615f37eb166262141da9b5a20aa034030d288cf9b13b6ce6f92"
+              "screenshot_sequence_sha256": "bc8bb2d8a347adf84a8979e3e2c8e7a8adcc8c27c19f3bdf9741407b87365e49"
             },
             {
               "id": "engine-xex-5a-2-delayed",
@@ -23040,7 +23058,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "ea96c83355a66615f37eb166262141da9b5a20aa034030d288cf9b13b6ce6f92"
+              "screenshot_sequence_sha256": "bc8bb2d8a347adf84a8979e3e2c8e7a8adcc8c27c19f3bdf9741407b87365e49"
             },
             {
               "id": "engine-atr-a5-0-immediate",
@@ -23110,7 +23128,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "4681d378dac2eee8df40718ae4123dc10da139899a8a943706985cdff870180b"
+              "screenshot_sequence_sha256": "7304bd16234f150f73e1f5c4dc2df1a418b680f3c8900a7dc8b4cdd07a6834e2"
             },
             {
               "id": "engine-atr-a5-0-delayed",
@@ -23180,7 +23198,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "4681d378dac2eee8df40718ae4123dc10da139899a8a943706985cdff870180b"
+              "screenshot_sequence_sha256": "7304bd16234f150f73e1f5c4dc2df1a418b680f3c8900a7dc8b4cdd07a6834e2"
             },
             {
               "id": "engine-atr-a5-1-immediate",
@@ -23250,7 +23268,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "f2df0917b0917836e228226e9e11654696217c6d0bc3ca5b4dc3ac7183ad0fae"
+              "screenshot_sequence_sha256": "ce1469c660546c4429257d91441aa8c28eab8e52e6cb21fb97594da947553590"
             },
             {
               "id": "engine-atr-a5-1-delayed",
@@ -23320,7 +23338,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "f2df0917b0917836e228226e9e11654696217c6d0bc3ca5b4dc3ac7183ad0fae"
+              "screenshot_sequence_sha256": "ce1469c660546c4429257d91441aa8c28eab8e52e6cb21fb97594da947553590"
             },
             {
               "id": "engine-atr-a5-2-immediate",
@@ -23390,7 +23408,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "95f0c9981a5424240a098624d63b4e9b9abc051e41d94b1865cf7a700d068d46"
+              "screenshot_sequence_sha256": "8943bb529b5d8f13576c414e27126d81889412f37035634b3e55936304c0fa0c"
             },
             {
               "id": "engine-atr-a5-2-delayed",
@@ -23460,7 +23478,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "95f0c9981a5424240a098624d63b4e9b9abc051e41d94b1865cf7a700d068d46"
+              "screenshot_sequence_sha256": "8943bb529b5d8f13576c414e27126d81889412f37035634b3e55936304c0fa0c"
             },
             {
               "id": "engine-atr-5a-0-immediate",
@@ -23530,7 +23548,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "4681d378dac2eee8df40718ae4123dc10da139899a8a943706985cdff870180b"
+              "screenshot_sequence_sha256": "7304bd16234f150f73e1f5c4dc2df1a418b680f3c8900a7dc8b4cdd07a6834e2"
             },
             {
               "id": "engine-atr-5a-0-delayed",
@@ -23600,7 +23618,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "4681d378dac2eee8df40718ae4123dc10da139899a8a943706985cdff870180b"
+              "screenshot_sequence_sha256": "7304bd16234f150f73e1f5c4dc2df1a418b680f3c8900a7dc8b4cdd07a6834e2"
             },
             {
               "id": "engine-atr-5a-1-immediate",
@@ -23670,7 +23688,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "f2df0917b0917836e228226e9e11654696217c6d0bc3ca5b4dc3ac7183ad0fae"
+              "screenshot_sequence_sha256": "ce1469c660546c4429257d91441aa8c28eab8e52e6cb21fb97594da947553590"
             },
             {
               "id": "engine-atr-5a-1-delayed",
@@ -23740,7 +23758,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "f2df0917b0917836e228226e9e11654696217c6d0bc3ca5b4dc3ac7183ad0fae"
+              "screenshot_sequence_sha256": "ce1469c660546c4429257d91441aa8c28eab8e52e6cb21fb97594da947553590"
             },
             {
               "id": "engine-atr-5a-2-immediate",
@@ -23810,7 +23828,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "95f0c9981a5424240a098624d63b4e9b9abc051e41d94b1865cf7a700d068d46"
+              "screenshot_sequence_sha256": "8943bb529b5d8f13576c414e27126d81889412f37035634b3e55936304c0fa0c"
             },
             {
               "id": "engine-atr-5a-2-delayed",
@@ -23880,7 +23898,7 @@
               ],
               "first_recycled_base_write": null,
               "screenshots": 150,
-              "screenshot_sequence_sha256": "95f0c9981a5424240a098624d63b4e9b9abc051e41d94b1865cf7a700d068d46"
+              "screenshot_sequence_sha256": "8943bb529b5d8f13576c414e27126d81889412f37035634b3e55936304c0fa0c"
             }
           ],
           "medium_equivalence": [
@@ -23892,8 +23910,7 @@
                 0,
                 1,
                 2,
-                3,
-                4
+                3
               ]
             },
             {
@@ -23904,8 +23921,7 @@
                 0,
                 1,
                 2,
-                3,
-                4
+                3
               ]
             },
             {
@@ -23916,8 +23932,7 @@
                 0,
                 1,
                 2,
-                3,
-                4
+                3
               ]
             },
             {
@@ -23928,8 +23943,7 @@
                 0,
                 1,
                 2,
-                3,
-                4
+                3
               ]
             },
             {
@@ -23940,8 +23954,7 @@
                 0,
                 1,
                 2,
-                3,
-                4
+                3
               ]
             },
             {
@@ -23952,8 +23965,7 @@
                 0,
                 1,
                 2,
-                3,
-                4
+                3
               ]
             },
             {
@@ -23964,8 +23976,7 @@
                 0,
                 1,
                 2,
-                3,
-                4
+                3
               ]
             },
             {
@@ -23976,8 +23987,7 @@
                 0,
                 1,
                 2,
-                3,
-                4
+                3
               ]
             },
             {
@@ -23988,8 +23998,7 @@
                 0,
                 1,
                 2,
-                3,
-                4
+                3
               ]
             },
             {
@@ -24000,8 +24009,7 @@
                 0,
                 1,
                 2,
-                3,
-                4
+                3
               ]
             },
             {
@@ -24012,8 +24020,7 @@
                 0,
                 1,
                 2,
-                3,
-                4
+                3
               ]
             },
             {
@@ -24024,8 +24031,7 @@
                 0,
                 1,
                 2,
-                3,
-                4
+                3
               ]
             }
           ],
@@ -24064,7 +24070,7 @@
                 143
               ],
               "screenshots": 150,
-              "screenshot_sequence_sha256": "ea96c83355a66615f37eb166262141da9b5a20aa034030d288cf9b13b6ce6f92"
+              "screenshot_sequence_sha256": "bc8bb2d8a347adf84a8979e3e2c8e7a8adcc8c27c19f3bdf9741407b87365e49"
             },
             {
               "id": "engine-restart-atr-a5",
@@ -24100,7 +24106,7 @@
                 143
               ],
               "screenshots": 150,
-              "screenshot_sequence_sha256": "ea96c83355a66615f37eb166262141da9b5a20aa034030d288cf9b13b6ce6f92"
+              "screenshot_sequence_sha256": "bc8bb2d8a347adf84a8979e3e2c8e7a8adcc8c27c19f3bdf9741407b87365e49"
             }
           ],
           "evidence": {
@@ -24111,8 +24117,8 @@
               "columns": 8,
               "width": 2048,
               "height": 768,
-              "bytes": 7435,
-              "sha256": "7a0249bf43f24e3923fa179f7934c643864e2ba669d5eea6d69f813a9e1ae43b"
+              "bytes": 7434,
+              "sha256": "1eaf86f997e68af0a0fdcba0fbabb9db3a03e638d17af7982b58aa00ff429156"
             },
             "two_cycles_contact": {
               "path": "build/runtime-wall-trace/capital-engines-two-cycles-contact.png",
@@ -24121,7 +24127,7 @@
               "width": 2048,
               "height": 768,
               "bytes": 9822,
-              "sha256": "193fc99bfa2f853894d5f314506b5c000f4049a9a810b6c8d5a2da4038f822a1"
+              "sha256": "0bb7addd21b25d3b00f22e26a977a29017a8b24ea78a2fbfe493fa65b2dd7fcc"
             },
             "compact_trace": {
               "path": "build/runtime-wall-trace/capital-engines-first-150.csv",
@@ -24142,20 +24148,20 @@
           "screenshots_per_session": 150,
           "passed": true
         },
-        "measured_wall_cycles_dma_on": 31079,
-        "measured_physical_headroom": 4489,
+        "measured_wall_cycles_dma_on": 31081,
+        "measured_physical_headroom": 4487,
         "deadline_overrun_frames": 0,
         "missed_frames": 0,
         "baseline_9040_deadline_overrun_frames": 0,
         "baseline_9040_missed_frames": 0,
         "targeted_deadline_overrun_frames": 0,
         "targeted_missed_frames": 0,
-        "baseline_9040_active_frames_crossing_host_vbi": 560,
-        "baseline_9040_host_vbi_boundary_crossings": 560,
+        "baseline_9040_active_frames_crossing_host_vbi": 562,
+        "baseline_9040_host_vbi_boundary_crossings": 562,
         "targeted_active_frames_crossing_host_vbi": 110,
         "targeted_host_vbi_boundary_crossings": 110,
-        "active_frames_crossing_host_vbi": 10581,
-        "host_vbi_boundary_crossings": 10581,
+        "active_frames_crossing_host_vbi": 10600,
+        "host_vbi_boundary_crossings": 10600,
         "extra_vbi_boundaries": 0,
         "behavioural_clause_failure_count": 40,
         "behavioural_clause_failures": [
@@ -24363,35 +24369,35 @@
     "artifacts": {
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
-        "bytes": 26240,
-        "sha256": "4ccd37fad69222c98bd8cb53ab8992bf79fe01d77dffa8719b25f8f341670539"
+        "bytes": 25984,
+        "sha256": "1e7e0cdb04dff966ed4b1e88522d08b020065b8211ae3ea336bfa1e2c89f8b87"
       },
       "void-strike-65.xex": {
         "path": "dist/void-strike-65.xex",
-        "bytes": 26986,
-        "sha256": "e7ba0ba2cb52bcb7b388c25944ca4c01e7c8e4fe0f636f8b9d68948b515942a9"
+        "bytes": 27370,
+        "sha256": "7c316bcaafd461341884ac3bcfb242621ee88c19db2700397451cf383ac4106b"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "2f3c35b266b462ef950e7bccfc2a0fd0f188e420fc8adcc27b5f18869617196e"
+        "sha256": "f6382b08830b9638388cda5240835916c0ab12f36ffaab856aaea200065a6b9c"
       }
     },
     "reportPath": "docs/runtime-wall-trace.json",
-    "reportSha256": "06c8044574e56108dd7ccc3f7eb794452da81ad50b9e974794d038a4e3216c60"
+    "reportSha256": "f661d4354e5f75ca852285e1e9c40c4db9b2d87402b064b41de3eeee424fa09c"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
-      "bytes": 26240,
-      "sha256": "4ccd37fad69222c98bd8cb53ab8992bf79fe01d77dffa8719b25f8f341670539"
+      "bytes": 25984,
+      "sha256": "1e7e0cdb04dff966ed4b1e88522d08b020065b8211ae3ea336bfa1e2c89f8b87"
     },
     "void-strike-65.xex": {
-      "bytes": 26986,
-      "sha256": "e7ba0ba2cb52bcb7b388c25944ca4c01e7c8e4fe0f636f8b9d68948b515942a9"
+      "bytes": 27370,
+      "sha256": "7c316bcaafd461341884ac3bcfb242621ee88c19db2700397451cf383ac4106b"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "2f3c35b266b462ef950e7bccfc2a0fd0f188e420fc8adcc27b5f18869617196e"
+      "sha256": "f6382b08830b9638388cda5240835916c0ab12f36ffaab856aaea200065a6b9c"
     }
   }
 }

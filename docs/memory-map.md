@@ -875,7 +875,7 @@ starfield, so all overlaps are lifetime-safe.
 | `$9FF8-$9FF9` | 2 B | free Director reservation tail |
 | `$9FFA-$9FFF` | 6 B | untouched guard; not available capacity |
 | `$A000-$A5FF` | 1,536 B | `SECTOR_READER` (roadmap 4.3): reader, loader-mode display, failure screen, AI text pool |
-| `$A600-$B5FF` | 4,096 B | `LEVEL_BUFFER`, **32 sectors** since owner decision X (2026-09-21); was 44 |
+| `$A600-$B5FF` | 4,096 B | `LEVEL_BUFFER`, **32 sectors** since owner decision X (2026-09-21); was 44. Since 2026-09-22 the first five sectors carry the gameplay music player — see *Music v2 §1.4* below |
 | `$B600-$BBFF` | 1,536 B | `HYBRID_C_WINDOW` (owner decision X): the Director link's half of decision B's window, home of the Light kernel. Reached by its own DFMC record |
 | `$BC00-$BC19` | 26 B | `READER_BSS` |
 | `$BC1A-$BC1F` | 6 B | `HYBRID_C_WINDOW_GUARD`: reserved, no segment, in the same shape as the `$9FFA` Director guard |
@@ -942,6 +942,66 @@ registers afterwards. Recorded here because it is a measurement, not a design.
 Evidence: `build/runtime-wall-trace/boot-smoke/report.json`, per-session
 `snapshots[].sdlst` / `.memtop` / `.ramtop`.
 
+## Music v2 §1.4 — the gameplay music player lives in the level image (2026-09-22)
+
+Owner answer **Q-P1 ACCEPTED** (`owner-decisions-2026-09-11.md` §AB). The
+gameplay music player left `STARFIELD` and became the fifth independent link:
+`src/hybrid/gameplay-music.s` + `cfg/gameplay-music.cfg`, built after main so
+it can reach main through the generated `build/gameplay-music-main-abi.inc`.
+Its bytes are spliced into every level image behind the eight-byte header, so
+the XEX publishes them as part of its `$A600` block and the ATR reads them
+over SIO at START GAME. **This commit is a pure move**: the v1 score, encoding
+and POKEY write stream are unchanged, byte for byte
+(`tests/gameplay-music-placement.test.mjs`).
+
+| Range | Bytes | Owner | Notes |
+| --- | ---: | --- | --- |
+| `$A600-$A607` | 8 | level header | `sector_reader_validate`. **Byte 7 is no longer reserved**: it is the one-based sector where LevelDef starts, now **6** |
+| `$A608-$A610` | 9 | `GAMEPLAY_MUSIC` vectors | frozen: `GAMEPLAY_MUSIC_START`, `GAMEPLAY_MUSIC_TICK`, `GAMEPLAY_MUSIC_RESTORE`, three `JMP`s. `build/gameplay-music-abi.inc` gives main these three constants and nothing else |
+| `$A611-$A6EE` | 222 | player code | the v1 player, moved unchanged |
+| `$A6EF-$A76A` | 124 | score data | the v1 `gameplay-theme.json` patterns and sequence |
+| `$A76B-$A87F` | **277 free** | reserved | sized for the v2 player (plan §1.2: 286 + 248 = 534 B), so the transport change is paid once, here, and session 2b moves no sectors |
+| `$A880-$B5FF` | 3,456 | LevelDef | 27 of the 32 buffer sectors left for roadmap 4.6 |
+
+**The block is strictly read-only at runtime.** The four-byte self-modified
+read tail `game_music_read_token_tail` stays where it always was, in
+`ENTITY_CODE` at `$9D21`, because the boot smoke checksums the whole level
+buffer at its gameplay snapshot (frame 3300, after `start_gameplay`); a block
+that modified itself would fail that comparison. This is a deliberate
+deviation from plan §1.4's "`ENTITY_CODE` tail 1 → 5 B": the tail stays 1 B.
+
+**Level image and transport.** Level 1 grows **2 → 7 sectors** (256 → 896 B),
+all of it outside the boot transport — **0 boot sectors, 0 DFMC chunk slots,
+the frame-300 loader checkpoint untouched**. The XEX-only block at `$A600`
+grows by the same 640 B. On the ATR the START GAME read grows by five
+sectors.
+
+**What `STARFIELD` gained — reserved: starfield expansion.** MEASURED:
+
+| | before (278199a) | after | Δ |
+| --- | ---: | ---: | ---: |
+| `STARFIELD` raw | 2,198 B | **1,852 B** | −346 |
+| free run tail before `HUD_BOOSTER_BACKING` `$5E06` | 140 B | **486 B** | +346 |
+| packed | 1,785 B | **1,505 B** | −280 |
+| margin to the 1,804 B correction gate | 19 B | **299 B** | +280 |
+| margin to the 1,825 B hard gate | 40 B | **320 B** | +280 |
+| staging stream margins A / B | 44 / 91 B | **44 / 371 B** | 0 / +280 |
+| boot transport | 205 sectors | **203 sectors** | −2 |
+
+Owner decision 2026-09-22: **every one of those bytes is reserved for the
+starfield expansion** (roadmap "STARFIELD PER SECTOR": conditional thickening
+in `generate_starfield_row`, per-sector star colour). Menu v2 will spend
++143 B raw of the 346 when it lands; the rest is not available to anything
+else in the music sessions.
+
+**New exports.** main.s exports the equates the player's own link needs:
+`MUSIC_ROW_TIMER`, `MUSIC_SEQUENCE_INDEX`, `MUSIC_PATTERN_ROW`,
+`MUSIC_CHANNEL_MASK`, `MUSIC_TOKEN`, `GAME_MUSIC_CH1_FREQUENCY`,
+`GAME_MUSIC_CH1_CONTROL`, `GAME_MUSIC_CH2_FREQUENCY`,
+`GAME_MUSIC_CH2_CONTROL`, `GAME_MUSIC_ENABLED`, `PLAYER_DYING`. The music
+state block at `$4ED9` is **byte-neutral**; nothing about `$4ED9-$4EE9`
+changed.
+
 ## Roadmap 4.3 — the window has an owner (2026-09-20)
 
 The sector reader claims the whole window. It links on its own
@@ -951,7 +1011,7 @@ travels as the ninth DFMC record, RAW, landing directly at `$A000`.
 | Range | Bytes | Owner | Notes |
 | --- | --- | --- | --- |
 | `$A000-$A5FF` | 1,536 | `SECTOR_READER` | reader, loader-mode display, failure screen, 8-line AI text pool; **1,466 B used, 70 B free**. A sixteen-line pool does not fit — see plan §1.5 `[C6]`; packing the texts is the cheaper answer if it is ever wanted, not shrinking the level buffer |
-| `$A600-$B5FF` | 4,096 | `LEVEL_BUFFER` | **32 sectors** (owner decision X, 2026-09-21; was 44), page-aligned, `file = ""` — never in any artifact. On the XEX the level-1 image is an **XEX-only block** placed here; on the ATR it is read over SIO |
+| `$A600-$B5FF` | 4,096 | `LEVEL_BUFFER` | **32 sectors** (owner decision X, 2026-09-21; was 44), page-aligned, `file = ""` — never in any artifact. On the XEX the level-1 image is an **XEX-only block** placed here; on the ATR it is read over SIO. **Executable since 2026-09-22**: `$A608-$A87F` is the gameplay music player (music v2 §1.4, owner answer Q-P1) |
 | `$B600-$BBFF` | 1,536 | `HYBRID_C_WINDOW` | owner decision X: the Director link's half of the window, `cfg/encounter-director.cfg`. `HYBRID_ASM_WINDOW` + `HYBRID_C_WINDOW` + `HYBRID_C_WINDOW_RODATA` |
 | `$BC00-$BC14` | 21 | `READER_BSS` | reader state; **5 B** still free before `$BC1A` (re-measured 2026-09-21, finding F7) |
 | `$BC1A-$BC1F` | 6 | `HYBRID_C_WINDOW_GUARD` | unchanged: reserved, no segment loads there |

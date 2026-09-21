@@ -38,6 +38,12 @@ const gameplayDefinitionPath = path.join(
 );
 const menuDefinitionPath = path.join(rootDirectory, "assets", "music", "menu-theme.json");
 const source = fs.readFileSync(path.join(rootDirectory, "src", "main.s"), "utf8");
+// Music v2 §1.4 placement G1: the gameplay player is its own link inside the
+// per-level image. Main keeps the option, the state and the call sites; the
+// player's own body is read from its own source.
+const playerSource = fs.readFileSync(
+  path.join(rootDirectory, "src", "hybrid", "gameplay-music.s"), "utf8",
+);
 const gameplayInclude = fs.readFileSync(
   path.join(rootDirectory, "build", "gameplay-music.inc"), "utf8",
 );
@@ -59,12 +65,20 @@ function readXexBytes(address, length) {
   return readRuntimeBytes(rootDirectory, address, length);
 }
 
-function routine(label, nextLabel) {
-  const start = source.indexOf(`${label}:`);
-  const end = source.indexOf(`${nextLabel}:`, start + label.length + 1);
+function routineIn(text, label, nextLabel) {
+  const start = text.indexOf(`${label}:`);
+  const end = text.indexOf(`${nextLabel}:`, start + label.length + 1);
   assert.notEqual(start, -1, `missing routine ${label}`);
   assert.notEqual(end, -1, `missing routine boundary ${nextLabel}`);
-  return source.slice(start, end);
+  return text.slice(start, end);
+}
+
+function routine(label, nextLabel) {
+  return routineIn(source, label, nextLabel);
+}
+
+function playerRoutine(label, nextLabel) {
+  return routineIn(playerSource, label, nextLabel);
 }
 
 test("gameplay composition compiles to a deterministic packed 30.72-second PAL loop", () => {
@@ -230,7 +244,7 @@ test("shot and hit SFX preempt music absolutely, then music resumes in place", (
 test("assembly preserves SFX ownership, lifecycle, and GAME MUSIC persistence", () => {
   assert.match(routine("finish_startup_after_loader", "entity_slot_bit_masks"),
     /sta sound_enabled[\s\S]+sta GAME_MUSIC_ENABLED[\s\S]+jsr music_init/);
-  assert.match(routine("music_start_gameplay", "music_tick_gameplay"),
+  assert.match(playerRoutine("music_start_gameplay", "music_tick_gameplay"),
     /lda GAME_MUSIC_ENABLED\s+beq @done[\s\S]+lda sound_enabled\s+beq @done/);
   assert.match(routine("music_stop", "music_tick"),
     /MUSIC_TRANSIENT_STATE_END-MUSIC_ACTIVE/);
@@ -242,15 +256,15 @@ test("assembly preserves SFX ownership, lifecycle, and GAME MUSIC persistence", 
 
   const gameplaySetup = routine("start_gameplay", "main_loop");
   assert.match(gameplaySetup,
-    /jsr music_stop[\s\S]+sta AUDF3[\s\S]+sta AUDC3[\s\S]+jsr music_start_gameplay[\s\S]+jmp main_loop/);
+    /jsr music_stop[\s\S]+sta AUDF3[\s\S]+sta AUDC3[\s\S]+jsr GAMEPLAY_MUSIC_START[\s\S]+jmp main_loop/);
   const mainLoop = routine("main_loop", "wait_frame");
   assert.match(mainLoop,
-    /jsr update_sound\s+lda MUSIC_ACTIVE\s+beq [^\n]+\s+jsr music_tick_gameplay/);
-  assert.equal((gameplaySetup.match(/music_start_gameplay/g) ?? []).length, 1);
-  assert.doesNotMatch(routine("main_loop", "enter_pause"), /music_start_gameplay/,
+    /jsr update_sound\s+lda MUSIC_ACTIVE\s+beq [^\n]+\s+jsr GAMEPLAY_MUSIC_TICK/);
+  assert.equal((gameplaySetup.match(/GAMEPLAY_MUSIC_START/g) ?? []).length, 1);
+  assert.doesNotMatch(routine("main_loop", "enter_pause"), /GAMEPLAY_MUSIC_START/,
     "life loss and respawn must never restart gameplay music");
 
-  const tick = routine("music_tick_gameplay", "game_music_read_token");
+  const tick = playerRoutine("music_tick_gameplay", "game_music_load_pattern");
   assert.match(tick,
     /lda fire_timer\s+bne [^\n]+[\s\S]+sta AUDF1[\s\S]+sta AUDC1/);
   assert.match(tick,

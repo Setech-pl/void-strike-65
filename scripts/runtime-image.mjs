@@ -32,6 +32,14 @@ export function loadRuntimeSegments(rootDirectory) {
     ["pickupPhaseRuntime", "weapon-pickup-phase-runtime.bin",
       manifest.entityEffects.pickupPhaseBankAddress,
       manifest.entityEffects.pickupPhaseRuntimeBytes],
+    // Music v2 §1.4: the gameplay music player is code inside the per-level
+    // image. The level buffer holds it from START GAME onwards on both media,
+    // so every runtime harness must place it or each music call runs into $00.
+    ...(manifest.gameplayMusic?.placement == null ? [] : [
+      ["gameplayMusic", manifest.gameplayMusic.placement.file,
+        manifest.gameplayMusic.placement.blockAddress,
+        manifest.gameplayMusic.placement.blockBytes],
+    ]),
     ...(manifest.encounterDirector?.enabled === true ? [
       ["integrationGlue", "integration-glue.bin", manifest.integrationGlue.finalAddress,
         manifest.integrationGlue.bytes],

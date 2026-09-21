@@ -159,24 +159,34 @@ Deferred by the owner: smooth 1-line Light tracking (M2).
 | Target 31,200 headroom | 1,942 |
 | Hard gate 32,568 headroom | 3,310 |
 | Missed frames / extra VBI / DLI errors | 0 / 0 / 0 |
-| Linked runtime | 17,521 B |
-| Simultaneous residency | 20,131 B |
-| Safe residency remaining | 2,056 B |
+| Linked runtime | 17,495 B |
+| Simultaneous residency | 20,986 B |
+| Safe residency remaining | 1,201 B |
 
 The three residency rows are the accepted-checkpoint CPU baseline's companions
 only for the CPU columns; the byte columns above are re-measured at HEAD.
+
+**Re-measured 2026-09-21 at `4d12d6e`** (finding F5 of
+[plan-4.6-placement.md](plan-4.6-placement.md)). The rows read 17,521 / 20,131
+/ 2,056 while `build/manifest.json` measured 17,495 / 20,986 / 1,201 — they had
+not in fact been re-measured across roadmap 4.3 and Light multiplicity.
+**Safe residency remaining has fallen by 855 B** since that table was written;
+linked runtime fell 26 B because the Light ASM left `CODE`/`LIGHT_RESIDENT`/the
+`STARFIELD` tail for its own window link, and simultaneous residency rose by
+what the code window now holds at the same time.
 (Corrected 2026-09-20: simultaneous residency and safe residency remaining read
-20,128 / 2,059 here while `build/manifest.json` measured 20,131 / 2,056. Linked
-runtime 17,521 B was and is correct. The manifest's own
-`runtimeCodeBudget.measurement` label was also corrected in the same pass: it
-named five segments for a six-segment sum that includes `PICKUP_CODE`.)
+20,128 / 2,059 here while `build/manifest.json` measured 20,131 / 2,056. The
+manifest's own `runtimeCodeBudget.measurement` label was also corrected in the
+same pass: it named five segments for a six-segment sum that includes
+`PICKUP_CODE`.)
 
 Reusable free capacity at HEAD (measured, `build/manifest.json` and the `.lbl`
 files; the authoritative table is the current-checkpoint override section of
 [memory-map.md](memory-map.md)): `HYBRID_C_EXT` tail 19 B, `HYBRID_C_SECTOR`
-window 8 B, `ENTITY_CODE` tail **1 B** (`$9D5D`), A2 kernel tail 19 B, pickup
-stream fill 7 B, BROADSIDE 6,653 B with a **3 B** free tail, `HYBRID_C_ARENA`
-218 B free, `DIRECTOR_ABI` 0 B, `DIRECTOR_C_LOW` 3 B, pickup/collision record
+window **18 B**, `ENTITY_CODE` tail **1 B** (`$9D5D`), A2 kernel tail 19 B,
+pickup stream fill **236 B**, BROADSIDE 6,653 B with a **3 B** free tail,
+`HYBRID_C_ARENA` **114 B** free, `DIRECTOR_ABI` **11 B**, `DIRECTOR_C_LOW` 3 B,
+pickup/collision record
 1,170 of 1,277 B cold capacity. Packed STARFIELD is **1,780 B: 24 B under** the
 1,804-B two-stream correction gate and 45 B under the 1,825-B hard staging
 limit, since Light multiplicity step 1b moved the 31-byte resolver out of it
@@ -874,6 +884,36 @@ section's "what to look for" in the implementation report.
 ---
 
 ## Known open defects and open decisions
+
+- **BLOCKED: the runtime evidence cannot be regenerated, so the default build
+  cannot link.** Owner-directed attempt on **2026-09-21 at `4d12d6e`**, running
+  the exact route the build names (`build:candidate` -> `runtime:wall-trace`
+  -> `build`, with `--atari800-source=build/atari800-trace`).
+
+  **What ran:** boot smoke **8/8 PASS**; all **64** default-mode replays ran to
+  completion; PAL timing audit **0 distinct miss events across 64 replays
+  (PASS)**; 3 behavioural clause failures — the three recorded pre-existing
+  "did not capture 16 consecutive contact rasters" sessions, unchanged.
+
+  **What blocked it:** the run then threw *outside* the replay loop, in the
+  post-loop aggregates, at `scripts/runtime-wall-trace.mjs:4930`: *"Atari800
+  did not capture all 16 consecutive pickup raster frames"*. So
+  `docs/runtime-wall-trace.json` **was never written** and still binds to the
+  `d72dd6a` artifacts. This is the previously recorded, **unsatisfiable by
+  construction** guard, re-confirmed from the fresh trace rather than taken on
+  record: the capture gate requires `(pickup_drawn_mask & 15) === 15`, and
+  `pickup_drawn_mask` is **`0` on all 4,000 rows** of
+  `build/runtime-wall-trace/weapon-pickup-2-hunt-fire4.csv`, because slot 1's
+  character drawn-mask has been dead memory since `f6eee5c` moved the capsule
+  to the missile plane. Full evidence:
+  [diagnostics/runtime-wall-trace-report-regeneration-blocked.md](diagnostics/runtime-wall-trace-report-regeneration-blocked.md).
+
+  **Consequence:** the default build gate is unreachable, and `npm test`
+  therefore still cannot reach the tests. Clearing this needs an owner
+  decision on what replaces that guard — it is the same class of decision as
+  the three already taken, and it is **not** a rebaselining of any threshold.
+  `tests/runtime-evidence-binding.test.mjs` is red for exactly this reason and
+  is expected to stay red until the decision lands.
 
 - **`npm test` is red at HEAD, and has been before roadmap 4.3 started.**
   A/B-confirmed on 2026-09-20 at `e48335f` by stashing all local changes and

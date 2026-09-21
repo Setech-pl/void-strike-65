@@ -175,33 +175,34 @@ reservation. This distinction is the one that caused the runtime crash: the
 | `ZEROPAGE` | `$0080-$009F` | 32 | `$0100` stack | — (ZP page boundary) |
 | `CODE` | `$2000-$3174` | 4,469 | `$3175` RODATA | 0 |
 | `RODATA` | `$3175-$3FF6` | 3,714 | `$4000` (file image) / PMG pages at runtime | **0** — its tail `$382A-$3FD8` is the boot-only packed loader bitmap, and `$3B00-$3FFF` becomes the active PMG DMA pages after the loader. Not capacity. |
-| `BOOT_STAGE2` | `$21C1-$26AF` | 1,263 | — | boot-only overlay; replaced by the resident suffix before runtime |
+| `BOOT_STAGE2` | `$21C1-$26E1` | 1,313 | — | boot-only overlay; replaced by the resident suffix before runtime |
 | `GLUE` | `$4EFE-$4FF7` | 250 | `$4FF8` frame counter | 0 |
 | `PROJECTILES` (BSS) | `$5400-$5489` | 138 | `$54E4` STARFIELD | **90** (`$548A-$54E3`) |
-| `STARFIELD` | `$54E4-$5D93` | 2,224 | `$5E06` BOOST HUD backing | **114** (`$5D94-$5E05`) |
+| `STARFIELD` | `$54E4-$5D79` | 2,198 | `$5E06` BOOST HUD backing | **140** (`$5D7A-$5E05`) |
 | `BROADSIDE` | `$5E10-$780C` | 6,653 | `$7810` pause-screen backup | **3** (`$780D-$780F`) |
-| `HYBRID_ASM_ARENA` | `$7BD0-$7C16` | 71 | `$7C17` | 0 |
-| `HYBRID_C_ARENA` | `$7C17-$7E11` | 507 | `$7E12` | 0 |
-| `HYBRID_C_ARENA_RODATA` | `$7E12-$7E38` | 39 | `$7F10` A2 display list A | **215** (`$7E39-$7F0F`) |
-| *(A2 display lists A+B)* | `$7F10-$7FC3` | 180 | `$8000` | **60** (`$7FC4-$7FFF`) |
+| `HYBRID_ASM_ARENA` | `$7BD0-$7C29` | 90 | `$7C2A` | 0 |
+| `HYBRID_C_ARENA` | `$7C2A-$7E76` | 589 | `$7E77` | 0 |
+| `HYBRID_C_ARENA_RODATA` | `$7E77-$7E9D` | 39 | `$7F10` A2 display list A | **114** (`$7E9E-$7F0F`) |
+| *(A2 display lists A+B)* | `$7F10-$7FC3` | 180 | `$7FC4` `HYBRID_LIGHT_SLOTS` | 0 |
+| `HYBRID_LIGHT_SLOTS` | `$7FC4-$7FFF` | 60 | `$8000` | 0 |
 | `ENTITY_STATE` (BSS) | `$8000-$80FF` | 256 | `$8100` | 0 |
 | `HYBRID_LIGHT_STATE` (BSS) | `$8100-$810F` | 16 | `$8110` | 0 |
 | `HYBRID_C_STATE` (BSS) | `$8110-$8118` | 9 | `$8119` | 0 |
 | `HYBRID_ENCOUNTER_STATE` (BSS) | `$8119-$811A` | 2 | `$811B` | 0 |
-| `HYBRID_HEAVY_STATE` (BSS) | `$811B-$8125` | 11 | `$8140` gameplay ring | **26** (`$8126-$813F`) |
+| `HYBRID_HEAVY_STATE` (BSS) | `$811B-$8125` | 11 | `$8126` | 0 |
+| `HYBRID_LIGHT_SCREEN` / `HYBRID_LIGHT_ROTATE` (BSS) | `$8126-$8127` | 2 | `$8140` gameplay ring | **24** (`$8128-$813F`) |
 | *(gameplay ring + row tables + publication/prepared-row state)* | `$8140-$85E5` | 1,190 | `$85EF` `CORRIDOR_PHASE_HI` | **9** (`$85E6-$85EE`) |
 | *(corridor phase + hull draw row)* | `$85EF-$85F1` | 3 | `$85F2` near-star state | 0 |
 | *(near-star state — hand-placed BSS, 4 × 4 B)* | `$85F2-$8601` | 16 | `$8602` `HYBRID_C_SECTOR` | 0 |
-| `HYBRID_C_SECTOR` | `$8602-$86F1` | 240 | `$86FA` `DIRECTOR_C_BSS` | **8** (`$86F2-$86F9`) |
+| `HYBRID_C_SECTOR` | `$8602-$86E7` | 230 | `$86FA` `DIRECTOR_C_BSS` | **18** (`$86E8-$86F9`) |
 | `DIRECTOR_C_BSS` (BSS) | `$86FA-$8700` | 7 | `$8701` | 0 |
-| `DIRECTOR_ABI` | `$8701-$8775` | 117 | `$8776` `PICKUP_CODE_RAM` | **0** |
-| `LIGHT_RESIDENT` | `$8776-$885A` | 229 | `$885B` | 0 |
-| `PICKUP_CODE` | `$885B-$8B5F` | 773 | `$8B67` `COLLISION` | **7** (stream fill) |
+| `DIRECTOR_ABI` | `$8701-$876A` | 106 | `$8776` `PICKUP_CODE_RAM` | **11** (`$876B-$8775`) |
+| `PICKUP_CODE` | `$8776-$8A7A` | 773 | `$8B67` `COLLISION` | **236** (stream fill) |
 | `COLLISION` | `$8B67-$8B87` | 33 | `$8B88` | 0 |
 | `DIRECTOR_C_LOW` | `$8B88-$8C79` | 242 | `$8C7D` `HYBRID_C_EXT_RAM` | **3** (`$8C7A-$8C7C`) |
-| `ENEMY_ARCHETYPE_DATA` | `$8C7D-$8CAE` | **50** | `$8CAF` | 0 |
-| `HYBRID_C_EXT` | `$8CAF-$8EE1` | **563** | `$8EE2` | 0 |
-| `LIGHT_CODE` | `$8EE2-$8FAC` | 203 | `$8FAD` | 0 |
+| `ENEMY_ARCHETYPE_DATA` | `$8C7D-$8CB4` | **56** | `$8CB5` | 0 |
+| `HYBRID_C_EXT` | `$8CB5-$8F69` | **693** | `$8F6A` | 0 |
+| `LIGHT_CODE` | `$8F6A-$8FAC` | 67 | `$8FAD` | 0 |
 | `HEAVY_CODE` | `$8FAD-$8FEC` | **64** | `$9000` `A2_KERNEL` | **19** (`$8FED-$8FFF`) |
 | `A2_KERNEL` | `$9000-$90EC` | 237 | `$9100` | **19** (`$90ED-$90FF`) |
 | `ENTITY_CODE` | `$9100-$9D5C` | **3,165** | `$9D5E` `DIRECTOR_C_PRE` | **1** (`$9D5D`) |
@@ -216,15 +217,24 @@ reservation. This distinction is the one that caused the runtime crash: the
 
 ### 2.2 Real free RAM below `$A000`
 
-MEASURED total of the gaps above: **578 B**, in fifteen fragments, the largest
-being the arena's 215 B and the starfield reservation's 114 B. Plus **6 B** at
-`$4FFA-$4FFF` in the fixed low block. (Corrected 2026-09-20 from 593 B: the
-gap before the near-star state is 9 B, not 24 — see §8.1's near-star row, now
-settled from the source.) Nothing in that list is a contiguous
-block big enough for the ~350-450 B code/data deficit that
-[design-4.6-data-architecture.md](design-4.6-data-architecture.md) §7.3
-projects for 4.6 (ESTIMATE), except the arena tail — which is where 4.6's code
-would have to live and which §7.3 already spends.
+MEASURED total of the gaps above: **697 B**, in **sixteen** fragments,
+including the **6 B** at `$4FFA-$4FFF` in the fixed low block. The largest is
+**the pickup stream fill, 236 B at `$8A7B-$8B66`**; the arena tail is second
+at 114 B.
+
+**Re-measured 2026-09-21** (`plan-4.6-placement.md` §2, findings F2/F3/F4).
+Both the total and the *shape* moved: the previous figure of 578 B in fifteen
+fragments named the arena's 215 B as the largest block. Light multiplicity
+step 1b moved the Light ASM kernel out of `LIGHT_RESIDENT` at `$8776` and into
+its own link inside the window, and `PICKUP_CODE` took its place — which grew
+the pickup stream fill from 7 B to 236 B and made it the largest contiguous
+free block below `$A000`. It is reserved (`PICKUP_CODE_RAM` `$8776`, size
+`$3F1`), already zero-filled into the transported stream, and guarded at
+`$8B67` by an existing ld65 assert, so using it costs transport only.
+
+Of that total, only two fragments are large enough to hold something whole:
+the pickup stream fill (236 B) and the arena tail (114 B). Everything else is
+under 25 B — a home for a byte of state or a veneer, not for a subsystem.
 
 **Do not sum these fragments as if they were one budget.** They are in
 different segments with different link units, different transport records and
@@ -238,11 +248,18 @@ MEASURED at this HEAD from `build/manifest.json`:
 
 | Metric | Value | Where |
 | --- | ---: | --- |
-| Linked runtime (`CODE + STARFIELD + BROADSIDE + A2_KERNEL + ENTITY_CODE + PICKUP_CODE`) | **17,521 B** | `encounterDirector.linkedRuntimeBytes` |
-| Simultaneous feature residency | **20,131 B** | `encounterDirector.simultaneousResidencyBytes` |
-| Safe residency remaining | **2,056 B** | `encounterDirector.safeResidencyBytes` |
-| Remaining safe residency (transport view) | **3,653 B** | `transportCapacity.remainingSafeResidencyBytes` |
+| Linked runtime (`CODE + STARFIELD + BROADSIDE + A2_KERNEL + ENTITY_CODE + PICKUP_CODE`) | **17,495 B** | `encounterDirector.linkedRuntimeBytes` |
+| Simultaneous feature residency | **20,986 B** | `encounterDirector.simultaneousResidencyBytes` |
+| Safe residency remaining | **1,201 B** | `encounterDirector.safeResidencyBytes` |
+| Remaining safe residency (transport view) | **2,798 B** | `transportCapacity.remainingSafeResidencyBytes` |
 | Maximum new simultaneous residency | **7,993 B** | `transportCapacity.maximumNewSimultaneousResidencyBytes` |
+
+> **Re-measured 2026-09-21** (finding F5). The previous row read 17,521 /
+> 20,131 / 2,056 / 3,653. **Safe residency remaining has fallen by 855 B** and
+> the transport view by 855 B since that table was written, across roadmap 4.3
+> and Light multiplicity. Linked runtime fell 26 B; simultaneous residency rose
+> 855 B. These are the `build/manifest.json` values at `4d12d6e` — the metrics
+> stay separate and are not to be summed.
 
 > **Corrected 2026-09-20.** The manifest's `runtimeCodeBudget.measurement`
 > string named five segments while the value 17,521 is the sum of **six** —
@@ -265,20 +282,36 @@ MEASURED at this HEAD (`transportCapacity`):
 
 ### 2.5 The window at `$A000-$BFFF`
 
-**MEASURED: the game occupies 0 bytes of it.** No segment in any of
-`cfg/atari-boot.cfg`, `cfg/encounter-director.cfg`,
-`cfg/integration-glue.cfg`, `cfg/capital-player-collision.cfg` or
-`cfg/encounter-director-asm.cfg` loads or runs above `$9FFF`; the ATR chunk
-staging buffer is `$8100`. The highest runtime address any link map reaches is
-the 6-byte Director guard at `$9FFA-$9FFF`.
+**MEASURED 2026-09-21: the game owns 7,193 of the 7,200 planning bytes
+`$A000-$BC1F`.** The window is not empty and has not been since roadmap 4.3
+opened it; the claim that it held 0 bytes was written at `c31b220` and is
+superseded (finding F1).
+
+| Range | Bytes | Owner | Used | Free | Link unit |
+| --- | ---: | --- | ---: | ---: | --- |
+| `$A000-$A5FF` | 1,536 | `SECTOR_READER` — reader, loader-mode display, failure screen, AI text pool | 1,466 | **70** | `cfg/sector-reader.cfg` |
+| `$A600-$B5FF` | 4,096 | `LEVEL_BUFFER`, 32 sectors, page-aligned, `file = ""` | 256 | **3,840 today** | reader, `file=""` |
+| `$B600-$B920` | 801 | `HYBRID_C_WINDOW` (+ `HYBRID_ASM_WINDOW`, `_RODATA`) — the Light C | 801 | 0 | `cfg/encounter-director.cfg` |
+| `$B921-$BBE4` | 708 | `LIGHT_KERNEL` — the Light ASM kernel | 708 | 0 | `cfg/light-kernel.cfg` |
+| `$BBE5-$BBFF` | 27 | — | 0 | **27** | the code-window tail |
+| `$BC00-$BC14` | 21 | `READER_BSS` | 21 | **5** (to `$BC1A`) | reader |
+| `$BC1A-$BC1F` | 6 | `HYBRID_C_WINDOW_GUARD` / `READER_GUARD` | — | 0 | reserved, no segment |
+| **Total** | **7,200** | | **3,253** | **3,942** | |
+
+**Free code space in the window is 27 B**, not 3,942: of the free column,
+3,840 B are inside the `LEVEL_BUFFER` data buffer and 70 B are the reader's own
+tail. `build/manifest.json` reports the code tail as `lightKernel.freeBytes`.
+(Before 2026-09-21 the manifest's `residentCapacity.basicWindow.freeBytes` read
+735 because it counted only the Director link's half as used; finding F6, fixed
+in `scripts/build.mjs`.)
 
 **Owner decision A changed what the window *is*.** Before it, whether
 `$A000-$BFFF` held RAM or the BASIC ROM depended on how the player started the
 machine. Since `disable_basic_rom` runs at each medium's stage-2 entry — before
 every write either medium makes — the window is **unconditionally 8,192 B of
-RAM for the whole runtime**: still unused, but now *reliably* unused rather
-than avoided because its contents were unknowable. That is the technical
-precondition for decision B.
+RAM for the whole runtime**. That reliability is the technical precondition for
+decision B, and decisions B and X have since spent the window down to the 27-B
+code tail above.
 
 **What the OS occupies above `$BC20` — MEASURED 2026-09-20.** This was the
 one ESTIMATE in this file that nothing in the repository measured. It is now
@@ -447,26 +480,34 @@ linker symbol separates them. Rows that mix are marked.
 | Resident ASM core: boot handoff, frontend/menu, player, weapons, gameplay kernels | `CODE` 4,469 + `RODATA` 3,714 | **8,183** | MIXED — includes boot-only RODATA (`loader_bitmap_lzss` `$382A-$3FD8`) consumed before runtime |
 | Capital traversal / BROADSIDE runtime | `BROADSIDE` | **6,653** | |
 | Entity, effect, booster, projectile, PMG pickup and H3.1 frontend runtime | `ENTITY_CODE` | **3,165** | MIXED |
-| Starfield runtime | `STARFIELD` | **2,224** | |
-| Pickup / collision stream | `LIGHT_RESIDENT` 229 + `PICKUP_CODE` 773 + `COLLISION` 33 | **1,035** | |
-| Light and Heavy late-publication kernels | `LIGHT_CODE` 203 + `HEAVY_CODE` 64 | **267** | |
+| Starfield runtime | `STARFIELD` | **2,198** | |
+| Pickup / collision stream | `PICKUP_CODE` 773 + `COLLISION` 33 | **806** | `LIGHT_RESIDENT` is gone — Light multiplicity step 1b moved the Light ASM kernel into its own window link (§2.5). Its 229 B left this group and became the 236-B pickup stream fill (F4) |
+| Light and Heavy late-publication kernels | `LIGHT_CODE` 67 + `HEAVY_CODE` 64 | **131** | |
 | A2 ring/display kernel | `A2_KERNEL` | **237** | |
 | Integration glue | `GLUE` | **250** | |
 | Zero page + projectile/entity BSS | `ZEROPAGE` 32 + `PROJECTILES` 138 + `ENTITY_STATE` 256 | **426** | |
-| **Resident ASM subtotal** | | **22,440** | |
-| C Director / lifecycle **code and data** | `HYBRID_ASM_ARENA` 71 + `HYBRID_C_ARENA` 507 + `HYBRID_C_ARENA_RODATA` 39 + `HYBRID_C_SECTOR` 240 + `DIRECTOR_ABI` 117 + `DIRECTOR_C_LOW` 242 + `ENEMY_ARCHETYPE_DATA` 50 + `HYBRID_C_EXT` 563 + `DIRECTOR_C_PRE` 21 + `DIRECTOR_C_CODE` 485 | **2,335** | |
-| C-owned BSS | `HYBRID_LIGHT_STATE` 16 + `HYBRID_C_STATE` 9 + `HYBRID_ENCOUNTER_STATE` 2 + `HYBRID_HEAVY_STATE` 11 + `DIRECTOR_C_BSS` 7 | **45** | |
-| **Total resident (excl. `BOOT_STAGE2`)** | | **24,978** | |
+| **Resident ASM subtotal** | | **22,049** | |
+| C Director / lifecycle **code and data** | `HYBRID_ASM_ARENA` 90 + `HYBRID_C_ARENA` 589 + `HYBRID_C_ARENA_RODATA` 39 + `HYBRID_C_SECTOR` 230 + `DIRECTOR_ABI` 106 + `DIRECTOR_C_LOW` 242 + `ENEMY_ARCHETYPE_DATA` 56 + `HYBRID_C_EXT` 693 + `DIRECTOR_C_PRE` 21 + `DIRECTOR_C_CODE` 485 | **2,551** | below `$A000` only; the window's `HYBRID_C_WINDOW` 801 + `LIGHT_KERNEL` 708 are counted in §2.5, not here |
+| C-owned BSS | `HYBRID_LIGHT_SLOTS` 60 + `HYBRID_LIGHT_STATE` 16 + `HYBRID_C_STATE` 9 + `HYBRID_ENCOUNTER_STATE` 2 + `HYBRID_HEAVY_STATE` 11 + `HYBRID_LIGHT_SCREEN`/`_ROTATE` 2 + `DIRECTOR_C_BSS` 7 | **107** | |
+| **Total resident (excl. `BOOT_STAGE2`)** | | **24,707** | below `$A000`; plus the window's 1,509 B of Light C and Light ASM kernel |
 
 Plus the fixed low block `$3800-$53FF` (display memory, PMG DMA pages,
 charsets, hull maps and persistent runtime state) which is documented in
 [memory-map.md](memory-map.md) §"Post-loader low and display memory" and is not
-a linker segment. And `BOOT_STAGE2` (1,263 B), which is boot-only and is
+a linker segment. And `BOOT_STAGE2` (1,313 B), which is boot-only and is
 replaced by the resident suffix before runtime.
+
+**Re-measured 2026-09-21** at `4d12d6e` from the two link maps (findings
+F3/F4). The group mapping is unchanged; the byte columns are not.
 
 ### 3.5 What lives in the window today, and what the window could hold
 
-**Today: nothing. 8,192 B, MEASURED, zero bytes used.**
+**Today: the reader, the level buffer, the Light C and the Light ASM kernel.**
+MEASURED 2026-09-21: 7,193 of the 7,200 planning bytes are owned by
+declaration, of which 3,739 B are actually written. **Free code space: 27 B**
+(`$BBE5-$BBFF`). The per-range census is §2.5. The window is no longer a
+placement answer for anything that does not first free space inside it — see
+`plan-4.6-placement.md` for the options.
 
 Under decision B the window becomes the reusable, overwritable area of the
 owner's model. **MEASURED 2026-09-20 (§2.5): plan against `$A000-$BC1F` =

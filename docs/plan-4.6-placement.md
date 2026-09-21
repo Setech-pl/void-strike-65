@@ -53,6 +53,28 @@ question this document answers is how to get a usable fraction of it back.
 
 Nothing in §2-§9 is taken from a document where the map could be read instead.
 
+**Applied 2026-09-21** (evidence-regeneration session, `4d12d6e`). All nine
+findings have been carried into the documents they name; the map won in every
+case:
+
+| # | Applied to |
+| --- | --- |
+| F1 | `project-overview.md` §2.5 (replaced "the game occupies 0 bytes" with the per-range census), §3.5 ("Today: nothing" → the four owners, 27 B free code space) |
+| F2 | `project-overview.md` §2.2 — 697 B in sixteen fragments, pickup stream fill named as the largest |
+| F3 | `project-overview.md` §2.1, §3.4 — `STARFIELD` `$54E4-$5D79`, 2,198 B, free tail 140 B |
+| F4 | `project-overview.md` §2.1 (`LIGHT_RESIDENT` row removed), §2.2, §3.4; `STATUS.md` free-tail list — stream fill 7 B → 236 B |
+| F5 | `STATUS.md` "CPU / RAM baseline"; `project-overview.md` §2.3 — 17,495 / 20,986 / 1,201 |
+| F6 | **Fixed in code**, not just documented: `scripts/build.mjs` now counts both window links, so `residentCapacity.basicWindow.freeBytes` reads 27 instead of 735, and `tests/basic-window-capacity.test.mjs` holds it there |
+| F7 | `memory-map.md` §"Roadmap 4.3" — `READER_BSS` `$BC00-$BC14`, 21 B, 5 B free |
+| F8 | `design-4.6-data-architecture.md` §7.1, §7.3 — 40-50 B, not 50-80 |
+| F9 | **Cleared**: see Q-5 below |
+
+While applying F3/F4 the same pass re-measured the rest of the §2.1 table from
+the two link maps and corrected eight further rows that no finding had named
+(`BOOT_STAGE2`, the three arena segments, `HYBRID_LIGHT_SLOTS`,
+`HYBRID_C_SECTOR`, `DIRECTOR_ABI`, `ENEMY_ARCHETYPE_DATA`, `HYBRID_C_EXT`,
+`LIGHT_CODE`) along with §3.4's subtotals.
+
 ---
 
 ## 2. Question 1a — the fragment census below `$A000`, re-measured
@@ -665,10 +687,22 @@ cluster stands for the whole kill), or accept the truncation.
 branch (§0.1). Its row in §8 is UNKNOWN. Confirm whether the plan exists
 elsewhere, or whether it should be written.
 
-**Q-5 — `npm test` is broken at HEAD** (finding F9): `node scripts/build.mjs
---quiet` fails on a runtime wall-trace binding mismatch while `--candidate`
-succeeds. Pre-existing, not investigated in this session. Should a task be
-raised?
+**Q-5 — `npm test` is broken at HEAD** (finding F9). **Investigated
+2026-09-21; the task was raised and run, and the answer is worse than the
+question.** The binding mismatch is real — the committed evidence binds to the
+`d72dd6a` artifacts, 175 commits back — but it is a *symptom*. The owner-
+directed regeneration ran the full route: boot smoke 8/8, all 64 replays
+complete, PAL timing 0 miss events, the 3 recorded clause failures unchanged —
+and then aborted in the post-loop aggregates at
+`runtime-wall-trace.mjs:4930` on the unsatisfiable pickup-raster capture
+guard, so the report was never written.
+
+**The evidence cannot be regenerated with the current tooling**, and until it
+can, the default build cannot link and `npm test` cannot reach the tests. This
+is now recorded as a blocker in `STATUS.md` ("Known open defects"), with the
+`pickup_drawn_mask == 0` measurement re-confirmed from the fresh trace. It
+needs an owner decision on what replaces that guard. **Not** a rebaselining
+question.
 
 **Q-6 — which Bomber breakup variant?** Variant 2 (~90 B, ~1,100 cycles on a
 deferred frame, no new art, no new pool, no new renderer) is the cheapest thing

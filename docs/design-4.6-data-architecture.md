@@ -45,9 +45,12 @@ with a one-expensive-event-per-frame rule and a four-Light swarm is
 conditional. But the resident bytes 4.6 needs are on the order of 700-800 B
 (ESTIMATE, itemised in §7.3), while every reachable free window together with
 the bytes freed by deleting the provisional schedulers and the phase machinery
-comes to roughly 300-400 B. The two provisional schedulers 4.6 deletes free
-about 50-80 B (8 B of schedule columns in the 39 B arena RODATA MEASURED at
-HEAD, ~40 B of arena C ESTIMATE, 4 B of table and counters) — an order of
+comes to roughly 300-400 B. The provisional schedulers 4.6 deletes free
+about **40-50 B**, not 50-80 (finding F8, re-costed 2026-09-21): the
+standalone-wave scheduler is **already 0 B in the default build** — it is
+compiled out behind `LIGHT_FORCE_POPULATION` — so only the Heavy smoke
+scheduler remains, at 8 B of arena RODATA MEASURED plus an ESTIMATE 30-40 B of
+selection code inside `_enemy_c_spawn_raiders`. That is an order of
 magnitude short of funding the new Director. The only
 byte source of the required size is the 8 KB BASIC window `$A000-$BFFF`,
 which the project rules treat as a non-default option (`reguly-projektu.txt`
@@ -633,7 +636,8 @@ lane tables are Bomber data that stay. Deleted with them:
 `encounter_light_schedule` (2 B in `ENEMY_ARCHETYPE_DATA`), the two counters
 at `$8119-$811A`, and `encounter_light_schedule_advance` plus the schedule
 reads in `enemy_c_spawn_raiders` and `encounter_light_admit`, ~40 B of C
-(ESTIMATE from the generated code shape). **Order of 50-80 B.** That is not
+(ESTIMATE from the generated code shape). **Order of 40-50 B** (finding F8;
+the standalone-wave half is already compiled out). That is not
 what funds the new Director; it is what makes the arena record slightly
 smaller.
 
@@ -664,7 +668,7 @@ move to the arena.
 | Starfield colour + nebula thickening (ASM, STARFIELD segment) | ~40 |
 | **Total** | **~745** |
 
-Reachable room: arena 215 B free + 50-80 B from §7.1 + `HYBRID_C_EXT` 19 B +
+Reachable room: arena **114 B** free (re-measured 2026-09-21) + 40-50 B from §7.1 + `HYBRID_C_EXT` 19 B +
 the ~170 B freed in EXT by moving the Light tick C into the arena (which the
 arena then has to absorb) + 52 B of unowned RAM already earmarked for the
 Light slot SoA. Rearranged: the arena is asked to hold roughly 617 − 70 + 110
@@ -701,7 +705,7 @@ not move the ATR menu frame (the loader countdown is frame-aligned), and a
 throwaway 832 B arena was one frame late where the 617 B arena is exactly on
 time. So:
 
-- shrinking the arena record by 50-80 B (schedulers gone) buys **nothing**;
+- shrinking the arena record by 40-50 B (schedulers gone) buys **nothing**;
 - growing any direct-landing record by a few hundred bytes without adding a
   sector is the shape that has failed before (4.5a first variant, 4.5b BROADSIDE
   +6 B) and must be assumed to fail until measured;

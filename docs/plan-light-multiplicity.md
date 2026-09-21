@@ -575,6 +575,22 @@ swarm), (b) the worst row that contains a kill — without the token this is the
 unserialised worst case, i.e. the negative control measured natively —
 (c) the native cost of the breakup alone (a kill row minus the standing rows
 around it). Derive the token-frame worst as standing + breakup and its margin.
+**[C5] ADDED 2026-09-21, owner instruction after M1.** **M2 must FORCE the
+worst coincidence, not hope a replay produces it.** M1's margins grew with
+Light count because the many-Light frames of those 9,300 frames fell in a
+favourable raster phase — a property of that replay set, not of the game.
+Nothing makes a replay put three Lights, a kill, an admission and a volley on
+one frame. So M2's evidence is the **§5.2 harness kill-and-volley test at 3 and
+4 Lights**, where that coincidence is constructed: the token must keep the
+frame inside the fence, and the negative control (`light_token_budget` poked
+to 4) must show the same frame overrunning without it. The native repeat of
+§4.3 stays, as confirmation that nothing regressed, but it is not the proof.
+
+**The ceiling is not raised on M1's four-Light figure.** M1 measured 8,301
+margin at four live Lights on those replays; that is the same favourable-phase
+artefact. If M2's forced coincidence also clears at four, record it as
+evidence for a later owner decision — do not act on it.
+
 **GO for ceiling 3** if that derived margin ≥ 500 cycles with debris and a
 capsule live in the same replay set; then step 4 adds the token and the same
 measurement is repeated to confirm (M2). **NO-GO** otherwise, with the

@@ -50,6 +50,7 @@ DIRECTOR_LOW_BYTES = 242
 .import _light_backing, _light_resolve_save, _light_cell_end
 .import _light_scratch, _light_slot_save
 .import _light_slot, _light_archetype, _light_code, _light_wave_lock
+.import _light_slot_limit
 .import _enemy_profile_movement_id, _enemy_profile_fire_policy_id
 .import _enemy_profile_burst_count, _enemy_profile_burst_interval
 .import _enemy_profile_post_burst_frames, _enemy_profile_renderer_class
@@ -101,7 +102,8 @@ DIRECTOR_LOW_BYTES = 242
 .export light_state, light_hp, light_x, light_y, light_fire_timer
 .export light_screen_lo, light_screen_hi
 .export light_backing0, light_backing1, light_scratch, light_slot_save
-.export light_slot, light_archetype_offset, light_code, light_resolve_save
+.export light_slot, light_slot_limit, light_archetype_offset, light_code
+.export light_resolve_save
 .export light_cell_end
 
 .segment "DIRECTOR_ABI"
@@ -277,6 +279,8 @@ light_scratch = _light_scratch
 light_slot_save = _light_slot_save
 ; The slot C indexes and ASM is ticking. Step 1a writes 0 and nothing else.
 light_slot = _light_slot
+; How many slots the per-frame loops must walk (owner fix (a), 2026-09-21).
+light_slot_limit = _light_slot_limit
 ; Selected Light archetype per slot, as a byte offset into the C archetype
 ; table, and the slot's left screen code.
 light_archetype_offset = _light_archetype

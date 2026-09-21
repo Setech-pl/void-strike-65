@@ -55,10 +55,23 @@ function memory() {
 // tests/light-multiplicity.test.mjs, not stumbled into here.
 const FRAME_ENTRIES = new Set(["light_update", "enemy_light_tick", "light_shot",
   "enemy_spawn_raiders"]);
+// Owner fix (a), 2026-09-21: light_publish's RENDER loop walks light_slot_limit,
+// which enemy_c_light_wave derives once per frame. In the runtime that always
+// precedes it - light_update runs earlier in the same frame - so a test that
+// calls light_publish on its own has to establish the same order.
+function refreshSlotLimit(image) {
+  const cpu = new Nmos6502(image);
+  const stop = 0x7fff;
+  cpu.push((stop - 1) >> 8);
+  cpu.push((stop - 1) & 0xff);
+  cpu.pc = L("enemy_light_wave");
+  for (let steps = 0; steps < 200_000 && cpu.pc !== stop; steps += 1) cpu.step();
+}
 function run(image, target, { a = 0, x = 0, y = 0 } = {}) {
   if (typeof target === "string" && FRAME_ENTRIES.has(target)) {
     image[L("frame_counter")] = (image[L("frame_counter")] + 1) & 0xff;
   }
+  if (target === "light_publish") refreshSlotLimit(image);
   const address = typeof target === "string" ? L(target) : target;
   const cpu = new Nmos6502(image);
   const stop = 0x7fff;

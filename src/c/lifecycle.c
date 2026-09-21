@@ -394,6 +394,9 @@ static uint8_t light_admit_state;
  * (handle_collisions, which runs BEFORE the tick loop) and the tick share one
  * budget. The budget is not static - the harness pokes it by label to run the
  * negative control. */
+/* How many slots the kernel's per-frame loops must walk; see
+ * enemy_c_light_wave. ASM-read, C-derived, never incrementally maintained. */
+uint8_t light_slot_limit;
 uint8_t light_token;
 uint8_t light_token_frame;
 uint8_t light_token_budget;
@@ -757,7 +760,7 @@ static void encounter_light_admit(void)
 /* The stepper itself runs EVERY frame, unlike the admission it calls, so it
  * belongs in the window with the rest of the per-frame path. */
 #pragma code-name (push, "HYBRID_C_WINDOW")
-void enemy_c_light_wave(void)
+static void light_wave_step(void)
 {
     if (light_wave_lock == 0u) {
         return;
@@ -784,6 +787,48 @@ void enemy_c_light_wave(void)
     /* The wave is spent; the lock lifts once its last member has gone. */
     if (light_live_count() == 0u) {
         light_wave_lock = 0u;
+    }
+}
+
+/* Once per frame, before the kernel's slot loops (owner decision 2026-09-21,
+ * fix (a) for the step-5 regression). The multi-slot loops were costing +246
+ * cycles on frames with NO Light alive - four empty-slot rejects in each of
+ * three loops, every frame - which the marginal population delta could not
+ * see because that cost sits in both of its arms.
+ *
+ * light_slot_limit is the number of slots the kernel must walk: the highest
+ * occupied slot plus one, and 0 when the sector holds none. It is DERIVED by
+ * a scan here, not maintained incrementally, so it cannot desync from the
+ * states it describes.
+ *
+ * It is computed AFTER the wave's own admission and is safe to use for the
+ * rest of the frame: the only other admission path, enemy_c_spawn_raiders,
+ * runs earlier in the frame, so occupancy cannot grow between here and
+ * light_publish. It can only SHRINK - a retire or a kill - which leaves the
+ * limit stale-high, and a stale-high limit walks a spare slot rather than
+ * skipping a live one.
+ *
+ * It is NOT safe for light_publish's ERASE loop and the kernel does not use
+ * it there: a slot that retired this frame has state 0 but screen_hi still
+ * set until the late window erases it, so a state-derived limit would skip it
+ * and leave its cells on screen. That erase loop stays full-width. */
+void enemy_c_light_wave(void)
+{
+    light_wave_step();
+    /* Unrolled, and on purpose: this runs on EVERY frame, so a loop over the
+     * volatile light_slot would re-read it per iteration and cost more than
+     * the three ASM loops it exists to skip - MEASURED, that was the first
+     * attempt. Constant indices compile to four `lda _light_state+k`. */
+    if (light_state[3] != ENEMY_INACTIVE) {
+        light_slot_limit = 4u;
+    } else if (light_state[2] != ENEMY_INACTIVE) {
+        light_slot_limit = 3u;
+    } else if (light_state[1] != ENEMY_INACTIVE) {
+        light_slot_limit = 2u;
+    } else if (light_state[0] != ENEMY_INACTIVE) {
+        light_slot_limit = 1u;
+    } else {
+        light_slot_limit = 0u;
     }
 }
 #pragma code-name (pop)

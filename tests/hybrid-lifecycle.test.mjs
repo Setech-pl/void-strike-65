@@ -214,15 +214,17 @@ test("ownership is singular and generated C requires neither software stack nor 
   // lethal hit. Those five ARE the consumer list of plan §2.5 with [C3]; a
   // sixth call here would be a consumer nobody reviewed.
   const jsrs = [...executableGenerated.matchAll(/\bjsr\s+([^\s;]+)/g)].map((match) => match[1]);
+  // Owner fix (a): enemy_c_light_wave wraps _light_wave_step so the frame's
+  // slot limit is derived on EVERY frame, not only while a wave is live.
   assert.deepEqual(jsrs,
     ["_asm_sector_pressure_active", "_sector_c_drain_clear", "_heavy_publish_profile",
       "_encounter_light_admit",
       "_bomber_may_fire", "_bomber_turn", "_bomber_turn", "_bomber_turn", "_bomber_may_fire",
       "_bomber_colour", "_light_tick_body", "_light_take_token", "_light_take_token",
-      "_light_admit", "_light_live_count", "_light_ceiling", "_light_live_count",
-      "_light_free_slot", "_light_take_token", "_light_pair_for_record", "_light_reload",
-      "_encounter_light_schedule_advance", "_light_take_token", "_light_take_token",
-      "_light_reload"]);
+      "_light_wave_step", "_light_ceiling", "_light_live_count", "_light_free_slot",
+      "_light_take_token", "_light_pair_for_record", "_light_reload",
+      "_encounter_light_schedule_advance", "_light_admit", "_light_live_count",
+      "_light_take_token", "_light_take_token", "_light_reload"]);
   assert.equal(jsrs.filter((name) => name === "_light_take_token").length, 5,
     "exactly the five token consumers of plan §2.5 with [C3]");
 });

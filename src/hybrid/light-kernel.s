@@ -149,7 +149,16 @@ light_publish:
     bpl @erase_slot
 
     jsr entity_debris_publish    ; debris below every Light, same window
-    lda #(LIGHT_SLOT_COUNT-1)
+    ; The RENDER loop may use the limit - a slot outside it holds no state, so
+    ; it has nothing to draw. The ERASE loop above may NOT and does not: a slot
+    ; that retired this frame has state 0 but screen_hi still set, and skipping
+    ; it would leave its cells on screen.
+    lda LIGHT_SLOT_LIMIT
+    bne :+
+    rts                          ; no slot occupied: nothing to render
+:
+    sec
+    sbc #$01
     sta LIGHT_SLOT
 @render_slot:
     ldy LIGHT_SLOT
@@ -243,8 +252,15 @@ light_top:
 ; $80, the deferred breakup spawn, arrives with the token at step 4.
 light_update:
     jsr entity_effects_update
-    jsr ENEMY_LIGHT_WAVE         ; PROVISIONAL wave stepper, once per frame
-    lda #(LIGHT_SLOT_COUNT-1)
+    ; The wave stepper AND the frame's slot limit: C derives how many slots
+    ; these loops must walk, so an empty sector pays nothing for four of them.
+    jsr ENEMY_LIGHT_WAVE
+    lda LIGHT_SLOT_LIMIT
+    bne :+
+    rts                          ; no slot occupied: the whole loop is skipped
+:
+    sec
+    sbc #$01
     sta LIGHT_SLOT
 @slot:
     ldx LIGHT_SLOT

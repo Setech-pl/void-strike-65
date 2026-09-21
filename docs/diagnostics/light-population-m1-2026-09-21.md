@@ -275,3 +275,82 @@ stay full-width or use a limit derived from `screen_hi`, which ASM owns.
 
 That is a real design decision, not a tweak, and it is where this session
 stopped rather than rushing it.
+
+---
+
+# Fix (a), and what the measurement says next
+
+## Fix (a) landed
+
+C derives `light_slot_limit` — the highest occupied slot plus one — once per
+frame in `enemy_c_light_wave`, and `light_update` and `light_publish`'s
+**render** loop walk only that many slots. The **erase** loop stays full-width,
+for the reason that made this owner decision: a slot that retired this frame
+has `state = 0` but `screen_hi` still set, and a state-derived limit there
+would leave its cells on screen.
+
+The scan is **unrolled on purpose**. The first attempt looped over the
+volatile `light_slot` and MEASURED *worse* than the three ASM loops it existed
+to skip; four constant-index loads cost a fraction of that.
+
+MEASURED, routine census, cost on a frame with no Light alive:
+
+| routine | `82c155b` | before (a) | after (a) |
+| --- | ---: | ---: | ---: |
+| `light_publish` min | 216 | 374 | **292** |
+| `light_update` min | 111 | 199 | **147** |
+| unconditional total | — | +246 | **+112** |
+
+## But it recovered only ~80 cycles of ~1,300 on the audited sessions
+
+| session | `82c155b` | before (a) | after (a) |
+| --- | ---: | ---: | ---: |
+| `weapon-pickup-2-hunt-fire4` | 1,713 | 477 | **551** |
+| `director-complete-1-natural-sweep-fire0` | 1,831 | 357 | **438** |
+
+Both remain under the ~1,000 the owner set as the threshold for coming back
+with a measurement rather than reaching for fix (b). Here it is.
+
+## The binding frame has NO Light alive, and the cost scales with PROJECTILES
+
+The worst fighter row of `weapon-pickup-2-hunt-fire4` (margin 551, frame 1963)
+has `live = 0`. So the cost is not per-Light. Bucketing every fighter row of
+both runs by the number of player projectiles in flight — **the two histograms
+are identical, `n` for `n`, so this session did not diverge and is a clean
+A/B**:
+
+| projectiles | n | mean pre-fence `82c155b` | now | delta |
+| ---: | ---: | ---: | ---: | ---: |
+| 0 | 33 | 13,028 | 13,185 | **+157** |
+| 2 | 252 | 10,776 | 11,213 | +437 |
+| 4 | 469 | 11,603 | 12,167 | +564 |
+| 6 | 538 | 11,641 | 12,243 | +602 |
+| 9 | 122 | 12,785 | 13,588 | **+803** |
+
+A straight line: intercept **≈ +160** (the unconditional loop cost, matching
+the census) and slope **≈ +70 cycles per projectile in flight**.
+
+**+70 per projectile is `light_shot`.** It is called once per player PairShot
+per frame and now walks four slots where it used to test one. Fix (a) never
+touched it.
+
+## The proposed fix is neither (a) nor (b)
+
+Gate `light_shot` on the same `light_slot_limit`. At nine projectiles that
+removes ~630 of the ~803; fix (b) — an ASM `screen_hi`-derived limit for the
+erase loop — addresses only the remaining ~76 of intercept and is the riskier
+change of the two.
+
+**The ordering trap, stated before it is walked into.** `handle_collisions`
+runs *before* `light_update`, so `light_shot` would read the limit derived on
+the *previous* frame, while `enemy_c_spawn_raiders` admits *earlier in this
+one*. A freshly admitted slot would be outside the limit and unhittable for a
+frame. Today that is harmless only because admission sets `y = 0`, which
+`light_shot`'s own gameplay-top test rejects anyway — an implicit chain, and
+exactly the kind this project has been removing.
+
+The fix that needs no such chain: make `light_admit` **raise**
+`light_slot_limit` as it fills a slot. The limit is then always at least the
+highest occupied slot, whoever reads it and whenever — derived once per frame
+and monotonic within it. Stale-high stays safe by construction; stale-low
+becomes impossible rather than merely unlikely.

@@ -897,6 +897,7 @@ function renderDirectorAbiInclude(labelBytes, lightKernelAddress) {
     ["LIGHT_SCRATCH", "light_scratch"],
     ["LIGHT_SLOT_SAVE", "light_slot_save"],
     ["LIGHT_SLOT", "light_slot"],
+    ["LIGHT_SLOT_LIMIT", "light_slot_limit"],
     ["LIGHT_ARCHETYPE_OFFSET", "light_archetype_offset"],
     ["LIGHT_CODE", "light_code"],
   ];

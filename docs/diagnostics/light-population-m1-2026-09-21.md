@@ -186,3 +186,33 @@ Four replays, 0 distinct miss events in each.
 The forced coincidence clears at four Lights as well (9,516 pre-fence, 942
 saved). Recorded for a later owner decision as instructed; the shipped ceiling
 stays 3.
+
+---
+
+# Write-watch of the slot arrays, `$7FC4-$7FFF` (plan §5.6)
+
+`node scripts/capacity-window-watch.mjs --window=0x7fc4 --window-bytes=60
+--window-from=start`, four sessions, full lifecycle.
+
+The tool reports FAIL, and that is the wrong question asked of a live state
+range: `window_untouched_after_publish` is designed for an inert image, and
+these 60 bytes are the Light slots, which the game writes every frame. What
+matters is **who** writes them. Classifying the 256 sampled writes by PC:
+
+| writer | writes |
+| --- | ---: |
+| MAIN boot / resident (`$2000-$3FFF`) — the A2 staging pass | 54 |
+| `HYBRID_C_EXT` — Light C init and the cold admission path | 33 |
+| code window C half — the Light C hot path | 110 |
+| `LIGHT_KERNEL` — the Light ASM | 59 |
+| **foreign** | **0** |
+
+Every writer is the Light class or the boot-time A2 staging the range is
+shared with by design, exactly as the `$8100` GLUE hold is. The list is capped
+at `DFCAP_MAX_WRITES` = 256, so it is a sample and not a census — but it spans
+boot, gameplay init and gameplay, which is where a stray writer would show.
+
+The stronger guarantee is at link time and is not a sample: `HYBRID_LIGHT_SLOTS_RAM`
+owns `$7FC4-$7FFF` exclusively, `src/hybrid/c-asm-abi.s` asserts it starts at
+`PLAYFIELD_DLIST_END` and ends at or below `ENTITY_STATE` (`$8000`), and ld65
+refuses any other segment there.

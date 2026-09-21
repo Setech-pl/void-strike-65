@@ -4,18 +4,18 @@
   "delta_fail_frames": 50,
   "delta_warn_frames": 10,
   "baseline": {
-    "xex_loader_frames": 134,
-    "xex_menu_frames": 391,
-    "atr_loader_frames": 325,
-    "atr_menu_frames": 582
+    "xex_loader_frames": 135,
+    "xex_menu_frames": 392,
+    "atr_loader_frames": 333,
+    "atr_menu_frames": 590
   },
   "recorded": {
     "date": "2026-09-21",
     "branch": "experiment/light-multiplicity",
-    "runtime_checkpoint": "aad6d53",
-    "xex_sha256": "a3447d0bcef4cf5da38683b638b97e6ba593bef43dda91d12a6367ebf9639098",
-    "atr_sha256": "096e10193a44f611b12b247069e5441cddc8c76156739df481b744ee279ca07b",
-    "total_transport_sectors": 198,
-    "reason": "Re-recorded for Light multiplicity step 1b: the Light ASM kernel became its own link (plan §3.1 [C1], owner decision 2026-09-21) and travels as the ELEVENTH DFMC record, landing at $B84E directly above the Director link's C half. Transport 197 -> 198 sectors: the kernel record costs 4 sectors and the extension and pickup records give 3 back, because LIGHT_RESIDENT (229 B) and the STARFIELD resolver (31 B) left the main link with it. MEASURED from a full 8-session boot smoke, 8/8 passed. ATR milestones move +2/+2 (loader 323 -> 325, menu 580 -> 582); XEX milestones do not move at all (134/391). Both inside the +10 warn band. gameplay_init stays at frame 3060 on ATR against 3053 on XEX, the level image at $A600 still compares byte-exact, and command frames stay XEX 0 / ATR 2 with 0 retries. Cumulative against the 82c155b recording (135/392, 319/576): XEX -1/-1, ATR +6/+6."
+    "runtime_checkpoint": "5c96578",
+    "xex_sha256": "fad00b1998ffa6152bfda21875689a1ba1e7b38aaa248fcfb6b1e0cad6d87404",
+    "atr_sha256": "f1b6fae6357dccddcc3d0d7bf2ba5917ccdecf2c7c3a93c1eef58a61994b60dc",
+    "total_transport_sectors": 202,
+    "reason": "Re-recorded for Light multiplicity step 3, the multi-slot loops. Transport 198 -> 202 sectors: the Light kernel grew 468 -> 634 B for the slot loops and the cold admission path returned to HYBRID_C_EXT, which grew the extension record 448 -> 865 B. MEASURED from a full 8-session boot smoke, 8/8 passed. ATR milestones move +8/+8 (325/582 -> 333/590) and XEX +1/+1 (134/391 -> 135/392); both inside the +10 warn band, ATR close to it. gameplay_init stays at frame 3060 on ATR against 3053 on XEX, the level image at $A600 still compares byte-exact, and command frames stay XEX 0 / ATR 2 with 0 retries. This is the DEFAULT build, which runs one Light exactly as before: the provisional swarm wave is measurement scaffolding behind --force-light-population (owner decision 2026-09-21) and ships in nothing."
   }
 }

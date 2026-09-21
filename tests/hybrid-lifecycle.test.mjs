@@ -70,8 +70,13 @@ test("C EnemyArchetype is a compact exact Raider record in legal extension place
   // = 412. What remains in LIGHT_CODE was never Light-only.
   // Step 2: lifecycle_c_init gained the appearance and ceiling reset, which is
   // the only Light-class code still in this composite: 412 + 36 = 448.
+  // Step 3: the Light kernel's ASM grew past the 1,536-B code window by 143 B,
+  // so the COLD admission path - free-slot search, appearance allocation,
+  // light_admit, the escort admission, the ceiling and the live count - came
+  // back here, into the tail owner decision X created. It runs on an admission
+  // attempt, not every frame, so the window keeps the hot path: 448 + 417 = 865.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
-    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 448 });
+    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 865 });
   const window = manifest.residentCapacity.basicWindow;
   assert.equal(window.address, 0xb600, "the Light C lives in the code window");
   assert.ok(window.usedBytes > 0 && window.usedBytes <= window.capacityBytes,
@@ -194,14 +199,19 @@ test("ownership is singular and generated C requires neither software stack nor 
   // so roadmap 4.9's level boundary reuses it rather than writing a second one.
   // It is a C function in the arena calling out of the window composite, which
   // is why it appears here; it still needs no stack and no runtime helper.
-  // Step 2 adds three: enemy_c_light_tick wraps _light_tick_body so the
-  // appearance install can replace the return without swallowing the body's
-  // motion and cadence, and the admission asks _light_ceiling and
-  // _light_live_count before it fills a slot.
+  // Step 2 added _light_tick_body (so the appearance install can replace the
+  // tick's return without swallowing the body) and the ceiling/live-count pair.
+  // Step 3 adds _light_admit - THE one place a slot is filled, which plan §2.5
+  // [C3] gates on the token at step 4 - and the free-slot and appearance-pair
+  // searches it calls. _light_live_count appears twice: the wave stepper asks
+  // it to decide when the lock lifts, and light_admit asks it against the
+  // ceiling.
   assert.deepEqual([...executableGenerated.matchAll(/\bjsr\s+([^\s;]+)/g)].map((match) => match[1]),
     ["_asm_sector_pressure_active", "_sector_c_drain_clear", "_heavy_publish_profile",
       "_encounter_light_admit",
       "_bomber_may_fire", "_bomber_turn", "_bomber_turn", "_bomber_turn", "_bomber_may_fire",
-      "_bomber_colour", "_light_tick_body", "_light_ceiling", "_light_live_count",
+      "_bomber_colour", "_light_tick_body", "_light_admit", "_light_live_count",
+      "_light_ceiling", "_light_live_count", "_light_free_slot",
+      "_light_pair_for_record", "_light_reload",
       "_encounter_light_schedule_advance", "_light_reload"]);
 });

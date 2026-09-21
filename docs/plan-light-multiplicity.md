@@ -115,14 +115,22 @@ Derived and **dropped**: `light_leaderless` (now the state value),
 a Light live count (a four-byte scan in C, ~40 cycles, only at admission),
 an appearance index (derivable from `light_code`).
 
-**[C3] REOPENED 2026-09-21, owner instruction after step 2.** The live count is
-to be reconsidered at step 3: a **maintained counter**, incremented at
-admission and decremented at retire and kill by the code that already owns
-those transitions, replaces the scan **if it is cheaper and provably
-consistent**. If the scan is kept, step 3 must say why. The question is live
-now because step 2 measured the admission frame rising +72, of which the scan
-is part, and because a wave stepper makes admission attempts frequent rather
-than rare.
+**[C3] REOPENED 2026-09-21, owner instruction after step 2 — RESOLVED at step
+3: the scan is kept, owner-accepted.** Three reasons, in order of weight.
+(a) **It cannot desync.** A counter would be a second source of truth across
+five transition sites — admission, the `LIGHT_RETIRE_Y` retire, the
+fighter-only capital retire, the lethal hit, and `lifecycle_c_init` — one of
+which, `BREAKUP_PENDING`, does not exist until step 4.
+(b) **A desync would be silent.** The harness tests poke `light_state`
+directly to force re-admission; against a counter they would drift rather than
+fail, and the symptom in the game — a slot that quietly stops being
+admittable — is invisible until someone counts Lights on screen.
+(c) **It is not on a hot path.** The wave stepper gates its admission
+*attempt* on `light_wave_timer`, so the scan runs at most once per 32-64
+frames during a wave plus once per Heavy formation: a few per second, not per
+frame.
+**The counter stays the named mitigation**: if M1 shows the admission frame
+binding, it is costed alongside the token before the ceiling is touched.
 
 Placement: the 12 arrays at **`$7FC4-$7FF3`** (48 of the 60 unassigned bytes;
 12 B left), the shared scalars in the retired **`$8100-$810F`** (16 B, 0-4 B
@@ -235,6 +243,34 @@ today's "leaderless" behaviour, unchanged. State 2 (free) is pass-through: the
 Interceptor pursuit or the Wingman drift, retire at `LIGHT_RETIRE_Y` or at a
 sector change. Both rules are expressible per slot; 4.6's `WaveDef` decides
 which a member gets. Nothing in this task adds a path evaluator.
+
+**[C4] AMENDED 2026-09-21, implementation step 3, owner-approved.**
+
+**This section said:** the provisional wave runs in every game, and the
+existing deterministic replays "diverge after the first Heavy recycle and
+contain swarms naturally (no state injection, per the natural-replay rule)".
+
+**What went wrong.** That divergence is welcome in the native PAL replays and
+fatal in the build. The in-build CPU-harness replay carries *reviewed coverage
+clauses* — a live Interceptor, an active explosion, debris spawn / contact /
+destruction, the full effects mask — and with the wave armed it no longer
+reaches "final debris destruction" (`runtime-cycles.mjs:952`). PROVED to be
+the wave and not a defect: disarming the arming in `enemy_c_recycle`, changing
+nothing else, makes the whole build pass. The wave simply occupies frames, so
+the scripted inputs stop lining up.
+
+**What is being done instead.** The provisional wave is **measurement
+scaffolding, not behaviour the game has today** — real waves arrive with 4.6's
+Director and WaveDef records. So it is compiled out of the default build and
+armed only by `node scripts/build.mjs --force-light-population`
+(`LIGHT_FORCE_POPULATION`, the shape `ENEMY_REVIEW_HARNESS` already uses). The
+default build lands the whole multi-slot machinery and runs **one Light exactly
+as today**, so every replay and every coverage clause passes unchanged. §4.3's
+native measurement runs on the forced-population build.
+
+**Why not re-script the replay:** a gate changes when the game's behaviour
+changes, not so that a change can pass. 4.6 re-scripts these replays
+deliberately, when swarms become real behaviour.
 
 **Provisional standalone wave — TEMPORARY, labelled like the Heavy smoke
 scheduler, replaced by 4.6.** In C, inside the Light tick when `light_slot ==

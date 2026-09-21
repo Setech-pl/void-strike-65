@@ -76,6 +76,14 @@ const candidateBuild = runtimeEvidencePhase(process.argv) === "candidate";
 const asmDirectorBaseline = process.argv.includes("--asm-director");
 const skipRuntimeMeasurement = process.argv.includes("--skip-runtime-measurement");
 const twoPmgRaiderPrototype = process.argv.includes("--two-pmg-raiders");
+// Light multiplicity (plan §2.4 [C4], owner decision 2026-09-21). The
+// provisional standalone Interceptor wave is MEASUREMENT SCAFFOLDING, not
+// behaviour the game has today: real waves arrive with 4.6's Director and
+// WaveDef records. The default build therefore runs one Light exactly as
+// before and every replay and coverage clause passes unchanged; this variant
+// arms the wave so the §4.3 native three-Light measurement has multi-Light
+// frames to measure. It is not a shipping artifact.
+const forceLightPopulation = process.argv.includes("--force-light-population");
 const enemyReviewHarness = process.argv.includes("--enemy-review");
 const enemyCombatReviewHarness = process.argv.includes("--enemy-combat-review");
 const enemyPaletteArgument = process.argv.find((argument) => argument.startsWith("--enemy-palette="));
@@ -578,6 +586,7 @@ async function buildHybridDirectorModule(fighterWeaponsInclude) {
       "/cc65/include/stdint.h": stdintHeader,
     },
     ["--cpu", "6502", "-Oirs", "-I", "/project/src/c", "-I", "/cc65/include",
+      ...(forceLightPopulation ? ["-D", "LIGHT_FORCE_POPULATION=1"] : []),
       "-o", `${base}-lifecycle-generated.s`, "/project/src/c/lifecycle.c"],
     [`${base}-lifecycle-generated.s`],
   );
@@ -2166,6 +2175,7 @@ async function build() {
       },
       guard: { address: directorGuardAddress, bytes: 6 },
     },
+    lightForcePopulation: forceLightPopulation,
     buildVariant: enemyReviewHarness
       ? "enemy-review"
       : enemyCombatReviewHarness

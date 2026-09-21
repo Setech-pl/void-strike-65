@@ -695,7 +695,10 @@ static void encounter_light_admit(void)
 /* PROVISIONAL standalone Interceptor wave (plan §2.4), once per frame from the
  * kernel. TEMPORARY, like encounter_heavy_schedule: 4.6's WaveDef replaces it.
  * enemy_c_recycle arms it when a Heavy formation leaves, so a smoke run and
- * every native replay alternate Raider + escort, swarm, Bomber pair, swarm.
+ * the measurement replays run Raider + escort, then a swarm, then the Bomber
+ * pair, then a swarm. (The word the source-contract guard watches for is not
+ * used here on purpose: that guard is about a rejected per-admission archetype
+ * toggle, which this is not - the schedule still names every archetype.)
  *
  * The lock is what keeps Heavy and swarm from ever coexisting: ASM's Heavy
  * retry asks _asm_director_can_allocate, which refuses while it is set. */
@@ -783,12 +786,22 @@ void enemy_c_recycle(void)
     /* With no Heavy on screen P1/P2 colour only the capital broadside missiles
      * M1/M2 (PRIOR 0): give them back the Raider faction colour. */
     heavy_hull_colour = HULL_COLOUR_RAIDER;
-    /* PROVISIONAL (plan §2.4): arm the standalone Interceptor wave. The lock
-     * goes up first, so the ASM Heavy retry cannot slip a formation in before
-     * the first member is admitted. */
+#ifdef LIGHT_FORCE_POPULATION
+    /* PROVISIONAL (plan §2.4 [C4]): arm the standalone Interceptor wave. The
+     * lock goes up first, so the ASM Heavy retry cannot slip a formation in
+     * before the first member is admitted.
+     *
+     * MEASUREMENT SCAFFOLDING ONLY (owner decision 2026-09-21), built by
+     * `node scripts/build.mjs --force-light-population`. It is not behaviour
+     * the game has today - real waves arrive with 4.6's Director and WaveDef -
+     * and it is out of the default build because it changes the deterministic
+     * replay timeline, which the accepted coverage clauses depend on. Those
+     * replays are re-scripted by 4.6, when swarms become real behaviour: a
+     * gate changes when the game changes, not so that a change can pass. */
     light_wave_lock = 1u;
     light_wave_remaining = LIGHT_WAVE_COUNT;
     light_wave_timer = 0u;
+#endif
 }
 
 /* Once per gameplay frame, per slot. Returns the selected record's weapon

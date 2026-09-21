@@ -133,9 +133,13 @@ test("source contract: the Light admission and tick hold no ordering or toggle l
   // contract itself is unchanged: only the schedule names the archetype.
   assert.doesNotMatch(lifecycleSource, /light_archetype\[[^\]]*\]\s*\^=/,
     "no XOR toggle of the selected archetype");
+  // Step 3: three writers, all of them the same decision reaching the slot -
+  // the schedule names the archetype, light_admit copies that name into the
+  // slot it takes, and init clears every slot. No fourth path may appear.
   const assignments = [...lifecycleSource.matchAll(/light_archetype\[[^\]]*\]\s*=[^=]/g)];
-  assert.equal(assignments.length, 2,
-    "light_archetype[] has two writers: the schedule, and the per-slot clear in init");
+  assert.equal(assignments.length, 3,
+    "light_archetype[] writers: the schedule, light_admit, and the init clear");
+  assert.match(lifecycleSource, /light_archetype\[light_slot\]\s*=\s*light_record;/);
   const scheduleFunction = lifecycleSource.slice(
     lifecycleSource.indexOf("static void encounter_light_schedule_advance"),
     lifecycleSource.indexOf("void lifecycle_c_init"));
@@ -362,13 +366,13 @@ test("placement contract: legal composite and packed size, state inside its rese
   assert.equal(manifest.residentCapacity.tails.entityCode, 1);
   // Step 1b: LIGHT_RESIDENT's 229 B left the pickup stream with the kernel.
   assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 236);
-  // Owner decision X + Light multiplicity steps 1a-2: the Light C left the
-  // extension for the code window at $B600 and the kernel left for its own
-  // link, so the scarce 19-B tail that needed an owner floor is now 451 B -
-  // the largest resident hole since 4.3 Stage 1, and one of the two reasons
-  // the decision was taken. (Step 2 spent 36 B of it on the appearance and
-  // ceiling reset in lifecycle_c_init, which stays in this composite.)
-  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 451);
+  // Owner decision X + Light multiplicity steps 1a-3. The Light C left the
+  // extension for the code window and the kernel left for its own link, which
+  // took the scarce 19-B tail to 451; step 3's multi-slot ASM then overran the
+  // 1,536-B window by 143 B, so the COLD admission path came back here and
+  // spent most of it. 34 B is above the 16-B owner floor asserted at the top
+  // of this test, and the next Light-class growth goes to the window's 256 B.
+  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 34);
   assert.equal(L("light_glyph"), 0x9d2b);
   assert.equal(L("light_interceptor_glyph"), 0x9d3b);
   // REBASELINED for Light multiplicity: HYBRID_LIGHT_STATE keeps only the

@@ -80,6 +80,7 @@ function game(difficulty = 2) {
 // motion, retirement and fire cadence are all unchanged - so only that one
 // return differs, and the frame indices below are the same as before.
 const LIGHT_RETURN_INSTALL = 0x40;
+const LIGHT_X_ENTRY = 124;
 const SLOT = 0;
 const light = (image, slot = SLOT) => ({
   state: image[L("light_state") + slot] === 0 ? 0 : 1,
@@ -179,8 +180,12 @@ test("formation admission yields 2 Heavy + 1 Light with independent lifecycles",
     const member = L("ENEMY_MEMBER_STATE");
     assert.deepEqual([...image.subarray(member, member + 2)], [1, 1]);
     assert.deepEqual([image[L("ENEMY_LIVE_COUNT")], image[L("ENEMY_ACTIVE")]], [2, 1]);
+    // Step 3: every admission goes through light_admit, which gives the slot a
+    // defined entry column instead of leaving the escort's x whatever the slot
+    // last held. The escort overwrites it from its leader on its first tick,
+    // so only this moment can see the difference.
     assert.deepEqual(light(image), {
-      state: 1, hp: 1, x: 0, y: 0, timer: pause, leaderless: 0,
+      state: 1, hp: 1, x: LIGHT_X_ENTRY, y: 0, timer: pause, leaderless: 0,
     });
     // A wingman still flying from an earlier formation keeps its lifecycle.
     image[L("light_y")] = 100;

@@ -32,9 +32,15 @@ const section = (source, from, to) => {
 
 test("the debris is published between the Light erase and the Light render", () => {
   const publish = section(light, "light_publish:", "light_top:");
+  // Step 3: the erase and the render are each a loop over the slots, so the
+  // ordering claim is now "every slot's erase, then the debris, then every
+  // slot's render" rather than a single straight line. The contract is the
+  // same one: debris is published below every Light inside the same window.
   assert.match(publish,
-    /sty LIGHT_SCREEN_HI\s+@render:\s+jsr entity_debris_publish[^\n]*\n\s+lda LIGHT_STATE/,
+    /sta LIGHT_SCREEN_HI,x\s+@erase_next:[\s\S]*?bpl @erase_slot\s+jsr entity_debris_publish[\s\S]*?@render_slot:/,
     "debris < Light inside the post-playfield window");
+  assert.equal((publish.match(/jsr entity_debris_publish/g) ?? []).length, 1,
+    "the debris is published exactly once, not once per slot");
   // Fighter window order in main.s is unchanged: near erase/phase, then the
   // Light hook (PairShot erase, Light erase, debris, Light render), pickup PMG,
   // PairShot render, near render.

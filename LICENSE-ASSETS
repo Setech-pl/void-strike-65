@@ -1,0 +1,97 @@
+# Asset and creative-content licence
+
+Copyright (c) 2026 Marcin Krzetowski (Setech Game Studio)
+
+The game assets and creative content of Void Strike 65 are licensed under the
+
+**Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
+(CC BY-NC-SA 4.0)**
+
+licence. Full legal text:
+<https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode>
+Human-readable summary: <https://creativecommons.org/licenses/by-nc-sa/4.0/>
+
+In short: you may share and adapt this material for **non-commercial** purposes,
+provided you give appropriate credit and license your adaptations under the same
+terms.
+
+The source code of this repository is **not** covered by this file. It is
+licensed under the MIT licence in [`LICENSE`](LICENSE).
+
+---
+
+## What this licence covers
+
+- `assets/**` — every editable art, music and sound-effect source, including the
+  `.json` definitions (`loader-bitmap.json`, `capital-hulls.json`,
+  `starfield.json`, `fighter-weapons.json`, `entity-effects.json`,
+  `enemy-roster.json`, `frontend-h31.json`, `playfield.json`,
+  `gameplay-theme.json`, `menu-theme.json`, and any successor), the `.png`
+  reference and concept images, and the `README.md` files that describe them;
+- `levels/**` — level and encounter content data;
+- `docs/media/**` — screenshots, captured runtime imagery, concept art and the
+  showcase images;
+- the loader screen image and its bitmap font, the main-menu artwork, and every
+  in-game text string presented to the player (menu labels, HUD text, prompts),
+  wherever those strings physically reside — see "Mixed files" below;
+- the music and sound-effect data, both the editable sources and the Atari bytes
+  generated from them.
+
+## What this licence does not cover
+
+- **Source code and build tooling** — `src/`, `scripts/`, `tests/`, `cfg/`,
+  `Makefile`, `package.json` and the rest of the build system: MIT, see
+  [`LICENSE`](LICENSE).
+- **Engineering documentation** — `docs/**` other than `docs/media/**`
+  (architecture, status, memory map, decisions, diagnostics, `.mmd` diagrams):
+  MIT, so that a fork may adapt the build and porting notes freely.
+- **Names and marks.** The name **"Void Strike 65"**, the name **"Setech Game
+  Studio"**, and the Setech Game Studio logo are **not** licensed under either
+  the MIT licence or CC BY-NC-SA 4.0. **All rights reserved.** Neither licence
+  grants permission to use them to name, brand or endorse a derived work; a fork
+  must carry its own name and marks. Factual, nominative references ("based on
+  Void Strike 65") remain permitted.
+
+## Mixed files
+
+Three places in the tree mix the two licences. In every case the rule is the
+same: **the licence follows the substance, not the file extension.**
+
+1. **In-game text inside code.** The player-facing strings assembled into the
+   frontend and HUD live in `src/main.s` (for example `main.s:6921` and
+   `:7309-7344`: `START GAME`, `OPTIONS`, `TOP SCORES`, `SCORE`, `HULL`). The
+   file is MIT; those literal strings are in-game text and remain under
+   CC BY-NC-SA 4.0. Reusing the *code* needs nothing from this file; shipping
+   the *words* does.
+2. **Asset data quoted inside code and tests.** Converters under `scripts/` and
+   expectations under `tests/` embed fragments of asset data (glyph rows,
+   palettes, hull maps) to validate the conversion. The surrounding code is MIT;
+   the embedded asset fragments remain under CC BY-NC-SA 4.0.
+3. **The released binaries.** `dist/void-strike-65.xex`,
+   `dist/void-strike-65.atr` and the release `.zip` are a **combined work**: MIT
+   code linked together with CC BY-NC-SA assets. Distribute them under the more
+   restrictive of the two — that is, **non-commercially, with attribution and
+   under the same terms**. They are free to share, play and pass on to other
+   Atari users on that basis.
+
+## Third-party
+
+**Nothing third-party is vendored in this repository.** All code, art, music and
+text here is original work by the copyright holder.
+
+Two external components are used but not included:
+
+- **Atari800** (GPL-2.0) — the emulator used for automated runtime measurement
+  and boot smoke. `scripts/atari800-wall-trace.h`,
+  `scripts/atari800-capacity-watch.h` and `scripts/measure-frame-profile.h` are
+  **our own code**, MIT-licensed, compiled *into* a locally fetched Atari800
+  source tree under `build/` (untracked). MIT is compatible with GPL-2.0: a
+  binary built from that combination is covered by the GPL, and no Atari800
+  source is redistributed here.
+- **cc65 / ca65** and the `romdev-toolchain-cc65` npm package — the assembler and
+  C toolchain, installed at build time under `node_modules/` (untracked) and
+  distributed under their own licences.
+
+The Atari 8-bit computer character set is referenced from the machine's own OS
+ROM at runtime; no ROM bytes are contained in this repository. This project is a
+non-commercial hobby work, not affiliated with or endorsed by Atari.

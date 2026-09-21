@@ -242,6 +242,24 @@ finished on the machine it was written for.
   Codex on earlier work — implementation, testing, analysis and documentation
   under the owner's direction, review and playtesting.
 
+### License
+
+- **Code** — `src/`, `scripts/`, `tests/`, `cfg/`, `Makefile` and the rest of the
+  build tooling, plus the engineering documentation under `docs/`:
+  [MIT](LICENSE).
+- **Game assets and creative content** — `assets/`, `levels/` content data, the
+  loader image, the music and sound data, the in-game texts and `docs/media/`:
+  [CC BY-NC-SA 4.0](LICENSE-ASSETS).
+- **Names and marks** — "Void Strike 65", the Setech Game Studio name and the
+  Setech Game Studio logo are **not** licensed under either. All rights
+  reserved; a fork must carry its own name.
+- **The released `.atr` and `.xex`** are a combined work of both licences: free
+  to share, play and pass on **non-commercially**, with attribution.
+- **Third-party:** nothing third-party is vendored here. Atari800 (GPL-2.0) and
+  cc65 are used as external build and measurement tools only; our
+  `scripts/atari800-*.h` headers are our own MIT code compiled into a locally
+  fetched Atari800 tree. See [LICENSE-ASSETS](LICENSE-ASSETS) for the details
+  and for the three files that mix both licences.
+
 This is a non-commercial hobby project, not affiliated with or endorsed by
-Atari. No repository license has been declared; no additional permission or
-legal status should be inferred from this page.
+Atari.

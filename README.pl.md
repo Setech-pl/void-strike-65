@@ -249,6 +249,25 @@ domykany na maszynie, dla której został napisany.
   OpenAI Codex we wcześniejszych — implementacja, testy, analiza i dokumentacja
   pod kierunkiem, przeglądem i testami właściciela.
 
+### Licencja
+
+- **Kod** — `src/`, `scripts/`, `tests/`, `cfg/`, `Makefile` i pozostałe
+  narzędzia budowania, a także dokumentacja inżynieryjna w `docs/`:
+  [MIT](LICENSE).
+- **Zasoby gry i treści twórcze** — `assets/`, dane zawartości `levels/`, obraz
+  loadera, dane muzyki i dźwięku, teksty w grze oraz `docs/media/`:
+  [CC BY-NC-SA 4.0](LICENSE-ASSETS).
+- **Nazwy i oznaczenia** — „Void Strike 65", nazwa Setech Game Studio oraz logo
+  Setech Game Studio **nie** są objęte żadną z tych licencji. Wszelkie prawa
+  zastrzeżone; fork musi używać własnej nazwy.
+- **Wydane pliki `.atr` i `.xex`** są utworem łączonym objętym obiema
+  licencjami: można je swobodnie udostępniać, grać w nie i przekazywać dalej
+  **niekomercyjnie**, z podaniem autorstwa.
+- **Kod zewnętrzny:** w repozytorium nie ma żadnego kodu osób trzecich. Atari800
+  (GPL-2.0) i cc65 są używane wyłącznie jako zewnętrzne narzędzia budowania i
+  pomiarów; nagłówki `scripts/atari800-*.h` to nasz własny kod na licencji MIT,
+  kompilowany w lokalnie pobranym drzewie Atari800. Szczegóły oraz trzy pliki
+  łączące obie licencje opisuje [LICENSE-ASSETS](LICENSE-ASSETS).
+
 To projekt hobbystyczny i niekomercyjny, niepowiązany z Atari ani przez Atari
-niefirmowany. Dla repozytorium nie ogłoszono żadnej licencji; z tej strony nie
-należy wnosić żadnych dodatkowych uprawnień ani statusu prawnego.
+niefirmowany.

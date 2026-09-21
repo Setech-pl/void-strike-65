@@ -131,7 +131,12 @@ test("public README is English, complete, and free of stale status language", ()
   assert.match(readme, /began on an Atari in 1990/);
   assert.match(prose, /AI-assisted engineering under the creator's direction/);
   assert.match(prose, /fast disk-access path must be repaired/);
-  assert.match(readme, /No repository license has been\s+declared/);
+  // Owner decision 2026-09-21: the repository is licensed. Code MIT, assets
+  // CC BY-NC-SA 4.0, name and marks reserved.
+  assert.match(readme, /\[MIT\]\(LICENSE\)/);
+  assert.match(readme, /\[CC BY-NC-SA 4\.0\]\(LICENSE-ASSETS\)/);
+  assert.match(prose, /are \*\*not\*\* licensed under either/);
+  assert.doesNotMatch(readme, /No repository license has been\s+declared/);
   assert.doesNotMatch(readme,
     /\bMVP\b|vertical[ -]slice|\bslice\b|proof[ -]of[ -]concept|\bPoC\b|\bprototype\b/i);
   assert.doesNotMatch(readme, /[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/);

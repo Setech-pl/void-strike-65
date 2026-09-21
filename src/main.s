@@ -11546,14 +11546,16 @@ begin_capital_projectile_frame:
 CHUNK_MANIFEST_BYTES = 30
 CHUNK_MANIFEST_MAX_BYTES = 12+CHUNK_MAX_COUNT*16+2
 CHUNK_RECORD          = 12
-; Owner decision B (2026-09-20): nine records, so a landing in the window under
-; the BASIC ROM needs no further loader change. Mirrors MAX_CHUNKS in
-; scripts/chunk-loader.mjs. The extra record costs 16 B of the reservation
-; below, inside the transient overlay. (The window's own addresses are spelled
-; out in cfg/encounter-director.cfg and docs/memory-map.md, not here: the
-; ENTITY_CODE reservation tests read this file textually from the first
-; `.segment "ENTITY_CODE"` to its end and refuse the literals.)
-CHUNK_MAX_COUNT       = 9
+; Owner decision B (2026-09-20) raised this to nine, so a landing in the window
+; under the BASIC ROM needs no further loader change; owner decision X
+; (2026-09-21) to ten, for the code window that carries the Light kernel.
+; Mirrors MAX_CHUNKS in scripts/chunk-loader.mjs. Each extra record costs 16 B
+; of the reservation below, inside the transient overlay. (The window's own
+; addresses are spelled out in cfg/encounter-director.cfg and
+; docs/memory-map.md, not here: the ENTITY_CODE reservation tests read this
+; file textually from the first `.segment "ENTITY_CODE"` to its end and refuse
+; the literals.)
+CHUNK_MAX_COUNT       = 10
 CHUNK_TYPE_LZ         = 1
 CHUNK_STAGING_BROAD   = 1
 CHUNK_STAGING_ADDRESS = $8100

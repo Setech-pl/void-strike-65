@@ -223,10 +223,17 @@ class PokeyStub {
   }
 }
 
-function runLoad(stub, { levelId = 1, buffer = null, maxSteps = 8_000_000 } = {}) {
+function runLoad(stub,
+  { levelId = 1, buffer = null, maxSteps = 8_000_000, directorySectors = null } = {}) {
   const memory = new Uint8Array(0x10000);
   memory.set(readerImage, READER_BASE);
   if (buffer) memory.set(buffer, LEVEL_BUFFER);
+  // Owner decision X: the directory's sector count is what the MAX_LEVEL_SECTORS
+  // bound is checked against, so a test of that bound patches the count rather
+  // than the header the reader has not read yet.
+  if (directorySectors !== null) {
+    memory[labels.get("sector_reader_directory") + (levelId - 1) * 3 + 2] = directorySectors;
+  }
 
   const cpu = new Nmos6502(memory, {
     read: (address) => {
@@ -453,6 +460,30 @@ test("directory: a level the build never placed is rejected without touching SIO
   assert.equal(result.failed, true);
   assert.equal(result.status, status.BAD_IMAGE);
   assert.equal(stub.commandFrames.length, 0);
+});
+
+// Owner decision X (2026-09-21): the level buffer is 32 sectors (4,096 B), not
+// 44; $B600-$BBFF now belongs to HYBRID_C_WINDOW. The bound is what stops a
+// directory entry from writing the reader's own neighbours, so gate it rather
+// than infer it from the constant.
+test("directory: a level claiming more than 32 sectors is rejected before SIO", () => {
+  for (const sectors of [33, 44, 45, 255]) {
+    const stub = new PokeyStub({ respond: () => { throw new Error("SIO was touched"); } });
+    const result = runLoad(stub, { directorySectors: sectors });
+    assert.equal(result.status, status.BAD_IMAGE, `${sectors} sectors`);
+    assert.equal(result.failed, true, `${sectors} sectors`);
+    assert.equal(stub.commandFrames.length, 0, `${sectors} sectors`);
+  }
+});
+
+test("directory: a level of exactly 32 sectors still reaches the wire", () => {
+  const stub = new PokeyStub({ respond: () => [] });
+  const result = runLoad(stub, { directorySectors: 32 });
+  // The stub answers nothing, so the read fails on the wire - but it is a WIRE
+  // failure, which proves the sector count passed the bound instead of being
+  // refused as BAD_IMAGE before a single command frame was sent.
+  assert.notEqual(result.status, status.BAD_IMAGE);
+  assert.ok(stub.commandFrames.length > 0, "32 sectors must not be refused before SIO");
 });
 
 test("directory: level id 0 and 17 are rejected", () => {

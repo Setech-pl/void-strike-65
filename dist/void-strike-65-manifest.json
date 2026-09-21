@@ -9,7 +9,7 @@
     "layout": "Hybrid cc65 C Director + stable ca65 ABI veneer",
     "levelWorldRows": 3712,
     "phaseCount": 8,
-    "initialContentBytes": 13196,
+    "initialContentBytes": 13212,
     "linkedRuntimeBytes": 17521,
     "simultaneousResidencyBytes": 20149,
     "safeResidencyBytes": 2038,
@@ -145,7 +145,7 @@
   "bootSectors": 104,
   "payloadBytes": 24960,
   "bootPayloadTrailer": {
-    "address": 21384,
+    "address": 21400,
     "bytes": 4,
     "ascii": "DFB1",
     "hex": "44464231",
@@ -215,8 +215,8 @@
   "transportCapacity": {
     "format": "DFMC-v1 multi-chunk",
     "initialBootBytes": 13312,
-    "initialBootContentBytes": 13196,
-    "initialBootEnvelopeBytes": 116,
+    "initialBootContentBytes": 13212,
+    "initialBootEnvelopeBytes": 100,
     "initialBootSectors": 104,
     "extensionBytes": 11648,
     "extensionSectors": 91,
@@ -224,9 +224,9 @@
     "totalTransportSectors": 195,
     "remainingAtrSectors": 525,
     "remainingAtrTransportBytes": 67200,
-    "architecturalAdditionalCapacityBytes": 0,
+    "architecturalAdditionalCapacityBytes": 6400,
     "maximumExtensionChunkBytes": 6400,
-    "maximumChunkCount": 9,
+    "maximumChunkCount": 10,
     "maximumNewSimultaneousResidencyBytes": 7993,
     "remainingSafeResidencyBytes": 3635,
     "bootOnlyStaging": {
@@ -237,7 +237,7 @@
     "stage2": {
       "runAddress": 8641,
       "loadAddress": 31232,
-      "bytes": 1281,
+      "bytes": 1297,
       "xexEntryAddress": 9013,
       "xexEntryOffset": 372,
       "overwrittenByResidentSuffix": true
@@ -245,12 +245,12 @@
     "manifest": {
       "address": 9764,
       "bytes": 158,
-      "crc16": 40772,
+      "crc16": 28943,
       "parsed": {
         "version": 1,
         "totalOccupiedSectors": 195,
         "manifestBytes": 158,
-        "crc16": 40772,
+        "crc16": 28943,
         "records": [
           {
             "startSector": 105,
@@ -335,7 +335,7 @@
             "packedLength": 1466,
             "rawLength": 1466,
             "finalDestination": 40960,
-            "crc16": 5465,
+            "crc16": 13267,
             "type": 0,
             "stagingId": 2,
             "destination": 33024
@@ -364,7 +364,7 @@
     "suffixAddress": 8641,
     "suffixRawBytes": 7743,
     "suffixPackedBytes": 6682,
-    "packedSourceAddress": 9922,
+    "packedSourceAddress": 9938,
     "stagingAddress": 33024,
     "stagedEndAddress": 39705,
     "compression": "LZ-10/5"
@@ -431,11 +431,11 @@
     "bytes": 1466,
     "capacityBytes": 1536,
     "freeBytes": 70,
-    "transport": "ninth DFMC record, RAW, direct landing at $A000",
+    "transport": "own DFMC record, RAW, direct landing at $A000",
     "levelBuffer": {
       "address": 42496,
-      "capacityBytes": 5632,
-      "sectors": 44
+      "capacityBytes": 4096,
+      "sectors": 32
     },
     "levels": [
       {
@@ -512,21 +512,21 @@
       "worstCaseFullArenaSectors": 7
     },
     "basicWindow": {
-      "step": "owner decision B",
-      "owner": "BASIC_WINDOW",
-      "address": 40960,
+      "step": "owner decision X",
+      "owner": "HYBRID_C_WINDOW",
+      "address": 46592,
       "guardAddress": 48154,
-      "endExclusive": 48160,
-      "capacityBytes": 7194,
+      "endExclusive": 48128,
+      "capacityBytes": 1536,
       "guardBytes": 6,
       "usedBytes": 0,
-      "freeBytes": 7194,
+      "freeBytes": 1536,
       "availability": "unconditional: disable_basic_rom forces PORTB bit 1 and writes BASICF at every stage-2 entry",
       "boundedBy": {
-        "below": "Director guard $9FFA-$9FFF",
-        "above": "OS screen $BC20-$BFFF (RAMTOP $C0 when BASIC is disabled at coldstart)"
+        "below": "32-sector level buffer $A600-$B5FF",
+        "above": "sector reader BSS $BC00-$BC19, then the guard and the OS screen $BC20-$BFFF (RAMTOP $C0 when BASIC is disabled at coldstart)"
       },
-      "guard": "BASIC_WINDOW_GUARD $BC1A-$BC1F, reserved with no segment, plus the ld65 assert \"BASIC_WINDOW reaches the window guard at $BC1A\"",
+      "guard": "HYBRID_C_WINDOW_GUARD $BC1A-$BC1F, reserved with no segment, plus the ld65 assert \"HYBRID_C_WINDOW reaches the sector reader BSS at $BC00\"",
       "contents": null,
       "transport": null
     },
@@ -652,10 +652,10 @@
     "bytes": 2224,
     "reservedBytes": 2348,
     "packedBytes": 1811,
-    "packedSourceAddress": 16604,
-    "packedSourceEndExclusive": 18415,
+    "packedSourceAddress": 16620,
+    "packedSourceEndExclusive": 18431,
     "pickupColdStagingAddress": 18433,
-    "packedSourceToPickupMarginBytes": 18,
+    "packedSourceToPickupMarginBytes": 2,
     "stagingAddress": 30736,
     "stagingBytes": 1920,
     "compression": "LZ-10/5, two independent streams expanded into one continuous destination",
@@ -668,7 +668,7 @@
         "rawOffset": 0,
         "rawBytes": 985,
         "packedBytes": 915,
-        "packedSourceAddress": 16604,
+        "packedSourceAddress": 16620,
         "stagingAddress": 30736,
         "stagingCapacityBytes": 960,
         "stagingEndExclusive": 31696,
@@ -682,7 +682,7 @@
         "rawOffset": 985,
         "rawBytes": 1239,
         "packedBytes": 896,
-        "packedSourceAddress": 17519,
+        "packedSourceAddress": 17535,
         "stagingAddress": 33274,
         "stagingCapacityBytes": 960,
         "stagingEndExclusive": 34234,
@@ -709,7 +709,7 @@
   "a2Kernel": {
     "loadAddress": 27136,
     "runAddress": 36864,
-    "sourceAddress": 18415,
+    "sourceAddress": 18431,
     "stagingAddress": 32555,
     "bytes": 237,
     "reservedBytes": 256,
@@ -770,14 +770,14 @@
       }
     },
     "packedBytes": 2732,
-    "packedSourceAddress": 18652,
-    "initialPackedSourcesEndExclusive": 21384,
-    "initialPackedSourcesLastAddress": 21383,
+    "packedSourceAddress": 18668,
+    "initialPackedSourcesEndExclusive": 21400,
+    "initialPackedSourcesLastAddress": 21399,
     "stagedSourceAddress": 21272,
     "stagedEndAddress": 24003,
     "stagedEndExclusive": 24004,
-    "sourceToStagingMarginBytes": -112,
-    "sourceStagingOverlapBytes": 112,
+    "sourceToStagingMarginBytes": -128,
+    "sourceStagingOverlapBytes": 128,
     "stagingCopyDirection": "backward",
     "stagingToBroadsideMarginBytes": 76,
     "stagingLifecycle": {
@@ -21627,17 +21627,17 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 24960,
-        "sha256": "c207b46843b54d70fe2d67c6e05ada39ca2ae623c142f3713bb7442db7c96c3b"
+        "sha256": "bedd8c600bafd43b6416e98d9f7f82a0c302ea8353745157c3a40d717fbcc599"
       },
       "void-strike-65.xex": {
         "path": "dist/void-strike-65.xex",
         "bytes": 25616,
-        "sha256": "46a3fed90065b61b45fa9e5cc93e124c5948d9db484e92e5f4cbd97f4179aecf"
+        "sha256": "0618a4368626819ab1844cc9aa20a74a2e7ffbfcd1d1f47a480204bcf9f53043"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "ec9e0734db4c4fd5b8aeec16e78639811a9812239929111d503500d796ccdd36"
+        "sha256": "6e7b8671300ad3653aa0e37546269c21aeb20f3b703bafa56472cf17ee6860be"
       }
     },
     "reportPath": null,
@@ -21646,15 +21646,15 @@
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 24960,
-      "sha256": "c207b46843b54d70fe2d67c6e05ada39ca2ae623c142f3713bb7442db7c96c3b"
+      "sha256": "bedd8c600bafd43b6416e98d9f7f82a0c302ea8353745157c3a40d717fbcc599"
     },
     "void-strike-65.xex": {
       "bytes": 25616,
-      "sha256": "46a3fed90065b61b45fa9e5cc93e124c5948d9db484e92e5f4cbd97f4179aecf"
+      "sha256": "0618a4368626819ab1844cc9aa20a74a2e7ffbfcd1d1f47a480204bcf9f53043"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "ec9e0734db4c4fd5b8aeec16e78639811a9812239929111d503500d796ccdd36"
+      "sha256": "6e7b8671300ad3653aa0e37546269c21aeb20f3b703bafa56472cf17ee6860be"
     }
   }
 }

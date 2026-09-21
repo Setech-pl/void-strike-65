@@ -872,8 +872,11 @@ starfield, so all overlaps are lifetime-safe.
 | `$9D75-$9FF7` | 643 B | C Director RODATA plus high CODE |
 | `$9FF8-$9FF9` | 2 B | free Director reservation tail |
 | `$9FFA-$9FFF` | 6 B | untouched guard; not available capacity |
-| `$A000-$BC19` | 7,194 B | `BASIC_WINDOW` region (owner decision B, 2026-09-20). Declared, guarded, addressable by the build and reachable by a DFMC record; **empty at this checkpoint** — placement of content is a per-record 4.6 decision |
-| `$BC1A-$BC1F` | 6 B | `BASIC_WINDOW_GUARD`: reserved, no segment, in the same shape as the `$9FFA` Director guard |
+| `$A000-$A5FF` | 1,536 B | `SECTOR_READER` (roadmap 4.3): reader, loader-mode display, failure screen, AI text pool |
+| `$A600-$B5FF` | 4,096 B | `LEVEL_BUFFER`, **32 sectors** since owner decision X (2026-09-21); was 44 |
+| `$B600-$BBFF` | 1,536 B | `HYBRID_C_WINDOW` (owner decision X): the Director link's half of decision B's window, home of the Light kernel. Reached by its own DFMC record |
+| `$BC00-$BC19` | 26 B | `READER_BSS` |
+| `$BC1A-$BC1F` | 6 B | `HYBRID_C_WINDOW_GUARD`: reserved, no segment, in the same shape as the `$9FFA` Director guard |
 | `$BC20-$BFFF` | 992 B | OS screen when BASIC is disabled at coldstart (`RAMTOP $C0`); never available to the build |
 | `$C000-$FFFF` | 16,384 B | OS ROM and I/O; not gameplay RAM |
 
@@ -946,16 +949,20 @@ travels as the ninth DFMC record, RAW, landing directly at `$A000`.
 | Range | Bytes | Owner | Notes |
 | --- | --- | --- | --- |
 | `$A000-$A5FF` | 1,536 | `SECTOR_READER` | reader, loader-mode display, failure screen, 8-line AI text pool; **1,466 B used, 70 B free**. A sixteen-line pool does not fit — see plan §1.5 `[C6]`; packing the texts is the cheaper answer if it is ever wanted, not shrinking the level buffer |
-| `$A600-$BBFF` | 5,632 | `LEVEL_BUFFER` | 44 sectors, page-aligned, `file = ""` — never in any artifact. On the XEX the level-1 image is an **XEX-only block** placed here; on the ATR it is read over SIO |
+| `$A600-$B5FF` | 4,096 | `LEVEL_BUFFER` | **32 sectors** (owner decision X, 2026-09-21; was 44), page-aligned, `file = ""` — never in any artifact. On the XEX the level-1 image is an **XEX-only block** placed here; on the ATR it is read over SIO |
+| `$B600-$BBFF` | 1,536 | `HYBRID_C_WINDOW` | owner decision X: the Director link's half of the window, `cfg/encounter-director.cfg`. `HYBRID_ASM_WINDOW` + `HYBRID_C_WINDOW` + `HYBRID_C_WINDOW_RODATA` |
 | `$BC00-$BC13` | 20 | `READER_BSS` | reader state; 6 B still free before `$BC1A` |
-| `$BC1A-$BC1F` | 6 | `BASIC_WINDOW_GUARD` | unchanged: reserved, no segment loads there |
+| `$BC1A-$BC1F` | 6 | `HYBRID_C_WINDOW_GUARD` | unchanged: reserved, no segment loads there |
 | `$00A0-$00A1` | 2 | `READER_ZP` | the `(zp),y` destination pointer. `ZEROPAGE` ends at `$9F`, so this is the first free pair |
 
-**Two links must never both own `$A000`.** `cfg/encounter-director.cfg` still
-declares `BASIC_WINDOW_RAM` there from decision B's plumbing below, which is
-harmless only while it stays empty. `scripts/build.mjs` now asserts exactly
-that: a non-empty `BASIC_WINDOW` segment is a build error naming the reader as
-the owner. Content that wants the window goes through the reader's link.
+**Two links share the window, in disjoint halves (owner decision X,
+2026-09-21).** The reader owns `$A000-$B5FF` and `$BC00-$BC19`; the Director
+link owns `$B600-$BBFF` as `HYBRID_C_WINDOW_RAM`. Before the decision the
+Director's declaration covered the whole window and was harmless only while it
+stayed empty; `scripts/build.mjs` now asserts the halves cannot meet — the
+window record must land at `$B600` and `$B600` must be at or above the end of
+the level buffer the reader fills. A sixteen-line AI text pool still does not
+fit in the reader's own 1,536 B: the freed 1,536 B went to code, not to text.
 
 **Level runs on the ATR.** Level images are placed at absolute sector numbers
 from a fixed base (`levelBaseSector` = 320), outside the boot transport, by
@@ -971,6 +978,28 @@ milestones move +22 in total (loader 297 → 319, menu 554 → 576), inside the
 `boot-deadline-baseline.json`; boot smoke 8/8, and the image at `$A600` is
 now verified byte-exact against `build/level-1.bin` on every session.
 
+### Owner decision X (2026-09-21) — buffer 44 → 32 sectors, window at `$B600`
+
+`MAX_LEVEL_SECTORS` 44 → 32, `LEVEL_BUFFER_RAM` `$1600` → `$1000`,
+`BASIC_WINDOW_RAM` `$A000/$1C1A` → `HYBRID_C_WINDOW_RAM` `$B600/$0600`,
+`MAX_CHUNKS` / `CHUNK_MAX_COUNT` 9 → 10.
+
+**Free tails at this checkpoint (MEASURED, window still empty).**
+`HYBRID_C_WINDOW` 1,536 of 1,536 B free; `LEVEL_BUFFER` 32 sectors against a
+2-sector level-1 image; `BOOT_STAGE2` 751 B free (767 before: the tenth
+manifest slot costs 16 B, as the 8 → 9 step measured). Every other tail
+unchanged and measured: `HYBRID_C_EXT` 19 B, `ENTITY_CODE` 1 B, pickup stream
+fill 7 B, A2 kernel 19 B, `DIRECTOR_ABI` 0 B, `HYBRID_C_SECTOR` 18 B,
+`HYBRID_C_ARENA` 187 B, BROADSIDE 3 B, `SECTOR_READER` 70 B.
+
+**Below `$A000` this step is not byte-identical, and cannot be.** The tenth
+manifest slot grows the stage-2 reservation by 16 B, which moves five address
+operands in the boot copier (`$20DB-$20F9`, each +16) — the only other change.
+Every resident gameplay image is byte-identical: MAIN `CODE`/`RODATA`,
+`STARFIELD`, `BROADSIDE`, `ENTITY_CODE`, `PICKUP_CODE`, the A2 kernel and
+every Director image. The reader image changes by exactly one byte, the
+`cmp #MAX_LEVEL_SECTORS+1` operand at reader offset 865 (45 → 33).
+
 ---
 
 ## Owner decision B plumbing — the window is open (2026-09-20)
@@ -982,12 +1011,12 @@ this section was written in.
 
 | Piece | Where | What it does |
 | --- | --- | --- |
-| `BASIC_WINDOW_RAM` | `cfg/encounter-director.cfg` | `start = $A000, size = $1C1A, type = ro, file = %O` — the usable window minus its guard |
-| `BASIC_WINDOW_GUARD` | same | `start = $BC1A, size = $0006, type = ro, file = ""` — reserved, no segment loads there |
-| `BASIC_WINDOW` segment | same | `load = BASIC_WINDOW_RAM, type = ro` — the last MEMORY area in the config, so its bytes close `encounter-director-combined.bin` |
-| ld65 assert | `src/hybrid/c-asm-abi.s` | `__BASIC_WINDOW_RAM_LAST__ <= __BASIC_WINDOW_GUARD_START__`, `lderror`, `"BASIC_WINDOW reaches the window guard at $BC1A"` |
-| Chunk loader (host) | `scripts/chunk-loader.mjs` | destinations up to `$BC1F` accepted; `$BC20` upwards refused as `"chunk destination enters the OS screen above $BC1F"`. `MAX_CHUNKS` 8 → 9 |
-| Chunk loader (guest) | `src/main.s` `BOOT_STAGE2` | the same bound, twice: record end `<= $BC20` and destination page `< $BD`. `CHUNK_MAX_COUNT` 8 → 9 |
+| `HYBRID_C_WINDOW_RAM` | `cfg/encounter-director.cfg` | `start = $B600, size = $0600, type = ro, file = %O` — the Director link's half (owner decision X; `$A000, size = $1C1A` before it) |
+| `HYBRID_C_WINDOW_GUARD` | same | `start = $BC1A, size = $0006, type = ro, file = ""` — reserved, no segment loads there |
+| `HYBRID_ASM_WINDOW`, `HYBRID_C_WINDOW`, `HYBRID_C_WINDOW_RODATA` | same | `load = HYBRID_C_WINDOW_RAM, type = ro` — the last MEMORY area in the config, so their bytes close `encounter-director-combined.bin` |
+| ld65 assert | `src/hybrid/c-asm-abi.s` | `__HYBRID_C_WINDOW_RAM_LAST__ <= $BC00`, `lderror`, `"HYBRID_C_WINDOW reaches the sector reader BSS at $BC00"` — the real upper neighbour, plus `__HYBRID_C_WINDOW_GUARD_START__ = $BC1A` |
+| Chunk loader (host) | `scripts/chunk-loader.mjs` | destinations up to `$BC1F` accepted; `$BC20` upwards refused as `"chunk destination enters the OS screen above $BC1F"`. `MAX_CHUNKS` 8 → 9 → **10** (owner decision X) |
+| Chunk loader (guest) | `src/main.s` `BOOT_STAGE2` | the same bound, twice: record end `<= $BC20` and destination page `< $BD`. `CHUNK_MAX_COUNT` 8 → 9 → **10** |
 | XEX | `scripts/build.mjs` | a 2-B `INITAD` record is emitted between the first block and every later one **whenever a block lands at or above `$A000`**, so the binary loader calls `disable_basic_rom` before placing it |
 
 **Why the XEX needs the INITAD record.** The ATR is safe by construction:

@@ -125,15 +125,20 @@ const glueHoldingAddress = 0x8100;
 // reserved guard, in the same shape as the $9FFA Director guard.
 const basicWindowAddress = 0xa000;
 const basicWindowGuardAddress = 0xbc1a;
-// Roadmap 4.3 window layout: the reader owns $A000-$A5FF, the level buffer
-// $A600-$BBFF (44 sectors of 128 B) and the reader BSS $BC00-$BC19, leaving
-// the six-byte window guard at $BC1A untouched. cfg/sector-reader.cfg is the
-// other half of this contract.
+// Roadmap 4.3 window layout, as owner decision X (2026-09-21) divides it: the
+// reader owns $A000-$A5FF, the level buffer $A600-$B5FF (32 sectors of 128 B)
+// and the reader BSS $BC00-$BC19; the Director link owns $B600-$BBFF as
+// HYBRID_C_WINDOW; the six-byte window guard at $BC1A stays untouched.
+// cfg/sector-reader.cfg and cfg/encounter-director.cfg are the other halves of
+// this contract.
 const sectorReaderAddress = 0xa000;
 const levelBufferAddress = 0xa600;
 const sectorReaderCapacityBytes = levelBufferAddress - sectorReaderAddress;
-const levelBufferSectors = 44;
+const levelBufferSectors = 32;
 const levelBufferCapacityBytes = levelBufferSectors * 128;
+const hybridWindowAddress = levelBufferAddress + levelBufferCapacityBytes;
+const hybridWindowEndExclusive = 0xbc00;
+const hybridWindowCapacityBytes = hybridWindowEndExclusive - hybridWindowAddress;
 const LEVEL_FORMAT_VERSION = 1;
 const LEVEL_MAX_ID = 16;
 // The fixed base sector every level run is placed from. It is deliberately a
@@ -143,7 +148,6 @@ const LEVEL_MAX_ID = 16;
 const levelBaseSector = 320;
 const levelOneSectors = 2;
 const basicWindowEndExclusive = 0xbc20;
-const basicWindowCapacityBytes = basicWindowGuardAddress - basicWindowAddress;
 // Roadmap 4.5M-M2 cold-record relocation. The ABI cold record lands directly
 // after A2 staging inside the entity-state page ($8018-$808C; consumed by
 // publish_director_abi before init_entity_effects clears $8000-$80FF). The
@@ -577,7 +581,12 @@ async function buildHybridDirectorModule(fighterWeaponsInclude) {
   const arenaAsmBytes = parsedLabels.get("__HYBRID_ASM_ARENA_SIZE__");
   const arenaCodeBytes = parsedLabels.get("__HYBRID_C_ARENA_SIZE__");
   const arenaRodataBytes = parsedLabels.get("__HYBRID_C_ARENA_RODATA_SIZE__");
-  const basicWindowBytes = parsedLabels.get("__BASIC_WINDOW_SIZE__");
+  const windowAsmBytes = parsedLabels.get("__HYBRID_ASM_WINDOW_SIZE__");
+  const windowCodeBytes = parsedLabels.get("__HYBRID_C_WINDOW_SIZE__");
+  const windowRodataBytes = parsedLabels.get("__HYBRID_C_WINDOW_RODATA_SIZE__");
+  const basicWindowBytes = [windowAsmBytes, windowCodeBytes, windowRodataBytes]
+    .every(Number.isInteger)
+    ? windowAsmBytes + windowCodeBytes + windowRodataBytes : undefined;
   if (![abiBytes, lowCodeBytes, extensionCodeBytes, archetypeBytes, preCodeBytes,
     cCodeBytes, rodataBytes, bssBytes, lifecycleBssBytes, sectorWindowBytes, arenaAsmBytes,
     arenaCodeBytes, arenaRodataBytes, basicWindowBytes].every(Number.isInteger)) {
@@ -613,18 +622,24 @@ async function buildHybridDirectorModule(fighterWeaponsInclude) {
       `${hybridArenaCapacityBytes} B at $7BD0-$7F0F with a non-empty ca65 anchor first`);
   }
   // Owner decision B: the window region and its six-byte guard are fixed.
-  const basicWindowMemoryStart = parsedLabels.get("__BASIC_WINDOW_RAM_START__");
-  const basicWindowMemorySize = parsedLabels.get("__BASIC_WINDOW_RAM_SIZE__");
-  const basicWindowGuardStart = parsedLabels.get("__BASIC_WINDOW_GUARD_START__");
-  const basicWindowGuardSize = parsedLabels.get("__BASIC_WINDOW_GUARD_SIZE__");
-  if (basicWindowMemoryStart !== basicWindowAddress ||
-    basicWindowMemoryStart + basicWindowMemorySize !== basicWindowGuardAddress ||
+  // Owner decision X: the Director link's share of decision B's window is
+  // exactly $B600-$BBFF. Its real upper neighbour is the reader BSS at $BC00
+  // (cfg/sector-reader.cfg), not the $BC1A guard; the guard is still checked
+  // because it is what keeps the OS screen at $BC20 out of reach.
+  const basicWindowMemoryStart = parsedLabels.get("__HYBRID_C_WINDOW_RAM_START__");
+  const basicWindowMemorySize = parsedLabels.get("__HYBRID_C_WINDOW_RAM_SIZE__");
+  const basicWindowGuardStart = parsedLabels.get("__HYBRID_C_WINDOW_GUARD_START__");
+  const basicWindowGuardSize = parsedLabels.get("__HYBRID_C_WINDOW_GUARD_SIZE__");
+  if (basicWindowMemoryStart !== hybridWindowAddress ||
+    basicWindowMemorySize !== hybridWindowCapacityBytes ||
+    basicWindowMemoryStart + basicWindowMemorySize !== hybridWindowEndExclusive ||
     basicWindowGuardStart !== basicWindowGuardAddress || basicWindowGuardSize !== 6 ||
     basicWindowGuardStart + basicWindowGuardSize !== basicWindowEndExclusive ||
     basicWindowBytes > basicWindowMemorySize) {
-    throw new Error(`BASIC_WINDOW is ${basicWindowBytes} B at ` +
+    throw new Error(`HYBRID_C_WINDOW is ${basicWindowBytes} B at ` +
       `$${(basicWindowMemoryStart ?? 0).toString(16)}; the window is ` +
-      `${basicWindowCapacityBytes} B at $A000-$BC19 with a 6-B guard at $BC1A-$BC1F`);
+      `${hybridWindowCapacityBytes} B at $B600-$BBFF, below the sector reader BSS at ` +
+      `$BC00, with a 6-B guard at $BC1A-$BC1F`);
   }
   const abiStagingMatch = /^DIRECTOR_LOW_STAGING = \$([0-9A-Fa-f]{4})$/m.exec(abiSource.toString("utf8"));
   if (abiStagingMatch === null ||
@@ -666,13 +681,15 @@ async function buildHybridDirectorModule(fighterWeaponsInclude) {
       codeBytes: arenaCodeBytes, rodataBytes: arenaRodataBytes },
   };
   codeSegments.push(arenaSegment);
-  // Owner decision B (2026-09-20): the window's own direct-landing record. It
-  // is the last MEMORY area in the config, so its bytes close combinedRaw.
+  // Owner decision B (2026-09-20), placed by owner decision X (2026-09-21):
+  // the window's own direct-landing record. It is the last MEMORY area in the
+  // config, so its bytes close combinedRaw.
   if (basicWindowBytes > 0) {
     codeSegments.push({
-      ...makeSegment("basic-window", basicWindowAddress, basicWindowBytes),
-      basicWindow: { capacityBytes: basicWindowCapacityBytes,
-        guardAddress: basicWindowGuardAddress, endExclusive: basicWindowEndExclusive },
+      ...makeSegment("hybrid-window", hybridWindowAddress, basicWindowBytes),
+      basicWindow: { capacityBytes: hybridWindowCapacityBytes, asmBytes: windowAsmBytes,
+        codeBytes: windowCodeBytes, rodataBytes: windowRodataBytes,
+        guardAddress: basicWindowGuardAddress, endExclusive: hybridWindowEndExclusive },
     });
   }
   if (!codeSegments.every(({ data, packed: segmentPacked }) =>
@@ -688,7 +705,7 @@ async function buildHybridDirectorModule(fighterWeaponsInclude) {
     raw,
     packed,
     basicWindowBytes,
-    basicWindowCapacityBytes,
+    basicWindowCapacityBytes: hybridWindowCapacityBytes,
     codeRaw,
     codePacked,
     codeSegments,
@@ -1687,28 +1704,29 @@ async function build() {
   // 4.5M-M3 proof: the arena's own direct-landing record is the only transport
   // record, staging window, hold or backup that touches $7BD0-$7F0F.
   const basicWindowSegmentIndex =
-    directorModule.codeSegments.findIndex(({ name }) => name === "basic-window");
+    directorModule.codeSegments.findIndex(({ name }) => name === "hybrid-window");
   const basicWindowSegment = basicWindowSegmentIndex < 0
     ? null : directorModule.codeSegments[basicWindowSegmentIndex];
   const basicWindowRecord = basicWindowSegmentIndex < 0
     ? null : transport.records[2 + basicWindowSegmentIndex];
   const basicWindowChunk = basicWindowSegmentIndex < 0
     ? null : transport.chunkImages[2 + basicWindowSegmentIndex];
-  if (basicWindowRecord !== null && (basicWindowRecord.finalDestination !== basicWindowAddress ||
-    basicWindowRecord.finalDestination + basicWindowRecord.rawLength > basicWindowGuardAddress)) {
-    throw new Error(`Owner decision B: the window record must land inside ` +
-      `$A000-$BC19, not $${basicWindowRecord.finalDestination.toString(16)}`);
+  if (basicWindowRecord !== null && (basicWindowRecord.finalDestination !== hybridWindowAddress ||
+    basicWindowRecord.finalDestination + basicWindowRecord.rawLength > hybridWindowEndExclusive)) {
+    throw new Error(`Owner decision X: the window record must land inside ` +
+      `$B600-$BBFF, not $${basicWindowRecord.finalDestination.toString(16)}`);
   }
-  // Plan §4 [C5]: the reader owns the whole window ($A000 code, $A600 buffer,
-  // $BC00 BSS). The Director link still DECLARES BASIC_WINDOW_RAM there from
-  // decision B's plumbing, and declaring it is harmless only while it stays
-  // empty. Assert that rather than trusting it: if content is ever placed in
-  // BASIC_WINDOW it would otherwise land silently on top of the reader.
-  if (basicWindowSegment !== null && basicWindowSegment.data.length > 0) {
-    throw new Error(`4.3: the Director link's BASIC_WINDOW holds ` +
-      `${basicWindowSegment.data.length} B, but the sector reader owns ` +
-      `$${sectorReaderAddress.toString(16)}-$${(basicWindowGuardAddress - 1).toString(16)}. ` +
-      `Two links cannot both own the window.`);
+  // Owner decision X replaces 4.3's "the reader owns the whole window" rule:
+  // the two links now own disjoint halves, so the check is that the Director's
+  // half really starts above the level buffer the reader fills. Before the
+  // decision the Director's declaration was only harmless while it stayed
+  // empty; now it is harmless because the ranges cannot meet.
+  const levelBufferEndExclusive = levelBufferAddress + levelBufferCapacityBytes;
+  if (hybridWindowAddress < levelBufferEndExclusive) {
+    throw new Error(`Owner decision X: HYBRID_C_WINDOW at ` +
+      `$${hybridWindowAddress.toString(16)} is inside the ${levelBufferSectors}-sector level ` +
+      `buffer $${levelBufferAddress.toString(16)}-` +
+      `$${(levelBufferEndExclusive - 1).toString(16)}. Two links cannot both own the window.`);
   }
   const arenaRecordIndex = directorModule.codeSegments.findIndex(({ name }) => name === "arena");
   const arenaRecord = arenaRecordIndex < 0 ? null : transport.records[2 + arenaRecordIndex];
@@ -2199,7 +2217,7 @@ async function build() {
       bytes: sectorReaderModule.raw.length,
       capacityBytes: sectorReaderCapacityBytes,
       freeBytes: sectorReaderCapacityBytes - sectorReaderModule.raw.length,
-      transport: "ninth DFMC record, RAW, direct landing at $A000",
+      transport: "own DFMC record, RAW, direct landing at $A000",
       levelBuffer: {
         address: levelBufferAddress,
         capacityBytes: levelBufferCapacityBytes,
@@ -2269,23 +2287,24 @@ async function build() {
         };
       })(),
       basicWindow: {
-        step: "owner decision B",
-        owner: "BASIC_WINDOW",
-        address: basicWindowAddress,
+        step: "owner decision X",
+        owner: "HYBRID_C_WINDOW",
+        address: hybridWindowAddress,
         guardAddress: basicWindowGuardAddress,
-        endExclusive: basicWindowEndExclusive,
-        capacityBytes: basicWindowCapacityBytes,
+        endExclusive: hybridWindowEndExclusive,
+        capacityBytes: hybridWindowCapacityBytes,
         guardBytes: basicWindowEndExclusive - basicWindowGuardAddress,
         usedBytes: directorModule.basicWindowBytes,
-        freeBytes: basicWindowCapacityBytes - directorModule.basicWindowBytes,
+        freeBytes: hybridWindowCapacityBytes - directorModule.basicWindowBytes,
         availability: "unconditional: disable_basic_rom forces PORTB bit 1 and writes " +
           "BASICF at every stage-2 entry",
-        boundedBy: { below: "Director guard $9FFA-$9FFF", above: "OS screen $BC20-$BFFF " +
-          "(RAMTOP $C0 when BASIC is disabled at coldstart)" },
-        guard: "BASIC_WINDOW_GUARD $BC1A-$BC1F, reserved with no segment, plus the ld65 " +
-          "assert \"BASIC_WINDOW reaches the window guard at $BC1A\"",
+        boundedBy: { below: `${levelBufferSectors}-sector level buffer $A600-$B5FF`,
+          above: "sector reader BSS $BC00-$BC19, then the guard and the OS screen " +
+            "$BC20-$BFFF (RAMTOP $C0 when BASIC is disabled at coldstart)" },
+        guard: "HYBRID_C_WINDOW_GUARD $BC1A-$BC1F, reserved with no segment, plus the ld65 " +
+          "assert \"HYBRID_C_WINDOW reaches the sector reader BSS at $BC00\"",
         contents: basicWindowSegment === null ? null
-          : "basic_window_probe: inert 16-B known pattern, never read by the game",
+          : "the Light kernel: HYBRID_ASM_WINDOW + HYBRID_C_WINDOW + HYBRID_C_WINDOW_RODATA",
         transport: basicWindowRecord === null ? null : {
           record: "own DFMC record, LZ, stagingId extension",
           finalDestination: basicWindowRecord.finalDestination,
@@ -2295,8 +2314,8 @@ async function build() {
           packedBytes: basicWindowRecord.packedLength,
           paddingBytes: basicWindowChunk.sectors * 128 - basicWindowRecord.packedLength -
             chunkLoaderConstants.chunkFooterBytes,
-          landing: "direct: ATR stage 2 decodes it to $A000 after disable_basic_rom; the XEX " +
-            "block loads at $A000 after the INITAD record has called disable_basic_rom",
+          landing: "direct: ATR stage 2 decodes it to $B600 after disable_basic_rom; the XEX " +
+            "block loads at $B600 after the INITAD record has called disable_basic_rom",
         },
       },
       pickupRecordPackedBytes: {

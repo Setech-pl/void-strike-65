@@ -10,12 +10,12 @@
     "atr_menu_frames": 576
   },
   "recorded": {
-    "date": "2026-09-20",
-    "branch": "main",
-    "runtime_checkpoint": "6fc2898",
-    "xex_sha256": "46a3fed90065b61b45fa9e5cc93e124c5948d9db484e92e5f4cbd97f4179aecf",
-    "atr_sha256": "ec9e0734db4c4fd5b8aeec16e78639811a9812239929111d503500d796ccdd36",
+    "date": "2026-09-21",
+    "branch": "experiment/light-multiplicity",
+    "runtime_checkpoint": "2d579d3",
+    "xex_sha256": "0618a4368626819ab1844cc9aa20a74a2e7ffbfcd1d1f47a480204bcf9f53043",
+    "atr_sha256": "6e7b8671300ad3653aa0e37546269c21aeb20f3b703bafa56472cf17ee6860be",
     "total_transport_sectors": 195,
-    "reason": "Re-recorded for roadmap 4.3 step 4, which adds the loader-mode display, the failure screen and the START GAME redirect: the reader grows 730 -> 1,466 B and the transport 189 -> 195 sectors. MEASURED from a full 8-session boot smoke, 8/8 passed. ATR milestones move a further +11 frames (loader 308 -> 319, menu 565 -> 576); XEX milestones stay at 135/392 for the third recording running, because the binary loader places the XEX blocks before the game's start milestone. The gameplay handoff is the new figure worth watching: gameplay_init is frame 3060 on ATR against 3053 on XEX. That 7-frame difference IS the two-sector SIO read - the XEX takes the resident-skip path because it carries the level image as a block, the ATR reads it over the wire - and it sits close to the plan's 1.6 estimate of about 3.8 frames per sector. Both media still reach game_state 6 at frame 3300, which is only reachable if the read completed AND the header validated, since every failure class diverts to the failure screen instead. Re-bound at 6fc2898 (steps 5-6): the milestones did not move - step 5's sector_c_drain_clear extraction cost 18 XEX bytes and shifted nothing, and step 6 added only observation - so only the artifact identity is re-recorded. The read is now gated rather than inferred: XEX sessions must show 0 command frames, ATR sessions exactly one per sector with 0 retries, and the image at LEVEL_BUFFER is compared byte for byte against build/level-1.bin."
+    "reason": "Re-bound for owner decision X (2026-09-21), the level-buffer shrink and the HYBRID_C_WINDOW plumbing at $B600-$BBFF (plan-light-multiplicity.md step 0). The four milestones did NOT move: XEX 135/392 and ATR 319/576, identical to the 6fc2898 recording, MEASURED from a full 8-session boot smoke, 8/8 passed. They could not move, because the window record carries no content yet and the transport therefore stays at 195 sectors; only the artifact identity is re-recorded. Below $A000 the step is deliberately NOT byte-identical, and the difference is fully accounted for: the tenth DFMC manifest slot (MAX_CHUNKS / CHUNK_MAX_COUNT 9 -> 10) grows the stage-2 reservation by 16 B, which moves five address operands in the boot copier at $20DB-$20F9 by exactly +16; the reader image changes by exactly one byte, the cmp #MAX_LEVEL_SECTORS+1 operand (45 -> 33). Every resident gameplay image - MAIN CODE/RODATA, STARFIELD, BROADSIDE, ENTITY_CODE, PICKUP_CODE, the A2 kernel and every Director image - is byte-identical to the 82c155b build. gameplay_init stays at frame 3060 on ATR against 3053 on XEX, the level image at $A600 still compares byte-exact against build/level-1.bin, and command frames stay XEX 0 / ATR 2 with 0 retries. The real transport cost of the window record is paid when the Light kernel moves into it, and the baseline is re-recorded again then."
   }
 }

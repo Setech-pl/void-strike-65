@@ -3,12 +3,12 @@ const MANIFEST_VERSION = 1;
 const MANIFEST_HEADER_BYTES = 12;
 const MANIFEST_RECORD_BYTES = 16;
 const MANIFEST_CRC_BYTES = 2;
-// Owner decision B (2026-09-20): a ninth slot, so a window record can be added
-// without touching the loader again. The cap is mirrored by CHUNK_MAX_COUNT in
-// src/main.s; MEASURED, raising it cost exactly 16 B of the stage-2 manifest
-// reservation inside the transient $21C1-$29C0 overlay. Eight records ship
-// today; the ninth slot is unused until content moves into the window.
-const MAX_CHUNKS = 9;
+// Owner decision B (2026-09-20) added a ninth slot; owner decision X
+// (2026-09-21) a tenth, for the HYBRID_C_WINDOW record at $B600 that carries
+// the Light kernel. The cap is mirrored by CHUNK_MAX_COUNT in src/main.s;
+// MEASURED at the 8 -> 9 step, each slot costs exactly 16 B of the stage-2
+// manifest reservation inside the transient $21C1-$29C0 overlay.
+const MAX_CHUNKS = 10;
 const ATR_SECTOR_BYTES = 128;
 const ATR_SECTORS = 720;
 

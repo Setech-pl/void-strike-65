@@ -351,21 +351,21 @@ hostile_weapon_visual_glyphs:
 .segment "HYBRID_C_ARENA"
 .segment "HYBRID_C_ARENA_RODATA"
 
-; Owner decision B (2026-09-20): the RAM under the BASIC ROM, $A000-$BC1F =
-; 7,200 B. The MEMORY area stops at $BC19; $BC1A-$BC1F is BASIC_WINDOW_GUARD,
-; reserved in the same shape as the $9FFA Director guard. The lderror below is
-; the named guard: it is what a reader sees when window content grows into
-; those six bytes, instead of a bare memory-area overflow.
-.import __BASIC_WINDOW_RAM_LAST__, __BASIC_WINDOW_GUARD_START__
-.assert __BASIC_WINDOW_GUARD_START__ = $BC1A, lderror, "BASIC_WINDOW_GUARD must start at $BC1A"
-.assert __BASIC_WINDOW_RAM_LAST__ <= __BASIC_WINDOW_GUARD_START__, lderror, "BASIC_WINDOW reaches the window guard at $BC1A"
+; Owner decision B (2026-09-20) opened the RAM under the BASIC ROM,
+; $A000-$BC1F = 7,200 B. Owner decision X (2026-09-21) divides it: the sector
+; reader owns $A000-$A5FF, its 32-sector level buffer $A600-$B5FF and its BSS
+; $BC00-$BC19, and the Director link owns exactly $B600-$BBFF, 1,536 B, as
+; HYBRID_C_WINDOW_RAM. The window's real upper neighbour is therefore the
+; reader BSS at $BC00, and that is what the named assert below checks; the six
+; bytes at $BC1A remain reserved so nothing can reach the OS screen at $BC20.
+.import __HYBRID_C_WINDOW_RAM_LAST__, __HYBRID_C_WINDOW_GUARD_START__
+.assert __HYBRID_C_WINDOW_GUARD_START__ = $BC1A, lderror, "HYBRID_C_WINDOW_GUARD must start at $BC1A"
+.assert __HYBRID_C_WINDOW_RAM_LAST__ <= $BC00, lderror, "HYBRID_C_WINDOW reaches the sector reader BSS at $BC00"
 
 ; Declared empty so that the size symbols and the guard above exist before any
-; content is placed. This task is plumbing only: placement of real content in
-; the window is a per-record decision that belongs with roadmap 4.6. A 16-byte
-; inert probe was landed here and read back byte-exact on all eight cold boot
-; sessions (see docs/diagnostics/owner-decision-b-basic-window.json); it was
-; removed again because its own DFMC record costs one ATR transport sector,
-; which moves the loader raster past the boot smoke's fixed frame-300
-; observation. The first real window record pays that sector.
-.segment "BASIC_WINDOW"
+; content is placed. HYBRID_ASM_WINDOW carries the ca65 half of the Light
+; kernel, HYBRID_C_WINDOW and HYBRID_C_WINDOW_RODATA the cc65 half, in the
+; shape HYBRID_ASM_ARENA / HYBRID_C_ARENA already use for the arena.
+.segment "HYBRID_ASM_WINDOW"
+.segment "HYBRID_C_WINDOW"
+.segment "HYBRID_C_WINDOW_RODATA"

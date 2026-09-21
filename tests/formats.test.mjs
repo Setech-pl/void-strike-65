@@ -204,26 +204,30 @@ test("resident compaction proof survives and Spread Shot leaves at least 64 sour
     assert.ok(range.end < 0x0600 || range.start > 0x1fff,
       `${range.name} enters excluded low RAM $0600-$1FFF`);
     // Owner decision B (2026-09-20): $A000-$BC19 is the usable window; only its
-    // six-byte guard and the OS screen above it are forbidden.
+    // six-byte guard and the OS screen above it are forbidden. Owner decision X
+    // divides that window between two links but does not move its outer bound.
     assert.ok(range.end < 0xbc1a || range.start > 0xbfff,
       `${range.name} enters the BASIC_WINDOW guard or the OS screen $BC1A-$BFFF`);
   }
 });
 
-// Owner decision B (2026-09-20): the RAM under the BASIC ROM is open to the
-// build. This task is plumbing only - the window carries no content yet - so
-// what is worth freezing is the region, its guard, the loader bound and the
+// Owner decision B (2026-09-20) opened the RAM under the BASIC ROM; owner
+// decision X (2026-09-21) divided it - the reader keeps $A000-$B5FF and
+// $BC00-$BC19, the Director link owns $B600-$BBFF as HYBRID_C_WINDOW, home of
+// the Light kernel. REBASELINED from the decision-B shape ($A000, 7,194 B,
+// "the Director link must never place bytes in the window") for that reason.
+// What is worth freezing is the division, the guard, the loader bound and the
 // ca65 assert that makes an overrun a link error.
-test("the BASIC window is declared, guarded and addressable by the build", () => {
+test("the code window is declared, guarded and addressable by the build", () => {
   const { manifest } = validateBuildDirectory(rootDirectory);
   const window = manifest.residentCapacity.basicWindow;
   assert.deepEqual([window.address, window.guardAddress, window.endExclusive,
     window.capacityBytes, window.guardBytes],
-  [0xa000, 0xbc1a, 0xbc20, 7194, 6]);
+  [0xb600, 0xbc1a, 0xbc00, 1536, 6]);
   assert.equal(window.usedBytes + window.freeBytes, window.capacityBytes);
-  assert.equal(window.usedBytes, 0,
-    "the Director link must never place bytes in the window: roadmap 4.3 owns it");
-  assert.equal(window.transport, null);
+  assert.ok(window.address >= manifest.sectorReader.levelBuffer.address +
+    manifest.sectorReader.levelBuffer.capacityBytes,
+  "the window must start at or above the end of the level buffer the reader fills");
   // Roadmap 4.3 claimed the window, so the INITAD record is now required: the
   // reader block at $A000 must be placed into RAM, not into the BASIC ROM.
   assert.notEqual(manifest.xexInitAd, null,
@@ -232,6 +236,9 @@ test("the BASIC window is declared, guarded and addressable by the build", () =>
   const reader = manifest.sectorReader;
   assert.equal(reader.address, 0xa000);
   assert.equal(reader.levelBuffer.address, 0xa600);
+  // Owner decision X: 32 sectors, not 44.
+  assert.equal(reader.levelBuffer.sectors, 32);
+  assert.equal(reader.levelBuffer.capacityBytes, 32 * 128);
   assert.ok(reader.address + reader.bytes <= reader.levelBuffer.address,
     "the reader must not reach into the level buffer");
   assert.ok(reader.levelBuffer.address + reader.levelBuffer.capacityBytes <= 0xbc00,
@@ -239,19 +246,32 @@ test("the BASIC window is declared, guarded and addressable by the build", () =>
 
   const config = fs.readFileSync(path.join(rootDirectory, "cfg", "encounter-director.cfg"), "utf8");
   assert.match(config,
-    /^ {2}BASIC_WINDOW_RAM: start = \$A000, size = \$1C1A, type = ro, file = %O, define = yes;$/m);
+    /^ {2}HYBRID_C_WINDOW_RAM: start = \$B600, size = \$0600, type = ro, file = %O, define = yes;$/m);
   assert.match(config,
-    /^ {2}BASIC_WINDOW_GUARD: start = \$BC1A, size = \$0006, type = ro, file = "", define = yes;$/m);
-  assert.match(config, /^ {2}BASIC_WINDOW: {4}load = BASIC_WINDOW_RAM, type = ro, define = yes;$/m);
+    /^ {2}HYBRID_C_WINDOW_GUARD: start = \$BC1A, size = \$0006, type = ro, file = "", define = yes;$/m);
+  for (const segment of ["HYBRID_ASM_WINDOW", "HYBRID_C_WINDOW", "HYBRID_C_WINDOW_RODATA"]) {
+    assert.match(config,
+      new RegExp(`^ {2}${segment}: load = HYBRID_C_WINDOW_RAM, type = ro, define = yes;$`, "m"));
+  }
+  const readerConfig =
+    fs.readFileSync(path.join(rootDirectory, "cfg", "sector-reader.cfg"), "utf8");
+  assert.match(readerConfig,
+    /^ {4}LEVEL_BUFFER_RAM: {3}start = \$A600, size = \$1000, type = rw, file = "", define = yes;$/m);
+  const readerSource =
+    fs.readFileSync(path.join(rootDirectory, "src", "hybrid", "sector-reader.s"), "utf8");
+  assert.match(readerSource, /^MAX_LEVEL_SECTORS = 32 /m);
 
   const abi = fs.readFileSync(path.join(rootDirectory, "src", "hybrid", "c-asm-abi.s"), "utf8");
+  // The real upper neighbour is the reader BSS at $BC00, not the $BC1A guard;
+  // the guard is still frozen because it is what keeps the OS screen at $BC20
+  // out of reach.
   assert.match(abi,
-    /\.assert __BASIC_WINDOW_RAM_LAST__ <= __BASIC_WINDOW_GUARD_START__, lderror, "BASIC_WINDOW reaches the window guard at \$BC1A"/);
+    /\.assert __HYBRID_C_WINDOW_RAM_LAST__ <= \$BC00, lderror, "HYBRID_C_WINDOW reaches the sector reader BSS at \$BC00"/);
   assert.match(abi,
-    /\.assert __BASIC_WINDOW_GUARD_START__ = \$BC1A, lderror, "BASIC_WINDOW_GUARD must start at \$BC1A"/);
+    /\.assert __HYBRID_C_WINDOW_GUARD_START__ = \$BC1A, lderror, "HYBRID_C_WINDOW_GUARD must start at \$BC1A"/);
 
   // The loader bound is mirrored on both sides of the ABI: JS refuses a record
   // above $BC1F before it is encoded, ca65 refuses it again in stage 2.
-  assert.match(source, /^CHUNK_MAX_COUNT {7}= 9$/m);
+  assert.match(source, /^CHUNK_MAX_COUNT {7}= 10$/m);
   assert.match(source, /cmp #\$BD\s+STAGE2_FAIL_CS\s+cmp #\$BC\s+bne :\+\s+lda stage2_final_end_lo\s+cmp #\$21\s+STAGE2_FAIL_CS/);
 });

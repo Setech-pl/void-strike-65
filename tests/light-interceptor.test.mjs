@@ -387,10 +387,14 @@ test("placement contract: legal composite and packed size, state inside its rese
   // spent most of it. 34 B is above the 16-B owner floor asserted at the top
   // of this test. Step 4 took it to 10 B - BELOW that floor - and the token
   // primitive, the ceiling and the live count moved to the window with the hot
-  // path that asks them, which brought it back to 70. The code window is the
-  // scarce one now: 17 B free. Both are tight; the next Light-class growth
-  // needs a placement decision rather than a spare byte.
-  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 25);
+  // path that asks them, which brought it back to 70. Owner fix (a) then took
+  // 19 B in the kernel against a 17-B window tail, so the coldest thing in the
+  // window - encounter_light_schedule_advance - moved to HYBRID_C_ARENA and
+  // lifecycle_c_init grew by the new bound's clear: extension 874 -> 877 B,
+  // tail 25 -> 22 B, and the code window tail 17 -> 32 B. Both are tight; the
+  // next Light-class growth needs a placement decision rather than a spare
+  // byte.
+  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 22);
   assert.equal(L("light_glyph"), 0x9d2b);
   assert.equal(L("light_interceptor_glyph"), 0x9d3b);
   // REBASELINED for Light multiplicity: HYBRID_LIGHT_STATE keeps only the
@@ -410,8 +414,14 @@ test("placement contract: legal composite and packed size, state inside its rese
   // next shared Light byte needs somewhere else to live.
   assert.equal(L("__HYBRID_LIGHT_STATE_SIZE__"), 16, "shared Light scalars fill the 16 B");
   assert.equal(L("__HYBRID_LIGHT_STATE_RAM_SIZE__"), 16);
+  // REBASELINED at step 5: 48 B is the ten per-slot arrays plus the cell-major
+  // backing, and it was the whole segment only at step 1a. Steps 2-4 added the
+  // resolver's two scratch bytes, the appearance-pair table and the ceilings,
+  // live count and wave state beside them, so the SEGMENT is the full 60 B the
+  // cfg reserves and HYBRID_LIGHT_SLOTS is exactly full - which is half the
+  // reason owner fix (a)'s byte had to go to $8126.
   assert.deepEqual([L("__HYBRID_LIGHT_SLOTS_RUN__"), L("__HYBRID_LIGHT_SLOTS_SIZE__")],
-    [0x7fc4, 48], "the four SoA slots are 48 B at $7FC4-$7FF3");
+    [0x7fc4, 60], "the Light slot segment fills $7FC4-$7FFF");
   assert.ok(L("__HYBRID_LIGHT_SLOTS_RAM_LAST__") <= 0x8000,
     "the slot arrays must stop before ENTITY_STATE at $8000");
   assert.equal(L("light_state"), 0x7fc4);

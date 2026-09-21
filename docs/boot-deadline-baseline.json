@@ -6,16 +6,16 @@
   "baseline": {
     "xex_loader_frames": 135,
     "xex_menu_frames": 392,
-    "atr_loader_frames": 336,
-    "atr_menu_frames": 593
+    "atr_loader_frames": 338,
+    "atr_menu_frames": 595
   },
   "recorded": {
     "date": "2026-09-21",
     "branch": "experiment/light-multiplicity",
-    "runtime_checkpoint": "50cdb88",
-    "xex_sha256": "aa3f6b668c1de67b94c7ea329c068ccdd0e1f5e7c2ed0d934c6fde22c97371c6",
-    "atr_sha256": "7669e402b471739b2434166f054e239a55849a1dbfbe7fd631441de524a5ed61",
-    "total_transport_sectors": 203,
-    "reason": "Re-recorded for Light multiplicity step 4, the one-expensive-event token and the deferred breakup. Transport 202 -> 203 sectors. MEASURED from a full 8-session boot smoke, 8/8 passed. ATR milestones move +3/+3 (333/590 -> 336/593); XEX unmoved at 135/392. Inside the +10 warn band. This is the DEFAULT build: the provisional swarm wave stays behind --force-light-population and ships in nothing."
+    "runtime_checkpoint": "step 5, owner fix (a)",
+    "xex_sha256": "3bbee68dad5f24966ffca0254e8bfe95b6862fe548ecfb991d1434852281bb19",
+    "atr_sha256": "e3fdd326e6117505d79b3917acd07fd0189211333943ecd16363fed7c8e58a93",
+    "total_transport_sectors": 204,
+    "reason": "Re-recorded for Light multiplicity step 5 and owner fix (a), the published-slot bound. Transport 203 -> 204 sectors: the kernel grew 689 -> 708 B and encounter_light_schedule_advance moved from HYBRID_C_WINDOW to HYBRID_C_ARENA. MEASURED from a full 8-session boot smoke, 8/8 passed. ATR milestones move +2/+2 (336/593 -> 338/595); XEX unmoved at 135/392. Inside the +10 warn band. The level image at $A600 still compares byte-exact and command frames stay XEX 0 / ATR 2 with 0 retries. This is the DEFAULT build: the provisional swarm wave stays behind --force-light-population and ships in nothing."
   }
 }

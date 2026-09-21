@@ -622,6 +622,160 @@ would recover in cycles at the measured Light count. Lowering the shipped
 ceiling to 2 stays the owner's call and the last resort. The multi-slot machinery is needed under every outcome,
 so nothing built up to step 3 is wasted by a NO-GO.
 
+### 4.4 OWNER DECISION 2026-09-21 — the margin threshold, and what 4.6 inherits
+
+**The ~1,000-cycle figure used through step 5 was a rule of thumb, not a
+measured requirement, and it is withdrawn as a gate.** The requirements are:
+
+* **zero distinct miss events** across the audited replay set, and
+* the **500-cycle** derived GO threshold this plan states in §4.3.
+
+With fix (a) in, both audited sessions clear 500 with zero misses —
+`weapon-pickup-2-hunt-fire4` **951** and
+`director-complete-1-natural-sweep-fire0` **896**. The owner therefore
+**accepts the resulting worst margin as the deliberate cost of Light
+multiplicity**, not as a defect to be chased with bytes 4.6 will need.
+
+What that cost is, measured per function on both binding frames
+(`docs/diagnostics/light-population-m1-2026-09-21.md`): `light_shot`'s SoA slot
+loop, the lifecycle logic that moved from ASM into C, address-keyed backing
+resolution, and the kernel's vector table. Those are the four slots, the
+shared appearance pairs and the C/ASM boundary — the features themselves.
+Several hundred cycles a frame is the price of swarms.
+
+**What 4.6 inherits, and must act on before it implements anything.** The
+worst margin is now materially thinner than 4.6's design assumed: the audited
+worst fighter-row margin fell from **1,713 / 1,831** at `82c155b` to
+**951 / 896**. 4.6 therefore starts from a smaller budget than the figures in
+its own plan were written against.
+
+> **4.6 must set an explicit per-frame cycle budget in its plan, before
+> implementation begins**, derived from the measured worst margin at the
+> checkpoint it branches from — not from the historical margins in `STATUS.md`.
+> A 4.6 feature that costs a few hundred cycles on a dense frame is no longer
+> free.
+
+---
+
+### 4.5 OWNER DECISION 2026-09-21 — effect scheduling, and the limits of the token
+
+The token is already a minimal effect scheduler: a per-frame budget, pending
+states, and an ordered set of consumers. A 1-2 frame delay is invisible, so
+deferrable work can move off frames that are already expensive.
+
+**It REDISTRIBUTES PEAKS. It does not create capacity.** It makes *burst*
+effects affordable — explosions, breakups, flashes, admissions — and it does
+nothing whatever for *standing* per-frame costs: parallax, a second star
+layer, a static Andromeda. Every frame needs those, so there is no other frame
+to move them to. Do not reach for the token when the cost is standing.
+
+**Do not build a general scheduler.** Grow the token **one consumer at a time,
+when a concrete effect needs it.** Every new consumer must:
+
+* be **visual only** — no gameplay, no score, no collision effect;
+* **capture its position at enqueue**, never read state that may have changed
+  by the time it runs;
+* have **at most two frames of delay** before it is forced or dropped.
+
+The risk is the stale-state class this project has already paid for twice: the
+respawn double image and the launch-flash orphan. Both were a deferred visual
+reading state that had moved on. The three rules above exist because of them.
+
+**Generalise only if five or more consumers show a clear pattern.** Until then
+the token stays what it is — five named consumers and a one-frame budget.
+
+### 4.6 ASSESS 2026-09-21 — deny the token to DEFERRABLE consumers on ring-rotate frames
+
+Owner ASSESS. **Outcome: a costed follow-up with a GO recommendation, NOT
+implemented in this task** — the compare is one compare and the saving is
+large and MEASURED, but the bounded-delay confirmation the ASSESS made a
+precondition **fails as the token stands today**.
+
+**The hypothesis is confirmed on the real frames.** MEASURED, native, from the
+instruction trace: **both binding frames are ring-rotate frames.**
+`rotate_playfield_rows` runs on `weapon-pickup-2-hunt-fire4` row 1963 and on
+`director-complete-1-natural-sweep-fire0` row 2557. Across the profiled window
+1953-1965 the ring rotates on **every odd row** (the cadence is 2 or 3 frames
+depending on scroll rate; it is 2 in this sector) — and 1963 is odd.
+
+**The saving.** On row 1963 the frame's deferrable expensive event is
+`light_spawn_breakup`, **1,063 cycles** inclusive, and it is claimed by the
+**contact-kill path inside `light_update`**, which runs **after**
+`update_starfield` and therefore after the rotate. A rotate-frame denial would
+see the flag exactly and move those 1,063 cycles to frame 1964 — a non-rotate
+frame whose pre-fence is 15,012, with ~9,000 cycles of headroom.
+ESTIMATE: that row's margin **951 → ~2,014**, above the `82c155b` baseline.
+
+**The cost, in the claim.** `_director_c_world_row_tick` is C and already runs
+**exactly once per rotate**, inside `advance_starfield_layers`. One store there
+(`light_rotate_frame = FRAME_COUNTER`, ~7 cycles per rotate frame) makes the
+test in the claim a **single compare** — `light_rotate_frame == FRAME_COUNTER`,
+~8-11 cycles per deferrable claim, a handful of times a frame. `ENTITY_FRAME_EVENTS`
+cannot serve: `entity_effects_update` `lsr`s it, and `light_update` calls that
+first, so the bit is gone before the tick asks.
+**Bytes: 1 B of state with no home** — `HYBRID_LIGHT_STATE` is 16 of 16 and
+`HYBRID_LIGHT_SLOTS` 60 of 60 — so it needs the same placement answer fix (a)
+gave: the unowned `$8127-$813F`, 25 B.
+
+**Which consumers must NOT be deferred.**
+
+* **The lethal hit's score and sound.** They do not take the token today —
+  `light_destroyed` scores and sounds unconditionally and only the *spawn* is
+  gated — and they must not start. The player sees and hears the kill on the
+  frame it lands.
+* **The fire cadence.** A fire is gameplay, not a visual. Gating it on a raster
+  condition makes hostile fire rate a function of the scroll cadence.
+* **The admission.** A Light's entry rhythm is gameplay-visible; it became a
+  token consumer for cost ([C3]), not because it is deferrable. Denying it on
+  every rotate frame is an owner call, not a free win.
+
+The deferrable set is therefore the **breakup spawn** and the **appearance
+install**: visual-only, each already has a pending state, each already
+tolerates a frame of delay. Both satisfy §4.5's three rules.
+
+**What the forced-coincidence test shows.** MEASURED by watching
+`rotate_playfield_rows` inside `tests/light-multiplicity.test.mjs`'s
+constructed frame: **it is a rotate frame in all four arms** (3 and 4 Lights,
+token and negative control), costing **1,473 cycles** on that frame, with
+`spawn_breakup_effects_at` landing on the same frame. The test already builds
+exactly the coincidence this ASSESS is about, which makes it the right home for
+the new test — and it means the token's measured savings (513 at three Lights,
+942 at four) were all measured **on a rotate frame**.
+
+**STARVATION, and the forcing rule that answers it (owner, 2026-09-21).** The
+rotate half is **confirmed**: rotate frames are never consecutive (MEASURED
+above), so a denied deferrable event meets a non-rotate frame on the very next
+frame. The "already spent" half is not answered by the token as it stands — a
+pending breakup waits for "the first later frame with a free token", with no
+counter and no bound, and a rotate gate makes denials strictly more frequent.
+
+**The rule, and it is far cheaper than a wait counter.** Because rotate frames
+are never consecutive, **the gate need only apply to an event's FIRST
+attempt**. An event that has already been deferred once **ignores the rotate
+gate on its next try**. That bounds the delay at **two frames by construction**,
+with no counter, no comparison against N and no forcing branch: the second
+attempt simply is not gated.
+
+The state it needs is **one bit per slot** — "this event has been deferred
+once" — and the slot already carries `BREAKUP_PENDING` as a distinct state
+value, so a second pending value encodes it without a new byte and keeps the
+kernel's "hittable" test the single compare it is today (plan §2.5 put
+`BREAKUP_PENDING` highest for exactly that reason; a deferred-once value
+placed beside it preserves the ordering).
+
+**Estimated worth: ~1,000 cycles of margin on the binding frames** — the
+`light_spawn_breakup` measurement above.
+
+**To do it:** the compare, the marker store in `_director_c_world_row_tick`,
+the 1-B placement for the rotate marker (the unowned `$8127-$813F`), the
+second pending state value, a test in `light-multiplicity.test.mjs` that fails
+without the gate (the constructed frame is already a rotate frame, so the
+assertions are that the spawn does not land on it, and that it does land on
+the next frame whatever that frame is), and a re-run of the full replay audit,
+since it changes which frame work lands on.
+
+**NOT implemented in this session** (owner instruction, 2026-09-21).
+
 ---
 
 ## 5. Gates

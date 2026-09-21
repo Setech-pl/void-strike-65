@@ -144,6 +144,10 @@ light_publish:
     ldx LIGHT_SLOT
     lda #$00
     sta LIGHT_SCREEN_HI,x
+    ; Nothing this slot published is on screen any more, and the loop is
+    ; full-width and descending, so by the time it ends every screen_hi is 0
+    ; and so is the published-slot limit. The render loop below rebuilds it.
+    sta LIGHT_SCREEN_SLOT_LIMIT
 @erase_next:
     dec LIGHT_SLOT
     bpl @erase_slot
@@ -226,9 +230,22 @@ light_publish:
     ldy LIGHT_SLOT
     lda LIGHT_SCRATCH
     sta LIGHT_SCREEN_HI,y
+    ; This slot is now findable, so the resolver's bound must cover it BEFORE
+    ; the next (lower) slot captures its cells through light_cell_resolve.
+    ; A max, not a store: the loop descends today, but the resolver's safety
+    ; must not rest on the direction of a loop somewhere else.
+    iny
+    cpy LIGHT_SCREEN_SLOT_LIMIT
+    bcc @render_next
+    sty LIGHT_SCREEN_SLOT_LIMIT
 @render_next:
+    ; The body grew past a relative branch's reach with fix (a), so the loop
+    ; closes with a jump. Three bytes and three cycles per slot, against a
+    ; kernel that no longer walks four slots per captured cell.
     dec LIGHT_SLOT
-    bpl @render_slot
+    bmi @render_done
+    jmp @render_slot
+@render_done:
     rts
 
 ; C=0 on return; A is the character-aligned top scanline of the slot in
@@ -528,7 +545,17 @@ light_cell_resolve:
     pha
     tya
     pha
-    ldx #(LIGHT_SLOT_COUNT-1)
+    ; Fix (a), owner decision 2026-09-21. MEASURED: this scan is entered once
+    ; per captured cell that carries a Light code - by effects and debris, so
+    ; it follows EFFECT activity and not the Light count - and walking four
+    ; slots where one is published cost +72 cycles per such cell on the
+    ; binding frame of weapon-pickup-2-hunt-fire4 (docs/diagnostics/
+    ; light-population-m1-2026-09-21.md). light_publish maintains the bound
+    ; from screen_hi, so it can only be stale HIGH: it may walk a spare slot,
+    ; it can never skip a published one.
+    ldx LIGHT_SCREEN_SLOT_LIMIT
+    dex
+    bmi @restore
 @slot:
     lda LIGHT_SCREEN_HI,x       ; hi = 0 means the slot is not on screen
     beq @next
@@ -544,6 +571,7 @@ light_cell_resolve:
 @next:
     dex
     bpl @slot
+@restore:
     pla
     tay
     pla                         ; no slot owns it: the capture stands

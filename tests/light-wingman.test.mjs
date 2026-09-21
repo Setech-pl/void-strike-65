@@ -524,9 +524,15 @@ test("the resolver answers by screen address, so two slots sharing a code stay a
   assert.equal(image[L("light_screen_lo")] | image[L("light_screen_hi")] << 8, zero);
 
   // Slot 1 publishes the SAME code pair two rows down, with its own backing.
+  // REBASELINED for owner fix (a), 2026-09-21: screen_hi is no longer the
+  // whole of what publication writes. light_publish also raises
+  // light_screen_slot_limit, which is the bound the resolver scans, so a test
+  // that fabricates a published slot has to fabricate that too - exactly as
+  // it already fabricates screen_lo, screen_hi and the backing.
   const one = cell(image, 11, 20);
   image[L("light_screen_lo") + 1] = one & 0xff;
   image[L("light_screen_hi") + 1] = one >> 8;
+  image[L("_light_screen_slot_limit")] = 2;
   image[L("light_backing0") + 2] = 0x41;   // cell-major: slot 1, cell 0
   image[L("light_backing0") + 3] = 0x42;   // slot 1, cell 1
 
@@ -627,6 +633,88 @@ test("a slot above the lowered limit is still erased", () => {
   assert.equal(image[L("light_screen_hi") + 1], 0, "and cleared its screen_hi");
   // Slot 0 is untouched by any of it.
   assert.equal(image[zero], LIGHT_CODE_LEFT);
+});
+
+// Owner fix (a), 2026-09-21. light_cell_resolve no longer walks all four
+// slots: it walks light_screen_slot_limit, which light_publish maintains from
+// screen_hi - zeroed as the full-width erase loop clears each slot, raised as
+// the render loop sets one. The bound is therefore NOT light_slot_limit, and
+// the two must not be confused: the state-derived one drops beneath a slot
+// killed this frame while its cells are still on screen, and a resolver gated
+// on THAT would hand a lower layer a Light glyph as its backing.
+//
+// This pins the published-slot bound at the two places it can be wrong: inside
+// the render loop, where a lower slot captures over a higher slot published
+// moments earlier in the same call, and after the kill, where the state limit
+// has dropped away beneath a slot whose cells have not been erased yet.
+test("a published slot above the state limit is still resolved", () => {
+  const image = game();
+  run(image, "enemy_spawn_raiders");
+  // Slot 2 - the highest occupied - and slot 0 on the SAME two cells, so the
+  // render loop publishes slot 2 first (it descends) and slot 0 then captures
+  // a cell slot 2 owns. Under the raise, slot 0's backing is slot 2's
+  // underlay; without it, slot 0 would capture the Light code itself and the
+  // late erase would resurrect a Light glyph over a live cell.
+  image[L("light_state") + 2] = 2;
+  image[L("light_x") + 2] = 120;
+  image[L("light_y") + 2] = 116;
+  image[L("light_state") + 1] = 2;
+  image[L("light_x") + 1] = 120;
+  image[L("light_y") + 1] = 116;
+  // Slot 0 stays where the Wingman admission put it, well away from the pair.
+  image[L("light_x")] = 100;
+  image[L("light_y")] = 100;
+  const shared = cell(image, 11, 18);
+  image[shared] = 0x41;
+  image[shared + 1] = 0x42;
+
+  run(image, "light_publish");
+  assert.equal(image[L("_light_slot_limit")], 3, "three slots occupied");
+  assert.equal(image[L("_light_screen_slot_limit")], 3,
+    "the published-slot bound covers the highest slot that reached screen_hi");
+  assert.notEqual(image[L("light_screen_hi") + 2], 0, "slot 2 published");
+  assert.deepEqual([image[L("light_backing0") + 4], image[L("light_backing0") + 5]],
+    [0x41, 0x42], "slot 2 captured the real underlay");
+  assert.deepEqual([image[L("light_backing0") + 2], image[L("light_backing0") + 3]],
+    [0x41, 0x42],
+    "slot 1 captured the underlay BELOW slot 2, not slot 2's own Light code");
+
+  // The resolver, asked from outside light_publish as effects and debris ask
+  // it, must still find slot 2 through the maintained bound.
+  const resolveAt = (address, options) => {
+    image[L("dst_ptr")] = address & 0xff;
+    image[L("dst_ptr") + 1] = address >> 8;
+    return run(image, "light_cell_resolve", options);
+  };
+  assert.equal(resolveAt(shared, { a: LIGHT_CODE_LEFT }).a, 0x41,
+    "a captured Light cell resolves to its backing");
+
+  // THE CASE THE BOUND EXISTS FOR. Slot 2 dies: light_slot_limit drops to 1,
+  // beneath it, while its cells are still on screen until the next late
+  // window. The published-slot bound must NOT follow it down.
+  image[L("light_state") + 2] = 0;
+  image[L("light_state") + 1] = 0;
+  refreshSlotLimit(image);
+  assert.equal(image[L("_light_slot_limit")], 1, "the state limit dropped beneath slot 2");
+  assert.equal(image[L("_light_screen_slot_limit")], 3,
+    "the published-slot bound still covers it, because its cells still exist");
+  assert.equal(resolveAt(shared, { a: LIGHT_CODE_LEFT }).a, 0x41,
+    "and the resolver still finds the slot the state limit excluded");
+
+  // Negative control, so the assertions above cannot pass vacuously: the
+  // resolver really is gated on this byte, and a bound that failed to cover
+  // slot 2 would hand the capture straight back.
+  image[L("_light_screen_slot_limit")] = 1;
+  assert.equal(resolveAt(shared, { a: LIGHT_CODE_LEFT }).a, LIGHT_CODE_LEFT,
+    "a bound that excludes a published slot loses its backing - the failure this pins");
+  image[L("_light_screen_slot_limit")] = 3;
+
+  // And the erase still restores both cells, bound or no bound: it is the one
+  // consumer that stays full-width.
+  run(image, "light_publish");
+  assert.deepEqual([image[shared], image[shared + 1]], [0x41, 0x42]);
+  assert.equal(image[L("_light_screen_slot_limit")], 1,
+    "after the erase the bound describes only what is published now");
 });
 
 test("hooks are operand-only redirections and the Light publishes only in the late window", () => {

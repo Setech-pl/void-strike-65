@@ -50,7 +50,7 @@ DIRECTOR_LOW_BYTES = 242
 .import _light_backing, _light_resolve_save, _light_cell_end
 .import _light_scratch, _light_slot_save
 .import _light_slot, _light_archetype, _light_code, _light_wave_lock
-.import _light_slot_limit
+.import _light_slot_limit, _light_screen_slot_limit
 .import _enemy_profile_movement_id, _enemy_profile_fire_policy_id
 .import _enemy_profile_burst_count, _enemy_profile_burst_interval
 .import _enemy_profile_post_burst_frames, _enemy_profile_renderer_class
@@ -103,6 +103,7 @@ DIRECTOR_LOW_BYTES = 242
 .export light_screen_lo, light_screen_hi
 .export light_backing0, light_backing1, light_scratch, light_slot_save
 .export light_slot, light_slot_limit, light_archetype_offset, light_code
+.export light_screen_slot_limit
 .export light_resolve_save
 .export light_cell_end
 
@@ -281,6 +282,11 @@ light_slot_save = _light_slot_save
 light_slot = _light_slot
 ; How many slots the per-frame loops must walk (owner fix (a), 2026-09-21).
 light_slot_limit = _light_slot_limit
+; How many slots the kernel has PUBLISHED - screen_hi-derived, maintained by
+; light_publish, and the bound light_cell_resolve scans. Not interchangeable
+; with light_slot_limit above: that one is state-derived and does not cover a
+; slot that retired this frame with its cells still on screen.
+light_screen_slot_limit = _light_screen_slot_limit
 ; Selected Light archetype per slot, as a byte offset into the C archetype
 ; table, and the slot's left screen code.
 light_archetype_offset = _light_archetype
@@ -400,6 +406,15 @@ hostile_weapon_visual_glyphs:
 .import __HYBRID_LIGHT_SLOTS_RAM_START__, __HYBRID_LIGHT_SLOTS_RAM_LAST__
 .assert __HYBRID_LIGHT_SLOTS_RAM_START__ = $7FC4, lderror, "HYBRID_LIGHT_SLOTS must start at $7FC4, after the A2 display lists"
 .assert __HYBRID_LIGHT_SLOTS_RAM_LAST__ <= $8000, lderror, "HYBRID_LIGHT_SLOTS reaches ENTITY_STATE at $8000"
+
+; Fix (a), owner decision 2026-09-21: the published-slot limit. Both Light RAM
+; areas were exactly full, so it takes the first byte of the unowned gap that
+; starts where HYBRID_HEAVY_STATE ends. Bound it against that real neighbour
+; below, and against the 26-byte gap's own end above.
+.import __HYBRID_LIGHT_SCREEN_RAM_START__, __HYBRID_LIGHT_SCREEN_RAM_LAST__
+.import __HYBRID_HEAVY_STATE_RAM_LAST__
+.assert __HYBRID_LIGHT_SCREEN_RAM_START__ >= __HYBRID_HEAVY_STATE_RAM_LAST__, lderror, "HYBRID_LIGHT_SCREEN overlaps HYBRID_HEAVY_STATE"
+.assert __HYBRID_LIGHT_SCREEN_RAM_LAST__ <= $8140, lderror, "HYBRID_LIGHT_SCREEN leaves the unowned gap at $8140"
 
 .import __HYBRID_C_WINDOW_RAM_LAST__, __HYBRID_C_WINDOW_GUARD_START__
 .assert __HYBRID_C_WINDOW_GUARD_START__ = $BC1A, lderror, "HYBRID_C_WINDOW_GUARD must start at $BC1A"

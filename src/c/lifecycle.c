@@ -403,6 +403,26 @@ uint8_t light_token_budget;
 /* The post-burst column: archetype offset + difficulty, resolved at admission
  * and, like light_record, kept a plain index. */
 static uint8_t light_post_burst_slot;
+#pragma bss-name ("HYBRID_LIGHT_SCREEN")
+/* ASM-owned, C only clears it at gameplay init: the highest Light slot the
+ * kernel has PUBLISHED plus one, 0 when nothing is on screen. light_publish
+ * maintains it from screen_hi - it zeroes it as the full-width erase loop
+ * clears each slot's screen_hi, and raises it as the render loop sets one -
+ * so it describes exactly the slots light_cell_resolve can find, at every
+ * point in the frame including inside the render loop itself.
+ *
+ * It is NOT light_slot_limit. That one is state-derived and is the bound the
+ * ERASE loop may not use, because a slot that retired this frame has state 0
+ * with its cells still on screen. This one is derived from the very fact the
+ * erase loop keys on, so it covers that slot for as long as its cells exist.
+ *
+ * Stale HIGH is safe by the same argument as light_slot_limit - it scans a
+ * spare slot rather than skipping a published one - but an UNINITIALISED
+ * value is not: the kernel would index screen_hi past the slot array. Hence
+ * the clear in lifecycle_c_init: this is a bss segment with no file image, in
+ * a range nothing else zeroes, so it may not be assumed zero at gameplay
+ * init. After that it is bounded 0..LIGHT_SLOT_COUNT by construction. */
+uint8_t light_screen_slot_limit;
 #pragma bss-name ("BSS")
 
 static void heavy_publish_profile(void);
@@ -464,9 +484,20 @@ static void light_reload(void)
     light_fire_timer[light_slot] = light_fire_work;
 }
 
+#pragma code-name (pop)
+#pragma rodata-name (pop)
+
 /* PROVISIONAL smoke scheduling only (see encounter_light_schedule above).
  * The only writer of light_archetype_offset: the reusable Light admission
- * below only reads it and holds no ordering or toggle logic of its own. */
+ * below only reads it and holds no ordering or toggle logic of its own.
+ *
+ * NOT in the code window, unlike the four primitives above it. Fix (a) needed
+ * the last bytes of the window and this is the coldest thing in it: wave
+ * scheduling runs at most once per admission, never per frame and never per
+ * captured cell, so the hot-path argument that put the token, the ceiling and
+ * the live count beside light_admit does not apply to it. An absolute jsr into
+ * the arena costs exactly what an absolute jsr into the window costs. */
+#pragma code-name (push, "HYBRID_C_ARENA")
 static void encounter_light_schedule_advance(void)
 {
     light_record = encounter_light_schedule[encounter_light_index];
@@ -476,9 +507,7 @@ static void encounter_light_schedule_advance(void)
         encounter_light_index = 0u;
     }
 }
-
 #pragma code-name (pop)
-#pragma rodata-name (pop)
 
 void lifecycle_c_init(void)
 {
@@ -508,6 +537,7 @@ void lifecycle_c_init(void)
         --light_slot;
         light_appearance_installed[light_slot] = LIGHT_APPEARANCE_NONE;
     } while (light_slot != 0u);
+    light_screen_slot_limit = 0u;
     light_token_budget = LIGHT_TOKEN_BUDGET;
     light_token = LIGHT_TOKEN_BUDGET;
     light_token_frame = FRAME_COUNTER;

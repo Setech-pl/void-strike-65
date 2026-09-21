@@ -416,3 +416,274 @@ and not the per-projectile scan (now 10 cycles each). It is something in the
 effect-heavy path, and it has not been isolated yet.
 
 Isolating it is the next measurement, not the next fix.
+
+---
+
+# Isolating the residual — per-function profile of the binding frame
+
+Native call-tree profile, `scripts/measure-frame-profile.h` + `.mjs`:
+`build/atari800-trace` rebuilt with the measurement header, then
+`DFPROF_OUTPUT=… DFPROF_FIRST=… DFPROF_LAST=… node scripts/runtime-wall-trace.mjs
+--only-session=… --skip-boot-smoke --atari800-source=build/atari800-trace`.
+The profiler was extended for this session (measurement-only, in the session
+scratchpad) to load **every** `build/*.lbl` — `light-kernel.lbl` and
+`sector-reader.lbl` are new and the committed script does not read them — and
+to resolve cc65 **static** functions, which ld65's `.lbl` does not export, from
+the `.proc` offsets in `build/*.lst` plus each segment's start in `build/*.map`.
+Without both, 696 B of the code window's C half resolve to one wrong name.
+
+## The A/B is exact, and the frame is the same frame
+
+| build | worst pre-wait | margin | worst row |
+| --- | ---: | ---: | --- |
+| `82c155b` | 23,552 | 1,713 | frame **1963** |
+| `fc84a9f` | 24,351 | 898 | frame **1963** |
+
+Same replay state on that row in both runs: `effect_active_count` 5, mask 31,
+**0** player projectiles, `enemy_live_count` 2, sector 7.
+
+## CORRECTION to the previous entry: the worst frame is not Light-free
+
+The earlier note called frame 1963 a frame with "no Light alive". **It is not.**
+A Light is alive through `handle_collisions` and **dies inside `light_update`
+on this very frame** — a contact kill, whose breakup spawn is what puts the
+five effects on it. The wall-trace CSV's `slot*_state` is sampled **after** the
+kill, which is why it reads `0/0/0/0`. The profile shows the kill directly:
+`light_destroyed` → `light_spawn_breakup` at HEAD, `spawn_breakup_effects_at` +
+`light_add_score` + `update_score_display` at `82c155b`.
+
+That matters for the conclusion, not just the wording: the binding frame is a
+**kill frame with effects landing on the dying Light's own cells**, which is
+exactly the condition the address resolver is expensive under.
+
+## Per-function delta, frame 1963, pre-fence self cycles
+
+Pre-fence total 23,570 → 24,452 at the wait-entry cut (+882; the audit's own
+fence field gives 23,552 → 24,351, +799 — the same event measured at a
+slightly different cut point). **Light-class code carries +685 of it:**
+
+| component | `82c155b` | `fc84a9f` | Δ |
+| --- | ---: | ---: | ---: |
+| address resolver — `light_cell_resolve` + `light_backing` | 131 | 363 | **+232** |
+| `light_shot` (incl. its tail into `entity_player_fighter_projectile_target`) | 265 | 454 | **+189** |
+| `light_top` | 104 | 206 | **+102** |
+| tick/wave/token group — `light_update` ASM + `_enemy_c_light_tick` + `_light_tick_body` + `_enemy_c_light_wave` + `_light_take_token` + `_light_wave_step` | 1,022 | 1,123 | **+101** |
+| `light_kernel_vectors` | 0 | 36 | +36 |
+| kill path — `light_destroyed` + `light_spawn_breakup` + `light_add_score` + `_enemy_c_light_hit` | 269 | 294 | +25 |
+| **Light total** | **1,791** | **2,476** | **+685** |
+
+The remaining ≈ +197 is spread over routines whose instruction counts are
+**byte-for-byte identical** — `draw_enemy_member` +51 at 308 → 308 instructions,
+`update_transient_effects` +71 at 94 → 94, `profile_after_broadside_update` +75
+on a **single** instruction. That is ANTIC DMA and badline redistribution as
+the frame's work shifts later in the raster, not new work. Any per-routine
+figure in this file whose instruction count is unchanged should be read the
+same way.
+
+## `light_publish` is not in the fence budget at all
+
+MEASURED: `light_publish` is +157 on this row (101 → 258, of which the
+full-width erase loop is 214) and +213…+227 on ordinary rows — and it is
+**absent from the pre-fence tree in both builds**, because it runs in the late
+publication window, after `wait_frame_at_line`. It costs wall cycles inside the
+35,568-cycle frame, where there is headroom, and **zero fence margin**.
+
+**So fix (b) — an ASM `screen_hi`-derived limit for the erase loop — buys no
+margin and is not worth bytes.** That is a measurement, not a preference.
+
+## What is specific to the worst frame: the address resolver
+
+Instructions executed inside `light_cell_resolve`'s four-slot scan, per row, at
+`fc84a9f`:
+
+```
+row    1954 1955 1956 1957 1958 1959 1960 1961 1962   1963
+scan      0    0    0    0    0    0    0    0    0     23
+```
+
+The scan is entered only when a captured cell carries a Light glyph code
+($F8..$FD) — i.e. when an effect or debris capture lands on a Light's published
+cells. On 1963 all three captured cells do, because the Light dies there and
+its breakup effects capture its own cells. Cost per such call: **28 → 100
+cycles, +72 per captured Light cell**, linear in how many there are.
+
+Against a typical neighbour (row 1961, pre-fence Δ +367, Light Δ +326) it is
+the only component that changes character:
+
+| component | 1961 Δ | 1963 Δ |
+| --- | ---: | ---: |
+| address resolver | **−31** | **+232** |
+| `light_shot` | +209 | +189 |
+| `light_top` | +50 | +102 |
+| tick group | +54 | +101 |
+| vector table | +44 | +36 |
+
+So the residual is **a flat Light-class tax every frame in this stretch**
+(`light_shot` ≈ +190, `light_top` +50…+100, the C tick migration +50…+100, the
+vector table ≈ +40; pre-fence Δ +218…+502 on rows 1953-1962) **plus ≈ +230 of
+resolver on the frame where an effect lands on a Light.**
+
+M1's [C2] figure stands and was measuring something else: the **vector table**
+is 36 cycles for the whole frame. What grew is the resolver **body** — save and
+restore, a 16-bit address compare per slot, cell-major indexing — where
+`82c155b` did `lsr` and two loads.
+
+Correction to the previous entry's model: the "intercept 125 + 10 cycles per
+projectile" fit understates `light_shot`, which measures +127…+209 **self** per
+frame on these rows. A fit to bucket means moves with both arms; the direct
+per-routine measurement does not.
+
+---
+
+# Fix (a) — the resolver's slot scan gated on a published-slot bound
+
+Owner decision 2026-09-21. `light_cell_resolve` walks `light_screen_slot_limit`
+instead of all four slots. `light_publish` maintains that byte **from
+`screen_hi`** — the same fact the full-width erase loop keys on: it is zeroed as
+the erase loop clears each slot's `screen_hi`, and raised as the render loop
+sets one. It can therefore only ever be stale **HIGH**: it may walk a spare
+slot, it can never skip a published one.
+
+**It is not `light_slot_limit`.** That one is state-derived and drops beneath a
+slot killed this frame whose cells are still on screen; a resolver gated on it
+would hand a lower layer a Light glyph as its backing. The bound is raised
+**inside** the render loop, before the next (lower) slot captures its cells, so
+the cross-Light capture of plan §2.2 still resolves.
+
+`tests/light-wingman.test.mjs` "a published slot above the state limit is still
+resolved" pins both halves — the in-loop raise and the survival of the bound
+after the state limit has dropped — with a negative control that pokes the
+bound low and watches the backing turn back into the capture. MEASURED
+mutation: deleting the render-loop raise fails that test (and one existing
+late-publication test); it is not a vacuous assertion.
+
+## MEASURED
+
+| session | `82c155b` | `fc84a9f` | **after fix (a)** |
+| --- | ---: | ---: | ---: |
+| `weapon-pickup-2-hunt-fire4` margin | 1,713 | 898 | **951** |
+| `director-complete-1-natural-sweep-fire0` margin | 1,831 | 705 | **896** |
+
+Frame 1963, Light-class pre-fence self: 1,791 → 2,476 → **2,412**. The scan
+loop itself: 138 → **69** cycles over the same three calls; three of four slot
+iterations are gone. The margin gains less than the scan saves because the
+maintenance costs ~4 cycles per erased slot and the frame's phase shifts.
+
+## Placement, and what it cost
+
+The window had 17 B. The change needs 19 in the kernel — the erase-loop zero
+(3 B), the render-loop max (9 B), the loop's closing branch, which the longer
+body pushed out of relative reach, reworked as `bmi`/`jmp` (3 B), and the
+resolver's gate (4 B). The link guards caught the 2-byte overrun rather than
+the runtime.
+
+`encounter_light_schedule_advance` therefore moved out of `HYBRID_C_WINDOW`
+into `HYBRID_C_ARENA`: it is the coldest thing in the window — wave scheduling
+runs at most once per admission, never per frame and never per captured cell —
+so the hot-path argument that put the token, the ceiling and the live count
+beside `light_admit` does not apply to it, and an absolute `jsr` into the arena
+costs exactly what an absolute `jsr` into the window costs.
+
+The bound's **byte** could not go in either Light RAM area — `HYBRID_LIGHT_STATE`
+is 16 of 16 and `HYBRID_LIGHT_SLOTS` is 60 of 60 — so it took the first byte of
+the unowned gap above `HYBRID_HEAVY_STATE` as its own 1-byte segment,
+`HYBRID_LIGHT_SCREEN` at `$8126`, bounded by a named assert against both
+neighbours.
+
+| segment | before | after |
+| --- | ---: | ---: |
+| `LIGHT_KERNEL` | 689 B | **708 B** |
+| code window free tail | 17 B | **32 B** |
+| `HYBRID_C_ARENA` composite | 684 / 832 B | **718 / 832 B** (114 B free) |
+| `HYBRID_C_EXT` extension composite | 874 B | **877 B** (tail 22 B) |
+| `HYBRID_LIGHT_SCREEN` | — | **1 B** at `$8126` |
+
+---
+
+# `director-complete-1-natural-sweep-fire0` row 2557, after fix (a)
+
+Same method, against the same `82c155b` worktree. Row 2557 is the worst row in
+both runs; it has a Light **alive** (`slot0_state` 1), five active effects and
+no player projectile.
+
+Pre-fence 23,418 → 24,353 (**+935**). Light-class self 1,852 → 2,845
+(**+993**) — the Light class carries all of it and a little more; the rest of
+the frame is net −58, all of it in routines with unchanged instruction counts.
+
+| component | `82c155b` | after fix (a) | Δ |
+| --- | ---: | ---: | ---: |
+| `light_shot` | 283 | 632 | **+349** |
+| tick/wave/token group | 1,014 | 1,269 | **+255** |
+| address resolver | 241 | 475 | **+234** |
+| kill path | 188 | 295 | **+107** |
+| `light_kernel_vectors` | 0 | 52 | +52 |
+| `light_top` | 126 | 122 | −4 |
+| **Light total** | **1,852** | **2,845** | **+993** |
+
+**What carries it is `light_shot`, not the resolver.** With the bound in place
+the resolver enters its scan five times on this row and finds an owner every
+time, walking **one** slot each — the gate is working — and it still costs +234,
+because address-keyed resolution is intrinsically dearer than the single-Light
+`lsr` and two loads: save and restore around the scan, a 16-bit compare, and
+cell-major indexing. That is fix (b)/(c) territory and was not implemented.
+
+`light_shot`'s +349 is the multi-slot format itself: a loop over SoA arrays
+with `LIGHT_SLOT`/`LIGHT_SLOT_SAVE` bookkeeping where `82c155b` tested one
+scalar Light, ~13 instructions more per call at three calls a frame. The tick
+group's +255 is the lifecycle logic that moved from ASM into C, which is the
+architecture invariant working as intended, not a defect.
+
+**None of these is a fault to fix. They are the structural price of four slots,
+address-keyed backing and C-owned Light lifecycle** — see the owner decision on
+the margin threshold in `STATUS.md` and `plan-light-multiplicity.md` §4.4.
+
+---
+
+# Step 5 — the full §5.1 audit on the final binary, and the row it found
+
+MEASURED 2026-09-21 on XEX `3bbee68d…`, ATR `e3fdd326…`. Full gate set,
+`scripts/pal-timing-audit.mjs` over every CSV:
+
+**0 distinct miss events across 72 replays, 137,000 frames. 0 rows over the
+31,200 target, 0 over the 32,568 hard gate. PASS.**
+
+## The binding row is a remnant frame, not either profiled fighter frame
+
+A/B against a clean `82c155b` export on the same emulator build:
+
+| replay | frame | `82c155b` | candidate | Δ |
+| --- | ---: | ---: | ---: | ---: |
+| `raider-remnant-rapid-xex-hard` | 1945 | **1,464** | **552** | **−912** |
+| `director-complete-1-natural-sweep-fire0` | 2557 | 1,831 | 896 | −935 |
+| `weapon-pickup-2-hunt-fire4` | 1963 | 1,713 | 951 | −762 |
+| `raider-remnant-normal-xex-hard` | 1963 | 1,713 | 951 | −762 |
+
+Row 1945 of `raider-remnant-rapid-xex-hard` is the row `STATUS.md` records as
+the accepted checkpoint `0002d84`'s own worst (1,464), so this is the same row
+measured twice and the comparison is like-for-like. The delta is the same size
+as the two profiled sessions' (−762 … −935), which is the evidence that it is
+the Light-class cost this file has already attributed per function, and not a
+new mechanism specific to the Rapid weapon.
+
+**552 against a 500 GO threshold is 52 cycles.** It passes, and it is the
+number to quote for this candidate. It is also the reason the rotate-frame
+token gate matters: it is costed at ~1,000 cycles on the binding frames and
+needs one compare and one byte.
+
+## Everything else in that run
+
+Behavioural clauses, all A/B-confirmed pre-existing: the two
+`capital-contact-*` and `lower-playfield-hostile-contact-xex-hard` raster
+clauses, `raider-sector-xex-hard` "did not return to post-sector OPEN", the
+default run's terminal pickup-raster abort, and the debris gate at 2/3 with
+`debris-gate-0-neutral-fire0` post-capital 1 blank / 1,558 in view, 1
+disappearance — byte-identical to the figure recorded for `0a90c1c`.
+
+## Procedure correction
+
+The recorded procedure has the default run aborting after 21 sessions at
+`weapon-pickup-contact-2-hunt-fire4`, with every later session re-run one by
+one under `--only-session=`. **MEASURED: it now runs all 64 sessions and throws
+the pickup-raster invariant at the end, after writing every CSV.** The
+`--only-session` loop is therefore redundant; only the four mode-gated runs are
+still needed, giving 72 replays for roughly a third of the wall time.

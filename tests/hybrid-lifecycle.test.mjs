@@ -80,8 +80,12 @@ test("C EnemyArchetype is a compact exact Raider record in legal extension place
   // and its free tail from 10 B - below the 16-B owner floor - to 70 B.
   // Then light_shot's gating needed window room, so light_ceiling came back
   // here beside light_admit, its only caller: 829 + 45 = 874, tail 25 B.
+  // Owner fix (a), 2026-09-21: lifecycle_c_init clears the new published-slot
+  // bound, which is three more bytes here - 874 + 3 = 877, tail 22 B. The
+  // fix's own code went to the kernel and its byte to $8126; only the
+  // initialiser lands in this composite.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
-    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 874 });
+    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 877 });
   const window = manifest.residentCapacity.basicWindow;
   assert.equal(window.address, 0xb600, "the Light C lives in the code window");
   assert.ok(window.usedBytes > 0 && window.usedBytes <= window.capacityBytes,

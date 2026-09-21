@@ -411,6 +411,241 @@ same frame costing more without it. Evidence:
 it, and M2's four-Light result is recorded as evidence for a later owner
 decision only.
 
+### Step 5 — the CPU cost, where it is, and owner fix (a)
+
+The full audit found **0 distinct miss events** but two fighter rows far below
+anything this file recorded, both A/B-confirmed against a clean `82c155b`
+worktree. Three rounds of work followed; all of it is per-function MEASURED in
+[diagnostics/light-population-m1-2026-09-21.md](diagnostics/light-population-m1-2026-09-21.md).
+
+| worst fighter-row margin | `82c155b` | after the slot-limit gating | **after fix (a)** |
+| --- | ---: | ---: | ---: |
+| `weapon-pickup-2-hunt-fire4` | 1,713 | 898 | **951** |
+| `director-complete-1-natural-sweep-fire0` | 1,831 | 705 | **896** |
+
+**These two are the sessions this work PROFILED, not the worst in the audited
+set.** The full §5.1 re-run on the final binary (section below) found the
+binding row of all 72 replays is `raider-remnant-rapid-xex-hard` frame 1945 at
+**552** (`82c155b`: 1,464). Everything this section says about *where* the cost
+is still holds — it is the same Light-class cost on a different replay — but
+the worst margin to quote for this candidate is **552**, not 896.
+
+**Where the cost is.** Both binding frames were profiled per function, inclusive
+of callees, against the same `82c155b` worktree. On both, Light-class code
+carries essentially the whole delta (+685 of +882 on one, +993 of +935 on the
+other); the remainder sits in routines whose instruction counts are
+byte-for-byte identical — ANTIC DMA redistribution as the frame's work shifts
+later in the raster, not new work. Within the Light class it is `light_shot`'s
+SoA slot loop, the lifecycle logic that moved from ASM into C, address-keyed
+backing resolution, and the kernel's vector table (36-52 cycles a frame, as M1
+said). **`light_publish` is not in the fence budget at all** — it runs in the
+late window, after the fence — so the erase loop's full width costs wall cycles
+and zero margin.
+
+**Fix (a), the one change made.** `light_cell_resolve` walks
+`light_screen_slot_limit` instead of all four slots. `light_publish` maintains
+that byte from `screen_hi` — zeroed as the full-width erase loop clears each
+slot, raised inside the render loop as a slot's `screen_hi` goes live, so a
+lower slot still resolves over a higher one published moments earlier. It is
+**not** `light_slot_limit`: that one is state-derived and drops beneath a slot
+killed this frame whose cells are still on screen. Stale HIGH is safe by
+construction; stale LOW is impossible.
+`tests/light-wingman.test.mjs` "a published slot above the state limit is still
+resolved" pins both halves and carries a negative control; deleting the
+render-loop raise fails it.
+
+**ASSESS 2026-09-21 — deny the token to deferrable consumers on rotate frames —
+COSTED FOLLOW-UP, GO recommended, NOT implemented.** MEASURED: **both binding
+frames are ring-rotate frames**, and in the profiled window the ring rotates on
+every other frame. On `weapon-pickup-2-hunt-fire4` row 1963 the deferrable
+event is `light_spawn_breakup`, **1,063 cycles**, claimed by the contact-kill
+path inside `light_update` — which runs *after* the rotate, so a gate would see
+it exactly and move it to frame 1964 (pre-fence 15,012, ~9,000 cycles spare):
+that row's margin **951 → ~2,014** ESTIMATE. The test is a **single compare**
+(`_director_c_world_row_tick` already runs once per rotate and can mark the
+frame), plus **1 B with no home** — both Light RAM areas are exactly full.
+Must NOT be deferred: the kill's score and sound (they never take the token
+today), the fire cadence (gameplay, and it would make fire rate a function of
+the scroll cadence) and the admission (entry rhythm — owner call). The
+forced-coincidence test's constructed frame **is itself a rotate frame** in all
+four arms, so it is the right home for the new test.
+**Why it stops at a follow-up:** the starvation question. Rotate frames are
+never consecutive, so that half holds, but a pending event today waits for "the
+first later frame with a free token" with **no counter and no bound**.
+**The forcing rule, for the next session to start from (owner, 2026-09-21):**
+because rotate frames are never consecutive, **the gate need only apply to an
+event's FIRST attempt** — an event already deferred once ignores the rotate
+gate on its next try, which **bounds the delay at two frames by construction**,
+with no counter and no forcing branch. That is **one bit per slot**, and the
+slot already carries `BREAKUP_PENDING`, so a second pending value encodes it
+without a new byte. **Estimated worth ~1,000 cycles of margin on the binding
+frames.** Full costing: `plan-light-multiplicity.md` §4.6.
+
+**OWNER DECISION 2026-09-21 — effect scheduling.** The token is already a
+minimal effect scheduler — a per-frame budget, pending states, an ordered set
+of consumers — and a 1-2 frame delay is invisible, so deferrable work can move
+off frames that are already expensive. But it **redistributes peaks and does
+not create capacity**: it makes burst effects affordable (explosions, breakups,
+flashes, admissions) and does nothing for standing per-frame costs such as
+parallax, a second star layer or a static Andromeda, which every frame needs.
+**Do not build a general scheduler.** Grow the token one consumer at a time,
+when a concrete effect needs it. Every new consumer must be **visual only** (no
+gameplay, score or collision effect), **capture its position at enqueue**
+rather than read state that may have changed, and have **at most two frames of
+delay** before it is forced or dropped. The risk is the stale-state class this
+project has already paid for twice — the respawn double image and the
+launch-flash orphan. Generalise only if five or more consumers show a clear
+pattern. Full text: `plan-light-multiplicity.md` §4.5.
+
+**OWNER DECISION 2026-09-21 — the margin threshold.** The ~1,000-cycle figure
+used through this work was a rule of thumb, **not a measured requirement**, and
+is withdrawn as a gate. The requirements are **zero distinct miss events** and
+the plan's own **500-cycle** GO threshold. Both audited sessions clear 500 with
+zero misses, so **the resulting worst margin is accepted as the deliberate cost
+of Light multiplicity** — four slots, shared appearance pairs and the C/ASM
+boundary — and not as a defect to chase with bytes 4.6 will need. Several
+hundred cycles a frame is the price of swarms.
+
+**What 4.6 inherits.** The worst margin is materially thinner than 4.6's design
+assumed: **1,713 / 1,831 → 951 / 896**. **4.6 must set an explicit per-frame
+cycle budget in its own plan before implementation begins**, derived from the
+measured worst margin at the checkpoint it branches from — not from the
+historical margins recorded elsewhere in this file. See
+`plan-light-multiplicity.md` §4.4.
+
+**Placement after fix (a).** The change needed 19 B in a kernel with a 17-B
+window tail; the link guards caught the overrun.
+`encounter_light_schedule_advance` moved from `HYBRID_C_WINDOW` to
+`HYBRID_C_ARENA` — the coldest thing in the window, at most once per admission,
+and an absolute `jsr` costs the same either way. The bound's byte fits neither
+Light RAM area (`HYBRID_LIGHT_STATE` 16 of 16, `HYBRID_LIGHT_SLOTS` 60 of 60),
+so it became its own 1-byte segment **`HYBRID_LIGHT_SCREEN` at `$8126`**, the
+first byte of the unowned gap above `HYBRID_HEAVY_STATE`, asserted against both
+neighbours at link time.
+
+| segment | before | after |
+| --- | ---: | ---: |
+| `LIGHT_KERNEL` | 689 B | **708 B** |
+| code window free tail | 17 B | **32 B** |
+| `HYBRID_C_ARENA` | 684 / 832 B | **718 / 832 B** (114 B free) |
+| extension composite | 874 B | **877 B** (tail 22 B) |
+| unowned `$8126-$813F` | 26 B | **25 B** (`$8127-$813F`) |
+
+### Step 5 — the gates on the candidate binary (MEASURED 2026-09-21)
+
+Branch `experiment/light-multiplicity`. XEX SHA-256
+`3bbee68dad5f24966ffca0254e8bfe95b6862fe548ecfb991d1434852281bb19`, ATR
+SHA-256 `e3fdd326e6117505d79b3917acd07fd0189211333943ecd16363fed7c8e58a93`,
+reproduced by `node scripts/build.mjs --candidate --quiet` from this worktree.
+
+**§5.1 PAL timing audit — 0 distinct miss events across 72 audited replays,
+137,000 frames, 0 rows over the 31,200 target and 0 over the 32,568 hard gate.
+PASS.** Re-run in full on this binary (procedure correction below), summarised
+with `scripts/pal-timing-audit.mjs` over every CSV. Evidence:
+[diagnostics/light-multiplicity-pal-audit-2026-09-21.json](diagnostics/light-multiplicity-pal-audit-2026-09-21.json).
+
+**THE BINDING ROW OF THE WHOLE SET IS NOT A FIGHTER ROW, and it is thinner than
+the two sessions this work profiled.** MEASURED, and A/B'd against a clean
+`82c155b` export on the same emulator build:
+
+| replay | `82c155b` | candidate | Δ |
+| --- | ---: | ---: | ---: |
+| `raider-remnant-rapid-xex-hard` frame 1945 | **1,464** | **552** | **−912** |
+| `director-complete-1-natural-sweep-fire0` frame 2557 | 1,831 | 896 | −935 |
+| `weapon-pickup-2-hunt-fire4` frame 1963 | 1,713 | 951 | −762 |
+| `raider-remnant-normal-xex-hard` frame 1963 | 1,713 | 951 | −762 |
+
+**552 clears the plan's 500-cycle GO threshold by 52 cycles.** It satisfies the
+owner's two stated requirements — zero distinct miss events, and ≥ 500 — and it
+is the same row and the same replay that `0002d84` recorded as its worst
+(1,464), so the delta is like-for-like and is the Light-class cost measured
+elsewhere in this section, not a new mechanism. **But it is 52 cycles of
+headroom, not 396**, and anything 4.6 adds to a Rapid-fire remnant frame spends
+it. The rotate-frame token gate below is the cheapest recovery and is costed.
+
+Behavioural clauses in the same run, every one A/B-confirmed pre-existing:
+`capital-contact-{allied,hostile}-medium` and
+`lower-playfield-hostile-contact-xex-hard` (16 consecutive contact rasters),
+`raider-sector-xex-hard` ("did not return to post-sector OPEN"), the default
+run's terminal pickup-raster abort, and the debris visibility gate at 2/3 —
+`debris-gate-0-neutral-fire0` post-capital **1 blank / 1,558 in view, 1
+disappearance**, byte-identical to the figure recorded for `0a90c1c`. The other
+two debris replays are 0 blank / 0 disappearances.
+
+**PROCEDURE CORRECTION, MEASURED 2026-09-21.** The recorded procedure says the
+default `runtime-wall-trace.mjs` run aborts after 21 sessions at
+`weapon-pickup-contact-2-hunt-fire4`, so each later session must be re-run with
+`--only-session=`. **That is no longer true**: the default run now completes all
+**64** sessions and throws the pickup-raster invariant at the very end, after
+writing every CSV. Only the four mode-gated runs
+(`--raider-formation-only`, `--raider-sector-only`, `--debris-gate-only`,
+`--raider-remnant-only`) are still needed, which brings the set to 72 replays
+and the wall time to roughly a third of what the per-session loop costs.
+
+**§5.6 native gates.** Boot smoke **8/8** on both media against the re-recorded
+`boot-deadline-baseline.json`: XEX 135 / 392 unmoved, ATR 336 / 593 → **338 /
+595**, +2/+2 for the one transport sector fix (a) costs (203 → **204**), inside
+the +10 warn band. The reader's level image at `$A600` compares byte-exact in
+every session (identical `level_checksum`) and command frames stay **XEX 0 /
+ATR 2** with 0 wire retries. cc65 audit: **C stack 0 B**, zero-page 0 B, and no
+cc65 runtime helper is linked in any of the six maps. Write-watch: the
+`$7FC4-$7FFF` classification recorded in the diagnostics file stands — fix (a)
+adds no writer to that range, and its own byte is `HYBRID_LIGHT_SCREEN` at
+`$8126`, a 1-byte segment ld65 gives exclusively to it, bounded by named
+asserts against both neighbours.
+
+**Residency, the three metrics separate** (`build/manifest.json`, against a
+clean `82c155b` export built the same way):
+
+| metric | `82c155b` | candidate | Δ |
+| --- | ---: | ---: | ---: |
+| Linked runtime | 17,521 B | **17,490 B** | **−31** |
+| Simultaneous residency | 20,149 B | **20,973 B** | **+824** |
+| Safe residency remaining | 2,038 B | **1,214 B** | **−824** |
+
+Linked runtime *falls* because the Light ASM left `CODE`/`LIGHT_RESIDENT`/the
+`STARFIELD` tail for its own link; simultaneous residency rises by what the
+code window now holds at the same time.
+
+**Free tails as measured at the candidate** (the authoritative table stays the
+current-checkpoint override section of [memory-map.md](memory-map.md)):
+`HYBRID_C_EXT` **22 B**, `ENTITY_CODE` **1 B**, pickup stream fill **236 B**,
+A2 kernel **19 B**, `HYBRID_C_SECTOR` window **18 B**, `HYBRID_C_ARENA`
+**114 B** (718 / 832), code window **32 B** (C half 796 B + `LIGHT_KERNEL`
+708 B of 1,536), `BROADSIDE` **3 B**, `HYBRID_LIGHT_STATE` **0 B** (16 of 16),
+`HYBRID_LIGHT_SLOTS` **0 B** (60 of 60), unowned `$8127-$813F` **25 B**,
+packed `STARFIELD` **1,780 B** (24 B under the 1,804-B correction gate).
+
+**Tests — focused set of plan §5.5, every failure A/B'd against a clean
+`82c155b` export built the same way.** Green, 13 files: `light-wingman`,
+`light-interceptor`, `light-multiplicity`, `hybrid-lifecycle`,
+`source-contracts`, `enemy-combat`, `chunk-loader`, `sector-reader`,
+`starfield-staging-streams`, `pal-timing-audit`, `focused-pal-acceptance`,
+`heavy-bomber`, `debris-score` — every Light-class file among them.
+
+Two rebaselines this step owed and paid, both in `light-interceptor`: the
+`HYBRID_C_EXT` tail 25 → **22 B** (fix (a)'s initialiser) and the
+`HYBRID_LIGHT_SLOTS` segment 48 → **60 B** (48 B is the ten per-slot arrays
+plus the cell-major backing — the whole segment only at step 1a; steps 2-4 put
+the resolver scratch, the appearance pairs, the ceilings, the live count and
+the wave state beside them).
+
+**Known remaining issues — 11 pre-existing failures.** The clean `82c155b`
+export fails the same 12 tests this worktree did before the two rebaselines
+above; `light-interceptor` is now green and the other 11 are untouched, so none
+of them belongs to this work:
+`hybrid-c-arena` ×2, `entity-effects` ×3, `runtime-timing` ×3, `layout-d1`,
+`transport-layout-regression` and `formats` — the set recorded under
+"Known open defects", which has grown since it was last enumerated there. **`hybrid-c-arena` and `layout-d1`
+were deliberately NOT rebaselined.** Their frozen numbers were already stale at
+`82c155b` — the arena test expects `codeBytes` 504 against 535 there, and
+`layout-d1` expects 13,113 against 13,196 — by a drift this work did not cause
+and cannot account for. Rewriting a frozen-budget guard to match a number
+nobody has explained would launder a pre-existing defect into this commit, so
+they stay red and stay listed. What this work *did* move in them is stated for
+whoever clears them: arena `asmBytes` 71 → 90 and `codeBytes` 535 → 589,
+free 187 → 114; `layout-d1`'s figure 13,196 → 13,197; DFMC records 9 → 11.
+
 ---
 
 ## Roadmap 4.3 — resident direct-SIO sector reader — `OWNER-SMOKE CANDIDATE` (2026-09-20)
@@ -515,8 +750,19 @@ section's "what to look for" in the implementation report.
   project state rather than left for the next session to rediscover. Until it
   is cleared, a session working on anything else must run focused test files
   directly and **A/B any failure against a clean tree before calling it a
-  regression** — these four will otherwise be attributed to whatever landed
-  last.
+  regression** — they will otherwise be attributed to whatever landed last.
+
+  **RE-ENUMERATED 2026-09-21** against a clean `82c155b` export, built with
+  `--candidate` and its `node_modules` linked, running the focused set of
+  `plan-light-multiplicity.md` §5.5: the set is **11 failing tests in 6 files**,
+  not four. `hybrid-c-arena` ×2 (the arena assertion reads `codeBytes` 535
+  against an expected 504, and the DFMC record count 9 against 8),
+  `entity-effects` ×3, `runtime-timing` ×3, `layout-d1` (13,196 against 13,113),
+  `transport-layout-regression` and `formats`. Most are frozen budgets that
+  drifted; the three `entity-effects` ones are not — they assert a Raider kill
+  scores 16 where the build scores 0 on that harness path — but they read
+  identically on the clean `82c155b` export, so they predate this branch too
+  and are named here rather than folded into it.
 
 - **ATR boot contract is proven in Atari800 only.** Owner decision A
   (2026-09-20) makes the disk boot without OPTION; it is an
@@ -1860,8 +2106,22 @@ and contradicted both the paragraph above it and the Checkpoint section;
 corrected 2026-09-20, and corrected again the same day as candidates B and the
 title fix landed.
 
-Next: roadmap item 2, the population budget measurement, for which the rescued
-`scripts/measure-*` tooling above is the starting point.
+**Light multiplicity (roadmap 4.6 prerequisite) is an `OWNER-SMOKE CANDIDATE`
+through step 5**, on branch `experiment/light-multiplicity` — see its section
+above for what it is, what it measured and the three owner decisions of
+2026-09-21 (the margin threshold, effect scheduling, and the rotate-frame gate
+recorded as a costed follow-up).
+
+**NEXT TASK.** Owner smoke of the Light multiplicity candidate. After that, the
+first of these two, in this order:
+
+1. **The rotate-frame token gate** — costed, GO recommended, ~1,000 cycles of
+   margin on the binding frames, with the two-frame bound already designed
+   (`plan-light-multiplicity.md` §4.6). It is the cheapest margin left.
+2. **Roadmap 4.6 itself**, which must open by setting an explicit per-frame
+   cycle budget in its own plan, against the measured worst margin at the
+   checkpoint it branches from — not against the historical margins in this
+   file. See §4.4 of the same plan.
 
 ## Main-menu title colour run — fixed — `OWNER-SMOKE CANDIDATE` (2026-09-20)
 
@@ -2311,6 +2571,39 @@ it to size a budget, never to predict a frame. The committed baselines
 
 Deliberately deferred work, distinct from the open defects above. Not to be
 started without owner instruction.
+
+- HEAVY DESTRUCTION EFFECT. A destroyed Heavy (Raider, Bomber) vanishes with a
+  screen flash, while a Light breaks apart into fragments. Owner-observed, and
+  verified pre-existing on 0a90c1c (before Option D and the Light work), so
+  not a regression. The Bomber is QUAD, 32 HPOS wide, and its body disappears
+  in one frame; a small central effect reads as a disappearance. A destruction
+  effect scaled to the Heavy's size would give the heaviest enemy the heaviest
+  death. It is a burst effect, so it fits the token as a consumer under the
+  scheduling rules: visual-only, position captured at enqueue, bounded delay.
+  Cost to be measured: the Light breakup is ~1,000 cycles, and a wider effect
+  is likely more.
+
+- **PROJECTILE LOAD LEVERS — costed 2026-09-21, NOT applied.** A **25 % fire-rate
+  reduction** (with damage +25 % to keep time-to-kill, or damage left to final
+  balancing) lowers the **average** projectiles in flight by about a quarter —
+  roughly **700-1,500 cycles on a dense frame**.
+  **Figures verified against the current build** (`weapon-pickup-2-hunt-fire4`,
+  2,788 effect-free fighter rows, pre-fence bucketed by projectiles in flight):
+  **~574 cycles per player projectile** least-squares, **~729** between the two
+  best-populated buckets — the brief's ~740 stands; **~79-117 per hostile
+  projectile**, which is **lower than the ~200 the brief assumed**. Mean load is
+  2.8 player and 2.5 hostile projectiles, so a quarter off the average is
+  ~450-580 cycles on an ordinary frame and ~820-1,050 on a dense one.
+  **It does not bound the WORST frame.** The pools are fixed-size and a held
+  trigger still fills them, only more slowly, and the fence cares about the
+  worst case, not the average.
+  **The direct worst-case lever is POOL SIZE**: one fewer player PairShot slot
+  (five today, `INTERCEPTOR_PROJECTILE_SLOT_BASE = 5`) is a hard ceiling
+  regardless of rate, worth ~574-729 cycles off the worst frame by the same
+  measurement.
+  **Fire rate is a feel decision, not a performance one**, and belongs to final
+  balancing alongside difficulty and the permanent booster. **If margin is ever
+  short, reach for pool size first.**
 
 - **Disk save (progress, high scores) — PARKED** (2026-09-20). Needs SIO write,
   error handling, and a decision about whether the game's own ATR stays

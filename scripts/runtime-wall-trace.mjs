@@ -771,6 +771,11 @@ for (const name of [
   // The missile-plane row count. Read by the pickup contact/collection
   // invariants below, which need it as a number, not as CSV text.
   "pickup_pmg_rows",
+  // The missile plane measured over the whole M0-M3 quartet (pickup_pmg_rows
+  // tests `& 0xf0` and sees only M2/M3), plus the number of contiguous runs of
+  // non-empty rows. Owner decision 2026-09-21: the traversal invariants read
+  // these instead of the dead character-renderer fields.
+  "pickup_missile_rows", "pickup_missile_union", "pickup_missile_blocks",
   // The capsule's missile-plane column. Read by the pickup contact raster
   // invariant below, which derives its sample window from it.
   "pickup_hposm0",
@@ -4982,14 +4987,30 @@ function main() {
       JSON.stringify([...new Set(activeRows.map(({ pickup_y: y }) => y))]) ===
         JSON.stringify(expectedY),
     "Native pickup did not traverse every Hard-mode raster position at +2 scanlines/frame");
+    // Owner decision 2026-09-21, option (b) extended to the traversal
+    // invariants. `f6eee5c` moved the capsule to the missile plane, so the three
+    // character-renderer clauses that stood here were dead: pickup_drawn_mask
+    // is 0 on all 1,800 frames and pickup_footprints_after / glyph_cells_after
+    // read four-digit counts of unrelated cells.
+    //   - drawn_mask 15/3 -> the quartet coverage the static-capsule gate uses:
+    //     sixteen non-empty missile rows whose union is $FF. The character
+    //     renderer's clipped bottom row (render_row 26 -> 3) has no
+    //     missile-plane equivalent; a missile mark is not cut by a character
+    //     cell, and all 27 raster positions measure 16 / $FF.
+    //   - footprints_after === 1 -> one contiguous run of non-empty missile
+    //     rows, counted around the 256-row page wrap, which proves one capsule
+    //     rather than a trail left by a failed erase.
+    //   - glyph_cells_after in {2,4,6} -> DELETED, not repointed. It counted the
+    //     capsule's character cells under the phased 2x2/2x3 footprint; the
+    //     capsule writes no character cell at all now, so there is nothing on
+    //     the missile plane for it to measure. Singularity is carried by
+    //     pickup_missile_blocks above and the phase itself by pickup_draw_calls.
     invariant(activeRows.every((row) => row.entity_active_mask === 2 &&
-      row.pickup_drawn_mask === (row.pickup_render_row === 26 ? 3 : 15) &&
-      row.pickup_footprints_after === 1 &&
-      row.pickup_glyph_cells_after ===
-        (row.pickup_render_row === 26 ? 2 :
-          row.pickup_render_phase === 0 || row.pickup_render_row >= 25 ? 4 : 6) &&
+      row.pickup_missile_rows === 16 &&
+      row.pickup_missile_union === 255 &&
+      row.pickup_missile_blocks === 1 &&
       row.pickup_draw_calls === 1),
-    "Native pickup did not remain one logical slot and one phased 2x2/2x3 footprint");
+    "Native pickup did not remain one logical slot and one whole 16-row missile capsule");
     invariant(activeRows.slice(1).every((row) => Array.from({ length: 6 }, (_, index) => {
       const address = row[`pickup_old_address${index}`];
       return address < RING_SCREEN || address >= RING_END ||
@@ -4997,9 +5018,13 @@ function main() {
     }).every(Boolean)),
     "Native reverse erase did not restore every exact saved physical cell");
     const releaseRow = traversalRows.find(({ frame }) => frame === activeRows.at(-1).frame + 1);
+    // Same decision: the two dead fields in the release clause read the missile
+    // plane instead. An emptiness clause cannot be proved by the suppressed
+    // fixture the way the active clauses above are -- suppressing the capsule
+    // empties the plane and satisfies it -- so it is held by the active clauses.
     invariant(releaseRow?.pickup_state === 0 && releaseRow.pickup_y === 240 &&
-      releaseRow.entity_active_mask === 0 && releaseRow.pickup_drawn_mask === 0 &&
-      releaseRow.pickup_footprints_after === 0,
+      releaseRow.entity_active_mask === 0 && releaseRow.pickup_missile_rows === 0 &&
+      releaseRow.pickup_missile_blocks === 0,
     "Native pickup slot was not released cleanly at the lower boundary");
     // The exact one-footprint and position assertions above come from the
     // production screen codes. These 27 native PNGs retain the complete final

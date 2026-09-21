@@ -1650,19 +1650,26 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
   invariant(Object.values(expected).every(Number.isInteger),
     "Boot-smoke expected-address labels are incomplete");
 
-  // Owner decision B (2026-09-20): the RAM under the BASIC ROM. The build
-  // lands an inert 16-byte probe record at the foot of the window; every cold
-  // session must read it back byte-exact. Under `-basic` a mismatch would mean
-  // the ROM is still mapped, which is precisely what decision B stands on.
+  // Owner decision B (2026-09-20): the RAM under the BASIC ROM. Every cold
+  // session reads the first 16 bytes of the window back and they must match
+  // the linked image byte-exact. Under `-basic` a mismatch would mean the ROM
+  // is still mapped, which is precisely what decision B stands on.
+  //
+  // Owner decision X (2026-09-21): the window carries the Light kernel now,
+  // not the retired 16-byte inert probe, so the image is hundreds of bytes and
+  // the read-back compares its HEAD. The proof is unchanged - those 16 bytes
+  // are real code at $B600, and they are only there if the record landed in
+  // RAM - and it now also fails if the record's first bytes are wrong.
   const basicWindow = manifest.residentCapacity?.basicWindow ?? null;
   invariant(basicWindow !== null && Number.isInteger(basicWindow.address),
-    "Boot smoke needs the manifest's BASIC window accounting");
+    "Boot smoke needs the manifest's window accounting");
   const windowImagePath = path.join(rootDirectory, "build",
-    "encounter-director-code-basic-window.bin");
+    "encounter-director-code-hybrid-window.bin");
   const windowProbe = basicWindow.usedBytes === 0 ? null : fs.readFileSync(windowImagePath);
-  invariant(windowProbe === null || windowProbe.length === 16,
-    `BASIC window content is ${windowProbe?.length} B; the boot smoke reads back 16`);
-  const windowProbeHex = windowProbe === null ? null : windowProbe.toString("hex");
+  invariant(windowProbe === null || windowProbe.length >= 16,
+    `code window content is ${windowProbe?.length} B; the boot smoke reads back 16`);
+  const windowProbeHex =
+    windowProbe === null ? null : windowProbe.subarray(0, 16).toString("hex");
   addressEnvironment.DFBOOT_WINDOW_ADDRESS = `0x${basicWindow.address.toString(16)}`;
 
   // Roadmap 4.3. The reader's own PCs are the SIO counters: a hit at
@@ -1899,7 +1906,7 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
     `${definition.id} did not execute the complete loader-to-gameplay handoff`);
     for (const snapshot of [menu, gameplay]) {
       invariant(windowProbeHex === null || snapshot.window === windowProbeHex,
-        `${definition.id} BASIC window probe at $${basicWindow.address.toString(16)} reads ` +
+        `${definition.id} code window read-back at $${basicWindow.address.toString(16)} reads ` +
         `${snapshot.window} at frame ${snapshot.frame}, expected ${windowProbeHex}` +
         `${definition.basic ? " (BASIC enabled: the ROM may still be mapped)" : ""}`);
       invariant((snapshot.portb & 0x02) === 0x02,

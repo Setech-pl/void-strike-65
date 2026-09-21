@@ -47,8 +47,8 @@ DIRECTOR_LOW_BYTES = 242
 .import _enemy_archetypes
 .import _light_state, _light_hp, _light_x, _light_y, _light_fire_timer
 .import _light_screen_lo, _light_screen_hi
-.import _light_backing0, _light_backing1, _light_scratch, _light_slot_save
-.import _light_archetype_offset
+.import _light_backing, _light_scratch, _light_slot_save
+.import _light_slot, _light_archetype, _light_code
 .import _enemy_profile_movement_id, _enemy_profile_fire_policy_id
 .import _enemy_profile_burst_count, _enemy_profile_burst_interval
 .import _enemy_profile_post_burst_frames, _enemy_profile_renderer_class
@@ -100,7 +100,7 @@ DIRECTOR_LOW_BYTES = 242
 .export light_state, light_hp, light_x, light_y, light_fire_timer
 .export light_screen_lo, light_screen_hi
 .export light_backing0, light_backing1, light_scratch, light_slot_save
-.export light_archetype_offset
+.export light_slot, light_archetype_offset, light_code
 
 .segment "DIRECTOR_ABI"
 
@@ -266,12 +266,23 @@ light_y = _light_y
 light_fire_timer = _light_fire_timer
 light_screen_lo = _light_screen_lo
 light_screen_hi = _light_screen_hi
-light_backing0 = _light_backing0
-light_backing1 = _light_backing1
+; Light multiplicity (plan-light-multiplicity.md §2.1): the per-slot state is
+; a structure of arrays, so each name above is the base of a four-byte array
+; and the absolute forms the kernel uses today address slot 0. The backing is
+; the exception - ONE cell-major array of LIGHT_SLOT_COUNT*LIGHT_CELL_COUNT
+; bytes, because the erase and render loops index it by cell (`,y` with
+; y = 0..1). light_backing0/1 therefore name cells 0 and 1 of the slot whose
+; base ASM has selected, exactly as the two scalars did.
+light_backing0 = _light_backing
+light_backing1 = _light_backing+1
 light_scratch = _light_scratch
 light_slot_save = _light_slot_save
-; Selected Light archetype, as a byte offset into the C archetype table.
-light_archetype_offset = _light_archetype_offset
+; The slot C indexes and ASM is ticking. Step 1a writes 0 and nothing else.
+light_slot = _light_slot
+; Selected Light archetype per slot, as a byte offset into the C archetype
+; table, and the slot's left screen code.
+light_archetype_offset = _light_archetype
+light_code = _light_code
 
 ; HYBRID_C_ARENA (roadmap 4.5M-M3): one contiguous reusable runtime arena
 ; $7BD0-$7F0F (832 B) for cc65 code (#pragma code-name ("HYBRID_C_ARENA")),
@@ -358,6 +369,13 @@ hostile_weapon_visual_glyphs:
 ; HYBRID_C_WINDOW_RAM. The window's real upper neighbour is therefore the
 ; reader BSS at $BC00, and that is what the named assert below checks; the six
 ; bytes at $BC1A remain reserved so nothing can reach the OS screen at $BC20.
+; Light multiplicity: the SoA slot state sits between the A2 display lists and
+; ENTITY_STATE. Bound it against its real neighbour, not against the memory
+; area's own size, which is the guard shape the arena and the window use.
+.import __HYBRID_LIGHT_SLOTS_RAM_START__, __HYBRID_LIGHT_SLOTS_RAM_LAST__
+.assert __HYBRID_LIGHT_SLOTS_RAM_START__ = $7FC4, lderror, "HYBRID_LIGHT_SLOTS must start at $7FC4, after the A2 display lists"
+.assert __HYBRID_LIGHT_SLOTS_RAM_LAST__ <= $8000, lderror, "HYBRID_LIGHT_SLOTS reaches ENTITY_STATE at $8000"
+
 .import __HYBRID_C_WINDOW_RAM_LAST__, __HYBRID_C_WINDOW_GUARD_START__
 .assert __HYBRID_C_WINDOW_GUARD_START__ = $BC1A, lderror, "HYBRID_C_WINDOW_GUARD must start at $BC1A"
 .assert __HYBRID_C_WINDOW_RAM_LAST__ <= $BC00, lderror, "HYBRID_C_WINDOW reaches the sector reader BSS at $BC00"

@@ -60,8 +60,17 @@ test("C EnemyArchetype is a compact exact Raider record in legal extension place
   // 4.5c (Bomber): the Heavy admission moved to HYBRID_C_ARENA while the Bomber
   // record and HEAVY_CODE member veneer joined the extension composite = 871.
   // 4.5d: the veneer publishes the per-member colour to COLPM1+slot (+9 B) = 880.
+  // Light multiplicity step 1a (owner decision X): the whole Light C - tick,
+  // admission, reload, schedule and hit - left the extension for the code
+  // window at $B600, taking 332 B with it: 880 - 332 = 548. It had to: the SoA
+  // slot indexing grew that code by 242 B, which overflowed LIGHT_CODE's run
+  // window by 175 B. The freed tail is the point of the decision.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
-    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 880 });
+    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 548 });
+  const window = manifest.residentCapacity.basicWindow;
+  assert.equal(window.address, 0xb600, "the Light C lives in the code window");
+  assert.ok(window.usedBytes > 0 && window.usedBytes <= window.capacityBytes,
+    `HYBRID_C_WINDOW holds ${window.usedBytes} of ${window.capacityBytes} B`);
   // 4.3 step 5: the drain clause left sector_c_update_first_capital for the
   // arena as sector_c_drain_clear, so the window composite loses 10 B.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(

@@ -78,27 +78,37 @@ typedef union EnemyArchetypeTable {
 
 extern const EnemyArchetypeTable enemy_archetypes;
 
-/* One Light Wingman. C owns lifecycle, HP, position and fire policy; the
- * ASM renderer owns only the screen/backing cache and scratch bytes, whose
- * render cache C clears solely at game initialization. */
-extern volatile uint8_t light_state;
-extern volatile uint8_t light_hp;
-extern volatile uint8_t light_x;
-extern volatile uint8_t light_y;
-extern volatile uint8_t light_fire_timer;
-extern volatile uint8_t light_leaderless;
-extern volatile uint8_t light_screen_lo;
-extern volatile uint8_t light_screen_hi;
-extern volatile uint8_t light_backing0;
-extern volatile uint8_t light_backing1;
+/* Light-class slots (plan-light-multiplicity.md §2.1). C owns lifecycle, HP,
+ * position, appearance and fire policy; the ASM renderer owns only the
+ * screen/backing cache and the scratch bytes, whose render cache C clears
+ * solely at game initialization.
+ *
+ * Structure of arrays, four slots, indexed by the shared light_slot: ASM sets
+ * it before each call and C indexes every array with it. LIGHT_SLOT_COUNT
+ * is the declared FORMAT; how many slots a sector may fill is a separate
+ * ceiling. The backing is one CELL-MAJOR array of
+ * LIGHT_SLOT_COUNT * LIGHT_CELL_COUNT bytes, because the erase and render
+ * loops index it by cell; the slot selects the base. */
+#define LIGHT_SLOT_COUNT_ABI     4u
+#define LIGHT_CELL_COUNT_ABI     2u
+extern volatile uint8_t light_slot;
+extern uint8_t light_state[LIGHT_SLOT_COUNT_ABI];
+extern uint8_t light_hp[LIGHT_SLOT_COUNT_ABI];
+extern uint8_t light_x[LIGHT_SLOT_COUNT_ABI];
+extern uint8_t light_y[LIGHT_SLOT_COUNT_ABI];
+extern uint8_t light_fire_timer[LIGHT_SLOT_COUNT_ABI];
+extern uint8_t light_screen_lo[LIGHT_SLOT_COUNT_ABI];
+extern uint8_t light_screen_hi[LIGHT_SLOT_COUNT_ABI];
+extern uint8_t light_backing[LIGHT_SLOT_COUNT_ABI * LIGHT_CELL_COUNT_ABI];
 extern volatile uint8_t light_scratch;
 extern volatile uint8_t light_slot_save;
-/* Selected Light archetype (byte offset into enemy_archetypes[]) and the
- * remaining shots of the current burst. ASM reads the offset to score a kill. */
-extern volatile uint8_t light_archetype_offset;
-extern volatile uint8_t light_burst_left;
+/* Selected Light archetype per slot (byte offset into enemy_archetypes[]),
+ * the slot's left screen code, and the remaining shots of the current burst.
+ * ASM reads the offset to score a kill. */
+extern uint8_t light_archetype[LIGHT_SLOT_COUNT_ABI];
+extern uint8_t light_code[LIGHT_SLOT_COUNT_ABI];
+extern uint8_t light_burst_left[LIGHT_SLOT_COUNT_ABI];
 extern volatile uint8_t light_target_x;
-extern volatile uint8_t light_post_burst_slot;
 
 /* Selected Heavy formation archetype (byte offset into enemy_archetypes[]).
  * One archetype per formation: both P1/P2 members share it (roadmap 4.5c). */

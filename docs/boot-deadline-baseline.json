@@ -4,18 +4,18 @@
   "delta_fail_frames": 50,
   "delta_warn_frames": 10,
   "baseline": {
-    "xex_loader_frames": 135,
-    "xex_menu_frames": 392,
-    "atr_loader_frames": 319,
-    "atr_menu_frames": 576
+    "xex_loader_frames": 134,
+    "xex_menu_frames": 391,
+    "atr_loader_frames": 323,
+    "atr_menu_frames": 580
   },
   "recorded": {
     "date": "2026-09-21",
     "branch": "experiment/light-multiplicity",
-    "runtime_checkpoint": "2d579d3",
-    "xex_sha256": "0618a4368626819ab1844cc9aa20a74a2e7ffbfcd1d1f47a480204bcf9f53043",
-    "atr_sha256": "6e7b8671300ad3653aa0e37546269c21aeb20f3b703bafa56472cf17ee6860be",
-    "total_transport_sectors": 195,
-    "reason": "Re-bound for owner decision X (2026-09-21), the level-buffer shrink and the HYBRID_C_WINDOW plumbing at $B600-$BBFF (plan-light-multiplicity.md step 0). The four milestones did NOT move: XEX 135/392 and ATR 319/576, identical to the 6fc2898 recording, MEASURED from a full 8-session boot smoke, 8/8 passed. They could not move, because the window record carries no content yet and the transport therefore stays at 195 sectors; only the artifact identity is re-recorded. Below $A000 the step is deliberately NOT byte-identical, and the difference is fully accounted for: the tenth DFMC manifest slot (MAX_CHUNKS / CHUNK_MAX_COUNT 9 -> 10) grows the stage-2 reservation by 16 B, which moves five address operands in the boot copier at $20DB-$20F9 by exactly +16; the reader image changes by exactly one byte, the cmp #MAX_LEVEL_SECTORS+1 operand (45 -> 33). Every resident gameplay image - MAIN CODE/RODATA, STARFIELD, BROADSIDE, ENTITY_CODE, PICKUP_CODE, the A2 kernel and every Director image - is byte-identical to the 82c155b build. gameplay_init stays at frame 3060 on ATR against 3053 on XEX, the level image at $A600 still compares byte-exact against build/level-1.bin, and command frames stay XEX 0 / ATR 2 with 0 retries. The real transport cost of the window record is paid when the Light kernel moves into it, and the baseline is re-recorded again then."
+    "runtime_checkpoint": "a91dca4",
+    "xex_sha256": "89531254a7bc94c02ceb6a6c1d5a83fe4f58684b71f107851ee312b2c7b15037",
+    "atr_sha256": "d5a2e8f14d3e57311e0b001363c60b6bf8dd5820a3190c2993941df96a8174ea",
+    "total_transport_sectors": 197,
+    "reason": "Re-recorded for Light multiplicity step 1a, the first step that puts real content in owner decision X's code window at $B600-$BBFF. The Light C - tick, admission, reload, schedule and hit - left HYBRID_C_EXT for the window, which is the tenth DFMC record: transport 195 -> 197 sectors (the window record is 4 sectors LZ, 590 B raw / 434 B packed, and the extension shrank by 2 sectors). MEASURED from a full 8-session boot smoke, 8/8 passed. ATR milestones move +4/+4 (loader 319 -> 323, menu 576 -> 580) and XEX -1/-1 (135 -> 134, 392 -> 391): every one inside the +10 warn band, so this is a re-record of a change that was cheaper than the band, not of one that spent it. The XEX milestones move at all only because the boot image shifted; the binary loader still places every block before the start milestone. gameplay_init stays at frame 3060 on ATR against 3053 on XEX, the level image at $A600 still compares byte-exact against build/level-1.bin, and command frames stay XEX 0 / ATR 2 with 0 retries. The window read-back changed shape with this step: it used to compare the retired 16-byte inert probe and now compares the first 16 bytes of the linked kernel image, which is the same proof over real content."
   }
 }

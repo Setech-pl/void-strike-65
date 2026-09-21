@@ -978,6 +978,32 @@ milestones move +22 in total (loader 297 → 319, menu 554 → 576), inside the
 `boot-deadline-baseline.json`; boot smoke 8/8, and the image at `$A600` is
 now verified byte-exact against `build/level-1.bin` on every session.
 
+### Light multiplicity step 1a (2026-09-21) — SoA slot state, Light C in the window
+
+| Range | Bytes | Owner | Notes |
+| --- | ---: | --- | --- |
+| `$7FC4-$7FF3` | 48 | `HYBRID_LIGHT_SLOTS` | ten four-byte per-slot arrays plus one cell-major eight-byte backing array (`LIGHT_SLOT_COUNT` 4 × `LIGHT_CELL_COUNT` 2). Was 60 B unassigned; **12 B free** |
+| `$7FF4-$7FFF` | 12 | — | still unassigned |
+| `$8100-$8107` | 8 | `HYBRID_LIGHT_STATE` | the SHARED Light scalars only: `light_slot`, `light_scratch`, `light_slot_save`, `light_target_x` and three C-private temporaries. Was 16 per-Light scalars |
+| `$8108-$810F` | 8 | — | free inside the same 16-B area, for the token (plan §2.5) and wave (§2.4) bytes |
+
+The backing is **one cell-major array**, not the two per-slot arrays plan §2.1
+spells out: the erase and render loops index backing by CELL (`lda
+LIGHT_BACKING0,y`, y = 0..1), so two four-byte arrays would put slot 1's cell 0
+where cell 1 belongs. Same eight bytes; the slot selects the base, the cell the
+index. `light_leaderless` and `light_post_burst_slot` are gone — the first is
+now the `light_state` value (1 escort, 2 free), the second one add at reload.
+
+**Free tails (MEASURED).** `HYBRID_C_EXT` **19 → 351 B** — the Light C left it
+for the window, and this is the largest resident hole since 4.3 Stage 1;
+`HYBRID_C_WINDOW` 946 of 1,536 B free (590 used); `HYBRID_C_ARENA` 187 → 176 B
+(`sector_c_drain_clear` gained the slot indexing); `HYBRID_LIGHT_SLOTS` 12 B;
+`HYBRID_LIGHT_STATE` 8 B; `SECTOR_READER` 70 B, `ENTITY_CODE` 1 B, pickup
+stream fill 7 B, A2 kernel 19 B, `DIRECTOR_ABI` 0 B, BROADSIDE 3 B, all
+unchanged. Extension record 880 → 548 B raw, 787 → 507 B packed. Transport
+195 → **197 sectors**, ten DFMC records. `STARFIELD` is untouched at 1,811 B
+packed: the resolver has not moved yet (step 1c).
+
 ### Owner decision X (2026-09-21) — buffer 44 → 32 sectors, window at `$B600`
 
 `MAX_LEVEL_SECTORS` 44 → 32, `LEVEL_BUFFER_RAM` `$1600` → `$1000`,

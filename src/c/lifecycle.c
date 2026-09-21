@@ -49,7 +49,7 @@
  * record offset. Keeping the offset a plain lvalue is what makes cc65 emit
  * `lda enemy_archetypes+field,y` instead of building a runtime pointer. */
 #define LIGHT_FIELD(field) \
-    ((&enemy_archetypes.byte[field])[light_archetype_offset])
+    ((&enemy_archetypes.byte[field])[light_record])
 #define HEAVY_FIELD(field) \
     ((&enemy_archetypes.byte[field])[heavy_archetype_offset])
 #define HEAVY_OFFSET_RAIDER      ENEMY_ARCHETYPE_OFFSET(ENEMY_ARCHETYPE_RAIDER)
@@ -73,6 +73,23 @@
 #define INTERCEPTOR_DESCENT      2u
 #define INTERCEPTOR_TRACK_PHASE  2u
 #define ENCOUNTER_LIGHT_SCHEDULE_LENGTH 2u
+/* Light multiplicity (plan-light-multiplicity.md §2.1). Four SoA slots is the
+ * declared format; how many of them a sector may fill is a separate ceiling
+ * that steps 2-3 introduce. Step 1a fills slot 0 only, so every loop below is
+ * still written against light_slot rather than over a range. */
+#define LIGHT_SLOT_COUNT         LIGHT_SLOT_COUNT_ABI
+#define LIGHT_CELL_COUNT         LIGHT_CELL_COUNT_ABI
+/* light_state values. 0 is ENEMY_INACTIVE. ESCORT follows Heavy slot 0;
+ * FREE is pass-through (the Interceptor's pursuit, or a Wingman that outlived
+ * its leader). This replaces the derived light_leaderless byte: ASM tests only
+ * "non-zero is alive", so both values read as alive without an ASM change. */
+#define LIGHT_ACTIVE_ESCORT      1u
+#define LIGHT_ACTIVE_FREE        2u
+/* The slot's left screen code: LIGHT_GLYPH (120) | the hostile attribute bit,
+ * spelled LIGHT_SCREEN_CODE in src/hybrid/light-wingman.s. Step 3 gives the
+ * three appearance pairs 120/121, 122/123 and 124/125; until then every slot
+ * carries pair 0 and the ASM uses its own constant. */
+#define LIGHT_SCREEN_CODE        0xF8u
 
 /* Heavy formation presentation: the roster shape is the ASM PMG art index
  * (build/enemy-roster.inc): 0 is the Raider art, 2 SCYTHE_BOMBER (QUAD). */
@@ -232,23 +249,64 @@ volatile uint8_t enemy_profile_renderer_class;
 volatile uint8_t enemy_profile_weapon_class;
 volatile uint8_t enemy_profile_score_bcd;
 volatile uint8_t enemy_profile_director_value;
+/* Per-slot Light state, structure of arrays, at $7FC4-$7FF3 (48 B of the 60
+ * unassigned bytes above the A2 display lists; 12 B spare). Boot-only A2
+ * staging passes through this range, which is safe for the same reason the
+ * $8100 GLUE hold is: lifecycle_c_init clears what it owns at gameplay init.
+ *
+ * ASM indexes these by the C-owned light_slot. Two consequences the layout is
+ * chosen for: light_state is the base of the array, so the existing absolute
+ * `lda LIGHT_STATE` still reads slot 0; and the backing is ONE cell-major
+ * array, not the two per-slot arrays plan §2.1 spells out, because the erase
+ * and render loops index it by CELL (`lda LIGHT_BACKING0,y`, y = 0..1). Two
+ * four-byte arrays would put slot 1's cell 0 where cell 1 belongs. Same eight
+ * bytes; the slot selects the base, the cell the index.
+ *
+ * NOT volatile, deliberately: cc65 compiles a volatile INDEXED store into a
+ * runtime pointer (`sta ptr1 / stx ptr1+1 / sta (ptr1),y`), which the C-stack
+ * audit refuses and which would cost a third of the tick in code size. Nothing
+ * here needs it - no C function below calls into ASM while holding Light state,
+ * and cc65 reloads a global across any call anyway.
+ */
+#pragma bss-name ("HYBRID_LIGHT_SLOTS")
+uint8_t light_state[LIGHT_SLOT_COUNT];
+uint8_t light_hp[LIGHT_SLOT_COUNT];
+uint8_t light_x[LIGHT_SLOT_COUNT];
+uint8_t light_y[LIGHT_SLOT_COUNT];
+uint8_t light_fire_timer[LIGHT_SLOT_COUNT];
+uint8_t light_burst_left[LIGHT_SLOT_COUNT];
+/* Byte offset into enemy_archetypes (12 / 24), per slot. */
+uint8_t light_archetype[LIGHT_SLOT_COUNT];
+/* The slot's left screen code. Written at admission and kept consistent from
+ * step 1a on; the ASM still uses the LIGHT_SCREEN_CODE constant until step 3
+ * gives the appearance pairs more than one value to choose between. */
+uint8_t light_code[LIGHT_SLOT_COUNT];
+uint8_t light_screen_lo[LIGHT_SLOT_COUNT];
+uint8_t light_screen_hi[LIGHT_SLOT_COUNT];
+uint8_t light_backing[LIGHT_SLOT_COUNT * LIGHT_CELL_COUNT];
 #pragma bss-name ("HYBRID_LIGHT_STATE")
-volatile uint8_t light_state;
-volatile uint8_t light_hp;
-volatile uint8_t light_x;
-volatile uint8_t light_y;
-volatile uint8_t light_fire_timer;
-volatile uint8_t light_leaderless;
-volatile uint8_t light_screen_lo;
-volatile uint8_t light_screen_hi;
-volatile uint8_t light_backing0;
-volatile uint8_t light_backing1;
+/* Shared scalars. light_slot is the slot ASM is ticking and C is indexing;
+ * everything else is per-tick scratch. The rest of the 16-byte area is free
+ * for the token and wave bytes of plan §2.5 and §2.4. */
+volatile uint8_t light_slot;
 volatile uint8_t light_scratch;
 volatile uint8_t light_slot_save;
-volatile uint8_t light_archetype_offset;
-volatile uint8_t light_burst_left;
 volatile uint8_t light_target_x;
-volatile uint8_t light_post_burst_slot;
+/* cc65 stores an indexed lvalue with `sta abs,y` only when the value is a
+ * plain load; arithmetic in place builds a runtime pointer (ptr1). These hold
+ * the load-compute-store intermediate, as heavy_scratch does for the Heavy. */
+static uint8_t light_work;
+/* The ticked slot's archetype offset, hoisted once per entry so LIGHT_FIELD
+ * stays a plain lvalue index and cc65 keeps emitting `lda enemy_archetypes+f,y`
+ * instead of building a pointer. */
+static uint8_t light_record;
+/* Second load-compute-store temporary: the tick needs one for the Y/X motion
+ * and one for the fire cadence at the same time. Deliberately NOT the volatile
+ * light_scratch, which ASM owns inside light_update and light_shot. */
+static uint8_t light_fire_work;
+/* The post-burst column: archetype offset + difficulty, resolved at admission
+ * and, like light_record, kept a plain index. */
+static uint8_t light_post_burst_slot;
 #pragma bss-name ("BSS")
 
 static void heavy_publish_profile(void);
@@ -256,10 +314,27 @@ static void heavy_publish_profile(void);
 /* Reload the selected Light archetype's post-burst pause for this difficulty.
  * The three per-difficulty fields are adjacent, so one 8-bit index reaches
  * both the archetype record and the difficulty column. */
+/* Light-class C in the code window $B600-$BBFF (owner decision X). It left
+ * HYBRID_C_EXT because the SoA indexing grew it past the extension's tail:
+ * MEASURED +242 B for the slot indexing alone, against 613 B of extension
+ * before, which overflowed LIGHT_CODE's run window by 175 B. The window is
+ * where plan §3.1 puts it; only the timing is earlier than §6 expected. */
+#pragma code-name (push, "HYBRID_C_WINDOW")
+#pragma rodata-name (push, "HYBRID_C_WINDOW_RODATA")
+
 static void light_reload(void)
 {
-    light_fire_timer =
+    /* Difficulty is fixed for a game and the archetype for a slot's life, but
+     * the column is now resolved per reload rather than held per slot: one
+     * add against a byte of per-slot state (plan §2.1, "derived and dropped").
+     * light_record is the ticked slot's offset, hoisted by the caller. */
+    light_post_burst_slot = (uint8_t)(light_record + DIFFICULTY_SETTING);
+    /* Through a scalar, not straight into the array: cc65 cannot hold two
+     * indices at once and builds a ptr1 pointer for the destination if the
+     * value is itself an indexed load. Same reason everywhere below. */
+    light_fire_work =
         (&enemy_archetypes.byte[ENEMY_ARCHETYPE_FIELD_POST_BURST])[light_post_burst_slot];
+    light_fire_timer[light_slot] = light_fire_work;
 }
 
 /* PROVISIONAL smoke scheduling only (see encounter_light_schedule above).
@@ -267,12 +342,16 @@ static void light_reload(void)
  * below only reads it and holds no ordering or toggle logic of its own. */
 static void encounter_light_schedule_advance(void)
 {
-    light_archetype_offset = encounter_light_schedule[encounter_light_index];
+    light_record = encounter_light_schedule[encounter_light_index];
+    light_archetype[light_slot] = light_record;
     ++encounter_light_index;
     if (encounter_light_index >= ENCOUNTER_LIGHT_SCHEDULE_LENGTH) {
         encounter_light_index = 0u;
     }
 }
+
+#pragma code-name (pop)
+#pragma rodata-name (pop)
 
 void lifecycle_c_init(void)
 {
@@ -283,11 +362,20 @@ void lifecycle_c_init(void)
     ENEMY_HP_0 = 0u;
     ENEMY_HP_1 = 0u;
     ENEMY_LIVE_COUNT = 0u;
-    light_state = ENEMY_INACTIVE;
-    light_burst_left = 0u;
+    /* Every slot, not only the one in use: the range is boot-time A2 staging
+     * before gameplay init, so nothing here may be assumed zero. */
+    light_slot = LIGHT_SLOT_COUNT;
+    do {
+        --light_slot;
+        light_state[light_slot] = ENEMY_INACTIVE;
+        light_burst_left[light_slot] = 0u;
+        /* the rebuilt playfield has no Light backing */
+        light_screen_hi[light_slot] = 0u;
+        light_code[light_slot] = LIGHT_SCREEN_CODE;
+        light_archetype[light_slot] = LIGHT_OFFSET_WINGMAN;
+    } while (light_slot != 0u);
     encounter_light_index = 0u;
     encounter_heavy_index = 0u;
-    light_screen_hi = 0u;       /* the rebuilt playfield has no Light backing */
     ENEMY_ARCHETYPE = ROSTER_SHAPE_RAIDER;
     heavy_archetype_offset = HEAVY_OFFSET_RAIDER;
     heavy_hull_colour = HULL_COLOUR_RAIDER;
@@ -382,27 +470,33 @@ uint8_t sector_c_force_final_drain(void)
 
 /* The Light escort admission of a Heavy formation. A Light still descending
  * from an earlier formation keeps its lifecycle. */
+#pragma code-name (push, "HYBRID_C_WINDOW")
+#pragma rodata-name (push, "HYBRID_C_WINDOW_RODATA")
+
 static void encounter_light_admit(void)
 {
-    if (light_state == ENEMY_INACTIVE) {
+    light_slot = 0u;                    /* step 1a fills slot 0 only */
+    if (light_state[light_slot] == ENEMY_INACTIVE) {
         encounter_light_schedule_advance();
-        /* Difficulty is fixed for a game and the archetype for a life, so the
-         * post-burst column is resolved once here and stays a plain index. */
-        light_post_burst_slot =
-            (uint8_t)(light_archetype_offset + DIFFICULTY_SETTING);
-        light_state = ENEMY_ACTIVE_STATE;
-        light_hp = LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_HIT_POINTS);
-        light_burst_left = 0u;
-        light_y = 0u;
-        if (light_archetype_offset == LIGHT_OFFSET_WINGMAN) {
-            light_leaderless = 0u;      /* takes its leader's column and lag */
+        light_work = LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_HIT_POINTS);
+        light_hp[light_slot] = light_work;
+        light_burst_left[light_slot] = 0u;
+        light_y[light_slot] = 0u;
+        light_code[light_slot] = LIGHT_SCREEN_CODE;
+        if (light_record == LIGHT_OFFSET_WINGMAN) {
+            /* takes its leader's column and lag */
+            light_state[light_slot] = LIGHT_ACTIVE_ESCORT;
         } else {
-            light_leaderless = 1u;      /* no leader, ever: free-flying hunter */
-            light_x = LIGHT_X_ENTRY;
+            /* no leader, ever: free-flying hunter */
+            light_state[light_slot] = LIGHT_ACTIVE_FREE;
+            light_x[light_slot] = LIGHT_X_ENTRY;
         }
         light_reload();
     }
 }
+
+#pragma code-name (pop)
+#pragma rodata-name (pop)
 
 uint8_t enemy_c_retire_member(void)
 {
@@ -455,69 +549,90 @@ void enemy_c_recycle(void)
 
 /* Once per gameplay frame. Returns the selected record's weapon class (never
  * zero) when the Light fires, 0 otherwise; ASM tags the shot with it. */
+#pragma code-name (push, "HYBRID_C_WINDOW")
+#pragma rodata-name (push, "HYBRID_C_WINDOW_RODATA")
+
 uint8_t enemy_c_light_tick(void)
 {
-    if (light_state == ENEMY_INACTIVE) {
+    /* ASM sets light_slot before the call; step 1a always passes slot 0. */
+    if (light_state[light_slot] == ENEMY_INACTIVE) {
         return 0u;
     }
     if (CAPITAL_SECTOR_STATE != SECTOR_FIGHTER) {
-        light_state = ENEMY_INACTIVE;       /* fighter-only lifecycle */
+        /* fighter-only lifecycle */
+        light_state[light_slot] = ENEMY_INACTIVE;
         return 0u;
     }
-    if (light_leaderless == 0u && ENEMY_MEMBER_STATE_0 != ENEMY_ACTIVE_STATE) {
-        light_leaderless = 1u;
+    light_record = light_archetype[light_slot];
+    if (light_state[light_slot] == LIGHT_ACTIVE_ESCORT &&
+        ENEMY_MEMBER_STATE_0 != ENEMY_ACTIVE_STATE) {
+        light_state[light_slot] = LIGHT_ACTIVE_FREE;
     }
-    if (light_leaderless != 0u) {
+    if (light_state[light_slot] != LIGHT_ACTIVE_ESCORT) {
         /* Free flight. A Wingman that lost its leader drifts straight down at
          * the Heavy descent rate; an Interceptor is born free-flying, descends
          * at twice that rate and closes on the player's column one four-HPOS
          * cell every other frame, which averages the player's own maximum
          * horizontal speed. PLAYER_X_MIN equals LIGHT_X_FIRST, so only the
          * upper bound needs clamping, exactly as the formation branch does. */
-        ++light_y;
-        if (light_archetype_offset != LIGHT_OFFSET_WINGMAN) {
-            ++light_y;
-            if ((light_y & INTERCEPTOR_TRACK_PHASE) == 0u) {
+        light_work = (uint8_t)(light_y[light_slot] + 1u);
+        if (light_record != LIGHT_OFFSET_WINGMAN) {
+            ++light_work;
+            light_y[light_slot] = light_work;
+            if ((light_work & INTERCEPTOR_TRACK_PHASE) == 0u) {
                 light_target_x = (uint8_t)(PLAYER_X & 0xFCu);
                 if (light_target_x > LIGHT_X_LAST) {
                     light_target_x = LIGHT_X_LAST;
                 }
-                if (light_x < light_target_x) {
-                    light_x = (uint8_t)(light_x + LIGHT_X_STEP);
-                } else if (light_x > light_target_x) {
-                    light_x = (uint8_t)(light_x - LIGHT_X_STEP);
+                light_work = light_x[light_slot];
+                if (light_work < light_target_x) {
+                    light_work = (uint8_t)(light_work + LIGHT_X_STEP);
+                    light_x[light_slot] = light_work;
+                } else if (light_work > light_target_x) {
+                    light_work = (uint8_t)(light_work - LIGHT_X_STEP);
+                    light_x[light_slot] = light_work;
                 }
+                light_work = light_y[light_slot];
             }
+        } else {
+            light_y[light_slot] = light_work;
         }
-        if (light_y >= LIGHT_RETIRE_Y) {
-            light_state = ENEMY_INACTIVE;
+        if (light_work >= LIGHT_RETIRE_Y) {
+            light_state[light_slot] = ENEMY_INACTIVE;
             return 0u;
         }
     } else {
-        light_x = (uint8_t)((ENEMY_X_0 + LIGHT_CENTRE_OFFSET + LIGHT_ROUND) & 0xFCu);
-        if (light_x > LIGHT_X_LAST) {
-            light_x = LIGHT_X_LAST;
+        light_work = (uint8_t)((ENEMY_X_0 + LIGHT_CENTRE_OFFSET + LIGHT_ROUND) & 0xFCu);
+        if (light_work > LIGHT_X_LAST) {
+            light_work = LIGHT_X_LAST;
         }
+        light_x[light_slot] = light_work;
         if (ENEMY_Y_0 < LIGHT_LAG_Y) {
-            light_y = 0u;
+            light_work = 0u;
         } else {
-            light_y = (uint8_t)(ENEMY_Y_0 - LIGHT_LAG_Y);
+            light_work = (uint8_t)(ENEMY_Y_0 - LIGHT_LAG_Y);
         }
+        light_y[light_slot] = light_work;
     }
-    if (light_fire_timer != 0u) {
-        --light_fire_timer;
+    light_fire_work = light_fire_timer[light_slot];
+    if (light_fire_work != 0u) {
+        --light_fire_work;
+        light_fire_timer[light_slot] = light_fire_work;
         return 0u;
     }
-    if (light_y < LIGHT_FIRE_TOP || light_y >= LIGHT_FIRE_BOTTOM ||
+    if (light_work < LIGHT_FIRE_TOP || light_work >= LIGHT_FIRE_BOTTOM ||
         (PLAYER_LIFECYCLE & 1u) != 0u) {
         return 0u;
     }
-    if (light_burst_left == 0u) {
-        light_burst_left = LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_BURST_COUNT);
+    light_fire_work = light_burst_left[light_slot];
+    if (light_fire_work == 0u) {
+        light_fire_work = LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_BURST_COUNT);
     }
-    --light_burst_left;
-    if (light_burst_left != 0u) {
-        light_fire_timer = LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_BURST_INTERVAL);
+    --light_fire_work;
+    light_burst_left[light_slot] = light_fire_work;
+    if (light_fire_work != 0u) {
+        light_fire_work = LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_BURST_INTERVAL);
+        light_fire_timer[light_slot] = light_fire_work;
     } else {
         light_reload();
     }
@@ -528,12 +643,17 @@ uint8_t enemy_c_light_tick(void)
  * an active Light, whose HP is therefore at least one. Returns 1 when lethal. */
 uint8_t enemy_c_light_hit(void)
 {
-    if (--light_hp != 0u) {
+    light_work = (uint8_t)(light_hp[light_slot] - 1u);
+    light_hp[light_slot] = light_work;
+    if (light_work != 0u) {
         return 0u;
     }
-    light_state = ENEMY_INACTIVE;
+    light_state[light_slot] = ENEMY_INACTIVE;
     return 1u;
 }
+
+#pragma code-name (pop)
+#pragma rodata-name (pop)
 
 /* Heavy formation data and policy (roadmap 4.5c), placed in the reusable
  * runtime arena $7BD0-$7F0F (4.5M-M3). */
@@ -556,8 +676,12 @@ uint8_t enemy_c_light_hit(void)
  * makes it reusable at both boundaries. */
 uint8_t sector_c_drain_clear(void)
 {
-    if (asm_sector_pressure_active() != 0u || light_state != ENEMY_INACTIVE ||
-        light_screen_hi != 0u) {
+    /* Step 1a: slot 0 only. Step 3 widens this to every slot, which is why the
+     * clause is written against light_slot rather than against a constant. */
+    light_slot = 0u;
+    if (asm_sector_pressure_active() != 0u ||
+        light_state[light_slot] != ENEMY_INACTIVE ||
+        light_screen_hi[light_slot] != 0u) {
         return 0u;
     }
     return 1u;

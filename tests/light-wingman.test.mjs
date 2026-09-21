@@ -69,14 +69,23 @@ function game(difficulty = 2) {
   return image;
 }
 
-const light = (image) => ({
-  state: image[L("light_state")],
-  hp: image[L("light_hp")],
-  x: image[L("light_x")],
-  y: image[L("light_y")],
-  timer: image[L("light_fire_timer")],
-  leaderless: image[L("_light_leaderless")],
+// REBASELINED for Light multiplicity (plan §2.1): the per-Light state is a
+// structure of arrays indexed by light_slot, so each label is the base of a
+// four-byte array and slot 0 is what these tests drive. light_leaderless is
+// gone - it is now the light_state VALUE (1 escort, 2 free), so the derived
+// field below keeps the old assertions readable without keeping the byte.
+const SLOT = 0;
+const light = (image, slot = SLOT) => ({
+  state: image[L("light_state") + slot] === 0 ? 0 : 1,
+  hp: image[L("light_hp") + slot],
+  x: image[L("light_x") + slot],
+  y: image[L("light_y") + slot],
+  timer: image[L("light_fire_timer") + slot],
+  leaderless: image[L("light_state") + slot] === 2 ? 1 : 0,
 });
+const setLeaderless = (image, value, slot = SLOT) => {
+  image[L("light_state") + slot] = value === 0 ? 1 : 2;
+};
 
 function setLeader(image, x, y, state = 1) {
   image[L("ENEMY_MEMBER_STATE")] = state;
@@ -328,7 +337,8 @@ test("late publication erases PairShots first, then unwinds and republishes the 
   run(image, "light_publish");
   assert.equal(image[L("FIGHTER_PROJECTILE_RENDERED") + slot], 0, "PairShots are erased first");
   assert.deepEqual([image[left], image[left + 1]], [LIGHT_CODE_LEFT, LIGHT_CODE_LEFT + 1]);
-  assert.deepEqual([image[L("light_backing0")], image[L("light_backing1")]], [0x05, 0x00],
+  // Cell-major backing: slot 0's two cells are the first two bytes.
+  assert.deepEqual([image[L("light_backing0")], image[L("light_backing0") + 1]], [0x05, 0x00],
     "shot underlay and CH_SPACE, never a PairShot or near-star glyph");
   assert.equal(image[L("light_screen_lo")] | image[L("light_screen_hi")] << 8, left);
 
@@ -376,7 +386,11 @@ test("fighter->capital waits for the Light and capital->fighter re-admits a fres
   assert.equal(run(image, "sector_update_first_capital").a, 1);
   assert.equal(image[state], 0);
 
-  image[L("_light_leaderless")] = 1;
+  // REBASELINED: this used to poke a stale light_leaderless = 1 and prove the
+  // fresh admission cleared it. That byte is gone - "leaderless" is now the
+  // light_state VALUE - so a stale flag cannot outlive the retirement by
+  // construction, and poking one here would instead read as a live slot and
+  // block the re-admission the test is about.
   image[state] = 7;                   // post-capital OPEN
   // The provisional schedule advanced past Wingman on the first admission;
   // preset it back to demonstrate the fresh Wingman re-admission explicitly,

@@ -32,6 +32,11 @@ LIGHT_SCORE_BCD = ENEMY_ARCHETYPE_TABLE+10      ; indexed by LIGHT_ARCHETYPE_OFF
 ; footprint therefore never enters it, so the late erase never writes into a
 ; recycled row.
 LIGHT_RENDER_BOTTOM = ENTITY_GAMEPLAY_BOTTOM-8
+; Light multiplicity (plan §2.1): the per-slot state is a structure of arrays
+; and the backing is one CELL-MAJOR array, so LIGHT_BACKING0/1 name the two
+; cells of the slot ASM has selected. The generated include gives the base;
+; cell 1 is the byte after it, exactly as the two scalars were adjacent.
+LIGHT_BACKING1 = LIGHT_BACKING0+1
 
 .assert LIGHT_GLYPH = 120, error, "Light glyphs must reuse the retired pickup bank"
 .assert (LIGHT_SCREEN_CODE & (LIGHT_CELL_COUNT-1)) = 0, error, "Light cell index must be the low code bits"

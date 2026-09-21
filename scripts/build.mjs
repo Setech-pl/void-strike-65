@@ -805,10 +805,11 @@ function renderDirectorAbiInclude(labelBytes) {
     ["LIGHT_SCREEN_LO", "light_screen_lo"],
     ["LIGHT_SCREEN_HI", "light_screen_hi"],
     ["LIGHT_BACKING0", "light_backing0"],
-    ["LIGHT_BACKING1", "light_backing1"],
     ["LIGHT_SCRATCH", "light_scratch"],
     ["LIGHT_SLOT_SAVE", "light_slot_save"],
+    ["LIGHT_SLOT", "light_slot"],
     ["LIGHT_ARCHETYPE_OFFSET", "light_archetype_offset"],
+    ["LIGHT_CODE", "light_code"],
   ];
   for (const [, name] of symbols) {
     if (!Number.isInteger(labels.get(name))) throw new Error(`Hybrid ABI symbol ${name} is missing`);

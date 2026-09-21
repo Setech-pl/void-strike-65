@@ -68,16 +68,22 @@ function game(difficulty = 2) {
   return image;
 }
 
-const light = (image) => ({
-  state: image[L("light_state")],
-  hp: image[L("light_hp")],
-  x: image[L("light_x")],
-  y: image[L("light_y")],
-  timer: image[L("light_fire_timer")],
-  leaderless: image[L("_light_leaderless")],
-  offset: image[L("light_archetype_offset")],
-  burstLeft: image[L("_light_burst_left")],
-  postBurstSlot: image[L("_light_post_burst_slot")],
+// REBASELINED for Light multiplicity (plan §2.1). Three changes, all shape:
+// the per-Light bytes are four-byte arrays indexed by light_slot (slot 0 here);
+// light_leaderless is gone, folded into the light_state VALUE (1 escort, 2
+// free); and light_post_burst_slot is gone, recomputed per reload from the
+// archetype offset and the difficulty (plan §2.1 "derived and dropped"), so
+// the assertion that used to read it now reads the pause it produces.
+const SLOT = 0;
+const light = (image, slot = SLOT) => ({
+  state: image[L("light_state") + slot] === 0 ? 0 : 1,
+  hp: image[L("light_hp") + slot],
+  x: image[L("light_x") + slot],
+  y: image[L("light_y") + slot],
+  timer: image[L("light_fire_timer") + slot],
+  leaderless: image[L("light_state") + slot] === 2 ? 1 : 0,
+  offset: image[L("light_archetype_offset") + slot],
+  burstLeft: image[L("_light_burst_left") + slot],
 });
 
 // Selects the archetype the next admission will use, via the one legitimate
@@ -117,25 +123,33 @@ test("a second admission while the slot is active changes neither the archetype 
 test("source contract: the Light admission and tick hold no ordering or toggle logic", () => {
   assert.doesNotMatch(lifecycleSource, /ALTERNATE/i,
     "the rejected per-admission alternation must not return");
-  assert.doesNotMatch(lifecycleSource, /light_archetype_offset\s*\^=/,
+  // REBASELINED for Light multiplicity: the selected offset is now the per-slot
+  // light_archetype[] array plus the light_record scalar the tick hoists it
+  // into, so the single-writer rule is stated against those two names. The
+  // contract itself is unchanged: only the schedule names the archetype.
+  assert.doesNotMatch(lifecycleSource, /light_archetype\[[^\]]*\]\s*\^=/,
     "no XOR toggle of the selected archetype");
-  const assignments = [...lifecycleSource.matchAll(/light_archetype_offset\s*=[^=]/g)];
-  assert.equal(assignments.length, 1,
-    "light_archetype_offset has exactly one writer in the whole file");
+  const assignments = [...lifecycleSource.matchAll(/light_archetype\[[^\]]*\]\s*=[^=]/g)];
+  assert.equal(assignments.length, 2,
+    "light_archetype[] has two writers: the schedule, and the per-slot clear in init");
   const scheduleFunction = lifecycleSource.slice(
     lifecycleSource.indexOf("static void encounter_light_schedule_advance"),
     lifecycleSource.indexOf("void lifecycle_c_init"));
-  assert.match(scheduleFunction, /light_archetype_offset\s*=\s*encounter_light_schedule\[encounter_light_index\]/);
+  assert.match(scheduleFunction,
+    /light_record\s*=\s*encounter_light_schedule\[encounter_light_index\]/);
+  assert.match(scheduleFunction, /light_archetype\[light_slot\]\s*=\s*light_record/);
   // The reusable admission and tick only ever read the offset.
   const spawnRaiders = lifecycleSource.slice(
     lifecycleSource.indexOf("void enemy_c_spawn_raiders"),
     lifecycleSource.indexOf("uint8_t enemy_c_retire_member"));
-  assert.doesNotMatch(spawnRaiders, /light_archetype_offset\s*=(?!=)/,
+  assert.doesNotMatch(spawnRaiders, /light_archetype\[[^\]]*\]\s*=(?!=)/,
     "enemy_c_spawn_raiders must not itself assign the offset outside the schedule call");
   const lightTick = lifecycleSource.slice(
     lifecycleSource.indexOf("uint8_t enemy_c_light_tick"));
-  assert.doesNotMatch(lightTick, /light_archetype_offset\s*=(?!=)/,
+  assert.doesNotMatch(lightTick, /light_archetype\[[^\]]*\]\s*=(?!=)/,
     "enemy_c_light_tick only reads the offset");
+  // The tick hoists it once, and only there.
+  assert.match(lightTick, /light_record\s*=\s*light_archetype\[light_slot\]/);
 });
 
 test("provisional schedule: a fresh game yields Wingman then Interceptor, then repeats", () => {
@@ -147,8 +161,10 @@ test("provisional schedule: a fresh game yields Wingman then Interceptor, then r
   const image = game();
   const admit = () => {
     run(image, "enemy_spawn_raiders");
-    const formation = [image[L("heavy_archetype_offset")], image[L("light_state")],
-      image[L("light_state")] === 0 ? null : light(image).offset];
+    // light(image).state normalises the two alive values (1 escort, 2 free)
+    // that replaced the light_leaderless byte.
+    const formation = [image[L("heavy_archetype_offset")], light(image).state,
+      light(image).state === 0 ? null : light(image).offset];
     image[L("light_state")] = 0;      // retire so the next call re-admits
     return formation;
   };
@@ -166,10 +182,12 @@ test("admission per difficulty: entry x 124, leaderless, and the record's own po
     const image = game(difficulty);
     selectNextLight(image, OFFSET_INTERCEPTOR);
     run(image, "enemy_spawn_raiders");
+    // `timer: pause` IS the post-burst column assertion now that the resolved
+    // index is no longer kept as state: 56/44/32 are the Interceptor record's
+    // three difficulty columns, so a wrong column shows here.
     assert.deepEqual(light(image), {
       state: 1, hp: 1, x: 124, y: 0, timer: pause, leaderless: 1,
       offset: OFFSET_INTERCEPTOR, burstLeft: 0,
-      postBurstSlot: OFFSET_INTERCEPTOR + difficulty,
     });
   }
 });
@@ -325,20 +343,41 @@ test("placement contract: legal composite and packed size, state inside its rese
   // projectile cleanup left ENTITY_CODE, so the art tables moved down 27 B.
   // Death-frame deferral (2026-09-17): player_dying_tick (+18 B) is the new
   // ENTITY_CODE tail behind the unmoved art tables.
-  assert.equal(manifest.entityEffects.codeBytes, 3144);
-  assert.equal(manifest.residentCapacity.tails.entityCode, 22);
+  // REBASELINED. The first three numbers below were ALREADY stale at 82c155b -
+  // ENTITY_CODE measured 3,165 B with a 1-B tail there, not 3,144 / 22 - which
+  // is why this test is in the pre-existing failure set; they are corrected
+  // here rather than left red under a placement change.
+  assert.equal(manifest.entityEffects.codeBytes, 3165);
+  assert.equal(manifest.residentCapacity.tails.entityCode, 1);
   // 4.5c Bomber: HEAVY_CODE joins the extension composite; PICKUP_CODE +4 B.
   assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 7);
-  // 4.5d: the per-member colour write (+9 B HEAVY_CODE) leaves 19 B (floor 16).
-  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 19);
-  assert.equal(L("light_glyph"), 0x9d16);
-  assert.equal(L("light_interceptor_glyph"), 0x9d26);
-  assert.equal(L("light_archetype_offset"), 0x810c);
-  assert.equal(L("_light_burst_left"), 0x810d);
-  assert.equal(L("_light_target_x"), 0x810e);
-  assert.equal(L("_light_post_burst_slot"), 0x810f);
-  assert.deepEqual([L("__HYBRID_LIGHT_STATE_RUN__"), L("__HYBRID_LIGHT_STATE_SIZE__")],
+  // Owner decision X + Light multiplicity step 1a: the Light C left the
+  // extension for the code window at $B600, so the scarce 19-B tail that
+  // needed an owner floor is now 351 B - the largest resident hole since
+  // 4.3 Stage 1, and one of the two reasons the decision was taken.
+  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 351);
+  assert.equal(L("light_glyph"), 0x9d2b);
+  assert.equal(L("light_interceptor_glyph"), 0x9d3b);
+  // REBASELINED for Light multiplicity: HYBRID_LIGHT_STATE keeps only the
+  // SHARED scalars; the per-slot state is 48 B of SoA arrays at $7FC4-$7FF3,
+  // in the 60 unassigned bytes above the A2 display lists.
+  assert.equal(L("light_slot"), 0x8100);
+  assert.equal(L("_light_scratch"), 0x8101);
+  assert.equal(L("_light_slot_save"), 0x8102);
+  // The AREA is still exactly $8100-$810F; the shared scalars now use 8 of it,
+  // and the 8 free bytes are what the token and wave state of plan §2.4/§2.5
+  // will occupy.
+  assert.deepEqual([L("__HYBRID_LIGHT_STATE_RAM_START__"), L("__HYBRID_LIGHT_STATE_RAM_SIZE__")],
     [0x8100, 0x10], "HYBRID_LIGHT_STATE is exactly $8100-$810F");
+  assert.equal(L("__HYBRID_LIGHT_STATE_SIZE__"), 8, "shared Light scalars, 8 B of the 16");
+  assert.deepEqual([L("__HYBRID_LIGHT_SLOTS_RUN__"), L("__HYBRID_LIGHT_SLOTS_SIZE__")],
+    [0x7fc4, 48], "the four SoA slots are 48 B at $7FC4-$7FF3");
+  assert.ok(L("__HYBRID_LIGHT_SLOTS_RAM_LAST__") <= 0x8000,
+    "the slot arrays must stop before ENTITY_STATE at $8000");
+  assert.equal(L("light_state"), 0x7fc4);
+  // Cell-major backing: LIGHT_SLOT_COUNT * LIGHT_CELL_COUNT = 8 B, so the two
+  // cells of a slot are adjacent and the erase/render loops index by cell.
+  assert.equal(L("light_backing0") - L("light_state"), 4 * 7);
   // cc65 emits the HYBRID_ENCOUNTER_STATE bytes in reverse declaration order.
   assert.equal(L("_encounter_heavy_index"), 0x8119);
   assert.equal(L("_encounter_light_index"), 0x811a);

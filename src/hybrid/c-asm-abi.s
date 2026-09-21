@@ -47,7 +47,7 @@ DIRECTOR_LOW_BYTES = 242
 .import _enemy_archetypes
 .import _light_state, _light_hp, _light_x, _light_y, _light_fire_timer
 .import _light_screen_lo, _light_screen_hi
-.import _light_backing, _light_scratch, _light_slot_save
+.import _light_backing, _light_resolve_save, _light_scratch, _light_slot_save
 .import _light_slot, _light_archetype, _light_code
 .import _enemy_profile_movement_id, _enemy_profile_fire_policy_id
 .import _enemy_profile_burst_count, _enemy_profile_burst_interval
@@ -100,7 +100,7 @@ DIRECTOR_LOW_BYTES = 242
 .export light_state, light_hp, light_x, light_y, light_fire_timer
 .export light_screen_lo, light_screen_hi
 .export light_backing0, light_backing1, light_scratch, light_slot_save
-.export light_slot, light_archetype_offset, light_code
+.export light_slot, light_archetype_offset, light_code, light_resolve_save
 
 .segment "DIRECTOR_ABI"
 
@@ -275,6 +275,8 @@ light_screen_hi = _light_screen_hi
 ; base ASM has selected, exactly as the two scalars did.
 light_backing0 = _light_backing
 light_backing1 = _light_backing+1
+; ASM-owned scratch: the resolver's hold for the caller's X.
+light_resolve_save = _light_resolve_save
 light_scratch = _light_scratch
 light_slot_save = _light_slot_save
 ; The slot C indexes and ASM is ticking. Step 1a writes 0 and nothing else.

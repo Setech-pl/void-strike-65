@@ -284,6 +284,11 @@ uint8_t light_code[LIGHT_SLOT_COUNT];
 uint8_t light_screen_lo[LIGHT_SLOT_COUNT];
 uint8_t light_screen_hi[LIGHT_SLOT_COUNT];
 uint8_t light_backing[LIGHT_SLOT_COUNT * LIGHT_CELL_COUNT];
+/* ASM-owned, C never reads or writes it: the backing resolver's hold for the
+ * caller's X while it scans the slots. It lives here rather than in the 16-B
+ * shared area so that area stays whole for the token and wave bytes of plan
+ * §2.5 and §2.4. */
+uint8_t light_resolve_save;
 #pragma bss-name ("HYBRID_LIGHT_STATE")
 /* Shared scalars. light_slot is the slot ASM is ticking and C is indexing;
  * everything else is per-tick scratch. The rest of the 16-byte area is free

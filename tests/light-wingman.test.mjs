@@ -370,9 +370,27 @@ test("late publication erases PairShots first, then unwinds and republishes the 
   assert.equal(image[L("light_screen_lo")] | image[L("light_screen_hi")] << 8, left);
 
   // Debris/effects rendered over the still-visible Light inherit its backing.
-  const resolved = run(image, "light_cell_resolve", { a: LIGHT_CODE_LEFT + 1, x: 7, y: 1 });
+  // REBASELINED for step 1c: the resolver is keyed by SCREEN ADDRESS, so the
+  // caller's dst_ptr is now part of the question and not just the code.
+  const resolveAt = (address, options) => {
+    image[L("dst_ptr")] = address & 0xff;
+    image[L("dst_ptr") + 1] = address >> 8;
+    return run(image, "light_cell_resolve", options);
+  };
+  const resolved = resolveAt(left + 1, { a: LIGHT_CODE_LEFT + 1, x: 7, y: 1 });
   assert.deepEqual([resolved.a, resolved.x, resolved.y], [0x00, 7, 1]);
-  assert.equal(run(image, "light_cell_resolve", { a: 0x33 }).a, 0x33, "other codes unchanged");
+  assert.equal(resolveAt(left, { a: LIGHT_CODE_LEFT }).a, 0x05, "cell 0 gets its own backing");
+  assert.equal(resolveAt(left, { a: 0x33 }).a, 0x33, "other codes unchanged");
+  // The contract the address key exists for: the SAME code at a cell no slot
+  // published is left alone. Under the old code-keyed resolver this returned
+  // slot 0's backing and would have corrupted a second slot's cell.
+  assert.equal(resolveAt(left + 40, { a: LIGHT_CODE_LEFT }).a, LIGHT_CODE_LEFT,
+    "a Light code at an address no slot owns keeps its capture");
+  assert.equal(resolveAt(left - 1, { a: LIGHT_CODE_LEFT + 1 }).a, LIGHT_CODE_LEFT + 1,
+    "one cell before the published pair is not owned either");
+  // X and Y are preserved on every path (debris captures cell 1 with Y = 1).
+  const missed = resolveAt(left + 40, { a: LIGHT_CODE_LEFT, x: 7, y: 1 });
+  assert.deepEqual([missed.x, missed.y], [7, 1]);
   assert.equal(run(image, "light_cell_resolve_sanitized", { a: 1 }).a, 0, "near star sanitised");
 
   // A lower layer overwrote the left cell; the Light then retires.
@@ -428,6 +446,48 @@ test("fighter->capital waits for the Light and capital->fighter re-admits a fres
   image[L("_encounter_heavy_index")] = 0;
   run(image, "enemy_spawn_raiders");
   assert.deepEqual([light(image).state, light(image).hp, light(image).leaderless], [1, 1, 0]);
+});
+
+// Step 1c. The resolver's whole reason for changing: with several slots the
+// code no longer names a cell, because two slots may carry the SAME code and
+// slot count and code count are independent. Only the ASM contract is driven
+// here - the render/erase loops are still single-slot until step 3 - so the
+// other slots' published state is written directly, which is what ASM does.
+test("the resolver answers by screen address, so two slots sharing a code stay apart", () => {
+  const image = game();
+  run(image, "enemy_spawn_raiders");
+  image[L("light_x")] = 100;
+  image[L("light_y")] = 100;
+  const zero = cell(image, 9, 13);
+  image[zero] = 0x05;                      // plain underlay the publish captures
+  image[zero + 1] = 0x06;
+  run(image, "light_publish");
+  assert.equal(image[L("light_screen_lo")] | image[L("light_screen_hi")] << 8, zero);
+
+  // Slot 1 publishes the SAME code pair two rows down, with its own backing.
+  const one = cell(image, 11, 20);
+  image[L("light_screen_lo") + 1] = one & 0xff;
+  image[L("light_screen_hi") + 1] = one >> 8;
+  image[L("light_backing0") + 2] = 0x41;   // cell-major: slot 1, cell 0
+  image[L("light_backing0") + 3] = 0x42;   // slot 1, cell 1
+
+  const resolveAt = (address, a) => {
+    image[L("dst_ptr")] = address & 0xff;
+    image[L("dst_ptr") + 1] = address >> 8;
+    return run(image, "light_cell_resolve", { a, x: 7, y: 1 });
+  };
+  // Same code at four addresses; four different answers, each the owner's own.
+  assert.equal(resolveAt(zero, LIGHT_CODE_LEFT).a, 0x05, "slot 0 cell 0");
+  assert.equal(resolveAt(zero + 1, LIGHT_CODE_LEFT).a, 0x06, "slot 0 cell 1");
+  assert.equal(resolveAt(one, LIGHT_CODE_LEFT).a, 0x41, "slot 1 cell 0");
+  assert.equal(resolveAt(one + 1, LIGHT_CODE_LEFT).a, 0x42, "slot 1 cell 1");
+  // A slot that is not on screen owns nothing, whatever its stale bytes say.
+  image[L("light_screen_hi") + 1] = 0;
+  assert.equal(resolveAt(one, LIGHT_CODE_LEFT).a, LIGHT_CODE_LEFT,
+    "screen_hi = 0 means the slot is not on screen and owns no cell");
+  // X and Y survive the slot scan on both paths.
+  const kept = resolveAt(one, LIGHT_CODE_LEFT);
+  assert.deepEqual([kept.x, kept.y], [7, 1]);
 });
 
 test("hooks are operand-only redirections and the Light publishes only in the late window", () => {

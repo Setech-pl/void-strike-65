@@ -978,6 +978,42 @@ milestones move +22 in total (loader 297 → 319, menu 554 → 576), inside the
 `boot-deadline-baseline.json`; boot smoke 8/8, and the image at `$A600` is
 now verified byte-exact against `build/level-1.bin` on every session.
 
+### Light multiplicity step 1c (2026-09-21) — the backing resolver is keyed by screen address
+
+`light_cell_resolve` used to read the Light code as a cell index. That was
+sound only while there was one Light whose two codes belonged to nobody else;
+with several slots both supports are gone — slot count and code count are
+independent, and two slots may carry the same code. The resolver now asks
+**which slot's published address owns this cell**: `dst_ptr − light_screen[slot]`
+∈ `{0, 1}` with `light_screen_hi[slot] != 0`, scanning the four slots.
+
+The glyph range stays as a **fast-path filter only** — a cell outside
+`$F8..$FD` leaves in the same few cycles as before, which is the common case
+for every captured cell — and it covers all three appearance pairs now, even
+though only pair 0 is written before step 3, because codes 122-125 are the
+retired pickup bank that no runtime path puts on screen.
+
+| Range | Bytes | Owner |
+| --- | ---: | --- |
+| `$B600-$B84D` | 590 | `HYBRID_C_WINDOW` — the Light C (Director link) |
+| `$B84E-$BA1A` | 461 | `LIGHT_KERNEL` — the Light ASM kernel (its own link) |
+| `$BA1B-$BBFF` | **485 free** | — |
+| `$7FE8` | 1 | `light_resolve_save`, the resolver's hold for the caller's X |
+
+The caller's Y and the captured byte go on the stack, so the 16-byte shared
+area at `$8100` stays whole (8 B free) for the token and wave state of plan
+§2.5 and §2.4. `HYBRID_LIGHT_SLOTS_RAM` is now declared as the whole 60 B
+`$7FC4-$7FFF` rather than a chosen 48, so ld65's own overflow check and the
+named assert in `c-asm-abi.s` bound it against its real neighbour: **49 B used,
+11 B free.**
+
+**MEASURED.** Kernel 411 → 461 B (the resolver replaced 31 B with 81);
+transport unchanged at 198 sectors and the record still 4 sectors, so the boot
+milestones do not move (XEX 134/391, ATR 325/582) and the baseline is not
+re-recorded. Worst pre-fence `2-sweep-fire4` 19,220 → **19,222 (+2)**, margin
+6,043, max wall 29,455 unchanged, 0 miss events — the slot scan only runs on a
+cell that actually holds a Light code. Every other free tail unchanged.
+
 ### Light multiplicity step 1b (2026-09-21) — the Light ASM kernel is its own link
 
 The code window is filled by **two links** whose boundary is not a constant.

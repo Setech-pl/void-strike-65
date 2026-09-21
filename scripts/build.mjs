@@ -882,6 +882,7 @@ function renderDirectorAbiInclude(labelBytes, lightKernelAddress) {
     ["LIGHT_SCREEN_LO", "light_screen_lo"],
     ["LIGHT_SCREEN_HI", "light_screen_hi"],
     ["LIGHT_BACKING0", "light_backing0"],
+    ["LIGHT_RESOLVE_SAVE", "light_resolve_save"],
     ["LIGHT_SCRATCH", "light_scratch"],
     ["LIGHT_SLOT_SAVE", "light_slot_save"],
     ["LIGHT_SLOT", "light_slot"],

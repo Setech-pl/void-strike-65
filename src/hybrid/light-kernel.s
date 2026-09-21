@@ -47,6 +47,12 @@
 LIGHT_WIDTH_HPOS = 8
 LIGHT_HEIGHT_SCANLINES = 8
 LIGHT_CELL_COUNT = 2
+; Four SoA slots (the declared format) and three appearance pairs, so the
+; resolver's fast-path filter spans codes $F8..$FD. Both are contracts shared
+; with src/c/lifecycle.c; tests/source-contracts.test.mjs cross-checks them.
+LIGHT_SLOT_COUNT = 4
+LIGHT_APPEARANCE_PAIRS = 3
+LIGHT_CODE_COUNT = LIGHT_APPEARANCE_PAIRS*LIGHT_CELL_COUNT
 LIGHT_GLYPH_BYTES = LIGHT_HEIGHT_SCANLINES*LIGHT_CELL_COUNT
 ; ENEMY_ARCHETYPE_OFFSET(ENEMY_ARCHETYPE_INTERCEPTOR) in src/c/enemy-archetype.h;
 ; tests/source-contracts.test.mjs cross-checks the two.
@@ -67,7 +73,8 @@ LIGHT_RENDER_BOTTOM = ENTITY_GAMEPLAY_BOTTOM-8
 LIGHT_BACKING1 = LIGHT_BACKING0+1
 
 .assert LIGHT_GLYPH = 120, error, "Light glyphs must reuse the retired pickup bank"
-.assert (LIGHT_SCREEN_CODE & (LIGHT_CELL_COUNT-1)) = 0, error, "Light cell index must be the low code bits"
+.assert (LIGHT_SCREEN_CODE & (LIGHT_CELL_COUNT-1)) = 0, error, "an appearance pair must start on an even code"
+.assert LIGHT_SCREEN_CODE+LIGHT_CODE_COUNT <= $100, error, "the Light code range must fit the screen-code space"
 .assert (LIGHT_PROJECTILE_OWNER & FIGHTER_PROJECTILE_INTERCEPTOR_EMITTER_MASK) = 0, error, "Light shots are attributed to leader slot P1"
 .assert FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT = 3 && LIGHT_PROJECTILE_OWNER < 8, error, "Light emit shifts weapon_class above the owner bits"
 
@@ -313,20 +320,76 @@ light_cell_resolve_sanitized:
     lda #CH_SPACE
     rts
 
-; A = captured cell byte. There is one Light and its codes are used by nothing
-; else, so a Light code names the cell index directly: return that cell's lower
-; backing so the lower layer's later erase cannot resurrect the Light glyph.
-; X and Y are preserved (debris captures its second cell with Y=1).
+; A = captured cell byte, dst_ptr = the cell's own address. Returns that cell's
+; lower backing so the lower layer's later erase cannot resurrect a Light
+; glyph; returns A unchanged when no slot owns the cell. X and Y are preserved
+; (debris captures its second cell with Y = 1).
+;
+; KEYED BY SCREEN ADDRESS, not by glyph code (plan §2.2). The code used to name
+; the cell index directly, which was only sound while there was one Light and
+; its two codes belonged to nobody else. With several slots the two facts that
+; held it up are both gone: slot count and code count are independent, and two
+; slots may carry the SAME code. So the code range is now only a fast-path
+; filter - a cell outside $F8..$FD leaves in the same few cycles as before,
+; which is the common case for every captured cell - and a cell inside it is
+; resolved by asking which slot's published address owns it.
+;
+; The range covers all three appearance pairs (120/121, 122/123, 124/125)
+; although only pair 0 is written before step 3. Codes 122-125 are the retired
+; pickup bank and no runtime path puts them on screen, so widening the filter
+; now changes nothing and cannot be forgotten later.
 light_cell_resolve:
     cmp #LIGHT_SCREEN_CODE
-    bcc @done
-    cmp #(LIGHT_SCREEN_CODE+LIGHT_CELL_COUNT)
-    bcs @done
-    lsr
-    lda LIGHT_BACKING0
-    bcc @done
-    lda LIGHT_BACKING1
-@done:
+    bcc @keep
+    cmp #(LIGHT_SCREEN_CODE+LIGHT_CODE_COUNT)
+    bcs @keep
+    ; It is a Light code. The caller's X goes to the one scratch byte the
+    ; kernel owns; its Y and the captured byte go on the stack, so the 16-byte
+    ; shared area stays whole for the token and wave state.
+    stx LIGHT_RESOLVE_SAVE
+    pha
+    tya
+    pha
+    ldx #(LIGHT_SLOT_COUNT-1)
+@slot:
+    lda LIGHT_SCREEN_HI,x       ; hi = 0 means the slot is not on screen
+    beq @next
+    lda dst_ptr
+    sec
+    sbc LIGHT_SCREEN_LO,x
+    tay
+    lda dst_ptr+1
+    sbc LIGHT_SCREEN_HI,x
+    bne @next
+    cpy #LIGHT_CELL_COUNT
+    bcc @owned
+@next:
+    dex
+    bpl @slot
+    pla
+    tay
+    pla                         ; no slot owns it: the capture stands
+    ldx LIGHT_RESOLVE_SAVE
+    rts
+@owned:
+    ; X = slot, Y = cell. The backing is cell-major, so the byte wanted is
+    ; light_backing[slot*LIGHT_CELL_COUNT + cell]; the cell is 0 or 1, so the
+    ; add is one conditional increment and needs no further scratch.
+    txa
+    asl                         ; C = 0: the slot index is at most 3
+    tax
+    tya
+    beq :+
+    inx
+:
+    lda LIGHT_BACKING0,x
+    tax                         ; park the backing while the stack unwinds
+    pla
+    tay
+    pla                         ; discard the captured byte
+    txa
+    ldx LIGHT_RESOLVE_SAVE
+@keep:
     rts
 
 light_kernel_end:

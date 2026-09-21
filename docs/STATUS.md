@@ -174,9 +174,11 @@ files; the authoritative table is the current-checkpoint override section of
 window 8 B, `ENTITY_CODE` tail **1 B** (`$9D5D`), A2 kernel tail 19 B, pickup
 stream fill 7 B, BROADSIDE 6,653 B with a **3 B** free tail, `HYBRID_C_ARENA`
 218 B free, `DIRECTOR_ABI` 0 B, `DIRECTOR_C_LOW` 3 B, pickup/collision record
-1,170 of 1,277 B cold capacity. Packed STARFIELD is 1,811 B: 13 B over the
-reviewed 1,798 B correction gate and 8 B under the 1,819 B hard staging limit
-(open decision below). Use identical replays when comparing CPU.
+1,170 of 1,277 B cold capacity. Packed STARFIELD is **1,780 B: 24 B under** the
+1,804-B two-stream correction gate and 45 B under the 1,825-B hard staging
+limit, since Light multiplicity step 1b moved the 31-byte resolver out of it
+(2026-09-21; the segment was 1,811 B and 7 B over before). Use identical
+replays when comparing CPU.
 
 `ENTITY_CODE` is effectively full: 1 B. Its ca65 asserts measure against
 `ENTITY_CODE_RESERVED_BYTES = $F00` (the `$9000-$9FFF` memory area), but the
@@ -730,13 +732,16 @@ section's "what to look for" in the implementation report.
   already taken. Evidence, the verbatim guard and every measurement:
   [diagnostics/runtime-wall-trace-report-regeneration-blocked.md](diagnostics/runtime-wall-trace-report-regeneration-blocked.md)
   11;
-- open owner decision: the packed STARFIELD correction gate. At the 4.5M-M1
-  candidate the single-stream gates 1,798 / 1,819 B are superseded by the
-  two-stream total gates 1,804 (correction) / 1,825 B (hard) against a measured
-  1,811 B total, so the content is still 7 B over the correction gate;
-  `tests/light-wingman.test.mjs` ("Light kernel placement…") and
-  `tests/broadside-fire.test.mjs` keep failing on that gate on purpose; moving a
-  reviewed margin is an owner decision;
+- ~~open owner decision: the packed STARFIELD correction gate~~ — **RESOLVED
+  2026-09-21, owner-confirmed. The gate was not moved; the segment fitted by
+  itself.** It stood 7 B over the 1,804-B two-stream correction gate from
+  4.5M-M1 until Light multiplicity step 1b took the 31-byte
+  `light_cell_resolve` block out of `STARFIELD` and into the Light kernel's own
+  link. MEASURED: packed STARFIELD **1,811 → 1,780 B, 24 B under** the
+  correction gate and 45 B under the 1,825-B hard staging limit.
+  `tests/light-wingman.test.mjs` ("Light kernel placement…") passes for the
+  first time since 4.5M-M1. The reviewed margin is untouched, so nothing about
+  the gate itself needs re-reviewing;
 - 4.5M-M1 owner-visible deviations from the task text (see the 4.5M-M1
   section): the boot-only GLUE hold moved `$8300 → $8100` so that stream B
   has a contiguous idle window, and each stream is bounded by one 960-B

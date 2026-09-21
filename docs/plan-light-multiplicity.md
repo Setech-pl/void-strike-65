@@ -511,7 +511,22 @@ measurement is repeated to confirm (M2). **NO-GO** otherwise, with the
 measured shortfall in cycles reported and the two mitigations costed: a
 lighter Light breakup (core + two fragments; a second allocator entry in the
 effect pool, which would live in the window since ENTITY_CODE has 1 B) or a
-shipped ceiling of 2. The multi-slot machinery is needed under every outcome,
+shipped ceiling of 2.
+
+**[C2] ADDED 2026-09-21, owner instruction after step 1b.** Report the
+**vector-table overhead separately at 1, 3 and 4 live Lights.** Step 1b
+MEASURED +26 worst-frame pre-fence cycles for the five-entry table against the
+~9 this plan's `[C1]` estimated, because `light_backing` and
+`light_cell_resolve_sanitized` are entered **per captured cell**, not once per
+frame — so the overhead scales with Light count and belongs in the table of
+§4.2 as its own row, not folded into the standing cost.
+
+**Order of mitigations if three Lights miss the fence by a small margin.**
+Inlining the per-cell hot path — giving the two resolver hooks main-link
+bodies again instead of calling through the vector — is the **first** thing to
+try, before the lighter breakup and before lowering the ceiling. State what it
+would recover in cycles at the measured Light count. Lowering the shipped
+ceiling to 2 stays the owner's call and the last resort. The multi-slot machinery is needed under every outcome,
 so nothing built up to step 3 is wasted by a NO-GO.
 
 ---

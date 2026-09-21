@@ -943,7 +943,11 @@ section's "what to look for" in the implementation report.
   **RE-ENUMERATED 2026-09-21** against a clean `82c155b` export, built with
   `--candidate` and its `node_modules` linked, running the focused set of
   `plan-light-multiplicity.md` §5.5: the set is **11 failing tests in 6 files**,
-  not four. `hybrid-c-arena` ×2 (the arena assertion reads `codeBytes` 535
+  not four. **SUPERSEDED as the reference baseline 2026-09-21** — that figure is
+  a focused set on a clean `82c155b` export and is kept only as the history of
+  this A/B. The current reference baseline is the whole-suite A/B further down
+  this file ("Full-suite failure baseline, A/B measured 2026-09-21"): 117
+  failures at `be91d17` against 118 now. `hybrid-c-arena` ×2 (the arena assertion reads `codeBytes` 535
   against an expected 504, and the DFMC record count 9 against 8),
   `entity-effects` ×3, `runtime-timing` ×3, `layout-d1` (13,196 against 13,113),
   `transport-layout-regression` and `formats`. Most are frozen budgets that
@@ -1036,240 +1040,108 @@ section's "what to look for" in the implementation report.
   ATR sessions, which is now fixed and unconditional; and the countdown proof
   is exact (50 frames of timer across 50 PAL frames) instead of "strictly
   decreasing". Snapshots are now `1, loader+3, loader+53, 3050, 3300`;
-- **`docs/runtime-wall-trace.json` is stale and cannot be regenerated —
-  `BLOCKED_PICKUP_SEQUENCE_DRAWN_MASK`** (current blocker, measured 2026-09-19;
-  it replaces `BLOCKED_CAPITAL_CONTACT_MODE_UNSET`, which is resolved, which in
-  turn had replaced `BLOCKED_MUZZLE_ORPHAN_TRANSIENT` — see the
-  "current state" paragraph at the end of this entry; the narrative below is the
-  history of the four superseded blockers, kept because each one names a standing
-  rule). The committed
-  report is from 2026-09-05: `artifact.sha256` `ab682d84…` and ATR boot-smoke
-  `menu` **502**, against the accepted runtime `ecc9ceda…` at menu **554**.
-  `tests/runtime-wall-trace.test.mjs` reads that file rather than a live run,
-  so the whole file measures a five-build-old artifact, and
-  `scripts/build.mjs:1589-1597` refuses a **final** (non-candidate) build whose
-  wall trace does not bind to the current artifacts. Only the default mode
-  writes the report (`runtime-wall-trace.mjs:6074`); every focused mode returns
-  before it. The default run was executed in full on this build: 21 sessions
-  passed, all PAL-clean, then it threw at the pre-existing
-  `weapon-pickup-contact-2-hunt-fire4` invariant, inside the session loop, so
-  the report was never written. The first clause to fail was
-  `row.prior === 0`, a stale pin: `PRIOR` measures `$10` because the pickup
-  renderer sets it on purpose (`src/main.s:10486`, "GTIA fifth-player mode:
-  M0-M3 use COLPF3", released back to `$00` at `src/main.s:9823`). Under the
-  owner decision of 2026-09-19 that clause now accepts **both** `$00` and `$10`
-  (both are correct in the sampled window and no trace column
-  separates them), and it passes. Under a second owner decision the same day
-  the two `pickup_draw_calls` clauses were repointed as well, with the root
-  cause established: **commit `04ae0a6` (2026-09-11, "feat: prototype row-baked
-  far stars") silently rebound three pickup trace PCs from renderers to PMG
-  routines in a single hunk** — `DFTRACE_PC_ENTITY_DRAW` went from
-  `render_weapon_pickup_overlay`, a character-overlay renderer reachable only
-  when `ENTITY_ACTIVE_MASK != 0`, to `update_fighter_pickup_pmg`, the policy
-  wrapper at `src/main.s:10415` that writes no pixels and through which the
-  collection itself passes. The collection clause `pickup_draw_calls === 0` has
-  therefore been **unsatisfiable by construction since that day**, and the
-  contact clause `pickup_draw_calls === 1` survived only by coincidence,
-  asserting merely that the wrapper was entered — true on all 500
-  post-collection frames of the same trace with no capsule on screen. Both are
-  now repointed to `pickup_pmg_rows`, which measures the missile plane
-  directly (`16` on every contact row; `16 -> 0` on collection frame 396 and 0
-  thereafter), both pass, and each assertion site records why the old pin was
-  unsatisfiable, naming `04ae0a6`. **The consequence of that rebinding was
-  documented in
-  [diagnostics/stage-2b2d-pickup-raster-invisibility.json](diagnostics/stage-2b2d-pickup-raster-invisibility.json)
-  but the rebinding itself was not — which is why an unsatisfiable pin survived
-  undetected for eight days and cost two sessions.** Standing rule from this:
-  *a commit that repoints a trace PC must say so in its message and must
-  re-verify every gate that reads that PC.*
-  Under a third owner decision the same day the screenshot clause that then
-  blocked the run was **derived rather than repinned**. Both of its halves had
-  gone stale at `f6eee5c`, which retired the character compositor and moved the
-  capsule from character cells to the missile plane: the colour changed from
-  `$84` steel to COLPF3 and the column moved with it, so the pinned
-  `rgb(13,58,115)` in `x 140-164` counted **0 on every captured frame** and the
-  `>= 40` head clause failed on frame 00, not only at the tail. The window is
-  now computed from the trace itself — `left = 2 * (pickup_hposm0 - 64)`,
-  `right = left + 16`, colour resolved from `colpf3` through each screenshot's
-  own PLTE, y the full image — with the `>= 40` / `< 40` thresholds
-  **unchanged**. Measured: the nose session counts 216 ×6, 210, 182 then 0/0/0,
-  and the overlap session 216 ×9, 188, 156, 132 then 0/0/0, so the original
-  intent holds exactly with a head floor of 182 and 132. The taper is the
-  player's P0/P3 taking foreground priority, which the 40 floor tolerates.
-  The clause was deliberately **not** repointed at `pickup_pmg_rows`: it is the
-  only gate measuring the framebuffer rather than the memory counters, and
-  [diagnostics/stage-2b2d-pickup-raster-invisibility.json](diagnostics/stage-2b2d-pickup-raster-invisibility.json)
-  is the recorded case of those two diverging (16/16 missile rows set at frame
-  end, 0/16 at the beam crossing, framebuffer pure background). `colpf3` was
-  already numeric; `pickup_hposm0` was added to `numericCsvFields` and
-  `decodeAtari800Screenshot` now returns the decoded palette. A documentation
-  discrepancy was corrected in passing:
-  [diagnostics/stage-2b2e-pickup-capsule-silhouettes.json](diagnostics/stage-2b2e-pickup-capsule-silhouettes.json)
-  recorded `screen_x = 2*HPOSM0 - 64 + 2*cc`, which assumes a wider crop origin
-  than these 256×192 captures have; they measure `2*(HPOSM0 - 64) + 2*cc`,
-  64 pixels further left. **Both pickup sessions now pass every clause.**
-  The report is still not written. The run has left the pickup path entirely
-  and aborts at `runtime-wall-trace.mjs:2538` in
-  `capital-muzzle-ring-2-sweep-fire4`: "observed a stale muzzle/flash code or
-  invalid derived pointer". **This one is not a stale pin.**
-  `muzzle_illegal_cells` is a live scan the emulator performs on this build's
-  memory (`scripts/atari800-wall-trace.h:4212-4223`), walking the divider row
-  and the ring screen and counting hull-transient codes at addresses no live
-  muzzle pointer owns. Over 6,000 frames it fires on **68**, in seven
-  contiguous episodes of 7-14 frames (`925-938, 944-954, 1027-1034, 1362-1370,
-  1395-1402, 1444-1450, 4112-4122`); on all 68 both muzzles are healthy and a
-  **third** transient code is present that nothing accounts for.
-  `muzzle_pointer_errors` and `broad_pointer_errors` are 0 throughout. Every
-  episode begins on the frame a BROADSIDE enters its launch flash, and the
-  orphan outlives the flash countdown by about ten frames. Two readings fit
-  equally: **(a)** the launch flash is a third legitimate writer the gate's
-  ownership model never knew about, or **(b)** a real one-cell ghost lasting
-  ~0.2 s, seven times in this replay — exactly what the gate exists to catch.
-  The datum that separates them is not recorded: the emulator counts orphan
-  cells but never reports the offending address or code, and adding that pair
-  of columns needs a trace-header change and a `--prepare` rebuild. Because
-  reading (b) would make widening this clause the act that deletes a gate
-  catching a real defect, **no fourth clause was touched** and reading (a) is
-  not assumed; this needs an owner decision. A **second** stale pin was found in
-  the same area and fixed: `tests/runtime-wall-trace.test.mjs` compared
-  `loader_timer(250) > loader_timer(300)` unconditionally, but the frame-250
-  snapshot is a loader raster only on the XEX — on the ATR the machine is still
-  inside the SIO load (`DMACTL $00`, `NMIEN $00`, timer 0, reaching 249 by
-  frame 300). The test now mirrors the rule the harness itself already applies.
-  With that corrected, every assertion of the rewritten boot-horizon test was
-  run directly against the live measured boot-smoke report of this build and
-  **passes**; it fails in `npm test` only because it reads the stale committed
-  report.
-  **Current state, 2026-09-19 (supersedes every blocker above).** Both owner
-  decisions of that day are implemented on `5ea523a4…`, in `scripts/` only, with
-  no production byte changed. Term 4e knows its fourth writer — a live, *rendered*
-  fighter projectile standing on the tracked muzzle cell, evidenced by the new
-  `muzzle{0,1}_projectile` column, which reports presence and not history and
-  whose glyph families are disjoint from the hull-transient codes; the term
-  narrows, proven by a fault-injected build in which
-  `erase_fighter_projectile_restore` does not return the covered cell and the term
-  still fails, on frames `886, 888, 1030`. And the session loop now **accumulates**
-  clause failures instead of aborting, with `report.gate.passed` ANDed against
-  "zero accumulated failures" and the list published in the report, so the file's
-  existence is no longer the pass signal that `scripts/build.mjs:1594-1596`
-  depends on. Result: **61 of the 64 default sessions run and 0 behavioural
-  clauses fail anywhere** — the 286-clause set is clean. The report is still not
-  written because the run now dies *outside* the loop's catch, at the emulator
-  invocation for `capital-contact-allied-medium`:
-  `capitalContactSessions` and the second `lowerPlayfieldSessions` entry define
-  `contactOwner` but no `contactModeId`, so `runtime-wall-trace.mjs:2551-2552`
-  sends the literal `DFTRACE_CAPITAL_CONTACT_MODE=undefined` and the emulator
-  exits 2 before writing a CSV. Pre-existing (identical eight lines in `a2cda6b`,
-  already recorded as "exit 2, no CSV" against `0002d84`) and **not fixed** —
-  three sessions affected (`capital-contact-{allied,hostile}-medium`,
-  `lower-playfield-hostile-contact-xex-hard`). Because the failure precedes
-  `parseCsv` it yields no rows, so stage 1 cannot accumulate it without breaking
-  its own rule that a caught session must still push rows; what a rows-less
-  session contributes is an open owner decision. Evidence and measurements for
-  every blocker, and the verbatim model change:
+- ~~**`docs/runtime-wall-trace.json` is stale and cannot be regenerated**~~ —
+  **RESOLVED 2026-09-21. THE EVIDENCE IS WRITTEN**, the first regeneration
+  since `d72dd6a`, 184 commits back. One unbroken default run,
+  **64/64 sessions**, XEX `d667d88d…`. Full narrative:
   [diagnostics/runtime-wall-trace-report-regeneration-blocked.md](diagnostics/runtime-wall-trace-report-regeneration-blocked.md)
-  10.
-  **Current state, later on 2026-09-19 (supersedes the paragraph above).**
-  `BLOCKED_CAPITAL_CONTACT_MODE_UNSET` is **fixed**, in `scripts/` only, with no
-  production byte changed and `dist/` still at XEX `5ea523a4…`. It was a
-  configuration defect, not a runtime or gate defect: three session definitions
-  carried `contactOwner` but no `contactModeId`. The value was **derived, not
-  chosen** — `contactModeId: 1` (`middle`) for all three. Commit `4753399`
-  replaced `DFTRACE_CAPITAL_CONTACT_DELTA` with the named mode and renamed
-  `side` to `middle`; the delta was sent only for sessions carrying
-  `contactDelta`, which these three never did, so they had always run on the
-  file-scope default `delta = 7` — and `middle` is that same geometry, in both
-  the steering (`player_top = bolt.top - 4` against the legacy
-  `target_y = shell_y - 7` with a bolt top at `shell_y - 3`) and the capture
-  predicate (`bolt.top == player.top + 4`). The third session's own policy,
-  `lower-contact-hostile`, writes `target_y = shell_y - 7u` literally. Mode 3
-  (`near`) is excluded by the sessions' own clause, which asserts a hit. **A
-  guard now makes this class impossible to repeat silently:**
-  `capitalContactPrefixKinds` is the single definition of "this kind sends the
-  capital-contact environment", `assertCapitalContactEnvironment` bounds-checks
-  both `contactModeId` (integer 0-3) and `contactOwner` (0 or 1), it is swept
-  over the session tables at module scope where they are defined, and the
-  session loop asserts that nothing outside the set sets the prefix — so the
-  failure is a named `invariant` before any emulator starts, not `exit(2)`
-  hundreds of frames in. **Second owner decision of the day, recorded and not
-  changed:** a session that produces no CSV is a **HARD** failure, not an
-  accumulated clause failure — the same boundary stage 1 already drew at
-  `parseCsv`, with `run()` and `parseCsv` both outside the session `try`.
-  Corrupt or absent data stops the run; a failing clause does not. Stage 2 must
-  not blur the two; the rule is now stated in the code above that `try`.
-  **Result: all 64 default-mode sessions run to completion — the first time the
-  whole set has executed.** PAL timing audit **0 distinct miss events across 64
-  replays (PASS)**, boot smoke **8/8 PASS**, 0 hard failures inside the loop, and
-  **3 accumulated clause failures** — the same clause in the three newly
-  reachable sessions, "did not capture 16 consecutive contact rasters". That
-  residue is a *different*, pre-existing staleness and is **not** the mode: in
-  the two `capital-contact-*` sessions no BROADSIDE is ever live, and in
-  `lower-playfield-hostile-contact-xex-hard` the steering branch engages only on
-  a hostile shell with `shell_y >= 191` while every live shell in the replay sits
-  at 116 or 180. They are stale **scenarios** — frame budgets and playfield rows
-  written against an older Director and BROADSIDE schedule — and repairing them
-  is a separate owner decision.
+  §14; §1-§13 are the history of the eight superseded blockers.
 
-  **RESOLVED 2026-09-21 — owner decision, option (b), commit `1031d4d`.** The
-  §11.6 blocker is closed. Both pickup raster capture gates (sequence and
-  traversal) now measure the capsule on the **missile plane** —
-  `entity_active_mask & 2` plus 16 non-empty missile rows whose union is `$FF` —
-  instead of slot 1's character drawn-mask, which has been dead memory since
-  `f6eee5c`. The traversal post-loop invariants follow: `pickup_drawn_mask`
-  15/3 → `pickup_missile_rows === 16 && pickup_missile_union === 255`;
-  `pickup_footprints_after === 1` → `pickup_missile_blocks === 1` (contiguous
-  runs counted around the 256-row page wrap); `pickup_glyph_cells_after ∈
-  {2,4,6}` **deleted**, because the capsule writes no character cell and there
-  is nothing to repoint it at. Harness only — no production source, no runtime
-  bytes, candidate XEX `d667d88d…` before and after. Every replacement is proven
-  non-vacuous against a suppressed-capsule fixture (a temporary `rts` at the head
-  of `publish_fighter_pickup_pmg`): the same 233 / 108 ACTIVE frames, and 0/16
-  sequence PNGs, 0/27 traversal PNGs, and the row assertion throws.
+  **The owner's rule for behavioural blockers (2026-09-21).** Every clause that
+  stopped the write was MEASURED into (a) stale scenario, (b) wrong selection
+  or (c) real failure BEFORE being touched, and handled only as its class
+  allows. Seven clauses: **four (a), two (b), two (c)** (one clause counts in
+  two classes below because its (a) cannot be extended cheaply and is recorded
+  like a (c)). **Not one assertion was loosened, deleted or re-pinned.**
 
-  **EXTENDED 2026-09-21 to the whole class — owner decision, commit `57e2b7c`.**
-  Every harness assertion, template, aggregate, evidence field and test that
-  measured the capsule through the character renderer is now repointed at the
-  missile plane or deleted: the smooth-sequence template column is **derived**
-  as `2*(HPOSM0-64)` from the run the emulator actually captured (a 4,000-frame
-  hunt spawns capsules at two columns, 92 and 84), the booster/pickup cluster
-  and both emptiness duals read `pickup_missile_rows`, and the phased
-  glyph-cell clause, the reverse-erase clause, `maximum_pickup_glyph_cells` and
-  the `render_id 120/248` conjunct are deleted with their reasons recorded.
-  Two further dead slot-1 fields were found beyond the listed set —
-  `pickup_render_id` and `pickup_animation`, both 0 on all 233 ACTIVE and 220
-  PENDING frames. The capsule rotation moved off the dead glyph base onto the
-  **booster mode each collection grants** (measured Rapid→Spread→Shield→Rapid).
-  One clause was deleted under the rule's own "must be able to fail" test after
-  four attempts: `pickup_missile_blocks === 1` held on every frame of all four
-  fixtures, because the plane has a single writer and every injectable failure
-  leaves a contiguous region; the trail it guarded is caught by
-  `missile_rows === 16` instead (fixture C measures 16, 18 … 152 rows). Proven
-  against four fixtures — drawing suppressed, published during PENDING, erase
-  suppressed, erase at a stale row address — all reverted, XEX `d667d88d…`
-  before and after. **The run now passes the whole pickup class.**
+  | Clause | Class | Handling |
+  | --- | --- | --- |
+  | `lower-playfield` clamp | (a) | scenario extended 420 → 1,400 frames |
+  | `lower-playfield` capital encounter | (a) | same extension; muzzle 917, BROADSIDE 919 |
+  | `director-complete-*` BOSS_HANDOFF | (a) | trace-only held lives; clause unchanged |
+  | `engine-*` A2-list first DLI | (a), not cheaply extendable | **recorded**, 24 entries |
+  | `engine-xex-*` XEX/ATR parity | **(c)** | **recorded**, 12 entries |
+  | booster release erase count | **(c)** | **recorded**, 1 entry |
+  | capsule during active booster | (b) | selection corrected + negative control |
+  | debris 3/5 cadence | (b) | harness model corrected + negative control |
 
-  **The report is STILL not written, and both remaining blockers are OUTSIDE
-  the class** — neither is about the capsule's renderer, so this session stopped
-  rather than widening it again:
+  **THE DIRECTOR IS HEALTHY — this does not block 4.6.** The BOSS_HANDOFF
+  clause was expected to be (b); measurement says (a). BOSS_HANDOFF (level-1
+  event index 5, world row 3712) never executed because the fighter lost its
+  last life first and GAME OVER runs `director_c_init`, resetting the world
+  row on a ~2,400-frame cycle against the ~9,300 the handoff needs — no frame
+  budget can outrun that. With `DFTRACE_HOLD_PLAYER_LIVES=3` (trace-only,
+  env-gated, no production byte patched) all three difficulties execute
+  BOSS_HANDOFF → DRAIN on the next frame → terminal COMPLETE holding to frame
+  10,499: **d0 9377/9378/9379, d1 8319/8320/8330, d2 7543/7544/7567**, with 4,
+  3 and 5 deaths survived. The clause is byte-for-byte unchanged.
 
-  - `lower-playfield-xex-hard` (`:5111`): both clamps ARE reached
-    (`player_y` min 32, max 225), but the clause wants a frame at 225 *after*
-    the topmost one, and the replay starts at 225 and reaches 32 only at frame
-    **347** of 420, climbing back to just 104. It needs roughly **541 frames**,
-    not 420 — a stale scenario, the same family as the three recorded
-    contact-raster failures;
-  - `director-complete-0-natural-sweep-fire0` (`:5452`): the session does reach
-    DRAIN (140 frames) and COMPLETE (135 frames), but the clause takes the
-    **last** BOSS_HANDOFF — frame **9055** — and requires DRAIN at 9056; that
-    final handoff does not finish inside the remaining 1,445 frames. Stale
-    scenario or real Director regression is **not** decided here and needs its
-    own measurement.
+  **Gameplay-difficulty signal for the owner (measured, not gated).** Same
+  replay, `d72dd6a` (XEX rebuilt and byte-identical as `ab682d84…`) vs HEAD:
+  first life lost **never** vs frame **2690**; GAME OVERs **none** vs **6337
+  and 8713**; final `sector_state` **6 terminal** vs 3. A continuously-firing
+  `sweep` bot (`fire0` holds FIRE from frame 1 — TRIG0 is 0 when pressed) took
+  **zero** damage across 10,500 frames at `d72dd6a` and now dies out twice.
+  The 184-commit range carries 4.4 Interceptor, 4.5b `BOMBER`, 4.5c Bomber and
+  the hostile weapon visuals; it was not narrowed further.
 
-  **Consequence: `docs/runtime-wall-trace.json` is still the `d72dd6a` evidence**
-  and the `npm test` default-build gate still cannot run, so the honest
-  full-suite failure baseline is still owed. The "11 failing tests in 6 files"
-  figure below remains the last enumerated set, re-measured against a clean
-  `82c155b` export, not against a working default build;
+  **The 40 recorded gate failures** (`gate.behavioural_clause_failures`),
+  pinned by `tests/runtime-evidence-binding.test.mjs`: 24 A2-select (a) +
+  12 XEX/ATR parity (c) + 3 pre-existing contact-raster + 1 booster release
+  (c). `gate.passed` is **false** and that is correct — the evidence is a
+  truthful description of the build, failures included.
+
+- **`npm test` on the DEFAULT build cannot run — OWNER DECISION REQUIRED.**
+  `scripts/build.mjs:2039` refuses a final build unless
+  `wallTrace.gate.passed === true`; the owner's rule requires recorded failures
+  to ship with `gate.passed === false`. The two are mutually exclusive, so the
+  default build throws *"Final build requires runtime evidence that passes
+  every current gate"* before any test runs. **The release gate was not
+  touched** — a build with 40 open recorded failures must not produce a final
+  artifact. Clearing this needs either the recorded failures fixed, or
+  `build.mjs` taught the recorded-vs-unrecorded distinction (which would mean
+  duplicating the recorded list into the build). See §14.15.
+
+- **Full-suite failure baseline, A/B measured 2026-09-21 — replaces the stale
+  "11 failing tests in 6 files".** Both sides: candidate build, XEX
+  `d667d88d…` (identical on both), `node --test tests/*.test.mjs`, in a
+  separate `git worktree` at `be91d17` for the baseline so the working tree was
+  never at risk.
+
+  | | tests | pass | fail |
+  | --- | --- | --- | --- |
+  | `be91d17` baseline | 737 | 617 | **117** |
+  | this session | 737 | 616 | **118** |
+
+  **Net delta +1**, and every one of it is accounted for:
+
+  * **4 failures FIXED**, including the binding tripwire *"the committed
+    runtime evidence binds to the artifacts in dist/"* — the gate that went
+    unseen for 175 commits is **green** for the first time since `d72dd6a`;
+    also *"wall trace is artifact-bound and adds no guest timing work"*,
+    *"real Atari800 XEX/ATR cold boots reach visible gameplay inside the boot
+    horizon"* and *"real Atari800 pickup trace retains one phased footprint
+    through native A2 motion"*;
+  * **5 failures NEW, all in `tests/runtime-wall-trace.test.mjs`, all the same
+    kind**: that file pins numbers copied from the stale `d72dd6a` evidence,
+    and the regenerated file now carries this build's true measurements —
+    24,264 → **31,079** cycles, 11,304 → **4,489** headroom, 2,688 → **2,048**,
+    960 → **768**, 24,264 → **30,373**. These are NOT runtime regressions:
+    timing passes everywhere (0 deadline overruns, 0 missed frames, 0 extra VBI
+    boundaries, 0 distinct miss events across 64 replays). They are stale pins
+    of exactly the kind the owner ordered replaced for the director frames, and
+    they are left failing rather than silently re-pinned — re-pinning is how
+    the evidence went stale in the first place. **Their disposition is an owner
+    decision**, the same call as the director pins: convert each to the
+    relation it actually owns, or re-pin deliberately.
+
+  The remaining 113 failures are pre-existing at `be91d17` under this
+  condition. A large share are preview/showcase/manifest determinism tests that
+  the DEFAULT build's generated outputs satisfy and a candidate build does not;
+  separating those from genuine pre-existing failures needs the default build,
+  which is blocked above. Running the suite also regenerates tracked media
+  (`docs/media/assets/*.png`, `docs/media/manifest.json`); those were restored
+  with `git checkout` and are not part of this session's commits.
 
 - ~~open owner decision: the packed STARFIELD correction gate~~ — **RESOLVED
   2026-09-21, owner-confirmed. The gate was not moved; the segment fitted by

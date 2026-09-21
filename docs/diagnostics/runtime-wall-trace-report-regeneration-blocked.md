@@ -1,4 +1,15 @@
-# `docs/runtime-wall-trace.json` cannot be regenerated — now `BLOCKED_PICKUP_SEQUENCE_DRAWN_MASK`
+# `docs/runtime-wall-trace.json` cannot be regenerated — now `BLOCKED_PICKUP_SEQUENCE_RASTER_TEMPLATE`
+
+> **Update, 2026-09-21 (FIX session, branch `main`, HEAD `1031d4d`).**
+> The owner took **option (b)** on `BLOCKED_PICKUP_SEQUENCE_DRAWN_MASK` and
+> extended it the same day to the traversal gate and its post-loop invariants.
+> Both pickup raster capture gates now measure the capsule where `f6eee5c` put
+> it — the missile plane — and every clause is proven to fail against a
+> suppressed-capsule fixture. **§11's blocker is CLOSED.** The run now reaches
+> two further pins of the same character-era family, both pre-existing and both
+> previously unreachable: the smooth-sequence raster template pinned at column
+> `x = 144` (the capsule measures `x[56..71]`), and the booster/pickup aggregate
+> cluster at `:5838`-`:5857`. **§12 is the current state.**
 
 > **Update, 2026-09-19 (DIAGNOSTIC session, branch `wip/4.5d-gate-fail`, HEAD
 > `cdc2695`; instrumentation `4de4be9`).**
@@ -1352,3 +1363,111 @@ the three already taken.
 * Sessions: **64/64 run**; 3 accumulated clause failures; 0 hard failures inside
   the loop.
 * CPU/RAM delta: **zero**. No production source changed.
+
+## 12. Option (b) applied to both pickup gates — §11's blocker is CLOSED; the report is blocked twice more, further downstream
+
+**Owner decision 2026-09-21, option (b)**, taken on §11.6 and extended the same
+day to the traversal gate and its post-loop invariants. Commit `1031d4d`.
+Harness only: no production source, no runtime bytes, candidate XEX
+`d667d88d742b9febf3c8c4a45d79f9500b3391278011428b68b8bf5c21f5283f` before and
+after.
+
+### 12.1 What was repointed
+
+| Site | Was | Is |
+| --- | --- | --- |
+| sequence capture gate, `atari800-wall-trace.h` | `(ENTITY_DRAWN_MASK + 1) & 15 == 15`, `active_mask == 2` | missile-plane drawn state (16 non-empty rows, union `$FF`), `active_mask & 2` |
+| traversal capture gate, same file | the identical dead conjunct | the identical repoint |
+| `runtime-wall-trace.mjs:5004` `pickup_drawn_mask === 15/3` | character drawn-mask | `pickup_missile_rows === 16 && pickup_missile_union === 255` |
+| `:5005` `pickup_footprints_after === 1` | character footprints | `pickup_missile_blocks === 1` |
+| `:5006-5008` `pickup_glyph_cells_after ∈ {2,4,6}` | character cells | **DELETED** |
+| release clause, `:5020-5022` | `drawn_mask === 0`, `footprints_after === 0` | `missile_rows === 0`, `missile_blocks === 0` |
+
+Three harness-only CSV columns carry the new measurements:
+`pickup_missile_rows`, `pickup_missile_union`, `pickup_missile_blocks`. The
+existing `pickup_pmg_rows` could not carry the quartet clause — it tests
+`& 0xf0` and therefore sees only M2 and M3, the same half-quartet weakness the
+static gate's comment already records. `blocks` counts contiguous runs of
+non-empty rows **around the 256-row page wrap**: the last three raster
+positions start at row 242, 244 and 246 and their sixteen rows legitimately
+wrap onto rows 0-1. Without the wrap rule those three frames read two runs.
+
+**Why `glyph_cells_after` was deleted rather than repointed.** It counted the
+capsule's character cells under the phased 2x2/2x3 footprint. Since `f6eee5c`
+the capsule writes no character cell at all, so there is no missile-plane
+quantity it measures — the plane has rows and missiles, not cells. Its two
+purposes are carried elsewhere: singularity by `pickup_missile_blocks`, the
+per-frame draw by `pickup_draw_calls === 1`, both retained. On this build the
+field reads 1075-1078 on active frames — a count of unrelated cells, not of the
+capsule.
+
+### 12.2 The proof that none of it is vacuous
+
+A **suppressed-capsule fixture**: a temporary `rts` at the head of
+`publish_fighter_pickup_pmg` (`src/main.s:10553`), which removes the missile
+publication and nothing else. Fixture XEX
+`87ad44759e8b61d27e42248bf1a4ce674f8b021e44f03d35f222806a5bf191b7`; reverted
+afterwards, XEX back to `d667d88d…`.
+
+| Run | Capsule drawn | Result |
+| --- | --- | --- |
+| `weapon-pickup-2-hunt-fire4`, old gate | yes, 233 ACTIVE frames | **0/16** PNGs — the §11.6 blocker |
+| same, new gate | yes, 233 | **16/16** PNGs |
+| `engine-xex-a5-2-immediate` (150 frames, no pickup) | no | **0/16** |
+| same pickup replay, **fixture** | **no** | **0/16** |
+| `weapon-pickup-traversal-2-observe-fire4`, new gate | yes, 108 ACTIVE | **27/27** PNGs; rows 16, union 255, blocks 1 on **108/108** |
+| same traversal replay, **fixture** | **no** | **0/27** PNGs; rows 0, union 0, blocks 0 on **108/108**; with the PNG check bypassed the row assertion throws |
+
+The fixture keeps `entity_active_mask === 2` and `pickup_draw_calls === 1` true
+on all 233 / 108 frames — the surviving old conjuncts do **not** catch it. Only
+the repointed clauses do.
+
+### 12.3 The report is still not written — two further pins, both pre-existing
+
+The full 64-session default run (`npm run runtime:wall-trace`,
+`--atari800-source=build/atari800-trace`) now passes the repointed capture gate
+and stops later. Boot smoke **8/8 PASS**, PAL timing audit **0 distinct miss
+events across 64 replays (PASS)**, **64/64** sessions run, the same **3**
+accumulated behavioural failures as §11 (the `capital-contact-*` and
+`lower-playfield-hostile-contact-xex-hard` "16 consecutive contact rasters"
+clauses — recorded, not blocking, not touched here).
+
+**Blocker A — `runtime-wall-trace.mjs:4934-4956`, the smooth-sequence raster
+template.** `Expected one complete smooth final-raster capsule sequence, found
+0/0`. The clause builds a 16x16 RGB template at a **pinned column x = 144** and
+scans `initialY` from 8. MEASURED on the 16 captured PNGs (256x192): the capsule
+is palette index 70, 216 pixels, bounding box **x[56..71]**, **y[2..17]** on
+frame 00, moving **+2 rows per frame** (dy = +30 over 15 frames). `HPOSM0 = 92`
+on every frame of the replay. So the motion premise is intact and only the two
+raster coordinates are character-era pins — the §7 family exactly, where the
+contact window was repaired by deriving it from `pickup_hposm0` and `colpf3`.
+Not fixed here: choosing the replacement is an owner decision of the same kind.
+
+**Blocker B — the booster/pickup aggregate cluster, `:5838`, `:5842-5847`,
+`:5856-5857`.** The same dead fields, on `weapon-pickup-2-hunt-fire4`. MEASURED
+over its 233 ACTIVE and 220 PENDING rows:
+
+| Clause | Holds on |
+| --- | --- |
+| `:5838` `(pickup_drawn_mask & 15) === 15` | **0 / 233** — would throw |
+| `:5842` `pickup_footprints_after === 1` | **0 / 233** — would throw |
+| `:5843-5847` `pickup_glyph_cells_after <= 6` | **0 / 233** — would throw |
+| `:5835` `(pickup_drawn_mask & 15) === 0` on PENDING | 220 / 220 — passes **vacuously** |
+
+Listed, not fixed, per the owner's instruction. Alongside them, still reading
+the character renderer and not repaired here: the reverse-erase clause
+`:5015-5017` (passes vacuously — every `pickup_old_address` now falls outside
+the ring range, so the escape branch is taken), the evidence field `:5046`
+`maximum_final_footprints`, the aggregates `:6313-6315`
+`maximum_pickup_glyph_cells`, the screenshot-row search `:6603`, and
+`tests/runtime-wall-trace.test.mjs:350`.
+
+### 12.4 Gates for the change made here
+
+* Build: candidate only, XEX `d667d88d…` — byte-identical before and after.
+* Boot smoke: **8/8 PASS** inside the full run.
+* PAL timing audit: **0 distinct miss events across 64 replays, PASS**.
+* Sessions: **64/64 run**; 3 accumulated clause failures; 0 hard failures.
+* CPU/RAM delta: **zero**. No production source changed.
+* Reran after the traversal change: the traversal session only, plus the
+  post-loop traversal block against the existing CSVs. Not all 64 again.

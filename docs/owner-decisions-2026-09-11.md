@@ -1553,6 +1553,38 @@ ponownie recenzować.
 
 ---
 
+## AA. KADŁUB SOJUSZNICZY JEDEN NA GRĘ; CZTERY STYLE WROGA PO REGIONIE — OWNER-ACCEPTED (2026-09-21)
+
+Zmienia założenia decyzji **F**. F mówiła „cztery odrębne zestawy grafiki
+segmentów, jeden wariant kadłuba na poziom" i liczyła koszt jako cztery
+zestawy po ~1 253 B na parę. Właściciel rozdziela teraz obie frakcje:
+
+1. **Kadłub SOJUSZNICZY jest JEDEN na całą grę, wygląd stały.** Zmienność
+   sojusznika to wyłącznie parametry z decyzji F — gondole, długość,
+   wieżyczki. Żadnego drugiego rysunku sojusznika.
+2. **Kadłuby WROGA: cztery style, po jednym na region czterech poziomów**
+   (1-4, 5-8, 9-12, 13-16). Nowy rejon przestrzeni niesie nowy rysunek wroga,
+   a nie nowy rysunek sojusznika.
+3. **Budżet 14 kodów powierzchni dzielony NIERÓWNO.** Sojusznik dostaje pulę
+   stałą, cel **≤ 5-7 kodów** (właściciel woli mniej); wróg bierze resztę,
+   **7-9 kodów na styl**. **Pulę sojusznika ustala się PIERWSZĄ**, bo od niej
+   zależy budżet wszystkich czterech stylów wroga.
+4. **Sojusznik nie musi się z niczym dzielić glifami.** Wspólny szkielet
+   stalowy między frakcjami (glify tylko 0/1/2) zachowuje sens **wtedy i
+   tylko wtedy**, gdy oszczędza kody wroga.
+5. **Sufit bajtów na styl wroga: glify + mapa wroga ≤ ~700 B**, zamiast
+   całego zestawu 1 253 B liczonego dla pary. Dokładną liczbę poda sesja
+   kodu — to jest sufit projektowy, nie MEASURED.
+6. **Kolejność pracy:** sojusznik + pierwszy styl wroga doprowadzone do końca
+   → **owner smoke w grze** → dopiero potem style 2-4. Styl 2-4 to `DEFERRED`
+   do czasu tego smoke'u.
+
+Konsekwencja dla budżetu dyskietki liczonego pod F: koszt treści kadłubów
+spada, bo sojusznik przestaje się mnożyć przez regiony. Liczby z F
+(`capitalHulls.glyphBytes` 248 + `packedMapAndMetadataBytes` 1 005) opisują
+parę i **nie są już bezpośrednio porównywalne** z sufitem ~700 B na styl
+wroga; przeliczenie należy do sesji kodu, która ustali pulę sojusznika.
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5

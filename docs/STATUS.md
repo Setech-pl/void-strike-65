@@ -1199,34 +1199,54 @@ section's "what to look for" in the implementation report.
   not blur the two; the rule is now stated in the code above that `try`.
   **Result: all 64 default-mode sessions run to completion — the first time the
   whole set has executed.** PAL timing audit **0 distinct miss events across 64
-  replays (PASS)**, boot smoke **4/4 PASS**, 0 hard failures inside the loop, and
+  replays (PASS)**, boot smoke **8/8 PASS**, 0 hard failures inside the loop, and
   **3 accumulated clause failures** — the same clause in the three newly
   reachable sessions, "did not capture 16 consecutive contact rasters". That
   residue is a *different*, pre-existing staleness and is **not** the mode: in
-  the two `capital-contact-*` sessions no BROADSIDE is ever live (every
-  `broad{0,1,2}_state` is 0 on all 560 / 360 rows, so no mode value could
-  produce a contact, and the player is instead killed twice by ordinary
-  enemies), and in `lower-playfield-hostile-contact-xex-hard` the steering
-  branch engages only on a hostile shell with `shell_y >= 191` while every live
-  shell in the replay sits at 116 or 180. They are stale **scenarios** — frame
-  budgets and playfield rows written against an older Director and BROADSIDE
-  schedule — and repairing them is a separate owner decision. **The report is
-  still not written**, because the run now throws *outside* the loop, in the 176
-  post-loop aggregates that stage 1 deliberately left alone, at
-  `runtime-wall-trace.mjs:4599`: "Atari800 did not capture all 16 consecutive
-  pickup raster frames". Zero of the 16 `weapon-pickup-frame-NN.png` exist while
-  the three neighbouring screenshot invariants pass. Measured cause, and it is
-  the §6/§7 family again: the emulator's capture gate requires
-  `(ENTITY_DRAWN_MASK + 1) & 15 == 15`, and that byte — published as
-  `pickup_drawn_mask` — is **`0` on all 4,000 frames** of the pickup session,
-  because production writes `ENTITY_DRAWN_MASK` (slot 0) at `src/main.s:9509`,
-  `:10368`, `:10393` and never `+1`. Slot 1's character drawn-mask has been dead
-  memory since `f6eee5c` moved the capsule to the missile plane. **Unsatisfiable
-  by construction**, pre-existing, previously unreachable, and **not fixed
-  here** — what replaces it is an owner decision of the same kind as the three
-  already taken. Evidence, the verbatim guard and every measurement:
+  the two `capital-contact-*` sessions no BROADSIDE is ever live, and in
+  `lower-playfield-hostile-contact-xex-hard` the steering branch engages only on
+  a hostile shell with `shell_y >= 191` while every live shell in the replay sits
+  at 116 or 180. They are stale **scenarios** — frame budgets and playfield rows
+  written against an older Director and BROADSIDE schedule — and repairing them
+  is a separate owner decision.
+
+  **RESOLVED 2026-09-21 — owner decision, option (b), commit `1031d4d`.** The
+  §11.6 blocker is closed. Both pickup raster capture gates (sequence and
+  traversal) now measure the capsule on the **missile plane** —
+  `entity_active_mask & 2` plus 16 non-empty missile rows whose union is `$FF` —
+  instead of slot 1's character drawn-mask, which has been dead memory since
+  `f6eee5c`. The traversal post-loop invariants follow: `pickup_drawn_mask`
+  15/3 → `pickup_missile_rows === 16 && pickup_missile_union === 255`;
+  `pickup_footprints_after === 1` → `pickup_missile_blocks === 1` (contiguous
+  runs counted around the 256-row page wrap); `pickup_glyph_cells_after ∈
+  {2,4,6}` **deleted**, because the capsule writes no character cell and there
+  is nothing to repoint it at. Harness only — no production source, no runtime
+  bytes, candidate XEX `d667d88d…` before and after. Every replacement is proven
+  non-vacuous against a suppressed-capsule fixture (a temporary `rts` at the head
+  of `publish_fighter_pickup_pmg`): the same 233 / 108 ACTIVE frames, and 0/16
+  sequence PNGs, 0/27 traversal PNGs, and the row assertion throws.
+
+  **The report is STILL not written**, on two further pins of the same
+  character-era family, both pre-existing and both previously unreachable:
+  `BLOCKED_PICKUP_SEQUENCE_RASTER_TEMPLATE` at `runtime-wall-trace.mjs:4934-4956`
+  — the smooth-sequence clause builds its 16x16 template at a pinned column
+  **x = 144** while the capsule MEASURES `x[56..71]`, `y[2..17]` on frame 00,
+  moving +2 rows/frame, `HPOSM0 = 92` (the §7 family, where the contact window
+  was repaired by deriving it from `pickup_hposm0`) — and the booster/pickup
+  aggregate cluster at `:5838`, `:5842-5847`, `:5856-5857`, where
+  `(pickup_drawn_mask & 15) === 15` holds on **0 of 233** ACTIVE rows and
+  `pickup_footprints_after === 1` on **0 of 233**. Both need an owner decision of
+  the same kind as the three already taken; neither was touched. Evidence, the
+  verbatim guards, the fixture proof and every measurement:
   [diagnostics/runtime-wall-trace-report-regeneration-blocked.md](diagnostics/runtime-wall-trace-report-regeneration-blocked.md)
-  11;
+  12;
+
+  **Consequence: `docs/runtime-wall-trace.json` is still the `d72dd6a` evidence**
+  and the `npm test` default-build gate still cannot run, so the honest
+  full-suite failure baseline is still owed. The "11 failing tests in 6 files"
+  figure below remains the last enumerated set, re-measured against a clean
+  `82c155b` export, not against a working default build;
+
 - ~~open owner decision: the packed STARFIELD correction gate~~ — **RESOLVED
   2026-09-21, owner-confirmed. The gate was not moved; the segment fitted by
   itself.** It stood 7 B over the 1,804-B two-stream correction gate from

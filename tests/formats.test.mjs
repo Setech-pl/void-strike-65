@@ -37,11 +37,15 @@ test("XEX contains a payload segment and RUNAD", () => {
   // the Director segment and RUNAD.
   const initAdSegments = manifest.xexInitAd === null ? 0 : 1;
   const readerSegments = manifest.sectorReader?.xexBlocks ?? 0;
+  // Light multiplicity step 1b: the Light ASM kernel is its own link and its
+  // own block, landing in the code window above the Director link's C half.
+  const lightKernelSegments = manifest.lightKernel == null ? 0 : 1;
   const at = (index) => segments[index + initAdSegments];
   // 4.5M-M2: GLUE has no segment of its own; it rides the low-C transport
   // segment (merged low-C/GLUE/Heavy record at $9B40) at offset $F8.
   assert.equal(segments.length,
-    5 + directorCodeRuntimes.length + initAdSegments + readerSegments);
+    5 + directorCodeRuntimes.length + initAdSegments + readerSegments +
+    lightKernelSegments);
   assert.equal(segments[0].start, 0x2000);
   assert.equal(segments[0].data.length, manifest.transportCapacity.initialBootBytes);
   assert.deepEqual([at(1).start, at(1).end],
@@ -68,21 +72,38 @@ test("XEX contains a payload segment and RUNAD", () => {
   const directorIndex = 3 + directorCodeRuntimes.length;
   assert.deepEqual([at(directorIndex).start, at(directorIndex).end],
     [manifest.directorRuntime.runAddress, manifest.directorRuntime.endExclusive - 1]);
+  // Light multiplicity step 1b: the Light ASM kernel's block precedes the
+  // reader's. Its start is not a chosen constant - it is where the Director
+  // link's window half ended in this build - so the assertion is that the two
+  // halves MEET, not that the kernel sits at some address.
+  if (lightKernelSegments > 0) {
+    const kernel = manifest.lightKernel;
+    const kernelImage = fs.readFileSync(path.join(rootDirectory, "build", "light-kernel.bin"));
+    assert.deepEqual([at(directorIndex + 1).start, at(directorIndex + 1).end],
+      [kernel.address, kernel.endExclusive - 1]);
+    assert.ok(at(directorIndex + 1).data.equals(kernelImage));
+    const window = manifest.residentCapacity.basicWindow;
+    assert.equal(kernel.address, window.address + window.usedBytes,
+      "the kernel block must start where the Director link's window half ends");
+    assert.ok(kernel.endExclusive <= 0xbc00,
+      "the kernel block must stop before the sector reader BSS at $BC00");
+  }
+  const readerBase = directorIndex + 1 + lightKernelSegments;
   if (readerSegments > 0) {
     const reader = manifest.sectorReader;
     const readerImage = fs.readFileSync(path.join(rootDirectory, "build", "sector-reader.bin"));
-    assert.deepEqual([at(directorIndex + 1).start, at(directorIndex + 1).end],
+    assert.deepEqual([at(readerBase).start, at(readerBase).end],
       [reader.address, reader.address + reader.bytes - 1]);
-    assert.ok(at(directorIndex + 1).data.equals(readerImage));
+    assert.ok(at(readerBase).data.equals(readerImage));
     // Owner decision 1: only the XEX carries the level image. The ATR reads it
     // over SIO at START GAME, which is what exercises the reader end to end.
     const levelOne = reader.levels.find((level) => level.id === 1);
     const levelImage = fs.readFileSync(path.join(rootDirectory, "build", levelOne.file));
-    assert.deepEqual([at(directorIndex + 2).start, at(directorIndex + 2).end],
+    assert.deepEqual([at(readerBase + 1).start, at(readerBase + 1).end],
       [reader.levelBuffer.address, reader.levelBuffer.address + levelOne.bytes - 1]);
-    assert.ok(at(directorIndex + 2).data.equals(levelImage));
+    assert.ok(at(readerBase + 1).data.equals(levelImage));
   }
-  const runIndex = directorIndex + 1 + readerSegments;
+  const runIndex = readerBase + readerSegments;
   assert.deepEqual([at(runIndex).start, at(runIndex).end], [0x02e0, 0x02e1]);
   assert.equal(at(runIndex).data.readUInt16LE(0),
     manifest.transportCapacity.stage2.xexEntryAddress);
@@ -272,6 +293,6 @@ test("the code window is declared, guarded and addressable by the build", () => 
 
   // The loader bound is mirrored on both sides of the ABI: JS refuses a record
   // above $BC1F before it is encoded, ca65 refuses it again in stage 2.
-  assert.match(source, /^CHUNK_MAX_COUNT {7}= 10$/m);
+  assert.match(source, /^CHUNK_MAX_COUNT {7}= 11$/m);
   assert.match(source, /cmp #\$BD\s+STAGE2_FAIL_CS\s+cmp #\$BC\s+bne :\+\s+lda stage2_final_end_lo\s+cmp #\$21\s+STAGE2_FAIL_CS/);
 });

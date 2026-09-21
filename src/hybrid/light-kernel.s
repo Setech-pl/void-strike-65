@@ -1,8 +1,20 @@
-; Light Wingman ASM kernel: two ring cells, their backing, the glyph install,
+; Light-class ASM kernel: two ring cells, their backing, the glyph install,
 ; and the hot PairShot/contact tests. C owns lifecycle, HP, formation motion,
 ; fire policy and the archetype record; this file only executes and publishes.
-; main.s reaches these entries solely through operand-only hook redirections,
-; so no existing entry point or segment boundary moves.
+;
+; ITS OWN LINK (plan-light-multiplicity.md §3.1 [C1], owner decision
+; 2026-09-21). It used to be `.include`d into main.s. It now links on its own
+; with cfg/light-kernel.cfg, built by buildResidentModule the way
+; src/hybrid/sector-reader.s is, and lands in owner decision X's code window
+; directly above the Director link's C half. It reaches main.s through the
+; generated build/light-kernel-abi.inc, and main.s reaches IT through the
+; frozen five-entry vector table below - the same shape as the reader's
+; $A000 vectors. No main-link symbol binds to this file.
+;
+; Two links share the 1,536-B window and the boundary between them is NOT a
+; chosen constant: HYBRID_ASM_WINDOW_BASE in build/director-abi.inc is
+; wherever the Director link's C half ended in this very build, so neither
+; half can be sized wrong by an estimate.
 ;
 ; Late publication (owner smoke 2026-09-15: the frame-start erase left the
 ; Light blank while ANTIC scanned the upper playfield, so it flickered). The
@@ -15,6 +27,22 @@
 ; previous Light image is visible; light_cell_resolve gives them the Light's
 ; lower backing, and the late Light erase leaves a cell alone once such a
 ; lower layer has overwritten it.
+
+.setcpu "6502"
+
+.include "fighter-weapons.inc"
+.include "entity-effects.inc"
+.include "capital-hulls.inc"
+.include "starfield.inc"
+.include "director-abi.inc"
+.include "light-kernel-abi.inc"
+
+.import __LIGHT_KERNEL_RUN__, __LIGHT_KERNEL_RAM_LAST__
+; The two halves cannot overlap and the ASM half cannot reach the sector
+; reader's BSS. Both are link errors, not runtime surprises.
+.assert __LIGHT_KERNEL_RUN__ = HYBRID_ASM_WINDOW_BASE, lderror, "the Light kernel must start where the Director link's window half ends"
+.assert __LIGHT_KERNEL_RUN__ >= $B600, lderror, "the Light kernel must start inside the code window"
+.assert __LIGHT_KERNEL_RAM_LAST__ <= HYBRID_C_WINDOW_LIMIT, lderror, "the Light kernel reaches the sector reader BSS at $BC00"
 
 LIGHT_WIDTH_HPOS = 8
 LIGHT_HEIGHT_SCANLINES = 8
@@ -43,15 +71,24 @@ LIGHT_BACKING1 = LIGHT_BACKING0+1
 .assert (LIGHT_PROJECTILE_OWNER & FIGHTER_PROJECTILE_INTERCEPTOR_EMITTER_MASK) = 0, error, "Light shots are attributed to leader slot P1"
 .assert FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT = 3 && LIGHT_PROJECTILE_OWNER < 8, error, "Light emit shifts weapon_class above the owner bits"
 
-; Residency (all resident for the whole game, no runtime I/O):
-;   LIGHT_CODE     tail of the hybrid extension composite, carried in the
-;                  existing late-compressed extension stream
-;   LIGHT_RESIDENT head of the pickup/collision stream at $8776
-;   ENTITY_CODE    tail: the 32-byte Wingman + Interceptor art tables
-;   STARFIELD      free tail of the relocated starfield runtime (resolver)
-;   BROADSIDE      light_add_score in the retired 17-byte entry pad (main.s)
+; Residency: the whole kernel is one contiguous LIGHT_KERNEL segment in the
+; code window, resident for the whole game, no runtime I/O. What stays behind
+; in the main link is what was never Light-only: entity_debris_publish and its
+; two debris helpers (LIGHT_CODE), the 32-byte Wingman + Interceptor art
+; tables (ENTITY_CODE tail) and light_add_score (BROADSIDE pad).
 
-.segment "LIGHT_CODE"
+.segment "LIGHT_KERNEL"
+
+; Frozen entry vector table: main.s binds to these five addresses by constant
+; and to nothing else in this file. Order is a contract - build.mjs derives
+; LIGHT_KERNEL_* from it by index - so entries are only ever APPENDED.
+light_kernel_vectors:
+    jmp light_publish
+    jmp light_update
+    jmp light_shot
+    jmp light_backing
+    jmp light_cell_resolve_sanitized
+.assert * - light_kernel_vectors = 5*3, error, "the Light kernel vector table must be five 3-byte entries"
 
 ; Replaces the PairShot erase operand in the fighter publication window.
 light_publish:
@@ -132,8 +169,6 @@ light_top:
     and #$F8
     clc
     rts
-
-.segment "LIGHT_RESIDENT"
 
 ; After entity/effect simulation: C decides motion and fire; ASM performs the
 ; PairShot emission, the glyph install and the player contact test.
@@ -266,37 +301,6 @@ light_destroyed:
     jsr update_score_display
     jmp play_hit_sound
 
-; Light art: Wingman then Interceptor, 16 bytes each (left cell, right cell),
-; contiguous at the ENTITY_CODE tail so light_update reads both through one
-; indexed operand without a page crossing. Codes stay 120|$80 / 121|$80, so
-; bit pattern %11 is COLPF3 (hostile red); %01 COLPF0 white, %10 COLPF1 steel.
-.segment "ENTITY_CODE"
-
-; Wingman: downward swept-wing fighter, colour 3 only.
-light_glyph:
-    .byte $F0,$FC,$3F,$0F,$0F,$03,$03,$00
-    .byte $0F,$3F,$FC,$F0,$F0,$C0,$C0,$00
-; Interceptor: X/quad silhouette, steel arms, red corner rotor pods, white
-; hub (. black, S steel, R red, W white; left cell | right cell):
-;   R R . . | . . R R
-;   R S . . | . . S R
-;   . S S . | . S S .
-;   . . S W | W S . .
-;   . S S . | . S S .
-;   R S . . | . . S R
-;   R R . . | . . R R
-;   . . . . | . . . .
-light_interceptor_glyph:
-    .byte $F0,$E0,$28,$09,$28,$E0,$F0,$00
-    .byte $0F,$0B,$28,$60,$28,$0B,$0F,$00
-light_glyph_end:
-
-.assert light_interceptor_glyph - light_glyph = LIGHT_GLYPH_BYTES, error, "Light art tables must be contiguous"
-.assert light_glyph_end - light_glyph = LIGHT_GLYPH_BYTES*2, error, "Light art tables must be 32 bytes"
-.assert >light_glyph = >(light_glyph_end-1), error, "Light art tables must not cross a page"
-
-.segment "STARFIELD"
-
 ; Effects: the existing debris resolver, then the Light resolver below.
 light_backing:
     jsr resolve_effect_backing_below_interactive_debris
@@ -325,5 +329,4 @@ light_cell_resolve:
 @done:
     rts
 
-light_starfield_end:
-.assert light_starfield_end <= hud_booster_backing, error, "Light starfield tail overlaps BOOST HUD backing"
+light_kernel_end:

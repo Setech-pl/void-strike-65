@@ -6,16 +6,16 @@
   "baseline": {
     "xex_loader_frames": 134,
     "xex_menu_frames": 391,
-    "atr_loader_frames": 323,
-    "atr_menu_frames": 580
+    "atr_loader_frames": 325,
+    "atr_menu_frames": 582
   },
   "recorded": {
     "date": "2026-09-21",
     "branch": "experiment/light-multiplicity",
-    "runtime_checkpoint": "a91dca4",
-    "xex_sha256": "89531254a7bc94c02ceb6a6c1d5a83fe4f58684b71f107851ee312b2c7b15037",
-    "atr_sha256": "d5a2e8f14d3e57311e0b001363c60b6bf8dd5820a3190c2993941df96a8174ea",
-    "total_transport_sectors": 197,
-    "reason": "Re-recorded for Light multiplicity step 1a, the first step that puts real content in owner decision X's code window at $B600-$BBFF. The Light C - tick, admission, reload, schedule and hit - left HYBRID_C_EXT for the window, which is the tenth DFMC record: transport 195 -> 197 sectors (the window record is 4 sectors LZ, 590 B raw / 434 B packed, and the extension shrank by 2 sectors). MEASURED from a full 8-session boot smoke, 8/8 passed. ATR milestones move +4/+4 (loader 319 -> 323, menu 576 -> 580) and XEX -1/-1 (135 -> 134, 392 -> 391): every one inside the +10 warn band, so this is a re-record of a change that was cheaper than the band, not of one that spent it. The XEX milestones move at all only because the boot image shifted; the binary loader still places every block before the start milestone. gameplay_init stays at frame 3060 on ATR against 3053 on XEX, the level image at $A600 still compares byte-exact against build/level-1.bin, and command frames stay XEX 0 / ATR 2 with 0 retries. The window read-back changed shape with this step: it used to compare the retired 16-byte inert probe and now compares the first 16 bytes of the linked kernel image, which is the same proof over real content."
+    "runtime_checkpoint": "aad6d53",
+    "xex_sha256": "a3447d0bcef4cf5da38683b638b97e6ba593bef43dda91d12a6367ebf9639098",
+    "atr_sha256": "096e10193a44f611b12b247069e5441cddc8c76156739df481b744ee279ca07b",
+    "total_transport_sectors": 198,
+    "reason": "Re-recorded for Light multiplicity step 1b: the Light ASM kernel became its own link (plan §3.1 [C1], owner decision 2026-09-21) and travels as the ELEVENTH DFMC record, landing at $B84E directly above the Director link's C half. Transport 197 -> 198 sectors: the kernel record costs 4 sectors and the extension and pickup records give 3 back, because LIGHT_RESIDENT (229 B) and the STARFIELD resolver (31 B) left the main link with it. MEASURED from a full 8-session boot smoke, 8/8 passed. ATR milestones move +2/+2 (loader 323 -> 325, menu 580 -> 582); XEX milestones do not move at all (134/391). Both inside the +10 warn band. gameplay_init stays at frame 3060 on ATR against 3053 on XEX, the level image at $A600 still compares byte-exact, and command frames stay XEX 0 / ATR 2 with 0 retries. Cumulative against the 82c155b recording (135/392, 319/576): XEX -1/-1, ATR +6/+6."
   }
 }

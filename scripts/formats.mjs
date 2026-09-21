@@ -386,9 +386,12 @@ export function validateBuildDirectory(rootDirectory) {
   // Roadmap 4.3: the reader's own block plus the level-1 image, which the XEX
   // carries as a resident block and the ATR does not carry at all.
   const sectorReaderSegments = manifest.sectorReader?.xexBlocks ?? 0;
+  // Light multiplicity step 1b: the Light ASM kernel is its own link and its
+  // own block, landing in the code window above the Director link's C half.
+  const lightKernelSegments = manifest.lightKernel == null ? 0 : 1;
   invariant(parsedXex.segments.length ===
     (directorEnabled ? 5 + directorCodeRuntimes.length : 3) + initAdSegments +
-    sectorReaderSegments,
+    sectorReaderSegments + lightKernelSegments,
   "XEX segment count does not match the enabled transport layout");
   const payloadSegment = parsedXex.segments[0];
   if (initAd !== null) {
@@ -406,7 +409,11 @@ export function validateBuildDirectory(rootDirectory) {
   // Roadmap 4.3: the reader block and the XEX-only level-1 image sit between
   // the Director segment and RUNAD, so RUNAD moves by however many the
   // manifest declares.
-  const sectorReaderBase = directorEnabled ? 4 + directorCodeRuntimes.length : 2;
+  // Light multiplicity step 1b: the Light ASM kernel's block precedes them.
+  const lightKernelBase = directorEnabled ? 4 + directorCodeRuntimes.length : 2;
+  const lightKernelSegment =
+    lightKernelSegments === 0 ? null : at(lightKernelBase);
+  const sectorReaderBase = lightKernelBase + lightKernelSegments;
   const sectorReaderSegmentList = [];
   for (let index = 0; index < sectorReaderSegments; index += 1) {
     sectorReaderSegmentList.push(at(sectorReaderBase + index));
@@ -457,6 +464,22 @@ export function validateBuildDirectory(rootDirectory) {
       collisionOffset + capitalPlayerCollisionRuntime.length)
       .equals(capitalPlayerCollisionRuntime),
     "Packed pickup stream does not publish the capital/player collision module");
+  }
+  if (lightKernelSegment !== null) {
+    const kernelImage = fs.readFileSync(path.join(rootDirectory, "build", "light-kernel.bin"));
+    invariant(lightKernelSegment.start === manifest.lightKernel.address &&
+      lightKernelSegment.data.equals(kernelImage),
+    "XEX Light kernel block differs from build/light-kernel.bin");
+    // The two halves of the code window must meet exactly: the kernel starts
+    // where the Director link's C half ended, and ends below the reader BSS.
+    invariant(manifest.lightKernel.address === manifest.lightKernel.cHalfEndExclusive,
+      "the Light kernel must start where the Director link's window half ends");
+    invariant(manifest.lightKernel.endExclusive <= manifest.lightKernel.windowLimit,
+      "the Light kernel reaches the sector reader BSS at $BC00");
+    invariant(manifest.lightKernel.address >= 0xa000,
+      "the Light kernel lands in the window, which requires the INITAD record");
+    invariant(initAd !== null,
+      "a block at $A000 or above requires the INITAD record: RUNAD would be too late");
   }
   if (sectorReaderSegments > 0) {
     const sectorReader = manifest.sectorReader;

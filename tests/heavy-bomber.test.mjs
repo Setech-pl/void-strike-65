@@ -17,7 +17,7 @@ const memberSource = fs.readFileSync(path.join(root, "src/hybrid/heavy-member.s"
 
 const labels = new Map();
 for (const file of ["build/void-strike-65.lbl", "build/encounter-director.lbl",
-  "build/integration-glue.lbl"]) {
+  "build/integration-glue.lbl", "build/light-kernel.lbl"]) {
   for (const line of fs.readFileSync(path.join(root, file), "utf8").split(/\r?\n/)) {
     const match = /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim());
     if (match) labels.set(match[2], Number.parseInt(match[1], 16));

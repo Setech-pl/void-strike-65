@@ -978,6 +978,47 @@ milestones move +22 in total (loader 297 → 319, menu 554 → 576), inside the
 `boot-deadline-baseline.json`; boot smoke 8/8, and the image at `$A600` is
 now verified byte-exact against `build/level-1.bin` on every session.
 
+### Light multiplicity step 1b (2026-09-21) — the Light ASM kernel is its own link
+
+The code window is filled by **two links** whose boundary is not a constant.
+
+| Range | Bytes | Owner | Link |
+| --- | ---: | --- | --- |
+| `$B600-$B84D` | 590 | `HYBRID_C_WINDOW` + `HYBRID_C_WINDOW_RODATA` — the Light C | Director link (built first) |
+| `$B84E-$B9E8` | 411 | `LIGHT_KERNEL` — the Light ASM kernel | its own link, after main |
+| `$B9E9-$BBFF` | **535 free** | — | — |
+
+`build/director-abi.inc` carries `HYBRID_ASM_WINDOW_BASE`, which **is**
+`__HYBRID_C_WINDOW_RAM_LAST__` from the same build — the address after the last
+byte the C half used. `scripts/build.mjs` rewrites `cfg/light-kernel.cfg` from
+it, `src/hybrid/light-kernel.s` asserts at link time that its run address
+really is that value and that `__LIGHT_KERNEL_RAM_LAST__ <= $BC00`, and
+`scripts/formats.mjs` re-checks both against the XEX block. So the halves meet
+exactly, no byte is lost to a boundary, and neither half is sized by an
+estimate (owner decision 2026-09-21, rejecting a fixed split).
+
+`main.s` binds to the kernel through a **frozen five-entry vector table** at
+the kernel's base and to nothing else — the shape it uses for the sector
+reader's `$A000` vectors. The kernel reaches `main.s` through
+`build/light-kernel-abi.inc`, generated from the linked main image: 13 call
+targets, 12 data symbols and 11 constants, nine of which `main.s` now exports
+so ca65 emits them into the label file.
+
+**Free tails (MEASURED).** `HYBRID_C_EXT` 351 → **487 B** (`light_publish` and
+`light_top` left; `LIGHT_CODE` keeps only `entity_debris_publish` and its two
+debris helpers, 131 B); pickup stream fill 7 → **236 B** (`LIGHT_RESIDENT`'s
+229 B are gone); code window tail 535 B; `HYBRID_C_ARENA` 176 B, `ENTITY_CODE`
+1 B, A2 kernel 19 B, `SECTOR_READER` 70 B, `DIRECTOR_ABI` 0 B, BROADSIDE 3 B,
+`HYBRID_LIGHT_SLOTS` 12 B, `HYBRID_LIGHT_STATE` 8 B, all unchanged. Extension
+record 548 → 412 B raw, 507 → 371 B packed. Transport 197 → **198 sectors**,
+eleven DFMC records.
+
+**`STARFIELD` packed 1,811 → 1,780 B.** The 31-byte resolver left it, and it is
+now **24 B under** the 1,804-B two-stream correction gate it had been 7 B over.
+`tests/light-wingman.test.mjs` "Light kernel placement…" passes again for the
+first time since 4.5M-M1. Whether that closes the open owner decision is the
+owner's call, not this change's; the number is reported, not acted on.
+
 ### Light multiplicity step 1a (2026-09-21) — SoA slot state, Light C in the window
 
 | Range | Bytes | Owner | Notes |

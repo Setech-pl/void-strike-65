@@ -35,7 +35,7 @@ test("source keeps the documented PAL and PMG hardware contract", () => {
 });
 
 test("the ASM Light art selector matches the C Interceptor record offset", () => {
-  const light = fs.readFileSync(path.join(rootDirectory, "src", "hybrid", "light-wingman.s"), "utf8");
+  const light = fs.readFileSync(path.join(rootDirectory, "src", "hybrid", "light-kernel.s"), "utf8");
   const header = fs.readFileSync(path.join(rootDirectory, "src", "c", "enemy-archetype.h"), "utf8");
   const asm = /^LIGHT_OFFSET_INTERCEPTOR\s*=\s*(\d+)\s*$/m.exec(light);
   const index = /ENEMY_ARCHETYPE_INTERCEPTOR\s*=\s*(\d+)\s*,/.exec(header);

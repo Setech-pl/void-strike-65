@@ -241,7 +241,7 @@ test("a future Bomber-class shell is emitter-independent and keeps its own rate"
 
 const lightLabels = new Map();
 for (const file of ["build/void-strike-65.lbl", "build/encounter-director.lbl",
-  "build/integration-glue.lbl"]) {
+  "build/integration-glue.lbl", "build/light-kernel.lbl"]) {
   for (const line of fs.readFileSync(path.join(root, file), "utf8").split(/\r?\n/)) {
     const match = /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim());
     if (match) lightLabels.set(match[2], Number.parseInt(match[1], 16));

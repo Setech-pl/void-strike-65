@@ -46,6 +46,12 @@ export function loadRuntimeSegments(rootDirectory) {
       ["capitalPlayerCollision", "capital-player-collision.bin",
         manifest.capitalPlayerCollisionRuntime.runAddress,
         manifest.capitalPlayerCollisionRuntime.bytes],
+      // Light multiplicity step 1b: the Light ASM kernel's own link, landing in
+      // the code window directly above the Director link's C half.
+      ...(manifest.lightKernel == null ? [] : [
+        ["lightKernel", "light-kernel.bin",
+          manifest.lightKernel.address, manifest.lightKernel.bytes],
+      ]),
       ...(manifest.residentCapacity?.window == null ? [] : [
         ["residentWindow", "resident-window-runtime.bin",
           manifest.residentCapacity.window.address,

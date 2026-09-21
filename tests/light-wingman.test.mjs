@@ -10,11 +10,11 @@ import { installRuntimeSegments, readRuntimeBytes } from "../scripts/runtime-ima
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const manifest = JSON.parse(fs.readFileSync(path.join(root, "build/manifest.json"), "utf8"));
 const mainSource = fs.readFileSync(path.join(root, "src/main.s"), "utf8");
-const lightSource = fs.readFileSync(path.join(root, "src/hybrid/light-wingman.s"), "utf8");
+const lightSource = fs.readFileSync(path.join(root, "src/hybrid/light-kernel.s"), "utf8");
 
 const labels = new Map();
 for (const file of ["build/void-strike-65.lbl", "build/encounter-director.lbl",
-  "build/integration-glue.lbl"]) {
+  "build/integration-glue.lbl", "build/light-kernel.lbl"]) {
   for (const line of fs.readFileSync(path.join(root, file), "utf8").split(/\r?\n/)) {
     const match = /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim());
     if (match) labels.set(match[2], Number.parseInt(match[1], 16));
@@ -109,31 +109,58 @@ test("Light Wingman and Interceptor are the second and third 12-byte C records; 
 });
 
 test("Light kernel placement is legal, resident and inside every reviewed gate", () => {
+  // REBASELINED for step 1b: the kernel is its own link in the code window.
+  // LIGHT_RESIDENT is gone - PICKUP_CODE now starts $8776 itself - and so is
+  // the STARFIELD resolver tail. LIGHT_CODE keeps only what was never
+  // Light-only: entity_debris_publish and its two debris helpers.
+  const kernel = manifest.lightKernel;
+  assert.equal(L("__LIGHT_KERNEL_RUN__"), kernel.address);
+  assert.equal(L("__LIGHT_KERNEL_RAM_LAST__"), kernel.endExclusive);
+  // The two links meet exactly: no byte of the window is lost to a boundary,
+  // and the ASM half stops below the sector reader's BSS at $BC00.
+  assert.equal(kernel.address, kernel.cHalfEndExclusive,
+    "the kernel must start where the Director link's window half ends");
+  assert.equal(kernel.address,
+    manifest.residentCapacity.basicWindow.address +
+      manifest.residentCapacity.basicWindow.usedBytes);
+  assert.ok(kernel.endExclusive <= 0xbc00, "the kernel must stop before the reader BSS");
+  assert.ok(kernel.freeBytes >= 0, `code window tail ${kernel.freeBytes} B`);
+  // The frozen five-entry vector table is main.s's only binding to the kernel.
+  assert.deepEqual(Object.values(kernel.vectors),
+    [0, 1, 2, 3, 4].map((index) => kernel.address + index * 3));
+  assert.equal(L("light_kernel_vectors"), kernel.address);
+
   const light = manifest.lightWingman;
-  assert.equal(light.residentRunAddress, 0x8776);
-  assert.equal(L("__LIGHT_RESIDENT_RUN__"), 0x8776);
-  assert.equal(L("__PICKUP_CODE_RUN__"), 0x8776 + light.residentBytes);
+  assert.equal(light.residentBytes, 0, "LIGHT_RESIDENT is gone from the main link");
+  assert.equal(L("__PICKUP_CODE_RUN__"), 0x8776);
   assert.equal(light.extensionTailRunAddress + light.extensionTailBytes <= 0x9000, true);
   const extension = manifest.directorCodeRuntimes.find(({ name }) => name === "extension");
   assert.equal(extension.runAddress + extension.bytes, light.extensionTailRunAddress +
     light.extensionTailBytes, "LIGHT_CODE is the tail of the extension composite");
   assert.ok(extension.packedBytes <= 960, "late-compressed extension cold staging limit");
-  // 4.5M-M1: the 1,798 B single-stream correction gate (open owner decision,
-  // 7 B over) becomes 1,804 B for the two-stream total (same content headroom).
-  assert.ok(manifest.starfieldRuntime.packedBytes <= 1804, "starfield correction gate");
-  assert.ok(L("light_starfield_end") <= L("hud_booster_backing"));
+  // 4.5M-M1: the 1,798 B single-stream correction gate (open owner decision)
+  // becomes 1,804 B for the two-stream total. Step 1b took the 31-B resolver
+  // out of STARFIELD, which is what finally put it UNDER the gate: 1,811 B
+  // before, 1,780 B now. The open decision is a report to the owner, not this
+  // test's to close, so the assertion simply holds again.
+  assert.ok(manifest.starfieldRuntime.packedBytes <= 1804,
+    `starfield correction gate: ${manifest.starfieldRuntime.packedBytes} B`);
   // 93 B before the early-frame pickup PMG erase was removed from
   // entity_effects_erase (96 B); 107 B after the debris late publication
   // (frame-start debris erase and mid-frame debris render removed from
   // ENTITY_CODE, guarded erase and cell-loop render added).
   // 75 B after the Wingman and Interceptor art moved to the ENTITY_CODE tail
   // (+32 B packed).
-  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 75,
+  // 76 after step 1b: the art tables stayed, the kernel left.
+  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 76,
     "ENTITY_CODE staging margin tracks the Light art tables");
   assert.equal(manifest.capitalPlayerCollisionRuntime.runAddress, 0x8b67);
   // light_add_score exactly fills the retired 17-byte BROADSIDE entry pad.
   assert.equal(L("light_add_score"), L("entity_complete_scroll_tick") + 3);
-  assert.deepEqual([L("light_state"), L("_enemy_profile_movement_id")], [0x8100, 0x8110]);
+  // Step 1a: the per-slot state left $8100 for the SoA arrays at $7FC4; the
+  // profile cache still starts $8110 and light_slot still heads $8100.
+  assert.deepEqual([L("light_state"), L("light_slot"), L("_enemy_profile_movement_id")],
+    [0x7fc4, 0x8100, 0x8110]);
   assert.equal(manifest.encounterDirector.director.footprint.cStackBytes, 0);
   assert.equal(manifest.encounterDirector.director.footprint.zeroPageBytes, 0);
 });

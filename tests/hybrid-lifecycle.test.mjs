@@ -16,7 +16,7 @@ const manifest = JSON.parse(fs.readFileSync(path.join(root, "build/manifest.json
 
 const labels = new Map();
 for (const file of ["build/void-strike-65.lbl", "build/encounter-director.lbl",
-  "build/integration-glue.lbl"]) {
+  "build/integration-glue.lbl", "build/light-kernel.lbl"]) {
   for (const line of fs.readFileSync(path.join(root, file), "utf8").split(/\r?\n/)) {
     const match = /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim());
     if (match) labels.set(match[2], Number.parseInt(match[1], 16));
@@ -65,8 +65,11 @@ test("C EnemyArchetype is a compact exact Raider record in legal extension place
   // window at $B600, taking 332 B with it: 880 - 332 = 548. It had to: the SoA
   // slot indexing grew that code by 242 B, which overflowed LIGHT_CODE's run
   // window by 175 B. The freed tail is the point of the decision.
+  // Step 1b then took light_publish and light_top out of LIGHT_CODE into the
+  // kernel's own link, leaving only the shared debris publication: 548 - 136
+  // = 412. What remains in LIGHT_CODE was never Light-only.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
-    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 548 });
+    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 412 });
   const window = manifest.residentCapacity.basicWindow;
   assert.equal(window.address, 0xb600, "the Light C lives in the code window");
   assert.ok(window.usedBytes > 0 && window.usedBytes <= window.capacityBytes,

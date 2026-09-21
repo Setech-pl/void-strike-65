@@ -10022,6 +10022,9 @@ entity_complete_scroll_tick:
 ; The 17-byte entry-preservation pad holds the Light-class BCD score add. It
 ; is an exact fit, so every following BROADSIDE entry address stays fixed.
 ; X selects the Light archetype record; absolute,X keeps the pad exact.
+; Step 1b: the kernel that calls this moved to its own link, so the record
+; field it indexes is spelled here rather than in the kernel source.
+LIGHT_SCORE_BCD = ENEMY_ARCHETYPE_TABLE+10
 light_add_score:
     sed
     clc
@@ -11548,14 +11551,16 @@ CHUNK_MANIFEST_MAX_BYTES = 12+CHUNK_MAX_COUNT*16+2
 CHUNK_RECORD          = 12
 ; Owner decision B (2026-09-20) raised this to nine, so a landing in the window
 ; under the BASIC ROM needs no further loader change; owner decision X
-; (2026-09-21) to ten, for the code window that carries the Light kernel.
+; (2026-09-21) to eleven: the code window is filled by TWO links - the Director
+; link's Light C and the Light ASM kernel's own link - and each travels as its
+; own record.
 ; Mirrors MAX_CHUNKS in scripts/chunk-loader.mjs. Each extra record costs 16 B
 ; of the reservation below, inside the transient overlay. (The window's own
 ; addresses are spelled out in cfg/encounter-director.cfg and
 ; docs/memory-map.md, not here: the ENTITY_CODE reservation tests read this
 ; file textually from the first `.segment "ENTITY_CODE"` to its end and refuse
 ; the literals.)
-CHUNK_MAX_COUNT       = 10
+CHUNK_MAX_COUNT       = 11
 CHUNK_TYPE_LZ         = 1
 CHUNK_STAGING_BROAD   = 1
 CHUNK_STAGING_ADDRESS = $8100
@@ -12201,13 +12206,48 @@ boot_chunk_manifest_end:
 .export layout_d_publish_glue, layout_d_publish_glue_end
 .export layout_d_entity_unpack_complete, layout_d_cold_publish_complete
 
-; Light Wingman: the hooks below are operand-only redirections of existing
-; JSRs. Each hook first performs the routine it is named after; the debris
-; capture hook also keeps the near-star sanitising it replaces. Without the
-; hybrid C Light ABI they resolve to the original targets.
+; Light class: the hooks below are operand-only redirections of existing JSRs.
+; Each hook first performs the routine it is named after; the debris capture
+; hook also keeps the near-star sanitising it replaces. Without the hybrid C
+; Light ABI they resolve to the original targets.
+;
+; Step 1b: the Light ASM kernel is no longer included here - it is its own link
+; (src/hybrid/light-kernel.s, cfg/light-kernel.cfg) landing in the code window,
+; and the hooks below bind to its vector table by constant instead.
 .ifdef ENEMY_LIGHT_TICK
-.include "light-wingman.s"
 .include "heavy-member.s"
+
+; Light art: Wingman then Interceptor, 16 bytes each (left cell, right cell),
+; contiguous at the ENTITY_CODE tail so the kernel's install reads both through
+; one indexed operand without a page crossing. Codes stay 120|$80 / 121|$80, so
+; bit pattern %11 is COLPF3 (hostile red); %01 COLPF0 white, %10 COLPF1 steel.
+; They stay in THIS link (step 1b): they are art, not kernel, and ENTITY_CODE
+; is where the art tables of every other class live.
+.segment "ENTITY_CODE"
+
+; Wingman: downward swept-wing fighter, colour 3 only.
+light_glyph:
+    .byte $F0,$FC,$3F,$0F,$0F,$03,$03,$00
+    .byte $0F,$3F,$FC,$F0,$F0,$C0,$C0,$00
+; Interceptor: X/quad silhouette, steel arms, red corner rotor pods, white
+; hub (. black, S steel, R red, W white; left cell | right cell):
+;   R R . . | . . R R
+;   R S . . | . . S R
+;   . S S . | . S S .
+;   . . S W | W S . .
+;   . S S . | . S S .
+;   R S . . | . . S R
+;   R R . . | . . R R
+;   . . . . | . . . .
+light_interceptor_glyph:
+    .byte $F0,$E0,$28,$09,$28,$E0,$F0,$00
+    .byte $0F,$0B,$28,$60,$28,$0B,$0F,$00
+light_glyph_end:
+LIGHT_GLYPH_BYTES_MAIN = 16
+.assert light_interceptor_glyph - light_glyph = LIGHT_GLYPH_BYTES_MAIN, error, "Light art tables must be contiguous"
+.assert light_glyph_end - light_glyph = LIGHT_GLYPH_BYTES_MAIN*2, error, "Light art tables must be 32 bytes"
+.assert >light_glyph = >(light_glyph_end-1), error, "Light art tables must not cross a page"
+
 
 ; Placed after the Light art tables so they keep their ENTITY_CODE addresses.
 .segment "ENTITY_CODE"
@@ -12236,13 +12276,26 @@ player_dying_tick:
     rts
 @finished:
     jmp update_player_death_finished
-erase_fighter_projectile_overlays_with_light = light_publish
-entity_effects_update_with_light = light_update
-entity_player_fighter_projectile_target_with_light = light_shot
-resolve_effect_backing_below_interactive_debris_and_light = light_backing
-debris_capture_resolve = light_cell_resolve_sanitized
-.export light_publish, light_update, light_shot, light_backing
-.export light_cell_resolve, light_destroyed, light_glyph
+; Light multiplicity step 1b (plan §3.1 [C1]): the Light ASM kernel is its own
+; link, landing in the code window above the Director link's C half. main.s
+; reaches it through the frozen five-entry vector table at its base, exactly
+; as it reaches the sector reader at its own fixed vectors - so these five
+; aliases are the kernel's whole surface here, and no main-link symbol is
+; bound to it. (No address literal above: the ENTITY_CODE reservation tests
+; read this file textually to its end and refuse window addresses.)
+erase_fighter_projectile_overlays_with_light = LIGHT_KERNEL_PUBLISH
+entity_effects_update_with_light = LIGHT_KERNEL_UPDATE
+entity_player_fighter_projectile_target_with_light = LIGHT_KERNEL_SHOT
+resolve_effect_backing_below_interactive_debris_and_light = LIGHT_KERNEL_BACKING
+debris_capture_resolve = LIGHT_KERNEL_CELL_RESOLVE
+; The kernel's own dependencies, in the other direction: build.mjs generates
+; build/light-kernel-abi.inc from this link's labels, and ca65 emits an `=`
+; constant into the label file only when it is exported.
+.export CHARSET, CH_SPACE, PLAYER_HEALTH_UNITS, PLAYER_COLLISION_LAST_ROW
+.export PLAYER_VISIBLE_WIDTH_HPOS, FIGHTER_PROJECTILE_FREE
+.export FIGHTER_PROJECTILE_INTERCEPTOR, FIGHTER_PROJECTILE_INTERCEPTOR_EMITTER_MASK
+.export FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT
+.export light_glyph, light_add_score
 .else
 erase_fighter_projectile_overlays_with_light = entity_debris_publish_after_pairshot_erase
 entity_effects_update_with_light = entity_effects_update

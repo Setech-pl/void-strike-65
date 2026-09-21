@@ -11,12 +11,12 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const manifest = JSON.parse(fs.readFileSync(path.join(root, "build/manifest.json"), "utf8"));
 const lifecycleSource = fs.readFileSync(path.join(root, "src/c/lifecycle.c"), "utf8");
 const abiSource = fs.readFileSync(path.join(root, "src/hybrid/c-asm-abi.s"), "utf8");
-const lightSource = fs.readFileSync(path.join(root, "src/hybrid/light-wingman.s"), "utf8");
+const lightSource = fs.readFileSync(path.join(root, "src/hybrid/light-kernel.s"), "utf8");
 const mainSource = fs.readFileSync(path.join(root, "src/main.s"), "utf8");
 
 const labels = new Map();
 for (const file of ["build/void-strike-65.lbl", "build/encounter-director.lbl",
-  "build/integration-glue.lbl"]) {
+  "build/integration-glue.lbl", "build/light-kernel.lbl"]) {
   for (const line of fs.readFileSync(path.join(root, file), "utf8").split(/\r?\n/)) {
     const match = /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim());
     if (match) labels.set(match[2], Number.parseInt(match[1], 16));

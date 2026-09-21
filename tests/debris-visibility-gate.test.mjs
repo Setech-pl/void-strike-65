@@ -18,7 +18,7 @@ import { buildLives, frameVerdict, judgeLife, parseGateCsv, summariseLives } fro
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const main = fs.readFileSync(path.join(root, "src", "main.s"), "utf8");
-const light = fs.readFileSync(path.join(root, "src", "hybrid", "light-wingman.s"), "utf8");
+const light = fs.readFileSync(path.join(root, "src", "hybrid", "light-kernel.s"), "utf8");
 const evidencePath = path.join(root, "docs", "diagnostics",
   "stage-2b2g-debris-late-publication.json");
 

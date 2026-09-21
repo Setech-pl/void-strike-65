@@ -382,6 +382,19 @@ const capitalPlayerGeometrySessions = [["XEX", 1], ["ATR", 2]].flatMap(([medium,
     expectedHit,
   }))));
 
+/* MEASURED 2026-09-21 (owner decision, step 1 — the discriminator). These three
+ * replays exist to prove the Director executes BOSS_HANDOFF -> DRAIN ->
+ * terminal COMPLETE. At `d72dd6a`, where the evidence was last written, the
+ * `sweep` bot was never once hit in 10,500 frames and reached the handoff at
+ * frame 9279. At HEAD it loses a life at frame 2690 and reaches GAME OVER at
+ * 6337, and GAME OVER runs `director_c_init`, which resets the world row to 0
+ * and restarts the level — so the ~9,300 frames the handoff needs can never
+ * accumulate, whatever the frame budget. Holding PLAYER_LIVES keeps this a
+ * DIRECTOR gate rather than a survival gate: the fighter still takes damage,
+ * dies and respawns, but the level is not restarted underneath the clause.
+ * The trace-only observer is `DFTRACE_HOLD_PLAYER_LIVES`; no production byte is
+ * patched. The survival loss itself is a gameplay-difficulty signal for the
+ * owner and is recorded in STATUS, not gated here. */
 const directorCompletionSessions = [0, 1, 2].map((difficulty) => ({
   id: `director-complete-${difficulty}-natural-sweep-fire0`,
   difficulty,
@@ -389,6 +402,7 @@ const directorCompletionSessions = [0, 1, 2].map((difficulty) => ({
   fireDelay: 0,
   frames: 10_500,
   kind: "director-level-complete",
+  holdPlayerLives: 3,
 }));
 
 const memoryIntegritySessions = ["XEX", "ATR"].flatMap((medium) =>
@@ -441,7 +455,18 @@ const lowerPlayfieldSessions = [{
   difficulty: 2,
   policy: "vertical-boundary",
   fireDelay: 4_000,
-  frames: 420,
+  /* MEASURED 2026-09-21 on this build. Two clauses of this session asserted
+   * behaviour the 420-frame budget could not contain, the second hidden behind
+   * the first:
+   *   - the opaque-PlayerFighter clamp clause wants a frame back at the bottom
+   *     clamp AFTER the topmost one; the replay reaches y=32 at frame 347 and
+   *     lands back on y=225 at frame 540;
+   *   - the "capital encounter" clause wants a muzzle and a BROADSIDE; the
+   *     capital sector first opens at frame 852, the first tracked muzzle is
+   *     frame 917 and the first BROADSIDE frame 919.
+   * Neither is a runtime defect and neither assertion is loosened — the
+   * scenario is extended to contain them, with slack for ordinary drift. */
+  frames: 1_400,
   kind: "lower-playfield-boundary",
 }, {
   id: "lower-playfield-hostile-contact-xex-hard",
@@ -881,6 +906,24 @@ function invariant(condition, message) {
 
 function sha256(bytes) {
   return crypto.createHash("sha256").update(bytes).digest("hex");
+}
+
+/* The replay fingerprint used to be sha256(JSON.stringify(allRows)). That built
+ * one string of the whole run, and once the trace set grew past ~100k rows of
+ * ~440 columns it exceeded V8's maximum string length and threw RangeError
+ * before the report could be written -- a scaling limit of the harness, not a
+ * clause. This feeds the hash the identical byte sequence row by row, so the
+ * digest is exactly what the old expression produced for the same rows and the
+ * basis line stays true. */
+function sha256JsonArray(items) {
+  const hash = crypto.createHash("sha256");
+  hash.update("[");
+  for (let index = 0; index < items.length; index += 1) {
+    if (index !== 0) hash.update(",");
+    hash.update(JSON.stringify(items[index]));
+  }
+  hash.update("]");
+  return hash.digest("hex");
 }
 
 const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
@@ -2665,6 +2708,25 @@ function main() {
   // the file's existence is no longer the pass signal, so a report written on a
   // run that had a clause failure can never authorise a final build.
   const sessionFailures = [];
+  /* Stage 2 of the same accumulation (owner decision 2026-09-21, the rule for
+   * behavioural blockers). A post-loop clause the owner's rule routes here —
+   * a REAL FAILURE (c), or an (a) whose scenario cannot be extended cheaply —
+   * records its exact message instead of aborting the run, so
+   * `docs/runtime-wall-trace.json` is written and carries a truthful
+   * description of the build, this failure included. The assertion itself is
+   * NOT weakened: the same condition is evaluated, only its consequence
+   * changes. `gate.passed` is already ANDed against this list, so a report
+   * written with a recorded failure still cannot authorise a final build, and
+   * tests/runtime-evidence-binding.test.mjs pins the list so a NEW failure
+   * cannot slip in beside a recorded one. Every other post-loop clause still
+   * uses `invariant` and still aborts. */
+  const recordClauseFailure = (session, held, message) => {
+    if (held) return true;
+    sessionFailures.push({ session, message });
+    console.error(`CLAUSE FAILURE ${session}: ${message}`);
+    process.exitCode = 1;
+    return false;
+  };
   // Every traced replay is audited against the VCOUNT $77 fence, not only the
   // four PAL replays: the native counters cannot see an overrun at all.
   const palTimingAudits = [];
@@ -2866,6 +2928,14 @@ function main() {
 	    DFTRACE_FRONTEND_DELAY: String(session.frontendDelay),
 	  }),
       ...(session.pauseTest ? { DFTRACE_PAUSE_TEST: "1" } : {}),
+      /* Owner decision 2026-09-21: the observer holds PLAYER_LIVES at this
+       * value for the whole replay. The fighter still takes damage, dies and
+       * respawns; only GAME OVER — and with it `director_c_init`, which resets
+       * the Director world row to 0 and restarts the level — cannot happen.
+       * Trace-only: no production byte is patched and the default is off. */
+      ...(session.holdPlayerLives === undefined ? {} : {
+        DFTRACE_HOLD_PLAYER_LIVES: String(session.holdPlayerLives),
+      }),
       ...(session.kind === "debris-visibility-gate" ? {
         DFDEBRIS_GATE_OUTPUT: path.join(buildDirectory, `${session.id}-debris-gate.csv`),
         DFDEBRIS_ROW_OUTPUT: path.join(buildDirectory, `${session.id}-debris-row.json`),
@@ -5123,7 +5193,11 @@ function main() {
       row.extra_vbi_boundaries === 0 && row.dli_sequence_violations === 0) &&
       rows.some((row) => row.active_muzzles > 0) && rows.some((row) => row.broadside > 0),
     "Lower-playfield replay lost stars, timing, or the capital encounter");
-    const selectedFrames = [0, top.frame, returnedBottom.frame, 407, rows.at(-1).frame];
+    /* Derived, not pinned: the two clamps, the midpoint of the return leg and
+     * the two ends of the replay. */
+    const selectedFrames = [0, top.frame,
+      top.frame + ((returnedBottom.frame - top.frame) >> 1),
+      returnedBottom.frame, rows.at(-1).frame];
     const selectedPaths = selectedFrames.map((frame) => path.join(buildDirectory,
       `lower-playfield-xex-hard-${String(frame).padStart(3, "0")}.png`));
     invariant(selectedPaths.every((screenshotPath) => fs.existsSync(screenshotPath)),
@@ -5450,9 +5524,10 @@ function main() {
       finalComplete !== undefined && finalDrain.frame === finalDirectorEvent.frame + 1 &&
       finalComplete.frame > finalDrain.frame,
     `${session.id} did not execute BOSS_HANDOFF -> DRAIN -> COMPLETE`);
-    invariant(rows.filter((row) => row.frame >= finalComplete.frame)
-      .every((row) => row.sector_state === 6),
-    `${session.id} re-opened the capital sector after LEVEL COMPLETE`);
+    const terminalComplete = rows.filter((row) => row.frame >= finalComplete.frame)
+      .every((row) => row.sector_state === 6);
+    invariant(terminalComplete,
+      `${session.id} re-opened the capital sector after LEVEL COMPLETE`);
     const broadsideRows = rows.filter((row) => row.broadside > 0);
     invariant(broadsideRows.length > 0,
       `${session.id} did not observe a natural BROADSIDE projectile`);
@@ -5463,6 +5538,19 @@ function main() {
       drain_frame: finalDrain.frame,
       level_complete_frame: finalComplete.frame,
       drain_frames: finalComplete.frame - finalDrain.frame,
+      /* Published per session so the test can assert the RELATION -- handoff,
+       * DRAIN on the next frame, COMPLETE after it, and COMPLETE holding to
+       * the last measured frame -- instead of pinning the frame numbers, which
+       * are data about this build and move whenever the replay does. */
+      terminal_complete: terminalComplete,
+      terminal_complete_through_frame: rows.at(-1).frame,
+      last_measured_frame: rows.at(-1).frame,
+      /* The discriminator's own record: the replay is held above GAME OVER, and
+       * the fighter still dies and respawns this many times on the way. */
+      player_lives_held_at: session.holdPlayerLives,
+      deaths_survived: rows.filter((row, index) =>
+        index !== 0 && row.player_lifecycle === 1 &&
+        rows[index - 1].player_lifecycle !== 1).length,
       natural_broadside_first_frame: broadsideRows[0].frame,
       natural_broadside_last_frame: broadsideRows.at(-1).frame,
       natural_broadside_frames: broadsideRows.length,
@@ -5517,11 +5605,27 @@ function main() {
     invariant(transitions.length >= 18 && transitions.every((frame, index) =>
       index === 0 || frame - transitions[index - 1] === 8),
     `${session.id} did not preserve the exact 8+8 PAL engine cadence`);
+    /* MEASURED 2026-09-21, owner rule step 1: class (a), recorded rather than
+     * extended. `gameplay_dli` selects byte three of the active A2 list on
+     * every gameplay frame, but the observer only COUNTS it when the first DLI
+     * fires while the measured main-loop window is still open
+     * (`dftrace_active`), which is load-dependent. Across this run it fires
+     * 5,874 times in 41 sessions and the relation
+     * `dlist === 0x7f00 + active_lo + 3` holds on every one of them — 0
+     * violations — including 16 times each in `engine-restart-*-a5`, the same
+     * engine kind over 3,200 frames. All 24 `engine-first-150` sessions
+     * observe it 0 times: 150 light cold-start frames do not contain the
+     * coincidence. Extending them is NOT cheap — it would change the
+     * `engine-first-150` contract, its 150-frame and 150-screenshot pins and
+     * its >=18 transition count across 24 sessions — so under the owner's rule
+     * this is recorded as an open failure instead, with the measurement, and
+     * the assertion is left exactly as written. */
     const selectedRows = rows.filter((row) => row.engine_playfield_select_calls > 0);
-    invariant(selectedRows.length > 0 && selectedRows.every((row) =>
-      row.engine_playfield_select_calls === 1 &&
-      row.engine_playfield_select_dlist === 0x7f00 + row.engine_playfield_select_active_lo + 3),
-    `${session.id} first DLI did not select byte three of the active A2 list`);
+    recordClauseFailure(session.id,
+      selectedRows.length > 0 && selectedRows.every((row) =>
+        row.engine_playfield_select_calls === 1 &&
+        row.engine_playfield_select_dlist === 0x7f00 + row.engine_playfield_select_active_lo + 3),
+      `${session.id} first DLI did not select byte three of the active A2 list`);
     return {
       id: session.id,
       medium: session.medium,
@@ -5529,6 +5633,7 @@ function main() {
       difficulty: session.difficulty,
       start_mode: session.frontendDelay === 0 ? "immediate" : "delayed-menu",
       measured_frames: rows.length,
+      playfield_select_observations: selectedRows.length,
       first_transition_frame: transitions[0],
       transition_frames: transitions,
       phase_values: [...new Set(rows.map((row) => row.engine_phase))].sort(),
@@ -5547,11 +5652,37 @@ function main() {
         fs.readFileSync(screenshotPath)))),
     };
   });
+  /* MEASURED 2026-09-21, owner rule step 1: class (c), a REAL FAILURE — neither
+   * extended nor weakened, but recorded. In all 12 XEX/ATR pairings EXACTLY
+   * frames 0-4 differ and frames 5-149 are byte-identical, so no frame budget
+   * reaches the behaviour (a) and there is no other instance to select (b):
+   * narrowing the hash to frames 5-149 would be loosening the assertion, which
+   * the rule forbids. The only non-clock traced-state difference is
+   * `capital_visible_allied_cells` 6 (XEX) vs 8 (ATR) on frame 0 — identically
+   * in all 12 pairings; frames 1-4 carry identical traced state and differing
+   * pixels, so the rest of the transient is outside what the CSV records.
+   * Whether a five-frame medium-dependent entry transient is acceptable is an
+   * owner judgement, not one to make by editing the clause. Pre-existing: this
+   * session touched neither the engine nor the boot path, and the clause was
+   * unreachable behind three earlier blockers. */
+  const engineMediumEquivalence = [];
   for (const session of engineSessionEvidence.filter(({ medium }) => medium === "XEX")) {
     const peer = engineSessionEvidence.find((candidate) => candidate.medium === "ATR" &&
       candidate.cold_ram_fill === session.cold_ram_fill &&
       candidate.difficulty === session.difficulty && candidate.start_mode === session.start_mode);
-    invariant(peer?.screenshot_sequence_sha256 === session.screenshot_sequence_sha256,
+    const differingFrames = Array.from({ length: 150 }, (_, frame) => frame).filter((frame) =>
+      !fs.readFileSync(path.join(buildDirectory,
+        `${session.id}-${String(frame).padStart(3, "0")}.png`)).equals(
+        fs.readFileSync(path.join(buildDirectory,
+          `${peer.id}-${String(frame).padStart(3, "0")}.png`))));
+    engineMediumEquivalence.push({
+      xex_session: session.id,
+      atr_session: peer.id,
+      identical: differingFrames.length === 0,
+      differing_frames: differingFrames,
+    });
+    recordClauseFailure(session.id,
+      peer?.screenshot_sequence_sha256 === session.screenshot_sequence_sha256,
       `${session.id} screenshot sequence differs between XEX and ATR`);
   }
   const engineRestartEvidence = engineRestartSessions.map((session) => {
@@ -5765,7 +5896,28 @@ function main() {
     row.pickup_booster_state === 4 && row.player_fighter_projectiles >= 3);
   const activeCapsuleThreeProjectileRows = weaponPickupRows.filter((row) =>
     row.pickup_state === 2 && row.player_fighter_projectiles >= 3);
-  const activeCapsuleDuringBoosterRows = pickupModeRows.filter((row) =>
+  /* MEASURED 2026-09-21, owner rule step 1: class (b), WRONG SELECTION —
+   * corrected here, not loosened. The predicate is unchanged; only the row set
+   * it reads is. `src/main.s:9702` states the design the clause is covering:
+   * "the non-rendered booster controller uses reserved slot-two fields, so one
+   * capsule may be earned and collected while the previous mutually exclusive
+   * booster runs". The overlap DOES occur in this run — 2,517 frames across 8
+   * production replays (`director-complete-*` 506/527/248,
+   * `debris-effects-2-sweep-fire4` 466, the two `capital-muzzle-ring` traces
+   * 186 each, `raider-remnant-rapid` 191, `raider-remnant-spread` 207) — but
+   * ZERO times in the `weapon-pickup` + `memory-integrity` union this clause
+   * read, over all 1,515 of that union's ACTIVE frames. The coverage source
+   * went stale, not the behaviour, so the clause now reads every production
+   * replay in the run.
+   *
+   * Falsifiability, as the rule requires: the corrected clause still fails
+   * when the behaviour is missing. The old union IS that negative control —
+   * 1,515 ACTIVE frames with 0 overlap — and both counts are published in the
+   * evidence, so a future run where the overlap disappears everywhere turns
+   * the clause red rather than passing vacuously. */
+  const pickupLifecycleUnionOverlapRows = pickupModeRows.filter((row) =>
+    row.pickup_state === 2 && row.pickup_booster_state >= 3);
+  const activeCapsuleDuringBoosterRows = allRows.filter((row) =>
     row.pickup_state === 2 && row.pickup_booster_state >= 3);
   // The projectile's screen code follows its 0..7 vertical phase and one of
   // four HPOS sub-cell variants. Every PlayerFighter code keeps D7 clear so selector 3
@@ -5892,9 +6044,24 @@ function main() {
   "Hard booster raster motion changed X or deviated from +2 scanlines/frame");
   invariant(pickupMaximumStationaryRun === 0,
     `Booster native-ring motion held for ${pickupMaximumStationaryRun} active frames`);
-  invariant(pickupReleaseRows.length > 0 && pickupReleaseRows.every((row) =>
-    row.pickup_erase_calls === 1 && row.pickup_missile_rows === 0),
-  "Booster release did not clear the capsule from the missile plane in the release frame");
+  /* MEASURED 2026-09-21, owner rule step 1: class (c), recorded not weakened.
+   * The plane IS cleared -- `pickup_missile_rows === 0` on every release frame.
+   * What fails is `pickup_erase_calls === 1`: the release frame enters the
+   * capsule erase TWICE, deterministically, on all four collections of the
+   * 4,000-frame replay, and `pickup_draw_calls` is 1 on the same frame. The
+   * distribution is exact: every one of the 233 ACTIVE frames is erase 1 /
+   * draw 1, and `erase_calls === 2` occurs exactly 4 times in the whole replay
+   * -- precisely the four release frames. So this is neither a short scenario
+   * (a) nor the wrong instance (b): the clause picks the right frame and the
+   * build does twice what it asserts once. Outside the closed character
+   * renderer class -- the clause is already repointed at the missile plane and
+   * the failing term is a call count, not a character measurement. Whether a
+   * second erase in the collection frame is a real waste or an intended
+   * belt-and-braces teardown is an owner judgement. */
+  recordClauseFailure("weapon-pickup-2-hunt-fire4",
+    pickupReleaseRows.length > 0 && pickupReleaseRows.every((row) =>
+      row.pickup_erase_calls === 1 && row.pickup_missile_rows === 0),
+    "Booster release did not clear the capsule from the missile plane in the release frame");
   invariant(pickupScreenshotRow,
     "Atari800 replay did not reach the isolated static pickup screenshot state");
   invariant(pickupCollectRows.length >= 3 && pickupRapidRows.length > 0 &&
@@ -6011,6 +6178,14 @@ function main() {
   }
   invariant(postCapitalTransition !== null,
     "Trace did not observe open gameplay -> DRAIN -> COMPLETE -> next OPEN -> active debris");
+  /* Derived from the same source the neighbouring corridor clause measures:
+   * the inner entity corridor excludes one boundary column at each end, and
+   * debris is a 2x1 renderer, so its right limit is the corridor's right HPOS
+   * less its own 8-HPOS width. */
+  const debrisCorridorLeftHpos = manifest.fighterWeapons.viewport.leftHpos +
+    (manifest.starfield.corridor.firstColumn + 1) * 4;
+  const debrisCorridorRightHpos = manifest.fighterWeapons.viewport.leftHpos +
+    (manifest.starfield.corridor.endColumn - 1) * 4 - 8;
   const verticalCadence = {
     active_transitions: 0,
     world_events: 0,
@@ -6054,6 +6229,25 @@ function main() {
       if (expectedMoveAccumulator === 4) {
         expectedMoveAccumulator = 0;
         expectedX += vx;
+        /* MEASURED 2026-09-21, owner rule step 1: class (b), the MODEL picked
+         * the wrong expected value — production is right and this arithmetic
+         * was wrong. `src/main.s:9678-9695` clamps the horizontal step into the
+         * entity corridor and zeroes ENTITY_VX when it lands outside:
+         *   lda ENTITY_X / clc / adc ENTITY_VX / sta ENTITY_X
+         *   cmp #ENTITY_CORRIDOR_LEFT_HPOS  / bcs @right_limit / -> LEFT
+         *   cmp #(RIGHT_HPOS-WIDTH+1)       / bcc @collision   / -> RIGHT-WIDTH
+         * The model had no clamp, so it expected the debris to walk out of the
+         * corridor. Every one of the 125 mismatches was this and only this: all
+         * 125 on the frame the step was due (`move_accumulator` 3 -> 0) and the
+         * row also stepped down, 119 at the right edge (x 164, vx +4, expected
+         * 168) and 6 at the left (x 84, vx -4, expected 80) — exactly the two
+         * clamp limits. The accumulator wrapped in the trace as the model
+         * predicted; only the X write production suppressed differed.
+         * Falsifiability: with these three lines removed the same clause
+         * reports those 125 invalid transitions again, so the X term still
+         * bites; the y, glyph and accumulator terms are untouched. */
+        if (expectedX < debrisCorridorLeftHpos) expectedX = debrisCorridorLeftHpos;
+        else if (expectedX > debrisCorridorRightHpos) expectedX = debrisCorridorRightHpos;
       }
     }
     if (current.entity_vertical_accumulator !== expectedAccumulator ||
@@ -6168,6 +6362,12 @@ function main() {
     ])),
   };
 
+  const timingAndDliPassed = heaviest.wall_cycles <= SHIELD_BOOSTER_HARD_GATE_CYCLES &&
+    PAL_FRAME_CYCLES - heaviest.wall_cycles >= SHIELD_BOOSTER_MINIMUM_HEADROOM_CYCLES &&
+    shieldBoosterHardOverruns.length === 0 && deadlineOverruns.length === 0 &&
+    allRows.every((row) => row.extra_vbi_boundaries === 0) &&
+    (heaviest.events & ((1 << 20) | (1 << 21) | (1 << 22))) !== 0 &&
+    dliSequenceViolations === 0 && maximumDlisPerHostFrame === 2;
   const report = {
     schema_version: 2,
     method: "Atari800 ANTIC master-clock observation at guest-PC boundaries; no guest logging or instrumentation instructions",
@@ -6179,7 +6379,7 @@ function main() {
       artifact_binding: "boot BIN, XEX and ATR SHA-256",
     },
     determinism: {
-      replay_fingerprint_sha256: sha256(Buffer.from(JSON.stringify(allRows))),
+      replay_fingerprint_sha256: sha256JsonArray(allRows),
       ordered_frames: allRows.length,
       basis: "ordered decoded CSV rows from every required legal replay",
     },
@@ -6358,6 +6558,21 @@ function main() {
         logical_step_scanlines: 2,
         physical_address_changes_during_native_motion: pickupPhysicalAddressChanges,
         release_frames: pickupReleaseRows.length,
+        /* The corrected coverage selection and its negative control. */
+        booster_overlap_frames_all_replays: activeCapsuleDuringBoosterRows.length,
+        booster_overlap_frames_pickup_lifecycle_union: pickupLifecycleUnionOverlapRows.length,
+        booster_overlap_sessions: [...new Set(
+          activeCapsuleDuringBoosterRows.map((row) => row.session))].sort(),
+        /* The measurement behind the recorded release failure: the plane is
+         * cleared on every one of them, the erase is entered twice. */
+        release_frame_detail: pickupReleaseRows.map((row) => ({
+          session: row.session,
+          frame: row.frame,
+          booster_state: row.pickup_booster_state,
+          erase_calls: row.pickup_erase_calls,
+          draw_calls: row.pickup_draw_calls,
+          missile_rows: row.pickup_missile_rows,
+        })),
         rapid_frames: pickupRapidRows.length,
         pickup_events: pickupCollectRows.length,
         passed: RAPID_ONLY_ACCEPTED_WALL_CYCLES <= WEAPON_PICKUP_HARD_GATE_CYCLES &&
@@ -6447,6 +6662,8 @@ function main() {
       },
       capital_engine_regression: {
         sessions: engineSessionEvidence,
+        /* The measurement behind the recorded XEX/ATR equivalence failure. */
+        medium_equivalence: engineMediumEquivalence,
         restart_sessions: engineRestartEvidence,
         evidence: engineRuntimeEvidence,
         measured_frames: engineRows.length,
@@ -6490,14 +6707,12 @@ function main() {
       // becomes unsound.
       behavioural_clause_failure_count: sessionFailures.length,
       behavioural_clause_failures: sessionFailures,
-      passed: sessionFailures.length === 0 &&
-        heaviest.wall_cycles <= SHIELD_BOOSTER_HARD_GATE_CYCLES &&
-        PAL_FRAME_CYCLES - heaviest.wall_cycles >=
-          SHIELD_BOOSTER_MINIMUM_HEADROOM_CYCLES &&
-        shieldBoosterHardOverruns.length === 0 && deadlineOverruns.length === 0 &&
-        allRows.every((row) => row.extra_vbi_boundaries === 0) &&
-        (heaviest.events & ((1 << 20) | (1 << 21) | (1 << 22))) !== 0 &&
-        dliSequenceViolations === 0 && maximumDlisPerHostFrame === 2,
+      // Published separately from `passed` so the tripwire can tell "this run
+      // failed only the behavioural clauses already on the recorded-failure
+      // list" from "this run also broke timing or the DLI sequence". `passed`
+      // stays the conjunction of both; nothing about the build gate changes.
+      timing_and_dli_passed: timingAndDliPassed,
+      passed: sessionFailures.length === 0 && timingAndDliPassed,
     },
     instrumentation: {
       start_label: "main_loop_option_poll",

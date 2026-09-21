@@ -236,17 +236,46 @@ test("wall trace covers legal short replays and 160-second XEX/ATR integrity run
     report.replay.targeted_reference_heaviest.state);
 });
 
+// Owner decision 2026-09-21. This test used to pin the exact frames 7445 /
+// 7446 / 7447 / 10499. Those are DATA about one build -- they move whenever the
+// replay does, for reasons that have nothing to do with the Director, and
+// re-pinning them after every regeneration is how the evidence went stale in
+// the first place. What the gate actually owns is the RELATION: the Director
+// reaches BOSS_HANDOFF, DRAIN follows on the very next frame, COMPLETE follows
+// DRAIN, and COMPLETE is terminal -- it holds to the last measured frame. That
+// is asserted here, on all three difficulties. The exact frames stay in
+// docs/runtime-wall-trace.json as evidence, and are printed by any failure.
 test("PAL replay reaches the natural Director BOSS_HANDOFF and terminal LEVEL COMPLETE", () => {
   const evidence = report.coverage.director_level_complete;
-  assert.deepEqual([
-    evidence.observed,
-    evidence.session,
-    evidence.boss_handoff_frame,
-    evidence.drain_frame,
-    evidence.level_complete_frame,
-    evidence.drain_frames,
-    evidence.terminal_complete_through_frame,
-  ], [true, "director-complete-2-natural-sweep-fire0", 7_445, 7_446, 7_447, 1, 10_499]);
+  const sessions = evidence.natural_difficulty_sessions;
+  assert.equal(evidence.observed, true);
+  assert.deepEqual(sessions.map(({ difficulty }) => difficulty), [0, 1, 2],
+    "all three natural difficulties must contribute a completion");
+  // The headline record must be one of the measured sessions, not a fourth
+  // number set that drifted away from them.
+  const headline = sessions.find(({ session }) => session === evidence.session);
+  assert.ok(headline, `headline session ${evidence.session} is not among the measured sessions`);
+  for (const key of ["boss_handoff_frame", "drain_frame", "level_complete_frame",
+    "drain_frames", "terminal_complete_through_frame"])
+    assert.equal(evidence[key], headline[key], `headline ${key} disagrees with ${headline.session}`);
+
+  for (const entry of sessions) {
+    const where = `${entry.session} (handoff ${entry.boss_handoff_frame}, drain ` +
+      `${entry.drain_frame}, complete ${entry.level_complete_frame}, terminal through ` +
+      `${entry.terminal_complete_through_frame} of ${entry.last_measured_frame})`;
+    assert.ok(Number.isInteger(entry.boss_handoff_frame) && entry.boss_handoff_frame > 0,
+      `${where}: no BOSS_HANDOFF frame`);
+    assert.equal(entry.drain_frame, entry.boss_handoff_frame + 1,
+      `${where}: DRAIN must follow BOSS_HANDOFF on the very next frame`);
+    assert.ok(entry.level_complete_frame > entry.drain_frame,
+      `${where}: LEVEL COMPLETE must follow DRAIN`);
+    assert.equal(entry.drain_frames, entry.level_complete_frame - entry.drain_frame,
+      `${where}: drain_frames must be the measured DRAIN span`);
+    assert.equal(entry.terminal_complete, true,
+      `${where}: the capital sector re-opened after LEVEL COMPLETE`);
+    assert.equal(entry.terminal_complete_through_frame, entry.last_measured_frame,
+      `${where}: COMPLETE must hold to the last measured frame`);
+  }
 });
 
 test("long real-artifact replay preserves the exact two-DLI HUD/gameplay phase", () => {

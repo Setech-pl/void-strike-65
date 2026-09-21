@@ -413,6 +413,14 @@ static unsigned dftrace_count;
 static unsigned dftrace_limit;
 static unsigned dftrace_active_limit;
 static unsigned dftrace_fire_delay;
+/* Owner decision 2026-09-21, step 1: the discriminator for the
+ * director-complete clause. When set, the observer holds PLAYER_LIVES at this
+ * value every gameplay frame, so the fighter still dies and respawns but the
+ * run never reaches GAME OVER and never restarts the Director. Trace-only and
+ * env-gated: zero means off, and no release byte is patched. The precedent is
+ * the "restart" policy below, which pokes the same byte in the other
+ * direction. */
+static unsigned dftrace_hold_player_lives;
 static unsigned dftrace_difficulty;
 static const char *dftrace_policy;
 static const char *dftrace_pmg_lab_screenshot;
@@ -2505,6 +2513,9 @@ static void dftrace_set_gameplay_input(unsigned frame)
 	int pairshot_speed = strncmp(dftrace_policy, "pairshot-speed-", 15u) == 0;
 	int pairshot_reentry = strncmp(dftrace_policy, "pairshot-reentry-", 17u) == 0;
 	int booster_reentry = strcmp(dftrace_policy, "booster-reentry") == 0;
+	if (dftrace_hold_player_lives != 0u)
+		MEMORY_mem[dftrace_player_lifecycle + 1u] =
+			(UBYTE) dftrace_hold_player_lives;
 	dftrace_prepare_pairshot_reentry(frame);
 	if (pairshot_speed) {
 		/* Eight isolated tap allocations, then >=1000 held frames, a 150-frame
@@ -5644,6 +5655,8 @@ static void dftrace_init(void)
     dftrace_active_limit = getenv("DFTRACE_ACTIVE_FRAMES") == NULL ? 0u :
         dftrace_env_u("DFTRACE_ACTIVE_FRAMES");
 	dftrace_fire_delay = dftrace_env_u("DFTRACE_FIRE_DELAY");
+	dftrace_hold_player_lives = getenv("DFTRACE_HOLD_PLAYER_LIVES") == NULL ? 0u :
+		dftrace_env_u("DFTRACE_HOLD_PLAYER_LIVES");
 	dftrace_difficulty = dftrace_env_u("DFTRACE_DIFFICULTY");
 	dftrace_frontend_delay = getenv("DFTRACE_FRONTEND_DELAY") == NULL ? 0u :
 		dftrace_env_u("DFTRACE_FRONTEND_DELAY");

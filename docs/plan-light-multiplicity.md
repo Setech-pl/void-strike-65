@@ -115,6 +115,15 @@ Derived and **dropped**: `light_leaderless` (now the state value),
 a Light live count (a four-byte scan in C, ~40 cycles, only at admission),
 an appearance index (derivable from `light_code`).
 
+**[C3] REOPENED 2026-09-21, owner instruction after step 2.** The live count is
+to be reconsidered at step 3: a **maintained counter**, incremented at
+admission and decremented at retire and kill by the code that already owns
+those transitions, replaces the scan **if it is cheaper and provably
+consistent**. If the scan is kept, step 3 must say why. The question is live
+now because step 2 measured the admission frame rising +72, of which the scan
+is part, and because a wave stepper makes admission attempts frequent rather
+than rare.
+
 Placement: the 12 arrays at **`$7FC4-$7FF3`** (48 of the 60 unassigned bytes;
 12 B left), the shared scalars in the retired **`$8100-$810F`** (16 B, 0-4 B
 left). The two small unowned windows `$8126-$813F` and `$85E6-$85EE` stay
@@ -273,6 +282,31 @@ one frame budget.
 - a Light **fire** — a slot whose reload expires on a spent frame fires next
   frame (the timer simply is not decremented past zero);
 - an appearance **install** on an admission frame.
+
+**[C3] ADDED 2026-09-21, owner instruction after step 2.** A fourth consumer:
+
+- an **admission**. A slot admission that would land on a frame whose token is
+  already spent slips one frame, which nobody sees, instead of stacking two
+  expensive events. This is the exact pattern that broke the fence in 4.5d.
+
+The reason it was not on the list: step 2 MEASURED the admission frame getting
+*more* expensive, not less. The glyph install already ran on the admission
+frame before the hoist, so that frame lost nothing and gained the new
+admission bookkeeping — `light_ceiling()` and `light_live_count()` — for
+**+72 worst-frame cycles** on `2-sweep-fire4` while every standing Light frame
+fell by 234. At one slot the admission frame is already the binding frame in
+that replay; at three, with a wave stepper admitting repeatedly, it is a
+serious candidate for the worst frame and must be serialised like any other
+expensive event.
+
+**Ordering constraint, and why admission does NOT become a consumer at step 3.**
+The token arrives at step 4 by design, because §4.3's GO/NO-GO measurement
+(M1) runs at step 3 **without** it: the un-serialised kill frame is the
+negative control the whole decision rests on. Adding the token — to admission
+or to anything else — at step 3 would destroy that control. Step 3 therefore
+routes every admission through one place so that step 4 can gate it in one
+edit, and M1 reports the admission frame's cost un-serialised, which is what
+makes the mitigation measurable.
 
 Heavy explosions are not consumers: Heavy and swarms never coexist, and the
 ELITE ceiling is one Light.
@@ -512,6 +546,13 @@ measured shortfall in cycles reported and the two mitigations costed: a
 lighter Light breakup (core + two fragments; a second allocator entry in the
 effect pool, which would live in the window since ENTITY_CODE has 1 B) or a
 shipped ceiling of 2.
+
+**[C3] ADDED 2026-09-21, owner instruction after step 2.** Report the
+**admission frame's cost separately at 1, 3 and 4 live Lights**, alongside the
+vector overhead below and on the same rows. Step 2 measured it rising +72 at
+one slot while the standing cost fell 234, so at three Lights it is a real
+candidate for the worst frame; the token (§2.5 `[C3]`) is its mitigation and
+M1 must measure it un-serialised for that mitigation to be costed.
 
 **[C2] ADDED 2026-09-21, owner instruction after step 1b.** Report the
 **vector-table overhead separately at 1, 3 and 4 live Lights.** Step 1b

@@ -2499,6 +2499,9 @@ function main() {
   const skipBootSmoke = process.argv.includes("--skip-boot-smoke");
   const tracePreflightOnly = process.argv.includes("--trace-preflight-only");
   const reuseExistingTraces = process.argv.includes("--reuse-existing-traces");
+  // Light multiplicity plan §4.3.
+  const lightTrace = process.argv.includes("--light-trace");
+  const lightCeiling = argumentValue("light-ceiling");
   const smokeFramesArgument = argumentValue("smoke-frames");
   const smokeFrames = smokeFramesArgument === undefined ? null : Number(smokeFramesArgument);
   const smokeDifficulty = Number(argumentValue("smoke-difficulty") ?? 2);
@@ -2536,6 +2539,10 @@ function main() {
   const collisionLabelPath = path.join(rootDirectory, "build", "capital-player-collision.lbl");
   invariant(fs.existsSync(collisionLabelPath), "Capital/player collision labels are missing");
   const collisionLabels = parseViceLabels(fs.readFileSync(collisionLabelPath, "utf8"));
+  // Light multiplicity step 1b: the Light ASM kernel is its own link.
+  const kernelLabelPath = path.join(rootDirectory, "build", "light-kernel.lbl");
+  const kernelLabels = fs.existsSync(kernelLabelPath)
+    ? parseViceLabels(fs.readFileSync(kernelLabelPath, "utf8")) : new Map();
   const manifestBytes = fs.readFileSync(manifestPath);
   const manifest = JSON.parse(manifestBytes);
   invariant(["candidate", "release"].includes(manifest.buildVariant),
@@ -2836,6 +2843,19 @@ function main() {
         DFTRACE_FENCE_WAIT: String(labels.get("wait_gameplay_frame")),
         DFTRACE_FENCE_LOOP: String(labels.get("wait_frame_at_line")),
         DFTRACE_FENCE_SCREENSHOTS: "1",
+      } : {}),
+      // Light multiplicity plan §4.3: one row per tick with all four slot
+      // states and the frame's five kernel vector-entry counts, so the
+      // analysis can bucket frames by live count and separate the admission
+      // and kill frames from the standing ones. Opt-in with --light-trace.
+      ...(lightTrace ? {
+        DFTRACE_LIGHT_OUTPUT: path.join(buildDirectory, `${session.id}-light.csv`),
+        DFTRACE_LIGHT_BASE: String(directorLabels.get("light_state")),
+        DFTRACE_LIGHT_VECTOR_BASE: String(kernelLabels.get("light_kernel_vectors")),
+        ...(lightCeiling === undefined ? {} : {
+          DFTRACE_LIGHT_CEILING: String(directorLabels.get("_light_ceiling_swarm")),
+          DFTRACE_LIGHT_CEILING_VALUE: String(lightCeiling),
+        }),
       } : {}),
 	  ...(session.coldFill === undefined ? {} : { DFTRACE_RAM_FILL: String(session.coldFill) }),
 	  ...(session.frontendDelay === undefined ? {} : {

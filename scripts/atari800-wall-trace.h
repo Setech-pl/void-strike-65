@@ -419,6 +419,23 @@ static const char *dftrace_sector_clock_output;
 static const char *dftrace_player_pairshot_output;
 static const char *dftrace_light_output;
 static unsigned dftrace_light_base;
+/* Light multiplicity step 3 (plan §4.3 [C2]/[C3]). The kernel's five entry
+ * vectors, and one counter each for the frame: main.s reaches the kernel only
+ * through them, so the vector overhead of a frame is exactly 3 cycles times
+ * the sum of these - a `jmp abs` per entry. Counting the entries is what lets
+ * the overhead be reported separately at 1, 3 and 4 live Lights instead of
+ * folded into the standing cost. */
+#define DFTRACE_LIGHT_VECTORS 5u
+static unsigned dftrace_light_vector[DFTRACE_LIGHT_VECTORS];
+static unsigned dftrace_light_vector_hits[DFTRACE_LIGHT_VECTORS];
+/* Diagnostic-only ceiling override (plan §4.3 [C3]): the shipped SWARM ceiling
+ * is 3, so a four-Light frame cannot occur naturally and the owner asked for
+ * the cost at four. DFTRACE_LIGHT_CEILING names the policy byte's address and
+ * DFTRACE_LIGHT_CEILING_VALUE the value to hold it at. It is a POLICY byte,
+ * written every tick rather than injected once, and it changes no lifecycle
+ * rule - the wave, the pairs and the slots behave exactly as they do at 3. */
+static unsigned dftrace_light_ceiling;
+static unsigned dftrace_light_ceiling_value;
 static unsigned dftrace_light_output_initialised;
 static DFTraceFrame *dftrace_frames;
 static DFTraceFrame dftrace_current;
@@ -4291,11 +4308,18 @@ static void dftrace_write_sector_clock(DFTraceFrame *frame)
 	}
 }
 
-/* Diagnostic-only Light-slot snapshot (roadmap 4.4 Interceptor evidence).
+/* Diagnostic-only Light-slot snapshot (roadmap 4.4 Interceptor evidence,
+ * extended for Light multiplicity step 3 / plan §4.3).
  * Opt-in: DFTRACE_LIGHT_OUTPUT names the CSV, DFTRACE_LIGHT_BASE the C-owned
- * HYBRID_LIGHT_STATE block. One row per admitted PAL simulation tick, sampled
- * from Atari RAM; it adds no emulated cycles and leaves the frozen general
- * observer CSV untouched. */
+ * HYBRID_LIGHT_SLOTS block at $7FC4. One row per admitted PAL simulation tick,
+ * sampled from Atari RAM; it adds no emulated cycles and leaves the frozen
+ * general observer CSV untouched.
+ *
+ * The block is a structure of arrays, so slot k's state is base + k and its
+ * x is base + 2*LIGHT_SLOT_COUNT + k. The row carries every slot's state, hp,
+ * x and y, the live count, and the frame's five vector-entry counts, so the
+ * §4.3 analysis can bucket frames by live count and separate the admission
+ * and kill frames from the standing ones. */
 static void dftrace_write_light(DFTraceFrame *frame)
 {
 	FILE *file;
@@ -4307,18 +4331,38 @@ static void dftrace_write_light(DFTraceFrame *frame)
 		exit(2);
 	}
 	if (!dftrace_light_output_initialised) {
-		fprintf(file, "frame,active_frame,sector,light_state,light_hp,light_x,light_y,"
-			"light_fire_timer,light_leaderless,light_archetype_offset,light_burst_left,"
-			"light_post_burst_slot\n");
+		fprintf(file, "frame,active_frame,sector,live,"
+			"state0,state1,state2,state3,hp0,hp1,hp2,hp3,"
+			"x0,x1,x2,x3,y0,y1,y2,y3,"
+			"v_publish,v_update,v_shot,v_backing,v_resolve\n");
 		dftrace_light_output_initialised = 1u;
 	}
-	fprintf(file, "%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n", dftrace_count,
-		frame->active_gameplay_frame, frame->sector_state,
-		MEMORY_mem[dftrace_light_base], MEMORY_mem[dftrace_light_base + 1u],
-		MEMORY_mem[dftrace_light_base + 2u], MEMORY_mem[dftrace_light_base + 3u],
-		MEMORY_mem[dftrace_light_base + 4u], MEMORY_mem[dftrace_light_base + 5u],
-		MEMORY_mem[dftrace_light_base + 12u], MEMORY_mem[dftrace_light_base + 13u],
-		MEMORY_mem[dftrace_light_base + 15u]);
+	{
+		unsigned slot;
+		unsigned live = 0u;
+		if (dftrace_light_ceiling != 0u)
+			MEMORY_mem[dftrace_light_ceiling] =
+				(UBYTE) dftrace_light_ceiling_value;
+		for (slot = 0u; slot < 4u; slot++) {
+			if (MEMORY_mem[dftrace_light_base + slot] != 0u)
+				live++;
+		}
+		fprintf(file, "%u,%u,%u,%u", dftrace_count,
+			frame->active_gameplay_frame, frame->sector_state, live);
+		for (slot = 0u; slot < 4u; slot++)
+			fprintf(file, ",%u", MEMORY_mem[dftrace_light_base + slot]);
+		for (slot = 0u; slot < 4u; slot++)
+			fprintf(file, ",%u", MEMORY_mem[dftrace_light_base + 4u + slot]);
+		for (slot = 0u; slot < 4u; slot++)
+			fprintf(file, ",%u", MEMORY_mem[dftrace_light_base + 8u + slot]);
+		for (slot = 0u; slot < 4u; slot++)
+			fprintf(file, ",%u", MEMORY_mem[dftrace_light_base + 12u + slot]);
+		for (slot = 0u; slot < DFTRACE_LIGHT_VECTORS; slot++) {
+			fprintf(file, ",%u", dftrace_light_vector_hits[slot]);
+			dftrace_light_vector_hits[slot] = 0u;
+		}
+		fprintf(file, "\n");
+	}
 	if (fclose(file) != 0) {
 		perror("voidstrike65 light trace close");
 		exit(2);
@@ -5570,8 +5614,19 @@ static void dftrace_init(void)
 	dftrace_interceptor_projectile_output = getenv("DFTRACE_INTERCEPTOR_PROJECTILE_OUTPUT");
 	dftrace_sector_clock_output = getenv("DFTRACE_SECTOR_CLOCK_OUTPUT");
 	dftrace_light_output = getenv("DFTRACE_LIGHT_OUTPUT");
-	if (dftrace_light_output != NULL)
+	if (dftrace_light_output != NULL) {
+		unsigned slot;
 		dftrace_light_base = dftrace_env_u("DFTRACE_LIGHT_BASE");
+		/* The kernel's vector table base; the five entries are 3 B apart. */
+		dftrace_light_vector[0] = dftrace_env_u("DFTRACE_LIGHT_VECTOR_BASE");
+		for (slot = 1u; slot < DFTRACE_LIGHT_VECTORS; slot++)
+			dftrace_light_vector[slot] = dftrace_light_vector[0] + slot * 3u;
+		if (getenv("DFTRACE_LIGHT_CEILING") != NULL) {
+			dftrace_light_ceiling = dftrace_env_u("DFTRACE_LIGHT_CEILING");
+			dftrace_light_ceiling_value =
+				dftrace_env_u("DFTRACE_LIGHT_CEILING_VALUE");
+		}
+	}
 	dftrace_player_pairshot_output = getenv("DFTRACE_PLAYER_PAIRSHOT_OUTPUT");
 	dftrace_first_writer_output = getenv("DFTRACE_FIRST_WRITER_OUTPUT");
 	if (dftrace_policy == NULL || dftrace_session == NULL || dftrace_output == NULL) {
@@ -5981,6 +6036,15 @@ static void dffence_observe(unsigned pc, unsigned x_register)
 static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_register,
 	unsigned y_register, unsigned s_register)
 {
+	if (dftrace_light_output != NULL) {
+		unsigned entry;
+		for (entry = 0u; entry < DFTRACE_LIGHT_VECTORS; entry++) {
+			if (pc == dftrace_light_vector[entry]) {
+				dftrace_light_vector_hits[entry]++;
+				break;
+			}
+		}
+	}
 	unsigned host_frame = (unsigned) Atari800_nframes;
 	/* The hook runs immediately before PC.  A preceding STA $3B00,Y has
 	 * therefore completed and Y is still the effective PMG row.  Retain the

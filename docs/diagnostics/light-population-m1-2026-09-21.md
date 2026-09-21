@@ -231,7 +231,11 @@ with margins far below anything `STATUS` records, and both A/B against a clean
 | session | `82c155b` margin | now | change |
 | --- | ---: | ---: | ---: |
 | `weapon-pickup-2-hunt-fire4` (4,000 frames) | 1,713 | **477** | **−1,236** |
-| `director-complete-1-natural-sweep-fire0` (10,500 frames) | see below | **357** | — |
+| `director-complete-1-natural-sweep-fire0` (10,500 frames) | 1,831 | **357** | **−1,474** |
+
+Both A/Bs are the same session id, the same emulator and the same flags, run
+against a `git worktree` of `82c155b` — so the change is this branch's and not
+the replay's.
 
 ## Why, and why the earlier headline was incomplete
 

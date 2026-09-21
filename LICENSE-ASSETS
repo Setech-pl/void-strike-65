@@ -57,12 +57,23 @@ licensed under the MIT licence in [`LICENSE`](LICENSE).
 Three places in the tree mix the two licences. In every case the rule is the
 same: **the licence follows the substance, not the file extension.**
 
-1. **In-game text inside code.** The player-facing strings assembled into the
-   frontend and HUD live in `src/main.s` (for example `main.s:6921` and
-   `:7309-7344`: `START GAME`, `OPTIONS`, `TOP SCORES`, `SCORE`, `HULL`). The
-   file is MIT; those literal strings are in-game text and remain under
-   CC BY-NC-SA 4.0. Reusing the *code* needs nothing from this file; shipping
-   the *words* does.
+1. **In-game text inside code — and where creative text must live instead.**
+   Owner decision 2026-09-21 draws the line at authorship, not at location:
+
+   - **Functional interface strings stay MIT.** The frontend and HUD labels in
+     `src/main.s` (for example `main.s:6921` and `:7309-7344`: `START GAME`,
+     `OPTIONS`, `TOP SCORES`, `SCORE`, `HULL`) are interface vocabulary, not
+     creative content. They are part of the code and carry the MIT licence with
+     it.
+   - **Creative text is an asset and must live under `assets/`.** Anything
+     written as prose rather than as a control label — the loader lines of
+     decision O (the fighter's on-board AI, 8-16 short English lines, still to
+     be written), story text, briefings, end-screen scroll text — is creative
+     content under CC BY-NC-SA 4.0. It must be authored in a source file under
+     `assets/` and converted into Atari bytes by a script, the same way art and
+     music are, so that the licence follows the file rather than depending on a
+     note in this document. Creative text must not be typed straight into
+     `src/main.s` as `.byte` literals.
 2. **Asset data quoted inside code and tests.** Converters under `scripts/` and
    expectations under `tests/` embed fragments of asset data (glyph rows,
    palettes, hull maps) to validate the conversion. The surrounding code is MIT;

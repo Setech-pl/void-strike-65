@@ -238,9 +238,12 @@ finished on the machine it was written for.
 
 - **Copyright:** `(C) 2026 SETECH GAME STUDIO`
 - **Creator, project owner, developer and gameplay vision:** Marcin Krzetowski
-- **AI-assisted engineering:** Claude (Anthropic) on the current work, OpenAI
-  Codex on earlier work — implementation, testing, analysis and documentation
-  under the owner's direction, review and playtesting.
+- **AI-assisted engineering — Claude (Anthropic):** the current work.
+- **AI-assisted engineering — OpenAI Codex:** earlier work, including a
+  share of the code that is still in the tree.
+
+Both worked on implementation, testing, analysis and documentation under the
+owner's direction, review and playtesting.
 
 ### License
 

@@ -245,9 +245,12 @@ domykany na maszynie, dla której został napisany.
 - **Prawa autorskie:** `(C) 2026 SETECH GAME STUDIO`
 - **Twórca, właściciel projektu, programista i wizja rozgrywki:**
   Marcin Krzetowski
-- **Inżynieria wspierana przez AI:** Claude (Anthropic) w pracach bieżących,
-  OpenAI Codex we wcześniejszych — implementacja, testy, analiza i dokumentacja
-  pod kierunkiem, przeglądem i testami właściciela.
+- **Inżynieria wspierana przez AI — Claude (Anthropic):** prace bieżące.
+- **Inżynieria wspierana przez AI — OpenAI Codex:** prace wcześniejsze, w tym
+  część kodu, która nadal jest w repozytorium.
+
+Oba narzędzia pracowały nad implementacją, testami, analizą i dokumentacją pod
+kierunkiem, przeglądem i testami właściciela.
 
 ### Licencja
 

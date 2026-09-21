@@ -345,13 +345,17 @@ test("real XEX/ATR startup traces keep one atomic two-phase engine pulse", () =>
 test("real Atari800 pickup trace retains one phased footprint through native A2 motion", () => {
   const pickup = report.gate.weapon_pickup_rapid_fire;
   const colour = report.coverage.weapon_pickup_rapid_fire.yellow_projectiles;
+  // Owner decision 2026-09-21, the class rule: maximum_pickup_glyph_cells was
+  // deleted with the character-renderer clause that produced it, and the
+  // footprint aggregate now counts contiguous missile-row blocks -- one capsule,
+  // not a trail. The remaining three figures are unchanged.
+  assert.equal(pickup.maximum_pickup_glyph_cells, undefined);
   assert.deepEqual([
-    pickup.maximum_simultaneous_footprints,
-    pickup.maximum_pickup_glyph_cells,
+    pickup.maximum_simultaneous_missile_blocks,
     pickup.layer_fences_per_active_frame,
     pickup.maximum_stationary_active_frames,
     pickup.logical_step_scanlines,
-  ], [1, 6, 1, 0, 2]);
+  ], [1, 1, 0, 2]);
   assert.ok(pickup.physical_address_changes_during_native_motion > 0);
   assert.ok(pickup.release_frames > 0);
   assert.equal(colour.colour_register, "COLPF2");
@@ -379,8 +383,15 @@ test("Spread Shot passes PAL wall budget with a legal capsule and projectile-hea
     feature.remaining_target_cycles,
     feature.remaining_hard_cycles,
   ], [32_072, 3_496, 32, 168, 468]);
-  assert.deepEqual(feature.created_capsule_render_ids,
-    [120, 252, 124, 120, 252]);
+  // Owner decision 2026-09-21, the class rule: created_capsule_render_ids read
+  // the dead character glyph base. The evidence now records the booster mode each
+  // collection granted -- Rapid 3, Spread 4, Shield 5 -- and the rotation is
+  // asserted as "all valid, none repeating the previous", not as a fixed list.
+  assert.equal(feature.created_capsule_render_ids, undefined);
+  assert.ok(feature.granted_booster_modes.length >= 3);
+  assert.ok(feature.granted_booster_modes.every((mode) => [3, 4, 5].includes(mode)));
+  assert.ok(feature.granted_booster_modes.every((mode, index) =>
+    index === 0 || mode !== feature.granted_booster_modes[index - 1]));
   assert.ok(feature.spread_frames > 0);
   assert.ok(feature.spread_volley_frames > 0);
   assert.ok(feature.active_capsule_three_projectile_frames > 0);

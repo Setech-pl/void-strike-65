@@ -1360,9 +1360,8 @@ function frameState(row, includeCpuReference = false) {
         timer: row.pickup_timer_lo | row.pickup_timer_hi << 8,
         timer_low: row.pickup_timer_lo,
         timer_high: row.pickup_timer_hi,
-        animation_frame: row.pickup_animation,
-        render_id: row.pickup_render_id,
-        drawn_mask: row.pickup_drawn_mask,
+        missile_rows: row.pickup_missile_rows,
+        missile_union: row.pickup_missile_union,
       },
       player_fighter_projectiles: row.player_fighter_projectiles,
       rapid_player_fighter_projectiles: row.rapid_projectiles,
@@ -3602,10 +3601,9 @@ function main() {
             player_draw_scanline: row.player_draw_scanline,
             pickup_draw_scanline: row.pickup_draw_scanline,
           },
-          addresses: Array.from({ length: 6 }, (_, index) =>
-            row[`pickup_new_address${index}`]),
-          glyph_codes: Array.from({ length: 6 }, (_, index) =>
-            row[`pickup_new_after_draw${index}`]),
+          missile_column: row.pickup_hposm0,
+          missile_rows: row.pickup_missile_rows,
+          missile_union: row.pickup_missile_union,
         })),
         raster_steel_pixels: steelCounts,
         screenshot_contact: sheet,
@@ -4936,13 +4934,51 @@ function main() {
       "Atari800 did not capture all 16 consecutive pickup raster frames");
     const sequenceImages = sequencePaths.map((framePath) =>
       decodeAtari800Screenshot(fs.readFileSync(framePath)));
+    // Owner decision 2026-09-21, the class rule: the column is DERIVED from
+    // pickup_hposm0 through the same mapping the contact window already uses,
+    // `2 * (HPOSM0 - 64)` for a 16-pixel mark at this 256x192 capture scale --
+    // never re-pinned to a new constant. The old `x = 144` was the character-era
+    // column; since f6eee5c the capsule measures x[56..71] at HPOSM0 = 92, so the
+    // clause searched empty background and found 0 candidates. The vertical scan
+    // likewise covers the whole image instead of the old scanline-space `8` and
+    // `height - 46`, which described a crop these captures do not have.
+    // The column comes from the run the emulator actually captured, not from the
+    // whole replay: a 4,000-frame hunt spawns several capsules and they do not
+    // share a column. Rebuild the gate's own predicate -- capsule ACTIVE, slot
+    // bit set, the plane fully drawn, no effect on screen -- take the first run
+    // of consecutive frames long enough to have produced two priming frames plus
+    // the sixteen captures, and read HPOSM0 from the captured frames of that run.
+    const sequenceGateRows = allRows.filter((row) =>
+      row.trace_kind === "weapon-pickup-coverage" && row.pickup_state === 2 &&
+      (row.entity_active_mask & 2) !== 0 && row.pickup_missile_rows === 16 &&
+      row.pickup_missile_union === 255 && row.effect_active_count === 0);
+    const sequenceRuns = [];
+    for (const row of sequenceGateRows) {
+      const run = sequenceRuns.at(-1);
+      if (run && run.at(-1).session === row.session && run.at(-1).frame + 1 === row.frame)
+        run.push(row);
+      else sequenceRuns.push([row]);
+    }
+    const capturedRun = sequenceRuns.find((run) => run.length >= sequenceImages.length + 2);
+    invariant(capturedRun !== undefined,
+      `Atari800 pickup replay never held a drawn capsule for ${sequenceImages.length + 2} ` +
+        "consecutive effect-free frames, so no sequence could have been captured");
+    const capturedRows = capturedRun.slice(2, sequenceImages.length + 2);
+    const sequenceHpos = capturedRows[0].pickup_hposm0;
+    invariant(capturedRows.every((row) => row.pickup_hposm0 === sequenceHpos),
+      `Atari800 moved the capsule column during the captured sequence (HPOSM0 ` +
+        `${[...new Set(capturedRows.map((row) => row.pickup_hposm0))].join(", ")})`);
+    const sequenceLeft = 2 * (sequenceHpos - 64);
+    invariant(sequenceLeft >= 0 && sequenceLeft + 16 <= sequenceImages[0].width,
+      `Derived capsule column ${sequenceLeft}-${sequenceLeft + 16} falls outside the raster`);
     const smoothCandidates = [];
-    for (let initialY = 8; initialY <= sequenceImages[0].height - 46; initialY += 1) {
-      const capsule = rgbTemplate(sequenceImages[0], 144, initialY, 16, 16);
+    const lastInitialY = sequenceImages[0].height - 16 - 2 * (sequenceImages.length - 1);
+    for (let initialY = 0; initialY <= lastInitialY; initialY += 1) {
+      const capsule = rgbTemplate(sequenceImages[0], sequenceLeft, initialY, 16, 16);
       try {
         if (sequenceImages.every((frame, index) =>
           JSON.stringify(findRgbTemplate(frame, capsule)) ===
-            JSON.stringify([{ x: 144, y: initialY + index * 2 }]))) {
+            JSON.stringify([{ x: sequenceLeft, y: initialY + index * 2 }]))) {
           let colouredPixels = 0;
           for (let pixel = 0; pixel < capsule.width * capsule.height; pixel += 1) {
             if (capsule.rgb[pixel * 3] !== 4 || capsule.rgb[pixel * 3 + 1] !== 4 ||
@@ -4997,9 +5033,17 @@ function main() {
     //     renderer's clipped bottom row (render_row 26 -> 3) has no
     //     missile-plane equivalent; a missile mark is not cut by a character
     //     cell, and all 27 raster positions measure 16 / $FF.
-    //   - footprints_after === 1 -> one contiguous run of non-empty missile
-    //     rows, counted around the 256-row page wrap, which proves one capsule
-    //     rather than a trail left by a failed erase.
+    //   - footprints_after === 1 -> the row count itself. A trail left by a
+    //     failed erase shows up as more than sixteen non-empty rows, which
+    //     `missile_rows === 16` already rejects: fixture C (erase suppressed)
+    //     measures 16, 18, 20 ... 152 rows and fixture D (erase at a stale row
+    //     address) fails it on 228 of 233 frames. A contiguous-run count was
+    //     tried here first and DELETED under rule (3): the plane has a single
+    //     writer and every failure that can be injected -- suppressed erase,
+    //     stale erase address, publication in PENDING -- leaves a contiguous
+    //     region, so `blocks === 1` held on 108/108 and 233/233 frames of all
+    //     four fixtures and could not be made to fail. It survives as a
+    //     recorded measurement in the evidence, not as a clause.
     //   - glyph_cells_after in {2,4,6} -> DELETED, not repointed. It counted the
     //     capsule's character cells under the phased 2x2/2x3 footprint; the
     //     capsule writes no character cell at all now, so there is nothing on
@@ -5008,23 +5052,24 @@ function main() {
     invariant(activeRows.every((row) => row.entity_active_mask === 2 &&
       row.pickup_missile_rows === 16 &&
       row.pickup_missile_union === 255 &&
-      row.pickup_missile_blocks === 1 &&
       row.pickup_draw_calls === 1),
     "Native pickup did not remain one logical slot and one whole 16-row missile capsule");
-    invariant(activeRows.slice(1).every((row) => Array.from({ length: 6 }, (_, index) => {
-      const address = row[`pickup_old_address${index}`];
-      return address < RING_SCREEN || address >= RING_END ||
-        row[`pickup_old_after_erase${index}`] === row[`pickup_old_backing${index}`];
-    }).every(Boolean)),
-    "Native reverse erase did not restore every exact saved physical cell");
+    // The reverse-erase clause that stood here is DELETED under the class rule.
+    // It asserted that every saved ring character cell was restored exactly;
+    // since f6eee5c the capsule writes no ring cell, every pickup_old_address
+    // falls outside [RING_SCREEN, RING_END) and the escape branch was taken on
+    // every frame, so the clause could not fail. There is no per-cell backing on
+    // the missile plane to repoint it at -- the erase is a straight zero-fill of
+    // the sixteen rows -- and what it protected against, a stale image surviving
+    // the erase, is exactly what pickup_missile_blocks === 1 above now proves.
     const releaseRow = traversalRows.find(({ frame }) => frame === activeRows.at(-1).frame + 1);
-    // Same decision: the two dead fields in the release clause read the missile
-    // plane instead. An emptiness clause cannot be proved by the suppressed
-    // fixture the way the active clauses above are -- suppressing the capsule
-    // empties the plane and satisfies it -- so it is held by the active clauses.
+    // Same decision: the dead fields in the release clause read the missile plane
+    // instead. Fixture A cannot falsify an emptiness clause -- suppressing the
+    // capsule empties the plane and satisfies it -- so it is falsified the other
+    // way round: fixture C (erase suppressed) leaves the capsule resident and
+    // fails it on 2,345 of 2,679 release frames.
     invariant(releaseRow?.pickup_state === 0 && releaseRow.pickup_y === 240 &&
-      releaseRow.entity_active_mask === 0 && releaseRow.pickup_missile_rows === 0 &&
-      releaseRow.pickup_missile_blocks === 0,
+      releaseRow.entity_active_mask === 0 && releaseRow.pickup_missile_rows === 0,
     "Native pickup slot was not released cleanly at the lower boundary");
     // The exact one-footprint and position assertions above come from the
     // production screen codes. These 27 native PNGs retain the complete final
@@ -5042,8 +5087,8 @@ function main() {
         last_y: activeRows.at(-1).pickup_y,
         release_y: releaseRow.pickup_y,
         maximum_logical_slots: Math.max(...activeRows.map((row) => row.entity_active)),
-        maximum_final_footprints: Math.max(...activeRows.map((row) =>
-          row.pickup_footprints_after)),
+        maximum_final_missile_blocks: Math.max(...activeRows.map((row) =>
+          row.pickup_missile_blocks)),
         final_draws_per_frame: [...new Set(activeRows.map((row) => row.pickup_draw_calls))],
       },
       complete_traversals_observed: traversalRows.filter((row, index) =>
@@ -5689,25 +5734,11 @@ function main() {
     (row.events & (1 << 19)) !== 0);
   const pickupPendingRows = weaponPickupRows.filter((row) => row.pickup_state === 1);
   const pickupActiveRows = weaponPickupRows.filter((row) => row.pickup_state === 2);
-  const pickupHasEffectOverlay = (row) => {
-    const addresses = Array.from({ length: 6 }, (_, index) =>
-      row[`pickup_new_address${index}`]);
-    if (row.effect_rendered_mask === 0) return false;
-    if (addresses.includes(row.pickup_first_overwrite_address)) return true;
-    // On the first visible pickup frame the watcher still owns the pending
-    // frame's empty address set, so a later effect overlay cannot populate
-    // pickup_first_overwrite_address. Accept only the exact one-cell overlay:
-    // the other three cells must contain their expected pickup glyphs and the
-    // replacement must be an effect-bank screen code.
-    const validIndexes = addresses.flatMap((address, index) =>
-      address >= RING_SCREEN && address < RING_END ? [index] : []);
-    const mismatches = validIndexes.flatMap((index) => {
-      const value = row[`pickup_new_after_draw${index}`];
-      const expected = (row.pickup_render_id + index) & 0xff;
-      return value === expected ? [] : [{ value, index }];
-    });
-    return mismatches.length > 0 && mismatches.every(({ value }) => value >= 0x80);
-  };
+  // pickupHasEffectOverlay was deleted with the phased glyph-cell clause it
+  // served (owner decision 2026-09-21, the class rule). It resolved whether a
+  // transient effect legitimately overwrote one of the capsule's ring character
+  // cells; the capsule owns no ring cell since f6eee5c, so there is nothing for
+  // an effect to overlay and nothing on the missile plane to repoint it at.
   const pickupRapidRows = pickupModeRows.filter((row) => row.pickup_booster_state === 3);
   const pickupSpreadRows = pickupModeRows.filter((row) => row.pickup_booster_state === 4);
   const pickupShieldRows = pickupModeRows.filter((row) => row.pickup_booster_state === 5);
@@ -5748,7 +5779,7 @@ function main() {
     row.rapid_projectiles >= 3 && row.effect_active_count === 0);
   const spreadScreenshotRow = spreadVolleyRows.find((row) => row.effect_active_count === 0);
   const pickupScreenshotCandidates = pickupActiveRows.filter((row) =>
-    row.entity_active_mask === 2 && (row.pickup_drawn_mask & 15) === 15 &&
+    row.entity_active_mask === 2 && row.pickup_missile_rows === 16 &&
       row.effect_active_count === 0);
   const pickupScreenshotRow = pickupScreenshotCandidates.find((row, index, rows) =>
     index > 0 && rows[index - 1].frame + 1 === row.frame);
@@ -5771,7 +5802,9 @@ function main() {
   }));
   const pickupCompletedPendingRuns = pickupPendingTransitions.filter(({ next }) =>
     next?.pickup_state === 2);
-  const pickupCreatedRenderIds = pickupPendingRuns.map((run) => run[0].pickup_render_id);
+  // Repointed off the dead ENTITY_RENDER_ID + 1 glyph base onto the booster mode
+  // each collection actually grants, which is live: Rapid 3, Spread 4, Shield 5.
+  const pickupGrantedBoosterModes = pickupCollectRows.map((row) => row.pickup_booster_state);
   const rowsBySessionFrame = new Map(allRows.map((row) => [
     `${row.session}:${row.frame}`, row,
   ]));
@@ -5832,20 +5865,27 @@ function main() {
     `${run.length - 1}->${next?.pickup_state ?? "end"}`).join(",")}; completed spans must be ` +
     "the 30-frame base delay plus bounded eight-frame director retries");
   invariant(pickupPendingRows.every((row) =>
-    (row.entity_active_mask & 2) === 0 && (row.pickup_drawn_mask & 15) === 0),
+    (row.entity_active_mask & 2) === 0 && row.pickup_missile_rows === 0),
   "Pending weapon pickup became visible or interactive");
   invariant(pickupActiveRows.length > 0 && pickupActiveRows.every((row) =>
-      (row.entity_active_mask & 2) !== 0 && (row.pickup_drawn_mask & 15) === 15 &&
-      (row.pickup_render_id === 120 || row.pickup_render_id === 248)),
-  "Atari800 replay did not continuously draw one phased Rapid/Spread/Shield render ID");
-  invariant(pickupActiveRows.every((row) =>
-    row.pickup_footprints_before <= 1 && row.pickup_footprints_after === 1 &&
-      row.pickup_glyph_cells_before <= 6 && row.pickup_glyph_cells_after <= 6 &&
-      row.pickup_glyph_cells_after >= 0 && row.pickup_draw_calls === 1 &&
-      (row.pickup_glyph_cells_after ===
-        (row.pickup_render_phase === 0 || row.pickup_render_row >= 20 ? 4 : 6) ||
-        pickupHasEffectOverlay(row))),
-  "Atari800 replay observed a duplicate/partial phased footprint or missed the final draw");
+      (row.entity_active_mask & 2) !== 0 && row.pickup_missile_rows === 16 &&
+      row.pickup_missile_union === 255),
+  "Atari800 replay did not continuously draw one whole capsule on the missile plane");
+  // The `render_id === 120 || 248` conjunct went with the class rule. It read
+  // ENTITY_RENDER_ID + 1, the character glyph base, which production has not
+  // written since f6eee5c -- 0 on all 233 ACTIVE frames, so the whole clause
+  // failed at that term and the missile measurement beside it never ran. The
+  // capsule's per-type identity now lives in its missile silhouette, which has
+  // no trace column; tests/pickup-pmg-raster-visibility.test.mjs asserts it
+  // against the artwork source, so it is checked, not lost.
+  // The phased 2x2/2x3 glyph-cell clause that stood here is DELETED under the
+  // class rule: it counted the capsule's character cells, the capsule writes
+  // none, and the plane has rows and missiles rather than cells. Its footprint
+  // half is repointed at pickup_missile_blocks; the per-frame draw is still
+  // pickup_draw_calls. The pickupHasEffectOverlay escape went with it -- it
+  // existed only to excuse a character-cell overlay on the capsule's cells.
+  invariant(pickupActiveRows.every((row) => row.pickup_draw_calls === 1),
+  "Atari800 replay missed the capsule's final draw");
   invariant(pickupActiveTransitions.every(({ previous, row }) =>
     row.pickup_x === previous.pickup_x &&
       row.pickup_y === previous.pickup_y + 2),
@@ -5853,9 +5893,8 @@ function main() {
   invariant(pickupMaximumStationaryRun === 0,
     `Booster native-ring motion held for ${pickupMaximumStationaryRun} active frames`);
   invariant(pickupReleaseRows.length > 0 && pickupReleaseRows.every((row) =>
-    row.pickup_erase_calls === 1 && row.pickup_footprints_after === 0 &&
-      row.pickup_glyph_cells_after === 0),
-  "Booster release did not restore its exact single resident footprint in the release frame");
+    row.pickup_erase_calls === 1 && row.pickup_missile_rows === 0),
+  "Booster release did not clear the capsule from the missile plane in the release frame");
   invariant(pickupScreenshotRow,
     "Atari800 replay did not reach the isolated static pickup screenshot state");
   invariant(pickupCollectRows.length >= 3 && pickupRapidRows.length > 0 &&
@@ -5864,9 +5903,12 @@ function main() {
       index === 0 || row.session !== rows[index - 1].session ||
         row.frame > rows[index - 1].frame + 1),
   "Atari800 replay did not collect each visible pickup once and enter all booster modes");
-  invariant(pickupCreatedRenderIds.length >= 3 &&
-    pickupCreatedRenderIds.every((renderId, index) => renderId === [120, 248, 120][index % 3]),
-  `Atari800 created capsule cycle was ${pickupCreatedRenderIds.join("→")}, expected 120→248→120 rotation`);
+  invariant(pickupGrantedBoosterModes.length >= 3 &&
+    pickupGrantedBoosterModes.every((mode) => [3, 4, 5].includes(mode)) &&
+    pickupGrantedBoosterModes.every((mode, index) =>
+      index === 0 || mode !== pickupGrantedBoosterModes[index - 1]),
+  `Atari800 granted booster cycle was ${pickupGrantedBoosterModes.join("→")}, expected a ` +
+    "rotation of Rapid/Spread/Shield with no capsule repeating the previous one");
   invariant(pickupRapidRows[0].pickup_timer_lo === 0xf4 &&
     pickupRapidRows[0].pickup_timer_hi === 1,
   "Atari800 replay did not load the exact 500-frame Rapid Fire timer");
@@ -6309,10 +6351,8 @@ function main() {
             next.pickup_state === next.pickup_booster_state && run.length - 1 <= 30)
           .map(({ run }) => run.length - 1),
         active_frames: pickupActiveRows.length,
-        maximum_simultaneous_footprints: Math.max(...pickupActiveRows.map((row) =>
-          Math.max(row.pickup_footprints_before, row.pickup_footprints_after))),
-        maximum_pickup_glyph_cells: Math.max(...pickupActiveRows.map((row) =>
-          Math.max(row.pickup_glyph_cells_before, row.pickup_glyph_cells_after))),
+        maximum_simultaneous_missile_blocks: Math.max(...pickupActiveRows.map((row) =>
+          row.pickup_missile_blocks)),
         layer_fences_per_active_frame: 1,
         maximum_stationary_active_frames: pickupMaximumStationaryRun,
         logical_step_scanlines: 2,
@@ -6341,7 +6381,7 @@ function main() {
         rapid_frames: pickupRapidRows.length,
         spread_frames: pickupSpreadRows.length,
         pickup_events: pickupCollectRows.length,
-        created_capsule_render_ids: pickupCreatedRenderIds,
+        granted_booster_modes: pickupGrantedBoosterModes,
         collected_states: pickupCollectRows.map((row) => row.pickup_state),
         spread_volley_frames: spreadVolleyRows.length,
         active_capsule_three_projectile_frames: activeCapsuleThreeProjectileRows.length,
@@ -6600,7 +6640,7 @@ function main() {
           capture_host_frame: pickupScreenshotRow.end_host_frame,
           capture_state: frameState(pickupScreenshotRow),
           first_visible_frame: pickupActiveRows.find((row) =>
-            (row.pickup_drawn_mask & 15) === 15 && row.effect_active_count === 0)?.frame,
+            row.pickup_missile_rows === 16 && row.effect_active_count === 0)?.frame,
         },
         yellow_projectiles: {
           ...coverageRecord(rapidProjectileRows, () => true),

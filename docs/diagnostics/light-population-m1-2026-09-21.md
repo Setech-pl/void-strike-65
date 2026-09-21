@@ -216,3 +216,58 @@ The stronger guarantee is at link time and is not a sample: `HYBRID_LIGHT_SLOTS_
 owns `$7FC4-$7FFF` exclusively, `src/hybrid/c-asm-abi.s` asserts it starts at
 `PLAYFIELD_DLIST_END` and ends at or below `ENTITY_STATE` (`$8000`), and ld65
 refuses any other segment there.
+
+---
+
+# Step 5 finding — a CPU regression the population delta could not see
+
+## What was measured
+
+Full PAL audit, 22 of ~69 replays before it was stopped to report this. **0
+distinct miss events**, so every gate still passes — but two sessions came back
+with margins far below anything `STATUS` records, and both A/B against a clean
+`82c155b` worktree:
+
+| session | `82c155b` margin | now | change |
+| --- | ---: | ---: | ---: |
+| `weapon-pickup-2-hunt-fire4` (4,000 frames) | 1,713 | **477** | **−1,236** |
+| `director-complete-1-natural-sweep-fire0` (10,500 frames) | see below | **357** | — |
+
+## Why, and why the earlier headline was incomplete
+
+`measure-population-cost-deltas.mjs` reports the **marginal** cost of a Light —
+it A/Bs "a Light is alive" against "it is not". MEASURED now: **412 → 354
+mean**, −14 %. (The −38 % reported after step 2 was true *at step 2*; steps 3
+and 4 gave some of it back.)
+
+That statistic is blind to the cost the multi-slot machinery pays on **every**
+frame, alive or not, because that cost is present in both of its arms. The
+routine census sees it (700 calls, mean / max):
+
+| routine | `82c155b` | now | Δ mean | Δ **min** |
+| --- | ---: | ---: | ---: | ---: |
+| `light_publish` | 504 / 768 | 706 / 1,047 | +202 | 216 → 374 (**+158**) |
+| `light_update` | 300 / 1,219 | 364 / 1,361 | +64 | 111 → 199 (**+88**) |
+| `_enemy_c_light_tick` | 56 / 184 | 275 / 445 | +219 | — |
+| `handle_collisions` | 838 / 2,251 | 838 / 2,251 | 0 | — |
+
+The `min` column is the important one: **+246 cycles on a frame with no Light
+alive at all**. Four empty-slot rejects in each of three loops, every frame,
+forever. On a dense binding frame that is what eats the margin.
+
+## The fix, and the trap in it
+
+Gate the per-frame slot loops on how many slots are occupied, so an empty
+sector pays nothing. This is the **maintained counter** already named as the
+second mitigation after M1 — but the justification has changed: it is no
+longer about the admission scan, it is about the three per-frame loops.
+
+**The trap, found while designing it:** a state-derived limit is safe for
+`light_update`'s loop and for `light_publish`'s RENDER loop, and **unsafe for
+`light_publish`'s ERASE loop**. A slot that retired this frame has `state = 0`
+but `screen_hi != 0` until the late window erases it; a limit derived from
+state would skip it and leave its cells on screen. The erase loop must either
+stay full-width or use a limit derived from `screen_hi`, which ASM owns.
+
+That is a real design decision, not a tweak, and it is where this session
+stopped rather than rushing it.

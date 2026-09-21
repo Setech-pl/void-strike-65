@@ -354,3 +354,65 @@ The fix that needs no such chain: make `light_admit` **raise**
 highest occupied slot, whoever reads it and whenever — derived once per frame
 and monotonic within it. Stale-high stays safe by construction; stale-low
 becomes impossible rather than merely unlikely.
+
+---
+
+# `light_shot` gated — the slope is gone, the worst frame is not
+
+## What landed
+
+`light_shot` walks `light_slot_limit`, and `light_admit` **raises** the limit
+as it fills a slot, so the limit is at least the highest occupied slot for
+every reader at every point in the frame. It can only ever be stale-HIGH,
+which walks a spare slot rather than skipping a live one. The implicit chain —
+admission sets `y = 0`, `light_shot`'s gameplay-top test happens to reject it —
+is gone.
+
+## Where the limit lowers, and the invariant that actually holds
+
+It lowers in exactly one place: `enemy_c_light_wave`, at the top of
+`light_update`. That is **after** `handle_collisions`, so a slot killed this
+frame can fall outside the limit while its cells are still on screen. The
+invariant is therefore **not** "nothing above the limit carries `screen_hi`" —
+that is briefly false by construction. What holds is:
+
+> no LIMIT-GATED consumer ever needs a slot above the limit
+
+All three gated consumers — the tick loop, the render loop and `light_shot` —
+key on **state**, and a slot above the limit has state 0. The one consumer
+that keys on `screen_hi` is the **erase** loop, and it is deliberately not
+gated. `tests/light-wingman.test.mjs` "a slot above the lowered limit is still
+erased" pins it: two slots published, the higher one killed, the limit drops
+beneath it, and its cells must still come back in the same late window.
+
+## MEASURED
+
+Per-projectile fit on `weapon-pickup-2-hunt-fire4`, same bucketing, identical
+histograms in both runs:
+
+| | intercept | slope per projectile |
+| --- | ---: | ---: |
+| before gating | ~160 | **+70** |
+| after gating | **125** | **+10** |
+
+| | `82c155b` | now |
+| --- | ---: | ---: |
+| unconditional per-frame (`light_update` + `light_publish` min) | — | **+112** |
+| marginal cost of one Light, pre-fence mean | 412 | **385** |
+| `weapon-pickup-2-hunt-fire4` margin | 1,713 | **898** |
+| `director-complete-1-natural-sweep-fire0` margin | 1,831 | **705** |
+
+## Why this stops here
+
+Both sessions are still under the ~1,000 the owner set, so this stops and
+reports rather than reaching for fix (b) or any other lever.
+
+**And fix (b) is not the answer to what is left.** The bucket means now differ
+by only 125-250 cycles, but the WORST frame's pre-fence grew by ~799
+(23,552 → 24,351). The worst frame carries roughly 600 cycles that the average
+frame does not, and it has **no Light alive** and **five active effects**. That
+is not the erase loop (76 cycles of intercept, which is all fix (b) addresses)
+and not the per-projectile scan (now 10 cycles each). It is something in the
+effect-heavy path, and it has not been isolated yet.
+
+Isolating it is the next measurement, not the next fix.

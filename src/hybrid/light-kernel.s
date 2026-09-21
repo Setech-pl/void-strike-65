@@ -402,7 +402,19 @@ light_update:
 ; A shot hits at most one Light: the first slot that owns the cell wins.
 light_shot:
     stx LIGHT_SLOT_SAVE          ; the caller's projectile slot
-    lda #(LIGHT_SLOT_COUNT-1)
+    ; MEASURED: this is the frame's dominant Light cost on a shot-heavy
+    ; session - ~70 cycles per projectile in flight, because it runs once per
+    ; player PairShot and used to walk all four slots. The limit is safe here
+    ; for the same reason as the other two gated loops: it keys on STATE, and
+    ; a slot above the limit has none. light_admit raises the limit as it
+    ; fills a slot, so a Light admitted earlier in this very frame is inside
+    ; it even though the limit was last derived on the previous one.
+    lda LIGHT_SLOT_LIMIT
+    bne :+
+    jmp @target                  ; no slot occupied: straight to the old path
+:
+    sec
+    sbc #$01
     sta LIGHT_SLOT
 @slot:
     ldx LIGHT_SLOT
@@ -441,6 +453,7 @@ light_shot:
 @next:
     dec LIGHT_SLOT
     bpl @slot
+@target:
     ldx LIGHT_SLOT_SAVE          ; no slot owns the cell: the old target path
     jmp entity_player_fighter_projectile_target
 

@@ -388,8 +388,9 @@ test("placement contract: legal composite and packed size, state inside its rese
   // of this test. Step 4 took it to 10 B - BELOW that floor - and the token
   // primitive, the ceiling and the live count moved to the window with the hot
   // path that asks them, which brought it back to 70. The code window is the
-  // scarce one now: 58 B free.
-  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 70);
+  // scarce one now: 17 B free. Both are tight; the next Light-class growth
+  // needs a placement decision rather than a spare byte.
+  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 25);
   assert.equal(L("light_glyph"), 0x9d2b);
   assert.equal(L("light_interceptor_glyph"), 0x9d3b);
   // REBASELINED for Light multiplicity: HYBRID_LIGHT_STATE keeps only the
@@ -403,9 +404,12 @@ test("placement contract: legal composite and packed size, state inside its rese
   // will occupy.
   assert.deepEqual([L("__HYBRID_LIGHT_STATE_RAM_START__"), L("__HYBRID_LIGHT_STATE_RAM_SIZE__")],
     [0x8100, 0x10], "HYBRID_LIGHT_STATE is exactly $8100-$810F");
-  // Step 4 spent seven of the eight free bytes: the three token bytes of plan
-  // §2.5 and the four admission/pair statics the C-stack contract forces.
-  assert.equal(L("__HYBRID_LIGHT_STATE_SIZE__"), 15, "shared Light scalars, 15 B of the 16");
+  // Step 4 spent seven of the eight free bytes (the three token bytes of plan
+  // §2.5 and the four admission/pair statics the C-stack contract forces), and
+  // owner fix (a) the eighth, for light_slot_limit. The area is now FULL: the
+  // next shared Light byte needs somewhere else to live.
+  assert.equal(L("__HYBRID_LIGHT_STATE_SIZE__"), 16, "shared Light scalars fill the 16 B");
+  assert.equal(L("__HYBRID_LIGHT_STATE_RAM_SIZE__"), 16);
   assert.deepEqual([L("__HYBRID_LIGHT_SLOTS_RUN__"), L("__HYBRID_LIGHT_SLOTS_SIZE__")],
     [0x7fc4, 48], "the four SoA slots are 48 B at $7FC4-$7FF3");
   assert.ok(L("__HYBRID_LIGHT_SLOTS_RAM_LAST__") <= 0x8000,

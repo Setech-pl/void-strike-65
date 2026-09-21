@@ -78,8 +78,10 @@ test("C EnemyArchetype is a compact exact Raider record in legal extension place
   // Step 4: the token primitive, the ceiling and the live count went to the
   // window with the hot path that asks them, taking the extension back to 829
   // and its free tail from 10 B - below the 16-B owner floor - to 70 B.
+  // Then light_shot's gating needed window room, so light_ceiling came back
+  // here beside light_admit, its only caller: 829 + 45 = 874, tail 25 B.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
-    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 829 });
+    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 874 });
   const window = manifest.residentCapacity.basicWindow;
   assert.equal(window.address, 0xb600, "the Light C lives in the code window");
   assert.ok(window.usedBytes > 0 && window.usedBytes <= window.capacityBytes,

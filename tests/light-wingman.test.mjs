@@ -588,6 +588,47 @@ test("the appearance install runs on the admission frame only, not every frame",
     "lifecycle_c_init forgets what the pairs held, so a new game re-installs");
 });
 
+// Owner instruction 2026-09-21, the question fix (a) left open: WHERE the slot
+// limit lowers. It lowers once, at the top of light_update, which is AFTER
+// handle_collisions - so a slot killed this frame can fall outside the limit
+// while its cells are still on screen. The invariant is therefore NOT "nothing
+// above the limit carries screen_hi"; that is briefly false by construction.
+// What must hold is that no LIMIT-GATED consumer needs a slot above the limit,
+// and the one consumer that keys on screen_hi - the erase loop - is not gated.
+// This pins that: kill the HIGHER of two slots and the limit drops beneath it,
+// and its cells must still come back in the same late window.
+test("a slot above the lowered limit is still erased", () => {
+  const image = game();
+  run(image, "enemy_spawn_raiders");
+  image[L("light_x")] = 100;
+  image[L("light_y")] = 100;
+  const zero = cell(image, 9, 13);
+  // Slot 1 lives two rows down, with its own underlay to restore.
+  image[L("light_state") + 1] = 2;
+  image[L("light_x") + 1] = 120;
+  image[L("light_y") + 1] = 116;
+  const one = cell(image, 11, 18);
+  image[one] = 0x41;
+  image[one + 1] = 0x42;
+  run(image, "light_publish");
+  assert.equal(image[L("light_screen_hi") + 1] !== 0, true, "slot 1 published");
+  assert.deepEqual([image[one], image[one + 1]], [LIGHT_CODE_LEFT, LIGHT_CODE_LEFT + 1]);
+  assert.deepEqual([image[L("light_backing0") + 2], image[L("light_backing0") + 3]],
+    [0x41, 0x42], "slot 1 captured its own underlay");
+
+  // Slot 1 dies. Its state goes to 0 now; its cells stay on screen until the
+  // next late window. The limit will drop to 1 and leave it outside.
+  image[L("light_state") + 1] = 0;
+  run(image, "light_publish");
+  assert.equal(image[L("_light_slot_limit")], 1,
+    "the limit dropped beneath the slot that still carried screen_hi");
+  assert.deepEqual([image[one], image[one + 1]], [0x41, 0x42],
+    "the ungated erase loop restored a slot the limit had already excluded");
+  assert.equal(image[L("light_screen_hi") + 1], 0, "and cleared its screen_hi");
+  // Slot 0 is untouched by any of it.
+  assert.equal(image[zero], LIGHT_CODE_LEFT);
+});
+
 test("hooks are operand-only redirections and the Light publishes only in the late window", () => {
   for (const [hook, count] of [
     ["entity_effects_update_with_light", 1],

@@ -435,20 +435,6 @@ static uint8_t light_take_token(void)
     return 1u;
 }
 
-/* How many slots this sector may hold live at once. CAPITAL is fighter-only,
- * so no Light survives it; a Heavy formation on screen leaves room for its
- * escort and nothing more (plan §2.4); otherwise the swarm ceiling applies. */
-static uint8_t light_ceiling(void)
-{
-    if (CAPITAL_SECTOR_STATE != SECTOR_FIGHTER) {
-        return light_ceiling_capital;
-    }
-    if (ENEMY_ACTIVE != ENEMY_INACTIVE) {
-        return light_ceiling_elite;
-    }
-    return light_ceiling_swarm;
-}
-
 /* Live slots, counted rather than kept: a four-byte scan, at admission only. */
 static uint8_t light_live_count(void)
 {
@@ -636,6 +622,20 @@ uint8_t sector_c_force_final_drain(void)
 #pragma code-name (push, "HYBRID_C_EXT")
 #pragma rodata-name (push, "RODATA")
 
+/* How many slots this sector may hold live at once. CAPITAL is fighter-only,
+ * so no Light survives it; a Heavy formation on screen leaves room for its
+ * escort and nothing more (plan §2.4); otherwise the swarm ceiling applies. */
+static uint8_t light_ceiling(void)
+{
+    if (CAPITAL_SECTOR_STATE != SECTOR_FIGHTER) {
+        return light_ceiling_capital;
+    }
+    if (ENEMY_ACTIVE != ENEMY_INACTIVE) {
+        return light_ceiling_elite;
+    }
+    return light_ceiling_swarm;
+}
+
 /* The first free slot, or LIGHT_SLOT_COUNT when every slot is taken. */
 static uint8_t light_free_slot(void)
 {
@@ -723,6 +723,21 @@ static uint8_t light_admit(void)
     }
     light_scratch = (uint8_t)(LIGHT_SCREEN_CODE + light_work + light_work);
     light_slot = light_slot_save;
+    /* RAISE the limit as the slot is filled (owner decision 2026-09-21). The
+     * limit is derived once per frame in enemy_c_light_wave, which runs at the
+     * top of light_update - after handle_collisions, and after the Director's
+     * own admission in integration_update_enemy. Without this, light_shot
+     * would read a limit computed before this slot existed and the slot would
+     * be unhittable for a frame. Raising here makes the limit at least the
+     * highest occupied slot for every reader at every point in the frame, so
+     * it can only ever be stale-HIGH, which walks a spare slot rather than
+     * skipping a live one. The alternative was to rely on admission setting
+     * y = 0 and on light_shot's gameplay-top test rejecting it - an implicit
+     * chain, and the wrong kind. */
+    light_work = (uint8_t)(light_slot + 1u);
+    if (light_work > light_slot_limit) {
+        light_slot_limit = light_work;
+    }
     light_code[light_slot] = light_scratch;
     light_archetype[light_slot] = light_record;
     light_work = LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_HIT_POINTS);
@@ -808,10 +823,22 @@ static void light_wave_step(void)
  * limit stale-high, and a stale-high limit walks a spare slot rather than
  * skipping a live one.
  *
- * It is NOT safe for light_publish's ERASE loop and the kernel does not use
- * it there: a slot that retired this frame has state 0 but screen_hi still
- * set until the late window erases it, so a state-derived limit would skip it
- * and leave its cells on screen. That erase loop stays full-width. */
+ * WHERE IT LOWERS, and why that is safe. This is the only place it drops, and
+ * it drops at the top of light_update - which is AFTER handle_collisions, so a
+ * slot killed this frame can fall outside the limit while its cells are still
+ * published. The invariant is therefore NOT "nothing above the limit carries
+ * screen_hi"; that is briefly false by construction. The invariant that holds
+ * is the one the kernel depends on:
+ *
+ *   no LIMIT-GATED consumer ever needs a slot above the limit.
+ *
+ * All three gated consumers - light_update's tick loop, light_publish's render
+ * loop and light_shot's target scan - key on STATE, and a slot above the limit
+ * has state 0: nothing to tick, nothing to draw, nothing to hit. The one
+ * consumer that keys on screen_hi is light_publish's ERASE loop, and it is
+ * deliberately NOT gated: it stays full-width so a slot that died above the
+ * limit still has its cells restored in the same late window.
+ * tests/light-wingman.test.mjs pins that directly. */
 void enemy_c_light_wave(void)
 {
     light_wave_step();

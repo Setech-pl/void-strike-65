@@ -2483,8 +2483,16 @@ async function build() {
         endExclusive: hybridWindowEndExclusive,
         capacityBytes: hybridWindowCapacityBytes,
         guardBytes: basicWindowEndExclusive - basicWindowGuardAddress,
-        usedBytes: directorModule.basicWindowBytes,
-        freeBytes: hybridWindowCapacityBytes - directorModule.basicWindowBytes,
+        // The window carries BOTH links: the Director's window half at
+        // $B600 and the Light ASM kernel's own link above it. Counting only
+        // the Director half reported the whole Light kernel as free space
+        // (735 B against a real 27 B). The free figure below is the window's,
+        // and equals lightKernel.freeBytes because the kernel link closes it.
+        directorHalfBytes: directorModule.basicWindowBytes,
+        lightKernelBytes: lightKernelModule.raw.length,
+        usedBytes: directorModule.basicWindowBytes + lightKernelModule.raw.length,
+        freeBytes: hybridWindowCapacityBytes -
+          (directorModule.basicWindowBytes + lightKernelModule.raw.length),
         availability: "unconditional: disable_basic_rom forces PORTB bit 1 and writes " +
           "BASICF at every stage-2 entry",
         boundedBy: { below: `${levelBufferSectors}-sector level buffer $A600-$B5FF`,

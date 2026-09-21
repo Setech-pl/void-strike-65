@@ -156,9 +156,14 @@ test("Light kernel placement is legal, resident and inside every reviewed gate",
   // and the ASM half stops below the sector reader's BSS at $BC00.
   assert.equal(kernel.address, kernel.cHalfEndExclusive,
     "the kernel must start where the Director link's window half ends");
+  // basicWindow.usedBytes counts BOTH window links since 2026-09-21 (finding
+  // F6); the Director link's half alone is directorHalfBytes, which is what
+  // this boundary is made of.
   assert.equal(kernel.address,
     manifest.residentCapacity.basicWindow.address +
-      manifest.residentCapacity.basicWindow.usedBytes);
+      manifest.residentCapacity.basicWindow.directorHalfBytes);
+  assert.equal(manifest.residentCapacity.basicWindow.address +
+    manifest.residentCapacity.basicWindow.usedBytes, kernel.endExclusive);
   assert.ok(kernel.endExclusive <= 0xbc00, "the kernel must stop before the reader BSS");
   assert.ok(kernel.freeBytes >= 0, `code window tail ${kernel.freeBytes} B`);
   // The frozen five-entry vector table is main.s's only binding to the kernel.

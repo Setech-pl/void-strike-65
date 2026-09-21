@@ -83,8 +83,13 @@ test("XEX contains a payload segment and RUNAD", () => {
       [kernel.address, kernel.endExclusive - 1]);
     assert.ok(at(directorIndex + 1).data.equals(kernelImage));
     const window = manifest.residentCapacity.basicWindow;
-    assert.equal(kernel.address, window.address + window.usedBytes,
+    // directorHalfBytes, not usedBytes: since 2026-09-21 (finding F6)
+    // usedBytes counts both window links, so window.address + usedBytes is the
+    // kernel's END, not its start.
+    assert.equal(kernel.address, window.address + window.directorHalfBytes,
       "the kernel block must start where the Director link's window half ends");
+    assert.equal(window.address + window.usedBytes, kernel.endExclusive,
+      "the two window links must close the used span exactly");
     assert.ok(kernel.endExclusive <= 0xbc00,
       "the kernel block must stop before the sector reader BSS at $BC00");
   }

@@ -563,8 +563,10 @@
       "endExclusive": 48128,
       "capacityBytes": 1536,
       "guardBytes": 6,
-      "usedBytes": 801,
-      "freeBytes": 735,
+      "directorHalfBytes": 801,
+      "lightKernelBytes": 708,
+      "usedBytes": 1509,
+      "freeBytes": 27,
       "availability": "unconditional: disable_basic_rom forces PORTB bit 1 and writes BASICF at every stage-2 entry",
       "boundedBy": {
         "below": "32-sector level buffer $A600-$B5FF",

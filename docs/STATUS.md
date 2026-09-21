@@ -1226,20 +1226,44 @@ section's "what to look for" in the implementation report.
   of `publish_fighter_pickup_pmg`): the same 233 / 108 ACTIVE frames, and 0/16
   sequence PNGs, 0/27 traversal PNGs, and the row assertion throws.
 
-  **The report is STILL not written**, on two further pins of the same
-  character-era family, both pre-existing and both previously unreachable:
-  `BLOCKED_PICKUP_SEQUENCE_RASTER_TEMPLATE` at `runtime-wall-trace.mjs:4934-4956`
-  — the smooth-sequence clause builds its 16x16 template at a pinned column
-  **x = 144** while the capsule MEASURES `x[56..71]`, `y[2..17]` on frame 00,
-  moving +2 rows/frame, `HPOSM0 = 92` (the §7 family, where the contact window
-  was repaired by deriving it from `pickup_hposm0`) — and the booster/pickup
-  aggregate cluster at `:5838`, `:5842-5847`, `:5856-5857`, where
-  `(pickup_drawn_mask & 15) === 15` holds on **0 of 233** ACTIVE rows and
-  `pickup_footprints_after === 1` on **0 of 233**. Both need an owner decision of
-  the same kind as the three already taken; neither was touched. Evidence, the
-  verbatim guards, the fixture proof and every measurement:
-  [diagnostics/runtime-wall-trace-report-regeneration-blocked.md](diagnostics/runtime-wall-trace-report-regeneration-blocked.md)
-  12;
+  **EXTENDED 2026-09-21 to the whole class — owner decision, commit `57e2b7c`.**
+  Every harness assertion, template, aggregate, evidence field and test that
+  measured the capsule through the character renderer is now repointed at the
+  missile plane or deleted: the smooth-sequence template column is **derived**
+  as `2*(HPOSM0-64)` from the run the emulator actually captured (a 4,000-frame
+  hunt spawns capsules at two columns, 92 and 84), the booster/pickup cluster
+  and both emptiness duals read `pickup_missile_rows`, and the phased
+  glyph-cell clause, the reverse-erase clause, `maximum_pickup_glyph_cells` and
+  the `render_id 120/248` conjunct are deleted with their reasons recorded.
+  Two further dead slot-1 fields were found beyond the listed set —
+  `pickup_render_id` and `pickup_animation`, both 0 on all 233 ACTIVE and 220
+  PENDING frames. The capsule rotation moved off the dead glyph base onto the
+  **booster mode each collection grants** (measured Rapid→Spread→Shield→Rapid).
+  One clause was deleted under the rule's own "must be able to fail" test after
+  four attempts: `pickup_missile_blocks === 1` held on every frame of all four
+  fixtures, because the plane has a single writer and every injectable failure
+  leaves a contiguous region; the trail it guarded is caught by
+  `missile_rows === 16` instead (fixture C measures 16, 18 … 152 rows). Proven
+  against four fixtures — drawing suppressed, published during PENDING, erase
+  suppressed, erase at a stale row address — all reverted, XEX `d667d88d…`
+  before and after. **The run now passes the whole pickup class.**
+
+  **The report is STILL not written, and both remaining blockers are OUTSIDE
+  the class** — neither is about the capsule's renderer, so this session stopped
+  rather than widening it again:
+
+  - `lower-playfield-xex-hard` (`:5111`): both clamps ARE reached
+    (`player_y` min 32, max 225), but the clause wants a frame at 225 *after*
+    the topmost one, and the replay starts at 225 and reaches 32 only at frame
+    **347** of 420, climbing back to just 104. It needs roughly **541 frames**,
+    not 420 — a stale scenario, the same family as the three recorded
+    contact-raster failures;
+  - `director-complete-0-natural-sweep-fire0` (`:5452`): the session does reach
+    DRAIN (140 frames) and COMPLETE (135 frames), but the clause takes the
+    **last** BOSS_HANDOFF — frame **9055** — and requires DRAIN at 9056; that
+    final handoff does not finish inside the remaining 1,445 frames. Stale
+    scenario or real Director regression is **not** decided here and needs its
+    own measurement.
 
   **Consequence: `docs/runtime-wall-trace.json` is still the `d72dd6a` evidence**
   and the `npm test` default-build gate still cannot run, so the honest

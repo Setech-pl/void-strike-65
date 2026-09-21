@@ -1,4 +1,16 @@
-# `docs/runtime-wall-trace.json` cannot be regenerated — now `BLOCKED_PICKUP_SEQUENCE_RASTER_TEMPLATE`
+# `docs/runtime-wall-trace.json` cannot be regenerated — now `BLOCKED_STALE_REPLAY_SCENARIOS`
+
+> **Update, 2026-09-21 (FIX session, branch `main`, HEAD `57e2b7c`).**
+> Under the owner's **class rule** the entire character-renderer pickup class is
+> closed: every clause, template, aggregate, evidence field and test that
+> measured the capsule through the character renderer is repointed at the
+> missile plane or deleted, coordinates derived rather than re-pinned, and each
+> repointed clause falsified against one of four fixtures. **The run now passes
+> the whole pickup class.** It stops at two clauses **outside** it, both
+> pre-existing and both previously unreachable: the `lower-playfield-xex-hard`
+> clamp clause, whose 420-frame budget no longer contains the return leg, and
+> the `director-complete-0-natural-sweep-fire0` BOSS_HANDOFF clause, whose final
+> handoff does not complete inside the replay. **§13 is the current state.**
 
 > **Update, 2026-09-21 (FIX session, branch `main`, HEAD `1031d4d`).**
 > The owner took **option (b)** on `BLOCKED_PICKUP_SEQUENCE_DRAWN_MASK` and
@@ -1471,3 +1483,99 @@ the ring range, so the escape branch is taken), the evidence field `:5046`
 * CPU/RAM delta: **zero**. No production source changed.
 * Reran after the traversal change: the traversal session only, plus the
   post-loop traversal block against the existing CSVs. Not all 64 again.
+
+## 13. The whole character-renderer pickup class is closed; the run stops twice OUTSIDE it
+
+**Owner decision 2026-09-21, the class rule.** Commit `57e2b7c`. Harness only:
+no production source, no runtime bytes, XEX `d667d88d…` before and after.
+
+### 13.1 The class, clause by clause
+
+| Clause | Was | Is / deleted | Fixture result |
+| --- | --- | --- | --- |
+| sequence template `:4934` | template at pinned `x = 144`, y scan `8 … h-46` | column **derived** `2*(HPOSM0-64)` from the captured run; full-height y scan | A 0/16, C 0/16, D 3/16 captures — **fails** |
+| traversal capture gate | `(DRAWN_MASK+1) & 15 == 15` | missile-plane drawn state | A 0/27, D 2/27 — **fails** |
+| traversal ACTIVE `:5004` | `drawn_mask === 15/3` | `missile_rows === 16 && union === 255` | A 0/108, D 5/108 — **fails** |
+| traversal footprint | `footprints_after === 1` | folded into the row count | (see `blocks` below) |
+| traversal glyph cells | `glyph_cells_after ∈ {2,4,6}` | **DELETED** | — |
+| traversal release | `drawn_mask === 0`, `footprints === 0` | `missile_rows === 0` | C fails 2,345/2,679 |
+| reverse erase `:5014` | ring cell backing restored | **DELETED**, vacuous | — |
+| traversal evidence `:5045` | `maximum_final_footprints` | `maximum_final_missile_blocks` | evidence, not a clause |
+| PENDING `:5835` | `drawn_mask & 15 === 0` | `missile_rows === 0` | **B fails 0/220** |
+| ACTIVE draw `:5838` | `drawn_mask & 15 === 15` + `render_id 120/248` | `missile_rows === 16 && union === 255`; render-id conjunct **DELETED** | A 0/233, C 1/233, D 5/233 — **fails** |
+| footprint `:5842` | 6 character-cell terms + `pickupHasEffectOverlay` | `draw_calls === 1`; the rest **DELETED** | — |
+| release `:5856` | `footprints === 0 && glyph_cells === 0` | `erase_calls === 1 && missile_rows === 0` | C fails |
+| aggregates `:6313` | footprints + `maximum_pickup_glyph_cells` | `maximum_simultaneous_missile_blocks`; glyph cells **DELETED** | evidence |
+| coverage search `:6603` | `drawn_mask & 15 === 15` | `missile_rows === 16` | A fails |
+| heaviest-frame evidence `:1364` | `drawn_mask`, `render_id`, `animation_frame` | `missile_rows`, `missile_union` | evidence |
+| contact evidence `:3605` | 6 cell addresses + glyph codes | `missile_column`, `missile_rows`, `missile_union` | evidence |
+| rotation `:5894` | `render_id` cycle `120→248→120` | booster mode granted per collection, rotation without repeats | outside the class once repointed |
+| `tests/…:350`, `:386` | glyph cells, `created_capsule_render_ids` | missile blocks; granted booster modes | — |
+
+**Two dead fields found beyond the listed set**, handled the same way:
+`pickup_render_id` and `pickup_animation` are also slot-1 character-renderer
+bytes — **0 on all 233 ACTIVE and 220 PENDING frames** — and were masked because
+they sat behind the dead term in the same conjunction.
+
+**One clause deleted under rule (3) after four attempts to falsify it:**
+`pickup_missile_blocks === 1`. The missile plane has a single writer and every
+failure that can be injected leaves a **contiguous** region, so the run count
+held on 108/108 and 233/233 frames of all four fixtures. What it was meant to
+catch — a trail from a failed erase — is caught by `missile_rows === 16`:
+fixture C measures 16, 18, 20 … 152 rows. The measurement survives in the
+evidence; the assertion does not. My first inline rationale for it ("proves one
+capsule, not a trail") was wrong and is corrected in the code.
+
+### 13.2 The four fixtures
+
+| Fixture | Change (all reverted) | XEX |
+| --- | --- | --- |
+| A | `rts` at the head of `publish_fighter_pickup_pmg` | `87ad4475…` |
+| B | publish during PENDING as well as ACTIVE | `4853d13f…` |
+| C | `rts` at the head of `clear_fighter_pickup_pmg` | `5f094190…` |
+| D | erase from a stale row address (`ldy #24`) | `1a427d1d…` |
+
+Fixture A is the general "not drawn" case; B falsifies the PENDING emptiness
+dual, which A cannot by construction; C falsifies the release dual and produces
+the smear; D exercises a stale erase address. On the production build
+`d667d88d…` every clause passes.
+
+### 13.3 Still blocked — twice, and both OUTSIDE the class
+
+The full 64-session run now passes the whole pickup class. It stops at two
+clauses that have nothing to do with the capsule's renderer, both pre-existing,
+both previously unreachable behind it.
+
+**Blocker 1 — `runtime-wall-trace.mjs:5111`, `lower-playfield-xex-hard`.**
+"Native joystick replay did not reach both opaque-PlayerFighter-safe PAL
+clamps". MEASURED over its 420 frames: `player_y` **min 32, max 225**, so both
+clamps are reached — but the clause additionally requires a frame at `y = 225`
+*after* the topmost frame, and the replay **starts** at 225 and reaches 32 only
+at frame **347**, leaving **73 frames**. It climbs back to 104 by the end. At
+the observed ~1 px/frame it needs roughly **121 more frames** — a budget near
+**541**, not 420. A stale *scenario*, the same family as the three recorded
+contact-raster failures, not a runtime defect.
+
+**Blocker 2 — `runtime-wall-trace.mjs:5452`,
+`director-complete-0-natural-sweep-fire0`.** "did not execute BOSS_HANDOFF ->
+DRAIN -> COMPLETE". MEASURED over its 10,500 frames: the session **does** reach
+DRAIN (`sector_state` 5, 140 frames) and COMPLETE (6, 135 frames), but the
+clause takes the **last** BOSS_HANDOFF event — frame **9055** — and requires
+DRAIN at exactly frame 9056. The completing cycle happens earlier; the final
+handoff does not finish inside the remaining 1,445 frames. Whether that is a
+stale scenario or a real Director regression needs its own measurement and is
+**not** decided here.
+
+Neither is about the pickup capsule's renderer, so under the owner's rule this
+session stops rather than widening the class again. `docs/runtime-wall-trace.json`
+is therefore still the `d72dd6a` evidence, the binding tripwire is still red, and
+the default-build `npm test` baseline is still owed.
+
+### 13.4 Gates
+
+* Build: candidate only, XEX `d667d88d…`, byte-identical before and after.
+* Boot smoke: **8/8 PASS**. PAL audit: **0 distinct miss events across 64
+  replays, PASS**. Sessions: **64/64 run**, 3 accumulated clause failures.
+* CPU/RAM delta: **zero**.
+* Reran: the full 64 once for the class change, then the four pickup sessions
+  per fixture, and the post-loop analysis against existing CSVs.

@@ -1,7 +1,8 @@
 # VOID STRIKE 65 — decyzje właścicielskie po Stage 2B.2b
 
 > **Skonsolidowana lista wszystkich obowiązujących decyzji** — numerowanych
-> 1-23, czterech z 2026-09-19 (bramki/trace) i literowych **A-R oraz U** z 2026-09-20 —
+> 1-23, czterech z 2026-09-19 (bramki/trace), literowych **A-R oraz U-W** z
+> 2026-09-20 i **X** z 2026-09-21 —
 > wraz z ich konsekwencjami i tym, co je zastąpiło:
 > [project-overview.md](project-overview.md) §5. Cała seria literowa jest
 > zapisana **w tym pliku**, na jego końcu (sekcja „Decyzje literowe
@@ -1455,6 +1456,57 @@ naciągana.
 
 Nie otwiera zadania czytnika. Praca nad nim zaczyna się dopiero na wyraźne
 wskazanie właściciela.
+
+---
+
+## X. BUFOR POZIOMU KURCZY SIĘ Z 44 DO 32 SEKTORÓW; OKNO KODU `$B600-$BBFF` — OWNER-ACCEPTED (2026-09-21)
+
+Bufor poziomu czytnika sektorów (`LEVEL_BUFFER_RAM`, dziś `$A600-$BBFF`,
+5 632 B = 44 sektory) zmniejsza się do **32 sektorów (4 096 B, `$A600-$B5FF`)**.
+Zwolniony 1 536-bajtowy obszar **`$B600-$BBFF`** staje się oknem kodu
+(`HYBRID_C_WINDOW_RAM` / `HYBRID_ASM_WINDOW`) i jest pierwszym prawdziwym
+rekordem w oknie decyzji B.
+
+### Uzasadnienie właściciela
+
+44 sektory wymiarowano, **zanim** zapadła decyzja F (capitale są parametryczne:
+cztery zestawy grafiki na całą grę zamiast jednego na poziom). Rzeczywista
+potrzeba bufora to ~512 B `LevelDef` plus ~1 253 B jednego zestawu grafiki,
+czyli nieco ponad 1,7 KB. 32 sektory zostawiają ponad 2 KB zapasu — wciąż
+dwukrotność ładunku per poziom z `design-4.6-data-architecture.md` §3.6.
+
+Przeniesienie jądra Light poza pamięć rezydentną daje przy okazji dwie rzeczy,
+których żadne inne rozmieszczenie nie daje: **~518 B ogona w obszarze
+rozszerzenia** (`HYBRID_C_EXT`, dziś 19 B) — największa rezydentna dziura od
+4.3 Stage 1, do dyspozycji 4.6 — oraz odciążenie `STARFIELD`, który jest dziś
+**13 B ponad swoją bramką po spakowaniu** (otwarta pozycja w `STATUS.md`);
+wyprowadzenie z niego 31-bajtowego `light_cell_resolve` może tę pozycję zamknąć
+samo z siebie.
+
+### Co decyzja obejmuje
+
+* `MAX_LEVEL_SECTORS` 44 → 32 i walidacja nagłówka poziomu związana tym
+  ograniczeniem (`src/hybrid/sector-reader.s`, `cfg/sector-reader.cfg`);
+* `BASIC_WINDOW_RAM` w `cfg/encounter-director.cfg` przebazowane na `$B600`
+  o rozmiarze `$0600` i przemianowane na `HYBRID_C_WINDOW_RAM`; straż
+  `$BC1A-$BC1F` bez zmian;
+* `MAX_CHUNKS` 9 → 10 (dziesiąty rekord DFMC) i odpowiadający `CHUNK_MAX_COUNT`
+  w overlayu stage 2 — koszt zmierzony dla kroku 8 → 9 wynosił 16 B;
+* rekord XEX powyżej `$A000` z `INITAD`, jak dla czytnika;
+* **świadome re-nagranie `docs/boot-deadline-baseline.json`** w tym samym
+  commicie, z podanym powodem: rekord okna kosztuje sektory transportu, a
+  decyzja B odnotowuje, że każdy taki sektor przesuwa raster loadera.
+
+### Czego decyzja NIE oznacza
+
+Nie przesądza sufitu liczby Lightów. Sufit 3 (decyzja 23 §10.7) pozostaje
+warunkowy: rozstrzyga go **natywny pomiar marginesu przy trzech żywych
+Lightach** (`plan-light-multiplicity.md` §4.3). Jeśli trzy Lighty nie mieszczą
+się nawet z tokenem jednego drogiego zdarzenia na klatkę, sesja **zatrzymuje
+się i raportuje**; obniżenie sufitu do 2 jest decyzją właściciela, nie sesji.
+
+Nie otwiera też szesnastoliniowej puli tekstów AI z decyzji O — zwolnione
+1,5 KB idzie w całości na kod Light, nie na teksty.
 
 ---
 

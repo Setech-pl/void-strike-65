@@ -100,35 +100,61 @@ test("capital-hull source compiles deterministically and rejects corrupt definit
   assert.deepEqual(second.packedMaps.get("allied"), asset.packedMaps.get("allied"));
   assert.deepEqual(second.packedMaps.get("enemy"), asset.packedMaps.get("enemy"));
   assert.deepEqual(second.turretBytes, asset.turretBytes);
+  assert.deepEqual(second.hullStyleBlocks, asset.hullStyleBlocks);
 
+  const badVersion = structuredClone(definition);
+  badVersion.formatVersion = 1;
+  assert.throws(() => compileCapitalHulls(badVersion), /Unsupported capital-hulls formatVersion/);
   const badPixel = structuredClone(definition);
-  badPixel.glyphs[0].pixels[0] = "4222";
+  badPixel.allied.glyphs[0].pixels[0] = "4222";
   assert.throws(() => compileCapitalHulls(badPixel), /invalid pixel/);
   const wrongFactionBank = structuredClone(definition);
-  wrongFactionBank.glyphs.find(({ name }) => name === "enemy_slab_mass").screenBank = "pf2";
+  wrongFactionBank.enemyStyles[0].glyphs[0].screenBank = "pf2";
   assert.throws(() => compileCapitalHulls(wrongFactionBank), /faction's ANTIC 4 colour bank/);
   const unknownGlyph = structuredClone(definition);
-  unknownGlyph.maps.allied.rows[0] = unknownGlyph.maps.allied.rows[0].replace(
-    "allied_plate_lip",
-    "unknown_hull_glyph",
-  );
+  unknownGlyph.allied.map[0] = unknownGlyph.allied.map[0]
+    .replace("allied_hull_line", "unknown_hull_glyph");
   assert.throws(() => compileCapitalHulls(unknownGlyph), /unknown glyph/);
-  const missingMuzzle = structuredClone(definition);
-  missingMuzzle.turrets.pop();
-  assert.throws(() => compileCapitalHulls(missingMuzzle), /at least one complete turret/);
+  const crossFaction = structuredClone(definition);
+  crossFaction.allied.map[0] = crossFaction.allied.map[0]
+    .replace("allied_hull_line", "enemy_hull_wall");
+  assert.throws(() => compileCapitalHulls(crossFaction), /from the other faction/);
   const orphanMuzzle = structuredClone(definition);
-  orphanMuzzle.maps.allied.rows[0] = orphanMuzzle.maps.allied.rows[0].replace(
-    /space$/,
-    "allied_turret_muzzle",
-  );
+  orphanMuzzle.allied.map[0] = orphanMuzzle.allied.map[0]
+    .replace(/space$/, "allied_turret_muzzle");
   assert.throws(() => compileCapitalHulls(orphanMuzzle), /projection and muzzle metadata disagree/);
-  const noisyContour = structuredClone(definition);
-  for (let rowIndex = 0; rowIndex < 8; rowIndex += 1) {
-    const sourceRow = rowIndex & 1 ? 11 : 1;
-    noisyContour.maps.allied.rows[rowIndex] = definition.maps.allied.rows[sourceRow];
-    noisyContour.maps.allied.innerDepth[rowIndex] = definition.maps.allied.innerDepth[sourceRow];
+  const shallowHull = structuredClone(definition);
+  shallowHull.allied.map[0] =
+    "allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_mass " +
+    "space space space space space";
+  assert.throws(() => compileCapitalHulls(shallowHull), /unsupported base depth/);
+  const missingStyle = structuredClone(definition);
+  missingStyle.enemyStyles.pop();
+  assert.throws(() => compileCapitalHulls(missingStyle), /four enemy styles/);
+});
+
+// The one v2 rule that lets a glyph cross the faction line. A shared glyph is
+// referenced by both maps and therefore rendered in both ANTIC 4 colour banks,
+// so only an all-zero cell can carry the same meaning on both sides; its screen
+// code keeps bit 7 clear and both runtime hull-code scans mask bit 7.
+test("a shared glyph must be all-zero and is the only glyph both factions may reference", () => {
+  const shared = asset.glyphs.filter(({ faction }) => faction === "shared");
+  assert.deepEqual(shared.map(({ name, index, screenCode }) => [name, index, screenCode]),
+    [["hull_deck", 65, 65]]);
+  assert.ok(shared[0].pixels.flat().every((value) => value === 0));
+  for (const side of ["allied", "enemy"]) {
+    assert.ok(asset.decodedMaps.get(side).flat().includes(65),
+      `${side} must reference the shared blank rather than a private copy`);
   }
-  assert.throws(() => compileCapitalHulls(noisyContour), /principal depth transitions/);
+
+  const opaqueShared = structuredClone(definition);
+  opaqueShared.allied.glyphs.find(({ faction }) => faction === "shared").pixels[0] = "2222";
+  assert.throws(() => compileCapitalHulls(opaqueShared),
+    /Shared glyph hull_deck must be all-zero/);
+  const twoShared = structuredClone(definition);
+  twoShared.allied.glyphs[0].faction = "shared";
+  assert.throws(() => compileCapitalHulls(twoShared),
+    /At most one shared glyph/);
 });
 
 test("31 generated ANTIC 4 glyphs fit the 1024-byte assembled gameplay charset", () => {
@@ -327,35 +353,66 @@ test("every segment row is a bounded 8+24+8 composition with coherent contours",
       occupiedContour(enemy.slice(1).reverse()).join(""),
     );
   }
-  assert.ok(contourDifferences.filter(Boolean).length >= 16);
+  // Re-pinned for hull set v1: allied B and R1 are two separate drafts that
+  // happen to share more flat wall than the H4.2 pair did, so 12 of the 32
+  // rows differ rather than 16. The property that matters is unchanged — the
+  // two sides are not each other's mirror.
+  assert.equal(contourDifferences.filter(Boolean).length, 12);
+  assert.ok(contourDifferences.some(Boolean));
+
+  // The depth band is the one hard contour rule (owner decision 6, 2026-09-22):
+  // the v1 transition count, the two-to-eight run window and the "use all four
+  // depths" rule were generator-only statistics and are relaxed, because the
+  // approved drafts draw one-row 45-degree chamfers and long flat runs. The
+  // runtime reads per-row boundary tables and never inspects those statistics.
+  for (const side of ["allied", "enemy"]) {
+    assert.ok(asset.depthsBySide.get(side).every((depth) => depth >= 5 && depth <= 8),
+      `${side} contour leaves the 5..8 band the corridor fast path assumes`);
+  }
   assert.deepEqual([...new Set(asset.depthsBySide.get("allied"))].sort(), [5, 6, 7, 8]);
   assert.deepEqual([...new Set(asset.depthsBySide.get("enemy"))].sort(), [5, 6, 7, 8]);
-  assert.deepEqual(Object.fromEntries(asset.contourTransitionCounts), { allied: 7, enemy: 7 });
-  for (const lengths of asset.depthRunLengthsBySide.values()) {
-    assert.ok(lengths.every((length) => length >= 2 && length <= 8));
-  }
+  assert.deepEqual(Object.fromEntries(asset.contourTransitionCounts), { allied: 8, enemy: 8 });
+  assert.deepEqual(asset.depthRunLengthsBySide.get("allied"), [1, 7, 1, 3, 5, 1, 6, 8]);
+  assert.deepEqual(asset.depthRunLengthsBySide.get("enemy"), [5, 1, 6, 1, 2, 13, 1, 3]);
   assert.notDeepEqual(
     transitionRows(asset.depthsBySide.get("allied")),
     transitionRows(asset.depthsBySide.get("enemy")),
   );
+  // Every style must stay inside the band, not just the resident one.
+  for (const levelSet of asset.levelHullSets) {
+    for (const side of ["allied", "enemy"]) {
+      assert.ok(levelSet.depthsBySide.get(side).every((depth) => depth >= 5 && depth <= 8),
+        `${levelSet.styleName} ${side} contour leaves the 5..8 band`);
+    }
+  }
 });
 
 test("turret metadata points to complete multi-cell emplacements and real muzzle tips", () => {
+  // Re-pinned for hull set v1. Normalisation puts every style's firing turret
+  // on segment row 9 — local row 1 of the fixed turret module — so the two
+  // sides now carry the same segment row and the existing sidePhaseRows = 8
+  // is what staggers them on screen. One turret module per side (owner
+  // decision 5, 2026-09-22), so one turret record per side.
   assert.deepEqual(
     asset.turrets.map(({ id, segmentRow, muzzleColumn }) => [id, segmentRow, muzzleColumn]),
     [
-      ["allied_turret_a", 8, 8],
-      ["enemy_turret_a", 12, 31],
+      ["allied_turret_a", 9, 8],
+      ["enemy_turret_a", 9, 31],
     ],
   );
   assert.equal(asset.turrets.filter(({ side }) => side === "allied").length, 1);
   assert.equal(asset.turrets.filter(({ side }) => side === "enemy").length, 1);
-  assert.equal((4 - asset.turrets.length) / 4, 0.5,
-    "functional source turret density is reduced exactly 50 percent");
-  assert.deepEqual(asset.turrets.map(({ side, segmentRow }) => [side, segmentRow]), [
-    ["allied", 8],
-    ["enemy", 12],
-  ], "the two sides are deliberately staggered rather than mirrored");
+  assert.equal(asset.sector.sidePhaseRows, 8,
+    "the two sides fire from the same segment row and are staggered by the side phase");
+  for (const side of ["allied", "enemy"]) {
+    assert.equal(asset.sector.turretModuleIds.get(side),
+      asset.sector.moduleNamesBySide.get(side).indexOf("combat_1"));
+  }
+  assert.notDeepEqual(
+    asset.sector.cannonRowsBySide.get("allied"),
+    asset.sector.cannonRowsBySide.get("enemy"),
+    "the seeded per-owner layouts still place the two sides' stations independently",
+  );
   assert.deepEqual(asset.schedule.map(({ side, delayAfterFrames }) =>
     [side, delayAfterFrames]), [
     ["enemy", 210],
@@ -363,52 +420,72 @@ test("turret metadata points to complete multi-cell emplacements and real muzzle
     ["enemy", 210],
     ["allied", 254],
   ]);
-  for (const turret of asset.turrets) {
-    const relative = turret.side === "allied" ? turret.muzzleColumn : turret.muzzleColumn - 31;
-    const screenCode = asset.decodedMaps.get(turret.side)[turret.segmentRow][relative];
-    const glyph = asset.glyphs.find((candidate) => candidate.screenCode === screenCode);
-    assert.ok(glyph.tags.includes("muzzle"));
-    assert.ok(turret.footprint.base.length >= 4);
-    assert.ok(turret.footprint.housing.length >= 1);
-    assert.ok(turret.footprint.barrel.length >= 2);
-  }
-  for (const side of ["allied", "enemy"]) {
-    const projectionRows = asset.decodedMaps.get(side)
-      .flatMap((row, index) => row[side === "allied" ? 8 : 0] === 0 ? [] : [index]);
-    assert.deepEqual(projectionRows,
-      asset.turrets.filter((turret) => turret.side === side).map((turret) => turret.segmentRow),
-      `${side} removed cannon sites contain structure, not misleading muzzle projections`);
-    assert.ok(projectionRows.length <= 2,
-      `${side} exposes at most two functional cannon projections per 32-row segment`);
-    for (let phase = 0; phase < asset.segmentRows; phase += 1) {
-      const visible = Array.from({ length: 22 }, (_, offset) =>
-        (phase + offset) & (asset.segmentRows - 1));
-      assert.ok(projectionRows.filter((row) => visible.includes(row)).length <= 2,
-        `${side} phase ${phase} exceeds the visible functional-cannon limit`);
+  for (const levelSet of asset.levelHullSets) {
+    for (const turret of levelSet.turrets) {
+      const relative = turret.side === "allied" ? turret.muzzleColumn : turret.muzzleColumn - 31;
+      const screenCode = levelSet.decodedMaps.get(turret.side)[turret.segmentRow][relative];
+      const glyph = levelSet.glyphs.find((candidate) => candidate.screenCode === screenCode);
+      assert.ok(glyph.tags.includes("muzzle"),
+        `${levelSet.styleName} ${turret.side} muzzle cell is not a muzzle glyph`);
+      assert.ok(turret.footprint.base.length >= 4);
+      assert.ok(turret.footprint.housing.length >= 1);
+      assert.ok(turret.footprint.barrel.length >= 2);
+    }
+    for (const side of ["allied", "enemy"]) {
+      const projectionRows = levelSet.decodedMaps.get(side)
+        .flatMap((row, index) => row[side === "allied" ? 8 : 0] === 0 ? [] : [index]);
+      assert.deepEqual(projectionRows, [9],
+        `${levelSet.styleName} ${side} must project exactly one muzzle, on segment row 9`);
+      for (let phase = 0; phase < asset.segmentRows; phase += 1) {
+        const visible = Array.from({ length: 22 }, (unused, offset) =>
+          (phase + offset) & (asset.segmentRows - 1));
+        assert.ok(projectionRows.filter((row) => visible.includes(row)).length <= 2,
+          `${levelSet.styleName} ${side} phase ${phase} exceeds the visible cannon limit`);
+      }
     }
   }
 });
 
-test("accepted H4.2 C INDUSTRIAL armour remains steel-led allied and dark-red enemy", () => {
-  const allied = colorCounts("allied");
-  const enemy = colorCounts("enemy");
-  const alliedTotal = allied.reduce((sum, count) => sum + count, 0);
-  const enemyTotal = enemy.reduce((sum, count) => sum + count, 0);
-  assert.ok(allied[2] / alliedTotal >= 0.65 && allied[2] / alliedTotal <= 0.83);
-  assert.ok(enemy[3] / enemyTotal >= 0.70 && enemy[3] / enemyTotal <= 0.75);
-  assert.ok(enemy[2] / enemyTotal >= 0.08 && enemy[2] / enemyTotal <= 0.12);
-  assert.ok(enemy[1] / enemyTotal <= 0.05);
-  assert.ok(enemy[0] > allied[0] * 1.25);
-  assert.ok(allied[1] > enemy[1] * 10);
-  assert.ok(enemy[0] / enemyTotal >= 0.15);
-  assert.ok(allied[3] / alliedTotal < 0.01);
+// Supersedes the accepted H4.2 C INDUSTRIAL ratio test: decision AA replaced
+// the single allied/enemy pair with one allied hull and four enemy styles, so
+// the pin is now the surface-glyph pixel census of the approved set-B sheet.
+// Value 1 is cold-white COLPF0, 2 is steel COLPF1, 3 is the faction colour
+// (allied amber COLPF2 / enemy burgundy COLPF3).
+test("set B keeps the allied hull steel-led and every enemy style faction-led", () => {
+  const census = (glyphs) => {
+    const counts = [0, 0, 0, 0];
+    for (const glyph of glyphs) {
+      for (const row of glyph.pixels) for (const value of row) counts[value] += 1;
+    }
+    return counts;
+  };
+  const alliedSurface = asset.glyphs.filter(({ index }) => index >= 59 && index <= 65);
+  assert.deepEqual(census(alliedSurface), [80, 44, 98, 2],
+    "allied surfaces are steel-led with a cold-white edge and sparse amber service detail");
+
+  const expectedFactionPixels = new Map([["R1", 90], ["R2", 98], ["R3", 114], ["R4", 162]]);
+  for (const levelSet of asset.levelHullSets) {
+    const enemySurface = levelSet.glyphs.filter(({ index }) => index >= 70 && index <= 76);
+    const counts = census(enemySurface);
+    assert.equal(counts[3], expectedFactionPixels.get(levelSet.styleName),
+      `${levelSet.styleName} must keep the approved burgundy share of the sheet`);
+    assert.ok(counts[3] > counts[2],
+      `${levelSet.styleName} must stay faction-led rather than steel-led`);
+    assert.equal(counts[1], levelSet.styleName === "R4" ? 36 : 44,
+      `${levelSet.styleName} cold-white edge pixels must match the draft`);
+    assert.ok(counts[2] <= 18,
+      `${levelSet.styleName} may carry only a steel accent, never a steel body`);
+  }
+  assert.ok(census(alliedSurface)[2] > census(
+    asset.levelHullSets[0].glyphs.filter(({ index }) => index >= 70 && index <= 76))[2] * 10,
+  "steel reads as allied and burgundy as hostile at a glance");
 });
 
 test("assembled ANTIC 4 screen codes route allied steel and enemy burgundy effectively", () => {
   const state = readCapitalHullsStripRuntimeState(source, definition);
   const glyphs = new Map(asset.glyphs.map((glyph) => [glyph.name, glyph]));
-  const alliedMass = glyphs.get("allied_plate_mass");
-  const enemyMass = glyphs.get("enemy_slab_mass");
+  const alliedMass = glyphs.get("allied_hull_mass");
+  const enemyMass = glyphs.get("enemy_hull_mass");
   assert.equal(alliedMass.screenCode & 0x80, 0);
   assert.equal(enemyMass.screenCode & 0x80, 0x80);
   assert.ok(alliedMass.pixels.flat().includes(2));

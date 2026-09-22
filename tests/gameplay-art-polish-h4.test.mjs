@@ -35,7 +35,10 @@ const streams = Object.freeze({
   player_fighterEngine: [graphics.playerEngineShape, "26a5d7d4ba9160cf990bb447624e967ffbc25d0886033975f7d8ee1f32b8ad2b"],
   interceptorBody: [interceptor.bodyRows, "4e279527cc4ced23b1448dfb113f519d104face22c32ceebc02065b13eb027b7"],
   interceptorAccent: [interceptor.accentFrameBytes, "caa106f0badbe2daf954f467bf00ca4c293fb3a31da8a0b52dc80fba7be6d713"],
-  capitalGlyphs: [capital.glyphBytes, "6327eae4b71454c9c6aa6e6c800db24b95cc6e107c5e9f75b580d229c6c83ce8"],
+  // Re-pinned for hull set v1 (owner decision AA): H4.2's single allied/enemy
+  // pair is replaced by allied B plus the level's enemy style, R1 resident.
+  // The stream is still 248 bytes of data only.
+  capitalGlyphs: [capital.glyphBytes, "5afb7117547f9527bbebc4c760052cf1dffb1fb70c178765c2b65ac85ad21a2b"],
   fighterExplosionOuter: [weapons.sharedFighterExplosion.outerBytes, "92d51c739606133505205a5f43f984a6d81f6af59c8eb37d48727ec413e18dc9"],
   fighterExplosionCore: [weapons.sharedFighterExplosion.coreMasks, "61d520aa9d14c10342ec0c64c1066ea9f723ff07c3787130df59f3ccc7ecc888"],
 });

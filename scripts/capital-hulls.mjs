@@ -2,6 +2,7 @@ import fs from "node:fs";
 import { canonicalPlayfield } from "./playfield.mjs";
 
 const SIDES = ["allied", "enemy"];
+const FACTIONS = [...SIDES, "shared"];
 const DIFFICULTIES = ["easy", "medium", "hard"];
 const SIDE_IDS = new Map([["allied", 0], ["enemy", 1]]);
 const DIRECTIONS = new Map([["right", 0], ["left", 1]]);
@@ -738,8 +739,7 @@ function compileSector(definition, rowsBySide, depthsBySide, glyphs, screenCodes
   };
 }
 
-export function compileCapitalHulls(definition, options = {}) {
-  invariant(definition?.formatVersion === 1, "Unsupported capital-hulls formatVersion");
+function compileHullSet(definition, options = {}) {
   invariant(definition.displayMode === "ANTIC 4", "Capital hulls must use ANTIC 4");
   invariant(Number.isInteger(definition.charsetBaseIndex) && definition.charsetBaseIndex >= 0,
     "charsetBaseIndex must be a non-negative integer");
@@ -758,15 +758,19 @@ export function compileCapitalHulls(definition, options = {}) {
     invariant(/^[a-z][a-z0-9_]*$/.test(sourceGlyph.name ?? ""),
       `Invalid capital hull glyph name ${sourceGlyph.name}`);
     invariant(!glyphs.has(sourceGlyph.name), `Duplicate capital hull glyph ${sourceGlyph.name}`);
-    invariant(SIDES.includes(sourceGlyph.faction),
+    invariant(FACTIONS.includes(sourceGlyph.faction),
       `Glyph ${sourceGlyph.name} has invalid faction ${sourceGlyph.faction}`);
     invariant(SCREEN_BANKS.has(sourceGlyph.screenBank),
       `Glyph ${sourceGlyph.name} has invalid screenBank ${sourceGlyph.screenBank}`);
     invariant(Array.isArray(sourceGlyph.tags), `Glyph ${sourceGlyph.name} must declare tags`);
-    const factionBank = sourceGlyph.faction === "allied" ? "pf2" : "pf3";
+    const factionBank = sourceGlyph.faction === "enemy" ? "pf3" : "pf2";
     invariant(sourceGlyph.screenBank === factionBank || sourceGlyph.tags.includes("energy"),
       `Glyph ${sourceGlyph.name} does not use its faction's ANTIC 4 colour bank or an explicit energy role`);
     const pixels = normalizeGlyphPixels(sourceGlyph);
+    // A shared glyph is referenced by both hull maps, so it must read the same
+    // in either ANTIC 4 colour bank. Only an all-zero cell does.
+    invariant(sourceGlyph.faction !== "shared" || pixels.flat().every((value) => value === 0),
+      `Shared glyph ${sourceGlyph.name} must be all-zero; only a blank cell may cross factions`);
     const index = definition.charsetBaseIndex + glyphList.length;
     invariant(index < 128, `Glyph ${sourceGlyph.name} exceeds ANTIC 4 charset index 127`);
     const glyph = {
@@ -799,35 +803,30 @@ export function compileCapitalHulls(definition, options = {}) {
     invariant(sourceMap, `Missing ${side} hull map`);
     invariant(Array.isArray(sourceMap.rows) && sourceMap.rows.length === definition.segmentRows,
       `${side} map must contain ${definition.segmentRows} rows`);
-    invariant(Array.isArray(sourceMap.innerDepth) &&
-      sourceMap.innerDepth.length === definition.segmentRows,
-    `${side} innerDepth must contain ${definition.segmentRows} entries`);
     const rows = sourceMap.rows.map((row, index) => normalizeMapRow(row, side, index));
     const depths = rows.map((row, index) => {
       for (const glyphName of row) {
         invariant(screenCodes.has(glyphName), `${side} row ${index} uses unknown glyph ${glyphName}`);
         if (glyphName !== "space") {
-          invariant(glyphs.get(glyphName).faction === side,
+          const glyphFaction = glyphs.get(glyphName).faction;
+          invariant(glyphFaction === side || glyphFaction === "shared",
             `${side} row ${index} uses ${glyphName} from the other faction`);
         }
       }
+      // Depth is derived from the map, never declared. The band is the one
+      // hard contour rule left: player_inside_universal_hull_corridor assumes
+      // depth <= 8 plus one projection cell. The v1 transition count, the
+      // run-length window and the "use all four depths" rule were generator-
+      // only statistics and are relaxed (owner decision 6, 2026-09-22): the
+      // approved drafts draw one-row 45-degree chamfers and long flat runs,
+      // and the runtime never inspects contour statistics.
       const depth = derivedInnerDepth(side, row);
       invariant(depth >= 5 && depth <= 8,
         `${side} row ${index} has unsupported base depth ${depth}`);
-      invariant(sourceMap.innerDepth[index] === depth,
-        `${side} row ${index} declares depth ${sourceMap.innerDepth[index]}, derived ${depth}`);
       return depth;
     });
-    invariant([5, 6, 7, 8].every((depth) => depths.includes(depth)),
-      `${side} contour must use deliberate depths 5, 6, 7 and 8`);
     const transitionCount = countCyclicTransitions(depths);
-    invariant(transitionCount <= 8,
-      `${side} contour has ${transitionCount} principal depth transitions; maximum is 8`);
     const runLengths = cyclicRunLengths(depths);
-    invariant(runLengths.every((length) => length >= 2),
-      `${side} contour contains a depth run shorter than two character rows`);
-    invariant(runLengths.every((length) => length <= 8),
-      `${side} contour contains a depth run longer than eight character rows`);
     rowsBySide.set(side, rows);
     depthsBySide.set(side, depths);
     contourTransitionCounts.set(side, transitionCount);
@@ -1234,6 +1233,146 @@ export function compileCapitalHulls(definition, options = {}) {
       broadsideTiming.capitalExplosion.phaseBytes.length +
       broadsideTiming.capitalExplosion.soundFrequencyBytes.length +
       broadsideTiming.capitalExplosion.soundControlBytes.length,
+  };
+}
+
+const HULL_STYLE_BLOCK_BYTES = 280;
+const HULL_STYLE_BLOCK_VERSION = 1;
+const HULL_STYLE_BLOCK_OFFSETS = Object.freeze({
+  styleId: 0,
+  formatVersion: 1,
+  reserved: 2,
+  packedMap: 16,
+  codebook: 176,
+  glyphs: 192,
+  collisionBoundaries: 248,
+});
+const ENEMY_SURFACE_GLYPH_COUNT = 7;
+
+function mirrorGlyphPixels(pixels) {
+  return pixels.map((row) => {
+    const values = typeof row === "string" ? [...row] : [...row];
+    return values.reverse().join("");
+  });
+}
+
+// The enemy hull is the horizontal mirror of an allied-oriented authoring row:
+// [c0..c7, projection] becomes [projection, c7..c0], which is exactly the
+// enemy orientation the runtime reads (map column 0 = screen column 31).
+function mirrorMapRow(row) {
+  const cells = typeof row === "string" ? row.trim().split(/\s+/) : [...row];
+  invariant(cells.length === MAP_COLUMNS, "A hull map row must contain nine cells");
+  return [cells[MAP_COLUMNS - 1], ...cells.slice(0, MAP_COLUMNS - 1).reverse()].join(" ");
+}
+
+function turretRecordsFor(definition) {
+  const turret = definition.turret;
+  invariant(turret && typeof turret === "object", "capital-hulls v2 must define one turret profile");
+  const mirrorColumn = (column) => 39 - column;
+  const footprintFor = (side) => Object.fromEntries(
+    ["base", "housing", "barrel"].map((component) => {
+      const cells = turret.footprint?.[component];
+      invariant(Array.isArray(cells) && cells.length > 0,
+        `Turret profile must declare ${component} cells`);
+      return [component, cells.map(([segmentRow, column]) =>
+        [segmentRow, side === "allied" ? column : mirrorColumn(column)])];
+    }));
+  return SIDES.map((side) => ({
+    id: `${side}_turret_a`,
+    side,
+    segmentRow: turret.segmentRow,
+    muzzleColumn: side === "allied" ? 8 : 31,
+    muzzleScanlineOffset: turret.muzzleScanlineOffset,
+    muzzleGlyph: `${side}_turret_muzzle`,
+    direction: side === "allied" ? "right" : "left",
+    type: turret.type[side],
+    footprint: footprintFor(side),
+  }));
+}
+
+/**
+ * Expand the v2 asset into the one-allied-hull-plus-one-enemy-style definition
+ * the sector compiler understands. Charset indices are positional, so the
+ * glyph order here is what pins allied surfaces to 59-65, the allied turret to
+ * 66-69, the level's enemy surfaces to 70-76, the enemy turret to 77-80 and
+ * the shared effects to 81-89 for every style.
+ */
+function buildLevelDefinition(definition, style) {
+  invariant(Array.isArray(style.glyphs) && style.glyphs.length === ENEMY_SURFACE_GLYPH_COUNT,
+    `Enemy style ${style.id} must fill all seven per-level surface slots`);
+  invariant(style.mirror === true,
+    `Enemy style ${style.id} must be authored in allied orientation with mirror: true`);
+  const enemyGlyphs = style.glyphs.map((glyph) => ({
+    ...glyph,
+    pixels: mirrorGlyphPixels(normalizeGlyphPixels(glyph)),
+  }));
+  return {
+    ...definition,
+    formatVersion: 1,
+    glyphs: [
+      ...definition.allied.glyphs,
+      ...definition.core.alliedTurret,
+      ...enemyGlyphs,
+      ...definition.core.enemyTurret,
+      ...definition.core.effects,
+    ],
+    maps: {
+      allied: { rows: definition.allied.map },
+      enemy: { rows: style.map.map(mirrorMapRow) },
+    },
+    turrets: turretRecordsFor(definition),
+  };
+}
+
+export function renderHullStyleBlock(levelSet) {
+  const block = new Uint8Array(HULL_STYLE_BLOCK_BYTES);
+  const glyphBytes = levelSet.glyphs
+    .filter((glyph) => glyph.index >= 70 && glyph.index <= 76)
+    .flatMap((glyph) => [...glyph.bytes]);
+  invariant(glyphBytes.length === ENEMY_SURFACE_GLYPH_COUNT * 8,
+    "A hull style block carries exactly the seven per-level enemy surface glyphs");
+  block[HULL_STYLE_BLOCK_OFFSETS.styleId] = levelSet.styleId;
+  block[HULL_STYLE_BLOCK_OFFSETS.formatVersion] = HULL_STYLE_BLOCK_VERSION;
+  block.set(levelSet.packedMaps.get("enemy"), HULL_STYLE_BLOCK_OFFSETS.packedMap);
+  block.set(levelSet.codebooks.get("enemy"), HULL_STYLE_BLOCK_OFFSETS.codebook);
+  block.set(glyphBytes, HULL_STYLE_BLOCK_OFFSETS.glyphs);
+  block.set(levelSet.collisionBoundaries.get("enemy"),
+    HULL_STYLE_BLOCK_OFFSETS.collisionBoundaries);
+  return block;
+}
+
+export function compileCapitalHulls(definition, options = {}) {
+  invariant(definition?.formatVersion === 2, "Unsupported capital-hulls formatVersion");
+  invariant(definition.allied && Array.isArray(definition.allied.glyphs) &&
+    Array.isArray(definition.allied.map), "capital-hulls v2 must define one allied hull");
+  invariant(Array.isArray(definition.enemyStyles) && definition.enemyStyles.length === 4,
+    "capital-hulls v2 must define four enemy styles, one per four-level region");
+  const sharedGlyphs = definition.allied.glyphs.filter(({ faction }) => faction === "shared");
+  invariant(sharedGlyphs.length <= 1,
+    "At most one shared glyph may cross the two factions");
+
+  const levelHullSets = definition.enemyStyles.map((style, index) => {
+    const levelSet = compileHullSet(buildLevelDefinition(definition, style), options);
+    invariant(Array.isArray(style.levels) && style.levels.length === 2 &&
+      style.levels[0] === index * 4 + 1 && style.levels[1] === index * 4 + 4,
+    `Enemy style ${style.id} must own levels ${index * 4 + 1}-${index * 4 + 4}`);
+    return { ...levelSet, styleId: index + 1, styleName: style.id, levels: [...style.levels] };
+  });
+  // Level 1 lies in region one, so the resident image is the R1 hull set; the
+  // other three travel in their level images (docs/plans/hull-set-v1.md §3).
+  const resident = levelHullSets[0];
+  for (const levelSet of levelHullSets.slice(1)) {
+    invariant(Buffer.compare(Buffer.from(levelSet.packedMaps.get("allied")),
+      Buffer.from(resident.packedMaps.get("allied"))) === 0,
+    `Enemy style ${levelSet.styleName} changed the allied hull, which is one per game`);
+  }
+  return {
+    ...resident,
+    definition,
+    levelHullSets,
+    hullStyleBlocks: levelHullSets.map((levelSet) => renderHullStyleBlock(levelSet)),
+    hullStyleBlockBytes: HULL_STYLE_BLOCK_BYTES,
+    hullStyleBlockOffsets: HULL_STYLE_BLOCK_OFFSETS,
   };
 }
 

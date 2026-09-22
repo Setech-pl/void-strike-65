@@ -17,6 +17,8 @@
     "enemy:palette:hostile-oxblood": "node scripts/build.mjs --enemy-palette=hostile-oxblood",
     "enemy:palette:hostile-burgundy": "node scripts/build.mjs --enemy-palette=hostile-burgundy",
     "enemy:palette:hostile-scarlet": "node scripts/build.mjs --enemy-palette=hostile-scarlet",
+    "steel:88": "node scripts/build.mjs --allied-steel=88",
+    "steel:8A": "node scripts/build.mjs --allied-steel=8A",
     "clean": "node scripts/clean.mjs",
     "package": "npm run build && node scripts/package-release.mjs",
     "preview": "node scripts/preview.mjs && node scripts/starfield-preview.mjs",

@@ -1881,8 +1881,12 @@ test("source-derived hull contact clamps P0/P3 and shares one deterministic dama
   assert.equal(allied.alliedBoundary, 84, "allied turret projection is solid");
   assert.equal(allied.clampedX, 84);
 
-  const enemy = playerHullContact(asset, { ...initial, playerX: 166, playerY: 112 });
-  assert.deepEqual(enemy.segmentRows, [12, 13]);
+  // Re-pinned for hull set v1: normalisation puts both sides' turret on
+  // segment row 9, so the enemy projection is sampled at the same rows as the
+  // allied one instead of the old staggered rows 12/13. The boundary and the
+  // clamp are unchanged, which is the property this test exists for.
+  const enemy = playerHullContact(asset, { ...initial, playerX: 166, playerY: 80 });
+  assert.deepEqual(enemy.segmentRows, [8, 9]);
   assert.equal(enemy.side, "enemy");
   assert.equal(enemy.enemyBoundary, 172, "enemy turret projection is solid");
   assert.equal(enemy.clampedX, 164);

@@ -157,7 +157,7 @@ test("preview consumes the canonical charset, screen, PMG, and palette source", 
   }
 
   const changedHulls = structuredClone(capitalHullsDefinition);
-  changedHulls.glyphs[0].pixels[0] = "1222";
+  changedHulls.allied.glyphs[0].pixels[0] = "1222";
   assert.notDeepEqual(createGameplayPreview(source, changedHulls), canonical);
 });
 
@@ -167,8 +167,10 @@ test("capital-hulls strip preview is deterministic and shows all 32 rows", () =>
   assert.deepEqual(first, second);
   assert.equal(
     crypto.createHash("sha256").update(first).digest("hex"),
-    "70ad17d14e5b71c27dcdf53a789c902902d7ac78d6fc3114428096dcb16eec33",
-    "production capital-hull render must remain pixel-identical to accepted C INDUSTRIAL",
+    "e86ca10ec58a988e996970ed69cca42e40bae01548ff328136da21035703c0d2",
+    // Re-pinned for hull set v1: the strip now renders allied B against R1,
+    // the resident level-one style, instead of the accepted C INDUSTRIAL pair.
+    "production capital-hull render must remain pixel-identical to the approved set B",
   );
   const info = inspectPng(first);
   assert.deepEqual([info.width, info.height], [640, 512]);

@@ -102,7 +102,22 @@ const enemyPaletteIds = new Map([
 if (enemyPaletteSlug && !enemyPaletteIds.has(enemyPaletteSlug)) {
   throw new Error(`Unknown enemy palette build ${enemyPaletteSlug}`);
 }
-const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness || Boolean(enemyPaletteSlug);
+// Owner decision 1 of 2026-09-22: the allied steel stays $84 in the default
+// build, and a non-default build carries a different COLPF1 so the two can be
+// smoked side by side. It is a review variant — its artifacts never reach
+// dist/, runtime measurement is skipped and no gate consults it.
+const alliedSteelArgument = process.argv.find((argument) =>
+  argument.startsWith("--allied-steel="));
+const alliedSteelSlug = alliedSteelArgument?.slice("--allied-steel=".length);
+const alliedSteelValues = new Map([["88", 0x88], ["8A", 0x8a]]);
+if (alliedSteelSlug && !alliedSteelValues.has(alliedSteelSlug.toUpperCase())) {
+  throw new Error(`Unknown allied steel build ${alliedSteelSlug}`);
+}
+const alliedSteelValue = alliedSteelSlug
+  ? alliedSteelValues.get(alliedSteelSlug.toUpperCase())
+  : null;
+const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
+  Boolean(enemyPaletteSlug) || alliedSteelValue !== null;
 const acceptedMenuMusicPayloadBytes = 14314;
 // Gameplay music plus its in-game pause controls remain a bounded post-menu feature.
 const runtimeHeadroomPayloadLimit = 1536;
@@ -1112,6 +1127,15 @@ async function build() {
   const capitalHullsAsset = compileCapitalHulls(capitalHullsDefinition);
   const capitalHullsInclude = Buffer.from(renderCapitalHullsCa65Include(capitalHullsAsset));
   writeFile(path.join(buildDirectory, "capital-hulls.inc"), capitalHullsInclude);
+  // One 280-byte block per enemy style. The resident image carries R1, which
+  // level 1 uses; the blocks are build artifacts until the level image learns
+  // to carry them (docs/plans/hull-set-v1.md §3.1, step 2).
+  for (const levelSet of capitalHullsAsset.levelHullSets) {
+    writeFile(
+      path.join(buildDirectory, `hull-style-${levelSet.styleName}.bin`),
+      Buffer.from(capitalHullsAsset.hullStyleBlocks[levelSet.styleId - 1]),
+    );
+  }
   const enemyRosterDefinitionPath = path.join(
     rootDirectory,
     "assets",
@@ -1269,6 +1293,8 @@ async function build() {
         ? ["-D", "ENEMY_COMBAT_REVIEW_HARNESS=1"] : []),
       ...(paletteCandidate
         ? ["-D", `ENEMY_BODY_COLOR_OVERRIDE=${paletteCandidate.value}`] : []),
+      ...(alliedSteelValue !== null
+        ? ["-D", `GAMEPLAY_COLPF1_OVERRIDE=${alliedSteelValue}`] : []),
       "-I",
       "/project/build",
       "-l",
@@ -2409,6 +2435,8 @@ async function build() {
         ? "enemy-combat-review"
         : paletteCandidate
           ? `enemy-palette-${enemyPaletteSlug}`
+          : alliedSteelValue !== null
+            ? `allied-steel-${alliedSteelSlug.toUpperCase()}`
           : candidateBuild
             ? "candidate"
             : "release",
@@ -3603,7 +3631,9 @@ async function build() {
       ? path.join(buildDirectory, "enemy-combat-review")
       : paletteCandidate
         ? path.join(buildDirectory, `enemy-palette-${enemyPaletteSlug}`)
-        : distDirectory;
+        : alliedSteelValue !== null
+          ? path.join(buildDirectory, `allied-steel-${alliedSteelSlug.toUpperCase()}`)
+          : distDirectory;
   writeFile(path.join(artifactDirectory, "void-strike-65-boot.bin"), transportPayload);
   writeFile(path.join(artifactDirectory, "void-strike-65.xex"), xex);
   writeFile(path.join(artifactDirectory, "void-strike-65.atr"), atr);

@@ -70,10 +70,13 @@ test("ANTIC 2 prototype source is deterministic and rejects malformed one-bit gl
 
 test("prototype reuses the 8+24+8 maps, turret metadata, and one aligned 1 KB charset", () => {
   assert.equal(prototype.definition.displayMode, "ANTIC 2");
-  assert.equal(prototype.glyphs.length, 22);
-  assert.equal(prototype.glyphBytes.length, 176);
+  // Re-pinned for hull set v1: the two maps reference 20 distinct glyphs, not
+  // 22, because the blank cell is now one glyph shared by both factions and R1
+  // leaves two of the seven per-level enemy surface slots unused.
+  assert.equal(prototype.glyphs.length, 20);
+  assert.equal(prototype.glyphBytes.length, 160);
   assert.equal(prototype.starGlyphBytes.length, 16);
-  assert.equal(prototype.sourceGlyphBytes, 192);
+  assert.equal(prototype.sourceGlyphBytes, 176);
   assert.equal(prototype.proposedCharsetAddress, 0x5000);
   assert.equal(prototype.proposedCharsetAddress & 0x03ff, 0);
   assert.equal(prototype.proposedCharsetBytes, 1024);

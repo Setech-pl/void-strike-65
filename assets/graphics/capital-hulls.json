@@ -1,7 +1,7 @@
 {
-  "formatVersion": 1,
+  "formatVersion": 2,
   "displayMode": "ANTIC 4",
-  "description": "Original allied line-carrier layered armour and enemy void-carrier dark slabs for the Void Strike 65 broadside corridor.",
+  "description": "Capital hull set v1: one allied hull and four enemy styles by region. Generated from assets/graphics/hull-drafts/hull-set-v1.json by scripts/hull-set-import.mjs; do not hand-edit the art.",
   "charsetBaseIndex": 59,
   "segmentRows": 32,
   "previewStartPhase": 0,
@@ -12,306 +12,1283 @@
     "3-pf2": "sparse amber allied service detail",
     "3-pf3": "dark hostile-red or burgundy enemy armour, seam, sensor or weapon aperture"
   },
-  "glyphs": [
+  "core": {
+    "alliedTurret": [
+      {
+        "name": "allied_turret_base",
+        "faction": "allied",
+        "screenBank": "pf2",
+        "tags": [
+          "base"
+        ],
+        "pixels": [
+          "0000",
+          "1111",
+          "1221",
+          "2022",
+          "2022",
+          "1221",
+          "1111",
+          "0000"
+        ]
+      },
+      {
+        "name": "allied_turret_housing",
+        "faction": "allied",
+        "screenBank": "pf2",
+        "tags": [
+          "housing"
+        ],
+        "pixels": [
+          "0000",
+          "1110",
+          "1212",
+          "2032",
+          "2032",
+          "1212",
+          "1110",
+          "0000"
+        ]
+      },
+      {
+        "name": "allied_turret_barrel",
+        "faction": "allied",
+        "screenBank": "pf2",
+        "tags": [
+          "barrel"
+        ],
+        "pixels": [
+          "0000",
+          "2222",
+          "2222",
+          "0000",
+          "0000",
+          "2222",
+          "2222",
+          "0000"
+        ]
+      },
+      {
+        "name": "allied_turret_muzzle",
+        "faction": "allied",
+        "screenBank": "pf2",
+        "tags": [
+          "muzzle"
+        ],
+        "pixels": [
+          "0000",
+          "2200",
+          "2230",
+          "0000",
+          "0000",
+          "2230",
+          "2200",
+          "0000"
+        ]
+      }
+    ],
+    "enemyTurret": [
+      {
+        "name": "enemy_turret_base",
+        "faction": "enemy",
+        "screenBank": "pf3",
+        "tags": [
+          "base"
+        ],
+        "pixels": [
+          "0000",
+          "0330",
+          "0033",
+          "3033",
+          "3033",
+          "0033",
+          "0330",
+          "0000"
+        ]
+      },
+      {
+        "name": "enemy_turret_housing",
+        "faction": "enemy",
+        "screenBank": "pf3",
+        "tags": [
+          "housing"
+        ],
+        "pixels": [
+          "0000",
+          "0330",
+          "2032",
+          "2032",
+          "2032",
+          "2032",
+          "0330",
+          "0000"
+        ]
+      },
+      {
+        "name": "enemy_turret_barrel",
+        "faction": "enemy",
+        "screenBank": "pf3",
+        "tags": [
+          "barrel"
+        ],
+        "pixels": [
+          "0000",
+          "0000",
+          "2220",
+          "2220",
+          "2220",
+          "2220",
+          "0000",
+          "0000"
+        ]
+      },
+      {
+        "name": "enemy_turret_muzzle",
+        "faction": "enemy",
+        "screenBank": "pf3",
+        "tags": [
+          "muzzle"
+        ],
+        "pixels": [
+          "0000",
+          "0000",
+          "0033",
+          "0233",
+          "0233",
+          "0033",
+          "0000",
+          "0000"
+        ]
+      }
+    ],
+    "effects": [
+      {
+        "name": "allied_launch_flash",
+        "faction": "allied",
+        "screenBank": "pf2",
+        "tags": [
+          "effect",
+          "launch_flash"
+        ],
+        "pixels": [
+          "0000",
+          "0100",
+          "1210",
+          "2221",
+          "1210",
+          "0100",
+          "0000",
+          "0000"
+        ]
+      },
+      {
+        "name": "enemy_launch_flash",
+        "faction": "enemy",
+        "screenBank": "pf3",
+        "tags": [
+          "effect",
+          "launch_flash",
+          "energy"
+        ],
+        "pixels": [
+          "0000",
+          "0030",
+          "0333",
+          "3333",
+          "0333",
+          "0030",
+          "0000",
+          "0000"
+        ]
+      },
+      {
+        "name": "allied_engine_energy",
+        "faction": "allied",
+        "screenBank": "pf2",
+        "tags": [
+          "surface",
+          "engine",
+          "animated"
+        ],
+        "pixels": [
+          "2222",
+          "2222",
+          "2222",
+          "2222",
+          "2222",
+          "2222",
+          "2222",
+          "2222"
+        ],
+        "animationFrames": [
+          [
+            "2222",
+            "2222",
+            "2222",
+            "2222",
+            "2222",
+            "2222",
+            "2222",
+            "2222"
+          ],
+          [
+            "1111",
+            "1111",
+            "1111",
+            "1111",
+            "1111",
+            "1111",
+            "1111",
+            "1111"
+          ]
+        ]
+      },
+      {
+        "name": "enemy_engine_energy",
+        "faction": "enemy",
+        "screenBank": "pf3",
+        "tags": [
+          "surface",
+          "engine",
+          "animated",
+          "energy"
+        ],
+        "pixels": [
+          "3333",
+          "3333",
+          "3333",
+          "3333",
+          "3333",
+          "3333",
+          "3333",
+          "3333"
+        ],
+        "animationFrames": [
+          [
+            "3333",
+            "3333",
+            "3333",
+            "3333",
+            "3333",
+            "3333",
+            "3333",
+            "3333"
+          ],
+          [
+            "1111",
+            "1111",
+            "1111",
+            "1111",
+            "1111",
+            "1111",
+            "1111",
+            "1111"
+          ]
+        ]
+      },
+      {
+        "name": "allied_prow_edge",
+        "faction": "allied",
+        "screenBank": "pf2",
+        "tags": [
+          "surface",
+          "prow_edge"
+        ],
+        "pixels": [
+          "2000",
+          "2200",
+          "2200",
+          "2220",
+          "2220",
+          "2222",
+          "2222",
+          "2222"
+        ]
+      },
+      {
+        "name": "enemy_prow_edge",
+        "faction": "enemy",
+        "screenBank": "pf3",
+        "tags": [
+          "surface",
+          "prow_edge"
+        ],
+        "pixels": [
+          "0003",
+          "0033",
+          "0033",
+          "0333",
+          "0333",
+          "3333",
+          "3333",
+          "3333"
+        ]
+      },
+      {
+        "name": "capital_explosion_core",
+        "faction": "enemy",
+        "screenBank": "pf3",
+        "tags": [
+          "effect",
+          "capital_explosion",
+          "energy"
+        ],
+        "pixels": [
+          "0000",
+          "0110",
+          "1331",
+          "3333",
+          "1331",
+          "0110",
+          "0000",
+          "0000"
+        ]
+      },
+      {
+        "name": "capital_explosion_fire",
+        "faction": "enemy",
+        "screenBank": "pf3",
+        "tags": [
+          "effect",
+          "capital_explosion",
+          "energy"
+        ],
+        "pixels": [
+          "0030",
+          "0333",
+          "3313",
+          "3133",
+          "3313",
+          "0333",
+          "0030",
+          "0000"
+        ]
+      },
+      {
+        "name": "capital_explosion_ember",
+        "faction": "enemy",
+        "screenBank": "pf3",
+        "tags": [
+          "effect",
+          "capital_explosion",
+          "energy"
+        ],
+        "pixels": [
+          "0000",
+          "0300",
+          "3000",
+          "0030",
+          "3000",
+          "0003",
+          "0000",
+          "0000"
+        ]
+      }
+    ]
+  },
+  "allied": {
+    "glyphs": [
+      {
+        "name": "allied_hull_mass",
+        "faction": "allied",
+        "screenBank": "pf2",
+        "tags": [
+          "surface"
+        ],
+        "pixels": [
+          "2222",
+          "2222",
+          "2222",
+          "2222",
+          "2222",
+          "2222",
+          "2222",
+          "2222"
+        ]
+      },
+      {
+        "name": "allied_hull_wall",
+        "faction": "allied",
+        "screenBank": "pf2",
+        "tags": [
+          "surface"
+        ],
+        "pixels": [
+          "2221",
+          "2221",
+          "2221",
+          "2221",
+          "2221",
+          "2221",
+          "2221",
+          "2221"
+        ]
+      },
+      {
+        "name": "allied_hull_accent",
+        "faction": "allied",
+        "screenBank": "pf2",
+        "tags": [
+          "surface"
+        ],
+        "pixels": [
+          "2221",
+          "2221",
+          "2221",
+          "3221",
+          "3221",
+          "2221",
+          "2221",
+          "2221"
+        ]
+      },
+      {
+        "name": "allied_hull_chamfer_in",
+        "faction": "allied",
+        "screenBank": "pf2",
+        "tags": [
+          "surface"
+        ],
+        "pixels": [
+          "2221",
+          "2221",
+          "2210",
+          "2210",
+          "2100",
+          "2100",
+          "1000",
+          "1000"
+        ]
+      },
+      {
+        "name": "allied_hull_chamfer_out",
+        "faction": "allied",
+        "screenBank": "pf2",
+        "tags": [
+          "surface"
+        ],
+        "pixels": [
+          "1000",
+          "1000",
+          "1100",
+          "1100",
+          "1110",
+          "1110",
+          "1111",
+          "1111"
+        ]
+      },
+      {
+        "name": "allied_hull_line",
+        "faction": "allied",
+        "screenBank": "pf2",
+        "tags": [
+          "surface"
+        ],
+        "pixels": [
+          "0200",
+          "0200",
+          "0200",
+          "0200",
+          "0200",
+          "0200",
+          "0200",
+          "0200"
+        ]
+      },
+      {
+        "name": "hull_deck",
+        "faction": "shared",
+        "screenBank": "pf2",
+        "tags": [
+          "surface"
+        ],
+        "pixels": [
+          "0000",
+          "0000",
+          "0000",
+          "0000",
+          "0000",
+          "0000",
+          "0000",
+          "0000"
+        ]
+      }
+    ],
+    "map": [
+      "hull_deck allied_hull_line hull_deck allied_hull_line hull_deck allied_hull_wall space space space",
+      "hull_deck allied_hull_line hull_deck allied_hull_line hull_deck allied_hull_wall space space space",
+      "hull_deck allied_hull_line hull_deck allied_hull_line hull_deck allied_hull_wall space space space",
+      "hull_deck allied_hull_line hull_deck allied_hull_line hull_deck allied_hull_accent space space space",
+      "hull_deck allied_hull_line hull_deck allied_hull_line hull_deck allied_hull_wall space space space",
+      "hull_deck allied_hull_line hull_deck hull_deck hull_deck allied_hull_mass allied_hull_chamfer_out space space",
+      "hull_deck allied_hull_line hull_deck hull_deck hull_deck hull_deck allied_hull_mass allied_hull_chamfer_out space",
+      "hull_deck allied_hull_line hull_deck hull_deck hull_deck allied_hull_line hull_deck allied_hull_wall space",
+      "hull_deck allied_hull_line hull_deck hull_deck allied_turret_base allied_turret_base allied_turret_base allied_hull_wall space",
+      "hull_deck allied_hull_line hull_deck hull_deck allied_turret_base allied_turret_housing allied_turret_barrel allied_turret_barrel allied_turret_muzzle",
+      "hull_deck allied_hull_line hull_deck hull_deck allied_turret_base allied_turret_base allied_turret_base allied_hull_wall space",
+      "hull_deck allied_hull_line hull_deck hull_deck hull_deck allied_hull_line hull_deck allied_hull_wall space",
+      "hull_deck allied_hull_line hull_deck hull_deck hull_deck hull_deck allied_hull_mass allied_hull_chamfer_in space",
+      "hull_deck allied_hull_line hull_deck hull_deck hull_deck allied_hull_mass allied_hull_chamfer_in space space",
+      "hull_deck allied_hull_line hull_deck allied_hull_line hull_deck allied_hull_accent space space space",
+      "hull_deck allied_hull_line hull_deck allied_hull_line hull_deck allied_hull_wall space space space",
+      "hull_deck allied_hull_line hull_deck hull_deck allied_hull_mass allied_hull_chamfer_in space space space",
+      "hull_deck allied_hull_line allied_hull_line hull_deck allied_hull_wall space space space space",
+      "hull_deck allied_hull_line allied_hull_line hull_deck allied_hull_wall space space space space",
+      "hull_deck allied_hull_line allied_hull_line hull_deck allied_hull_wall space space space space",
+      "hull_deck allied_hull_line allied_hull_line hull_deck allied_hull_wall space space space space",
+      "hull_deck allied_hull_line allied_hull_line hull_deck allied_hull_accent space space space space",
+      "hull_deck allied_hull_line hull_deck hull_deck allied_hull_mass allied_hull_chamfer_out space space space",
+      "hull_deck allied_hull_line hull_deck hull_deck hull_deck allied_hull_mass allied_hull_chamfer_out space space",
+      "hull_deck allied_hull_line hull_deck hull_deck allied_hull_line hull_deck allied_hull_wall space space",
+      "hull_deck allied_hull_line hull_deck hull_deck allied_hull_line hull_deck allied_hull_wall space space",
+      "hull_deck allied_hull_line hull_deck hull_deck allied_hull_line hull_deck allied_hull_wall space space",
+      "hull_deck allied_hull_line hull_deck hull_deck allied_hull_line hull_deck allied_hull_wall space space",
+      "hull_deck allied_hull_line hull_deck hull_deck hull_deck allied_hull_mass allied_hull_chamfer_in space space",
+      "hull_deck allied_hull_line hull_deck allied_hull_line hull_deck allied_hull_wall space space space",
+      "hull_deck allied_hull_line hull_deck allied_hull_line hull_deck allied_hull_wall space space space",
+      "hull_deck allied_hull_line hull_deck allied_hull_line hull_deck allied_hull_wall space space space"
+    ]
+  },
+  "enemyStyles": [
     {
-      "name": "allied_plate_mass",
-      "faction": "allied",
-      "screenBank": "pf2",
-      "tags": ["surface"],
-      "pixels": ["2222", "2222", "2222", "2222", "2222", "2222", "2222", "2222"]
-    },
-    {
-      "name": "allied_plate_edge",
-      "faction": "allied",
-      "screenBank": "pf2",
-      "tags": ["surface"],
-      "pixels": ["1222", "1222", "1222", "1222", "1222", "1222", "1222", "1222"]
-    },
-    {
-      "name": "allied_plate_lip",
-      "faction": "allied",
-      "screenBank": "pf2",
-      "tags": ["surface"],
-      "pixels": ["1111", "2222", "2222", "2002", "2002", "2222", "2222", "0000"]
-    },
-    {
-      "name": "allied_vertical_rib",
-      "faction": "allied",
-      "screenBank": "pf2",
-      "tags": ["surface"],
-      "pixels": ["2022", "2022", "2002", "2002", "2002", "2002", "2022", "2022"]
-    },
-    {
-      "name": "allied_vent",
-      "faction": "allied",
-      "screenBank": "pf2",
-      "tags": ["surface"],
-      "pixels": ["2222", "2002", "2022", "2002", "2002", "2022", "2002", "2222"]
-    },
-    {
-      "name": "allied_service",
-      "faction": "allied",
-      "screenBank": "pf2",
-      "tags": ["surface"],
-      "pixels": ["2222", "2002", "2112", "2112", "2332", "2332", "2002", "2222"]
-    },
-    {
-      "name": "allied_inner_edge",
-      "faction": "allied",
-      "screenBank": "pf2",
-      "tags": ["surface"],
-      "pixels": ["2210", "2210", "2210", "2210", "2210", "2210", "2210", "2210"]
-    },
-    {
-      "name": "allied_turret_base",
-      "faction": "allied",
-      "screenBank": "pf2",
-      "tags": ["base"],
-      "pixels": ["0000", "1111", "1221", "2022", "2022", "1221", "1111", "0000"]
-    },
-    {
-      "name": "allied_turret_housing",
-      "faction": "allied",
-      "screenBank": "pf2",
-      "tags": ["housing"],
-      "pixels": ["0000", "1110", "1212", "2032", "2032", "1212", "1110", "0000"]
-    },
-    {
-      "name": "allied_turret_barrel",
-      "faction": "allied",
-      "screenBank": "pf2",
-      "tags": ["barrel"],
-      "pixels": ["0000", "2222", "2222", "0000", "0000", "2222", "2222", "0000"]
-    },
-    {
-      "name": "allied_turret_muzzle",
-      "faction": "allied",
-      "screenBank": "pf2",
-      "tags": ["muzzle"],
-      "pixels": ["0000", "2200", "2230", "0000", "0000", "2230", "2200", "0000"]
-    },
-    {
-      "name": "enemy_slab_mass",
-      "faction": "enemy",
-      "screenBank": "pf3",
-      "tags": ["surface"],
-      "pixels": ["3333", "3333", "3333", "3333", "3333", "3333", "3333", "3333"]
-    },
-    {
-      "name": "enemy_slab_void",
-      "faction": "enemy",
-      "screenBank": "pf3",
-      "tags": ["surface"],
-      "pixels": ["3003", "3003", "3023", "3023", "3223", "3223", "3003", "3003"]
-    },
-    {
-      "name": "enemy_vertical_rib",
-      "faction": "enemy",
-      "screenBank": "pf3",
-      "tags": ["surface"],
-      "pixels": ["2230", "3230", "3230", "3330", "3330", "3230", "3230", "2230"]
-    },
-    {
-      "name": "enemy_slab_cap",
-      "faction": "enemy",
-      "screenBank": "pf3",
-      "tags": ["surface"],
-      "pixels": ["3333", "3333", "2030", "2030", "2330", "2330", "0330", "0330"]
-    },
-    {
-      "name": "enemy_seam",
-      "faction": "enemy",
-      "screenBank": "pf3",
-      "tags": ["surface"],
-      "pixels": ["3230", "3230", "3030", "3000", "3000", "3030", "3230", "3230"]
-    },
-    {
-      "name": "enemy_sensor",
-      "faction": "enemy",
-      "screenBank": "pf3",
-      "tags": ["surface"],
-      "pixels": ["2230", "3300", "3000", "3020", "3020", "3000", "3300", "2230"]
-    },
-    {
-      "name": "enemy_inner_edge",
-      "faction": "enemy",
-      "screenBank": "pf3",
-      "tags": ["surface"],
-      "pixels": ["0333", "0333", "0333", "0333", "0333", "0333", "0333", "0333"]
-    },
-    {
-      "name": "enemy_turret_base",
-      "faction": "enemy",
-      "screenBank": "pf3",
-      "tags": ["base"],
-      "pixels": ["0000", "0330", "0033", "3033", "3033", "0033", "0330", "0000"]
-    },
-    {
-      "name": "enemy_turret_housing",
-      "faction": "enemy",
-      "screenBank": "pf3",
-      "tags": ["housing"],
-      "pixels": ["0000", "0330", "2032", "2032", "2032", "2032", "0330", "0000"]
-    },
-    {
-      "name": "enemy_turret_barrel",
-      "faction": "enemy",
-      "screenBank": "pf3",
-      "tags": ["barrel"],
-      "pixels": ["0000", "0000", "2220", "2220", "2220", "2220", "0000", "0000"]
-    },
-    {
-      "name": "enemy_turret_muzzle",
-      "faction": "enemy",
-      "screenBank": "pf3",
-      "tags": ["muzzle"],
-      "pixels": ["0000", "0000", "0033", "0233", "0233", "0033", "0000", "0000"]
-    },
-    {
-      "name": "allied_launch_flash",
-      "faction": "allied",
-      "screenBank": "pf2",
-      "tags": ["effect", "launch_flash"],
-      "pixels": ["0000", "0100", "1210", "2221", "1210", "0100", "0000", "0000"]
-    },
-    {
-      "name": "enemy_launch_flash",
-      "faction": "enemy",
-      "screenBank": "pf3",
-      "tags": ["effect", "launch_flash", "energy"],
-      "pixels": ["0000", "0030", "0333", "3333", "0333", "0030", "0000", "0000"]
-    },
-    {
-      "name": "allied_engine_energy",
-      "faction": "allied",
-      "screenBank": "pf2",
-      "tags": ["surface", "engine", "animated"],
-      "pixels": ["2222", "2222", "2222", "2222", "2222", "2222", "2222", "2222"],
-      "animationFrames": [
-        ["2222", "2222", "2222", "2222", "2222", "2222", "2222", "2222"],
-        ["1111", "1111", "1111", "1111", "1111", "1111", "1111", "1111"]
+      "id": "R1",
+      "levels": [
+        1,
+        4
+      ],
+      "draftRegion": "R1-slab",
+      "mirror": true,
+      "glyphs": [
+        {
+          "name": "enemy_hull_mass",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "3333",
+            "3333",
+            "3333",
+            "3333",
+            "3333",
+            "3333",
+            "3333",
+            "3333"
+          ]
+        },
+        {
+          "name": "enemy_hull_wall",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "3331",
+            "3331",
+            "3331",
+            "3331",
+            "3331",
+            "3331",
+            "3331",
+            "3331"
+          ]
+        },
+        {
+          "name": "enemy_hull_accent",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "3331",
+            "3331",
+            "3331",
+            "2331",
+            "2331",
+            "3331",
+            "3331",
+            "3331"
+          ]
+        },
+        {
+          "name": "enemy_hull_chamfer_in",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "3331",
+            "3331",
+            "3310",
+            "3310",
+            "3100",
+            "3100",
+            "1000",
+            "1000"
+          ]
+        },
+        {
+          "name": "enemy_hull_chamfer_out",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "1000",
+            "1000",
+            "1100",
+            "1100",
+            "1110",
+            "1110",
+            "1111",
+            "1111"
+          ]
+        },
+        {
+          "name": "enemy_hull_detail_a",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "0000",
+            "0000",
+            "0000",
+            "0000",
+            "0000",
+            "0000",
+            "0000",
+            "0000"
+          ]
+        },
+        {
+          "name": "enemy_hull_detail_b",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "0000",
+            "0000",
+            "0000",
+            "0000",
+            "0000",
+            "0000",
+            "0000",
+            "0000"
+          ]
+        }
+      ],
+      "map": [
+        "hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space space space",
+        "hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_out space space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_accent space space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_out space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_out space",
+        "hull_deck hull_deck hull_deck hull_deck enemy_turret_base enemy_turret_base enemy_turret_base enemy_hull_wall space",
+        "hull_deck hull_deck hull_deck hull_deck enemy_turret_base enemy_turret_housing enemy_turret_barrel enemy_turret_barrel enemy_turret_muzzle",
+        "hull_deck hull_deck hull_deck hull_deck enemy_turret_base enemy_turret_base enemy_turret_base enemy_hull_wall space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_in space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_in space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_out space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_accent space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_accent space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_in space space",
+        "hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_in space space space",
+        "hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space space space",
+        "hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space space space"
       ]
     },
     {
-      "name": "enemy_engine_energy",
-      "faction": "enemy",
-      "screenBank": "pf3",
-      "tags": ["surface", "engine", "animated", "energy"],
-      "pixels": ["3333", "3333", "3333", "3333", "3333", "3333", "3333", "3333"],
-      "animationFrames": [
-        ["3333", "3333", "3333", "3333", "3333", "3333", "3333", "3333"],
-        ["1111", "1111", "1111", "1111", "1111", "1111", "1111", "1111"]
+      "id": "R2",
+      "levels": [
+        5,
+        8
+      ],
+      "draftRegion": "R2-rib-launchers",
+      "mirror": true,
+      "glyphs": [
+        {
+          "name": "enemy_hull_mass",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "3333",
+            "3333",
+            "3333",
+            "3333",
+            "3333",
+            "3333",
+            "3333",
+            "3333"
+          ]
+        },
+        {
+          "name": "enemy_hull_wall",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "3331",
+            "3331",
+            "3331",
+            "3331",
+            "3331",
+            "3331",
+            "3331",
+            "3331"
+          ]
+        },
+        {
+          "name": "enemy_hull_accent",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "3331",
+            "3331",
+            "3331",
+            "2331",
+            "2331",
+            "3331",
+            "3331",
+            "3331"
+          ]
+        },
+        {
+          "name": "enemy_hull_chamfer_in",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "3331",
+            "3331",
+            "3310",
+            "3310",
+            "3100",
+            "3100",
+            "1000",
+            "1000"
+          ]
+        },
+        {
+          "name": "enemy_hull_chamfer_out",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "1000",
+            "1000",
+            "1100",
+            "1100",
+            "1110",
+            "1110",
+            "1111",
+            "1111"
+          ]
+        },
+        {
+          "name": "enemy_hull_detail_a",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "0300",
+            "0300",
+            "0300",
+            "0300",
+            "0300",
+            "0300",
+            "0300",
+            "0300"
+          ]
+        },
+        {
+          "name": "enemy_hull_detail_b",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "2222",
+            "2222",
+            "0000",
+            "0000",
+            "2222",
+            "2222",
+            "0000",
+            "0000"
+          ]
+        }
+      ],
+      "map": [
+        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_out space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_accent space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space",
+        "hull_deck hull_deck hull_deck hull_deck enemy_turret_base enemy_turret_base enemy_turret_base enemy_hull_wall space",
+        "hull_deck hull_deck hull_deck hull_deck enemy_turret_base enemy_turret_housing enemy_turret_barrel enemy_turret_barrel enemy_turret_muzzle",
+        "hull_deck hull_deck hull_deck hull_deck enemy_turret_base enemy_turret_base enemy_turret_base enemy_hull_wall space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_b enemy_hull_detail_b enemy_hull_wall space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_b enemy_hull_detail_b enemy_hull_wall space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_in space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_in space space",
+        "hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space space space",
+        "hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_accent space space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_out space space",
+        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_in space space",
+        "hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_in space space space",
+        "hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space space space space",
+        "hull_deck hull_deck enemy_hull_detail_b enemy_hull_detail_b enemy_hull_wall space space space space",
+        "hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_out space space space",
+        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_out space space",
+        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space space"
       ]
     },
     {
-      "name": "allied_prow_edge",
-      "faction": "allied",
-      "screenBank": "pf2",
-      "tags": ["surface", "prow_edge"],
-      "pixels": ["2000", "2200", "2200", "2220", "2220", "2222", "2222", "2222"]
+      "id": "R3",
+      "levels": [
+        9,
+        12
+      ],
+      "draftRegion": "R3-thick-band",
+      "mirror": true,
+      "glyphs": [
+        {
+          "name": "enemy_hull_mass",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "3333",
+            "3333",
+            "3333",
+            "3333",
+            "3333",
+            "3333",
+            "3333",
+            "3333"
+          ]
+        },
+        {
+          "name": "enemy_hull_wall",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "3331",
+            "3331",
+            "3331",
+            "3331",
+            "3331",
+            "3331",
+            "3331",
+            "3331"
+          ]
+        },
+        {
+          "name": "enemy_hull_accent",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "3331",
+            "3331",
+            "3331",
+            "2331",
+            "2331",
+            "3331",
+            "3331",
+            "3331"
+          ]
+        },
+        {
+          "name": "enemy_hull_chamfer_in",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "3331",
+            "3331",
+            "3310",
+            "3310",
+            "3100",
+            "3100",
+            "1000",
+            "1000"
+          ]
+        },
+        {
+          "name": "enemy_hull_chamfer_out",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "1000",
+            "1000",
+            "1100",
+            "1100",
+            "1110",
+            "1110",
+            "1111",
+            "1111"
+          ]
+        },
+        {
+          "name": "enemy_hull_detail_a",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "0333",
+            "0333",
+            "0333",
+            "0333",
+            "0333",
+            "0333",
+            "0333",
+            "0333"
+          ]
+        },
+        {
+          "name": "enemy_hull_detail_b",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "0000",
+            "0000",
+            "0000",
+            "0000",
+            "0000",
+            "0000",
+            "0000",
+            "0000"
+          ]
+        }
+      ],
+      "map": [
+        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space",
+        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space",
+        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space",
+        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_accent space",
+        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space",
+        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space",
+        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_in space",
+        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_turret_base enemy_turret_base enemy_turret_base enemy_hull_wall space",
+        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_turret_base enemy_turret_housing enemy_turret_barrel enemy_turret_barrel enemy_turret_muzzle",
+        "hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_turret_base enemy_turret_base enemy_turret_base enemy_hull_wall space",
+        "hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space space",
+        "hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space space",
+        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_accent space space",
+        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_in space space",
+        "hull_deck enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_in space space space",
+        "hull_deck enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space space space space",
+        "hull_deck enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_in space space space",
+        "hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space space space",
+        "hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space space",
+        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space"
+      ]
     },
     {
-      "name": "enemy_prow_edge",
-      "faction": "enemy",
-      "screenBank": "pf3",
-      "tags": ["surface", "prow_edge"],
-      "pixels": ["0003", "0033", "0033", "0333", "0333", "3333", "3333", "3333"]
-    },
-    {
-      "name": "capital_explosion_core",
-      "faction": "enemy",
-      "screenBank": "pf3",
-      "tags": ["effect", "capital_explosion", "energy"],
-      "pixels": ["0000", "0110", "1331", "3333", "1331", "0110", "0000", "0000"]
-    },
-    {
-      "name": "capital_explosion_fire",
-      "faction": "enemy",
-      "screenBank": "pf3",
-      "tags": ["effect", "capital_explosion", "energy"],
-      "pixels": ["0030", "0333", "3313", "3133", "3313", "0333", "0030", "0000"]
-    },
-    {
-      "name": "capital_explosion_ember",
-      "faction": "enemy",
-      "screenBank": "pf3",
-      "tags": ["effect", "capital_explosion", "energy"],
-      "pixels": ["0000", "0300", "3000", "0030", "3000", "0003", "0000", "0000"]
+      "id": "R4",
+      "levels": [
+        13,
+        16
+      ],
+      "draftRegion": "R4-armour",
+      "mirror": true,
+      "glyphs": [
+        {
+          "name": "enemy_hull_mass",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "3333",
+            "3333",
+            "3333",
+            "3333",
+            "3333",
+            "3333",
+            "3333",
+            "3333"
+          ]
+        },
+        {
+          "name": "enemy_hull_wall",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "3331",
+            "3331",
+            "3331",
+            "3331",
+            "3331",
+            "3331",
+            "3331",
+            "3331"
+          ]
+        },
+        {
+          "name": "enemy_hull_accent",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "3331",
+            "3331",
+            "3331",
+            "2331",
+            "2331",
+            "3331",
+            "3331",
+            "3331"
+          ]
+        },
+        {
+          "name": "enemy_hull_chamfer_in",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "3331",
+            "3331",
+            "3310",
+            "3310",
+            "3100",
+            "3100",
+            "1000",
+            "1000"
+          ]
+        },
+        {
+          "name": "enemy_hull_chamfer_out",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "3111",
+            "3111",
+            "3311",
+            "3311",
+            "3331",
+            "3331",
+            "3333",
+            "3333"
+          ]
+        },
+        {
+          "name": "enemy_hull_detail_a",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "3033",
+            "3033",
+            "3033",
+            "3033",
+            "3033",
+            "3033",
+            "3033",
+            "3033"
+          ]
+        },
+        {
+          "name": "enemy_hull_detail_b",
+          "faction": "enemy",
+          "screenBank": "pf3",
+          "tags": [
+            "surface"
+          ],
+          "pixels": [
+            "0000",
+            "3333",
+            "3333",
+            "3333",
+            "3333",
+            "3333",
+            "3333",
+            "3333"
+          ]
+        }
+      ],
+      "map": [
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_accent space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_in space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_accent space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_turret_base enemy_turret_base enemy_turret_base enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_turret_base enemy_turret_housing enemy_turret_barrel enemy_turret_barrel enemy_turret_muzzle",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_turret_base enemy_turret_base enemy_turret_base enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space",
+        "enemy_hull_detail_b enemy_hull_detail_b enemy_hull_detail_b enemy_hull_detail_b enemy_hull_detail_b enemy_hull_detail_b enemy_hull_mass enemy_hull_chamfer_in space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_in space space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_accent space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space",
+        "enemy_hull_detail_b enemy_hull_detail_b enemy_hull_detail_b enemy_hull_detail_b enemy_hull_detail_b enemy_hull_detail_b enemy_hull_detail_b enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space"
+      ]
     }
   ],
-  "maps": {
-    "allied": {
-      "innerDepth": [7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 6, 6, 5, 5, 5, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 6, 6, 6, 6, 6],
-      "rows": [
-        "allied_plate_lip allied_plate_lip allied_plate_lip allied_vertical_rib allied_plate_mass allied_plate_mass allied_inner_edge space space",
-        "allied_plate_edge allied_plate_mass allied_plate_mass allied_vertical_rib allied_plate_mass allied_plate_mass allied_inner_edge space space",
-        "allied_plate_edge allied_plate_mass allied_plate_mass allied_vertical_rib allied_plate_mass allied_plate_mass allied_inner_edge space space",
-        "allied_plate_edge allied_plate_mass allied_vent allied_vertical_rib allied_plate_mass allied_plate_mass allied_inner_edge space space",
-        "allied_plate_edge allied_plate_mass allied_plate_mass allied_vertical_rib allied_plate_lip allied_plate_lip allied_inner_edge space space",
-        "allied_plate_edge allied_plate_mass allied_plate_mass allied_vertical_rib allied_plate_mass allied_plate_mass allied_plate_mass allied_inner_edge space",
-        "allied_plate_edge allied_plate_mass allied_plate_mass allied_vertical_rib allied_plate_mass allied_service allied_plate_mass allied_inner_edge space",
-        "allied_plate_edge allied_plate_mass allied_plate_mass allied_vertical_rib allied_turret_base allied_turret_base allied_turret_base allied_inner_edge space",
-        "allied_plate_edge allied_plate_mass allied_plate_mass allied_vertical_rib allied_turret_base allied_turret_housing allied_turret_barrel allied_turret_barrel allied_turret_muzzle",
-        "allied_plate_edge allied_plate_mass allied_plate_mass allied_vertical_rib allied_turret_base allied_turret_base allied_turret_base allied_inner_edge space",
-        "allied_plate_edge allied_plate_mass allied_plate_mass allied_vertical_rib allied_plate_mass allied_plate_mass allied_plate_mass allied_inner_edge space",
-        "allied_plate_lip allied_plate_lip allied_plate_mass allied_vertical_rib allied_plate_mass allied_inner_edge space space space",
-        "allied_plate_edge allied_plate_mass allied_plate_mass allied_vertical_rib allied_plate_mass allied_inner_edge space space space",
-        "allied_plate_edge allied_plate_mass allied_plate_mass allied_vertical_rib allied_inner_edge space space space space",
-        "allied_plate_edge allied_plate_mass allied_vent allied_vertical_rib allied_inner_edge space space space space",
-        "allied_plate_mass allied_plate_mass allied_plate_lip allied_vertical_rib allied_inner_edge space space space space",
-        "allied_plate_lip allied_plate_lip allied_plate_lip allied_vertical_rib allied_plate_mass allied_plate_mass allied_inner_edge space space",
-        "allied_plate_edge allied_plate_mass allied_plate_mass allied_vertical_rib allied_plate_mass allied_plate_mass allied_inner_edge space space",
-        "allied_plate_edge allied_plate_mass allied_plate_mass allied_vertical_rib allied_plate_mass allied_service allied_inner_edge space space",
-        "allied_plate_edge allied_plate_mass allied_plate_mass allied_vertical_rib allied_plate_mass allied_plate_mass allied_inner_edge space space",
-        "allied_plate_mass allied_plate_mass allied_plate_mass allied_vertical_rib allied_plate_lip allied_plate_lip allied_inner_edge space space",
-        "allied_plate_edge allied_plate_mass allied_plate_mass allied_vertical_rib allied_plate_lip allied_plate_lip allied_plate_lip allied_inner_edge space",
-        "allied_plate_edge allied_plate_mass allied_plate_mass allied_vertical_rib allied_plate_mass allied_plate_lip allied_plate_lip allied_inner_edge space",
-        "allied_plate_edge allied_plate_mass allied_vent allied_vertical_rib allied_plate_mass allied_plate_mass allied_service allied_inner_edge space",
-        "allied_plate_edge allied_plate_mass allied_plate_mass allied_vertical_rib allied_plate_lip allied_plate_lip allied_plate_mass allied_inner_edge space",
-        "allied_plate_edge allied_plate_mass allied_plate_mass allied_vertical_rib allied_plate_mass allied_service allied_plate_mass allied_inner_edge space",
-        "allied_plate_edge allied_plate_mass allied_plate_mass allied_vertical_rib allied_plate_mass allied_plate_mass allied_plate_mass allied_inner_edge space",
-        "allied_plate_lip allied_plate_lip allied_plate_mass allied_vertical_rib allied_plate_mass allied_inner_edge space space space",
-        "allied_plate_edge allied_plate_mass allied_vent allied_vertical_rib allied_plate_mass allied_inner_edge space space space",
-        "allied_plate_edge allied_plate_mass allied_plate_mass allied_vertical_rib allied_plate_mass allied_inner_edge space space space",
-        "allied_plate_edge allied_plate_mass allied_plate_mass allied_vertical_rib allied_plate_mass allied_inner_edge space space space",
-        "allied_plate_mass allied_plate_mass allied_plate_lip allied_vertical_rib allied_plate_mass allied_inner_edge space space space"
-      ]
+  "turret": {
+    "segmentRow": 9,
+    "muzzleScanlineOffset": 4,
+    "type": {
+      "allied": "allied_heavy_line",
+      "enemy": "enemy_void_lance"
     },
-    "enemy": {
-      "innerDepth": [7, 7, 7, 7, 7, 6, 6, 5, 5, 5, 8, 8, 8, 8, 8, 7, 7, 7, 7, 7, 6, 6, 6, 6, 6, 8, 8, 8, 8, 7, 7, 7],
-      "rows": [
-        "space space enemy_inner_edge enemy_slab_cap enemy_slab_cap enemy_slab_mass enemy_vertical_rib enemy_slab_void enemy_slab_mass",
-        "space space enemy_inner_edge enemy_slab_mass enemy_slab_mass enemy_slab_mass enemy_vertical_rib enemy_slab_void enemy_slab_mass",
-        "space space enemy_inner_edge enemy_slab_mass enemy_sensor enemy_slab_mass enemy_vertical_rib enemy_slab_void enemy_slab_mass",
-        "space space enemy_inner_edge enemy_slab_mass enemy_slab_mass enemy_slab_mass enemy_vertical_rib enemy_slab_void enemy_slab_mass",
-        "space space enemy_inner_edge enemy_seam enemy_slab_mass enemy_slab_mass enemy_vertical_rib enemy_slab_void enemy_slab_mass",
-        "space space space enemy_inner_edge enemy_slab_cap enemy_slab_cap enemy_vertical_rib enemy_slab_void enemy_slab_mass",
-        "space space space enemy_inner_edge enemy_slab_mass enemy_slab_mass enemy_vertical_rib enemy_slab_void enemy_slab_mass",
-        "space space space space enemy_inner_edge enemy_slab_mass enemy_slab_void enemy_vertical_rib enemy_slab_mass",
-        "space space space space enemy_inner_edge enemy_slab_mass enemy_slab_mass enemy_vertical_rib enemy_slab_mass",
-        "space space space space enemy_inner_edge enemy_seam enemy_slab_mass enemy_vertical_rib enemy_slab_mass",
-        "space enemy_inner_edge enemy_slab_cap enemy_slab_cap enemy_slab_mass enemy_vertical_rib enemy_slab_void enemy_slab_mass enemy_slab_mass",
-        "space enemy_inner_edge enemy_turret_base enemy_turret_base enemy_turret_base enemy_vertical_rib enemy_slab_void enemy_slab_mass enemy_slab_mass",
-        "enemy_turret_muzzle enemy_turret_barrel enemy_turret_barrel enemy_turret_housing enemy_turret_base enemy_vertical_rib enemy_slab_void enemy_slab_mass enemy_slab_mass",
-        "space enemy_inner_edge enemy_turret_base enemy_turret_base enemy_turret_base enemy_vertical_rib enemy_slab_void enemy_slab_mass enemy_slab_mass",
-        "space enemy_inner_edge enemy_slab_mass enemy_slab_mass enemy_seam enemy_vertical_rib enemy_slab_void enemy_slab_mass enemy_slab_mass",
-        "space space enemy_inner_edge enemy_slab_cap enemy_slab_cap enemy_slab_mass enemy_slab_void enemy_vertical_rib enemy_slab_mass",
-        "space space enemy_inner_edge enemy_slab_mass enemy_slab_mass enemy_slab_mass enemy_slab_void enemy_vertical_rib enemy_slab_mass",
-        "space space enemy_inner_edge enemy_slab_mass enemy_slab_void enemy_slab_void enemy_vertical_rib enemy_slab_mass enemy_slab_mass",
-        "space space enemy_inner_edge enemy_slab_mass enemy_sensor enemy_slab_mass enemy_slab_void enemy_vertical_rib enemy_slab_mass",
-        "space space enemy_inner_edge enemy_slab_mass enemy_seam enemy_slab_mass enemy_slab_void enemy_vertical_rib enemy_slab_mass",
-        "space space space enemy_inner_edge enemy_slab_cap enemy_slab_cap enemy_slab_void enemy_vertical_rib enemy_slab_mass",
-        "space space space enemy_inner_edge enemy_slab_mass enemy_slab_mass enemy_slab_void enemy_vertical_rib enemy_slab_mass",
-        "space space space enemy_inner_edge enemy_slab_mass enemy_slab_void enemy_slab_void enemy_vertical_rib enemy_slab_mass",
-        "space space space enemy_inner_edge enemy_slab_mass enemy_slab_mass enemy_slab_void enemy_vertical_rib enemy_slab_mass",
-        "space space space enemy_inner_edge enemy_seam enemy_slab_mass enemy_slab_void enemy_vertical_rib enemy_slab_mass",
-        "space enemy_inner_edge enemy_slab_cap enemy_slab_cap enemy_slab_void enemy_vertical_rib enemy_slab_mass enemy_slab_void enemy_slab_mass",
-        "space enemy_inner_edge enemy_slab_mass enemy_slab_void enemy_slab_mass enemy_vertical_rib enemy_slab_void enemy_slab_void enemy_slab_mass",
-        "space enemy_inner_edge enemy_seam enemy_slab_mass enemy_slab_void enemy_vertical_rib enemy_slab_mass enemy_slab_void enemy_slab_mass",
-        "space enemy_inner_edge enemy_slab_cap enemy_slab_mass enemy_slab_mass enemy_vertical_rib enemy_slab_void enemy_slab_mass enemy_slab_mass",
-        "space space enemy_inner_edge enemy_slab_cap enemy_slab_cap enemy_slab_mass enemy_vertical_rib enemy_slab_void enemy_slab_mass",
-        "space space enemy_inner_edge enemy_slab_mass enemy_sensor enemy_slab_mass enemy_vertical_rib enemy_slab_void enemy_slab_mass",
-        "space space enemy_inner_edge enemy_slab_mass enemy_slab_mass enemy_slab_mass enemy_vertical_rib enemy_slab_void enemy_slab_mass"
+    "footprint": {
+      "base": [
+        [
+          8,
+          4
+        ],
+        [
+          8,
+          5
+        ],
+        [
+          8,
+          6
+        ],
+        [
+          9,
+          4
+        ],
+        [
+          10,
+          4
+        ],
+        [
+          10,
+          5
+        ],
+        [
+          10,
+          6
+        ]
+      ],
+      "housing": [
+        [
+          9,
+          5
+        ]
+      ],
+      "barrel": [
+        [
+          9,
+          6
+        ],
+        [
+          9,
+          7
+        ]
       ]
     }
   },
@@ -325,42 +1302,382 @@
     "launchFlashFrames": 4,
     "modules": {
       "allied": {
-        "combat_0": { "sourceRows": [0, 1, 2, 3, 4, 5, 6, 7] },
-        "combat_1": { "sourceRows": [7, 8, 9, 10, 11, 12, 13, 14] },
-        "combat_2": { "sourceRows": [16, 17, 18, 19, 20, 21, 22, 23] },
-        "combat_3": { "sourceRows": [24, 25, 26, 27, 28, 29, 30, 31] },
-        "prow_0": { "sourceRows": [12, 12, 15, 14, 13, 15, 14, 13] },
-        "prow_1": { "sourceRows": [17, 17, 17, 16, 16, 11, 11, 12] },
-        "prow_2": { "sourceRows": [18, 17, 16, 20, 19, 18, 17, 16] },
-        "prow_3": { "sourceRows": [25, 24, 23, 22, 21, 10, 6, 5] },
-        "aft_0": { "sourceRows": [24, 25, 26, 21, 22, 23, 24, 25] },
-        "aft_1": { "sourceRows": [16, 17, 18, 19, 20, 16, 17, 18] },
-        "aft_2": { "sourceRows": [11, 12, 13, 14, 15, 27, 28, 29] },
+        "combat_0": {
+          "sourceRows": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        "combat_1": {
+          "sourceRows": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        "combat_2": {
+          "sourceRows": [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23
+          ]
+        },
+        "combat_3": {
+          "sourceRows": [
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31
+          ]
+        },
+        "prow_0": {
+          "sourceRows": [
+            12,
+            12,
+            15,
+            14,
+            13,
+            15,
+            14,
+            13
+          ]
+        },
+        "prow_1": {
+          "sourceRows": [
+            17,
+            17,
+            17,
+            16,
+            16,
+            11,
+            11,
+            12
+          ]
+        },
+        "prow_2": {
+          "sourceRows": [
+            18,
+            17,
+            16,
+            20,
+            19,
+            18,
+            17,
+            16
+          ]
+        },
+        "prow_3": {
+          "sourceRows": [
+            25,
+            24,
+            23,
+            22,
+            21,
+            11,
+            6,
+            5
+          ]
+        },
+        "aft_0": {
+          "sourceRows": [
+            24,
+            25,
+            26,
+            21,
+            22,
+            23,
+            24,
+            25
+          ]
+        },
+        "aft_1": {
+          "sourceRows": [
+            16,
+            17,
+            18,
+            19,
+            20,
+            16,
+            17,
+            18
+          ]
+        },
+        "aft_2": {
+          "sourceRows": [
+            11,
+            12,
+            13,
+            14,
+            15,
+            27,
+            28,
+            29
+          ]
+        },
         "engine_bank": {
-          "sourceRows": [21, 22, 23, 24, 25, 26, 24, 25],
+          "sourceRows": [
+            6,
+            7,
+            12,
+            13,
+            23,
+            24,
+            25,
+            6
+          ],
           "engineOverlay": {
             "glyph": "allied_engine_energy",
-            "columnsByRow": [[1, 5], [1, 2, 5, 6], [1, 2, 5, 6], [1, 2, 5, 6], [1, 2, 5, 6], [1, 2, 5, 6], [2, 5], []]
+            "columnsByRow": [
+              [
+                1,
+                5
+              ],
+              [
+                1,
+                2,
+                5,
+                6
+              ],
+              [
+                1,
+                2,
+                5,
+                6
+              ],
+              [
+                1,
+                2,
+                5,
+                6
+              ],
+              [
+                1,
+                2,
+                5,
+                6
+              ],
+              [
+                1,
+                2,
+                5,
+                6
+              ],
+              [
+                2,
+                5
+              ],
+              []
+            ]
           }
         }
       },
       "enemy": {
-        "combat_0": { "sourceRows": [0, 1, 2, 3, 4, 5, 6, 7] },
-        "combat_1": { "sourceRows": [11, 12, 13, 14, 15, 16, 17, 18] },
-        "combat_2": { "sourceRows": [16, 17, 18, 19, 20, 21, 22, 23] },
-        "combat_3": { "sourceRows": [24, 25, 26, 27, 28, 29, 30, 31] },
-        "prow_0": { "sourceRows": [6, 5, 9, 8, 7, 9, 8, 7] },
-        "prow_1": { "sourceRows": [20, 24, 23, 22, 21, 20, 6, 5] },
-        "prow_2": { "sourceRows": [17, 16, 15, 4, 3, 2, 1, 0] },
-        "prow_3": { "sourceRows": [26, 25, 14, 10, 28, 27, 26, 25] },
-        "aft_0": { "sourceRows": [25, 26, 27, 28, 25, 26, 27, 28] },
-        "aft_1": { "sourceRows": [0, 1, 2, 3, 4, 15, 16, 17] },
-        "aft_2": { "sourceRows": [20, 21, 22, 23, 24, 5, 6, 20] },
+        "combat_0": {
+          "sourceRows": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        "combat_1": {
+          "sourceRows": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        "combat_2": {
+          "sourceRows": [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23
+          ]
+        },
+        "combat_3": {
+          "sourceRows": [
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31
+          ]
+        },
+        "prow_0": {
+          "sourceRows": [
+            12,
+            12,
+            15,
+            14,
+            13,
+            15,
+            14,
+            13
+          ]
+        },
+        "prow_1": {
+          "sourceRows": [
+            17,
+            17,
+            17,
+            16,
+            16,
+            11,
+            11,
+            12
+          ]
+        },
+        "prow_2": {
+          "sourceRows": [
+            18,
+            17,
+            16,
+            20,
+            19,
+            18,
+            17,
+            16
+          ]
+        },
+        "prow_3": {
+          "sourceRows": [
+            25,
+            24,
+            23,
+            22,
+            21,
+            11,
+            6,
+            5
+          ]
+        },
+        "aft_0": {
+          "sourceRows": [
+            24,
+            25,
+            26,
+            21,
+            22,
+            23,
+            24,
+            25
+          ]
+        },
+        "aft_1": {
+          "sourceRows": [
+            16,
+            17,
+            18,
+            19,
+            20,
+            16,
+            17,
+            18
+          ]
+        },
+        "aft_2": {
+          "sourceRows": [
+            11,
+            12,
+            13,
+            14,
+            15,
+            27,
+            28,
+            29
+          ]
+        },
         "engine_bank": {
-          "sourceRows": [25, 26, 27, 28, 25, 26, 27, 28],
+          "sourceRows": [
+            6,
+            7,
+            12,
+            13,
+            23,
+            24,
+            25,
+            6
+          ],
           "engineOverlay": {
             "glyph": "enemy_engine_energy",
-            "columnsByRow": [[2, 6], [1, 2, 3, 5, 6, 7], [1, 2, 3, 5, 6, 7], [1, 2, 3, 5, 6, 7], [1, 2, 3, 5, 6, 7], [1, 2, 3, 5, 6, 7], [2, 3, 5, 6], []]
+            "columnsByRow": [
+              [
+                3,
+                7
+              ],
+              [
+                2,
+                3,
+                6,
+                7
+              ],
+              [
+                2,
+                3,
+                6,
+                7
+              ],
+              [
+                2,
+                3,
+                6,
+                7
+              ],
+              [
+                2,
+                3,
+                6,
+                7
+              ],
+              [
+                2,
+                3,
+                6,
+                7
+              ],
+              [
+                3,
+                6
+              ],
+              []
+            ]
           }
         }
       }
@@ -368,30 +1685,482 @@
     "prowProfiles": {
       "allied": {
         "edgeGlyph": "allied_prow_edge",
-        "fillGlyph": "allied_plate_mass",
+        "fillGlyph": "allied_hull_mass",
         "occupiedBaseColumnsByRow": [
-          [0,1,2,3,4,5,6,7], [0,1,2,3,4,5,6,7], [0,1,2,3,4,5,6,7], [0,1,2,3,4,5,6,7],
-          [0,1,2,3,4,5,6,7], [0,1,2,3,4,5,6,7], [0,1,2,3,4,5,6,7], [0,1,2,3,4,5,6,7],
-          [0,1,2,3,4,5,6], [0,1,2,3,4,5,6], [0,1,2,3,4,5,6], [0,1,2,3,4,5,6],
-          [0,1,2,3,4,5], [0,1,2,3,4,5], [0,1,2,3,4,5], [0,1,2,3,4,5],
-          [0,1,2,3,4], [0,1,2,3,4], [0,1,2,3,4], [0,1,2,3,4],
-          [0,1,2,3], [0,1,2,3], [0,1,2,3], [0,1,2,3],
-          [0,1,2], [0,1,2], [0,1,2], [0,1,2],
-          [1,2], [1,2], [1], [1]
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            0,
+            1,
+            2,
+            3
+          ],
+          [
+            0,
+            1,
+            2,
+            3
+          ],
+          [
+            0,
+            1,
+            2,
+            3
+          ],
+          [
+            0,
+            1,
+            2,
+            3
+          ],
+          [
+            0,
+            1,
+            2
+          ],
+          [
+            0,
+            1,
+            2
+          ],
+          [
+            0,
+            1,
+            2
+          ],
+          [
+            0,
+            1,
+            2
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            1
+          ],
+          [
+            1
+          ]
         ]
       },
       "enemy": {
         "edgeGlyph": "enemy_prow_edge",
-        "fillGlyph": "enemy_slab_mass",
+        "fillGlyph": "enemy_hull_mass",
         "occupiedBaseColumnsByRow": [
-          [0,1,2,3,4,5,6,7], [0,1,2,3,4,5,6,7], [0,1,2,3,4,5,6,7], [0,1,2,3,4,5,6,7],
-          [0,1,2,3,4,5,6,7], [0,1,2,3,4,5,6,7], [0,1,2,3,4,5,6,7], [0,1,2,3,4,5,6,7],
-          [1,2,3,4,5,6,7], [1,2,3,4,5,6,7], [1,2,3,4,5,6,7], [1,2,3,4,5,6,7],
-          [2,3,4,5,6,7], [2,3,4,5,6,7], [2,3,4,5,6,7], [2,3,4,5,6,7],
-          [2,3,5,6,7], [2,3,5,6,7], [2,3,5,6,7], [2,3,5,6,7],
-          [3,4,6,7], [3,4,6,7], [3,4,6,7], [3,4,6,7],
-          [4,5,6], [4,5,6], [4,5,6], [4,5,6],
-          [5,6], [5,6], [6], [6]
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          [
+            2,
+            3,
+            5,
+            6,
+            7
+          ],
+          [
+            2,
+            3,
+            5,
+            6,
+            7
+          ],
+          [
+            2,
+            3,
+            5,
+            6,
+            7
+          ],
+          [
+            2,
+            3,
+            5,
+            6,
+            7
+          ],
+          [
+            3,
+            4,
+            6,
+            7
+          ],
+          [
+            3,
+            4,
+            6,
+            7
+          ],
+          [
+            3,
+            4,
+            6,
+            7
+          ],
+          [
+            3,
+            4,
+            6,
+            7
+          ],
+          [
+            4,
+            5,
+            6
+          ],
+          [
+            4,
+            5,
+            6
+          ],
+          [
+            4,
+            5,
+            6
+          ],
+          [
+            4,
+            5,
+            6
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            6
+          ],
+          [
+            6
+          ]
         ]
       }
     },
@@ -401,8 +2170,18 @@
         "rows": 32,
         "weaponEligible": false,
         "modules": {
-          "allied": ["engine_bank", "aft_0", "aft_1", "aft_2"],
-          "enemy": ["engine_bank", "aft_0", "aft_1", "aft_2"]
+          "allied": [
+            "engine_bank",
+            "aft_0",
+            "aft_1",
+            "aft_2"
+          ],
+          "enemy": [
+            "engine_bank",
+            "aft_0",
+            "aft_1",
+            "aft_2"
+          ]
         }
       },
       {
@@ -410,8 +2189,30 @@
         "rows": 80,
         "weaponEligible": true,
         "modules": {
-          "allied": ["aft_0", "aft_1", "aft_2", "aft_0", "aft_1", "aft_2", "aft_0", "aft_1", "aft_2", "aft_0"],
-          "enemy": ["aft_0", "aft_1", "aft_2", "aft_0", "aft_1", "aft_2", "aft_0", "aft_1", "aft_2", "aft_0"]
+          "allied": [
+            "aft_0",
+            "aft_1",
+            "aft_2",
+            "aft_0",
+            "aft_1",
+            "aft_2",
+            "aft_0",
+            "aft_1",
+            "aft_2",
+            "aft_0"
+          ],
+          "enemy": [
+            "aft_0",
+            "aft_1",
+            "aft_2",
+            "aft_0",
+            "aft_1",
+            "aft_2",
+            "aft_0",
+            "aft_1",
+            "aft_2",
+            "aft_0"
+          ]
         }
       },
       {
@@ -419,8 +2220,74 @@
         "rows": 256,
         "weaponEligible": true,
         "modules": {
-          "allied": ["combat_0", "combat_1", "combat_2", "combat_3", "combat_0", "combat_1", "combat_2", "combat_3", "combat_0", "combat_1", "combat_2", "combat_3", "combat_0", "combat_1", "combat_2", "combat_3", "combat_0", "combat_1", "combat_2", "combat_3", "combat_0", "combat_1", "combat_2", "combat_3", "combat_0", "combat_1", "combat_2", "combat_3", "combat_0", "combat_1", "combat_2", "combat_3"],
-          "enemy": ["combat_0", "combat_1", "combat_2", "combat_3", "combat_0", "combat_1", "combat_2", "combat_3", "combat_0", "combat_1", "combat_2", "combat_3", "combat_0", "combat_1", "combat_2", "combat_3", "combat_0", "combat_1", "combat_2", "combat_3", "combat_0", "combat_1", "combat_2", "combat_3", "combat_0", "combat_1", "combat_2", "combat_3", "combat_0", "combat_1", "combat_2", "combat_3"]
+          "allied": [
+            "combat_0",
+            "combat_1",
+            "combat_2",
+            "combat_3",
+            "combat_0",
+            "combat_1",
+            "combat_2",
+            "combat_3",
+            "combat_0",
+            "combat_1",
+            "combat_2",
+            "combat_3",
+            "combat_0",
+            "combat_1",
+            "combat_2",
+            "combat_3",
+            "combat_0",
+            "combat_1",
+            "combat_2",
+            "combat_3",
+            "combat_0",
+            "combat_1",
+            "combat_2",
+            "combat_3",
+            "combat_0",
+            "combat_1",
+            "combat_2",
+            "combat_3",
+            "combat_0",
+            "combat_1",
+            "combat_2",
+            "combat_3"
+          ],
+          "enemy": [
+            "combat_0",
+            "combat_1",
+            "combat_2",
+            "combat_3",
+            "combat_0",
+            "combat_1",
+            "combat_2",
+            "combat_3",
+            "combat_0",
+            "combat_1",
+            "combat_2",
+            "combat_3",
+            "combat_0",
+            "combat_1",
+            "combat_2",
+            "combat_3",
+            "combat_0",
+            "combat_1",
+            "combat_2",
+            "combat_3",
+            "combat_0",
+            "combat_1",
+            "combat_2",
+            "combat_3",
+            "combat_0",
+            "combat_1",
+            "combat_2",
+            "combat_3",
+            "combat_0",
+            "combat_1",
+            "combat_2",
+            "combat_3"
+          ]
         }
       },
       {
@@ -428,8 +2295,30 @@
         "rows": 80,
         "weaponEligible": true,
         "modules": {
-          "allied": ["combat_0", "combat_2", "combat_3", "combat_0", "combat_2", "combat_3", "combat_0", "combat_2", "combat_3", "combat_0"],
-          "enemy": ["combat_0", "combat_2", "combat_3", "combat_0", "combat_2", "combat_3", "combat_0", "combat_2", "combat_3", "combat_0"]
+          "allied": [
+            "combat_0",
+            "combat_2",
+            "combat_3",
+            "combat_0",
+            "combat_2",
+            "combat_3",
+            "combat_0",
+            "combat_2",
+            "combat_3",
+            "combat_0"
+          ],
+          "enemy": [
+            "combat_0",
+            "combat_2",
+            "combat_3",
+            "combat_0",
+            "combat_2",
+            "combat_3",
+            "combat_0",
+            "combat_2",
+            "combat_3",
+            "combat_0"
+          ]
         }
       },
       {
@@ -437,16 +2326,34 @@
         "rows": 32,
         "weaponEligible": false,
         "modules": {
-          "allied": ["prow_3", "prow_2", "prow_1", "prow_0"],
-          "enemy": ["prow_3", "prow_2", "prow_1", "prow_0"]
+          "allied": [
+            "prow_3",
+            "prow_2",
+            "prow_1",
+            "prow_0"
+          ],
+          "enemy": [
+            "prow_3",
+            "prow_2",
+            "prow_1",
+            "prow_0"
+          ]
         }
       }
     ],
     "turretLayout": {
       "seed": 13,
-      "counts": { "easy": 10, "medium": 15, "hard": 20 },
+      "counts": {
+        "easy": 10,
+        "medium": 15,
+        "hard": 20
+      },
       "minimumSpacingRows": 16,
-      "maximumGapRows": { "easy": 64, "medium": 48, "hard": 32 },
+      "maximumGapRows": {
+        "easy": 64,
+        "medium": 48,
+        "hard": 32
+      },
       "turretModule": {
         "allied": "combat_1",
         "enemy": "combat_1"
@@ -532,57 +2439,228 @@
       "width": 3,
       "height": 3,
       "phases": [
-        [0, 0, 0, 0, {"glyph": "capital_explosion_core", "bank": "pf2"}, 0, 0, 0, 0],
-        [0, {"glyph": "capital_explosion_core", "bank": "pf2"}, 0, {"glyph": "capital_explosion_core", "bank": "pf2"}, {"glyph": "capital_explosion_fire", "bank": "pf3"}, {"glyph": "capital_explosion_core", "bank": "pf2"}, 0, {"glyph": "capital_explosion_fire", "bank": "pf3"}, 0],
-        [{"glyph": "capital_explosion_fire", "bank": "pf3"}, {"glyph": "capital_explosion_core", "bank": "pf3"}, {"glyph": "capital_explosion_fire", "bank": "pf3"}, {"glyph": "capital_explosion_core", "bank": "pf3"}, {"glyph": "capital_explosion_core", "bank": "pf2"}, {"glyph": "capital_explosion_fire", "bank": "pf3"}, {"glyph": "capital_explosion_fire", "bank": "pf3"}, {"glyph": "capital_explosion_core", "bank": "pf3"}, 0],
-        [{"glyph": "capital_explosion_ember", "bank": "pf3"}, {"glyph": "capital_explosion_fire", "bank": "pf3"}, 0, {"glyph": "capital_explosion_fire", "bank": "pf3"}, {"glyph": "capital_explosion_core", "bank": "pf3"}, {"glyph": "capital_explosion_ember", "bank": "pf3"}, 0, {"glyph": "capital_explosion_fire", "bank": "pf3"}, {"glyph": "capital_explosion_ember", "bank": "pf3"}],
-        [0, {"glyph": "capital_explosion_ember", "bank": "pf3"}, 0, {"glyph": "capital_explosion_fire", "bank": "pf3"}, 0, {"glyph": "capital_explosion_ember", "bank": "pf3"}, 0, {"glyph": "capital_explosion_ember", "bank": "pf3"}, 0],
-        [0, 0, 0, {"glyph": "capital_explosion_ember", "bank": "pf3"}, 0, 0, 0, {"glyph": "capital_explosion_ember", "bank": "pf3"}, 0]
+        [
+          0,
+          0,
+          0,
+          0,
+          {
+            "glyph": "capital_explosion_core",
+            "bank": "pf2"
+          },
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          {
+            "glyph": "capital_explosion_core",
+            "bank": "pf2"
+          },
+          0,
+          {
+            "glyph": "capital_explosion_core",
+            "bank": "pf2"
+          },
+          {
+            "glyph": "capital_explosion_fire",
+            "bank": "pf3"
+          },
+          {
+            "glyph": "capital_explosion_core",
+            "bank": "pf2"
+          },
+          0,
+          {
+            "glyph": "capital_explosion_fire",
+            "bank": "pf3"
+          },
+          0
+        ],
+        [
+          {
+            "glyph": "capital_explosion_fire",
+            "bank": "pf3"
+          },
+          {
+            "glyph": "capital_explosion_core",
+            "bank": "pf3"
+          },
+          {
+            "glyph": "capital_explosion_fire",
+            "bank": "pf3"
+          },
+          {
+            "glyph": "capital_explosion_core",
+            "bank": "pf3"
+          },
+          {
+            "glyph": "capital_explosion_core",
+            "bank": "pf2"
+          },
+          {
+            "glyph": "capital_explosion_fire",
+            "bank": "pf3"
+          },
+          {
+            "glyph": "capital_explosion_fire",
+            "bank": "pf3"
+          },
+          {
+            "glyph": "capital_explosion_core",
+            "bank": "pf3"
+          },
+          0
+        ],
+        [
+          {
+            "glyph": "capital_explosion_ember",
+            "bank": "pf3"
+          },
+          {
+            "glyph": "capital_explosion_fire",
+            "bank": "pf3"
+          },
+          0,
+          {
+            "glyph": "capital_explosion_fire",
+            "bank": "pf3"
+          },
+          {
+            "glyph": "capital_explosion_core",
+            "bank": "pf3"
+          },
+          {
+            "glyph": "capital_explosion_ember",
+            "bank": "pf3"
+          },
+          0,
+          {
+            "glyph": "capital_explosion_fire",
+            "bank": "pf3"
+          },
+          {
+            "glyph": "capital_explosion_ember",
+            "bank": "pf3"
+          }
+        ],
+        [
+          0,
+          {
+            "glyph": "capital_explosion_ember",
+            "bank": "pf3"
+          },
+          0,
+          {
+            "glyph": "capital_explosion_fire",
+            "bank": "pf3"
+          },
+          0,
+          {
+            "glyph": "capital_explosion_ember",
+            "bank": "pf3"
+          },
+          0,
+          {
+            "glyph": "capital_explosion_ember",
+            "bank": "pf3"
+          },
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          {
+            "glyph": "capital_explosion_ember",
+            "bank": "pf3"
+          },
+          0,
+          0,
+          0,
+          {
+            "glyph": "capital_explosion_ember",
+            "bank": "pf3"
+          },
+          0
+        ]
       ],
       "sound": {
         "channel": 4,
         "audctl": 0,
-        "frequency": [6, 10, 18, 28, 40, 52, 64, 76, 88, 100, 112, 124, 136, 148, 160, 172, 184, 196, 208, 220, 232, 240, 248, 255],
-        "control": [143, 143, 142, 141, 140, 140, 139, 139, 138, 138, 137, 137, 136, 136, 135, 135, 134, 134, 133, 133, 132, 131, 130, 129]
+        "frequency": [
+          6,
+          10,
+          18,
+          28,
+          40,
+          52,
+          64,
+          76,
+          88,
+          100,
+          112,
+          124,
+          136,
+          148,
+          160,
+          172,
+          184,
+          196,
+          208,
+          220,
+          232,
+          240,
+          248,
+          255
+        ],
+        "control": [
+          143,
+          143,
+          142,
+          141,
+          140,
+          140,
+          139,
+          139,
+          138,
+          138,
+          137,
+          137,
+          136,
+          136,
+          135,
+          135,
+          134,
+          134,
+          133,
+          133,
+          132,
+          131,
+          130,
+          129
+        ]
       }
     },
     "schedule": [
-      { "side": "enemy", "baseDelayAfterFrames": 73 },
-      { "side": "enemy", "baseDelayAfterFrames": 73 },
-      { "side": "enemy", "baseDelayAfterFrames": 73 },
-      { "side": "allied", "baseDelayAfterFrames": 95 }
+      {
+        "side": "enemy",
+        "baseDelayAfterFrames": 73
+      },
+      {
+        "side": "enemy",
+        "baseDelayAfterFrames": 73
+      },
+      {
+        "side": "enemy",
+        "baseDelayAfterFrames": 73
+      },
+      {
+        "side": "allied",
+        "baseDelayAfterFrames": 95
+      }
     ]
-  },
-  "turrets": [
-    {
-      "id": "allied_turret_a",
-      "side": "allied",
-      "segmentRow": 8,
-      "muzzleColumn": 8,
-      "muzzleScanlineOffset": 4,
-      "muzzleGlyph": "allied_turret_muzzle",
-      "direction": "right",
-      "type": "allied_heavy_line",
-      "footprint": {
-        "base": [[7, 4], [7, 5], [7, 6], [8, 4], [9, 4], [9, 5], [9, 6]],
-        "housing": [[8, 5]],
-        "barrel": [[8, 6], [8, 7]]
-      }
-    },
-    {
-      "id": "enemy_turret_a",
-      "side": "enemy",
-      "segmentRow": 12,
-      "muzzleColumn": 31,
-      "muzzleScanlineOffset": 4,
-      "muzzleGlyph": "enemy_turret_muzzle",
-      "direction": "left",
-      "type": "enemy_void_lance",
-      "footprint": {
-        "base": [[11, 33], [11, 34], [11, 35], [12, 35], [13, 33], [13, 34], [13, 35]],
-        "housing": [[12, 34]],
-        "barrel": [[12, 32], [12, 33]]
-      }
-    }
-  ]
+  }
 }

@@ -522,7 +522,15 @@ CH_QUESTION = 31
 
 KAWASAKI_GREEN = $D8
 GAMEPLAY_COLPF0 = $0E
+; Owner decision 1 of 2026-09-22 keeps the allied steel at $84 in the default
+; build and asks for a non-default $88 build beside it for side-by-side smoke.
+; --allied-steel=88|8A defines the override; nothing else reads it, so the
+; release artifact and its gates are untouched.
+.ifndef GAMEPLAY_COLPF1_OVERRIDE
 GAMEPLAY_COLPF1 = $84
+.else
+GAMEPLAY_COLPF1 = GAMEPLAY_COLPF1_OVERRIDE
+.endif
 GAMEPLAY_COLPF2 = PLAYER_FIGHTER_PROJECTILE_COLOR
 GAMEPLAY_COLPF3 = INTERCEPTOR_PROJECTILE_COLOR
 GAMEPLAY_BACKGROUND_COLOR = $00

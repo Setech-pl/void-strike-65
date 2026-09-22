@@ -1142,7 +1142,7 @@ kernel 19, `HYBRID_C_SECTOR` window 18, BROADSIDE 3, code window **27**,
 **205 sectors**, eleven DFMC records. Packed `STARFIELD` 1,780 → **1,785 B**.
 
 **What the Heavy break-up moved (2026-09-22, plan-4.6-placement.md §7.4
-variant 2, both archetypes).** MEASURED at the candidate: **122 B into the
+variant 2, both archetypes).** MEASURED at the default build: **122 B into the
 pickup stream fill** `PICKUP_CODE` — `heavy_death_feedback`,
 `heavy_breakup_retry`, `heavy_spawn_breakup` and the two 10-byte offset tables
 with their 3-byte archetype index — taking that fill's tail **236 → 114 B**;
@@ -1151,11 +1151,22 @@ arena **718 → 744 of 832, tail 114 → 88 B**; **1 B of BSS at `$8128`**, its 
 segment with named ld65 asserts against both neighbours; and **0 B net in the
 resident `CODE` segment** — the three bytes of `jsr heavy_breakup_retry` come
 out of the seven-byte `integration_update_enemy_pad`, which shrinks 7 → 4 B, so
-every later `CODE` entry keeps the address it had. `HYBRID_C_WINDOW` is
+every later `CODE` entry keeps the address it had. Plus **3 B** into the
+`HYBRID_C_EXT` composite for `lifecycle_c_init`'s clear of the new byte
+(880 → **883 B**, extension-window tail 19 → **16 B**). `HYBRID_C_WINDOW` is
 **unchanged at 801 B**: dropping `static` from `light_take_deferrable_token` so
 the arena can call it costs nothing, because the gate was already a real
 function with two callers. Code window tail still **27 B**; BROADSIDE tail
-still **3 B**; `ENTITY_CODE` tail still **1 B**.
+still **3 B**; `ENTITY_CODE` tail still **5 B**.
+
+**What the debris reward moved (2026-09-22, owner decision).** MEASURED at the
+default build: **25 B into the pickup stream fill** `PICKUP_CODE` for
+`debris_shot_reward` at `$8A84`, taking that fill's tail **114 → 89 B**.
+`ENTITY_CODE` is **unchanged**: `weapon_pickup_spawn_capsule_at` (`$9827`) and
+`weapon_pickup_count_incomplete` (`$9863`) are labels, not code, and
+`entity_debris_destroyed`'s `jsr` is retargeted rather than added, so resident
+`CODE` is size-neutral too. No new RAM: the capsule count is the existing
+`ENTITY_HP + WEAPON_PICKUP_SLOT`.
 
 **What the rotate gate moved (2026-09-21, plan §4.6).** 1 B of state to
 `$8127`, its own segment with named ld65 asserts against both neighbours; 5 B

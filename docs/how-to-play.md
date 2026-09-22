@@ -158,13 +158,16 @@ Remember which side you are on. And remember that the shell does not care.
 | Target | Points |
 | --- | ---: |
 | Wingman | 5 |
-| Debris | 5 |
 | Raider | 10 |
 | Interceptor | 21 |
+| Debris | 25 |
 | Bomber | 50 |
 | Boss | 100 |
 
 Debris scores whether you shoot it or ram it.
+
+Debris is hard to hit and takes three shots, which is why it pays what it pays.
+Shooting it also counts toward the next weapon capsule; ramming it does not.
 
 ## Running it
 

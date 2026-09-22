@@ -479,7 +479,7 @@ DEBRIS_DAMAGE_HARD = 7
 ; Packed BCD, difficulty-independent. Debris is an obstacle, not an enemy:
 ; the value stays an order below the Bomber's $50 so clearing debris cannot
 ; compete with killing enemies.
-DEBRIS_SCORE = $05
+DEBRIS_SCORE = $25
 ENEMY_VISIBLE_BOTTOM_EXCLUSIVE = GAMEPLAY_BOTTOM
 
 PLAYER_H    = 16
@@ -837,7 +837,7 @@ PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE = PLAYER_FIGHTER_PROJECTILE_GLYPH_BASE+PLAYE
 .assert DEBRIS_DAMAGE_EASY = 2, error, "EASY debris contact must remove two HULL units"
 .assert DEBRIS_DAMAGE_MEDIUM = 5, error, "MEDIUM debris contact must remove five HULL units"
 .assert DEBRIS_DAMAGE_HARD = 7, error, "HARD debris contact must remove seven HULL units"
-.assert DEBRIS_SCORE = $05, error, "interactive debris must award exactly $05"
+.assert DEBRIS_SCORE = $25, error, "interactive debris must award exactly $25"
 .assert ENEMY_PULSE_POOL_SLOTS = INTERCEPTOR_PROJECTILE_SLOT_COUNT, error, "Interceptor pool definitions diverged"
 .assert PLAYER_FIGHTER_PROJECTILE_ACTIVE_LIMIT <= PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT, error, "PlayerFighter active limit exceeds allocated slots"
 .assert INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT <= INTERCEPTOR_PROJECTILE_SLOT_COUNT, error, "Interceptor active limit exceeds allocated slots"
@@ -9877,8 +9877,14 @@ weapon_pickup_record_qualified_kill:
     inc ENTITY_HP+WEAPON_PICKUP_SLOT
     lda ENTITY_HP+WEAPON_PICKUP_SLOT
     cmp #WEAPON_PICKUP_QUALIFIED_KILLS
-    bcc @done
+    bcc weapon_pickup_count_incomplete
     lda FIGHTER_EXPLOSION_X+FIGHTER_EXPLOSION_ENEMY_SLOT
+; A = the kill's screen X. The capsule spawn, the corridor clamp, the type
+; rotation and the pending timer are all below this label, so the debris entry
+; in PICKUP_CODE reaches them by name rather than copying them (owner decision
+; 2026-09-22). ENTITY_CODE has a one-byte free tail, so this is a label and
+; nothing else: zero bytes.
+weapon_pickup_spawn_capsule_at:
     clc
     adc #$04
     cmp #ENTITY_CORRIDOR_LEFT_HPOS
@@ -9908,7 +9914,10 @@ weapon_pickup_record_qualified_kill:
     sta ENTITY_TIMER+WEAPON_PICKUP_SLOT
     lda #WEAPON_PICKUP_STATE_PENDING
     sta ENTITY_STATE+WEAPON_PICKUP_SLOT
-@done:
+; The count is not complete yet, so nothing is spawned. A global label because
+; weapon_pickup_spawn_capsule_at above it fences the cheap @locals it used to
+; share with the branch.
+weapon_pickup_count_incomplete:
     rts
 
 .segment "STARFIELD"
@@ -10152,7 +10161,7 @@ entity_debris_hit:
 entity_debris_destroyed:
     jsr spawn_debris_destruction_effects
     jsr integration_debris_release
-    jsr add_debris_score
+    jsr debris_shot_reward
     ; The empty-pool update later in this frame consumes the extra count. The
     ; transient +1 also identifies the destroyed snapshot to higher shot slots.
     inc ENTITY_SPAWN_TIMER_LO
@@ -10162,9 +10171,10 @@ entity_player_fighter_projectile_enemy_target:
     jmp player_fighter_projectile_hits_enemy
 entity_debris_shot = entity_player_fighter_projectile_debris_target
 
-; Two callers, both player-caused destruction: entity_debris_destroyed (the
-; lethal PlayerFighter shot) and debris_contact_destroyed (the lethal player
-; contact through entity_player_debris_overlap). Owner rule: a kill scores
+; Two callers, both player-caused destruction: debris_shot_reward, reached from
+; entity_debris_destroyed (the lethal PlayerFighter shot), and
+; debris_contact_destroyed (the lethal player contact through
+; entity_player_debris_overlap). Owner rule: a kill scores
 ; whether or not the player survives it, so contact awards exactly what a shot
 ; awards. Debris released by the despawn path (entity_despawn_debris), by
 ; falling past ENTITY_GAMEPLAY_BOTTOM or by a sector DRAIN/COMPLETE boundary
@@ -11551,8 +11561,9 @@ interceptor_admission_retry_frames:
 ;
 ; This whole block is in PICKUP_CODE, the 236-byte stream fill §7.5 named: it
 ; is contiguous, already reserved, already transported and its neighbour is
-; already asserted, and it costs the resident CODE segment nothing but the
-; retargeted jmp above and the thirteen bytes of the forcing rule's retry.
+; already asserted, and it costs the resident CODE segment nothing at all: the
+; kill-frame entry is a retargeted jmp, and the three bytes of the retry's jsr
+; come out of integration_update_enemy_pad.
 heavy_death_feedback:
     jsr begin_enemy_fighter_explosion
     ; The enqueue the owner's effect-scheduling decision requires has just
@@ -11566,15 +11577,6 @@ heavy_death_feedback:
     bne heavy_spawn_breakup
     rts
 
-; The expensive half on its own, so the forcing rule's ungated retry at the
-; head of update_enemy can reach it too. Registers are free: every caller
-; reloads X from ENEMY_TARGET_SLOT and none reads Y across the call.
-;
-; MEASURED-ESTIMATE ~1,100 cycles on the frame it runs, against the 1,063 that
-; light_spawn_breakup costs through the same call chain; the delta is the two
-; extra indexed loads per cell. Per frame while the fragments live: +0 new —
-; update_transient_effects and entity_effects_render already walk this pool for
-; debris breakups, with the same slot count.
 ; The forcing rule's ungated second attempt. Nothing can be pending unless a
 ; Heavy died within the last two frames, and integration_update_enemy has
 ; already established that a Heavy exists before it asks.
@@ -11583,6 +11585,15 @@ heavy_breakup_retry:
     bne heavy_spawn_breakup
     rts
 
+; The expensive half on its own, so the forcing rule's ungated retry above can
+; reach it too. Registers are free: every caller reloads X from
+; ENEMY_TARGET_SLOT and none reads Y across the call.
+;
+; MEASURED-ESTIMATE ~1,100 cycles on the frame it runs, against the 1,063 that
+; light_spawn_breakup costs through the same call chain; the delta is the two
+; extra indexed loads per cell. Per frame while the fragments live: +0 new —
+; update_transient_effects and entity_effects_render already walk this pool for
+; debris breakups, with the same slot count.
 heavy_spawn_breakup:
     lda #$00
     sta HEAVY_BREAKUP_PENDING   ; spent, whichever attempt this is
@@ -11656,6 +11667,47 @@ heavy_breakup_offsets:
     .byte  2, <-3,  26, <-3,   2,  9,  26,  9,  14,  4   ; Bomber
 .assert *-heavy_breakup_offsets = 2*HEAVY_BREAKUP_TABLE_STRIDE, error, "each Heavy breakup table is five (dx,dy) pairs"
 .assert HEAVY_BREAKUP_TABLE_STRIDE = 2*(EFFECT_DEBRIS_FRAGMENT_COUNT+1), error, "the Heavy breakup table must cover the whole five-slot pool"
+
+; ---------------------------------------------------------------------------
+; DEBRIS SHOT REWARD — owner decision 2026-09-22. Debris is hard to hit and
+; tough, and that stays; the reward goes up. DEBRIS_SCORE is $05 -> $25 (25
+; points, packed BCD) for a shot kill and a ram kill alike, under the existing
+; owner rule that a contact awards what a shot awards — that half needs no code
+; at all, because both paths already share add_debris_score.
+;
+; What is NEW is that a SHOT kill now counts toward the weapon-pickup capsule
+; exactly like a qualified enemy kill, and a RAM kill does not. So the counter
+; lives here, on the shot path, and debris_contact_destroyed is untouched.
+;
+; It repeats the four-instruction counter test rather than calling
+; weapon_pickup_record_qualified_kill, because that entry reads the capsule's X
+; from FIGHTER_EXPLOSION_X + ENEMY_SLOT — the Heavy's kill snapshot, which a
+; debris kill must not write: a Heavy break-up parked in HEAVY_BREAKUP_PENDING
+; would then spawn its fragments at the debris. Everything after the counter —
+; the +4 centring, the corridor clamp, the type rotation, the pending timer —
+; IS shared, by name, through weapon_pickup_spawn_capsule_at. ENTITY_CODE has a
+; one-byte free tail, which is why the sharing goes that way round.
+;
+; ENTITY_X still holds the destroyed debris's left HPOS: entity_despawn_debris
+; clears the state, the allocation result and the owner, never the position.
+; Debris is two cells wide, so the shared +4 is its exact centre.
+;
+; The one-capsule-at-a-time rule is the same test resolve_enemy_damage makes
+; before its own call: a live or pending capsule refuses the count.
+; MEASURED-ESTIMATE ~30 cycles on a frame that has no capsule pending, only on
+; the frame a shot destroys debris.
+debris_shot_reward:
+    jsr add_debris_score
+    lda ENTITY_STATE+WEAPON_PICKUP_SLOT
+    bne @done
+    inc ENTITY_HP+WEAPON_PICKUP_SLOT
+    lda ENTITY_HP+WEAPON_PICKUP_SLOT
+    cmp #WEAPON_PICKUP_QUALIFIED_KILLS
+    bcc @done
+    lda ENTITY_X
+    jmp weapon_pickup_spawn_capsule_at
+@done:
+    rts
 
 .segment "ENTITY_CODE"
 allied_engine_overlay_masks:
@@ -11736,6 +11788,7 @@ begin_capital_projectile_frame:
 .export clear_transient_effects, spawn_debris_destruction_effects
 .export spawn_breakup_effects_at, spawn_interceptor_breakup_effects
 .export heavy_death_feedback, heavy_spawn_breakup, heavy_breakup_retry
+.export debris_shot_reward, weapon_pickup_spawn_capsule_at
 .export materialize_interceptor_breakup_effects
 .export update_transient_effects, render_transient_effect_overlays
 .export erase_transient_effect_overlays, erase_interactive_entity_overlays

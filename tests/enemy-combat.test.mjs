@@ -104,13 +104,19 @@ test("selected Interceptor palette matches the Hostile hull hue with independent
   const resolver = source.slice(source.indexOf("resolve_enemy_damage:"),
     source.indexOf("insert_top_score:"));
   assert.doesNotMatch(resolver, /COLPM1|COLPM2|HPOSP1|HPOSP2/);
+  // Re-recorded 2026-09-22, owner smoke 2026-09-21: the Heavy break-up
+  // (plan-4.6-placement.md §7.4 variant 2) reversed "a Heavy death publishes no
+  // character effect". The kill-frame entry is still a three-byte jmp out of
+  // the resident segment and it still reaches begin_enemy_fighter_explosion
+  // first, so the 24-frame lifecycle hold and the COLBK flash are untouched;
+  // what follows it now is the deferrable token claim and, when that is
+  // granted, the five-cell break-up.
   assert.match(source,
-    /spawn_interceptor_breakup_effects:[\s\S]+jmp begin_enemy_fighter_explosion/);
+    /spawn_interceptor_breakup_effects:[\s\S]+jmp heavy_death_feedback/);
+  assert.match(source,
+    /heavy_death_feedback:\s*\n\s*jsr begin_enemy_fighter_explosion\n/);
   assert.match(source,
     /materialize_interceptor_breakup_effects:\s+rts/);
-  assert.doesNotMatch(source.slice(source.indexOf("spawn_interceptor_breakup_effects:"),
-    source.indexOf("update_transient_effects:")),
-  /EFFECT_|clear_transient_effects|erase_transient_effect_overlays/);
   assert.match(source,
     /tick_shared_fighter_explosions:[\s\S]+cpx #FIGHTER_EXPLOSION_ENEMY_SLOT[\s\S]+beq @tick/);
   assert.match(source,

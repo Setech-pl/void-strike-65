@@ -141,6 +141,25 @@ typedef struct {
 	 * fighter projectile stands on this tracked muzzle's own cell, 0 otherwise.
 	 * Presence, never history — see dftrace_projectile_occludes. */
 	unsigned muzzle_projectile_occlusion[2];
+	/* WRITER 5 of the hull-transient ownership model (2026-09-22): a live
+	 * break-up cell from the generic collisionless effect pool standing on the
+	 * tracked muzzle's own cell. It is the same shape as writer 4, the live
+	 * fighter projectile: the effect slot saves the covered cell into
+	 * EFFECT_BACKING before it draws and restores it when the cell expires, so
+	 * the muzzle glyph is occluded for those frames, not lost.
+	 *
+	 * The model did not need this term until the Heavy break-up
+	 * (plan-4.6-placement.md §7.4 variant 2) put a five-cell cluster on screen
+	 * wherever a Heavy dies, which in a capital sector can be on a tracked
+	 * muzzle. MEASURED: capital-muzzle-ring-2-sweep-fire4 frames 3,811-3,812,
+	 * muzzle 1's cell holding $F7 - the inverse fragment glyph
+	 * EFFECT_FRAGMENT_GLYPH_BASE|$80 the dark fade uses.
+	 *
+	 * Presence, never history, exactly like writer 4: it is 1 only while some
+	 * effect slot's OWN published screen pointer still equals that muzzle
+	 * pointer. It cannot forgive a muzzle or launch-flash code, because the
+	 * cell must also still hold that slot's own glyph. */
+	unsigned muzzle_effect_occlusion[2];
 	unsigned muzzle_code_cells;
 	unsigned muzzle_illegal_cells;
 	/* Diagnostic-only: address and character code of the FIRST orphan cell
@@ -463,6 +482,13 @@ static DFTraceFrame dftrace_current;
 #define DFTRACE_PROJECTILE_ARRAY_STRIDE 10u
 #define DFTRACE_INTERCEPTOR_GLYPH_FIRST 0xdau
 #define DFTRACE_INTERCEPTOR_GLYPH_LAST 0xe7u /* last published hostile weapon code: BOMBER animation phase, right */
+/* The generic collisionless effect pool's two glyph banks, as src/main.s lays
+ * them out: ENTITY_DEBRIS_GLYPH_BASE = 110, eight codes, which a break-up core
+ * borrows, and EFFECT_FRAGMENT_GLYPH_BASE = 118, two codes. The renderer also
+ * publishes the inverse form (|$80) for the dark fade, so the family test
+ * masks bit 7 off. */
+#define DFTRACE_EFFECT_GLYPH_FIRST 110u
+#define DFTRACE_EFFECT_GLYPH_LAST 119u
 
 static unsigned dftrace_interceptor_observed_active[DFTRACE_INTERCEPTOR_SLOT_COUNT];
 static unsigned dftrace_interceptor_previous_active[DFTRACE_INTERCEPTOR_SLOT_COUNT];
@@ -1998,6 +2024,32 @@ static unsigned dftrace_projectile_occludes(unsigned address)
 		return 1u;
 	if (dftrace_is_enemy_pairshot_code(code) && dftrace_enemy_pairshot_owns(address))
 		return 1u;
+	return 0u;
+}
+
+/* Writer 5: a live effect-pool break-up cell standing on this address, holding
+ * its own published glyph. dftrace_transient_character_owner already answers
+ * "does some effect slot own this cell", so this narrows that to the effect
+ * pool alone and re-checks the code, which is what makes it presence rather
+ * than history. */
+static unsigned dftrace_effect_occludes(unsigned address)
+{
+	unsigned slot;
+	unsigned code;
+	if (address == 0u)
+		return 0u;
+	for (slot = 0u; slot < 5u; ++slot) {
+		unsigned owned;
+		if ((MEMORY_mem[dftrace_effect_rendered_mask] & (1u << slot)) == 0u)
+			continue;
+		owned = MEMORY_mem[dftrace_effect_screen_lo + slot] |
+			((unsigned) MEMORY_mem[dftrace_effect_screen_hi + slot] << 8);
+		if (owned != address)
+			continue;
+		code = MEMORY_mem[address] & 0x7fu;
+		if (code >= DFTRACE_EFFECT_GLYPH_FIRST && code <= DFTRACE_EFFECT_GLYPH_LAST)
+			return 1u;
+	}
 	return 0u;
 }
 
@@ -4547,6 +4599,7 @@ static void dftrace_snapshot_muzzles(DFTraceFrame *frame)
 		frame->muzzle_cell_writer_pc[slot] = pointer == 0u ? 0u :
 			dftrace_character_last_writer[pointer];
 		frame->muzzle_projectile_occlusion[slot] = dftrace_projectile_occludes(pointer);
+		frame->muzzle_effect_occlusion[slot] = dftrace_effect_occludes(pointer);
 		if (MEMORY_mem[dftrace_muzzle_screen_hi + slot] != 0u) {
 			++frame->active_muzzles;
 			if (pointer != expected || frame->muzzle_domain[slot] != (row == 0u ? 0u : 1u))
@@ -4750,8 +4803,8 @@ static void dftrace_write(void)
 		",player_erase_scanline,player_draw_scanline");
 	for (index = 0; index < 2u; ++index)
 		fprintf(file, ",muzzle%u_domain,muzzle%u_row,muzzle%u_pointer,muzzle%u_cell"
-			",muzzle%u_writer_pc,muzzle%u_projectile",
-			index, index, index, index, index, index);
+			",muzzle%u_writer_pc,muzzle%u_projectile,muzzle%u_effect",
+			index, index, index, index, index, index, index);
 	fprintf(file, ",muzzle_code_cells,muzzle_illegal_cells"
 		",muzzle_illegal_address,muzzle_illegal_code,muzzle_pointer_errors"
 		",muzzle_divider_allied,muzzle_divider_enemy");
@@ -4957,10 +5010,11 @@ static void dftrace_write(void)
 			frame->player_erase_calls, frame->player_draw_calls,
 			frame->player_erase_scanline, frame->player_draw_scanline);
 		for (unsigned slot = 0; slot < 2u; ++slot)
-			fprintf(file, ",%u,%u,%u,%u,%u,%u", frame->muzzle_domain[slot],
+			fprintf(file, ",%u,%u,%u,%u,%u,%u,%u", frame->muzzle_domain[slot],
 				frame->muzzle_row[slot], frame->muzzle_pointer[slot],
 				frame->muzzle_cell[slot], frame->muzzle_cell_writer_pc[slot],
-				frame->muzzle_projectile_occlusion[slot]);
+				frame->muzzle_projectile_occlusion[slot],
+				frame->muzzle_effect_occlusion[slot]);
 		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u", frame->muzzle_code_cells,
 			frame->muzzle_illegal_cells, frame->muzzle_illegal_address,
 			frame->muzzle_illegal_code, frame->muzzle_pointer_errors,

@@ -163,14 +163,17 @@ pocisku.
 | Cel | Punkty |
 | --- | ---: |
 | Wingman | 5 |
-| Szczątki | 5 |
 | Raider | 10 |
 | Interceptor | 21 |
+| Szczątki | 25 |
 | Bomber | 50 |
 | Boss | 100 |
 
 Szczątki dają punkty niezależnie od tego, czy je zestrzelisz, czy w nie
 wlecisz.
+
+Trudno w nie trafić i wytrzymują trzy strzały — dlatego dają tyle, ile dają.
+Zestrzelenie liczy się też do następnej kapsuły z bronią; staranowanie nie.
 
 ## Uruchomienie
 

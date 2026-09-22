@@ -34,9 +34,16 @@ test("a Raider kill leaves every already-emitted PairShot visible and active", (
 
 test("the Raider kill path carries no emitter-owned projectile cleanup", () => {
   assert.doesNotMatch(source, /begin_enemy_fighter_explosion_with_projectile_cleanup/);
+  // Re-recorded 2026-09-22 for the Heavy break-up (owner smoke 2026-09-21):
+  // the kill-frame entry now jmps to heavy_death_feedback in PICKUP_CODE, whose
+  // first instruction is still the unchanged begin_enemy_fighter_explosion.
+  // What this test claims - that the kill path carries no emitter-owned
+  // projectile cleanup - is unchanged: already-emitted hostile PairShots keep
+  // their own lifecycle (owner decision 2026-09-17).
   const breakup = source.slice(source.indexOf("spawn_interceptor_breakup_effects:"),
     source.indexOf("materialize_interceptor_breakup_effects:"));
-  assert.match(breakup, /jmp begin_enemy_fighter_explosion\n/);
+  assert.match(breakup, /jmp heavy_death_feedback\n/);
+  assert.match(source, /heavy_death_feedback:\s*\n\s*jsr begin_enemy_fighter_explosion\n/);
   // The allocator's own cursor update (4.5c generic emission) derives the next
   // owner from the new shot's emitter bit; that is not kill-path cleanup.
   const allocator = source.slice(source.indexOf("allocate_interceptor_projectile:"),

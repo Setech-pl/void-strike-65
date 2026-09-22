@@ -1845,9 +1845,13 @@ test("three PlayerFighter hits destroy every debris form, awarding DEBRIS_SCORE 
         assert.equal(memory[addresses.projectileActive], 0,
           `hit ${hit} did not consume its projectile`);
         // Owner change request: only the lethal shot scores, and it scores
-        // DEBRIS_SCORE ($05) regardless of difficulty or debris form.
+        // DEBRIS_SCORE regardless of difficulty or debris form. Re-recorded
+        // 2026-09-22 for the owner decision that raised DEBRIS_SCORE $05 ->
+        // $25: debris is hard to hit and tough, so the reward goes up. Only
+        // the constant moved; what this test claims - three hits, one award,
+        // on the lethal shot alone - is unchanged.
         assert.deepEqual([memory[addresses.scoreLo], memory[addresses.scoreHi]],
-          hit < 3 ? [0x42, 0x07] : [0x47, 0x07],
+          hit < 3 ? [0x42, 0x07] : [0x67, 0x07],
           `hit ${hit} awarded the wrong debris score`);
         assert.deepEqual([
           memory[addresses.enemyPendingDamage], memory[addresses.fighterExplosionTimer],

@@ -36,9 +36,13 @@ below) on top of `f4cb18b`, the documentation-only reconciliation of
 the owner acceptance recorded here. All of it runs in the accepted runtime
 below and all of it is owner-accepted under that checkpoint.
 
-**Six `OWNER-SMOKE CANDIDATE`s are outstanding: the Heavy break-up** (section
+**Seven `OWNER-SMOKE CANDIDATE`s are outstanding: the Heavy break-up** (section
 "Heavy break-up — both archetypes" below; it closes the backlog item "HEAVY
-DESTRUCTION EFFECT" and costs the audit's binding rows nothing), **the ADR-003
+DESTRUCTION EFFECT", and it costs the worst fence margin 1,985 → **979**, which
+the owner should read before accepting it — three compliant alternatives are
+tabulated there), **the debris reward** (section "Debris reward" below;
+`DEBRIS_SCORE` `$05` → `$25` and a debris shot kill now counts toward the
+weapon capsule), **the ADR-003
 boot splash —
 cassette sound, fade, SPACE/FIRE skip and the allied-blue ship** (section
 "ADR-003 boot splash" below; it raises the opt-in initial-block ceiling 105 →
@@ -882,13 +886,13 @@ later `CODE` entry keeps the address it had.
 | `heavy_death_feedback` `$8A7B`, `heavy_breakup_retry` `$8A84`, `heavy_spawn_breakup` `$8A8A`, `heavy_breakup_offset_index` `$8ADE`, `heavy_breakup_offsets` `$8AE1-$8AF4` | pickup stream fill `PICKUP_CODE` | **122** | 236 → **114 B** |
 | `enemy_c_heavy_breakup_claim` | `HYBRID_C_ARENA` | **26** | 114 → **88 B** (744 / 832) |
 | `heavy_breakup_pending` | `HYBRID_HEAVY_BREAKUP` `$8128`, own segment, named ld65 asserts | **1** | unowned gap 24 → **23 B** (`$8129-$813F`) |
-| `lifecycle_c_init`'s clear | `HYBRID_C_EXT` composite | **3** | 880 → **883 B** |
+| `lifecycle_c_init`'s clear | `HYBRID_C_EXT` composite | **3** | 880 → **883 B**, extension-window tail 19 → **16 B** |
 | `jsr heavy_breakup_retry` | resident `CODE` | **+3, −3** | `integration_update_enemy_pad` 7 → **4 B**; **net 0** |
 
 `HYBRID_C_WINDOW` is **unchanged at 801 B**: dropping `static` from
 `light_take_deferrable_token` so the arena can call it costs nothing, because
 the gate was already a real function with two callers. Code window tail still
-**27 B**, `BROADSIDE` tail still **3 B**, `ENTITY_CODE` tail still **1 B**.
+**27 B**, `BROADSIDE` tail still **3 B**, `ENTITY_CODE` tail still **5 B**.
 
 **Re-cost against the plan's Bomber-only ~90 B.** The plan costed variant 2 at
 ~90 B for the Bomber alone. The delta to **149 B** is: the second archetype's
@@ -903,16 +907,28 @@ through `PICKUP_CODE` to keep the resident segment size-neutral.
 | --- | --- |
 | Kill frame | **+~20** — the claim and its branch, on a frame that already pays score, sound, erase and `HITCLR` |
 | Spawn frame | **~1,100** MEASURED-ESTIMATE, against the 1,063 `light_spawn_breakup` costs through the same call chain; the delta is the two extra indexed loads per cell |
-| Per frame while the fragments live | **+0 new** — `update_transient_effects` / `entity_effects_render` already walk this pool for debris break-ups, with the same slot count |
+| Each of the **30 frames** the fragments then live | the full five-slot pool walk — `entity_effects_erase`, `update_transient_effects`, `entity_effects_render`. **Not free.** See the correction below |
 | Every frame with a Heavy alive, nothing pending | **+19** — `jsr`/`rts` plus one load and one branch |
-| Every frame with **no** Heavy — every binding row of the audit | **0** |
+| Every frame with **no** Heavy | **0** — the existing `ENEMY_ACTIVE` gate at `integration_update_enemy` is taken first |
 
-**Where the cost lands relative to the binding rows.** The Heavy/swarm
-admission rule (plan §2.4, two C-decided guards) means **Heavy and swarm never
-coexist**, so a Heavy break-up cannot occur on a Light-swarm frame at all, and
-`director-complete-1-natural-sweep-fire0` and the other binding rows are
-Light-swarm rows. The cost lands on the **Heavy rows**, which sit far below the
-fence.
+**CORRECTION to plan §7.4's "+0 new per frame while the fragments live."** That
+figure is right about the **peak** and wrong about these replays. It reasoned
+that the pool walk "is already represented in the binding set by
+`debris-effects-2-sweep-fire4`" — true of a frame that already carries a debris
+cluster, because the pool holds one break-up and the second wipes the first.
+But on a frame where the pool was **empty**, a Heavy break-up makes the walk
+happen where it did not, for 30 frames after **every** Heavy death. That is
+what the audit measured, and it is the dominant term, not the spawn frame.
+
+**Where the cost lands, MEASURED.** The admission rule holds — **Heavy and
+swarm never coexist**, so no Heavy break-up can occur on a Light-swarm frame —
+but that is not what protects the binding row here, because the binding row is
+not a swarm row. Traced on `director-complete-2-natural-sweep-fire0`, the worst
+row of the whole set: a Heavy dies at **frame 6,604** (`enemy_explosion_timer`
+24, effect mask `$1F`, count 5), its fragments live their 30 frames through
+**6,628**, and **frame 6,629** — the sector-completion frame, which already
+does the most pre-fence work of the replay — now also erases four fragment
+cells before the pool expires. That is the −1,006 cycles below.
 
 ### Tests
 
@@ -936,6 +952,104 @@ sites → **five**, two deferrable → **three**) and the extension composite
 **inverted**: a Raider death must now either spawn its break-up or defer it,
 where it previously had to leave the pool untouched.
 
+### Gates — the branch as a whole (both commits)
+
+The two commits were gated together at the end of the branch, on the **default**
+build. XEX `9d401b21d5404eaedf2fdc5e8773394d2460958ec0dcf99d3616c19e58ce3906`,
+ATR `aab9fec5148252faad97d43adf9b12d468043190325504177f2b718f72a97c52`.
+
+**PAL timing audit — the full set, 73 replays (65 in the default run + 8
+mode-gated), 0 distinct miss events, 0 rows over the hard gate.** Boot smoke
+**8/8**. Measured DMA-on maximum **31,216** cycles, physical headroom **4,352**,
+deadline overruns **0**, missed frames **0**.
+
+**The worst fence margin is 1,985 → 979 cycles**, and the whole drop is the
+Heavy break-up's standing cost. Every row below is A/B'd against a clean build
+of `main` at `8a4fb1b` in its own worktree, same emulator, same procedure:
+
+| replay | `main` margin | branch margin | delta | rows over the 31,200 target |
+| --- | ---: | ---: | ---: | --- |
+| `director-complete-2-natural-sweep-fire0` f6,629 | 1,985 | **979** | **−1,006** | 0 → 0 |
+| `debris-effects-2-sweep-fire4` f4,189 | 3,737 | **1,381** | **−2,356** | 0 → **2** |
+| `director-complete-1-natural-sweep-fire0` f3,457 | 2,985 | **1,837** | **−1,148** | 0 → 0 |
+| `2-evasive-fire1` f31 | 4,945 | 2,040 | −2,905 | 0 → 0 |
+| `capital-muzzle-ring-2-sweep-fire4` | 4,835 | 2,769 | −2,066 | 0 → **2** |
+
+Those three "rows over target" figures are rows over the **31,200-cycle
+target**, not over the **32,568 hard gate**: `>hard` is **0** on every one of
+the 73 replays, as is `missed_frames`. Rows over target are not new to the set
+(`raider-remnant-rapid` 2, `raider-remnant-spread` 1 and
+`debris-gate-capital-muzzle-ring` 2 are all unchanged from `main`).
+
+**This is a real cost and the owner should see the levers.** The work is
+delivered as specified — variant 2, both archetypes, the owner's fragment
+lifetime — and these are the compliant alternatives if 979 is too little slack:
+
+| option | player-visible effect | cost | risk |
+| --- | --- | --- | --- |
+| **A — ship as is** | the break-up the owner asked for | 0 further bytes | worst margin 979 of the line-238 fence, 0 miss events across 73 replays |
+| **B — shorten the Heavy fragment lifetime** 30 → 15 frames | the break-up is half as long; the 24-frame COLBK/lifecycle hold then outlasts it | **~2 B** — one immediate operand, a Heavy-only timer constant instead of the shared `EFFECT_DEBRIS_FRAGMENT_TIMER_LOAD` | halves the standing window, which is the dominant term; nothing else changes |
+| **C — four cells instead of five**, dropping the core | no centre flash, corners only | ~10 B and a shorter table | ~20 % of the standing cost; weakens the read the owner asked for |
+
+**Release gate green on the default build.** The runtime evidence was
+regenerated once, at the end of the branch, as this branch's own change —
+`build:candidate` → `runtime:wall-trace` → `build`, one unbroken default run,
+**65/65 sessions**. The recorded-failure list is **exactly identical**: 40
+recorded, **0 new and 0 disappeared**, `gate.timing_and_dli_passed` true.
+`tests/runtime-evidence-binding.test.mjs` green.
+
+### What the native harness needed, and why — four changes, no assertion weakened
+
+Both features changed things the native gate observes, and the owner's rule for
+behavioural blockers (2026-09-21) was applied to each: MEASURE the class first,
+then handle it only as that class allows.
+
+**1. The hull-transient ownership model gained a FIFTH writer (a narrowing).**
+`capital-muzzle-ring-2-sweep-fire4` frames 3,811-3,812 failed "observed a stale
+muzzle/flash code or invalid derived pointer": muzzle 1's cell held `$F7`, the
+inverse fragment glyph `EFFECT_FRAGMENT_GLYPH_BASE|$80` that the dark fade
+uses. A break-up cell standing on a tracked muzzle is the **same shape as
+writer 4**, the live fighter projectile — the slot saves the covered cell into
+`EFFECT_BACKING0` before it draws and returns it when the cell expires, so the
+muzzle glyph is occluded for those frames, not lost — and the model simply did
+not know about it, exactly as it did not know about writer 3 (the launch flash)
+before. `dftrace_effect_occludes` in `scripts/atari800-wall-trace.h` emits
+`muzzle{N}_effect` as presence, never history: 1 only while some effect slot's
+OWN published screen pointer still equals that muzzle pointer **and** the cell
+still holds an effect-bank glyph. The assertion is unchanged.
+
+**2. A weapon-pickup coverage session was ADDED (class (a), stale scenario).**
+Making a debris shot kill a qualified kill moved the capsule cadence, which is
+what it was for. MEASURED: on a clean `main` build the difficulty-2 showcase
+replay collected RAPID, SPREAD and SHIELD; on this branch a debris kill
+completes the count ~100 frames earlier, that SPREAD capsule spawns at frame
+1,956 and **the player dies at frame 1,963 before reaching it**, so the
+three-step rotation never lands a Spread booster and the Spread Shot screenshot
+clause stopped being satisfiable. Running the same replay longer does not help:
+it reaches GAME OVER, MEASURED over 7,000 frames. So the set gains
+`weapon-pickup-spread-0-hunt-fire4` — the same replay on EASY, where all three
+booster states do appear — under its **own** trace kind, so every other
+weapon-pickup clause still reads exactly the rows and exactly the captures the
+difficulty-2 session produced before. The audited default run is 64 → **65**
+sessions.
+
+**3. The OPTION pause test moved from the `hunt` memory-integrity pair to the
+`evasive` pair (class (a)).** The emulator arms that test only while the Spread
+booster is active. MEASURED on this build: the `hunt` pair reaches booster
+states 3 and 5 only, the `evasive` pair holds state 4 for 621 frames. The
+assertion, the arming condition and the coverage it names are untouched; only
+which replay of the same pair carries it changed. It now completes: pickup
+timer frozen 450 → 450, engine timer 1 → 1, engine phase 0 → 0, 27 host frames.
+
+**4. `spreadVolleyRows` reads the union instead of one replay (class (b), wrong
+selection).** The predicate is unchanged; only the row set it reads is —
+exactly the shape of the `activeCapsuleDuringBooster` correction already in that
+file. It now reads the same `pickupModeRows` union the booster-mode coverage
+clause beside it already read, plus the session added in (2). It still fails if
+no replay anywhere executes a three-projectile Spread volley.
+
+**Not one assertion was loosened, deleted or re-pinned to pass.**
+
 **What the older Raider traces still cover.** `tests/entity-effects.test.mjs`'s
 three `executeInterceptorBreakupTrace` tests keep passing, and truthfully: that
 harness drives `update_enemy` directly rather than through
@@ -945,6 +1059,92 @@ budget is zero and the kill frame always defers. They therefore still prove the
 leaves an unrelated debris break-up alone, and costs no more than it did. The
 spawning half, the bound and the geometry are `tests/heavy-breakup.test.mjs`.
 A note in that file says so.
+
+---
+
+## Debris reward — `OWNER-SMOKE CANDIDATE` (2026-09-22)
+
+Branch `feat/kill-rewards`, second commit. **Owner decision 2026-09-22:**
+debris is hard to hit and tough, and that stays; the reward goes up.
+
+**The score.** `DEBRIS_SCORE` `$05` → **`$25`** — twenty-five points, packed
+BCD, difficulty-independent — **for a shot kill and a ram kill alike**. That
+half needed no new code: the existing owner rule (2026-09-18) already routes
+both player-caused destructions through one `add_debris_score`, so raising the
+constant raises both. Debris now sits between the Interceptor (21) and the
+Bomber (50) in the scoring table, which is what "hard to hit and tough" is
+worth. The `.assert` and both `how-to-play` tables (EN and PL) carry the new
+value.
+
+**The capsule.** A debris **SHOT** kill now counts toward the weapon-pickup
+capsule exactly like a qualified enemy kill; a **RAM** kill does not. The count
+lives on the shot path, in the new `debris_shot_reward` (`PICKUP_CODE`,
+`$8A84`, **25 B**), which `entity_debris_destroyed` reaches in place of its
+direct `jsr add_debris_score` — so the resident `CODE` segment is size-neutral
+and `debris_contact_destroyed` is untouched, which is exactly what makes a ram
+kill not count. The one-capsule-at-a-time rule is the same idle-slot test
+`resolve_enemy_damage` makes before its own call.
+
+**The position.** A debris kill that completes the count spawns the capsule at
+the **debris**. The spawn used to read `FIGHTER_EXPLOSION_X + ENEMY_SLOT` — the
+Heavy's kill snapshot, which a debris kill never writes, so the capsule would
+have landed wherever the last enemy died. It could not simply be made to write
+that snapshot either: a Heavy break-up parked in `HEAVY_BREAKUP_PENDING` would
+then spawn its fragments at the debris. So the debris entry passes its own X
+and joins the enemy path at **`weapon_pickup_spawn_capsule_at`**, a new label
+and nothing else — **zero bytes in `ENTITY_CODE`**, whose free tail is 1 B.
+Everything after the counter is therefore shared: the `+4` centring (debris is
+two cells wide, so that is its exact centre), the corridor clamp, the type
+rotation and the pending timer. Only the four-instruction counter test is
+repeated.
+
+`weapon_pickup_count_incomplete` is a global label for a mechanical reason: the
+new `weapon_pickup_spawn_capsule_at` above it fences the cheap `@locals` the
+branch used to share with its exit.
+
+**Nothing else changed.** Debris HP (three PlayerFighter hits), spawn rates,
+contact damage and the one-capsule-at-a-time rule are all untouched, and
+`tests/debris-score.test.mjs` pins that explicitly.
+
+### Bytes
+
+| Piece | Home | Bytes |
+| --- | --- | ---: |
+| `debris_shot_reward` `$8A84` | pickup stream fill `PICKUP_CODE` | **25** (tail 114 → **89 B**) |
+| `weapon_pickup_spawn_capsule_at` `$9827` | `ENTITY_CODE` | **0** — a label; the segment's 5-B tail is untouched |
+| `weapon_pickup_count_incomplete` `$9863` | `ENTITY_CODE` | **0** — a renamed label |
+| `entity_debris_destroyed`'s retargeted `jsr` | resident `CODE` | **0** |
+
+**Cycles.** MEASURED-ESTIMATE **~30** on a frame that has no capsule pending,
+and only on the frame a shot destroys debris — a frame that already runs the
+effect spawn, the Director release and the score add.
+
+### Tests
+
+`tests/debris-score.test.mjs`, six new tests plus four re-recorded ones. A/B'd
+against a clean build of the tree without the change: **9 of 11 red there, 11
+of 11 green here**.
+
+| test | proves |
+| --- | --- |
+| a debris shot kill adds 25 points | the constant, through the executed path |
+| a debris ram kill adds the same 25 points | the 2026-09-18 owner rule still holds at the new value |
+| a debris SHOT kill counts toward the capsule and a RAM kill does not | the asymmetry the owner asked for |
+| a debris kill that completes the count spawns the capsule at the debris X | the position, and that the Heavy kill snapshot stays untouched |
+| the capsule is clamped into the entity corridor at both edges | the clamp is the enemy path's, unchanged, at both ends |
+| nothing else about debris changed | HP, the non-lethal hit, and the one-capsule-at-a-time rule |
+
+**Gates.** Both commits were gated together at the end of the branch: see
+§"Gates — the branch as a whole" under "Heavy break-up" above. The capsule
+cadence change is the reason three of the four native-harness scenario changes
+recorded there were needed; none of them weakened an assertion.
+
+**Four pins re-recorded deliberately, with the owner decision as the reason and
+no other:** `DEBRIS_SCORE = $05` → `$25` in the source-shape assertion, the two
+executed-trace score totals (`$0747` → `$0767`), and the `entity_debris_destroyed`
+call-graph shape (`jsr add_debris_score` → `jsr debris_shot_reward`, with
+`debris_shot_reward: jsr add_debris_score` pinned in its place, so
+`add_debris_score` still has exactly two call sites).
 
 ---
 
@@ -2351,10 +2551,17 @@ Candidate XEX `3ce1a1d6…`, ATR `823b961b…`. Evidence:
 
 ## Debris score (owner change request) — **OWNER-ACCEPTED** (owner smoke PASS 2026-09-18)
 
+> **SUPERSEDED IN PART, 2026-09-22 (owner decision).** `DEBRIS_SCORE` is now
+> **`$25`**, twenty-five points, and a debris SHOT kill counts toward the
+> weapon-pickup capsule. See "Debris reward" below. The mechanism, the
+> placement and the "contact awards what a shot awards" rule below are all
+> still exactly true; only the constant and the capsule count changed.
+
 - **Request.** Destroying interactive debris awarded nothing; it must award a
   single difficulty-independent `DEBRIS_SCORE = $05`. Debris is an obstacle,
   not an enemy: the value stays an order below the Bomber's `$50` so clearing
-  debris cannot compete with killing enemies.
+  debris cannot compete with killing enemies. *(The value was raised to `$25`
+  on 2026-09-22; the reasoning is in "Debris reward" below.)*
 - **Where.** `entity_debris_destroyed` (`src/main.s`, ENTITY_CODE) is reached
   only from `entity_debris_hit`, itself reached only from
   `entity_player_fighter_projectile_debris_target` — the lethal PlayerFighter

@@ -167,6 +167,24 @@ const debrisVisibilityGateSessions = [
     policy: "broadside-proof", fireDelay: 4, frames: 6_000 },
 ].map((session) => ({ ...session, kind: "debris-visibility-gate" }));
 
+// SCENARIO EXTENDED 2026-09-22, owner-rule class (a) — a SECOND coverage
+// session, not a weakened clause. The owner decision that made a debris SHOT
+// kill a qualified kill changed the capsule cadence, which is what it was for.
+// MEASURED: on a clean main build this replay collected RAPID, SPREAD and
+// SHIELD; on this branch a debris kill completes the count ~100 frames
+// earlier, that SPREAD capsule spawns at frame 1,956 and the player dies at
+// frame 1,963 before reaching it, so the three-step type rotation never lands
+// a SPREAD booster on the player and the Spread Shot screenshot clause stopped
+// being satisfiable. Running the same replay longer does not help: it reaches
+// GAME OVER, MEASURED over 7,000 frames.
+//
+// The scenario cannot contain the behaviour any more and the assertion is
+// right, so the scenario gains a session and the assertion is untouched -
+// never the other way round (docs/recorded-gate-failures.json,
+// class a-stale-scenario). The added session is the same replay on EASY, where
+// the player survives long enough to collect all three capsule types
+// (MEASURED: booster states 3, 4 and 5 all appear); the original difficulty-2
+// session keeps its 4,000 frames, its own captures and its own rows unchanged.
 const weaponPickupSessions = [{
   id: "weapon-pickup-2-hunt-fire4",
   difficulty: 2,
@@ -174,6 +192,20 @@ const weaponPickupSessions = [{
   fireDelay: 4,
   frames: 4_000,
   kind: "weapon-pickup-coverage",
+}];
+
+// The added session carries its OWN kind so that it contributes the missing
+// Spread Shot screenshot and nothing else: every other weapon-pickup clause -
+// the capsule's final draw, the +2 scanline raster motion, the booster release,
+// the 16-frame smooth sequence - still reads exactly the rows and exactly the
+// captures the difficulty-2 session produced before this change, unchanged.
+const weaponPickupSpreadSessions = [{
+  id: "weapon-pickup-spread-0-hunt-fire4",
+  difficulty: 0,
+  policy: "hunt",
+  fireDelay: 4,
+  frames: 6_000,
+  kind: "weapon-pickup-spread-coverage",
 }];
 
 const pairShotSessions = [
@@ -414,7 +446,17 @@ const memoryIntegritySessions = ["XEX", "ATR"].flatMap((medium) =>
     fireDelay: 4,
     frames: 4_000,
     kind: "memory-integrity-160s",
-    pauseTest: policy === "hunt",
+    // WHICH of the pair arms the OPTION pause test, 2026-09-22, owner-rule
+    // class (a). The clause below it asserts that Spread Shot and the engine
+    // cadence FREEZE across a pause, and the emulator arms it only while the
+    // Spread booster is active (dftrace_pause_test, ENTITY_STATE+2 == 4). The
+    // owner decision that made a debris SHOT kill a qualified kill moved the
+    // capsule cadence, and MEASURED on this build the `hunt` pair no longer
+    // reaches a Spread booster at all (states 3 and 5 only) while the `evasive`
+    // pair holds one for 621 frames. So the scenario moves to the replay that
+    // still contains the behaviour; the assertion, the arming condition and the
+    // coverage it names are all untouched.
+    pauseTest: policy === "evasive",
   })));
 
 const pickupFenceSessions = [["XEX", 2], ["ATR", 2], ["XEX", 1]].map(([medium, difficulty]) => ({
@@ -761,7 +803,7 @@ const numericCsvFields = new Set([
   "pause_engine_phase_before", "pause_engine_phase_after", "pause_host_frames",
 ]);
 for (const slot of [0, 1])
-  for (const field of ["domain", "row", "pointer", "cell", "writer_pc", "projectile"])
+  for (const field of ["domain", "row", "pointer", "cell", "writer_pc", "projectile", "effect"])
     numericCsvFields.add(`muzzle${slot}_${field}`);
 for (const field of ["muzzle_code_cells", "muzzle_illegal_cells", "muzzle_pointer_errors",
   "muzzle_illegal_address", "muzzle_illegal_code",
@@ -1274,6 +1316,17 @@ function parseCsv(csvText, sessionDefinition) {
 //      glyph is occluded for those frames, not lost. Exactly the shape of writer 2,
 //      which the model already credits for a broadside hull covering the same cell.
 //      See 9.6 in the diagnostics note.
+//   5. a live break-up cell from the generic collisionless effect pool standing
+//      on one of those same cells - render_transient_effect_overlays is the last
+//      writer of any cell it occupies, the tracked muzzle's included. The slot
+//      saves the covered cell into EFFECT_BACKING0 before it draws and the
+//      erase returns it when the cell expires, so the muzzle glyph is occluded
+//      for those frames, not lost. Exactly the shape of writers 2 and 4.
+//      ADDED 2026-09-22: the model did not need it while the only thing that
+//      filled that pool was a debris break-up, which this replay set never put
+//      on a tracked muzzle. The Heavy break-up (plan-4.6-placement.md §7.4
+//      variant 2) puts a five-cell cluster wherever a Heavy dies, which in a
+//      capital sector can be exactly there.
 //
 // Writer 3 was invisible to the model until now. dftrace_snapshot_muzzles
 // (scripts/atari800-wall-trace.h) attributes every hull-transient code it finds to
@@ -2888,7 +2941,8 @@ function main() {
     ? capitalPlayerGeometrySessions
     : smokeFrames === null
     ? [...baselineSessions, ...targetedSessions, ...cadenceSessions, ...fighterFlashSessions,
-      ...debrisEffectsSessions, ...weaponPickupSessions, ...directorCompletionSessions,
+      ...debrisEffectsSessions, ...weaponPickupSessions, ...weaponPickupSpreadSessions,
+      ...directorCompletionSessions,
       ...weaponPickupTraversalSessions, ...weaponPickupContactSessions,
       ...capitalMuzzleSessions, ...provisionalCapitalSessions, ...capitalContactSessions,
       ...memoryIntegritySessions, ...lowerPlayfieldSessions]
@@ -3047,6 +3101,10 @@ function main() {
         DFTRACE_PICKUP_SCREENSHOT: pickupScreenshotPath,
         DFTRACE_PICKUP_SEQUENCE_PREFIX: pickupSequencePrefix,
         DFTRACE_RAPID_SCREENSHOT: rapidScreenshotPath,
+      } : {}),
+      // The Spread Shot capture alone, on the session added for it: see
+      // weaponPickupSpreadSessions.
+      ...(session.kind === "weapon-pickup-spread-coverage" && !pairShotOnly ? {
         DFTRACE_SPREAD_SCREENSHOT: spreadScreenshotPath,
       } : {}),
       ...(session.kind === "booster-admission-native" ? {
@@ -3161,6 +3219,20 @@ function main() {
       // both projectile glyph families.
       const projectileOccludesMuzzle = (row, muzzleSlot) =>
         row[`muzzle${muzzleSlot}_projectile`] === 1;
+      // Writer 5: a live break-up cell from the generic collisionless effect
+      // pool standing on the tracked muzzle's own cell (2026-09-22). Same shape
+      // as writer 4 and emitted the same way, by dftrace_effect_occludes: 1
+      // only while some effect slot's OWN published screen pointer still equals
+      // that muzzle pointer AND the cell still holds an effect-bank glyph. The
+      // slot saved the covered cell into EFFECT_BACKING before it drew and
+      // returns it when the cell expires, so the muzzle glyph is occluded for
+      // those frames, not lost. The model did not need this term until the
+      // Heavy break-up put a five-cell cluster wherever a Heavy dies, which in
+      // a capital sector can be on a tracked muzzle: MEASURED,
+      // capital-muzzle-ring-2-sweep-fire4 frames 3,811-3,812, muzzle 1 holding
+      // $F7, the inverse fragment glyph the dark fade uses.
+      const effectOccludesMuzzle = (row, muzzleSlot) =>
+        row[`muzzle${muzzleSlot}_effect`] === 1;
       const occludedRows = rows.filter((row) => [0, 1].some((slot) =>
         row[`muzzle${slot}_pointer`] !== 0 &&
         !transientCodes.has(row[`muzzle${slot}_cell`]) &&
@@ -3178,10 +3250,11 @@ function main() {
           row[`muzzle${slot}_pointer`] !== 0 &&
           transientCodes.has(row[`muzzle${slot}_cell`])).length;
         // Every active muzzle must be accounted for: it either shows its own
-        // transient glyph, or writer 2 (a broadside hull) or writer 4 (a live
-        // rendered projectile) is standing on that exact cell this frame. The
-        // three are per-slot alternatives, not a sum: a slot explained twice is
-        // still one slot, and a slot explained by nothing at all still fails.
+        // transient glyph, or writer 2 (a broadside hull), writer 4 (a live
+        // rendered projectile) or writer 5 (a live break-up cell) is standing
+        // on that exact cell this frame. The four are per-slot alternatives,
+        // not a sum: a slot explained twice is still one slot, and a slot
+        // explained by nothing at all still fails.
         // An active muzzle whose cell is empty, with no broadside and no
         // projectile on it, remains an error — including the frame after a
         // projectile leaves without erase_fighter_projectile_restore returning
@@ -3190,7 +3263,8 @@ function main() {
           row[`muzzle${slot}_pointer`] !== 0 &&
           (transientCodes.has(row[`muzzle${slot}_cell`]) ||
             broadsideOccludesMuzzle(row, slot) ||
-            projectileOccludesMuzzle(row, slot))).length;
+            projectileOccludesMuzzle(row, slot) ||
+            effectOccludesMuzzle(row, slot))).length;
         // Writer 3 of the ownership model above: a live launch flash owns its own
         // cell. Expired flashes, unowned addresses and stray muzzle codes still fail.
         return unownedHullTransientCells(row) === 0 && row.muzzle_pointer_errors === 0 &&
@@ -5587,6 +5661,11 @@ function main() {
   const fighterFlashRows = allRows.filter((row) => row.trace_kind === "fighter-flash-coverage");
   const debrisEffectsRows = allRows.filter((row) => row.trace_kind === "debris-effects-coverage");
   const weaponPickupRows = allRows.filter((row) => row.trace_kind === "weapon-pickup-coverage");
+  // The session added for the Spread Shot coverage (see weaponPickupSpreadSessions).
+  // It is deliberately NOT part of weaponPickupRows: every clause that reads
+  // that set keeps exactly the rows it read before this change.
+  const weaponPickupSpreadRows = allRows.filter((row) =>
+    row.trace_kind === "weapon-pickup-spread-coverage");
   const directorCompletionRows = allRows.filter((row) =>
     row.trace_kind === "director-level-complete");
   const memoryIntegrityRows = allRows.filter((row) => row.trace_kind === "memory-integrity-160s");
@@ -5961,7 +6040,8 @@ function main() {
   // three distinct collections. Admission ownership can legitimately move a
   // later collection beyond the showcase window, so lifecycle coverage is the
   // union of both real production traces.
-  const pickupModeRows = [...weaponPickupRows, ...memoryIntegrityRows];
+  const pickupModeRows = [...weaponPickupRows, ...memoryIntegrityRows,
+    ...weaponPickupSpreadRows];
   const pickupCollectRows = pickupModeRows.filter((row) =>
     (row.events & (1 << 19)) !== 0);
   const pickupPendingRows = weaponPickupRows.filter((row) => row.pickup_state === 1);
@@ -5993,7 +6073,17 @@ function main() {
     pickupPreviousTransition = row;
   }
   const rapidProjectileRows = weaponPickupRows.filter((row) => row.rapid_projectiles > 0);
-  const spreadVolleyRows = weaponPickupRows.filter((row) =>
+  /* MEASURED 2026-09-22, owner rule: class (b), WRONG SELECTION — corrected
+   * here, not loosened, in exactly the shape the `activeCapsuleDuringBooster`
+   * correction below already took. The predicate is unchanged; only the row set
+   * it reads is. The owner decision that made a debris SHOT kill a qualified
+   * kill moved the capsule cadence, and the difficulty-2 showcase replay no
+   * longer collects a Spread capsule at all, so a clause that reads only that
+   * replay can no longer see a Spread volley however correct the build is. It
+   * now reads the same union the booster-mode coverage clause beside it already
+   * reads, plus the session added for this coverage. It still fails if no
+   * replay anywhere executes a three-projectile Spread volley. */
+  const spreadVolleyRows = pickupModeRows.filter((row) =>
     row.pickup_booster_state === 4 && row.player_fighter_projectiles >= 3);
   const activeCapsuleThreeProjectileRows = weaponPickupRows.filter((row) =>
     row.pickup_state === 2 && row.player_fighter_projectiles >= 3);

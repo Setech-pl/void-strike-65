@@ -384,7 +384,12 @@ test("placement contract: legal composite and packed size, state inside its rese
   assert.equal(manifest.entityEffects.codeBytes, 3161);
   assert.equal(manifest.residentCapacity.tails.entityCode, 5);
   // Step 1b: LIGHT_RESIDENT's 229 B left the pickup stream with the kernel.
-  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 236);
+  // Re-recorded 2026-09-22: the Heavy break-up (plan-4.6-placement.md §7.4
+  // variant 2) spends 122 B of that fill and the debris reward's
+  // debris_shot_reward another 25, 236 -> 89. Both are owner decisions, and
+  // this fill is exactly where §7.5 put them: contiguous, already reserved,
+  // already transported, neighbour already asserted.
+  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 89);
   // Owner decision X + Light multiplicity steps 1a-3. The Light C left the
   // extension for the code window and the kernel left for its own link, which
   // took the scarce 19-B tail to 451; step 3's multi-slot ASM then overran the
@@ -405,7 +410,13 @@ test("placement contract: legal composite and packed size, state inside its rese
   // rule removed from the deferred-breakup retry), and lifecycle_c_init's
   // clear cost this composite 3: extension 877 -> 880 B, tail 22 -> 19 B, and
   // the code window tail 32 -> 27 B.
-  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 19);
+  // Heavy break-up, 2026-09-22 (plan-4.6-placement.md §7.4 variant 2): the same
+  // shape a third time - its deferred-once bit took $8128 rather than either
+  // full Light area, its claim went to HYBRID_C_ARENA with the rest of the
+  // Heavy's C, and lifecycle_c_init's clear cost this composite 3 again:
+  // extension 880 -> 883 B. The tail this manifest reports is the extension
+  // window's, 19 -> 16 B.
+  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 16);
   // Both moved down 4 B in music v2 §10.2: the v1 gameplay player's
   // self-modified read tail was at $9D21, ahead of the art tables, and went
   // with the v1 player. Nothing about the tables themselves changed.

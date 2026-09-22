@@ -89,7 +89,7 @@ test("C EnemyArchetype is a compact exact Raider record in legal extension place
   // gate's code (light_take_deferrable_token) is in the window, not here.
   // Heavy break-up, 2026-09-22 (plan-4.6-placement.md §7.4 variant 2): the
   // same shape a third time - its deferred-once bit went to $8128 and
-  // lifecycle_c_init clears it, 880 + 3 = 883, tail 147 B. The claim's own
+  // lifecycle_c_init clears it, 880 + 3 = 883, tail 19 -> 16 B. The claim's own
   // code is in HYBRID_C_ARENA with the rest of the Heavy's C, and its ASM in
   // the pickup stream fill; only the initialiser lands in this composite.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(

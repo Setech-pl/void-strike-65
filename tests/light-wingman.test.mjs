@@ -202,7 +202,12 @@ test("Light kernel placement is legal, resident and inside every reviewed gate",
   // reaches a column through a one-byte offset and needs no pointer), so the
   // margin grew by exactly those four bytes. A deliberate SHRINK of
   // ENTITY_CODE, re-recorded here with its reason.
-  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 81,
+  // 84 after capital-hulls v2 (hull set v1): ENTITY_CODE is byte-identical and
+  // every segment keeps its address, but the new hull art packs smaller, so the
+  // ENTITY_CODE runtime stream lands 3 B shorter (packedBytes 2,727 -> 2,724)
+  // and the margin GROWS by exactly those three bytes. A deliberate shrink of
+  // the packed stream, re-recorded here with its reason.
+  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 84,
     "ENTITY_CODE staging margin tracks the Light art tables");
   assert.equal(manifest.capitalPlayerCollisionRuntime.runAddress, 0x8b67);
   // light_add_score exactly fills the retired 17-byte BROADSIDE entry pad.

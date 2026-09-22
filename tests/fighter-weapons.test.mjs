@@ -412,9 +412,11 @@ test("actual PlayerFighter projectile bank is Atari yellow without changing Play
   assert.match(source, /lda #GAMEPLAY_COLPF2\s+sta COLPF2/);
   assert.match(source, /lda #\$0E[^\n]*\n\s*sta COLPM0/);
   assert.match(source, /lda #\$28[^\n]*\n\s*sta COLPM3/);
-  assert.equal(hulls.glyphs.find(({ name }) => name === "enemy_engine_energy").screenBank,
+  // capital-hulls v2 keeps these two in the core group: they are resident in
+  // every level hull set and no enemy style may re-bank them.
+  assert.equal(hulls.core.effects.find(({ name }) => name === "enemy_engine_energy").screenBank,
     "pf3", "enemy engine energy remains in the red bank rather than inheriting yellow");
-  assert.equal(hulls.glyphs.find(({ name }) => name === "enemy_launch_flash").screenBank,
+  assert.equal(hulls.core.effects.find(({ name }) => name === "enemy_launch_flash").screenBank,
     "pf3", "enemy launch flash remains in the red bank rather than inheriting yellow");
 });
 

@@ -36,7 +36,11 @@ below) on top of `f4cb18b`, the documentation-only reconciliation of
 the owner acceptance recorded here. All of it runs in the accepted runtime
 below and all of it is owner-accepted under that checkpoint.
 
-**Seven `OWNER-SMOKE CANDIDATE`s are outstanding: the Heavy break-up** (section
+**Eight `OWNER-SMOKE CANDIDATE`s are outstanding: the capital hull set v1 step
+1** (section "Capital hull set v1 — step 1" below; allied hull B and enemy style
+R1 replace the H4.2 C INDUSTRIAL pair, 73-replay PAL audit PASS with the worst
+fence margin **979 → 979**, boot smoke 8/8, full-suite failure list identical to
+`ded0687`), **the Heavy break-up** (section
 "Heavy break-up — both archetypes" below; it closes the backlog item "HEAVY
 DESTRUCTION EFFECT", and it costs the worst fence margin 1,985 → **979**, which
 the owner should read before accepting it — three compliant alternatives are
@@ -217,6 +221,114 @@ state the resulting free tail in its message and in the memory-map override
 section.**
 
 ---
+
+## Capital hull set v1 — step 1 — OWNER-SMOKE CANDIDATE (2026-09-22)
+
+Branch `feat/hull-v2-generator` from `main` at `ded0687`. Step 1 of
+[plans/hull-set-v1.md](plans/hull-set-v1.md): the owner-approved set-B art
+replaces the accepted H4.2 C INDUSTRIAL allied/enemy pair. **The runtime is
+untouched.** The resident path still carries one allied map and one enemy map,
+`build/capital-hulls.inc` emits byte-identical constants, and **every linked
+segment keeps its address and size** — `CODE $2000-$317D`, `RODATA
+$317E-$3FFF`, `STARFIELD $54E4-$5CA9`, `BROADSIDE $5E10-$780C`, `PICKUP_CODE
+$8776-$8B0D`. Only data bytes changed, so `docs/memory-map.md` has nothing to
+re-record (no reserved address, segment or range moved).
+
+`assets/graphics/capital-hulls.json` is now `formatVersion 2`: one allied hull,
+one shared blank, and four enemy styles by region, compiled into four level hull
+sets (allied ∪ shared ∪ style *n*). The enemy art and map are authored in allied
+orientation and mirrored at compile time. `scripts/hull-set-import.mjs` converts
+the reviewed draft `assets/graphics/hull-drafts/hull-set-v1.json` into that
+asset and `--check` asserts the committed asset is exactly what the draft
+produces, so the art cannot drift by hand. Per-level surface codes are
+**12 / 14 / 13 / 14** for R1-R4, inside decision AA's 14-code budget.
+`packedDataBytes` is 1,005, unchanged. The four 280-byte per-style hull blocks
+are emitted to `build/hull-style-R{1..4}.bin`; nothing loads them yet — that is
+step 2.
+
+**Owner decisions of 2026-09-22** are recorded in
+[plans/hull-set-v1.md](plans/hull-set-v1.md) §12. The one that changes what the
+owner will see: decisions 3/4 (move the recessed muzzles onto the projection
+column) and decision 5 (one active turret module per side, no decorative
+turrets) are only jointly satisfiable with **one turret per style**, because
+under a single turret module a second muzzle row makes the generator substitute
+the disabled module for whichever module contains it — hiding the emplacement
+*and* deleting an eighth of that style's texture. R2, R3 and R4 therefore show
+one emplacement per 32-row texture instead of the two on `set-B-sheet.png`.
+Those three styles are `DEFERRED` until after the allied + R1 smoke, so step 3
+can revisit it at no cost to steps 1-2.
+
+The contour rules relax to the one hard band `5 <= depth <= 8` (decision 6). The
+v1 transition count, the two-to-eight run-length window and the "use all four
+depths" rule were generator-only statistics; the runtime reads per-row boundary
+tables and never inspects them. The approved drafts draw one-row 45-degree
+chamfers and runs up to 13.
+
+### Gates — the DEFAULT build
+
+XEX `b87189f3df589b846f1960ccad45fcec4fc97dd37949f4425afec99514c2dab4`
+(28,175 B), ATR `fd23aeb653b83f4fc7ac06e2f4f85e51e2326c54d2d4bccfcfc20bf5d6e0c83b`
+(92,176 B). Sizes unchanged; boot 107 sectors, unchanged.
+
+**PAL timing audit — the full set, 73 replays (65 in the default run + 8
+mode-gated), 0 distinct miss events, 0 rows over the hard gate, 0 deadline
+overruns, 0 missed frames.** Boot smoke **8/8**. The evidence was regenerated
+once as this branch's own change — `build:candidate` → `runtime:wall-trace
+--atari800-source=build/atari800-trace` → `build`, one unbroken default run.
+Recorded clause failures **40, 0 new and 0 disappeared**;
+`gate.timing_and_dli_passed` true; `gate.passed` false on this branch and on
+`ded0687` alike, which is the recorded-failure state, not a regression.
+`tests/runtime-evidence-binding.test.mjs` green.
+
+**The worst fence margin is 979 → 979 cycles**, unmoved, at
+`director-complete-2-natural-sweep-fire0`. Against the committed evidence of
+`ded0687` the heaviest frame **moved between replays** rather than growing
+anywhere it binds:
+
+| replay | `ded0687` max wall | branch max wall | rows over the 31,200 target |
+| --- | ---: | ---: | --- |
+| `debris-effects-2-sweep-fire4` | 31,216 | **30,957** | 2 → **0** |
+| `capital-muzzle-ring-2-sweep-fire4` | 31,216 | **30,957** | 2 → **0** |
+| `director-complete-0-natural-sweep-fire0` | 31,164 | 31,164 | 0 → 0 |
+| `director-complete-1-natural-sweep-fire0` | ≤ 31,164 | **31,351** | 0 → **4** |
+| `raider-remnant-rapid-xex-hard` | — | 31,226 | 2 → **3** |
+| `raider-remnant-spread-xex-hard` | — | 30,571 | 1 → **0** |
+| `debris-gate-capital-muzzle-ring-2-sweep-fire4` | — | 30,957 | 2 → **0** |
+
+Measured DMA-on maximum **31,216 → 31,351** (+135), physical headroom
+**4,352 → 4,217**. Rows over the **31,200 target** across the whole set go
+**9 → 7** against the figures recorded for the accepted checkpoint; `>hard` is
+**0** on every one of the 73 replays, as is `missed_frames`. This is the
+second-order effect the plan's §9 predicted and bounded:
+`broadside_hits_opposite_hull` scans from the corridor edge outward until the
+first hull cell, so a different contour moves where the heavy frames land. No
+code executes a different instruction.
+
+The debris visibility gate's single post-capital blank on
+`debris-gate-0-neutral-fire0` is the documented pre-existing failure and is
+unchanged (1 blank / 1 disappearance; the other two debris replays are 0 / 0).
+
+**Full-suite failure list identical to `ded0687`.** `npm test` on the **default**
+build: **800 tests, 688 pass, 109 fail, 3 todo**. The 109 names are exactly the
+109 recorded in the plan's Appendix A — **0 new, 0 disappeared**. `800 − 792 = 8`
+new tests, all passing: seven in `tests/hull-set-v1.test.mjs` and the shared-glyph
+rule in `tests/capital-hulls.test.mjs`. Nine existing tests were re-pinned, each
+with its reason in the test; two of those are deliberate shrinks — the
+`ENTITY_CODE` staging-to-BROADSIDE margin **81 → 84 B** (`ENTITY_CODE` is
+byte-identical; the new hull art packs 3 B smaller, `packedBytes` 2,727 →
+**2,724**) and the ANTIC 2 prototype's distinct map glyphs **22 → 20** (the blank
+is one shared glyph now, and R1 leaves two of the seven per-level slots unused).
+
+**Allied steel: `$84` in the default build** (owner decision 1). A non-default
+review variant `--allied-steel=88|8A` (`npm run steel:88`) defines
+`GAMEPLAY_COLPF1_OVERRIDE`, writes to `build/allied-steel-<v>/` and never to
+`dist/`, skips runtime measurement and is consulted by no gate. The $88 build for
+side-by-side smoke is `build/allied-steel-88/void-strike-65.xex`.
+
+**What the owner should look at in smoke:** the allied hull B on the left and
+enemy style R1 on the right; turret fire from both sides; and player contact on
+the chamfers, where the `ch_in` cell counts as hull (decision 7) and collision
+therefore sits at that cell's outer edge.
 
 ## PAL timing gate — distinct miss events
 

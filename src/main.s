@@ -47,6 +47,7 @@ CAPITAL_PLAYER_COLLISION = $8B67
 
 .import __A2_KERNEL_RUN__, __A2_KERNEL_SIZE__
 .import __BOOT_STAGE2_LOAD__, __BOOT_STAGE2_RUN__, __BOOT_STAGE2_SIZE__
+.import __BOOT_SPLASH_RUN__, __BOOT_SPLASH_SIZE__
 
 ; -----------------------------------------------------------------------------
 ; OS workspace and vectors
@@ -118,6 +119,9 @@ AUDC3       = $D205
 AUDF4       = $D206
 AUDC4       = $D207
 AUDCTL      = $D208
+KBCODE      = $D209         ; last key code POKEY's own scan latched
+RANDOM      = $D20A
+SKSTAT      = $D20F         ; bit 2: 0 = a key is down
 
 ; -----------------------------------------------------------------------------
 ; PIA and ANTIC
@@ -3119,17 +3123,11 @@ show_loader:
 
     lda #LOADER_DURATION_FRAMES
     sta loader_frame_count
-@frame:
-    jsr wait_frame_start
-    jsr set_loader_title_palette
-    dec loader_frame_count
-    bne @frame
-
-    ; The 250th full frame has completed. Blank the next frame before rebuild.
-    lda #$00
-    sta NMIEN
-    sta DMACTL
-    rts
+    ; The 250-frame hold, the cassette sound, the fade and the skip live in the
+    ; boot-only splash blob at $0500 (src/boot-splash.s), which both stage-2
+    ; entries copied there before start. Its exit path blanks the display and
+    ; returns to this routine's caller.
+    jmp splash_hold
 
 set_loader_title_palette:
     lda #LOADER_TITLE_COLPF2
@@ -3140,33 +3138,21 @@ set_loader_title_palette:
     sta COLBK
     rts
 
-; WSYNC aligns each palette switch to the first color clock of the following
-; zone. Including a worst-case WSYNC stall, each DLI is bounded by 160 cycles.
-; Only A is used and preserved; X and Y are untouched.
-loader_dli:
-    pha
-    lda #$00
-    sta WSYNC
-    lda loader_dli_phase
-    bne @studio
-
-    lda #LOADER_SHIP_COLPF1
-    sta COLPF1
-    lda #LOADER_SHIP_COLPF2
-    sta COLPF2
-    inc loader_dli_phase
-    pla
-    rti
-
-@studio:
-    lda #LOADER_STUDIO_COLPF1
-    sta COLPF1
-    lda #LOADER_STUDIO_COLPF2
-    sta COLPF2
-    lda #$00                    ; restore title phase for the next frame
-    sta loader_dli_phase
-    pla
-    rti
+; Layout pin, 2026-09-22. Moving the 250-frame hold and loader_dli into the
+; boot-only splash blob freed exactly 56 B of CODE. Letting that slack close
+; would slide every later CODE and RODATA address 56 bytes down, which changes
+; which indexed reads cross a page: MEASURED, that cost the heaviest gameplay
+; frame 17 cycles (31,200 -> 31,217, worst fence margin 1,985 -> 1,959) for no
+; gain, and it moves frozen
+; addresses that other tests pin. Pinned, CODE is $117E as before, RODATA
+; starts at $317E as before, and build/broadside-runtime.bin and
+; build/entity-code-runtime.bin come out byte-identical to the previous build,
+; so the runtime evidence stays comparable. The pin costs nothing against that
+; build - this is the space the splash gave back. Delete it deliberately, with
+; a re-measured cycle baseline, when something needs the bytes.
+; Never reached: the rts above is the only way out of this routine.
+LOADER_SPLASH_CODE_SLACK = 56
+    .res LOADER_SPLASH_CODE_SLACK, $00
 
 ; The accepted loader pixels use the same bounded LZ-10/5 decoder as the
 ; resident broadside block. Resetting both self-modified endpoints makes the
@@ -11772,6 +11758,7 @@ boot_stage2_atr_entry:
     ; bootstrap prefix has fewer than three bytes free; both are strictly
     ; earlier than start, and this overlay is not part of that prefix.
     jsr disable_basic_rom
+    jsr copy_boot_splash_blob
     jsr boot_stage2_validate_manifest
 layout_d_manifest_validation_complete:
     lda #<(boot_chunk_manifest+CHUNK_RECORD)
@@ -11919,9 +11906,39 @@ boot_stage2_xex_entry:
     ; Owner decision A: the XEX never executes boot_entry (RUNAD lands here),
     ; so the file path unmaps the BASIC ROM for itself, before jmp start.
     jsr disable_basic_rom
+    jsr copy_boot_splash_blob
     lda #$02
     sta boot_chunk_ready
     jmp start
+
+; The ADR-003 splash blob runs at $0500-$06FF, the one range that is populated
+; before the hold, untouched between `start` and `show_loader`, and dead
+; afterwards (owner decision, 2026-09-22; plan §6.2 (a)).
+; Both entries call this immediately after disable_basic_rom: on the ATR that is
+; ahead of the first SIO read and on the XEX ahead of `jmp start`, so it is
+; earlier than every other write either medium makes. The boot order itself is
+; unchanged. Cost: 512 byte copies, about 4,000 cycles, roughly a tenth of a
+; frame, identical on both media.
+;
+; The blob travels at the tail of the initial block, behind every packed source,
+; so that the measured addresses of the packed resident, starfield, A2 and
+; ENTITY streams - and the 91-byte margin the packed starfield keeps below the
+; pickup cold staging at $4801 - do not move. Its address therefore follows the
+; build's own layout, so scripts/build.mjs patches both operands the way it
+; already patches the other packed-source reads.
+copy_boot_splash_blob:
+    ldx #$00
+; A global label fences the cheap @locals, so the loop head is global too.
+boot_splash_copy_page:
+boot_splash_source:
+    lda $FFFF,x
+    sta __BOOT_SPLASH_RUN__,x
+boot_splash_source_high:
+    lda $FFFF,x
+    sta __BOOT_SPLASH_RUN__+$0100,x
+    inx
+    bne boot_splash_copy_page
+    rts
 
 boot_stage2_validate_manifest:
     lda boot_chunk_manifest
@@ -12261,6 +12278,7 @@ boot_chunk_manifest_end:
 .assert *-__BOOT_STAGE2_RUN__ <= $0800, error, "stage-2 loader exceeds transient overlay"
 
 .export boot_stage2_atr_entry, boot_stage2_xex_entry, boot_stage2_error
+.export copy_boot_splash_blob, boot_splash_source, boot_splash_source_high
 .export boot_chunk_manifest, boot_chunk_manifest_end, stage2_chunk_published
 .export layout_d_manifest_validation_complete
 .export layout_d_expected_end_path, layout_d_expected_end_path_end
@@ -12435,3 +12453,23 @@ entity_debris_publish_after_pairshot_erase:
 .endif
 .export entity_debris_publish, render_launch_flashes_with_capital_debris
 .export restore_recycled_row_near_and_debris
+
+; -----------------------------------------------------------------------------
+; ADR-003 boot splash (2026-09-22)
+;
+; The blob is a separate linked segment that loads into the BOOT_STAGE2 file
+; area, directly after the stage-2 overlay, and runs at $0500-$06FF. Both
+; stage-2 entries copy it there (copy_boot_splash_blob) before anything else
+; either medium writes. Padding it to the full window keeps that copy one fixed
+; two-page loop and lets the boot smoke checksum $0500-$06FF against
+; build/boot-splash.bin byte for byte.
+
+SPLASH_BLOB_BYTES = $0200
+SPLASH_SPACE_KEY = $21          ; POKEY key code for SPACE, KBCODE bits 0-5
+
+.include "boot-splash.inc"
+.include "boot-splash.s"
+
+.assert __BOOT_SPLASH_RUN__ = $0500, error, "the boot splash blob must run at $0500"
+.assert __BOOT_SPLASH_SIZE__ = SPLASH_BLOB_BYTES, error, "the boot splash blob must fill its $0200 window"
+.assert __BOOT_STAGE2_SIZE__ + __BOOT_SPLASH_SIZE__ <= $0800, error, "stage-2 plus the splash blob exceed the BOOT2FILE area they share"

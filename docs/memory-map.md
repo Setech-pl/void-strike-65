@@ -146,6 +146,7 @@ longer implies a deadline; what it costs is **2 PAL frames per occupied
 | `$9FF8-$9FF9` | 2 B | free Director reservation tail |
 | `$9FFA-$9FFF` | 6 B | untouched Director guard |
 | `$21C1-$26A9` | 1,257 B | boot-only `BOOT_STAGE2` overlay; replaced by the resident suffix before runtime |
+| `$0500-$06FF` | 512 B | boot-only ADR-003 splash blob: the 250-frame hold, the cassette-sound bit engine, the fade, the SPACE/FIRE skip and `loader_dli`. 499 B of code and tables, the rest zero padding. Both stage-2 entries copy it here right after `disable_basic_rom`; nothing reads or writes it once the hold ends. OS RAM no segment claims: `$0500-$057D` and `$0600-$06FF` are free, `$057E-$05FF` is floating-point scratch this build never calls. **Zero resident bytes** — the 56 B the hold loop and DLI vacated in MAIN are held as the `LOADER_SPLASH_CODE_SLACK` layout pin so no later CODE or RODATA address moves; recoverable |
 
 The linked metric is `CODE + STARFIELD + BROADSIDE + A2_KERNEL + ENTITY_CODE +
 PICKUP_CODE = 17,452 B` (17,521 B at `2df89da`). The obsolete 1,152-byte
@@ -752,6 +753,7 @@ are transport padding.
 | `$40BE-$478C` | 1,743 B | packed 2,145-byte starfield/music runtime; deferred staging at `$7810`, then expansion to `$54E4-$5D44` |
 | `$478D-$4879` | 237 B | A2 source; staged at `$7F2B`, then copied to `$9000-$90EC` before entity/effects clear |
 | `$487A-$5317` | 2,718 B | packed 3,160-byte ENTITY_CODE; copied backward to `$5318-$5DB5`, then expanded to `$9100-$9D57` |
+| `$532A-$5529` | 512 B | boot-only splash blob; copied to `$0500-$06FF` by both stage-2 entries before `start`. It rides at the **tail** of the initial block, behind every packed source, so the measured addresses of the resident, starfield, A2 and ENTITY streams — and the 91-byte margin the packed starfield keeps below the pickup cold staging at `$4801` — do not move |
 | `$5318-$531B` | 4 B | source-owned `DFB1` trailer |
 | ATR sectors 104-148 | 5,760 B | external BROADSIDE record: 5,653 B packed / 6,650 B raw to `$5E10` |
 | ATR sectors 149-155 | 896 B | 788-B pickup/collision stream; publishes 904 B to `$8800-$8B87` |

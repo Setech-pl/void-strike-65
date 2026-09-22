@@ -39,11 +39,11 @@
       "foregroundPixel": 1,
       "startLine": 40,
       "endLine": 156,
-      "foreground": "$0A",
+      "foreground": "$8A",
       "registers": {
         "COLBK": "$00",
-        "COLPF1": "$0A",
-        "COLPF2": "$00"
+        "COLPF1": "$8A",
+        "COLPF2": "$80"
       }
     },
     {

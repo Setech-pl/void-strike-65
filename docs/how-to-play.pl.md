@@ -65,6 +65,7 @@ Szczątki i kapsuły z ulepszeniami pojawiają się wszędzie.
 | Joystick, port 1 | Ruch |
 | Fire | Strzał |
 | Spacja | Pauza |
+| Spacja lub Fire, na ekranie startowym | Pominięcie ekranu tytułowego |
 
 ## Myśliwiec
 

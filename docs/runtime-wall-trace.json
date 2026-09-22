@@ -9,36 +9,36 @@
     "artifact_binding": "boot BIN, XEX and ATR SHA-256"
   },
   "determinism": {
-    "replay_fingerprint_sha256": "27f667f18284ac5f951f33551bd8d10f975c8521552ff22000e1f05e293623ee",
+    "replay_fingerprint_sha256": "6cf459ca46d0bf1976b2fdc98893e36029f75ca4f812370b506c03c561ee3038",
     "ordered_frames": 102180,
     "basis": "ordered decoded CSV rows from every required legal replay"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
       "path": "dist/void-strike-65-boot.bin",
-      "bytes": 26112,
-      "sha256": "707842e42cd784537a2661fff595255d93f501232c0370d39a8f62dd95331701"
+      "bytes": 26624,
+      "sha256": "c8626188a13660ecca36bb0fc3c4ed3fd425c5bff3d1452447e6a0604c3c4265"
     },
     "void-strike-65.xex": {
       "path": "dist/void-strike-65.xex",
-      "bytes": 27498,
-      "sha256": "f83c14b898541e0ae788d97cf33158ef41512210e916c517cca13ffe17965ace"
+      "bytes": 28010,
+      "sha256": "4e348e3f808337e542ef806fe0010900f75d53bac9fffecd39939ac1831163da"
     },
     "void-strike-65.atr": {
       "path": "dist/void-strike-65.atr",
       "bytes": 92176,
-      "sha256": "165f6018d1eb2be145d694f5e0f3ca686b7c0a657ba7fc7a4ef8300e6efd34ef"
+      "sha256": "e26c81a708157aa9f8681f78f1165cf761e183e0f86bb18e2fb12e62ae31d405"
     },
     "void-strike-65-manifest.json": {
       "path": "dist/void-strike-65-manifest.json",
-      "bytes": 790684,
-      "sha256": "adf6b33f99d788d7e685372096288f1bd1adf8a0419b55df01c13db6494ef40a"
+      "bytes": 791702,
+      "sha256": "9d3c049e331b7a2b84daaedb6167e1645794c51701651a90e176655d6daf28d4"
     }
   },
   "artifact": {
     "path": "dist/void-strike-65.xex",
-    "bytes": 27498,
-    "sha256": "f83c14b898541e0ae788d97cf33158ef41512210e916c517cca13ffe17965ace"
+    "bytes": 28010,
+    "sha256": "4e348e3f808337e542ef806fe0010900f75d53bac9fffecd39939ac1831163da"
   },
   "emulator": {
     "name": "Atari800",
@@ -183,13 +183,13 @@
     "input": "production joystick path; FIRE pressed on host frames 3051-3056",
     "expected_addresses": {
       "start": 8222,
-      "xex_entry": 9013,
+      "xex_entry": 9016,
       "loader_dlist": 15360,
       "main_menu_dlist": 37888,
       "playfield_dlist_a": 32528,
       "playfield_dlist_b": 32618,
       "playfield_dlist_bytes": 75,
-      "loader_dli": 10122,
+      "loader_dli": 1735,
       "frontend_dli": 9229,
       "gameplay_dli": 25105
     },
@@ -222,8 +222,8 @@
         "artifact": {
           "path": "dist/void-strike-65.xex",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.xex",
-          "bytes": 27498,
-          "sha256": "f83c14b898541e0ae788d97cf33158ef41512210e916c517cca13ffe17965ace"
+          "bytes": 28010,
+          "sha256": "4e348e3f808337e542ef806fe0010900f75d53bac9fffecd39939ac1831163da"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -266,7 +266,8 @@
             "portb": 255,
             "window": "00000000000000000000000000000000",
             "level_header": "0000000000000000",
-            "level_checksum": 0
+            "level_checksum": 0,
+            "splash_checksum": 0
           },
           {
             "frame": 138,
@@ -280,26 +281,27 @@
             "pm_base": 0,
             "dma_ctl": 34,
             "nmi_en": 128,
-            "vdslst": 10122,
+            "vdslst": 1735,
             "sdlst": 48160,
             "memtop": 48159,
             "ramtop": 192,
-            "runad": 9013,
+            "runad": 9016,
             "initad": 55213,
             "dosvec": 61987,
-            "screen_checksum": 297395762,
+            "screen_checksum": 3948292094,
             "frontend_dlist_checksum": 3927338786,
             "loader_dli_count": 4,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "5653010107780306",
-            "level_checksum": 1085299608
+            "level_checksum": 1085299608,
+            "splash_checksum": 3015614197
           },
           {
             "frame": 188,
-            "pc": 10027,
+            "pc": 10030,
             "scanline": 0,
-            "cycle": 10,
+            "cycle": 12,
             "loader_timer": 199,
             "game_state": 0,
             "dlist": 15360,
@@ -307,20 +309,21 @@
             "pm_base": 0,
             "dma_ctl": 34,
             "nmi_en": 128,
-            "vdslst": 10122,
+            "vdslst": 1735,
             "sdlst": 48160,
             "memtop": 48159,
             "ramtop": 192,
-            "runad": 9013,
+            "runad": 9016,
             "initad": 55213,
             "dosvec": 61987,
-            "screen_checksum": 297395762,
+            "screen_checksum": 3948292094,
             "frontend_dlist_checksum": 3927338786,
             "loader_dli_count": 104,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "5653010107780306",
-            "level_checksum": 1085299608
+            "level_checksum": 1085299608,
+            "splash_checksum": 3015614197
           },
           {
             "frame": 3050,
@@ -338,16 +341,17 @@
             "sdlst": 48160,
             "memtop": 48159,
             "ramtop": 192,
-            "runad": 9013,
+            "runad": 9016,
             "initad": 55213,
             "dosvec": 61987,
             "screen_checksum": 71910213,
             "frontend_dlist_checksum": 3927338786,
-            "loader_dli_count": 500,
+            "loader_dli_count": 502,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "5653010107780306",
-            "level_checksum": 1085299608
+            "level_checksum": 1085299608,
+            "splash_checksum": 3015614197
           },
           {
             "frame": 3300,
@@ -365,32 +369,33 @@
             "sdlst": 48160,
             "memtop": 48159,
             "ramtop": 192,
-            "runad": 9013,
+            "runad": 9016,
             "initad": 55213,
             "dosvec": 61987,
             "screen_checksum": 839006927,
             "frontend_dlist_checksum": 3927338786,
-            "loader_dli_count": 500,
+            "loader_dli_count": 502,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "5653010107780306",
-            "level_checksum": 1085299608
+            "level_checksum": 1085299608,
+            "splash_checksum": 3015614197
           }
         ],
         "milestones": {
           "start": 78,
           "loader": 135,
-          "menu": 391,
+          "menu": 392,
           "frontend_poll": 393,
           "gameplay_init": 3053,
           "main_loop": 3056
         },
         "boot_deadline": {
           "medium": "XEX",
-          "menu_frame": 391,
+          "menu_frame": 392,
           "frontend_poll_frame": 393,
           "baseline_frames": 392,
-          "delta_frames": -1,
+          "delta_frames": 0,
           "absolute_ceiling_frames": 3000,
           "warn_at_frames": 402,
           "fail_at_frames": 442,
@@ -425,14 +430,14 @@
           {
             "frame": 138,
             "path": "build/runtime-wall-trace/boot-smoke/xex-a5-frame138.png",
-            "bytes": 2500,
-            "sha256": "6a08cd264aaf807358efaada2d672ced7184b042c9a262db13e9cd23a35e9648"
+            "bytes": 2599,
+            "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
             "frame": 188,
             "path": "build/runtime-wall-trace/boot-smoke/xex-a5-frame188.png",
-            "bytes": 2500,
-            "sha256": "6a08cd264aaf807358efaada2d672ced7184b042c9a262db13e9cd23a35e9648"
+            "bytes": 2599,
+            "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
             "frame": 3050,
@@ -457,8 +462,8 @@
         "artifact": {
           "path": "dist/void-strike-65.xex",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.xex",
-          "bytes": 27498,
-          "sha256": "f83c14b898541e0ae788d97cf33158ef41512210e916c517cca13ffe17965ace"
+          "bytes": 28010,
+          "sha256": "4e348e3f808337e542ef806fe0010900f75d53bac9fffecd39939ac1831163da"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -501,7 +506,8 @@
             "portb": 255,
             "window": "00000000000000000000000000000000",
             "level_header": "0000000000000000",
-            "level_checksum": 0
+            "level_checksum": 0,
+            "splash_checksum": 0
           },
           {
             "frame": 138,
@@ -515,26 +521,27 @@
             "pm_base": 0,
             "dma_ctl": 34,
             "nmi_en": 128,
-            "vdslst": 10122,
+            "vdslst": 1735,
             "sdlst": 48160,
             "memtop": 48159,
             "ramtop": 192,
-            "runad": 9013,
+            "runad": 9016,
             "initad": 55213,
             "dosvec": 61987,
-            "screen_checksum": 297395762,
+            "screen_checksum": 3948292094,
             "frontend_dlist_checksum": 3927338786,
             "loader_dli_count": 4,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "5653010107780306",
-            "level_checksum": 1085299608
+            "level_checksum": 1085299608,
+            "splash_checksum": 3015614197
           },
           {
             "frame": 188,
-            "pc": 10027,
+            "pc": 10030,
             "scanline": 0,
-            "cycle": 10,
+            "cycle": 12,
             "loader_timer": 199,
             "game_state": 0,
             "dlist": 15360,
@@ -542,20 +549,21 @@
             "pm_base": 0,
             "dma_ctl": 34,
             "nmi_en": 128,
-            "vdslst": 10122,
+            "vdslst": 1735,
             "sdlst": 48160,
             "memtop": 48159,
             "ramtop": 192,
-            "runad": 9013,
+            "runad": 9016,
             "initad": 55213,
             "dosvec": 61987,
-            "screen_checksum": 297395762,
+            "screen_checksum": 3948292094,
             "frontend_dlist_checksum": 3927338786,
             "loader_dli_count": 104,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "5653010107780306",
-            "level_checksum": 1085299608
+            "level_checksum": 1085299608,
+            "splash_checksum": 3015614197
           },
           {
             "frame": 3050,
@@ -573,16 +581,17 @@
             "sdlst": 48160,
             "memtop": 48159,
             "ramtop": 192,
-            "runad": 9013,
+            "runad": 9016,
             "initad": 55213,
             "dosvec": 61987,
             "screen_checksum": 71910213,
             "frontend_dlist_checksum": 3927338786,
-            "loader_dli_count": 500,
+            "loader_dli_count": 502,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "5653010107780306",
-            "level_checksum": 1085299608
+            "level_checksum": 1085299608,
+            "splash_checksum": 3015614197
           },
           {
             "frame": 3300,
@@ -600,32 +609,33 @@
             "sdlst": 48160,
             "memtop": 48159,
             "ramtop": 192,
-            "runad": 9013,
+            "runad": 9016,
             "initad": 55213,
             "dosvec": 61987,
             "screen_checksum": 839006927,
             "frontend_dlist_checksum": 3927338786,
-            "loader_dli_count": 500,
+            "loader_dli_count": 502,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "5653010107780306",
-            "level_checksum": 1085299608
+            "level_checksum": 1085299608,
+            "splash_checksum": 3015614197
           }
         ],
         "milestones": {
           "start": 78,
           "loader": 135,
-          "menu": 391,
+          "menu": 392,
           "frontend_poll": 393,
           "gameplay_init": 3053,
           "main_loop": 3056
         },
         "boot_deadline": {
           "medium": "XEX",
-          "menu_frame": 391,
+          "menu_frame": 392,
           "frontend_poll_frame": 393,
           "baseline_frames": 392,
-          "delta_frames": -1,
+          "delta_frames": 0,
           "absolute_ceiling_frames": 3000,
           "warn_at_frames": 402,
           "fail_at_frames": 442,
@@ -660,14 +670,14 @@
           {
             "frame": 138,
             "path": "build/runtime-wall-trace/boot-smoke/xex-5a-frame138.png",
-            "bytes": 2500,
-            "sha256": "6a08cd264aaf807358efaada2d672ced7184b042c9a262db13e9cd23a35e9648"
+            "bytes": 2599,
+            "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
             "frame": 188,
             "path": "build/runtime-wall-trace/boot-smoke/xex-5a-frame188.png",
-            "bytes": 2500,
-            "sha256": "6a08cd264aaf807358efaada2d672ced7184b042c9a262db13e9cd23a35e9648"
+            "bytes": 2599,
+            "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
             "frame": 3050,
@@ -693,7 +703,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "165f6018d1eb2be145d694f5e0f3ca686b7c0a657ba7fc7a4ef8300e6efd34ef"
+          "sha256": "e26c81a708157aa9f8681f78f1165cf761e183e0f86bb18e2fb12e62ae31d405"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -735,10 +745,11 @@
             "portb": 255,
             "window": "00000000000000000000000000000000",
             "level_header": "0000000000000000",
-            "level_checksum": 0
+            "level_checksum": 0,
+            "splash_checksum": 0
           },
           {
-            "frame": 342,
+            "frame": 346,
             "pc": 10027,
             "scanline": 0,
             "cycle": 10,
@@ -749,26 +760,27 @@
             "pm_base": 0,
             "dma_ctl": 34,
             "nmi_en": 128,
-            "vdslst": 10122,
+            "vdslst": 1735,
             "sdlst": 48160,
             "memtop": 48159,
             "ramtop": 192,
             "runad": 0,
             "initad": 0,
             "dosvec": 8222,
-            "screen_checksum": 297395762,
+            "screen_checksum": 3948292094,
             "frontend_dlist_checksum": 3927338786,
             "loader_dli_count": 4,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "0000000000000000",
-            "level_checksum": 0
+            "level_checksum": 0,
+            "splash_checksum": 3015614197
           },
           {
-            "frame": 392,
-            "pc": 10027,
+            "frame": 396,
+            "pc": 10030,
             "scanline": 0,
-            "cycle": 10,
+            "cycle": 12,
             "loader_timer": 199,
             "game_state": 0,
             "dlist": 15360,
@@ -776,26 +788,27 @@
             "pm_base": 0,
             "dma_ctl": 34,
             "nmi_en": 128,
-            "vdslst": 10122,
+            "vdslst": 1735,
             "sdlst": 48160,
             "memtop": 48159,
             "ramtop": 192,
             "runad": 0,
             "initad": 0,
             "dosvec": 8222,
-            "screen_checksum": 297395762,
+            "screen_checksum": 3948292094,
             "frontend_dlist_checksum": 3927338786,
             "loader_dli_count": 104,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "0000000000000000",
-            "level_checksum": 0
+            "level_checksum": 0,
+            "splash_checksum": 3015614197
           },
           {
             "frame": 3050,
-            "pc": 9974,
+            "pc": 9971,
             "scanline": 0,
-            "cycle": 11,
+            "cycle": 9,
             "loader_timer": 0,
             "game_state": 1,
             "dlist": 37888,
@@ -812,11 +825,12 @@
             "dosvec": 8222,
             "screen_checksum": 71910213,
             "frontend_dlist_checksum": 3927338786,
-            "loader_dli_count": 500,
+            "loader_dli_count": 502,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "0000000000000000",
-            "level_checksum": 0
+            "level_checksum": 0,
+            "splash_checksum": 3015614197
           },
           {
             "frame": 3300,
@@ -839,40 +853,41 @@
             "dosvec": 8222,
             "screen_checksum": 413909032,
             "frontend_dlist_checksum": 3927338786,
-            "loader_dli_count": 500,
+            "loader_dli_count": 502,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "5653010107780306",
-            "level_checksum": 1085299608
+            "level_checksum": 1085299608,
+            "splash_checksum": 3015614197
           }
         ],
         "milestones": {
-          "start": 282,
-          "loader": 339,
-          "menu": 595,
-          "frontend_poll": 597,
+          "start": 286,
+          "loader": 343,
+          "menu": 600,
+          "frontend_poll": 601,
           "gameplay_init": 3079,
           "main_loop": 3082
         },
         "boot_deadline": {
           "medium": "ATR",
-          "menu_frame": 595,
-          "frontend_poll_frame": 597,
+          "menu_frame": 600,
+          "frontend_poll_frame": 601,
           "baseline_frames": 596,
-          "delta_frames": -1,
+          "delta_frames": 4,
           "absolute_ceiling_frames": 3000,
           "warn_at_frames": 606,
           "fail_at_frames": 646,
           "warned": false,
-          "loader_frame": 339,
+          "loader_frame": 343,
           "loader_baseline_frames": 339,
-          "loader_delta_frames": 0,
+          "loader_delta_frames": 4,
           "loader_warn_at_frames": 349,
           "loader_fail_at_frames": 389,
           "loader_warned": false,
           "loader_observation_frames": [
-            342,
-            392
+            346,
+            396
           ]
         },
         "sector_reader": {
@@ -892,16 +907,16 @@
             "sha256": "c3a38d056554863c524c60c09eaeecedb06d17176d8014563695f585c401ec2f"
           },
           {
-            "frame": 342,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-frame342.png",
-            "bytes": 2500,
-            "sha256": "6a08cd264aaf807358efaada2d672ced7184b042c9a262db13e9cd23a35e9648"
+            "frame": 346,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-frame346.png",
+            "bytes": 2599,
+            "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
-            "frame": 392,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-frame392.png",
-            "bytes": 2500,
-            "sha256": "6a08cd264aaf807358efaada2d672ced7184b042c9a262db13e9cd23a35e9648"
+            "frame": 396,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-frame396.png",
+            "bytes": 2599,
+            "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
             "frame": 3050,
@@ -927,7 +942,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "165f6018d1eb2be145d694f5e0f3ca686b7c0a657ba7fc7a4ef8300e6efd34ef"
+          "sha256": "e26c81a708157aa9f8681f78f1165cf761e183e0f86bb18e2fb12e62ae31d405"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -969,10 +984,11 @@
             "portb": 255,
             "window": "00000000000000000000000000000000",
             "level_header": "0000000000000000",
-            "level_checksum": 0
+            "level_checksum": 0,
+            "splash_checksum": 0
           },
           {
-            "frame": 342,
+            "frame": 346,
             "pc": 10027,
             "scanline": 0,
             "cycle": 10,
@@ -983,26 +999,27 @@
             "pm_base": 0,
             "dma_ctl": 34,
             "nmi_en": 128,
-            "vdslst": 10122,
+            "vdslst": 1735,
             "sdlst": 48160,
             "memtop": 48159,
             "ramtop": 192,
             "runad": 0,
             "initad": 0,
             "dosvec": 8222,
-            "screen_checksum": 297395762,
+            "screen_checksum": 3948292094,
             "frontend_dlist_checksum": 3927338786,
             "loader_dli_count": 4,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "0000000000000000",
-            "level_checksum": 0
+            "level_checksum": 0,
+            "splash_checksum": 3015614197
           },
           {
-            "frame": 392,
-            "pc": 10027,
+            "frame": 396,
+            "pc": 10030,
             "scanline": 0,
-            "cycle": 10,
+            "cycle": 12,
             "loader_timer": 199,
             "game_state": 0,
             "dlist": 15360,
@@ -1010,26 +1027,27 @@
             "pm_base": 0,
             "dma_ctl": 34,
             "nmi_en": 128,
-            "vdslst": 10122,
+            "vdslst": 1735,
             "sdlst": 48160,
             "memtop": 48159,
             "ramtop": 192,
             "runad": 0,
             "initad": 0,
             "dosvec": 8222,
-            "screen_checksum": 297395762,
+            "screen_checksum": 3948292094,
             "frontend_dlist_checksum": 3927338786,
             "loader_dli_count": 104,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "0000000000000000",
-            "level_checksum": 0
+            "level_checksum": 0,
+            "splash_checksum": 3015614197
           },
           {
             "frame": 3050,
-            "pc": 9974,
+            "pc": 9971,
             "scanline": 0,
-            "cycle": 11,
+            "cycle": 9,
             "loader_timer": 0,
             "game_state": 1,
             "dlist": 37888,
@@ -1046,11 +1064,12 @@
             "dosvec": 8222,
             "screen_checksum": 71910213,
             "frontend_dlist_checksum": 3927338786,
-            "loader_dli_count": 500,
+            "loader_dli_count": 502,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "0000000000000000",
-            "level_checksum": 0
+            "level_checksum": 0,
+            "splash_checksum": 3015614197
           },
           {
             "frame": 3300,
@@ -1073,40 +1092,41 @@
             "dosvec": 8222,
             "screen_checksum": 413909032,
             "frontend_dlist_checksum": 3927338786,
-            "loader_dli_count": 500,
+            "loader_dli_count": 502,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "5653010107780306",
-            "level_checksum": 1085299608
+            "level_checksum": 1085299608,
+            "splash_checksum": 3015614197
           }
         ],
         "milestones": {
-          "start": 282,
-          "loader": 339,
-          "menu": 595,
-          "frontend_poll": 597,
+          "start": 286,
+          "loader": 343,
+          "menu": 600,
+          "frontend_poll": 601,
           "gameplay_init": 3079,
           "main_loop": 3082
         },
         "boot_deadline": {
           "medium": "ATR",
-          "menu_frame": 595,
-          "frontend_poll_frame": 597,
+          "menu_frame": 600,
+          "frontend_poll_frame": 601,
           "baseline_frames": 596,
-          "delta_frames": -1,
+          "delta_frames": 4,
           "absolute_ceiling_frames": 3000,
           "warn_at_frames": 606,
           "fail_at_frames": 646,
           "warned": false,
-          "loader_frame": 339,
+          "loader_frame": 343,
           "loader_baseline_frames": 339,
-          "loader_delta_frames": 0,
+          "loader_delta_frames": 4,
           "loader_warn_at_frames": 349,
           "loader_fail_at_frames": 389,
           "loader_warned": false,
           "loader_observation_frames": [
-            342,
-            392
+            346,
+            396
           ]
         },
         "sector_reader": {
@@ -1126,16 +1146,16 @@
             "sha256": "c3a38d056554863c524c60c09eaeecedb06d17176d8014563695f585c401ec2f"
           },
           {
-            "frame": 342,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-5a-frame342.png",
-            "bytes": 2500,
-            "sha256": "6a08cd264aaf807358efaada2d672ced7184b042c9a262db13e9cd23a35e9648"
+            "frame": 346,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-5a-frame346.png",
+            "bytes": 2599,
+            "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
-            "frame": 392,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-5a-frame392.png",
-            "bytes": 2500,
-            "sha256": "6a08cd264aaf807358efaada2d672ced7184b042c9a262db13e9cd23a35e9648"
+            "frame": 396,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-5a-frame396.png",
+            "bytes": 2599,
+            "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
             "frame": 3050,
@@ -1160,8 +1180,8 @@
         "artifact": {
           "path": "dist/void-strike-65.xex",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.xex",
-          "bytes": 27498,
-          "sha256": "f83c14b898541e0ae788d97cf33158ef41512210e916c517cca13ffe17965ace"
+          "bytes": 28010,
+          "sha256": "4e348e3f808337e542ef806fe0010900f75d53bac9fffecd39939ac1831163da"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1204,7 +1224,8 @@
             "portb": 255,
             "window": "00000000000000000000000000000000",
             "level_header": "0000000000000000",
-            "level_checksum": 0
+            "level_checksum": 0,
+            "splash_checksum": 0
           },
           {
             "frame": 129,
@@ -1218,26 +1239,27 @@
             "pm_base": 0,
             "dma_ctl": 34,
             "nmi_en": 128,
-            "vdslst": 10122,
+            "vdslst": 1735,
             "sdlst": 39968,
             "memtop": 39967,
             "ramtop": 160,
-            "runad": 9013,
+            "runad": 9016,
             "initad": 55213,
             "dosvec": 61987,
-            "screen_checksum": 297395762,
+            "screen_checksum": 3948292094,
             "frontend_dlist_checksum": 3927338786,
             "loader_dli_count": 4,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "5653010107780306",
-            "level_checksum": 1085299608
+            "level_checksum": 1085299608,
+            "splash_checksum": 3015614197
           },
           {
             "frame": 179,
-            "pc": 10027,
+            "pc": 10030,
             "scanline": 0,
-            "cycle": 10,
+            "cycle": 12,
             "loader_timer": 199,
             "game_state": 0,
             "dlist": 15360,
@@ -1245,20 +1267,21 @@
             "pm_base": 0,
             "dma_ctl": 34,
             "nmi_en": 128,
-            "vdslst": 10122,
+            "vdslst": 1735,
             "sdlst": 39968,
             "memtop": 39967,
             "ramtop": 160,
-            "runad": 9013,
+            "runad": 9016,
             "initad": 55213,
             "dosvec": 61987,
-            "screen_checksum": 297395762,
+            "screen_checksum": 3948292094,
             "frontend_dlist_checksum": 3927338786,
             "loader_dli_count": 104,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "5653010107780306",
-            "level_checksum": 1085299608
+            "level_checksum": 1085299608,
+            "splash_checksum": 3015614197
           },
           {
             "frame": 3050,
@@ -1276,16 +1299,17 @@
             "sdlst": 39968,
             "memtop": 39967,
             "ramtop": 160,
-            "runad": 9013,
+            "runad": 9016,
             "initad": 55213,
             "dosvec": 61987,
             "screen_checksum": 71910213,
             "frontend_dlist_checksum": 3927338786,
-            "loader_dli_count": 500,
+            "loader_dli_count": 502,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "5653010107780306",
-            "level_checksum": 1085299608
+            "level_checksum": 1085299608,
+            "splash_checksum": 3015614197
           },
           {
             "frame": 3300,
@@ -1303,32 +1327,33 @@
             "sdlst": 39968,
             "memtop": 39967,
             "ramtop": 160,
-            "runad": 9013,
+            "runad": 9016,
             "initad": 55213,
             "dosvec": 61987,
             "screen_checksum": 839006927,
             "frontend_dlist_checksum": 3927338786,
-            "loader_dli_count": 500,
+            "loader_dli_count": 502,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "5653010107780306",
-            "level_checksum": 1085299608
+            "level_checksum": 1085299608,
+            "splash_checksum": 3015614197
           }
         ],
         "milestones": {
           "start": 69,
           "loader": 126,
-          "menu": 382,
+          "menu": 383,
           "frontend_poll": 384,
           "gameplay_init": 3053,
           "main_loop": 3056
         },
         "boot_deadline": {
           "medium": "XEX",
-          "menu_frame": 382,
+          "menu_frame": 383,
           "frontend_poll_frame": 384,
           "baseline_frames": 392,
-          "delta_frames": -10,
+          "delta_frames": -9,
           "absolute_ceiling_frames": 3000,
           "warn_at_frames": 402,
           "fail_at_frames": 442,
@@ -1363,14 +1388,14 @@
           {
             "frame": 129,
             "path": "build/runtime-wall-trace/boot-smoke/xex-a5-basic-frame129.png",
-            "bytes": 2500,
-            "sha256": "6a08cd264aaf807358efaada2d672ced7184b042c9a262db13e9cd23a35e9648"
+            "bytes": 2599,
+            "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
             "frame": 179,
             "path": "build/runtime-wall-trace/boot-smoke/xex-a5-basic-frame179.png",
-            "bytes": 2500,
-            "sha256": "6a08cd264aaf807358efaada2d672ced7184b042c9a262db13e9cd23a35e9648"
+            "bytes": 2599,
+            "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
             "frame": 3050,
@@ -1395,8 +1420,8 @@
         "artifact": {
           "path": "dist/void-strike-65.xex",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.xex",
-          "bytes": 27498,
-          "sha256": "f83c14b898541e0ae788d97cf33158ef41512210e916c517cca13ffe17965ace"
+          "bytes": 28010,
+          "sha256": "4e348e3f808337e542ef806fe0010900f75d53bac9fffecd39939ac1831163da"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1439,7 +1464,8 @@
             "portb": 255,
             "window": "00000000000000000000000000000000",
             "level_header": "0000000000000000",
-            "level_checksum": 0
+            "level_checksum": 0,
+            "splash_checksum": 0
           },
           {
             "frame": 129,
@@ -1453,26 +1479,27 @@
             "pm_base": 0,
             "dma_ctl": 34,
             "nmi_en": 128,
-            "vdslst": 10122,
+            "vdslst": 1735,
             "sdlst": 39968,
             "memtop": 39967,
             "ramtop": 160,
-            "runad": 9013,
+            "runad": 9016,
             "initad": 55213,
             "dosvec": 61987,
-            "screen_checksum": 297395762,
+            "screen_checksum": 3948292094,
             "frontend_dlist_checksum": 3927338786,
             "loader_dli_count": 4,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "5653010107780306",
-            "level_checksum": 1085299608
+            "level_checksum": 1085299608,
+            "splash_checksum": 3015614197
           },
           {
             "frame": 179,
-            "pc": 10027,
+            "pc": 10030,
             "scanline": 0,
-            "cycle": 10,
+            "cycle": 12,
             "loader_timer": 199,
             "game_state": 0,
             "dlist": 15360,
@@ -1480,20 +1507,21 @@
             "pm_base": 0,
             "dma_ctl": 34,
             "nmi_en": 128,
-            "vdslst": 10122,
+            "vdslst": 1735,
             "sdlst": 39968,
             "memtop": 39967,
             "ramtop": 160,
-            "runad": 9013,
+            "runad": 9016,
             "initad": 55213,
             "dosvec": 61987,
-            "screen_checksum": 297395762,
+            "screen_checksum": 3948292094,
             "frontend_dlist_checksum": 3927338786,
             "loader_dli_count": 104,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "5653010107780306",
-            "level_checksum": 1085299608
+            "level_checksum": 1085299608,
+            "splash_checksum": 3015614197
           },
           {
             "frame": 3050,
@@ -1511,16 +1539,17 @@
             "sdlst": 39968,
             "memtop": 39967,
             "ramtop": 160,
-            "runad": 9013,
+            "runad": 9016,
             "initad": 55213,
             "dosvec": 61987,
             "screen_checksum": 71910213,
             "frontend_dlist_checksum": 3927338786,
-            "loader_dli_count": 500,
+            "loader_dli_count": 502,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "5653010107780306",
-            "level_checksum": 1085299608
+            "level_checksum": 1085299608,
+            "splash_checksum": 3015614197
           },
           {
             "frame": 3300,
@@ -1538,32 +1567,33 @@
             "sdlst": 39968,
             "memtop": 39967,
             "ramtop": 160,
-            "runad": 9013,
+            "runad": 9016,
             "initad": 55213,
             "dosvec": 61987,
             "screen_checksum": 839006927,
             "frontend_dlist_checksum": 3927338786,
-            "loader_dli_count": 500,
+            "loader_dli_count": 502,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "5653010107780306",
-            "level_checksum": 1085299608
+            "level_checksum": 1085299608,
+            "splash_checksum": 3015614197
           }
         ],
         "milestones": {
           "start": 69,
           "loader": 126,
-          "menu": 382,
+          "menu": 383,
           "frontend_poll": 384,
           "gameplay_init": 3053,
           "main_loop": 3056
         },
         "boot_deadline": {
           "medium": "XEX",
-          "menu_frame": 382,
+          "menu_frame": 383,
           "frontend_poll_frame": 384,
           "baseline_frames": 392,
-          "delta_frames": -10,
+          "delta_frames": -9,
           "absolute_ceiling_frames": 3000,
           "warn_at_frames": 402,
           "fail_at_frames": 442,
@@ -1598,14 +1628,14 @@
           {
             "frame": 129,
             "path": "build/runtime-wall-trace/boot-smoke/xex-5a-basic-frame129.png",
-            "bytes": 2500,
-            "sha256": "6a08cd264aaf807358efaada2d672ced7184b042c9a262db13e9cd23a35e9648"
+            "bytes": 2599,
+            "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
             "frame": 179,
             "path": "build/runtime-wall-trace/boot-smoke/xex-5a-basic-frame179.png",
-            "bytes": 2500,
-            "sha256": "6a08cd264aaf807358efaada2d672ced7184b042c9a262db13e9cd23a35e9648"
+            "bytes": 2599,
+            "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
             "frame": 3050,
@@ -1631,7 +1661,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "165f6018d1eb2be145d694f5e0f3ca686b7c0a657ba7fc7a4ef8300e6efd34ef"
+          "sha256": "e26c81a708157aa9f8681f78f1165cf761e183e0f86bb18e2fb12e62ae31d405"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1673,10 +1703,11 @@
             "portb": 255,
             "window": "00000000000000000000000000000000",
             "level_header": "0000000000000000",
-            "level_checksum": 0
+            "level_checksum": 0,
+            "splash_checksum": 0
           },
           {
-            "frame": 316,
+            "frame": 321,
             "pc": 10027,
             "scanline": 0,
             "cycle": 10,
@@ -1687,26 +1718,27 @@
             "pm_base": 0,
             "dma_ctl": 34,
             "nmi_en": 128,
-            "vdslst": 10122,
+            "vdslst": 1735,
             "sdlst": 39968,
             "memtop": 39967,
             "ramtop": 160,
             "runad": 0,
             "initad": 0,
             "dosvec": 8222,
-            "screen_checksum": 297395762,
+            "screen_checksum": 3948292094,
             "frontend_dlist_checksum": 3927338786,
             "loader_dli_count": 4,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "0000000000000000",
-            "level_checksum": 0
+            "level_checksum": 0,
+            "splash_checksum": 3015614197
           },
           {
-            "frame": 366,
-            "pc": 10027,
+            "frame": 371,
+            "pc": 10030,
             "scanline": 0,
-            "cycle": 10,
+            "cycle": 12,
             "loader_timer": 199,
             "game_state": 0,
             "dlist": 15360,
@@ -1714,24 +1746,25 @@
             "pm_base": 0,
             "dma_ctl": 34,
             "nmi_en": 128,
-            "vdslst": 10122,
+            "vdslst": 1735,
             "sdlst": 39968,
             "memtop": 39967,
             "ramtop": 160,
             "runad": 0,
             "initad": 0,
             "dosvec": 8222,
-            "screen_checksum": 297395762,
+            "screen_checksum": 3948292094,
             "frontend_dlist_checksum": 3927338786,
             "loader_dli_count": 104,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "0000000000000000",
-            "level_checksum": 0
+            "level_checksum": 0,
+            "splash_checksum": 3015614197
           },
           {
             "frame": 3050,
-            "pc": 9974,
+            "pc": 9971,
             "scanline": 0,
             "cycle": 9,
             "loader_timer": 0,
@@ -1750,11 +1783,12 @@
             "dosvec": 8222,
             "screen_checksum": 71910213,
             "frontend_dlist_checksum": 3927338786,
-            "loader_dli_count": 500,
+            "loader_dli_count": 502,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "0000000000000000",
-            "level_checksum": 0
+            "level_checksum": 0,
+            "splash_checksum": 3015614197
           },
           {
             "frame": 3300,
@@ -1777,40 +1811,41 @@
             "dosvec": 8222,
             "screen_checksum": 413909032,
             "frontend_dlist_checksum": 3927338786,
-            "loader_dli_count": 500,
+            "loader_dli_count": 502,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "5653010107780306",
-            "level_checksum": 1085299608
+            "level_checksum": 1085299608,
+            "splash_checksum": 3015614197
           }
         ],
         "milestones": {
-          "start": 256,
-          "loader": 313,
-          "menu": 569,
-          "frontend_poll": 571,
+          "start": 261,
+          "loader": 318,
+          "menu": 575,
+          "frontend_poll": 576,
           "gameplay_init": 3079,
           "main_loop": 3082
         },
         "boot_deadline": {
           "medium": "ATR",
-          "menu_frame": 569,
-          "frontend_poll_frame": 571,
+          "menu_frame": 575,
+          "frontend_poll_frame": 576,
           "baseline_frames": 596,
-          "delta_frames": -27,
+          "delta_frames": -21,
           "absolute_ceiling_frames": 3000,
           "warn_at_frames": 606,
           "fail_at_frames": 646,
           "warned": false,
-          "loader_frame": 313,
+          "loader_frame": 318,
           "loader_baseline_frames": 339,
-          "loader_delta_frames": -26,
+          "loader_delta_frames": -21,
           "loader_warn_at_frames": 349,
           "loader_fail_at_frames": 389,
           "loader_warned": false,
           "loader_observation_frames": [
-            316,
-            366
+            321,
+            371
           ]
         },
         "sector_reader": {
@@ -1830,16 +1865,16 @@
             "sha256": "c3a38d056554863c524c60c09eaeecedb06d17176d8014563695f585c401ec2f"
           },
           {
-            "frame": 316,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-basic-frame316.png",
-            "bytes": 2500,
-            "sha256": "6a08cd264aaf807358efaada2d672ced7184b042c9a262db13e9cd23a35e9648"
+            "frame": 321,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-basic-frame321.png",
+            "bytes": 2599,
+            "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
-            "frame": 366,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-basic-frame366.png",
-            "bytes": 2500,
-            "sha256": "6a08cd264aaf807358efaada2d672ced7184b042c9a262db13e9cd23a35e9648"
+            "frame": 371,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-a5-basic-frame371.png",
+            "bytes": 2599,
+            "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
             "frame": 3050,
@@ -1865,7 +1900,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "165f6018d1eb2be145d694f5e0f3ca686b7c0a657ba7fc7a4ef8300e6efd34ef"
+          "sha256": "e26c81a708157aa9f8681f78f1165cf761e183e0f86bb18e2fb12e62ae31d405"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1907,10 +1942,11 @@
             "portb": 255,
             "window": "00000000000000000000000000000000",
             "level_header": "0000000000000000",
-            "level_checksum": 0
+            "level_checksum": 0,
+            "splash_checksum": 0
           },
           {
-            "frame": 316,
+            "frame": 321,
             "pc": 10027,
             "scanline": 0,
             "cycle": 10,
@@ -1921,26 +1957,27 @@
             "pm_base": 0,
             "dma_ctl": 34,
             "nmi_en": 128,
-            "vdslst": 10122,
+            "vdslst": 1735,
             "sdlst": 39968,
             "memtop": 39967,
             "ramtop": 160,
             "runad": 0,
             "initad": 0,
             "dosvec": 8222,
-            "screen_checksum": 297395762,
+            "screen_checksum": 3948292094,
             "frontend_dlist_checksum": 3927338786,
             "loader_dli_count": 4,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "0000000000000000",
-            "level_checksum": 0
+            "level_checksum": 0,
+            "splash_checksum": 3015614197
           },
           {
-            "frame": 366,
-            "pc": 10027,
+            "frame": 371,
+            "pc": 10030,
             "scanline": 0,
-            "cycle": 10,
+            "cycle": 12,
             "loader_timer": 199,
             "game_state": 0,
             "dlist": 15360,
@@ -1948,24 +1985,25 @@
             "pm_base": 0,
             "dma_ctl": 34,
             "nmi_en": 128,
-            "vdslst": 10122,
+            "vdslst": 1735,
             "sdlst": 39968,
             "memtop": 39967,
             "ramtop": 160,
             "runad": 0,
             "initad": 0,
             "dosvec": 8222,
-            "screen_checksum": 297395762,
+            "screen_checksum": 3948292094,
             "frontend_dlist_checksum": 3927338786,
             "loader_dli_count": 104,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "0000000000000000",
-            "level_checksum": 0
+            "level_checksum": 0,
+            "splash_checksum": 3015614197
           },
           {
             "frame": 3050,
-            "pc": 9974,
+            "pc": 9971,
             "scanline": 0,
             "cycle": 9,
             "loader_timer": 0,
@@ -1984,11 +2022,12 @@
             "dosvec": 8222,
             "screen_checksum": 71910213,
             "frontend_dlist_checksum": 3927338786,
-            "loader_dli_count": 500,
+            "loader_dli_count": 502,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "0000000000000000",
-            "level_checksum": 0
+            "level_checksum": 0,
+            "splash_checksum": 3015614197
           },
           {
             "frame": 3300,
@@ -2011,40 +2050,41 @@
             "dosvec": 8222,
             "screen_checksum": 413909032,
             "frontend_dlist_checksum": 3927338786,
-            "loader_dli_count": 500,
+            "loader_dli_count": 502,
             "portb": 255,
             "window": "2075b78d0781ac0081b9c47fd004aa4c",
             "level_header": "5653010107780306",
-            "level_checksum": 1085299608
+            "level_checksum": 1085299608,
+            "splash_checksum": 3015614197
           }
         ],
         "milestones": {
-          "start": 256,
-          "loader": 313,
-          "menu": 569,
-          "frontend_poll": 571,
+          "start": 261,
+          "loader": 318,
+          "menu": 575,
+          "frontend_poll": 576,
           "gameplay_init": 3079,
           "main_loop": 3082
         },
         "boot_deadline": {
           "medium": "ATR",
-          "menu_frame": 569,
-          "frontend_poll_frame": 571,
+          "menu_frame": 575,
+          "frontend_poll_frame": 576,
           "baseline_frames": 596,
-          "delta_frames": -27,
+          "delta_frames": -21,
           "absolute_ceiling_frames": 3000,
           "warn_at_frames": 606,
           "fail_at_frames": 646,
           "warned": false,
-          "loader_frame": 313,
+          "loader_frame": 318,
           "loader_baseline_frames": 339,
-          "loader_delta_frames": -26,
+          "loader_delta_frames": -21,
           "loader_warn_at_frames": 349,
           "loader_fail_at_frames": 389,
           "loader_warned": false,
           "loader_observation_frames": [
-            316,
-            366
+            321,
+            371
           ]
         },
         "sector_reader": {
@@ -2064,16 +2104,16 @@
             "sha256": "c3a38d056554863c524c60c09eaeecedb06d17176d8014563695f585c401ec2f"
           },
           {
-            "frame": 316,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-5a-basic-frame316.png",
-            "bytes": 2500,
-            "sha256": "6a08cd264aaf807358efaada2d672ced7184b042c9a262db13e9cd23a35e9648"
+            "frame": 321,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-5a-basic-frame321.png",
+            "bytes": 2599,
+            "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
-            "frame": 366,
-            "path": "build/runtime-wall-trace/boot-smoke/atr-5a-basic-frame366.png",
-            "bytes": 2500,
-            "sha256": "6a08cd264aaf807358efaada2d672ced7184b042c9a262db13e9cd23a35e9648"
+            "frame": 371,
+            "path": "build/runtime-wall-trace/boot-smoke/atr-5a-basic-frame371.png",
+            "bytes": 2599,
+            "sha256": "2c5b4803bca477bfe81e5f0982f474ed349451be5d10ea978bd4021f7e7691fe"
           },
           {
             "frame": 3050,
@@ -2096,8 +2136,8 @@
         "artifact": {
           "path": "dist/void-strike-65.xex",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.xex",
-          "bytes": 27498,
-          "sha256": "f83c14b898541e0ae788d97cf33158ef41512210e916c517cca13ffe17965ace"
+          "bytes": 28010,
+          "sha256": "4e348e3f808337e542ef806fe0010900f75d53bac9fffecd39939ac1831163da"
         },
         "sha256": "f2cf10bb4aa6ea877e7c47c3e8592a1d054f90480ddf050ec2031c83a8fc5558"
       },
@@ -2105,8 +2145,8 @@
         "artifact": {
           "path": "dist/void-strike-65.xex",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.xex",
-          "bytes": 27498,
-          "sha256": "f83c14b898541e0ae788d97cf33158ef41512210e916c517cca13ffe17965ace"
+          "bytes": 28010,
+          "sha256": "4e348e3f808337e542ef806fe0010900f75d53bac9fffecd39939ac1831163da"
         },
         "sha256": "f2cf10bb4aa6ea877e7c47c3e8592a1d054f90480ddf050ec2031c83a8fc5558"
       },
@@ -2115,7 +2155,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "165f6018d1eb2be145d694f5e0f3ca686b7c0a657ba7fc7a4ef8300e6efd34ef"
+          "sha256": "e26c81a708157aa9f8681f78f1165cf761e183e0f86bb18e2fb12e62ae31d405"
         },
         "sha256": "69712ab29eb43fb541c8d1892f9d7bbb6a2f1c9f0f20846ee61851500373c0e5"
       },
@@ -2124,7 +2164,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "165f6018d1eb2be145d694f5e0f3ca686b7c0a657ba7fc7a4ef8300e6efd34ef"
+          "sha256": "e26c81a708157aa9f8681f78f1165cf761e183e0f86bb18e2fb12e62ae31d405"
         },
         "sha256": "69712ab29eb43fb541c8d1892f9d7bbb6a2f1c9f0f20846ee61851500373c0e5"
       },
@@ -2132,8 +2172,8 @@
         "artifact": {
           "path": "dist/void-strike-65.xex",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.xex",
-          "bytes": 27498,
-          "sha256": "f83c14b898541e0ae788d97cf33158ef41512210e916c517cca13ffe17965ace"
+          "bytes": 28010,
+          "sha256": "4e348e3f808337e542ef806fe0010900f75d53bac9fffecd39939ac1831163da"
         },
         "sha256": "f2cf10bb4aa6ea877e7c47c3e8592a1d054f90480ddf050ec2031c83a8fc5558"
       },
@@ -2141,8 +2181,8 @@
         "artifact": {
           "path": "dist/void-strike-65.xex",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.xex",
-          "bytes": 27498,
-          "sha256": "f83c14b898541e0ae788d97cf33158ef41512210e916c517cca13ffe17965ace"
+          "bytes": 28010,
+          "sha256": "4e348e3f808337e542ef806fe0010900f75d53bac9fffecd39939ac1831163da"
         },
         "sha256": "f2cf10bb4aa6ea877e7c47c3e8592a1d054f90480ddf050ec2031c83a8fc5558"
       },
@@ -2151,7 +2191,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "165f6018d1eb2be145d694f5e0f3ca686b7c0a657ba7fc7a4ef8300e6efd34ef"
+          "sha256": "e26c81a708157aa9f8681f78f1165cf761e183e0f86bb18e2fb12e62ae31d405"
         },
         "sha256": "69712ab29eb43fb541c8d1892f9d7bbb6a2f1c9f0f20846ee61851500373c0e5"
       },
@@ -2160,7 +2200,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "165f6018d1eb2be145d694f5e0f3ca686b7c0a657ba7fc7a4ef8300e6efd34ef"
+          "sha256": "e26c81a708157aa9f8681f78f1165cf761e183e0f86bb18e2fb12e62ae31d405"
         },
         "sha256": "69712ab29eb43fb541c8d1892f9d7bbb6a2f1c9f0f20846ee61851500373c0e5"
       }
@@ -4787,7 +4827,7 @@
           "path": "build/runtime-wall-trace/capital-engines-first-150.csv",
           "rows": 150,
           "bytes": 7904,
-          "sha256": "b6b8b0d3276d0e63953b70e3eb5dba4e908d75da873f277fd8546f9a4d3cbeab"
+          "sha256": "bdc9a12f41b58d7b701458a50f37c374d59fd1a7264dba0aed6787b18a005d25"
         },
         "xex_atr_screenshot_parity": true
       },
@@ -10888,20 +10928,20 @@
           "wall_cycles": 27976,
           "physical_headroom": 7592,
           "start": {
-            "clock": 97067183,
-            "host_frame": 2729,
+            "clock": 97209455,
+            "host_frame": 2733,
             "scanline": 18,
             "cycle": 59
           },
           "end": {
-            "clock": 97095159,
-            "host_frame": 2729,
+            "clock": 97237431,
+            "host_frame": 2733,
             "scanline": 263,
             "cycle": 105
           },
           "next_start": {
-            "clock": 97102735,
-            "host_frame": 2730
+            "clock": 97245007,
+            "host_frame": 2734
           },
           "host_vbi_boundaries": 0,
           "extra_vbi_boundaries": 0,
@@ -10990,20 +11030,20 @@
           "wall_cycles": 28724,
           "physical_headroom": 6844,
           "start": {
-            "clock": 37277347,
-            "host_frame": 1048,
+            "clock": 37419619,
+            "host_frame": 1052,
             "scanline": 18,
             "cycle": 31
           },
           "end": {
-            "clock": 37306071,
-            "host_frame": 1048,
+            "clock": 37448343,
+            "host_frame": 1052,
             "scanline": 270,
             "cycle": 27
           },
           "next_start": {
-            "clock": 37312927,
-            "host_frame": 1049
+            "clock": 37455199,
+            "host_frame": 1053
           },
           "host_vbi_boundaries": 0,
           "extra_vbi_boundaries": 0,
@@ -11096,20 +11136,20 @@
           "wall_cycles": 29187,
           "physical_headroom": 6381,
           "start": {
-            "clock": 99521375,
-            "host_frame": 2798,
+            "clock": 99663647,
+            "host_frame": 2802,
             "scanline": 18,
             "cycle": 59
           },
           "end": {
-            "clock": 99550562,
-            "host_frame": 2798,
+            "clock": 99692834,
+            "host_frame": 2802,
             "scanline": 274,
             "cycle": 62
           },
           "next_start": {
-            "clock": 99556943,
-            "host_frame": 2799
+            "clock": 99699215,
+            "host_frame": 2803
           },
           "host_vbi_boundaries": 0,
           "extra_vbi_boundaries": 0,
@@ -11202,20 +11242,20 @@
           "wall_cycles": 28239,
           "physical_headroom": 7329,
           "start": {
-            "clock": 126126211,
-            "host_frame": 3546,
+            "clock": 126268483,
+            "host_frame": 3550,
             "scanline": 18,
             "cycle": 31
           },
           "end": {
-            "clock": 126154450,
-            "host_frame": 3546,
+            "clock": 126296722,
+            "host_frame": 3550,
             "scanline": 265,
             "cycle": 112
           },
           "next_start": {
-            "clock": 126161791,
-            "host_frame": 3547
+            "clock": 126304063,
+            "host_frame": 3551
           },
           "host_vbi_boundaries": 0,
           "extra_vbi_boundaries": 0,
@@ -11304,20 +11344,20 @@
           "wall_cycles": 27860,
           "physical_headroom": 7708,
           "start": {
-            "clock": 153940415,
-            "host_frame": 4328,
+            "clock": 154082687,
+            "host_frame": 4332,
             "scanline": 18,
             "cycle": 59
           },
           "end": {
-            "clock": 153968275,
-            "host_frame": 4328,
+            "clock": 154110547,
+            "host_frame": 4332,
             "scanline": 262,
             "cycle": 103
           },
           "next_start": {
-            "clock": 153975983,
-            "host_frame": 4329
+            "clock": 154118255,
+            "host_frame": 4333
           },
           "host_vbi_boundaries": 0,
           "extra_vbi_boundaries": 0,

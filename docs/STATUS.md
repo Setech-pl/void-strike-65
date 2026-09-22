@@ -36,7 +36,11 @@ below) on top of `f4cb18b`, the documentation-only reconciliation of
 the owner acceptance recorded here. All of it runs in the accepted runtime
 below and all of it is owner-accepted under that checkpoint.
 
-**Four `OWNER-SMOKE CANDIDATE`s are outstanding: the roadmap 4.6 ring-rotate
+**Five `OWNER-SMOKE CANDIDATE`s are outstanding: the ADR-003 boot splash —
+cassette sound, fade, SPACE/FIRE skip and the allied-blue ship** (section
+"ADR-003 boot splash" below; it raises the opt-in initial-block ceiling 105 →
+107 sectors, which moves the ATR milestones +4/+4 inside the warn band and is
+the one owner-visible envelope change in it), **the roadmap 4.6 ring-rotate
 token gate** (section "Roadmap 4.6 — the ring-rotate token gate" below;
 72-replay PAL audit PASS with the worst fence margin 552 → 2,981, boot smoke
 8/8, full-suite failure list identical to `4cd3024`), **owner decision A, the
@@ -803,6 +807,103 @@ four claim sites with the two deferrable ones behind the wrapper),
 `4cd3024`'s**, 0 new and 0 fixed, A/B'd from a clean worktree export of that
 commit built the same way. The 116 are the pre-existing set recorded under
 "Known open defects".
+
+---
+
+## ADR-003 boot splash — cassette sound, fade, skip, blue ship — `OWNER-SMOKE CANDIDATE` (2026-09-22)
+
+Branch `feat/splash-cassette` from `main` at `2b1f69b`.
+`docs/plan-boot-splash-cassette.md` implemented in full. **The hold is
+unchanged: 250 complete PAL frames, no I/O, `LOADER_DURATION_FRAMES = 250`, the
+same one-decrement-per-frame counter the boot smoke's countdown proof reads.**
+
+**What the splash now does.** POKEY channel 1 imitates a 600-baud Atari cassette
+load, switching **per bit** on a VCOUNT-timed 12-cell frame (26 scanlines per
+cell = exactly 600 baud), mark `AUDF1 = 5` / space `AUDF1 = 7`, bytes framed
+start-0 / 8 data LSB-first / stop-1 behind two `$55` sync bytes. Over the last
+75 frames one fraction fades both the volume (10 → 2 on frame 250, never to
+silence) and the luminance of all six splash colour bytes, the two DLI zones
+included, keeping every hue and reaching luminance 0 on frame 250. SPACE or FIRE
+skips, read straight from `TRIG0` / `SKSTAT`+`KBCODE`, edge-triggered so an
+input held from frame 1 never skips, taking the same exit path as frame 250 and
+then waiting for release so the press cannot reach the menu. The capital ship is
+allied blue `$8A`/`$80` — changed at the source in `loader-bitmap.json`, bitmap
+bytes and packed size unchanged.
+
+**Placement — MEASURED, and the one thing the plan did not foresee.** The blob
+is **499 B** of code, tables and variables in a 512-B boot-only window at
+`$0500-$06FF`, copied there by **both** stage-2 entries immediately after
+`disable_basic_rom`. **Zero resident bytes.** Moving the hold loop and `loader_dli` out of MAIN freed exactly **56 B** of CODE. That slack is deliberately held as padding (`LOADER_SPLASH_CODE_SLACK`) rather than closed: letting it close slides every later CODE and RODATA address 56 bytes down, which changes which indexed reads cross a page and cost the heaviest gameplay frame 17 cycles (MEASURED 31,200 → 31,217, worst fence margin 1,985 → 1,959) for no gain. Pinned, CODE is `$117E` and RODATA starts at `$317E` exactly as before, and `build/broadside-runtime.bin` and `build/entity-code-runtime.bin` come out **byte-identical** to the previous build — only the loader area of the resident image differs (81 bytes). The 56 B stay available to whatever needs them next, against a re-measured baseline. The packed resident
+suffix still shrinks (6,687 → 6,657 B), so the `$9B40` margin is not spent.
+
+The blob rides at the **tail** of the initial block, behind every packed source,
+so the measured addresses of the packed resident, starfield, A2 and ENTITY
+streams — and the 91-byte margin the packed starfield keeps below the pickup
+cold staging at `$4801` — do not move. Its two `lda abs,x` copy operands are
+patched by `scripts/build.mjs` the way the other packed-source reads already
+are.
+
+Plan §6.5 assumed the bytes would fit. They did not: `scripts/chunk-loader.mjs`
+caps the opt-in initial block at 105 sectors / 13,440 B, and at 13,102 B of
+content plus a 12-B envelope only **326 B** were free — **186 B short**. Every
+compliant alternative (a DFMC record to `$0500`, the `$A980` tail the owner
+excluded) costs the same four sectors of SIO read, so the ceiling was raised
+**105 → 107 sectors** and the cost measured rather than estimated:
+
+| | baseline | now | band |
+| --- | ---: | ---: | --- |
+| initial block | 103 sectors | **107** | — |
+| `xex_loader_frames` | 135 | **135** | +0 |
+| `xex_menu_frames` | 392 | **392** | +0 |
+| `atr_loader_frames` | 339 | **343** | +4, inside the +10 warn band |
+| `atr_menu_frames` | 596 | **600** | +4, inside the +10 warn band |
+
+`docs/boot-deadline-baseline.json` is **not** re-recorded. This envelope change
+is owner-visible and is the one item of this candidate that is not purely a
+consequence of the plan as written.
+
+**Intactness proof.** The boot smoke checksums `$0500-$06FF` at the `start`
+milestone against `build/boot-splash.bin`, and the blob's immutable tables and
+code (`$0515-$06FF`) again at both loader milestones — so the ATR chunk load,
+`unpack_resident_runtime` and every publisher that runs between them are proved
+not to have written into the range. The variables at `$0500-$0514` are excluded
+because the hold mutates them itself.
+
+**Sound as data.** `assets/audio/boot-splash.json` → `scripts/boot-splash-assets.mjs`
+→ `build/boot-splash.inc`. The generator asserts that the segment frames sum to
+250, that the fade ends on the last hold frame, that the end volume is not
+silence and that a `DATA` segment is long enough for its two sync bytes. The
+owner retunes by ear by editing that file and rebuilding; no code change is
+needed for any value in it. Growth axis: 2 B per segment, 13 B of window left.
+
+**The intactness gate is proved red.** With a single injected
+`lda #$FF / sta $0600` in `unpack_loader_bitmap` — one byte inside the range,
+written between the copy and the hold — the boot smoke fails with
+`xex-a5 splash blob at $515 changed to 2806190798 by frame 138`. Reverted.
+
+**Evidence.** Boot smoke 8/8 on both media with the new splash gate (intactness,
+per-bit AUDF1 switching, non-increasing volume to 2, allied-blue ship at the
+second DLI, `AUDC1 = 0` at the teardown). `tests/boot-splash.test.mjs` 7/7 on
+the JS `Nmos6502` with the blob installed at `$0500`, a cycle-derived VCOUNT and
+both DLIs fired per frame; five of them verified red against `2b1f69b` first.
+`tests/loader-screen.test.mjs` rebaselined for the blue ship and the DLI's
+RAM-loaded colours; `tests/transport-enabler.test.mjs` rebaselined for the
+107-sector ceiling. Every other frozen address is unchanged, the layout pin
+above being why.
+
+**Correction to the plan.** §8.2 asked for `AUDC1 = 0` on the first frontend
+frame. Music v2 gives the menu theme POKEY channel 1 inside that same frame, so
+that observation is not about the splash; the gate is taken at the teardown
+instead — the instant the hold has blanked the display and no frontend code has
+run. The frontend value is still reported, as an observation.
+
+**Not done.** Plan §8.4's four native `--splash-skip-only` sessions (XEX/ATR ×
+FIRE/SPACE with injected input) are **not** implemented. The skip is covered by
+`tests/boot-splash.test.mjs` on the JS core — press, release, held-from-frame-1,
+teardown ordering and the no-leak contract — and by a source-contract check on
+`enter_frontend_state` / `frontend_input_poll`, but it has **no native
+observation**. Owner smoke on real input is the first place a skip runs on
+hardware.
 
 ---
 

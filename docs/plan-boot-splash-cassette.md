@@ -98,6 +98,16 @@ Each segment is `(type, frames)`; types are `SILENCE` (`AUDC1 = $A0`),
 | 7 | DATA | 60 | 191-250 | cut at volume 2 by the teardown |
 | | **total** | **250** | | |
 
+**MEASURED, 2026-09-22.** The blob did not fit the initial block where §6.5
+assumed it would: `scripts/chunk-loader.mjs` caps the opt-in initial block at
+105 sectors / 13,440 B, and at 13,102 B of content plus the 12-B envelope only
+**326 B** were free — 186 B short of the 512-B blob. Every alternative costs
+the same four sectors of SIO read, so the ceiling was raised 105 → 107 and the
+cost measured instead of estimated: initial block 103 → 107 sectors, ATR loader
+339 → **343** and menu 596 → **600**, XEX unmoved at 135/392, boot smoke 8/8.
+Inside the +10 warn band, so the baselines are not re-recorded. This is the one
+consequence the plan did not foresee and is an owner-visible envelope change.
+
 Note for the owner's retuning: a real Atari inter-record gap is **mark tone**,
 not silence (the OS writes a 0.25 s pre-record tone). Replacing a `SILENCE`
 segment with a short `LEADER` reproduces that — a table edit only.
@@ -303,8 +313,13 @@ is (a) populated before the hold, (b) untouched from `start` to `show_loader`,
   ≈ 150 B; fade + multiply ≈ 100 B; skip poll + exit ≈ 70 B; `loader_dli`
   ≈ 28 B; tables (script, constants, colour bases) ≈ 30 B; variables (six
   faded bytes, `q16`, shift register, counters, armed flags) ≈ 20 B.
-  **380-450 B**; measured by assembling it first, before anything else in the
-  implementation.
+  ~~380-450 B ESTIMATE~~ → **MEASURED 2026-09-22: 499 B** of code, tables and
+  variables (21 B of variables at `$0500-$0514`, 478 B of tables and code at
+  `$0515-$06F2`), inside the 512-B cap with **13 B** of headroom. The segment
+  table is the growth axis: 2 B per segment, so the script can gain six more
+  segments before the window is full. The segment is padded to the full 512 B
+  so that the copy is one fixed two-page loop and the boot smoke can checksum
+  the range byte for byte.
 * **`show_loader`** keeps its label (the boot-smoke `DFBOOT_PC_LOADER`
   milestone), its display-list, `PRIOR`, title-palette and `VDSLST` setup
   (`loader_dli` is now the blob's exported label), the `wait_frame_start` /

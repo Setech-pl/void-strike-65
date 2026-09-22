@@ -805,8 +805,23 @@ this table until 2026-09-20.
 | --- | --- |
 | ADR-001 portable toolchain | Accepted, in force. |
 | ADR-002 gameplay screen | Accepted, in force. |
-| ADR-003 loader screen (mixed ANTIC F/E bitmap) | Accepted, in force. The between-levels loader screen of §6 is a **second, different** loader display and does not change ADR-003. |
+| ADR-003 loader screen (mixed ANTIC F/E bitmap) | Accepted, in force, amended 2026-09-22 with the cassette sound, the fade, the SPACE/FIRE skip and the allied-blue ship. The between-levels loader screen of §6 is a **second, different** loader display and does not change ADR-003. |
 | ADR-004 one resident gameplay program, no disk I/O between levels | **SUPERSEDED** by decision 23 §10.1 and confirmed by decisions B and C. Its own reconsideration clause is satisfied: the measured report is design-4.6 §7.3 (placement deficit) plus §3.6 here (hull art per level). |
+
+### 5.5 Two screens, two names
+
+Added 2026-09-22, documentation only — no symbol is renamed.
+
+* **Boot splash** — the ADR-003 title screen: the mixed ANTIC F/E bitmap held
+  for 250 PAL frames at cold start, with its cassette sound, its fade and its
+  SPACE/FIRE skip. Earlier documents and conversations call it the
+  *preloader*; that word is retired.
+* **Loader screen** — the between-levels screen of decision O in §6, shown
+  while the sector reader fetches the next level. A **different** display with
+  a different purpose.
+
+Both words appear in older history entries; where they do, they mean whichever
+of the two the surrounding text is about.
 
 ---
 

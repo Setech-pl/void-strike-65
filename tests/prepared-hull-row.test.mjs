@@ -10,7 +10,7 @@ import { parseViceLabels } from "../scripts/runtime-cycles.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "vs-prepared-row-"));
-execFileSync("ca65", ["--cpu", "6502", "-g", "-I", "build", "-I", "src/hybrid", "-o",
+execFileSync("ca65", ["--cpu", "6502", "-g", "-I", "build", "-I", "src/hybrid", "-I", "src", "-o",
   `${temporary}/main.o`, "src/main.s"], { cwd: root });
 execFileSync("ld65", ["--large-alignment", "-C", "cfg/atari-boot.cfg", "-o", `${temporary}/main.bin`,
   "-Ln", `${temporary}/main.lbl`, `${temporary}/main.o`], { cwd: root });

@@ -392,7 +392,10 @@ test("title and ship remain ANTIC F while the $D8 studio uses ANTIC E", () => {
     ]),
     [
       ["ANTIC F", 0, 39, 0x1e],
-      ["ANTIC F", 40, 156, 0x0a],
+      // Owner-decided 2026-09-22: the capital-ship profile is allied blue, the
+      // hue of GAMEPLAY_COLPF1 = $84. ANTIC F takes the hue from COLPF2 and the
+      // luminance from COLPF1, so the zone is $80 / $8A.
+      ["ANTIC F", 40, 156, 0x8a],
       ["ANTIC E", 157, 191, 0xd8],
     ],
   );
@@ -406,9 +409,10 @@ test("title and ship remain ANTIC F while the $D8 studio uses ANTIC E", () => {
   assert.equal(anticFRegisterForBitmapBit(title.values, 1), 0x1e);
   assert.equal(anticFRegisterForBitmapBit(title.values, 0), 0x10);
   assert.equal(ship.modeNumber, 0x0f);
-  assert.equal(ship.values.get("COLPF1"), 0x0a);
-  assert.equal(anticFRegisterForBitmapBit(ship.values, 1), 0x0a);
-  assert.equal(anticFRegisterForBitmapBit(ship.values, 0), 0x00);
+  assert.equal(ship.values.get("COLPF1"), 0x8a);
+  assert.equal(ship.values.get("COLPF2"), 0x80);
+  assert.equal(anticFRegisterForBitmapBit(ship.values, 1), 0x8a);
+  assert.equal(anticFRegisterForBitmapBit(ship.values, 0), 0x80);
   assert.equal(studio.modeNumber, 0x0e);
   assert.equal(studio.values.get("COLPF1"), 0xd8);
   assert.equal(studio.values.get("COLPF2"), 0xd0);
@@ -417,20 +421,16 @@ test("title and ship remain ANTIC F while the $D8 studio uses ANTIC E", () => {
   assert.equal(anticERegisterForBitmapPixel(studio.values, 0), 0x00);
 });
 
-test("studio ANTIC E pixels use COLBK=$00 and assembled COLPF1=$D8", () => {
-  const labels = readLabels();
-  const dliAddress = labels.get("loader_dli");
-  assert.ok(Number.isInteger(dliAddress));
-  const dliBytes = readXexBytes(dliAddress, 64);
-  const studioWrites = Buffer.from([
-    0xa9, 0xd8, 0x8d, 0x17, 0xd0,
-    0xa9, 0xd0, 0x8d, 0x18, 0xd0,
-  ]);
-  assert.notEqual(
-    dliBytes.indexOf(studioWrites),
-    -1,
-    "loader DLI must write COLPF1=$D8 then COLPF2=$D0",
-  );
+test("studio ANTIC E pixels use COLBK=$00 and a $D8 colour the DLI loads from the splash blob", () => {
+  // Rebaselined 2026-09-22. The splash fade means the DLI can no longer carry
+  // its colours as immediates: it loads this frame's faded pair from the blob's
+  // RAM. The initial values of that RAM are what the immediate bytes used to be,
+  // so the same evidence now lives in build/boot-splash.bin.
+  const splash = JSON.parse(fs.readFileSync(manifestPath, "utf8")).transportCapacity.bootSplash;
+  const blob = fs.readFileSync(path.join(rootDirectory, "build", "boot-splash.bin"));
+  assert.equal(blob.length, splash.bytes);
+  // splash_colors: title, ship and studio COLPF1/COLPF2 pairs in display order.
+  assert.deepEqual([...blob.subarray(0, 6)], [0x1e, 0x10, 0x8a, 0x80, 0xd8, 0xd0]);
 
   const studio = compiled.paletteZones[2];
   assert.deepEqual([studio.startLine, studio.endLine], [157, 191]);
@@ -455,13 +455,14 @@ test("studio ANTIC E pixels use COLBK=$00 and assembled COLPF1=$D8", () => {
   );
   assert.match(titlePalette, /lda #LOADER_TITLE_COLPF1\s+sta COLPF1/);
   assert.match(titlePalette, /lda #LOADER_TITLE_COLPF2\s+sta COLPF2/);
-  const dliSource = source.slice(
-    source.indexOf("loader_dli:"),
-    source.indexOf("unpack_loader_bitmap:"),
-  );
+  const blobSource = fs.readFileSync(path.join(rootDirectory, "src", "boot-splash.s"), "utf8");
+  const dliSource = blobSource.slice(blobSource.indexOf("loader_dli:"));
   assert.match(dliSource, /pha[\s\S]+sta WSYNC[\s\S]+pla\s+rti/);
-  assert.match(dliSource, /lda #LOADER_STUDIO_COLPF1\s+sta COLPF1/);
-  assert.match(dliSource, /lda #LOADER_STUDIO_COLPF2\s+sta COLPF2/);
+  assert.match(dliSource, /lda splash_colors\+4\s+sta COLPF1/);
+  assert.match(dliSource, /lda splash_colors\+5\s+sta COLPF2/);
+  // The blob's colour table is generated from the same loader source, so the
+  // studio pair in build/boot-splash.bin is LOADER_STUDIO_COLPF1/COLPF2.
+  assert.match(blobSource, /LOADER_STUDIO_COLPF1, LOADER_STUDIO_COLPF2/);
 });
 
 test("generated include is canonical and contains no ANTIC 4 loader assets", () => {
@@ -557,13 +558,17 @@ test("loader still owns exactly 250 full PAL frames and enters the main menu", (
   assert.match(source,
     /jsr show_loader[\s\S]+jsr unpack_starfield_runtime[\s\S]+jmp finish_startup_after_loader/);
   assert.match(source, /lda #LOADER_DURATION_FRAMES\s+sta loader_frame_count/);
-  assert.match(
-    source,
-    /jsr wait_frame_start\s+jsr set_loader_title_palette\s+dec loader_frame_count\s+bne @frame/,
-  );
-  assert.match(source, /sta WSYNC/);
-  assert.match(source, /pla\s+rti/);
-  assert.match(source, /lda #\$00\s+sta NMIEN\s+sta DMACTL\s+rts/);
+  // Rebaselined 2026-09-22: show_loader keeps the setup and the countdown arm,
+  // then jumps into the boot-only splash blob, which runs the hold. The hold is
+  // still 250 complete PAL frames counted down one per frame on the same
+  // counter, which is what the boot smoke's countdown proof observes.
+  assert.match(source, /sta loader_frame_count\s+;[\s\S]{0,400}?jmp splash_hold/);
+  const blob = fs.readFileSync(path.join(rootDirectory, "src", "boot-splash.s"), "utf8");
+  assert.match(blob, /jsr wait_frame_start/);
+  assert.match(blob, /dec loader_frame_count\s+beq splash_exit/);
+  assert.match(blob, /sta WSYNC/);
+  assert.match(blob, /pla\s+rti/);
+  assert.match(blob, /sta NMIEN\s+sta DMACTL/);
   assert.match(source, /jsr show_loader[\s\S]+jsr clear_pmg[\s\S]+jsr copy_charset/);
   assert.match(source, /jsr enter_main_menu\s+jmp frontend_loop/);
 });

@@ -21,6 +21,13 @@ export function loadRuntimeSegments(rootDirectory) {
   const definitions = [
     ["resident", "resident-runtime.bin", manifest.residentRuntime.runAddress,
       manifest.residentRuntime.rawBytes],
+    // The ADR-003 splash blob: boot-only code at $0500-$06FF that both stage-2
+    // entries copy there before start, so every runtime harness must place it
+    // or the loader hold and its DLI run into $00.
+    ...(manifest.transportCapacity?.bootSplash == null ? [] : [
+      ["bootSplash", "boot-splash.bin", manifest.transportCapacity.bootSplash.runAddress,
+        manifest.transportCapacity.bootSplash.bytes],
+    ]),
     ["starfield", "starfield-runtime.bin", manifest.starfieldRuntime.runAddress,
       manifest.starfieldRuntime.bytes],
     ["broadside", "broadside-runtime.bin", manifest.broadsideRuntime.runAddress,

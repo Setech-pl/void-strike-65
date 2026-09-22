@@ -276,7 +276,13 @@ export function deterministicCapacityBytes(length, seed = 0x6d2b79f5) {
 export function validateInitialBlockCapacity(byteLength, { allowExtendedInitialBlock = false } = {}) {
   invariant(Number.isInteger(byteLength) && byteLength >= ATR_SECTOR_BYTES,
     "initial block length is invalid");
-  const maximumSectors = allowExtendedInitialBlock ? 105 : 100;
+  // 107, raised from 105 on 2026-09-22 for the ADR-003 boot splash. The blob
+  // that carries the cassette sound, the fade and the skip is 512 B and travels
+  // at the tail of the initial block (owner decision (a), plan section 6.2);
+  // only 326 B were left under the old ceiling. MEASURED cost of the four extra
+  // sectors: ATR loader 339 -> 343 and menu 596 -> 600, XEX unmoved at 135/392,
+  // boot smoke 8/8 - inside the +10 warn band of docs/boot-deadline-baseline.json.
+  const maximumSectors = allowExtendedInitialBlock ? 107 : 100;
   const maximumBytes = maximumSectors * ATR_SECTOR_BYTES;
   invariant(byteLength <= maximumBytes,
     `initial block exceeds ${maximumBytes} bytes / ${maximumSectors} sectors`);

@@ -1,0 +1,29 @@
+{
+  "formatVersion": 1,
+  "description": "ADR-003 boot splash: a 600-baud Atari cassette load imitated on POKEY channel 1, faded out with the picture over the last 75 of the 250 hold frames. Owner-tunable: edit this file and rebuild; no code change is needed.",
+  "tone": {
+    "markAudf": 5,
+    "spaceAudf": 7,
+    "audcBase": "$A0",
+    "startVolume": 10,
+    "endVolume": 2
+  },
+  "fade": {
+    "startFrame": 176
+  },
+  "framing": {
+    "syncByte": "$55",
+    "syncBytes": 2,
+    "cellsPerFrame": 12,
+    "cellVcountStep": 13
+  },
+  "segments": [
+    { "type": "SILENCE", "frames": 5,  "note": "the deck starts" },
+    { "type": "LEADER",  "frames": 60, "note": "1.2 s of mark tone" },
+    { "type": "DATA",    "frames": 55, "note": "first record" },
+    { "type": "SILENCE", "frames": 10, "note": "inter-record gap" },
+    { "type": "DATA",    "frames": 50, "note": "the fade starts inside this record" },
+    { "type": "SILENCE", "frames": 10, "note": "a gap inside the fade" },
+    { "type": "DATA",    "frames": 60, "note": "cut at volume 2 by the teardown" }
+  ]
+}

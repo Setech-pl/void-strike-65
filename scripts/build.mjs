@@ -18,6 +18,10 @@ import {
   renderLoaderDisplayListCa65Include,
 } from "./loader-assets.mjs";
 import {
+  loadBootSplashDefinition,
+  renderBootSplashCa65Include,
+} from "./boot-splash-assets.mjs";
+import {
   compileCapitalHulls,
   loadCapitalHullsDefinition,
   renderCapitalHullsCa65Include,
@@ -290,6 +294,10 @@ const directorRunAddress = 0x9d75;
 const directorGuardAddress = 0x9ffa;
 // White-only stars and one-cell PairShots retain the same loader implementation.
 // The two-Heavy raster repair adds one 40-byte departing-row helper to A2.
+// --asm-director only. Not re-measured for the 512-byte ADR-003 splash blob
+// that now rides at the tail of the initial block: that mode has no build
+// script, no test and no evidence in this tree, so the figure would be a guess.
+// Re-measure it in the same change that revives the mode.
 const expectedInitialContentBytes = 13165;
 const expectedLinkedRuntimeBytes = 17549;
 const expectedDirectorRawBytes = 644;
@@ -1079,6 +1087,17 @@ async function build() {
   );
   writeFile(path.join(buildDirectory, "loader-screen.inc"), loaderInclude);
   writeFile(path.join(buildDirectory, "loader-display-list.inc"), loaderDisplayListInclude);
+  // The boot splash's cassette script is data, not code: the segment table, the
+  // tone constants and the fade come from JSON the owner retunes by ear.
+  const bootSplashDefinitionPath = path.join(
+    rootDirectory,
+    "assets",
+    "audio",
+    "boot-splash.json",
+  );
+  const bootSplashAsset = loadBootSplashDefinition(bootSplashDefinitionPath);
+  const bootSplashInclude = Buffer.from(renderBootSplashCa65Include(bootSplashAsset));
+  writeFile(path.join(buildDirectory, "boot-splash.inc"), bootSplashInclude);
   const capitalHullsDefinitionPath = path.join(
     rootDirectory,
     "assets",
@@ -1231,6 +1250,9 @@ async function build() {
       "/project/build/entity-effects.inc": entityEffectsInclude,
       "/project/build/frontend-h31.inc": frontendH31Include,
       "/project/build/director-abi.inc": directorAbiInclude,
+      "/project/build/boot-splash.inc": bootSplashInclude,
+      "/project/build/boot-splash.s": fs.readFileSync(
+        path.join(rootDirectory, "src", "boot-splash.s")),
       "/project/build/heavy-member.s": fs.readFileSync(
         path.join(rootDirectory, "src", "hybrid", "heavy-member.s")),
     },
@@ -1324,6 +1346,13 @@ async function build() {
   const bootStage2Bytes = labels.get("__BOOT_STAGE2_SIZE__");
   const bootStage2FileOffset = labels.get("__BOOT2FILE_FILEOFFS__");
   const bootStage2XexEntry = labels.get("boot_stage2_xex_entry");
+  const bootSplashSourceOperand = labels.get("boot_splash_source");
+  const bootSplashSourceHighOperand = labels.get("boot_splash_source_high");
+  const bootSplashLoadAddress = labels.get("__BOOT_SPLASH_LOAD__");
+  const bootSplashRunAddress = labels.get("__BOOT_SPLASH_RUN__");
+  const bootSplashBytes = labels.get("__BOOT_SPLASH_SIZE__");
+  const bootSplashCodeBytes = labels.get("splash_blob_code_end") - labels.get("splash_blob_start");
+  const bootSplashImmutableAddress = labels.get("splash_immutable");
   const bootChunkManifestAddress = labels.get("boot_chunk_manifest");
   const bootChunkManifestEndAddress = labels.get("boot_chunk_manifest_end");
   const relocatedHullStart = labels.get("scroll_hull_columns");
@@ -1366,6 +1395,11 @@ async function build() {
     !Number.isInteger(bootStage2RunAddress) || !Number.isInteger(bootStage2Bytes) ||
     !Number.isInteger(bootStage2FileOffset) ||
     !Number.isInteger(bootStage2XexEntry) || !Number.isInteger(bootChunkManifestAddress) ||
+    !Number.isInteger(bootSplashLoadAddress) || !Number.isInteger(bootSplashRunAddress) ||
+    !Number.isInteger(bootSplashBytes) || !Number.isInteger(bootSplashCodeBytes) ||
+    !Number.isInteger(bootSplashSourceOperand) ||
+    !Number.isInteger(bootSplashImmutableAddress) ||
+    !Number.isInteger(bootSplashSourceHighOperand) ||
     !Number.isInteger(bootChunkManifestEndAddress) || !Number.isInteger(entityStateRunAddress) ||
     !Number.isInteger(entityStateBytes) ||
     !Number.isInteger(residentRuntimeSuffixAddress) ||
@@ -1395,6 +1429,16 @@ async function build() {
     bootChunkManifestEndAddress - bootChunkManifestAddress !==
       12 + chunkLoaderConstants.maxChunks * 16 + 2) {
     throw new Error("BOOT_STAGE2 lies outside its transient reviewed overlay");
+  }
+  // BOOT_SPLASH links directly behind BOOT_STAGE2 in the shared BOOT2FILE area,
+  // but it is transported separately, at the tail of the initial block (see
+  // initialContentParts below), and copied to $0500-$06FF by both stage-2
+  // entries right after disable_basic_rom.
+  if (bootSplashRunAddress !== 0x0500 || bootSplashBytes !== 0x0200 ||
+    bootSplashLoadAddress !== bootStage2LoadAddress + bootStage2Bytes ||
+    bootStage2Bytes + bootSplashBytes > 0x0800 ||
+    bootSplashCodeBytes < 1 || bootSplashCodeBytes > bootSplashBytes) {
+    throw new Error("the boot splash blob lies outside its reviewed $0500-$06FF placement");
   }
   if (broadsideLoadAddress !== 0x4000 || broadsideRunAddress !== 0x5e10 ||
     broadsideRuntimeBytes > broadsideRuntimeReservedBytes) {
@@ -1664,6 +1708,14 @@ async function build() {
   if (bootStage2Runtime.length !== bootStage2Bytes) {
     throw new Error("Linked BOOT_STAGE2 bytes are truncated");
   }
+  const bootSplashRuntime = Buffer.from(linkedPayload.subarray(
+    bootStage2FileOffset + (bootSplashLoadAddress - bootStage2LoadAddress),
+    bootStage2FileOffset + (bootSplashLoadAddress - bootStage2LoadAddress) + bootSplashBytes,
+  ));
+  if (bootSplashRuntime.length !== bootSplashBytes) {
+    throw new Error("Linked BOOT_SPLASH bytes are truncated");
+  }
+
   const starfieldSplit = splitStarfieldStreams(starfieldRuntime, starfieldStagingStreams);
   const packedStarfieldRuntime = Buffer.concat(starfieldSplit.streams.map(({ packed }) => packed));
   if (!Buffer.concat(starfieldSplit.streams.map(({ packed }) => unpackBroadsideLzss(packed)))
@@ -1756,6 +1808,20 @@ async function build() {
   const entityStagedSourceAddress = entityPackedStagingAddress;
   const entityStagedEndAddress = entityStagedSourceAddress + packedEntityCodeRuntime.length;
   const initialPackedSourcesEnd = entityPackedSourceAddress + packedEntityCodeRuntime.length;
+  // The splash blob's transported address, patched into the two `lda abs,x`
+  // operands of copy_boot_splash_blob. Both stage-2 entries read it here, ahead
+  // of every write either medium makes, so no later stage can have touched it.
+  const bootSplashSourceAddress = initialPackedSourcesEnd;
+  for (const [operand, address] of [
+    [bootSplashSourceOperand, bootSplashSourceAddress],
+    [bootSplashSourceHighOperand, bootSplashSourceAddress + 0x0100],
+  ]) {
+    const offset = operand + 1 - bootStage2RunAddress;
+    if (offset < 1 || offset + 2 > bootStage2Runtime.length) {
+      throw new Error("the boot splash copy operands do not lie inside BOOT_STAGE2");
+    }
+    bootStage2Runtime.writeUInt16LE(address, offset);
+  }
   const initialPackedSourcesLastAddress = initialPackedSourcesEnd - 1;
   const glueStagingEndAddress = glueStagingAddress + glueModule.raw.length;
   const packedStarfieldEndAddress = packedStarfieldAddress + packedStarfieldRuntime.length;
@@ -1875,9 +1941,14 @@ async function build() {
     12 + chunkLoaderConstants.maxChunks * 16 + 2 > bootStage2Runtime.length) {
     throw new Error("BOOT_STAGE2 manifest does not lie inside its transient code block");
   }
+  // The splash blob rides at the tail of the initial block, behind every packed
+  // source. Placing it there keeps the measured addresses of the packed
+  // resident, starfield, A2 and ENTITY streams - and therefore the 91-byte
+  // packed-starfield margin below the pickup cold staging - exactly as they
+  // were; both stage-2 entries copy it from here to $0500 before start.
   const initialContentParts = (stage2Bytes) => [
     residentPrefix, stage2Bytes, packedResidentRuntime, packedStarfieldRuntime,
-    a2KernelRuntime, packedEntityCodeRuntime, bootPayloadTrailer,
+    a2KernelRuntime, packedEntityCodeRuntime, bootSplashRuntime, bootPayloadTrailer,
   ];
   const placeholderInitial = Buffer.concat(initialContentParts(bootStage2Runtime));
   if (asmDirectorBaseline && placeholderInitial.length !== expectedInitialContentBytes) {
@@ -2445,6 +2516,26 @@ async function build() {
         xexEntryAddress: bootStage2XexEntry,
         xexEntryOffset: bootStage2XexEntry - bootStage2RunAddress,
         overwrittenByResidentSuffix: true,
+      },
+      // The ADR-003 splash blob rides at the tail of the initial block and is
+      // copied to $0500-$06FF by both stage-2 entries, right after
+      // disable_basic_rom. It is boot-only: no resident byte changes.
+      bootSplash: {
+        runAddress: bootSplashRunAddress,
+        loadAddress: bootSplashLoadAddress,
+        transportAddress: bootSplashSourceAddress,
+        bytes: bootSplashBytes,
+        codeBytes: bootSplashCodeBytes,
+        // The tables and code, which never change once the copy has landed.
+        // The variables below this address are the hold's own state.
+        immutableAddress: bootSplashImmutableAddress,
+        immutableBytes: bootSplashRunAddress + bootSplashBytes - bootSplashImmutableAddress,
+        sha256: sha256(bootSplashRuntime),
+        source: "assets/audio/boot-splash.json",
+        sourceSha256: sha256(fs.readFileSync(bootSplashDefinitionPath)),
+        holdFrames: bootSplashAsset.holdFrames,
+        fadeStartFrame: bootSplashAsset.fadeStartFrame,
+        segments: bootSplashAsset.segments.map(({ type, frames }) => ({ type, frames })),
       },
       manifest: {
         address: bootChunkManifestAddress,
@@ -3410,6 +3501,7 @@ async function build() {
   writeFile(path.join(buildDirectory, "resident-runtime.bin"), residentMain);
   writeFile(path.join(buildDirectory, "resident-runtime-suffix.bin"), residentRuntimeSuffix);
   writeFile(path.join(buildDirectory, "resident-runtime-suffix-packed.bin"), packedResidentRuntime);
+  writeFile(path.join(buildDirectory, "boot-splash.bin"), bootSplashRuntime);
   writeFile(path.join(buildDirectory, "broadside-runtime.bin"), broadsideRuntime);
   writeFile(path.join(buildDirectory, "broadside-runtime-packed.bin"), packedBroadsideRuntime);
   writeFile(path.join(buildDirectory, "integration-glue.o"), glueModule.object);

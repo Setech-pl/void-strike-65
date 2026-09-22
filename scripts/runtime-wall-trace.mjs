@@ -5,7 +5,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import zlib from "node:zlib";
 import { parseViceLabels } from "./runtime-cycles.mjs";
-import { LOADER_DISPLAY_LIST_ADDRESS } from "./loader-assets.mjs";
+import { LOADER_DISPLAY_LIST_ADDRESS, loadLoaderBitmapDefinition } from "./loader-assets.mjs";
 import { runtimeArtifactSet, runtimeArtifactNames } from "./runtime-evidence.mjs";
 import { canonicalPlayfield } from "./playfield.mjs";
 import { readStartMenuRuntimeState } from "./preview.mjs";
@@ -1754,6 +1754,36 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
   addressEnvironment.DFBOOT_PC_SIO_FRAME = readerPc("sector_reader_begin_receive");
   addressEnvironment.DFBOOT_PC_SIO_RETRY = readerPc("sector_reader_settle");
   addressEnvironment.DFBOOT_PC_LEVEL_LOAD = readerPc("sector_reader_load");
+  // ADR-003 boot splash: the blob's home, checksummed at `start` and at both
+  // loader milestones so the chunk load and the resident unpack between them
+  // are proved not to have touched it.
+  const bootSplash = manifest.transportCapacity?.bootSplash ?? null;
+  invariant(bootSplash !== null && Number.isInteger(bootSplash.runAddress) &&
+    Number.isInteger(bootSplash.bytes),
+  "the manifest carries no boot splash placement");
+  const bootSplashImage = fs.readFileSync(path.join(rootDirectory, "build", "boot-splash.bin"));
+  invariant(bootSplashImage.length === bootSplash.bytes,
+    `build/boot-splash.bin is ${bootSplashImage.length} B; the manifest says ${bootSplash.bytes}`);
+  addressEnvironment.DFBOOT_SPLASH_ADDRESS = `0x${bootSplash.runAddress.toString(16)}`;
+  addressEnvironment.DFBOOT_SPLASH_BYTES = `${bootSplash.bytes}`;
+  addressEnvironment.DFBOOT_SPLASH_CODE_ADDRESS =
+    `0x${bootSplash.immutableAddress.toString(16)}`;
+  addressEnvironment.DFBOOT_SPLASH_CODE_BYTES = `${bootSplash.immutableBytes}`;
+  const splashFadeStartFrame = bootSplash.fadeStartFrame;
+  const splashEndVolume = JSON.parse(fs.readFileSync(
+    path.join(rootDirectory, "assets", "audio", "boot-splash.json"), "utf8")).tone.endVolume;
+  const loaderShipZone = loadLoaderBitmapDefinition(path.join(
+    rootDirectory, "assets", "graphics", "loader-bitmap.json"))
+    .paletteZones.find(({ name }) => name === "ship");
+  invariant(loaderShipZone != null, "the loader source carries no ship zone");
+  const splashShipColpf1 = Number.parseInt(loaderShipZone.registers.COLPF1.slice(1), 16);
+  const splashShipColpf2 = Number.parseInt(loaderShipZone.registers.COLPF2.slice(1), 16);
+  // The same rolling checksum the guest observer computes over its ranges.
+  const djb2Checksum = (bytes) => {
+    let value = 0;
+    for (const byte of bytes) value = ((Math.imul(value, 33) + byte) >>> 0);
+    return value;
+  };
 
   const publicLaunches = atari800ArtifactLaunches(rootDirectory);
   invariant(publicLaunches.xex.artifact.path === xexPath &&
@@ -1834,6 +1864,65 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
       `${definition.id} loader display/VBI state is invalid at frame ${snapshot.frame} ` +
         `(loader milestone ${milestones.loader})`);
     }
+    // --- ADR-003 boot splash --------------------------------------------
+    //
+    // Intactness. Both stage-2 entries copy the blob to $0500-$06FF right
+    // after disable_basic_rom; between that copy and the end of the hold the
+    // ATR runs the whole chunk load and both media run unpack_resident_runtime
+    // and every publisher. Checksumming the range at `start` and again at both
+    // loader milestones proves none of them wrote there. The checksum is taken
+    // over the same bytes build/boot-splash.bin holds, so a wrong or missing
+    // copy is caught as well as an overwrite.
+    const splashChecksum = djb2Checksum(bootSplashImage);
+    const splashCodeChecksum = djb2Checksum(bootSplashImage.subarray(
+      bootSplash.immutableAddress - bootSplash.runAddress));
+    invariant(result.splash?.address === bootSplash.runAddress &&
+      result.splash?.bytes === bootSplash.bytes,
+    `${definition.id} observed the splash blob at the wrong placement`);
+    invariant(result.splash.checksum_at_start === splashChecksum,
+      `${definition.id} splash blob at $${bootSplash.runAddress.toString(16)} is ` +
+      `${result.splash.checksum_at_start} at the start milestone, expected ${splashChecksum}: ` +
+      "the copy in the stage-2 entries did not land");
+    for (const snapshot of [loaderNear, loaderFar]) {
+      invariant(snapshot.splash_checksum === splashCodeChecksum,
+        `${definition.id} splash blob at $${bootSplash.immutableAddress.toString(16)} changed to ` +
+        `${snapshot.splash_checksum} by frame ${snapshot.frame}: something between start and ` +
+        "the hold wrote into the boot-only range");
+    }
+    // The deck stops before the display is blanked. Observed at the teardown
+    // rather than on the first frontend frame: music v2 hands the menu theme
+    // POKEY channel 1 inside that same frame, so the frontend value says
+    // nothing about the splash. It is reported below as an observation.
+    invariant(result.splash.teardown_audc1 === 0,
+      `${definition.id} AUDC1 is ${result.splash.teardown_audc1} when the splash blanks the ` +
+      "display: the teardown did not cut the sound");
+    // Per-bit switching and the ship colour, sampled twice per hold frame at
+    // the two DLI scanlines. The two samples of one frame sit in different bit
+    // cells, so a per-frame tone would show one divisor for the whole frame.
+    const dli = result.splash.dli.map(([frame, scanline, audf1, audc1, colpf1, colpf2, colbk]) =>
+      ({ frame, scanline, audf1, audc1, colpf1, colpf2, colbk }));
+    invariant(dli.length >= 2 * (splashFadeStartFrame - 1),
+      `${definition.id} logged only ${dli.length} splash DLI entries`);
+    const shipEntries = dli.filter((entry, index) => index % 2 === 1);
+    const brightShip = shipEntries.slice(0, splashFadeStartFrame - 2);
+    invariant(brightShip.length > 0 && brightShip.every((entry) =>
+      entry.colpf1 === splashShipColpf1 && entry.colpf2 === splashShipColpf2),
+    `${definition.id} the splash ship zone is not allied blue ` +
+      `$${splashShipColpf1.toString(16)}/$${splashShipColpf2.toString(16)} during the hold`);
+    const divisors = new Set(dli.slice(0, 2 * (splashFadeStartFrame - 1)).map(({ audf1 }) => audf1));
+    invariant(divisors.size >= 2,
+      `${definition.id} AUDF1 never changed across the hold: the tone is not per-bit`);
+    invariant(dli.every(({ colbk }) => colbk === 0),
+      `${definition.id} COLBK is not black somewhere in the splash hold`);
+    // Only the tone segments carry a volume; a SILENCE segment writes the
+    // distortion with the volume nibble clear and would read as a drop to 0.
+    const volumes = dli.filter(({ audc1 }) => (audc1 & 0x0f) !== 0).map(({ audc1 }) => audc1 & 0x0f);
+    invariant(volumes.length > 0 && volumes.every((volume, index) =>
+      index === 0 || volume <= volumes[index - 1]),
+    `${definition.id} the splash volume rose during the hold`);
+    invariant(volumes.at(-1) <= splashEndVolume,
+      `${definition.id} the splash did not fade to volume ${splashEndVolume}`);
+
     invariant(loaderFar.loader_timer > 0 &&
       loaderNear.loader_timer - loaderFar.loader_timer === BOOT_LOADER_OBSERVE_SPAN,
     `${definition.id} loader countdown did not advance one frame per PAL frame between ` +

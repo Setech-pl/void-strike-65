@@ -625,7 +625,7 @@ Both questions share one budget. Placement option, against the free space of
 | 4.6 Director, net (§4.1) | **~400** | ESTIMATE | wants one contiguous home |
 | Bomber breakup, variant 2 (§7.4) | **~90** | ESTIMATE | fits today's fragments |
 | Bomber breakup, variant 3 instead | ~150 | ESTIMATE | fits today's fragments |
-| Boot splash | **UNKNOWN** | no plan exists (§0.1) | — |
+| Boot splash | **0 resident** | MEASURED 2026-09-22 | 512 B boot-only at `$0500-$06FF`; plus 56 B of MAIN recoverable by deleting the layout pin |
 | **Total, Director + variant 2** | **~490** | | |
 
 **Supply, per option**
@@ -683,9 +683,19 @@ frames. Refuse the second member's claim while a breakup is live (~6 B, one
 cluster stands for the whole kill), or accept the truncation.
 *Recommended: refuse the second claim.*
 
-**Q-4 — the boot splash.** No plan for it exists in the repository or on any
-branch (§0.1). Its row in §8 is UNKNOWN. Confirm whether the plan exists
-elsewhere, or whether it should be written.
+**Q-4 — the boot splash. CLOSED, 2026-09-22.** The plan was written
+(`docs/plan-boot-splash-cassette.md`) and implemented. It costs this plan's
+budget **nothing**: the cassette-sound engine, the fade, the skip and the DLI
+are 499 B of code in a 512-B **boot-only** blob at `$0500-$06FF`, copied there
+by both stage-2 entries right after `disable_basic_rom` and dead once the hold
+ends. No linked runtime segment, reservation, ZP byte or free-tail figure
+changes. The old hold loop and `loader_dli` leaving MAIN freed 56 B, held as a
+deliberate layout pin so that no later CODE or RODATA address moves; deleting
+that pin recovers 56 B of MAIN whenever something needs them, against a
+re-measured cycle baseline. The cost lands entirely in transport: the initial block grows 512 B
+(four ATR sectors), which raised the opt-in initial-block ceiling 105 -> 107
+sectors and moved the ATR milestones +4/+4 frames, inside the +10 warn band.
+Its §8 row above is updated accordingly.
 
 **Q-5 — `npm test` is broken at HEAD** (finding F9). **Investigated
 2026-09-21; the task was raised and run, and the answer is worse than the

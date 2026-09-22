@@ -49,7 +49,7 @@ function lzChunk(length, finalDestination, seed) {
   };
 }
 
-test("production gate distinguishes 100 sectors from the opt-in 105-sector layout", () => {
+test("production gate distinguishes 100 sectors from the opt-in 107-sector layout", () => {
   const hundred = buildDfmcV1Transport({
     initialContent: initialContent(100 * 128 - 12),
     manifestOffset: MANIFEST_OFFSET,
@@ -96,19 +96,23 @@ test("production gate distinguishes 100 sectors from the opt-in 105-sector layou
   assert.equal(hundredThree.records[0].startSector, 104);
 });
 
-test("the opt-in initial-block ceiling accepts exactly 13440 bytes and rejects 13441", () => {
-  assert.deepEqual(validateInitialBlockCapacity(13440, { allowExtendedInitialBlock: true }), {
-    byteLength: 13440, sectors: 105, maximumBytes: 13440, maximumSectors: 105,
+// Raised from 105 / 13440 on 2026-09-22 so that the 512-byte ADR-003 splash
+// blob fits at the tail of the initial block (owner decision (a) of the boot
+// splash plan, section 6.2). MEASURED cost of the four extra sectors: ATR
+// loader 339 -> 343, menu 596 -> 600; XEX unmoved; boot smoke 8/8.
+test("the opt-in initial-block ceiling accepts exactly 13696 bytes and rejects 13697", () => {
+  assert.deepEqual(validateInitialBlockCapacity(13696, { allowExtendedInitialBlock: true }), {
+    byteLength: 13696, sectors: 107, maximumBytes: 13696, maximumSectors: 107,
   });
-  assert.throws(() => validateInitialBlockCapacity(13441, {
+  assert.throws(() => validateInitialBlockCapacity(13697, {
     allowExtendedInitialBlock: true,
-  }), /exceeds 13440 bytes \/ 105 sectors/);
+  }), /exceeds 13696 bytes \/ 107 sectors/);
   assert.throws(() => buildDfmcV1Transport({
-    initialContent: initialContent(105 * 128 - 11),
+    initialContent: initialContent(107 * 128 - 11),
     manifestOffset: MANIFEST_OFFSET,
     chunks: [rawChunk(107)],
     allowExtendedInitialBlock: true,
-  }), /exceeds 13440 bytes \/ 105 sectors/);
+  }), /exceeds 13696 bytes \/ 107 sectors/);
 });
 
 test("one and multiple records preserve order, fields, and exact sector boundaries", () => {

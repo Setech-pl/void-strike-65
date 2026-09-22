@@ -63,6 +63,7 @@ Debris and pickup capsules appear everywhere.
 | Joystick, port 1 | Move |
 | Fire | Shoot |
 | Space | Pause |
+| Space or Fire, during the boot splash | Skip the title screen |
 
 ## The ship
 

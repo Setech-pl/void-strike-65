@@ -291,7 +291,17 @@ test("layout and transport gates remain legal after blue-far removal", () => {
   // (348 B raw / 103 B packed still left). The boot smoke is unmoved at XEX
   // menu 391 / ATR menu 595, so boot-deadline-baseline.json is still NOT
   // re-recorded.
-  assert.equal(manifest.transportCapacity.initialBootSectors, 103);
+  //
+  // 103 -> 107, re-recorded 2026-09-22 for the ADR-003 boot splash: the 512-B
+  // boot-only blob that carries the cassette sound, the fade, the SPACE/FIRE
+  // skip and loader_dli rides at the tail of the initial block, behind every
+  // packed source, so that no packed-source address moves. Nothing here is a
+  // STARFIELD change - the packed stream is unmoved at 1,701 B. The four
+  // sectors also raised the opt-in initial-block ceiling 105 -> 107. Deliberate
+  // growth, MEASURED by the boot smoke: XEX loader/menu unmoved at 135/392,
+  // ATR 339/596 -> 343/600, inside the +-10 warn band, so
+  // boot-deadline-baseline.json is still NOT re-recorded.
+  assert.equal(manifest.transportCapacity.initialBootSectors, 107);
   assert.ok(manifest.transportCapacity.initialBootEnvelopeBytes >= 0);
   assert.equal(labels.get("ENTITY_CODE_START") & 0xff, 0);
 });

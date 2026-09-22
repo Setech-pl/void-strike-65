@@ -848,6 +848,13 @@ typedef struct {
 	UBYTE level_header[8];
 	unsigned level_checksum;
 	unsigned portb;
+	/* ADR-003 boot splash (2026-09-22). The blob is copied to $0500-$06FF by
+	 * both stage-2 entries, before the first SIO read on the ATR and before
+	 * `jmp start` on the XEX, and nothing may write there until the hold ends.
+	 * Checksumming the range at `start` and at both loader milestones is the
+	 * intactness proof: the chunk load and the resident unpack sit between
+	 * them. */
+	unsigned splash_checksum;
 } DFBootSnapshot;
 
 static int dfboot_initialised;
@@ -912,6 +919,39 @@ static unsigned dfboot_level_load_end = 0xffffffffu;
  * far below the 250-frame hold. */
 #define DFBOOT_LOADER_OBSERVE_OFFSET 3u
 #define DFBOOT_LOADER_OBSERVE_SPAN 50u
+
+/* ADR-003 boot splash observations. The DLI-entry log samples POKEY and the
+ * playfield twice per hold frame, at the two scanlines the display list marks:
+ * the first entry of a frame still holds the title zone, the second the ship
+ * zone the first DLI wrote. Two entries per frame also land in two different
+ * bit cells, which is what makes per-bit switching observable natively. */
+#define DFBOOT_SPLASH_DLI_LOG 520u
+typedef struct {
+	unsigned frame;
+	int scanline;
+	UBYTE audf1;
+	UBYTE audc1;
+	UBYTE colpf1;
+	UBYTE colpf2;
+	UBYTE colbk;
+} DFBootSplashDli;
+static unsigned dfboot_splash_address;
+static unsigned dfboot_splash_bytes;
+/* The blob's tables and code. The variables below them are the hold's own
+ * state and change every frame, so only this part can be compared across the
+ * chunk load and the resident unpack. */
+static unsigned dfboot_splash_code_address;
+static unsigned dfboot_splash_code_bytes;
+static unsigned dfboot_splash_checksum_start = 0xffffffffu;
+/* AUDC1 at the instant the splash teardown has blanked the display and the
+ * frontend has not yet run. The plan's original observation point was the first
+ * frontend frame, but music v2 gives the menu theme POKEY channel 1 within that
+ * same frame, so the teardown itself is where "the deck is cut" is observable.
+ * The frontend value is still reported, as an observation rather than a gate. */
+static unsigned dfboot_teardown_audc1 = 0xffffffffu;
+static unsigned dfboot_first_frontend_audc1 = 0xffffffffu;
+static unsigned dfboot_splash_dli_count;
+static DFBootSplashDli dfboot_splash_dli[DFBOOT_SPLASH_DLI_LOG];
 
 static unsigned dfboot_snapshots_count;
 static unsigned dfboot_loader_dli_count;
@@ -1007,6 +1047,8 @@ static void dfboot_capture(unsigned frame, unsigned pc)
 		snapshot->level_header[index_window] =
 			MEMORY_mem[(dfboot_level_address + index_window) & 0xffffu];
 	snapshot->level_checksum = dfboot_checksum(dfboot_level_address, dfboot_level_bytes);
+	snapshot->splash_checksum =
+		dfboot_checksum(dfboot_splash_code_address, dfboot_splash_code_bytes);
 	snapshot->portb = PIA_PORTB;
 	if (dfboot_screenshot_prefix != NULL && *dfboot_screenshot_prefix != '\0') {
 		snprintf(screenshot, sizeof(screenshot), "%s-frame%03u.png",
@@ -1037,7 +1079,7 @@ static void dfboot_write(void)
 			"\"portb\":%u,\"window\":\"%02x%02x%02x%02x%02x%02x%02x%02x"
 			"%02x%02x%02x%02x%02x%02x%02x%02x\","
 			"\"level_header\":\"%02x%02x%02x%02x%02x%02x%02x%02x\","
-			"\"level_checksum\":%u}%s\n",
+			"\"level_checksum\":%u,\"splash_checksum\":%u}%s\n",
 			snapshot->frame, snapshot->pc, snapshot->scanline, snapshot->cycle,
 			snapshot->loader_timer, snapshot->game_state, snapshot->dlist,
 			snapshot->charset_address, snapshot->pm_base, snapshot->dma_ctl,
@@ -1056,7 +1098,7 @@ static void dfboot_write(void)
 			snapshot->level_header[2], snapshot->level_header[3],
 			snapshot->level_header[4], snapshot->level_header[5],
 			snapshot->level_header[6], snapshot->level_header[7],
-			snapshot->level_checksum,
+			snapshot->level_checksum, snapshot->splash_checksum,
 			index + 1u == dfboot_snapshots_count ? "" : ",");
 	}
 	fprintf(dfboot_file,
@@ -1065,6 +1107,23 @@ static void dfboot_write(void)
 		dfboot_sio_command_frames, dfboot_sio_wire_retries,
 		dfboot_level_load_begin == 0xffffffffu ? -1 : (int) dfboot_level_load_begin,
 		dfboot_level_load_end == 0xffffffffu ? -1 : (int) dfboot_level_load_end);
+	fprintf(dfboot_file, "  \"splash\": {\"address\":%u,\"bytes\":%u,"
+		"\"code_address\":%u,\"code_bytes\":%u,"
+		"\"checksum_at_start\":%u,\"teardown_audc1\":%d,"
+		"\"first_frontend_audc1\":%d,\"dli\": [",
+		dfboot_splash_address, dfboot_splash_bytes,
+		dfboot_splash_code_address, dfboot_splash_code_bytes,
+		dfboot_splash_checksum_start,
+		dfboot_teardown_audc1 == 0xffffffffu ? -1 : (int) dfboot_teardown_audc1,
+		dfboot_first_frontend_audc1 == 0xffffffffu ? -1 :
+			(int) dfboot_first_frontend_audc1);
+	for (index = 0; index < dfboot_splash_dli_count; ++index) {
+		DFBootSplashDli *entry = &dfboot_splash_dli[index];
+		fprintf(dfboot_file, "%s[%u,%d,%u,%u,%u,%u,%u]", index == 0u ? "" : ",",
+			entry->frame, entry->scanline, entry->audf1, entry->audc1,
+			entry->colpf1, entry->colpf2, entry->colbk);
+	}
+	fprintf(dfboot_file, "]},\n");
 	fprintf(dfboot_file,
 		"  \"milestones\": {\"start\":%u,\"loader\":%u,\"menu\":%u,"
 		"\"frontend_poll\":%u,\"gameplay_init\":%u,\"main_loop\":%u}\n}\n",
@@ -1104,6 +1163,10 @@ static void dfboot_init(void)
 	dfboot_pc_gameplay = dfboot_env_u("DFBOOT_PC_GAMEPLAY");
 	dfboot_pc_main = dfboot_env_u("DFBOOT_PC_MAIN");
 	dfboot_loader_timer = dfboot_env_u("DFBOOT_LOADER_TIMER");
+	dfboot_splash_address = dfboot_env_u("DFBOOT_SPLASH_ADDRESS");
+	dfboot_splash_bytes = dfboot_env_u("DFBOOT_SPLASH_BYTES");
+	dfboot_splash_code_address = dfboot_env_u("DFBOOT_SPLASH_CODE_ADDRESS");
+	dfboot_splash_code_bytes = dfboot_env_u("DFBOOT_SPLASH_CODE_BYTES");
 	dfboot_game_state = dfboot_env_u("DFBOOT_GAME_STATE");
 	dfboot_main_menu_dlist = dfboot_env_u("DFBOOT_MAIN_MENU_DLIST");
 	dfboot_frontend_dlist_end = dfboot_env_u("DFBOOT_FRONTEND_DLIST_END");
@@ -1174,18 +1237,39 @@ static void dfboot_observe(unsigned pc, unsigned a_register, unsigned x_register
 			MEMORY_mem[0x8e63u], MEMORY_mem[0x8e64u]);
 		exit(2);
 	}
-	if (MEMORY_mem[dfboot_game_state] == 0u && pc == dfboot_word(0x0200u))
+	if (MEMORY_mem[dfboot_game_state] == 0u && pc == dfboot_word(0x0200u)) {
 		++dfboot_loader_dli_count;
-	if (pc == dfboot_pc_start && dfboot_seen_start == 0xffffffffu)
+		if (dfboot_splash_dli_count < DFBOOT_SPLASH_DLI_LOG) {
+			DFBootSplashDli *entry = &dfboot_splash_dli[dfboot_splash_dli_count++];
+			entry->frame = frame;
+			entry->scanline = ANTIC_ypos;
+			entry->audf1 = POKEY_AUDF[0];
+			entry->audc1 = POKEY_AUDC[0];
+			entry->colpf1 = GTIA_COLPF1;
+			entry->colpf2 = GTIA_COLPF2;
+			entry->colbk = GTIA_COLBK;
+		}
+	}
+	if (dfboot_seen_loader != 0xffffffffu && dfboot_teardown_audc1 == 0xffffffffu &&
+		MEMORY_mem[dfboot_game_state] == 0u && ANTIC_DMACTL == 0u)
+		dfboot_teardown_audc1 = POKEY_AUDC[0];
+	if (pc == dfboot_pc_start && dfboot_seen_start == 0xffffffffu) {
 		dfboot_seen_start = frame;
+		dfboot_splash_checksum_start =
+			dfboot_checksum(dfboot_splash_address, dfboot_splash_bytes);
+	}
 	if (pc == dfboot_pc_loader && dfboot_seen_loader == 0xffffffffu)
 		dfboot_seen_loader = frame;
 	if (pc == dfboot_pc_menu && dfboot_seen_menu == 0xffffffffu &&
 		dfboot_seen_loader != 0xffffffffu && MEMORY_mem[dfboot_loader_timer] == 0u)
 		dfboot_seen_menu = frame;
 	if (pc == dfboot_pc_frontend && dfboot_seen_frontend == 0xffffffffu &&
-		MEMORY_mem[dfboot_game_state] == 1u)
+		MEMORY_mem[dfboot_game_state] == 1u) {
 		dfboot_seen_frontend = frame;
+		/* The splash teardown clears AUDC1 before it blanks the display, so
+		 * the deck must already be silent on the first frontend frame. */
+		dfboot_first_frontend_audc1 = POKEY_AUDC[0];
+	}
 	if (pc == dfboot_pc_gameplay && dfboot_seen_gameplay == 0xffffffffu) {
 		dfboot_seen_gameplay = frame;
 		/* The reader has handed over, so the load window closes here. */

@@ -16,8 +16,9 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 import {
-  compileMusic, createMusicState, loadMusicDefinition, renderMusicCa65Include, simulateStream,
-  startMusic, stopMusic, tickMusic,
+  compileGameplayMusic, compileMusic, createMusicState, loadMusicDefinition,
+  renderGameplayMusicCa65Include, renderMusicCa65Include, simulateGameplayStream,
+  simulateStream, startMusic, stopMusic, tickMusic,
 } from "../scripts/music.mjs";
 import { peakVolumeSum, renderOracleStream, serialiseStream }
   from "../scripts/music-oracle.mjs";
@@ -32,6 +33,13 @@ const sha256 = (bytes) => crypto.createHash("sha256").update(bytes).digest("hex"
 
 // One full loop plus one row.
 const FRAMES = asset.loopFrames + asset.framesPerRow;
+
+// The gameplay theme shares the menu's pitch table and carries only the
+// dividers it uses (plan §1.1).
+const gameplayPath = path.join(rootDirectory, "assets", "music", "gameplay-theme.json");
+const gameplayDefinition = loadMusicDefinition(gameplayPath);
+const gameplay = compileGameplayMusic(gameplayDefinition, { pitches: definition.pitches });
+const GAMEPLAY_FRAMES = gameplay.loopFrames + gameplay.framesPerRow;
 
 export function assertStreamsMatch(expected, actual, what) {
   assert.equal(actual.length, expected.length, `${what}: frame count`);
@@ -149,4 +157,84 @@ test("the transport advances on exact six-frame PAL row boundaries without drift
   assert.equal(rowFrames.at(-1), asset.loopFrames - asset.framesPerRow);
   assert.deepEqual([state.sequenceIndex, state.patternRow, state.rowTimer], [0, 0, 1],
     "the loop must restart without a gap");
+});
+
+// ---------------------------------------------------------------------------
+// The gameplay theme "GRA-2" (plan §10 step 2b). Same oracle, same rules, a
+// different compiled encoding: nibble tokens, 8-byte columns, no pitch table.
+// ---------------------------------------------------------------------------
+
+test("the gameplay theme compiles to format 2 and loops in 30.72 PAL seconds", () => {
+  assert.deepEqual(
+    [gameplayDefinition.formatVersion, gameplay.targetFrameHz, gameplay.framesPerRow,
+      gameplay.rowsPerPattern, gameplay.sequence.length, gameplay.loopFrames,
+      gameplay.loopSeconds],
+    [2, 50, 6, 16, 16, 1536, 30.72],
+  );
+  assert.equal(renderGameplayMusicCa65Include(
+    compileGameplayMusic(loadMusicDefinition(gameplayPath), { pitches: definition.pitches })),
+  renderGameplayMusicCa65Include(gameplay));
+  // 22 distinct 16-row columns of 8 bytes, two 16-byte sequences, a 10- and a
+  // 9-entry divider map, two envelopes and two AUDC bases: 241 B, no pitch
+  // table and no column pointer table.
+  assert.deepEqual(
+    [gameplay.columnBytes.length, gameplay.dataBytes,
+      gameplay.dividerMaps[0].length, gameplay.dividerMaps[1].length,
+      gameplay.envelopes[0].length, gameplay.envelopes[1].length],
+    [22, 241, 10, 9, 7, 5],
+  );
+  assert.deepEqual(gameplay.channelInstrument, ["BASS_G", "LEAD_G"]);
+  assert.deepEqual(
+    [manifest.gameplayMusic.formatVersion, manifest.gameplayMusic.loopFrames,
+      manifest.gameplayMusic.runtimeCodeBytes, manifest.gameplayMusic.runtimeDataBytes,
+      manifest.gameplayMusic.runtimeStateBytes, manifest.gameplayMusic.columnCount],
+    [2, 1536, 262, 241, 6, 22],
+  );
+  // The column offset is one byte, id * 8, so every offset has to be reachable.
+  for (const sequence of gameplay.sequenceBytes) {
+    for (const offset of sequence) {
+      assert.ok(offset % 8 === 0 && offset <= 255, `column offset ${offset}`);
+    }
+  }
+});
+
+test("the compiled gameplay bytes replay the renderer's stream, wrap included", () => {
+  assertStreamsMatch(
+    renderOracleStream(gameplayDefinition,
+      { pitches: definition.pitches, frames: GAMEPLAY_FRAMES }),
+    simulateGameplayStream(gameplay, GAMEPLAY_FRAMES),
+    "gameplay",
+  );
+});
+
+test("the owner-approved gameplay draft GRA-2 keeps its exact source and stream", () => {
+  assert.equal(
+    sha256(fs.readFileSync(gameplayPath)),
+    "392a3df4a0444dd65e4ab0446e99fcc533c0dbcd599a59e8df99896daf705a25",
+    "GRA-2 was approved by ear; retuning it needs fresh owner acceptance",
+  );
+  assert.equal(
+    sha256(serialiseStream(renderOracleStream(gameplayDefinition,
+      { pitches: definition.pitches, frames: gameplay.loopFrames }))),
+    "6f2fe5c88725be8eeca7b466e12b84d2b7a31b6ff4e2e74d7d534ecb009020df",
+    "every approved AUDF1-2 / AUDC1-2 frame state must remain exact",
+  );
+});
+
+test("the gameplay theme records the SFX policy the owner decided", () => {
+  // Owner answer Q-S1 (owner-decisions-2026-09-11.md §AB.2). The converter
+  // refuses any other wording, so the asset and the player cannot drift apart.
+  assert.deepEqual(gameplayDefinition.channels.map(({ preemptedBy }) => preemptedBy),
+    ["nothing (bass keeps the pulse)", "hit SFX"]);
+  assert.deepEqual(gameplayDefinition.reservedSfxChannels.map(({ channel, role }) =>
+    [channel, role]), [
+    [3, "engine bed"],
+    [4, "capital-hull explosion and Player Fighter shot"],
+  ]);
+  assert.equal(gameplayDefinition.audctl, 0);
+  // Drafted at ~60 % so the SFX stay on top; the owner tunes it in smoke.
+  const peak = peakVolumeSum(renderOracleStream(gameplayDefinition,
+    { pitches: definition.pitches, frames: gameplay.loopFrames }));
+  assert.equal(peak, 14);
+  assert.equal(manifest.gameplayMusic.peakVolumeSum, peak);
 });

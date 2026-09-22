@@ -962,17 +962,18 @@ and POKEY write stream are unchanged, byte for byte
 | --- | ---: | --- | --- |
 | `$A600-$A607` | 8 | level header | `sector_reader_validate`. **Byte 7 is no longer reserved**: it is the one-based sector where LevelDef starts, now **6** |
 | `$A608-$A610` | 9 | `GAMEPLAY_MUSIC` vectors | frozen: `GAMEPLAY_MUSIC_START`, `GAMEPLAY_MUSIC_TICK`, `GAMEPLAY_MUSIC_RESTORE`, three `JMP`s. `build/gameplay-music-abi.inc` gives main these three constants and nothing else |
-| `$A611-$A6EE` | 222 | player code | the v1 player, moved unchanged |
-| `$A6EF-$A778` | 138 | score data | the v1 `gameplay-theme.json` patterns and sequence, **plus the 14-entry divider table the player now carries itself**. Until menu v2 (2026-09-22) it indexed `music_frequency_table` inside the menu data; the menu's table is now 43 format-2 dividers, so the v1 score keeps a frozen copy of the sixteen it was composed against. Its POKEY stream is unchanged, byte for byte |
-| `$A779-$A87F` | **263 free** | reserved | sized for the v2 player (plan §1.2: 286 + 248 = 534 B), so the transport change is paid once, here, and session 2b moves no sectors |
+| `$A611-$A716` | 262 | player code | the **format-2** player since step 2b (plan §1.2 estimated 286) |
+| `$A717-$A807` | 241 | score data | "GRA-2": 22 deduplicated 8-byte columns, two 16-byte sequences, a 10- and a 9-entry divider map, two envelopes, two AUDC bases. **No pitch table** |
+| `$A808-$A87F` | **120 free** | reserved | the reservation was sized for v2 in 2a and v2 came in under it, so the transport change was paid once and step 2b moved no sectors |
 | `$A880-$B5FF` | 3,456 | LevelDef | 27 of the 32 buffer sectors left for roadmap 4.6 |
 
-**The block is strictly read-only at runtime.** The four-byte self-modified
-read tail `game_music_read_token_tail` stays where it always was, in
-`ENTITY_CODE` at `$9D21`, because the boot smoke checksums the whole level
-buffer at its gameplay snapshot (frame 3300, after `start_gameplay`); a block
-that modified itself would fail that comparison. This is a deliberate
-deviation from plan §1.4's "`ENTITY_CODE` tail 1 → 5 B": the tail stays 1 B.
+**The block is strictly read-only at runtime**, because the boot smoke
+checksums the whole level buffer at its gameplay snapshot (frame 3300, after
+`start_gameplay`) and a block that modified itself would fail that
+comparison. The v1 player needed a four-byte self-modified read tail
+`game_music_read_token_tail` in `ENTITY_CODE` for its pattern pointer; the
+format-2 encoding reaches a column through a one-byte offset and needs none,
+so **step 2b deleted that tail** and `ENTITY_CODE`'s free tail went 1 → 5 B.
 
 **Level image and transport.** Level 1 grows **2 → 7 sectors** (256 → 896 B),
 all of it outside the boot transport — **0 boot sectors, 0 DFMC chunk slots,
@@ -1040,6 +1041,37 @@ a row frame, the peak being a bar-load frame (MEASURED,
 `tests/music-v2-runtime.test.mjs`). There is no fence in the frontend, so this
 is recorded, not gated.
 
+## Music v2 §10.2 — the gameplay theme is "GRA-2" (2026-09-22)
+
+Step 2b replaced the v1 player and score inside the block 2a had already
+sized for it. **No new sectors, no transport change, nothing taken from the
+`STARFIELD` reservation** — the gameplay music does not live there any more.
+
+| Where | Bytes | What |
+| --- | ---: | --- |
+| `$A608-$A807` | 512 | vectors, player and score in the level image (632 reserved, **120 free**) |
+| `$4ED9-$4EDC` | 4 | the transport counters, shared with the menu player |
+| `$4EDD-$4EE2` | 6 | `GAME_MUSIC_COLUMN` (2), `GAME_MUSIC_DIVIDER` (2), `GAME_MUSIC_AGE` (2) |
+
+The six state bytes are **byte-neutral**: they replace the v1 player's cached
+`GAME_MUSIC_CH*_FREQUENCY` / `_CONTROL` pairs plus `MUSIC_CHANNEL_MASK` and
+`MUSIC_TOKEN`, at the same addresses. Those four symbols are gone; nothing
+else read them.
+
+`ENTITY_CODE` gained 4 B: the v1 self-modified read tail at `$9D21` is
+deleted (see above), so its free tail is **5 B**, not 1.
+
+**Channel ownership after owner answer Q-S1** (`owner-decisions-2026-09-11.md`
+§AB.2): channel 1 is the music bass and is never preempted; channel 2 is the
+music lead and yields only to the hit SFX; channel 3 is the engine bed;
+channel 4 carries **both** the Player Fighter shot and the capital-hull
+explosion. The two owners of channel 4 need no arbitration state —
+`update_sound` writes the shot first and the explosion second, so the
+explosion wins while its timer runs, and the shot re-asserts its control byte
+every frame so it takes the channel back when the explosion ends. Both write
+`AUDCTL = 0`, the value gameplay already runs at, which is the condition the
+owner attached to the move.
+
 ## Roadmap 4.3 — the window has an owner (2026-09-20)
 
 The sector reader claims the whole window. It links on its own
@@ -1049,7 +1081,7 @@ travels as the ninth DFMC record, RAW, landing directly at `$A000`.
 | Range | Bytes | Owner | Notes |
 | --- | --- | --- | --- |
 | `$A000-$A5FF` | 1,536 | `SECTOR_READER` | reader, loader-mode display, failure screen, 8-line AI text pool; **1,466 B used, 70 B free**. A sixteen-line pool does not fit — see plan §1.5 `[C6]`; packing the texts is the cheaper answer if it is ever wanted, not shrinking the level buffer |
-| `$A600-$B5FF` | 4,096 | `LEVEL_BUFFER` | **32 sectors** (owner decision X, 2026-09-21; was 44), page-aligned, `file = ""` — never in any artifact. On the XEX the level-1 image is an **XEX-only block** placed here; on the ATR it is read over SIO. **Executable since 2026-09-22**: `$A608-$A878` is the gameplay music player (music v2 §1.4, owner answer Q-P1) |
+| `$A600-$B5FF` | 4,096 | `LEVEL_BUFFER` | **32 sectors** (owner decision X, 2026-09-21; was 44), page-aligned, `file = ""` — never in any artifact. On the XEX the level-1 image is an **XEX-only block** placed here; on the ATR it is read over SIO. **Executable since 2026-09-22**: `$A608-$A807` is the gameplay music player (music v2 §1.4, owner answer Q-P1) |
 | `$B600-$BBFF` | 1,536 | `HYBRID_C_WINDOW` | owner decision X: the Director link's half of the window, `cfg/encounter-director.cfg`. `HYBRID_ASM_WINDOW` + `HYBRID_C_WINDOW` + `HYBRID_C_WINDOW_RODATA` |
 | `$BC00-$BC14` | 21 | `READER_BSS` | reader state; **5 B** still free before `$BC1A` (re-measured 2026-09-21, finding F7) |
 | `$BC1A-$BC1F` | 6 | `HYBRID_C_WINDOW_GUARD` | unchanged: reserved, no segment loads there |

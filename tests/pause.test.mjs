@@ -127,8 +127,15 @@ test("pause GAME MUSIC toggles shared state immediately without modifying SFX", 
     /lda GAME_MUSIC_ENABLED\s+eor #\$01\s+sta GAME_MUSIC_ENABLED\s+rts/);
   const stop = routine("music_stop_gameplay", "quit_gameplay_to_menu");
   assert.match(stop, /MUSIC_TRANSIENT_STATE_END-MUSIC_ACTIVE/);
-  assert.match(stop, /lda fire_timer\s+bne @channel_2/);
-  assert.match(stop, /lda hit_timer\s+bne @done/);
+  // Owner answer Q-S1 (2026-09-22): the shot SFX left channel 1 for channel 4,
+  // so channel 1 carries the music's bass alone and is always ours to silence.
+  // The test that guarded it against a live shot is replaced by the stronger
+  // one: the shot must not be on this channel at all.
+  assert.doesNotMatch(stop, /fire_timer/);
+  assert.match(stop, /sta AUDF1\s+sta AUDC1/);
+  // Channel 2 still yields to a live hit SFX, which is the assertion that
+  // always mattered here.
+  assert.match(stop, /ldx hit_timer\s+bne @done/);
   assert.doesNotMatch(stop,
     /sta fire_timer|sta hit_timer|sta damage_timer|AUDF3|AUDC3|AUDF4|AUDC4|AUDCTL|silence_audio/);
 });

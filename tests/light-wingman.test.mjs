@@ -197,7 +197,12 @@ test("Light kernel placement is legal, resident and inside every reviewed gate",
   // ENTITY_CODE itself is unchanged, but the 6 new STARFIELD bytes re-pack the
   // starfield runtime stream (1,780 -> 1,785 packed B), which is what this
   // margin is measured against.
-  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 77,
+  // 81 after music v2 §10.2: the v1 gameplay player's four-byte self-modified
+  // read tail left ENTITY_CODE with the v1 player (the format-2 encoding
+  // reaches a column through a one-byte offset and needs no pointer), so the
+  // margin grew by exactly those four bytes. A deliberate SHRINK of
+  // ENTITY_CODE, re-recorded here with its reason.
+  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 81,
     "ENTITY_CODE staging margin tracks the Light art tables");
   assert.equal(manifest.capitalPlayerCollisionRuntime.runAddress, 0x8b67);
   // light_add_score exactly fills the retired 17-byte BROADSIDE entry pad.

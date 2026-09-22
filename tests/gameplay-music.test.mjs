@@ -1,3 +1,12 @@
+// The gameplay theme "GRA-2", format 2 (plan-music-v2.md §10 step 2b).
+//
+// The encoding and the register stream are proved elsewhere:
+// tests/music-v2-stream.test.mjs is plan test (a), the compiled bytes against
+// the reference renderer, and tests/music-v2-runtime.test.mjs is (b) and (c),
+// the shipped binary against the same oracle with and without SFX. What is
+// here is everything else the gameplay theme has to get right: the transport,
+// the GAME MUSIC option, the death path, the call sites, and the SFX
+// ownership the owner decided in Q-S1.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -7,12 +16,11 @@ import { fileURLToPath } from "node:url";
 import {
   compileGameplayMusic,
   createGameplayMusicState,
-  loadGameplayMusicDefinition,
-  renderGameplayMusicCa65Include,
+  loadMusicDefinition,
   startGameplayMusic,
   stopGameplayMusic,
   tickGameplayMusic,
-} from "../scripts/gameplay-music.mjs";
+} from "../scripts/music.mjs";
 import {
   compileCapitalHulls,
   loadCapitalHullsDefinition,
@@ -29,9 +37,6 @@ import {
 
 const testDirectory = path.dirname(fileURLToPath(import.meta.url));
 const rootDirectory = path.resolve(testDirectory, "..");
-const gameplayDefinitionPath = path.join(
-  rootDirectory, "assets", "music", "gameplay-theme.json",
-);
 const source = fs.readFileSync(path.join(rootDirectory, "src", "main.s"), "utf8");
 // Music v2 §1.4 placement G1: the gameplay player is its own link inside the
 // per-level image. Main keeps the option, the state and the call sites; the
@@ -39,13 +44,12 @@ const source = fs.readFileSync(path.join(rootDirectory, "src", "main.s"), "utf8"
 const playerSource = fs.readFileSync(
   path.join(rootDirectory, "src", "hybrid", "gameplay-music.s"), "utf8",
 );
-const gameplayInclude = fs.readFileSync(
-  path.join(rootDirectory, "build", "gameplay-music.inc"), "utf8",
+const menuDefinition = loadMusicDefinition(
+  path.join(rootDirectory, "assets", "music", "menu-theme.json"));
+const asset = compileGameplayMusic(
+  loadMusicDefinition(path.join(rootDirectory, "assets", "music", "gameplay-theme.json")),
+  { pitches: menuDefinition.pitches },
 );
-// The menu moved to format 2 (plan §10.1); the v1 gameplay compiler now owns
-// a frozen copy of the sixteen dividers this score was composed against, so
-// its POKEY stream is unchanged. Both go in plan §10 step 2b.
-const asset = compileGameplayMusic(loadGameplayMusicDefinition(gameplayDefinitionPath));
 const manifest = JSON.parse(fs.readFileSync(path.join(rootDirectory, "build", "manifest.json")));
 const labels = new Map(
   fs.readFileSync(path.join(rootDirectory, "build", "void-strike-65.lbl"), "utf8")
@@ -67,38 +71,11 @@ function routineIn(text, label, nextLabel) {
   return text.slice(start, end);
 }
 
-function routine(label, nextLabel) {
-  return routineIn(source, label, nextLabel);
-}
-
-function playerRoutine(label, nextLabel) {
-  return routineIn(playerSource, label, nextLabel);
-}
-
-test("gameplay composition compiles to a deterministic packed 30.72-second PAL loop", () => {
-  const second = compileGameplayMusic(loadGameplayMusicDefinition(gameplayDefinitionPath));
-  assert.equal(renderGameplayMusicCa65Include(second), renderGameplayMusicCa65Include(asset));
-  assert.deepEqual(
-    [asset.targetFrameHz, asset.framesPerRow, asset.rowsPerPattern,
-      asset.patternNames.length, asset.sequenceBytes.length, asset.loopFrames, asset.loopSeconds],
-    [50, 6, 16, 6, 16, 1536, 30.72],
-  );
-  // 124 B of score plus the 14-entry divider table this player now carries
-  // itself: the menu's table went to format 2 in plan §10.1, so the v1 score
-  // keeps a frozen copy of the dividers it was composed against and its POKEY
-  // stream is unchanged (tests/gameplay-music-placement.test.mjs proves it).
-  assert.equal(asset.frequencyBytes.length, 14);
-  assert.equal(asset.dataBytes, 138);
-  assert.deepEqual(asset.form.map(({ id }) => id),
-    ["INTRO", "DEVELOPMENT", "CLIMAX", "RETURN"]);
-  assert.ok(asset.patternBytes.every((pattern) => pattern.length === 16));
-  assert.deepEqual(
-    [manifest.gameplayMusic.runtimeDataBytes, manifest.gameplayMusic.runtimeStateBytes,
-      manifest.gameplayMusic.channelMask, manifest.gameplayMusic.audctlProfile,
-      manifest.gameplayMusic.eventsPerTickLimit],
-    [138, 5, 0x03, 0, 1],
-  );
-});
+// Comments in this file talk about the channels it does NOT own, so the
+// ownership assertions read the instructions, not the prose.
+const playerCode = playerSource.replace(/;[^\n]*/g, "");
+const routine = (label, nextLabel) => routineIn(source, label, nextLabel);
+const playerRoutine = (label, nextLabel) => routineIn(playerSource, label, nextLabel);
 
 test("assembled gameplay entry always transfers into the relocated main loop", () => {
   const end = labels.get("start_gameplay_end");
@@ -170,9 +147,11 @@ test("GAME MUSIC ON starts from row zero while OFF performs no tick or POKEY wri
   );
   const first = tickGameplayMusic(on, asset);
   assert.equal(first.rowAdvanced, true);
+  // Row zero of bar01: BASS_G:A3 and LEAD_G:E5, both at envelope entry 0
+  // (volume 7, pure tone -> $A7).
   assert.deepEqual(first.writes, [
-    { channel: 1, frequency: 244, control: 0xa2 },
-    { channel: 2, frequency: 0, control: 0 },
+    { channel: 1, frequency: 143, control: 0xa7 },
+    { channel: 2, frequency: 47, control: 0xa7 },
   ]);
 
   const off = createGameplayMusicState();
@@ -190,7 +169,7 @@ test("gameplay tempo advances on exact six-frame PAL boundaries without drift", 
   for (let frame = 0; frame < asset.loopFrames; frame += 1) {
     if (tickGameplayMusic(state, asset).rowAdvanced) eventFrames.push(frame);
   }
-  assert.equal(eventFrames.length, asset.rowsPerPattern * asset.sequenceBytes.length);
+  assert.equal(eventFrames.length, asset.rowsPerPattern * asset.sequence.length);
   assert.deepEqual(eventFrames.slice(0, 5), [0, 6, 12, 18, 24]);
   assert.equal(eventFrames.at(-1), asset.loopFrames - asset.framesPerRow);
   assert.deepEqual(
@@ -201,40 +180,65 @@ test("gameplay tempo advances on exact six-frame PAL boundaries without drift", 
     "the gameplay loop must restart without a silent timing gap");
 });
 
-test("death does not restart transport and respawn restores the current voices", () => {
+test("death mutes both voices without stopping the score or the envelopes", () => {
   const state = startGameplayMusic(createGameplayMusicState(), asset);
   for (let frame = 0; frame < 31; frame += 1) tickGameplayMusic(state, asset);
   const positionBeforeDeath = [state.sequenceIndex, state.patternRow];
   const mutedControls = [];
   for (let frame = 0; frame < 24; frame += 1) {
-    const result = tickGameplayMusic(state, asset, { playerDying: true });
+    const result = tickGameplayMusic(state, asset, { dying: true });
     mutedControls.push(...result.writes.map(({ control }) => control));
   }
   assert.ok(mutedControls.every((control) => control === 0));
   assert.notDeepEqual([state.sequenceIndex, state.patternRow], positionBeforeDeath,
     "the song transport must continue through the death animation");
 
-  const positionBeforeRespawnTick = [state.sequenceIndex, state.patternRow, state.rowTimer];
   const resumed = tickGameplayMusic(state, asset);
   assert.deepEqual(resumed.writes.map(({ channel }) => channel), [1, 2]);
+  assert.ok(resumed.writes.some(({ control }) => control !== 0),
+    "respawn must find the score where the death animation left it, still sounding");
   assert.notDeepEqual([state.sequenceIndex, state.patternRow, state.rowTimer], [0, 0, 1]);
-  assert.notDeepEqual(positionBeforeRespawnTick, [0, 0, 1]);
 });
 
-test("shot and hit SFX preempt music absolutely, then music resumes in place", () => {
+test("only the hit SFX preempts, it takes channel 2 alone, and the lead resumes", () => {
+  // Owner answer Q-S1: the shot moved to channel 4, so nothing preempts the
+  // bass and the lead stops only for a hit. The register-level proof against
+  // the running binary is tests/music-v2-runtime.test.mjs; this is the model.
   const state = startGameplayMusic(createGameplayMusicState(), asset);
   tickGameplayMusic(state, asset);
   const position = [state.sequenceIndex, state.patternRow];
-  const preempted = tickGameplayMusic(state, asset, { sfxBusy: [true, true] });
-  assert.deepEqual(preempted.writes, []);
+
+  const preempted = tickGameplayMusic(state, asset, { hitTimer: 7 });
+  assert.deepEqual(preempted.writes.map(({ channel }) => channel), [1],
+    "a live hit SFX must leave channel 2 alone and channel 1 untouched");
   assert.deepEqual([state.sequenceIndex, state.patternRow], position);
 
-  const channel1Only = tickGameplayMusic(state, asset, { sfxBusy: [false, true] });
-  assert.deepEqual(channel1Only.writes.map(({ channel }) => channel), [1]);
   const resumed = tickGameplayMusic(state, asset);
   assert.deepEqual(resumed.writes.map(({ channel }) => channel), [1, 2]);
   assert.deepEqual([state.sequenceIndex, state.patternRow], position,
     "SFX release must not restart the score");
+
+  // The envelope kept advancing under the SFX, so the lead comes back where
+  // the score is, not where it stopped.
+  const quiet = startGameplayMusic(createGameplayMusicState(), asset);
+  const silent = startGameplayMusic(createGameplayMusicState(), asset);
+  for (let frame = 0; frame < 4; frame += 1) {
+    tickGameplayMusic(quiet, asset);
+    tickGameplayMusic(silent, asset, { hitTimer: frame < 2 ? 3 : 0 });
+  }
+  assert.deepEqual(silent.channels[1], quiet.channels[1],
+    "the lead must resume at the envelope position the score reached");
+});
+
+test("stop clears the voices without changing the persistent GAME MUSIC option", () => {
+  const state = startGameplayMusic(createGameplayMusicState(), asset);
+  tickGameplayMusic(state, asset);
+  state.enabled = false;
+  stopGameplayMusic(state);
+  assert.equal(state.enabled, false);
+  assert.equal(state.active, false);
+  assert.ok(state.channels.every(({ audf, audc }) => audf === 0 && audc === 0));
+  assert.ok(state.age.every((age) => age === 0xff));
 });
 
 test("assembly preserves SFX ownership, lifecycle, and GAME MUSIC persistence", () => {
@@ -260,22 +264,34 @@ test("assembly preserves SFX ownership, lifecycle, and GAME MUSIC persistence", 
   assert.doesNotMatch(routine("main_loop", "enter_pause"), /GAMEPLAY_MUSIC_START/,
     "life loss and respawn must never restart gameplay music");
 
-  const tick = playerRoutine("music_tick_gameplay", "game_music_load_pattern");
-  assert.match(tick,
-    /lda fire_timer\s+bne [^\n]+[\s\S]+sta AUDF1[\s\S]+sta AUDC1/);
-  assert.match(tick,
-    /lda hit_timer\s+bne @done[\s\S]+sta AUDF2[\s\S]+sta AUDC2/);
-  assert.doesNotMatch(tick, /AUDF3|AUDC3|AUDF4|AUDC4|AUDCTL/);
-  assert.match(tick, /cmp #PLAYER_DYING\s+beq @mute/);
-  assert.equal((tick.match(/jsr game_music_read_token/g) ?? []).length, 1,
-    "fixed-width format permits exactly one bounded event read per tick");
-  assert.doesNotMatch(tick, /jmp game_music_read_token|b(?:cc|cs|eq|ne|mi|pl|vc|vs) game_music_read_token/);
-  assert.match(tick,
-    /\.assert GAME_MUSIC_EVENTS_PER_TICK_LIMIT = 1/);
-  assert.match(gameplayInclude, /GAME_MUSIC_EVENTS_PER_TICK_LIMIT = 1/);
+  // The v2 tick. Channel 1 is published unconditionally -- owner answer Q-S1
+  // took the shot SFX off it -- and channel 2 yields to the hit alone.
+  const tick = playerRoutine("music_tick_gameplay", "gm_row_channel");
+  assert.doesNotMatch(tick, /fire_timer/,
+    "nothing may preempt the bass: the shot SFX lives on channel 4 now");
+  assert.match(tick, /jsr gm_frame\s+ldy PLAYER_LIFECYCLE[\s\S]+sta AUDC1\s+lda GAME_MUSIC_DIVIDER\s+sta AUDF1/);
+  assert.match(tick, /ldy hit_timer\s+bne @done[\s\S]+sta AUDC2\s+lda GAME_MUSIC_DIVIDER\+1\s+sta AUDF2/);
+  assert.match(tick, /cpy #PLAYER_DYING/);
+  assert.doesNotMatch(playerCode, /AUDF3|AUDC3|AUDF4|AUDC4|AUDCTL/,
+    "the gameplay player owns channels 1 and 2 and nothing else");
+  // One column byte per channel per row: the generalised form of v1's
+  // GAME_MUSIC_EVENTS_PER_TICK_LIMIT (plan §2). Reading it is the only
+  // score access in the whole tick, and it is not in a loop.
+  assert.equal((playerCode.match(/lda gm_columns,y/g) ?? []).length, 2);
+  assert.equal((tick.match(/jsr gm_row_channel/g) ?? []).length, 2);
+  assert.doesNotMatch(playerRoutine("gm_row_channel", "gm_apply"), /b(cc|cs|eq|ne|mi|pl)\s+gm_row_channel/);
+  assert.equal(manifest.gameplayMusic.columnReadsPerRow, 1);
+  // Nothing in the block may modify itself: the boot smoke checksums the
+  // level buffer during gameplay.
+  assert.doesNotMatch(playerCode, /sta\s+(gm_|game_music_|gameplay_music_)/,
+    "nothing in the level-image block may store into the block itself");
+  assert.doesNotMatch(source, /game_music_read_token_tail/,
+    "the v1 self-modified read tail is gone with the v1 player");
 
+  // The shot SFX is on channel 4 with the capital-hull explosion; the hit
+  // keeps channel 2; the engine bed keeps channel 3.
   assert.match(routine("allocate_player_fighter_projectile", "update_enemy_weapon_runtime"),
-    /lda #\$A8\s+sta AUDC1/);
+    /lda #PLAYER_FIGHTER_SHOT_AUDC\s+sta AUDC4/);
   assert.match(routine("play_hit_sound", "update_sound"), /lda #\$88\s+sta AUDC2/);
   for (const sfxRoutine of [
     routine("allocate_player_fighter_projectile", "update_enemy_weapon_runtime"),
@@ -286,8 +302,12 @@ test("assembly preserves SFX ownership, lifecycle, and GAME MUSIC persistence", 
     assert.doesNotMatch(sfxRoutine, /GAME_MUSIC_ENABLED/,
       "the gameplay-music option must not gate or modify SFX");
   }
-  assert.match(gameplayInclude, /GAME_MUSIC_CH1_AUDC = \$A2/);
-  assert.match(gameplayInclude, /GAME_MUSIC_CH2_AUDC = \$A3/);
+  // music_stop_gameplay may always silence channel 1 now, and still must not
+  // cut a live hit SFX off channel 2.
+  const stopGameplay = routine("music_stop_gameplay", "quit_gameplay_to_menu");
+  assert.doesNotMatch(stopGameplay, /fire_timer/);
+  assert.match(stopGameplay, /sta AUDF1\s+sta AUDC1\s+ldx hit_timer\s+bne @done/);
+
   assert.match(mainLoop,
     /jsr silence_audio\s+jsr enter_game_over\s+jmp frontend_loop/);
   assert.match(routine("handle_game_over_input", "handle_exit_input"),
@@ -314,14 +334,4 @@ test("gameplay timing values come from the executable runtime report", () => {
     timing.measured_physical_headroom);
   assert.ok(manifest.starfieldRuntime.bytes <= manifest.starfieldRuntime.reservedBytes);
   assert.ok(manifest.starfieldRuntime.packedBytes <= manifest.starfieldRuntime.stagingBytes);
-});
-
-test("stop clears cached gameplay voices without changing the persistent option", () => {
-  const state = startGameplayMusic(createGameplayMusicState(), asset);
-  tickGameplayMusic(state, asset);
-  state.enabled = false;
-  stopGameplayMusic(state);
-  assert.equal(state.enabled, false);
-  assert.equal(state.active, false);
-  assert.ok(state.channels.every(({ frequency, control }) => frequency === 0 && control === 0));
 });

@@ -11,16 +11,38 @@ import {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const source = fs.readFileSync(path.join(root, "src", "main.s"), "utf8");
 
-test("shot SFX owns its phase in RAM and never reads write-only AUDF1", () => {
+// Owner answer Q-S1 (owner-decisions-2026-09-11.md §AB.2), 2026-09-22: the
+// shot SFX moved from POKEY channel 1 to channel 4, shared with the
+// capital-hull explosion, so the gameplay music's bass on channel 1 is never
+// preempted. Every assertion below is the one it always was, re-targeted:
+// the phase still lives in RAM, the register is still never read back, the
+// $33..$38 sequence is still complete and unrestarted. What is new is the
+// shared-channel priority, which is asserted here and measured against the
+// running binary in tests/music-v2-runtime.test.mjs.
+test("shot SFX owns its phase in RAM and never reads write-only AUDF4", () => {
   const sound = source.slice(source.indexOf("\nupdate_sound:") + 1,
     source.indexOf("\nsilence_audio:") + 1);
-  assert.doesNotMatch(sound, /inc AUDF1|dec AUDF1|asl AUDF1|lsr AUDF1/);
+  assert.doesNotMatch(sound, /inc AUDF4|dec AUDF4|asl AUDF4|lsr AUDF4/);
   assert.match(sound,
-    /inc fire_timer\s+lda fire_timer\s+sta AUDF1[^\n]*\n\s*cmp #\$39[\s\S]+sta fire_timer\s+sta AUDC1/);
+    /inc fire_timer\s+lda fire_timer\s+sta AUDF4[\s\S]*?cmp #\$39[\s\S]+sta fire_timer\s+sta AUDC4/);
   assert.match(source,
     /play_player_fighter_projectile_sound:[\s\S]+lda #\$32[\s\S]+sta fire_timer/);
   assert.match(source,
-    /resume_gameplay_audio:[\s\S]+lda fire_timer\s+beq @hit\s+sta AUDF1/);
+    /resume_gameplay_audio:[\s\S]+lda fire_timer\s+beq @hit\s+sta AUDF4/);
+  // The shot no longer touches channel 1 anywhere.
+  for (const routine of [
+    source.slice(source.indexOf("play_player_fighter_projectile_sound:"),
+      source.indexOf("update_enemy_weapon_runtime:")),
+    sound,
+  ]) {
+    assert.doesNotMatch(routine, /sta AUDF1|sta AUDC1/,
+      "the shot SFX must leave channel 1 to the music's bass");
+  }
+  // Channel 4 is shared with the capital-hull explosion, which outranks the
+  // shot: update_sound writes the shot first and the explosion second, and
+  // the explosion's silent branch must not cut a live shot.
+  assert.match(sound, /@capital_silent:\s+lda fire_timer\s+bne @damage/);
+  assert.match(sound, /ldy #PLAYER_FIGHTER_SHOT_AUDC\s+sty AUDC4/);
 });
 
 test("master PAL gate makes transition-only fire/audio catch-up obsolete", () => {

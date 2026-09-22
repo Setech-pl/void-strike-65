@@ -38,16 +38,14 @@ import {
   renderStarfieldCa65Include,
 } from "./starfield.mjs";
 import {
+  compileGameplayMusic,
   compileMusic,
   loadMusicDefinition,
+  renderGameplayMusicCa65Include,
   renderMusicCa65Include,
 } from "./music.mjs";
 import { peakVolumeSum, renderOracleStream } from "./music-oracle.mjs";
-import {
-  compileGameplayMusic,
-  loadGameplayMusicDefinition,
-  renderGameplayMusicCa65Include,
-} from "./gameplay-music.mjs";
+
 import {
   compileEntityEffects,
   loadEntityEffectsDefinition,
@@ -486,17 +484,13 @@ const GAMEPLAY_MUSIC_MAIN_SYMBOLS = Object.freeze([
   ["sound_enabled", "the SOUND option; no music starts while it is off"],
   ["fire_timer", "shot SFX on channel 1; suppresses the music write there"],
   ["hit_timer", "hit SFX on channel 2; suppresses the music write there"],
-  ["game_music_read_token_tail", "the four-byte self-modified read tail, left in ENTITY_CODE"],
   ["MUSIC_ACTIVE", "transport flag main tests before calling the tick"],
   ["MUSIC_ROW_TIMER", "frames to the next row"],
   ["MUSIC_SEQUENCE_INDEX", "position in the pattern sequence"],
   ["MUSIC_PATTERN_ROW", "row inside the current pattern"],
-  ["MUSIC_CHANNEL_MASK", "which POKEY channels the active player owns"],
-  ["MUSIC_TOKEN", "the packed row byte, held across the two channel halves"],
-  ["GAME_MUSIC_CH1_FREQUENCY", "cached bass AUDF"],
-  ["GAME_MUSIC_CH1_CONTROL", "cached bass AUDC"],
-  ["GAME_MUSIC_CH2_FREQUENCY", "cached lead AUDF"],
-  ["GAME_MUSIC_CH2_CONTROL", "cached lead AUDC"],
+  ["GAME_MUSIC_COLUMN", "2 B: the column offset each voice is reading"],
+  ["GAME_MUSIC_DIVIDER", "2 B: the note each voice holds"],
+  ["GAME_MUSIC_AGE", "2 B: envelope cursor per voice, $FF while resting"],
   ["GAME_MUSIC_ENABLED", "the persistent GAME MUSIC option"],
   ["PLAYER_LIFECYCLE", "the death mute test"],
   ["PLAYER_DYING", "the lifecycle value that mutes both voices"],
@@ -1135,8 +1129,11 @@ async function build() {
   const gameplayMusicDefinitionPath = path.join(
     rootDirectory, "assets", "music", "gameplay-theme.json",
   );
+  // The gameplay theme shares the menu's pitch table; only the dividers it
+  // actually uses are compiled into its own block (plan §1.1).
   const gameplayMusicAsset = compileGameplayMusic(
-    loadGameplayMusicDefinition(gameplayMusicDefinitionPath),
+    loadMusicDefinition(gameplayMusicDefinitionPath),
+    { pitches: menuMusicAsset.pitches },
   );
   const gameplayMusicInclude = Buffer.from(
     renderGameplayMusicCa65Include(gameplayMusicAsset),
@@ -3333,14 +3330,21 @@ async function build() {
       targetFrameHz: gameplayMusicAsset.targetFrameHz,
       framesPerRow: gameplayMusicAsset.framesPerRow,
       rowsPerPattern: gameplayMusicAsset.rowsPerPattern,
-      patternCount: gameplayMusicAsset.patternNames.length,
-      sequencePatterns: gameplayMusicAsset.sequenceBytes.length,
+      formatVersion: gameplayMusicAsset.formatVersion,
+      patternCount: Object.keys(gameplayMusicAsset.patterns).length,
+      sequencePatterns: gameplayMusicAsset.sequence.length,
       loopFrames: gameplayMusicAsset.loopFrames,
       loopSeconds: gameplayMusicAsset.loopSeconds,
-      channelAllocation: gameplayMusicAsset.channelAllocation,
+      channelAllocation: gameplayMusicAsset.channels,
       reservedSfxChannels: gameplayMusicAsset.reservedSfxChannels,
       channelMask: 0x03,
-      audctlProfile: gameplayMusicAsset.audctlProfile,
+      audctlProfile: gameplayMusicAsset.audctl,
+      columnCount: gameplayMusicAsset.columnBytes.length,
+      channelPitchCounts: gameplayMusicAsset.channelPitches.map((list) => list.length),
+      // Music only, no SFX. The gameplay levels are drafted at ~60 % so the
+      // SFX stay on top; the owner tunes the balance in smoke (decision AB.3).
+      peakVolumeSum: peakVolumeSum(renderOracleStream(gameplayMusicAsset,
+        { pitches: menuMusicAsset.pitches })),
       runtimeCodeBytes: gameMusicPlayerEnd - gameMusicPlayerStart,
       runtimeDataBytes: gameMusicDataEnd - gameMusicDataStart,
       // Music v2 §1.4 placement G1: the player is code inside the per-level
@@ -3358,10 +3362,11 @@ async function build() {
         levelDefFirstSector,
         vectors: Object.fromEntries(GAMEPLAY_MUSIC_VECTORS.map(([name], index) =>
           [name, gameplayMusicAddress + index * 3])),
-        readTokenTail: labels.get("game_music_read_token_tail"),
       },
       runtimeStateBytes: gameplayMusicAsset.stateBytes,
-      eventsPerTickLimit: gameplayMusicAsset.eventsPerTickLimit,
+      // One column byte read per channel per row: the generalised form of the
+      // v1 GAME_MUSIC_EVENTS_PER_TICK_LIMIT assert (plan §2).
+      columnReadsPerRow: 1,
       normalFrameCycles: runtimeTiming?.cpuDmaOff.gameplayMusicTickMinimumCycles ?? null,
       worstRowFrameCycles: runtimeTiming?.cpuDmaOff.gameplayMusicTickMaximumCycles ?? null,
       pauseOptionPollCycles: runtimeTiming?.cpuDmaOff.optionPollCycles ?? null,

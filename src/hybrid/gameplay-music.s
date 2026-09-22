@@ -1,33 +1,42 @@
 ; ============================================================================
-; Void Strike 65 — gameplay music player, in the per-level image (music v2 §1.4)
+; Void Strike 65 — gameplay music player, in the per-level image (music v2)
 ; ============================================================================
 ;
 ; ITS OWN LINK (docs/plan-music-v2.md §1.4 placement G1, owner answer Q-P1
-; ACCEPTED 2026-09-22). The player used to live in STARFIELD, inside main.s.
-; It now links on its own with cfg/gameplay-music.cfg, built by
-; buildResidentModule the way src/hybrid/sector-reader.s and
-; src/hybrid/light-kernel.s are, and its bytes are spliced into the per-level
-; image right behind the reader's eight-byte header, so they land at $A608
-; when the level is loaded — as an XEX block on the XEX, over SIO at START
-; GAME on the ATR.
+; ACCEPTED 2026-09-22). Built by buildResidentModule the way
+; src/hybrid/sector-reader.s and src/hybrid/light-kernel.s are, its bytes
+; spliced into the per-level image right behind the reader's eight-byte
+; header, so they land at $A608 when the level is loaded — as an XEX block on
+; the XEX, over SIO at START GAME on the ATR. main.s reaches it only through
+; the frozen three-entry vector table below; no main-link symbol binds here.
 ;
-; THIS COMMIT IS A PURE MOVE. The score, the encoding, the tick and the POKEY
-; write stream are the v1 player's, byte for byte; only the address changed.
-; The v2 player (plan §1.1) replaces the body of this file in the next
-; session, which is why the placement is landed on its own first: it is the
-; only hardware-adjacent half of the change.
+; SCORE FORMAT v2 (§1.1 "Gameplay patterns"), landed in step 2b. Two voices,
+; one instrument each, no arpeggio and no drum — deliberately a different
+; encoding from the menu's, because every byte of this tick is fence-relevant:
 ;
-; It reaches main.s through the generated build/gameplay-music-main-abi.inc,
-; and main.s reaches IT through the frozen three-entry vector table below —
-; the same shape as the reader's $A000 entry and the Light kernel's vectors.
-; No main-link symbol binds to this file.
+;   * a row token is a NIBBLE — 0 HOLD, 1 REST, 2..15 an index into the
+;     channel's own divider map — so a 16-row column is 8 bytes and is reached
+;     as `gm_columns + id*8` through a one-byte offset. No pointer table, no
+;     pitch table, one column byte read per channel per row;
+;   * volume comes from a per-frame envelope whose last entry (bit 7 set)
+;     holds until the next token. A zero volume publishes AUDC $00, not
+;     base|0 — the same silence, a different byte, and the register stream is
+;     the specification;
+;   * the envelope cursor advances every frame whether or not the register
+;     write is suppressed, which is what lets the lead resume the music in
+;     place on the first frame after an SFX ends.
 ;
-; The one piece deliberately left behind in main.s is the four-byte
-; self-modified read tail `game_music_read_token_tail` in ENTITY_CODE. The
-; level buffer is compared byte for byte against build/level-1.bin at the
-; boot smoke's gameplay snapshot (frame 3300, well after start_gameplay), so
-; nothing inside this block may modify itself. Keeping the tail where it
-; already is costs 0 B and keeps the block strictly read-only at runtime.
+; SFX POLICY — owner answer Q-S1 (owner-decisions-2026-09-11.md §AB.2):
+; the Player Fighter shot moved to channel 4, shared with the capital-hull
+; explosion. So channel 1 (bass) is NEVER preempted, and channel 2 (lead) only
+; by the hit SFX. Channel 3 is the engine bed. This file owns channels 1 and 2
+; and touches nothing else, ever — not AUDCTL, not channels 3 or 4.
+;
+; NOTHING HERE MAY MODIFY ITSELF. The boot smoke compares the whole level
+; buffer against build/level-1.bin at its gameplay snapshot (frame 3300, well
+; after start_gameplay), so a self-modifying block would fail it. The v1
+; player needed a four-byte self-modified read tail in ENTITY_CODE for exactly
+; this reason; the v2 encoding needs none, and that tail is gone.
 
 .setcpu "6502"
 
@@ -35,8 +44,7 @@
 .include "gameplay-music-abi.inc"
 .include "gameplay-music-main-abi.inc"
 
-; POKEY. Only channels 1 and 2 are ever written here; 3 and 4 belong to the
-; engine bed and the capital-hull explosion (asset `reservedSfxChannels`).
+; POKEY. Only channels 1 and 2 are ever written here.
 AUDF1 = $D200
 AUDC1 = $D201
 AUDF2 = $D202
@@ -56,84 +64,38 @@ gameplay_music_vectors:
     jmp music_restore_gameplay_channels   ; GAMEPLAY_MUSIC_RESTORE
 .assert * - gameplay_music_vectors = 9, error, "the gameplay music vector table is three frozen JMPs"
 
-; Gameplay has a specialized two-channel renderer so its row-boundary path is
-; bounded below the remaining PAL worst-frame budget. Each packed score byte
-; holds a channel-1 event in its high nibble and channel-2 event in its low
-; nibble. HOLD is zero, REST is one, and notes 2-15 reuse the leading entries
-; of game_music_frequency_table, the frozen v1 divider table inside this
-; block. AUDCTL is never touched here.
-
 game_music_player_start:
+
 music_start_gameplay:
     lda GAME_MUSIC_ENABLED
     beq @done
     lda sound_enabled
     beq @done
-    lda #GAME_MUSIC_CHANNEL_MASK
-    sta MUSIC_CHANNEL_MASK
+    lda #GAME_MUSIC_VOICE_RESTING
+    sta GAME_MUSIC_AGE           ; both voices start silent, whatever row zero is
+    sta GAME_MUSIC_AGE+1
     lda #$01
     sta MUSIC_ACTIVE
-    sta MUSIC_ROW_TIMER
-    jsr game_music_load_pattern
+    sta MUSIC_ROW_TIMER          ; row zero lands on the next gameplay frame
+    jsr gm_load_bar
 @done:
     rts
 
-; Called only when MUSIC_ACTIVE is nonzero. The transport advances through
-; player death, but idle music voices are muted until respawn. Active shot/hit
-; timers suppress every music write to their channel, preserving the complete
-; existing SFX envelope. The cached note is restored after the timer expires.
+; Called once per gameplay PAL frame, only while MUSIC_ACTIVE is nonzero.
+; Five frames in six take the publish-only path.
 music_tick_gameplay:
-    .assert GAME_MUSIC_EVENTS_PER_TICK_LIMIT = 1, error, "gameplay music tick must remain one fixed-width event"
     dec MUSIC_ROW_TIMER
-    bne @restore
+    bne gm_publish
     lda #GAME_MUSIC_FRAMES_PER_ROW
     sta MUSIC_ROW_TIMER
-    ldy MUSIC_PATTERN_ROW
-    jsr game_music_read_token
-    sta MUSIC_TOKEN
-
-    and #$0F
-    beq @channel_1
-    cmp #GAME_MUSIC_TOKEN_REST
-    beq @rest_2
-    sec
-    sbc #GAME_MUSIC_TOKEN_NOTE_BASE
-    tay
-    lda game_music_frequency_table,y
-    sta GAME_MUSIC_CH2_FREQUENCY
-    lda #GAME_MUSIC_CH2_AUDC
-    sta GAME_MUSIC_CH2_CONTROL
-    bne @channel_1
-@rest_2:
-    lda #$00
-    sta GAME_MUSIC_CH2_CONTROL
-
-@channel_1:
-    lda MUSIC_TOKEN
-    lsr
-    lsr
-    lsr
-    lsr
-    beq @advance
-    cmp #GAME_MUSIC_TOKEN_REST
-    beq @rest_1
-    sec
-    sbc #GAME_MUSIC_TOKEN_NOTE_BASE
-    tay
-    lda game_music_frequency_table,y
-    sta GAME_MUSIC_CH1_FREQUENCY
-    lda #GAME_MUSIC_CH1_AUDC
-    sta GAME_MUSIC_CH1_CONTROL
-    bne @advance
-@rest_1:
-    lda #$00
-    sta GAME_MUSIC_CH1_CONTROL
-
-@advance:
+    ldx #$00
+    jsr gm_row_channel
+    ldx #$01
+    jsr gm_row_channel
     inc MUSIC_PATTERN_ROW
     lda MUSIC_PATTERN_ROW
     cmp #GAME_MUSIC_PATTERN_ROWS
-    bcc @restore
+    bcc gm_publish
     lda #$00
     sta MUSIC_PATTERN_ROW
     inc MUSIC_SEQUENCE_INDEX
@@ -143,54 +105,129 @@ music_tick_gameplay:
     lda #$00
     sta MUSIC_SEQUENCE_INDEX
 :
-    jsr game_music_load_pattern
+    jsr gm_load_bar
 
-@restore:
-music_restore_gameplay_channels:
-    lda PLAYER_LIFECYCLE
-    cmp #PLAYER_DYING
-    beq @mute
-    lda fire_timer
+; Both voices, every frame. The bass is published unconditionally: owner
+; answer Q-S1 moved the shot SFX to channel 4, so nothing preempts channel 1.
+gm_publish:
+    ldx #$00
+    jsr gm_frame
+    ldy PLAYER_LIFECYCLE
+    cpy #PLAYER_DYING
     bne :+
-    lda GAME_MUSIC_CH1_FREQUENCY
-    sta AUDF1
-    lda GAME_MUSIC_CH1_CONTROL
-    sta AUDC1
+    lda #$00                     ; dying mutes, but the cursors keep advancing
 :
-    lda hit_timer
-    bne @done
-    lda GAME_MUSIC_CH2_FREQUENCY
-    sta AUDF2
-    lda GAME_MUSIC_CH2_CONTROL
+    sta AUDC1
+    lda GAME_MUSIC_DIVIDER
+    sta AUDF1
+    ldx #$01
+    jsr gm_frame
+    ldy hit_timer
+    bne @done                    ; the hit SFX owns channel 2 while it runs
+    ldy PLAYER_LIFECYCLE
+    cpy #PLAYER_DYING
+    bne :+
+    lda #$00
+:
     sta AUDC2
+    lda GAME_MUSIC_DIVIDER+1
+    sta AUDF2
 @done:
     rts
 
-@mute:
-    lda fire_timer
-    bne :+
+; X = channel. Reads this row's nibble from the channel's column and applies
+; it. Two rows share a byte: the even row is the low nibble, the odd the high.
+gm_row_channel:
+    lda MUSIC_PATTERN_ROW
+    lsr                          ; A = row/2, C set on an odd row
+    bcs @odd
+    clc
+    adc GAME_MUSIC_COLUMN,x
+    tay
+    lda gm_columns,y
+    jmp gm_apply
+@odd:
+    clc
+    adc GAME_MUSIC_COLUMN,x
+    tay
+    lda gm_columns,y
+    lsr
+    lsr
+    lsr
+    lsr
+
+; A carries the row token in its low nibble, X the channel. HOLD keeps the
+; voice and its envelope cursor, REST silences and forgets it, 2..15 starts a
+; note from the channel's own divider map.
+gm_apply:
+    and #$0F
+    beq @done                    ; GAME_MUSIC_TOKEN_HOLD
+    cmp #GAME_MUSIC_TOKEN_REST
+    bne @note
+    lda #GAME_MUSIC_VOICE_RESTING
+    sta GAME_MUSIC_AGE,x
+    rts
+@note:
+    tay
+    cpx #$00
+    bne @lead
+    lda gm_map_ch1-GAME_MUSIC_TOKEN_NOTE_BASE,y
+    jmp @store
+@lead:
+    lda gm_map_ch2-GAME_MUSIC_TOKEN_NOTE_BASE,y
+@store:
+    sta GAME_MUSIC_DIVIDER,x
     lda #$00
-    sta AUDC1
-:
-    lda hit_timer
-    bne @done
-    lda #$00
-    sta AUDC2
+    sta GAME_MUSIC_AGE,x         ; a new token restarts the envelope
+@done:
     rts
 
-; The self-modified read tail stays in main.s ENTITY_CODE: this block is
-; read-only once the level image has landed (see the header note).
-game_music_read_token = game_music_read_token_tail
-game_music_pattern_read = game_music_read_token_tail
+; X = channel. Returns this frame's AUDC byte in A and advances the envelope
+; cursor, which stops on its GAME_MUSIC_MACRO_LAST_ENTRY bit — that is how
+; "volume = envelope[min(age, len-1)]" is done without keeping an age.
+gm_frame:
+    ldy GAME_MUSIC_AGE,x
+    bmi @rest                    ; GAME_MUSIC_VOICE_RESTING
+    cpx #$00
+    bne @lead
+    lda gm_env_ch1,y
+    jmp @got
+@lead:
+    lda gm_env_ch2,y
+@got:
+    tay
+    and #GAME_MUSIC_MACRO_LAST_ENTRY
+    bne @hold
+    inc GAME_MUSIC_AGE,x
+@hold:
+    tya
+    and #$0F
+    beq @rest                    ; a zero volume publishes $00, not base|0
+    ora gm_audc_base,x
+    rts
+@rest:
+    lda #$00
+    rts
 
-game_music_load_pattern:
+gm_load_bar:
     ldx MUSIC_SEQUENCE_INDEX
-    lda game_music_sequence,x
-    tax
-    lda game_music_pattern_lo,x
-    sta game_music_pattern_read+1
-    lda game_music_pattern_hi,x
-    sta game_music_pattern_read+2
+    lda gm_seq_ch1,x
+    sta GAME_MUSIC_COLUMN
+    lda gm_seq_ch2,x
+    sta GAME_MUSIC_COLUMN+1
+    rts
+
+; resume_gameplay_audio calls this after a pause. v1 needed it because that
+; player only wrote POKEY on a row boundary, so without a cached pair the
+; voices could stay silent for five frames; v2 publishes every frame, so this
+; is simply one publication brought forward — the transport does not move, and
+; the only effect is that each unpause advances the envelope cursors by the
+; one frame the resumed tick would have advanced them anyway.
+music_restore_gameplay_channels:
+    lda MUSIC_ACTIVE
+    beq @done
+    jmp gm_publish
+@done:
     rts
 
 game_music_player_end:

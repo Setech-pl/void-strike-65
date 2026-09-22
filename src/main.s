@@ -290,13 +290,14 @@ MUSIC_ACTIVE                 = SESSION_SCORE_COMPAT_END
 MUSIC_ROW_TIMER              = MUSIC_ACTIVE+$01
 MUSIC_SEQUENCE_INDEX         = MUSIC_ROW_TIMER+$01
 MUSIC_PATTERN_ROW            = MUSIC_SEQUENCE_INDEX+$01
-MUSIC_CHANNEL_MASK           = MUSIC_PATTERN_ROW+$01
-MUSIC_TOKEN                  = MUSIC_CHANNEL_MASK+$01
-GAME_MUSIC_CH1_FREQUENCY     = MUSIC_TOKEN+$01
-GAME_MUSIC_CH1_CONTROL       = GAME_MUSIC_CH1_FREQUENCY+$01
-GAME_MUSIC_CH2_FREQUENCY     = GAME_MUSIC_CH1_CONTROL+$01
-GAME_MUSIC_CH2_CONTROL       = GAME_MUSIC_CH2_FREQUENCY+$01
-MUSIC_TRANSIENT_STATE_END    = GAME_MUSIC_CH2_CONTROL+$01
+; The gameplay player's voice state, two bytes each, indexed by channel.
+; Music v2 §10.2 replaced the v1 player's cached AUDF/AUDC pairs and its packed
+; row scratch with these; the block is byte-for-byte the same size and the same
+; addresses. GAME_MUSIC_AGE holds the envelope cursor, $FF while resting.
+GAME_MUSIC_COLUMN            = MUSIC_PATTERN_ROW+$01        ; 2 B, column offset per channel
+GAME_MUSIC_DIVIDER           = GAME_MUSIC_COLUMN+$02        ; 2 B, the note each voice holds
+GAME_MUSIC_AGE               = GAME_MUSIC_DIVIDER+$02       ; 2 B, envelope cursor / $FF
+MUSIC_TRANSIENT_STATE_END    = GAME_MUSIC_AGE+$02
 GAME_MUSIC_ENABLED           = MUSIC_TRANSIENT_STATE_END
 MUSIC_STATE_END              = GAME_MUSIC_ENABLED+$01
 MUZZLE_VISIBLE_ROW           = MUSIC_STATE_END             ; 2 B, allied/enemy
@@ -535,6 +536,11 @@ FLASH_RED_MID = $38
 FLASH_RED_DARK = $34
 ENEMY_FIGHTER_FLASH_FRAMES = 4
 PLAYER_DEATH_FLASH_FRAMES = 6
+; The Player Fighter shot's POKEY control byte: pure tone, volume 8. It lives on
+; channel 4 with the capital-hull explosion since owner answer Q-S1, and is
+; re-asserted every frame of the shot because that explosion writes its own
+; control byte to the same register.
+PLAYER_FIGHTER_SHOT_AUDC = $A8
 HUD_LIFE_DIGIT_OFFSET = 18
 HUD_HULL_LABEL_OFFSET = 20
 HUD_HULL_LABEL_CELLS = 4
@@ -2876,9 +2882,10 @@ resume_gameplay_audio:
 
     lda fire_timer
     beq @hit
-    sta AUDF1
-    lda #$A8
-    sta AUDC1
+    sta AUDF4
+    lda #PLAYER_FIGHTER_SHOT_AUDC
+    sta AUDC4                   ; the capital branch below overwrites it if the
+                                ; explosion is also running, which outranks it
 @hit:
     lda hit_timer
     beq @capital
@@ -2922,15 +2929,13 @@ music_stop_gameplay:
     sta MUSIC_ACTIVE,x
     dex
     bpl @clear_state
-    lda fire_timer
-    bne @channel_2
+    ; Channel 1 carries the bass alone since owner answer Q-S1, so it is
+    ; always ours to silence. Channel 2 still yields to a live hit SFX.
     lda #$00
     sta AUDF1
     sta AUDC1
-@channel_2:
-    lda hit_timer
+    ldx hit_timer
     bne @done
-    lda #$00
     sta AUDF2
     sta AUDC2
 @done:
@@ -4232,14 +4237,19 @@ allocate_player_fighter_projectile_at_slot:
     rts
 
 .segment "CODE"
+; Owner answer Q-S1 (owner-decisions-2026-09-11.md §AB.2): the shot moved from
+; channel 1 to channel 4, so the music's bass on channel 1 is never preempted.
+; Channel 4 is shared with the capital-hull explosion, which outranks the shot
+; while its timer runs (update_sound); both write AUDCTL 0, so neither changes
+; the other's clock.
 play_player_fighter_projectile_sound:
     lda sound_enabled
     beq @accepted
     lda #$32
-    sta AUDF1
-    lda #$A8
-    sta AUDC1
-    lda #$32                    ; software-owned phase; AUDF1 itself is write-only
+    sta AUDF4
+    lda #PLAYER_FIGHTER_SHOT_AUDC
+    sta AUDC4
+    lda #$32                    ; software-owned phase; AUDF4 itself is write-only
     sta fire_timer
 @accepted:
     sec
@@ -6159,11 +6169,9 @@ music_player_end:
 ; self-modified read tail in ENTITY_CODE the player still calls.
 ; Exports below are how that separate link reaches this one.
 .export sound_enabled, fire_timer, hit_timer
-.export game_music_read_token_tail
 .export MUSIC_ROW_TIMER, MUSIC_SEQUENCE_INDEX, MUSIC_PATTERN_ROW
-.export MUSIC_CHANNEL_MASK, MUSIC_TOKEN, GAME_MUSIC_ENABLED
-.export GAME_MUSIC_CH1_FREQUENCY, GAME_MUSIC_CH1_CONTROL
-.export GAME_MUSIC_CH2_FREQUENCY, GAME_MUSIC_CH2_CONTROL
+.export GAME_MUSIC_ENABLED
+.export GAME_MUSIC_COLUMN, GAME_MUSIC_DIVIDER, GAME_MUSIC_AGE
 .export PLAYER_DYING
 
 EMIT_MENU_MUSIC_DATA
@@ -6837,19 +6845,26 @@ update_sound:
 @enabled:
     lda fire_timer
     beq @hit
-    ; AUDF1 is write-only: INC would read POT0 and turn paddle noise into the
+    ; AUDF4 is write-only: INC would read POT0 and turn paddle noise into the
     ; next frequency. Keep the $32..$38 phase in ordinary zero-page state.
     ; The accepted-shot frame advances to $33; Rapid's six-frame interval then
     ; leaves the $38 tail audible for one full PAL frame before the next shot.
     inc fire_timer
     lda fire_timer
-    sta AUDF1                   ; $39 is silenced below before it can be heard
+    sta AUDF4                   ; $39 is silenced below before it can be heard
+    ldy #PLAYER_FIGHTER_SHOT_AUDC
+    sty AUDC4                   ; re-asserted every frame, so an explosion that
+                                ; ended mid-shot cannot leave its control byte
+                                ; here; while one IS running the @capital
+                                ; branch below overwrites both registers from
+                                ; its table in this same call, which is how the
+                                ; explosion outranks the shot at zero cost
     cmp #$39
     bcc @hit
 @fire_done:
     lda #$00
     sta fire_timer
-    sta AUDC1
+    sta AUDC4                   ; @capital rewrites it if an explosion is live
 
 @hit:
     lda hit_timer
@@ -6874,6 +6889,8 @@ update_sound:
     dec CAPITAL_EXPLOSION_SOUND_TIMER
     jmp @damage
 @capital_silent:
+    lda fire_timer
+    bne @damage                 ; between explosions the shot owns channel 4
     lda #$00
     sta AUDC4
 
@@ -9324,9 +9341,14 @@ entity_player_fighter_projectile_hits_visible_debris:
 @miss:
     rts
 debris_spawn_gate_broadside_layout_end:
-    .res $39-(debris_spawn_gate_broadside_layout_end-projectile_recycle_broadside_layout_pad)
+    .res $3F-(debris_spawn_gate_broadside_layout_end-projectile_recycle_broadside_layout_pad)
                                 ; consume the remaining fixed-slot ABI padding while
-                                ; preserving the fixed integration release ABI
+                                ; preserving the fixed integration release ABI.
+                                ; $39 -> $3F in music v2 §10.2: music_stop_gameplay
+                                ; lost the six bytes of its fire_timer test when
+                                ; the shot SFX left channel 1 (owner answer Q-S1),
+                                ; and this is the pad that exists to absorb exactly
+                                ; that. Nothing executes here.
 free_broadside_slot:
     jsr erase_broadside_slot
     lda #BROAD_FREE
@@ -11539,10 +11561,6 @@ reset_enemy_fire_cooldown_tail:
     sta INTERCEPTOR_BURST_STATE
     sta INTERCEPTOR_BURST_REMAINING
     sta INTERCEPTOR_BURST_TIMER
-    rts
-
-game_music_read_token_tail:
-    lda $FFFF,y
     rts
 
 begin_capital_projectile_frame:

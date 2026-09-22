@@ -435,7 +435,16 @@ The PAL audit's worst margin is reported against 1,985 (§2).
   by the hit. **Condition:** session 2b must verify that
   `CAPITAL_EXPLOSION_SOUND_AUDCTL` does not change the shot's sound while
   both are active; if it does, STOP and report — the fallback is S1.
-  Belongs to session 2b; this session changed no SFX routing.
+  **CONDITION MEASURED AND MET, 2026-09-22 (step 2b).**
+  `CAPITAL_EXPLOSION_SOUND_AUDCTL = 0`, and the write stream of the running
+  binary shows the explosion writing that value and nothing else, while the
+  music and the shot write AUDCTL not at all. Zero is the value gameplay
+  already runs at — the 64 kHz clock, no 16-bit pairing, no high-pass — so
+  the shot's divider means exactly the same thing during an explosion as
+  outside one. The fallback does not apply.
+  `tests/music-v2-runtime.test.mjs` holds the measurement, and it also pins
+  the generated constant so a later hull-audio edit cannot change the answer
+  quietly.
 * **Q-V1: the summed volume.** Sketch B peaks at 41 (410 of 768 frames above
   the old 13). Judge it in the emulator when the menu candidate lands; the
   plan does not rescale. If it clips, the choices are per-instrument volume
@@ -529,8 +538,41 @@ only if the owner decides so.
 > retuned — but Atari800's audio could not be captured headlessly, so the
 > by-ear pass and the Q-V1 peak-41 judgement are owner smoke.
 >
-> Still to do: 2b (the v2 gameplay player, the Q-S1 channel move and its
-> AUDCTL condition, tests (a)/(b)/(c)).
+> **PROGRESS 2026-09-22 — step 2b is DONE, as `OWNER-SMOKE CANDIDATE`. MUSIC
+> V2 IS COMPLETE.** What it landed:
+>
+> * `assets/music/gameplay-theme.json` is "GRA-2" in format 2;
+>   `scripts/gameplay-music.mjs` is folded into `scripts/music.mjs` and the
+>   frozen v1 divider copy is gone with it;
+> * the v2 gameplay player is in the level image inside the reservation 2a
+>   sized for it — **262 B** code (the plan estimated 286) and **241 B** of
+>   score (it estimated 239-248), 512 of 632 B used, **120 B free**, no new
+>   sectors and no transport change;
+> * the six state bytes at `$4EDD` are byte-neutral against the v1 player's
+>   cached registers, and the v1 self-modified read tail in `ENTITY_CODE` is
+>   deleted — the nibble encoding needs no pointer, so the block is read-only
+>   with nothing left behind;
+> * **owner answer Q-S1 landed**: the Player Fighter shot moved to channel 4
+>   with the capital-hull explosion, so channel 1 (bass) is never preempted
+>   and channel 2 (lead) yields only to the hit. The two owners of channel 4
+>   need no arbitration state — `update_sound` writes the shot first and the
+>   explosion second. **The AUDCTL condition is measured, not assumed**: the
+>   explosion writes only `AUDCTL = 0`, the value gameplay already runs at, so
+>   the shot's clock does not move and the fallback (channel 2 with the hit)
+>   does not apply;
+> * tests (a), (b) and (c) for gameplay, all red on `988d5fd` by construction;
+>   `tests/player-fire-audio.test.mjs` and its trace re-targeted to channel 4;
+>   `tests/gameplay-music.test.mjs` rewritten for v2 and the placement test's
+>   v1-stream half replaced by (b);
+> * **the binary's register stream equals the oracle's over a full loop plus
+>   one row, 0 differences**, and the worst fence margin moved 1,977 → the
+>   figure in `docs/STATUS.md`, far above the 1,700 the plan flagged.
+>
+> One deviation worth recording: `music_restore_gameplay_channels` is now just
+> `jmp gm_publish`. v1 cached an AUDF/AUDC pair because it only wrote POKEY on
+> a row boundary; v2 publishes every frame, so an unpause simply brings one
+> publication forward and costs a single frame of envelope cursor, which no
+> cache would have to pay for.
 
 Two implementation sessions, in this order — **agreed, with one split
 inside the second**:

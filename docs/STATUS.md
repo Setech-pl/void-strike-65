@@ -2223,15 +2223,23 @@ runtime evidence was regenerated for the new artifacts with the recorded-
 failure list unchanged. `tests/difficulty-labels.test.mjs` decodes the shipped
 bytes. `OWNER-SMOKE CANDIDATE` (look at the OPTIONS row).
 
-**NEXT TASK — music v2 step 2b** (`plan-music-v2.md` §10 step 2b): the v2
-gameplay player and its score in the level block, the Q-S1 shot-SFX move to
-channel 4 with its `CAPITAL_EXPLOSION_SOUND_AUDCTL` condition (STOP and report
-if the AUDCTL setting changes the shot's sound while both play), the
-preemption rule (bass never preempted, lead only by the hit), the gameplay
-halves of tests (a) and (b) plus test (c), `player-fire-audio.test.mjs`
-re-targeted, `scripts/gameplay-music.mjs` folded into `scripts/music.mjs`, and
-`gameplay-theme.v2.json` moved out of `v2-drafts/`. The level image is already
-sized for it: 263 B free in the block, 5 sectors, no transport change.
+**NEXT TASK.** Music v2 is complete and both themes are awaiting owner smoke.
+Nothing in the music plan is outstanding except the owner's ear. The queue
+below is what it was before the music work started:
+
+1. Owner smoke of the Light multiplicity candidate.
+2. **The rotate-frame token gate** — costed, GO recommended, ~1,000 cycles of
+   margin on the binding frames, with the two-frame bound already designed
+   (`plan-light-multiplicity.md` §4.6). It is the cheapest margin left.
+3. **Roadmap 4.6**, which must open by setting an explicit per-frame cycle
+   budget in its own plan, against the measured worst margin at the
+   checkpoint it branches from — not against the historical margins in this
+   file. See §4.4 of the same plan.
+
+Also still open and now costable: **Q-1** (`LEVEL_BUFFER` 16 vs 24 sectors,
+`plan-4.6-placement.md`). The per-level payload's music is now measured at
+**512 B** in 5 sectors, not the ~534 B the plan estimated; the owner leans to
+24 sectors.
 
 Unchanged and still owed: owner smoke of the Light multiplicity candidate,
 then the first of these two, in this order:
@@ -2243,6 +2251,195 @@ then the first of these two, in this order:
    cycle budget in its own plan, against the measured worst margin at the
    checkpoint it branches from — not against the historical margins in this
    file. See §4.4 of the same plan.
+
+## Music v2 step 10.2 — the GAMEPLAY theme is GRA-2 — `OWNER-SMOKE CANDIDATE` (2026-09-22)
+
+**MUSIC V2 IS COMPLETE.** Both themes are format 2, both compile through one
+module, and the gameplay theme the owner approved by ear now plays from the
+level image. This is the second and last commit that changes what the owner
+hears.
+
+What changed, in one line each:
+
+* **The score.** "GRA-2": 2 voices, 16 bars × 16 rows at 6 frames a row — a
+  **30.72 s** loop, the same length as v1 "Contact Line", which it replaces.
+  10 pitches on the bass, 9 on the lead, both pure tones with per-frame volume
+  envelopes.
+* **The player.** 222 → **262 B** of code (the plan estimated 286), 138 →
+  **241 B** of score, all inside the 632 B the 2a move reserved: **512 B used,
+  120 B free**, and the level image stays at **7 sectors** — no transport
+  change at all.
+* **The converter.** `scripts/gameplay-music.mjs` is folded into
+  `scripts/music.mjs` and deleted, and with it the frozen copy of the v1 menu
+  divider table that menu v2 had to leave behind. The gameplay theme carries
+  no pitch table: it shares the menu's, and only the dividers it plays are
+  compiled into its block.
+* **The assets.** `gameplay-theme.v2.json` → `assets/music/gameplay-theme.json`.
+  `v2-drafts/` now holds only the two MP3s the owner approved by ear.
+
+**A different encoding from the menu's, on purpose** (plan §1.1). The menu has
+four voices with arpeggios and drums and runs in the frontend, where there is
+no fence. The gameplay tick is two voices, no arpeggio, no drum, and every
+byte of it is fence-relevant — so a row token is a **nibble**, a 16-row column
+is **8 bytes**, and it is reached as `gm_columns + id * 8` through a one-byte
+offset. No pointer table, no pitch table, one column byte read per channel per
+row, no loop over rows. 22 deduplicated columns, two 16-byte sequences, a 10-
+and a 9-entry divider map, two envelopes and two AUDC bases: **241 B**.
+
+**Owner answer Q-S1 landed** (`owner-decisions-2026-09-11.md` §AB.2). The
+Player Fighter shot SFX moved from POKEY channel 1 to channel 4:
+
+| Channel | Owner | Preempted by |
+| --- | --- | --- |
+| 1 | music bass | **nothing** |
+| 2 | music lead | the hit SFX |
+| 3 | engine bed | — |
+| 4 | the shot **and** the capital-hull explosion | the explosion outranks the shot |
+
+The lead resumes the score **in place** because the envelope cursors advance
+every frame whether or not the register write is suppressed. The two owners of
+channel 4 need no arbitration state: `update_sound` writes the shot first and
+the explosion second, so the explosion simply wins while its timer runs, and
+the shot re-asserts its control byte every frame so it takes the channel back
+the moment the explosion ends. The policy is written into
+`gameplay-theme.json` itself and the converter refuses any other wording, so
+the asset and the player cannot drift apart.
+
+**The Q-S1 condition is MEASURED, not assumed.** The owner made the move
+conditional on the capital explosion's AUDCTL not changing the shot's sound,
+with a STOP and a fallback to channel 2 if it did. Measured from the running
+binary's POKEY write stream: the music and the shot write AUDCTL **not at
+all**, and the explosion writes **only 0** — the value gameplay already runs
+at (64 kHz clock, no 16-bit pairing, no high-pass). The shot's divider
+therefore means exactly the same thing during an explosion as outside one.
+**The fallback does not apply.** `tests/music-v2-runtime.test.mjs` holds the
+measurement and also pins `CAPITAL_EXPLOSION_SOUND_AUDCTL = 0`, so a later
+hull-audio edit cannot change the answer quietly.
+
+**Three tests, all red on `988d5fd` by construction:**
+
+* `tests/music-v2-stream.test.mjs` — plan test (a). The compiled gameplay
+  bytes replay the **oracle's** stream for 1,542 frames (a full loop plus one
+  row, so the wrap is covered). Source and stream pinned by SHA-256.
+* `tests/music-v2-runtime.test.mjs` — plan test (b). The **shipped XEX** in
+  the NMOS harness, through the level-image vector, 1,542 ticks: the binary's
+  per-frame register state equals the oracle's, **0 differences**, and no
+  write reaches AUDCTL or channels 3 and 4.
+* same file — plan test (c). With `play_player_fighter_projectile_sound` at
+  frames 30 and 200 and `play_hit_sound` at frame 100, in `main_loop`'s own
+  order (`update_sound`, then the tick): **channel 1 equals the oracle on
+  every frame**; while the hit runs channel 2 carries `$88` and not the music;
+  from the first frame after it clears channel 2 is the oracle's again, at the
+  envelope position the score reached; and the shot's `$33..$38` phase appears
+  on channel 4. A fourth test runs the shot with the music on and with it off
+  and asserts the two channel-4 register sequences are **identical** — the SFX
+  envelope is intact.
+
+**`tests/player-fire-audio.test.mjs` re-targeted to channel 4.** Every
+assertion is the one it always was, with `AUDF1`/`AUDC1` replaced by
+`AUDF4`/`AUDC4`: the phase still lives in RAM, the write-only register is
+still never read back, the `$33..$38` sequence is still complete and never
+restarted, and `scripts/player-fire-audio-trace.mjs` follows the shot to its
+new registers. Two assertions are **new**, because the channel is now shared:
+the shot must not touch channel 1 anywhere, and `@capital_silent` must not cut
+a live shot. One harness fix was forced by the move: the trace never zeroed
+`CAPITAL_EXPLOSION_SOUND_TIMER`, which did not matter while the two SFX were
+on different channels; left at the cold fill it indexes the explosion's
+frequency table far past its end and masks every shot. `silence_audio` zeroes
+it on the real startup path, so the harness now does too.
+
+**`tests/gameplay-music.test.mjs` rewritten for v2.** The v1 encoding pins are
+replaced by test (a); everything else is re-targeted and kept — the transport,
+the GAME MUSIC option, the ON/OFF watchdog, the death path, the call sites,
+and the SFX ownership. The placement test's "byte-identical to the v1 player"
+half is replaced by test (b); its placement, vector and transport assertions
+are untouched.
+
+**Measured, against `988d5fd`:**
+
+| | before | after |
+| --- | ---: | ---: |
+| gameplay player code | 222 B | **262 B** (plan estimated 286) |
+| gameplay score | 138 B | **241 B** |
+| level-image block | 369 of 632 B | **512 of 632 B**, 120 B free |
+| level image | 7 sectors | **7 sectors**, unchanged |
+| gameplay state | 6 B at `$4EDD` | **6 B at `$4EDD`**, byte-neutral |
+| `ENTITY_CODE` | 3,165 B, 1 B free tail | **3,161 B, 5 B free tail** |
+| `music_tick_gameplay` min / max | 41 / 246 cycles | **118 / 336** |
+| worst fence margin | 1,977 | **1,985** |
+| measured DMA-on maximum | 31,081 | **31,200** (physical headroom 4,368) |
+| `STARFIELD` raw / packed | 1,990 / 1,701 B | **1,990 / 1,701 B**, untouched |
+| boot transport | 204 sectors | **204 sectors**, initial block 103 |
+
+**The tick got dearer and the margin got better.** The plan costed a worst
+case of +280 cycles on a single frame and asked for a flag below 1,700. The
+measured tick is +77 on an ordinary frame and +90 on a row frame, and the
+worst fence margin **rose 8 cycles to 1,985** — the binding frame
+(`director-complete-2-natural-sweep-fire0` f6629) is not a row frame, and v2's
+row frame is cheaper than v1's because the nibble encoding replaced a
+self-modified pointer load. The next binding rows are **2,985**
+(`director-complete-1-natural-sweep-fire0` f3631) and **3,737**
+(`debris-effects-2-sweep-fire4` f4189). Nothing moves toward 1,700.
+
+**Reserved: starfield expansion — unchanged.** Owner decision AB.4. This
+session spent **none** of it: the gameplay music lives in the level image, not
+in `STARFIELD`.
+
+| | reserved |
+| --- | ---: |
+| `STARFIELD` free run tail | **348 B raw** |
+| margin to the 1,804 B correction gate | **103 B packed** |
+| margin to the 1,825 B hard gate | 124 B |
+| staging stream margins A / B | 16 / 203 B |
+
+**Gates (MEASURED this session).**
+
+* Default build links and the **release gate is green**: no unrecorded gate
+  failure, `timing_and_dli_passed = true`, `docs/recorded-gate-failures.json`
+  unedited, the recorded-failure list **exactly the same 40 entries**.
+* Runtime evidence regenerated as this commit's own change: 64 sessions,
+  **0 distinct miss events**, 0 rows over the hard gate, every session PASS.
+* Boot smoke **8/8**, `--atari800-source=build/atari800-trace`. Milestones
+  unmoved: XEX loader 135 / menu 391, ATR loader 339 / menu 595; the level
+  image verifies byte-exact at `$A600` on every session, 7 command frames, 26
+  load frames, 0 wire retries. `boot-deadline-baseline.json` is **not**
+  re-recorded.
+* `npm test` on the default build: 771 tests, **0 new failures** against the
+  `988d5fd` list. Four pins re-recorded deliberately in the same commit, each
+  with its reason in the test, and all four are the same four bytes: deleting
+  the v1 player's self-modified read tail at `$9D21` shrank `ENTITY_CODE` —
+  `light-interceptor.test.mjs` code bytes 3,165 → 3,161, free tail 1 → 5,
+  `light_glyph` `$9D2B` → `$9D27`, `light_interceptor_glyph` `$9D3B` →
+  `$9D37`, and `light-wingman.test.mjs` staging margin 77 → 81. A fifth,
+  `pause.test.mjs`, dropped its `fire_timer` test of `music_stop_gameplay` for
+  the stronger assertion that the shot is not on channel 1 at all.
+* Still red exactly as at baseline, and **not** touched:
+  `player-fire-audio.test.mjs`'s SPREAD cadence histogram
+  (`{12: 62, 28: 187}` pinned, `{12: 149, 28: 150}` measured). That pin was
+  already stale at `988d5fd`, it is about weapon cadence and not audio, and
+  re-recording it is not this session's work. Its audio assertions, which this
+  session did re-target, pass.
+
+**Two things the code does that the plan did not say.**
+
+1. `music_restore_gameplay_channels` is now just `jmp gm_publish`. v1 cached
+   an AUDF/AUDC pair because it only wrote POKEY on a row boundary, so without
+   the cache an unpause could leave the voices silent for five frames. v2
+   publishes every frame, so restoring is one publication brought forward; it
+   costs one frame of envelope cursor per unpause and no state at all.
+2. The `$39 → $3F` ABI pad before `free_broadside_slot`. `music_stop_gameplay`
+   lost the six bytes of its `fire_timer` test when the shot left channel 1,
+   which would have moved the fixed `$76A7` integration release target. That
+   pad exists to absorb exactly this; nothing executes in it.
+
+**What the owner must smoke.** The gameplay theme itself, on the XEX and the
+ATR, and on SIO2SD where the level read is real hardware: that GRA-2 is what
+they approved; that the bass really does keep the pulse through shots and
+hits; that the shot on channel 4 still reads as the same shot; and that the
+music sits under the SFX at the drafted ~60 % rather than fighting them. If
+the balance is wrong, the fix is per-instrument volume edits in
+`gameplay-theme.json`, re-auditioned through `preview/render.py` — not a
+player change.
 
 ## Music v2 step 10.1 — the MENU theme is sketch B — `OWNER-SMOKE CANDIDATE` (2026-09-22)
 
@@ -2305,6 +2502,8 @@ was format 1 and the binary carried the v1 player):
 "menu-theme"`). The menu's table is now 43 format-2 dividers, so
 `scripts/gameplay-music.mjs` carries a frozen copy of the sixteen v1 dividers
 and emits the leading 14 into its own block as `game_music_frequency_table`.
+**Superseded by step 2b below**, which replaced the v1 score entirely and
+deleted that module and its frozen table.
 The gameplay data grows 124 → **138 B** inside the level image (263 B still
 free there) and its POKEY stream is **unchanged, byte for byte** —
 `tests/gameplay-music-placement.test.mjs` still proves it over a full loop.

@@ -376,8 +376,13 @@ test("placement contract: legal composite and packed size, state inside its rese
   // ENTITY_CODE measured 3,165 B with a 1-B tail there, not 3,144 / 22 - which
   // is why this test is in the pre-existing failure set; they are corrected
   // here rather than left red under a placement change.
-  assert.equal(manifest.entityEffects.codeBytes, 3165);
-  assert.equal(manifest.residentCapacity.tails.entityCode, 1);
+  // 3,161 / 5 after music v2 §10.2: the v1 gameplay player's four-byte
+  // self-modified read tail `game_music_read_token_tail` was deleted with the
+  // v1 player, because the format-2 encoding addresses a column through a
+  // one-byte offset and modifies nothing. ENTITY_CODE shrank by exactly those
+  // four bytes and its free tail grew 1 -> 5 B.
+  assert.equal(manifest.entityEffects.codeBytes, 3161);
+  assert.equal(manifest.residentCapacity.tails.entityCode, 5);
   // Step 1b: LIGHT_RESIDENT's 229 B left the pickup stream with the kernel.
   assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 236);
   // Owner decision X + Light multiplicity steps 1a-3. The Light C left the
@@ -401,8 +406,11 @@ test("placement contract: legal composite and packed size, state inside its rese
   // clear cost this composite 3: extension 877 -> 880 B, tail 22 -> 19 B, and
   // the code window tail 32 -> 27 B.
   assert.equal(manifest.residentCapacity.tails.hybridCExtension, 19);
-  assert.equal(L("light_glyph"), 0x9d2b);
-  assert.equal(L("light_interceptor_glyph"), 0x9d3b);
+  // Both moved down 4 B in music v2 §10.2: the v1 gameplay player's
+  // self-modified read tail was at $9D21, ahead of the art tables, and went
+  // with the v1 player. Nothing about the tables themselves changed.
+  assert.equal(L("light_glyph"), 0x9d27);
+  assert.equal(L("light_interceptor_glyph"), 0x9d37);
   // REBASELINED for Light multiplicity: HYBRID_LIGHT_STATE keeps only the
   // SHARED scalars; the per-slot state is 48 B of SoA arrays at $7FC4-$7FF3,
   // in the 60 unassigned bytes above the A2 display lists.

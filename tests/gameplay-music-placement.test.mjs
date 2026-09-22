@@ -1,24 +1,21 @@
-// Music v2 §1.4 placement G1 — the gameplay music player moves out of
-// STARFIELD and into the per-level image (owner answer Q-P1, ACCEPTED
-// 2026-09-22). This commit is a PURE MOVE: the score, the encoding and the
-// POKEY write stream are the v1 player's, byte for byte. These are the tests
-// the plan's §10 step 2a calls for, and every one of them is red on a build
-// that still carries the player in STARFIELD.
+// Music v2 §1.4 placement G1 — the gameplay music player lives in the
+// per-level image and executes from $A608 (owner answer Q-P1, ACCEPTED
+// 2026-09-22). This file is about the PLACEMENT: the block, its frozen
+// vectors, the transport it costs and the STARFIELD room it freed. What the
+// player PLAYS is tests/music-v2-stream.test.mjs (the compiled bytes against
+// the reference renderer) and tests/music-v2-runtime.test.mjs (the shipped
+// binary against the same oracle, with and without SFX).
+//
+// Step 2a landed the move with the v1 score; step 2b replaced the score and
+// the player with format 2 inside the same reservation, so nothing here about
+// sectors or transport moved.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { Nmos6502 } from "../scripts/nmos6502.mjs";
 import { initialiseRuntime, requiredLabel } from "../scripts/weapon-pickup-runtime.mjs";
-import {
-  compileGameplayMusic,
-  createGameplayMusicState,
-  loadGameplayMusicDefinition,
-  startGameplayMusic,
-  tickGameplayMusic,
-} from "../scripts/gameplay-music.mjs";
 
 const rootDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const manifest = JSON.parse(fs.readFileSync(
@@ -91,74 +88,31 @@ test("main reaches the player only through three frozen vectors", () => {
     "jsr GAMEPLAY_MUSIC_RESTORE"]) {
     assert.ok(mainSource.includes(call), `main.s does not call ${call}`);
   }
-  // The four-byte self-modified read tail stays in ENTITY_CODE on purpose:
-  // the boot smoke checksums the level buffer during gameplay, so nothing in
-  // the block may modify itself.
-  assert.ok(mainSource.includes("game_music_read_token_tail:"));
-  assert.ok(placement.readTokenTail < LEVEL_BUFFER);
+  // The boot smoke checksums the level buffer during gameplay, so nothing in
+  // the block may modify itself. v1 needed a four-byte self-modified read tail
+  // in ENTITY_CODE for that; the v2 encoding needs none and it is gone.
+  assert.ok(!mainSource.includes("game_music_read_token_tail"),
+    "the v1 self-modified read tail outlived the v1 player");
+  assert.equal(placement.readTokenTail, undefined);
 });
 
-test("the player's POKEY write stream is byte-identical to the v1 player", () => {
+test("the XEX publishes the linked block into the level buffer, ready to run", () => {
   const { memory, labels } = initialiseRuntime(rootDirectory, "xex", 0xa5);
   // The XEX carries the level image as a block, so the player is already at
-  // $A608 exactly as the loader leaves it.
+  // $A608 exactly as the loader leaves it; on the ATR the boot smoke proves
+  // the same bytes arrive over SIO.
   assert.deepEqual(
     Buffer.from(memory.subarray(placement.blockAddress,
       placement.blockAddress + blockImage.length)),
     blockImage,
     "the XEX did not publish the music block into the level buffer");
-
-  memory[requiredLabel(labels, "sound_enabled")] = 1;
-  memory[requiredLabel(labels, "GAME_MUSIC_ENABLED")] = 1;
-  memory[requiredLabel(labels, "PLAYER_LIFECYCLE")] = 0;
-  memory[requiredLabel(labels, "fire_timer")] = 0;
-  memory[requiredLabel(labels, "hit_timer")] = 0;
-
-  const forbidden = [];
-  const cpu = new Nmos6502(memory, {
-    write(address) {
-      if (address >= POKEY_FIRST && address <= POKEY_LAST &&
-        address !== AUDF1 && address !== AUDC1 && address !== AUDF2 && address !== AUDC2) {
-        forbidden.push(address);
-      }
-    },
-  });
-  const stop = 0x7fff;
-  const call = (address) => {
-    cpu.push((stop - 1) >> 8);
-    cpu.push((stop - 1) & 0xff);
-    cpu.pc = address;
-    for (let steps = 0; steps < 200_000 && cpu.pc !== stop; steps += 1) cpu.step();
-    assert.notEqual(cpu.pc, stop - 1, "the player did not return");
-    assert.equal(cpu.pc, stop, `the call at $${address.toString(16)} did not return`);
-  };
-
-  // start_gameplay tears the previous transport down before it starts this
-  // one; the cached voices are part of that state, so the harness does the
-  // same rather than starting on whatever the cold fill left behind.
-  call(requiredLabel(labels, "music_stop_gameplay"));
-  call(placement.vectors.GAMEPLAY_MUSIC_START);
-  assert.equal(memory[requiredLabel(labels, "MUSIC_ACTIVE")], 1,
-    "the start vector must arm the transport");
-
-  const asset = compileGameplayMusic(loadGameplayMusicDefinition(
-    path.join(rootDirectory, "assets", "music", "gameplay-theme.json")));
-  const model = startGameplayMusic(createGameplayMusicState(), asset);
-
-  // One complete loop plus one row, so the sequence wrap is covered.
-  const frames = asset.loopFrames + asset.framesPerRow;
-  for (let frame = 0; frame < frames; frame += 1) {
-    call(placement.vectors.GAMEPLAY_MUSIC_TICK);
-    const expected = tickGameplayMusic(model, asset);
-    const wanted = new Map(expected.writes.map((write) => [write.channel, write]));
-    assert.deepEqual(
-      [memory[AUDF1], memory[AUDC1], memory[AUDF2], memory[AUDC2]],
-      [wanted.get(1).frequency, wanted.get(1).control,
-        wanted.get(2).frequency, wanted.get(2).control],
-      `frame ${frame} of the gameplay score differs from the v1 player model`);
-  }
-  assert.deepEqual(forbidden, [],
-    "the gameplay player must never touch AUDCTL or channels 3 and 4");
+  // Every byte the player touches in main is inside the $4ED9 state block or
+  // the zero page, never inside its own block: the whole ABI is the three
+  // vectors plus that state, and the block is read-only at runtime.
+  const stateBase = requiredLabel(labels, "MUSIC_ACTIVE");
+  assert.ok(stateBase < LEVEL_BUFFER, "the music state must live in main's RAM");
+  assert.equal(memory[placement.blockAddress], 0x4c,
+    "the block must open with its frozen JMP table");
 });
 
 test("STARFIELD is smaller than before the move, and the room is still reserved", () => {
@@ -168,10 +122,11 @@ test("STARFIELD is smaller than before the move, and the room is still reserved"
   assert.ok(starfield.packedBytes < STARFIELD_PACKED_BEFORE);
   // Owner decision 2026-09-22 (owner-decisions-2026-09-11.md §AB.4): what
   // STARFIELD gained is reserved for the starfield expansion. Menu v2 spent
-  // part of it exactly as plan §1.3 costed it (+138 B raw, +196 B packed),
-  // and these are the bounds on what is left for that expansion. They are
-  // re-recorded here deliberately: the 2a figures (>= 300 packed, >= 480 raw)
-  // were the reservation BEFORE the menu took its share.
+  // its costed share (+138 B raw, +196 B packed) and step 2b spent none --
+  // the v2 gameplay player lives in the level image, not here. These bounds
+  // are what is left for that expansion and no music session may lower them.
+  assert.equal(starfield.bytes, 1990, "the gameplay session must not touch STARFIELD");
+  assert.equal(starfield.packedBytes, 1701);
   assert.ok(starfield.packedTotalGate.hardGateMarginBytes >= 120,
     `packed hard-gate margin is ${starfield.packedTotalGate.hardGateMarginBytes} B`);
   assert.ok(starfield.reservedBytes - starfield.bytes >= 340,

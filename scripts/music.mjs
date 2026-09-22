@@ -8,12 +8,23 @@
 // independently, and tests/music-v2-stream.test.mjs asserts that the model
 // below reproduces the oracle's stream frame for frame.
 //
-// Session scope: the menu theme. The v1 gameplay theme keeps
-// scripts/gameplay-music.mjs until plan §10 step 2b compiles it here too.
+// Both themes live here since plan §10 step 2b. They share the JSON format,
+// the validation rules and the oracle, but NOT the compiled encoding: the menu
+// has four voices with arpeggios and drums and is not fence-bound, while the
+// gameplay tick is two voices, no arpeggios, no drums, and every byte of it is
+// fence-relevant. §1.1 gives each its own encoding for that reason, and the
+// two compile functions below are what that costs.
 
 import fs from "node:fs";
 
 const CHANNEL_COUNT = 4;
+const GAMEPLAY_CHANNEL_COUNT = 2;
+const GAMEPLAY_TOKEN_HOLD = 0x00;
+const GAMEPLAY_TOKEN_REST = 0x01;
+const GAMEPLAY_TOKEN_NOTE_BASE = 2;
+const GAMEPLAY_MAX_PITCHES = 14;      // a nibble token, minus HOLD and REST
+const GAMEPLAY_COLUMN_BYTES = 8;      // 16 rows, two per byte
+const GAMEPLAY_MAX_COLUMNS = 32;      // the column offset is one byte: id * 8
 const TOKEN_HOLD = 0x00;
 const TOKEN_REST = 0x01;
 const TOKEN_PITCH_BIAS = 2;
@@ -487,6 +498,342 @@ export function simulateStream(asset, frames) {
   const stream = [];
   for (let frame = 0; frame < frames; frame += 1) {
     tickMusic(state, asset);
+    stream.push(state.channels.map(({ audf, audc }) => ({ audf: audc === 0 ? null : audf, audc })));
+  }
+  return stream;
+}
+
+// ---------------------------------------------------------------------------
+// The gameplay theme (plan-music-v2.md §1.1 "Gameplay patterns").
+//
+// A different encoding from the menu's, on purpose. Two voices, one instrument
+// each, no arpeggio and no drum: a row token fits a nibble, so a 16-row column
+// is 8 bytes and is addressed as `columns + id * 8` with a one-byte offset --
+// no pointer table, no pitch table, one column byte read per channel per row.
+// That is what keeps music_tick_gameplay inside the PAL frame budget.
+// ---------------------------------------------------------------------------
+
+function assertGameplayChannel(entry, channel, preemptedBy) {
+  invariant(entry?.channel === channel,
+    `the gameplay theme's channel ${channel} entry is missing or misnumbered`);
+  invariant(typeof entry.preemptedBy === "string" && entry.preemptedBy === preemptedBy,
+    `POKEY channel ${channel} must document its preemption as "${preemptedBy}" ` +
+    `(it says "${entry.preemptedBy}")`);
+}
+
+export function compileGameplayMusic(definition, { pitches } = {}) {
+  invariant(definition?.formatVersion === 2, "Unsupported music formatVersion (expected 2)");
+  invariant(definition.originalComposition === true,
+    "the theme must be identified as an original composition");
+  invariant(definition.targetFrameHz === 50, "music must target PAL 50 Hz");
+  invariant(definition.audctl === 0,
+    "gameplay music must leave AUDCTL at 0: channels 3 and 4 are SFX-owned and the " +
+    "capital-hull explosion writes the same 0 while it plays");
+  const framesPerRow = integer(definition.framesPerRow, "framesPerRow", 1, 255);
+  const rowsPerPattern = integer(definition.rowsPerPattern, "rowsPerPattern", 1, 255);
+  invariant(rowsPerPattern === GAMEPLAY_COLUMN_BYTES * 2,
+    `the gameplay encoding packs two rows per byte into ${GAMEPLAY_COLUMN_BYTES}-byte ` +
+    `columns, so rowsPerPattern must be ${GAMEPLAY_COLUMN_BYTES * 2}`);
+  invariant(Array.isArray(definition.channels) &&
+    definition.channels.length === GAMEPLAY_CHANNEL_COUNT,
+  "the gameplay theme must document exactly two POKEY music channels");
+
+  // The SFX policy the owner decided (Q-S1, owner-decisions-2026-09-11.md §AB.2)
+  // is part of the asset, so a later edit cannot silently disagree with the
+  // player: channel 1 is never preempted, channel 2 only by the hit.
+  assertGameplayChannel(definition.channels[0], 1, "nothing (bass keeps the pulse)");
+  assertGameplayChannel(definition.channels[1], 2, "hit SFX");
+  invariant(Array.isArray(definition.reservedSfxChannels) &&
+    definition.reservedSfxChannels.length === 2,
+  "the gameplay theme must document the two SFX-only channels");
+  invariant(definition.reservedSfxChannels[0]?.channel === 3 &&
+    definition.reservedSfxChannels[0].role === "engine bed",
+  "POKEY channel 3 must remain reserved for the engine bed");
+  invariant(definition.reservedSfxChannels[1]?.channel === 4 &&
+    definition.reservedSfxChannels[1].role ===
+      "capital-hull explosion and Player Fighter shot",
+  "POKEY channel 4 must document both its owners after owner answer Q-S1");
+
+  const table = pitches ?? definition.pitches;
+  invariant(Array.isArray(table) && table.length > 0,
+    "the gameplay theme shares the menu's pitch table; pass it in");
+  const pitchIndex = new Map(table.map(({ id }, index) => [id, index]));
+
+  const bars = definition.sequence;
+  invariant(Array.isArray(bars) && bars.length > 0 && bars.length <= 255,
+    "the sequence needs one through 255 bars");
+  bars.forEach((bar) => invariant(definition.patterns[bar],
+    `sequence references unknown pattern ${bar}`));
+
+  // One instrument per channel: the player holds one envelope cursor and one
+  // AUDC base per voice, and a second instrument would need a per-token record.
+  const channelInstrument = new Array(GAMEPLAY_CHANNEL_COUNT).fill(null);
+  const channelPitches = Array.from({ length: GAMEPLAY_CHANNEL_COUNT }, () => []);
+  function tokenOf(token, channel, where) {
+    invariant(typeof token === "string", `${where} must be a string token`);
+    if (token === "HOLD") return GAMEPLAY_TOKEN_HOLD;
+    if (token === "REST") return GAMEPLAY_TOKEN_REST;
+    const separator = token.indexOf(":");
+    invariant(separator > 0, `${where}: the gameplay theme has no drums, only INSTRUMENT:PITCH`);
+    const name = token.slice(0, separator);
+    const pitch = token.slice(separator + 1);
+    invariant(definition.instruments?.[name], `${where} has unknown instrument ${name}`);
+    invariant(pitchIndex.has(pitch), `${where} has unknown pitch ${pitch}`);
+    if (channelInstrument[channel] === null) channelInstrument[channel] = name;
+    invariant(channelInstrument[channel] === name,
+      `${where}: channel ${channel + 1} already plays ${channelInstrument[channel]}; the ` +
+      "gameplay encoding carries one instrument per channel");
+    const list = channelPitches[channel];
+    if (!list.includes(pitch)) {
+      list.push(pitch);
+      invariant(list.length <= GAMEPLAY_MAX_PITCHES,
+        `channel ${channel + 1} uses ${list.length} pitches; a nibble token holds at most ` +
+        `${GAMEPLAY_MAX_PITCHES}`);
+    }
+    return GAMEPLAY_TOKEN_NOTE_BASE + list.indexOf(pitch);
+  }
+
+  const columnBytes = [];
+  const columnIds = new Map();
+  const sequenceBytes = Array.from({ length: GAMEPLAY_CHANNEL_COUNT }, () => []);
+  bars.forEach((bar) => {
+    const rows = definition.patterns[bar];
+    invariant(Array.isArray(rows) && rows.length === rowsPerPattern,
+      `pattern ${bar} must contain ${rowsPerPattern} rows`);
+    for (let channel = 0; channel < GAMEPLAY_CHANNEL_COUNT; channel += 1) {
+      const tokens = rows.map((row, rowIndex) => {
+        invariant(Array.isArray(row) && row.length === GAMEPLAY_CHANNEL_COUNT,
+          `pattern ${bar} row ${rowIndex} must contain two channels`);
+        return tokenOf(row[channel], channel, `patterns.${bar}[${rowIndex}][${channel}]`);
+      });
+      // Two rows per byte: the even row in the low nibble, the odd in the high.
+      const packed = [];
+      for (let pair = 0; pair < GAMEPLAY_COLUMN_BYTES; pair += 1) {
+        packed.push(tokens[pair * 2] | tokens[pair * 2 + 1] << 4);
+      }
+      // Deduplicated by the COMPILED bytes. Two channels may share a column
+      // even when it means different pitches: the divider map is chosen by the
+      // channel at read time, not stored in the column.
+      const key = packed.join(",");
+      if (!columnIds.has(key)) {
+        columnIds.set(key, columnBytes.length);
+        columnBytes.push(Uint8Array.from(packed));
+      }
+      sequenceBytes[channel].push(columnIds.get(key) * GAMEPLAY_COLUMN_BYTES);
+    }
+  });
+  invariant(columnBytes.length <= GAMEPLAY_MAX_COLUMNS,
+    `the gameplay theme needs ${columnBytes.length} distinct columns; the one-byte column ` +
+    `offset holds ${GAMEPLAY_MAX_COLUMNS}`);
+
+  const audcBase = [];
+  const envelopes = [];
+  const dividerMaps = [];
+  for (let channel = 0; channel < GAMEPLAY_CHANNEL_COUNT; channel += 1) {
+    const name = channelInstrument[channel];
+    invariant(name !== null, `channel ${channel + 1} never plays a note`);
+    const instrument = definition.instruments[name];
+    invariant(DISTORTION_BASE[instrument.distortion] !== undefined,
+      `instrument ${name} has unknown distortion ${instrument.distortion}`);
+    invariant(instrument.arp === undefined,
+      `instrument ${name} has an arpeggio; the gameplay player has no arpeggio step`);
+    audcBase.push(DISTORTION_BASE[instrument.distortion]);
+    envelopes.push(Uint8Array.from(encodeEnvelope(instrument.volume, name)));
+    dividerMaps.push(Uint8Array.from(
+      channelPitches[channel].map((pitch) => table[pitchIndex.get(pitch)].divider)));
+  }
+  invariant(definition.drums === undefined,
+    "the gameplay player has no drum macro; drop `drums` from the theme");
+
+  const dataBytes = audcBase.length + envelopes.reduce((sum, e) => sum + e.length, 0) +
+    dividerMaps.reduce((sum, m) => sum + m.length, 0) +
+    sequenceBytes.reduce((sum, e) => sum + e.length, 0) +
+    columnBytes.length * GAMEPLAY_COLUMN_BYTES;
+  const loopFrames = rowsPerPattern * bars.length * framesPerRow;
+
+  return Object.freeze({
+    ...definition,
+    framesPerRow,
+    rowsPerPattern,
+    audcBase: Uint8Array.from(audcBase),
+    envelopes: Object.freeze(envelopes),
+    dividerMaps: Object.freeze(dividerMaps),
+    channelInstrument: Object.freeze([...channelInstrument]),
+    channelPitches: Object.freeze(channelPitches.map((list) => Object.freeze([...list]))),
+    columnBytes: Object.freeze(columnBytes),
+    sequenceBytes: Object.freeze(sequenceBytes.map((list) => Uint8Array.from(list))),
+    loopFrames,
+    loopSeconds: loopFrames / definition.targetFrameHz,
+    dataBytes,
+    // Two column offsets and two (divider, envelope cursor) pairs, in the
+    // $4ED9 block; byte-neutral against the v1 player's cached registers.
+    stateBytes: 6,
+  });
+}
+
+export function renderGameplayMusicCa65Include(asset) {
+  const rows = (values, perLine) => {
+    const lines = [];
+    for (let offset = 0; offset < values.length; offset += perLine) {
+      lines.push(`    .byte ${[...values.slice(offset, offset + perLine)].map(byte).join(",")}`);
+    }
+    return lines;
+  };
+  const lines = [
+    "; Generated from assets/music/gameplay-theme.json by scripts/music.mjs.",
+    "; Do not edit this file by hand.",
+    `GAME_MUSIC_PAL_HZ = ${asset.targetFrameHz}`,
+    `GAME_MUSIC_FRAMES_PER_ROW = ${asset.framesPerRow}`,
+    `GAME_MUSIC_PATTERN_ROWS = ${asset.rowsPerPattern}`,
+    `GAME_MUSIC_SEQUENCE_LENGTH = ${asset.sequence.length}`,
+    `GAME_MUSIC_COLUMN_COUNT = ${asset.columnBytes.length}`,
+    `GAME_MUSIC_TOKEN_HOLD = ${byte(GAMEPLAY_TOKEN_HOLD)}`,
+    `GAME_MUSIC_TOKEN_REST = ${byte(GAMEPLAY_TOKEN_REST)}`,
+    `GAME_MUSIC_TOKEN_NOTE_BASE = ${byte(GAMEPLAY_TOKEN_NOTE_BASE)}`,
+    `GAME_MUSIC_MACRO_LAST_ENTRY = ${byte(MACRO_LAST_ENTRY)}`,
+    "GAME_MUSIC_VOICE_RESTING = $FF",
+    ".macro EMIT_GAMEPLAY_MUSIC_DATA",
+    "game_music_data_start:",
+    "gm_audc_base:",
+    ...rows(asset.audcBase, 16),
+    "gm_env_ch1:",
+    ...rows(asset.envelopes[0], 16),
+    "gm_env_ch2:",
+    ...rows(asset.envelopes[1], 16),
+    "gm_map_ch1:",
+    ...rows(asset.dividerMaps[0], 16),
+    "gm_map_ch2:",
+    ...rows(asset.dividerMaps[1], 16),
+    "gm_seq_ch1:",
+    ...rows(asset.sequenceBytes[0], 16),
+    "gm_seq_ch2:",
+    ...rows(asset.sequenceBytes[1], 16),
+    "gm_columns:",
+  ];
+  asset.columnBytes.forEach((column) => lines.push(...rows(column, 8)));
+  lines.push(
+    "game_music_data_end:",
+    `.assert game_music_data_end-game_music_data_start = ${asset.dataBytes}, error, ` +
+      "\"gameplay music data size changed\"",
+    ".endmacro",
+    "",
+  );
+  return lines.join("\n");
+}
+
+// ---------------------------------------------------------------------------
+// A JS model of the gameplay player, over the COMPILED bytes. Every step has a
+// counterpart in music_tick_gameplay in src/hybrid/gameplay-music.s.
+// ---------------------------------------------------------------------------
+
+export function createGameplayMusicState() {
+  return {
+    enabled: true,
+    active: false,
+    rowTimer: 0,
+    sequenceIndex: 0,
+    patternRow: 0,
+    column: new Array(GAMEPLAY_CHANNEL_COUNT).fill(0),
+    divider: new Array(GAMEPLAY_CHANNEL_COUNT).fill(0),
+    age: new Array(GAMEPLAY_CHANNEL_COUNT).fill(0xff),
+    channels: Array.from({ length: GAMEPLAY_CHANNEL_COUNT }, () => ({ audf: 0, audc: 0 })),
+  };
+}
+
+function gameplayLoadBar(state, asset) {
+  for (let channel = 0; channel < GAMEPLAY_CHANNEL_COUNT; channel += 1) {
+    state.column[channel] = asset.sequenceBytes[channel][state.sequenceIndex];
+  }
+}
+
+export function startGameplayMusic(state, asset, { soundEnabled = true } = {}) {
+  stopGameplayMusic(state);
+  if (!state.enabled || !soundEnabled) return state;
+  state.age.fill(0xff);
+  state.active = true;
+  state.rowTimer = 1;
+  gameplayLoadBar(state, asset);
+  return state;
+}
+
+export function stopGameplayMusic(state) {
+  state.active = false;
+  state.rowTimer = 0;
+  state.sequenceIndex = 0;
+  state.patternRow = 0;
+  state.column.fill(0);
+  state.divider.fill(0);
+  state.age.fill(0xff);
+  for (const channel of state.channels) Object.assign(channel, { audf: 0, audc: 0 });
+  return state;
+}
+
+function gameplayApply(state, asset, channel, token) {
+  if (token === GAMEPLAY_TOKEN_HOLD) return;
+  if (token === GAMEPLAY_TOKEN_REST) {
+    state.age[channel] = 0xff;
+    return;
+  }
+  state.divider[channel] = asset.dividerMaps[channel][token - GAMEPLAY_TOKEN_NOTE_BASE];
+  state.age[channel] = 0;
+}
+
+function gameplayVoice(state, asset, channel) {
+  if (state.age[channel] === 0xff) return 0x00;
+  const entry = asset.envelopes[channel][state.age[channel]];
+  if ((entry & MACRO_LAST_ENTRY) === 0) state.age[channel] += 1;
+  const volume = entry & 0x0f;
+  if (volume === 0) return 0x00;
+  return asset.audcBase[channel] | volume;
+}
+
+/**
+ * One PAL frame of the gameplay player. `hitTimer` suppresses the channel-2
+ * write and `dying` mutes both, exactly as the 6502 tick does; both voices
+ * advance their envelopes either way, which is what lets the lead resume the
+ * music in place when the SFX ends.
+ */
+export function tickGameplayMusic(state, asset, { hitTimer = 0, dying = false } = {}) {
+  if (!state.active) return { rowAdvanced: false, writes: [] };
+  state.rowTimer -= 1;
+  let rowAdvanced = false;
+  if (state.rowTimer === 0) {
+    rowAdvanced = true;
+    state.rowTimer = asset.framesPerRow;
+    for (let channel = 0; channel < GAMEPLAY_CHANNEL_COUNT; channel += 1) {
+      const packed = asset.columnBytes[state.column[channel] / GAMEPLAY_COLUMN_BYTES][
+        state.patternRow >> 1];
+      const token = (state.patternRow & 1) === 0 ? packed & 0x0f : packed >>> 4;
+      gameplayApply(state, asset, channel, token);
+    }
+    state.patternRow += 1;
+    if (state.patternRow === asset.rowsPerPattern) {
+      state.patternRow = 0;
+      state.sequenceIndex += 1;
+      if (state.sequenceIndex === asset.sequence.length) state.sequenceIndex = 0;
+      gameplayLoadBar(state, asset);
+    }
+  }
+  const writes = [];
+  const bass = gameplayVoice(state, asset, 0);
+  state.channels[0].audc = dying ? 0x00 : bass;
+  state.channels[0].audf = state.divider[0];
+  writes.push({ channel: 1, frequency: state.divider[0], control: state.channels[0].audc });
+  const lead = gameplayVoice(state, asset, 1);
+  if (hitTimer === 0) {
+    state.channels[1].audc = dying ? 0x00 : lead;
+    state.channels[1].audf = state.divider[1];
+    writes.push({ channel: 2, frequency: state.divider[1], control: state.channels[1].audc });
+  }
+  return { rowAdvanced, writes };
+}
+
+/** The model's per-frame register stream, in the oracle's shape. */
+export function simulateGameplayStream(asset, frames) {
+  const state = startGameplayMusic(createGameplayMusicState(), asset);
+  const stream = [];
+  for (let frame = 0; frame < frames; frame += 1) {
+    tickGameplayMusic(state, asset);
     stream.push(state.channels.map(({ audf, audc }) => ({ audf: audc === 0 ? null : audf, audc })));
   }
   return stream;

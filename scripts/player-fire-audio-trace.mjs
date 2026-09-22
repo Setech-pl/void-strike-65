@@ -10,8 +10,12 @@ import {
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const defaultRoot = path.resolve(scriptDirectory, "..");
-const AUDF1 = 0xd200;
-const AUDC1 = 0xd201;
+// Owner answer Q-S1 (2026-09-22): the Player Fighter shot SFX moved from
+// POKEY channel 1 to channel 4, so the gameplay music's bass on channel 1 is
+// never preempted. The trace follows the shot to its new registers; nothing
+// else about it changed.
+const AUDF4 = 0xd206;
+const AUDC4 = 0xd207;
 const TRIG0 = 0xd010;
 const CAPITAL_OPEN = 7;
 
@@ -19,7 +23,7 @@ function runTracedRoutine(memory, labels, name, { x = 0 } = {}) {
   const writes = [];
   const cpu = new Nmos6502(memory, {
     write(address, value, executingCpu) {
-      if ([AUDF1, AUDC1, requiredLabel(labels, "fire_timer")].includes(address)) {
+      if ([AUDF4, AUDC4, requiredLabel(labels, "fire_timer")].includes(address)) {
         writes.push({
           pc: (executingCpu.pc - 1) & 0xffff,
           address,
@@ -69,8 +73,14 @@ function executeMode({
   const playerSlots = manifest.fighterWeapons.player_fighter.poolSlots;
   memory[requiredLabel(labels, "sound_enabled")] = 1;
   memory[fireTimerAddress] = 0;
-  memory[AUDF1] = 0;
-  memory[AUDC1] = 0;
+  memory[AUDF4] = 0;
+  memory[AUDC4] = 0;
+  // Channel 4 is shared with the capital-hull explosion since owner answer
+  // Q-S1, and that explosion outranks the shot. The cold fill leaves its timer
+  // at the fill byte, which would index its frequency table far past the end
+  // and mask every shot; silence_audio zeroes it on the real startup path, so
+  // the harness does the same.
+  memory[requiredLabel(labels, "CAPITAL_EXPLOSION_SOUND_TIMER")] = 0;
   memory[boosterAddress] = boosterState;
   if (boosterState !== 0) {
     const lifetime = boosterExpiryFrame === null ? frames + 2 : boosterExpiryFrame + 1;
@@ -141,14 +151,14 @@ function executeMode({
     if (requestedSpawn && !accepted) denied += 1;
 
     const audio = runTracedRoutine(memory, labels, "update_sound");
-    const audible = memory[AUDC1] !== 0;
+    const audible = memory[AUDC4] !== 0;
     if (activeSequence !== null && audible) {
-      const tone = memory[AUDF1];
+      const tone = memory[AUDF4];
       if (activeSequence.tones.at(-1) !== tone) activeSequence.tones.push(tone);
     }
     if (activeSequence !== null && memory[fireTimerAddress] === 0) {
       activeSequence.endFrame = frame;
-      activeSequence.completed = memory[AUDC1] === 0;
+      activeSequence.completed = memory[AUDC4] === 0;
       toneCompletions.push(activeSequence);
       activeSequence = null;
     }
@@ -188,8 +198,8 @@ function executeMode({
       sfx_phase_after: memory[fireTimerAddress] === 0 ? -1 :
         memory[fireTimerAddress] - 0x32,
       sfx_expected_tones: 6,
-      audf1: memory[AUDF1],
-      audc1: memory[AUDC1],
+      audf4: memory[AUDF4],
+      audc4: memory[AUDC4],
       audf_audc_writes: [...weapon.writes, ...audio.writes],
       sfx_restart: soundTriggered && fireTimerBefore !== 0 && fireTimerBefore !== 0x38,
       sfx_cancel_reason: soundTriggered && fireTimerBefore !== 0 && fireTimerBefore !== 0x38 ?
@@ -275,7 +285,7 @@ export function playerFireAudioTraceCsv(trace) {
     "active_pairshots_after", "free_pairshot_slots", "requested_spawn", "successful_spawn",
     "denied_reason", "allocated_slots", "world_step", "ring_step", "publication_wait_begin",
     "publication_wait_end", "active_work_cycles", "shot_sfx_trigger", "sfx_sequence_id",
-    "sfx_phase_before", "sfx_phase_after", "sfx_expected_tones", "audf1", "audc1",
+    "sfx_phase_before", "sfx_phase_after", "sfx_expected_tones", "audf4", "audc4",
     "sfx_restart", "sfx_cancel_reason", "burst_state_before", "burst_state_after",
     "burst_remaining_before", "burst_remaining_after",
   ];

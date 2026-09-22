@@ -78,6 +78,7 @@ cost of keeping them true. The line follows the audience, not the directory.
 | Native menu lifecycle/raster evidence | [menu-raster-trace.json](menu-raster-trace.json) |
 | Visual and colour rules | [art-direction.md](art-direction.md) |
 | Milestone/release hardware checklist | [hardware-testing.md](hardware-testing.md) |
+| Accepted implementation plans, one file per feature set | [plans/](plans/) |
 | Proof reports | [diagnostics/](diagnostics/) |
 | Archived roadmap, old plan, old rules, old headroom report | [history/](history/) |
 | Runtime capture provenance | [media/manifest.json](media/manifest.json) |

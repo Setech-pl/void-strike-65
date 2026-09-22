@@ -571,36 +571,77 @@ smoke (AA item 6) happens before any loader change.
 
 ---
 
-## 12. Open owner decisions
+## 12. Owner decisions — **decided 2026-09-22**
 
-1. **Allied steel `$84` / `$88` / `$8A`** (§8) — planned as one byte; shared
-   register consequences listed.
-2. **Q-1 interaction** (§3.5) — the hull payload is 3 sectors per level; 16
-   sectors suffice with 512 B spare under the worst-case estimate; the owner
-   leans to 24 for music. This plan is neutral; the decision is 4.6's.
-3. **D1 — R3's two recessed turrets** (muzzles on columns 6 and 5): option
-   (a) move outward, (b) runtime recessed-muzzle support (30-40 B BROADSIDE,
-   hardware-critical proof), (c) decorative + one projecting turret on a
-   depth-8 row. *Recommended: (c).* Blocks step 3 only.
-4. **D2 — R2's second turret** (muzzle on column 7): (a) move it to column 8
-   (one-cell gondola), or drop it (the runtime uses one module anyway).
-   *Recommended: (a).*
-5. **D3 — one or two turret modules per side** (bits 4-5 of the sequence
-   byte, +8 B BROADSIDE). *Recommended: one, until 4.6 sets a byte budget.*
-6. **Contour rules relaxed** (§1.3 A): one-row chamfers, runs up to 13, R4
-   without a depth-5 row — implicit in approving the sheet; recorded so the
-   generator change is not read as a silent regression of an art rule.
-7. **Chamfer collision convention** (§1.2): the `ch_in` cell counts as hull
-   for player contact (v1 convention). Informational unless the owner wants
-   the annotation's tighter reading, which would cost a per-row override
-   byte or a generator rule.
-8. **Precondition 3c** (§0): the suite regenerates `docs/media` on every run;
-   either the precondition is reworded ("modified nothing outside
-   `docs/media`") or the showcase test stops writing tracked files.
-9. **Document location**: this file lives at `docs/plans/hull-set-v1.md` as
-   the brief named it; every earlier plan is `docs/plan-*.md`. `docs/README.md`
-   does not list a `plans/` directory. Either move it or add the directory to
-   the map when it is accepted.
+The nine items §12 opened are answered below. The answers are the owner's; the
+notes under each are this session's reading of what the answer binds.
+
+1. **Allied steel** — `GAMEPLAY_COLPF1` stays **`$84`** in the default build. A
+   **non-default** smoke build with `GAMEPLAY_COLPF1 = $88` is produced
+   alongside it for side-by-side comparison; it is a review variant and must
+   not change the release artifact or its gates. The final colour is decided at
+   owner smoke. (§8; the `--allied-steel` flag itself remains step 4.)
+2. **Q-1** — the hull does not drive it: **3 sectors per level**. Q-1 stays
+   open and `LEVEL_BUFFER` is not changed by this plan. (§3.5)
+3. **D1 — R3's recessed turrets** — option **(a)**: move outward so the muzzle
+   lands on the projection column. **No runtime change, no decorative
+   turrets.**
+4. **D2 — R2's second turret** — same rule: muzzle on the projection column.
+5. **D3 — turret modules per side** — **one active turret module per side**, as
+   the runtime does today. Decision F's "turret density" means how often turret
+   modules occur along the hull, not how many are live at once.
+6. **Contour rules relaxed** as §1.3 A writes them — one-row chamfers, runs up
+   to 13, R4 without a depth-5 row. `5 <= depth <= 8` stays hard.
+7. **Chamfer collision convention** as §1.2 writes it — the `ch_in` cell counts
+   as hull for player contact; the draft's `innerDepthCells` annotation is
+   dropped and depth is derived from the map.
+8. **`docs/plans/` stays.** Added to the map in `docs/README.md`.
+9. **Restoring `docs/media` after `npm test`** (`git checkout -- docs/media`) is
+   accepted as normal procedure; precondition 3c is read as "modified nothing
+   outside `docs/media`".
+
+### The general turret rule these answers create
+
+> A turret is placed only where its muzzle lands on the projection column —
+> column 8 allied, column 31 enemy, as the runtime tracks it. **The approved
+> glyph patterns stay binding; turret positions and profile come from the
+> generator.**
+
+Consequences the generator implements (step 1):
+
+* Every style's firing turret is stamped with one standard profile — base ring
+  at map columns 4-6 with `wall` at column 7, housing at 5, barrels at 6-7,
+  muzzle at 8 — on the three rows the normalisation of §3.2 puts at segment
+  rows 8/9/10. Allied B, R1, R2 t1 and R4 t1 already draw exactly that profile,
+  so only **R3 t1 moves**, two columns outward (muzzle 6 -> 8).
+* Cells a moved or removed emplacement vacates are filled from the nearest row
+  of the same style that carries no turret cell, at the same column, cyclically
+  and nearest-first with the lower row index winning a tie. No new glyph is
+  invented; only the style's own approved glyphs appear.
+
+### One conflict, and how it was resolved
+
+Decisions 3 and 4 as written keep **both** emplacements of R2 and R3 and move
+the recessed ones outward. Decision 5 allows **one** turret module per side, and
+decision 3 forbids a decorative turret. Under one turret module a second muzzle
+row inside the 32-row segment falls in some other module, and
+`scripts/capital-hulls.mjs` then substitutes the disabled module for that module
+everywhere in the sector — the second emplacement would never be drawn *and* one
+eighth of the style's texture would be silently lost.
+
+The three statements are therefore only jointly satisfiable one way, and that is
+what the generator does: **one turret per style**, positioned by the generator
+(decision: "turret positions and profile come from the generator"), and the
+second drafted emplacement of R2, R3 and R4 is **not carried into v2** — its
+rows are filled by the rule above, from the style's own surface. Nothing
+decorative is drawn and no module's art is lost. Bringing the second emplacement
+back is D3 (two turret modules, ESTIMATE +8 B `BROADSIDE`), which decision 5
+declines for now.
+
+**For the owner:** R2, R3 and R4 therefore show one emplacement per 32-row
+texture instead of the two on `set-B-sheet.png`. Those three styles are
+`DEFERRED` until after the allied + R1 smoke (decision AA item 6) and their data
+is revisited in step 3, so this is revisable there at no cost to steps 1-2.
 
 ---
 

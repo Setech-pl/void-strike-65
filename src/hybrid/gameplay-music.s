@@ -60,7 +60,8 @@ gameplay_music_vectors:
 ; bounded below the remaining PAL worst-frame budget. Each packed score byte
 ; holds a channel-1 event in its high nibble and channel-2 event in its low
 ; nibble. HOLD is zero, REST is one, and notes 2-15 reuse the leading entries
-; of music_frequency_table. AUDCTL is never touched here.
+; of game_music_frequency_table, the frozen v1 divider table inside this
+; block. AUDCTL is never touched here.
 
 game_music_player_start:
 music_start_gameplay:
@@ -98,7 +99,7 @@ music_tick_gameplay:
     sec
     sbc #GAME_MUSIC_TOKEN_NOTE_BASE
     tay
-    lda music_frequency_table,y
+    lda game_music_frequency_table,y
     sta GAME_MUSIC_CH2_FREQUENCY
     lda #GAME_MUSIC_CH2_AUDC
     sta GAME_MUSIC_CH2_CONTROL
@@ -119,7 +120,7 @@ music_tick_gameplay:
     sec
     sbc #GAME_MUSIC_TOKEN_NOTE_BASE
     tay
-    lda music_frequency_table,y
+    lda game_music_frequency_table,y
     sta GAME_MUSIC_CH1_FREQUENCY
     lda #GAME_MUSIC_CH1_AUDC
     sta GAME_MUSIC_CH1_CONTROL

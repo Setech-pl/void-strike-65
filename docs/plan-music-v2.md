@@ -457,9 +457,16 @@ The PAL audit's worst margin is reported against 1,985 (§2).
   scope now.
 * **Q-Z1: 10 bytes of zero page at `$A2`** for the menu's column pointers, or
   16 B of self-modified code instead. *Recommended: zero page.*
+  **DEFAULT APPLIED 2026-09-22, owner to confirm:** zero page, `$00A2-$00AB`,
+  as equates in `main.s` guarded by `.assert __ZP_LAST__ <= $A0`.
 * **Q-A1: the sketch generators and the MP3s** — keep as provenance under
   `assets/music/preview/sketches/`, or delete (the renderer reproduces the
   audio from the JSON). *Recommended: keep the Python, delete the MP3s.*
+  **DEFAULT APPLIED 2026-09-22 for the Python, owner to confirm; the MP3s were
+  kept.** Deleting `MENU-B-z-pliku.mp3` before the owner has smoked the v2
+  menu would remove the very recording they would compare it against, and
+  `GRA-2-z-pliku.mp3` belongs to session 2b. Delete both once the menu and the
+  gameplay themes are accepted on hardware.
 
 None of these changes what the owner hears except Q-V1, and Q-V1 changes it
 only if the owner decides so.
@@ -489,8 +496,41 @@ only if the owner decides so.
 >   smoke checksums the level buffer during gameplay and a self-modifying
 >   block would fail it. `ENTITY_CODE`'s tail therefore stays 1 B, not 5.
 >
-> Still to do: the menu session (§10.1), then 2b (the v2 gameplay player, the
-> Q-S1 channel move and its AUDCTL condition, tests (a)/(b)/(c)).
+> **PROGRESS 2026-09-22 — the MENU session (§10.1) is DONE, as
+> `OWNER-SMOKE CANDIDATE`.** What it landed:
+>
+> * `scripts/music.mjs` (validate + compile + the ca65 include + a JS model of
+>   the player over the compiled bytes) and `scripts/music-oracle.mjs` (the
+>   renderer's rules, ported independently) replace `scripts/menu-music.mjs`;
+>   `scripts/gameplay-music.mjs` stays until 2b folds it in;
+> * `menu-theme.v2.json` is `assets/music/menu-theme.json`; the renderer is
+>   `assets/music/preview/render.py`, the sketch generators are provenance
+>   under `preview/sketches/` behind a `--write` guard; the README is rewritten;
+> * the v2 menu player is in `STARFIELD` — **353 B** code (the plan estimated
+>   358), **514 B** data, **20 B** BSS at `$548A` and **10 B** of zero page at
+>   `$00A2`; `STARFIELD` +138 B raw / +196 B packed (the plan costed +143 raw);
+> * tests (a) and (b) for the menu, plus the converter's validation tests;
+>   `tests/menu-music.test.mjs` retired with the mapping recorded in STATUS;
+> * **the binary's register stream equals the oracle's over a full loop plus
+>   one row, 0 differences**, and the worst fence margin is unmoved at 1,977.
+>
+> Two deviations, both recorded in STATUS: the encoding took the **pitch bias
+> of 2** the prototype found (so a drum token with select 0 is not HOLD),
+> already in §1.1; and the v1 gameplay score, which indexed the menu's
+> frequency table, now carries a frozen copy of the sixteen v1 dividers inside
+> its own block (124 → 138 B, POKEY stream byte-identical). Q-Z1 and Q-A1 were
+> answered with the plan's recommended defaults, except that the MP3s were
+> **kept**, not deleted — they are the acceptance record for a smoke that has
+> not happened.
+>
+> The §5 listening check is **half done**: every buzz divider and the whole
+> kick sweep have full poly-4 period 15 and the rule is now a converter
+> validation with a test, so nothing aliases into noise and nothing was
+> retuned — but Atari800's audio could not be captured headlessly, so the
+> by-ear pass and the Q-V1 peak-41 judgement are owner smoke.
+>
+> Still to do: 2b (the v2 gameplay player, the Q-S1 channel move and its
+> AUDCTL condition, tests (a)/(b)/(c)).
 
 Two implementation sessions, in this order — **agreed, with one split
 inside the second**:

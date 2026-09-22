@@ -38,10 +38,11 @@ import {
   renderStarfieldCa65Include,
 } from "./starfield.mjs";
 import {
-  compileMenuMusic,
-  loadMenuMusicDefinition,
-  renderMenuMusicCa65Include,
-} from "./menu-music.mjs";
+  compileMusic,
+  loadMusicDefinition,
+  renderMusicCa65Include,
+} from "./music.mjs";
+import { peakVolumeSum, renderOracleStream } from "./music-oracle.mjs";
 import {
   compileGameplayMusic,
   loadGameplayMusicDefinition,
@@ -485,7 +486,6 @@ const GAMEPLAY_MUSIC_MAIN_SYMBOLS = Object.freeze([
   ["sound_enabled", "the SOUND option; no music starts while it is off"],
   ["fire_timer", "shot SFX on channel 1; suppresses the music write there"],
   ["hit_timer", "hit SFX on channel 2; suppresses the music write there"],
-  ["music_frequency_table", "menu divider table; gameplay notes index its head"],
   ["game_music_read_token_tail", "the four-byte self-modified read tail, left in ENTITY_CODE"],
   ["MUSIC_ACTIVE", "transport flag main tests before calling the tick"],
   ["MUSIC_ROW_TIMER", "frames to the next row"],
@@ -1129,15 +1129,14 @@ async function build() {
   const menuMusicDefinitionPath = path.join(
     rootDirectory, "assets", "music", "menu-theme.json",
   );
-  const menuMusicAsset = compileMenuMusic(loadMenuMusicDefinition(menuMusicDefinitionPath));
-  const menuMusicInclude = Buffer.from(renderMenuMusicCa65Include(menuMusicAsset));
+  const menuMusicAsset = compileMusic(loadMusicDefinition(menuMusicDefinitionPath));
+  const menuMusicInclude = Buffer.from(renderMusicCa65Include(menuMusicAsset));
   writeFile(path.join(buildDirectory, "menu-music.inc"), menuMusicInclude);
   const gameplayMusicDefinitionPath = path.join(
     rootDirectory, "assets", "music", "gameplay-theme.json",
   );
   const gameplayMusicAsset = compileGameplayMusic(
     loadGameplayMusicDefinition(gameplayMusicDefinitionPath),
-    menuMusicAsset,
   );
   const gameplayMusicInclude = Buffer.from(
     renderGameplayMusicCa65Include(gameplayMusicAsset),
@@ -3307,15 +3306,24 @@ async function build() {
       targetFrameHz: menuMusicAsset.targetFrameHz,
       framesPerRow: menuMusicAsset.framesPerRow,
       rowsPerPattern: menuMusicAsset.rowsPerPattern,
-      patternCount: menuMusicAsset.patternNames.length,
-      sequencePatterns: menuMusicAsset.sequenceBytes.length,
+      formatVersion: menuMusicAsset.formatVersion,
+      patternCount: Object.keys(menuMusicAsset.patterns).length,
+      sequencePatterns: menuMusicAsset.sequence.length,
       loopFrames: menuMusicAsset.loopFrames,
       loopSeconds: menuMusicAsset.loopSeconds,
-      channelAllocation: menuMusicAsset.channelAllocation,
+      channelAllocation: menuMusicAsset.channels,
       channelMask: 0x0f,
+      pitchCount: menuMusicAsset.pitchBytes.length,
+      instrumentCount: menuMusicAsset.instrumentOrder.length,
+      macroPageBytes: menuMusicAsset.macroPage.length,
+      columnCount: menuMusicAsset.columnBytes.length,
+      // Music only, no SFX. The owner declined a rescale (owner decision AB,
+      // Q-V1): sketch B keeps its peak and is judged by ear in the emulator.
+      peakVolumeSum: peakVolumeSum(renderOracleStream(menuMusicAsset)),
       runtimeCodeBytes: musicPlayerEnd - musicPlayerStart,
       runtimeDataBytes: musicDataEnd - musicDataStart,
       runtimeStateBytes: menuMusicAsset.stateBytes,
+      runtimeZeroPageBytes: menuMusicAsset.zeroPageBytes,
     },
     gameplayMusic: {
       source: "assets/music/gameplay-theme.json",

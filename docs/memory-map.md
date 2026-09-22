@@ -107,12 +107,16 @@ longer implies a deadline; what it costs is **2 PAL frames per occupied
 | Range | Size | Current owner |
 | --- | ---: | --- |
 | `$0080-$009F` | 32 B | zero-page runtime variables |
+| `$00A0-$00A1` | 2 B | `READER_ZP`: the sector reader's `(zp),y` destination pointer (its own link) |
+| `$00A2-$00AB` | 10 B | menu music v2: four column pointers (`MUSIC_VOICE_COLUMN`) and a 2-B publication scratch (`MUSIC_VOICE_SCRATCH`). Equates in `main.s`, not a `ZEROPAGE` reservation — a grown `ZEROPAGE` segment would land on `READER_ZP`; `.assert __ZP_LAST__ <= $A0` is the guard |
+| `$00AC-$00FF` | 84 B | claimed by no link |
 | `$0100-$01FF` | 256 B | 6502 stack |
 | `$0200-$03FF` | 512 B | OS workspace and vectors |
 | `$2000-$3169` | 4,458 B | resident `CODE` |
 | `$316A-$3FEB` | 3,714 B | resident `RODATA` |
 | `$5400-$5489` | 138 B | `PROJECTILES`: ten one-cell PairShot slots (five player + five enemy), burst controllers, two shared fighter explosions, and two independent Raider records |
-| `$548A-$54E3` | 90 B | free linked tail; not stable against the PairShot lifecycle clear |
+| `$548A-$549D` | 20 B | menu music v2 voice state (5 arrays × 4 voices). `init_fighter_projectiles` clears exactly 138 B and never reaches here; gameplay never runs while the menu player does, and `music_start_menu` writes every byte before the first tick |
+| `$549E-$54E3` | 70 B | free linked tail; not stable against the PairShot lifecycle clear |
 | `$54E4-$5D63` | 2,176 B | relocated `STARFIELD` runtime; `$5D45-$5D63` is the 31-B Light Wingman lower-layer backing resolver; reserved through `$5E0F` |
 | `$5E10-$7809` | 6,650 B | relocated `BROADSIDE`/frontend/enemy/weapon runtime plus debris-release wrapper; its retired 17-B entry pad `$77A1-$77B1` holds the Light BCD score add; reserved through `$780F` |
 | `$8000-$80F3` | 244 B | `ENTITY_STATE` BSS |
@@ -959,8 +963,8 @@ and POKEY write stream are unchanged, byte for byte
 | `$A600-$A607` | 8 | level header | `sector_reader_validate`. **Byte 7 is no longer reserved**: it is the one-based sector where LevelDef starts, now **6** |
 | `$A608-$A610` | 9 | `GAMEPLAY_MUSIC` vectors | frozen: `GAMEPLAY_MUSIC_START`, `GAMEPLAY_MUSIC_TICK`, `GAMEPLAY_MUSIC_RESTORE`, three `JMP`s. `build/gameplay-music-abi.inc` gives main these three constants and nothing else |
 | `$A611-$A6EE` | 222 | player code | the v1 player, moved unchanged |
-| `$A6EF-$A76A` | 124 | score data | the v1 `gameplay-theme.json` patterns and sequence |
-| `$A76B-$A87F` | **277 free** | reserved | sized for the v2 player (plan §1.2: 286 + 248 = 534 B), so the transport change is paid once, here, and session 2b moves no sectors |
+| `$A6EF-$A778` | 138 | score data | the v1 `gameplay-theme.json` patterns and sequence, **plus the 14-entry divider table the player now carries itself**. Until menu v2 (2026-09-22) it indexed `music_frequency_table` inside the menu data; the menu's table is now 43 format-2 dividers, so the v1 score keeps a frozen copy of the sixteen it was composed against. Its POKEY stream is unchanged, byte for byte |
+| `$A779-$A87F` | **263 free** | reserved | sized for the v2 player (plan §1.2: 286 + 248 = 534 B), so the transport change is paid once, here, and session 2b moves no sectors |
 | `$A880-$B5FF` | 3,456 | LevelDef | 27 of the 32 buffer sectors left for roadmap 4.6 |
 
 **The block is strictly read-only at runtime.** The four-byte self-modified
@@ -976,23 +980,32 @@ the frame-300 loader checkpoint untouched**. The XEX-only block at `$A600`
 grows by the same 640 B. On the ATR the START GAME read grows by five
 sectors.
 
-**What `STARFIELD` gained — reserved: starfield expansion.** MEASURED:
+**What `STARFIELD` gained — reserved: starfield expansion.** MEASURED. The
+"after menu v2" column is what is actually left, and it is the row to quote:
 
-| | before (278199a) | after | Δ |
-| --- | ---: | ---: | ---: |
-| `STARFIELD` raw | 2,198 B | **1,852 B** | −346 |
-| free run tail before `HUD_BOOSTER_BACKING` `$5E06` | 140 B | **486 B** | +346 |
-| packed | 1,785 B | **1,505 B** | −280 |
-| margin to the 1,804 B correction gate | 19 B | **299 B** | +280 |
-| margin to the 1,825 B hard gate | 40 B | **320 B** | +280 |
-| staging stream margins A / B | 44 / 91 B | **44 / 371 B** | 0 / +280 |
-| boot transport | 205 sectors | **203 sectors** | −2 |
+| | before (278199a) | after 2a | after menu v2 | reserved |
+| --- | ---: | ---: | ---: | ---: |
+| `STARFIELD` raw | 2,198 B | 1,852 B | **1,990 B** | |
+| free run tail before `HUD_BOOSTER_BACKING` `$5E06` | 140 B | 486 B | **348 B** | **348 B raw** |
+| packed | 1,785 B | 1,505 B | **1,701 B** | |
+| margin to the 1,804 B correction gate | 19 B | 299 B | **103 B** | **103 B packed** |
+| margin to the 1,825 B hard gate | 40 B | 320 B | **124 B** | |
+| staging stream margins A / B | 44 / 91 B | 44 / 371 B | **16 / 203 B** | |
+| boot transport | 205 sectors | 203 sectors | **204 sectors** | |
 
-Owner decision 2026-09-22: **every one of those bytes is reserved for the
-starfield expansion** (roadmap "STARFIELD PER SECTOR": conditional thickening
-in `generate_starfield_row`, per-sector star colour). Menu v2 will spend
-+143 B raw of the 346 when it lands; the rest is not available to anything
-else in the music sessions.
+Owner decision 2026-09-22 (`owner-decisions-2026-09-11.md` §AB.4): **every one
+of those bytes is reserved for the starfield expansion** (roadmap "STARFIELD
+PER SECTOR": conditional thickening in `generate_starfield_row`, per-sector
+star colour). Menu v2 spent +138 B raw / +196 B packed of it — the plan costed
+it at +143 B raw, and it landed under. **What is left for the expansion is
+348 B raw and 103 B packed against the correction gate** (124 B against the
+hard gate). Nothing else may take it.
+
+The packed figure is the binding one, as it always is here: the v2 score is
+pitch and column tables, which pack worse than code, so 138 raw bytes cost
+196 packed. Staging stream A is down to **16 B** of its 960-byte window; a
+further raw growth in the first 1,017 bytes of `STARFIELD` is what would
+break first, not the gate.
 
 **New exports.** main.s exports the equates the player's own link needs:
 `MUSIC_ROW_TIMER`, `MUSIC_SEQUENCE_INDEX`, `MUSIC_PATTERN_ROW`,
@@ -1001,6 +1014,31 @@ else in the music sessions.
 `GAME_MUSIC_CH2_CONTROL`, `GAME_MUSIC_ENABLED`, `PLAYER_DYING`. The music
 state block at `$4ED9` is **byte-neutral**; nothing about `$4ED9-$4EE9`
 changed.
+
+## Music v2 §10.1 — the menu player is a per-frame renderer (2026-09-22)
+
+The v1 menu player was a per-row one: it wrote AUDF/AUDC once every eight
+frames and nothing in between. The v2 player publishes all four voices every
+frontend frame, because envelopes, arpeggios and drum macros are per-frame
+things. What that costs in RAM:
+
+| Where | Bytes | What |
+| --- | ---: | --- |
+| `STARFIELD` | 353 | `music_player_start..music_player_end` (v1: 216) |
+| `STARFIELD` | 514 | `music_data_start..music_data_end` (v1: 513) |
+| `$4ED9-$4EDC` | 4 | the transport counters, unchanged and byte-neutral |
+| `$548A-$549D` | 20 | voice state: `MUSIC_VOICE_BASE` / `_PITCH` / `_ENVELOPE` / `_ARP` / `_ARP_START`, four each |
+| `$00A2-$00AB` | 10 | four column pointers and a publication scratch pair |
+
+`MUSIC_CHANNEL_MASK` (`$4EDD`) and `MUSIC_TOKEN` (`$4EDE`) stay where they
+are and keep their sizes; the v2 menu player reads neither. They now belong
+entirely to the gameplay player, which still writes the mask and uses the
+token byte as its row scratch.
+
+The menu tick costs **383-492 cycles** on an ordinary frame and **515-920** on
+a row frame, the peak being a bar-load frame (MEASURED,
+`tests/music-v2-runtime.test.mjs`). There is no fence in the frontend, so this
+is recorded, not gated.
 
 ## Roadmap 4.3 — the window has an owner (2026-09-20)
 
@@ -1011,11 +1049,11 @@ travels as the ninth DFMC record, RAW, landing directly at `$A000`.
 | Range | Bytes | Owner | Notes |
 | --- | --- | --- | --- |
 | `$A000-$A5FF` | 1,536 | `SECTOR_READER` | reader, loader-mode display, failure screen, 8-line AI text pool; **1,466 B used, 70 B free**. A sixteen-line pool does not fit — see plan §1.5 `[C6]`; packing the texts is the cheaper answer if it is ever wanted, not shrinking the level buffer |
-| `$A600-$B5FF` | 4,096 | `LEVEL_BUFFER` | **32 sectors** (owner decision X, 2026-09-21; was 44), page-aligned, `file = ""` — never in any artifact. On the XEX the level-1 image is an **XEX-only block** placed here; on the ATR it is read over SIO. **Executable since 2026-09-22**: `$A608-$A87F` is the gameplay music player (music v2 §1.4, owner answer Q-P1) |
+| `$A600-$B5FF` | 4,096 | `LEVEL_BUFFER` | **32 sectors** (owner decision X, 2026-09-21; was 44), page-aligned, `file = ""` — never in any artifact. On the XEX the level-1 image is an **XEX-only block** placed here; on the ATR it is read over SIO. **Executable since 2026-09-22**: `$A608-$A878` is the gameplay music player (music v2 §1.4, owner answer Q-P1) |
 | `$B600-$BBFF` | 1,536 | `HYBRID_C_WINDOW` | owner decision X: the Director link's half of the window, `cfg/encounter-director.cfg`. `HYBRID_ASM_WINDOW` + `HYBRID_C_WINDOW` + `HYBRID_C_WINDOW_RODATA` |
 | `$BC00-$BC14` | 21 | `READER_BSS` | reader state; **5 B** still free before `$BC1A` (re-measured 2026-09-21, finding F7) |
 | `$BC1A-$BC1F` | 6 | `HYBRID_C_WINDOW_GUARD` | unchanged: reserved, no segment loads there |
-| `$00A0-$00A1` | 2 | `READER_ZP` | the `(zp),y` destination pointer. `ZEROPAGE` ends at `$9F`, so this is the first free pair |
+| `$00A0-$00A1` | 2 | `READER_ZP` | the `(zp),y` destination pointer. `ZEROPAGE` ends at `$9F`, so this is the first free pair. Menu music v2 took the next ten bytes, `$A2-$AB`, on 2026-09-22 |
 
 **Two links share the window, in disjoint halves (owner decision X,
 2026-09-21).** The reader owns `$A000-$B5FF` and `$BC00-$BC19`; the Director

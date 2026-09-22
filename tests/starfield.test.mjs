@@ -282,7 +282,16 @@ test("layout and transport gates remain legal after blue-far removal", () => {
   // it: XEX menu 392 -> 391, ATR menu 596 -> 595, both a single frame early
   // and inside the +-10 warn band, so boot-deadline-baseline.json is NOT
   // re-recorded (its rule is about deliberate growth).
-  assert.equal(manifest.transportCapacity.initialBootSectors, 102);
+  //
+  // 102 -> 103, re-recorded 2026-09-22 for music v2 §10.1: the format-2 menu
+  // player and its score are +138 B raw in STARFIELD, and pitch and column
+  // tables pack worse than code, so the packed stream rose 1,505 -> 1,701 B
+  // and the initial block took one sector back. Deliberate growth, inside the
+  // reservation owner decision AB.4 set aside for the starfield expansion
+  // (348 B raw / 103 B packed still left). The boot smoke is unmoved at XEX
+  // menu 391 / ATR menu 595, so boot-deadline-baseline.json is still NOT
+  // re-recorded.
+  assert.equal(manifest.transportCapacity.initialBootSectors, 103);
   assert.ok(manifest.transportCapacity.initialBootEnvelopeBytes >= 0);
   assert.equal(labels.get("ENTITY_CODE_START") & 0xff, 0);
 });

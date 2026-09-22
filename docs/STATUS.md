@@ -2223,14 +2223,15 @@ runtime evidence was regenerated for the new artifacts with the recorded-
 failure list unchanged. `tests/difficulty-labels.test.mjs` decodes the shipped
 bytes. `OWNER-SMOKE CANDIDATE` (look at the OPTIONS row).
 
-**NEXT TASK — the music v2 MENU session** (`plan-music-v2.md` §10.1): the
-converter, the validation and oracle, the asset moves, the v2 menu player in
-`STARFIELD`, the menu halves of tests (a) and (b), the v1 menu test retired,
-and the emulator listening check of the buzz bass and the kick (§5). It runs
-before gameplay 2b because 2a already freed the `STARFIELD` room menu v2 needs
-(+143 B raw against 486 B of tail and 299 B of correction-gate margin) — but
-that room is **reserved for the starfield expansion** beyond what menu v2
-takes, so the menu session reports what it leaves.
+**NEXT TASK — music v2 step 2b** (`plan-music-v2.md` §10 step 2b): the v2
+gameplay player and its score in the level block, the Q-S1 shot-SFX move to
+channel 4 with its `CAPITAL_EXPLOSION_SOUND_AUDCTL` condition (STOP and report
+if the AUDCTL setting changes the shot's sound while both play), the
+preemption rule (bass never preempted, lead only by the hit), the gameplay
+halves of tests (a) and (b) plus test (c), `player-fire-audio.test.mjs`
+re-targeted, `scripts/gameplay-music.mjs` folded into `scripts/music.mjs`, and
+`gameplay-theme.v2.json` moved out of `v2-drafts/`. The level image is already
+sized for it: 263 B free in the block, 5 sectors, no transport change.
 
 Unchanged and still owed: owner smoke of the Light multiplicity candidate,
 then the first of these two, in this order:
@@ -2242,6 +2243,167 @@ then the first of these two, in this order:
    cycle budget in its own plan, against the measured worst margin at the
    checkpoint it branches from — not against the historical margins in this
    file. See §4.4 of the same plan.
+
+## Music v2 step 10.1 — the MENU theme is sketch B — `OWNER-SMOKE CANDIDATE` (2026-09-22)
+
+**The menu sounds different now.** This is the first commit of the music work
+that changes what the owner hears. `assets/music/menu-theme.json` is the
+owner-approved **sketch B** draft, in **format 2**, and the menu player in
+`STARFIELD` is a new per-frame renderer that plays it.
+
+What changed, in one line each:
+
+* **The score.** 43 pitches (38 chromatic pure B2-C6 plus 5 poly-4 buzz bass),
+  5 instruments with volume envelopes and arpeggios, 3 drums, 8 bars × 16 rows
+  × 4 channels at 6 frames a row — a **15.36 s** loop. The v1 "Fleet in
+  Shadow" cinematic mix is gone.
+* **The player.** v1 wrote POKEY once every eight frames. v2 publishes four
+  voices **every frontend frame**, advancing each voice's envelope, arpeggio
+  or drum macro. 216 → **353 B** of code, 513 → **514 B** of data.
+* **The converter.** `scripts/menu-music.mjs` is replaced by
+  `scripts/music.mjs` (validate, compile, render the include, model the
+  player) plus `scripts/music-oracle.mjs`, an independent port of the
+  reference renderer's rules. `scripts/gameplay-music.mjs` stays until 2b.
+* **The assets.** `menu-theme.v2.json` → `assets/music/menu-theme.json`;
+  the renderer is `assets/music/preview/render.py` (reads a theme, writes a
+  WAV, never writes a JSON); the sketch generators are provenance under
+  `preview/sketches/` behind a `--write` guard;
+  `assets/music/README.md` rewritten for v2.
+
+**Three tests, all red on `307bcd1` by construction** (the tree's menu theme
+was format 1 and the binary carried the v1 player):
+
+* `tests/music-v2-stream.test.mjs` — plan test (a). The converter's model over
+  the **compiled bytes** equals the **oracle's** stream for 774 frames (a full
+  loop plus one row, so the wrap is covered), AUDF ignored while AUDC is `$00`.
+  Pins the approved music by SHA-256 of the source and of its stream.
+* `tests/music-v2-runtime.test.mjs` — plan test (b). The **shipped XEX** is
+  loaded into the NMOS harness, `music_start_menu` then `music_tick` 774
+  times, every POKEY write trapped: the binary's per-frame register state
+  equals the oracle's, **0 differences**, and the tick touches nothing above
+  `$D207` — no AUDCTL, no channels it does not own.
+* `tests/music-v2.test.mjs` — the converter's validation rules, each exercised
+  by mutating the committed theme: the poly-4 buzz rule, the chromatic pure
+  block, four instruments per channel, terminal silence, drum volumes, the
+  255-byte macro page, `audctl = 0`, arpeggio reach, and the drum-token bias.
+
+**`tests/menu-music.test.mjs` is retired.** Where each of its assertions went:
+
+| v1 assertion | now |
+| --- | --- |
+| deterministic compile, byte counts, manifest agreement | `music-v2-stream.test.mjs`, test 1 |
+| approved source and POKEY trace SHA-256 | `music-v2-stream.test.mjs`, test 3 — against the v2 source and the oracle stream |
+| start / stop / restart reset the transport and the registers | `music-v2-stream.test.mjs` (model) and `music-v2-runtime.test.mjs` (binary) |
+| the tick advances on exact PAL row boundaries without drift | `music-v2-stream.test.mjs`, last test — and the frame-exact stream comparison over a whole loop would catch any drift anyway |
+| the call sites: starts in the main menu, stops before gameplay | `music-v2-runtime.test.mjs`, last test, carried verbatim |
+| `music_stop` clears AUDF1-4 / AUDC1-4 / AUDCTL through `silence_audio` | same test, plus the behavioural check in `music-v2-runtime.test.mjs` |
+| **"summed volume ≤ 13", the gated drone** | **no longer applies.** That rule and that instrument belonged to the v1 cinematic mix. Owner decision AB, Q-V1 declines a rescale: sketch B peaks at **41** and the owner judges it in the emulator. The peak is reported in the manifest and asserted, not capped |
+| **the channel mask leaves channels free for SFX** | **no longer applies.** The v2 menu owns all four voices unconditionally; `MUSIC_CHANNEL_MASK` is the gameplay player's alone now. The "writes only AUDF1-4/AUDC1-4" test is the property that survived |
+
+**One forced change outside the menu.** The v1 gameplay score indexed
+`music_frequency_table` **inside the menu data** (`frequencySource:
+"menu-theme"`). The menu's table is now 43 format-2 dividers, so
+`scripts/gameplay-music.mjs` carries a frozen copy of the sixteen v1 dividers
+and emits the leading 14 into its own block as `game_music_frequency_table`.
+The gameplay data grows 124 → **138 B** inside the level image (263 B still
+free there) and its POKEY stream is **unchanged, byte for byte** —
+`tests/gameplay-music-placement.test.mjs` still proves it over a full loop.
+`music_frequency_table` is no longer exported from main. Step 2b deletes all
+of it.
+
+**Measured, against `307bcd1`:**
+
+| | before | after |
+| --- | ---: | ---: |
+| menu player code | 216 B | **353 B** (plan estimated 358) |
+| menu score | 513 B | **514 B** |
+| menu state | 6 B | **4 B** counters + **20 B** BSS (`$548A-$549D`) + **10 B** zero page (`$00A2-$00AB`) |
+| `STARFIELD` raw | 1,852 B | **1,990 B** (+138; the plan costed +143) |
+| `STARFIELD` free run tail | 486 B | **348 B** |
+| `STARFIELD` packed | 1,505 B | **1,701 B** (+196) |
+| margin to the 1,804 B correction gate | 299 B | **103 B** |
+| margin to the 1,825 B hard gate | 320 B | **124 B** |
+| staging stream margins A / B | 44 / 371 B | **16 / 203 B** |
+| boot transport | 203 sectors | **204 sectors**; initial block 102 → **103** |
+| level image | 7 sectors | **7 sectors**, unchanged |
+| worst fence margin | 1,977 | **1,977**, unchanged |
+| menu tick cost | ~46 / ~300 cycles | **383-492** ordinary frame, **515-920** row frame (peak = bar load) |
+
+**Reserved: starfield expansion — what is left.** Owner decision AB.4. Menu v2
+spent 138 B raw / 196 B packed of the room 2a freed. **Still reserved and
+untouchable: 348 B raw, 103 B packed** against the correction gate (124 B
+against the hard gate). The packed figure is the binding one — the v2 score is
+pitch and column tables, which pack worse than code. Staging stream A is now
+at **16 B** of its 960-byte window, and that, not the gate, is what a further
+raw growth in the first 1,017 bytes of `STARFIELD` would break first.
+
+**Gates (MEASURED this session).**
+
+* Default build links and the **release gate is green**: no unrecorded gate
+  failure, `timing_and_dli_passed = true`, `docs/recorded-gate-failures.json`
+  unedited, the recorded-failure list **exactly the same 40 entries**.
+* Runtime evidence regenerated as this commit's own change: 64 sessions,
+  **0 distinct miss events**, 0 rows over the hard gate, every session PASS.
+  Worst fence margin **1,977** (`director-complete-2-natural-sweep-fire0`
+  f6629, pre-wait 23,272) — **unchanged**, as it must be: the menu has no
+  fence. The next binding rows are **2,981**
+  (`director-complete-1-natural-sweep-fire0` f3631) and **3,742**
+  (`debris-effects-2-sweep-fire4` f4189), both unchanged. Measured DMA-on
+  maximum 31,081, physical headroom 4,487.
+* Boot smoke **8/8**, `--atari800-source=build/atari800-trace`. Milestones
+  unmoved from 2a: XEX loader 135 / menu 391, ATR loader 339 / menu 595, level
+  image byte-exact at `$A600` on every session, 7 command frames, 0 wire
+  retries. `boot-deadline-baseline.json` is **not** re-recorded.
+* `npm test` on the default build: 764 tests, **109 failures, 0 new** against
+  the `307bcd1` list; one that was red there now passes (`showcase and asset
+  sheets regenerate without ignored capture files`). One pin re-recorded
+  deliberately in the same commit with the reason in the test:
+  `tests/starfield.test.mjs` initial boot sectors 102 → 103.
+
+**The listening check (plan §5) is only half done — the owner owes the other
+half.** What was verified: every `$C` divider in the theme now passes the
+poly-4 rule as a **converter validation**, and the rule is exercised by a test
+that breaks the theme deliberately. Measured periods, all full 15 (a periodic
+tone, not noise):
+
+| id | N | N+1 | poly-4 period | f | cents |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| C2~ | 63 | 64 | 15 | 65.98 Hz | +15 |
+| E2~ | 51 | 52 | 15 | 81.20 Hz | −26 |
+| F2~ | 48 | 49 | 15 | 86.17 Hz | −23 |
+| G2~ | 42 | 43 | 15 | 98.20 Hz | +4 |
+| A2~ | 37 | 38 | 15 | 111.12 Hz | +18 |
+| KICK | 42, 57, 76, 91, 102 | — | 15 each | 98.2 → 41.0 Hz | sweep |
+
+**No divider misbehaves and nothing was retuned.** What was **not** done: an
+actual by-ear pass in Atari800. The emulator's audio could not be captured
+headlessly on this machine — SDL's disk audio driver writes one buffer and
+stalls, and Atari800's own audio recorder is started from the UI. So the
+"does 41 sound like a drum hit or like clipping" question (Q-V1) and the ear
+test of the bass and the kick are **both owner smoke**, through
+`npm run play:xex`. The owner can also audition the composition away from the
+hardware with
+`python3 assets/music/preview/render.py assets/music/menu-theme.json out.wav`.
+
+**Defaults applied where the owner has not answered**, both to be confirmed:
+
+* **Q-Z1 — zero page, as the plan recommends.** The four column pointers and a
+  scratch pair are 10 bytes of equates at `$00A2`, the first free zero page
+  above `READER_ZP`, guarded by `.assert __ZP_LAST__ <= $A0`. The alternative
+  was four self-modified `lda $FFFF,y` sites at +16 B of code.
+* **Q-A1 — the Python sketches kept as provenance**, under
+  `assets/music/preview/sketches/`, behind a `--write` guard. **The MP3s were
+  NOT deleted**, which is a deliberate deviation from the recommended default:
+  `MENU-B-z-pliku.mp3` is the recording the owner approved by ear and the
+  reference for the smoke that has not happened yet, and `GRA-2-z-pliku.mp3`
+  belongs to 2b. Delete them when the owner has accepted what the hardware
+  plays.
+
+**What the owner must smoke.** The menu theme, on the XEX and on the ATR: that
+sketch B is what they approved, that the buzz bass and the kick are tones and
+not noise on real POKEY, and whether a peak summed volume of 41 sounds like a
+mix or like clipping. If it clips, the fix is per-instrument volume edits in
+`menu-theme.json`, re-auditioned through `render.py` — not a player change.
 
 ## Music v2 step 2a — the gameplay player moves into the level image — `OWNER-SMOKE CANDIDATE` (2026-09-22)
 
@@ -2284,10 +2446,12 @@ an intermediate menu-first commit would break the gate. The landed order is
 | music state `$4ED9-$4EE9` | 17 B | **17 B**, byte-neutral |
 
 **Reserved: starfield expansion.** Owner decision 2026-09-22 — the room
-`STARFIELD` gained (346 B raw / 280 B packed, net of what menu v2 will take)
-is reserved for the roadmap's "STARFIELD PER SECTOR" work (conditional
-thickening in `generate_starfield_row`, per-sector star colour) and is not
-available to anything else in the music sessions.
+`STARFIELD` gained (346 B raw / 280 B packed) is reserved for the roadmap's
+"STARFIELD PER SECTOR" work (conditional thickening in
+`generate_starfield_row`, per-sector star colour) and is not available to
+anything else in the music sessions. **Superseded by the menu v2 section
+above**, which spent 138 B raw / 196 B packed of it and leaves **348 B raw /
+103 B packed** — quote that section's figures, not these.
 
 **Two deliberate deviations from plan §1.4**, both recorded in
 `memory-map.md` and `plan-music-v2.md`:

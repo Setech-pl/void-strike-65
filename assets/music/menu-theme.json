@@ -1,178 +1,1219 @@
 {
-  "formatVersion": 1,
-  "title": "Fleet in Shadow",
-  "originalComposition": true,
-  "targetFrameHz": 50,
-  "framesPerRow": 8,
-  "rowsPerPattern": 16,
-  "channelAllocation": [
-    { "channel": 1, "role": "low drone" },
-    { "channel": 2, "role": "heavy ritual drum" },
-    { "channel": 3, "role": "military pulse and metallic accent" },
-    { "channel": 4, "role": "sparse Dorian motif" }
-  ],
-  "frequencies": [
-    { "id": "C3", "divider": 244 },
-    { "id": "D3", "divider": 218 },
-    { "id": "EB3", "divider": 205 },
-    { "id": "F3", "divider": 182 },
-    { "id": "G3", "divider": 162 },
-    { "id": "A3", "divider": 144 },
-    { "id": "BB3", "divider": 136 },
-    { "id": "C4", "divider": 121 },
-    { "id": "D4", "divider": 108 },
-    { "id": "EB4", "divider": 102 },
-    { "id": "F4", "divider": 91 },
-    { "id": "G4", "divider": 81 },
-    { "id": "A4", "divider": 72 },
-    { "id": "BB4", "divider": 68 },
-    { "id": "C5", "divider": 61 },
-    { "id": "D5", "divider": 54 }
-  ],
-  "instruments": [
-    { "id": "DRONE", "control": 161 },
-    { "id": "WAR_DRUM", "control": 132 },
-    { "id": "RIM", "control": 66 },
-    { "id": "MOTIF", "control": 168 },
-    { "id": "ACCENT", "control": 168 },
-    { "id": "PULSE", "control": 193 }
-  ],
-  "patterns": {
-    "intro_a": [
-      ["REST", "WAR_DRUM:C3", "REST", "REST"],
-      ["DRONE:C3", "REST", "HOLD", "HOLD"],
-      ["HOLD", "HOLD", "HOLD", "HOLD"],
-      ["REST", "HOLD", "HOLD", "HOLD"],
-      ["HOLD", "WAR_DRUM:C3", "RIM:C5", "HOLD"],
-      ["HOLD", "REST", "REST", "HOLD"],
-      ["HOLD", "HOLD", "HOLD", "HOLD"],
-      ["HOLD", "HOLD", "HOLD", "HOLD"],
-      ["REST", "WAR_DRUM:C3", "REST", "HOLD"],
-      ["DRONE:C3", "REST", "HOLD", "HOLD"],
-      ["HOLD", "HOLD", "HOLD", "HOLD"],
-      ["REST", "HOLD", "HOLD", "HOLD"],
-      ["HOLD", "WAR_DRUM:C3", "RIM:C5", "HOLD"],
-      ["HOLD", "REST", "REST", "HOLD"],
-      ["HOLD", "HOLD", "HOLD", "HOLD"],
-      ["HOLD", "REST", "REST", "HOLD"]
-    ],
-    "intro_b": [
-      ["REST", "WAR_DRUM:C3", "REST", "MOTIF:C4"],
-      ["DRONE:C3", "REST", "HOLD", "REST"],
-      ["HOLD", "HOLD", "PULSE:C5", "HOLD"],
-      ["REST", "HOLD", "REST", "HOLD"],
-      ["HOLD", "WAR_DRUM:C3", "HOLD", "MOTIF:EB4"],
-      ["HOLD", "REST", "HOLD", "REST"],
-      ["HOLD", "HOLD", "RIM:C5", "HOLD"],
-      ["HOLD", "HOLD", "REST", "HOLD"],
-      ["REST", "WAR_DRUM:C3", "HOLD", "MOTIF:D4"],
-      ["DRONE:C3", "REST", "HOLD", "REST"],
-      ["HOLD", "HOLD", "PULSE:C5", "HOLD"],
-      ["REST", "HOLD", "REST", "HOLD"],
-      ["HOLD", "WAR_DRUM:C3", "HOLD", "MOTIF:G4"],
-      ["HOLD", "REST", "RIM:C5", "REST"],
-      ["HOLD", "HOLD", "REST", "HOLD"],
-      ["HOLD", "REST", "REST", "HOLD"]
-    ],
-    "march_a": [
-      ["REST", "WAR_DRUM:C3", "REST", "MOTIF:C4"],
-      ["DRONE:C3", "REST", "HOLD", "REST"],
-      ["HOLD", "HOLD", "PULSE:C5", "MOTIF:D4"],
-      ["REST", "HOLD", "REST", "REST"],
-      ["HOLD", "WAR_DRUM:C3", "HOLD", "MOTIF:EB4"],
-      ["HOLD", "REST", "HOLD", "REST"],
-      ["HOLD", "HOLD", "RIM:C5", "MOTIF:G4"],
-      ["HOLD", "HOLD", "REST", "REST"],
-      ["REST", "WAR_DRUM:C3", "HOLD", "MOTIF:C4"],
-      ["DRONE:G3", "REST", "HOLD", "REST"],
-      ["HOLD", "HOLD", "PULSE:C5", "MOTIF:D4"],
-      ["REST", "HOLD", "REST", "REST"],
-      ["HOLD", "WAR_DRUM:C3", "HOLD", "MOTIF:EB4"],
-      ["HOLD", "REST", "HOLD", "REST"],
-      ["HOLD", "HOLD", "RIM:C5", "MOTIF:G4"],
-      ["HOLD", "REST", "REST", "REST"]
-    ],
-    "march_b": [
-      ["REST", "WAR_DRUM:C3", "REST", "MOTIF:BB4"],
-      ["DRONE:BB3", "REST", "HOLD", "REST"],
-      ["HOLD", "HOLD", "PULSE:C5", "MOTIF:G4"],
-      ["REST", "HOLD", "REST", "REST"],
-      ["HOLD", "WAR_DRUM:C3", "HOLD", "MOTIF:F4"],
-      ["HOLD", "REST", "HOLD", "REST"],
-      ["HOLD", "HOLD", "RIM:C5", "MOTIF:D4"],
-      ["HOLD", "HOLD", "REST", "REST"],
-      ["REST", "WAR_DRUM:C3", "HOLD", "MOTIF:BB4"],
-      ["DRONE:G3", "REST", "HOLD", "REST"],
-      ["HOLD", "HOLD", "PULSE:C5", "MOTIF:G4"],
-      ["REST", "HOLD", "REST", "REST"],
-      ["HOLD", "WAR_DRUM:C3", "HOLD", "MOTIF:F4"],
-      ["HOLD", "REST", "HOLD", "REST"],
-      ["HOLD", "HOLD", "RIM:C5", "MOTIF:D4"],
-      ["HOLD", "REST", "REST", "REST"]
-    ],
-    "ascent": [
-      ["REST", "WAR_DRUM:C3", "REST", "MOTIF:C4"],
-      ["DRONE:C3", "REST", "HOLD", "REST"],
-      ["HOLD", "HOLD", "PULSE:C5", "MOTIF:D4"],
-      ["REST", "HOLD", "REST", "REST"],
-      ["HOLD", "WAR_DRUM:C3", "HOLD", "MOTIF:EB4"],
-      ["HOLD", "REST", "HOLD", "REST"],
-      ["HOLD", "HOLD", "RIM:C5", "MOTIF:F4"],
-      ["HOLD", "HOLD", "REST", "REST"],
-      ["REST", "WAR_DRUM:C3", "HOLD", "MOTIF:G4"],
-      ["DRONE:G3", "REST", "HOLD", "REST"],
-      ["HOLD", "HOLD", "PULSE:C5", "MOTIF:A4"],
-      ["REST", "HOLD", "REST", "REST"],
-      ["HOLD", "WAR_DRUM:C3", "HOLD", "ACCENT:BB4"],
-      ["HOLD", "REST", "HOLD", "REST"],
-      ["HOLD", "HOLD", "RIM:C5", "ACCENT:C5"],
-      ["HOLD", "REST", "REST", "REST"]
-    ],
-    "climax": [
-      ["REST", "WAR_DRUM:C3", "PULSE:C5", "ACCENT:C4"],
-      ["DRONE:C3", "REST", "REST", "REST"],
-      ["HOLD", "HOLD", "RIM:C5", "ACCENT:EB4"],
-      ["REST", "WAR_DRUM:C3", "REST", "REST"],
-      ["HOLD", "REST", "PULSE:C5", "ACCENT:G4"],
-      ["HOLD", "HOLD", "REST", "REST"],
-      ["HOLD", "HOLD", "RIM:C5", "ACCENT:C5"],
-      ["HOLD", "WAR_DRUM:C3", "REST", "REST"],
-      ["REST", "REST", "PULSE:C5", "ACCENT:BB4"],
-      ["DRONE:BB3", "HOLD", "REST", "REST"],
-      ["HOLD", "HOLD", "RIM:C5", "ACCENT:G4"],
-      ["REST", "WAR_DRUM:C3", "REST", "REST"],
-      ["HOLD", "REST", "PULSE:C5", "ACCENT:F4"],
-      ["HOLD", "HOLD", "REST", "REST"],
-      ["HOLD", "HOLD", "RIM:C5", "ACCENT:D4"],
-      ["HOLD", "REST", "REST", "REST"]
-    ],
-    "return": [
-      ["REST", "WAR_DRUM:C3", "REST", "MOTIF:G4"],
-      ["DRONE:G3", "REST", "HOLD", "REST"],
-      ["HOLD", "HOLD", "RIM:C5", "HOLD"],
-      ["REST", "HOLD", "REST", "HOLD"],
-      ["REST", "WAR_DRUM:C3", "HOLD", "MOTIF:EB4"],
-      ["DRONE:F3", "REST", "HOLD", "REST"],
-      ["HOLD", "HOLD", "PULSE:C5", "HOLD"],
-      ["REST", "HOLD", "REST", "HOLD"],
-      ["REST", "WAR_DRUM:C3", "HOLD", "MOTIF:D4"],
-      ["DRONE:D3", "REST", "HOLD", "REST"],
-      ["HOLD", "HOLD", "RIM:C5", "HOLD"],
-      ["REST", "HOLD", "REST", "HOLD"],
-      ["REST", "WAR_DRUM:C3", "HOLD", "MOTIF:C4"],
-      ["DRONE:C3", "REST", "HOLD", "REST"],
-      ["HOLD", "HOLD", "REST", "HOLD"],
-      ["REST", "REST", "REST", "HOLD"]
-    ]
+ "formatVersion": 2,
+ "title": "Void Strike \u2014 Menu (sketch B)",
+ "originalComposition": true,
+ "targetFrameHz": 50,
+ "audctl": 0,
+ "framesPerRow": 6,
+ "rowsPerPattern": 16,
+ "channels": [
+  {
+   "channel": 1,
+   "role": "bass: buzz root / pure octave bounce"
   },
-  "sequence": [
-    "intro_a", "intro_b", "march_a", "march_b", "march_a", "ascent",
-    "march_b", "ascent", "climax", "climax", "march_b", "return"
+  {
+   "channel": 2,
+   "role": "drums: kick (buzz sweep), snare and hat (noise)"
+  },
+  {
+   "channel": 3,
+   "role": "lead melody"
+  },
+  {
+   "channel": 4,
+   "role": "chord arpeggio (per-frame)"
+  }
+ ],
+ "pitchTable": "shared (see pitches in this file)",
+ "pitches": [
+  {
+   "id": "B2",
+   "kind": "pure",
+   "divider": 255,
+   "centsOff": 3
+  },
+  {
+   "id": "C3",
+   "kind": "pure",
+   "divider": 241,
+   "centsOff": 1
+  },
+  {
+   "id": "C#3",
+   "kind": "pure",
+   "divider": 228,
+   "centsOff": -4
+  },
+  {
+   "id": "D3",
+   "kind": "pure",
+   "divider": 215,
+   "centsOff": -3
+  },
+  {
+   "id": "D#3",
+   "kind": "pure",
+   "divider": 203,
+   "centsOff": -4
+  },
+  {
+   "id": "E3",
+   "kind": "pure",
+   "divider": 191,
+   "centsOff": 1
+  },
+  {
+   "id": "F3",
+   "kind": "pure",
+   "divider": 180,
+   "centsOff": 3
+  },
+  {
+   "id": "F#3",
+   "kind": "pure",
+   "divider": 170,
+   "centsOff": 2
+  },
+  {
+   "id": "G3",
+   "kind": "pure",
+   "divider": 161,
+   "centsOff": -5
+  },
+  {
+   "id": "G#3",
+   "kind": "pure",
+   "divider": 152,
+   "centsOff": -6
+  },
+  {
+   "id": "A3",
+   "kind": "pure",
+   "divider": 143,
+   "centsOff": -1
+  },
+  {
+   "id": "A#3",
+   "kind": "pure",
+   "divider": 135,
+   "centsOff": -2
+  },
+  {
+   "id": "B3",
+   "kind": "pure",
+   "divider": 127,
+   "centsOff": 3
+  },
+  {
+   "id": "C4",
+   "kind": "pure",
+   "divider": 120,
+   "centsOff": 1
+  },
+  {
+   "id": "C#4",
+   "kind": "pure",
+   "divider": 113,
+   "centsOff": 4
+  },
+  {
+   "id": "D4",
+   "kind": "pure",
+   "divider": 107,
+   "centsOff": -3
+  },
+  {
+   "id": "D#4",
+   "kind": "pure",
+   "divider": 101,
+   "centsOff": -4
+  },
+  {
+   "id": "E4",
+   "kind": "pure",
+   "divider": 95,
+   "centsOff": 1
+  },
+  {
+   "id": "F4",
+   "kind": "pure",
+   "divider": 90,
+   "centsOff": -6
+  },
+  {
+   "id": "F#4",
+   "kind": "pure",
+   "divider": 85,
+   "centsOff": -8
+  },
+  {
+   "id": "G4",
+   "kind": "pure",
+   "divider": 80,
+   "centsOff": -5
+  },
+  {
+   "id": "G#4",
+   "kind": "pure",
+   "divider": 75,
+   "centsOff": 6
+  },
+  {
+   "id": "A4",
+   "kind": "pure",
+   "divider": 71,
+   "centsOff": -1
+  },
+  {
+   "id": "A#4",
+   "kind": "pure",
+   "divider": 67,
+   "centsOff": -2
+  },
+  {
+   "id": "B4",
+   "kind": "pure",
+   "divider": 63,
+   "centsOff": 3
+  },
+  {
+   "id": "C5",
+   "kind": "pure",
+   "divider": 60,
+   "centsOff": -14
+  },
+  {
+   "id": "C#5",
+   "kind": "pure",
+   "divider": 56,
+   "centsOff": 4
+  },
+  {
+   "id": "D5",
+   "kind": "pure",
+   "divider": 53,
+   "centsOff": -3
+  },
+  {
+   "id": "D#5",
+   "kind": "pure",
+   "divider": 50,
+   "centsOff": -4
+  },
+  {
+   "id": "E5",
+   "kind": "pure",
+   "divider": 47,
+   "centsOff": 1
+  },
+  {
+   "id": "F5",
+   "kind": "pure",
+   "divider": 44,
+   "centsOff": 13
+  },
+  {
+   "id": "F#5",
+   "kind": "pure",
+   "divider": 42,
+   "centsOff": -8
+  },
+  {
+   "id": "G5",
+   "kind": "pure",
+   "divider": 39,
+   "centsOff": 17
+  },
+  {
+   "id": "G#5",
+   "kind": "pure",
+   "divider": 37,
+   "centsOff": 6
+  },
+  {
+   "id": "A5",
+   "kind": "pure",
+   "divider": 35,
+   "centsOff": -1
+  },
+  {
+   "id": "A#5",
+   "kind": "pure",
+   "divider": 33,
+   "centsOff": -2
+  },
+  {
+   "id": "B5",
+   "kind": "pure",
+   "divider": 31,
+   "centsOff": 3
+  },
+  {
+   "id": "C6",
+   "kind": "pure",
+   "divider": 29,
+   "centsOff": 15
+  },
+  {
+   "id": "C2~",
+   "kind": "buzz",
+   "divider": 63,
+   "centsOff": 15
+  },
+  {
+   "id": "E2~",
+   "kind": "buzz",
+   "divider": 51,
+   "centsOff": -26
+  },
+  {
+   "id": "F2~",
+   "kind": "buzz",
+   "divider": 48,
+   "centsOff": -23
+  },
+  {
+   "id": "G2~",
+   "kind": "buzz",
+   "divider": 42,
+   "centsOff": 4
+  },
+  {
+   "id": "A2~",
+   "kind": "buzz",
+   "divider": 37,
+   "centsOff": 18
+  }
+ ],
+ "instruments": {
+  "BASS_BUZZ": {
+   "distortion": "buzz",
+   "volume": [
+    11,
+    9,
+    7,
+    5,
+    3,
+    1,
+    0
+   ]
+  },
+  "BASS_PURE": {
+   "distortion": "pure",
+   "volume": [
+    11,
+    9,
+    7,
+    5,
+    3,
+    1,
+    0
+   ]
+  },
+  "LEAD": {
+   "distortion": "pure",
+   "volume": [
+    11,
+    10,
+    9,
+    9,
+    8
+   ]
+  },
+  "ARP_MIN": {
+   "distortion": "pure",
+   "volume": [
+    6,
+    6,
+    5
+   ],
+   "arp": [
+    0,
+    3,
+    7
+   ]
+  },
+  "ARP_MAJ": {
+   "distortion": "pure",
+   "volume": [
+    6,
+    6,
+    5
+   ],
+   "arp": [
+    0,
+    4,
+    7
+   ]
+  }
+ },
+ "drums": {
+  "KICK": [
+   [
+    "buzz",
+    42,
+    13
+   ],
+   [
+    "buzz",
+    57,
+    11
+   ],
+   [
+    "buzz",
+    76,
+    8
+   ],
+   [
+    "buzz",
+    91,
+    5
+   ],
+   [
+    "buzz",
+    102,
+    2
+   ]
   ],
-  "form": [
-    { "id": "INTRO", "sequenceStart": 0, "sequenceEnd": 2 },
-    { "id": "DEVELOPMENT", "sequenceStart": 2, "sequenceEnd": 8 },
-    { "id": "CLIMAX", "sequenceStart": 8, "sequenceEnd": 11 },
-    { "id": "RETURN", "sequenceStart": 11, "sequenceEnd": 12 }
+  "SNARE": [
+   [
+    "noise",
+    4,
+    12
+   ],
+   [
+    "noise",
+    6,
+    9
+   ],
+   [
+    "noise",
+    8,
+    6
+   ],
+   [
+    "noise",
+    8,
+    4
+   ],
+   [
+    "noise",
+    8,
+    2
+   ],
+   [
+    "noise",
+    8,
+    1
+   ]
+  ],
+  "HAT": [
+   [
+    "noise",
+    1,
+    5
+   ],
+   [
+    "noise",
+    1,
+    2
+   ]
   ]
+ },
+ "patterns": {
+  "bar01": [
+   [
+    "BASS_BUZZ:A2~",
+    "KICK",
+    "LEAD:E5",
+    "ARP_MIN:A4"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:A3",
+    "HAT",
+    "LEAD:A5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_BUZZ:A2~",
+    "SNARE",
+    "LEAD:E5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:A3",
+    "HAT",
+    "LEAD:C5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_BUZZ:A2~",
+    "KICK",
+    "LEAD:D5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:A3",
+    "KICK",
+    "LEAD:E5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_BUZZ:A2~",
+    "SNARE",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:A3",
+    "HAT",
+    "LEAD:A4",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HAT",
+    "HOLD",
+    "HOLD"
+   ]
+  ],
+  "bar02": [
+   [
+    "BASS_BUZZ:F2~",
+    "KICK",
+    "LEAD:C5",
+    "ARP_MAJ:F4"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:F3",
+    "HAT",
+    "LEAD:D5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_BUZZ:F2~",
+    "SNARE",
+    "LEAD:C5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:F3",
+    "HAT",
+    "LEAD:A4",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_BUZZ:F2~",
+    "KICK",
+    "LEAD:F4",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:F3",
+    "KICK",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_BUZZ:F2~",
+    "SNARE",
+    "LEAD:A4",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:F3",
+    "HAT",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HAT",
+    "HOLD",
+    "HOLD"
+   ]
+  ],
+  "bar03": [
+   [
+    "BASS_BUZZ:C2~",
+    "KICK",
+    "LEAD:G4",
+    "ARP_MAJ:C4"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:C3",
+    "HAT",
+    "LEAD:C5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_BUZZ:C2~",
+    "SNARE",
+    "LEAD:E5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:C3",
+    "HAT",
+    "LEAD:G5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_BUZZ:C2~",
+    "KICK",
+    "LEAD:E5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:C3",
+    "KICK",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_BUZZ:C2~",
+    "SNARE",
+    "LEAD:D5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:C3",
+    "HAT",
+    "LEAD:C5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HAT",
+    "HOLD",
+    "HOLD"
+   ]
+  ],
+  "bar04": [
+   [
+    "BASS_BUZZ:G2~",
+    "KICK",
+    "LEAD:D5",
+    "ARP_MAJ:G4"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:G3",
+    "HAT",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_BUZZ:G2~",
+    "SNARE",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:G3",
+    "HAT",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_BUZZ:G2~",
+    "KICK",
+    "LEAD:B4",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:G3",
+    "KICK",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_BUZZ:G2~",
+    "SNARE",
+    "LEAD:G4",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:G3",
+    "HAT",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HAT",
+    "HOLD",
+    "HOLD"
+   ]
+  ],
+  "bar05": [
+   [
+    "BASS_BUZZ:A2~",
+    "KICK",
+    "LEAD:E5",
+    "ARP_MIN:A4"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:A3",
+    "HAT",
+    "LEAD:A5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_BUZZ:A2~",
+    "SNARE",
+    "LEAD:E5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:A3",
+    "HAT",
+    "LEAD:C5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_BUZZ:A2~",
+    "KICK",
+    "LEAD:D5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:A3",
+    "KICK",
+    "LEAD:E5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_BUZZ:A2~",
+    "SNARE",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:A3",
+    "HAT",
+    "LEAD:A5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HAT",
+    "HOLD",
+    "HOLD"
+   ]
+  ],
+  "bar06": [
+   [
+    "BASS_BUZZ:F2~",
+    "KICK",
+    "LEAD:C6",
+    "ARP_MAJ:F4"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:F3",
+    "HAT",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_BUZZ:F2~",
+    "SNARE",
+    "LEAD:A5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:F3",
+    "HAT",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_BUZZ:F2~",
+    "KICK",
+    "LEAD:F5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:F3",
+    "KICK",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_BUZZ:F2~",
+    "SNARE",
+    "LEAD:A5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:F3",
+    "HAT",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HAT",
+    "HOLD",
+    "HOLD"
+   ]
+  ],
+  "bar07": [
+   [
+    "BASS_BUZZ:G2~",
+    "KICK",
+    "LEAD:B5",
+    "ARP_MAJ:G4"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:G3",
+    "HAT",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_BUZZ:G2~",
+    "SNARE",
+    "LEAD:G5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:G3",
+    "HAT",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_BUZZ:G2~",
+    "KICK",
+    "LEAD:D5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:G3",
+    "KICK",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_BUZZ:G2~",
+    "SNARE",
+    "LEAD:B4",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:G3",
+    "HAT",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HAT",
+    "HOLD",
+    "HOLD"
+   ]
+  ],
+  "bar08": [
+   [
+    "BASS_BUZZ:E2~",
+    "KICK",
+    "LEAD:B4",
+    "ARP_MAJ:E4"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:E3",
+    "HAT",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_BUZZ:E2~",
+    "SNARE",
+    "LEAD:E5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:E3",
+    "HAT",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_BUZZ:E2~",
+    "SNARE",
+    "LEAD:G#5",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:E3",
+    "SNARE",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "HOLD",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_BUZZ:E2~",
+    "SNARE",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "SNARE",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "BASS_PURE:E3",
+    "SNARE",
+    "HOLD",
+    "HOLD"
+   ],
+   [
+    "HOLD",
+    "SNARE",
+    "HOLD",
+    "HOLD"
+   ]
+  ]
+ },
+ "sequence": [
+  "bar01",
+  "bar02",
+  "bar03",
+  "bar04",
+  "bar05",
+  "bar06",
+  "bar07",
+  "bar08"
+ ]
 }

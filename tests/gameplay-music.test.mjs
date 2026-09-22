@@ -14,10 +14,6 @@ import {
   tickGameplayMusic,
 } from "../scripts/gameplay-music.mjs";
 import {
-  compileMenuMusic,
-  loadMenuMusicDefinition,
-} from "../scripts/menu-music.mjs";
-import {
   compileCapitalHulls,
   loadCapitalHullsDefinition,
 } from "../scripts/capital-hulls.mjs";
@@ -36,7 +32,6 @@ const rootDirectory = path.resolve(testDirectory, "..");
 const gameplayDefinitionPath = path.join(
   rootDirectory, "assets", "music", "gameplay-theme.json",
 );
-const menuDefinitionPath = path.join(rootDirectory, "assets", "music", "menu-theme.json");
 const source = fs.readFileSync(path.join(rootDirectory, "src", "main.s"), "utf8");
 // Music v2 §1.4 placement G1: the gameplay player is its own link inside the
 // per-level image. Main keeps the option, the state and the call sites; the
@@ -47,11 +42,10 @@ const playerSource = fs.readFileSync(
 const gameplayInclude = fs.readFileSync(
   path.join(rootDirectory, "build", "gameplay-music.inc"), "utf8",
 );
-const menuAsset = compileMenuMusic(loadMenuMusicDefinition(menuDefinitionPath));
-const asset = compileGameplayMusic(
-  loadGameplayMusicDefinition(gameplayDefinitionPath),
-  menuAsset,
-);
+// The menu moved to format 2 (plan §10.1); the v1 gameplay compiler now owns
+// a frozen copy of the sixteen dividers this score was composed against, so
+// its POKEY stream is unchanged. Both go in plan §10 step 2b.
+const asset = compileGameplayMusic(loadGameplayMusicDefinition(gameplayDefinitionPath));
 const manifest = JSON.parse(fs.readFileSync(path.join(rootDirectory, "build", "manifest.json")));
 const labels = new Map(
   fs.readFileSync(path.join(rootDirectory, "build", "void-strike-65.lbl"), "utf8")
@@ -82,17 +76,19 @@ function playerRoutine(label, nextLabel) {
 }
 
 test("gameplay composition compiles to a deterministic packed 30.72-second PAL loop", () => {
-  const second = compileGameplayMusic(
-    loadGameplayMusicDefinition(gameplayDefinitionPath),
-    menuAsset,
-  );
+  const second = compileGameplayMusic(loadGameplayMusicDefinition(gameplayDefinitionPath));
   assert.equal(renderGameplayMusicCa65Include(second), renderGameplayMusicCa65Include(asset));
   assert.deepEqual(
     [asset.targetFrameHz, asset.framesPerRow, asset.rowsPerPattern,
       asset.patternNames.length, asset.sequenceBytes.length, asset.loopFrames, asset.loopSeconds],
     [50, 6, 16, 6, 16, 1536, 30.72],
   );
-  assert.equal(asset.dataBytes, 124);
+  // 124 B of score plus the 14-entry divider table this player now carries
+  // itself: the menu's table went to format 2 in plan §10.1, so the v1 score
+  // keeps a frozen copy of the dividers it was composed against and its POKEY
+  // stream is unchanged (tests/gameplay-music-placement.test.mjs proves it).
+  assert.equal(asset.frequencyBytes.length, 14);
+  assert.equal(asset.dataBytes, 138);
   assert.deepEqual(asset.form.map(({ id }) => id),
     ["INTRO", "DEVELOPMENT", "CLIMAX", "RETURN"]);
   assert.ok(asset.patternBytes.every((pattern) => pattern.length === 16));
@@ -100,7 +96,7 @@ test("gameplay composition compiles to a deterministic packed 30.72-second PAL l
     [manifest.gameplayMusic.runtimeDataBytes, manifest.gameplayMusic.runtimeStateBytes,
       manifest.gameplayMusic.channelMask, manifest.gameplayMusic.audctlProfile,
       manifest.gameplayMusic.eventsPerTickLimit],
-    [124, 5, 0x03, 0, 1],
+    [138, 5, 0x03, 0, 1],
   );
 });
 
@@ -134,7 +130,7 @@ test("600-frame ON/OFF watchdog advances frame, world, stars, and spawn scheduli
     for (let frame = 0; frame < 600; frame += 1) {
       frameCounter = (frameCounter + 1) & 0xff;
       stars = stepStarfieldFrame(starAsset, stepStarfieldWorld(starAsset, stars));
-      musicWrites += tickGameplayMusic(music, asset, menuAsset).writes.length;
+      musicWrites += tickGameplayMusic(music, asset).writes.length;
     }
     const cadence = simulateBroadsideCadence(hullAsset, {
       frames: 600,
@@ -172,7 +168,7 @@ test("GAME MUSIC ON starts from row zero while OFF performs no tick or POKEY wri
     [on.active, on.sequenceIndex, on.patternRow, on.rowTimer],
     [true, 0, 0, 1],
   );
-  const first = tickGameplayMusic(on, asset, menuAsset);
+  const first = tickGameplayMusic(on, asset);
   assert.equal(first.rowAdvanced, true);
   assert.deepEqual(first.writes, [
     { channel: 1, frequency: 244, control: 0xa2 },
@@ -183,7 +179,7 @@ test("GAME MUSIC ON starts from row zero while OFF performs no tick or POKEY wri
   off.enabled = false;
   startGameplayMusic(off, asset);
   const before = structuredClone(off);
-  assert.deepEqual(tickGameplayMusic(off, asset, menuAsset),
+  assert.deepEqual(tickGameplayMusic(off, asset),
     { rowAdvanced: false, writes: [] });
   assert.deepEqual(off, before);
 });
@@ -192,7 +188,7 @@ test("gameplay tempo advances on exact six-frame PAL boundaries without drift", 
   const state = startGameplayMusic(createGameplayMusicState(), asset);
   const eventFrames = [];
   for (let frame = 0; frame < asset.loopFrames; frame += 1) {
-    if (tickGameplayMusic(state, asset, menuAsset).rowAdvanced) eventFrames.push(frame);
+    if (tickGameplayMusic(state, asset).rowAdvanced) eventFrames.push(frame);
   }
   assert.equal(eventFrames.length, asset.rowsPerPattern * asset.sequenceBytes.length);
   assert.deepEqual(eventFrames.slice(0, 5), [0, 6, 12, 18, 24]);
@@ -201,17 +197,17 @@ test("gameplay tempo advances on exact six-frame PAL boundaries without drift", 
     [state.sequenceIndex, state.patternRow, state.rowTimer],
     [0, 0, 1],
   );
-  assert.equal(tickGameplayMusic(state, asset, menuAsset).rowAdvanced, true,
+  assert.equal(tickGameplayMusic(state, asset).rowAdvanced, true,
     "the gameplay loop must restart without a silent timing gap");
 });
 
 test("death does not restart transport and respawn restores the current voices", () => {
   const state = startGameplayMusic(createGameplayMusicState(), asset);
-  for (let frame = 0; frame < 31; frame += 1) tickGameplayMusic(state, asset, menuAsset);
+  for (let frame = 0; frame < 31; frame += 1) tickGameplayMusic(state, asset);
   const positionBeforeDeath = [state.sequenceIndex, state.patternRow];
   const mutedControls = [];
   for (let frame = 0; frame < 24; frame += 1) {
-    const result = tickGameplayMusic(state, asset, menuAsset, { playerDying: true });
+    const result = tickGameplayMusic(state, asset, { playerDying: true });
     mutedControls.push(...result.writes.map(({ control }) => control));
   }
   assert.ok(mutedControls.every((control) => control === 0));
@@ -219,7 +215,7 @@ test("death does not restart transport and respawn restores the current voices",
     "the song transport must continue through the death animation");
 
   const positionBeforeRespawnTick = [state.sequenceIndex, state.patternRow, state.rowTimer];
-  const resumed = tickGameplayMusic(state, asset, menuAsset);
+  const resumed = tickGameplayMusic(state, asset);
   assert.deepEqual(resumed.writes.map(({ channel }) => channel), [1, 2]);
   assert.notDeepEqual([state.sequenceIndex, state.patternRow, state.rowTimer], [0, 0, 1]);
   assert.notDeepEqual(positionBeforeRespawnTick, [0, 0, 1]);
@@ -227,15 +223,15 @@ test("death does not restart transport and respawn restores the current voices",
 
 test("shot and hit SFX preempt music absolutely, then music resumes in place", () => {
   const state = startGameplayMusic(createGameplayMusicState(), asset);
-  tickGameplayMusic(state, asset, menuAsset);
+  tickGameplayMusic(state, asset);
   const position = [state.sequenceIndex, state.patternRow];
-  const preempted = tickGameplayMusic(state, asset, menuAsset, { sfxBusy: [true, true] });
+  const preempted = tickGameplayMusic(state, asset, { sfxBusy: [true, true] });
   assert.deepEqual(preempted.writes, []);
   assert.deepEqual([state.sequenceIndex, state.patternRow], position);
 
-  const channel1Only = tickGameplayMusic(state, asset, menuAsset, { sfxBusy: [false, true] });
+  const channel1Only = tickGameplayMusic(state, asset, { sfxBusy: [false, true] });
   assert.deepEqual(channel1Only.writes.map(({ channel }) => channel), [1]);
-  const resumed = tickGameplayMusic(state, asset, menuAsset);
+  const resumed = tickGameplayMusic(state, asset);
   assert.deepEqual(resumed.writes.map(({ channel }) => channel), [1, 2]);
   assert.deepEqual([state.sequenceIndex, state.patternRow], position,
     "SFX release must not restart the score");
@@ -322,7 +318,7 @@ test("gameplay timing values come from the executable runtime report", () => {
 
 test("stop clears cached gameplay voices without changing the persistent option", () => {
   const state = startGameplayMusic(createGameplayMusicState(), asset);
-  tickGameplayMusic(state, asset, menuAsset);
+  tickGameplayMusic(state, asset);
   state.enabled = false;
   stopGameplayMusic(state);
   assert.equal(state.enabled, false);

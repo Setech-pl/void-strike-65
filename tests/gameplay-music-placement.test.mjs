@@ -19,7 +19,6 @@ import {
   startGameplayMusic,
   tickGameplayMusic,
 } from "../scripts/gameplay-music.mjs";
-import { compileMenuMusic, loadMenuMusicDefinition } from "../scripts/menu-music.mjs";
 
 const rootDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const manifest = JSON.parse(fs.readFileSync(
@@ -142,17 +141,15 @@ test("the player's POKEY write stream is byte-identical to the v1 player", () =>
   assert.equal(memory[requiredLabel(labels, "MUSIC_ACTIVE")], 1,
     "the start vector must arm the transport");
 
-  const menuAsset = compileMenuMusic(loadMenuMusicDefinition(
-    path.join(rootDirectory, "assets", "music", "menu-theme.json")));
   const asset = compileGameplayMusic(loadGameplayMusicDefinition(
-    path.join(rootDirectory, "assets", "music", "gameplay-theme.json")), menuAsset);
+    path.join(rootDirectory, "assets", "music", "gameplay-theme.json")));
   const model = startGameplayMusic(createGameplayMusicState(), asset);
 
   // One complete loop plus one row, so the sequence wrap is covered.
   const frames = asset.loopFrames + asset.framesPerRow;
   for (let frame = 0; frame < frames; frame += 1) {
     call(placement.vectors.GAMEPLAY_MUSIC_TICK);
-    const expected = tickGameplayMusic(model, asset, menuAsset);
+    const expected = tickGameplayMusic(model, asset);
     const wanted = new Map(expected.writes.map((write) => [write.channel, write]));
     assert.deepEqual(
       [memory[AUDF1], memory[AUDC1], memory[AUDF2], memory[AUDC2]],
@@ -164,20 +161,26 @@ test("the player's POKEY write stream is byte-identical to the v1 player", () =>
     "the gameplay player must never touch AUDCTL or channels 3 and 4");
 });
 
-test("STARFIELD shrank by the player it lost, and the room is reserved", () => {
+test("STARFIELD is smaller than before the move, and the room is still reserved", () => {
   const starfield = manifest.starfieldRuntime;
-  // 222 B of code + 124 B of data left STARFIELD; the 9-byte vector table is
-  // new and lives in the block, not here.
-  assert.equal(STARFIELD_BYTES_BEFORE - starfield.bytes,
-    manifest.gameplayMusic.runtimeCodeBytes + manifest.gameplayMusic.runtimeDataBytes,
-    "STARFIELD did not shrink by exactly the player and its score");
+  assert.ok(starfield.bytes < STARFIELD_BYTES_BEFORE,
+    "STARFIELD is no smaller than it was before the gameplay player left it");
   assert.ok(starfield.packedBytes < STARFIELD_PACKED_BEFORE);
-  // Owner decision 2026-09-22: what STARFIELD gains is reserved for the
-  // starfield expansion, so the packed gate must actually have the room.
-  assert.ok(starfield.packedTotalGate.hardGateMarginBytes >= 300,
+  // Owner decision 2026-09-22 (owner-decisions-2026-09-11.md §AB.4): what
+  // STARFIELD gained is reserved for the starfield expansion. Menu v2 spent
+  // part of it exactly as plan §1.3 costed it (+138 B raw, +196 B packed),
+  // and these are the bounds on what is left for that expansion. They are
+  // re-recorded here deliberately: the 2a figures (>= 300 packed, >= 480 raw)
+  // were the reservation BEFORE the menu took its share.
+  assert.ok(starfield.packedTotalGate.hardGateMarginBytes >= 120,
     `packed hard-gate margin is ${starfield.packedTotalGate.hardGateMarginBytes} B`);
-  assert.ok(starfield.reservedBytes - starfield.bytes >= 480,
-    "the STARFIELD run tail did not grow with the move");
+  assert.ok(starfield.reservedBytes - starfield.bytes >= 340,
+    "the STARFIELD run tail is smaller than the reservation menu v2 was to leave");
+  // Both staging streams must still fit their physical 960-byte windows.
+  for (const stream of starfield.streams) {
+    assert.ok(stream.marginBytes > 0,
+      `staging stream ${stream.id} overruns its window by ${-stream.marginBytes} B`);
+  }
 });
 
 test("the ATR START GAME read grows by the planned five sectors and no more", () => {

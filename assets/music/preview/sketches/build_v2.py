@@ -11,8 +11,10 @@ Format v2 (proposal for the plan session):
   drums        per-frame macros of raw (distortion, AUDF, volume) — kick, snare, hat.
   patterns     16 rows x channels; tokens 'INSTR:PITCH', 'DRUM', 'HOLD', 'REST'.
 """
-import json, os
+import json, os, sys
 import numpy as np
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from pokey_synth import CLK64, SR, SPF, POLY, midi, hz, fade_tail, write_wav
 
 OUT = os.path.dirname(os.path.abspath(__file__))
@@ -239,6 +241,15 @@ def render(song, pitches, instruments, drums, loops, path):
 
 
 if __name__ == "__main__":
+    # PROVENANCE ONLY. This is the tool that composed the owner-approved v2
+    # sketches; the committed themes in assets/music are its output and the
+    # register-stream tests pin them by SHA-256. It refuses to overwrite a
+    # theme unless you ask for it, and it writes into this directory, never
+    # over assets/music. To audition an EDIT, use ../render.py instead.
+    if "--write" not in sys.argv:
+        raise SystemExit(
+            "provenance only: pass --write to regenerate the sketches into this directory; "
+            "assets/music/preview/render.py is how a theme is auditioned")
     menu, game = build_menu(), build_game()
     for name, doc in [("menu-theme.v2.json", menu), ("gameplay-theme.v2.json", game)]:
         with open(os.path.join(OUT, name), "w") as fh:

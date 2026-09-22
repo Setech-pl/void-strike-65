@@ -906,6 +906,18 @@ pause_option_latched:.res 1
 ; state safely reuses the same zero-page byte.
 gameplay_dli_phase = loader_dli_phase
 
+; Menu music v2 zero page (plan-music-v2.md §1.4, owner question Q-Z1 default
+; applied). Four column pointers plus a scratch pair, at the first free bytes
+; above READER_ZP ($A0-$A1). They are equates, not a ZEROPAGE reservation,
+; because ld65 would place a grown ZEROPAGE segment straight over the reader's
+; pair; the assert below is the guard that main's own zero page never reaches
+; them.
+MUSIC_VOICE_COLUMN  = $A2       ; 4 pointer pairs, indexed by channel*2
+MUSIC_VOICE_SCRATCH = $AA       ; AUDC / AUDF held across the publication tail
+MUSIC_ZEROPAGE_END  = $AC
+.import __ZP_LAST__
+.assert __ZP_LAST__ <= $A0, lderror, "main's zero page reaches READER_ZP and the menu music pointers"
+
 .segment "PROJECTILES"
 
 FIGHTER_PROJECTILE_ACTIVE:        .res FIGHTER_PROJECTILE_SLOT_COUNT
@@ -945,6 +957,22 @@ ENEMY_LIVE_COUNT:                 .res 1
 FIGHTER_PROJECTILE_STATE_END:
 
 .assert FIGHTER_PROJECTILE_STATE_END-FIGHTER_PROJECTILE_ACTIVE = 138, error, "PairShot, explosion and two-Raider PMG state budget changed"
+
+; Menu music v2 voice state. It lives in the unowned tail of the PairShot RAM
+; area ($548A onward): init_fighter_projectiles clears exactly
+; FIGHTER_PROJECTILE_STATE_END-FIGHTER_PROJECTILE_ACTIVE bytes and never
+; reaches here, gameplay never runs while the menu player does, and
+; music_start_menu writes every byte before the first tick.
+MUSIC_VOICE_STATE_START:
+MUSIC_VOICE_BASE:      .res MUSIC_CHANNELS  ; AUDC base; $00 a drum, $01 voice off
+MUSIC_VOICE_PITCH:     .res MUSIC_CHANNELS  ; pitch-table index the note started on
+MUSIC_VOICE_ENVELOPE:  .res MUSIC_CHANNELS  ; macro-page cursor: envelope, or drum macro
+MUSIC_VOICE_ARP:       .res MUSIC_CHANNELS  ; macro-page cursor: arpeggio
+MUSIC_VOICE_ARP_START:  .res MUSIC_CHANNELS  ; the offset that arpeggio wraps back to
+MUSIC_VOICE_STATE_END:
+
+.assert MUSIC_VOICE_STATE_END-MUSIC_VOICE_STATE_START = MUSIC_CHANNELS*5, error, "menu music voice state budget changed"
+.assert MUSIC_VOICE_STATE_END <= __STARFIELD_RUN__, lderror, "menu music voice state overruns the PairShot RAM area"
 
 ; The complete page is explicit BSS, but no byte is trusted after cold boot.
 ; init_entity_effects clears all 256 bytes before installing deterministic
@@ -5880,9 +5908,22 @@ star_glyph_bytes:
 .assert * - star_glyph_bytes = (STAR_NEAR_END-STAR_NEAR_FIRST)*8, error, "star glyph byte count changed"
 
 ; -----------------------------------------------------------------------------
-; Shared POKEY music transport. The menu owns all voices. Gameplay uses only
-; channels 1-2 and yields them immediately to their established SFX timers;
-; channels 3-4 remain exclusively owned by the engine and capital explosion.
+; Menu music player, score format v2 (docs/plan-music-v2.md §1.1). The menu
+; owns all four POKEY voices; gameplay music is a separate player in the level
+; image and channels 3-4 are SFX-only there.
+;
+; Unlike v1 this is a per-frame renderer, not a per-row one. A row supplies
+; tokens; every frame afterwards advances each voice's envelope, arpeggio or
+; drum macro and republishes AUDF/AUDC. The rules it implements are the
+; reference renderer's, and they are pinned independently by
+; scripts/music-oracle.mjs: a new token resets the macro cursors, HOLD keeps
+; advancing them, REST silences the voice and forgets it, a zero volume
+; publishes AUDC $00 rather than base|0, and AUDF is not written while a
+; channel is silent.
+;
+; There is no fence in the frontend: the tick runs right after wait_frame,
+; about ten scanlines of CPU before the input poll and far above the footer
+; DLI. Its cost is recorded in docs/STATUS.md, not gated.
 
 music_player_start:
 music_init:
@@ -5892,12 +5933,16 @@ music_start_menu:
     jsr music_stop
     lda sound_enabled
     beq @done
-    lda #MUSIC_MENU_CHANNEL_MASK
-    sta MUSIC_CHANNEL_MASK
+    lda #MUSIC_VOICE_OFF
+    ldx #MUSIC_CHANNELS-1
+@silence_voice:
+    sta MUSIC_VOICE_BASE,x
+    dex
+    bpl @silence_voice
     lda #$01
     sta MUSIC_ACTIVE
     sta MUSIC_ROW_TIMER          ; emit row zero on the next PAL frontend frame
-    jsr music_load_pattern
+    jsr music_load_bar
 @done:
     rts
 
@@ -5911,101 +5956,197 @@ music_stop:
     jmp silence_audio
 
 ; Called exactly once per frontend PAL frame while STATE_MAIN_MENU is active.
-; Most frames take the bounded timer-only path; one row is decoded every eight.
+; Every frame publishes four voices; one frame in MUSIC_FRAMES_PER_ROW also
+; applies a score row and, every MUSIC_PATTERN_ROWS rows, loads the next bar.
 music_tick:
     lda MUSIC_ACTIVE
-    beq music_tick_done
+    bne @live
+    rts
+@live:
     dec MUSIC_ROW_TIMER
-    bne music_tick_done
+    bne music_publish_voices
     lda #MUSIC_FRAMES_PER_ROW
     sta MUSIC_ROW_TIMER
     jsr music_render_row
     inc MUSIC_PATTERN_ROW
     lda MUSIC_PATTERN_ROW
     cmp #MUSIC_PATTERN_ROWS
-    bcc music_tick_done
+    bcc music_publish_voices
     lda #$00
     sta MUSIC_PATTERN_ROW
     inc MUSIC_SEQUENCE_INDEX
     lda MUSIC_SEQUENCE_INDEX
     cmp #MUSIC_SEQUENCE_LENGTH
-    bcc music_load_pattern
+    bcc :+
     lda #$00
     sta MUSIC_SEQUENCE_INDEX
-music_load_pattern:
-    ldx MUSIC_SEQUENCE_INDEX
-    lda music_sequence,x
-    tax
-    lda music_pattern_lo,x
-    sta music_pattern_read+1
-    lda music_pattern_hi,x
-    sta music_pattern_read+2
-music_tick_done:
+:
+    jsr music_load_bar
+music_publish_voices:
+    ldx #MUSIC_CHANNELS-1
+@voice:
+    jsr music_voice_frame
+    dex
+    bpl @voice
     rts
 
+; The four column pointers for the current bar. The sequence table holds one
+; column id per channel per bar, in channel order.
+music_load_bar:
+    lda MUSIC_SEQUENCE_INDEX
+    asl
+    asl
+    tay
+    ldx #$00
+@each:
+    lda music_sequence,y
+    sty MUSIC_VOICE_SCRATCH
+    tay
+    lda music_column_lo,y
+    sta MUSIC_VOICE_COLUMN,x
+    lda music_column_hi,y
+    sta MUSIC_VOICE_COLUMN+1,x
+    ldy MUSIC_VOICE_SCRATCH
+    iny
+    inx
+    inx
+    cpx #MUSIC_CHANNELS*2
+    bne @each
+    rts
+
+; One score row. The four (zp),y reads are unrolled because the pointer pair
+; is part of the instruction; the row index is reloaded because applying a
+; token clobbers Y.
 music_render_row:
-    ldy #$00
-    jsr music_read_token
+    ldy MUSIC_PATTERN_ROW
+    lda (MUSIC_VOICE_COLUMN+0),y
     ldx #$00
     jsr music_apply_token
-    ldy #$01
-    jsr music_read_token
+    ldy MUSIC_PATTERN_ROW
+    lda (MUSIC_VOICE_COLUMN+2),y
+    ldx #$01
+    jsr music_apply_token
+    ldy MUSIC_PATTERN_ROW
+    lda (MUSIC_VOICE_COLUMN+4),y
     ldx #$02
     jsr music_apply_token
-    ldy #$02
-    jsr music_read_token
-    ldx #$04
-    jsr music_apply_token
-    ldy #$03
-    jsr music_read_token
-    ldx #$06
-    jsr music_apply_token
+    ldy MUSIC_PATTERN_ROW
+    lda (MUSIC_VOICE_COLUMN+6),y
+    ldx #$03
+    ; fall through to the last apply
 
-    clc
-    lda music_pattern_read+1
-    adc #$04
-    sta music_pattern_read+1
-    bcc :+
-    inc music_pattern_read+2
-:
-    rts
-
-music_read_token:
-music_pattern_read:
-    lda $FFFF,y                  ; self-modified to the current pattern row
-    rts
-
-; A is HOLD, REST, or an instrument:pitch token. X is the even POKEY register
-; offset (0/2/4/6), which also indexes the sparse channel-mask table.
+; A is the row token, X the channel. MUSIC_TOKEN_HOLD keeps the voice and its
+; cursors, MUSIC_TOKEN_REST silences it, and anything else is
+; select(2 bits) << 6 | (pitch index + MUSIC_TOKEN_PITCH_BIAS). The bias is
+; what keeps a drum token with select 0 from reading as HOLD.
 music_apply_token:
-    sta MUSIC_TOKEN
-    lda music_channel_masks,x
-    and MUSIC_CHANNEL_MASK
-    bne @owned
-@silence:
-    lda #$00
-    sta AUDC1,x
-    rts
-@owned:
-    lda MUSIC_TOKEN
-    beq @done                    ; HOLD keeps the current AUDF/AUDC pair
+    cmp #MUSIC_TOKEN_HOLD
+    beq @done
     cmp #MUSIC_TOKEN_REST
-    beq @silence
+    bne @note
+    lda #MUSIC_VOICE_OFF
+    sta MUSIC_VOICE_BASE,x
+    rts
+@note:
     pha
-    and #$0F
-    tay
-    lda music_frequency_table,y
-    sta AUDF1,x
+    and #$3F
+    sec
+    sbc #MUSIC_TOKEN_PITCH_BIAS
+    sta MUSIC_VOICE_PITCH,x
     pla
     lsr
     lsr
     lsr
     lsr
+    lsr
+    lsr                          ; the two select bits
+    clc
+    adc music_channel_base,x
     tay
-    lda music_control_table,y
-    sta AUDC1,x
+    lda music_instrument_audc,y
+    sta MUSIC_VOICE_BASE,x
+    lda music_instrument_macro,y
+    sta MUSIC_VOICE_ENVELOPE,x
+    lda music_instrument_arp,y
+    sta MUSIC_VOICE_ARP,x
+    sta MUSIC_VOICE_ARP_START,x
 @done:
     rts
+
+music_voice_silent:
+    txa
+    asl
+    tay
+    lda #$00
+    sta AUDC1,y                  ; AUDF is don't-care while a channel is silent
+    rts
+
+music_voice_publish:
+    txa
+    asl
+    tay
+    lda MUSIC_VOICE_SCRATCH+1
+    sta AUDF1,y
+    lda MUSIC_VOICE_SCRATCH
+    sta AUDC1,y
+    rts
+
+; A drum voice consumes one (AUDC, AUDF) pair per frame and falls silent for
+; good at the $00 terminator, which a real pair can never be: every drum frame
+; carries a volume of at least 1.
+music_voice_drum:
+    ldy MUSIC_VOICE_ENVELOPE,x
+    lda music_macro_page,y
+    beq music_voice_silent
+    sta MUSIC_VOICE_SCRATCH
+    iny
+    lda music_macro_page,y
+    sta MUSIC_VOICE_SCRATCH+1
+    iny
+    tya
+    sta MUSIC_VOICE_ENVELOPE,x
+    jmp music_voice_publish
+
+; X is the channel. One frame of one voice: volume from the envelope, pitch
+; from the arpeggio offset applied to the note's table index. Both cursors
+; stop or wrap on their MUSIC_MACRO_LAST_ENTRY bit, which is how
+; "min(age, len-1)" and "age mod len" are done without keeping an age.
+music_voice_frame:
+    lda MUSIC_VOICE_BASE,x
+    beq music_voice_drum         ; an AUDC base of $00 marks a drum macro
+    cmp #MUSIC_VOICE_OFF
+    beq music_voice_silent
+    ldy MUSIC_VOICE_ENVELOPE,x
+    lda music_macro_page,y
+    tay
+    and #MUSIC_MACRO_LAST_ENTRY
+    bne :+                       ; the last entry holds until the next token
+    inc MUSIC_VOICE_ENVELOPE,x
+:
+    tya
+    and #$0F
+    beq music_voice_silent       ; a zero volume publishes $00, not base|0
+    ora MUSIC_VOICE_BASE,x
+    sta MUSIC_VOICE_SCRATCH
+    ldy MUSIC_VOICE_ARP,x
+    lda music_macro_page,y
+    tay
+    and #MUSIC_MACRO_LAST_ENTRY
+    beq :+
+    lda MUSIC_VOICE_ARP_START,x  ; the last arpeggio entry wraps to the start
+    sta MUSIC_VOICE_ARP,x
+    jmp :++
+:
+    inc MUSIC_VOICE_ARP,x
+:
+    tya
+    and #$7F
+    clc
+    adc MUSIC_VOICE_PITCH,x
+    tay
+    lda music_pitches,y
+    sta MUSIC_VOICE_SCRATCH+1
+    jmp music_voice_publish
 
 music_player_end:
 
@@ -6017,7 +6158,7 @@ music_player_end:
 ; only the state block at $4ED9, music_stop_gameplay, and the four-byte
 ; self-modified read tail in ENTITY_CODE the player still calls.
 ; Exports below are how that separate link reaches this one.
-.export sound_enabled, fire_timer, hit_timer, music_frequency_table
+.export sound_enabled, fire_timer, hit_timer
 .export game_music_read_token_tail
 .export MUSIC_ROW_TIMER, MUSIC_SEQUENCE_INDEX, MUSIC_PATTERN_ROW
 .export MUSIC_CHANNEL_MASK, MUSIC_TOKEN, GAME_MUSIC_ENABLED

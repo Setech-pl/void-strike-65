@@ -21,11 +21,29 @@ function integer(value, name, minimum, maximum) {
   return value;
 }
 
+// The v1 menu theme's frequency table, frozen here.
+//
+// Until 2026-09-22 the gameplay score indexed `music_frequency_table` inside
+// the menu music data, which is what `frequencySource: "menu-theme"` in
+// gameplay-theme.json records. The menu moved to format 2 (plan-music-v2.md
+// §10.1) and its table is now 43 v2 dividers, so the v1 gameplay player keeps
+// its own copy of the sixteen dividers it was composed against and its POKEY
+// stream stays byte-identical. Both this table and this module are deleted by
+// plan §10 step 2b, which compiles the gameplay theme through scripts/music.mjs.
+const V1_MENU_FREQUENCY_TABLE = Object.freeze([
+  { id: "C3", divider: 244 }, { id: "D3", divider: 218 }, { id: "EB3", divider: 205 },
+  { id: "F3", divider: 182 }, { id: "G3", divider: 162 }, { id: "A3", divider: 144 },
+  { id: "BB3", divider: 136 }, { id: "C4", divider: 121 }, { id: "D4", divider: 108 },
+  { id: "EB4", divider: 102 }, { id: "F4", divider: 91 }, { id: "G4", divider: 81 },
+  { id: "A4", divider: 72 }, { id: "BB4", divider: 68 }, { id: "C5", divider: 61 },
+  { id: "D5", divider: 54 },
+]);
+
 export function loadGameplayMusicDefinition(sourcePath) {
   return JSON.parse(fs.readFileSync(sourcePath, "utf8"));
 }
 
-export function compileGameplayMusic(definition, menuMusicAsset) {
+export function compileGameplayMusic(definition) {
   invariant(definition?.formatVersion === 1, "Unsupported gameplay-music formatVersion");
   invariant(definition.originalComposition === true,
     "Gameplay music must be identified as an original composition");
@@ -33,7 +51,7 @@ export function compileGameplayMusic(definition, menuMusicAsset) {
   invariant(definition.audctlProfile === 0,
     "Gameplay music must use the SFX-safe default AUDCTL profile");
   invariant(definition.frequencySource === "menu-theme",
-    "Gameplay music must reuse the menu-theme frequency table");
+    "Gameplay music must reuse the frozen v1 menu-theme frequency table");
   const framesPerRow = integer(definition.framesPerRow, "framesPerRow", 1, 255);
   const rowsPerPattern = integer(definition.rowsPerPattern, "rowsPerPattern", 1, 255);
 
@@ -56,14 +74,14 @@ export function compileGameplayMusic(definition, menuMusicAsset) {
   invariant(Array.isArray(definition.pitchTable) && definition.pitchTable.length > 0 &&
     definition.pitchTable.length <= MAX_NOTE_COUNT,
   "Gameplay music pitchTable needs one through fourteen entries");
-  const menuPitchIndex = new Map(menuMusicAsset.frequencies.map(({ id }, index) => [id, index]));
+  const menuPitchIndex = new Map(V1_MENU_FREQUENCY_TABLE.map(({ id }, index) => [id, index]));
   const pitchToken = new Map();
   definition.pitchTable.forEach((pitch, index) => {
     invariant(typeof pitch === "string" && menuPitchIndex.has(pitch),
-      `pitchTable[${index}] has unknown menu frequency ${pitch}`);
+      `pitchTable[${index}] has unknown v1 menu frequency ${pitch}`);
     const menuIndex = menuPitchIndex.get(pitch);
     invariant(menuIndex === index,
-      "Gameplay pitchTable must be the leading ordered subset of menu frequencies");
+      "Gameplay pitchTable must be the leading ordered subset of the v1 menu frequencies");
     invariant(!pitchToken.has(pitch), `Duplicate gameplay pitch ${pitch}`);
     pitchToken.set(pitch, TOKEN_NOTE_BASE + index);
   });
@@ -123,7 +141,9 @@ export function compileGameplayMusic(definition, menuMusicAsset) {
   invariant(loopFrames >= 30 * definition.targetFrameHz &&
     loopFrames <= 45 * definition.targetFrameHz,
   "Gameplay music loop must last between 30 and 45 seconds");
-  const dataBytes = patternNames.length * 2 + sequenceBytes.length +
+  const frequencyBytes = Uint8Array.from(
+    V1_MENU_FREQUENCY_TABLE.slice(0, definition.pitchTable.length).map(({ divider }) => divider));
+  const dataBytes = frequencyBytes.length + patternNames.length * 2 + sequenceBytes.length +
     patternBytes.reduce((sum, bytes) => sum + bytes.length, 0);
 
   return Object.freeze({
@@ -133,6 +153,7 @@ export function compileGameplayMusic(definition, menuMusicAsset) {
     patternNames: Object.freeze(patternNames),
     patternBytes: Object.freeze(patternBytes),
     sequenceBytes,
+    frequencyBytes,
     channelControls,
     loopFrames,
     loopSeconds: loopFrames / definition.targetFrameHz,
@@ -172,6 +193,8 @@ export function renderGameplayMusicCa65Include(asset) {
     `GAME_MUSIC_TOKEN_NOTE_BASE = ${byte(TOKEN_NOTE_BASE)}`,
     ".macro EMIT_GAMEPLAY_MUSIC_DATA",
     "game_music_data_start:",
+    "game_music_frequency_table:",
+    `    .byte ${[...asset.frequencyBytes].map(byte).join(",")}`,
     "game_music_pattern_lo:",
     `    .byte ${asset.patternNames.map((name) => `<game_music_pattern_${name}`).join(",")}`,
     "game_music_pattern_hi:",
@@ -227,7 +250,7 @@ export function stopGameplayMusic(state) {
   return state;
 }
 
-export function tickGameplayMusic(state, asset, menuMusicAsset, {
+export function tickGameplayMusic(state, asset, {
   playerDying = false,
   sfxBusy = [false, false],
 } = {}) {
@@ -245,7 +268,7 @@ export function tickGameplayMusic(state, asset, menuMusicAsset, {
       if (token === TOKEN_REST) {
         channel.control = 0;
       } else if (token !== TOKEN_HOLD) {
-        channel.frequency = menuMusicAsset.frequencyBytes[token - TOKEN_NOTE_BASE];
+        channel.frequency = asset.frequencyBytes[token - TOKEN_NOTE_BASE];
         channel.control = asset.channelControls[channelIndex];
       }
     });

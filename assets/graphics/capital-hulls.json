@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
   "displayMode": "ANTIC 4",
-  "description": "Capital hull set v1: one allied hull and four enemy styles by region. Generated from assets/graphics/hull-drafts/hull-set-v1.json by scripts/hull-set-import.mjs; do not hand-edit the art.",
+  "description": "Capital hull set v2 (FULL MASS): one allied hull and four enemy styles by region. Generated from assets/graphics/hull-drafts/hull-set-v2.json by scripts/hull-set-import.mjs; do not hand-edit the art.",
   "charsetBaseIndex": 59,
   "segmentRows": 32,
   "previewStartPhase": 0,
@@ -452,12 +452,12 @@
         "pixels": [
           "2221",
           "2221",
+          "2221",
+          "2221",
           "2210",
           "2210",
           "2100",
-          "2100",
-          "1000",
-          "1000"
+          "2100"
         ]
       },
       {
@@ -468,86 +468,86 @@
           "surface"
         ],
         "pixels": [
-          "1000",
-          "1000",
-          "1100",
-          "1100",
-          "1110",
-          "1110",
-          "1111",
-          "1111"
+          "2111",
+          "2111",
+          "2211",
+          "2211",
+          "2221",
+          "2221",
+          "2222",
+          "2222"
         ]
       },
       {
-        "name": "allied_hull_line",
+        "name": "allied_hull_groove",
         "faction": "allied",
         "screenBank": "pf2",
         "tags": [
           "surface"
         ],
         "pixels": [
-          "0200",
-          "0200",
-          "0200",
-          "0200",
-          "0200",
-          "0200",
-          "0200",
-          "0200"
+          "2022",
+          "2022",
+          "2022",
+          "2022",
+          "2022",
+          "2022",
+          "2022",
+          "2022"
         ]
       },
       {
-        "name": "hull_deck",
-        "faction": "shared",
+        "name": "allied_hull_seam",
+        "faction": "allied",
         "screenBank": "pf2",
         "tags": [
           "surface"
         ],
         "pixels": [
           "0000",
-          "0000",
-          "0000",
-          "0000",
-          "0000",
-          "0000",
-          "0000",
-          "0000"
+          "2222",
+          "2222",
+          "2222",
+          "2222",
+          "2222",
+          "2222",
+          "2222"
         ]
       }
     ],
     "map": [
-      "hull_deck allied_hull_line hull_deck allied_hull_line hull_deck allied_hull_wall space space space",
-      "hull_deck allied_hull_line hull_deck allied_hull_line hull_deck allied_hull_wall space space space",
-      "hull_deck allied_hull_line hull_deck allied_hull_line hull_deck allied_hull_wall space space space",
-      "hull_deck allied_hull_line hull_deck allied_hull_line hull_deck allied_hull_accent space space space",
-      "hull_deck allied_hull_line hull_deck allied_hull_line hull_deck allied_hull_wall space space space",
-      "hull_deck allied_hull_line hull_deck hull_deck hull_deck allied_hull_mass allied_hull_chamfer_out space space",
-      "hull_deck allied_hull_line hull_deck hull_deck hull_deck hull_deck allied_hull_mass allied_hull_chamfer_out space",
-      "hull_deck allied_hull_line hull_deck hull_deck hull_deck allied_hull_line hull_deck allied_hull_wall space",
-      "hull_deck allied_hull_line hull_deck hull_deck allied_turret_base allied_turret_base allied_turret_base allied_hull_wall space",
-      "hull_deck allied_hull_line hull_deck hull_deck allied_turret_base allied_turret_housing allied_turret_barrel allied_turret_barrel allied_turret_muzzle",
-      "hull_deck allied_hull_line hull_deck hull_deck allied_turret_base allied_turret_base allied_turret_base allied_hull_wall space",
-      "hull_deck allied_hull_line hull_deck hull_deck hull_deck allied_hull_line hull_deck allied_hull_wall space",
-      "hull_deck allied_hull_line hull_deck hull_deck hull_deck hull_deck allied_hull_mass allied_hull_chamfer_in space",
-      "hull_deck allied_hull_line hull_deck hull_deck hull_deck allied_hull_mass allied_hull_chamfer_in space space",
-      "hull_deck allied_hull_line hull_deck allied_hull_line hull_deck allied_hull_accent space space space",
-      "hull_deck allied_hull_line hull_deck allied_hull_line hull_deck allied_hull_wall space space space",
-      "hull_deck allied_hull_line hull_deck hull_deck allied_hull_mass allied_hull_chamfer_in space space space",
-      "hull_deck allied_hull_line allied_hull_line hull_deck allied_hull_wall space space space space",
-      "hull_deck allied_hull_line allied_hull_line hull_deck allied_hull_wall space space space space",
-      "hull_deck allied_hull_line allied_hull_line hull_deck allied_hull_wall space space space space",
-      "hull_deck allied_hull_line allied_hull_line hull_deck allied_hull_wall space space space space",
-      "hull_deck allied_hull_line allied_hull_line hull_deck allied_hull_accent space space space space",
-      "hull_deck allied_hull_line hull_deck hull_deck allied_hull_mass allied_hull_chamfer_out space space space",
-      "hull_deck allied_hull_line hull_deck hull_deck hull_deck allied_hull_mass allied_hull_chamfer_out space space",
-      "hull_deck allied_hull_line hull_deck hull_deck allied_hull_line hull_deck allied_hull_wall space space",
-      "hull_deck allied_hull_line hull_deck hull_deck allied_hull_line hull_deck allied_hull_wall space space",
-      "hull_deck allied_hull_line hull_deck hull_deck allied_hull_line hull_deck allied_hull_wall space space",
-      "hull_deck allied_hull_line hull_deck hull_deck allied_hull_line hull_deck allied_hull_wall space space",
-      "hull_deck allied_hull_line hull_deck hull_deck hull_deck allied_hull_mass allied_hull_chamfer_in space space",
-      "hull_deck allied_hull_line hull_deck allied_hull_line hull_deck allied_hull_wall space space space",
-      "hull_deck allied_hull_line hull_deck allied_hull_line hull_deck allied_hull_wall space space space",
-      "hull_deck allied_hull_line hull_deck allied_hull_line hull_deck allied_hull_wall space space space"
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_wall space space space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_wall space space space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_wall space space space",
+      "allied_hull_seam allied_hull_seam allied_hull_seam allied_hull_seam allied_hull_mass allied_hull_accent space space space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_wall space space space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_chamfer_out space space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_chamfer_out space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_wall space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_turret_base allied_turret_base allied_turret_base allied_hull_wall space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_turret_base allied_turret_housing allied_turret_barrel allied_turret_barrel allied_turret_muzzle",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_turret_base allied_turret_base allied_turret_base allied_hull_wall space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_wall space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_chamfer_in space",
+      "allied_hull_seam allied_hull_seam allied_hull_seam allied_hull_seam allied_hull_mass allied_hull_mass allied_hull_chamfer_in space space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_wall space space space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_wall space space space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_chamfer_in space space space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_accent space space space space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_wall space space space space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_wall space space space space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_wall space space space space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_wall space space space space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_chamfer_out space space space",
+      "allied_hull_seam allied_hull_seam allied_hull_seam allied_hull_seam allied_hull_seam allied_hull_mass allied_hull_chamfer_out space space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_accent space space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_wall space space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_wall space space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_wall space space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_chamfer_in space space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_wall space space space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_wall space space space",
+      "allied_hull_mass allied_hull_groove allied_hull_mass allied_hull_mass allied_hull_mass allied_hull_accent space space space"
     ]
   },
   "enemyStyles": [
@@ -624,12 +624,12 @@
           "pixels": [
             "3331",
             "3331",
+            "3331",
+            "3331",
             "3310",
             "3310",
             "3100",
-            "3100",
-            "1000",
-            "1000"
+            "3100"
           ]
         },
         {
@@ -640,14 +640,14 @@
             "surface"
           ],
           "pixels": [
-            "1000",
-            "1000",
-            "1100",
-            "1100",
-            "1110",
-            "1110",
-            "1111",
-            "1111"
+            "3111",
+            "3111",
+            "3311",
+            "3311",
+            "3331",
+            "3331",
+            "3333",
+            "3333"
           ]
         },
         {
@@ -658,14 +658,14 @@
             "surface"
           ],
           "pixels": [
-            "0000",
-            "0000",
-            "0000",
-            "0000",
-            "0000",
-            "0000",
-            "0000",
-            "0000"
+            "3033",
+            "3033",
+            "3033",
+            "3033",
+            "3033",
+            "3033",
+            "3033",
+            "3033"
           ]
         },
         {
@@ -688,38 +688,38 @@
         }
       ],
       "map": [
-        "hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space space space",
-        "hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_out space space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_accent space space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_out space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_out space",
-        "hull_deck hull_deck hull_deck hull_deck enemy_turret_base enemy_turret_base enemy_turret_base enemy_hull_wall space",
-        "hull_deck hull_deck hull_deck hull_deck enemy_turret_base enemy_turret_housing enemy_turret_barrel enemy_turret_barrel enemy_turret_muzzle",
-        "hull_deck hull_deck hull_deck hull_deck enemy_turret_base enemy_turret_base enemy_turret_base enemy_hull_wall space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_in space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_in space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_out space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_accent space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_accent space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_in space space",
-        "hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_in space space space",
-        "hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space space space",
-        "hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space space space"
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_turret_base enemy_turret_base enemy_turret_base enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_turret_base enemy_turret_housing enemy_turret_barrel enemy_turret_barrel enemy_turret_muzzle",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_turret_base enemy_turret_base enemy_turret_base enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_in space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_in space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_accent space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_accent space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_in space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_in space space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_accent space space space space"
       ]
     },
     {
@@ -795,12 +795,12 @@
           "pixels": [
             "3331",
             "3331",
+            "3331",
+            "3331",
             "3310",
             "3310",
             "3100",
-            "3100",
-            "1000",
-            "1000"
+            "3100"
           ]
         },
         {
@@ -811,14 +811,14 @@
             "surface"
           ],
           "pixels": [
-            "1000",
-            "1000",
-            "1100",
-            "1100",
-            "1110",
-            "1110",
-            "1111",
-            "1111"
+            "3111",
+            "3111",
+            "3311",
+            "3311",
+            "3331",
+            "3331",
+            "3333",
+            "3333"
           ]
         },
         {
@@ -829,14 +829,14 @@
             "surface"
           ],
           "pixels": [
-            "0300",
-            "0300",
-            "0300",
-            "0300",
-            "0300",
-            "0300",
-            "0300",
-            "0300"
+            "3033",
+            "3033",
+            "3033",
+            "3033",
+            "3033",
+            "3033",
+            "3033",
+            "3033"
           ]
         },
         {
@@ -849,48 +849,48 @@
           "pixels": [
             "2222",
             "2222",
-            "0000",
-            "0000",
+            "3333",
+            "3333",
             "2222",
             "2222",
-            "0000",
-            "0000"
+            "3333",
+            "3333"
           ]
         }
       ],
       "map": [
-        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_out space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_accent space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space",
-        "hull_deck hull_deck hull_deck hull_deck enemy_turret_base enemy_turret_base enemy_turret_base enemy_hull_wall space",
-        "hull_deck hull_deck hull_deck hull_deck enemy_turret_base enemy_turret_housing enemy_turret_barrel enemy_turret_barrel enemy_turret_muzzle",
-        "hull_deck hull_deck hull_deck hull_deck enemy_turret_base enemy_turret_base enemy_turret_base enemy_hull_wall space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_b enemy_hull_detail_b enemy_hull_wall space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_b enemy_hull_detail_b enemy_hull_wall space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_in space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_in space space",
-        "hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space space space",
-        "hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_accent space space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_out space space",
-        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_in space space",
-        "hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_in space space space",
-        "hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space space space space",
-        "hull_deck hull_deck enemy_hull_detail_b enemy_hull_detail_b enemy_hull_wall space space space space",
-        "hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_out space space space",
-        "hull_deck hull_deck hull_deck hull_deck hull_deck enemy_hull_mass enemy_hull_chamfer_out space space",
-        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a hull_deck enemy_hull_wall space space"
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_accent space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_turret_base enemy_turret_base enemy_turret_base enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_turret_base enemy_turret_housing enemy_turret_barrel enemy_turret_barrel enemy_turret_muzzle",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_turret_base enemy_turret_base enemy_turret_base enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_detail_b enemy_hull_detail_b enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_detail_b enemy_hull_detail_b enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_in space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_in space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_accent space space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_in space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_in space space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_b enemy_hull_detail_b enemy_hull_wall space space space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_wall space space"
       ]
     },
     {
@@ -899,7 +899,7 @@
         9,
         12
       ],
-      "draftRegion": "R3-thick-band",
+      "draftRegion": "R3-heavy-plates",
       "mirror": true,
       "glyphs": [
         {
@@ -966,12 +966,12 @@
           "pixels": [
             "3331",
             "3331",
+            "3331",
+            "3331",
             "3310",
             "3310",
             "3100",
-            "3100",
-            "1000",
-            "1000"
+            "3100"
           ]
         },
         {
@@ -982,14 +982,14 @@
             "surface"
           ],
           "pixels": [
-            "1000",
-            "1000",
-            "1100",
-            "1100",
-            "1110",
-            "1110",
-            "1111",
-            "1111"
+            "3111",
+            "3111",
+            "3311",
+            "3311",
+            "3331",
+            "3331",
+            "3333",
+            "3333"
           ]
         },
         {
@@ -1000,14 +1000,14 @@
             "surface"
           ],
           "pixels": [
-            "0333",
-            "0333",
-            "0333",
-            "0333",
-            "0333",
-            "0333",
-            "0333",
-            "0333"
+            "3033",
+            "3033",
+            "3033",
+            "3033",
+            "3033",
+            "3033",
+            "3033",
+            "3033"
           ]
         },
         {
@@ -1030,38 +1030,38 @@
         }
       ],
       "map": [
-        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space",
-        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space",
-        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space",
-        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_accent space",
-        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space",
-        "hull_deck hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space",
-        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_in space",
-        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_turret_base enemy_turret_base enemy_turret_base enemy_hull_wall space",
-        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_turret_base enemy_turret_housing enemy_turret_barrel enemy_turret_barrel enemy_turret_muzzle",
-        "hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_turret_base enemy_turret_base enemy_turret_base enemy_hull_wall space",
-        "hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space space",
-        "hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space space",
-        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_accent space space",
-        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
-        "hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_in space space",
-        "hull_deck enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_in space space space",
-        "hull_deck enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space space space space",
-        "hull_deck enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_in space space space",
-        "hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space space space",
-        "hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space space",
-        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
-        "hull_deck hull_deck hull_deck enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space"
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_accent space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_in space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_turret_base enemy_turret_base enemy_turret_base enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_turret_base enemy_turret_housing enemy_turret_barrel enemy_turret_barrel enemy_turret_muzzle",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_turret_base enemy_turret_base enemy_turret_base enemy_hull_wall space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_accent space space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_in space space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_in space space space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space space space space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space space space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_accent space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_mass enemy_hull_detail_a enemy_hull_detail_a enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space"
       ]
     },
     {
@@ -1137,12 +1137,12 @@
           "pixels": [
             "3331",
             "3331",
+            "3331",
+            "3331",
             "3310",
             "3310",
             "3100",
-            "3100",
-            "1000",
-            "1000"
+            "3100"
           ]
         },
         {
@@ -1205,10 +1205,10 @@
         "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space",
         "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_in space",
         "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
-        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_detail_b enemy_hull_detail_b enemy_hull_detail_b enemy_hull_detail_b enemy_hull_detail_b enemy_hull_detail_b enemy_hull_wall space space",
         "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
         "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space",
-        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_accent space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space",
         "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_turret_base enemy_turret_base enemy_turret_base enemy_hull_wall space",
         "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_turret_base enemy_turret_housing enemy_turret_barrel enemy_turret_barrel enemy_turret_muzzle",
         "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_turret_base enemy_turret_base enemy_turret_base enemy_hull_wall space",
@@ -1217,15 +1217,15 @@
         "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_in space space",
         "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space space",
         "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space space",
-        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_wall space space space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_accent space space space",
         "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space space",
         "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
         "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
-        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
+        "enemy_hull_detail_b enemy_hull_detail_b enemy_hull_detail_b enemy_hull_detail_b enemy_hull_detail_b enemy_hull_detail_b enemy_hull_wall space space",
         "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space space",
         "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space",
+        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space",
         "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_accent space",
-        "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_chamfer_out space",
         "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space",
         "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space",
         "enemy_hull_mass enemy_hull_mass enemy_hull_detail_a enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_mass enemy_hull_wall space",

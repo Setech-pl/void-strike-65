@@ -73,10 +73,14 @@ test("prototype reuses the 8+24+8 maps, turret metadata, and one aligned 1 KB ch
   // Re-pinned for hull set v1: the two maps reference 20 distinct glyphs, not
   // 22, because the blank cell is now one glyph shared by both factions and R1
   // leaves two of the seven per-level enemy surface slots unused.
-  assert.equal(prototype.glyphs.length, 20);
-  assert.equal(prototype.glyphBytes.length, 160);
+  // Re-pinned again for hull set v2 (owner, 2026-09-22): the full-mass art has
+  // no blank cell, so nothing is shared — the allied hull spends all seven of
+  // its codes and R1 six of its seven, which is 21 distinct map glyphs with the
+  // eight turret glyphs. R1 still leaves one per-level slot unused.
+  assert.equal(prototype.glyphs.length, 21);
+  assert.equal(prototype.glyphBytes.length, 168);
   assert.equal(prototype.starGlyphBytes.length, 16);
-  assert.equal(prototype.sourceGlyphBytes, 176);
+  assert.equal(prototype.sourceGlyphBytes, 184);
   assert.equal(prototype.proposedCharsetAddress, 0x5000);
   assert.equal(prototype.proposedCharsetAddress & 0x03ff, 0);
   assert.equal(prototype.proposedCharsetBytes, 1024);

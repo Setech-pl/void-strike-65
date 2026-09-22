@@ -2,7 +2,7 @@
 //
 //   node scripts/hull-set-import.mjs [--check]
 //
-// Source of the art:      assets/graphics/hull-drafts/hull-set-v1.json
+// Source of the art:      assets/graphics/hull-drafts/hull-set-v2.json
 // Source of the scaffold: assets/graphics/capital-hulls.json (core glyphs,
 //                         sector, turretTypes, broadside — read back from
 //                         whichever format version is on disk, so the
@@ -28,6 +28,22 @@
 //     second drafted emplacement is not carried over. Cells a moved or dropped
 //     emplacement vacates are filled from the nearest turret-free row of the
 //     same style at the same column.
+//
+// Draft v2 (owner decision, 2026-09-22, after the step-1 hardware smoke): the
+// hull is FULL MASS out to the screen edge and its texture is grooves and
+// seams cut into that mass. v1 read as a thin ribbon floating in space because
+// the deck interior was black and the frame line and rib stood detached.
+// Consequences for this converter, all of them data:
+//
+//   * there is no blank `deck` glyph any more, so no glyph crosses the faction
+//     line: the allied hull owns all seven of its codes 59-65 and every style
+//     owns its own codes 70-76;
+//   * `line` (59-65 slot) is replaced by `groove` and `seam`;
+//   * R3 is the region `R3-heavy-plates`, and R4's mass glyph is `solid` like
+//     every other style rather than its own `fill`.
+//
+// hull-set-v1.json stays in Git as the superseded draft and as the provenance
+// of the v1 smoke; it is not a source this converter reads.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -36,7 +52,8 @@ import { fileURLToPath } from "node:url";
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const rootDirectory = path.resolve(scriptDirectory, "..");
 const draftPath = path.join(
-  rootDirectory, "assets", "graphics", "hull-drafts", "hull-set-v1.json");
+  rootDirectory, "assets", "graphics", "hull-drafts", "hull-set-v2.json");
+const DRAFT_FORMAT_VERSION = 2;
 const assetPath = path.join(rootDirectory, "assets", "graphics", "capital-hulls.json");
 
 const SEGMENT_ROWS = 32;
@@ -52,9 +69,9 @@ const ALLIED_SLOTS = [
   ["allied_hull_accent", "wacc"],
   ["allied_hull_chamfer_in", "ch_in"],
   ["allied_hull_chamfer_out", "ch_out"],
-  ["allied_hull_line", "line"],
+  ["allied_hull_groove", "groove"],
+  ["allied_hull_seam", "seam"],
 ];
-const SHARED_DECK = "hull_deck";
 const ENEMY_SLOTS = [
   "enemy_hull_mass",
   "enemy_hull_wall",
@@ -70,19 +87,19 @@ const ENEMY_SLOTS = [
 const ENEMY_STYLES = [
   {
     id: "R1", draft: "R1-slab", levels: [1, 4], muzzleDraftRow: 19,
-    slots: ["solid", "wall", "wacc", "ch_in", "ch_out", null, null],
+    slots: ["solid", "wall", "wacc", "ch_in", "ch_out", "groove", null],
   },
   {
     id: "R2", draft: "R2-rib-launchers", levels: [5, 8], muzzleDraftRow: 2,
-    slots: ["solid", "wall", "wacc", "ch_in", "ch_out", "rib", "vent"],
+    slots: ["solid", "wall", "wacc", "ch_in", "ch_out", "groove", "vent"],
   },
   {
-    id: "R3", draft: "R3-thick-band", levels: [9, 12], muzzleDraftRow: 13,
-    slots: ["solid", "wall", "wacc", "ch_in", "ch_out", "edge_in", null],
+    id: "R3", draft: "R3-heavy-plates", levels: [9, 12], muzzleDraftRow: 13,
+    slots: ["solid", "wall", "wacc", "ch_in", "ch_out", "groove", null],
   },
   {
     id: "R4", draft: "R4-armour", levels: [13, 16], muzzleDraftRow: 13,
-    slots: ["fill", "wall", "wacc", "ch_in", "ch_out", "groove_v", "groove_h"],
+    slots: ["solid", "wall", "wacc", "ch_in", "ch_out", "groove", "seam"],
   },
 ];
 
@@ -246,26 +263,17 @@ function buildSector(scaffoldSector) {
 
 export function convertHullSet() {
   const draft = JSON.parse(fs.readFileSync(draftPath, "utf8"));
+  invariant(draft.formatVersion === DRAFT_FORMAT_VERSION,
+    `the hull draft must be formatVersion ${DRAFT_FORMAT_VERSION}`);
   const { asset: scaffold, core } = readScaffold();
 
-  const alliedGlyphs = [
-    ...ALLIED_SLOTS.map(([name, draftName]) => {
-      const pixels = draft.allied.glyphs[draftName];
-      invariant(pixels, `the draft's allied hull is missing ${draftName}`);
-      return { name, faction: "allied", screenBank: "pf2", tags: ["surface"], pixels };
-    }),
-    {
-      name: SHARED_DECK,
-      faction: "shared",
-      screenBank: "pf2",
-      tags: ["surface"],
-      pixels: draft.allied.glyphs.deck,
-    },
-  ];
-  const alliedNames = new Map([
-    ...ALLIED_SLOTS.map(([name, draftName]) => [draftName, name]),
-    ["deck", SHARED_DECK],
-  ]);
+  const alliedGlyphs = ALLIED_SLOTS.map(([name, draftName]) => {
+    const pixels = draft.allied.glyphs[draftName];
+    invariant(pixels, `the draft's allied hull is missing ${draftName}`);
+    return { name, faction: "allied", screenBank: "pf2", tags: ["surface"], pixels };
+  });
+  const alliedNames = new Map(
+    ALLIED_SLOTS.map(([name, draftName]) => [draftName, name]));
   const alliedRows = placeTurret(draft.allied.map.map(splitRow), TURRET_MUZZLE_ROW);
 
   const enemyStyles = ENEMY_STYLES.map((style) => {
@@ -279,11 +287,8 @@ export function convertHullSet() {
       invariant(pixels, `${style.id} is missing ${draftName}`);
       return { name, faction: "enemy", screenBank: "pf3", tags: ["surface"], pixels };
     });
-    const names = new Map([
-      ...ENEMY_SLOTS.map((name, slot) => [style.slots[slot], name])
-        .filter(([draftName]) => draftName),
-      ["deck", SHARED_DECK],
-    ]);
+    const names = new Map(ENEMY_SLOTS.map((name, slot) => [style.slots[slot], name])
+      .filter(([draftName]) => draftName));
     const rows = placeTurret(region.map.map(splitRow), style.muzzleDraftRow);
     return {
       id: style.id,
@@ -298,8 +303,8 @@ export function convertHullSet() {
   return {
     formatVersion: 2,
     displayMode: scaffold.displayMode,
-    description: "Capital hull set v1: one allied hull and four enemy styles by region. " +
-      "Generated from assets/graphics/hull-drafts/hull-set-v1.json by " +
+    description: "Capital hull set v2 (FULL MASS): one allied hull and four enemy styles " +
+      "by region. Generated from assets/graphics/hull-drafts/hull-set-v2.json by " +
       "scripts/hull-set-import.mjs; do not hand-edit the art.",
     charsetBaseIndex: scaffold.charsetBaseIndex,
     segmentRows: scaffold.segmentRows,

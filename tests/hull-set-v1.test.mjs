@@ -14,7 +14,7 @@ const testDirectory = path.dirname(fileURLToPath(import.meta.url));
 const rootDirectory = path.resolve(testDirectory, "..");
 const definitionPath = path.join(rootDirectory, "assets", "graphics", "capital-hulls.json");
 const draftPath = path.join(
-  rootDirectory, "assets", "graphics", "hull-drafts", "hull-set-v1.json");
+  rootDirectory, "assets", "graphics", "hull-drafts", "hull-set-v2.json");
 const definition = loadCapitalHullsDefinition(definitionPath);
 const asset = compileCapitalHulls(definition);
 const draft = JSON.parse(fs.readFileSync(draftPath, "utf8"));
@@ -23,6 +23,15 @@ const SEGMENT_ROWS = 32;
 const MAP_COLUMNS = 9;
 const TURRET_MUZZLE_ROW = 9;
 const SURFACE_CODES = [59, 60, 61, 62, 63, 64, 65, 70, 71, 72, 73, 74, 75, 76];
+
+// Re-pinned to the v2 draft (owner, 2026-09-22): the step-1 smoke on hardware
+// rejected the v1 look — a black deck interior made the hull read as a thin
+// ribbon floating in space, and the frame line and rib read as display
+// artefacts. v2 is full mass out to the screen edge with the texture cut into
+// it, so the blank `deck` glyph is gone and with it the one shared code; the
+// allied hull now owns all seven of 59-65 and each style all seven of 70-76.
+// Profile, turret positions, colour registers and the collision convention are
+// unchanged, so the core pin below still holds.
 
 // Measured from assets/graphics/capital-hulls.json at ded0687 (format 1), the
 // build this hull set replaces. The seventeen core glyphs are the part of the
@@ -35,7 +44,7 @@ const CORE_BYTES_SHA256 =
 const DRAFT_REGIONS = new Map([
   ["R1", "R1-slab"],
   ["R2", "R2-rib-launchers"],
-  ["R3", "R3-thick-band"],
+  ["R3", "R3-heavy-plates"],
   ["R4", "R4-armour"],
 ]);
 // The draft row whose muzzle the generator keeps as the style's firing turret.
@@ -86,12 +95,10 @@ const isStampedCell = (row, column) =>
 function slotNamesFor(draftGlyphs, authoredGlyphs) {
   const names = new Map();
   for (const [draftName, pixels] of Object.entries(draftGlyphs)) {
-    // A blank draft cell is the one shared glyph, not one of the unused
-    // per-level slots that also compile to all zeroes.
-    if (pixels.every((row) => row === "0000")) {
-      names.set(draftName, "hull_deck");
-      continue;
-    }
+    // v2 declares no blank glyph, so every draft glyph must carry pixels; an
+    // all-zero compiled slot is only an unused per-level slot.
+    assert.ok(!pixels.every((row) => row === "0000"),
+      `draft glyph ${draftName} is blank; v2 carries no blank surface glyph`);
     const matches = authoredGlyphs.filter((glyph) =>
       glyph.pixels.join("|") === pixels.join("|"));
     assert.equal(matches.length, 1,
@@ -133,8 +140,8 @@ test("every compiled style reproduces the draft's glyph pixels and map cells, en
     const alliedSlots = [
       ["allied_hull_mass", "solid"], ["allied_hull_wall", "wall"],
       ["allied_hull_accent", "wacc"], ["allied_hull_chamfer_in", "ch_in"],
-      ["allied_hull_chamfer_out", "ch_out"], ["allied_hull_line", "line"],
-      ["hull_deck", "deck"],
+      ["allied_hull_chamfer_out", "ch_out"], ["allied_hull_groove", "groove"],
+      ["allied_hull_seam", "seam"],
     ];
     const alliedGlyphs = new Map(asset.glyphs.map((glyph) => [glyph.name, glyph]));
     for (const [name, draftName] of alliedSlots) {
@@ -175,10 +182,7 @@ test("every compiled style reproduces the draft's glyph pixels and map cells, en
         region.map.map(splitRow), DRAFT_MUZZLE_ROWS.get(levelSet.styleName));
       const names = glyphByCode(levelSet);
       const authoredRows = styleDefinition.map.map(splitRow);
-      const slotNames = slotNamesFor(region.glyphs, [
-        ...styleDefinition.glyphs,
-        ...definition.allied.glyphs.filter(({ faction }) => faction === "shared"),
-      ]);
+      const slotNames = slotNamesFor(region.glyphs, styleDefinition.glyphs);
       for (let row = 0; row < SEGMENT_ROWS; row += 1) {
         for (let column = 0; column < MAP_COLUMNS; column += 1) {
           if (isTurretCell(draftRows[row][column])) continue;
@@ -226,23 +230,31 @@ test("every compiled style reproduces the draft's glyph pixels and map cells, en
     assertStandardTurretProfile("allied B", alliedRows, "allied_turret");
   });
 
-test("each level hull set uses at most 14 surface codes with the shared deck counted once", () => {
+// v1 spent 12/14/13/14 because the two factions shared one blank `deck` code.
+// v2 has no blank glyph at all, so R1 and R3 spend 13 (7 allied + 6 enemy) and
+// R2 and R4 spend the full 14; the numbers are the draft's own
+// `totalWithAllied` counts and the ceiling decision AA set is still 14.
+test("each level hull set uses at most 14 surface codes, none of them shared", () => {
   const counts = asset.levelHullSets.map((levelSet) => surfaceCodesOf(levelSet).length);
-  assert.deepEqual(counts, [12, 14, 13, 14],
-    "allied B plus R1/R2/R3/R4 must cost exactly the budget decision AA accepted");
+  assert.deepEqual(counts, [13, 14, 13, 14],
+    "allied plus R1/R2/R3/R4 must cost exactly the budget the v2 draft counted");
+  assert.deepEqual(
+    counts,
+    [...DRAFT_REGIONS.keys()].map((id) => draft.enemyRegions[DRAFT_REGIONS.get(id)].totalWithAllied),
+    "the compiled budget must equal the draft's own count",
+  );
   for (const levelSet of asset.levelHullSets) {
     assert.ok(surfaceCodesOf(levelSet).length <= 14,
       `${levelSet.styleName} exceeds the 14-surface-code per-level budget`);
   }
-  const deck = asset.glyphs.find(({ name }) => name === "hull_deck");
-  assert.equal(deck.faction, "shared");
-  assert.equal(deck.index, 65);
-  assert.equal(deck.screenCode, 65, "a shared glyph carries no colour-bank bit");
-  assert.ok(deck.pixels.flat().every((value) => value === 0));
-  const r1 = asset.levelHullSets[0];
-  for (const side of ["allied", "enemy"]) {
-    assert.ok(r1.decodedMaps.get(side).flat().includes(65),
-      `${side} must reference the one shared blank rather than its own copy`);
+  assert.deepEqual(asset.glyphs.filter(({ faction }) => faction === "shared"), [],
+    "v2 draws full mass on both sides, so no glyph crosses the faction line");
+  const alliedSurface = asset.glyphs.filter(({ index }) => index >= 59 && index <= 65);
+  assert.equal(alliedSurface.length, 7);
+  for (const glyph of alliedSurface) {
+    assert.equal(glyph.faction, "allied");
+    assert.ok(glyph.pixels.flat().some((value) => value !== 0),
+      `${glyph.name} must carry mass: v2 declares no blank surface glyph`);
   }
 });
 

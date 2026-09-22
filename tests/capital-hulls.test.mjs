@@ -113,11 +113,11 @@ test("capital-hull source compiles deterministically and rejects corrupt definit
   assert.throws(() => compileCapitalHulls(wrongFactionBank), /faction's ANTIC 4 colour bank/);
   const unknownGlyph = structuredClone(definition);
   unknownGlyph.allied.map[0] = unknownGlyph.allied.map[0]
-    .replace("allied_hull_line", "unknown_hull_glyph");
+    .replace("allied_hull_groove", "unknown_hull_glyph");
   assert.throws(() => compileCapitalHulls(unknownGlyph), /unknown glyph/);
   const crossFaction = structuredClone(definition);
   crossFaction.allied.map[0] = crossFaction.allied.map[0]
-    .replace("allied_hull_line", "enemy_hull_wall");
+    .replace("allied_hull_groove", "enemy_hull_wall");
   assert.throws(() => compileCapitalHulls(crossFaction), /from the other faction/);
   const orphanMuzzle = structuredClone(definition);
   orphanMuzzle.allied.map[0] = orphanMuzzle.allied.map[0]
@@ -137,22 +137,30 @@ test("capital-hull source compiles deterministically and rejects corrupt definit
 // referenced by both maps and therefore rendered in both ANTIC 4 colour banks,
 // so only an all-zero cell can carry the same meaning on both sides; its screen
 // code keeps bit 7 clear and both runtime hull-code scans mask bit 7.
+//
+// Re-pinned for the v2 art (owner, 2026-09-22): the hull is now full mass out
+// to the screen edge, so the blank `deck` cell the two factions used to share
+// no longer exists and the shipped set declares no shared glyph at all. The
+// rule still has to hold for anything that declares one, so the two negative
+// cases below synthesise the shared glyph the art no longer carries.
 test("a shared glyph must be all-zero and is the only glyph both factions may reference", () => {
-  const shared = asset.glyphs.filter(({ faction }) => faction === "shared");
-  assert.deepEqual(shared.map(({ name, index, screenCode }) => [name, index, screenCode]),
-    [["hull_deck", 65, 65]]);
-  assert.ok(shared[0].pixels.flat().every((value) => value === 0));
-  for (const side of ["allied", "enemy"]) {
-    assert.ok(asset.decodedMaps.get(side).flat().includes(65),
-      `${side} must reference the shared blank rather than a private copy`);
+  assert.deepEqual(asset.glyphs.filter(({ faction }) => faction === "shared"), [],
+    "full-mass v2 art shares no cell between the factions");
+  for (const glyph of asset.glyphs.filter(({ index }) => index >= 59 && index <= 76)) {
+    assert.ok(glyph.pixels.flat().some((value) => value !== 0) ||
+      (glyph.index >= 70 && glyph.index <= 76),
+    `${glyph.name} is blank: only an unused per-level enemy slot may be`);
   }
 
   const opaqueShared = structuredClone(definition);
-  opaqueShared.allied.glyphs.find(({ faction }) => faction === "shared").pixels[0] = "2222";
+  opaqueShared.allied.glyphs[0].faction = "shared";
   assert.throws(() => compileCapitalHulls(opaqueShared),
-    /Shared glyph hull_deck must be all-zero/);
+    /Shared glyph allied_hull_mass must be all-zero/);
   const twoShared = structuredClone(definition);
   twoShared.allied.glyphs[0].faction = "shared";
+  twoShared.allied.glyphs[0].pixels = Array.from({ length: 8 }, () => "0000");
+  twoShared.allied.glyphs[1].faction = "shared";
+  twoShared.allied.glyphs[1].pixels = Array.from({ length: 8 }, () => "0000");
   assert.throws(() => compileCapitalHulls(twoShared),
     /At most one shared glyph/);
 });
@@ -448,10 +456,19 @@ test("turret metadata points to complete multi-cell emplacements and real muzzle
 
 // Supersedes the accepted H4.2 C INDUSTRIAL ratio test: decision AA replaced
 // the single allied/enemy pair with one allied hull and four enemy styles, so
-// the pin is now the surface-glyph pixel census of the approved set-B sheet.
+// the pin is now the surface-glyph pixel census of the approved sheet.
 // Value 1 is cold-white COLPF0, 2 is steel COLPF1, 3 is the faction colour
 // (allied amber COLPF2 / enemy burgundy COLPF3).
-test("set B keeps the allied hull steel-led and every enemy style faction-led", () => {
+//
+// Re-pinned from set-B-sheet.png to set-MASS-sheet.png (owner, 2026-09-22):
+// the step-1 hardware smoke rejected the v1 look, so v2 fills the hull with
+// mass out to the screen edge and cuts the texture into it. The census moves
+// the way that change implies — the black share collapses (allied 80 -> 18
+// zero pixels of 224) and the body colour takes it (allied steel 98 -> 168,
+// R1 burgundy 90 -> 140) — while the roles stay: allied steel-led with a
+// cold-white edge, every enemy style faction-led with only a steel accent.
+test("the full-mass set keeps the allied hull steel-led and every enemy style faction-led",
+  () => {
   const census = (glyphs) => {
     const counts = [0, 0, 0, 0];
     for (const glyph of glyphs) {
@@ -460,10 +477,12 @@ test("set B keeps the allied hull steel-led and every enemy style faction-led", 
     return counts;
   };
   const alliedSurface = asset.glyphs.filter(({ index }) => index >= 59 && index <= 65);
-  assert.deepEqual(census(alliedSurface), [80, 44, 98, 2],
+  assert.deepEqual(census(alliedSurface), [18, 36, 168, 2],
     "allied surfaces are steel-led with a cold-white edge and sparse amber service detail");
+  assert.ok(census(alliedSurface)[0] * 4 < census(alliedSurface)[2],
+    "the hull must read as mass, not as a ribbon: black is only the cut grooves");
 
-  const expectedFactionPixels = new Map([["R1", 90], ["R2", 98], ["R3", 114], ["R4", 162]]);
+  const expectedFactionPixels = new Map([["R1", 140], ["R2", 156], ["R3", 140], ["R4", 168]]);
   for (const levelSet of asset.levelHullSets) {
     const enemySurface = levelSet.glyphs.filter(({ index }) => index >= 70 && index <= 76);
     const counts = census(enemySurface);
@@ -471,7 +490,7 @@ test("set B keeps the allied hull steel-led and every enemy style faction-led", 
       `${levelSet.styleName} must keep the approved burgundy share of the sheet`);
     assert.ok(counts[3] > counts[2],
       `${levelSet.styleName} must stay faction-led rather than steel-led`);
-    assert.equal(counts[1], levelSet.styleName === "R4" ? 36 : 44,
+    assert.equal(counts[1], 36,
       `${levelSet.styleName} cold-white edge pixels must match the draft`);
     assert.ok(counts[2] <= 18,
       `${levelSet.styleName} may carry only a steel accent, never a steel body`);

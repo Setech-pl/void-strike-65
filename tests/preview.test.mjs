@@ -167,10 +167,16 @@ test("capital-hulls strip preview is deterministic and shows all 32 rows", () =>
   assert.deepEqual(first, second);
   assert.equal(
     crypto.createHash("sha256").update(first).digest("hex"),
-    "e86ca10ec58a988e996970ed69cca42e40bae01548ff328136da21035703c0d2",
+    "588c2cdad810b83687c3e96fee08e020a9110034bb9c6f7a85eb4249cc7d4175",
     // Re-pinned for hull set v1: the strip now renders allied B against R1,
     // the resident level-one style, instead of the accepted C INDUSTRIAL pair.
-    "production capital-hull render must remain pixel-identical to the approved set B",
+    // Re-pinned again for hull set v2 (owner, 2026-09-22): the step-1 smoke on
+    // hardware rejected the v1 look — a black deck interior left the hull
+    // reading as a thin ribbon floating in space, and the frame line and rib
+    // read as display artefacts. v2 draws full mass out to the screen edge with
+    // the texture cut into it, so every hull pixel of the strip changes while
+    // the profile, the turret and the colour registers do not.
+    "production capital-hull render must remain pixel-identical to the approved full-mass set",
   );
   const info = inspectPng(first);
   assert.deepEqual([info.width, info.height], [640, 512]);

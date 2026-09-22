@@ -38,7 +38,10 @@ const streams = Object.freeze({
   // Re-pinned for hull set v1 (owner decision AA): H4.2's single allied/enemy
   // pair is replaced by allied B plus the level's enemy style, R1 resident.
   // The stream is still 248 bytes of data only.
-  capitalGlyphs: [capital.glyphBytes, "5afb7117547f9527bbebc4c760052cf1dffb1fb70c178765c2b65ac85ad21a2b"],
+  // Re-pinned again for hull set v2 (owner, 2026-09-22): the step-1 hardware
+  // smoke rejected the v1 look, so every hull surface glyph is redrawn as full
+  // mass with the texture cut into it. Same 248 bytes, same codes, new pixels.
+  capitalGlyphs: [capital.glyphBytes, "73e03c0f2b4928780f1f412bd500584ac88d19debfb83900f95a84f007e14f6a"],
   fighterExplosionOuter: [weapons.sharedFighterExplosion.outerBytes, "92d51c739606133505205a5f43f984a6d81f6af59c8eb37d48727ec413e18dc9"],
   fighterExplosionCore: [weapons.sharedFighterExplosion.coreMasks, "61d520aa9d14c10342ec0c64c1066ea9f723ff07c3787130df59f3ccc7ecc888"],
 });

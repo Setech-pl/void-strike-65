@@ -301,7 +301,19 @@ test("layout and transport gates remain legal after blue-far removal", () => {
   // growth, MEASURED by the boot smoke: XEX loader/menu unmoved at 135/392,
   // ATR 339/596 -> 343/600, inside the +-10 warn band, so
   // boot-deadline-baseline.json is still NOT re-recorded.
-  assert.equal(manifest.transportCapacity.initialBootSectors, 107);
+  //
+  // 107 -> 106, re-recorded 2026-09-22 for capital hulls v2: the owner replaced
+  // the v1 hull art with full mass out to the screen edge (the v1 ribbon look
+  // was rejected at the step-1 hardware smoke), and solid mass packs better
+  // than a hull drawn around a black interior — the initial block's content
+  // falls 13,559 -> 13,556 B and its LZ streams give a sector back, so the XEX
+  // payload is 26,624 -> 26,496 B and total transport 208 -> 207 sectors.
+  // Nothing here is a STARFIELD change: the packed stream is unmoved at
+  // 1,701 B. Deliberate SHRINK, MEASURED by the boot smoke 8/8: XEX unmoved at
+  // 135/392, ATR 343/600 -> 344/601, inside the +-10 warn band, so
+  // boot-deadline-baseline.json is NOT re-recorded (its rule is about
+  // deliberate growth).
+  assert.equal(manifest.transportCapacity.initialBootSectors, 106);
   assert.ok(manifest.transportCapacity.initialBootEnvelopeBytes >= 0);
   assert.equal(labels.get("ENTITY_CODE_START") & 0xff, 0);
 });

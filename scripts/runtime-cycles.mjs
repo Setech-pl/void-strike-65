@@ -364,6 +364,7 @@ function snapshotRuntime(cpu, entryPoints) {
     entityY: memory[entryPoints.entityY],
     effectActiveCount: memory[entryPoints.effectActiveCount],
     effectActiveMask: memory[entryPoints.effectActiveMask],
+    heavyBreakupPending: memory[entryPoints.heavyBreakupPending],
   };
 }
 
@@ -587,6 +588,9 @@ export function measureRuntimeCycles(build) {
     entitySpawnTimer: requiredLabel(build.labels, "ENTITY_SPAWN_TIMER_LO"),
     effectActiveCount: requiredLabel(build.labels, "EFFECT_ACTIVE_COUNT"),
     effectActiveMask: requiredLabel(build.labels, "EFFECT_ACTIVE_MASK"),
+    // Heavy break-up (plan-4.6-placement.md §7.4 variant 2): the deferred-once
+    // bit, so the invariant below can tell "deferred" from "did nothing".
+    heavyBreakupPending: requiredLabel(build.labels, "heavy_breakup_pending"),
     entityTarget: requiredLabel(build.labels, "entity_player_fighter_projectile_target"),
     enemyTarget: requiredLabel(build.labels, "player_fighter_projectile_hits_enemy"),
   };
@@ -952,12 +956,18 @@ export function measureRuntimeCycles(build) {
   invariant(debrisDestructionPath, "Replay did not execute final debris destruction");
   invariant(fullEffectsPath?.before.effectActiveMask === 0x1f,
     "Replay did not execute one core plus four debris fragments");
+  // INVERTED 2026-09-22, owner smoke 2026-09-21. Until this task a Heavy of
+  // either archetype "vanished in a flash" and this invariant pinned that:
+  // the Raider death frame had to leave the shared effect pool untouched.
+  // plan-4.6-placement.md §7.4 variant 2 makes the death spawn a five-cell
+  // break-up instead, so the death frame must now do exactly one of two
+  // things — spawn the cluster (the token was free) or park the event in
+  // HEAVY_BREAKUP_PENDING (the rotate gate or a spent budget refused it). It
+  // may no longer do nothing, which is what the old invariant demanded.
   invariant(interceptorBreakupPath &&
-    interceptorBreakupPath.after.effectActiveMask ===
-      interceptorBreakupPath.before.effectActiveMask &&
-    interceptorBreakupPath.after.effectActiveCount ===
-      interceptorBreakupPath.before.effectActiveCount,
-  "Replay did not preserve the effect pool across character-free Raider destruction");
+    (interceptorBreakupPath.after.effectActiveMask === 0x1f ||
+      interceptorBreakupPath.after.heavyBreakupPending !== 0),
+  "Raider destruction neither spawned its break-up nor deferred it");
   invariant(noPlayerFighterProjectilePath, "Replay did not execute a frame without PlayerFighter projectiles");
   invariant(!noPlayerFighterProjectilePath.hits.has("entity_player_fighter_projectile_target"),
     "Debris projectile dispatch ran without an active PlayerFighter projectile");

@@ -42,6 +42,7 @@ DIRECTOR_LOW_BYTES = 242
 .import _enemy_c_recycle
 .import _enemy_c_light_tick, _enemy_c_light_hit, _enemy_c_light_wave
 .import _enemy_c_heavy_tick
+.import _enemy_c_heavy_breakup_claim, _heavy_breakup_pending
 .import _heavy_member_x, _heavy_hull_colour, _heavy_archetype_offset
 .import _heavy_member_colour
 .import _enemy_archetypes
@@ -98,6 +99,7 @@ DIRECTOR_LOW_BYTES = 242
 .export enemy_profile_director_value
 .export enemy_light_tick, enemy_light_hit, enemy_light_wave
 .export enemy_heavy_tick, heavy_member_x, heavy_hull_colour, heavy_archetype_offset
+.export enemy_heavy_breakup_claim, heavy_breakup_pending
 .export heavy_member_colour, build_hostile_weapon_glyphs
 .export light_state, light_hp, light_x, light_y, light_fire_timer
 .export light_screen_lo, light_screen_hi
@@ -249,6 +251,12 @@ enemy_profile_score_bcd = _enemy_profile_score_bcd
 enemy_profile_director_value = _enemy_profile_director_value
 enemy_light_tick = _enemy_c_light_tick
 enemy_heavy_tick = _enemy_c_heavy_tick
+; Heavy break-up (plan-4.6-placement.md §7.4 variant 2). The kill frame's
+; DEFERRABLE token claim, and the one bit of pending state its forcing rule
+; needs. ASM clears the bit when it spawns; C sets it and clears it at
+; gameplay init.
+enemy_heavy_breakup_claim = _enemy_c_heavy_breakup_claim
+heavy_breakup_pending = _heavy_breakup_pending
 heavy_member_x = _heavy_member_x
 heavy_hull_colour = _heavy_hull_colour
 ; Per-member GTIA colour C derives each Bomber tick (charge telegraph and hit
@@ -430,6 +438,13 @@ hostile_weapon_visual_glyphs:
 .import __HYBRID_LIGHT_ROTATE_RAM_START__, __HYBRID_LIGHT_ROTATE_RAM_LAST__
 .assert __HYBRID_LIGHT_ROTATE_RAM_START__ >= __HYBRID_LIGHT_SCREEN_RAM_LAST__, lderror, "HYBRID_LIGHT_ROTATE overlaps HYBRID_LIGHT_SCREEN"
 .assert __HYBRID_LIGHT_ROTATE_RAM_LAST__ <= $8140, lderror, "HYBRID_LIGHT_ROTATE leaves the unowned gap at $8140"
+; Heavy break-up (plan-4.6-placement.md §7.4/§7.5), owner smoke 2026-09-21: the
+; deferred-once bit takes the next byte of the same gap for the same reason -
+; HYBRID_HEAVY_STATE is 11 of 11. Its real lower neighbour is
+; HYBRID_LIGHT_ROTATE; $8129-$813F, 23 B, is what is left unowned above it.
+.import __HYBRID_HEAVY_BREAKUP_RAM_START__, __HYBRID_HEAVY_BREAKUP_RAM_LAST__
+.assert __HYBRID_HEAVY_BREAKUP_RAM_START__ >= __HYBRID_LIGHT_ROTATE_RAM_LAST__, lderror, "HYBRID_HEAVY_BREAKUP overlaps HYBRID_LIGHT_ROTATE"
+.assert __HYBRID_HEAVY_BREAKUP_RAM_LAST__ <= $8140, lderror, "HYBRID_HEAVY_BREAKUP leaves the unowned gap at $8140"
 
 .import __HYBRID_C_WINDOW_RAM_LAST__, __HYBRID_C_WINDOW_GUARD_START__
 .assert __HYBRID_C_WINDOW_GUARD_START__ = $BC1A, lderror, "HYBRID_C_WINDOW_GUARD must start at $BC1A"

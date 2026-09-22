@@ -975,6 +975,10 @@ function renderDirectorAbiInclude(labelBytes, lightKernelAddress) {
     ["ENEMY_PROFILE_SCORE_BCD", "enemy_profile_score_bcd"],
     ["ENEMY_PROFILE_DIRECTOR_VALUE", "enemy_profile_director_value"],
     ["ENEMY_HEAVY_TICK", "enemy_heavy_tick"],
+    // Heavy break-up (plan-4.6-placement.md §7.4 variant 2): the kill frame's
+    // DEFERRABLE token claim, and the deferred-once bit its forcing rule needs.
+    ["HYBRID_ENEMY_HEAVY_BREAKUP_CLAIM", "enemy_heavy_breakup_claim"],
+    ["HEAVY_BREAKUP_PENDING", "heavy_breakup_pending"],
     ["HEAVY_MEMBER_X", "heavy_member_x"],
     ["HEAVY_HULL_COLOUR", "heavy_hull_colour"],
     ["HEAVY_MEMBER_COLOUR", "heavy_member_colour"],
@@ -2228,6 +2232,9 @@ async function build() {
     labels: new Map([
       ...labels,
       ...[...gameplayMusicLabels].filter(([name]) => !labels.has(name)),
+      // The Heavy break-up's deferred-once bit is C state, so its label lives
+      // in the encounter-director link (plan-4.6-placement.md §7.4 variant 2).
+      ...[...directorLabels].filter(([name]) => !labels.has(name)),
     ]),
     segmentSizes: {
       code: codeBytes,

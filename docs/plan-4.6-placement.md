@@ -387,6 +387,23 @@ from** — STATUS already requires this and it is not waived here.
 
 ## 7. Question 2 — the Bomber breakup
 
+> **RESOLVED 2026-09-22 — VARIANT 2, BOTH ARCHETYPES.** The owner chose
+> variant 2 and extended it from the Bomber alone to the Raider as well: one
+> implementation, differing only by a per-archetype offset table.
+> Owner question **Q-2** (do the fragments hurt the player?) is answered **no**
+> — the effect pool stays collisionless. Owner question **Q-3** (what happens
+> when both Bomber members die close together?) is answered in the cheap
+> direction: a claim while a break-up is already pending is refused without
+> spending a token, so the pending retry spawns once, at the second member's
+> position. Two deviations from §7.3/§7.5 as written, both for bytes and both
+> in the favourable direction: the ungated retry went to
+> `integration_update_enemy` rather than `update_enemy` (`BROADSIDE` has a 3-B
+> tail and the inline form needs 8), which means a Light-swarm frame pays
+> nothing; and the whole ASM half went to the pickup stream fill rather than
+> being split with the `BROADSIDE` tail. MEASURED cost, placement and gates:
+> `docs/STATUS.md` §"Heavy break-up — both archetypes".
+
+
 ### 7.1 Today's Heavy death path, MEASURED from source
 
 Trace, in call order:

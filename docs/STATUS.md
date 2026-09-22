@@ -36,7 +36,10 @@ below) on top of `f4cb18b`, the documentation-only reconciliation of
 the owner acceptance recorded here. All of it runs in the accepted runtime
 below and all of it is owner-accepted under that checkpoint.
 
-**Five `OWNER-SMOKE CANDIDATE`s are outstanding: the ADR-003 boot splash —
+**Six `OWNER-SMOKE CANDIDATE`s are outstanding: the Heavy break-up** (section
+"Heavy break-up — both archetypes" below; it closes the backlog item "HEAVY
+DESTRUCTION EFFECT" and costs the audit's binding rows nothing), **the ADR-003
+boot splash —
 cassette sound, fade, SPACE/FIRE skip and the allied-blue ship** (section
 "ADR-003 boot splash" below; it raises the opt-in initial-block ceiling 105 →
 107 sectors, which moves the ATR milestones +4/+4 inside the warn band and is
@@ -807,6 +810,141 @@ four claim sites with the two deferrable ones behind the wrapper),
 `4cd3024`'s**, 0 new and 0 fixed, A/B'd from a clean worktree export of that
 commit built the same way. The 116 are the pre-existing set recorded under
 "Known open defects".
+
+---
+
+## Heavy break-up — both archetypes — `OWNER-SMOKE CANDIDATE` (2026-09-22)
+
+Branch `feat/kill-rewards` from `main` at `8a4fb1b`.
+`docs/plan-4.6-placement.md` §7.4 **variant 2**, extended from the Bomber alone
+to **both** Heavy archetypes (Raider and Bomber). Closes the backlog item
+"HEAVY DESTRUCTION EFFECT".
+
+**What was true before, and why it was not a regression.** §7.1 MEASURED it:
+`render_shared_fighter_explosions` reads
+`FIGHTER_EXPLOSION_TIMER + FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT` only, so the
+six-phase PMG explosion was **never drawn for the enemy slot**; the 24-frame
+`FIGHTER_EXPLOSION_TIMER + ENEMY_SLOT` was a lifecycle hold, not an animation;
+the only feedback was the four-frame `COLBK` flash. "Vanishes in a flash" was
+the literal implementation, long-standing, not a regression.
+
+**What it is now.** A dying Heavy member publishes one core plus four fragments
+into the existing five-slot collisionless effect pool, placed from a
+**per-archetype offset table across the hull footprint** instead of the +4/+4
+point cluster `spawn_breakup_effects_at` hard-codes for debris. **No new art,
+no new object type, no new pool, no new renderer:** the existing debris core
+glyph (110), the existing fragment glyphs (118-119), the existing stagger
+renderer, the existing 30-frame fragment / 5-frame core lifetimes.
+
+**One implementation, two tables.** `heavy_breakup_offset_index` selects by
+`ENEMY_ARCHETYPE`; a third Heavy shape needs a table row, not a code path.
+The Raider (16 HPOS × 14 scanlines) gets the smaller spread, the Bomber
+(32 HPOS × 16, eight cells of silhouette) the larger: corners at cells 0 and 6
+with the core at cell 3.
+
+**Scheduling.** A **DEFERRABLE** consumer of the one-expensive-event token —
+the fifth claim site and the third deferrable one — claiming through
+`light_take_deferrable_token`, so the **ring-rotate gate applies with no new
+gate code**. The enqueue costs 0 new bytes:
+`begin_enemy_fighter_explosion_tail` already writes
+`FIGHTER_EXPLOSION_X/Y + ENEMY_SLOT` from the live hull position on the kill
+frame. **The forcing rule** is `heavy_breakup_pending` at `$8128` plus an
+**ungated** second attempt at `integration_update_enemy`, which bounds the
+delay at **two frames** with no counter and no deadline compare — the same
+shape as the Light's `BREAKUP_PENDING` branch.
+
+**Not gated, on either return:** the kill, its score, its sound and the COLBK
+flash. `resolve_enemy_damage` does all four on the kill frame whichever way
+the claim answers.
+
+**Collisionless** (owner decision Q-2, plan §7.6). Contact damage lives in
+`entity_collide_player`, which walks the **interactive** entity pool
+(`ENTITY_*`); the fragments are in the `EFFECT_*` pool, which no collision path
+reads. A dying Heavy's fragments cannot hurt the player.
+
+**Where the retry hook went, and why not where the plan said.** Plan §7.3 put
+the ungated second attempt inside `update_enemy`. `update_enemy` is in
+`BROADSIDE`, whose free tail is **3 B**, and the smallest inline form of the
+retry is 8; it overflowed by 10 on the first attempt. It went instead to
+`integration_update_enemy` in `CODE`, which is `update_enemy`'s only caller and
+has **already established that a Heavy exists** before it asks. That is
+strictly better than the plan's site for the audit: on a Light-swarm frame —
+where every binding row of the whole replay set is — `ENEMY_ACTIVE` is zero,
+the existing early branch is taken and the break-up costs **0 cycles**. The
+test itself lives in `PICKUP_CODE`, so the resident site spends three bytes of
+`jsr` and the seven-byte `integration_update_enemy_pad` gives them back: every
+later `CODE` entry keeps the address it had.
+
+### Bytes (MEASURED at the candidate)
+
+| Piece | Home | Bytes | Tail after |
+| --- | --- | ---: | ---: |
+| `heavy_death_feedback` `$8A7B`, `heavy_breakup_retry` `$8A84`, `heavy_spawn_breakup` `$8A8A`, `heavy_breakup_offset_index` `$8ADE`, `heavy_breakup_offsets` `$8AE1-$8AF4` | pickup stream fill `PICKUP_CODE` | **122** | 236 → **114 B** |
+| `enemy_c_heavy_breakup_claim` | `HYBRID_C_ARENA` | **26** | 114 → **88 B** (744 / 832) |
+| `heavy_breakup_pending` | `HYBRID_HEAVY_BREAKUP` `$8128`, own segment, named ld65 asserts | **1** | unowned gap 24 → **23 B** (`$8129-$813F`) |
+| `lifecycle_c_init`'s clear | `HYBRID_C_EXT` composite | **3** | 880 → **883 B** |
+| `jsr heavy_breakup_retry` | resident `CODE` | **+3, −3** | `integration_update_enemy_pad` 7 → **4 B**; **net 0** |
+
+`HYBRID_C_WINDOW` is **unchanged at 801 B**: dropping `static` from
+`light_take_deferrable_token` so the arena can call it costs nothing, because
+the gate was already a real function with two callers. Code window tail still
+**27 B**, `BROADSIDE` tail still **3 B**, `ENTITY_CODE` tail still **1 B**.
+
+**Re-cost against the plan's Bomber-only ~90 B.** The plan costed variant 2 at
+~90 B for the Bomber alone. The delta to **149 B** is: the second archetype's
+offset table and the 3-byte index (**+13**); a standalone five-cell fill loop
+rather than a flag inside `spawn_breakup_effects_at`, chosen so the **debris
+hot path is not touched at all** (**+~35**); and the retry's indirection
+through `PICKUP_CODE` to keep the resident segment size-neutral.
+
+### Cycles
+
+| Where | Cost |
+| --- | --- |
+| Kill frame | **+~20** — the claim and its branch, on a frame that already pays score, sound, erase and `HITCLR` |
+| Spawn frame | **~1,100** MEASURED-ESTIMATE, against the 1,063 `light_spawn_breakup` costs through the same call chain; the delta is the two extra indexed loads per cell |
+| Per frame while the fragments live | **+0 new** — `update_transient_effects` / `entity_effects_render` already walk this pool for debris break-ups, with the same slot count |
+| Every frame with a Heavy alive, nothing pending | **+19** — `jsr`/`rts` plus one load and one branch |
+| Every frame with **no** Heavy — every binding row of the audit | **0** |
+
+**Where the cost lands relative to the binding rows.** The Heavy/swarm
+admission rule (plan §2.4, two C-decided guards) means **Heavy and swarm never
+coexist**, so a Heavy break-up cannot occur on a Light-swarm frame at all, and
+`director-complete-1-natural-sweep-fire0` and the other binding rows are
+Light-swarm rows. The cost lands on the **Heavy rows**, which sit far below the
+fence.
+
+### Tests
+
+`tests/heavy-breakup.test.mjs`, eight tests, all **A/B'd RED** against a clean
+build of the tree without the change:
+
+| test | proves |
+| --- | --- |
+| a Raider / a Bomber kill breaks the hull up into its own fragment spread | the five cells land at that archetype's table offsets from the captured anchor, with the existing glyphs |
+| a Raider / a Bomber kill reaches its fragments within two frames | the bound, under the shipped token budget and whatever the scroll cadence is doing |
+| the two archetypes differ only by their spread, and the Bomber's is wider | one implementation, two tables; each spread crosses at least three character cells |
+| a rotate-frame kill defers, and the deferred break-up lands on the very next frame | the rotate gate, then the forcing rule with the budget poked to zero — which refuses every gated claim there is |
+| the kill frame keeps its score, its sound and its COLBK flash | measured on the DEFERRING frame, the one that could lose them |
+| no break-up fragment can ever damage the player | owner decision Q-2, with a full cluster sitting on the player for eight frames |
+
+**Two frozen pins re-recorded deliberately**, both the tripwires that exist to
+make a new token consumer get reviewed, and the owner reviewed this one:
+`tests/hybrid-lifecycle.test.mjs`'s `_light_take_token` call-site list (four
+sites → **five**, two deferrable → **three**) and the extension composite
+(880 → **883 B**). `scripts/runtime-cycles.mjs`'s own replay invariant was
+**inverted**: a Raider death must now either spawn its break-up or defer it,
+where it previously had to leave the pool untouched.
+
+**What the older Raider traces still cover.** `tests/entity-effects.test.mjs`'s
+three `executeInterceptorBreakupTrace` tests keep passing, and truthfully: that
+harness drives `update_enemy` directly rather than through
+`integration_update_enemy`, and never runs `lifecycle_c_init`, so the token
+budget is zero and the kill frame always defers. They therefore still prove the
+**deferring half** — that the kill frame publishes nothing into the pool,
+leaves an unrelated debris break-up alone, and costs no more than it did. The
+spawning half, the bound and the geometry are `tests/heavy-breakup.test.mjs`.
+A note in that file says so.
 
 ---
 
@@ -3257,16 +3395,9 @@ it to size a budget, never to predict a frame. The committed baselines
 Deliberately deferred work, distinct from the open defects above. Not to be
 started without owner instruction.
 
-- HEAVY DESTRUCTION EFFECT. A destroyed Heavy (Raider, Bomber) vanishes with a
-  screen flash, while a Light breaks apart into fragments. Owner-observed, and
-  verified pre-existing on 0a90c1c (before Option D and the Light work), so
-  not a regression. The Bomber is QUAD, 32 HPOS wide, and its body disappears
-  in one frame; a small central effect reads as a disappearance. A destruction
-  effect scaled to the Heavy's size would give the heaviest enemy the heaviest
-  death. It is a burst effect, so it fits the token as a consumer under the
-  scheduling rules: visual-only, position captured at enqueue, bounded delay.
-  Cost to be measured: the Light breakup is ~1,000 cycles, and a wider effect
-  is likely more.
+- ~~HEAVY DESTRUCTION EFFECT~~ — **CLOSED 2026-09-22**, implemented as
+  plan-4.6-placement.md §7.4 **variant 2** for **both** Heavy archetypes. See
+  "Heavy break-up" below.
 
 - **PROJECTILE LOAD LEVERS — costed 2026-09-21, NOT applied.** A **25 % fire-rate
   reduction** (with damage +25 % to keep time-to-kill, or damage left to final

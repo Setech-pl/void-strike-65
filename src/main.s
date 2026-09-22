@@ -10327,11 +10327,20 @@ spawn_breakup_effects_at:
 ; enter the generic debris allocator or clear any already-active effect.
 .segment "CODE"
 spawn_interceptor_breakup_effects:
-    ; Raider destruction is PMG/background feedback only. Do not touch the
-    ; shared character-effect pool: a legitimate debris breakup may be active.
-    ; Already-emitted hostile PairShots are independent of their emitter (owner
-    ; decision 2026-09-17): they keep their normal lifecycle after the kill.
-    jmp begin_enemy_fighter_explosion
+    ; HEAVY BREAK-UP, owner smoke 2026-09-21. Until this task a Heavy of either
+    ; archetype "vanished in a flash": render_shared_fighter_explosions reads
+    ; FIGHTER_EXPLOSION_PLAYER_FIGHTER_SLOT only, so the six-phase PMG
+    ; explosion was never drawn for the enemy slot and the 24-frame timer was a
+    ; lifecycle hold, not an animation. The only feedback was the four-frame
+    ; COLBK flash. That was the literal implementation and not a regression;
+    ; the owner reversed it here.
+    ;
+    ; Already-emitted hostile PairShots stay independent of their emitter
+    ; (owner decision 2026-09-17): they keep their normal lifecycle after the
+    ; kill, and nothing below touches them.
+    ;
+    ; The body is in PICKUP_CODE, so this resident site stays a three-byte jmp.
+    jmp heavy_death_feedback
 
 ; Retain an unreachable instrumentation symbol so native traces positively
 ; prove that no delayed Raider character materialisation executes.
@@ -11238,6 +11247,24 @@ retry_first_capital_admission:
 integration_update_enemy:
     lda ENEMY_ACTIVE
     beq integration_interceptor_retry
+    ; THE HEAVY BREAK-UP FORCING RULE (plan-4.6-placement.md §7.3/§7.4, owner
+    ; smoke 2026-09-21). A kill frame whose DEFERRABLE token claim was refused
+    ; parked the event in HEAVY_BREAKUP_PENDING; this second attempt is not
+    ; gated at all — it ignores the rotate marker and the token budget alike,
+    ; exactly as the Light's BREAKUP_PENDING branch does. That is what bounds
+    ; the wait at two frames with no counter and no deadline compare.
+    ;
+    ; It is HERE rather than inside update_enemy for two reasons. A Heavy
+    ; formation is two members: the first member's death leaves ENEMY_ACTIVE in
+    ; the ACTIVE state and only the last one reaches EXPLODING, so a retry
+    ; inside update_enemy's state dispatch would have to be written twice. And
+    ; this site has ALREADY established that a Heavy exists, so the frames that
+    ; cannot have a pending breakup — every Light-swarm frame, which is where
+    ; the whole audit's binding rows are — pay nothing at all for it.
+    ; The test itself is in PICKUP_CODE with the rest of the break-up, so this
+    ; resident site spends three bytes and the pad below gives them back: every
+    ; later CODE entry keeps the address it has today.
+    jsr heavy_breakup_retry
     ; Every Heavy archetype on P1/P2 shares the member loop; heavy_member_update
     ; dispatches its movement policy (Raider ASM motion or the C handler).
     lda ENEMY_PROFILE_RENDERER_CLASS
@@ -11247,7 +11274,7 @@ integration_update_enemy:
 @done:
     rts
 integration_update_enemy_pad:
-    .res 7,$EA                  ; retired movement gate; later CODE entries stay put
+    .res 4,$EA                  ; retired movement gate; later CODE entries stay put
 
 integration_interceptor_recycle:
     ldx #DIRECTOR_HAZARD_INTERCEPTOR
@@ -11502,6 +11529,134 @@ provisional_interceptor_director_request:
 interceptor_admission_retry_frames:
     .byte 48,36,24
 
+; ---------------------------------------------------------------------------
+; HEAVY BREAK-UP — plan-4.6-placement.md §7.4 variant 2, owner smoke
+; 2026-09-21, extended from the Bomber alone to BOTH Heavy archetypes.
+;
+; No new art, no new object type, no new pool and no new renderer: the existing
+; five-slot collisionless effect pool, the existing debris core glyph, the
+; existing fragment glyphs 118-119, the existing stagger renderer and the
+; existing 30-frame fragment lifetime. The one thing that is new is that the
+; four fragments are placed from a per-archetype offset table across the hull
+; footprint instead of the +4/+4 point cluster spawn_breakup_effects_at
+; hard-codes for debris — which is the whole difference between "something
+; small broke" and "the ship came apart".
+;
+; COLLISIONLESS (owner decision Q-2, plan §7.6). Contact damage lives in
+; entity_collide_player, which runs over the INTERACTIVE entity pool
+; (ENTITY_*). These cells are in the EFFECT_* pool, whose own comment calls it
+; the generic collisionless renderer and which no collision path reads. A
+; dying Heavy's fragments therefore cannot hurt the player, exactly as a
+; Light's have never been able to.
+;
+; This whole block is in PICKUP_CODE, the 236-byte stream fill §7.5 named: it
+; is contiguous, already reserved, already transported and its neighbour is
+; already asserted, and it costs the resident CODE segment nothing but the
+; retargeted jmp above and the thirteen bytes of the forcing rule's retry.
+heavy_death_feedback:
+    jsr begin_enemy_fighter_explosion
+    ; The enqueue the owner's effect-scheduling decision requires has just
+    ; happened and cost 0 new bytes: begin_enemy_fighter_explosion_tail wrote
+    ; FIGHTER_EXPLOSION_X/Y + ENEMY_SLOT from the member's live hull position,
+    ; on the kill frame, before anything can move. C now says whether the
+    ; expensive half may run on this frame. Kill, score, sound and the COLBK
+    ; flash are NOT gated and are not here: resolve_enemy_damage does all four
+    ; on the kill frame whichever way this answers.
+    jsr HYBRID_ENEMY_HEAVY_BREAKUP_CLAIM
+    bne heavy_spawn_breakup
+    rts
+
+; The expensive half on its own, so the forcing rule's ungated retry at the
+; head of update_enemy can reach it too. Registers are free: every caller
+; reloads X from ENEMY_TARGET_SLOT and none reads Y across the call.
+;
+; MEASURED-ESTIMATE ~1,100 cycles on the frame it runs, against the 1,063 that
+; light_spawn_breakup costs through the same call chain; the delta is the two
+; extra indexed loads per cell. Per frame while the fragments live: +0 new —
+; update_transient_effects and entity_effects_render already walk this pool for
+; debris breakups, with the same slot count.
+; The forcing rule's ungated second attempt. Nothing can be pending unless a
+; Heavy died within the last two frames, and integration_update_enemy has
+; already established that a Heavy exists before it asks.
+heavy_breakup_retry:
+    ldy HEAVY_BREAKUP_PENDING
+    bne heavy_spawn_breakup
+    rts
+
+heavy_spawn_breakup:
+    lda #$00
+    sta HEAVY_BREAKUP_PENDING   ; spent, whichever attempt this is
+    ; A debris breakup or an older Heavy breakup may still be live; the pool
+    ; holds one, so the newer event wins, exactly as the debris path does.
+    jsr clear_transient_effects
+    ldx ENEMY_ARCHETYPE
+    ldy heavy_breakup_offset_index,x
+    ; Slots descend 4..0 while the table ascends, so the table's LAST pair is
+    ; slot zero's — the core — and its first four are the fragments.
+    ldx #EFFECT_DEBRIS_FRAGMENT_COUNT
+@cell:
+    lda #EFFECT_TYPE_DEBRIS_FRAGMENT
+    sta EFFECT_TYPE,x
+    lsr
+    sta EFFECT_STATE,x
+    lda #EFFECT_DEBRIS_FRAGMENT_TIMER_LOAD
+    sta EFFECT_TIMER,x
+    lda #EFFECT_FRAGMENT_GLYPH_BASE
+    sta EFFECT_RENDER_ID,x
+    lda FIGHTER_EXPLOSION_X+FIGHTER_EXPLOSION_ENEMY_SLOT
+    clc
+    adc heavy_breakup_offsets,y
+    sta EFFECT_X,x
+    iny
+    lda FIGHTER_EXPLOSION_Y+FIGHTER_EXPLOSION_ENEMY_SLOT
+    clc
+    adc heavy_breakup_offsets,y
+    sta EFFECT_Y,x
+    iny
+    dex
+    bpl @cell
+    ; Slot zero is a core by fixed pool role, as it is for debris: retag its
+    ; semantic type, shorten its timer and give it the debris core glyph. The
+    ; debris path reads ENTITY_RENDER_ID there because a live debris object
+    ; owns one; a Heavy does not, so the bank's base glyph is named directly.
+    lsr EFFECT_TYPE
+    lda #EFFECT_DEBRIS_CORE_TIMER_LOAD
+    sta EFFECT_TIMER
+    lda #ENTITY_DEBRIS_GLYPH_BASE
+    sta EFFECT_RENDER_ID
+    lda #EFFECT_DEBRIS_FRAGMENT_COUNT+1
+    sta EFFECT_ACTIVE_COUNT
+    lda #EFFECT_DEBRIS_ACTIVE_MASK
+    sta EFFECT_ACTIVE_MASK
+    rts
+
+; ONE implementation for both Heavy archetypes; they differ only by which ten
+; bytes of offsets they read. Indexed by ENEMY_ARCHETYPE so a third Heavy
+; shape needs a table row, not a code path.
+heavy_breakup_offset_index:
+    .byte 0                     ; Raider   (ENEMY_ARCHETYPE_INTERCEPTOR)
+    .byte 0                     ; TALON, not a Heavy the game admits
+    .byte HEAVY_BREAKUP_TABLE_STRIDE  ; Bomber (ENEMY_ARCHETYPE_SCYTHE_BOMBER)
+.assert *-heavy_breakup_offset_index = ENEMY_IMPLEMENTED_COUNT, error, "the Heavy breakup index must cover every implemented archetype"
+
+; (dx, dy) per cell, signed, from the anchor
+; FIGHTER_EXPLOSION_X/Y + ENEMY_SLOT — the member's visible left edge and the
+; vertical centre of its frame. Order is slot 4, 3, 2, 1, then 0 (the core).
+; EFFECT_X is HPOS and the renderer divides it by four, so the two X offsets
+; of a row must differ by at least four to land in different character cells.
+;
+; Raider: 16 HPOS by 14 scanlines, anchor Y = top+3. The spread is the smaller
+; of the two — four cells wide, so the corners sit at cells 0 and 2.
+; Bomber: 32 HPOS by 16 scanlines, anchor Y = top+4, eight cells of silhouette:
+; the corners sit at cells 0 and 6 and the core at cell 3, which is what makes
+; a quad-width hull read as coming apart rather than as a point breaking.
+HEAVY_BREAKUP_TABLE_STRIDE = 10
+heavy_breakup_offsets:
+    .byte  1, <-2,  11, <-2,   1,  8,  11,  8,   6,  3   ; Raider
+    .byte  2, <-3,  26, <-3,   2,  9,  26,  9,  14,  4   ; Bomber
+.assert *-heavy_breakup_offsets = 2*HEAVY_BREAKUP_TABLE_STRIDE, error, "each Heavy breakup table is five (dx,dy) pairs"
+.assert HEAVY_BREAKUP_TABLE_STRIDE = 2*(EFFECT_DEBRIS_FRAGMENT_COUNT+1), error, "the Heavy breakup table must cover the whole five-slot pool"
+
 .segment "ENTITY_CODE"
 allied_engine_overlay_masks:
     EMIT_ALLIED_ENGINE_OVERLAY_MASKS
@@ -11580,6 +11735,7 @@ begin_capital_projectile_frame:
 .export entity_debris_hit, entity_debris_destroyed
 .export clear_transient_effects, spawn_debris_destruction_effects
 .export spawn_breakup_effects_at, spawn_interceptor_breakup_effects
+.export heavy_death_feedback, heavy_spawn_breakup, heavy_breakup_retry
 .export materialize_interceptor_breakup_effects
 .export update_transient_effects, render_transient_effect_overlays
 .export erase_transient_effect_overlays, erase_interactive_entity_overlays

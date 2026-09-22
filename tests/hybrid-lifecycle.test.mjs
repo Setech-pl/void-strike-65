@@ -87,8 +87,13 @@ test("C EnemyArchetype is a compact exact Raider record in legal extension place
   // Plan §4.6, 2026-09-21: the rotate gate's own byte went to $8127 the same
   // way, and lifecycle_c_init clears it too - 877 + 3 = 880, tail 19 B. The
   // gate's code (light_take_deferrable_token) is in the window, not here.
+  // Heavy break-up, 2026-09-22 (plan-4.6-placement.md §7.4 variant 2): the
+  // same shape a third time - its deferred-once bit went to $8128 and
+  // lifecycle_c_init clears it, 880 + 3 = 883, tail 147 B. The claim's own
+  // code is in HYBRID_C_ARENA with the rest of the Heavy's C, and its ASM in
+  // the pickup stream fill; only the initialiser lands in this composite.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
-    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 880 });
+    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 883 });
   const window = manifest.residentCapacity.basicWindow;
   assert.equal(window.address, 0xb600, "the Light C lives in the code window");
   assert.ok(window.usedBytes > 0 && window.usedBytes <= window.capacityBytes,
@@ -231,8 +236,15 @@ test("ownership is singular and generated C requires neither software stack nor 
   // attempt ungated, which is what bounds the wait at two frames. So the
   // frozen list loses one claim site and gains none - four sites, the two
   // deferrable ones behind the gate wrapper, which tail-jumps into
-  // _light_take_token rather than calling it. A FIFTH site here would be a
-  // consumer nobody reviewed, exactly as before.
+  // _light_take_token rather than calling it.
+  // 2026-09-22, plan-4.6-placement.md §7.4 variant 2, owner smoke 2026-09-21:
+  // the HEAVY BREAK-UP is the FIFTH claim site and the THIRD deferrable one -
+  // enemy_c_heavy_breakup_claim, in the arena. It is the consumer this pin
+  // exists to make somebody review, and the owner reviewed it: visual only,
+  // its position captured by begin_enemy_fighter_explosion_tail on the kill
+  // frame, and forced within two frames by the ungated retry at
+  // integration_update_enemy. Its own deferred-once bit is heavy_breakup_pending
+  // at $8128. A SIXTH site would again be a consumer nobody reviewed.
   const jsrs = [...executableGenerated.matchAll(/\bjsr\s+([^\s;]+)/g)].map((match) => match[1]);
   // Owner fix (a): enemy_c_light_wave wraps _light_wave_step so the frame's
   // slot limit is derived on EVERY frame, not only while a wave is live.
@@ -242,12 +254,14 @@ test("ownership is singular and generated C requires neither software stack nor 
       "_bomber_may_fire", "_bomber_turn", "_bomber_turn", "_bomber_turn", "_bomber_may_fire",
       "_bomber_colour", "_light_tick_body",
       "_light_take_deferrable_token", "_light_take_deferrable_token",
+      "_light_take_deferrable_token",
       "_light_wave_step", "_light_ceiling", "_light_live_count", "_light_free_slot",
       "_light_take_token", "_light_pair_for_record", "_light_reload",
       "_encounter_light_schedule_advance", "_light_admit", "_light_live_count",
       "_light_take_token", "_light_reload"]);
-  assert.equal(jsrs.filter((name) => name.startsWith("_light_take_")).length, 4,
-    "exactly the four token claim sites of plan §2.5 with [C3] and §4.6");
-  assert.equal(jsrs.filter((name) => name === "_light_take_deferrable_token").length, 2,
-    "exactly the two DEFERRABLE consumers of plan §4.6: the install and the breakup spawn");
+  assert.equal(jsrs.filter((name) => name.startsWith("_light_take_")).length, 5,
+    "exactly the five token claim sites of plan §2.5 with [C3], §4.6 and the Heavy break-up");
+  assert.equal(jsrs.filter((name) => name === "_light_take_deferrable_token").length, 3,
+    "exactly the three DEFERRABLE consumers: the install, the Light breakup spawn " +
+    "and the Heavy break-up claim");
 });

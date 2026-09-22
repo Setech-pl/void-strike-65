@@ -449,6 +449,26 @@ uint8_t light_screen_slot_limit;
  * Also a bss segment with no file image: lifecycle_c_init clears it so a
  * garbage value cannot match FRAME_COUNTER once at startup. */
 uint8_t light_rotate_frame;
+#pragma bss-name ("HYBRID_HEAVY_BREAKUP")
+/* Heavy break-up (plan-4.6-placement.md §7.4 variant 2, owner smoke
+ * 2026-09-21). ONE byte: "a Heavy member died and its fragments have not been
+ * spawned yet". It is the Heavy's equivalent of the Light's
+ * LIGHT_BREAKUP_PENDING state, which the Light gets for free because it has a
+ * per-slot state byte; HYBRID_HEAVY_STATE is 11 of 11, so this takes the next
+ * byte of the same unowned gap light_screen_slot_limit and light_rotate_frame
+ * took ($8126, $8127), leaving $8129-$813F, 23 B.
+ *
+ * It carries no position: begin_enemy_fighter_explosion_tail already writes
+ * FIGHTER_EXPLOSION_X/Y + ENEMY_SLOT on the kill frame, before anything can
+ * move, which is the enqueue the owner's effect-scheduling decision requires
+ * and costs 0 new bytes. It carries no archetype either: ENEMY_ARCHETYPE
+ * stands until the formation recycles, which cannot happen inside the two
+ * frames this bit lives.
+ *
+ * Also a bss segment with no file image, so lifecycle_c_init clears it: a
+ * garbage value here would make the first gameplay frame spawn a breakup
+ * nobody killed. */
+uint8_t heavy_breakup_pending;
 #pragma bss-name ("BSS")
 
 static void heavy_publish_profile(void);
@@ -498,7 +518,7 @@ static uint8_t light_take_token(void)
  *
  * The forcing rule that BOUNDS the wait is not here, it is at the retry: see
  * the BREAKUP_PENDING branch of light_tick_body. */
-static uint8_t light_take_deferrable_token(void)
+uint8_t light_take_deferrable_token(void)
 {
     if (light_rotate_frame == FRAME_COUNTER) {
         return 0u;
@@ -590,6 +610,7 @@ void lifecycle_c_init(void)
     } while (light_slot != 0u);
     light_screen_slot_limit = 0u;
     light_rotate_frame = 0u;
+    heavy_breakup_pending = 0u;
     light_token_budget = LIGHT_TOKEN_BUDGET;
     light_token = LIGHT_TOKEN_BUDGET;
     light_token_frame = FRAME_COUNTER;
@@ -1421,4 +1442,46 @@ uint8_t enemy_c_heavy_tick(void)
 colour:
     bomber_colour();
     return heavy_scratch;
+}
+
+/* THE HEAVY BREAK-UP CLAIM (plan-4.6-placement.md §7.4 variant 2, owner smoke
+ * 2026-09-21). Called by ASM on a Heavy member's kill frame, AFTER
+ * begin_enemy_fighter_explosion has captured the member's hull position, and
+ * before anything decides whether to spawn fragments. Returns 1 when the
+ * fragments may spawn on this very frame, 0 when they are deferred.
+ *
+ * It is a DEFERRABLE consumer of the one-expensive-event token in exactly the
+ * sense plan-light-multiplicity.md §4.6 defines: visual only, its position is
+ * already captured, and it is forced within two frames. So it claims through
+ * light_take_deferrable_token, which is why that wrapper stopped being static
+ * - the gate itself stays in the window with the Light's own two consumers,
+ * and this third one reaches it by name rather than by a second copy.
+ *
+ * What is NOT gated, on either return: the kill, its score, its sound and the
+ * COLBK flash. resolve_enemy_damage does all four on the kill frame whichever
+ * way this answers, exactly as light_destroyed does for a Light.
+ *
+ * A break-up already pending is answered 0 without a claim. The effect pool
+ * holds ONE break-up (EFFECT_ACTIVE_LIMIT 5 = one core + four fragments), so
+ * a second Heavy member dying while the first is still pending cannot produce
+ * a second cluster whatever this returns; spending a token to spawn one that
+ * the pending retry would wipe a frame later is the worst of both. The
+ * position the retry then uses is the SECOND member's, because
+ * begin_enemy_fighter_explosion_tail has just overwritten the snapshot - the
+ * truncation plan §7.6 records as owner question Q-3, resolved here in the
+ * cheap direction. */
+uint8_t enemy_c_heavy_breakup_claim(void)
+{
+    if (heavy_breakup_pending != 0u) {
+        return 0u;
+    }
+    if (light_take_deferrable_token() != 0u) {
+        return 1u;
+    }
+    /* Deferred once. THE FORCING RULE: the retry is in ASM, at the head of
+     * update_enemy, and is not gated at all - it ignores the rotate marker and
+     * the token budget alike. That is what bounds the wait at two frames with
+     * no counter, exactly as the Light's BREAKUP_PENDING branch does. */
+    heavy_breakup_pending = 1u;
+    return 0u;
 }

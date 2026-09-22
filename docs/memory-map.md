@@ -40,7 +40,7 @@ column wherever it appears earlier or later in this file.
 | §4.4b "ENTITY_CODE free tail 45 → 13 B" | **1 B** at HEAD |
 | `$9D73-$9D74` 2 B "free ENTITY_CODE reservation tail" | 2 B, but it is the gap between `DIRECTOR_C_PRE` and `LEVEL1_DATA` — **not** an `ENTITY_CODE` tail |
 | `$8100-$810B` 12 B Light record; `$810C-$810F` 4 B unowned | `HYBRID_LIGHT_STATE` is **`$8100-$810F`, 16 B**; nothing there is unowned |
-| `$8119-$813F` 39 B unowned | `HYBRID_ENCOUNTER_STATE` `$8119-$811A` and `HYBRID_HEAVY_STATE` `$811B-$8125` occupy 13 B of it; real free was **`$8126-$813F`, 26 B**, then 25 B after owner fix (a) put `HYBRID_LIGHT_SCREEN` at `$8126`, and is **24 B (`$8128-$813F`)** since the rotate gate put `HYBRID_LIGHT_ROTATE` at `$8127` |
+| `$8119-$813F` 39 B unowned | `HYBRID_ENCOUNTER_STATE` `$8119-$811A` and `HYBRID_HEAVY_STATE` `$811B-$8125` occupy 13 B of it; real free was **`$8126-$813F`, 26 B**, then 25 B after owner fix (a) put `HYBRID_LIGHT_SCREEN` at `$8126`, 24 B after the rotate gate put `HYBRID_LIGHT_ROTATE` at `$8127`, and is **23 B (`$8129-$813F`)** since the Heavy break-up put `HYBRID_HEAVY_BREAKUP` at `$8128` |
 | `$5CF7-$5E05` 271 B free starfield tail | `STARFIELD` now ends `$5D93`; real free is **`$5D94-$5E05`, 114 B** |
 | `$7F05-$7F0F` 11 B "unassigned after cold staging" | Inside the arena's 215 B free tail `$7E39-$7F0F`. **Double-counted** if both rows are summed |
 | `$8600-$8601` near-star state (BSS table) **vs** `$85FE-$8601` 4 B `STAR_NEAR_SCREEN_HI` (*Accepted placement*) | **Both are wrong about the extent; neither is wrong about what it names.** Settled from the source — see the next section |
@@ -1122,7 +1122,8 @@ The current Light layout. It supersedes the steps 3-4 table below.
 | `$8100-$810F` | 16 | `HYBRID_LIGHT_STATE` — **0 free, exactly full**: the shared scratch, the three token bytes, the admission/pair statics and `light_slot_limit` |
 | `$8126` | 1 | `HYBRID_LIGHT_SCREEN` — `light_screen_slot_limit`, the published-slot bound: maintained by `light_publish` from `screen_hi`, read by `light_cell_resolve` |
 | `$8127` | 1 | `HYBRID_LIGHT_ROTATE` — `light_rotate_frame`, the ring-rotate marker: stored by `advance_starfield_layers`, read by `light_take_deferrable_token` |
-| `$8128-$813F` | **24 free** | unowned, reserved for 4.6 Director state (was 26, then 25) |
+| `$8128` | 1 | `HYBRID_HEAVY_BREAKUP` — `heavy_breakup_pending`, the Heavy break-up's deferred-once bit (plan-4.6-placement.md §7.4 variant 2, 2026-09-22): set by `enemy_c_heavy_breakup_claim` when the kill frame's deferrable claim is refused, cleared by `heavy_spawn_breakup` when the ungated retry spawns, cleared once by `lifecycle_c_init` |
+| `$8129-$813F` | **23 free** | unowned, reserved for 4.6 Director state (was 26, then 25, then 24) |
 | `$B600-$B920` | 801 | `HYBRID_C_WINDOW` — the Light C, Director link |
 | `$B921-$BBE4` | 708 | `LIGHT_KERNEL` — the Light ASM kernel, its own link |
 | `$BBE5-$BBFF` | **27 free** | — |
@@ -1139,6 +1140,22 @@ kernel 19, `HYBRID_C_SECTOR` window 18, BROADSIDE 3, code window **27**,
 `HYBRID_LIGHT_SLOTS` **0**, `HYBRID_LIGHT_STATE` **0**, unowned `$8128-$813F`
 **24**. Extension composite 874 → 877 → **880 B**. Transport 203 → 204 →
 **205 sectors**, eleven DFMC records. Packed `STARFIELD` 1,780 → **1,785 B**.
+
+**What the Heavy break-up moved (2026-09-22, plan-4.6-placement.md §7.4
+variant 2, both archetypes).** MEASURED at the candidate: **122 B into the
+pickup stream fill** `PICKUP_CODE` — `heavy_death_feedback`,
+`heavy_breakup_retry`, `heavy_spawn_breakup` and the two 10-byte offset tables
+with their 3-byte archetype index — taking that fill's tail **236 → 114 B**;
+**26 B into `HYBRID_C_ARENA`** for `enemy_c_heavy_breakup_claim`, taking the
+arena **718 → 744 of 832, tail 114 → 88 B**; **1 B of BSS at `$8128`**, its own
+segment with named ld65 asserts against both neighbours; and **0 B net in the
+resident `CODE` segment** — the three bytes of `jsr heavy_breakup_retry` come
+out of the seven-byte `integration_update_enemy_pad`, which shrinks 7 → 4 B, so
+every later `CODE` entry keeps the address it had. `HYBRID_C_WINDOW` is
+**unchanged at 801 B**: dropping `static` from `light_take_deferrable_token` so
+the arena can call it costs nothing, because the gate was already a real
+function with two callers. Code window tail still **27 B**; BROADSIDE tail
+still **3 B**; `ENTITY_CODE` tail still **1 B**.
 
 **What the rotate gate moved (2026-09-21, plan §4.6).** 1 B of state to
 `$8127`, its own segment with named ld65 asserts against both neighbours; 5 B

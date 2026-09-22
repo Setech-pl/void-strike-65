@@ -2156,6 +2156,21 @@ test("every canonical Raider death avoids character effects without changing sco
   }
 });
 
+// WHAT THESE THREE STILL COVER after the Heavy break-up (2026-09-22,
+// plan-4.6-placement.md §7.4 variant 2, owner smoke 2026-09-21). The owner
+// reversed "a Heavy death publishes no character effect": a Raider death now
+// spawns a five-cell break-up in the shared effect pool. These traces keep
+// passing, and truthfully, because of what executeInterceptorBreakupTrace is:
+// it drives `update_enemy` DIRECTLY rather than through
+// `integration_update_enemy`, which is where the forcing rule's ungated retry
+// lives, and it never runs lifecycle_c_init, so the one-expensive-event token
+// budget is zero and the kill frame's deferrable claim is always refused. What
+// they therefore still prove is the DEFERRING half of the new contract - that
+// the kill frame itself publishes nothing into the pool, leaves an unrelated
+// debris break-up alone, scores, sounds and flashes, and costs no more than it
+// did. The spawning half, the two-frame bound and the fragment geometry are in
+// tests/heavy-breakup.test.mjs, which drives production frames through the
+// real main loop.
 test("executed Raider destruction is character-free and XEX/ATR exact", () => {
   const xexTrace = executeInterceptorBreakupTrace({ root, artifact: "xex" });
   const atrTrace = executeInterceptorBreakupTrace({ root, artifact: "atr" });

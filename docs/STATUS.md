@@ -37,10 +37,13 @@ the owner acceptance recorded here. All of it runs in the accepted runtime
 below and all of it is owner-accepted under that checkpoint.
 
 **Eight `OWNER-SMOKE CANDIDATE`s are outstanding: the capital hull set v1 step
-1** (section "Capital hull set v1 — step 1" below; allied hull B and enemy style
-R1 replace the H4.2 C INDUSTRIAL pair, 73-replay PAL audit PASS with the worst
-fence margin **979 → 979**, boot smoke 8/8, full-suite failure list identical to
-`ded0687`), **the Heavy break-up** (section
+1, now carrying the v2 FULL MASS art** (section "Capital hull set v1 — step 1"
+below; the owner rejected the v1 look on hardware — a black deck interior left
+the hull reading as a thin ribbon — so the hull is redrawn as full mass to the
+screen edge with grooves and seams cut into it; allied hull and enemy style R1
+replace the H4.2 C INDUSTRIAL pair, 74-replay PAL audit PASS with the worst
+fence margin **979**, unmoved, boot smoke 8/8, boot 107 → 106 sectors, and a
+full-suite failure list identical to `ded0687`), **the Heavy break-up** (section
 "Heavy break-up — both archetypes" below; it closes the backlog item "HEAVY
 DESTRUCTION EFFECT", and it costs the worst fence margin 1,985 → **979**, which
 the owner should read before accepting it — three compliant alternatives are
@@ -222,26 +225,45 @@ section.**
 
 ---
 
-## Capital hull set v1 — step 1 — OWNER-SMOKE CANDIDATE (2026-09-22)
+## Capital hull set v1 — step 1 (art v2, FULL MASS) — OWNER-SMOKE CANDIDATE (2026-09-22)
 
 Branch `feat/hull-v2-generator` from `main` at `ded0687`. Step 1 of
-[plans/hull-set-v1.md](plans/hull-set-v1.md): the owner-approved set-B art
+[plans/hull-set-v1.md](plans/hull-set-v1.md): the owner-approved hull art
 replaces the accepted H4.2 C INDUSTRIAL allied/enemy pair. **The runtime is
-untouched.** The resident path still carries one allied map and one enemy map,
+untouched.**
+
+**The art is now v2.** The owner ran the step-1 smoke on hardware and rejected
+the v1 look: the deck interior was black, so the hull read as a thin ribbon
+floating in space rather than reaching the screen edge, and the v1 frame line
+and rib appeared as detached vertical lines that look like display artefacts.
+**Owner decision, 2026-09-22: the hull is FULL MASS out to the screen edge,
+with texture cut into the mass as grooves and seams.**
+`assets/graphics/hull-drafts/hull-set-v2.json` (preview
+`set-MASS-sheet.png`) is the source of truth and
+`scripts/hull-set-import.mjs` now reads it; `hull-set-v1.json` stays in Git as
+the superseded draft and the provenance of the rejected smoke. **The hull
+profile, the turret positions and count, the colour registers, the chamfer
+collision convention, the code layout inside 59-89 and every address are
+unchanged from v1** — only the pixels and the map cells behind the wall move. The resident path still carries one allied map and one enemy map,
 `build/capital-hulls.inc` emits byte-identical constants, and **every linked
 segment keeps its address and size** — `CODE $2000-$317D`, `RODATA
 $317E-$3FFF`, `STARFIELD $54E4-$5CA9`, `BROADSIDE $5E10-$780C`, `PICKUP_CODE
 $8776-$8B0D`. Only data bytes changed, so `docs/memory-map.md` has nothing to
 re-record (no reserved address, segment or range moved).
 
-`assets/graphics/capital-hulls.json` is now `formatVersion 2`: one allied hull,
-one shared blank, and four enemy styles by region, compiled into four level hull
-sets (allied ∪ shared ∪ style *n*). The enemy art and map are authored in allied
-orientation and mirrored at compile time. `scripts/hull-set-import.mjs` converts
-the reviewed draft `assets/graphics/hull-drafts/hull-set-v1.json` into that
-asset and `--check` asserts the committed asset is exactly what the draft
-produces, so the art cannot drift by hand. Per-level surface codes are
-**12 / 14 / 13 / 14** for R1-R4, inside decision AA's 14-code budget.
+`assets/graphics/capital-hulls.json` is `formatVersion 2`: one allied hull and
+four enemy styles by region, compiled into four level hull sets (allied ∪ style
+*n*). The enemy art and map are authored in allied orientation and mirrored at
+compile time. `scripts/hull-set-import.mjs` converts the reviewed draft
+`assets/graphics/hull-drafts/hull-set-v2.json` into that asset and `--check`
+asserts the committed asset is exactly what the draft produces, so the art
+cannot drift by hand. **v2 draws no blank cell**, so the v1 shared `deck` glyph
+is gone: the allied hull owns all seven of codes 59-65 (`solid`, `wall`, `wacc`,
+`ch_in`, `ch_out`, `groove`, `seam`) and each style owns its own 70-76. Per-level
+surface codes are **13 / 14 / 13 / 14** for R1-R4 (7 allied + 6/7/6/7 enemy),
+equal to the draft's own `totalWithAllied` counts and inside decision AA's
+14-code budget. The generator keeps its `faction: "shared"` rule for anything
+that declares one; no shipped glyph does.
 `packedDataBytes` is 1,005, unchanged. The four 280-byte per-style hull blocks
 are emitted to `build/hull-style-R{1..4}.bin`; nothing loads them yet — that is
 step 2.
@@ -266,13 +288,22 @@ chamfers and runs up to 13.
 
 ### Gates — the DEFAULT build
 
-XEX `b87189f3df589b846f1960ccad45fcec4fc97dd37949f4425afec99514c2dab4`
-(28,175 B), ATR `fd23aeb653b83f4fc7ac06e2f4f85e51e2326c54d2d4bccfcfc20bf5d6e0c83b`
-(92,176 B). Sizes unchanged; boot 107 sectors, unchanged.
+XEX `9ea9dbfa870d511b154132b3be7906fe4d52b916480278037a7c924460c953b9`
+(28,047 B), ATR `4622beb15b3f728d24905e8eeeeac2c3a9be003ea5be1ca62fa91e4c10c6079d`
+(92,176 B). **The link map is identical to the branch head in every segment —
+0 byte deltas, 0 address moves — and `packedDataBytes` is still 1,005.** The
+only envelope movement is a SHRINK in transport: solid mass packs better than a
+hull drawn around a black interior, so the initial block's content falls
+13,559 → 13,556 B and its LZ streams give a sector back — **boot 107 → 106
+sectors**, total transport 208 → 207, XEX payload 26,624 → 26,496 B, XEX file
+28,175 → 28,047 B. The resident staging end moves `$9AC3` → `$9AC0` (3 B of
+extra margin) and the BROADSIDE runtime packs 5,590 → 5,596 B. ATR size
+unchanged. `docs/boot-deadline-baseline.json` is **not** re-recorded: its rule
+is about deliberate growth, and boot smoke measures XEX unmoved at 135/392 with
+ATR 343/600 → 344/601, inside the ±10 warn band.
 
-**PAL timing audit — the full set, 73 replays (65 in the default run + 8
-mode-gated), 0 distinct miss events, 0 rows over the hard gate, 0 deadline
-overruns, 0 missed frames.** Boot smoke **8/8**. The evidence was regenerated
+**PAL timing audit — the full set, 74 replays, 0 distinct miss events, 0 rows
+over the hard gate, 0 deadline overruns, 0 missed frames.** Boot smoke **8/8**. The evidence was regenerated
 once as this branch's own change — `build:candidate` → `runtime:wall-trace
 --atari800-source=build/atari800-trace` → `build`, one unbroken default run.
 Recorded clause failures **40, 0 new and 0 disappeared**;
@@ -280,10 +311,15 @@ Recorded clause failures **40, 0 new and 0 disappeared**;
 `ded0687` alike, which is the recorded-failure state, not a regression.
 `tests/runtime-evidence-binding.test.mjs` green.
 
-**The worst fence margin is 979 → 979 cycles**, unmoved, at
-`director-complete-2-natural-sweep-fire0`. Against the committed evidence of
-`ded0687` the heaviest frame **moved between replays** rather than growing
-anywhere it binds:
+**The worst fence margin is 979 cycles**, unmoved, at
+`director-complete-2-natural-sweep-fire0` — the same replay, the same number the
+v1 art measured. The measured DMA-on maximum is **31,351** and the physical
+headroom **4,217**, both identical to the v1 art; rows over the 31,200 target
+are **7** across the whole set (4 on `director-complete-1-natural-sweep-fire0`,
+3 on `raider-remnant-rapid-xex-hard`), `>hard` is 0 everywhere. **The v2 art
+moves the runtime evidence by nothing at all.** Against the committed evidence
+of `ded0687` the heaviest frame had **moved between replays** rather than
+growing anywhere it binds:
 
 | replay | `ded0687` max wall | branch max wall | rows over the 31,200 target |
 | --- | ---: | ---: | --- |
@@ -296,7 +332,8 @@ anywhere it binds:
 | `debris-gate-capital-muzzle-ring-2-sweep-fire4` | — | 30,957 | 2 → **0** |
 
 Measured DMA-on maximum **31,216 → 31,351** (+135), physical headroom
-**4,352 → 4,217**. Rows over the **31,200 target** across the whole set go
+**4,352 → 4,217** — both against the accepted checkpoint, and both unmoved by
+the v2 art. Rows over the **31,200 target** across the whole set go
 **9 → 7** against the figures recorded for the accepted checkpoint; `>hard` is
 **0** on every one of the 73 replays, as is `missed_frames`. This is the
 second-order effect the plan's §9 predicted and bounded:
@@ -309,15 +346,20 @@ The debris visibility gate's single post-capital blank on
 unchanged (1 blank / 1 disappearance; the other two debris replays are 0 / 0).
 
 **Full-suite failure list identical to `ded0687`.** `npm test` on the **default**
-build: **800 tests, 688 pass, 109 fail, 3 todo**. The 109 names are exactly the
-109 recorded in the plan's Appendix A — **0 new, 0 disappeared**. `800 − 792 = 8`
-new tests, all passing: seven in `tests/hull-set-v1.test.mjs` and the shared-glyph
-rule in `tests/capital-hulls.test.mjs`. Nine existing tests were re-pinned, each
-with its reason in the test; two of those are deliberate shrinks — the
-`ENTITY_CODE` staging-to-BROADSIDE margin **81 → 84 B** (`ENTITY_CODE` is
-byte-identical; the new hull art packs 3 B smaller, `packedBytes` 2,727 →
-**2,724**) and the ANTIC 2 prototype's distinct map glyphs **22 → 20** (the blank
-is one shared glyph now, and R1 leaves two of the seven per-level slots unused).
+build: **800 tests, 689 pass, 108 fail, 3 todo**, plus the documented
+`docs/media` regeneration failure, which passes only on a second consecutive run
+because the first run already rewrote the tracked media — restore `docs/media`
+and it fails as it does on the baseline. Counted with it, the failures are
+exactly the **109** names of the plan's Appendix A: **0 new, 0 disappeared**.
+`800 − 792 = 8` new tests, all passing: seven in `tests/hull-set-v1.test.mjs`
+and the shared-glyph rule in `tests/capital-hulls.test.mjs`. Twelve existing
+tests carry re-pins, each with its reason in the test; the v2 art re-pinned six
+of them again — the surface pixel census, the ANTIC 2 prototype glyph names and
+count (**20 → 21**: nothing is shared any more, and R1 leaves one of its seven
+per-level slots unused), the H4 `capitalGlyphs` stream SHA, the capital-hulls
+strip preview SHA, the allied-map glyph names used by the corrupt-definition
+paths, and the transport sector pin in `tests/starfield.test.mjs`
+(**107 → 106**, the deliberate shrink above).
 
 **Allied steel: `$84` in the default build** (owner decision 1). A non-default
 review variant `--allied-steel=88|8A` (`npm run steel:88`) defines
@@ -325,10 +367,21 @@ review variant `--allied-steel=88|8A` (`npm run steel:88`) defines
 `dist/`, skips runtime measurement and is consulted by no gate. The $88 build for
 side-by-side smoke is `build/allied-steel-88/void-strike-65.xex`.
 
-**What the owner should look at in smoke:** the allied hull B on the left and
-enemy style R1 on the right; turret fire from both sides; and player contact on
-the chamfers, where the `ch_in` cell counts as hull (decision 7) and collision
+**What the owner should look at in smoke:** first, whether the hull now reads as
+mass reaching the screen edge rather than a floating ribbon, and whether the
+grooves and seams read as texture cut into it rather than as display artefacts —
+that is the whole point of v2. Then the allied hull on the left and enemy style
+R1 on the right; turret fire from both sides; and player contact on the
+chamfers, where the `ch_in` cell counts as hull (decision 7) and collision
 therefore sits at that cell's outer edge.
+
+**One thing in the v2 draft fought the generator, on two cells.** The generator
+stamps the standard emplacement at segment rows 8/9/10 and closes each ring row
+on the style's own `wall` glyph (owner decision: "turret positions and profile
+come from the generator"). The draft draws `wacc` at column 7 of allied row 10
+and of R4 row 12; the stamp replaces both with `wall`. Two accent cells, inside
+the emplacement, on two hulls. Everything else in the draft compiled exactly as
+authored, and every shipped glyph matches `hull-set-v2.json` byte for byte.
 
 ## PAL timing gate — distinct miss events
 

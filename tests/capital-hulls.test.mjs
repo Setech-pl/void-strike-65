@@ -309,8 +309,19 @@ test("generated include, packed maps, codebooks, and turret records match assemb
     readXexBytes(labels.get("allied_hull_codebook"), 16),
     Buffer.from(asset.codebooks.get("allied")),
   );
+  // Re-pinned for hull set v1 step 2: the enemy codebook and packed map are
+  // LEVEL data now — they travel in the level image's hull block, and their
+  // resident ranges are held as reserves so no address moved. The level block
+  // is checked against the compiler in tests/level-hull-block.test.mjs.
+  assert.equal(labels.get("enemy_hull_codebook"), undefined,
+    "a resident enemy codebook is back in the link");
+  assert.equal(labels.get("enemy_hull_packed_map"), undefined,
+    "a resident enemy packed map is back in the link");
   assert.deepEqual(
-    readXexBytes(labels.get("enemy_hull_codebook"), 16),
+    Buffer.from(fs.readFileSync(path.join(rootDirectory, "build",
+      manifest.capitalHulls.levelBlock.file)).subarray(
+      manifest.capitalHulls.levelBlock.offsets.codebook,
+      manifest.capitalHulls.levelBlock.offsets.glyphs)),
     Buffer.from(asset.codebooks.get("enemy")),
   );
   assert.deepEqual(
@@ -318,7 +329,10 @@ test("generated include, packed maps, codebooks, and turret records match assemb
     Buffer.from(asset.packedMaps.get("allied")),
   );
   assert.deepEqual(
-    readXexBytes(labels.get("enemy_hull_packed_map"), 160),
+    Buffer.from(fs.readFileSync(path.join(rootDirectory, "build",
+      manifest.capitalHulls.levelBlock.file)).subarray(
+      manifest.capitalHulls.levelBlock.offsets.packedMap,
+      manifest.capitalHulls.levelBlock.offsets.codebook)),
     Buffer.from(asset.packedMaps.get("enemy")),
   );
   assert.deepEqual(
@@ -529,7 +543,10 @@ test("assembled ANTIC 4 screen codes route allied steel and enemy burgundy effec
     const pixel = glyphPixelIndex % 4;
     return (characterRow * 8 + glyphLine) * 320 + column * 8 + pixel * 2;
   };
-  assert.equal(state.registerPixels[locate(alliedMass.screenCode, 2)], 0x84);
+  // Re-pinned by owner decision 2 of 2026-09-23: the step-1 smoke chose the
+  // brighter steel, so the release default is $88 and the level's own colour
+  // byte rides on top of it (tests/level-hull-block.test.mjs).
+  assert.equal(state.registerPixels[locate(alliedMass.screenCode, 2)], 0x88);
   assert.equal(state.registerPixels[locate(enemyMass.screenCode, 3)], 0x46);
 
   const bright = readCapitalHullsStripRuntimeState(source, definition, 0x46);

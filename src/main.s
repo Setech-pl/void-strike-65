@@ -13,6 +13,7 @@
 .include "starfield.inc"
 .include "menu-music.inc"
 .include "gameplay-music-abi.inc"
+.include "level-hull-block.inc"
 .include "entity-effects.inc"
 .include "loader-display-list.inc"
 .include "frontend-h31.inc"
@@ -522,12 +523,15 @@ CH_QUESTION = 31
 
 KAWASAKI_GREEN = $D8
 GAMEPLAY_COLPF0 = $0E
-; Owner decision 1 of 2026-09-22 keeps the allied steel at $84 in the default
-; build and asks for a non-default $88 build beside it for side-by-side smoke.
-; --allied-steel=88|8A defines the override; nothing else reads it, so the
-; release artifact and its gates are untouched.
+; Owner decision 2 of 2026-09-23 (docs/plans/hull-set-v1.md §13): the allied
+; steel is LEVEL data now. $88 — the brighter steel the owner chose at the
+; step-1 smoke — is the release default and the value the previews render, and
+; every gameplay start patches the DLI's immediate operand from the level
+; block's colour byte, so the second half of the campaign flies colder.
+; This constant is the pre-publication value; --allied-steel=88|8A overrides it
+; and the level byte together, for a review build.
 .ifndef GAMEPLAY_COLPF1_OVERRIDE
-GAMEPLAY_COLPF1 = $84
+GAMEPLAY_COLPF1 = $88
 .else
 GAMEPLAY_COLPF1 = GAMEPLAY_COLPF1_OVERRIDE
 .endif
@@ -2564,7 +2568,7 @@ start_gameplay:
     eor #$6D
     jsr DIRECTOR_INIT
     jsr install_entity_effects_glyph
-    jsr unpack_capital_hull_maps
+    jsr publish_level_hull_style
     jsr init_broadside
     jsr init_screen
     lda player_x
@@ -3303,13 +3307,13 @@ unpack_capital_hull_maps:
     sta dst_ptr+1
     jsr unpack_capital_hull_map
 
-    lda #<enemy_hull_packed_map
+    lda #<LEVEL_HULL_BLOCK_PACKED_MAP
     sta src_ptr
-    lda #>enemy_hull_packed_map
+    lda #>LEVEL_HULL_BLOCK_PACKED_MAP
     sta src_ptr+1
-    lda #<enemy_hull_codebook
+    lda #<LEVEL_HULL_BLOCK_CODEBOOK
     sta frontend_data_ptr
-    lda #>enemy_hull_codebook
+    lda #>LEVEL_HULL_BLOCK_CODEBOOK
     sta frontend_data_ptr+1
     lda #<CAPITAL_HULL_RUNTIME_ENEMY
     sta dst_ptr
@@ -3531,6 +3535,10 @@ gameplay_dli_sync_gameplay = *
     sta CHBASE
     lda #GAMEPLAY_COLPF0
     sta COLPF0
+; An equate, not a label: a column-zero label inside gameplay_dli would fence
+; the routine for every source-reading harness (the preview's extractRoutine
+; stops at one) and silently truncate the palette it reads.
+gameplay_dli_allied_colpf1_load = *    ; operand patched per level by publish_level_hull_style
     lda #GAMEPLAY_COLPF1
     sta COLPF1
     lda #GAMEPLAY_COLPF2
@@ -3562,6 +3570,7 @@ profile_gameplay_dli_hud_end = *
     rti
 
 .export profile_gameplay_dli_end, profile_gameplay_dli_hud_end
+.export gameplay_dli_allied_colpf1_load
 
 .segment "CODE"
 
@@ -7629,10 +7638,36 @@ frontend_screen_records_end:
 
 .segment "RODATA"
 
-; Packed 32-row maps are expanded once to $4C00-$4E3F. Metadata remains
-; resident and is the contract for broadside firing/collision in stage 2.
-enemy_hull_packed_map:
-    EMIT_ENEMY_HULL_PACKED_MAP
+; Hull set v1 step 2. The enemy half of the hull is LEVEL data: the region's
+; packed map, codebook, seven surface glyphs and collision boundaries travel in
+; the level image and are published here, once, at gameplay start on the loader
+; screen. The 160 B the resident enemy packed map occupied are kept in place —
+; this routine and its named slack — so no CODE, RODATA or BROADSIDE label
+; moves and no indexed read changes which side of a page it lands on.
+publish_level_hull_style:
+    ldx #(CAPITAL_HULL_LEVEL_GLYPH_BYTES-1)
+@glyph:
+    lda LEVEL_HULL_BLOCK_GLYPHS,x
+    sta CHARSET+CAPITAL_HULL_ENEMY_SURFACE_BASE*8,x
+    dex
+    bpl @glyph
+    ldx #(CAPITAL_HULL_SEGMENT_ROWS-1)
+@boundary:
+    lda LEVEL_HULL_BLOCK_BOUNDARIES,x
+    sta enemy_collision_boundaries,x
+    dex
+    bpl @boundary
+    lda LEVEL_HULL_BLOCK_ALLIED_COLPF1
+    sta gameplay_dli_allied_colpf1_load+1
+    jmp unpack_capital_hull_maps
+publish_level_hull_style_end:
+
+; The rest of the retired map's range, held deliberately rather than closed:
+; closing it slides every later CODE/RODATA address and has cost the heaviest
+; frame 17 cycles before (docs/STATUS.md, "Zero resident bytes").
+hull_level_publish_slack:
+    .res 160 - (publish_level_hull_style_end - publish_level_hull_style)
+hull_level_publish_slack_end:
 
 ; These runtime-live PMG masks end at $3809.  The boot-only loader display
 ; list lives in the later PMG page while PMG DMA is disabled, so publication
@@ -7655,8 +7690,11 @@ allied_hull_packed_map:
     EMIT_ALLIED_HULL_PACKED_MAP
 allied_hull_codebook:
     EMIT_ALLIED_HULL_CODEBOOK
-enemy_hull_codebook:
-    EMIT_ENEMY_HULL_CODEBOOK
+; The enemy codebook is level data now (it travels in the hull block); its
+; sixteen resident bytes are held as a BROADSIDE reserve so that no later
+; BROADSIDE label moves.
+enemy_hull_codebook_reserve:
+    .res 16
 capital_hull_turrets:
     EMIT_CAPITAL_HULL_TURRETS
 capital_hull_turrets_end:

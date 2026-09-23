@@ -326,9 +326,14 @@ test("each style compiles a 280-byte hull block the level image can carry", () =
     assert.equal(block.length, 280);
     assert.equal(block[offsets.styleId], index + 1);
     assert.equal(block[offsets.formatVersion], 1);
+    // Re-pinned for step 2: byte 2 of the header is the level's allied steel
+    // (decision 2), which the LEVEL image builder stamps — the generator, which
+    // knows the style and not the level, leaves it zero like the rest.
+    assert.equal(block[offsets.alliedColpf1], 0,
+      "the generator must leave the level's colour byte to the level image");
     assert.deepEqual(
       [...block.subarray(offsets.reserved, offsets.packedMap)],
-      Array(14).fill(0),
+      Array(13).fill(0),
       "the reserved header field must stay zero until hull_params arrives",
     );
     assert.deepEqual(
@@ -357,16 +362,16 @@ test("each style compiles a 280-byte hull block the level image can carry", () =
   }
 });
 
-// Owner decision 1 of 2026-09-22: the allied steel stays $84 in the default
-// build and a non-default build carries $88 for side-by-side smoke. The
-// override must never reach the release artifact or a gate, so it is a review
-// variant and the default constant is pinned here.
-test("the allied steel stays $84 by default and $88 only as a review variant", () => {
+// Re-pinned by owner decision 2 of 2026-09-23: the step-1 smoke chose $88, so
+// the assembled constant IS $88 now — the release default — and the colour the
+// player sees is level data on top of it (tests/level-hull-block.test.mjs).
+// --allied-steel stays a review variant that may never reach a gate.
+test("the allied steel is $88 by default and any other value only as a review variant", () => {
   const main = fs.readFileSync(path.join(rootDirectory, "src", "main.s"), "utf8");
   assert.match(
     main,
-    /\.ifndef GAMEPLAY_COLPF1_OVERRIDE\s*\nGAMEPLAY_COLPF1 = \$84\s*\n\.else\s*\nGAMEPLAY_COLPF1 = GAMEPLAY_COLPF1_OVERRIDE\s*\n\.endif/,
-    "the default build must keep the accepted steel and only honour an explicit override",
+    /\.ifndef GAMEPLAY_COLPF1_OVERRIDE\s*\nGAMEPLAY_COLPF1 = \$88\s*\n\.else\s*\nGAMEPLAY_COLPF1 = GAMEPLAY_COLPF1_OVERRIDE\s*\n\.endif/,
+    "the default build must carry the steel the owner chose, and only honour an explicit override",
   );
   const build = fs.readFileSync(path.join(rootDirectory, "scripts", "build.mjs"), "utf8");
   assert.match(build, /alliedSteelValues = new Map\(\[\["88", 0x88\], \["8A", 0x8a\]\]\)/);

@@ -25,6 +25,8 @@ import {
   compileCapitalHulls,
   loadCapitalHullsDefinition,
   renderCapitalHullsCa65Include,
+  HULL_STYLE_BLOCK_BYTES,
+  HULL_STYLE_BLOCK_OFFSETS,
 } from "./capital-hulls.mjs";
 import {
   compileEnemyRoster,
@@ -104,10 +106,12 @@ const enemyPaletteIds = new Map([
 if (enemyPaletteSlug && !enemyPaletteIds.has(enemyPaletteSlug)) {
   throw new Error(`Unknown enemy palette build ${enemyPaletteSlug}`);
 }
-// Owner decision 1 of 2026-09-22: the allied steel stays $84 in the default
-// build, and a non-default build carries a different COLPF1 so the two can be
-// smoked side by side. It is a review variant — its artifacts never reach
-// dist/, runtime measurement is skipped and no gate consults it.
+// Owner decision 1 of 2026-09-22, superseded in part by decision 2 of
+// 2026-09-23 (docs/plans/hull-set-v1.md §13): the allied steel is level data
+// now, so this flag no longer overrides a constant the player ever sees — it
+// overrides the LEVEL's colour byte (and, for coherence, the assembled
+// pre-publication constant). It stays a review variant: its artifacts never
+// reach dist/, runtime measurement is skipped and no gate consults it.
 const alliedSteelArgument = process.argv.find((argument) =>
   argument.startsWith("--allied-steel="));
 const alliedSteelSlug = alliedSteelArgument?.slice("--allied-steel=".length);
@@ -126,8 +130,22 @@ const alliedSteelValue = alliedSteelSlug
 // twinkle subset grows. Like every review variant its artifacts never reach
 // dist/, runtime measurement is skipped and no gate consults it.
 const menuSteelTwinkle = process.argv.includes("--menu-steel-twinkle");
+// Capital hull set v1 step 2, §7 and decision 1: the campaign does not exist
+// yet, so the only way to smoke a region is to bake it into level 1. The flag
+// carries the whole REGION — the style's hull block and that region's allied
+// steel — so one build shows the owner one quarter of the campaign. Review
+// variant: build/hull-style-Rn/, never dist/, no runtime measurement, no gate.
+const hullStyleArgument = process.argv.find((argument) =>
+  argument.startsWith("--hull-style="));
+const hullStyleSlug = hullStyleArgument?.slice("--hull-style=".length);
+const hullStyleIds = new Map([["R1", 1], ["R2", 2], ["R3", 3], ["R4", 4]]);
+if (hullStyleSlug && !hullStyleIds.has(hullStyleSlug.toUpperCase())) {
+  throw new Error(`Unknown hull style build ${hullStyleSlug}`);
+}
+const hullStyleValue = hullStyleSlug ? hullStyleIds.get(hullStyleSlug.toUpperCase()) : null;
 const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
-  Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle;
+  Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
+  hullStyleValue !== null;
 const acceptedMenuMusicPayloadBytes = 14314;
 // Gameplay music plus its in-game pause controls remain a bounded post-menu feature.
 const runtimeHeadroomPayloadLimit = 1536;
@@ -180,6 +198,21 @@ const hybridWindowEndExclusive = 0xbc00;
 const hybridWindowCapacityBytes = hybridWindowEndExclusive - hybridWindowAddress;
 const LEVEL_FORMAT_VERSION = 1;
 const LEVEL_MAX_ID = 16;
+// Decision 1: the enemy hull style is level data — one region per quarter of
+// the campaign. The campaign length is NOT hardcoded here: it is LEVEL_MAX_ID,
+// the same constant src/hybrid/sector-reader.s asserts its directory against.
+// At 16 that is the owner's 1-4 / 5-8 / 9-12 / 13-16; the arithmetic is right
+// for any campaign length.
+function hullStyleIdForLevel(level) {
+  return Math.min(4, 1 + Math.floor(((level - 1) * 4) / LEVEL_MAX_ID));
+}
+
+// Decision 2: the allied hull colour is level data too, one byte, the
+// GAMEPLAY_COLPF1 the gameplay DLI writes.
+function alliedColpf1ForLevel(level) {
+  return level * 2 <= LEVEL_MAX_ID ? alliedSteelFirstHalf : alliedSteelSecondHalf;
+}
+
 // The fixed base sector every level run is placed from. It is deliberately a
 // constant and not a function of the transport: the reader's directory holds
 // absolute sector numbers, so letting them follow the transport size would
@@ -195,10 +228,27 @@ const levelHeaderBytes = 8;
 const gameplayMusicSectors = 5;
 const gameplayMusicAddress = levelBufferAddress + levelHeaderBytes;
 const gameplayMusicCapacityBytes = gameplayMusicSectors * 128 - levelHeaderBytes;
+// Capital hull set v1 step 2 (plan §3.1): the region's enemy hull style — its
+// packed map, codebook, seven surface glyphs and per-row collision boundaries,
+// 280 B — rides in the three sectors behind the music, and the level's allied
+// steel is one byte inside it (decision 2). The runtime reads it at fixed
+// addresses, so the block's home in the image is a build constant.
+const hullBlockBytes = HULL_STYLE_BLOCK_BYTES;
+const hullBlockOffsets = HULL_STYLE_BLOCK_OFFSETS;
+const hullBlockAlliedColpf1Offset = HULL_STYLE_BLOCK_OFFSETS.alliedColpf1;
+const hullBlockSectors = 3;
+const hullBlockImageOffset = gameplayMusicSectors * 128;
+const hullBlockAddress = levelBufferAddress + hullBlockImageOffset;
 // One-based sector within the image where roadmap 4.6's LevelDef starts.
 // Recorded in header byte 7, which was reserved and zero until now.
-const levelDefFirstSector = gameplayMusicSectors + 1;
-const levelOneSectors = 7;
+const levelDefFirstSector = gameplayMusicSectors + hullBlockSectors + 1;
+const levelOneSectors = 8;
+// Decision 2: the first half of the campaign flies in the brighter steel the
+// owner chose at the step-1 smoke; the second half is colder. $84 is
+// provisional — the owner picks the final darker step ($84 or $86) at this
+// step's smoke.
+const alliedSteelFirstHalf = 0x88;
+const alliedSteelSecondHalf = 0x84;
 const basicWindowEndExclusive = 0xbc20;
 // Roadmap 4.5M-M2 cold-record relocation. The ABI cold record lands directly
 // after A2 staging inside the entity-state page ($8018-$808C; consumed by
@@ -554,6 +604,28 @@ function renderGameplayMusicAbiInclude() {
   return `${lines.join("\n")}\n`;
 }
 
+// The level hull block's frozen addresses inside the level buffer. main.s
+// reads the block only through these, exactly as it reaches the gameplay music
+// player only through its three vectors.
+function renderLevelHullBlockInclude() {
+  const hex = (value) => `$${value.toString(16).toUpperCase().padStart(4, "0")}`;
+  return [
+    "; Generated by scripts/build.mjs for hull set v1 step 2 - do not edit.",
+    "; The per-level enemy hull style, inside the level image at sector " +
+      `${gameplayMusicSectors + 1}.`,
+    "",
+    `LEVEL_HULL_BLOCK                       = ${hex(hullBlockAddress)}`,
+    `LEVEL_HULL_BLOCK_STYLE_ID              = ${hex(hullBlockAddress + 0)}`,
+    `LEVEL_HULL_BLOCK_ALLIED_COLPF1         = ${hex(hullBlockAddress + hullBlockAlliedColpf1Offset)}`,
+    `LEVEL_HULL_BLOCK_PACKED_MAP            = ${hex(hullBlockAddress + hullBlockOffsets.packedMap)}`,
+    `LEVEL_HULL_BLOCK_CODEBOOK              = ${hex(hullBlockAddress + hullBlockOffsets.codebook)}`,
+    `LEVEL_HULL_BLOCK_GLYPHS                = ${hex(hullBlockAddress + hullBlockOffsets.glyphs)}`,
+    `LEVEL_HULL_BLOCK_BOUNDARIES            = ${hex(hullBlockAddress + hullBlockOffsets.collisionBoundaries)}`,
+    `LEVEL_HULL_BLOCK_END                   = ${hex(hullBlockAddress + hullBlockBytes)}`,
+    "",
+  ].join("\n") + "\n";
+}
+
 function renderGameplayMusicMainAbiInclude(labels) {
   const lines = [
     "; Generated by scripts/build.mjs for music v2 §1.4 - do not edit.",
@@ -595,7 +667,7 @@ function renderSectorReaderMainAbiInclude(labels) {
 // Roadmap 4.3 level image (plan §1.4). v1 carries an inert pattern the gates
 // read back byte-exact; 4.6 replaces the payload with LevelDef and hull data.
 // The eight-byte header is exactly what sector_reader_validate checks.
-function buildLevelImage({ id, sectors, musicBytes }) {
+function buildLevelImage({ id, sectors, musicBytes, hullBlock, alliedColpf1 }) {
   const bytes = Buffer.alloc(sectors * 128);
   bytes[0] = "V".charCodeAt(0);
   bytes[1] = "S".charCodeAt(0);
@@ -615,6 +687,15 @@ function buildLevelImage({ id, sectors, musicBytes }) {
       `${gameplayMusicCapacityBytes} B reserved at $${gameplayMusicAddress.toString(16)}`);
   }
   musicBytes.copy(bytes, levelHeaderBytes);
+  // Step 2: the region's hull block, with the level's allied steel stamped
+  // into it. The generator emits the block per STYLE and leaves byte 2 zero;
+  // the colour is per LEVEL, so it is written here (plan §13 decision 2).
+  if (hullBlock.length !== hullBlockBytes) {
+    throw new Error(`the hull block is ${hullBlock.length} B; the level image reserves ` +
+      `${hullBlockBytes} B at sector ${gameplayMusicSectors + 1}`);
+  }
+  hullBlock.copy(bytes, hullBlockImageOffset);
+  bytes[hullBlockImageOffset + hullBlockAlliedColpf1Offset] = alliedColpf1;
   return bytes;
 }
 
@@ -1137,9 +1218,9 @@ async function build() {
   const capitalHullsAsset = compileCapitalHulls(capitalHullsDefinition);
   const capitalHullsInclude = Buffer.from(renderCapitalHullsCa65Include(capitalHullsAsset));
   writeFile(path.join(buildDirectory, "capital-hulls.inc"), capitalHullsInclude);
-  // One 280-byte block per enemy style. The resident image carries R1, which
-  // level 1 uses; the blocks are build artifacts until the level image learns
-  // to carry them (docs/plans/hull-set-v1.md §3.1, step 2).
+  // One 280-byte block per enemy style. Step 2 puts the region's block into
+  // the level image (docs/plans/hull-set-v1.md §3.1); these files stay as the
+  // per-style evidence the tests and the review builds read.
   for (const levelSet of capitalHullsAsset.levelHullSets) {
     writeFile(
       path.join(buildDirectory, `hull-style-${levelSet.styleName}.bin`),
@@ -1279,6 +1360,8 @@ async function build() {
   // labels, is generated after it links.
   const gameplayMusicAbiInclude = renderGameplayMusicAbiInclude();
   writeFile(path.join(buildDirectory, "gameplay-music-abi.inc"), gameplayMusicAbiInclude);
+  const levelHullBlockInclude = renderLevelHullBlockInclude();
+  writeFile(path.join(buildDirectory, "level-hull-block.inc"), levelHullBlockInclude);
 
   const assembled = await runWasmTool(
     "ca65",
@@ -1292,6 +1375,7 @@ async function build() {
       "/project/build/starfield.inc": starfieldInclude,
       "/project/build/menu-music.inc": menuMusicInclude,
       "/project/build/gameplay-music-abi.inc": gameplayMusicAbiInclude,
+      "/project/build/level-hull-block.inc": Buffer.from(levelHullBlockInclude),
       "/project/build/entity-effects.inc": entityEffectsInclude,
       "/project/build/frontend-h31.inc": frontendH31Include,
       "/project/build/menu-stars.inc": menuStarsInclude,
@@ -1640,11 +1724,28 @@ async function build() {
   const levelRuns = [
     { id: 1, startSector: levelBaseSector, sectors: levelOneSectors },
   ];
+  // Decision 1: the region owns the style. --hull-style=Rn forces one region
+  // onto every level so the owner can smoke a quarter of the campaign before
+  // the campaign exists (§7); the default build reads the level's own region.
+  const hullStyleIdForRun = (id) => hullStyleValue ?? hullStyleIdForLevel(id);
+  // A forced region carries its own half of the campaign with it: R1/R2 are the
+  // brighter steel, R3/R4 the colder one, whichever level the build stamps.
+  const regionFirstLevel = (styleId) => 1 + Math.floor(((styleId - 1) * LEVEL_MAX_ID) / 4);
+  const alliedColpf1ForRun = (id) => alliedSteelValue ??
+    alliedColpf1ForLevel(hullStyleValue === null ? id : regionFirstLevel(hullStyleValue));
   const levelImages = new Map(levelRuns.map((run) =>
     [run.id, buildLevelImage({
       id: run.id, sectors: run.sectors, musicBytes: gameplayMusicModule.raw,
+      hullBlock: Buffer.from(
+        capitalHullsAsset.hullStyleBlocks[hullStyleIdForRun(run.id) - 1]),
+      alliedColpf1: alliedColpf1ForRun(run.id),
     })]));
   const levelOneImage = levelImages.get(1);
+  // The block exactly as level 1 carries it, colour byte and all: the runtime
+  // harnesses install it at $A880 the way they install the music block.
+  const levelOneHullBlock = Buffer.from(levelOneImage.subarray(
+    hullBlockImageOffset, hullBlockImageOffset + hullBlockBytes));
+  writeFile(path.join(buildDirectory, "level-hull-block.bin"), levelOneHullBlock);
   const levelDirectoryInclude = renderLevelDirectoryInclude(levelRuns);
   writeFile(path.join(buildDirectory, "level-directory.inc"), levelDirectoryInclude);
   const sectorReaderMainAbiInclude = renderSectorReaderMainAbiInclude(labels);
@@ -2457,6 +2558,8 @@ async function build() {
             ? `allied-steel-${alliedSteelSlug.toUpperCase()}`
           : menuSteelTwinkle
             ? "menu-steel-twinkle"
+          : hullStyleValue !== null
+            ? `hull-style-${hullStyleSlug.toUpperCase()}`
           : candidateBuild
             ? "candidate"
             : "release",
@@ -3271,6 +3374,33 @@ async function build() {
       sourceSha256: sha256(fs.readFileSync(capitalHullsDefinitionPath)),
       displayMode: capitalHullsDefinition.displayMode,
       segmentRows: capitalHullsAsset.segmentRows,
+      // Step 2: the per-level hull style. The mapping is build-time data — the
+      // runtime carries no selector — and the block's home in the level image
+      // is what main.s reads through build/level-hull-block.inc.
+      levelStyles: Array.from({ length: LEVEL_MAX_ID }, (unused, index) => {
+        const level = index + 1;
+        const styleId = hullStyleIdForRun(level);
+        return {
+          level,
+          styleId,
+          styleName: `R${styleId}`,
+          alliedColpf1: alliedColpf1ForRun(level),
+        };
+      }),
+      levelBlock: {
+        home: "per-level image, behind the gameplay music block",
+        file: "level-hull-block.bin",
+        imageOffset: hullBlockImageOffset,
+        imageSector: gameplayMusicSectors + 1,
+        blockAddress: hullBlockAddress,
+        blockBytes: hullBlockBytes,
+        blockSectors: hullBlockSectors,
+        paddingBytes: hullBlockSectors * 128 - hullBlockBytes,
+        offsets: hullBlockOffsets,
+        styleId: levelOneHullBlock[0],
+        alliedColpf1: levelOneHullBlock[hullBlockAlliedColpf1Offset],
+        levelDefFirstSector,
+      },
       glyphCount: capitalHullsAsset.glyphs.length,
       glyphBytes: capitalHullsAsset.glyphBytes.length,
       packedMapAndMetadataBytes: capitalHullsAsset.packedDataBytes,
@@ -3655,7 +3785,9 @@ async function build() {
           ? path.join(buildDirectory, `allied-steel-${alliedSteelSlug.toUpperCase()}`)
           : menuSteelTwinkle
             ? path.join(buildDirectory, "menu-steel-twinkle")
-            : distDirectory;
+            : hullStyleValue !== null
+              ? path.join(buildDirectory, `hull-style-${hullStyleSlug.toUpperCase()}`)
+              : distDirectory;
   writeFile(path.join(artifactDirectory, "void-strike-65-boot.bin"), transportPayload);
   writeFile(path.join(artifactDirectory, "void-strike-65.xex"), xex);
   writeFile(path.join(artifactDirectory, "void-strike-65.atr"), atr);
@@ -3685,6 +3817,10 @@ async function build() {
       console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
     } else if (menuSteelTwinkle) {
       console.log(`  variant : menu stars, steel twinkling too (steel -> off -> steel)`);
+      console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
+    } else if (hullStyleValue !== null) {
+      console.log(`  variant : hull region ${hullStyleSlug.toUpperCase()} on every level ` +
+        `(allied steel $${(alliedSteelValue ?? alliedColpf1ForLevel(1)).toString(16)})`);
       console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
     }
   }

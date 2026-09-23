@@ -47,6 +47,15 @@ export function loadRuntimeSegments(rootDirectory) {
         manifest.gameplayMusic.placement.blockAddress,
         manifest.gameplayMusic.placement.blockBytes],
     ]),
+    // Hull set v1 step 2: the level's enemy hull style is the second block in
+    // the per-level image. publish_level_hull_style reads it at gameplay start,
+    // so every runtime harness must place it or the charset is published from
+    // whatever the harness left at $A880.
+    ...(manifest.capitalHulls?.levelBlock == null ? [] : [
+      ["levelHullBlock", manifest.capitalHulls.levelBlock.file,
+        manifest.capitalHulls.levelBlock.blockAddress,
+        manifest.capitalHulls.levelBlock.blockBytes],
+    ]),
     ...(manifest.encounterDirector?.enabled === true ? [
       ["integrationGlue", "integration-glue.bin", manifest.integrationGlue.finalAddress,
         manifest.integrationGlue.bytes],

@@ -21,6 +21,7 @@ const rootDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)),
 const manifest = JSON.parse(fs.readFileSync(
   path.join(rootDirectory, "build", "manifest.json"), "utf8"));
 const placement = manifest.gameplayMusic.placement;
+const hullBlock = manifest.capitalHulls.levelBlock;
 const levelOne = manifest.sectorReader.levels.find((level) => level.id === 1);
 const levelImage = fs.readFileSync(path.join(rootDirectory, "build", levelOne.file));
 const blockImage = fs.readFileSync(path.join(rootDirectory, "build", placement.file));
@@ -61,7 +62,11 @@ test("the gameplay music player is code inside the per-level image, at $A608", (
   // Header byte 7 was reserved and zero; it now says where LevelDef starts.
   assert.equal(levelImage[4], levelOne.sectors);
   assert.equal(levelImage[7], placement.levelDefFirstSector);
-  assert.equal(placement.levelDefFirstSector, placement.blockSectors + 1);
+  // Re-pinned for hull set v1 step 2: the region's hull block sits between the
+  // music and LevelDef, so LevelDef starts behind both blocks, not just this
+  // one (docs/plans/hull-set-v1.md §3.1).
+  assert.equal(placement.levelDefFirstSector,
+    placement.blockSectors + hullBlock.blockSectors + 1);
 });
 
 test("main reaches the player only through three frozen vectors", () => {
@@ -151,10 +156,13 @@ test("STARFIELD is smaller than before the move, and the room is still reserved"
   }
 });
 
-test("the ATR START GAME read grows by the planned five sectors and no more", () => {
-  assert.equal(levelOne.sectors, LEVEL_SECTORS_BEFORE + 5);
-  assert.equal(levelOne.sectors, placement.blockSectors + 2,
-    "the image is the music block plus the LevelDef sectors the plan left for 4.6");
+test("the ATR START GAME read grows by the planned five plus three sectors and no more", () => {
+  // Re-pinned for hull set v1 step 2: music v2 bought five sectors, the hull
+  // block three more (280 B of style in 384 B of sector). The LevelDef sectors
+  // 4.6 was promised are untouched.
+  assert.equal(levelOne.sectors, LEVEL_SECTORS_BEFORE + 5 + hullBlock.blockSectors);
+  assert.equal(levelOne.sectors, placement.blockSectors + hullBlock.blockSectors + 2,
+    "the image is the music block, the hull block and the LevelDef sectors 4.6 was left");
   const evidence = JSON.parse(fs.readFileSync(
     path.join(rootDirectory, "docs", "runtime-wall-trace.json"), "utf8"));
   const smoke = evidence.boot_smoke.sector_reader;
@@ -166,9 +174,10 @@ test("the ATR START GAME read grows by the planned five sectors and no more", ()
     assert.equal(session.command_frames, levelOne.sectors,
       `${session.id} must send one command frame per sector`);
     // The v1 two-sector read took 7 frames. plan-4.3 measured ~3.8 frames a
-    // sector, so five more sectors is ~19 frames; anything beyond that is the
-    // reader slowing down, not the payload growing.
-    assert.ok(session.level_load_frames <= 7 + 20,
+    // sector, so the eight more sectors music and the hull block cost is ~31
+    // frames; anything beyond that is the reader slowing down, not the payload
+    // growing.
+    assert.ok(session.level_load_frames <= 7 + 32,
       `${session.id} spent ${session.level_load_frames} frames reading the level`);
   }
 });

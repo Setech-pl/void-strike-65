@@ -1236,18 +1236,23 @@ function compileHullSet(definition, options = {}) {
   };
 }
 
-const HULL_STYLE_BLOCK_BYTES = 280;
+export const HULL_STYLE_BLOCK_BYTES = 280;
 const HULL_STYLE_BLOCK_VERSION = 1;
-const HULL_STYLE_BLOCK_OFFSETS = Object.freeze({
+export const HULL_STYLE_BLOCK_OFFSETS = Object.freeze({
   styleId: 0,
   formatVersion: 1,
-  reserved: 2,
+  // Step 2, owner decision 2 (docs/plans/hull-set-v1.md §13): the allied hull
+  // colour is level data, not style data, so the generator leaves this byte
+  // zero and the level image builder stamps the level's GAMEPLAY_COLPF1 here.
+  alliedColpf1: 2,
+  reserved: 3,
   packedMap: 16,
   codebook: 176,
   glyphs: 192,
   collisionBoundaries: 248,
 });
 const ENEMY_SURFACE_GLYPH_COUNT = 7;
+const ENEMY_SURFACE_BASE_INDEX = 70;
 
 function mirrorGlyphPixels(pixels) {
   return pixels.map((row) => {
@@ -1327,7 +1332,8 @@ function buildLevelDefinition(definition, style) {
 export function renderHullStyleBlock(levelSet) {
   const block = new Uint8Array(HULL_STYLE_BLOCK_BYTES);
   const glyphBytes = levelSet.glyphs
-    .filter((glyph) => glyph.index >= 70 && glyph.index <= 76)
+    .filter((glyph) => glyph.index >= ENEMY_SURFACE_BASE_INDEX &&
+      glyph.index < ENEMY_SURFACE_BASE_INDEX + ENEMY_SURFACE_GLYPH_COUNT)
     .flatMap((glyph) => [...glyph.bytes]);
   invariant(glyphBytes.length === ENEMY_SURFACE_GLYPH_COUNT * 8,
     "A hull style block carries exactly the seven per-level enemy surface glyphs");
@@ -1418,6 +1424,10 @@ export function renderCapitalHullsCa65Include(asset) {
     `CAPITAL_HULL_MAP_COLUMNS = ${asset.mapColumns}`,
     `CAPITAL_HULL_PACKED_ROW_BYTES = ${asset.packedRowBytes}`,
     `CAPITAL_HULL_PACKED_SIDE_BYTES = ${asset.packedMaps.get("allied").length}`,
+    // Step 2: the seven charset codes a level's enemy style owns, and the
+    // bytes publish_level_hull_style copies into them.
+    `CAPITAL_HULL_ENEMY_SURFACE_BASE = ${ENEMY_SURFACE_BASE_INDEX}`,
+    `CAPITAL_HULL_LEVEL_GLYPH_BYTES = ${ENEMY_SURFACE_GLYPH_COUNT * 8}`,
     `CAPITAL_HULL_TURRET_COUNT = ${asset.turrets.length}`,
     `CAPITAL_HULL_CANNON_COUNT = ${asset.sector.turretCounts.hard}`,
     `CAPITAL_HULL_CANNON_COUNT_EASY = ${asset.sector.turretCounts.easy}`,

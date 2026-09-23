@@ -962,12 +962,14 @@ and POKEY write stream are unchanged, byte for byte
 
 | Range | Bytes | Owner | Notes |
 | --- | ---: | --- | --- |
-| `$A600-$A607` | 8 | level header | `sector_reader_validate`. **Byte 7 is no longer reserved**: it is the one-based sector where LevelDef starts, now **6** |
+| `$A600-$A607` | 8 | level header | `sector_reader_validate`. **Byte 7 is no longer reserved**: it is the one-based sector where LevelDef starts — **9** since hull set v1 step 2 (was 6) |
 | `$A608-$A610` | 9 | `GAMEPLAY_MUSIC` vectors | frozen: `GAMEPLAY_MUSIC_START`, `GAMEPLAY_MUSIC_TICK`, `GAMEPLAY_MUSIC_RESTORE`, three `JMP`s. `build/gameplay-music-abi.inc` gives main these three constants and nothing else |
 | `$A611-$A716` | 262 | player code | the **format-2** player since step 2b (plan §1.2 estimated 286) |
 | `$A717-$A807` | 241 | score data | "GRA-2": 22 deduplicated 8-byte columns, two 16-byte sequences, a 10- and a 9-entry divider map, two envelopes, two AUDC bases. **No pitch table** |
 | `$A808-$A87F` | **120 free** | reserved | the reservation was sized for v2 in 2a and v2 came in under it, so the transport change was paid once and step 2b moved no sectors |
-| `$A880-$B5FF` | 3,456 | LevelDef | 27 of the 32 buffer sectors left for roadmap 4.6 |
+| `$A880-$A997` | 280 | **level hull style** | hull set v1 step 2, below |
+| `$A998-$A9FF` | 104 | sector padding | the hull block is 280 B in three sectors |
+| `$AA00-$B5FF` | 3,072 | LevelDef | 24 of the 32 buffer sectors left for roadmap 4.6 |
 
 **The block is strictly read-only at runtime**, because the boot smoke
 checksums the whole level buffer at its gameplay snapshot (frame 3300, after
@@ -982,6 +984,42 @@ all of it outside the boot transport — **0 boot sectors, 0 DFMC chunk slots,
 the frame-300 loader checkpoint untouched**. The XEX-only block at `$A600`
 grows by the same 640 B. On the ATR the START GAME read grows by five
 sectors.
+
+## Capital hull set v1 step 2 — the enemy hull style is level data (2026-09-23)
+
+`docs/plans/hull-set-v1.md` §3 and §13. The region's enemy style travels in the
+level image and is published once per gameplay start; **no resident address
+moved and the initial block did not grow**.
+
+| Range | Bytes | Owner | Notes |
+| --- | ---: | --- | --- |
+| `$A880` | 1 | style id | 1-4, the region |
+| `$A881` | 1 | block format version | 1 |
+| `$A882` | 1 | **allied `GAMEPLAY_COLPF1`** | level data (owner decision 2): `$88` in the first half of the campaign, `$84` in the second. Patched into the gameplay DLI's immediate operand, so the DLI costs what it always cost |
+| `$A883-$A88F` | 13 | reserved | zero; room for a `hull_params` echo (decision F) |
+| `$A890-$A92F` | 160 | enemy packed map | what `enemy_hull_packed_map` used to hold in `RODATA` |
+| `$A930-$A93F` | 16 | enemy codebook | what `enemy_hull_codebook` used to hold in `BROADSIDE` |
+| `$A940-$A977` | 56 | enemy surface glyphs | charset codes 70-76, copied to `$4630-$4667` |
+| `$A978-$A997` | 32 | enemy collision boundaries | copied into `enemy_collision_boundaries` |
+
+**What moved in the resident image — nothing.** The two retired ranges are held
+in place, exactly as `LOADER_SPLASH_CODE_SLACK` is:
+
+| Resident range | Was | Is |
+| --- | --- | --- |
+| `RODATA` 160 B at the old `enemy_hull_packed_map` | the enemy packed map | `publish_level_hull_style` (31 B) + `hull_level_publish_slack` (129 B, zero) |
+| `BROADSIDE` 16 B at the old `enemy_hull_codebook` | the enemy codebook | `enemy_hull_codebook_reserve`, 16 B of zero |
+
+Deleting either slack slides every later CODE/RODATA/BROADSIDE address, which
+has cost the heaviest frame 17 cycles before; spend them deliberately, against
+a re-measured baseline.
+
+**Level image and transport.** Level 1 grows **7 → 8 sectors** (896 → 1,024 B),
+again entirely outside the boot transport — **0 boot sectors, 0 DFMC chunk
+slots**. The XEX-only block at `$A600` grows by 128 B; on the ATR the START
+GAME read grows by one sector. The initial block **shrank** 13,682 → 13,652 B
+(the retired 160 B of map are replaced by 31 B of code and 129 zero bytes,
+which pack better), boot stays at **107 sectors** and total transport at 209.
 
 **What `STARFIELD` gained — reserved: starfield expansion.** MEASURED. The
 "after menu v2" column is what is actually left, and it is the row to quote:

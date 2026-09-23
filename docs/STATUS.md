@@ -2479,7 +2479,7 @@ Heavy `weapon_class` emission chosen by C; "no Light escort with Bombers" is a
 provisional 4.5 smoke policy only; visible separation of two QUAD Bombers
 (lanes about `[48,92]` / `[132,176]`); roadmap after 4.5 is 4.6 data-driven
 Encounter/Wave Director, 4.7 Boss, 4.8 capital traversal enrichment, then level
-loop / 16-level campaign data.
+loop / 16-level campaign data (**twelve** since owner decision AC, 2026-09-22).
 
 ## Roadmap 4.5b — `weapon_class = BOMBER` (decision 20) — **OWNER-ACCEPTED** (owner smoke PASS 2026-09-18)
 
@@ -3938,11 +3938,20 @@ is in [plan-realizacji.md](plan-realizacji.md) §4.
 6. **4.8a Capital geometry** — deeper, uneven gondolas at varying heights,
    variable corridor width, bigger debris; River Raid-style spatial flying.
    Data plus a collision check.
-7. **Level complete / next level**; 16-level campaign as data; polish.
-   **Confirmed by owner decision E (2026-09-20): sixteen levels**, a boss on
-   each, easiest difficulty beatable by anyone. The eight-level content target
-   that appeared in `project-overview.md` §6.1 and design-4.6 §6 is withdrawn —
-   this item's figure was the correct one.
+   **4.8c enemy traffic in the capital corridor** is the backlog item next to
+   it (recorded 2026-09-22): Lights share the corridor with the player, and
+   because transients publish only to `CH_SPACE` the hull, gondola and turret
+   always win priority. Minimum scope, owner-approved — free-cell placement
+   and a lateral clamp, **no avoidance AI and no enemy-vs-hull collision**.
+   Described in `project-overview.md` §4.8 and `plan-realizacji.md` §5.
+7. **Level complete / next level**; **12-level campaign as data**; polish.
+   **Owner decision AC (2026-09-22): TWELVE levels**, a boss on each, easiest
+   difficulty beatable by anyone — superseding decision E's sixteen, which is
+   withdrawn as the 1.0 target and kept only as a possible post-1.0 extension.
+   The eight-level content target that appeared in `project-overview.md` §6.1
+   and design-4.6 §6 stays withdrawn. Twelve is **four regions of three**
+   (1-3, 4-6, 7-9, 10-12), one enemy hull style per region, so all four styles
+   are used in 1.0.
 
 ## Owner decisions E-W (2026-09-20) — the game concept is settled
 
@@ -3954,13 +3963,13 @@ changed for these. Full text, with rationale, in the decision journal:
 
 | Letter | Decision |
 | --- | --- |
-| **E** | **Sixteen levels**, not eight; a boss ends every level; the easiest difficulty beatable by anyone. Supersedes design-4.6 §6 and the eight-level content target; `plan-realizacji.md` §4 item 7 and decision 21 item 7 stand. |
-| **F** | Capital variety is **parametric**: four segment-art sets, with length in segments, turret density and maximum gondola protrusion as three independent 4-step parameters. One hull variant per level. ≈ 4 × 1,253 B on disk instead of sixteen art sets. |
+| **E** | ~~**Sixteen levels**, not eight~~ — **SUPERSEDED in its number by AC (2026-09-22): 1.0 ships TWELVE levels**; sixteen is withdrawn as the 1.0 target and kept only as a possible post-1.0 extension. E's other clauses survive under AC: **a boss ends every level; the easiest difficulty beatable by anyone.** The eight-level content target stays withdrawn. |
+| **F** | Capital variety is **parametric**: four segment-art sets, with length in segments, turret density and maximum gondola protrusion as three independent 4-step parameters. One hull variant per level. ≈ 4 × 1,253 B on disk instead of one art set per level. (Assumptions changed by **AA**: one allied hull for the whole game, four *enemy* styles by region. Regions are three levels each under **AC**.) |
 | **G** | Capital turrets stay **non-destructible**. Confirms backlog 4.8b. |
 | **H** | Boss: **one controller, a record per boss** (module layout, weapon placement and count, weak points). Boss weapons reuse existing `weapon_class` records, to save code for the boosters. |
-| **I** | **Boss laser**: drawn at once from gun to bottom of screen — the earlier "unfolding beam" is withdrawn. One second, telegraphed by ~2 s of visible gun heating with sound, destroys everything in its path. 1 / 2 / 4 per level on 1-4 / 5-9 / 10-16. Cost assessment is an owner ESTIMATE, to be costed at 4.7. |
+| **I** | **Boss laser**: drawn at once from gun to bottom of screen — the earlier "unfolding beam" is withdrawn. One second, telegraphed by ~2 s of visible gun heating with sound, destroys everything in its path. 1 / 2 / 4 per level on ~~1-4 / 5-9 / 10-16~~ → **1-4 / 5-8 / 9-12, rescaled by AC (2026-09-22)** to the twelve-level campaign. Cost assessment is an owner ESTIMATE, to be costed at 4.7. |
 | **J** | Difficulty scales the existing reload/spacing scaling **and** damage: player-dealt, player-taken, contact and boss. |
-| **K** | Lives: three at start, **+1 after each odd level from 3** (3, 5, 7, 9, 11, 13, 15) — seven extra. |
+| **K** | Lives: three at start, **+1 after each odd level from 3**. The rule is unchanged; the enumeration follows the campaign length, so under **AC** it is **3, 5, 7, 9, 11 — five extra**, not the seven that sixteen levels gave. |
 | **L** | Level select from the furthest level reached. RAM only; a difficulty change in the menu resets it to level 1; the menu shows which levels are available. |
 | **M** | High scores: **RAM only, no disk write.** Confirms today's behaviour. |
 | **N** | **Permanent weapon booster**, level 0-5. One variable; the level sets damage; death costs one level. Both repo checks **ANSWERED** (below). Colour no longer carries the signal — see **U**. |
@@ -3970,6 +3979,26 @@ changed for these. Full text, with rationale, in the decision journal:
 | **R** | **Hardware measurements deferred — risk OWNER-ACCEPTED 2026-09-20.** Register below. |
 | **W** | **The between-levels reader uses DIRECT SIO, not the OS `SIOV`.** Supersedes the "resident `SIOV` reader (~80-120 B)" of decision 23 §10.1 and `project-overview.md` §4.3, which named the wrong reader *and* the wrong estimate: direct SIO is **~250-350 B** (ESTIMATE). The game has run with `sei` set, with `NMIEN` never enabling the VBI, and with nothing but the game writing `DLISTL`/`DLISTH`, `CHBASE`, `PMBASE` or the colour registers since start; the OS route would have to unwind all three and re-establish them, with a display-shadow exposure window on both sides of the call. Direct SIO unwinds none of them — no OS vector is ever taken. Implemented from the protocol specification (Altirra Hardware Reference Manual ch. 9), not vendor GPL-2 code, so `AGENTS.md` rule 13 is not strained. **IMPLEMENTED 2026-09-20 by roadmap 4.3** (section above). The ESTIMATE was low: the core measured **682 B**, the whole module 1,466 B with its display and texts. Three register values in the plan built on this decision were wrong and were corrected against the manual before any code was written — see the 4.3 section and `diagnostics/sio-register-probe-2026-09-20.json`. |
 | **U** | **Booster level is signalled by SHAPE and SOUND**, not colour. A thicker/doubled bolt per level (the player glyph bank has three spare codes) plus a different firing sound per level (parameters on an existing POKEY channel). The two act at different moments and reinforce rather than duplicate, so neither may later be dropped as redundant. Colour was conditional on one check, the check was run, and **colour is REJECTED**: `COLPF2` is shared (below). Five levels stand; three may read more clearly if sound discrimination proves weak — settled during balancing. |
+
+### Campaign decisions 2026-09-22 — AC (twelve levels) and AD (enemy variants)
+
+**Recorded, not implemented.** No gameplay, renderer, engine or build behaviour
+changed. Full text in the journal:
+[owner-decisions-2026-09-11.md](owner-decisions-2026-09-11.md), sections AC and
+AD.
+
+| Letter | Decision |
+| --- | --- |
+| **AC** | **Version 1.0 ships TWELVE levels.** Sixteen is withdrawn as the 1.0 target and kept only as a possible **post-1.0 extension**; decision **E** is superseded in its number and keeps its history. The campaign is **four regions of three levels — R1 1-3, R2 4-6, R3 7-9, R4 10-12** — so **all four enemy hull styles are used in 1.0**. This narrows decision **AA** item 2's regions (were 1-4, 5-8, 9-12, 13-16); the rest of AA stands. The **allied** hull colour changes at the halfway point: levels **1-6** the brighter steel **`$88`** (chosen at the hull step-1 smoke), levels **7-12** a darker step — **`$84` or `$86`**, picked at a later smoke. **The enemy colour is unchanged.** Decision **I**'s boss lasers rescale to **1 / 2 / 4 on levels 1-4 / 5-8 / 9-12**. A boss still ends every level and the easiest difficulty stays beatable by anyone. Decision **K**'s enumeration follows the rule to **3, 5, 7, 9, 11 — five extra lives**. |
+| **AD** | **A per-level enemy "variant" is a RE-SKINNED existing archetype, never a new one.** "Defender" and anything like it is an `appearance[3]` Light bitmap, optionally a `weapon_glyph[2]` projectile look, plus path, cadence and subtype ceiling — **all level data, no new archetype code**. A variant behaves **exactly** like its archetype; **differing behaviour is a separate roadmap item with its own budget**. Rationale: level files may repaint and re-arrange, never add behaviour (4.6 data architecture). |
+
+**What AC does not recompute — a code session owes this.** `LEVEL_MAX_ID = 16`
+(`src/hybrid/sector-reader.s:131`), the `16 * 3 B = 48 B` directory assertion
+(`:903`) and the generator (`scripts/build.mjs:622`) are **code**. Twelve levels
+would free **12 B** resident there, but that is a code change with its own test
+and commit; this documentation session did not make it, so the repository still
+*executes* sixteen level ids while every document now *plans* twelve.
+`plan-4.3-sector-reader.md` §9 keeps its figures for that reason, with a note.
 
 ### Correction 2026-09-20 — the OS VBI does **not** rewrite the display shadows during SIO
 

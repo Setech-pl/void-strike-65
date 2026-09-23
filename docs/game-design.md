@@ -38,8 +38,10 @@ to their prior blank contents. The optional type glyph is omitted because the
 
 - A new game starts with three playable Player Fighters and a full 100% hull.
   **Planned (owner decision K, 2026-09-20):** one extra life after completing
-  each odd level from 3 onward — levels 3, 5, 7, 9, 11, 13, 15, seven extra
-  across the sixteen-level campaign (decision E). Not implemented.
+  each odd level from 3 onward — at the **twelve-level** campaign of decision
+  **AC** (2026-09-22) that is levels **3, 5, 7, 9, 11**, **five extra**. The
+  rule is K's; only the campaign length changed, and with it the enumeration
+  (sixteen levels gave 3-15 and seven extra). Not implemented.
 - The hull has ten health units. An ordinary Raider PairShot removes one unit
   (10%), while capital-ship fire removes two units (20%). Debris contact removes
   a fixed two, five, or seven units on Easy, Medium, or Hard (20%/50%/70% of
@@ -339,12 +341,19 @@ Recorded here as player-visible rules. **None of it is implemented.** Full text
 and rationale: [owner-decisions-2026-09-11.md](owner-decisions-2026-09-11.md),
 section "Decyzje literowe 2026-09-20".
 
-- **Sixteen levels (E).** A boss ends every level. The easiest difficulty is to
-  be beatable by anyone.
-- **Capital variety is parametric (F).** Four segment-art sets; length in
-  segments, turret density and maximum gondola protrusion are three
-  independent parameters, four steps each, layered on a chosen set. One hull
-  variant per level, so each level reads as a new region.
+- **Twelve levels (E, superseded in its number by AC, 2026-09-22).** A boss
+  ends every level. The easiest difficulty is to be beatable by anyone. The
+  campaign is **four regions of three levels** — 1-3, 4-6, 7-9, 10-12 — one
+  enemy hull style per region, so all four styles are used. Sixteen is
+  withdrawn as the 1.0 target and kept only as a possible post-1.0 extension.
+- **Capital variety is parametric (F, assumptions changed by AA and AC).**
+  Four segment-art sets; length in segments, turret density and maximum
+  gondola protrusion are three independent parameters, four steps each,
+  layered on a chosen set. The four sets are the **enemy** styles, one per
+  region of three levels (AA, AC); the **allied** hull is one for the whole
+  game, and its only per-level change is colour — the brighter steel `$88` on
+  levels 1-6, a darker step (`$84` or `$86`) on 7-12. The enemy colour is
+  unchanged.
 - **Capital turrets stay non-destructible (G).** Backlog 4.8b.
 - **Boss: one controller, a record per boss (H).** Module layout, weapon
   placement and count, weak points. Boss weapons reuse the existing
@@ -352,8 +361,9 @@ section "Decyzje literowe 2026-09-20".
 - **Boss laser (I).** Drawn at once from the gun to the bottom of the screen —
   not an unfolding beam. Lasts one second. Telegraphed by the gun visibly
   heating, with sound, for about two seconds, so the player must move out of
-  the column. Destroys everything in its path. One per level on 1-4, two on
-  5-9, four on 10-16, to be tuned during balancing.
+  the column. Destroys everything in its path. **One per level on 1-4, two on
+  5-8, four on 9-12**, to be tuned during balancing — rescaled to the
+  twelve-level campaign by decision **AC** (2026-09-22) from 1-4 / 5-9 / 10-16.
 - **Difficulty scales reload, spacing and damage (J).** See "World and
   difficulty" above.
 - **Lives (K).** Three at start, plus one after each odd level from 3.

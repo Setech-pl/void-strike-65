@@ -118,6 +118,26 @@ not by borrowing a Hostile weapon look.
 
 ## Capital ships and engines
 
+### Allied steel changes at the halfway point (owner decision AC, 2026-09-22)
+
+The allied hull body is pixel value 2 = `COLPF1` in the gameplay field,
+written every frame by `gameplay_dli` from `GAMEPLAY_COLPF1` (`src/main.s:525`).
+It is **not one value for the campaign**: levels **1-6** carry the brighter
+steel **`$88`**, levels **7-12** a **darker step — `$84` or `$86`**, settled at
+a later owner smoke. The **enemy colour is unchanged**, and the four enemy hull
+styles still change once per region of three levels (1-3, 4-6, 7-9, 10-12).
+
+Read it as the campaign's one long lighting cue: the allied fleet is further
+from home in the second half and lit worse, while the enemy stays exactly as
+bright as it always was.
+
+`COLPF1` is **shared** in the gameplay field — enemy accents, the hostile
+`PULSE`/`LASER`/`BOMBER` projectile trails and the Light steel arms ride on it
+too, so a change to the allied steel recolours all of them. The session that
+picks the darker step must show them together; see
+[plans/hull-set-v1.md](plans/hull-set-v1.md) §8. The frontend's own steel
+`$84` of "Visual language" above is a **different** register and is untouched.
+
 Both capital hulls must remain continuous through prow, forward modules, combat
 modules, aft modules, and engines. Overlays may not leave blank segments,
 vertical lines, stale glyphs, or wrap artifacts.

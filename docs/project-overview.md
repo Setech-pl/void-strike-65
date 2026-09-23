@@ -537,18 +537,25 @@ together** — which does not fit the window alongside anything else and never
 fits resident. That is why the between-levels sector reader is **in scope, not
 optional**.
 
-**Updated by owner decisions E and F, 2026-09-20.** The campaign is **sixteen
-levels**, not eight — and capital variety is **parametric, not per-level art**.
+**Updated by owner decisions E and F, 2026-09-20; the level count updated
+again by AC, 2026-09-22.** The campaign is **twelve levels** — sixteen is
+withdrawn as the 1.0 target and kept only as a possible post-1.0 extension —
+and capital variety is **parametric, not per-level art**.
 Four distinct segment-art sets; length in segments, turret density and maximum
 gondola protrusion are three independent parameters, four steps each, layered
 on a chosen art set. One hull variant per level, so the player feels he is
 flying through a new region each level, but the art behind it is one of four.
 
 **Disk budget, MEASURED:** 537 free ATR sectors = 68,736 B. **Four** art sets
-at 1,253 B ≈ 40 sectors, plus per-level parameters. Sixteen *independent* art
-sets would have been ≈ 160 sectors — still affordable on disk, but decision F
-buys it back for content instead. The disk is not the constraint either way;
-decision F is what keeps it that way as the campaign doubled.
+at 1,253 B ≈ 40 sectors, plus per-level parameters. One *independent* art set
+per level would have been ≈ 12 × 1,253 B ≈ 120 sectors at twelve levels (≈ 160
+at the sixteen this figure was first written for) — still affordable on disk,
+but decision F buys it back for content instead. The disk is not the constraint
+either way. **Decision AA then rewrote what the four sets are**: one allied
+hull for the whole game and four *enemy* styles by region, with a ~700 B design
+ceiling per enemy style; the 1,253 B figure describes a *pair* and is no longer
+directly comparable. That recount belongs to the hull code session — see
+`plans/hull-set-v1.md`.
 
 ---
 
@@ -569,7 +576,7 @@ from `plan-realizacji.md` §4, §8 says so.
 | 4.6 | **Player weapon boosters** | 21 §4 | 4.5 | — |
 | 4.7 | **4.7 Boss** (data-driven) | 21 §5, 7 | 4.5 | the campaign |
 | 4.8 | **4.8a Capital geometry** | 21 §6 | 4.5 | per-level hull variety |
-| 4.9 | **The campaign** — level complete, next level, **sixteen** levels as data (decision E) | 21 §7, content target §6.1, E, F, J, K, L, M | 4.3, 4.7, 4.8 | — |
+| 4.9 | **The campaign** — level complete, next level, **twelve** levels as data (decision AC, superseding E) | 21 §7, content target §6.1, E→AC, F, AA, J, K, L, M | 4.3, 4.7, 4.8 | — |
 
 ### 4.1 ATR boot fix (owner decision A) — `OWNER-SMOKE CANDIDATE`
 Implemented at this HEAD. Needs owner smoke **and** the SIO2SD checks in §7.2.
@@ -680,9 +687,9 @@ boss controller; each boss is a record describing module layout, weapon
 placement and count, and weak points, built from the repeating-module approach
 already agreed for the capital. **Boss weapons reuse the existing
 `weapon_class` records** — Bomber, Interceptor and Raider shells —
-deliberately, to save code for the booster work. With sixteen levels and a boss
-on each (decision E), this is what keeps sixteen bosses from meaning sixteen
-new projectile families.
+deliberately, to save code for the booster work. With twelve levels and a boss
+on each (decision E as amended by AC), this is what keeps twelve bosses from
+meaning twelve new projectile families.
 
 **Owner decision I (2026-09-20): the boss laser.** A line drawn **at once**
 from the gun down to the bottom of the screen — *not* an unfolding beam; the
@@ -693,8 +700,9 @@ the player must move out of the column. It destroys everything in its path; the
 owner accepts that as a requirement, on the assessment that a fixed column and
 row range is cheaper than ordinary collision because there is no movement to
 track. **That assessment is an owner ESTIMATE and is not measured** — cost it
-when planning 4.7. Count per level: one on levels 1-4, two on 5-9, four on
-10-16, to be tuned during balancing.
+when planning 4.7. Count per level: **one on levels 1-4, two on 5-8, four on
+9-12**, to be tuned during balancing — rescaled to the twelve-level campaign by
+decision **AC** (2026-09-22) from the original 1-4 / 5-9 / 10-16.
 
 ### 4.8 4.8a Capital geometry
 Deeper, uneven gondolas at varying heights, variable corridor width, bigger
@@ -702,11 +710,59 @@ debris; River Raid-style spatial flying. **Data plus a collision check, not a
 new subsystem.** This is also where hull variants stop being parameters and
 become the per-level art of §3.6.
 
+#### 4.8c Enemy traffic in the capital corridor — backlog, proposed 2026-09-22
+
+With capital hulls on **both** sides, Light enemies share the corridor with the
+player. Transient entities publish only to `CH_SPACE` (`src/main.s:503`;
+`src/hybrid/light-kernel.s:518`), so hull, gondola and turret always win
+priority: an enemy that overlaps the hull is simply **hidden behind it**. There
+is **no enemy-vs-hull collision today and none is proposed** — the enemy is not
+inside the hull, it is behind it, and the fix is to stop putting it there.
+
+**Minimum scope, owner-approved 2026-09-22:**
+
+1. an enemy may only be placed in a corridor cell **free of hull, gondola and
+   turret** — the same shape as the measured placement experiments
+   `experiment/interceptor-blocked-placement` and
+   `experiment/bomber-4.5c-blocked-placement`
+   ([diagnostics/stage-2b2c-interceptor-blocked-placement.json](diagnostics/stage-2b2c-interceptor-blocked-placement.json));
+2. its **lateral movement is clamped to the corridor width in that row**;
+3. **no obstacle-avoidance AI, no enemy-vs-hull collision.**
+
+**Explicitly rejected for now:** steering a path *around* gondolas. That is
+pathfinding, it is not what the problem needs, and it would arrive with its own
+budget or not at all.
+
+**Dependencies:** the capital hull set ([plans/hull-set-v1.md](plans/hull-set-v1.md))
+and 4.8a geometry, because the corridor's final width and the gondola contour
+are what the clamp reads.
+
+**Open.** Whether `BLOCKED_PLACEMENT` is implemented **at all** waits on an
+owner smoke with the **final corridor width** — a corridor wide enough may make
+the whole item unnecessary.
+
+**Precondition this item does not carry, and a later session must resolve.**
+`design-4.6-data-architecture.md` §9 lists **"Lights in `CAPITAL` sectors"**
+among the things the architecture deliberately does **not** support: the Light
+lifecycle is fighter-only because capital frames skip the late publication
+window, and `CAPITAL` has **Light ceiling 0** in the resident table. 4.8c is
+written on the assumption that Lights fly the corridor, so **lifting that
+ceiling is its real precondition** and it is outside the owner-approved
+minimum scope above. A session picking 4.8c up settles that first or reports
+`OWNER_DECISION_REQUIRED`.
+
 ### 4.9 The campaign
-Level complete, next level, **sixteen** levels as data, polish. A boss ends
+Level complete, next level, **twelve** levels as data, polish — **four regions
+of three levels, R1 1-3, R2 4-6, R3 7-9, R4 10-12**, one enemy hull style per
+region so all four are used (decision **AC**, 2026-09-22; sixteen is withdrawn
+as the 1.0 target and kept only as a possible post-1.0 extension). A boss ends
 every level, and the easiest difficulty must be beatable by anyone (decision
-E). Capital variety is parametric (F). Lives: three plus one after each odd
-level from 3 (K). Level select from the furthest level reached, RAM-only, reset
+E, surviving under AC). Capital variety is parametric (F), with one allied hull
+for the whole game and four enemy styles by region (AA). The **allied** hull
+colour changes at the halfway point: levels 1-6 the brighter steel `$88`,
+levels 7-12 a darker step (`$84` or `$86`, picked at a later smoke); the enemy
+colour is unchanged (AC). Lives: three plus one after each odd level from 3,
+which at twelve levels is 3, 5, 7, 9, 11 — five extra (K). Level select from the furthest level reached, RAM-only, reset
 by a difficulty change, with the menu showing what is available (L). High
 scores stay RAM-only (M). Difficulty scales reload and spacing **and** damage
 (J).
@@ -783,11 +839,11 @@ this table until 2026-09-20.
 | **B** | Open the window | **Recorded here for the first time** | `$A000-$BFFF` is usable RAM and is used. Supersedes decision 23 §10.1's rejection of variant A and `reguly-projektu.txt` rule 11's "BASIC RAM is not the default answer". The ~350-450 B 4.6 placement deficit stops being a blocker. |
 | **C** | Code containers are not built now | **Recorded here for the first time** | With the window open, all variant handlers fit resident with no swapping. The loader carries **DATA per level, not code**. The seam is prepared inside 4.6 (§3.2) so swapping later is bounded. Rationale: the gate set is blind to the container failure family (§3.3). |
 | **D** | The hardware measurement is deferred | Now in the journal | Every boot-time and per-sector figure in this project stays EMULATOR-MEASURED. §7 is where a future session learns not to spend those numbers as headroom. Its technical-debt register is decision R. |
-| **E** | **Sixteen levels, not eight**; a boss ends every level; the easiest difficulty beatable by anyone | Recorded 2026-09-20 | Supersedes design-4.6 §6 and §6.1 below. `plan-realizacji.md` §4 item 7 and decision 21 item 7 ("16 poziomów") were **right all along**. |
+| **E** | ~~Sixteen levels, not eight~~; a boss ends every level; the easiest difficulty beatable by anyone | Recorded 2026-09-20, **number superseded by AC 2026-09-22** | Still supersedes design-4.6 §6 and the eight-level target in §6.1 below. Its **number** is now **twelve** (AC): sixteen is withdrawn as the 1.0 target, kept only as a possible post-1.0 extension. The two other clauses survive. |
 | **F** | Capital variety is **parametric**, not per-level art | Recorded 2026-09-20 | Four segment-art sets; length, turret density and maximum gondola protrusion are independent 4-step parameters. One hull variant per level. ≈ 4 × 1,253 B on disk, not 16 sets. |
 | **G** | Capital turrets stay **non-destructible** | Recorded 2026-09-20 | Confirms backlog 4.8b. Turrets are not objects (no HP, no slot state, not a collision target) and the player-shot scan is already the most expensive item in collisions. |
 | **H** | Boss: **one mechanic, many appearances** | Recorded 2026-09-20 | One controller; each boss a record (module layout, weapon placement and count, weak points). Boss weapons reuse existing `weapon_class` records, to save code for the boosters. |
-| **I** | The **boss laser** | Recorded 2026-09-20 | Drawn at once, gun to bottom of screen — the earlier "unfolding beam" is **withdrawn**. One second, telegraphed by ~2 s of visible gun heating with sound. Destroys everything in its path. 1 / 2 / 4 per level on 1-4 / 5-9 / 10-16. Cost assessment is an owner ESTIMATE. |
+| **I** | The **boss laser** | Recorded 2026-09-20 | Drawn at once, gun to bottom of screen — the earlier "unfolding beam" is **withdrawn**. One second, telegraphed by ~2 s of visible gun heating with sound. Destroys everything in its path. 1 / 2 / 4 per level on ~~1-4 / 5-9 / 10-16~~ → **1-4 / 5-8 / 9-12** (rescaled by AC, 2026-09-22). Cost assessment is an owner ESTIMATE. |
 | **J** | Difficulty scales reload and spacing **and** damage | Recorded 2026-09-20 | Player-dealt, player-taken, contact and boss damage. Revised from the owner's initial damage-only proposal: with damage alone EASY and HARD differ only in how fast the player dies. |
 | **K** | **Lives**: three, plus one after each odd level from 3 | Recorded 2026-09-20 | Levels 3, 5, 7, 9, 11, 13, 15 — seven extra across the campaign. |
 | **L** | **Level select** from the furthest level reached | Recorded 2026-09-20 | RAM only, lost at power-off; a difficulty change in the menu resets it to level 1; the menu shows which levels are available. |
@@ -834,17 +890,24 @@ Both were recorded here first, from the owner's conversation. Since
 
 **Superseded in one figure and sharpened in another, 2026-09-20.**
 
-- **Sixteen levels** (owner decision **E**). The "eight" that stood here until
-  2026-09-20 is withdrawn. Sixteen gives the player time to enjoy the game and
-  the designer room to introduce something new at a measured pace.
+- **Twelve levels** (owner decision **AC**, 2026-09-22, superseding **E**). The
+  "eight" that stood here until 2026-09-20 is withdrawn, and so is the
+  "sixteen" that replaced it: sixteen is kept only as a possible **post-1.0
+  extension**. Twelve is **four regions of three** — 1-3, 4-6, 7-9, 10-12 —
+  which is what makes all four enemy hull styles reachable inside 1.0, and it
+  still gives the player time to enjoy the game and the designer room to
+  introduce something new at a measured pace.
 - **A boss ends every level**, and the boss is one controller with a record per
-  boss (decision **H**), not sixteen implementations.
+  boss (decision **H**), not twelve implementations.
 - **The easiest difficulty is to be beatable by anyone** (decision **E**).
 - **Capital ships that get LONGER on later levels AND look different** — but
-  **parametrically** (decision **F**), not as sixteen sets of art. Four
+  **parametrically** (decision **F**), not as one set of art per level. Four
   segment-art sets; length in segments, turret density and maximum gondola
   protrusion are three independent parameters, four steps each, layered on a
-  chosen set. One hull variant per level, so each level reads as a new region.
+  chosen set. Under **AA** the four sets are the **enemy** styles, one per
+  region of three levels (**AC**), over a single allied hull whose only
+  per-level change is its steel colour — `$88` on levels 1-6, a darker step on
+  7-12.
   MEASURED, one hull variant is **1,253 B** (248 B glyphs + 1,005 B packed map
   and metadata); **four** sets ≈ 40 ATR sectors. Per-level payload still does
   not fit resident — **the sector reader stays in scope rather than optional**
@@ -1217,11 +1280,14 @@ not have the standing to make it.
 
 ### 8.6 `plan-realizacji.md` §4 item 7 and decision 21 item 7 vs the content target
 
-**RESOLVED 2026-09-20 — and it resolved the other way.** Owner decision E:
-**sixteen levels**. `plan-realizacji.md` §4 item 7 and decision 21 item 7 were
-right; the eight-level content target in §6.1 above and in design-4.6 §6 was
-the stale figure. Corrected in §6.1 here, in design-4.6 §6, and confirmed in
-`plan-realizacji.md` §4 item 7.
+**RESOLVED 2026-09-20 — and it resolved the other way. Then resolved again
+2026-09-22.** Owner decision E first made it **sixteen levels**, so
+`plan-realizacji.md` §4 item 7 and decision 21 item 7 were right against the
+eight-level content target in §6.1 above and in design-4.6 §6. Owner decision
+**AC** (2026-09-22) then set 1.0 at **twelve**: the "16 poziomów" of those two
+documents is no longer the target either, and both now read twelve. What
+survives from this entry is only that **eight was the stale figure** — it has
+been withdrawn twice over and never comes back.
 
 Both say **"kampania 16 poziomów jako dane"** — a 16-level campaign. The
 owner's content target (§6.1) is **eight levels**. design-4.6 §6 is also built
@@ -1264,7 +1330,7 @@ candidate's, not yet accepted." **Correct: owner-accepted**, owner smoke PASS
 
 **RESOLVED 2026-09-20.** design-4.6 §6, §7.4 and §10.1 now each open with a
 SUPERSEDED banner: §6's eight-level table is superseded by decision E
-(sixteen), §7.4's boot-smoke risk is void per decision 22, §10.1's A/B/C
+(sixteen, and twelve since AC), §7.4's boot-smoke risk is void per decision 22, §10.1's A/B/C
 variants no longer describe the choice made (B **and** the window, decisions B
 and C), and §7.4's "538 free sectors" is corrected to the measured **537**.
 

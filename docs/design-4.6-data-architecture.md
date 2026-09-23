@@ -573,15 +573,19 @@ sector kind — are expensive because of placement, not cycles.
 ## 6. Eight levels, each with something new — does the budget carry the promise?
 
 > **SUPERSEDED 2026-09-20 in its premise — owner decision E: the campaign is
-> SIXTEEN levels, not eight.** The table below stays as the demonstration it
+> SIXTEEN levels, not eight. Superseded again 2026-09-22 — owner decision AC:
+> version 1.0 ships TWELVE, in four regions of three (1-3, 4-6, 7-9, 10-12);
+> sixteen is withdrawn as the 1.0 target and kept only as a possible post-1.0
+> extension. Eight has been withdrawn twice over and does not come back.** The table below stays as the demonstration it
 > was: it shows that the novelty axes and the budget line up, and every row is
 > still a valid level. It is no longer the campaign. Its "Bytes: not without an
 > owner decision" verdict is **answered**: owner decisions **B** (open the
 > window) and **C** (the loader carries data per level, not code) take *both*
 > §10.1 variants A and B, so the campaign has a home. And owner decision **F**
 > makes capital variety parametric — four segment-art sets with length, turret
-> density and gondola protrusion as independent 4-step parameters — so sixteen
-> levels do not mean sixteen art sets. See
+> density and gondola protrusion as independent 4-step parameters — so a
+> multi-level campaign does not mean one art set per level (and decision **AA**
+> then made those four sets the *enemy* styles over a single allied hull). See
 > [project-overview.md](project-overview.md) §3.6 and §6.1.
 
 Not a level design; a demonstration that the novelty axes and the budget line
@@ -613,7 +617,9 @@ Verdict, stated plainly:
   and the boot transport has zero ATR slack. The promise holds only with
   either the BASIC-window level bank (A) or the between-level loader (B) in
   §10.1. With neither, the honest number is **one, at most two, resident
-  levels**, and the campaign is a 16-level roadmap item without a home.
+  levels**, and the campaign is a multi-level roadmap item without a home
+  (written as "16-level"; **twelve** since decision AC, 2026-09-22 — the
+  argument is unchanged, twelve LevelDefs do not fit resident either).
 - **"A new obstacle" every level:** only partially. Debris density and
   patterns give two or three distinct obstacle feelings; hull variants give
   more but arrive with 4.8a; destructible gondola guns are backlog. The
@@ -782,6 +788,13 @@ it; the level format already allows 4.
   capital frames skip the late publication window (`sector_c_update_first_capital`
   waits for the Light to be unpublished). `CAPITAL` has Light ceiling 0 in the
   resident table.
+  **Note 2026-09-22:** backlog item **4.8c** ("enemy traffic in the capital
+  corridor", `project-overview.md` §4.8) is written on the assumption that
+  Lights *do* fly the corridor. This clause is the reason that item is not a
+  placement tweak: **lifting the `CAPITAL` Light ceiling above 0 is its real
+  precondition**, and it is not in 4.8c's owner-approved minimum scope. A
+  session that picks 4.8c up resolves this first or reports
+  `OWNER_DECISION_REQUIRED`.
 - **More than three live Light appearances.** Codes 120-125 are the only free
   glyphs; the 4.6 format has exactly three appearance slots.
 - **A bytecode path VM or 16-bit keyframes.** Paths are four velocity
@@ -789,6 +802,16 @@ it; the level format already allows 4.
   pointers is out. Smoother curves are a sine table, not an interpreter.
 - **A new sector kind.** `SPACE`, `CAPITAL`, `BOSS`; new feelings are subtypes
   (a ceiling row and wave lists), not lifecycles.
+- **New enemy behaviour arriving as a level-data "variant".** Owner decision
+  **AD** (2026-09-22) makes this explicit: "Defender" and any similar
+  per-level variant is a **re-skinned existing archetype** — an
+  `appearance[3]` Light bitmap, optionally a `weapon_glyph[2]` projectile
+  look, plus path, cadence and subtype ceiling. All of that is level data and
+  none of it is new archetype code, and a variant **behaves exactly like its
+  archetype**. Behaviour that differs is a **separate roadmap item with its
+  own budget**, never a level file. This is the boundary the whole section
+  defends, stated from the content side: level files may **repaint and
+  re-arrange, never add behaviour**.
 - **Mid-level disk I/O**, an overlay manager or a module format (ADR-004).
   The buffer discipline exists so that a between-level loader is a later
   bounded task, not so that anything loads during play.
@@ -813,8 +836,8 @@ answer, the roadmap does not.
    variant A. Owner decisions **B** and **C** (2026-09-20) then took **both**:
    the window *is* opened, and the disk carries per-level **data**, not code.
    The variants below no longer describe the choice that was made, and the
-   question's own premise changed: owner decision **E** makes it **sixteen**
-   levels. Variant C ("one or two levels resident, the target deferred") is
+   question's own premise changed: owner decision **E** made it **sixteen**
+   levels, and owner decision **AC** (2026-09-22) makes 1.0 **twelve**. Variant C ("one or two levels resident, the target deferred") is
    dead. Kept for the reasoning and the costs, which are still sound.
    - **A. Open the BASIC window `$A000-$BFFF` as a boot-loaded level bank
      (recommended for 4.6).** 4 KB of LevelDef pages plus the 4.6 code that

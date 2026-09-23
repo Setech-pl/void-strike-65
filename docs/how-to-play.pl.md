@@ -37,7 +37,8 @@ projektem gry, a nie tym, co robi dzisiejsza wersja.
 ## Co to za gra
 
 Prowadzisz myśliwiec. Każdy poziom to ciąg sektorów, a każdy poziom kończy się
-bossem.
+bossem. Poziomów jest dwanaście, w czterech regionach po trzy. Nowy region to
+nowa flota wroga, z własnymi okrętami.
 
 Sektory są trzech rodzajów.
 
@@ -147,8 +148,14 @@ Jeden laser na poziomach 1-4. Dwa na 5-8. Cztery na 9-12.
 
 ## Okręty liniowe
 
-Na każdym poziomie inna para. Różnią się wyglądem segmentów, długością,
-gęstością wieżyczek i tym, jak daleko wystają gondole.
+Okręt po Twojej stronie jest przez całą grę ten sam — zdążysz go poznać.
+Wrogi zmienia się z regionem: jeden kadłub na poziomy 1-3, drugi na 4-6, trzeci
+na 7-9, czwarty na 10-12. W obrębie regionu wciąż różnią się długością,
+gęstością wieżyczek i tym, jak daleko wystają gondole, więc żaden przelot
+korytarzem nie jest całkiem taki sam.
+
+Twój własny kadłub ciemnieje w drugiej połowie kampanii. Jesteś dalej od domu i
+światła jest mniej.
 
 Okrętów nie da się zniszczyć — ani sojuszniczego, ani wrogiego. Nie masz czym.
 Twoim celem jest przelecieć, nie wygrać tę bitwę.

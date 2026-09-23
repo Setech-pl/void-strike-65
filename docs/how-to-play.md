@@ -36,7 +36,8 @@ is the design, not the current build.
 ## What it is
 
 You fly a fighter. Each level is a run of sectors, and every level ends with a
-boss.
+boss. There are twelve levels, in four regions of three. A new region means a
+new enemy fleet to fly against, with its own ships.
 
 There are three kinds of sector.
 
@@ -142,8 +143,14 @@ One laser on levels 1-4. Two on 5-8. Four on 9-12.
 
 ## Capital ships
 
-Every level has a different pair. They differ in segment appearance, length,
-turret density and how far the gondolas protrude.
+The ship on your side is the same one all game — you get to know it. The
+enemy's changes with the region: one hull for levels 1-3, another for 4-6,
+another for 7-9, another for 10-12. Within a region, length, turret density
+and how far the gondolas protrude still differ from level to level, so no two
+runs down the corridor are quite the same.
+
+Your own hull darkens in the second half of the campaign. You are further from
+home and the light is worse.
 
 They cannot be destroyed. Neither yours nor the enemy's — you have nothing that
 would do it. Your job is to get through, not to win the battle.

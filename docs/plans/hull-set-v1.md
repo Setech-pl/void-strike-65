@@ -13,6 +13,16 @@ Owner decisions this plan serves: **F** (parametric capital variety,
 budget split 7 + 7, 2026-09-21) and the owner-approved preview
 `set-B-sheet.png` committed at `0fb4a52`.
 
+> **Amended 2026-09-22 by owner decision AC (documentation only; no figure in
+> this plan is re-measured).** The campaign is **twelve levels, four regions of
+> three**, so every `levels [a,b]` range above and below now reads **R1 1-3,
+> R2 4-6, R3 7-9, R4 10-12** instead of 1-4 / 5-8 / 9-12 / 13-16. Four styles,
+> one per region, unchanged — the point of three-level regions is that all four
+> are reached inside 1.0. AC also **settles §8 and §12 item 1**: the allied
+> steel is `$88` on levels **1-6** and a darker step on **7-12**; see §8.
+> Byte counts, glyph budgets and sector figures are untouched, because region
+> *length* does not change what a style costs.
+
 ---
 
 ## 0. Precondition evidence
@@ -59,10 +69,10 @@ gameplay music sectors 1-5 (`$A608-$A87F`, 120 B reserved free), header byte 7
 
 | Level set | Allied surface | Enemy surface (declared) | Shared with allied | Enemy-only | **Total** | ≤ 14 |
 | --- | ---: | ---: | ---: | ---: | ---: | --- |
-| allied B + R1-slab (levels 1-4) | 7 | 6 | 1 (`deck`) | 5 | **12** | yes |
-| allied B + R2-rib-launchers (5-8) | 7 | 8 | 1 | 7 | **14** | yes |
-| allied B + R3-thick-band (9-12) | 7 | 7 | 1 | 6 | **13** | yes |
-| allied B + R4-armour (13-16) | 7 | 7 | 0 (no `deck`) | 7 | **14** | yes |
+| allied B + R1-slab (levels 1-3) | 7 | 6 | 1 (`deck`) | 5 | **12** | yes |
+| allied B + R2-rib-launchers (4-6) | 7 | 8 | 1 | 7 | **14** | yes |
+| allied B + R3-thick-band (7-9) | 7 | 7 | 1 | 6 | **13** | yes |
+| allied B + R4-armour (10-12) | 7 | 7 | 0 (no `deck`) | 7 | **14** | yes |
 
   Matches the JSON's `totalWithAllied` (12/14/13/14) and the sheet titles.
   `ch_out` is pixel-identical between allied and R1-R3 *before* mirroring
@@ -163,7 +173,7 @@ allied:    glyphs[7] (allied orientation, values 0-3), map[32] (9 columns, colum
            turret {segmentRow 9, muzzleColumn 8, footprint}, sector modules/sections, engineBank,
            prowProfile (occupancy as today, fillGlyph "solid"), turretLayout (seed, counts, spacing)
 shared:    glyphs with faction "shared" — only all-zero glyphs allowed ("deck"); index 65
-enemyStyles[4]: { id "R1".."R4", levels [1,4] .. [13,16],
+enemyStyles[4]: { id "R1".."R4", levels [1,3] .. [10,12],
            glyphs[≤7] authored in ALLIED orientation, mirror: true,
            map[32] authored in allied orientation, mirror: true,
            turret {segmentRow, muzzleColumn 8 (allied-oriented), footprint},
@@ -457,14 +467,27 @@ gate are not consulted. The only difference from the default build is the
 level-1 image, which carries style *n*'s block instead of R1's: **the
 resident image is byte-identical**, so the XEX differs only in its `$A600`
 block and the ATR only in the level sectors. The owner plays level 1 four
-times. The default build bakes R1 (level 1 ∈ 1-4) and ships as today. Decision
+times. The default build bakes R1 (level 1 ∈ 1-3) and ships as today. Decision
 AA item 6 (styles 2-4 `DEFERRED` until the allied + R1 smoke) is honoured by
 the step order in §11: the flag costs no code and only reaches R2-R4 data the
 generator has already compiled for validation.
 
 ---
 
-## 8. Colour — the allied steel, one byte, not decided here
+## 8. Colour — the allied steel, one byte, decided in two halves
+
+> **DECIDED 2026-09-22, owner decision AC.** The allied steel is **not one
+> value for the whole game**: levels **1-6** carry the brighter **`$88`**
+> (chosen at the step-1 smoke), levels **7-12** a **darker step — `$84` or
+> `$86`**, picked at a later smoke. **The enemy colour is unchanged.** Two
+> consequences this plan did not budget for, and a later session owes both:
+> (a) `GAMEPLAY_COLPF1` stops being a build-time constant and becomes a value
+> the **level** selects, which is a small code change plus a level-data field,
+> not the one-byte edit §8 assumed below; (b) **`$86` was never one of this
+> plan's candidates** — §8 costed `$84`, `$88` and `$8A` — so if the darker
+> step lands on `$86` it needs the same shared-`COLPF1` review as the others.
+> The paragraph below stands as the description of what the constant is and
+> what it shares.
 
 The allied hull body is pixel value 2 = **`COLPF1`**, written every frame by
 `gameplay_dli` from **`GAMEPLAY_COLPF1 = $84`** (`src/main.s:525`, write at
@@ -581,6 +604,10 @@ notes under each are this session's reading of what the answer binds.
    alongside it for side-by-side comparison; it is a review variant and must
    not change the release artifact or its gates. The final colour is decided at
    owner smoke. (§8; the `--allied-steel` flag itself remains step 4.)
+   **ANSWERED 2026-09-22 at that smoke, and split in two — owner decision AC:**
+   `$88` is chosen for levels **1-6**, and levels **7-12** take a darker step,
+   **`$84` or `$86`**, settled at a later smoke. A per-level value is not the
+   single constant this item assumed; see the banner on §8.
 2. **Q-1** — the hull does not drive it: **3 sectors per level**. Q-1 stays
    open and `LEVEL_BUFFER` is not changed by this plan. (§3.5)
 3. **D1 — R3's recessed turrets** — option **(a)**: move outward so the muzzle

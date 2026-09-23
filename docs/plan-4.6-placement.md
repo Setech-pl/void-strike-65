@@ -265,7 +265,7 @@ buffer, and `src/hybrid/light-kernel.s` already asserts its own base against
 | --- | --- |
 | **Bytes made available** | 400 B of window, reloaded — the same space as (a) without the buffer shrink |
 | **Per-frame cycle cost** | 0 |
-| **Disk** | ~400 B = **4 sectors per level × 16 levels = 64 sectors** of the 515 free. Affordable |
+| **Disk** | ~400 B = **4 sectors per level × 12 levels = 48 sectors** of the 515 free (was 16 levels = 64 before owner decision AC, 2026-09-22). Affordable |
 | **Loader time** | +4 sectors per boundary. The emulator models ≈3.8 frames/sector → **≈15 frames per level boundary**, behind the loader screen. Negligible in wall time |
 | **At the level boundary (4.9)** | The reader now writes **executable** memory. `start_gameplay` would have to re-enter after the code lands, and the drain predicate would have to prove nothing is mid-call |
 | **Failure mode** | **The worst in the project's failure taxonomy.** A short read, a stale ATR or a mismatched level file stops being a bad wave and becomes a jump into garbage. Level files become version-locked to the binary, and the `magic_version` check — designed to refuse stale *data* — would be load-bearing for code integrity |

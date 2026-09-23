@@ -12,8 +12,10 @@ Branch roboczy: `wip/4.5d-gate-fail`
 > **Rozbieżności, które wskazywał jego §8.5-8.7, są rozstrzygnięte
 > 2026-09-20 i naniesione w tym pliku:**
 > §7 (odrzucone kierunki) — oznaczone SUPERSEDED, decyzja **Q**;
-> §4 pkt 7 („kampania 16 poziomów") — **obowiązuje bez zmian**, bo decyzja
-> **E** ustala szesnaście poziomów, a to cel ośmiu poziomów był nieaktualny;
+> §4 pkt 7 („kampania 16 poziomów") — liczba **zmieniona 2026-09-22 na
+> DWANAŚCIE** decyzją **AC**; osiem było nieaktualne (decyzja **E**),
+> szesnaście przestało być celem 1.0 i zostaje wyłącznie jako możliwe
+> rozszerzenie po 1.0;
 > §3 i §4.5c — liczby zastąpione pomiarem przy HEAD, z zachowaniem
 > oryginalnych jako historii.
 
@@ -367,8 +369,9 @@ działa z dźwiękiem przez ok. dwie sekundy, żeby gracz zdążył wyjść z ko
 Niszczy wszystko na swojej drodze — właściciel przyjmuje to jako wymaganie, na
 ocenie, że stały zakres kolumn i wierszy jest tańszy niż zwykła kolizja, bo nie
 ma ruchu do śledzenia (**ESTIMATE właściciela, do zweryfikowania przy
-planowaniu 4.7**). Liczba na poziom: 1 na poziomach 1-4, 2 na 5-9, 4 na 10-16,
-do dostrojenia przy balansowaniu.
+planowaniu 4.7**). Liczba na poziom: **1 na poziomach 1-4, 2 na 5-8, 4 na
+9-12**, do dostrojenia przy balansowaniu — przeskalowane decyzją **AC**
+(2026-09-22) do kampanii dwunastopoziomowej z pierwotnego 1-4 / 5-9 / 10-16.
 
 Projektować **sterowany danymi**: fazy, wzorzec ruchu, wzorzec ognia, HP i
 punkty słabe jako dane, tak aby kolejni bossowie byli rekordami, a nie
@@ -386,23 +389,33 @@ sprawdzenie kolizji** — nie nowy podsystem.
 
 #### 7. Koniec poziomu / następny poziom
 
-Pętla poziomu, kampania 16 poziomów jako dane, polish.
+Pętla poziomu, kampania **12 poziomów** jako dane, polish.
 
-**Potwierdzone decyzją właściciela E (2026-09-20): szesnaście poziomów.**
-Liczba w tym punkcie i w decyzji 21 pkt 7 **była poprawna**; nieaktualny był
-cel ośmiu poziomów w `design-4.6-data-architecture.md` §6 i w celu treściowym.
-Każdy poziom kończy się bossem. Najłatwiejszy poziom trudności ma być do
-przejścia dla każdego.
+**Ustalone decyzją właściciela AC (2026-09-22): DWANAŚCIE poziomów** —
+**cztery regiony po trzy: R1 1-3, R2 4-6, R3 7-9, R4 10-12**, jeden styl
+kadłuba wroga na region, więc wszystkie cztery style są w 1.0 użyte.
+Szesnaście z decyzji **E** zostaje wycofane jako cel 1.0 i zachowane wyłącznie
+jako możliwe rozszerzenie po 1.0; cel ośmiu poziomów w
+`design-4.6-data-architecture.md` §6 pozostaje nieaktualny (był nim już od
+decyzji E). Każdy poziom kończy się bossem. Najłatwiejszy poziom trudności ma
+być do przejścia dla każdego.
 
 Co jeszcze wchodzi w ten punkt po decyzjach 2026-09-20:
 
 - **Zróżnicowanie capitali jest parametryczne (decyzja F).** Cztery zestawy
   grafiki segmentów; długość w segmentach, gęstość wieżyczek i maksymalne
   wysunięcie gondoli to trzy niezależne parametry po cztery stopnie, nakładane
-  na wybrany zestaw. Jeden wariant kadłuba na poziom. Koszt: cztery zestawy po
-  ok. 1 253 B na dysku plus parametry na poziom — nie szesnaście zestawów.
+  na wybrany zestaw. Po decyzji **AA** te cztery zestawy to style **wroga**,
+  po jednym na region trzech poziomów (**AC**); kadłub **sojusznika** jest
+  jeden na całą grę, a jedyną jego zmianą per poziom jest kolor — jaśniejsza
+  stal `$88` na poziomach 1-6, stopień ciemniejszy (`$84` albo `$86`) na 7-12,
+  przy niezmienionym kolorze wroga. Koszt: cztery zestawy po ok. 1 253 B na
+  dysku plus parametry na poziom — nie jeden zestaw na poziom. (Sufit ~700 B
+  na styl wroga z AA przelicza sesja kodu kadłubów.)
 - **Życia (decyzja K).** Trzy na start plus jedno po każdym nieparzystym
-  poziomie od 3 w górę (3, 5, 7, 9, 11, 13, 15) — siedem dodatkowych.
+  poziomie od 3 w górę — przy dwunastu poziomach (**AC**) to **3, 5, 7, 9,
+  11**, czyli **pięć dodatkowych**, nie siedem. Reguła bez zmian; zmieniła się
+  długość kampanii.
 - **Wybór poziomu (decyzja L).** Start od najdalszego osiągniętego poziomu;
   tylko w RAM; zmiana trudności w menu zeruje do poziomu 1; menu pokazuje, które
   poziomy są dostępne.
@@ -469,6 +482,28 @@ odsunięta. Nie realizować bez wskazania właściciela.
   wiersze w przesuniętej fazie do następnej generacji gameplayu.
 - **Miganie debris w klatce śmierci gracza** — pre-existing, udokumentowane w
   STATUS.
+- **4.8c ruch przeciwników w korytarzu capitali** (zapisane 2026-09-22,
+  zaproponowane jako 4.8c — identyfikator był wolny). Przy kadłubach capital po
+  **obu** stronach Lighty dzielą korytarz z graczem. Byty nietrwałe publikują
+  wyłącznie do `CH_SPACE` (`src/main.s:503`, `src/hybrid/light-kernel.s:518`),
+  więc kadłub, gondola i wieżyczka **zawsze** wygrywają priorytet: przeciwnik
+  nachodzący na kadłub jest po prostu **schowany za nim**. Kolizji
+  przeciwnik-kadłub nie ma dziś i **nie jest proponowana**.
+  **Zakres minimalny, zatwierdzony przez właściciela:**
+  1. przeciwnika wolno postawić **tylko w komórce korytarza wolnej od kadłuba,
+     gondoli i wieżyczki** — kształt jak w zmierzonych eksperymentach
+     `experiment/interceptor-blocked-placement` i
+     `experiment/bomber-4.5c-blocked-placement`
+     (`diagnostics/stage-2b2c-interceptor-blocked-placement.json`);
+  2. jego ruch boczny jest **klamrowany do szerokości korytarza w tym
+     wierszu**;
+  3. **bez AI omijania przeszkód, bez kolizji przeciwnik-kadłub.**
+  **Odrzucone na teraz:** prowadzenie toru **dookoła** gondol.
+  **Zależności:** zestaw kadłubów capital (`plans/hull-set-v1.md`) i geometria
+  **4.8a** — to one ustalają ostateczną szerokość korytarza i obrys gondoli,
+  które czyta klamra.
+  **Otwarte:** czy `BLOCKED_PLACEMENT` w ogóle się implementuje, rozstrzyga
+  **owner smoke przy ostatecznej szerokości korytarza**.
 - **Debris przeżywa kontakt z graczem** w oknie umierania/respawnu i w
   `BROAD_DAMAGE_COOLDOWN`: zniszczenie debris jest bramkowane przez
   `BROAD_DAMAGE_APPLIED`, którego `apply_player_damage` nie ustawia, gdy
@@ -514,8 +549,9 @@ Aktualna lista i priorytety są w STATUS. Na dziś:
 prze-bazowany na budżet 60 sekund (decyzja 22), więc runtime disk I/O nie
 kupuje się już czasem ładowania, którego nikt nie wybrał. ATR i tak wymagał
 wyłączenia BASIC-a (decyzja A), więc okno `$A000-$BFFF` jest bezwarunkowym
-RAM-em, a nie obejściem placementu. A szesnaście poziomów ze zróżnicowaną
-grafiką capital (decyzje **E** i **F**) nie mieści się rezydentnie, więc
+RAM-em, a nie obejściem placementu. A kampania wielu poziomów ze zróżnicowaną
+grafiką capital (decyzje **E**/**AC** i **F**) nie mieści się rezydentnie —
+dwanaście poziomów nie mieści się tak samo jak szesnaście — więc
 zmiana loadera jest wymaganiem treści, a nie skrótem zamiast inżynierii.
 Reguła była napisana wtedy, gdy te trzy rzeczy proponowano **zamiast** pracy
 inżynierskiej; dziś są decyzjami podjętymi **po** niej. Zapis decyzji:

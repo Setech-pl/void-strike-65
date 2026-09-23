@@ -921,7 +921,14 @@ EMULATOR-MEASURED. Rejestr długu: decyzja R.
 
 ---
 
-## E. Szesnaście poziomów, nie osiem — OWNER-ACCEPTED (2026-09-20)
+## E. Szesnaście poziomów, nie osiem — SUPERSEDED przez AC (2026-09-22)
+
+> **ZASTĄPIONA 2026-09-22 w swojej liczbie — decyzja AC: wersja 1.0 ma
+> DWANAŚCIE poziomów.** Szesnaście zostaje wycofane jako cel 1.0 i zachowane
+> wyłącznie jako możliwe rozszerzenie po 1.0. Wpis zostaje w całości: jego
+> pozostałe klauzule — boss kończy każdy poziom, najłatwiejszy poziom
+> trudności do przejścia dla każdego — **żyją dalej pod AC**. To, co było w
+> nim nieaktualne, to sama liczba i budżet z niej liczony.
 
 **Kampania ma szesnaście poziomów.** Każdy kończy się bossem.
 
@@ -1006,6 +1013,9 @@ szesnastu nowych zestawów pocisków.
   zwykła kolizja, bo nie ma ruchu do śledzenia**.
 - **Liczba na poziom:** 1 na poziomach 1-4, 2 na 5-9, 4 na 10-16. Do
   dostrojenia przy balansowaniu.
+  **PRZESKALOWANE 2026-09-22 decyzją AC do kampanii dwunastopoziomowej:
+  1 / 2 / 4 na poziomach 1-4 / 5-8 / 9-12.** Rozkład — trzy progi, ten sam
+  kształt narastania — jest zachowany; zmieniają się granice.
 
 Ocena kosztu jest **ESTIMATE właściciela**, nie pomiarem. Zweryfikować przy
 planowaniu 4.7, razem z resztą budżetu bossa.
@@ -1044,6 +1054,11 @@ Do rozstrzygnięcia przy planowaniu 4.6 (patrz lista w decyzji Q).
 **Trzy na start** (tak jak dziś) **plus jedno po ukończeniu każdego nieparzystego
 poziomu od 3 w górę**: poziomy 3, 5, 7, 9, 11, 13, 15 — **siedem dodatkowych
 przez całą kampanię**.
+
+> **PRZELICZONE 2026-09-22 decyzją AC.** Reguła się nie zmienia — zmienia się
+> długość kampanii. Przy dwunastu poziomach nieparzyste od 3 to **3, 5, 7, 9,
+> 11**, czyli **pięć dodatkowych żyć**, nie siedem. Obie strony dla graczy
+> (`how-to-play.md`, `how-to-play.pl.md`) już nosiły tę wersję.
 
 ## L. Wybór poziomu — OWNER-ACCEPTED (2026-09-20)
 
@@ -1206,8 +1221,8 @@ drogą są:
 5. **`design-4.6-data-architecture.md` §9** („czego ta architektura celowo nie
    wspiera") i §10.1 wariant C („jeden lub dwa poziomy rezydentnie; cel
    ośmiu poziomów odroczony wraz z kampanią") — cel jest szesnaście poziomów
-   (E), a wariant, który wybrano, to B **plus** okno. §10.1 jest zastąpione
-   podwójnie.
+   (E; **dwanaście od decyzji AC, 2026-09-22**), a wariant, który wybrano, to
+   B **plus** okno. §10.1 jest zastąpione podwójnie.
 6. **`game-design.md` §„World and difficulty":** „sufity intensywności
    EASY/MEDIUM/HARD (3/4/5)" wobec decyzji 23 §10.6 („sufity **nigdy** nie
    skalowane"). To sprzeczność **wcześniejsza niż ta sesja** i niezależna od
@@ -1564,7 +1579,10 @@ zestawy po ~1 253 B na parę. Właściciel rozdziela teraz obie frakcje:
    wieżyczki. Żadnego drugiego rysunku sojusznika.
 2. **Kadłuby WROGA: cztery style, po jednym na region czterech poziomów**
    (1-4, 5-8, 9-12, 13-16). Nowy rejon przestrzeni niesie nowy rysunek wroga,
-   a nie nowy rysunek sojusznika.
+   a nie nowy rysunek sojusznika. **ZMIENIONE 2026-09-22 decyzją AC: regiony
+   mają po TRZY poziomy — R1 1-3, R2 4-6, R3 7-9, R4 10-12.** Cztery style i
+   „jeden styl na region" zostają; skraca się region, nie ich liczba, i
+   właśnie dlatego wszystkie cztery style są w 1.0 użyte.
 3. **Budżet 14 kodów powierzchni dzielony NIERÓWNO.** Sojusznik dostaje pulę
    stałą, cel **≤ 5-7 kodów** (właściciel woli mniej); wróg bierze resztę,
    **7-9 kodów na styl**. **Pulę sojusznika ustala się PIERWSZĄ**, bo od niej
@@ -1620,6 +1638,69 @@ przy swoich pytaniach.
    zarezerwowaną wielkość — surową i po spakowaniu — a STATUS oraz
    `memory-map.md` noszą ją jako „reserved: starfield expansion".
 
+## AC. DWANAŚCIE POZIOMÓW, CZTERY REGIONY PO TRZY — OWNER-ACCEPTED (2026-09-22)
+
+**Zastępuje decyzję E w jej liczbie.** Wersja 1.0 ma **dwanaście poziomów**.
+Szesnaście zostaje **wycofane jako cel 1.0** i zachowane wyłącznie jako
+możliwe **rozszerzenie po 1.0**. Wpisu E nie usuwamy — nosi tag SUPERSEDED i
+całą swoją historię.
+
+1. **Cztery regiony po trzy poziomy**, żeby **wszystkie cztery style kadłuba
+   wroga zostały w 1.0 użyte**: **R1 poziomy 1-3, R2 4-6, R3 7-9, R4 10-12**.
+   To zmienia granice regionów z decyzji **AA** pkt 2 (było 1-4, 5-8, 9-12,
+   13-16). Reszta AA — jeden kadłub sojuszniczy na całą grę, nierówny podział
+   14 kodów powierzchni, sufit ~700 B na styl wroga, kolejność pracy z owner
+   smoke po R1 — **obowiązuje bez zmian**.
+2. **Kolor kadłuba SOJUSZNIKA zmienia się w połowie kampanii.** Poziomy **1-6**
+   noszą jaśniejszą stal **`$88`**, wybraną przy owner smoke kroku 1 zestawu
+   kadłubów; poziomy **7-12** stopień ciemniejszy — **`$84` albo `$86`**,
+   rozstrzygnięty przy późniejszym smoke'u. **Kolor WROGA bez zmian.**
+   To jedyny wyjątek od „wygląd stały" z AA pkt 1: zmienia się jedna stała
+   `GAMEPLAY_COLPF1` (`src/main.s:525`), nie rysunek — a że `COLPF1` jest w
+   polu gry **dzielony**, zmiana dotyka też akcentów wroga, śladów pocisków
+   wrogich i stalowych ramion Lightów (`plans/hull-set-v1.md` §8). Sesja, która
+   będzie wybierać ciemniejszy stopień, ma to pokazać właścicielowi razem.
+3. **Laser bossa (decyzja I) przeskalowany:** **1 / 2 / 4 lasery na poziomach
+   1-4 / 5-8 / 9-12**, zamiast 1-4 / 5-9 / 10-16. Trzy progi i kształt
+   narastania zostają.
+4. **Boss nadal kończy każdy poziom**, a **najłatwiejszy poziom trudności
+   pozostaje do przejścia dla każdego** — pozostałe klauzule E żyją dalej pod
+   tym numerem.
+5. **Konsekwencja dla decyzji K**, przeliczona z samej jej reguły („jedno życie
+   po każdym nieparzystym poziomie od 3 w górę"): poziomy **3, 5, 7, 9, 11** —
+   **pięć dodatkowych żyć**, nie siedem. Obie strony dla graczy już tak mówiły.
+
+**Czego ta decyzja NIE przelicza — do sesji kodu.** `LEVEL_MAX_ID = 16`
+(`src/hybrid/sector-reader.s:131`), asercja katalogu `16 * 3 B = 48 B` (`:903`)
+i generator katalogu (`scripts/build.mjs:622`) są **kodem**, nie dokumentacją.
+Dwanaście poziomów zwalnia tam **12 B** rezydentnie, ale to zmiana kodu z
+własnym testem i własnym commitem. `plan-4.3-sector-reader.md` §9 opisuje ten
+kod i dlatego zachowuje swoje liczby, z przypisem.
+
+## AD. WARIANT PRZECIWNIKA TO PRZEMALOWANIE, NIE NOWY ARCHETYP — OWNER-ACCEPTED (2026-09-22)
+
+„Defender" i **każdy podobny wariant przeciwnika na poziom** jest
+**przemalowanym istniejącym archetypem**, nie nowym archetypem. Wariant to:
+
+- `appearance[3]` — bitmapa Lighta;
+- opcjonalnie `weapon_glyph[2]` — wygląd pocisku;
+- **ścieżka, kadencja i sufit podtypów**.
+
+**Wszystko to są dane poziomu — żadnego nowego kodu archetypu.** Wariant
+**zachowuje się dokładnie tak jak jego archetyp**.
+
+**Inne zachowanie to osobna pozycja roadmapy z własnym budżetem**, a nie
+„wariant". Nazwa w plikach poziomu nie jest podstawą do napisania nowego
+handlera.
+
+Uzasadnienie właściciela: pliki poziomów wolno **przemalowywać i przestawiać,
+nigdy dodawać zachowanie** — to jest architektura danych 4.6
+(`design-4.6-data-architecture.md`). Wariant, który łamie tę granicę,
+przestaje być danymi i musi przejść normalną ścieżkę: pozycja roadmapy, koszt,
+pomiar.
+
+---
+
 ## Backlog — dopisane 2026-09-20
 
 Nie realizować bez wskazania właściciela. Pełna lista: `plan-realizacji.md` §5
@@ -1630,4 +1711,11 @@ i STATUS §„Backlog".
   nienaruszony, kiedy ludzie wymieniają się obrazami dysków. Decyzje L i M
   trzymają jedno i drugie w RAM-ie właśnie dlatego.
 - **Niszczalne działa gondol (4.8b)** — potwierdzone jako backlog decyzją G.
+- **Ruch przeciwników w korytarzu capitali (4.8c)** — zapisane 2026-09-22.
+  Zakres minimalny zatwierdzony przez właściciela: Light wolno postawić tylko
+  w komórce korytarza wolnej od kadłuba, gondoli i wieżyczki, a jego ruch
+  boczny jest **klamrowany do szerokości korytarza w tym wierszu**. Bez AI
+  omijania, bez kolizji przeciwnik-kadłub. Czy `BLOCKED_PLACEMENT` w ogóle
+  się implementuje, rozstrzyga owner smoke przy ostatecznej szerokości
+  korytarza. Pełny opis: `plan-realizacji.md` §5 i `project-overview.md` §4.8.
 - **Animacja ekranu końcowego i tekst jej scrolla** — decyzja P.

@@ -1,0 +1,57 @@
+{
+  "level": 1,
+  "seed": 1,
+  "stars": 0,
+  "nebula": 0,
+  "boss": 0,
+  "pickupPolicy": 3,
+  "hull": { "length": 3, "turrets": 3 },
+  "sectors": [
+    {
+      "kind": "space",
+      "subtype": "swarm",
+      "rows": 576,
+      "archetypes": ["wingman", "interceptor"],
+      "lights": 3,
+      "hazards": { "debris": 1, "pickups": true },
+      "waves": [
+        { "row": 128, "archetype": "interceptor", "count": 2, "spacing": 48, "entry": 124 },
+        { "row": 320, "archetype": "wingman", "count": 3, "spacing": 32, "entry": 92 }
+      ]
+    },
+    {
+      "kind": "capital",
+      "archetypes": [],
+      "hazards": { "debris": 1, "pickups": true, "broadside": true }
+    },
+    {
+      "kind": "space",
+      "subtype": "elite",
+      "rows": 1280,
+      "archetypes": ["raider", "wingman", "interceptor"],
+      "lights": 1,
+      "heavies": 2,
+      "hazards": { "debris": 2, "pickups": true },
+      "waves": [
+        { "row": 0, "members": ["raider", "wingman"], "count": 2, "spacing": 48, "entry": 124 },
+        { "row": 480, "archetype": "interceptor", "count": 2, "spacing": 32, "entry": 156 },
+        { "row": 1088, "members": ["raider", "wingman"], "count": 3, "spacing": 36, "entry": 92 }
+      ]
+    },
+    {
+      "kind": "space",
+      "subtype": "elite",
+      "rows": 1856,
+      "archetypes": ["raider", "bomber", "wingman", "interceptor"],
+      "lights": 1,
+      "heavies": 2,
+      "hazards": { "debris": 2, "pickups": true },
+      "waves": [
+        { "row": 0, "archetype": "bomber", "count": 2, "spacing": 120, "escort": "wingman" },
+        { "row": 640, "archetype": "interceptor", "count": 3, "spacing": 24, "entry": 156 },
+        { "row": 1088, "members": ["raider", "wingman"], "count": 3, "spacing": 36, "entry": 124 },
+        { "row": 1728, "members": ["raider", "bomber"], "count": 2, "spacing": 48, "entry": 124 }
+      ]
+    }
+  ]
+}

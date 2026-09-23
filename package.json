@@ -25,6 +25,8 @@
     "hull:style:R2": "node scripts/build.mjs --hull-style=R2",
     "hull:style:R3": "node scripts/build.mjs --hull-style=R3",
     "hull:style:R4": "node scripts/build.mjs --hull-style=R4",
+    "levels:check": "node scripts/level-compiler.mjs",
+    "levels:preview": "node scripts/level-preview.mjs",
     "clean": "node scripts/clean.mjs",
     "package": "npm run build && node scripts/package-release.mjs",
     "preview": "node scripts/preview.mjs && node scripts/starfield-preview.mjs",

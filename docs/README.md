@@ -70,6 +70,7 @@ cost of keeping them true. The line follows the audience, not the directory.
 | Runtime layers, flows, pools and contracts | [architecture.md](architecture.md) |
 | C/ASM boundary, ABI and placement | [hybrid-c-architecture.md](hybrid-c-architecture.md) |
 | Addresses, ranges and sizes for an identified checkpoint | [memory-map.md](memory-map.md) |
+| How a level is authored — every JSON field, its range, and what the compiler refuses | [level-authoring.md](level-authoring.md) |
 | Why decisions were made | [owner-decisions-2026-09-11.md](owner-decisions-2026-09-11.md), [decisions/](decisions/) |
 | Machine-readable PAL evidence (historical binding) | [runtime-wall-trace.json](runtime-wall-trace.json) |
 | Behavioural gate failures the owner has recorded as open (one source of truth for `scripts/build.mjs` and the tripwire test) | [recorded-gate-failures.json](recorded-gate-failures.json) |

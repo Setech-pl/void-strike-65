@@ -29,6 +29,17 @@ import {
   HULL_STYLE_BLOCK_OFFSETS,
 } from "./capital-hulls.mjs";
 import {
+  compileLevelFile,
+  levelSourcePath,
+  LEVEL_CORE_OFFSET,
+  LEVEL_PAYLOAD_OFFSET,
+  LEVEL_GEOMETRY_OFFSET,
+  LEVEL_CORE_BYTES,
+  LEVEL_PAYLOAD_BYTES,
+  LEVEL_GEOMETRY_BYTES,
+  LEVEL_IMAGE_SECTORS,
+} from "./level-compiler.mjs";
+import {
   compileEnemyRoster,
   loadEnemyRosterDefinition,
   renderEnemyRosterCa65Include,
@@ -267,7 +278,16 @@ const hullBlockAddress = levelBufferAddress + hullBlockImageOffset;
 // One-based sector within the image where roadmap 4.6's LevelDef starts.
 // Recorded in header byte 7, which was reserved and zero until now.
 const levelDefFirstSector = gameplayMusicSectors + hullBlockSectors + 1;
-const levelOneSectors = 8;
+// Roadmap 4.6 step 1 (docs/plans/director-4.6.md §2.1, §8): the image grows
+// from 8 to 13 sectors to carry the three LevelDef pages the compiler emits -
+// core $AA00, payload $AB00, HullGeometry $AC00. Sectors 1-8 are untouched:
+// the header keeps byte 7 = 9, the music block and the hull block keep their
+// frozen addresses and their bytes. Nothing resident reads the new pages yet;
+// the Director arrives at step 2, the payload at step 5, the geometry at
+// step 4. No boot sector is bought - the block is outside the boot transport,
+// exactly as the music and hull moves were - and the ATR START GAME read grows
+// by five sectors behind the loader screen.
+const levelOneSectors = LEVEL_IMAGE_SECTORS;
 // Decision 2: the first half of the campaign flies in the brighter steel the
 // owner chose at the step-1 smoke; the second half is colder. $84 is
 // provisional — the owner picks the final darker step ($84 or $86) at this
@@ -692,7 +712,7 @@ function renderSectorReaderMainAbiInclude(labels) {
 // Roadmap 4.3 level image (plan §1.4). v1 carries an inert pattern the gates
 // read back byte-exact; 4.6 replaces the payload with LevelDef and hull data.
 // The eight-byte header is exactly what sector_reader_validate checks.
-function buildLevelImage({ id, sectors, musicBytes, hullBlock, alliedColpf1 }) {
+function buildLevelImage({ id, sectors, musicBytes, hullBlock, alliedColpf1, levelPages }) {
   const bytes = Buffer.alloc(sectors * 128);
   bytes[0] = "V".charCodeAt(0);
   bytes[1] = "S".charCodeAt(0);
@@ -721,6 +741,25 @@ function buildLevelImage({ id, sectors, musicBytes, hullBlock, alliedColpf1 }) {
   }
   hullBlock.copy(bytes, hullBlockImageOffset);
   bytes[hullBlockImageOffset + hullBlockAlliedColpf1Offset] = alliedColpf1;
+  // Roadmap 4.6 step 1: the three compiled LevelDef pages. They are written
+  // last and over the inert pattern, so sectors 1-8 stay byte-identical to the
+  // image that shipped before this step.
+  if (levelPages) {
+    for (const [page, offset, size] of [
+      [levelPages.core, LEVEL_CORE_OFFSET, LEVEL_CORE_BYTES],
+      [levelPages.payload, LEVEL_PAYLOAD_OFFSET, LEVEL_PAYLOAD_BYTES],
+      [levelPages.geometry, LEVEL_GEOMETRY_OFFSET, LEVEL_GEOMETRY_BYTES],
+    ]) {
+      if (page.length !== size) {
+        throw new Error(`4.6 level ${id}: a LevelDef page is ${page.length} B, not ${size}`);
+      }
+      if (offset + size > bytes.length) {
+        throw new Error(`4.6 level ${id}: the LevelDef pages need ` +
+          `${offset + size} B; the image is ${bytes.length} B`);
+      }
+      page.copy(bytes, offset);
+    }
+  }
   return bytes;
 }
 
@@ -1763,12 +1802,21 @@ async function build() {
   const regionFirstLevel = (styleId) => 1 + Math.floor(((styleId - 1) * LEVEL_MAX_ID) / 4);
   const alliedColpf1ForRun = (id) => alliedSteelValue ??
     alliedColpf1ForLevel(hullStyleValue === null ? id : regionFirstLevel(hullStyleValue));
+  // Roadmap 4.6 step 1: the authored level compiles here, so a level file that
+  // asks for something the runtime cannot honour fails the build, not the
+  // owner's smoke (plan §5).
+  const compiledLevels = new Map(levelRuns.map((run) =>
+    [run.id, compileLevelFile(levelSourcePath(run.id), { hullAsset: capitalHullsAsset })]));
+  for (const compiled of compiledLevels.values()) {
+    if (!quiet) for (const warning of compiled.warnings) console.warn(`level warning: ${warning}`);
+  }
   const levelImages = new Map(levelRuns.map((run) =>
     [run.id, buildLevelImage({
       id: run.id, sectors: run.sectors, musicBytes: gameplayMusicModule.raw,
       hullBlock: Buffer.from(
         capitalHullsAsset.hullStyleBlocks[hullStyleIdForRun(run.id) - 1]),
       alliedColpf1: alliedColpf1ForRun(run.id),
+      levelPages: compiledLevels.get(run.id).pages,
     })]));
   const levelOneImage = levelImages.get(1);
   // The block exactly as level 1 carries it, colour byte and all: the runtime

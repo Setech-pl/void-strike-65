@@ -9,7 +9,7 @@
     "artifact_binding": "boot BIN, XEX and ATR SHA-256"
   },
   "determinism": {
-    "replay_fingerprint_sha256": "ae062f6da9fdf123409667bc23dd436ade27e32b746fdfd334481715520cd375",
+    "replay_fingerprint_sha256": "df01aacf864cd4db37d94ec3ccb5ca22fb6f88937b082528dade40330994fbd6",
     "ordered_frames": 108180,
     "basis": "ordered decoded CSV rows from every required legal replay"
   },
@@ -17,28 +17,28 @@
     "void-strike-65-boot.bin": {
       "path": "dist/void-strike-65-boot.bin",
       "bytes": 26752,
-      "sha256": "65b321da3807e4af48aa54bfb9d0defc9f1005b001570edcd69906615205464a"
+      "sha256": "ae4f574df1776803610e8750cd7b834a83f1616b9dbaabdb40480b4a63cdc0c2"
     },
     "void-strike-65.xex": {
       "path": "dist/void-strike-65.xex",
-      "bytes": 28390,
-      "sha256": "6cf49f2bd67d8d34984aa402a1fb562511cc1e972520e695240b621ecc29e2d0"
+      "bytes": 29030,
+      "sha256": "0b8cd967ce16b22885c79dcba77e6e04ba51842d75ed88c49374c045586debba"
     },
     "void-strike-65.atr": {
       "path": "dist/void-strike-65.atr",
       "bytes": 92176,
-      "sha256": "6081e1762c5915559b68aed421f074dfab3578757c83aefad7a65d8208272908"
+      "sha256": "b479f2437a7c887a400b6c8fa3c1753a4e611516e19f4e6706b3a40bb00a2f94"
     },
     "void-strike-65-manifest.json": {
       "path": "dist/void-strike-65-manifest.json",
-      "bytes": 805204,
-      "sha256": "083f86ad28f71ecf2e3852e71b252f3a9803923cedeecb37846251f746dddca7"
+      "bytes": 805201,
+      "sha256": "bdb8e458788ac030ccb35f2e7da12725718d641d8dd4124f6443b47b2aa11a95"
     }
   },
   "artifact": {
     "path": "dist/void-strike-65.xex",
-    "bytes": 28390,
-    "sha256": "6cf49f2bd67d8d34984aa402a1fb562511cc1e972520e695240b621ecc29e2d0"
+    "bytes": 29030,
+    "sha256": "0b8cd967ce16b22885c79dcba77e6e04ba51842d75ed88c49374c045586debba"
   },
   "emulator": {
     "name": "Atari800",
@@ -68,9 +68,9 @@
       "free_bytes": 63,
       "level_buffer_address": 42496,
       "level_image_file": "level-1.bin",
-      "level_image_bytes": 1024,
-      "level_image_checksum": 594689107,
-      "level_image_header_hex": "5653010108f80309",
+      "level_image_bytes": 1664,
+      "level_image_checksum": 447275716,
+      "level_image_header_hex": "565301010d780609",
       "verified_at_frames": [
         3300
       ],
@@ -98,20 +98,20 @@
         {
           "id": "atr-a5",
           "medium": "ATR",
-          "command_frames": 8,
-          "expected_command_frames": 8,
+          "command_frames": 13,
+          "expected_command_frames": 13,
           "wire_retries": 0,
-          "level_load_frames": 30,
+          "level_load_frames": 49,
           "level_image_verified": true,
           "path": "direct SIO: one command frame per sector at START GAME"
         },
         {
           "id": "atr-5a",
           "medium": "ATR",
-          "command_frames": 8,
-          "expected_command_frames": 8,
+          "command_frames": 13,
+          "expected_command_frames": 13,
           "wire_retries": 0,
-          "level_load_frames": 30,
+          "level_load_frames": 49,
           "level_image_verified": true,
           "path": "direct SIO: one command frame per sector at START GAME"
         },
@@ -138,20 +138,20 @@
         {
           "id": "atr-a5-basic",
           "medium": "ATR",
-          "command_frames": 8,
-          "expected_command_frames": 8,
+          "command_frames": 13,
+          "expected_command_frames": 13,
           "wire_retries": 0,
-          "level_load_frames": 30,
+          "level_load_frames": 49,
           "level_image_verified": true,
           "path": "direct SIO: one command frame per sector at START GAME"
         },
         {
           "id": "atr-5a-basic",
           "medium": "ATR",
-          "command_frames": 8,
-          "expected_command_frames": 8,
+          "command_frames": 13,
+          "expected_command_frames": 13,
           "wire_retries": 0,
-          "level_load_frames": 30,
+          "level_load_frames": 49,
           "level_image_verified": true,
           "path": "direct SIO: one command frame per sector at START GAME"
         }
@@ -221,12 +221,12 @@
         "basic_enabled": false,
         "artifact": {
           "path": "dist/void-strike-65.xex",
-          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/dist/void-strike-65.xex",
-          "bytes": 28390,
-          "sha256": "6cf49f2bd67d8d34984aa402a1fb562511cc1e972520e695240b621ecc29e2d0"
+          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/dist/void-strike-65.xex",
+          "bytes": 29030,
+          "sha256": "0b8cd967ce16b22885c79dcba77e6e04ba51842d75ed88c49374c045586debba"
         },
         "launch": {
-          "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/build/atari800-trace/src/atari800",
+          "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/build/atari800-trace/src/atari800",
           "arguments": [
             "-xe",
             "-pal",
@@ -236,7 +236,7 @@
             "-no-video-accel",
             "-no-vsync",
             "-run",
-            "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/dist/void-strike-65.xex"
+            "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/dist/void-strike-65.xex"
           ],
           "mode": "executable-loader"
         },
@@ -293,8 +293,8 @@
             "loader_dli_count": 4,
             "portb": 255,
             "window": "2075af8d0781ac0081b9c47fd004aa4c",
-            "level_header": "5653010108f80309",
-            "level_checksum": 594689107,
+            "level_header": "565301010d780609",
+            "level_checksum": 447275716,
             "splash_checksum": 1739628844
           },
           {
@@ -321,8 +321,8 @@
             "loader_dli_count": 104,
             "portb": 255,
             "window": "2075af8d0781ac0081b9c47fd004aa4c",
-            "level_header": "5653010108f80309",
-            "level_checksum": 594689107,
+            "level_header": "565301010d780609",
+            "level_checksum": 447275716,
             "splash_checksum": 1739628844
           },
           {
@@ -349,8 +349,8 @@
             "loader_dli_count": 502,
             "portb": 255,
             "window": "2075af8d0781ac0081b9c47fd004aa4c",
-            "level_header": "5653010108f80309",
-            "level_checksum": 594689107,
+            "level_header": "565301010d780609",
+            "level_checksum": 447275716,
             "splash_checksum": 1739628844
           },
           {
@@ -377,8 +377,8 @@
             "loader_dli_count": 502,
             "portb": 255,
             "window": "2075af8d0781ac0081b9c47fd004aa4c",
-            "level_header": "5653010108f80309",
-            "level_checksum": 594689107,
+            "level_header": "565301010d780609",
+            "level_checksum": 447275716,
             "splash_checksum": 1739628844
           }
         ],
@@ -461,12 +461,12 @@
         "basic_enabled": false,
         "artifact": {
           "path": "dist/void-strike-65.xex",
-          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/dist/void-strike-65.xex",
-          "bytes": 28390,
-          "sha256": "6cf49f2bd67d8d34984aa402a1fb562511cc1e972520e695240b621ecc29e2d0"
+          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/dist/void-strike-65.xex",
+          "bytes": 29030,
+          "sha256": "0b8cd967ce16b22885c79dcba77e6e04ba51842d75ed88c49374c045586debba"
         },
         "launch": {
-          "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/build/atari800-trace/src/atari800",
+          "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/build/atari800-trace/src/atari800",
           "arguments": [
             "-xe",
             "-pal",
@@ -476,7 +476,7 @@
             "-no-video-accel",
             "-no-vsync",
             "-run",
-            "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/dist/void-strike-65.xex"
+            "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/dist/void-strike-65.xex"
           ],
           "mode": "executable-loader"
         },
@@ -533,8 +533,8 @@
             "loader_dli_count": 4,
             "portb": 255,
             "window": "2075af8d0781ac0081b9c47fd004aa4c",
-            "level_header": "5653010108f80309",
-            "level_checksum": 594689107,
+            "level_header": "565301010d780609",
+            "level_checksum": 447275716,
             "splash_checksum": 1739628844
           },
           {
@@ -561,8 +561,8 @@
             "loader_dli_count": 104,
             "portb": 255,
             "window": "2075af8d0781ac0081b9c47fd004aa4c",
-            "level_header": "5653010108f80309",
-            "level_checksum": 594689107,
+            "level_header": "565301010d780609",
+            "level_checksum": 447275716,
             "splash_checksum": 1739628844
           },
           {
@@ -589,8 +589,8 @@
             "loader_dli_count": 502,
             "portb": 255,
             "window": "2075af8d0781ac0081b9c47fd004aa4c",
-            "level_header": "5653010108f80309",
-            "level_checksum": 594689107,
+            "level_header": "565301010d780609",
+            "level_checksum": 447275716,
             "splash_checksum": 1739628844
           },
           {
@@ -617,8 +617,8 @@
             "loader_dli_count": 502,
             "portb": 255,
             "window": "2075af8d0781ac0081b9c47fd004aa4c",
-            "level_header": "5653010108f80309",
-            "level_checksum": 594689107,
+            "level_header": "565301010d780609",
+            "level_checksum": 447275716,
             "splash_checksum": 1739628844
           }
         ],
@@ -701,12 +701,12 @@
         "basic_enabled": false,
         "artifact": {
           "path": "dist/void-strike-65.atr",
-          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/dist/void-strike-65.atr",
+          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "6081e1762c5915559b68aed421f074dfab3578757c83aefad7a65d8208272908"
+          "sha256": "b479f2437a7c887a400b6c8fa3c1753a4e611516e19f4e6706b3a40bb00a2f94"
         },
         "launch": {
-          "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/build/atari800-trace/src/atari800",
+          "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/build/atari800-trace/src/atari800",
           "arguments": [
             "-xe",
             "-pal",
@@ -715,7 +715,7 @@
             "-turbo",
             "-no-video-accel",
             "-no-vsync",
-            "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/dist/void-strike-65.atr"
+            "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/dist/void-strike-65.atr"
           ],
           "mode": "disk-image-d1"
         },
@@ -834,9 +834,9 @@
           },
           {
             "frame": 3300,
-            "pc": 30346,
+            "pc": 30352,
             "scanline": 0,
-            "cycle": 11,
+            "cycle": 9,
             "loader_timer": 0,
             "game_state": 6,
             "dlist": 32618,
@@ -851,13 +851,13 @@
             "runad": 0,
             "initad": 0,
             "dosvec": 8222,
-            "screen_checksum": 4143432105,
+            "screen_checksum": 413909032,
             "frontend_dlist_checksum": 2190411555,
             "loader_dli_count": 502,
             "portb": 255,
             "window": "2075af8d0781ac0081b9c47fd004aa4c",
-            "level_header": "5653010108f80309",
-            "level_checksum": 594689107,
+            "level_header": "565301010d780609",
+            "level_checksum": 447275716,
             "splash_checksum": 1739628844
           }
         ],
@@ -866,8 +866,8 @@
           "loader": 346,
           "menu": 603,
           "frontend_poll": 605,
-          "gameplay_init": 3083,
-          "main_loop": 3086
+          "gameplay_init": 3102,
+          "main_loop": 3105
         },
         "boot_deadline": {
           "medium": "ATR",
@@ -892,10 +892,10 @@
         },
         "sector_reader": {
           "medium": "ATR",
-          "command_frames": 8,
-          "expected_command_frames": 8,
+          "command_frames": 13,
+          "expected_command_frames": 13,
           "wire_retries": 0,
-          "level_load_frames": 30,
+          "level_load_frames": 49,
           "level_image_verified": true,
           "path": "direct SIO: one command frame per sector at START GAME"
         },
@@ -927,8 +927,8 @@
           {
             "frame": 3300,
             "path": "build/runtime-wall-trace/boot-smoke/atr-a5-frame3300.png",
-            "bytes": 1103,
-            "sha256": "b22b4de11fff062864ef6da5347c05045b4833a24c63edc046861c231bae7d73"
+            "bytes": 1114,
+            "sha256": "e9b5c2802a686c334bdebd17a4680817aa2cc929287ec1fba22f80e5746e54be"
           }
         ],
         "passed": true
@@ -940,12 +940,12 @@
         "basic_enabled": false,
         "artifact": {
           "path": "dist/void-strike-65.atr",
-          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/dist/void-strike-65.atr",
+          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "6081e1762c5915559b68aed421f074dfab3578757c83aefad7a65d8208272908"
+          "sha256": "b479f2437a7c887a400b6c8fa3c1753a4e611516e19f4e6706b3a40bb00a2f94"
         },
         "launch": {
-          "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/build/atari800-trace/src/atari800",
+          "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/build/atari800-trace/src/atari800",
           "arguments": [
             "-xe",
             "-pal",
@@ -954,7 +954,7 @@
             "-turbo",
             "-no-video-accel",
             "-no-vsync",
-            "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/dist/void-strike-65.atr"
+            "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/dist/void-strike-65.atr"
           ],
           "mode": "disk-image-d1"
         },
@@ -1073,9 +1073,9 @@
           },
           {
             "frame": 3300,
-            "pc": 30346,
+            "pc": 30352,
             "scanline": 0,
-            "cycle": 11,
+            "cycle": 9,
             "loader_timer": 0,
             "game_state": 6,
             "dlist": 32618,
@@ -1090,13 +1090,13 @@
             "runad": 0,
             "initad": 0,
             "dosvec": 8222,
-            "screen_checksum": 4143432105,
+            "screen_checksum": 413909032,
             "frontend_dlist_checksum": 2190411555,
             "loader_dli_count": 502,
             "portb": 255,
             "window": "2075af8d0781ac0081b9c47fd004aa4c",
-            "level_header": "5653010108f80309",
-            "level_checksum": 594689107,
+            "level_header": "565301010d780609",
+            "level_checksum": 447275716,
             "splash_checksum": 1739628844
           }
         ],
@@ -1105,8 +1105,8 @@
           "loader": 346,
           "menu": 603,
           "frontend_poll": 605,
-          "gameplay_init": 3083,
-          "main_loop": 3086
+          "gameplay_init": 3102,
+          "main_loop": 3105
         },
         "boot_deadline": {
           "medium": "ATR",
@@ -1131,10 +1131,10 @@
         },
         "sector_reader": {
           "medium": "ATR",
-          "command_frames": 8,
-          "expected_command_frames": 8,
+          "command_frames": 13,
+          "expected_command_frames": 13,
           "wire_retries": 0,
-          "level_load_frames": 30,
+          "level_load_frames": 49,
           "level_image_verified": true,
           "path": "direct SIO: one command frame per sector at START GAME"
         },
@@ -1166,8 +1166,8 @@
           {
             "frame": 3300,
             "path": "build/runtime-wall-trace/boot-smoke/atr-5a-frame3300.png",
-            "bytes": 1103,
-            "sha256": "b22b4de11fff062864ef6da5347c05045b4833a24c63edc046861c231bae7d73"
+            "bytes": 1114,
+            "sha256": "e9b5c2802a686c334bdebd17a4680817aa2cc929287ec1fba22f80e5746e54be"
           }
         ],
         "passed": true
@@ -1179,12 +1179,12 @@
         "basic_enabled": true,
         "artifact": {
           "path": "dist/void-strike-65.xex",
-          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/dist/void-strike-65.xex",
-          "bytes": 28390,
-          "sha256": "6cf49f2bd67d8d34984aa402a1fb562511cc1e972520e695240b621ecc29e2d0"
+          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/dist/void-strike-65.xex",
+          "bytes": 29030,
+          "sha256": "0b8cd967ce16b22885c79dcba77e6e04ba51842d75ed88c49374c045586debba"
         },
         "launch": {
-          "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/build/atari800-trace/src/atari800",
+          "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/build/atari800-trace/src/atari800",
           "arguments": [
             "-xe",
             "-pal",
@@ -1194,7 +1194,7 @@
             "-no-video-accel",
             "-no-vsync",
             "-run",
-            "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/dist/void-strike-65.xex"
+            "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/dist/void-strike-65.xex"
           ],
           "mode": "executable-loader"
         },
@@ -1251,8 +1251,8 @@
             "loader_dli_count": 4,
             "portb": 255,
             "window": "2075af8d0781ac0081b9c47fd004aa4c",
-            "level_header": "5653010108f80309",
-            "level_checksum": 594689107,
+            "level_header": "565301010d780609",
+            "level_checksum": 447275716,
             "splash_checksum": 1739628844
           },
           {
@@ -1279,8 +1279,8 @@
             "loader_dli_count": 104,
             "portb": 255,
             "window": "2075af8d0781ac0081b9c47fd004aa4c",
-            "level_header": "5653010108f80309",
-            "level_checksum": 594689107,
+            "level_header": "565301010d780609",
+            "level_checksum": 447275716,
             "splash_checksum": 1739628844
           },
           {
@@ -1307,8 +1307,8 @@
             "loader_dli_count": 502,
             "portb": 255,
             "window": "2075af8d0781ac0081b9c47fd004aa4c",
-            "level_header": "5653010108f80309",
-            "level_checksum": 594689107,
+            "level_header": "565301010d780609",
+            "level_checksum": 447275716,
             "splash_checksum": 1739628844
           },
           {
@@ -1335,8 +1335,8 @@
             "loader_dli_count": 502,
             "portb": 255,
             "window": "2075af8d0781ac0081b9c47fd004aa4c",
-            "level_header": "5653010108f80309",
-            "level_checksum": 594689107,
+            "level_header": "565301010d780609",
+            "level_checksum": 447275716,
             "splash_checksum": 1739628844
           }
         ],
@@ -1419,12 +1419,12 @@
         "basic_enabled": true,
         "artifact": {
           "path": "dist/void-strike-65.xex",
-          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/dist/void-strike-65.xex",
-          "bytes": 28390,
-          "sha256": "6cf49f2bd67d8d34984aa402a1fb562511cc1e972520e695240b621ecc29e2d0"
+          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/dist/void-strike-65.xex",
+          "bytes": 29030,
+          "sha256": "0b8cd967ce16b22885c79dcba77e6e04ba51842d75ed88c49374c045586debba"
         },
         "launch": {
-          "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/build/atari800-trace/src/atari800",
+          "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/build/atari800-trace/src/atari800",
           "arguments": [
             "-xe",
             "-pal",
@@ -1434,7 +1434,7 @@
             "-no-video-accel",
             "-no-vsync",
             "-run",
-            "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/dist/void-strike-65.xex"
+            "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/dist/void-strike-65.xex"
           ],
           "mode": "executable-loader"
         },
@@ -1491,8 +1491,8 @@
             "loader_dli_count": 4,
             "portb": 255,
             "window": "2075af8d0781ac0081b9c47fd004aa4c",
-            "level_header": "5653010108f80309",
-            "level_checksum": 594689107,
+            "level_header": "565301010d780609",
+            "level_checksum": 447275716,
             "splash_checksum": 1739628844
           },
           {
@@ -1519,8 +1519,8 @@
             "loader_dli_count": 104,
             "portb": 255,
             "window": "2075af8d0781ac0081b9c47fd004aa4c",
-            "level_header": "5653010108f80309",
-            "level_checksum": 594689107,
+            "level_header": "565301010d780609",
+            "level_checksum": 447275716,
             "splash_checksum": 1739628844
           },
           {
@@ -1547,8 +1547,8 @@
             "loader_dli_count": 502,
             "portb": 255,
             "window": "2075af8d0781ac0081b9c47fd004aa4c",
-            "level_header": "5653010108f80309",
-            "level_checksum": 594689107,
+            "level_header": "565301010d780609",
+            "level_checksum": 447275716,
             "splash_checksum": 1739628844
           },
           {
@@ -1575,8 +1575,8 @@
             "loader_dli_count": 502,
             "portb": 255,
             "window": "2075af8d0781ac0081b9c47fd004aa4c",
-            "level_header": "5653010108f80309",
-            "level_checksum": 594689107,
+            "level_header": "565301010d780609",
+            "level_checksum": 447275716,
             "splash_checksum": 1739628844
           }
         ],
@@ -1659,12 +1659,12 @@
         "basic_enabled": true,
         "artifact": {
           "path": "dist/void-strike-65.atr",
-          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/dist/void-strike-65.atr",
+          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "6081e1762c5915559b68aed421f074dfab3578757c83aefad7a65d8208272908"
+          "sha256": "b479f2437a7c887a400b6c8fa3c1753a4e611516e19f4e6706b3a40bb00a2f94"
         },
         "launch": {
-          "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/build/atari800-trace/src/atari800",
+          "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/build/atari800-trace/src/atari800",
           "arguments": [
             "-xe",
             "-pal",
@@ -1673,7 +1673,7 @@
             "-turbo",
             "-no-video-accel",
             "-no-vsync",
-            "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/dist/void-strike-65.atr"
+            "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/dist/void-strike-65.atr"
           ],
           "mode": "disk-image-d1"
         },
@@ -1792,9 +1792,9 @@
           },
           {
             "frame": 3300,
-            "pc": 30346,
+            "pc": 30352,
             "scanline": 0,
-            "cycle": 11,
+            "cycle": 9,
             "loader_timer": 0,
             "game_state": 6,
             "dlist": 32618,
@@ -1809,13 +1809,13 @@
             "runad": 0,
             "initad": 0,
             "dosvec": 8222,
-            "screen_checksum": 4143432105,
+            "screen_checksum": 413909032,
             "frontend_dlist_checksum": 2190411555,
             "loader_dli_count": 502,
             "portb": 255,
             "window": "2075af8d0781ac0081b9c47fd004aa4c",
-            "level_header": "5653010108f80309",
-            "level_checksum": 594689107,
+            "level_header": "565301010d780609",
+            "level_checksum": 447275716,
             "splash_checksum": 1739628844
           }
         ],
@@ -1824,8 +1824,8 @@
           "loader": 320,
           "menu": 577,
           "frontend_poll": 579,
-          "gameplay_init": 3083,
-          "main_loop": 3086
+          "gameplay_init": 3102,
+          "main_loop": 3105
         },
         "boot_deadline": {
           "medium": "ATR",
@@ -1850,10 +1850,10 @@
         },
         "sector_reader": {
           "medium": "ATR",
-          "command_frames": 8,
-          "expected_command_frames": 8,
+          "command_frames": 13,
+          "expected_command_frames": 13,
           "wire_retries": 0,
-          "level_load_frames": 30,
+          "level_load_frames": 49,
           "level_image_verified": true,
           "path": "direct SIO: one command frame per sector at START GAME"
         },
@@ -1885,8 +1885,8 @@
           {
             "frame": 3300,
             "path": "build/runtime-wall-trace/boot-smoke/atr-a5-basic-frame3300.png",
-            "bytes": 1103,
-            "sha256": "b22b4de11fff062864ef6da5347c05045b4833a24c63edc046861c231bae7d73"
+            "bytes": 1114,
+            "sha256": "e9b5c2802a686c334bdebd17a4680817aa2cc929287ec1fba22f80e5746e54be"
           }
         ],
         "passed": true
@@ -1898,12 +1898,12 @@
         "basic_enabled": true,
         "artifact": {
           "path": "dist/void-strike-65.atr",
-          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/dist/void-strike-65.atr",
+          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "6081e1762c5915559b68aed421f074dfab3578757c83aefad7a65d8208272908"
+          "sha256": "b479f2437a7c887a400b6c8fa3c1753a4e611516e19f4e6706b3a40bb00a2f94"
         },
         "launch": {
-          "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/build/atari800-trace/src/atari800",
+          "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/build/atari800-trace/src/atari800",
           "arguments": [
             "-xe",
             "-pal",
@@ -1912,7 +1912,7 @@
             "-turbo",
             "-no-video-accel",
             "-no-vsync",
-            "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/dist/void-strike-65.atr"
+            "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/dist/void-strike-65.atr"
           ],
           "mode": "disk-image-d1"
         },
@@ -2031,9 +2031,9 @@
           },
           {
             "frame": 3300,
-            "pc": 30346,
+            "pc": 30352,
             "scanline": 0,
-            "cycle": 11,
+            "cycle": 9,
             "loader_timer": 0,
             "game_state": 6,
             "dlist": 32618,
@@ -2048,13 +2048,13 @@
             "runad": 0,
             "initad": 0,
             "dosvec": 8222,
-            "screen_checksum": 4143432105,
+            "screen_checksum": 413909032,
             "frontend_dlist_checksum": 2190411555,
             "loader_dli_count": 502,
             "portb": 255,
             "window": "2075af8d0781ac0081b9c47fd004aa4c",
-            "level_header": "5653010108f80309",
-            "level_checksum": 594689107,
+            "level_header": "565301010d780609",
+            "level_checksum": 447275716,
             "splash_checksum": 1739628844
           }
         ],
@@ -2063,8 +2063,8 @@
           "loader": 320,
           "menu": 577,
           "frontend_poll": 579,
-          "gameplay_init": 3083,
-          "main_loop": 3086
+          "gameplay_init": 3102,
+          "main_loop": 3105
         },
         "boot_deadline": {
           "medium": "ATR",
@@ -2089,10 +2089,10 @@
         },
         "sector_reader": {
           "medium": "ATR",
-          "command_frames": 8,
-          "expected_command_frames": 8,
+          "command_frames": 13,
+          "expected_command_frames": 13,
           "wire_retries": 0,
-          "level_load_frames": 30,
+          "level_load_frames": 49,
           "level_image_verified": true,
           "path": "direct SIO: one command frame per sector at START GAME"
         },
@@ -2124,8 +2124,8 @@
           {
             "frame": 3300,
             "path": "build/runtime-wall-trace/boot-smoke/atr-5a-basic-frame3300.png",
-            "bytes": 1103,
-            "sha256": "b22b4de11fff062864ef6da5347c05045b4833a24c63edc046861c231bae7d73"
+            "bytes": 1114,
+            "sha256": "e9b5c2802a686c334bdebd17a4680817aa2cc929287ec1fba22f80e5746e54be"
           }
         ],
         "passed": true
@@ -2135,74 +2135,74 @@
       {
         "artifact": {
           "path": "dist/void-strike-65.xex",
-          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/dist/void-strike-65.xex",
-          "bytes": 28390,
-          "sha256": "6cf49f2bd67d8d34984aa402a1fb562511cc1e972520e695240b621ecc29e2d0"
+          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/dist/void-strike-65.xex",
+          "bytes": 29030,
+          "sha256": "0b8cd967ce16b22885c79dcba77e6e04ba51842d75ed88c49374c045586debba"
         },
         "sha256": "12841913c59af528159c0bea07f1bab448f1c96c7c6fc71e1464fa93cd54f86b"
       },
       {
         "artifact": {
           "path": "dist/void-strike-65.xex",
-          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/dist/void-strike-65.xex",
-          "bytes": 28390,
-          "sha256": "6cf49f2bd67d8d34984aa402a1fb562511cc1e972520e695240b621ecc29e2d0"
+          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/dist/void-strike-65.xex",
+          "bytes": 29030,
+          "sha256": "0b8cd967ce16b22885c79dcba77e6e04ba51842d75ed88c49374c045586debba"
         },
         "sha256": "12841913c59af528159c0bea07f1bab448f1c96c7c6fc71e1464fa93cd54f86b"
       },
       {
         "artifact": {
           "path": "dist/void-strike-65.atr",
-          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/dist/void-strike-65.atr",
+          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "6081e1762c5915559b68aed421f074dfab3578757c83aefad7a65d8208272908"
+          "sha256": "b479f2437a7c887a400b6c8fa3c1753a4e611516e19f4e6706b3a40bb00a2f94"
         },
-        "sha256": "b22b4de11fff062864ef6da5347c05045b4833a24c63edc046861c231bae7d73"
+        "sha256": "e9b5c2802a686c334bdebd17a4680817aa2cc929287ec1fba22f80e5746e54be"
       },
       {
         "artifact": {
           "path": "dist/void-strike-65.atr",
-          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/dist/void-strike-65.atr",
+          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "6081e1762c5915559b68aed421f074dfab3578757c83aefad7a65d8208272908"
+          "sha256": "b479f2437a7c887a400b6c8fa3c1753a4e611516e19f4e6706b3a40bb00a2f94"
         },
-        "sha256": "b22b4de11fff062864ef6da5347c05045b4833a24c63edc046861c231bae7d73"
+        "sha256": "e9b5c2802a686c334bdebd17a4680817aa2cc929287ec1fba22f80e5746e54be"
       },
       {
         "artifact": {
           "path": "dist/void-strike-65.xex",
-          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/dist/void-strike-65.xex",
-          "bytes": 28390,
-          "sha256": "6cf49f2bd67d8d34984aa402a1fb562511cc1e972520e695240b621ecc29e2d0"
+          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/dist/void-strike-65.xex",
+          "bytes": 29030,
+          "sha256": "0b8cd967ce16b22885c79dcba77e6e04ba51842d75ed88c49374c045586debba"
         },
         "sha256": "12841913c59af528159c0bea07f1bab448f1c96c7c6fc71e1464fa93cd54f86b"
       },
       {
         "artifact": {
           "path": "dist/void-strike-65.xex",
-          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/dist/void-strike-65.xex",
-          "bytes": 28390,
-          "sha256": "6cf49f2bd67d8d34984aa402a1fb562511cc1e972520e695240b621ecc29e2d0"
+          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/dist/void-strike-65.xex",
+          "bytes": 29030,
+          "sha256": "0b8cd967ce16b22885c79dcba77e6e04ba51842d75ed88c49374c045586debba"
         },
         "sha256": "12841913c59af528159c0bea07f1bab448f1c96c7c6fc71e1464fa93cd54f86b"
       },
       {
         "artifact": {
           "path": "dist/void-strike-65.atr",
-          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/dist/void-strike-65.atr",
+          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "6081e1762c5915559b68aed421f074dfab3578757c83aefad7a65d8208272908"
+          "sha256": "b479f2437a7c887a400b6c8fa3c1753a4e611516e19f4e6706b3a40bb00a2f94"
         },
-        "sha256": "b22b4de11fff062864ef6da5347c05045b4833a24c63edc046861c231bae7d73"
+        "sha256": "e9b5c2802a686c334bdebd17a4680817aa2cc929287ec1fba22f80e5746e54be"
       },
       {
         "artifact": {
           "path": "dist/void-strike-65.atr",
-          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-director-s1/dist/void-strike-65.atr",
+          "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter-level-compiler/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "6081e1762c5915559b68aed421f074dfab3578757c83aefad7a65d8208272908"
+          "sha256": "b479f2437a7c887a400b6c8fa3c1753a4e611516e19f4e6706b3a40bb00a2f94"
         },
-        "sha256": "b22b4de11fff062864ef6da5347c05045b4833a24c63edc046861c231bae7d73"
+        "sha256": "e9b5c2802a686c334bdebd17a4680817aa2cc929287ec1fba22f80e5746e54be"
       }
     ],
     "passed": true
@@ -10351,20 +10351,20 @@
           "wall_cycles": 27992,
           "physical_headroom": 7576,
           "start": {
-            "clock": 97493983,
-            "host_frame": 2741,
+            "clock": 98169775,
+            "host_frame": 2760,
             "scanline": 18,
             "cycle": 43
           },
           "end": {
-            "clock": 97521975,
-            "host_frame": 2741,
+            "clock": 98197767,
+            "host_frame": 2760,
             "scanline": 263,
             "cycle": 105
           },
           "next_start": {
-            "clock": 97529551,
-            "host_frame": 2742
+            "clock": 98205343,
+            "host_frame": 2761
           },
           "host_vbi_boundaries": 0,
           "extra_vbi_boundaries": 0,
@@ -10453,20 +10453,20 @@
           "wall_cycles": 28628,
           "physical_headroom": 6940,
           "start": {
-            "clock": 111578927,
-            "host_frame": 3137,
+            "clock": 112254719,
+            "host_frame": 3156,
             "scanline": 18,
             "cycle": 59
           },
           "end": {
-            "clock": 111607555,
-            "host_frame": 3137,
+            "clock": 112283347,
+            "host_frame": 3156,
             "scanline": 269,
             "cycle": 73
           },
           "next_start": {
-            "clock": 111614495,
-            "host_frame": 3138
+            "clock": 112290287,
+            "host_frame": 3157
           },
           "host_vbi_boundaries": 0,
           "extra_vbi_boundaries": 0,
@@ -10561,20 +10561,20 @@
           "wall_cycles": 27637,
           "physical_headroom": 7931,
           "start": {
-            "clock": 138326035,
-            "host_frame": 3889,
+            "clock": 139001827,
+            "host_frame": 3908,
             "scanline": 18,
             "cycle": 31
           },
           "end": {
-            "clock": 138353672,
-            "host_frame": 3889,
+            "clock": 139029464,
+            "host_frame": 3908,
             "scanline": 260,
             "cycle": 80
           },
           "next_start": {
-            "clock": 138361631,
-            "host_frame": 3890
+            "clock": 139037423,
+            "host_frame": 3909
           },
           "host_vbi_boundaries": 0,
           "extra_vbi_boundaries": 0,
@@ -10667,20 +10667,20 @@
           "wall_cycles": 28724,
           "physical_headroom": 6844,
           "start": {
-            "clock": 37704163,
-            "host_frame": 1060,
+            "clock": 38379955,
+            "host_frame": 1079,
             "scanline": 18,
             "cycle": 31
           },
           "end": {
-            "clock": 37732887,
-            "host_frame": 1060,
+            "clock": 38408679,
+            "host_frame": 1079,
             "scanline": 270,
             "cycle": 27
           },
           "next_start": {
-            "clock": 37739743,
-            "host_frame": 1061
+            "clock": 38415535,
+            "host_frame": 1080
           },
           "host_vbi_boundaries": 0,
           "extra_vbi_boundaries": 0,
@@ -10773,20 +10773,20 @@
           "wall_cycles": 28448,
           "physical_headroom": 7120,
           "start": {
-            "clock": 123992143,
-            "host_frame": 3486,
+            "clock": 124667935,
+            "host_frame": 3505,
             "scanline": 18,
             "cycle": 43
           },
           "end": {
-            "clock": 124020591,
-            "host_frame": 3486,
+            "clock": 124696383,
+            "host_frame": 3505,
             "scanline": 267,
             "cycle": 105
           },
           "next_start": {
-            "clock": 124027727,
-            "host_frame": 3487
+            "clock": 124703519,
+            "host_frame": 3506
           },
           "host_vbi_boundaries": 0,
           "extra_vbi_boundaries": 0,

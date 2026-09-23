@@ -36,8 +36,13 @@ below) on top of `f4cb18b`, the documentation-only reconciliation of
 the owner acceptance recorded here. All of it runs in the accepted runtime
 below and all of it is owner-accepted under that checkpoint.
 
-**Twelve `OWNER-SMOKE CANDIDATE`s are outstanding: the splash cassette sound
-and the level-loading line** (section "Splash cassette sound — the second
+**Thirteen `OWNER-SMOKE CANDIDATE`s are outstanding: the roadmap 4.6 step-1
+level compiler** (section "Roadmap 4.6 step 1 — the JSON level compiler" below;
+levels are authored JSON now, the level image grows 8 → 13 sectors to carry the
+three LevelDef pages, **the runtime reads none of them yet**, and every gate is
+unmoved — worst fence margin **991**, DMA-on maximum **31,349**, boot **107**
+sectors, ATR menu **603** with all three warn frames intact), **the splash
+cassette sound and the level-loading line** (section "Splash cassette sound — the second
 record is an octave down" below; the middle of the three imitated data records
 drops an octave and the level loading screen reads **ENGAGING ENEMY SECTOR**
 instead of `LOADING SECTOR`; **zero transport bytes for the sound** — it was
@@ -384,6 +389,112 @@ for `DIRECTOR_C_LOW` (3 B) and `DIRECTOR_ABI` (1 B). Link-time
 the manifest. **Standing rule: any commit that changes a segment's size must
 state the resulting free tail in its message and in the memory-map override
 section.**
+
+---
+
+## Roadmap 4.6 step 1 — the JSON level compiler — `OWNER-SMOKE CANDIDATE` (2026-09-23)
+
+Branch `feat/level-compiler` from `main` at `2577352` (step 0, `LEVEL_BUFFER`
+16 sectors). Step 1 of [plans/director-4.6.md](plans/director-4.6.md) §8, under
+the owner decisions of 2026-09-23 in that plan's §11 (JSON authoring source,
+Q-1 = 16 sectors, capital start on an authored row, four hull lengths, capital
+Light ceiling restricted).
+
+**Levels are authored data now.** `assets/levels/level-01.json` is the source;
+`scripts/level-compiler.mjs` validates it against the caps the runtime can
+honour and compiles it into the three pages of plan §2, and the level image
+carries them. [level-authoring.md](level-authoring.md) is the vocabulary;
+`npm run levels:check` is the validator alone (under a second, no build) and
+`npm run levels:preview -- 1` prints the level as a table.
+
+**The runtime reads nothing new.** The Director still runs on `LEVEL1_DATA`,
+the hull resolvers still read the resident `BROADSIDE` sequences, and the
+capital phase thresholds are still constants. Those consumers are steps 2, 4
+and 5. The format is frozen at this step so no later step changes the image
+layout. `tests/level-compiler.test.mjs` pins that nothing in `src/` reads
+`$AA00`-`$AC7F` yet.
+
+**What travels.** The level image grows **8 → 13 sectors** (1,024 → 1,664 B):
+LevelDef core `$AA00` (256 B), LevelDef payload `$AB00` (256 B, zeroed until
+steps 5-6) and HullGeometry `$AC00` (128 B — 480 rows, phase starts 4/14/46/56,
+and the two 60-byte module sequences byte-for-byte as `BROADSIDE` assembles
+them). 13 of 16 buffer sectors; `$AC80-$ADFF` stays spare. The XEX-only block
+at `$A600` grows by the same **640 B** (28,390 → 29,030 B); on the ATR the
+level run is sectors 320-332 and the START GAME read grows five sectors.
+
+**Reproduction gate.** Sectors 1-8 of the image are byte-identical to the image
+that shipped at `2577352` apart from header bytes 4-6, which state the image's
+own length (sector count 8 → 13, payload length 1,016 → 1,656). Byte 7 stays
+**9**. Pinned as a SHA-256 over bytes 0-3 and 7-1023 in
+`tests/level-compiler.test.mjs`; the music and hull blocks are additionally
+compared against `build/gameplay-music.bin` and `build/level-hull-block.bin`.
+
+### Gates — the DEFAULT build
+
+`dist/void-strike-65.xex` 29,030 B
+`0b8cd967ce16b22885c79dcba77e6e04ba51842d75ed88c49374c045586debba`;
+`dist/void-strike-65.atr` 92,176 B
+`b479f2437a7c887a400b6c8fa3c1753a4e611516e19f4e6706b3a40bb00a2f94`;
+`dist/void-strike-65-boot.bin` 26,752 B
+`ae4f574df1776803610e8750cd7b834a83f1616b9dbaabdb40480b4a63cdc0c2`.
+Evidence regenerated and `final-bound` to those artifacts.
+
+| Gate | Before (`2577352`) | After | Source |
+| --- | ---: | ---: | --- |
+| worst fence margin (GO ≥ 500) | 991 | **991** | PAL audit, `director-complete-2-natural-sweep-fire0`; 65 replays, 65 PASS, 0 deadline overruns, 0 missed frames |
+| DMA-on maximum (target 31,200 / hard 32,568) | 31,349 | **31,349** | `runtime-wall-trace.json` `gate.measured_wall_cycles_dma_on` |
+| physical headroom | 4,219 | **4,219** | same file |
+| boot / extension / total transport sectors | 107 / 102 / 209 | **107 / 102 / 209** | `build/manifest.json` |
+| initial block content vs ceiling | 13,652 / 13,684 | **13,652 / 13,684** | manifest `initialBootContentBytes` |
+| ATR menu frame / delta / warn frames left | 603 / +7 / 3 | **603 / +7 / 3** | boot smoke 8/8 PASS; ATR loader 346 and start 288 also unmoved |
+| `HYBRID_C_WINDOW` free tail | 2,075 B at `$AE00` | **2,075 B at `$AE00`** | manifest `residentCapacity.basicWindow` |
+| free ATR sectors | 511 | **511** | manifest `remainingAtrSectors` |
+| level image | 8 sectors / 1,024 B | **13 sectors / 1,664 B** | the one figure plan §8 step 1 names for this step |
+| ATR START GAME read | 30 frames / 8 command frames | **49 / 13** | boot smoke; ~3.8 frames a sector, behind the loader screen and after the menu milestone |
+
+**No resident byte moved.** `dist/void-strike-65-boot.bin` is the same 26,752 B
+and differs in 14 bytes: the reader directory's sector count for level 1
+(`40 01 08` → `40 01 0d`) and the packing and checksum bytes that follow from
+it. The only boot-smoke milestone that moves is `gameplay_init` 3,083 → 3,102
+(`main_loop` 3,086 → 3,105) — the +19 frames of the longer START GAME read,
+which happens behind the loader screen, after the menu deadline, and is
+outside every gate.
+
+**The PAL clause failures are the recorded set, A/B'd:** 40 before, 40 after,
+0 added, 0 disappeared.
+
+### Tests
+
+`npm test` on the default build. `tests/level-compiler.test.mjs` is new (7
+tests: T1 the validator, T2 the image and the geometry page, the reproduction
+gate, the authored level 1, the tooling pins, and "step 1 leaves the runtime
+reading nothing new"). Re-pinned with their reason in the test:
+`level-buffer-16.test.mjs` and `level-hull-block.test.mjs` (8 → 13 sectors),
+`gameplay-music-placement.test.mjs` (8 → 13, byte 7 now points at a page that
+exists, and the START GAME frame bound 7+32 → 7+44).
+
+### Deviations from the plan, reported
+
+1. **The core page magic is `$51`, not `$56 | 1`.** Plan §2.2 writes the byte
+   as "`$56 | format nibble`", which a bitwise OR cannot express: `$56`'s low
+   nibble is already 6, so `$56 | 2` would equal `$56`. The magic takes the
+   **high** nibble of `$56` (`V`) and the format the low one — `$51` for
+   format 1. Fail-closed still works and the format is still distinguishable.
+2. **The reproduction gate excludes header bytes 4-6.** The brief asks for the
+   unchanged pages to be byte-identical; bytes 4-6 are the sector count and
+   payload length, which state the image's own size and must move when it
+   grows from 8 to 13 sectors. Every other byte of sectors 1-8 is identical,
+   and the test pins exactly that.
+3. **The capital sector's row in `level-01.json` is provisional.** Today's
+   capital arrives on `FIRST_CAPITAL_FRAME = 600`, a frame gate with no row.
+   Plan §11 item 3 puts the capital on an authored row and measures the
+   MEDIUM row reached at frame 600 **at step 2**; this file authors a
+   structurally faithful placeholder (four sectors summing to the 3,712 rows at
+   which `LEVEL1_DATA` completes the level) and step 2 re-authors the row.
+4. **A hull length other than 480 rows is rejected, not compiled.**
+   `compileCapitalHulls` grows its length and density parameters at plan step
+   4; until then the compiler validates the four authored lengths and emits the
+   hull the asset compiles, with a message that names step 4.
 
 ---
 

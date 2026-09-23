@@ -74,15 +74,20 @@ test("Q-1: level 1 still loads the same image the same way", () => {
   const levels = manifest.sectorReader.levels;
   assert.equal(levels.length, 1);
   const [levelOne] = levels;
+  // Re-pinned for roadmap 4.6 step 1 (plan §2.1, §8): the image carries the
+  // three LevelDef pages, 8 -> 13 sectors. Q-1 sized the buffer for exactly
+  // this, so the "still fits" clause below is the one that matters.
   assert.deepEqual([levelOne.id, levelOne.sectors, levelOne.bytes, levelOne.startSector],
-    [1, 8, 1024, 320]);
+    [1, 13, 1664, 320]);
   assert.ok(levelOne.sectors <= manifest.sectorReader.levelBuffer.sectors,
-    "an 8-sector image still fits a 16-sector buffer");
+    "a 13-sector image still fits a 16-sector buffer");
+  assert.equal(manifest.sectorReader.levelBuffer.sectors - levelOne.sectors, 3,
+    "Q-1 left three spare sectors and step 1 spent none of them");
   const image = fs.readFileSync(path.join(root, "build", levelOne.file));
-  assert.equal(image.length, 1024);
+  assert.equal(image.length, 1664);
   assert.equal(image.subarray(0, 2).toString("latin1"), "VS");
   assert.equal(image[2], 1, "format version");
-  assert.equal(image[4], 8, "sector count in the header");
+  assert.equal(image[4], 13, "sector count in the header");
   // The image is a level-data artifact, not a code artifact: the buffer move
   // must not change one byte of it, and the boot smoke verifies the same file
   // byte for byte at $A600 on every cold session.

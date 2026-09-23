@@ -969,7 +969,10 @@ and POKEY write stream are unchanged, byte for byte
 | `$A808-$A87F` | **120 free** | reserved | the reservation was sized for v2 in 2a and v2 came in under it, so the transport change was paid once and step 2b moved no sectors |
 | `$A880-$A997` | 280 | **level hull style** | hull set v1 step 2, below |
 | `$A998-$A9FF` | 104 | sector padding | the hull block is 280 B in three sectors |
-| `$AA00-$B5FF` | 3,072 | LevelDef | 24 of the 32 buffer sectors left for roadmap 4.6 |
+| `$AA00-$AAFF` | 256 | **LevelDef core** | roadmap 4.6 step 1, below |
+| `$AB00-$ABFF` | 256 | **LevelDef payload** | roadmap 4.6 step 1, below |
+| `$AC00-$AC7F` | 128 | **HullGeometry** | roadmap 4.6 step 1, below |
+| `$AC80-$ADFF` | **384 free** | reserved | 3 of the 16 buffer sectors, spare inside a 13-sector image |
 
 **The block is strictly read-only at runtime**, because the boot smoke
 checksums the whole level buffer at its gameplay snapshot (frame 3300, after
@@ -984,6 +987,39 @@ all of it outside the boot transport — **0 boot sectors, 0 DFMC chunk slots,
 the frame-300 loader checkpoint untouched**. The XEX-only block at `$A600`
 grows by the same 640 B. On the ATR the START GAME read grows by five
 sectors.
+
+## Roadmap 4.6 step 1 — the LevelDef pages (2026-09-23)
+
+`docs/plans/director-4.6.md` §2, compiled by `scripts/level-compiler.mjs` from
+`assets/levels/level-NN.json`. **Nothing resident reads these pages yet**: the
+Director starts on the core page at step 2, the hull geometry at step 4 and the
+payload at step 5. The format is frozen at this step so no later step changes
+the image layout. `docs/level-authoring.md` is the field-by-field vocabulary.
+
+| Range | Bytes | Owner | Notes |
+| --- | ---: | --- | --- |
+| `$AA00-$AA0F` | 16 | core header | magic `$51` (`V` in the high nibble, format 1 in the low), level number, sector and wave counts, seed, star colour, nebula, boss id, hull length step, pickup policy, debris density, spacing scale, debug start sector, 3 reserved |
+| `$AA10-$AA5F` | 80 | SectorDef SoA | 8 arrays × 10 sectors: `sector_kind`, `sector_len`, `sector_caps` (packed nibbles), `sector_archetypes` (the R3 mask), `sector_hazards`, `sector_wave_first`, `sector_wave_count`, `sector_look` |
+| `$AA60-$AAFF` | 160 | WaveDef SoA | 8 arrays × 20 waves: `wave_row`, `wave_flags`, `wave_archetype`, `wave_path`, `wave_count`, `wave_spacing`, `wave_entry`, `wave_member_offset` (the escort archetype for a Heavy wave) |
+| `$AB00-$AB2F` | 48 | `appearance[3]` | three 16-B Light bitmaps; **zero until step 5** |
+| `$AB30-$AB8F` | 96 | `path[8]` | **zero until step 6** |
+| `$AB90-$ABA1` | 18 | `weapon_glyph[2]` | **zero until step 5** |
+| `$ABA2-$ABC1` | 32 | `hull_params` | 4.8a gondola/corridor parameters; **zero** |
+| `$ABC2-$ABFF` | 62 | `boss_def` | 4.7; **zero** |
+| `$AC00-$AC01` | 2 | `hull_rows` | 480 on level 1, lo/hi. One of 288 / 352 / 416 / 480 |
+| `$AC02-$AC05` | 4 | phase starts | in 8-row modules: aft 4, combat 14, forward 46, prow 56. Drain is `hull_rows/8 + 1` = 61 |
+| `$AC06` | 1 | `turret_density_step` | 0-3, echo for diagnostics |
+| `$AC07` | 1 | reserved | zero |
+| `$AC08-$AC43` | 60 | `allied_sequence` | byte-for-byte `EMIT_ALLIED_SECTOR_SEQUENCE`; the resident copy in `BROADSIDE` is retired at step 4 |
+| `$AC44-$AC7F` | 60 | `enemy_sequence` | byte-for-byte `EMIT_ENEMY_SECTOR_SEQUENCE` |
+
+**Level image and transport.** Level 1 grows **8 → 13 sectors** (1,024 →
+1,664 B), all of it outside the boot transport — **0 boot sectors, 0 DFMC
+chunk slots, no resident byte moved**. The XEX-only block at `$A600` grows by
+the same 640 B; on the ATR the START GAME read grows by five sectors, behind
+the loader screen and after the menu milestone. Sectors 1-8 are byte-identical
+to the image that shipped at `2577352` apart from header bytes 4-6, which
+state the image's own length (`tests/level-compiler.test.mjs` pins the hash).
 
 ## Capital hull set v1 step 2 — the enemy hull style is level data (2026-09-23)
 
@@ -1158,7 +1194,7 @@ travels as the ninth DFMC record, RAW, landing directly at `$A000`.
 | Range | Bytes | Owner | Notes |
 | --- | --- | --- | --- |
 | `$A000-$A5FF` | 1,536 | `SECTOR_READER` | reader, loader-mode display, failure screen, 8-line AI text pool; **1,466 B used, 70 B free**. A sixteen-line pool does not fit — see plan §1.5 `[C6]`; packing the texts is the cheaper answer if it is ever wanted, not shrinking the level buffer |
-| `$A600-$ADFF` | 2,048 | `LEVEL_BUFFER` | **16 sectors** (Q-1, owner 2026-09-23; 32 since owner decision X, 2026-09-21; 44 before it), page-aligned, `file = ""` — never in any artifact. On the XEX the level-1 image is an **XEX-only block** placed here; on the ATR it is read over SIO. **Executable since 2026-09-22**: `$A608-$A807` is the gameplay music player (music v2 §1.4, owner answer Q-P1) |
+| `$A600-$ADFF` | 2,048 | `LEVEL_BUFFER` | **16 sectors** (Q-1, owner 2026-09-23; 32 since owner decision X, 2026-09-21; 44 before it), page-aligned, `file = ""` — never in any artifact. On the XEX the level-1 image is an **XEX-only block** placed here; on the ATR it is read over SIO. **Executable since 2026-09-22**: `$A608-$A807` is the gameplay music player (music v2 §1.4, owner answer Q-P1). **13 of the 16 sectors used since roadmap 4.6 step 1** (2026-09-23): the three LevelDef pages end the image at `$AC7F`, leaving `$AC80-$ADFF` spare |
 | `$AE00-$BBFF` | 3,584 | `HYBRID_C_WINDOW` | owner decision X, re-sized by Q-1 (2026-09-23): the Director link's half of the window, `cfg/encounter-director.cfg`. `HYBRID_ASM_WINDOW` + `HYBRID_C_WINDOW` + `HYBRID_C_WINDOW_RODATA` |
 | `$BC00-$BC14` | 21 | `READER_BSS` | reader state; **5 B** still free before `$BC1A` (re-measured 2026-09-21, finding F7) |
 | `$BC1A-$BC1F` | 6 | `HYBRID_C_WINDOW_GUARD` | unchanged: reserved, no segment loads there |

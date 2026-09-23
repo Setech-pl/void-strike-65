@@ -266,9 +266,12 @@ test("a different region publishes different glyphs, boundaries and steel", () =
     "start_gameplay does not publish the level's hull style");
 });
 
-test("the ATR reads eight sectors at START GAME, and the reader still fits", () => {
-  assert.equal(levelOne.sectors, 8);
-  assert.equal(levelOne.bytes, 8 * 128);
+test("the ATR reads thirteen sectors at START GAME, and the reader still fits", () => {
+  // Re-pinned for roadmap 4.6 step 1 (plan §2.1): the three LevelDef pages
+  // take sectors 9-13. The hull block's own three sectors and its frozen
+  // addresses are untouched - every other clause in this file still holds.
+  assert.equal(levelOne.sectors, 13);
+  assert.equal(levelOne.bytes, 13 * 128);
   assert.ok(levelOne.sectors <= manifest.sectorReader.levelBuffer.sectors);
 });
 

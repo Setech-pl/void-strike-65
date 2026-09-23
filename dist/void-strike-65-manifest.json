@@ -295,12 +295,12 @@
     "manifest": {
       "address": 9788,
       "bytes": 190,
-      "crc16": 49610,
+      "crc16": 3166,
       "parsed": {
         "version": 1,
         "totalOccupiedSectors": 209,
         "manifestBytes": 190,
-        "crc16": 49610,
+        "crc16": 3166,
         "records": [
           {
             "startSector": 108,
@@ -407,7 +407,7 @@
             "packedLength": 1473,
             "rawLength": 1473,
             "finalDestination": 40960,
-            "crc16": 35066,
+            "crc16": 210,
             "type": 0,
             "stagingId": 2,
             "destination": 33024
@@ -513,8 +513,8 @@
       {
         "id": 1,
         "startSector": 320,
-        "sectors": 8,
-        "bytes": 1024,
+        "sectors": 13,
+        "bytes": 1664,
         "file": "level-1.bin",
         "origin": "ATR: read over SIO at START GAME; XEX: resident block, no SIO"
       }
@@ -21981,11 +21981,11 @@
     "estimated_additive_cycles": 28847,
     "wallTrace": {
       "reportPath": "docs/runtime-wall-trace.json",
-      "reportSha256": "725ed873534ed6e005ab8550533d1a8652a3d2aa324070acd54641f7263e1f0a",
+      "reportSha256": "946dfafd66a59d0b68d2e507f67944fc0aaad8b6dccb06ae7757b67df9063198",
       "artifact": {
         "path": "dist/void-strike-65.xex",
-        "bytes": 28390,
-        "sha256": "6cf49f2bd67d8d34984aa402a1fb562511cc1e972520e695240b621ecc29e2d0"
+        "bytes": 29030,
+        "sha256": "0b8cd967ce16b22885c79dcba77e6e04ba51842d75ed88c49374c045586debba"
       },
       "emulator": {
         "name": "Atari800",
@@ -24669,34 +24669,34 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 26752,
-        "sha256": "65b321da3807e4af48aa54bfb9d0defc9f1005b001570edcd69906615205464a"
+        "sha256": "ae4f574df1776803610e8750cd7b834a83f1616b9dbaabdb40480b4a63cdc0c2"
       },
       "void-strike-65.xex": {
         "path": "dist/void-strike-65.xex",
-        "bytes": 28390,
-        "sha256": "6cf49f2bd67d8d34984aa402a1fb562511cc1e972520e695240b621ecc29e2d0"
+        "bytes": 29030,
+        "sha256": "0b8cd967ce16b22885c79dcba77e6e04ba51842d75ed88c49374c045586debba"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "6081e1762c5915559b68aed421f074dfab3578757c83aefad7a65d8208272908"
+        "sha256": "b479f2437a7c887a400b6c8fa3c1753a4e611516e19f4e6706b3a40bb00a2f94"
       }
     },
     "reportPath": "docs/runtime-wall-trace.json",
-    "reportSha256": "725ed873534ed6e005ab8550533d1a8652a3d2aa324070acd54641f7263e1f0a"
+    "reportSha256": "946dfafd66a59d0b68d2e507f67944fc0aaad8b6dccb06ae7757b67df9063198"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 26752,
-      "sha256": "65b321da3807e4af48aa54bfb9d0defc9f1005b001570edcd69906615205464a"
+      "sha256": "ae4f574df1776803610e8750cd7b834a83f1616b9dbaabdb40480b4a63cdc0c2"
     },
     "void-strike-65.xex": {
-      "bytes": 28390,
-      "sha256": "6cf49f2bd67d8d34984aa402a1fb562511cc1e972520e695240b621ecc29e2d0"
+      "bytes": 29030,
+      "sha256": "0b8cd967ce16b22885c79dcba77e6e04ba51842d75ed88c49374c045586debba"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "6081e1762c5915559b68aed421f074dfab3578757c83aefad7a65d8208272908"
+      "sha256": "b479f2437a7c887a400b6c8fa3c1753a4e611516e19f4e6706b3a40bb00a2f94"
     }
   }
 }

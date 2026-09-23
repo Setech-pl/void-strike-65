@@ -4,17 +4,17 @@
   "runtimeEvidence": {
     "xex": {
       "path": "dist/void-strike-65.xex",
-      "bytes": 28390,
-      "sha256": "6cf49f2bd67d8d34984aa402a1fb562511cc1e972520e695240b621ecc29e2d0"
+      "bytes": 29030,
+      "sha256": "0b8cd967ce16b22885c79dcba77e6e04ba51842d75ed88c49374c045586debba"
     },
     "atr": {
       "path": "dist/void-strike-65.atr",
       "bytes": 92176,
-      "sha256": "6081e1762c5915559b68aed421f074dfab3578757c83aefad7a65d8208272908"
+      "sha256": "b479f2437a7c887a400b6c8fa3c1753a4e611516e19f4e6706b3a40bb00a2f94"
     },
     "wallTrace": {
       "path": "docs/runtime-wall-trace.json",
-      "sha256": "725ed873534ed6e005ab8550533d1a8652a3d2aa324070acd54641f7263e1f0a"
+      "sha256": "946dfafd66a59d0b68d2e507f67944fc0aaad8b6dccb06ae7757b67df9063198"
     },
     "note": "Gameplay images are unenhanced 320x240 crops of Atari800's packed-release framebuffer. The eight-pixel emulator side borders are the only pixels removed."
   },

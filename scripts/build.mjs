@@ -38,6 +38,15 @@ import {
   LEVEL_PAYLOAD_BYTES,
   LEVEL_GEOMETRY_BYTES,
   LEVEL_IMAGE_SECTORS,
+  LEVEL_CORE_ADDRESS,
+  LEVEL_CORE_MAGIC,
+  CORE_HEADER_BYTES,
+  SECTOR_ARRAY_OFFSET,
+  WAVE_ARRAY_OFFSET,
+  MAX_SECTORS,
+  MAX_WAVES,
+  renderLevelDefCa65Include,
+  renderLevelDefCHeader,
 } from "./level-compiler.mjs";
 import {
   compileEnemyRoster,
@@ -818,7 +827,8 @@ async function buildResidentModule({ sourcePath, configPath, stem, extraInputs =
   };
 }
 
-async function buildHybridDirectorModule(fighterWeaponsInclude) {
+async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
+  levelDefHeader) {
   const base = "/project/build/encounter-director";
   const cSource = fs.readFileSync(path.join(rootDirectory, "src", "c", "director.c"));
   const cHeader = fs.readFileSync(path.join(rootDirectory, "src", "c", "director.h"));
@@ -837,6 +847,7 @@ async function buildHybridDirectorModule(fighterWeaponsInclude) {
       "/project/src/c/director.c": cSource,
       "/project/src/c/director.h": cHeader,
       "/project/src/c/lifecycle.h": lifecycleHeader,
+      "/project/src/c/level-def.h": levelDefHeader,
       "/cc65/include/stdint.h": stdintHeader,
     },
     ["--cpu", "6502", "-Oirs", "-I", "/project/src/c", "-I", "/cc65/include",
@@ -849,7 +860,9 @@ async function buildHybridDirectorModule(fighterWeaponsInclude) {
     {
       "/project/src/c/lifecycle.c": lifecycleSource,
       "/project/src/c/lifecycle.h": lifecycleHeader,
+      "/project/src/c/director.h": cHeader,
       "/project/src/c/enemy-archetype.h": archetypeHeader,
+      "/project/src/c/level-def.h": levelDefHeader,
       "/cc65/include/stdint.h": stdintHeader,
     },
     ["--cpu", "6502", "-Oirs", "-I", "/project/src/c", "-I", "/cc65/include",
@@ -861,6 +874,10 @@ async function buildHybridDirectorModule(fighterWeaponsInclude) {
   );
   const lifecycleGeneratedAssembly =
     lifecycleCompiled.outputs[`${base}-lifecycle-generated.s`];
+  if (process.env.VS65_DUMP_GENERATED === "1") {
+    writeFile(path.join(buildDirectory, "director-generated.s"), generatedAssembly);
+    writeFile(path.join(buildDirectory, "lifecycle-generated.s"), lifecycleGeneratedAssembly);
+  }
   for (const [moduleName, assembly] of [
     ["Director", generatedAssembly],
     ["lifecycle/archetype", lifecycleGeneratedAssembly],
@@ -891,7 +908,9 @@ async function buildHybridDirectorModule(fighterWeaponsInclude) {
   );
   const abiAssembled = await runWasmTool(
     "ca65",
-    { [`${base}-abi.s`]: abiSource, "/project/build/fighter-weapons.inc": fighterWeaponsInclude },
+    { [`${base}-abi.s`]: abiSource,
+      "/project/build/fighter-weapons.inc": fighterWeaponsInclude,
+      "/project/build/level-def.inc": levelDefInclude },
     ["--cpu", "6502", "-g", "-l", `${base}-abi.lst`, "-o", `${base}-abi.o`,
       `${base}-abi.s`],
     [`${base}-abi.o`, `${base}-abi.lst`],
@@ -929,7 +948,10 @@ async function buildHybridDirectorModule(fighterWeaponsInclude) {
   const extensionBytes = extensionCodeBytes + archetypeBytes;
   const preCodeBytes = parsedLabels.get("__DIRECTOR_C_PRE_SIZE__");
   const cCodeBytes = parsedLabels.get("__DIRECTOR_C_CODE_SIZE__");
-  const rodataBytes = parsedLabels.get("__LEVEL1_DATA_SIZE__");
+  // Roadmap 4.6 step 2: LEVEL1_DATA retired; what rides in DIRECTOR_RAM
+  // beside the code is the Director's own policy rodata (the subtype
+  // ceilings, the class spacing floors, the hazard costs).
+  const rodataBytes = parsedLabels.get("__DIRECTOR_C_RODATA_SIZE__");
   const bssBytes = parsedLabels.get("__DIRECTOR_C_BSS_SIZE__");
   const lifecycleBssBytes = parsedLabels.get("__HYBRID_C_STATE_SIZE__");
   const sectorWindowBytes = parsedLabels.get("__HYBRID_C_SECTOR_SIZE__");
@@ -1316,6 +1338,13 @@ async function build() {
     loadFighterWeaponsDefinition(fighterWeaponsDefinitionPath),
     enemyRosterAsset,
   );
+  // Roadmap 4.6 step 2: the LevelDef core page's address, magic and offsets,
+  // generated from scripts/level-compiler.mjs - the one place the layout is
+  // decided - so the ca65 ABI and the C reader cannot drift from the writer.
+  const levelDefInclude = Buffer.from(renderLevelDefCa65Include());
+  const levelDefHeader = Buffer.from(renderLevelDefCHeader());
+  writeFile(path.join(buildDirectory, "level-def.inc"), levelDefInclude);
+  writeFile(path.join(buildDirectory, "level-def.h"), levelDefHeader);
   const fighterWeaponsInclude = Buffer.from(
     renderFighterWeaponsCa65Include(fighterWeaponsAsset),
   );
@@ -1391,7 +1420,8 @@ async function build() {
           zeroPageBytes: 0,
         },
       }
-    : await buildHybridDirectorModule(fighterWeaponsInclude);
+    : await buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
+      levelDefHeader);
   if (process.argv.includes("--director-only")) {
     writeFile(path.join(buildDirectory, "encounter-director.map"), directorModule.map);
     writeFile(path.join(buildDirectory, "encounter-director.lbl"), directorModule.labels);
@@ -1831,6 +1861,14 @@ async function build() {
   for (const run of levelRuns) {
     writeFile(path.join(buildDirectory, `level-${run.id}.bin`), levelImages.get(run.id));
   }
+  // Roadmap 4.6 step 2: the Director reads the core page at LEVEL_CORE_ADDRESS.
+  // On both media the sector reader puts it there as part of the level image;
+  // the runtime HARNESSES install segments from build/, so the page is written
+  // out on its own the way the gameplay music player and the hull block are,
+  // and scripts/runtime-image.mjs places it from the manifest.
+  const levelOneCorePage = Buffer.from(levelOneImage.subarray(
+    LEVEL_CORE_OFFSET, LEVEL_CORE_OFFSET + LEVEL_CORE_BYTES));
+  writeFile(path.join(buildDirectory, "level-core.bin"), levelOneCorePage);
   // Light multiplicity step 1b (plan §3.1 [C1]): the fourth link. It runs HERE,
   // after main, because the kernel reaches 25 main-link symbols through
   // light-kernel-abi.inc - which is why it cannot live in the Director link,
@@ -2448,6 +2486,11 @@ async function build() {
       // buffer, so the CPU harness has to place the level image's music block
       // exactly as the loader does.
       { runAddress: gameplayMusicAddress, data: gameplayMusicModule.raw },
+      // Roadmap 4.6 step 2: the Director's schedule is the level image's core
+      // page, so the CPU harness has to place it exactly as the sector reader
+      // does - otherwise director_c_init reads a zeroed page, refuses its
+      // magic and completes the level before the first frame.
+      { runAddress: LEVEL_CORE_ADDRESS, data: levelOneCorePage },
     ],
     capitalPlayerCollisionRuntime: capitalPlayerCollisionModule.raw,
     capitalPlayerCollisionRunAddress: capitalPlayerCollisionAddress,
@@ -3436,6 +3479,33 @@ async function build() {
         actualBytes: destructibleDebrisRuntimeCodeBytes,
         actualDeltaBytes: destructibleDebrisRuntimeCodeBytes - frontendH31BaselineRuntimeCodeBytes,
         hardDeltaBytes: frontendH31HardRuntimeDeltaBytes,
+      },
+    },
+    // Roadmap 4.6 step 2 (docs/plans/director-4.6.md §2.2, §3.4): the LevelDef
+    // core page, and the offsets the Director reads it by. Both halves of the
+    // contract are generated from scripts/level-compiler.mjs, so the C offsets
+    // in src/c/director.c and the compiler's own layout cannot drift apart
+    // without tests/level-compiler.test.mjs noticing.
+    levelDef: {
+      core: {
+        home: "per-level image, behind the hull block",
+        file: "level-core.bin",
+        imageOffset: LEVEL_CORE_OFFSET,
+        blockAddress: LEVEL_CORE_ADDRESS,
+        blockBytes: LEVEL_CORE_BYTES,
+        magic: LEVEL_CORE_MAGIC,
+        headerBytes: CORE_HEADER_BYTES,
+        maxSectors: MAX_SECTORS,
+        maxWaves: MAX_WAVES,
+        sectorArrayOffset: SECTOR_ARRAY_OFFSET,
+        waveArrayOffset: WAVE_ARRAY_OFFSET,
+      },
+      payloadImageOffset: LEVEL_PAYLOAD_OFFSET,
+      geometryImageOffset: LEVEL_GEOMETRY_OFFSET,
+      level1: {
+        sectors: compiledLevels.get(1).sectors.length,
+        waves: compiledLevels.get(1).waves.length,
+        hullRows: compiledLevels.get(1).geometry.hullRows,
       },
     },
     loaderScreen: {

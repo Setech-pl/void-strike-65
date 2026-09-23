@@ -1,4 +1,5 @@
 #include "lifecycle.h"
+#include "director.h"
 #include "enemy-archetype.h"
 
 #pragma code-name ("HYBRID_C_EXT")
@@ -69,10 +70,11 @@
  * the entry column are four-aligned, so stepping can never leave the ring. */
 #define LIGHT_X_FIRST            48u
 #define LIGHT_X_ENTRY            124u
+/* WaveDef `wave_member_offset` for a Heavy wave with no Light escort. */
+#define NO_ESCORT                0xFFu
 #define LIGHT_X_STEP             4u
 #define INTERCEPTOR_DESCENT      2u
 #define INTERCEPTOR_TRACK_PHASE  2u
-#define ENCOUNTER_LIGHT_SCHEDULE_LENGTH 2u
 /* Light multiplicity (plan-light-multiplicity.md §2.1). Four SoA slots is the
  * declared format; how many of them a sector may fill is a separate ceiling
  * that steps 2-3 introduce. Step 1a fills slot 0 only, so every loop below is
@@ -101,13 +103,10 @@
  * 120-125 from the frontend source at every new game, so this is the value
  * lifecycle_c_init must restore - not zero, which is a real archetype offset. */
 #define LIGHT_APPEARANCE_NONE    0xFFu
-/* How many slots a sector may fill (owner decision 23 §10.7; the shipped
- * SWARM ceiling stays conditional on the native three-Light measurement,
- * plan §4.3). They are policy BYTES, not constants, so a harness test can
- * poke one without a build flag; these are the values init restores. */
-#define LIGHT_CEILING_SWARM      3u
-#define LIGHT_CEILING_ELITE      1u
-#define LIGHT_CEILING_CAPITAL    0u
+/* How many slots a sector may fill is level data now (plan §2.2
+ * `sector_caps`), clamped by the runtime's own subtype_ceiling_light table in
+ * src/c/director.c. A harness test pokes sector_caps_published, which is the
+ * requested half, or the ceiling table, which is the runtime half. */
 /* enemy_c_light_tick's return byte is exclusive: one action per tick.
  * 0 nothing; 1-3 fire, the record's weapon_class; $40 install the appearance.
  * $80 (spawn the deferred breakup) arrives with the token at step 4. */
@@ -122,15 +121,10 @@
  * harness test can poke it and watch the same frame overrun without the
  * token - the negative control M2's proof rests on ([C5]). */
 #define LIGHT_TOKEN_BUDGET       1u
-/* PROVISIONAL standalone Interceptor wave (plan §2.4). TEMPORARY, in the same
- * sense as encounter_heavy_schedule: it exists so a smoke run and the native
- * replays produce multi-Light frames naturally, and roadmap 4.6's WaveDef
- * replaces it wholesale. Nothing in the lifecycle depends on this order. */
-#define LIGHT_WAVE_COUNT         3u
-/* Difficulty scales the SPACING, not the count (owner decision 23 §10.6). */
-#define LIGHT_WAVE_SPACING_EASY   64u
-#define LIGHT_WAVE_SPACING_MEDIUM 48u
-#define LIGHT_WAVE_SPACING_HARD   32u
+/* Roadmap 4.6 step 2: the standalone Light wave is a WaveDef now. Its count,
+ * its archetype, its entry column and its spacing are level data, armed by
+ * director_c_try_event; the provisional three-member table, its entry-column
+ * cycle and its per-difficulty spacing table are retired. */
 
 /* Heavy formation presentation: the roster shape is the ASM PMG art index
  * (build/enemy-roster.inc): 0 is the Raider art, 2 SCYTHE_BOMBER (QUAD). */
@@ -166,7 +160,6 @@
 #endif
 #define BOMBER_HULL_HP_LUMA      1u      /* left shift: two luma steps per HP */
 #define HULL_COLOUR_BOMBER       (BOMBER_HULL_HUE | 0x08u)
-#define ENCOUNTER_HEAVY_SCHEDULE_LENGTH 2u
 #define HEAVY_PROFILE_BYTES      9u
 #define HEAVY_SLOT_STATE_LAST    11u
 /* Bomber lane sweep (owner decision 20). X is the left edge of a 32-HPOS QUAD
@@ -198,7 +191,6 @@
 #define ENEMY_ACTIVE_STATE       1u
 #define ENEMY_EXPLODING_STATE    2u
 #define RAIDER_SLOT_COUNT        2u
-#define FIRST_CAPITAL_FRAME      600u
 #define PLAYFIELD_RING_ROWS      27u
 #define ENTITY_INITIAL_DELAY     32u
 #define DIRECTOR_FLAG_COMPLETE   0x01u
@@ -267,29 +259,12 @@ typedef char bomber_hull_ramp_must_stay_inside_its_hue[
     (HULL_COLOUR_BOMBER + BOMBER_CHARGE_LUMA) < (BOMBER_HULL_HUE + 0x10u) ? 1 : -1
 ];
 
-/* PROVISIONAL smoke scheduling only, not a gameplay contract. The Light slot
- * itself has no ordering rule (see enemy_c_spawn_raiders); this table exists
- * only so a smoke run demonstrates the Wingman first and the Interceptor
- * next, repeating. Roadmap step 4.6 (Director-owned wave composition)
- * replaces this table and its counter. */
-static const uint8_t encounter_light_schedule[ENCOUNTER_LIGHT_SCHEDULE_LENGTH] = {
-    LIGHT_OFFSET_WINGMAN,
-    LIGHT_OFFSET_INTERCEPTOR
-};
+/* Roadmap 4.6 step 2: the escort schedule, the entry-column cycle and the
+ * per-difficulty spacing table are all WaveDef fields now. The two counters
+ * that drove them have left HYBRID_ENCOUNTER_STATE, whose two bytes now carry
+ * the armed wave's Heavy half (src/c/director.c heavy_escort_offset,
+ * heavy_wave_flags). */
 
-/* PROVISIONAL wave tables (plan §2.4), replaced by 4.6's WaveDef. Frames
- * between admissions by difficulty, and the entry columns the members cycle:
- * four-aligned and inside 48-200, so a member can never step out of the ring. */
-static const uint8_t light_wave_spacing[3] = {
-    LIGHT_WAVE_SPACING_EASY, LIGHT_WAVE_SPACING_MEDIUM, LIGHT_WAVE_SPACING_HARD
-};
-static const uint8_t light_wave_entry_x[LIGHT_WAVE_COUNT] = { 92u, 124u, 156u };
-
-#pragma bss-name ("HYBRID_ENCOUNTER_STATE")
-/* PROVISIONAL smoke scheduling counter; see encounter_light_schedule above. */
-volatile uint8_t encounter_light_index;
-/* TEMPORARY 4.5 HEAVY SMOKE SCHEDULER counter; see encounter_heavy_schedule. */
-volatile uint8_t encounter_heavy_index;
 #pragma bss-name ("HYBRID_HEAVY_STATE")
 volatile uint8_t heavy_archetype_offset;
 volatile uint8_t heavy_hull_colour;
@@ -367,16 +342,20 @@ uint8_t light_cell_end;
  * bookkeeping rather than hot scratch, so they live here beside the slots and
  * leave the 16-byte shared area for the token and wave state. */
 uint8_t light_appearance_installed[LIGHT_APPEARANCE_PAIRS];
-uint8_t light_ceiling_swarm;
-uint8_t light_ceiling_elite;
-uint8_t light_ceiling_capital;
-/* PROVISIONAL wave state (plan §2.4). light_wave_lock is read by ASM through
- * _asm_director_can_allocate: a Heavy formation is refused while a wave is
- * live, which is how Heavy and swarm are kept from ever coexisting. */
+/* The armed wave's Light half (plan §2.2). director_c_try_event fills these
+ * from the WaveDef the cursor names; the stepper below spends them. They take
+ * the three bytes the retired light_ceiling_swarm/elite/capital policy bytes
+ * used to hold, so the 60-byte area is still exactly full and no address moved.
+ * light_wave_lock is read by ASM through _asm_director_can_allocate: a Heavy
+ * formation is refused while a Light wave is live, which is how Heavy and
+ * swarm are kept from ever coexisting. */
 volatile uint8_t light_wave_lock;
 uint8_t light_wave_remaining;
 uint8_t light_wave_timer;
+/* The wave's entry COLUMN, not an index into a table of them (step 2). */
 uint8_t light_wave_entry;
+uint8_t light_wave_archetype;
+uint8_t light_wave_spacing_frames;
 #pragma bss-name ("HYBRID_LIGHT_STATE")
 /* Shared scalars. light_slot is the slot ASM is ticking and C is indexing;
  * everything else is per-tick scratch. The rest of the 16-byte area is free
@@ -578,28 +557,6 @@ static void light_reload(void)
 #pragma code-name (pop)
 #pragma rodata-name (pop)
 
-/* PROVISIONAL smoke scheduling only (see encounter_light_schedule above).
- * The only writer of light_archetype_offset: the reusable Light admission
- * below only reads it and holds no ordering or toggle logic of its own.
- *
- * NOT in the code window, unlike the four primitives above it. Fix (a) needed
- * the last bytes of the window and this is the coldest thing in it: wave
- * scheduling runs at most once per admission, never per frame and never per
- * captured cell, so the hot-path argument that put the token, the ceiling and
- * the live count beside light_admit does not apply to it. An absolute jsr into
- * the arena costs exactly what an absolute jsr into the window costs. */
-#pragma code-name (push, "HYBRID_C_ARENA")
-static void encounter_light_schedule_advance(void)
-{
-    light_record = encounter_light_schedule[encounter_light_index];
-    light_archetype[light_slot] = light_record;
-    ++encounter_light_index;
-    if (encounter_light_index >= ENCOUNTER_LIGHT_SCHEDULE_LENGTH) {
-        encounter_light_index = 0u;
-    }
-}
-#pragma code-name (pop)
-
 void lifecycle_c_init(void)
 {
     CAPITAL_SECTOR_STATE = SECTOR_FIGHTER;
@@ -638,11 +595,10 @@ void lifecycle_c_init(void)
     light_wave_remaining = 0u;
     light_wave_timer = 0u;
     light_wave_entry = 0u;
-    light_ceiling_swarm = LIGHT_CEILING_SWARM;
-    light_ceiling_elite = LIGHT_CEILING_ELITE;
-    light_ceiling_capital = LIGHT_CEILING_CAPITAL;
-    encounter_light_index = 0u;
-    encounter_heavy_index = 0u;
+    light_wave_archetype = LIGHT_OFFSET_WINGMAN;
+    light_wave_spacing_frames = 0u;
+    heavy_escort_offset = NO_ESCORT;
+    heavy_wave_flags = 0u;
     ENEMY_ARCHETYPE = ROSTER_SHAPE_RAIDER;
     heavy_archetype_offset = HEAVY_OFFSET_RAIDER;
     heavy_hull_colour = HULL_COLOUR_RAIDER;
@@ -655,18 +611,13 @@ void lifecycle_c_init(void)
 #pragma code-name (push, "HYBRID_C_SECTOR")
 uint8_t sector_c_update_first_capital(void)
 {
+    /* Roadmap 4.6 step 2: the frame gate is gone. CAPITAL_DUE is raised by the
+     * Director when its row clock enters a CAPITAL sector (plan §4, owner
+     * decision 3), so this routine is only the ENTRY half of the test now -
+     * and the entry half is unchanged, which is why the capital still waits
+     * for a drained playfield exactly as it did. */
     if ((DIRECTOR_STATE_FLAGS & DIRECTOR_FLAG_CAPITAL_DUE) == 0u) {
-        if ((DIRECTOR_STATE_FLAGS & DIRECTOR_FLAG_CAPITAL_ADMITTED) != 0u) {
-            return 0u;
-        }
-        if (ACTIVE_GAMEPLAY_FRAME_HI < (FIRST_CAPITAL_FRAME >> 8)) {
-            return 0u;
-        }
-        if (ACTIVE_GAMEPLAY_FRAME_HI == (FIRST_CAPITAL_FRAME >> 8) &&
-            ACTIVE_GAMEPLAY_FRAME_LO < (FIRST_CAPITAL_FRAME & 0xFFu)) {
-            return 0u;
-        }
-        DIRECTOR_STATE_FLAGS = DIRECTOR_FLAG_CAPITAL_DUE;
+        return 0u;
     }
     /* Capital frames skip the fighter publication window, so the Light must
      * also be unpublished (its late erase done) before the sector leaves.
@@ -745,18 +696,24 @@ uint8_t sector_c_force_final_drain(void)
 #pragma code-name (push, "HYBRID_C_EXT")
 #pragma rodata-name (push, "RODATA")
 
-/* How many slots this sector may hold live at once. CAPITAL is fighter-only,
- * so no Light survives it; a Heavy formation on screen leaves room for its
- * escort and nothing more (plan §2.4); otherwise the swarm ceiling applies. */
+/* How many slots this sector may hold live at once. Roadmap 4.6 step 2: the
+ * number is min(the SectorDef's requested Light cap, the runtime ceiling for
+ * the sector's kind and subtype), computed once in director_c_light_ceiling.
+ * The three-way test this replaced said the same thing about the level the
+ * runtime happened to carry - CAPITAL zero, ELITE one, SWARM three - and says
+ * it now about whichever level is loaded.
+ *
+ * The one rule that is NOT level data stays here: a capital sector is
+ * fighter-only whatever its SectorDef asks for, because the Light publication
+ * belongs to the fighter window that capital frames never run (plan §5.1,
+ * owner decision 1). The CAPITAL row of the ceiling table is zero as well, so
+ * this is belt and braces on a sector-state transition the level cannot see. */
 static uint8_t light_ceiling(void)
 {
     if (CAPITAL_SECTOR_STATE != SECTOR_FIGHTER) {
-        return light_ceiling_capital;
+        return 0u;
     }
-    if (ENEMY_ACTIVE != ENEMY_INACTIVE) {
-        return light_ceiling_elite;
-    }
-    return light_ceiling_swarm;
+    return director_c_light_ceiling();
 }
 
 /* The first free slot, or LIGHT_SLOT_COUNT when every slot is taken. */
@@ -873,11 +830,14 @@ static uint8_t light_admit(void)
     return 1u;
 }
 
-/* The Light escort admission of a Heavy formation. A Light still descending
- * from an earlier formation keeps its lifecycle. */
+/* The Light escort admission of a Heavy formation. Roadmap 4.6 step 2: WHICH
+ * Light is the WaveDef's `wave_member_offset`, read as the escort archetype
+ * for a Heavy wave (plan §2.2), not a two-entry schedule and a counter. A
+ * Light still descending from an earlier formation keeps its lifecycle. */
 static void encounter_light_admit(void)
 {
-    encounter_light_schedule_advance();
+    light_record = heavy_escort_offset;
+    light_archetype[light_slot] = light_record;
     light_admit_entry = LIGHT_X_ENTRY;
     light_admit_state = light_record == LIGHT_OFFSET_WINGMAN
         ? LIGHT_ACTIVE_ESCORT       /* takes its leader's column and lag */
@@ -885,18 +845,19 @@ static void encounter_light_admit(void)
     light_admit();
 }
 
-/* PROVISIONAL standalone Interceptor wave (plan §2.4), once per frame from the
- * kernel. TEMPORARY, like encounter_heavy_schedule: 4.6's WaveDef replaces it.
- * enemy_c_recycle arms it when a Heavy formation leaves, so a smoke run and
- * the measurement replays run Raider + escort, then a swarm, then the Bomber
- * pair, then a swarm. (The word the source-contract guard watches for is not
- * used here on purpose: that guard is about a rejected per-admission archetype
- * toggle, which this is not - the schedule still names every archetype.)
+/* The armed LIGHT wave, one admission attempt per frame from the kernel.
+ * Roadmap 4.6 step 2: every number it spends is a WaveDef field that
+ * director_c_try_event published - the archetype, the entry column, the member
+ * count and the spacing - so this stepper holds no schedule of its own. It is
+ * no longer armed by enemy_c_recycle and no longer needs a build flag: a level
+ * that authors a Light wave gets one.
  *
  * The lock is what keeps Heavy and swarm from ever coexisting: ASM's Heavy
- * retry asks _asm_director_can_allocate, which refuses while it is set. */
-/* The stepper itself runs EVERY frame, unlike the admission it calls, so it
- * belongs in the window with the rest of the per-frame path. */
+ * retry asks _asm_director_can_allocate, which refuses while it is set. The
+ * Director will not advance its cursor past this wave until the lock lifts.
+ *
+ * The stepper runs EVERY frame, unlike the admission it calls, so it belongs
+ * in the window with the rest of the per-frame path. */
 #pragma code-name (push, "HYBRID_C_WINDOW")
 static void light_wave_step(void)
 {
@@ -908,18 +869,14 @@ static void light_wave_step(void)
             --light_wave_timer;
             return;                 /* spacing-limited: no admission attempt */
         }
-        light_record = LIGHT_OFFSET_INTERCEPTOR;
-        light_admit_entry = light_wave_entry_x[light_wave_entry];
+        light_record = light_wave_archetype;
+        light_admit_entry = light_wave_entry;
         light_admit_state = LIGHT_ACTIVE_FREE;
         if (light_admit() == 0u) {
             return;                 /* refused: retry next frame */
         }
         --light_wave_remaining;
-        ++light_wave_entry;
-        if (light_wave_entry >= LIGHT_WAVE_COUNT) {
-            light_wave_entry = 0u;
-        }
-        light_wave_timer = light_wave_spacing[DIFFICULTY_SETTING];
+        light_wave_timer = light_wave_spacing_frames;
         return;
     }
     /* The wave is spent; the lock lifts once its last member has gone. */
@@ -1033,22 +990,11 @@ void enemy_c_recycle(void)
     /* With no Heavy on screen P1/P2 colour only the capital broadside missiles
      * M1/M2 (PRIOR 0): give them back the Raider faction colour. */
     heavy_hull_colour = HULL_COLOUR_RAIDER;
-#ifdef LIGHT_FORCE_POPULATION
-    /* PROVISIONAL (plan §2.4 [C4]): arm the standalone Interceptor wave. The
-     * lock goes up first, so the ASM Heavy retry cannot slip a formation in
-     * before the first member is admitted.
-     *
-     * MEASUREMENT SCAFFOLDING ONLY (owner decision 2026-09-21), built by
-     * `node scripts/build.mjs --force-light-population`. It is not behaviour
-     * the game has today - real waves arrive with 4.6's Director and WaveDef -
-     * and it is out of the default build because it changes the deterministic
-     * replay timeline, which the accepted coverage clauses depend on. Those
-     * replays are re-scripted by 4.6, when swarms become real behaviour: a
-     * gate changes when the game changes, not so that a change can pass. */
-    light_wave_lock = 1u;
-    light_wave_remaining = LIGHT_WAVE_COUNT;
-    light_wave_timer = 0u;
-#endif
+    /* Roadmap 4.6 step 2: nothing is armed here any more. A swarm follows a
+     * Heavy formation because the LEVEL authored a Light wave on the next row,
+     * not because a recycle poked a measurement counter. The
+     * --force-light-population scaffolding that stood in for a WaveDef while
+     * the format was being designed goes with it. */
 }
 
 /* Once per gameplay frame, per slot. Returns the selected record's weapon
@@ -1282,24 +1228,23 @@ uint8_t sector_c_drain_clear(void)
     return 1u;
 }
 
-/* TEMPORARY 4.5 HEAVY SMOKE SCHEDULER — replaced by 4.6 data-driven Encounter
- * Director. The schedule cycles Raider, Bomber, Raider... only so a smoke run
- * shows both; nothing in the Heavy lifecycle, the Bomber handler or the
- * renderer depends on this order. Each column is per-formation data: record,
- * PMG art and hull colour (owner smoke may retune the Bomber's art or colour
- * as data). The escort column is provisional wave policy, not a Bomber rule:
- * a 4.6 WaveDef may give a Bomber formation a Light escort. */
-static const uint8_t encounter_heavy_archetype[ENCOUNTER_HEAVY_SCHEDULE_LENGTH] = {
-    HEAVY_OFFSET_RAIDER, HEAVY_OFFSET_BOMBER
-};
-static const uint8_t encounter_heavy_roster_shape[ENCOUNTER_HEAVY_SCHEDULE_LENGTH] = {
+/* Roadmap 4.6 step 2: the Heavy smoke scheduler is gone. WHICH formation is
+ * admitted, and whether it brings an escort, is the armed WaveDef's business
+ * (director_c_request writes heavy_archetype_offset and heavy_escort_offset);
+ * what is left here is PRESENTATION, indexed by the record the wave named.
+ *
+ * Two columns, one row per roster record (ROSTER FREEZE, decision 21): the
+ * PMG art index the renderer dispatches on, and the full-HP hull colour the
+ * veneer publishes to COLPM1/COLPM2. The Light rows exist so the lookup needs
+ * no range test - a Light never reaches this path, because a Light wave never
+ * asks the Heavy admission - and carry the Raider's values. */
+static const uint8_t heavy_roster_shape[4] = {
+    ROSTER_SHAPE_RAIDER, ROSTER_SHAPE_RAIDER,
     ROSTER_SHAPE_RAIDER, ROSTER_SHAPE_BOMBER
 };
-static const uint8_t encounter_heavy_hull_colour[ENCOUNTER_HEAVY_SCHEDULE_LENGTH] = {
+static const uint8_t heavy_record_hull_colour[4] = {
+    HULL_COLOUR_RAIDER, HULL_COLOUR_RAIDER,
     HULL_COLOUR_RAIDER, HULL_COLOUR_BOMBER
-};
-static const uint8_t encounter_heavy_light_escort[ENCOUNTER_HEAVY_SCHEDULE_LENGTH] = {
-    1u, 0u
 };
 
 /* Record field of each enemy_profile_* byte, in their declared order. */
@@ -1349,9 +1294,17 @@ static void heavy_publish_profile(void)
  * already placed the Raider start state; a lane sweep replaces it. */
 void enemy_c_spawn_raiders(void)
 {
-    heavy_archetype_offset = encounter_heavy_archetype[encounter_heavy_index];
-    ENEMY_ARCHETYPE = encounter_heavy_roster_shape[encounter_heavy_index];
-    heavy_hull_colour = encounter_heavy_hull_colour[encounter_heavy_index];
+    /* The record index inside the frozen roster, from the byte offset the
+     * Director published. Four iterations at most; no division helper, which
+     * cc65 would link as a runtime routine. */
+    heavy_index = 0u;
+    heavy_scratch = heavy_archetype_offset;
+    while (heavy_scratch >= ENEMY_ARCHETYPE_RECORD_BYTES) {
+        heavy_scratch = (uint8_t)(heavy_scratch - ENEMY_ARCHETYPE_RECORD_BYTES);
+        ++heavy_index;
+    }
+    ENEMY_ARCHETYPE = heavy_roster_shape[heavy_index];
+    heavy_hull_colour = heavy_record_hull_colour[heavy_index];
     heavy_publish_profile();
     ENEMY_HP_0 = HEAVY_FIELD(ENEMY_ARCHETYPE_FIELD_HIT_POINTS);
     ENEMY_HP_1 = ENEMY_HP_0;
@@ -1366,12 +1319,9 @@ void enemy_c_spawn_raiders(void)
             HEAVY_SLOT_STATE[heavy_index] = heavy_scratch;
         } while (heavy_index-- != 0u);
     }
-    if (encounter_heavy_light_escort[encounter_heavy_index] != 0u) {
+    /* The wave's escort, or none: $FF is "no escort" (plan §2.2). */
+    if (heavy_escort_offset != NO_ESCORT) {
         encounter_light_admit();
-    }
-    ++encounter_heavy_index;
-    if (encounter_heavy_index >= ENCOUNTER_HEAVY_SCHEDULE_LENGTH) {
-        encounter_heavy_index = 0u;
     }
 }
 

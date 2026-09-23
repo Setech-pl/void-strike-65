@@ -56,6 +56,15 @@ export function loadRuntimeSegments(rootDirectory) {
         manifest.capitalHulls.levelBlock.blockAddress,
         manifest.capitalHulls.levelBlock.blockBytes],
     ]),
+    // Roadmap 4.6 step 2: the LevelDef core page is the Director's schedule.
+    // It is the third block of the per-level image, and like the music player
+    // and the hull block it is present in RAM from START GAME onwards on both
+    // media - so every runtime harness must place it, or director_c_init reads
+    // whatever the harness left at the core address and fails its magic check.
+    ...(manifest.levelDef?.core == null ? [] : [
+      ["levelCore", manifest.levelDef.core.file,
+        manifest.levelDef.core.blockAddress, manifest.levelDef.core.blockBytes],
+    ]),
     ...(manifest.encounterDirector?.enabled === true ? [
       ["integrationGlue", "integration-glue.bin", manifest.integrationGlue.finalAddress,
         manifest.integrationGlue.bytes],

@@ -22,7 +22,9 @@
 DIRECTOR_STATE_REACTION = $80F9
 DIRECTOR_STATE_RECOVERY = $80FA
 DIRECTOR_STATE_INTENSITY = $80F8
-DIRECTOR_STATE_PHASE = $80F6
+; Roadmap 4.6 step 2: $80F6 is the Director's SECTOR INDEX now. No ASM reads
+; it - the retired provisional request wrapper was its last reader - so the name is
+; gone with it and the address is documented in src/c/director.c.
 DIRECTOR_STATE_FLAGS = $80FE
 DIRECTOR_STATE_ADMISSION_FRAME = $80FF
 DIRECTOR_FLAG_COMPLETE = $01
@@ -7336,22 +7338,11 @@ integration_pickup_pending_tick:
 @reveal:
     jmp integration_pickup_reveal_body
 
-; Select only the policy used by the following production Director request.
-; The caller has already saved the authoritative phase and restores it before
-; returning, so world-row phase progression remains unchanged.
-select_interceptor_request_phase:
-    lda CAPITAL_SECTOR_STATE
-    cmp #CAPITAL_HULL_STATE_DRAIN
-    bcs @ordinary
-    lda #$03                    ; existing all-hazards 3/4/5 policy
-    sta DIRECTOR_STATE_PHASE
-    rts
-@ordinary:
-    lda DIRECTOR_STATE_PHASE
-    bne @done
-    inc DIRECTOR_STATE_PHASE    ; phase zero borrows phase one's Interceptor bit
-@done:
-    rts
+; Roadmap 4.6 step 2 retired the Interceptor request's phase selector here.
+; It wrote
+; DIRECTOR_STATE_PHASE, which is the Director's SECTOR INDEX now: forcing a
+; policy would have forced a different sector's caps and archetype mask on the
+; request, which is exactly the coupling the level data exists to remove.
 
 ; The deferred starfield staging moved to the bootstrap prefix in roadmap
 ; 4.5M-M1 (stage_starfield_stream, two exact-window copies). These 15 bytes
@@ -11578,8 +11569,13 @@ interceptor_admission_update:
 @blocked:
     rts
 @request:
+    ; Roadmap 4.6 step 2: the production request, with nothing wrapped around
+    ; it. The provisional wrapper saved and restored the Director's reaction,
+    ; recovery and phase bytes and forced a phase policy before asking; the
+    ; Director now answers a Heavy request out of the armed WaveDef and the
+    ; sector's own caps, so there is no phase to borrow and no clock to hide.
     ldx #DIRECTOR_HAZARD_INTERCEPTOR
-    jsr provisional_interceptor_director_request
+    jsr DIRECTOR_REQUEST
     bcs @admitted
     ldx DIFFICULTY_SETTING
     lda interceptor_admission_retry_frames,x
@@ -11764,38 +11760,11 @@ add_archetype_score_tail:
     jmp update_score_display
 
 .segment "PICKUP_CODE"
-; The provisional ordinary cadence is active-frame based, independent of the
-; Director's world-row reaction/recovery clocks. Preserve those clocks around
-; the production request so its phase mask, budget, allocation, one charge and
-; one private-RNG advance remain authoritative. Phase zero borrows phase one's
-; established Interceptor policy before the hull arrives. During the admitted
-; traversal, borrow phase three's existing all-hazards 3/4/5 policy: those are
-; the same ceilings used by the capital-local BROADSIDE gate, so one live bolt
-; cannot permanently mask later ordinary lifecycles.
-provisional_interceptor_director_request:
-    lda DIRECTOR_STATE_REACTION
-    pha
-    lda DIRECTOR_STATE_RECOVERY
-    pha
-    lda #$00
-    sta DIRECTOR_STATE_REACTION
-    sta DIRECTOR_STATE_RECOVERY
-    lda DIRECTOR_STATE_PHASE
-    pha
-    jsr select_interceptor_request_phase
-    jsr DIRECTOR_REQUEST
-    ldy #$00
-    bcc :+
-    iny
-:
-    pla
-    sta DIRECTOR_STATE_PHASE
-    pla
-    sta DIRECTOR_STATE_RECOVERY
-    pla
-    sta DIRECTOR_STATE_REACTION
-    cpy #$01                    ; restore the production request carry result
-    rts
+; Roadmap 4.6 step 2 retired the provisional Interceptor request wrapper here.
+; It existed to borrow a phase policy for the Heavy retry and to hide the
+; Director's world-row clocks from it; the Director has no phases now, and its
+; answer to a Heavy request is the armed WaveDef plus the sector's own caps.
+; interceptor_admission_update calls DIRECTOR_REQUEST directly.
 
 ; Rejected admission and post-release cadence in active gameplay frames.
 interceptor_admission_retry_frames:

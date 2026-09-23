@@ -118,7 +118,11 @@ extern volatile uint8_t light_target_x;
 extern volatile uint8_t heavy_archetype_offset;
 /* GTIA hull colour of the current Heavy formation; ASM writes it to COLPM1/2. */
 extern volatile uint8_t heavy_hull_colour;
-extern volatile uint8_t encounter_heavy_index;
+/* Roadmap 4.6 step 2: the Heavy formation the armed WaveDef named, and its
+ * Light escort ($FF = none). They replace the smoke scheduler's counter in
+ * the same two bytes of HYBRID_ENCOUNTER_STATE. */
+extern volatile uint8_t heavy_escort_offset;
+extern volatile uint8_t heavy_wave_flags;
 extern volatile uint8_t heavy_member_x;
 extern volatile uint8_t heavy_member_y;
 extern volatile uint8_t heavy_member_direction;

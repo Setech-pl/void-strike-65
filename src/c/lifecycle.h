@@ -37,7 +37,21 @@ uint8_t enemy_c_light_hit(void);
  * staying static. */
 uint8_t light_take_deferrable_token(void);
 uint8_t enemy_c_heavy_breakup_claim(void);
-/* PROVISIONAL standalone Interceptor wave (plan §2.4), once per frame. */
+/* The armed Light wave's stepper, once per frame (plan §2.2). */
 void enemy_c_light_wave(void);
+
+/* Roadmap 4.6 step 2: the armed Light wave, written by director_c_try_event
+ * from the WaveDef the cursor names and spent by the stepper in the code
+ * window. light_wave_lock is also read by ASM through
+ * _asm_director_can_allocate: a Heavy formation is refused while it is up. */
+extern volatile uint8_t light_wave_lock;
+extern uint8_t light_wave_remaining;
+extern uint8_t light_wave_timer;
+extern uint8_t light_wave_entry;
+extern uint8_t light_wave_archetype;
+extern uint8_t light_wave_spacing_frames;
+/* The Heavy formation the Director selected, consumed by
+ * enemy_c_spawn_raiders and published to GTIA by the ABI veneer. */
+extern volatile uint8_t heavy_archetype_offset;
 
 #endif

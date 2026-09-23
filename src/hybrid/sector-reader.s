@@ -189,7 +189,15 @@ sector_reader_start_gameplay:
 
         jsr sector_reader_show_loader
 
+        ; Roadmap 4.6 step 2, the debug route (plan §7). A review build made
+        ; with --level=N[:sector=M] assembles this file with -D LEVEL_DEBUG_ID
+        ; so the owner can reach a level the campaign does not offer yet; the
+        ; .ifndef keeps the default build's byte identical.
+.ifdef LEVEL_DEBUG_ID
+        lda #LEVEL_DEBUG_ID
+.else
         lda #$01                        ; level 1; 4.9 supplies the real id
+.endif
         jsr sector_reader_load
         bcc @loaded
         jmp sector_reader_failure_screen

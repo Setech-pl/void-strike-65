@@ -36,7 +36,12 @@ below) on top of `f4cb18b`, the documentation-only reconciliation of
 the owner acceptance recorded here. All of it runs in the accepted runtime
 below and all of it is owner-accepted under that checkpoint.
 
-**Thirteen `OWNER-SMOKE CANDIDATE`s are outstanding: the roadmap 4.6 step-1
+**Fourteen `OWNER-SMOKE CANDIDATE`s are outstanding: the roadmap 4.6 step-2
+data-driven Director** (section "Roadmap 4.6 step 2 — the Director reads the
+level image" below; the Director's schedule is the level image now, six named
+schedulers are retired, level 1 is authored to the row step 2 measured, and
+transport FALLS — boot **107** unmoved, total 209 → **207** sectors, initial
+block 13,652 → **13,634 B**), **the roadmap 4.6 step-1
 level compiler** (section "Roadmap 4.6 step 1 — the JSON level compiler" below;
 levels are authored JSON now, the level image grows 8 → 13 sectors to carry the
 three LevelDef pages, **the runtime reads none of them yet**, and every gate is
@@ -391,6 +396,96 @@ state the resulting free tail in its message and in the memory-map override
 section.**
 
 ---
+
+## Roadmap 4.6 step 2 — the Director reads the level image — `OWNER-SMOKE CANDIDATE` (2026-09-23)
+
+Plan: [plans/director-4.6.md](plans/director-4.6.md) §2.2, §4, §8 step 2.
+Branch `feat/director-level-data` from `main` `28bd1e7`.
+
+**What changed.** `LEVEL1_DATA` is gone — thirteen phase arrays, five event
+arrays, 158 B of level 1 compiled into the runtime, and the machinery that
+walked them. `src/c/director.c` declares the LevelDef core page as the
+structure of arrays it is, one C object per column, in a bss segment the link
+config places at `$AA00` with `file = ""`; no byte is emitted into any
+artifact and no transport byte is spent, because the sector reader already
+fills the level buffer from the level image on both media.
+`scripts/level-compiler.mjs` generates both halves of the contract
+(`build/level-def.h` for the reader, `build/level-def.inc` for the ABI) and
+`src/hybrid/c-asm-abi.s` asserts at LINK time that all seventeen arrays landed
+on the offsets the compiler writes.
+
+The row clock drives it: a row-in-sector counter ends a SPACE sector at its
+authored length (**R4**) and arms WaveDefs at their authored rows (**R2**); a
+Heavy request is answered from the armed wave plus the sector's caps and
+archetype mask (**R3**), clamped by the runtime's own subtype ceilings; a Light
+wave is handed to the window's stepper. `min(requested, ceiling)` is computed
+in one place and the Light class calls it.
+
+**Retired.** The Heavy smoke scheduler and its counter; the Light escort
+schedule, its entry-column cycle and its per-difficulty spacing table;
+`--force-light-population`; `FIRST_CAPITAL_FRAME` — a CAPITAL sector raises
+`CAPITAL_DUE` when the row clock enters it, and the entry still waits for
+`sector_c_drain_clear`; and in ASM the provisional Interceptor request wrapper
+and its phase selector, which forced a phase policy before asking and would now
+force a different SECTOR's caps.
+
+**Level 1, authored to what step 2 measured.** Sector 1 runs **272 rows**: the
+capital became due at active gameplay frame 600, the MEDIUM world row there is
+**270** (600 × 9/20), and 272 is the nearest 8-row module boundary — and the
+row the capital actually admits on. The traversal is **542 rows** on all three
+difficulties, so the two sectors behind it run 1,448 each and the level ends at
+row **3,710** against 3,712, the two rows the module grid cannot express. Seed
+`$6D` keeps all three RNG streams. Spacing 24 is the Heavy class floor, so the
+kernel's admission retry still paces the stream.
+
+**Transport — MEASURED, and it FELL.** Owner decision 6's rule is "no new boot
+sector, initial block content not above 13,652 B, ATR menu delta not above +7".
+
+| | `28bd1e7` | delivered |
+| --- | ---: | ---: |
+| boot / extension / total sectors | 107 / 102 / 209 | **107 / 100 / 208** |
+| initial block content / ceiling | 13,652 / 13,684 | **13,634 / 13,684** |
+| free ATR sectors | 511 | **513** |
+| `DIRECTOR_RAM` used / capacity | 643 / 645 | **591 / 645** (54 B tail) |
+| code window used / free | 1,509 / 2,075 | **1,991 / 1,593** |
+
+The Director's cold half — sector entry, the wave arm, the ceilings, the
+archetype mask and the release veneer — lives in the `$AE00` window, which is
+what Q-1 made the room for; `DIRECTOR_RAM` keeps only what its predecessor's
+bytes already paid for in the initial block (plan §3.3).
+
+**The reproduction gate, MEASURED.** `scripts/level-timeline.mjs` drives the
+real runtime image through a reduced main loop with one fixed kill policy;
+`diagnostics/level-1-baseline-timeline-probe.json` is the pre-change timeline
+and `diagnostics/level-1-baseline-timeline.json` the native replay it was
+cross-checked against.
+
+| MEDIUM | before | after |
+| --- | ---: | ---: |
+| capital admits | frame 605, row 272 | **frame 606, row 272** |
+| level complete | frame 8,249 | **frame 8,249** |
+| Heavy formations in 9,000 frames | 109 | **109** |
+| first four formations | frames 1, 64, 129, 192 | **1, 64, 127, 190** |
+| HARD level complete | frame 7,424 | **frame 7,424** |
+
+**What could NOT be reproduced, and the owner should read it before smoking.**
+The retired scheduler alternated Raider and Bomber on **every** admission. A
+WaveDef names ONE archetype and the core page holds 20 waves, so 41 alternating
+formations cannot be written as 41 waves; level 1 alternates in **blocks**
+instead — four Raiders, four Bombers, six and six after the capital. The
+repository always described that alternation as smoke scheduling and not a
+gameplay contract, which is why the density and the cadence were reproduced and
+the order was not. Two further consequences of the row clock (owner decision 3)
+are visible and intended: the capital arrives **later on EASY** (frame 681 for
+600) and **earlier on HARD** (545 for 601), because the row is now the same on
+all three difficulties and the frame is not.
+
+**What the owner checks on hardware.** Level 1 should open with a Raider
+formation and its Wingman escort in the first seconds, as before; the Bomber
+pair should follow rather than alternate with it; the capital should arrive at
+about the same moment on MEDIUM and visibly later on EASY; the corridor should
+carry debris at least as often as it did (MEASURED: longest empty gap 88 frames
+against 120); and the level should end where it did.
 
 ## Roadmap 4.6 step 1 — the JSON level compiler — `OWNER-SMOKE CANDIDATE` (2026-09-23)
 

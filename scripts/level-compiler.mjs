@@ -51,6 +51,9 @@ export const LEVEL_GEOMETRY_ADDRESS = LEVEL_BUFFER_ADDRESS + LEVEL_GEOMETRY_OFFS
 export const LEVEL_CORE_FORMAT = 1;
 export const LEVEL_CORE_MAGIC = (0x56 & 0xf0) | LEVEL_CORE_FORMAT;
 
+// Core header offsets the build stamps directly (plan §7's debug route).
+export const CORE_DEBUG_START_SECTOR_OFFSET = 12;
+
 export const MAX_SECTORS = 10;
 export const MAX_WAVES = 20;
 export const MAX_LEVEL_NUMBER = 12;

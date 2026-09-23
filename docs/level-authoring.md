@@ -141,6 +141,11 @@ field:
 * a boss sector that is not last, or a `boss` id with no boss sector;
 * a hull length outside 288 / 352 / 416 / 480 rows, or non-monotonic hull
   phase thresholds;
+* a Heavy wave escorted by a Heavy archetype, or a Light wave naming a second
+  archetype at all: for a Heavy wave the second member is read at runtime as
+  the LIGHT escort and admitted into a Light slot, and a Heavy record there
+  would be a Heavy archetype with no PMG player of its own, which the enemy
+  class invariant forbids (AGENTS.md);
 * spacing below the class floor;
 * an entry column outside 48-200;
 * `lights` above 4 or `heavies` above 2 — the packed nibbles hold no more;
@@ -158,11 +163,30 @@ resident library or the payload page.
 
 ## Level 1
 
-`assets/levels/level-01.json` reproduces today's level 1 as data: four sectors
-summing to the 3,712 world rows at which `LEVEL1_DATA` completes the level, a
-capital sector between them, and the 480-row hull the game ships. **Which row
-the capital sector starts on is step 2's measurement** — the plan replaces
-today's `FIRST_CAPITAL_FRAME = 600` frame gate with an authored row, and the
-row equivalent to frame 600 on MEDIUM is measured from the trace at that step
-(plan §10 departure, §11 item 3). The row in this file is the structural
-placeholder until then.
+`assets/levels/level-01.json` reproduces the level the runtime used to carry,
+as data. Every number in it was MEASURED at step 2 from the build before the
+change and is recorded in `diagnostics/level-1-baseline-timeline.json` and
+`-probe.json`:
+
+* **sector 1 runs 272 rows.** The capital used to become due at active gameplay
+  frame 600, and the world row at that frame on MEDIUM is 270 (600 × 9/20).
+  272 is the nearest 8-row module boundary and is the row the capital actually
+  admits on (owner decision 3, plan §11 item 3).
+* **the capital traversal is 542 rows** on all three difficulties, so the two
+  sectors behind it run 1,448 each and the level ends at row 3,710 against the
+  3,712 it used to — the two rows the module grid cannot express.
+* **seed 109 is `$6D`**, which `director_c_init` XORs with the difficulty, so
+  all three of the RNG streams the level used to run are unchanged.
+* **spacing 24 is the Heavy class floor**, deliberately: it puts the wave's own
+  pacing under the kernel's admission retry (48/36/24 frames by difficulty), so
+  the stream keeps the cadence it had.
+
+One thing the format cannot reproduce, and it is worth knowing before reading
+the file. The scheduler this replaced alternated Raider and Bomber on **every**
+admission. A WaveDef names ONE archetype, and the core page holds 20 waves, so
+41 alternating formations cannot be written as 41 waves. Level 1 alternates in
+**blocks** instead — four Raiders, four Bombers, six and six after the capital.
+The repository always described that alternation as smoke scheduling and not a
+gameplay contract (`src/c/lifecycle.c` before step 2: *"nothing in the Heavy
+lifecycle, the Bomber handler or the renderer depends on this order"*), which
+is why the density and the cadence were reproduced and the order was not.

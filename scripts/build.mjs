@@ -47,6 +47,7 @@ import {
   MAX_WAVES,
   renderLevelDefCa65Include,
   renderLevelDefCHeader,
+  CORE_DEBUG_START_SECTOR_OFFSET,
 } from "./level-compiler.mjs";
 import {
   compileEnemyRoster,
@@ -182,9 +183,34 @@ if (hullStyleSlug && !hullStyleIds.has(hullStyleSlug.toUpperCase())) {
   throw new Error(`Unknown hull style build ${hullStyleSlug}`);
 }
 const hullStyleValue = hullStyleSlug ? hullStyleIds.get(hullStyleSlug.toUpperCase()) : null;
+// Roadmap 4.6 step 2, the debug route (docs/plans/director-4.6.md §7):
+// --level=N[:sector=M] builds the campaign's level N, entered at its sector M,
+// so the owner can reach a level or a sector the campaign does not offer yet.
+// A review variant in the exact shape of --hull-style: its artifacts go to
+// build/level-N-sM/, never to dist/, runtime measurement is skipped and no
+// gate consults it. The default build has no such code path at all - the
+// sector reader's `.ifndef` keeps its byte identical and the Director's
+// #ifdef leaves the debug_start_sector byte unread.
+const levelDebugArgument = process.argv.find((argument) =>
+  argument.startsWith("--level="));
+const levelDebugMatch = levelDebugArgument === undefined
+  ? null
+  : /^--level=(\d+)(?::sector=(\d+))?$/.exec(levelDebugArgument);
+if (levelDebugArgument !== undefined && levelDebugMatch === null) {
+  throw new Error(`Unknown debug level build ${levelDebugArgument}; ` +
+    "the form is --level=N or --level=N:sector=M");
+}
+const levelDebugId = levelDebugMatch === null ? null : Number(levelDebugMatch[1]);
+const levelDebugSector = levelDebugMatch === null
+  ? 0 : Number(levelDebugMatch[2] ?? 0);
+// 16 is LEVEL_MAX_ID, declared below with the rest of the layout; this check
+// runs while the arguments are parsed, before that binding exists.
+if (levelDebugId !== null && (levelDebugId < 1 || levelDebugId > 16)) {
+  throw new Error(`--level=${levelDebugId} is outside 1..16`);
+}
 const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
-  hullStyleValue !== null || bomberHullValue !== null;
+  hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null;
 const acceptedMenuMusicPayloadBytes = 14314;
 // Gameplay music plus its in-game pause controls remain a bounded post-menu feature.
 const runtimeHeadroomPayloadLimit = 1536;
@@ -795,14 +821,15 @@ function renderLevelDirectoryInclude(levels) {
 }
 
 async function buildResidentModule({ sourcePath, configPath, stem, extraInputs = {},
-  configText = null }) {
+  configText = null, defines = [] }) {
   const source = fs.readFileSync(sourcePath);
   const config = configText === null ? fs.readFileSync(configPath) : Buffer.from(configText);
   const base = `/project/build/${stem}`;
   const assembled = await runWasmTool(
     "ca65",
     { [`${base}.s`]: source, ...extraInputs },
-    ["--cpu", "6502", "-g", "-l", `${base}.lst`, "-o", `${base}.o`, `${base}.s`],
+    ["--cpu", "6502", "-g", ...defines.flatMap((define) => ["-D", define]),
+      "-l", `${base}.lst`, "-o", `${base}.o`, `${base}.s`],
     [`${base}.o`, `${base}.lst`],
   );
   const linked = await runWasmTool(
@@ -828,7 +855,7 @@ async function buildResidentModule({ sourcePath, configPath, stem, extraInputs =
 }
 
 async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
-  levelDefHeader) {
+  levelDefHeader, levelDebugStartSector) {
   const base = "/project/build/encounter-director";
   const cSource = fs.readFileSync(path.join(rootDirectory, "src", "c", "director.c"));
   const cHeader = fs.readFileSync(path.join(rootDirectory, "src", "c", "director.h"));
@@ -851,6 +878,7 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
       "/cc65/include/stdint.h": stdintHeader,
     },
     ["--cpu", "6502", "-Oirs", "-I", "/project/src/c", "-I", "/cc65/include",
+      ...(levelDebugStartSector ? ["-D", "LEVEL_DEBUG_START=1"] : []),
       "-o", `${base}-generated.s`, "/project/src/c/director.c"],
     [`${base}-generated.s`],
   );
@@ -1421,7 +1449,7 @@ async function build() {
         },
       }
     : await buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
-      levelDefHeader);
+      levelDefHeader, levelDebugId !== null);
   if (process.argv.includes("--director-only")) {
     writeFile(path.join(buildDirectory, "encounter-director.map"), directorModule.map);
     writeFile(path.join(buildDirectory, "encounter-director.lbl"), directorModule.labels);
@@ -1820,8 +1848,11 @@ async function build() {
   writeFile(path.join(buildDirectory, "gameplay-music.bin"), gameplayMusicModule.raw);
   writeFile(path.join(buildDirectory, "gameplay-music.lbl"), gameplayMusicModule.labels);
   writeFile(path.join(buildDirectory, "gameplay-music.map"), gameplayMusicModule.map);
+  // Debug route (plan §7): the build bakes level N's image where level 1's
+  // would go - the XEX-only block and the ATR's first level run - so the ATR
+  // and the XEX both start on it. The default build is unchanged.
   const levelRuns = [
-    { id: 1, startSector: levelBaseSector, sectors: levelOneSectors },
+    { id: levelDebugId ?? 1, startSector: levelBaseSector, sectors: levelOneSectors },
   ];
   // Decision 1: the region owns the style. --hull-style=Rn forces one region
   // onto every level so the owner can smoke a quarter of the campaign before
@@ -1837,6 +1868,16 @@ async function build() {
   // owner's smoke (plan §5).
   const compiledLevels = new Map(levelRuns.map((run) =>
     [run.id, compileLevelFile(levelSourcePath(run.id), { hullAsset: capitalHullsAsset })]));
+  // ... and stamps the sector to enter into the core page's own byte, which
+  // director_c_init reads only under LEVEL_DEBUG_START.
+  if (levelDebugId !== null) {
+    const compiled = compiledLevels.get(levelDebugId);
+    if (levelDebugSector >= compiled.sectors.length) {
+      throw new Error(`--level=${levelDebugId}:sector=${levelDebugSector} is outside the ` +
+        `level's ${compiled.sectors.length} sectors`);
+    }
+    compiled.pages.core[CORE_DEBUG_START_SECTOR_OFFSET] = levelDebugSector;
+  }
   for (const compiled of compiledLevels.values()) {
     if (!quiet) for (const warning of compiled.warnings) console.warn(`level warning: ${warning}`);
   }
@@ -1908,6 +1949,9 @@ async function build() {
     sourcePath: path.join(rootDirectory, "src", "hybrid", "sector-reader.s"),
     configPath: path.join(rootDirectory, "cfg", "sector-reader.cfg"),
     stem: "sector-reader",
+    // Debug route (plan §7): the only difference the reader sees is WHICH
+    // level id START GAME asks for.
+    defines: levelDebugId === null ? [] : [`LEVEL_DEBUG_ID=${levelDebugId}`],
     extraInputs: {
       "/project/build/level-directory.inc": Buffer.from(levelDirectoryInclude),
       "/project/build/main-abi.inc": Buffer.from(sectorReaderMainAbiInclude),
@@ -2684,6 +2728,8 @@ async function build() {
             ? `hull-style-${hullStyleSlug.toUpperCase()}`
           : bomberHullValue !== null
             ? `bomber-hull-${bomberHullSlug.toLowerCase()}`
+          : levelDebugId !== null
+            ? `level-${levelDebugId}-s${levelDebugSector}`
           : candidateBuild
             ? "candidate"
             : "release",
@@ -3944,7 +3990,9 @@ async function build() {
               ? path.join(buildDirectory, `hull-style-${hullStyleSlug.toUpperCase()}`)
               : bomberHullValue !== null
                 ? path.join(buildDirectory, `bomber-hull-${bomberHullSlug.toLowerCase()}`)
-                : distDirectory;
+                : levelDebugId !== null
+                  ? path.join(buildDirectory, `level-${levelDebugId}-s${levelDebugSector}`)
+                  : distDirectory;
   writeFile(path.join(artifactDirectory, "void-strike-65-boot.bin"), transportPayload);
   writeFile(path.join(artifactDirectory, "void-strike-65.xex"), xex);
   writeFile(path.join(artifactDirectory, "void-strike-65.atr"), atr);
@@ -3979,6 +4027,10 @@ async function build() {
       console.log(`  variant : Bomber hull ${bomberHullSlug.toLowerCase()} ` +
         `(hue $${bomberHullValue.toString(16).padStart(2, "0")}, full HP ` +
         `$${(bomberHullValue | 0x08).toString(16)})`);
+      console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
+    } else if (levelDebugId !== null) {
+      console.log(`  variant : debug route - level ${levelDebugId}` +
+        `, entered at sector ${levelDebugSector + 1}`);
       console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
     } else if (hullStyleValue !== null) {
       console.log(`  variant : hull region ${hullStyleSlug.toUpperCase()} on every level ` +

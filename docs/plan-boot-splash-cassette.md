@@ -130,6 +130,15 @@ segment with a short `LEADER` reproduces that — a table edit only.
   cycles, poll ≈ 60, segment step ≈ 40, 12 cells × ≈ 40. Nothing here is
   raster-critical except the DLI, bounded in §3.3.
 
+> **Pending amendment — backlog, 2026-09-23.** The owner asked that the three
+> data blocks not sound identical: the leader tone stays, the second block
+> differs by a different POKEY waveform or the same waveform an octave lower
+> (double the divider). Shape: the block index selects `AUDC`/`AUDF` — a
+> three-entry table or a compare on the block counter, roughly ten bytes. It
+> cannot be implemented until the initial block has room: see `STATUS.md`
+> §Backlog, "Splash initial-block reclaim, and then the cassette-sound
+> variation".
+
 ---
 
 ## 3. Picture fade — frames 176-250

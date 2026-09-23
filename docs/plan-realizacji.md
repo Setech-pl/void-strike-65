@@ -435,6 +435,32 @@ odsunięta. Nie realizować bez wskazania właściciela.
   `BROAD_TURRET` jest polem powłoki, `BROAD_TURRET_FIRED` zatrzaskiem ognia —
   bez HP, bez stanu slotu, nie są celem kolizji. To **nowy typ obiektu**
   wymagający własnego planu i budżetu i **nie może opóźnić bossa**.
+- **Odzysk bajtów bloku początkowego na splashu, a potem zróżnicowanie dźwięku
+  kasety** (zapisane 2026-09-23). **Dwie rzeczy do zrobienia w tej kolejności**,
+  bo druga mieści się dopiero wtedy, gdy pierwsza zwolni bajty.
+  1. **Spakować blob splasha i `A2_KERNEL`.** Oba jadą dziś **nieupakowane**:
+     blob splasha (`bootSplashRuntime`) 512 B surowo → **473 B** po spakowaniu,
+     `A2_KERNEL` (237 B użyte w 256-bajtowym regionie `fill = yes`) 256 B surowo
+     → **218 B** — około **77 B** odzyskane w bloku początkowym. ZMIERZONE
+     własnym pakerem `LZ-10/5` drzewa;
+     `diagnostics/menu-stars-alternative-a-boot-sectors.md` §6.1. Oba wymagają
+     **dekodera w miejscu bootu, w którym dziś żaden nie działa**, i to ten
+     dekoder — gdzie mieszka, ile kosztuje i że wykonuje się przed użyciem
+     blobów — **jest właściwą treścią zadania**, nie samo pakowanie.
+  2. **Zróżnicować dźwięk ładowania z kasety na splashu.** Prośba właściciela,
+     2026-09-23: ton nagłówka (leader) zostaje bez zmian, ale **trzy bloki
+     danych nie mogą brzmieć identycznie** — drugi blok ma się różnić, albo inną
+     falą POKEY-a, albo tą samą falą o oktawę niżej (podwojony dzielnik). Kształt
+     implementacji: **indeks bloku wybiera `AUDC`/`AUDF`**, jako trzyelementowa
+     tablica albo porównanie licznika bloków — około **dziesięciu bajtów**.
+     Kontrakt dźwiękowy, który to zmienia, to `plan-boot-splash-cassette.md` §2.
+  **Dlaczego backlog, a nie teraz.** W chwili zapisu blok początkowy ma **2 B**
+  zapasu (`initialBootContentBytes` 13 682 wobec sufitu 13 684), boot stoi na
+  **107 sektorach**, a deadline menu ATR ma **3 klatki ostrzegawczego marginesu**.
+  Każdy realny bajt dołożony do kodu splasha kosztuje sektor bootu i cały
+  pozostały margines deadline'u — więc dziesięć bajtów zróżnicowania dźwięku
+  jest nie do opłacenia, dopóki nie wykona się krok 1.
+
 - **Paralaksa starfieldu** — ~3 000 cykli na drugą warstwę scrollującą; wrócić
   po Option D.
 - **Statyczna Andromeda** w tle sektora `SPACE`, zasłaniana podczas przelotu

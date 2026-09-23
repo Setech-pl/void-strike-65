@@ -4068,6 +4068,33 @@ started without owner instruction.
   per-frame numbers. Recorded gate failure, class `c-real-failure`. Evidence:
   §14.8 of the same document.
 
+- **Splash initial-block reclaim, and then the cassette-sound variation**
+  (recorded 2026-09-23). **Two items that must be done in this order**, because
+  the second only fits once the first has freed bytes.
+  1. **Pack the splash blob and `A2_KERNEL`.** Both travel **unpacked** today:
+     the splash blob (`bootSplashRuntime`) 512 B raw → **473 B** packed, and
+     `A2_KERNEL` (237 B used in a 256 B `fill = yes` region) 256 B raw →
+     **218 B** packed — about **77 B** recovered in the initial block. MEASURED
+     with the tree's own `LZ-10/5` packer;
+     [diagnostics/menu-stars-alternative-a-boot-sectors.md](diagnostics/menu-stars-alternative-a-boot-sectors.md)
+     §6.1. Both need a **decoder at a point in boot where none runs today**, and
+     that decoder — where it lives, what it costs, and that it runs before the
+     blobs are used — **is the real content of the task**, not the packing.
+  2. **Vary the cassette loading sound on the splash.** Owner request,
+     2026-09-23: the leader tone stays as it is, but the **three data blocks
+     must not sound identical** — the second block differs, either a different
+     POKEY waveform or the same waveform an octave lower (double the divider).
+     Implementation shape: the **block index selects `AUDC`/`AUDF`**, as a
+     three-entry table or a compare on the block counter — roughly **ten
+     bytes**. The sound contract it amends is
+     [plan-boot-splash-cassette.md](plan-boot-splash-cassette.md) §2.
+  **Why backlog and not now.** At the time of writing the initial block has
+  **2 B** of headroom (`initialBootContentBytes` 13,682 against the 13,684
+  ceiling), boot is at **107 sectors**, and the ATR menu deadline has **3 warn
+  frames** left. Any real byte added to splash code costs a boot sector and the
+  whole remaining deadline margin — so the ten bytes of sound variation are
+  not affordable until step 1 has run.
+
 - **PAL resync after a miss** — one overrun costs ~1,393 shifted-phase rows
   until the next gameplay generation.
 - **Debris blink on the player death frame** — pre-existing, documented under

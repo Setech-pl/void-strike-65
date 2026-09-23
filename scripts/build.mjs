@@ -3820,7 +3820,8 @@ async function build() {
       console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
     } else if (hullStyleValue !== null) {
       console.log(`  variant : hull region ${hullStyleSlug.toUpperCase()} on every level ` +
-        `(allied steel $${(alliedSteelValue ?? alliedColpf1ForLevel(1)).toString(16)})`);
+        `(allied steel $${(alliedSteelValue ?? alliedColpf1ForLevel(
+          1 + Math.floor(((hullStyleValue - 1) * LEVEL_MAX_ID) / 4))).toString(16)})`);
       console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
     }
   }

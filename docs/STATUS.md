@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-09-22
+Last update: 2026-09-23
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -36,7 +36,12 @@ below) on top of `f4cb18b`, the documentation-only reconciliation of
 the owner acceptance recorded here. All of it runs in the accepted runtime
 below and all of it is owner-accepted under that checkpoint.
 
-**Nine `OWNER-SMOKE CANDIDATE`s are outstanding: the main-menu star sky**
+**Ten `OWNER-SMOKE CANDIDATE`s are outstanding: the capital hull set v1 step
+2** (section "Capital hull set v1 — step 2" below; the enemy hull style and the
+allied steel become level data, the allied steel's release default becomes the
+brighter `$88` the owner chose at the step-1 smoke, and every gate is unmoved —
+worst fence margin **991**, DMA-on maximum **31,349**, boot **107** sectors,
+ATR menu **603** with all three warn frames intact), **the main-menu star sky**
 (section "Main-menu star sky (owner decision A′)" below; sixteen twinkling stars
 behind the MAIN MENU, and the one thing the owner should read before accepting
 it is that it spends the boot sector the hull merge freed — boot 106 → 107,
@@ -229,6 +234,139 @@ state the resulting free tail in its message and in the memory-map override
 section.**
 
 ---
+
+## Capital hull set v1 — step 2 (level hull styles) — OWNER-SMOKE CANDIDATE (2026-09-23)
+
+Branch `feat/hull-level-styles` from `main` at `b49bb96`. Step 2 of
+[plans/hull-set-v1.md](plans/hull-set-v1.md), under the owner decisions of
+2026-09-22/23 recorded in that plan's §13. **The enemy hull style and the
+allied hull colour are level data now.**
+
+**What travels.** The region's 280-byte hull block — enemy packed map (160 B),
+codebook (16 B), the seven surface glyphs for charset codes 70-76 (56 B) and
+the 32 per-row collision boundaries — rides in the level image at sector 6,
+`$A880-$A997`, with the level's allied `GAMEPLAY_COLPF1` as byte 2. One
+resident routine, `publish_level_hull_style` (31 B), publishes it at gameplay
+start on the loader screen: 56 bytes to `$4630-$4667`, 32 into
+`enemy_collision_boundaries`, one into the gameplay DLI's immediate operand,
+then it tail-jumps into the unpack, whose enemy half now reads the block.
+**MEASURED cost at level start ≈ 1,250 cycles**, outside every visible-frame
+budget. **In-frame cost is zero by construction**: the DLI still executes
+`lda #imm`, and no other instruction changed.
+
+**Region and colour.** `hullStyleIdForLevel` divides the campaign into four
+equal regions — `1 + floor((level − 1) × 4 / LEVEL_MAX_ID)` — so the mapping is
+parametric, not hardcoded. The campaign length is `LEVEL_MAX_ID = 16`
+(`scripts/build.mjs`, `src/hybrid/sector-reader.s`, asserted against the level
+directory; owner decision E says the same). **One document disagrees**:
+`docs/how-to-play.md` §"What is in the build" still says "The twelve-level
+campaign" — stale player-facing text from before decision E, read by no code.
+The allied steel is `$88` for the first half of the campaign and `$84` for the
+second; **`$88` is the release default now** and the value the previews render.
+The final darker step (`$84` or `$86`) is an owner decision at this step's
+smoke. `COLPF1` also colours enemy accents, hostile projectile trails and the
+Light steel arms, which is the accepted point of the change.
+
+**Zero resident bytes, and MEASURED zero address moves.** The retired enemy
+packed map keeps its 160 `RODATA` bytes in place — the routine at `$3770` plus
+`hull_level_publish_slack`, 129 B at `$378F-$380F` — and the retired codebook
+keeps its 16 `BROADSIDE` bytes as `enemy_hull_codebook_reserve` at `$68AB`.
+A/B against a clean build of `b49bb96`: **1,528 linked labels in both links, 0
+moved**; the only differences are the two retired labels and the new ones.
+Deleting either slack slides every later address and has cost the heaviest
+frame 17 cycles before.
+
+**Envelope.** The initial block **shrank** 13,682 → **13,652 B** of its
+13,696 B envelope (160 B of map pack worse than 31 B of code and 129 zeros), so
+the headroom against the 13,684 B ceiling goes 2 → 32 B. **Boot stays 107
+sectors**, extension 102, total transport **209** — unchanged, so
+`boot-deadline-baseline.json` is not re-recorded. Level 1 grows **7 → 8
+sectors** and header byte 7 goes **6 → 9**; the two inert pattern sectors the
+image carried are consumed and one sector is added, none of it boot transport.
+The XEX grows 28,255 → 28,383 B; the ATR is unchanged at 92,176 B.
+
+### Gates — the DEFAULT build
+
+XEX `dffc73ea1dcac8a3bf846ab995daca30bce72c73d1c6d0d33abc3db9e2a2a7fa`
+(28,383 B), ATR `5f0cad436a0f41844a6475c107dc254f55cda61f1c0e99b2e1f57083b2465851`
+(92,176 B), boot `193dc36dcd05acff7bb59ff3bf5595a7033f847d79917a5cb4f88a77d3e3662c`.
+
+| | `b49bb96` | delivered |
+| --- | ---: | ---: |
+| worst fence margin (GO ≥ 500) | 991 | **991** |
+| DMA-on maximum | 31,349 | **31,349** |
+| physical headroom | 4,219 | **4,219** |
+| rows over the 31,200 target | 4 + 3 | **4 + 3** |
+| recorded clause failures | 40 | **40**, same names, 0 new, 0 disappeared |
+| initial block content / envelope | 13,682 / 13,696 | **13,652 / 13,696** |
+| boot / extension / total sectors | 107 / 102 / 209 | **107 / 102 / 209** |
+| ATR menu deadline | 603 (+7, 3 warn frames left) | **603**, unmoved |
+| level-1 image | 7 sectors | **8 sectors** |
+
+**PAL audit — 74 replays, 0 distinct miss events, 0 rows over the hard gate, 0
+deadline overruns, 0 missed frames.** The worst frame is still
+`director-complete-2-natural-sweep-fire0` at **991**; the two replays over the
+31,200 target are `director-complete-1-natural-sweep-fire0` (4 rows) and
+`raider-remnant-rapid-xex-hard` (3), exactly as before. Evidence regenerated in
+one unbroken default run (`build:candidate` → `runtime:wall-trace
+--atari800-source=build/atari800-trace` → `build`);
+`tests/runtime-evidence-binding.test.mjs` and
+`tests/release-gate-semantics.test.mjs` 9/9 green.
+
+**Boot smoke 8/8**, every milestone unmoved: XEX 135/392, ATR 346/603. The ATR
+START GAME read grows to **8 command frames and 30 load frames** (was 7 and 26)
+— after the menu, on the loader screen, gated by nothing.
+
+**Tests.** `npm test` on the **default** build: **820 tests, 709 pass, 108
+fail, 3 todo**, plus the documented `docs/media` regeneration failure that
+passes only on a second consecutive run. Counted with it the failures are
+exactly the **109** names of the plan's Appendix A — **0 new, 0 disappeared**.
+`820 − 811 = 9` new tests, all in `tests/level-hull-block.test.mjs`, **all nine
+red at `b49bb96`**: the block in the image and header byte 7, the region
+mapping read from `LEVEL_MAX_ID`, the per-level colour byte, the block's glyphs
+against `hull-set-v2.json`, the 14 surface codes (compile-time and after
+publication), the publication executed on the 6502, a second region publishing
+different glyphs/boundaries/steel, the 8-sector START GAME read and the
+`--hull-style` review variant. Six existing pins are re-pinned with their reason
+in the test: the LevelDef sector arithmetic and the START GAME read
+(`gameplay-music-placement`), the block's reserved header field and the steel
+constant (`hull-set-v1`), the resident enemy map/codebook and the strip render
+(`capital-hulls`), and the gameplay palette row plus the strip SHA (`preview`).
+
+**One harness fix the suite found**, in `scripts/weapon-pickup-runtime.mjs`:
+the runtime harness placed the level image only where the XEX happens to carry
+it as a block. The ATR reads it over SIO before `start_gameplay` runs, so a
+harness that starts after that read must place it for both media; without it
+the ATR path unpacked the enemy hull from cold RAM and the Spread hull traces
+diverged between media for a reason the hardware does not have.
+
+**Q-1 (`LEVEL_BUFFER` 16 vs 24 sectors) — unchanged, and now MEASURED.** The
+per-level hull demand is **3 sectors** (280 B used of 384). A level is
+therefore header + music 5 + hull 3 = **8 sectors today**, and with 4.6's
+LevelDef pages (2 + 2, ESTIMATE) **12 sectors** worst case. Sixteen sectors
+leave 4, twenty-four leave 12. **The hull set does not force the 24-sector
+answer**; Q-1 stays a music/4.6 question.
+
+**Seeing all four regions before the campaign exists.** `npm run hull:style:R1`
+… `R4` (`node scripts/build.mjs --hull-style=Rn`) bake one region — its style
+*and* its half's allied steel — into level 1. They are review variants:
+artifacts go to `build/hull-style-Rn/`, never `dist/`, runtime measurement is
+skipped and no gate consults them. The default build is R1 with `$88`, as
+level 1 is in region one.
+
+**What the owner should look at in smoke:**
+
+1. **R1 in the default build** must look exactly like the step-1 candidate —
+   this step moves the art, it does not change it.
+2. **Each region's enemy style**, one build at a time: `build/hull-style-R2`,
+   `R3`, `R4`. R2, R3 and R4 still show one emplacement per 32-row texture
+   (the §12 decision, revisited in step 3).
+3. **The allied steel in both halves**: `$88` in R1/R2 and `$84` in R3/R4, and
+   whether the darker half should ship `$84` or `$86`.
+4. **Readability in the darker half.** `COLPF1` is shared, so `$84` also dims
+   the enemy `wacc` accents, the hostile `PULSE`/`LASER`/`BOMBER` projectile
+   trails and the Light steel arms against black. The trails are the ones to
+   watch: they are thin and they are the warning the player reacts to.
 
 ## Capital hull set v1 — step 1 (art v2, FULL MASS) — OWNER-SMOKE CANDIDATE (2026-09-22)
 

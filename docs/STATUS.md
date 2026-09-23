@@ -480,6 +480,32 @@ are visible and intended: the capital arrives **later on EASY** (frame 681 for
 600) and **earlier on HARD** (545 for 601), because the row is now the same on
 all three difficulties and the frame is not.
 
+**Gates — MEASURED on the candidate build.** PAL timing audit **PASS**: 65
+replays, 0 distinct miss events, 0 frames over the target, 0 over the hard
+gate. Worst line-238 fence margin **1,264** (was 991, gate GO ≥ 500); DMA-on
+maximum **31,089** (was 31,349). Boot smoke **8/8**; ATR menu **602**, delta
+**+6** against the +7 the owner asked not to exceed, so the warn band regains
+a frame; `gameplay_init` 3,102 unmoved.
+[diagnostics/level-data-pal-audit-2026-09-23.json](diagnostics/level-data-pal-audit-2026-09-23.json)
+and
+[diagnostics/level-data-boot-smoke-2026-09-23.json](diagnostics/level-data-boot-smoke-2026-09-23.json).
+
+**BLOCKED, and it is the one thing this step did not finish.**
+`docs/runtime-wall-trace.json` was **not** regenerated. The full run completed
+its PAL audit and then threw at `scripts/runtime-wall-trace.mjs:5298` — the
+weapon-pickup-traversal post-loop invariant, *"Native pickup did not remain one
+logical slot and one whole 16-row missile capsule"*. The same session run alone
+passes on this build and at `28bd1e7` alike, so the clause is reached only by a
+full run. The likely cause is the capsule **cadence**, which this step moves:
+the per-phase hazard reaction and budget tables are retired and the sector's
+own hazard mask decides, so a capsule arrives on a different frame and the
+captured window no longer holds the whole capsule. Under the owner's class rule
+that is class (a), a stale SCENARIO, repaired by re-scripting the session and
+never by weakening the clause. Until it is done, `npm test` on the DEFAULT
+build cannot bind its evidence — which is the correct signal, not a second
+defect. `dist/` is therefore left at the artifacts it had; the candidate is
+`npm run build:candidate` and its hashes are in the diagnostics file.
+
 **What the owner checks on hardware.** Level 1 should open with a Raider
 formation and its Wingman escort in the first seconds, as before; the Bomber
 pair should follow rather than alternate with it; the capital should arrive at

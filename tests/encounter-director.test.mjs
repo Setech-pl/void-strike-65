@@ -6,6 +6,9 @@ import { fileURLToPath } from "node:url";
 
 import { Nmos6502, nmos6502Flags } from "../scripts/nmos6502.mjs";
 import { installRuntimeSegments } from "../scripts/runtime-image.mjs";
+import {
+  compileLevel, defaultHullAsset, LEVEL_CORE_ADDRESS,
+} from "../scripts/level-compiler.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const mainSource = fs.readFileSync(path.join(root, "src/main.s"), "utf8");
@@ -20,11 +23,38 @@ for (const file of ["build/void-strike-65.lbl", "build/encounter-director.lbl",
   }
 }
 
+// Roadmap 4.6 step 2 re-pinned this map. The twelve bytes did not move; five
+// of them mean something else, because the Director reads a level now instead
+// of carrying one (src/c/director.c).
 const state = {
-  rowLo: 0x80f4, rowHi: 0x80f5, phase: 0x80f6, event: 0x80f7,
+  rowLo: 0x80f4, rowHi: 0x80f5, sector: 0x80f6, waveCursor: 0x80f7,
   intensity: 0x80f8, reaction: 0x80f9, recovery: 0x80fa, rng: 0x80fb,
-  pending: 0x80fc, defer: 0x80fd, flags: 0x80fe, admissionFrame: 0x80ff,
+  waveRemaining: 0x80fc, spacing: 0x80fd, flags: 0x80fe, admissionFrame: 0x80ff,
 };
+const FLAG_COMPLETE = 0x01;
+const FLAG_CAPITAL_DUE = 0x80;
+
+// A synthetic level, compiled by the real compiler and poked into the level
+// buffer where the sector reader would have put it. Nothing about it is
+// hand-assembled: if the compiler's layout and the Director's reader ever
+// disagreed, every test below that uses this would fail at once.
+const hullAsset = defaultHullAsset();
+function pokeLevel(image, source) {
+  const compiled = compileLevel({
+    level: 1, seed: 109, hull: { length: 3, turrets: 3 }, ...source,
+  }, { hullAsset, file: "synthetic.json" });
+  image.set(compiled.pages.core, LEVEL_CORE_ADDRESS);
+  return compiled;
+}
+
+// A space sector of `rows` rows with one Heavy wave, or none.
+function spaceSector(rows, waves = []) {
+  return {
+    kind: "space", subtype: "elite", rows,
+    archetypes: ["raider", "wingman", "interceptor", "bomber"],
+    lights: 1, heavies: 2, hazards: { debris: 2, pickups: true }, waves,
+  };
+}
 const provisionalCapital = {
   frame: 600,
   frameLo: 0x4ff8,
@@ -77,13 +107,18 @@ const broadside = {
   workSlot: 0x4e62,
 };
 
-function prepareBroadside({ difficulty = 2, phase = 3, frame = 10 } = {}) {
+// RE-PINNED at step 2: what permits a broadside is the SECTOR's hazard byte,
+// not a phase number. Level 1's sector 2 is the capital, and it is the sector
+// that authorises the broadside, so the harness selects it by index - which is
+// the whole of the Director's sector state.
+const CAPITAL_SECTOR_INDEX = 1;
+function prepareBroadside({ difficulty = 2, sector = CAPITAL_SECTOR_INDEX, frame = 10 } = {}) {
   const image = memory();
   image[labels.get("DIFFICULTY_SETTING")] = difficulty;
   image[labels.get("PLAYER_LIFECYCLE")] = 0;
   image[labels.get("frame_counter")] = frame;
   run(image, "director_init", { a: 0x6f });
-  image[state.phase] = phase;
+  image[state.sector] = sector;
   image[state.reaction] = 0;
   image[state.recovery] = 0;
   image[state.admissionFrame] = frame - 1;
@@ -173,27 +208,84 @@ function runEarlyEnemyReplay(difficulty, frames = 600) {
     pickupCounter: image[pickupCounter], rng, maximumActive };
 }
 
-test("Level 1 has exactly eight gapless phases and ends at row 3712", () => {
-  const image = memory();
-  const lo = byteTable(image, "level1_phase_end_lo", 8);
-  const hi = byteTable(image, "level1_phase_end_hi", 8);
-  const ends = lo.map((value, index) => value | hi[index] << 8);
-  assert.deepEqual(ends, [128, 576, 1056, 1664, 1856, 2752, 2944, 3712]);
-  assert.equal(labels.get("director_level1_end"), 3712);
-  assert.ok(ends.every((end, index) => index === 0 || end > ends[index - 1]));
-});
+// T3 (plan §9). RE-PINNED at step 2: there are no phases and no compiled-in
+// level. What the Director carries is a reader, and what it reads is the core
+// page the sector reader leaves in the level buffer.
+test("T3: the row tick advances the sector index from a poked core page and arms its first wave",
+  () => {
+    const image = memory();
+    image[labels.get("frame_counter")] = 9;
+    // Three space sectors, 16 / 24 / 32 rows, each with one Heavy wave on its
+    // own first row. Short on purpose: the row tick is the only clock.
+    pokeLevel(image, {
+      sectors: [
+        spaceSector(16, [{ row: 0, archetype: "raider", count: 1, spacing: 24, entry: 124 }]),
+        spaceSector(24, [{ row: 0, archetype: "bomber", count: 1, spacing: 24, entry: 124 }]),
+        spaceSector(32, [{ row: 8, archetype: "raider", count: 2, spacing: 24, entry: 124 }]),
+      ],
+    });
+    run(image, "director_init", { a: 0 });
+    assert.equal(image[state.sector], 0, "init enters sector 0");
+    assert.equal(image[state.waveRemaining], 1, "a wave authored on row 0 arms at entry");
+    assert.equal(image[labels.get("heavy_archetype_offset")], 0, "and publishes its Raider");
 
-test("phase policy encodes EASY/MEDIUM/HARD intensity ceilings 3/4/5", () => {
+    for (let row = 0; row < 16; row += 1) run(image, "director_world_row_tick");
+    assert.equal(image[state.sector], 1, "16 rows end a 16-row sector");
+    assert.equal(image[labels.get("heavy_archetype_offset")], 36, "sector 2 arms its Bomber");
+
+    for (let row = 0; row < 24; row += 1) run(image, "director_world_row_tick");
+    assert.equal(image[state.sector], 2, "24 more rows end the second sector");
+    assert.equal(image[state.waveRemaining], 0, "the third sector's wave waits for its row");
+    for (let row = 0; row < 8; row += 1) run(image, "director_world_row_tick");
+    assert.equal(image[state.waveRemaining], 2, "and arms on row 8 with both its formations");
+    assert.equal(image[state.rowLo], 48, "the world row is the sum of the sectors walked");
+  });
+
+// T11 (plan §9). The level's LENGTH is data: a two-sector level completes at
+// the end of sector 2 and a six-sector level at the end of sector 6. Nothing
+// in the runtime knows the number 8 any more.
+test("T11: a level completes at the end of its LAST authored sector, whatever their number",
+  () => {
+    for (const count of [2, 6]) {
+      const image = memory();
+      pokeLevel(image, {
+        sectors: Array.from({ length: count }, () => spaceSector(16)),
+      });
+      run(image, "director_init", { a: 0 });
+      for (let row = 0; row < 16 * count - 1; row += 1) run(image, "director_world_row_tick");
+      assert.equal(image[state.flags] & FLAG_COMPLETE, 0,
+        `a ${count}-sector level is not complete one row early`);
+      assert.equal(image[state.sector], count - 1);
+      run(image, "director_world_row_tick");
+      assert.equal(image[state.flags] & FLAG_COMPLETE, FLAG_COMPLETE,
+        `a ${count}-sector level completes at the end of sector ${count}`);
+      // COMPLETE is terminal: the row clock stops and no hazard is admitted.
+      const row = image[state.rowLo];
+      run(image, "director_world_row_tick");
+      assert.equal(image[state.rowLo], row, "the row clock stops at COMPLETE");
+      for (const hazard of [0, 1, 2, 3]) {
+        image[labels.get("frame_counter")] = 40 + hazard;
+        assert.equal(run(image, "director_request", { x: hazard }).carry, false,
+          `hazard ${hazard} is refused after COMPLETE`);
+      }
+    }
+  });
+
+// The runtime's own ceilings, which a level file may ask UNDER and never over
+// (plan §5). They replaced the per-phase intensity budget: what bounds a
+// sector's population is its kind and subtype, not a phase number.
+test("the runtime ceiling tables carry a row per sector kind and keep CAPITAL at zero", () => {
   const image = memory();
-  const easy = byteTable(image, "level1_phase_budget_easy", 8);
-  const medium = byteTable(image, "level1_phase_budget_medium", 8);
-  const hard = byteTable(image, "level1_phase_budget_hard", 8);
-  assert.equal(Math.max(...easy) + 0, 3);
-  assert.equal(Math.max(...medium), 4);
-  assert.equal(Math.max(...hard), 5);
-  for (let index = 0; index < 8; index += 1) {
-    assert.ok(easy[index] <= medium[index] && medium[index] <= hard[index]);
-  }
+  const light = byteTable(image, "_subtype_ceiling_light", 4);
+  const heavy = byteTable(image, "_subtype_ceiling_heavy", 4);
+  assert.deepEqual(light, [3, 1, 0, 0], "SWARM 3, ELITE 1, CAPITAL 0, BOSS 0");
+  assert.deepEqual(heavy, [0, 2, 0, 0], "a SWARM sector has no Heavy slot at all");
+  // Owner decision 1 (plan §11): the CAPITAL row exists and is zero, so paying
+  // for §5.1 later is a table VALUE and not a format change.
+  assert.equal(light[2], 0);
+  assert.equal(heavy[2], 0);
+  const floors = byteTable(image, "_class_spacing_floor", 2);
+  assert.deepEqual(floors, [16, 24], "Light 16, Heavy 24 - the class floors a wave is clamped up to");
 });
 
 test("private RNG has period 256 for every one-byte seed", () => {
@@ -222,7 +314,14 @@ test("director init and world rows are deterministic and do not touch game RNG",
   }
   assert.deepEqual([...first.subarray(0x80f4, 0x8100)], [...second.subarray(0x80f4, 0x8100)]);
   assert.equal(first[state.rowLo] | first[state.rowHi] << 8, 3712);
-  assert.equal(first[state.phase], 7);
+  // RE-PINNED at step 2. Level 1's second sector is the CAPITAL, and its clock
+  // is the hull traversal, not a row count - so 3,712 bare row ticks with
+  // nothing driving the sector state leave the Director exactly where the
+  // capital would wait for a drained playfield, with DUE raised and the level
+  // not complete. That is the determinism this test is about: two identical
+  // runs land on identical bytes.
+  assert.equal(first[state.sector], 1, "the row clock stops at the capital sector");
+  assert.equal(first[state.flags], FLAG_CAPITAL_DUE);
   assert.equal(first[gameRng[0]], 0x31); assert.equal(first[gameRng[1]], 0x32);
 });
 
@@ -332,39 +431,54 @@ test("BROADSIDE admission is transactional across success, retry, budget and rel
   assert.equal(parallel[state.intensity], 4, "failed parallel retry must not double charge");
 });
 
-test("BOSS_HANDOFF falls back to COMPLETE exactly once and closes admissions", () => {
+// RE-PINNED at step 2. The level used to end on an EVENT at a fixed row - the
+// BOSS_HANDOFF opcode at row 3712 - and it ends now where its last authored
+// sector ends. What the test is really about survives unchanged: COMPLETE is
+// raised exactly once, it is terminal, and it closes every admission.
+test("the level completes exactly once at the end of its last sector and closes admissions", () => {
   const image = memory();
+  pokeLevel(image, { sectors: [spaceSector(16), spaceSector(16)] });
   run(image, "director_init", { a: 0x6d });
-  image[state.rowLo] = 0x7f; image[state.rowHi] = 0x0e;
-  image[state.phase] = 7; image[state.event] = 5; image[state.pending] = 0xff;
-  image[state.reaction] = 0; image[state.recovery] = 0;
+  for (let row = 0; row < 31; row += 1) run(image, "director_world_row_tick");
+  assert.equal(image[state.flags] & FLAG_COMPLETE, 0);
   run(image, "director_world_row_tick");
-  assert.equal(image[state.rowLo] | image[state.rowHi] << 8, 3712);
-  assert.equal(image[state.flags] & 1, 1);
-  assert.equal(image[state.event], 6); assert.equal(image[state.pending], 0xff);
-  const event = image[state.event];
+  assert.equal(image[state.flags] & FLAG_COMPLETE, FLAG_COMPLETE);
+  const after = [...image.subarray(0x80f4, 0x8100)];
   run(image, "director_world_row_tick");
-  assert.equal(image[state.event], event);
+  assert.deepEqual([...image.subarray(0x80f4, 0x8100)], after,
+    "COMPLETE is terminal: a further row changes nothing at all");
   image[labels.get("frame_counter")] += 1;
   assert.equal(run(image, "director_request", { x: 0 }).carry, false);
 });
 
-test("phase-one debris admission is local to the active capital traversal", () => {
+// RE-PINNED at step 2: "phase one" was the phase whose authored mask carried
+// no debris. A SECTOR carries that mask now, so the test authors a sector with
+// debris switched off and keeps every other clause exactly as it was - above
+// all the one this test exists for, which is that the capital traversal's
+// debris exception is local to the traversal and inherited by nothing.
+test("debris admission follows the sector mask and the capital traversal exception", () => {
   const image = memory();
   const sectorState = labels.get("CAPITAL_SECTOR_STATE");
   const frameCounter = labels.get("frame_counter");
   image[labels.get("PLAYER_LIFECYCLE")] = 0;
   image[labels.get("DIFFICULTY_SETTING")] = 2;
   image[frameCounter] = 10;
+  pokeLevel(image, {
+    sectors: [{
+      kind: "space", subtype: "elite", rows: 800,
+      archetypes: ["raider", "wingman"], lights: 1, heavies: 2,
+      hazards: { debris: 0, pickups: true },
+      waves: [{ row: 0, members: ["raider", "wingman"], count: 2, spacing: 24, entry: 124 }],
+    }],
+  });
   run(image, "director_init", { a: 0x6d });
-  image[state.phase] = 1;
   image[state.reaction] = 0;
   image[state.recovery] = 0;
   image[sectorState] = 7;
   const rngBefore = image[state.rng];
 
   assert.equal(run(image, "director_request", { x: 1 }).carry, false,
-    "phase-one OPEN space must retain its authored no-debris mask");
+    "a sector whose mask carries no debris admits none in OPEN space");
   assert.deepEqual([image[state.intensity], image[state.rng]], [0, rngBefore]);
 
   image[frameCounter] += 1;
@@ -394,9 +508,11 @@ test("BOSS_HANDOFF maps every capital state once and leaves final COMPLETE termi
       run(image, "director_init", { a: 0x6d });
       image[state.rowLo] = 0x80;
       image[state.rowHi] = 0x0e;
-      image[state.phase] = 7;
-      image[state.event] = 6;
-      image[state.flags] = 1;
+      // RE-PINNED at step 2: the level is complete when its last sector ends,
+      // so the state this test wants is the COMPLETE flag on the last sector,
+      // not a phase and an event index.
+      image[state.sector] = 3;
+      image[state.flags] = FLAG_COMPLETE;
       image[labels.get("CAPITAL_SECTOR_STATE")] = capitalState;
       image[entityState + 1] = pickupState;
       image[entityState + 2] = 4;
@@ -407,7 +523,7 @@ test("BOSS_HANDOFF maps every capital state once and leaves final COMPLETE termi
       assert.equal(image[entityState + 1], 0, `pickup state ${pickupState} must clear`);
       assert.equal(image[entityState + 2], 4, "collected booster lifecycle remains independent");
       assert.deepEqual([...image.subarray(0x80f4, 0x80fe)], directorBefore,
-        "handoff must not reset row, phase, RNG or event state");
+        "completion must not reset the row, the sector, the cursor or the RNG");
     }
   }
 
@@ -474,7 +590,6 @@ test("ordinary admission is slot-safe, RNG-stable and pre-sector compatible", ()
   image[state.reaction] = 0;
   image[frameCounter] += 1;
   run(image, "integration_active_gameplay_tick");
-  image[state.phase] = 1;
   run(image, "integration_update_enemy");
   assert.equal(image[labels.get("ENEMY_ACTIVE")], 1);
   const rngWithOccupiedSlot = image[state.rng];
@@ -486,7 +601,9 @@ test("ordinary admission is slot-safe, RNG-stable and pre-sector compatible", ()
   image[labels.get("ENEMY_ACTIVE")] = 0;
   image[state.reaction] = 0;
   const rngBeforeSameFrameRetry = image[state.rng];
-  assert.equal(run(image, "provisional_interceptor_director_request", { x: 0 }).carry, false,
+  // RE-PINNED at step 2: the provisional wrapper is retired, so the request
+  // the kernel's retry makes IS the production request.
+  assert.equal(run(image, "director_request", { x: 0 }).carry, false,
     "a second admission in the same gameplay frame must be rejected");
   assert.equal(image[state.intensity], 0, "same-frame rejection leaked a Director charge");
   assert.equal(image[state.rng], rngBeforeSameFrameRetry,
@@ -497,6 +614,11 @@ test("ordinary admission is slot-safe, RNG-stable and pre-sector compatible", ()
   image[labels.get("CAPITAL_SECTOR_STATE")] = 7;
   image[state.flags] = 0;
   image[labels.get("INTERCEPTOR_BURST_TIMER")] = 0;
+  // Step 2: the armed wave paces its own members, and its spacing counts
+  // WORLD ROWS - the same clock the retired reaction and recovery bytes
+  // counted. This test advances frames and not rows, so it spends the spacing
+  // the way the row tick would.
+  image[state.spacing] = 0;
   const rngBeforeCapitalAdmission = image[state.rng];
   run(image, "integration_update_enemy");
   assert.equal(image[labels.get("ENEMY_ACTIVE")], 1,
@@ -620,24 +742,36 @@ test("the shared burst alternates two real Raider origins and skips a destroyed 
   assert.equal(image[target], 1, "the round robin skips the destroyed owner");
 });
 
-test("ordinary wave tables remain intact while the capital gate stays local", () => {
+// RE-PINNED at step 2. The per-phase hazard masks are retired; what a sector
+// admits is its own `sector_hazards` byte, and the level file is where it is
+// written. What this test still guards - and the reason it exists - is the
+// CAPITAL GATE, which is not level data at all: it is a PMG fact.
+test("the hazard mask is the sector's own, while the capital gate stays local", () => {
   const image = currentMemory();
-  const originalMasks = [0x00, 0x09, 0x0a, 0x0f, 0x08, 0x0f, 0x08, 0x0f];
-  const fallbackPhases = [2, 4, 6];
-  const masks = byteTable(image, "level1_phase_hazards", 8);
-  for (const phase of fallbackPhases) {
-    assert.equal(masks[phase], originalMasks[phase] | 0x01,
-      `phase ${phase} must preserve authored hazards and add only Hunter`);
-  }
-  for (const phase of [0, 1, 3, 5, 7]) {
-    assert.equal(masks[phase], originalMasks[phase],
-      `phase ${phase} policy changed unexpectedly`);
-  }
+  const compiled = pokeLevel(image, {
+    sectors: [
+      { kind: "space", subtype: "elite", rows: 800, archetypes: ["raider", "wingman"],
+        lights: 1, heavies: 2, hazards: { debris: 2, pickups: true } },
+      { kind: "capital", archetypes: [],
+        hazards: { debris: 1, pickups: true, broadside: true } },
+    ],
+  });
+  // The hazard byte is written by the compiler and read by the Director; the
+  // bits are plan §2.2's: 0-1 debris, 2 pickups, 3 broadside.
+  const hazards = [...image.subarray(LEVEL_CORE_ADDRESS + 0x38, LEVEL_CORE_ADDRESS + 0x3a)];
+  assert.deepEqual(hazards, [2 | 0x04, 1 | 0x04 | 0x08],
+    "a space sector with debris and pickups, and a capital that adds the broadside");
+  assert.equal(compiled.sectors[0].broadside, false,
+    "only the sector that authored it may schedule a broadside");
   assert.deepEqual(byteTable(image, "interceptor_admission_retry_frames", 3), [48, 36, 24]);
   assert.match(mainSource,
     /ordinary_wave_capital_blocked:[\s\S]+bit DIRECTOR_STATE_FLAGS[\s\S]+cmp #CAPITAL_HULL_STATE_OPEN/);
   assert.match(mainSource,
     /interceptor_admission_update:[\s\S]+jsr ordinary_wave_capital_blocked[\s\S]+bmi @blocked/);
+  // Step 2: the retry asks the production request directly - there is no
+  // wrapper left to borrow a policy before it.
+  assert.match(mainSource,
+    /@request:[\s\S]+ldx #DIRECTOR_HAZARD_INTERCEPTOR\s+jsr DIRECTOR_REQUEST/);
   assert.match(mainSource,
     /update_enemy_weapon_runtime:[\s\S]+jsr ordinary_wave_capital_blocked[\s\S]+bmi @stop/);
 });
@@ -659,64 +793,76 @@ test("active-gameplay schedule freezes across pause and odd player lifecycles", 
     image[provisionalCapital.frameHi] << 8, provisionalCapital.frame);
 });
 
-test("provisional first capital admission uses the 16-bit active-gameplay clock", () => {
-  const sectorState = labels.get("CAPITAL_SECTOR_STATE");
-  const frameCounter = labels.get("frame_counter");
-  const legal = memory();
-  run(legal, "director_init", { a: 0x6d });
-  run(legal, "init_broadside");
-  setActiveGameplayFrame(legal, provisionalCapital.frame - 1);
-  run(legal, "integration_update_first_capital");
-  assert.equal(legal[sectorState], 7);
-  assert.equal(legal[state.flags], 0);
-  setActiveGameplayFrame(legal, provisionalCapital.frame);
-  run(legal, "integration_update_first_capital");
-  assert.equal(legal[sectorState], 0, "the first legal attempt must admit at active frame 600");
-  assert.equal(legal[state.flags], provisionalCapital.admitted);
+// RE-PINNED at step 2 (owner decision 3, plan §11 item 3). The capital used to
+// become DUE on a 16-bit ACTIVE-GAMEPLAY FRAME count; it becomes DUE when the
+// ROW clock enters a CAPITAL sector. Every other clause here is unchanged,
+// including the two that matter most: a live hostile holds the admission
+// pending rather than losing it, and a level restart clears it.
+test("first capital admission is due on the authored ROW and retries until the playfield drains",
+  () => {
+    const sectorState = labels.get("CAPITAL_SECTOR_STATE");
+    const frameCounter = labels.get("frame_counter");
+    const toCapitalRow = (image) => {
+      for (let row = 0; row < 272; row += 1) run(image, "director_world_row_tick");
+    };
+    const legal = memory();
+    run(legal, "director_init", { a: 0x6d });
+    run(legal, "init_broadside");
+    for (let row = 0; row < 271; row += 1) run(legal, "director_world_row_tick");
+    run(legal, "integration_update_first_capital");
+    assert.equal(legal[sectorState], 7);
+    assert.equal(legal[state.flags], 0, "one row early is not due");
+    run(legal, "director_world_row_tick");
+    run(legal, "integration_update_first_capital");
+    assert.equal(legal[sectorState], 0, "the first legal attempt admits on the authored row");
+    assert.equal(legal[state.flags], provisionalCapital.admitted);
 
-  run(legal, "director_init", { a: 0x6d });
-  run(legal, "init_broadside");
-  assert.equal(legal[state.flags], 0, "level restart must reset provisional admission state");
-  assert.equal(legal[sectorState], 7);
+    run(legal, "director_init", { a: 0x6d });
+    run(legal, "init_broadside");
+    assert.equal(legal[state.flags], 0, "level restart must reset the admission state");
+    assert.equal(legal[sectorState], 7);
 
-  const blocked = memory();
-  run(blocked, "director_init", { a: 0x6d });
-  run(blocked, "init_broadside");
-  setActiveGameplayFrame(blocked, provisionalCapital.frame);
-  blocked[labels.get("ENEMY_ACTIVE")] = 1;
-  blocked[state.intensity] = 1;
-  run(blocked, "integration_update_first_capital");
-  assert.equal(blocked[sectorState], 7);
-  assert.equal(blocked[state.flags], provisionalCapital.due,
-    "a live ordinary enemy must retain a deterministic pending admission");
-  setActiveGameplayFrame(blocked, provisionalCapital.frame + 1);
-  blocked[frameCounter] += 1;
-  blocked[labels.get("ENEMY_ACTIVE")] = 0;
-  blocked[state.intensity] = 0;
-  run(blocked, "integration_update_first_capital");
-  assert.equal(blocked[sectorState], 0);
-  assert.equal(blocked[state.flags], provisionalCapital.admitted,
-    "retry must commit at the first subsequent legal gameplay frame");
-});
+    const blocked = memory();
+    run(blocked, "director_init", { a: 0x6d });
+    run(blocked, "init_broadside");
+    toCapitalRow(blocked);
+    blocked[labels.get("ENEMY_ACTIVE")] = 1;
+    blocked[state.intensity] = 1;
+    run(blocked, "integration_update_first_capital");
+    assert.equal(blocked[sectorState], 7);
+    assert.equal(blocked[state.flags], provisionalCapital.due,
+      "a live ordinary enemy must retain a deterministic pending admission");
+    blocked[frameCounter] += 1;
+    blocked[labels.get("ENEMY_ACTIVE")] = 0;
+    blocked[state.intensity] = 0;
+    run(blocked, "integration_update_first_capital");
+    assert.equal(blocked[sectorState], 0);
+    assert.equal(blocked[state.flags], provisionalCapital.admitted,
+      "retry must commit at the first subsequent legal gameplay frame");
+  });
 
-test("the provisional gate moves rather than duplicates the one capital encounter", () => {
+// RE-PINNED at step 2. There are no event rows left to duplicate the capital;
+// the level authors exactly as many CAPITAL sectors as it wants, and the one
+// this level authors is entered once. The clause that survives is the one the
+// title names: nothing the row clock does later reopens or interrupts a
+// traversal that is already running.
+test("the capital encounter is entered once and no later row interrupts it", () => {
   const image = memory();
-  assert.deepEqual(byteTable(image, "level1_phase_capital_state", 8), Array(8).fill(7));
-  assert.deepEqual(byteTable(image, "level1_event_row_lo", 6),
-    [128, 32, 64, 128, 0, 128]);
-  assert.deepEqual(byteTable(image, "level1_event_row_hi", 6), [0, 4, 7, 11, 14, 14]);
   assert.equal((mainSource.match(/jsr integration_update_first_capital\n/g) ?? []).length, 1);
-  assert.match(mainSource, /integration_update_first_capital:[\s\S]+jsr HYBRID_SECTOR_UPDATE_FIRST_CAPITAL/);
+  assert.match(mainSource,
+    /integration_update_first_capital:[\s\S]+jsr HYBRID_SECTOR_UPDATE_FIRST_CAPITAL/);
+  // The threshold the C lifecycle used to own is gone: the entry is the drain
+  // test and nothing else.
+  assert.doesNotMatch(lifecycleSource, /ACTIVE_GAMEPLAY_FRAME_HI\s*<|FIRST_CAPITAL/);
   assert.match(lifecycleSource,
-    /FIRST_CAPITAL_FRAME\s+600u[\s\S]+ACTIVE_GAMEPLAY_FRAME_HI[\s\S]+asm_sector_pressure_active/);
-  assert.equal((lifecycleSource.match(/FIRST_CAPITAL_FRAME/g) ?? []).length, 4,
-    "the high-level C lifecycle must own exactly one first-capital threshold");
+    /sector_c_update_first_capital[\s\S]+DIRECTOR_FLAG_CAPITAL_DUE[\s\S]+sector_c_drain_clear/);
 
   run(image, "director_init", { a: 0x6d });
   image[labels.get("CAPITAL_SECTOR_STATE")] = 2;
   for (let row = 0; row < 3_000; row += 1) run(image, "director_world_row_tick");
   assert.equal(image[labels.get("CAPITAL_SECTOR_STATE")], 2,
-    "later phase boundaries must neither duplicate nor interrupt the moved encounter");
+    "a traversal in progress is neither duplicated nor interrupted by later rows");
+  assert.equal(image[state.sector], 1, "and the Director waits in the capital sector for it");
 });
 
 test("natural Level 1 reaches a visible two-sided BROADSIDE without state injection", () => {
@@ -766,7 +912,17 @@ test("natural Level 1 reaches a visible two-sided BROADSIDE without state inject
       const debrisBeforeUpdate = image[labels.get("ENTITY_ACTIVE_MASK")] & 1;
       run(image, "entity_effects_update");
       const debrisActive = image[labels.get("ENTITY_ACTIVE_MASK")] & 1;
-      if (debrisBeforeUpdate && !debrisActive) debrisReleases.push(frame + 1);
+      // RE-PINNED at step 2. The admissions below are already counted only
+      // inside the capital corridor (sector state < 5) and the releases were
+      // counted everywhere, so the first capital admission was being measured
+      // against a release from the fighter sector before it. That mixed gap
+      // moved when the capital did - it is due on the authored ROW now, which
+      // on EASY is 80 frames later than the retired frame gate (owner decision
+      // 3) - and it was measuring the run-in, not the corridor. Both halves are
+      // the corridor's now, which is what the clause below is about.
+      if (debrisBeforeUpdate && !debrisActive && image[sectorState] < 5) {
+        debrisReleases.push(frame + 1);
+      }
       if (debrisActive && !debrisWasActive && image[sectorState] < 5)
         debrisAdmissions.push(frame + 1);
       maximumActiveDebris = Math.max(maximumActiveDebris, debrisActive);
@@ -803,10 +959,17 @@ test("natural Level 1 reaches a visible two-sided BROADSIDE without state inject
       if (completedCapital && image[state.intensity] === 0) break;
     }
 
-    assert.equal(admittedAtFrame, provisionalCapital.frame,
-      `difficulty ${difficulty} capital admission must occur at active gameplay frame 600`);
-    assert.ok(enteredCapitalAtRow >= 200,
-      `difficulty ${difficulty} capital section must follow the early ordinary-enemy window`);
+    // RE-PINNED at step 2 (owner decision 3). The capital is due on the
+    // authored ROW, not at active gameplay frame 600, so the FRAME it admits
+    // on is now a consequence of the difficulty's scroll rate - later on EASY,
+    // earlier on HARD - while the ROW is the same on all three. That is the
+    // whole of the change this replay sees, and the row is what the assertion
+    // pins now. The frame is still bounded, because a capital that never
+    // arrived would fail every clause below it.
+    assert.equal(enteredCapitalAtRow, 272,
+      `difficulty ${difficulty} capital must be due on level 1's authored row`);
+    assert.ok(admittedAtFrame !== null && admittedAtFrame < 1_000,
+      `difficulty ${difficulty} capital admitted at frame ${admittedAtFrame}`);
     assert.ok(visibleByOwner.has(1),
       `difficulty ${difficulty} must render a natural Hostile projectile`);
     assert.deepEqual([...motionByOwner].sort(), [...visibleByOwner].sort(),
@@ -823,8 +986,13 @@ test("natural Level 1 reaches a visible two-sided BROADSIDE without state inject
       `difficulty ${difficulty} exceeded the single debris-slot limit`);
     const admissionIntervals = debrisAdmissions.slice(1)
       .map((frame, index) => frame - debrisAdmissions[index]);
+    // A debris admitted in the fighter sector can be RELEASED inside the
+    // corridor, which puts a release in front of the first admission and
+    // shifts every pair by one. Align on the admissions: each gap is measured
+    // from the last release before it.
+    const pairedReleases = debrisReleases.filter((frame) => frame > debrisAdmissions[0]);
     const emptyIntervals = debrisAdmissions.slice(1)
-      .map((frame, index) => frame - debrisReleases[index]);
+      .map((frame, index) => frame - pairedReleases[index]);
     assert.ok(Math.max(...admissionIntervals) <= 384,
       `difficulty ${difficulty} capital admission gap ${Math.max(...admissionIntervals)} frames; ` +
       `admissions=${debrisAdmissions.join(",")}; releases=${debrisReleases.join(",")}`);

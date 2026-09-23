@@ -68,6 +68,64 @@ test("C and ASM agree on the hostile weapon_class ids and the authored visual or
   assert.match(source, /^FIGHTER_PROJECTILE_WEAPON_CLASS_SHIFT = 3$/m);
 });
 
+// T10 (docs/plans/director-4.6.md §9). Roadmap 4.6 step 2 retires six named
+// things at once, and the point of naming them here is that a later session
+// cannot quietly reintroduce one: each was a piece of SCHEDULE living in code,
+// and the schedule is level data now.
+test("T10: the provisional schedulers and the capital frame gate are gone from src/", () => {
+  const retired = [
+    ["encounter_heavy_", "the Heavy smoke scheduler's tables and its counter"],
+    ["encounter_light_schedule", "the Light escort schedule"],
+    ["provisional_interceptor_director_request", "the wrapper that forced a phase policy"],
+    ["select_interceptor_request_phase", "the phase selector it called"],
+    ["FIRST_CAPITAL_FRAME", "the capital's frame gate - the row clock is the only clock"],
+    ["LIGHT_FORCE_POPULATION", "the measurement build flag a real WaveDef replaces"],
+  ];
+  const sources = [];
+  const walk = (directory) => {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const full = path.join(directory, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (/\.(c|h|s)$/.test(entry.name)) sources.push(full);
+    }
+  };
+  walk(path.join(rootDirectory, "src"));
+  assert.ok(sources.length >= 8, "the walk found the source tree");
+  for (const [name, why] of retired) {
+    for (const file of sources) {
+      assert.doesNotMatch(fs.readFileSync(file, "utf8"), new RegExp(name),
+        `${path.relative(rootDirectory, file)} still names ${name} (${why})`);
+    }
+  }
+});
+
+// The other half of the same contract: what the Director reads INSTEAD. The
+// level compiler generates the offsets, the C indexes them by name and the ABI
+// asserts the addresses at link time, so this checks the chain is wired rather
+// than re-deriving any number.
+test("the Director's schedule comes from the level image, not from compiled-in constants", () => {
+  const director = fs.readFileSync(path.join(rootDirectory, "src/c/director.c"), "utf8");
+  assert.match(director, /#include "level-def\.h"/,
+    "the reader takes its offsets from the compiler's generated header");
+  assert.match(director, /#pragma bss-name \("LEVEL_CORE"\)/,
+    "the core page is a placed bss object, not a table in the image");
+  for (const array of ["sector_kind", "sector_len", "sector_caps", "sector_archetypes",
+    "sector_hazards", "sector_wave_first", "sector_wave_count",
+    "wave_row", "wave_flags", "wave_archetype", "wave_count", "wave_spacing",
+    "wave_entry", "wave_member_offset"]) {
+    assert.match(director, new RegExp(`uint8_t ${array}\\[`),
+      `the Director declares the ${array} column of the core page`);
+  }
+  assert.doesNotMatch(director, /U8_AT\(0xA[A-C]/i,
+    "plan §3.4: level data is never reached through U8_AT");
+  const config = fs.readFileSync(path.join(rootDirectory, "cfg/encounter-director.cfg"), "utf8");
+  assert.match(config, /LEVEL_CORE_RAM: start = \$AA00, size = \$0100, type = rw, file = ""/,
+    "the page is placed in the level buffer and emitted into no artifact");
+  const abi = fs.readFileSync(path.join(rootDirectory, "src/hybrid/c-asm-abi.s"), "utf8");
+  assert.match(abi, /\.assert _sector_kind = LEVEL_CORE_SECTOR_KIND_ADDRESS, lderror/,
+    "the link asserts the reader's page is the compiler's page");
+});
+
 test("accepted gameplay screen reference and its mapping decision are versioned", () => {
   assert.ok(fs.existsSync(path.join(rootDirectory, "assets", "graphics", "void-strike-65-screen-concept-v1.png")));
   assert.ok(fs.existsSync(path.join(rootDirectory, "docs", "decisions", "ADR-002-gameplay-screen.md")));

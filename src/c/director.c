@@ -1,11 +1,11 @@
 /* Roadmap 4.6 step 2 (docs/plans/director-4.6.md §2.2, §4, §8): the Director
  * reads its schedule from the level image.
  *
- * WHAT LEFT. `LEVEL1_DATA` - thirteen phase arrays and five event arrays, 158
- * B of compiled-in level 1 - and the phase machinery that walked them. With
- * them went the per-phase intensity budget, the per-phase reaction and
- * recovery tables, the deferred-event queue and `director_check_phase`. The
- * Director no longer carries a level; it carries a READER.
+ * WHAT LEFT. The compiled-in level: thirteen phase arrays and five event
+ * arrays, 158 B of level 1 in the runtime image, and the machinery that walked
+ * them. With it went the per-phase intensity budget, the per-phase reaction
+ * and recovery tables, the deferred-event queue and the phase check itself.
+ * The Director no longer carries a level; it carries a READER.
  *
  * WHAT ARRIVED. `level_core` is a link-time symbol at the LevelDef core page
  * (plan §2.2), which the sector reader has already placed in the level buffer
@@ -182,13 +182,25 @@ const uint8_t subtype_ceiling_heavy[4] = { 0u, 2u, 0u, 0u };
  * is clamped up to these (plan §5, the runtime half). */
 const uint8_t class_spacing_floor[2] = { 16u, 24u };
 static const uint8_t hazard_costs[4] = { 1u, 1u, 2u, 0u };
-/* World rows between hazard admissions, by difficulty. The retired
- * level1_phase_reaction_* tables gave a row per phase and a column per
- * difficulty; these are that table's ALL-HAZARDS phase (phase 3, the policy
- * most of level 1 ran under), which is what the sector hazard mask replaced.
- * They are rows, not frames: the countdown lives in the world row tick, as the
+/* World rows between hazard admissions, by difficulty. The retired per-phase
+ * reaction tables gave a row per phase and a column per difficulty; with the
+ * phases gone, one value per column stands for the whole level, and the one
+ * taken is the ALL-HAZARDS phase's - phase 3, the policy most of level 1 ran
+ * under, and the policy the retired request wrapper borrowed whenever it
+ * wanted a decision made. MEASURED against the capital corridor's debris
+ * cadence, which is the clause that feels this byte: the corridor's longest
+ * empty gap on EASY is 88 frames, against 120 on the build this replaced.
+ * Rows, not frames: the countdown lives in the world row tick, as the
  * reaction and recovery countdowns always have. */
 static const uint8_t hazard_reaction_rows[3] = { 32u, 28u, 24u };
+/* How much live hazard cost may stand at once, by difficulty. The retired
+ * per-phase budget tables varied this along the level and peaked at 3 / 4 / 5;
+ * the PEAK is what is kept, because the shaping the phases did is the sector's
+ * own hazard mask now - a sector that wants no debris says so, and a sector
+ * that wants no broadside says so, instead of a phase number deciding it for
+ * the whole level. Two broadside shells at cost two each are exactly the
+ * MEDIUM ceiling, which is what keeps the pair reachable. */
+static const uint8_t hazard_budget[3] = { 3u, 4u, 5u };
 
 #pragma code-name ("HYBRID_C_WINDOW")
 #pragma rodata-name ("HYBRID_C_WINDOW_RODATA")
@@ -543,12 +555,18 @@ uint8_t director_c_request(void)
         if (heavy_request() == 0u) {
             return 0u;
         }
-        /* No reaction charge on the Heavy path. The retired wrapper saved the
-         * reaction byte, zeroed it, let director_c_request overwrite it and
-         * then restored the saved value, so a Heavy admission never actually
-         * charged one; charging it now would silence the hostile weapon for
-         * 32 rows after every formation (integration_update_enemy_weapon gates
-         * on reaction|recovery). The wave's own spacing already paces it. */
+        /* The formation's live cost, so that the release veneer stays
+         * symmetric and provisional_capital_broadside_request - which budgets
+         * against this byte by address - still sees a Heavy on screen.
+         *
+         * No REACTION charge, though. The retired wrapper saved the reaction
+         * byte, zeroed it, let director_c_request overwrite it and then
+         * restored the saved value, so a Heavy admission never actually
+         * charged one; charging it now would silence the hostile weapon for a
+         * wave's spacing after every formation, because
+         * integration_update_enemy_weapon gates on reaction|recovery. The
+         * wave's own spacing already paces the admissions. */
+        STATE_INTENSITY = (uint8_t)(STATE_INTENSITY + hazard_costs[HAZARD_HEAVY]);
         director_c_rng_advance();
         return 1u;
     }
@@ -577,12 +595,10 @@ uint8_t director_c_request(void)
         }
     }
 
-    /* The live-cost ceiling. No longer a per-phase budget: the sector's own
-     * debris allowance bounds the only hazard that stacks, and
-     * provisional_capital_broadside_request budgets the broadside against the
-     * same byte by address. */
+    /* The live-cost ceiling, and the byte
+     * provisional_capital_broadside_request budgets against by address. */
     director_scratch2 = (uint8_t)(hazard_costs[director_scratch3] + STATE_INTENSITY);
-    director_scratch1 = (uint8_t)((sector_field & HAZARD_DEBRIS_MASK) + 2u);
+    director_scratch1 = hazard_budget[DIFFICULTY_SETTING];
     if (director_scratch2 > director_scratch1) {
         return 0u;
     }

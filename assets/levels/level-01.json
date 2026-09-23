@@ -37,7 +37,7 @@
       "hazards": { "debris": 1, "pickups": true },
       "waves": [
         { "row": 0, "members": ["raider", "wingman"], "count": 4, "spacing": 24, "entry": 124 },
-        { "row": 136, "archetype": "bomber", "count": 4, "spacing": 24, "entry": 124 }
+        { "row": 88, "archetype": "bomber", "count": 4, "spacing": 24, "entry": 124 }
       ]
     },
     {

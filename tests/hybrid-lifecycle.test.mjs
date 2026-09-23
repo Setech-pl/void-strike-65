@@ -6,6 +6,9 @@ import { fileURLToPath } from "node:url";
 
 import { Nmos6502 } from "../scripts/nmos6502.mjs";
 import { installRuntimeSegments, readRuntimeBytes } from "../scripts/runtime-image.mjs";
+import {
+  compileLevel, defaultHullAsset, LEVEL_CORE_ADDRESS,
+} from "../scripts/level-compiler.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const mainSource = fs.readFileSync(path.join(root, "src/main.s"), "utf8");
@@ -92,8 +95,12 @@ test("C EnemyArchetype is a compact exact Raider record in legal extension place
   // lifecycle_c_init clears it, 880 + 3 = 883, tail 19 -> 16 B. The claim's own
   // code is in HYBRID_C_ARENA with the rest of the Heavy's C, and its ASM in
   // the pickup stream fill; only the initialiser lands in this composite.
+  // Roadmap 4.6 step 2: the Light ceiling's three policy BYTES became the
+  // armed wave's three, and light_ceiling itself became one call into the
+  // Director's single answer, so lifecycle_c_init has less to restore and the
+  // ceiling has less to decide: 883 - 9 = 874.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
-    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 883 });
+    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 874 });
   const window = manifest.residentCapacity.basicWindow;
   // Q-1 (owner, 2026-09-23): the window starts at $AE00, not $B600 - the level
   // buffer gave back 16 sectors and the window took them.
@@ -102,8 +109,12 @@ test("C EnemyArchetype is a compact exact Raider record in legal extension place
     `HYBRID_C_WINDOW holds ${window.usedBytes} of ${window.capacityBytes} B`);
   // 4.3 step 5: the drain clause left sector_c_update_first_capital for the
   // arena as sector_c_drain_clear, so the window composite loses 10 B.
+  // Roadmap 4.6 step 2: sector_c_update_first_capital lost its frame gate -
+  // the 16-bit compare against FIRST_CAPITAL_FRAME and the flag it raised -
+  // because a CAPITAL sector raises CAPITAL_DUE when the row clock enters it:
+  // 230 - 43 = 187.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
-    ({ name }) => name === "window"), { name: "window", runAddress: 0x8602, bytes: 230 });
+    ({ name }) => name === "window"), { name: "window", runAddress: 0x8602, bytes: 187 });
   assert.equal(manifest.encounterDirector.director.footprint.cStackBytes, 0);
   assert.equal(manifest.encounterDirector.director.footprint.zeroPageBytes, 0);
 });
@@ -147,17 +158,25 @@ test("C maps the existing capital corridor phases and complete lifecycle exactly
   assert.equal(image[labels.get("ENTITY_SPAWN_TIMER_LO")], 32);
 });
 
+// RE-PINNED at roadmap 4.6 step 2. The capital used to become DUE at active
+// gameplay frame 600 - a constant compiled into the runtime. It becomes DUE
+// when the Director's ROW clock enters a CAPITAL sector (owner decision 3),
+// and the entry half of the test - a drained playfield - is unchanged, which
+// is the half that decides what the player sees.
 test("first-capital scheduling and future boss handoff stay high-level C decisions", () => {
   const image = memory();
   const state = labels.get("CAPITAL_SECTOR_STATE");
   const flags = 0x80fe;
   run(image, "director_init", { a: 0x6d });
-  image[0x4ff8] = 599 & 0xff;
-  image[0x4ff9] = 599 >> 8;
+  // Level 1's first sector is 272 rows and the second is the capital.
+  assert.equal(image[flags] & 0x80, 0, "the capital is not DUE while sector 1 runs");
   assert.equal(run(image, "sector_update_first_capital").a, 0);
-  assert.equal(image[state], 7);
-  image[0x4ff8] = 600 & 0xff;
-  image[0x4ff9] = 600 >> 8;
+  for (let row = 0; row < 271; row += 1) run(image, "director_world_row_tick");
+  assert.equal(image[flags] & 0x80, 0, "not one row early");
+  assert.equal(run(image, "sector_update_first_capital").a, 0);
+  run(image, "director_world_row_tick");
+  assert.equal(image[flags] & 0x80, 0x80, "row 272 enters the CAPITAL sector and raises DUE");
+  // Unchanged: the entry still waits for a drained playfield.
   image[labels.get("ENEMY_ACTIVE")] = 1;
   assert.equal(run(image, "sector_update_first_capital").a, 0);
   assert.deepEqual([image[state], image[flags]], [7, 0x80]);
@@ -250,16 +269,23 @@ test("ownership is singular and generated C requires neither software stack nor 
   const jsrs = [...executableGenerated.matchAll(/\bjsr\s+([^\s;]+)/g)].map((match) => match[1]);
   // Owner fix (a): enemy_c_light_wave wraps _light_wave_step so the frame's
   // slot limit is derived on EVERY frame, not only while a wave is live.
+  // RE-PINNED at roadmap 4.6 step 2, and the two changes are both retirements:
+  // _encounter_light_schedule_advance is gone, because WHICH Light escorts a
+  // formation is the WaveDef's escort byte and not a two-entry cycle; and
+  // _encounter_light_admit no longer appears as a call because with the
+  // schedule advance removed it is a single-caller leaf that cc65 inlines into
+  // enemy_c_spawn_raiders. _light_ceiling is still called, and now tail-jumps
+  // into the Director's one ceiling answer rather than choosing between three
+  // policy bytes.
   assert.deepEqual(jsrs,
     ["_asm_sector_pressure_active", "_sector_c_drain_clear", "_heavy_publish_profile",
-      "_encounter_light_admit",
       "_bomber_may_fire", "_bomber_turn", "_bomber_turn", "_bomber_turn", "_bomber_may_fire",
       "_bomber_colour", "_light_tick_body",
       "_light_take_deferrable_token", "_light_take_deferrable_token",
       "_light_take_deferrable_token",
       "_light_wave_step", "_light_ceiling", "_light_live_count", "_light_free_slot",
       "_light_take_token", "_light_pair_for_record", "_light_reload",
-      "_encounter_light_schedule_advance", "_light_admit", "_light_live_count",
+      "_light_admit", "_light_live_count",
       "_light_take_token", "_light_reload"]);
   assert.equal(jsrs.filter((name) => name.startsWith("_light_take_")).length, 5,
     "exactly the five token claim sites of plan §2.5 with [C3], §4.6 and the Heavy break-up");
@@ -267,3 +293,107 @@ test("ownership is singular and generated C requires neither software stack nor 
     "exactly the three DEFERRABLE consumers: the install, the Light breakup spawn " +
     "and the Heavy break-up claim");
 });
+
+// ---------------------------------------------------------------------------
+// Roadmap 4.6 step 2 - what a level file may ASK for, and what the runtime
+// grants (docs/plans/director-4.6.md §5, §9 T5 and T6). The rule the whole
+// format rests on is that a level may make the game easier than the runtime
+// allows and never harder, and it is enforced three times: at build, at load
+// and at admission. These two cover the admission half.
+// ---------------------------------------------------------------------------
+
+const hullAsset = defaultHullAsset();
+
+function pokeSyntheticLevel(image, sectors) {
+  const compiled = compileLevel({
+    level: 1, seed: 109, hull: { length: 3, turrets: 3 }, sectors,
+  }, { hullAsset, file: "synthetic.json" });
+  image.set(compiled.pages.core, LEVEL_CORE_ADDRESS);
+  return compiled;
+}
+
+test("T5: a SectorDef may ask for more Lights than its subtype admits, and the runtime clamps",
+  () => {
+    // ELITE admits one Light; the file asks for four. It is legal - the
+    // compiler warns rather than rejecting - and the runtime grants one.
+    const image = memory();
+    const compiled = pokeSyntheticLevel(image, [{
+      kind: "space", subtype: "elite", rows: 800,
+      archetypes: ["interceptor"], lights: 4,
+      hazards: { debris: 1 },
+      waves: [{ row: 0, archetype: "interceptor", count: 8, spacing: 16, entry: 124 }],
+    }]);
+    assert.equal(compiled.warnings.length, 1, "the compiler warns about the clamped cap");
+    assert.match(compiled.warnings[0], /asks for 4 Lights.*admits 1/);
+    run(image, "director_init", { a: 0 });
+    assert.equal(run(image, "director_light_ceiling").a, 1,
+      "min(requested 4, ELITE ceiling 1)");
+
+    // A SWARM sector asking for four gets the swarm ceiling of three - the
+    // physical slot count is four, so the ceiling is doing the work.
+    const swarm = memory();
+    pokeSyntheticLevel(swarm, [{
+      kind: "space", subtype: "swarm", rows: 800,
+      archetypes: ["interceptor"], lights: 4,
+      waves: [{ row: 0, archetype: "interceptor", count: 8, spacing: 16, entry: 124 }],
+    }]);
+    run(swarm, "director_init", { a: 0 });
+    assert.equal(run(swarm, "director_light_ceiling").a, 3, "min(requested 4, SWARM ceiling 3)");
+
+    // And a sector that asks for NONE gets none, however high the runtime
+    // would have allowed: the clamp is a minimum, not an override.
+    const quiet = memory();
+    pokeSyntheticLevel(quiet, [{
+      kind: "space", subtype: "swarm", rows: 800, archetypes: [], lights: 0,
+    }]);
+    run(quiet, "director_init", { a: 0 });
+    assert.equal(run(quiet, "director_light_ceiling").a, 0);
+  });
+
+test("T6: a sector whose mask excludes an archetype never spawns it, and the validator agrees",
+  () => {
+    // The runtime half. Two sectors, the same Heavy wave; the first names the
+    // Raider in its mask and the second does not. The wave's archetype byte is
+    // identical, so the only thing deciding is the mask.
+    const heavyWave = [{ row: 0, archetype: "raider", count: 4, spacing: 24, entry: 124 }];
+    const image = memory();
+    pokeSyntheticLevel(image, [
+      { kind: "space", subtype: "elite", rows: 800, archetypes: ["raider"], heavies: 2,
+        hazards: { debris: 1 }, waves: heavyWave },
+    ]);
+    image[labels.get("frame_counter")] = 10;
+    image[labels.get("PLAYER_LIFECYCLE")] = 0;
+    run(image, "director_init", { a: 0 });
+    image[0x80ff] = 9;
+    assert.equal(run(image, "director_request", { x: 0 }).x >= 0, true);
+    assert.equal(image[0x80fc], 3, "the Raider wave spent one of its four formations");
+
+    // Now the same wave in a sector whose mask holds only the Bomber. The
+    // request is refused and the wave keeps all four: admission never spends a
+    // formation it could not place.
+    const masked = memory();
+    pokeSyntheticLevel(masked, [
+      { kind: "space", subtype: "elite", rows: 800, archetypes: ["bomber"], heavies: 2,
+        hazards: { debris: 1 },
+        waves: [{ row: 0, archetype: "bomber", count: 4, spacing: 24, entry: 124 }] },
+    ]);
+    run(masked, "director_init", { a: 0 });
+    // Hand-edit the ARCHETYPE byte alone, leaving the mask as authored: this is
+    // the state a corrupt or hostile page would present, and the runtime is the
+    // last line that refuses it.
+    masked[LEVEL_CORE_ADDRESS + 0x88] = 0;      // wave_archetype[0] -> Raider
+    masked[labels.get("heavy_archetype_offset")] = 0;
+    masked[labels.get("frame_counter")] = 10;
+    masked[labels.get("PLAYER_LIFECYCLE")] = 0;
+    masked[0x80ff] = 9;
+    run(masked, "director_request", { x: 0 });
+    assert.equal(masked[0x80fc], 4, "a masked archetype is refused and spends nothing");
+
+    // The validator half: the same file is rejected at build time, so the
+    // runtime's refusal is a backstop and not the only guard.
+    assert.throws(() => compileLevel({
+      level: 1, seed: 1, hull: { length: 3, turrets: 3 },
+      sectors: [{ kind: "space", subtype: "elite", rows: 800, archetypes: ["bomber"],
+        heavies: 2, waves: heavyWave }],
+    }, { hullAsset, file: "masked.json" }), /outside the sector's archetype mask/);
+  });

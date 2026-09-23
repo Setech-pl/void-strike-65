@@ -44,14 +44,18 @@ test("Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reade
     [window.address, window.capacityBytes, window.endExclusive, window.guardAddress],
     [WINDOW, 3584, READER_BSS, GUARD]);
   assert.equal(window.address + window.capacityBytes, READER_BSS);
-  // The window grew by exactly the 2,048 B the buffer gave back, and took no
-  // content with it: both links are the same size as before the step.
+  // Q-1 grew the window by exactly the 2,048 B the buffer gave back and took
+  // no content with it. RE-PINNED at step 2, which is what the room was FOR:
+  // the Director's cold half - sector entry, the wave arm, the ceilings, the
+  // archetype mask and the release veneer - lives here, because DIRECTOR_RAM
+  // holds only what its predecessor's bytes already paid for in the initial
+  // block (plan §3.3).
   assert.equal(window.capacityBytes, 1536 + 2048);
-  assert.equal(window.directorHalfBytes, 801);
+  assert.equal(window.directorHalfBytes, 1283, "the Light C plus step 2's cold Director half");
   assert.equal(window.lightKernelBytes, 708);
-  assert.equal(window.usedBytes, 1509);
-  assert.equal(window.freeBytes, 3584 - 1509);
-  assert.equal(window.freeBytes, 2075, "plan §3.1: about 2,075 B free for the 4.6 Director");
+  assert.equal(window.usedBytes, 1991);
+  assert.equal(window.freeBytes, 3584 - 1991);
+  assert.equal(window.freeBytes, 1593, "the tail step 2 leaves for steps 4-6");
   // Both links moved down as one block; the kernel still closes the window.
   assert.equal(manifest.lightKernel.address, WINDOW + window.directorHalfBytes);
   assert.equal(manifest.lightKernel.windowLimit, READER_BSS);
@@ -61,13 +65,18 @@ test("Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reade
 test("Q-1: the window record lands at $AE00 and costs no extra transport", () => {
   const window = manifest.residentCapacity.basicWindow;
   assert.equal(window.transport.finalDestination, WINDOW);
-  assert.equal(window.transport.rawBytes, 801, "the same bytes, at a new address");
-  // The transport rule of plan §3.3: this step may not buy a sector.
+  assert.equal(window.transport.rawBytes, 1283, "the window record carries step 2's half");
+  // The transport rule of plan §3.3 and owner decision 6: this step may not
+  // buy a sector. It SOLD one - the retired schedulers, the retired phase
+  // machinery and the 158 B of compiled-in level 1 outweigh the reader that
+  // replaced them - so the total falls and the initial block falls with it.
   assert.equal(manifest.transportCapacity.initialBootSectors, 107);
   assert.ok(manifest.transportCapacity.initialBootContentBytes <= 13652,
     `initial block content is ${manifest.transportCapacity.initialBootContentBytes} B; ` +
     "the ceiling for the whole of 4.6 is 13,652");
-  assert.equal(manifest.transportCapacity.totalTransportSectors, 209);
+  assert.ok(manifest.transportCapacity.totalTransportSectors <= 209,
+    `total transport is ${manifest.transportCapacity.totalTransportSectors} sectors; ` +
+    "209 is the ceiling the ATR menu delta of +7 was measured at");
 });
 
 test("Q-1: level 1 still loads the same image the same way", () => {

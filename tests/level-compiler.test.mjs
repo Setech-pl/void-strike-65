@@ -249,11 +249,15 @@ test("the authored level 1 compiles clean and reads back as the level it says", 
   assert.equal(compiled.sectors[1].mask, 0);
   assert.equal(compiled.sectors[1].lights, 0);
   assert.equal(compiled.sectors[1].heavies, 0);
-  // Today's level 1 completes at world row 3712 (src/c/director.c,
-  // level1_phase_end_* last entry). The authored space sectors sum to it; which
-  // row the capital sector itself starts on is step 2's measurement (plan §10
-  // departure, §11 item 3), not this step's.
-  assert.equal(compiled.sectors.reduce((sum, sector) => sum + sector.rows, 0), 3712);
+  // RE-PINNED at step 2, to the rows step 2 MEASURED (plan §11 item 3, and
+  // docs/diagnostics/level-1-baseline-timeline-probe.json). The capital became
+  // due at active gameplay frame 600, which on MEDIUM is world row 270 -> 272
+  // on the 8-row module grid; the traversal itself is 542 rows on every
+  // difficulty; the level used to end at row 3712. So the space sectors run
+  // 272 + 1,448 + 1,448 = 3,168 rows and the level ends two rows short of
+  // 3,712, which is the whole of what the module grid cannot express.
+  assert.deepEqual(compiled.sectors.map((sector) => sector.rows), [272, 0, 1448, 1448]);
+  assert.equal(compiled.sectors.reduce((sum, sector) => sum + sector.rows, 0) + 542, 3710);
   // Every wave names an archetype offset in the frozen four-record roster.
   for (const wave of compiled.waves) {
     assert.equal(wave.archetypeOffset % ARCHETYPE_RECORD_BYTES, 0);
@@ -407,20 +411,37 @@ test("levels:check runs the validator alone and the build compiles the authored 
     "the build must compile the authored JSON, not carry the bytes");
 });
 
-test("step 1 leaves the runtime reading nothing new", () => {
-  // The Director still runs on LEVEL1_DATA; the resolvers still read the
-  // resident BROADSIDE sequences; the capital phase thresholds are still
-  // constants. Steps 2 and 4 retire each of those, and each has its own test.
+// RE-PINNED at step 2. The step-1 version of this test asserted the OPPOSITE -
+// that nothing resident read the new pages yet - and named step 2 as the one
+// that would change it. This is that change, and the pin the brief asks for:
+// the Director's schedule comes from the level IMAGE, not from constants the
+// build compiled into the runtime.
+test("step 2: the Director's schedule is the level image, and the geometry page still waits", () => {
   const directorSource = readText("src/c/director.c");
-  assert.match(directorSource, /level1_phase_end_lo/,
-    "step 1 does not retire LEVEL1_DATA - that is step 2");
-  const mainSource = readText("src/main.s");
-  assert.match(mainSource, /allied_sector_sequence/,
-    "step 1 does not move the module sequences out of BROADSIDE - that is step 4");
-  // No source file may reference the new pages yet.
-  for (const relative of ["src/main.s", "src/c/director.c", "src/c/lifecycle.c",
-    "src/hybrid/sector-reader.s"]) {
-    assert.doesNotMatch(readText(relative), /\$A[AC]00|0xAA00|0xAC00/i,
-      `${relative} reads a LevelDef page before its step`);
+  // The retired half. Nothing in the Director names a level any more.
+  assert.doesNotMatch(directorSource, /level1_phase|level1_event|LEVEL1_DATA/,
+    "step 2 retires LEVEL1_DATA outright");
+  assert.doesNotMatch(directorSource, /PHASE_COUNT|EVENT_COUNT/,
+    "and the phase machinery that walked it");
+  // The arrived half: one C array per column of the core page, placed at the
+  // page by the link config and asserted onto the compiler's own offsets.
+  assert.match(directorSource, /#pragma bss-name \("LEVEL_CORE"\)/);
+  assert.match(readText("cfg/encounter-director.cfg"),
+    /LEVEL_CORE_RAM: start = \$AA00/);
+  assert.match(readText("src/hybrid/c-asm-abi.s"),
+    /\.assert _wave_row = LEVEL_CORE_WAVE_ROW_ADDRESS, lderror/);
+  // The Director reads the SectorDef by index; there is no second copy of it
+  // to fall out of step, so poking the sector index selects a sector whole.
+  for (const column of ["sector_kind", "sector_caps", "sector_archetypes", "sector_hazards",
+    "wave_row", "wave_archetype", "wave_count", "wave_spacing", "wave_member_offset"]) {
+    assert.match(directorSource, new RegExp(`uint8_t ${column}\\[`));
+  }
+  // Step 4's half is untouched: the resolvers still read the resident
+  // BROADSIDE sequences and the hull geometry page is still unread.
+  assert.match(readText("src/main.s"), /allied_sector_sequence/,
+    "step 2 does not move the module sequences out of BROADSIDE - that is step 4");
+  for (const relative of ["src/main.s", "src/c/lifecycle.c", "src/hybrid/sector-reader.s"]) {
+    assert.doesNotMatch(readText(relative), /0xAC00|\$AC00/i,
+      `${relative} reads the HullGeometry page before step 4`);
   }
 });

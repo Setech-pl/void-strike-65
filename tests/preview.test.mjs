@@ -129,7 +129,9 @@ test("preview consumes the canonical charset, screen, PMG, and palette source", 
     ["COLBK", "COLPF0", "COLPF1", "COLPF2", "COLPF3", "COLPM0", "COLPM1", "COLPM2", "COLPM3"].map(
       (name) => graphics.hardwareState.get(name),
     ),
-    [0x00, 0x0e, 0x84, 0x1e, 0x46, 0x0e, 0x44, 0x46, 0x28],
+    // COLPF1 is the allied steel: $88 by default since owner decision 2, and
+    // level data on top of it (tests/level-hull-block.test.mjs).
+    [0x00, 0x0e, 0x88, 0x1e, 0x46, 0x0e, 0x44, 0x46, 0x28],
   );
   assert.equal(graphics.frontendHardwareState.get("COLPF3"), 0xd8);
   assert.match(
@@ -145,9 +147,10 @@ test("preview consumes the canonical charset, screen, PMG, and palette source", 
       "player_shape:\n    .byte %00011000",
       "player_shape:\n    .byte %00010000",
     ),
+    // Re-pinned for step 2: the assembled default is $88 now.
     replaceOnce(
       source,
-      "GAMEPLAY_COLPF1 = $84",
+      "GAMEPLAY_COLPF1 = $88",
       "GAMEPLAY_COLPF1 = $C4",
     ),
   ];
@@ -167,7 +170,7 @@ test("capital-hulls strip preview is deterministic and shows all 32 rows", () =>
   assert.deepEqual(first, second);
   assert.equal(
     crypto.createHash("sha256").update(first).digest("hex"),
-    "588c2cdad810b83687c3e96fee08e020a9110034bb9c6f7a85eb4249cc7d4175",
+    "4e28d67ca7d611c2f310cf49915a4786ee91da6fdb386016c926cfcd653866d1",
     // Re-pinned for hull set v1: the strip now renders allied B against R1,
     // the resident level-one style, instead of the accepted C INDUSTRIAL pair.
     // Re-pinned again for hull set v2 (owner, 2026-09-22): the step-1 smoke on
@@ -176,6 +179,10 @@ test("capital-hulls strip preview is deterministic and shows all 32 rows", () =>
     // read as display artefacts. v2 draws full mass out to the screen edge with
     // the texture cut into it, so every hull pixel of the strip changes while
     // the profile, the turret and the colour registers do not.
+    // Re-pinned a third time for hull set v1 step 2 (owner decision 2,
+    // 2026-09-23): the allied steel the strip renders is the release default,
+    // and that default is the brighter $88 the owner chose at the step-1 smoke.
+    // Only the COLPF1 register value changed; no hull pixel moved.
     "production capital-hull render must remain pixel-identical to the approved full-mass set",
   );
   const info = inspectPng(first);

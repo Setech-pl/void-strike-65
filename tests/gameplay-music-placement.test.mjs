@@ -157,12 +157,16 @@ test("STARFIELD is smaller than before the move, and the room is still reserved"
 });
 
 test("the ATR START GAME read grows by the planned five plus three sectors and no more", () => {
-  // Re-pinned for hull set v1 step 2: music v2 bought five sectors, the hull
-  // block three more (280 B of style in 384 B of sector). The LevelDef sectors
-  // 4.6 was promised are untouched.
-  assert.equal(levelOne.sectors, LEVEL_SECTORS_BEFORE + 5 + hullBlock.blockSectors);
-  assert.equal(levelOne.sectors, placement.blockSectors + hullBlock.blockSectors + 2,
-    "the image is the music block, the hull block and the LevelDef sectors 4.6 was left");
+  // Re-pinned for hull set v1 step 2: music v2 bought five sectors; the hull
+  // block takes three (280 B of style in 384 B of sector), of which two come
+  // from the inert pattern sectors the image carried for 4.6 and one is new —
+  // 7 -> 8 sectors, exactly as the plan costed it (§3.5). Header byte 7 now
+  // points one sector past the end: LevelDef gets its own sectors when 4.6
+  // lands, and until then there is nothing there to read.
+  assert.equal(levelOne.sectors, LEVEL_SECTORS_BEFORE + 5 + 1);
+  assert.equal(levelOne.sectors, placement.blockSectors + hullBlock.blockSectors,
+    "the image is the music block and the hull block");
+  assert.equal(placement.levelDefFirstSector, levelOne.sectors + 1);
   const evidence = JSON.parse(fs.readFileSync(
     path.join(rootDirectory, "docs", "runtime-wall-trace.json"), "utf8"));
   const smoke = evidence.boot_smoke.sector_reader;

@@ -172,6 +172,17 @@ export function initialiseRuntime(root, artifact, coldFill = 0) {
   if (pickupMismatch !== -1) {
     throw new Error(`cold startup changed pickup compositor at +$${pickupMismatch.toString(16)}`);
   }
+  // The level image is in LEVEL_BUFFER from START GAME onwards on BOTH media:
+  // the XEX carries it as a block, the ATR reads it over SIO before
+  // start_gameplay runs (the boot smoke proves the bytes arrive byte-exact).
+  // The harness starts after that read, so it must place the image the same
+  // way for both artifacts, or the ATR path runs gameplay against cold RAM
+  // where the gameplay music player and the level's hull block live.
+  const levelOne = manifest.sectorReader?.levels?.find((level) => level.id === 1);
+  if (levelOne) {
+    memory.set(fs.readFileSync(path.join(root, "build", levelOne.file)),
+      manifest.sectorReader.levelBuffer.address);
+  }
   const glue = fs.readFileSync(path.join(root, "build", "integration-glue.bin"));
   memory.set(glue, manifest.integrationGlue.finalAddress);
   memory.fill(0, 0x80f4, 0x8100);

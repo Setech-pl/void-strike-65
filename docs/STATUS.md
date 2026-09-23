@@ -36,7 +36,13 @@ below) on top of `f4cb18b`, the documentation-only reconciliation of
 the owner acceptance recorded here. All of it runs in the accepted runtime
 below and all of it is owner-accepted under that checkpoint.
 
-**Eleven `OWNER-SMOKE CANDIDATE`s are outstanding: the Bomber hull colour**
+**Twelve `OWNER-SMOKE CANDIDATE`s are outstanding: the splash cassette sound
+and the level-loading line** (section "Splash cassette sound — the second
+record is an octave down" below; the middle of the three imitated data records
+drops an octave and the level loading screen reads **ENGAGING ENEMY SECTOR**
+instead of `LOADING SECTOR`; **zero transport bytes for the sound** — it was
+spent out of the blob's own 512-B pad — and every gate unmoved), **the Bomber
+hull colour**
 (section "Bomber hull colour — green" below; the Bomber leaves hue 8 for hue C,
 `HULL_COLOUR_BOMBER` `$88` → **`$C8`**, because `$88` was the same byte as the
 allied steel and a hostile Heavy read as friendly; **zero bytes, zero cycles**,
@@ -76,6 +82,68 @@ ATR boot fix** (section "Owner decision A" below) — it changes the boot contra
 so it also needs a real-hardware smoke this session could not run —
 **owner decision B, the open BASIC window**, and **the main-menu title colour
 run** (sections below).
+
+### Splash cassette sound — the second record is an octave down, and the level loading line (`OWNER-SMOKE CANDIDATE`, 2026-09-23)
+
+Two owner requests of 2026-09-23, on two **different** screens.
+
+**1. The splash (the start-up screen with the ship): the three data blocks no
+longer sound identical.** The leader tone is unchanged and so are records one
+and three. The **middle** record is now `DATA_LOW` — the **same pure tone with
+its divider doubled**, one octave down.
+
+| | mark | space |
+| --- | ---: | ---: |
+| `DATA` (records 1 and 3) | AUDF 5 → 5,278 Hz | AUDF 7 → 3,959 Hz |
+| `DATA_LOW` (record 2) | AUDF **11** → **2,639 Hz** | AUDF **15** → **1,979 Hz** |
+
+The owner preferred the octave over a second waveform if both cost the same,
+"because it reads as a different kind of block rather than as a glitch". **The
+buzz rule does not block it:** the "(N + 1) not divisible by 3 or 5" rule
+governs **poly-4 / buzz** dividers, and this channel is `AUDC_BASE = $A0`, a
+**pure tone**, so the rule does not bind. (Stated because mark 11 gives
+`N + 1 = 12`, divisible by 3 — forbidden on a buzz channel, irrelevant here.)
+The sound contract is [plan-boot-splash-cassette.md](plan-boot-splash-cassette.md)
+§2.3.1, updated to match what ships; the segment is data in
+`assets/audio/boot-splash.json`, so the owner retunes it without a code change.
+
+**2. The level loading screen reads `ENGAGING ENEMY SECTOR`.** Was
+`LOADING SECTOR`. MEASURED fit before the change: 21 characters on the 40-column
+ANTIC 2 line, every character inside the frontend glyph contract
+(`A-Z 0-9 space - . / :`), and the sector reader had **70 free bytes** for a
+7-byte string. It is written through its own row constant, `LOADER_ENGAGING_ROW`
+at column 9, because `LOADER_STATUS_ROW`'s column 12 centres the 16-character
+`DISK READ FAILED` line it shares and would have left the longer string three
+columns right of centre. The failure screen is untouched.
+
+**Cost — MEASURED, and the sound cost nothing to transport.** `src/boot-splash.s`
+pads itself to a fixed `SPLASH_BLOB_BYTES` (`$0200`) window, so the transported
+blob is 512 B whatever the code inside it weighs. The octave test is **+11 B of
+blob code spent out of that pad**: code **499 → 510 B, pad 13 → 2 B free, blob
+still 512 B**. `DATA_LOW` numbers 3, above `DATA`'s 2, so `splash_segment_load`
+admits both with the `cmp` it already had, `bne` → `bcc` — no extra byte. The
+loading string is **+7 B** in the sector reader (free tail **70 → 63 B**), which
+does not change its chunk's sector count.
+
+| | `6e05644` | delivered |
+| --- | ---: | ---: |
+| initial block content / ceiling | 13,652 / 13,684 (32 B) | **13,652 / 13,684 (32 B)**, unmoved |
+| boot / extension / total sectors | 107 / 102 / 209 | **107 / 102 / 209**, unmoved |
+| splash blob code / window | 499 / 512 B | **510 / 512 B** (2 B pad left) |
+| sector reader free tail | 70 B | **63 B** |
+| XEX / ATR bytes | 28,383 / 92,176 | **28,390** / **92,176** |
+
+**This closes backlog item 2 of "Splash initial-block reclaim, and then the
+cassette-sound variation", and corrects its reasoning.** That entry deferred the
+sound because "any real byte added to splash code costs a boot sector". True of
+the **initial block**; not true of the **blob**, whose window is fixed and still
+had 13 B of pad. Item 1 (packing the blob and `A2_KERNEL`) is untouched and
+still worth doing.
+
+**What the owner checks.** On the **splash**: the middle of the three bursts of
+data chatter should sit an octave lower — same texture, lower pitch — with the
+leader tone and the first and third bursts unchanged. On the **level loading
+screen**: the line under the title should read `ENGAGING ENEMY SECTOR`, centred.
 
 ### Bomber hull colour — green (`OWNER-SMOKE CANDIDATE`, 2026-09-23)
 
@@ -4338,20 +4406,21 @@ started without owner instruction.
      §6.1. Both need a **decoder at a point in boot where none runs today**, and
      that decoder — where it lives, what it costs, and that it runs before the
      blobs are used — **is the real content of the task**, not the packing.
-  2. **Vary the cassette loading sound on the splash.** Owner request,
-     2026-09-23: the leader tone stays as it is, but the **three data blocks
-     must not sound identical** — the second block differs, either a different
-     POKEY waveform or the same waveform an octave lower (double the divider).
-     Implementation shape: the **block index selects `AUDC`/`AUDF`**, as a
-     three-entry table or a compare on the block counter — roughly **ten
-     bytes**. The sound contract it amends is
-     [plan-boot-splash-cassette.md](plan-boot-splash-cassette.md) §2.
-  **Why backlog and not now.** At the time of writing the initial block has
-  **2 B** of headroom (`initialBootContentBytes` 13,682 against the 13,684
-  ceiling), boot is at **107 sectors**, and the ATR menu deadline has **3 warn
-  frames** left. Any real byte added to splash code costs a boot sector and the
-  whole remaining deadline margin — so the ten bytes of sound variation are
-  not affordable until step 1 has run.
+  2. ~~**Vary the cassette loading sound on the splash.**~~ — **CLOSED
+     2026-09-23**, and it did **not** need step 1. See "Splash cassette sound —
+     the second record is an octave down" below and
+     [plan-boot-splash-cassette.md](plan-boot-splash-cassette.md) §2.3.1.
+  **Why item 2 did not have to wait, corrected 2026-09-23.** This entry
+  deferred the sound on the reasoning that "any real byte added to splash code
+  costs a boot sector". That is true of bytes added to the **initial block**,
+  but **not** of bytes added to the **blob**: `src/boot-splash.s` pads itself to
+  a fixed `SPLASH_BLOB_BYTES` (`$0200`) window, so the transported blob is 512 B
+  whatever the code inside it weighs, and MEASURED at `6e05644` that window
+  still had **13 B of pad** (code 499 B). The octave cost **11 B** of it.
+  The initial-block figure quoted above was also stale: MEASURED at `6e05644`,
+  `initialBootContentBytes` is **13,652**, so the headroom is **32 B**, not 2 B.
+  **Item 1 stands and is untouched** — but see the cheaper reclaim named in the
+  silhouette entry below, which does not need a new decoder at all.
 
 - **PAL resync after a miss** — one overrun costs ~1,393 shifted-phase rows
   until the next gameplay generation.

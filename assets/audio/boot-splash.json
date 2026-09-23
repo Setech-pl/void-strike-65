@@ -1,6 +1,6 @@
 {
   "formatVersion": 1,
-  "description": "ADR-003 boot splash: a 600-baud Atari cassette load imitated on POKEY channel 1, faded out with the picture over the last 75 of the 250 hold frames. Owner-tunable: edit this file and rebuild; no code change is needed.",
+  "description": "ADR-003 boot splash: a 600-baud Atari cassette load imitated on POKEY channel 1, faded out with the picture over the last 75 of the 250 hold frames. The three data blocks must not sound identical (owner, 2026-09-23): the middle one is DATA_LOW, the same pure tone an octave down. Owner-tunable: edit this file and rebuild; no code change is needed.",
   "tone": {
     "markAudf": 5,
     "spaceAudf": 7,
@@ -22,7 +22,7 @@
     { "type": "LEADER",  "frames": 60, "note": "1.2 s of mark tone" },
     { "type": "DATA",    "frames": 55, "note": "first record" },
     { "type": "SILENCE", "frames": 10, "note": "inter-record gap" },
-    { "type": "DATA",    "frames": 50, "note": "the fade starts inside this record" },
+    { "type": "DATA_LOW", "frames": 50, "note": "second record, an octave down; the fade starts inside it" },
     { "type": "SILENCE", "frames": 10, "note": "a gap inside the fade" },
     { "type": "DATA",    "frames": 60, "note": "cut at volume 2 by the teardown" }
   ]

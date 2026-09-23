@@ -201,7 +201,18 @@ splash_emit_cell:
 @space:
     ldx #SPLASH_SPACE_AUDF
 @emit:
-    stx AUDF1
+    ; One octave down for a DATA_LOW block: the divider doubles, N -> 2N+1, so
+    ; (N + 1) -> 2 * (N + 1) exactly. The same pure tone, so the three imitated
+    ; records do not sound identical (owner, 2026-09-23). SILENCE never reaches
+    ; here and LEADER is type 1, so only a DATA_LOW block takes the shift.
+    txa
+    ldx splash_segment_type
+    cpx #SPLASH_SEGMENT_DATA_LOW
+    bne @store
+    asl a
+    ora #$01
+@store:
+    sta AUDF1
     lda splash_volume
     ora #SPLASH_AUDC_BASE
     sta AUDC1
@@ -317,7 +328,8 @@ splash_segment_load:
     lda splash_segment_types,y
     sta splash_segment_type
     cmp #SPLASH_SEGMENT_DATA
-    bne @done
+    bcc @done                   ; DATA and DATA_LOW both frame bytes; SILENCE
+                                ; and LEADER number below DATA and do not
     lda #SPLASH_SYNC_BYTES
     sta splash_sync_left
     lda #$0A                    ; force a byte load on this segment's first cell

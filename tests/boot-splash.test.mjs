@@ -8,7 +8,9 @@ import { installRuntimeSegments } from "../scripts/runtime-image.mjs";
 import {
   compileBootSplash,
   loadBootSplashDefinition,
+  octaveDownAudf,
   validateBootSplashDefinition,
+  SPLASH_DATA_TYPES,
 } from "../scripts/boot-splash-assets.mjs";
 
 const directory = path.dirname(fileURLToPath(import.meta.url));
@@ -180,6 +182,13 @@ function segmentTypeByFrame() {
 
 const SEGMENT_TYPE = segmentTypeByFrame();
 const toneFrame = (frame) => SEGMENT_TYPE.get(frame) !== "SILENCE";
+// DATA_LOW is the same pure tone an octave down, so its two divisors are the
+// doubled dividers and nothing else. Re-pinned 2026-09-23: the DATA filters
+// below used to name the literal "DATA" and would have quietly stopped
+// covering the second record the moment it changed type.
+const divisorsFor = (type) => (type === "DATA_LOW"
+  ? [octaveDownAudf(splash.markAudf), octaveDownAudf(splash.spaceAudf)]
+  : [splash.markAudf, splash.spaceAudf]);
 
 test("the tone switches per bit, not per frame, at full volume through frame 175", () => {
   const { writes } = hold("plain", {});
@@ -195,7 +204,7 @@ test("the tone switches per bit, not per frame, at full volume through frame 175
   // Every cell of a DATA frame emits its own AUDF1, and a framed byte contains
   // both mark and space bits, so both divisors must appear inside one frame.
   const dataFrames = [...SEGMENT_TYPE.entries()]
-    .filter(([frame, type]) => type === "DATA" && frame < splash.fadeStartFrame)
+    .filter(([frame, type]) => SPLASH_DATA_TYPES.has(type) && frame < splash.fadeStartFrame)
     .map(([frame]) => frame);
   assert.ok(dataFrames.length > 0);
   let framesWithBoth = 0;
@@ -205,9 +214,11 @@ test("the tone switches per bit, not per frame, at full volume through frame 175
       .map((entry) => entry.value));
     assert.equal(writes.filter((entry) => entry.address === AUDF1 && entry.frame === frame).length,
       splash.cellsPerFrame, `frame ${frame} did not emit ${splash.cellsPerFrame} cells`);
+    const allowed = divisorsFor(SEGMENT_TYPE.get(frame));
     for (const divisor of divisors) {
-      assert.ok(divisor === splash.markAudf || divisor === splash.spaceAudf,
-        `unexpected AUDF1 $${divisor.toString(16)} on frame ${frame}`);
+      assert.ok(allowed.includes(divisor),
+        `unexpected AUDF1 $${divisor.toString(16)} on frame ${frame} ` +
+        `(${SEGMENT_TYPE.get(frame)} may emit ${allowed.join(" or ")})`);
     }
     if (divisors.size === 2) framesWithBoth += 1;
   }
@@ -361,4 +372,70 @@ test("the segment script is data the generator validates, and it fills the hold"
   }), /at least 17 frames/);
   assert.throws(() => compileBootSplash({ ...base, fade: { startFrame: 0 } }),
     /fade.startFrame/);
+});
+
+// ---------------------------------------------------------------------------
+// The three imitated records must not sound identical (owner, 2026-09-23). The
+// leader tone and records one and three are unchanged; the middle record is the
+// same pure tone an octave down. The owner's stated reason for preferring the
+// octave over a second waveform is that it reads as a different KIND of block
+// rather than as a glitch, so what this pins is the exact doubling of the
+// divider, not merely "something differs".
+
+test("the second data record is one octave below the first and the third", () => {
+  const dataSegments = splash.segments.filter(({ type }) => SPLASH_DATA_TYPES.has(type));
+  assert.equal(dataSegments.length, 3, "the splash still imitates three data records");
+  assert.deepEqual(dataSegments.map(({ type }) => type), ["DATA", "DATA_LOW", "DATA"],
+    "only the MIDDLE record differs; blocks one and three are unchanged");
+  // An octave down is the divider doubled, exactly: (N + 1) -> 2 * (N + 1).
+  for (const audf of [splash.markAudf, splash.spaceAudf]) {
+    assert.equal(octaveDownAudf(audf) + 1, 2 * (audf + 1),
+      `AUDF ${audf} does not halve in frequency under the blob's asl/ora`);
+  }
+  // The waveform is untouched: one octave down, not a different distortion.
+  // (The poly-4 "(N + 1) not divisible by 3 or 5" rule governs BUZZ dividers;
+  // this channel is AUDC $A0, a pure tone, so that rule does not bind here.)
+  assert.equal(splash.audcBase, 0xa0, "the splash channel is still a pure tone");
+
+  const { writes } = hold("plain", {});
+  const byType = new Map();
+  for (const entry of writes) {
+    if (entry.address !== AUDF1 || entry.exit) continue;
+    const type = SEGMENT_TYPE.get(entry.frame);
+    if (!byType.has(type)) byType.set(type, new Set());
+    byType.get(type).add(entry.value);
+  }
+  const low = [...(byType.get("DATA_LOW") ?? [])].sort((a, b) => a - b);
+  const high = [...(byType.get("DATA") ?? [])].sort((a, b) => a - b);
+  const leader = [...(byType.get("LEADER") ?? [])];
+  assert.deepEqual(high, [splash.markAudf, splash.spaceAudf].sort((a, b) => a - b),
+    "records one and three no longer emit the unchanged divisors");
+  assert.deepEqual(low,
+    [octaveDownAudf(splash.markAudf), octaveDownAudf(splash.spaceAudf)].sort((a, b) => a - b),
+    "the second record is not an octave below the other two");
+  assert.deepEqual(leader, [splash.markAudf], "the leader tone is not unchanged");
+  // Both records are really heard: the octave block is not silently skipped.
+  assert.ok(low.length === 2 && high.length === 2,
+    "a record stopped switching between mark and space");
+});
+
+test("the segment table admits DATA_LOW everywhere it admits DATA", () => {
+  // The blob separates the two with one `cmp #SPLASH_SEGMENT_DATA / bcc`, so
+  // DATA_LOW MUST number above DATA or the sync bytes and bit index are never
+  // initialised for it and the record clocks out garbage.
+  const source = fs.readFileSync(path.join(root, "src", "boot-splash.s"), "utf8");
+  const loader = source.slice(source.indexOf("splash_segment_load:"));
+  assert.ok(/cmp #SPLASH_SEGMENT_DATA\s*\n\s*bcc @done/.test(loader),
+    "splash_segment_load no longer admits both DATA types with one `cmp / bcc`");
+  const compiled = compileBootSplash({
+    ...JSON.parse(fs.readFileSync(path.join(root, "assets", "audio", "boot-splash.json"), "utf8")),
+  });
+  const numbers = new Map(compiled.segments.map(({ type, typeNumber }) => [type, typeNumber]));
+  assert.ok(numbers.get("DATA_LOW") > numbers.get("DATA"),
+    "DATA_LOW must number above DATA for the `bcc` to admit it");
+  // A DATA_LOW record is still long enough for its two sync bytes to be heard.
+  assert.throws(() => compileBootSplash({
+    ...JSON.parse(fs.readFileSync(path.join(root, "assets", "audio", "boot-splash.json"), "utf8")),
+    segments: [{ type: "DATA_LOW", frames: 5 }, { type: "SILENCE", frames: 245 }],
+  }), /at least 17 frames/);
 });

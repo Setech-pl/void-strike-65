@@ -42,7 +42,8 @@ CH_FRONT_DASH    = 37
 
 ; Loader-mode screen rows (ANTIC 2, 40 columns).
 LOADER_TITLE_ROW  = SCREEN + 2 * 40 + 13
-LOADER_STATUS_ROW = SCREEN + 5 * 40 + 12
+LOADER_STATUS_ROW = SCREEN + 5 * 40 + 12    ; centres the 16-char failure line
+LOADER_ENGAGING_ROW = SCREEN + 5 * 40 + 9   ; same row, centred for 21 chars
 LOADER_TEXT_ROW   = SCREEN + 8 * 40 + 1
 LOADER_ANIM_ROW   = SCREEN + 12 * 40
 LOADER_PROMPT_ROW = SCREEN + 20 * 40 + 15
@@ -842,8 +843,8 @@ sector_reader_validate:
 loader_records:
         .byte <LOADER_TITLE_ROW, >LOADER_TITLE_ROW
         .byte "VOID STRIKE 65", $00
-        .byte <LOADER_STATUS_ROW, >LOADER_STATUS_ROW
-        .byte "LOADING SECTOR", $00
+        .byte <LOADER_ENGAGING_ROW, >LOADER_ENGAGING_ROW
+        .byte "ENGAGING ENEMY SECTOR", $00
         .byte <LOADER_TEXT_ROW, >LOADER_TEXT_ROW
 loader_ai_slot:
         .res AI_LINE_BYTES, $20         ; filled from the pool at entry

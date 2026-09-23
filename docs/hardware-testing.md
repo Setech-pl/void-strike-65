@@ -133,8 +133,8 @@ fact and its citation — so the first real drive is the first real test.
 Run from SIO2SD with the ATR, cold boot each time.
 
 - [ ] **START GAME reads level 1.** The loader screen appears (title,
-      `LOADING SECTOR`, one placeholder line, a stepping dotted row), then
-      gameplay starts. On a 2-sector level this is brief.
+      `ENGAGING ENEMY SECTOR`, one placeholder line, a stepping dotted row),
+      then gameplay starts. On a 2-sector level this is brief.
 - [ ] **START GAME a second time** (play, quit to the menu, START again): the
       buffer already holds level 1, so the resident skip must fire and **no
       command frame goes out**. If the loader screen dwells the same as the

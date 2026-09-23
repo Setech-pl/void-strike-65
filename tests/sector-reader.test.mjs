@@ -673,3 +673,47 @@ test("the failure screen names every status and offers a way out", () => {
   assert.match(source, /sector_reader_wait_for_fire:[\s\S]*?jsr wait_frame_start[\s\S]*?lda TRIG0/);
   assert.match(source, /jsr sector_reader_wait_for_fire\s+jmp quit_gameplay_to_menu/);
 });
+
+test("the level loading screen reads ENGAGING ENEMY SECTOR, centred and in charset", () => {
+  // Owner, 2026-09-23: "LOADING SECTOR" becomes "ENGAGING ENEMY SECTOR". The
+  // three things that had to be true before the string could change are pinned
+  // here rather than eyeballed: it fits the 40-column ANTIC 2 line at the
+  // column it is written to, every character has a frontend glyph, and it fits
+  // the sector reader's remaining bytes.
+  const source = fs.readFileSync(path.join(root, "src/hybrid/sector-reader.s"), "utf8");
+  const SCREEN_COLUMNS = 40;
+  const STATUS_LINE = 5;
+
+  const records = source.slice(source.indexOf("loader_records:"),
+    source.indexOf("failure_records:"));
+  assert.match(records, /"ENGAGING ENEMY SECTOR"/,
+    "the level loading screen no longer reads ENGAGING ENEMY SECTOR");
+  assert.doesNotMatch(records, /"LOADING SECTOR"/, "the old string is still shipped");
+
+  // The row constant the string is written to, and the column it lands on.
+  const rowName = /\.byte <(LOADER_\w+_ROW), >\1\s*\n\s*\.byte "ENGAGING ENEMY SECTOR"/
+    .exec(records)?.[1];
+  assert.ok(rowName, "the string is not written through a named row constant");
+  const rowDefinition = new RegExp(`^${rowName}\\s*=\\s*SCREEN \\+ (\\d+) \\* 40 \\+ (\\d+)`, "m")
+    .exec(source);
+  assert.ok(rowDefinition, `${rowName} has no SCREEN + line * 40 + column definition`);
+  const [line, column] = [Number(rowDefinition[1]), Number(rowDefinition[2])];
+  assert.equal(line, STATUS_LINE, "the status line moved off row 5");
+
+  const text = "ENGAGING ENEMY SECTOR";
+  assert.ok(column + text.length <= SCREEN_COLUMNS,
+    `"${text}" at column ${column} runs ${column + text.length - SCREEN_COLUMNS} ` +
+    "characters past the 40-column line");
+  // Centred: one column either way of exact centre, so it does not read as a
+  // string that merely happened to fit.
+  assert.ok(Math.abs(column - Math.floor((SCREEN_COLUMNS - text.length) / 2)) <= 1,
+    `"${text}" sits at column ${column}, not centred on a ${SCREEN_COLUMNS}-column line`);
+  // render_frontend_data maps only these; anything else becomes a question mark.
+  assert.match(text, /^[A-Z0-9 \-./:?]*$/,
+    "the frontend charset has no glyph for this string");
+
+  // The byte budget: the reader has to still fit its window after the growth.
+  const trace = JSON.parse(fs.readFileSync(path.join(root, "docs/runtime-wall-trace.json"), "utf8"));
+  assert.ok(trace.boot_smoke.sector_reader.free_bytes >= 0,
+    "the longer string pushed the sector reader past its window");
+});

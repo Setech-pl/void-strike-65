@@ -5,11 +5,21 @@ import fs from "node:fs";
 // generator validates and emits as build/boot-splash.inc. Nothing in src/main.s
 // needs to change when the owner retunes the sound by ear.
 export const SPLASH_HOLD_FRAMES = 250;
+// DATA_LOW is a DATA block one octave down: the same pure tone with the
+// divider doubled, so it reads as a different kind of record rather than as a
+// glitch (owner preference, 2026-09-23). Its number must stay ABOVE DATA: the
+// blob's segment loader admits both with one `cmp #DATA / bcc`, at no cost.
 export const SPLASH_SEGMENT_TYPES = new Map([
   ["SILENCE", 0],
   ["LEADER", 1],
   ["DATA", 2],
+  ["DATA_LOW", 3],
 ]);
+export const SPLASH_DATA_TYPES = new Set(["DATA", "DATA_LOW"]);
+// One octave down is the divider doubled: (N + 1) -> 2 * (N + 1), so N -> 2N+1.
+// The blob computes it as `asl a / ora #$01`, which is why it must be this and
+// not a second AUDF table.
+export const octaveDownAudf = (audf) => (audf << 1) | 1;
 // Two sync bytes are 20 bit cells; a DATA segment shorter than that would end
 // before the imitated record header had been heard at all.
 const MINIMUM_DATA_FRAMES = 17;
@@ -66,10 +76,10 @@ export function validateBootSplashDefinition(definition) {
   for (const [index, segment] of segments.entries()) {
     const name = `segments[${index}]`;
     if (!SPLASH_SEGMENT_TYPES.has(segment?.type)) {
-      throw new Error(`${name}.type must be SILENCE, LEADER or DATA`);
+      throw new Error(`${name}.type must be one of ${[...SPLASH_SEGMENT_TYPES.keys()].join(", ")}`);
     }
     assertInteger(segment.frames, `${name}.frames`, 1, 255);
-    if (segment.type === "DATA" && segment.frames < MINIMUM_DATA_FRAMES) {
+    if (SPLASH_DATA_TYPES.has(segment.type) && segment.frames < MINIMUM_DATA_FRAMES) {
       throw new Error(
         `${name}: a DATA segment needs at least ${MINIMUM_DATA_FRAMES} frames ` +
         "so that its two sync bytes are heard",
@@ -135,6 +145,7 @@ export function renderBootSplashCa65Include(compiled) {
     "SPLASH_SEGMENT_SILENCE = 0",
     "SPLASH_SEGMENT_LEADER = 1",
     "SPLASH_SEGMENT_DATA = 2",
+    "SPLASH_SEGMENT_DATA_LOW = 3",
     "",
     ".macro EMIT_SPLASH_SEGMENT_TYPES",
     `    .byte ${byteList(compiled.segments.map(({ typeNumber }) => typeNumber))}`,

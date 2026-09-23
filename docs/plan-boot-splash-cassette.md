@@ -84,8 +84,9 @@ from the brief's wording stated in §6.4.
 ### 2.3 Segment script (proposed; the owner retunes by ear)
 
 Each segment is `(type, frames)`; types are `SILENCE` (`AUDC1 = $A0`),
-`LEADER` (steady mark) and `DATA` (sync bytes, then bytes from `RANDOM`
-`$D20A`, framed).
+`LEADER` (steady mark), `DATA` (sync bytes, then bytes from `RANDOM`
+`$D20A`, framed) and `DATA_LOW` (**SHIPPED 2026-09-23**, §2.3.1) — a `DATA`
+record one octave down.
 
 | # | type | frames | covers | note |
 | ---: | --- | ---: | --- | --- |
@@ -93,7 +94,7 @@ Each segment is `(type, frames)`; types are `SILENCE` (`AUDC1 = $A0`),
 | 2 | LEADER | 60 | 6-65 | 1.2 s of mark tone |
 | 3 | DATA | 55 | 66-120 | ≈ 66 bytes |
 | 4 | SILENCE | 10 | 121-130 | inter-record gap |
-| 5 | DATA | 50 | 131-180 | the fade starts inside it (176) |
+| 5 | **DATA_LOW** | 50 | 131-180 | **an octave down**; the fade starts inside it (176) |
 | 6 | SILENCE | 10 | 181-190 | a gap inside the fade |
 | 7 | DATA | 60 | 191-250 | cut at volume 2 by the teardown |
 | | **total** | **250** | | |
@@ -111,6 +112,54 @@ consequence the plan did not foresee and is an owner-visible envelope change.
 Note for the owner's retuning: a real Atari inter-record gap is **mark tone**,
 not silence (the OS writes a 0.25 s pre-record tone). Replacing a `SILENCE`
 segment with a short `LEADER` reproduces that — a table edit only.
+
+#### 2.3.1 `DATA_LOW` — the second record is an octave down (SHIPPED 2026-09-23)
+
+Owner, 2026-09-23: the three data blocks must not sound identical. The leader
+tone is unchanged and so are records one and three; the **middle** record is the
+**same pure tone with its divider doubled**.
+
+| | mark | space |
+| --- | ---: | ---: |
+| `DATA` (records 1 and 3) | AUDF 5 → **5,278 Hz** | AUDF 7 → **3,959 Hz** |
+| `DATA_LOW` (record 2) | AUDF 11 → **2,639 Hz** | AUDF 15 → **1,979 Hz** |
+
+One octave down is `(N + 1) → 2 · (N + 1)`, so `N → 2N + 1`. The blob computes
+it in the emit path rather than from a second AUDF table:
+
+```text
+@emit:  txa / ldx splash_segment_type / cpx #SPLASH_SEGMENT_DATA_LOW
+        bne @store / asl a / ora #$01
+@store: sta AUDF1
+```
+
+**The octave, not a second waveform.** The owner preferred the octave if both
+cost the same, "because it reads as a different kind of block rather than as a
+glitch". The buzz rule the brief guards against — a poly-4 divider whose
+`(N + 1)` is divisible by 3 or 5 (`scripts/music.mjs`,
+[../assets/music/README.md](../assets/music/README.md)) — **does not bind
+here**: it governs **poly-4 / buzz** dividers, and this channel is
+`AUDC_BASE = $A0`, a **pure tone**. (Worth stating because mark 11 gives
+`N + 1 = 12`, divisible by 3, which *would* be forbidden on a buzz channel.)
+
+**Cost: MEASURED, zero transport bytes.** `DATA_LOW` numbers **3**, above
+`DATA`'s 2, so `splash_segment_load` admits both with the one `cmp
+#SPLASH_SEGMENT_DATA` it already had, turned from `bne` into `bcc` — no extra
+byte. The emit test is **+11 B of blob code**, and the blob is padded to a fixed
+`SPLASH_BLOB_BYTES` (`$0200`) window, so it is spent out of the pad: **code 499
+→ 510 B, pad 13 → 2 B free, the transported blob still 512 B.** Initial-block
+content **13,652 B unmoved** (32 B under the 13,684 ceiling), boot **107**
+sectors unmoved, extension **102**, total **209**. About **+84 cycles per hold
+frame** against a per-frame budget of roughly 1,080 — boot-time only, and the
+hold is counted in frames, not cycles, so no deadline moves.
+
+> **Correction to the backlog entry that deferred this.** `STATUS.md` §Backlog
+> deferred the sound variation behind a splash/`A2_KERNEL` packing task, on the
+> reasoning that "any real byte added to splash code costs a boot sector".
+> MEASURED 2026-09-23: that is true of bytes added to the initial block, but
+> **not** of bytes added to the blob while its fixed 512-B window still has
+> pad — which it did, by 13 B. The packing task (item 1) remains worth doing and
+> is untouched; it was simply never a precondition for this.
 
 ### 2.4 The bit engine — per-bit switching timed by VCOUNT
 
@@ -130,14 +179,12 @@ segment with a short `LEADER` reproduces that — a table edit only.
   cycles, poll ≈ 60, segment step ≈ 40, 12 cells × ≈ 40. Nothing here is
   raster-critical except the DLI, bounded in §3.3.
 
-> **Pending amendment — backlog, 2026-09-23.** The owner asked that the three
-> data blocks not sound identical: the leader tone stays, the second block
-> differs by a different POKEY waveform or the same waveform an octave lower
-> (double the divider). Shape: the block index selects `AUDC`/`AUDF` — a
-> three-entry table or a compare on the block counter, roughly ten bytes. It
-> cannot be implemented until the initial block has room: see `STATUS.md`
-> §Backlog, "Splash initial-block reclaim, and then the cassette-sound
-> variation".
+> **Amendment SHIPPED 2026-09-23 — see §2.3.1.** The three data blocks no longer
+> sound identical: the leader tone and records one and three are unchanged, and
+> the second record is the same pure tone an octave down (`DATA_LOW`, the
+> divider doubled). It cost **+11 B of blob code and zero transport bytes** —
+> the fixed 512-B blob window had 13 B of pad — so it did **not** have to wait
+> for the initial-block reclaim the backlog put in front of it.
 
 ---
 

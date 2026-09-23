@@ -1,6 +1,6 @@
 VOID STRIKE 65 — reguły projektu
 
-Wersja 3.3 — 2026-09-23
+Wersja 3.4 — 2026-09-23
 Generacja: hybryda C/cc65 + ca65 (Hybrid C Director owner-accepted), po Light Wingman M1.
 Zastępuje wersję 2.1 („po Stage 2B.2”), zachowaną w docs/history/reguly-projektu-v2.1.txt.
 Historyczne reguły nie mają pierwszeństwa przed tym plikiem.
@@ -10,6 +10,11 @@ Treść reguły zostaje jako historia; obowiązuje to, co w niej wskazano jako n
 
 Zmiana 3.2 → 3.3: reguła 11 dostaje akapit „Sektory bootu płaci się bajtami
 spakowanymi" (lekcja z menu-stars A/A′, 2026-09-23).
+
+Zmiana 3.3 → 3.4: w akapicie „Co zmieniło grunt" reguły 11 liczba poziomów
+zmieniona z szesnastu na dwanaście (decyzja właściciela AC, 2026-09-22).
+Argument bez zmian — dwanaście poziomów ze zróżnicowaną grafiką capital też
+nie mieści się rezydentnie. Edycja zatwierdzona przez właściciela.
 
 1. Cel
 
@@ -96,7 +101,7 @@ Nowy archetyp powinien wymagać danych, małego zachowania w C i ponownego użyc
 
 BASIC RAM, zmiany loadera, runtime disk I/O i nowe mechanizmy transportu nie są domyślnym rozwiązaniem problemu placementu. Aktualizuj docs/memory-map.md przy każdej zmianie zarezerwowanego adresu. Ogólny zapas RAM nie zastępuje kontroli lokalnych granic segmentów, staging i transportu.
 
-Co zmieniło grunt: ATR i tak wymagał wyłączenia BASIC-a (decyzja A), więc okno $A000-$BFFF jest bezwarunkowym RAM-em, nie obejściem (decyzja B); deadline bootu ATR został prze-bazowany na budżet 60 sekund (decyzja 22), więc runtime disk I/O nie kupuje się już czasem ładowania, którego nikt nie wybrał (decyzja 23 §10.1); a szesnaście poziomów ze zróżnicowaną grafiką capital nie mieści się rezydentnie (decyzje E i F), więc zmiana loadera jest wymaganiem treści, a nie skrótem zamiast inżynierii.
+Co zmieniło grunt: ATR i tak wymagał wyłączenia BASIC-a (decyzja A), więc okno $A000-$BFFF jest bezwarunkowym RAM-em, nie obejściem (decyzja B); deadline bootu ATR został prze-bazowany na budżet 60 sekund (decyzja 22), więc runtime disk I/O nie kupuje się już czasem ładowania, którego nikt nie wybrał (decyzja 23 §10.1); a dwanaście poziomów ze zróżnicowaną grafiką capital nie mieści się rezydentnie (decyzje E/AC i F), więc zmiana loadera jest wymaganiem treści, a nie skrótem zamiast inżynierii.
 
 Co z tej reguły ZOSTAJE w mocy: „nowe mechanizmy transportu" nadal nie są domyślną odpowiedzią na placement — czytnik między poziomami ma uzasadnienie treściowe, nie placementowe. Zdanie o docs/memory-map.md i zdanie o lokalnych granicach segmentów obowiązują bez zmian; to one łapią realne błędy.
 

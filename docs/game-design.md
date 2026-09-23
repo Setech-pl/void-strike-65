@@ -39,9 +39,11 @@ to their prior blank contents. The optional type glyph is omitted because the
 - A new game starts with three playable Player Fighters and a full 100% hull.
   **Planned (owner decision K, 2026-09-20):** one extra life after completing
   each odd level from 3 onward — at the **twelve-level** campaign of decision
-  **AC** (2026-09-22) that is levels **3, 5, 7, 9, 11**, **five extra**. The
-  rule is K's; only the campaign length changed, and with it the enumeration
-  (sixteen levels gave 3-15 and seven extra). Not implemented.
+  **AC** (2026-09-22) that is levels **3, 5, 7, 9, 11** — **five extra, eight
+  in all**. The rule is K's; only the campaign length changed, and with it the
+  enumeration (sixteen levels gave 3-15, seven extra and ten in all). A shorter
+  campaign carries less reserve, which the owner confirmed as intended
+  (2026-09-23). Not implemented.
 - The hull has ten health units. An ordinary Raider PairShot removes one unit
   (10%), while capital-ship fire removes two units (20%). Debris contact removes
   a fixed two, five, or seven units on Easy, Medium, or Hard (20%/50%/70% of

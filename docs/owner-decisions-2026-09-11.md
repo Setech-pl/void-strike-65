@@ -1057,8 +1057,10 @@ przez całą kampanię**.
 
 > **PRZELICZONE 2026-09-22 decyzją AC.** Reguła się nie zmienia — zmienia się
 > długość kampanii. Przy dwunastu poziomach nieparzyste od 3 to **3, 5, 7, 9,
-> 11**, czyli **pięć dodatkowych żyć**, nie siedem. Obie strony dla graczy
-> (`how-to-play.md`, `how-to-play.pl.md`) już nosiły tę wersję.
+> 11**, czyli **pięć dodatkowych żyć — osiem razem**, nie siedem (dziesięć
+> razem). Obie strony dla graczy (`how-to-play.md`, `how-to-play.pl.md`) już
+> nosiły tę wersję. **Właściciel potwierdził 2026-09-23: osiem zostaje** —
+> krótsza kampania niesie mniej zapasu i to jest spójne, nie do wyrównania.
 
 ## L. Wybór poziomu — OWNER-ACCEPTED (2026-09-20)
 
@@ -1668,14 +1670,22 @@ całą swoją historię.
    tym numerem.
 5. **Konsekwencja dla decyzji K**, przeliczona z samej jej reguły („jedno życie
    po każdym nieparzystym poziomie od 3 w górę"): poziomy **3, 5, 7, 9, 11** —
-   **pięć dodatkowych żyć**, nie siedem. Obie strony dla graczy już tak mówiły.
+   **pięć dodatkowych żyć — osiem razem**, nie siedem. Obie strony dla graczy
+   już tak mówiły; właściciel potwierdził osiem 2026-09-23.
 
-**Czego ta decyzja NIE przelicza — do sesji kodu.** `LEVEL_MAX_ID = 16`
+**`LEVEL_MAX_ID` ZOSTAJE 16 — decyzja właściciela, 2026-09-23.** Kod indeksuje
+szesnaście, **dane dowiozą dwanaście**: `LEVEL_MAX_ID = 16`
 (`src/hybrid/sector-reader.s:131`), asercja katalogu `16 * 3 B = 48 B` (`:903`)
-i generator katalogu (`scripts/build.mjs:622`) są **kodem**, nie dokumentacją.
-Dwanaście poziomów zwalnia tam **12 B** rezydentnie, ale to zmiana kodu z
-własnym testem i własnym commitem. `plan-4.3-sector-reader.md` §9 opisuje ten
-kod i dlatego zachowuje swoje liczby, z przypisem.
+i generator (`scripts/build.mjs:622`) **nie zmieniają się**. Nic to nie łamie —
+katalog ma po prostu cztery wpisy z zerowym `count`, które
+`sector_reader_lookup` odrzuca bez dotykania SIO, dokładnie tak, jak już dziś
+odrzuca poziom nieobecny na dysku.
+
+Przycięcie do dwunastu dałoby **12 B rezydentnie** i **przeliczyłoby dowody**
+(runtime evidence, boot baseline). To jest **drobny odzysk pamięci i trafia do
+backlogu** — do wzięcia wtedy, gdy zabraknie bajtów, nie przy okazji.
+`plan-4.3-sector-reader.md` §9 zachowuje swoje liczby, bo opisują kod, który
+zostaje.
 
 ## AD. WARIANT PRZECIWNIKA TO PRZEMALOWANIE, NIE NOWY ARCHETYP — OWNER-ACCEPTED (2026-09-22)
 
@@ -1711,6 +1721,13 @@ i STATUS §„Backlog".
   nienaruszony, kiedy ludzie wymieniają się obrazami dysków. Decyzje L i M
   trzymają jedno i drugie w RAM-ie właśnie dlatego.
 - **Niszczalne działa gondol (4.8b)** — potwierdzone jako backlog decyzją G.
+- **Przycięcie `LEVEL_MAX_ID` 16 → 12** — zapisane 2026-09-23, **drobny odzysk
+  pamięci**. Przy kampanii dwunastopoziomowej (**AC**) cztery wpisy katalogu
+  poziomów są martwe: `LEVEL_MAX_ID` (`src/hybrid/sector-reader.s:131`), jego
+  asercja (`:903`) i generator (`scripts/build.mjs:622`) dałyby po przycięciu
+  **12 B rezydentnie**. Właściciel zdecydował, że **kod zostaje na 16**, bo nic
+  to nie łamie, a zmiana **przelicza dowody** (runtime evidence, boot
+  baseline). **Brać wtedy, gdy zabraknie bajtów**, nie wcześniej.
 - **Ruch przeciwników w korytarzu capitali (4.8c)** — zapisane 2026-09-22.
   Zakres minimalny zatwierdzony przez właściciela: Light wolno postawić tylko
   w komórce korytarza wolnej od kadłuba, gondoli i wieżyczki, a jego ruch

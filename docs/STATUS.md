@@ -3969,7 +3969,7 @@ changed for these. Full text, with rationale, in the decision journal:
 | **H** | Boss: **one controller, a record per boss** (module layout, weapon placement and count, weak points). Boss weapons reuse existing `weapon_class` records, to save code for the boosters. |
 | **I** | **Boss laser**: drawn at once from gun to bottom of screen — the earlier "unfolding beam" is withdrawn. One second, telegraphed by ~2 s of visible gun heating with sound, destroys everything in its path. 1 / 2 / 4 per level on ~~1-4 / 5-9 / 10-16~~ → **1-4 / 5-8 / 9-12, rescaled by AC (2026-09-22)** to the twelve-level campaign. Cost assessment is an owner ESTIMATE, to be costed at 4.7. |
 | **J** | Difficulty scales the existing reload/spacing scaling **and** damage: player-dealt, player-taken, contact and boss. |
-| **K** | Lives: three at start, **+1 after each odd level from 3**. The rule is unchanged; the enumeration follows the campaign length, so under **AC** it is **3, 5, 7, 9, 11 — five extra**, not the seven that sixteen levels gave. |
+| **K** | Lives: three at start, **+1 after each odd level from 3**. The rule is unchanged; the enumeration follows the campaign length, so under **AC** it is **3, 5, 7, 9, 11 — five extra, eight in all**, not the seven (ten in all) that sixteen levels gave. A shorter campaign carrying less reserve is intended — owner confirmed 2026-09-23. |
 | **L** | Level select from the furthest level reached. RAM only; a difficulty change in the menu resets it to level 1; the menu shows which levels are available. |
 | **M** | High scores: **RAM only, no disk write.** Confirms today's behaviour. |
 | **N** | **Permanent weapon booster**, level 0-5. One variable; the level sets damage; death costs one level. Both repo checks **ANSWERED** (below). Colour no longer carries the signal — see **U**. |
@@ -3989,16 +3989,23 @@ AD.
 
 | Letter | Decision |
 | --- | --- |
-| **AC** | **Version 1.0 ships TWELVE levels.** Sixteen is withdrawn as the 1.0 target and kept only as a possible **post-1.0 extension**; decision **E** is superseded in its number and keeps its history. The campaign is **four regions of three levels — R1 1-3, R2 4-6, R3 7-9, R4 10-12** — so **all four enemy hull styles are used in 1.0**. This narrows decision **AA** item 2's regions (were 1-4, 5-8, 9-12, 13-16); the rest of AA stands. The **allied** hull colour changes at the halfway point: levels **1-6** the brighter steel **`$88`** (chosen at the hull step-1 smoke), levels **7-12** a darker step — **`$84` or `$86`**, picked at a later smoke. **The enemy colour is unchanged.** Decision **I**'s boss lasers rescale to **1 / 2 / 4 on levels 1-4 / 5-8 / 9-12**. A boss still ends every level and the easiest difficulty stays beatable by anyone. Decision **K**'s enumeration follows the rule to **3, 5, 7, 9, 11 — five extra lives**. |
+| **AC** | **Version 1.0 ships TWELVE levels.** Sixteen is withdrawn as the 1.0 target and kept only as a possible **post-1.0 extension**; decision **E** is superseded in its number and keeps its history. The campaign is **four regions of three levels — R1 1-3, R2 4-6, R3 7-9, R4 10-12** — so **all four enemy hull styles are used in 1.0**. This narrows decision **AA** item 2's regions (were 1-4, 5-8, 9-12, 13-16); the rest of AA stands. The **allied** hull colour changes at the halfway point: levels **1-6** the brighter steel **`$88`** (chosen at the hull step-1 smoke), levels **7-12** a darker step — **`$84` or `$86`**, picked at a later smoke. **The enemy colour is unchanged.** Decision **I**'s boss lasers rescale to **1 / 2 / 4 on levels 1-4 / 5-8 / 9-12**. A boss still ends every level and the easiest difficulty stays beatable by anyone. Decision **K**'s enumeration follows the rule to **3, 5, 7, 9, 11 — five extra, eight lives in all** (owner-confirmed 2026-09-23). |
 | **AD** | **A per-level enemy "variant" is a RE-SKINNED existing archetype, never a new one.** "Defender" and anything like it is an `appearance[3]` Light bitmap, optionally a `weapon_glyph[2]` projectile look, plus path, cadence and subtype ceiling — **all level data, no new archetype code**. A variant behaves **exactly** like its archetype; **differing behaviour is a separate roadmap item with its own budget**. Rationale: level files may repaint and re-arrange, never add behaviour (4.6 data architecture). |
 
-**What AC does not recompute — a code session owes this.** `LEVEL_MAX_ID = 16`
+**`LEVEL_MAX_ID` stays 16 — owner decision, 2026-09-23.** The code indexes
+sixteen and **the data delivers twelve**: `LEVEL_MAX_ID = 16`
 (`src/hybrid/sector-reader.s:131`), the `16 * 3 B = 48 B` directory assertion
-(`:903`) and the generator (`scripts/build.mjs:622`) are **code**. Twelve levels
-would free **12 B** resident there, but that is a code change with its own test
-and commit; this documentation session did not make it, so the repository still
-*executes* sixteen level ids while every document now *plans* twelve.
-`plan-4.3-sector-reader.md` §9 keeps its figures for that reason, with a note.
+(`:903`) and the generator (`scripts/build.mjs:622`) are **unchanged**. Nothing
+breaks — the four surplus directory entries simply carry a zero `count`, which
+`sector_reader_lookup` already rejects without touching SIO, exactly as it
+rejects a level absent from the disk today.
+
+Trimming to twelve would free **12 B resident** and **recompute the evidence**
+(runtime evidence, boot baseline). It is therefore **a minor memory reclaim in
+the backlog — to be taken when bytes run short**, not opportunistically.
+`plan-4.3-sector-reader.md` §9 keeps its figures because they describe code
+that stays. Carried in `plan-realizacji.md` §5 and the journal backlog; **not**
+added to STATUS §Backlog, which unmerged `caab79d` is editing.
 
 ### Correction 2026-09-20 — the OS VBI does **not** rewrite the display shadows during SIO
 

@@ -762,7 +762,8 @@ for the whole game and four enemy styles by region (AA). The **allied** hull
 colour changes at the halfway point: levels 1-6 the brighter steel `$88`,
 levels 7-12 a darker step (`$84` or `$86`, picked at a later smoke); the enemy
 colour is unchanged (AC). Lives: three plus one after each odd level from 3,
-which at twelve levels is 3, 5, 7, 9, 11 — five extra (K). Level select from the furthest level reached, RAM-only, reset
+which at twelve levels is 3, 5, 7, 9, 11 — five extra, eight in all (K;
+owner-confirmed 2026-09-23). Level select from the furthest level reached, RAM-only, reset
 by a difficulty change, with the menu showing what is available (L). High
 scores stay RAM-only (M). Difficulty scales reload and spacing **and** damage
 (J).

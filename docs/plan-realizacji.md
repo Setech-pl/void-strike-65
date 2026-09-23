@@ -414,8 +414,8 @@ Co jeszcze wchodzi w ten punkt po decyzjach 2026-09-20:
   na styl wroga z AA przelicza sesja kodu kadłubów.)
 - **Życia (decyzja K).** Trzy na start plus jedno po każdym nieparzystym
   poziomie od 3 w górę — przy dwunastu poziomach (**AC**) to **3, 5, 7, 9,
-  11**, czyli **pięć dodatkowych**, nie siedem. Reguła bez zmian; zmieniła się
-  długość kampanii.
+  11**, czyli **pięć dodatkowych — osiem razem**, nie siedem. Reguła bez zmian;
+  zmieniła się długość kampanii. Potwierdzone przez właściciela 2026-09-23.
 - **Wybór poziomu (decyzja L).** Start od najdalszego osiągniętego poziomu;
   tylko w RAM; zmiana trudności w menu zeruje do poziomu 1; menu pokazuje, które
   poziomy są dostępne.
@@ -482,6 +482,15 @@ odsunięta. Nie realizować bez wskazania właściciela.
   wiersze w przesuniętej fazie do następnej generacji gameplayu.
 - **Miganie debris w klatce śmierci gracza** — pre-existing, udokumentowane w
   STATUS.
+- **Przycięcie `LEVEL_MAX_ID` 16 → 12 — drobny odzysk pamięci** (zapisane
+  2026-09-23). Kampania ma dwanaście poziomów (**AC**), a czytnik indeksuje
+  szesnaście: `LEVEL_MAX_ID` (`src/hybrid/sector-reader.s:131`), asercja
+  katalogu `16 * 3 B = 48 B` (`:903`) i generator (`scripts/build.mjs:622`).
+  **Właściciel zdecydował, że kod zostaje na 16** — kod indeksuje szesnaście,
+  **dane dowożą dwanaście**, cztery nadmiarowe wpisy mają zerowy `count`, który
+  `sector_reader_lookup` i tak odrzuca bez dotykania SIO. Przycięcie dałoby
+  **12 B rezydentnie**, ale **przelicza dowody** (runtime evidence, boot
+  baseline), więc **bierze się je dopiero wtedy, gdy zabraknie bajtów**.
 - **4.8c ruch przeciwników w korytarzu capitali** (zapisane 2026-09-22,
   zaproponowane jako 4.8c — identyfikator był wolny). Przy kadłubach capital po
   **obu** stronach Lighty dzielą korytarz z graczem. Byty nietrwałe publikują

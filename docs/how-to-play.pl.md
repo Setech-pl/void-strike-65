@@ -77,7 +77,7 @@ Kadłub jest taki sam na każdym poziomie trudności. Zmienia się to, ile zabie
 trafienia przeciwnika — a nie to, ile zniesiesz.
 
 Zaczynasz z trzema życiami i dostajesz po jednym za ukończenie poziomów 3, 5, 7,
-9 i 11. Razem pięć żyć na całą kampanię.
+9 i 11 — pięć dodatkowych, **razem osiem** na całą kampanię.
 
 Zderzenie z przeciwnikiem zabija. Przetrwanie opiera się na unikaniu, nie na
 wytrzymałości.

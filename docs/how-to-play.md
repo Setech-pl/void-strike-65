@@ -74,7 +74,7 @@ Hull is the same on every difficulty. What changes is how much damage enemies
 do — not how much you can take.
 
 You start with three lives, and earn one more after completing levels 3, 5, 7,
-9 and 11. That is five lives across the campaign.
+9 and 11 — five extra, **eight in all** across the campaign.
 
 Colliding with an enemy kills you. Survival is about not being hit.
 

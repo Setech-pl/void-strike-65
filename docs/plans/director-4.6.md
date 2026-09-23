@@ -106,7 +106,7 @@ plan-4.3 model of 3.8 frames/sector), outside every gate.
 
 | Off | Field | Holds | Reader |
 | ---: | --- | --- | --- |
-| 0 | `magic_version` | `$56 \| format nibble` (1); `director_c_init` refuses a mismatch and completes the level immediately (fail closed, never a jump) | init |
+| 0 | `magic_version` | high nibble `$5` (the identity), low nibble the format (1) — `$51` today; `director_c_init` refuses a mismatch and completes the level immediately (fail closed, never a jump) | init |
 | 1 | `level_number` | 1..12, HUD only | init |
 | 2 | `sector_count` | 1..10 (**R4**) | row tick |
 | 3 | `wave_count` | 1..20 | validator |
@@ -120,6 +120,14 @@ plan-4.3 model of 3.8 frames/sector), outside every gate.
 | 11 | `spacing_scale` | difficulty spacing rule selector (23 §10.6 default) | admission |
 | 12 | `debug_start_sector` | 0 in shipped data; a review build (§7) starts here | init (review builds only) |
 | 13-15 | reserved | zero | — |
+
+Corrected at step 1 (`28bd1e7`). The planning wording was `$56 | format
+nibble`, which is not expressible: `$56` already carries `6` in its low
+nibble, so a bitwise OR of the format cannot land there — `$56 | 1` is `$57`,
+format 7, and format 2 would be indistinguishable from format 6. The magic
+therefore keeps the HIGH nibble of `$56` (`'V'`) and gives the format the low
+one: `LEVEL_CORE_MAGIC = (0x56 & 0xf0) | LEVEL_CORE_FORMAT`
+(`scripts/level-compiler.mjs`), `$51` for format 1.
 
 **SectorDef SoA, 8 arrays × 10 sectors = 80 B (`$AA10-$AA5F`).**
 **DEPARTURE** from design-4.6 §1.2: the two cap arrays are packed into one

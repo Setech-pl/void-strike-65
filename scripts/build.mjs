@@ -118,8 +118,16 @@ if (alliedSteelSlug && !alliedSteelValues.has(alliedSteelSlug.toUpperCase())) {
 const alliedSteelValue = alliedSteelSlug
   ? alliedSteelValues.get(alliedSteelSlug.toUpperCase())
   : null;
+// Owner smoke feedback of 2026-09-23, question two: today only white menu stars
+// twinkle, because the twinkle dims to steel and steel has nothing to dim to.
+// This review variant gives the steel stars the same share of twinklers using
+// the cycle's existing OFF step (steel -> off -> steel), so the owner can
+// compare life against noise. The runtime code is identical; only the build-time
+// twinkle subset grows. Like every review variant its artifacts never reach
+// dist/, runtime measurement is skipped and no gate consults it.
+const menuSteelTwinkle = process.argv.includes("--menu-steel-twinkle");
 const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
-  Boolean(enemyPaletteSlug) || alliedSteelValue !== null;
+  Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle;
 const acceptedMenuMusicPayloadBytes = 14314;
 // Gameplay music plus its in-game pause controls remain a bounded post-menu feature.
 const runtimeHeadroomPayloadLimit = 1536;
@@ -1208,7 +1216,8 @@ async function build() {
   writeFile(path.join(buildDirectory, "frontend-h31.inc"), frontendH31Include);
   // Main-menu background stars: positions are chosen once here from the asset
   // seed, so the sky is deterministic and reproducible from Git (owner A).
-  const menuStarsAsset = compileMenuStars(frontendH31Definition);
+  const menuStarsAsset = compileMenuStars(frontendH31Definition,
+    { steelTwinkle: menuSteelTwinkle });
   const menuStarsInclude = Buffer.from(renderMenuStarsCa65Include(menuStarsAsset));
   writeFile(path.join(buildDirectory, "menu-stars.inc"), menuStarsInclude);
 
@@ -2446,6 +2455,8 @@ async function build() {
           ? `enemy-palette-${enemyPaletteSlug}`
           : alliedSteelValue !== null
             ? `allied-steel-${alliedSteelSlug.toUpperCase()}`
+          : menuSteelTwinkle
+            ? "menu-steel-twinkle"
           : candidateBuild
             ? "candidate"
             : "release",
@@ -3642,7 +3653,9 @@ async function build() {
         ? path.join(buildDirectory, `enemy-palette-${enemyPaletteSlug}`)
         : alliedSteelValue !== null
           ? path.join(buildDirectory, `allied-steel-${alliedSteelSlug.toUpperCase()}`)
-          : distDirectory;
+          : menuSteelTwinkle
+            ? path.join(buildDirectory, "menu-steel-twinkle")
+            : distDirectory;
   writeFile(path.join(artifactDirectory, "void-strike-65-boot.bin"), transportPayload);
   writeFile(path.join(artifactDirectory, "void-strike-65.xex"), xex);
   writeFile(path.join(artifactDirectory, "void-strike-65.atr"), atr);
@@ -3669,6 +3682,9 @@ async function build() {
       console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
     } else if (paletteCandidate) {
       console.log(`  variant : enemy palette ${paletteCandidate.id} ($${paletteCandidate.value.toString(16).padStart(2, "0")})`);
+      console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
+    } else if (menuSteelTwinkle) {
+      console.log(`  variant : menu stars, steel twinkling too (steel -> off -> steel)`);
       console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
     }
   }

@@ -134,9 +134,13 @@ test("STARFIELD is smaller than before the move, and the room is still reserved"
   // 348 -> 309 B and the packed hard-gate margin 124 -> 76 B. The guard above
   // still stands for every OTHER session, music sessions included: only a named
   // owner decision may lower these.
+  // Re-recorded 2026-09-23, second pass: the slower twinkle changed no RAW byte
+  // here - the phase array is still one byte per twinkling star - but the
+  // phases are now emitted pre-multiplied by the frame divider, and the larger
+  // values pack one byte worse: packed 1,749 -> 1,750, raw 2,039 unmoved.
   assert.equal(starfield.bytes, 2039, "only owner decision A' may grow STARFIELD");
-  assert.equal(starfield.packedBytes, 1749);
-  assert.ok(starfield.packedTotalGate.hardGateMarginBytes >= 76,
+  assert.equal(starfield.packedBytes, 1750);
+  assert.ok(starfield.packedTotalGate.hardGateMarginBytes >= 75,
     `packed hard-gate margin is ${starfield.packedTotalGate.hardGateMarginBytes} B`);
   assert.ok(starfield.reservedBytes - starfield.bytes >= 309,
     "the STARFIELD run tail is smaller than owner decision A' left for the expansion");

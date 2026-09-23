@@ -64,6 +64,15 @@ export const MENU_STAR_PAGE_SHIFT = 3;
 export const MENU_STAR_GLYPH_MASK = 0x47;
 export const MENU_STAR_DIM_BIT = 0x04;
 export const MENU_STAR_CYCLE_FRAMES = 12;
+// Owner smoke feedback (2026-09-23): the sky is right, the twinkle is too fast.
+// The cycle keeps its twelve steps - a 48-entry table does not fit the 7-byte
+// ENTITY_CODE -> BROADSIDE staging margin - and the tick divides instead: the
+// frame counter runs 0..47 and the cycle index is counter >> 2, so one step
+// lasts four menu frames and the whole cycle 48, a little under a second at
+// 50 Hz. Phases are emitted pre-multiplied by the divider, which is what keeps
+// the divider free of a second runtime byte: there is one counter, not two.
+export const MENU_STAR_FRAME_DIVIDER = 4;
+export const MENU_STAR_PHASE_FRAMES = MENU_STAR_CYCLE_FRAMES * MENU_STAR_FRAME_DIVIDER;
 const MENU_STAR_SCREEN = 0x4000;
 const MENU_STAR_CYCLE_MASK = { bright: 0x00, dim: MENU_STAR_DIM_BIT, off: 0x80 };
 // One empty character cell of clearance: stars in the same row keep three
@@ -91,7 +100,7 @@ function shuffled(values, random) {
   return list;
 }
 
-export function compileMenuStars(definition) {
+export function compileMenuStars(definition, { steelTwinkle = false } = {}) {
   const spec = definition.menuStars;
   if (!spec) throw new Error("Frontend H3.1 asset defines no menuStars block");
   if (spec.shapes.length !== 4) throw new Error("Menu stars need exactly four dot shapes");
@@ -135,6 +144,21 @@ export function compileMenuStars(definition) {
   const order = shuffled(placed.keys(), random);
   const white = new Set(order.slice(0, whiteCount));
   const twinkling = new Set(shuffled([...white], random).slice(0, twinkleCount));
+  // Review variant only (npm run menu:steel-twinkle). The default sky twinkles
+  // white stars alone, because a twinkling star's dim step IS steel and steel
+  // has nothing left to dim to. The variant gives the steel stars the same share
+  // of twinklers using the cycle's existing OFF step: steel -> off -> steel. No
+  // runtime code changes for it - the tick already ORs the dim bit into a glyph
+  // that has it, which is a no-op, and $80 blanks any glyph. It never writes
+  // dist/ and is not a candidate for acceptance; it exists so the owner can
+  // compare life against noise on hardware.
+  if (steelTwinkle) {
+    const steel = [...placed.keys()].filter((index) => !white.has(index));
+    const steelTwinkleCount = Math.round(steel.length * spec.twinkleShare);
+    for (const index of shuffled(steel, random).slice(0, steelTwinkleCount)) {
+      twinkling.add(index);
+    }
+  }
   for (const [index, star] of placed.entries()) {
     star.white = white.has(index);
     star.twinkles = twinkling.has(index);
@@ -148,10 +172,15 @@ export function compileMenuStars(definition) {
   const stars = [...placed.filter((star) => star.twinkles),
     ...placed.filter((star) => !star.twinkles)];
   // Every twinkling star gets its own phase offset: the twelve offsets are
-  // dealt out in a shuffled order, so the sky never blinks in unison.
+  // dealt out in a shuffled order, so the sky never blinks in unison. phaseTicks
+  // is what the runtime array carries - the same offset in divided frames, so
+  // the tick can add it straight to its 0..47 counter without a multiply.
   const phases = shuffled([...Array(MENU_STAR_CYCLE_FRAMES).keys()], random);
   stars.forEach((star, index) => {
-    if (star.twinkles) star.phase = phases[index % MENU_STAR_CYCLE_FRAMES];
+    if (star.twinkles) {
+      star.phase = phases[index % MENU_STAR_CYCLE_FRAMES];
+      star.phaseTicks = star.phase * MENU_STAR_FRAME_DIVIDER;
+    }
   });
   const shapeOffsets = spec.shapes.map((shape, index) => {
     if (shape.pixel < 0 || shape.pixel > 3) throw new Error("Star dot pixel must be 0-3");
@@ -160,7 +189,7 @@ export function compileMenuStars(definition) {
   });
   return {
     stars,
-    twinkleCount,
+    twinkleCount: stars.filter((star) => star.twinkles).length,
     whiteCount,
     // Bit pair 01 is COLPF0 and 11 is COLPF2; pixel 0 is the high bit pair.
     shapeOffsets,
@@ -183,11 +212,13 @@ export function renderMenuStarsCa65Include(menuStars) {
     `MENU_STAR_PAGE_SHIFT = ${MENU_STAR_PAGE_SHIFT}\n` +
     `MENU_STAR_GLYPH_MASK = $${MENU_STAR_GLYPH_MASK.toString(16).toUpperCase()}\n` +
     `MENU_STAR_DIM_BIT = $${MENU_STAR_DIM_BIT.toString(16).padStart(2, "0").toUpperCase()}\n` +
-    `MENU_STAR_CYCLE_FRAMES = ${MENU_STAR_CYCLE_FRAMES}\n\n` +
+    `MENU_STAR_CYCLE_FRAMES = ${MENU_STAR_CYCLE_FRAMES}\n` +
+    `MENU_STAR_FRAME_DIVIDER = ${MENU_STAR_FRAME_DIVIDER}\n` +
+    `MENU_STAR_PHASE_FRAMES = ${MENU_STAR_PHASE_FRAMES}\n\n` +
     `.macro EMIT_MENU_STAR_LOW\n${bytes(stars.map((star) => star.address & 0xff))}\n.endmacro\n\n` +
     `.macro EMIT_MENU_STAR_GLYPH\n${bytes(stars.map((star) => star.glyphByte))}\n.endmacro\n\n` +
     `.macro EMIT_MENU_STAR_PHASE\n${bytes(stars.filter((star) => star.twinkles)
-      .map((star) => star.phase))}\n.endmacro\n\n` +
+      .map((star) => star.phaseTicks))}\n.endmacro\n\n` +
     `.macro EMIT_MENU_STAR_CYCLE\n${bytes(menuStars.cycle)}\n.endmacro\n\n` +
     `.macro EMIT_MENU_STAR_SHAPES\n${bytes(menuStars.shapeOffsets)}\n` +
     `${bytes(menuStars.shapeWhite)}\n${bytes(menuStars.shapeSteel)}\n.endmacro\n`;

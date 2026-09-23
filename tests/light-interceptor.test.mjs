@@ -395,7 +395,14 @@ test("placement contract: legal composite and packed size, state inside its rese
   // 89 -> 5. That cost is fixed code and does not move with the star count.
   // Same reasoning as the two entries above - contiguous, already reserved,
   // already transported, neighbour already asserted at $8B67.
-  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 5);
+  // Re-recorded 2026-09-23, second pass: owner smoke called the twinkle too
+  // fast, so the tick now divides its frame counter by four (a step lasts four
+  // menu frames, a cycle 48). The divider is two LSRs and reuses the one
+  // counter byte rather than adding a second, and a 48-entry cycle table was
+  // ruled out precisely because this window has no room for 36 more bytes:
+  // 5 -> 3. Three bytes is the whole remaining fill; the next session to want
+  // this window must free some first.
+  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 3);
   // Owner decision X + Light multiplicity steps 1a-3. The Light C left the
   // extension for the code window and the kernel left for its own link, which
   // took the scarce 19-B tail to 451; step 3's multi-slot ASM then overran the

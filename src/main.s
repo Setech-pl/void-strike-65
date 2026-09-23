@@ -6261,7 +6261,10 @@ menu_star_screen_low:
 ; and the packed starfield stream does without a high-address array.
 menu_star_glyph:
     EMIT_MENU_STAR_GLYPH
-; One phase offset per twinkling star, so the sky never blinks in unison.
+; One phase offset per twinkling star, so the sky never blinks in unison. The
+; offsets are emitted in DIVIDED frames - the cycle step times
+; MENU_STAR_FRAME_DIVIDER - so the tick adds them straight to its 0..47 frame
+; counter with no multiply and, more to the point, no second counter byte.
 menu_star_phase:
     EMIT_MENU_STAR_PHASE
 menu_star_phase_end:
@@ -6283,8 +6286,19 @@ menu_star_shape_tables_end:
 ; cold staging at $4801 in the initial block, and that margin is the scarcer of
 ; the two.
 ;
-; bright -> dim -> off -> dim -> bright over twelve frames, as a glyph mask:
-; $00 keeps the bright glyph, MENU_STAR_DIM_BIT dims it, $80 blanks the cell.
+; bright -> dim -> off -> dim -> bright over twelve cycle steps, as a glyph
+; mask: $00 keeps the bright glyph, MENU_STAR_DIM_BIT dims it, $80 blanks the
+; cell.
+;
+; Owner smoke feedback (2026-09-23): the twinkle was too fast at one step per
+; frame. A step now lasts MENU_STAR_FRAME_DIVIDER frames, so the twelve-step
+; cycle takes MENU_STAR_PHASE_FRAMES = 48 frames, a little under a second on
+; PAL. It is a divider and NOT a longer table: a 48-entry table costs 36 bytes
+; the ENTITY_CODE -> BROADSIDE staging margin has not got (7 B at HEAD). The
+; divider also costs no second counter - menu_star_frame simply counts 0..47
+; and the cycle index is that counter >> 2 - so the whole change is two LSRs and
+; two constants, and each star keeps its own phase offset, emitted in the same
+; divided frames.
 menu_star_cycle:
     EMIT_MENU_STAR_CYCLE
 menu_star_cycle_end:
@@ -6292,6 +6306,9 @@ menu_star_frame:
     .byte $00
 
 .assert menu_star_cycle_end - menu_star_cycle = MENU_STAR_CYCLE_FRAMES, error, "the twinkle cycle must be twelve frames"
+.assert MENU_STAR_PHASE_FRAMES = MENU_STAR_CYCLE_FRAMES * MENU_STAR_FRAME_DIVIDER, error, "the star frame counter must span exactly one divided cycle"
+.assert MENU_STAR_FRAME_DIVIDER = 4, error, "the cycle index is taken with two LSRs, so the divider is four"
+.assert MENU_STAR_PHASE_FRAMES <= 128, error, "phase + frame must stay under 256 without a carry"
 
 ; The menu frame loop's palette restore and star tick, in one call so the loop
 ; itself does not grow. The frontend reaches this after wait_frame has left
@@ -6304,7 +6321,7 @@ menu_star_frame_tick:
 menu_star_tick:
     ldx menu_star_frame
     inx
-    cpx #MENU_STAR_CYCLE_FRAMES
+    cpx #MENU_STAR_PHASE_FRAMES
     bcc :+
     ldx #$00
 :
@@ -6322,13 +6339,15 @@ menu_star_tick:
     sta dst_ptr+1
     lda menu_star_screen_low,x
     sta dst_ptr
-    lda menu_star_phase,x
+    lda menu_star_phase,x       ; the phase offset, already in divided frames
     clc
     adc menu_star_frame
-    cmp #MENU_STAR_CYCLE_FRAMES
+    cmp #MENU_STAR_PHASE_FRAMES
     bcc :+
-    sbc #MENU_STAR_CYCLE_FRAMES ; carry is set on this path
+    sbc #MENU_STAR_PHASE_FRAMES ; carry is set on this path
 :
+    lsr                         ; frames -> cycle step: four frames per step
+    lsr
     tay
     lda menu_star_cycle,y
     bmi @off

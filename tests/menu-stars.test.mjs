@@ -42,6 +42,10 @@ import {
   compileMenuStars,
   loadFrontendH31Definition,
 } from "../scripts/frontend-h31-assets.mjs";
+// A namespace import, not named bindings: the divider constants are part of what
+// this file pins, and a missing export must read as a failed assertion here
+// rather than as a module that will not link at all.
+import * as frontendH31Assets from "../scripts/frontend-h31-assets.mjs";
 
 const directory = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(directory, "..");
@@ -63,6 +67,12 @@ const STATE_OPTIONS = 2;
 const STAR_GLYPH_BASE = 64;
 const STAR_DIM_BIT = 0x04;
 const CYCLE_FRAMES = 12;
+// Owner smoke feedback (2026-09-23): the sky is right, the twinkle is too fast.
+// A cycle STEP now lasts four menu frames, so a whole cycle is 48 frames -
+// 0.96 s on PAL - and the twelve-step table is unchanged. See the divider test
+// below for why it is a divider and not a longer table.
+const FRAME_DIVIDER = 4;
+const PHASE_FRAMES = CYCLE_FRAMES * FRAME_DIVIDER;
 const BLANK = 0;            // CH_FRONT_SPACE
 const POKEY = 0xd200;
 
@@ -205,8 +215,24 @@ test("the star table is sixteen dots, 60/40 white/steel, a third twinkling", () 
   const twinkling = expected.stars.slice(0, expected.twinkleCount);
   assert.ok(twinkling.every((star) => star.twinkles));
   assert.ok(expected.stars.slice(expected.twinkleCount).every((star) => !star.twinkles));
-  // Each twinkling star has its own phase, so the sky never blinks in unison.
+  // Each twinkling star has its own phase, so the sky never blinks in unison -
+  // and the slower cadence must not have collapsed that spread. Phases are
+  // emitted pre-multiplied by the divider, which is what lets the runtime add
+  // them straight to its 0..47 frame counter with no multiply and no second
+  // counter byte.
   assert.equal(new Set(twinkling.map((star) => star.phase)).size, expected.twinkleCount);
+  assert.equal(frontendH31Assets.MENU_STAR_FRAME_DIVIDER, FRAME_DIVIDER);
+  assert.equal(frontendH31Assets.MENU_STAR_PHASE_FRAMES, PHASE_FRAMES);
+  for (const star of twinkling) {
+    assert.equal(star.phaseTicks, star.phase * FRAME_DIVIDER,
+      `star phase ${star.phase} is not emitted in divided frames`);
+    assert.ok(star.phaseTicks < PHASE_FRAMES);
+  }
+  assert.equal(new Set(twinkling.map((star) => star.phaseTicks)).size, expected.twinkleCount);
+  // The spread is real and not two stars a frame apart: the twelve offsets are
+  // dealt out, so no two twinkling stars share a cycle step.
+  assert.deepEqual([...twinkling.map((star) => star.phase)].sort((a, b) => a - b),
+    [1, 3, 4, 5, 8]);
   // Fixed at build time: the same seed must give the same sky, byte for byte.
   assert.deepEqual(expected.stars.map((star) => star.address), [
     0x417a, 0x419f, 0x403d, 0x41ba, 0x4109, 0x4173, 0x4190, 0x403b, 0x408b, 0x40b0,
@@ -216,6 +242,41 @@ test("the star table is sixteen dots, 60/40 white/steel, a third twinkling", () 
   // side rows included, so the cut is a thinner sky and not a shorter one.
   assert.equal(new Set(expected.stars.map((star) => star.row)).size,
     definition.menuStars.rows.length);
+});
+
+test("the steel-twinkle review variant twinkles steel stars through the OFF step", () => {
+  // REVIEW VARIANT ONLY - npm run menu:steel-twinkle, build/menu-steel-twinkle.
+  // It never writes dist/ and no gate consults it. The DEFAULT sky above keeps
+  // today's behaviour: white stars twinkle, steel stars stay steady.
+  //
+  // Owner smoke feedback of 2026-09-23, question two: only white stars twinkle
+  // because the twinkle DIMS to steel and steel has nothing left to dim to. The
+  // variant gives steel stars the same share of twinklers using the cycle's
+  // existing OFF step instead, steel -> off -> steel, so the owner can compare
+  // life against noise. It needs no runtime code: the tick ORs the dim bit into
+  // a glyph that already carries it, which is a no-op, and $80 blanks any glyph.
+  const variant = compileMenuStars(definition, { steelTwinkle: true });
+  assert.equal(variant.stars.length, expected.stars.length);
+  assert.equal(variant.whiteCount, expected.whiteCount);
+  assert.equal(variant.twinkleCount, 7);          // 5 white + 2 of the 6 steel
+  assert.ok(variant.twinkleCount < variant.stars.length,
+    "at least one star must stay steady, which main.s asserts at link time");
+  const twinkling = variant.stars.slice(0, variant.twinkleCount);
+  assert.ok(twinkling.every((star) => star.twinkles));
+  assert.ok(variant.stars.slice(variant.twinkleCount).every((star) => !star.twinkles));
+  assert.equal(twinkling.filter((star) => !star.white).length, 2);
+  // Every twinkling star still has its own cycle step, steel ones included.
+  assert.equal(new Set(twinkling.map((star) => star.phase)).size, variant.twinkleCount);
+  assert.ok(twinkling.every((star) => star.phaseTicks === star.phase * FRAME_DIVIDER));
+  // A steel twinkler's glyph carries the dim bit already, so ORing the cycle's
+  // dim mask leaves it alone: its only visible step is OFF.
+  for (const star of twinkling.filter((candidate) => !candidate.white)) {
+    assert.equal(star.glyph & STAR_DIM_BIT, STAR_DIM_BIT);
+    assert.equal(star.glyph | STAR_DIM_BIT, star.glyph);
+  }
+  // The variant changes the sky and nothing else: same positions, same tones.
+  assert.deepEqual(variant.stars.map((star) => star.address).sort((a, b) => a - b),
+    expected.stars.map((star) => star.address).sort((a, b) => a - b));
 });
 
 test("the menu draws every star as its own one-dot glyph and nothing else moves", () => {
@@ -270,13 +331,13 @@ test("no star touches text, a bar or the fighter, and each keeps an empty cell o
   }
 });
 
-test("over twelve frames every twinkling star goes bright, dim and off and steady stars never change", () => {
+test("over one 48-frame cycle every twinkling star goes bright, dim and off and steady stars never change", () => {
   const memory = bootedFrontend();
   enterState(memory, STATE_MAIN_MENU);
   const seen = expected.stars.map(() => new Set());
   const steady = starCells(memory).slice(expected.twinkleCount);
   // Two full cycles, so a star whose phase starts mid-cycle is still covered.
-  for (let frame = 0; frame < CYCLE_FRAMES * 2; frame += 1) {
+  for (let frame = 0; frame < PHASE_FRAMES * 2; frame += 1) {
     run(memory, "menu_star_tick");
     const cells = starCells(memory);
     cells.forEach((value, index) => seen[index].add(value));
@@ -290,13 +351,17 @@ test("over twelve frames every twinkling star goes bright, dim and off and stead
     assert.ok(states.has(BLANK), `star ${index} never goes off`);
     assert.equal(states.size, 3, `star ${index} shows an unexpected state`);
   });
-  // bright -> dim -> off -> dim -> bright: one twelve-frame pass over one star.
+  // bright -> dim -> off -> dim -> bright: one full pass over one star. The
+  // pass is now 48 menu frames, of which each of the twelve cycle steps holds
+  // for four; sampling every fourth frame recovers the twelve-step shape the
+  // owner accepted, unchanged.
   const first = expected.stars[0];
   const timeline = [];
-  for (let frame = 0; frame < CYCLE_FRAMES; frame += 1) {
+  for (let frame = 0; frame < PHASE_FRAMES; frame += 1) {
     run(memory, "menu_star_tick");
-    timeline.push(memory[first.address]);
+    if (frame % FRAME_DIVIDER === FRAME_DIVIDER - 1) timeline.push(memory[first.address]);
   }
+  assert.equal(timeline.length, CYCLE_FRAMES);
   const level = (value) =>
     value === BLANK ? "off" : value === first.glyph ? "bright" : "dim";
   assert.equal(new Set(timeline).size, 3);
@@ -317,6 +382,81 @@ test("over twelve frames every twinkling star goes bright, dim and off and stead
   assert.deepEqual([counts.get("bright"), counts.get("dim"), counts.get("off")], [6, 4, 2]);
 });
 
+test("a cycle step lasts four menu frames, so the whole twinkle takes 48", () => {
+  // OWNER SMOKE FEEDBACK, 2026-09-23: "the sky is right, but the twinkle is too
+  // fast." One cycle step per frame made a full pass 12 frames - 0.24 s - which
+  // read as a flicker rather than a twinkle. A step now holds for four frames
+  // and the pass is 48 frames, 0.96 s on PAL.
+  //
+  // It is a DIVIDER and not a 48-entry cycle table on purpose, and this is the
+  // constraint a later session must not undo: a 48-entry table is 36 bytes more
+  // in the packed initial block, and the ENTITY_CODE -> BROADSIDE staging margin
+  // is 7 B at HEAD. The divider costs two LSRs and no second counter byte,
+  // because menu_star_frame itself counts 0..47 and the cycle index is that
+  // counter >> 2, with each star's phase offset emitted in the same units.
+  const memory = bootedFrontend();
+  enterState(memory, STATE_MAIN_MENU);
+  const frameCounter = at("menu_star_frame");
+
+  // The table itself is untouched: twelve steps, not forty-eight.
+  assert.equal(expected.cycle.length, CYCLE_FRAMES);
+  assert.equal(at("menu_star_cycle_end") - at("menu_star_cycle"), CYCLE_FRAMES);
+
+  // The counter spans one divided cycle and wraps at 48, not at 12.
+  memory[frameCounter] = PHASE_FRAMES - 2;
+  run(memory, "menu_star_tick");
+  assert.equal(memory[frameCounter], PHASE_FRAMES - 1,
+    "the frame counter must run past the twelve-step cycle length");
+  run(memory, "menu_star_tick");
+  assert.equal(memory[frameCounter], 0, "the frame counter must wrap at 48");
+
+  // Every twinkling star holds each state for exactly four consecutive frames,
+  // and its cell is only ever one of its own three states.
+  const twinkling = expected.stars.slice(0, expected.twinkleCount);
+  const timelines = twinkling.map(() => []);
+  for (let frame = 0; frame < PHASE_FRAMES * 2; frame += 1) {
+    run(memory, "menu_star_tick");
+    twinkling.forEach((star, index) => timelines[index].push(memory[star.address]));
+  }
+  for (const [index, timeline] of timelines.entries()) {
+    const runs = [];
+    for (const value of timeline) {
+      if (runs.length && runs.at(-1).value === value) runs.at(-1).length += 1;
+      else runs.push({ value, length: 1 });
+    }
+    // The cycle repeats a mask across neighbouring steps (three bright, two dim,
+    // two off, two dim), so a run is several steps long - but every run is a
+    // whole number of STEPS, and a step is four frames. The window opens and
+    // closes mid-step, so only the interior runs are whole.
+    for (const step of runs.slice(1, -1)) {
+      assert.equal(step.length % FRAME_DIVIDER, 0,
+        `star ${index} held a value for ${step.length} frames, not a multiple of ${FRAME_DIVIDER}`);
+      assert.ok(step.length >= FRAME_DIVIDER);
+    }
+    // 24 bright frames, 8 dim, 8 off, 8 dim: four runs per 48-frame pass.
+    assert.deepEqual([...new Set(runs.slice(1, -1).map((step) => step.length))].sort((a, b) => a - b),
+      [FRAME_DIVIDER * 2, FRAME_DIVIDER * 6]);
+    // The cadence itself: the timeline repeats after 48 frames and NOT after 12,
+    // which is exactly what the old one-step-per-frame tick did.
+    for (let frame = 0; frame + PHASE_FRAMES < timeline.length; frame += 1) {
+      assert.equal(timeline[frame + PHASE_FRAMES], timeline[frame],
+        `star ${index} is not periodic over ${PHASE_FRAMES} frames`);
+    }
+    assert.ok(timeline.some((value, frame) =>
+      frame + CYCLE_FRAMES < timeline.length && timeline[frame + CYCLE_FRAMES] !== value),
+      `star ${index} still completes a whole cycle in ${CYCLE_FRAMES} frames`);
+  }
+
+  // Per-star spread survives the divider: the stars do not all change together.
+  // Sampled one frame at a time, at least two twinkling stars differ in when
+  // their value moves, so the sky never blinks in unison.
+  const changeFrames = timelines.map((timeline) =>
+    timeline.map((value, frame) => (frame > 0 && value !== timeline[frame - 1] ? frame : -1))
+      .filter((frame) => frame >= 0));
+  assert.ok(new Set(changeFrames.map((frames) => frames[0] % PHASE_FRAMES)).size > 1,
+    "every twinkling star changes on the same frame - the phase spread is gone");
+});
+
 test("the per-frame tick writes only star cells and never touches POKEY or music state", () => {
   const memory = bootedFrontend();
   enterState(memory, STATE_MAIN_MENU);
@@ -325,7 +465,7 @@ test("the per-frame tick writes only star cells and never touches POKEY or music
   const writes = new Set();
   const hooks = { write: (address) => { writes.add(address); } };
   let worst = 0;
-  for (let frame = 0; frame < CYCLE_FRAMES; frame += 1) {
+  for (let frame = 0; frame < PHASE_FRAMES; frame += 1) {
     const cpu = run(memory, "menu_star_tick", hooks);
     worst = Math.max(worst, cpu.cycles);
   }

@@ -121,7 +121,7 @@ BUDGET_DATA       = 2           ; each received data byte
 BUDGET_SETTLE     = 2           ; after a failed attempt
 
 SECTOR_BYTES      = 128
-MAX_LEVEL_SECTORS = 32          ; the level buffer is 4,096 B (owner decision X)
+MAX_LEVEL_SECTORS = 16          ; the level buffer is 2,048 B (Q-1, 2026-09-23)
 WIRE_ATTEMPTS     = 3
 DEVICE_PROBES     = 2
 

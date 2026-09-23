@@ -495,7 +495,8 @@ static void heavy_publish_profile(void);
 /* Reload the selected Light archetype's post-burst pause for this difficulty.
  * The three per-difficulty fields are adjacent, so one 8-bit index reaches
  * both the archetype record and the difficulty column. */
-/* Light-class C in the code window $B600-$BBFF (owner decision X). It left
+/* Light-class C in the code window $AE00-$BBFF (owner decision X, re-sized by
+   Q-1 on 2026-09-23). It left
  * HYBRID_C_EXT because the SoA indexing grew it past the extension's tail:
  * MEASURED +242 B for the slot indexing alone, against 613 B of extension
  * before, which overflowed LIGHT_CODE's run window by 175 B. The window is

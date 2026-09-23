@@ -881,8 +881,8 @@ starfield, so all overlaps are lifetime-safe.
 | `$9FF8-$9FF9` | 2 B | free Director reservation tail |
 | `$9FFA-$9FFF` | 6 B | untouched guard; not available capacity |
 | `$A000-$A5FF` | 1,536 B | `SECTOR_READER` (roadmap 4.3): reader, loader-mode display, failure screen, AI text pool |
-| `$A600-$B5FF` | 4,096 B | `LEVEL_BUFFER`, **32 sectors** since owner decision X (2026-09-21); was 44. Since 2026-09-22 the first five sectors carry the gameplay music player — see *Music v2 §1.4* below |
-| `$B600-$BBFF` | 1,536 B | `HYBRID_C_WINDOW` (owner decision X): the Director link's half of decision B's window, home of the Light kernel. Reached by its own DFMC record |
+| `$A600-$ADFF` | 2,048 B | `LEVEL_BUFFER`, **16 sectors** since Q-1 (owner, 2026-09-23); 32 since owner decision X (2026-09-21); was 44. Since 2026-09-22 the first five sectors carry the gameplay music player — see *Music v2 §1.4* below |
+| `$AE00-$BBFF` | 3,584 B | `HYBRID_C_WINDOW` (owner decision X, re-sized by Q-1): the Director link's half of decision B's window, home of the Light kernel and of roadmap 4.6's Director. Reached by its own DFMC record |
 | `$BC00-$BC19` | 26 B | `READER_BSS` |
 | `$BC1A-$BC1F` | 6 B | `HYBRID_C_WINDOW_GUARD`: reserved, no segment, in the same shape as the `$9FFA` Director guard |
 | `$BC20-$BFFF` | 992 B | OS screen when BASIC is disabled at coldstart (`RAMTOP $C0`); never available to the build |
@@ -1158,20 +1158,23 @@ travels as the ninth DFMC record, RAW, landing directly at `$A000`.
 | Range | Bytes | Owner | Notes |
 | --- | --- | --- | --- |
 | `$A000-$A5FF` | 1,536 | `SECTOR_READER` | reader, loader-mode display, failure screen, 8-line AI text pool; **1,466 B used, 70 B free**. A sixteen-line pool does not fit — see plan §1.5 `[C6]`; packing the texts is the cheaper answer if it is ever wanted, not shrinking the level buffer |
-| `$A600-$B5FF` | 4,096 | `LEVEL_BUFFER` | **32 sectors** (owner decision X, 2026-09-21; was 44), page-aligned, `file = ""` — never in any artifact. On the XEX the level-1 image is an **XEX-only block** placed here; on the ATR it is read over SIO. **Executable since 2026-09-22**: `$A608-$A807` is the gameplay music player (music v2 §1.4, owner answer Q-P1) |
-| `$B600-$BBFF` | 1,536 | `HYBRID_C_WINDOW` | owner decision X: the Director link's half of the window, `cfg/encounter-director.cfg`. `HYBRID_ASM_WINDOW` + `HYBRID_C_WINDOW` + `HYBRID_C_WINDOW_RODATA` |
+| `$A600-$ADFF` | 2,048 | `LEVEL_BUFFER` | **16 sectors** (Q-1, owner 2026-09-23; 32 since owner decision X, 2026-09-21; 44 before it), page-aligned, `file = ""` — never in any artifact. On the XEX the level-1 image is an **XEX-only block** placed here; on the ATR it is read over SIO. **Executable since 2026-09-22**: `$A608-$A807` is the gameplay music player (music v2 §1.4, owner answer Q-P1) |
+| `$AE00-$BBFF` | 3,584 | `HYBRID_C_WINDOW` | owner decision X, re-sized by Q-1 (2026-09-23): the Director link's half of the window, `cfg/encounter-director.cfg`. `HYBRID_ASM_WINDOW` + `HYBRID_C_WINDOW` + `HYBRID_C_WINDOW_RODATA` |
 | `$BC00-$BC14` | 21 | `READER_BSS` | reader state; **5 B** still free before `$BC1A` (re-measured 2026-09-21, finding F7) |
 | `$BC1A-$BC1F` | 6 | `HYBRID_C_WINDOW_GUARD` | unchanged: reserved, no segment loads there |
 | `$00A0-$00A1` | 2 | `READER_ZP` | the `(zp),y` destination pointer. `ZEROPAGE` ends at `$9F`, so this is the first free pair. Menu music v2 took the next ten bytes, `$A2-$AB`, on 2026-09-22 |
 
 **Two links share the window, in disjoint halves (owner decision X,
-2026-09-21).** The reader owns `$A000-$B5FF` and `$BC00-$BC19`; the Director
-link owns `$B600-$BBFF` as `HYBRID_C_WINDOW_RAM`. Before the decision the
-Director's declaration covered the whole window and was harmless only while it
-stayed empty; `scripts/build.mjs` now asserts the halves cannot meet — the
-window record must land at `$B600` and `$B600` must be at or above the end of
-the level buffer the reader fills. A sixteen-line AI text pool still does not
-fit in the reader's own 1,536 B: the freed 1,536 B went to code, not to text.
+2026-09-21; the halves re-cut by Q-1, 2026-09-23).** The reader owns
+`$A000-$ADFF` and `$BC00-$BC19`; the Director link owns `$AE00-$BBFF` as
+`HYBRID_C_WINDOW_RAM`. Before decision X the Director's declaration covered the
+whole window and was harmless only while it stayed empty; `scripts/build.mjs`
+now asserts the halves cannot meet — the window record must land at the window
+base and the window base must be at or above the end of the level buffer the
+reader fills. Neither address is written twice: both follow from
+`levelBufferSectors` in `scripts/build.mjs`, which the two configs and
+`MAX_LEVEL_SECTORS` mirror. A sixteen-line AI text pool still does not fit in
+the reader's own 1,536 B: the freed bytes went to code, not to text.
 
 **Level runs on the ATR.** Level images are placed at absolute sector numbers
 from a fixed base (`levelBaseSector` = 320), outside the boot transport, by
@@ -1199,9 +1202,9 @@ The current Light layout. It supersedes the steps 3-4 table below.
 | `$8127` | 1 | `HYBRID_LIGHT_ROTATE` — `light_rotate_frame`, the ring-rotate marker: stored by `advance_starfield_layers`, read by `light_take_deferrable_token` |
 | `$8128` | 1 | `HYBRID_HEAVY_BREAKUP` — `heavy_breakup_pending`, the Heavy break-up's deferred-once bit (plan-4.6-placement.md §7.4 variant 2, 2026-09-22): set by `enemy_c_heavy_breakup_claim` when the kill frame's deferrable claim is refused, cleared by `heavy_spawn_breakup` when the ungated retry spawns, cleared once by `lifecycle_c_init` |
 | `$8129-$813F` | **23 free** | unowned, reserved for 4.6 Director state (was 26, then 25, then 24) |
-| `$B600-$B920` | 801 | `HYBRID_C_WINDOW` — the Light C, Director link |
-| `$B921-$BBE4` | 708 | `LIGHT_KERNEL` — the Light ASM kernel, its own link |
-| `$BBE5-$BBFF` | **27 free** | — |
+| `$AE00-$B120` | 801 | `HYBRID_C_WINDOW` — the Light C, Director link (at `$B600-$B920` before Q-1) |
+| `$B121-$B3E4` | 708 | `LIGHT_KERNEL` — the Light ASM kernel, its own link (at `$B921-$BBE4` before Q-1) |
+| `$B3E5-$BBFF` | **2,075 free** | Q-1 (2026-09-23): the 2,048 B the level buffer gave back, plus the 27 B tail that was there before |
 
 **What fix (a) moved.** 19 B into a kernel with a 17-B window tail, so the
 coldest thing in the window — `encounter_light_schedule_advance`, at most once
@@ -1464,6 +1467,39 @@ Every resident gameplay image is byte-identical: MAIN `CODE`/`RODATA`,
 every Director image. The reader image changes by exactly one byte, the
 `cmp #MAX_LEVEL_SECTORS+1` operand at reader offset 865 (45 → 33).
 
+### Q-1 (owner decision 2026-09-23) — buffer 32 → 16 sectors, window at `$AE00`
+
+Roadmap 4.6 step 1 (`docs/plans/director-4.6.md` §3.1, §11 item 2). The same
+four constants as decision X, in the same direction: `levelBufferSectors`
+32 → **16** (`scripts/build.mjs`), `MAX_LEVEL_SECTORS` 32 → **16**
+(`src/hybrid/sector-reader.s`), `LEVEL_BUFFER_RAM` `$1000` → **`$0800`**
+(`cfg/sector-reader.cfg`) and `HYBRID_C_WINDOW_RAM` `$B600/$0600` →
+**`$AE00/$0E00`** (`cfg/encounter-director.cfg`). One more edit decision X did
+not need: the Light kernel's own `lderror` floor in `src/hybrid/light-kernel.s`,
+`__LIGHT_KERNEL_RUN__ >= $B600` → **`>= $AE00`**, because the kernel's link
+follows the Director half down.
+
+**Why 16.** A 4.6 level image is 13 sectors at its worst — header and gameplay
+music 5, hull block 3, LevelDef core page 2, payload page 2, HullGeometry page
+1 — so 16 sectors carry every level with **3 spare**, and the 2,048 B released
+go where roadmap 4.6's code has to live. The Director's net need is ~400 B
+(ESTIMATE) and the 4.7 boss controller 300-500 B (ESTIMATE); the window's free
+tail is **2,075 B**.
+
+**Free tails at this checkpoint (MEASURED).** `HYBRID_C_WINDOW` **2,075** of
+3,584 B free — 1,509 used, unchanged: the Light C half is the same 801 B and
+the Light ASM kernel the same 708 B, at addresses 2,048 B lower.
+`LEVEL_BUFFER` 16 sectors against an 8-sector level-1 image. Every other tail
+is unchanged: the step moves two links and no bytes.
+
+**Transport is untouched**, which is the point of doing it first: boot **107**
+sectors, extension **102**, total **209**, initial block content **13,652 B** of
+13,684, ATR menu **603** frames (+7 on the 596 baseline, 3 warn frames left),
+XEX 28,390 B and ATR 92,176 B — every figure identical to `3da3dc9`. The window
+record carries the same 801 raw / 629 packed bytes to a different address, so
+only its destination field and the reader's `cmp #MAX_LEVEL_SECTORS+1` operand
+change in the artifacts, plus the addresses inside the two relocated links.
+
 ---
 
 ## Owner decision B plumbing — the window is open (2026-09-20)
@@ -1475,7 +1511,7 @@ this section was written in.
 
 | Piece | Where | What it does |
 | --- | --- | --- |
-| `HYBRID_C_WINDOW_RAM` | `cfg/encounter-director.cfg` | `start = $B600, size = $0600, type = ro, file = %O` — the Director link's half (owner decision X; `$A000, size = $1C1A` before it) |
+| `HYBRID_C_WINDOW_RAM` | `cfg/encounter-director.cfg` | `start = $AE00, size = $0E00, type = ro, file = %O` — the Director link's half (Q-1, 2026-09-23; `$B600, size = $0600` under owner decision X; `$A000, size = $1C1A` before it) |
 | `HYBRID_C_WINDOW_GUARD` | same | `start = $BC1A, size = $0006, type = ro, file = ""` — reserved, no segment loads there |
 | `HYBRID_ASM_WINDOW`, `HYBRID_C_WINDOW`, `HYBRID_C_WINDOW_RODATA` | same | `load = HYBRID_C_WINDOW_RAM, type = ro` — the last MEMORY area in the config, so their bytes close `encounter-director-combined.bin` |
 | ld65 assert | `src/hybrid/c-asm-abi.s` | `__HYBRID_C_WINDOW_RAM_LAST__ <= $BC00`, `lderror`, `"HYBRID_C_WINDOW reaches the sector reader BSS at $BC00"` — the real upper neighbour, plus `__HYBRID_C_WINDOW_GUARD_START__ = $BC1A` |

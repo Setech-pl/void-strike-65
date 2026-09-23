@@ -95,7 +95,9 @@ test("C EnemyArchetype is a compact exact Raider record in legal extension place
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
     ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 883 });
   const window = manifest.residentCapacity.basicWindow;
-  assert.equal(window.address, 0xb600, "the Light C lives in the code window");
+  // Q-1 (owner, 2026-09-23): the window starts at $AE00, not $B600 - the level
+  // buffer gave back 16 sectors and the window took them.
+  assert.equal(window.address, 0xae00, "the Light C lives in the code window");
   assert.ok(window.usedBytes > 0 && window.usedBytes <= window.capacityBytes,
     `HYBRID_C_WINDOW holds ${window.usedBytes} of ${window.capacityBytes} B`);
   // 4.3 step 5: the drain clause left sector_c_update_first_capital for the

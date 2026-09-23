@@ -410,10 +410,10 @@ hostile_weapon_visual_glyphs:
 .segment "HYBRID_C_ARENA_RODATA"
 
 ; Owner decision B (2026-09-20) opened the RAM under the BASIC ROM,
-; $A000-$BC1F = 7,200 B. Owner decision X (2026-09-21) divides it: the sector
-; reader owns $A000-$A5FF, its 32-sector level buffer $A600-$B5FF and its BSS
-; $BC00-$BC19, and the Director link owns exactly $B600-$BBFF, 1,536 B, as
-; HYBRID_C_WINDOW_RAM. The window's real upper neighbour is therefore the
+; $A000-$BC1F = 7,200 B. Owner decision X (2026-09-21) divides it, and Q-1
+; (2026-09-23) moves the division down: the sector reader owns $A000-$A5FF, its
+; 16-sector level buffer $A600-$ADFF and its BSS $BC00-$BC19, and the Director
+; link owns exactly $AE00-$BBFF, 3,584 B, as HYBRID_C_WINDOW_RAM. The window's real upper neighbour is therefore the
 ; reader BSS at $BC00, and that is what the named assert below checks; the six
 ; bytes at $BC1A remain reserved so nothing can reach the OS screen at $BC20.
 ; Light multiplicity: the SoA slot state sits between the A2 display lists and

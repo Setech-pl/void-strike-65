@@ -202,15 +202,21 @@ const glueHoldingAddress = 0x8100;
 const basicWindowAddress = 0xa000;
 const basicWindowGuardAddress = 0xbc1a;
 // Roadmap 4.3 window layout, as owner decision X (2026-09-21) divides it: the
-// reader owns $A000-$A5FF, the level buffer $A600-$B5FF (32 sectors of 128 B)
-// and the reader BSS $BC00-$BC19; the Director link owns $B600-$BBFF as
+// reader owns $A000-$A5FF, the level buffer $A600-$ADFF (16 sectors of 128 B)
+// and the reader BSS $BC00-$BC19; the Director link owns $AE00-$BBFF as
 // HYBRID_C_WINDOW; the six-byte window guard at $BC1A stays untouched.
 // cfg/sector-reader.cfg and cfg/encounter-director.cfg are the other halves of
 // this contract.
 const sectorReaderAddress = 0xa000;
 const levelBufferAddress = 0xa600;
 const sectorReaderCapacityBytes = levelBufferAddress - sectorReaderAddress;
-const levelBufferSectors = 32;
+// Q-1, owner decision 2026-09-23 (docs/plans/director-4.6.md §3.1, §11 item 2):
+// 16 sectors, 2,048 B. A level image is 13 sectors at its worst - header and
+// gameplay music 5, hull block 3, LevelDef core 2, payload 2, HullGeometry 1 -
+// so 3 sectors stay spare and the 2,048 B the buffer gave back go to the
+// Director link's window, which is where roadmap 4.6's code has to live.
+// Owner decision X (2026-09-21) had made it 32, from 44.
+const levelBufferSectors = 16;
 const levelBufferCapacityBytes = levelBufferSectors * 128;
 const hybridWindowAddress = levelBufferAddress + levelBufferCapacityBytes;
 const hybridWindowEndExclusive = 0xbc00;
@@ -932,8 +938,9 @@ async function buildHybridDirectorModule(fighterWeaponsInclude) {
       `${hybridArenaCapacityBytes} B at $7BD0-$7F0F with a non-empty ca65 anchor first`);
   }
   // Owner decision B: the window region and its six-byte guard are fixed.
-  // Owner decision X: the Director link's share of decision B's window is
-  // exactly $B600-$BBFF. Its real upper neighbour is the reader BSS at $BC00
+  // Owner decision X, re-sized by Q-1 (2026-09-23): the Director link's share
+  // of decision B's window is exactly $AE00-$BBFF. Its upper neighbour is the
+  // reader BSS at $BC00
   // (cfg/sector-reader.cfg), not the $BC1A guard; the guard is still checked
   // because it is what keeps the OS screen at $BC20 out of reach.
   const basicWindowMemoryStart = parsedLabels.get("__HYBRID_C_WINDOW_RAM_START__");
@@ -948,7 +955,8 @@ async function buildHybridDirectorModule(fighterWeaponsInclude) {
     basicWindowBytes > basicWindowMemorySize) {
     throw new Error(`HYBRID_C_WINDOW is ${basicWindowBytes} B at ` +
       `$${(basicWindowMemoryStart ?? 0).toString(16)}; the window is ` +
-      `${hybridWindowCapacityBytes} B at $B600-$BBFF, below the sector reader BSS at ` +
+      `${hybridWindowCapacityBytes} B at $${hybridWindowAddress.toString(16)}-` +
+      `$${(hybridWindowEndExclusive - 1).toString(16)}, below the sector reader BSS at ` +
       `$BC00, with a 6-B guard at $BC1A-$BC1F`);
   }
   const abiStagingMatch = /^DIRECTOR_LOW_STAGING = \$([0-9A-Fa-f]{4})$/m.exec(abiSource.toString("utf8"));
@@ -1368,7 +1376,8 @@ async function build() {
   if (!Number.isInteger(windowCEnd) || windowCEnd < hybridWindowAddress ||
     windowCEnd > hybridWindowEndExclusive) {
     throw new Error(`the Director link's window half ends at ` +
-      `$${(windowCEnd ?? 0).toString(16)}, outside $B600-$BBFF`);
+      `$${(windowCEnd ?? 0).toString(16)}, outside $${hybridWindowAddress.toString(16)}-` +
+      `$${(hybridWindowEndExclusive - 1).toString(16)}`);
   }
   const lightKernelAddress = windowCEnd;
   const directorAbiInclude =
@@ -2254,7 +2263,8 @@ async function build() {
   if (basicWindowRecord !== null && (basicWindowRecord.finalDestination !== hybridWindowAddress ||
     basicWindowRecord.finalDestination + basicWindowRecord.rawLength > hybridWindowEndExclusive)) {
     throw new Error(`Owner decision X: the window record must land inside ` +
-      `$B600-$BBFF, not $${basicWindowRecord.finalDestination.toString(16)}`);
+      `$${hybridWindowAddress.toString(16)}-$${(hybridWindowEndExclusive - 1).toString(16)}, ` +
+      `not $${basicWindowRecord.finalDestination.toString(16)}`);
   }
   // Owner decision X replaces 4.3's "the reader owns the whole window" rule:
   // the two links now own disjoint halves, so the check is that the Director's
@@ -2901,8 +2911,8 @@ async function build() {
         endExclusive: hybridWindowEndExclusive,
         capacityBytes: hybridWindowCapacityBytes,
         guardBytes: basicWindowEndExclusive - basicWindowGuardAddress,
-        // The window carries BOTH links: the Director's window half at
-        // $B600 and the Light ASM kernel's own link above it. Counting only
+        // The window carries BOTH links: the Director's window half at the
+        // window base and the Light ASM kernel's own link above it. Counting only
         // the Director half reported the whole Light kernel as free space
         // (735 B against a real 27 B). The free figure below is the window's,
         // and equals lightKernel.freeBytes because the kernel link closes it.
@@ -2913,7 +2923,9 @@ async function build() {
           (directorModule.basicWindowBytes + lightKernelModule.raw.length),
         availability: "unconditional: disable_basic_rom forces PORTB bit 1 and writes " +
           "BASICF at every stage-2 entry",
-        boundedBy: { below: `${levelBufferSectors}-sector level buffer $A600-$B5FF`,
+        boundedBy: { below: `${levelBufferSectors}-sector level buffer ` +
+            `$${levelBufferAddress.toString(16).toUpperCase()}-` +
+            `$${(hybridWindowAddress - 1).toString(16).toUpperCase()}`,
           above: "sector reader BSS $BC00-$BC19, then the guard and the OS screen " +
             "$BC20-$BFFF (RAMTOP $C0 when BASIC is disabled at coldstart)" },
         guard: "HYBRID_C_WINDOW_GUARD $BC1A-$BC1F, reserved with no segment, plus the ld65 " +
@@ -2929,8 +2941,10 @@ async function build() {
           packedBytes: basicWindowRecord.packedLength,
           paddingBytes: basicWindowChunk.sectors * 128 - basicWindowRecord.packedLength -
             chunkLoaderConstants.chunkFooterBytes,
-          landing: "direct: ATR stage 2 decodes it to $B600 after disable_basic_rom; the XEX " +
-            "block loads at $B600 after the INITAD record has called disable_basic_rom",
+          landing: `direct: ATR stage 2 decodes it to ` +
+            `$${hybridWindowAddress.toString(16).toUpperCase()} after disable_basic_rom; the ` +
+            `XEX block loads at $${hybridWindowAddress.toString(16).toUpperCase()} after the ` +
+            "INITAD record has called disable_basic_rom",
         },
       },
       pickupRecordPackedBytes: {

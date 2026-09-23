@@ -4,9 +4,10 @@ const MANIFEST_HEADER_BYTES = 12;
 const MANIFEST_RECORD_BYTES = 16;
 const MANIFEST_CRC_BYTES = 2;
 // Owner decision B (2026-09-20) added a ninth slot; owner decision X
-// (2026-09-21) a tenth and an eleventh, because the code window at $B600 is
-// filled by TWO links - the Director link's Light C and the Light ASM kernel's
-// own link - and each travels as its own record. The cap is mirrored by CHUNK_MAX_COUNT in src/main.s;
+// (2026-09-21) a tenth and an eleventh, because the code window (at $AE00
+// since Q-1, 2026-09-23; $B600 before it) is filled by TWO links - the
+// Director link's Light C and the Light ASM kernel's own link - and each
+// travels as its own record. The cap is mirrored by CHUNK_MAX_COUNT in src/main.s;
 // MEASURED at the 8 -> 9 step, each slot costs exactly 16 B of the stage-2
 // manifest reservation inside the transient $21C1-$29C0 overlay.
 const MAX_CHUNKS = 11;

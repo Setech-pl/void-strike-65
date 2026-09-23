@@ -41,7 +41,7 @@
 ; The two halves cannot overlap and the ASM half cannot reach the sector
 ; reader's BSS. Both are link errors, not runtime surprises.
 .assert __LIGHT_KERNEL_RUN__ = HYBRID_ASM_WINDOW_BASE, lderror, "the Light kernel must start where the Director link's window half ends"
-.assert __LIGHT_KERNEL_RUN__ >= $B600, lderror, "the Light kernel must start inside the code window"
+.assert __LIGHT_KERNEL_RUN__ >= $AE00, lderror, "the Light kernel must start inside the code window"
 .assert __LIGHT_KERNEL_RAM_LAST__ <= HYBRID_C_WINDOW_LIMIT, lderror, "the Light kernel reaches the sector reader BSS at $BC00"
 
 LIGHT_WIDTH_HPOS = 8

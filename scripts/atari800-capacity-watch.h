@@ -50,9 +50,9 @@
 #define DFCAP_MAX_STAGES 3u
 #define DFCAP_STAGE_MAX_BYTES 1032u
 #define DFCAP_RANGE_MAX_BYTES 4096u
-/* Owner decision X (2026-09-21): HYBRID_C_WINDOW is 1,536 B at $B600-$BBFF,
-   and the whole window is watched in one run. */
-#define DFCAP_WINDOW_MAX_BYTES 1536u
+/* Owner decision X (2026-09-21), re-sized by Q-1 (2026-09-23): HYBRID_C_WINDOW
+   is 3,584 B at $AE00-$BBFF, and the whole window is watched in one run. */
+#define DFCAP_WINDOW_MAX_BYTES 3584u
 
 typedef struct DFCapWrite {
 	unsigned range;

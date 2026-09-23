@@ -238,9 +238,9 @@ test("resident compaction proof survives and Spread Shot leaves at least 64 sour
 });
 
 // Owner decision B (2026-09-20) opened the RAM under the BASIC ROM; owner
-// decision X (2026-09-21) divided it - the reader keeps $A000-$B5FF and
-// $BC00-$BC19, the Director link owns $B600-$BBFF as HYBRID_C_WINDOW, home of
-// the Light kernel. REBASELINED from the decision-B shape ($A000, 7,194 B,
+// decision X (2026-09-21) divided it and Q-1 (owner, 2026-09-23) moved the
+// division down - the reader keeps $A000-$ADFF and $BC00-$BC19, the Director
+// link owns $AE00-$BBFF as HYBRID_C_WINDOW, home of the Light kernel. REBASELINED from the decision-B shape ($A000, 7,194 B,
 // "the Director link must never place bytes in the window") for that reason.
 // What is worth freezing is the division, the guard, the loader bound and the
 // ca65 assert that makes an overrun a link error.
@@ -249,7 +249,7 @@ test("the code window is declared, guarded and addressable by the build", () => 
   const window = manifest.residentCapacity.basicWindow;
   assert.deepEqual([window.address, window.guardAddress, window.endExclusive,
     window.capacityBytes, window.guardBytes],
-  [0xb600, 0xbc1a, 0xbc00, 1536, 6]);
+  [0xae00, 0xbc1a, 0xbc00, 3584, 6]);
   assert.equal(window.usedBytes + window.freeBytes, window.capacityBytes);
   assert.ok(window.address >= manifest.sectorReader.levelBuffer.address +
     manifest.sectorReader.levelBuffer.capacityBytes,
@@ -262,9 +262,10 @@ test("the code window is declared, guarded and addressable by the build", () => 
   const reader = manifest.sectorReader;
   assert.equal(reader.address, 0xa000);
   assert.equal(reader.levelBuffer.address, 0xa600);
-  // Owner decision X: 32 sectors, not 44.
-  assert.equal(reader.levelBuffer.sectors, 32);
-  assert.equal(reader.levelBuffer.capacityBytes, 32 * 128);
+  // Q-1 (owner, 2026-09-23): 16 sectors - 13 used by the level image, 3 spare.
+  // Owner decision X had made it 32, from 44.
+  assert.equal(reader.levelBuffer.sectors, 16);
+  assert.equal(reader.levelBuffer.capacityBytes, 16 * 128);
   assert.ok(reader.address + reader.bytes <= reader.levelBuffer.address,
     "the reader must not reach into the level buffer");
   assert.ok(reader.levelBuffer.address + reader.levelBuffer.capacityBytes <= 0xbc00,
@@ -272,7 +273,7 @@ test("the code window is declared, guarded and addressable by the build", () => 
 
   const config = fs.readFileSync(path.join(rootDirectory, "cfg", "encounter-director.cfg"), "utf8");
   assert.match(config,
-    /^ {2}HYBRID_C_WINDOW_RAM: start = \$B600, size = \$0600, type = ro, file = %O, define = yes;$/m);
+    /^ {2}HYBRID_C_WINDOW_RAM: start = \$AE00, size = \$0E00, type = ro, file = %O, define = yes;$/m);
   assert.match(config,
     /^ {2}HYBRID_C_WINDOW_GUARD: start = \$BC1A, size = \$0006, type = ro, file = "", define = yes;$/m);
   for (const segment of ["HYBRID_ASM_WINDOW", "HYBRID_C_WINDOW", "HYBRID_C_WINDOW_RODATA"]) {
@@ -282,10 +283,10 @@ test("the code window is declared, guarded and addressable by the build", () => 
   const readerConfig =
     fs.readFileSync(path.join(rootDirectory, "cfg", "sector-reader.cfg"), "utf8");
   assert.match(readerConfig,
-    /^ {4}LEVEL_BUFFER_RAM: {3}start = \$A600, size = \$1000, type = rw, file = "", define = yes;$/m);
+    /^ {4}LEVEL_BUFFER_RAM: {3}start = \$A600, size = \$0800, type = rw, file = "", define = yes;$/m);
   const readerSource =
     fs.readFileSync(path.join(rootDirectory, "src", "hybrid", "sector-reader.s"), "utf8");
-  assert.match(readerSource, /^MAX_LEVEL_SECTORS = 32 /m);
+  assert.match(readerSource, /^MAX_LEVEL_SECTORS = 16 /m);
 
   const abi = fs.readFileSync(path.join(rootDirectory, "src", "hybrid", "c-asm-abi.s"), "utf8");
   // The real upper neighbour is the reader BSS at $BC00, not the $BC1A guard;

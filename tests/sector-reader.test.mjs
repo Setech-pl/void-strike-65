@@ -470,12 +470,13 @@ test("directory: a level the build never placed is rejected without touching SIO
   assert.equal(stub.commandFrames.length, 0);
 });
 
-// Owner decision X (2026-09-21): the level buffer is 32 sectors (4,096 B), not
-// 44; $B600-$BBFF now belongs to HYBRID_C_WINDOW. The bound is what stops a
-// directory entry from writing the reader's own neighbours, so gate it rather
-// than infer it from the constant.
-test("directory: a level claiming more than 32 sectors is rejected before SIO", () => {
-  for (const sectors of [33, 44, 45, 255]) {
+// Owner decision X (2026-09-21) made the level buffer 32 sectors, not 44; Q-1
+// (owner, 2026-09-23) makes it **16** sectors (2,048 B), and $AE00-$BBFF now
+// belongs to HYBRID_C_WINDOW. The bound is what stops a directory entry from
+// writing the reader's own neighbours, so gate it rather than infer it from
+// the constant.
+test("directory: a level claiming more than 16 sectors is rejected before SIO", () => {
+  for (const sectors of [17, 32, 33, 44, 45, 255]) {
     const stub = new PokeyStub({ respond: () => { throw new Error("SIO was touched"); } });
     const result = runLoad(stub, { directorySectors: sectors });
     assert.equal(result.status, status.BAD_IMAGE, `${sectors} sectors`);
@@ -484,14 +485,14 @@ test("directory: a level claiming more than 32 sectors is rejected before SIO", 
   }
 });
 
-test("directory: a level of exactly 32 sectors still reaches the wire", () => {
+test("directory: a level of exactly 16 sectors still reaches the wire", () => {
   const stub = new PokeyStub({ respond: () => [] });
-  const result = runLoad(stub, { directorySectors: 32 });
+  const result = runLoad(stub, { directorySectors: 16 });
   // The stub answers nothing, so the read fails on the wire - but it is a WIRE
   // failure, which proves the sector count passed the bound instead of being
   // refused as BAD_IMAGE before a single command frame was sent.
   assert.notEqual(result.status, status.BAD_IMAGE);
-  assert.ok(stub.commandFrames.length > 0, "32 sectors must not be refused before SIO");
+  assert.ok(stub.commandFrames.length > 0, "16 sectors must not be refused before SIO");
 });
 
 test("directory: level id 0 and 17 are rejected", () => {

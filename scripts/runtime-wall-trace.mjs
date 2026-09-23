@@ -1757,8 +1757,9 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
   // Owner decision X (2026-09-21): the window carries the Light kernel now,
   // not the retired 16-byte inert probe, so the image is hundreds of bytes and
   // the read-back compares its HEAD. The proof is unchanged - those 16 bytes
-  // are real code at $B600, and they are only there if the record landed in
-  // RAM - and it now also fails if the record's first bytes are wrong.
+  // are real code at the window base ($AE00 since Q-1, 2026-09-23; $B600
+  // before it), and they are only there if the record landed in RAM - and it
+  // now also fails if the record's first bytes are wrong.
   const basicWindow = manifest.residentCapacity?.basicWindow ?? null;
   invariant(basicWindow !== null && Number.isInteger(basicWindow.address),
     "Boot smoke needs the manifest's window accounting");

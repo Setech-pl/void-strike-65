@@ -1,0 +1,8828 @@
+{
+  "format": "void-strike-65-level-timeline-v1",
+  "buildDirectory": "build",
+  "frames": 9000,
+  "runs": [
+    {
+      "format": "void-strike-65-level-timeline-v1",
+      "buildDirectory": "build",
+      "director": "cc65-c",
+      "difficulty": 0,
+      "frames": 9000,
+      "killPolicy": true,
+      "finalRow": 3600,
+      "finalSectorState": 7,
+      "finalFlags": 64,
+      "completeFrame": null,
+      "heavySpawns": [
+        {
+          "frame": 1,
+          "row": 0,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 76,
+          "row": 30,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 153,
+          "row": 61,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 228,
+          "row": 91,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 305,
+          "row": 122,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 380,
+          "row": 152,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 457,
+          "row": 182,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 532,
+          "row": 212,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 1965,
+          "row": 786,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 2040,
+          "row": 816,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 2117,
+          "row": 846,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 2192,
+          "row": 876,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 2269,
+          "row": 907,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 2344,
+          "row": 937,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 2421,
+          "row": 968,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 2496,
+          "row": 998,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 2573,
+          "row": 1029,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 2648,
+          "row": 1059,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 2725,
+          "row": 1090,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 2800,
+          "row": 1120,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 2877,
+          "row": 1150,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 2952,
+          "row": 1180,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 3029,
+          "row": 1211,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 3104,
+          "row": 1241,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 3181,
+          "row": 1272,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 3256,
+          "row": 1302,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 3333,
+          "row": 1333,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 3408,
+          "row": 1363,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 3485,
+          "row": 1394,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 3560,
+          "row": 1424,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 3637,
+          "row": 1454,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 3712,
+          "row": 1484,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 3789,
+          "row": 1515,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 3864,
+          "row": 1545,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 3941,
+          "row": 1576,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 4016,
+          "row": 1606,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 4093,
+          "row": 1637,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 4266,
+          "row": 1706,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 4343,
+          "row": 1737,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 4418,
+          "row": 1767,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 4495,
+          "row": 1798,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 4570,
+          "row": 1828,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 4647,
+          "row": 1858,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 4722,
+          "row": 1888,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 4799,
+          "row": 1919,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 4874,
+          "row": 1949,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 4951,
+          "row": 1980,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 5026,
+          "row": 2010,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 5103,
+          "row": 2041,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 5178,
+          "row": 2071,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 5255,
+          "row": 2102,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 5330,
+          "row": 2132,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 5407,
+          "row": 2162,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 5482,
+          "row": 2192,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 5559,
+          "row": 2223,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 5634,
+          "row": 2253,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 5711,
+          "row": 2284,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 5786,
+          "row": 2314,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 5863,
+          "row": 2345,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 5938,
+          "row": 2375,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 6015,
+          "row": 2406,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 6090,
+          "row": 2436,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 6167,
+          "row": 2466,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 6242,
+          "row": 2496,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 6319,
+          "row": 2527,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 6394,
+          "row": 2557,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 6471,
+          "row": 2588,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 6546,
+          "row": 2618,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 6623,
+          "row": 2649,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 6698,
+          "row": 2679,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 6775,
+          "row": 2710,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 6850,
+          "row": 2740,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 6976,
+          "row": 2790,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 7051,
+          "row": 2820,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 7128,
+          "row": 2851,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 7203,
+          "row": 2881,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 7280,
+          "row": 2912,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 7355,
+          "row": 2942,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 7432,
+          "row": 2972,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 7507,
+          "row": 3002,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 7584,
+          "row": 3033,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 7659,
+          "row": 3063,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 7736,
+          "row": 3094,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 7811,
+          "row": 3124,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 7888,
+          "row": 3155,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 7963,
+          "row": 3185,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 8040,
+          "row": 3216,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 8115,
+          "row": 3246,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 8192,
+          "row": 3276,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 8267,
+          "row": 3306,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 8344,
+          "row": 3337,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 8419,
+          "row": 3367,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 8496,
+          "row": 3398,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 8571,
+          "row": 3428,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 8648,
+          "row": 3459,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 8723,
+          "row": 3489,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 8800,
+          "row": 3520,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 8875,
+          "row": 3550,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 8952,
+          "row": 3580,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        }
+      ],
+      "lightSpawns": [
+        {
+          "frame": 1,
+          "row": 0,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 153,
+          "row": 61,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 305,
+          "row": 122,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 457,
+          "row": 182,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 1965,
+          "row": 786,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 2117,
+          "row": 846,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 2269,
+          "row": 907,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 2421,
+          "row": 968,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 2573,
+          "row": 1029,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 2725,
+          "row": 1090,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 2877,
+          "row": 1150,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 3029,
+          "row": 1211,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 3181,
+          "row": 1272,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 3333,
+          "row": 1333,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 3485,
+          "row": 1394,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 3637,
+          "row": 1454,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 3789,
+          "row": 1515,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 3941,
+          "row": 1576,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 4093,
+          "row": 1637,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 4343,
+          "row": 1737,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 4495,
+          "row": 1798,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 4647,
+          "row": 1858,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 4799,
+          "row": 1919,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 4951,
+          "row": 1980,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 5103,
+          "row": 2041,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 5255,
+          "row": 2102,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 5407,
+          "row": 2162,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 5559,
+          "row": 2223,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 5711,
+          "row": 2284,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 5863,
+          "row": 2345,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 6015,
+          "row": 2406,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 6167,
+          "row": 2466,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 6319,
+          "row": 2527,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 6471,
+          "row": 2588,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 6623,
+          "row": 2649,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 6775,
+          "row": 2710,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 6976,
+          "row": 2790,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 7128,
+          "row": 2851,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 7280,
+          "row": 2912,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 7432,
+          "row": 2972,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 7584,
+          "row": 3033,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 7736,
+          "row": 3094,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 7888,
+          "row": 3155,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 8040,
+          "row": 3216,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 8192,
+          "row": 3276,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 8344,
+          "row": 3337,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 8496,
+          "row": 3398,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 8648,
+          "row": 3459,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 8800,
+          "row": 3520,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 8952,
+          "row": 3580,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        }
+      ],
+      "sectorTransitions": [
+        {
+          "frame": 600,
+          "row": 240,
+          "from": 7,
+          "to": 0
+        },
+        {
+          "frame": 678,
+          "row": 271,
+          "from": 0,
+          "to": 1
+        },
+        {
+          "frame": 878,
+          "row": 351,
+          "from": 1,
+          "to": 2
+        },
+        {
+          "frame": 1518,
+          "row": 607,
+          "from": 2,
+          "to": 3
+        },
+        {
+          "frame": 1718,
+          "row": 687,
+          "from": 3,
+          "to": 4
+        },
+        {
+          "frame": 1818,
+          "row": 727,
+          "from": 4,
+          "to": 5
+        },
+        {
+          "frame": 1888,
+          "row": 755,
+          "from": 5,
+          "to": 6
+        },
+        {
+          "frame": 1955,
+          "row": 782,
+          "from": 6,
+          "to": 7
+        }
+      ],
+      "killCount": 247
+    },
+    {
+      "format": "void-strike-65-level-timeline-v1",
+      "buildDirectory": "build",
+      "director": "cc65-c",
+      "difficulty": 1,
+      "frames": 9000,
+      "killPolicy": true,
+      "finalRow": 4050,
+      "finalSectorState": 6,
+      "finalFlags": 65,
+      "completeFrame": {
+        "frame": 8249,
+        "row": 3712
+      },
+      "heavySpawns": [
+        {
+          "frame": 1,
+          "row": 0,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 64,
+          "row": 28,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 129,
+          "row": 58,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 192,
+          "row": 86,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 257,
+          "row": 115,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 320,
+          "row": 144,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 385,
+          "row": 173,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 448,
+          "row": 201,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 513,
+          "row": 230,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 576,
+          "row": 259,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 1846,
+          "row": 830,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 1909,
+          "row": 859,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 1974,
+          "row": 888,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 2037,
+          "row": 916,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 2102,
+          "row": 945,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 2165,
+          "row": 974,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 2230,
+          "row": 1003,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 2293,
+          "row": 1031,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 2358,
+          "row": 1061,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 2421,
+          "row": 1089,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 2486,
+          "row": 1118,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 2549,
+          "row": 1147,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 2614,
+          "row": 1176,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 2677,
+          "row": 1204,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 2742,
+          "row": 1233,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 2805,
+          "row": 1262,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 2870,
+          "row": 1291,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 2933,
+          "row": 1319,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 2998,
+          "row": 1349,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 3061,
+          "row": 1377,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 3126,
+          "row": 1406,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 3189,
+          "row": 1435,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 3254,
+          "row": 1464,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 3317,
+          "row": 1492,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 3382,
+          "row": 1521,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 3445,
+          "row": 1550,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 3510,
+          "row": 1579,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 3573,
+          "row": 1607,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 3638,
+          "row": 1637,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 3738,
+          "row": 1682,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 3803,
+          "row": 1711,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 3866,
+          "row": 1739,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 3931,
+          "row": 1768,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 3994,
+          "row": 1797,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 4059,
+          "row": 1826,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 4122,
+          "row": 1854,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 4187,
+          "row": 1884,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 4250,
+          "row": 1912,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 4315,
+          "row": 1941,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 4378,
+          "row": 1970,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 4443,
+          "row": 1999,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 4506,
+          "row": 2027,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 4571,
+          "row": 2056,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 4634,
+          "row": 2085,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 4699,
+          "row": 2114,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 4762,
+          "row": 2142,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 4827,
+          "row": 2172,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 4890,
+          "row": 2200,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 4955,
+          "row": 2229,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 5018,
+          "row": 2258,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 5083,
+          "row": 2287,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 5146,
+          "row": 2315,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 5211,
+          "row": 2344,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 5274,
+          "row": 2373,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 5339,
+          "row": 2402,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 5402,
+          "row": 2430,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 5467,
+          "row": 2460,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 5530,
+          "row": 2488,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 5595,
+          "row": 2517,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 5658,
+          "row": 2546,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 5723,
+          "row": 2575,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 5786,
+          "row": 2603,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 5851,
+          "row": 2632,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 5914,
+          "row": 2661,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 5979,
+          "row": 2690,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 6042,
+          "row": 2718,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 6107,
+          "row": 2748,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 6207,
+          "row": 2793,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 6272,
+          "row": 2822,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 6335,
+          "row": 2850,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 6400,
+          "row": 2880,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 6463,
+          "row": 2908,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 6528,
+          "row": 2937,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 6591,
+          "row": 2965,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 6656,
+          "row": 2995,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 6719,
+          "row": 3023,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 6784,
+          "row": 3052,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 6847,
+          "row": 3081,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 6912,
+          "row": 3110,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 6975,
+          "row": 3138,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 7040,
+          "row": 3168,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 7103,
+          "row": 3196,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 7168,
+          "row": 3225,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 7231,
+          "row": 3253,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 7296,
+          "row": 3283,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 7359,
+          "row": 3311,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 7424,
+          "row": 3340,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 7487,
+          "row": 3369,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 7552,
+          "row": 3398,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 7615,
+          "row": 3426,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 7680,
+          "row": 3456,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 7743,
+          "row": 3484,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 7808,
+          "row": 3513,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 7871,
+          "row": 3541,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 7936,
+          "row": 3571,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 7999,
+          "row": 3599,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 8064,
+          "row": 3628,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 8127,
+          "row": 3657,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 8192,
+          "row": 3686,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        }
+      ],
+      "lightSpawns": [
+        {
+          "frame": 1,
+          "row": 0,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 129,
+          "row": 58,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 257,
+          "row": 115,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 385,
+          "row": 173,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 513,
+          "row": 230,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 1846,
+          "row": 830,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 1974,
+          "row": 888,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 2102,
+          "row": 945,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 2230,
+          "row": 1003,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 2358,
+          "row": 1061,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 2486,
+          "row": 1118,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 2614,
+          "row": 1176,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 2742,
+          "row": 1233,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 2870,
+          "row": 1291,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 2998,
+          "row": 1349,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 3126,
+          "row": 1406,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 3254,
+          "row": 1464,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 3382,
+          "row": 1521,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 3510,
+          "row": 1579,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 3638,
+          "row": 1637,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 3803,
+          "row": 1711,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 3931,
+          "row": 1768,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 4059,
+          "row": 1826,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 4187,
+          "row": 1884,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 4315,
+          "row": 1941,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 4443,
+          "row": 1999,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 4571,
+          "row": 2056,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 4699,
+          "row": 2114,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 4827,
+          "row": 2172,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 4955,
+          "row": 2229,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 5083,
+          "row": 2287,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 5211,
+          "row": 2344,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 5339,
+          "row": 2402,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 5467,
+          "row": 2460,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 5595,
+          "row": 2517,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 5723,
+          "row": 2575,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 5851,
+          "row": 2632,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 5979,
+          "row": 2690,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 6107,
+          "row": 2748,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 6272,
+          "row": 2822,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 6400,
+          "row": 2880,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 6528,
+          "row": 2937,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 6656,
+          "row": 2995,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 6784,
+          "row": 3052,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 6912,
+          "row": 3110,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 7040,
+          "row": 3168,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 7168,
+          "row": 3225,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 7296,
+          "row": 3283,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 7424,
+          "row": 3340,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 7552,
+          "row": 3398,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 7680,
+          "row": 3456,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 7808,
+          "row": 3513,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 7936,
+          "row": 3571,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 8064,
+          "row": 3628,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 8192,
+          "row": 3686,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        }
+      ],
+      "sectorTransitions": [
+        {
+          "frame": 605,
+          "row": 272,
+          "from": 7,
+          "to": 0
+        },
+        {
+          "frame": 674,
+          "row": 303,
+          "from": 0,
+          "to": 1
+        },
+        {
+          "frame": 852,
+          "row": 383,
+          "from": 1,
+          "to": 2
+        },
+        {
+          "frame": 1420,
+          "row": 639,
+          "from": 2,
+          "to": 3
+        },
+        {
+          "frame": 1598,
+          "row": 719,
+          "from": 3,
+          "to": 4
+        },
+        {
+          "frame": 1687,
+          "row": 759,
+          "from": 4,
+          "to": 5
+        },
+        {
+          "frame": 1749,
+          "row": 787,
+          "from": 5,
+          "to": 6
+        },
+        {
+          "frame": 1809,
+          "row": 814,
+          "from": 6,
+          "to": 7
+        },
+        {
+          "frame": 8249,
+          "row": 3712,
+          "from": 7,
+          "to": 5
+        },
+        {
+          "frame": 8250,
+          "row": 3712,
+          "from": 5,
+          "to": 6
+        }
+      ],
+      "killCount": 273
+    },
+    {
+      "format": "void-strike-65-level-timeline-v1",
+      "buildDirectory": "build",
+      "director": "cc65-c",
+      "difficulty": 2,
+      "frames": 9000,
+      "killPolicy": true,
+      "finalRow": 4500,
+      "finalSectorState": 6,
+      "finalFlags": 65,
+      "completeFrame": {
+        "frame": 7424,
+        "row": 3712
+      },
+      "heavySpawns": [
+        {
+          "frame": 1,
+          "row": 0,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 52,
+          "row": 26,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 105,
+          "row": 52,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 156,
+          "row": 78,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 209,
+          "row": 104,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 260,
+          "row": 130,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 313,
+          "row": 156,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 364,
+          "row": 182,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 417,
+          "row": 208,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 468,
+          "row": 234,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 521,
+          "row": 260,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 572,
+          "row": 286,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 1711,
+          "row": 855,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 1762,
+          "row": 881,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 1815,
+          "row": 907,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 1866,
+          "row": 933,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 1919,
+          "row": 959,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 1970,
+          "row": 985,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 2023,
+          "row": 1011,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 2074,
+          "row": 1037,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 2127,
+          "row": 1063,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 2178,
+          "row": 1089,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 2231,
+          "row": 1115,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 2282,
+          "row": 1141,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 2335,
+          "row": 1167,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 2386,
+          "row": 1193,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 2439,
+          "row": 1219,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 2490,
+          "row": 1245,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 2543,
+          "row": 1271,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 2594,
+          "row": 1297,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 2647,
+          "row": 1323,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 2698,
+          "row": 1349,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 2751,
+          "row": 1375,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 2802,
+          "row": 1401,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 2855,
+          "row": 1427,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 2906,
+          "row": 1453,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 2959,
+          "row": 1479,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 3010,
+          "row": 1505,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 3063,
+          "row": 1531,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 3114,
+          "row": 1557,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 3167,
+          "row": 1583,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 3218,
+          "row": 1609,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 3271,
+          "row": 1635,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 3322,
+          "row": 1661,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 3375,
+          "row": 1687,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 3426,
+          "row": 1713,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 3479,
+          "row": 1739,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 3530,
+          "row": 1765,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 3583,
+          "row": 1791,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 3634,
+          "row": 1817,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 3687,
+          "row": 1843,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 3738,
+          "row": 1869,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 3791,
+          "row": 1895,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 3842,
+          "row": 1921,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 3895,
+          "row": 1947,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 3946,
+          "row": 1973,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 3999,
+          "row": 1999,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 4050,
+          "row": 2025,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 4103,
+          "row": 2051,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 4154,
+          "row": 2077,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 4207,
+          "row": 2103,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 4258,
+          "row": 2129,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 4311,
+          "row": 2155,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 4362,
+          "row": 2181,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 4415,
+          "row": 2207,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 4466,
+          "row": 2233,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 4519,
+          "row": 2259,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 4570,
+          "row": 2285,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 4623,
+          "row": 2311,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 4674,
+          "row": 2337,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 4727,
+          "row": 2363,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 4778,
+          "row": 2389,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 4831,
+          "row": 2415,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 4882,
+          "row": 2441,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 4935,
+          "row": 2467,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 4986,
+          "row": 2493,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 5039,
+          "row": 2519,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 5090,
+          "row": 2545,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 5143,
+          "row": 2571,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 5194,
+          "row": 2597,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 5247,
+          "row": 2623,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 5298,
+          "row": 2649,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 5351,
+          "row": 2675,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 5402,
+          "row": 2701,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 5455,
+          "row": 2727,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 5506,
+          "row": 2753,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 5559,
+          "row": 2779,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 5610,
+          "row": 2805,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 5663,
+          "row": 2831,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 5714,
+          "row": 2857,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 5767,
+          "row": 2883,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 5818,
+          "row": 2909,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 5871,
+          "row": 2935,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 5922,
+          "row": 2961,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 5975,
+          "row": 2987,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 6026,
+          "row": 3013,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 6079,
+          "row": 3039,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 6130,
+          "row": 3065,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 6183,
+          "row": 3091,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 6234,
+          "row": 3117,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 6287,
+          "row": 3143,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 6338,
+          "row": 3169,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 6391,
+          "row": 3195,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 6442,
+          "row": 3221,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 6495,
+          "row": 3247,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 6546,
+          "row": 3273,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 6599,
+          "row": 3299,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 6650,
+          "row": 3325,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 6703,
+          "row": 3351,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 6754,
+          "row": 3377,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 6807,
+          "row": 3403,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 6858,
+          "row": 3429,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 6911,
+          "row": 3455,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 6962,
+          "row": 3481,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 7015,
+          "row": 3507,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 7066,
+          "row": 3533,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 7119,
+          "row": 3559,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 7170,
+          "row": 3585,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 7223,
+          "row": 3611,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 7274,
+          "row": 3637,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        },
+        {
+          "frame": 7327,
+          "row": 3663,
+          "archetypeOffset": 0,
+          "rosterShape": 0,
+          "movementId": 0,
+          "members": [
+            {
+              "state": 1,
+              "x": 88,
+              "y": 2,
+              "hp": 1
+            },
+            {
+              "state": 1,
+              "x": 152,
+              "y": 2,
+              "hp": 1
+            }
+          ]
+        },
+        {
+          "frame": 7378,
+          "row": 3689,
+          "archetypeOffset": 36,
+          "rosterShape": 2,
+          "movementId": 3,
+          "members": [
+            {
+              "state": 1,
+              "x": 48,
+              "y": 0,
+              "hp": 4
+            },
+            {
+              "state": 1,
+              "x": 176,
+              "y": 0,
+              "hp": 4
+            }
+          ]
+        }
+      ],
+      "lightSpawns": [
+        {
+          "frame": 1,
+          "row": 0,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 105,
+          "row": 52,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 209,
+          "row": 104,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 313,
+          "row": 156,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 417,
+          "row": 208,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 521,
+          "row": 260,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 1711,
+          "row": 855,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 1815,
+          "row": 907,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 1919,
+          "row": 959,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 2023,
+          "row": 1011,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 2127,
+          "row": 1063,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 2231,
+          "row": 1115,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 2335,
+          "row": 1167,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 2439,
+          "row": 1219,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 2543,
+          "row": 1271,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 2647,
+          "row": 1323,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 2751,
+          "row": 1375,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 2855,
+          "row": 1427,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 2959,
+          "row": 1479,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 3063,
+          "row": 1531,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 3167,
+          "row": 1583,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 3271,
+          "row": 1635,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 3375,
+          "row": 1687,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 3479,
+          "row": 1739,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 3583,
+          "row": 1791,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 3687,
+          "row": 1843,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 3791,
+          "row": 1895,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 3895,
+          "row": 1947,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 3999,
+          "row": 1999,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 4103,
+          "row": 2051,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 4207,
+          "row": 2103,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 4311,
+          "row": 2155,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 4415,
+          "row": 2207,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 4519,
+          "row": 2259,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 4623,
+          "row": 2311,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 4727,
+          "row": 2363,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 4831,
+          "row": 2415,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 4935,
+          "row": 2467,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 5039,
+          "row": 2519,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 5143,
+          "row": 2571,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 5247,
+          "row": 2623,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 5351,
+          "row": 2675,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 5455,
+          "row": 2727,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 5559,
+          "row": 2779,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 5663,
+          "row": 2831,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 5767,
+          "row": 2883,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 5871,
+          "row": 2935,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 5975,
+          "row": 2987,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 6079,
+          "row": 3039,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 6183,
+          "row": 3091,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 6287,
+          "row": 3143,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 6391,
+          "row": 3195,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 6495,
+          "row": 3247,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 6599,
+          "row": 3299,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 6703,
+          "row": 3351,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 6807,
+          "row": 3403,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 6911,
+          "row": 3455,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 7015,
+          "row": 3507,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 7119,
+          "row": 3559,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 7223,
+          "row": 3611,
+          "slot": 0,
+          "archetypeOffset": 24,
+          "lightState": 2,
+          "movementId": 2,
+          "x": 124,
+          "y": 0
+        },
+        {
+          "frame": 7327,
+          "row": 3663,
+          "slot": 0,
+          "archetypeOffset": 12,
+          "lightState": 1,
+          "movementId": 1,
+          "x": 124,
+          "y": 0
+        }
+      ],
+      "sectorTransitions": [
+        {
+          "frame": 601,
+          "row": 300,
+          "from": 7,
+          "to": 0
+        },
+        {
+          "frame": 664,
+          "row": 332,
+          "from": 0,
+          "to": 1
+        },
+        {
+          "frame": 824,
+          "row": 412,
+          "from": 1,
+          "to": 2
+        },
+        {
+          "frame": 1336,
+          "row": 668,
+          "from": 2,
+          "to": 3
+        },
+        {
+          "frame": 1496,
+          "row": 748,
+          "from": 3,
+          "to": 4
+        },
+        {
+          "frame": 1576,
+          "row": 788,
+          "from": 4,
+          "to": 5
+        },
+        {
+          "frame": 1632,
+          "row": 816,
+          "from": 5,
+          "to": 6
+        },
+        {
+          "frame": 1686,
+          "row": 843,
+          "from": 6,
+          "to": 7
+        },
+        {
+          "frame": 7424,
+          "row": 3712,
+          "from": 7,
+          "to": 5
+        },
+        {
+          "frame": 7425,
+          "row": 3712,
+          "from": 5,
+          "to": 6
+        }
+      ],
+      "killCount": 305
+    }
+  ]
+}

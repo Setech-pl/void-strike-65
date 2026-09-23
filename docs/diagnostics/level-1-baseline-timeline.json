@@ -1,0 +1,813 @@
+{
+  "format": "void-strike-65-level-1-baseline-timeline-v1",
+  "recorded": "2026-09-23",
+  "source": {
+    "tool": "scripts/runtime-wall-trace.mjs --only-session=director-complete-1-natural-sweep-fire0",
+    "csv": "build/runtime-wall-trace/director-complete-1-natural-sweep-fire0.csv",
+    "build": "main 28bd1e7, default release build",
+    "xex": "0b8cd967ce16b22885c79dcba77e6e04ba51842d75ed88c49374c045586debba"
+  },
+  "replay": {
+    "id": "director-complete-1-natural-sweep-fire0",
+    "difficulty": 1,
+    "policy": "sweep",
+    "fireDelay": 0,
+    "frames": 10500,
+    "holdPlayerLives": 3
+  },
+  "worldRowModel": {
+    "note": "update_starfield advances one world row every 20/rate active gameplay frames; rate = world_scroll_rates[difficulty] (8/9/10). Valid while the player is neither DYING nor GAME OVER - those frames freeze both the active clock and the row.",
+    "rate": 9,
+    "denominator": 20
+  },
+  "capital": {
+    "dueAtActiveFrame": 600,
+    "dueAtWorldRow": 270,
+    "admittedHostFrame": 689,
+    "admittedActiveFrame": 689,
+    "note": "FIRST_CAPITAL_FRAME raises CAPITAL_DUE at active frame 600; the entry then waits for sector_c_drain_clear."
+  },
+  "levelComplete": {
+    "hostFrame": 8370,
+    "worldRow": 3712,
+    "note": "BOSS_HANDOFF event 6 at row 3712 sets FLAG_COMPLETE; sector_state runs 7 -> 5 (DRAIN) -> 6 (COMPLETE)."
+  },
+  "playerDeathHostFrames": [
+    2553,
+    2979,
+    4636,
+    5302,
+    7778
+  ],
+  "heavyAdmissions": [
+    {
+      "frame": 71,
+      "active": 71,
+      "archetype": "bomber",
+      "hullColour": 200,
+      "members": [
+        {
+          "x": 48,
+          "y": 0
+        },
+        {
+          "x": 176,
+          "y": 0
+        }
+      ],
+      "directorPhase": 0
+    },
+    {
+      "frame": 225,
+      "active": 225,
+      "archetype": "raider",
+      "hullColour": 68,
+      "members": [
+        {
+          "x": 88,
+          "y": 2
+        },
+        {
+          "x": 152,
+          "y": 2
+        }
+      ],
+      "directorPhase": 0
+    },
+    {
+      "frame": 407,
+      "active": 407,
+      "archetype": "bomber",
+      "hullColour": 200,
+      "members": [
+        {
+          "x": 48,
+          "y": 0
+        },
+        {
+          "x": 176,
+          "y": 0
+        }
+      ],
+      "directorPhase": 1
+    },
+    {
+      "frame": 547,
+      "active": 547,
+      "archetype": "raider",
+      "hullColour": 68,
+      "members": [
+        {
+          "x": 88,
+          "y": 2
+        },
+        {
+          "x": 152,
+          "y": 2
+        }
+      ],
+      "directorPhase": 1
+    },
+    {
+      "frame": 1894,
+      "active": 1894,
+      "archetype": "bomber",
+      "hullColour": 200,
+      "members": [
+        {
+          "x": 48,
+          "y": 0
+        },
+        {
+          "x": 176,
+          "y": 0
+        }
+      ],
+      "directorPhase": 2
+    },
+    {
+      "frame": 2441,
+      "active": 2441,
+      "archetype": "raider",
+      "hullColour": 68,
+      "members": [
+        {
+          "x": 88,
+          "y": 2
+        },
+        {
+          "x": 152,
+          "y": 2
+        }
+      ],
+      "directorPhase": 3
+    },
+    {
+      "frame": 2518,
+      "active": 2518,
+      "archetype": "bomber",
+      "hullColour": 200,
+      "members": [
+        {
+          "x": 48,
+          "y": 0
+        },
+        {
+          "x": 176,
+          "y": 0
+        }
+      ],
+      "directorPhase": 3
+    },
+    {
+      "frame": 2747,
+      "active": 2747,
+      "archetype": "raider",
+      "hullColour": 68,
+      "members": [
+        {
+          "x": 88,
+          "y": 2
+        },
+        {
+          "x": 152,
+          "y": 2
+        }
+      ],
+      "directorPhase": 3
+    },
+    {
+      "frame": 2849,
+      "active": 2849,
+      "archetype": "bomber",
+      "hullColour": 200,
+      "members": [
+        {
+          "x": 48,
+          "y": 0
+        },
+        {
+          "x": 176,
+          "y": 0
+        }
+      ],
+      "directorPhase": 3
+    },
+    {
+      "frame": 3113,
+      "active": 3113,
+      "archetype": "raider",
+      "hullColour": 68,
+      "members": [
+        {
+          "x": 88,
+          "y": 2
+        },
+        {
+          "x": 152,
+          "y": 2
+        }
+      ],
+      "directorPhase": 3
+    },
+    {
+      "frame": 3233,
+      "active": 3233,
+      "archetype": "bomber",
+      "hullColour": 200,
+      "members": [
+        {
+          "x": 48,
+          "y": 0
+        },
+        {
+          "x": 176,
+          "y": 0
+        }
+      ],
+      "directorPhase": 3
+    },
+    {
+      "frame": 3346,
+      "active": 3346,
+      "archetype": "raider",
+      "hullColour": 68,
+      "members": [
+        {
+          "x": 88,
+          "y": 2
+        },
+        {
+          "x": 152,
+          "y": 2
+        }
+      ],
+      "directorPhase": 3
+    },
+    {
+      "frame": 3421,
+      "active": 3421,
+      "archetype": "bomber",
+      "hullColour": 200,
+      "members": [
+        {
+          "x": 48,
+          "y": 0
+        },
+        {
+          "x": 176,
+          "y": 0
+        }
+      ],
+      "directorPhase": 3
+    },
+    {
+      "frame": 3864,
+      "active": 3864,
+      "archetype": "raider",
+      "hullColour": 68,
+      "members": [
+        {
+          "x": 88,
+          "y": 2
+        },
+        {
+          "x": 152,
+          "y": 2
+        }
+      ],
+      "directorPhase": 4
+    },
+    {
+      "frame": 3960,
+      "active": 3960,
+      "archetype": "bomber",
+      "hullColour": 200,
+      "members": [
+        {
+          "x": 48,
+          "y": 0
+        },
+        {
+          "x": 176,
+          "y": 0
+        }
+      ],
+      "directorPhase": 4
+    },
+    {
+      "frame": 4128,
+      "active": 4128,
+      "archetype": "raider",
+      "hullColour": 68,
+      "members": [
+        {
+          "x": 88,
+          "y": 2
+        },
+        {
+          "x": 152,
+          "y": 2
+        }
+      ],
+      "directorPhase": 4
+    },
+    {
+      "frame": 4224,
+      "active": 4224,
+      "archetype": "bomber",
+      "hullColour": 200,
+      "members": [
+        {
+          "x": 48,
+          "y": 0
+        },
+        {
+          "x": 176,
+          "y": 0
+        }
+      ],
+      "directorPhase": 5
+    },
+    {
+      "frame": 4364,
+      "active": 4364,
+      "archetype": "raider",
+      "hullColour": 68,
+      "members": [
+        {
+          "x": 88,
+          "y": 2
+        },
+        {
+          "x": 152,
+          "y": 2
+        }
+      ],
+      "directorPhase": 5
+    },
+    {
+      "frame": 4498,
+      "active": 4498,
+      "archetype": "bomber",
+      "hullColour": 200,
+      "members": [
+        {
+          "x": 48,
+          "y": 0
+        },
+        {
+          "x": 176,
+          "y": 0
+        }
+      ],
+      "directorPhase": 5
+    },
+    {
+      "frame": 4660,
+      "active": 4660,
+      "archetype": "raider",
+      "hullColour": 68,
+      "members": [
+        {
+          "x": 88,
+          "y": 2
+        },
+        {
+          "x": 152,
+          "y": 2
+        }
+      ],
+      "directorPhase": 5
+    },
+    {
+      "frame": 4764,
+      "active": 4764,
+      "archetype": "bomber",
+      "hullColour": 200,
+      "members": [
+        {
+          "x": 48,
+          "y": 0
+        },
+        {
+          "x": 176,
+          "y": 0
+        }
+      ],
+      "directorPhase": 5
+    },
+    {
+      "frame": 5190,
+      "active": 5190,
+      "archetype": "raider",
+      "hullColour": 68,
+      "members": [
+        {
+          "x": 88,
+          "y": 2
+        },
+        {
+          "x": 152,
+          "y": 2
+        }
+      ],
+      "directorPhase": 5
+    },
+    {
+      "frame": 5270,
+      "active": 5270,
+      "archetype": "bomber",
+      "hullColour": 200,
+      "members": [
+        {
+          "x": 48,
+          "y": 0
+        },
+        {
+          "x": 176,
+          "y": 0
+        }
+      ],
+      "directorPhase": 5
+    },
+    {
+      "frame": 5645,
+      "active": 5645,
+      "archetype": "raider",
+      "hullColour": 68,
+      "members": [
+        {
+          "x": 88,
+          "y": 2
+        },
+        {
+          "x": 152,
+          "y": 2
+        }
+      ],
+      "directorPhase": 5
+    },
+    {
+      "frame": 5730,
+      "active": 5730,
+      "archetype": "bomber",
+      "hullColour": 200,
+      "members": [
+        {
+          "x": 48,
+          "y": 0
+        },
+        {
+          "x": 176,
+          "y": 0
+        }
+      ],
+      "directorPhase": 5
+    },
+    {
+      "frame": 5872,
+      "active": 5872,
+      "archetype": "raider",
+      "hullColour": 68,
+      "members": [
+        {
+          "x": 88,
+          "y": 2
+        },
+        {
+          "x": 152,
+          "y": 2
+        }
+      ],
+      "directorPhase": 5
+    },
+    {
+      "frame": 6004,
+      "active": 6004,
+      "archetype": "bomber",
+      "hullColour": 200,
+      "members": [
+        {
+          "x": 48,
+          "y": 0
+        },
+        {
+          "x": 176,
+          "y": 0
+        }
+      ],
+      "directorPhase": 5
+    },
+    {
+      "frame": 6303,
+      "active": 6303,
+      "archetype": "raider",
+      "hullColour": 68,
+      "members": [
+        {
+          "x": 88,
+          "y": 2
+        },
+        {
+          "x": 152,
+          "y": 2
+        }
+      ],
+      "directorPhase": 6
+    },
+    {
+      "frame": 6408,
+      "active": 6408,
+      "archetype": "bomber",
+      "hullColour": 200,
+      "members": [
+        {
+          "x": 48,
+          "y": 0
+        },
+        {
+          "x": 176,
+          "y": 0
+        }
+      ],
+      "directorPhase": 6
+    },
+    {
+      "frame": 6554,
+      "active": 6554,
+      "archetype": "raider",
+      "hullColour": 68,
+      "members": [
+        {
+          "x": 88,
+          "y": 2
+        },
+        {
+          "x": 152,
+          "y": 2
+        }
+      ],
+      "directorPhase": 6
+    },
+    {
+      "frame": 6679,
+      "active": 6679,
+      "archetype": "bomber",
+      "hullColour": 200,
+      "members": [
+        {
+          "x": 48,
+          "y": 0
+        },
+        {
+          "x": 176,
+          "y": 0
+        }
+      ],
+      "directorPhase": 7
+    },
+    {
+      "frame": 6826,
+      "active": 6826,
+      "archetype": "raider",
+      "hullColour": 68,
+      "members": [
+        {
+          "x": 88,
+          "y": 2
+        },
+        {
+          "x": 152,
+          "y": 2
+        }
+      ],
+      "directorPhase": 7
+    },
+    {
+      "frame": 6931,
+      "active": 6931,
+      "archetype": "bomber",
+      "hullColour": 200,
+      "members": [
+        {
+          "x": 48,
+          "y": 0
+        },
+        {
+          "x": 176,
+          "y": 0
+        }
+      ],
+      "directorPhase": 7
+    },
+    {
+      "frame": 7087,
+      "active": 7087,
+      "archetype": "raider",
+      "hullColour": 68,
+      "members": [
+        {
+          "x": 88,
+          "y": 2
+        },
+        {
+          "x": 152,
+          "y": 2
+        }
+      ],
+      "directorPhase": 7
+    },
+    {
+      "frame": 7148,
+      "active": 7148,
+      "archetype": "bomber",
+      "hullColour": 200,
+      "members": [
+        {
+          "x": 48,
+          "y": 0
+        },
+        {
+          "x": 176,
+          "y": 0
+        }
+      ],
+      "directorPhase": 7
+    },
+    {
+      "frame": 7416,
+      "active": 7416,
+      "archetype": "raider",
+      "hullColour": 68,
+      "members": [
+        {
+          "x": 88,
+          "y": 2
+        },
+        {
+          "x": 152,
+          "y": 2
+        }
+      ],
+      "directorPhase": 7
+    },
+    {
+      "frame": 7547,
+      "active": 7547,
+      "archetype": "bomber",
+      "hullColour": 200,
+      "members": [
+        {
+          "x": 48,
+          "y": 0
+        },
+        {
+          "x": 176,
+          "y": 0
+        }
+      ],
+      "directorPhase": 7
+    },
+    {
+      "frame": 7666,
+      "active": 7666,
+      "archetype": "raider",
+      "hullColour": 68,
+      "members": [
+        {
+          "x": 88,
+          "y": 2
+        },
+        {
+          "x": 152,
+          "y": 2
+        }
+      ],
+      "directorPhase": 7
+    },
+    {
+      "frame": 7729,
+      "active": 7729,
+      "archetype": "bomber",
+      "hullColour": 200,
+      "members": [
+        {
+          "x": 48,
+          "y": 0
+        },
+        {
+          "x": 176,
+          "y": 0
+        }
+      ],
+      "directorPhase": 7
+    },
+    {
+      "frame": 8101,
+      "active": 8101,
+      "archetype": "raider",
+      "hullColour": 68,
+      "members": [
+        {
+          "x": 88,
+          "y": 2
+        },
+        {
+          "x": 152,
+          "y": 2
+        }
+      ],
+      "directorPhase": 7
+    },
+    {
+      "frame": 8203,
+      "active": 8203,
+      "archetype": "bomber",
+      "hullColour": 200,
+      "members": [
+        {
+          "x": 48,
+          "y": 0
+        },
+        {
+          "x": 176,
+          "y": 0
+        }
+      ],
+      "directorPhase": 7
+    }
+  ],
+  "sectorTransitions": [
+    {
+      "frame": 689,
+      "active": 689,
+      "from": 7,
+      "to": 0,
+      "corridorPhase": 1
+    },
+    {
+      "frame": 758,
+      "active": 758,
+      "from": 0,
+      "to": 1,
+      "corridorPhase": 32
+    },
+    {
+      "frame": 936,
+      "active": 936,
+      "from": 1,
+      "to": 2,
+      "corridorPhase": 112
+    },
+    {
+      "frame": 1505,
+      "active": 1505,
+      "from": 2,
+      "to": 3,
+      "corridorPhase": 112
+    },
+    {
+      "frame": 1683,
+      "active": 1683,
+      "from": 3,
+      "to": 4,
+      "corridorPhase": 192
+    },
+    {
+      "frame": 1772,
+      "active": 1772,
+      "from": 4,
+      "to": 5,
+      "corridorPhase": 232
+    },
+    {
+      "frame": 1834,
+      "active": 1834,
+      "from": 5,
+      "to": 6,
+      "corridorPhase": 232
+    },
+    {
+      "frame": 1894,
+      "active": 1894,
+      "from": 6,
+      "to": 7,
+      "corridorPhase": 232
+    },
+    {
+      "frame": 8369,
+      "active": 8369,
+      "from": 7,
+      "to": 5,
+      "corridorPhase": 232
+    },
+    {
+      "frame": 8370,
+      "active": 8370,
+      "from": 5,
+      "to": 6,
+      "corridorPhase": 232
+    }
+  ]
+}

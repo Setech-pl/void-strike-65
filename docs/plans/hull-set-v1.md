@@ -643,6 +643,65 @@ texture instead of the two on `set-B-sheet.png`. Those three styles are
 `DEFERRED` until after the allied + R1 smoke (decision AA item 6) and their data
 is revisited in step 3, so this is revisable there at no cost to steps 1-2.
 
+## 13. Owner decisions for step 2 — **decided 2026-09-22/23**
+
+These four answers govern step 2 and supersede anything in §8 and §11 that
+disagrees with them.
+
+1. **The enemy hull style is level data.** Region R1 for the first quarter of
+   the campaign, R2 for the second, R3 for the third, R4 for the fourth. The
+   campaign length is **not** hardcoded by this step: it is read from where the
+   repository defines it.
+
+   *Where the repository defines it.* `scripts/build.mjs:182`
+   `const LEVEL_MAX_ID = 16;` and `src/hybrid/sector-reader.s:131`
+   `LEVEL_MAX_ID = 16` — the two halves of one contract, asserted at
+   `sector-reader.s:903` ("level directory is not 16 x 3 B"). Owner decision E
+   (`docs/project-overview.md` §"Decisions", `docs/game-design.md:42`) says the
+   same: sixteen levels. **One document contradicts it**: `docs/how-to-play.md:27`
+   still says "The twelve-level campaign" — a stale player-facing line from
+   before decision E, not a second definition (no code or asset reads it). Both
+   are reported here; the implementation takes the parametric route, so it is
+   correct for either number.
+
+   *The route.* `hullStyleIdForLevel(level)` divides the campaign into four
+   equal regions — `1 + floor((level - 1) * 4 / LEVEL_MAX_ID)`, clamped to
+   1..4. At `LEVEL_MAX_ID = 16` that is the owner's 1-4 / 5-8 / 9-12 / 13-16; at
+   12 it would be 1-3 / 4-6 / 7-9 / 10-12. Nothing in the runtime carries the
+   selector: the build stamps the region's block into the level image.
+
+2. **The allied hull colour is level data too** — one byte, the
+   `GAMEPLAY_COLPF1` the gameplay DLI writes. Levels in the **first half** of
+   the campaign use **`$88`**, the brighter steel the owner chose at the step-1
+   smoke, which becomes the **default for the release build**. Levels in the
+   **second half** use a darker step; step 2 ships **`$84`** there, and the
+   final darker value (`$84` or `$86`) is decided at this step's smoke.
+
+3. **`COLPF1` is shared, and that is accepted.** It also colours the enemy
+   `wacc` accents, the hostile `PULSE`/`LASER`/`BOMBER` projectile trails and
+   the Light steel arms. The point of the change is that the second half of the
+   campaign looks colder; anything the darker half makes hard to read is
+   reported at smoke.
+
+4. **Turrets: one active emplacement per side, as shipped.** Unchanged by this
+   step (§12 decision 5 stands).
+
+### What these change in the plan as written
+
+* §8 is superseded: the allied steel is no longer one assembled constant that a
+  review flag overrides. It is a byte in the per-level hull block, patched into
+  the DLI's immediate operand at gameplay start, so the DLI still costs exactly
+  what it costs today. The assembled `GAMEPLAY_COLPF1` becomes **`$88`** — the
+  release default and the value the previews render — and stays the pre-patch
+  value only.
+* §7's `--hull-style=Rn` review variant carries the **region**, not just the
+  style: it bakes style *n*'s block **and** that region's allied colour into
+  level 1, so one flag shows the owner a whole region.
+* T11 (§10) moves from step 4 to step 2 in substance: the colour is tested as
+  level data, not as a build flag.
+
+---
+
 ---
 
 ## Appendix A — the 109 failing tests at `0fb4a52`, default build (evidence)

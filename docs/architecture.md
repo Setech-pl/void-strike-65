@@ -195,15 +195,15 @@ Frontend entry also clears the five GTIA graphics latches `GRAFP0-3/GRAFM`
 while DMA is blanked. Disabling PMG DMA alone does not clear the last fetched
 graphics byte, which would otherwise repeat vertically through the menu.
 
-Since owner decision A (2026-09-22) the MAIN MENU - and only the MAIN MENU -
-carries a background sky of thirty-one one-dot stars. Seven of its blank-8
+Since owner decision A' (2026-09-23) the MAIN MENU - and only the MAIN MENU -
+carries a background sky of sixteen one-dot stars. Seven of its blank-8
 display-list lines are ANTIC 4 LMS rows instead, which is scanline-neutral, so
 the menu keeps its 216 scanlines and its single hint DLI; five rows that already
 existed carry the side stars unchanged. The dots are frontend charset codes
 64-71, which ANTIC 4 reaches and the 0-63 limit above keeps out of ANTIC 6/7
-rows, so PMG stays disabled and no second DLI appears. Ten of the stars twinkle
+rows, so PMG stays disabled and no second DLI appears. Five of the stars twinkle
 on a twelve-frame cycle driven from the frontend frame loop, after `music_tick`
-and past the visible display; the other twenty-one and the whole layout are
+and past the visible display; the other eleven and the whole layout are
 written once per menu entry. Positions come from a build-time seed, so the sky is
 deterministic rather than re-randomised per boot. See
 [art-direction.md](art-direction.md) for the look and the palette compromise it

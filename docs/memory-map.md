@@ -1010,6 +1010,33 @@ pitch and column tables, which pack worse than code, so 138 raw bytes cost
 further raw growth in the first 1,017 bytes of `STARFIELD` is what would
 break first, not the gate.
 
+**Owner decision A′ (2026-09-23) — the main-menu star sky spends part of that
+reservation.** MEASURED on the delivered build. The decision lifted the AB.4
+restriction for this feature specifically and for nothing else; the amount left
+is recorded here, and only another named owner decision may lower it.
+
+| | after menu v2 | after the star sky | left for the expansion |
+| --- | ---: | ---: | ---: |
+| `STARFIELD` raw | 1,990 B | **2,039 B** | **309 B raw** |
+| packed | 1,701 B | **1,749 B** | **76 B** to the 1,825 B hard gate |
+| staging stream margins A / B | 16 / 203 B | **16 / 155 B** | |
+| `PICKUP_CODE` stream fill (`$8B59-$8B66` window) | 89 B | **5 B** | |
+| `ENTITY_CODE` → BROADSIDE staging margin | 84 B | **7 B** | |
+| boot / extension / total transport | 106 / 101 / 207 | **107 / 102 / 209** | |
+
+The sky's 49 raw bytes are star addresses, glyph bytes, phases and the four dot
+shapes, all incompressible, so they cost 48 packed bytes — very nearly 1:1, and
+that is the whole reason the feature cost a boot sector at all
+(`diagnostics/menu-stars-alternative-a-boot-sectors.md`). The 84 bytes in
+`PICKUP_CODE` are the per-frame tick, its twelve-byte cycle table and its frame
+counter; that part is fixed code and does not scale with the star count, and it
+is what took the extension 101 → 102 sectors.
+
+**The scarcest number in the transport is now the 7-byte `ENTITY_CODE` →
+BROADSIDE staging margin**, not the packed gate: it is measured against the
+packed `STARFIELD` stream, so the next thing added to `STARFIELD` hits it — and
+the 16-byte staging stream A margin — long before the 76 B to the hard gate.
+
 **New exports.** main.s exports the equates the player's own link needs:
 `MUSIC_ROW_TIMER`, `MUSIC_SEQUENCE_INDEX`, `MUSIC_PATTERN_ROW`,
 `MUSIC_CHANNEL_MASK`, `MUSIC_TOKEN`, `GAME_MUSIC_CH1_FREQUENCY`,

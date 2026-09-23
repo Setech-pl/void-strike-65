@@ -36,7 +36,12 @@ below) on top of `f4cb18b`, the documentation-only reconciliation of
 the owner acceptance recorded here. All of it runs in the accepted runtime
 below and all of it is owner-accepted under that checkpoint.
 
-**Eight `OWNER-SMOKE CANDIDATE`s are outstanding: the capital hull set v1 step
+**Nine `OWNER-SMOKE CANDIDATE`s are outstanding: the main-menu star sky**
+(section "Main-menu star sky (owner decision A′)" below; sixteen twinkling stars
+behind the MAIN MENU, and the one thing the owner should read before accepting
+it is that it spends the boot sector the hull merge freed — boot 106 → 107,
+total transport 207 → 209, ATR milestones +2/+2 to a delta of +7/+7 inside the
++10 warn band), **the capital hull set v1 step
 1, now carrying the v2 FULL MASS art** (section "Capital hull set v1 — step 1"
 below; the owner rejected the v1 look on hardware — a black deck interior left
 the hull reading as a thin ribbon — so the hull is redrawn as full mass to the
@@ -382,6 +387,124 @@ come from the generator"). The draft draws `wacc` at column 7 of allied row 10
 and of R4 row 12; the stamp replaces both with `wall`. Two accent cells, inside
 the emplacement, on two hulls. Everything else in the draft compiled exactly as
 authored, and every shipped glyph matches `hull-set-v2.json` byte for byte.
+
+## Main-menu star sky (owner decision A′) — `OWNER-SMOKE CANDIDATE` (2026-09-23)
+
+**Sixteen stars behind the MAIN MENU.** Mockup A's full seven-row layout, both
+tones, the twinkle and the side stars, cut from 31 stars to 16. Positions,
+tones, phases and dot shapes are chosen once at build time from the seed in
+`assets/graphics/frontend-h31.json`, so the sky is identical on every boot and
+reproducible from Git; the runtime only walks the emitted arrays. Seven blank-8
+(`$70`) display-list lines become ANTIC 4 LMS rows, which is scanline-neutral —
+the menu still totals **216 scanlines** and still has exactly **one DLI**. Five
+rows that already existed carry the side stars with no display-list change at
+all. Only the MAIN MENU gets stars; OPTIONS, TOP SCORES, GAME OVER and PAUSE are
+untouched, and `clear_screen` already covers `$4000-$43FF`, so the OPTIONS
+round-trip restores the sky for free.
+
+Two accepted hardware compromises, pinned in `tests/menu-stars.test.mjs` so a
+later session does not "fix" them into a regression: a twinkling star's dim step
+is the menu's own steel `$84`, not a dim white (all four playfield registers are
+spent and the brief rules out a second DLI), so the twinkling third is drawn
+from the **white** stars and steel stars stay steady; and the eight star glyphs
+are frontend charset codes **64-71**, which ANTIC 4 reaches and ANTIC 6/7 cannot.
+
+**Why sixteen.** The earlier costing
+([menu-stars-resident-space.md](diagnostics/menu-stars-resident-space.md) §4)
+priced this feature in **address space** and concluded "0 new boot sectors".
+That was wrong, and the measurement is in
+[menu-stars-alternative-a-boot-sectors.md](diagnostics/menu-stars-alternative-a-boot-sectors.md):
+boot sectors are paid in **packed** bytes, a reserved tail is free only while it
+holds zeros, and star coordinates are incompressible. Mockup A as drawn costs
+boot 106 → **108**; the display-list change with **no stars at all** already
+overruns 106. The owner lifted the budget by exactly one sector — boot may reach
+107, not 108, and `validateInitialBlockCapacity`'s ceiling stays **107** — on
+the ground that the tree shipped at 107 sectors until the hull v2 art freed that
+sector by accident. **16 stars is the largest sky inside that ceiling**: 13,681
+content bytes against 13,684.
+
+**Transport and placement.** MEASURED on the delivered build.
+
+| | `73108dc` | delivered |
+| --- | ---: | ---: |
+| `initialBootContentBytes` / envelope | 13,556 / 12 | **13,681 / 15** |
+| boot sectors | 106 | **107** (ceiling 107, unchanged) |
+| extension sectors | 101 | **102** |
+| total transport sectors | 207 | **209** |
+| `STARFIELD` raw / packed | 1,990 / 1,701 | **2,039 / 1,749** |
+| `PICKUP_CODE` stream fill | 89 B | **5 B** |
+| `ENTITY_CODE` → BROADSIDE staging margin | 84 B | **7 B** |
+
+`MAIN` is byte-identical in size and **no pinned `CODE`/`RODATA` address moves**:
+the display-list growth and the one-shot star draw fit inside alignment padding
+that was already there, and the splash slack was not spent. The extension sector
+is the 84 bytes of fixed tick code, cycle table and frame counter in
+`PICKUP_CODE`, which rides an extension chunk; that cost does not scale with the
+star count. **The 7-byte `ENTITY_CODE` → BROADSIDE staging margin is now the
+scarcest number in the transport** — it is measured against the packed
+`STARFIELD` stream, so the next thing added there hits it, and the 16-byte
+staging stream A margin, long before the 76 B left to the packed hard gate.
+`memory-map.md` carries the reservation arithmetic.
+
+**Boot smoke 8/8 at 106 and again at 107**, both on the in-repo Atari800.
+
+| milestone | committed baseline | at 106 | at 107 | delta |
+| --- | ---: | ---: | ---: | --- |
+| `xex_loader_frames` | 135 | 135 | **135** | +0 |
+| `xex_menu_frames` | 392 | 392 | **392** | +0 |
+| `atr_loader_frames` | 339 | 344 | **346** | **+7**, warn band +10 |
+| `atr_menu_frames` | 596 | 601 | **603** | **+7**, warn band +10 |
+
+XEX does not move — it is one load. The ATR pays ~1 frame per transport sector
+and the feature adds two. Against the 3,000-frame absolute ceiling the ATR menu
+uses 603; against the delta gate **3 frames of warn margin** and 43 of fail
+margin remain. The old hard-coded frame-300 loader checkpoint no longer exists;
+since 2026-09-20 the loader observation point follows the measured milestone and
+the loader has its own baseline row. `docs/boot-deadline-baseline.json` is
+**NOT** re-recorded: the repo applies that rule as *re-record when the band is
+being moved, not while the measurement is still inside it* (the ADR-003 splash
+grew 103 → 107 at +4/+4 without re-recording, and the hull v2 shrink likewise),
+and re-recording here would silently absorb the +5 of drift those commits left
+standing — which is the drift the delta gate exists to show.
+
+**PAL audit — 67 replays, 0 distinct miss events, 0 rows over the hard gate, 0
+deadline overruns, 0 missed frames.** Gameplay did not move, and what did move
+moved the right way:
+
+| | `73108dc` | delivered |
+| --- | ---: | ---: |
+| worst fence margin (GO ≥ 500) | 979 | **991** |
+| DMA-on maximum | 31,351 | **31,349** |
+| physical headroom | 4,217 | **4,219** |
+| rows over the 31,200 target | 4 | **4** |
+| behavioural clause failures | 40 | **40**, same names, 0 new, 0 disappeared |
+
+The worst frame is still `director-complete-2-natural-sweep-fire0`. The 2-12
+cycle improvements are not a gameplay change: the sky's 49 bytes sit at the head
+of `STARFIELD`, so the gameplay code after them shifts by 49 bytes and a handful
+of indexed accesses land on the cheap side of a page boundary.
+
+**Tests.** `npm test` on the **default** build: **809 tests, 697 pass, 109 fail,
+3 todo**. The 109 names are exactly the plan Appendix A list — **0 new, 0
+disappeared**. `809 − 800 = 9` new tests, all passing, all in
+`tests/menu-stars.test.mjs`, which executes the linked artifact on the 6502
+simulator: the star table, the one-shot draw, the twelve-frame twinkle, the tick
+write-set, the OPTIONS round-trip, the charset glyphs, the display list and the
+"only the MAIN MENU gets stars" guard. Five existing pins were re-recorded with
+their reason in the test: boot sectors 106 → 107 (`starfield`), the menu layout
+(`frontend`), the `STARFIELD` reservation (`gameplay-music-placement`), the
+`PICKUP_CODE` fill (`light-interceptor`) and the `ENTITY_CODE` staging margin
+(`light-wingman`). All six fail at `aac0435` and pass here.
+
+**What the owner should look at in smoke:** the star count and how the sky
+spreads (16 is deliberately thin — it is what one boot sector buys); the twinkle
+rhythm — bright 6, dim 4, off 2 frames over a twelve-frame cycle, each star on
+its own phase, so nothing should blink in unison; the two tones — white stars
+and steel stars, with twinkling ones dimming to steel rather than to a dim
+white; the menu layout after the display-list change — title, items, both blue
+bars, the fighter and the hint must sit exactly where they did; and the OPTIONS
+round-trip — enter OPTIONS mid-twinkle and come back, and the sky must be there,
+whole.
 
 ## PAL timing gate — distinct miss events
 

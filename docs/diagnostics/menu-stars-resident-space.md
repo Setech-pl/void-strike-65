@@ -129,7 +129,7 @@ that the two usable windows hold.
 
 | # | Where the bytes come from | Player-visible result | Cost | Risk |
 | --- | --- | --- | --- | --- |
-| A | `LOADER_SPLASH_CODE_SLACK` 56 B + `PICKUP_CODE` 89 B + the `STARFIELD` free tail 114 B (**the brief forbids this one**) | ~30 stars, full layout incl. the new rows: 259 B available vs ~260 B needed at 30 stars | 0 new boot sectors; spends the gameplay starfield expansion reserve | Deleting the splash slack moves every later `CODE`/`RODATA` address, so the pinned-address tests and the runtime evidence all need re-recording with a re-measured cycle baseline |
+| A | `LOADER_SPLASH_CODE_SLACK` 56 B + `PICKUP_CODE` 89 B + the `STARFIELD` free tail 114 B (**the brief forbids this one**) | ~30 stars, full layout incl. the new rows: 259 B available vs ~260 B needed at 30 stars | ~~0 new boot sectors~~ **WITHDRAWN — see the note below; A costs +2 boot sectors and the shipped A′ costs +1**; spends the gameplay starfield expansion reserve | Deleting the splash slack moves every later `CODE`/`RODATA` address, so the pinned-address tests and the runtime evidence all need re-recording with a re-measured cycle baseline |
 | B | A new DFMC transport record into `$0400-$04FF` (256 B, page 4 — claimed by no link and absent from the memory map), plus the 56 B splash slack for the DL and the hook | ~34 stars, full layout | +2-3 boot sectors | Highest. `$0400-$047F` is the OS cassette buffer the disk boot reads sector 1 into, so the record must be proven to land after that; and per the ATR menu deadline (551 vs 550 at the 832-B arena) and the frame-300 boot-smoke checkpoint (3 frames of margin) an extra transport record is exactly what trips boot smoke |
 | C | `LOADER_SPLASH_CODE_SLACK` 56 B + `PICKUP_CODE` 89 B only, with the feature cut to fit 145 B | ~8 twinkling stars in the `$C4` row and the two bar rows, one dot shape, one tone. Reads as a few specks, not a sky | 0 new boot sectors, no address moves outside the slack | Low, but it is not mockup "A" and probably not worth a commit |
 
@@ -137,3 +137,21 @@ The honest recommendation is **A with the owner lifting the STARFIELD
 restriction**, or deferring the feature until something else frees resident
 space. B is the only route that costs no existing reserve, and it is the one
 most likely to fail boot smoke.
+
+> **Correction, 2026-09-23 — the "0 new boot sectors" column above is wrong for
+> A and for C.** This table costs the feature in **address space**, which is the
+> right currency for "does it fit in RAM" and the wrong one for "does it cost a
+> boot sector". Boot sectors are paid in **packed** bytes of the DFMC initial
+> block: a reserved tail is free only while it holds zeros (`LZ-10/5` packs a
+> 114-byte zero run to 11 bytes), and star coordinates, glyph bytes and phases
+> are incompressible, so filling that tail costs packed bytes almost one for
+> one. `LOADER_SPLASH_CODE_SLACK` is worth ~0 transport bytes for the same
+> reason — `MAIN` is `fill = yes`, so deleting the slack only moves the same 56
+> zero bytes to the tail of the region. MEASURED: A as drawn costs boot
+> **106 → 108** sectors, and the display-list change **with no stars in it at
+> all** already overruns 106. The full measurement, the marginal cost per star
+> and the alternatives are in
+> [menu-stars-alternative-a-boot-sectors.md](menu-stars-alternative-a-boot-sectors.md);
+> what shipped is **A′**, mockup A cut to 16 stars at boot **106 → 107**. Every
+> other claim in this document — the layout, the display-list change, the glyph
+> scheme, the colour compromise, the per-frame cost — still stands.

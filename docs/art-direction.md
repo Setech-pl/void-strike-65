@@ -29,9 +29,13 @@ actions use green `$D8`; and the Game Over alert replaces steel with `$46`.
 No screen uses a fifth foreground colour. The custom angular font and 3x2 menu
 Player Fighter share one `$4800` charset and remain readable at native Atari scale.
 
-### Main-menu background stars (owner decision A, 2026-09-22)
+### Main-menu background stars (owner decision A', 2026-09-23)
 
-The MAIN MENU sits in front of a sky of thirty-one small single dots. OPTIONS,
+The MAIN MENU sits in front of a sky of sixteen small single dots. Sixteen and
+not the thirty-odd the mockup drew: the sky is paid for in packed bytes of the
+boot transport, and sixteen is the largest one that fits the single boot sector
+the owner spent on it (`diagnostics/menu-stars-alternative-a-boot-sectors.md`).
+It is a thin sky on purpose. OPTIONS,
 TOP SCORES, GAME OVER and PAUSE have none: the menu is the one screen the player
 looks at with nothing happening, so it is the one screen that earns the motion.
 The layout is otherwise untouched - same title, same items, same blue bars with
@@ -43,10 +47,10 @@ star keeps at least one empty character cell from any text, bar or fighter cell,
 measured in the display grid rather than in screen RAM, because the menu is a
 mixed-mode display list whose rows are not laid out in display order.
 
-Two tones, both already in the list above: white `$0E` for nineteen of them and
-structural steel `$84` for twelve, so roughly 60/40. Ten twinkle on a twelve-
+Two tones, both already in the list above: white `$0E` for ten of them and
+structural steel `$84` for six, so roughly 60/40. Five twinkle on a twelve-
 frame cycle - bright, dim, off, dim, bright - each with its own phase offset, so
-the sky never blinks in unison. The remaining twenty-one are steady.
+the sky never blinks in unison. The remaining eleven are steady.
 
 **The dim step is steel, not a dim white, and only white stars twinkle.** The
 menu already spends all four playfield registers (`$0E` white, `$1E` amber title,

@@ -1,12 +1,15 @@
 VOID STRIKE 65 — reguły projektu
 
-Wersja 3.2 — 2026-09-20
+Wersja 3.3 — 2026-09-23
 Generacja: hybryda C/cc65 + ca65 (Hybrid C Director owner-accepted), po Light Wingman M1.
 Zastępuje wersję 2.1 („po Stage 2B.2”), zachowaną w docs/history/reguly-projektu-v2.1.txt.
 Historyczne reguły nie mają pierwszeństwa przed tym plikiem.
 
 Zmiana 3.1 → 3.2: reguła 11 oznaczona SUPERSEDED (decyzje właściciela A, B, C, Q).
 Treść reguły zostaje jako historia; obowiązuje to, co w niej wskazano jako nadal w mocy.
+
+Zmiana 3.2 → 3.3: reguła 11 dostaje akapit „Sektory bootu płaci się bajtami
+spakowanymi" (lekcja z menu-stars A/A′, 2026-09-23).
 
 1. Cel
 
@@ -96,6 +99,8 @@ BASIC RAM, zmiany loadera, runtime disk I/O i nowe mechanizmy transportu nie są
 Co zmieniło grunt: ATR i tak wymagał wyłączenia BASIC-a (decyzja A), więc okno $A000-$BFFF jest bezwarunkowym RAM-em, nie obejściem (decyzja B); deadline bootu ATR został prze-bazowany na budżet 60 sekund (decyzja 22), więc runtime disk I/O nie kupuje się już czasem ładowania, którego nikt nie wybrał (decyzja 23 §10.1); a szesnaście poziomów ze zróżnicowaną grafiką capital nie mieści się rezydentnie (decyzje E i F), więc zmiana loadera jest wymaganiem treści, a nie skrótem zamiast inżynierii.
 
 Co z tej reguły ZOSTAJE w mocy: „nowe mechanizmy transportu" nadal nie są domyślną odpowiedzią na placement — czytnik między poziomami ma uzasadnienie treściowe, nie placementowe. Zdanie o docs/memory-map.md i zdanie o lokalnych granicach segmentów obowiązują bez zmian; to one łapią realne błędy.
+
+Sektory bootu płaci się bajtami spakowanymi (lekcja z menu-stars, 2026-09-23). Wolne okno zmierzone w przestrzeni adresowej NIE jest budżetem transportu. Blok początkowy DFMC kosztuje tyle, ile ważą jego SPAKOWANE strumienie, a zarezerwowany ogon jest darmowy tylko dopóki trzyma zera: LZ-10/5 pakuje 114 bajtów zer do 11 B, a współrzędne, kody glifów i fazy są nieściśliwe i kosztują niemal 1:1. Region z fill = yes (np. LOADER_SPLASH_CODE_SLACK) jest wart ~0 bajtów transportu — skasowanie luzu przesuwa te same zera na koniec regionu i kupuje wyłącznie przestrzeń adresową. Dlatego każdą wycenę „ile to kosztuje sektorów" robi się na zbudowanym artefakcie (transportCapacity.initialBootContentBytes w manifeście), a nie na mapie pamięci; a „mieści się w RAM" i „mieści się w sektorach" to dwa różne pytania. Przykład: menu-stars alternatywa A miała w wycenie adresowej „0 nowych sektorów", a zmierzona kosztowała 106 → 108.
 
 12. Kierunki odrzucone
 

@@ -4422,6 +4422,39 @@ started without owner instruction.
   **Item 1 stands and is untouched** — but see the cheaper reclaim named in the
   silhouette entry below, which does not need a new decoder at all.
 
+- **Splash silhouette replacement** (owner, 2026-09-23). The splash ship is to
+  be redrawn so the game carries **its own** silhouette, built from the capital
+  hulls' visual language — **mass, chamfers, grooves**. **Owner's reason,
+  recorded as his:** the current ship reads as the hull of a well-known
+  television fleet rather than as this game's own. (That fleet's name is in the
+  retired-vocabulary list `tests/branding.test.mjs` enforces over tracked
+  content, so it is described here rather than written.) **The silhouette will
+  be chosen from owner-approved previews before any session replaces it** — no
+  session picks the shape.
+  **What it costs, MEASURED 2026-09-23 — and a correction to the brief that
+  asked for this entry.** The brief described the splash picture as "a 512 B
+  RAW bitmap at `$0500-$06FF`", from which it followed that a simpler drawing at
+  the same size would save nothing. **The repository says otherwise, and the
+  difference changes the task:**
+  * `$0500-$06FF` / 512 B RAW is `bootSplashRuntime` — the **cassette sound,
+    fade and skip CODE blob**, not the picture (`src/boot-splash.s`).
+  * The **picture** is `assets/graphics/loader-bitmap.json` → 320x192 mixed
+    ANTIC F/E, **7,680 B raw, already LZ-10/5 packed to 1,967 B**
+    (`loaderScreen.packedBitmapBytes`), living at `loader_bitmap_lzss`
+    **`$3833-$3FE2`, inside MAIN — that is, inside the initial block**.
+  * A decoder **already runs at this boot point**: `unpack_loader_bitmap`
+    (`src/main.s:3203`) calls the same bounded `broadside_unpack_command` the
+    resident broadside block uses, immediately before `show_loader`.
+  **So a simpler drawing DOES pay, today, with no new decoder** — a flatter,
+  grooved silhouette compresses better under the packer already in the path, and
+  every byte it saves is an **initial-block** byte. Fewer image lines saves as
+  well, and the two compound rather than being independent. This also makes the
+  silhouette work a **cheaper reclaim route than backlog item 1 above** (packing
+  the blob and `A2_KERNEL` for ~77 B, which does need a decoder where none runs).
+  **Unmeasured until a shape exists:** how much a given drawing actually packs
+  to. Cost is a property of the art, so it is measured per preview, not
+  estimated here.
+
 - **PAL resync after a miss** — one overrun costs ~1,393 shifted-phase rows
   until the next gameplay generation.
 - **Debris blink on the player death frame** — pre-existing, documented under

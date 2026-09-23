@@ -29,6 +29,38 @@ actions use green `$D8`; and the Game Over alert replaces steel with `$46`.
 No screen uses a fifth foreground colour. The custom angular font and 3x2 menu
 Player Fighter share one `$4800` charset and remain readable at native Atari scale.
 
+### Main-menu background stars (owner decision A, 2026-09-22)
+
+The MAIN MENU sits in front of a sky of thirty-one small single dots. OPTIONS,
+TOP SCORES, GAME OVER and PAUSE have none: the menu is the one screen the player
+looks at with nothing happening, so it is the one screen that earns the motion.
+The layout is otherwise untouched - same title, same items, same blue bars with
+the small fighter, same hint line.
+
+The dots fill the empty areas only: above the title, both sides of the bars and
+the fighter, the band between EXIT and the hint line, and below the hint. Every
+star keeps at least one empty character cell from any text, bar or fighter cell,
+measured in the display grid rather than in screen RAM, because the menu is a
+mixed-mode display list whose rows are not laid out in display order.
+
+Two tones, both already in the list above: white `$0E` for nineteen of them and
+structural steel `$84` for twelve, so roughly 60/40. Ten twinkle on a twelve-
+frame cycle - bright, dim, off, dim, bright - each with its own phase offset, so
+the sky never blinks in unison. The remaining twenty-one are steady.
+
+**The dim step is steel, not a dim white, and only white stars twinkle.** The
+menu already spends all four playfield registers (`$0E` white, `$1E` amber title,
+`$84` steel, green active option) and the rule above stands: no fifth foreground
+colour, and no second DLI for a local colour effect. So a twinkling star's dim
+step is the menu's own steel, which is luminance 4 against white's 14 and reads
+as a star fading rather than as a star changing hue. Steel stars have nothing
+dimmer to fade to, so they are the steady ones. This is a deliberate compromise,
+not an oversight; `tests/menu-stars.test.mjs` pins it.
+
+Positions, tones, shapes and phases are chosen once at build time from the seed
+in `assets/graphics/frontend-h31.json`, so the sky is the same on every boot and
+reproducible from Git. It is never re-randomised per boot.
+
 ## Gameplay palette ownership
 
 The fixed HUD remains legible and visually separate from the ANTIC 4 gameplay

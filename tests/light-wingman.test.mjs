@@ -207,7 +207,16 @@ test("Light kernel placement is legal, resident and inside every reviewed gate",
   // ENTITY_CODE runtime stream lands 3 B shorter (packedBytes 2,727 -> 2,724)
   // and the margin GROWS by exactly those three bytes. A deliberate shrink of
   // the packed stream, re-recorded here with its reason.
-  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 84,
+  // 7 after owner decision A' (2026-09-23), the main-menu background stars cut
+  // to sixteen: ENTITY_CODE is byte-identical again (the display-list growth
+  // and the one-shot star draw fit inside alignment padding that was already
+  // there), but the sky's 49 incompressible bytes in STARFIELD re-pack that
+  // stream 1,701 -> 1,749 B, and as the §4.6 note above says this margin is
+  // measured against it. 7 B is legal but it is now the scarcest number in the
+  // transport: the next thing added to STARFIELD hits this wall, and the $4801
+  // pickup-staging margin (16 B), long before it reaches the 1,825-B packed
+  // gate. Flagged for the owner in STATUS.
+  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 7,
     "ENTITY_CODE staging margin tracks the Light art tables");
   assert.equal(manifest.capitalPlayerCollisionRuntime.runAddress, 0x8b67);
   // light_add_score exactly fills the retired 17-byte BROADSIDE entry pad.

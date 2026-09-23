@@ -313,7 +313,21 @@ test("layout and transport gates remain legal after blue-far removal", () => {
   // 135/392, ATR 343/600 -> 344/601, inside the +-10 warn band, so
   // boot-deadline-baseline.json is NOT re-recorded (its rule is about
   // deliberate growth).
-  assert.equal(manifest.transportCapacity.initialBootSectors, 106);
+  //
+  // 106 -> 107, re-recorded 2026-09-23 for the main-menu star sky (owner
+  // decision A', docs/diagnostics/menu-stars-alternative-a-boot-sectors.md).
+  // The hull v2 shrink above landed the initial block on the sector boundary
+  // exactly - 13,556 + the 12-byte minimum envelope = 106 x 128 - so the spare
+  // capacity inside 106 sectors was 0 bytes, and the star tables are
+  // incompressible: 16 stars cost 13,556 -> 13,681 content bytes. That is the
+  // largest sky inside the 107-sector ceiling validateInitialBlockCapacity
+  // already enforces (13,684), which the ceiling is deliberately NOT raised
+  // past; the mockup's 31 stars would have needed 108. The owner spent exactly
+  // the one sector the hull merge had freed by accident. Deliberate growth,
+  // MEASURED by the boot smoke 8/8: XEX unmoved at 135/392, ATR 344/601 ->
+  // 346/603, +7/+7 against the committed baseline and inside the +-10 warn
+  // band, so boot-deadline-baseline.json is still NOT re-recorded.
+  assert.equal(manifest.transportCapacity.initialBootSectors, 107);
   assert.ok(manifest.transportCapacity.initialBootEnvelopeBytes >= 0);
   assert.equal(labels.get("ENTITY_CODE_START") & 0xff, 0);
 });

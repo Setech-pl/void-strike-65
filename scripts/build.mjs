@@ -57,8 +57,10 @@ import {
 } from "./entity-effects.mjs";
 import {
   compileFrontendH31,
+  compileMenuStars,
   loadFrontendH31Definition,
   renderFrontendH31Ca65Include,
+  renderMenuStarsCa65Include,
 } from "./frontend-h31-assets.mjs";
 import { packBroadsideLzss, unpackBroadsideLzss } from "./broadside-lzss.mjs";
 import { measureRuntimeCycles } from "./runtime-cycles.mjs";
@@ -1198,11 +1200,17 @@ async function build() {
   writeFile(path.join(buildDirectory, "entity-effects.inc"), entityEffectsInclude);
   const weaponPickupPhaseBank = Buffer.from(entityEffectsAsset.pickupPhaseBank);
   writeFile(path.join(buildDirectory, "weapon-pickup-phases.bin"), weaponPickupPhaseBank);
-  const frontendH31Asset = compileFrontendH31(loadFrontendH31Definition(
+  const frontendH31Definition = loadFrontendH31Definition(
     path.join(rootDirectory, "assets", "graphics", "frontend-h31.json"),
-  ));
+  );
+  const frontendH31Asset = compileFrontendH31(frontendH31Definition);
   const frontendH31Include = Buffer.from(renderFrontendH31Ca65Include(frontendH31Asset));
   writeFile(path.join(buildDirectory, "frontend-h31.inc"), frontendH31Include);
+  // Main-menu background stars: positions are chosen once here from the asset
+  // seed, so the sky is deterministic and reproducible from Git (owner A).
+  const menuStarsAsset = compileMenuStars(frontendH31Definition);
+  const menuStarsInclude = Buffer.from(renderMenuStarsCa65Include(menuStarsAsset));
+  writeFile(path.join(buildDirectory, "menu-stars.inc"), menuStarsInclude);
 
   const directorModule = asmDirectorBaseline
     ? {
@@ -1277,6 +1285,7 @@ async function build() {
       "/project/build/gameplay-music-abi.inc": gameplayMusicAbiInclude,
       "/project/build/entity-effects.inc": entityEffectsInclude,
       "/project/build/frontend-h31.inc": frontendH31Include,
+      "/project/build/menu-stars.inc": menuStarsInclude,
       "/project/build/director-abi.inc": directorAbiInclude,
       "/project/build/boot-splash.inc": bootSplashInclude,
       "/project/build/boot-splash.s": fs.readFileSync(

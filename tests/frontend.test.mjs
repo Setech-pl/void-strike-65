@@ -462,19 +462,29 @@ test("the runtime highlights the whole main-menu title, however long the title i
 test("mixed display list, screen offsets, title, menu, and hint are bounded", () => {
   const state = readStartMenuRuntimeState(source);
   const { constants, mainMenuLayout } = state.graphics;
-  assert.equal(mainMenuLayout.screenBytes, constants.get("MAIN_MENU_SCREEN_BYTES"));
-  assert.equal(mainMenuLayout.screenBytes, 340);
+  // RE-RECORDED 2026-09-22 for owner decision A, the main-menu background
+  // stars, and for no other reason. Seven blank-8 ($70) display-list lines are
+  // now ANTIC 4 LMS rows carrying star glyphs: two above the title (screen
+  // offsets 340, 380), three between EXIT and the hint (420, 460, 500) and two
+  // below the hint (540, 580). MAIN_MENU_SCREEN_BYTES still describes the
+  // original block; MAIN_MENU_STAR_SCREEN_BYTES is the whole menu footprint.
+  //
+  // The two numbers that must NOT move are asserted below: a blank-8 line and
+  // an ANTIC 4 row are both eight scanlines, so the title still starts at
+  // scanline 24 and the menu still has exactly one DLI.
+  assert.equal(mainMenuLayout.screenBytes, constants.get("MAIN_MENU_STAR_SCREEN_BYTES"));
+  assert.equal(mainMenuLayout.screenBytes, 620);
   assert.equal(
     mainMenuLayout.rows.reduce((height, row) => height + row.height, 0),
-    96,
+    152,                                    // 96 + seven eight-scanline rows
   );
   assert.deepEqual(
     mainMenuLayout.rows.map(({ mode }) => mode),
-    [7,4,4,4,4,6,6,6,6,4,2],
+    [4,4,7,4,4,4,4,6,6,6,6,4,4,4,4,2,4,4],
   );
   assert.deepEqual(
     mainMenuLayout.rows.filter(({ dli }) => dli).map(({ index }) => index),
-    [9],
+    [14],                                   // still exactly one, the hint DLI
   );
 
   const title = state.graphics.mainMenuRecords.find(({ text }) => text === "VOID STRIKE 65");

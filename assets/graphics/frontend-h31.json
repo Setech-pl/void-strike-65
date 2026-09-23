@@ -25,5 +25,33 @@
     "steel": 132,
     "alert": 70,
     "activeGreen": 216
+  },
+  "menuStars": {
+    "comment": "Owner decision A' (2026-09-23), refining decision A (2026-09-22). Main-menu background stars, sixteen of them: the sky is paid for in packed bytes of the DFMC initial block and 16 is the largest one inside the 107-sector boot ceiling (docs/diagnostics/menu-stars-alternative-a-boot-sectors.md). Raising any rows[].stars costs a boot sector the tree has not got. scripts/frontend-h31-assets.mjs turns this into the runtime tables; the seed fixes the sky once at build time, so it is identical on every boot. displayRow is the eight-scanline band the row occupies in the menu display list, which is what clearance is measured in - screen RAM is not laid out in display order. spans are the ANTIC 4 columns a row may use: the five rows that already exist keep clear of the blue bars (columns 7-32), the fighter (18-20) and the hint (7-30).",
+    "seed": 6531965,
+    "toneWhiteShare": 0.6,
+    "twinkleShare": 0.33,
+    "shapes": [
+
+      { "pixel": 1, "scanline": 2 },
+      { "pixel": 3, "scanline": 5 },
+      { "pixel": 0, "scanline": 6 },
+      { "pixel": 2, "scanline": 1 }
+    ],
+    "cycle": ["bright", "bright", "bright", "dim", "dim", "off", "off", "dim", "dim", "bright", "bright", "bright"],
+    "rows": [
+      { "name": "above-title-1", "displayRow": 0, "screenOffset": 340, "stars": 2, "spans": [[0, 39]] },
+      { "name": "above-title-2", "displayRow": 1, "screenOffset": 380, "stars": 2, "spans": [[0, 39]] },
+      { "name": "top-bar-sides", "displayRow": 5, "screenOffset": 20, "stars": 1, "spans": [[0, 5], [34, 39]] },
+      { "name": "fighter-top-sides", "displayRow": 6, "screenOffset": 60, "stars": 1, "spans": [[0, 5], [34, 39]] },
+      { "name": "fighter-bottom-sides", "displayRow": 7, "screenOffset": 100, "stars": 1, "spans": [[0, 5], [34, 39]] },
+      { "name": "bottom-bar-sides", "displayRow": 8, "screenOffset": 140, "stars": 1, "spans": [[0, 5], [34, 39]] },
+      { "name": "exit-band-1", "displayRow": 18, "screenOffset": 420, "stars": 2, "spans": [[0, 39]] },
+      { "name": "exit-band-2", "displayRow": 19, "screenOffset": 460, "stars": 1, "spans": [[0, 39]] },
+      { "name": "exit-band-3", "displayRow": 20, "screenOffset": 500, "stars": 2, "spans": [[0, 39]] },
+      { "name": "dli-row-sides", "displayRow": 21, "screenOffset": 260, "stars": 1, "spans": [[0, 5], [32, 39]] },
+      { "name": "below-hint-1", "displayRow": 24, "screenOffset": 540, "stars": 1, "spans": [[0, 39]] },
+      { "name": "below-hint-2", "displayRow": 25, "screenOffset": 580, "stars": 1, "spans": [[0, 39]] }
+    ]
   }
 }

@@ -389,7 +389,13 @@ test("placement contract: legal composite and packed size, state inside its rese
   // debris_shot_reward another 25, 236 -> 89. Both are owner decisions, and
   // this fill is exactly where §7.5 put them: contiguous, already reserved,
   // already transported, neighbour already asserted.
-  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 89);
+  // Re-recorded 2026-09-23 for owner decision A', which named this window as
+  // one of the three it authorised: the main-menu star tick, its twelve-byte
+  // twinkle cycle table and its frame counter take 84 of the remaining 89 B,
+  // 89 -> 5. That cost is fixed code and does not move with the star count.
+  // Same reasoning as the two entries above - contiguous, already reserved,
+  // already transported, neighbour already asserted at $8B67.
+  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 5);
   // Owner decision X + Light multiplicity steps 1a-3. The Light C left the
   // extension for the code window and the kernel left for its own link, which
   // took the scarce 19-B tail to 451; step 3's multi-slot ASM then overran the

@@ -125,12 +125,21 @@ test("STARFIELD is smaller than before the move, and the room is still reserved"
   // its costed share (+138 B raw, +196 B packed) and step 2b spent none --
   // the v2 gameplay player lives in the level image, not here. These bounds
   // are what is left for that expansion and no music session may lower them.
-  assert.equal(starfield.bytes, 1990, "the gameplay session must not touch STARFIELD");
-  assert.equal(starfield.packedBytes, 1701);
-  assert.ok(starfield.packedTotalGate.hardGateMarginBytes >= 120,
+  // RE-RECORDED 2026-09-23 for OWNER DECISION A' (the main-menu background
+  // stars, cut to sixteen), which lifted the AB.4 restriction for this feature
+  // specifically and directed that the new reserved amount be recorded. The
+  // sky's 49 raw B here - star addresses, glyph bytes, phases and the four dot
+  // shapes - are incompressible, so they cost 48 packed B: 1,990 -> 2,039 raw,
+  // 1,701 -> 1,749 packed. The raw tail left for the starfield expansion is
+  // 348 -> 309 B and the packed hard-gate margin 124 -> 76 B. The guard above
+  // still stands for every OTHER session, music sessions included: only a named
+  // owner decision may lower these.
+  assert.equal(starfield.bytes, 2039, "only owner decision A' may grow STARFIELD");
+  assert.equal(starfield.packedBytes, 1749);
+  assert.ok(starfield.packedTotalGate.hardGateMarginBytes >= 76,
     `packed hard-gate margin is ${starfield.packedTotalGate.hardGateMarginBytes} B`);
-  assert.ok(starfield.reservedBytes - starfield.bytes >= 340,
-    "the STARFIELD run tail is smaller than the reservation menu v2 was to leave");
+  assert.ok(starfield.reservedBytes - starfield.bytes >= 309,
+    "the STARFIELD run tail is smaller than owner decision A' left for the expansion");
   // Both staging streams must still fit their physical 960-byte windows.
   for (const stream of starfield.streams) {
     assert.ok(stream.marginBytes > 0,

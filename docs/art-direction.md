@@ -48,9 +48,15 @@ measured in the display grid rather than in screen RAM, because the menu is a
 mixed-mode display list whose rows are not laid out in display order.
 
 Two tones, both already in the list above: white `$0E` for ten of them and
-structural steel `$84` for six, so roughly 60/40. Five twinkle on a twelve-
-frame cycle - bright, dim, off, dim, bright - each with its own phase offset, so
-the sky never blinks in unison. The remaining eleven are steady.
+structural steel `$84` for six, so roughly 60/40. Five twinkle on a twelve-step
+cycle - bright, dim, off, dim, bright - each with its own phase offset, so the
+sky never blinks in unison. The remaining eleven are steady.
+
+The first owner smoke (2026-09-23) accepted the sky and rejected the speed: one
+step per frame made a whole twinkle 0.24 s, which read as a flicker. A step now
+holds for four frames, so the cycle is 48 frames - bright 24, dim 16, off 8 -
+and lands a little under a second. The shape and the per-star phase spread are
+unchanged; only the clock is slower.
 
 **The dim step is steel, not a dim white, and only white stars twinkle.** The
 menu already spends all four playfield registers (`$0E` white, `$1E` amber title,

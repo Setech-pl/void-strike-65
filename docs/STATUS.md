@@ -390,6 +390,12 @@ authored, and every shipped glyph matches `hull-set-v2.json` byte for byte.
 
 ## Main-menu star sky (owner decision A′) — `OWNER-SMOKE CANDIDATE` (2026-09-23)
 
+> **Second pass, 2026-09-23 — the slower twinkle.** The first owner smoke
+> accepted the sky and rejected its speed. The twinkle now advances one cycle
+> step every fourth menu frame, so a full pass takes 48 frames instead of 12.
+> The section below still describes the candidate; the changed numbers and what
+> to look at are in "Slower twinkle" at the end of it.
+
 **Sixteen stars behind the MAIN MENU.** Mockup A's full seven-row layout, both
 tones, the twinkle and the side stars, cut from 31 stars to 16. Positions,
 tones, phases and dot shapes are chosen once at build time from the seed in
@@ -498,13 +504,93 @@ their reason in the test: boot sectors 106 → 107 (`starfield`), the menu layou
 
 **What the owner should look at in smoke:** the star count and how the sky
 spreads (16 is deliberately thin — it is what one boot sector buys); the twinkle
-rhythm — bright 6, dim 4, off 2 frames over a twelve-frame cycle, each star on
-its own phase, so nothing should blink in unison; the two tones — white stars
-and steel stars, with twinkling ones dimming to steel rather than to a dim
-white; the menu layout after the display-list change — title, items, both blue
-bars, the fighter and the hint must sit exactly where they did; and the OPTIONS
-round-trip — enter OPTIONS mid-twinkle and come back, and the sky must be there,
-whole.
+rhythm — bright, dim, off over a twelve-step cycle, each star on its own phase,
+so nothing should blink in unison; the two tones — white stars and steel stars,
+with twinkling ones dimming to steel rather than to a dim white; the menu layout
+after the display-list change — title, items, both blue bars, the fighter and the
+hint must sit exactly where they did; and the OPTIONS round-trip — enter OPTIONS
+mid-twinkle and come back, and the sky must be there, whole.
+
+### Slower twinkle (owner smoke feedback, 2026-09-23)
+
+*"The sky is right, but the twinkle is too fast."* One cycle step per frame made
+a whole pass 12 frames — 0.24 s — which reads as a flicker. A step now holds for
+**four** frames, so the cycle is **48 frames, 0.96 s** on PAL: bright 24, dim 16,
+off 8. The twelve-step shape and the per-star phase spread are unchanged; only
+the clock is slower.
+
+**It is a frame divider, not a longer table.** A 48-entry cycle table is 36 more
+packed bytes, and the two windows that could pay hold 7 B (`ENTITY_CODE` →
+BROADSIDE staging) and 5 B (`PICKUP_CODE` fill). The divider costs neither a
+table nor a second counter byte: `menu_star_frame` itself counts `0..47` and the
+cycle index is that counter shifted right twice, with each star's phase offset
+emitted pre-multiplied by four. In the source that is **two `LSR`s and two
+constants**.
+
+| | star sky as smoked | slower twinkle |
+| --- | ---: | ---: |
+| `initialBootContentBytes` / envelope | 13,681 / 15 | **13,682 / 14** (ceiling 13,684) |
+| boot / extension / total transport sectors | 107 / 102 / 209 | **107 / 102 / 209** |
+| `STARFIELD` raw / packed | 2,039 / 1,749 | **2,039 / 1,750** |
+| packed hard-gate margin | 76 B | **75 B** |
+| staging stream margins A / B | 16 / 155 B | **16 / 154 B** |
+| `PICKUP_CODE` stream fill | 5 B | **3 B** |
+| `ENTITY_CODE` → BROADSIDE staging margin | 7 B | **7 B**, unmoved |
+
+`validateInitialBlockCapacity` is **not touched** and its ceiling stays 107
+sectors. The one packed byte the change costs is not code at all: the phase array
+still holds one byte per twinkling star, but the offsets are now multiples of
+four and pack one byte worse.
+
+**Boot smoke 8/8** on the in-repo Atari800, every milestone **unmoved**: XEX
+135/392 (+0/+0), ATR **346/603** (+7/+7 against the committed baseline), so the
+ATR menu keeps all **3 frames of warn margin** and 43 of fail margin. `+0` warn
+frames lost against the limit of 1 the brief allowed.
+`docs/boot-deadline-baseline.json` is not re-recorded, for the reason above.
+
+**PAL audit — 65 traced replays, 0 distinct miss events, 0 rows over the hard
+gate, 0 deadline overruns, 0 missed frames.** Every gameplay number is
+**byte-identical** to the sky's own evidence, which is what a frontend-only
+change should produce: worst fence margin **991**
+(`director-complete-2-natural-sweep-fire0`), DMA-on maximum **31,349**, physical
+headroom **4,219**, rows over the 31,200 target **4**, behavioural clause
+failures **40**, same names, 0 new and 0 disappeared. Outside the fence
+altogether — the tick runs in the frontend loop, which has no cycle fence — the
+tick now also costs **+4 cycles per twinkling star** for the two `LSR`s, ~20
+cycles per menu frame.
+
+**Tests.** `npm test` on the **default** build: **811 tests, 700 pass, 108 fail,
+3 todo**, plus the documented `docs/media` regeneration failure, which passes
+only on a second consecutive run because the first run already rewrote the
+tracked media — restore `docs/media` and `showcase and asset sheets regenerate
+without ignored capture files` fails as it does on the baseline, which was
+re-checked here. Counted with it the failures are exactly the **109** names of
+the plan's Appendix A: **0 new, 0 disappeared**. `811 − 809 = 2` new tests, both
+passing. The
+two new tests are in `tests/menu-stars.test.mjs`: the divider itself (the
+counter wraps at 48 and not 12, every held value is a whole number of four-frame
+steps, the timeline is periodic over 48 frames and not over 12, and the per-star
+phase spread survives) and the steel-twinkle review variant. Four existing
+tests there were moved to the new cadence, and two pins were re-recorded with
+their reason in the test: the `PICKUP_CODE` fill 5 → 3 B (`light-interceptor`)
+and the `STARFIELD` packed size 1,749 → 1,750 B (`gameplay-music-placement`).
+All six fail at `70adce6` and pass here.
+
+**A review variant, not a default change: `npm run menu:steel-twinkle`.** Today
+only white stars twinkle, because the twinkle *dims to steel* and steel has
+nothing left to dim to. The variant gives the steel stars the same share of
+twinklers using the cycle's existing **off** step — steel → off → steel — so
+5 white twinklers become 5 white + 2 steel. It needs **no runtime code**: the
+tick ORs the dim bit into a glyph that already carries it, which is a no-op, and
+`$80` blanks any glyph. Like every review variant it writes
+`build/menu-steel-twinkle/` and never `dist/`, runtime measurement is skipped and
+no gate consults it. **The default build keeps today's behaviour: white stars
+twinkle, steel stars stay steady.**
+
+**What the owner compares in this smoke:** the new twinkle rhythm — is a
+48-frame pass the right speed, or still wrong in either direction — and, between
+the default build and `build/menu-steel-twinkle/`, whether steel stars twinkling
+through the off step adds life or reads as noise.
 
 ## PAL timing gate — distinct miss events
 

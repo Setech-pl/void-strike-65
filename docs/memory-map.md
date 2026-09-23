@@ -1015,14 +1015,23 @@ reservation.** MEASURED on the delivered build. The decision lifted the AB.4
 restriction for this feature specifically and for nothing else; the amount left
 is recorded here, and only another named owner decision may lower it.
 
-| | after menu v2 | after the star sky | left for the expansion |
-| --- | ---: | ---: | ---: |
-| `STARFIELD` raw | 1,990 B | **2,039 B** | **309 B raw** |
-| packed | 1,701 B | **1,749 B** | **76 B** to the 1,825 B hard gate |
-| staging stream margins A / B | 16 / 203 B | **16 / 155 B** | |
-| `PICKUP_CODE` stream fill (`$8B59-$8B66` window) | 89 B | **5 B** | |
-| `ENTITY_CODE` → BROADSIDE staging margin | 84 B | **7 B** | |
-| boot / extension / total transport | 106 / 101 / 207 | **107 / 102 / 209** | |
+The "slower twinkle" column is the owner smoke follow-up of 2026-09-23: the
+cycle table is unchanged at twelve steps and the tick divides its frame counter
+by four instead, so a step lasts four frames and a whole twinkle 48. It adds two
+LSRs and two constants, no second counter byte and no table growth — a 48-entry
+table would have been 36 packed bytes, which neither the 7-byte `ENTITY_CODE`
+margin nor the 5-byte `PICKUP_CODE` fill could pay. The one packed byte it does
+cost is not code: the phase array now holds the offsets pre-multiplied by four,
+and the larger values pack one byte worse.
+
+| | after menu v2 | after the star sky | slower twinkle | left for the expansion |
+| --- | ---: | ---: | ---: | ---: |
+| `STARFIELD` raw | 1,990 B | 2,039 B | **2,039 B** | **309 B raw** |
+| packed | 1,701 B | 1,749 B | **1,750 B** | **75 B** to the 1,825 B hard gate |
+| staging stream margins A / B | 16 / 203 B | 16 / 155 B | **16 / 154 B** | |
+| `PICKUP_CODE` stream fill (`$8B59-$8B66` window) | 89 B | 5 B | **3 B** | |
+| `ENTITY_CODE` → BROADSIDE staging margin | 84 B | 7 B | **7 B** | |
+| boot / extension / total transport | 106 / 101 / 207 | 107 / 102 / 209 | **107 / 102 / 209** | |
 
 The sky's 49 raw bytes are star addresses, glyph bytes, phases and the four dot
 shapes, all incompressible, so they cost 48 packed bytes — very nearly 1:1, and
@@ -1030,12 +1039,13 @@ that is the whole reason the feature cost a boot sector at all
 (`diagnostics/menu-stars-alternative-a-boot-sectors.md`). The 84 bytes in
 `PICKUP_CODE` are the per-frame tick, its twelve-byte cycle table and its frame
 counter; that part is fixed code and does not scale with the star count, and it
-is what took the extension 101 → 102 sectors.
+is what took the extension 101 → 102 sectors. The frame divider added two more,
+89 → 5 → **3 B**: that window is now all but full.
 
 **The scarcest number in the transport is now the 7-byte `ENTITY_CODE` →
 BROADSIDE staging margin**, not the packed gate: it is measured against the
 packed `STARFIELD` stream, so the next thing added to `STARFIELD` hits it — and
-the 16-byte staging stream A margin — long before the 76 B to the hard gate.
+the 16-byte staging stream A margin — long before the 75 B to the hard gate.
 
 **New exports.** main.s exports the equates the player's own link needs:
 `MUSIC_ROW_TIMER`, `MUSIC_SEQUENCE_INDEX`, `MUSIC_PATTERN_ROW`,

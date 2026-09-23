@@ -202,8 +202,13 @@ the menu keeps its 216 scanlines and its single hint DLI; five rows that already
 existed carry the side stars unchanged. The dots are frontend charset codes
 64-71, which ANTIC 4 reaches and the 0-63 limit above keeps out of ANTIC 6/7
 rows, so PMG stays disabled and no second DLI appears. Five of the stars twinkle
-on a twelve-frame cycle driven from the frontend frame loop, after `music_tick`
-and past the visible display; the other eleven and the whole layout are
+on a twelve-step cycle driven from the frontend frame loop, after `music_tick`
+and past the visible display. Since the owner smoke of 2026-09-23 a step lasts
+four menu frames - the tick's frame counter runs `0..47` and the cycle index is
+that counter shifted right twice - so a full twinkle takes 48 frames, a little
+under a second on PAL. The cadence is a divider and not a longer table: a
+48-entry table is 36 packed bytes the transport has not got. The other eleven
+stars and the whole layout are
 written once per menu entry. Positions come from a build-time seed, so the sky is
 deterministic rather than re-randomised per boot. See
 [art-direction.md](art-direction.md) for the look and the palette compromise it

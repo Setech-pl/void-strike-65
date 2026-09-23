@@ -529,28 +529,39 @@ step 4, and the frozen replay coverage clauses whose capital row moves.
 
 ---
 
-## 11. Open owner decisions
+## 11. Owner decisions
 
-1. **The CAPITAL Light ceiling (R3 in capital sectors).** Pay §5.1 (two
-   sessions, a probable one-Light cap, the target line breached on the
-   heaviest capital row) or **restrict per-sector enemy selection to
-   non-capital sectors in 1.0** (recommended).
-2. **Q-1 = 16 sectors** (§3.1). It changes decision X's number a second time
-   (44 → 32 → 16). Recommended.
-3. **Level 1 mapping (design §10.8).** The capital arrives on an authored row
-   instead of active frame 600, so the replay set is re-scripted at step 2
-   and the evidence re-recorded. Confirm.
-4. **Hull length steps 288 / 352 / 416 / 480 rows** (combat 8/16/24/32
-   modules) and turret density as four count tables over the level's length.
-   Confirm or name other steps; any multiple of 8 ≤ 480 is representable.
-5. **The XEX campaign.** The XEX carries level 1 only; twelve images do not
-   fit. What the XEX ships (level 1 demo, a selectable subset, or ATR-only
-   campaign) is 4.9's decision; nothing in this plan depends on it.
-6. **Authoring format:** JSON in `assets/levels/` with the validator and the
-   preview (recommended), or a spreadsheet/CSV converted by the same tool.
-7. **The STOP rule of §3.3:** a step that would add a transport sector stops
-   and asks for a deliberate re-basing instead of spending the three warn
-   frames. Confirm that is the intended reading of "untouchable".
+The planning session left seven open questions. The owner answered six of them
+on **2026-09-23**, before the first implementation step began; item 7 is the
+one that stays open.
+
+1. **The CAPITAL Light ceiling (R3 in capital sectors) — RESTRICT** (decided by
+   the owner, 2026-09-23). §5.1 is not paid in 1.0: per-sector enemy selection
+   applies to **non-capital sectors only**, and capital sectors keep their
+   current Light and Heavy limits of **zero**. The format keeps the `CAPITAL`
+   row of `subtype_ceiling` so that paying for it later is a **data** change,
+   not a format change. Roadmap **4.8c stays blocked**.
+2. **Q-1 = 16 sectors — CONFIRMED** (decided by the owner, 2026-09-23).
+   `LEVEL_BUFFER` is **16 sectors** (2,048 B): 13 used, **3 spare**. It changes
+   decision X's number a second time (44 → 32 → 16).
+3. **Level 1 mapping (design §10.8) — CONFIRMED** (decided by the owner,
+   2026-09-23). The capital phase starts on an **authored row** instead of
+   frame 600; level 1's data authors the row equivalent to today's frame 600,
+   so level 1 reproduces. The replay set is re-scripted at step 2 and the
+   evidence re-recorded.
+4. **Hull length steps 288 / 352 / 416 / 480 rows — CONFIRMED** (decided by the
+   owner, 2026-09-23), the four steps as planned, with turret density as four
+   count tables over the level's length.
+5. **Authoring format — JSON** (decided by the owner, 2026-09-23). Levels are
+   authored as JSON in `assets/levels/`, **validated by the level compiler**.
+6. **The STOP rule of §3.3 — CONFIRMED** (decided by the owner, 2026-09-23).
+   It is the intended reading of "untouchable": **no new boot sector**, initial
+   block content **not above 13,652 B**, ATR menu delta **not above +7**.
+   Otherwise the step STOPs; the three warn frames are not spent.
+7. **The XEX campaign — STILL OPEN.** The XEX carries level 1 only; twelve
+   images do not fit. What the XEX ships (level 1 demo, a selectable subset, or
+   an ATR-only campaign) is **4.9's** decision. **Not required before step 4**;
+   nothing in this plan depends on it.
 
 ---
 

@@ -36,7 +36,11 @@ below) on top of `f4cb18b`, the documentation-only reconciliation of
 the owner acceptance recorded here. All of it runs in the accepted runtime
 below and all of it is owner-accepted under that checkpoint.
 
-**Ten `OWNER-SMOKE CANDIDATE`s are outstanding: the capital hull set v1 step
+**Eleven `OWNER-SMOKE CANDIDATE`s are outstanding: the Bomber hull colour**
+(section "Bomber hull colour — green" below; the Bomber leaves hue 8 for hue C,
+`HULL_COLOUR_BOMBER` `$88` → **`$C8`**, because `$88` was the same byte as the
+allied steel and a hostile Heavy read as friendly; **zero bytes, zero cycles**,
+every gate byte-for-byte unmoved), **the capital hull set v1 step
 2** (section "Capital hull set v1 — step 2" below; the enemy hull style and the
 allied steel become level data, the allied steel's release default becomes the
 brighter `$88` the owner chose at the step-1 smoke, and every gate is unmoved —
@@ -72,6 +76,86 @@ ATR boot fix** (section "Owner decision A" below) — it changes the boot contra
 so it also needs a real-hardware smoke this session could not run —
 **owner decision B, the open BASIC window**, and **the main-menu title colour
 run** (sections below).
+
+### Bomber hull colour — green (`OWNER-SMOKE CANDIDATE`, 2026-09-23)
+
+The owner's smoke of 2026-09-23 rejected the Bomber as blue. The cause was not
+a near miss: `HULL_COLOUR_BOMBER` was **`$88`**, which is the **same byte** as
+`GAMEPLAY_COLPF1`, the allied steel. That register carries the allied capital
+hull body, the Light steel arms and the `PULSE`/`LASER`/`BOMBER` shell trails,
+so in capital sectors a hostile Heavy wore the allied hull's own colour and in
+fighter sectors it wore the colour of the shots aimed at it.
+
+**What changed.** One constant. `BOMBER_HULL_HUE` `$80` → **`$C0`**,
+`HULL_COLOUR_BOMBER` now derived as `BOMBER_HULL_HUE | $08` = **`$C8`**
+([../src/c/lifecycle.c](../src/c/lifecycle.c)). The ramp shape, the charge
+`+4`, the flash `+6`, the compile-time overflow assertion (renamed
+`bomber_hull_ramp_must_stay_inside_its_hue`) and the recycle path that restores
+`HULL_COLOUR_RAIDER` `$44` for the capital broadside missiles M1/M2 are all
+untouched.
+
+| HP | base | + charge (+4) | + flash (+6) |
+| ---: | ---: | ---: | ---: |
+| 4 | `$C8` | `$CC` | `$CE` |
+| 3 | `$C6` | `$CA` | `$CC` |
+| 2 | `$C4` | `$C8` | `$CA` |
+| 1 | `$C2` | `$C6` | `$C8` |
+
+**Why green and not the owner's red fallback.** Gameplay uses **no hue C at
+all** — white `$0E`, allied steel hue 8, allied faction amber `$1E`, hostile
+burgundy `$44`/`$46` — so green is the only hue that separates from steel,
+burgundy and amber at once. Red does not: `$40 | $08` = `$48` ramps through
+**`$44` at 2 HP, byte-identical to the Raider**, which is the very collision
+4.5d moved the Bomber to fix. The frontend and loader greens (`$D8`, `$D0`) are
+hue D, on screens gameplay never shares. The red build exists anyway so the
+owner can check that on hardware: `npm run bomber:hull:red` →
+`build/bomber-hull-red/` (review variant, never `dist/`, no gate consults it).
+Green is the default and needs no flag: `npm run build` → `dist/`.
+
+**Cost: zero.** `heavy_hull_colour` is already per-archetype C data that the
+veneer copies to COLPM1/COLPM2 (`heavy_publish_hull_colour`,
+[../src/hybrid/c-asm-abi.s](../src/hybrid/c-asm-abi.s)), so no new DLI, no new
+register, no new per-slot byte, no new code path. Every transport number is
+byte-for-byte what it was.
+
+**Gates — the DEFAULT build.** XEX
+`2327efb28cff393816095a7db570947efa6cda41c1d8a57aa4bc2f3e76b9944c` (28,383 B),
+ATR `1f7d465449f1adf6f1f5bdb80af6951ceb7f7dd0fe2c5f71cd0710162a69c341`
+(92,176 B), boot
+`a9a259db3a103f6c6a09a570aa682f818946c4012c6a3d4125a7f9732ab01243`.
+
+| | `95ffffa` | delivered |
+| --- | ---: | ---: |
+| worst fence margin (GO ≥ 500) | 991 | **991** |
+| DMA-on maximum | 31,349 | **31,349** |
+| physical headroom | 4,219 | **4,219** |
+| rows over the 31,200 target | 4 + 3 | **4 + 3** |
+| recorded clause failures | 40 | **40**, same names, 0 new, 0 disappeared |
+| initial block content / ceiling | 13,652 / 13,684 | **13,652 / 13,684** (32 B) |
+| boot / extension / total sectors | 107 / 102 / 209 | **107 / 102 / 209** |
+| XEX / ATR bytes | 28,383 / 92,176 | **28,383 / 92,176** |
+| ATR menu deadline | 603 (+7, 3 warn frames left) | **603**, unmoved |
+
+**PAL audit — 74 replays, 0 distinct miss events, 0 rows over the hard gate, 0
+deadline overruns, 0 missed frames.** Worst frame still
+`director-complete-2-natural-sweep-fire0` at **991**; the two replays over the
+31,200 target are still `director-complete-1-natural-sweep-fire0` (4 rows) and
+`raider-remnant-rapid-xex-hard` (3). **Boot smoke 8/8**, milestones unmoved:
+XEX 135/392, ATR 346/603.
+
+Evidence re-recorded because the artifact SHAs moved (the constant is in the
+binary): `build:candidate` → `runtime:wall-trace
+--atari800-source=build/atari800-trace` → `build`, one unbroken default run.
+`docs/media` is regenerated and **committed** this time rather than restored —
+the committed manifest on `95ffffa` still named a 21,399-byte XEX that no
+longer exists, which is why the showcase sheets disagreed with `dist/`.
+
+**Tests.** `npm test` on the **default** build. One new assertion, which is the
+cheap check the tree did not have: `tests/heavy-bomber.test.mjs` now reads the
+Bomber hue out of `src/c/lifecycle.c` and the allied steel out of `src/main.s`
+and `scripts/build.mjs`, and fails the moment a hostile hull and the player's
+own side share a hue again. Pinning the enemy hue against the *other enemy* was
+never enough.
 
 ### Accepted runtime checkpoint
 
@@ -4389,7 +4473,12 @@ collision change, no new PMG allocation, no multiplexing, no accent plane.
 
   `BOMBER_FLASH_LUMA` and `BOMBER_CHARGE_LUMA` are still added without
   clamping; the worst case is HP 4 + flash = `$8E`, inside hue 8. A compile-time
-  assertion (`bomber_hull_ramp_must_stay_inside_hue_eight`) now proves it.
+  assertion (`bomber_hull_ramp_must_stay_inside_its_hue`) now proves it.
+
+  > **Superseded 2026-09-23.** Hue 8 is gone: `$88` is the same byte as the
+  > allied steel. The hue is now C (green), `HULL_COLOUR_BOMBER` `$C8`. See
+  > "Bomber hull colour — green" in the checkpoint above. The ramp shape, the
+  > charge/flash steps and the assertion are unchanged; only the hue moved.
   The recycle path still restores `HULL_COLOUR_RAIDER` `$44` for the capital
   broadside missiles M1/M2.
 - **Placement (measured).** The only segment that changed size is

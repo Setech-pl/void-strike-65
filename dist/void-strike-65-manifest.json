@@ -295,12 +295,12 @@
     "manifest": {
       "address": 9788,
       "bytes": 190,
-      "crc16": 13709,
+      "crc16": 20864,
       "parsed": {
         "version": 1,
         "totalOccupiedSectors": 209,
         "manifestBytes": 190,
-        "crc16": 13709,
+        "crc16": 20864,
         "records": [
           {
             "startSector": 108,
@@ -374,7 +374,7 @@
             "packedLength": 674,
             "rawLength": 744,
             "finalDestination": 31696,
-            "crc16": 47054,
+            "crc16": 27933,
             "type": 1,
             "stagingId": 2,
             "destination": 33024
@@ -728,7 +728,7 @@
         "startSector": 175,
         "sectors": 6,
         "transportBytes": 768,
-        "crc16": 47054
+        "crc16": 27933
       }
     },
     {
@@ -21981,11 +21981,11 @@
     "estimated_additive_cycles": 28847,
     "wallTrace": {
       "reportPath": "docs/runtime-wall-trace.json",
-      "reportSha256": "dfe0ad2b29b5a2367707cb6dd6035c78a324e9bd78a496c51a73567756782225",
+      "reportSha256": "93b9568e4d3aa584d86d08e747992f9d1a31dc0323b870bdfe8cad9fb42ae204",
       "artifact": {
         "path": "dist/void-strike-65.xex",
         "bytes": 28383,
-        "sha256": "dffc73ea1dcac8a3bf846ab995daca30bce72c73d1c6d0d33abc3db9e2a2a7fa"
+        "sha256": "2327efb28cff393816095a7db570947efa6cda41c1d8a57aa4bc2f3e76b9944c"
       },
       "emulator": {
         "name": "Atari800",
@@ -24669,34 +24669,34 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 26752,
-        "sha256": "193dc36dcd05acff7bb59ff3bf5595a7033f847d79917a5cb4f88a77d3e3662c"
+        "sha256": "a9a259db3a103f6c6a09a570aa682f818946c4012c6a3d4125a7f9732ab01243"
       },
       "void-strike-65.xex": {
         "path": "dist/void-strike-65.xex",
         "bytes": 28383,
-        "sha256": "dffc73ea1dcac8a3bf846ab995daca30bce72c73d1c6d0d33abc3db9e2a2a7fa"
+        "sha256": "2327efb28cff393816095a7db570947efa6cda41c1d8a57aa4bc2f3e76b9944c"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "5f0cad436a0f41844a6475c107dc254f55cda61f1c0e99b2e1f57083b2465851"
+        "sha256": "1f7d465449f1adf6f1f5bdb80af6951ceb7f7dd0fe2c5f71cd0710162a69c341"
       }
     },
     "reportPath": "docs/runtime-wall-trace.json",
-    "reportSha256": "dfe0ad2b29b5a2367707cb6dd6035c78a324e9bd78a496c51a73567756782225"
+    "reportSha256": "93b9568e4d3aa584d86d08e747992f9d1a31dc0323b870bdfe8cad9fb42ae204"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 26752,
-      "sha256": "193dc36dcd05acff7bb59ff3bf5595a7033f847d79917a5cb4f88a77d3e3662c"
+      "sha256": "a9a259db3a103f6c6a09a570aa682f818946c4012c6a3d4125a7f9732ab01243"
     },
     "void-strike-65.xex": {
       "bytes": 28383,
-      "sha256": "dffc73ea1dcac8a3bf846ab995daca30bce72c73d1c6d0d33abc3db9e2a2a7fa"
+      "sha256": "2327efb28cff393816095a7db570947efa6cda41c1d8a57aa4bc2f3e76b9944c"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "5f0cad436a0f41844a6475c107dc254f55cda61f1c0e99b2e1f57083b2465851"
+      "sha256": "1f7d465449f1adf6f1f5bdb80af6951ceb7f7dd0fe2c5f71cd0710162a69c341"
     }
   }
 }

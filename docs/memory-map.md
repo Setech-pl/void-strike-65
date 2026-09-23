@@ -588,7 +588,7 @@ record or hold. These rows override the arena, EXT/LIGHT, pickup and
 | `$8119` | 1 B | `encounter_heavy_index`: **temporary** Heavy smoke schedule counter (`HYBRID_ENCOUNTER_STATE`; cc65 emits the segment in reverse declaration order), reset in `lifecycle_c_init` |
 | `$811A` | 1 B | `encounter_light_index`: provisional Light schedule counter (was `$8119`) |
 | `$811B` | 1 B | `heavy_archetype_offset`: selected Heavy record (0 Raider, 36 Bomber) (`HYBRID_HEAVY_STATE`) |
-| `$811C` | 1 B | `heavy_hull_colour`: `$44` Raider / `$88` Bomber (4.5d: hue 8, full-HP entry of the HP ramp); ASM publishes it, recycle restores `$44` for the capital broadside missiles M1/M2 |
+| `$811C` | 1 B | `heavy_hull_colour`: `$44` Raider / `$C8` Bomber (hue C green since 2026-09-23, full-HP entry of the HP ramp; it was `$88` — the allied steel's own byte); ASM publishes it, recycle restores `$44` for the capital broadside missiles M1/M2 |
 | `$811D-$8121` | 5 B | ticked member scalars X, Y, direction, fire timer, turn timer (marshalled from/to `$5478-$5481` by `heavy_member_update`) |
 | `$8122-$8123` | 2 B | C scratch `heavy_scratch`, `heavy_index` |
 | `$8124-$813F` | 28 B | unowned |

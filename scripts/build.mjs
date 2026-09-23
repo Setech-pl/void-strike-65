@@ -130,6 +130,25 @@ const alliedSteelValue = alliedSteelSlug
 // twinkle subset grows. Like every review variant its artifacts never reach
 // dist/, runtime measurement is skipped and no gate consults it.
 const menuSteelTwinkle = process.argv.includes("--menu-steel-twinkle");
+// Owner smoke of 2026-09-23: the Bomber read as blue because its hull byte was
+// $88, the allied steel's own byte. Green (hue C) is the accepted hue; RED was
+// the stated fallback and was not taken, because the enemy capital hull is
+// burgundy and a red Bomber blends into the hull it flies over. This variant
+// builds that fallback so the owner can check that claim on hardware instead
+// of taking it on trust. Review variant: never dist/, no runtime measurement,
+// no gate.
+const bomberHullArgument = process.argv.find((argument) =>
+  argument.startsWith("--bomber-hull="));
+const bomberHullSlug = bomberHullArgument?.slice("--bomber-hull=".length);
+const bomberHullValues = new Map([["green", 0xc0], ["red", 0x40]]);
+if (bomberHullSlug && !bomberHullValues.has(bomberHullSlug.toLowerCase())) {
+  throw new Error(`Unknown Bomber hull build ${bomberHullSlug}`);
+}
+// green is the default the source already states, so only red is a variant.
+const bomberHullValue = bomberHullSlug
+  && bomberHullSlug.toLowerCase() !== "green"
+  ? bomberHullValues.get(bomberHullSlug.toLowerCase())
+  : null;
 // Capital hull set v1 step 2, §7 and decision 1: the campaign does not exist
 // yet, so the only way to smoke a region is to bake it into level 1. The flag
 // carries the whole REGION — the style's hull block and that region's allied
@@ -145,7 +164,7 @@ if (hullStyleSlug && !hullStyleIds.has(hullStyleSlug.toUpperCase())) {
 const hullStyleValue = hullStyleSlug ? hullStyleIds.get(hullStyleSlug.toUpperCase()) : null;
 const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
-  hullStyleValue !== null;
+  hullStyleValue !== null || bomberHullValue !== null;
 const acceptedMenuMusicPayloadBytes = 14314;
 // Gameplay music plus its in-game pause controls remain a bounded post-menu feature.
 const runtimeHeadroomPayloadLimit = 1536;
@@ -790,6 +809,8 @@ async function buildHybridDirectorModule(fighterWeaponsInclude) {
     },
     ["--cpu", "6502", "-Oirs", "-I", "/project/src/c", "-I", "/cc65/include",
       ...(forceLightPopulation ? ["-D", "LIGHT_FORCE_POPULATION=1"] : []),
+      ...(bomberHullValue !== null
+        ? ["-D", `BOMBER_HULL_HUE_OVERRIDE=0x${bomberHullValue.toString(16)}u`] : []),
       "-o", `${base}-lifecycle-generated.s`, "/project/src/c/lifecycle.c"],
     [`${base}-lifecycle-generated.s`],
   );
@@ -2560,6 +2581,8 @@ async function build() {
             ? "menu-steel-twinkle"
           : hullStyleValue !== null
             ? `hull-style-${hullStyleSlug.toUpperCase()}`
+          : bomberHullValue !== null
+            ? `bomber-hull-${bomberHullSlug.toLowerCase()}`
           : candidateBuild
             ? "candidate"
             : "release",
@@ -3787,7 +3810,9 @@ async function build() {
             ? path.join(buildDirectory, "menu-steel-twinkle")
             : hullStyleValue !== null
               ? path.join(buildDirectory, `hull-style-${hullStyleSlug.toUpperCase()}`)
-              : distDirectory;
+              : bomberHullValue !== null
+                ? path.join(buildDirectory, `bomber-hull-${bomberHullSlug.toLowerCase()}`)
+                : distDirectory;
   writeFile(path.join(artifactDirectory, "void-strike-65-boot.bin"), transportPayload);
   writeFile(path.join(artifactDirectory, "void-strike-65.xex"), xex);
   writeFile(path.join(artifactDirectory, "void-strike-65.atr"), atr);
@@ -3817,6 +3842,11 @@ async function build() {
       console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
     } else if (menuSteelTwinkle) {
       console.log(`  variant : menu stars, steel twinkling too (steel -> off -> steel)`);
+      console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
+    } else if (bomberHullValue !== null) {
+      console.log(`  variant : Bomber hull ${bomberHullSlug.toLowerCase()} ` +
+        `(hue $${bomberHullValue.toString(16).padStart(2, "0")}, full HP ` +
+        `$${(bomberHullValue | 0x08).toString(16)})`);
       console.log(`  output  : ${path.relative(rootDirectory, artifactDirectory)}`);
     } else if (hullStyleValue !== null) {
       console.log(`  variant : hull region ${hullStyleSlug.toUpperCase()} on every level ` +

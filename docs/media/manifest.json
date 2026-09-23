@@ -4,17 +4,17 @@
   "runtimeEvidence": {
     "xex": {
       "path": "dist/void-strike-65.xex",
-      "bytes": 21399,
-      "sha256": "6ea87181edc8f78376f221be830d44dd0bb3c6601fb2b6e36da5dbe473a07194"
+      "bytes": 28383,
+      "sha256": "2327efb28cff393816095a7db570947efa6cda41c1d8a57aa4bc2f3e76b9944c"
     },
     "atr": {
       "path": "dist/void-strike-65.atr",
       "bytes": 92176,
-      "sha256": "95ec01b9456429fb9b508b990dba6b02cf6346f3313774c9e57275a69482758c"
+      "sha256": "1f7d465449f1adf6f1f5bdb80af6951ceb7f7dd0fe2c5f71cd0710162a69c341"
     },
     "wallTrace": {
       "path": "docs/runtime-wall-trace.json",
-      "sha256": "40c1fae3b4472fb8a1942f75349315e45a29c7b40b453c81e681a6d780c22545"
+      "sha256": "93b9568e4d3aa584d86d08e747992f9d1a31dc0323b870bdfe8cad9fb42ae204"
     },
     "note": "Gameplay images are unenhanced 320x240 crops of Atari800's packed-release framebuffer. The eight-pixel emulator side borders are the only pixels removed."
   },
@@ -151,8 +151,8 @@
     },
     {
       "path": "docs/media/assets/weapons-and-effects.png",
-      "bytes": 7002,
-      "sha256": "54554b966fbafd45e8d716d08c6ecc3378a635499ea46ecd13f485340b41ba83",
+      "bytes": 6996,
+      "sha256": "0e1c2cb32333f5fa9e43f6de20b242b14a4b568f7c881a1b55220d5d85cfe945",
       "width": 960,
       "height": 520,
       "sources": [
@@ -163,8 +163,8 @@
     },
     {
       "path": "docs/media/assets/debris-and-pickups.png",
-      "bytes": 5716,
-      "sha256": "c7f78d3f6dbabe5cf5c9f34831c78b858f94e6f45b1eaf69f5fc0e8ebb7ab5c1",
+      "bytes": 5766,
+      "sha256": "0b0b78ef61d0df1a24f8c2be7cc8cfbe96f6c2275d405e3d61f41b54c98069f4",
       "width": 960,
       "height": 560,
       "sources": [
@@ -174,8 +174,8 @@
     },
     {
       "path": "docs/media/assets/capital-ship-modules.png",
-      "bytes": 11468,
-      "sha256": "fee1a6af3adc7198ad7bc66fc5f0810cd1e2d07b011f6595b0e44a435d3ed3c7",
+      "bytes": 11125,
+      "sha256": "b2238fbb1fea5b66add58c0655aa37bff3a9115252be7b68dcc4f489e69ef774",
       "width": 960,
       "height": 680,
       "sources": [

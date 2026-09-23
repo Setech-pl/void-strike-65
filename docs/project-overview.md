@@ -984,13 +984,24 @@ of the reader and must be budgeted with it, not after it.
 The records state these as outcomes. The reasoning is the part a future session
 needs and the part that was missing.
 
-- **The Bomber moved to hue 8 (`$88`, blue).** Not a palette preference.
+- **The Bomber moved off the Raider's red family.** Not a palette preference.
   `$24` and `$44` are **the same luminance in adjacent hues**, and at that
   luminance adjacent hues blend on a CRT. Two enemies whose masks were already
   the same family — full-width shoulders, converging V, identical three-row
   spine tail — became indistinguishable in motion. Changing hue *and* keeping
   the luminance identical would have repeated the mistake; hue 8 with an
   HP-driven luminance ramp separates them on both axes.
+- **Hue 8 was the wrong destination, and hue C (`$C8`, green) replaced it on
+  2026-09-23.** The 4.5d choice fixed the Raider collision and created a worse
+  one nobody measured: `$88` is byte-identical to `GAMEPLAY_COLPF1`, the allied
+  steel, which the allied capital hull, the Light steel arms and the hostile
+  shell trails all ride. A hostile Heavy wearing the player's own colour reads
+  as friendly, and the owner's hardware smoke saw it. Red was the fallback and
+  was rejected on the same grounds as the original Raider clash — the enemy
+  capital hull is burgundy. Gameplay uses no hue C, so green is the only hue
+  that separates from steel, burgundy and amber at once. The lesson is the
+  cheap check the tree did not have: pin the enemy hue **against** the allied
+  palette, not only against the other enemy.
 - **The HP colour ramp was chosen over a fixed colour** because it also
   supplies the **non-lethal Heavy hit feedback that STATUS lists as a gap**. A
   fixed colour would have solved only the identity problem; the ramp solves

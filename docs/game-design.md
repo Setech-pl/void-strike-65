@@ -480,10 +480,15 @@ flight paths, sector subtypes and boosters.
   with the `SCYTHE_BOMBER` art as a QUAD (32-HPOS) hull.
 - **Identity (roadmap 4.5d).** The silhouette is a **catamaran** —
   two hulls joined by a bridge, twin prongs instead of the Raider's single
-  spine — so it never reads as a bigger Raider. The hull is **blue** (hue 8)
+  spine — so it never reads as a bigger Raider. The hull is **green** (hue C)
   and its luminance is driven by the remaining HP, which also gives a Heavy its
-  non-lethal hit feedback: 4 HP `$88`, 3 HP `$86`, 2 HP `$84`, 1 HP `$82`, with
-  the charge and flash brightening staying inside hue 8. The torpedo leaves
+  non-lethal hit feedback: 4 HP `$C8`, 3 HP `$C6`, 2 HP `$C4`, 1 HP `$C2`, with
+  the charge and flash brightening staying inside hue C. It was hue 8 (blue)
+  until the 2026-09-23 owner smoke: `$88` is the **same byte** as the allied
+  steel `GAMEPLAY_COLPF1`, so the Bomber wore the allied capital hull's own
+  colour and read as friendly. Red was the stated fallback and was not taken —
+  the enemy capital hull is burgundy, so a red Bomber would blend into the hull
+  it flies over. Gameplay uses no hue C at all. The torpedo leaves
   from between the prongs. When the formation recycles, `P1`/`P2` return to the
   Raider colour `$44`, which the capital broadside missiles M1/M2 borrow.
 - **Lane sweep.** Slot 0 sweeps the left lane (X 48-92), slot 1 the right lane

@@ -47,9 +47,17 @@ const ATTACK = 0;
 const AIM_FRAMES = 20;
 const SALVO_INTERVAL = 8;
 const SALVO_SHELLS = 2;
-// 4.5d identity: hue 8 (blue) with the remaining HP as the luminance; the
-// charge (+4) and hit flash (+6) are added on top, unclamped.
-const HULL_AT = (hp) => 0x80 | (hp << 1);
+// Identity: hue C (green) with the remaining HP as the luminance; the charge
+// (+4) and hit flash (+6) are added on top, unclamped.
+// Re-pinned 2026-09-23 from hue 8 (blue). 4.5d's $88 was byte-identical to
+// GAMEPLAY_COLPF1, the allied steel, so the Bomber wore the allied capital
+// hull's own colour and read as friendly at the owner's hardware smoke.
+// Red was the fallback and was not taken: the enemy capital hull is burgundy.
+const BOMBER_HUE = 0xc0;
+// src/main.s GAMEPLAY_COLPF1 and its darker second-half level steps: the
+// values the Bomber must not land on.
+const ALLIED_STEEL = [0x88, 0x8a, 0x86, 0x84];
+const HULL_AT = (hp) => BOMBER_HUE | (hp << 1);
 const CHARGE_AT = (hp) => HULL_AT(hp) + 4;
 const FLASH_AT = (hp) => HULL_AT(hp) + 6;
 const HULL = HULL_AT(4);
@@ -375,7 +383,7 @@ test("charge telegraph and hit flash: per-member COLPM, Raider formations untouc
     "the hull brightens from the brake to the last shell");
   assert.equal(frames[AIM_FRAMES + SALVO_INTERVAL].colour, HULL, "and dims when it resumes");
   // The ramp itself: every HP step, and every charge/flash combination on it,
-  // stays inside hue 8 ($80-$8F). HP is existing state, so no new per-slot byte.
+  // stays inside hue C ($C0-$CF). HP is existing state, so no new per-slot byte.
   const ramp = [];
   for (const hp of [4, 3, 2, 1]) {
     const cruise = bomberFormation();
@@ -394,15 +402,24 @@ test("charge telegraph and hit flash: per-member COLPM, Raider formations untouc
     ramp.push([hp, base, charged[COLPM1], flashed[COLPM1]]);
   }
   assert.deepEqual(ramp, [
-    [4, 0x88, 0x8c, 0x8e],
-    [3, 0x86, 0x8a, 0x8c],
-    [2, 0x84, 0x88, 0x8a],
-    [1, 0x82, 0x86, 0x88],
+    [4, 0xc8, 0xcc, 0xce],
+    [3, 0xc6, 0xca, 0xcc],
+    [2, 0xc4, 0xc8, 0xca],
+    [1, 0xc2, 0xc6, 0xc8],
   ]);
-  assert.ok(ramp.every(([, ...colours]) => colours.every((c) => c >= 0x80 && c <= 0x8f)),
-    "no combination overflows hue 8");
+  assert.ok(ramp.every(([, ...colours]) => colours.every((c) => c >= 0xc0 && c <= 0xcf)),
+    "no combination overflows hue C");
   assert.ok(ramp.every(([, base]) => base !== 0x44 && base !== 0x24),
     "the Bomber no longer shares the Raider red family");
+  // The reason for the 2026-09-23 re-pin: not one value of the ramp, charge or
+  // flash included, may collide with the allied steel the player's own side
+  // wears, and none may sit in the hostile red family the capital hull uses.
+  assert.ok(ramp.every(([, ...colours]) =>
+    colours.every((c) => !ALLIED_STEEL.includes(c))),
+    "no Bomber colour lands on the allied steel");
+  assert.ok(ramp.every(([, ...colours]) =>
+    colours.every((c) => (c & 0xf0) !== 0x80 && (c & 0xf0) !== 0x40)),
+    "the Bomber hull leaves both the allied steel hue and the hostile red hue");
   // A hit (HP 4 -> 3) flashes the member for 6 ticks, over the charge colour,
   // and the hull stays one luma step darker afterwards.
   const hit = attackRun(2, (image, frame) => { if (frame === 5) image[L("ENEMY_HP")] = 3; }).frames;
@@ -492,4 +509,45 @@ test("source contract: the smoke scheduler is temporary data, placed in HYBRID_C
   assert.match(lifecycleSource,
     /encounter_heavy_light_escort\[ENCOUNTER_HEAVY_SCHEDULE_LENGTH\] = \{\s+1u, 0u\s+\}/);
   assert.doesNotMatch(lifecycleSource, /HYBRID_C_HEAVY/);
+});
+
+// Re-pinned 2026-09-23. The 4.5d Bomber hue and the allied steel were the same
+// byte, and nothing in the tree said so, so the collision survived a smoke and
+// two documentation passes. This reads both constants out of their own source
+// and fails the moment they share a hue again — a hostile Heavy may not wear
+// the colour of the player's own side. It also holds the build's per-level
+// steel steps and the --allied-steel review override to the same rule.
+test("the Bomber hull hue is green and never collides with the allied steel", () => {
+  const hue = /#define\s+BOMBER_HULL_HUE\s+0x([0-9a-fA-F]{2})u/.exec(lifecycleSource);
+  assert.ok(hue, "src/c/lifecycle.c must state the Bomber hull hue");
+  assert.equal(Number.parseInt(hue[1], 16), 0xc0, "the Bomber hull hue is C (green)");
+  // The full-HP entry is derived from the hue, not written twice, so the
+  // --bomber-hull review variant cannot drift from the shipped default.
+  assert.match(lifecycleSource,
+    /#define\s+HULL_COLOUR_BOMBER\s+\(BOMBER_HULL_HUE \| 0x08u\)/,
+    "HULL_COLOUR_BOMBER is derived from BOMBER_HULL_HUE");
+
+  const mainSource = fs.readFileSync(path.join(root, "src/main.s"), "utf8");
+  const steel = /^GAMEPLAY_COLPF1 = \$([0-9A-Fa-f]{2})$/m.exec(mainSource);
+  assert.ok(steel, "src/main.s must state GAMEPLAY_COLPF1");
+  const alliedSteel = Number.parseInt(steel[1], 16);
+  assert.equal(alliedSteel, 0x88, "the release-default allied steel is $88");
+
+  // The build's own per-level steel bytes and the review override.
+  const buildSource = fs.readFileSync(path.join(root, "scripts/build.mjs"), "utf8");
+  const steels = [...buildSource.matchAll(/alliedSteel(?:FirstHalf|SecondHalf) = 0x([0-9a-f]{2})/g)]
+    .map((match) => Number.parseInt(match[1], 16));
+  assert.deepEqual(steels, [0x88, 0x84], "levels 1-6 $88, levels 7-12 $84");
+
+  // The red fallback the owner named is buildable for comparison, and it is a
+  // review variant only: green is what the source states and what dist/ gets.
+  assert.match(buildSource, /--bomber-hull=/, "the red comparison build exists");
+  assert.match(buildSource,
+    /bomberHullValues = new Map\(\[\["green", 0xc0\], \["red", 0x40\]\]\)/,
+    "green and red are the only Bomber hulls the build offers");
+
+  for (const value of [alliedSteel, ...steels, ...ALLIED_STEEL]) {
+    assert.notEqual(value & 0xf0, Number.parseInt(hue[1], 16),
+      `the Bomber hull shares a hue with allied steel $${value.toString(16)}`);
+  }
 });

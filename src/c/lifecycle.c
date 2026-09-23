@@ -137,16 +137,35 @@
 #define ROSTER_SHAPE_RAIDER      0u
 #define ROSTER_SHAPE_BOMBER      2u
 #define HULL_COLOUR_RAIDER       0x44u
-/* 4.5d identity: the Bomber leaves the Raider's red family for hue 8 (blue),
- * and its luminance is its remaining HP: the hull visibly darkens as it is
- * worn down, which is also the non-lethal Heavy hit feedback STATUS lists as
- * a gap. No new per-slot state: HP is already ENEMY_HP_n.
- *   HP 4 -> $88   HP 3 -> $86   HP 2 -> $84   HP 1 -> $82
+/* 4.5d identity: the Bomber leaves the Raider's red family, and its luminance
+ * is its remaining HP: the hull visibly darkens as it is worn down, which is
+ * also the non-lethal Heavy hit feedback STATUS lists as a gap. No new
+ * per-slot state: HP is already ENEMY_HP_n.
+ *
+ * The hue is GREEN (owner decision, 2026-09-23). 4.5d shipped hue 8 and the
+ * owner's hardware smoke rejected it: $88 is not merely near the allied steel,
+ * it is the SAME BYTE as GAMEPLAY_COLPF1, so a hostile Heavy wore the colour
+ * of the allied capital hull, the Light steel arms and the hostile shell
+ * trails, and read as friendly. Red was the fallback and was not taken: the
+ * enemy capital hull is burgundy ($44 / COLPF3 $46), so a red Bomber would
+ * blend into the hull it flies over in capital sectors. Gameplay uses no hue C
+ * at all, so green separates from burgundy, from steel and from the amber
+ * allied faction colour on both hull styles. The frontend/loader greens ($D8,
+ * $D0) are hue D on screens gameplay never shares.
+ *   HP 4 -> $C8   HP 3 -> $C6   HP 2 -> $C4   HP 1 -> $C2
  * HULL_COLOUR_BOMBER is the full-HP entry, published to COLPM1/COLPM2 when
- * the formation is admitted; bomber_colour() derives the rest per tick. */
-#define BOMBER_HULL_HUE          0x80u
+ * the formation is admitted; bomber_colour() derives the rest per tick. The
+ * cost is zero: only the value of this constant changes. */
+#ifndef BOMBER_HULL_HUE_OVERRIDE
+#define BOMBER_HULL_HUE          0xC0u
+#else
+/* --bomber-hull=red review variant only. Never reaches dist/, no gate consults
+ * it; it exists so the owner can hold the rejected fallback against green on
+ * real hardware, over the burgundy enemy capital hull, in one sitting. */
+#define BOMBER_HULL_HUE          BOMBER_HULL_HUE_OVERRIDE
+#endif
 #define BOMBER_HULL_HP_LUMA      1u      /* left shift: two luma steps per HP */
-#define HULL_COLOUR_BOMBER       0x88u
+#define HULL_COLOUR_BOMBER       (BOMBER_HULL_HUE | 0x08u)
 #define ENCOUNTER_HEAVY_SCHEDULE_LENGTH 2u
 #define HEAVY_PROFILE_BYTES      9u
 #define HEAVY_SLOT_STATE_LAST    11u
@@ -241,8 +260,8 @@ typedef char enemy_archetype_must_remain_twelve_bytes[
 ];
 
 /* The Bomber ramp is added to without clamping: prove at compile time that the
- * brightest combination still lies inside hue 8. */
-typedef char bomber_hull_ramp_must_stay_inside_hue_eight[
+ * brightest combination still lies inside the Bomber's hue. */
+typedef char bomber_hull_ramp_must_stay_inside_its_hue[
     (HULL_COLOUR_BOMBER == (BOMBER_HULL_HUE | (4u << BOMBER_HULL_HP_LUMA))) &&
     (HULL_COLOUR_BOMBER + BOMBER_FLASH_LUMA) < (BOMBER_HULL_HUE + 0x10u) &&
     (HULL_COLOUR_BOMBER + BOMBER_CHARGE_LUMA) < (BOMBER_HULL_HUE + 0x10u) ? 1 : -1
@@ -1361,11 +1380,11 @@ static void bomber_turn(void)
     heavy_member_turn_timer = (uint8_t)((FRAME_COUNTER & BOMBER_TURN_SPREAD) + BOMBER_TURN_MIN);
 }
 
-/* Hull colour of the ticked member: hue 8 with the remaining HP as its
+/* Hull colour of the ticked member: BOMBER_HULL_HUE with the remaining HP as its
  * luminance, brightened while it charges an attack, brighter still for a few
  * frames after a hit. BOMBER_FLASH_LUMA and BOMBER_CHARGE_LUMA are added
- * unclamped, so the worst case must stay inside hue 8: HP 4 ($88) + flash 6
- * is $8E. Uses heavy_index only: heavy_scratch carries the tick's return
+ * unclamped, so the worst case must stay inside the hue: HP 4 ($C8) + flash 6
+ * is $CE. Uses heavy_index only: heavy_scratch carries the tick's return
  * value. */
 static void bomber_colour(void)
 {

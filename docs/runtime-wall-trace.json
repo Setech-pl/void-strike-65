@@ -9,7 +9,7 @@
     "artifact_binding": "boot BIN, XEX and ATR SHA-256"
   },
   "determinism": {
-    "replay_fingerprint_sha256": "78d58a4bf4375999f39801f032693db697c4671da7f2ff7fab086bf6240ad35a",
+    "replay_fingerprint_sha256": "ae062f6da9fdf123409667bc23dd436ade27e32b746fdfd334481715520cd375",
     "ordered_frames": 108180,
     "basis": "ordered decoded CSV rows from every required legal replay"
   },
@@ -17,28 +17,28 @@
     "void-strike-65-boot.bin": {
       "path": "dist/void-strike-65-boot.bin",
       "bytes": 26752,
-      "sha256": "193dc36dcd05acff7bb59ff3bf5595a7033f847d79917a5cb4f88a77d3e3662c"
+      "sha256": "a9a259db3a103f6c6a09a570aa682f818946c4012c6a3d4125a7f9732ab01243"
     },
     "void-strike-65.xex": {
       "path": "dist/void-strike-65.xex",
       "bytes": 28383,
-      "sha256": "dffc73ea1dcac8a3bf846ab995daca30bce72c73d1c6d0d33abc3db9e2a2a7fa"
+      "sha256": "2327efb28cff393816095a7db570947efa6cda41c1d8a57aa4bc2f3e76b9944c"
     },
     "void-strike-65.atr": {
       "path": "dist/void-strike-65.atr",
       "bytes": 92176,
-      "sha256": "5f0cad436a0f41844a6475c107dc254f55cda61f1c0e99b2e1f57083b2465851"
+      "sha256": "1f7d465449f1adf6f1f5bdb80af6951ceb7f7dd0fe2c5f71cd0710162a69c341"
     },
     "void-strike-65-manifest.json": {
       "path": "dist/void-strike-65-manifest.json",
       "bytes": 805200,
-      "sha256": "449ed84d4ff73e20371c58981990eba99c2017d07729478f0556b885d2261765"
+      "sha256": "84521913b9226db2d0fad5c0fd8d41dd453f01aee5dad7869ef67e61a0824a4f"
     }
   },
   "artifact": {
     "path": "dist/void-strike-65.xex",
     "bytes": 28383,
-    "sha256": "dffc73ea1dcac8a3bf846ab995daca30bce72c73d1c6d0d33abc3db9e2a2a7fa"
+    "sha256": "2327efb28cff393816095a7db570947efa6cda41c1d8a57aa4bc2f3e76b9944c"
   },
   "emulator": {
     "name": "Atari800",
@@ -223,7 +223,7 @@
           "path": "dist/void-strike-65.xex",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.xex",
           "bytes": 28383,
-          "sha256": "dffc73ea1dcac8a3bf846ab995daca30bce72c73d1c6d0d33abc3db9e2a2a7fa"
+          "sha256": "2327efb28cff393816095a7db570947efa6cda41c1d8a57aa4bc2f3e76b9944c"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -463,7 +463,7 @@
           "path": "dist/void-strike-65.xex",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.xex",
           "bytes": 28383,
-          "sha256": "dffc73ea1dcac8a3bf846ab995daca30bce72c73d1c6d0d33abc3db9e2a2a7fa"
+          "sha256": "2327efb28cff393816095a7db570947efa6cda41c1d8a57aa4bc2f3e76b9944c"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -703,7 +703,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "5f0cad436a0f41844a6475c107dc254f55cda61f1c0e99b2e1f57083b2465851"
+          "sha256": "1f7d465449f1adf6f1f5bdb80af6951ceb7f7dd0fe2c5f71cd0710162a69c341"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -942,7 +942,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "5f0cad436a0f41844a6475c107dc254f55cda61f1c0e99b2e1f57083b2465851"
+          "sha256": "1f7d465449f1adf6f1f5bdb80af6951ceb7f7dd0fe2c5f71cd0710162a69c341"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1181,7 +1181,7 @@
           "path": "dist/void-strike-65.xex",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.xex",
           "bytes": 28383,
-          "sha256": "dffc73ea1dcac8a3bf846ab995daca30bce72c73d1c6d0d33abc3db9e2a2a7fa"
+          "sha256": "2327efb28cff393816095a7db570947efa6cda41c1d8a57aa4bc2f3e76b9944c"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1421,7 +1421,7 @@
           "path": "dist/void-strike-65.xex",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.xex",
           "bytes": 28383,
-          "sha256": "dffc73ea1dcac8a3bf846ab995daca30bce72c73d1c6d0d33abc3db9e2a2a7fa"
+          "sha256": "2327efb28cff393816095a7db570947efa6cda41c1d8a57aa4bc2f3e76b9944c"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1661,7 +1661,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "5f0cad436a0f41844a6475c107dc254f55cda61f1c0e99b2e1f57083b2465851"
+          "sha256": "1f7d465449f1adf6f1f5bdb80af6951ceb7f7dd0fe2c5f71cd0710162a69c341"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1900,7 +1900,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "5f0cad436a0f41844a6475c107dc254f55cda61f1c0e99b2e1f57083b2465851"
+          "sha256": "1f7d465449f1adf6f1f5bdb80af6951ceb7f7dd0fe2c5f71cd0710162a69c341"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -2137,7 +2137,7 @@
           "path": "dist/void-strike-65.xex",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.xex",
           "bytes": 28383,
-          "sha256": "dffc73ea1dcac8a3bf846ab995daca30bce72c73d1c6d0d33abc3db9e2a2a7fa"
+          "sha256": "2327efb28cff393816095a7db570947efa6cda41c1d8a57aa4bc2f3e76b9944c"
         },
         "sha256": "12841913c59af528159c0bea07f1bab448f1c96c7c6fc71e1464fa93cd54f86b"
       },
@@ -2146,7 +2146,7 @@
           "path": "dist/void-strike-65.xex",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.xex",
           "bytes": 28383,
-          "sha256": "dffc73ea1dcac8a3bf846ab995daca30bce72c73d1c6d0d33abc3db9e2a2a7fa"
+          "sha256": "2327efb28cff393816095a7db570947efa6cda41c1d8a57aa4bc2f3e76b9944c"
         },
         "sha256": "12841913c59af528159c0bea07f1bab448f1c96c7c6fc71e1464fa93cd54f86b"
       },
@@ -2155,7 +2155,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "5f0cad436a0f41844a6475c107dc254f55cda61f1c0e99b2e1f57083b2465851"
+          "sha256": "1f7d465449f1adf6f1f5bdb80af6951ceb7f7dd0fe2c5f71cd0710162a69c341"
         },
         "sha256": "b22b4de11fff062864ef6da5347c05045b4833a24c63edc046861c231bae7d73"
       },
@@ -2164,7 +2164,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "5f0cad436a0f41844a6475c107dc254f55cda61f1c0e99b2e1f57083b2465851"
+          "sha256": "1f7d465449f1adf6f1f5bdb80af6951ceb7f7dd0fe2c5f71cd0710162a69c341"
         },
         "sha256": "b22b4de11fff062864ef6da5347c05045b4833a24c63edc046861c231bae7d73"
       },
@@ -2173,7 +2173,7 @@
           "path": "dist/void-strike-65.xex",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.xex",
           "bytes": 28383,
-          "sha256": "dffc73ea1dcac8a3bf846ab995daca30bce72c73d1c6d0d33abc3db9e2a2a7fa"
+          "sha256": "2327efb28cff393816095a7db570947efa6cda41c1d8a57aa4bc2f3e76b9944c"
         },
         "sha256": "12841913c59af528159c0bea07f1bab448f1c96c7c6fc71e1464fa93cd54f86b"
       },
@@ -2182,7 +2182,7 @@
           "path": "dist/void-strike-65.xex",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.xex",
           "bytes": 28383,
-          "sha256": "dffc73ea1dcac8a3bf846ab995daca30bce72c73d1c6d0d33abc3db9e2a2a7fa"
+          "sha256": "2327efb28cff393816095a7db570947efa6cda41c1d8a57aa4bc2f3e76b9944c"
         },
         "sha256": "12841913c59af528159c0bea07f1bab448f1c96c7c6fc71e1464fa93cd54f86b"
       },
@@ -2191,7 +2191,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "5f0cad436a0f41844a6475c107dc254f55cda61f1c0e99b2e1f57083b2465851"
+          "sha256": "1f7d465449f1adf6f1f5bdb80af6951ceb7f7dd0fe2c5f71cd0710162a69c341"
         },
         "sha256": "b22b4de11fff062864ef6da5347c05045b4833a24c63edc046861c231bae7d73"
       },
@@ -2200,7 +2200,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "5f0cad436a0f41844a6475c107dc254f55cda61f1c0e99b2e1f57083b2465851"
+          "sha256": "1f7d465449f1adf6f1f5bdb80af6951ceb7f7dd0fe2c5f71cd0710162a69c341"
         },
         "sha256": "b22b4de11fff062864ef6da5347c05045b4833a24c63edc046861c231bae7d73"
       }
@@ -11603,7 +11603,7 @@
       "screenshot": {
         "path": "build/runtime-wall-trace/weapon-pickup-static-atari800.png",
         "bytes": 1120,
-        "sha256": "35159550a56ed3fdc2a165f191d3478b7bd48bb97eb6aadcd3dbdce1455d039c",
+        "sha256": "b7c8ed6faf1dd29be1f3d3372a9e9ff34446be545148b21925c25dffc20a5221",
         "capture_frame": 335,
         "capture_host_frame": 751,
         "capture_state": {
@@ -11831,8 +11831,8 @@
         "colour_value": 30,
         "screenshot": {
           "path": "build/runtime-wall-trace/weapon-pickup-rapid-projectiles-atari800.png",
-          "bytes": 1126,
-          "sha256": "9acb9add63aff147efa87672898ea920e43b177adb0b06e6246466e040076dc7",
+          "bytes": 1131,
+          "sha256": "0c65c54d775e95afeeb14c991e6713027880a081b6638cb852bfefe3622dd11a",
           "capture_frame": 403,
           "capture_host_frame": 819,
           "capture_state": {
@@ -12177,8 +12177,8 @@
       },
       "screenshot": {
         "path": "build/runtime-wall-trace/weapon-pickup-spread-projectiles-atari800.png",
-        "bytes": 1113,
-        "sha256": "83acf53135475f278da398c8d3c2f87f9ce5141deaf5297bd4d30f25e9bd30c8",
+        "bytes": 1116,
+        "sha256": "2de0565bae93e1b535e46318af1139991ec21b419ec40137f09ae71f52fafa50",
         "capture_frame": 2084,
         "capture_host_frame": 2500,
         "capture_state": {
@@ -13180,13 +13180,13 @@
         ],
         "colpm1": [
           68,
-          136,
-          140
+          200,
+          204
         ],
         "colpm2": [
           68,
-          136,
-          140
+          200,
+          204
         ],
         "colpm3": [
           40

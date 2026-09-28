@@ -546,7 +546,8 @@ on **2026-09-23**, before the first implementation step began; item 7 is the
 one that stays open. Item 8 was added after the step-2 hardware smoke; items
 **9-11** on **2026-09-28**, at step 2's closure, when regenerating the runtime
 evidence exposed a second stale clause and the re-authored level's own PAL
-figures.
+figures. Item **12** is not an answer but the next question, opened by item 9's
+repair: three more stale clauses stand between step 2 and its evidence.
 
 1. **The CAPITAL Light ceiling (R3 in capital sectors) — RESTRICT** (decided by
    the owner, 2026-09-23). §5.1 is not paid in 1.0: per-sector enemy selection
@@ -665,6 +666,27 @@ figures.
     would cost nothing it currently catches. **It is not done here**, because
     it is a second clause change and decision 9 authorised one; it is recorded
     in `docs/STATUS.md` §Backlog with a pointer to the diagnostics file.
+
+
+12. **`BLOCKED_STALE_CLAUSES_PICKUP_BOOSTER` — `OWNER_DECISION_REQUIRED`, opened
+    2026-09-28** (not an owner answer; the question). With item 9's re-point in
+    place the full trace runs past the boss-handoff clause and stops **three
+    clauses later**, in the post-loop pickup/booster family:
+    `scripts/runtime-wall-trace.mjs:6108` *"Long XEX/ATR traces completed only
+    8/10 weapon-booster cycles"*, then `:6116` (the OPTION pause test never
+    arms) and `:6308` *"Pending weapon pickup became visible or interactive"*.
+    **One cause for all three:** step 2 moved the Heavy cadence, which moved the
+    kills, which moved the weapon capsules, and each of those clauses is
+    scripted around a capsule arriving at a particular moment. Two are class
+    (a), one is class (b); **none is a runtime defect** — each one's own
+    measurement finds the capsule correct. A **fourth** failure in the same
+    family, `weapon-pickup-overlap`'s raster clause, was inside this session's
+    authority and is **repaired** (fire delay 4 → 5, the clause untouched).
+    Measurements, the `28bd1e7` baseline each one moved away from, and three
+    compliant alternatives per blocker with a recommendation:
+    [../diagnostics/pickup-booster-clauses-2026-09-28.md](../diagnostics/pickup-booster-clauses-2026-09-28.md).
+    **`docs/runtime-wall-trace.json` is therefore still not regenerated**, and
+    step 2 cannot close until this is answered.
 
 ---
 

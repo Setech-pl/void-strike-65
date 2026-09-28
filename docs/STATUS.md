@@ -40,7 +40,7 @@ below and all of it is owner-accepted under that checkpoint.
 data-driven Director** (section "Roadmap 4.6 step 2 — the Director reads the
 level image" below; the Director's schedule is the level image now, six named
 schedulers are retired, level 1 is authored to the row step 2 measured, and
-transport FALLS — boot **107** unmoved, total 209 → **207** sectors, initial
+transport FALLS — boot **107** unmoved, total 209 → **208** sectors, initial
 block 13,652 → **13,634 B**), **the roadmap 4.6 step-1
 level compiler** (section "Roadmap 4.6 step 1 — the JSON level compiler" below;
 levels are authored JSON now, the level image grows 8 → 13 sectors to carry the
@@ -446,11 +446,20 @@ sector, initial block content not above 13,652 B, ATR menu delta not above +7".
 
 | | `28bd1e7` | delivered |
 | --- | ---: | ---: |
-| boot / extension / total sectors | 107 / 102 / 209 | **107 / 100 / 208** |
+| boot / extension / total sectors | 107 / 102 / 209 | **107 / 101 / 208** |
 | initial block content / ceiling | 13,652 / 13,684 | **13,634 / 13,684** |
-| free ATR sectors | 511 | **513** |
-| `DIRECTOR_RAM` used / capacity | 643 / 645 | **591 / 645** (54 B tail) |
+| free ATR sectors | 511 | **512** |
+| `DIRECTOR_RAM` used / capacity | 643 / 645 | **602 / 645** (43 B tail) |
 | code window used / free | 1,509 / 2,075 | **1,991 / 1,593** |
+
+Three of those figures are **re-measured in this session and corrected** from
+what the step-2 report carried: the extension is **101** sectors, not 100 (boot
+107 + extension 101 = the 208 total both agree on); the ATR keeps **512** free
+sectors, not 513; and `DIRECTOR_RAM` holds **602** of its 645 B — a **43-B**
+tail, not 54 — measured from `build/encounter-director.map`
+(`DIRECTOR_C_RODATA` `$9D75-$9D88` plus `DIRECTOR_C_CODE` `$9D89-$9FCE`) against
+`cfg/encounter-director.cfg`'s `start = $9D75, size = $0285`. No runtime byte
+moved for this: the build is the same build, the accounting was wrong.
 
 The Director's cold half — sector entry, the wave arm, the ceilings, the
 archetype mask and the release veneer — lives in the `$AE00` window, which is
@@ -576,9 +585,11 @@ level-completion replays, which are the only ones that play a whole level:
   maximum, 31,349, was already over the target; the hard gate has 898 cycles of
   room left.
 
-**The evidence blocker — the first one is FIXED, a second one is now
-visible.** `docs/runtime-wall-trace.json` is **still not regenerated**, and
-this is now understood rather than guessed at.
+**The evidence blocker — blockers 1 and 2 are FIXED; three more are now
+visible, and one further clause failure is repaired.**
+`docs/runtime-wall-trace.json` is **still not regenerated**. Every step of the
+chain below is measured rather than guessed at, and the run now reaches the
+**post-loop pickup/booster clauses** before it stops.
 
 *Blocker 1, the weapon-pickup traversal clause — FIXED.*
 `scripts/runtime-wall-trace.mjs:5298`, *"Native pickup did not remain one
@@ -637,30 +648,101 @@ fence margin on the thinnest row instead of 491, and 4.8c would be paid out of
 the same 227. A step needing more STOPs with its exact cycle requirement rather
 than re-basing these figures again.
 
-Until blocker 2 is decided, `npm run build` on the **DEFAULT** target refuses
-to link (*"Runtime wall trace binding mismatch for void-strike-65-boot.bin"*),
-so `npm test` cannot run its suite at all and
-`tests/runtime-evidence-binding.test.mjs` is red — the correct signal, not a
-third defect. **There is therefore no figure to compare against the
-836 / 725 / 108 / 3 default-build baseline**, and the substitute measured here
-is not one: `node --test tests/*.test.mjs` driven straight at the **candidate**
-build gives **852 / 671 / 178 / 3** in 779 s, and a large part of the suite
-asserts against a *default, evidence-bound* build — the candidate publishes
-`buildVariant: candidate` and `runtimeEvidence: pending`. It is recorded as an
-observation, not as a gate. `dist/` is left at its committed release
-artifacts; the candidate is `npm run build:candidate` and its hashes are in the
-diagnostics file.
+*Blocker 2 — DONE, and it discriminates.* Owner decision 9's alternative 1 is
+implemented in `scripts/runtime-wall-trace.mjs` and
+`tests/runtime-wall-trace.test.mjs`: **trace/test code only, no runtime byte**.
+The clause now measures the mechanism that ends a level — the **last sector's
+row clock** (bit 20, a `director_world_row_tick` PC hit) sits on the frame
+before DRAIN, with the Director in its last sector and never leaving it; DRAIN
+happens **exactly once** after that tick; COMPLETE follows on the next frame;
+COMPLETE is terminal. The single DRAIN frame is also what separates the level's
+end from the capital sector's own DRAIN/COMPLETE pair, which lasts **70 / 62 /
+56** frames in the same three replays. `boss_handoff_frame` becomes
+`level_end_row_tick_frame` and gains `level_end_sector`, so the published
+evidence is named for what it measures.
+**Discrimination, MEASURED.** It PASSES on all three natural director-complete
+replays (EASY row clock 9,517 → DRAIN 9,518 → COMPLETE 9,519; MEDIUM 8,493 →
+8,494 → 8,495; HARD 7,731 → 7,732 → 7,733, all in sector 3 of 4, terminal to
+frame 10,499). It FAILS, with its own message, on **four** mutations of the
+EASY replay's own CSV: the level-ending row tick removed, the level never
+completing, DRAIN spanning two frames, and the level ending outside the last
+sector. One consequence to read plainly: **until the evidence is regenerated
+the re-pointed test is red**, because the committed evidence still publishes
+`boss_handoff_frame` — `tests/runtime-wall-trace.test.mjs` goes 10 → **11**
+failing against it, and the eleventh is that test. The test and the evidence
+move together.
 
-**Behavioural clause failures, name by name.** The run accumulated **4** of
-them: `capital-contact-allied-medium`, `capital-contact-hostile-medium` and
-`lower-playfield-hostile-contact-xex-hard` (all three in
-`docs/recorded-gate-failures.json`), plus
-**`weapon-pickup-overlap-2-hunt-fire4`** — *"final raster contains a cut
-capsule or stale post-collection footprint"*, which is **not** in the recorded
-40 and which **step 2 already recorded in its own diagnostics**. It is
-inherited, not new here. The other 36 recorded failures are post-loop
-`recordClauseFailure` calls that sit *after* blocker 2 and were never reached,
-so the 40 cannot be reconciled name by name until blocker 2 is decided.
+*Blockers 3, 4 and 5 — the pickup/booster family, `OWNER_DECISION_REQUIRED`.*
+With blocker 2 re-pointed the run reaches the post-loop pickup/booster clauses
+and stops at `scripts/runtime-wall-trace.mjs:6108` — *"Long XEX/ATR traces
+completed only 8/10 weapon-booster cycles"* — with two more standing behind it:
+`:6116`, the OPTION pause test never arms, and `:6308`, *"Pending weapon pickup
+became visible or interactive"*. **One cause for all three:** step 2 moved the
+Heavy cadence, which moved the kills, which moved the weapon capsules, and each
+of these clauses is scripted around a capsule arriving at a particular moment.
+MEASURED against the committed `28bd1e7` evidence — which records
+`pickup_rf_cycles` **10**, the pause armed on the two `evasive` integrity
+sessions, and 40 behavioural failures equal to the recorded 40:
+
+* the two `hunt` integrity sessions now collect **4** capsules each and the
+  `evasive` pair **0**, so the run has **8** where the clause asks 10. The fifth
+  capsule is not missing but **late**: its third qualifying kill lands on frame
+  **3,943** and it goes ACTIVE on **3,974**, **25 frames** before the session's
+  4,000-frame window closes;
+* the observer arms the pause test only while the **Spread booster** is active,
+  and the flag sits on the `evasive` pair — which now never collects at all, so
+  its booster state never leaves 0 and `pause_test_completed` is **0 on both
+  media**. The `hunt` pair does reach that state, on frame **2,537**;
+* **181 of 514** pending rows read `pickup_missile_rows` 2-10 with union
+  **`$30`/`$3C`** — bits 4-7, the **fighter's own missiles** — because the
+  observer counts the whole `$3B00` missile-plane page, all four missiles, while
+  the capsule is the GTIA fifth player across all four (union `$FF`). The
+  pickup's own slot bit is clear on **all 514**.
+
+Two are class **(a)**, one class **(b)**; **none is a runtime defect**. Three
+compliant alternatives each, with the recommendation and the grouped question:
+[diagnostics/pickup-booster-clauses-2026-09-28.md](diagnostics/pickup-booster-clauses-2026-09-28.md).
+
+**Behavioural clause failures, name by name — RECONCILED.** MEASURED on a full
+from-scratch run of all **65** replays against the reproduced candidate
+(boot smoke 8/8 first, then 0 distinct miss events across 65 replays): the run
+accumulates **39** failures and **every one of them is in
+`docs/recorded-gate-failures.json` — 0 unrecorded**. The overlap failure is
+**gone**, which is the re-script working. The **40th** recorded failure,
+`weapon-pickup-2-hunt-fire4` *"Booster release did not clear the capsule from
+the missile plane in the release frame"*, sits **behind** the abort at `:6108`
+and is not reached. Driving the same 65 CSVs through the analysis with those
+three aborts **observed instead of thrown** — a diagnostic, not a gate change,
+and not committed — the total is **exactly the 40, name for name: 0 new, 0
+disappeared**, and the three clauses above are the only things between the run
+and its report. That diagnostic also re-derives **DMA-on maximum 31,670** and
+**physical headroom 3,898** from the fresh CSVs, unchanged.
+
+*The fourth failure in that family is REPAIRED here, class (a).*
+`weapon-pickup-overlap-2-hunt-fire4` — *"final raster contains a cut capsule or
+stale post-collection footprint"*, the one the step-2 report listed as not among
+the recorded 40. Decoding its fifteen captures: the capsule is 216 COLPF3 pixels
+at y 176-191, and from capture 09 a **second** COLPF3 run appears at **y 0-6**
+— a fighter missile at the top of the screen, in the column the capsule happens
+to occupy. On the last three captures only that run is left (46, 46, 0), and the
+capsule is gone from the raster; the trace agrees, reading 0 missile rows, union
+0 and a clear slot bit from the collection frame on. **Nothing is cut and
+nothing is stale** — capsule and shots share COLPF3 and the missile plane. Of
+fifteen fire delays swept, only **5** and 48 pass every clause of the session
+(ten of the others collect twice inside 1,300 frames; 4, 6 and 8 leave 46-56
+pixels). The session is re-scripted to **5** — the smallest change from the
+authored 4 — and renamed `weapon-pickup-overlap-2-hunt-fire5`. **The clause is
+untouched.**
+
+Until blockers 3-5 are decided, `npm run build` on the **DEFAULT** target
+refuses to link (*"Runtime wall trace binding mismatch for
+void-strike-65-boot.bin"*), so `npm test` cannot run its suite at all and
+`tests/runtime-evidence-binding.test.mjs` is red against a candidate build — the
+correct signal, not a further defect; against the **committed** evidence and the
+committed `dist/` it is **green**, which is how the `28bd1e7` baseline above was
+measured. **There is therefore still no figure to compare against the
+836 / 725 / 108 / 3 default-build baseline.** `dist/` is left at its committed
+release artifacts; the candidate is `npm run build:candidate`.
 
 **What the owner checks on hardware.** Level 1 should open with a Raider
 formation and its Wingman escort, exactly as before; from then on **Raiders and

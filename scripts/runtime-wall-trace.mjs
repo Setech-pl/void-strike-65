@@ -302,11 +302,33 @@ const pmgLabSessions = [
   kind: "pmg-visibility-lab",
 }));
 
+// RE-SCRIPTED 2026-09-28, owner class (a) - a stale SCENARIO, the clause
+// untouched. The post-loop traversal clause (below, "Native pickup did not
+// remain one logical slot and one whole 16-row missile capsule") asks for 108
+// consecutive ACTIVE frames on which `entity_active_mask === 2`: the pickup
+// slot set, and NOTHING ELSE. Bit 0 of that mask is the debris slot, so the
+// clause also requires the capsule's whole traversal to fall inside a
+// debris-clear window.
+//
+// Roadmap 4.6 step 2 gave the sector's own hazard mask the debris decision and
+// retired the per-phase budget tables, which moved the debris cadence; at
+// fireDelay 4 the capsule goes ACTIVE on frame 171 and the window it needs
+// ends at 252, so the last 26 of its 108 frames have a debris live beside it
+// and read mask 3. The capsule's own three conjuncts - 16 missile rows, union
+// $FF, one draw call - hold on 108/108 frames at every delay measured, so
+// nothing about the capsule changed: only when it arrives relative to debris.
+//
+// MEASURED over fireDelay 0, 6, 7, 8, 9, 10, 12, 14, 16, 32, 64, 150, 250,
+// 300 and 350: **8 is the only one with no violating frame**. It puts the
+// capsule ACTIVE on frames 143-250 inside the debris-clear window 125-252 -
+// 18 frames of lead and 2 of trail. The window is 128 frames and the capsule
+// needs 108, so 20 frames is the whole slack the sector's debris cadence
+// leaves anywhere in this replay; 8 spends it as well as it can be spent.
 const weaponPickupTraversalSessions = [{
-  id: "weapon-pickup-traversal-2-observe-fire4",
+  id: "weapon-pickup-traversal-2-observe-fire8",
   difficulty: 2,
   policy: "pickup-observe",
-  fireDelay: 4,
+  fireDelay: 8,
   frames: 1_800,
   kind: "weapon-pickup-traversal",
 }];
@@ -5324,7 +5346,7 @@ function main() {
     const evidencePath = path.join(buildDirectory, "weapon-pickup-traversal-evidence.json");
     const maximumWall = Math.max(...traversalRows.map((row) => row.wall_cycles));
     fs.writeFileSync(evidencePath, `${JSON.stringify({
-      session: "weapon-pickup-traversal-2-observe-fire4",
+      session: "weapon-pickup-traversal-2-observe-fire8",
       emulator: "Atari800 7.1.2 PAL/XL",
       production_artifact: path.relative(rootDirectory, xexPath),
       first_complete_traversal: {
@@ -5351,7 +5373,7 @@ function main() {
       },
       screenshot_sequence: path.relative(rootDirectory, pickupTraversalContactPath),
       raw_trace: path.relative(rootDirectory,
-        path.join(buildDirectory, "weapon-pickup-traversal-2-observe-fire4.csv")),
+        path.join(buildDirectory, "weapon-pickup-traversal-2-observe-fire8.csv")),
       passed: true,
     }, null, 2)}\n`);
   }

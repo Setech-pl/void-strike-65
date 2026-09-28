@@ -433,10 +433,13 @@ force a different SECTOR's caps.
 capital became due at active gameplay frame 600, the MEDIUM world row there is
 **270** (600 × 9/20), and 272 is the nearest 8-row module boundary — and the
 row the capital actually admits on. The traversal is **542 rows** on all three
-difficulties, so the two sectors behind it run 1,448 each and the level ends at
-row **3,710** against 3,712, the two rows the module grid cannot express. Seed
-`$6D` keeps all three RNG streams. Spacing 24 is the Heavy class floor, so the
-kernel's admission retry still paces the stream.
+difficulties, so the sectors behind it run **2,896 rows** in all and the level
+ends at row **3,710** against 3,712, the two rows the module grid cannot
+express. Seed `$6D` keeps all three RNG streams. Spacing 24 is the Heavy class
+floor, so the kernel's admission retry still paces the stream. Under owner
+decision 8 (below) those 2,896 rows are split **856 + 2,040** rather than
+1,448 + 1,448; the total, and therefore the capital row and the level-complete
+row, are unchanged.
 
 **Transport — MEASURED, and it FELL.** Owner decision 6's rule is "no new boot
 sector, initial block content not above 13,652 B, ATR menu delta not above +7".
@@ -502,38 +505,141 @@ The block order described in the paragraph above is therefore **superseded as
 authored data** while its *cause* stands: one `WaveDef` still names one
 archetype, and the core page still holds twenty of them.
 
-**Gates — MEASURED on the candidate build.** PAL timing audit **PASS**: 65
-replays, 0 distinct miss events, 0 frames over the target, 0 over the hard
-gate. Worst line-238 fence margin **1,264** (was 991, gate GO ≥ 500); DMA-on
-maximum **31,089** (was 31,349). Boot smoke **8/8**; ATR menu **602**, delta
-**+6** against the +7 the owner asked not to exceed, so the warn band regains
-a frame; `gameplay_init` 3,102 unmoved.
-[diagnostics/level-data-pal-audit-2026-09-23.json](diagnostics/level-data-pal-audit-2026-09-23.json)
-and
-[diagnostics/level-data-boot-smoke-2026-09-23.json](diagnostics/level-data-boot-smoke-2026-09-23.json).
+**What was delivered, MEASURED.** All twenty waves now alternate
+R,B,R,B,… with no repeat anywhere — **including across the sector boundary**,
+which is exactly what the first authoring got wrong. The Director arms one wave
+at a time and a sector entry restarts the cursor, so a wave list the row clock
+cuts short is abandoned where the cut falls; when the cut falls *before* a
+sector's LAST wave, the next sector's first wave can repeat the archetype the
+player just saw. That is how a list which alternates on paper played **twelve
+consecutive Raider formations on HARD and twelve consecutive Bombers on EASY**.
+The two post-capital sectors are therefore sized for the cut: **856 rows**
+carrying 5 waves (every difficulty reaches the last of them, so the cut can
+only fall inside it) and **2,040 rows** — one byte of modules, the format's
+maximum — carrying the other 13, as the LAST sector, whose cut has no successor.
 
-**BLOCKED, and it is the one thing this step did not finish.**
-`docs/runtime-wall-trace.json` was **not** regenerated. The full run completed
-its PAL audit and then threw at `scripts/runtime-wall-trace.mjs:5298` — the
-weapon-pickup-traversal post-loop invariant, *"Native pickup did not remain one
-logical slot and one whole 16-row missile capsule"*. The same session run alone
-passes on this build and at `28bd1e7` alike, so the clause is reached only by a
-full run. The likely cause is the capsule **cadence**, which this step moves:
-the per-phase hazard reaction and budget tables are retired and the sector's
-own hazard mask decides, so a capsule arrives on a different frame and the
-captured window no longer holds the whole capsule. Under the owner's class rule
-that is class (a), a stale SCENARIO, repaired by re-scripting the session and
-never by weakening the clause. Until it is done, `npm test` on the DEFAULT
-build cannot bind its evidence — which is the correct signal, not a second
-defect. `dist/` is therefore left at the artifacts it had; the candidate is
-`npm run build:candidate` and its hashes are in the diagnostics file.
+| 9,000 frames, `scripts/level-timeline.mjs` | EASY | MEDIUM | HARD |
+| --- | ---: | ---: | ---: |
+| Heavy formations, pre-step-2 baseline | 99 | 109 | 122 |
+| Heavy formations at `68b5968` | 100 | 109 | 116 |
+| **Heavy formations delivered** | **100** | **109** | **116** |
+| longest run of one archetype at `68b5968` | 12 | 9 | 12 |
+| **longest run delivered** | **6** | **6** | **6** |
+
+**Six is the floor the format allows at this density**, and the owner should
+know the trade before asking for less: one `WaveDef` names one archetype and
+the page holds twenty of them, so 116 formations cannot give a run shorter than
+six. A run of **two** would cost **63 %** of the level's Heavy density (20
+waves × 2 = 40 formations). Per-formation alternation needs the backlog "mixed
+wave" bit and nothing else. HARD's 116 against the baseline's 122 is the same
+arithmetic seen from the other side: HARD's row clock leaves room for about
+122, and buying those six would mean wave counts of seven — a run of seven on
+every difficulty. The alternation was taken first, as decision 8 asks.
+
+Sector 1 is left exactly as step 2 authored it, 4 + 4 formations on rows 0 and
+88. Raising it to 5 + 5 puts the pre-capital count back on the ten `28bd1e7`
+measured — it was measured, and it works — but it also moves the third kill and
+with it the first weapon capsule, which three native pickup replays script
+themselves around: `weapon-pickup-contact-2-hunt-fire4` fails a clause with it
+and passes without it. The alternation does not need it, and the level's own
+Heavy counts come out *closer* to the baseline without it.
+
+**Gates — MEASURED on the candidate build carrying owner decision 8.** PAL
+timing audit: **65 replays, 0 distinct miss events, 0 frames over the hard
+gate**. Boot smoke **8/8**; ATR menu **602**, delta **+6** against the +7 the
+owner asked not to exceed; `gameplay_init` 3,102 unmoved. Transport unchanged
+from the step-2 candidate: initial block **13,634 / 13,652**, 107 boot sectors,
+208 total.
+[diagnostics/level-order-pal-audit-2026-09-28.json](diagnostics/level-order-pal-audit-2026-09-28.json).
+
+| PAL gate | `28bd1e7` | step 2 (`68b5968`) | delivered | Gate |
+| --- | ---: | ---: | ---: | --- |
+| worst line-238 fence margin | 991 | 1,264 | **727** | GO ≥ 500 |
+| DMA-on maximum | 31,349 | 31,089 | **31,670** | target 31,200 / hard 32,568 |
+| frames over the 31,200 target | ≥ 1 | 0 | **9** | not a gate; the hard gate is 32,568 |
+| frames over the hard gate | 0 | 0 | **0** | 0 |
+| physical headroom | 4,219 | — | **3,898** | — |
+
+**Two of those moved the wrong way and the owner should see them stated
+plainly.** Both come from the same replay family — the three natural
+level-completion replays, which are the only ones that play a whole level:
+
+* the worst fence margin is **727** on `director-complete-2-natural-sweep-fire0`
+  (HARD). It is still GO by 227 cycles, but it is 264 below the 991 the plan
+  §0.1 recorded as the budget ceiling. The next-thinnest margin in the set is
+  1,264;
+* the DMA-on maximum is **31,670** on `director-complete-0-natural-sweep-fire0`
+  (EASY) frame 8,654, with **9 frames over the 31,200 target** on that replay
+  and none anywhere else. The frame is a fighter frame with **ten player
+  projectiles**, one live Heavy member and both entity slots busy (a debris and
+  a pickup) — a Spread-shot frame, not a Director frame. `28bd1e7`'s own
+  maximum, 31,349, was already over the target; the hard gate has 898 cycles of
+  room left.
+
+**The evidence blocker — the first one is FIXED, a second one is now
+visible.** `docs/runtime-wall-trace.json` is **still not regenerated**, and
+this is now understood rather than guessed at.
+
+*Blocker 1, the weapon-pickup traversal clause — FIXED.*
+`scripts/runtime-wall-trace.mjs:5298`, *"Native pickup did not remain one
+logical slot and one whole 16-row missile capsule"*. The step-2 note reasoned
+from "the same session passes when run alone"; **that premise was an artefact
+of the harness** — `--only-session` writes a focused report and *returns*
+about a hundred lines before the clause, so a lone run never evaluates it. The
+session's own CSV, written by that "passing" run, already violated the clause
+on **26 of its 108 ACTIVE frames**. The failing conjunct is
+`entity_active_mask === 2`, whose bit 0 is the **debris** slot: the capsule was
+intact on 108/108 frames (16 missile rows, union `$FF`, one draw call) and a
+debris was simply alive beside it. Class **(a)**, a stale scenario, exactly as
+step 2 called it: repaired by re-scripting the session's fire delay 4 → **8**,
+which puts the traversal inside the debris-clear window 125-252 with 18 frames
+of lead and 2 of trail. **The clause is untouched.** Full measurement, and the
+fire-delay sweep behind the choice, in
+[diagnostics/pickup-traversal-clause-2026-09-28.md](diagnostics/pickup-traversal-clause-2026-09-28.md).
+
+*Blocker 2, `BLOCKED_STALE_CLAUSE_BOSS_HANDOFF` — `OWNER_DECISION_REQUIRED`.*
+With blocker 1 gone the run reaches **65/65 sessions** and throws at
+`scripts/runtime-wall-trace.mjs:5723`-`:5729`: *"director-complete-0-natural-sweep-fire0
+did not execute BOSS_HANDOFF -> DRAIN -> COMPLETE"*. The clause requires the
+**last `director_try_event` of the replay** to sit exactly one frame before
+DRAIN — which was the retired phase machine's `BOSS_HANDOFF` event. **Step 2
+retired it**: the level now ends inside `director_c_world_row_tick`, which
+calls `advance_sector()` without calling `director_try_event`. MEASURED delta
+**156 / 365 / 321** on the step-2 level data and **899 / 352 / 381** on the
+re-authored one: it fails on both authorings and on all three difficulties, so
+it is **inherited from step 2, not introduced by decision 8** — step 2 never
+saw it because its run aborted at blocker 1 first. No re-script can repair it;
+the mechanism it measures is gone. Everything the clause's *message* names is
+true on all three replays (DRAIN, then COMPLETE on the next frame, COMPLETE
+terminal, a natural BROADSIDE observed). Three compliant alternatives, with the
+recommendation, in
+[diagnostics/boss-handoff-clause-2026-09-28.md](diagnostics/boss-handoff-clause-2026-09-28.md).
+
+Until blocker 2 is decided, `npm run build` on the **DEFAULT** target refuses
+to link (*"Runtime wall trace binding mismatch for void-strike-65-boot.bin"*),
+so `npm test` cannot run its suite at all and
+`tests/runtime-evidence-binding.test.mjs` is red — the correct signal, not a
+third defect. `dist/` carries the **candidate**; its hashes are in the
+diagnostics file.
+
+**Behavioural clause failures, name by name.** The run accumulated **4** of
+them: `capital-contact-allied-medium`, `capital-contact-hostile-medium` and
+`lower-playfield-hostile-contact-xex-hard` (all three in
+`docs/recorded-gate-failures.json`), plus
+**`weapon-pickup-overlap-2-hunt-fire4`** — *"final raster contains a cut
+capsule or stale post-collection footprint"*, which is **not** in the recorded
+40 and which **step 2 already recorded in its own diagnostics**. It is
+inherited, not new here. The other 36 recorded failures are post-loop
+`recordClauseFailure` calls that sit *after* blocker 2 and were never reached,
+so the 40 cannot be reconciled name by name until blocker 2 is decided.
 
 **What the owner checks on hardware.** Level 1 should open with a Raider
-formation and its Wingman escort in the first seconds, as before; the Bomber
-pair should follow rather than alternate with it; the capital should arrive at
-about the same moment on MEDIUM and visibly later on EASY; the corridor should
-carry debris at least as often as it did (MEASURED: longest empty gap 88 frames
-against 120); and the level should end where it did.
+formation and its Wingman escort, exactly as before; from then on **Raiders and
+Bombers should alternate the whole way through — before the capital, after it,
+and to the level's end** — in blocks of at most six, with no stretch of one
+archetype longer than that anywhere. The capital should arrive at about the
+same moment on MEDIUM and visibly later on EASY, as decision 3 intends, and the
+level should end where it did.
 
 ## Roadmap 4.6 step 1 — the JSON level compiler — `OWNER-SMOKE CANDIDATE` (2026-09-23)
 

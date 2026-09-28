@@ -586,6 +586,21 @@ one that stays open. Item 8 was added after the step-2 hardware smoke.
      It is the only way a 20-wave page can express per-formation alternation
      at today's density, and it is deliberately deferred.
 
+   **DELIVERED 2026-09-28, MEASURED** (`docs/STATUS.md`, section "Roadmap 4.6
+   step 2"). All twenty waves alternate with no repeat, including across the
+   sector boundary — which the first authoring got wrong, because a wave list
+   the row clock cuts short is abandoned where the cut falls and the next
+   sector's first wave can repeat the archetype the player just saw. The two
+   post-capital sectors are re-sized **1,448 + 1,448 → 856 + 2,040** so the
+   cut can only fall inside a sector's last wave; the total, the capital row
+   and the level-complete row are unchanged. Longest run of one archetype
+   **12 / 9 / 12 → 6 / 6 / 6** (EASY/MEDIUM/HARD); Heavy formations in 9,000
+   frames **100 / 109 / 116** against the pre-step-2 **99 / 109 / 122**.
+   **Six is the floor the format allows at this density** — 116 formations
+   over 20 single-archetype waves — and a run of two would cost 63 % of the
+   level's Heavy density. That is the price of the backlog bit, stated for
+   when the owner weighs it.
+
 ---
 
 ## 12. What this document did not do

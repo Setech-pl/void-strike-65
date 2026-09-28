@@ -1,0 +1,713 @@
+{
+  "format": "void-strike-65-pal-audit-v1",
+  "date": "2026-09-28",
+  "what": "Roadmap 4.6 step 2 completion - owner decision 8 (level 1 alternates Raider and Bomber) and the weapon-pickup traversal re-script.",
+  "branch": "feat/director-level-data",
+  "artifacts": {
+    "xex": {
+      "bytes": 29355,
+      "sha256": "3c0aaea19026abbf699fdbef5cc8d25ce8beb63b16d4596b5b28a933b71e614e"
+    },
+    "atr": {
+      "bytes": 92176,
+      "sha256": "0d0d9ba9e2333fb2f4edc7370cbc3dc19411a97eec0df7aca9f97fcb56b3138c"
+    },
+    "boot": {
+      "bytes": 26624,
+      "sha256": "c65819977080b4d642e99fa05b77d0fa1717cd6a843204b575cf2c72e86fef04"
+    },
+    "variant": "candidate"
+  },
+  "pal_timing_audit": {
+    "replays": 65,
+    "distinct_miss_events": 0,
+    "frames_over_target": 9,
+    "frames_over_hard_gate": 0,
+    "worst_fence_margin": {
+      "replay": "director-complete-2-natural-sweep-fire0",
+      "cycles": 727,
+      "gate_go_at": 500,
+      "baseline_at_28bd1e7": 991,
+      "at_step_2": 1264
+    },
+    "maximum_wall_cycles_dma_on": {
+      "replay": "director-complete-0-natural-sweep-fire0",
+      "cycles": 31670,
+      "frames_over_target_in_that_replay": 9,
+      "target": 31200,
+      "hard_gate": 32568,
+      "baseline_at_28bd1e7": 31349,
+      "at_step_2": 31089
+    },
+    "physical_headroom": 3898
+  },
+  "boot_smoke": {
+    "sessions": 8,
+    "atr_menu_frame": 602,
+    "atr_menu_baseline": 596,
+    "atr_menu_delta": 6,
+    "xex_menu_frame": 392,
+    "gameplay_init": 3102
+  },
+  "transport": {
+    "initial_boot_content_bytes": 13634,
+    "ceiling": 13652,
+    "boot_sectors": 107,
+    "extension_sectors": 101,
+    "total_sectors": 208,
+    "remaining_atr_sectors": 512
+  },
+  "behavioural_clause_failures": [
+    "weapon-pickup-overlap-2-hunt-fire4: final raster contains a cut capsule or stale post-collection footprint",
+    "capital-contact-allied-medium: did not capture 16 consecutive contact rasters",
+    "capital-contact-hostile-medium: did not capture 16 consecutive contact rasters",
+    "lower-playfield-hostile-contact-xex-hard: did not capture 16 consecutive contact rasters"
+  ],
+  "blocked": {
+    "what": "docs/runtime-wall-trace.json was NOT written",
+    "where": "scripts/runtime-wall-trace.mjs:5723-5729, the director-level-complete post-loop invariant",
+    "message": "director-complete-0-natural-sweep-fire0 did not execute BOSS_HANDOFF -> DRAIN -> COMPLETE",
+    "diagnosis": "docs/diagnostics/boss-handoff-clause-2026-09-28.md - the clause requires the LAST director_try_event of the replay to sit one frame before DRAIN, which was the retired phase machine's BOSS_HANDOFF event. Step 2 retired it. MEASURED delta 156/365/321 on the step-2 level data and 899/352/381 on the re-authored one: it fails on both, on all three difficulties, and no re-script can repair it. OWNER_DECISION_REQUIRED."
+  },
+  "worst_case_loads": {
+    "note": "Task 3 - whether the loads the 28bd1e7 evidence measured are still reached. Read from the 65 session CSVs of this run.",
+    "dma_on_maximum": {
+      "replay": "director-complete-0-natural-sweep-fire0",
+      "frame": 8654,
+      "cycles": 31670,
+      "sector_state": 7,
+      "player_projectiles": 10,
+      "rapid_projectiles": 0,
+      "live_heavy_members": 1,
+      "entity_active_mask": 3,
+      "reading": "a Spread-shot fighter frame with ten player projectiles, one live Heavy member, a debris and a pickup on the entity plane"
+    },
+    "old_dma_on_maximum_at_28bd1e7": {
+      "replay": "director-complete-1-natural-sweep-fire0",
+      "frame": 6888,
+      "cycles": 31349,
+      "scenario": "sector state 7, two live Raider members, a live Interceptor, four Rapid player projectiles, two debris"
+    },
+    "old_scenario_still_exercised": {
+      "predicate": "sector_state 7 AND rapid_projectiles > 0 AND enemy_live_count == 2",
+      "frames": 1712,
+      "maximum": {
+        "replay": "director-complete-0-natural-sweep-fire0",
+        "frame": 8192,
+        "cycles": 30564,
+        "rapid_projectiles": 4,
+        "player_projectiles": 7
+      },
+      "second": {
+        "replay": "director-complete-1-natural-sweep-fire0",
+        "frame": 2208,
+        "cycles": 30479,
+        "rapid_projectiles": 5,
+        "player_projectiles": 9
+      },
+      "verdict": "still reached - 1,712 frames of it across the set - but its heaviest instance measures 30,564, not 31,349. No replay needed adding."
+    },
+    "heaviest_capital": {
+      "inside_a_capital_sector": {
+        "replay": "capital-muzzle-ring-2-sweep-fire4",
+        "frame": 3712,
+        "cycles": 28194,
+        "sector_state": 0
+      },
+      "session_maximum_proxy": {
+        "replay": "capital-muzzle-ring-2-sweep-fire4",
+        "cycles": 30903,
+        "note": "the figure plan section 0.1 quotes as 30,964 is this session MAXIMUM, and its frame is a fighter frame, not a capital row"
+      },
+      "baseline_at_28bd1e7": 30964,
+      "at_step_2": 30282
+    }
+  },
+  "replays_detail": [
+    {
+      "replay": "2-neutral-fire0",
+      "frames": 760,
+      "misses": 0,
+      "fence_margin": 2549,
+      "max_wall_cycles": 30117,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "2-sweep-fire0",
+      "frames": 920,
+      "misses": 0,
+      "fence_margin": 2608,
+      "max_wall_cycles": 30350,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "2-evasive-fire1",
+      "frames": 920,
+      "misses": 0,
+      "fence_margin": 1495,
+      "max_wall_cycles": 30200,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "2-sweep-fire2",
+      "frames": 920,
+      "misses": 0,
+      "fence_margin": 3516,
+      "max_wall_cycles": 30387,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "2-evasive-fire3",
+      "frames": 920,
+      "misses": 0,
+      "fence_margin": 1264,
+      "max_wall_cycles": 30442,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "2-sweep-fire4",
+      "frames": 920,
+      "misses": 0,
+      "fence_margin": 3233,
+      "max_wall_cycles": 30326,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "2-sweep-fire5",
+      "frames": 920,
+      "misses": 0,
+      "fence_margin": 2435,
+      "max_wall_cycles": 30313,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "2-sweep-fire6",
+      "frames": 920,
+      "misses": 0,
+      "fence_margin": 2493,
+      "max_wall_cycles": 30312,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "2-evasive-fire7",
+      "frames": 920,
+      "misses": 0,
+      "fence_margin": 1469,
+      "max_wall_cycles": 30941,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "1-evasive-fire3",
+      "frames": 920,
+      "misses": 0,
+      "fence_margin": 2871,
+      "max_wall_cycles": 30899,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "targeted-2-sweep-fire4",
+      "frames": 920,
+      "misses": 0,
+      "fence_margin": 3233,
+      "max_wall_cycles": 30326,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "cadence-0-sweep-nofire",
+      "frames": 400,
+      "misses": 0,
+      "fence_margin": 7907,
+      "max_wall_cycles": 29537,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "cadence-1-sweep-nofire",
+      "frames": 400,
+      "misses": 0,
+      "fence_margin": 6519,
+      "max_wall_cycles": 29548,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "cadence-2-sweep-nofire",
+      "frames": 400,
+      "misses": 0,
+      "fence_margin": 6971,
+      "max_wall_cycles": 29503,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "flash-2-neutral-nofire",
+      "frames": 1600,
+      "misses": 0,
+      "fence_margin": 2385,
+      "max_wall_cycles": 29409,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "debris-effects-2-sweep-fire4",
+      "frames": 5000,
+      "misses": 0,
+      "fence_margin": 2423,
+      "max_wall_cycles": 30903,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "weapon-pickup-2-hunt-fire4",
+      "frames": 4000,
+      "misses": 0,
+      "fence_margin": 3337,
+      "max_wall_cycles": 30331,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "weapon-pickup-spread-0-hunt-fire4",
+      "frames": 6000,
+      "misses": 0,
+      "fence_margin": 3742,
+      "max_wall_cycles": 30475,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "director-complete-0-natural-sweep-fire0",
+      "frames": 10500,
+      "misses": 0,
+      "fence_margin": 2056,
+      "max_wall_cycles": 31670,
+      "over_target": 9,
+      "over_hard": 0
+    },
+    {
+      "replay": "director-complete-1-natural-sweep-fire0",
+      "frames": 10500,
+      "misses": 0,
+      "fence_margin": 2201,
+      "max_wall_cycles": 31089,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "director-complete-2-natural-sweep-fire0",
+      "frames": 10500,
+      "misses": 0,
+      "fence_margin": 727,
+      "max_wall_cycles": 31153,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "weapon-pickup-traversal-2-observe-fire8",
+      "frames": 1800,
+      "misses": 0,
+      "fence_margin": 2879,
+      "max_wall_cycles": 30092,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "weapon-pickup-contact-2-hunt-fire4",
+      "frames": 1300,
+      "misses": 0,
+      "fence_margin": 3337,
+      "max_wall_cycles": 30331,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "weapon-pickup-overlap-2-hunt-fire4",
+      "frames": 1300,
+      "misses": 0,
+      "fence_margin": 3337,
+      "max_wall_cycles": 30331,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "capital-muzzle-ring-2-sweep-fire4",
+      "frames": 6000,
+      "misses": 0,
+      "fence_margin": 2423,
+      "max_wall_cycles": 30903,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "early-enemy-xex-0-cold-hunt-fire4",
+      "frames": 1500,
+      "misses": 0,
+      "fence_margin": 3742,
+      "max_wall_cycles": 30475,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "early-enemy-xex-1-cold-hunt-fire4",
+      "frames": 1500,
+      "misses": 0,
+      "fence_margin": 2629,
+      "max_wall_cycles": 30490,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "early-enemy-xex-2-cold-hunt-fire4",
+      "frames": 1500,
+      "misses": 0,
+      "fence_margin": 3337,
+      "max_wall_cycles": 30331,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "early-enemy-atr-0-cold-hunt-fire4",
+      "frames": 1500,
+      "misses": 0,
+      "fence_margin": 3742,
+      "max_wall_cycles": 30475,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "early-enemy-atr-1-cold-hunt-fire4",
+      "frames": 1500,
+      "misses": 0,
+      "fence_margin": 2629,
+      "max_wall_cycles": 30490,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "early-enemy-atr-2-cold-hunt-fire4",
+      "frames": 1500,
+      "misses": 0,
+      "fence_margin": 3337,
+      "max_wall_cycles": 30331,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "capital-contact-allied-medium",
+      "frames": 560,
+      "misses": 0,
+      "fence_margin": 2413,
+      "max_wall_cycles": 29400,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "capital-contact-hostile-medium",
+      "frames": 360,
+      "misses": 0,
+      "fence_margin": 4771,
+      "max_wall_cycles": 29311,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "memory-integrity-xex-2-evasive-fire4",
+      "frames": 4000,
+      "misses": 0,
+      "fence_margin": 4191,
+      "max_wall_cycles": 30287,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "memory-integrity-xex-2-hunt-fire4",
+      "frames": 4000,
+      "misses": 0,
+      "fence_margin": 3337,
+      "max_wall_cycles": 30331,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "memory-integrity-atr-2-evasive-fire4",
+      "frames": 4000,
+      "misses": 0,
+      "fence_margin": 4191,
+      "max_wall_cycles": 30287,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "memory-integrity-atr-2-hunt-fire4",
+      "frames": 4000,
+      "misses": 0,
+      "fence_margin": 3337,
+      "max_wall_cycles": 30331,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "lower-playfield-xex-hard",
+      "frames": 1400,
+      "misses": 0,
+      "fence_margin": 4369,
+      "max_wall_cycles": 29378,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "lower-playfield-hostile-contact-xex-hard",
+      "frames": 1200,
+      "misses": 0,
+      "fence_margin": 2385,
+      "max_wall_cycles": 29409,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-xex-a5-0-immediate",
+      "frames": 150,
+      "misses": 0,
+      "fence_margin": 10519,
+      "max_wall_cycles": 29524,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-xex-a5-0-delayed",
+      "frames": 150,
+      "misses": 0,
+      "fence_margin": 10519,
+      "max_wall_cycles": 29524,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-xex-a5-1-immediate",
+      "frames": 150,
+      "misses": 0,
+      "fence_margin": 10383,
+      "max_wall_cycles": 29516,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-xex-a5-1-delayed",
+      "frames": 150,
+      "misses": 0,
+      "fence_margin": 10383,
+      "max_wall_cycles": 29516,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-xex-a5-2-immediate",
+      "frames": 150,
+      "misses": 0,
+      "fence_margin": 10152,
+      "max_wall_cycles": 29398,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-xex-a5-2-delayed",
+      "frames": 150,
+      "misses": 0,
+      "fence_margin": 10152,
+      "max_wall_cycles": 29398,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-xex-5a-0-immediate",
+      "frames": 150,
+      "misses": 0,
+      "fence_margin": 10519,
+      "max_wall_cycles": 29524,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-xex-5a-0-delayed",
+      "frames": 150,
+      "misses": 0,
+      "fence_margin": 10519,
+      "max_wall_cycles": 29524,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-xex-5a-1-immediate",
+      "frames": 150,
+      "misses": 0,
+      "fence_margin": 10383,
+      "max_wall_cycles": 29516,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-xex-5a-1-delayed",
+      "frames": 150,
+      "misses": 0,
+      "fence_margin": 10383,
+      "max_wall_cycles": 29516,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-xex-5a-2-immediate",
+      "frames": 150,
+      "misses": 0,
+      "fence_margin": 10152,
+      "max_wall_cycles": 29398,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-xex-5a-2-delayed",
+      "frames": 150,
+      "misses": 0,
+      "fence_margin": 10152,
+      "max_wall_cycles": 29398,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-atr-a5-0-immediate",
+      "frames": 150,
+      "misses": 0,
+      "fence_margin": 10519,
+      "max_wall_cycles": 29524,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-atr-a5-0-delayed",
+      "frames": 150,
+      "misses": 0,
+      "fence_margin": 10519,
+      "max_wall_cycles": 29524,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-atr-a5-1-immediate",
+      "frames": 150,
+      "misses": 0,
+      "fence_margin": 10383,
+      "max_wall_cycles": 29516,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-atr-a5-1-delayed",
+      "frames": 150,
+      "misses": 0,
+      "fence_margin": 10383,
+      "max_wall_cycles": 29516,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-atr-a5-2-immediate",
+      "frames": 150,
+      "misses": 0,
+      "fence_margin": 10152,
+      "max_wall_cycles": 29398,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-atr-a5-2-delayed",
+      "frames": 150,
+      "misses": 0,
+      "fence_margin": 10152,
+      "max_wall_cycles": 29398,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-atr-5a-0-immediate",
+      "frames": 150,
+      "misses": 0,
+      "fence_margin": 10519,
+      "max_wall_cycles": 29524,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-atr-5a-0-delayed",
+      "frames": 150,
+      "misses": 0,
+      "fence_margin": 10519,
+      "max_wall_cycles": 29524,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-atr-5a-1-immediate",
+      "frames": 150,
+      "misses": 0,
+      "fence_margin": 10383,
+      "max_wall_cycles": 29516,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-atr-5a-1-delayed",
+      "frames": 150,
+      "misses": 0,
+      "fence_margin": 10383,
+      "max_wall_cycles": 29516,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-atr-5a-2-immediate",
+      "frames": 150,
+      "misses": 0,
+      "fence_margin": 10152,
+      "max_wall_cycles": 29398,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-atr-5a-2-delayed",
+      "frames": 150,
+      "misses": 0,
+      "fence_margin": 10152,
+      "max_wall_cycles": 29398,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-restart-xex-a5",
+      "frames": 3200,
+      "misses": 0,
+      "fence_margin": 2385,
+      "max_wall_cycles": 29409,
+      "over_target": 0,
+      "over_hard": 0
+    },
+    {
+      "replay": "engine-restart-atr-a5",
+      "frames": 3200,
+      "misses": 0,
+      "fence_margin": 2385,
+      "max_wall_cycles": 29409,
+      "over_target": 0,
+      "over_hard": 0
+    }
+  ]
+}

@@ -619,7 +619,14 @@ Until blocker 2 is decided, `npm run build` on the **DEFAULT** target refuses
 to link (*"Runtime wall trace binding mismatch for void-strike-65-boot.bin"*),
 so `npm test` cannot run its suite at all and
 `tests/runtime-evidence-binding.test.mjs` is red — the correct signal, not a
-third defect. `dist/` carries the **candidate**; its hashes are in the
+third defect. **There is therefore no figure to compare against the
+836 / 725 / 108 / 3 default-build baseline**, and the substitute measured here
+is not one: `node --test tests/*.test.mjs` driven straight at the **candidate**
+build gives **852 / 671 / 178 / 3** in 779 s, and a large part of the suite
+asserts against a *default, evidence-bound* build — the candidate publishes
+`buildVariant: candidate` and `runtimeEvidence: pending`. It is recorded as an
+observation, not as a gate. `dist/` is left at its committed release
+artifacts; the candidate is `npm run build:candidate` and its hashes are in the
 diagnostics file.
 
 **Behavioural clause failures, name by name.** The run accumulated **4** of

@@ -249,12 +249,17 @@ test("wall trace covers legal short replays and 160-second XEX/ATR integrity run
 // 7446 / 7447 / 10499. Those are DATA about one build -- they move whenever the
 // replay does, for reasons that have nothing to do with the Director, and
 // re-pinning them after every regeneration is how the evidence went stale in
-// the first place. What the gate actually owns is the RELATION: the Director
-// reaches BOSS_HANDOFF, DRAIN follows on the very next frame, COMPLETE follows
-// DRAIN, and COMPLETE is terminal -- it holds to the last measured frame. That
-// is asserted here, on all three difficulties. The exact frames stay in
+// the first place. What the gate actually owns is the RELATION, asserted here
+// on all three difficulties. The exact frames stay in
 // docs/runtime-wall-trace.json as evidence, and are printed by any failure.
-test("PAL replay reaches the natural Director BOSS_HANDOFF and terminal LEVEL COMPLETE", () => {
+//
+// Owner decision 9, 2026-09-28: the relation is re-pointed with the clause in
+// scripts/runtime-wall-trace.mjs (alternative 1 of
+// docs/diagnostics/boss-handoff-clause-2026-09-28.md). Step 2 retired the phase
+// machine that dispatched BOSS_HANDOFF, so the anchor is the mechanism that
+// ends a level now: the LAST SECTOR's row clock. DRAIN follows it on the very
+// next frame, COMPLETE on the frame after that, and COMPLETE is terminal.
+test("PAL replay ends the level on the last sector's row clock, into a terminal LEVEL COMPLETE", () => {
   const evidence = report.coverage.director_level_complete;
   const sessions = evidence.natural_difficulty_sessions;
   assert.equal(evidence.observed, true);
@@ -264,20 +269,27 @@ test("PAL replay reaches the natural Director BOSS_HANDOFF and terminal LEVEL CO
   // number set that drifted away from them.
   const headline = sessions.find(({ session }) => session === evidence.session);
   assert.ok(headline, `headline session ${evidence.session} is not among the measured sessions`);
-  for (const key of ["boss_handoff_frame", "drain_frame", "level_complete_frame",
-    "drain_frames", "terminal_complete_through_frame"])
+  for (const key of ["level_end_row_tick_frame", "level_end_sector", "drain_frame",
+    "level_complete_frame", "drain_frames", "terminal_complete_through_frame"])
     assert.equal(evidence[key], headline[key], `headline ${key} disagrees with ${headline.session}`);
 
   for (const entry of sessions) {
-    const where = `${entry.session} (handoff ${entry.boss_handoff_frame}, drain ` +
-      `${entry.drain_frame}, complete ${entry.level_complete_frame}, terminal through ` +
+    const where = `${entry.session} (row clock ${entry.level_end_row_tick_frame} in sector ` +
+      `${entry.level_end_sector}, drain ${entry.drain_frame}, complete ` +
+      `${entry.level_complete_frame}, terminal through ` +
       `${entry.terminal_complete_through_frame} of ${entry.last_measured_frame})`;
-    assert.ok(Number.isInteger(entry.boss_handoff_frame) && entry.boss_handoff_frame > 0,
-      `${where}: no BOSS_HANDOFF frame`);
-    assert.equal(entry.drain_frame, entry.boss_handoff_frame + 1,
-      `${where}: DRAIN must follow BOSS_HANDOFF on the very next frame`);
-    assert.ok(entry.level_complete_frame > entry.drain_frame,
-      `${where}: LEVEL COMPLETE must follow DRAIN`);
+    assert.ok(Number.isInteger(entry.level_end_row_tick_frame) &&
+      entry.level_end_row_tick_frame > 0,
+    `${where}: no level-ending row clock frame`);
+    // Level 1 is four sectors, so its last is index 3. The assertion is the
+    // RELATION -- the level ends in its last sector -- not the number: it is
+    // read back from the same record the clause measured it in.
+    assert.ok(Number.isInteger(entry.level_end_sector) && entry.level_end_sector > 0,
+      `${where}: no last-sector index`);
+    assert.equal(entry.drain_frame, entry.level_end_row_tick_frame + 1,
+      `${where}: DRAIN must follow the last sector's row clock on the very next frame`);
+    assert.equal(entry.level_complete_frame, entry.drain_frame + 1,
+      `${where}: LEVEL COMPLETE must follow DRAIN on the next frame`);
     assert.equal(entry.drain_frames, entry.level_complete_frame - entry.drain_frame,
       `${where}: drain_frames must be the measured DRAIN span`);
     assert.equal(entry.terminal_complete, true,

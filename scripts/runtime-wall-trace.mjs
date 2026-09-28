@@ -341,10 +341,40 @@ const weaponPickupContactSessions = [{
   frames: 1_300,
   kind: "weapon-pickup-contact",
 }, {
-  id: "weapon-pickup-overlap-2-hunt-fire4",
+  // RE-SCRIPTED 2026-09-28, owner class (a) - a stale SCENARIO, the clause
+  // untouched. The raster clause below ("final raster contains a cut capsule or
+  // stale post-collection footprint") counts COLPF3 pixels in the capsule's own
+  // 16-pixel column over the WHOLE captured image, and the observer captures
+  // three frames after collection, so the count must fall under 40 on those
+  // three. At fireDelay 4 on this build it reads 216 x9, 234, 202, 178, then
+  // 46, 46, 0.
+  //
+  // MEASURED what those 46 pixels are: decoding the captures, frames 08-11
+  // carry the capsule at y 176-191 (216 px) and frames 09-11 ALSO carry a
+  // second COLPF3 run at y 0-6 (46 px) - a player projectile the capsule's
+  // column happens to contain, already at the top of the screen while the
+  // capsule is still there. On captures 12 and 13 only the y 0-6 run is left:
+  // the capsule is gone from the raster, and the trace agrees - from the
+  // collection frame on, `pickup_missile_rows` 0, `pickup_missile_union` 0 and
+  // the pickup's own slot bit clear. Nothing is cut and nothing is stale; the
+  // capsule is drawn as the GTIA fifth player in COLPF3 and so are the
+  // fighter's missiles, so a shot fired up the capsule's column reads as
+  // capsule pixels. Step 2 moved the Heavy cadence and with it the kill that
+  // earns this capsule, which is how the shot and the capture window came to
+  // coincide.
+  //
+  // MEASURED over fireDelay 0, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 24, 32, 48
+  // and 64: only 5 and 48 pass every clause of this session. 0, 2, 3, 10, 12,
+  // 16, 20, 24, 32 and 64 collect TWICE inside the 1,300 frames (the
+  // "exactly once" clause), and 4, 6 and 8 leave 46-56 px on the last three
+  // captures. 5 is taken as the smallest change from the original 4 that works:
+  // it keeps the hunt policy firing at the same rate and reads 216 x9, 188,
+  // 184, 160, then 28, 28, 28. 48 also passes but has the player firing once
+  // per second, which is a different replay.
+  id: "weapon-pickup-overlap-2-hunt-fire5",
   difficulty: 2,
   policy: "pickup-overlap",
-  fireDelay: 4,
+  fireDelay: 5,
   frames: 1_300,
   kind: "weapon-pickup-overlap",
 }];
@@ -5718,15 +5748,55 @@ function main() {
     `Director completion trace measured ${directorCompletionRows.length}/${expectedDirectorCompletionFrames} frames`);
   const directorCompletionEvidence = directorCompletionSessions.map((session) => {
     const rows = directorCompletionRows.filter((row) => row.session === session.id);
-    const finalDirectorEvent = rows.findLast((row) => (row.events & (1 << 22)) !== 0);
-    const finalDrain = rows.find((row) =>
-      row.frame > (finalDirectorEvent?.frame ?? Number.MAX_SAFE_INTEGER) && row.sector_state === 5);
+    /* Owner decision 9, 2026-09-28 (plans/director-4.6.md §11 item 9;
+     * alternative 1 of docs/diagnostics/boss-handoff-clause-2026-09-28.md).
+     * This clause used to anchor on the LAST `director_try_event` of the replay
+     * -- bit 22, which was the retired phase machine's explicit BOSS_HANDOFF
+     * event -- and require DRAIN on the very next frame. Roadmap 4.6 step 2
+     * RETIRED that machine. The level now ends inside
+     * `director_c_world_row_tick`: the row clock runs past the last sector's
+     * authored length, `advance_sector()` finds no next sector, raises
+     * FLAG_COMPLETE and returns WITHOUT arming a wave, so nothing raises bit 22
+     * on the completing frame on any difficulty (MEASURED: the old delta was
+     * 156/365/321 on the step-2 level data and 899/352/381 on the re-authored
+     * one, against the 1 the clause required -- the diagnostics file has the
+     * table). The gate changed because the game's behaviour changed, so the
+     * clause is re-pointed at the mechanism that ends a level now, and keeps
+     * every relation it owned:
+     *   1. the LAST SECTOR's row clock ends the level -- the last
+     *      `director_world_row_tick` PC hit (bit 20) before the final DRAIN
+     *      sits on the frame before it, and the Director is in its last sector
+     *      there and never leaves it (`director_phase` samples $80F6, which
+     *      step 2 reinterprets as `STATE_SECTOR`, the sector index);
+     *   2. DRAIN follows that tick on the very next frame and happens EXACTLY
+     *      ONCE after it -- which is also what separates the level's end from
+     *      the capital sector's own DRAIN/COMPLETE pair earlier in every one of
+     *      these replays: that one lasts 70/62/56 frames, this one is the
+     *      single forced frame of `sector_c_force_final_drain`;
+     *   3. COMPLETE follows DRAIN on the next frame;
+     *   4. COMPLETE is terminal (asserted below, unchanged).
+     * No runtime byte changed for this, and nothing the clause caught is
+     * dropped: a level that ended for any other reason, ended more than once,
+     * or re-opened afterwards still fails it. */
+    const lastSector = Math.max(...rows.map((row) => row.director_phase));
+    const lastDrain = rows.findLast((row) => row.sector_state === 5);
+    const levelEndRowTick = lastDrain === undefined ? undefined
+      : rows.findLast((row) => row.frame < lastDrain.frame &&
+        (row.events & (1 << 20)) !== 0);
+    const drainsAfterRowTick = levelEndRowTick === undefined ? []
+      : rows.filter((row) => row.frame > levelEndRowTick.frame && row.sector_state === 5);
+    const finalDrain = drainsAfterRowTick[0];
     const finalComplete = rows.find((row) =>
       row.frame > (finalDrain?.frame ?? Number.MAX_SAFE_INTEGER) && row.sector_state === 6);
-    invariant(finalDirectorEvent !== undefined && finalDrain !== undefined &&
-      finalComplete !== undefined && finalDrain.frame === finalDirectorEvent.frame + 1 &&
-      finalComplete.frame > finalDrain.frame,
-    `${session.id} did not execute BOSS_HANDOFF -> DRAIN -> COMPLETE`);
+    invariant(levelEndRowTick !== undefined && finalDrain !== undefined &&
+      finalComplete !== undefined &&
+      levelEndRowTick.director_phase === lastSector &&
+      rows.every((row) => row.frame < levelEndRowTick.frame ||
+        row.director_phase === lastSector) &&
+      drainsAfterRowTick.length === 1 &&
+      finalDrain.frame === levelEndRowTick.frame + 1 &&
+      finalComplete.frame === finalDrain.frame + 1,
+    `${session.id} did not execute LAST-SECTOR ROW CLOCK -> DRAIN -> COMPLETE`);
     const terminalComplete = rows.filter((row) => row.frame >= finalComplete.frame)
       .every((row) => row.sector_state === 6);
     invariant(terminalComplete,
@@ -5737,14 +5807,17 @@ function main() {
     return {
       session: session.id,
       difficulty: session.difficulty,
-      boss_handoff_frame: finalDirectorEvent.frame,
+      level_end_row_tick_frame: levelEndRowTick.frame,
+      level_end_sector: lastSector,
       drain_frame: finalDrain.frame,
       level_complete_frame: finalComplete.frame,
       drain_frames: finalComplete.frame - finalDrain.frame,
-      /* Published per session so the test can assert the RELATION -- handoff,
-       * DRAIN on the next frame, COMPLETE after it, and COMPLETE holding to
-       * the last measured frame -- instead of pinning the frame numbers, which
-       * are data about this build and move whenever the replay does. */
+      /* Published per session so the test can assert the RELATION -- the last
+       * sector's row clock, DRAIN on the next frame, COMPLETE on the next, and
+       * COMPLETE holding to the last measured frame -- instead of pinning the
+       * frame numbers, which are data about this build and move whenever the
+       * replay does. The field was `boss_handoff_frame` until owner decision 9
+       * of 2026-09-28; it is named for what it measures now. */
       terminal_complete: terminalComplete,
       terminal_complete_through_frame: rows.at(-1).frame,
       last_measured_frame: rows.at(-1).frame,
@@ -5762,9 +5835,9 @@ function main() {
   });
   const hardDirectorCompletion = directorCompletionEvidence.find(({ difficulty }) =>
     difficulty === 2);
-  const finalDirectorEvent = directorCompletionRows.find((row) =>
+  const levelEndRowTick = directorCompletionRows.find((row) =>
     row.session === hardDirectorCompletion.session &&
-    row.frame === hardDirectorCompletion.boss_handoff_frame);
+    row.frame === hardDirectorCompletion.level_end_row_tick_frame);
   const finalDrain = directorCompletionRows.find((row) =>
     row.session === hardDirectorCompletion.session && row.frame === hardDirectorCompletion.drain_frame);
   const finalComplete = directorCompletionRows.find((row) =>
@@ -6969,7 +7042,8 @@ function main() {
       director_level_complete: {
         observed: true,
         session: hardDirectorCompletion.session,
-        boss_handoff_frame: finalDirectorEvent.frame,
+        level_end_row_tick_frame: levelEndRowTick.frame,
+        level_end_sector: hardDirectorCompletion.level_end_sector,
         drain_frame: finalDrain.frame,
         level_complete_frame: finalComplete.frame,
         drain_frames: finalComplete.frame - finalDrain.frame,

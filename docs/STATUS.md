@@ -703,6 +703,54 @@ Two are class **(a)**, one class **(b)**; **none is a runtime defect**. Three
 compliant alternatives each, with the recommendation and the grouped question:
 [diagnostics/pickup-booster-clauses-2026-09-28.md](diagnostics/pickup-booster-clauses-2026-09-28.md).
 
+**DECIDED — the recommended alternative in each of the three** (decided by the
+owner, **2026-09-28**; plan [plans/director-4.6.md](plans/director-4.6.md) §11
+item 12), under one rule: **a class (a) clause is never touched, only its
+scenario moves; a class (b) clause's condition is never touched either, the
+observer behind it is corrected to count what the clause is about.**
+
+* `:6108`, class (a) — the `hunt` half of the `memory-integrity-160s` factory
+  is **re-scripted** to a fire delay at which the fifth collection falls inside
+  the 4,000-frame window. Clause, threshold of ten and the XEX/ATR parity
+  clause beside it untouched.
+* `:6116`, class (a) — `pauseTest` moves **back to the `hunt` pair**, where the
+  Spread booster the arming condition names is actually reached. Clause, arming
+  condition and coverage untouched; the same repair the factory's own
+  2026-09-22 comment records in the other direction.
+* `:6308`, class (b) — the **observer** is corrected, not the clause.
+  `dftrace_measure_pickup_missiles` counts every non-zero byte of the whole
+  256-row `$3B00` page, all four missiles, while `pickup_missile_rows` is named
+  for and read as the capsule. It is re-pointed at **the capsule's own rows** —
+  the `WEAPON_PICKUP_HEIGHT_SCANLINES` window the runtime publishes at
+  `ENTITY_SCREEN_LO/HI + WEAPON_PICKUP_SLOT`, exactly the rows
+  `clear_fighter_pickup_pmg` clears. The clause's condition stays byte-for-byte
+  as written. Every row of all three 16-row silhouettes is non-zero with union
+  `$FF`, so the corrected counter still reads **16 / `$FF` / one block** for an
+  intact capsule and the six other clauses pinning those values are unaffected
+  by construction.
+
+Rejected in every case: lengthening the 160-second sessions (it breaks the
+16,000-frame pin and four published figures), arming the pause on both pairs,
+and recording any of the three (each needs an `invariant` →
+`recordClauseFailure` clause change anyway and each leaves real coverage
+unmeasured). **Standing authorisation, this session only:** further
+pickup/booster-family clauses whose cause is step 2's moved capsule cadence are
+classified, repaired under the same two rules, recorded here and in the
+diagnostics file, and the run continues — but a class **(c)** clause, a clause
+outside the family, more than **three** further clauses, a fence margin below
+**727**, a DMA-on maximum above **31,670** or a failure outside the recorded 40
+each STOP the session. No clause is weakened, skipped or re-ordered around.
+
+**Known fragility — recorded, not fixed** (owner, **2026-09-28**; §11 item 13).
+The pickup scenarios pass only at specific fire delays — **8** for the
+traversal, **5 or 48** for the overlap — so any future change to the debris or
+capsule cadence moves them again. The durable repair is the **pickup-colour**
+task (`docs/plans/pickup-colour.md`, Option 2a, the capsule on **P3**; that plan
+document does not exist yet): with the capsule off the shared missile plane the
+pickup observer is re-pointed from the missile plane to **PLAYER3**, and robust
+scenarios replace delay-tuned ones. Item 11's `entity_active_mask === 2`
+conjunct in the traversal clause hands over with it.
+
 **Behavioural clause failures, name by name — RECONCILED.** MEASURED on a full
 from-scratch run of all **65** replays against the reproduced candidate
 (boot smoke 8/8 first, then 0 distinct miss events across 65 replays): the run
@@ -4855,6 +4903,26 @@ started without owner instruction.
   the clause say what its message says and cost nothing it currently catches.
   Full measurement and the fire-delay sweep:
   [diagnostics/pickup-traversal-clause-2026-09-28.md](diagnostics/pickup-traversal-clause-2026-09-28.md).
+
+- **The pickup replays are delay-tuned, and the durable fix is the pickup
+  colour task** (recorded **2026-09-28**, MEASURED, deferred by the owner at
+  4.6 step 2's closure; plan [plans/director-4.6.md](plans/director-4.6.md) §11
+  item 13). The entry above is one half of this. Both pickup scenarios pass
+  only at specific fire delays — **8** for the traversal (1 of 15 swept), **5
+  or 48** for the overlap (2 of 15) — and the `memory-integrity-160s` `hunt`
+  pair joins them at step 2's closure. The cause is shared: the capsule is the
+  GTIA **fifth player** on the same `$3B00` missile plane and the same COLPF3
+  as the fighter's own shots, so a shot fired up the capsule's column reads as
+  the capsule in both the raster and the trace, and only a delay that keeps
+  them apart passes. The durable repair is the **pickup-colour** task
+  (`docs/plans/pickup-colour.md`, **Option 2a — the capsule on P3**; that plan
+  document does not exist in the repo yet). Moving the capsule onto its own
+  player lets the pickup observer be re-pointed from the missile plane to
+  **PLAYER3**, after which the scenarios no longer need tuned delays. The
+  observer correction taken at step 2's closure (the capsule's own published
+  window instead of the whole page) removes the trace-side half of the
+  confusion; the raster-side half needs the separate plane. Measurements:
+  [diagnostics/pickup-booster-clauses-2026-09-28.md](diagnostics/pickup-booster-clauses-2026-09-28.md).
 
 - **Starfield parallax** — ~3,000 cycles for a second scrolling layer; revisit
   after Option D.

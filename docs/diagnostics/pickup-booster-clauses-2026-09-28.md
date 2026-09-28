@@ -27,6 +27,17 @@ the wrong coverage).
 document is the `OWNER_DECISION_REQUIRED` that stands between step 2 and its
 evidence.
 
+> **ANSWERED 2026-09-28 — the recommendation in each case, alternative 1, three
+> times** (plan [../plans/director-4.6.md](../plans/director-4.6.md) §11 item
+> 12). Read under one rule: **a class (a) clause is never touched, only its
+> scenario moves; a class (b) clause's condition is never touched either, the
+> observer behind it is corrected to count what the clause is about.** For §4
+> that places alternative 1's intent one level lower than this document
+> proposed it — in `dftrace_measure_pickup_missiles`, not in the clause. The
+> repairs and their evidence are §7-§10 below. A standing authorisation for the
+> closing session only, with the five conditions that STOP it, is in §11 item
+> 12 of the plan.
+
 ---
 
 ## 1. The baseline these three moved away from

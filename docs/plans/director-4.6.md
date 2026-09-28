@@ -546,8 +546,9 @@ on **2026-09-23**, before the first implementation step began; item 7 is the
 one that stays open. Item 8 was added after the step-2 hardware smoke; items
 **9-11** on **2026-09-28**, at step 2's closure, when regenerating the runtime
 evidence exposed a second stale clause and the re-authored level's own PAL
-figures. Item **12** is not an answer but the next question, opened by item 9's
-repair: three more stale clauses stand between step 2 and its evidence.
+figures. Items **12-13** were answered on the same day, once item 12's own
+question — three more stale clauses standing between step 2 and its evidence —
+had been measured.
 
 1. **The CAPITAL Light ceiling (R3 in capital sectors) — RESTRICT** (decided by
    the owner, 2026-09-23). §5.1 is not paid in 1.0: per-sector enemy selection
@@ -668,25 +669,102 @@ repair: three more stale clauses stand between step 2 and its evidence.
     in `docs/STATUS.md` §Backlog with a pointer to the diagnostics file.
 
 
-12. **`BLOCKED_STALE_CLAUSES_PICKUP_BOOSTER` — `OWNER_DECISION_REQUIRED`, opened
-    2026-09-28** (not an owner answer; the question). With item 9's re-point in
-    place the full trace runs past the boss-handoff clause and stops **three
-    clauses later**, in the post-loop pickup/booster family:
+12. **`BLOCKED_STALE_CLAUSES_PICKUP_BOOSTER` — TAKE THE RECOMMENDED
+    ALTERNATIVE FOR EACH OF THE THREE** (decided by the owner,
+    **2026-09-28**). The question opened earlier the same day: with item 9's
+    re-point in place the full trace runs past the boss-handoff clause and
+    stops **three clauses later**, in the post-loop pickup/booster family —
     `scripts/runtime-wall-trace.mjs:6108` *"Long XEX/ATR traces completed only
     8/10 weapon-booster cycles"*, then `:6116` (the OPTION pause test never
     arms) and `:6308` *"Pending weapon pickup became visible or interactive"*.
-    **One cause for all three:** step 2 moved the Heavy cadence, which moved the
-    kills, which moved the weapon capsules, and each of those clauses is
+    **One cause for all three:** step 2 moved the Heavy cadence, which moved
+    the kills, which moved the weapon capsules, and each of those clauses is
     scripted around a capsule arriving at a particular moment. Two are class
     (a), one is class (b); **none is a runtime defect** — each one's own
-    measurement finds the capsule correct. A **fourth** failure in the same
-    family, `weapon-pickup-overlap`'s raster clause, was inside this session's
-    authority and is **repaired** (fire delay 4 → 5, the clause untouched).
-    Measurements, the `28bd1e7` baseline each one moved away from, and three
-    compliant alternatives per blocker with a recommendation:
+    measurement finds the capsule correct. Measurements, the `28bd1e7`
+    baseline each one moved away from, and three compliant alternatives per
+    blocker:
     [../diagnostics/pickup-booster-clauses-2026-09-28.md](../diagnostics/pickup-booster-clauses-2026-09-28.md).
-    **`docs/runtime-wall-trace.json` is therefore still not regenerated**, and
-    step 2 cannot close until this is answered.
+    The answer is that file's **recommendation in each case — alternative 1,
+    three times** — read under one rule: **a class (a) clause is never
+    touched; only its scenario moves. A class (b) clause's condition is never
+    touched either; the observer behind it is corrected to count what the
+    clause is about.**
+    * **`:6108`, class (a) — re-script.** The `hunt` half of the
+      `memory-integrity-160s` session factory gets a fire delay at which the
+      fifth collection falls inside the 4,000-frame window. The clause, its
+      threshold of ten and the XEX/ATR parity clause beside it are
+      **untouched**. Alternative 2 (lengthen the sessions) is REJECTED: it
+      breaks the 16,000-frame pin, the per-session 160-second pin and four
+      published figures, and the sessions stop being 160-second sessions.
+      Alternative 3 (record it) is REJECTED: it needs an `invariant` →
+      `recordClauseFailure` clause change anyway and leaves booster-cycle
+      coverage unmeasured.
+    * **`:6116`, class (a) — re-script.** `pauseTest` moves back to the
+      `hunt` pair, where the Spread booster the observer's arming condition
+      names is actually reached. The clause, the arming condition and the
+      coverage it names are **untouched** — the same repair, in the same
+      factory, as its own 2026-09-22 comment records in the other direction.
+      Alternatives 2 (arm both pairs) and 3 (record it) are REJECTED: 2 is
+      verification twice over for a pair that cannot arm, and 3 leaves the
+      pause freeze — an accepted player-visible guarantee — unmeasured on
+      both media.
+    * **`:6308`, class (b) — correct the OBSERVER, not the clause.** This is
+      alternative 1's intent, placed one level lower than the diagnostics file
+      proposed it. `dftrace_measure_pickup_missiles` counts **every** non-zero
+      byte of the whole 256-row `$3B00` missile-plane page — all four missiles
+      — while `pickup_missile_rows` is named for, and read as, the capsule.
+      The capsule is the GTIA fifth player across all four missiles, so the
+      fighter's own shots land in the same counter; 181 of 514 pending rows
+      read 2-10 rows with union `$30`/`$3C`, which is the player's shots and
+      not a capsule. The observer is corrected to count **only the capsule's
+      own rows** — the `WEAPON_PICKUP_HEIGHT_SCANLINES` window the runtime
+      itself publishes at `ENTITY_SCREEN_LO/HI + WEAPON_PICKUP_SLOT`, the
+      exact rows `clear_fighter_pickup_pmg` clears — and the clause's
+      condition `(mask & 2) === 0 && pickup_missile_rows === 0` stays
+      **byte-for-byte as written**. Because every row of all three 16-row
+      silhouettes is non-zero with union `$FF`, the corrected counter still
+      reads **16 / `$FF` / one block** for an intact capsule, so the six other
+      clauses that pin those values are unaffected by construction.
+      Falsifiability is shown the way §5 of the diagnostics file shows it: the
+      clause must still fail when a pending capsule really is on the plane.
+      Alternative 2 (re-script) is REJECTED — the pending spans are 514 of
+      4,000 frames under a continuously firing policy and a clean delay may
+      not exist; alternative 3 (record it) is REJECTED — its message reads as
+      a player-visible defect that measurement says is not there.
+
+    **Standing authorisation, this session only** (decided by the owner,
+    **2026-09-28**). If, after these three, the full run stops at **further**
+    clauses of the same pickup/booster family whose cause is step 2's moved
+    capsule cadence, the session classifies each one (a) or (b) with
+    evidence, repairs it under the same two rules above, records it in
+    [../diagnostics/pickup-booster-clauses-2026-09-28.md](../diagnostics/pickup-booster-clauses-2026-09-28.md)
+    and `docs/STATUS.md`, and continues without stopping. The authorisation
+    does **not** extend to: a clause that classifies as **(c)**, a runtime
+    defect a player could see; a clause **outside** the pickup/booster family;
+    **more than three** further clauses, which would be evidence of a larger
+    problem; a worst fence margin below **727** or a DMA-on maximum above
+    **31,670**; or a clause failure that is not among the recorded 40. Each of
+    those STOPs the session. No clause is ever weakened, skipped or re-ordered
+    around.
+
+13. **Known fragility — RECORDED, NOT FIXED HERE** (decided by the owner,
+    **2026-09-28**). The pickup scenarios pass only at **specific fire
+    delays**: **8** for `weapon-pickup` traversal (item 11: the only one of
+    fifteen swept with no violation, with 20 frames of slack in a 128-frame
+    window) and **5 or 48** for `weapon-pickup-overlap` (two of fifteen). Any
+    future change to the debris or capsule cadence moves them again. This is
+    accepted as the cost of closing step 2 and is **not** repaired here.
+    The durable repair belongs to the **pickup-colour task**
+    (`docs/plans/pickup-colour.md`, **Option 2a — the capsule on P3**; the
+    plan document does not exist in the repo yet, and this item is its
+    forward reference). Moving the capsule off the shared missile plane onto
+    its own player lets the pickup observer be re-pointed from the missile
+    plane to **PLAYER3**, and that is where **robust scenarios replace
+    delay-tuned ones**. Item 11's other half — `entity_active_mask === 2` in
+    the traversal clause, which measures the whole entity plane where it means
+    the pickup's own slot bit — is part of the same hand-over.
+
 
 ---
 

@@ -254,9 +254,23 @@ test("the authored level 1 compiles clean and reads back as the level it says", 
   // due at active gameplay frame 600, which on MEDIUM is world row 270 -> 272
   // on the 8-row module grid; the traversal itself is 542 rows on every
   // difficulty; the level used to end at row 3712. So the space sectors run
-  // 272 + 1,448 + 1,448 = 3,168 rows and the level ends two rows short of
-  // 3,712, which is the whole of what the module grid cannot express.
-  assert.deepEqual(compiled.sectors.map((sector) => sector.rows), [272, 0, 1448, 1448]);
+  // 3,168 rows in all and the level ends two rows short of 3,712, which is the
+  // whole of what the module grid cannot express.
+  //
+  // RE-PINNED AGAIN under owner decision 8 (plan §11 item 8): the 3,168 rows
+  // are still 272 + 2,896 and the capital row is untouched, but the 2,896
+  // behind it are 856 + 2,040 rather than 1,448 + 1,448. The Director arms one
+  // wave at a time and a sector entry restarts the cursor, so a wave list cut
+  // short by the row clock is abandoned wherever the cut falls - and when the
+  // cut falls before a sector's LAST wave, the next sector's first wave can
+  // repeat the archetype the player just saw. 856 rows is short enough that
+  // every difficulty reaches the last of its five waves, so the cut can only
+  // fall inside it; 2,040 is the format's maximum for one byte of modules and
+  // is the LAST sector, whose cut has no successor to collide with. The sum,
+  // and therefore the level-complete row, is what it was.
+  assert.deepEqual(compiled.sectors.map((sector) => sector.rows), [272, 0, 856, 2040]);
+  assert.equal(compiled.sectors[2].rows + compiled.sectors[3].rows, 2896,
+    "the two post-capital sectors still total what 1,448 + 1,448 totalled");
   assert.equal(compiled.sectors.reduce((sum, sector) => sum + sector.rows, 0) + 542, 3710);
   // Every wave names an archetype offset in the frozen four-record roster.
   for (const wave of compiled.waves) {

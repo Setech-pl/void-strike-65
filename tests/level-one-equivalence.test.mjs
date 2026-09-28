@@ -91,3 +91,109 @@ test("T4: the Heavy stream keeps the cadence and the density it had before the l
         spawn.archetypeOffset === 0 ? [88, 152] : [48, 176]);
     }
   });
+
+// ---------------------------------------------------------------------------
+// Owner decision 8 (plan §11 item 8, 2026-09-28, after hardware smoke): level
+// 1's Raider and Bomber waves ALTERNATE across the whole level. The owner
+// smoked the first step-2 authoring and found the opposite - Raiders after the
+// capital and then consecutive Bomber waves to the end.
+//
+// The order is pinned three ways, because each says something the others do
+// not: the AUTHORED order (what the page holds), the PLAYED order (what the
+// Director's one-wave-at-a-time cursor, the sector cut and the ceilings
+// actually admit) and the DENSITY (that alternating did not cost the level its
+// pacing). The played order is read from `archetype`, which the probe takes
+// from ENEMY_ARCHETYPE - the byte the formation was built with. The Director's
+// published `archetypeOffset` is one wave ahead on the last formation of a
+// wave whenever the next wave is armed in the same frame, which is a sampling
+// artefact of the probe and not what the player sees.
+// ---------------------------------------------------------------------------
+
+// MEASURED on the build this test runs against, 9,000 frames, one fixed kill
+// policy. Run-length encoded: "R6" is six consecutive Raider formations.
+const PLAYED_ORDER = {
+  0: "R4 B4 R6 B6 R6 B6 R4 B6 R6 B6 R6 B6 R6 B6 R6 B6 R6 B4",
+  1: "R4 B4 R6 B6 R6 B6 R6 B6 R6 B6 R6 B6 R6 B6 R6 B6 R6 B6 R5",
+  2: "R4 B4 R6 B6 R6 B6 R6 B6 R6 B6 R6 B6 R6 B6 R6 B6 R6 B6 R6 B6",
+};
+// Heavy formations in 9,000 frames, against the pre-step-2 baseline at
+// `28bd1e7` (the diagnostics file this test already reads).
+const HEAVY_FORMATIONS = { 0: 100, 1: 109, 2: 116 };
+// One WaveDef names one archetype and the core page holds twenty of them, so
+// six is the floor a level of this density can reach: 116 formations over 20
+// waves. Per-FORMATION alternation needs the "mixed wave" bit, which owner
+// decision 8 puts in the backlog.
+const LONGEST_RUN = 6;
+
+function playedBlocks(run) {
+  const blocks = [];
+  for (const spawn of run.heavySpawns) {
+    const last = blocks[blocks.length - 1];
+    if (last !== undefined && last.archetype === spawn.archetype) last.length += 1;
+    else blocks.push({ archetype: spawn.archetype, length: 1 });
+  }
+  return blocks;
+}
+
+const encode = (blocks) => blocks
+  .map((block) => `${block.archetype === "raider" ? "R" : "B"}${block.length}`).join(" ");
+
+test("owner decision 8: the twenty authored waves alternate Raider and Bomber, with no repeat",
+  () => {
+    const compiled = compileLevelFile(levelSourcePath(1));
+    const heavy = compiled.waves.filter((wave) => wave.class === "heavy");
+    assert.equal(heavy.length, compiled.waves.length, "level 1 authors Heavy waves only");
+    assert.equal(heavy[0].archetype, "raider", "the level still opens on the Raider formation");
+    assert.equal(heavy[0].escort, "wingman", "and it still has its Wingman escort");
+    for (let index = 1; index < heavy.length; index += 1) {
+      assert.notEqual(heavy[index].archetype, heavy[index - 1].archetype,
+        `wave ${index} (${heavy[index].archetype}) repeats wave ${index - 1}; the ` +
+        "alternation must hold across the sector boundary too");
+    }
+  });
+
+for (const difficulty of [0, 1, 2]) {
+  const name = ["EASY", "MEDIUM", "HARD"][difficulty];
+  test(`owner decision 8: ${name} plays the alternating order, at the density it had`, () => {
+    const run = captureTimeline({ buildDirectory, difficulty, frames: 9000 });
+    const blocks = playedBlocks(run);
+    for (let index = 1; index < blocks.length; index += 1) {
+      assert.notEqual(blocks[index].archetype, blocks[index - 1].archetype,
+        "run-length encoding cannot produce two adjacent blocks of one archetype");
+    }
+    const longest = blocks.reduce((worst, block) => Math.max(worst, block.length), 0);
+    assert.ok(longest <= LONGEST_RUN,
+      `longest run of one archetype is ${longest} formations, over the ${LONGEST_RUN} ` +
+      "the twenty-wave page allows at this density");
+    assert.equal(encode(blocks), PLAYED_ORDER[difficulty]);
+    assert.equal(run.heavySpawns.length, HEAVY_FORMATIONS[difficulty]);
+    // Against the pre-step-2 level, not against a target: EASY +1, MEDIUM
+    // exact, HARD -6. HARD is the difficulty the twenty-wave page cannot fill.
+    // Its row clock leaves room for about 122 formations and the page authors
+    // 116, because a wave count is also the longest run of one archetype the
+    // player sees: raising the counts to 7 would buy HARD its six formations
+    // and cost every difficulty a run of seven. Owner decision 8 asks for the
+    // alternation first.
+    const before = baseline.runs.find((candidate) => candidate.difficulty === difficulty);
+    assert.ok(Math.abs(run.heavySpawns.length - before.heavySpawns.length) <= 6,
+      `${run.heavySpawns.length} Heavy formations against the pre-change ` +
+      `${before.heavySpawns.length}`);
+  });
+}
+
+test("owner decision 8: re-authoring the waves moved neither the capital nor the level's end",
+  () => {
+    // The sectors behind the capital were re-sized (1,448 + 1,448 -> 856 +
+    // 2,040) so that the first of them is always exhausted before its row
+    // clock cuts it. Their total is unchanged, and these are the four figures
+    // that proves it on.
+    for (const [difficulty, complete] of [[1, 8249], [2, 7424]]) {
+      const run = captureTimeline({ buildDirectory, difficulty, frames: 9000 });
+      assert.equal(run.completeFrame?.frame, complete);
+      assert.equal(run.completeFrame?.row, 3712);
+    }
+    const medium = captureTimeline({ buildDirectory, difficulty: 1, frames: 700 });
+    const entry = medium.sectorTransitions.find((transition) => transition.to === 0);
+    assert.equal(entry.frame, 606);
+    assert.equal(entry.row, AUTHORED_CAPITAL_ROW);
+  });

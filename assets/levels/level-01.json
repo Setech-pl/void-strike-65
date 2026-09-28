@@ -1,32 +1,63 @@
 {
   "_": [
-    "Level 1, authored at roadmap 4.6 step 2 to reproduce the level the runtime",
-    "used to carry in LEVEL1_DATA. Every number below is MEASURED from the",
-    "build at main 28bd1e7 and recorded in docs/diagnostics/",
-    "level-1-baseline-timeline.json and -probe.json:",
-    "  * sector 1 runs 272 rows, because the capital became DUE at active",
-    "    gameplay frame 600 and the world row at that frame on MEDIUM is 270",
-    "    (600 * 9/20). 272 is the nearest 8-row module boundary and is the row",
-    "    the probe's MEDIUM capital actually admitted on (owner decision 3,",
-    "    plan section 11 item 3).",
-    "  * the capital traversal itself is 542 rows on every difficulty, so the",
-    "    two space sectors behind it run 1448 rows each and the level ends at",
-    "    row 3710 against today's 3712 - the two rows the 8-row module grid",
-    "    cannot express.",
-    "  * seed 109 is $6D, which director_c_init XORs with DIFFICULTY_SETTING,",
-    "    so all three of today's RNG streams are unchanged.",
-    "  * spacing 24 is the Heavy CLASS FLOOR, deliberately: it puts the wave's",
-    "    own pacing under the kernel's admission retry (48/36/24 frames by",
-    "    difficulty), which is what paced the stream before, so the first four",
-    "    formations land on frames 1, 64, 127 and 190 against 1, 64, 129, 192.",
-    "What could NOT be reproduced, and why, is recorded in docs/STATUS.md: the",
-    "retired smoke scheduler alternated Raider and Bomber on EVERY admission,",
-    "and a WaveDef names ONE archetype while the core page holds 20 waves, so",
-    "41 alternating formations cannot be written as 41 waves. This level",
-    "alternates in BLOCKS instead - four and four before the capital, six and",
-    "six after it - which keeps the density and the cadence and loses the",
-    "order. The repository always called that order smoke scheduling and not a",
-    "gameplay contract."
+    "Level 1, re-authored 2026-09-28 under owner decision 8 (plan section 11):",
+    "Raider and Bomber waves ALTERNATE across the whole level. One WaveDef names",
+    "one archetype and the core page holds twenty of them, so the alternation is",
+    "per WAVE, not per formation - the owner's accepted equivalent. The retired",
+    "smoke scheduler alternated on every admission; the 'mixed wave' bit that",
+    "would express that in data is backlog, deliberately not implemented.",
+    "",
+    "The twenty waves alternate R,B,R,B,... with no repeat anywhere, INCLUDING",
+    "across the sector boundary - which is what the first authoring got wrong.",
+    "The Director arms one wave at a time and a sector entry resets the cursor,",
+    "so a wave list that the row clock cuts short is abandoned where the cut",
+    "falls. When the cut falls before the LAST wave of a sector, the sector's",
+    "last-admitted archetype is no longer the authored one and the next sector's",
+    "first wave can repeat it: that is how 68b5968 produced twelve consecutive",
+    "Raider formations on HARD and twelve consecutive Bombers on EASY.",
+    "",
+    "The two post-capital sectors are therefore SIZED for that, not split evenly:",
+    "  * sector 3 is 856 rows and carries 5 waves of 6. The four waves before its",
+    "    last total 24 formations, which every difficulty admits inside 856 rows",
+    "    (EASY, the slowest stream, needs ~30 rows a formation), so the fifth wave",
+    "    ALWAYS arms and the cut can only fall inside it. The sector's last",
+    "    archetype is the authored one on all three difficulties;",
+    "  * sector 4 is 2,040 rows - the format's maximum for one byte of modules -",
+    "    and carries the other 13 waves. It is the LAST sector, so its own cut has",
+    "    no successor to collide with, and it absorbs the whole difficulty spread:",
+    "    HARD admits all 78 of its formations, MEDIUM 72, EASY what 9,000 frames",
+    "    reach. 856 + 2,040 = 2,896 rows, the two sectors' old total, so the level",
+    "    still ends on row 3,710 and the level-complete frame does not move.",
+    "",
+    "Unchanged from the step-2 authoring, and pinned: sector 1 runs 272 rows so",
+    "the capital becomes due on the row MEDIUM reached at active frame 600",
+    "(owner decision 3); the capital traversal is 542 rows; seed 109 is $6D, so",
+    "all three RNG streams are the ones the game always had; spacing 24 is the",
+    "Heavy class floor, which leaves the kernel's admission retry (48/36/24",
+    "frames by difficulty) pacing the stream.",
+    "",
+    "Sector 1 is left exactly as step 2 authored it - 4 + 4 formations on rows 0",
+    "and 88. Raising it to 5 + 5 puts the pre-capital count back on the ten that",
+    "main 28bd1e7 measured, and it was measured here, but it also moves the third",
+    "kill and with it the first weapon capsule, which three native pickup replays",
+    "script themselves around. The alternation does not need it, so it is not",
+    "taken: the level's own Heavy counts come out CLOSER to the baseline without",
+    "it (MEDIUM lands exactly on 109).",
+    "",
+    "'entry' is the Light stepper's entry column. A Heavy formation takes its",
+    "columns from the renderer (88/152 Raider, 48/176 Bomber) and its Wingman",
+    "escort has always entered at 124, so every Heavy wave states 124 rather",
+    "than a column the runtime does not read.",
+    "",
+    "MEASURED with scripts/level-timeline.mjs on this build, 9,000 frames, all",
+    "three difficulties - Heavy formations (pre-step-2 baseline in brackets) and",
+    "the longest run of one archetype:",
+    "  EASY   100 (99)   longest run 6    MEDIUM 109 (109)  longest run 6",
+    "  HARD   116 (122)  longest run 6",
+    "  capital admits MEDIUM frame 606 row 272; level complete MEDIUM 8,249,",
+    "  HARD 7,424 - all four unmoved from what step 2 measured.",
+    "A longest run of 6 is the floor the format allows at this density: 20 waves",
+    "of one archetype each must cover 116 formations."
   ],
   "level": 1,
   "seed": 109,
@@ -34,64 +65,244 @@
   "nebula": 0,
   "boss": 0,
   "pickupPolicy": 3,
-  "hull": { "length": 3, "turrets": 3 },
+  "hull": {
+    "length": 3,
+    "turrets": 3
+  },
   "sectors": [
     {
       "kind": "space",
       "subtype": "elite",
       "rows": 272,
-      "archetypes": ["raider", "wingman", "bomber"],
+      "archetypes": [
+        "raider",
+        "wingman",
+        "bomber"
+      ],
       "lights": 1,
       "heavies": 2,
-      "hazards": { "debris": 1, "pickups": true },
+      "hazards": {
+        "debris": 1,
+        "pickups": true
+      },
       "waves": [
-        { "row": 0, "members": ["raider", "wingman"], "count": 4, "spacing": 24, "entry": 124 },
-        { "row": 88, "archetype": "bomber", "count": 4, "spacing": 24, "entry": 124 }
+        {
+          "row": 0,
+          "members": [
+            "raider",
+            "wingman"
+          ],
+          "count": 4,
+          "spacing": 24,
+          "entry": 124
+        },
+        {
+          "row": 88,
+          "archetype": "bomber",
+          "count": 4,
+          "spacing": 24,
+          "entry": 124
+        }
       ]
     },
     {
       "kind": "capital",
       "archetypes": [],
-      "hazards": { "debris": 1, "pickups": true, "broadside": true }
+      "hazards": {
+        "debris": 1,
+        "pickups": true,
+        "broadside": true
+      }
     },
     {
       "kind": "space",
       "subtype": "elite",
-      "rows": 1448,
-      "archetypes": ["raider", "wingman", "interceptor", "bomber"],
+      "rows": 856,
+      "archetypes": [
+        "raider",
+        "wingman",
+        "interceptor",
+        "bomber"
+      ],
       "lights": 1,
       "heavies": 2,
-      "hazards": { "debris": 2, "pickups": true },
+      "hazards": {
+        "debris": 2,
+        "pickups": true
+      },
       "waves": [
-        { "row": 0, "members": ["raider", "wingman"], "count": 6, "spacing": 24, "entry": 124 },
-        { "row": 160, "archetype": "bomber", "count": 6, "spacing": 24, "entry": 124 },
-        { "row": 320, "members": ["raider", "wingman"], "count": 6, "spacing": 24, "entry": 92 },
-        { "row": 480, "archetype": "bomber", "count": 6, "spacing": 24, "entry": 156 },
-        { "row": 640, "members": ["raider", "wingman"], "count": 6, "spacing": 24, "entry": 124 },
-        { "row": 800, "archetype": "bomber", "count": 6, "spacing": 24, "entry": 124 },
-        { "row": 960, "members": ["raider", "wingman"], "count": 6, "spacing": 24, "entry": 124 },
-        { "row": 1120, "archetype": "bomber", "count": 6, "spacing": 24, "entry": 92 },
-        { "row": 1280, "members": ["raider", "wingman"], "count": 6, "spacing": 24, "entry": 156 }
+        {
+          "row": 0,
+          "members": [
+            "raider",
+            "wingman"
+          ],
+          "count": 6,
+          "spacing": 24,
+          "entry": 124
+        },
+        {
+          "row": 144,
+          "archetype": "bomber",
+          "count": 6,
+          "spacing": 24,
+          "entry": 124
+        },
+        {
+          "row": 288,
+          "members": [
+            "raider",
+            "wingman"
+          ],
+          "count": 6,
+          "spacing": 24,
+          "entry": 124
+        },
+        {
+          "row": 432,
+          "archetype": "bomber",
+          "count": 6,
+          "spacing": 24,
+          "entry": 124
+        },
+        {
+          "row": 576,
+          "members": [
+            "raider",
+            "wingman"
+          ],
+          "count": 6,
+          "spacing": 24,
+          "entry": 124
+        }
       ]
     },
     {
       "kind": "space",
       "subtype": "elite",
-      "rows": 1448,
-      "archetypes": ["raider", "wingman", "interceptor", "bomber"],
+      "rows": 2040,
+      "archetypes": [
+        "raider",
+        "wingman",
+        "interceptor",
+        "bomber"
+      ],
       "lights": 1,
       "heavies": 2,
-      "hazards": { "debris": 2, "pickups": true },
+      "hazards": {
+        "debris": 2,
+        "pickups": true
+      },
       "waves": [
-        { "row": 0, "members": ["raider", "wingman"], "count": 6, "spacing": 24, "entry": 124 },
-        { "row": 160, "archetype": "bomber", "count": 6, "spacing": 24, "entry": 156 },
-        { "row": 320, "members": ["raider", "wingman"], "count": 6, "spacing": 24, "entry": 92 },
-        { "row": 480, "archetype": "bomber", "count": 6, "spacing": 24, "entry": 124 },
-        { "row": 640, "members": ["raider", "wingman"], "count": 6, "spacing": 24, "entry": 124 },
-        { "row": 800, "archetype": "bomber", "count": 6, "spacing": 24, "entry": 124 },
-        { "row": 960, "members": ["raider", "wingman"], "count": 6, "spacing": 24, "entry": 156 },
-        { "row": 1120, "archetype": "bomber", "count": 6, "spacing": 24, "entry": 92 },
-        { "row": 1280, "members": ["raider", "wingman"], "count": 6, "spacing": 24, "entry": 124 }
+        {
+          "row": 0,
+          "archetype": "bomber",
+          "count": 6,
+          "spacing": 24,
+          "entry": 124
+        },
+        {
+          "row": 144,
+          "members": [
+            "raider",
+            "wingman"
+          ],
+          "count": 6,
+          "spacing": 24,
+          "entry": 124
+        },
+        {
+          "row": 288,
+          "archetype": "bomber",
+          "count": 6,
+          "spacing": 24,
+          "entry": 124
+        },
+        {
+          "row": 432,
+          "members": [
+            "raider",
+            "wingman"
+          ],
+          "count": 6,
+          "spacing": 24,
+          "entry": 124
+        },
+        {
+          "row": 576,
+          "archetype": "bomber",
+          "count": 6,
+          "spacing": 24,
+          "entry": 124
+        },
+        {
+          "row": 720,
+          "members": [
+            "raider",
+            "wingman"
+          ],
+          "count": 6,
+          "spacing": 24,
+          "entry": 124
+        },
+        {
+          "row": 864,
+          "archetype": "bomber",
+          "count": 6,
+          "spacing": 24,
+          "entry": 124
+        },
+        {
+          "row": 1008,
+          "members": [
+            "raider",
+            "wingman"
+          ],
+          "count": 6,
+          "spacing": 24,
+          "entry": 124
+        },
+        {
+          "row": 1152,
+          "archetype": "bomber",
+          "count": 6,
+          "spacing": 24,
+          "entry": 124
+        },
+        {
+          "row": 1296,
+          "members": [
+            "raider",
+            "wingman"
+          ],
+          "count": 6,
+          "spacing": 24,
+          "entry": 124
+        },
+        {
+          "row": 1440,
+          "archetype": "bomber",
+          "count": 6,
+          "spacing": 24,
+          "entry": 124
+        },
+        {
+          "row": 1584,
+          "members": [
+            "raider",
+            "wingman"
+          ],
+          "count": 6,
+          "spacing": 24,
+          "entry": 124
+        },
+        {
+          "row": 1728,
+          "archetype": "bomber",
+          "count": 6,
+          "spacing": 24,
+          "entry": 124
+        }
       ]
     }
   ]

@@ -14,7 +14,11 @@
 // and records every spawn the default build can produce:
 //
 //   * Heavy formation admissions (ENEMY_ACTIVE 0 -> 1): frame, world row,
-//     archetype offset, roster shape, movement id (the "path"), member X/Y;
+//     archetype offset, roster shape and the archetype NAME that follows from
+//     it, movement id (the "path"), member X/Y. Read `archetype`, not
+//     `archetypeOffset`: the offset is the Director's published byte and a
+//     wave arm in the same frame can leave it one wave ahead of the formation
+//     (the record below says why);
 //   * Light admissions (light_state[slot] 0 -> nonzero): frame, world row,
 //     slot, archetype offset, movement id, X/Y;
 //   * capital sector-state transitions, so the capital arrival frame is read
@@ -178,8 +182,21 @@ export function captureTimeline({ buildDirectory, difficulty = 1, frames = 9000,
     if (priorActive !== 1 && active === 1) {
       heavySpawns.push({
         frame, row: worldRow(),
+        // The Director's PUBLISHED byte, and it can be one wave AHEAD of the
+        // formation this record describes. director_c_try_event publishes
+        // heavy_archetype_offset when a wave is ARMED, and the row tick may
+        // arm the next wave in the same frame in which the previous wave's
+        // last formation was spawned - enemy_c_spawn_raiders has already read
+        // the byte by then, but this sample has not. Kept because it is what
+        // the Director decided; never used as the formation's identity.
         archetypeOffset: memory[heavyArchetypeOffset],
+        // The identity the formation was actually BUILT with: ENEMY_ARCHETYPE
+        // is written by enemy_c_spawn_raiders from heavy_roster_shape[], and
+        // it is the byte every renderer path indexes. 0 is the Raider body,
+        // 2 the Bomber body (lifecycle.c ROSTER_SHAPE_*). This, not the
+        // published offset, is what the player sees.
         rosterShape: memory[enemyArchetype],
+        archetype: memory[enemyArchetype] === 2 ? "bomber" : "raider",
         movementId: memory[movementId],
         members: [0, 1].map((slot) => ({
           state: memory[enemyMemberState + slot],

@@ -489,27 +489,48 @@ const directorCompletionSessions = [0, 1, 2].map((difficulty) => ({
   holdPlayerLives: 3,
 }));
 
+// The `hunt` half's fire delay, re-scripted at roadmap 4.6 step 2's closure
+// (owner decision 12, 2026-09-28, class (a)). At the authored 4 the pair
+// collects FOUR capsules inside its 4,000-frame window and the fifth is not
+// missing but LATE: its third qualifying kill lands on frame 3,943 and the
+// capsule goes ACTIVE on 3,974, 25 frames before the window closes, so the
+// `>= 10` booster-cycle clause below reads 8/10. Step 2 moved the Heavy
+// cadence, which moved the kills, which moved the capsules. The clause, its
+// threshold and the XEX/ATR parity clause beside it are UNTOUCHED; only the
+// scenario moves, and the id states the delay so the replay is self-describing.
+const MEMORY_INTEGRITY_HUNT_FIRE_DELAY = 5;
+
 const memoryIntegritySessions = ["XEX", "ATR"].flatMap((medium) =>
-  ["evasive", "hunt"].map((policy) => ({
-    id: `memory-integrity-${medium.toLowerCase()}-2-${policy}-fire4`,
-    medium,
-    difficulty: 2,
-    policy,
-    fireDelay: 4,
-    frames: 4_000,
-    kind: "memory-integrity-160s",
-    // WHICH of the pair arms the OPTION pause test, 2026-09-22, owner-rule
-    // class (a). The clause below it asserts that Spread Shot and the engine
-    // cadence FREEZE across a pause, and the emulator arms it only while the
-    // Spread booster is active (dftrace_pause_test, ENTITY_STATE+2 == 4). The
-    // owner decision that made a debris SHOT kill a qualified kill moved the
-    // capsule cadence, and MEASURED on this build the `hunt` pair no longer
-    // reaches a Spread booster at all (states 3 and 5 only) while the `evasive`
-    // pair holds one for 621 frames. So the scenario moves to the replay that
-    // still contains the behaviour; the assertion, the arming condition and the
-    // coverage it names are all untouched.
-    pauseTest: policy === "evasive",
-  })));
+  ["evasive", "hunt"].map((policy) => {
+    const fireDelay = policy === "hunt" ? MEMORY_INTEGRITY_HUNT_FIRE_DELAY : 4;
+    return {
+      id: `memory-integrity-${medium.toLowerCase()}-2-${policy}-fire${fireDelay}`,
+      medium,
+      difficulty: 2,
+      policy,
+      fireDelay,
+      frames: 4_000,
+      kind: "memory-integrity-160s",
+      // WHICH of the pair arms the OPTION pause test. Owner-rule class (a),
+      // twice, in opposite directions.
+      // 2026-09-22: the clause below asserts that Spread Shot and the engine
+      // cadence FREEZE across a pause, and the emulator arms it only while the
+      // Spread booster is active (dftrace_pause_test, ENTITY_STATE+2 == 4). The
+      // owner decision that made a debris SHOT kill a qualified kill moved the
+      // capsule cadence, and the `hunt` pair no longer reached a Spread booster
+      // at all while the `evasive` pair held one for 621 frames, so the flag
+      // moved to `evasive`.
+      // 2026-09-28 (4.6 step 2, owner decision 12): the cadence moved again, the
+      // other way. MEASURED on the step-2 candidate, the `evasive` pair collects
+      // NOTHING in 4,000 frames — a capsule reaches ACTIVE and is never taken —
+      // so its booster state never leaves 0, the arming condition can never be
+      // met and `pause_test_completed` is 0 on both media. The `hunt` pair does
+      // reach Spread. The flag moves back. Both times: the scenario moves to the
+      // replay that still contains the behaviour; the assertion, the arming
+      // condition and the coverage it names are all untouched.
+      pauseTest: policy === "hunt",
+    };
+  }));
 
 const pickupFenceSessions = [["XEX", 2], ["ATR", 2], ["XEX", 1]].map(([medium, difficulty]) => ({
   id: `pickup-fence-${medium.toLowerCase()}-${difficulty}-hunt`,

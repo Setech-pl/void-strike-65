@@ -42,6 +42,20 @@
 #define DFTRACE_CAPTURE_DMA_Y_OFFSET 8u
 #define DFTRACE_NEAR_COUNT 4u
 #define DFTRACE_NEAR_CODE 1u
+/* The weapon capsule's entity slot and the height of the window it publishes
+ * into the $3B00 missile plane: src/main.s WEAPON_PICKUP_SLOT (1, from
+ * build/entity-effects.inc) and WEAPON_PICKUP_HEIGHT_SCANLINES (16, asserted
+ * one-silhouette-per-booster-type at fighter_pickup_pmg_shape). Read by
+ * dftrace_measure_pickup_missiles, which counts the capsule's own rows. */
+#define DFTRACE_WEAPON_PICKUP_SLOT 1u
+#define DFTRACE_WEAPON_PICKUP_HEIGHT_SCANLINES 16u
+/* Missile 0's bit pair. The $3B00 plane has exactly two writers: the capsule
+ * (src/main.s render_/clear_fighter_pickup_pmg, which STOREs all four missiles
+ * as the GTIA fifth player) and the BROADSIDE warning marks, which OR in
+ * missile_masks = $0C,$30,$C0 for slots 0-2 -- missiles 1, 2 and 3. Missile 0
+ * is therefore the capsule's alone, and a row carrying it that the capsule no
+ * longer owns is capsule residue, never a broadside mark. */
+#define DFTRACE_PICKUP_MISSILE0_BITS 0x03u
 
 typedef struct {
 	uint64_t start_clock;
@@ -3644,31 +3658,88 @@ static void dftrace_remember_capital_physical(unsigned slot)
  * of the four missiles the silhouette uses anywhere, and how many contiguous
  * runs those rows form. One capsule is one run; a trail or a stale image left
  * behind by a failed erase is two or more. */
+/* WHAT THIS COUNTS, and why it is the capsule's own rows and not the page.
+ * Corrected 2026-09-28 at roadmap 4.6 step 2's closure (owner decision 12,
+ * class (b): the clause's condition is untouched; the observer behind it is
+ * corrected to count what the clause is about).
+ *
+ * It used to walk all 256 rows of the $3B00 missile plane and count every
+ * non-zero byte. But the plane has TWO writers. The capsule is one: the GTIA
+ * fifth player, all four missiles at PRIOR = $10. The other is the BROADSIDE
+ * warning marks, which OR in missile_masks = $0C, $30, $C0 for slots 0-2. So
+ * a broadside charge landed in a counter named `pickup_missile_*` and read as
+ * a capsule: MEASURED on `weapon-pickup-2-hunt-fire4`, 181 of the 514 PENDING
+ * rows read 2-10 rows with union $0C/$30/$3C — exactly those masks and their
+ * union — and made "Pending weapon pickup became visible or interactive" fire
+ * on frames where no capsule was on the plane at all.
+ *
+ * Bit patterns alone cannot separate them: the SHIELD silhouette itself
+ * contains a $3C row and a $24 row, which no bit test can tell from slots 0+1.
+ * Two exact facts can, and this counts a row that satisfies either.
+ *
+ *  1. THE PUBLISHED WINDOW. render_/clear_fighter_pickup_pmg own exactly
+ *     WEAPON_PICKUP_HEIGHT_SCANLINES rows from ENTITY_SCREEN_LO +
+ *     WEAPON_PICKUP_SLOT, and hold ENTITY_SCREEN_HI + WEAPON_PICKUP_SLOT
+ *     non-zero for precisely as long as those rows are published: the clear is
+ *     guarded by it and zeroes it. Whatever is in that window is the capsule's
+ *     row. The publisher's `iny` wraps at 256, so the window wraps here too.
+ *  2. MISSILE 0 OUTSIDE IT. Broadside never touches missile 0, so a non-zero
+ *     $03 in a row the capsule does not currently own is capsule RESIDUE — an
+ *     image it drew and failed to erase. Keeping it is what preserves the
+ *     trail detection the whole-page scan used to give the traversal and
+ *     release clauses: a suppressed erase leaves 16-row silhouettes behind,
+ *     and those rows carry missile 0, so `missile_rows === 16` and
+ *     `missile_rows === 0` still fail on them. A broadside mark does not.
+ *
+ * The published values are unchanged for an intact capsule: every row of all
+ * three 16-row silhouettes is non-zero and each silhouette's union is $FF, so
+ * an ACTIVE capsule still reads rows 16, union $FF, blocks 1 — which is what
+ * the six other clauses pinning those three values assert. */
 static void dftrace_measure_pickup_missiles(unsigned *rows, unsigned *row_union,
 	unsigned *blocks)
 {
+	unsigned char owned[256];
 	unsigned row;
+	unsigned index;
 	int inside = 0;
+	int counted_first = 0;
+	int counted_last = 0;
 	*rows = 0u;
 	*row_union = 0u;
 	*blocks = 0u;
+	for (row = 0u; row < 256u; ++row)
+		owned[row] = 0u;
+	/* The window the runtime says it is publishing right now. */
+	if (MEMORY_mem[dftrace_entity_screen_hi + DFTRACE_WEAPON_PICKUP_SLOT] != 0u) {
+		unsigned first = MEMORY_mem[dftrace_entity_screen_lo + DFTRACE_WEAPON_PICKUP_SLOT];
+		for (index = 0u; index < DFTRACE_WEAPON_PICKUP_HEIGHT_SCANLINES; ++index)
+			owned[(first + index) & 0xffu] = 1u;
+	}
 	for (row = 0u; row < 256u; ++row) {
 		unsigned value = MEMORY_mem[0x3b00u + row];
-		if (value != 0u) {
-			++*rows;
-			*row_union |= value;
-			if (!inside) {
-				++*blocks;
-				inside = 1;
-			}
-		}
-		else
+		/* Inside the window: whatever is there is the capsule's row. Outside it:
+		 * the capsule's own missile 0, which is residue it failed to erase. A
+		 * broadside mark is neither, and is what this function used to count. */
+		if (value == 0u || (!owned[row] &&
+			(value & DFTRACE_PICKUP_MISSILE0_BITS) == 0u)) {
 			inside = 0;
+			continue;
+		}
+		++*rows;
+		*row_union |= value;
+		if (row == 0u)
+			counted_first = 1;
+		if (row == 255u)
+			counted_last = 1;
+		if (!inside) {
+			++*blocks;
+			inside = 1;
+		}
 	}
 	/* The plane is a 256-row page and the capsule's last three raster positions
 	 * start at row 242 or later, so their sixteen rows legitimately wrap onto
 	 * rows 0-1. Count the runs around the wrap: that is still one capsule. */
-	if (*blocks > 1u && MEMORY_mem[0x3b00u] != 0u && MEMORY_mem[0x3bffu] != 0u)
+	if (*blocks > 1u && counted_first && counted_last)
 		--*blocks;
 }
 

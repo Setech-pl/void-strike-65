@@ -541,7 +541,7 @@ step 4, and the frozen replay coverage clauses whose capital row moves.
 
 The planning session left seven open questions. The owner answered six of them
 on **2026-09-23**, before the first implementation step began; item 7 is the
-one that stays open.
+one that stays open. Item 8 was added after the step-2 hardware smoke.
 
 1. **The CAPITAL Light ceiling (R3 in capital sectors) — RESTRICT** (decided by
    the owner, 2026-09-23). §5.1 is not paid in 1.0: per-sector enemy selection
@@ -570,6 +570,21 @@ one that stays open.
    images do not fit. What the XEX ships (level 1 demo, a selectable subset, or
    an ATR-only campaign) is **4.9's** decision. **Not required before step 4**;
    nothing in this plan depends on it.
+8. **Level 1's Raider/Bomber order — RE-AUTHOR IN DATA** (decided by the
+   owner, **2026-09-28**, after hardware smoke of the step-2 candidate). The
+   smoke found that after the capital Raiders appear and the level then ends
+   with consecutive Bomber waves and nothing else, where `main` `28bd1e7`
+   alternated Raider and Bomber throughout. The answer is **data, not code**:
+   level 1 is re-authored so that Raider and Bomber waves **alternate across
+   the whole level**, within the page's **20 waves**. **No Director, compiler
+   or format change** is made for this.
+   * The retired scheduler's **per-formation** alternation is **not**
+     reproduced exactly. **Per-wave alternation is the accepted equivalent.**
+   * **Backlog idea, not implemented:** a **"mixed wave" bit** in `WaveDef`,
+     making consecutive formations inside one wave alternate between two
+     archetypes — for a later level that needs alternation *inside* a wave.
+     It is the only way a 20-wave page can express per-formation alternation
+     at today's density, and it is deliberately deferred.
 
 ---
 

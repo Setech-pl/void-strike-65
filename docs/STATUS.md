@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-09-23
+Last update: 2026-09-28
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -479,6 +479,28 @@ the order was not. Two further consequences of the row clock (owner decision 3)
 are visible and intended: the capital arrives **later on EASY** (frame 681 for
 600) and **earlier on HARD** (545 for 601), because the row is now the same on
 all three difficulties and the frame is not.
+
+**The owner smoked that and sent it back — level 1 is re-authored in DATA**
+(decided by the owner, **2026-09-28, after hardware smoke** of the candidate
+below; plan [plans/director-4.6.md](plans/director-4.6.md) §11 item 8). On
+hardware (`atari800 -xe -pal -nobasic`) the finding was: after the capital
+Raiders appear, and the level then ends with four consecutive Bomber waves and
+nothing else, where `main` `28bd1e7` alternated Raider and Bomber throughout.
+The decision:
+
+* level 1 is re-authored so **Raider and Bomber waves alternate across the
+  whole level**, within the page's **20 waves**. **No Director code, compiler
+  or format change** is made for this — it is a data edit to
+  `assets/levels/level-01.json`;
+* the retired scheduler's **per-formation** alternation is **not** reproduced
+  exactly: **per-wave alternation is the accepted equivalent**;
+* **backlog idea, not implemented:** a **"mixed wave" bit** in `WaveDef`, so
+  that consecutive formations inside one wave alternate between two
+  archetypes — for a later level that needs alternation *inside* a wave.
+
+The block order described in the paragraph above is therefore **superseded as
+authored data** while its *cause* stands: one `WaveDef` still names one
+archetype, and the core page still holds twenty of them.
 
 **Gates — MEASURED on the candidate build.** PAL timing audit **PASS**: 65
 replays, 0 distinct miss events, 0 frames over the target, 0 over the hard

@@ -615,6 +615,28 @@ terminal, a natural BROADSIDE observed). Three compliant alternatives, with the
 recommendation, in
 [diagnostics/boss-handoff-clause-2026-09-28.md](diagnostics/boss-handoff-clause-2026-09-28.md).
 
+**DECIDED — the clause is re-pointed, alternative 1** (decided by the owner,
+**2026-09-28**; plan [plans/director-4.6.md](plans/director-4.6.md) §11 item 9).
+The clause is re-pointed at the mechanism step 2 introduced: **trace/test code
+only, no runtime byte**. It is a gate changing because game behaviour changed,
+not a gate relaxed — the level-end sequence stays measured, in the terms that
+now exist. Alternatives 2 (give the runtime the event back) and 3 (record the
+three replays as accepted failures) are REJECTED.
+
+**DECIDED — the new PAL figures are the recorded ones** (decided by the owner,
+**2026-09-28**; §11 item 10). Worst fence margin **727** and DMA-on maximum
+**31,670** replace **991** and **31,349** as the project's recorded figures.
+They come from a **new load coincidence in the natural level-complete run** —
+Spread, ten player projectiles, one live Heavy, a debris and a pickup — and
+**not from new code**. The plan §4 step-2 tolerance ("+100 cycles on any replay
+row" against 991) is **superseded for step 2 only** and stands for steps 3-7,
+now measured against 727. **GO ≥ 500** and the **32,568** hard gate are
+unchanged and both hold, by **227** and **898** cycles. **This narrows the
+budget for the remaining 4.6 steps and for 4.8c**: steps 3-7 have 227 cycles of
+fence margin on the thinnest row instead of 491, and 4.8c would be paid out of
+the same 227. A step needing more STOPs with its exact cycle requirement rather
+than re-basing these figures again.
+
 Until blocker 2 is decided, `npm run build` on the **DEFAULT** target refuses
 to link (*"Runtime wall trace binding mismatch for void-strike-65-boot.bin"*),
 so `npm test` cannot run its suite at all and
@@ -4734,6 +4756,24 @@ started without owner instruction.
   new cell and abandons the old one. `scroll_broadside_scene` already treats a
   live flash as owning the row pointer (`:7973-7975`), so admission is the one
   path that does not. Not observed in the 6,000-frame capital-muzzle replay.
+- **The weapon-pickup traversal clause should measure the pickup's own slot**
+  (recorded **2026-09-28**, MEASURED, deferred by the owner at 4.6 step 2's
+  closure; plan [plans/director-4.6.md](plans/director-4.6.md) §11 item 11).
+  The step-2 blocker was repaired by re-scripting
+  `weapon-pickup-traversal-2-observe-*` from fire delay 4 to **8**, and **8 is
+  the only value of the fifteen swept with no violation**. The repair is
+  therefore **fragile**: the traversal needs 108 frames, level 1 sector 1's
+  debris-clear window is 128, so **20 frames is the whole slack the replay has**
+  and any future change to that debris cadence moves it again. The durable fix
+  is a clause that **distinguishes the debris slot from the pickup's logical
+  slot**: `entity_active_mask === 2` is a surviving character-era conjunct
+  measuring the whole entity plane, so a debris admitted beside an **intact**
+  capsule reads as a broken capsule. Re-pointing it at the pickup's own slot bit
+  — `(mask & 2) !== 0`, which the smooth-sequence gate already uses — would make
+  the clause say what its message says and cost nothing it currently catches.
+  Full measurement and the fire-delay sweep:
+  [diagnostics/pickup-traversal-clause-2026-09-28.md](diagnostics/pickup-traversal-clause-2026-09-28.md).
+
 - **Starfield parallax** — ~3,000 cycles for a second scrolling layer; revisit
   after Option D.
 - **Static Andromeda** in the `SPACE` sector background, occluded during

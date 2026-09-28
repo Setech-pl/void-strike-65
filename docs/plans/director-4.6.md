@@ -320,7 +320,9 @@ point (STATUS requires it; plan-4.6-placement §6.1 did not waive it):** steps
 2-5 may add **at most +100 cycles on any replay row**; the worst fence margin
 must stay **≥ 500 (GO)** on every replay of the re-scripted set, against the
 **991** baseline at `c04156a`; the PAL audit (`scripts/pal-timing-audit.mjs`,
-72 replays) runs at every step that changes the runtime. Step 6's path
+72 replays) runs at every step that changes the runtime. **The +100 tolerance is
+superseded for step 2 only, and the baseline is now 727** — owner decision 10,
+§11. Step 6's path
 evaluator (~80-120 cycles per live member, design-4.6 §1.4 ESTIMATE) is
 measured on a prototype before integration and carries its own budget.
 
@@ -541,7 +543,10 @@ step 4, and the frozen replay coverage clauses whose capital row moves.
 
 The planning session left seven open questions. The owner answered six of them
 on **2026-09-23**, before the first implementation step began; item 7 is the
-one that stays open. Item 8 was added after the step-2 hardware smoke.
+one that stays open. Item 8 was added after the step-2 hardware smoke; items
+**9-11** on **2026-09-28**, at step 2's closure, when regenerating the runtime
+evidence exposed a second stale clause and the re-authored level's own PAL
+figures.
 
 1. **The CAPITAL Light ceiling (R3 in capital sectors) — RESTRICT** (decided by
    the owner, 2026-09-23). §5.1 is not paid in 1.0: per-sector enemy selection
@@ -600,6 +605,66 @@ one that stays open. Item 8 was added after the step-2 hardware smoke.
    over 20 single-archetype waves — and a run of two would cost 63 % of the
    level's Heavy density. That is the price of the backlog bit, stated for
    when the owner weighs it.
+
+9. **`BLOCKED_STALE_CLAUSE_BOSS_HANDOFF` — RE-POINT THE CLAUSE, alternative 1**
+   (decided by the owner, **2026-09-28**). The trace clause at
+   `scripts/runtime-wall-trace.mjs` that asserts
+   `BOSS_HANDOFF -> DRAIN -> COMPLETE` is re-pointed at the mechanism step 2
+   introduced, exactly as alternative 1 of
+   [../diagnostics/boss-handoff-clause-2026-09-28.md](../diagnostics/boss-handoff-clause-2026-09-28.md)
+   describes: **trace/test code only, no runtime byte**. The clause required a
+   `director_try_event` call on the frame before DRAIN — the retired phase
+   machine's explicit `BOSS_HANDOFF` event. Step 2 retired that machine, so the
+   level now ends inside `director_c_world_row_tick` without arming a wave, and
+   nothing raises the event on the completion frame.
+   **This is a gate changing because game behaviour changed, not a gate being
+   relaxed.** What the clause protects is kept whole: the last sector's row
+   clock ends the level, DRAIN appears exactly once after it, COMPLETE follows
+   on the next frame, and COMPLETE is terminal. Alternatives 2 (give the
+   runtime the event back) and 3 (record the three replays as accepted
+   failures) are **REJECTED**: 2 spends a runtime byte and a trace semantic to
+   satisfy a measurement 4.7's boss handoff may want differently; 3 leaves the
+   level-end sequence unmeasured.
+
+10. **The gate figures after the level 1 re-authoring — ACCEPTED as the new
+    recorded figures** (decided by the owner, **2026-09-28**). Worst line-238
+    fence margin **727** and DMA-on maximum **31,670** (9 frames over the
+    31,200 target, **0** over the 32,568 hard gate) replace 991 and 31,349 as
+    the project's recorded PAL figures.
+    **They come from a new load coincidence, not from new code.** The frame is
+    in the natural level-complete run: Spread booster, ten player projectiles,
+    one live Heavy member, a debris and a pickup in the two entity slots — a
+    Spread-shot frame in a replay family that is the only one playing a whole
+    level, which is why the re-authoring exposed it and no Director row did.
+    * §4's step-2 tolerance — "at most +100 cycles on any replay row" against
+      the **991** baseline — is **superseded for step 2 only**. It stands
+      unchanged for steps 3-7, now measured against **727**.
+    * **GO ≥ 500** and the **32,568** hard gate are **unchanged** and both
+      hold: 227 cycles of fence margin and 898 cycles of wall budget.
+    * **This narrows the budget for the rest of 4.6 and for 4.8c.** Steps 3-7
+      have 227 cycles of fence margin to spend on the thinnest row instead of
+      491, and 4.8c — a Light in a capital sector, already blocked by decision
+      1 — would have to be paid out of the same 227. A step that needs more
+      STOPs under rule 8 with its exact cycle requirement rather than
+      re-basing these figures again.
+
+11. **Backlog, not done here: the weapon-pickup traversal clause.** The step-2
+    blocker was repaired by re-scripting the session's fire delay 4 → **8**,
+    and **8 is the only value of the fifteen swept with no violation**
+    ([../diagnostics/pickup-traversal-clause-2026-09-28.md](../diagnostics/pickup-traversal-clause-2026-09-28.md)
+    §3). The repair is therefore **fragile**: the traversal needs 108 frames
+    and level 1 sector 1's debris cadence leaves a 128-frame clear window, so
+    **20 frames is the whole slack in the replay** and any future change to
+    that cadence moves it again.
+    The **durable fix is a clause that distinguishes the debris slot from the
+    pickup's logical slot**: `entity_active_mask === 2` is a surviving
+    character-era conjunct that measures the whole entity plane, so a debris
+    admitted beside an intact capsule reads as a broken capsule. Re-pointing it
+    at the pickup's own slot bit — `(mask & 2) !== 0`, which the smooth-sequence
+    gate already uses — would make the clause say what its message says and
+    would cost nothing it currently catches. **It is not done here**, because
+    it is a second clause change and decision 9 authorised one; it is recorded
+    in `docs/STATUS.md` §Backlog with a pointer to the diagnostics file.
 
 ---
 

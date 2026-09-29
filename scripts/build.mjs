@@ -200,6 +200,25 @@ if (levelDebugArgument !== undefined && levelDebugMatch === null) {
   throw new Error(`Unknown debug level build ${levelDebugArgument}; ` +
     "the form is --level=N or --level=N:sector=M");
 }
+// Owner decision, 2026-09-28 (docs/plans/pickup-colour.md §7 item 1): the
+// pickup capsule owns COLPM3 in OPEN, and which byte it wears is the owner's
+// hardware call between gold $1C, cyan $AC and orange $2C. The default build
+// carries $1C until that smoke; each candidate builds as a review variant into
+// build/pickup-colour-<hex>/, never dist/, with runtime measurement skipped and
+// no gate consulting it. $1C is accepted as a flag value so the owner can build
+// the placeholder explicitly beside the other two; it is then the same bytes as
+// the default build and is still a variant directory.
+const pickupColourArgument = process.argv.find((argument) =>
+  argument.startsWith("--pickup-colour="));
+const pickupColourSlug = pickupColourArgument?.slice("--pickup-colour=".length);
+const pickupColourValues = new Map([["1C", 0x1c], ["AC", 0xac], ["2C", 0x2c]]);
+if (pickupColourSlug && !pickupColourValues.has(pickupColourSlug.toUpperCase())) {
+  throw new Error(`Unknown pickup colour build ${pickupColourSlug}; ` +
+    "the candidates are 1C (gold), AC (cyan) and 2C (orange)");
+}
+const pickupColourValue = pickupColourSlug
+  ? pickupColourValues.get(pickupColourSlug.toUpperCase())
+  : null;
 const levelDebugId = levelDebugMatch === null ? null : Number(levelDebugMatch[1]);
 const levelDebugSector = levelDebugMatch === null
   ? 0 : Number(levelDebugMatch[2] ?? 0);
@@ -210,7 +229,8 @@ if (levelDebugId !== null && (levelDebugId < 1 || levelDebugId > 16)) {
 }
 const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
-  hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null;
+  hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null ||
+  pickupColourValue !== null;
 
 // A REVIEW VARIANT OWNS ITS WHOLE BUILD DIRECTORY (owner decision, 2026-09-28).
 // Until now a variant wrote its *artifacts* into build/<variant>/ but every
@@ -239,7 +259,9 @@ const variantDirectoryName = enemyReviewHarness
               ? `bomber-hull-${bomberHullSlug.toLowerCase()}`
               : levelDebugId !== null
                 ? `level-${levelDebugId}-s${levelDebugSector}`
-                : null;
+                : pickupColourValue !== null
+                  ? `pickup-colour-${pickupColourSlug.toUpperCase()}`
+                  : null;
 const buildDirectory = variantDirectoryName === null
   ? defaultBuildDirectory
   : path.join(defaultBuildDirectory, variantDirectoryName);
@@ -1556,6 +1578,8 @@ async function build() {
         ? ["-D", `ENEMY_BODY_COLOR_OVERRIDE=${paletteCandidate.value}`] : []),
       ...(alliedSteelValue !== null
         ? ["-D", `GAMEPLAY_COLPF1_OVERRIDE=${alliedSteelValue}`] : []),
+      ...(pickupColourValue !== null
+        ? ["-D", `PICKUP_BOOST_COLOUR_OVERRIDE=${pickupColourValue}`] : []),
       "-I",
       "/project/build",
       "-l",
@@ -2752,6 +2776,8 @@ async function build() {
         ? "enemy-combat-review"
         : paletteCandidate
           ? `enemy-palette-${enemyPaletteSlug}`
+          : pickupColourValue !== null
+            ? `pickup-colour-${pickupColourSlug.toUpperCase()}`
           : alliedSteelValue !== null
             ? `allied-steel-${alliedSteelSlug.toUpperCase()}`
           : menuSteelTwinkle

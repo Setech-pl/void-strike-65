@@ -544,9 +544,22 @@ HUD_COLPF1 = $0E
 HUD_COLPF2 = $00
 PLAYER_DAMAGE_FLASH_COLOR = $42
 PLAYER_NORMAL_HULL_COLOR = $0E
+; COLPM3's capital-state byte. The player ship shows no amber pixel — every P3
+; plume bit lies under a P0 hull bit (docs/plans/pickup-colour.md §1.4) — so
+; this byte is visible only on the broadside missile M3 and on the player
+; explosion's outer mask inside a capital sector.
 PLAYER_NORMAL_ENGINE_COLOR = $28
 PLAYER_SHIELD_HULL_COLOR = $84
-PLAYER_SHIELD_ENGINE_COLOR = $0E
+; Owner decision, 2026-09-28 (docs/plans/pickup-colour.md §7 items 1-2): the
+; pickup capsule is one P3 image and owns COLPM3 for the whole of OPEN, so a
+; booster mark can never wear an enemy's colour again. $1C is the placeholder
+; the default build carries until the owner's hardware smoke picks between
+; gold $1C, cyan $AC and orange $2C; --pickup-colour=1C|AC|2C builds each one.
+.ifndef PICKUP_BOOST_COLOUR_OVERRIDE
+PICKUP_BOOST_COLOUR = $1C
+.else
+PICKUP_BOOST_COLOUR = PICKUP_BOOST_COLOUR_OVERRIDE
+.endif
 FLASH_YELLOW_BRIGHT = $1E
 FLASH_YELLOW_MID = $1C
 FLASH_RED_BRIGHT = $3C
@@ -2575,7 +2588,6 @@ start_gameplay:
     jsr init_screen
     lda player_x
     sta HPOSP0
-    sta HPOSP3
     jsr draw_player
     jsr draw_enemy
     jsr update_score_display
@@ -2597,6 +2609,7 @@ start_gameplay:
 
     lda #$01                   ; undo the menu-only wide PMG craft
     sta SIZEP0
+    lda #$00                   ; P3 is the capsule: one colour clock per pixel
     sta SIZEP3
     lda #HUD_COLPF1            ; neutral high-resolution HUD foreground
     sta COLPF1
@@ -3095,6 +3108,13 @@ wait_frame_at_line:
 publish_fighter_projectile_overlays:
     lda FIGHTER_PROJECTILE_PUBLICATION_FRAME
     beq @fighter_window
+    ; COLPM3 belongs to whichever object owns P3/M3 in this sector state: the
+    ; broadside missile M3 and the player explosion here, the pickup capsule in
+    ; OPEN. Publishing it off the latch that is already read costs one immediate
+    ; store per frame and needs no per-frame switching inside a frame; owner
+    ; decision, 2026-09-28 (docs/plans/pickup-colour.md §7 items 2 and 7).
+    lda #PLAYER_NORMAL_ENGINE_COLOR
+    sta COLPM3
     ; Capital starts its frame at $70, but sparse white publication still runs
     ; here after active work, beyond the gameplay playfield. Commit OLD/phase
     ; before the shared render path; omitting this pair would clone every prior
@@ -3103,6 +3123,8 @@ publish_fighter_projectile_overlays:
     jsr publish_dynamic_near_star_phase
     jmp fighter_projectile_publication_capital_render
 @fighter_window:
+    lda #PICKUP_BOOST_COLOUR
+    sta COLPM3
     ldx #$77
     jsr wait_frame_at_line
 fighter_projectile_publication_begin = *
@@ -3196,7 +3218,10 @@ set_loader_title_palette:
 ; build - this is the space the splash gave back. Delete it deliberately, with
 ; a re-measured cycle baseline, when something needs the bytes.
 ; Never reached: the rts above is the only way out of this routine.
-LOADER_SPLASH_CODE_SLACK = 56
+; 56 -> 57 on 2026-09-28: the pickup capsule's move to P3 returns one net byte
+; of CODE (docs/plans/pickup-colour.md §7 item 2), and this pin is where a
+; freed CODE byte goes, so CODE stays $117E and RODATA still starts at $317E.
+LOADER_SPLASH_CODE_SLACK = 57
     .res LOADER_SPLASH_CODE_SLACK, $00
 
 ; The accepted loader pixels use the same bounded LZ-10/5 decoder as the
@@ -3748,7 +3773,6 @@ read_input:
     ldy row_counter
     lda #$00
     sta PLAYER0,y
-    sta PLAYER3,y
     jmp @position
 @stationary_y:
     lda PLAYER_LIFECYCLE
@@ -3765,7 +3789,6 @@ read_input:
 @position:
     lda player_x
     sta HPOSP0
-    sta HPOSP3
 
     lda gameplay_fire_gate
     bne @fire_ready
@@ -3780,13 +3803,17 @@ read_input:
 @done:
     rts
 
+; Owner decision, 2026-09-28 (docs/plans/pickup-colour.md §7 items 2-3 and 6):
+; the ship is a PLAYER0 image only. The amber P3 "engine plume" it used to
+; publish reached no pixel - every plume bit lay under a hull bit (§1.4) - and
+; PLAYER3 now belongs to the pickup capsule, which is live in the same OPEN
+; frames the ship flies in. Writing the ship's rows there would erase it.
 erase_player:
     ldy player_y
     ldx #PLAYER_H
     lda #$00
 @loop:
     sta PLAYER0,y
-    sta PLAYER3,y
     iny
     dex
     bne @loop
@@ -3798,8 +3825,6 @@ draw_player:
 @loop:
     lda player_shape,x
     sta PLAYER0,y
-    lda player_engine_shape,x
-    sta PLAYER3,y
     iny
     inx
     cpx #PLAYER_H
@@ -3823,6 +3848,13 @@ draw_player_for_lifecycle:
 ; collision centre. The radial mask never samples a moving live coordinate.
 begin_player_fighter_explosion:
     jsr erase_player
+    ; The outer mask is published to P3 at P0's double width and is aligned to
+    ; it, so P3 leaves the capsule's one-clock size for the explosion's 24
+    ; frames. The capsule is already released: apply_player_damage sets
+    ; PLAYER_DYING and calls clear_transient_effects, which blanks the capsule's
+    ; PLAYER3 rows a frame before player_dying_tick reaches this routine.
+    lda #$01
+    sta SIZEP3
     lda player_x
     sec
     sbc #((SHARED_FIGHTER_EXPLOSION_WIDTH_BITS*2-PLAYER_COLLISION_WIDTH)/2)
@@ -7903,10 +7935,11 @@ update_player_death_game_over_ready:
 respawn_player:
     jsr erase_player
     jsr clear_fighter_projectiles
+    lda #$00                    ; P3 returns to the capsule's one-clock size
+    sta SIZEP3
     lda #PLAYER_RESPAWN_X
     sta player_x
     sta HPOSP0
-    sta HPOSP3
     lda #PLAYER_RESPAWN_Y
     sta player_y
     lda #PLAYER_HEALTH_UNITS
@@ -9524,7 +9557,6 @@ handle_player_hull_contact:
 @clamp:
     sta player_x
     sta HPOSP0
-    sta HPOSP3
     ldx #$00
     jmp apply_broadside_player_damage
 
@@ -9533,8 +9565,14 @@ handle_player_hull_contact:
 ; The separately assembled integration glue calls free_broadside_slot at the
 ; fixed $76A7 ABI. Replacing the transition catch-ups with the common master
 ; gate retires this six-byte source pad while preserving that real boundary.
+; One byte returned to it 2026-09-28, the net of two changes above it in this
+; segment (docs/plans/pickup-colour.md §7 item 2): the broadside contact clamp
+; no longer mirrors player_x into HPOSP3 (-3), because P3 is the pickup
+; capsule's and a capital sector has no capsule to move, while respawn_player
+; returns P3 to the capsule's one-clock size after the explosion (+2). Nothing
+; executes here; the jmp above is the only way out of that routine.
 white_starfield_broadside_abi_pad:
-    .res 0
+    .res 1
 free_broadside_slot_layout_lead_pad:
 projectile_recycle_broadside_layout_pad:
 restore_recycled_row_projectile_underlay:
@@ -10215,13 +10253,12 @@ weapon_pickup_release:
     sta ENTITY_HP+WEAPON_PICKUP_SLOT
     rts
 
+; The capsule owns PLAYER3 alone now, so releasing it is exactly blanking its
+; sixteen rows: PRIOR stays $00 for the whole of gameplay and the reviewed
+; fighter/capital missile sizes are init_broadside's, set once per gameplay
+; start and never disturbed by a pickup.
 release_fighter_pickup_pmg_hardware:
-    jsr clear_fighter_pickup_pmg
-    lda #$00
-    sta PRIOR
-    lda #$54                    ; restore reviewed fighter/capital missile sizes
-    sta SIZEM
-    rts
+    jmp clear_fighter_pickup_pmg
 
 weapon_booster_release:
     lda ENTITY_STATE+WEAPON_BOOSTER_SLOT
@@ -10820,9 +10857,9 @@ resolve_effect_backing_below_interactive_debris:
 
 .segment "PICKUP_CODE"
 ; Fighter-only pickup wrapper. PENDING is frozen outside OPEN; ACTIVE is
-; updated and republished to the four missile lanes only in fighter OPEN.
-; Movement, collection and booster policy only. The missile plane is published
-; separately in the post-playfield window by publish_fighter_pickup_pmg.
+; updated and republished to PLAYER3 only in fighter OPEN. Movement, collection
+; and booster policy only. The player plane is published separately in the
+; post-playfield window by publish_fighter_pickup_pmg.
 update_fighter_pickup_pmg:
     lda CAPITAL_SECTOR_STATE
     cmp #CAPITAL_HULL_STATE_OPEN
@@ -10840,7 +10877,7 @@ clear_fighter_pickup_pmg:
     ldx #WEAPON_PICKUP_HEIGHT_SCANLINES
     lda #$00
 @line:
-    sta MISSILES,y
+    sta PLAYER3,y
     iny
     dex
     bne @line
@@ -10848,7 +10885,7 @@ clear_fighter_pickup_pmg:
 @done:
     rts
 
-; ANTIC fetches one missile byte per scanline, so the plane must already hold
+; ANTIC fetches one player byte per scanline, so the plane must already hold
 ; the capsule when the beam reaches its rows. Publishing here - inside the same
 ; post-playfield window as the character layers - leaves the image valid for
 ; the whole of the next frame's pass. Falls through into the renderer.
@@ -10867,15 +10904,10 @@ render_fighter_pickup_pmg:
     sta ENTITY_SCREEN_LO+WEAPON_PICKUP_SLOT
     lda #$01
     sta ENTITY_SCREEN_HI+WEAPON_PICKUP_SLOT
+    ; One player object at SIZEP3 = 0 spans the same eight colour clocks the
+    ; four fifth-player missiles used to, from one HPOS instead of four.
     lda ENTITY_X+WEAPON_PICKUP_SLOT
-    sta HPOSM0
-    clc
-    adc #$02
-    sta HPOSM1
-    adc #$02
-    sta HPOSM2
-    adc #$02
-    sta HPOSM3
+    sta HPOSP3
     ; Each booster type keeps its own recovered silhouette; the tables are
     ; sixteen rows apart, so the type scales straight into the source index.
     lda ENTITY_TYPE+WEAPON_PICKUP_SLOT
@@ -10886,16 +10918,12 @@ render_fighter_pickup_pmg:
     tax
 @line:
     lda fighter_pickup_pmg_shape,x
-    sta MISSILES,y
+    sta PLAYER3,y
     iny
     inx
     txa
     and #(WEAPON_PICKUP_HEIGHT_SCANLINES-1)
     bne @line
-    lda #$00
-    sta SIZEM
-    lda #$10                    ; GTIA fifth-player mode: M0-M3 use COLPF3
-    sta PRIOR
     rts
 
 ; Effects publish before the late projectile commit. When an effect lands on
@@ -11222,11 +11250,13 @@ update_shield_booster_hud:
     sta SCREEN+HUD_BOOSTER_SEGMENTS_OFFSET+1
     rts
 
+; Owner decision, 2026-09-28 (docs/plans/pickup-colour.md §7 item 8): the pulse
+; writes COLPM0 only. Its COLPM3 flip reached no pixel of the ship (§1.4) and
+; COLPM3 is the capsule's register now, so the flip would blink a booster mark
+; in time with the shield.
 restore_player_fighter_normal_colors:
     lda #PLAYER_NORMAL_HULL_COLOR
     sta COLPM0
-    lda #PLAYER_NORMAL_ENGINE_COLOR
-    sta COLPM3
     rts
 
 ; The authoritative Shield timer doubles as the 8+8 PAL-frame pulse phase.
@@ -11237,8 +11267,6 @@ update_shield_player_fighter_colors:
     beq restore_player_fighter_normal_colors
     lda #PLAYER_SHIELD_HULL_COLOR
     sta COLPM0
-    lda #PLAYER_SHIELD_ENGINE_COLOR
-    sta COLPM3
     rts
 
 ; Boot-time source only. The runtime copy at $4800 is authoritative after
@@ -11262,51 +11290,53 @@ effect_fragment_glyph_end:
 ; Per-type capsule silhouettes, one sixteen-row table per booster, indexed by
 ; ENTITY_TYPE+WEAPON_PICKUP_SLOT. The shapes are the original capsule artwork
 ; recovered from assets/graphics/entity-effects.json, reduced to one bit per
-; colour clock because a fifth-player mark carries a single colour (COLPF3);
-; the old multi-register casing/fill/symbol palette cannot survive that.
+; colour clock because the mark carries a single colour (COLPM3); the old
+; multi-register casing/fill/symbol palette cannot survive that.
 ;
-; One missile occupies TWO bits of each row byte and the quartet is interleaved,
-; so the colour clocks left to right are bits 1,0,3,2,5,4,7,6 - the higher bit
-; of each pair is its LEFT pixel. Every row below was produced through that
-; mapping, which is verified against captured framebuffer runs; do not hand-edit
-; these bytes without re-deriving them.
+; Owner decision, 2026-09-28 (docs/plans/pickup-colour.md §7 item 2): the
+; capsule is one PLAYER3 image, not the GTIA fifth player, so the rows are in
+; PLAIN PLAYER BIT ORDER - bit 7 is the LEFT pixel, one colour clock per bit at
+; SIZEP3 = 0. The old fifth-player encoding interleaved two bits per missile
+; (colour clocks 1,0,3,2,5,4,7,6) and is gone with PRIOR $10. Every row below
+; is the picture beside it read left to right; do not hand-edit these bytes
+; without re-deriving them from the pictures.
 fighter_pickup_pmg_shape:
     ; RAPID - capsule with the vertical slot left by the old "RF" letterform
-    ;   .######.   $BD
+    ;   .######.   $7E
     ;   ########   $FF
     ;   ########   $FF
     ;   ########   $FF
-    ;   ###..###   $DB   (x8)
+    ;   ###..###   $E7   (x8)
     ;   ########   $FF
     ;   ########   $FF
     ;   ########   $FF
-    ;   .######.   $BD
-    .byte $BD,$FF,$FF,$FF,$DB,$DB,$DB,$DB
-    .byte $DB,$DB,$DB,$DB,$FF,$FF,$FF,$BD
+    ;   .######.   $7E
+    .byte $7E,$FF,$FF,$FF,$E7,$E7,$E7,$E7
+    .byte $E7,$E7,$E7,$E7,$FF,$FF,$FF,$7E
     ; SPREAD - boxier casing carrying the three-shot fan across its top
     ;   ########   $FF
     ;   ########   $FF
-    ;   #.#..#.#   $5A
-    ;   #.#..#.#   $5A
+    ;   #.#..#.#   $A5
+    ;   #.#..#.#   $A5
     ;   ##....##   $C3
-    ;   ##.##.##   $E7
-    ;   ###..###   $DB   (x7)
+    ;   ##.##.##   $DB
+    ;   ###..###   $E7   (x7)
     ;   ########   $FF   (x3)
-    .byte $FF,$FF,$5A,$5A,$C3,$E7,$DB,$DB
-    .byte $DB,$DB,$DB,$DB,$DB,$FF,$FF,$FF
+    .byte $FF,$FF,$A5,$A5,$C3,$DB,$E7,$E7
+    .byte $E7,$E7,$E7,$E7,$E7,$FF,$FF,$FF
     ; SHIELD - crest tapering to a point, unmistakable at this size
-    ;   .######.   $BD
+    ;   .######.   $7E
     ;   ########   $FF
     ;   ##....##   $C3
-    ;   ##.##.##   $E7   (x7)
+    ;   ##.##.##   $DB   (x7)
     ;   ##....##   $C3
-    ;   ###..###   $DB
-    ;   ###..###   $DB
-    ;   .######.   $BD
+    ;   ###..###   $E7
+    ;   ###..###   $E7
+    ;   .######.   $7E
     ;   ..####..   $3C
-    ;   ...##...   $24
-    .byte $BD,$FF,$C3,$E7,$E7,$E7,$E7,$E7
-    .byte $E7,$E7,$C3,$DB,$DB,$BD,$3C,$24
+    ;   ...##...   $18
+    .byte $7E,$FF,$C3,$DB,$DB,$DB,$DB,$DB
+    .byte $DB,$DB,$C3,$E7,$E7,$7E,$3C,$18
     .assert * - fighter_pickup_pmg_shape = WEAPON_PICKUP_TYPE_COUNT*WEAPON_PICKUP_HEIGHT_SCANLINES, error, "one sixteen-row silhouette per booster type"
 
 hud_booster_label:

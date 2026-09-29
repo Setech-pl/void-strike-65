@@ -304,7 +304,7 @@ const pmgLabSessions = [
 
 // RE-SCRIPTED 2026-09-28, owner class (a) - a stale SCENARIO, the clause
 // untouched. The post-loop traversal clause (below, "Native pickup did not
-// remain one logical slot and one whole 16-row missile capsule") asks for 108
+// remain one logical slot and one whole 16-row capsule") asks for 108
 // consecutive ACTIVE frames on which `entity_active_mask === 2`: the pickup
 // slot set, and NOTHING ELSE. Bit 0 of that mask is the debris slot, so the
 // clause also requires the capsule's whole traversal to fall inside a
@@ -314,7 +314,7 @@ const pmgLabSessions = [
 // retired the per-phase budget tables, which moved the debris cadence; at
 // fireDelay 4 the capsule goes ACTIVE on frame 171 and the window it needs
 // ends at 252, so the last 26 of its 108 frames have a debris live beside it
-// and read mask 3. The capsule's own three conjuncts - 16 missile rows, union
+// and read mask 3. The capsule's own three conjuncts - 16 plane rows, union
 // $FF, one draw call - hold on 108/108 frames at every delay measured, so
 // nothing about the capsule changed: only when it arrives relative to debris.
 //
@@ -355,7 +355,7 @@ const weaponPickupContactSessions = [{
   // column happens to contain, already at the top of the screen while the
   // capsule is still there. On captures 12 and 13 only the y 0-6 run is left:
   // the capsule is gone from the raster, and the trace agrees - from the
-  // collection frame on, `pickup_missile_rows` 0, `pickup_missile_union` 0 and
+  // collection frame on, `pickup_plane_rows` 0, `pickup_plane_union` 0 and
   // the pickup's own slot bit clear. Nothing is cut and nothing is stale; the
   // capsule is drawn as the GTIA fifth player in COLPF3 and so are the
   // fighter's missiles, so a shot fired up the capsule's column reads as
@@ -907,17 +907,29 @@ for (const name of [
   "pickup_draw_cycle",
   "pickup_glyph_cells_before", "pickup_glyph_cells_after",
   "pickup_footprints_before", "pickup_footprints_after",
-  // The missile-plane row count. Read by the pickup contact/collection
+  // The capsule plane's row count. Read by the pickup contact/collection
   // invariants below, which need it as a number, not as CSV text.
   "pickup_pmg_rows",
-  // The missile plane measured over the whole M0-M3 quartet (pickup_pmg_rows
-  // tests `& 0xf0` and sees only M2/M3), plus the number of contiguous runs of
-  // non-empty rows. Owner decision 2026-09-21: the traversal invariants read
-  // these instead of the dead character-renderer fields.
-  "pickup_missile_rows", "pickup_missile_union", "pickup_missile_blocks",
-  // The capsule's missile-plane column. Read by the pickup contact raster
-  // invariant below, which derives its sample window from it.
-  "pickup_hposm0",
+  // RE-POINTED 2026-09-28 (owner decision, docs/plans/pickup-colour.md §7
+  // item 2): the capsule left the GTIA fifth player -- whose only possible
+  // colour register was COLPF3, the register the Light Wingman's wing and the
+  // Interceptor's pods already wear -- for PLAYER3, with COLPM3 dedicated to
+  // it. Every column below measures $3F00 now, and the old `& 0xf0` mask,
+  // which could see only two of the four missiles, is gone with the encoding
+  // that needed it.
+  //
+  // The capsule's own rows, the colour clocks its silhouette uses anywhere,
+  // and the number of contiguous runs of non-empty rows. Owner decision
+  // 2026-09-21: the traversal invariants read these instead of the dead
+  // character-renderer fields.
+  "pickup_plane_rows", "pickup_plane_union", "pickup_plane_blocks",
+  // The missile plane's row count, kept as the BROADSIDE RESIDUE WATCH: the
+  // capsule writes no missile byte now, so a non-empty missile row in an OPEN
+  // frame is a broadside warning mark that outlived its capital sector.
+  "missile_plane_rows",
+  // The capsule's column and its size. Read by the pickup contact raster
+  // invariant below, which derives its sample window from them.
+  "pickup_hposp3", "pickup_sizep3",
   "pickup_first_overwrite_pc", "pickup_first_overwrite_address",
   "pickup_first_overwrite_value", "pickup_first_overwrite_scanline",
   "engine_timer", "engine_phase", "corridor_phase", "ring_flags",
@@ -1528,8 +1540,8 @@ function frameState(row, includeCpuReference = false) {
         timer: row.pickup_timer_lo | row.pickup_timer_hi << 8,
         timer_low: row.pickup_timer_lo,
         timer_high: row.pickup_timer_hi,
-        missile_rows: row.pickup_missile_rows,
-        missile_union: row.pickup_missile_union,
+        plane_rows: row.pickup_plane_rows,
+        plane_union: row.pickup_plane_union,
       },
       player_fighter_projectiles: row.player_fighter_projectiles,
       rapid_player_fighter_projectiles: row.rapid_projectiles,
@@ -3790,14 +3802,14 @@ function main() {
       invariant(JSON.stringify([...new Set(contactRows.map((row) =>
         row.pickup_render_phase))].sort()) === JSON.stringify([0, 2, 4, 6]),
       `${session.id} did not cover all four Hard pickup phases at player contact`);
-      // PRIOR is $00 or $10 here, and both are correct. The pickup is drawn as
-      // the GTIA fifth player, so its PMG setup programs PRIOR = $10
-      // (src/main.s:10486) and release_fighter_pickup_pmg_hardware restores $00
-      // (src/main.s:9820-9823). On the boundary frames the sampled value is the
-      // other one: the first pickup_state 2 frame is still $00 because the
-      // sample precedes that frame's PMG setup, and the release frame still
-      // reads $10. No trace column separates those cases -- pickup_pmg_rows is
-      // 16 on the $00 boundary row as well -- so the gate accepts both values.
+      // PRIOR is $00, on every frame and in every sector state. RE-POINTED
+      // 2026-09-28 (owner decision, docs/plans/pickup-colour.md §7 item 2):
+      // the capsule is one PLAYER3 image, so nothing programs the GTIA fifth
+      // player any more and the $10 this clause used to accept cannot occur.
+      // The two-value allowance existed only because the renderer set $10 and
+      // release_fighter_pickup_pmg_hardware restored $00, which left the OTHER
+      // value on the two boundary frames; with the toggling gone the clause
+      // states the stronger, exact fact.
       //
       // pickup_draw_calls no longer counts draws. Commit 04ae0a6 repointed
       // DFTRACE_PC_ENTITY_DRAW from render_weapon_pickup_overlay to
@@ -3809,16 +3821,16 @@ function main() {
       // screen: it asserted nothing. No column counts renderer entries, so
       // "exactly one draw" is not assertable here. The clause is repointed to
       // pickup_pmg_rows, which measures the published result directly -- the
-      // capsule's 16 missile rows must be on the plane for every contact
-      // frame (post-collection frames of the same trace read 0/2/4/6).
+      // capsule's 16 rows must be on its plane for every contact frame
+      // (post-collection frames of the same trace read 0/2/4/6).
       // pickup_erase_calls is unaffected: DFTRACE_PC_ENTITY_ERASE is
-      // clear_fighter_pickup_pmg, which does zero the missile rows.
-      invariant(contactRows.every((row) => (row.prior === 0x00 || row.prior === 0x10) &&
+      // clear_fighter_pickup_pmg, which does zero the capsule's rows.
+      invariant(contactRows.every((row) => row.prior === 0x00 &&
         row.pickup_erase_calls === 1 && row.pickup_pmg_rows === 16 &&
         row.pickup_erase_scanline > row.pickup_prev_y &&
         row.pickup_draw_scanline !== 0),
       `${session.id} changed GTIA priority, the single erase, or the published `
-      + `16-row missile capsule at player contact`);
+      + `16-row capsule at player contact`);
       const collectionRows = rows.filter((row) => (row.events & (1 << 19)) !== 0);
       // The fourth sub-clause was `pickup_draw_calls === 0`, and it has been
       // unsatisfiable by construction since 04ae0a6 (see the contact clause
@@ -3830,19 +3842,19 @@ function main() {
       // counter names the policy wrapper, through which the collection itself
       // passes, so it reads 1 on the collection frame and can never read 0.
       // pickup_pmg_rows restores the original intent against the plane the
-      // capsule is actually drawn on: it goes 16 -> 0 on the collection frame
-      // and stays 0.
+      // capsule is actually drawn on -- PLAYER3 since 2026-09-28: it goes
+      // 16 -> 0 on the collection frame and stays 0.
       invariant(collectionRows.length === 1 && collectionRows[0].pickup_booster_state === 3 &&
         collectionRows[0].entity_active_mask === 0 && collectionRows[0].pickup_pmg_rows === 0,
       `${session.id} did not collect and activate exactly once, or left the `
-      + `capsule on the missile plane after collection`);
+      + `capsule on its plane after collection`);
       const images = paths.map((framePath) =>
         decodeAtari800Screenshot(fs.readFileSync(framePath)));
       // This clause measures the capsule in the framebuffer, which is why it
       // stays a raster check and is not repointed at pickup_pmg_rows: the
       // memory counters and the beam can diverge (see
       // docs/diagnostics/stage-2b2d-pickup-raster-invisibility.json, where
-      // 16/16 missile rows were set at frame end, 0/16 at the beam crossing,
+      // 16/16 PMG rows were set at frame end, 0/16 at the beam crossing,
       // and the framebuffer was pure background). It is the only gate that
       // would catch that case.
       //
@@ -3857,13 +3869,21 @@ function main() {
       // contact, gone three frames after collection -- and the >= 40 / < 40
       // thresholds are unchanged.
       //
-      // Horizontal mapping. The capsule is one missile at HPOSM0 with
-      // SIZEM = $00 (src/main.s:10484), so it spans 16 pixels at this capture
-      // scale. NOTE, discrepancy:
+      // RE-POINTED 2026-09-28 to COLPM3 (owner decision,
+      // docs/plans/pickup-colour.md §7 items 1-2). Deriving the colour is what
+      // makes that a one-line change: the capsule is one PLAYER3 image now, so
+      // the register it wears is COLPM3 and the count follows it. COLPF3 stays
+      // in the trace as the ENEMY accent of the very same frame, which is what
+      // the clause below holds the capsule against.
+      //
+      // Horizontal mapping. The capsule is one player at HPOSP3 with
+      // SIZEP3 = 0 -- eight colour clocks, the same eight the four
+      // fifth-player missiles spanned -- so it still covers 16 pixels at this
+      // capture scale. NOTE, discrepancy:
       // docs/diagnostics/stage-2b2e-pickup-capsule-silhouettes.json records
-      // the mapping as `2*HPOSM0 - 64 + 2*cc`, which assumes a wider crop
+      // the mapping as `2*HPOS - 64 + 2*cc`, which assumes a wider crop
       // origin than these captures have. This build's own Atari800
-      // screenshots are 256x192 and measure `2*(HPOSM0 - 64) + 2*cc`, 64
+      // screenshots are 256x192 and measure `2*(HPOS - 64) + 2*cc`, 64
       // pixels further left; the captures are the authority and the doc
       // carries the annotation.
       //
@@ -3871,29 +3891,45 @@ function main() {
       // space (8 = activeImageTop, 216 = gameplayBottom 240 - entityTop 24)
       // while the capture crop starts at scanline 24, so it had always
       // clipped -- harmlessly, but it described nothing real.
-      const capsuleHpos = contactRows[0].pickup_hposm0;
-      const capsuleColour = contactRows[0].colpf3;
-      invariant(contactRows.every((row) => row.pickup_hposm0 === capsuleHpos &&
-        row.colpf3 === capsuleColour),
-      `${session.id} moved the capsule column or changed COLPF3 during contact, `
-      + `so one derived raster window cannot describe the contact frames`);
+      const capsuleHpos = contactRows[0].pickup_hposp3;
+      const capsuleColour = contactRows[0].colpm3;
+      invariant(contactRows.every((row) => row.pickup_hposp3 === capsuleHpos &&
+        row.colpm3 === capsuleColour && row.pickup_sizep3 === 0),
+      `${session.id} moved the capsule column, changed COLPM3 or widened P3 `
+      + `during contact, so one derived raster window cannot describe the `
+      + `contact frames`);
+      // THE CAPSULE MUST NOT WEAR AN ENEMY'S COLOUR (owner request 2026-09-28,
+      // the whole point of the change). COLPF3 on these very frames is the
+      // enemy accent the Light Wingman's wing, the Interceptor's pods and the
+      // enemy capital mass are drawn in; COLPM1/COLPM2 are the Heavy hull. The
+      // capsule's own register must differ from every one of them in HUE, not
+      // merely in luminance, because luminance alone is what let a booster mark
+      // read as an enemy at a glance.
+      const hue = (byte) => (byte >> 4) & 0x0f;
+      invariant(contactRows.every((row) => hue(row.colpm3) !== hue(row.colpf3) &&
+        hue(row.colpm3) !== hue(row.colpm1) && hue(row.colpm3) !== hue(row.colpm2)),
+      `${session.id} drew the capsule in an enemy hue: COLPM3 `
+      + `$${capsuleColour.toString(16)} against COLPF3 `
+      + `$${contactRows[0].colpf3.toString(16)}, COLPM1 `
+      + `$${contactRows[0].colpm1.toString(16)}, COLPM2 `
+      + `$${contactRows[0].colpm2.toString(16)}`);
       const capsuleLeft = 2 * (capsuleHpos - 64);
       const capsuleRight = capsuleLeft + 16;
       invariant(images.every((image) => capsuleLeft >= 0 && capsuleRight <= image.width),
         `${session.id} derived capsule window x ${capsuleLeft}-${capsuleRight} falls `
         + `outside the captured raster`);
       // The colour is resolved through each screenshot's own PLTE, so the
-      // count follows COLPF3 to whatever RGB Atari800's palette gives it.
-      const steelCounts = images.map((image) => countRgb(image, [
+      // count follows COLPM3 to whatever RGB Atari800's palette gives it.
+      const capsuleCounts = images.map((image) => countRgb(image, [
         image.palette[capsuleColour * 3],
         image.palette[capsuleColour * 3 + 1],
         image.palette[capsuleColour * 3 + 2],
       ], { left: capsuleLeft, top: 0, right: capsuleRight, bottom: image.height }));
-      invariant(steelCounts.slice(0, -3).every((count) => count >= 40) &&
-        steelCounts.slice(-3).every((count) => count < 40),
+      invariant(capsuleCounts.slice(0, -3).every((count) => count >= 40) &&
+        capsuleCounts.slice(-3).every((count) => count < 40),
       `${session.id} final raster contains a cut capsule or stale post-collection `
-      + `footprint (COLPF3 $${capsuleColour.toString(16)} in x ${capsuleLeft}-`
-      + `${capsuleRight}: ${steelCounts.join(", ")})`);
+      + `footprint (COLPM3 $${capsuleColour.toString(16)} in x ${capsuleLeft}-`
+      + `${capsuleRight}: ${capsuleCounts.join(", ")})`);
       const sheetPath = path.join(buildDirectory,
         session.kind === "weapon-pickup-contact"
           ? "weapon-pickup-player-nose-contact.png"
@@ -3920,11 +3956,14 @@ function main() {
             player_draw_scanline: row.player_draw_scanline,
             pickup_draw_scanline: row.pickup_draw_scanline,
           },
-          missile_column: row.pickup_hposm0,
-          missile_rows: row.pickup_missile_rows,
-          missile_union: row.pickup_missile_union,
+          capsule_column: row.pickup_hposp3,
+          plane_rows: row.pickup_plane_rows,
+          plane_union: row.pickup_plane_union,
+          missile_plane_rows: row.missile_plane_rows,
         })),
-        raster_steel_pixels: steelCounts,
+        capsule_colour: capsuleColour,
+        enemy_accent_colpf3: contactRows[0].colpf3,
+        raster_capsule_pixels: capsuleCounts,
         screenshot_contact: sheet,
         passed: true,
       };
@@ -5254,7 +5293,7 @@ function main() {
     const sequenceImages = sequencePaths.map((framePath) =>
       decodeAtari800Screenshot(fs.readFileSync(framePath)));
     // Owner decision 2026-09-21, the class rule: the column is DERIVED from
-    // pickup_hposm0 through the same mapping the contact window already uses,
+    // pickup_hposp3 through the same mapping the contact window already uses,
     // `2 * (HPOSM0 - 64)` for a 16-pixel mark at this 256x192 capture scale --
     // never re-pinned to a new constant. The old `x = 144` was the character-era
     // column; since f6eee5c the capsule measures x[56..71] at HPOSM0 = 92, so the
@@ -5269,8 +5308,8 @@ function main() {
     // the sixteen captures, and read HPOSM0 from the captured frames of that run.
     const sequenceGateRows = allRows.filter((row) =>
       row.trace_kind === "weapon-pickup-coverage" && row.pickup_state === 2 &&
-      (row.entity_active_mask & 2) !== 0 && row.pickup_missile_rows === 16 &&
-      row.pickup_missile_union === 255 && row.effect_active_count === 0);
+      (row.entity_active_mask & 2) !== 0 && row.pickup_plane_rows === 16 &&
+      row.pickup_plane_union === 255 && row.effect_active_count === 0);
     const sequenceRuns = [];
     for (const row of sequenceGateRows) {
       const run = sequenceRuns.at(-1);
@@ -5283,10 +5322,10 @@ function main() {
       `Atari800 pickup replay never held a drawn capsule for ${sequenceImages.length + 2} ` +
         "consecutive effect-free frames, so no sequence could have been captured");
     const capturedRows = capturedRun.slice(2, sequenceImages.length + 2);
-    const sequenceHpos = capturedRows[0].pickup_hposm0;
-    invariant(capturedRows.every((row) => row.pickup_hposm0 === sequenceHpos),
+    const sequenceHpos = capturedRows[0].pickup_hposp3;
+    invariant(capturedRows.every((row) => row.pickup_hposp3 === sequenceHpos),
       `Atari800 moved the capsule column during the captured sequence (HPOSM0 ` +
-        `${[...new Set(capturedRows.map((row) => row.pickup_hposm0))].join(", ")})`);
+        `${[...new Set(capturedRows.map((row) => row.pickup_hposp3))].join(", ")})`);
     const sequenceLeft = 2 * (sequenceHpos - 64);
     invariant(sequenceLeft >= 0 && sequenceLeft + 16 <= sequenceImages[0].width,
       `Derived capsule column ${sequenceLeft}-${sequenceLeft + 16} falls outside the raster`);
@@ -5343,18 +5382,19 @@ function main() {
         JSON.stringify(expectedY),
     "Native pickup did not traverse every Hard-mode raster position at +2 scanlines/frame");
     // Owner decision 2026-09-21, option (b) extended to the traversal
-    // invariants. `f6eee5c` moved the capsule to the missile plane, so the three
-    // character-renderer clauses that stood here were dead: pickup_drawn_mask
-    // is 0 on all 1,800 frames and pickup_footprints_after / glyph_cells_after
-    // read four-digit counts of unrelated cells.
-    //   - drawn_mask 15/3 -> the quartet coverage the static-capsule gate uses:
-    //     sixteen non-empty missile rows whose union is $FF. The character
+    // invariants. `f6eee5c` moved the capsule off the character renderer onto
+    // a PMG plane -- the missile plane then, PLAYER3 since 2026-09-28 -- so the
+    // three character-renderer clauses that stood here were dead:
+    // pickup_drawn_mask is 0 on all 1,800 frames and pickup_footprints_after /
+    // glyph_cells_after read four-digit counts of unrelated cells.
+    //   - drawn_mask 15/3 -> the coverage the static-capsule gate uses:
+    //     sixteen non-empty plane rows whose union is $FF. The character
     //     renderer's clipped bottom row (render_row 26 -> 3) has no
-    //     missile-plane equivalent; a missile mark is not cut by a character
+    //     PMG equivalent; a PMG mark is not cut by a character
     //     cell, and all 27 raster positions measure 16 / $FF.
     //   - footprints_after === 1 -> the row count itself. A trail left by a
     //     failed erase shows up as more than sixteen non-empty rows, which
-    //     `missile_rows === 16` already rejects: fixture C (erase suppressed)
+    //     `plane_rows === 16` already rejects: fixture C (erase suppressed)
     //     measures 16, 18, 20 ... 152 rows and fixture D (erase at a stale row
     //     address) fails it on 228 of 233 frames. A contiguous-run count was
     //     tried here first and DELETED under rule (3): the plane has a single
@@ -5366,29 +5406,29 @@ function main() {
     //   - glyph_cells_after in {2,4,6} -> DELETED, not repointed. It counted the
     //     capsule's character cells under the phased 2x2/2x3 footprint; the
     //     capsule writes no character cell at all now, so there is nothing on
-    //     the missile plane for it to measure. Singularity is carried by
-    //     pickup_missile_blocks above and the phase itself by pickup_draw_calls.
+    //     its PMG plane for it to measure. Singularity is carried by
+    //     pickup_plane_blocks above and the phase itself by pickup_draw_calls.
     invariant(activeRows.every((row) => row.entity_active_mask === 2 &&
-      row.pickup_missile_rows === 16 &&
-      row.pickup_missile_union === 255 &&
+      row.pickup_plane_rows === 16 &&
+      row.pickup_plane_union === 255 &&
       row.pickup_draw_calls === 1),
-    "Native pickup did not remain one logical slot and one whole 16-row missile capsule");
+    "Native pickup did not remain one logical slot and one whole 16-row capsule");
     // The reverse-erase clause that stood here is DELETED under the class rule.
     // It asserted that every saved ring character cell was restored exactly;
     // since f6eee5c the capsule writes no ring cell, every pickup_old_address
     // falls outside [RING_SCREEN, RING_END) and the escape branch was taken on
     // every frame, so the clause could not fail. There is no per-cell backing on
-    // the missile plane to repoint it at -- the erase is a straight zero-fill of
+    // the PMG plane to repoint it at -- the erase is a straight zero-fill of
     // the sixteen rows -- and what it protected against, a stale image surviving
-    // the erase, is exactly what pickup_missile_blocks === 1 above now proves.
+    // the erase, is exactly what pickup_plane_blocks === 1 above now proves.
     const releaseRow = traversalRows.find(({ frame }) => frame === activeRows.at(-1).frame + 1);
-    // Same decision: the dead fields in the release clause read the missile plane
+    // Same decision: the dead fields in the release clause read the PMG plane
     // instead. Fixture A cannot falsify an emptiness clause -- suppressing the
     // capsule empties the plane and satisfies it -- so it is falsified the other
     // way round: fixture C (erase suppressed) leaves the capsule resident and
     // fails it on 2,345 of 2,679 release frames.
     invariant(releaseRow?.pickup_state === 0 && releaseRow.pickup_y === 240 &&
-      releaseRow.entity_active_mask === 0 && releaseRow.pickup_missile_rows === 0,
+      releaseRow.entity_active_mask === 0 && releaseRow.pickup_plane_rows === 0,
     "Native pickup slot was not released cleanly at the lower boundary");
     // The exact one-footprint and position assertions above come from the
     // production screen codes. These 27 native PNGs retain the complete final
@@ -5406,8 +5446,8 @@ function main() {
         last_y: activeRows.at(-1).pickup_y,
         release_y: releaseRow.pickup_y,
         maximum_logical_slots: Math.max(...activeRows.map((row) => row.entity_active)),
-        maximum_final_missile_blocks: Math.max(...activeRows.map((row) =>
-          row.pickup_missile_blocks)),
+        maximum_final_plane_blocks: Math.max(...activeRows.map((row) =>
+          row.pickup_plane_blocks)),
         final_draws_per_frame: [...new Set(activeRows.map((row) => row.pickup_draw_calls))],
       },
       complete_traversals_observed: traversalRows.filter((row, index) =>
@@ -6167,7 +6207,7 @@ function main() {
   // served (owner decision 2026-09-21, the class rule). It resolved whether a
   // transient effect legitimately overwrote one of the capsule's ring character
   // cells; the capsule owns no ring cell since f6eee5c, so there is nothing for
-  // an effect to overlay and nothing on the missile plane to repoint it at.
+  // an effect to overlay and nothing on its PMG plane to repoint it at.
   const pickupRapidRows = pickupModeRows.filter((row) => row.pickup_booster_state === 3);
   const pickupSpreadRows = pickupModeRows.filter((row) => row.pickup_booster_state === 4);
   const pickupShieldRows = pickupModeRows.filter((row) => row.pickup_booster_state === 5);
@@ -6239,7 +6279,7 @@ function main() {
     row.rapid_projectiles >= 3 && row.effect_active_count === 0);
   const spreadScreenshotRow = spreadVolleyRows.find((row) => row.effect_active_count === 0);
   const pickupScreenshotCandidates = pickupActiveRows.filter((row) =>
-    row.entity_active_mask === 2 && row.pickup_missile_rows === 16 &&
+    row.entity_active_mask === 2 && row.pickup_plane_rows === 16 &&
       row.effect_active_count === 0);
   const pickupScreenshotRow = pickupScreenshotCandidates.find((row, index, rows) =>
     index > 0 && rows[index - 1].frame + 1 === row.frame);
@@ -6325,23 +6365,23 @@ function main() {
     `${run.length - 1}->${next?.pickup_state ?? "end"}`).join(",")}; completed spans must be ` +
     "the 30-frame base delay plus bounded eight-frame director retries");
   invariant(pickupPendingRows.every((row) =>
-    (row.entity_active_mask & 2) === 0 && row.pickup_missile_rows === 0),
+    (row.entity_active_mask & 2) === 0 && row.pickup_plane_rows === 0),
   "Pending weapon pickup became visible or interactive");
   invariant(pickupActiveRows.length > 0 && pickupActiveRows.every((row) =>
-      (row.entity_active_mask & 2) !== 0 && row.pickup_missile_rows === 16 &&
-      row.pickup_missile_union === 255),
-  "Atari800 replay did not continuously draw one whole capsule on the missile plane");
+      (row.entity_active_mask & 2) !== 0 && row.pickup_plane_rows === 16 &&
+      row.pickup_plane_union === 255),
+  "Atari800 replay did not continuously draw one whole capsule on its PMG plane");
   // The `render_id === 120 || 248` conjunct went with the class rule. It read
   // ENTITY_RENDER_ID + 1, the character glyph base, which production has not
   // written since f6eee5c -- 0 on all 233 ACTIVE frames, so the whole clause
-  // failed at that term and the missile measurement beside it never ran. The
-  // capsule's per-type identity now lives in its missile silhouette, which has
+  // failed at that term and the plane measurement beside it never ran. The
+  // capsule's per-type identity now lives in its PMG silhouette, which has
   // no trace column; tests/pickup-pmg-raster-visibility.test.mjs asserts it
   // against the artwork source, so it is checked, not lost.
   // The phased 2x2/2x3 glyph-cell clause that stood here is DELETED under the
   // class rule: it counted the capsule's character cells, the capsule writes
-  // none, and the plane has rows and missiles rather than cells. Its footprint
-  // half is repointed at pickup_missile_blocks; the per-frame draw is still
+  // none, and the plane has rows and colour clocks rather than cells. Its
+  // footprint half is repointed at pickup_plane_blocks; the per-frame draw is still
   // pickup_draw_calls. The pickupHasEffectOverlay escape went with it -- it
   // existed only to excuse a character-cell overlay on the capsule's cells.
   invariant(pickupActiveRows.every((row) => row.pickup_draw_calls === 1),
@@ -6353,7 +6393,7 @@ function main() {
   invariant(pickupMaximumStationaryRun === 0,
     `Booster native-ring motion held for ${pickupMaximumStationaryRun} active frames`);
   /* MEASURED 2026-09-21, owner rule step 1: class (c), recorded not weakened.
-   * The plane IS cleared -- `pickup_missile_rows === 0` on every release frame.
+   * The plane IS cleared -- `pickup_plane_rows === 0` on every release frame.
    * What fails is `pickup_erase_calls === 1`: the release frame enters the
    * capsule erase TWICE, deterministically, on all four collections of the
    * 4,000-frame replay, and `pickup_draw_calls` is 1 on the same frame. The
@@ -6362,14 +6402,14 @@ function main() {
    * -- precisely the four release frames. So this is neither a short scenario
    * (a) nor the wrong instance (b): the clause picks the right frame and the
    * build does twice what it asserts once. Outside the closed character
-   * renderer class -- the clause is already repointed at the missile plane and
+   * renderer class -- the clause is already repointed at the capsule's plane and
    * the failing term is a call count, not a character measurement. Whether a
    * second erase in the collection frame is a real waste or an intended
    * belt-and-braces teardown is an owner judgement. */
   recordClauseFailure("weapon-pickup-2-hunt-fire4",
     pickupReleaseRows.length > 0 && pickupReleaseRows.every((row) =>
-      row.pickup_erase_calls === 1 && row.pickup_missile_rows === 0),
-    "Booster release did not clear the capsule from the missile plane in the release frame");
+      row.pickup_erase_calls === 1 && row.pickup_plane_rows === 0),
+    "Booster release did not clear the capsule from its PMG plane in the release frame");
   invariant(pickupScreenshotRow,
     "Atari800 replay did not reach the isolated static pickup screenshot state");
   invariant(pickupCollectRows.length >= 3 && pickupRapidRows.length > 0 &&
@@ -6859,8 +6899,8 @@ function main() {
             next.pickup_state === next.pickup_booster_state && run.length - 1 <= 30)
           .map(({ run }) => run.length - 1),
         active_frames: pickupActiveRows.length,
-        maximum_simultaneous_missile_blocks: Math.max(...pickupActiveRows.map((row) =>
-          row.pickup_missile_blocks)),
+        maximum_simultaneous_plane_blocks: Math.max(...pickupActiveRows.map((row) =>
+          row.pickup_plane_blocks)),
         layer_fences_per_active_frame: 1,
         maximum_stationary_active_frames: pickupMaximumStationaryRun,
         logical_step_scanlines: 2,
@@ -6879,7 +6919,7 @@ function main() {
           booster_state: row.pickup_booster_state,
           erase_calls: row.pickup_erase_calls,
           draw_calls: row.pickup_draw_calls,
-          missile_rows: row.pickup_missile_rows,
+          plane_rows: row.pickup_plane_rows,
         })),
         rapid_frames: pickupRapidRows.length,
         pickup_events: pickupCollectRows.length,
@@ -7164,7 +7204,7 @@ function main() {
           capture_host_frame: pickupScreenshotRow.end_host_frame,
           capture_state: frameState(pickupScreenshotRow),
           first_visible_frame: pickupActiveRows.find((row) =>
-            row.pickup_missile_rows === 16 && row.effect_active_count === 0)?.frame,
+            row.pickup_plane_rows === 16 && row.effect_active_count === 0)?.frame,
         },
         yellow_projectiles: {
           ...coverageRecord(rapidProjectileRows, () => true),

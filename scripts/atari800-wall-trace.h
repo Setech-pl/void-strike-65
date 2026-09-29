@@ -43,19 +43,18 @@
 #define DFTRACE_NEAR_COUNT 4u
 #define DFTRACE_NEAR_CODE 1u
 /* The weapon capsule's entity slot and the height of the window it publishes
- * into the $3B00 missile plane: src/main.s WEAPON_PICKUP_SLOT (1, from
+ * into the $3F00 PLAYER3 plane: src/main.s WEAPON_PICKUP_SLOT (1, from
  * build/entity-effects.inc) and WEAPON_PICKUP_HEIGHT_SCANLINES (16, asserted
  * one-silhouette-per-booster-type at fighter_pickup_pmg_shape). Read by
- * dftrace_measure_pickup_missiles, which counts the capsule's own rows. */
+ * dftrace_measure_pickup_plane, which counts the capsule's own rows.
+ *
+ * Re-pointed 2026-09-28 (owner decision, docs/plans/pickup-colour.md §7 item
+ * 2): the capsule is one PLAYER3 image with COLPM3 dedicated to it, so every
+ * observer here reads $3F00 where it read $3B00, and PRIOR is $00 for the
+ * whole of gameplay. */
 #define DFTRACE_WEAPON_PICKUP_SLOT 1u
 #define DFTRACE_WEAPON_PICKUP_HEIGHT_SCANLINES 16u
-/* Missile 0's bit pair. The $3B00 plane has exactly two writers: the capsule
- * (src/main.s render_/clear_fighter_pickup_pmg, which STOREs all four missiles
- * as the GTIA fifth player) and the BROADSIDE warning marks, which OR in
- * missile_masks = $0C,$30,$C0 for slots 0-2 -- missiles 1, 2 and 3. Missile 0
- * is therefore the capsule's alone, and a row carrying it that the capsule no
- * longer owns is capsule residue, never a broadside mark. */
-#define DFTRACE_PICKUP_MISSILE0_BITS 0x03u
+#define DFTRACE_PICKUP_PLANE 0x3f00u
 
 typedef struct {
 	uint64_t start_clock;
@@ -245,15 +244,25 @@ typedef struct {
 	unsigned pickup_attempt_admission_frame;
 	unsigned pickup_attempt_gameplay_frame;
 	unsigned pickup_attempt_player_lifecycle;
+	/* Every non-empty row of the capsule's plane, whoever wrote it. The old
+	 * `& 0xf0` mask over the missile plane saw only two of the four missiles
+	 * and agreed with the encoding bug it should have caught; a player object
+	 * is one byte per scanline, so no mask is needed or wanted. */
 	unsigned pickup_pmg_rows;
-	/* The whole M0-M3 quartet, unlike pickup_pmg_rows, which tests `& 0xf0`
-	 * and therefore sees only M2 and M3. Owner decision 2026-09-21: the
-	 * traversal invariants measure the capsule where it lives. */
-	unsigned pickup_missile_rows;
-	unsigned pickup_missile_union;
-	unsigned pickup_missile_blocks;
-	unsigned pickup_hposm[4];
-	unsigned pickup_sizem;
+	/* The capsule's own rows, separated from the other writer of its plane.
+	 * Owner decision 2026-09-21: the traversal invariants measure the capsule
+	 * where it lives. */
+	unsigned pickup_plane_rows;
+	unsigned pickup_plane_union;
+	unsigned pickup_plane_blocks;
+	unsigned pickup_hposp3;
+	unsigned pickup_sizep3;
+	/* Broadside residue watch. The capsule no longer writes the $3B00 missile
+	 * plane at all, so on an OPEN frame every non-empty missile row is a
+	 * BROADSIDE warning mark that outlived its capital sector -- and PRIOR is
+	 * $00 there, so M1/M2 would show in the Heavy hull colour and M3 in the
+	 * capsule's boost colour. Host-side only. */
+	unsigned missile_plane_rows;
 	unsigned pickup_screen_lo;
 	unsigned pickup_screen_hi;
 	unsigned pickup_pmg_byte_top;
@@ -777,7 +786,7 @@ static unsigned dftrace_pickup_screenshot_frame = 0xffffffffu;
 static unsigned dftrace_pickup_visible_passes;
 /* The live drawn state of the capsule: sixteen non-empty missile rows whose
  * union covers the whole M0-M3 quartet, measured on the completed raster. */
-static int dftrace_pickup_missile_complete;
+static int dftrace_pickup_plane_complete;
 static const char *dftrace_pickup_sequence_prefix;
 static unsigned dftrace_pickup_sequence_count;
 static unsigned dftrace_pickup_sequence_primed;
@@ -3654,28 +3663,36 @@ static void dftrace_remember_capital_physical(unsigned slot)
  * trusting it: rebuild the expected plane from ENEMY_MEMBER_STATE, ENEMY_Y,
  * ENEMY_ARCHETYPE and the archetype body table, and count the visible rows that
  * differ.  A correct build reads 0 on every traced frame. */
-/* The capsule on the missile plane: how many rows carry any missile bit, which
- * of the four missiles the silhouette uses anywhere, and how many contiguous
- * runs those rows form. One capsule is one run; a trail or a stale image left
- * behind by a failed erase is two or more. */
+/* The capsule on its plane: how many rows carry any bit, which colour clocks
+ * the silhouette uses anywhere, and how many contiguous runs those rows form.
+ * One capsule is one run; a trail or a stale image left behind by a failed
+ * erase is two or more. */
 /* WHAT THIS COUNTS, and why it is the capsule's own rows and not the page.
  * Corrected 2026-09-28 at roadmap 4.6 step 2's closure (owner decision 12,
  * class (b): the clause's condition is untouched; the observer behind it is
  * corrected to count what the clause is about).
  *
  * It used to walk all 256 rows of the $3B00 missile plane and count every
- * non-zero byte. But the plane has TWO writers. The capsule is one: the GTIA
+ * non-zero byte. But that plane had TWO writers. The capsule was one: the GTIA
  * fifth player, all four missiles at PRIOR = $10. The other is the BROADSIDE
  * warning marks, which OR in missile_masks = $0C, $30, $C0 for slots 0-2. So
  * a broadside charge landed in a counter named `pickup_missile_*` and read as
  * a capsule: MEASURED on `weapon-pickup-2-hunt-fire4`, 181 of the 514 PENDING
- * rows read 2-10 rows with union $0C/$30/$3C — exactly those masks and their
- * union — and made "Pending weapon pickup became visible or interactive" fire
+ * rows read 2-10 rows with union $0C/$30/$3C -- exactly those masks and their
+ * union -- and made "Pending weapon pickup became visible or interactive" fire
  * on frames where no capsule was on the plane at all.
  *
- * Bit patterns alone cannot separate them: the SHIELD silhouette itself
- * contains a $3C row and a $24 row, which no bit test can tell from slots 0+1.
- * Two exact facts can, and this counts a row that satisfies either.
+ * RE-POINTED 2026-09-28 to $3F00, PLAYER3 (owner decision,
+ * docs/plans/pickup-colour.md §7 item 2: the capsule left the GTIA fifth
+ * player, whose only possible colour register was COLPF3 -- the Wingman's wing
+ * and the Interceptor's pods -- for PLAYER3 with COLPM3 dedicated to it). The
+ * broadside is gone from the capsule's plane entirely, but PLAYER3 still has a
+ * second writer: the PLAYER FIGHTER EXPLOSION publishes its outer mask there
+ * for 24 frames. The two can never be on screen together -- apply_player_damage
+ * sets PLAYER_DYING and calls clear_transient_effects, which releases the
+ * capsule, a frame before player_dying_tick begins the explosion -- so the same
+ * two facts still separate the writers, with the explosion taking the
+ * broadside's place in fact 2.
  *
  *  1. THE PUBLISHED WINDOW. render_/clear_fighter_pickup_pmg own exactly
  *     WEAPON_PICKUP_HEIGHT_SCANLINES rows from ENTITY_SCREEN_LO +
@@ -3683,19 +3700,20 @@ static void dftrace_remember_capital_physical(unsigned slot)
  *     non-zero for precisely as long as those rows are published: the clear is
  *     guarded by it and zeroes it. Whatever is in that window is the capsule's
  *     row. The publisher's `iny` wraps at 256, so the window wraps here too.
- *  2. MISSILE 0 OUTSIDE IT. Broadside never touches missile 0, so a non-zero
- *     $03 in a row the capsule does not currently own is capsule RESIDUE — an
+ *  2. ANY BYTE OUTSIDE IT, WHILE NO EXPLOSION OWNS THE PLANE. A non-zero byte
+ *     in a row the capsule does not currently own is capsule RESIDUE -- an
  *     image it drew and failed to erase. Keeping it is what preserves the
  *     trail detection the whole-page scan used to give the traversal and
- *     release clauses: a suppressed erase leaves 16-row silhouettes behind,
- *     and those rows carry missile 0, so `missile_rows === 16` and
- *     `missile_rows === 0` still fail on them. A broadside mark does not.
+ *     release clauses: a suppressed erase leaves 16-row silhouettes behind, so
+ *     `plane_rows === 16` and `plane_rows === 0` still fail on them. While the
+ *     player explosion's timer is non-zero its own rows lie outside the
+ *     capsule's window, so they are skipped -- exactly as broadside marks were.
  *
  * The published values are unchanged for an intact capsule: every row of all
  * three 16-row silhouettes is non-zero and each silhouette's union is $FF, so
- * an ACTIVE capsule still reads rows 16, union $FF, blocks 1 — which is what
+ * an ACTIVE capsule still reads rows 16, union $FF, blocks 1 -- which is what
  * the six other clauses pinning those three values assert. */
-static void dftrace_measure_pickup_missiles(unsigned *rows, unsigned *row_union,
+static void dftrace_measure_pickup_plane(unsigned *rows, unsigned *row_union,
 	unsigned *blocks)
 {
 	unsigned char owned[256];
@@ -3704,6 +3722,7 @@ static void dftrace_measure_pickup_missiles(unsigned *rows, unsigned *row_union,
 	int inside = 0;
 	int counted_first = 0;
 	int counted_last = 0;
+	int exploding = MEMORY_mem[dftrace_fighter_explosion_timer] != 0u;
 	*rows = 0u;
 	*row_union = 0u;
 	*blocks = 0u;
@@ -3716,12 +3735,11 @@ static void dftrace_measure_pickup_missiles(unsigned *rows, unsigned *row_union,
 			owned[(first + index) & 0xffu] = 1u;
 	}
 	for (row = 0u; row < 256u; ++row) {
-		unsigned value = MEMORY_mem[0x3b00u + row];
+		unsigned value = MEMORY_mem[DFTRACE_PICKUP_PLANE + row];
 		/* Inside the window: whatever is there is the capsule's row. Outside it:
-		 * the capsule's own missile 0, which is residue it failed to erase. A
-		 * broadside mark is neither, and is what this function used to count. */
-		if (value == 0u || (!owned[row] &&
-			(value & DFTRACE_PICKUP_MISSILE0_BITS) == 0u)) {
+		 * residue the capsule failed to erase -- unless the player explosion
+		 * owns the plane this frame, when those rows are the explosion's. */
+		if (value == 0u || (!owned[row] && exploding)) {
 			inside = 0;
 			continue;
 		}
@@ -3852,25 +3870,25 @@ static void dftrace_snapshot(DFTraceFrame *frame)
 	frame->pickup_render_id = MEMORY_mem[dftrace_entity_render_id + 1u];
 	frame->pickup_drawn_mask = MEMORY_mem[dftrace_entity_drawn_mask + 1u];
 	frame->pickup_pmg_rows = 0u;
+	frame->missile_plane_rows = 0u;
 	for (pickup_row = 0u; pickup_row < 256u; ++pickup_row) {
-		if ((MEMORY_mem[0x3b00u + pickup_row] & 0xf0u) != 0u)
+		if (MEMORY_mem[DFTRACE_PICKUP_PLANE + pickup_row] != 0u)
 			++frame->pickup_pmg_rows;
+		if (MEMORY_mem[0x3b00u + pickup_row] != 0u)
+			++frame->missile_plane_rows;
 	}
-	dftrace_measure_pickup_missiles(&frame->pickup_missile_rows,
-		&frame->pickup_missile_union, &frame->pickup_missile_blocks);
-	frame->pickup_hposm[0] = GTIA_HPOSM0;
-	frame->pickup_hposm[1] = GTIA_HPOSM1;
-	frame->pickup_hposm[2] = GTIA_HPOSM2;
-	frame->pickup_hposm[3] = GTIA_HPOSM3;
-	frame->pickup_sizem = GTIA_SIZEM;
+	dftrace_measure_pickup_plane(&frame->pickup_plane_rows,
+		&frame->pickup_plane_union, &frame->pickup_plane_blocks);
+	frame->pickup_hposp3 = GTIA_HPOSP3;
+	frame->pickup_sizep3 = GTIA_SIZEP3;
 	frame->pickup_screen_lo = MEMORY_mem[dftrace_entity_screen_lo + 1u];
 	frame->pickup_screen_hi = MEMORY_mem[dftrace_entity_screen_hi + 1u];
 	frame->pickup_pmg_byte_top = frame->pickup_screen_hi == 0u ? 0u :
-		MEMORY_mem[0x3b00u + frame->pickup_screen_lo];
+		MEMORY_mem[DFTRACE_PICKUP_PLANE + frame->pickup_screen_lo];
 	frame->pickup_pmg_byte_middle = frame->pickup_screen_hi == 0u ? 0u :
-		MEMORY_mem[0x3b00u + frame->pickup_screen_lo + 7u];
+		MEMORY_mem[DFTRACE_PICKUP_PLANE + frame->pickup_screen_lo + 7u];
 	frame->pickup_pmg_byte_bottom = frame->pickup_screen_hi == 0u ? 0u :
-		MEMORY_mem[0x3b00u + frame->pickup_screen_lo + 15u];
+		MEMORY_mem[DFTRACE_PICKUP_PLANE + frame->pickup_screen_lo + 15u];
 	frame->pickup_gractl = GTIA_GRACTL;
 	for (unsigned slot = 0u; slot < 4u; ++slot) {
 		frame->entity_type[slot] = MEMORY_mem[dftrace_entity_type + slot];
@@ -4786,25 +4804,25 @@ static void dftrace_snapshot_flash(DFTraceFrame *frame)
 	frame->pickup_render_id = MEMORY_mem[dftrace_entity_render_id + 1u];
 	frame->pickup_drawn_mask = MEMORY_mem[dftrace_entity_drawn_mask + 1u];
 	frame->pickup_pmg_rows = 0u;
+	frame->missile_plane_rows = 0u;
 	for (pickup_row = 0u; pickup_row < 256u; ++pickup_row) {
-		if ((MEMORY_mem[0x3b00u + pickup_row] & 0xf0u) != 0u)
+		if (MEMORY_mem[DFTRACE_PICKUP_PLANE + pickup_row] != 0u)
 			++frame->pickup_pmg_rows;
+		if (MEMORY_mem[0x3b00u + pickup_row] != 0u)
+			++frame->missile_plane_rows;
 	}
-	dftrace_measure_pickup_missiles(&frame->pickup_missile_rows,
-		&frame->pickup_missile_union, &frame->pickup_missile_blocks);
-	frame->pickup_hposm[0] = GTIA_HPOSM0;
-	frame->pickup_hposm[1] = GTIA_HPOSM1;
-	frame->pickup_hposm[2] = GTIA_HPOSM2;
-	frame->pickup_hposm[3] = GTIA_HPOSM3;
-	frame->pickup_sizem = GTIA_SIZEM;
+	dftrace_measure_pickup_plane(&frame->pickup_plane_rows,
+		&frame->pickup_plane_union, &frame->pickup_plane_blocks);
+	frame->pickup_hposp3 = GTIA_HPOSP3;
+	frame->pickup_sizep3 = GTIA_SIZEP3;
 	frame->pickup_screen_lo = MEMORY_mem[dftrace_entity_screen_lo + 1u];
 	frame->pickup_screen_hi = MEMORY_mem[dftrace_entity_screen_hi + 1u];
 	frame->pickup_pmg_byte_top = frame->pickup_screen_hi == 0u ? 0u :
-		MEMORY_mem[0x3b00u + frame->pickup_screen_lo];
+		MEMORY_mem[DFTRACE_PICKUP_PLANE + frame->pickup_screen_lo];
 	frame->pickup_pmg_byte_middle = frame->pickup_screen_hi == 0u ? 0u :
-		MEMORY_mem[0x3b00u + frame->pickup_screen_lo + 7u];
+		MEMORY_mem[DFTRACE_PICKUP_PLANE + frame->pickup_screen_lo + 7u];
 	frame->pickup_pmg_byte_bottom = frame->pickup_screen_hi == 0u ? 0u :
-		MEMORY_mem[0x3b00u + frame->pickup_screen_lo + 15u];
+		MEMORY_mem[DFTRACE_PICKUP_PLANE + frame->pickup_screen_lo + 15u];
 	frame->pickup_gractl = GTIA_GRACTL;
 	for (unsigned slot = 0u; slot < 4u; ++slot) {
 		frame->entity_type[slot] = MEMORY_mem[dftrace_entity_type + slot];
@@ -4930,10 +4948,10 @@ static void dftrace_write(void)
 		",pickup_attempt_director_rng,pickup_attempt_director_flags"
 		",pickup_attempt_admission_frame,pickup_attempt_gameplay_frame"
 		",pickup_attempt_player_lifecycle"
-		",pickup_pmg_rows,pickup_missile_rows,pickup_missile_union"
-		",pickup_missile_blocks"
-		",pickup_hposm0,pickup_hposm1,pickup_hposm2,pickup_hposm3"
-		",pickup_sizem,pickup_screen_lo,pickup_screen_hi,pickup_pmg_byte_top"
+		",pickup_pmg_rows,pickup_plane_rows,pickup_plane_union"
+		",pickup_plane_blocks,missile_plane_rows"
+		",pickup_hposp3"
+		",pickup_sizep3,pickup_screen_lo,pickup_screen_hi,pickup_pmg_byte_top"
 		",pickup_pmg_byte_middle,pickup_pmg_byte_bottom,pickup_gractl"
 		",slot0_type,slot0_state,slot1_type,slot1_state"
 		",slot2_type,slot2_state,slot3_type,slot3_state\n");
@@ -5183,12 +5201,11 @@ static void dftrace_write(void)
 			frame->pickup_attempt_admission_frame,
 			frame->pickup_attempt_gameplay_frame,
 			frame->pickup_attempt_player_lifecycle);
-		fprintf(file, ",%u,%u,%u,%u", frame->pickup_pmg_rows,
-			frame->pickup_missile_rows, frame->pickup_missile_union,
-			frame->pickup_missile_blocks);
-		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u",
-			frame->pickup_hposm[0], frame->pickup_hposm[1],
-			frame->pickup_hposm[2], frame->pickup_hposm[3], frame->pickup_sizem,
+		fprintf(file, ",%u,%u,%u,%u,%u", frame->pickup_pmg_rows,
+			frame->pickup_plane_rows, frame->pickup_plane_union,
+			frame->pickup_plane_blocks, frame->missile_plane_rows);
+		fprintf(file, ",%u,%u,%u,%u",
+			frame->pickup_hposp3, frame->pickup_sizep3,
 			frame->pickup_screen_lo, frame->pickup_screen_hi);
 		fprintf(file, ",%u,%u,%u,%u", frame->pickup_pmg_byte_top,
 			frame->pickup_pmg_byte_middle, frame->pickup_pmg_byte_bottom,
@@ -6468,32 +6485,42 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 		if (MEMORY_mem[dftrace_entity_state + 1u] == 2u &&
 			(MEMORY_mem[dftrace_entity_active_mask] & 2u) != 0u &&
 			MEMORY_mem[dftrace_entity_screen_hi + 1u] != 0u &&
-			GTIA_PRIOR == 0x10u) {
-			/* One missile occupies two bits of each row byte (M0 = bits 0-1
-			 * .. M3 = bits 6-7). The former `& 0xf0` test only inspected M2
-			 * and M3, so it reported a solid capsule while M0/M1 were broken
-			 * on fourteen of sixteen rows.
+			GTIA_PRIOR == 0x00u) {
+			/* RE-POINTED 2026-09-28 with the rest of the pickup observers
+			 * (owner decision, docs/plans/pickup-colour.md §7 item 2): the
+			 * capsule is one PLAYER3 image, so this reads $3F00 and PRIOR is
+			 * $00 -- the value gameplay now holds from cold start to game over.
+			 * The former `& 0xf0` test inspected only two of the four missiles
+			 * of the fifth player, so it reported a solid capsule while the
+			 * other two were broken on fourteen of sixteen rows; a player
+			 * object is one byte per scanline and needs no mask at all.
 			 *
-			 * The capsule now carries a per-type silhouette, so rows are not
+			 * The capsule carries a per-type silhouette, so rows are not
 			 * uniformly $FF. What the harness can still assert cheaply is that
 			 * the mark occupies its full sixteen rows and that the shape uses
-			 * the whole quartet somewhere. Row-by-row silhouette verification
+			 * all eight colour clocks somewhere -- true of all three
+			 * silhouettes in plain player bit order, exactly as it was of all
+			 * three in the interleaved one. Row-by-row silhouette verification
 			 * belongs to the framebuffer signature (fb_rows) and to
 			 * tests/pickup-pmg-raster-visibility.test.mjs, which derives the
-			 * expected shapes from the artwork source. */
+			 * expected shapes from the artwork source.
+			 *
+			 * The plane's other writer, the player explosion, cannot be on it
+			 * here: this gate requires the capsule's own slot to be ACTIVE, and
+			 * clear_transient_effects releases it when the player starts dying. */
 			unsigned pickup_rows = 0u;
 			unsigned pickup_union = 0u;
 			unsigned row;
 			for (row = 0u; row < 256u; ++row) {
-				unsigned value = MEMORY_mem[0x3b00u + row];
+				unsigned value = MEMORY_mem[DFTRACE_PICKUP_PLANE + row];
 				if (value != 0u) {
 					++pickup_rows;
 					pickup_union |= value;
 				}
 			}
-			dftrace_pickup_missile_complete =
+			dftrace_pickup_plane_complete =
 				pickup_rows == 16u && pickup_union == 0xffu;
-			if (dftrace_pickup_missile_complete)
+			if (dftrace_pickup_plane_complete)
 				++dftrace_pickup_visible_passes;
 			else
 				dftrace_pickup_visible_passes = 0u;
@@ -6511,14 +6538,15 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 		}
 		else {
 			dftrace_pickup_visible_passes = 0u;
-			dftrace_pickup_missile_complete = 0;
+			dftrace_pickup_plane_complete = 0;
 		}
 		/* The first active hook still exposes the preceding framebuffer. Prime
 		 * once, then capture 16 uninterrupted completed rasters regardless of
 		 * unrelated effect activity elsewhere on screen.
 		 *
 		 * Owner decision 2026-09-21, option (b): the drawn conjunct follows the
-		 * capsule to the missile plane. `f6eee5c` moved it off the character
+		 * capsule to its PMG plane -- the missile plane then, PLAYER3 since
+		 * 2026-09-28. `f6eee5c` moved it off the character
 		 * renderer, so slot 1's character drawn-mask (ENTITY_DRAWN_MASK + 1) has
 		 * been dead memory - 0 on all 4,000 frames of the pickup replay - and
 		 * `(mask & 15) == 15` was unsatisfiable by construction. The gate now
@@ -6527,7 +6555,7 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 			*dftrace_pickup_sequence_prefix != '\0' &&
 			MEMORY_mem[dftrace_entity_state + 1u] == 2u &&
 			(MEMORY_mem[dftrace_entity_active_mask] & 2u) != 0u &&
-			dftrace_pickup_missile_complete &&
+			dftrace_pickup_plane_complete &&
 			MEMORY_mem[dftrace_effect_active_count] == 0u &&
 			dftrace_pickup_sequence_count < 16u) {
 			if (dftrace_pickup_sequence_primed >= 2u) {
@@ -6554,13 +6582,13 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 		 * explosion effect overlaps the same frame. Glyph-cell accounting still
 		 * proves that only one capsule footprint is resident. */
 		/* Owner decision 2026-09-21: option (b) extended to the traversal gate.
-		 * The same dead ENTITY_DRAWN_MASK + 1 conjunct, repointed at the missile
-		 * plane exactly as the sequence gate above. */
+		 * The same dead ENTITY_DRAWN_MASK + 1 conjunct, repointed at the
+		 * capsule's PMG plane exactly as the sequence gate above. */
 		if (dftrace_pickup_traversal_prefix != NULL &&
 			*dftrace_pickup_traversal_prefix != '\0' &&
 			MEMORY_mem[dftrace_entity_state + 1u] == 2u &&
 			(MEMORY_mem[dftrace_entity_active_mask] & 2u) != 0u &&
-			dftrace_pickup_missile_complete &&
+			dftrace_pickup_plane_complete &&
 			dftrace_pickup_traversal_count < DFTRACE_RING_ROWS &&
 			((MEMORY_mem[dftrace_entity_y + 1u] - DFTRACE_GAMEPLAY_TOP) & 7u) == 0u &&
 			MEMORY_mem[dftrace_entity_y + 1u] != dftrace_pickup_traversal_last_y) {

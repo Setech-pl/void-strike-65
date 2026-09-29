@@ -284,10 +284,10 @@
     },
     {
       "session": "weapon-pickup-2-hunt-fire4",
-      "message": "Booster release did not clear the capsule from the missile plane in the release frame",
+      "message": "Booster release did not clear the capsule from its PMG plane in the release frame",
       "class": "c-real-failure",
       "measurement": "docs/diagnostics/runtime-wall-trace-report-regeneration-blocked.md §14.8",
-      "note": "The plane IS cleared (pickup_missile_rows === 0 on every release frame); pickup_erase_calls is 2 where the clause asserts 1, on exactly the 4 release frames of the replay."
+      "note": "The plane IS cleared (pickup_plane_rows === 0 on every release frame); pickup_erase_calls is 2 where the clause asserts 1, on exactly the 4 release frames of the replay. RENAMED 2026-09-28 with the clause itself (owner decision, docs/plans/pickup-colour.md \u00a77 item 2): the capsule moved from the GTIA fifth player to PLAYER3, so the clause reads $3F00 and the word \"missile\" left its message. Same session, same frames, same cause \u2014 not a new failure and not a disappeared one."
     }
   ]
 }

@@ -79,6 +79,42 @@ It is a class (a) clause under the owner's rule of 2026-09-28 — the scenario
 moves, the clause is untouched — so the session stays at fire delay 8, and this
 table is the reason, stated rather than assumed.
 
+### 2.3 The booster-cycle hunt pair — three of the four, for the same reason
+
+The fourth delay-tuned scenario is the `hunt` half of the `memory-integrity-160s`
+pair, whose post-loop clause asks for **10 weapon-booster cycles** across the
+four 4,000-frame replays. The `evasive` half is fixed at fire delay 4 and
+collects **0** in both media, so the whole count comes from the `hunt` pair.
+Each session was run on its own and the clause evaluated from its CSV, counting
+the collection event (`events` bit 19) exactly as the clause does.
+
+| hunt fire delay | XEX | ATR | booster cycles | `>= 10` | XEX/ATR parity |
+| ---: | ---: | ---: | ---: | :-: | :-: |
+| 4 (the authored delay) | 4 | 4 | **8** | FAIL | OK |
+| **5** (the current scenario) | 5 | 5 | **10** | **PASS** | OK |
+| 6 | 6 | 6 | **12** | **PASS** | OK |
+| 8 | 5 | 5 | **10** | **PASS** | OK |
+
+Three of the four now pass where only 5 was known to. The one that does not
+fails for the same class of reason as the traversal session: the clause counts
+**how many capsules a fixed 4,000-frame window contains**, which the Heavy kill
+cadence decides, and at delay 4 the fifth capsule is not missing but late. No
+observer change can move it, and the clause, its threshold and the XEX/ATR
+parity clause beside it are untouched.
+
+### 2.4 Summary against the owner's "robust rather than re-tuned"
+
+| scenario | what made it delay-bound | robust now? |
+| --- | --- | :-: |
+| `weapon-pickup-overlap` | the capsule shared `COLPF3` with the player's shots, so a shot in its column counted as capsule pixels | **yes — 4/4 delays** |
+| `weapon-pickup-contact` | — (already passed at its authored delay) | **yes — 4/4 delays** |
+| `weapon-pickup-traversal` | the capsule's 108 ACTIVE frames must fall inside a debris-clear window | no — 1/4, and not for a capsule reason |
+| `memory-integrity` `hunt` | the replay window must contain 10 collections | 3/4, and not for a capsule reason |
+
+The one the observer could fix, it fixed completely. The two it could not are
+both properties of the Director's cadence, and both are measured above rather
+than assumed.
+
 ---
 
 ## 3. Broadside residue in `OPEN` frames — NONE, and the code says why

@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-09-28
+Last update: 2026-09-29
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -36,12 +36,15 @@ below) on top of `f4cb18b`, the documentation-only reconciliation of
 the owner acceptance recorded here. All of it runs in the accepted runtime
 below and all of it is owner-accepted under that checkpoint.
 
-**Fourteen `OWNER-SMOKE CANDIDATE`s are outstanding: the roadmap 4.6 step-2
-data-driven Director** (section "Roadmap 4.6 step 2 — the Director reads the
-level image" below; the Director's schedule is the level image now, six named
-schedulers are retired, level 1 is authored to the row step 2 measured, and
-transport FALLS — boot **107** unmoved, total 209 → **208** sectors, initial
-block 13,652 → **13,634 B**), **the roadmap 4.6 step-1
+**The roadmap 4.6 step-2 data-driven Director is `OWNER-ACCEPTED`** (owner
+smoke PASS **2026-09-29**, on XEX `3c0aaea1…` / ATR `0d0d9ba9…`; section
+"Roadmap 4.6 step 2 — the Director reads the level image" below). The Director's
+schedule is the level image now, six named schedulers are retired, level 1 is
+authored to the row step 2 measured, and transport FALLS — boot **107** unmoved,
+total 209 → **208** sectors, initial block 13,652 → **13,634 B**. Its evidence
+is regenerated and bound, and the default build links against it.
+
+**Thirteen `OWNER-SMOKE CANDIDATE`s are outstanding: the roadmap 4.6 step-1
 level compiler** (section "Roadmap 4.6 step 1 — the JSON level compiler" below;
 levels are authored JSON now, the level image grows 8 → 13 sectors to carry the
 three LevelDef pages, **the runtime reads none of them yet**, and every gate is
@@ -397,7 +400,7 @@ section.**
 
 ---
 
-## Roadmap 4.6 step 2 — the Director reads the level image — `OWNER-SMOKE CANDIDATE` (2026-09-23)
+## Roadmap 4.6 step 2 — the Director reads the level image — `OWNER-ACCEPTED` (owner smoke 2026-09-29)
 
 Plan: [plans/director-4.6.md](plans/director-4.6.md) §2.2, §4, §8 step 2.
 Branch `feat/director-level-data` from `main` `28bd1e7`.
@@ -782,15 +785,94 @@ pixels). The session is re-scripted to **5** — the smallest change from the
 authored 4 — and renamed `weapon-pickup-overlap-2-hunt-fire5`. **The clause is
 untouched.**
 
-Until blockers 3-5 are decided, `npm run build` on the **DEFAULT** target
-refuses to link (*"Runtime wall trace binding mismatch for
-void-strike-65-boot.bin"*), so `npm test` cannot run its suite at all and
-`tests/runtime-evidence-binding.test.mjs` is red against a candidate build — the
-correct signal, not a further defect; against the **committed** evidence and the
-committed `dist/` it is **green**, which is how the `28bd1e7` baseline above was
-measured. **There is therefore still no figure to compare against the
-836 / 725 / 108 / 3 default-build baseline.** `dist/` is left at its committed
-release artifacts; the candidate is `npm run build:candidate`.
+**STEP 2 IS CLOSED (2026-09-29).** All five blockers are decided and repaired,
+the evidence is regenerated from a full from-scratch run and the default build
+links against it.
+
+**The evidence.** `docs/runtime-wall-trace.json` is the output of a complete
+`build:candidate` → `runtime:wall-trace` → `build` chain: `evidence.status`
+complete, **65 / 65** sessions, `determinism.ordered_frames` **108,180**, boot
+smoke **8 / 8** at 3,300 frames, and behavioural clause failures **40** —
+reconciled **name by name** against `docs/recorded-gate-failures.json`, **0 new,
+0 disappeared**. `npm run build` on the **DEFAULT** target links and binds;
+`tests/runtime-evidence-binding.test.mjs` is **2 / 2 green** against the
+committed pair.
+
+| Artifact | SHA-256 | bytes |
+| --- | --- | ---: |
+| `dist/void-strike-65.xex` | `3c0aaea19026abbf699fdbef5cc8d25ce8beb63b16d4596b5b28a933b71e614e` | 29,355 |
+| `dist/void-strike-65.atr` | `0d0d9ba9e2333fb2f4edc7370cbc3dc19411a97eec0df7aca9f97fcb56b3138c` | 92,176 |
+| `dist/void-strike-65-boot.bin` | `c65819977080b4d642e99fa05b77d0fa1717cd6a843204b575cf2c72e86fef04` | 26,624 |
+
+**Tests.** `npm test` on the **default** build: **852 tests, 741 pass, 108 fail,
+3 todo**. The failures are **exactly 108 of the 109** names of
+`docs/plans/hull-set-v1.md` Appendix A — **0 new**, and **one disappeared**:
+`showcase and asset sheets regenerate without ignored capture files` now
+**passes**, because `docs/media/manifest.json` is regenerated against the
+current `dist/` rather than restored. So the default-build baseline moves from
+**836 / 725 / 108 / 3** to **852 / 741 / 108 / 3**, with the recorded failure set
+**108** names rather than 109.
+
+**One failure fell outside that set and is repaired here** — see the parallax
+cadence decision below.
+
+**Variant builds no longer share `build/` with the default build** (owner
+decision, 2026-09-28). A review variant used to write its artifacts into
+`build/<variant>/` but every intermediate it generated — the level images, the
+`.inc` files, the maps, the labels, `build/manifest.json` — straight into
+`build/`, on top of the default build's. MEASURED instance: `--level=1:sector=2`
+left `build/level-1.bin` carrying `debug_start_sector = 2`, and
+`tests/level-compiler.test.mjs` T2 failed against it whenever the suite ran them
+in that order. The variant's directory is now the **build directory itself**, and
+`tests/build-variants.test.mjs` T8 pins that not one byte of the default build's
+`build/` moves.
+
+**DECIDED — the introductory parallax cadence conjunct is RE-POINTED,
+alternative 1** (decided by the owner, **2026-09-29**; plan
+[plans/director-4.6.md](plans/director-4.6.md) §11 item 14;
+[diagnostics/parallax-cadence-debris-clause-2026-09-29.md](diagnostics/parallax-cadence-debris-clause-2026-09-29.md)).
+The one failure outside the recorded set was `every difficulty preserves exact
+introductory parallax cadence before debris admission`
+(`tests/runtime-wall-trace.test.mjs`), green at `28bd1e7`. Its stale conjunct was
+`full_debris_flight_frames === []` on all three difficulties — the measurement
+window held **no debris at all**. **The cause is step 2 working as intended:**
+the Director now reads level 1 sector 1's authored `hazards.debris: 1` — a field
+**unchanged since `28bd1e7`** — and admits it on sector entry at active gameplay
+frame **32**, in a session that never fires (MEASURED: spawn at frame 31 on all
+three difficulties, `entity_y` 16, both Heavy members alive, from the run's own
+CSVs). **The owner smoked this exact candidate, with debris in the opening
+seconds, and accepts it**, so the premise is gone for good.
+
+The conjunct is re-pointed at the clause's own subject, measured through the
+debris layer: a flight's `seconds × measured_rows_per_second.debris` is the
+**distance** crossed, which is the **28-row gameplay band** (224 scanlines / 8 —
+MEASURED as 28 distinct `entity_y` values, 16 to 232 in 8-scanline steps) on
+**every** difficulty while the rate is not, so the lengths fall strictly as the
+rate rises: **116 / 104-105 / 94** frames at 12 / 13.5 / 15 rows per second. The
+one-row tolerance is derived from frame-granularity sampling at both ends, not
+fitted. The cadence half of the clause — the three sessions and their
+`fire_delay` 4,000 — is **unchanged**, and the test is renamed to say what it now
+measures. **Trace/test code only, no runtime byte.** It discriminates: three
+mutations of the report — a 60-frame flight, HARD given the EASY length, and EASY
+given the HARD rate *and* length — each fail, the last on the ordering conjunct
+alone, while the real report passes on all three difficulties. Alternatives 2 (a
+harness-only debris-free sector) and 3 (record it as an accepted failure) are
+REJECTED.
+
+**Tests re-pointed off the retired symbols** (owner decision, 2026-09-28, item
+1). Ten files asserted on the six schedulers step 2 retired. Nine are
+**re-pointed** at the mechanism that replaced them — the armed WaveDef's own
+bytes, `heavy_archetype_offset` and `heavy_escort_offset` (with `NO_ESCORT`
+`$FF`), the two halves of `director_c_light_ceiling()`, and the `CAPITAL_DUE`
+flag the row clock raises in place of the retired `FIRST_CAPITAL_FRAME` gate —
+and the schedule *positions* 0/1 become archetype **byte offsets** 0/36 wherever
+a test named a formation. Two assertions in `tests/heavy-bomber.test.mjs` are
+**retired rather than re-pointed**, because T10 requires the smoke scheduler and
+its two-entry escort table to be gone and there is no schedule left to be
+temporary data; the placement contract they shared a test with keeps its own
+test. The automatic Raider/Bomber and Wingman/Interceptor **rotations** are not
+reproduced either: which archetype a wave names is authored level data now,
+pinned in `tests/level-one-equivalence.test.mjs`.
 
 **What the owner checks on hardware.** Level 1 should open with a Raider
 formation and its Wingman escort, exactly as before; from then on **Raiders and

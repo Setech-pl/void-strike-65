@@ -671,6 +671,29 @@ ENTITY_CODE tail detail: Light art tables `light_glyph` /
 `light_interceptor_glyph` `$9D2B-$9D4A` (32 B), `player_dying_tick`
 `$9D4B-$9D5C` (18 B), free `$9D5D` (1 B).
 
+### Update 2026-09-28 — the pickup capsule moves to `PLAYER3`
+
+MEASURED from `build/void-strike-65.map` on this branch against a detached
+`main` `2c4c193` worktree built the same way. The capsule left the GTIA fifth
+player for one `PLAYER3` image (owner decision, `plans/pickup-colour.md` §7
+item 2), which **returns** bytes: the four `HPOSM` writes become one `HPOSP3`,
+the `SIZEM`/`PRIOR` toggling and its release go, and `draw_player`/
+`erase_player` stop publishing a `P3` image the screen never showed.
+
+| Segment | `main` `2c4c193` | this branch | Real neighbour | Free tail |
+| --- | ---: | ---: | --- | ---: |
+| `PICKUP_CODE` `$8776-…` | ends `$8B35`, 960 B | ends **`$8B1B`**, **934 B** | collision module `$8B67` | 49 B → **75 B** |
+| `ENTITY_CODE` `$9100-…` | ends `$9D58`, 3,161 B | ends **`$9D43`**, **3,140 B** | `DIRECTOR_C_PRE` `$9D5E` | 5 B → **26 B** |
+
+**No segment start moved and no other segment changed size**, `CODE`
+(`$2000-$317D`) and `RODATA` (`$317E-$3FFF`) included: the `MAIN` bytes the
+change returns are absorbed by `LOADER_SPLASH_CODE_SLACK` (56 → **57 B**) and
+by `white_starfield_broadside_abi_pad` (`.res 0` → **`.res 1`**), so
+`free_broadside_slot` stays at its fixed `$76A7` ABI address and `RODATA`
+still starts at `$317E`. Transport falls with the packed size: initial block
+content 13,634 → **13,626 B** against the 13,684 B ceiling, boot **107**
+sectors, extension **101**, total **208**, all unmoved.
+
 `ENTITY_CODE_RESERVED_BYTES = $F00` describes the `ENTITY_CODE_RAM` **area**
 (`$9000-$9FFF`), not the first real neighbour. `DIRECTOR_C_PRE` starts at
 `$9D5E`, so `$9D5E-$9FFF` (675 B) is phantom headroom that the ca65 asserts in

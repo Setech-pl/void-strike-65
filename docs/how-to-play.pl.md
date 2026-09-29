@@ -57,7 +57,8 @@ pracują z obu stron. Liczy się tu pozycja, a nie szybkostrzelność.
 **Boss.** Na końcu każdego poziomu: konstrukcja z powtarzalnych modułów, z
 działami i punktami słabymi.
 
-Szczątki i kapsuły z ulepszeniami pojawiają się wszędzie.
+Szczątki pojawiają się wszędzie. Kapsuły z ulepszeniami nie: trafiają się
+tylko w otwartej przestrzeni, nigdy podczas przelotu korytarzem.
 
 ## Sterowanie
 

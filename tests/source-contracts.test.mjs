@@ -245,8 +245,17 @@ test("documentation describes the accepted PMG pickup, not the retired capsule",
   const active = [artDirection, read("docs/architecture.md"),
     read("docs/game-design.md"), read("docs/hardware-testing.md")].join("\n");
 
-  assert.match(artDirection, /solid 16-scanline fifth-player PMG\s+mark/);
-  assert.match(artDirection, /`M0-M3` in fifth-player mode, `PRIOR=\$10`, drawn in `COLPF3`/);
+  // RE-POINTED 2026-09-28 (owner decision, docs/plans/pickup-colour.md §7
+  // item 2): the mark left the GTIA fifth player for PLAYER3, so the document
+  // must describe a PLAYER3 image in COLPM3. The assertion keeps its job --
+  // the art direction names the accepted object, not a retired one -- and the
+  // COLPF3 half becomes its opposite: COLPF3 is the ENEMY accent, and the
+  // document must say the capsule does not share it.
+  assert.match(artDirection, /solid 16-scanline PMG mark/);
+  assert.match(artDirection, /`PLAYER3` image, eight colour clocks wide at `SIZEP3 = 0`, drawn in `COLPM3`/);
+  assert.match(artDirection, /`COLPM3` is the capsule's own register in `OPEN`/);
+  assert.doesNotMatch(artDirection, /drawn in `COLPF3`/,
+    "COLPF3 is the enemy accent; a pickup drawn in it is the defect this retired");
   // The retired phased character capsule must not be described as current.
   assert.doesNotMatch(active, /phase\s+zero occupies 2x2 cells/,
     "the phased character pickup capsule is retired; the pickup is a PMG mark");

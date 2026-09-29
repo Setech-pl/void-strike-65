@@ -55,7 +55,8 @@ from either side. Position matters here, not rate of fire.
 **Boss.** At the end of every level: a structure of repeating modules with guns
 and weak points.
 
-Debris and pickup capsules appear everywhere.
+Debris appears everywhere. Pickup capsules do not: they come only in open
+space, never during the capital run.
 
 ## Controls
 

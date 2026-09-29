@@ -77,8 +77,13 @@ shasum -a 256 dist/void-strike-65.xex
 
 ## 6. Pickup and boosters
 
-- [ ] The fighter-sector pickup is a **solid** fifth-player PMG mark (M0-M3,
-      `PRIOR=$10`, `COLPF3`) — no holes, no character capsule.
+- [ ] The fighter-sector pickup is a **solid** `PLAYER3` PMG mark (one HPOS,
+      `SIZEP3 = 0`, `COLPM3`, `PRIOR=$00`) — no holes, no character capsule.
+- [ ] **Its colour is the boost colour and belongs to nothing else on screen.**
+      Hold it against a Wingman's wing and an Interceptor's rotor pods (the
+      enemy accent `COLPF3`), against a Raider and a Bomber hull (`COLPM1/2`),
+      against the player's own yellow shots and against a star. It must not
+      read as any of them.
 - [ ] It is admitted deterministically and **stays visible for its whole
       descent** — this regressed silently for many releases, so check the top
       of the descent, not only the bottom.
@@ -89,7 +94,11 @@ shasum -a 256 dist/void-strike-65.xex
 
 - [ ] An ACTIVE pickup is removed before the capital sector.
 - [ ] The Light is fully unpublished before the sector changes; no residue.
-- [ ] `M1-M3` resume broadside warning/impact ownership in the capital sector.
+- [ ] `M1-M3` resume broadside warning/impact ownership in the capital sector,
+      and `COLPM3` goes back to the warm `$28` they and the player explosion
+      wear there — the boost colour must not follow into a capital sector.
+- [ ] Leaving the capital sector, no broadside warning mark is left behind in
+      open space.
 - [ ] Broadside traversal and the return to fighter combat both complete.
 
 ## 8. Debris

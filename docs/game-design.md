@@ -230,15 +230,16 @@ deterministic (no random drop roll); changing it requires an explicit owner
 decision.
 
 Each type is one logical slot and one fighter-sector capsule drawn as a
-16-scanline fifth-player PMG object (missiles M0-M3 in `COLPF3`), not as
-characters. It moves 8/9/10 twentieths of a scanline per PAL frame on
+16-scanline `PLAYER3` PMG object in `COLPM3` — the **boost colour**, a hue no
+enemy and no allied object wears (owner decision, 2026-09-28,
+`plans/pickup-colour.md` §7) — not as characters. It moves 8/9/10 twentieths of a scanline per PAL frame on
 Easy/Medium/Hard, and the collection hitbox follows the same Y. An ACTIVE capsule
 is removed before the capital sector; a PENDING capsule is frozen and resumes
 afterwards. Picking up the same active type refreshes it. Picking up another
 type replaces it, so Rapid Fire, Spread Shot, and Shield are mutually exclusive.
 
-The capsule mask is solid (every M0-M3 bit set) so it stays readable at native
-resolution.
+The capsule mask is solid (all eight colour clocks used across the silhouette)
+so it stays readable at native resolution.
 
 ## Canonical gameplay raster
 
@@ -295,7 +296,9 @@ Shield lasts exactly 250 active PAL frames (5 seconds), keeps the normal weapon,
 and uses a separate damage gate rather than extending hit or respawn
 invulnerability. It absorbs at most one valid damage event per frame without
 changing HULL, LIFE, SCORE, the ordinary damage cooldown, hit flash, or HULL-hit
-SFX. The steel-blue/white capsule has a black shield symbol. Its continuous HUD
+SFX. Its capsule is the crest tapering to a point, in the shared boost colour
+like every other capsule; the steel-blue/white casing with a black shield
+symbol belonged to the retired character compositor. Its continuous HUD
 bar uses a dense cross-core pattern and exact thresholds 188, 126, and 63; the
 last segment uses the shared timer's 8+8 blink phase. A solid steel/white Player Fighter
 colour pulse is derived from the same timer and never makes the craft disappear.
@@ -413,9 +416,9 @@ section "Decyzje literowe 2026-09-20".
 Nova Missile is a future boss-only special-weapon pickup, not a member of the
 planned Rapid Fire / Spread Shot / Shield drop rotation. It may appear only
 during a boss encounter, never in standard sectors or through the qualifying
-Raider-kill counter. Its mark is planned as a large, readable PMG missile
-shape, consistent with the accepted fifth-player pickup representation and not
-a revival of the retired character-capsule compositor.
+Raider-kill counter. Its mark is planned as a large, readable PMG shape,
+consistent with the accepted single-register pickup representation and not a
+revival of the retired character-capsule compositor.
 
 Collecting it arms exactly one missile independently of the current weapon
 booster and Shield. A held FIRE input at collection must not launch it: the

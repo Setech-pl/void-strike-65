@@ -205,10 +205,27 @@ test("Shield keeps the normal eight-shot cadence while Rapid and Spread remain u
     allocatedProjectiles > 0).map(({ frame }) => frame));
 });
 
+// RE-POINTED 2026-09-28 (owner decision, docs/plans/pickup-colour.md §7 item
+// 8): the pulse writes COLPM0 only. Its COLPM3 flip reached no pixel of the
+// ship -- every P3 plume bit lay under a P0 hull bit (§1.4) -- and COLPM3 is
+// the pickup capsule's register now, so keeping the flip would have blinked a
+// booster mark in time with the shield. The two COLPM3 halves below are
+// therefore replaced by the stronger statement that the shield does not touch
+// that register at all, in either direction. The HPOSP0/HPOSP3 pair went with
+// the ship's P3 image for the same reason; the ship is one PLAYER0 object, and
+// tests/pickup-boost-colour.test.mjs owns that fact.
 test("Shield pulse is solid at all positions and never aliases respawn disappearance", () => {
-  assert.deepEqual([shield.activation.colpm0, shield.activation.colpm3], [0x84, 0x0e]);
-  assert.deepEqual([boundary(55).colpm0, boundary(55).colpm3], [0x0e, 0x28]);
-  assert.equal(source.includes("sta HPOSP0\n    sta HPOSP3"), true);
+  assert.equal(shield.activation.colpm0, 0x84);
+  assert.equal(boundary(55).colpm0, 0x0e);
+  const shieldColourRoutines = source.slice(
+    source.indexOf("restore_player_fighter_normal_colors:"),
+    source.indexOf("entity_debris_glyph:"));
+  assert.doesNotMatch(shieldColourRoutines, /COLPM3/,
+    "the capsule owns COLPM3; a shield write there would pulse the booster mark");
+  // Unchanged: whatever the pulse does, it cannot be the register that holds
+  // the capsule, and it stays out of the ship's image and lifecycle entirely.
+  assert.equal(shield.activation.colpm3, boundary(55).colpm3,
+    "COLPM3 must read the same at both pulse phases, because neither writes it");
   assert.doesNotMatch(source.slice(source.indexOf("update_shield_player_fighter_colors:"),
     source.indexOf("entity_debris_glyph:")), /GRAFP|HPOSP|PLAYER_LIFECYCLE/);
 });

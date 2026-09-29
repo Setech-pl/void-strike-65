@@ -7,8 +7,13 @@ official affiliation or endorsement.
 ## Visual language
 
 - Space is black, with restrained star density and clear combat silhouettes.
-- Allied machinery uses cold steel, pale highlights, dark seams, and warm
-  engine accents.
+- Allied machinery uses cold steel, pale highlights and dark seams. "Warm
+  engine accents" for the player ship is RETIRED (owner decision, 2026-09-28,
+  `plans/pickup-colour.md` §7 item 6): the amber `P3` plume the phrase
+  described never reached a pixel, because every plume bit lay under a hull
+  bit, and `PLAYER3` belongs to the pickup capsule now. `COLPM3`'s warm `$28`
+  survives where it is actually visible — the broadside missile `M3` and the
+  player explosion inside a capital sector.
 - Hostile machinery uses dark metal and burgundy/red hull accents. Hostile
   weapon visuals belong to the weapon class, not to the hull colour (owner
   decision 19).
@@ -77,6 +82,15 @@ The fixed HUD remains legible and visually separate from the ANTIC 4 gameplay
 field. Stars, hulls, Player Fighter weapon pixels, Hostile weapon pixels, pickups, and
 effects use existing playfield banks and PMG registers. A local object must not
 change the global palette in a way that recolours other objects.
+
+**`COLPM3` is the pickup capsule's in `OPEN`** (owner decision, 2026-09-28,
+`plans/pickup-colour.md` §7 items 1-2 and 7-8). It is the one register a
+gameplay object holds alone, and it exists because the alternative — sharing
+`COLPF3` with the Light Wingman and the Interceptor — made a booster mark read
+as an enemy, which no palette choice could undo. Nothing else may write it
+while a capsule can be on screen: not the shield pulse (§7 item 8), not a
+per-frame effect. The player explosion's `P3` outer mask wears whatever
+`COLPM3` holds in the state it dies in, by design and without switching.
 
 Player Fighter weapon colours are:
 
@@ -178,9 +192,21 @@ pixels while preserving the established hull silhouette and backing behavior.
 
 ## Pickups
 
-The accepted fighter-sector pickup is a **solid 16-scanline fifth-player PMG
-mark**: missiles `M0-M3` in fifth-player mode, `PRIOR=$10`, drawn in `COLPF3`.
+The accepted fighter-sector pickup is a **solid 16-scanline PMG mark**: one
+`PLAYER3` image, eight colour clocks wide at `SIZEP3 = 0`, drawn in `COLPM3`.
 It is one solid shape, not a phased character capsule and not a per-type glyph.
+
+**`COLPM3` is the capsule's own register in `OPEN`, and the capsule is the only
+object that may wear it there** (owner decision, 2026-09-28,
+`plans/pickup-colour.md` §7 items 1-2). It was the GTIA fifth player until
+then — missiles `M0-M3` at `PRIOR=$10` — whose only possible colour register is
+`COLPF3`, the register the Light Wingman's whole wing, the Interceptor's rotor
+pods and the enemy capital mass already wear. **A pickup must never read as an
+enemy**, and no palette choice could fix that while the register was shared. A
+capsule appears only in open fighter space, never over a capital hull, so
+`COLPM3` reverts to `$28` in every capital state, where the broadside missile
+`M3` and the player explosion wear it. `PRIOR` is `$00` for the whole of
+gameplay.
 
 Exactly one footprint may be visible for each active logical slot; the image
 must not hold for several frames and then jump by eight scanlines.
@@ -190,15 +216,18 @@ Because the mark is a single PMG colour, pickup **type** is communicated by
 with a vertical slot, Spread Shot a boxier casing carrying a three-shot fan, and
 Shield a crest tapering to a point. These are the original capsule shapes from
 `assets/graphics/entity-effects.json` reduced to one bit per colour clock; the
-original also distinguished types by colour, which a fifth-player mark cannot
-reproduce. Booster HUD state must make the active booster unambiguous, and the
+original also distinguished types by colour, which a one-register mark cannot
+reproduce. All three wear the one **boost colour**, which is what the mark
+means. Booster HUD state must make the active booster unambiguous, and the
 Shield BOOST bar and its solid steel/white Player Fighter pulse must stay
 distinguishable from both weapon boosters and respawn blinking.
 
-When the P0/P3 Player Fighter overlaps the mark, set hull or engine bits remain
-in the foreground. Zero bits in the Player Fighter PMG masks are transparent and
-must leave the mark visible; a restored black playfield rectangle or a clipped
-edge is never an acceptable substitute for pixel-level overlap.
+When the Player Fighter overlaps the mark, its set `P0` hull bits remain in the
+foreground: GTIA orders players `P0 > P1 > P2 > P3` whatever `PRIOR` holds, and
+the ship is one `PLAYER0` image. Zero bits in the Player Fighter PMG mask are
+transparent and must leave the mark visible; a restored black playfield
+rectangle or a clipped edge is never an acceptable substitute for pixel-level
+overlap.
 
 Visual review covers empty space, both hulls, module boundaries, prow, engine
 banks, and display-list wrap.

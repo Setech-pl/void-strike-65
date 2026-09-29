@@ -1239,16 +1239,6 @@ function writeHitboxContact(paths, geometries, outputPath) {
   };
 }
 
-function rgbTemplate(image, left, top, width, height) {
-  const rgb = Buffer.alloc(width * height * 3);
-  for (let y = 0; y < height; y += 1) {
-    image.rgb.copy(rgb, y * width * 3,
-      ((top + y) * image.width + left) * 3,
-      ((top + y) * image.width + left + width) * 3);
-  }
-  return { width, height, rgb };
-}
-
 function countRgb(image, [red, green, blue], { left, top, right, bottom }) {
   let count = 0;
   for (let y = top; y < bottom; y += 1) for (let x = left; x < right; x += 1) {
@@ -1259,34 +1249,11 @@ function countRgb(image, [red, green, blue], { left, top, right, bottom }) {
   return count;
 }
 
-function findRgbTemplate(image, template) {
-  let anchor = 0;
-  while (anchor < template.width * template.height &&
-    template.rgb[anchor * 3] === 4 && template.rgb[anchor * 3 + 1] === 4 &&
-    template.rgb[anchor * 3 + 2] === 4) anchor += 1;
-  invariant(anchor < template.width * template.height, "Raster template is blank");
-  const anchorX = anchor % template.width;
-  const anchorY = Math.floor(anchor / template.width);
-  const matches = [];
-  for (let y = 0; y <= image.height - template.height; y += 1) {
-    for (let x = 0; x <= image.width - template.width; x += 1) {
-      const imageAnchor = ((y + anchorY) * image.width + x + anchorX) * 3;
-      if (image.rgb[imageAnchor] !== template.rgb[anchor * 3] ||
-        image.rgb[imageAnchor + 1] !== template.rgb[anchor * 3 + 1] ||
-        image.rgb[imageAnchor + 2] !== template.rgb[anchor * 3 + 2]) continue;
-      let equal = true;
-      for (let row = 0; row < template.height && equal; row += 1) {
-        const imageOffset = ((y + row) * image.width + x) * 3;
-        const templateOffset = row * template.width * 3;
-        equal = image.rgb.subarray(imageOffset, imageOffset + template.width * 3)
-          .equals(template.rgb.subarray(templateOffset, templateOffset + template.width * 3));
-      }
-      if (equal) matches.push({ x, y });
-    }
-  }
-  return matches;
-}
-
+// rgbTemplate()/findRgbTemplate() were DELETED 2026-09-29 with the last clause
+// that used them (the pickup smooth-sequence gate, re-pointed to COLPM3 above
+// its own comment). They compared a 16x16 window byte for byte, which is a
+// statement about every object on screen rather than about the capsule, and no
+// other clause asks that question.
 function argumentValue(name) {
   const prefix = `--${name}=`;
   return process.argv.find((argument) => argument.startsWith(prefix))?.slice(prefix.length);
@@ -5329,32 +5296,98 @@ function main() {
     const sequenceLeft = 2 * (sequenceHpos - 64);
     invariant(sequenceLeft >= 0 && sequenceLeft + 16 <= sequenceImages[0].width,
       `Derived capsule column ${sequenceLeft}-${sequenceLeft + 16} falls outside the raster`);
+    // RE-POINTED 2026-09-29 (owner decision, docs/plans/pickup-colour.md §7
+    // items 1-2; the implementation brief's Phase A item 3, "the clauses' own
+    // conditions keep their meaning, only what they read changes"). This gate
+    // used to require the whole 16x16 RGB window to be byte-identical from frame
+    // to frame at a two-scanline step. That asserted far more than the capsule:
+    // it asserted that NOTHING crosses the box -- which was only ever true
+    // because the object that crosses it most often shared the capsule's colour.
+    // PLAYER_FIGHTER_PROJECTILE_COLOR is GAMEPLAY_COLPF2 $1E and the capsule now
+    // wears COLPM3 $1C, so a shot over the mark is a distinguishable pixel
+    // inside the silhouette. MEASURED on this run: frames 08, 09, 13 and 15 of
+    // the captured sixteen carry 8, 8, 4 and 8 such pixels, the byte-identity
+    // test found 0 candidates -- and the capsule itself was complete on all
+    // sixteen (216 of its own pixels, the full silhouette, translating by
+    // exactly two scanlines a frame). The ship was at y 185-200 while the capsule
+    // descended 116 -> 146 in the same column (x 94), so it is the player's own
+    // shots that cross the mark, not his hull. The traversal gate below already
+    // says this in prose -- "these PNGs retain the complete final raster,
+    // including legitimate stars/effects that can cross the 16x16 box"; this gate
+    // had not been told.
+    //
+    // So the comparison follows the capsule to its own register, exactly as the
+    // contact clause does. A CAPSULE pixel is the boost colour itself. A pixel
+    // whose GTIA output merely CONTAINS the boost colour's bits ($1E over $1C, a
+    // Heavy hull's $5C) is an OCCLUSION: not a capsule pixel, and not a foreign
+    // silhouette either. The reference silhouette is the least-occluded captured
+    // frame, and every frame must then hold that same silhouette translated by
+    // two scanlines, with every missing pixel explained by an occluding object
+    // and no capsule pixel outside it. Completeness and uniqueness are unchanged:
+    // the maximum-pixel candidate must be the only one, and at least 16 pixels.
+    const sequenceColour = capturedRows[0].colpm3;
+    invariant(capturedRows.every((row) => row.colpm3 === sequenceColour),
+      `Atari800 changed COLPM3 during the captured sequence ($` +
+        `${[...new Set(capturedRows.map((row) => row.colpm3.toString(16)))].join(", $")})`);
+    const sequenceMasks = sequenceImages.map((image) => {
+      const capsule = new Uint8Array(image.width * image.height);
+      const occluded = new Uint8Array(image.width * image.height);
+      for (let pixel = 0; pixel < capsule.length; pixel += 1) {
+        const value = image.indices[pixel];
+        if (value === sequenceColour) capsule[pixel] = 1;
+        else if ((value & sequenceColour) === sequenceColour) occluded[pixel] = 1;
+      }
+      return { capsule, occluded, width: image.width };
+    });
+    const sequenceBox = ({ capsule, occluded, width }, top) => {
+      const capsulePixels = new Set();
+      const occludedPixels = new Set();
+      for (let y = 0; y < 16; y += 1) for (let x = 0; x < 16; x += 1) {
+        const offset = (top + y) * width + sequenceLeft + x;
+        if (capsule[offset]) capsulePixels.add(y * 16 + x);
+        else if (occluded[offset]) occludedPixels.add(y * 16 + x);
+      }
+      return { capsulePixels, occludedPixels };
+    };
     const smoothCandidates = [];
     const lastInitialY = sequenceImages[0].height - 16 - 2 * (sequenceImages.length - 1);
     for (let initialY = 0; initialY <= lastInitialY; initialY += 1) {
-      const capsule = rgbTemplate(sequenceImages[0], sequenceLeft, initialY, 16, 16);
-      try {
-        if (sequenceImages.every((frame, index) =>
-          JSON.stringify(findRgbTemplate(frame, capsule)) ===
-            JSON.stringify([{ x: sequenceLeft, y: initialY + index * 2 }]))) {
-          let colouredPixels = 0;
-          for (let pixel = 0; pixel < capsule.width * capsule.height; pixel += 1) {
-            if (capsule.rgb[pixel * 3] !== 4 || capsule.rgb[pixel * 3 + 1] !== 4 ||
-              capsule.rgb[pixel * 3 + 2] !== 4) colouredPixels += 1;
-          }
-          smoothCandidates.push({ initialY, capsule, colouredPixels });
-        }
-      } catch (error) {
-        if (error.message !== "Raster template is blank") throw error;
-      }
+      const boxes = sequenceMasks.map((mask, index) =>
+        sequenceBox(mask, initialY + index * 2));
+      const reference = boxes.reduce((best, box) =>
+        box.capsulePixels.size > best.capsulePixels.size ? box : best);
+      if (reference.capsulePixels.size === 0) continue;
+      const smooth = boxes.every(({ capsulePixels, occludedPixels }) =>
+        [...capsulePixels].every((pixel) => reference.capsulePixels.has(pixel)) &&
+        [...reference.capsulePixels].every((pixel) =>
+          capsulePixels.has(pixel) || occludedPixels.has(pixel)));
+      if (!smooth) continue;
+      smoothCandidates.push({
+        initialY,
+        colouredPixels: reference.capsulePixels.size,
+        // A COMPLETE silhouette fills the derived box: sixteen scanlines and all
+        // eight colour clocks, which is the raster half of what the CSV clause
+        // says as `pickup_plane_rows === 16 && pickup_plane_union === 255`. Without
+        // it a sliding window that merely excludes a damaged row still wins the
+        // maximum -- MEASURED against a fixture that blanks a 2x2 hole in one
+        // captured frame: the old byte-identity gate and the colour gate without
+        // these two counts both accept it at 188 px, and with them both reject it.
+        rows: new Set([...reference.capsulePixels].map((pixel) => pixel >> 4)).size,
+        columns: new Set([...reference.capsulePixels].map((pixel) => pixel & 15)).size,
+        occludedPixels: boxes.reduce((sum, box) =>
+          sum + (reference.capsulePixels.size - box.capsulePixels.size), 0),
+      });
     }
     const maximumColouredPixels = Math.max(...smoothCandidates.map(({ colouredPixels }) =>
       colouredPixels));
-    const completeCandidates = smoothCandidates.filter(({ colouredPixels }) =>
-      colouredPixels === maximumColouredPixels && colouredPixels >= 16);
+    const completeCandidates = smoothCandidates.filter(({ colouredPixels, rows, columns }) =>
+      colouredPixels === maximumColouredPixels && colouredPixels >= 16 &&
+      rows === 16 && columns === 16);
     invariant(completeCandidates.length === 1,
-      `Expected one complete smooth final-raster capsule sequence, found ` +
-        `${completeCandidates.length}/${smoothCandidates.length}`);
+      `Expected one complete smooth final-raster capsule sequence in COLPM3 $` +
+        `${sequenceColour.toString(16)} at x ${sequenceLeft}-${sequenceLeft + 16}, found ` +
+        `${completeCandidates.length}/${smoothCandidates.length} (largest silhouette ` +
+        `${Number.isFinite(maximumColouredPixels) ? maximumColouredPixels : 0} px)`);
     writeScreenshotContact(sequencePaths, pickupSequenceContactPath, 8);
   }
   if (smokeFrames === null && sessionsToRun.some(({ kind }) => kind === "weapon-pickup-traversal")) {

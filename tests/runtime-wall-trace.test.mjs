@@ -414,8 +414,17 @@ test("real Atari800 pickup trace retains one phased footprint through native A2 
   // footprint aggregate now counts contiguous missile-row blocks -- one capsule,
   // not a trail. The remaining three figures are unchanged.
   assert.equal(pickup.maximum_pickup_glyph_cells, undefined);
+  // RE-POINTED 2026-09-29 (owner decision, docs/plans/pickup-colour.md §7 item
+  // 2): the capsule left the GTIA fifth player for PLAYER3, so the aggregate
+  // that counts its contiguous plane blocks is named for the plane it now
+  // measures -- maximum_simultaneous_plane_blocks. Same measurement, same value
+  // of 1 (one capsule, not a trail); only the word "missile" left it, with the
+  // column it was named after. The old key must be GONE, on the
+  // maximum_pickup_glyph_cells precedent above: an evidence field that silently
+  // reappears would let a stale trace satisfy this pin.
+  assert.equal(pickup.maximum_simultaneous_missile_blocks, undefined);
   assert.deepEqual([
-    pickup.maximum_simultaneous_missile_blocks,
+    pickup.maximum_simultaneous_plane_blocks,
     pickup.layer_fences_per_active_frame,
     pickup.maximum_stationary_active_frames,
     pickup.logical_step_scanlines,

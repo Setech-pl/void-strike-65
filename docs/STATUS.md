@@ -53,8 +53,14 @@ DMA-on maximum **31,349**, boot **107** sectors, ATR menu **603** with all three
 warn frames intact. Step 2 above is what made the runtime read the image, and it
 supersedes those four figures.
 
-**Twelve `OWNER-SMOKE CANDIDATE`s are outstanding: the splash
-cassette sound and the level-loading line** (section "Splash cassette sound — the second
+**Thirteen `OWNER-SMOKE CANDIDATE`s are outstanding: the pickup boost colour**
+(section "Pickup boost colour — the capsule is one `PLAYER3` image in gold `$1C`"
+below; the capsule leaves the GTIA fifth player and `COLPF3` for `PLAYER3` and a
+dedicated `COLPM3`, so a booster mark can never wear an enemy's colour again; the
+colour itself is owner-decided gold `$1C` from the 2026-09-29 hardware smoke, and
+every gate moved the right way — worst fence margin 727 → **788**, DMA-on maximum
+31,670 → **31,626**, ATR menu 602 → **601**, XEX 29,355 → **29,332 B**), **the
+splash cassette sound and the level-loading line** (section "Splash cassette sound — the second
 record is an octave down" below; the middle of the three imitated data records
 drops an octave and the level loading screen reads **ENGAGING ENEMY SECTOR**
 instead of `LOADING SECTOR`; **zero transport bytes for the sound** — it was
@@ -305,6 +311,139 @@ Previous accepted runtime checkpoint: `0a90c1c` (XEX
 owner smoke PASS 2026-09-18); before it `b4b942e` (XEX
 `965468077747f527b7d3f8ffeb7c37ace27377892ea5fc6f2e8aaf062d0d8a6e`,
 owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
+
+---
+
+## Pickup boost colour — the capsule is one `PLAYER3` image in gold `$1C` — `OWNER-SMOKE CANDIDATE` (2026-09-29)
+
+Branch `feat/pickup-boost-colour` from `main` `2c4c193`. Plan
+[plans/pickup-colour.md](plans/pickup-colour.md), **Option 2 variant 2a**, owner
+decisions of 2026-09-28 (items 1-9) and 2026-09-29 (the colour, items 10-12) in
+its §7. Measurements:
+[diagnostics/pickup-boost-colour-2026-09-29.md](diagnostics/pickup-boost-colour-2026-09-29.md).
+
+**What changed.** The booster capsule wore `$46` — the enemy accent the Light
+Wingman's wing, the Interceptor's rotor pods and the enemy capital mass are drawn
+in — because as the GTIA fifth player (`PRIOR $10`, missiles `M0-M3`) its only
+possible colour register was `COLPF3`. It is **one `PLAYER3` image** now and
+**`COLPM3` is dedicated to it in `OPEN`**, so no palette choice is needed to stop
+a pickup reading as an enemy: it has its own register. `PRIOR` is `$00` for the
+whole of gameplay, the ship publishes `P0` alone (its amber `P3` plume reached no
+pixel — every plume bit lay under a hull bit), the shield pulse writes `COLPM0`
+only, and `COLPM3` reverts to `$28` in every capital state for the broadside
+missile `M3` and the player explosion.
+
+**The colour is GOLD `$1C`** — decided by the owner on **2026-09-29** after the
+hardware smoke of three review builds (gold `$1C` `abe3b181…`, cyan `$AC`
+`939cd2cc…`, orange `$2C` `5a5f0c6f…`). `--pickup-colour=1C|AC|2C` stays in the
+build for a later comparison; no gate consults a variant. Named to players in
+`how-to-play` EN **and** PL together (owner decision V).
+
+### Gates — the DEFAULT build
+
+| | `main` `2c4c193` | this branch | rule |
+| --- | ---: | ---: | --- |
+| worst line-238 fence margin | 727 | **788** | GO >= 500 |
+| DMA-on maximum | 31,670 | **31,626** | target 31,200 / hard 32,568 |
+| frames over the hard gate | 0 | **0** | 0 |
+| physical headroom | 3,898 | **3,942** | — |
+| deadline overruns / missed frames | 0 / 0 | **0 / 0** | 0 |
+| DLIs per host frame / sequence violations | 2 / 0 | **2 / 0** | the two-DLI frame is unchanged |
+| replay sessions | 65 / 65 | **65 / 65** | complete |
+| `determinism.ordered_frames` | 108,180 | **108,180** | — |
+| behavioural clause failures | 40 | **40** | name by name against `recorded-gate-failures.json`: **0 new, 0 disappeared** |
+| boot smoke | 8 / 8 at 3,300 frames | **8 / 8** | PASS |
+| boot / extension / total sectors | 107 / 101 / 208 | **107 / 101 / 208** | no new boot sector |
+| initial block content / ceiling | 13,634 / 13,684 | **13,626 / 13,684** | not above the baseline content |
+| ATR menu frame / delta | 602 / +6 | **601 / +5** | delta not above +7 |
+| XEX menu frame / delta | 392 / +0 | **392 / +0** | — |
+| XEX bytes | 29,355 | **29,332** | — |
+
+Everything that moved, moved the right way. One recorded gate failure was
+**RENAMED** with the clause it names ("…from the missile plane…" → "…from its PMG
+plane…") in `docs/recorded-gate-failures.json`: same session, same frames, same
+cause — neither a new failure nor a disappeared one.
+
+| Artifact | SHA-256 | bytes |
+| --- | --- | ---: |
+| `dist/void-strike-65.xex` | `bb5ec363e4910f7a47e4cb1071658f36098bc1f6b13a8705da5b80ad67b5cad4` | 29,332 |
+| `dist/void-strike-65.atr` | `abe3b1819ed23ec74b23b31260adf3317519dd99caa0a757f1a6c4e15b3e80b4` | 92,176 |
+| `dist/void-strike-65-boot.bin` | `9e5c5d6f73704963d20be5516e15da4ee5c287b30a362a347019180afcddd349` | 26,624 |
+
+### Bytes — both segments that moved SHRANK
+
+| | `main` `2c4c193` | this branch |
+| --- | ---: | ---: |
+| `ENTITY_CODE` | 3,161 B, free tail 5 B | **3,140 B**, free tail **26 B** |
+| `PICKUP_CODE` | 960 B, stream fill 49 B | **934 B**, stream fill **75 B** |
+| `ENTITY_CODE` staging margin | 25 B | **38 B** |
+| `$AE00` window used / free | 1,991 / 1,593 | **1,991 / 1,593** |
+
+`CODE` (`$2000-$317D`) and `RODATA` (`$317E-$3FFF`) are byte-identical in size
+and no segment start moved: the `MAIN` bytes the change returns went into
+`LOADER_SPLASH_CODE_SLACK` (56 → **57**) and
+`white_starfield_broadside_abi_pad` (`.res 0` → **`.res 1`**), which is what keeps
+`free_broadside_slot` on its fixed `$76A7` integration ABI.
+
+### Tests — the DEFAULT build
+
+`npm test`: **860 tests, 749 pass, 108 fail, 3 todo**, against the default-build
+baseline of **852 / 741 / 108 / 3** measured on `main` `2c4c193` in this session's
+detached worktree. **+8 tests, all passing** (`tests/pickup-boost-colour.test.mjs`
+and the re-pointed pickup raster file), and the failures are **exactly the 108
+recorded names — 0 new, 0 disappeared**.
+
+The 108 are Appendix A of [plans/hull-set-v1.md](plans/hull-set-v1.md) minus
+`showcase and asset sheets regenerate without ignored capture files`, as the
+"Full-suite failure baseline" section below already records. A **candidate**
+build fails **113**: the five extra are the ones the default target itself clears
+by filling in the measured manifest fields `--candidate` leaves `null`
+(`runtime-wall-trace` Spread Shot / debris visual polish / destructible debris,
+`runtime-timing` "measured DMA-on fields …", `enemy-roster` "compile-time review
+harness …"). **The default-build figure is the baseline; a `--candidate` A/B is
+not.**
+
+**Twenty test re-points**, each following the behaviour change it names: the
+three of `800322b` and `9a6d70c` (the capsule's plane and bit order, the art
+direction's own words, the shield pulse), the twelve of `c150ab6`, the **four
+`broadside-fire` `P3` pins** (the `HPOSP3` mirrors dropped from `read_input`,
+`respawn_player` and the hull-contact clamp, and `SIZEP3` returned to the
+capsule's one-clock size after the explosion — the PMG oracle in that file loses
+its "`P0`/`P3` must share one width and one HPOS" assertions with the half they
+compared against), and the evidence key
+`maximum_simultaneous_missile_blocks` → `maximum_simultaneous_plane_blocks`. One
+genuine **harness defect** was found and fixed with them:
+`ENEMY_PROFILE_SCORE_BCD` (`$8117`) is never published by the isolation
+harnesses, so five score assertions in four files were reading a leftover
+boot-staging byte that happened to normalise to the roster's score in decimal
+mode. The observer now publishes the authored score
+(`publishEnemyProfileScore`); every expectation holds byte-for-byte, now for the
+right reason.
+
+### The one clause this change had to re-point, and why
+
+The post-loop **smooth-sequence** gate compared a 16x16 raster window
+**byte-for-byte** frame to frame, which asserts that nothing crosses the box
+rather than that the capsule is intact. That held only while the object crossing
+it shared the capsule's colour: the player's shots are `GAMEPLAY_COLPF2` `$1E`
+and the capsule is `COLPM3` `$1C`. MEASURED: the capsule was complete on all
+sixteen captured frames (216 px, +2 scanlines a frame, fixed column) while four
+of them carried shot pixels inside the silhouette, and the gate threw
+`0/0`. It reads the capsule's own register now, exactly as the contact clause
+does, and a **complete** silhouette must fill 16 scanlines and all 8 colour
+clocks — the raster half of `pickup_plane_rows === 16 && pickup_plane_union ===
+255`. It is **stricter** than what it replaces: against a fixture that blanks a
+2x2 hole in one captured frame, byte-identity accepts a smaller window at 188 px
+and the shipped clause rejects it. Full measurement and both fixtures in §6 of
+the diagnostics file.
+
+### What the owner still owes this branch
+
+An owner smoke of the **default** build (`hardware-testing.md` §6-§7): the
+capsule's gold against a Wingman's wing, an Interceptor's pods, a Raider and a
+Bomber hull, against the player's own yellow shots and against a star; the ship
+unchanged; the shield pulse; the player explosion's outer ring in open space and
+in a capital sector, where `COLPM3` must go back to `$28`.
 
 ---
 
@@ -3887,6 +4026,14 @@ Interceptor (Light, character-rendered).
 
 ## Current task
 
+**The pickup boost colour is implemented, gated and awaiting the owner's smoke of
+the DEFAULT build** (section "Pickup boost colour — the capsule is one `PLAYER3`
+image in gold `$1C`" above; branch `feat/pickup-boost-colour`, not merged and not
+pushed). The capsule owns `COLPM3` in `OPEN`, the colour is the owner's gold
+`$1C` from the 2026-09-29 hardware smoke of three review builds, and every gate
+moved the right way or not at all. What it still owes is the owner's smoke
+checklist in `hardware-testing.md` §6-§7.
+
 **Owner decision A — the ATR must boot without OPTION — is implemented and is
 an `OWNER-SMOKE CANDIDATE`; see the section below.** It is not the only
 outstanding candidate: owner decision B (the open BASIC window) and the
@@ -4993,6 +5140,15 @@ started without owner instruction.
   the clause say what its message says and cost nothing it currently catches.
   Full measurement and the fire-delay sweep:
   [diagnostics/pickup-traversal-clause-2026-09-28.md](diagnostics/pickup-traversal-clause-2026-09-28.md).
+  **STILL OPEN after the pickup-colour task, and confirmed by it** (owner
+  decision, **2026-09-29**, plan [plans/pickup-colour.md](plans/pickup-colour.md)
+  §7 item 10). Re-measured on `PLAYER3` at fire delays 4, 5, 6 and 8: the
+  capsule's own three conjuncts hold on **108/108 frames at every delay**, and
+  `entity_active_mask === 2` is the only one that ever fails — 26 frames at delay
+  4, 27 at 5, 0 at 8. **The clause was not changed there**; the session stays at
+  fire delay 8 and this item is the follow-up, with the measurement in
+  [diagnostics/pickup-boost-colour-2026-09-29.md](diagnostics/pickup-boost-colour-2026-09-29.md)
+  §2.2.
 
 - **The pickup replays are delay-tuned, and the durable fix is the pickup
   colour task** (recorded **2026-09-28**, MEASURED, deferred by the owner at
@@ -5013,6 +5169,22 @@ started without owner instruction.
   window instead of the whole page) removes the trace-side half of the
   confusion; the raster-side half needs the separate plane. Measurements:
   [diagnostics/pickup-booster-clauses-2026-09-28.md](diagnostics/pickup-booster-clauses-2026-09-28.md).
+  **HALF CLOSED, 2026-09-29, by the pickup-colour task** (plan
+  [plans/pickup-colour.md](plans/pickup-colour.md) §7 items 10-11; that plan
+  document exists now). With the capsule on `PLAYER3` in its own `COLPM3`,
+  `weapon-pickup-overlap` and `weapon-pickup-contact` pass at **all four** swept
+  delays (4, 5, 6, 8) — the 46 contaminating pixels were a player shot counted as
+  capsule pixels, and nothing else in fighter space writes `COLPM3`, so the
+  contamination is not reduced but impossible. The two that remain are
+  **Director-cadence** properties, measured rather than assumed and both accepted
+  by the owner as such: the traversal needs its 108 ACTIVE frames inside a
+  debris-clear window (the entry above), and the `hunt` booster-cycle clause needs
+  10 collections inside a fixed 4,000-frame window — **8 at delay 4, 10 / 12 / 10
+  at 5 / 6 / 8**, with XEX/ATR parity at every delay. The same task also had to
+  re-point the **smooth-sequence** gate, which compared a raster window
+  byte-for-byte and so depended on the capsule and the shots sharing a register;
+  measurements in §6 of
+  [diagnostics/pickup-boost-colour-2026-09-29.md](diagnostics/pickup-boost-colour-2026-09-29.md).
 
 - **Starfield parallax** — ~3,000 cycles for a second scrolling layer; revisit
   after Option D.

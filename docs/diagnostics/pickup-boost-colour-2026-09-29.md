@@ -230,3 +230,94 @@ and no segment start moved: the `MAIN` bytes the change returns went into
 `LOADER_SPLASH_CODE_SLACK` (56 -> **57**) and into
 `white_starfield_broadside_abi_pad` (`.res 0` -> **`.res 1`**), which is what
 keeps `free_broadside_slot` on its fixed `$76A7` integration ABI.
+
+---
+
+## 6. The smooth-sequence gate: what the boost colour exposed
+
+**Phase B, 2026-09-29.** The first full `runtime:wall-trace` after the observer
+move reached every replay and then **threw** in the post-loop pickup block:
+
+```
+Error: Expected one complete smooth final-raster capsule sequence, found 0/0
+    at main (scripts/runtime-wall-trace.mjs:5355)
+```
+
+No evidence was written, so this had to be understood before Phase B could
+finish. It is not a runtime defect, and it is not the colour: **the capsule was
+complete on all sixteen captured frames.**
+
+### 6.1 What the gate actually asserted
+
+The gate took a 16x16 RGB window from the first capture and required
+`findRgbTemplate` to find it **byte-identical, exactly once, at
+`initialY + 2 * index`** in each of the sixteen. That is a statement about every
+object on screen, not about the capsule: it says *nothing may cross the box.*
+
+It held for as long as it did because the object that crosses the box most often
+shared the capsule's colour. `PLAYER_FIGHTER_PROJECTILE_COLOR` is
+`GAMEPLAY_COLPF2` **`$1E`** (`build/fighter-weapons.inc`), the capsule now wears
+`COLPM3` **`$1C`**, and `$1E | $1C = $1E`, so a shot over the mark is a
+distinguishable pixel inside the silhouette where it used to be invisible.
+
+MEASURED on the captures of that run (`weapon-pickup-2-hunt-fire4`, frames
+288-303, `pickup_hposp3` 94, derived column x 60-75):
+
+| | frame 00-07 | 08 | 09 | 10-12 | 13 | 14 | 15 |
+| --- | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
+| capsule pixels (`$1C`) | 216 | 208 | 208 | 216 | 212 | 208 | 208 |
+| `$1E` pixels inside the silhouette | 0 | 8 | 8 | 0 | 4 | 8 | 8 |
+
+The silhouette itself is **216 px on every frame** once the `$1E` pixels are
+counted as the capsule they occlude, and it descends by exactly **2 scanlines a
+frame** with the column fixed. It is the **player's own shots** that cross it,
+not his hull: the ship sat at `player_y` 185-200 and `player_x` 92 while the
+capsule fell 116 -> 146 at x 94 — the mark descends straight down the firing
+line.
+
+### 6.2 What it asserts now (owner decision 9, "robust rather than re-tuned")
+
+Re-pointed to the capsule's own register, exactly as the contact clause already
+reads it:
+
+* a **capsule** pixel is the boost colour;
+* a pixel whose GTIA output merely **contains** the boost colour's bits (`$1E`
+  over `$1C`, a Heavy hull's `$5C`) is an **occlusion** — not a capsule pixel,
+  and not a foreign silhouette either;
+* the reference silhouette is the **least-occluded** captured frame; every frame
+  must hold that silhouette translated by two scanlines, with every missing
+  pixel explained by an occluding object and no capsule pixel outside it;
+* a **complete** candidate must also fill **16 scanlines and all 8 colour
+  clocks** — the raster half of what the CSV clause says as
+  `pickup_plane_rows === 16 && pickup_plane_union === 255`;
+* completeness and uniqueness are unchanged: the maximum-pixel candidate must be
+  the only one, and at least 16 px.
+
+The alternative — re-scripting the coverage session's fire delay until the
+captured window happens to be shot-free — is exactly the delay-tuning owner
+decision 9 retired, and a capsule descending the firing line is ordinary
+gameplay, not a stale scenario.
+
+### 6.3 Falsified both ways, against the run's own captures
+
+| fixture | old gate (byte-identity) | colour mask without the row/column counts | **the clause as shipped** |
+| --- | :-: | :-: | :-: |
+| the real 16 captures | **0/0 — FAIL** | 1 complete, 216 px | **1 complete, 216 px, 16 rows x 16 px — PASS** |
+| a 2x2 hole blanked in frame 05 (a failed erase) | — | accepts a smaller window at 188 px | **0 complete — FAIL** |
+| frame 12 replaced by frame 11 (a one-frame stutter) | — | 0 — FAIL | **0 complete — FAIL** |
+
+So the re-pointed clause is **stricter** than the one it replaces, not weaker:
+the formulation it replaces accepts a hole in the capsule as long as a smaller
+window excludes it. `rgbTemplate()` and `findRgbTemplate()` were **DELETED** with
+it; no other clause asks for byte-identity of a raster window.
+
+### 6.4 One more test re-point this exposed
+
+`tests/runtime-wall-trace.test.mjs` pinned the evidence key
+`maximum_simultaneous_missile_blocks`. The trace renamed that aggregate
+`maximum_simultaneous_plane_blocks` with the column it is named after, so the pin
+read `undefined` the moment the evidence was regenerated. Re-pointed, with the
+old key asserted **gone** on the `maximum_pickup_glyph_cells` precedent beside
+it. Same measurement, same value (**1** — one capsule, not a trail); only the
+word "missile" left it. It is the last re-point this change owes, and the only one
+that could not appear until the evidence itself had been rebuilt.

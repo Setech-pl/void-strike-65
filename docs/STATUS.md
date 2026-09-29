@@ -44,12 +44,16 @@ authored to the row step 2 measured, and transport FALLS — boot **107** unmove
 total 209 → **208** sectors, initial block 13,652 → **13,634 B**. Its evidence
 is regenerated and bound, and the default build links against it.
 
-**Thirteen `OWNER-SMOKE CANDIDATE`s are outstanding: the roadmap 4.6 step-1
-level compiler** (section "Roadmap 4.6 step 1 — the JSON level compiler" below;
-levels are authored JSON now, the level image grows 8 → 13 sectors to carry the
-three LevelDef pages, **the runtime reads none of them yet**, and every gate is
-unmoved — worst fence margin **991**, DMA-on maximum **31,349**, boot **107**
-sectors, ATR menu **603** with all three warn frames intact), **the splash
+**The roadmap 4.6 step-1 JSON level compiler is `OWNER-ACCEPTED` too** (owner
+smoke PASS **2026-09-23**, before it was merged; section "Roadmap 4.6 step 1 —
+the JSON level compiler" below). Levels are authored JSON now and the level image
+grows 8 → 13 sectors to carry the three LevelDef pages; at step 1 **the runtime
+read none of them yet**, and every gate was unmoved — worst fence margin **991**,
+DMA-on maximum **31,349**, boot **107** sectors, ATR menu **603** with all three
+warn frames intact. Step 2 above is what made the runtime read the image, and it
+supersedes those four figures.
+
+**Twelve `OWNER-SMOKE CANDIDATE`s are outstanding: the splash
 cassette sound and the level-loading line** (section "Splash cassette sound — the second
 record is an octave down" below; the middle of the three imitated data records
 drops an octave and the level loading screen reads **ENGAGING ENEMY SECTOR**
@@ -882,13 +886,17 @@ archetype longer than that anywhere. The capital should arrive at about the
 same moment on MEDIUM and visibly later on EASY, as decision 3 intends, and the
 level should end where it did.
 
-## Roadmap 4.6 step 1 — the JSON level compiler — `OWNER-SMOKE CANDIDATE` (2026-09-23)
+## Roadmap 4.6 step 1 — the JSON level compiler — `OWNER-ACCEPTED` (owner smoke 2026-09-23)
 
 Branch `feat/level-compiler` from `main` at `2577352` (step 0, `LEVEL_BUFFER`
 16 sectors). Step 1 of [plans/director-4.6.md](plans/director-4.6.md) §8, under
 the owner decisions of 2026-09-23 in that plan's §11 (JSON authoring source,
 Q-1 = 16 sectors, capital start on an authored row, four hull lengths, capital
 Light ceiling restricted).
+
+> This section records **step 1 as it was smoked**. Step 2 above is accepted on
+> top of it and supersedes every figure here that it moved — the runtime reads
+> the image now, and the transport and PAL figures are step 2's.
 
 **Levels are authored data now.** `assets/levels/level-01.json` is the source;
 `scripts/level-compiler.mjs` validates it against the caps the runtime can

@@ -98,7 +98,7 @@ import {
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const rootDirectory = path.resolve(scriptDirectory, "..");
-const buildDirectory = path.join(rootDirectory, "build");
+const defaultBuildDirectory = path.join(rootDirectory, "build");
 const distDirectory = path.join(rootDirectory, "dist");
 const packageDefinition = JSON.parse(fs.readFileSync(path.join(rootDirectory, "package.json"), "utf8"));
 const gameVersion = packageDefinition.version;
@@ -211,6 +211,38 @@ if (levelDebugId !== null && (levelDebugId < 1 || levelDebugId > 16)) {
 const isReviewVariant = enemyReviewHarness || enemyCombatReviewHarness ||
   Boolean(enemyPaletteSlug) || alliedSteelValue !== null || menuSteelTwinkle ||
   hullStyleValue !== null || bomberHullValue !== null || levelDebugId !== null;
+
+// A REVIEW VARIANT OWNS ITS WHOLE BUILD DIRECTORY (owner decision, 2026-09-28).
+// Until now a variant wrote its *artifacts* into build/<variant>/ but every
+// intermediate it generated - the level images, the .inc files, the maps, the
+// labels, build/manifest.json - still went to build/, on top of the default
+// build's. So a variant left bytes behind that the default build and other
+// tests then read. MEASURED instance: tests/build-variants.test.mjs builds
+// --level=1:sector=2, whose level-1.bin carries debug_start_sector = 2, and
+// tests/level-compiler.test.mjs T2 ("the image carries the compiled core")
+// then failed against it whenever the suite happened to run them in that
+// order. The variant's directory is now the build directory itself, so nothing
+// it produces can be read by anything that did not ask for the variant.
+const variantDirectoryName = enemyReviewHarness
+  ? "enemy-review"
+  : enemyCombatReviewHarness
+    ? "enemy-combat-review"
+    : enemyPaletteSlug
+      ? `enemy-palette-${enemyPaletteSlug}`
+      : alliedSteelValue !== null
+        ? `allied-steel-${alliedSteelSlug.toUpperCase()}`
+        : menuSteelTwinkle
+          ? "menu-steel-twinkle"
+          : hullStyleValue !== null
+            ? `hull-style-${hullStyleSlug.toUpperCase()}`
+            : bomberHullValue !== null
+              ? `bomber-hull-${bomberHullSlug.toLowerCase()}`
+              : levelDebugId !== null
+                ? `level-${levelDebugId}-s${levelDebugSector}`
+                : null;
+const buildDirectory = variantDirectoryName === null
+  ? defaultBuildDirectory
+  : path.join(defaultBuildDirectory, variantDirectoryName);
 const acceptedMenuMusicPayloadBytes = 14314;
 // Gameplay music plus its in-game pause controls remain a bounded post-menu feature.
 const runtimeHeadroomPayloadLimit = 1536;
@@ -3976,23 +4008,11 @@ async function build() {
   writeFile(path.join(buildDirectory, "void-strike-65.map"), mapFile);
   writeFile(path.join(buildDirectory, "void-strike-65.lbl"), labelFile);
   writeFile(path.join(buildDirectory, "manifest.json"), manifestBytes);
-  const artifactDirectory = enemyReviewHarness
-    ? path.join(buildDirectory, "enemy-review")
-    : enemyCombatReviewHarness
-      ? path.join(buildDirectory, "enemy-combat-review")
-      : paletteCandidate
-        ? path.join(buildDirectory, `enemy-palette-${enemyPaletteSlug}`)
-        : alliedSteelValue !== null
-          ? path.join(buildDirectory, `allied-steel-${alliedSteelSlug.toUpperCase()}`)
-          : menuSteelTwinkle
-            ? path.join(buildDirectory, "menu-steel-twinkle")
-            : hullStyleValue !== null
-              ? path.join(buildDirectory, `hull-style-${hullStyleSlug.toUpperCase()}`)
-              : bomberHullValue !== null
-                ? path.join(buildDirectory, `bomber-hull-${bomberHullSlug.toLowerCase()}`)
-                : levelDebugId !== null
-                  ? path.join(buildDirectory, `level-${levelDebugId}-s${levelDebugSector}`)
-                  : distDirectory;
+  // The variant's artifacts land beside the intermediates it generated, in the
+  // directory it owns; the default build alone writes dist/.
+  const artifactDirectory = variantDirectoryName === null
+    ? distDirectory
+    : buildDirectory;
   writeFile(path.join(artifactDirectory, "void-strike-65-boot.bin"), transportPayload);
   writeFile(path.join(artifactDirectory, "void-strike-65.xex"), xex);
   writeFile(path.join(artifactDirectory, "void-strike-65.atr"), atr);

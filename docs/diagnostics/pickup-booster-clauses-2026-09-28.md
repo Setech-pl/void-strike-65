@@ -239,3 +239,152 @@ repairs and one clause repoint; §2 alternative 1 and §3 alternative 1 are
 inside the standing class-(a) rule, and §4 alternative 1 is a clause change that
 only the owner may take. Taking §2/1, §3/1 and §4/1 together is what makes the
 run complete; each one alone leaves the next clause in the way.
+
+---
+
+# The repairs, under owner decision 12 (2026-09-28)
+
+Trace and observer code only. No runtime byte. No clause condition altered.
+Sections 7-9 take §2, §3 and §4's recommendation in turn; §10 is the
+falsifiability and the full-run reconciliation; §11 corrects one attribution
+§4 and §5 got wrong.
+
+## 7. §2's repair — the `hunt` pair's fire delay, 4 -> 5 (class (a))
+
+The clause at `:6108`, its threshold of ten and the XEX/ATR parity clause at
+`:6104` are untouched. The session factory's `hunt` half takes a named
+constant, `MEMORY_INTEGRITY_HUNT_FIRE_DELAY`, and the id keeps stating the
+delay — `memory-integrity-{xex,atr}-2-hunt-fire5` — exactly as the traversal
+and overlap sessions do.
+
+**The sweep, MEASURED**, one focused 4,000-frame XEX run each, with §3's
+`pauseTest` move already in place (it must be, because the two repairs share
+these sessions):
+
+| fireDelay | qualified kills | collections | at frames |
+| ---: | ---: | ---: | --- |
+| 0 | 17 | 5 | 239, 513, 2,153, 2,381, 2,529 |
+| 2 | 19 | 6 | 240, 411, 2,104, 2,270, 2,431, 2,622 |
+| 3 | 8 | **2** | 241, 413 |
+| 4 (as authored) | 16 | **4** | 311, 2,184, 2,377, 2,537 |
+| **5** | 17 | **5** | **311, 812, 2,225, 2,409, 2,568** |
+| 6 | 17 | 6 | 312, 812, 2,196, 2,353, 2,517, **3,983** |
+| 8 | 16 | 5 | 312, 520, 2,160, 2,341, 2,552 |
+
+**5 is taken.** It is the smallest change from the authored 4 that works — 3,
+the other neighbour, collapses to two collections — and it is the most robust
+of the five that do: its last collection lands on frame 2,568, leaving **1,432
+frames of slack** before the window closes, where the authored 4 missed by 25
+and 6 buys its sixth collection at frame 3,983, 17 frames from the edge. The
+`hunt` policy keeps firing at essentially the same rate.
+
+The clause counts across all four sessions and the ATR twin is held
+byte-identical by `:6104`, so 5 per medium is the **10** the clause asks for.
+
+**The PAL row, MEASURED**, and the re-measurement §2's alternative 1 warned
+was owed because the repair moves 8,000 measured frames:
+
+| session | frames | misses | fence margin | maximum wall |
+| --- | ---: | ---: | ---: | ---: |
+| `…-hunt-fire4` (before) | 4,000 | 0 | 3,337 | 30,331 |
+| `…-hunt-fire0` | 4,000 | 0 | 2,281 | 30,339 |
+| **`…-hunt-fire5` (after)** | 4,000 | 0 | **3,833** | **30,371** |
+
+Far from the 727 / 31,670 the gates are recorded at, and the margin improves.
+
+## 8. §3's repair — `pauseTest` moves back to the `hunt` pair (class (a))
+
+One predicate, `policy === "evasive"` -> `policy === "hunt"`. The clause at
+`:6116`, the emulator's arming condition (game state 6, booster state 4, pickup
+timer 100-450) and the coverage the clause names are untouched. The factory's
+own 2026-09-22 comment recorded the same move in the other direction; both
+entries now stand side by side in it, because the pair that contains the
+behaviour has changed twice and the next session should see why.
+
+**MEASURED** on `memory-integrity-xex-2-hunt-fire5`: **3,137** rows with
+`pause_test_completed != 0`, and on **every one of them** the pickup timer, the
+engine timer and the engine phase are equal across the pause and
+`pause_host_frames` is **27**, against the clause's 25. Before the move the
+count was **0 on both halves of the pair**: `evasive` never collects a capsule,
+so its booster state never leaves 0 and the arming condition cannot be met.
+
+`gate.memory_integrity.pause_sessions` therefore names the two `hunt` sessions
+where it named the two `evasive` ones. `tests/runtime-wall-trace.test.mjs` pins
+the length of that array at 2 and the properties of its entries, not the names,
+so it is unmoved.
+
+## 9. §4's repair — the OBSERVER, not the clause (class (b))
+
+Owner decision 12 places alternative 1's intent one level lower than §4
+proposed it: `pickup_missile_rows === 0` in the clause at `:6308` stays
+**byte-for-byte as written**, and `dftrace_measure_pickup_missiles` in
+`scripts/atari800-wall-trace.h` is corrected to count what the clause is about.
+
+**A row is the capsule's when either of two exact facts holds.**
+
+1. **It is inside the window the runtime says it is publishing.**
+   `render_fighter_pickup_pmg` writes `WEAPON_PICKUP_HEIGHT_SCANLINES` (16)
+   rows from `ENTITY_SCREEN_LO + WEAPON_PICKUP_SLOT` and sets
+   `ENTITY_SCREEN_HI + WEAPON_PICKUP_SLOT`; `clear_fighter_pickup_pmg` is
+   guarded by that same byte, clears exactly those rows and zeroes it. The flag
+   is non-zero for precisely as long as the capsule is on the plane. Its `iny`
+   wraps at 256, so the window wraps here too — which is also what keeps a
+   wrapped capsule one block and retires the row-0/row-255 special case the old
+   whole-page scan needed.
+2. **It carries missile 0 outside that window.** `missile_masks` is
+   `$0C, $30, $C0`, so BROADSIDE — the plane's only other writer — never touches
+   missile 0. A row carrying `$03` that the capsule does not currently own is
+   therefore capsule **residue**: an image it drew and failed to erase. Keeping
+   it is what preserves the trail detection the whole-page scan gave the
+   traversal and release clauses, whose own comments record being falsified by
+   a suppressed erase (`missile_rows` 16, 18, 20 … 152) and a stale erase
+   address. A 16-row silhouette left behind carries missile 0 on 14 of its 16
+   rows in the worst case (SHIELD's `$3C` and `$24` tail rows do not), so those
+   fixtures still fail both `missile_rows === 16` and `missile_rows === 0`.
+
+Bit patterns alone could not have done this, which is why §4's alternative 1
+reached for the clause instead: the SHIELD silhouette itself contains a `$3C`
+row and a `$24` row, indistinguishable by value from broadside slots 0+1 and 1.
+
+**MEASURED on `weapon-pickup-2-hunt-fire4`**, the session §4 measured:
+
+| | before | after |
+| --- | ---: | ---: |
+| PENDING rows (`pickup_state === 1`) | 514 | 514 |
+| violating the clause | **181** | **0** |
+| …via `(entity_active_mask & 2) !== 0` | 0 | 0 |
+| …via `pickup_missile_rows !== 0` | 181 | 0 |
+| unions on the violating rows | `$0C`, `$30`, `$3C` | — |
+| ACTIVE rows (`pickup_state === 2`) | 261 | 261 |
+| their `pickup_missile_rows` | {16} | **{16}** |
+| their `pickup_missile_union` | {`$FF`} | **{`$FF`}** |
+| their `pickup_missile_blocks` | {1} | **{1}** |
+
+The last three rows are the point: the six other clauses that pin 16 / `$FF` /
+1 for an intact capsule are unaffected **by construction**, because every row of
+all three 16-row silhouettes is non-zero and each silhouette's union is `$FF`.
+`weapon-pickup-traversal-2-observe-fire8`,
+`weapon-pickup-overlap-2-hunt-fire5` and `weapon-pickup-spread-0-hunt-fire4`
+each pass a focused run against the corrected observer, unchanged.
+
+## 11. One attribution corrected — they are BROADSIDE marks, not the fighter's shots
+
+§4 and §5 above both say the contaminating missile-plane content is "the
+fighter's own shots" / "a fighter missile at the top of the screen". **It is
+not.** `src/main.s` has exactly four `sta MISSILES,y` sites: two in
+`erase_broadside_slot` / `draw_broadside_span_at_hpos` and two in
+`clear_fighter_pickup_pmg` / `render_fighter_pickup_pmg`. The player's
+projectiles are PairShot **character** cells and write no missile byte at all.
+
+The evidence agrees precisely: the unions §4 measured on the violating rows are
+`$0C`, `$30` and `$3C`, which are `missile_masks[0]`, `missile_masks[1]` and
+their union — broadside slots 0 and 1 — and never `$C0` alone or anything
+carrying `$03`. §5's y 0-6 COLPF3 run in the capsule's column is a broadside
+warning mark descending from the capital, which is also why it appears at the
+top of the screen.
+
+Nothing in §4's or §5's *conclusions* changes: the capsule was correct in both,
+the raster pixels and the trace rows belonged to something else that shares
+COLPF3 and the missile plane, and both repairs stand. Only the name of that
+something else was wrong. It matters because it is what made missile 0 usable
+as the residue discriminator in §9.

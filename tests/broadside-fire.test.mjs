@@ -317,17 +317,20 @@ function runAssembledRoutineWithCpu(memory, name, { x = 0, y = 0, a = 0 } = {}) 
   return cpu;
 }
 
+// RE-POINTED 2026-09-28 (owner decision, docs/plans/pickup-colour.md §7 items
+// 2-3): the ship is ONE PLAYER0 image. Its amber P3 "plume" reached no pixel --
+// every plume bit lay under a hull bit -- and PLAYER3 belongs to the pickup
+// capsule now, which is live in the same OPEN frames the ship flies in. The
+// oracle reads P0 alone; the two "P0/P3 must agree" assertions are gone with
+// the half they compared against.
 function playerBoundsFromPmg(memory) {
-  const playerBases = [0x3c00, 0x3f00];
   const occupiedDmaRows = [];
   for (let row = 0; row < 256; row += 1) {
-    if (playerBases.some((base) => memory[base + row] !== 0)) occupiedDmaRows.push(row);
+    if (memory[0x3c00 + row] !== 0) occupiedDmaRows.push(row);
   }
-  assert.ok(occupiedDmaRows.length > 0, "PMG oracle requires a visible P0/P3 PlayerFighter");
+  assert.ok(occupiedDmaRows.length > 0, "PMG oracle requires a visible P0 PlayerFighter");
   const sizeCode = memory[0xd008] & 3;
   const widthScale = [1, 2, 1, 4][sizeCode];
-  assert.equal(memory[0xd00b] & 3, sizeCode, "P0/P3 must share one width");
-  assert.equal(memory[0xd003], memory[0xd000], "P0/P3 must share one HPOS origin");
   return {
     left: memory[0xd000],
     right: memory[0xd000] + 8 * widthScale - 1,
@@ -1428,7 +1431,13 @@ test("optimized PlayerFighter PMG keeps horizontal pixels and clears only the de
   const playerY = labels.get("player_y");
   const fireGate = labels.get("gameplay_fire_gate");
   const shape = xexBytesAt(labels.get("player_shape"), 16);
-  const engine = xexBytesAt(labels.get("player_engine_shape"), 16);
+  // RE-POINTED 2026-09-28 (owner decision, docs/plans/pickup-colour.md §7 items
+  // 2-3): the ship publishes PLAYER0 alone, so the fixture arms P0 alone -- and
+  // arms PLAYER3 with a SENTINEL instead. Every assertion that used to say "the
+  // P3 half moved with the P0 half" now says the stronger thing the change
+  // requires: moving the ship must not disturb the capsule's plane by a single
+  // byte, in any direction, because a capsule can be live on it.
+  const sentinel = Uint8Array.from({ length: 16 }, (_value, index) => 0xa5 ^ index);
 
   const prepared = () => {
     const memory = createLinkedRuntimeMemory();
@@ -1438,7 +1447,7 @@ test("optimized PlayerFighter PMG keeps horizontal pixels and clears only the de
     memory[trig0] = 1;
     memory[lifecycle] = 0;
     memory.set(shape, player0 + 100);
-    memory.set(engine, player3 + 100);
+    memory.set(sentinel, player3 + 100);
     return memory;
   };
 
@@ -1450,25 +1459,27 @@ test("optimized PlayerFighter PMG keeps horizontal pixels and clears only the de
   assert.equal(horizontal[playerX], 122);
   assert.deepEqual(horizontal.subarray(player0, player0 + 256), beforeP0);
   assert.deepEqual(horizontal.subarray(player3, player3 + 256), beforeP3);
-  assert.deepEqual([horizontal[hposp0], horizontal[hposp3]], [122, 122]);
+  assert.equal(horizontal[hposp0], 122);
+  assert.equal(horizontal[hposp3], prepared()[hposp3],
+    "a horizontal move must not touch the capsule's HPOS");
 
   const upward = prepared();
   upward[stick0] = 0x0e;
   runAssembledRoutine(upward, "read_input");
   assert.equal(upward[playerY], 99);
   assert.deepEqual([...upward.subarray(player0 + 99, player0 + 115)], [...shape]);
-  assert.deepEqual([...upward.subarray(player3 + 99, player3 + 115)], [...engine]);
+  assert.deepEqual([...upward.subarray(player3 + 100, player3 + 116)], [...sentinel],
+    "an upward move must leave the capsule's plane byte-for-byte alone");
   assert.equal(upward[player0 + 115], 0);
-  assert.equal(upward[player3 + 115], 0);
 
   const downward = prepared();
   downward[stick0] = 0x0d;
   runAssembledRoutine(downward, "read_input");
   assert.equal(downward[playerY], 101);
   assert.equal(downward[player0 + 100], 0);
-  assert.equal(downward[player3 + 100], 0);
   assert.deepEqual([...downward.subarray(player0 + 101, player0 + 117)], [...shape]);
-  assert.deepEqual([...downward.subarray(player3 + 101, player3 + 117)], [...engine]);
+  assert.deepEqual([...downward.subarray(player3 + 100, player3 + 116)], [...sentinel],
+    "a downward move must leave the capsule's plane byte-for-byte alone");
 
   const hiddenBlink = prepared();
   hiddenBlink[lifecycle] = 2;
@@ -1477,8 +1488,8 @@ test("optimized PlayerFighter PMG keeps horizontal pixels and clears only the de
   runAssembledRoutine(hiddenBlink, "read_input");
   assert.deepEqual([...hiddenBlink.subarray(player0 + 100, player0 + 116)],
     Array(16).fill(0));
-  assert.deepEqual([...hiddenBlink.subarray(player3 + 100, player3 + 116)],
-    Array(16).fill(0));
+  assert.deepEqual([...hiddenBlink.subarray(player3 + 100, player3 + 116)], [...sentinel],
+    "the respawn blink hides the ship without blanking the capsule");
 });
 
 test("muzzle tracking resets with a new sector/game but survives a same-sector life loss", () => {
@@ -2046,7 +2057,7 @@ test("heavy impact wins simultaneous damage precedence while hull contact still 
   assert.match(routine("main_loop", "wait_frame"),
     /jsr handle_collisions[\s\S]+jsr update_starfield[\s\S]+jsr handle_player_hull_contact/);
   assert.match(routine("handle_player_hull_contact", "free_broadside_slot"),
-    /sta player_x[\s\S]+sta HPOSP0[\s\S]+sta HPOSP3[\s\S]+jmp apply_broadside_player_damage/);
+    /sta player_x[\s\S]+sta HPOSP0[\s\S]+jmp apply_broadside_player_damage/);
   assert.doesNotMatch(routine("handle_player_hull_contact", "free_broadside_slot"),
     /jsr erase_player|jsr draw_player/);
   assert.doesNotMatch(routine("handle_player_hull_contact", "free_broadside_slot"), /P0PF|P3PF/);
@@ -2168,7 +2179,7 @@ test("death decrements one life and respawns atomically at canonical corridor ce
 
   const spawnRoutine = routine("respawn_player", "tick_respawn_invulnerability");
   assert.match(spawnRoutine,
-    /PLAYER_RESPAWN_X[\s\S]+sta player_x[\s\S]+sta HPOSP0[\s\S]+sta HPOSP3[\s\S]+PLAYER_RESPAWN_Y[\s\S]+sta player_y/);
+    /PLAYER_RESPAWN_X[\s\S]+sta player_x[\s\S]+sta HPOSP0[\s\S]+PLAYER_RESPAWN_Y[\s\S]+sta player_y/);
   assert.doesNotMatch(spawnRoutine, /lda #\$00\s+sta (?:player_x|HPOSP0|HPOSP3)/);
 });
 
@@ -2259,8 +2270,17 @@ test("expiry clears captured and hardware collision latches before restoring ALI
   const end = labels.get("tick_respawn_invulnerability");
   const bytes = xexBytesAt(start, end - start);
   assert.ok(containsBytes(bytes, [0xa9, 124, 0x85, labels.get("player_x")]));
-  assert.ok(containsBytes(bytes, [0x8d, 0x00, 0xd0]));
-  assert.ok(containsBytes(bytes, [0x8d, 0x03, 0xd0]));
+  assert.ok(containsBytes(bytes, [0x8d, 0x00, 0xd0]), "respawn sets HPOSP0");
+  // RE-POINTED 2026-09-28 (owner decision, docs/plans/pickup-colour.md §7 item
+  // 2): respawn_player no longer mirrors player_x into HPOSP3 ($8D 03 D0),
+  // because P3 is the pickup capsule's and moving it would move a capsule. What
+  // the respawn owes P3 instead is its SIZE: the player explosion took P3 to
+  // double width to align with P0, and the respawn gives it back to the
+  // capsule's one colour clock per pixel -- `lda #$00 / sta SIZEP3`.
+  assert.ok(!containsBytes(bytes, [0x8d, 0x03, 0xd0]),
+    "respawn must not position the capsule's player");
+  assert.ok(containsBytes(bytes, [0xa9, 0x00, 0x8d, 0x0b, 0xd0]),
+    "respawn returns P3 to the capsule's one-clock size after the explosion");
   assert.ok(containsBytes(bytes, [0xa9, PLAYER_RESPAWN_Y, 0x85, labels.get("player_y")]));
   assert.ok(containsBytes(bytes, [0xa9, 250, 0x8d,
     0xac, 0x4e]));

@@ -616,26 +616,88 @@ real hardware.
 
 ## 7. Owner decisions
 
+**DECIDED — all of §7 below is settled** (decided by the owner, **2026-09-28**).
+The implementation session is `feat/pickup-boost-colour`, from `main`
+`2c4c193`. Each item keeps its original question; the answer follows it.
+
 1. **The colour** — A gold `$1C`, B cyan `$AC`, C orange `$2C` (§3); under 2b
    the engine hue only: `$2C` or `$28` (§3 says which reads better against
-   what). Decided at the hardware smoke of the review candidate. Until then the
-   plan carries A for 2a and `$2C` for 2b.
+   what). Decided at the hardware smoke of the review candidate.
+
+   **DECIDED (decided by the owner, 2026-09-28):** the boost colour is chosen
+   by the owner's hardware smoke from **three** review builds — gold `$1C`,
+   cyan `$AC`, orange `$2C`. `$28` is not a candidate, because 2b is not built
+   (item 3). The default build carries **gold `$1C`** as a placeholder until
+   the owner has smoked the three.
+
 2. **The option** — Option 2 (`P3`, recommended) or Option 1 (`COLPF3` band,
    the DLI rule waived, ~195 cycles on the binding frame).
+
+   **DECIDED (decided by the owner, 2026-09-28): Option 2, variant 2a.** The
+   capsule is one `P3` image and `COLPM3` is dedicated to it in `OPEN`; there
+   is no exhaust object. **Option 2b is not built**, and no
+   `--pickup-exhaust` flag is added. **Options 1, 3 and 4 are REJECTED.**
+
 3. **Under Option 2, the exhaust** — **2a**: no exhaust object (the ship as it
    is on screen today; optionally the P3 rows folded into the hull as white,
    which *adds* a white interior the ship never showed either), or **2b**: the
    exhaust on `M3` in `OPEN` in the shared engine/boost colour — a new visible
    4×4 exhaust between the legs, ~17 cycles per `OPEN` frame, ~+40 B of `MAIN`.
-   Under 2b the shield pulse cannot include the exhaust without blinking the
-   capsule; the plan removes the `COLPM3` flip in both variants.
+
+   **DECIDED (decided by the owner, 2026-09-28): 2a, with no exhaust object
+   and no white interior.** The ship's on-screen image is unchanged. The
+   `player_engine_shape` rows leave gameplay; §1.4 is the evidence that nothing
+   visible is lost.
+
 4. **Under Option 1** — accept the band bleeding onto Lights and the torn
    scanline (no `WSYNC`), and amend the art-direction DLI rule.
+
+   **MOOT (decided by the owner, 2026-09-28):** Option 1 is rejected under
+   item 2, so no waiver of the art-direction DLI rule is sought and the rule
+   stands unamended.
+
 5. **Player-facing wording** — whether `how-to-play` (EN and PL together)
    should name the boost colour.
+
+   **DECIDED (decided by the owner, 2026-09-28): yes, and one more line is
+   corrected with it.** `docs/how-to-play.md` and `docs/how-to-play.pl.md`
+   change **together** (owner decision V): the line saying capsules appear
+   everywhere is **wrong** — a capsule appears **only in open fighter space**,
+   never over a capital hull (§1.1, §8) — and the boost colour is **named once
+   the owner has chosen it**.
+
 6. **The art-direction sentence "warm engine accents"** — §1.4 shows it is not
    what the screen renders; the owner decides whether 2b makes it true or 2a
    retires it from the visual language.
+
+   **DECIDED (decided by the owner, 2026-09-28): retired.** "Warm engine
+   accents" for the player ship leaves the visual language, because the P3
+   plume it describes was never on screen (§1.4). `COLPM3`'s warm byte `$28`
+   survives where it is actually visible: the broadside missile `M3` and the
+   player explosion in capital sectors.
+
+7. **The player explosion's `P3` half** (new item, decided with the rest).
+
+   **DECIDED (decided by the owner, 2026-09-28):** in `OPEN` the explosion's
+   `P3` outer mask takes **the boost colour**, with **no per-frame `COLPM3`
+   switching**. In capital states `COLPM3` stays **`$28`** exactly as today,
+   which is what the broadside missile `M3` and the explosion wear there.
+
+8. **The shield pulse** (new item, decided with the rest).
+
+   **DECIDED (decided by the owner, 2026-09-28):** the shield pulse writes
+   **`COLPM0` only**. Both `COLPM3` writes leave
+   `restore_player_fighter_normal_colors` and
+   `update_shield_player_fighter_colors`; they are invisible today (§1.4) and
+   under 2a they would blink the capsule.
+
+9. **The pickup observer and the delay-tuned scenarios** (new item, decided
+   with the rest).
+
+   **DECIDED (decided by the owner, 2026-09-28):** the trace's pickup observer
+   moves from the **missile plane** to **`PLAYER3`**, and the delay-tuned
+   pickup scenarios are made **robust** rather than re-tuned to a single fire
+   delay (Phase A items 3-4 of the implementation brief; §6.1 step 6).
 
 ---
 

@@ -1637,11 +1637,11 @@ Loader-resident RAM after startup remains 0 B.
 
 | Range | Owner after loader |
 | --- | --- |
-| `$3B00-$3BFF` | missiles: M0-M3 fighter pickup in fifth-player mode; M1-M3 capital broadside warning/impact after ACTIVE pickup removal |
+| `$3B00-$3BFF` | missiles: **M1-M3 capital broadside warning/impact only** since 2026-09-28. The fighter pickup left this plane with the GTIA fifth player (`plans/pickup-colour.md` §7 item 2), so the broadside is now its sole writer and a non-empty row in an `OPEN` frame is residue by definition — the runtime trace watches it as `missile_plane_rows` |
 | `$3C00-$3CFF` | P0 Player Fighter hull |
 | `$3D00-$3DFF` | P1 monochrome body of Raider slot 0 |
 | `$3E00-$3EFF` | P2 monochrome body of Raider slot 1 |
-| `$3F00-$3FFF` | P3 Player Fighter engine |
+| `$3F00-$3FFF` | P3 **fighter pickup capsule** in `COLPM3` (the boost colour in `OPEN`, `$28` in capital states), and the player explosion's outer mask. The Player Fighter engine image left this plane on 2026-09-28: no plume bit ever reached a pixel, every one lay under a hull bit |
 
 Current fighter projectiles are ANTIC 4 PairShot overlays. Five Player Fighter
 slots and five enemy slots share one movement/erase/render foundation. Each

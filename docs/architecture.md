@@ -443,10 +443,13 @@ reloads an eight-frame retry without losing the capsule. Acceptance moves it to
 Y=24, sets active-mask bit `$02`, and increments the global active count. Slot-0
 debris and slot-1 pickup may coexist at the global limit of two.
 
-The active capsule is a 16-scanline missile-PMG object in `$3B00`: M0-M3 use
-four consecutive HPOS positions, `SIZEM=$00`, `PRIOR=$10` fifth-player mode,
-and `COLPF3`. `ENTITY_SCREEN_HI+1` is its PMG publication latch; it is not a
-character-ring writer. EASY/MEDIUM/HARD motion accumulates 8/9/10 twentieths
+The active capsule is a 16-scanline **`PLAYER3`** object in `$3F00`: one
+`HPOSP3`, `SIZEP3 = 0` for eight colour clocks, and **`COLPM3`**, which is the
+capsule's own register in `OPEN` (owner decision, 2026-09-28,
+`plans/pickup-colour.md` §7 items 1-2) and returns to `$28` in every capital
+state for the broadside missile `M3` and the player explosion. `PRIOR` is `$00`
+for the whole of gameplay. `ENTITY_SCREEN_HI+1` is its PMG publication latch;
+it is not a character-ring writer. EASY/MEDIUM/HARD motion accumulates 8/9/10 twentieths
 of a scanline per PAL frame, and release occurs at Y=240. Player overlap releases
 slot 1 and activates or replaces the slot-2 booster. Life loss and gameplay
 teardown clear both states. On fighter-to-capital transition an ACTIVE capsule
@@ -548,11 +551,14 @@ render leaves a cell a rendered effect still owns to the effect, and the ring
 rotation republishes the debris over the recycled bottom row for the frame
 that rotates it.
 
-The capsule is a 16-scanline solid fifth-player mark: every PMG
-source byte has M0-M3 bits 4–7 set, with `SIZEM=$00`, consecutive HPOSM0–3,
-`PRIOR=$10`, and `COLPF3`. Decorative partial-missile combinations were too
-weak to recognize at native resolution; the solid mark is the bounded,
-allocation-neutral replacement.
+The capsule is a 16-scanline solid `PLAYER3` mark in `COLPM3`, at one colour
+clock per bit. Decorative partial combinations were too weak to recognize at
+native resolution; the solid mark is the bounded, allocation-neutral
+replacement. It was the GTIA fifth player — `M0-M3`, `SIZEM=$00`, `PRIOR=$10`
+— until 2026-09-28, and it left because a fifth player's only possible colour
+register is `COLPF3`, which the Light Wingman's wing and the Interceptor's
+rotor pods already wear: no palette choice could stop a booster reading as an
+enemy while the register was shared.
 
 ## Determinism and verification
 

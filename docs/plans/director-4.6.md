@@ -765,6 +765,38 @@ had been measured.
     the traversal clause, which measures the whole entity plane where it means
     the pickup's own slot bit — is part of the same hand-over.
 
+14. **`BLOCKED_STALE_CLAUSE_PARALLAX_CADENCE` — RE-POINT THE CONJUNCT,
+    alternative 1** (decided by the owner, **2026-09-29**;
+    [../diagnostics/parallax-cadence-debris-clause-2026-09-29.md](../diagnostics/parallax-cadence-debris-clause-2026-09-29.md)).
+    The closing session's full default-build `npm test` found **one** failure
+    outside the recorded 108: `every difficulty preserves exact introductory
+    parallax cadence before debris admission`
+    (`tests/runtime-wall-trace.test.mjs`), green at `28bd1e7`. Its stale
+    conjunct was `full_debris_flight_frames === []` on all three difficulties —
+    the measurement window held no debris at all. **The cause is step 2 working
+    as intended:** the Director now reads level 1 sector 1's authored
+    `hazards.debris: 1` — a field **unchanged since `28bd1e7`** — and admits it
+    on sector entry at active gameplay frame 32, in a session that never fires.
+    **The owner has smoked this exact candidate, with debris in the opening
+    seconds, and accepts it.** The premise is therefore gone for good and is not
+    reproduced.
+
+    The conjunct is re-pointed at the clause's own subject, measured through the
+    debris layer: a flight's `seconds x measured_rows_per_second.debris` is the
+    **distance** it crossed, which is the **28-row gameplay band** (224
+    scanlines / 8, MEASURED as 28 distinct rows, y 16 to y 232 in 8-scanline
+    steps, from the run's own CSVs) on **every** difficulty while the rate is
+    not — one playfield, three cadences — and the lengths therefore fall
+    strictly as the rate rises (116 / 104-105 / 94). The one-row tolerance is
+    derived from frame-granularity sampling at both ends, not fitted. The
+    cadence half of the clause — the three sessions and their `fire_delay`
+    4,000 — is **unchanged**. **Trace/test code only, no runtime byte**, and the
+    clause discriminates: mutating a flight to 60 frames (an incomplete
+    traversal), giving HARD the EASY length, and giving EASY the HARD rate and
+    length are each caught, the last by the ordering conjunct alone.
+    Alternatives 2 (a harness-only debris-free sector) and 3 (record it as an
+    accepted failure) are REJECTED.
+
 
 ---
 

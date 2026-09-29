@@ -896,10 +896,75 @@ test("current frontend maximum, subsystem profile and accepted PAL-recovery base
   assert.equal(shield.passed, true);
 });
 
-test("every difficulty preserves exact introductory parallax cadence before debris admission", () => {
+// Re-pointed 2026-09-29 (owner decision, alternative 1 of
+// docs/diagnostics/parallax-cadence-debris-clause-2026-09-29.md). The retired
+// conjunct was `full_debris_flight_frames` === [] on all three difficulties: the
+// measurement window held no debris at all, which is what "before debris
+// admission" meant in the old name. Roadmap 4.6 step 2 made the Director read the
+// level image, and level 1 sector 1 has carried `hazards.debris: 1` since
+// `28bd1e7` UNCHANGED - so the Director now admits that debris on sector entry,
+// at active gameplay frame 32, in a session that never fires. The owner smoked
+// this candidate with debris in the opening seconds and accepts it, so the
+// premise is gone for good and is not reproduced here.
+//
+// The clause's SUBJECT is kept, stated in the terms that now exist. The
+// introductory parallax cadence still reaches the debris layer, and in a no-fire
+// window the way to read it off is the FLIGHT LENGTH: a debris enters at the top
+// of the gameplay band and falls at `measured_rows_per_second.debris`, so
+// flight_seconds x that rate is the DISTANCE it crossed - and that distance is
+// the same playfield on every difficulty while the rate is not. So the relation
+// is asserted, not the three lengths:
+//
+//   - every flight crosses the 28-row gameplay band, to within one row. MEASURED
+//     from the run's own CSVs: a flight occupies exactly 28 distinct rows, y 16
+//     to y 232 in 8-scanline steps, which is the 224-scanline band / 8;
+//   - all three difficulties agree on that distance to within one row, which is
+//     the whole point - one playfield, three cadences;
+//   - the lengths fall strictly as the rate rises: every EASY flight outlasts
+//     every MEDIUM one, and every MEDIUM one outlasts every HARD one.
+//
+// A debris that does not complete its traversal fails the distance conjunct; a
+// length that does not match its own difficulty's rate fails the distance
+// conjunct and the ordering with it.
+//
+// The one-row tolerance is DERIVED, not fitted: both ends of a flight are sampled
+// at frame granularity, worth 2/50 s x 15 rows/s = 0.6 rows on HARD, and the
+// logged despawn row is the band's last full row rather than one past it.
+test("every difficulty preserves exact introductory parallax cadence through the debris layer", () => {
   const cadence = report.coverage.parallax_cadence;
-  assert.deepEqual(cadence.map(({ difficulty, full_debris_flight_frames }) =>
-    [difficulty, full_debris_flight_frames]), [[0, []], [1, []], [2, []]]);
+  assert.deepEqual(cadence.map(({ difficulty }) => difficulty), [0, 1, 2]);
+
+  // 224 scanlines of gameplay band, 8 scanlines to the character row.
+  const GAMEPLAY_BAND_ROWS = 224 / 8;
+  const distances = [];
+  for (const entry of cadence) {
+    const rate = entry.measured_rows_per_second.debris;
+    assert.ok(entry.full_debris_flight_frames.length > 0,
+      `difficulty ${entry.difficulty} measured no complete debris flight`);
+    assert.deepEqual(entry.full_debris_flight_frames.length,
+      entry.full_debris_flight_seconds.length);
+    for (const [index, frames] of entry.full_debris_flight_frames.entries()) {
+      assert.ok(Math.abs(entry.full_debris_flight_seconds[index] - frames / 50) < 1e-9,
+        `difficulty ${entry.difficulty} flight ${index}: seconds disagree with frames`);
+      const rows = frames / 50 * rate;
+      assert.ok(Math.abs(rows - GAMEPLAY_BAND_ROWS) <= 1,
+        `difficulty ${entry.difficulty}: a ${frames}-frame flight at ${rate} rows/s ` +
+        `crosses ${rows} rows, not the ${GAMEPLAY_BAND_ROWS}-row gameplay band`);
+      distances.push(rows);
+    }
+  }
+  assert.ok(Math.max(...distances) - Math.min(...distances) <= 1,
+    `the difficulties disagree on the distance crossed: ${distances.join(", ")}`);
+
+  // The cadence itself, read off the lengths: one band, crossed faster as the
+  // world rate rises.
+  const [easy, medium, hard] = cadence.map(({ full_debris_flight_frames }) =>
+    full_debris_flight_frames);
+  assert.ok(Math.min(...easy) > Math.max(...medium),
+    `every EASY flight must outlast every MEDIUM one: [${easy}] vs [${medium}]`);
+  assert.ok(Math.min(...medium) > Math.max(...hard),
+    `every MEDIUM flight must outlast every HARD one: [${medium}] vs [${hard}]`);
+
   const sessions = report.replay.sessions.filter(({ kind }) => kind === "parallax-cadence");
   assert.deepEqual(sessions.map(({ id, fire_delay }) => [id, fire_delay]), [
     ["cadence-0-sweep-nofire", 4_000],

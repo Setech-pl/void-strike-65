@@ -51,9 +51,18 @@ test("the window has room for the Director: the free tail is four digits", () =>
   assert.equal(basicWindow.capacityBytes, 3584,
     "Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B");
   assert.equal(basicWindow.address, 0xae00);
-  assert.ok(basicWindow.freeBytes >= 2000,
-    `the BASIC window reports ${basicWindow.freeBytes} free bytes; Q-1 sized the ` +
-    `step for about 2,075`);
+  // Re-recorded 2026-09-28, roadmap 4.6 step 2: 2,075 -> 1,593. The step spent
+  // the window on what Q-1 made it for - the Director's cold half: sector
+  // entry, the wave arm, the ceilings, the archetype mask and the release
+  // veneer, 482 B against the ~400 B plan §3.1 costed. The floor this asserts
+  // is therefore the one that matters from here on: what is left for roadmap
+  // 4.7's boss controller, which §3.1 sizes at 300-500 B. 1,593 B clears that
+  // three times over, and the tail is still four digits.
+  assert.ok(basicWindow.freeBytes >= 1000,
+    `the BASIC window reports ${basicWindow.freeBytes} free bytes; 4.7's boss ` +
+    `controller needs 300-500 of them`);
+  assert.equal(basicWindow.freeBytes, 1593,
+    "the delivered step-2 figure, re-recorded so a silent change is visible");
   // The tail is still the kernel link's tail, not an independent figure.
   assert.equal(basicWindow.freeBytes, lightKernel.freeBytes);
 });

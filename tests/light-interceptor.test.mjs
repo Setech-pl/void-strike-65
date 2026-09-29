@@ -105,10 +105,15 @@ const light = (image, slot = SLOT) => ({
 });
 
 // Selects the archetype the next admission will use, via the one legitimate
-// knob: the provisional schedule index. It is not a substitute lifecycle
-// toggle; it is the same mechanism the schedule itself advances.
+// knob. Re-pointed 2026-09-28 (owner decision 14): that knob was the
+// provisional schedule index, and roadmap 4.6 step 2 retired the schedule.
+// WHICH Light escorts a Heavy formation is the armed wave's own
+// `wave_member_offset`, published by director_c_try_event as
+// `heavy_escort_offset`; encounter_light_admit reads that byte and nothing
+// else. It is still not a substitute lifecycle toggle - it is the same byte
+// the Director itself writes when it arms the wave.
 function selectNextLight(image, offset) {
-  image[L("_encounter_light_index")] = offset === OFFSET_INTERCEPTOR ? 1 : 0;
+  image[L("_heavy_escort_offset")] = offset;
 }
 
 test("selection contract: the schedule names the archetype, and the reusable admission only reads it", () => {
@@ -122,20 +127,24 @@ test("selection contract: the schedule names the archetype, and the reusable adm
   }
 });
 
-test("a second admission while the slot is active changes neither the archetype nor the schedule", () => {
+// Re-pointed 2026-09-28 (owner decision 14): "the schedule does not advance"
+// is now "the admission does not rewrite the wave's byte" - the same property
+// of the same decision, read off `heavy_escort_offset` instead of the retired
+// `encounter_light_index`.
+test("a second admission while the slot is active changes neither the archetype nor the wave's byte", () => {
   const image = game();
   selectNextLight(image, OFFSET_INTERCEPTOR);
   run(image, "enemy_spawn_raiders");
   const before = light(image);
-  const indexBefore = image[L("_encounter_light_index")];
+  const escortBefore = image[L("_heavy_escort_offset")];
   image[L("light_y")] = 50;
   image[L("light_fire_timer")] = 7;
   run(image, "enemy_spawn_raiders");
   assert.equal(light(image).offset, before.offset, "still active, so still the same archetype");
   assert.equal(image[L("light_y")], 50, "an active Light keeps its own lifecycle, untouched");
   assert.equal(image[L("light_fire_timer")], 7);
-  assert.equal(image[L("_encounter_light_index")], indexBefore,
-    "the schedule does not advance while the slot is busy");
+  assert.equal(image[L("_heavy_escort_offset")], escortBefore,
+    "admission reads the armed wave's escort byte and never writes it");
 });
 
 test("source contract: the Light admission and tick hold no ordering or toggle logic", () => {
@@ -148,24 +157,37 @@ test("source contract: the Light admission and tick hold no ordering or toggle l
   assert.doesNotMatch(lifecycleSource, /light_archetype\[[^\]]*\]\s*\^=/,
     "no XOR toggle of the selected archetype");
   // Step 3: three writers, all of them the same decision reaching the slot -
-  // the schedule names the archetype, light_admit copies that name into the
-  // slot it takes, and init clears every slot. No fourth path may appear.
+  // the wave names the archetype, light_admit copies that name into the slot it
+  // takes, and init clears every slot. No fourth path may appear.
   const assignments = [...lifecycleSource.matchAll(/light_archetype\[[^\]]*\]\s*=[^=]/g)];
   assert.equal(assignments.length, 3,
-    "light_archetype[] writers: the schedule, light_admit, and the init clear");
+    "light_archetype[] writers: the wave admission, light_admit, and the init clear");
   assert.match(lifecycleSource, /light_archetype\[light_slot\]\s*=\s*light_record;/);
-  const scheduleFunction = lifecycleSource.slice(
-    lifecycleSource.indexOf("static void encounter_light_schedule_advance"),
-    lifecycleSource.indexOf("void lifecycle_c_init"));
-  assert.match(scheduleFunction,
-    /light_record\s*=\s*encounter_light_schedule\[encounter_light_index\]/);
-  assert.match(scheduleFunction, /light_archetype\[light_slot\]\s*=\s*light_record/);
+  // Re-pointed 2026-09-28 (owner decision 14). This slice used to be
+  // encounter_light_schedule_advance and the two-entry schedule it indexed with
+  // encounter_light_index; roadmap 4.6 step 2 retired both. The contract is
+  // unchanged - ONE decision names the archetype and everything downstream only
+  // reads it - and the decision is now the armed WaveDef, reaching the slot on
+  // exactly two paths: the escort of a Heavy wave, and the members of a Light
+  // wave. Both take it from a byte director_c_try_event published.
+  const escortAdmit = lifecycleSource.slice(
+    lifecycleSource.indexOf("static void encounter_light_admit"),
+    lifecycleSource.indexOf("static void light_wave_step"));
+  assert.match(escortAdmit, /light_record\s*=\s*heavy_escort_offset;/);
+  assert.match(escortAdmit, /light_archetype\[light_slot\]\s*=\s*light_record/);
+  const waveStep = lifecycleSource.slice(
+    lifecycleSource.indexOf("static void light_wave_step"),
+    lifecycleSource.indexOf("void enemy_c_light_wave"));
+  assert.match(waveStep, /light_record\s*=\s*light_wave_archetype;/);
+  assert.doesNotMatch(lifecycleSource,
+    /encounter_light_schedule|encounter_light_index|encounter_light_schedule_advance/,
+    "no schedule and no counter may come back: the wave names the archetype");
   // The reusable admission and tick only ever read the offset.
   const spawnRaiders = lifecycleSource.slice(
     lifecycleSource.indexOf("void enemy_c_spawn_raiders"),
     lifecycleSource.indexOf("uint8_t enemy_c_retire_member"));
   assert.doesNotMatch(spawnRaiders, /light_archetype\[[^\]]*\]\s*=(?!=)/,
-    "enemy_c_spawn_raiders must not itself assign the offset outside the schedule call");
+    "enemy_c_spawn_raiders must not itself assign the offset outside the admission call");
   // Step 2: the motion and cadence live in light_tick_body; enemy_c_light_tick
   // wraps it so the appearance install can replace the return without
   // swallowing the body. The offset is hoisted once, in the body, and nowhere
@@ -178,28 +200,51 @@ test("source contract: the Light admission and tick hold no ordering or toggle l
   assert.match(lightTick, /light_record\s*=\s*light_archetype\[light_slot\]/);
 });
 
-test("provisional schedule: a fresh game yields Wingman then Interceptor, then repeats", () => {
-  // 4.5c: the temporary Heavy smoke scheduler cycles Raider, Bomber; only the
-  // Raider formation carries a Light escort, so the Light schedule advances
-  // once per Raider formation and Bomber formations admit no Light.
+// Re-pointed 2026-09-28 (owner decision 14). The retired test drove five
+// formations off two smoke schedulers at once - the Heavy one cycling
+// Raider/Bomber and the two-entry Light one cycling Wingman/Interceptor - and
+// pinned the sequence they produced together. Roadmap 4.6 step 2 retired both
+// schedulers, so the automatic ROTATION is gone and is not reproduced here:
+// which archetype a wave names is authored level data, pinned in
+// tests/level-one-equivalence.test.mjs. Every other property the sequence
+// encoded still exists, unchanged, and is what this now drives from the bytes
+// the Director publishes: a wave naming the Wingman admits it as an ESCORT
+// (state 1), a wave naming the Interceptor admits it FREE (state 2), a wave
+// carrying NO_ESCORT admits nothing, and each formation wears the archetype
+// its own wave named.
+test("the armed wave names the escort: Wingman escorts, Interceptor flies free, NO_ESCORT admits none", () => {
   const OFFSET_RAIDER = 0;
   const OFFSET_BOMBER = 36;
+  const NO_ESCORT = 0xff;
   const image = game();
-  const admit = () => {
+  const admit = (heavy, escort) => {
+    image[L("_heavy_archetype_offset")] = heavy;
+    image[L("_heavy_escort_offset")] = escort;
     run(image, "enemy_spawn_raiders");
     // light(image).state normalises the two alive values (1 escort, 2 free)
     // that replaced the light_leaderless byte.
+    // light(image).state is alive/not; `leaderless` is the 1-vs-2 discriminator
+    // encounter_light_admit sets from the archetype the wave named - ESCORT for
+    // the Wingman, FREE for anything else - and it is carried in the tuple here
+    // because "flies free" is half of what this test is about.
     const formation = [image[L("heavy_archetype_offset")], light(image).state,
-      light(image).state === 0 ? null : light(image).offset];
+      light(image).state === 0 ? null : light(image).offset,
+      light(image).leaderless];
     image[L("light_state")] = 0;      // retire so the next call re-admits
     return formation;
   };
-  assert.deepEqual([admit(), admit(), admit(), admit(), admit()], [
-    [OFFSET_RAIDER, 1, OFFSET_WINGMAN],
-    [OFFSET_BOMBER, 0, null],
-    [OFFSET_RAIDER, 1, OFFSET_INTERCEPTOR],
-    [OFFSET_BOMBER, 0, null],
-    [OFFSET_RAIDER, 1, OFFSET_WINGMAN],
+  assert.deepEqual([
+    admit(OFFSET_RAIDER, OFFSET_WINGMAN),
+    admit(OFFSET_BOMBER, NO_ESCORT),
+    admit(OFFSET_RAIDER, OFFSET_INTERCEPTOR),
+    admit(OFFSET_BOMBER, NO_ESCORT),
+    admit(OFFSET_RAIDER, OFFSET_WINGMAN),
+  ], [
+    [OFFSET_RAIDER, 1, OFFSET_WINGMAN, 0],
+    [OFFSET_BOMBER, 0, null, 0],
+    [OFFSET_RAIDER, 1, OFFSET_INTERCEPTOR, 1],
+    [OFFSET_BOMBER, 0, null, 0],
+    [OFFSET_RAIDER, 1, OFFSET_WINGMAN, 0],
   ]);
 });
 
@@ -402,7 +447,14 @@ test("placement contract: legal composite and packed size, state inside its rese
   // ruled out precisely because this window has no room for 36 more bytes:
   // 5 -> 3. Three bytes is the whole remaining fill; the next session to want
   // this window must free some first.
-  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 3);
+  // Re-recorded 2026-09-28, roadmap 4.6 step 2: 3 -> 49. No byte was spent for
+  // this - the Heavy smoke scheduler, the Light escort schedule, its
+  // entry-column cycle and its per-difficulty spacing table were retired into
+  // WaveDef fields, and what they used to occupy in this window came back as
+  // fill. It is the largest this tail has been; the figure is recorded, not
+  // budgeted, and the next session to want the window should read it as room
+  // step 2 released rather than room that was always there.
+  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 49);
   // Owner decision X + Light multiplicity steps 1a-3. The Light C left the
   // extension for the code window and the kernel left for its own link, which
   // took the scarce 19-B tail to 451; step 3's multi-slot ASM then overran the
@@ -429,7 +481,10 @@ test("placement contract: legal composite and packed size, state inside its rese
   // Heavy's C, and lifecycle_c_init's clear cost this composite 3 again:
   // extension 880 -> 883 B. The tail this manifest reports is the extension
   // window's, 19 -> 16 B.
-  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 16);
+  // Re-recorded 2026-09-28, roadmap 4.6 step 2: 16 -> 25. Like the fill above,
+  // no byte was spent for it - the two retired schedulers and their tables gave
+  // 9 B of this window back.
+  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 25);
   // Both moved down 4 B in music v2 §10.2: the v1 gameplay player's
   // self-modified read tail was at $9D21, ahead of the art tables, and went
   // with the v1 player. Nothing about the tables themselves changed.
@@ -455,22 +510,41 @@ test("placement contract: legal composite and packed size, state inside its rese
   // REBASELINED at step 5: 48 B is the ten per-slot arrays plus the cell-major
   // backing, and it was the whole segment only at step 1a. Steps 2-4 added the
   // resolver's two scratch bytes, the appearance-pair table and the ceilings,
-  // live count and wave state beside them, so the SEGMENT is the full 60 B the
-  // cfg reserves and HYBRID_LIGHT_SLOTS is exactly full - which is half the
-  // reason owner fix (a)'s byte had to go to $8126.
+  // live count and wave state beside them, so the SEGMENT filled the 60 B the
+  // cfg reserves - which was half the reason owner fix (a)'s byte had to go to
+  // $8126.
+  // Re-recorded 2026-09-28, roadmap 4.6 step 2: 60 -> 59. The Light escort
+  // schedule's entry-column cycle left this area for a WaveDef field, so the
+  // segment is one byte short of its reservation for the first time since step
+  // 1a. ONE byte is not room for a design: the placement decision the next
+  // Light-class growth needs still stands.
   assert.deepEqual([L("__HYBRID_LIGHT_SLOTS_RUN__"), L("__HYBRID_LIGHT_SLOTS_SIZE__")],
-    [0x7fc4, 60], "the Light slot segment fills $7FC4-$7FFF");
+    [0x7fc4, 59], "the Light slot segment fills $7FC4-$7FFE, 1 B short of its 60");
   assert.ok(L("__HYBRID_LIGHT_SLOTS_RAM_LAST__") <= 0x8000,
     "the slot arrays must stop before ENTITY_STATE at $8000");
-  assert.equal(L("light_state"), 0x7fc4);
+  // Re-recorded 2026-09-28, roadmap 4.6 step 2: the per-slot arrays start at
+  // $7FCA, not at the segment's own $7FC4. The six bytes now ahead of them are
+  // the armed LIGHT wave - light_wave_lock, _remaining, _timer, _entry,
+  // _archetype, _spacing_frames - which is the schedule's replacement and was
+  // declared into this segment. The arrays themselves and their order are
+  // unchanged; only the base moved.
+  assert.equal(L("light_state"), 0x7fca);
+  assert.equal(L("_light_wave_lock"), 0x7fc4, "the armed wave heads the segment");
   // Cell-major backing: LIGHT_SLOT_COUNT * LIGHT_CELL_COUNT = 8 B, so the two
   // cells of a slot are adjacent and the erase/render loops index by cell.
   assert.equal(L("light_backing0") - L("light_state"), 4 * 7);
   // cc65 emits the HYBRID_ENCOUNTER_STATE bytes in reverse declaration order.
-  assert.equal(L("_encounter_heavy_index"), 0x8119);
-  assert.equal(L("_encounter_light_index"), 0x811a);
+  // Re-pointed 2026-09-28 (owner decision 14): the segment is unmoved and still
+  // exactly two bytes, but roadmap 4.6 step 2 retired the two provisional
+  // schedule counters that lived in it and put the armed wave's Heavy half
+  // there instead - src/c/director.c heavy_escort_offset and heavy_wave_flags,
+  // as src/c/lifecycle.c's own comment records. What this pins is what it
+  // always pinned: the segment's address, its size, and that nothing else got
+  // in.
+  assert.equal(L("_heavy_escort_offset"), 0x8119);
+  assert.equal(L("_heavy_wave_flags"), 0x811a);
   assert.deepEqual([L("__HYBRID_ENCOUNTER_STATE_RUN__"), L("__HYBRID_ENCOUNTER_STATE_SIZE__")],
-    [0x8119, 2], "the two provisional schedule counters are the only bytes of their segment");
+    [0x8119, 2], "the armed wave's two Heavy bytes are the only bytes of their segment");
   assert.equal(manifest.encounterDirector.director.footprint.cStackBytes, 0);
   assert.equal(manifest.encounterDirector.director.footprint.zeroPageBytes, 0);
 });

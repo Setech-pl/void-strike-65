@@ -256,9 +256,15 @@ test("release gameplay remains one Interceptor with the accepted behaviour and s
   assert.match(source, /reset_enemy:[\s\S]+jsr HYBRID_ENEMY_SPAWN_RAIDERS/);
   // 4.5c: the roster shape comes from the selected Heavy formation; a fresh
   // game starts on the Raider shape.
+  // Re-pointed 2026-09-28 (owner decision 14): the selected formation is no
+  // longer a position in the retired smoke schedule. director_c_try_event
+  // publishes the armed wave's archetype as a byte offset, enemy_c_spawn_raiders
+  // turns it into the record index heavy_index, and the roster shape is read at
+  // that index. Same table, same decision, named the way the runtime names it.
   assert.match(lifecycleSource, /ENEMY_ARCHETYPE = ROSTER_SHAPE_RAIDER/);
   assert.match(lifecycleSource,
-    /ENEMY_ARCHETYPE = encounter_heavy_roster_shape\[encounter_heavy_index\]/);
+    /ENEMY_ARCHETYPE = heavy_roster_shape\[heavy_index\]/);
+  assert.doesNotMatch(lifecycleSource, /encounter_heavy_roster_shape|encounter_heavy_index/);
   assert.match(source,
     /update_fighter_projectiles:[\s\S]+DAMAGE_PLAYER_PROJECTILE[\s\S]+jsr queue_enemy_damage/);
   assert.match(source, /handle_collisions:[\s\S]+jsr resolve_enemy_damage/);

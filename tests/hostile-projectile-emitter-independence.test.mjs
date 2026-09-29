@@ -249,7 +249,11 @@ for (const file of ["build/void-strike-65.lbl", "build/encounter-director.lbl",
 }
 const L = (name) => requiredLabel(lightLabels, name);
 
-function lightGame(archetypeIndex) {
+// Re-pointed 2026-09-28 (owner decision 14): the caller names the escort by
+// its archetype byte offset, which is what the armed wave publishes as
+// `heavy_escort_offset` since roadmap 4.6 step 2, instead of by a position in
+// the retired two-entry Light schedule.
+function lightGame(escortOffset) {
   const image = new Uint8Array(0x10000);
   installRuntimeSegments(image, root);
   for (let row = 0; row < 27; row += 1) {
@@ -259,7 +263,7 @@ function lightGame(archetypeIndex) {
   }
   image[L("DIFFICULTY_SETTING")] = 2;
   run(image, "director_init", { a: 0x6d });
-  image[L("_encounter_light_index")] = archetypeIndex;
+  image[L("_heavy_escort_offset")] = escortOffset;
   run(image, "enemy_spawn_raiders");
   return image;
 }
@@ -293,8 +297,8 @@ function run(image, name, { a = 0, x = 0, y = 0 } = {}) {
 }
 
 test("Light Wingman and Interceptor shots survive the Light's destruction", () => {
-  for (const [archetypeIndex, offset, weaponClass] of [[0, 12, PULSE], [1, 24, 2]]) {
-    const image = lightGame(archetypeIndex);
+  for (const [offset, weaponClass] of [[12, PULSE], [24, 2]]) {
+    const image = lightGame(offset);
     assert.equal(image[L("light_archetype_offset")], offset);
     image[L("ENEMY_MEMBER_STATE")] = 1;
     image[L("ENEMY_X")] = 80;

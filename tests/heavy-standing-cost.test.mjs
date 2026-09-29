@@ -34,8 +34,11 @@ const PLANE = [0x3d00, 0x3e00];
 const HPOS = [0xd001, 0xd002];
 const GAMEPLAY_TOP = 16;
 const GAMEPLAY_BOTTOM = 240;
+// Byte offsets into enemy_archetypes[] (12 B per record), which is what
+// `heavy_archetype_offset` carries. Re-pointed 2026-09-28 (owner decision 14)
+// from the retired smoke schedule's positions 0 and 1.
 const HEAVY_RAIDER = 0;
-const HEAVY_BOMBER = 1;
+const HEAVY_BOMBER = 36;
 
 function memory() {
   const image = new Uint8Array(0x10000);
@@ -68,11 +71,16 @@ function run(image, target, { a = 0, x = 0, y = 0, hooks = {} } = {}) {
 
 // reset_enemy is the production spawn path: it seeds both members, asks C for
 // the formation and finishes with the forced draw_enemy.
-function formation(heavyIndex, difficulty = 2) {
+// Re-pointed 2026-09-28 (owner decision 14): the caller names the formation by
+// the archetype's byte offset into enemy_archetypes, which is what the armed
+// wave publishes as `heavy_archetype_offset` since roadmap 4.6 step 2, instead
+// of by a position in the retired smoke schedule. Same knob, same decision,
+// the name the runtime uses now.
+function formation(heavyOffset, difficulty = 2) {
   const image = memory();
   image[L("DIFFICULTY_SETTING")] = difficulty;
   run(image, "director_init", { a: 0x6d });
-  image[L("_encounter_heavy_index")] = heavyIndex;
+  image[L("_heavy_archetype_offset")] = heavyOffset;
   run(image, "reset_enemy");
   return image;
 }
@@ -250,8 +258,8 @@ test("a held Raider publishes X but never recopies its body", () => {
 });
 
 test("draw_enemy forces the body copy whatever the accumulator holds on entry", () => {
-  for (const heavyIndex of [HEAVY_RAIDER, HEAVY_BOMBER]) {
-    const image = formation(heavyIndex);
+  for (const heavyOffset of [HEAVY_RAIDER, HEAVY_BOMBER]) {
+    const image = formation(heavyOffset);
     for (const slot of [0, 1]) image[L("ENEMY_Y") + slot] = 96 + slot * 24;
     for (const entry of [0, 0x60, 0x78, 0xff]) {
       image.fill(0xff, PLANE[0], PLANE[1] + 0x100);
@@ -270,13 +278,13 @@ test("draw_enemy forces the body copy whatever the accumulator holds on entry", 
       for (const slot of [0, 1]) {
         const y = image[L("ENEMY_Y") + slot];
         assert.equal(planeWrites[slot].length, visibleRowCount(image, y),
-          `heavy ${heavyIndex} slot ${slot}: draw_enemy skipped a body at A=$${entry.toString(16)}`);
+          `heavy offset ${heavyOffset} slot ${slot}: draw_enemy skipped a body at A=$${entry.toString(16)}`);
         const body = bodyBase(image);
         for (let index = 0; index < bodyHeight(image); index += 1) {
           const row = y + index;
           if (row < GAMEPLAY_TOP || row >= GAMEPLAY_BOTTOM) continue;
           assert.equal(image[PLANE[slot] + row], image[body + index],
-            `heavy ${heavyIndex} slot ${slot} row ${row}`);
+            `heavy offset ${heavyOffset} slot ${slot} row ${row}`);
         }
       }
     }

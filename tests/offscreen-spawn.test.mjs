@@ -11,7 +11,11 @@ import { installRuntimeSegments } from "../scripts/runtime-image.mjs";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const source = fs.readFileSync(path.join(root, "src/main.s"), "utf8");
 const labels = new Map();
-for (const file of ["build/void-strike-65.lbl", "build/integration-glue.lbl"]) {
+// encounter-director.lbl joined the set 2026-09-28 (owner decision 14): the
+// byte that names WHICH Heavy a formation is lives in the Director's own link
+// since roadmap 4.6 step 2.
+for (const file of ["build/void-strike-65.lbl", "build/integration-glue.lbl",
+  "build/encounter-director.lbl"]) {
   for (const line of fs.readFileSync(path.join(root, file), "utf8").split(/\r?\n/)) {
     const match = /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim());
     if (match) labels.set(match[2], Number.parseInt(match[1], 16));
@@ -26,6 +30,10 @@ const DEBRIS_HEIGHT = 8;
 const PLAYER1 = 0x3d00;
 const PLAYER2 = 0x3e00;
 const PLAYER_HEALTH = 0x4e5d;
+// Byte offsets into enemy_archetypes[], which is what heavy_archetype_offset
+// carries since roadmap 4.6 step 2.
+const OFFSET_RAIDER = 0;
+const OFFSET_BOMBER = 36;
 
 function address(name) {
   const value = labels.get(name);
@@ -76,6 +84,15 @@ test("Heavy activation, respawn and both PMG slots begin wholly above gameplay",
   image[address("player_x")] = 124;
   for (let generation = 0; generation < 3; generation += 1) {
     image.fill(0, PLAYER1, PLAYER2 + 0x100);
+    // Re-pointed 2026-09-28 (owner decision 14). The three generations used to
+    // alternate Raider, Bomber, Raider because the temporary Heavy smoke
+    // scheduler alternated them; roadmap 4.6 step 2 retired it and WHICH Heavy
+    // a formation is comes from the armed wave, published as
+    // `heavy_archetype_offset`. The same three generations are driven by that
+    // byte, so the property under test - both archetypes activate wholly above
+    // gameplay, generation after generation - is measured exactly as before.
+    image[address("_heavy_archetype_offset")] =
+      generation % 2 === 1 ? OFFSET_BOMBER : OFFSET_RAIDER;
     const writes = [];
     run(image, "reset_enemy", {
       hooks: {
@@ -85,9 +102,8 @@ test("Heavy activation, respawn and both PMG slots begin wholly above gameplay",
         },
       },
     });
-    // 4.5c: the temporary Heavy smoke scheduler alternates Raider and Bomber
-    // formations; the Bomber lane sweep starts its 16-line QUAD hull at Y 0
-    // (also wholly above gameplay) with its per-slot turn timers.
+    // The Bomber lane sweep starts its 16-line QUAD hull at Y 0 (also wholly
+    // above gameplay) with its per-slot turn timers.
     const bomber = generation % 2 === 1;
     const [startY, maneuver] = bomber
       ? [GAMEPLAY_TOP - BOMBER_HEIGHT, [60, 52]] : [GAMEPLAY_TOP - HEAVY_HEIGHT, [0, 0]];

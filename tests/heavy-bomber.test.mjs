@@ -13,6 +13,7 @@ import { installRuntimeSegments } from "../scripts/runtime-image.mjs";
 // writes the formation hull colour to COLPM1/COLPM2.
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const lifecycleSource = fs.readFileSync(path.join(root, "src/c/lifecycle.c"), "utf8");
+const directorSource = fs.readFileSync(path.join(root, "src/c/director.c"), "utf8");
 const memberSource = fs.readFileSync(path.join(root, "src/hybrid/heavy-member.s"), "utf8");
 
 const labels = new Map();
@@ -36,6 +37,11 @@ const COLPM1 = 0xd013;
 const COLPM2 = 0xd014;
 const OFFSET_RAIDER = 0;
 const OFFSET_BOMBER = 36;
+// The escort half of a WaveDef, since roadmap 4.6 step 2: an archetype byte
+// offset, or NO_ESCORT ($FF, scripts/level-compiler.mjs) for a wave that brings
+// no Light with it.
+const OFFSET_WINGMAN = 12;
+const NO_ESCORT = 0xff;
 const ROSTER_SHAPE_BOMBER = 2;
 const WEAPON_BOMBER = 3;
 const LANES = [[48, 92], [132, 176]];
@@ -99,10 +105,17 @@ function game(difficulty = 2) {
   return image;
 }
 
-// A fresh game's first formation is the Raider; the second is the Bomber.
+// WHICH Heavy the next formation is. Re-pointed 2026-09-28 (owner decision 14)
+// from the retired smoke scheduler's `encounter_heavy_index` to the byte the
+// mechanism that replaced it publishes: roadmap 4.6 step 2's
+// director_c_try_event arms a wave and writes `heavy_archetype_offset =
+// wave_archetype[cursor]`, and enemy_c_spawn_raiders reads exactly that byte
+// ("the record index inside the frozen roster, from the byte offset the
+// Director published"). Poking the published offset is now the one legitimate
+// knob, as the schedule index was before it.
 function bomberFormation(difficulty = 2) {
   const image = game(difficulty);
-  image[L("_encounter_heavy_index")] = 1;
+  image[L("_heavy_archetype_offset")] = OFFSET_BOMBER;
   run(image, "enemy_spawn_raiders");
   return image;
 }
@@ -129,12 +142,24 @@ test("Bomber is the fourth 12-byte C record: 4 HP, lane sweep, 2-shell salvo, BO
     [1, 0, 1, 5, 15, 60, 50, 40, 1, 1, 0x10, 1], "the Raider record is unchanged");
 });
 
-test("the temporary Heavy schedule alternates Raider and Bomber formations with their hull colours", () => {
+// Re-pointed 2026-09-28 (owner decision 14). The retired test drove four
+// formations off the smoke scheduler and pinned the sequence it produced:
+// Raider, Bomber, Raider, Bomber. Roadmap 4.6 step 2 retired the scheduler, and
+// the ALTERNATION it produced is level data now - owner decision 8 authors it
+// wave by wave, and tests/level-one-equivalence.test.mjs pins it on all three
+// difficulties ("the twenty authored waves alternate Raider and Bomber, with no
+// repeat"). What belongs HERE, and still exists exactly as it did, is the other
+// half: a formation wears its own archetype's roster shape, hull colour and HP,
+// whichever archetype the armed wave names, and an alternating pair of waves
+// therefore alternates the hull colour on COLPM1/COLPM2. So the same four
+// formations are driven by the byte the Director publishes.
+test("an alternating pair of waves alternates the formation's roster shape, hull colour and HP", () => {
   const image = game();
   const formations = [];
-  for (let index = 0; index < 4; index += 1) {
+  for (const offset of [OFFSET_RAIDER, OFFSET_BOMBER, OFFSET_RAIDER, OFFSET_BOMBER]) {
     image[COLPM1] = 0;
     image[COLPM2] = 0;
+    image[L("_heavy_archetype_offset")] = offset;
     run(image, "enemy_spawn_raiders");
     formations.push([image[L("heavy_archetype_offset")], image[L("ENEMY_ARCHETYPE")],
       image[COLPM1], image[COLPM2], image[L("ENEMY_HP")], image[L("ENEMY_HP") + 1]]);
@@ -165,16 +190,28 @@ test("Bomber admission publishes its profile and the lane-sweep formation start"
   }
 });
 
-test("escort column: the Bomber formation admits no Light and does not advance the Light schedule", () => {
+// Re-pinned 2026-09-28 (owner decision 14). The behaviour is the same one the
+// retired test named - a Bomber formation brings no Light escort and a Raider
+// formation does - but WHICH Light escorts a Heavy formation is no longer the
+// position in a two-entry schedule (`encounter_heavy_light_escort[]` indexed by
+// `encounter_heavy_index`). It is the armed wave's own `wave_member_offset`,
+// published as `heavy_escort_offset`, and NO_ESCORT ($FF) is how a wave says it
+// brings none. encounter_light_admit reads that byte and nothing else.
+test("escort column: the escort is the armed wave's field, and a wave naming none admits none", () => {
   const image = game();
-  image[L("_encounter_heavy_index")] = 1;
-  const lightIndex = image[L("_encounter_light_index")];
+  image[L("_heavy_archetype_offset")] = OFFSET_BOMBER;
+  image[L("_heavy_escort_offset")] = NO_ESCORT;
   run(image, "enemy_spawn_raiders");
-  assert.equal(image[L("light_state")], 0);
-  assert.equal(image[L("_encounter_light_index")], lightIndex);
-  run(image, "enemy_spawn_raiders");                // Raider formation
-  assert.equal(image[L("light_state")], 1);
-  assert.equal(image[L("_encounter_heavy_index")], 1);
+  assert.equal(image[L("light_state")], 0, "a wave with NO_ESCORT admits no Light");
+  assert.equal(image[L("_heavy_escort_offset")], NO_ESCORT,
+    "admission reads the byte and never rewrites it");
+
+  image[L("_heavy_archetype_offset")] = OFFSET_RAIDER;
+  image[L("_heavy_escort_offset")] = OFFSET_WINGMAN;
+  run(image, "enemy_spawn_raiders");
+  assert.equal(image[L("light_state")], 1, "a wave naming the Wingman admits one");
+  assert.equal(image[L("_heavy_archetype_offset")], OFFSET_RAIDER,
+    "the Heavy archetype is the wave's too, and admission does not advance it");
 });
 
 test("recycle restores the Raider hull colour for the capital broadside missiles", () => {
@@ -502,12 +539,24 @@ test("emission: the veneer passes the returned class to the generic allocator (A
     [SALVO_INTERVAL, SALVO_INTERVAL], "the next shell follows burst_interval frames later");
 });
 
-test("source contract: the smoke scheduler is temporary data, placed in HYBRID_C_ARENA", () => {
-  assert.match(lifecycleSource, /TEMPORARY 4\.5 HEAVY SMOKE SCHEDULER/);
+// Re-pointed 2026-09-28 (owner decision 14). Two of the four assertions here
+// named the TEMPORARY 4.5 smoke scheduler and its two-entry escort table, and
+// roadmap 4.6 step 2 retired both - T10 requires that they be gone, so those
+// two are retired with them rather than re-pointed: there is no schedule left
+// to be temporary data. The PLACEMENT contract they shared a test with is
+// untouched and still load-bearing, so it keeps its own test, and the wave
+// fields that replaced the schedule are asserted where the schedule was.
+test("placement contract: the Heavy spawn and tick stay in HYBRID_C_ARENA, and the wave names the formation", () => {
   assert.match(lifecycleSource,
     /#pragma code-name \("HYBRID_C_ARENA"\)\s+#pragma rodata-name \("HYBRID_C_ARENA_RODATA"\)[\s\S]+void enemy_c_spawn_raiders[\s\S]+uint8_t enemy_c_heavy_tick/);
-  assert.match(lifecycleSource,
-    /encounter_heavy_light_escort\[ENCOUNTER_HEAVY_SCHEDULE_LENGTH\] = \{\s+1u, 0u\s+\}/);
+  // What replaced the schedule: the armed wave publishes both bytes, and the
+  // spawn reads them. No counter, no table.
+  assert.match(directorSource,
+    /heavy_archetype_offset = wave_archetype\[director_scratch0\];/);
+  assert.match(directorSource,
+    /heavy_escort_offset = wave_member_offset\[director_scratch0\];/);
+  assert.doesNotMatch(lifecycleSource, /encounter_heavy_schedule|encounter_heavy_index|encounter_heavy_light_escort/);
+  assert.doesNotMatch(lifecycleSource, /TEMPORARY 4\.5 HEAVY SMOKE SCHEDULER/);
   assert.doesNotMatch(lifecycleSource, /HYBRID_C_HEAVY/);
 });
 

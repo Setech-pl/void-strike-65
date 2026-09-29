@@ -39,13 +39,33 @@ function call(m, name) {
   return m.cpu.a;
 }
 
+// SectorDef arrays are MAX_SECTORS long (scripts/level-compiler.mjs).
+const MAX_SECTORS = 10;
+// Byte offset of the Light Wingman record in enemy_archetypes[].
+const OFFSET_WINGMAN = 12;
+const OFFSET_INTERCEPTOR = 24;
+
 // Fill `count` slots through the REAL admission entry, never by poking the
 // arrays: plan §5.2 is explicit about that, and it is what makes the ceiling,
-// the appearance pairs and the token all take part. The ceilings are policy
-// bytes, so raising them needs no build flag.
+// the appearance pairs and the token all take part.
+//
+// Re-pointed 2026-09-28 (owner decision 14). The ceiling used to be three
+// policy bytes - light_ceiling_swarm/elite/capital - and raising it was one
+// poke. Roadmap 4.6 step 2 retired them: the ceiling is
+// director_c_light_ceiling(), which is min(the sector's own cap nibble in the
+// level image, the runtime's subtype_ceiling_light row for that sector's kind).
+// So the test raises BOTH halves, which is the same decision reaching the same
+// admission through the two places that now hold it. Every row of the runtime
+// table and every sector's cap is raised, so the harness does not depend on
+// which sector or kind the poked core page happens to name.
 function populate(m, count) {
-  m.memory[L("_light_ceiling_swarm")] = count;
-  m.memory[L("_light_ceiling_elite")] = count;
+  for (let row = 0; row < 4; row += 1) {
+    m.memory[L("_subtype_ceiling_light") + row] = count;
+  }
+  for (let sector = 0; sector < MAX_SECTORS; sector += 1) {
+    const caps = m.memory[L("_sector_caps") + sector];
+    m.memory[L("_sector_caps") + sector] = (caps & 0xf0) | (count & 0x0f);
+  }
   // SET-UP ONLY. Admission is a token consumer, and each frame's token is
   // already claimed by the previous frame's tick, so reaching the population
   // under a budget of one would take dozens of frames and is not what is being
@@ -59,6 +79,15 @@ function populate(m, count) {
     // a Heavy formation, so the formation is recycled first - which is what
     // the game does between formations, and what arms the provisional wave in
     // the forced-population build.
+    // WHICH Light the escort is, named the way a WaveDef names it. The retired
+    // two-entry schedule alternated Wingman and Interceptor by itself, and the
+    // population this test measures is that alternation: a Wingman admits as
+    // an ESCORT and an Interceptor FREE, and a free-flying Light fires on its
+    // own where an escort's fire follows its leader. With the schedule gone the
+    // byte must be named, or the admission reads whatever director_init left in
+    // it and the measured frame is not the frame this test is about.
+    m.memory[L("_heavy_escort_offset")] =
+      liveCount(m) % 2 === 0 ? OFFSET_WINGMAN : OFFSET_INTERCEPTOR;
     call(m, "enemy_recycle");
     call(m, "enemy_spawn_raiders");
     frame(m);

@@ -26,6 +26,9 @@ const L = (name) => {
   return address;
 };
 
+// src/c/lifecycle.c: the Director's flag byte, whose bit 7 is CAPITAL_DUE.
+const DIRECTOR_STATE_FLAGS = 0x80fe;
+
 const CHARSET = 0x4400;
 const LIGHT_CODE_LEFT = 120 | 0x80;
 // Owner bits 0-2 ($06) | weapon_class PULSE (1) << 3.
@@ -216,15 +219,24 @@ test("Light kernel placement is legal, resident and inside every reviewed gate",
   // transport: the next thing added to STARFIELD hits this wall, and the $4801
   // pickup-staging margin (16 B), long before it reaches the 1,825-B packed
   // gate. Flagged for the owner in STATUS.
-  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 7,
+  // Re-recorded 2026-09-28, roadmap 4.6 step 2: 7 -> 25. The scarcity flagged
+  // above is relieved, and not by anything added to the transport: retiring the
+  // two smoke schedulers and their tables shortened the ENTITY_CODE staging
+  // that the margin is measured against. It is still the number the next thing
+  // added to STARFIELD spends.
+  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 25,
     "ENTITY_CODE staging margin tracks the Light art tables");
   assert.equal(manifest.capitalPlayerCollisionRuntime.runAddress, 0x8b67);
   // light_add_score exactly fills the retired 17-byte BROADSIDE entry pad.
   assert.equal(L("light_add_score"), L("entity_complete_scroll_tick") + 3);
   // Step 1a: the per-slot state left $8100 for the SoA arrays at $7FC4; the
   // profile cache still starts $8110 and light_slot still heads $8100.
+  // Re-recorded 2026-09-28, roadmap 4.6 step 2: the arrays start at $7FCA, six
+  // bytes into their segment, because the armed LIGHT wave that replaced the
+  // escort schedule was declared ahead of them (light_wave_lock at $7FC4).
+  // tests/light-interceptor.test.mjs pins the segment itself.
   assert.deepEqual([L("light_state"), L("light_slot"), L("_enemy_profile_movement_id")],
-    [0x7fc4, 0x8100, 0x8110]);
+    [0x7fca, 0x8100, 0x8110]);
   assert.equal(manifest.encounterDirector.director.footprint.cStackBytes, 0);
   assert.equal(manifest.encounterDirector.director.footprint.zeroPageBytes, 0);
 });
@@ -363,7 +375,11 @@ test("light_update installs the selected archetype's art into glyphs 120/121", (
   ]);
   for (const [offset, bytes] of art) {
     const image = game(2);
-    image[L("_encounter_light_index")] = offset === 24 ? 1 : 0;
+    // Re-pointed 2026-09-28 (owner decision 14): the archetype whose art is
+    // installed is named by the armed wave's escort byte, not by a position in
+    // the retired two-entry Light schedule. The map's key is already that byte
+    // offset, so it names itself.
+    image[L("_heavy_escort_offset")] = offset;
     run(image, "enemy_spawn_raiders");
     assert.equal(image[L("light_archetype_offset")], offset);
     setLeader(image, 80, 112);
@@ -504,8 +520,16 @@ test("fighter->capital waits for the Light and capital->fighter re-admits a fres
   const state = L("CAPITAL_SECTOR_STATE");
   run(image, "enemy_spawn_raiders");
   image[L("ENEMY_ACTIVE")] = 0;       // formation already gone; the wingman remains
-  image[0x4ff8] = 600 & 0xff;
-  image[0x4ff9] = 600 >> 8;
+  // Re-pointed 2026-09-28 (owner decision 14). Poking the active-frame counter
+  // past 600 used to make the capital due, through FIRST_CAPITAL_FRAME.
+  // Roadmap 4.6 step 2 retired that frame gate: CAPITAL_DUE is raised by the
+  // Director when its row clock enters a CAPITAL sector (owner decision 3), and
+  // sector_c_update_first_capital is only the ENTRY half of the test now. So
+  // the test raises the flag the row clock raises. The ENTRY half - the drained
+  // playfield, the unpublished Light, the sector state - is what this test is
+  // about and is untouched.
+  const CAPITAL_DUE = 0x80;           // src/c/lifecycle.c DIRECTOR_FLAG_CAPITAL_DUE
+  image[DIRECTOR_STATE_FLAGS] |= CAPITAL_DUE;
   assert.equal(run(image, "sector_update_first_capital").a, 0);
   assert.equal(image[state], 7);
   image[state] = 0;                   // any non-fighter sector retires it at once
@@ -513,8 +537,10 @@ test("fighter->capital waits for the Light and capital->fighter re-admits a fres
   assert.equal(light(image).state, 0);
   image[state] = 7;
   image[L("light_screen_hi")] = 0x81; // retired but not yet unpublished late
+  image[DIRECTOR_STATE_FLAGS] |= CAPITAL_DUE;
   assert.equal(run(image, "sector_update_first_capital").a, 0);
   image[L("light_screen_hi")] = 0;
+  image[DIRECTOR_STATE_FLAGS] |= CAPITAL_DUE;
   assert.equal(run(image, "sector_update_first_capital").a, 1);
   assert.equal(image[state], 0);
 
@@ -524,13 +550,13 @@ test("fighter->capital waits for the Light and capital->fighter re-admits a fres
   // construction, and poking one here would instead read as a live slot and
   // block the re-admission the test is about.
   image[state] = 7;                   // post-capital OPEN
-  // The provisional schedule advanced past Wingman on the first admission;
-  // preset it back to demonstrate the fresh Wingman re-admission explicitly,
-  // independent of the provisional Wingman/Interceptor smoke order.
-  image[L("_encounter_light_index")] = 0;
-  // 4.5c: the first admission also advanced the temporary Heavy scheduler to a
-  // Bomber formation, which carries no Light escort; preset the Raider one.
-  image[L("_encounter_heavy_index")] = 0;
+  // Re-pointed 2026-09-28 (owner decision 14). Both presets said the same thing
+  // in the retired schedulers' terms - "make the next formation a Raider with a
+  // Wingman escort" - so that the fresh re-admission is demonstrated
+  // explicitly and not as a side effect of a smoke order. Roadmap 4.6 step 2
+  // put both of those in the armed wave, so the preset is the wave's two bytes.
+  image[L("_heavy_archetype_offset")] = 0;            // Raider
+  image[L("_heavy_escort_offset")] = 12;              // Wingman
   run(image, "enemy_spawn_raiders");
   assert.deepEqual([light(image).state, light(image).hp, light(image).leaderless], [1, 1, 0]);
 });

@@ -5437,7 +5437,10 @@ function main() {
     const evidencePath = path.join(buildDirectory, "weapon-pickup-traversal-evidence.json");
     const maximumWall = Math.max(...traversalRows.map((row) => row.wall_cycles));
     fs.writeFileSync(evidencePath, `${JSON.stringify({
-      session: "weapon-pickup-traversal-2-observe-fire8",
+      // The id, not a copy of it. The session's fire delay is part of its
+      // name and has already moved once (4 -> 8); a literal here silently
+      // points the evidence at a replay that no longer exists.
+      session: weaponPickupTraversalSessions[0].id,
       emulator: "Atari800 7.1.2 PAL/XL",
       production_artifact: path.relative(rootDirectory, xexPath),
       first_complete_traversal: {
@@ -5464,7 +5467,7 @@ function main() {
       },
       screenshot_sequence: path.relative(rootDirectory, pickupTraversalContactPath),
       raw_trace: path.relative(rootDirectory,
-        path.join(buildDirectory, "weapon-pickup-traversal-2-observe-fire8.csv")),
+        path.join(buildDirectory, `${weaponPickupTraversalSessions[0].id}.csv`)),
       passed: true,
     }, null, 2)}\n`);
   }

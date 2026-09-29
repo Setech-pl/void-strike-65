@@ -132,12 +132,19 @@ test("capital freezes pending, releases active, and preserves the slot-2 booster
   image[state + 1] = 2; image[mask] = 3; image[count] = 2;
   image[labels.get("ENTITY_SCREEN_LO") + 1] = 40;
   image[labels.get("ENTITY_SCREEN_HI") + 1] = 1;
-  image.fill(0xff, 0x3b28, 0x3b38);
+  // RE-POINTED 2026-09-28 (owner decision, docs/plans/pickup-colour.md §7
+  // item 2): the capsule is one PLAYER3 image, so the sixteen rows the sector
+  // release must blank are at $3F28-$3F37, not $3B28-$3B37. The assertion is
+  // unchanged -- an ACTIVE capsule leaves nothing behind on its plane when the
+  // capital sector takes it -- and it is now stronger than it was, because the
+  // missile plane it used to read has a second writer (the broadside warning
+  // marks) while PLAYER3 in OPEN has none.
+  image.fill(0xff, 0x3f28, 0x3f38);
   run(image, "weapon_pickup_clear_sector");
   assert.equal(image[state + 1], 0);
   assert.equal(image[mask], 1);
   assert.equal(image[count], 1);
   assert.equal(image[state + 2], 3);
   assert.equal(image[timer + 2], 0xf4);
-  assert.equal([...image.subarray(0x3b28, 0x3b38)].every((value) => value === 0), true);
+  assert.equal([...image.subarray(0x3f28, 0x3f38)].every((value) => value === 0), true);
 });

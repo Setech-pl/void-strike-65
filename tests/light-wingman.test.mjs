@@ -224,7 +224,12 @@ test("Light kernel placement is legal, resident and inside every reviewed gate",
   // two smoke schedulers and their tables shortened the ENTITY_CODE staging
   // that the margin is measured against. It is still the number the next thing
   // added to STARFIELD spends.
-  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 25,
+  // Re-recorded 2026-09-28, the pickup capsule on PLAYER3 (owner decision,
+  // docs/plans/pickup-colour.md §7): 25 -> 38, again by SHORTENING the
+  // ENTITY_CODE staging the margin is measured against rather than by adding
+  // anything to the transport. It is still the number the next thing added to
+  // STARFIELD spends.
+  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 38,
     "ENTITY_CODE staging margin tracks the Light art tables");
   assert.equal(manifest.capitalPlayerCollisionRuntime.runAddress, 0x8b67);
   // light_add_score exactly fills the retired 17-byte BROADSIDE entry pad.

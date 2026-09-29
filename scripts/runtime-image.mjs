@@ -149,6 +149,45 @@ export function installBootArtifact(memory, rootDirectory, artifact) {
   return { manifest, requiresBroadsideUnpack: true };
 }
 
+// PUBLISH THE ENEMY PROFILE THE ADMISSION PATH WOULD HAVE PUBLISHED.
+//
+// ENEMY_PROFILE_SCORE_BCD is a C global in HYBRID_C_STATE, written by
+// heavy_publish_profile (src/c/lifecycle.c) when a Heavy formation is admitted
+// and read by add_archetype_score_tail (src/main.s) when a kill scores. A
+// harness that pokes ENEMY_* directly and calls an ASM routine never admits
+// anything through C, so the byte was never written -- and it sits inside the
+// $8100 GLUE hold, which boot-only A2 staging passes through. Every "score"
+// assertion in these isolation traces was therefore reading a LEFTOVER STAGING
+// BYTE, and the values they pin are what that byte happened to be: $0A at main
+// 2c4c193, which in decimal mode normalises to exactly the $10 the roster
+// authors, which is why it looked right.
+//
+// MEASURED 2026-09-28: shortening the packed stream by 26 B (the pickup
+// capsule's move to PLAYER3) moved that byte to $2F, and five tests across four
+// files changed their expected scores by +$25 each, with no runtime change
+// whatsoever. The correction is the observer, not the assertion: publishing the
+// authored score leaves every existing expectation byte-for-byte true, because
+// BCD $0A and $10 add identically, and makes it true for the right reason.
+//
+// All three roster entries score $10; a harness that selects another roster
+// must republish this byte itself.
+export function publishEnemyProfileScore(memory, rootDirectory) {
+  const abi = fs.readFileSync(
+    path.join(rootDirectory, "build", "director-abi.inc"), "utf8");
+  const address = /^ENEMY_PROFILE_SCORE_BCD = \$([0-9A-Fa-f]{4})$/m.exec(abi);
+  if (address === null) {
+    throw new Error("build/director-abi.inc has no ENEMY_PROFILE_SCORE_BCD");
+  }
+  const roster = fs.readFileSync(
+    path.join(rootDirectory, "build", "enemy-roster.inc"), "utf8");
+  const scores = /\.macro EMIT_ENEMY_SCORES\s*\n\s*\.byte ([^\n]+)/.exec(roster);
+  if (scores === null) {
+    throw new Error("build/enemy-roster.inc has no EMIT_ENEMY_SCORES");
+  }
+  memory[parseInt(address[1], 16)] =
+    parseInt(scores[1].split(",")[0].trim().replace("$", ""), 16);
+}
+
 export function readRuntimeBytes(rootDirectory, address, length) {
   invariant(Number.isInteger(address) && Number.isInteger(length) && length >= 0,
     "Runtime byte range must use non-negative integer addresses and lengths");

@@ -1402,6 +1402,11 @@ function publishedPlayerFighterRuns(x, y, base = PLANE_P0) {
   return publishedImageRuns(armPublishedPlayerFighter(x, y), base);
 }
 
+// RE-POINTED 2026-09-28 (owner decision, docs/plans/pickup-colour.md §7 items
+// 2-3): the live ship is ONE PLAYER0 image. Its amber P3 "plume" reached no
+// pixel, and PLAYER3 belongs to the pickup capsule now, so the harness must not
+// arm HPOSP3 either: a stale P3 position here would describe a ship the runtime
+// no longer publishes.
 function armPublishedPlayerFighter(x, y) {
   const memory = createRuntimeMemory();
   initialiseRows(memory);
@@ -1410,7 +1415,6 @@ function armPublishedPlayerFighter(x, y) {
   memory[addresses.playerX] = x;
   memory[addresses.playerY] = y;
   memory[HPOSP0] = x;
-  memory[HPOSP3] = x;
   runRoutine(memory, "draw_player");
   return memory;
 }
@@ -1492,13 +1496,17 @@ test("the deferred death sequence publishes exactly one PlayerFighter image from
     [PLAYER_RESPAWN_X, PLAYER_RESPAWN_Y]);
 
   // Exactly one image, and it is the respawned ship at the corridor centre.
+  // The PLAYER3 half of this clause is now its OPPOSITE, and stronger for it:
+  // the ship publishes no P3 image at all, so the plane must be EMPTY. A
+  // restarted explosion -- the regression this test exists for -- publishes its
+  // outer mask to P3, so an empty P3 is exactly the proof that none fired.
   assert.deepEqual(publishedImageRuns(memory, PLANE_P0), respawnedShipRuns,
     "the respawn frame must publish exactly one PLAYER0 image, at the respawn rows");
-  assert.deepEqual(publishedImageRuns(memory, PLANE_P3),
-    publishedPlayerFighterRuns(PLAYER_RESPAWN_X, PLAYER_RESPAWN_Y, PLANE_P3),
-    "the respawn frame must publish exactly one PLAYER3 image, at the respawn rows");
-  assert.deepEqual([memory[HPOSP0], memory[HPOSP3]], [PLAYER_RESPAWN_X, PLAYER_RESPAWN_X],
-    "the respawn frame must end with both PMG halves at the respawn HPOS");
+  assert.deepEqual(publishedImageRuns(memory, PLANE_P3), [],
+    "the respawn frame must leave PLAYER3 empty: it is the capsule's plane, and "
+    + "any image on it here is a restarted explosion");
+  assert.equal(memory[HPOSP0], PLAYER_RESPAWN_X,
+    "the respawn frame must end with the ship at the respawn HPOS");
   assert.equal(memory[COLBK], GAMEPLAY_BACKGROUND_COLOR,
     "no death flash may replay in the respawn frame");
   assert.deepEqual([memory[explosionX], memory[explosionY]], [deathX - 4, deathY + 4],
@@ -1510,8 +1518,10 @@ test("the deferred death sequence publishes exactly one PlayerFighter image from
     assert.equal(memory[slot], 0, `frame N+${frame}: the explosion slot must stay idle`);
     assert.deepEqual(publishedImageRuns(memory, PLANE_P0), respawnedShipRuns,
       `frame N+${frame}: a second PLAYER0 image was published after the respawn`);
-    assert.deepEqual([memory[HPOSP0], memory[HPOSP3]], [PLAYER_RESPAWN_X, PLAYER_RESPAWN_X],
-      `frame N+${frame}: the PMG halves left the respawn HPOS`);
+    assert.deepEqual(publishedImageRuns(memory, PLANE_P3), [],
+      `frame N+${frame}: an image appeared on the capsule's plane after the respawn`);
+    assert.equal(memory[HPOSP0], PLAYER_RESPAWN_X,
+      `frame N+${frame}: the ship left the respawn HPOS`);
     assert.equal(memory[COLBK], GAMEPLAY_BACKGROUND_COLOR,
       `frame N+${frame}: a death flash replayed during the respawn`);
   }
@@ -1539,7 +1549,9 @@ test("the deferred begin still fires when the player dies at the respawn row", (
   assert.equal(memory[slot], 0, "no deferred begin may fire on the finishing frame");
   assert.deepEqual(publishedImageRuns(memory, PLANE_P0), respawnedShipRuns,
     "the respawned ship must be whole and alone");
-  assert.deepEqual([memory[HPOSP0], memory[HPOSP3]], [PLAYER_RESPAWN_X, PLAYER_RESPAWN_X]);
+  assert.deepEqual(publishedImageRuns(memory, PLANE_P3), [],
+    "the capsule's plane must be empty: no restarted explosion published to it");
+  assert.equal(memory[HPOSP0], PLAYER_RESPAWN_X);
 
   // The restarted explosion used to erase live ship rows at its own expiry.
   for (let frame = 26; frame <= 50; frame += 1) runDeathSequenceFrame(memory);

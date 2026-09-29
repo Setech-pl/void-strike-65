@@ -70,8 +70,16 @@ test("runtime assigns one monochrome body to P1 and P2 and leaves player PMG int
   assert.match(source, /sta COLPM1\s+sta COLPM2/);
   assert.match(source,
     /lda ENEMY_TARGET_SLOT[\s\S]+adc #>PLAYER1[\s\S]+sta @body_store\+2[\s\S]+sta PLAYER1,y/);
-  assert.match(source,
-    /draw_player:[\s\S]+sta PLAYER0,y[\s\S]+sta PLAYER3,y[\s\S]+cpx #PLAYER_H/);
+  // RE-POINTED 2026-09-28 (owner decision, docs/plans/pickup-colour.md §7
+  // items 2-3 and 6): the ship publishes PLAYER0 alone. Its amber P3 plume
+  // reached no pixel and PLAYER3 is the pickup capsule's now. What this test is
+  // about -- the Heavy owns P1/P2 and must not disturb the player's planes --
+  // is unchanged and is asserted more directly: draw_player touches neither
+  // P1/P2 nor P3.
+  const drawPlayer = source.slice(source.indexOf("draw_player:"),
+    source.indexOf("draw_player_for_lifecycle:"));
+  assert.match(drawPlayer, /sta PLAYER0,y[\s\S]+cpx #PLAYER_H/);
+  assert.doesNotMatch(drawPlayer, /PLAYER1|PLAYER2|PLAYER3/);
   assert.match(source, /RAIDER_PMG_SLOT_COUNT = 2/);
   assert.match(source, /ENEMY_X:\s+\.res RAIDER_PMG_SLOT_COUNT/);
   assert.match(source, /ENEMY_Y:\s+\.res RAIDER_PMG_SLOT_COUNT/);

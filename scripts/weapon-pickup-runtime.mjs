@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { Nmos6502 } from "./nmos6502.mjs";
 import { canonicalPlayfield } from "./playfield.mjs";
-import { installBootArtifact } from "./runtime-image.mjs";
+import { installBootArtifact, publishEnemyProfileScore } from "./runtime-image.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const defaultRoot = path.resolve(scriptDirectory, "..");
@@ -202,9 +202,15 @@ export function initialiseRuntime(root, artifact, coldFill = 0) {
   memory[fixedStateAddress(labels, "BROAD_PLAYER_HEALTH")] = 10;
   memory[fixedStateAddress(labels, "PLAYER_LIVES")] = 3;
   memory[requiredLabel(labels, "gameplay_fire_gate")] = 1;
+  // The enemy profile the admission path would have published; see
+  // publishEnemyProfileScore in scripts/runtime-image.mjs for why a harness
+  // that pokes ENEMY_* directly has to do this itself.
+  publishEnemyProfileScore(memory, root);
   memory[0xd010] = 1;
   return { memory, labels, manifest };
 }
+
+
 
 function countActive(memory, address, slots) {
   let count = 0;

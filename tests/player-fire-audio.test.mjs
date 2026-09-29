@@ -51,8 +51,13 @@ test("master PAL gate makes transition-only fire/audio catch-up obsolete", () =>
     /main_loop:\s+jsr wait_for_master_pal_frame\s+jsr begin_fighter_projectile_frame/);
   const publication = source.slice(source.indexOf("publish_fighter_projectile_overlays:"),
     source.indexOf("fighter_projectile_option_debounce_wait:"));
+  // RE-POINTED 2026-09-28 (owner decision, docs/plans/pickup-colour.md §7
+  // items 2 and 7): COLPM3 now follows the sector state off this same latch --
+  // the boost colour in the fighter window, $28 in the capital branch for the
+  // broadside missile M3 and the player explosion. The regex keeps every
+  // ordering it asserted; it only admits that one immediate store per branch.
   assert.match(publication,
-    /lda FIGHTER_PROJECTILE_PUBLICATION_FRAME\s+beq @fighter_window[\s\S]+jsr erase_dynamic_near_star_overlays\s+jsr publish_dynamic_near_star_phase\s+jmp fighter_projectile_publication_capital_render\s+@fighter_window:\s+ldx #\$77\s+jsr wait_frame_at_line\s+fighter_projectile_publication_begin/);
+    /lda FIGHTER_PROJECTILE_PUBLICATION_FRAME\s+beq @fighter_window[\s\S]+jsr erase_dynamic_near_star_overlays\s+jsr publish_dynamic_near_star_phase\s+jmp fighter_projectile_publication_capital_render\s+@fighter_window:\s+lda #PICKUP_BOOST_COLOUR\s+sta COLPM3\s+ldx #\$77\s+jsr wait_frame_at_line\s+fighter_projectile_publication_begin/);
   assert.doesNotMatch(publication, /jsr update_sound|player_fire_transition_tick/);
   assert.doesNotMatch(source, /player_fire_transition_tick:/);
   assert.match(source,

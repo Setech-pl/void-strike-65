@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { Nmos6502 } from "./nmos6502.mjs";
-import { installBootArtifact } from "./runtime-image.mjs";
+import { installBootArtifact, publishEnemyProfileScore } from "./runtime-image.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const defaultRoot = path.resolve(scriptDirectory, "..");
@@ -438,7 +438,11 @@ export function executeDebrisDestructionTrace({
   memory.set(fs.readFileSync(path.join(root, "build", "integration-glue.bin")), 0x4efe);
   // Boot staging leaves residue in $8100-$810F; lifecycle_c_init clears the
   // Light record in the game, so the harness starts with no Light as well.
+  // It leaves residue in the enemy profile above it too, which is what
+  // publishEnemyProfileScore repairs: an isolation harness admits nothing
+  // through C, so it must publish the score the admission path would have.
   memory.fill(0, 0x80f4, 0x8110);
+  publishEnemyProfileScore(memory, root);
   memory[0x80fb] = 0x6d;
   memory[0x80fc] = 0xff;
   memory[0x80f6] = 3;
@@ -568,7 +572,11 @@ export function executeInterceptorBreakupTrace({
   memory.set(fs.readFileSync(path.join(root, "build", "integration-glue.bin")), 0x4efe);
   // Boot staging leaves residue in $8100-$810F; lifecycle_c_init clears the
   // Light record in the game, so the harness starts with no Light as well.
+  // It leaves residue in the enemy profile above it too, which is what
+  // publishEnemyProfileScore repairs: an isolation harness admits nothing
+  // through C, so it must publish the score the admission path would have.
   memory.fill(0, 0x80f4, 0x8110);
+  publishEnemyProfileScore(memory, root);
   memory[0x80fb] = 0x6d;
   memory[0x80fc] = 0xff;
   memory[0x80f6] = 3;

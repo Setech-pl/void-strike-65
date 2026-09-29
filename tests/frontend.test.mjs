@@ -557,7 +557,12 @@ test("menu PlayerFighter is charset-only, frontend PMG stays disabled, and gamep
   assert.doesNotMatch(frontendEntry, /lda #\$02[\s\S]+sta GRACTL/);
   assert.match(frontendEntry, /cpx #STATE_OPTIONS[\s\S]+cpx #STATE_MAIN_MENU[\s\S]+lda #\$80[\s\S]+sta NMIEN/);
   assert.equal(hardwareState.get("SIZEP0"), 1);
-  assert.equal(hardwareState.get("SIZEP3"), 1);
+  // RE-POINTED 2026-09-28 (owner decision, docs/plans/pickup-colour.md §7
+  // item 2): gameplay entry leaves P3 at ONE colour clock per pixel, because P3
+  // is the pickup capsule and the capsule is an eight-clock mark. The ship is
+  // P0 only, so it no longer needs P3 at its own double width; the player
+  // explosion sets SIZEP3 for its 24 frames and respawn_player puts it back.
+  assert.equal(hardwareState.get("SIZEP3"), 0);
   assert.equal(hardwareState.get("COLPF2"), 0x1e);
   assert.equal(hardwareState.get("COLPF3"), 0x46);
   assert.match(routine("start_gameplay"), /jsr clear_pmg/);

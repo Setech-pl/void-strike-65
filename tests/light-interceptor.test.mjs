@@ -426,8 +426,14 @@ test("placement contract: legal composite and packed size, state inside its rese
   // v1 player, because the format-2 encoding addresses a column through a
   // one-byte offset and modifies nothing. ENTITY_CODE shrank by exactly those
   // four bytes and its free tail grew 1 -> 5 B.
-  assert.equal(manifest.entityEffects.codeBytes, 3161);
-  assert.equal(manifest.residentCapacity.tails.entityCode, 5);
+  // 3,140 / 26 since 2026-09-28 (owner decision, docs/plans/pickup-colour.md
+  // §7 items 2-3 and 8): the pickup capsule's move to PLAYER3 RETURNS 21 B of
+  // ENTITY_CODE -- the ship stops publishing a P3 image nothing could see, the
+  // shield pulse stops writing COLPM3, and the release stops restoring a
+  // fifth-player PRIOR/SIZEM that no longer exists. Nothing moved into the
+  // segment and no segment start changed; the free tail grew 5 -> 26 B.
+  assert.equal(manifest.entityEffects.codeBytes, 3140);
+  assert.equal(manifest.residentCapacity.tails.entityCode, 26);
   // Step 1b: LIGHT_RESIDENT's 229 B left the pickup stream with the kernel.
   // Re-recorded 2026-09-22: the Heavy break-up (plan-4.6-placement.md §7.4
   // variant 2) spends 122 B of that fill and the debris reward's
@@ -454,7 +460,12 @@ test("placement contract: legal composite and packed size, state inside its rese
   // fill. It is the largest this tail has been; the figure is recorded, not
   // budgeted, and the next session to want the window should read it as room
   // step 2 released rather than room that was always there.
-  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 49);
+  // Re-recorded 2026-09-28, the pickup capsule on PLAYER3 (owner decision,
+  // docs/plans/pickup-colour.md §7 item 2): 49 -> 75. Again nothing was spent.
+  // PICKUP_CODE gave back 26 B: the renderer writes one HPOSP3 where it wrote
+  // four HPOSM, and the release has no fifth-player PRIOR/SIZEM to restore
+  // because PRIOR is $00 for the whole of gameplay now. Recorded, not budgeted.
+  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 75);
   // Owner decision X + Light multiplicity steps 1a-3. The Light C left the
   // extension for the code window and the kernel left for its own link, which
   // took the scarce 19-B tail to 451; step 3's multi-slot ASM then overran the
@@ -488,8 +499,13 @@ test("placement contract: legal composite and packed size, state inside its rese
   // Both moved down 4 B in music v2 §10.2: the v1 gameplay player's
   // self-modified read tail was at $9D21, ahead of the art tables, and went
   // with the v1 player. Nothing about the tables themselves changed.
-  assert.equal(L("light_glyph"), 0x9d27);
-  assert.equal(L("light_interceptor_glyph"), 0x9d37);
+  // Both moved down a further 21 B on 2026-09-28, for the same kind of reason
+  // (owner decision, docs/plans/pickup-colour.md §7): the pickup capsule's move
+  // to PLAYER3 returned 21 B of ENTITY_CODE ahead of the tables. The tables
+  // themselves are byte-identical; only their address fell, and the segment's
+  // free tail grew by exactly the same 21 B.
+  assert.equal(L("light_glyph"), 0x9d12);
+  assert.equal(L("light_interceptor_glyph"), 0x9d22);
   // REBASELINED for Light multiplicity: HYBRID_LIGHT_STATE keeps only the
   // SHARED scalars; the per-slot state is 48 B of SoA arrays at $7FC4-$7FF3,
   // in the 60 unassigned bytes above the A2 display lists.

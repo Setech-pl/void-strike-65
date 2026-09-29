@@ -127,7 +127,10 @@ Jeden wyjątek: lekkie myśliwce eskortujące ciężkiego zostają razem z nim.
 
 ## Ulepszenia
 
-Kapsuły z ulepszeniami pojawiają się w trakcie lotu.
+Kapsuły z ulepszeniami pojawiają się w trakcie lotu. Każda kapsuła jest
+**złota**, niezależnie od tego, co niesie: jeden kolor, który znaczy
+„ulepszenie”, i którego nie nosi żaden przeciwnik. To, co kapsuła niesie, poznasz
+po jej kształcie, nie po kolorze.
 
 Ulepszenie broni jest stałe. Każda kapsuła podnosi broń o jeden poziom,
 maksymalnie do pięciu. Poziom widać po kształcie pocisków i słychać w dźwięku

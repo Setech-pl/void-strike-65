@@ -552,9 +552,10 @@ PLAYER_NORMAL_ENGINE_COLOR = $28
 PLAYER_SHIELD_HULL_COLOR = $84
 ; Owner decision, 2026-09-28 (docs/plans/pickup-colour.md §7 items 1-2): the
 ; pickup capsule is one P3 image and owns COLPM3 for the whole of OPEN, so a
-; booster mark can never wear an enemy's colour again. $1C is the placeholder
-; the default build carries until the owner's hardware smoke picks between
-; gold $1C, cyan $AC and orange $2C; --pickup-colour=1C|AC|2C builds each one.
+; booster mark can never wear an enemy's colour again. The colour is GOLD $1C,
+; DECIDED by the owner on 2026-09-29 after the hardware smoke of the three
+; review builds (§7 item 1); --pickup-colour=1C|AC|2C still builds each of the
+; three candidates for a later comparison.
 .ifndef PICKUP_BOOST_COLOUR_OVERRIDE
 PICKUP_BOOST_COLOUR = $1C
 .else

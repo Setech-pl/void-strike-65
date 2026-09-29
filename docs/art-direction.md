@@ -83,8 +83,10 @@ field. Stars, hulls, Player Fighter weapon pixels, Hostile weapon pixels, pickup
 effects use existing playfield banks and PMG registers. A local object must not
 change the global palette in a way that recolours other objects.
 
-**`COLPM3` is the pickup capsule's in `OPEN`** (owner decision, 2026-09-28,
-`plans/pickup-colour.md` §7 items 1-2 and 7-8). It is the one register a
+**`COLPM3` is the pickup capsule's in `OPEN`, and it holds the boost colour
+gold `$1C`** (owner decision, 2026-09-28, `plans/pickup-colour.md` §7 items 1-2
+and 7-8; the colour itself decided 2026-09-29 after the hardware smoke of gold
+`$1C`, cyan `$AC` and orange `$2C`). It is the one register a
 gameplay object holds alone, and it exists because the alternative — sharing
 `COLPF3` with the Light Wingman and the Interceptor — made a booster mark read
 as an enemy, which no palette choice could undo. Nothing else may write it
@@ -217,8 +219,13 @@ with a vertical slot, Spread Shot a boxier casing carrying a three-shot fan, and
 Shield a crest tapering to a point. These are the original capsule shapes from
 `assets/graphics/entity-effects.json` reduced to one bit per colour clock; the
 original also distinguished types by colour, which a one-register mark cannot
-reproduce. All three wear the one **boost colour**, which is what the mark
-means. Booster HUD state must make the active booster unambiguous, and the
+reproduce. All three wear the one **boost colour — gold `$1C`** (owner
+decision, 2026-09-29, at the hardware smoke of the three review builds), which
+is what the mark means. Hue 1 is the Player Fighter's own projectile hue, so the
+mark reads as *player energy*: it is deliberately an allied hue, three steps
+from the enemy accent's hue 4 and five from Bomber green, and its luminance C
+sits one step below the `$0E`/`$1E` highlights so it reads as neither a star nor
+a shot. Booster HUD state must make the active booster unambiguous, and the
 Shield BOOST bar and its solid steel/white Player Fighter pulse must stay
 distinguishable from both weapon boosters and respawn blinking.
 

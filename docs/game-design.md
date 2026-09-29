@@ -230,9 +230,10 @@ deterministic (no random drop roll); changing it requires an explicit owner
 decision.
 
 Each type is one logical slot and one fighter-sector capsule drawn as a
-16-scanline `PLAYER3` PMG object in `COLPM3` — the **boost colour**, a hue no
-enemy and no allied object wears (owner decision, 2026-09-28,
-`plans/pickup-colour.md` §7) — not as characters. It moves 8/9/10 twentieths of a scanline per PAL frame on
+16-scanline `PLAYER3` PMG object in `COLPM3` — the **boost colour, gold
+`$1C`**, a hue no enemy wears (owner decision, 2026-09-28, the colour itself
+2026-09-29 after the hardware smoke, `plans/pickup-colour.md` §7 item 1) — not
+as characters. It moves 8/9/10 twentieths of a scanline per PAL frame on
 Easy/Medium/Hard, and the collection hitbox follows the same Y. An ACTIVE capsule
 is removed before the capital sector; a PENDING capsule is frozen and resumes
 afterwards. Picking up the same active type refreshes it. Picking up another

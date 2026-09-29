@@ -123,7 +123,9 @@ One exception: light fighters escorting a heavy stay with it.
 
 ## Upgrades
 
-Pickup capsules appear as you fly.
+Pickup capsules appear as you fly. Every capsule is **gold**, whatever it
+carries: one colour that means "upgrade", and one no enemy wears. What a capsule
+carries is in its shape, not its colour.
 
 The weapon upgrade is permanent. Each capsule raises your weapon one level, up
 to five. You can see the level in the shape of your shots and hear it in the

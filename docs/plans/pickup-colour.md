@@ -616,9 +616,10 @@ real hardware.
 
 ## 7. Owner decisions
 
-**DECIDED — all of §7 below is settled** (decided by the owner, **2026-09-28**).
-The implementation session is `feat/pickup-boost-colour`, from `main`
-`2c4c193`. Each item keeps its original question; the answer follows it.
+**DECIDED — all of §7 below is settled** (decided by the owner, **2026-09-28**,
+items 1-9; **2026-09-29** for the colour itself and items 10-12). The
+implementation session is `feat/pickup-boost-colour`, from `main` `2c4c193`.
+Each item keeps its original question; the answer follows it.
 
 1. **The colour** — A gold `$1C`, B cyan `$AC`, C orange `$2C` (§3); under 2b
    the engine hue only: `$2C` or `$28` (§3 says which reads better against
@@ -629,6 +630,16 @@ The implementation session is `feat/pickup-boost-colour`, from `main`
    cyan `$AC`, orange `$2C`. `$28` is not a candidate, because 2b is not built
    (item 3). The default build carries **gold `$1C`** as a placeholder until
    the owner has smoked the three.
+
+   **DECIDED — THE COLOUR IS GOLD `$1C` (decided by the owner, 2026-09-29,
+   after the hardware smoke** of the three review builds
+   `build/pickup-colour-{1C,AC,2C}/`, gold `abe3b1819ed2`, cyan `939cd2cc1386`,
+   orange `5a5f0c6fa058`**).** `$1C` stops being a placeholder and becomes the
+   accepted boost colour: `PICKUP_BOOST_COLOUR = $1C` (`src/main.s`), named to
+   players in `docs/how-to-play.md` and `docs/how-to-play.pl.md` together
+   (item 5, owner decision V). Cyan `$AC` and orange `$2C` are **not accepted**;
+   `--pickup-colour=1C|AC|2C` stays in the build for a later comparison, and no
+   gate consults a variant.
 
 2. **The option** — Option 2 (`P3`, recommended) or Option 1 (`COLPF3` band,
    the DLI rule waived, ~195 cycles on the binding frame).
@@ -698,6 +709,52 @@ The implementation session is `feat/pickup-boost-colour`, from `main`
    moves from the **missile plane** to **`PLAYER3`**, and the delay-tuned
    pickup scenarios are made **robust** rather than re-tuned to a single fire
    delay (Phase A items 3-4 of the implementation brief; §6.1 step 6).
+
+10. **The `weapon-pickup-traversal` scenario's fire delay** (new item,
+    decided with the Phase A findings).
+
+    **DECIDED (decided by the owner, 2026-09-29): the session stays at fire
+    delay 8 in this task, and the diagnosis is recorded rather than acted on.**
+    MEASURED on this branch's build with the real clause code
+    ([../diagnostics/pickup-boost-colour-2026-09-29.md](../diagnostics/pickup-boost-colour-2026-09-29.md)
+    §2.2): the capsule's own three conjuncts — `plane_rows === 16`,
+    `plane_union === 255`, `draw_calls === 1` — hold on **108/108** ACTIVE
+    frames at fire delays **4, 5, 6 and 8**. The only conjunct that ever fails
+    is `entity_active_mask === 2`, whose bit 0 is the **debris** slot: the
+    Director's hazard cadence puts a debris in frame (26 frames at delay 4, 27
+    at 5). **The clause is not changed here.** The follow-up is the existing
+    backlog item — the pickup clause must distinguish the **debris** slot from
+    the **pickup's** logical slot (`docs/STATUS.md`, "the durable fix is a
+    clause that distinguishes the debris slot from the pickup's logical slot";
+    [director-4.6.md](director-4.6.md) §11 items 11 and 13) — and it stays
+    deferred.
+
+11. **The booster-cycle hunt sweep** (new item, decided with the Phase A
+    findings).
+
+    **DECIDED (decided by the owner, 2026-09-29): ACCEPTED at fire delays 5, 6
+    and 8; delay 4 is recorded as a Director-cadence property, not a defect.**
+    MEASURED (§2.3 of the same diagnostics file): the `hunt` half of the
+    `memory-integrity-160s` pair collects **8** booster cycles at delay 4 and
+    **10 / 12 / 10** at 5 / 6 / 8 against the clause's `>= 10`, with XEX/ATR
+    parity at every delay. The clause counts how many capsules a fixed
+    4,000-frame window contains, which the Heavy kill cadence decides; at delay
+    4 the fifth capsule is late, not missing. **The clause, its threshold and
+    the parity clause beside it are untouched**, and the scenario keeps fire
+    delay 5.
+
+12. **Broadside residue in the missile plane** (new item, decided with the
+    Phase A findings).
+
+    **DECIDED (decided by the owner, 2026-09-29): NO DEFECT, and the
+    `missile_plane_rows` column stays as a standing watch.** MEASURED (§3 of
+    the same diagnostics file): `update_broadside` erases every slot
+    unconditionally at the top of `handle_collisions`, on every gameplay frame
+    in every sector state, and **0 of 715 `OPEN` frames** carry a missile byte
+    in a replay that runs the whole capital sequence and returns to open space
+    (537 of its 1,085 capital frames do). The host-side `missile_plane_rows`
+    column is kept in the trace because the consequence of a regression here is
+    now a visible boost-coloured dot in open space.
 
 ---
 

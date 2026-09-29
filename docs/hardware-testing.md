@@ -79,7 +79,8 @@ shasum -a 256 dist/void-strike-65.xex
 
 - [ ] The fighter-sector pickup is a **solid** `PLAYER3` PMG mark (one HPOS,
       `SIZEP3 = 0`, `COLPM3`, `PRIOR=$00`) — no holes, no character capsule.
-- [ ] **Its colour is the boost colour and belongs to nothing else on screen.**
+- [ ] **Its colour is the boost colour — gold `$1C`, accepted at the
+      2026-09-29 smoke — and belongs to nothing else on screen.**
       Hold it against a Wingman's wing and an Interceptor's rotor pods (the
       enemy accent `COLPF3`), against a Raider and a Bomber hull (`COLPM1/2`),
       against the player's own yellow shots and against a star. It must not

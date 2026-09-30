@@ -58,10 +58,10 @@ function classify(row) {
 }
 
 /**
- * Audit one replay's parsed wall-trace rows.
+ * One fence sample per parsed wall-trace row, in emission order.
  * Rows must be numeric objects in emission order (parseCsv output shape).
  */
-export function auditSession(sessionId, rows) {
+export function auditSamples(sessionId, rows) {
   if (rows.length > 0) {
     for (const field of REQUIRED_FIELDS) {
       if (!Number.isInteger(rows[0][field])) {
@@ -120,6 +120,15 @@ export function auditSession(sessionId, rows) {
     };
   });
 
+  return { samples, normalStart };
+}
+
+/**
+ * Audit one replay's parsed wall-trace rows.
+ * Rows must be numeric objects in emission order (parseCsv output shape).
+ */
+export function auditSession(sessionId, rows) {
+  const { samples, normalStart } = auditSamples(sessionId, rows);
   const missEvents = [];
   for (const sample of samples) {
     if (!sample.overran) continue;

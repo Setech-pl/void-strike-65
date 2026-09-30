@@ -485,7 +485,7 @@ by design; **step 3 is the first step that puts something new on screen.**
 | **1** | `feat/level-compiler` | `assets/levels/level-01.json`, `scripts/level-compiler.mjs`, `level-preview.mjs`, `levels:check`; level image 13 sectors with all three pages; the geometry page carries today's 480 rows and the two sequences byte-for-byte; **the runtime reads nothing new**; `docs/level-authoring.md`, `docs/memory-map.md` (image layout) | T1, T2 | 0 boot sectors; ATR START GAME read +5 sectors | none visible; the loader animation runs five sectors longer |
 | **2** | `feat/director-level-data` | the Director reads the core page: sectors (R4), waves (R2), caps, archetype mask (R3); `LEVEL1_DATA`, the phase machinery, both provisional schedulers, `provisional_interceptor_director_request`, `select_interceptor_request_phase` and `FIRST_CAPITAL_FRAME` retired; `CAPITAL_DUE` at the sector row; `_asm_director_dispatch_event` becomes the opcode jump table (design §2.4); the debug route (§7); replays re-scripted where the capital row moves; evidence re-recorded | T3, T4, T5, T6, T8, T10, T11; native A/B with `scripts/hybrid-director-ab.mjs` | PAL audit: worst margin ≥ 500, ≤ +100 on every row vs 991; transport rule; boot smoke | level 1 plays as before; the owner jumps to any sector with `--level=1:sector=M` |
 | **3** — **IMPLEMENTED 2026-09-30, pending owner smoke (§8.1)** | `feat/director-step-3-level-2` | the first authored variation, `level-02.json`: a different sector count, different waves, a different archetype mask per sector; `how-to-play` EN+PL only if player text changes | T12 | as step 2 (level 2 is not in the default replays; the default artifacts carry level 1 only) | **first new thing on screen**: level 2 via `--level=2` |
-| **4** | `feat/hull-length` | the geometry page consumed (R1): sequences from `$AC08/$AC44`, thresholds from `$AC02`, `hull_rows`; the `BROADSIDE` sequences retired into a zero pin; `compileCapitalHulls` length/density parameters; hull-set tests re-pinned (`capital-hulls`, `hull-set-v1`, `capital-hull-extension`, `prepared-hull-row`) | T7 | initial block content ≤ 13,652 (expected to fall); boot 107; PAL audit on the capital rows | level 2 with a 352-row hull |
+| **4** — **IMPLEMENTED 2026-09-30, pending owner smoke (§8.2)** | `feat/director-step-4-hull-length` | the geometry page consumed (R1): sequences from `$AC08/$AC44`, thresholds from `$AC02`, `hull_rows`; the `BROADSIDE` sequences retired into a zero pin; `compileCapitalHulls` length/density parameters; hull-set tests re-pinned (`capital-hulls`, `hull-set-v1`, `capital-hull-extension`, `prepared-hull-row`) | T7 | initial block content ≤ 13,652 (expected to fall); boot 107; PAL audit on the capital rows | level 2 with a 352-row hull |
 | **5** | `feat/level-payload` | payload consumers: appearance slots (decision AD re-skins), `weapon_glyph[2]` install at level start, star colour and nebula per sector (21.3; `STARFIELD` run tail 348 B is the home design §10.2 lacked) | T13 | PAL audit (starfield row cost); transport rule | a re-skinned Light and a different sky on level 2 |
 | **6** | `feat/wave-paths` | `PathDef` evaluator + 8-path resident library, `ENEMY_MOVEMENT_PATH`, volley and conditional fire (21.2; 23 §10.4 piecewise-linear, §10.5 column-aimed); a native prototype measurement of the evaluator **before** integration sets its budget | T14 | PAL audit with the swarm replays | a snake-path Interceptor swarm |
 | **7** | `docs/levels-3-12` (+ per-level `feat/` if any code is needed) | the owner authors levels 3-12 with the tool; STATUS and memory-map final figures; the campaign loop itself (level advance, lives, level select) stays **4.9** | validator, preview | — | each level via the debug route |
@@ -518,7 +518,7 @@ measurement) and **17** (the build-script fix and `level:play`).
   [../diagnostics/level-2-timing-2026-09-30.md](../diagnostics/level-2-timing-2026-09-30.md).
   Step 4's phase 0 built it and measured level 2 (§8.2).
 
-### 8.2 Step 4 notes — hull length (PROPOSAL, awaiting the owner)
+### 8.2 Step 4 notes — hull length (IMPLEMENTED 2026-09-30, pending owner smoke)
 
 Branch `feat/director-step-4-hull-length` from `main` `a930ba0`.
 
@@ -583,10 +583,26 @@ measuring.**
 | B — left-aligned (the plan as written) | The three sites above read the prow start/end and the drain row from the geometry page | +~30-50 B in `BROADSIDE`/glue (extension record), 16-bit compares against memory in the hull-row draw and the per-frame collision | ~+10-30 per capital frame ESTIMATE | a hot collision path: hardware-critical, measure before integrating |
 | C — only what the plan lists | Short hulls keep today's prow/drain constants | none | none | **player-visible defect** (item 2), not compliant |
 
-**Owner questions (2026-09-30, pending).** (1) The turret rule above. (2)
-Placement A, B or C. (3) Accept that step 4 returns about 80 packed B to
-extension record 1 and 0 B to the initial block, instead of the plan's
-"initial block shrinks".
+**Owner questions (2026-09-30), answered the same day: §11 item 18.** (1)
+The turret rule above. (2) Placement A, B or C. (3) Accept that step 4 returns
+about 80 packed B to extension record 1 and 0 B to the initial block, instead of
+the plan's "initial block shrinks".
+
+**As built** (`7fdaff9`). Placement A, turrets scaled by length, and the
+refund as measured. One detail A needed that the proposal had not costed:
+the enemy hull trails the allied one by 8 rows, and on a 480-row hull its first
+8 rows are blank because `row − 8` borrows. On a right-aligned hull, `row − 8`
+lands on the module before the hull, and no module in the hull art is blank.
+The compiler fills the modules before the hull with the **engine module**, so
+on a short hull the enemy's engine section is 8 rows longer and its tail lines
+up with the allied tail instead of trailing it by 8 rows. This costs no frame
+code. It is a visible difference from level 1, and it is an owner smoke point.
+MEASURED natively (`draw_hull_row` on an initialised ATR runtime): level 2's rows
+448-487 draw exactly as level 1's. Initial block **13,626 B** (unchanged); extension
+record 1 **5,583 → 5,502** packed B; `HYBRID_C_SECTOR` **187 → 215** of 248 B
+(extension record 2, sectors unchanged); phase machine worst case **104 cycles
+before and after**. Level 2 timing before and after:
+[../diagnostics/level-2-timing-2026-09-30.md](../diagnostics/level-2-timing-2026-09-30.md).
 
 ---
 
@@ -643,7 +659,8 @@ evidence exposed a second stale clause and the re-authored level's own PAL
 figures. Items **12-13** were answered on the same day, once item 12's own
 question — three more stale clauses standing between step 2 and its evidence —
 had been measured. Items **15-17** were answered on **2026-09-30**, at step 3,
-on the level 2 draft (`bb3feeb`).
+on the level 2 draft (`bb3feeb`). Item **18** was answered the same day, at
+step 4, on the §8.2 proposal (`e058fb3`).
 
 1. **The CAPITAL Light ceiling (R3 in capital sectors) — RESTRICT** (decided by
    the owner, 2026-09-23). §5.1 is not paid in 1.0: per-sector enemy selection
@@ -939,6 +956,20 @@ on the level 2 draft (`bb3feeb`).
     instead of the hard-coded 1, with a test that is RED on `main` (the
     `--level=2` build throws) and GREEN after. §7 names the `level:play` npm
     script, so it is added and the smoke checklist uses it.
+
+18. **Step 4's three open points — ACCEPT THE PROPOSAL, with one condition**
+    (decided by the owner, **2026-09-30**, on §8.2 `e058fb3`). Turret stations
+    scale with the length at today's density (density steps 0-2 stay undefined);
+    a short hull is **right-aligned** (placement A); and step 4 reports the
+    refund as measured: about **−80 packed B on extension record 1, 0 B on the
+    initial block**. **The condition:** step 4 may leave the initial block
+    unchanged but must not grow it. The C for placement A, and anything else
+    step 4 adds, lands outside the initial block (with the Director's cold code
+    or in an extension record). Final initial block **≤ 13,626 B**. If the only
+    workable place were the initial block, the session would STOP and report
+    the segment and byte count before implementing. **Met:** everything step 4
+    adds ships in extension records 1 and 2, and the initial block is
+    13,626 B.
 
 ---
 

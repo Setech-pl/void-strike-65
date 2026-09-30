@@ -68,6 +68,40 @@ The step-3 ESTIMATE holds. The swarm sectors (three live Lights) are among the
 lightest in the level: 6,109 and more of margin. The binding sector is the
 Bomber line, sector 2.
 
-## After the hull change
+## After the hull change — level 2 on its 352-row hull (MEASURED)
 
-*Pending: plan step 4, phase B.*
+Build `build/level-2-s0` at `7fdaff9`, ATR
+`8e0aeae338cf54209cc14b781c29f6daa0bab062064b1b4b269975b7feffafaf`. Same three
+replays, same tool. There were 0 distinct miss events, 0 rows over 32,568,
+0 missed frames, 0 DLI ordering errors and 0 clause failures.
+
+| Sector | kind | EASY (`-0`) | MEDIUM (`-1`) | HARD (`-2`) |
+| ---: | --- | --- | --- | --- |
+| 1 | swarm | 7,393 @579 / 30,468 @690 | 6,207 @689 / 30,810 @120 | 6,499 @136 / 31,061 @121 |
+| 2 | elite (Bombers) | 3,086 @1807 / 31,132 @2124 | **1,607** @1515 / 30,993 @1476 | 2,628 @2061 / 30,761 @1284 |
+| 3 | capital | 7,851 @3147 / 29,538 @2957 | 8,414 @2539 / 29,423 @2537 | 11,630 @2311 / 29,198 @2340 |
+| 4 | swarm | 6,713 @4687 / 30,709 @4314 | 5,931 @4319 / 31,108 @3964 | 6,187 @4033 / 31,154 @3816 |
+| 5 | elite | 2,606 @6557 / **31,205** @6588 | 2,616 @5679 / 30,831 @5424 | 3,463 @5309 / 30,462 @5136 |
+| 6 | elite (finale) | 3,011 @8855 / 31,009 @9182 | 4,191 @7475 / 30,693 @7357 | 2,225 @7951 / 30,766 @7125 |
+| capital frames (not `SECTOR_FIGHTER`) in sector 3 | | **1,035** (−320) | **921** (−307) | **829** (−256) |
+
+**Level 2 worst after: fence margin 1,607, DMA-on maximum 31,205.** Sectors 1-2
+are identical to the frame: nothing before the capital changed. The capital's
+own maxima are unchanged (29,538 / 29,423 / 29,198). The capital traversal is
+the hull's 128 rows shorter, at the hull scroll rates 0.40 / 0.45 / 0.50 rows per
+frame: −320 / −284 / −256 frames expected. MEDIUM measures −307 because its
+capital sector also holds the drain and the Director's own sector exit. Every
+frame after the capital arrives about 300 frames earlier, so sectors 4-6 meet
+different load coincidences. The new maximum, 31,205 in EASY's sector 5, is one
+of them: 73 cycles above the before figure, 1,363 under 32,568, and 421 under
+level 1's recorded 31,626.
+
+### Before / after
+
+| | before (480-row hull) | after (352-row hull) |
+| --- | ---: | ---: |
+| worst fence margin | 1,607 (MEDIUM s2 f1515) | **1,607** (same frame) |
+| DMA-on maximum | 31,132 (EASY s2 f2124) | **31,205** (EASY s5 f6588) |
+| capital-sector maximum | 29,538 | **29,538** |
+| capital frames E / M / H | 1,355 / 1,228 / 1,085 | **1,035 / 921 / 829** |
+| miss events / rows over 32,568 | 0 / 0 | **0 / 0** |

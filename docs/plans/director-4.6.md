@@ -516,6 +516,77 @@ measurement) and **17** (the build-script fix and `level:play`).
   manifest, so it cannot take the debug route without code changes. What it
   would take is recorded in
   [../diagnostics/level-2-timing-2026-09-30.md](../diagnostics/level-2-timing-2026-09-30.md).
+  Step 4's phase 0 built it and measured level 2 (§8.2).
+
+### 8.2 Step 4 notes — hull length (PROPOSAL, awaiting the owner)
+
+Branch `feat/director-step-4-hull-length` from `main` `a930ba0`.
+
+**Phase 0 — done.** `--artifacts=build/level-N-sM` points a focused wall-trace
+run at a debug-route build (`63d1e28`). It is diagnostic only, and
+`tests/wall-trace-debug-route.test.mjs` pins the default evidence byte-identical.
+Level 2 on today's 480-row hull, MEASURED: worst fence margin **1,607** (MEDIUM,
+sector 2, f1515), DMA-on maximum **31,132** (EASY, sector 2, f2124), 0 miss
+events. The capital sector's maximum is 29,538 / 29,423 / 29,198. Per sector:
+[../diagnostics/level-2-timing-2026-09-30.md](../diagnostics/level-2-timing-2026-09-30.md).
+
+**What the plan fixes.** Length is per level, not per difficulty. Difficulty
+stays in the sequence's turret bits (§2.4), so one hull length serves all three
+difficulties. Level 1 keeps **480** rows, which reproduces today (T2). Level 2
+gets **352** (§8 step 4, "level 2 with a 352-row hull"). §6's JSON example shows
+`"length": 2` (416) for level 2. That is an illustration, and the step table is
+taken as the decision. Levels 3-12 author their own `hull.length` in step 7.
+
+**Three things the plan does not settle, found by reading the code and
+measuring.**
+
+1. **Turret counts on a shorter hull.** Decision 4 says "turret density as four
+   count tables over the level's length" but gives no tables. Today's 10/15/20
+   cannot be kept at 352 rows. HARD's 20 stations need 19 gaps of at least 2
+   modules (38) in an eligible span of 35 modules. The generator refuses.
+2. **The prow, the drain and the player-vs-prow collision are pinned to rows
+   448-488.** §2.4's grep checked only `CAPITAL_HULL_SECTOR_ROWS`. Three more
+   runtime sites read the fixed section ends:
+   * `apply_prow_profile` (`src/integration-glue.s`) shapes the prow taper only
+     at rows 448-479;
+   * `handle_player_hull_contact` (`src/main.s`) switches to the prow collision
+     boundaries at the same rows;
+   * `visible_hull_sector_row`'s DRAIN branch maps visible rows back from
+     `CAPITAL_HULL_STREAM_ROWS-1` = 487.
+
+   A left-aligned 352-row hull, as §2.4 designs it, would draw an untapered prow
+   at rows 320-351. During DRAIN, collision would test rows 460-487 while the
+   screen shows rows 332-359. The player could hit invisible hull, or pass
+   through visible hull.
+3. **The refund does not reach the initial block.** `BROADSIDE` runs at `$5E10`
+   and ships in extension record 1 (sector 108 on), not in the 107-sector
+   initial block. MEASURED with both sequences zeroed in a throwaway build:
+   record 1 goes from 5,583 to **5,503 packed B (−80)**, its 44 sectors are
+   unchanged, and the initial block is unchanged at **13,626 B**.
+   `HYBRID_C_SECTOR` and the arena also ship in extension records.
+
+**Proposal.**
+
+| | Level 1 | Level 2 | Rule |
+| --- | --- | --- | --- |
+| hull rows (all difficulties) | 480 (`length` 3) | **352** (`length` 1) | per level, authored in `hull.length`; later levels choose any of 288/352/416/480 |
+| turret stations E / M / H | 10 / 15 / 20 (unchanged) | **7 / 10 / 14** | density step 3 = today's stations per row, scaled by the eligible span: `round(10/15/20 × span/51)` → 288: 5/8/11, 352: 7/10/14, 416: 8/13/17, 480: 10/15/20. All four are feasible with the existing seeded generator (seed 13, nested E ⊂ M ⊂ H). Steps 0-2 stay undefined, and the compiler refuses them until the owner defines them |
+| hull placement | rows 0-479 | **rows 128-479** | **right-aligned** (recommended): a short hull ends where today's ends |
+| capital traversal (E / M / H frames) | 1,355 / 1,204 / 1,084, unchanged | ≈ 1,035 / 944 / 829 (−320 / −284 / −256, ESTIMATE from the hull scroll rates 0.40 / 0.45 / 0.50 rows per frame) | — |
+| per-frame capital cost | unchanged | same code path, ≤ +20 cycles on a hull-row event frame (plan ESTIMATE); level 2's capital maximum today is 29,538 | no new frame code under the recommended option |
+
+**Placement: alternatives for item 2.**
+
+| | What | Code | Cycles | Risk |
+| --- | --- | --- | --- | --- |
+| **A — right-aligned (recommended)** | The short hull occupies rows `480−L` … 479. Capital entry starts the row clock at `480−L` instead of 0. Prow, drain, collision and both `cmp #<480` stay exactly as they are | the plan's list (resolver operands, C thresholds), plus ~15 B of C at capital entry, once per capital | 0 per frame beyond the plan's ESTIMATE | the geometry page's phase starts become absolute modules (352: engines 16, aft 20, combat 30, forward 46, prow 56; DRAIN at 61 for every length). T7's wording changes: "a 352-row page enters DRAIN at row 488 and never resolves a row below 128" |
+| B — left-aligned (the plan as written) | The three sites above read the prow start/end and the drain row from the geometry page | +~30-50 B in `BROADSIDE`/glue (extension record), 16-bit compares against memory in the hull-row draw and the per-frame collision | ~+10-30 per capital frame ESTIMATE | a hot collision path: hardware-critical, measure before integrating |
+| C — only what the plan lists | Short hulls keep today's prow/drain constants | none | none | **player-visible defect** (item 2), not compliant |
+
+**Owner questions (2026-09-30, pending).** (1) The turret rule above. (2)
+Placement A, B or C. (3) Accept that step 4 returns about 80 packed B to
+extension record 1 and 0 B to the initial block, instead of the plan's
+"initial block shrinks".
 
 ---
 

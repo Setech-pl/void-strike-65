@@ -382,8 +382,53 @@ record 1, so the refund lands there: −81 packed B, no sector. The owner accept
 this with a condition: step 4 must not grow the initial block. It does not.
 Everything step 4 adds is in extension records.
 
-**The ATR menu frame moved by one** (601 → 602). No sector count changed. The
-cause was not investigated.
+**The ATR menu frame moved by one** (601 → 602). No sector count changed.
+**Cause, MEASURED 2026-09-30** (boot smoke on `main` `a930ba0` in a detached
+worktree and on this branch with the same emulator, plus native cycle counts of
+the boot sequence in each tree):
+* `start` is frame 288 on both, and loader → menu is 257 frames on both. Only
+  `show_loader` moves, 344 → 345. The BASIC-enabled sessions (loader 316, menu
+  573) do not move.
+* `start` → `show_loader` runs with NMI and DMA off, and it is **+2,791 cycles**
+  (1,866,322 → 1,869,113). `stage_boot_streams` is +1,265 and
+  `unpack_weapon_pickup_phase_runtime` is +1,526. Every other routine is
+  cycle-identical, including `unpack_resident_runtime`, the BROADSIDE record
+  that got 81 packed B smaller.
+* The one staged stream that grew is the pickup/collision record (extension
+  record 2, `$8C80` → `$4801`), 1,097 → 1,120 B. Its second LZ stream is
+  `HYBRID_C_SECTOR`, 187 → 215 B. `main` reached `show_loader` fewer than 2,791
+  cycles before a frame boundary, and this branch crosses it.
+* **Candidate fix, NOT implemented, awaiting the owner:** place
+  `sector_c_update_capital_phase` (98 B) in `HYBRID_C_ARENA` with a `code-name`
+  pragma, where plan §2.4 first put it. The arena record lands in place before
+  `start`. A throwaway build measured menu **601**, loader 344,
+  start → loader 1,858,168 cycles, arena record 6 sectors (730 packed), all
+  sector counts unchanged, initial block 13,626 B.
+* **Its costs:** the arena falls from 114 B free to **16 B**, which is the room
+  later Heavy C would use, and the evidence would need regenerating again.
+
+**`HYBRID_C_SECTOR`, +28 B.** It lives in the Director link at `$8602-$86D8`
+and travels as the second LZ stream of extension record 2 (start sector 152,
+9 sectors), outside the 107-sector initial block. The initial block's 13,626 B
+are unchanged in size. Of its 15 changed byte values, the ones identified are
+`pickup_packed_size` (1,097 → 1,120) and record 2's entry and CRC in
+`boot_chunk_manifest`. The +28 B splits into two parts:
+* `sector_c_update_first_capital`, 47 → 55 B (**+8**): the row-clock store,
+  under the ~15 B estimated for it.
+* `sector_c_update_capital_phase`, 78 → 98 B (**+20**): the phase-start read.
+  Plan §2.4 costs this separately at +25-40 B, and it was not part of the ~15 B.
+
+So the "13 B over" is the phase machine, which that estimate never covered.
+
+**The 108 test failures, by name.** The full default-build run's 109 names,
+minus the re-pointed flagship test, equal the recorded set exactly: 0 extra and
+0 missing. The recorded set is Appendix A of
+[plans/hull-set-v1.md](plans/hull-set-v1.md) with its 11 ATR-only renames
+applied, less "showcase and asset sheets regenerate without ignored capture
+files", which disappeared at `c04156a`. The four test files that commits after
+the full run could affect (`flagship-sector`, `github-showcase`,
+`source-contracts`, `branding`) were re-run at HEAD and fail with the same four
+recorded names, and nothing else.
 
 **Tests.** New: T7, `tests/hull-length.test.mjs` (7, RED 7/7 on `main`), and
 `tests/wall-trace-debug-route.test.mjs` (5, RED on `main`). Five were

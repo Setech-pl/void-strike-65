@@ -235,14 +235,16 @@ readiness.
 * Do not touch `.claude/` unless explicitly requested.
 * No push, merge, release or tag without owner approval.
 * Local checkpoint commits on an experimental branch are allowed.
-* With multiple agents, do not modify one worktree concurrently; use branches
-  or worktrees as handoff boundaries.
-* Every task runs on its own branch (`feat/...`, `fix/...`, `docs/...`) created
-  from `main`; sessions commit there and never merge or push; the owner merges
-  to `main` with `--ff-only` after owner smoke, and pushes. Parallel sessions
-  use separate git worktrees. Prompts name the branch; if a prompt says "on
-  branch main", create a task branch anyway and say so in the report (owner
-  decision, 2026-09-22).
+* One task = one branch (`feat/...`, `fix/...`, `docs/...`) cut from `main` in
+  the primary checkout `~/Projects/dark-fighter`. Sessions run one at a time.
+* At the start of a session: `git switch main`; `git status` must be clean,
+  otherwise STOP; then `git switch -c <branch>`.
+* Sessions commit only on their own branch. They never merge, rebase, push, or
+  switch branches after creating theirs. The owner merges with `--ff-only` and
+  pushes.
+* A temporary detached worktree is allowed only to measure `main`, and is
+  removed before the session ends.
+* Build variants go to `build/<variant>/`, never `dist/`.
 
 ---
 

@@ -53,7 +53,12 @@ DMA-on maximum **31,349**, boot **107** sectors, ATR menu **603** with all three
 warn frames intact. Step 2 above is what made the runtime read the image, and it
 supersedes those four figures.
 
-**Fourteen `OWNER-SMOKE CANDIDATE`s are outstanding: level 2** (section "Roadmap 4.6
+**Owner decision, 2026-09-30: the game ships as the ATR only; the XEX is not
+released.** Section "ATR-only build" below.
+
+**Fifteen `OWNER-SMOKE CANDIDATE`s are outstanding: the ATR-only build** (section
+"ATR-only build" below; no player-visible change: the ATR and the boot image are
+byte-identical to `main` `e39f2ec`), **level 2** (section "Roadmap 4.6
 step 3 — level 2" below; the first authored level that is not a reproduction,
 reached only through the debug route `npm run level:play -- --level=2`; the
 default build is **byte-identical** to `main` `138689e`, so every gate figure is
@@ -317,6 +322,95 @@ owner smoke PASS 2026-09-18); before it `b4b942e` (XEX
 owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
+
+## ATR-only build — the XEX is removed as a product — `OWNER-SMOKE CANDIDATE` (2026-09-30)
+
+Plan and measurements: [plans/atr-only-build.md](plans/atr-only-build.md). Branch
+`feat/atr-only-build` from `main` `e39f2ec`. **Owner decision (2026-09-30): the
+XEX is not released; only the ATR ships.** It closes
+[plans/director-4.6.md](plans/director-4.6.md) §11 item 7.
+
+**What changed.** The build, every review variant (including the `--level=N`
+debug route behind `level:play`) and `dist/` publish the ATR, the boot image and
+the manifest, and nothing else. `play:xex`, the XEX format helpers, the XEX
+manifest fields, the XEX evidence binding and the stale
+`dist/void-strike-65-0.1.1.zip` are gone. Every wall-trace replay boots the ATR.
+Sessions with no medium switched and keep their ids; XEX halves with an ATR twin
+are deleted; XEX-only sessions are renamed `-xex-` → `-atr-`. The XEX-vs-ATR
+parity clauses and parity tests are deleted. `boot_stage2_xex_entry` stays in the
+boot image: **14 B, `$2338-$2345`, segment `BOOT_STAGE2`, inside the initial
+block**. Removing it would move the ATR, so it waits for its own reclaim task.
+
+**Gates — the DEFAULT build.** ATR
+`abe3b1819ed23ec74b23b31260adf3317519dd99caa0a757f1a6c4e15b3e80b4` (92,176 B) and
+boot `9e5c5d6f73704963d20be5516e15da4ee5c287b30a362a347019180afcddd349`
+(26,624 B), **byte-identical to `main`**.
+
+| | `main` `e39f2ec` | this branch | source now |
+| --- | ---: | ---: | --- |
+| worst line-238 fence margin | 788 (`director-complete-2`, XEX replay) | **788** (same replay, ATR) | PAL audit, 56 replays |
+| DMA-on maximum / physical headroom | 31,626 / 3,942 (`director-complete-0`, XEX) | **31,626 / 3,942** (same replay, ATR) | `docs/runtime-wall-trace.json` |
+| distinct miss events / rows over 32,568 | 0 / 0 over 73 replays | **0 / 0** over 56 ATR replays | PAL audit |
+| DLIs per host frame / sequence violations | 2 / 0 | **2 / 0** | same |
+| default replays / ordered frames | 65 / 108,180 | **48 / 94,680** | same |
+| integrity booster cycles (`>= 10`) | 10 (5 XEX + 5 ATR) | **11** (5 + 6, all ATR) | same |
+| behavioural clause failures | 40 | **16**: 24 removed with their XEX sessions, 1 renamed | `docs/recorded-gate-failures.json` |
+| boot smoke | 8 / 8 | **4 / 4** (ATR only) | same |
+| ATR menu frame / delta | 601 / +5 | **601 / +5** | same |
+| boot / extension / total sectors | 107 / 101 / 208 | **107 / 101 / 208** | `build/manifest.json` |
+| initial block content / ceiling | 13,626 / 13,684 | **13,626 / 13,684** | same |
+| `npm test` (default build) | 865 / 754 / 108 / 3 | **868 / 757 / 108 / 3** | the 108: 0 new, 0 disappeared, 11 renamed |
+| full trace set, wall-clock | 1,380 s | **1,918 s** | §"Trace wall-clock" below |
+
+Every figure above that moved, moved because of the switch itself: sessions were
+counted twice or removed. No worst figure moved. The ATR probe of `main`'s own
+code (plan §6) gives the same worst fence margin and maximum on 73 of 73 replays.
+
+**The integrity count, restored the owner's way (class (a)).** The ATR
+integrity replays alone collect 5 booster cycles; the XEX twin had supplied the
+other 5. `memory-integrity-atr-2-hunt-fire6` is added: fire delay 5 → 6, 6
+collections, worst margin 2,409. The clause is unchanged. One node-side test had
+the same shape. "more than 5000 Raider kills…" summed 2,500 XEX and 2,500 ATR
+kills; the ATR now runs the matrix's own 5,000.
+
+**Recorded clause failures, by name.** Removed with their XEX sessions:
+`engine-xex-{a5,5a}-{0,1,2}-{immediate,delayed}` "first DLI did not select byte
+three of the active A2 list" (12), and the same 12 sessions' "screenshot sequence
+differs between XEX and ATR" (12). Renamed:
+`lower-playfield-hostile-contact-xex-hard` → `lower-playfield-hostile-contact-atr-hard`,
+same message, same cause.
+
+**Tests.** 4 deleted, each a pure XEX-vs-ATR comparison or an XEX-format check.
+The list with reasons is in plan §9; none of them was a recorded failure. New
+and GREEN: `tests/atr-only-build.test.mjs` (4, RED 4/4 on `main`) and
+`tests/atari800-trace-freshness.test.mjs` (3). The 11 recorded failures that lost
+their XEX half fail under their new names with the same first error as on `main`.
+The rename list is appended to Appendix A of
+[plans/hull-set-v1.md](plans/hull-set-v1.md).
+
+**Trace wall-clock.** `main`: 1,380 s (default pass 1,098 s, mode-gated passes
+278 s). This branch: **1,918 s**. The default pass took 913 s (48 replays instead
+of 65); the mode-gated passes were `--raider-formation-only` 12,
+`--raider-sector-only` 19, `--debris-gate-only` **888** and
+`--raider-remnant-only` 82. The debris gate took 888 s against 179 s on `main`
+for the same three replays, with identical timing figures. The cause was not
+investigated; this is a measured wall-clock figure, not a claim that the ATR is
+slower.
+
+**Found on the way, pre-existing, not caused here.**
+- The in-folder trace emulator was stale (built 22 Sep, header changed
+  28/29 Sep). `main`'s own trace aborted with it; rebuilt with `--prepare`,
+  `main` reproduces its evidence exactly. The trace now refuses a stale
+  emulator (`scripts/atari800-trace-freshness.mjs`).
+- `--menu-raster-only` throws "… 0:3 differs from the generated frontend asset" on
+  its first session, `xex-00` on `main` and `atr-00` here, so
+  `docs/menu-raster-trace.json` cannot be regenerated. It stays as committed,
+  and its test stays a recorded failure.
+- `npm run verify` refuses with "Runtime wall trace failed its current gate" on
+  `main` and here, because `gate.passed` is false while recorded failures exist.
+
+**Owed by the owner.** A smoke of the ATR (`npm run play:atr`), to confirm
+nothing player-visible moved. The bytes say it cannot have.
 
 ## Roadmap 4.6 step 3 — level 2 — `OWNER-SMOKE CANDIDATE` (2026-09-30)
 

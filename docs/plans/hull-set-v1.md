@@ -846,3 +846,18 @@ compares its own run against this list, not against the count alone.
 - unchanged cadence consumes no more launches than the denser station layout
 - wall trace records the required legal runtime coverage without incoherent RAM seeding
 
+**Renamed 2026-09-30 (ATR-only build, [atr-only-build.md](atr-only-build.md) §9).**
+Eleven recorded names lost their XEX half and were renamed; each still fails
+with the same first error as before. Compare by the new name:
+
+- release XEX and ATR execute 0→1→2→pending only for consumed PlayerFighter kills → **the release ATR executes 0→1→2→pending only for consumed PlayerFighter kills**
+- packed XEX and ATR keep every implemented PlayerFighter lifecycle path yellow under cold RAM → **the packed ATR keeps every implemented PlayerFighter lifecycle path yellow under cold RAM**
+- release XEX and ATR execute the deterministic Rapid Spread Shield drop cycle → **the release ATR executes the deterministic Rapid Spread Shield drop cycle**
+- Interceptor contact result is byte-identical after XEX and ATR cold boot → **Interceptor contact result is exact after an ATR cold boot**
+- destructible debris owner preview is an XEX/ATR-executed eight-frame breakup → **destructible debris owner preview is an ATR-executed eight-frame breakup**
+- Interceptor owner preview is the XEX/ATR-executed eight-frame local breakup → **Interceptor owner preview is the ATR-executed eight-frame local breakup**
+- Rapid Fire owner preview executes the packed XEX/ATR pickup lifecycle → **Rapid Fire owner preview executes the packed ATR pickup lifecycle**
+- burst-balance owner previews compare identical 80-frame XEX and ATR executions → **burst-balance owner preview is a deterministic 80-frame ATR execution**
+- Spread Shot owner preview is deterministic executed XEX/ATR gameplay → **Spread Shot owner preview is deterministic executed ATR gameplay**
+- real XEX/ATR startup traces keep one atomic two-phase engine pulse → **real ATR startup traces keep one atomic two-phase engine pulse**
+- native menu raster is exact for XEX/ATR and four cold RAM fills → **native menu raster is exact for the ATR and four cold RAM fills**

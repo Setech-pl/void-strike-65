@@ -597,10 +597,11 @@ on the level 2 draft (`bb3feeb`).
    It is the intended reading of "untouchable": **no new boot sector**, initial
    block content **not above 13,652 B**, ATR menu delta **not above +7**.
    Otherwise the step STOPs; the three warn frames are not spent.
-7. **The XEX campaign — STILL OPEN.** The XEX carries level 1 only; twelve
-   images do not fit. What the XEX ships (level 1 demo, a selectable subset, or
-   an ATR-only campaign) is **4.9's** decision. **Not required before step 4**;
-   nothing in this plan depends on it.
+7. **The XEX campaign — CLOSED: the ATR only** (decided by the owner,
+   **2026-09-30**). The XEX is not released; the game ships as the ATR, which
+   carries every level as its own sector run. There is no XEX campaign to
+   decide. Removal plan and measurements:
+   [atr-only-build.md](atr-only-build.md).
 8. **Level 1's Raider/Bomber order — RE-AUTHOR IN DATA** (decided by the
    owner, **2026-09-28**, after hardware smoke of the step-2 candidate). The
    smoke found that after the capital Raiders appear and the level then ends

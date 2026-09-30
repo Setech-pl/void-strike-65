@@ -31,6 +31,11 @@
 //
 //   node scripts/level-timeline.mjs --build=build --frames=9000 > timeline.json
 //   node scripts/level-timeline.mjs --build=build --difficulty=1
+//   node scripts/level-timeline.mjs --build=build/level-2-s0 --start-sector=3
+//
+// --start-sector=M (zero-based) pokes debug_start_sector the way the debug
+// route stamps it; only a --level=N build compiles the read, so the default
+// build ignores it.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -112,10 +117,21 @@ function movementIdOf(memory, labels, archetypeOffset) {
   return memory[table + archetypeOffset + 1];
 }
 
+// The core page's debug_start_sector byte (docs/plans/director-4.6.md §7;
+// CORE_DEBUG_START_SECTOR_OFFSET in scripts/level-compiler.mjs).
+const LEVEL_CORE_ADDRESS = 0xaa00;
+const CORE_DEBUG_START_SECTOR_OFFSET = 12;
+
+// `debugStartSector` pokes the core page's debug_start_sector byte before
+// director_init, exactly as a --level=N:sector=M build stamps it. Only a
+// debug-route build honours it (#ifdef LEVEL_DEBUG_START); against the
+// default build the byte is unread and the level starts at its sector 1.
 export function captureTimeline({ buildDirectory, difficulty = 1, frames = 9000,
-  killPolicy = true } = {}) {
+  killPolicy = true, debugStartSector = null } = {}) {
   const memory = new Uint8Array(0x10000);
-  const runtime = installRuntimeSegments(memory, path.resolve(buildDirectory, ".."));
+  // A review variant owns its whole build directory, so the directory is named
+  // as it is rather than derived from a repository root.
+  const runtime = installRuntimeSegments(memory, rootDirectory, path.resolve(buildDirectory));
   const labels = loadLabels(buildDirectory);
   const run = makeRunner(memory, labels);
 
@@ -145,6 +161,9 @@ export function captureTimeline({ buildDirectory, difficulty = 1, frames = 9000,
   run("init_state");
   run("init_entity_effects");
   run("unpack_capital_hull_maps");
+  if (debugStartSector !== null) {
+    memory[LEVEL_CORE_ADDRESS + CORE_DEBUG_START_SECTOR_OFFSET] = debugStartSector;
+  }
   run("director_init", { a: 0x6d ^ difficulty });
   run("init_broadside");
 
@@ -154,16 +173,40 @@ export function captureTimeline({ buildDirectory, difficulty = 1, frames = 9000,
   // row (update_starfield calls integration_director_world_row), the Light
   // tick and wave, and the sector completion. Rendering, input and collision
   // are left out - they change nothing the Director reads.
-  const lightUpdate = labels.get("LIGHT_KERNEL_UPDATE") ??
-    labels.get("entity_effects_update");
+  // The Light half of the main loop is LIGHT_KERNEL_UPDATE (src/main.s), an
+  // assembler equate for the Light kernel link's light_update: the entity
+  // update, then ENEMY_LIGHT_WAVE - the armed Light wave's stepper - then each
+  // live slot's tick. An equate reaches no label file, so until roadmap 4.6
+  // step 3 this lookup found nothing, fell back to entity_effects_update and
+  // never ran the stepper: an authored Light wave armed, held the Director's
+  // cursor and admitted no member. Level 1 authors no Light wave, so nothing
+  // saw it; level 2 opens on one.
+  //
+  // The probe now calls the stepper itself, and still not the slot ticks: a
+  // tick decides motion, fire and contact, not a spawn, and the probe already
+  // retires every Light at a fixed lifetime (below) - which is also why level
+  // 1's figures are unchanged by this: no wave of level 1 ever arms the
+  // stepper, so it returns at once. MEASURED at step 3: running the whole of
+  // light_update instead moves level 1's HARD pins
+  // (tests/level-one-equivalence.test.mjs), because the ticks retire escorts
+  // on their own schedule rather than the probe's.
+  const lightUpdate = labels.get("entity_effects_update");
+  const lightWave = labels.get("enemy_light_wave") ?? labels.get("_enemy_c_light_wave");
   const steps = ["integration_active_gameplay_tick", "tick_shared_fighter_explosions",
     "tick_capital_explosions", "integration_update_first_capital",
-    "integration_update_enemy", "update_starfield", lightUpdate,
+    "integration_update_enemy", "update_starfield", lightUpdate, lightWave,
     "integration_update_sector_completion"];
 
   const heavySpawns = [];
   const lightSpawns = [];
   const sectorTransitions = [];
+  // The Director's own sector index ($80F6), sampled every frame: the frame
+  // and world row on which each authored sector was entered. The entry at
+  // frame 0 is director_init's.
+  const directorSectors = [{ frame: 0, row: 0, sector: memory[STATE.phase] }];
+  // The most Light slots live at once in each Director sector, counted every
+  // frame from light_state itself - the number a sector's Light ceiling bounds.
+  const peakLiveLights = [];
   const kills = [];
   let completeFrame = null;
   let priorActive = memory[enemyActive];
@@ -222,6 +265,18 @@ export function captureTimeline({ buildDirectory, difficulty = 1, frames = 9000,
       priorLight[slot] = value;
     }
 
+    if (memory[STATE.phase] !== directorSectors.at(-1).sector) {
+      directorSectors.push({ frame, row: worldRow(), sector: memory[STATE.phase] });
+    }
+    if (lightState !== undefined) {
+      let live = 0;
+      for (let slot = 0; slot < LIGHT_SLOT_COUNT; slot += 1) {
+        if (memory[lightState + slot] !== 0) live += 1;
+      }
+      const sectorIndex = memory[STATE.phase];
+      peakLiveLights[sectorIndex] = Math.max(peakLiveLights[sectorIndex] ?? 0, live);
+    }
+
     const sector = memory[sectorState];
     if (sector !== priorSector) {
       sectorTransitions.push({ frame, row: worldRow(), from: priorSector, to: sector });
@@ -262,6 +317,15 @@ export function captureTimeline({ buildDirectory, difficulty = 1, frames = 9000,
           frame - (lightSpawnFrame[slot] ?? frame) >= LIGHT_LIFETIME_FRAMES) {
           memory[lightState + slot] = 0;
           memory[lightScreenHi + slot] = 0;
+          // The probe's own view of the slot follows the poke. Without this a
+          // member the wave admits into the SAME slot on the very next frame
+          // reads as "still the old one": it is never recorded as a spawn, and
+          // the stale spawn frame retires it at the end of that frame. Level
+          // 2's swarm waves reuse a freed slot at once, so the probe saw six
+          // of every eight members (roadmap 4.6 step 3, MEASURED); level 1's
+          // escorts never reuse a slot that fast, which is why nothing saw it.
+          priorLight[slot] = 0;
+          lightSpawnFrame[slot] = null;
           kills.push({ frame, light: slot });
         }
       }
@@ -272,12 +336,13 @@ export function captureTimeline({ buildDirectory, difficulty = 1, frames = 9000,
     format: "void-strike-65-level-timeline-v1",
     buildDirectory: path.relative(rootDirectory, path.resolve(buildDirectory)) || "build",
     director: runtime.manifest.encounterDirector?.implementation ?? null,
-    difficulty, frames, killPolicy,
+    difficulty, frames, killPolicy, debugStartSector,
     finalRow: worldRow(),
     finalSectorState: memory[sectorState],
     finalFlags: memory[STATE.flags],
     completeFrame,
-    heavySpawns, lightSpawns, sectorTransitions,
+    heavySpawns, lightSpawns, sectorTransitions, directorSectors,
+    peakLiveLights: Array.from(peakLiveLights, (value) => value ?? 0),
     killCount: kills.length,
   };
 }
@@ -285,6 +350,8 @@ export function captureTimeline({ buildDirectory, difficulty = 1, frames = 9000,
 function main() {
   const buildDirectory = path.resolve(argument("build", path.join(rootDirectory, "build")));
   const frames = Number.parseInt(argument("frames", "9000"), 10);
+  const startSector = argument("start-sector");
+  const debugStartSector = startSector === null ? null : Number.parseInt(startSector, 10);
   const difficulties = argument("difficulty") === null
     ? [0, 1, 2]
     : [Number.parseInt(argument("difficulty"), 10)];
@@ -293,7 +360,7 @@ function main() {
     buildDirectory: path.relative(rootDirectory, buildDirectory) || "build",
     frames,
     runs: difficulties.map((difficulty) =>
-      captureTimeline({ buildDirectory, difficulty, frames })),
+      captureTimeline({ buildDirectory, difficulty, frames, debugStartSector })),
   };
   const bytes = `${JSON.stringify(report, null, 2)}\n`;
   const output = argument("output");

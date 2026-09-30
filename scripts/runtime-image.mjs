@@ -8,9 +8,14 @@ function invariant(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-export function loadRuntimeSegments(rootDirectory) {
+// `buildDirectory` defaults to the default build's. A review variant owns its
+// whole build directory (scripts/build.mjs, owner decision 2026-09-28), so a
+// harness that installs a variant - the level 2 probe of roadmap 4.6 step 3 -
+// names that directory instead.
+export function loadRuntimeSegments(rootDirectory,
+  buildDirectory = path.join(rootDirectory, "build")) {
   const manifest = JSON.parse(fs.readFileSync(
-    path.join(rootDirectory, "build", "manifest.json"), "utf8",
+    path.join(buildDirectory, "manifest.json"), "utf8",
   ));
   const directorCodeRuntimes = manifest.directorCodeRuntimes ??
     (manifest.directorCodeRuntime == null ? [] : [{
@@ -93,7 +98,7 @@ export function loadRuntimeSegments(rootDirectory) {
     ] : []),
   ];
   const segments = definitions.map(([name, fileName, start, expectedBytes]) => {
-    const data = fs.readFileSync(path.join(rootDirectory, "build", fileName));
+    const data = fs.readFileSync(path.join(buildDirectory, fileName));
     invariant(data.length === expectedBytes,
       `${name} runtime image is ${data.length} B; expected ${expectedBytes} B`);
     return { name, start, end: start + data.length - 1, data };
@@ -101,9 +106,9 @@ export function loadRuntimeSegments(rootDirectory) {
   return { manifest, segments };
 }
 
-export function installRuntimeSegments(memory, rootDirectory) {
+export function installRuntimeSegments(memory, rootDirectory, buildDirectory) {
   invariant(memory.length >= 0x10000, "Runtime memory must cover the 6502 address space");
-  const runtime = loadRuntimeSegments(rootDirectory);
+  const runtime = loadRuntimeSegments(rootDirectory, buildDirectory);
   for (const segment of runtime.segments) memory.set(segment.data, segment.start);
   return runtime;
 }

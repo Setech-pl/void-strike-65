@@ -22,6 +22,7 @@ import {
   executeSpreadShotOverlapTrace,
   executeSpreadShotPoolTrace,
   executeSpreadShotTrace,
+  executeSpreadShotVolleyTrace,
   executePlayerFighterBurstBalanceTrace,
   executeWeaponBoosterReplacementTrace,
   executeWeaponPickupBackingTrace,
@@ -195,16 +196,23 @@ test("one Spread emission is an unambiguous three-projectile fan", () => {
     weapons.player_fighter.spreadShotLateralPeriodFrames,
     weapons.player_fighter.spreadShotCooldownFrames,
   ], [500, 3, 4, 1, 2, 28]);
-  const frames = executeSpreadShotTrace({ root, artifact: "atr" }).trajectoryFrames;
+  // Re-pinned 2026-09-30 (docs/plans/spread-volley-fix.md §5). The volley used
+  // to be read off executeSpreadShotTrace's drop cycle, which no longer reaches
+  // Spread because Interceptor kills stopped counting toward the capsule (the
+  // recorded failures at :82 and :149): a stale scenario, so it moves to a
+  // focused volley. The slot order is the build's since db64ca8 - left, right,
+  // centre, lowest free slot first (src/main.s player_fighter_spread_volley_sides
+  // and allocate_player_fighter_spread_projectiles); it was centre, left, right.
+  const frames = executeSpreadShotVolleyTrace({ root, artifact: "atr" }).trajectoryFrames;
   assert.deepEqual(frames[0].slots.slice(0, 3).map(({ active, x, y }) => [active, x, y]), [
-    [0x11, 132, 223], [0x41, 128, 223], [0x21, 136, 223],
+    [0x41, 128, 223], [0x21, 136, 223], [0x11, 132, 223],
   ]);
   for (let frame = 1; frame < frames.length; frame += 1) {
     assert.deepEqual(frames[frame].slots.slice(0, 3).map(({ active, x, y }) =>
       [active, x, y]), [
-      [0x11, 132, 223 - frame * 6],
       [0x41, 128 - Math.ceil(frame / 2), 223 - frame * 6],
       [0x21, 136 + Math.ceil(frame / 2), 223 - frame * 6],
+      [0x11, 132, 223 - frame * 6],
     ]);
     assert.equal(new Set(frames[frame].slots.slice(0, 3)
       .map(({ screenAddress }) => screenAddress)).size, 3,
@@ -313,55 +321,84 @@ test("all three projectiles leave the screen cleanly without HUD or charset corr
   }
 });
 
-test("Spread respects the six-projectile active budget and admits centre before an atomic side pair", () => {
+// Renamed and re-pinned 2026-09-30 (docs/plans/spread-volley-fix.md §5); it was
+// "Spread respects the six-projectile active budget and admits centre before an
+// atomic side pair". The harness called the allocator with BURST_REMAINING = 0,
+// so since db64ca8 it exercised only the centre follow-up and never the volley.
+// The pool and active limit are the build's 5 and 5
+// (assets/graphics/fighter-weapons.json -> PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT
+// and _ACTIVE_LIMIT), where 10 and 6 were pinned. "Centre before an atomic side
+// pair" is replaced by the owner decision of 2026-09-30: the volley is admitted
+// whole or not at all, and one free slot still suffices for the centre follow-up.
+test("Spread respects the five-projectile active budget and admits its volley whole or not at all", () => {
   const trace = executeSpreadShotPoolTrace({ root, artifact: "atr" });
   assert.deepEqual([
     manifest.fighterWeapons.player_fighter.poolSlots,
     manifest.fighterWeapons.player_fighter.activeLimit,
     trace.empty.activeCount,
-    trace.threeOccupied.activeCount,
-  ], [10, 6, 3, 6]);
-  assert.deepEqual(trace.empty.after.slice(0, 3), [0x11, 0x41, 0x21]);
-  assert.deepEqual(trace.threeOccupied.after.slice(3, 6), [0x11, 0x41, 0x21]);
-  assert.deepEqual(trace.fourOccupied.after.slice(4, 6), [0x11, 0],
-    "two free slots must admit the centre but never one unpaired side");
-  assert.deepEqual(trace.fiveOccupied.after.slice(5, 6), [0x11],
-    "one free slot must remain sufficient for the priority centre");
+    trace.volleyFitsExactly.activeCount,
+  ], [5, 5, 3, 5]);
+  assert.deepEqual(trace.empty.after.slice(0, 3), [0x41, 0x21, 0x11]);
+  assert.deepEqual(trace.volleyFitsExactly.after.slice(2, 5), [0x41, 0x21, 0x11]);
+  assert.deepEqual(trace.twoFree.after, trace.twoFree.before,
+    "two free slots must admit no part of the volley, not one unpaired side");
+  assert.deepEqual(trace.oneFree.after, trace.oneFree.before,
+    "one free slot must not admit a partial volley");
+  assert.deepEqual(trace.followUpOneFree.after.slice(4, 5), [0x11],
+    "one free slot must remain sufficient for the centre follow-up");
+  assert.deepEqual(trace.followUpActiveFull.after, trace.followUpActiveFull.before);
   assert.deepEqual(trace.activeFull.after, trace.activeFull.before);
   assert.deepEqual(trace.physicalFull.after, trace.physicalFull.before);
   const controller = executePlayerFighterBurstBalanceTrace({
     root, artifact: "atr", windowFrames: 500,
   })
     .traces.find(({ mode }) => mode === "SPREAD");
-  assert.equal(controller.firstBurstSalvos, 8);
-  assert.equal(controller.firstBurstProjectiles, 24);
-  assert.equal(controller.records.every(({ allocatedProjectiles }) =>
-    allocatedProjectiles === 0 || allocatedProjectiles === 3), true,
+  // A burst is the volley and the centre follow-up (spreadShotBurstCount 2):
+  // two fire events, four logical PairShots. 8 salvos / 24 were the retired
+  // eight-fan burst.
+  assert.equal(controller.firstBurstSalvos, 2);
+  assert.equal(controller.firstBurstProjectiles, 4);
+  const kinds = (record) => record.allocatedSlots
+    .map((slot) => record.slots[slot].active & 0x70).sort().join();
+  assert.equal(controller.records.every((record) => record.allocatedProjectiles === 0 ||
+    kinds(record) === "16,32,64" || kinds(record) === "16"), true,
   "a Spread controller update must never allocate a partial fan");
   const rejected = controller.records.filter(({ allocationDue, allocatedProjectiles }) =>
     allocationDue && allocatedProjectiles === 0);
   assert.equal(rejected.length, 0,
     "a blocked Spread salvo must remain one deferred salvo, not accumulated catch-up");
-  assert.equal(controller.maximumPoolOccupancy, 6);
-  assert.equal(controller.emittedSalvos, 19);
-  assert.equal(controller.emittedProjectiles, 57);
-  assert.equal(manifest.fighterWeapons.player_fighter.poolSlots, 10);
+  // Volley 3 + follow-up 1; 13 volleys and 12 follow-ups fit in 500 frames at
+  // one burst per 28 + 12 frames. 6 / 19 / 57 were the retired three-per-event
+  // schedule on a six-slot limit.
+  assert.equal(controller.maximumPoolOccupancy, 4);
+  assert.equal(controller.emittedSalvos, 25);
+  assert.equal(controller.emittedProjectiles, 51);
+  assert.equal(manifest.fighterWeapons.player_fighter.poolSlots, 5);
   assert.equal(manifest.entityEffects.effectActiveLimit, 5);
 });
 
+// Re-pinned 2026-09-30 (docs/plans/spread-volley-fix.md §5). The harness fired
+// one three-shot fan every `cooldown` frames, the contract before db64ca8; it
+// now holds fire through the real controller (volley, 28 frames, centre
+// follow-up, 12-frame pause) with the Spread interval overridden for the fast
+// case. The configured cadence peaks at the volley plus its follow-up, 4 of the
+// 5 active slots; 6 was the retired six-slot limit and 18 salvos of 3 the
+// retired schedule.
 test("the configured 28-frame Spread cooldown avoids catch-up at the active limit", () => {
   const trace = executeSpreadShotCooldownSafetyTrace({ root, artifact: "atr" });
   assert.equal(trace.tooFast.cooldown, 17);
   assert.ok(trace.tooFast.rejectedFullSalvos > 0,
     "a deliberately faster schedule must demonstrate saturation");
-  assert.equal(trace.tooFast.maximumPoolOccupancy, 6);
+  assert.equal(trace.tooFast.fullSalvos, trace.tooFast.salvos,
+    "a saturated schedule must defer its volley whole, never emit part of it");
+  assert.equal(trace.tooFast.maximumPoolOccupancy, 4);
   assert.deepEqual(trace.configured, {
     cooldown: 28,
-    allocationSizes: Array(18).fill(3),
-    salvos: 18,
-    fullSalvos: 18,
+    allocationSizes: [...Array(12).fill([3, 1]).flat(), 3],
+    salvos: 25,
+    fullSalvos: 25,
     rejectedFullSalvos: 0,
-    maximumPoolOccupancy: 6,
+    maximumPoolOccupancy: 4,
   });
 });
 

@@ -1681,63 +1681,207 @@ export function executeSpreadShotTrace({
   };
 }
 
+// Spread volley admission (owner decision 2026-09-30, docs/plans/spread-volley-fix.md):
+// the left/centre/right volley is admitted only when three slots are free within
+// the active limit, and then all three are allocated in one frame; otherwise
+// nothing is allocated and the fire event is retried next frame. The follow-up
+// fire event is one centre shot. These helpers read every figure from the
+// linked build rather than pinning the retired 10-slot / 6-active geometry.
+const SPREAD_BOOSTER_STATE = 4;
+const SPREAD_KIND_MASK = 0x70;
+const SPREAD_KINDS = { 0x10: "centre", 0x20: "right", 0x40: "left" };
+
+function spreadWeaponGeometry(manifest) {
+  const weapons = manifest.fighterWeapons.player_fighter;
+  return {
+    poolSlots: weapons.poolSlots,
+    activeLimit: weapons.activeLimit,
+    volleyRemaining: weapons.spreadShotBurstCount,
+    volleySize: weapons.spreadShotProjectileCount,
+  };
+}
+
+function armSpreadController(memory, labels) {
+  memory[requiredLabel(labels, "ENTITY_STATE") + 2] = SPREAD_BOOSTER_STATE;
+  memory[requiredLabel(labels, "ENTITY_TIMER") + 2] = 0xf4;
+  memory[requiredLabel(labels, "ENTITY_MOVE_ACCUMULATOR") + 2] = 1;
+  memory[requiredLabel(labels, "player_x")] = 124;
+  memory[requiredLabel(labels, "player_y")] = playerMaximumY;
+  memory[requiredLabel(labels, "sound_enabled")] = 1;
+}
+
+// Plain PlayerFighter PairShots already in flight, one per listed Y, from slot 0.
+function seedLiveShots(memory, labels, liveShotYs) {
+  const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
+  const x = requiredLabel(labels, "FIGHTER_PROJECTILE_X");
+  const y = requiredLabel(labels, "FIGHTER_PROJECTILE_Y");
+  const previousY = requiredLabel(labels, "FIGHTER_PROJECTILE_PREV_Y");
+  const lifetime = requiredLabel(labels, "FIGHTER_PROJECTILE_LIFETIME");
+  liveShotYs.forEach((shotY, slot) => {
+    memory[active + slot] = 1;
+    memory[x + slot] = 132;
+    memory[y + slot] = shotY;
+    memory[previousY + slot] = shotY;
+    memory[lifetime + slot] = 0xff;
+  });
+}
+
+export function executeSpreadShotVolleyTrace({
+  root = defaultRoot, artifact = "atr", frames = 8,
+} = {}) {
+  const { memory, labels, manifest } = initialiseRuntime(root, artifact);
+  const geometry = spreadWeaponGeometry(manifest);
+  armSpreadController(memory, labels);
+  runRoutine(memory, labels, "clear_player_fighter_projectiles");
+  memory[requiredLabel(labels, "PLAYER_FIGHTER_BURST_REMAINING")] = geometry.volleyRemaining;
+  runRoutine(memory, labels, "allocate_player_fighter_projectile");
+  const trajectoryFrames = [player_fighterProjectileSnapshot(memory, labels,
+    { phase: "SPREAD_VOLLEY", frame: 0 })];
+  for (let frame = 0; frame < frames; frame += 1) {
+    runRoutine(memory, labels, "erase_fighter_projectile_overlays");
+    runRoutine(memory, labels, "update_fighter_projectiles");
+    runRoutine(memory, labels, "render_fighter_projectile_overlays");
+    trajectoryFrames.push(player_fighterProjectileSnapshot(memory, labels,
+      { phase: "SPREAD_VOLLEY", frame: frame + 1 }));
+  }
+  return { artifact, geometry, trajectoryFrames };
+}
+
+// One fire event through allocate_player_fighter_projectile with `occupied`
+// plain shots in slots 0.., for the volley (BURST_REMAINING = the Spread burst
+// count) and for the centre follow-up (BURST_REMAINING = 1).
 export function executeSpreadShotPoolTrace({ root = defaultRoot, artifact = "atr" } = {}) {
-  const runCase = (occupied) => {
+  const { manifest } = initialiseRuntime(root, artifact);
+  const geometry = spreadWeaponGeometry(manifest);
+  const runCase = (occupied, remaining = geometry.volleyRemaining) => {
     const { memory, labels } = initialiseRuntime(root, artifact);
     const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
-    memory[requiredLabel(labels, "ENTITY_STATE") + 2] = 4;
+    memory[requiredLabel(labels, "ENTITY_STATE") + 2] = SPREAD_BOOSTER_STATE;
+    memory[requiredLabel(labels, "PLAYER_FIGHTER_BURST_REMAINING")] = remaining;
     for (let slot = 0; slot < occupied; slot += 1) memory[active + slot] = 1;
     const before = Array.from(memory.subarray(active, active + 10));
     runRoutine(memory, labels, "allocate_player_fighter_projectile");
     const after = Array.from(memory.subarray(active, active + 10));
     return {
       occupied,
+      remaining,
       before,
       after,
       activeCount: after.filter(Boolean).length,
       projectiles: player_fighterProjectileSnapshot(memory, labels).slots,
     };
   };
+  const limit = geometry.activeLimit;
   return {
     artifact,
+    geometry,
     empty: runCase(0),
-    threeOccupied: runCase(3),
-    fourOccupied: runCase(4),
-    fiveOccupied: runCase(5),
-    activeFull: runCase(6),
+    volleyFitsExactly: runCase(limit - geometry.volleySize),
+    twoFree: runCase(limit - 2),
+    oneFree: runCase(limit - 1),
+    activeFull: runCase(limit),
     physicalFull: runCase(10),
+    followUpOneFree: runCase(limit - 1, 1),
+    followUpActiveFull: runCase(limit, 1),
   };
 }
 
+// Fire held through the real controller (update_player_fighter_weapon) with
+// the frame's projectile pipeline around it, as the main loop runs it.
+// `liveShotYs` seeds plain shots already in flight when the fire button goes
+// down; `spreadCooldown` overrides the Spread entry of the interval table to
+// demonstrate saturation with a deliberately faster schedule.
+export function executeSpreadShotFireHeldTrace({
+  root = defaultRoot, artifact = "atr", frames = 200, liveShotYs = [],
+  spreadCooldown = null,
+} = {}) {
+  const { memory, labels, manifest } = initialiseRuntime(root, artifact);
+  const geometry = spreadWeaponGeometry(manifest);
+  const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
+  const burstState = requiredLabel(labels, "PLAYER_FIGHTER_BURST_STATE");
+  const burstRemaining = requiredLabel(labels, "PLAYER_FIGHTER_BURST_REMAINING");
+  const burstTimer = requiredLabel(labels, "PLAYER_FIGHTER_BURST_TIMER");
+  const fireTimer = requiredLabel(labels, "fire_timer");
+  armSpreadController(memory, labels);
+  seedLiveShots(memory, labels, liveShotYs);
+  if (spreadCooldown !== null) {
+    memory[requiredLabel(labels, "player_fighter_fire_intervals") + SPREAD_BOOSTER_STATE] =
+      spreadCooldown;
+  }
+  memory[0xd010] = 0;
+  const records = [];
+  for (let frame = 0; frame < frames; frame += 1) {
+    runRoutine(memory, labels, "erase_fighter_projectile_overlays");
+    runRoutine(memory, labels, "update_fighter_projectiles");
+    const before = Array.from(memory.subarray(active, active + geometry.poolSlots));
+    const stateBefore = memory[burstState];
+    const remainingBefore = memory[burstRemaining];
+    const timerBefore = memory[burstTimer];
+    memory[fireTimer] = 0;
+    const controlCycles = runRoutine(memory, labels, "update_player_fighter_weapon");
+    const after = Array.from(memory.subarray(active, active + geometry.poolSlots));
+    const allocatedSlots = after.flatMap((value, slot) =>
+      before[slot] === 0 && value !== 0 ? [slot] : []);
+    const kinds = allocatedSlots.map((slot) =>
+      SPREAD_KINDS[after[slot] & SPREAD_KIND_MASK] ?? "plain").sort();
+    runRoutine(memory, labels, "render_fighter_projectile_overlays");
+    records.push({
+      frame,
+      stateBefore,
+      remainingBefore,
+      timerBefore,
+      remainingAfter: memory[burstRemaining],
+      allocationDue: stateBefore === 0 ||
+        (stateBefore === 1 && timerBefore <= 1) ||
+        (stateBefore === 2 && timerBefore <= 1),
+      allocatedSlots,
+      kinds,
+      soundStarted: memory[fireTimer] === 0x32,
+      activeCount: after.filter(Boolean).length,
+      controlCycles,
+    });
+  }
+  memory[0xd010] = 1;
+  const count = (kind) => records.reduce((sum, record) =>
+    sum + record.kinds.filter((value) => value === kind).length, 0);
+  return {
+    artifact,
+    geometry,
+    frames,
+    liveShotYs,
+    spreadCooldown: spreadCooldown ?? manifest.fighterWeapons.player_fighter.spreadShotCooldownFrames,
+    records,
+    centre: count("centre"),
+    left: count("left"),
+    right: count("right"),
+    fireSounds: records.filter(({ soundStarted }) => soundStarted).length,
+    framesPoolFull: records.filter(({ activeCount }) => activeCount >= geometry.activeLimit).length,
+    maximumPoolOccupancy: Math.max(...records.map(({ activeCount }) => activeCount)),
+    maximumControlCycles: Math.max(...records.map(({ controlCycles }) => controlCycles)),
+  };
+}
+
+// The fire-held controller at the real Spread cadence and at a deliberately
+// faster one. An emission is complete when it allocates its whole shape - the
+// three-shot volley or the single centre follow-up - in one frame.
 export function executeSpreadShotCooldownSafetyTrace({
   root = defaultRoot, artifact = "atr", frames = 500,
 } = {}) {
   const runCandidate = (cooldown) => {
-    const { memory, labels } = initialiseRuntime(root, artifact);
-    const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
-    memory[requiredLabel(labels, "ENTITY_STATE") + 2] = 4;
-    memory[requiredLabel(labels, "player_x")] = 124;
-    memory[requiredLabel(labels, "player_y")] = playerMaximumY;
-    let maximumPoolOccupancy = 0;
-    const allocationSizes = [];
-    for (let frame = 0; frame < frames; frame += 1) {
-      runRoutine(memory, labels, "update_fighter_projectiles");
-      if (frame % cooldown === 0) {
-        const before = countActive(memory, active, 10);
-        runRoutine(memory, labels, "allocate_player_fighter_projectile");
-        const after = countActive(memory, active, 10);
-        allocationSizes.push(after - before);
-      }
-      maximumPoolOccupancy = Math.max(maximumPoolOccupancy,
-        countActive(memory, active, 10));
-    }
+    const trace = executeSpreadShotFireHeldTrace({
+      root, artifact, frames, spreadCooldown: cooldown,
+    });
+    const emissions = trace.records.filter(({ allocatedSlots }) => allocatedSlots.length > 0);
+    const complete = ({ kinds }) =>
+      kinds.join() === "centre,left,right" || kinds.join() === "centre";
     return {
       cooldown,
-      allocationSizes,
-      salvos: allocationSizes.length,
-      fullSalvos: allocationSizes.filter((count) => count === 3).length,
-      rejectedFullSalvos: allocationSizes.filter((count) => count !== 3).length,
-      maximumPoolOccupancy,
+      allocationSizes: emissions.map(({ allocatedSlots }) => allocatedSlots.length),
+      salvos: emissions.length,
+      fullSalvos: emissions.filter(complete).length,
+      rejectedFullSalvos: trace.records.filter(({ allocationDue, allocatedSlots }) =>
+        allocationDue && allocatedSlots.length === 0).length,
+      maximumPoolOccupancy: trace.maximumPoolOccupancy,
     };
   };
   return {
@@ -1746,6 +1890,37 @@ export function executeSpreadShotCooldownSafetyTrace({
     tooFast: runCandidate(17),
     configured: runCandidate(28),
   };
+}
+
+// Controller cycles on the frame a fire event is due, for every occupancy
+// pattern of the active slots: the volley and the centre follow-up.
+export function executeSpreadShotAdmissionCycleSweep({
+  root = defaultRoot, artifact = "atr",
+} = {}) {
+  const { manifest } = initialiseRuntime(root, artifact);
+  const geometry = spreadWeaponGeometry(manifest);
+  const rows = [];
+  for (const [event, remaining] of [["volley", geometry.volleyRemaining], ["follow-up", 1]]) {
+    for (let mask = 0; mask < 1 << geometry.activeLimit; mask += 1) {
+      const { memory, labels } = initialiseRuntime(root, artifact);
+      const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
+      armSpreadController(memory, labels);
+      for (let slot = 0; slot < geometry.activeLimit; slot += 1) {
+        if (mask & 1 << slot) memory[active + slot] = 1;
+      }
+      memory[requiredLabel(labels, "PLAYER_FIGHTER_BURST_STATE")] = 1;
+      memory[requiredLabel(labels, "PLAYER_FIGHTER_BURST_REMAINING")] = remaining;
+      memory[requiredLabel(labels, "PLAYER_FIGHTER_BURST_TIMER")] = 0;
+      memory[0xd010] = 0;
+      const before = countActive(memory, active, geometry.poolSlots);
+      const cycles = runRoutine(memory, labels, "update_player_fighter_weapon");
+      rows.push({
+        event, mask, occupied: before,
+        allocated: countActive(memory, active, geometry.poolSlots) - before, cycles,
+      });
+    }
+  }
+  return { artifact, geometry, rows };
 }
 
 export function executeSpreadShotMotionTrace({ root = defaultRoot, artifact = "atr" } = {}) {

@@ -76,7 +76,7 @@ function readLabels() {
   return labels;
 }
 
-function readXexBytes(address, length) {
+function readImageBytes(address, length) {
   return readRuntimeBytes(rootDirectory, address, length);
 }
 
@@ -268,7 +268,7 @@ test("copyright footer has two bold centered ANTIC E lines with safe spacing", (
   assert.equal(compiled.bitmapBytes.length, 40 * 192);
 });
 
-test("packed XEX footer uses distinct bold glyphs made of full ANTIC E pixels", () => {
+test("packed loader footer uses distinct bold glyphs made of full ANTIC E pixels", () => {
   const acceptedGlyphs = {
     "(": ["010", "100", "100", "100", "100", "100", "010"],
     ")": ["010", "001", "001", "001", "001", "001", "010"],
@@ -535,12 +535,12 @@ test("assembled display list contains 157 ANTIC F and 35 ANTIC E lines", () => {
   );
 });
 
-test("XEX and ATR use the current packed bitmap source", () => {
+test("the ATR uses the current packed bitmap source", () => {
   const labels = readLabels();
   const packedAddress = labels.get("loader_bitmap_lzss");
   assert.ok(Number.isInteger(packedAddress));
   assert.deepEqual(
-    readXexBytes(packedAddress, compiled.packedBitmap.length),
+    readImageBytes(packedAddress, compiled.packedBitmap.length),
     Buffer.from(compiled.packedBitmap),
   );
 

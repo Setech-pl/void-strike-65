@@ -41,16 +41,12 @@ import {
   loadEntityEffectsDefinition,
 } from "./entity-effects.mjs";
 import {
-  assertDebrisDestructionTraceParity,
-  assertInterceptorBreakupTraceParity,
   debrisDestructionTraceCsv,
   executeDebrisDestructionTrace,
   executeInterceptorBreakupTrace,
   interceptorBreakupTraceCsv,
 } from "./debris-destruction-runtime.mjs";
 import {
-  assertSpreadShotTraceParity,
-  assertWeaponPickupTraceParity,
   executeHudPresentationTrace,
   executeShieldBoosterTrace,
   executeSpreadShotHullVolleyTrace,
@@ -445,32 +441,17 @@ export const DEFAULT_SHIELD_BOOSTER_PREVIEW_PATH = path.join(
   "previews",
   "weapon-pickup-shield-review.png",
 );
-export const DEFAULT_PROJECTILE_COLOUR_XEX_PREVIEW_PATH = path.join(
-  rootDirectory, "build", "previews", "weapon-projectile-colour-regression-xex.png",
-);
 export const DEFAULT_PROJECTILE_COLOUR_ATR_PREVIEW_PATH = path.join(
   rootDirectory, "build", "previews", "weapon-projectile-colour-regression-atr.png",
-);
-export const DEFAULT_PLAYER_FIGHTER_BURST_BALANCE_XEX_PREVIEW_PATH = path.join(
-  rootDirectory, "build", "previews", "weapon-burst-balance-xex.png",
 );
 export const DEFAULT_PLAYER_FIGHTER_BURST_BALANCE_ATR_PREVIEW_PATH = path.join(
   rootDirectory, "build", "previews", "weapon-burst-balance-atr.png",
 );
-export const DEFAULT_PLAYER_FIGHTER_BURST_BALANCE_XEX_TRACE_PATH = path.join(
-  rootDirectory, "build", "previews", "weapon-burst-balance-xex.csv",
-);
 export const DEFAULT_PLAYER_FIGHTER_BURST_BALANCE_ATR_TRACE_PATH = path.join(
   rootDirectory, "build", "previews", "weapon-burst-balance-atr.csv",
 );
-export const DEFAULT_SPREAD_SHOT_HULL_XEX_PREVIEW_PATH = path.join(
-  rootDirectory, "build", "previews", "weapon-pickup-spread-shot-hulls-xex.png",
-);
 export const DEFAULT_SPREAD_SHOT_HULL_ATR_PREVIEW_PATH = path.join(
   rootDirectory, "build", "previews", "weapon-pickup-spread-shot-hulls-atr.png",
-);
-export const DEFAULT_SPREAD_SHOT_HULL_XEX_TRACE_PATH = path.join(
-  rootDirectory, "build", "previews", "weapon-pickup-spread-shot-hulls-xex.csv",
 );
 export const DEFAULT_SPREAD_SHOT_HULL_ATR_TRACE_PATH = path.join(
   rootDirectory, "build", "previews", "weapon-pickup-spread-shot-hulls-atr.csv",
@@ -3963,11 +3944,7 @@ export function createDebrisReviewPreview(
 export function createDestructibleDebrisTrace(
   _definition = loadEntityEffectsDefinition(DEFAULT_ENTITY_EFFECTS_DEFINITION_PATH),
 ) {
-  const xex = executeDebrisDestructionTrace({ artifact: "xex" });
-  const atr = executeDebrisDestructionTrace({ artifact: "atr" });
-  assertDebrisDestructionTraceParity(xex, atr);
-  const atrRows = debrisDestructionTraceCsv(atr).trimEnd().split("\n").slice(1);
-  return `${debrisDestructionTraceCsv(xex).trimEnd()}\n${atrRows.join("\n")}\n`;
+  return debrisDestructionTraceCsv(executeDebrisDestructionTrace({ artifact: "atr" }));
 }
 
 function copyRgbPanel(destination, destinationWidth, destinationHeight,
@@ -3996,9 +3973,7 @@ export function createDestructibleDebrisPreview(
   source,
   _definition = loadEntityEffectsDefinition(DEFAULT_ENTITY_EFFECTS_DEFINITION_PATH),
 ) {
-  const trace = executeDebrisDestructionTrace({ artifact: "xex" });
-  const atrTrace = executeDebrisDestructionTrace({ artifact: "atr" });
-  assertDebrisDestructionTraceParity(trace, atrTrace);
+  const trace = executeDebrisDestructionTrace({ artifact: "atr" });
   const constants = parseConstants(source);
   const graphics = {
     hardwareState: new Map([
@@ -4037,10 +4012,10 @@ export function createDestructibleDebrisPreview(
   const steel = atariPalRegisterToRgb(0x84);
   const yellow = atariPalRegisterToRgb(0x1e);
   fillRgb(rgb, background);
-  drawRgbLabel(rgb, width, "DEBRIS DESTRUCTION  EXECUTED XEX BYTES  50 FPS", 24, 16,
+  drawRgbLabel(rgb, width, "DEBRIS DESTRUCTION  EXECUTED ATR BYTES  50 FPS", 24, 16,
     frontend, white);
   drawRgbLabel(rgb, width,
-    "CORE 5 FRAMES  FRAGMENTS 30 FRAMES  XEX ATR BYTE-EXACT TRACE PARITY", 24, 34,
+    "CORE 5 FRAMES  FRAGMENTS 30 FRAMES  EXECUTED RELEASE TRACE", 24, 34,
     frontend, yellow);
 
   drawRgbLabel(rgb, width, "NATIVE 1 TO 1  EIGHT ACTUAL RUNTIME FRAMES", 24, 58,
@@ -4069,11 +4044,7 @@ export function createDestructibleDebrisPreview(
 export function createInterceptorBreakupTrace(
   _definition = loadEntityEffectsDefinition(DEFAULT_ENTITY_EFFECTS_DEFINITION_PATH),
 ) {
-  const xex = executeInterceptorBreakupTrace({ artifact: "xex" });
-  const atr = executeInterceptorBreakupTrace({ artifact: "atr" });
-  assertInterceptorBreakupTraceParity(xex, atr);
-  const atrRows = interceptorBreakupTraceCsv(atr).trimEnd().split("\n").slice(1);
-  return `${interceptorBreakupTraceCsv(xex).trimEnd()}\n${atrRows.join("\n")}\n`;
+  return interceptorBreakupTraceCsv(executeInterceptorBreakupTrace({ artifact: "atr" }));
 }
 
 function runtimeInterceptorFrameRgb(record, trace, graphics, scale) {
@@ -4097,9 +4068,7 @@ export function createInterceptorBreakupPreview(
   source,
   _definition = loadEntityEffectsDefinition(DEFAULT_ENTITY_EFFECTS_DEFINITION_PATH),
 ) {
-  const trace = executeInterceptorBreakupTrace({ artifact: "xex" });
-  const atrTrace = executeInterceptorBreakupTrace({ artifact: "atr" });
-  assertInterceptorBreakupTraceParity(trace, atrTrace);
+  const trace = executeInterceptorBreakupTrace({ artifact: "atr" });
   const graphics = readGameGraphicsSource(source);
   const frontend = readFrontendGraphicsSource(source);
   const selected = [
@@ -4129,7 +4098,7 @@ export function createInterceptorBreakupPreview(
   const steel = atariPalRegisterToRgb(0x84);
   const yellow = atariPalRegisterToRgb(0x1e);
   fillRgb(rgb, background);
-  drawRgbLabel(rgb, width, "INTERCEPTOR BREAKUP  EXECUTED XEX BYTES  50 FPS", 24, 16,
+  drawRgbLabel(rgb, width, "INTERCEPTOR BREAKUP  EXECUTED ATR BYTES  50 FPS", 24, 16,
     frontend, white);
   drawRgbLabel(rgb, width,
     "FULL SCREEN FLASH UNCHANGED  NO RAIDER CHARACTER EFFECT", 24, 34,
@@ -4144,7 +4113,7 @@ export function createInterceptorBreakupPreview(
     const frameRgb = runtimeInterceptorFrameRgb(record, trace, graphics, 1);
     copyRgbPanel(rgb, width, height, frameRgb, nativeWidth, nativeHeight, x, 102);
   });
-  drawRgbLabel(rgb, width, "ENLARGED 2X  SAME XEX GLYPHS PMG COLORS AND TIMINGS", 24, 306,
+  drawRgbLabel(rgb, width, "ENLARGED 2X  SAME ATR GLYPHS PMG COLORS AND TIMINGS", 24, 306,
     frontend, steel);
   selected.forEach(({ label, record }, index) => {
     const panelWidth = nativeWidth * 2;
@@ -4157,40 +4126,14 @@ export function createInterceptorBreakupPreview(
 }
 
 export function createWeaponPickupRapidFireTrace() {
-  const xex = executeWeaponPickupTrace({ artifact: "xex" });
-  const atr = executeWeaponPickupTrace({ artifact: "atr" });
-  assertWeaponPickupTraceParity(xex, atr);
-  const atrRows = weaponPickupTraceCsv(atr).trimEnd().split("\n").slice(1);
-  return `${weaponPickupTraceCsv(xex).trimEnd()}\n${atrRows.join("\n")}\n`;
-}
-
-function comparableHudPresentation(trace) {
-  return {
-    frames: trace.frames,
-    hudCharset: trace.hudCharset,
-    hullOffset: trace.hullOffset,
-    hullSegments: trace.hullSegments,
-    boosterOffset: trace.boosterOffset,
-    boosterCells: trace.boosterCells,
-    boosterSegmentsOffset: trace.boosterSegmentsOffset,
-    boosterSegments: trace.boosterSegments,
-    hullFullCode: trace.hullFullCode,
-    hullDamagedCode: trace.hullDamagedCode,
-    boosterFullCode: trace.boosterFullCode,
-    hullFullGlyph: trace.hullFullGlyph,
-    hullDamagedGlyph: trace.hullDamagedGlyph,
-    boosterFullGlyph: trace.boosterFullGlyph,
-  };
+  return weaponPickupTraceCsv(executeWeaponPickupTrace({ artifact: "atr" }));
 }
 
 function executedHudPresentation(source) {
-  const xex = executeHudPresentationTrace({ artifact: "xex" });
-  const atr = executeHudPresentationTrace({ artifact: "atr" });
-  if (JSON.stringify(comparableHudPresentation(xex)) !==
-      JSON.stringify(comparableHudPresentation(atr))) {
-    throw new Error("HUD presentation differs between release XEX and ATR");
-  }
-  return { trace: xex, frontend: readFrontendGraphicsSource(source) };
+  return {
+    trace: executeHudPresentationTrace({ artifact: "atr" }),
+    frontend: readFrontendGraphicsSource(source),
+  };
 }
 
 function runtimeHudRowRgb(record, trace, scale = 1) {
@@ -4237,7 +4180,7 @@ export function createHudPresentationPreview(source) {
   const steel = atariPalRegisterToRgb(0x84);
   const yellow = atariPalRegisterToRgb(0x1e);
   fillRgb(rgb, [3, 5, 9]);
-  drawRgbLabel(rgb, width, "HUD PRESENTATION  EXECUTED RELEASE XEX AND ATR", 24, 14,
+  drawRgbLabel(rgb, width, "HUD PRESENTATION  EXECUTED RELEASE ATR", 24, 14,
     frontend, white);
   drawRgbLabel(rgb, width,
     "HULL LOW ANGULAR PLATES  BOOST TALL ENERGY CELLS  NO COLOR DEPENDENCY", 24, 32,
@@ -4268,16 +4211,10 @@ export function createHudPresentationPreview(source) {
 export function createShieldBoosterPreview(source) {
   const graphics = readGameGraphicsSource(source);
   const frontend = readFrontendGraphicsSource(source);
-  const shield = executeShieldBoosterTrace({ artifact: "xex", coldFill: 0xa5 });
-  const atrShield = executeShieldBoosterTrace({ artifact: "atr", coldFill: 0xa5 });
-  const capsule = executeWeaponPickupBackingTrace({ artifact: "xex", pickupType: "shield" });
-  const atrCapsule = executeWeaponPickupBackingTrace({ artifact: "atr", pickupType: "shield" });
-  if (JSON.stringify(shield.activation) !== JSON.stringify(atrShield.activation) ||
-      JSON.stringify(capsule.rendered.display) !== JSON.stringify(atrCapsule.rendered.display)) {
-    throw new Error("Shield visual state differs between packed XEX and ATR");
-  }
+  const shield = executeShieldBoosterTrace({ artifact: "atr", coldFill: 0xa5 });
+  const capsule = executeWeaponPickupBackingTrace({ artifact: "atr", pickupType: "shield" });
 
-  const hudTrace = executeHudPresentationTrace({ artifact: "xex" });
+  const hudTrace = executeHudPresentationTrace({ artifact: "atr" });
   const display = Uint8Array.from(hudTrace.frames[1].display);
   display.set(shield.activation.hudRegion, 30);
   const registers = new Map(graphics.hardwareState);
@@ -4308,7 +4245,7 @@ export function createShieldBoosterPreview(source) {
   fillRgb(rgb, [3, 5, 9]);
   const white = atariPalRegisterToRgb(0x0e);
   const steel = atariPalRegisterToRgb(0x84);
-  drawRgbLabel(rgb, width, "SHIELD BOOSTER  EXECUTED XEX ATR VISUAL STATE", 16, 10,
+  drawRgbLabel(rgb, width, "SHIELD BOOSTER  EXECUTED ATR VISUAL STATE", 16, 10,
     frontend, white);
   drawRgbLabel(rgb, width,
     "STEEL WHITE CAPSULE  DISTINCT CONTINUOUS HUD BAR  SOLID PLAYER_FIGHTER PULSE", 16, 28,
@@ -4345,15 +4282,8 @@ function runtimeWeaponPickupFrameRgb(record, trace, registers, scale) {
 }
 
 export function createWeaponPickupRapidFirePreview(source) {
-  const trace = executeWeaponPickupTrace({ artifact: "xex" });
-  const atr = executeWeaponPickupTrace({ artifact: "atr" });
-  const colours = executePlayerFighterProjectileColourTrace({ artifact: "xex" });
-  const atrColours = executePlayerFighterProjectileColourTrace({ artifact: "atr" });
-  assertWeaponPickupTraceParity(trace, atr);
-  if (JSON.stringify({ ...colours, artifact: "release" }) !==
-      JSON.stringify({ ...atrColours, artifact: "release" })) {
-    throw new Error("Rapid Fire projectile colours differ between release XEX and ATR");
-  }
+  const trace = executeWeaponPickupTrace({ artifact: "atr" });
+  const colours = executePlayerFighterProjectileColourTrace({ artifact: "atr" });
   const constants = parseConstants(source);
   const registers = new Map([
     ["COLBK", requireValue(constants, "GAMEPLAY_BACKGROUND_COLOR")],
@@ -4390,7 +4320,7 @@ export function createWeaponPickupRapidFirePreview(source) {
   const steel = atariPalRegisterToRgb(0x84);
   const yellow = atariPalRegisterToRgb(0x1e);
   fillRgb(rgb, background);
-  drawRgbLabel(rgb, width, "WEAPON PICKUP RF  EXECUTED RELEASE XEX AND ATR", 24, 16,
+  drawRgbLabel(rgb, width, "WEAPON PICKUP RF  EXECUTED RELEASE ATR", 24, 16,
     frontend, white);
   drawRgbLabel(rgb, width,
     "STATIC STEEL YELLOW 2X2 CAPSULE  BLACK RF  FULL BOOST LABEL  YELLOW FIRE", 24, 34,
@@ -4428,22 +4358,11 @@ export function createWeaponPickupRapidFirePreview(source) {
 }
 
 export function createSpreadShotTrace() {
-  const xex = executeSpreadShotTrace({ artifact: "xex" });
-  const atr = executeSpreadShotTrace({ artifact: "atr" });
-  assertSpreadShotTraceParity(xex, atr);
-  const atrRows = spreadShotTraceCsv(atr).trimEnd().split("\n").slice(1);
-  return `${spreadShotTraceCsv(xex).trimEnd()}\n${atrRows.join("\n")}\n`;
+  return spreadShotTraceCsv(executeSpreadShotTrace({ artifact: "atr" }));
 }
 
-export function createPlayerFighterProjectileColourPreview(source, artifact = "xex") {
+export function createPlayerFighterProjectileColourPreview(source, artifact = "atr") {
   const trace = executePlayerFighterProjectileColourLifecycleTrace({ artifact, coldFill: 0xa5 });
-  const parity = executePlayerFighterProjectileColourLifecycleTrace({
-    artifact: artifact === "xex" ? "atr" : "xex", coldFill: 0xa5,
-  });
-  if (JSON.stringify({ ...trace, artifact: "release" }) !==
-      JSON.stringify({ ...parity, artifact: "release" })) {
-    throw new Error("PlayerFighter projectile colour preview differs between packed XEX and ATR");
-  }
   const constants = parseConstants(source);
   const registers = new Map([
     ["COLBK", requireValue(constants, "GAMEPLAY_BACKGROUND_COLOR")],
@@ -4476,7 +4395,7 @@ export function createPlayerFighterProjectileColourPreview(source, artifact = "x
   const yellow = atariPalRegisterToRgb(0x1e);
   fillRgb(rgb, [3, 5, 9]);
   drawRgbLabel(rgb, width,
-    "PROJECTILE COLOUR REGRESSION  PACKED XEX AND ATR PARITY  COLD RAM A5",
+    "PROJECTILE COLOUR REGRESSION  PACKED ATR  COLD RAM A5",
     24, 14, frontend, white);
   drawRgbLabel(rgb, width,
     "PLAYER_FIGHTER NORMAL RAPID SPREAD COLPF2 $1E    INTERCEPTOR COLPF3 $46", 24, 34,
@@ -4490,13 +4409,8 @@ export function createPlayerFighterProjectileColourPreview(source, artifact = "x
   return encodePng(rgb, width, height);
 }
 
-export function createPlayerFighterBurstBalancePreview(source, artifact = "xex") {
+export function createPlayerFighterBurstBalancePreview(source, artifact = "atr") {
   const trace = executePlayerFighterBurstBalanceTrace({ artifact });
-  const parity = executePlayerFighterBurstBalanceTrace({ artifact: artifact === "xex" ? "atr" : "xex" });
-  if (JSON.stringify({ ...trace, artifact: "release" }) !==
-      JSON.stringify({ ...parity, artifact: "release" })) {
-    throw new Error("PlayerFighter burst-balance preview differs between packed XEX and ATR");
-  }
   const constants = parseConstants(source);
   const registers = new Map([
     ["COLBK", requireValue(constants, "GAMEPLAY_BACKGROUND_COLOR")],
@@ -4553,14 +4467,12 @@ export function createPlayerFighterBurstBalancePreview(source, artifact = "xex")
   return encodePng(rgb, width, height);
 }
 
-export function createPlayerFighterBurstBalanceTrace(artifact = "xex") {
+export function createPlayerFighterBurstBalanceTrace(artifact = "atr") {
   return player_fighterBurstBalanceTraceCsv(executePlayerFighterBurstBalanceTrace({ artifact }));
 }
 
 export function createSpreadShotPreview(source) {
-  const trace = executeSpreadShotTrace({ artifact: "xex" });
-  const atr = executeSpreadShotTrace({ artifact: "atr" });
-  assertSpreadShotTraceParity(trace, atr);
+  const trace = executeSpreadShotTrace({ artifact: "atr" });
   const constants = parseConstants(source);
   const registers = new Map([
     ["COLBK", requireValue(constants, "GAMEPLAY_BACKGROUND_COLOR")],
@@ -4595,7 +4507,7 @@ export function createSpreadShotPreview(source) {
   const yellow = atariPalRegisterToRgb(0x1e);
   const red = atariPalRegisterToRgb(0x46);
   fillRgb(rgb, background);
-  drawRgbLabel(rgb, width, "SPREAD SHOT  EXECUTED RELEASE XEX AND ATR", 24, 16,
+  drawRgbLabel(rgb, width, "SPREAD SHOT  EXECUTED RELEASE ATR", 24, 16,
     frontend, white);
   drawRgbLabel(rgb, width,
     "RED 2X2 FAN CAPSULE  FULL BOOST LABEL  THREE YELLOW PLAYER_FIGHTER SHOTS  50 FPS", 24, 34,
@@ -4623,7 +4535,7 @@ export function createSpreadShotPreview(source) {
     frontend, yellow);
   drawRgbLabel(rgb, width, "FOUR CONSECUTIVE FAN FRAMES THEN BYTE-CLEAN REVERSE ERASE", 24, 802,
     frontend, red);
-  drawRgbLabel(rgb, width, "XEX ATR TRACE PARITY  NO CONCEPT OR PSEUDO GAMEPLAY", 24, 826,
+  drawRgbLabel(rgb, width, "EXECUTED ATR TRACE  NO CONCEPT OR PSEUDO GAMEPLAY", 24, 826,
     frontend, steel);
   return encodePng(rgb, width, height);
 }
@@ -4647,7 +4559,7 @@ function spreadShotHullCases(artifact) {
   }));
 }
 
-export function createSpreadShotHullTrace(artifact = "xex") {
+export function createSpreadShotHullTrace(artifact = "atr") {
   const header = [
     "artifact", "faction", "section", "a2_head", "top_phase", "frame",
     "render_cycles", "erase_cycles", "restore_mismatches",
@@ -4670,7 +4582,7 @@ export function createSpreadShotHullTrace(artifact = "xex") {
   return `${header.join(",")}\n${rows.join("\n")}\n`;
 }
 
-export function createSpreadShotHullPreview(source, artifact = "xex") {
+export function createSpreadShotHullPreview(source, artifact = "atr") {
   const activation = executeSpreadShotTrace({ artifact });
   const hullCases = spreadShotHullCases(artifact);
   const constants = parseConstants(source);
@@ -6248,9 +6160,8 @@ export function generateSpreadShotTrace({
 
 export function generatePlayerFighterProjectileColourPreview({
   sourcePath = path.join(rootDirectory, "src", "main.s"),
-  artifact = "xex",
-  outputPath = artifact === "xex" ? DEFAULT_PROJECTILE_COLOUR_XEX_PREVIEW_PATH :
-    DEFAULT_PROJECTILE_COLOUR_ATR_PREVIEW_PATH,
+  artifact = "atr",
+  outputPath = DEFAULT_PROJECTILE_COLOUR_ATR_PREVIEW_PATH,
 } = {}) {
   return writeEnemyReviewPreview(
     outputPath,
@@ -6260,9 +6171,8 @@ export function generatePlayerFighterProjectileColourPreview({
 
 export function generatePlayerFighterBurstBalancePreview({
   sourcePath = path.join(rootDirectory, "src", "main.s"),
-  artifact = "xex",
-  outputPath = artifact === "xex" ? DEFAULT_PLAYER_FIGHTER_BURST_BALANCE_XEX_PREVIEW_PATH :
-    DEFAULT_PLAYER_FIGHTER_BURST_BALANCE_ATR_PREVIEW_PATH,
+  artifact = "atr",
+  outputPath = DEFAULT_PLAYER_FIGHTER_BURST_BALANCE_ATR_PREVIEW_PATH,
 } = {}) {
   return writeEnemyReviewPreview(
     outputPath,
@@ -6271,9 +6181,8 @@ export function generatePlayerFighterBurstBalancePreview({
 }
 
 export function generatePlayerFighterBurstBalanceTrace({
-  artifact = "xex",
-  outputPath = artifact === "xex" ? DEFAULT_PLAYER_FIGHTER_BURST_BALANCE_XEX_TRACE_PATH :
-    DEFAULT_PLAYER_FIGHTER_BURST_BALANCE_ATR_TRACE_PATH,
+  artifact = "atr",
+  outputPath = DEFAULT_PLAYER_FIGHTER_BURST_BALANCE_ATR_TRACE_PATH,
 } = {}) {
   const trace = createPlayerFighterBurstBalanceTrace(artifact);
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
@@ -6283,9 +6192,8 @@ export function generatePlayerFighterBurstBalanceTrace({
 
 export function generateSpreadShotHullPreview({
   sourcePath = path.join(rootDirectory, "src", "main.s"),
-  artifact = "xex",
-  outputPath = artifact === "xex" ? DEFAULT_SPREAD_SHOT_HULL_XEX_PREVIEW_PATH :
-    DEFAULT_SPREAD_SHOT_HULL_ATR_PREVIEW_PATH,
+  artifact = "atr",
+  outputPath = DEFAULT_SPREAD_SHOT_HULL_ATR_PREVIEW_PATH,
 } = {}) {
   return writeEnemyReviewPreview(
     outputPath,
@@ -6294,9 +6202,8 @@ export function generateSpreadShotHullPreview({
 }
 
 export function generateSpreadShotHullTrace({
-  artifact = "xex",
-  outputPath = artifact === "xex" ? DEFAULT_SPREAD_SHOT_HULL_XEX_TRACE_PATH :
-    DEFAULT_SPREAD_SHOT_HULL_ATR_TRACE_PATH,
+  artifact = "atr",
+  outputPath = DEFAULT_SPREAD_SHOT_HULL_ATR_TRACE_PATH,
 } = {}) {
   const trace = createSpreadShotHullTrace(artifact);
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
@@ -6814,10 +6721,10 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       `  size: ${shieldBoosterResult.width}x${shieldBoosterResult.height}, ${shieldBoosterResult.bytes} bytes`,
     );
     const spreadShotTrace = generateSpreadShotTrace();
-    console.log(`Spread Shot XEX/ATR runtime trace generated successfully`);
+    console.log(`Spread Shot ATR runtime trace generated successfully`);
     console.log(`  CSV : ${path.relative(rootDirectory, spreadShotTrace.outputPath)}`);
     console.log(`  rows: ${spreadShotTrace.rows}, ${spreadShotTrace.bytes} bytes`);
-    for (const artifact of ["xex", "atr"]) {
+    for (const artifact of ["atr"]) {
       const colourPreview = generatePlayerFighterProjectileColourPreview({ artifact });
       console.log(`Projectile-colour ${artifact.toUpperCase()} owner review generated successfully`);
       console.log(`  PNG : ${path.relative(rootDirectory, colourPreview.outputPath)}`);
@@ -6834,7 +6741,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       console.log(`  CSV : ${path.relative(rootDirectory, burstTrace.outputPath)}`);
       console.log(`  rows: ${burstTrace.rows}, ${burstTrace.bytes} bytes`);
     }
-    for (const artifact of ["xex", "atr"]) {
+    for (const artifact of ["atr"]) {
       const hullPreview = generateSpreadShotHullPreview({ artifact });
       console.log(`Spread Shot ${artifact.toUpperCase()} hull owner sequence generated successfully`);
       console.log(`  PNG : ${path.relative(rootDirectory, hullPreview.outputPath)}`);

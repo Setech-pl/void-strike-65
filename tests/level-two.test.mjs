@@ -29,9 +29,9 @@ import crypto from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-import { parseAtr, parseXex } from "../scripts/formats.mjs";
+import { parseAtr } from "../scripts/formats.mjs";
 import {
-  CORE_DEBUG_START_SECTOR_OFFSET, LEVEL_BUFFER_ADDRESS, LEVEL_CORE_BYTES,
+  CORE_DEBUG_START_SECTOR_OFFSET, LEVEL_CORE_BYTES,
   LEVEL_CORE_MAGIC, LEVEL_CORE_OFFSET, LEVEL_IMAGE_SECTORS, compileLevelFile,
   levelSourcePath,
 } from "../scripts/level-compiler.mjs";
@@ -39,7 +39,7 @@ import { captureTimeline } from "../scripts/level-timeline.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const sha256 = (bytes) => crypto.createHash("sha256").update(bytes).digest("hex");
-const ARTIFACTS = ["void-strike-65.xex", "void-strike-65.atr", "void-strike-65-boot.bin"];
+const ARTIFACTS = ["void-strike-65.atr", "void-strike-65-boot.bin"];
 const SHARED_BUILD_FILES = [
   "level-1.bin", "level-core.bin", "void-strike-65.map", "void-strike-65.lbl",
   "manifest.json", "sector-reader.bin",
@@ -112,12 +112,8 @@ test("step 3: --level=2 builds level 2 into build/level-2-s0/ and never touches 
   assert.equal(manifest.capitalHulls.levelBlock.styleId, 1);
   assert.equal(manifest.capitalHulls.levelBlock.alliedColpf1, 0x88);
 
-  // Both media carry it: the XEX's resident level block at $A600 ...
-  const { segments } = parseXex(fs.readFileSync(path.join(directory, "void-strike-65.xex")));
-  const block = segments.find((segment) => segment.start === LEVEL_BUFFER_ADDRESS);
-  assert.ok(block, "the XEX carries a level block at $A600");
-  assert.deepEqual(Buffer.from(block.data), image, "and it is level 2's image");
-  // ... and the ATR's level run, which the sector reader reads at START GAME.
+  // The ATR carries it as its level run, which the sector reader reads at
+  // START GAME.
   const { body } = parseAtr(fs.readFileSync(path.join(directory, "void-strike-65.atr")));
   const offset = (run.startSector - 1) * 128;
   assert.deepEqual(body.subarray(offset, offset + image.length), image);

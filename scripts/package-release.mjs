@@ -23,7 +23,6 @@ const distributionFiles = [
   "dist/void-strike-65-boot.bin",
   "dist/void-strike-65-manifest.json",
   "dist/void-strike-65.atr",
-  "dist/void-strike-65.xex",
 ];
 
 function collectFiles(relativeDirectory) {

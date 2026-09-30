@@ -122,14 +122,15 @@ test("residency fixture preserves canaries and publishes every byte under the 68
   const start = fixture.records[0].finalDestination;
   for (const fill of [0xa5, 0x5a]) {
     const atrMemory = new Uint8Array(0x10000).fill(fill);
-    const xexMemory = new Uint8Array(0x10000).fill(fill);
-    for (const memory of [atrMemory, xexMemory]) {
+    // The reference image: the raw record placed directly at its destination.
+    const expectedMemory = new Uint8Array(0x10000).fill(fill);
+    for (const memory of [atrMemory, expectedMemory]) {
       memory[start - 1] = 0xc3;
       memory[start + fixture.raws[0].length] = 0x3c;
     }
     loadChunkFixture({ atrBody: fixture.body, manifest: fixture.manifest, memory: atrMemory });
-    xexMemory.set(fixture.raws[0], start);
-    assert.deepEqual(atrMemory, xexMemory);
+    expectedMemory.set(fixture.raws[0], start);
+    assert.deepEqual(atrMemory, expectedMemory);
     assert.equal(atrMemory[start - 1], 0xc3);
     assert.equal(atrMemory[start + fixture.raws[0].length], 0x3c);
   }

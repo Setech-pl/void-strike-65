@@ -69,7 +69,7 @@ test("measured DMA-on fields come only from an artifact-matched Atari800 trace",
     trace.semantics.measured_wall_cycles_dma_on);
   assert.equal(timing.measured_physical_headroom,
     timing.palFrameCycles - timing.measured_wall_cycles_dma_on);
-  assert.equal(trace.artifact.sha256, manifest.artifacts["void-strike-65.xex"].sha256);
+  assert.equal(trace.artifact.sha256, manifest.artifacts["void-strike-65.atr"].sha256);
   assert.equal(trace.instrumentation.guest_cycles_added, 0);
   assert.equal(trace.instrumentation.production_dma_ctl, 0x3e);
   assert.equal(trace.instrumentation.production_nmi_en, 0x80);

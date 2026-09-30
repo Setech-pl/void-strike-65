@@ -55,7 +55,7 @@ function sha256(bytes) {
   return crypto.createHash("sha256").update(bytes).digest("hex");
 }
 
-function readXexBytes(address, length) {
+function readImageBytes(address, length) {
   return readRuntimeBytes(rootDirectory, address, length);
 }
 
@@ -242,7 +242,7 @@ test("assembled gameplay display list and DLI switch a dedicated ANTIC 2 HUD", (
   assert.ok(gameplayRegisters.has(0x46));
 
   const dliAddress = labels.get("gameplay_dli");
-  const dliBytes = readXexBytes(
+  const dliBytes = readImageBytes(
     dliAddress,
     labels.get("allied_hull_packed_map") - dliAddress,
   );
@@ -261,7 +261,7 @@ test("assembled gameplay display list and DLI switch a dedicated ANTIC 2 HUD", (
 test("assembled ANTIC 2 HUD keeps independent live score, life, and hull fields", () => {
   const absoluteStore = (address) => Buffer.from([0x8d, address & 0xff, address >>> 8]);
   const scoreAddress = labels.get("update_score_display");
-  const scoreBytes = readXexBytes(
+  const scoreBytes = readImageBytes(
     scoreAddress,
     labels.get("update_starfield") - scoreAddress,
   );
@@ -274,7 +274,7 @@ test("assembled ANTIC 2 HUD keeps independent live score, life, and hull fields"
   }
 
   const statusAddress = labels.get("update_hud_status");
-  const statusBytes = readXexBytes(
+  const statusBytes = readImageBytes(
     statusAddress,
     labels.get("begin_broadside_impact") - statusAddress,
   );
@@ -287,7 +287,7 @@ test("assembled ANTIC 2 HUD keeps independent live score, life, and hull fields"
   assert.match(source,
     /update_hud_status:[\s\S]+lda PLAYER_LIVES[\s\S]+HUD_LIFE_DIGIT_OFFSET[\s\S]+lda BROAD_PLAYER_HEALTH/);
 
-  const startGameplay = readXexBytes(
+  const startGameplay = readImageBytes(
     labels.get("start_gameplay"),
     labels.get("start_gameplay_end") - labels.get("start_gameplay"),
   );
@@ -302,11 +302,11 @@ test("generated include, packed maps, codebooks, and turret records match assemb
     renderCapitalHullsCa65Include(asset),
   );
   assert.deepEqual(
-    readXexBytes(labels.get("capital_hull_glyphs"), asset.glyphBytes.length),
+    readImageBytes(labels.get("capital_hull_glyphs"), asset.glyphBytes.length),
     Buffer.from(asset.glyphBytes),
   );
   assert.deepEqual(
-    readXexBytes(labels.get("allied_hull_codebook"), 16),
+    readImageBytes(labels.get("allied_hull_codebook"), 16),
     Buffer.from(asset.codebooks.get("allied")),
   );
   // Re-pinned for hull set v1 step 2: the enemy codebook and packed map are
@@ -325,7 +325,7 @@ test("generated include, packed maps, codebooks, and turret records match assemb
     Buffer.from(asset.codebooks.get("enemy")),
   );
   assert.deepEqual(
-    readXexBytes(labels.get("allied_hull_packed_map"), 160),
+    readImageBytes(labels.get("allied_hull_packed_map"), 160),
     Buffer.from(asset.packedMaps.get("allied")),
   );
   assert.deepEqual(
@@ -336,16 +336,16 @@ test("generated include, packed maps, codebooks, and turret records match assemb
     Buffer.from(asset.packedMaps.get("enemy")),
   );
   assert.deepEqual(
-    readXexBytes(labels.get("capital_hull_turrets"), asset.turretBytes.length),
+    readImageBytes(labels.get("capital_hull_turrets"), asset.turretBytes.length),
     Buffer.from(asset.turretBytes),
   );
   assert.deepEqual(
-    readXexBytes(labels.get("broadside_schedule"), asset.scheduleBytes.length),
+    readImageBytes(labels.get("broadside_schedule"), asset.scheduleBytes.length),
     Buffer.from([1, 210, 1, 210, 1, 210, 0, 254]),
     "assembled opportunities retain their further-reduced PAL delays and faction side",
   );
   assert.deepEqual(
-    readXexBytes(labels.get("turret_warning_last_safe_rows"), 3),
+    readImageBytes(labels.get("turret_warning_last_safe_rows"), 3),
     Buffer.from(asset.warningLastSafeRowBytes),
     "assembled firing bounds reserve the complete 25-frame warning plus one hull row",
   );
@@ -595,7 +595,7 @@ test("assembled enemy spawn, steering, and renderer use each archetype corridor 
     ["enemy_visible_widths", roster.implemented.map((entry) => entry.visibleWidth)],
     ["enemy_logical_x_maxs", roster.implemented.map((entry) => entry.logicalBounds[1])],
   ]) {
-    assert.deepEqual([...readXexBytes(labels.get(label), values.length)], values);
+    assert.deepEqual([...readImageBytes(labels.get(label), values.length)], values);
   }
   assert.match(source,
     /clamp_enemy_x:[\s\S]+cmp #CORRIDOR_LEFT_HPOS[\s\S]+cmp enemy_logical_x_maxs,x/,
@@ -649,11 +649,11 @@ test("runtime map reservation and payload remain bounded and do not consume PMG 
   assert.equal(asset.runtimeMapBytes, 576);
   assert.equal(asset.packedDataBytes, 1005);
   assert.deepEqual(
-    Uint8Array.from(readXexBytes(labels.get("allied_collision_boundaries"), asset.segmentRows)),
+    Uint8Array.from(readImageBytes(labels.get("allied_collision_boundaries"), asset.segmentRows)),
     asset.collisionBoundaries.get("allied"),
   );
   assert.deepEqual(
-    Uint8Array.from(readXexBytes(labels.get("enemy_collision_boundaries"), asset.segmentRows)),
+    Uint8Array.from(readImageBytes(labels.get("enemy_collision_boundaries"), asset.segmentRows)),
     asset.collisionBoundaries.get("enemy"),
   );
   const generator = source.slice(source.indexOf("generate_near_star_row:"),

@@ -160,10 +160,10 @@ test("Layout D.2 exact memory and transport budgets remain frozen", () => {
   assert.equal(manifest.encounterDirector.safeResidencyBytes, 2980);
 });
 
-test("XEX and ATR preserve full A2, GLUE lifecycle, ENTITY_CODE, DIRECTOR and guard", () => {
+test("the ATR preserves full A2, GLUE lifecycle, ENTITY_CODE, DIRECTOR and guard", () => {
   assert.equal(a2.length, 237);
   assert.equal(sha256(a2), "e052fb572a082445c7f48301659a4a7a847d05133aabcef9b876949621d69373");
-  for (const artifact of ["xex", "atr"]) for (const fill of [0xa5, 0x5a]) {
+  for (const artifact of ["atr"]) for (const fill of [0xa5, 0x5a]) {
     const staged = stageArtifact(artifact, fill);
     assert.equal(sha256(staged.sourceA2), sha256(a2), `${artifact} staged A2`);
     assert.equal(sha256(staged.finalAfterCopy), sha256(a2), `${artifact} published A2`);
@@ -200,7 +200,7 @@ test("current A2 entry points and relocated release glue retain their frozen opc
 });
 
 test("relocated pickup hook decrements 2 to 1 and returns", () => {
-  const { memory } = stageArtifact("xex", 0xa5);
+  const { memory } = stageArtifact("atr", 0xa5);
   const timer = labels.get("ENTITY_TIMER") + 1;
   memory[timer] = 2;
   const result = run(memory, "integration_pickup_pending_tick");

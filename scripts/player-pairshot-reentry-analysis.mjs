@@ -122,7 +122,7 @@ const report = {
 };
 
 for (const mode of modes) {
-  const prefix = `player-pairshot-reentry-${mode}-xex-hard`;
+  const prefix = `player-pairshot-reentry-${mode}-atr-hard`;
   const pairRows = readCsv(path.join(buildDirectory, `${prefix}-player-pairshots.csv`));
   const frameRows = readCsv(path.join(buildDirectory, `${prefix}.csv`));
   const edges = transitions(pairRows);

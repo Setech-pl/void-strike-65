@@ -37,7 +37,6 @@ test("the committed runtime evidence binds to the artifacts in dist/", () => {
     `dist/ is missing ${missing.join(", ")}; build before running this test`);
   const artifacts = runtimeArtifactSet({
     boot: fs.readFileSync(path.join(root, "dist/void-strike-65-boot.bin")),
-    xex: fs.readFileSync(path.join(root, "dist/void-strike-65.xex")),
     atr: fs.readFileSync(path.join(root, "dist/void-strike-65.atr")),
   });
   for (const name of runtimeArtifactNames) {

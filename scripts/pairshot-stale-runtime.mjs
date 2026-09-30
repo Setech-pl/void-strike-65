@@ -85,7 +85,7 @@ function resetCollision(memory, labels) {
 }
 
 export function executePairShotStaleTrace({
-  root = defaultRoot, artifact = "xex", shots = 1200,
+  root = defaultRoot, artifact = "atr", shots = 1200,
 } = {}) {
   const { memory, labels, manifest } = initialiseRuntime(root, artifact);
   const label = (name) => requiredLabel(labels, name);
@@ -202,7 +202,7 @@ export function executePairShotStaleTrace({
 }
 
 export function executePairShotEffectBackingTrace({
-  root = defaultRoot, artifact = "xex", shots = 1200,
+  root = defaultRoot, artifact = "atr", shots = 1200,
 } = {}) {
   const { memory, labels, manifest } = initialiseRuntime(root, artifact);
   const label = (name) => requiredLabel(labels, name);
@@ -323,7 +323,7 @@ export function executePairShotEffectBackingTrace({
 }
 
 function main() {
-  const trace = executePairShotStaleTrace({ root: defaultRoot, artifact: "xex" });
+  const trace = executePairShotStaleTrace({ root: defaultRoot, artifact: "atr" });
   process.stdout.write(`${JSON.stringify({ ...trace, records: undefined }, null, 2)}\n`);
 }
 

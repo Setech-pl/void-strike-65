@@ -5,7 +5,6 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 import {
-  assertDebrisDestructionTraceParity,
   executeDebrisDestructionTrace,
 } from "../scripts/debris-destruction-runtime.mjs";
 
@@ -29,7 +28,7 @@ test("character effects use bounded 3/2 slot groups without changing the PMG exp
 });
 
 test("spawn reaches every visual slot within one PAL frame and preserves five slots", () => {
-  const frames = finalFrames("xex");
+  const frames = finalFrames("atr");
   assert.equal(frames[0].effectActiveMask, 0x1f);
   assert.equal(frames[0].effectActiveCount, 5);
   assert.equal(frames[0].effectRenderedMask, 0x18);
@@ -44,7 +43,7 @@ test("spawn reaches every visual slot within one PAL frame and preserves five sl
 });
 
 test("staggered expiry clears both parity groups without stale backing or ghosts", () => {
-  const frames = finalFrames("xex");
+  const frames = finalFrames("atr");
   assert.equal(frames[30].effectActiveCount, 0);
   assert.notEqual(frames[30].effectRenderedMask, 0,
     "the opposite parity may remain visible for its one accepted latency frame");
@@ -53,11 +52,8 @@ test("staggered expiry clears both parity groups without stale backing or ghosts
 });
 
 test("PairShot and generic-effect backing resolvers stay below the local fix ceiling", () => {
-  const xex = executeDebrisDestructionTrace({ root, artifact: "xex" });
-  const atr = executeDebrisDestructionTrace({ root, artifact: "atr" });
-  assert.equal(assertDebrisDestructionTraceParity(xex, atr), true);
   const peak = Math.max(...Array.from({ length: 22 }, (unused, ringHead) =>
-    executeDebrisDestructionTrace({ root, artifact: "xex", ringHead }).records
+    executeDebrisDestructionTrace({ root, artifact: "atr", ringHead }).records
       .filter((record) => record.phase === "FINAL")
       .reduce((maximum, record) => Math.max(maximum,
         record.effectEraseCycles + record.effectRenderCycles), 0)));

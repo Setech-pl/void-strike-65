@@ -52,10 +52,10 @@ test("public package and generated artifacts use the Void Strike 65 identity", (
   ));
   assert.equal(packageDefinition.name, brandSlug);
   assert.deepEqual(Object.keys(manifest.artifacts).sort(), [
-    `${brandSlug}-boot.bin`, `${brandSlug}.atr`, `${brandSlug}.xex`,
+    `${brandSlug}-boot.bin`, `${brandSlug}.atr`,
   ].sort());
   for (const name of [
-    `${brandSlug}-boot.bin`, `${brandSlug}.xex`, `${brandSlug}.atr`,
+    `${brandSlug}-boot.bin`, `${brandSlug}.atr`,
     `${brandSlug}-manifest.json`,
   ]) assert.equal(fs.existsSync(path.join(root, "dist", name)), true, name);
 });

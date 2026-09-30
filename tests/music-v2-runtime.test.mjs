@@ -1,7 +1,7 @@
 // plan-music-v2.md §6 test (b) — the binary plays the renderer's stream.
 //
 // Test (a) proves the compiled bytes imply the right stream. This one proves
-// the 6502 player in the shipped XEX actually emits it: the runtime image is
+// the 6502 player in the shipped ATR actually emits it: the runtime image is
 // loaded into the NMOS harness, music_start_menu and music_tick are called the
 // way the frontend loop calls them, every POKEY write is trapped, and each
 // frame's final register state is compared with the oracle.
@@ -42,7 +42,7 @@ const POKEY_FIRST = 0xd200;
 const POKEY_LAST = 0xd20f;
 
 function menuTrace() {
-  const { memory, labels } = initialiseRuntime(rootDirectory, "xex", 0xa5);
+  const { memory, labels } = initialiseRuntime(rootDirectory, "atr", 0xa5);
   memory[requiredLabel(labels, "sound_enabled")] = 1;
 
   let trap = null;
@@ -198,7 +198,7 @@ const SHOT_AUDC = 0xa8;
 const HIT_AUDC = 0x88;
 
 function gameplayRuntime() {
-  const { memory, labels } = initialiseRuntime(rootDirectory, "xex", 0xa5);
+  const { memory, labels } = initialiseRuntime(rootDirectory, "atr", 0xa5);
   memory[requiredLabel(labels, "sound_enabled")] = 1;
   memory[requiredLabel(labels, "GAME_MUSIC_ENABLED")] = 1;
   memory[requiredLabel(labels, "PLAYER_LIFECYCLE")] = 0;

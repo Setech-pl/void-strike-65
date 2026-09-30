@@ -11,7 +11,7 @@ import {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 test("1200 PairShots leave no stale, ghost, restore-mismatch or lost-erase cells", () => {
-  const trace = executePairShotStaleTrace({ root, artifact: "xex", shots: 1200 });
+  const trace = executePairShotStaleTrace({ root, artifact: "atr", shots: 1200 });
   assert.equal(trace.shots, 1200);
   assert.deepEqual(trace.summary.staleCells, 0);
   assert.deepEqual(trace.summary.ghostGlyphs, 0);
@@ -38,15 +38,8 @@ test("1200 PairShots leave no stale, ghost, restore-mismatch or lost-erase cells
   assert.equal(new Set(trace.records.map(({ ringHeadBefore }) => ringHeadBefore)).size, 27);
 });
 
-test("XEX and ATR agree on the bounded stale-cell matrix", () => {
-  const xex = executePairShotStaleTrace({ root, artifact: "xex", shots: 108 });
-  const atr = executePairShotStaleTrace({ root, artifact: "atr", shots: 108 });
-  assert.deepEqual({ ...xex, artifact: "release", manifestArtifact: undefined },
-    { ...atr, artifact: "release", manifestArtifact: undefined });
-});
-
 test("1200 staggered effects cannot retain one player PairShot as backing", () => {
-  const trace = executePairShotEffectBackingTrace({ root, artifact: "xex", shots: 1200 });
+  const trace = executePairShotEffectBackingTrace({ root, artifact: "atr", shots: 1200 });
   assert.equal(trace.shots, 1200);
   assert.deepEqual(trace.summary.staleCells, 0);
   assert.deepEqual(trace.summary.ghostGlyphs, 0);

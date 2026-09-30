@@ -16,7 +16,6 @@ import {
 import { compileEnemyRoster, loadEnemyRosterDefinition } from "../scripts/enemy-roster.mjs";
 import { canonicalPlayfield } from "../scripts/playfield.mjs";
 import {
-  assertWeaponPickupTraceParity,
   executeHudPresentationTrace,
   executeWeaponBoosterHudTrace,
   executeWeaponPickupCauseTrace,
@@ -177,7 +176,7 @@ test("runtime compositor publishes the exact capsule pixels for all types and ph
   for (const [pickupType, typeIndex] of [["rapid", 0], ["spread", 1], ["shield", 2]]) {
     for (let phase = 0; phase < 8; phase += 1) {
       const trace = executeWeaponPickupBackingTrace({
-        root, artifact: "xex", pickupType, y: 104 + phase,
+        root, artifact: "atr", pickupType, y: 104 + phase,
       });
       const actualBank = trace.charset.slice(glyphBase * 8, glyphBase * 8 + 48);
       const expectedStart = (typeIndex * 8 + phase) * 48;
@@ -197,11 +196,9 @@ test("runtime compositor publishes the exact capsule pixels for all types and ph
   }
 });
 
-test("release XEX and ATR execute 0→1→2→pending only for consumed PlayerFighter kills", () => {
-  const xex = executeWeaponPickupTrace({ root, artifact: "xex" });
+test("the release ATR executes 0→1→2→pending only for consumed PlayerFighter kills", () => {
   const atr = executeWeaponPickupTrace({ root, artifact: "atr" });
-  assert.equal(assertWeaponPickupTraceParity(xex, atr), true);
-  const kills = xex.records.filter(({ phase }) => phase.startsWith("KILL_"));
+  const kills = atr.records.filter(({ phase }) => phase.startsWith("KILL_"));
   assert.deepEqual(kills.map((record) => [
     record.damageSource, record.projectileConsumed, record.qualifiedKillCounter,
     record.state, record.timer, record.scoreHi, record.scoreLo,
@@ -215,7 +212,7 @@ test("release XEX and ATR execute 0→1→2→pending only for consumed PlayerFi
 });
 
 test("non-projectile causes and repeated resolution never advance the drop counter", () => {
-  const causes = executeWeaponPickupCauseTrace({ root, artifact: "xex" });
+  const causes = executeWeaponPickupCauseTrace({ root, artifact: "atr" });
   assert.deepEqual(causes.map(({ source, first, second }) => [
     source, first.qualifiedKillCounter, second.qualifiedKillCounter,
     first.state, second.state,
@@ -227,7 +224,7 @@ test("non-projectile causes and repeated resolution never advance the drop count
 });
 
 test("pickup pending remains hidden and non-colliding for thirty full frames", () => {
-  const trace = executeWeaponPickupTrace({ root, artifact: "xex" });
+  const trace = executeWeaponPickupTrace({ root, artifact: "atr" });
   const pending = trace.records.filter(({ phase }) => phase === "PENDING");
   assert.equal(pending.length, 30);
   assert.equal(pending.every((record) => record.state === 1 &&
@@ -258,10 +255,8 @@ test("every booster type enters at the top, crosses the full playfield once and 
     released: [trace.released.state, trace.released.y, trace.released.activeMask,
       trace.released.activeCount, trace.released.drawnMask],
   }));
-  const xex = summarize(executeWeaponPickupTraversalTrace({ root, artifact: "xex" }));
   const atr = summarize(executeWeaponPickupTraversalTrace({ root, artifact: "atr" }));
-  assert.deepEqual(atr, xex, "XEX and ATR must execute the same complete traversal");
-  for (const trace of xex) {
+  for (const trace of atr) {
     assert.deepEqual(trace.created, [1, 8, 0, 0, 0], `${trace.name} must spawn fully above`);
     assert.deepEqual(trace.pendingY, [8], `${trace.name} PENDING must not consume visible travel`);
     assert.deepEqual(trace.visibleY, expectedPositions,
@@ -274,12 +269,12 @@ test("every booster type enters at the top, crosses the full playfield once and 
     assert.deepEqual(trace.released, [0, 240, 0, 0, 0],
       `${trace.name} must release immediately below its last fully visible position`);
   }
-  assert.equal(new Set(xex.map(({ visibleFrames }) => visibleFrames)).size, 1,
+  assert.equal(new Set(atr.map(({ visibleFrames }) => visibleFrames)).size, 1,
     "all three booster types must retain the same movement cadence");
 });
 
 test("active capsule renders one phased 2x2/2x3 footprint continuously and cannot be shot", () => {
-  const trace = executeWeaponPickupTrace({ root, artifact: "xex" });
+  const trace = executeWeaponPickupTrace({ root, artifact: "atr" });
   const active = trace.records.filter(({ phase }) => phase === "ACTIVE");
   assert.equal(active.length, 40);
   assert.equal(active.every(({
@@ -311,7 +306,7 @@ test("pickup movement resolves half world speed into smooth scanline phases", ()
   ], [1, 2, 3, 5]);
   assert.match(source,
     /update_weapon_pickup_active:[\s\S]+@motion:[\s\S]+adc world_scroll_rates,x[\s\S]+cmp #WEAPON_PICKUP_FINE_RATE_DENOMINATOR/);
-  const active = executeWeaponPickupTrace({ root, artifact: "xex" }).records
+  const active = executeWeaponPickupTrace({ root, artifact: "atr" }).records
     .filter(({ phase }) => phase === "ACTIVE");
   assert.deepEqual(active.slice(1).map((record, index) => record.y - active[index].y),
     Array(active.length - 1).fill(2));
@@ -319,7 +314,7 @@ test("pickup movement resolves half world speed into smooth scanline phases", ()
 
 test("debris and the reserved pickup coexist without allocator overwrite for every A2 head", () => {
   for (let head = 0; head < canonicalPlayfield.ringRows; head += 1) {
-    const trace = executeWeaponPickupTrace({ root, artifact: "xex", head, coexistDebris: true });
+    const trace = executeWeaponPickupTrace({ root, artifact: "atr", head, coexistDebris: true });
     const firstActive = trace.records.find(({ phase }) => phase === "ACTIVE");
     assert.deepEqual([firstActive.activeMask, firstActive.activeCount], [3, 2]);
     const logicalRow = Math.floor((firstActive.y - 24) / 8);
@@ -339,20 +334,18 @@ test("debris and the reserved pickup coexist without allocator overwrite for eve
 
 test("four-cell backing restores byte-exact data in reverse layer order at every A2 head", () => {
   for (let head = 0; head < canonicalPlayfield.ringRows; head += 1) {
-    const xex = executeWeaponPickupBackingTrace({ root, artifact: "xex", head });
     const atr = executeWeaponPickupBackingTrace({ root, artifact: "atr", head });
-    assert.deepEqual({ ...xex, artifact: "release" }, { ...atr, artifact: "release" });
     assert.deepEqual([
-      xex.rendered.leftCode, xex.rendered.rightCode,
-      xex.rendered.bottomLeftCode, xex.rendered.bottomRightCode,
-      xex.rendered.drawnMask,
+      atr.rendered.leftCode, atr.rendered.rightCode,
+      atr.rendered.bottomLeftCode, atr.rendered.bottomRightCode,
+      atr.rendered.drawnMask,
     ], [120, 121, 122, 123, 15]);
-    assert.deepEqual(xex.rendered.backing, xex.original);
-    assert.deepEqual(xex.restored, xex.original);
+    assert.deepEqual(atr.rendered.backing, atr.original);
+    assert.deepEqual(atr.restored, atr.original);
     assert.deepEqual([
-      xex.drawnMaskAfterErase, xex.renderedMaskAfterErase, xex.topLatchAfterErase,
+      atr.drawnMaskAfterErase, atr.renderedMaskAfterErase, atr.topLatchAfterErase,
     ], [0, 0, 0]);
-    assert.notEqual(xex.top, xex.bottom);
+    assert.notEqual(atr.top, atr.bottom);
   }
 });
 
@@ -360,7 +353,7 @@ test("reverse erase restores every 2x2/2x3 phase across the A2 wrap", () => {
   for (const head of [0, canonicalPlayfield.ringRows - 1]) {
     for (let phase = 0; phase < 8; phase += 1) {
       const trace = executeWeaponPickupBackingTrace({
-        root, artifact: "xex", head, y: 104 + phase,
+        root, artifact: "atr", head, y: 104 + phase,
       });
       assert.equal(trace.rendered.rasterPhase, phase);
       assert.equal(trace.hasThirdRow, phase !== 0);
@@ -436,40 +429,24 @@ test("player PMG transparency preserves every pickup phase at nose side and rear
 });
 
 test("one logical footprint survives repeated ring wraps and cannot return after release", () => {
-  const xex = executeWeaponPickupRingWrapTrace({ root, artifact: "xex" });
   const atr = executeWeaponPickupRingWrapTrace({ root, artifact: "atr" });
-  const summarize = (trace) => ({
-    releasedState: trace.releasedState,
-    releasedY: trace.releasedY,
-    activeMask: trace.activeMask,
-    activeCount: trace.activeCount,
-    cellsAtRelease: trace.cellsAtRelease,
-    cellsAfterAdditionalWraps: trace.cellsAfterAdditionalWraps,
-    wrapCount: trace.wrapCount,
-    frames: trace.records.map((record) => [
-      record.y, record.rasterPhase, record.exactReverseErase,
-      record.capsuleCells, record.capsuleFootprints,
-      record.logicalSlots, record.finalDrawCalls,
-    ]),
-  });
-  assert.deepEqual(summarize(atr), summarize(xex));
-  assert.ok(xex.wrapCount >= 6);
-  assert.equal(xex.records.length, 108);
-  assert.equal(xex.records.every((record) => record.exactReverseErase &&
+  assert.ok(atr.wrapCount >= 6);
+  assert.equal(atr.records.length, 108);
+  assert.equal(atr.records.every((record) => record.exactReverseErase &&
     record.capsuleCells === (record.bottomScreenAddress === 0 ? 2 :
       record.thirdScreenAddress === 0 ? 4 : 6) &&
     record.capsuleFootprints === record.logicalSlots &&
     record.logicalSlots === 1 && record.finalDrawCalls === 1), true);
   assert.deepEqual([
-    xex.releasedState, xex.releasedY, xex.activeMask, xex.activeCount,
-    xex.cellsAtRelease, xex.cellsAfterAdditionalWraps,
+    atr.releasedState, atr.releasedY, atr.activeMask, atr.activeCount,
+    atr.cellsAtRelease, atr.cellsAfterAdditionalWraps,
   ], [0, 240, 0, 0, 0, 0]);
 });
 
 test("EASY MEDIUM and HARD preserve their rates without full-row raster jumps", () => {
   for (const [difficulty, rate] of [[0, 8], [1, 9], [2, 10]]) {
     const trace = executeWeaponPickupRingWrapTrace({
-      root, artifact: "xex", difficulty, wrapFramesAfterRelease: 0,
+      root, artifact: "atr", difficulty, wrapFramesAfterRelease: 0,
     });
     const deltas = trace.records.slice(1).map((record, index) =>
       record.y - trace.records[index].y);
@@ -483,13 +460,11 @@ test("EASY MEDIUM and HARD preserve their rates without full-row raster jumps", 
 });
 
 test("release collision covers the complete half-open 8-HPOS by 16-scanline capsule", () => {
-  const xex = executeWeaponPickupCollisionTrace({ root, artifact: "xex" });
   const atr = executeWeaponPickupCollisionTrace({ root, artifact: "atr" });
-  assert.deepEqual({ artifact: "release", cases: xex }, { artifact: "release", cases: atr });
-  assert.equal(xex.every(({ expectedHit, collected }) => expectedHit === collected), true);
+  assert.equal(atr.every(({ expectedHit, collected }) => expectedHit === collected), true);
   for (const phase of Array.from({ length: 8 }, (_, index) => index)) {
     for (const contact of ["nose", "side", "rear"]) {
-      const sample = xex.find(({ name }) => name === `phase_${phase}_${contact}`);
+      const sample = atr.find(({ name }) => name === `phase_${phase}_${contact}`);
       assert.equal(sample?.collected, true, `${contact} contact failed at phase ${phase}`);
     }
   }
@@ -498,7 +473,7 @@ test("release collision covers the complete half-open 8-HPOS by 16-scanline caps
 });
 
 test("pickup collection is single-shot and changes neither score, HULL nor LIFE", () => {
-  const trace = executeWeaponPickupTrace({ root, artifact: "xex" });
+  const trace = executeWeaponPickupTrace({ root, artifact: "atr" });
   const before = trace.records.filter(({ phase }) => phase === "ACTIVE").at(-1);
   const pickup = trace.records.find(({ phase }) => phase === "PICKUP");
   assert.deepEqual([
@@ -516,28 +491,12 @@ test("pickup collection is single-shot and changes neither score, HULL nor LIFE"
 });
 
 test("weapon boosters use four proportional ANTIC 2 segments with a timer-derived warning blink", () => {
-  const xex = executeWeaponBoosterHudTrace({ root, artifact: "xex" });
   const atr = executeWeaponBoosterHudTrace({ root, artifact: "atr" });
-  const summary = (trace) => ({
-    hudOffset: trace.hudOffset,
-    hudCells: trace.hudCells,
-    hudSegmentsOffset: trace.hudSegmentsOffset,
-    fullCode: trace.fullCode,
-    fullGlyph: trace.fullGlyph,
-    samples: trace.samples,
-    paused: trace.paused,
-    refreshed: trace.refreshed,
-    expired: trace.expired,
-    backingBeforeRefresh: trace.backingBeforeRefresh,
-    backingAfterRefresh: trace.backingAfterRefresh,
-    changedScreenOffsets: trace.changedScreenOffsets,
-  });
-  assert.deepEqual(summary(xex), summary(atr), "XEX and ATR HUD execution must match");
   assert.deepEqual([
-    xex.hudOffset, xex.hudCells, xex.hudSegmentsOffset, xex.hudSegments,
-    xex.fullCode, xex.fullGlyph,
+    atr.hudOffset, atr.hudCells, atr.hudSegmentsOffset, atr.hudSegments,
+    atr.fullCode, atr.fullGlyph,
   ], [30, 10, 36, 4, 7, [0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0xff]]);
-  assert.deepEqual(Object.fromEntries(xex.samples.map(({ name, hudCodes }) =>
+  assert.deepEqual(Object.fromEntries(atr.samples.map(({ name, hudCodes }) =>
     [name, hudCodes])), {
     "100%": [7, 7, 7, 7],
     "76%": [7, 7, 7, 7],
@@ -552,60 +511,57 @@ test("weapon boosters use four proportional ANTIC 2 segments with a timer-derive
     "blink-hidden": [0, 0, 0, 0],
     "blink-visible-resumed": [7, 0, 0, 0],
   });
-  assert.deepEqual(xex.paused.map(({ timer, hudCodes }) => [timer, hudCodes]),
+  assert.deepEqual(atr.paused.map(({ timer, hudCodes }) => [timer, hudCodes]),
     Array.from({ length: 16 }, () => [112, [0, 0, 0, 0]]),
     "pause must freeze both the timer and its current hidden blink phase");
   assert.deepEqual([
-    xex.activation.state, xex.activation.timer, xex.activation.hudCodes,
-    xex.refreshed.state, xex.refreshed.timer, xex.refreshed.hudCodes,
+    atr.activation.state, atr.activation.timer, atr.activation.hudCodes,
+    atr.refreshed.state, atr.refreshed.timer, atr.refreshed.hudCodes,
   ], [3, 500, [7, 7, 7, 7], 4, 500, [7, 7, 7, 7]]);
   assert.deepEqual([
-    xex.backingBeforeRefresh, xex.backingAfterRefresh,
-    xex.expired.state, xex.expired.timer, xex.expired.hudRegionCodes,
-  ], [xex.originalHud, xex.originalHud, 0, 0, xex.originalHud]);
-  assert.deepEqual(xex.changedScreenOffsets,
+    atr.backingBeforeRefresh, atr.backingAfterRefresh,
+    atr.expired.state, atr.expired.timer, atr.expired.hudRegionCodes,
+  ], [atr.originalHud, atr.originalHud, 0, 0, atr.originalHud]);
+  assert.deepEqual(atr.changedScreenOffsets,
     [30, 31, 32, 33, 34, 35, 36, 37, 38, 39],
     "activation must not write outside the ten-cell BOOST field");
-  assert.equal(xex.samples.every(({ hudRegionCodes }) =>
+  assert.equal(atr.samples.every(({ hudRegionCodes }) =>
     hudRegionCodes.slice(0, 6).join() === "34,47,47,51,52,0"), true,
   "the full BOOST label and separator must remain stable while active");
-  assert.equal(xex.samples.every(({ hudCodes }) => hudCodes.every((code) =>
-    code === 0 || code === xex.fullCode)), true,
+  assert.equal(atr.samples.every(({ hudCodes }) => hudCodes.every((code) =>
+    code === 0 || code === atr.fullCode)), true,
   "energy cells may contain only blank or the BOOST segment glyph");
 });
 
 test("HULL plates and the ten-cell BOOST field remain distinct at native screen codes", () => {
-  const xex = executeHudPresentationTrace({ root, artifact: "xex" });
   const atr = executeHudPresentationTrace({ root, artifact: "atr" });
-  const comparable = ({ artifact: _artifact, manifest: _manifest, ...trace }) => trace;
-  assert.deepEqual(comparable(xex), comparable(atr));
   assert.deepEqual([
-    xex.hullOffset, xex.hullSegments, xex.boosterOffset, xex.boosterCells,
-    xex.boosterSegmentsOffset, xex.boosterSegments,
+    atr.hullOffset, atr.hullSegments, atr.boosterOffset, atr.boosterCells,
+    atr.boosterSegmentsOffset, atr.boosterSegments,
   ], [25, 4, 30, 10, 36, 4]);
-  assert.deepEqual([xex.hullOffset - 1, xex.hullOffset + xex.hullSegments,
-    xex.boosterSegmentsOffset - 1], [24, 29, 35],
+  assert.deepEqual([atr.hullOffset - 1, atr.hullOffset + atr.hullSegments,
+    atr.boosterSegmentsOffset - 1], [24, 29, 35],
   "the three HULL/BOOST separators must each occupy exactly one cell");
-  assert.equal(xex.frames.every(({ display }) =>
+  assert.equal(atr.frames.every(({ display }) =>
     [24, 29, 35].every((column) => display[column] === 0)), true,
   "all three separator cells must stay blank in every rendered state");
-  assert.equal(xex.lifecycleDisplays.every(({ display }) =>
+  assert.equal(atr.lifecycleDisplays.every(({ display }) =>
     [24, 29, 35].every((column) => display[column] === 0)), true,
   "expiration, new game and respawn must preserve all separator cells");
-  assert.equal(xex.frames.every(({ display }) => display.length === 40), true,
+  assert.equal(atr.frames.every(({ display }) => display.length === 40), true,
   "HUD snapshots must remain exactly inside $4000-$4027");
-  assert.equal(xex.frames.every(({ display, hullCodes, boosterCodes }) =>
+  assert.equal(atr.frames.every(({ display, hullCodes, boosterCodes }) =>
     display.slice(25, 29).join() === hullCodes.join() &&
     display.slice(30, 40).join() === boosterCodes.join()), true,
   "HULL and BOOST writers must stay inside their disjoint fields");
   assert.deepEqual([
-    xex.hullFullGlyph, xex.hullDamagedGlyph, xex.boosterFullGlyph,
+    atr.hullFullGlyph, atr.hullDamagedGlyph, atr.boosterFullGlyph,
   ], [
     [0, 0, 0, 0x3c, 0x7e, 0xff, 0x7e, 0xff],
     [0, 0, 0, 0x3c, 0x42, 0x5a, 0x24, 0xff],
     [0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0xff],
   ]);
-  assert.deepEqual(xex.frames.map(({ name, health, timer, boosterState,
+  assert.deepEqual(atr.frames.map(({ name, health, timer, boosterState,
     hullCodes, boosterCodes }) =>
     [name, health, timer, boosterState, hullCodes, boosterCodes]), [
     ["full-hull-no-booster", 10, 0, 0, [5, 5, 5, 5], Array(10).fill(0)],
@@ -619,7 +575,7 @@ test("HULL plates and the ten-cell BOOST field remain distinct at native screen 
 });
 
 test("Rapid Fire lasts 500 active frames and keeps its accepted accelerated burst", () => {
-  const trace = executeWeaponPickupTrace({ root, artifact: "xex" });
+  const trace = executeWeaponPickupTrace({ root, artifact: "atr" });
   assert.deepEqual(trace.normalBurstFrames, [0, 9, 18, 27, 36, 45, 54, 63]);
   assert.deepEqual(trace.rapidBurstFrames, [0, 6, 12, 18, 24, 30, 36, 42, 48, 54]);
   assert.equal(trace.activeRapidFrames, 500);
@@ -660,10 +616,8 @@ test("Rapid Fire lasts 500 active frames and keeps its accepted accelerated burs
 });
 
 test("packed runtime distinguishes accepted Normal, Rapid and Spread cadence", () => {
-  const xex = executePlayerFighterBurstBalanceTrace({ root, artifact: "xex" });
   const atr = executePlayerFighterBurstBalanceTrace({ root, artifact: "atr" });
-  assert.deepEqual({ ...xex, artifact: "release" }, { ...atr, artifact: "release" });
-  const summary = xex.traces.map((mode) => [
+  const summary = atr.traces.map((mode) => [
     mode.mode, mode.expectedBurst, mode.intervalFrames, mode.postBurstFrames,
     mode.firstBurstSalvos, mode.firstBurstProjectiles, mode.emittedProjectiles,
     mode.maximumPoolOccupancy,
@@ -678,14 +632,14 @@ test("packed runtime distinguishes accepted Normal, Rapid and Spread cadence", (
     .filter(({ allocatedProjectiles }) => allocatedProjectiles > 0)
     .slice(0, mode.expectedBurst)
     .map(({ frame }) => frame);
-  assert.deepEqual(firstBurstFrames(xex.traces[0]), [0, 9, 18, 27, 36, 45, 54, 63]);
-  assert.deepEqual(firstBurstFrames(xex.traces[1]),
+  assert.deepEqual(firstBurstFrames(atr.traces[0]), [0, 9, 18, 27, 36, 45, 54, 63]);
+  assert.deepEqual(firstBurstFrames(atr.traces[1]),
     [0, 6, 12, 18, 24, 30, 36, 42, 48, 54]);
-  assert.deepEqual(firstBurstFrames(xex.traces[2]), [0, 28, 56]);
+  assert.deepEqual(firstBurstFrames(atr.traces[2]), [0, 28, 56]);
 });
 
 test("released FIRE emits a visible centred first frame across X, Y and ring phases", () => {
-  const trace = executePlayerFighterEmissionVisibilityTrace({ root, artifact: "xex" });
+  const trace = executePlayerFighterEmissionVisibilityTrace({ root, artifact: "atr" });
   assert.equal(trace.cases.length, 216);
   assert.equal(trace.cases.every(({ slots }) =>
     slots.length > 0 && slots.every(({ visible }) => visible)), true);
@@ -716,7 +670,7 @@ test("released FIRE emits a visible centred first frame across X, Y and ring pha
 });
 
 test("sector pickup clear republishes still-live PlayerFighter projectiles in the same frame", () => {
-  const trace = executePlayerFighterSectorClearVisibilityTrace({ root, artifact: "xex" });
+  const trace = executePlayerFighterSectorClearVisibilityTrace({ root, artifact: "atr" });
   assert.deepEqual([trace.before.active, trace.before.rendered], [1, 1]);
   assert.deepEqual([trace.after.active, trace.after.rendered], [1, 1]);
   assert.notEqual(trace.after.screenCode, 0);
@@ -727,7 +681,7 @@ test("sector pickup clear republishes still-live PlayerFighter projectiles in th
 test("both Raider shots leave the centred first frame visible across ring rotation", () => {
   const trace = executePlayerFighterEmissionVisibilityTrace({
     root,
-    artifact: "xex",
+    artifact: "atr",
     playerXs: [48, 124, 200],
     playerYs: [184, 191],
     ringHeads: [0, 1, 26],
@@ -739,25 +693,23 @@ test("both Raider shots leave the centred first frame visible across ring rotati
 });
 
 test("Normal and Rapid projectiles render through the PlayerFighter yellow bank", () => {
-  const xex = executePlayerFighterProjectileColourTrace({ root, artifact: "xex" });
   const atr = executePlayerFighterProjectileColourTrace({ root, artifact: "atr" });
-  assert.deepEqual({ ...xex, artifact: "release" }, { ...atr, artifact: "release" });
   assert.deepEqual([
-    xex.normalAtSpawn, xex.normalAfterPickup, xex.rapidAtSpawn,
-    xex.rapidAfterExpiry, xex.normalAfterExpiry,
+    atr.normalAtSpawn, atr.normalAfterPickup, atr.rapidAtSpawn,
+    atr.rapidAfterExpiry, atr.normalAfterExpiry,
   ], [0x01, 0x01, 0x01, 0x01, 0x01]);
-  assert.equal(xex.rapidTimerAtSpawn, 500);
-  assert.deepEqual(xex.rendered.map(({ activeRenderId, code, screenCodeAfter }) =>
+  assert.equal(atr.rapidTimerAtSpawn, 500);
+  assert.deepEqual(atr.rendered.map(({ activeRenderId, code, screenCodeAfter }) =>
     [activeRenderId, code, screenCodeAfter]), [[1, 15, 15], [1, 15, 15], [1, 15, 15]]);
-  assert.deepEqual(xex.rendered.map(({ inverse }) => inverse), [0, 0, 0]);
-  assert.equal(new Set(xex.rendered.map(({ glyphCode }) => glyphCode)).size, 1,
+  assert.deepEqual(atr.rendered.map(({ inverse }) => inverse), [0, 0, 0]);
+  assert.equal(new Set(atr.rendered.map(({ glyphCode }) => glyphCode)).size, 1,
     "Normal and Rapid projectiles must use byte-identical glyph geometry");
-  assert.deepEqual([xex.normalColour, xex.rapidColour], [0x1e, 0x1e]);
-  assert.equal(xex.rendered.every(({ colourRegister, colourValue }) =>
+  assert.deepEqual([atr.normalColour, atr.rapidColour], [0x1e, 0x1e]);
+  assert.equal(atr.rendered.every(({ colourRegister, colourValue }) =>
     colourRegister === "COLPF2" && colourValue === 0x1e), true);
   assert.deepEqual([
-    xex.interceptorRendered.activeRenderId, xex.interceptorRendered.inverse,
-    xex.interceptorRendered.colourRegister, xex.interceptorRendered.colourValue,
+    atr.interceptorRendered.activeRenderId, atr.interceptorRendered.inverse,
+    atr.interceptorRendered.colourRegister, atr.interceptorRendered.colourValue,
   ], [2, 1, "COLPF3", 0x46]);
   const { weapons } = assets();
   assert.deepEqual([
@@ -770,17 +722,13 @@ test("Normal and Rapid projectiles render through the PlayerFighter yellow bank"
   assert.doesNotMatch(collisionPath, /FIGHTER_PROJECTILE_RAPID_COLOR|and #\$7F/);
 });
 
-test("packed XEX and ATR keep every implemented PlayerFighter lifecycle path yellow under cold RAM", () => {
+test("the packed ATR keeps every implemented PlayerFighter lifecycle path yellow under cold RAM", () => {
   for (const coldFill of [0xa5, 0x5a]) {
-    const xex = executePlayerFighterProjectileColourLifecycleTrace({
-      root, artifact: "xex", coldFill,
-    });
     const atr = executePlayerFighterProjectileColourLifecycleTrace({
       root, artifact: "atr", coldFill,
     });
-    assert.deepEqual({ ...xex, artifact: "release" }, { ...atr, artifact: "release" });
-    assert.deepEqual(xex.palette, { COLPF2: 0x1e, COLPF3: 0x46 });
-    assert.deepEqual(xex.captures.map(({ phase, boosterState, projectiles }) => [
+    assert.deepEqual(atr.palette, { COLPF2: 0x1e, COLPF3: 0x46 });
+    assert.deepEqual(atr.captures.map(({ phase, boosterState, projectiles }) => [
       phase,
       boosterState,
       projectiles.length,
@@ -799,14 +747,14 @@ test("packed XEX and ATR keep every implemented PlayerFighter lifecycle path yel
       ["NEW_GAME", 0, 1, true],
     ]);
     assert.deepEqual([
-      xex.interceptor.activeRenderId, xex.interceptor.inverse,
-      xex.interceptor.colourRegister, xex.interceptor.colourValue,
+      atr.interceptor.activeRenderId, atr.interceptor.inverse,
+      atr.interceptor.colourRegister, atr.interceptor.colourValue,
     ], [2, 1, "COLPF3", 0x46]);
   }
 });
 
 test("new game, life loss and Game Over clear RF while a live sector transition preserves it", () => {
-  const lifecycle = executeWeaponPickupLifecycleTrace({ root, artifact: "xex" });
+  const lifecycle = executeWeaponPickupLifecycleTrace({ root, artifact: "atr" });
   for (const record of [lifecycle.newGame, lifecycle.lifeLoss, lifecycle.gameOver,
     lifecycle.sectorPending, lifecycle.sectorActive]) {
     assert.deepEqual([record.state, record.activeMask, record.activeCount], [0, 0, 0]);
@@ -820,10 +768,10 @@ test("new game, life loss and Game Over clear RF while a live sector transition 
 });
 
 test("release trace CSV exposes the authoritative counter, state, timing and score", () => {
-  const trace = executeWeaponPickupTrace({ root, artifact: "xex" });
+  const trace = executeWeaponPickupTrace({ root, artifact: "atr" });
   const csv = weaponPickupTraceCsv(trace);
   assert.match(csv, /^artifact,phase,frame,kill,damage_source,projectile_consumed,/);
-  assert.match(csv, /xex,KILL_3,0,3,0,1,0,0,0,1,/);
-  assert.match(csv, /xex,PICKUP,0,,,0,0,0,0,3,/);
-  assert.match(csv, /xex,RAPID_TIMER,499,,,0,0,0,0,0,/);
+  assert.match(csv, /atr,KILL_3,0,3,0,1,0,0,0,1,/);
+  assert.match(csv, /atr,PICKUP,0,,,0,0,0,0,3,/);
+  assert.match(csv, /atr,RAPID_TIMER,499,,,0,0,0,0,0,/);
 });

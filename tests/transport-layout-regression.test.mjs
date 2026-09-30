@@ -203,13 +203,7 @@ test("packed startup and relocated GLUE have pairwise-safe real lifetimes", () =
   }
 
   for (const fill of [0xa5, 0x5a]) {
-    const xex = new Uint8Array(0x10000).fill(fill);
     const atr = new Uint8Array(0x10000).fill(fill);
-    xex.set(transport.initialBoot.bytes, 0x2000);
-    for (const [raw, address] of [
-      [build.broadside, 0x5e10], [pickup, 0x8c80], [glue, glueStart],
-      [director, 0x9d75],
-    ]) xex.set(raw, address);
     atr.set(transport.initialBoot.bytes, 0x2000);
     loadChunkFixture({ atrBody: transport.transportPayload,
       manifest: transport.parsedManifest, memory: atr, unpackLz: unpackBroadsideLzss });
@@ -217,16 +211,10 @@ test("packed startup and relocated GLUE have pairwise-safe real lifetimes", () =
       [build.broadside, 0x5e10, "BROADSIDE"], [pickup, 0x8c80, "pickup"],
       [glue, glueStart, "GLUE"], [director, 0x9d75, "Director"],
     ]) {
-      assert.deepEqual(Buffer.from(xex.subarray(address, address + bytes.length)), bytes,
-        `${name} XEX complete`);
       assert.deepEqual(Buffer.from(atr.subarray(address, address + bytes.length)), bytes,
         `${name} ATR complete`);
-      assert.deepEqual(Buffer.from(atr.subarray(address, address + bytes.length)),
-        Buffer.from(xex.subarray(address, address + bytes.length)), `${name} XEX/ATR parity`);
     }
-    const a2FinalXex = Buffer.from(build.a2);
     const a2FinalAtr = Buffer.from(build.a2);
-    assert.deepEqual(a2FinalXex, build.a2, "A2 XEX complete");
     assert.deepEqual(a2FinalAtr, build.a2, "A2 ATR complete");
   }
 });

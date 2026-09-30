@@ -16,7 +16,7 @@ const source = fs.readFileSync(path.join(root, "src", "main.s"), "utf8");
 // of its emitter and continues its normal lifecycle after the emitter dies.
 test("a Raider kill leaves every already-emitted PairShot visible and active", () => {
   const result = executeRaiderProjectilePersistenceAttribution({
-    root, artifact: "xex", casesPerScenario: 20,
+    root, artifact: "atr", casesPerScenario: 20,
   });
   assert.equal(result.post_kill_falling_objects_after_active_shot, 20);
   assert.equal(result.post_kill_falling_objects_without_active_shot, 0);
@@ -73,7 +73,7 @@ test("enemy ACTIVE bit zero stores emitter identity without changing consumers",
 test("P1 and P2 destruction keep both emitters' rendered projectiles", () => {
   for (const killEmitter of [0, 1]) {
     const result = executeRaiderProjectileOwnershipIsolation({
-      root, artifact: "xex", killEmitter, renderedAtKill: true,
+      root, artifact: "atr", killEmitter, renderedAtKill: true,
     });
     // P1/P2 emitter bit | hostile bit | weapon_class PULSE (1) << 3.
     assert.deepEqual(result.ownership_values_after_allocation, [10, 11]);
@@ -107,7 +107,7 @@ test("persistence is safe between publications, near the player, and at the bott
     for (const renderedAtKill of [false, true]) {
       for (const projectileY of [96, 216, 228]) {
         const result = executeRaiderProjectileOwnershipIsolation({
-          root, artifact: "xex", killEmitter, renderedAtKill, projectileY,
+          root, artifact: "atr", killEmitter, renderedAtKill, projectileY,
         });
         const label = `emitter ${killEmitter}, rendered ${renderedAtKill}, Y ${projectileY}`;
         assert.equal(result.killed_emitter_projectiles_preserved, true, label);
@@ -117,19 +117,3 @@ test("persistence is safe between publications, near the player, and at the bott
   }
 });
 
-test("XEX and ATR execute identical emitter-independent kills", () => {
-  for (const killEmitter of [0, 1]) {
-    const traces = ["xex", "atr"].map((artifact) =>
-      executeRaiderProjectileOwnershipIsolation({ root, artifact, killEmitter }));
-    const comparable = (trace) => ({
-      ownership: trace.ownership_values_after_allocation,
-      afterResolve: trace.after_resolve,
-      afterPublication: trace.after_publication,
-      preserved: trace.killed_emitter_projectiles_preserved,
-      foreign: trace.foreign_projectiles_preserved,
-      allocationCycles: trace.allocation_cycles,
-      destructionCycles: trace.destruction_cycles,
-    });
-    assert.deepEqual(comparable(traces[0]), comparable(traces[1]));
-  }
-});

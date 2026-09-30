@@ -55,8 +55,8 @@ test("the gameplay music player is code inside the per-level image, at $A608", (
   assert.equal(blockImage.length, placement.blockBytes);
   assert.ok(placement.blockBytes <= placement.blockReservedBytes);
   // The image the loader writes and the block the linker produced are the
-  // same bytes: the XEX carries the image as a block, the ATR reads it over
-  // SIO, and the boot smoke compares both against build/level-1.bin.
+  // same bytes: the ATR reads the image over SIO, and the boot smoke compares
+  // what arrives against build/level-1.bin.
   assert.deepEqual(
     levelImage.subarray(LEVEL_HEADER_BYTES, LEVEL_HEADER_BYTES + blockImage.length),
     blockImage,
@@ -103,16 +103,15 @@ test("main reaches the player only through three frozen vectors", () => {
   assert.equal(placement.readTokenTail, undefined);
 });
 
-test("the XEX publishes the linked block into the level buffer, ready to run", () => {
-  const { memory, labels } = initialiseRuntime(rootDirectory, "xex", 0xa5);
-  // The XEX carries the level image as a block, so the player is already at
-  // $A608 exactly as the loader leaves it; on the ATR the boot smoke proves
-  // the same bytes arrive over SIO.
+test("the level image puts the linked block into the level buffer, ready to run", () => {
+  const { memory, labels } = initialiseRuntime(rootDirectory, "atr", 0xa5);
+  // The harness places the level image exactly as the sector reader leaves
+  // it at START GAME; the boot smoke proves the same bytes arrive over SIO.
   assert.deepEqual(
     Buffer.from(memory.subarray(placement.blockAddress,
       placement.blockAddress + blockImage.length)),
     blockImage,
-    "the XEX did not publish the music block into the level buffer");
+    "the level image did not put the music block into the level buffer");
   // Every byte the player touches in main is inside the $4ED9 state block or
   // the zero page, never inside its own block: the whole ABI is the three
   // vectors plus that state, and the block is read-only at runtime.

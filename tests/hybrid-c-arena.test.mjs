@@ -103,11 +103,11 @@ test("the arena lands directly as its own DFMC record and is the only owner of i
     record.packedLength]);
   assert.deepEqual(arena.ownersInArena.map(({ start, endExclusive }) => [start, endExclusive]),
     [[ARENA, ARENA + arena.usedBytes]]);
-  // The ATR record decodes to the linked image; the XEX segment is the image.
+  // The ATR record decodes to the linked image.
   const atr = fs.readFileSync(path.join(root, "dist/void-strike-65.atr")).subarray(16);
   const offset = (record.startSector - 1) * 128;
   assert.ok(unpackBroadsideLzss(atr.subarray(offset, offset + record.packedLength)).equals(arenaImage));
-  for (const artifact of ["xex", "atr"]) {
+  for (const artifact of ["atr"]) {
     const memory = new Uint8Array(0x10000).fill(0xa5);
     installBootArtifact(memory, root, artifact);
     assert.ok(Buffer.from(memory.subarray(ARENA, ARENA + arenaImage.length)).equals(arenaImage),

@@ -49,59 +49,6 @@ export function readWord(buffer, offset) {
   return buffer.readUInt16LE(offset);
 }
 
-export function makeXex(loadAddress, runAddress, payload) {
-  return makeXexSegments([{ start: loadAddress, data: payload }], runAddress);
-}
-
-export function makeXexSegments(segments, runAddress) {
-  invariant(Array.isArray(segments) && segments.length > 0, "XEX segment list is empty");
-  const encoded = [];
-  segments.forEach(({ start, data }, index) => {
-    invariant(Buffer.isBuffer(data) && data.length > 0, `XEX segment ${index} is empty`);
-    const end = start + data.length - 1;
-    invariant(Number.isInteger(start) && start >= 0 && end <= 0xffff,
-      `XEX segment ${index} exceeds the 16-bit address space`);
-    const header = Buffer.alloc(index === 0 ? 6 : 4);
-    let offset = 0;
-    if (index === 0) { header.writeUInt16LE(0xffff, 0); offset = 2; }
-    header.writeUInt16LE(start, offset);
-    header.writeUInt16LE(end, offset + 2);
-    encoded.push(header, data);
-  });
-  const runRecord = Buffer.alloc(6);
-  runRecord.writeUInt16LE(0x02e0, 0);
-  runRecord.writeUInt16LE(0x02e1, 2);
-  runRecord.writeUInt16LE(runAddress, 4);
-  return Buffer.concat([...encoded, runRecord]);
-}
-
-export function parseXex(buffer) {
-  invariant(buffer.length >= 8, "XEX is too short");
-  invariant(readWord(buffer, 0) === 0xffff, "XEX is missing the $FFFF marker");
-
-  const segments = [];
-  let offset = 2;
-  while (offset < buffer.length) {
-    invariant(offset + 4 <= buffer.length, "Truncated XEX segment header");
-    let start = readWord(buffer, offset);
-    offset += 2;
-    if (start === 0xffff) {
-      invariant(offset + 4 <= buffer.length, "Truncated XEX segment after marker");
-      start = readWord(buffer, offset);
-      offset += 2;
-    }
-    const end = readWord(buffer, offset);
-    offset += 2;
-    invariant(end >= start, `Invalid XEX segment $${start.toString(16)}-$${end.toString(16)}`);
-    const length = end - start + 1;
-    invariant(offset + length <= buffer.length, "Truncated XEX segment data");
-    segments.push({ start, end, data: buffer.subarray(offset, offset + length) });
-    offset += length;
-  }
-
-  return { segments };
-}
-
 export function makeAtr(bootPayload, dataRuns = []) {
   invariant(bootPayload.length > 0, "ATR boot payload is empty");
   invariant(bootPayload.length <= ATR_SECTOR_COUNT * ATR_SECTOR_SIZE,
@@ -177,7 +124,6 @@ export function validateBuildDirectory(rootDirectory) {
   const manifestPath = path.join(distDirectory, "void-strike-65-manifest.json");
   const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
   const boot = fs.readFileSync(path.join(distDirectory, "void-strike-65-boot.bin"));
-  const xex = fs.readFileSync(path.join(distDirectory, "void-strike-65.xex"));
   const atr = fs.readFileSync(path.join(distDirectory, "void-strike-65.atr"));
 
   invariant(boot.length === manifest.payloadBytes, "Manifest payload size differs from boot binary");
@@ -370,92 +316,13 @@ export function validateBuildDirectory(rootDirectory) {
     parsedTransportManifest.totalOccupiedSectors === transport.totalTransportSectors,
   "Embedded chunk manifest differs from build metadata");
 
-  const parsedXex = parseXex(xex);
+  // The ATR is the only published medium (owner decision, 2026-09-30); what
+  // follows checks the build's own module images against the manifest that
+  // describes their placement, independently of any carrier.
   const directorEnabled = manifest.encounterDirector?.enabled === true;
-  const directorCodeRuntimes = directorEnabled
-    ? (manifest.directorCodeRuntimes ?? (manifest.directorCodeRuntime == null
-      ? [] : [{ ...manifest.directorCodeRuntime, file: "encounter-director-code.bin" }]))
-    : [];
-  // 4.5M-M2: GLUE has no XEX segment of its own; it rides the low-C transport
-  // segment (merged low-C/GLUE/Heavy record) at offset $F8.
-  // Owner decision B (2026-09-20): when a block lands in the window under the
-  // BASIC ROM, a two-byte INITAD record sits between the first block and every
-  // later one so the binary loader calls disable_basic_rom before placing them.
-  const initAd = manifest.xexInitAd ?? null;
-  const initAdSegments = initAd === null ? 0 : 1;
-  // Roadmap 4.3: the reader's own block plus the level-1 image, which the XEX
-  // carries as a resident block and the ATR does not carry at all.
-  const sectorReaderSegments = manifest.sectorReader?.xexBlocks ?? 0;
-  // Light multiplicity step 1b: the Light ASM kernel is its own link and its
-  // own block, landing in the code window above the Director link's C half.
-  const lightKernelSegments = manifest.lightKernel == null ? 0 : 1;
-  invariant(parsedXex.segments.length ===
-    (directorEnabled ? 5 + directorCodeRuntimes.length : 3) + initAdSegments +
-    sectorReaderSegments + lightKernelSegments,
-  "XEX segment count does not match the enabled transport layout");
-  const payloadSegment = parsedXex.segments[0];
-  if (initAd !== null) {
-    const initAdSegment = parsedXex.segments[initAd.segmentIndex];
-    invariant(initAd.segmentIndex === 1 && initAdSegment.start === 0x02e2 &&
-      initAdSegment.data.length === 2 &&
-      initAdSegment.data.readUInt16LE(0) === initAd.target,
-    "XEX INITAD record does not call the manifest's disable_basic_rom address");
-  }
-  const at = (index) => parsedXex.segments[index + initAdSegments];
-  const broadsideSegment = at(1);
-  const pickupPhaseSegment = directorEnabled ? at(2) : null;
-  const directorCodeSegments = directorCodeRuntimes.map((runtime, index) => at(3 + index));
-  const directorSegment = directorEnabled ? at(3 + directorCodeRuntimes.length) : null;
-  // Roadmap 4.3: the reader block and the XEX-only level-1 image sit between
-  // the Director segment and RUNAD, so RUNAD moves by however many the
-  // manifest declares.
-  // Light multiplicity step 1b: the Light ASM kernel's block precedes them.
-  const lightKernelBase = directorEnabled ? 4 + directorCodeRuntimes.length : 2;
-  const lightKernelSegment =
-    lightKernelSegments === 0 ? null : at(lightKernelBase);
-  const sectorReaderBase = lightKernelBase + lightKernelSegments;
-  const sectorReaderSegmentList = [];
-  for (let index = 0; index < sectorReaderSegments; index += 1) {
-    sectorReaderSegmentList.push(at(sectorReaderBase + index));
-  }
-  const runSegment = at(sectorReaderBase + sectorReaderSegments);
-  invariant(payloadSegment.start === manifest.loadAddress, "XEX payload load address is wrong");
-  invariant(payloadSegment.data.equals(boot.subarray(0, transport.initialBootBytes)),
-    "XEX initial block differs from ATR");
-  invariant(broadsideSegment.start === manifest.broadsideRuntime.runAddress &&
-    broadsideSegment.data.length === manifest.broadsideRuntime.bytes,
-  "XEX direct BROADSIDE segment is invalid");
-  const broadsideRuntime = fs.readFileSync(path.join(rootDirectory,
-    "build", "broadside-runtime.bin"));
-  invariant(broadsideSegment.data.equals(broadsideRuntime),
-    "XEX manifest-owned BROADSIDE bytes differ from the final runtime image");
   if (directorEnabled) {
     const packedPickupPhaseRuntime = fs.readFileSync(path.join(rootDirectory,
       "build", "weapon-pickup-phase-runtime-packed.bin"));
-    const glueRuntime = fs.readFileSync(path.join(rootDirectory, "build", "integration-glue.bin"));
-    const directorRuntime = fs.readFileSync(path.join(rootDirectory,
-      "build", "encounter-director.bin"));
-    invariant(pickupPhaseSegment.start ===
-      manifest.entityEffects.pickupPhaseExternalChunk.stagingAddress &&
-      pickupPhaseSegment.data.equals(packedPickupPhaseRuntime),
-    "XEX packed pickup phase-runtime segment is invalid");
-    const lowIndex = directorCodeRuntimes.findIndex(({ name }) => name === "low");
-    const glueOffset = manifest.integrationGlue.transportRecordOffset;
-    invariant(lowIndex >= 0 && Number.isInteger(glueOffset) &&
-      directorCodeSegments[lowIndex].start + glueOffset === manifest.integrationGlue.transportAddress &&
-      directorCodeSegments[lowIndex].data.subarray(glueOffset, glueOffset + glueRuntime.length)
-        .equals(glueRuntime), "XEX merged low-C/GLUE staging segment is invalid");
-    for (let index = 0; index < directorCodeRuntimes.length; index += 1) {
-      const runtime = directorCodeRuntimes[index];
-      const directorCodeRuntime = fs.readFileSync(path.join(rootDirectory,
-        "build", runtime.xexFile ?? runtime.file));
-      invariant(directorCodeSegments[index].start ===
-        (runtime.transportAddress ?? runtime.runAddress) &&
-        directorCodeSegments[index].data.equals(directorCodeRuntime),
-      `XEX C Director CODE segment ${runtime.name ?? index} is invalid`);
-    }
-    invariant(directorSegment.start === manifest.directorRuntime.runAddress &&
-      directorSegment.data.equals(directorRuntime), "XEX DIRECTOR segment is invalid");
     const pickupPhaseRuntime = unpackBroadsideLzss(packedPickupPhaseRuntime);
     const capitalPlayerCollisionRuntime = fs.readFileSync(path.join(rootDirectory,
       "build", "capital-player-collision.bin"));
@@ -465,11 +332,7 @@ export function validateBuildDirectory(rootDirectory) {
       .equals(capitalPlayerCollisionRuntime),
     "Packed pickup stream does not publish the capital/player collision module");
   }
-  if (lightKernelSegment !== null) {
-    const kernelImage = fs.readFileSync(path.join(rootDirectory, "build", "light-kernel.bin"));
-    invariant(lightKernelSegment.start === manifest.lightKernel.address &&
-      lightKernelSegment.data.equals(kernelImage),
-    "XEX Light kernel block differs from build/light-kernel.bin");
+  if (manifest.lightKernel != null) {
     // The two halves of the code window must meet exactly: the kernel starts
     // where the Director link's C half ended, and ends below the reader BSS.
     invariant(manifest.lightKernel.address === manifest.lightKernel.cHalfEndExclusive,
@@ -477,30 +340,18 @@ export function validateBuildDirectory(rootDirectory) {
     invariant(manifest.lightKernel.endExclusive <= manifest.lightKernel.windowLimit,
       "the Light kernel reaches the sector reader BSS at $BC00");
     invariant(manifest.lightKernel.address >= 0xa000,
-      "the Light kernel lands in the window, which requires the INITAD record");
-    invariant(initAd !== null,
-      "a block at $A000 or above requires the INITAD record: RUNAD would be too late");
+      "the Light kernel must land in the window under the BASIC ROM");
   }
-  if (sectorReaderSegments > 0) {
+  if (manifest.sectorReader != null) {
     const sectorReader = manifest.sectorReader;
-    const [readerSegment, levelSegment] = sectorReaderSegmentList;
-    const readerImage = fs.readFileSync(path.join(rootDirectory, "build", "sector-reader.bin"));
-    invariant(readerSegment.start === sectorReader.address &&
-      readerSegment.data.equals(readerImage),
-    "XEX sector reader block differs from build/sector-reader.bin");
     invariant(sectorReader.address >= 0xa000,
-      "the sector reader must land in the window, which requires the INITAD record");
-    invariant(initAd !== null,
-      "a block at $A000 or above requires the INITAD record: RUNAD would be too late");
-    // The ATR carries no level block: it reads level 1 over SIO at START GAME.
-    // That asymmetry is owner decision 1 and is what makes the ATR boot-smoke
-    // sessions exercise the reader end to end.
+      "the sector reader must land in the window under the BASIC ROM");
+    // The ATR carries the level image as its own sector run: the reader reads
+    // it over SIO at START GAME, which is what makes the boot-smoke sessions
+    // exercise the reader end to end.
     const levelOne = sectorReader.levels.find((level) => level.id === 1);
     invariant(levelOne !== undefined, "the manifest declares no level 1 run");
     const levelImage = fs.readFileSync(path.join(rootDirectory, "build", levelOne.file));
-    invariant(levelSegment.start === sectorReader.levelBuffer.address &&
-      levelSegment.data.equals(levelImage),
-    `XEX level block differs from build/${levelOne.file}`);
     invariant(levelImage.length <= sectorReader.levelBuffer.capacityBytes,
       "the level image exceeds the level buffer");
     const atrBody = atr.subarray(16);
@@ -508,9 +359,6 @@ export function validateBuildDirectory(rootDirectory) {
     invariant(atrBody.subarray(runOffset, runOffset + levelImage.length).equals(levelImage),
       `ATR sector ${levelOne.startSector} does not hold the level 1 image`);
   }
-  invariant(runSegment.start === 0x02e0 && runSegment.end === 0x02e1, "XEX RUNAD record is missing");
-  invariant(readWord(runSegment.data, 0) === transport.stage2.runAddress +
-    (manifest.transportCapacity.stage2.xexEntryOffset ?? 0), "XEX RUNAD differs from stage-2 entry");
 
   const parsedAtr = parseAtr(atr);
   invariant(atr.length === 92176, "ATR is not a standard 90 KB single-density image");
@@ -532,7 +380,7 @@ export function validateBuildDirectory(rootDirectory) {
   invariant(loadedBytes === transport.initialBootBytes && loadedBytes < boot.length,
     "BRCNT must load only the dynamic initial block, not extension chunks");
 
-  return { manifest, boot, xex, atr, parsedXex, parsedAtr };
+  return { manifest, boot, atr, parsedAtr };
 }
 
 export const atrConstants = {

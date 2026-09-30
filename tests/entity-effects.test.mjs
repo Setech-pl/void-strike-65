@@ -13,8 +13,6 @@ import { Nmos6502 } from "../scripts/nmos6502.mjs";
 import { installBootArtifact, installRuntimeSegments } from "../scripts/runtime-image.mjs";
 import { canonicalPlayfield } from "../scripts/playfield.mjs";
 import {
-  assertDebrisDestructionTraceParity,
-  assertInterceptorBreakupTraceParity,
   executeDebrisDestructionTrace,
   executeInterceptorBreakupTrace,
 } from "../scripts/debris-destruction-runtime.mjs";
@@ -510,10 +508,9 @@ test("entity memory and code reservations are exact and do not use BASIC ROM", (
   assert.doesNotMatch(source.slice(source.indexOf('.segment "ENTITY_CODE"')), /\$A000|\$BFFF/);
 });
 
-test("$A5 and $5A cold RAM are fully and identically initialised for XEX and ATR", () => {
+test("$A5 and $5A cold RAM are fully initialised for the ATR", () => {
   for (const fill of [0xa5, 0x5a]) {
-    const results = [];
-    for (const artifact of ["xex", "atr"]) {
+    for (const artifact of ["atr"]) {
       const memory = new Uint8Array(0x10000).fill(fill);
       const { requiresBroadsideUnpack } = installBootArtifact(memory, root, artifact);
       if (requiresBroadsideUnpack) runRoutine(memory, "unpack_boot_broadside_runtime");
@@ -559,9 +556,7 @@ test("$A5 and $5A cold RAM are fully and identically initialised for XEX and ATR
       const state = memory.slice(addresses.state, addresses.stateEnd);
       assert.equal(state.every((byte, index) =>
         byte === (index === 3 ? 32 : index === 6 ? 0x65 : 0)), true);
-      results.push(state);
     }
-    assert.deepEqual(results[0], results[1]);
   }
 });
 
@@ -1582,7 +1577,7 @@ test("Raider lifecycle and score remain canonical without scheduling a character
   });
 });
 
-test("Interceptor contact result is byte-identical after XEX and ATR cold boot", () => {
+test("Interceptor contact result is exact after an ATR cold boot", () => {
   const snapshot = (memory, trace) => ({
     health: memory[addresses.playerHealth],
     lives: memory[addresses.playerLives],
@@ -1601,13 +1596,11 @@ test("Interceptor contact result is byte-identical after XEX and ATR cold boot",
     hitSoundCalls: trace.callCounts.get("play_hit_sound"),
   });
   for (const fill of [0xa5, 0x5a]) {
-    const traces = ["xex", "atr"].map((artifact) => {
+    const traces = ["atr"].map((artifact) => {
       const baseMemory = createBootedArtifactRuntimeMemory(artifact, fill);
       const result = exercisePlayerInterceptorContact({ baseMemory });
       return snapshot(result.memory, result.trace);
     });
-    assert.deepEqual(traces[0], traces[1],
-      `Interceptor contact diverged between XEX and ATR with cold fill $${fill.toString(16)}`);
     assert.deepEqual(traces[0], {
       health: 0,
       lives: 2,
@@ -2050,11 +2043,9 @@ test("shot destruction after reverse erase leaves no glyph at any A2 ring head",
   }
 });
 
-test("executed XEX and ATR traces preserve the five-slot generic debris split", () => {
-  const xexTrace = executeDebrisDestructionTrace({ root, artifact: "xex" });
+test("executed ATR traces preserve the five-slot generic debris split", () => {
   const atrTrace = executeDebrisDestructionTrace({ root, artifact: "atr" });
-  assert.equal(assertDebrisDestructionTraceParity(xexTrace, atrTrace), true);
-  const find = (phase, frame) => xexTrace.records.find((record) =>
+  const find = (phase, frame) => atrTrace.records.find((record) =>
     record.phase === phase && record.frame === frame);
   assert.deepEqual([
     find("PRE_HIT", 0).debrisHp,
@@ -2120,7 +2111,7 @@ test("executed XEX and ATR traces preserve the five-slot generic debris split", 
   assert.ok(find("FINAL", 31).screen.every((code) => code === 0),
     "the final reverse erase must leave no ghost screen code");
   for (let glyph = 118; glyph < 120; glyph += 1) {
-    const lit = [...xexTrace.charset.slice(glyph * 8, glyph * 8 + 8)]
+    const lit = [...atrTrace.charset.slice(glyph * 8, glyph * 8 + 8)]
       .reduce((count, row) => count + [6, 4, 2, 0]
         .filter((shift) => (row >> shift & 3) !== 0).length, 0);
     assert.ok(lit >= 4 && lit <= 7, `fragment glyph ${glyph} has ${lit} lit pixels`);
@@ -2187,14 +2178,12 @@ test("every canonical Raider death avoids character effects without changing sco
 // did. The spawning half, the two-frame bound and the fragment geometry are in
 // tests/heavy-breakup.test.mjs, which drives production frames through the
 // real main loop.
-test("executed Raider destruction is character-free and XEX/ATR exact", () => {
-  const xexTrace = executeInterceptorBreakupTrace({ root, artifact: "xex" });
+test("executed Raider destruction is character-free and ATR exact", () => {
   const atrTrace = executeInterceptorBreakupTrace({ root, artifact: "atr" });
-  assert.equal(assertInterceptorBreakupTraceParity(xexTrace, atrTrace), true);
-  const frame = (index) => xexTrace.records.find((record) =>
+  const frame = (index) => atrTrace.records.find((record) =>
     record.phase === "BREAKUP" && record.frame === index);
   assert.deepEqual([
-    xexTrace.records[0].enemyActive, frame(0).enemyActive,
+    atrTrace.records[0].enemyActive, frame(0).enemyActive,
     frame(0).effectPending, frame(0).effectActiveMask, frame(0).effectActiveCount,
     frame(1).effectPending, frame(1).effectActiveMask, frame(1).effectActiveCount,
   ], [1, 2, 0, 0, 0, 0, 0, 0]);
@@ -2207,7 +2196,7 @@ test("executed Raider destruction is character-free and XEX/ATR exact", () => {
     ], [0, 0, 0, 0], `frame ${index} published a Raider character effect`);
   }
   assert.ok(frame(31).screen.every((code) => code === 0));
-  assert.deepEqual([xexTrace.records[0].scoreLo, frame(31).scoreLo], [0x42, 0x52]);
+  assert.deepEqual([atrTrace.records[0].scoreLo, frame(31).scoreLo], [0x42, 0x52]);
 });
 
 test("Raider death preserves an unrelated generic debris effect", () => {
@@ -2303,7 +2292,7 @@ test("backed overlay stack restores base, shell/projectile, entity and effect in
 });
 
 test("linked character-free Raider trace stays below the former five-slot path", () => {
-  const trace = executeInterceptorBreakupTrace({ root, artifact: "xex" });
+  const trace = executeInterceptorBreakupTrace({ root, artifact: "atr" });
   const materialised = trace.records.find((record) =>
     record.phase === "BREAKUP" && record.frame === 1);
   assert.ok(materialised.effectUpdateCycles < 806);

@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -8,7 +9,7 @@ const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDirectory, "..");
 const traceDirectory = path.join(root, "build", "runtime-wall-trace");
 const sessionIds = ["normal", "rapid", "spread"].map((mode) =>
-  `raider-first-writer-${mode}-xex-hard`);
+  `raider-first-writer-${mode}-atr-hard`);
 const UINT_MAX = 0xffff_ffff;
 
 function parseCsv(text) {
@@ -221,7 +222,8 @@ const missileCandidates = pmgCandidates.filter((item) => item.memory_class === "
 const report = {
   schema_version: 1,
   diagnostic_only: true,
-  xex_sha256: "a4fd121fae34766182ae16235a6772662d0fec6cdda5eded8615357918e6585a",
+  atr_sha256: crypto.createHash("sha256")
+    .update(fs.readFileSync(path.join(root, "dist", "void-strike-65.atr"))).digest("hex"),
   frames: 3 * 5_400,
   kill_coverage: Object.fromEntries(Object.keys(sessions[0].kill_coverage)
     .map((field) => [field, sum(field)])),

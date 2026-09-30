@@ -6,7 +6,6 @@ import { fileURLToPath } from "node:url";
 
 export const publicArtifactNames = Object.freeze({
   boot: "void-strike-65-boot.bin",
-  xex: "void-strike-65.xex",
   atr: "void-strike-65.atr",
   manifest: "void-strike-65-manifest.json",
 });
@@ -53,7 +52,6 @@ export function publicArtifactBinding(rootDirectory) {
       sha256: sha256(manifestBytes),
     },
     boot: artifactDescriptor(rootDirectory, manifest, "boot"),
-    xex: artifactDescriptor(rootDirectory, manifest, "xex"),
     atr: artifactDescriptor(rootDirectory, manifest, "atr"),
   };
 }
@@ -61,13 +59,6 @@ export function publicArtifactBinding(rootDirectory) {
 export function atari800ArtifactLaunches(rootDirectory) {
   const binding = publicArtifactBinding(rootDirectory);
   return {
-    xex: {
-      id: "xex",
-      medium: "XEX",
-      mode: "executable-loader",
-      artifact: binding.xex,
-      mediaArguments: ["-run", binding.xex.path],
-    },
     atr: {
       id: "atr",
       medium: "ATR",
@@ -81,22 +72,14 @@ export function atari800ArtifactLaunches(rootDirectory) {
 export function validateAtari800Launch(launch) {
   invariant(launch?.artifact?.path && path.isAbsolute(launch.artifact.path),
     "Atari800 launch must use an absolute public artifact path");
-  const artifactKind = launch.medium === "XEX" ? "xex" : launch.medium === "ATR" ? "atr" : null;
-  invariant(artifactKind && launch.artifact.name === publicArtifactNames[artifactKind] &&
-    path.basename(launch.artifact.path) === publicArtifactNames[artifactKind],
+  // The ATR is the only medium the game ships on (owner decision, 2026-09-30).
+  invariant(launch.medium === "ATR", `Unsupported Atari800 medium: ${launch.medium}`);
+  invariant(launch.artifact.name === publicArtifactNames.atr &&
+    path.basename(launch.artifact.path) === publicArtifactNames.atr,
   "Atari800 launch must use the named public artifact path");
-  const runIndex = launch.mediaArguments.indexOf("-run");
-  if (launch.medium === "XEX") {
-    invariant(runIndex === 0 && launch.mediaArguments[1] === launch.artifact.path &&
-      launch.mediaArguments.length === 2,
-    "XEX must be opened by Atari800's executable loader (-run)");
-  } else if (launch.medium === "ATR") {
-    invariant(runIndex === -1 && launch.mediaArguments.length === 1 &&
-      launch.mediaArguments[0] === launch.artifact.path,
-    "ATR must be mounted as D1:, not passed to -run (which falls through to SELF TEST)");
-  } else {
-    throw new Error(`Unsupported Atari800 medium: ${launch.medium}`);
-  }
+  invariant(!launch.mediaArguments.includes("-run") && launch.mediaArguments.length === 1 &&
+    launch.mediaArguments[0] === launch.artifact.path,
+  "ATR must be mounted as D1:, not passed to -run (which falls through to SELF TEST)");
   return launch;
 }
 
@@ -104,7 +87,7 @@ function cli() {
   const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
   const rootDirectory = path.resolve(scriptDirectory, "..");
   const kind = process.argv[2];
-  invariant(kind === "xex" || kind === "atr", "Usage: artifact-launch.mjs xex|atr [--dry-run]");
+  invariant(kind === "atr", "Usage: artifact-launch.mjs atr [--dry-run]");
   const emulatorArgument = process.argv.find((argument) => argument.startsWith("--emulator="));
   const emulator = emulatorArgument?.slice("--emulator=".length) || "atari800";
   const launch = validateAtari800Launch(atari800ArtifactLaunches(rootDirectory)[kind]);

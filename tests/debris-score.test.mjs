@@ -63,7 +63,7 @@ function run(memory, name) {
 // arena (DIRECTOR_RELEASE) and the ENTITY_CODE renderers are both live.
 function bootedMemory() {
   const memory = new Uint8Array(0x10000);
-  installBootArtifact(memory, root, "xex");
+  installBootArtifact(memory, root, "atr");
   run(memory, "stage_boot_streams");
   run(memory, "unpack_resident_runtime");
   run(memory, "unpack_entity_runtime");
@@ -99,7 +99,7 @@ function armDebris(memory, { hp }) {
 const score = (memory) => memory[at("score_bcd_hi")] << 8 | memory[at("score_bcd_lo")];
 
 test("the lethal player shot awards DEBRIS_SCORE through the existing mechanism", () => {
-  const trace = executeDebrisDestructionTrace({ artifact: "xex" });
+  const trace = executeDebrisDestructionTrace({ artifact: "atr" });
   const pre = trace.records[0];
   assert.equal(pre.scoreHi << 8 | pre.scoreLo, 0x0742);
 

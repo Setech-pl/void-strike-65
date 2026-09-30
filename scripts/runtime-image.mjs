@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { parseAtr, parseXex } from "./formats.mjs";
+import { parseAtr } from "./formats.mjs";
 import { loadChunkFixture } from "./chunk-loader.mjs";
 import { unpackBroadsideLzss } from "./broadside-lzss.mjs";
 
@@ -114,24 +114,15 @@ export function installRuntimeSegments(memory, rootDirectory, buildDirectory) {
 }
 
 // Reconstruct the bytes present immediately before the common runtime
-// expansion path. XEX publishes final-address extension segments directly;
-// ATR keeps only the dynamic initial block at $2000 and stages each validated
-// extension sector image at its manifest-controlled boot-only address.
-export function installBootArtifact(memory, rootDirectory, artifact) {
+// expansion path: the ATR keeps only the dynamic initial block at $2000 and
+// stages each validated extension sector image at its manifest-controlled
+// boot-only address. The ATR is the only published medium (owner decision,
+// 2026-09-30), so it is the only artifact a harness can install.
+export function installBootArtifact(memory, rootDirectory, artifact = "atr") {
   invariant(memory.length >= 0x10000, "Boot memory must cover the 6502 address space");
   const manifest = JSON.parse(fs.readFileSync(
     path.join(rootDirectory, "dist", "void-strike-65-manifest.json"), "utf8",
   ));
-  if (artifact === "xex") {
-    const { segments } = parseXex(fs.readFileSync(
-      path.join(rootDirectory, "dist", "void-strike-65.xex"),
-    ));
-    for (const segment of segments) {
-      if (segment.start === 0x02e0 && segment.end === 0x02e1) continue;
-      memory.set(segment.data, segment.start);
-    }
-    return { manifest, requiresBroadsideUnpack: false };
-  }
   invariant(artifact === "atr", `Unknown boot artifact ${artifact}`);
   const { body } = parseAtr(fs.readFileSync(
     path.join(rootDirectory, "dist", "void-strike-65.atr"),

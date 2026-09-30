@@ -2,7 +2,7 @@
 // reusable resident capacity and boot-only staging.
 //
 // Builds a private Atari800 7.1.2 copy with scripts/atari800-capacity-watch.h
-// and runs the current dist XEX and ATR through cold start, OPTIONS, BACK,
+// and runs the current dist ATR through cold start, OPTIONS, BACK,
 // START, gameplay, pause/resume, game over, menu, START, pause/quit and menu.
 // Every emulated instruction compares the GLUE holding range (from the end of
 // the hold copy until GLUE publication) and the capacity window (from GLUE
@@ -29,7 +29,7 @@
 //
 // 4.5M-M3 HYBRID_C_ARENA: --window=0x7bd0 --window-bytes=832 --window-from=start
 // --expect-window-bin=build/encounter-director-code-arena.bin proves that the
-// arena's direct-landing record (ATR stage 2 or the XEX loader) has put the
+// arena's direct-landing record (ATR stage 2) has put the
 // linked image in place by `start` and that the whole 832-B arena, image and
 // unused tail alike, receives no write for the rest of the lifecycle. It
 // combines with the 4.5M-M2 --stage/--hold-done options above.
@@ -221,11 +221,9 @@ function main() {
     "unpack_starfield_runtime", "layout_d_glue_publish_complete",
     "layout_d_cold_publish_complete", "unpack_entity_runtime", "init_entity_effects"];
 
-  const xexPath = path.join(rootDirectory, "dist", "void-strike-65.xex");
   const atrPath = path.join(rootDirectory, "dist", "void-strike-65.atr");
   const sessions = [];
   for (const artifact of [
-    { medium: "XEX", args: ["-run", xexPath] },
     { medium: "ATR", args: [atrPath] },
   ]) {
     for (const fill of [0x00, 0xa5]) {

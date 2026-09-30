@@ -28,7 +28,7 @@ function histogram(values) {
 
 const modes = ["normal", "rapid", "spread"];
 const sessions = modes.map((mode) => {
-  const id = `player-pairshot-speed-${mode}-xex-hard`;
+  const id = `player-pairshot-speed-${mode}-atr-hard`;
   const preservedBeforePath = path.join(traceDirectory,
     `${id}-player-pairshots-before.csv`);
   const tracePath = phase === "before" && fs.existsSync(preservedBeforePath) ?

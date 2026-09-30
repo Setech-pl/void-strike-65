@@ -22,7 +22,6 @@ const generatedFiles = [
   "build/previews/starfield-pal-sequence.png",
   "build/previews/starfield-pal-trace.csv",
   "dist/void-strike-65-boot.bin",
-  "dist/void-strike-65.xex",
   "dist/void-strike-65.atr",
   "dist/void-strike-65-manifest.json",
   "dist/void-strike-65-0.1.0.zip",

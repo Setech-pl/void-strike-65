@@ -143,7 +143,7 @@ const capitalToOpen = summaries.flatMap(({ transitions }) => transitions)
 const report = {
   schema: "void-strike-65.master-pal-clock-native.v1",
   emulator: process.env.ATARI800_TRACE_SOURCE ?? "/tmp/atari800-7.1.2",
-  artifact: { path: "dist/void-strike-65.xex", sha256: sha256(path.join(root, "dist", "void-strike-65.xex")) },
+  artifact: { path: "dist/void-strike-65.atr", sha256: sha256(path.join(root, "dist", "void-strike-65.atr")) },
   runs,
   physical_frames: allRows.length,
   simulation_ticks: allRows.length,

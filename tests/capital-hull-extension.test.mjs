@@ -117,11 +117,11 @@ test("packed runtime module thresholds reproduce every generated difficulty stre
   }
 });
 
-test("final XEX and ATR publish the exact seeded hull layout bytes", () => {
+test("the final ATR publishes the exact seeded hull layout bytes", () => {
   const labels = new Map([...fs.readFileSync(path.join(root, "build", "void-strike-65.lbl"), "utf8")
     .matchAll(/^al ([0-9A-F]+) \.([^\s]+)/gm)]
     .map((match) => [match[2], Number.parseInt(match[1], 16)]));
-  for (const artifact of ["xex", "atr"]) {
+  for (const artifact of ["atr"]) {
     const memory = new Uint8Array(0x10000);
     installBootArtifact(memory, root, artifact);
     for (const side of ["allied", "enemy"]) {

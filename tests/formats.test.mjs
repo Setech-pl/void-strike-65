@@ -3,7 +3,7 @@ import path from "node:path";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
-import { atrConstants, parseAtr, parseXex, validateBuildDirectory } from "../scripts/formats.mjs";
+import { atrConstants, parseAtr, validateBuildDirectory } from "../scripts/formats.mjs";
 import { unpackBroadsideLzss } from "../scripts/broadside-lzss.mjs";
 
 const testDirectory = path.dirname(fileURLToPath(import.meta.url));
@@ -26,94 +26,6 @@ test("generated artifact set is internally consistent", () => {
   assert.equal(manifest.bootPayloadTrailer.sourceOwned, true);
 });
 
-test("XEX contains a payload segment and RUNAD", () => {
-  const { manifest } = validateBuildDirectory(rootDirectory);
-  const xex = fs.readFileSync(path.join(rootDirectory, "dist", "void-strike-65.xex"));
-  const { segments } = parseXex(xex);
-  const directorCodeRuntimes = manifest.directorCodeRuntimes ?? [];
-  // Owner decision B: a two-byte INITAD record sits at index 1 whenever a
-  // block lands in the window, so every later index shifts by one.
-  // Roadmap 4.3: the reader block and the XEX-only level-1 image sit between
-  // the Director segment and RUNAD.
-  const initAdSegments = manifest.xexInitAd === null ? 0 : 1;
-  const readerSegments = manifest.sectorReader?.xexBlocks ?? 0;
-  // Light multiplicity step 1b: the Light ASM kernel is its own link and its
-  // own block, landing in the code window above the Director link's C half.
-  const lightKernelSegments = manifest.lightKernel == null ? 0 : 1;
-  const at = (index) => segments[index + initAdSegments];
-  // 4.5M-M2: GLUE has no segment of its own; it rides the low-C transport
-  // segment (merged low-C/GLUE/Heavy record at $9B40) at offset $F8.
-  assert.equal(segments.length,
-    5 + directorCodeRuntimes.length + initAdSegments + readerSegments +
-    lightKernelSegments);
-  assert.equal(segments[0].start, 0x2000);
-  assert.equal(segments[0].data.length, manifest.transportCapacity.initialBootBytes);
-  assert.deepEqual([at(1).start, at(1).end],
-    [manifest.broadsideRuntime.runAddress,
-      manifest.broadsideRuntime.runAddress + manifest.broadsideRuntime.bytes - 1]);
-  const pickupRecord = manifest.transportCapacity.manifest.parsed.records[1];
-  assert.deepEqual([at(2).start, at(2).end],
-    [pickupRecord.finalDestination,
-      pickupRecord.finalDestination + pickupRecord.rawLength - 1]);
-  directorCodeRuntimes.forEach((runtime, index) => {
-    // Roadmap 4.5a/4.5M-M2: the low-C segment also carries its reservation
-    // pad, the GLUE image and the Heavy window image (transportRawBytes).
-    const xexBytes = runtime.xexStagingCompression === "LZ-10/5"
-      ? runtime.packedBytes : runtime.transportRawBytes ?? runtime.bytes;
-    assert.deepEqual([at(3 + index).start, at(3 + index).end],
-      [runtime.transportAddress, runtime.transportAddress + xexBytes - 1]);
-  });
-  const lowIndex = directorCodeRuntimes.findIndex(({ name }) => name === "low");
-  const glue = fs.readFileSync(path.join(rootDirectory, "build", "integration-glue.bin"));
-  const glueOffset = manifest.integrationGlue.transportRecordOffset;
-  assert.equal(glueOffset, 0xf8);
-  assert.equal(at(3 + lowIndex).start + glueOffset, manifest.integrationGlue.transportAddress);
-  assert.ok(at(3 + lowIndex).data.subarray(glueOffset, glueOffset + glue.length).equals(glue));
-  const directorIndex = 3 + directorCodeRuntimes.length;
-  assert.deepEqual([at(directorIndex).start, at(directorIndex).end],
-    [manifest.directorRuntime.runAddress, manifest.directorRuntime.endExclusive - 1]);
-  // Light multiplicity step 1b: the Light ASM kernel's block precedes the
-  // reader's. Its start is not a chosen constant - it is where the Director
-  // link's window half ended in this build - so the assertion is that the two
-  // halves MEET, not that the kernel sits at some address.
-  if (lightKernelSegments > 0) {
-    const kernel = manifest.lightKernel;
-    const kernelImage = fs.readFileSync(path.join(rootDirectory, "build", "light-kernel.bin"));
-    assert.deepEqual([at(directorIndex + 1).start, at(directorIndex + 1).end],
-      [kernel.address, kernel.endExclusive - 1]);
-    assert.ok(at(directorIndex + 1).data.equals(kernelImage));
-    const window = manifest.residentCapacity.basicWindow;
-    // directorHalfBytes, not usedBytes: since 2026-09-21 (finding F6)
-    // usedBytes counts both window links, so window.address + usedBytes is the
-    // kernel's END, not its start.
-    assert.equal(kernel.address, window.address + window.directorHalfBytes,
-      "the kernel block must start where the Director link's window half ends");
-    assert.equal(window.address + window.usedBytes, kernel.endExclusive,
-      "the two window links must close the used span exactly");
-    assert.ok(kernel.endExclusive <= 0xbc00,
-      "the kernel block must stop before the sector reader BSS at $BC00");
-  }
-  const readerBase = directorIndex + 1 + lightKernelSegments;
-  if (readerSegments > 0) {
-    const reader = manifest.sectorReader;
-    const readerImage = fs.readFileSync(path.join(rootDirectory, "build", "sector-reader.bin"));
-    assert.deepEqual([at(readerBase).start, at(readerBase).end],
-      [reader.address, reader.address + reader.bytes - 1]);
-    assert.ok(at(readerBase).data.equals(readerImage));
-    // Owner decision 1: only the XEX carries the level image. The ATR reads it
-    // over SIO at START GAME, which is what exercises the reader end to end.
-    const levelOne = reader.levels.find((level) => level.id === 1);
-    const levelImage = fs.readFileSync(path.join(rootDirectory, "build", levelOne.file));
-    assert.deepEqual([at(readerBase + 1).start, at(readerBase + 1).end],
-      [reader.levelBuffer.address, reader.levelBuffer.address + levelOne.bytes - 1]);
-    assert.ok(at(readerBase + 1).data.equals(levelImage));
-  }
-  const runIndex = readerBase + readerSegments;
-  assert.deepEqual([at(runIndex).start, at(runIndex).end], [0x02e0, 0x02e1]);
-  assert.equal(at(runIndex).data.readUInt16LE(0),
-    manifest.transportCapacity.stage2.xexEntryAddress);
-});
-
 test("ATR uses standard single-density geometry", () => {
   const { manifest } = validateBuildDirectory(rootDirectory);
   const atr = fs.readFileSync(path.join(rootDirectory, "dist", "void-strike-65.atr"));
@@ -133,7 +45,7 @@ test("ATR uses standard single-density geometry", () => {
 });
 
 test("resident compaction proof survives and Spread Shot leaves at least 64 source-owned bytes", () => {
-  const { manifest, boot, parsedXex, parsedAtr } = validateBuildDirectory(rootDirectory);
+  const { manifest, boot, parsedAtr } = validateBuildDirectory(rootDirectory);
   const resident = fs.readFileSync(path.join(rootDirectory, "build", "resident-runtime.bin"));
   const suffix = fs.readFileSync(
     path.join(rootDirectory, "build", "resident-runtime-suffix.bin"),
@@ -186,8 +98,6 @@ test("resident compaction proof survives and Spread Shot leaves at least 64 sour
     preservedForHistory: true,
   });
   assert.equal(reserve.preservedForHistory, true);
-  assert.deepEqual(parsedXex.segments[0].data,
-    boot.subarray(0, manifest.transportCapacity.initialBootBytes));
   assert.deepEqual(parsedAtr.body.subarray(0, boot.length), boot);
   assert.equal(manifest.entityEffects.stagedSourceAddress, 0x5318);
   assert.equal(manifest.entityEffects.stagingCopyDirection, "backward");
@@ -254,11 +164,22 @@ test("the code window is declared, guarded and addressable by the build", () => 
   assert.ok(window.address >= manifest.sectorReader.levelBuffer.address +
     manifest.sectorReader.levelBuffer.capacityBytes,
   "the window must start at or above the end of the level buffer the reader fills");
-  // Roadmap 4.3 claimed the window, so the INITAD record is now required: the
-  // reader block at $A000 must be placed into RAM, not into the BASIC ROM.
-  assert.notEqual(manifest.xexInitAd, null,
-    "a block lands at $A000, so the INITAD record must be present");
-  assert.equal(manifest.xexInitAd.segmentIndex, 1);
+  // Light multiplicity step 1b: the Light ASM kernel is its own link above
+  // the Director link's window half. Its start is not a chosen constant - it
+  // is where that half ended in this build - so the assertion is that the two
+  // halves MEET, not that the kernel sits at some address.
+  if (manifest.lightKernel != null) {
+    const kernel = manifest.lightKernel;
+    // directorHalfBytes, not usedBytes: since 2026-09-21 (finding F6)
+    // usedBytes counts both window links, so window.address + usedBytes is the
+    // kernel's END, not its start.
+    assert.equal(kernel.address, window.address + window.directorHalfBytes,
+      "the kernel block must start where the Director link's window half ends");
+    assert.equal(window.address + window.usedBytes, kernel.endExclusive,
+      "the two window links must close the used span exactly");
+    assert.ok(kernel.endExclusive <= 0xbc00,
+      "the kernel block must stop before the sector reader BSS at $BC00");
+  }
   const reader = manifest.sectorReader;
   assert.equal(reader.address, 0xa000);
   assert.equal(reader.levelBuffer.address, 0xa600);

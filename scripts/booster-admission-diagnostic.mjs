@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const traceDirectory = path.join(root, "build/runtime-wall-trace");
 const tracePaths = fs.readdirSync(traceDirectory)
-  .filter((name) => /^booster-admission-reentry-[1-5]-xex-hard\.csv$/.test(name))
+  .filter((name) => /^booster-admission-reentry-[1-5]-atr-hard\.csv$/.test(name))
   .sort()
   .map((name) => path.join(traceDirectory, name));
 const screenshotPath = path.join(root, "build/runtime-wall-trace",
@@ -304,7 +304,7 @@ const report = {
     production_probability_changed: false,
     note: "All added counters and PMG inspection are host-side Atari800 observer state.",
   },
-  production_xex_sha256: sha256(path.join(root, "dist/void-strike-65.xex")),
+  production_atr_sha256: sha256(path.join(root, "dist/void-strike-65.atr")),
   owner_smoke: "Start a new Hard game, hold FIRE, track each live Raider with the joystick, and count only kills visibly caused by Player PairShot. Avoid collecting a capsule while counting. The third qualifying kill while no capsule is pending/active legally creates one; if Director reaction/recovery is active it remains hidden at Y=8 and retries every 8 frames until admitted.",
 };
 

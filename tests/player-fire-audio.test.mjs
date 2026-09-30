@@ -65,7 +65,7 @@ test("master PAL gate makes transition-only fire/audio catch-up obsolete", () =>
 });
 
 test("accepted cadence is movement-independent, pool-safe and every complete SFX is $33..$38", () => {
-  const trace = executePlayerFireAudioTrace({ root, artifact: "xex", frames: 6_000,
+  const trace = executePlayerFireAudioTrace({ root, artifact: "atr", frames: 6_000,
     transitionFrame: 3_100 });
   assert.ok(trace.modes.reduce((sum, mode) => sum + mode.accepted_shots, 0) >= 1_000);
   const expected = {

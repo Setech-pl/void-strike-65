@@ -87,7 +87,7 @@ function killRaider(memory, labels, set, emitter) {
 }
 
 test("Raider shot survives its emitter's destruction and keeps moving and ageing", () => {
-  for (const artifact of ["xex", "atr"]) {
+  for (const artifact of ["atr"]) {
     for (const emitter of [0, 1]) {
       const { memory, labels, slot, set } = raiderWithShot(artifact, emitter);
       const emitted = projectile(memory, labels, slot);
@@ -116,7 +116,7 @@ test("Raider shot survives its emitter's destruction and keeps moving and ageing
 });
 
 test("both Raiders dying (formation over) keeps every released shot; the pool drains cleanly", () => {
-  const { memory, labels, set } = raiderWithShot("xex", 0);
+  const { memory, labels, set } = raiderWithShot("atr", 0);
   set("ENEMY_TARGET_SLOT", 1);
   runRoutine(memory, labels, "allocate_interceptor_projectile", { a: PULSE });
   runRoutine(memory, labels, "erase_fighter_projectile_overlays");
@@ -148,7 +148,7 @@ test("both Raiders dying (formation over) keeps every released shot; the pool dr
 test("an orphaned shot still ends on player collision, lifetime expiry and the playfield edge", () => {
   // Collision.
   {
-    const { memory, labels, slot, set } = raiderWithShot("xex", 0);
+    const { memory, labels, slot, set } = raiderWithShot("atr", 0);
     killRaider(memory, labels, set, 0);
     const shot = projectile(memory, labels, slot);
     set("BROAD_PLAYER_HEALTH", 10);
@@ -165,7 +165,7 @@ test("an orphaned shot still ends on player collision, lifetime expiry and the p
   }
   // Lifetime expiry.
   {
-    const { memory, labels, slot, set } = raiderWithShot("xex", 1);
+    const { memory, labels, slot, set } = raiderWithShot("atr", 1);
     killRaider(memory, labels, set, 1);
     set("FIGHTER_PROJECTILE_LIFETIME", 2, slot);
     frame(memory, labels);
@@ -177,7 +177,7 @@ test("an orphaned shot still ends on player collision, lifetime expiry and the p
   }
   // Leaving the playfield.
   {
-    const { memory, labels, slot, set } = raiderWithShot("xex", 0);
+    const { memory, labels, slot, set } = raiderWithShot("atr", 0);
     killRaider(memory, labels, set, 0);
     runRoutine(memory, labels, "erase_fighter_projectile_overlays");
     set("FIGHTER_PROJECTILE_Y", 226, slot);
@@ -199,7 +199,7 @@ test("sector/global resets still clear an orphaned shot and restore its cell", (
   // the whole projectile state before the screen is rebuilt.
   for (const reset of ["clear_interceptor_pulses", "clear_fighter_projectiles",
     "init_fighter_projectiles"]) {
-    const { memory, labels, slot, set } = raiderWithShot("xex", 0);
+    const { memory, labels, slot, set } = raiderWithShot("atr", 0);
     killRaider(memory, labels, set, 0);
     frame(memory, labels);
     const shot = projectile(memory, labels, slot);
@@ -211,7 +211,7 @@ test("sector/global resets still clear an orphaned shot and restore its cell", (
       assert.equal(memory[shot.address], shot.backing, `${reset} restores the cell`);
   }
   // A lethal player hit (game over path) clears it through apply_player_damage.
-  const { memory, labels, slot, set } = raiderWithShot("xex", 1);
+  const { memory, labels, slot, set } = raiderWithShot("atr", 1);
   killRaider(memory, labels, set, 1);
   set("BROAD_PLAYER_HEALTH", 1);
   set("BROAD_DAMAGE_COOLDOWN", 0);
@@ -223,7 +223,7 @@ test("sector/global resets still clear an orphaned shot and restore its cell", (
 });
 
 test("a future Bomber-class shell is emitter-independent and keeps its own rate", () => {
-  const { memory, labels, slot, set } = raiderWithShot("xex", 0);
+  const { memory, labels, slot, set } = raiderWithShot("atr", 0);
   // Retag the live record as weapon_class BOMBER; no emitter is consulted.
   set("FIGHTER_PROJECTILE_ACTIVE", 0x02 | BOMBER << 3, slot);
   killRaider(memory, labels, set, 0);

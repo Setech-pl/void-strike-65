@@ -128,7 +128,7 @@ function glueRoutine(name, next) {
   return glueSource.slice(start, end);
 }
 
-function xexBytesAt(address, length) {
+function imageBytesAt(address, length) {
   return readRuntimeBytes(rootDirectory, address, length);
 }
 
@@ -970,11 +970,11 @@ test("capital cadence restores the legacy world rate without changing fighter ti
     "DIFFICULTY_SETTING",
   );
   assert.deepEqual([...broadsideRuntimeBytesAt(rateTableAddress, 3)], [16, 18, 20]);
-  const update = xexBytesAt(labels.get("update_starfield"), 80);
+  const update = imageBytesAt(labels.get("update_starfield"), 80);
   assert.notEqual(update.indexOf(Buffer.from([0xc9, 40])), -1);
   assert.notEqual(update.indexOf(Buffer.from([0xe9, 40, 0x85,
     labels.get("scroll_accumulator")])), -1);
-  const init = xexBytesAt(
+  const init = imageBytesAt(
     labels.get("init_state"),
     labels.get("clear_pmg") - labels.get("init_state"),
   );
@@ -1430,7 +1430,7 @@ test("optimized PlayerFighter PMG keeps horizontal pixels and clears only the de
   const playerX = labels.get("player_x");
   const playerY = labels.get("player_y");
   const fireGate = labels.get("gameplay_fire_gate");
-  const shape = xexBytesAt(labels.get("player_shape"), 16);
+  const shape = imageBytesAt(labels.get("player_shape"), 16);
   // RE-POINTED 2026-09-28 (owner decision, docs/plans/pickup-colour.md §7 items
   // 2-3): the ship publishes PLAYER0 alone, so the fixture arms P0 alone -- and
   // arms PLAYER3 with a SENTINEL instead. Every assertion that used to say "the
@@ -2015,7 +2015,7 @@ test("assembled hull contact uses dedicated boundaries instead of resolver scrat
   const constants = graphics.constants;
   const start = labels.get("handle_player_hull_contact");
   const end = labels.get("free_broadside_slot");
-  const bytes = xexBytesAt(start, end - start);
+  const bytes = imageBytesAt(start, end - start);
   const residentAddresses = {
     PLAYER_CONTACT_ROWS: 0x4ea7,
     PLAYER_CONTACT_LEFT: 0x4ea8,
@@ -2268,7 +2268,7 @@ test("expiry clears captured and hardware collision latches before restoring ALI
     "lifecycle latch clearing cannot erase a flying shell's second backing cell");
   const start = labels.get("respawn_player");
   const end = labels.get("tick_respawn_invulnerability");
-  const bytes = xexBytesAt(start, end - start);
+  const bytes = imageBytesAt(start, end - start);
   assert.ok(containsBytes(bytes, [0xa9, 124, 0x85, labels.get("player_x")]));
   assert.ok(containsBytes(bytes, [0x8d, 0x00, 0xd0]), "respawn sets HPOSP0");
   // RE-POINTED 2026-09-28 (owner decision, docs/plans/pickup-colour.md §7 item

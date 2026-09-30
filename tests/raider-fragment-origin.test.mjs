@@ -9,7 +9,7 @@ import { executeInterceptorBreakupTrace } from
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 function breakupFrames(options) {
-  return executeInterceptorBreakupTrace({ root, artifact: "xex", frames: 32,
+  return executeInterceptorBreakupTrace({ root, artifact: "atr", frames: 32,
     ...options }).records.filter(({ phase }) => phase === "BREAKUP");
 }
 
@@ -17,7 +17,7 @@ test("both Heavy slots materialise no character destruction effect", () => {
   for (const raiderSlot of [0, 1]) {
     for (const [enemyX, enemyY] of [[80, 24], [124, 88], [160, 160], [124, 220]]) {
       const trace = executeInterceptorBreakupTrace({
-        root, artifact: "xex", frames: 32, raiderSlot, enemyX, enemyY,
+        root, artifact: "atr", frames: 32, raiderSlot, enemyX, enemyY,
         captureWrites: true, captureProvenance: true,
       });
       const frames = trace.records.filter(({ phase }) => phase === "BREAKUP");

@@ -59,7 +59,7 @@ const labels = new Map(
     .map((match) => [match[2], Number.parseInt(match[1], 16)]),
 );
 
-function readXexBytes(address, length) {
+function readImageBytes(address, length) {
   return readRuntimeBytes(rootDirectory, address, length);
 }
 
@@ -82,7 +82,7 @@ test("assembled gameplay entry always transfers into the relocated main loop", (
   const target = labels.get("main_loop");
   assert.ok(Number.isInteger(end) && Number.isInteger(target));
   assert.deepEqual(
-    [...readXexBytes(end - 3, 3)],
+    [...readImageBytes(end - 3, 3)],
     [0x4c, target & 0xff, target >>> 8],
     "start_gameplay must end with JMP main_loop instead of falling into resident CODE",
   );

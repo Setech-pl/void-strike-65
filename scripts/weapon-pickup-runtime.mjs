@@ -172,12 +172,11 @@ export function initialiseRuntime(root, artifact, coldFill = 0) {
   if (pickupMismatch !== -1) {
     throw new Error(`cold startup changed pickup compositor at +$${pickupMismatch.toString(16)}`);
   }
-  // The level image is in LEVEL_BUFFER from START GAME onwards on BOTH media:
-  // the XEX carries it as a block, the ATR reads it over SIO before
-  // start_gameplay runs (the boot smoke proves the bytes arrive byte-exact).
-  // The harness starts after that read, so it must place the image the same
-  // way for both artifacts, or the ATR path runs gameplay against cold RAM
-  // where the gameplay music player and the level's hull block live.
+  // The level image is in LEVEL_BUFFER from START GAME onwards: the ATR reads
+  // it over SIO before start_gameplay runs (the boot smoke proves the bytes
+  // arrive byte-exact). The harness starts after that read, so it must place
+  // the image itself, or it runs gameplay against cold RAM where the gameplay
+  // music player and the level's hull block live.
   const levelOne = manifest.sectorReader?.levels?.find((level) => level.id === 1);
   if (levelOne) {
     memory.set(fs.readFileSync(path.join(root, "build", levelOne.file)),
@@ -384,7 +383,7 @@ function runBurst(memory, labels, { rapid, expectedCount, onFrame = () => {} }) 
 }
 
 export function executeWeaponPickupTrace({
-  root = defaultRoot, artifact = "xex", head = 0, coexistDebris = false,
+  root = defaultRoot, artifact = "atr", head = 0, coexistDebris = false,
 } = {}) {
   const { memory, labels, manifest } = initialiseRuntime(root, artifact);
   initialiseRows(memory, labels, head);
@@ -506,7 +505,7 @@ export function executeWeaponPickupTrace({
 }
 
 export function executeWeaponPickupTraversalTrace({
-  root = defaultRoot, artifact = "xex", difficulty = 2,
+  root = defaultRoot, artifact = "atr", difficulty = 2,
 } = {}) {
   const types = [
     ["rapid", 0, 120],
@@ -587,7 +586,7 @@ export function executeWeaponPickupTraversalTrace({
 }
 
 export function executeWeaponPickupRingWrapTrace({
-  root = defaultRoot, artifact = "xex", difficulty = 2, wrapFramesAfterRelease = 66,
+  root = defaultRoot, artifact = "atr", difficulty = 2, wrapFramesAfterRelease = 66,
 } = {}) {
   const { memory, labels, manifest } = initialiseRuntime(root, artifact);
   initialiseRows(memory, labels, 0);
@@ -665,7 +664,7 @@ export function executeWeaponPickupRingWrapTrace({
 }
 
 export function executePlayerFighterBurstBalanceTrace({
-  root = defaultRoot, artifact = "xex", coldFill = 0xa5, windowFrames = 80,
+  root = defaultRoot, artifact = "atr", coldFill = 0xa5, windowFrames = 80,
 } = {}) {
   const modes = [
     ["NORMAL", 0],
@@ -805,7 +804,7 @@ export function player_fighterBurstBalanceTraceCsv(trace) {
 }
 
 export function executePlayerFighterEmissionVisibilityTrace({
-  root = defaultRoot, artifact = "xex", coldFill = 0,
+  root = defaultRoot, artifact = "atr", coldFill = 0,
   playerXs = [48, 50, 124, 126, 198, 200],
   playerYs = [184, 185, 190, 191], ringHeads = [0, 1, 26],
   modes = [["NORMAL", 0], ["RAPID", 3], ["SPREAD", 4]],
@@ -877,7 +876,7 @@ export function executePlayerFighterEmissionVisibilityTrace({
 }
 
 export function executePlayerFighterSectorClearVisibilityTrace({
-  root = defaultRoot, artifact = "xex", coldFill = 0,
+  root = defaultRoot, artifact = "atr", coldFill = 0,
 } = {}) {
   const { memory, labels } = initialiseRuntime(root, artifact, coldFill);
   memory.fill(0, ringBase, ringEnd);
@@ -905,7 +904,7 @@ export function executePlayerFighterSectorClearVisibilityTrace({
 }
 
 export function executePlayerFighterProjectileColourTrace({
-  root = defaultRoot, artifact = "xex", coldFill = 0,
+  root = defaultRoot, artifact = "atr", coldFill = 0,
 } = {}) {
   const { memory, labels, manifest } = initialiseRuntime(root, artifact, coldFill);
   const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
@@ -1020,7 +1019,7 @@ export function executePlayerFighterProjectileColourTrace({
 }
 
 export function executePlayerFighterProjectileColourLifecycleTrace({
-  root = defaultRoot, artifact = "xex", coldFill = 0,
+  root = defaultRoot, artifact = "atr", coldFill = 0,
 } = {}) {
   const { memory, labels, manifest } = initialiseRuntime(root, artifact, coldFill);
   const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
@@ -1163,7 +1162,7 @@ export function executePlayerFighterProjectileColourLifecycleTrace({
 }
 
 export function executeWeaponPickupBackingTrace({
-  root = defaultRoot, artifact = "xex", head = 0, pickupType = "rapid", y = 104,
+  root = defaultRoot, artifact = "atr", head = 0, pickupType = "rapid", y = 104,
 } = {}) {
   const { memory, labels, manifest } = initialiseRuntime(root, artifact);
   initialiseRows(memory, labels, head);
@@ -1227,7 +1226,7 @@ export function executeWeaponPickupBackingTrace({
   };
 }
 
-export function executeWeaponPickupCollisionTrace({ root = defaultRoot, artifact = "xex" } = {}) {
+export function executeWeaponPickupCollisionTrace({ root = defaultRoot, artifact = "atr" } = {}) {
   const cases = Array.from({ length: 8 }, (_, phase) => {
     const pickupY = 104 + phase;
     return [
@@ -1258,7 +1257,7 @@ export function executeWeaponPickupCollisionTrace({ root = defaultRoot, artifact
   });
 }
 
-export function executeWeaponPickupCauseTrace({ root = defaultRoot, artifact = "xex" } = {}) {
+export function executeWeaponPickupCauseTrace({ root = defaultRoot, artifact = "atr" } = {}) {
   const results = [];
   for (const source of [1, 2, 3, 4, 5]) {
     const { memory, labels, manifest } = initialiseRuntime(root, artifact);
@@ -1283,7 +1282,7 @@ export function executeWeaponPickupCauseTrace({ root = defaultRoot, artifact = "
   return results;
 }
 
-export function executeWeaponPickupLifecycleTrace({ root = defaultRoot, artifact = "xex" } = {}) {
+export function executeWeaponPickupLifecycleTrace({ root = defaultRoot, artifact = "atr" } = {}) {
   const runCase = (name, state, routines, { active = false, counter = 0, lifecycle = 0 } = {}) => {
     const { memory, labels, manifest } = initialiseRuntime(root, artifact);
     const controllerSlot = state >= 3 ? 2 : 1;
@@ -1325,7 +1324,7 @@ export function executeWeaponPickupLifecycleTrace({ root = defaultRoot, artifact
   };
 }
 
-export function executeWeaponBoosterHudTrace({ root = defaultRoot, artifact = "xex" } = {}) {
+export function executeWeaponBoosterHudTrace({ root = defaultRoot, artifact = "atr" } = {}) {
   const { memory, labels, manifest } = initialiseRuntime(root, artifact);
   const screen = labels.get("SCREEN") ?? 0x4000;
   const hudOffset = labels.get("HUD_BOOSTER_OFFSET") ?? 30;
@@ -1414,7 +1413,7 @@ export function executeWeaponBoosterHudTrace({ root = defaultRoot, artifact = "x
   };
 }
 
-export function executeHudPresentationTrace({ root = defaultRoot, artifact = "xex" } = {}) {
+export function executeHudPresentationTrace({ root = defaultRoot, artifact = "atr" } = {}) {
   const { memory, labels, manifest } = initialiseRuntime(root, artifact);
   const screen = labels.get("SCREEN") ?? 0x4000;
   const health = fixedStateAddress(labels, "BROAD_PLAYER_HEALTH");
@@ -1572,7 +1571,7 @@ function collectVisibleWeaponPickup(memory, labels) {
 }
 
 export function executeSpreadShotTrace({
-  root = defaultRoot, artifact = "xex", head = 0,
+  root = defaultRoot, artifact = "atr", head = 0,
 } = {}) {
   const { memory, labels, manifest } = initialiseRuntime(root, artifact);
   initialiseRows(memory, labels, head);
@@ -1682,7 +1681,7 @@ export function executeSpreadShotTrace({
   };
 }
 
-export function executeSpreadShotPoolTrace({ root = defaultRoot, artifact = "xex" } = {}) {
+export function executeSpreadShotPoolTrace({ root = defaultRoot, artifact = "atr" } = {}) {
   const runCase = (occupied) => {
     const { memory, labels } = initialiseRuntime(root, artifact);
     const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
@@ -1711,7 +1710,7 @@ export function executeSpreadShotPoolTrace({ root = defaultRoot, artifact = "xex
 }
 
 export function executeSpreadShotCooldownSafetyTrace({
-  root = defaultRoot, artifact = "xex", frames = 500,
+  root = defaultRoot, artifact = "atr", frames = 500,
 } = {}) {
   const runCandidate = (cooldown) => {
     const { memory, labels } = initialiseRuntime(root, artifact);
@@ -1749,7 +1748,7 @@ export function executeSpreadShotCooldownSafetyTrace({
   };
 }
 
-export function executeSpreadShotMotionTrace({ root = defaultRoot, artifact = "xex" } = {}) {
+export function executeSpreadShotMotionTrace({ root = defaultRoot, artifact = "atr" } = {}) {
   const { memory, labels } = initialiseRuntime(root, artifact);
   const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
   const xAddress = requiredLabel(labels, "FIGHTER_PROJECTILE_X");
@@ -1796,7 +1795,7 @@ export function executeSpreadShotMotionTrace({ root = defaultRoot, artifact = "x
   };
 }
 
-export function executeSpreadShotCollisionTrace({ root = defaultRoot, artifact = "xex" } = {}) {
+export function executeSpreadShotCollisionTrace({ root = defaultRoot, artifact = "atr" } = {}) {
   const interceptor = (() => {
     const { memory, labels } = initialiseRuntime(root, artifact);
     const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
@@ -1864,7 +1863,7 @@ export function executeSpreadShotCollisionTrace({ root = defaultRoot, artifact =
 }
 
 export function executeSpreadShotHullArtifactTrace({
-  root = defaultRoot, artifact = "xex", head = 0, topPhase = 128,
+  root = defaultRoot, artifact = "atr", head = 0, topPhase = 128,
   faction = "allied", selectedSlot = 0, frames = 12,
 } = {}) {
   const { memory, labels, manifest } = initialiseRuntime(root, artifact);
@@ -1957,7 +1956,7 @@ export function executeSpreadShotHullArtifactTrace({
 }
 
 export function executeSpreadShotHullVolleyTrace({
-  root = defaultRoot, artifact = "xex", head = 21, topPhase = 128,
+  root = defaultRoot, artifact = "atr", head = 21, topPhase = 128,
   faction = "allied", frames = 12,
 } = {}) {
   const { memory, labels, manifest } = initialiseRuntime(root, artifact);
@@ -2035,7 +2034,7 @@ export function executeSpreadShotHullVolleyTrace({
 }
 
 export function executeSpreadShotOverlapTrace({
-  root = defaultRoot, artifact = "xex", head = 21,
+  root = defaultRoot, artifact = "atr", head = 21,
 } = {}) {
   const { memory, labels } = initialiseRuntime(root, artifact);
   runRoutine(memory, labels, "unpack_capital_hull_maps");
@@ -2109,7 +2108,7 @@ export function executeSpreadShotOverlapTrace({
 }
 
 export function executeWeaponBoosterReplacementTrace({
-  root = defaultRoot, artifact = "xex",
+  root = defaultRoot, artifact = "atr",
 } = {}) {
   const { memory, labels, manifest } = initialiseRuntime(root, artifact);
   const type = requiredLabel(labels, "ENTITY_TYPE") + 1;
@@ -2131,7 +2130,7 @@ export function executeWeaponBoosterReplacementTrace({
 }
 
 export function executeShieldBoosterTrace({
-  root = defaultRoot, artifact = "xex", coldFill = 0,
+  root = defaultRoot, artifact = "atr", coldFill = 0,
 } = {}) {
   const runtime = initialiseRuntime(root, artifact, coldFill);
   const { memory, labels, manifest } = runtime;
@@ -2385,15 +2384,6 @@ export function executeShieldBoosterTrace({
   };
 }
 
-export function assertSpreadShotTraceParity(left, right) {
-  const normalize = ({ artifact, ...trace }) => JSON.stringify(trace, (_key, value) =>
-    value instanceof Uint8Array ? Array.from(value) : value);
-  if (normalize(left) !== normalize(right)) {
-    throw new Error(`Spread Shot runtime differs between ${left.artifact} and ${right.artifact}`);
-  }
-  return true;
-}
-
 export function spreadShotTraceCsv(trace) {
   const header = [
     "artifact", "phase", "frame", "state", "pickup_type", "next_pickup_type",
@@ -2456,23 +2446,3 @@ export function weaponPickupTraceCsv(trace) {
   return `${rows.join("\n")}\n`;
 }
 
-export function assertWeaponPickupTraceParity(left, right) {
-  const normalize = ({ artifact, ...trace }) => ({
-    ...trace,
-    records: trace.records.map((record) => ({
-      ...record, screen: Array.from(record.screen), display: Array.from(record.display),
-    })),
-    rapidTimerFrames: trace.rapidTimerFrames.map((record) => ({
-      ...record, screen: Array.from(record.screen), display: Array.from(record.display),
-    })),
-    pauseFrames: trace.pauseFrames.map((record) => ({
-      ...record, screen: Array.from(record.screen), display: Array.from(record.display),
-    })),
-    charset: Array.from(trace.charset),
-    hudCharset: Array.from(trace.hudCharset),
-  });
-  if (JSON.stringify(normalize(left)) !== JSON.stringify(normalize(right))) {
-    throw new Error(`Weapon pickup runtime differs between ${left.artifact} and ${right.artifact}`);
-  }
-  return true;
-}

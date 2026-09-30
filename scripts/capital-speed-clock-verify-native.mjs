@@ -222,8 +222,8 @@ assert.ok(nativeFireSamples > 0, "native trace did not contain any accepted-fire
 const report = {
   schema: "void-strike-65.capital-speed-clock-verify-native.v1",
   emulator: process.env.ATARI800_TRACE_SOURCE ?? "/tmp/atari800-7.1.2",
-  artifact: { path: "dist/void-strike-65.xex",
-    sha256: sha256(path.join(root, "dist", "void-strike-65.xex")) },
+  artifact: { path: "dist/void-strike-65.atr",
+    sha256: sha256(path.join(root, "dist", "void-strike-65.atr")) },
   runs, physicalFrames: runs * frames,
   transitions: { fighterToCapital: runs, capitalToFighter: runs,
     skippedTicks: 0, doubleTicks: 0, playerCrossingIn, playerCrossingOut,

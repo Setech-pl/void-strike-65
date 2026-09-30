@@ -158,8 +158,8 @@ for (let difficulty = 0; difficulty < 3; difficulty += 1) {
 const report = {
   schema: "void-strike-65.gameplay-speed-tuning-native.v1",
   emulator: process.env.ATARI800_TRACE_SOURCE ?? "/tmp/atari800-7.1.2",
-  artifact: { path: "dist/void-strike-65.xex",
-    sha256: sha256(path.join(root, "dist", "void-strike-65.xex")) },
+  artifact: { path: "dist/void-strike-65.atr",
+    sha256: sha256(path.join(root, "dist", "void-strike-65.atr")) },
   contract: {
     player_projectile_speed_unchanged: manifest.fighterWeapons.player_fighter.speedScanlines,
     enemy_projectile_speed: manifest.fighterWeapons.interceptor.speedScanlines,

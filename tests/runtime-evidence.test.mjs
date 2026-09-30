@@ -9,7 +9,6 @@ import {
 
 const artifacts = runtimeArtifactSet({
   boot: Buffer.from("boot"),
-  xex: Buffer.from("xex"),
   atr: Buffer.from("atr"),
 });
 
@@ -19,7 +18,7 @@ function completeReport() {
     evidence: { status: "complete", partial: false,
       required_sessions: 3, completed_sessions: 3 },
     artifacts: structuredClone(artifacts),
-    artifact: structuredClone(artifacts["void-strike-65.xex"]),
+    artifact: structuredClone(artifacts["void-strike-65.atr"]),
   };
 }
 
@@ -33,7 +32,7 @@ test("candidate build is an explicit non-final evidence phase", () => {
   /Unsupported evidence bypass/);
 });
 
-test("final evidence binds boot BIN, XEX and ATR exactly", () => {
+test("final evidence binds boot BIN and ATR exactly", () => {
   assert.equal(validateRuntimeEvidenceBinding(completeReport(), artifacts), true);
   for (const name of Object.keys(artifacts)) {
     const report = completeReport();
@@ -43,7 +42,7 @@ test("final evidence binds boot BIN, XEX and ATR exactly", () => {
   }
 });
 
-test("final evidence rejects partial traces and a stale compatibility XEX hash", () => {
+test("final evidence rejects partial traces and a stale compatibility ATR hash", () => {
   const partial = completeReport();
   partial.evidence.status = "partial";
   partial.evidence.partial = true;
@@ -52,7 +51,7 @@ test("final evidence rejects partial traces and a stale compatibility XEX hash",
   const stale = completeReport();
   stale.artifact.sha256 = "f".repeat(64);
   assert.throws(() => validateRuntimeEvidenceBinding(stale, artifacts),
-    /compatibility XEX binding/);
+    /compatibility ATR binding/);
 
   const incomplete = completeReport();
   incomplete.evidence.completed_sessions = 2;

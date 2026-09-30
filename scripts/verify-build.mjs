@@ -22,7 +22,6 @@ try {
   const report = JSON.parse(reportBytes);
   const artifacts = runtimeArtifactSet({
     boot: fs.readFileSync(path.join(rootDirectory, "dist", "void-strike-65-boot.bin")),
-    xex: fs.readFileSync(path.join(rootDirectory, "dist", "void-strike-65.xex")),
     atr: fs.readFileSync(path.join(rootDirectory, "dist", "void-strike-65.atr")),
   });
   validateRuntimeEvidenceBinding(report, artifacts);

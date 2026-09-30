@@ -23,7 +23,7 @@ const source = fs.readFileSync(path.join(root, "src", "main.s"), "utf8");
 const entityPath = path.join(root, "assets", "graphics", "entity-effects.json");
 const manifest = JSON.parse(fs.readFileSync(
   path.join(root, "dist", "void-strike-65-manifest.json"), "utf8"));
-const shield = executeShieldBoosterTrace({ root, artifact: "xex", coldFill: 0xa5 });
+const shield = executeShieldBoosterTrace({ root, artifact: "atr", coldFill: 0xa5 });
 
 function boundary(timer) {
   return shield.boundaries.find((sample) => sample.timer === timer);
@@ -58,7 +58,7 @@ test("dynamic glyph ownership is explicit and all capsule transitions restore ba
     manifest.entityEffects.dynamicPickupGlyphBankShared,
   ], [120, 120, true]);
   for (const pickupType of ["rapid", "spread", "shield"]) {
-    const trace = executeWeaponPickupBackingTrace({ root, artifact: "xex", pickupType });
+    const trace = executeWeaponPickupBackingTrace({ root, artifact: "atr", pickupType });
     assert.deepEqual(trace.restored, trace.original);
     assert.deepEqual([trace.drawnMaskAfterErase, trace.renderedMaskAfterErase,
       trace.topLatchAfterErase], [0, 0, 0]);
@@ -74,7 +74,7 @@ test("dynamic glyph ownership is explicit and all capsule transitions restore ba
 });
 
 test("pickup rotation is exactly Rapid Spread Shield Rapid without RNG", () => {
-  const trace = executeSpreadShotTrace({ root, artifact: "xex" });
+  const trace = executeSpreadShotTrace({ root, artifact: "atr" });
   assert.deepEqual(trace.drops.map(({ pickupType, nextPickupType, renderId }) =>
     [pickupType, nextPickupType, renderId]), [
     [0, 1, 120], [1, 2, 248], [2, 0, 120],
@@ -102,7 +102,7 @@ test("pause freezes timer, HUD and Shield pulse phase", () => {
 
 test("sector transition preserves Shield while lifecycle teardown clears it", () => {
   assert.deepEqual([shield.sector.state, shield.sector.timer], [5, 250]);
-  const lifecycle = executeWeaponPickupLifecycleTrace({ root, artifact: "xex" });
+  const lifecycle = executeWeaponPickupLifecycleTrace({ root, artifact: "atr" });
   assert.deepEqual([lifecycle.newGameShield.state, lifecycle.lifeLossShield.state,
     lifecycle.gameOverShield.state], [0, 0, 0]);
   assert.deepEqual([lifecycle.sectorShield.state, lifecycle.sectorShield.timer], [5, 250]);
@@ -184,7 +184,7 @@ test("HUD code 8 is formally isolated from generated screens and other HUD symbo
     "assets/graphics/loader-bitmap.json", "assets/graphics/capital-hulls.json",
   ].map((name) => fs.readFileSync(path.join(root, name), "utf8"));
   assert.equal(staticScreenSources.some((text) => /CH_HUD_BOOSTER_SHIELD/.test(text)), false);
-  const ordinaryHud = executeHudPresentationTrace({ root, artifact: "xex" });
+  const ordinaryHud = executeHudPresentationTrace({ root, artifact: "atr" });
   assert.equal(ordinaryHud.frames.every(({ display }) =>
     !display.slice(0, 40).includes(8)), true);
   const references = source.split("\n").filter((line) => line.includes("CH_HUD_BOOSTER_SHIELD"));
@@ -193,7 +193,7 @@ test("HUD code 8 is formally isolated from generated screens and other HUD symbo
 });
 
 test("Shield keeps the normal eight-shot cadence while Rapid and Spread remain unchanged", () => {
-  const balance = executePlayerFighterBurstBalanceTrace({ root, artifact: "xex", windowFrames: 64 });
+  const balance = executePlayerFighterBurstBalanceTrace({ root, artifact: "atr", windowFrames: 64 });
   const byMode = Object.fromEntries(balance.traces.map((trace) => [trace.mode, trace]));
   assert.deepEqual([byMode.NORMAL.firstBurstProjectiles, byMode.SHIELD.firstBurstProjectiles,
     byMode.RAPID.firstBurstProjectiles], [8, 8, 10]);
@@ -230,11 +230,3 @@ test("Shield pulse is solid at all positions and never aliases respawn disappear
     source.indexOf("entity_debris_glyph:")), /GRAFP|HPOSP|PLAYER_LIFECYCLE/);
 });
 
-test("XEX and ATR Shield state are byte-for-byte deterministic for cold $A5 and $5A", () => {
-  for (const coldFill of [0xa5, 0x5a]) {
-    const xex = executeShieldBoosterTrace({ root, artifact: "xex", coldFill });
-    const atr = executeShieldBoosterTrace({ root, artifact: "atr", coldFill });
-    const select = ({ artifact: _artifact, manifest: _manifest, ...trace }) => trace;
-    assert.deepEqual(select(atr), select(xex));
-  }
-});

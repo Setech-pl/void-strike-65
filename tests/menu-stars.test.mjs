@@ -99,7 +99,7 @@ function run(memory, name, hooks = {}) {
 // the star arrays.
 function bootedFrontend() {
   const memory = new Uint8Array(0x10000);
-  installBootArtifact(memory, root, "xex");
+  installBootArtifact(memory, root, "atr");
   run(memory, "stage_boot_streams");
   run(memory, "unpack_resident_runtime");
   run(memory, "unpack_entity_runtime");

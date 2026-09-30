@@ -10,7 +10,7 @@ import { executeInterceptorBreakupTrace, executeRaiderRemnantMatrix,
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 test("previous 745-remnant reproducer remains clean", () => {
-  const trace = executeRaiderRemnantMatrix({ root, artifact: "xex", kills: 745 });
+  const trace = executeRaiderRemnantMatrix({ root, artifact: "atr", kills: 745 });
   assert.equal(trace.pairShotKills, 745);
   assert.equal(trace.remnantCount, 0);
   assert.equal(trace.failures.length, 0);
@@ -18,7 +18,7 @@ test("previous 745-remnant reproducer remains clean", () => {
 
 test("Raider death cannot publish an effect through the legacy enemy PairShot resolver", () => {
   const options = {
-    root, artifact: "xex", actualPairShotKill: true, frames: 40,
+    root, artifact: "atr", actualPairShotKill: true, frames: 40,
     activeEnemyProjectileOverlap: true, captureProvenance: true,
   };
   const legacy = executeInterceptorBreakupTrace({
@@ -36,11 +36,14 @@ test("Raider death cannot publish an effect through the legacy enemy PairShot re
 });
 
 test("more than 5000 Raider kills leave no dead-generation character cells", () => {
-  const traces = ["xex", "atr"].map((artifact) =>
-    executeRemainingRaiderRemnantMatrix({ root, artifact, kills: 2500 }));
+  // ATR-only restoration, owner rule class (a), 2026-09-30: the kill count was
+  // 2,500 on the XEX plus 2,500 on the ATR. With the XEX gone the ATR runs the
+  // matrix's own 5,000; the >= 5,000 assertion is untouched.
+  const traces = ["atr"].map((artifact) =>
+    executeRemainingRaiderRemnantMatrix({ root, artifact, kills: 5000 }));
   assert.ok(traces.reduce((sum, trace) => sum + trace.killEvents, 0) >= 5000);
   for (const trace of traces) {
-    assert.equal(trace.requestedPrimaryKills, 2500);
+    assert.equal(trace.requestedPrimaryKills, 5000);
     assert.equal(trace.staleBackingRestores, 0);
     assert.equal(trace.deadGenerationCells, 0);
     assert.equal(trace.orphanVisualCells, 0);

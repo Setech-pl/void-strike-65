@@ -31,7 +31,7 @@ function pngDimensions(bytes) {
 
 test("showcase manifest binds every image to the current packed release", () => {
   assert.equal(manifest.formatVersion, 1);
-  assert.equal(manifest.runtimeEvidence.xex.sha256, sha256(read("dist/void-strike-65.xex")));
+  assert.equal(manifest.runtimeEvidence.xex, undefined);
   assert.equal(manifest.runtimeEvidence.atr.sha256, sha256(read("dist/void-strike-65.atr")));
   assert.equal(manifest.runtimeEvidence.wallTrace.sha256,
     sha256(read("docs/runtime-wall-trace.json")));
@@ -52,7 +52,10 @@ test("showcase manifest binds every image to the current packed release", () => 
   totalBytes += manifest.concepts.reduce((sum, { bytes }) => sum + bytes, 0);
   assert.ok(totalBytes < 5_000_000, "showcase media should remain below 5 MB");
   for (const frame of manifest.gameplay) {
-    assert.equal(frame.source_medium, "XEX");
+    // Provenance of the committed images: they were captured before the ATR
+    // became the only medium (owner decision, 2026-09-30) and were not
+    // recaptured with it. A --capture run records "ATR".
+    assert.ok(["XEX", "ATR"].includes(frame.source_medium), frame.path);
     assert.equal(frame.emulator, "Atari800 7.1.2 PAL XL");
     assert.deepEqual([frame.width, frame.height], [320, 240]);
     assert.match(frame.source_sha256, /^[0-9a-f]{64}$/);
@@ -123,7 +126,7 @@ test("public README is English, complete, and free of stale status language", ()
   assert.match(readme, /original vertical space shooter/);
   assert.match(readme, /Encounter Director/);
   assert.match(readme, /BROADSIDE/);
-  assert.match(readme, /npm run play:xex/);
+  assert.doesNotMatch(readme, /play:xex|void-strike-65\.xex/);
   assert.match(readme, /npm run play:atr/);
   assert.match(readme, /must not be passed to Atari800\s+with `-run`/);
   assert.match(readme, /npm run build:candidate/);

@@ -25,7 +25,7 @@ const labels = new Map(
     .map((match) => [match[2], Number.parseInt(match[1], 16)]),
 );
 
-function readXexBytes(address, length) {
+function readImageBytes(address, length) {
   return readRuntimeBytes(rootDirectory, address, length);
 }
 
@@ -218,7 +218,7 @@ test("OPTIONS persists GAME MUSIC and a MEDIUM-default difficulty", () => {
     /cpx #\$04[\s\S]+jsr draw_sound_value[\s\S]+jsr draw_game_music_value[\s\S]+jmp draw_difficulty_value/);
 
   const startupAddress = labels.get("finish_startup_after_loader");
-  const startupBytes = readXexBytes(startupAddress,
+  const startupBytes = readImageBytes(startupAddress,
     labels.get("__ENTITY_CODE_RUN__") + labels.get("__ENTITY_CODE_SIZE__") - startupAddress);
   assert.notEqual(startupBytes.indexOf(Buffer.from([
     0xa9, 0x01, 0x8d, difficultyAddress & 0xff, difficultyAddress >> 8,
@@ -307,8 +307,8 @@ test("ANTIC 6 attributes route the selected marker and full label to $D8", () =>
   }
   assert.ok(blackPixels > 0, "selected ANTIC 6 row must retain black glyph backgrounds");
 
-  const updateBytes = readXexBytes(labels.get("update_frontend_marker"), 96);
-  const toggleBytes = readXexBytes(labels.get("toggle_main_menu_highlight"), 32);
+  const updateBytes = readImageBytes(labels.get("update_frontend_marker"), 96);
+  const toggleBytes = readImageBytes(labels.get("toggle_main_menu_highlight"), 32);
   assert.notEqual(updateBytes.indexOf(Buffer.from([0x09, 0xc0])), -1);
   assert.notEqual(toggleBytes.indexOf(Buffer.from([0x49, 0xc0])), -1);
 
@@ -524,17 +524,17 @@ test("mixed display list, screen offsets, title, menu, and hint are bounded", ()
     [61,62,63],
   );
 
-  const assembledDisplayList = readXexBytes(
+  const assembledDisplayList = readImageBytes(
     labels.get("main_menu_display_list"),
     state.graphics.mainMenuDisplayList.length,
   );
   assert.deepEqual(assembledDisplayList, Buffer.from(state.graphics.mainMenuDisplayList));
 
-  const textDisplayList = readXexBytes(labels.get("frontend_text_display_list"), 32);
+  const textDisplayList = readImageBytes(labels.get("frontend_text_display_list"), 32);
   assert.equal(textDisplayList[3] & 0x0f, 2);
   assert.ok([...textDisplayList.subarray(6, 29)].every((opcode) => opcode === 2));
 
-  const hintDli = readXexBytes(labels.get("frontend_hint_dli"), 32);
+  const hintDli = readImageBytes(labels.get("frontend_hint_dli"), 32);
   assert.notEqual(
     hintDli.indexOf(Buffer.from([
       0xa9,0x0e,0x8d,0x17,0xd0,
@@ -596,7 +596,7 @@ test("frontend entry clears stale player and missile graphics latches before DMA
   assert.match(clear,
     /sta NMIEN\s+ldx #\$04\s+@loop:\s+sta GRAFP0,x\s+dex\s+bpl @loop\s+rts/);
 
-  assert.deepEqual(readXexBytes(labels.get("clear_pmg_graphics_latches"), 12), Buffer.from([
+  assert.deepEqual(readImageBytes(labels.get("clear_pmg_graphics_latches"), 12), Buffer.from([
     0x8d, 0x0e, 0xd4, // STA NMIEN
     0xa2, 0x04,       // LDX #4
     0x9d, 0x0d, 0xd0, // STA GRAFP0,X (GRAFP0..3 and GRAFM)

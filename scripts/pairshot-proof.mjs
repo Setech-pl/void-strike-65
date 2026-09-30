@@ -89,7 +89,7 @@ function seedProjectiles(runtime, { player, enemy, spillPhase = true }) {
 }
 
 function measureScenario(root, counts) {
-  const runtime = initialiseRuntime(root, "xex");
+  const runtime = initialiseRuntime(root, "atr");
   seedProjectiles(runtime, counts);
   const before = Uint8Array.from(runtime.memory);
   const render = runProfiledRoutine(runtime.memory, runtime.labels,
@@ -99,7 +99,7 @@ function measureScenario(root, counts) {
     "erase_fighter_projectile_overlays");
   const afterErase = Uint8Array.from(runtime.memory);
 
-  const updateRuntime = initialiseRuntime(root, "xex");
+  const updateRuntime = initialiseRuntime(root, "atr");
   seedProjectiles(updateRuntime, counts);
   const playerCollision = runRoutine(updateRuntime.memory, updateRuntime.labels,
     "entity_player_fighter_projectile_target", { x: 0 });
@@ -155,7 +155,7 @@ export function measurePairShotProof(root = defaultRoot) {
   return {
     schema: "void-strike-65.pairshot-proof-measurement.v1",
     root,
-    artifact: manifest.artifacts["void-strike-65.xex"],
+    artifact: manifest.artifacts["void-strike-65.atr"],
     fighterWeapons: manifest.fighterWeapons,
     scenarios,
   };

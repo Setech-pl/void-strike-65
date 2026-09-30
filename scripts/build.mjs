@@ -4,7 +4,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { fileURLToPath } from "node:url";
 import { shareDir, toolchain } from "romdev-toolchain-cc65";
-import { makeAtr, makeXexSegments, validateBuildDirectory } from "./formats.mjs";
+import { makeAtr, validateBuildDirectory } from "./formats.mjs";
 import {
   buildDfmcV1Transport,
   chunkLoaderConstants,
@@ -299,7 +299,6 @@ const glueHoldingAddress = 0x8100;
 // BASIC off at coldstart the OS screen sits at $BC20-$BFFF, so the usable
 // window is $A000-$BC1F = 7,200 B. The top six bytes ($BC1A-$BC1F) are the
 // reserved guard, in the same shape as the $9FFA Director guard.
-const basicWindowAddress = 0xa000;
 const basicWindowGuardAddress = 0xbc1a;
 // Roadmap 4.3 window layout, as owner decision X (2026-09-21) divides it: the
 // reader owns $A000-$A5FF, the level buffer $A600-$ADFF (16 sectors of 128 B)
@@ -1660,7 +1659,6 @@ async function build() {
   const bootStage2RunAddress = labels.get("__BOOT_STAGE2_RUN__");
   const bootStage2Bytes = labels.get("__BOOT_STAGE2_SIZE__");
   const bootStage2FileOffset = labels.get("__BOOT2FILE_FILEOFFS__");
-  const bootStage2XexEntry = labels.get("boot_stage2_xex_entry");
   const bootSplashSourceOperand = labels.get("boot_splash_source");
   const bootSplashSourceHighOperand = labels.get("boot_splash_source_high");
   const bootSplashLoadAddress = labels.get("__BOOT_SPLASH_LOAD__");
@@ -1709,7 +1707,7 @@ async function build() {
     !Number.isInteger(bootStage2LoadAddress) ||
     !Number.isInteger(bootStage2RunAddress) || !Number.isInteger(bootStage2Bytes) ||
     !Number.isInteger(bootStage2FileOffset) ||
-    !Number.isInteger(bootStage2XexEntry) || !Number.isInteger(bootChunkManifestAddress) ||
+    !Number.isInteger(bootChunkManifestAddress) ||
     !Number.isInteger(bootSplashLoadAddress) || !Number.isInteger(bootSplashRunAddress) ||
     !Number.isInteger(bootSplashBytes) || !Number.isInteger(bootSplashCodeBytes) ||
     !Number.isInteger(bootSplashSourceOperand) ||
@@ -1868,7 +1866,7 @@ async function build() {
   // Music v2 §1.4 placement G1: the gameplay music player's own link. It runs
   // HERE, after main, because it reaches main through the generated
   // build/gameplay-music-main-abi.inc; its bytes are then spliced into every
-  // level image, so the XEX block and the ATR sectors carry the same player.
+  // level image, so every level's ATR sectors carry the same player.
   const gameplayMusicMainAbiInclude = renderGameplayMusicMainAbiInclude(labels);
   writeFile(path.join(buildDirectory, "gameplay-music-main-abi.inc"),
     gameplayMusicMainAbiInclude);
@@ -1905,8 +1903,8 @@ async function build() {
   writeFile(path.join(buildDirectory, "gameplay-music.lbl"), gameplayMusicModule.labels);
   writeFile(path.join(buildDirectory, "gameplay-music.map"), gameplayMusicModule.map);
   // Debug route (plan §7): the build bakes level N's image where level 1's
-  // would go - the XEX-only block and the ATR's first level run - so the ATR
-  // and the XEX both start on it. The default build is unchanged.
+  // would go - the ATR's first level run - so START GAME loads it. The
+  // default build is unchanged.
   const levelRuns = [
     { id: levelDebugId ?? 1, startSector: levelBaseSector, sectors: levelOneSectors },
   ];
@@ -2513,52 +2511,10 @@ async function build() {
     throw new Error("Assembled boot header has an unexpected init address");
   }
 
-  // Owner decision B (2026-09-20): the XEX must keep working with BASIC both
-  // enabled and disabled. The binary loader places blocks before RUNAD is
-  // reached, so a block at $A000 would be written into the BASIC ROM and lost
-  // whenever the player starts with BASIC enabled. A two-byte INITAD record
-  // right after the first block - which is where disable_basic_rom already
-  // lives, inside the fixed bootstrap prefix at $21AD - makes the loader call
-  // it before any later block is placed. It is idempotent: it forces PORTB
-  // bit 1 and writes BASICF, and the stage-2 entries still call it themselves.
-  const disableBasicRomAddress = labels.get("disable_basic_rom");
-  if (!Number.isInteger(disableBasicRomAddress)) {
-    throw new Error("disable_basic_rom is missing from the link");
-  }
-  const initAdRecord = Buffer.alloc(2);
-  initAdRecord.writeUInt16LE(disableBasicRomAddress, 0);
-  // Any block at $A000 or above needs the INITAD record: it runs
-  // disable_basic_rom before the block is loaded, so the window is RAM by the
-  // time the loader writes there. RUNAD would be far too late. The 4.3 reader
-  // is such a block, so the record is emitted whenever either it or a Director
-  // window segment is present.
-  const xexWindowSegments = directorModule.codeSegments.filter((segment) =>
-    (segment.transportAddress ?? segment.runAddress) >= basicWindowAddress);
-  const xexNeedsWindowInitAd = xexWindowSegments.length > 0 ||
-    sectorReaderAddress >= basicWindowAddress;
-  const xex = makeXexSegments([
-    { start: loadAddress, data: initialBoot.bytes },
-    ...(xexNeedsWindowInitAd ? [{ start: 0x02e2, data: initAdRecord }] : []),
-    { start: broadsideRunAddress, data: broadsideRuntime },
-    { start: weaponPickupPackedStagingAddress, data: packedWeaponPickupPhaseBank },
-    ...directorModule.codeSegments.map((segment) => ({
-      start: segment.transportAddress ?? segment.runAddress,
-      data: segment.lateCompressed ? segment.packed : segment.transportData ?? segment.data,
-    })),
-    { start: directorRunAddress, data: directorModule.raw },
-    // Roadmap 4.3: the reader itself, and behind it the level-1 image as an
-    // XEX-only block at LEVEL_BUFFER (owner decision 1). The ATR carries no
-    // such block: it reads level 1 over SIO at START GAME, which is what makes
-    // the four ATR boot-smoke sessions exercise the reader end to end, while
-    // XEX sessions take the resident-skip path and never touch the wire.
-    { start: lightKernelAddress, data: lightKernelModule.raw },
-    { start: sectorReaderAddress, data: sectorReaderModule.raw },
-    { start: levelBufferAddress, data: startLevelImage },
-  ], bootStage2XexEntry);
   const atr = makeAtr(transportPayload, levelRuns.map((run) => ({
     startSector: run.startSector, data: levelImages.get(run.id),
   })));
-  const runtimeArtifacts = runtimeArtifactSet({ boot: transportPayload, xex, atr });
+  const runtimeArtifacts = runtimeArtifactSet({ boot: transportPayload, atr });
   const cpuRuntimeTiming = isReviewVariant || twoPmgRaiderPrototype || skipRuntimeMeasurement
     ? null : measureRuntimeCycles({
     residentMain,
@@ -2905,8 +2861,6 @@ async function build() {
         runAddress: bootStage2RunAddress,
         loadAddress: bootStage2LoadAddress,
         bytes: bootStage2Bytes,
-        xexEntryAddress: bootStage2XexEntry,
-        xexEntryOffset: bootStage2XexEntry - bootStage2RunAddress,
         overwrittenByResidentSuffix: true,
       },
       // The ADR-003 splash blob rides at the tail of the initial block and is
@@ -3001,19 +2955,9 @@ async function build() {
       },
     },
     directorCodeRuntime: null,
-    // Owner decision B (2026-09-20): a two-byte INITAD record placed between
-    // the first XEX block and every later one, so the binary loader calls
-    // disable_basic_rom before it places a block inside $A000-$BC1F. Without
-    // it, a XEX started with BASIC enabled would write that block into ROM.
-    xexInitAd: !xexNeedsWindowInitAd ? null : {
-      segmentIndex: 1,
-      address: 0x02e2,
-      target: disableBasicRomAddress,
-      reason: "owner decision B: the window block must be placed into RAM, not BASIC ROM",
-    },
     // Roadmap 4.3. The reader and the level buffer are both window residents;
-    // the level-1 image is an XEX-only block (owner decision 1), so xexBlocks
-    // counts what the XEX carries and the ATR does not.
+    // the ATR carries each level image as its own sector run and the reader
+    // reads it over SIO at START GAME.
     sectorReader: {
       address: sectorReaderAddress,
       bytes: sectorReaderModule.raw.length,
@@ -3031,9 +2975,8 @@ async function build() {
         sectors: run.sectors,
         bytes: levelImages.get(run.id).length,
         file: `level-${run.id}.bin`,
-        origin: "ATR: read over SIO at START GAME; XEX: resident block, no SIO",
+        origin: "read over SIO at START GAME",
       })),
-      xexBlocks: 2,
     },
     lightWingman: lightPlacement,
     // Light multiplicity step 1b (plan §3.1 [C1]): the fourth link. Its start
@@ -3096,8 +3039,7 @@ async function build() {
             packedBytes: arenaRecord.packedLength,
             paddingBytes: arenaChunk.sectors * 128 - arenaRecord.packedLength -
               chunkLoaderConstants.chunkFooterBytes,
-            landing: "direct: ATR stage 2 decodes it to $7BD0, the XEX segment loads at $7BD0; " +
-              "no hold, no publish copy",
+            landing: "direct: stage 2 decodes it to $7BD0; no hold, no publish copy",
           },
           ownersInArena: coldOwnersInArena,
           worstCaseFullArenaPackedBytes: worstPacked.length,
@@ -3142,10 +3084,8 @@ async function build() {
           packedBytes: basicWindowRecord.packedLength,
           paddingBytes: basicWindowChunk.sectors * 128 - basicWindowRecord.packedLength -
             chunkLoaderConstants.chunkFooterBytes,
-          landing: `direct: ATR stage 2 decodes it to ` +
-            `$${hybridWindowAddress.toString(16).toUpperCase()} after disable_basic_rom; the ` +
-            `XEX block loads at $${hybridWindowAddress.toString(16).toUpperCase()} after the ` +
-            "INITAD record has called disable_basic_rom",
+          landing: `direct: stage 2 decodes it to ` +
+            `${hybridWindowAddress.toString(16).toUpperCase()} after disable_basic_rom`,
         },
       },
       pickupRecordPackedBytes: {
@@ -3180,12 +3120,6 @@ async function build() {
       packed: segmentPacked, lateCompressed, transportData, transportPacked, record, chunk }) => ({
       name,
       file: `encounter-director-code-${name}.bin`,
-      xexFile: lateCompressed
-        ? `encounter-director-code-${name}-packed.bin`
-        : transportData === undefined
-          ? `encounter-director-code-${name}.bin`
-          : `encounter-director-code-${name}-transport.bin`,
-      xexStagingCompression: lateCompressed ? "LZ-10/5" : null,
       runAddress,
       transportAddress: transportAddress ?? runAddress,
       endExclusive: runAddress + data.length,
@@ -3938,7 +3872,6 @@ async function build() {
     },
     artifacts: {
       "void-strike-65-boot.bin": { bytes: transportPayload.length, sha256: sha256(transportPayload) },
-      "void-strike-65.xex": { bytes: xex.length, sha256: sha256(xex) },
       "void-strike-65.atr": { bytes: atr.length, sha256: sha256(atr) },
     },
   };
@@ -4048,7 +3981,6 @@ async function build() {
     ? distDirectory
     : buildDirectory;
   writeFile(path.join(artifactDirectory, "void-strike-65-boot.bin"), transportPayload);
-  writeFile(path.join(artifactDirectory, "void-strike-65.xex"), xex);
   writeFile(path.join(artifactDirectory, "void-strike-65.atr"), atr);
   writeFile(path.join(artifactDirectory, "void-strike-65-manifest.json"), manifestBytes);
 
@@ -4062,7 +3994,6 @@ async function build() {
     console.log(`  chunks  : ${transportPayload.length - initialBoot.bytes.length} bytes / ${extensionSectors} sectors`);
     console.log(`  total   : ${transportPayload.length} bytes / ${totalTransportSectors} occupied sectors`);
     console.log(`  entry   : $${startAddress.toString(16)}`);
-    console.log(`  XEX     : ${xex.length} bytes`);
     console.log(`  ATR     : ${atr.length} bytes`);
     console.log(`  staging : $${packedResidentStagingAddress.toString(16)} reused after BROADSIDE publish`);
     if (enemyReviewHarness) {

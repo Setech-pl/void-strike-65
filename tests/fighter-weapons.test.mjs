@@ -43,7 +43,7 @@ const labels = new Map(
       .map((match) => [match[2], Number.parseInt(match[1], 16)])),
 );
 
-function xexBytes(address, length) {
+function imageBytes(address, length) {
   return readRuntimeBytes(root, address, length);
 }
 
@@ -242,9 +242,9 @@ test("explosion adapters keep a stable centre and clear the full eight-row union
 
 test("assembled explosion bank stays on PlayerFighter PMGs and cannot commandeer either Raider", () => {
   const explosion = weapons.sharedFighterExplosion;
-  assert.deepEqual([...xexBytes(labels.get("shared_fighter_explosion_masks"),
+  assert.deepEqual([...imageBytes(labels.get("shared_fighter_explosion_masks"),
     explosion.outerBytes.length)], [...explosion.outerBytes]);
-  assert.deepEqual([...xexBytes(labels.get("shared_fighter_explosion_core_masks"),
+  assert.deepEqual([...imageBytes(labels.get("shared_fighter_explosion_core_masks"),
     explosion.coreMasks.length)], [...explosion.coreMasks]);
   const renderer = source.slice(source.indexOf("erase_shared_fighter_explosion_slot:"),
     source.indexOf("update_enemy:"));

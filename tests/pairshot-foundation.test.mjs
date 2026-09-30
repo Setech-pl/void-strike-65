@@ -31,7 +31,7 @@ test("PairShot uses one logical record and one character cell for two pulses", (
 
 test("Normal, Rapid and Spread retain 8/10/8 visible pulses as 4/5/4 PairShots", () => {
   const trace = executePlayerFighterBurstBalanceTrace({
-    root, artifact: "xex", windowFrames: 160,
+    root, artifact: "atr", windowFrames: 160,
   });
   const modes = Object.fromEntries(trace.traces.map((entry) => [entry.mode, entry]));
   assert.deepEqual([

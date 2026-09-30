@@ -37,7 +37,7 @@ import {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const sha256 = (bytes) => crypto.createHash("sha256").update(bytes).digest("hex");
 const readDist = (name) => fs.readFileSync(path.join(root, "dist", name));
-const ARTIFACTS = ["void-strike-65.xex", "void-strike-65.atr", "void-strike-65-boot.bin"];
+const ARTIFACTS = ["void-strike-65.atr", "void-strike-65-boot.bin"];
 
 // The default build's own files in build/, sampled where a variant would once
 // have overwritten them: the level image the variant stamps, the linker map and

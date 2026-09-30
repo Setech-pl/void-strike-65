@@ -403,9 +403,27 @@ function captureBreakupFrames() {
   }
 }
 
+// The loader frame is the ATR boot smoke's own loader snapshot: its frame
+// follows the measured loader milestone, so it is read from the smoke report
+// rather than pinned.
+function atrLoaderCapture() {
+  const reportPath = path.join(runtimeTraceDirectory, "boot-smoke", "report.json");
+  invariant(fs.existsSync(reportPath),
+    "The boot-smoke report is missing; run npm run runtime:wall-trace first");
+  const session = JSON.parse(fs.readFileSync(reportPath, "utf8")).sessions
+    .find(({ id }) => id === "atr-a5");
+  invariant(session !== undefined, "The boot smoke has no atr-a5 session");
+  const frame = session.snapshots[1].frame;
+  return {
+    frame,
+    path: path.join(runtimeTraceDirectory, "boot-smoke",
+      `atr-a5-frame${String(frame).padStart(3, "0")}.png`),
+  };
+}
+
 function requireCaptureSources() {
   const sources = {
-    loader: path.join(runtimeTraceDirectory, "boot-smoke", "xex-a5-frame250.png"),
+    loader: atrLoaderCapture().path,
     standard: path.join(captureDirectory, "neutral-combat-025.png"),
     interceptor: path.join(captureDirectory, "neutral-combat-031.png"),
     debris: path.join(captureDirectory, "neutral-combat-113.png"),
@@ -413,7 +431,7 @@ function requireCaptureSources() {
     rapid: path.join(runtimeTraceDirectory, "weapon-pickup-rapid-projectiles-atari800.png"),
     spread: path.join(runtimeTraceDirectory, "weapon-pickup-spread-projectiles-atari800.png"),
     broadside: path.join(captureDirectory, "neutral-combat-100.png"),
-    engines: path.join(runtimeTraceDirectory, "engine-xex-a5-0-immediate-096.png"),
+    engines: path.join(runtimeTraceDirectory, "engine-atr-a5-0-immediate-096.png"),
   };
   for (const sourcePath of Object.values(sources)) {
     invariant(fs.existsSync(sourcePath),
@@ -432,15 +450,15 @@ export function createGameplayGallery() {
   invariant(Number.isInteger(spreadCaptureFrame),
     "Runtime report is missing the authentic Spread Shot capture frame");
   const definitions = [
-    ["01-title-loader.png", sources.loader, "XEX", 250, "Loader title and capital-ship art"],
-    ["02-standard-combat.png", sources.standard, "XEX", 25, "PlayerFighter, Interceptor, starfield and capital hull corridor"],
-    ["03-interceptor-breakup.png", sources.interceptor, "XEX", 31, "Interceptor local breakup after a PlayerFighter projectile kill"],
-    ["04-debris-breakup.png", sources.debris, "XEX", 113, "Destructible debris with four transient fragments"],
-    ["05-rapid-fire-pickup.png", sources.pickup, "XEX", 385, "Static 2x2 Rapid Fire capsule in active gameplay"],
-    ["06-rapid-fire-active.png", sources.rapid, "XEX", 449, "Full BOOST HUD label, energy cells, and yellow Rapid Fire projectiles"],
-    ["07-capital-broadside.png", sources.broadside, "XEX", 100, "Capital corridor combat and broadside fire"],
-    ["08-capital-engines.png", sources.engines, "XEX", 96, "Capital engine bank in its deterministic 8-frame phase"],
-    ["09-spread-shot-active.png", sources.spread, "XEX", spreadCaptureFrame, "Full BOOST HUD label, energy cells, and all-yellow three-projectile fan"],
+    ["01-title-loader.png", sources.loader, "ATR", atrLoaderCapture().frame, "Loader title and capital-ship art"],
+    ["02-standard-combat.png", sources.standard, "ATR", 25, "PlayerFighter, Interceptor, starfield and capital hull corridor"],
+    ["03-interceptor-breakup.png", sources.interceptor, "ATR", 31, "Interceptor local breakup after a PlayerFighter projectile kill"],
+    ["04-debris-breakup.png", sources.debris, "ATR", 113, "Destructible debris with four transient fragments"],
+    ["05-rapid-fire-pickup.png", sources.pickup, "ATR", 385, "Static 2x2 Rapid Fire capsule in active gameplay"],
+    ["06-rapid-fire-active.png", sources.rapid, "ATR", 449, "Full BOOST HUD label, energy cells, and yellow Rapid Fire projectiles"],
+    ["07-capital-broadside.png", sources.broadside, "ATR", 100, "Capital corridor combat and broadside fire"],
+    ["08-capital-engines.png", sources.engines, "ATR", 96, "Capital engine bank in its deterministic 8-frame phase"],
+    ["09-spread-shot-active.png", sources.spread, "ATR", spreadCaptureFrame, "Full BOOST HUD label, energy cells, and all-yellow three-projectile fan"],
   ];
   return definitions.map(([fileName, sourcePath, medium, frame, description]) => {
     const { sourceBytes, png, width, height } = cropRuntimeFrame(sourcePath);
@@ -518,12 +536,11 @@ export function generateShowcase({ capture = false } = {}) {
   fs.mkdirSync(gameplayDirectory, { recursive: true });
   fs.mkdirSync(assetDirectory, { recursive: true });
   if (capture) captureBreakupFrames();
-  const xex = fs.readFileSync(path.join(rootDirectory, "dist", "void-strike-65.xex"));
   const atr = fs.readFileSync(path.join(rootDirectory, "dist", "void-strike-65.atr"));
   const runtimeReport = JSON.parse(fs.readFileSync(
     path.join(rootDirectory, "docs", "runtime-wall-trace.json"), "utf8"));
-  invariant(runtimeReport.artifact.sha256 === sha256(xex),
-    "Runtime wall trace does not match the current release XEX");
+  invariant(runtimeReport.artifact.sha256 === sha256(atr),
+    "Runtime wall trace does not match the current release ATR");
   const gameplay = capture ? createGameplayGallery() : readCommittedGameplayGallery();
   const assets = createAssetSheets();
   const concepts = readOwnerSuppliedConceptArt();
@@ -531,7 +548,6 @@ export function generateShowcase({ capture = false } = {}) {
     formatVersion: 1,
     generatedBy: "scripts/github-showcase.mjs",
     runtimeEvidence: {
-      xex: { path: "dist/void-strike-65.xex", bytes: xex.length, sha256: sha256(xex) },
       atr: { path: "dist/void-strike-65.atr", bytes: atr.length, sha256: sha256(atr) },
       wallTrace: { path: "docs/runtime-wall-trace.json", sha256: sha256(fs.readFileSync(
         path.join(rootDirectory, "docs", "runtime-wall-trace.json"))) },

@@ -35,7 +35,6 @@
     "package": "npm run build && node scripts/package-release.mjs",
     "preview": "node scripts/preview.mjs && node scripts/starfield-preview.mjs",
     "showcase": "node scripts/github-showcase.mjs",
-    "play:xex": "node scripts/artifact-launch.mjs xex",
     "play:atr": "node scripts/artifact-launch.mjs atr",
     "boot:smoke": "node scripts/runtime-wall-trace.mjs --boot-smoke-only",
     "runtime:wall-trace": "node scripts/runtime-wall-trace.mjs",

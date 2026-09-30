@@ -192,7 +192,7 @@ test("every region still fits the 14 surface codes of one level hull set", () =>
   // holds exactly those fourteen surface cells — seven resident allied codes
   // (59-65) and the seven the level block supplied (70-76) — and the level
   // block touches nothing else in the 59-89 window.
-  const { memory, labels } = initialiseRuntime(rootDirectory, "xex", 0xa5);
+  const { memory, labels } = initialiseRuntime(rootDirectory, "atr", 0xa5);
   const before = Buffer.from(memory.subarray(CHARSET + 59 * 8, CHARSET + 90 * 8));
   runRoutine(memory, labels, "publish_level_hull_style");
   const after = Buffer.from(memory.subarray(CHARSET + 59 * 8, CHARSET + 90 * 8));
@@ -207,11 +207,11 @@ test("every region still fits the 14 surface codes of one level hull set", () =>
 });
 
 test("start_gameplay publishes the level's style into the charset, the boundaries and the DLI", () => {
-  const { memory, labels } = initialiseRuntime(rootDirectory, "xex", 0xa5);
+  const { memory, labels } = initialiseRuntime(rootDirectory, "atr", 0xa5);
   const blockAddress = block.blockAddress;
   const imageBlock = levelImage.subarray(block.imageOffset, block.imageOffset + BLOCK_BYTES);
   assert.deepEqual(Buffer.from(memory.subarray(blockAddress, blockAddress + BLOCK_BYTES)),
-    Buffer.from(imageBlock), "the XEX did not publish the hull block into the level buffer");
+    Buffer.from(imageBlock), "the level image did not put the hull block into the level buffer");
 
   runRoutine(memory, labels, "publish_level_hull_style");
 
@@ -237,7 +237,7 @@ test("start_gameplay publishes the level's style into the charset, the boundarie
 });
 
 test("a different region publishes different glyphs, boundaries and steel", () => {
-  const { memory, labels } = initialiseRuntime(rootDirectory, "xex", 0xa5);
+  const { memory, labels } = initialiseRuntime(rootDirectory, "atr", 0xa5);
   const blockAddress = block.blockAddress;
   const r3 = blockOf("R3");
   memory.set(r3, blockAddress);

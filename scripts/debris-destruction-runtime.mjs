@@ -420,7 +420,7 @@ function snapshot(memory, labels, {
 }
 
 export function executeDebrisDestructionTrace({
-  root = defaultRoot, artifact = "xex", ringHead = 0,
+  root = defaultRoot, artifact = "atr", ringHead = 0,
 } = {}) {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "dist", "void-strike-65-manifest.json")));
   const labels = labelsFromFile(path.join(root, "build", "void-strike-65.lbl"));
@@ -522,7 +522,7 @@ export function executeDebrisDestructionTrace({
 }
 
 export function executeInterceptorBreakupTrace({
-  root = defaultRoot, artifact = "xex", ringHead = 0, frames = 32,
+  root = defaultRoot, artifact = "atr", ringHead = 0, frames = 32,
   enemyX = 124, enemyY = 88, playerX = 124, weaponMode = "NORMAL",
   raiderSlot = 0, secondRaider = false, secondKillFrame = null,
   preexistingEffectCount = 0,
@@ -813,7 +813,7 @@ export function executeInterceptorBreakupTrace({
 }
 
 export function executeProjectileDebrisBackingTrace({
-  root = defaultRoot, artifact = "xex", legacyProjectileDebrisBacking = false,
+  root = defaultRoot, artifact = "atr", legacyProjectileDebrisBacking = false,
   projectileSlot = 1, debrisX = 124, debrisY = 136, debrisCellOffset = 4,
 } = {}) {
   const labels = labelsFromFile(path.join(root, "build", "void-strike-65.lbl"));
@@ -915,7 +915,7 @@ export function executeProjectileDebrisBackingTrace({
 }
 
 export function executeRaiderRemnantMatrix({
-  root = defaultRoot, artifact = "xex", kills = 2000,
+  root = defaultRoot, artifact = "atr", kills = 2000,
   legacyEffectOverlapResolver = false,
 } = {}) {
   const modes = ["NORMAL", "RAPID", "SPREAD"];
@@ -971,7 +971,7 @@ export function executeRaiderRemnantMatrix({
 }
 
 export function executeRemainingRaiderRemnantMatrix({
-  root = defaultRoot, artifact = "xex", kills = 5000,
+  root = defaultRoot, artifact = "atr", kills = 5000,
 } = {}) {
   const modes = ["NORMAL", "RAPID", "SPREAD"];
   const movements = ["STATIONARY", "LEFT", "RIGHT", "REVERSAL"];
@@ -1143,20 +1143,3 @@ export function interceptorBreakupTraceCsv(trace) {
   return `${rows.join("\n")}\n`;
 }
 
-export function assertDebrisDestructionTraceParity(left, right) {
-  const normalizeRecord = (record) => ({
-    ...record,
-    screen: Array.from(record.screen),
-  });
-  const leftState = JSON.stringify(left.records.map(normalizeRecord));
-  const rightState = JSON.stringify(right.records.map(normalizeRecord));
-  if (leftState !== rightState ||
-      Buffer.compare(Buffer.from(left.charset), Buffer.from(right.charset)) !== 0) {
-    throw new Error(`Debris destruction runtime differs between ${left.artifact} and ${right.artifact}`);
-  }
-  return true;
-}
-
-export function assertInterceptorBreakupTraceParity(left, right) {
-  return assertDebrisDestructionTraceParity(left, right);
-}

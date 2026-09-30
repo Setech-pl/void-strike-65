@@ -86,14 +86,14 @@ test("the release gate passes on the real report, recorded failures and all", ()
 test("the release gate fails on an UNRECORDED gate failure", () => {
   const report = realReport();
   report.gate.behavioural_clause_failures.push({
-    session: "raider-remnant-rapid-xex-hard",
+    session: "raider-remnant-rapid-atr-hard",
     message: "invented clause failure",
   });
   report.gate.behavioural_clause_failure_count += 1;
   const result = evaluateReleaseGate(report, loadRecordedGateFailures(root));
   assert.equal(result.passed, false);
   assert.deepEqual(result.unrecorded,
-    ["raider-remnant-rapid-xex-hard: invented clause failure"]);
+    ["raider-remnant-rapid-atr-hard: invented clause failure"]);
   assert.match(releaseGateFailureMessage(result), /UNRECORDED gate failure/);
 });
 

@@ -154,7 +154,7 @@ function executeCase({ root, artifact, caseIndex, withShot }) {
 // Owner decision 2026-09-17: an already-emitted hostile PairShot is independent
 // of its emitter and continues its normal lifecycle after the emitter dies.
 export function executeRaiderProjectilePersistenceAttribution({
-  root = defaultRoot, artifact = "xex", casesPerScenario = 20,
+  root = defaultRoot, artifact = "atr", casesPerScenario = 20,
 } = {}) {
   const withShot = Array.from({ length: casesPerScenario }, (_, caseIndex) =>
     executeCase({ root, artifact, caseIndex, withShot: true }));
@@ -178,7 +178,7 @@ export function executeRaiderProjectilePersistenceAttribution({
 }
 
 export function executeRaiderProjectileOwnershipIsolation({
-  root = defaultRoot, artifact = "xex", killEmitter = 0,
+  root = defaultRoot, artifact = "atr", killEmitter = 0,
   renderedAtKill = true, projectileY = 96,
 } = {}) {
   const { memory, labels } = initialiseRuntime(root, artifact);

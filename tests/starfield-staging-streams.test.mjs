@@ -105,7 +105,7 @@ test("the packed streams are independent and decode to the identical runtime ima
 });
 
 test("boot stages both streams with exact 960-byte copies and decodes them byte-exactly", () => {
-  for (const [artifact, fill] of [["xex", 0xa5], ["atr", 0x00], ["xex", 0x5a]]) {
+  for (const [artifact, fill] of [["atr", 0xa5], ["atr", 0x00], ["atr", 0x5a]]) {
     const memory = new Uint8Array(0x10000).fill(fill);
     installBootArtifact(memory, root, artifact);
     run(memory, "stage_boot_streams");

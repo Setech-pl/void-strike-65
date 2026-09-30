@@ -87,7 +87,7 @@ function assembleCurrentRuntime() {
 
 function recordedMaximum() {
   const csv = fs.readFileSync(path.join(root, "build", "runtime-wall-trace",
-    "early-enemy-xex-2-cold-hunt-fire4.csv"), "utf8").trim().split(/\r?\n/);
+    "early-enemy-atr-2-cold-hunt-fire4.csv"), "utf8").trim().split(/\r?\n/);
   const fields = csv[0].split(",");
   return csv.slice(1).map((line) => Object.fromEntries(line.split(",")
     .map((value, index) => [fields[index], Number.isNaN(Number(value)) ? value : Number(value)])))

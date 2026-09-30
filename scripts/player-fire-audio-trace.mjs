@@ -253,7 +253,7 @@ function executeMode({
 
 export function executePlayerFireAudioTrace({
   root = defaultRoot,
-  artifact = "xex",
+  artifact = "atr",
   frames = 500,
   transitionFrame = 260,
 } = {}) {

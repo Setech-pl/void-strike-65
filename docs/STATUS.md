@@ -323,6 +323,85 @@ owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
 
+## Roadmap 4.6 step 4 — the capital hull length is level data — `OWNER-SMOKE CANDIDATE` (2026-09-30)
+
+Plan: [plans/director-4.6.md](plans/director-4.6.md) §8 step 4, §8.2, owner
+decision §11 item 18 (2026-09-30). Branch `feat/director-step-4-hull-length`
+from `main` `a930ba0`.
+
+**What changed.** Each level's capital hull length is in its HullGeometry page
+(`$AC00`), and the capital code reads the page. The two resolvers take the
+module sequences from `$AC08`/`$AC44`, and the phase machine takes the phase
+starts from `$AC02`. The 120 resident `BROADSIDE` sequence bytes are a zero pin.
+**Level 1 keeps 480 rows. Level 2 flies 352.** One length serves all three
+difficulties.
+* **Right-aligned** (owner, placement A): a short hull occupies rows
+  `480 − L … 479`, and capital entry starts the row clock at `480 − L`. The prow
+  taper, the prow collision and the DRAIN mapping stay on the rows they always
+  used, so none of them changed.
+* **Turrets keep today's density per row** (owner): EASY / MEDIUM / HARD
+  **7 / 10 / 14** on level 2's 352 rows, against 10 / 15 / 20 on 480. Density
+  steps 0-2 are refused by the compiler until defined.
+* **Visible difference found while building A:** the enemy hull trails the
+  allied one by 8 rows. No hull module is blank, so on a short hull those 8 rows
+  draw the engine module: level 2's enemy engine block is 8 rows longer, and
+  its tail lines up with the allied tail. This is a smoke point.
+
+**The wall-trace harness takes a debug-route build** (phase 0):
+`--artifacts=build/level-N-sM` runs one focused replay. Its inputs and outputs
+stay inside that directory, and it cannot write `docs/`. Its figures are
+diagnostic only. Level 2's figures before and after are in
+[diagnostics/level-2-timing-2026-09-30.md](diagnostics/level-2-timing-2026-09-30.md):
+worst fence margin **1,607 → 1,607**, DMA-on maximum **31,132 → 31,205**, 0 miss
+events, capital traversal **1,355 / 1,228 / 1,085 → 1,035 / 921 / 829** frames.
+
+**Gates — the DEFAULT build** (level 1 only). ATR
+`43e0495eaac757084da26eb07a17c7a5b5b7d1dac9dedbcd3acd0da41c07a063`, boot
+`be71fcae97133e63b509ff3888ed5c2dd2b0ef84f340c57903ea1a9f65c6de09`.
+
+| | `main` `a930ba0` | this branch | source |
+| --- | ---: | ---: | --- |
+| worst line-238 fence margin | 788 | **788** (same replay and frame, `director-complete-2` f5815) | PAL audit, 56 replays |
+| DMA-on maximum / physical headroom | 31,626 / 3,942 | **31,626 / 3,942** | `docs/runtime-wall-trace.json` |
+| distinct miss events / rows over 32,568 | 0 / 0 | **0 / 0** | PAL audit |
+| behavioural clause failures | 16 | **16**, the same by session and message; 0 new, 0 gone | `docs/recorded-gate-failures.json` |
+| boot smoke | 4 / 4 | **4 / 4** | default trace run |
+| ATR menu frame / delta | 601 / +5 | **602 / +6** (inside the ≤ +7 rule) | same |
+| boot / extension / total sectors | 107 / 101 / 208 | **107 / 101 / 208** | `build/manifest.json` |
+| initial block content / ceiling | 13,626 / 13,684 | **13,626** / 13,684 (owner cap 13,626) | same |
+| extension record 1 (`BROADSIDE`), packed | 5,583 | **5,502** (−81; 44 sectors) | same |
+| `HYBRID_C_SECTOR` | 187 / 248 | **215 / 248** (extension record 2, 9 sectors) | `build/encounter-director.map` |
+| `$AE00` window used / free | 1,991 / 1,593 | **1,991 / 1,593** | `build/manifest.json` |
+| `DIRECTOR_RAM` used / capacity | 602 / 645 | **602 / 645** | `build/encounter-director.map` |
+| capital phase machine, worst case | 104 cycles | **104 cycles** (mean 74 → 80) | native harness, rows 0-519 |
+| `npm test` (default build) | 868 / 757 / 108 / 3 | **880 / 768 / 109 / 3**, then **108** after one re-point | the recorded 108: 0 new, 0 disappeared |
+
+**The initial block did not shrink, and could not.** The plan expected the
+sequences' 120 B to come out of the initial block. `BROADSIDE` ships in extension
+record 1, so the refund lands there: −81 packed B, no sector. The owner accepted
+this with a condition: step 4 must not grow the initial block. It does not.
+Everything step 4 adds is in extension records.
+
+**The ATR menu frame moved by one** (601 → 602). No sector count changed. The
+cause was not investigated.
+
+**Tests.** New: T7, `tests/hull-length.test.mjs` (7, RED 7/7 on `main`), and
+`tests/wall-trace-debug-route.test.mjs` (5, RED on `main`). Five were
+re-pointed, each because step 4 did what it pinned the absence of:
+* the `HYBRID_C_SECTOR` byte pin (187 → 215);
+* step 2's "the geometry page still waits";
+* T12's level 2 hull rows (480 → 352);
+* the ATR's seeded layout bytes, now read from level 1's run;
+* the flagship test's sequence read, now from the geometry page.
+
+The last was the one new name in the full run's 109. It passed after the
+re-point, and the suite was not re-run in full.
+
+**Owed by the owner.** A hardware smoke of level 1 (`npm run play:atr`, which
+should be unchanged) and of level 2 through the debug route (the 352-row hull,
+its turrets and the enemy's 8-row engine lead-in). The checklist is in the
+session report.
+
 ## ATR-only build — the XEX is removed as a product — `OWNER-SMOKE CANDIDATE` (2026-09-30)
 
 Plan and measurements: [plans/atr-only-build.md](plans/atr-only-build.md). Branch
@@ -453,15 +532,9 @@ every figure below is unmoved:
 The +5 tests are all new and all pass: T12 in `tests/level-compiler.test.mjs`
 and four in `tests/level-two.test.mjs`. No existing test was re-pointed.
 
-**Level 2's timing is NOT measured.** The owner asked for one diagnostic
-measurement of level 2 if the wall-trace harness could run through the debug
-route without harness changes. It cannot: it reads only `dist/` and `build/`
-and refuses a review-variant manifest. It was not built;
-[diagnostics/level-2-timing-2026-09-30.md](diagnostics/level-2-timing-2026-09-30.md)
-says what it would take (about 25-40 lines, three existing sessions). The
-ESTIMATE is that three live Lights do not bind: the Light-multiplicity M1
-measurement found about 6,200 cycles of fence margin at three Lights. It is not
-a measurement.
+**Level 2's timing** was measured at step 4, once the wall-trace harness could
+take a debug-route build: worst fence margin 1,607, DMA-on maximum 31,132 on the
+480-row hull. See the step 4 section above.
 
 **The level timeline probe had two observer defects**, both invisible to level
 1 because level 1 authors no Light wave. It never ran the Light wave stepper.

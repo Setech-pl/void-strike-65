@@ -745,6 +745,34 @@ re-record [boot-deadline-baseline.json](boot-deadline-baseline.json) in that
 same commit and state the reason in the commit message. The baseline is data
 under review, not an identity: it must never move on its own.
 
+### Update 2026-09-30 — the all-or-nothing Spread volley
+
+[plans/spread-volley-fix.md](plans/spread-volley-fix.md). MEASURED from
+`build/void-strike-65.map`/`.lbl` and `build/manifest.json` against `main`
+`1c3da14`.
+
+| Segment | `main` `1c3da14` | this branch | Real neighbour | Free tail |
+| --- | ---: | ---: | --- | ---: |
+| `PICKUP_CODE` `$8776-…` | ends `$8B1B`, 934 B | ends **`$8B25`**, **944 B** | collision module `$8B67` | 75 B → **65 B** |
+| `CODE` `$2000-$317D` | 4,478 B | **4,478 B** | `RODATA` `$317E` | unchanged, see below |
+
+* **`PICKUP_CODE` +10 B**: `player_fighter_spread_volley_sides` (`$8B1C-$8B25`),
+  the two side-shot allocations, appended after `debris_shot_reward`, so no
+  earlier `PICKUP_CODE` address moves. Extension record 2 (pickup stream +
+  `HYBRID_C_SECTOR`) goes 1,120 → **1,128 B**, still **9 sectors**; a record
+  holds `sectors × 128 − 21` B (the chunk footer), so 3 B remain before a tenth.
+* **`CODE` size-neutral.** The fire path (`update_player_fighter_weapon_post` to
+  `play_player_fighter_projectile_sound`, `$2CD0-$2D64`) was reordered so that
+  `allocate_player_fighter_projectile_one` comes first and the Spread routine
+  falls through into the sound. The free-slot count and the admission live
+  there. What that saves (−3 B) is held as `spread_volley_code_slack`
+  (`.res 3, $00`, after an `rts`, never executed), so
+  `play_player_fighter_projectile_sound` stays at **`$2D65`**, every later CODE
+  label stays put, and `RODATA` still starts at `$317E`. Only labels inside
+  `$2CD0-$2D64` moved (the burst tables by −2 B, still inside page `$2C`).
+* **Initial block content 13,626 → 13,626 B** (owner cap 13,626). Boot 107 /
+  extension 101 / total **208** sectors, unchanged.
+
 ## Blocked-experiment evidence — not part of this map
 
 The 2026-09-16 Interceptor experiment (`BLOCKED_PLACEMENT`) measured additional

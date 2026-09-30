@@ -4196,8 +4196,8 @@ update_player_fighter_weapon_finish:
     rts
 update_player_fighter_weapon_post:
     dec PLAYER_FIGHTER_BURST_TIMER
-    bne update_player_fighter_weapon_done
-    jmp update_player_fighter_weapon_begin
+    beq update_player_fighter_weapon_begin
+    rts
 update_player_fighter_weapon_released:
     lda #WEAPON_BURST_WAITING
     sta PLAYER_FIGHTER_BURST_STATE
@@ -4215,45 +4215,6 @@ player_fighter_pairshot_burst_counts:
     .byte PLAYER_FIGHTER_NORMAL_BURST_COUNT,PLAYER_FIGHTER_RAPID_FIRE_BURST_COUNT
     .byte PLAYER_FIGHTER_SPREAD_BURST_COUNT,PLAYER_FIGHTER_NORMAL_BURST_COUNT
 
-allocate_player_fighter_projectile:
-    ldy ENTITY_STATE+WEAPON_BOOSTER_SLOT
-    cpy #WEAPON_PICKUP_STATE_SPREAD
-    bne :+
-    jmp allocate_player_fighter_spread_projectiles
-:
-    lda #FIGHTER_PROJECTILE_PLAYER_FIGHTER
-    jsr allocate_player_fighter_projectile_one
-    bcs :+
-    rts
-:
-    jmp play_player_fighter_projectile_sound
-
-.segment "CODE"
-; The burst opens with a simultaneous left/centre/right volley so the fan is
-; readable in one glance, then fires a single centre follow-up one interval
-; later. Sequencing the three directions one per interval - the previous
-; behaviour - meant a side shot was never on screen with the centre, so the
-; weapon read as a slower plain shot. Two fire events still spend exactly four
-; logical PairShots and eight visible pulses, and the volley leaves one pool
-; slot free for the follow-up.
-allocate_player_fighter_spread_projectiles:
-    ldy PLAYER_FIGHTER_BURST_REMAINING
-    cpy #PLAYER_FIGHTER_SPREAD_BURST_COUNT
-    bne @follow_up
-    lda #FIGHTER_PROJECTILE_RENDER_ID_SPREAD_LEFT
-    jsr allocate_player_fighter_projectile_one
-    lda #FIGHTER_PROJECTILE_RENDER_ID_SPREAD_RIGHT
-    jsr allocate_player_fighter_projectile_one
-@follow_up:
-    lda #FIGHTER_PROJECTILE_RENDER_ID_SPREAD_CENTER
-    jsr allocate_player_fighter_projectile_one
-    bcc allocate_player_fighter_projectile_rejected
-    jmp play_player_fighter_projectile_sound
-
-allocate_player_fighter_projectile_rejected:
-    clc
-    rts
-
 ; Last HPOS whose one-HPOS projectile still lies in ANTIC column
 ; GAMEPLAY_SCREEN_COLUMNS-1. The renderer maps (X-GAMEPLAY_LEFT_HPOS)/4 to a
 ; column without a bound, so X=LEFT+COLUMNS*4 would draw into column 0 of the
@@ -4262,7 +4223,6 @@ allocate_player_fighter_projectile_rejected:
 PLAYER_FIGHTER_PROJECTILE_X_LIMIT = GAMEPLAY_LEFT_HPOS+GAMEPLAY_SCREEN_COLUMNS*4-PLAYER_FIGHTER_PROJECTILE_WIDTH_HPOS
 .assert PLAYER_X_MAX+PLAYER_VISIBLE_WIDTH_HPOS/2+PLAYER_FIGHTER_SPREAD_INITIAL_OFFSET < 256, error, "PlayerFighter emission X must not wrap before its playfield clamp"
 
-.segment "CODE"
 allocate_player_fighter_projectile_one:
     pha                         ; projectile kind; the stack is three bytes
     ldx #$00                    ; smaller than ENTITY_SCRATCH0 save/restore
@@ -4305,8 +4265,68 @@ allocate_player_fighter_projectile_at_slot:
     sta FIGHTER_PROJECTILE_LIFETIME,x
     sec
     rts
+; Never reached: the rts above is the only way out. The fire path below was
+; reordered for the all-or-nothing Spread volley (docs/plans/spread-volley-fix.md)
+; and is one byte shorter; this byte keeps play_player_fighter_projectile_sound
+; and every later CODE address, and RODATA at $317E, where they were.
+spread_volley_code_slack:
+    .res 3, $00
 
-.segment "CODE"
+allocate_player_fighter_projectile:
+    ldy ENTITY_STATE+WEAPON_BOOSTER_SLOT
+    cpy #WEAPON_PICKUP_STATE_SPREAD
+    beq allocate_player_fighter_spread_projectiles
+    lda #FIGHTER_PROJECTILE_PLAYER_FIGHTER
+    jsr allocate_player_fighter_projectile_one
+    bcs play_player_fighter_projectile_sound
+allocate_player_fighter_projectile_rejected:
+    rts                         ; C=0 on every path that reaches it
+
+; The burst opens with a simultaneous left/centre/right volley so the fan is
+; readable in one glance, then fires a single centre follow-up one interval
+; later. Sequencing the three directions one per interval - the previous
+; behaviour - meant a side shot was never on screen with the centre, so the
+; weapon read as a slower plain shot. Two fire events still spend exactly four
+; logical PairShots and eight visible pulses, and the volley leaves one pool
+; slot free for the follow-up.
+;
+; The volley is all-or-nothing (owner decision 2026-09-30,
+; docs/plans/spread-volley-fix.md). It is admitted only when three slots are
+; free within the active limit; the count stops at the third. Then
+; player_fighter_spread_volley_sides places the two side shots and the centre
+; below cannot fail, so the burst advances and the sound starts in the same
+; frame. With fewer than three free nothing is placed, and the controller
+; retries the one pending fire event next frame: no side shot is kept without
+; its centre, and nothing accumulates. Before this, the side shots were placed
+; first and kept, the centre never fitted, and a volley that began with fewer
+; than three free slots held the pool full with lone side shots and no sound
+; until Spread expired (docs/diagnostics/spread-debug-route-2026-09-30.md).
+; ESTIMATE: the count is <= 65 cycles, +43..+67 on a frame whose volley is
+; admitted; a blocked frame runs the count instead of three failing scans.
+allocate_player_fighter_spread_projectiles:
+    ldy PLAYER_FIGHTER_BURST_REMAINING
+    cpy #PLAYER_FIGHTER_SPREAD_BURST_COUNT
+    bne @follow_up
+    ldx #(PLAYER_FIGHTER_PROJECTILE_ACTIVE_LIMIT-1)
+    ldy #PLAYER_FIGHTER_SPREAD_PROJECTILE_COUNT
+@count:
+    lda FIGHTER_PROJECTILE_ACTIVE,x
+    bne @occupied
+    dey
+    beq @admit
+@occupied:
+    dex
+    bpl @count
+    clc                         ; fewer than three free: nothing placed
+    rts
+@admit:
+    jsr player_fighter_spread_volley_sides
+@follow_up:
+    lda #FIGHTER_PROJECTILE_RENDER_ID_SPREAD_CENTER
+    jsr allocate_player_fighter_projectile_one
+    bcc allocate_player_fighter_projectile_rejected
+    ; C=1: falls through into the shot sound
+
 ; Owner answer Q-S1 (owner-decisions-2026-09-11.md §AB.2): the shot moved from
 ; channel 1 to channel 4, so the music's bass on channel 1 is never preempted.
 ; Channel 4 is shared with the capital-hull explosion, which outranks the shot
@@ -11974,6 +11994,18 @@ debris_shot_reward:
     jmp weapon_pickup_spawn_capsule_at
 @done:
     rts
+
+; ---------------------------------------------------------------------------
+; SPREAD VOLLEY SIDES — owner decision 2026-09-30, docs/plans/spread-volley-fix.md.
+; allocate_player_fighter_spread_projectiles calls this only after counting
+; three free slots, so both allocations succeed and it returns C=1. It lives at
+; the end of PICKUP_CODE (extension record 2) because MAIN is full and its LZ
+; image is the capped initial block; no earlier PICKUP_CODE address moves.
+player_fighter_spread_volley_sides:
+    lda #FIGHTER_PROJECTILE_RENDER_ID_SPREAD_LEFT
+    jsr allocate_player_fighter_projectile_one
+    lda #FIGHTER_PROJECTILE_RENDER_ID_SPREAD_RIGHT
+    jmp allocate_player_fighter_projectile_one
 
 .segment "ENTITY_CODE"
 allied_engine_overlay_masks:

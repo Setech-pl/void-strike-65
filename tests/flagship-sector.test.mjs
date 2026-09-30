@@ -190,8 +190,15 @@ test("assembled sector dictionaries, sequences, and overlays match the source as
       read(`${side}_sector_module_sources`, asset.sector.moduleSourceRowsBySide.get(side).length),
       Buffer.from(asset.sector.moduleSourceRowsBySide.get(side)),
     );
+    // RE-PINNED at roadmap 4.6 step 4 (docs/plans/director-4.6.md §2.4): the
+    // module sequences left the resident BROADSIDE image for the level's
+    // HullGeometry page, which the resolvers read at $AC08/$AC44. Level 1's
+    // page carries them byte for byte; the resident range is a zero pin.
+    const geometry = fs.readFileSync(path.join(rootDirectory, "build", "level-geometry.bin"));
+    const sequenceOffset = side === "allied" ? 8 : 68;
     assert.deepEqual(
-      read(`${side}_sector_sequence`, asset.sector.moduleSequences.get(side).length),
+      geometry.subarray(sequenceOffset,
+        sequenceOffset + asset.sector.moduleSequences.get(side).length),
       Buffer.from(asset.sector.moduleSequences.get(side)),
     );
     assert.deepEqual(

@@ -1945,12 +1945,18 @@ async function build() {
       alliedColpf1: alliedColpf1ForRun(run.id),
       levelPages: compiledLevels.get(run.id).pages,
     })]));
-  const levelOneImage = levelImages.get(1);
-  // The block exactly as level 1 carries it, colour byte and all: the runtime
-  // harnesses install it at $A880 the way they install the music block.
-  const levelOneHullBlock = Buffer.from(levelOneImage.subarray(
+  // The level START GAME loads: level 1, or level N on the debug route. Every
+  // read below keys on the run's OWN id - roadmap 4.6 step 3 (owner decision
+  // 2026-09-30, docs/plans/director-4.6.md §11 item 17): a hard-coded 1 here
+  // made every --level=N build but N = 1 throw, because the map above is keyed
+  // by the run's id and holds no level 1 on the debug route.
+  const [startRun] = levelRuns;
+  const startLevelImage = levelImages.get(startRun.id);
+  // The block exactly as that level carries it, colour byte and all: the
+  // runtime harnesses install it at $A880 the way they install the music block.
+  const startLevelHullBlock = Buffer.from(startLevelImage.subarray(
     hullBlockImageOffset, hullBlockImageOffset + hullBlockBytes));
-  writeFile(path.join(buildDirectory, "level-hull-block.bin"), levelOneHullBlock);
+  writeFile(path.join(buildDirectory, "level-hull-block.bin"), startLevelHullBlock);
   const levelDirectoryInclude = renderLevelDirectoryInclude(levelRuns);
   writeFile(path.join(buildDirectory, "level-directory.inc"), levelDirectoryInclude);
   const sectorReaderMainAbiInclude = renderSectorReaderMainAbiInclude(labels);
@@ -1963,9 +1969,9 @@ async function build() {
   // the runtime HARNESSES install segments from build/, so the page is written
   // out on its own the way the gameplay music player and the hull block are,
   // and scripts/runtime-image.mjs places it from the manifest.
-  const levelOneCorePage = Buffer.from(levelOneImage.subarray(
+  const startLevelCorePage = Buffer.from(startLevelImage.subarray(
     LEVEL_CORE_OFFSET, LEVEL_CORE_OFFSET + LEVEL_CORE_BYTES));
-  writeFile(path.join(buildDirectory, "level-core.bin"), levelOneCorePage);
+  writeFile(path.join(buildDirectory, "level-core.bin"), startLevelCorePage);
   // Light multiplicity step 1b (plan §3.1 [C1]): the fourth link. It runs HERE,
   // after main, because the kernel reaches 25 main-link symbols through
   // light-kernel-abi.inc - which is why it cannot live in the Director link,
@@ -2547,7 +2553,7 @@ async function build() {
     // XEX sessions take the resident-skip path and never touch the wire.
     { start: lightKernelAddress, data: lightKernelModule.raw },
     { start: sectorReaderAddress, data: sectorReaderModule.raw },
-    { start: levelBufferAddress, data: levelOneImage },
+    { start: levelBufferAddress, data: startLevelImage },
   ], bootStage2XexEntry);
   const atr = makeAtr(transportPayload, levelRuns.map((run) => ({
     startSector: run.startSector, data: levelImages.get(run.id),
@@ -2590,7 +2596,7 @@ async function build() {
       // page, so the CPU harness has to place it exactly as the sector reader
       // does - otherwise director_c_init reads a zeroed page, refuses its
       // magic and completes the level before the first frame.
-      { runAddress: LEVEL_CORE_ADDRESS, data: levelOneCorePage },
+      { runAddress: LEVEL_CORE_ADDRESS, data: startLevelCorePage },
     ],
     capitalPlayerCollisionRuntime: capitalPlayerCollisionModule.raw,
     capitalPlayerCollisionRunAddress: capitalPlayerCollisionAddress,
@@ -3606,10 +3612,12 @@ async function build() {
       },
       payloadImageOffset: LEVEL_PAYLOAD_OFFSET,
       geometryImageOffset: LEVEL_GEOMETRY_OFFSET,
-      level1: {
-        sectors: compiledLevels.get(1).sectors.length,
-        waves: compiledLevels.get(1).waves.length,
-        hullRows: compiledLevels.get(1).geometry.hullRows,
+      // Keyed by the level START GAME loads: `level1` in the default build,
+      // `level2` on --level=2.
+      [`level${startRun.id}`]: {
+        sectors: compiledLevels.get(startRun.id).sectors.length,
+        waves: compiledLevels.get(startRun.id).waves.length,
+        hullRows: compiledLevels.get(startRun.id).geometry.hullRows,
       },
     },
     loaderScreen: {
@@ -3656,8 +3664,8 @@ async function build() {
         blockSectors: hullBlockSectors,
         paddingBytes: hullBlockSectors * 128 - hullBlockBytes,
         offsets: hullBlockOffsets,
-        styleId: levelOneHullBlock[0],
-        alliedColpf1: levelOneHullBlock[hullBlockAlliedColpf1Offset],
+        styleId: startLevelHullBlock[0],
+        alliedColpf1: startLevelHullBlock[hullBlockAlliedColpf1Offset],
         levelDefFirstSector,
       },
       glyphCount: capitalHullsAsset.glyphs.length,

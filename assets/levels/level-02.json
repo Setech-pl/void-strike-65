@@ -22,7 +22,7 @@
     "The six sectors, and why each one is there:",
     "  1 SWARM   480 rows  interceptor + wingman, 3 Lights   the new opening",
     "  2 ELITE   640 rows  bomber + wingman ONLY             the bomber line",
-    "  3 CAPITAL 542 rows  (the hull traversal is its clock) later than level 1",
+    "  3 CAPITAL 352-row hull (the traversal is its clock) later than level 1",
     "  4 SWARM   768 rows  interceptor ONLY, 3 Lights, 3 waves of 8 at 20",
     "  5 ELITE   800 rows  raider/bomber alternating",
     "  6 ELITE  1152 rows  all four archetypes; a Light wave inside an elite",
@@ -74,7 +74,10 @@
     "    a live count, and no plan step makes the count live, so every sector",
     "    authors 1 (owner decision 2026-09-30): a 2 would say something the",
     "    game does not do.",
-    "  * hull length is plan STEP 4: level 2 flies today's 480-row hull.",
+    "  * HULL LENGTH (plan step 4, owner 2026-09-30): 352 rows, 'length' 1, where",
+    "    level 1 flies 480. The short hull is right-aligned - its prow ends on",
+    "    row 479 like level 1's - and keeps today's turret density per row:",
+    "    7 / 10 / 14 stations on EASY / MEDIUM / HARD against level 1's 10/15/20.",
     "",
     "Seed 77 (the plan's own §6 example) gives level 2 its own RNG stream:",
     "director_c_init XORs it with the difficulty, so all three streams differ",
@@ -87,7 +90,7 @@
   "boss": 0,
   "pickupPolicy": 3,
   "hull": {
-    "length": 3,
+    "length": 1,
     "turrets": 3
   },
   "sectors": [

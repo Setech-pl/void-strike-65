@@ -1,6 +1,7 @@
 #include "lifecycle.h"
 #include "director.h"
 #include "enemy-archetype.h"
+#include "level-def.h"
 
 #pragma code-name ("HYBRID_C_EXT")
 #pragma rodata-name ("ENEMY_ARCHETYPE_DATA")
@@ -282,6 +283,14 @@ static uint8_t heavy_scratch;
 static uint8_t heavy_index;
 /* GTIA colour of the ticked member; ASM writes it to COLPM1+slot. */
 volatile uint8_t heavy_member_colour;
+/* Roadmap 4.6 step 4 (plan §2.4, §8.2): the HullGeometry page's header - hull
+ * rows lo/hi, the four phase starts in absolute modules, the density echo and
+ * a reserved byte - at $AC00, inside the level buffer, the way LEVEL_CORE is.
+ * file = "" in the link config: no artifact byte, no transport byte. The two
+ * 60-B sequences behind it are read by the ASM resolvers, not by C.
+ * src/hybrid/c-asm-abi.s asserts the address at link time. */
+#pragma bss-name ("LEVEL_GEOMETRY")
+uint8_t level_hull[LEVEL_GEOMETRY_HEADER_BYTES];
 #pragma bss-name ("HYBRID_C_STATE")
 volatile uint8_t enemy_profile_movement_id;
 volatile uint8_t enemy_profile_fire_policy_id;
@@ -628,30 +637,42 @@ uint8_t sector_c_update_first_capital(void)
         return 0u;
     }
     CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_ENGINES;
+    /* Roadmap 4.6 step 4: a short hull is right-aligned on the 480-row
+     * coordinate, so its traversal starts at row 480 - hull_rows. Every length
+     * is $120-$1E0, so the start is 0/64/128/192 and the high byte stays the
+     * 0 init_broadside left it. Level 1's 480 rows start at 0, as always. */
+    CORRIDOR_PHASE_LO = (uint8_t)(0xE0u - level_hull[GEOMETRY_HULL_ROWS_LO]);
     DIRECTOR_STATE_FLAGS >>= 1;
     return 1u;
 }
 
+/* Roadmap 4.6 step 4: the phase starts come from the level's HullGeometry
+ * page instead of constants. Module = row / 8. Because every hull is
+ * right-aligned, the prow ends on module 59 and DRAIN starts on module 61 for
+ * every length - the rows the prow profile, the prow collision and the drain
+ * mapping in ASM were always built for. heavy_scratch holds the module: the
+ * Heavy tick is frozen for the whole capital lifecycle, and the value does not
+ * outlive this call. */
 void sector_c_update_capital_phase(void)
 {
-    if (CORRIDOR_PHASE_HI == 0u) {
-        if (CORRIDOR_PHASE_LO < 32u) {
-            CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_ENGINES;
-        } else if (CORRIDOR_PHASE_LO < 112u) {
-            CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_AFT;
-        } else {
-            CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_COMBAT;
-        }
-    } else if (CORRIDOR_PHASE_HI == 1u) {
-        if (CORRIDOR_PHASE_LO < 112u) {
-            CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_COMBAT;
-        } else if (CORRIDOR_PHASE_LO < 192u) {
-            CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_FORWARD;
-        } else if (CORRIDOR_PHASE_LO < 232u) {
-            CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_PROW;
-        } else {
-            CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_DRAIN;
-        }
+    if (CORRIDOR_PHASE_HI > 1u) {
+        CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_DRAIN;
+        return;
+    }
+    heavy_scratch = (uint8_t)(CORRIDOR_PHASE_LO >> 3);
+    if (CORRIDOR_PHASE_HI != 0u) {
+        heavy_scratch |= 0x20u;
+    }
+    if (heavy_scratch < level_hull[GEOMETRY_PHASE_AFT]) {
+        CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_ENGINES;
+    } else if (heavy_scratch < level_hull[GEOMETRY_PHASE_COMBAT]) {
+        CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_AFT;
+    } else if (heavy_scratch < level_hull[GEOMETRY_PHASE_FORWARD]) {
+        CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_COMBAT;
+    } else if (heavy_scratch < level_hull[GEOMETRY_PHASE_PROW]) {
+        CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_FORWARD;
+    } else if (heavy_scratch < GEOMETRY_DRAIN_MODULE) {
+        CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_PROW;
     } else {
         CAPITAL_SECTOR_STATE = SECTOR_CAPITAL_DRAIN;
     }

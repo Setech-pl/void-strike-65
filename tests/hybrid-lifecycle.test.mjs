@@ -113,8 +113,13 @@ test("C EnemyArchetype is a compact exact Raider record in legal extension place
   // the 16-bit compare against FIRST_CAPITAL_FRAME and the flag it raised -
   // because a CAPITAL sector raises CAPITAL_DUE when the row clock enters it:
   // 230 - 43 = 187.
+  // RE-PINNED at roadmap 4.6 step 4 (plan §2.4, §8.2): the capital phase
+  // machine reads its four phase starts from the level's HullGeometry page
+  // instead of immediate constants, and capital entry starts the row clock at
+  // 480 - hull_rows for a right-aligned short hull: 187 + 28 = 215 of the
+  // segment's 248 B. It ships in an extension record, not the initial block.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
-    ({ name }) => name === "window"), { name: "window", runAddress: 0x8602, bytes: 187 });
+    ({ name }) => name === "window"), { name: "window", runAddress: 0x8602, bytes: 215 });
   assert.equal(manifest.encounterDirector.director.footprint.cStackBytes, 0);
   assert.equal(manifest.encounterDirector.director.footprint.zeroPageBytes, 0);
 });

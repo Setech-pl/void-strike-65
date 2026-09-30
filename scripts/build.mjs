@@ -39,6 +39,7 @@ import {
   LEVEL_GEOMETRY_BYTES,
   LEVEL_IMAGE_SECTORS,
   LEVEL_CORE_ADDRESS,
+  LEVEL_GEOMETRY_ADDRESS,
   LEVEL_CORE_MAGIC,
   CORE_HEADER_BYTES,
   SECTOR_ARRAY_OFFSET,
@@ -1550,6 +1551,7 @@ async function build() {
       "/project/build/loader-screen.inc": loaderInclude,
       "/project/build/loader-display-list.inc": loaderDisplayListInclude,
       "/project/build/capital-hulls.inc": capitalHullsInclude,
+      "/project/build/level-def.inc": levelDefInclude,
       "/project/build/enemy-roster.inc": enemyRosterInclude,
       "/project/build/fighter-weapons.inc": fighterWeaponsInclude,
       "/project/build/starfield.inc": starfieldInclude,
@@ -1970,6 +1972,10 @@ async function build() {
   const startLevelCorePage = Buffer.from(startLevelImage.subarray(
     LEVEL_CORE_OFFSET, LEVEL_CORE_OFFSET + LEVEL_CORE_BYTES));
   writeFile(path.join(buildDirectory, "level-core.bin"), startLevelCorePage);
+  // Roadmap 4.6 step 4: the capital resolvers and phase machine read the
+  // HullGeometry page, so the harnesses place it the same way.
+  writeFile(path.join(buildDirectory, "level-geometry.bin"), Buffer.from(
+    startLevelImage.subarray(LEVEL_GEOMETRY_OFFSET, LEVEL_GEOMETRY_OFFSET + LEVEL_GEOMETRY_BYTES)));
   // Light multiplicity step 1b (plan §3.1 [C1]): the fourth link. It runs HERE,
   // after main, because the kernel reaches 25 main-link symbols through
   // light-kernel-abi.inc - which is why it cannot live in the Director link,
@@ -3546,6 +3552,13 @@ async function build() {
       },
       payloadImageOffset: LEVEL_PAYLOAD_OFFSET,
       geometryImageOffset: LEVEL_GEOMETRY_OFFSET,
+      geometry: {
+        home: "per-level image, behind the payload page",
+        file: "level-geometry.bin",
+        imageOffset: LEVEL_GEOMETRY_OFFSET,
+        blockAddress: LEVEL_GEOMETRY_ADDRESS,
+        blockBytes: LEVEL_GEOMETRY_BYTES,
+      },
       // Keyed by the level START GAME loads: `level1` in the default build,
       // `level2` on --level=2.
       [`level${startRun.id}`]: {

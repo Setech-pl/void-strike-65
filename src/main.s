@@ -622,6 +622,7 @@ HUD_SHIELD_FOUR_SEGMENT_MIN = 188
 .export hud_booster_backing
 
 .include "capital-hulls.inc"
+.include "level-def.inc"
 .include "enemy-roster.inc"
 
 .assert CORRIDOR_BOUNDARY_ROWS = CAPITAL_HULL_VISIBLE_ROWS, error, "boundary backing must cover every gameplay row"
@@ -6759,7 +6760,7 @@ resolve_allied_sector_row:
     asl
     ora src_ptr
     tay
-    lda allied_sector_sequence,y
+    lda LEVEL_GEOMETRY_ALLIED_SEQUENCE,y ; the level's HullGeometry page (4.6 step 4)
     ldx #CAPITAL_HULL_ALLIED_TURRET_MODULE
     jsr select_sector_module
     lda BROAD_WORK_VALUE
@@ -6799,7 +6800,7 @@ resolve_enemy_sector_row:
     asl
     ora src_ptr
     tay
-    lda enemy_sector_sequence,y
+    lda LEVEL_GEOMETRY_ENEMY_SEQUENCE,y ; the level's HullGeometry page (4.6 step 4)
     ldx #CAPITAL_HULL_ENEMY_TURRET_MODULE
     jsr select_sector_module
     lda BROAD_WORK_VALUE
@@ -7741,10 +7742,13 @@ allied_sector_module_sources:
     EMIT_ALLIED_SECTOR_MODULE_SOURCES
 enemy_sector_module_sources:
     EMIT_ENEMY_SECTOR_MODULE_SOURCES
-allied_sector_sequence:
-    EMIT_ALLIED_SECTOR_SEQUENCE
-enemy_sector_sequence:
-    EMIT_ENEMY_SECTOR_SEQUENCE
+; Roadmap 4.6 step 4 (docs/plans/director-4.6.md §2.4): the two 60-B module
+; sequences moved into each level's HullGeometry page at $AC08/$AC44, where the
+; resolvers above read them. Their 120 resident bytes are held as a zero pin,
+; as enemy_hull_codebook_reserve is, so that no later BROADSIDE label moves.
+hull_sequence_reserve:
+    .res 2*LEVEL_GEOMETRY_SEQUENCE_BYTES, $00
+.assert LEVEL_GEOMETRY_SEQUENCE_BYTES = CAPITAL_HULL_SECTOR_MODULE_COUNT, error, "the level page's sequences must cover the 480-row coordinate"
 
 .segment "BROADSIDE"
 allied_prow_occupancy_masks:

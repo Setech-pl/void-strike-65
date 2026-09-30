@@ -453,14 +453,18 @@ test("step 2: the Director's schedule is the level image, and the geometry page 
     "wave_row", "wave_archetype", "wave_count", "wave_spacing", "wave_member_offset"]) {
     assert.match(directorSource, new RegExp(`uint8_t ${column}\\[`));
   }
-  // Step 4's half is untouched: the resolvers still read the resident
-  // BROADSIDE sequences and the hull geometry page is still unread.
-  assert.match(readText("src/main.s"), /allied_sector_sequence/,
-    "step 2 does not move the module sequences out of BROADSIDE - that is step 4");
-  for (const relative of ["src/main.s", "src/c/lifecycle.c", "src/hybrid/sector-reader.s"]) {
-    assert.doesNotMatch(readText(relative), /0xAC00|\$AC00/i,
-      `${relative} reads the HullGeometry page before step 4`);
-  }
+  // RE-PINNED at roadmap 4.6 step 4, which is the step this half was waiting
+  // for: the resolvers read the level's HullGeometry page and the resident
+  // BROADSIDE sequences are a zero pin. The Director's own C still reads only
+  // the core page - the geometry page belongs to the capital code.
+  const mainSource = readText("src/main.s");
+  assert.doesNotMatch(mainSource, /EMIT_(ALLIED|ENEMY)_SECTOR_SEQUENCE/,
+    "step 4 moves the module sequences out of BROADSIDE");
+  assert.match(mainSource, /lda LEVEL_GEOMETRY_ALLIED_SEQUENCE,y/);
+  assert.match(mainSource, /lda LEVEL_GEOMETRY_ENEMY_SEQUENCE,y/);
+  assert.match(readText("src/c/lifecycle.c"), /#pragma bss-name \("LEVEL_GEOMETRY"\)/);
+  assert.doesNotMatch(directorSource, /LEVEL_GEOMETRY|level_hull/,
+    "the Director reads the core page only");
 });
 
 // ---------------------------------------------------------------------------
@@ -535,6 +539,9 @@ test("T12: level-02.json compiles and differs from level 1 in sector count, wave
     assert.equal(one.sectors[0].rows, 272);
     assert.equal(two.sectors[5].rows, 1152);
     assert.deepEqual(two.sectors.map((sector) => sector.rows), [480, 640, 0, 768, 800, 1152]);
-    // Hull length is step 4: level 2 flies today's 480-row hull.
-    assert.equal(two.geometry.hullRows, 480);
+    // RE-PINNED at roadmap 4.6 step 4 (plan §8 step 4, owner 2026-09-30):
+    // level 2 flies a 352-row hull, level 1 keeps 480 (T7,
+    // tests/hull-length.test.mjs).
+    assert.equal(two.geometry.hullRows, 352);
+    assert.equal(one.geometry.hullRows, 480);
   });

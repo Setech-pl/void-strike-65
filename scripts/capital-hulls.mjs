@@ -25,6 +25,8 @@ function byteHex(value) {
 
 // Match Encounter Director's private full-period byte LCG (5*x+1). Layout
 // generation is host-side, so it does not consume or perturb runtime policy RNG.
+export const HULL_COMBAT_ROW_STEPS = Object.freeze([64, 128, 192, 256]);
+
 export function nextDirectorLayoutRng(value) {
   invariant(Number.isInteger(value) && value >= 0 && value <= 0xff,
     "Director layout RNG state must be one byte");
@@ -279,11 +281,23 @@ function compileSector(definition, rowsBySide, depthsBySide, glyphs, screenCodes
     ["forward", 80],
     ["prow", 32],
   ];
+  // Roadmap 4.6 step 4 (plan §2.4, §8.2): a level's hull length is its combat
+  // section, 64/128/192/256 rows - the first 8/16/24/32 of the authored combat
+  // modules. Engines, aft, forward and prow keep their 224 rows.
+  const combatRows = options.combatRows ?? 256;
+  invariant(HULL_COMBAT_ROW_STEPS.includes(combatRows),
+    `Capital hull combat section must be one of ${HULL_COMBAT_ROW_STEPS.join("/")} rows`);
   let sectionStart = 0;
-  const sections = source.sections.map((section, index) => {
+  const sections = source.sections.map((authored, index) => {
     const [expectedId, expectedRows] = expectedSections[index];
-    invariant(section.id === expectedId && section.rows === expectedRows,
+    invariant(authored.id === expectedId && authored.rows === expectedRows,
       `Sector section ${index} must be ${expectedId}/${expectedRows}`);
+    const section = authored.id !== "combat" || combatRows === authored.rows ? authored : {
+      ...authored,
+      rows: combatRows,
+      modules: Object.fromEntries(Object.entries(authored.modules).map(([side, names]) =>
+        [side, names.slice(0, combatRows / source.moduleRows)])),
+    };
     invariant(section.rows % source.moduleRows === 0,
       `Sector section ${section.id} must contain complete modules`);
     invariant(typeof section.weaponEligible === "boolean",
@@ -307,14 +321,15 @@ function compileSector(definition, rowsBySide, depthsBySide, glyphs, screenCodes
     sectionStart += section.rows;
     return result;
   });
-  invariant(sectionStart === source.baselineSectorRows * source.lengthMultiplier,
-    "Capital hull sector must contain exactly twice the 240-row baseline");
+  invariant(sectionStart === source.baselineSectorRows * source.lengthMultiplier -
+    (256 - combatRows), "Capital hull sector must contain exactly twice the 240-row " +
+    "baseline, less the combat rows a shorter level hull leaves out");
 
   const turretLayout = source.turretLayout;
   invariant(turretLayout && typeof turretLayout === "object",
     "Capital hull sector must define seeded difficulty-scaled turret geometry");
-  const expectedTurretCounts = { easy: 10, medium: 15, hard: 20 };
-  for (const [difficulty, count] of Object.entries(expectedTurretCounts)) {
+  const fullTurretCounts = { easy: 10, medium: 15, hard: 20 };
+  for (const [difficulty, count] of Object.entries(fullTurretCounts)) {
     invariant(turretLayout.counts?.[difficulty] === count,
       `${difficulty} hulls must expose exactly ${count} functional turrets`);
   }
@@ -452,6 +467,13 @@ function compileSector(definition, rowsBySide, depthsBySide, glyphs, screenCodes
   "Weapon-eligible linear-hull modules must form one contiguous span");
   const firstEligibleModule = eligibleModules[0];
   const lastEligibleModule = eligibleModules.at(-1);
+  // Turret density step 3 (owner, plan §8.2): today's stations per row, over
+  // the eligible span of a shorter hull. The full 480-row hull's span is 51
+  // modules; 352 rows gives 35 and 7/10/14 stations.
+  const fullEligibleSpan = 51;
+  const expectedTurretCounts = Object.fromEntries(Object.entries(fullTurretCounts)
+    .map(([difficulty, count]) => [difficulty, Math.round(count *
+      (lastEligibleModule - firstEligibleModule) / fullEligibleSpan)]));
   const minimumSpacingModules = turretLayout.minimumSpacingRows / source.moduleRows;
   const moduleSequencesByDifficulty = new Map();
   const cannonModuleIndicesByDifficulty = new Map();

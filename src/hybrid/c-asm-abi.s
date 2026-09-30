@@ -64,6 +64,7 @@ DIRECTOR_LOW_BYTES = 242
 .import _director_c_light_ceiling
 ; The LevelDef core page, array by array (src/c/director.c).
 .import _level_header
+.import _level_hull
 .import _sector_kind, _sector_len, _sector_caps, _sector_archetypes
 .import _sector_hazards, _sector_wave_first, _sector_wave_count, _sector_look
 .import _wave_row, _wave_flags, _wave_archetype, _wave_path
@@ -85,6 +86,7 @@ DIRECTOR_LOW_BYTES = 242
 level_core = _level_header
 level_core_magic = LEVEL_CORE_MAGIC
 .assert _level_header = LEVEL_CORE_HEADER_ADDRESS, lderror, "LevelDef header moved off the core page"
+.assert _level_hull = LEVEL_GEOMETRY_ADDRESS, lderror, "HullGeometry header moved off $AC00"
 .assert _sector_kind = LEVEL_CORE_SECTOR_KIND_ADDRESS, lderror, "LevelDef sector_kind moved"
 .assert _sector_len = LEVEL_CORE_SECTOR_LEN_ADDRESS, lderror, "LevelDef sector_len moved"
 .assert _sector_caps = LEVEL_CORE_SECTOR_CAPS_ADDRESS, lderror, "LevelDef sector_caps moved"

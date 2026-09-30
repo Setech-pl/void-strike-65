@@ -83,9 +83,9 @@ numbers; world rows, not eighths.
 | `debrisDensity` | 0-255 | 0 | base debris cadence |
 | `spacingScale` | 0-255 | 0 | difficulty spacing rule selector |
 | `debugStartSector` | 0-9 | 0 | a review build (`--level=N:sector=M`) starts here; 0 in shipped data |
-| `hull.length` | 0-3 | 3 | 288 / 352 / 416 / 480 rows. Step 1 emits 480 only |
+| `hull.length` | 0-3 | 3 | 288 / 352 / 416 / 480 rows, one length for all three difficulties (step 4). A shorter hull is the first 8 / 16 / 24 of the 32 combat modules; engines, aft, forward and prow keep their 224 rows. It is right-aligned: it ends on row 479 like the 480-row hull, so the capital traversal is `hull_rows` rows shorter at its start |
 | `hull.rows` | one of 288, 352, 416, 480 | — | the same thing said in rows; give `length` or `rows`, not both |
-| `hull.turrets` | 0-3 | 3 | turret density step |
+| `hull.turrets` | 3 | 3 | turret density step. Only 3 is defined: today's stations per row, over the length's eligible span - EASY / MEDIUM / HARD 5/8/11 at 288 rows, 7/10/14 at 352, 8/13/17 at 416, 10/15/20 at 480. Steps 0-2 are refused until the owner defines them |
 
 ### Sector fields
 
@@ -159,7 +159,7 @@ field:
 * an entry column outside 48-200;
 * `lights` above 4 or `heavies` above 2 — the packed nibbles hold no more;
 * a wave arming at or past its own sector's end;
-* a `path` (step 6) or a hull length other than 480 rows (step 4).
+* a `path` (step 6), or a turret density other than 3 (step 4).
 
 It **warns**, and the file stays legal, when a requested cap exceeds what the
 subtype admits — swarm 3 Light / 0 Heavy, elite 1 Light / 2 Heavy, capital

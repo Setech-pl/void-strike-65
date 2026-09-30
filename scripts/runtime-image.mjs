@@ -70,6 +70,13 @@ export function loadRuntimeSegments(rootDirectory,
       ["levelCore", manifest.levelDef.core.file,
         manifest.levelDef.core.blockAddress, manifest.levelDef.core.blockBytes],
     ]),
+    // Roadmap 4.6 step 4: the HullGeometry page. The capital resolvers read
+    // its module sequences and the phase machine its phase starts, so a
+    // harness without it would traverse a hull of zeros.
+    ...(manifest.levelDef?.geometry == null ? [] : [
+      ["levelGeometry", manifest.levelDef.geometry.file,
+        manifest.levelDef.geometry.blockAddress, manifest.levelDef.geometry.blockBytes],
+    ]),
     ...(manifest.encounterDirector?.enabled === true ? [
       ["integrationGlue", "integration-glue.bin", manifest.integrationGlue.finalAddress,
         manifest.integrationGlue.bytes],

@@ -1043,12 +1043,12 @@ is a link error rather than a misread level.
 | `$AB90-$ABA1` | 18 | `weapon_glyph[2]` | **zero until step 5** |
 | `$ABA2-$ABC1` | 32 | `hull_params` | 4.8a gondola/corridor parameters; **zero** |
 | `$ABC2-$ABFF` | 62 | `boss_def` | 4.7; **zero** |
-| `$AC00-$AC01` | 2 | `hull_rows` | 480 on level 1, lo/hi. One of 288 / 352 / 416 / 480 |
-| `$AC02-$AC05` | 4 | phase starts | in 8-row modules: aft 4, combat 14, forward 46, prow 56. Drain is `hull_rows/8 + 1` = 61 |
+| `$AC00-$AC01` | 2 | `hull_rows` | 480 on level 1, 352 on level 2, lo/hi. One of 288 / 352 / 416 / 480. **Read since step 4**: capital entry starts the row clock at `480 - hull_rows` |
+| `$AC02-$AC05` | 4 | phase starts | in ABSOLUTE 8-row modules on the 480-row coordinate (step 4: a short hull is right-aligned). Level 1: aft 4, combat 14, forward 46, prow 56; level 2: 20 / 30 / 46 / 56. Drain is module 61 for every length. **Read since step 4** by `sector_c_update_capital_phase` |
 | `$AC06` | 1 | `turret_density_step` | 0-3, echo for diagnostics |
 | `$AC07` | 1 | reserved | zero |
-| `$AC08-$AC43` | 60 | `allied_sequence` | byte-for-byte `EMIT_ALLIED_SECTOR_SEQUENCE`; the resident copy in `BROADSIDE` is retired at step 4 |
-| `$AC44-$AC7F` | 60 | `enemy_sequence` | byte-for-byte `EMIT_ENEMY_SECTOR_SEQUENCE` |
+| `$AC08-$AC43` | 60 | `allied_sequence` | level 1: byte-for-byte `EMIT_ALLIED_SECTOR_SEQUENCE`. A shorter hull fills modules `0 .. 59-L/8` with the engine module and ends on module 59. **Read since step 4** by `resolve_allied_sector_row` |
+| `$AC44-$AC7F` | 60 | `enemy_sequence` | the same in enemy orientation; **read since step 4** by `resolve_enemy_sector_row` |
 
 **Level image and transport.** Level 1 grows **8 → 13 sectors** (1,024 →
 1,664 B), all of it outside the boot transport — **0 boot sectors, 0 DFMC
@@ -1057,6 +1057,19 @@ the same 640 B; on the ATR the START GAME read grows by five sectors, behind
 the loader screen and after the menu milestone. Sectors 1-8 are byte-identical
 to the image that shipped at `2577352` apart from header bytes 4-6, which
 state the image's own length (`tests/level-compiler.test.mjs` pins the hash).
+
+## Roadmap 4.6 step 4 — the hull length is level data (2026-09-30)
+
+`docs/plans/director-4.6.md` §2.4, §8.2. The capital code reads the level's
+HullGeometry page (`$AC00-$AC7F`, table above) instead of resident constants.
+**No resident address moved and the initial block did not grow** (13,626 B
+before and after, MEASURED).
+
+| Range | Bytes | Was | Is |
+| --- | ---: | --- | --- |
+| `BROADSIDE` `$69D7-$6A4E` | 120 | `allied_sector_sequence` + `enemy_sector_sequence` | `hull_sequence_reserve`, 120 B of zero. The resolvers read `$AC08`/`$AC44`. Extension record 1 packs 5,583 → 5,502 B (44 sectors, unchanged) |
+| `$AC00-$AC07` | 8 | unread | the `LEVEL_GEOMETRY` bss segment of the Director link (`cfg/encounter-director.cfg`, `file = ""`), C array `level_hull[8]`; `src/hybrid/c-asm-abi.s` asserts it at `LEVEL_GEOMETRY_ADDRESS` |
+| `HYBRID_C_SECTOR` `$8602-$86D8` | 215 of 248 | 187 B | +28 B: the phase machine reads four phase starts from the page, and capital entry stores the row-clock start. **33 B free** (`$86D9-$86F9`). Ships in extension record 2 (`$8C80`, 1,097 → 1,120 raw, 9 sectors, unchanged) |
 
 ## Capital hull set v1 step 2 — the enemy hull style is level data (2026-09-23)
 

@@ -117,20 +117,29 @@ test("packed runtime module thresholds reproduce every generated difficulty stre
   }
 });
 
+// RE-PINNED at roadmap 4.6 step 4 (plan §2.4): the seeded sequences left the
+// resident BROADSIDE image for each level's HullGeometry page. The ATR still
+// publishes them byte for byte - in level 1's run, which the sector reader
+// lands at $AC00 at START GAME - and the resident range is a zero pin.
 test("the final ATR publishes the exact seeded hull layout bytes", () => {
   const labels = new Map([...fs.readFileSync(path.join(root, "build", "void-strike-65.lbl"), "utf8")
     .matchAll(/^al ([0-9A-F]+) \.([^\s]+)/gm)]
     .map((match) => [match[2], Number.parseInt(match[1], 16)]));
-  for (const artifact of ["atr"]) {
-    const memory = new Uint8Array(0x10000);
-    installBootArtifact(memory, root, artifact);
-    for (const side of ["allied", "enemy"]) {
-      const expected = asset.sector.moduleSequences.get(side);
-      const address = labels.get(`${side}_sector_sequence`);
-      assert.deepEqual(memory.subarray(address, address + expected.length), expected,
-        `${artifact}/${side} layout bytes differ from the source generator`);
-    }
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, "build", "manifest.json"), "utf8"));
+  const run = manifest.sectorReader.levels.find(({ id }) => id === 1);
+  const atr = fs.readFileSync(path.join(root, "dist", "void-strike-65.atr"));
+  const image = atr.subarray(16 + (run.startSector - 1) * 128);
+  const page = image.subarray(manifest.levelDef.geometry.imageOffset);
+  for (const [side, offset] of [["allied", 8], ["enemy", 68]]) {
+    const expected = asset.sector.moduleSequences.get(side);
+    assert.deepEqual([...page.subarray(offset, offset + expected.length)], [...expected],
+      `atr/${side} layout bytes differ from the source generator`);
   }
+  const memory = new Uint8Array(0x10000);
+  installBootArtifact(memory, root, "atr");
+  const reserve = labels.get("hull_sequence_reserve");
+  assert.deepEqual([...memory.subarray(reserve, reserve + 120)], new Array(120).fill(0),
+    "the retired resident sequences are a zero pin");
 });
 
 test("unchanged cadence consumes no more launches than the denser station layout", () => {

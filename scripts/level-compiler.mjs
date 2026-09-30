@@ -257,42 +257,62 @@ export function validateHullGeometry({ hullRows, phaseStarts }, context = {}) {
   return { hullRows, phaseStarts, modules, drainModule: modules + 1 };
 }
 
+// The hull asset compiled at a level's length. The full length is the default
+// asset itself, so level 1 reproduces today's hull byte for byte (T2).
+const hullAssetsByRows = new WeakMap();
+function hullAssetForRows(hullAsset, rows) {
+  if (hullAsset.sector.totalRows === rows) return hullAsset;
+  if (!hullAssetsByRows.has(hullAsset)) hullAssetsByRows.set(hullAsset, new Map());
+  const byRows = hullAssetsByRows.get(hullAsset);
+  if (!byRows.has(rows)) {
+    byRows.set(rows, compileCapitalHulls(hullAsset.definition,
+      { combatRows: rows - (HULL_ROW_STEPS.at(-1) - 256) }));
+  }
+  return byRows.get(rows);
+}
+
+// Roadmap 4.6 step 4 (owner, plan §8.2): a short hull is RIGHT-ALIGNED in the
+// 480-row coordinate. It occupies rows 480-L .. 479, capital entry starts the
+// row clock at 480-L, and so the prow (448-479), the DRAIN row (488) and the
+// prow collision rows are the same for every length - the three runtime sites
+// that read them never change. The page therefore carries the phase starts as
+// ABSOLUTE modules, and the modules before the hull hold the engine module:
+// the enemy side trails by eight rows and resolves module lead-1 on its first
+// eight, where there is no blank module to put.
 function compileGeometryPage(hull, hullAsset, context) {
   const page = Buffer.alloc(LEVEL_GEOMETRY_BYTES);
-  const assetRows = hullAsset.sector.totalRows;
-  const rows = hull.rows ?? HULL_ROW_STEPS[hull.length];
-  // Step 1 freezes the format and reproduces today's hull byte for byte; the
-  // parameterised generator (a shorter combat section, a different turret
-  // density) is plan step 4, which is where compileCapitalHulls grows its
-  // length and density arguments.
-  if (rows !== assetRows) {
-    fail(context, "hull", `asks for ${rows} rows; the compiler emits the hull the ` +
-      `capital-hulls asset compiles (${assetRows} rows). Other lengths arrive with ` +
-      "plan step 4 (docs/plans/director-4.6.md §8)");
-  }
+  const rows = hull.rows;
+  const asset = hullAssetForRows(hullAsset, rows);
   const geometry = validateHullGeometry(
-    { hullRows: rows, phaseStarts: hullPhaseStartsFromSections(hullAsset.sector.sections) },
+    { hullRows: rows, phaseStarts: hullPhaseStartsFromSections(asset.sector.sections) },
     { file: context.file, where: "hull" });
+  const leadModules = HULL_SEQUENCE_BYTES - geometry.modules;
   page.writeUInt16LE(geometry.hullRows, GEOMETRY_OFFSET.hullRowsLo);
-  for (const [index, start] of geometry.phaseStarts.entries()) {
+  const absolutePhaseStarts = geometry.phaseStarts.map((start) => start + leadModules);
+  for (const [index, start] of absolutePhaseStarts.entries()) {
     page[GEOMETRY_OFFSET.phaseStarts + index] = start;
   }
   page[GEOMETRY_OFFSET.turretDensityStep] = hull.turrets;
   for (const [side, offset] of [["allied", GEOMETRY_OFFSET.alliedSequence],
     ["enemy", GEOMETRY_OFFSET.enemySequence]]) {
-    const sequence = hullAsset.sector.moduleSequences.get(side);
-    if (!sequence || sequence.length > HULL_SEQUENCE_BYTES) {
+    const sequence = asset.sector.moduleSequences.get(side);
+    if (!sequence || sequence.length !== geometry.modules) {
       fail(context, "hull", `the ${side} module sequence is ` +
-        `${sequence ? sequence.length : "missing"}; the page reserves ${HULL_SEQUENCE_BYTES}`);
+        `${sequence ? sequence.length : "missing"}; a ${rows}-row hull has ${geometry.modules}`);
     }
-    // A sequence shorter than 60 is padded with its last prow module: rows
-    // between the hull end and the drain resolve to a prow module, so the
-    // resolvers' `cmp #<480` never sees a short hull (plan §2.4).
-    const pad = sequence[sequence.length - 1];
-    page.fill(pad, offset, offset + HULL_SEQUENCE_BYTES);
-    Buffer.from(sequence).copy(page, offset);
+    page.fill(asset.sector.engineModuleIds.get(side), offset, offset + leadModules);
+    Buffer.from(sequence).copy(page, offset + leadModules);
   }
-  return { page, geometry };
+  return {
+    page,
+    geometry: {
+      ...geometry,
+      firstRow: leadModules * HULL_MODULE_ROWS,
+      phaseStarts: absolutePhaseStarts,
+      drainModule: HULL_SEQUENCE_BYTES + 1,
+      turretCounts: { ...asset.sector.turretCounts },
+    },
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -308,6 +328,12 @@ function compileHull(source, context) {
     fail(context, "hull", "names both \"rows\" and \"length\"; give one");
   }
   const turrets = requireInteger(context, "hull", "turrets", hull.turrets ?? 3, 0, 3);
+  // Density step 3 is today's stations per row (owner, plan §8.2). Steps 0-2
+  // keep their format slot but have no table until the owner defines one.
+  if (turrets !== 3) {
+    fail(context, "hull", `turret density ${turrets} is not defined yet; only 3 ` +
+      "(today's stations per row) compiles (docs/plans/director-4.6.md §8.2)");
+  }
   if (hull.rows !== undefined) {
     if (!Number.isInteger(hull.rows) || !HULL_ROW_STEPS.includes(hull.rows)) {
       fail(context, "hull", `rows is ${JSON.stringify(hull.rows)}; the four authored ` +
@@ -690,6 +716,13 @@ export function renderLevelDefCa65Include() {
   lines.push(`LEVEL_CORE_MAGIC = $${LEVEL_CORE_MAGIC.toString(16).toUpperCase().padStart(2, "0")}`);
   lines.push(`LEVEL_PAYLOAD_ADDRESS = $${LEVEL_PAYLOAD_ADDRESS.toString(16).toUpperCase()}`);
   lines.push(`LEVEL_GEOMETRY_ADDRESS = $${LEVEL_GEOMETRY_ADDRESS.toString(16).toUpperCase()}`);
+  // Roadmap 4.6 step 4: the two module sequences the resolvers index.
+  for (const [name, offset] of [["ALLIED", GEOMETRY_OFFSET.alliedSequence],
+    ["ENEMY", GEOMETRY_OFFSET.enemySequence]]) {
+    lines.push(`LEVEL_GEOMETRY_${name}_SEQUENCE = ` +
+      `$${(LEVEL_GEOMETRY_ADDRESS + offset).toString(16).toUpperCase()}`);
+  }
+  lines.push(`LEVEL_GEOMETRY_SEQUENCE_BYTES = ${HULL_SEQUENCE_BYTES}`);
   lines.push("", "; The address of every SoA array the Director declares, so the link can");
   lines.push("; assert that the reader's page and the compiler's page are the same page.");
   lines.push(`LEVEL_CORE_HEADER_ADDRESS = $${LEVEL_CORE_ADDRESS.toString(16).toUpperCase()}`);
@@ -745,6 +778,16 @@ export function renderLevelDefCHeader() {
     lines.push(`#define WAVE_${name.replace(/([A-Z])/g, "_$1").toUpperCase()}_AT`
       .padEnd(33, " ") + `${offset}u`);
   }
+  // Roadmap 4.6 step 4 (plan §2.4, §8.2): the HullGeometry header the capital
+  // phase machine reads. Phase starts are absolute modules on the 480-row
+  // coordinate, so DRAIN is module 61 for every length.
+  lines.push("", "/* HullGeometry header, plan §2.4 */",
+    `#define LEVEL_GEOMETRY_HEADER_BYTES ${GEOMETRY_OFFSET.alliedSequence}u`,
+    `#define GEOMETRY_HULL_ROWS_LO    ${GEOMETRY_OFFSET.hullRowsLo}u`,
+    ...["AFT", "COMBAT", "FORWARD", "PROW"].map((name, index) =>
+      `#define GEOMETRY_PHASE_${name}`.padEnd(33, " ") +
+      `${GEOMETRY_OFFSET.phaseStarts + index}u`),
+    `#define GEOMETRY_DRAIN_MODULE    ${HULL_SEQUENCE_BYTES + 1}u`);
   lines.push("", "#endif", "");
   return lines.join("\n");
 }

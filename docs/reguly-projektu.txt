@@ -58,7 +58,7 @@ Pełna macierz własności: AGENTS.md („Architecture invariants / C / ASM owne
 
 5. Tryby pracy
 
-Implementacja najpierw — dla odwracalnej pracy wysokiego poziomu w C (archetypy, AI, fale, reguły gameplayu): gałąź → implementacja → testy fokusowe → build XEX → krótki PAL smoke → owner smoke → commit lub rollback. Nie zastępować implementacji długim studium wykonalności.
+Implementacja najpierw — dla odwracalnej pracy wysokiego poziomu w C (archetypy, AI, fale, reguły gameplayu): gałąź → implementacja → testy fokusowe → build ATR → krótki PAL smoke → owner smoke → commit lub rollback. Nie zastępować implementacji długim studium wykonalności.
 
 Dowód najpierw — dla rastra, ANTIC, timingu PMG, VBI/DLI, backing/restore, placementu pamięci i innych zmian sprzętowych: pomiar lub proof przed integracją produkcyjną. Przed kosztowną przebudową przedstaw 2–3 tańsze warianty (efekt dla gracza, koszt, ograniczenia, ryzyko, rekomendacja).
 
@@ -66,11 +66,11 @@ Oddzielaj MEASURED od ESTIMATE. Nie ogłaszaj niemożliwości bez dowodu.
 
 6. Tempo pracy
 
-Tempo dostarczania funkcji jest równorzędnym ograniczeniem projektu. Długie kampanie PAL/raster rezerwujemy dla zmian w kernelu sprzętowym, zmian raster/PMG/ANTIC, kamieni milowych, bramek wydania i zaobserwowanych regresji czasowych. Nie powtarzaj pomiaru identycznego XEX; zmieniony XEX nie dziedziczy pomiaru poprzednika.
+Tempo dostarczania funkcji jest równorzędnym ograniczeniem projektu. Długie kampanie PAL/raster rezerwujemy dla zmian w kernelu sprzętowym, zmian raster/PMG/ANTIC, kamieni milowych, bramek wydania i zaobserwowanych regresji czasowych. Nie powtarzaj pomiaru identycznego ATR; zmieniony ATR nie dziedziczy pomiaru poprzednika.
 
 7. Owner smoke
 
-Każda zmiana gameplayu lub renderingu wymaga owner smoke przed uznaniem jej za zaakceptowaną. Wersję przed smoke oznaczaj jako kandydata („OWNER-SMOKE CANDIDATE”), nie PASS. Przed przekazaniem XEX: build, bramki pamięci/transportu, zimny start. Nie przekazuj wersji z rozpoznanym crashem lub uszkodzeniem pamięci. Raport: co zmieniono, co potwierdzono, co niezweryfikowane, XEX i pełny SHA-256, komenda uruchomienia.
+Każda zmiana gameplayu lub renderingu wymaga owner smoke przed uznaniem jej za zaakceptowaną. Wersję przed smoke oznaczaj jako kandydata („OWNER-SMOKE CANDIDATE”), nie PASS. Przed przekazaniem ATR: build, bramki pamięci/transportu, zimny start. Nie przekazuj wersji z rozpoznanym crashem lub uszkodzeniem pamięci. Raport: co zmieniono, co potwierdzono, co niezweryfikowane, ATR i pełny SHA-256, komenda uruchomienia.
 
 8. CPU i raster (PAL)
 

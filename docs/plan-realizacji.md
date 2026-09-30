@@ -19,7 +19,7 @@ Branch roboczy: `wip/4.5d-gate-fail`
 > §3 i §4.5c — liczby zastąpione pomiarem przy HEAD, z zachowaniem
 > oryginalnych jako historii.
 
-Bieżący stan (checkpointy, XEX, CPU/RAM, otwarte defekty, kandydaci) opisuje
+Bieżący stan (checkpointy, ATR, CPU/RAM, otwarte defekty, kandydaci) opisuje
 wyłącznie [`STATUS.md`](STATUS.md). Zasady pracy:
 [`reguly-projektu.txt`](reguly-projektu.txt). Kolejność źródeł prawdy:
 [`README.md`](README.md).
@@ -39,7 +39,8 @@ pierwszeństwo przed elegancją techniczną.
 
 Platforma i bramki:
 
-- Atari 65XE PAL, 64 KB, 6502C, 50 FPS; XEX i ATR;
+- Atari 65XE PAL, 64 KB, 6502C, 50 FPS; wyłącznie ATR (XEX nie jest wydawany —
+  decyzja właściciela 2026-09-30);
 - target produkcyjny: `31 200` cykli w najcięższej legalnej klatce;
 - hard gate: `32 568` cykli;
 - fizyczna ramka PAL: `35 568` cykli;

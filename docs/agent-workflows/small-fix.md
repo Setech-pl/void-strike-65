@@ -14,7 +14,7 @@ Inspect Git before editing.
 2. Change the smallest responsible path.
 3. Do not opportunistically refactor unrelated code.
 4. Run focused tests.
-5. Build XEX when runtime changed.
+5. Build the ATR when runtime changed.
 6. Perform short native smoke only when relevant.
 7. Stop for owner smoke.
 

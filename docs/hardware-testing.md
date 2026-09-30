@@ -4,12 +4,12 @@
 pass run before a milestone or release, not a per-feature gate.
 
 Routine owner smoke for one feature is driven by that feature's report and
-`STATUS.md` — it names the XEX, its SHA-256, what changed and what to look at.
+`STATUS.md` — it names the ATR, its SHA-256, what changed and what to look at.
 A feature smoke does **not** require running this whole checklist.
 
-Test the packed artifacts from `dist/`: both `void-strike-65.xex` and the
-bootable `void-strike-65.atr`. Do not substitute a debug build or a preview
-model. Record emulator/hardware version, medium, joystick, display connection,
+Test the packed artifact from `dist/`: the bootable `void-strike-65.atr`, the
+only medium the game ships on (owner decision, 2026-09-30). Do not substitute a
+debug build or a preview model. Record emulator/hardware version, medium, joystick, display connection,
 and any failure with a photo or capture plus reproduction steps.
 
 Verify the artifact identity against the accepted checkpoint in
@@ -17,17 +17,17 @@ Verify the artifact identity against the accepted checkpoint in
 
 ```bash
 npm run build:candidate -- --quiet
-shasum -a 256 dist/void-strike-65.xex
+shasum -a 256 dist/void-strike-65.atr
 ```
 
 ---
 
 ## 1. Cold start
 
-- [ ] XEX cold-starts from power-on, not from a warm reset.
-- [ ] ATR boots from sector 1 on the same cold path.
+- [ ] ATR boots from sector 1 on a cold start from power-on, not from a warm
+      reset.
 - [ ] **ATR boots to the menu with BASIC enabled, without holding OPTION**, and
-      with BASIC disabled; the XEX runs in both cases too.
+      with BASIC disabled.
 - [ ] No BASIC dependency; no OS call failure after takeover.
 - [ ] RESET after the game is running does not bring the BASIC ROM back.
 - [ ] Loader screen appears and completes without a visible stall or garbage.
@@ -39,8 +39,8 @@ shasum -a 256 dist/void-strike-65.xex
 > *did* depend on the player holding OPTION. Since that decision `boot_entry`
 > jumps to `start` itself and `disable_basic_rom` unmaps the ROM, so the line
 > is now true — and the two new boxes above are how it is kept true. The
-> emulator half is gated by `npm run boot:smoke` (eight cold sessions: XEX and
-> ATR, cold RAM fill `$A5` and `$5A`, BASIC on and off).
+> emulator half is gated by `npm run boot:smoke` (four cold ATR sessions: cold
+> RAM fill `$A5` and `$5A`, BASIC on and off).
 
 ## 2. Frontend
 

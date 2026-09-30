@@ -21,7 +21,8 @@ a playable game.
 * 50 frames per second. Target `31,200` cycles; hard gate `32,568`; physical
   PAL frame `35,568`. Do not confuse these three.
 * Input: joystick port 1, single fire button.
-* Distribution: `void-strike-65.xex` and bootable `void-strike-65.atr`.
+* Distribution: the bootable `void-strike-65.atr` only. The XEX is not released
+  (owner decision, 2026-09-30).
 * Build hosts: macOS Apple Silicon, macOS Intel where supported, Windows.
 * Must run in Atari800 and on real hardware through SIO2SD.
 * Art direction: military, worn, dark science fiction; readable silhouettes;
@@ -257,10 +258,10 @@ readiness.
 * PAL timing within the required gates, with no missed frames, unexpected VBI
   or DLI anomalies on affected paths;
 * documentation reflects architectural or player-visible changes;
-* a candidate XEX exists for owner smoke.
+* a candidate ATR exists for owner smoke.
 
-ATR validation is required when ATR/loading or loader/startup code changed, or
-a release requires it. Review notes must distinguish confirmed bug, regression,
+Boot validation (`npm run boot:smoke`) is required when loading or
+loader/startup code changed, or a release requires it. Review notes must distinguish confirmed bug, regression,
 optional improvement and deferred polish.
 
 ---
@@ -270,7 +271,7 @@ optional improvement and deferred polish.
 **Accepted checkpoint.** Update `docs/STATUS.md`, replacing current-state
 information rather than appending history; update only the domain documents the
 change affected; record significant new owner decisions; make a focused local
-commit when safe; report branch, HEAD, XEX SHA-256, CPU delta, RAM/residency
+commit when safe; report branch, HEAD, ATR SHA-256, CPU delta, RAM/residency
 delta, tests, known remaining issues and NEXT TASK; STOP.
 
 **Candidate awaiting owner smoke.** Label it `OWNER-SMOKE CANDIDATE`. Do not

@@ -178,7 +178,7 @@ hardware-sensitive execution.
 ca65 remains authoritative for VBI/DLI, ANTIC/display-list/raster work, PMG P0
 through P3, Heavy sprite and PairShot publication, character-ring
 backing/restore, hot collisions, coordinate integration/manoeuvre execution,
-audio hot paths, hardware writes, low-level rendering, loader, and XEX/ATR entry.
+audio hot paths, hardware writes, low-level rendering, loader, and ATR entry.
 ASM also owns damage-source mailboxes; C consumes them at one coarse lifecycle
 boundary.
 
@@ -357,13 +357,13 @@ generated .s -> ca65         generated .s -> ca65
                                 |
                   split final runtime segments
                                 |
-                existing DFMC / XEX / ATR packaging
+                existing DFMC / ATR packaging
 ```
 
 Generated compiler assembly and objects remain under `build/`; maintained C
-and headers remain under `src/c/`. The XEX packages the late-compressed
-lifecycle record in its packed form, matching the ATR transport, and startup
-publishes C extension, A2 kernel, glue and starfield in that required order.
+and headers remain under `src/c/`. The ATR transport carries the late-compressed
+lifecycle record in its packed form, and startup publishes C extension, A2
+kernel, glue and starfield in that required order.
 
 Useful commands:
 

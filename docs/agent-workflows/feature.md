@@ -19,7 +19,7 @@ Do not replace implementation with a long feasibility study.
 3. Implement smallest useful production version.
 4. Reuse existing kernel primitives.
 5. Focused tests.
-6. Build XEX.
+6. Build the ATR.
 7. Short representative PAL smoke.
 8. Owner smoke.
 9. Commit or rollback.

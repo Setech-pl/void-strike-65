@@ -48,21 +48,18 @@ Windows users who have never run an Atari emulator can follow the
 [step-by-step Windows guide](docs/windows-quick-start.md).
 
 <details>
-<summary>Developer path: the XEX</summary>
+<summary>Developer path: launching the ATR</summary>
 
-`dist/void-strike-65.xex` is the same game as a single executable file. It is
-the **development build** — it loads faster, it is what the automated gates and
-the captured screenshots run against, and it is not the distributed artifact.
-With Atari800 on your `PATH`:
+The ATR is the only file the game ships as, and it is also what the automated
+gates run against. With Atari800 on your `PATH`:
 
 ```bash
-npm run play:xex
 npm run play:atr
 ```
 
-Both launchers verify the artifact against the distribution manifest. The XEX
-is opened by Atari800's executable loader (`-run`); the ATR must be mounted as
-`D1:` instead, because `-run` on a disk image falls through to SELF TEST.
+The launcher verifies the ATR against the distribution manifest and mounts it
+as `D1:`. The disk image must not be passed to Atari800 with `-run`, which
+falls through to SELF TEST.
 
 </details>
 
@@ -92,9 +89,9 @@ The game is playable and unfinished. This list is the build in `dist/`.
   Spread Shot and Shield, with a `BOOST` energy bar in the HUD.
 - **Three difficulty settings**, scaling the damage you take and deal, contact
   damage and enemy rate of fire.
-- **Packaging and gates.** Bootable ATR and the developer XEX, built by one
-  command, with automated format, memory-overlap, cold-RAM, boot-time and PAL
-  cycle-budget checks.
+- **Packaging and gates.** The bootable ATR, built by one command, with
+  automated format, memory-overlap, cold-RAM, boot-time and PAL cycle-budget
+  checks.
 
 ## What is being built
 
@@ -125,9 +122,9 @@ Planned work has no announced date. Nothing above is in the downloadable build.
 
 ### Where the build stands
 
-The ATR and the XEX both boot to the menu and into gameplay in Atari800 7.1.2
-in PAL/XL mode, across eight cold-boot sessions covering both media, two
-cold-RAM fills and BASIC enabled or disabled.
+The ATR boots to the menu and into gameplay in Atari800 7.1.2 in PAL/XL mode,
+across four cold-boot sessions covering two cold-RAM fills and BASIC enabled or
+disabled.
 
 **The disk now boots without holding OPTION.** That fix is committed and
 gate-covered, and it is honestly an `OWNER-SMOKE CANDIDATE`: it changes the
@@ -143,7 +140,7 @@ success is necessary here, and it is not presented as hardware acceptance.
 
 ## Screenshots
 
-Gameplay and loader frames are unenhanced native captures from the packed XEX in
+Gameplay and loader frames are unenhanced native captures of the packed game in
 Atari800 7.1.2 PAL/XL mode. The menu image is generated from the current
 frontend source; Game Over is a native-scale frontend capture. Click any image
 to open the full file.
@@ -188,8 +185,8 @@ npm ci
 npm run build:candidate
 ```
 
-`void-strike-65.atr`, `void-strike-65.xex`, the boot payload and the build
-manifest are written to `dist/`; intermediates go to `build/`. Never hand-edit
+`void-strike-65.atr`, the boot payload and the build manifest are written to
+`dist/`; intermediates go to `build/`. Never hand-edit
 either directory.
 
 `npm test` builds and runs the focused suites. Be aware of two things before
@@ -220,7 +217,7 @@ AI, working in this repository.
 - a PAL frame-overrun gate that traces roughly seventy recorded replays,
   reconstructs the raster fence per frame and fails the build on a single
   distinct miss event;
-- automated XEX/ATR format validation, cold-RAM fills and boot-time deadlines.
+- automated ATR format validation, cold-RAM fills and boot-time deadlines.
 
 Architecture, memory ranges, gameplay rules, timing evidence and the hardware
 checklist all live under [`docs/`](docs/README.md).
@@ -256,7 +253,7 @@ owner's direction, review and playtesting.
 - **Names and marks** — "Void Strike 65", the Setech Game Studio name and the
   Setech Game Studio logo are **not** licensed under either. All rights
   reserved; a fork must carry its own name.
-- **The released `.atr` and `.xex`** are a combined work of both licences: free
+- **The released `.atr`** is a combined work of both licences: free
   to share, play and pass on **non-commercially**, with attribution.
 - **Third-party:** nothing third-party is vendored here. Atari800 (GPL-2.0) and
   cc65 are used as external build and measurement tools only; our

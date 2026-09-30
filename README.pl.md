@@ -49,21 +49,18 @@ Kto nigdy nie uruchamiał emulatora Atari, może pójść krok po kroku za
 [przewodnikiem dla Windows](docs/windows-quick-start.md) (po angielsku).
 
 <details>
-<summary>Ścieżka dla programisty: XEX</summary>
+<summary>Ścieżka dla programisty: uruchomienie ATR</summary>
 
-`dist/void-strike-65.xex` to ta sama gra w postaci jednego pliku wykonywalnego.
-To **wersja rozwojowa** — ładuje się szybciej, na niej pracują automatyczne
-bramki i z niej pochodzą zrzuty ekranu, i nie jest artefaktem dystrybucyjnym.
-Przy Atari800 dostępnym w `PATH`:
+ATR to jedyny plik, w jakim gra jest wydawana, i na nim pracują też
+automatyczne bramki. Przy Atari800 dostępnym w `PATH`:
 
 ```bash
-npm run play:xex
 npm run play:atr
 ```
 
-Oba launchery weryfikują artefakt wobec manifestu dystrybucji. XEX otwiera
-loader plików wykonywalnych Atari800 (`-run`); ATR trzeba zamiast tego
-zamontować jako `D1:`, bo `-run` na obrazie dyskietki przechodzi do SELF TEST.
+Launcher weryfikuje ATR wobec manifestu dystrybucji i montuje go jako `D1:`.
+Obrazu dyskietki nie wolno podawać do Atari800 z `-run`, bo wtedy emulator
+przechodzi do SELF TEST.
 
 </details>
 
@@ -93,9 +90,9 @@ W grę da się grać i gra nie jest skończona. Ta lista opisuje wersję z `dist
   i Shield, z paskiem energii `BOOST` na HUD-zie.
 - **Trzy poziomy trudności**, skalujące obrażenia, które dostajesz i zadajesz,
   obrażenia od zderzeń i szybkostrzelność przeciwników.
-- **Pakowanie i bramki.** Bootowalny ATR i XEX dla programisty, budowane jedną
-  komendą, z automatycznym sprawdzaniem formatu, nakładania się pamięci,
-  zimnego RAM-u, czasu bootowania i budżetu cykli PAL.
+- **Pakowanie i bramki.** Bootowalny ATR, budowany jedną komendą, z
+  automatycznym sprawdzaniem formatu, nakładania się pamięci, zimnego RAM-u,
+  czasu bootowania i budżetu cykli PAL.
 
 ## Co powstaje
 
@@ -127,9 +124,9 @@ do pobrania.
 
 ### Na czym stoi wersja
 
-ATR i XEX startują do menu i do gry w Atari800 7.1.2 w trybie PAL/XL, w ośmiu
-sesjach zimnego startu obejmujących oba nośniki, dwa wypełnienia zimnego RAM-u
-oraz BASIC włączony i wyłączony.
+ATR startuje do menu i do gry w Atari800 7.1.2 w trybie PAL/XL, w czterech
+sesjach zimnego startu obejmujących dwa wypełnienia zimnego RAM-u oraz BASIC
+włączony i wyłączony.
 
 **Dyskietka startuje teraz bez trzymania OPTION.** Ta poprawka jest w
 repozytorium i jest pokryta bramkami, i jest — uczciwie — `OWNER-SMOKE
@@ -146,7 +143,7 @@ tu konieczny i nie jest przedstawiany jako akceptacja na sprzęcie.
 
 ## Zrzuty ekranu
 
-Klatki z gry i z loadera to nieretuszowane przechwycenia z upakowanego XEX-a w
+Klatki z gry i z loadera to nieretuszowane przechwycenia upakowanej gry w
 Atari800 7.1.2 w trybie PAL/XL. Obraz menu jest generowany ze źródła frontendu;
 Game Over to przechwycenie frontendu w skali natywnej. Kliknięcie otwiera pełny
 plik.
@@ -192,8 +189,7 @@ npm ci
 npm run build:candidate
 ```
 
-`void-strike-65.atr`, `void-strike-65.xex`, ładunek bootowy i manifest budowania
-powstają w `dist/`; pliki pośrednie w `build/`. Żadnego z tych katalogów nie
+`void-strike-65.atr`, ładunek bootowy i manifest budowania powstają w `dist/`; pliki pośrednie w `build/`. Żadnego z tych katalogów nie
 edytuje się ręcznie.
 
 `npm test` buduje projekt i uruchamia skupione zestawy testów. Dwie rzeczy warto
@@ -225,7 +221,7 @@ i sztucznej inteligencji — kto pracuje w tym repozytorium.
 - bramka przekroczenia klatki PAL, która przechodzi przez około siedemdziesiąt
   nagranych powtórek, odtwarza zaporę rastrową klatka po klatce i przerywa
   budowanie na jednym odrębnym zdarzeniu spóźnienia;
-- automatyczna walidacja formatu XEX/ATR, wypełnienia zimnego RAM-u i terminy
+- automatyczna walidacja formatu ATR, wypełnienia zimnego RAM-u i terminy
   czasu bootowania.
 
 Architektura, zakresy pamięci, zasady gry, dowody czasowe i lista kontrolna dla
@@ -263,8 +259,8 @@ kierunkiem, przeglądem i testami właściciela.
 - **Nazwy i oznaczenia** — „Void Strike 65", nazwa Setech Game Studio oraz logo
   Setech Game Studio **nie** są objęte żadną z tych licencji. Wszelkie prawa
   zastrzeżone; fork musi używać własnej nazwy.
-- **Wydane pliki `.atr` i `.xex`** są utworem łączonym objętym obiema
-  licencjami: można je swobodnie udostępniać, grać w nie i przekazywać dalej
+- **Wydany plik `.atr`** jest utworem łączonym objętym obiema
+  licencjami: można go swobodnie udostępniać, grać w niego i przekazywać dalej
   **niekomercyjnie**, z podaniem autorstwa.
 - **Kod zewnętrzny:** w repozytorium nie ma żadnego kodu osób trzecich. Atari800
   (GPL-2.0) i cc65 są używane wyłącznie jako zewnętrzne narzędzia budowania i

@@ -51,9 +51,9 @@ port 1, and schedules gameplay at 50 frames per second.
 
 The build emits a dynamic initial boot block plus a versioned `DFMC` extension
 manifest. The standard 90 KB single-density ATR stores only the sectors actually
-used; the XEX emits the same initial block, direct final-address extension
-segments, and a separate XEX entry record. Candidate, trace, final-binding, and
-verify phases bind the boot BIN, XEX, and ATR by exact size and SHA-256.
+used, and it is the only published medium: the XEX is not released (owner
+decision, 2026-09-30). Candidate, trace, final-binding, and verify phases bind
+the boot BIN and the ATR by exact size and SHA-256.
 
 ## Cold startup and loader
 
@@ -76,8 +76,10 @@ does that when no cartridge is enabled, so with BASIC enabled the OS started
 BASIC and the game never ran unless the player held OPTION. `boot_entry` now
 ends in `jmp start`, and `disable_basic_rom` unmaps the BASIC ROM (`PORTB`
 bit 1, bits 0 and 7 preserved) and records `BASICF = $01` for the warm start.
-It is called from `boot_stage2_atr_entry` before the SIO chunk load and from
-`boot_stage2_xex_entry` before `jmp start`. `DOSVEC` is still published, for
+It is called from `boot_stage2_atr_entry` before the SIO chunk load. The boot
+image still carries the retired executable-file entry `boot_stage2_xex_entry`
+(14 B in `BOOT_STAGE2`, inside the initial block); nothing jumps to it any more,
+and it stays until a reclaim task moves the ATR on purpose. `DOSVEC` is still published, for
 the warm-start path and for the boot-smoke entry-identity invariant.
 `boot_entry` stays exactly 24 bytes, so `start` is still at `$201E` and
 `resident_runtime_suffix` still at `$21C1`; the OS init vector shares the `rts`
@@ -90,8 +92,7 @@ collision (149-155), integration glue (156-158), hybrid ABI (159-160), low C
 (161-162), the packed archetype/lifecycle extension (163-166), C RNG (167), and
 Director tables/high C (168-172). The extension's record is deliberately RAW:
 its 423-byte payload is already an LZ stream which startup expands from
-`$7810-$79B6` to `$8C7D-$8E84`. XEX stores that same staged payload rather than
-the 520-byte expanded image.
+`$7810-$79B6` to `$8C7D-$8E84`.
 
 ATR stages ordinary records at `$8100`; BROADSIDE expands 6,650 bytes to
 `$5E10-$7809`, the 788-byte pickup/collision record publishes 904 bytes to
@@ -172,9 +173,9 @@ the build: owner decision A made it unconditionally RAM (`disable_basic_rom` at
 both stage-2 entries) and owner decision B opened it. Since 2026-09-20 the
 build owns `$A000-$BC1F` through the `BASIC_WINDOW` region, with a six-byte
 guard at `$BC1A-$BC1F` and the OS screen left at `$BC20-$BFFF`; the chunk
-loader accepts records there on both media, and the XEX emits an `INITAD`
-record so a block in the window is placed into RAM even when the player starts
-with BASIC enabled. See `memory-map.md`, "Owner decision B plumbing".
+loader accepts records there, so a block in the window is placed into RAM even
+when the player starts with BASIC enabled. See `memory-map.md`, "Owner decision
+B plumbing".
 
 ## Frontend and state transitions
 
@@ -564,13 +565,13 @@ enemy while the register was shared.
 
 Build inputs are declarative and conversion scripts are deterministic. Runtime
 randomness starts from fixed initialization and advances only through defined
-gameplay paths. Tests exercise cold RAM fills `$A5` and `$5A`, XEX/ATR payload
-parity, all A2 heads, pool saturation, lifecycle resets, overlay backing, and
+gameplay paths. Tests exercise cold RAM fills `$A5` and `$5A`, the ATR payload,
+all A2 heads, pool saturation, lifecycle resets, overlay backing, and
 the measured PAL wall. The machine-readable evidence is generated from the
 packed runtime, not from a separate preview model. `build:candidate`
 deliberately publishes a manifest that cannot pass final verification. The
 trace generator must complete every required replay and bind the exact boot
-BIN, XEX, and ATR. A normal build then creates the final binding, including the
+BIN and the ATR. A normal build then creates the final binding, including the
 report hash; `verify` rejects a candidate manifest, a partial session set, an
 artifact mismatch, a failed gate, or later report drift. No force flag can
 bypass these phases.

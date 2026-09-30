@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — Windows quick start
 
-**Use `void-strike-65.xex`. It is the easiest and recommended way to play.**
+**The game is one file: the disk image `void-strike-65.atr`.**
 You do not need Git, Node.js, a terminal, or any Atari experience.
 Altirra is a free program that runs Atari games on Windows.
 
@@ -13,7 +13,7 @@ Altirra is a free program that runs Atari games on Windows.
    click **Code → Download ZIP**, and use the game files in its `dist` folder.
    This is the current development build, not a published release.
 2. Right-click the game ZIP in Windows and choose **Extract All**, then
-   **Extract**. Open the new folder. Find `void-strike-65.xex` (inside `dist`
+   **Extract**. Open the new folder. Find `void-strike-65.atr` (inside `dist`
    if you downloaded the project ZIP).
 3. Download the latest stable Altirra from the
    [official Altirra page](https://www.virtualdub.org/altirra.html).
@@ -26,12 +26,15 @@ Altirra is a free program that runs Atari games on Windows.
    memory, and the built-in **AltirraOS**. Turn **BASIC** off. These settings
    can also be changed under **System → Configure System**.
    Start with the built-in firmware; no separate Atari ROM download is needed.
-6. Drag `void-strike-65.xex` from the extracted game folder into the Altirra
-   screen. Or choose **File → Boot Image**, select that file, and click **Open**.
-7. Wait for the title loader (about five seconds) and the main menu.
+6. In Altirra, choose **File → Boot Image**, select `void-strike-65.atr` from
+   the extracted game folder, and click **Open**. Dragging the file into the
+   Altirra screen also works; if it only mounts the disk, use **File → Boot
+   Image**.
+7. Wait for the title loader and the main menu (about eleven seconds from
+   disk).
    Select **START GAME** and press the fire button described below.
 
-You can also download just the [current XEX](../dist/void-strike-65.xex):
+You can also download just the [current disk image](../dist/void-strike-65.atr):
 on its GitHub page, click **Download raw file**. Then continue from step 3.
 
 ## Controls
@@ -63,29 +66,24 @@ On some laptops, you may need **Fn + F4** to send F4.
 Press **Alt + Enter** to fill the screen. Press it again to return to a window.
 This changes Altirra's display, not the game's controls.
 
-## Running the ATR disk image
+## About the ATR disk image
 
 `void-strike-65.atr` is a **disk image**: a file containing a virtual floppy
-disk. It is **not an XEX program or a Windows executable**. Do not try to run
-it as an ordinary program.
-
-Extract the game archive first. Drag `void-strike-65.atr` into Altirra, or
-choose **File → Boot Image**, select it, and click **Open**. If dragging only
-mounts the disk, use **File → Boot Image** to start it. Altirra should boot
-the loader from its first virtual disk drive, then show the main menu.
-Disk loading may take longer than opening the XEX.
+disk. It is **not a Windows executable**. Do not try to run it as an ordinary
+program. Altirra boots the loader from its first virtual disk drive, then shows
+the main menu.
 
 ## Troubleshooting
 
 | Problem | What to try |
 | --- | --- |
-| Altirra shows SELF TEST | The game has not booted. Check XL/XE, PAL, at least 64 KB, and BASIC off under **System → Configure System**. Then use **File → Boot Image** to reopen the extracted XEX. |
-| The ATR does not start | It must be opened as a disk image. Use **File → Boot Image** and select the ATR. Do not send it to an executable-only loader. Try the recommended XEX if disk boot still fails. |
+| Altirra shows SELF TEST | The game has not booted. Check XL/XE, PAL, at least 64 KB, and BASIC off under **System → Configure System**. Then use **File → Boot Image** to reopen the extracted ATR. |
+| The ATR does not start | It must be opened as a disk image. Use **File → Boot Image** and select the ATR. Do not send it to an executable-only loader. |
 | You are opening the game inside a ZIP | Close the ZIP window. Right-click the ZIP, choose **Extract All**, and open the file from the new folder. |
-| The title is wrong, or an old version appears | Download the current game again using the links above. Open its `void-strike-65.xex`, not an older copy, preview, boot BIN, or manifest. |
+| The title is wrong, or an old version appears | Download the current game again using the links above. Open its `void-strike-65.atr`, not an older copy, preview, boot BIN, or manifest. |
 | The game does not respond | Click the game window. Enable a keyboard joystick or gamepad on **port 1** in **Input**. Check its mapping. Use FIRE to select **START GAME**. If paused, press F4 again. |
 | Altirra will not open, or reports missing files | Extract the whole emulator ZIP first. Run **Altirra64.exe** from the extracted folder. Check that you chose the download for your Windows PC. |
-| You need to start again | Choose **System → Cold Reset**, or press **Shift + F5**. This restarts the emulated Atari. If the game does not return, choose **File → Boot Image** and reopen the correct XEX or ATR. |
+| You need to start again | Choose **System → Cold Reset**, or press **Shift + F5**. This restarts the emulated Atari. If the game does not return, choose **File → Boot Image** and reopen the correct ATR. |
 
 A cold restart loses the current game and scores held in memory.
 
@@ -93,8 +91,7 @@ A cold restart loses the current game and scores held in memory.
 
 | File | Use it for |
 | --- | --- |
-| **void-strike-65.xex** | **Recommended:** the simplest way to play in Altirra. |
-| **void-strike-65.atr** | Booting a virtual floppy disk in Altirra. |
+| **void-strike-65.atr** | **The game:** boot it as a virtual floppy disk in Altirra. |
 | void-strike-65-boot.bin | A packaging component; do not open it to play. |
 | void-strike-65-manifest.json | Build information; do not open it to play. |
 

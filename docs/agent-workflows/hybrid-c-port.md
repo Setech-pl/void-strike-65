@@ -15,7 +15,7 @@ candidate.
 2. Port semantics 1:1.
 3. Do not redesign gameplay during migration.
 4. Maintain a coarse explicit C/ASM ABI.
-5. Build working XEX.
+5. Build a working ATR.
 6. Run deterministic behavioral A/B.
 7. Run the same PAL replay before/after.
 8. Measure code/RAM/residency.

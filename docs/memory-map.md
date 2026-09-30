@@ -923,8 +923,12 @@ machine. `disable_basic_rom` (14 B, inside the fixed bootstrap prefix, reusing
 the retired 4.5M-M3 padding) now forces `PORTB` bit 1 — preserving bit 0, bit 7
 and the bank-select bits — and writes `BASICF = $01` so a warm start does not
 map the ROM back in. It is called from `boot_stage2_atr_entry` before the SIO
-chunk load and from `boot_stage2_xex_entry` before `jmp start`, i.e. earlier
-than every write either medium makes. The window is therefore unconditionally
+chunk load (and, until 2026-09-30, from the executable file's
+`boot_stage2_xex_entry` before `jmp start`), i.e. earlier than every write the
+medium makes. The XEX is no longer published (owner decision, 2026-09-30);
+`boot_stage2_xex_entry` is still in the boot image — **14 B, `$2338-$2345`, in
+`BOOT_STAGE2`, inside the initial block** — and nothing reaches it. Removing it
+moves the ATR, so it waits for its own reclaim task. The window is therefore unconditionally
 RAM for the whole runtime: still unused, but now *reliably* unused rather than
 avoided because its contents were unknowable.
 
@@ -979,8 +983,8 @@ gameplay music player left `STARFIELD` and became the fifth independent link:
 `src/hybrid/gameplay-music.s` + `cfg/gameplay-music.cfg`, built after main so
 it can reach main through the generated `build/gameplay-music-main-abi.inc`.
 Its bytes are spliced into every level image behind the eight-byte header, so
-the XEX publishes them as part of its `$A600` block and the ATR reads them
-over SIO at START GAME. **This commit is a pure move**: the v1 score, encoding
+the ATR reads them over SIO at START GAME (the XEX, not published since
+2026-09-30, carried them as a `$A600` block). **This commit is a pure move**: the v1 score, encoding
 and POKEY write stream are unchanged, byte for byte
 (`tests/gameplay-music-placement.test.mjs`).
 
@@ -1227,7 +1231,7 @@ travels as the ninth DFMC record, RAW, landing directly at `$A000`.
 | Range | Bytes | Owner | Notes |
 | --- | --- | --- | --- |
 | `$A000-$A5FF` | 1,536 | `SECTOR_READER` | reader, loader-mode display, failure screen, 8-line AI text pool; **1,466 B used, 70 B free**. A sixteen-line pool does not fit — see plan §1.5 `[C6]`; packing the texts is the cheaper answer if it is ever wanted, not shrinking the level buffer |
-| `$A600-$ADFF` | 2,048 | `LEVEL_BUFFER` | **16 sectors** (Q-1, owner 2026-09-23; 32 since owner decision X, 2026-09-21; 44 before it), page-aligned, `file = ""` — never in any artifact. On the XEX the level-1 image is an **XEX-only block** placed here; on the ATR it is read over SIO. **Executable since 2026-09-22**: `$A608-$A807` is the gameplay music player (music v2 §1.4, owner answer Q-P1). **13 of the 16 sectors used since roadmap 4.6 step 1** (2026-09-23): the three LevelDef pages end the image at `$AC7F`, leaving `$AC80-$ADFF` spare |
+| `$A600-$ADFF` | 2,048 | `LEVEL_BUFFER` | **16 sectors** (Q-1, owner 2026-09-23; 32 since owner decision X, 2026-09-21; 44 before it), page-aligned, `file = ""` — never in any artifact. The ATR reads the level image here over SIO at START GAME (the unpublished XEX carried an XEX-only block here until 2026-09-30). **Executable since 2026-09-22**: `$A608-$A807` is the gameplay music player (music v2 §1.4, owner answer Q-P1). **13 of the 16 sectors used since roadmap 4.6 step 1** (2026-09-23): the three LevelDef pages end the image at `$AC7F`, leaving `$AC80-$ADFF` spare |
 | `$AE00-$BBFF` | 3,584 | `HYBRID_C_WINDOW` | owner decision X, re-sized by Q-1 (2026-09-23): the Director link's half of the window, `cfg/encounter-director.cfg`. `HYBRID_ASM_WINDOW` + `HYBRID_C_WINDOW` + `HYBRID_C_WINDOW_RODATA` |
 | `$BC00-$BC14` | 21 | `READER_BSS` | reader state; **5 B** still free before `$BC1A` (re-measured 2026-09-21, finding F7) |
 | `$BC1A-$BC1F` | 6 | `HYBRID_C_WINDOW_GUARD` | unchanged: reserved, no segment loads there |
@@ -1462,7 +1466,7 @@ The code window is filled by **two links** whose boundary is not a constant.
 byte the C half used. `scripts/build.mjs` rewrites `cfg/light-kernel.cfg` from
 it, `src/hybrid/light-kernel.s` asserts at link time that its run address
 really is that value and that `__LIGHT_KERNEL_RAM_LAST__ <= $BC00`, and
-`scripts/formats.mjs` re-checks both against the XEX block. So the halves meet
+`scripts/formats.mjs` re-checks both against the manifest. So the halves meet
 exactly, no byte is lost to a boundary, and neither half is sized by an
 estimate (owner decision 2026-09-21, rejecting a fixed split).
 
@@ -1586,9 +1590,9 @@ this section was written in.
 | ld65 assert | `src/hybrid/c-asm-abi.s` | `__HYBRID_C_WINDOW_RAM_LAST__ <= $BC00`, `lderror`, `"HYBRID_C_WINDOW reaches the sector reader BSS at $BC00"` — the real upper neighbour, plus `__HYBRID_C_WINDOW_GUARD_START__ = $BC1A` |
 | Chunk loader (host) | `scripts/chunk-loader.mjs` | destinations up to `$BC1F` accepted; `$BC20` upwards refused as `"chunk destination enters the OS screen above $BC1F"`. `MAX_CHUNKS` 8 → 9 → **10** (owner decision X) |
 | Chunk loader (guest) | `src/main.s` `BOOT_STAGE2` | the same bound, twice: record end `<= $BC20` and destination page `< $BD`. `CHUNK_MAX_COUNT` 8 → 9 → **10** |
-| XEX | `scripts/build.mjs` | a 2-B `INITAD` record is emitted between the first block and every later one **whenever a block lands at or above `$A000`**, so the binary loader calls `disable_basic_rom` before placing it |
+| XEX (retired 2026-09-30) | `scripts/build.mjs` | emitted a 2-B `INITAD` record between the first block and every later one **whenever a block landed at or above `$A000`**, so the binary loader called `disable_basic_rom` before placing it. The XEX is no longer published, so no such record exists |
 
-**Why the XEX needs the INITAD record.** The ATR is safe by construction:
+**Why the XEX needed the INITAD record (history).** The ATR is safe by construction:
 `boot_stage2_atr_entry` calls `disable_basic_rom` before the first SIO read, so
 every record is published into RAM. The XEX is not: its blocks are placed by the
 binary loader, and `RUNAD` (`boot_stage2_xex_entry`) only runs *after* the whole

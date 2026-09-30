@@ -212,12 +212,25 @@ one-damage-event-per-frame latch retain their existing precedence.
 
 ## Implemented boosters
 
-Only one pickup capsule may exist at a time. A qualifying kill is specifically
-a Raider destroyed by a Player Fighter PairShot while no capsule exists. Broadside fire, player
-collision, debris destruction, and lifecycle cleanup do not advance the drop
-counter.
+Only one pickup capsule may exist at a time. One shared drop counter advances
+on two kinds of qualifying kill, and only while no capsule exists, live or
+pending:
 
-The current implementation creates a pickup after every third qualifying kill.
+* a **Heavy** enemy — Raider or Bomber, the PMG `P1`/`P2` class — whose lethal
+  damage came from a Player Fighter PairShot (`resolve_enemy_damage`,
+  `src/main.s`, the `weapon_pickup_record_qualified_kill` call);
+* a **debris** object destroyed by a Player Fighter PairShot
+  (`debris_shot_reward`, owner decision 2026-09-22).
+
+Light enemies (Interceptor, Wingman) never count, however they die. Nothing
+else advances the counter either: Broadside fire, a player collision or ram
+(including a debris ram kill, which still scores), debris leaving the
+playfield, and lifecycle cleanup.
+
+The current implementation creates a pickup after every third qualifying kill
+(`WEAPON_PICKUP_QUALIFIED_KILLS` = 3), Heavy and debris kills counted together,
+and the counter restarts at zero when the capsule is created. The level image's
+`pickupPolicy` byte is not read by the runtime.
 The sequence is `Rapid Fire -> Spread Shot -> Shield -> Rapid Fire`; a new
 game always starts the sequence with Rapid Fire. A successful kill creates the
 capsule wholly above the playfield at Y=8. Its 30-frame PENDING delay, including
@@ -280,6 +293,18 @@ simultaneous left/centre/right volley and then fires a single centre follow-up,
 so the fan is readable in one glance. It never combines with Rapid Fire. A
 blocked allocation remains one pending PairShot without accumulating catch-up
 fire.
+
+The volley is all-or-nothing (owner decision, 2026-09-30,
+`plans/spread-volley-fix.md`). It is admitted only when three of the five
+active PairShot slots are free; then left, centre and right are all placed in
+the same frame, the burst advances to its follow-up and the shot sound starts.
+With fewer than three free, nothing is placed that frame, and the fire event is
+retried on the next one. The centre follow-up needs one free slot. Until this
+decision, the side shots were placed first and kept. A volley that began with
+fewer than three free slots while fire was held then filled every freed slot
+with a lone side shot. The centre never fitted, the burst never advanced and no
+shot sound played until Spread expired
+(`diagnostics/spread-debug-route-2026-09-30.md`).
 
 Until 2026-09-16 the three directions were fired one interval apart, so a side
 shot was never on screen together with the centre and the weapon read as a

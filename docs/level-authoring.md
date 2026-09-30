@@ -9,13 +9,22 @@ the Director starts reading the core page at step 2, the hull geometry at step
 4 and the payload page at step 5. The format is frozen here so that no later
 step changes it.
 
-## The three commands
+## The commands
 
 | Command | What it does |
 | --- | --- |
 | `npm run levels:check` | validates every `assets/levels/level-NN.json` and prints one line per file. Under a second; no build. |
 | `npm run levels:preview -- 1` | prints level 1 as a table — sectors, world rows, waves, and the caps the runtime will actually honour after the clamp. |
-| `npm run build` | compiles the authored level into the level image. A level the validator rejects fails the build, not the owner's smoke. |
+| `npm run build` | compiles the authored level into the level image. A level the validator rejects fails the build, not the owner's smoke. The default build carries **level 1 only**. |
+| `npm run level:play -- --level=N[:sector=M]` | the debug route (plan §7): a review build of level N, entered at its sector M (zero-based; 0 = the first), into `build/level-N-sM/`. Never `dist/`; no gate consults it. The only way onto a level other than 1 before the campaign exists (roadmap 4.9). |
+| `node scripts/level-timeline.mjs --build=build/level-N-s0 --difficulty=0` | runs the level's schedule on the real runtime image (no raster, no cycles) and prints every spawn, the frame and row each sector is entered on, and the peak live Lights per sector. It answers the sizing question below. |
+
+**Sizing a sector.** A wave's `row` is a *not-before* gate: an armed wave holds
+the Director's cursor until it is spent, and only the sector's END can cut a
+wave list. A sector is long enough when its last wave is spent inside it on
+EASY, the slowest stream. Read that off the timeline probe, not off arithmetic.
+Its Lights live exactly 64 frames; in play a Light can live longer, so leave
+headroom in a swarm sector.
 
 ## Where the bytes go
 
@@ -160,6 +169,19 @@ subtype admits — swarm 3 Light / 0 Heavy, elite 1 Light / 2 Heavy, capital
 Nothing in a level file can name code. An archetype is an offset into the
 frozen four-record roster (ROSTER FREEZE, decision 21); a path is an id into a
 resident library or the payload page.
+
+## Level 2
+
+`assets/levels/level-02.json` (roadmap 4.6 step 3; owner-approved 2026-09-30,
+plan §11 item 15) is the first level that is not a reproduction. It has six
+sectors against level 1's four, opening on a **swarm** sector with three live
+Lights and no Heavy. Sector 2 is Bombers only. The capital is on authored row
+**1,120** (level 1: 272). Sector 4 is three Interceptor waves of eight at
+spacing 20, and sectors 5 and 6 alternate Raider and Bomber by wave, with
+sector 6 also carrying every archetype. The Light class floor of 16 frames is
+deliberately **not** used, so later levels have room to escalate. Every sector's
+sizing figures, MEASURED with the timeline probe, are in the file's own notes.
+Play it with `npm run level:play -- --level=2`.
 
 ## Level 1
 

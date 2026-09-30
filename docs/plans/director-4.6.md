@@ -484,7 +484,7 @@ by design; **step 3 is the first step that puts something new on screen.**
 | **0** | `feat/level-buffer-16` | Q-1: `LEVEL_BUFFER` 32 → 16 sectors, the Director link's window at `$AE00`; no behaviour change (four edits, §3.1) | buffer/window pins in `tests/basic-window-capacity.test.mjs` and `tests/sector-reader.test.mjs` re-pinned; boot smoke 8/8 | XEX/ATR byte-identical except the window record's addresses; ATR menu unmoved | none visible — may be folded into step 1 |
 | **1** | `feat/level-compiler` | `assets/levels/level-01.json`, `scripts/level-compiler.mjs`, `level-preview.mjs`, `levels:check`; level image 13 sectors with all three pages; the geometry page carries today's 480 rows and the two sequences byte-for-byte; **the runtime reads nothing new**; `docs/level-authoring.md`, `docs/memory-map.md` (image layout) | T1, T2 | 0 boot sectors; ATR START GAME read +5 sectors | none visible; the loader animation runs five sectors longer |
 | **2** | `feat/director-level-data` | the Director reads the core page: sectors (R4), waves (R2), caps, archetype mask (R3); `LEVEL1_DATA`, the phase machinery, both provisional schedulers, `provisional_interceptor_director_request`, `select_interceptor_request_phase` and `FIRST_CAPITAL_FRAME` retired; `CAPITAL_DUE` at the sector row; `_asm_director_dispatch_event` becomes the opcode jump table (design §2.4); the debug route (§7); replays re-scripted where the capital row moves; evidence re-recorded | T3, T4, T5, T6, T8, T10, T11; native A/B with `scripts/hybrid-director-ab.mjs` | PAL audit: worst margin ≥ 500, ≤ +100 on every row vs 991; transport rule; boot smoke | level 1 plays as before; the owner jumps to any sector with `--level=1:sector=M` |
-| **3** | `feat/level-2-content` | the first authored variation, `level-02.json`: a different sector count, different waves, a different archetype mask per sector; `how-to-play` EN+PL only if player text changes | T12 | as step 2 (level 2 is not in the default replays; the default artifacts carry level 1 only) | **first new thing on screen**: level 2 via `--level=2` |
+| **3** — **IMPLEMENTED 2026-09-30, pending owner smoke (§8.1)** | `feat/director-step-3-level-2` | the first authored variation, `level-02.json`: a different sector count, different waves, a different archetype mask per sector; `how-to-play` EN+PL only if player text changes | T12 | as step 2 (level 2 is not in the default replays; the default artifacts carry level 1 only) | **first new thing on screen**: level 2 via `--level=2` |
 | **4** | `feat/hull-length` | the geometry page consumed (R1): sequences from `$AC08/$AC44`, thresholds from `$AC02`, `hull_rows`; the `BROADSIDE` sequences retired into a zero pin; `compileCapitalHulls` length/density parameters; hull-set tests re-pinned (`capital-hulls`, `hull-set-v1`, `capital-hull-extension`, `prepared-hull-row`) | T7 | initial block content ≤ 13,652 (expected to fall); boot 107; PAL audit on the capital rows | level 2 with a 352-row hull |
 | **5** | `feat/level-payload` | payload consumers: appearance slots (decision AD re-skins), `weapon_glyph[2]` install at level start, star colour and nebula per sector (21.3; `STARFIELD` run tail 348 B is the home design §10.2 lacked) | T13 | PAL audit (starfield row cost); transport rule | a re-skinned Light and a different sky on level 2 |
 | **6** | `feat/wave-paths` | `PathDef` evaluator + 8-path resident library, `ENEMY_MOVEMENT_PATH`, volley and conditional fire (21.2; 23 §10.4 piecewise-linear, §10.5 column-aimed); a native prototype measurement of the evaluator **before** integration sets its budget | T14 | PAL audit with the swarm replays | a snake-path Interceptor swarm |
@@ -493,6 +493,29 @@ by design; **step 3 is the first step that puts something new on screen.**
 If the owner chooses to **pay** for §5.1, an extra hardware-critical step
 (`feat/capital-light-window`, proof first) goes between steps 2 and 3, and
 step 3 may then author a capital sector with a Light.
+
+### 8.1 Step 3 notes
+
+**IMPLEMENTED 2026-09-30 on `feat/director-step-3-level-2`, pending the
+owner's smoke (`OWNER-SMOKE CANDIDATE`).** The owner approved the level 2 draft
+with changes and answered the step's two other questions on 2026-09-30:
+§11 items **15** (the content), **16** (replays and the diagnostic timing
+measurement) and **17** (the build-script fix and `level:play`).
+
+* `assets/levels/level-02.json`: six sectors, 19 waves, the capital on authored
+  row 1,120; T12 in `tests/level-compiler.test.mjs`.
+* `scripts/build.mjs`: every `--level=N` read keys on the run's own id; the
+  default XEX, ATR, boot image and manifest are byte-identical to `main`
+  `138689e`. `tests/level-two.test.mjs` is RED on `main` and GREEN here.
+* `npm run level:play -- --level=N[:sector=M]` exists (this plan's §7).
+* The level timeline probe had two observer defects that only a Light wave
+  exposes, and level 1 has none; both are fixed, and level 1's probe figures
+  are unchanged (`scripts/level-timeline.mjs`).
+* The diagnostic timing measurement of item 16 was **not run**: the wall-trace
+  harness reads only `dist/` and `build/` and refuses a review-variant
+  manifest, so it cannot take the debug route without code changes. What it
+  would take is recorded in
+  [../diagnostics/level-2-timing-2026-09-30.md](../diagnostics/level-2-timing-2026-09-30.md).
 
 ---
 
@@ -548,7 +571,8 @@ one that stays open. Item 8 was added after the step-2 hardware smoke; items
 evidence exposed a second stale clause and the re-authored level's own PAL
 figures. Items **12-13** were answered on the same day, once item 12's own
 question — three more stale clauses standing between step 2 and its evidence —
-had been measured.
+had been measured. Items **15-17** were answered on **2026-09-30**, at step 3,
+on the level 2 draft (`bb3feeb`).
 
 1. **The CAPITAL Light ceiling (R3 in capital sectors) — RESTRICT** (decided by
    the owner, 2026-09-23). §5.1 is not paid in 1.0: per-sector enemy selection
@@ -797,6 +821,52 @@ had been measured.
     Alternatives 2 (a harness-only debris-free sector) and 3 (record it as an
     accepted failure) are REJECTED.
 
+
+15. **Level 2's content — APPROVED WITH CHANGES** (decided by the owner,
+    **2026-09-30**, on the draft `bb3feeb`).
+    * **Sector 4 is three Interceptor waves of 8 at spacing 20**, not four at
+      the 16-frame class floor. The floor is kept for later levels: level 2
+      must leave room to escalate. Sector 4's size is re-checked against the
+      new wave set on EASY, as the other sectors were, and its rows change
+      only if the sizing rule requires it. **Result, MEASURED with the level
+      timeline probe:** the last member admits on row **316** of 768 on EASY
+      (324 MEDIUM, 331 HARD), so the rule holds and the rows stay **768**.
+    * **`hazards.debris` is 1 wherever the draft had 2**, unless this plan
+      defines the debris count as becoming live in a later step. It does not.
+      §2.2 defines the field (`sector_hazards` bits 0-1, "debris max live
+      (0-2)"), but no step in §8 makes the runtime read the count, and
+      `director.c` reads it as a nonzero test (`HAZARD_DEBRIS_MASK`). So every
+      sector of level 2 authors 1.
+    * **Everything else stands as drafted:** six sectors, the capital on
+      authored row 1,120, sector 6 at 1,152 rows. Length is judged in the
+      owner's smoke. If it is too long, sector 6 is cut in a later data-only
+      change.
+
+16. **Replays — THE PLAN WINS** (decided by the owner, **2026-09-30**). Level 2
+    stays out of the default replays. `docs/runtime-wall-trace.json` and the
+    default artifacts carry level 1 only. **The default XEX/ATR must come out
+    byte-identical to `main`**: that is step 3's gate, and every baseline figure
+    must be unmoved.
+    * In addition, **one diagnostic timing measurement of level 2**, *if the
+      existing wall-trace harness can run replays against the level 2 build
+      through the debug route without changes to harness code*: once over
+      level 2's sectors (at least the swarm sectors 1 and 4 and the finale
+      sector 6), reporting the worst fence margin and the DMA-on maximum per
+      sector, with frames. It is recorded in
+      `docs/diagnostics/level-2-timing-2026-09-30.md`, **never** written into
+      `docs/runtime-wall-trace.json` and **not** cited as release evidence. If
+      it needs harness code changes, they are **not** built: the session
+      reports what it would take and continues. A fence margin below **500** or
+      a DMA-on frame over **32,568** anywhere in level 2 is a STOP.
+    * **Outcome:** it needs harness code changes (three obstacles, named in the
+      diagnostics file), so it was not run. The brief's "trace: add level 2
+      replay sessions" item is replaced by this measurement and is not done.
+
+17. **The build-script fix for `--level=N` — APPROVED as part of step 3**
+    (decided by the owner, **2026-09-30**). Each run uses its own level id
+    instead of the hard-coded 1, with a test that is RED on `main` (the
+    `--level=2` build throws) and GREEN after. §7 names the `level:play` npm
+    script, so it is added and the smoke checklist uses it.
 
 ---
 

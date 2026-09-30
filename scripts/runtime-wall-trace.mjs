@@ -12,6 +12,7 @@ import { readStartMenuRuntimeState } from "./preview.mjs";
 import { atari800ArtifactLaunches, validateAtari800Launch } from "./artifact-launch.mjs";
 import { assertTraceEmulatorFresh } from "./atari800-trace-freshness.mjs";
 import { focusedPalAcceptance } from "./focused-pal-acceptance.mjs";
+import { assertDiagnosticRun, traceArtifactLayout } from "./trace-artifacts.mjs";
 import { executeDebrisDestructionTrace } from "./debris-destruction-runtime.mjs";
 import { analyseDebrisGate } from "./debris-visibility-gate.mjs";
 import { auditSession as auditPalTiming, reportAudits as reportPalTimingAudits,
@@ -19,7 +20,8 @@ import { auditSession as auditPalTiming, reportAudits as reportPalTimingAudits,
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const rootDirectory = path.resolve(scriptDirectory, "..");
-const buildDirectory = path.join(rootDirectory, "build", "runtime-wall-trace");
+// Reassigned once in main() for a debug-route run (scripts/trace-artifacts.mjs).
+let buildDirectory = path.join(rootDirectory, "build", "runtime-wall-trace");
 const reportPath = path.join(rootDirectory, "docs", "runtime-wall-trace.json");
 const headerPath = path.join(scriptDirectory, "atari800-wall-trace.h");
 const PAL_FRAME_CYCLES = 35_568;
@@ -2761,43 +2763,52 @@ function main() {
   invariant(fs.existsSync(emulatorPath),
     `Instrumented Atari800 is missing: ${emulatorPath}; rerun with --prepare`);
   assertTraceEmulatorFresh(sourceDirectory, headerPath);
-  const labelPath = path.join(rootDirectory, "build", "void-strike-65.lbl");
-  const manifestPath = path.join(rootDirectory, "dist", "void-strike-65-manifest.json");
-  const bootPath = path.join(rootDirectory, "dist", "void-strike-65-boot.bin");
-  const atrPath = path.join(rootDirectory, "dist", "void-strike-65.atr");
+  // --artifacts=build/level-N-sM: a focused, diagnostic run of a debug-route
+  // build, which reads and writes only inside that directory.
+  const layout = traceArtifactLayout(rootDirectory, argumentValue("artifacts"));
+  buildDirectory = layout.outputDirectory;
+  const labelPath = path.join(layout.inputDirectory, "void-strike-65.lbl");
+  const manifestPath = path.join(layout.distDirectory, "void-strike-65-manifest.json");
+  const bootPath = path.join(layout.distDirectory, "void-strike-65-boot.bin");
+  const atrPath = path.join(layout.distDirectory, "void-strike-65.atr");
   for (const requiredPath of [labelPath, manifestPath, bootPath, atrPath]) {
     invariant(fs.existsSync(requiredPath), `Build input is missing: ${requiredPath}`);
   }
   const labels = parseViceLabels(fs.readFileSync(labelPath, "utf8"));
-  const glueLabelPath = path.join(rootDirectory, "build", "integration-glue.lbl");
+  const glueLabelPath = path.join(layout.inputDirectory, "integration-glue.lbl");
   invariant(fs.existsSync(glueLabelPath),
     "Integration-glue labels are missing");
   const glueLabels = parseViceLabels(fs.readFileSync(glueLabelPath, "utf8"));
-  const directorLabelPath = path.join(rootDirectory, "build", "encounter-director.lbl");
+  const directorLabelPath = path.join(layout.inputDirectory, "encounter-director.lbl");
   invariant(fs.existsSync(directorLabelPath),
     `Director labels are missing: ${directorLabelPath}`);
   const directorLabels = parseViceLabels(fs.readFileSync(directorLabelPath, "utf8"));
-  const collisionLabelPath = path.join(rootDirectory, "build", "capital-player-collision.lbl");
+  const collisionLabelPath = path.join(layout.inputDirectory, "capital-player-collision.lbl");
   invariant(fs.existsSync(collisionLabelPath), "Capital/player collision labels are missing");
   const collisionLabels = parseViceLabels(fs.readFileSync(collisionLabelPath, "utf8"));
   // Music v2 §1.4: the gameplay music player links on its own into the level image.
-  const gameplayMusicLabelPath = path.join(rootDirectory, "build", "gameplay-music.lbl");
+  const gameplayMusicLabelPath = path.join(layout.inputDirectory, "gameplay-music.lbl");
   invariant(fs.existsSync(gameplayMusicLabelPath), "Gameplay music labels are missing");
   const gameplayMusicLabels = parseViceLabels(fs.readFileSync(gameplayMusicLabelPath, "utf8"));
   // Light multiplicity step 1b: the Light ASM kernel is its own link.
-  const kernelLabelPath = path.join(rootDirectory, "build", "light-kernel.lbl");
+  const kernelLabelPath = path.join(layout.inputDirectory, "light-kernel.lbl");
   const kernelLabels = fs.existsSync(kernelLabelPath)
     ? parseViceLabels(fs.readFileSync(kernelLabelPath, "utf8")) : new Map();
   const manifestBytes = fs.readFileSync(manifestPath);
   const manifest = JSON.parse(manifestBytes);
-  invariant(["candidate", "release"].includes(manifest.buildVariant),
+  invariant(layout.variant !== null || ["candidate", "release"].includes(manifest.buildVariant),
     "Runtime trace requires candidate or final release artifacts");
+  assertDiagnosticRun(layout, manifest, process.argv.slice(2));
   const runtimeArtifacts = runtimeArtifactSet({
     boot: fs.readFileSync(bootPath),
     atr: fs.readFileSync(atrPath),
   });
+  for (const [name, artifactPath] of [["void-strike-65-boot.bin", bootPath],
+    ["void-strike-65.atr", atrPath]]) {
+    runtimeArtifacts[name].path = path.relative(rootDirectory, artifactPath);
+  }
   runtimeArtifacts["void-strike-65-manifest.json"] = {
-    path: "dist/void-strike-65-manifest.json",
+    path: path.relative(rootDirectory, manifestPath),
     bytes: manifestBytes.length,
     sha256: sha256(manifestBytes),
   };
@@ -2896,7 +2907,8 @@ function main() {
     console.log(`Raw report: ${path.relative(rootDirectory, menuRaster.buildReportPath)}`);
     return;
   }
-  const bootSmoke = skipBootSmoke ? null :
+  // A debug-route run never boot-smokes: that audit reads the default build/.
+  const bootSmoke = skipBootSmoke || layout.variant !== null ? null :
     runBootSmoke({ emulatorPath, labels, atrPath, manifest });
   if (bootSmoke !== null)
     console.log(`Boot smoke: ${bootSmoke.sessions.length} ATR cold-start sessions passed`);
@@ -5216,6 +5228,7 @@ function main() {
       emulator: "Atari800 7.1.2 PAL/XL",
       guest_instrumentation_bytes: 0,
       artifact_sha256: runtimeArtifacts,
+      ...(layout.variant === null ? {} : { variant: layout.variant, diagnostic_only: true }),
       sessions: summaries,
       acceptance,
       passed: acceptance.passed,

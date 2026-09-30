@@ -7,6 +7,9 @@
 // T2 - build/level-1.bin is 13 sectors; the magic sits at $AA00; header byte 7
 //      is still 9; the geometry page says 480 rows and its sequences equal
 //      EMIT_ALLIED_SECTOR_SEQUENCE / EMIT_ENEMY_SECTOR_SEQUENCE.
+// T12 - (step 3) level-02.json compiles and differs from level 1 in sector
+//      count, waves and masks; it is the level the owner approved on
+//      2026-09-30 (plan §11 items 15-17).
 //
 // Nothing resident reads any of it at this step: the Director still runs on
 // LEVEL1_DATA (step 2), the payload consumers land at step 5 and the hull
@@ -459,3 +462,79 @@ test("step 2: the Director's schedule is the level image, and the geometry page 
       `${relative} reads the HullGeometry page before step 4`);
   }
 });
+
+// ---------------------------------------------------------------------------
+// T12 - step 3: the authored level 2
+// ---------------------------------------------------------------------------
+
+test("T12: level-02.json compiles and differs from level 1 in sector count, waves and masks",
+  () => {
+    const one = compileLevelFile(levelSourcePath(1), { hullAsset });
+    const two = compileLevelFile(levelSourcePath(2), { hullAsset });
+    assert.deepEqual(two.warnings, [], "level 2 asks for nothing the runtime clamps");
+    assert.equal(two.level, 2);
+    assert.equal(two.pages.core[1], 2, "level_number in the core page");
+
+    // Sector count: six against level 1's four (R4).
+    assert.equal(one.sectors.length, 4);
+    assert.equal(two.sectors.length, 6);
+    assert.deepEqual(two.sectors.map((sector) =>
+      sector.subtypeName === null ? sector.kindName : `${sector.kindName}/${sector.subtypeName}`),
+    ["space/swarm", "space/elite", "capital", "space/swarm", "space/elite", "space/elite"]);
+    assert.equal(two.pages.core[2], 6, "sector_count in the core page");
+
+    // Masks (R3): no sector of level 2 carries the mask level 1's sector in the
+    // same position carries, and the two swarm sectors are Light-only.
+    const bit = (name) => 1 << ["raider", "wingman", "interceptor", "bomber"].indexOf(name);
+    const mask = (...names) => names.reduce((sum, name) => sum | bit(name), 0);
+    assert.deepEqual(two.sectors.map((sector) => sector.mask), [
+      mask("interceptor", "wingman"),
+      mask("bomber", "wingman"),
+      0,
+      mask("interceptor"),
+      mask("raider", "wingman", "bomber"),
+      mask("raider", "wingman", "interceptor", "bomber"),
+    ]);
+    for (const [index, sector] of one.sectors.entries()) {
+      if (sector.kindName === "capital") continue;
+      assert.notEqual(two.sectors[index].mask, sector.mask, `sector ${index + 1}'s mask`);
+    }
+    for (const index of [0, 3]) {
+      assert.equal(two.sectors[index].effectiveLights, 3, "a swarm sector's Light ceiling");
+      assert.equal(two.sectors[index].effectiveHeavies, 0, "and it has no Heavy slot");
+    }
+
+    // Waves (R2): level 1 has no Light-dominant wave at all; level 2 opens on
+    // one and has seven.
+    assert.equal(one.waves.filter((wave) => wave.class === "light").length, 0);
+    assert.equal(two.waves.filter((wave) => wave.class === "light").length, 7);
+    assert.equal(two.waves[0].archetype, "interceptor");
+    assert.equal(two.waves.length, 19);
+
+    // Owner decision, 2026-09-30 (plan §11 item 15): sector 4 is three
+    // Interceptor waves of eight at spacing 20 - NOT four at the 16-frame
+    // class floor, which is kept for later levels so level 2 leaves room to
+    // escalate.
+    const sectorFour = two.waves.filter((wave) => wave.sector === 4);
+    assert.deepEqual(sectorFour.map((wave) => [wave.archetype, wave.count, wave.spacing]),
+      [["interceptor", 8, 20], ["interceptor", 8, 20], ["interceptor", 8, 20]]);
+    // ... and no wave anywhere in level 2 sits on the Light class floor.
+    for (const wave of two.waves.filter((candidate) => candidate.class === "light")) {
+      assert.ok(wave.spacing > 16, `a level-2 Light wave at spacing ${wave.spacing}`);
+    }
+
+    // Owner decision, 2026-09-30: debris 1 wherever the draft said 2. The
+    // runtime reads the field as a nonzero test (HAZARD_DEBRIS_MASK) and no
+    // plan step makes the count live, so 2 would have said something the game
+    // does not do.
+    assert.deepEqual(two.sectors.map((sector) => sector.debris), [1, 1, 1, 1, 1, 1]);
+
+    // Owner decision, 2026-09-30: everything else as drafted - the capital on
+    // authored row 1,120 (level 1: 272) and sector 6 at 1,152 rows.
+    assert.equal(two.sectors[0].rows + two.sectors[1].rows, 1120);
+    assert.equal(one.sectors[0].rows, 272);
+    assert.equal(two.sectors[5].rows, 1152);
+    assert.deepEqual(two.sectors.map((sector) => sector.rows), [480, 640, 0, 768, 800, 1152]);
+    // Hull length is step 4: level 2 flies today's 480-row hull.
+    assert.equal(two.geometry.hullRows, 480);
+  });

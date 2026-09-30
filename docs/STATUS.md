@@ -406,6 +406,9 @@ the boot sequence in each tree):
   sector counts unchanged, initial block 13,626 B.
 * **Its costs:** the arena falls from 114 B free to **16 B**, which is the room
   later Heavy C would use, and the evidence would need regenerating again.
+* **Owner decision 19 (2026-09-30): not taken.** The menu frame stays 602
+  (+6), and the arena move is kept in reserve for when the delta reaches +7
+  ([plans/director-4.6.md](plans/director-4.6.md) §11 item 19).
 
 **`HYBRID_C_SECTOR`, +28 B.** It lives in the Director link at `$8602-$86D8`
 and travels as the second LZ stream of extension record 2 (start sector 152,

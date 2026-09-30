@@ -660,7 +660,8 @@ figures. Items **12-13** were answered on the same day, once item 12's own
 question — three more stale clauses standing between step 2 and its evidence —
 had been measured. Items **15-17** were answered on **2026-09-30**, at step 3,
 on the level 2 draft (`bb3feeb`). Item **18** was answered the same day, at
-step 4, on the §8.2 proposal (`e058fb3`).
+step 4, on the §8.2 proposal (`e058fb3`), and item **19** after the step 4
+follow-up (`03f757d`).
 
 1. **The CAPITAL Light ceiling (R3 in capital sectors) — RESTRICT** (decided by
    the owner, 2026-09-23). §5.1 is not paid in 1.0: per-sector enemy selection
@@ -970,6 +971,19 @@ step 4, on the §8.2 proposal (`e058fb3`).
     the segment and byte count before implementing. **Met:** everything step 4
     adds ships in extension records 1 and 2, and the initial block is
     13,626 B.
+
+19. **The ATR menu frame 601 → 602 — KEEP 602, do not take the arena fix**
+    (decided by the owner, **2026-09-30**, on the step 4 follow-up,
+    `03f757d`). The ATR menu frame stays **602 (+6)**, inside the ≤ +7 rule of
+    item 6. The one-frame move is a frame-boundary effect: the pickup/collision
+    record's larger second stream (`HYBRID_C_SECTOR`, +28 B) adds 2,791 cycles
+    between `start` and `show_loader`. The arena's 114 B free are worth more
+    than one frame of load time.
+    **Lever kept in reserve:** if the ATR menu delta ever reaches the +7 limit,
+    moving `sector_c_update_capital_phase` (98 B) into `HYBRID_C_ARENA` returns
+    one frame. MEASURED: menu 601, loader 344, start → loader 1,858,168 cycles,
+    sectors and initial block unchanged. The cost is the arena's free space,
+    114 → 16 B.
 
 ---
 

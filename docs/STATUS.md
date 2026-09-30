@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-09-29
+Last update: 2026-09-30
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -53,7 +53,11 @@ DMA-on maximum **31,349**, boot **107** sectors, ATR menu **603** with all three
 warn frames intact. Step 2 above is what made the runtime read the image, and it
 supersedes those four figures.
 
-**Thirteen `OWNER-SMOKE CANDIDATE`s are outstanding: the pickup boost colour**
+**Fourteen `OWNER-SMOKE CANDIDATE`s are outstanding: level 2** (section "Roadmap 4.6
+step 3 — level 2" below; the first authored level that is not a reproduction,
+reached only through the debug route `npm run level:play -- --level=2`; the
+default build is **byte-identical** to `main` `138689e`, so every gate figure is
+unmoved), **the pickup boost colour**
 (section "Pickup boost colour — the capsule is one `PLAYER3` image in gold `$1C`"
 below; the capsule leaves the GTIA fifth player and `COLPF3` for `PLAYER3` and a
 dedicated `COLPM3`, so a booster mark can never wear an enemy's colour again; the
@@ -313,6 +317,71 @@ owner smoke PASS 2026-09-18); before it `b4b942e` (XEX
 owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
+
+## Roadmap 4.6 step 3 — level 2 — `OWNER-SMOKE CANDIDATE` (2026-09-30)
+
+Plan: [plans/director-4.6.md](plans/director-4.6.md) §8 step 3, §8.1, owner
+decisions §11 items 15-17 (2026-09-30). Branch `feat/director-step-3-level-2`
+from `main` `138689e`.
+
+**What changed.** `assets/levels/level-02.json`, as the owner approved it on
+the draft `bb3feeb`. It has six sectors against level 1's four: swarm, elite
+(Bombers only), capital, swarm, elite, elite. It has 19 waves, seven of them
+Light waves where level 1 has none. It opens on three live Lights and no Heavy.
+The capital is on authored row **1,120** (level 1: 272), so it arrives at frame
+2,800 / 2,489 / 2,240 on EASY / MEDIUM / HARD. Sector 4 is three Interceptor
+waves of 8 at spacing 20; the 16-frame floor is left for later levels. Debris
+is 1 in every sector. Region R1: enemy hull style R1, allied steel `$88`.
+**Level 2 is not in the default build**: it is reached with the debug route
+only, which step 3 made work for any level but 1 (`scripts/build.mjs` read the
+level image back with a hard-coded id 1 and threw). The route has plan §7's npm
+script now: `npm run level:play -- --level=2[:sector=M]`.
+
+**Gates — the DEFAULT build is byte-identical to `main`.** XEX `bb5ec363…`
+(29,332 B), ATR `abe3b181…`, boot image `9e5c5d6f…` and the manifest
+`7bce3627…` equal `main` `138689e`. So `docs/runtime-wall-trace.json` still
+binds, it was **not** regenerated (it would change only its path strings), and
+every figure below is unmoved:
+
+| | `main` `138689e` | this branch | source |
+| --- | ---: | ---: | --- |
+| worst line-238 fence margin | 788 | **788** | STATUS (pickup boost colour); artifacts identical |
+| DMA-on maximum / physical headroom | 31,626 / 3,942 | **31,626 / 3,942** | `docs/runtime-wall-trace.json` `gate`, unchanged |
+| behavioural clause failures | 40 | **40** | `docs/recorded-gate-failures.json`, unchanged |
+| boot smoke | 8 / 8 | **8 / 8** | `--boot-smoke-only`, this branch |
+| ATR / XEX menu frame | 601 (+5) / 392 (+0) | **601 (+5) / 392 (+0)** | same run |
+| boot / extension / total sectors | 107 / 101 / 208 | **107 / 101 / 208** | `build/manifest.json` |
+| initial block content / ceiling | 13,626 / 13,684 | **13,626 / 13,684** | same |
+| `$AE00` window used / free | 1,991 / 1,593 | **1,991 / 1,593** | same |
+| `DIRECTOR_RAM` used / capacity | 602 / 645 | **602 / 645** | same |
+| `npm test` (default build) | 860 / 749 / 108 / 3 | **865 / 754 / 108 / 3** | the 108 recorded names: **0 new, 0 disappeared** |
+
+The +5 tests are all new and all pass: T12 in `tests/level-compiler.test.mjs`
+and four in `tests/level-two.test.mjs`. No existing test was re-pointed.
+
+**Level 2's timing is NOT measured.** The owner asked for one diagnostic
+measurement of level 2 if the wall-trace harness could run through the debug
+route without harness changes. It cannot: it reads only `dist/` and `build/`
+and refuses a review-variant manifest. It was not built;
+[diagnostics/level-2-timing-2026-09-30.md](diagnostics/level-2-timing-2026-09-30.md)
+says what it would take (about 25-40 lines, three existing sessions). The
+ESTIMATE is that three live Lights do not bind: the Light-multiplicity M1
+measurement found about 6,200 cycles of fence margin at three Lights. It is not
+a measurement.
+
+**The level timeline probe had two observer defects**, both invisible to level
+1 because level 1 authors no Light wave. It never ran the Light wave stepper.
+It also lost a member admitted into a slot the probe had just retired.
+Both are fixed in `scripts/level-timeline.mjs`; level 1's probe output is
+unchanged on all three difficulties. The probe also sized level 2: every sector
+spends its waves inside itself on every difficulty (figures in the level file's
+notes). Sector 4's last member admits on row **316 of 768** on EASY, so a
+player on EASY flies about **22 s** of sector 4 with no new wave — a smoke
+point, not a defect.
+
+**Owed:** the owner's smoke of level 2 through the debug route (length is judged
+there; plan §11 item 15 says sector 6 is what gets cut), and of the default
+build to confirm level 1 plays unchanged.
 
 ## Pickup boost colour — the capsule is one `PLAYER3` image in gold `$1C` — `OWNER-SMOKE CANDIDATE` (2026-09-29)
 

@@ -16,12 +16,11 @@ function sha256(filePath) {
   return crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
 }
 
-test("native menu raster is exact for XEX/ATR and four cold RAM fills", () => {
+test("native menu raster is exact for the ATR and four cold RAM fills", () => {
   assert.equal(report.passed, true);
   assert.deepEqual(report.cold_ram_fills, [0x00, 0xa5, 0x5a, 0xff]);
-  assert.equal(report.sessions.length, 8);
+  assert.equal(report.sessions.length, 4);
   assert.deepEqual(report.sessions.map(({ id }) => id), [
-    "xex-00", "xex-a5", "xex-5a", "xex-ff",
     "atr-00", "atr-a5", "atr-5a", "atr-ff",
   ]);
   assert.equal(report.expected.canonical_raster_sha256, canonicalRaster);

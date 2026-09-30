@@ -10,6 +10,7 @@ import { runtimeArtifactSet, runtimeArtifactNames } from "./runtime-evidence.mjs
 import { canonicalPlayfield } from "./playfield.mjs";
 import { readStartMenuRuntimeState } from "./preview.mjs";
 import { atari800ArtifactLaunches, validateAtari800Launch } from "./artifact-launch.mjs";
+import { assertTraceEmulatorFresh } from "./atari800-trace-freshness.mjs";
 import { focusedPalAcceptance } from "./focused-pal-acceptance.mjs";
 import { executeDebrisDestructionTrace } from "./debris-destruction-runtime.mjs";
 import { analyseDebrisGate } from "./debris-visibility-gate.mjs";
@@ -213,8 +214,8 @@ const pairShotSessions = [
   ["rapid", "pairshot-rapid"],
   ["spread", "pairshot-spread"],
 ].map(([mode, policy]) => ({
-  id: `pairshot-${mode}-xex-hard`,
-  medium: "XEX",
+  id: `pairshot-${mode}-atr-hard`,
+  medium: "ATR",
   difficulty: 2,
   policy,
   fireDelay: 4,
@@ -227,8 +228,8 @@ const pairShotStaleSessions = [
   ["rapid", "pairshot-rapid"],
   ["spread", "pairshot-spread"],
 ].map(([mode, policy]) => ({
-  id: `pairshot-stale-${mode}-xex-hard`,
-  medium: "XEX",
+  id: `pairshot-stale-${mode}-atr-hard`,
+  medium: "ATR",
   difficulty: 2,
   policy,
   fireDelay: 4,
@@ -247,8 +248,8 @@ const raiderFirstWriterSessions = [
   ["rapid", "pairshot-rapid", 2],
   ["spread", "pairshot-spread", 4],
 ].map(([mode, policy, fireDelay]) => ({
-  id: `raider-first-writer-${mode}-xex-hard`,
-  medium: "XEX",
+  id: `raider-first-writer-${mode}-atr-hard`,
+  medium: "ATR",
   difficulty: 2,
   policy,
   fireDelay,
@@ -257,8 +258,8 @@ const raiderFirstWriterSessions = [
 }));
 
 const playerPairShotSpeedSessions = ["normal", "rapid", "spread"].map((mode) => ({
-  id: `player-pairshot-speed-${mode}-xex-hard`,
-  medium: "XEX",
+  id: `player-pairshot-speed-${mode}-atr-hard`,
+  medium: "ATR",
   difficulty: 2,
   policy: `pairshot-speed-${mode}`,
   fireDelay: 0,
@@ -267,8 +268,8 @@ const playerPairShotSpeedSessions = ["normal", "rapid", "spread"].map((mode) => 
 }));
 
 const playerPairShotReentrySessions = ["normal", "rapid", "spread"].map((mode) => ({
-  id: `player-pairshot-reentry-${mode}-xex-hard`,
-  medium: "XEX",
+  id: `player-pairshot-reentry-${mode}-atr-hard`,
+  medium: "ATR",
   difficulty: 2,
   policy: `pairshot-reentry-${mode}`,
   fireDelay: 0,
@@ -277,8 +278,8 @@ const playerPairShotReentrySessions = ["normal", "rapid", "spread"].map((mode) =
 }));
 
 const boosterAdmissionReentrySessions = Array.from({ length: 5 }, (_, run) => ({
-  id: `booster-admission-reentry-${run + 1}-xex-hard`,
-  medium: "XEX",
+  id: `booster-admission-reentry-${run + 1}-atr-hard`,
+  medium: "ATR",
   difficulty: 2,
   policy: "booster-reentry",
   fireDelay: 0,
@@ -294,7 +295,7 @@ const pmgLabSessions = [
   ["pmg-lab-single-missile", "pmg-lab-single-missile"],
 ].map(([id, policy]) => ({
   id,
-  medium: "XEX",
+  medium: "ATR",
   difficulty: 2,
   policy,
   fireDelay: 0,
@@ -389,8 +390,7 @@ const capitalMuzzleSessions = [{
 }];
 
 const broadsideTransientSessions = [
-  ["XEX", 1, "neutral"],
-  ["XEX", 2, "broadside-proof"],
+  ["ATR", 1, "neutral"],
   ["ATR", 1, "broadside-sides"],
   ["ATR", 2, "broadside-proof"],
 ].map(([medium, difficulty, policy]) => ({
@@ -403,7 +403,7 @@ const broadsideTransientSessions = [
   kind: "broadside-transient-lifecycle",
 }));
 
-const provisionalCapitalSessions = ["XEX", "ATR"].flatMap((medium) =>
+const provisionalCapitalSessions = ["ATR"].flatMap((medium) =>
   [0, 1, 2].map((difficulty) => ({
     id: `early-enemy-${medium.toLowerCase()}-${difficulty}-cold-hunt-fire4`,
     medium,
@@ -415,8 +415,8 @@ const provisionalCapitalSessions = ["XEX", "ATR"].flatMap((medium) =>
   })));
 
 const raiderFormationSessions = [{
-  id: "two-pmg-raiders-xex-hard",
-  medium: "XEX",
+  id: "two-pmg-raiders-atr-hard",
+  medium: "ATR",
   difficulty: 2,
   policy: "raider-proof",
   fireDelay: 200,
@@ -425,8 +425,8 @@ const raiderFormationSessions = [{
 }];
 
 const raiderSectorSessions = [{
-  id: "raider-sector-xex-hard",
-  medium: "XEX",
+  id: "raider-sector-atr-hard",
+  medium: "ATR",
   difficulty: 2,
   policy: "early-hunt",
   fireDelay: 4,
@@ -448,7 +448,7 @@ const capitalContactSessions = [0, 1].map((owner) => ({
   contactModeId: 1,
 }));
 
-const capitalPlayerGeometrySessions = [["XEX", 1], ["ATR", 2]].flatMap(([medium, difficulty]) =>
+const capitalPlayerGeometrySessions = [["ATR", 1], ["ATR", 2]].flatMap(([medium, difficulty]) =>
   [0, 1].flatMap((owner) => [
     ["top", 0, true], ["middle", 1, true], ["bottom", 2, true],
     ["near", 3, false],
@@ -496,11 +496,11 @@ const directorCompletionSessions = [0, 1, 2].map((difficulty) => ({
 // capsule goes ACTIVE on 3,974, 25 frames before the window closes, so the
 // `>= 10` booster-cycle clause below reads 8/10. Step 2 moved the Heavy
 // cadence, which moved the kills, which moved the capsules. The clause, its
-// threshold and the XEX/ATR parity clause beside it are UNTOUCHED; only the
-// scenario moves, and the id states the delay so the replay is self-describing.
+// threshold is UNTOUCHED; only the scenario moves, and the id states the delay
+// so the replay is self-describing.
 const MEMORY_INTEGRITY_HUNT_FIRE_DELAY = 5;
 
-const memoryIntegritySessions = ["XEX", "ATR"].flatMap((medium) =>
+const memoryIntegritySessions = ["ATR"].flatMap((medium) =>
   ["evasive", "hunt"].map((policy) => {
     const fireDelay = policy === "hunt" ? MEMORY_INTEGRITY_HUNT_FIRE_DELAY : 4;
     return {
@@ -530,15 +530,34 @@ const memoryIntegritySessions = ["XEX", "ATR"].flatMap((medium) =>
       // condition and the coverage it names are all untouched.
       pauseTest: policy === "hunt",
     };
-  }));
+  })).concat([{
+    // ATR-only restoration, owner rule class (a), 2026-09-30: the scenario
+    // moves, the clause does not. The `>= 10` booster-cycle clause below counts
+    // collections across every integrity replay. Until the ATR became the only
+    // medium, the XEX twin of the `hunt` replay supplied half of them (5 + 5);
+    // with it deleted the ATR replays collect 5. MEASURED on this build over
+    // difficulty 2 `hunt` at fire delays 3, 4, 6 and 7 and over difficulties 1
+    // and 0 at 5: 2, 4, 6, 5, 5 and 5. Delay 6 is the smallest change from the
+    // kept replay that restores the count with slack (5 + 6 = 11). It is a
+    // distinct replay, not a repeat of the kept one, and it does not arm the
+    // pause test, which stays on the fire-5 replay.
+    id: "memory-integrity-atr-2-hunt-fire6",
+    medium: "ATR",
+    difficulty: 2,
+    policy: "hunt",
+    fireDelay: 6,
+    frames: 4_000,
+    kind: "memory-integrity-160s",
+    pauseTest: false,
+  }]);
 
-const pickupFenceSessions = [["XEX", 2], ["ATR", 2], ["XEX", 1]].map(([medium, difficulty]) => ({
+const pickupFenceSessions = [["ATR", 2], ["ATR", 1]].map(([medium, difficulty]) => ({
   id: `pickup-fence-${medium.toLowerCase()}-${difficulty}-hunt`,
   medium, difficulty, policy: "hunt", fireDelay: 4, frames: 8_000,
   kind: "pickup-fence-cadence", pauseTest: true,
 }));
 
-const engineDiagnosticSessions = ["XEX", "ATR"].flatMap((medium) =>
+const engineDiagnosticSessions = ["ATR"].flatMap((medium) =>
   [0xa5, 0x5a].flatMap((coldFill) => [0, 1, 2].flatMap((difficulty) =>
     [["immediate", 0], ["delayed", 800]].map(([startMode, frontendDelay]) => ({
       id: `engine-${medium.toLowerCase()}-${coldFill.toString(16)}-${difficulty}-${startMode}`,
@@ -552,7 +571,7 @@ const engineDiagnosticSessions = ["XEX", "ATR"].flatMap((medium) =>
       frontendDelay,
     })))));
 
-const engineRestartSessions = ["XEX", "ATR"].map((medium) => ({
+const engineRestartSessions = ["ATR"].map((medium) => ({
   id: `engine-restart-${medium.toLowerCase()}-a5`,
   medium,
   coldFill: 0xa5,
@@ -565,8 +584,8 @@ const engineRestartSessions = ["XEX", "ATR"].map((medium) => ({
 }));
 
 const lowerPlayfieldSessions = [{
-  id: "lower-playfield-xex-hard",
-  medium: "XEX",
+  id: "lower-playfield-atr-hard",
+  medium: "ATR",
   difficulty: 2,
   policy: "vertical-boundary",
   fireDelay: 4_000,
@@ -584,8 +603,8 @@ const lowerPlayfieldSessions = [{
   frames: 1_400,
   kind: "lower-playfield-boundary",
 }, {
-  id: "lower-playfield-hostile-contact-xex-hard",
-  medium: "XEX",
+  id: "lower-playfield-hostile-contact-atr-hard",
+  medium: "ATR",
   difficulty: 2,
   policy: "lower-contact-hostile",
   fireDelay: 4_000,
@@ -1717,7 +1736,7 @@ function sessionSummary(session, rows) {
   return {
     id: session.id,
     kind: session.kind,
-    medium: session.medium ?? "XEX",
+    medium: session.medium ?? "ATR",
     difficulty: session.difficulty,
     policy: session.policy,
     fire_delay: session.fireDelay,
@@ -1776,7 +1795,7 @@ function readBootDeadline() {
   return deadline;
 }
 
-function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
+function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
   const bootDeadline = readBootDeadline();
   const outputDirectory = path.join(buildDirectory, "boot-smoke");
   fs.mkdirSync(outputDirectory, { recursive: true });
@@ -1788,7 +1807,6 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
   }
   const expected = {
     start: labels.get("start"),
-    xex_entry: labels.get("boot_stage2_xex_entry"),
     loader_dlist: LOADER_DISPLAY_LIST_ADDRESS,
     main_menu_dlist: labels.get("main_menu_display_list"),
     playfield_dlist_a: labels.get("PLAYFIELD_DLIST_A"),
@@ -1892,20 +1910,18 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
   };
 
   const publicLaunches = atari800ArtifactLaunches(rootDirectory);
-  invariant(publicLaunches.xex.artifact.path === xexPath &&
-    publicLaunches.atr.artifact.path === atrPath,
+  invariant(publicLaunches.atr.artifact.path === atrPath,
   "Boot smoke must use the manifest-bound public artifact paths");
   // Owner decision A (2026-09-20): the ATR must boot without the player
   // holding OPTION. Until that fix the boot code ended in `rts` and relied on
   // OS coldstart jumping through DOSVEC, which it only does when no cartridge
   // is enabled; with BASIC enabled the OS started BASIC instead. Every cold
   // session here ran `-nobasic`, so the defect was invisible to this gate.
-  // Both BASIC states are now covered on both media, at both cold RAM fills.
-  // The four `-nobasic` sessions keep their identity and their position, so
-  // the committed baseline and the historical session order are unchanged.
+  // Both BASIC states are covered at both cold RAM fills. The ATR is the only
+  // published medium (owner decision, 2026-09-30), so it is the only one booted.
   const definitions = [];
   for (const basic of [false, true]) {
-    for (const artifact of [publicLaunches.xex, publicLaunches.atr]) {
+    for (const artifact of [publicLaunches.atr]) {
       validateAtari800Launch(artifact);
       for (const fill of [0xa5, 0x5a]) {
         definitions.push({
@@ -2049,7 +2065,7 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
     // when the transport grows on purpose, re-record
     // `docs/boot-deadline-baseline.json` in the same commit and state the
     // reason in the commit message.
-    const medium = definition.id.startsWith("atr") ? "atr" : "xex";
+    const medium = "atr";
     const baselineMenu = bootDeadline.baseline[`${medium}_menu_frames`];
     invariant(Number.isInteger(baselineMenu),
       `${bootDeadlineRelativePath} has no ${medium}_menu_frames baseline`);
@@ -2105,13 +2121,11 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
     const sectorReaderResult = {
       medium: medium.toUpperCase(),
       command_frames: result.sio.command_frames,
-      expected_command_frames: definition.id.startsWith("xex") ? 0 : levelOne.sectors,
+      expected_command_frames: levelOne.sectors,
       wire_retries: result.sio.wire_retries,
       level_load_frames: result.sio.level_load_end - result.sio.level_load_begin,
       level_image_verified: true,
-      path: definition.id.startsWith("xex")
-        ? "resident skip: the XEX carries the image as a block and never reaches SIO"
-        : "direct SIO: one command frame per sector at START GAME",
+      path: "direct SIO: one command frame per sector at START GAME",
     };
     const bootDeadlineResult = {
       medium: medium.toUpperCase(),
@@ -2154,21 +2168,14 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
         `${definition.id} PORTB bit 1 is clear at frame ${snapshot.frame}: the BASIC ROM is ` +
         "mapped over the window");
     }
-    if (definition.id.startsWith("xex")) {
-      invariant(menu.runad === expected.xex_entry,
-        `${definition.id} XEX RUNAD does not point at the stage-2 parity entry`);
-    } else {
-      invariant(menu.dosvec === expected.start,
-        `${definition.id} ATR DOSVEC does not point at the game entry`);
-    }
+    invariant(menu.dosvec === expected.start,
+      `${definition.id} ATR DOSVEC does not point at the game entry`);
 
     // --- roadmap 4.3: the level image, and how it got there -----------------
     //
     // The gameplay snapshot is taken after START GAME, so by then the reader
-    // has run on both media. What differs is the route: the XEX carries the
-    // image as a block and must take the resident skip without touching SIO,
-    // the ATR must read it over the wire. Both must end with the same bytes
-    // in the same place.
+    // has read the level image over the wire. It must end with the build's own
+    // bytes in the level buffer.
     invariant(gameplay.level_header === levelImageHex &&
       gameplay.level_checksum === levelImageChecksum,
     `${definition.id} has the wrong level image at ` +
@@ -2179,15 +2186,9 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
     invariant(sio.wire_retries === 0,
       `${definition.id} needed ${sio.wire_retries} wire retries; the emulator's ` +
       "wire is lossless, so any retry is a reader defect");
-    if (definition.id.startsWith("xex")) {
-      invariant(sio.command_frames === 0,
-        `${definition.id} put ${sio.command_frames} command frames on the wire; the XEX ` +
-        "carries the level image as a block and must take the resident-skip path");
-    } else {
-      invariant(sio.command_frames === levelOne.sectors,
-        `${definition.id} put ${sio.command_frames} command frames on the wire, ` +
-        `expected exactly ${levelOne.sectors} - one per sector, no retries`);
-    }
+    invariant(sio.command_frames === levelOne.sectors,
+      `${definition.id} put ${sio.command_frames} command frames on the wire, ` +
+      `expected exactly ${levelOne.sectors} - one per sector, no retries`);
     invariant(sio.level_load_begin >= 0 && sio.level_load_end >= sio.level_load_begin,
       `${definition.id} did not record a level load window`);
     const loadFrames = sio.level_load_end - sio.level_load_begin;
@@ -2209,7 +2210,7 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
     });
     return {
       id: definition.id,
-      medium: definition.id.startsWith("xex") ? "XEX" : "ATR",
+      medium: "ATR",
       cold_ram_fill: definition.fill,
       basic_enabled: definition.basic,
       artifact: {
@@ -2258,9 +2259,9 @@ function runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest }) {
       per_session: sessions.map((session) => ({
         id: session.id, ...session.sector_reader,
       })),
-      note: "XEX sessions must put 0 command frames on the wire (resident skip, owner " +
-        "decision 1); ATR sessions exactly one per sector with 0 retries. The image at " +
-        "LEVEL_BUFFER is compared byte for byte against the build's own level image.",
+      note: "Every session puts exactly one command frame per sector on the wire with " +
+        "0 retries. The image at LEVEL_BUFFER is compared byte for byte against the " +
+        "build's own level image.",
     },
     basic_window: {
       address: basicWindow.address,
@@ -2337,7 +2338,7 @@ function firstByteDifference(actual, expected) {
   return -1;
 }
 
-function runMenuRasterAudit({ emulatorPath, labels, manifest, xexPath, atrPath }) {
+function runMenuRasterAudit({ emulatorPath, labels, manifest, atrPath }) {
   const outputDirectory = path.join(buildDirectory, "menu-raster");
   fs.mkdirSync(outputDirectory, { recursive: true });
   const source = fs.readFileSync(path.join(rootDirectory, "src", "main.s"), "utf8");
@@ -2507,7 +2508,6 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, xexPath, atrPath }
 
   const sessions = [];
   for (const artifact of [
-    { medium: "XEX", path: xexPath, args: ["-run", xexPath] },
     { medium: "ATR", path: atrPath, args: [atrPath] },
   ]) {
     for (const fill of [0x00, 0xa5, 0x5a, 0xff]) {
@@ -2760,12 +2760,12 @@ function main() {
   const emulatorPath = path.join(sourceDirectory, "src", "atari800");
   invariant(fs.existsSync(emulatorPath),
     `Instrumented Atari800 is missing: ${emulatorPath}; rerun with --prepare`);
+  assertTraceEmulatorFresh(sourceDirectory, headerPath);
   const labelPath = path.join(rootDirectory, "build", "void-strike-65.lbl");
   const manifestPath = path.join(rootDirectory, "dist", "void-strike-65-manifest.json");
   const bootPath = path.join(rootDirectory, "dist", "void-strike-65-boot.bin");
-  const xexPath = path.join(rootDirectory, "dist", "void-strike-65.xex");
   const atrPath = path.join(rootDirectory, "dist", "void-strike-65.atr");
-  for (const requiredPath of [labelPath, manifestPath, bootPath, xexPath, atrPath]) {
+  for (const requiredPath of [labelPath, manifestPath, bootPath, atrPath]) {
     invariant(fs.existsSync(requiredPath), `Build input is missing: ${requiredPath}`);
   }
   const labels = parseViceLabels(fs.readFileSync(labelPath, "utf8"));
@@ -2794,7 +2794,6 @@ function main() {
     "Runtime trace requires candidate or final release artifacts");
   const runtimeArtifacts = runtimeArtifactSet({
     boot: fs.readFileSync(bootPath),
-    xex: fs.readFileSync(xexPath),
     atr: fs.readFileSync(atrPath),
   });
   runtimeArtifacts["void-strike-65-manifest.json"] = {
@@ -2889,18 +2888,18 @@ function main() {
   fs.mkdirSync(buildDirectory, { recursive: true });
   if (menuRasterOnly) {
     const menuRaster = runMenuRasterAudit({
-      emulatorPath, labels, manifest, xexPath, atrPath,
+      emulatorPath, labels, manifest, atrPath,
     });
     console.log(`Menu raster: ${menuRaster.report.sessions.length} ` +
-      "XEX/ATR cold-start and return sessions passed");
+      "ATR cold-start and return sessions passed");
     console.log(`Report: ${path.relative(rootDirectory, menuRaster.durableReportPath)}`);
     console.log(`Raw report: ${path.relative(rootDirectory, menuRaster.buildReportPath)}`);
     return;
   }
   const bootSmoke = skipBootSmoke ? null :
-    runBootSmoke({ emulatorPath, labels, xexPath, atrPath, manifest });
+    runBootSmoke({ emulatorPath, labels, atrPath, manifest });
   if (bootSmoke !== null)
-    console.log(`Boot smoke: ${bootSmoke.sessions.length} XEX/ATR cold-start sessions passed`);
+    console.log(`Boot smoke: ${bootSmoke.sessions.length} ATR cold-start sessions passed`);
   if (bootSmokeOnly) {
     invariant(bootSmoke !== null, "--boot-smoke-only cannot be combined with --skip-boot-smoke");
     console.log(`Report: ${path.relative(rootDirectory,
@@ -3203,10 +3202,11 @@ function main() {
 	  } : {}),
     };
     if (!reuseExistingTraces || !fs.existsSync(outputPath)) {
-      const artifactArguments = session.medium === "ATR" ? [atrPath] : ["-run", xexPath];
+      // The ATR is the only published medium (owner decision, 2026-09-30), so
+      // every replay boots it from D1:.
       run(emulatorPath, [
         "-xe", "-pal", "-nobasic", "-nosound", "-turbo", "-no-video-accel", "-no-vsync",
-        ...artifactArguments,
+        atrPath,
       ], { env: environment });
     }
     const rows = parseCsv(fs.readFileSync(outputPath, "utf8"), session);
@@ -3351,8 +3351,7 @@ function main() {
       const evidence = {
         session: session.id,
         emulator: "Atari800 7.1.2 PAL/XL",
-        production_artifact: path.relative(rootDirectory,
-          session.medium === "ATR" ? atrPath : xexPath),
+        production_artifact: path.relative(rootDirectory, atrPath),
         frames: rows.length,
         maximum_wall_cycles: Math.max(...rows.map((row) => row.wall_cycles)),
         missed_frames: rows.reduce((sum, row) => sum + row.missed_frames, 0),
@@ -3734,7 +3733,7 @@ function main() {
           session: session.id,
           owner: session.contactOwner === 0 ? "Allied" : "Hostile",
           emulator: "Atari800 7.1.2 PAL/XL",
-          production_artifact: path.relative(rootDirectory, xexPath),
+          production_artifact: path.relative(rootDirectory, atrPath),
           order: "update shell -> common collision -> canonical player damage -> late render",
           damage_hull_units: 2,
           post_hit_cooldown_frames: 25,
@@ -3905,7 +3904,7 @@ function main() {
       const evidence = {
         session: session.id,
         emulator: "Atari800 7.1.2 PAL/XL",
-        production_artifact: path.relative(rootDirectory, xexPath),
+        production_artifact: path.relative(rootDirectory, atrPath),
         frames: rows.length,
         maximum_wall_cycles: Math.max(...rows.map((row) => row.wall_cycles)),
         contact_phases: [...new Set(contactRows.map((row) => row.pickup_render_phase))].sort(),
@@ -4020,8 +4019,8 @@ function main() {
     });
     const report = {
       generated: new Date().toISOString(),
-      artifact: path.relative(rootDirectory, xexPath),
-      artifact_sha256: crypto.createHash("sha256").update(fs.readFileSync(xexPath)).digest("hex"),
+      artifact: path.relative(rootDirectory, atrPath),
+      artifact_sha256: crypto.createHash("sha256").update(fs.readFileSync(atrPath)).digest("hex"),
       method: "per completed host frame, Screen_atari compared with the two debris glyphs at 2*HPOS-64, expected top scanline 24+8*((Y-24)>>3), against the record sampled at the previous boundary",
       criteria: "per life entering the playfield: first visible Y 24, 0 blank frames in view, 0 disappear/reappear transitions, ring cells hold the codes whenever RENDERED; bottom row (Y>=232) reported separately",
       sessions,
@@ -4550,7 +4549,7 @@ function main() {
     };
     const effectPeak = maximumRow(effectRows, (row) => effectMetrics(row).visual);
     const linkedEffectFrames = Array.from({ length: 22 }, (unused, ringHead) =>
-      executeDebrisDestructionTrace({ root: rootDirectory, artifact: "xex", ringHead })
+      executeDebrisDestructionTrace({ root: rootDirectory, artifact: "atr", ringHead })
         .records.filter((row) => row.phase === "FINAL")).flat();
     const linkedEffectPeak = maximumRow(linkedEffectFrames, (row) =>
       row.effectEraseCycles + row.effectRenderCycles);
@@ -4656,7 +4655,7 @@ function main() {
     const rows = allRows.filter((row) => row.sector_state === 7 &&
       row.player_lifecycle === 0 && row.player_fighter_explosion_timer === 0);
     const modeRows = (mode) => rows.filter((row) => row.session ===
-      `pairshot-${mode}-xex-hard` && row.player_fighter_projectiles > 0);
+      `pairshot-${mode}-atr-hard` && row.player_fighter_projectiles > 0);
     const normalRows = modeRows("normal");
     const rapidRows = modeRows("rapid");
     const spreadRows = modeRows("spread");
@@ -5475,7 +5474,7 @@ function main() {
       // points the evidence at a replay that no longer exists.
       session: weaponPickupTraversalSessions[0].id,
       emulator: "Atari800 7.1.2 PAL/XL",
-      production_artifact: path.relative(rootDirectory, xexPath),
+      production_artifact: path.relative(rootDirectory, atrPath),
       first_complete_traversal: {
         active_frames: activeRows.length,
         first_y: activeRows[0].pickup_y,
@@ -5524,16 +5523,16 @@ function main() {
       top.frame + ((returnedBottom.frame - top.frame) >> 1),
       returnedBottom.frame, rows.at(-1).frame];
     const selectedPaths = selectedFrames.map((frame) => path.join(buildDirectory,
-      `lower-playfield-xex-hard-${String(frame).padStart(3, "0")}.png`));
+      `lower-playfield-atr-hard-${String(frame).padStart(3, "0")}.png`));
     invariant(selectedPaths.every((screenshotPath) => fs.existsSync(screenshotPath)),
       "Lower-playfield replay is missing a selected native raster");
     const sheetPath = path.join(buildDirectory, "lower-playfield-boundary-sequence.png");
     writeScreenshotContact(selectedPaths, sheetPath, 5);
     const evidencePath = path.join(buildDirectory, "lower-playfield-boundary-evidence.json");
     fs.writeFileSync(evidencePath, `${JSON.stringify({
-      session: "lower-playfield-xex-hard",
+      session: "lower-playfield-atr-hard",
       emulator: "Atari800 7.1.2 PAL/XL",
-      production_artifact: path.relative(rootDirectory, xexPath),
+      production_artifact: path.relative(rootDirectory, atrPath),
       canonical_raster: {
         hud: [canonicalPlayfield.hudTop, canonicalPlayfield.hudBottom - 1],
         divider: [canonicalPlayfield.gameplayTop, canonicalPlayfield.entityTop - 1],
@@ -5564,7 +5563,7 @@ function main() {
       screenshot_sequence: path.relative(rootDirectory, sheetPath),
       selected_frames: selectedFrames,
       raw_trace: path.relative(rootDirectory,
-        path.join(buildDirectory, "lower-playfield-xex-hard.csv")),
+        path.join(buildDirectory, "lower-playfield-atr-hard.csv")),
       passed: true,
     }, null, 2)}\n`);
   }
@@ -5773,7 +5772,7 @@ function main() {
           raster_x_alignment: "two adjacent ANTIC 4 cells" },
       },
       checkpoint_counterexample: {
-        artifact: "build/runtime-wall-trace/capital-player-xex-1-allied-top-hitboxes.png",
+        artifact: "build/runtime-wall-trace/capital-player-atr-1-allied-top-hitboxes.png",
         player_logical_y: 110,
         player_pmg_dma_rows: [110, 124],
         player_final_raster: [102, 116],
@@ -5940,12 +5939,14 @@ function main() {
   const finalComplete = directorCompletionRows.find((row) =>
     row.session === hardDirectorCompletion.session &&
     row.frame === hardDirectorCompletion.level_complete_frame);
-  invariant(memoryIntegrityRows.length === 16_000,
-    `XEX/ATR memory-integrity traces measured ${memoryIntegrityRows.length}/16000 frames`);
+  invariant(memoryIntegrityRows.length === memoryIntegritySessions.length * 4_000,
+    `Memory-integrity traces measured ${memoryIntegrityRows.length}/` +
+    `${memoryIntegritySessions.length * 4_000} frames`);
   invariant(engineRows.length === engineDiagnosticSessions.length * 150,
     `Engine startup traces measured ${engineRows.length}/${engineDiagnosticSessions.length * 150} frames`);
   invariant(engineRestartRows.length === engineRestartSessions.length * 3_200,
-    `Engine restart traces measured ${engineRestartRows.length}/6400 frames`);
+    `Engine restart traces measured ${engineRestartRows.length}/` +
+    `${engineRestartSessions.length * 3_200} frames`);
   for (const session of memoryIntegritySessions) {
     invariant(memoryIntegrityRows.filter((row) => row.session === session.id).length === 4_000,
       `${session.medium}/${session.policy} integrity segment did not execute 80 seconds`);
@@ -6025,39 +6026,6 @@ function main() {
         fs.readFileSync(screenshotPath)))),
     };
   });
-  /* MEASURED 2026-09-21, owner rule step 1: class (c), a REAL FAILURE — neither
-   * extended nor weakened, but recorded. In all 12 XEX/ATR pairings EXACTLY
-   * frames 0-4 differ and frames 5-149 are byte-identical, so no frame budget
-   * reaches the behaviour (a) and there is no other instance to select (b):
-   * narrowing the hash to frames 5-149 would be loosening the assertion, which
-   * the rule forbids. The only non-clock traced-state difference is
-   * `capital_visible_allied_cells` 6 (XEX) vs 8 (ATR) on frame 0 — identically
-   * in all 12 pairings; frames 1-4 carry identical traced state and differing
-   * pixels, so the rest of the transient is outside what the CSV records.
-   * Whether a five-frame medium-dependent entry transient is acceptable is an
-   * owner judgement, not one to make by editing the clause. Pre-existing: this
-   * session touched neither the engine nor the boot path, and the clause was
-   * unreachable behind three earlier blockers. */
-  const engineMediumEquivalence = [];
-  for (const session of engineSessionEvidence.filter(({ medium }) => medium === "XEX")) {
-    const peer = engineSessionEvidence.find((candidate) => candidate.medium === "ATR" &&
-      candidate.cold_ram_fill === session.cold_ram_fill &&
-      candidate.difficulty === session.difficulty && candidate.start_mode === session.start_mode);
-    const differingFrames = Array.from({ length: 150 }, (_, frame) => frame).filter((frame) =>
-      !fs.readFileSync(path.join(buildDirectory,
-        `${session.id}-${String(frame).padStart(3, "0")}.png`)).equals(
-        fs.readFileSync(path.join(buildDirectory,
-          `${peer.id}-${String(frame).padStart(3, "0")}.png`))));
-    engineMediumEquivalence.push({
-      xex_session: session.id,
-      atr_session: peer.id,
-      identical: differingFrames.length === 0,
-      differing_frames: differingFrames,
-    });
-    recordClauseFailure(session.id,
-      peer?.screenshot_sequence_sha256 === session.screenshot_sequence_sha256,
-      `${session.id} screenshot sequence differs between XEX and ATR`);
-  }
   const engineRestartEvidence = engineRestartSessions.map((session) => {
     const rows = engineRestartRows.filter((row) => row.session === session.id);
     const restartedRows = rows.filter((row) => row.gameplay_generation === 2).slice(0, 150);
@@ -6100,10 +6068,7 @@ function main() {
         fs.readFileSync(screenshotPath)))),
     };
   });
-  invariant(engineRestartEvidence[0].screenshot_sequence_sha256 ===
-    engineRestartEvidence[1].screenshot_sequence_sha256,
-  "Restarted-game screenshot sequence differs between XEX and ATR");
-  const engineContactSession = "engine-xex-a5-0-immediate";
+  const engineContactSession = "engine-atr-a5-0-immediate";
   const engineScreenshotPath = (frame) => path.join(buildDirectory,
     `${engineContactSession}-${String(frame).padStart(3, "0")}.png`);
   const engineFirstContact = writeScreenshotContact(
@@ -6135,7 +6100,6 @@ function main() {
       bytes: fs.statSync(engineCompactTracePath).size,
       sha256: sha256(fs.readFileSync(engineCompactTracePath)),
     },
-    xex_atr_screenshot_parity: true,
   };
   invariant(allRows.every((row) => row.dma_ctl === 0x3e),
     "Trace observed gameplay DMACTL other than $3E");
@@ -6184,33 +6148,17 @@ function main() {
     `DLI phase/order violations observed: ${dliSequenceViolations}`);
   invariant(maximumDlisPerHostFrame <= 2,
     `More than two gameplay DLIs occurred in one host frame: ${maximumDlisPerHostFrame}`);
-  const integrityByMedium = Object.fromEntries(["XEX", "ATR"].map((medium) => [
-    medium,
-    memoryIntegrityRows.filter((row) => row.session.includes(`-${medium.toLowerCase()}-`)),
-  ]));
-  const integrityState = (row) => [
-    row.gameplay_frame, row.events, row.projectiles, row.broadside, row.live_interceptor,
-    row.entity_active_mask, row.entity_x, row.entity_y, row.entity_render_id,
-    row.effect_active_mask, row.pickup_state, row.pickup_booster_state,
-    row.pickup_counter, row.pickup_x,
-    row.pickup_y, row.pickup_timer_lo, row.pickup_timer_hi, row.score_lo, row.score_hi,
-    row.rapid_projectiles, row.player_fighter_projectiles,
-  ];
-  invariant(integrityByMedium.XEX.every((row, index) =>
-    JSON.stringify(integrityState(row)) === JSON.stringify(integrityState(integrityByMedium.ATR[index]))),
-  "XEX and ATR 160-second memory-integrity state traces diverged");
   const integrityCollections = memoryIntegrityRows.filter((row) =>
     (row.events & (1 << 19)) !== 0);
   invariant(integrityCollections.length >= 10,
-    `Long XEX/ATR traces completed only ${integrityCollections.length}/10 weapon-booster cycles`);
+    `Long integrity traces completed only ${integrityCollections.length}/10 weapon-booster cycles`);
   const integrityPauseRows = memoryIntegrityRows.filter((row) => row.pause_test_completed !== 0);
-  invariant(["XEX", "ATR"].every((medium) => integrityPauseRows.some((row) =>
-    row.session.includes(`-${medium.toLowerCase()}-`) &&
-      row.pause_timer_before === row.pause_timer_after &&
+  invariant(integrityPauseRows.some((row) =>
+    row.pause_timer_before === row.pause_timer_after &&
       row.pause_engine_timer_before === row.pause_engine_timer_after &&
       row.pause_engine_phase_before === row.pause_engine_phase_after &&
-      row.pause_host_frames >= 25)),
-  "XEX/ATR integrity replay did not freeze Spread Shot and engine cadence across OPTION pause");
+      row.pause_host_frames >= 25),
+  "Integrity replay did not freeze Spread Shot and engine cadence across OPTION pause");
   const maximumBroadside = Math.max(...allRows.map((row) => row.broadside));
   const emptyEntityRows = allRows.filter((row) => row.entity_active === 0 &&
     row.pickup_state === 0 &&
@@ -6229,7 +6177,7 @@ function main() {
   const pickupQualifiedKillRows = weaponPickupRows.filter((row) =>
     (row.events & (1 << 18)) !== 0);
   // The deterministic pickup showcase proves capsule/render semantics, while
-  // the longer XEX/ATR integrity replays prove every booster mode and at least
+  // the longer integrity replays prove every booster mode and at least
   // three distinct collections. Admission ownership can legitimately move a
   // later collection beyond the showcase window, so lifecycle coverage is the
   // union of both real production traces.
@@ -6760,7 +6708,7 @@ function main() {
       partial: false,
       required_sessions: sessionsToRun.length,
       completed_sessions: summaries.length,
-      artifact_binding: "boot BIN, XEX and ATR SHA-256",
+      artifact_binding: "boot BIN and ATR SHA-256",
     },
     determinism: {
       replay_fingerprint_sha256: sha256JsonArray(allRows),
@@ -6768,7 +6716,7 @@ function main() {
       basis: "ordered decoded CSV rows from every required legal replay",
     },
     artifacts: runtimeArtifacts,
-    artifact: runtimeArtifacts["void-strike-65.xex"],
+    artifact: runtimeArtifacts["void-strike-65.atr"],
     emulator: {
       name: "Atari800",
       version: EXPECTED_ATARI800_VERSION,
@@ -7022,9 +6970,8 @@ function main() {
         passed: true,
       },
       memory_integrity: {
-        xex_frames: integrityByMedium.XEX.length,
-        atr_frames: integrityByMedium.ATR.length,
-        duration_seconds_pal_per_artifact: integrityByMedium.XEX.length / 50,
+        atr_frames: memoryIntegrityRows.length,
+        duration_seconds_pal_per_artifact: memoryIntegrityRows.length / 50,
         pickup_rf_cycles: integrityCollections.length,
         dli_sequence_violations: dliSequenceViolations,
         maximum_dlis_per_host_frame: maximumDlisPerHostFrame,
@@ -7041,13 +6988,10 @@ function main() {
             paused_host_frames: row.pause_host_frames,
           };
         }),
-        xex_atr_state_parity: true,
         passed: dliSequenceViolations === 0 && maximumDlisPerHostFrame === 2,
       },
       capital_engine_regression: {
         sessions: engineSessionEvidence,
-        /* The measurement behind the recorded XEX/ATR equivalence failure. */
-        medium_equivalence: engineMediumEquivalence,
         restart_sessions: engineRestartEvidence,
         evidence: engineRuntimeEvidence,
         measured_frames: engineRows.length,

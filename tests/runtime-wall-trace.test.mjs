@@ -66,14 +66,14 @@ test("wall trace is artifact-bound and adds no guest timing work", () => {
   assert.equal(report.evidence.status, "complete");
   assert.equal(report.evidence.partial, false);
   assert.equal(report.evidence.required_sessions, report.evidence.completed_sessions);
-  for (const name of ["void-strike-65-boot.bin", "void-strike-65.xex", "void-strike-65.atr"]) {
+  for (const name of ["void-strike-65-boot.bin", "void-strike-65.atr"]) {
     assert.deepEqual(report.artifacts[name], {
       path: `dist/${name}`,
       bytes: manifest.artifacts[name].bytes,
       sha256: manifest.artifacts[name].sha256,
     });
   }
-  assert.equal(report.artifact.sha256, report.artifacts["void-strike-65.xex"].sha256);
+  assert.equal(report.artifact.sha256, report.artifacts["void-strike-65.atr"].sha256);
   assert.equal(report.instrumentation.start_label, "main_loop_option_poll");
   assert.equal(report.instrumentation.end_label, "main_loop");
   assert.equal(report.instrumentation.guest_instructions_added, 0);
@@ -83,7 +83,7 @@ test("wall trace is artifact-bound and adds no guest timing work", () => {
   assert.equal(report.instrumentation.production_nmi_en, 0x80);
 });
 
-test("real Atari800 XEX/ATR cold boots reach visible gameplay inside the boot horizon", () => {
+test("real Atari800 ATR cold boots reach visible gameplay inside the boot horizon", () => {
   const smoke = report.boot_smoke;
   assert.equal(smoke.emulator, "Atari800 7.1.2 PAL/XL");
   // The horizon must stay above the owner's 3,000-frame (60 s PAL) ceiling,
@@ -103,7 +103,7 @@ test("real Atari800 XEX/ATR cold boots reach visible gameplay inside the boot ho
   // regeneration-blocked.md), so assert the matrix per BASIC state instead of
   // pinning a session count. Both shapes are checked exactly; neither is waved
   // through.
-  const bootMatrix = [["XEX", 0xa5], ["XEX", 0x5a], ["ATR", 0xa5], ["ATR", 0x5a]];
+  const bootMatrix = [["ATR", 0xa5], ["ATR", 0x5a]];
   const bootStates = [...new Set(smoke.sessions.map(({ basic_enabled }) =>
     basic_enabled === true))];
   assert.deepEqual(bootStates, bootStates.length === 1 ? [false] : [false, true]);
@@ -188,24 +188,20 @@ test("real Atari800 XEX/ATR cold boots reach visible gameplay inside the boot ho
     assert.ok(session.screenshots.every(({ bytes, sha256 }) =>
       bytes > 0 && /^[0-9a-f]{64}$/.test(sha256)));
   }
-  for (const medium of ["XEX", "ATR"]) {
-    assert.equal(new Set(smoke.sessions
-      .filter((session) => session.medium === medium)
-      .map(({ artifact }) => artifact.sha256)).size, 1);
-  }
-  assert.equal(new Set(smoke.sessions.map(({ artifact }) => artifact.sha256)).size, 2);
+  assert.deepEqual([...new Set(smoke.sessions.map(({ medium }) => medium))], ["ATR"]);
+  assert.equal(new Set(smoke.sessions.map(({ artifact }) => artifact.sha256)).size, 1);
   assert.equal(smoke.passed, true);
 });
 
-test("wall trace covers legal short replays and 160-second XEX/ATR integrity runs", () => {
+test("wall trace covers legal short replays and long ATR integrity runs", () => {
   assert.equal(report.replay.baseline_measured_frames, 9_040);
   assert.equal(report.replay.targeted_measured_frames, 920);
   assert.equal(report.replay.parallax_cadence_measured_frames, 1_200);
   assert.equal(report.replay.fighter_flash_measured_frames, 1_600);
   assert.equal(report.replay.debris_effects_measured_frames, 5_000);
   assert.equal(report.replay.director_completion_measured_frames, 31_500);
-  assert.equal(report.replay.memory_integrity_measured_frames, 16_000);
-  assert.equal(report.replay.engine_startup_measured_frames, 3_600);
+  assert.equal(report.replay.memory_integrity_measured_frames, 12_000);
+  assert.equal(report.replay.engine_startup_measured_frames, 1_800);
   assert.equal(report.replay.sessions
     .filter((session) => session.kind === "baseline-9040")
     .reduce((sum, session) => sum + session.measured_frames, 0), 9_040);
@@ -219,8 +215,7 @@ test("wall trace covers legal short replays and 160-second XEX/ATR integrity run
     .filter((session) => session.kind === "memory-integrity-160s");
   assert.deepEqual(integrity.map(({ medium, policy, measured_frames }) =>
     [medium, policy, measured_frames]), [
-    ["XEX", "evasive", 4_000], ["XEX", "hunt", 4_000],
-    ["ATR", "evasive", 4_000], ["ATR", "hunt", 4_000],
+    ["ATR", "evasive", 4_000], ["ATR", "hunt", 4_000], ["ATR", "hunt", 4_000],
   ]);
   assert.equal(report.replay.sessions
     .filter((session) => session.kind === "fighter-flash-coverage")
@@ -302,16 +297,14 @@ test("PAL replay ends the level on the last sector's row clock, into a terminal 
 test("long real-artifact replay preserves the exact two-DLI HUD/gameplay phase", () => {
   const integrity = report.gate.memory_integrity;
   assert.deepEqual([
-    integrity.xex_frames,
     integrity.atr_frames,
     integrity.duration_seconds_pal_per_artifact,
     integrity.dli_sequence_violations,
     integrity.maximum_dlis_per_host_frame,
-    integrity.xex_atr_state_parity,
     integrity.passed,
-  ], [8_000, 8_000, 160, 0, 2, true, true]);
+  ], [12_000, 240, 0, 2, true]);
   assert.ok(integrity.pickup_rf_cycles >= 10);
-  assert.equal(integrity.pause_sessions.length, 2);
+  assert.equal(integrity.pause_sessions.length, 1);
   assert.ok(integrity.pause_sessions.every(({ timer_before, timer_after }) =>
     timer_before === timer_after && timer_before >= 100 && timer_before <= 450));
   assert.ok(integrity.pause_sessions.every((session) =>
@@ -321,7 +314,7 @@ test("long real-artifact replay preserves the exact two-DLI HUD/gameplay phase",
     paused_host_frames >= 25));
 });
 
-test("real XEX/ATR startup traces keep one atomic two-phase engine pulse", () => {
+test("real ATR startup traces keep one atomic two-phase engine pulse", () => {
   const engines = report.gate.capital_engine_regression;
   assert.deepEqual([
     engines.measured_frames,
@@ -334,10 +327,9 @@ test("real XEX/ATR startup traces keep one atomic two-phase engine pulse", () =>
     engines.first_dli_selects_active_list_offset,
     engines.screenshots_per_session,
     engines.passed,
-  ], [3_600, 6_400, 8, 16, 3.125, 0, 2, 3, 150, true]);
-  assert.equal(engines.sessions.length, 24);
-  assert.deepEqual(new Set(engines.sessions.map(({ medium }) => medium)),
-    new Set(["XEX", "ATR"]));
+  ], [1_800, 3_200, 8, 16, 3.125, 0, 2, 3, 150, true]);
+  assert.equal(engines.sessions.length, 12);
+  assert.deepEqual(new Set(engines.sessions.map(({ medium }) => medium)), new Set(["ATR"]));
   assert.deepEqual(new Set(engines.sessions.map(({ cold_ram_fill }) => cold_ram_fill)),
     new Set([0xa5, 0x5a]));
   assert.deepEqual(new Set(engines.sessions.map(({ difficulty }) => difficulty)),
@@ -351,8 +343,7 @@ test("real XEX/ATR startup traces keep one atomic two-phase engine pulse", () =>
   // asserted as the relation to their inputs: a sheet is exactly its frames
   // laid out `columns` wide, and both sheets are cut from the same frame size.
   // The measured pixel sizes stay in docs/runtime-wall-trace.json as data.
-  assert.equal(engines.evidence.source_session, "engine-xex-a5-0-immediate");
-  assert.equal(engines.evidence.xex_atr_screenshot_parity, true);
+  assert.equal(engines.evidence.source_session, "engine-atr-a5-0-immediate");
   assert.equal(engines.evidence.compact_trace.rows, engines.screenshots_per_session);
   const contactTiles = [engines.evidence.first_32_contact,
     engines.evidence.two_cycles_contact].map((sheet) => {
@@ -387,11 +378,8 @@ test("real XEX/ATR startup traces keep one atomic two-phase engine pulse", () =>
     assert.equal(session.a2_heads.length, 22);
     assert.equal(session.screenshots, 150);
   }
-  assert.equal(engines.restart_sessions.length, 2);
-  assert.deepEqual(new Set(engines.restart_sessions.map(({ medium }) => medium)),
-    new Set(["XEX", "ATR"]));
-  assert.equal(new Set(engines.restart_sessions.map(
-    ({ screenshot_sequence_sha256 }) => screenshot_sequence_sha256)).size, 1);
+  assert.equal(engines.restart_sessions.length, 1);
+  assert.deepEqual(new Set(engines.restart_sessions.map(({ medium }) => medium)), new Set(["ATR"]));
   for (const session of engines.restart_sessions) {
     assert.ok(session.gameplay_generations.includes(2));
     assert.ok(session.first_restarted_row >= 0);
@@ -982,19 +970,13 @@ test("every difficulty preserves exact introductory parallax cadence through the
   ]);
 });
 
-test("XEX and ATR legal hunt traces have identical maxima and a reproducible fingerprint", () => {
+test("the ATR legal hunt traces stay legal and have a reproducible fingerprint", () => {
   const sessions = report.replay.sessions.filter(({ kind, policy }) =>
     kind === "memory-integrity-160s" && policy === "hunt");
-  // Owner decision 2026-09-21. The pin was [["XEX", 24_264], ["ATR", 24_264]]:
-  // one measured number twice. What this clause owns is that the two media are
-  // IDENTICAL and both legal, so that is what it now asserts — the equality
-  // between them, and each against the hard gate and the physical frame.
-  assert.deepEqual(sessions.map(({ medium }) => medium), ["XEX", "ATR"]);
-  const [xexSession, atrSession] = sessions;
-  assert.equal(xexSession.maximum_wall_cycles, atrSession.maximum_wall_cycles,
-    `XEX peaks at ${xexSession.maximum_wall_cycles} and ATR at ` +
-    `${atrSession.maximum_wall_cycles}: the media are not identical`);
-  assert.equal(xexSession.measured_frames, atrSession.measured_frames);
+  // Owner decision 2026-09-21 unpinned the measured peak; the ATR is the only
+  // medium since 2026-09-30, so the media-equality half went with the XEX. What
+  // stays is the legality of the replay against the hard gate and the frame.
+  assert.deepEqual(sessions.map(({ medium }) => medium), ["ATR", "ATR"]);
   for (const session of sessions) {
     assert.ok(session.maximum_wall_cycles <= report.gate.maximum_wall_cycles,
       `${session.id} peaks at ${session.maximum_wall_cycles}, over the ` +

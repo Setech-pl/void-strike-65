@@ -89,8 +89,9 @@ replays, same tool. There were 0 distinct miss events, 0 rows over 32,568,
 are identical to the frame: nothing before the capital changed. The capital's
 own maxima are unchanged (29,538 / 29,423 / 29,198). The capital traversal is
 the hull's 128 rows shorter, at the hull scroll rates 0.40 / 0.45 / 0.50 rows per
-frame: −320 / −284 / −256 frames expected. MEDIUM measures −307 because its
-capital sector also holds the drain and the Director's own sector exit. Every
+frame: −320 / −284 / −256 frames expected. EASY and HARD match; MEDIUM
+measures −307, 23 frames more than the arithmetic, and the difference was not
+investigated. Every
 frame after the capital arrives about 300 frames earlier, so sectors 4-6 meet
 different load coincidences. The new maximum, 31,205 in EASY's sector 5, is one
 of them: 73 cycles above the before figure, 1,363 under 32,568, and 421 under

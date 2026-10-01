@@ -327,6 +327,83 @@ owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
 
+## boot-loading-blank-screen — no garbage before the splash — `OWNER-SMOKE CANDIDATE` (2026-10-01)
+
+Plan and measurements: [plans/boot-loading-blank-screen.md](plans/boot-loading-blank-screen.md).
+Branch `fix/boot-loading-blank-screen` from `main` `55cc361`.
+
+**The defect (pre-existing).** With BASIC enabled at the OS cold start — every
+default 65XE boot, and every RESET — the player saw 65 frames (1.3 s) of
+changing characters and a coloured line before the splash. Stage 2 loads
+records 162/171/204 into `$9B40-$9FCE` while the OS VBI still displays its
+screen-editor list at `$9C20`. `-nobasic` was clean because its OS screen is at
+`$BC20`. **RESET is an OS cold start, not a warm start through `DOSVEC`**:
+`COLDST` stays `$FF` because the boot never returns to the OS (owner decision A),
+so RESET re-boots the disk to the splash, loader and menu, and with OPTION up
+the OS maps BASIC — the same garbage. Not changed here; recorded because the
+boot smoke used to call the warm start "checked through `DOSVEC`".
+
+**The fix.** `boot_stage2_atr_entry`, after `copy_boot_splash_blob`:
+`stx SDMCTL` (X = 0), `lda COLOR2`, `sta COLOR4` — ANTIC DMA off and the whole
+screen in the OS blue from the next vertical blank, before the first SIO read.
+Every path now goes black → OS blue screen (while the OS loads the initial
+block) → plain blue → splash. 9 B of `BOOT_STAGE2`, no frame code.
+
+**Gates — the DEFAULT build.** ATR
+`af2e47b62c315ddf9ed05cab44842d8921bcb8c561b9cc2dcf103f1b1e8b31b7`, boot
+`06d2f25665a17c0858c92245f257d6d339858149a5ed4679919d120d6eb4d80a`.
+
+| | `main` `55cc361` | this branch | source |
+| --- | ---: | ---: | --- |
+| frames before the splash showing characters (BASIC / `-nobasic` / RESET) | 65 / 0 / 65 | **0 / 0 / 0** | boot smoke `blank_windows` |
+| worst line-238 fence margin | 785 (`director-complete-2` f5815) | **785**, same row and frame | PAL audit, 48 + 8 mode-gated replays |
+| DMA-on maximum / physical headroom | 31,121 / 4,447 | **31,121 / 4,447** | `docs/runtime-wall-trace.json` |
+| distinct miss events / rows over 32,568 | 0 / 0 | **0 / 0** | PAL audit |
+| DLI per host frame / sequence violations | 2 / 0 | **2 / 0** | `docs/runtime-wall-trace.json` |
+| behavioural clause failures | 16 | **16**, the same by session and message | `docs/recorded-gate-failures.json` |
+| boot smoke / ATR start / loader / menu (delta) | 4/4 / 284 / 341 / 598 (+2) | **4 cold + 1 RESET / 232 / 289 / 546 (−50)** | default trace run; `main` re-measured with the new harness |
+| the same, BASIC enabled | 256 / 313 / 570 | **223 / 280 / 537** | same |
+| boot / extension / total sectors | 107 / 101 / 208 | **107 / 101 / 208** | `build/manifest.json` |
+| initial block content / ceiling (STOP line 13,652) | 13,612 / 13,684 | **13,621** / 13,684 | same |
+| `BOOT_STAGE2` | 1,323 B, `$21C1-$26EB` | **1,332 B, `$21C1-$26F4`** | `build/void-strike-65.map` |
+| packed starfield → pickup cold staging margin | 152 B | **143 B** | `build/manifest.json` |
+| `ENTITY_CODE` free tail / `HYBRID_C_ARENA` free | 26 / 114 B | **26 / 114 B** | same |
+| `$AE00` window used / free | 1,991 / 1,593 | **1,991 / 1,593** | same |
+| `DIRECTOR_RAM` used / capacity | 602 / 645 | **602 / 645** | `build/encounter-director.map` |
+| `npm test` (default build): tests / pass / fail / todo | 887 / 779 / 105 / 3 | **891 / 783 / 105 / 3**, the same 105 by name | `main` from boot-xex-reclaim; re-run this session in a detached worktree: 106 failures, the extra one (`--artifacts refuses anything that is not build/level-N-sM`) an artefact of the worktree's own path `../dark-fighter-baseline` |
+
+**Why the boot is 33-52 frames faster (MEASURED).** The OS screen's ANTIC DMA
+no longer steals cycles from the stage-2 CRC and decode. The ATR menu delta
+against `docs/boot-deadline-baseline.json` (596) is now −50; the baseline is
+not re-recorded (it gates growth; re-basing it is an owner call). Boot-time
+only: gameplay rows are the same rows at the same gameplay frames, 52 host
+frames earlier. The CRC per-bit loop moves +9 B and stays in page `$25`
+(2 B to spare), now held by two link-time `.assert`s.
+
+**Mode-gated gates**, unchanged from `main`'s recorded state:
+`--raider-formation-only` passes; `--raider-sector-only` fails with "did not
+return to post-sector OPEN"; the remnant gate still reports 63 kills and 62
+explosions; the debris visibility gate keeps its one known blank (1 of 990
+capital frames), the life at host frames 4451-4487.
+
+**Tests.** New: `tests/boot-loading-blank-screen.test.mjs` (4; three RED on
+`main`, the fourth the CRC guard). The boot smoke checks every frame from
+power-on (and from the frame after RESET) to the splash in every session, and
+has a RESET session (`atr-a5-reset`, reported as `boot_smoke.reset_sessions`);
+`--prepare` patches Atari800's `atari.c` so the observer can raise the
+warm-start key. Re-pointed: `tests/boot-xex-reclaim.test.mjs` — the call-order
+pattern includes the three blanking instructions, and the `BOOT_STAGE2` /
+initial-block ceilings carry the 9 B; the reclaimed 14 B are still asserted.
+
+**Owed by the owner.** A smoke of the default ATR (`npm run play:atr`,
+SHA-256 `af2e47b6…`) and a BASIC-enabled cold boot
+(`atari800 -xe -pal -basic <absolute .atr path>`): no characters before the
+splash, BASIC on and off; F5 during play: no garbage before the splash comes
+back; the splash with its cassette sound, the loader, the menu and the start of
+level 1 unchanged. On SIO2SD: boot once normally and once holding OPTION. The
+screen during loading is now plain blue edge to edge (the border too) instead of
+the OS's blue box; if black is preferred, it is the same change minus 6 B.
+
 ## boot-xex-reclaim — the retired XEX entry leaves the initial block — `OWNER-SMOKE CANDIDATE` (2026-10-01)
 
 Plan and measurements: [plans/boot-xex-reclaim.md](plans/boot-xex-reclaim.md).

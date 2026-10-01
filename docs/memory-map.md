@@ -146,7 +146,7 @@ longer implies a deadline; what it costs is **2 PAL frames per occupied
 | `$9E13-$9FF7` | 485 B | remaining cc65 Director code |
 | `$9FF8-$9FF9` | 2 B | free Director reservation tail |
 | `$9FFA-$9FFF` | 6 B | untouched Director guard |
-| `$21C1-$26EB` | 1,323 B | boot-only `BOOT_STAGE2` overlay; replaced by the resident suffix before runtime (since boot-xex-reclaim, 2026-10-01; the row read `$21C1-$26A9`, 1,257 B, stale against the 1,337 B `main` `97344ad` linked) |
+| `$21C1-$26F4` | 1,332 B | boot-only `BOOT_STAGE2` overlay; replaced by the resident suffix before runtime (since boot-loading-blank-screen, 2026-10-01: +9 B for the stage-2 display blanking; 1,323 B `$21C1-$26EB` after boot-xex-reclaim) |
 | `$0500-$06FF` | 512 B | boot-only ADR-003 splash blob: the 250-frame hold, the cassette-sound bit engine, the fade, the SPACE/FIRE skip and `loader_dli`. 499 B of code and tables, the rest zero padding. The stage-2 entry copies it here right after `disable_basic_rom`; nothing reads or writes it once the hold ends. OS RAM no segment claims: `$0500-$057D` and `$0600-$06FF` are free, `$057E-$05FF` is floating-point scratch this build never calls. **Zero resident bytes** — the 56 B the hold loop and DLI vacated in MAIN are held as the `LOADER_SPLASH_CODE_SLACK` layout pin so no later CODE or RODATA address moves; recoverable |
 
 The linked metric is `CODE + STARFIELD + BROADSIDE + A2_KERNEL + ENTITY_CODE +
@@ -1116,6 +1116,33 @@ five source addresses of the `boot_stage_streams` table (`$20DA`, `$20E0`,
 `$20EC`, `$20F2`, `$20F8`). `boot_entry` (24 B), `start` `$201E`,
 `boot_chunk_ready` `$21AC`, `disable_basic_rom` `$21AD` and
 `resident_runtime_suffix` `$21C1` are unchanged.
+
+## boot-loading-blank-screen — the display is blank during stage 2 (2026-10-01)
+
+[plans/boot-loading-blank-screen.md](plans/boot-loading-blank-screen.md).
+`boot_stage2_atr_entry` writes `SDMCTL` = 0 and `COLOR4` = `COLOR2` right after
+`copy_boot_splash_blob`, before the first SIO read. It is the consequence of the
+measurement in §"The window at `$A000-$BFFF` — measured top": with BASIC mapped
+at the OS cold start the OS screen is `$9C20-$9FFF`, and stage-2 records 162
+(`$9B40-$9D31`), 171 (`$9D5E-$9D72`) and 204 (`$9D75-$9FCE`) land on it while
+the OS VBI still displays it. **A RESET always lands there**: the OS turns it
+into a cold start (`COLDST` stays `$FF`) and, without OPTION held, maps BASIC.
+MEASURED.
+
+`BOOT_STAGE2` +9 B, **1,323 → 1,332 B** (`$21C1-$26F4`); initial block content
+**13,612 → 13,621 B**, still **107** boot sectors (extension 101, total 208).
+Inside `BOOT_STAGE2` every label after the insertion is 9 B higher:
+`copy_boot_splash_blob` `$2341`, `boot_stage2_crc16` `$25CE`,
+`boot_stage2_error` `$2617`, `boot_chunk_manifest` `$2637`; the packed sources
+behind it sit 9 B higher (packed starfield → pickup cold staging margin
+152 → **143 B**). The prefix keeps its size and every instruction; the same six
+operand bytes the reclaim moved by −14 now move by +9 (`$2038`, `$20DA`,
+`$20E0`, `$20EC`, `$20F2`, `$20F8`). Every other runtime image in `build/` is
+byte-identical to `main` `55cc361`.
+
+The CRC per-bit loop stays in page `$25` (per-bit `bne` at `$25FB`, next
+instruction `$25FD`, **2 B before a crossing**); two link-time `.assert`s now
+hold it there.
 
 ## Roadmap 4.6 step 4 — the hull length is level data (2026-09-30)
 

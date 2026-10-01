@@ -6,7 +6,9 @@ boot-xex-reclaim merge. Every figure is **MEASURED** on `main` `55cc361`
 (default build, ATR `1c3ad1b3…`, boot `549387ab…`, both equal to `docs/STATUS.md`)
 unless it says ESTIMATE.
 
-**Status: Phase A — the plan as committed.**
+**Status: IMPLEMENTED — `OWNER-SMOKE CANDIDATE`, awaiting the owner's smoke.**
+Phase A (§1-§7) is the plan as committed (`c16852a`). §8 records what was built
+and measured.
 
 ---
 
@@ -245,3 +247,58 @@ Initial block +9 B (≤ ~12 B); no menu frame added (about −50); nothing in
 after the splash; one cause and one fix that reaches all three paths (§3.4: the
 RESET path is the BASIC-enabled cold boot again). Phase B proceeds without an
 owner question.
+
+## 8. Result (MEASURED, default build)
+
+Commits: `c16852a` (this plan), `044d072` (CRC guard), `753fa46` (harness and
+tests, RED), `818ae8e` (fix and the reclaim re-point), `a96432f` (test regex),
+`4a77dd0` (evidence), `262d645` (media manifest), plus the documentation
+commit. ATR `af2e47b62c315ddf9ed05cab44842d8921bcb8c561b9cc2dcf103f1b1e8b31b7`
+(`main` `1c3ad1b3…`), boot
+`06d2f25665a17c0858c92245f257d6d339858149a5ed4679919d120d6eb4d80a`
+(`main` `549387ab…`).
+
+### 8.1 Bytes — as planned
+
+`BOOT_STAGE2` 1,323 → **1,332 B** (`$21C1-$26F4`); initial block content
+13,612 → **13,621 B**; sectors **107 / 101 / 208**. The extension records,
+`chunk-manifest.bin` and every runtime image in `build/` are byte-identical to
+`main`, except `resident-runtime.bin`, whose only differences are the six
+fixed-prefix operand bytes that follow the moved region (+9: `$2038`, `$20DA`,
+`$20E0`, `$20EC`, `$20F2`, `$20F8`), all boot-only. Packed starfield → pickup
+cold staging 152 → 143 B; ENTITY source → staging −16 → −25 B.
+
+### 8.2 RED → GREEN
+
+Boot smoke with the new harness on `main`'s ATR `1c3ad1b3…`: **RED**,
+`atr-a5-basic` and `atr-5a-basic` 65 of 314 frames dirty from frame 192,
+`atr-a5-reset` window 1 65 of 314 from frame 3494, worst 4,662 stray pixels;
+every `-nobasic` window (and the RESET session's own cold boot) clean, worst 0.
+On the branch: **GREEN**, 4 cold + 1 RESET sessions, **0 dirty frames, worst 0
+stray pixels** in every window. The 64-pixel allowance (§6) is never used —
+`main`'s clean `-nobasic` boot measures 0 too — so
+`tests/boot-loading-blank-screen.test.mjs` pins 0.
+`tests/boot-loading-blank-screen.test.mjs`: 3 of 4 RED on `main` (the CRC guard
+test passes there by design), 4 of 4 GREEN.
+
+### 8.3 Frames
+
+| | `main` | branch | Δ |
+| --- | ---: | ---: | ---: |
+| ATR start / loader / menu, `-nobasic` | 284 / 341 / 598 | **232 / 289 / 546** | −52 |
+| the same, BASIC enabled | 256 / 313 / 570 | **223 / 280 / 537** | −33 |
+| menu delta vs baseline 596 | +2 | **−50** | |
+| RESET at 3301: reboot `start` | 3558 | **3525** | −33 (BASIC layout) |
+
+The difference between the two flags is how long the OS screen was stealing
+cycles before (the `-nobasic` stage 2 ran 19 frames longer on `main`). Every
+gameplay figure is unchanged: the PAL audit's worst row is the same row at the
+same gameplay frame; the one debris-gate blank life is at host frames
+4451-4487, 52 frames earlier than the reclaim's 4503-4539, at the same gameplay
+frames. `docs/boot-deadline-baseline.json` is not re-recorded (§5).
+
+### 8.4 Deviations from the plan
+
+* Harness size: about 80 lines of capture code against the brief's ~60; the
+  owner chose to proceed as drafted.
+* The emulator's disk-activity LED is switched off in the boot observer (§2).

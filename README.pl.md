@@ -253,20 +253,21 @@ kierunkiem, przeglądem i testami właściciela.
 - **Kod** — `src/`, `scripts/`, `tests/`, `cfg/`, `Makefile` i pozostałe
   narzędzia budowania, a także dokumentacja inżynieryjna w `docs/`:
   [MIT](LICENSE).
-- **Zasoby gry i treści twórcze** — `assets/`, dane zawartości `levels/`, obraz
-  loadera, dane muzyki i dźwięku, teksty w grze oraz `docs/media/`:
-  [CC BY-NC-SA 4.0](LICENSE-ASSETS).
+- **Zasoby gry i treści twórcze** — `assets/` (grafika, zestawy znaków,
+  sprite'y, obraz loadera, muzyka, dźwięk i dane poziomów), teksty twórcze oraz
+  obrazy w `docs/media/`: [CC BY-NC-SA 4.0](LICENSE-ASSETS).
 - **Nazwy i oznaczenia** — „Void Strike 65", nazwa Setech Game Studio oraz logo
   Setech Game Studio **nie** są objęte żadną z tych licencji. Wszelkie prawa
   zastrzeżone; fork musi używać własnej nazwy.
-- **Wydany plik `.atr`** jest utworem łączonym objętym obiema
-  licencjami: można go swobodnie udostępniać, grać w niego i przekazywać dalej
-  **niekomercyjnie**, z podaniem autorstwa.
-- **Kod zewnętrzny:** w repozytorium nie ma żadnego kodu osób trzecich. Atari800
-  (GPL-2.0) i cc65 są używane wyłącznie jako zewnętrzne narzędzia budowania i
-  pomiarów; nagłówki `scripts/atari800-*.h` to nasz własny kod na licencji MIT,
-  kompilowany w lokalnie pobranym drzewie Atari800. Szczegóły oraz trzy pliki
-  łączące obie licencje opisuje [LICENSE-ASSETS](LICENSE-ASSETS).
+- **Wydany plik `.atr`** łączy obie części i jako całość jest rozpowszechniany
+  na licencji CC BY-NC-SA 4.0: można go swobodnie udostępniać, grać w niego i
+  przekazywać dalej **niekomercyjnie**, z podaniem autorstwa.
+- **Materiały zewnętrzne:** w repozytorium ani w pliku `.atr` nie ma kodu osób
+  trzecich. Zewnętrzne narzędzia (cc65, Atari800), grafiki koncepcyjne
+  wygenerowane przez AI oraz materiały, których pochodzenia repozytorium nie
+  odnotowuje, wymienia [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Pełny
+  zakres licencji oraz trzy miejsca łączące obie licencje opisuje
+  [LICENSE-ASSETS](LICENSE-ASSETS).
 
 To projekt hobbystyczny i niekomercyjny, niepowiązany z Atari ani przez Atari
 niefirmowany.

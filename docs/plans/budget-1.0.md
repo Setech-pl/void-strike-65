@@ -7,8 +7,10 @@ document is the deliverable.** No source, cfg, build script, harness, evidence,
 figure is read from the artifacts the default build already left in `build/`
 and `dist/`.
 
-**Amended 2026-10-01** with two owner decisions taken on the first version: no
-Heavy in a boss sector, and the Heavy behaviour package (§2 M3-H, §5.2).
+**Amended 2026-10-01, twice,** with the owner decisions taken on it: no Heavy
+and at most one Light in a boss sector; the Heavy behaviour package and its
+three sub-decisions (§2 M3-H); the menu baseline kept until 1.0. All are
+recorded in §5.3; §5.2 lists what is still open.
 
 It answers four questions: does everything left until 1.0 fit in the machine,
 which resource does each milestone spend, where are the shortfalls, and which
@@ -23,17 +25,17 @@ levers pay for them.
 * **Cycles fit under three conditions.** The boss *replaces* the Heavy pair in
   its sector (**decided 2026-10-01**: no Heavy in a boss sector); wave paths
   and the sky add no standing cost to ELITE frames; no booster puts more shots
-  in flight. The Heavy behaviour package the owner committed on 2026-10-01
-  (§2 M3-H) costs 98 cycles on the binding row in its worst case, and the
-  margin then ends **24 over GO**. If the Heavies' slower descent is set per
-  archetype, with the two members moving on alternate frames, the same package
-  *returns* about 250 and the margin ends near **370 over GO** (ESTIMATE).
-  Without the conditions the margin goes under GO at M3.
-* **Transport fits only while the 596-frame menu baseline is kept.** The
-  boot-blank fix left the ATR menu at −50, which is 57 frames of room under the
-  STOP rule — about 28 extension sectors. The road needs about 18, or 23 with
-  the optional items. Re-basing the baseline to today's 546 would leave 7
-  frames and stop the road at M3.
+  in flight. The Heavy behaviour package (§2 M3-H) has its descent rate set
+  per archetype with the two members moving on alternate frames (**decided**):
+  its gates cost 98 cycles on the binding row and the held Raider's skipped
+  body copy returns about 350, so the margin ends **374 over GO**. That saving
+  is an analogy to Option D, not yet a measurement; if it were zero the margin
+  would end 24 over GO.
+* **Transport fits because the 596-frame menu baseline is kept until 1.0**
+  (**decided**; it is re-recorded at the release candidate). The boot-blank fix
+  left the ATR menu at −50, which is 57 frames of room under the STOP rule —
+  about 28 extension sectors. The road needs about 18, or 23 with the optional
+  items.
 * **The initial block (31 B to the STOP line) survives only if no new code
   lands in `CODE`, `RODATA`, `STARFIELD` or `ENTITY_CODE`.** The plan below
   spends about 24 of the 31. The brief's 12-B `LEVEL_MAX_ID` lever does not
@@ -337,6 +339,13 @@ shots are out of scope for 1.0 and are not priced.
 byte, validator and replay re-scripting, but it does not depend on the path
 evaluator and is not optional as the Heavy variant of M3 was.
 
+**Its three sub-decisions are taken (owner, 2026-10-01, §5.3):** hit points
+**P1** — Raider 1 / 1 / 1, Bomber 4 / 4 / 5, `BOMBER_FLASH_LUMA` 6 → 4; the
+descent rate is **per archetype, the two members on alternate frames**; a hit
+during the hold **keeps the hold**, and the Bomber dodges sideways on its row.
+The dodge is therefore a Bomber behaviour. The Raider dodge and P2 are
+deferred to the M8 balance round as an option and are not budgeted here.
+
 **What the code does today** (read from the source, MEASURED where a size is
 given):
 
@@ -357,30 +366,34 @@ fire, margin 785.
 
 | Item | Bytes | Lives in | Cycles on the binding ELITE row | Cycles on the frames where it runs | Basis |
 | --- | ---: | --- | ---: | --- | --- |
-| **a. Slower flight** — a rate per archetype or per wave | Raider descent gate 22 → 26; Bomber rate mask 4 → 5; rate copied at spawn 10 → 12; 1 B state | gate: `PICKUP_CODE` tail, reached by re-pointing the existing `jmp update_enemy_slot_motion` in `HEAVY_CODE` (byte-neutral there); the rest: arena | gate **+52 → +62** for two Raiders. A Raider that holds its Y skips its body copy: **−440 → −350** per held member | every Heavy frame | gate **IC** (save the old Y, test frame parity against the rate, restore). Saving **AN** Option D: +998 on the then-binding row with two Bombers, MEASURED (STATUS PAL gate); ~500 per member, scaled to the Raider's 14 of 16 rows; budgeted at 80 % |
+| **a. Slower flight** — a rate per archetype (decision 3b) | Raider descent gate 22 → 26. The Bomber already descends on alternate frames with its members on opposite parity: its rate is a constant, 0 B. The per-wave form's rate copy (12 B), Bomber mask (5 B) and state byte are not needed | `PICKUP_CODE` tail, reached by re-pointing the existing `jmp update_enemy_slot_motion` in `HEAVY_CODE` (byte-neutral there) | gate **+52 → +62** for two Raiders. One Raider holds its Y on every frame and skips its body copy: **−440 → −350** | every Heavy frame | gate **IC** (save the old Y, test frame parity against the slot, restore). Saving **AN** Option D: +998 on the then-binding row with two Bombers, MEASURED (STATUS PAL gate); ~500 per member, scaled to the Raider's 14 of 16 rows; budgeted at 80 % |
 | **b. Stop and shoot** — hold row and hold time from the wave | Raider hold 20 → 24; Bomber hold row and time from the wave 12 → 15; copied at spawn 8 → 10; 3 B state | Raider: `PICKUP_CODE` tail, in the same gate; the rest: arena | test **+30 → +36** for two members | on hold frames both members keep their Y: both body copies skipped, **−880 → −700** | **IC**; the Bomber half is **AN** its existing `BOMBER_ATTACK` branch |
-| **c. Hit points** — see the rule below | 14 → 17 | arena, `enemy_c_spawn_raiders` | 0 | 0 per frame; a Heavy lives longer | **IC** |
+| **c. Hit points** — P1 (decision 3a): Bomber 4 / 4 / 5 | 14 → 17 | arena, `enemy_c_spawn_raiders` | 0 | 0 per frame; a HARD Bomber takes one more hit | **IC** |
 | **d. Dodge** — Bomber | 30 → 36; 0 B state (the flash countdown is the dodge timer) | arena, `enemy_c_heavy_tick` | 0 (the binding row is a Raider row) | hit frame **+0**; each of the six flash frames **+35 → +42** per dodging member, +84 if both were hit | **IC**; **AN** the lane step and clamp already in `enemy_c_heavy_tick` |
-| **d. Dodge** — Raider, only if it gets more than 1 HP | 40 → 48; 2 B state | `BROADSIDE` zero pin | HP watch **+20 → +24** for two | dodge frames +36 → +43 per member | **IC** |
-| Director publishes the Heavy wave's motion byte | 8 → 10 | `DIRECTOR_RAM` | 0 | once per admission | **AN** `heavy_request` (72 B) |
+| **d. Dodge during the hold** (decision 3c) | the rule itself 0 B; a braked Bomber has direction 0, so the dodge needs one: 8 → 10 | arena, same function | 0 | as the row above | **IC** — a finding of this pass: the decision's "0 B" covers keeping the hold, not choosing which way to dodge |
+| Director publishes the Heavy wave's motion byte (hold row, hold time) | 8 → 10 | `DIRECTOR_RAM` | 0 | once per admission | **AN** `heavy_request` (72 B) |
 
-**Totals** (Raider at 1 HP): `PICKUP_CODE` tail 50 B (65 → 15); arena **95 B**
-(114 → 19); `DIRECTOR_RAM` 10; state 4 B; **0 B in the initial block** —
-nothing is added to `CODE` or `STARFIELD`, and `HEAVY_CODE` stays byte-neutral,
-which matters because its record is full. Transport: the arena record takes
-~86 packed B of its 98 spare; record 2 (3 B spare) gains **one sector, +2
-frames**, the same sector M4's 12 B then ride in. Level data: one byte of the
-WaveDef the Heavy waves do not use today (`wave_path`, `$FF` in every authored
-wave) can carry rate, hold row and hold time — 0 B per level, no format change.
-That encoding is a proposal, not a design.
+**Totals.** `PICKUP_CODE` tail 50 B (65 → 15); arena **88 B** (114 → **26**);
+`DIRECTOR_RAM` 10; state 3 B; **0 B in the initial block** — nothing is added
+to `CODE` or `STARFIELD`, and `HEAVY_CODE` stays byte-neutral, which matters
+because its record is full. Transport: the arena record takes ~79 packed B of
+its 98 spare; record 2 (3 B spare) gains **one sector, +2 frames**, the same
+sector M4's 12 B then ride in. Level data: one byte of the WaveDef the Heavy
+waves do not use today (`wave_path`, `$FF` in every authored wave) can carry
+the hold row and hold time — 0 B per level, no format change. That encoding is
+a proposal, not a design.
 
-**The binding row, three cases.**
+**The binding row** (decision 3b: one Raider holds on every frame).
 
-| Case | Gates | Body copies saved | Net | Margin over GO after M3 (170) |
+| Frame | Gates | Body copies saved | Net | Margin over GO after M3 (170) |
 | --- | ---: | ---: | ---: | ---: |
-| A wave authored at today's speed, between holds — the **worst case, and the one the cumulative table takes** | +98 | 0 | **+98** | **72** |
-| The rate set per archetype, the two members on opposite parity (as the Bombers already are): one member holds on every frame | +98 | −350 | **−252** | **422** |
+| Every ELITE frame with two Raiders — **the case the cumulative table takes** | +98 | −350 | **−252** | **422** |
 | A hold frame | +98 | −700 | **−602** | 772 |
+
+The saving is an analogy, not a measurement: Option D was measured on Bombers.
+If a held Raider saved nothing, the package would cost its 98 cycles of gates
+and the margin after M3-H would be 72 over GO instead of 422. The M3-H session
+must measure it before integration, as M3 measures its evaluator.
 
 **The dodge against the hit path, the hit flash and the renderer.**
 
@@ -405,26 +418,26 @@ That encoding is a proposal, not a design.
   ~42 cycles on six consecutive frames, not a burst. It also **may not be
   deferred**: a deferrable consumer has to be visual only (owner decision
   2026-09-21), and the dodge moves a collision target.
-* **A hit during the stop-and-shoot hold.** Either the Heavy keeps holding (0 B)
-  or the dodge aborts the salvo through the Bomber's existing "salvo aborted"
-  branch (+10 → 12 B, arena). An open sub-decision.
+* **A hit during the stop-and-shoot hold** (decision 3c). The Bomber keeps its
+  hold and its salvo, and dodges sideways on its row: Y does not change, so
+  the hold's body-copy skip is kept as well. The "salvo aborted" alternative
+  (+10 → 12 B) is not built.
 
 **Hit points, about +10 %.** One HP is 25 % of a Bomber and 100 % of a Raider,
 so +10 % has no exact integer form.
 
-| Proposal | Raider E / M / H | Bomber E / M / H | Mean change | Note |
+| Proposal | Raider E / M / H | Bomber E / M / H | Mean change | Status |
 | --- | --- | --- | --- | --- |
-| **P1** (recommended) | 1 / 1 / 1 | 4 / 4 / **5** | Bomber +8 % across the three difficulties, +25 % on HARD | the nearest integer equivalent of +10 % |
-| P2 | 1 / 1 / **2** | 4 / 4 / **5** | Raider +33 %, +100 % on HARD | makes the Raider dodge reachable; costs the 48 B and +24 cycles of the Raider dodge row; a 2-HP Raider has no hit feedback of its own |
-| P3 | a "+1 HP" bit per wave | the same | authored per level | the same 17 B; later levels harder without touching the early ones |
+| **P1** | 1 / 1 / 1 | 4 / 4 / **5** | Bomber +8 % across the three difficulties, +25 % on HARD | **DECIDED (3a)** |
+| P2 | 1 / 1 / **2** | 4 / 4 / **5** | Raider +33 %, +100 % on HARD | **deferred to the M8 balance round as an option**, with the Raider dodge it makes reachable: 40 → 48 B in the `BROADSIDE` zero pin, 2 B state, +20 → 24 cycles on the binding row, +36 → 43 per dodging member. Not in the budget |
+| P3 | a "+1 HP" bit per wave | the same | authored per level | not taken |
 
-Two consequences of a 5-HP Bomber, both 0 B: the hull ramp is luminance = HP × 2,
+A 5-HP Bomber has one consequence, 0 B: the hull ramp is luminance = HP × 2,
 so 5 HP is `$CA`, and the flash adds 6 — `$D0`, outside hue C. The
 compile-time assert `bomber_hull_ramp_must_stay_inside_its_hue`
-(`src/c/lifecycle.c`) refuses that, so
-`BOMBER_FLASH_LUMA` drops from 6 to 4. And the Raider dodge row applies only
-under P2: **at 1 HP every hit kills a Raider, so item d is a Bomber behaviour
-unless the owner raises the Raider's hit points.**
+(`src/c/lifecycle.c`) refuses that, so **`BOMBER_FLASH_LUMA` drops from 6 to
+4**, as the decision says. At 1 HP every hit kills a Raider, so item d is a
+Bomber behaviour.
 
 **What it moves besides bytes and cycles.** Slower Raiders change level 1 as
 shipped: every default replay moves, the evidence is regenerated, and the kill
@@ -540,8 +553,10 @@ token first. Two Lights therefore need the projectile-pool lever (574–729,
 §4.2) or a boss that does not scroll the ring: a boss sector with the world
 scroll stopped returns `rotate_playfield_rows` (1,545–1,614, MAN) on every
 frame and clears GO with two Lights. That is a property of the boss design,
-which is not settled. **The budget takes one Light as the ceiling of a boss
-sector**; it costs 0 B (a row of the subtype ceiling table).
+which is not settled. **Decided (5a, 2026-10-01): one Light in a boss sector
+at most.** Two are out unless a later plan buys them with the pool lever or a
+non-scrolling boss. The ceiling costs 0 B (a row of the subtype ceiling
+table).
 
 For the other two forms, with no Light:
 
@@ -600,9 +615,13 @@ The default evidence carries level 1 only.
 
 ### M8 — Balance on hardware
 
-Data only: 0 bytes, 0 sectors. Two things in it are budget, not just feel:
-the player PairShot pool size and fire rate (the largest cycle lever, §4), and
-decision J if it was not built with M6.
+Data only: 0 bytes, 0 sectors. Three things in it are budget, not just feel:
+the player PairShot pool size and fire rate (the largest cycle lever, §4),
+decision J if it was not built with M6, and the option the owner deferred here
+on 2026-10-01: **hit points P2 (Raider 1 / 1 / 2) with the Raider dodge** —
+40 → 48 B in the `BROADSIDE` zero pin (8 B of it would remain), 2 B of state,
++24 cycles on the binding row (374 → 350 over GO) and +43 per dodging Raider.
+It is code, not data, and is not in the cumulative table.
 
 ### M9 — Release candidate
 
@@ -625,20 +644,22 @@ a price, or needs a scope decision (§5).
 ## 3. Cumulative table
 
 Budgeted figures (+20 %), planned variants: M2 = S2 + nebula in SWARM only;
-M3 = V1; M3-H = the Heavy package with the Raider at 1 HP, **in its worst case
-on the binding row** (a wave at today's speed); M4 = core; M5 = B-A with
-missile lasers, no Heavy and at most one Light in the boss sector; M6 = K1;
-M7 = data only.
+M3 = V1; M3-H = the Heavy package as decided (hit points P1, the descent rate
+per archetype with the members on alternate frames, the hold kept on a hit);
+M4 = core; M5 = B-A with missile lasers, no Heavy and at most one Light in the
+boss sector; M6 = K1; M7 = data only. The M3-H figures in the two cycle
+columns rest on the body-copy saving of §2 M3-H, which is an analogy until the
+M3-H session measures it.
 
 | | Window B | Menu frames | Initial block B | Fence margin over GO (ELITE row) | DMA to hard gate | `DIRECTOR_RAM` B | Arena B | Level image sectors |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | **Today** | 1,593 | 57 | 31 | 285 | 1,447 | 43 | 114 | 3 |
 | M2 | −108 → 1,485 | −2 → 55 | 0 → 31 | 0 → 285 | 0 → 1,447 | −20 → 23 | 0 → 114 | 0 → 3 |
 | M3 | −472 → 1,013 | −6 → 49 | 0 → 31 | −115 → 170 | −115 → 1,332 | −12 → 11 | 0 → 114 | 0 → 3 |
-| **M3-H** | 0 → 1,013 | −2 → 47 | 0 → 31 | −98 → **72** (with the rate per archetype: +252 → 422) | −98 → 1,234 | −10 → 1 | −95 → **19** | 0 → 3 |
-| M4 | −180 → 833 | −4 → 43 | 0 → 31 | 0 → 72 | 0 → 1,234 | 0 → 1 | 0 → 19 | 0 → 3 |
-| M5 | −1,368 → **−535** | −18 → 25 | −12 → 19 | 0 → 72 (boss frames with one Light: 181+ over GO) | 0 → 1,234 | −18 → **−17** | 0 → 19 | 0 → 3 |
-| M6 | −180 → −715 | −4 → 21 | −12 → 7 | −48 → **24** (374) | −48 → 1,186 | 0 | 0 → 19 | 0 → 3 |
+| **M3-H** | 0 → 1,013 | −2 → 47 | 0 → 31 | +252 → **422** | +252 → 1,584 | −10 → 1 | −88 → **26** | 0 → 3 |
+| M4 | −180 → 833 | −4 → 43 | 0 → 31 | 0 → 422 | 0 → 1,584 | 0 → 1 | 0 → 26 | 0 → 3 |
+| M5 | −1,368 → **−535** | −18 → 25 | −12 → 19 | 0 → 422 (boss frames with one Light: 181+ over GO) | 0 → 1,584 | −18 → **−17** | 0 → 26 | 0 → 3 |
+| M6 | −180 → −715 | −4 → 21 | −12 → 7 | −48 → **374** | −48 → 1,536 | 0 | 0 → 26 | 0 → 3 |
 | M7 | 0 → −715 | 0 → 21 | 0 → 7 | content: unknown | — | 0 | 0 | 0 → 3 |
 | M8 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
 | M9 | 0 | 0 | splash: unmeasured | 0 | 0 | 0 | 0 | 0 |
@@ -652,21 +673,21 @@ Disk: M7 takes 156 of the 512 free sectors (192 at 16 sectors per level).
 | --- | --- | --- |
 | `$AE00` window | **M5**, by 535 B (by 199 B on expected figures, before the 20 %) | M5, by 620–715 B (B-B, B-C) |
 | `DIRECTOR_RAM` | **M5**, by 17 B — it overflows into the window by design (Director plan §3.3), at 3 B per veneer | M3-H if the package needs more than 11 B there |
-| Fence margin (GO ≥ 500) | never; ends at **24** over GO in the package's worst case, **374** with the Heavy rate set per archetype | **M3-H**: nebula in ELITE (−125) + V1 (−115) + the package's worst case (−98) = −53. Or **M6** exactly at GO with the Raider dodge (+24). Or **M7**: one content coincidence the size of level 1's (−264) |
-| Boss frames (GO ≥ 500) | never with 0 or 1 Light (worst 681) | **M5 with two Lights**: 159–459 on a forced break-up frame |
-| `HYBRID_C_ARENA` (114 B) | never; **19 B** left after M3-H | M3-H with the abort-the-salvo rule (−12) and any slip of 8 B; decision 19's lever (98 B) no longer fits |
+| Fence margin (GO ≥ 500) | never; ends at **374** over GO | never in the listed variants: nebula in ELITE leaves 249, a content coincidence the size of level 1's (−264) leaves 110, the deferred Raider dodge 350. **M7, if the body-copy saving measures at zero**: the package then costs +98, the margin ends 24 over GO, and one −264 coincidence takes it under |
+| Boss frames (GO ≥ 500) | never: one Light at most (decided), worst frame 681 | — (two Lights are out of the plan: 159–459 on a forced break-up frame) |
+| `HYBRID_C_ARENA` (114 B) | never; **26 B** left after M3-H | M3-H if the package's C slips by more than 26 B; decision 19's lever (98 B) no longer fits |
 | `PICKUP_CODE` tail (65 B) | never; 15 B left after M3-H | — |
-| DMA-on, hard gate | never; ends at 1,186 | never (a boss frame with two Lights and a forced break-up keeps ~820) |
-| DMA-on, 31,200 target | **M3** (79 today) | M2 with nebula in ELITE |
+| DMA-on, hard gate | never; ends at 1,536 | never (1,186 if the body-copy saving measures at zero) |
+| DMA-on, 31,200 target | **M3**, by 36 (79 today, −115); back to +216 at M3-H, which is built in the same step; ends +168 | M2 with nebula in ELITE; stays negative from M3 if the saving measures at zero |
 | Initial block (STOP) | never; ends at **7 B** | **M6**: a main-loop hook at M4 (−10), a twelfth DFMC record (−16) or the fifth bolt look as glyph data (−50) |
-| ATR menu (≤ +7) | never; ends at 21 frames, 9–11 with level select and the H1 hangar | **M3 if the baseline is re-based to 546** (7 frames of room) |
+| ATR menu (≤ +7) | never; the 596 baseline is kept until 1.0 (decided); ends at 21 frames, 9–11 with level select and the H1 hangar | — (the re-recording at the release candidate is after the last transport change) |
 | Extension record 5 (`HYBRID_C_EXT`, 0 B) | M2 if `light_pair_for_record` grows by one byte: +1 sector | — |
 | Extension record 2 (3 B) | M4: +1 sector, already counted | — |
 | Sector reader RAM (63 B) | never (29 left) | M4 with the progress bar: −7 B |
 | Level image (3 sectors) | never | **M7**: boss row map (3) + second WaveDef page (2) = 5 |
 | DFMC records (0) | never — every item grows an existing record | the first new landing zone |
-| State RAM (27 unowned + ~32 `ENTITY_STATE` + 84 zero page) | never: M3 8, M3-H 4, M4 6, M5 ~40, M6 2 | — |
-| `BROADSIDE` zero pin (136 B) | never: the nebula takes 80 | 8 B left if the Raider dodge (48) is built |
+| State RAM (27 unowned + ~32 `ENTITY_STATE` + 84 zero page) | never: M3 8, M3-H 3, M4 6, M5 ~40, M6 2 | — |
+| `BROADSIDE` zero pin (136 B) | never: the nebula takes 80, 56 B left | 8 B left if M8 takes the deferred Raider dodge (48) |
 | Missiles in a boss sector (4) | never: four lasers on levels 9–12 use exactly four | a fifth laser, or a missile-drawn pickup |
 | ATR disk | never | never |
 
@@ -682,11 +703,11 @@ on a fact measured only in the emulator.
 
 | # | Lever | Buys | Costs and side effects | Risk | Basis |
 | ---: | --- | --- | --- | ---: | --- |
-| 1 | **Keep the 596-frame menu baseline** | 57 frames ≈ 28 sectors ≈ 3.5 KB packed of extension growth | none; the baseline then describes a slower boot than the game has. Re-basing to 546 is the inverse lever and removes all but 7 frames | 1 | **M** |
+| 1 | **Keep the 596-frame menu baseline** — **TAKEN (owner, 2026-10-01)**: kept until 1.0, re-recorded at the release candidate | 57 frames ≈ 28 sectors ≈ 3.5 KB packed of extension growth | none; the baseline then describes a slower boot than the game has | 1 | **M** |
 | 2 | `LEVEL_BUFFER` 16 → 14 sectors | +256 B window | only if neither the boss row map nor a second WaveDef page is wanted; four constants, as decision X twice | 2 | **M** (128 B per sector) |
-| 3 | The 136 B of zero pins in `BROADSIDE` as a code or data home | 136 B of RAM in an extension record (109 packed B spare in record 1); **56 B** once the nebula has its 80, 8 B if the Raider dodge is built | none on addresses — the pins exist so that no label moves | 2 | **M** |
+| 3 | The 136 B of zero pins in `BROADSIDE` as a code or data home | 136 B of RAM in an extension record (109 packed B spare in record 1); **56 B** once the nebula has its 80, 8 B if M8 takes the deferred Raider dodge | none on addresses — the pins exist so that no label moves | 2 | **M** |
 | 4 | `STARFIELD` run tail `$5CDB-$5E0F` as a landing zone, by starting record 1 lower | 309 B | a build and cfg change; the staging windows around it are measured to the byte (manifest `starfieldRuntime`) | 3 | **M** size, **G** feasibility |
-| 5 | ~~Decision 19: `sector_c_update_capital_phase` → arena~~ | +1 menu frame, 98 B free in `HYBRID_C_SECTOR` | **no longer available once M3-H is built**: it needs 98 B of arena and the Heavy package leaves 19 | 2 | **M** (Director plan §11 item 19) |
+| 5 | ~~Decision 19: `sector_c_update_capital_phase` → arena~~ | +1 menu frame, 98 B free in `HYBRID_C_SECTOR` | **no longer available once M3-H is built**: it needs 98 B of arena and the Heavy package leaves 26 | 2 | **M** (Director plan §11 item 19) |
 | 6 | `LEVEL_MAX_ID` 16 → 12 | 12 B in the sector reader (tail 63 → 75); fixes the region mapping | **0 B in the initial block**; needs the owner to change a decision; evidence and boot baseline recomputed | 2 | **M** |
 | 7 | Shorten the AI line pool (8 lines, 304 B) | 38 B per line, sector reader | less variety on the loader | 1 | **M** |
 | 8 | Black loading screen instead of blue | 6 B, initial block | visible: no blue during stage 2 | 1 | **M** (STATUS boot-loading-blank-screen) |
@@ -706,28 +727,30 @@ launch-flash pad 14, two 3-B pads); those in MAIN give RAM but no transport
 relief, because a zero byte costs almost nothing packed and a code byte does.
 
 **What pays the Heavy package (M3-H), and the dodge in particular.** Bytes: no
-numbered lever is needed. Its C (95 B, of which the committed Bomber dodge is
-36) is paid from **the arena's 114 free bytes**, and its ASM (50 B) from
-**`PICKUP_CODE`'s 65-B tail**. The price is what those bytes were held for:
-lever 5 (decision 19) is withdrawn, and the arena can no longer help the
-window. Cycles: the dodge's 42 per member on six frames after a hit, and the
-package's 98 on the binding row, are paid by **cycle lever 1 below — the
-package's own slower descent, set per archetype with the members on alternate
-frames**. If the owner wants full-speed Heavy waves as well, the payer is cycle
-lever 4, the PairShot pool.
+numbered lever is needed. Its C (88 B, of which the committed Bomber dodge is
+46 with its direction choice) is paid from **the arena's 114 free bytes**, and
+its ASM (50 B) from **`PICKUP_CODE`'s 65-B tail**. The price is what those
+bytes were held for: lever 5 (decision 19) is withdrawn, and the arena can add
+only its last 26 B to the window. Cycles: the dodge's 42 per member on six
+frames after a hit, and the package's 98 of gates on the binding row, are paid
+by **the package's own slower descent, set per archetype with the members on
+alternate frames — decided on 2026-10-01** (cycle row 1 below). No other
+lever is called on. If the M3-H session measures the body-copy saving below
+the 98 cycles of gates, the payer becomes cycle lever 4, the PairShot pool.
 
-**What pays the window.** M5's 535 B: levers 2 + 4 give 565 B at risk 2–3, and
-what is left of lever 3 brings it to 621 B. M6's further 180 B (715 B in all)
-needs lever 10 as well. Before the Heavy package the arena and the whole pin
-could have covered that; they are now spent.
+**What pays the window.** M5's 535 B: levers 2 + 4 give 565 B at risk 2–3;
+what is left of lever 3 (56 B) and of the arena (26 B) brings it to 647 B.
+M6's further 180 B (715 B in all) needs lever 10 as well. Before the Heavy
+package the arena and the whole pin could have covered that; they are now
+largely spent.
 
 ### 4.2 Cycles — ordered by cycles per unit of risk
 
 | # | Lever | Buys | Costs and side effects | Risk | Basis |
 | ---: | --- | --- | --- | ---: | --- |
-| 1 | **Heavy descent slowed per archetype, the two members on alternate frames** (item a of M3-H, applied to every Heavy wave) | **~350 on every ELITE frame**, the binding row included; 700 on hold frames | no full-speed Heavy wave can be authored; the Raider's crossing covers half the height; level 1 changes and its replays are re-scripted | 2 | **AN** Option D, MEASURED +998 with two Bombers |
+| 1 | **Heavy descent slowed per archetype, the two members on alternate frames** — **TAKEN (decision 3b, 2026-10-01)**; it is in the cumulative table | **~350 on every ELITE frame**, the binding row included; 700 on hold frames | no full-speed Heavy wave can be authored; the Raider's crossing covers half the height; level 1 changes and its replays are re-scripted | 2 | **AN** Option D, MEASURED +998 with two Bombers; to be measured for Raiders at M3-H |
 | 2 | Nebula in SWARM sectors only | 125 cycles not spent on the binding row | one validator rule; ELITE sectors keep today's sky | 1 | **IC** |
-| 3 | Boss sector with no Heavy (**decided 2026-10-01**) and at most one Light | ~1,500 cycles returned to boss frames; one Light keeps the worst boss frame 181 over GO | no Heavy escort in a boss fight | 1 | **M** |
+| 3 | Boss sector with no Heavy and at most one Light — **TAKEN (2026-10-01, decision 5a)** | ~1,500 cycles returned to boss frames; one Light keeps the worst boss frame 181 over GO | no Heavy escort in a boss fight | 1 | **M** |
 | 4 | Player PairShot pool 5 → 4 | **574–729 on the worst frame** | visibly thinner fire; a feel decision that belongs to M8 | 2 | **M** (STATUS backlog) |
 | 5 | New visual bursts as deferrable token consumers (module destroyed, laser fill) | moves 200–950-cycle bursts off binding frames | each consumer must be visual only, capture its position, and be forced within two frames (owner decision 2026-09-21) | 2 | **M** for the mechanism |
 | 6 | Lasers as missiles rather than characters | ~900 cycles per laser event | one colour for all lasers; uses all four missiles at four lasers | 2 | **IC** |
@@ -748,11 +771,12 @@ could have covered that; they are now spent.
 2. **285 cycles on one ELITE frame family, shared by everything.** The nebula,
    Light paths, the Heavy package and the booster's look select all spend the
    same 285, and authored content can spend it with no code at all (−264 once
-   already). In the package's worst case the margin ends 24 over GO, which one
-   content coincidence removes. The saving that turns the package into a gain
-   (a held Raider skips its body copy) is an analogy to Option D and is not
-   measured for Raiders. Half that frame is the player's own shots, so the
-   only other large lever is the pool size — a change the player sees.
+   already). The plan ends 374 over GO only because the Heavy package's slower
+   descent returns about 350 per frame — a held Raider skips its body copy.
+   That is an analogy to Option D and is not measured for Raiders. If it
+   measured at zero the margin would end 24 over GO, which one content
+   coincidence removes. Half that frame is the player's own shots, so the only
+   other large lever is the pool size — a change the player sees.
 3. **31 B of initial block with no cheap refill.** `MAIN` is full, the DFMC
    table is full, two extension records are full, and the brief's 12-B lever
    lands elsewhere. The plan stays inside the 31 only by routing every new
@@ -768,15 +792,15 @@ reads the player waits through.
 
 | # | Decision | Latest | Why it cannot wait longer |
 | ---: | --- | --- | --- |
-| 1 | Keep the 596-frame menu baseline until 1.0 (re-record at the release candidate) | **before M2** | it is the transport budget of the whole road |
-| 2 | The sky: S1, S2 or S3; whether a nebula may appear in ELITE sectors | **M2** | 125 cycles of the 285; and a nebula hides transients behind it |
-| 3 | The per-frame budget of step 6. (Its first half — paths for Heavies — is **answered**: Lights only; Heavy movement is the package of §5.3) | **M3** | +115 per Light on a path on the binding row |
-| 3a | **Hit point rule**: P1 (Bomber 4 / 4 / 5), P2 (also Raider 1 / 1 / 2, which brings the Raider dodge with it) or P3 (a "+1 HP" bit per wave) | **M3-H** | decides whether the Raider dodge is built: 48 B and +24 cycles on the binding row |
-| 3b | **Heavy descent rate**: per archetype with the members on alternate frames (every ELITE frame gains ~350), or per wave (a full-speed wave costs 98) | **M3-H** | the difference between ending 374 and 24 over GO |
-| 3c | A hit during the stop-and-shoot hold: the Heavy keeps holding, or the dodge aborts the salvo | **M3-H** | 12 B of the arena's last 19 |
+| 1 | ~~Keep the 596-frame menu baseline until 1.0~~ | **TAKEN 2026-10-01** | kept; re-recorded at the release candidate (§5.3) |
+| 2 | The sky: S1, S2 or S3; whether a nebula may appear in ELITE sectors | **M2** | 125 cycles of the margin; and a nebula hides transients behind it |
+| 3 | The per-frame budget of step 6 (Light paths) | **M3** | +115 per Light on a path on the binding row |
+| 3a | ~~Hit point rule~~ | **TAKEN 2026-10-01** | P1: Raider 1 / 1 / 1, Bomber 4 / 4 / 5 (§5.3) |
+| 3b | ~~Heavy descent rate~~ | **TAKEN 2026-10-01** | per archetype, the two members on alternate frames (§5.3) |
+| 3c | ~~A hit during the stop-and-shoot hold~~ | **TAKEN 2026-10-01** | the hold is kept; the Bomber dodges sideways on its row (§5.3) |
 | 4 | Campaign loop scope: level select (L) in 1.0 or not; hangar picture, progress bar or today's animation (decision O); what the campaign-complete screen is | **M4** | 132 + 36 … 670 B and up to 10 frames |
-| 5 | Boss, the part still open: its form (static, sliding or with PMG turrets); lasers as missiles in one colour; whether a third DLI is allowed; whether Nova Missile is in 1.0. (**Answered**: no Heavy in a boss sector, §5.3) | **before the M5 plan** | decides the boss's size and whether B-B or B-C clear GO |
-| 5a | **Lights in a boss sector: one (the budget's finding), or two with the pool lever or a boss that stops the ring scroll** | **before the M5 plan** | two Lights fall to 159–459 on a forced break-up frame |
+| 5 | Boss, the part still open: its form (static, sliding or with PMG turrets); lasers as missiles in one colour; whether a third DLI is allowed; whether Nova Missile is in 1.0 | **before the M5 plan** | decides the boss's size and whether B-B or B-C clear GO |
+| 5a | ~~Lights in a boss sector~~ | **TAKEN 2026-10-01** | one at most (§5.3) |
 | 6 | Which lever pays the window's ~535 B (§4.1 levers 2 and 4; the arena and most of the pin are spent by M3-H and the nebula) | **before the M5 plan** | the boss has no home without one |
 | 7 | Booster scope: K1 (permanent level, decisions N and U), a K2 type, or both; K3 is not affordable. When decision J's damage scaling is built | **M6** | fixes the last ~12 B of initial-block hooks |
 | 8 | The region and steel mapping: `LEVEL_MAX_ID` → 12 (changes the standing decision) or a build-only constant | **M7**, first level of region R2 | today's build never uses style R4 in twelve levels |
@@ -786,6 +810,7 @@ reads the player waits through.
 | 12 | Turret density steps 0–2, the debris count and `pickupPolicy`: defined and read, or removed from the authoring vocabulary | **M7** | authors can write values the runtime ignores |
 | 13 | Capital geometry 4.8a: in 1.0 or after | **M7** | not in the roadmap list; `hull_params` is reserved |
 | 14 | Player PairShot pool size and fire rate as a budget lever | **M8** | the only large cycle lever |
+| 14a | The option deferred from M3-H: hit points P2 (Raider 1 / 1 / 2) with the Raider dodge | **M8** | 48 B of the `BROADSIDE` pin's 56, +24 cycles on the binding row; it is code, so it cannot be decided later than the balance round |
 | 15 | Allied steel on levels 7–12: `$84` or `$86` | **M8** | open since AC |
 | 16 | A new splash silhouette, and whether it is used to refill the initial block | **M9**, earlier if the initial block runs out | the only low-risk initial-block lever of unknown size |
 
@@ -793,9 +818,14 @@ reads the player waits through.
 
 | Decision | Recorded as | Where it is priced |
 | --- | --- | --- |
-| **No Heavy in a boss sector.** Lights are allowed only if the budget leaves room | answers part of §5.2 item 5. The budget's finding is **one Light**; two is §5.2 item 5a | §2 M5 |
-| **Heavy behaviour package for 1.0**: (a) slower flight as a data value per archetype or per wave; (b) a stop-and-shoot phase driven by wave data, with no per-frame decision logic; (c) about +10 % hit points; (d) a sideways dodge when hit — **committed, not optional** | its own budget line **M3-H**, built with M3. Open inside it: the hit point rule (3a), the rate's scope (3b), a hit during the hold (3c) — all latest at M3-H | §2 M3-H |
+| **No Heavy in a boss sector.** Lights are allowed only if the budget leaves room | answers part of §5.2 item 5 | §2 M5 |
+| **Heavy behaviour package for 1.0**: (a) slower flight as a data value per archetype or per wave; (b) a stop-and-shoot phase driven by wave data, with no per-frame decision logic; (c) about +10 % hit points; (d) a sideways dodge when hit — **committed, not optional** | its own budget line **M3-H**, built with M3 | §2 M3-H |
 | **Out of scope for 1.0**: backward flight and aimed shots for Heavies | not priced; M3's variant V2 is withdrawn | — |
+| **Decision 1 — the 596-frame menu baseline is kept until 1.0** and re-recorded at the release candidate | the 57 frames under the STOP rule are the transport budget of M2–M7; §4.1 lever 1 is taken | §1.2, §3 |
+| **3a — hit points P1**: Raider 1 / 1 / 1, Bomber 4 / 4 / 5 (EASY / MEDIUM / HARD), with `BOMBER_FLASH_LUMA` lowered from 6 to 4. The dodge is therefore a Bomber behaviour. **The Raider dodge and P2 are deferred to the M8 balance round as an option** (48 B, +24 cycles) and are not budgeted | 17 B in the arena; the option is §5.2 item 14a | §2 M3-H, §2 M8 |
+| **3b — the descent rate is set per archetype, the two members on alternate frames.** The cumulative table and the first-negative rows use this case | the binding row gains ~252 at M3-H and the margin ends 374 over GO; no full-speed Heavy wave is authorable; §4.2 lever 1 is taken | §2 M3-H, §3 |
+| **3c — a hit during the hold keeps the hold**; the Bomber dodges sideways and keeps its row | 0 B for the rule. Finding: a braked Bomber has no direction, so the dodge needs 8 → 10 B to choose one; it is in the arena total of 88 B | §2 M3-H |
+| **5a — one Light in a boss sector at most.** Two are out unless a later plan buys them with the pool lever or a non-scrolling boss | the worst boss frame stays 181 over GO; §4.2 lever 3 is taken | §2 M5 |
 
 ---
 

@@ -5,7 +5,7 @@ Source of truth: the repository, then
 [../diagnostics/recorded-failures-review-2026-10.md](../diagnostics/recorded-failures-review-2026-10.md)
 (§5 and §8 for the clauses, §7.2 for the evidence tests), then the brief.
 
-**Status: Phase A. Phase B is in progress; four items wait for the owner (§5).**
+**Status: IMPLEMENTED (2026-10-01).** Sections 1-7 are the Phase A record, left as written; §8 is what Phase B did, including where the owner's answers changed the expected sets of §6.
 
 ## 1. Step 0
 
@@ -170,3 +170,68 @@ audit replays and may add a heavier row, which would be reported with that cause
 5. Reconcile both recorded files by name; ATR/boot SHA-256 unchanged; `git diff
    main --stat` clean of `src/`, cfg, build scripts, `dist/`, `docs/media/`.
 6. STATUS, this plan marked implemented.
+
+## 8. Phase B — what was applied (2026-10-01)
+
+### 8.1 Owner answers
+
+| | Decision | Applied as |
+| --- | --- | --- |
+| Q1 | floor 50 on the 3 × 3,000 replays | `RAIDER_REMNANT_KILL_FLOOR = 50`; the report carries `kill_floor` |
+| Q2 | a full formation is `RAIDER_SLOT_COUNT` | read from `src/c/lifecycle.c` at run time (2); the report carries `formation_size` |
+| Q3 | keep the contact sessions recorded | reclassified `a-stale-scenario` with the §4.1 measurements; follow-up `chore/contact-scenario-redesign` |
+| Q4 | star-aware menu raster now, masked pin | `scripts/menu-raster-stars.mjs`; the owner accepted the masked raster `cfc72f31b6a9b148ce7f8944b323e39e118e916347554dab9d8a48f61441f476` on ATR `af2e47b6…` |
+| — | commit `dist/void-strike-65-manifest.json` with the evidence | only `runtimeEvidence.reportSha256` and the embedded trace summary move |
+| — | commit `docs/media/manifest.json`'s wall-trace hash | one line; no image bytes |
+
+The last two resolve a conflict in the brief: regenerating the evidence moves
+the report hash that both manifests carry, while the brief said `dist/` and
+`docs/media/` must not appear in a commit.
+
+### 8.2 RED → GREEN
+
+`tests/trace-clause-observers.test.mjs` on the old observers (extracted
+unchanged, plus a stub for the new fire-sound clause): **2 pass, 6 fail** —
+first-DLI in the wait, first-DLI double selection, booster re-entry, traversal
+beside a debris, same-frame double kill, fire sound. On the fix: **8 of 8 pass**.
+The two negatives ("still fails when …") pass on both, as they must.
+`tests/menu-raster-stars.test.mjs`, new with the model: 4 of 4.
+
+### 8.3 Scenario rewrites
+
+| Session | Old | New |
+| --- | --- | --- |
+| `raider-sector-atr-hard` | 1,800 frames | **2,400 frames** (OPEN again at 1,954; formation readmitted at 1,956) |
+| remnant replays | 3 × 3,000 | unchanged (Q1) |
+| contact-raster sessions | 560 / 360 / 1,200 frames | unchanged, recorded (Q3) |
+
+### 8.4 Result
+
+**Clause failures 16 → 3.** Removed, with the fix: the 12
+`engine-atr-*` first-DLI clauses (observer sees the wait after the end hook) and
+`weapon-pickup-2-hunt-fire4` booster release (observer counts erase writes).
+Staying, class (a): `capital-contact-allied-medium`,
+`capital-contact-hostile-medium`, `lower-playfield-hostile-contact-atr-hard`.
+0 new.
+
+**Test failures 5 → 3.** Removed: both `menu-raster` tests (one stale pin, one
+regenerated under Q4). Staying: `github-showcase` (D), `preview` (C),
+`runtime-wall-trace` "ten heaviest frames…" (D, build script). 0 new.
+`npm test` 873 / 868 / 5 / 0 → **885 / 882 / 3 / 0**.
+
+**Mode-gated gates.** `--raider-formation-only` PASS; `--raider-sector-only`
+FAIL → **PASS**; remnant FAIL → **PASS** (63 kills = 63 explosions over 62 kill
+frames, one same-frame pair); debris gate FAIL with the same single blank frame
+(owner-accepted death-frame blink, summaries byte-identical to the previous run).
+
+| Frame figure | before | after | source |
+| --- | ---: | ---: | --- |
+| worst line-238 fence margin | 785 (`director-complete-2` f5815) | **785**, same row | standalone PAL audit over 56 replays, 0 miss events, 0 rows over 32,568 |
+| DMA-on maximum | 31,121 | **31,121** | `docs/runtime-wall-trace.json` `semantics` |
+| physical headroom | 4,447 | **4,447** | same |
+| DLI per host frame / violations | 2 / 0 | **2 / 0** | same, `gate.memory_integrity` |
+
+`determinism.replay_fingerprint_sha256` moves: it hashes every parsed row, and
+the rows carry the four additive columns. The fire-sound clause covers 7,598
+accepted-shot frames in the default run (9,854 in §4.4 counted the mode-gated
+CSVs too).

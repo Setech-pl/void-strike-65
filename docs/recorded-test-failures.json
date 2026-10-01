@@ -35,22 +35,6 @@
       "cleared_by": "chore/showcase-recapture: a capture run and a docs/media commit"
     },
     {
-      "file": "tests/menu-raster.test.mjs",
-      "test": "native menu raster is exact for the ATR and four cold RAM fills",
-      "class": "D",
-      "first_failing_assertion": "tests/menu-raster.test.mjs:22",
-      "reason": "docs/menu-raster-trace.json was last regenerated on 2026-09-20: it holds 8 sessions (4 of them XEX) where the test expects the 4 ATR sessions, and its ATR hash is not the current artifact's.",
-      "cleared_by": "chore/menu-raster-regeneration: repair and re-run the menu raster trace on the ATR"
-    },
-    {
-      "file": "tests/menu-raster.test.mjs",
-      "test": "menu evidence preserves the audited boot streams and independent charsets",
-      "class": "D",
-      "first_failing_assertion": "tests/menu-raster.test.mjs:110",
-      "reason": "The same stale evidence file: a2_runtime ends at $90ED where the test pins $90FF, and the GLUE hold is at $8100 where it pins $7F16.",
-      "cleared_by": "chore/menu-raster-regeneration"
-    },
-    {
       "file": "tests/preview.test.mjs",
       "test": "preview consumes the canonical charset, screen, PMG, and palette source",
       "class": "C",
@@ -63,7 +47,7 @@
       "test": "ten heaviest frames retain exact clock positions, VBI IDs and state",
       "class": "D",
       "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:836",
-      "reason": "None of the ten heaviest frames carries a CPU DMA-off reference. The reference comes from the JS cycle model in scripts/runtime-cycles.mjs, which still models the retired 10 + 9 shot pool and has no row for today's heaviest frames.",
+      "reason": "None of the ten heaviest frames carries a CPU DMA-off reference. The reference comes from the JS cycle model in scripts/runtime-cycles.mjs, which still models the retired 10 + 9 shot pool and has no row for today's heaviest frames. scripts/runtime-cycles.mjs is imported by scripts/build.mjs and its output is runtimeTiming in the built manifest, so the fix is a build-script change (trace-clause-repairs, 2026-10-01, left it recorded under that task's no-build-script rule).",
       "cleared_by": "chore/cycle-model-pairshot: bring the model to the 5 + 5 pool, or drop the reference from the evidence"
     }
   ],
@@ -1150,6 +1134,45 @@
         "protected": "every Spread direction hits debris; scoring resolves once",
         "failed_on": "directions [0,$40,$20] — [0,0,0]",
         "cause": "The legacy pickup harness fired the Spread centre follow-up instead of the volley (PLAYER_FIGHTER_BURST_REMAINING unset; docs/plans/spread-volley-fix.md section 5). A Spread volley allocates its side shots first and is followed by one centre shot (owner decisions 2026-09-16 and 2026-09-30)."
+      }
+    ]
+  },
+  "measured_trace_clause_repairs": {
+    "task": "trace-clause-repairs, docs/plans/trace-clause-repairs.md",
+    "main_before": "72f8bf6",
+    "atr_sha256": "af2e47b62c315ddf9ed05cab44842d8921bcb8c561b9cc2dcf103f1b1e8b31b7",
+    "boot_sha256": "06d2f25665a17c0858c92245f257d6d339858149a5ed4679919d120d6eb4d80a",
+    "before": {
+      "tests": 873,
+      "pass": 868,
+      "fail": 5,
+      "todo": 0
+    },
+    "after": {
+      "tests": 885,
+      "pass": 882,
+      "fail": 3,
+      "todo": 0
+    },
+    "new_tests": "8 in tests/trace-clause-observers.test.mjs, 4 in tests/menu-raster-stars.test.mjs"
+  },
+  "removed_2026_10_01_trace_clause_repairs": {
+    "note": "Left the recorded set in trace-clause-repairs.",
+    "count": 2,
+    "entries": [
+      {
+        "file": "tests/menu-raster.test.mjs",
+        "test": "native menu raster is exact for the ATR and four cold RAM fills",
+        "class": "D",
+        "outcome": "evidence regenerated and the test rewritten to the owner-decided contract",
+        "fix": "Owner decision 2026-10-01 (Q4): the menu raster audit is star-aware (screen exact outside the 16 star cells, steady stars on their glyph, the five twinkling stars on one cycle frame advancing at the designed rate, charset = asset + star glyphs 64-71) and the raster is pinned with the star cells masked, cfc72f31..., accepted by the owner on ATR af2e47b6.... docs/menu-raster-trace.json regenerated: four ATR sessions, 40 checkpoints."
+      },
+      {
+        "file": "tests/menu-raster.test.mjs",
+        "test": "menu evidence preserves the audited boot streams and independent charsets",
+        "class": "A",
+        "outcome": "re-pinned",
+        "fix": "A stale test pin, not stale evidence: the evidence already carried the build's a2_runtime $9000-$90ED and glue_holding $8100-$81FA; the test pinned $90FF and $7F16. Both ranges are now derived from dist/void-strike-65-manifest.json, as the harness derives them."
       }
     ]
   }

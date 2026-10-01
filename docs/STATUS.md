@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-01
+Last update: 2026-10-01 (trace-clause-repairs)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -329,6 +329,78 @@ owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
 
+## trace-clause-repairs — recorded clauses 16 → 3, recorded tests 5 → 3 — `OWNER REVIEW CANDIDATE` (2026-10-01)
+
+Plan, measurements and the per-item table:
+[plans/trace-clause-repairs.md](plans/trace-clause-repairs.md). Branch
+`fix/trace-clause-repairs` from `main` `72f8bf6`.
+
+**Why.** The recorded-failures review classified the 16 recorded clause
+failures as 3 stale scenarios and 13 observer errors. Before v0.1.0 the trace
+gates must say what the game does.
+
+**What changed.** The trace harness, its emulator header and tests only. **No
+source, cfg or build-script change; the ATR and the boot image are
+byte-identical to `main`**, so no hardware smoke is owed.
+
+* **Observers count what the clauses state** (thresholds and meanings
+  unchanged; predicates in `scripts/trace-clause-observers.mjs`, RED → GREEN
+  unit tests): the first-DLI selection is also seen in the wait after a frame's
+  end hook (12 engine clauses: 150 of 150 frames select byte three); the
+  booster release counts erases that zero the plane, not the publication's
+  empty re-entry; the traversal clause reads the pickup's own slot bit; the
+  remnant gate counts kill requests, so one Spread fan killing both Raiders in
+  one frame is two explosions. Four additive CSV columns
+  (`engine_playfield_select_idle_*`, `pickup_erase_writes`).
+* **Scenario:** `raider-sector-atr-hard` 1,800 → 2,400 frames (the sector
+  returns to OPEN at 1,954).
+* **New clause:** every accepted shot starts the fire sound (`fire_timer` `$33`
+  at the end hook, `fire_sfx` on the next frame) — 7,598 accepted-shot frames
+  in the default run, 0 violations.
+
+**Owner decisions of 2026-10-01** (plan §5): **Q1** the remnant gate's kill floor
+is 50 on the 3 × 3,000 replays (100 was unreachable: 63 measured, 90 even at
+3 × 6,000); **Q2** a full Raider formation is `RAIDER_SLOT_COUNT` = 2, read from
+`src/c/lifecycle.c` (the clauses asked for 3); **Q3** the three contact-raster
+sessions stay recorded as (a) until `chore/contact-scenario-redesign`; **Q4** the
+menu raster audit is star-aware and the menu raster is pinned with the star
+cells masked, `cfc72f31…`, **accepted by the owner** on ATR `af2e47b6…`;
+evidence regenerations commit the binding hashes in
+`dist/void-strike-65-manifest.json` and `docs/media/manifest.json` (no artifact
+or image byte changes).
+
+| | `main` `72f8bf6` | this branch | source |
+| --- | ---: | ---: | --- |
+| worst line-238 fence margin | 785 (`director-complete-2` f5815) | **785**, same row and frame | PAL audit, 48 + 8 mode-gated replays, 0 miss events, 0 rows over 32,568 |
+| DMA-on maximum / physical headroom | 31,121 / 4,447 | **31,121 / 4,447** | `docs/runtime-wall-trace.json` |
+| DLI per host frame / sequence violations | 2 / 0 | **2 / 0** | same |
+| behavioural clause failures | 16 | **3** | [recorded-gate-failures.json](recorded-gate-failures.json) |
+| `npm test` (default build): tests / pass / fail / todo | 873 / 868 / 5 / 0 | **885 / 882 / 3 / 0** | one full run; 12 new tests |
+| recorded test failures | 5 | **3** | [recorded-test-failures.json](recorded-test-failures.json) |
+| `--raider-sector-only` / remnant gate / `--raider-formation-only` | FAIL / FAIL / PASS | **PASS / PASS / PASS** | mode-gated reports |
+| debris visibility gate | FAIL, 1 blank (death-frame blink) | **FAIL, the same 1 blank**, summaries identical | owner-accepted low-severity issue |
+| `docs/menu-raster-trace.json` | 2026-09-20, XEX + old ATR | **4 ATR sessions, 40 checkpoints, star-aware** | `--menu-raster-only` |
+| ATR / boot SHA-256 | `af2e47b6…` / `06d2f256…` | **identical** | `dist/` |
+
+**The recorded clause failures, all class (a), stale scenario:**
+`capital-contact-allied-medium` (sector at 774, no mode-1 contact captured, the
+passive player loses two lives first), `capital-contact-hostile-medium` (the
+sector never opens with the passive player at x 84),
+`lower-playfield-hostile-contact-atr-hard` (HARD hostile shells stop at Y 180,
+under the policy's 191; on MEDIUM they stop at 156).
+
+**The recorded test failures:** `github-showcase` (D, XEX-era captures,
+`chore/showcase-recapture`), `preview` (C, a tool defect,
+`chore/preview-29-rows`), `runtime-wall-trace` "ten heaviest frames…" (D, the
+cycle model is a build script, `chore/cycle-model-pairshot`).
+
+**The review's findings, checked.** Every observer finding was right. Three
+scenario findings were incomplete: extending `--raider-sector-only` exposed the
+three-Raider clause (Q2), the contact sessions need a redesign rather than a
+budget (Q3), and the remnant floor was unreachable by length alone (Q1).
+
+**Owed by the owner.** A review of the plan and of the two recorded files.
+
 ## recorded-failures-review — the recorded test set falls from 105 to 5 — `OWNER REVIEW CANDIDATE` (2026-10-01)
 
 Review, evidence and the Phase B record:
@@ -365,7 +437,9 @@ so every gate figure of the section below stands and no hardware smoke is owed.
 | boot SHA-256 | `06d2f256…` | **`06d2f256…`**, identical | `dist/` |
 
 **The recorded test failures, by class** (the file carries each one's first
-failing assertion and the task that would clear it):
+failing assertion and the task that would clear it). *Superseded by
+trace-clause-repairs above: the two `menu-raster` rows have left the set, which
+is now 3.*
 
 | Class | Test | Reason |
 | --- | --- | --- |
@@ -398,7 +472,8 @@ preview shows the full three-shot fan. The four diagnostic CLIs that use the
 harness start from the same fixed image if re-run; their committed outputs
 were not regenerated.
 
-**Follow-ups proposed, none started:** `chore/preview-29-rows`,
+**Follow-ups proposed** (`chore/menu-raster-regeneration` and the clause-side
+fixes of review §8 were done by trace-clause-repairs, above): `chore/preview-29-rows`,
 `chore/menu-raster-regeneration` (until it runs, no committed evidence shows
 the menu raster of an ATR built after 2026-09-20), `chore/showcase-recapture`,
 `chore/cycle-model-pairshot`, and the clause-side fixes of review §8.

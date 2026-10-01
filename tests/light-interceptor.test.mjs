@@ -465,7 +465,12 @@ test("placement contract: legal composite and packed size, state inside its rese
   // PICKUP_CODE gave back 26 B: the renderer writes one HPOSP3 where it wrote
   // four HPOSM, and the release has no fifth-player PRIOR/SIZEM to restore
   // because PRIOR is $00 for the whole of gameplay now. Recorded, not budgeted.
-  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 75);
+  // Re-recorded 2026-10-01, the all-or-nothing Spread volley (owner decision
+  // 2026-09-30, docs/plans/spread-volley-fix.md): 75 -> 65. The 10-B
+  // player_fighter_spread_volley_sides is appended here because MAIN is full and
+  // its LZ image is the capped initial block; extension record 2 stays at 9
+  // sectors (1,128 of 1,131 B).
+  assert.equal(manifest.residentCapacity.tails.pickupStreamFill, 65);
   // Owner decision X + Light multiplicity steps 1a-3. The Light C left the
   // extension for the code window and the kernel left for its own link, which
   // took the scarce 19-B tail to 451; step 3's multi-slot ASM then overran the

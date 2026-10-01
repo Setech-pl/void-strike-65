@@ -107,10 +107,20 @@ test("menu evidence preserves the audited boot streams and independent charsets"
         `DFMC record ${index + 1} lands in memory the menu owns`);
     }
   }
-  assert.deepEqual(audit.ranges.a2_runtime,
-    { start: 0x9000, end_exclusive: 0x90ff });
-  assert.deepEqual(audit.ranges.glue_holding,
-    { start: 0x7f16, end_exclusive: 0x8000 });
+  // Derived from the built manifest, as the harness derives them, instead of
+  // the $9000-$90FF and $7F16-$8000 pins: the A2 kernel is 237 B since the
+  // ATR-only trims and the GLUE hold has been $8100 since 4.5M-M1
+  // (trace-clause-repairs, 2026-10-01).
+  const manifest = JSON.parse(fs.readFileSync(
+    path.join(rootDirectory, "dist", "void-strike-65-manifest.json"), "utf8"));
+  assert.deepEqual(audit.ranges.a2_runtime, {
+    start: manifest.a2Kernel.runAddress,
+    end_exclusive: manifest.a2Kernel.runAddress + manifest.a2Kernel.bytes,
+  });
+  assert.deepEqual(audit.ranges.glue_holding, {
+    start: manifest.integrationGlue.holdingAddress,
+    end_exclusive: manifest.integrationGlue.holdingAddress + manifest.integrationGlue.bytes,
+  });
   assert.deepEqual(audit.ranges.frontend_screen,
     { start: 0x4000, end_exclusive: 0x4400 });
   assert.deepEqual(audit.ranges.gameplay_charset,

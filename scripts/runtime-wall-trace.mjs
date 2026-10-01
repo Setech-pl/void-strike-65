@@ -13,6 +13,13 @@ import { atari800ArtifactLaunches, validateAtari800Launch } from "./artifact-lau
 import { assertTraceEmulatorFresh } from "./atari800-trace-freshness.mjs";
 import { focusedPalAcceptance } from "./focused-pal-acceptance.mjs";
 import { assertDiagnosticRun, traceArtifactLayout } from "./trace-artifacts.mjs";
+import {
+  acceptedShotsStartFireSound,
+  firstDliSelectsByteThree,
+  pickupReleaseClearedOnce,
+  pickupTraversalFrameIntact,
+  raiderKillAccounting,
+} from "./trace-clause-observers.mjs";
 import { executeDebrisDestructionTrace } from "./debris-destruction-runtime.mjs";
 import { analyseDebrisGate } from "./debris-visibility-gate.mjs";
 import { auditSession as auditPalTiming, reportAudits as reportPalTimingAudits,
@@ -426,13 +433,21 @@ const raiderFormationSessions = [{
   kind: "two-pmg-raiders-native",
 }];
 
+// RE-SCRIPTED 2026-10-01 (trace-clause-repairs), class (a) - a stale SCENARIO,
+// the clauses untouched. The 1,800-frame budget dates from 10f1be2
+// (2026-09-10). MEASURED on this build: the capital sector is entered at frame
+// 870 and is still in state 4 at frame 1,799; it returns to post-sector OPEN at
+// frame 1,954 (one capital sector lasts about 1,084 frames on HARD), so the
+// "did not return to post-sector OPEN" abort was the budget, not the runtime.
+// 2,400 frames contain the return with 446 frames of slack for the
+// readmission clause after it.
 const raiderSectorSessions = [{
   id: "raider-sector-atr-hard",
   medium: "ATR",
   difficulty: 2,
   policy: "early-hunt",
   fireDelay: 4,
-  frames: 1_800,
+  frames: 2_400,
   kind: "raider-sector-lifecycle",
 }];
 
@@ -973,6 +988,11 @@ for (const name of [
   "engine_playfield_select_calls", "engine_playfield_select_scanline",
   "engine_playfield_select_cycle", "engine_playfield_select_dlist",
   "engine_playfield_select_active_lo", "gameplay_generation",
+  // Additive 2026-10-01 (trace-clause-repairs): the first-DLI selection seen in
+  // the wait after a frame's end hook, and the capsule erases that actually
+  // zero the plane.
+  "engine_playfield_select_idle_calls", "engine_playfield_select_idle_dlist",
+  "engine_playfield_select_idle_active_lo", "pickup_erase_writes",
 ]) numericCsvFields.add(name);
 for (const prefix of ["engine_divider", "engine_recycled"]) {
   for (let index = 0; index < 8; ++index) numericCsvFields.add(`${prefix}${index}`);
@@ -4374,13 +4394,21 @@ function main() {
     invariant(completeRows.length > 0,
       "Raider remnant native mode has no profiled OPEN frames");
     const heaviest = maximumRow(completeRows, activeWorkCycles);
-    const killRows = rows.filter((row) =>
-      row.interceptor_breakup_request_slot0 + row.interceptor_breakup_request_slot1 > 0);
+    // REPAIRED 2026-10-01 (trace-clause-repairs), class (b): the unit is the
+    // kill request. The explosion count was a count of FRAMES with the
+    // signature, so one Spread fan killing both Raiders in one frame
+    // (raider-remnant-spread frame 2052: two requests, one shared flash, two
+    // awards) read as a missing explosion, 63 kills against 62. Each request on
+    // a signature frame is one generated explosion now
+    // (scripts/trace-clause-observers.mjs). The 100-kill floor below is NOT
+    // changed here: 3 x 3,000 frames produce 63 on the authored level 1, and
+    // the floor is an owner decision (docs/plans/trace-clause-repairs.md).
+    const killAccounting = raiderKillAccounting(rows);
+    const killRows = killAccounting.killRows;
     const requestedKills = [0, 1].map((slot) => rows.reduce((sum, row) =>
       sum + row[`interceptor_breakup_request_slot${slot}`], 0));
-    const kills = requestedKills[0] + requestedKills[1];
-    const mainExplosionsGenerated = killRows.filter((row) =>
-      row.enemy_explosion_timer === 24 && row.colbk === 0x1e).length;
+    const kills = killAccounting.kills;
+    const mainExplosionsGenerated = killAccounting.mainExplosions;
     const raiderCharacterWrites = rows.reduce((sum, row) =>
       sum + row.raider_character_writes, 0);
     const raiderTransientAllocations = rows.reduce((sum, row) =>
@@ -4479,6 +4507,8 @@ function main() {
         total: requestedKills[0] + requestedKills[1],
       },
       main_explosions_generated: mainExplosionsGenerated,
+      kill_frames: killRows.length,
+      same_frame_kill_frames: killAccounting.sameFrameKillRows,
       raider_generated_character_writes: raiderCharacterWrites,
       raider_generated_transient_effect_allocations: raiderTransientAllocations,
       raider_slot0_effect_activations: raiderSlot0Activations,
@@ -4532,7 +4562,7 @@ function main() {
       },
       csv: sessionsToRun.map(({ id }) => path.relative(rootDirectory,
         path.join(buildDirectory, `${id}.csv`))),
-      passed: kills >= 100 && killRows.length === kills && mainExplosionsGenerated === kills &&
+      passed: kills >= 100 && killAccounting.held &&
         raiderCharacterWrites === 0 && raiderTransientAllocations === 0 &&
         raiderSlot0Activations === 0 &&
         emitterOwnership.kills_with_emitter_projectile_active > 0 &&
@@ -5494,10 +5524,15 @@ function main() {
     //     capsule writes no character cell at all now, so there is nothing on
     //     its PMG plane for it to measure. Singularity is carried by
     //     pickup_plane_blocks above and the phase itself by pickup_draw_calls.
-    invariant(activeRows.every((row) => row.entity_active_mask === 2 &&
-      row.pickup_plane_rows === 16 &&
-      row.pickup_plane_union === 255 &&
-      row.pickup_draw_calls === 1),
+    // REPAIRED 2026-10-01 (trace-clause-repairs), class (b): the slot term
+    // read the whole entity plane (`entity_active_mask === 2`), so a debris
+    // admitted in slot 0 beside an intact capsule read as a broken capsule,
+    // and the replay passed only because fireDelay 8 leaves 20 frames of
+    // debris-clear slack (diagnostics/pickup-traversal-clause-2026-09-28.md).
+    // It now reads the pickup's own slot bit, still rejects any slot outside
+    // debris/pickup and a non-debris object in slot 0
+    // (scripts/trace-clause-observers.mjs); the capsule terms are unchanged.
+    invariant(activeRows.every(pickupTraversalFrameIntact),
     "Native pickup did not remain one logical slot and one whole 16-row capsule");
     // The reverse-erase clause that stood here is DELETED under the class rule.
     // It asserted that every saved ring character cell was restored exactly;
@@ -6033,26 +6068,20 @@ function main() {
     invariant(transitions.length >= 18 && transitions.every((frame, index) =>
       index === 0 || frame - transitions[index - 1] === 8),
     `${session.id} did not preserve the exact 8+8 PAL engine cadence`);
-    /* MEASURED 2026-09-21, owner rule step 1: class (a), recorded rather than
-     * extended. `gameplay_dli` selects byte three of the active A2 list on
-     * every gameplay frame, but the observer only COUNTS it when the first DLI
-     * fires while the measured main-loop window is still open
-     * (`dftrace_active`), which is load-dependent. Across this run it fires
-     * 5,874 times in 41 sessions and the relation
-     * `dlist === 0x7f00 + active_lo + 3` holds on every one of them — 0
-     * violations — including 16 times each in `engine-restart-*-a5`, the same
-     * engine kind over 3,200 frames. All 24 `engine-first-150` sessions
-     * observe it 0 times: 150 light cold-start frames do not contain the
-     * coincidence. Extending them is NOT cheap — it would change the
-     * `engine-first-150` contract, its 150-frame and 150-screenshot pins and
-     * its >=18 transition count across 24 sessions — so under the owner's rule
-     * this is recorded as an open failure instead, with the measurement, and
-     * the assertion is left exactly as written. */
-    const selectedRows = rows.filter((row) => row.engine_playfield_select_calls > 0);
-    recordClauseFailure(session.id,
-      selectedRows.length > 0 && selectedRows.every((row) =>
-        row.engine_playfield_select_calls === 1 &&
-        row.engine_playfield_select_dlist === 0x7f00 + row.engine_playfield_select_active_lo + 3),
+    /* REPAIRED 2026-10-01 (trace-clause-repairs): class (b), an OBSERVER
+     * error, not the (a) the 2026-09-21 measurement recorded. `gameplay_dli`
+     * selects byte three of the active A2 list on every gameplay frame, but the
+     * observer only counted the selection while the measured main-loop window
+     * was open (`dftrace_active`): on a light frame the main loop is already
+     * waiting when the first DLI fires, so every `engine-first-150` session
+     * observed it 0 times in 150 frames. The trace now also records the
+     * selection in the wait after the end hook
+     * (`engine_playfield_select_idle_*`, additive header fields), and a frame's
+     * selection is whichever window saw it (scripts/trace-clause-observers.mjs).
+     * The assertion is unchanged: exactly one selection per observed frame, at
+     * $7F00 + active_lo + 3, and at least one observed frame. */
+    const { selectedRows, held: firstDliHeld } = firstDliSelectsByteThree(rows);
+    recordClauseFailure(session.id, firstDliHeld,
       `${session.id} first DLI did not select byte three of the active A2 list`);
     return {
       id: session.id,
@@ -6430,24 +6459,31 @@ function main() {
   "Hard booster raster motion changed X or deviated from +2 scanlines/frame");
   invariant(pickupMaximumStationaryRun === 0,
     `Booster native-ring motion held for ${pickupMaximumStationaryRun} active frames`);
-  /* MEASURED 2026-09-21, owner rule step 1: class (c), recorded not weakened.
-   * The plane IS cleared -- `pickup_plane_rows === 0` on every release frame.
-   * What fails is `pickup_erase_calls === 1`: the release frame enters the
-   * capsule erase TWICE, deterministically, on all four collections of the
-   * 4,000-frame replay, and `pickup_draw_calls` is 1 on the same frame. The
-   * distribution is exact: every one of the 233 ACTIVE frames is erase 1 /
-   * draw 1, and `erase_calls === 2` occurs exactly 4 times in the whole replay
-   * -- precisely the four release frames. So this is neither a short scenario
-   * (a) nor the wrong instance (b): the clause picks the right frame and the
-   * build does twice what it asserts once. Outside the closed character
-   * renderer class -- the clause is already repointed at the capsule's plane and
-   * the failing term is a call count, not a character measurement. Whether a
-   * second erase in the collection frame is a real waste or an intended
-   * belt-and-braces teardown is an owner judgement. */
+  /* REPAIRED 2026-10-01 (trace-clause-repairs): class (b), an OBSERVER
+   * error, not the (c) the 2026-09-21 measurement recorded. The plane IS
+   * cleared -- `pickup_plane_rows === 0` on every release frame. The clause
+   * asserts one erase, and it counted ENTRIES to clear_fighter_pickup_pmg: on
+   * a release frame the routine is entered by the release, which zeroes the
+   * sixteen rows, and again by the per-frame publication, which finds
+   * ENTITY_SCREEN_HI = 0 and returns at once (src/main.s clear_fighter_pickup_pmg).
+   * The second entry writes nothing. The observer now counts the entries that
+   * zero the plane (`pickup_erase_writes`, an additive header field); the
+   * assertion -- one erase, an empty plane, on every release frame -- is
+   * unchanged. */
   recordClauseFailure("weapon-pickup-2-hunt-fire4",
-    pickupReleaseRows.length > 0 && pickupReleaseRows.every((row) =>
-      row.pickup_erase_calls === 1 && row.pickup_plane_rows === 0),
+    pickupReleaseRows.length > 0 && pickupReleaseRows.every(pickupReleaseClearedOnce),
     "Booster release did not clear the capsule from its PMG plane in the release frame");
+  /* ADDED 2026-10-01 (trace-clause-repairs): every accepted shot starts the fire
+   * sound. The trace samples only POKEY channel 1, so the sound is observed
+   * through its software phase: the accept routine loads fire_timer with $32,
+   * update_sound advances it to $33 in the same frame, and the next frame starts
+   * with fire_sfx set. MEASURED on the 2026-10-01 evidence run before the clause
+   * was written: 9,854 accepted-shot frames across 56 replays, all at $33. */
+  const fireSoundCoverage = acceptedShotsStartFireSound(allRows);
+  invariant(fireSoundCoverage.held,
+    `Accepted shots did not start the fire sound on ${fireSoundCoverage.violations.length} ` +
+    `of ${fireSoundCoverage.accepted} frames: ${JSON.stringify(
+      fireSoundCoverage.violations.slice(0, 4))}`);
   invariant(pickupScreenshotRow,
     "Atari800 replay did not reach the isolated static pickup screenshot state");
   invariant(pickupCollectRows.length >= 3 && pickupRapidRows.length > 0 &&
@@ -7316,6 +7352,11 @@ function main() {
         vx_signed_hpos: observedTrajectories,
       },
       fighter_colour_flash: flashRegisterCoverage,
+      accepted_shot_fire_sound: {
+        observed: fireSoundCoverage.held,
+        accepted_shot_frames: fireSoundCoverage.accepted,
+        violations: fireSoundCoverage.violations.length,
+      },
     },
     ten_heaviest_frames_in_9040_replay: topTenBaseline,
     five_heaviest_frames_scope: "all measured legal runtime replays",

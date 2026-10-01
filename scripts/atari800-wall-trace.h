@@ -335,6 +335,12 @@ typedef struct {
 	unsigned pickup_vscroll;
 	unsigned pickup_a2_head;
 	unsigned pickup_erase_calls;
+	/* Entries to the capsule erase that find the capsule published
+	 * (ENTITY_SCREEN_HI of the pickup slot non-zero), i.e. the entries that
+	 * zero its sixteen rows. pickup_erase_calls counts every entry, including
+	 * the per-frame publication's call that returns at once on an empty plane.
+	 * Additive, 2026-10-01 (trace-clause-repairs). */
+	unsigned pickup_erase_writes;
 	unsigned pickup_draw_calls;
 	unsigned pickup_erase_scanline;
 	unsigned pickup_erase_cycle;
@@ -401,6 +407,14 @@ typedef struct {
 	unsigned engine_playfield_select_cycle;
 	unsigned engine_playfield_select_dlist;
 	unsigned engine_playfield_select_active_lo;
+	/* The same first-DLI selection, seen after this frame's end hook and before
+	 * the next frame's active hook: the wait the measured window leaves out.
+	 * Additive, 2026-10-01 (trace-clause-repairs): on a light frame the main
+	 * loop is already waiting when the first DLI fires, so the window above
+	 * sees no selection at all. */
+	unsigned engine_playfield_select_idle_calls;
+	unsigned engine_playfield_select_idle_dlist;
+	unsigned engine_playfield_select_idle_active_lo;
 	unsigned gameplay_generation;
 	uint64_t profile_clock[DFTRACE_PROFILE_COUNT];
 	uint64_t profile_dli_start[DFTRACE_PROFILE_DLI_COUNT];
@@ -5027,7 +5041,9 @@ static void dftrace_write(void)
 		",pickup_sizep3,pickup_screen_lo,pickup_screen_hi,pickup_pmg_byte_top"
 		",pickup_pmg_byte_middle,pickup_pmg_byte_bottom,pickup_gractl"
 		",slot0_type,slot0_state,slot1_type,slot1_state"
-		",slot2_type,slot2_state,slot3_type,slot3_state\n");
+		",slot2_type,slot2_state,slot3_type,slot3_state"
+		",engine_playfield_select_idle_calls,engine_playfield_select_idle_dlist"
+		",engine_playfield_select_idle_active_lo,pickup_erase_writes\n");
 	for (index = 0; index < dftrace_count; ++index) {
 		DFTraceFrame *frame = &dftrace_frames[index];
 		uint64_t wall = frame->end_clock - frame->start_clock;
@@ -5285,6 +5301,10 @@ static void dftrace_write(void)
 			frame->pickup_gractl);
 		for (unsigned slot = 0u; slot < 4u; ++slot)
 			fprintf(file, ",%u,%u", frame->entity_type[slot], frame->entity_state[slot]);
+		fprintf(file, ",%u,%u,%u,%u", frame->engine_playfield_select_idle_calls,
+			frame->engine_playfield_select_idle_dlist,
+			frame->engine_playfield_select_idle_active_lo,
+			frame->pickup_erase_writes);
 		fputc('\n', file);
 	}
 	if (fclose(file) != 0) {
@@ -6494,6 +6514,24 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 			dftrace_maximum_dlis_per_host_frame = dftrace_dli_integrity_count;
 	}
 
+	/* The first DLI's playfield selection (STA DLISTL with loader_dli_phase 0)
+	 * while no frame is being measured belongs to the frame whose end hook
+	 * ran last: its cadence period lasts until the next active hook. */
+	if (!dftrace_active && dftrace_count != 0u &&
+		MEMORY_mem[dftrace_game_state] == 6u && dftrace_previous_pc != 0u &&
+		MEMORY_mem[dftrace_previous_pc] == 0x8du &&
+		MEMORY_mem[(dftrace_previous_pc + 1u) & 0xffffu] == 0x02u &&
+		MEMORY_mem[(dftrace_previous_pc + 2u) & 0xffffu] == 0xd4u &&
+		MEMORY_mem[dftrace_dli_phase] == 0u) {
+		DFTraceFrame *last = &dftrace_frames[dftrace_count - 1u];
+		++last->engine_playfield_select_idle_calls;
+		if (last->engine_playfield_select_idle_calls == 1u) {
+			last->engine_playfield_select_idle_dlist = ANTIC_dlist;
+			last->engine_playfield_select_idle_active_lo =
+				MEMORY_mem[dftrace_active_dlist_lo];
+		}
+	}
+
 	if (pc == dftrace_pc_active && !dftrace_active) {
 		if (!dftrace_dli_integrity_enabled) {
 			dftrace_dli_integrity_enabled = 1;
@@ -6936,6 +6974,8 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 	}
 	if (pc == dftrace_pc_entity_erase) {
 		++dftrace_current.pickup_erase_calls;
+		if (MEMORY_mem[dftrace_entity_screen_hi + 1u] != 0u)
+			++dftrace_current.pickup_erase_writes;
 		if (dftrace_current.pickup_erase_calls == 1u) {
 			dftrace_current.pickup_erase_scanline = ANTIC_ypos;
 			dftrace_current.pickup_erase_cycle = ANTIC_XPOS;

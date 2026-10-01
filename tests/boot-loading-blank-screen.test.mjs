@@ -40,9 +40,9 @@ function routine(name, next) {
 }
 
 test("stage 2 blanks the display before its first SIO read", () => {
-  assert.match(code, /^SDMCTL\s+= \$022F$/m);
-  assert.match(code, /^COLOR2\s+= \$02C6$/m);
-  assert.match(code, /^COLOR4\s+= \$02C8$/m);
+  assert.match(code, /^SDMCTL\s+= \$022F\s*$/m);
+  assert.match(code, /^COLOR2\s+= \$02C6\s*$/m);
+  assert.match(code, /^COLOR4\s+= \$02C8\s*$/m);
   const entry = routine("boot_stage2_atr_entry", "copy_boot_splash_blob");
   // Owner decision A's order is kept: BASIC is unmapped first, then the splash
   // blob is copied, then the display goes blank, all ahead of the chunk load.

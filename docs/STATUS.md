@@ -58,6 +58,8 @@ released.** Section "ATR-only build" below.
 
 **Licensing (2026-10-01):** code and engineering docs MIT ([LICENSE](../LICENSE)); game content and the ATR as a whole CC BY-NC-SA 4.0 ([LICENSE-ASSETS](../LICENSE-ASSETS)); the names and logos are reserved; tools, AI-generated and unknown-origin images in [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md); `package.json` `(MIT AND CC-BY-NC-SA-4.0)`.
 
+**Resource budget to 1.0 (2026-10-01, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/budget-1.0.md](plans/budget-1.0.md) — the inventory, what M2–M9 each spend, the first shortfall (the `$AE00` window at M5, the boss), the priced levers and the owner decisions with their latest milestone.
+
 **Sixteen `OWNER-SMOKE CANDIDATE`s are outstanding: the all-or-nothing Spread
 volley** (section "Spread volley — all-or-nothing" below; a Spread volley that
 began with fewer than three free shot slots held the pool full of lone side

@@ -9,7 +9,7 @@
     "artifact_binding": "boot BIN and ATR SHA-256"
   },
   "determinism": {
-    "replay_fingerprint_sha256": "38b27676c4a01a7bfe002d62ae25aec44350cd8440e1c90746e39bdcdf476e9b",
+    "replay_fingerprint_sha256": "0bea405e5dc5d16d6011eba1066ddaf589dd06ef92d6734404e26b7e31bb8f1d",
     "ordered_frames": 94680,
     "basis": "ordered decoded CSV rows from every required legal replay"
   },
@@ -2202,7 +2202,7 @@
           "difficulty": 0,
           "start_mode": "immediate",
           "measured_frames": 150,
-          "playfield_select_observations": 0,
+          "playfield_select_observations": 150,
           "first_transition_frame": 7,
           "transition_frames": [
             7,
@@ -2272,7 +2272,7 @@
           "difficulty": 0,
           "start_mode": "delayed-menu",
           "measured_frames": 150,
-          "playfield_select_observations": 0,
+          "playfield_select_observations": 150,
           "first_transition_frame": 7,
           "transition_frames": [
             7,
@@ -2342,7 +2342,7 @@
           "difficulty": 1,
           "start_mode": "immediate",
           "measured_frames": 150,
-          "playfield_select_observations": 0,
+          "playfield_select_observations": 150,
           "first_transition_frame": 7,
           "transition_frames": [
             7,
@@ -2412,7 +2412,7 @@
           "difficulty": 1,
           "start_mode": "delayed-menu",
           "measured_frames": 150,
-          "playfield_select_observations": 0,
+          "playfield_select_observations": 150,
           "first_transition_frame": 7,
           "transition_frames": [
             7,
@@ -2482,7 +2482,7 @@
           "difficulty": 2,
           "start_mode": "immediate",
           "measured_frames": 150,
-          "playfield_select_observations": 0,
+          "playfield_select_observations": 150,
           "first_transition_frame": 7,
           "transition_frames": [
             7,
@@ -2552,7 +2552,7 @@
           "difficulty": 2,
           "start_mode": "delayed-menu",
           "measured_frames": 150,
-          "playfield_select_observations": 0,
+          "playfield_select_observations": 150,
           "first_transition_frame": 7,
           "transition_frames": [
             7,
@@ -2622,7 +2622,7 @@
           "difficulty": 0,
           "start_mode": "immediate",
           "measured_frames": 150,
-          "playfield_select_observations": 0,
+          "playfield_select_observations": 150,
           "first_transition_frame": 7,
           "transition_frames": [
             7,
@@ -2692,7 +2692,7 @@
           "difficulty": 0,
           "start_mode": "delayed-menu",
           "measured_frames": 150,
-          "playfield_select_observations": 0,
+          "playfield_select_observations": 150,
           "first_transition_frame": 7,
           "transition_frames": [
             7,
@@ -2762,7 +2762,7 @@
           "difficulty": 1,
           "start_mode": "immediate",
           "measured_frames": 150,
-          "playfield_select_observations": 0,
+          "playfield_select_observations": 150,
           "first_transition_frame": 7,
           "transition_frames": [
             7,
@@ -2832,7 +2832,7 @@
           "difficulty": 1,
           "start_mode": "delayed-menu",
           "measured_frames": 150,
-          "playfield_select_observations": 0,
+          "playfield_select_observations": 150,
           "first_transition_frame": 7,
           "transition_frames": [
             7,
@@ -2902,7 +2902,7 @@
           "difficulty": 2,
           "start_mode": "immediate",
           "measured_frames": 150,
-          "playfield_select_observations": 0,
+          "playfield_select_observations": 150,
           "first_transition_frame": 7,
           "transition_frames": [
             7,
@@ -2972,7 +2972,7 @@
           "difficulty": 2,
           "start_mode": "delayed-menu",
           "measured_frames": 150,
-          "playfield_select_observations": 0,
+          "playfield_select_observations": 150,
           "first_transition_frame": 7,
           "transition_frames": [
             7,
@@ -3128,7 +3128,7 @@
     "active_frames_crossing_host_vbi": 9937,
     "host_vbi_boundary_crossings": 9937,
     "extra_vbi_boundaries": 0,
-    "behavioural_clause_failure_count": 16,
+    "behavioural_clause_failure_count": 3,
     "behavioural_clause_failures": [
       {
         "session": "capital-contact-allied-medium",
@@ -3141,58 +3141,6 @@
       {
         "session": "lower-playfield-hostile-contact-atr-hard",
         "message": "lower-playfield-hostile-contact-atr-hard did not capture 16 consecutive contact rasters"
-      },
-      {
-        "session": "engine-atr-a5-0-immediate",
-        "message": "engine-atr-a5-0-immediate first DLI did not select byte three of the active A2 list"
-      },
-      {
-        "session": "engine-atr-a5-0-delayed",
-        "message": "engine-atr-a5-0-delayed first DLI did not select byte three of the active A2 list"
-      },
-      {
-        "session": "engine-atr-a5-1-immediate",
-        "message": "engine-atr-a5-1-immediate first DLI did not select byte three of the active A2 list"
-      },
-      {
-        "session": "engine-atr-a5-1-delayed",
-        "message": "engine-atr-a5-1-delayed first DLI did not select byte three of the active A2 list"
-      },
-      {
-        "session": "engine-atr-a5-2-immediate",
-        "message": "engine-atr-a5-2-immediate first DLI did not select byte three of the active A2 list"
-      },
-      {
-        "session": "engine-atr-a5-2-delayed",
-        "message": "engine-atr-a5-2-delayed first DLI did not select byte three of the active A2 list"
-      },
-      {
-        "session": "engine-atr-5a-0-immediate",
-        "message": "engine-atr-5a-0-immediate first DLI did not select byte three of the active A2 list"
-      },
-      {
-        "session": "engine-atr-5a-0-delayed",
-        "message": "engine-atr-5a-0-delayed first DLI did not select byte three of the active A2 list"
-      },
-      {
-        "session": "engine-atr-5a-1-immediate",
-        "message": "engine-atr-5a-1-immediate first DLI did not select byte three of the active A2 list"
-      },
-      {
-        "session": "engine-atr-5a-1-delayed",
-        "message": "engine-atr-5a-1-delayed first DLI did not select byte three of the active A2 list"
-      },
-      {
-        "session": "engine-atr-5a-2-immediate",
-        "message": "engine-atr-5a-2-immediate first DLI did not select byte three of the active A2 list"
-      },
-      {
-        "session": "engine-atr-5a-2-delayed",
-        "message": "engine-atr-5a-2-delayed first DLI did not select byte three of the active A2 list"
-      },
-      {
-        "session": "weapon-pickup-2-hunt-fire4",
-        "message": "Booster release did not clear the capsule from its PMG plane in the release frame"
       }
     ],
     "timing_and_dli_passed": true,
@@ -12385,6 +12333,11 @@
           70
         ]
       }
+    },
+    "accepted_shot_fire_sound": {
+      "observed": true,
+      "accepted_shot_frames": 7598,
+      "violations": 0
     }
   },
   "ten_heaviest_frames_in_9040_replay": [

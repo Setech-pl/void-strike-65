@@ -500,7 +500,10 @@ test("placement contract: legal composite and packed size, state inside its rese
   // Re-recorded 2026-09-28, roadmap 4.6 step 2: 16 -> 25. Like the fill above,
   // no byte was spent for it - the two retired schedulers and their tables gave
   // 9 B of this window back.
-  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 25);
+  // Re-recorded 2026-10-01, roadmap 4.6 step 5: 25 -> 39. light_admit took
+  // 26 B for the look key and encounter_light_admit's 40 B left for the code
+  // window (plan §8.3), so the composite shrank by 14.
+  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 39);
   // Both moved down 4 B in music v2 §10.2: the v1 gameplay player's
   // self-modified read tail was at $9D21, ahead of the art tables, and went
   // with the v1 player. Nothing about the tables themselves changed.
@@ -578,8 +581,13 @@ test("no PMG: no P1/P2 or PMG register touched by the ASM files this task change
   // adc,x in the 17-byte pad; it must not introduce a second archetype field.
   // Step 3: the archetype is per-slot, so the two reads are indexed by slot -
   // one to score a kill, one to pick the art the install copies.
+  // RE-POINTED 2026-10-01, roadmap 4.6 step 5 (plan §8.3): the install picks
+  // its art from the look C admitted the PAIR for (LIGHT_PAIR_KEY), which for
+  // appearance 0 is this same archetype offset - so the archetype field is
+  // read once now, for the score, and the look once, for the install.
   assert.equal((mainSource.match(/adc LIGHT_SCORE_BCD,x/g) ?? []).length, 1);
-  assert.equal((lightSource.match(/lda LIGHT_ARCHETYPE_OFFSET,x/g) ?? []).length, 2);
+  assert.equal((lightSource.match(/lda LIGHT_ARCHETYPE_OFFSET,x/g) ?? []).length, 1);
+  assert.equal((lightSource.match(/lda LIGHT_PAIR_KEY,y/g) ?? []).length, 1);
   // Only the comment on the LIGHT_SCORE_BCD equate names it unindexed.
   assert.equal((lightSource.match(/^\s+\S+\s+LIGHT_ARCHETYPE_OFFSET(?!,x)/gm) ?? []).length, 0,
     "the archetype is never read as a scalar now that it is per-slot");

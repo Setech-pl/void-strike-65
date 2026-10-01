@@ -90,11 +90,22 @@
 #define HAZARD_BIT_BROADSIDE     0x08u
 #define HAZARD_DEBRIS_MASK       0x03u
 /* `wave_flags`: bits 0-1 appearance, 2 mirror, 3 Heavy class, 4 after-cleared. */
+#define WAVE_FLAG_APPEARANCE     0x03u
 #define WAVE_FLAG_HEAVY          0x08u
+/* Roadmap 4.6 step 5: a payload look's key is $80 | slot << 4 ($90, $A0,
+ * $B0), which no archetype offset (0-36) can equal; 0 means "the archetype's
+ * own art" (plan §8.3). */
+#define LIGHT_LOOK_PAYLOAD       0x80u
 /* `sector_caps`: low nibble Light, high nibble Heavy. */
 #define CAPS_LIGHT_MASK          0x0Fu
 
 extern uint8_t asm_director_can_allocate(void);
+/* Roadmap 4.6 step 5 (plan §8.3, budget-1.0 M2 variant S2): the sector's sky
+ * is the near-star pixel value, 1 white / 2 allied steel / 3 yellow. ASM owns
+ * the write - it patches the immediate operand the star publish draws with,
+ * in HYBRID_ASM_ARENA - and C only decides when: at sector entry, and only
+ * there. fastcall: the byte travels in A, no C stack. */
+extern void __fastcall__ asm_publish_star_pixel(uint8_t look);
 /* The LevelDef core page: a link-time symbol at the level buffer, declared in
  * src/hybrid/c-asm-abi.s from the compiler's own generated address. Nothing is
  * linked into it - the sector reader fills it from the level image. */
@@ -299,6 +310,14 @@ uint8_t director_c_try_event(void)
     }
     light_wave_spacing_frames = director_scratch1;
     STATE_SPACING = 0u;                 /* the first member is admissible now */
+    /* Roadmap 4.6 step 5: the wave's look, for its Lights or - on a Heavy
+     * wave - its escort. Published here with the rest of the composition, so
+     * light_admit reads one byte whichever path admits. */
+    director_scratch2 = (uint8_t)((heavy_wave_flags & WAVE_FLAG_APPEARANCE) << 4);
+    if (director_scratch2 != 0u) {
+        director_scratch2 |= LIGHT_LOOK_PAYLOAD;
+    }
+    light_wave_look = director_scratch2;
     if ((heavy_wave_flags & WAVE_FLAG_HEAVY) != 0u) {
         STATE_WAVE_CURSOR = (uint8_t)(director_scratch0 + 1u);
         return 1u;
@@ -341,6 +360,9 @@ static void enter_sector(void)
     STATE_SPACING = 0u;
     light_wave_lock = 0u;
     light_wave_remaining = 0u;
+    /* Roadmap 4.6 step 5: the sky changes here and nowhere else. The look's
+     * low nibble is the sector's star pixel, resolved by the compiler. */
+    asm_publish_star_pixel(sector_look[director_scratch3]);
     if ((sector_kind[director_scratch3] & SECTOR_KIND_MASK) == SECTOR_KIND_CAPITAL) {
         STATE_FLAGS |= FLAG_CAPITAL_DUE;
     }

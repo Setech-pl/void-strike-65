@@ -50,12 +50,17 @@ test("Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reade
   // archetype mask and the release veneer - lives here, because DIRECTOR_RAM
   // holds only what its predecessor's bytes already paid for in the initial
   // block (plan §3.3).
+  // RE-PINNED 2026-10-01, roadmap 4.6 step 5 (plan §8.3): the C half grew
+  // 1,283 -> 1,369 B - encounter_light_admit moved in from HYBRID_C_EXT
+  // (40 B), the wave's look published at arm time, the sky call at sector
+  // entry and the per-pair install mark - and the kernel 708 -> 734 B for the
+  // install that reads its source from the pair's look.
   assert.equal(window.capacityBytes, 1536 + 2048);
-  assert.equal(window.directorHalfBytes, 1283, "the Light C plus step 2's cold Director half");
-  assert.equal(window.lightKernelBytes, 708);
-  assert.equal(window.usedBytes, 1991);
-  assert.equal(window.freeBytes, 3584 - 1991);
-  assert.equal(window.freeBytes, 1593, "the tail step 2 leaves for steps 4-6");
+  assert.equal(window.directorHalfBytes, 1369, "the Light C, the cold Director half, step 5");
+  assert.equal(window.lightKernelBytes, 734);
+  assert.equal(window.usedBytes, 2103);
+  assert.equal(window.freeBytes, 3584 - 2103);
+  assert.equal(window.freeBytes, 1481, "the tail steps 2-5 leave for step 6 and 4.7");
   // Both links moved down as one block; the kernel still closes the window.
   assert.equal(manifest.lightKernel.address, WINDOW + window.directorHalfBytes);
   assert.equal(manifest.lightKernel.windowLimit, READER_BSS);
@@ -65,7 +70,9 @@ test("Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reade
 test("Q-1: the window record lands at $AE00 and costs no extra transport", () => {
   const window = manifest.residentCapacity.basicWindow;
   assert.equal(window.transport.finalDestination, WINDOW);
-  assert.equal(window.transport.rawBytes, 1283, "the window record carries step 2's half");
+  // RE-PINNED 2026-10-01, roadmap 4.6 step 5: 1,283 -> 1,369 raw B, 8 -> 9
+  // sectors - the one extension sector budget-1.0 M2 granted the payload.
+  assert.equal(window.transport.rawBytes, 1369, "the window record carries steps 2-5");
   // The transport rule of plan §3.3 and owner decision 6: this step may not
   // buy a sector. It SOLD one - the retired schedulers, the retired phase
   // machinery and the 158 B of compiled-in level 1 outweigh the reader that

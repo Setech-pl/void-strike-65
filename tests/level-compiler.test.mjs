@@ -339,10 +339,16 @@ test("T2: build/level-1.bin is 13 sectors with the three LevelDef pages where th
     assert.equal(WAVE_ARRAY_OFFSET.memberOffset + MAX_WAVES, LEVEL_CORE_BYTES,
       "the wave SoA ends exactly at the page boundary");
 
-    // Step 1 ships the payload page zeroed: its consumers are steps 5 and 6.
+    // Step 1 shipped the payload page zeroed. RE-POINTED 2026-10-01, roadmap
+    // 4.6 step 5 (plan §8.3): level 1 now authors one Light look, so the page
+    // is the compiler's own payload page byte for byte - and every block a
+    // later step owns (paths, hull_params, boss_def) and the weapon looks
+    // level 1 does not author are still zero.
     const payload = levelOneImage.subarray(LEVEL_PAYLOAD_OFFSET,
       LEVEL_PAYLOAD_OFFSET + LEVEL_PAYLOAD_BYTES);
-    assert.equal(Buffer.compare(payload, Buffer.alloc(LEVEL_PAYLOAD_BYTES)), 0);
+    assert.equal(Buffer.compare(payload, compiled.pages.payload), 0);
+    assert.equal(Buffer.compare(payload.subarray(16), Buffer.alloc(LEVEL_PAYLOAD_BYTES - 16)), 0,
+      "one 16-B look and nothing else");
   });
 
 test("T2: the geometry page says 480 rows and carries today's two module sequences", () => {

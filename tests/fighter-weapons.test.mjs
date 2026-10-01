@@ -333,11 +333,16 @@ test("PlayerFighter glyphs and the assembled Interceptor glyph builder match aut
   }
   const arenaImage = fs.readFileSync(path.join(root, "build", "encounter-director-code-arena.bin"));
   const builderOffset = labels.get("build_hostile_weapon_glyphs") - 0x7bd0;
-  const builder = arenaImage.subarray(builderOffset, builderOffset + 19);
+  // RE-POINTED 2026-10-01, roadmap 4.6 step 5 (plan §8.3): the default loop
+  // is the same 18 bytes; what followed it was the rts, and is now the tail
+  // that lays the level's weapon looks over these defaults - it opens by
+  // reading the core page's magic (lda $AA00). tests/level-payload.test.mjs
+  // runs that tail.
+  const builder = arenaImage.subarray(builderOffset, builderOffset + 21);
   assert.deepEqual([...builder],
     [0xa2, weapons.hostileWeaponVisuals.length * 8 - 1,
       0xbd, labels.get("hostile_weapon_visual_glyphs") & 0xff, labels.get("hostile_weapon_visual_glyphs") >> 8,
-      0x9d, 0xd0, 0x46, 0x4a, 0x4a, 0x4a, 0x4a, 0x9d, 0x20, 0x47, 0xca, 0x10, 0xf0, 0x60],
+      0x9d, 0xd0, 0x46, 0x4a, 0x4a, 0x4a, 0x4a, 0x9d, 0x20, 0x47, 0xca, 0x10, 0xf0, 0xad, 0x00, 0xaa],
   "assembled builder writes glyphs 90+ and 100+ from the authored table");
   assert.equal(weapons.glyphs.player_fighter.some((glyph) => glyph.includes(0xc0)), true);
 });

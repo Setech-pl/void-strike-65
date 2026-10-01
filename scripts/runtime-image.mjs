@@ -73,6 +73,13 @@ export function loadRuntimeSegments(rootDirectory,
     // Roadmap 4.6 step 4: the HullGeometry page. The capital resolvers read
     // its module sequences and the phase machine its phase starts, so a
     // harness without it would traverse a hull of zeros.
+    // Roadmap 4.6 step 5: the payload page. The Light install copies its
+    // looks and the hostile glyph builder its weapon looks, so a harness
+    // without it would install zeros wherever a level authors a variant.
+    ...(manifest.levelDef?.payload == null ? [] : [
+      ["levelPayload", manifest.levelDef.payload.file,
+        manifest.levelDef.payload.blockAddress, manifest.levelDef.payload.blockBytes],
+    ]),
     ...(manifest.levelDef?.geometry == null ? [] : [
       ["levelGeometry", manifest.levelDef.geometry.file,
         manifest.levelDef.geometry.blockAddress, manifest.levelDef.geometry.blockBytes],

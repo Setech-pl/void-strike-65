@@ -71,6 +71,7 @@ DIRECTOR_LOW_BYTES = 242
 .import _wave_count, _wave_spacing, _wave_entry, _wave_member_offset
 .import _heavy_escort_offset, _heavy_wave_flags
 .import _light_wave_archetype, _light_wave_spacing_frames
+.import _light_pair_key
 
 .export director_init, director_world_row_tick, director_request, director_release
 .export director_rng_advance, director_try_event
@@ -126,6 +127,7 @@ level_core_magic = LEVEL_CORE_MAGIC
 .export enemy_heavy_tick, heavy_member_x, heavy_hull_colour, heavy_archetype_offset
 .export enemy_heavy_breakup_claim, heavy_breakup_pending
 .export heavy_member_colour, build_hostile_weapon_glyphs
+.export light_pair_key, _asm_publish_star_pixel, near_star_pixel_operand_abi
 .export light_state, light_hp, light_x, light_y, light_fire_timer
 .export light_screen_lo, light_screen_hi
 .export light_backing0, light_backing1, light_scratch, light_slot_save
@@ -323,6 +325,21 @@ light_rotate_frame = _light_rotate_frame
 ; table, and the slot's left screen code.
 light_archetype_offset = _light_archetype
 light_code = _light_code
+; Roadmap 4.6 step 5 (docs/plans/director-4.6.md §8.3): per appearance PAIR,
+; the look C admitted it for - the archetype offset (12/24) for appearance 0,
+; $90/$A0/$B0 for payload slots 1-3. The kernel's install reads its source
+; from here.
+light_pair_key = _light_pair_key
+
+; Roadmap 4.6 step 5: the sky (budget-1.0 M2 variant S2). The near-star
+; publish draws the star from the immediate operand of its `lda #$10`, in the
+; STARFIELD segment of the main link. This link is built BEFORE main, so it
+; cannot import the label: the address is declared here, exported through
+; build/director-abi.inc, and src/main.s asserts at link time that its label
+; `near_star_pixel_operand` is exactly this address. A moved operand is a
+; build error, never a store into the middle of an instruction.
+NEAR_STAR_PIXEL_OPERAND = $57FA
+near_star_pixel_operand_abi = NEAR_STAR_PIXEL_OPERAND
 
 ; HYBRID_C_ARENA (roadmap 4.5M-M3): one contiguous reusable runtime arena
 ; $7BD0-$7F0F (832 B) for cc65 code (#pragma code-name ("HYBRID_C_ARENA")),
@@ -415,6 +432,69 @@ build_hostile_weapon_glyphs:
     sta CHARSET+(INTERCEPTOR_PROJECTILE_GLYPH_BASE+INTERCEPTOR_PROJECTILE_GLYPH_STRIDE)*8,x
     dex
     bpl @row
+    ; Roadmap 4.6 step 5 (docs/plans/director-4.6.md §8.3): the level's own
+    ; weapon looks, laid over the defaults just published. Still init-only:
+    ; start_gameplay reaches this through init_state after the sector reader
+    ; has filled the level buffer, and before DIRECTOR_INIT. A record is eight
+    ; glyph rows and its TARGET class - 1 PULSE, 2 LASER, 0 unused - and BOMBER
+    ; is never a target: its second animation phase is not in the record.
+    lda LEVEL_CORE_ADDRESS
+    cmp #LEVEL_CORE_MAGIC
+    bne @done                   ; a page this runtime does not know is not read
+    ldy #(LEVEL_WEAPON_LOOKS*LEVEL_WEAPON_LOOK_BYTES-1)
+@look:
+    lda LEVEL_PAYLOAD_WEAPON,y  ; the record's target class
+    dey                         ; Y = the record's last glyph row
+    sec
+    sbc #$01
+    cmp #LEVEL_WEAPON_LOOK_CLASS_LIMIT
+    bcc @install
+    tya                         ; not a target: step over the eight rows (C=1)
+    sbc #(LEVEL_WEAPON_LOOK_BYTES-1)
+    tay
+    bpl @look
+    rts
+@install:
+    asl
+    asl
+    asl
+    ora #$07
+    tax                         ; X = the class's last default row
+@glyph:
+    lda LEVEL_PAYLOAD_WEAPON,y
+    sta CHARSET+INTERCEPTOR_PROJECTILE_GLYPH_BASE*8,x
+    lsr
+    lsr
+    lsr
+    lsr
+    sta CHARSET+(INTERCEPTOR_PROJECTILE_GLYPH_BASE+INTERCEPTOR_PROJECTILE_GLYPH_STRIDE)*8,x
+    dey
+    dex
+    txa
+    and #$07
+    cmp #$07                    ; wrapped below the class's first row
+    bne @glyph
+    tya                         ; Y = the previous record's class byte, or $FF
+    bpl @look
+@done:
+    rts
+
+; Roadmap 4.6 step 5: the sky. C calls this from enter_sector - at sector
+; entry and nowhere else - with the sector's look in A; its low two bits are
+; the star's ANTIC pixel value (1 white COLPF0, 2 allied steel COLPF1, 3
+; yellow COLPF2). The publish shifts nothing, so the value goes in as pixel 1
+; of the glyph row, where the shipped $10 has always put it. The next
+; post-playfield publish draws the new colour; no per-frame code changes.
+_asm_publish_star_pixel:
+    and #$03
+    bne :+
+    lda #$01                    ; an unresolved sky is white, never no star
+:
+    asl
+    asl
+    asl
+    asl
+    sta NEAR_STAR_PIXEL_OPERAND
     rts
 
 hostile_weapon_visual_glyphs:
@@ -461,6 +541,13 @@ hostile_weapon_visual_glyphs:
 .import __HYBRID_HEAVY_BREAKUP_RAM_START__, __HYBRID_HEAVY_BREAKUP_RAM_LAST__
 .assert __HYBRID_HEAVY_BREAKUP_RAM_START__ >= __HYBRID_LIGHT_ROTATE_RAM_LAST__, lderror, "HYBRID_HEAVY_BREAKUP overlaps HYBRID_LIGHT_ROTATE"
 .assert __HYBRID_HEAVY_BREAKUP_RAM_LAST__ <= $8140, lderror, "HYBRID_HEAVY_BREAKUP leaves the unowned gap at $8140"
+
+; Roadmap 4.6 step 5: the appearance-variant bytes take the five bytes of the
+; same unowned gap above DIRECTOR_SECTOR_STATE, leaving $8133-$813F, 13 B.
+.import __HYBRID_LIGHT_LOOK_RAM_START__, __HYBRID_LIGHT_LOOK_RAM_LAST__
+.import __DIRECTOR_SECTOR_STATE_RAM_LAST__
+.assert __HYBRID_LIGHT_LOOK_RAM_START__ >= __DIRECTOR_SECTOR_STATE_RAM_LAST__, lderror, "HYBRID_LIGHT_LOOK overlaps DIRECTOR_SECTOR_STATE"
+.assert __HYBRID_LIGHT_LOOK_RAM_LAST__ <= $8140, lderror, "HYBRID_LIGHT_LOOK leaves the unowned gap at $8140"
 
 .import __HYBRID_C_WINDOW_RAM_LAST__, __HYBRID_C_WINDOW_GUARD_START__
 .assert __HYBRID_C_WINDOW_GUARD_START__ = $BC1A, lderror, "HYBRID_C_WINDOW_GUARD must start at $BC1A"

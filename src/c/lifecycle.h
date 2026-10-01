@@ -50,6 +50,11 @@ extern uint8_t light_wave_timer;
 extern uint8_t light_wave_entry;
 extern uint8_t light_wave_archetype;
 extern uint8_t light_wave_spacing_frames;
+/* Roadmap 4.6 step 5 (docs/plans/director-4.6.md §8.3): the armed wave's look,
+ * published by director_c_try_event for BOTH classes - a Light wave's members
+ * and a Heavy wave's escort wear it. 0 is the archetype's own art; a payload
+ * look is $80 | slot << 4 ($90, $A0, $B0). */
+extern uint8_t light_wave_look;
 /* The Heavy formation the Director selected, consumed by
  * enemy_c_spawn_raiders and published to GTIA by the ABI veneer. */
 extern volatile uint8_t heavy_archetype_offset;

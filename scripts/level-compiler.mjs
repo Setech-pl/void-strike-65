@@ -22,6 +22,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { compileCapitalHulls, loadCapitalHullsDefinition } from "./capital-hulls.mjs";
+import { hostileWeaponGlyphRows } from "./fighter-weapons.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const rootDirectory = path.resolve(scriptDirectory, "..");
@@ -70,13 +71,39 @@ export const WAVE_ARRAY_OFFSET = Object.freeze(Object.fromEntries(
   WAVE_ARRAYS.map((name, index) =>
     [name, CORE_HEADER_BYTES + SECTOR_ARRAYS.length * MAX_SECTORS + index * MAX_WAVES])));
 
-// Payload page - plan §2.3. Step 1 zeroes every block; step 5 fills them.
+// Payload page - plan §2.3. Step 1 zeroed every block; step 5 fills the
+// appearances and the weapon looks (plan §8.3). Paths are step 6, hull_params
+// 4.8a and boss_def 4.7, so those three stay zero.
 export const PAYLOAD_OFFSET = Object.freeze({
   appearance: 0, path: 48, weaponGlyph: 144, hullParams: 162, bossDef: 194,
 });
 export const PAYLOAD_BLOCK_BYTES = Object.freeze({
   appearance: 48, path: 96, weaponGlyph: 18, hullParams: 32, bossDef: 62,
 });
+
+// Roadmap 4.6 step 5 (plan §8.3). Three Light looks of 16 B - left cell rows
+// 0-7, then right cell rows 0-7, the layout of light_glyph - for appearance
+// slots 1-3 (slot 0 is the archetype's own art). A wave names its slot in
+// wave_flags bits 0-1; a Heavy wave's slot re-skins its Light escort.
+export const LIGHT_LOOK_SLOTS = 3;
+export const LIGHT_LOOK_BYTES = 16;
+export const WAVE_FLAG_APPEARANCE_MASK = 0x03;
+// One row is eight ANTIC 4 pixels, four per cell. A Light's screen code
+// carries the hostile bit, so %11 is the hostile red COLPF3.
+export const LIGHT_LOOK_PIXEL = Object.freeze({ ".": 0, W: 1, S: 2, R: 3 });
+// Two weapon looks of 9 B: eight glyph rows, then the weapon_class they
+// replace. The ninth byte is the TARGET CLASS, not design-4.6 §1.1's step
+// period - a level look is not a speed (plan §8.3 item 5, a §10 departure).
+// BOMBER is refused: it carries a second animation phase a 9-B record cannot.
+export const WEAPON_LOOKS = 2;
+export const WEAPON_LOOK_BYTES = 9;
+export const WEAPON_LOOK_CLASS = Object.freeze({ pulse: 1, laser: 2 });
+
+// The sky (budget-1.0 M2 variant S2, owner 2026-10-01): the near-star pixel
+// value. The star code carries no hostile bit, so 1 is white COLPF0, 2 the
+// allied steel COLPF1, 3 the yellow COLPF2. The compiler resolves every
+// sector's sky, so the runtime never reads 0.
+export const SKY_PIXEL = Object.freeze({ white: 1, steel: 2, yellow: 3 });
 
 // HullGeometry page - plan §2.4.
 export const GEOMETRY_OFFSET = Object.freeze({
@@ -366,6 +393,108 @@ function waveMembers(wave, context, where) {
   return { archetype: wave.archetype, escort: wave.escort ?? null };
 }
 
+// The sky by name, or 0 for "unset" (the format's old zero): white.
+function requireSky(context, where, field, value) {
+  if (value === 0) return SKY_PIXEL.white;
+  if (typeof value !== "string" || !Object.hasOwn(SKY_PIXEL, value)) {
+    fail(context, where, `${field} is ${JSON.stringify(value)}; the sky is one of ` +
+      Object.keys(SKY_PIXEL).map((name) => `"${name}"`).join(", ") +
+      " (the near-star pixel: white, the allied steel or yellow)");
+  }
+  return SKY_PIXEL[value];
+}
+
+// A wave's appearance: 0 (or absent) for the archetype's art, a look's name,
+// or its slot number 1-3. Either way the slot must hold an authored look.
+function requireAppearance(context, where, value) {
+  if (value === undefined || value === 0) return 0;
+  const looks = context.looks;
+  let slot;
+  if (typeof value === "string") {
+    slot = looks.findIndex((name) => name === value) + 1;
+    if (slot === 0) {
+      fail(context, where, `appearance is "${value}"; the payload authors ` +
+        (looks.length === 0 ? "no Light looks" :
+          looks.map((name) => `"${name}"`).join(", ")));
+    }
+    return slot;
+  }
+  slot = requireInteger(context, where, "appearance", value, 0, LIGHT_LOOK_SLOTS);
+  if (slot > looks.length) {
+    fail(context, where, `appearance is ${slot}; the payload authors ${looks.length} ` +
+      "Light look(s), so that slot is empty");
+  }
+  return slot;
+}
+
+function lightLookBytes(context, where, rows) {
+  if (!Array.isArray(rows) || rows.length !== 8) {
+    fail(context, where, "rows must be eight strings of eight pixels (. W S R)");
+  }
+  const bytes = Buffer.alloc(LIGHT_LOOK_BYTES);
+  for (const [row, text] of rows.entries()) {
+    if (typeof text !== "string" || !/^[.WSR]{8}$/.test(text)) {
+      fail(context, where, `row ${row} is ${JSON.stringify(text)}; a row is eight pixels, ` +
+        "each . (black), W (white), S (steel) or R (hostile red)");
+    }
+    for (const half of [0, 1]) {
+      bytes[half * 8 + row] = [...text.slice(half * 4, half * 4 + 4)]
+        .reduce((byte, pixel) => (byte << 2) | LIGHT_LOOK_PIXEL[pixel], 0);
+    }
+  }
+  if (bytes.every((byte) => byte === 0)) fail(context, where, "draws no pixel");
+  return bytes;
+}
+
+// The payload page (plan §2.3, §8.3): the Light looks and the weapon looks.
+function compilePayload(source, context) {
+  const page = Buffer.alloc(LEVEL_PAYLOAD_BYTES);
+  const payload = source.payload ?? {};
+  if (typeof payload !== "object" || Array.isArray(payload)) {
+    fail(context, "payload", "must be an object with \"appearances\" and \"weapons\"");
+  }
+  const appearances = payload.appearances ?? [];
+  if (!Array.isArray(appearances) || appearances.length > LIGHT_LOOK_SLOTS) {
+    fail(context, "payload", `appearances must be an array of at most ${LIGHT_LOOK_SLOTS} ` +
+      "Light looks (appearance slots 1-3)");
+  }
+  const names = [];
+  for (const [index, look] of appearances.entries()) {
+    const where = `payload appearance ${index + 1}`;
+    if (typeof look?.name !== "string" || !/^[a-z][a-z0-9-]*$/.test(look.name)) {
+      fail(context, where, `name is ${JSON.stringify(look?.name)}; a look is named in ` +
+        "lower case, so a wave can say which one it wears");
+    }
+    if (names.includes(look.name)) fail(context, where, `"${look.name}" is named twice`);
+    names.push(look.name);
+    lightLookBytes(context, where, look.rows)
+      .copy(page, PAYLOAD_OFFSET.appearance + index * LIGHT_LOOK_BYTES);
+  }
+  const weapons = payload.weapons ?? [];
+  if (!Array.isArray(weapons) || weapons.length > WEAPON_LOOKS) {
+    fail(context, "payload", `weapons must be an array of at most ${WEAPON_LOOKS} looks`);
+  }
+  const classes = [];
+  for (const [index, look] of weapons.entries()) {
+    const where = `payload weapon ${index + 1}`;
+    const target = requireName(context, where, "class", look?.class, WEAPON_LOOK_CLASS);
+    if (classes.includes(target)) fail(context, where, `"${look.class}" has two looks`);
+    classes.push(target);
+    let rows;
+    try {
+      // fighter-weapons.json's own rules: eight 8-bit masks, the high nibble
+      // only (the right phase is the glyph shifted two pixels) and never %11.
+      rows = hostileWeaponGlyphRows(look.rows, "rows");
+    } catch (error) {
+      fail(context, where, error.message);
+    }
+    const offset = PAYLOAD_OFFSET.weaponGlyph + index * WEAPON_LOOK_BYTES;
+    Buffer.from(rows).copy(page, offset);
+    page[offset + 8] = target;
+  }
+  return { page, looks: names, weaponClasses: classes };
+}
+
 function compileSectors(source, context, warnings) {
   if (!Array.isArray(source.sectors) || source.sectors.length === 0) {
     fail(context, "sectors", "must be a non-empty array");
@@ -461,8 +590,14 @@ function compileSectors(source, context, warnings) {
       hazards.broadside, false);
 
     const look = raw.look ?? {};
-    const starColour = requireInteger(context, where, "look.stars", look.stars ?? 0, 0, 15);
+    const starColour = look.stars === undefined
+      ? context.sky
+      : requireSky(context, where, "look.stars", look.stars);
     const nebula = requireBoolean(context, where, "look.nebula", look.nebula, false);
+    if (nebula) {
+      fail(context, where, "look.nebula is true; the nebula (budget-1.0 M2 variant S3) is " +
+        "not built, so a sector cannot ask for one (docs/plans/director-4.6.md §8.3)");
+    }
     const variant = requireInteger(context, where, "look.variant", look.variant ?? 0, 0, 7);
 
     const sectorWaves = raw.waves ?? [];
@@ -528,8 +663,14 @@ function compileSectors(source, context, warnings) {
         fail(context, waveWhere, `entry column is ${JSON.stringify(entry)}; the playfield ` +
           `admits ${ENTRY_COLUMN_MIN}..${ENTRY_COLUMN_MAX}`);
       }
-      const appearance = requireInteger(context, waveWhere, "appearance",
-        wave.appearance ?? 0, 0, 3);
+      const appearance = requireAppearance(context, waveWhere, wave.appearance);
+      // A Heavy formation is PMG art; its appearance re-skins the Light escort
+      // (plan §8.3 item 6), so a Heavy wave with no escort has nothing to wear it.
+      if (appearance !== 0 && waveClass === "heavy" && escort === null) {
+        fail(context, waveWhere, `names appearance ${JSON.stringify(wave.appearance)} but ` +
+          "has no Light escort; a Heavy wave's appearance re-skins its escort, and the " +
+          "Heavy pair keeps its PMG art");
+      }
       const mirror = requireBoolean(context, waveWhere, "mirror", wave.mirror, false);
       const onCleared = requireBoolean(context, waveWhere, "afterCleared",
         wave.afterCleared, false);
@@ -572,8 +713,17 @@ export function compileLevel(source, { hullAsset, file = "level.json" } = {}) {
   }
   const level = requireInteger(context, null, "level", source.level, 1, MAX_LEVEL_NUMBER);
   const seed = requireInteger(context, null, "seed", source.seed ?? 1, 1, 255);
-  const stars = requireInteger(context, null, "stars", source.stars ?? 0, 0, 255);
+  const stars = source.stars === undefined
+    ? SKY_PIXEL.white
+    : requireSky(context, null, "stars", source.stars);
   const nebula = requireInteger(context, null, "nebula", source.nebula ?? 0, 0, 255);
+  if (nebula !== 0) {
+    fail(context, null, `nebula is ${nebula}; the nebula (budget-1.0 M2 variant S3) is not ` +
+      "built (docs/plans/director-4.6.md §8.3)");
+  }
+  context.sky = stars;
+  const payloadPage = compilePayload(source, context);
+  context.looks = payloadPage.looks;
   const bossId = requireInteger(context, null, "boss", source.boss ?? 0, 0, 255);
   const pickupPolicy = requireInteger(context, null, "pickupPolicy",
     source.pickupPolicy ?? 3, 0, 255);
@@ -635,13 +785,13 @@ export function compileLevel(source, { hullAsset, file = "level.json" } = {}) {
     core[WAVE_ARRAY_OFFSET.memberOffset + index] = wave.escortOffset;
   }
 
-  // Step 1 emits the payload page zeroed. Its blocks (plan §2.3) are consumed
-  // from step 5 (appearances, weapon glyphs, look) and step 6 (paths); the
-  // page exists now so that the image layout never changes again.
-  const payload = Buffer.alloc(LEVEL_PAYLOAD_BYTES);
+  // Step 5 fills the appearances and the weapon looks; the path, hull_params
+  // and boss_def blocks stay zero until steps 6, 4.8a and 4.7.
+  const payload = payloadPage.page;
 
   return {
     level, seed, hull, geometry, sectors, waves, warnings, core, payload,
+    looks: payloadPage.looks, weaponClasses: payloadPage.weaponClasses,
     pages: { core, payload, geometry: geometryPage },
   };
 }
@@ -716,6 +866,17 @@ export function renderLevelDefCa65Include() {
   lines.push(`LEVEL_CORE_MAGIC = $${LEVEL_CORE_MAGIC.toString(16).toUpperCase().padStart(2, "0")}`);
   lines.push(`LEVEL_PAYLOAD_ADDRESS = $${LEVEL_PAYLOAD_ADDRESS.toString(16).toUpperCase()}`);
   lines.push(`LEVEL_GEOMETRY_ADDRESS = $${LEVEL_GEOMETRY_ADDRESS.toString(16).toUpperCase()}`);
+  // Roadmap 4.6 step 5: the payload blocks the Light install and the hostile
+  // glyph builder read (plan §8.3).
+  lines.push(`LEVEL_PAYLOAD_APPEARANCE = ` +
+    `$${(LEVEL_PAYLOAD_ADDRESS + PAYLOAD_OFFSET.appearance).toString(16).toUpperCase()}`);
+  lines.push(`LEVEL_PAYLOAD_WEAPON = ` +
+    `$${(LEVEL_PAYLOAD_ADDRESS + PAYLOAD_OFFSET.weaponGlyph).toString(16).toUpperCase()}`);
+  lines.push(`LEVEL_LIGHT_LOOK_BYTES = ${LIGHT_LOOK_BYTES}`);
+  lines.push(`LEVEL_WEAPON_LOOKS = ${WEAPON_LOOKS}`);
+  lines.push(`LEVEL_WEAPON_LOOK_BYTES = ${WEAPON_LOOK_BYTES}`);
+  // Target classes 1..limit may be re-skinned: PULSE and LASER, never BOMBER.
+  lines.push(`LEVEL_WEAPON_LOOK_CLASS_LIMIT = ${Object.keys(WEAPON_LOOK_CLASS).length}`);
   // Roadmap 4.6 step 4: the two module sequences the resolvers index.
   for (const [name, offset] of [["ALLIED", GEOMETRY_OFFSET.alliedSequence],
     ["ENEMY", GEOMETRY_OFFSET.enemySequence]]) {

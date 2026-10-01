@@ -36,6 +36,8 @@
 .include "starfield.inc"
 .include "director-abi.inc"
 .include "light-kernel-abi.inc"
+; Roadmap 4.6 step 5: LEVEL_PAYLOAD_APPEARANCE, the level page's three looks.
+.include "level-def.inc"
 
 .import __LIGHT_KERNEL_RUN__, __LIGHT_KERNEL_RAM_LAST__
 ; The two halves cannot overlap and the ASM half cannot reach the sector
@@ -383,20 +385,23 @@ light_update:
 ; bookkeeping (light_appearance_installed) and asks for the copy once, on the
 ; admission frame.
 ;
-; C names the record AND the pair: the destination follows the slot's own
+; C names the pair AND its look: the destination follows the slot's own
 ; screen code, so pair 1 (122/123) and pair 2 (124/125) need no second path.
 ; Code 120+2k carries bitmap bytes CHARSET+(120+2k)*8, i.e. 16k past pair 0.
+;
+; Roadmap 4.6 step 5 (docs/plans/director-4.6.md §8.3): the SOURCE is the look
+; C admitted the pair for, LIGHT_PAIR_KEY[k], not the slot's archetype. A key
+; below $80 is an archetype offset and selects its art here, exactly as the
+; archetype did before; $90/$A0/$B0 is payload slot 1-3, copied from the level
+; page. The archetype still decides behaviour, HP, fire and score.
 @install:
     ldx LIGHT_SLOT
-    ldy #(LIGHT_GLYPH_BYTES-1)
-    lda LIGHT_ARCHETYPE_OFFSET,x
-    cmp #LIGHT_OFFSET_INTERCEPTOR
-    bne :+
-    ldy #(LIGHT_GLYPH_BYTES*2-1)
-:
     lda LIGHT_CODE,x
     sec
     sbc #LIGHT_SCREEN_CODE       ; = 2k
+    lsr
+    tay                          ; Y = k, the pair
+    asl
     asl
     asl
     asl                          ; = 16k, the pair's offset past pair 0
@@ -407,6 +412,12 @@ light_update:
     ; One BELOW the pair's first byte, so the test is bne and not bcs: at
     ; pair 0 the index wraps to $FF, which is >= 0 and would never terminate.
     dec LIGHT_CELL_END
+    lda LIGHT_PAIR_KEY,y         ; the look this pair was admitted for
+    bmi @level_look
+    ldy #(LIGHT_GLYPH_BYTES-1)
+    cmp #LIGHT_OFFSET_INTERCEPTOR
+    bne @glyph
+    ldy #(LIGHT_GLYPH_BYTES*2-1)
 @glyph:
     lda light_glyph,y
     sta CHARSET+LIGHT_GLYPH*8,x
@@ -414,6 +425,21 @@ light_update:
     dex
     cpx LIGHT_CELL_END
     bne @glyph
+    jmp @alive
+; A payload look: key $80 | slot << 4, so its last byte is the level page's
+; byte 16*slot+15 counted from one look BELOW the page - slot 1 copies bytes
+; 15..0, slot 2 31..16, slot 3 47..32.
+@level_look:
+    ora #(LIGHT_GLYPH_BYTES-1)
+    and #$7F                     ; = 16*slot + 15
+    tay
+@level_glyph:
+    lda LEVEL_PAYLOAD_APPEARANCE-LIGHT_GLYPH_BYTES,y
+    sta CHARSET+LIGHT_GLYPH*8,x
+    dey
+    dex
+    cpx LIGHT_CELL_END
+    bne @level_glyph
     jmp @alive
 
 ; Player PairShot scan, X = projectile slot. Carry clear consumes the slot as

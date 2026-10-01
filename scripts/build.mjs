@@ -39,6 +39,7 @@ import {
   LEVEL_GEOMETRY_BYTES,
   LEVEL_IMAGE_SECTORS,
   LEVEL_CORE_ADDRESS,
+  LEVEL_PAYLOAD_ADDRESS,
   LEVEL_GEOMETRY_ADDRESS,
   LEVEL_CORE_MAGIC,
   CORE_HEADER_BYTES,
@@ -1281,6 +1282,12 @@ function renderDirectorAbiInclude(labelBytes, lightKernelAddress) {
     ["LIGHT_ROTATE_FRAME", "light_rotate_frame"],
     ["LIGHT_ARCHETYPE_OFFSET", "light_archetype_offset"],
     ["LIGHT_CODE", "light_code"],
+    // Roadmap 4.6 step 5 (docs/plans/director-4.6.md §8.3): the look each
+    // appearance pair was admitted for, which the kernel's install reads; and
+    // the near-star operand the sky veneer patches, which src/main.s asserts
+    // is its own label.
+    ["LIGHT_PAIR_KEY", "light_pair_key"],
+    ["NEAR_STAR_PIXEL_OPERAND", "near_star_pixel_operand_abi"],
   ];
   for (const [, name] of symbols) {
     if (!Number.isInteger(labels.get(name))) throw new Error(`Hybrid ABI symbol ${name} is missing`);
@@ -1976,6 +1983,11 @@ async function build() {
   // HullGeometry page, so the harnesses place it the same way.
   writeFile(path.join(buildDirectory, "level-geometry.bin"), Buffer.from(
     startLevelImage.subarray(LEVEL_GEOMETRY_OFFSET, LEVEL_GEOMETRY_OFFSET + LEVEL_GEOMETRY_BYTES)));
+  // Roadmap 4.6 step 5: the Light install and the hostile glyph builder read
+  // the payload page, so the harnesses place it the same way.
+  const startLevelPayloadPage = Buffer.from(startLevelImage.subarray(
+    LEVEL_PAYLOAD_OFFSET, LEVEL_PAYLOAD_OFFSET + LEVEL_PAYLOAD_BYTES));
+  writeFile(path.join(buildDirectory, "level-payload.bin"), startLevelPayloadPage);
   // Light multiplicity step 1b (plan §3.1 [C1]): the fourth link. It runs HERE,
   // after main, because the kernel reaches 25 main-link symbols through
   // light-kernel-abi.inc - which is why it cannot live in the Director link,
@@ -2003,6 +2015,8 @@ async function build() {
       "/project/build/entity-effects.inc": entityEffectsInclude,
       "/project/build/capital-hulls.inc": capitalHullsInclude,
       "/project/build/starfield.inc": starfieldInclude,
+      // Roadmap 4.6 step 5: the install reads payload looks from the page.
+      "/project/build/level-def.inc": levelDefInclude,
     },
   });
   if (lightKernelModule.raw.length > lightKernelCapacityBytes) {
@@ -2559,6 +2573,9 @@ async function build() {
       // does - otherwise director_c_init reads a zeroed page, refuses its
       // magic and completes the level before the first frame.
       { runAddress: LEVEL_CORE_ADDRESS, data: startLevelCorePage },
+      // Roadmap 4.6 step 5: the payload looks the Light install and the
+      // hostile glyph builder read.
+      { runAddress: LEVEL_PAYLOAD_ADDRESS, data: startLevelPayloadPage },
     ],
     capitalPlayerCollisionRuntime: capitalPlayerCollisionModule.raw,
     capitalPlayerCollisionRunAddress: capitalPlayerCollisionAddress,
@@ -3551,6 +3568,15 @@ async function build() {
         waveArrayOffset: WAVE_ARRAY_OFFSET,
       },
       payloadImageOffset: LEVEL_PAYLOAD_OFFSET,
+      // Roadmap 4.6 step 5: read from here on - the Light looks by the
+      // install, the weapon looks by the hostile glyph builder.
+      payload: {
+        home: "per-level image, behind the core page",
+        file: "level-payload.bin",
+        imageOffset: LEVEL_PAYLOAD_OFFSET,
+        blockAddress: LEVEL_PAYLOAD_ADDRESS,
+        blockBytes: LEVEL_PAYLOAD_BYTES,
+      },
       geometryImageOffset: LEVEL_GEOMETRY_OFFSET,
       geometry: {
         home: "per-level image, behind the payload page",

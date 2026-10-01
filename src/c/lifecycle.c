@@ -345,8 +345,9 @@ uint8_t light_resolve_save;
  * render and for the sixteen-byte glyph copy, both of which need an index
  * register for the destination and cannot spare one for the count. */
 uint8_t light_cell_end;
-/* The archetype offset whose bitmap each appearance pair currently holds, or
- * LIGHT_APPEARANCE_NONE. This is what makes the glyph install run ONCE per
+/* The look whose bitmap each appearance pair currently holds, or
+ * LIGHT_APPEARANCE_NONE. A look is the archetype offset for appearance 0 and
+ * $90/$A0/$B0 for payload slots 1-3 (roadmap 4.6 step 5, light_pair_key). This is what makes the glyph install run ONCE per
  * admission instead of on every frame of a Light's life. Policy and
  * bookkeeping rather than hot scratch, so they live here beside the slots and
  * leave the 16-byte shared area for the token and wave state. */
@@ -476,6 +477,30 @@ uint8_t light_rotate_frame;
  * garbage value here would make the first gameplay frame spawn a breakup
  * nobody killed. */
 uint8_t heavy_breakup_pending;
+#pragma bss-name ("HYBRID_LIGHT_LOOK")
+/* Roadmap 4.6 step 5 (docs/plans/director-4.6.md §8.3): appearance variants
+ * (decision AD - a re-skin chosen by level data, never new enemy code). Five
+ * bytes of the unowned gap DIRECTOR_SECTOR_STATE left at $812E-$813F; both
+ * Light areas are still exactly full. Bss with no file image, and none of it
+ * is assumed zero:
+ *   - light_wave_look is published by director_c_try_event before any
+ *     admission of the wave that wears it can happen;
+ *   - light_look_key is written by light_admit before it is read;
+ *   - light_pair_key may hold garbage at gameplay start. A garbage key can at
+ *     worst make rule 1 hand out a pair no slot shows, and the tick then
+ *     installs that pair because light_appearance_installed was reset to
+ *     NONE - one copy more, never a wrong bitmap. */
+uint8_t light_wave_look;
+/* The look THIS admission wants: the published look, or - for appearance 0 -
+ * the record's own offset, so a level without variants keys every pair on
+ * the archetype exactly as before. */
+static uint8_t light_look_key;
+/* Per PAIR, the look it is wanted for. Written once at admission; the tick
+ * installs whenever the pair's bitmap (light_appearance_installed) is not
+ * that look, and the ASM install reads its source from here. Per pair rather
+ * than per slot so that the tick's per-frame test stays one indexed compare
+ * of two arrays under the same index - the shape of the compare it replaces. */
+uint8_t light_pair_key[LIGHT_APPEARANCE_PAIRS];
 #pragma bss-name ("BSS")
 
 static void heavy_publish_profile(void);
@@ -752,7 +777,10 @@ static uint8_t light_free_slot(void)
 
 /* Which appearance pair an admission of `light_record` may use, or
  * LIGHT_APPEARANCE_PAIRS when none may be taken (plan §2.3):
- *   1. a pair that already holds this archetype - share it, no install;
+ *   1. a pair already wanted for this look - share it, no install. Roadmap 4.6
+ *      step 5: the look is light_look_key, not the archetype, so a plain and
+ *      a re-skinned Wingman never share. Two operands changed and nothing
+ *      else: this function stays 124 B in HYBRID_C_EXT, whose record is full;
  *   2. else a pair no live slot still has on screen - take it and rewrite;
  *   3. else refuse; the caller retries next frame.
  * Rule 2's screen test is what stops a freshly freed pair from being
@@ -762,7 +790,7 @@ static uint8_t light_pair_for_record(void)
 {
     light_work = 0u;
     while (light_work != LIGHT_APPEARANCE_PAIRS) {
-        if (light_appearance_installed[light_work] == light_record) {
+        if (light_pair_key[light_work] == light_look_key) {
             return light_work;
         }
         ++light_work;
@@ -818,10 +846,17 @@ static uint8_t light_admit(void)
         return 0u;
     }
     light_slot_save = light_slot;   /* light_pair_for_record walks the slots */
+    /* Roadmap 4.6 step 5: the look this slot wears - the wave's payload look,
+     * or the record itself for appearance 0. */
+    light_look_key = light_wave_look;
+    if (light_look_key == 0u) {
+        light_look_key = light_record;
+    }
     light_work = light_pair_for_record();
     if (light_work == LIGHT_APPEARANCE_PAIRS) {
         return 0u;                  /* rule 3: retry next frame */
     }
+    light_pair_key[light_work] = light_look_key;
     light_scratch = (uint8_t)(LIGHT_SCREEN_CODE + light_work + light_work);
     light_slot = light_slot_save;
     /* RAISE the limit as the slot is filled (owner decision 2026-09-21). The
@@ -851,21 +886,6 @@ static uint8_t light_admit(void)
     return 1u;
 }
 
-/* The Light escort admission of a Heavy formation. Roadmap 4.6 step 2: WHICH
- * Light is the WaveDef's `wave_member_offset`, read as the escort archetype
- * for a Heavy wave (plan §2.2), not a two-entry schedule and a counter. A
- * Light still descending from an earlier formation keeps its lifecycle. */
-static void encounter_light_admit(void)
-{
-    light_record = heavy_escort_offset;
-    light_archetype[light_slot] = light_record;
-    light_admit_entry = LIGHT_X_ENTRY;
-    light_admit_state = light_record == LIGHT_OFFSET_WINGMAN
-        ? LIGHT_ACTIVE_ESCORT       /* takes its leader's column and lag */
-        : LIGHT_ACTIVE_FREE;        /* no leader, ever: free-flying hunter */
-    light_admit();
-}
-
 /* The armed LIGHT wave, one admission attempt per frame from the kernel.
  * Roadmap 4.6 step 2: every number it spends is a WaveDef field that
  * director_c_try_event published - the archetype, the entry column, the member
@@ -880,6 +900,26 @@ static void encounter_light_admit(void)
  * The stepper runs EVERY frame, unlike the admission it calls, so it belongs
  * in the window with the rest of the per-frame path. */
 #pragma code-name (push, "HYBRID_C_WINDOW")
+/* The Light escort admission of a Heavy formation. Roadmap 4.6 step 2: WHICH
+ * Light is the WaveDef's `wave_member_offset`, read as the escort archetype
+ * for a Heavy wave (plan §2.2), not a two-entry schedule and a counter. A
+ * Light still descending from an earlier formation keeps its lifecycle.
+ *
+ * Roadmap 4.6 step 5 moved it here from HYBRID_C_EXT, unchanged: light_admit
+ * gained the look key, extension record 5 has no spare byte, and this
+ * function's only caller is enemy_c_spawn_raiders in the arena, for which a
+ * call into the window costs the same jsr (docs/plans/director-4.6.md §8.3). */
+static void encounter_light_admit(void)
+{
+    light_record = heavy_escort_offset;
+    light_archetype[light_slot] = light_record;
+    light_admit_entry = LIGHT_X_ENTRY;
+    light_admit_state = light_record == LIGHT_OFFSET_WINGMAN
+        ? LIGHT_ACTIVE_ESCORT       /* takes its leader's column and lag */
+        : LIGHT_ACTIVE_FREE;        /* no leader, ever: free-flying hunter */
+    light_admit();
+}
+
 static void light_wave_step(void)
 {
     if (light_wave_lock == 0u) {
@@ -1153,10 +1193,13 @@ uint8_t enemy_c_light_tick(void)
         return light_tick_result;      /* retired, or never admitted */
     }
     /* Which appearance pair this slot's code names. Narrowed before the shift:
-     * on the promoted int cc65 links shrax1. */
-    light_work = (uint8_t)(light_code[light_slot] - LIGHT_SCREEN_CODE);
-    light_work >>= 1u;
-    if (light_appearance_installed[light_work] != light_record) {
+     * on the promoted int cc65 links shrax1. One statement, so the store the
+     * two-statement form spent pays for the second index load the compare
+     * below costs: MEASURED in the listing, the per-frame path from the
+     * subtraction to the branch is 24 cycles and 18 bytes, as it was when the
+     * compare read light_record (roadmap 4.6 step 5). */
+    light_work = (uint8_t)((uint8_t)(light_code[light_slot] - LIGHT_SCREEN_CODE) >> 1u);
+    if (light_appearance_installed[light_work] != light_pair_key[light_work]) {
         /* A consumer too (plan §2.5): the 16-byte copy is expensive and the
          * admission frame is the binding one. If the token is spent the
          * install simply happens next frame - the slot renders one frame with
@@ -1164,7 +1207,7 @@ uint8_t enemy_c_light_tick(void)
          * because §2.3 rule 2 only reassigns a pair no live slot still shows.
          * DEFERRABLE (plan §4.6): visual-only, already has a pending state,
          * already tolerates a frame. The pending condition
-         * (light_appearance_installed != light_record) is per PAIR and carries
+         * (light_appearance_installed != light_pair_key) is per PAIR and carries
          * no deferred-once bit, so unlike the breakup this claim is gated on
          * every attempt - which still adds at most one frame, because the
          * frame after a rotate frame is never a rotate frame. What the budget
@@ -1175,7 +1218,8 @@ uint8_t enemy_c_light_tick(void)
         /* Marked as it is returned: asking the tick CONSUMES the decision, and
          * the kernel is trusted to act on that same return. Nothing calls the
          * tick twice in a frame, and nothing may start. */
-        light_appearance_installed[light_work] = light_record;
+        light_fire_work = light_pair_key[light_work];
+        light_appearance_installed[light_work] = light_fire_work;
         return LIGHT_RETURN_INSTALL;
     }
     return light_tick_result;

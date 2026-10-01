@@ -75,7 +75,7 @@ function hostileWeaponStepPeriods(visuals) {
   return periods;
 }
 
-function hostileWeaponGlyphRows(rows, name) {
+export function hostileWeaponGlyphRows(rows, name) {
   invariant(Array.isArray(rows) && rows.length === 8, `${name} must contain 8 rows`);
   const values = rows.map((mask, row) => binaryMask(mask, `${name}[${row}]`));
   values.forEach((value, row) => {

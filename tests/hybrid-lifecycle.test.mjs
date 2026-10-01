@@ -99,8 +99,12 @@ test("C EnemyArchetype is a compact exact Raider record in legal extension place
   // armed wave's three, and light_ceiling itself became one call into the
   // Director's single answer, so lifecycle_c_init has less to restore and the
   // ceiling has less to decide: 883 - 9 = 874.
+  // RE-PINNED 2026-10-01, roadmap 4.6 step 5 (plan §8.3): light_admit gained
+  // the look key and the per-pair key store (+26 B) and encounter_light_admit
+  // (40 B) moved to the code window, its caller being in the arena anyway:
+  // 874 + 26 - 40 = 860. The record was full; it now packs 735 of 747 B.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
-    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 874 });
+    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 860 });
   const window = manifest.residentCapacity.basicWindow;
   // Q-1 (owner, 2026-09-23): the window starts at $AE00, not $B600 - the level
   // buffer gave back 16 sectors and the window took them.

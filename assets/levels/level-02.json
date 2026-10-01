@@ -62,12 +62,6 @@
     "accidental repeat, and no Heavy sector precedes or follows it directly.",
     "",
     "WHAT THIS FILE CANNOT EXPRESS TODAY, named rather than faked:",
-    "  * an enemy VARIANT (a recolour of an existing archetype) is wave",
-    "    'appearance' 1-3, which the payload page carries and the runtime reads",
-    "    from plan STEP 5. Every wave here is appearance 0, the archetype's own",
-    "    art. There is no recolour in level 2 at step 3.",
-    "  * 'look.stars' / 'look.nebula' per sector is step 5 as well, so every",
-    "    sector leaves them at 0 rather than authoring a sky the build ignores.",
     "  * 'mirror' and 'afterCleared' compile into wave_flags but the Director",
     "    reads only WAVE_FLAG_HEAVY today, so neither is authored here.",
     "  * 'hazards.debris' is read as a nonzero TEST (HAZARD_DEBRIS_MASK), not as",
@@ -81,17 +75,112 @@
     "",
     "Seed 77 (the plan's own §6 example) gives level 2 its own RNG stream:",
     "director_c_init XORs it with the difficulty, so all three streams differ",
-    "from level 1's $6D."
+    "from level 1's $6D.",
+    "",
+    "PAYLOAD, roadmap 4.6 step 5 (docs/plans/director-4.6.md §8.3, owner decision",
+    "2026-10-01: level 2 shows the full payload). Waves, rows and counts are the",
+    "ones approved on 2026-09-30; only their LOOK changes.",
+    "  * THE SKY, the rule level 1 follows too - capital steel, last sector",
+    "    yellow, every other sector white: white, white, steel, white, white,",
+    "    yellow. All three colours.",
+    "  * THREE LIGHT LOOKS (decision AD: re-skins, never new enemy code):",
+    "      hunter  - the Interceptor recoloured: red arms, white rotor pods,",
+    "                steel hub;",
+    "      escort  - the Wingman recoloured: a steel inner edge on the red V;",
+    "      lancer  - the Interceptor re-glyphed: a kite-shaped dart, red outline,",
+    "                steel body, white core.",
+    "    Sector 1 opens on the plain Interceptor and Wingman, so each archetype",
+    "    is met before its variants; its third wave is 'hunter'. Sector 2's",
+    "    Bomber escorts are 'escort'. Sector 4 runs 'hunter', then 'lancer'",
+    "    twice. Sector 5 is plain. Sector 6's first escort wave is 'escort' and",
+    "    its Interceptor wave 'lancer'.",
+    "  * TWO WEAPON LOOKS, level 2 only: PULSE (Raider, Wingman) becomes a",
+    "    staggered twin pulse - two one-pixel pulses, steel over white, offset",
+    "    diagonally; LASER (Interceptor) a broken beam of three short dashes.",
+    "    White and steel only, never %11, the art rule for hostile fire.",
+    "    BOMBER keeps its shell: its second animation phase does not fit a",
+    "    9-byte look."
   ],
   "level": 2,
   "seed": 77,
-  "stars": 0,
+  "stars": "white",
   "nebula": 0,
   "boss": 0,
   "pickupPolicy": 3,
   "hull": {
     "length": 1,
     "turrets": 3
+  },
+  "payload": {
+    "appearances": [
+      {
+        "name": "hunter",
+        "rows": [
+          "WW....WW",
+          "WR....RW",
+          ".RR..RR.",
+          "..RSSR..",
+          ".RR..RR.",
+          "WR....RW",
+          "WW....WW",
+          "........"
+        ]
+      },
+      {
+        "name": "escort",
+        "rows": [
+          "RR....RR",
+          "RRS..SRR",
+          ".RRSSRR.",
+          "..RSSR..",
+          "..RSSR..",
+          "...RR...",
+          "...RR...",
+          "........"
+        ]
+      },
+      {
+        "name": "lancer",
+        "rows": [
+          "..R..R..",
+          "..RSSR..",
+          ".RSWWSR.",
+          "RSSWWSSR",
+          ".RSSSSR.",
+          "..RSSR..",
+          "...RR...",
+          "........"
+        ]
+      }
+    ],
+    "weapons": [
+      {
+        "class": "pulse",
+        "rows": [
+          "00000000",
+          "10000000",
+          "01000000",
+          "00000000",
+          "00100000",
+          "00010000",
+          "00000000",
+          "00000000"
+        ]
+      },
+      {
+        "class": "laser",
+        "rows": [
+          "00100000",
+          "00010000",
+          "00000000",
+          "00100000",
+          "00010000",
+          "00000000",
+          "00010000",
+          "00000000"
+        ]
+      }
+    ]
   },
   "sectors": [
     {
@@ -107,6 +196,9 @@
       "hazards": {
         "debris": 1,
         "pickups": true
+      },
+      "look": {
+        "stars": "white"
       },
       "waves": [
         {
@@ -128,7 +220,8 @@
           "archetype": "interceptor",
           "count": 6,
           "spacing": 24,
-          "entry": 124
+          "entry": 124,
+          "appearance": "hunter"
         }
       ]
     },
@@ -146,6 +239,9 @@
         "debris": 1,
         "pickups": true
       },
+      "look": {
+        "stars": "white"
+      },
       "waves": [
         {
           "row": 0,
@@ -155,7 +251,8 @@
           ],
           "count": 6,
           "spacing": 24,
-          "entry": 124
+          "entry": 124,
+          "appearance": "escort"
         },
         {
           "row": 192,
@@ -165,7 +262,8 @@
           ],
           "count": 6,
           "spacing": 24,
-          "entry": 124
+          "entry": 124,
+          "appearance": "escort"
         },
         {
           "row": 384,
@@ -175,7 +273,8 @@
           ],
           "count": 6,
           "spacing": 24,
-          "entry": 124
+          "entry": 124,
+          "appearance": "escort"
         }
       ]
     },
@@ -186,6 +285,9 @@
         "debris": 1,
         "pickups": true,
         "broadside": true
+      },
+      "look": {
+        "stars": "steel"
       }
     },
     {
@@ -201,27 +303,33 @@
         "debris": 1,
         "pickups": true
       },
+      "look": {
+        "stars": "white"
+      },
       "waves": [
         {
           "row": 0,
           "archetype": "interceptor",
           "count": 8,
           "spacing": 20,
-          "entry": 64
+          "entry": 64,
+          "appearance": "hunter"
         },
         {
           "row": 128,
           "archetype": "interceptor",
           "count": 8,
           "spacing": 20,
-          "entry": 184
+          "entry": 184,
+          "appearance": "lancer"
         },
         {
           "row": 256,
           "archetype": "interceptor",
           "count": 8,
           "spacing": 20,
-          "entry": 96
+          "entry": 96,
+          "appearance": "lancer"
         }
       ]
     },
@@ -239,6 +347,9 @@
       "hazards": {
         "debris": 1,
         "pickups": true
+      },
+      "look": {
+        "stars": "white"
       },
       "waves": [
         {
@@ -293,6 +404,9 @@
         "debris": 1,
         "pickups": true
       },
+      "look": {
+        "stars": "yellow"
+      },
       "waves": [
         {
           "row": 0,
@@ -302,7 +416,8 @@
           ],
           "count": 6,
           "spacing": 24,
-          "entry": 124
+          "entry": 124,
+          "appearance": "escort"
         },
         {
           "row": 192,
@@ -316,7 +431,8 @@
           "archetype": "interceptor",
           "count": 4,
           "spacing": 24,
-          "entry": 124
+          "entry": 124,
+          "appearance": "lancer"
         },
         {
           "row": 480,

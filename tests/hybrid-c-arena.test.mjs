@@ -61,8 +61,11 @@ test("HYBRID_C_ARENA is one contiguous 832-B arena at $7BD0-$7F0F", () => {
   // RE-PINNED 2026-10-01 (recorded failures review, A15): build/manifest.json
   // residentCapacity.arena is 90 + 589 + 39 B with 114 B free (STATUS); it was
   // 71 + 504 + 39 with 218 free.
-  assert.deepEqual([arena.asmBytes, arena.codeBytes, arena.rodataBytes], [90, 589, 39]);
-  assert.equal(arena.freeBytes, 114);
+  // RE-PINNED 2026-10-01, roadmap 4.6 step 5 (plan §8.3): + 72 B of ca65 -
+  // the hostile glyph builder's tail that lays the level's weapon looks over
+  // the defaults (57 B) and the sky veneer (15 B). The C is unchanged.
+  assert.deepEqual([arena.asmBytes, arena.codeBytes, arena.rodataBytes], [162, 589, 39]);
+  assert.equal(arena.freeBytes, 42);
   assert.equal(labels.get("hybrid_arena_anchor"), ARENA);
   assert.equal(arenaImage[0], 0x60, "the anchor stays first");
   for (const veneer of ["enemy_recycle", "enemy_spawn_raiders", "heavy_publish_hull_colour"]) {
@@ -129,7 +132,8 @@ test("the arena lands directly as its own DFMC record and is the only owner of i
   // Emitter-independent hostile shots: ENTITY_CODE −27 B (−25 B packed).
   // 4.5c Bomber: arena record 355 B packed / 3 sectors; 180 transport sectors.
   // 4.5d enemy identity: arena record 558 B packed / 5 sectors; 182 transport sectors.
-  assert.deepEqual([record.packedLength, record.sectorCount], [649, 6]);
+  // Roadmap 4.6 step 5: 649 -> 712 B packed, still 6 sectors (35 B spare).
+  assert.deepEqual([record.packedLength, record.sectorCount], [712, 6]);
   // Death-frame deferral (2026-09-17): player_dying_tick adds 18 B to ENTITY_CODE.
   // Debris score (2026-09-18): add_debris_score plus its call adds 21 B to
   // ENTITY_CODE; BROADSIDE, the arena and the sector counts are unchanged.
@@ -141,8 +145,12 @@ test("the arena lands directly as its own DFMC record and is the only owner of i
   assert.equal(manifest.transportCapacity.initialBootContentBytes, 13621);
   assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 75);
   assert.equal(manifest.transportCapacity.initialBootSectors, 107);
-  assert.equal(manifest.transportCapacity.totalTransportSectors, 208);
-  assert.equal(parsed.totalOccupiedSectors, 208);
+  // RE-PINNED 2026-10-01, roadmap 4.6 step 5 (plan §8.3): 208 -> 209. The
+  // code window's C half took the one extension sector budget-1.0 M2 granted
+  // the payload (record 8, 8 -> 9 sectors); this record did not move, and the
+  // initial block above is unchanged.
+  assert.equal(manifest.transportCapacity.totalTransportSectors, 209);
+  assert.equal(parsed.totalOccupiedSectors, 209);
 });
 
 test("the temporary Heavy window transport is retired without moving any address", () => {

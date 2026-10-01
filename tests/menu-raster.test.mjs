@@ -9,8 +9,13 @@ const testDirectory = path.dirname(fileURLToPath(import.meta.url));
 const rootDirectory = path.resolve(testDirectory, "..");
 const report = JSON.parse(fs.readFileSync(
   path.join(rootDirectory, "docs", "menu-raster-trace.json"), "utf8"));
-const canonicalRaster =
-  "ba90172fad6c1c799a14b74dfddc55946e0ed49308dbf24c5bb5fc4afcc4bb04";
+// The owner-accepted menu image with the star cells masked (owner decision
+// 2026-10-01, trace-clause-repairs Q4): the twinkling star sky has no single
+// raster, so the pin covers everything but the sixteen star cells, which the
+// audit checks exactly against the generated sky instead. The raw screenshot
+// hashes stay in the evidence as data.
+const canonicalMaskedRaster =
+  "cfc72f31b6a9b148ce7f8944b323e39e118e916347554dab9d8a48f61441f476";
 
 function sha256(filePath) {
   return crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
@@ -23,7 +28,9 @@ test("native menu raster is exact for the ATR and four cold RAM fills", () => {
   assert.deepEqual(report.sessions.map(({ id }) => id), [
     "atr-00", "atr-a5", "atr-5a", "atr-ff",
   ]);
-  assert.equal(report.expected.canonical_raster_sha256, canonicalRaster);
+  assert.equal(report.expected.canonical_masked_raster_sha256, canonicalMaskedRaster);
+  assert.equal(report.expected.star_sky.stars, 16);
+  assert.equal(report.expected.star_sky.twinkling, 5);
 
   for (const session of report.sessions) {
     assert.equal(session.passed, true, session.id);
@@ -49,7 +56,12 @@ test("native menu raster is exact for the ATR and four cold RAM fills", () => {
       assert.equal(check.registers.gractl, 0);
       assert.equal(check.registers.prior, 0);
       assert.equal(check.pmg_nonzero, 0);
-      assert.equal(check.screenshot_sha256, canonicalRaster);
+      assert.equal(check.masked_raster_sha256, canonicalMaskedRaster);
+      assert.deepEqual(check.star_sky.steady_errors, [],
+        `${session.id} menu generation ${check.generation}: a steady star is wrong`);
+      assert.ok(check.star_sky.consistent_twinkle_frames.length > 0,
+        `${session.id} menu generation ${check.generation}: the twinkling stars ` +
+        "agree on no frame of their cycle");
       assert.ok(check.brightest_run.horizontal < 32,
         `${session.id} contains a horizontal white stripe`);
       assert.ok(check.brightest_run.vertical < 32,

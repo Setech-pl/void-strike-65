@@ -9,6 +9,16 @@ import { LOADER_DISPLAY_LIST_ADDRESS, loadLoaderBitmapDefinition } from "./loade
 import { runtimeArtifactSet, runtimeArtifactNames } from "./runtime-evidence.mjs";
 import { canonicalPlayfield } from "./playfield.mjs";
 import { readStartMenuRuntimeState } from "./preview.mjs";
+import { compileMenuStars, loadFrontendH31Definition } from "./frontend-h31-assets.mjs";
+import {
+  MENU_SCREENSHOT_GEOMETRY,
+  checkMenuStarSky,
+  expectedMenuCharset,
+  insideStarCell,
+  maskedRasterBytes,
+  menuStarCellRects,
+  menuStarSkyModel,
+} from "./menu-raster-stars.mjs";
 import { atari800ArtifactLaunches, validateAtari800Launch } from "./artifact-launch.mjs";
 import { assertTraceEmulatorFresh } from "./atari800-trace-freshness.mjs";
 import { focusedPalAcceptance } from "./focused-pal-acceptance.mjs";
@@ -451,6 +461,15 @@ const raiderSectorSessions = [{
   kind: "raider-sector-lifecycle",
 }];
 
+/* RECORDED, owner decision 2026-10-01 (trace-clause-repairs, Q3): class (a), a
+ * stale scenario that a longer budget does not repair, so these two sessions
+ * and `lower-playfield-hostile-contact-atr-hard` stay recorded until
+ * chore/contact-scenario-redesign. MEASURED at 1,600 frames: the allied
+ * session reaches its capital sector at 774 and is hit at 895, but the mode-1
+ * geometry is never captured and the passive player has lost two lives in the
+ * fighter phase; the hostile one never leaves the fighter phase. A probe-only
+ * preamble (sweep + fire, health/lives held while OPEN) opens the sector at 667
+ * and still captures no contact (docs/plans/trace-clause-repairs.md §4.1). */
 const capitalContactSessions = [0, 1].map((owner) => ({
   id: `capital-contact-${owner === 0 ? "allied" : "hostile"}-medium`,
   difficulty: 1,
@@ -2406,18 +2425,27 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, atrPath }) {
   const source = fs.readFileSync(path.join(rootDirectory, "src", "main.s"), "utf8");
   const expected = readStartMenuRuntimeState(source, 0);
   const expectedScreen = Buffer.from(expected.screen);
-  const expectedCharset = Buffer.from(expected.graphics.frontendCharset);
   const expectedDisplayList = Buffer.from(expected.graphics.mainMenuDisplayList);
+  // The main-menu star sky (owner decision A', 2026-09-23) writes sixteen screen
+  // cells and glyphs 64-71 at run time, and five stars twinkle on a 48-frame
+  // cycle that runs on across menu generations. Owner decision 2026-10-01
+  // (trace-clause-repairs, Q4): the audit checks the sky exactly from the asset
+  // the build compiles (scripts/menu-raster-stars.mjs) and pins the raster with
+  // the star cells masked, because a twinkling sky has no single raster.
+  const menuStarModel = menuStarSkyModel(compileMenuStars(loadFrontendH31Definition(
+    path.join(rootDirectory, "assets", "graphics", "frontend-h31.json"))));
+  const expectedCharset = expectedMenuCharset(expected.graphics.frontendCharset, menuStarModel);
+  const menuStarRects = menuStarCellRects(expectedDisplayList, menuStarModel);
   // The owner-accepted main-menu image, pinned deliberately: this is a description of
   // a player-visible artifact, not a transport or build figure that should be derived.
   // Nothing in the repository can regenerate it, and a raster that moves without an
-  // owner smoke is exactly what this clause exists to catch. Re-accepted 2026-09-20
-  // after 9d22ee2: style_main_menu_title hard-coded `ldx #11` against a fourteen-
-  // character title, so the highlight run was two cells short and "65" stayed plain.
-  // Both runs now derive from MAIN_MENU_TITLE_TEXT in src/main.s, the image changed
-  // for that known reason, and all ten required checkpoints agree on the new raster.
-  const canonicalRasterSha256 =
-    "ee08628457a1c489a7ee780c7e2739410c31284c53e9b021f4d2ff8efad8999a";
+  // owner smoke is exactly what this clause exists to catch. History: ba90172f...
+  // (before 9d22ee2), ee086284... (re-accepted 2026-09-20 after the title-run fix,
+  // before the star sky). Since 2026-10-01 the pin is the raster with the star cells
+  // inside the screenshot set to 0 (maskedRasterBytes), accepted by the owner on the
+  // ATR af2e47b6... at all ten checkpoints and four cold fills.
+  const canonicalMaskedRasterSha256 =
+    "cfc72f31b6a9b148ce7f8944b323e39e118e916347554dab9d8a48f61441f476";
   const residentRuntime = fs.readFileSync(path.join(
     rootDirectory, "build", "resident-runtime.bin"));
   const stageTableOffset = labels.get("boot_stage_streams") -
@@ -2604,12 +2632,13 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, atrPath }) {
         [`${snapshot.generation}:${snapshot.menu_age}`, snapshot]));
       invariant(requiredKeys.every((key) => snapshots.has(key)),
         `${id} is missing complete-menu raster checkpoints`);
+      const images = new Map();
       const checks = requiredKeys.map((key) => {
         const snapshot = snapshots.get(key);
         const screen = Buffer.from(snapshot.screen_hex, "hex");
         const charset = Buffer.from(snapshot.charset_hex, "hex");
         const displayLists = Buffer.from(snapshot.dlist_hex, "hex");
-        const screenDifference = firstByteDifference(screen, expectedScreen);
+        const starSky = checkMenuStarSky(screen, expectedScreen, menuStarModel);
         const charsetDifference = firstByteDifference(charset, expectedCharset);
         const displayListDifference = firstByteDifference(
           displayLists.subarray(0, expectedDisplayList.length), expectedDisplayList);
@@ -2617,10 +2646,21 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, atrPath }) {
         invariant(fs.existsSync(screenshotPath), `${id} screenshot ${key} is missing`);
         const screenshotBytes = fs.readFileSync(screenshotPath);
         const screenshotSha256 = sha256(screenshotBytes);
-        const stripe = longestBrightStripe(decodeAtari800Screenshot(screenshotBytes));
-        invariant(screenDifference === -1 && charsetDifference === -1 &&
+        const image = decodeAtari800Screenshot(screenshotBytes);
+        invariant(image.width === MENU_SCREENSHOT_GEOMETRY.width &&
+          image.height === MENU_SCREENSHOT_GEOMETRY.height,
+        `${id} ${key} screenshot is ${image.width}x${image.height}, not the ` +
+          `${MENU_SCREENSHOT_GEOMETRY.width}x${MENU_SCREENSHOT_GEOMETRY.height} the star cells are mapped to`);
+        images.set(key, image);
+        const maskedRasterSha256 = sha256(maskedRasterBytes(image, menuStarRects));
+        const stripe = longestBrightStripe(image);
+        invariant(starSky.nonStarDifference === -1 && charsetDifference === -1 &&
           displayListDifference === -1,
         `${id} ${key} differs from the generated frontend asset`);
+        invariant(starSky.steadyErrors.length === 0 && starSky.consistentFrames.length > 0,
+          `${id} ${key} star sky does not match the generated sky at any twinkle frame ` +
+          `(steady errors ${starSky.steadyErrors.map((address) =>
+            `$${address.toString(16)}`).join(",") || "none"})`);
         invariant(snapshot.game_state === 1 &&
           snapshot.dlist === labels.get("main_menu_display_list") &&
           snapshot.charset_address === 0x4800 && snapshot.dma_ctl === 0x22 &&
@@ -2633,17 +2673,22 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, atrPath }) {
         `${id} ${key} retained a PMG graphics latch`);
         invariant(snapshot.pmg_nonzero === 0,
           `${id} ${key} retained nonzero frontend PMG backing`);
-        invariant(screenshotSha256 === canonicalRasterSha256,
-          `${id} ${key} native raster differs from the accepted complete menu`);
+        invariant(maskedRasterSha256 === canonicalMaskedRasterSha256,
+          `${id} ${key} native raster differs from the accepted complete menu ` +
+          `(star cells masked: ${maskedRasterSha256})`);
         invariant(stripe.horizontal < 32 && stripe.vertical < 32,
           `${id} ${key} contains a uniform bright stripe`);
         return {
           generation: snapshot.generation,
           menu_age: snapshot.menu_age,
           host_frame: snapshot.frame,
-          screen_difference: screenDifference,
+          screen_difference: starSky.nonStarDifference,
           charset_difference: charsetDifference,
           display_list_difference: displayListDifference,
+          star_sky: {
+            steady_errors: starSky.steadyErrors,
+            consistent_twinkle_frames: starSky.consistentFrames,
+          },
           registers: {
             sdlst: snapshot.dlist,
             chbase: snapshot.charset_address,
@@ -2665,8 +2710,35 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, atrPath }) {
           brightest_run: stripe,
           screenshot: path.relative(rootDirectory, screenshotPath),
           screenshot_sha256: screenshotSha256,
+          masked_raster_sha256: maskedRasterSha256,
         };
       });
+      // The sky moves at the designed rate: within one menu generation the tick
+      // runs once per menu frame, so the twinkle frames consistent with a later
+      // checkpoint include the earlier ones advanced by the age difference.
+      for (const [index, check] of checks.entries()) {
+        const earlier = checks[index - 1];
+        if (earlier === undefined || earlier.generation !== check.generation) continue;
+        const step = check.menu_age - earlier.menu_age;
+        invariant(earlier.star_sky.consistent_twinkle_frames.some((frame) =>
+          check.star_sky.consistent_twinkle_frames.includes(
+            (frame + step) % menuStarModel.phaseFrames)),
+        `${id} star sky did not advance ${step} twinkle frames between ` +
+          `${earlier.generation}:${earlier.menu_age} and ${check.generation}:${check.menu_age}`);
+      }
+      // Self-check of the screenshot geometry the mask relies on: a pixel that
+      // differs between two checkpoints of this session must be a star pixel.
+      const reference = images.get(requiredKeys[0]);
+      for (const [key, image] of images) {
+        for (let offset = 0; offset < image.indices.length; offset += 1) {
+          if (image.indices[offset] === reference.indices[offset]) continue;
+          const x = offset % image.width;
+          const y = Math.floor(offset / image.width);
+          invariant(insideStarCell(menuStarRects, x, y),
+            `${id} ${key} pixel (${x},${y}) differs from ${requiredKeys[0]} outside every ` +
+            "star cell: the screenshot geometry the mask uses is wrong");
+        }
+      }
       sessions.push({
         id,
         medium: artifact.medium,
@@ -2696,10 +2768,18 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, atrPath }) {
     gameplay_to_menu_transitions_per_session: 3,
     minimum_stable_menu_frames: 500,
     expected: {
-      screen: "$4000-$43FF generated main-menu state",
-      charset: "$4800-$4BFF generated frontend charset",
+      screen: "$4000-$43FF generated main-menu state; star cells checked against the generated sky",
+      charset: "$4800-$4BFF generated frontend charset with the eight star glyphs 64-71",
+      star_sky: {
+        stars: menuStarModel.stars.length,
+        twinkling: menuStarModel.stars.filter((star) => star.twinkles).length,
+        phase_frames: menuStarModel.phaseFrames,
+        cells_inside_screenshot: menuStarRects.length,
+        screenshot_geometry: MENU_SCREENSHOT_GEOMETRY,
+      },
       display_list: `$${labels.get("main_menu_display_list").toString(16)}`,
-      canonical_raster_sha256: canonicalRasterSha256,
+      canonical_masked_raster_sha256: canonicalMaskedRasterSha256,
+      raster_mask: "palette index 0 over every star cell inside the screenshot",
       screen_sha256: sha256(expectedScreen),
       charset_sha256: sha256(expectedCharset),
       display_list_sha256: sha256(expectedDisplayList),
@@ -4400,9 +4480,11 @@ function main() {
     // (raider-remnant-spread frame 2052: two requests, one shared flash, two
     // awards) read as a missing explosion, 63 kills against 62. Each request on
     // a signature frame is one generated explosion now
-    // (scripts/trace-clause-observers.mjs). The 100-kill floor below is NOT
-    // changed here: 3 x 3,000 frames produce 63 on the authored level 1, and
-    // the floor is an owner decision (docs/plans/trace-clause-repairs.md).
+    // (scripts/trace-clause-observers.mjs).
+    // Owner decision 2026-10-01 (trace-clause-repairs, Q1): the floor is 50 on
+    // the 3 x 3,000-frame replays. 100 was unreachable on the authored level 1:
+    // 63 kills here (21 / 20 / 22), and 90 even at 3 x 6,000 frames.
+    const RAIDER_REMNANT_KILL_FLOOR = 50;
     const killAccounting = raiderKillAccounting(rows);
     const killRows = killAccounting.killRows;
     const requestedKills = [0, 1].map((slot) => rows.reduce((sum, row) =>
@@ -4562,7 +4644,8 @@ function main() {
       },
       csv: sessionsToRun.map(({ id }) => path.relative(rootDirectory,
         path.join(buildDirectory, `${id}.csv`))),
-      passed: kills >= 100 && killAccounting.held &&
+      kill_floor: RAIDER_REMNANT_KILL_FLOOR,
+      passed: kills >= RAIDER_REMNANT_KILL_FLOOR && killAccounting.held &&
         raiderCharacterWrites === 0 && raiderTransientAllocations === 0 &&
         raiderSlot0Activations === 0 &&
         emitterOwnership.kills_with_emitter_projectile_active > 0 &&
@@ -5052,11 +5135,19 @@ function main() {
       row.sector_state === 7 && rows[index - 1].sector_state !== 7);
     invariant(postOpenIndex > capitalStartIndex,
       `${session.id} did not return to post-sector OPEN`);
+    // Owner decision 2026-10-01 (trace-clause-repairs, Q2): a full formation is
+    // RAIDER_SLOT_COUNT live Raiders, read from the C lifecycle. The clauses
+    // asked for three, from 10f1be2; the Heavy class owns P1/P2 only, so the
+    // game never has more than two (AGENTS.md, "Enemy classes").
+    const raiderSlotMatch = /^#define\s+RAIDER_SLOT_COUNT\s+(\d+)u?\s*$/m.exec(
+      fs.readFileSync(path.join(rootDirectory, "src", "c", "lifecycle.c"), "utf8"));
+    invariant(raiderSlotMatch !== null, "src/c/lifecycle.c no longer defines RAIDER_SLOT_COUNT");
+    const raiderFormationSize = Number(raiderSlotMatch[1]);
     const preSector = rows.slice(0, capitalStartIndex);
     const initialFormation = preSector.find((row) => row.enemy_state === 1 &&
-      row.enemy_live_count === 3);
+      row.enemy_live_count === raiderFormationSize);
     invariant(initialFormation !== undefined,
-      `${session.id} did not run a three-Raider formation before the sector`);
+      `${session.id} did not run a full ${raiderFormationSize}-Raider formation before the sector`);
     const releasedShots = preSector.findLast((row) => row.enemy_state === 0 &&
       row.enemy_projectiles > 0);
     invariant(releasedShots !== undefined,
@@ -5070,7 +5161,7 @@ function main() {
       row.enemy_live_count === 0),
     `${session.id} admitted ordinary machines during the capital lifecycle`);
     const readmission = rows.slice(postOpenIndex + 1).find((row) =>
-      row.enemy_state === 1 && row.enemy_live_count === 3);
+      row.enemy_state === 1 && row.enemy_live_count === raiderFormationSize);
     invariant(readmission !== undefined,
       `${session.id} did not readmit a formation after post-sector OPEN`);
     const maximumWall = Math.max(...rows.map((row) => row.wall_cycles));
@@ -5097,6 +5188,7 @@ function main() {
       capital_start_empty: frameState(capitalStart),
       post_sector_open: frameState(rows[postOpenIndex]),
       formation_readmitted: frameState(readmission),
+      formation_size: raiderFormationSize,
       blocked_capital_frames: capitalRows.length,
       timing: {
         maximum_wall_cycles: maximumWall,

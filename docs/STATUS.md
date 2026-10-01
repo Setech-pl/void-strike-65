@@ -56,6 +56,8 @@ supersedes those four figures.
 **Owner decision, 2026-09-30: the game ships as the ATR only; the XEX is not
 released.** Section "ATR-only build" below.
 
+**Licensing (2026-10-01):** code and engineering docs MIT ([LICENSE](../LICENSE)); game content and the ATR as a whole CC BY-NC-SA 4.0 ([LICENSE-ASSETS](../LICENSE-ASSETS)); the names and logos are reserved; tools, AI-generated and unknown-origin images in [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md); `package.json` `(MIT AND CC-BY-NC-SA-4.0)`.
+
 **Sixteen `OWNER-SMOKE CANDIDATE`s are outstanding: the all-or-nothing Spread
 volley** (section "Spread volley — all-or-nothing" below; a Spread volley that
 began with fewer than three free shot slots held the pool full of lone side
@@ -3348,6 +3350,8 @@ section's "what to look for" in the implementation report.
 ---
 
 ## Known open defects and open decisions
+
+- **Follow-up (licensing, 2026-10-01):** `scripts/package-release.mjs` builds the release zip without `LICENSE`, `LICENSE-ASSETS` and `THIRD_PARTY_NOTICES.md`; the zip should include all three. GitHub releases ship the ATR alone, with both licences linked from the release notes.
 
 - ~~BLOCKED: the runtime evidence cannot be regenerated, so the default build
   cannot link~~ — **CLOSED.** `docs/runtime-wall-trace.json` was regenerated on

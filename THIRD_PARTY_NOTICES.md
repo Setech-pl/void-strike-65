@@ -63,8 +63,13 @@ These four committed images carry an embedded C2PA manifest signed by OpenAI
 | `docs/media/concepts/void-strike-65-boss-02-siege-spine.png` | 2026-09-05 |
 | `docs/media/concepts/void-strike-65-boss-03-void-citadel.png` | 2026-09-05 |
 
-None of them is shipped in the ATR. They are distributed with the rest of the
-game content under CC BY-NC-SA 4.0 to the extent that rights in them exist.
+The banner `assets/graphics/void-strike-65-banner-03-retro-box-art.png` carries
+no embedded manifest. It was generated with OpenAI image tools on the owner's
+commercial subscription and then edited by the owner in GIMP.
+
+None of these five images is shipped in the ATR. They are distributed with the
+rest of the game content under CC BY-NC-SA 4.0 to the extent that rights in
+them exist.
 
 ## Origin not recorded in the repository
 
@@ -75,7 +80,6 @@ committed images were made. None of them is shipped in the ATR.
   `Hostile Interceptor.png`, `Hydra Missile Carrier.png`, `Leech Drone.png`,
   `Nemesis Command Interceptor.png`, `Reaper Gunship.png`, `Scythe Bomber.png`,
   `Specter Scout.png`, `Stalker Hunter.png`, `Talon Interceptor.png`;
-- `assets/graphics/void-strike-65-banner-03-retro-box-art.png`;
 - `assets/graphics/mainmenu.png`;
 - `docs/media/concepts/void-strike-65-concept-from-floppy-to-stars.jpg` and
   `docs/media/concepts/void-strike-65-concept-gauntlet-run.jpg`.

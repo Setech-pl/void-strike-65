@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { installRuntimeSegments } from "../scripts/runtime-image.mjs";
+import { installRuntimeSegments, publishEnemyProfileScore } from "../scripts/runtime-image.mjs";
 import { Nmos6502 } from "../scripts/nmos6502.mjs";
 
 const directory = path.dirname(fileURLToPath(import.meta.url));
@@ -31,8 +31,13 @@ const addresses = {
   deathTimer: 0x4e5f,
   damageApplied: 0x4e65,
   enemyArchetype: 0x4ecb,
-  enemyScores: labels.get("enemy_scores"),
-  addScore: labels.get("add_archetype_score"),
+  // FIXTURE 2026-10-01 (recorded failures review, D4): the kill score is one
+  // profile byte, ENEMY_PROFILE_SCORE_BCD, published by the C admission path
+  // (the `enemy_scores` table is gone), and `add_archetype_score` is an equate
+  // for add_archetype_score_tail, so only the latter is in the label file.
+  enemyScores: Number.parseInt(/^ENEMY_PROFILE_SCORE_BCD = \$([0-9A-Fa-f]{4})$/m.exec(
+    fs.readFileSync(path.join(root, "build", "director-abi.inc"), "utf8"))[1], 16),
+  addScore: labels.get("add_archetype_score_tail"),
   applyPlayerDamage: labels.get("apply_player_damage"),
   updatePlayerDeath: labels.get("update_player_death"),
   initState: labels.get("init_state"),
@@ -60,6 +65,7 @@ function routine(label) {
 function createRuntimeMemory() {
   const memory = new Uint8Array(0x10000);
   installRuntimeSegments(memory, root);
+  publishEnemyProfileScore(memory, root);
   return memory;
 }
 
@@ -242,6 +248,9 @@ function executeScoreRoutine(memory, startAddress, {
       case 0x69: // ADC #imm
         add(readByte());
         break;
+      case 0x6d: // ADC abs
+        add(memory[readWord()]);
+        break;
       case 0x7d: { // ADC abs,X
         const address = readWord();
         add(memory[address + x & 0xffff]);
@@ -342,14 +351,21 @@ function awardOnePoint({ scoreLow, scoreHigh, topLow, topHigh }) {
   return { memory, instructions };
 }
 
-test("all score writes use one BCD award path while source ownership stays unchanged", () => {
+// REWRITTEN 2026-10-01 (recorded failures review, B18; owner-approved). This
+// was "all score writes use one BCD award path while source ownership stays
+// unchanged" and counted two `sta score_bcd_lo` in the source. There are three
+// award paths now, each accepted on its own: the enemy profile award, the Light
+// award (Light Wingman M1) and the debris award (2026-09-18, STATUS "Debris
+// reward"). The rule the test keeps: SCORE is written by new-game and by those
+// three BCD awards only, and no award inserts a TOP score.
+test("score is written by new-game and the three BCD award paths, and no award inserts a TOP score", () => {
   assert.ok(Object.values(addresses).every(Number.isInteger));
   assert.match(source,
     /TOP_SCORE_RECORD_COUNT\s*=\s*10[\s\S]+TOP_SCORE_TABLE_LO\s*=\s*TOP_SCORE_TABLE[\s\S]+TOP_SCORE_TABLE_HI\s*=\s*TOP_SCORE_TABLE_LO\+TOP_SCORE_STORAGE_COUNT/);
-  assert.match(routine("add_archetype_score"),
-    /adc enemy_scores,x[\s\S]+sta score_bcd_hi[\s\S]+cld\s+jmp update_score_display/);
-  assert.doesNotMatch(routine("add_archetype_score"), /insert_top_score/);
-  assert.match(routine("update_player_death"),
+  assert.match(routine("add_archetype_score_tail"),
+    /adc ENEMY_PROFILE_SCORE_BCD[\s\S]+sta score_bcd_hi[\s\S]+cld\s+jmp update_score_display/);
+  assert.doesNotMatch(routine("add_archetype_score_tail"), /insert_top_score/);
+  assert.match(routine("update_player_death_finished"),
     /@game_over:[\s\S]+sta PLAYER_LIFECYCLE\s+jsr insert_top_score/);
   assert.match(routine("resolve_enemy_damage"),
     /cmp #\(DAMAGE_CAPITAL_HOSTILE\+1\)\s+bcs @no_score\s+pha\s+jsr add_archetype_score\s+pla\s+cmp #DAMAGE_PLAYER_PROJECTILE\s+bne @no_score\s+lda ENTITY_STATE\+WEAPON_PICKUP_SLOT\s+bne @no_score\s+jsr weapon_pickup_record_qualified_kill/);
@@ -357,8 +373,17 @@ test("all score writes use one BCD award path while source ownership stays uncha
   assert.doesNotMatch(routine("init_state"), /TOP_SCORE_TABLE/);
   assert.match(routine("finish_startup_after_loader"),
     /ldx #\(TOP_SCORE_TABLE_BYTES-1\)[\s\S]+sta TOP_SCORE_TABLE,x[\s\S]+bpl @clear_top_scores/);
-  assert.equal((source.match(/sta score_bcd_lo/g) ?? []).length, 2);
-  assert.equal((source.match(/sta score_bcd_hi/g) ?? []).length, 2);
+  for (const award of ["add_archetype_score_tail", "light_add_score", "add_debris_score"]) {
+    assert.match(routine(award),
+      /sed\s+clc\s+lda score_bcd_lo\s+adc [^\n]+\s+sta score_bcd_lo\s+lda score_bcd_hi\s+adc #\$00\s+sta score_bcd_hi\s+cld/,
+      `${award} must be one packed-BCD add`);
+    assert.doesNotMatch(routine(award), /insert_top_score/, award);
+  }
+  // Assembled source only: the `.if 0` block keeps the retired table-indexed add.
+  const assembled = source.replace(/^\.if 0\n[\s\S]*?^\.endif\n/gm, "");
+  assert.equal((assembled.match(/sta score_bcd_lo/g) ?? []).length, 4,
+    "new-game plus the three award paths");
+  assert.equal((assembled.match(/sta score_bcd_hi/g) ?? []).length, 4);
 });
 
 test("assembled decimal score code carries without inserting partial-game scores", () => {
@@ -551,7 +576,7 @@ test("assembled death and respawn preserve whole-game SCORE before the next awar
   assert.deepEqual([memory[addresses.topLow], memory[addresses.topHigh]], [0x23, 0x01]);
 
   assert.doesNotMatch(routine("respawn_player"), /score_bcd|TOP_SCORE|init_state/);
-  assert.match(routine("update_player_death"), /jsr insert_top_score/);
+  assert.match(routine("update_player_death_finished"), /jsr insert_top_score/);
   assert.doesNotMatch(routine("main_loop"), /reset_score_after_player_death/);
   assert.match(routine("start_gameplay"), /jsr init_state/);
 });

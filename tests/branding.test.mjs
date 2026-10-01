@@ -17,7 +17,6 @@ const forbidden = [
   ["colo", "nial"].join(""),
   ["cy", "lon"].join(""),
   ["vi", "per"].join(""),
-  ["rai", "der"].join(""),
   ["base", "star"].join(""),
   ["dra", "dis"].join(""),
 ].join("|");
@@ -95,10 +94,27 @@ test("assembled Atari screen streams decode to the complete rebranded frontend",
   }
 });
 
-test("tracked names and searchable tracked content contain no retired vocabulary", () => {
+// REWRITTEN 2026-10-01 (recorded failures review, B13; owner-approved). This
+// was "tracked names and searchable tracked content contain no retired
+// vocabulary" and scanned every tracked file for ten words. Two things made
+// that impossible to satisfy: the Heavy archetype's documented name is on the
+// list no longer (docs/game-design.md, "Enemies"; it names 15 tracked files),
+// and the engineering documents legitimately carry the checkout path and the
+// owner's own decision texts (AGENTS.md; owner decision O). The rule that
+// remains is the one a player can see: no tracked NAME and nothing a player
+// reads or the game displays uses the retired vocabulary.
+const playerFacingPaths = [
+  "README.md", "README.pl.md", "docs/how-to-play.md", "docs/how-to-play.pl.md",
+  "LICENSE", "LICENSE-ASSETS", "package.json", "src", "assets",
+];
+
+test("tracked names and player-facing tracked content contain no retired vocabulary", () => {
   const files = execFileSync("git", ["ls-files"], { cwd: root, encoding: "utf8" });
   assert.doesNotMatch(files, new RegExp(forbidden, "i"));
-  const result = spawnSync("git", ["grep", "-inE", forbidden], {
+  for (const tracked of playerFacingPaths) {
+    assert.ok(fs.existsSync(path.join(root, tracked)), `${tracked} is part of the scan`);
+  }
+  const result = spawnSync("git", ["grep", "-inE", forbidden, "--", ...playerFacingPaths], {
     cwd: root,
     encoding: "utf8",
   });

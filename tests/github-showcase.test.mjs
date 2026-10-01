@@ -104,25 +104,39 @@ test("owner-supplied concept art is preserved and never classified as gameplay",
   }
 });
 
+// REWRITTEN 2026-10-01 (recorded failures review, B14; owner-approved). The
+// test listed the headings and three sentences of the README as it was before
+// b2a1710 (2026-09-20) rewrote it around the ATR and added the Polish version
+// (owner decision V: user-facing documents ship in both languages). It now
+// lists the current headings and holds the Polish file to the same structure.
 test("public README is English, complete, and free of stale status language", () => {
   const readme = read("README.md").toString("utf8");
   const prose = readme.replace(/\s+/g, " ");
   const requiredHeadings = [
     "# VOID STRIKE 65",
-    "## Current gameplay",
+    "## Get it running",
+    "## What works today",
+    "## What is being built",
+    "### Where the build stands",
     "## Screenshots",
-    "## Controls",
-    "## Run",
-    "## Build",
-    "## Downloads",
-    "## Development status",
-    "### Implemented",
-    "### Planned",
-    "## Project history",
+    "## The bosses, as designed",
+    "## Build it yourself",
     "## Technical highlights",
+    "## Project history",
     "## Credits and license",
+    "### License",
   ];
-  for (const heading of requiredHeadings) assert.ok(readme.includes(heading), heading);
+  const headings = (text) => text.split(/\r?\n/).filter((line) => /^#{1,6} /.test(line));
+  assert.deepEqual(headings(readme), requiredHeadings);
+  // Owner decision V: the Polish README carries the same sections, in the same
+  // order and at the same levels, and each file links the other.
+  const polish = read("README.pl.md").toString("utf8");
+  assert.deepEqual(headings(polish).map((line) => line.split(" ")[0]),
+    requiredHeadings.map((line) => line.split(" ")[0]),
+    "README.pl.md must have the same heading structure as README.md");
+  assert.equal(headings(polish)[0], "# VOID STRIKE 65");
+  assert.match(readme, /^\*\*English\*\* · \[Polski\]\(README\.pl\.md\)/);
+  assert.match(polish, /^\[English\]\(README\.md\) · \*\*Polski\*\*/);
   assert.match(readme, /original vertical space shooter/);
   assert.match(readme, /Encounter Director/);
   assert.match(readme, /BROADSIDE/);
@@ -130,10 +144,9 @@ test("public README is English, complete, and free of stale status language", ()
   assert.match(readme, /npm run play:atr/);
   assert.match(readme, /must not be passed to Atari800\s+with `-run`/);
   assert.match(readme, /npm run build:candidate/);
-  assert.match(readme, /actively developed/);
   assert.match(readme, /began on an Atari in 1990/);
-  assert.match(prose, /AI-assisted engineering under the creator's direction/);
-  assert.match(prose, /fast disk-access path must be repaired/);
+  assert.match(prose, /AI-assisted engineering/);
+  assert.match(prose, /boots without holding OPTION/);
   // Owner decision 2026-09-21: the repository is licensed. Code MIT, assets
   // CC BY-NC-SA 4.0, name and marks reserved.
   assert.match(readme, /\[MIT\]\(LICENSE\)/);

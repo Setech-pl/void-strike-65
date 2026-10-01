@@ -14,7 +14,6 @@ import {
   executeShieldBoosterTrace,
   executeSpreadShotTrace,
   executePlayerFighterBurstBalanceTrace,
-  executeWeaponPickupBackingTrace,
   executeWeaponPickupLifecycleTrace,
 } from "../scripts/weapon-pickup-runtime.mjs";
 
@@ -51,33 +50,22 @@ test("Shield capsule uses only steel $84, white $0E and black selectors", () => 
   assert.deepEqual([...new Set(selectors)].sort(), [0, 1, 2]);
 });
 
-test("dynamic glyph ownership is explicit and all capsule transitions restore backing", () => {
-  assert.deepEqual([
-    manifest.entityEffects.spreadPickupGlyphIndex,
-    manifest.entityEffects.shieldPickupGlyphIndex,
-    manifest.entityEffects.dynamicPickupGlyphBankShared,
-  ], [120, 120, true]);
-  for (const pickupType of ["rapid", "spread", "shield"]) {
-    const trace = executeWeaponPickupBackingTrace({ root, artifact: "atr", pickupType });
-    assert.deepEqual(trace.restored, trace.original);
-    assert.deepEqual([trace.drawnMaskAfterErase, trace.renderedMaskAfterErase,
-      trace.topLatchAfterErase], [0, 0, 0]);
-  }
-  const composer = source.slice(source.indexOf("compose_weapon_pickup_phase:"),
-    source.indexOf("weapon_pickup_phase_offset_lo:"));
-  assert.match(composer, /tya[\s\S]+lsr[\s\S]+ror/,
-    "pickup type selects its 64-byte glyph-bank offset");
-  assert.match(composer, /weapon_pickup_phase_offset_lo,x/,
-    "animation phase supplies the low byte");
-  assert.match(composer, /weapon_pickup_type_base_hi,y/,
-    "pickup type supplies the high byte of the current glyph bank");
-});
+// RETIRED 2026-10-01 (recorded failures review, action B1; owner-approved): "dynamic glyph
+// ownership is explicit and all capsule transitions restore backing". It
+// checked the shared dynamic glyph bank the three capsule types composed into
+// the charset, and the backing each transition restored. The capsule is a
+// PLAYER3 image since f6eee5c (docs/plans/pickup-colour.md): no glyph bank is
+// shared at runtime (manifest dynamicPickupGlyphBankShared is false) and no
+// backing exists.
 
 test("pickup rotation is exactly Rapid Spread Shield Rapid without RNG", () => {
   const trace = executeSpreadShotTrace({ root, artifact: "atr" });
   assert.deepEqual(trace.drops.map(({ pickupType, nextPickupType, renderId }) =>
     [pickupType, nextPickupType, renderId]), [
-    [0, 1, 120], [1, 2, 248], [2, 0, 120],
+    // RE-PINNED 2026-10-01 (recorded failures review, D1): the render id column is 0 - a PMG
+    // capsule has no glyph base (it was 120 / 248 / 120). The rotation is the
+    // subject and is unchanged.
+    [0, 1, 0], [1, 2, 0], [2, 0, 0],
   ]);
   const rotation = source.slice(source.indexOf("weapon_pickup_record_qualified_kill:"),
     source.indexOf('.segment "STARFIELD"', source.indexOf("weapon_pickup_record_qualified_kill:")));
@@ -147,7 +135,11 @@ test("same-frame Shield collection protects later debris and consumes it", () =>
 
 test("frame ordering keeps earlier collisions before pickup activation", () => {
   assert.match(source, /jsr handle_collisions[\s\S]+jsr entity_effects_update/);
-  assert.match(source, /jsr update_weapon_booster_active[\s\S]+jsr update_weapon_pickup_active[\s\S]+jmp entity_collide_player_active/);
+  // RE-PINNED 2026-10-01 (recorded failures review, A29): the order is unchanged - booster,
+  // then pickup, then the debris/player collision - but the pickup step is
+  // update_fighter_pickup_pmg and the debris update ends in
+  // `jmp entity_collide_player` (src/main.s entity_effects_update).
+  assert.match(source, /jsr update_weapon_booster_active\s+@pickup:\s+jsr update_fighter_pickup_pmg[\s\S]+jmp entity_collide_player\b/);
 });
 
 test("collision callers retain their consume and impact contracts", () => {
@@ -155,7 +147,10 @@ test("collision callers retain their consume and impact contracts", () => {
   assert.deepEqual(shield.damage.broadsideImpact, { state: 3, health: 10, applied: 1 });
   assert.match(source, /interceptor_projectile_hits_player[\s\S]+lda #FIGHTER_PROJECTILE_FREE[\s\S]+jsr apply_player_damage/);
   assert.match(source, /begin_broadside_impact[\s\S]+apply_broadside_player_damage/);
-  assert.match(source, /jsr apply_player_damage\s+lda BROAD_DAMAGE_APPLIED\s+beq entity_collision_miss[\s\S]+jmp integration_debris_release/);
+  assert.match(source, /jsr apply_player_damage\s+lda BROAD_DAMAGE_APPLIED\s+beq entity_collision_miss[\s\S]+jmp debris_contact_destroyed/);
+  // (RE-PINNED 2026-10-01 (recorded failures review, D7: the contact path ends in
+  // debris_contact_destroyed since the debris contact score, 2026-09-18; it was
+  // integration_debris_release.)
   assert.match(source,
     /jsr player_contacts_enemy[\s\S]+jsr queue_enemy_damage\s+lda #PLAYER_HEALTH_UNITS\s+jsr apply_player_damage/);
   assert.match(source, /@clamp:[\s\S]+sta player_x[\s\S]+jmp apply_broadside_player_damage/);
@@ -192,11 +187,13 @@ test("HUD code 8 is formally isolated from generated screens and other HUD symbo
     /^(CH_HUD_BOOSTER_SHIELD|\.assert|\s*(lda|sta)|\s*\.export)/.test(line)), true);
 });
 
-test("Shield keeps the normal eight-shot cadence while Rapid and Spread remain unchanged", () => {
+test("Shield keeps the normal burst cadence while Rapid and Spread remain unchanged", () => {
   const balance = executePlayerFighterBurstBalanceTrace({ root, artifact: "atr", windowFrames: 64 });
   const byMode = Object.fromEntries(balance.traces.map((trace) => [trace.mode, trace]));
   assert.deepEqual([byMode.NORMAL.firstBurstProjectiles, byMode.SHIELD.firstBurstProjectiles,
-    byMode.RAPID.firstBurstProjectiles], [8, 8, 10]);
+    // RE-PINNED 2026-10-01 (recorded failures review, A30): bursts are 4 / 4 / 5 PairShots
+    // (assets/graphics/fighter-weapons.json); they were 8 / 8 / 10 shots.
+    byMode.RAPID.firstBurstProjectiles], [4, 4, 5]);
   assert.deepEqual([manifest.fighterWeapons.player_fighter.spreadShotProjectileCount,
     manifest.fighterWeapons.player_fighter.spreadShotCooldownFrames], [3, 28]);
   assert.deepEqual(byMode.SHIELD.records.filter(({ allocatedProjectiles }) =>

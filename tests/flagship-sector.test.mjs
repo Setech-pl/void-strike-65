@@ -345,106 +345,14 @@ test("engine banks are character-animated, non-weapon modules with no PMG alloca
   assert.equal(asset.sector.engineAnimationFrames, 8);
 });
 
-test("H4.2 C INDUSTRIAL preserves its structural and immutable data contracts", () => {
-  const structuralGlyphNames = [
-    "allied_plate_mass", "allied_plate_edge", "allied_plate_lip", "allied_vertical_rib",
-    "allied_vent", "allied_service", "allied_inner_edge", "allied_turret_base",
-    "allied_turret_housing", "enemy_slab_mass", "enemy_slab_void", "enemy_vertical_rib",
-    "enemy_slab_cap", "enemy_seam", "enemy_sensor", "enemy_inner_edge",
-    "enemy_turret_base", "enemy_turret_housing",
-  ];
-  assert.equal(sha256(Buffer.concat(structuralGlyphNames.map((name) =>
-    Buffer.from(asset.glyphs.find((glyph) => glyph.name === name).bytes)))),
-  "e5dd63f4a702e47000d30f946086b5f5694527338a00a2d854ebaecc19862b36",
-  "approved C INDUSTRIAL structural panels changed");
-
-  const changedGlyphNames = new Set([
-    "allied_plate_lip", "allied_vertical_rib", "allied_vent", "allied_service",
-    "allied_turret_base", "allied_turret_housing", "enemy_slab_void",
-    "enemy_vertical_rib", "enemy_slab_cap", "enemy_seam", "enemy_sensor",
-    "enemy_turret_base", "enemy_turret_housing",
-  ]);
-  let checkerboards = 0;
-  for (const glyph of asset.glyphs.filter(({ index }) => index <= 80 || index === 85 || index === 86)) {
-    const pixels = glyph.pixels.flat();
-    const base = glyph.faction === "allied" ? 2 : 3;
-    for (let y = 0; y < 7; y += 1) {
-      for (let x = 0; x < 3; x += 1) {
-        const [a, b, c, d] = [
-          pixels[y * 4 + x], pixels[y * 4 + x + 1],
-          pixels[(y + 1) * 4 + x], pixels[(y + 1) * 4 + x + 1],
-        ];
-        if (a === d && b === c && a !== b) checkerboards += 1;
-      }
-    }
-    if (changedGlyphNames.has(glyph.name)) {
-      const detailMask = Uint8Array.from(pixels, (pixel) => pixel === base ? 0 : 1);
-      assert.equal(connectedAreas(detailMask, 4, 8).includes(1), false,
-        `${glyph.name} must not contain singleton structural detail`);
-    }
-  }
-  assert.equal(checkerboards, 0, "C INDUSTRIAL must remain checkerboard-free");
-
-  let crossGlyphDetailPairs = 0;
-  let connectedCrossGlyphDetailPairs = 0;
-  const sourceGlyphs = new Map(definition.glyphs.map((glyph) => [glyph.name, glyph]));
-  for (const side of ["allied", "enemy"]) {
-    const base = side === "allied" ? 2 : 3;
-    for (const sourceRow of definition.maps[side].rows) {
-      const cells = typeof sourceRow === "string" ? sourceRow.trim().split(/\s+/) : sourceRow;
-      for (let column = 0; column < cells.length - 1; column += 1) {
-        const left = sourceGlyphs.get(cells[column]);
-        const right = sourceGlyphs.get(cells[column + 1]);
-        if (!left || !right) continue;
-        for (let y = 0; y < 8; y += 1) {
-          const a = Number(left.pixels[y][3]);
-          const b = Number(right.pixels[y][0]);
-          if (a !== base && b !== base) {
-            crossGlyphDetailPairs += 1;
-            if (a === b) connectedCrossGlyphDetailPairs += 1;
-          }
-        }
-      }
-    }
-  }
-  assert.deepEqual(
-    [crossGlyphDetailPairs, connectedCrossGlyphDetailPairs],
-    [157, 110],
-    "C INDUSTRIAL cross-glyph seams and ribs changed",
-  );
-
-  assert.equal(sha256(Buffer.concat([83, 84].flatMap((index) =>
-    asset.glyphs.find((glyph) => glyph.index === index).animationBytes.map(Buffer.from)))),
-  "19bcf1aadda6a0483653c2c21963d0c658c176760141f91c14154a85267dce70",
-  "engine glyphs 83/84 or their phase tables changed");
-  assert.equal(sha256(Buffer.concat([87, 88, 89].map((index) =>
-    Buffer.from(asset.glyphs.find((glyph) => glyph.index === index).bytes)))),
-  "67c5cb64a1d182665ffffbe3764bd7b1fd039fa3e70fed143da9d0e3cd3a15d5",
-  "explosion glyphs 87-89 changed");
-
-  const immutableDataHashes = {
-    allied: {
-      packedMap: "1a2023caff1990326716d34e908fee39d370f7578fe8822d2da660906853d57e",
-      codebook: "6a28f6c21aec3df87a49dc11bcd83ddbf7dfe8faaa454744bb41c9bffaa24bbd",
-      moduleSequence: "0e4e7aeadf4ad9e00c694478b5b38a192c01424553cf9cfe57d18a0ea1116eff",
-      engineMask: "3ca8b33addc3c2b7e5d0433933d35df72418834372d2936bf0c92a6d1fa90540",
-    },
-    enemy: {
-      packedMap: "34880d6f2f22235d6ab415fe52c061623d0d101401efe8041d464a639b7ef732",
-      codebook: "acdffb56b2be74db1c8368131226eaa0354de965f192b645e5bfb1f35604b006",
-      moduleSequence: "7699903ada6f5d3a1c973ed00fde7d4995de8a328ded8e54b0e8e4a70eba6707",
-      engineMask: "61d785f12bfc2cabf806d5bffa974c6bf641363c86b48ecaddc365bb48d9fd4c",
-    },
-  };
-  for (const side of ["allied", "enemy"]) {
-    assert.deepEqual({
-      packedMap: sha256(asset.packedMaps.get(side)),
-      codebook: sha256(asset.codebooks.get(side)),
-      moduleSequence: sha256(asset.sector.moduleSequences.get(side)),
-      engineMask: sha256(asset.sector.engineOverlayMasks.get(side)),
-    }, immutableDataHashes[side], `${side} maps/codebooks/module sequence/engine mask changed`);
-  }
-});
+// RETIRED 2026-10-01 (recorded failures review, action B11; owner-approved):
+// "H4.2 C INDUSTRIAL preserves its structural and immutable data contracts".
+// It audited the H4.2 C INDUSTRIAL glyph set by name (allied_plate_mass,
+// enemy_slab_mass, ...) and froze its sha256. The owner rejected that look on
+// hardware and capital hull set v2 FULL MASS replaced it (884c446, c28d00d,
+// 2026-09-22; STATUS "Capital hull set v1 - step 1"), so none of the glyphs
+// exists. tests/hull-set-v1.test.mjs holds the art contract of the set that
+// ships.
 
 test("capital-engine phases preserve H4.2 hull glyphs outside declared engine cells", () => {
 

@@ -449,13 +449,18 @@ test("assembled burst controllers use accepted counts, intervals, speeds and dam
     interceptorDamage: weapons.interceptor.damage,
   }, {
     player_fighterCount: 4, player_fighterActiveLimit: 5, player_fighterRapidCount: 5,
-    player_fighterSpreadCount: 4, player_fighterSpreadCooldown: 28,
+    // RE-PINNED 2026-10-01 (recorded failures review, A12): the Spread burst count is 2 fire
+    // events, the volley and its centre follow-up
+    // (assets/graphics/fighter-weapons.json, since db64ca8); it was 4.
+    player_fighterSpreadCount: 2, player_fighterSpreadCooldown: 28,
     player_fighterInterval: 9, player_fighterSpeed: 6, player_fighterPost: 12,
     interceptorCount: 5, interceptorActiveLimit: 5, interceptorInterval: 15, interceptorSpeed: 2,
     interceptorPost: [60, 50, 40], interceptorDamage: 10,
   });
   assert.match(source,
     /update_player_fighter_weapon:[\s\S]+player_fighter_pairshot_burst_counts[\s\S]+player_fighter_fire_intervals/);
-  assert.match(source, /update_enemy_weapon_runtime:[\s\S]+INTERCEPTOR_BURST_COUNT[\s\S]+INTERCEPTOR_BURST_INTERVAL/);
+  // The enemy burst reads its count and interval from the archetype profile
+  // the C admission path publishes (same re-pin).
+  assert.match(source, /update_enemy_weapon_runtime:[\s\S]+ENEMY_PROFILE_BURST_COUNT[\s\S]+ENEMY_PROFILE_BURST_INTERVAL/);
   assert.match(source, /update_fighter_projectiles:[\s\S]+interceptor_projectile_hits_player[\s\S]+ENEMY_PULSE_DAMAGE_UNITS[\s\S]+apply_player_damage/);
 });

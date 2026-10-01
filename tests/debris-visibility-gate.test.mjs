@@ -36,8 +36,11 @@ test("the debris is published between the Light erase and the Light render", () 
   // ordering claim is now "every slot's erase, then the debris, then every
   // slot's render" rather than a single straight line. The contract is the
   // same one: debris is published below every Light inside the same window.
+  // RE-PINNED 2026-10-01 (recorded failures review, A9): 314ded8 clears LIGHT_SCREEN_SLOT_LIMIT
+  // after the last erased slot, between the store the old pattern required
+  // and @erase_next. The order under test is unchanged.
   assert.match(publish,
-    /sta LIGHT_SCREEN_HI,x\s+@erase_next:[\s\S]*?bpl @erase_slot\s+jsr entity_debris_publish[\s\S]*?@render_slot:/,
+    /sta LIGHT_SCREEN_HI,x[\s\S]*?sta LIGHT_SCREEN_SLOT_LIMIT\s+@erase_next:[\s\S]*?bpl @erase_slot\s+jsr entity_debris_publish[\s\S]*?@render_slot:/,
     "debris < Light inside the post-playfield window");
   assert.equal((publish.match(/jsr entity_debris_publish/g) ?? []).length, 1,
     "the debris is published exactly once, not once per slot");

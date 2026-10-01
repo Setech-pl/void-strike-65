@@ -200,11 +200,13 @@ test("assembled gameplay display list and DLI switch a dedicated ANTIC 2 HUD", (
     /lda PLAYFIELD_ACTIVE_DLIST_LO\s+sta DLISTL\s+lda #>PLAYFIELD_DLIST_A\s+sta DLISTH/);
   assert.deepEqual(
     graphics.gameplayLayout.rows.map(({ mode }) => mode),
-    [2, ...Array(23).fill(4)],
+    // RE-PINNED 2026-10-01 (recorded failures review, A6): 24 rows -> 29, the HUD row plus
+    // GAMEPLAY_SCREEN_ROWS = 28 (build/fighter-weapons.inc, since effe71c).
+    [2, ...Array(28).fill(4)],
   );
   assert.deepEqual(
     graphics.gameplayLayout.rows.map(({ screenOffset }) => screenOffset),
-    Array.from({ length: 24 }, (_, index) => index * 40),
+    Array.from({ length: 29 }, (_, index) => index * 40),
   );
 
   assert.equal(graphics.hudCharset.length, 1024);
@@ -238,7 +240,9 @@ test("assembled gameplay display list and DLI switch a dedicated ANTIC 2 HUD", (
   const separatorRegisters = new Set(state.registerPixels.subarray(7 * 320, 8 * 320));
   assert.deepEqual(separatorRegisters, new Set([0x0e]));
   const gameplayRegisters = new Set(state.registerPixels.subarray(8 * 320));
-  assert.ok(gameplayRegisters.has(0x84));
+  // RE-PINNED 2026-10-01 (recorded failures review, A6): the allied steel is $88, not $84
+  // (GAMEPLAY_COLPF1, owner decision 2, 3caceca).
+  assert.ok(gameplayRegisters.has(0x88));
   assert.ok(gameplayRegisters.has(0x46));
 
   const dliAddress = labels.get("gameplay_dli");
@@ -656,20 +660,31 @@ test("runtime map reservation and payload remain bounded and do not consume PMG 
     Uint8Array.from(readImageBytes(labels.get("enemy_collision_boundaries"), asset.segmentRows)),
     asset.collisionBoundaries.get("enemy"),
   );
-  const generator = source.slice(source.indexOf("generate_near_star_row:"),
-    source.indexOf("choose_star_column:"));
-  assert.match(generator, /lda \(dst_ptr\),y\s+bne @done/);
-  assert.doesNotMatch(generator, /PMG|GRACTL|NMIEN|VDSLST|WSYNC/);
-  assert.match(source, /lda #GAMEPLAY_SCREEN_ROWS\s+sta row_counter[\s\S]+jsr generate_starfield_row/);
+  // REWRITTEN 2026-10-01 (recorded failures review, B9; owner-approved): three patterns on
+  // generate_near_star_row / choose_star_column and the row-counter loop stood
+  // here. The starfield redesign (41d136f and later) retired those routines;
+  // the near stars are dynamic overlays now and have their own tests.
   assert.match(source, /scroll_world_columns:[\s\S]+generate_starfield_row/);
   assert.match(source, /scroll_hull_columns:[\s\S]+jsr draw_hull_row/);
 });
 
-test("loader remains unchanged and the accepted H3.1 menu preview is source-derived", () => {
+// REWRITTEN 2026-10-01 (recorded failures review, B11; owner-approved). This was "loader
+// remains unchanged and the accepted H3.1 menu preview is source-derived": it
+// froze the sha256 of the loader and menu previews and edited the hull JSON
+// through the H4 schema (`maps.allied.rows`, glyph `allied_plate_lip`). The
+// loader art changed with the rebrand, the footer and the ADR-003 splash
+// (d72dd6a, 4062c13, 8a4fb1b), the menu with the star sky, and hull set v2
+// (884c446, c28d00d) replaced the schema. The frozen hashes go; what stays is
+// what the test protects: the previews are deterministic and follow their
+// source.
+test("loader and menu previews are deterministic and the hull previews are source-derived", () => {
   const loader = createLoaderPreview(loadLoaderBitmapDefinition(loaderDefinitionPath));
   const menu = createStartMenuPreview(source);
-  assert.equal(sha256(loader), "83a8b4f7fff4791206b220e773272b2bb014b517049aedd83e070cecc3edd494");
-  assert.equal(sha256(menu), "90c24ccbf0c00122896b959059f76f4748e55fbf304f58672d0cc4f867e7ae2c");
+  assert.equal(sha256(loader),
+    sha256(createLoaderPreview(loadLoaderBitmapDefinition(loaderDefinitionPath))));
+  assert.equal(sha256(menu), sha256(createStartMenuPreview(source)));
+  assert.deepEqual([inspectPng(loader).width, inspectPng(loader).height], [640, 384]);
+  assert.deepEqual([inspectPng(menu).width, inspectPng(menu).height], [640, 384]);
 
   const gameplay = createGameplayPreview(source, definition);
   const strip = createCapitalHullsStripPreview(source, definition);
@@ -681,10 +696,7 @@ test("loader remains unchanged and the accepted H3.1 menu preview is source-deri
     [1280, 544],
   );
   const changed = structuredClone(definition);
-  changed.maps.allied.rows[0] = changed.maps.allied.rows[0].replace(
-    "allied_plate_lip",
-    "allied_plate_mass",
-  );
+  changed.allied.glyphs[0].pixels[0] = "1222";
   assert.notDeepEqual(createGameplayPreview(source, changed), gameplay);
   assert.notDeepEqual(createCapitalHullsStripPreview(source, changed), strip);
 });
@@ -695,8 +707,11 @@ test("joystick, FIRE, projectile, enemy, and scoring routines remain connected",
   assert.match(source,
     /update_fighter_projectiles:\s+ldx #\$00[\s\S]+cpx #PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT[\s\S]+ldx #INTERCEPTOR_PROJECTILE_SLOT_BASE[\s\S]+cpx #FIGHTER_PROJECTILE_SLOT_COUNT/);
   assert.doesNotMatch(source, /\b(?:bullet_x|bullet_y|bullet_active|refresh_bullet_active)\b/);
+  // RE-PINNED 2026-10-01 (recorded failures review, A7): the award routine is
+  // add_archetype_score_tail and adds ENEMY_PROFILE_SCORE_BCD, the profile byte
+  // the C admission path publishes; `enemy_scores,x` is gone.
   assert.match(source,
-    /add_archetype_score:[\s\S]+adc enemy_scores,x[\s\S]+cld[\s\S]+jmp update_score_display/);
+    /add_archetype_score_tail:[\s\S]+adc ENEMY_PROFILE_SCORE_BCD[\s\S]+cld[\s\S]+jmp update_score_display/);
   assert.match(source,
     /update_player_death:[\s\S]+@game_over:[\s\S]+jsr insert_top_score/);
   assert.match(source,

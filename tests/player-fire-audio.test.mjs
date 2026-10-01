@@ -71,7 +71,11 @@ test("accepted cadence is movement-independent, pool-safe and every complete SFX
   const expected = {
     NORMAL: { "9": 462, "12": 153 },
     RAPID: { "6": 667, "12": 166 },
-    SPREAD: { "12": 62, "28": 187 },
+    // RE-PINNED 2026-10-01 (recorded failures review, A18): a Spread volley is followed 12 frames
+    // later by one centre shot and 28 frames after that by the next volley
+    // (owner decisions 2026-09-16 and 2026-09-30), which is 149 and 150
+    // intervals in this trace. It was {12: 62, 28: 187}.
+    SPREAD: { "12": 149, "28": 150 },
   };
   for (const mode of trace.modes) {
     assert.deepEqual(mode.successful_interval_histogram, expected[mode.mode]);

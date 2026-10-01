@@ -117,7 +117,6 @@ test("600-frame ON/OFF watchdog advances frame, world, stars, and spawn scheduli
       frameCounter,
       worldSteps: stars.worldSteps,
       nearSteps: stars.nearSteps,
-      farSteps: stars.farSteps,
       scrollFrames: cadence.worldScrollFrames,
       scheduleAttempts: cadence.scheduleAttempts,
       spawns: cadence.warningStarts.length,
@@ -125,11 +124,15 @@ test("600-frame ON/OFF watchdog advances frame, world, stars, and spawn scheduli
     assert.deepEqual(snapshot, {
       frameCounter: 88,
       worldSteps: 600,
-      nearSteps: 300,
-      farSteps: 150,
+      // RE-PINNED 2026-10-01 (recorded failures review, A14): the starfield
+      // model steps the near layer every frame (600, was 300) and has no far
+      // steps since the far stars became static, so `farSteps` left the
+      // snapshot; the denser stations give 58 attempts and 12 warnings in 600
+      // frames (were 54 and 2).
+      nearSteps: 600,
       scrollFrames: 270,
-      scheduleAttempts: 54,
-      spawns: 2,
+      scheduleAttempts: 58,
+      spawns: 12,
     });
     assert.equal(musicWrites === 0, !enabled,
       "GAME MUSIC OFF alone may suppress audio writes, never simulation progress");

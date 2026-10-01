@@ -52,8 +52,13 @@ test("--artifacts accepts a debug-route build and keeps every path inside it", a
 
 test("--artifacts refuses anything that is not build/level-N-sM", async () => {
   const { traceArtifactLayout } = await layoutModule();
+  // FIXTURE 2026-10-01 (recorded failures review, D11): the path outside the
+  // repository is built from the checkout's own name. It used to be
+  // "../dark-fighter-baseline/...", which is the checkout itself when the
+  // repository is checked out under that name, and so was accepted there.
+  const outside = path.join("..", `${path.basename(root)}-outside`, "build", "level-2-s0");
   for (const artifacts of ["dist", "build", "build/hull-style-R2", "build/runtime-wall-trace",
-    "../dark-fighter-baseline/build/level-2-s0", "build/level-2-s0/runtime-wall-trace",
+    outside, "build/level-2-s0/runtime-wall-trace",
     "build/level-2"]) {
     assert.throws(() => traceArtifactLayout(root, artifacts), /debug-route build/,
       `--artifacts=${artifacts} must be refused`);

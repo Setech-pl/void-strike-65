@@ -98,14 +98,17 @@ test("protected linked segments do not regress beyond the accepted feature basel
     actualDeltaBytes: 0,
     hardDeltaBytes: 512,
   });
-  assert.deepEqual(manifest.runtimeCodeBudget.frontendH31, {
-    baselineBytes: 15_346,
-    actualBytes: 16_735,
-    actualDeltaBytes: 1_389,
-    hardDeltaBytes: 1280,
-  });
+  // RETIRED 2026-10-01 (recorded failures review, action B15; owner decision of
+  // the same day): two frozen figures stood here. The frontend H3.1 code budget
+  // (+1,280 B over 15,346) was already exceeded when it was pinned (+1,389) and
+  // the linked runtime is 17,491 B now; `safeResidencyBytes` 4,766 was a
+  // residency figure of that build (959 now). Neither is a limit in force. The
+  // limits that are: the segment reservations in the loop above, the link-time
+  // neighbour guards, and the transport STOP rule held by
+  // tests/level-buffer-16.test.mjs ("Q-1: ...costs no extra transport"),
+  // tests/boot-loading-blank-screen.test.mjs ("the blanking costs 9 bytes...")
+  // and tests/layout-d1.test.mjs ("transport limits in force...").
   assert.equal(manifest.encounterDirector.enabled, true);
-  assert.equal(manifest.encounterDirector.safeResidencyBytes, 4_766);
   assert.ok(manifest.payloadBudget.weaponPickupSpreadShot.remainingReserveBytes >= 64);
 });
 
@@ -159,12 +162,16 @@ test("hybrid ring reservation fits after staging and before entity/effects RAM",
   assert.match(source, /PLAYFIELD_RING_ROWS\s*=\s*GAMEPLAY_SCREEN_ROWS-1/);
   assert.match(source, /PLAYFIELD_DLIST_BYTES\s*=\s*3\+3\+PLAYFIELD_RING_ROWS\*3\+3/);
   assert.match(source, /PLAYFIELD_DLIST_A\s*=\s*\$7F10/);
-  assert.match(source, /PLAYFIELD_RING_STATE_END\s*<=\s*\$7FDD/);
-  assert.match(source, /PLAYFIELD_RING_STATE_END\s*<=\s*\$8000/);
-  assert.match(source, /GAMEPLAY_SCREEN_ROWS\s*=\s*23/);
-  assert.match(source, /PLAYFIELD_RING_ROWS\s*=\s*22/);
+  // RE-PINNED 2026-10-01 (recorded failures review, A21): the ring is 27 rows at $8140 and its
+  // state must end before WEAPON_PICKUP_RUNTIME; the display lists stay below
+  // $8000 (src/main.s, the asserts after PLAYFIELD_RING_STATE_END). The test
+  // pinned the 22-row ring that ended at $7FDD.
+  assert.match(source, /PLAYFIELD_RING_STATE_END\s*<=\s*WEAPON_PICKUP_RUNTIME/);
+  assert.match(source, /PLAYFIELD_DLIST_END\s*<=\s*\$8000/);
+  assert.match(source, /GAMEPLAY_SCREEN_ROWS\s*=\s*28/);
+  assert.match(source, /PLAYFIELD_RING_ROWS\s*=\s*27/);
   assert.match(source, /GAMEPLAY_DIVIDER_SCREEN\s*=\s*GAMEPLAY_SCREEN/);
-  assert.match(source, /GAMEPLAY_RING_SCREEN\s*=\s*GAMEPLAY_DIVIDER_SCREEN\+40/);
+  assert.match(source, /GAMEPLAY_RING_SCREEN\s*=\s*\$8140/);
 });
 
 test("logical gameplay row pointers keep a fixed divider plus 22 linear ring rows", () => {

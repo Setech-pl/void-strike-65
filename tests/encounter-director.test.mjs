@@ -520,7 +520,17 @@ test("BOSS_HANDOFF maps every capital state once and leaves final COMPLETE termi
       run(image, "integration_update_sector_completion");
       assert.equal(image[labels.get("CAPITAL_SECTOR_STATE")], expected[capitalState],
         `capital state ${capitalState}`);
-      assert.equal(image[entityState + 1], 0, `pickup state ${pickupState} must clear`);
+      // REWRITTEN 2026-10-01 (recorded failures review, B2; owner-approved): the
+      // test expected every capsule state to clear, in every capital state.
+      // The rule is docs/game-design.md "Weapon pickups": an ACTIVE capsule is
+      // removed when the sector takes over, a PENDING one is frozen and resumes
+      // afterwards (weapon_pickup_clear_sector, since f6eee5c). The clear runs
+      // with the forced DRAIN; a sector that is already COMPLETE (state 6) is
+      // terminal and the routine touches nothing there.
+      const forcedDrain = capitalState !== 6;
+      const expectedPickup = pickupState === 2 && forcedDrain ? 0 : pickupState;
+      assert.equal(image[entityState + 1], expectedPickup,
+        `capital state ${capitalState}, pickup state ${pickupState}`);
       assert.equal(image[entityState + 2], 4, "collected booster lifecycle remains independent");
       assert.deepEqual([...image.subarray(0x80f4, 0x80fe)], directorBefore,
         "completion must not reset the row, the sector, the cursor or the RNG");
@@ -722,7 +732,10 @@ test("the shared burst alternates two real Raider origins and skips a destroyed 
   run(image, "update_enemy_weapon_runtime");
   image[labels.get("INTERCEPTOR_BURST_TIMER")] = 0;
   run(image, "update_enemy_weapon_runtime");
-  assert.deepEqual([...image.subarray(projectileActive + 5, projectileActive + 7)], [2, 3]);
+  // RE-PINNED 2026-10-01 (recorded failures review, A11): a hostile shot's ACTIVE byte is
+  // (weapon_class << 3) | kind since 8a09e57 / 35f2b90, so class 1 kinds 2 and 3
+  // read 10 and 11 (src/main.s update_fighter_projectiles).
+  assert.deepEqual([...image.subarray(projectileActive + 5, projectileActive + 7)], [10, 11]);
   assert.deepEqual([...image.subarray(projectileY + 5, projectileY + 7)],
     origins.map((value) => value + 13));
   assert.equal(image[cursor], 0);
@@ -733,7 +746,7 @@ test("the shared burst alternates two real Raider origins and skips a destroyed 
   run(image, "resolve_enemy_damage");
   const releasedY = image[projectileY + 5];
   run(image, "update_fighter_projectiles");
-  assert.equal(image[projectileActive + 5], 2,
+  assert.equal(image[projectileActive + 5], 10,
     "an already released pulse survives the death of its emitter");
   assert.equal(image[projectileY + 5], releasedY + 2);
 

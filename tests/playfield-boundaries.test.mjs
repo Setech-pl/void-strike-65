@@ -184,8 +184,13 @@ test("bottom clipping and repeated ring wraps never write the HUD or revive a pi
     [screenAddress, bottomScreenAddress, thirdScreenAddress]
       .filter(Boolean)
       .every((address) => address >= 0x8140 && address < 0x8578)));
-  assert.match(source, /cmp #\(ENTITY_LOGICAL_ROWS-1\)[\s\S]+@one_row/);
-  assert.match(source, /cmp #\(ENTITY_LOGICAL_ROWS-2\)[\s\S]+@two_rows/);
+  // REWRITTEN 2026-10-01 (recorded failures review, B1; owner-approved): two
+  // patterns on the character capsule's bottom clipping (`@one_row`,
+  // `@two_rows`) stood here. The capsule is one PLAYER3 image since f6eee5c
+  // (docs/plans/pickup-colour.md) and is released whole at the bottom fence, so
+  // there is no character row to clip.
+  assert.match(source,
+    /cmp #WEAPON_PICKUP_RELEASE_TOP\s+bcc weapon_pickup_collide_player[\s\S]+jmp weapon_pickup_release/);
   assert.ok(labels.get("PLAYFIELD_ROW_LO") >= 0x8578);
   assert.ok(labels.get("CORRIDOR_BOUNDARY_RIGHT") + 28 <= 0x8800);
 });

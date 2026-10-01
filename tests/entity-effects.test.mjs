@@ -10,7 +10,7 @@ import {
   renderEntityEffectsCa65Include,
 } from "../scripts/entity-effects.mjs";
 import { Nmos6502 } from "../scripts/nmos6502.mjs";
-import { installBootArtifact, installRuntimeSegments } from "../scripts/runtime-image.mjs";
+import { installBootArtifact, installRuntimeSegments, publishEnemyProfileScore } from "../scripts/runtime-image.mjs";
 import { canonicalPlayfield } from "../scripts/playfield.mjs";
 import {
   executeDebrisDestructionTrace,
@@ -149,6 +149,11 @@ const addresses = {
 
 function loadRuntime(memory) {
   installRuntimeSegments(memory, root);
+  // FIXTURE 2026-10-01 (recorded failures review, D3): see
+  // publishEnemyProfileScore in scripts/runtime-image.mjs. A fixture that pokes
+  // ENEMY_* directly admits nothing through C, so it publishes the score the
+  // admission path would have.
+  publishEnemyProfileScore(memory, root);
 }
 
 function createRuntimeMemory(fill = 0) {
@@ -164,6 +169,11 @@ function createBootedArtifactRuntimeMemory(artifact, fill = 0) {
   for (const name of [
     "stage_boot_streams",
     "unpack_resident_runtime",
+    // FIXTURE 2026-10-01 (recorded failures review, D3): the cold publication
+    // places the hybrid C records, in the boot's own order (src/main.s,
+    // layout_d_cold_publish_complete). Without it the damage veneer jumps into
+    // bytes the loader only staged.
+    "publish_director_abi",
     "unpack_entity_runtime",
     "stage_a2_kernel",
     "init_entity_effects", "unpack_weapon_pickup_phase_runtime",
@@ -171,6 +181,9 @@ function createBootedArtifactRuntimeMemory(artifact, fill = 0) {
     "init_fighter_projectiles",
     "init_broadside",
   ]) runRoutine(memory, name);
+  // FIXTURE 2026-10-01 (recorded failures review, D3): the kill path awards
+  // ENEMY_PROFILE_SCORE_BCD, which only the C admission path publishes.
+  publishEnemyProfileScore(memory, root);
   initialiseRows(memory);
   return memory;
 }

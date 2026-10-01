@@ -134,30 +134,52 @@ test("Layout D.2 startup order and call bytes are frozen", () => {
   assert.equal(labels.get("layout_d_entity_unpack_complete"), 0x2043);
 });
 
-test("Layout D.2 exact memory and transport budgets remain frozen", () => {
-  // Light Wingman placement (2026-09-15): the STARFIELD tail grows the initial
-  // block by 29 B, the pickup/collision record carries the $8776 kernel head,
-  // and the late-compressed extension record carries LIGHT_CODE after C.
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13113);
-  assert.equal(manifest.transportCapacity.initialBootBytes, 13184);
-  assert.equal(manifest.transportCapacity.totalTransportSectors, 175);
-  assert.equal(manifest.transportCapacity.totalTransportBytes, 22400);
-  assert.equal(manifest.transportCapacity.stage2.bytes, 1257);
-  assert.deepEqual(manifest.transportCapacity.manifest.parsed.records.map((record) =>
-    [record.startSector, record.sectorCount, record.packedLength, record.rawLength,
-      record.finalDestination]), [
-    [104, 45, 5658, 6650, 0x5e10],
-    [149, 8, 964, 964, 0x8c80],
-    [157, 3, 245, 250, 0x7bd0],
-    [160, 2, 116, 117, 0x7cca],
-    [162, 2, 210, 242, 0x7d40],
-    [164, 6, 742, 742, 0x7810],
-    [170, 1, 23, 21, 0x9d5e],
-    [171, 5, 542, 643, 0x9d75],
-  ]);
-  assert.equal(manifest.encounterDirector.linkedRuntimeBytes, 17452);
-  assert.equal(manifest.encounterDirector.simultaneousResidencyBytes, 19207);
-  assert.equal(manifest.encounterDirector.safeResidencyBytes, 2980);
+// REWRITTEN 2026-10-01 (recorded failures review, action B15; owner decision of
+// the same day). This was "Layout D.2 exact memory and transport budgets remain
+// frozen": 13,113 B of initial block, 175 sectors, eight records and three
+// residency figures of the Layout D.2 build. Later owner decisions superseded
+// every one of them (ADR-003 splash: ceiling 105 -> 107 sectors; menu star sky
+// A'; the 4.6 level image), so the frozen figures could only ever fail. The
+// test now holds the two transport limits that are in force:
+//   * the STOP rule - no new boot sector (107) and an initial block of at most
+//     13,652 B (docs/plans/director-4.6.md section 3.3, owner decision 6);
+//   * every extension record fits the sectors it claims: a DFMC record carries
+//     a 21-B footer, so its capacity is sectors * 128 - 21 B, and it claims no
+//     more sectors than that needs (scripts/chunk-loader.mjs
+//     CHUNK_FOOTER_BYTES; the build's sectorsFor).
+// The second had no test on the built image before this one.
+const BOOT_SECTORS_IN_FORCE = 107;
+const INITIAL_BLOCK_STOP_BYTES = 13652;
+const SECTOR_BYTES = 128;
+const CHUNK_FOOTER_BYTES = 21;
+
+test("transport limits in force: the initial block STOP rule and every record's sector capacity", () => {
+  const transport = manifest.transportCapacity;
+  assert.equal(transport.initialBootSectors, BOOT_SECTORS_IN_FORCE,
+    "the STOP rule allows no new boot sector");
+  assert.ok(transport.initialBootContentBytes <= INITIAL_BLOCK_STOP_BYTES,
+    `initial block content is ${transport.initialBootContentBytes} B; ` +
+    `the STOP line is ${INITIAL_BLOCK_STOP_BYTES} B`);
+  assert.ok(transport.initialBootContentBytes + transport.initialBootEnvelopeBytes <=
+    transport.initialBootSectors * SECTOR_BYTES,
+  "content and envelope must fit the boot sectors");
+
+  const records = transport.manifest.parsed.records;
+  assert.ok(records.length > 0);
+  let nextSector = transport.initialBootSectors + 1;
+  for (const [index, record] of records.entries()) {
+    const name = `extension record ${index + 1} (start sector ${record.startSector})`;
+    assert.equal(record.startSector, nextSector, `${name} is not contiguous`);
+    const capacity = record.sectorCount * SECTOR_BYTES - CHUNK_FOOTER_BYTES;
+    assert.ok(record.packedLength <= capacity,
+      `${name} packs ${record.packedLength} B into a capacity of ${capacity} B`);
+    assert.equal(record.sectorCount,
+      Math.ceil((record.packedLength + CHUNK_FOOTER_BYTES) / SECTOR_BYTES),
+      `${name} claims more sectors than its bytes and footer need`);
+    nextSector += record.sectorCount;
+  }
+  assert.equal(nextSector - 1, transport.totalTransportSectors);
+  assert.equal(transport.totalTransportBytes, transport.totalTransportSectors * SECTOR_BYTES);
 });
 
 test("the ATR preserves full A2, GLUE lifecycle, ENTITY_CODE, DIRECTOR and guard", () => {

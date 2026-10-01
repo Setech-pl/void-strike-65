@@ -101,13 +101,28 @@ test("pickup admission coexists with slot-0 debris and publishes the 16-row PMG"
   assert.equal(image[count], 2);
   assert.equal(image[director.rng], (5 * beforeRng + 1) & 0xff,
     "accepted Director accounting advances RNG once");
-  run(image, "update_fighter_pickup_pmg");
-  const dmaStart = 0x3b00 + image[labels.get("ENTITY_SCREEN_LO") + 1];
-  assert.equal([...image.subarray(dmaStart, dmaStart + 16)].filter(Boolean).length, 16);
-  assert.deepEqual([...image.subarray(0xd004, 0xd008)], [100, 102, 104, 106]);
-  assert.equal(image[0xd00c], 0);
-  assert.equal(image[0xd01b], 0x10,
-    "fifth-player pickup must remain ahead of the fighter playfield");
+  // REWRITTEN 2026-10-01 (recorded failures review, B1; owner-approved): the
+  // tail read the missile page at $3B00, HPOSM0-3, SIZEM and PRIOR = $10 - the
+  // capsule as the GTIA fifth player - after update_fighter_pickup_pmg. The
+  // capsule is one PLAYER3 image now (docs/plans/pickup-colour.md section 7),
+  // and that routine only moves it: publish_fighter_pickup_pmg draws it in the
+  // post-playfield window.
+  image.fill(0, 0x3b00, 0x3c00);
+  image.fill(0, 0x3f00, 0x4000);
+  image.fill(0, 0xd000, 0xd020);
+  run(image, "publish_fighter_pickup_pmg");
+  assert.equal(image[labels.get("ENTITY_SCREEN_HI") + 1], 1);
+  const dmaStart = 0x3f00 + image[labels.get("ENTITY_SCREEN_LO") + 1];
+  assert.equal([...image.subarray(dmaStart, dmaStart + 16)].filter(Boolean).length, 16,
+    "the Rapid capsule is sixteen PLAYER3 rows");
+  assert.equal([...image.subarray(0x3f00, 0x4000)].filter(Boolean).length, 16,
+    "and nothing else is on the plane");
+  assert.equal(image[0xd003], 100, "HPOSP3 carries the capsule X");
+  assert.equal([...image.subarray(0x3b00, 0x3c00)].some(Boolean), false,
+    "the capsule writes no missile row");
+  assert.deepEqual([...image.subarray(0xd004, 0xd008)], [0, 0, 0, 0],
+    "the capsule moves no missile");
+  assert.equal(image[0xd01b], 0, "the capsule leaves PRIOR alone");
 });
 
 test("capital freezes pending, releases active, and preserves the slot-2 booster", () => {

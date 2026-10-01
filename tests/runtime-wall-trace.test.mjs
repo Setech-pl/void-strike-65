@@ -375,7 +375,9 @@ test("real ATR startup traces keep one atomic two-phase engine pulse", () => {
     assert.ok(session.transition_frames.every((frame, index, frames) =>
       index === 0 || frame - frames[index - 1] === 8));
     assert.equal(session.charset_hashes.length, 2);
-    assert.equal(session.a2_heads.length, 22);
+    // RE-PINNED 2026-10-01 (recorded failures review, A22): the ring is 27 rows
+    // (PLAYFIELD_RING_ROWS); it was 22.
+    assert.equal(session.a2_heads.length, 27);
     assert.equal(session.screenshots, 150);
   }
   assert.equal(engines.restart_sessions.length, 1);
@@ -507,12 +509,17 @@ test("wall trace records the required legal runtime coverage without incoherent 
   const pool = report.coverage.maximum_projectile_pool;
   assert.equal(pool.scope,
     "combined active PlayerFighter and Interceptor fighter-projectile slots in legal Atari800 replays");
+  // REWRITTEN 2026-10-01 (recorded failures review, B17; owner-approved). The
+  // pool was 10 + 9 slots and the evidence said a full pool had NOT been seen
+  // ("does not claim a full state"). Since the PairShot foundation it is 5 + 5,
+  // and a legal replay fills it, so the evidence now carries the heaviest such
+  // frame instead of a disclaimer.
   assert.deepEqual([pool.combined_physical_capacity, pool.maximum_combined_active_observed,
-    pool.full_combined_capacity_observed], [19, 13, false]);
-  assert.equal(pool.full_combined_capacity_matching_frames, 0);
-  assert.equal(pool.heaviest_at_full_combined_capacity, null);
-  assert.deepEqual(pool.component_physical_capacities, { player_fighter: 10, interceptor: 9 });
-  assert.match(pool.evidence_note, /does not claim a full state/);
+    pool.full_combined_capacity_observed], [10, 10, true]);
+  assert.ok(pool.full_combined_capacity_matching_frames > 0);
+  assert.equal(pool.heaviest_at_full_combined_capacity.state.projectiles, 10);
+  assert.deepEqual(pool.component_physical_capacities, { player_fighter: 5, interceptor: 5 });
+  assert.match(pool.evidence_note, /reached by a legal replay/);
   assert.equal(report.coverage.broadside_projectiles.pool_capacity, 3);
   assert.equal(report.coverage.broadside_projectiles.release_source_turrets, 2);
   assert.match(report.coverage.broadside_projectiles.classification,
@@ -556,25 +563,38 @@ test("wall trace records the required legal runtime coverage without incoherent 
     eraseObserved: true,
     postCapital: true,
   });
-  assert.deepEqual(report.coverage.parallax_cadence.map((entry) =>
-    entry.measured_rows_per_second), [
-    { world: 20, near: 20, far: 5, debris: 12 },
-    { world: 22.5, near: 22.5, far: 5.625, debris: 13.5 },
-    { world: 25, near: 25, far: 6.25, debris: 15 },
-  ]);
-  assert.deepEqual(report.coverage.parallax_cadence.map((entry) =>
-    [...new Set(entry.full_debris_flight_frames)]), [[], [], []]);
-  assert.deepEqual(report.coverage.post_capital_transition, {
-    session: "director-complete-1-natural-sweep-fire0",
-    open_gameplay_frame: 4125,
-    drain_frame: 4674,
-    complete_frame: 4725,
-    next_open_frame: 4774,
-    post_capital_spawn_frame: 6980,
-    post_capital_spawn_active_frame: 6981,
-    configured_spawn_delay_scheduler_ticks: 32,
-    observable_open_to_spawn_frame_delta: 2206,
-  });
+  // REWRITTEN 2026-10-01 (same action). Exact frames and a far-star rate of
+  // 5 / 5.625 / 6.25 rows per second were pinned here. Frame numbers are data
+  // about one build (owner decision 2026-09-21, report section 14.12: pins
+  // become the relation the gate owns), and the far layer is no longer a
+  // quarter-speed scroll.
+  const cadence = report.coverage.parallax_cadence.map((entry) => entry.measured_rows_per_second);
+  assert.deepEqual(cadence.map(({ world }) => world), [20, 22.5, 25]);
+  for (const rates of cadence) {
+    assert.equal(rates.near, rates.world, "the near layer moves with the world");
+    assert.equal(rates.debris, rates.world * 3 / 5, "debris keeps the 3/5 vertical cadence");
+    assert.equal(rates.far, cadence[0].far, "the far layer does not depend on difficulty");
+  }
+  const flights = report.coverage.parallax_cadence.map((entry) =>
+    [...new Set(entry.full_debris_flight_frames)]);
+  for (let index = 1; index < flights.length; index += 1) {
+    if (flights[index].length === 0 || flights[index - 1].length === 0) continue;
+    assert.ok(Math.max(...flights[index]) < Math.min(...flights[index - 1]),
+      "a full debris flight is shorter on a harder difficulty");
+  }
+  const transition = report.coverage.post_capital_transition;
+  assert.ok(report.replay.sessions.some(({ id }) => id === transition.session),
+    `${transition.session} is not a session of this run`);
+  assert.ok(transition.open_gameplay_frame < transition.drain_frame &&
+    transition.drain_frame < transition.complete_frame &&
+    transition.complete_frame < transition.next_open_frame &&
+    transition.next_open_frame < transition.post_capital_spawn_frame,
+  "OPEN, DRAIN, COMPLETE, OPEN again, then the first post-capital debris");
+  assert.equal(transition.post_capital_spawn_active_frame,
+    transition.post_capital_spawn_frame + 1);
+  assert.equal(transition.observable_open_to_spawn_frame_delta,
+    transition.post_capital_spawn_frame - transition.next_open_frame);
+  assert.equal(transition.configured_spawn_delay_scheduler_ticks, 32);
 });
 
 test("debris visual polish preserves foundation history and passes its +256 PAL gate", () => {
@@ -653,11 +673,14 @@ test("explosion colour flash passes its +64 PAL gate with exact GTIA traces", ()
     [0x1e, 0x3c, 0x1c, 0x34]);
   assert.deepEqual(report.coverage.fighter_colour_flash.player_death.colbk_values,
     [0x1e, 0x3c, 0x1c, 0x3c, 0x38, 0x34]);
+  // RE-PINNED 2026-10-01 (recorded failures review, A23): both Raiders are $44
+  // on P1 and P2, and P3 carries the gold capsule $1C as well as $28. It was
+  // colpm1 [$44,$84], colpm2 [$46], colpm3 [$28].
   assert.deepEqual(report.coverage.fighter_colour_flash.colpm_values, {
     colpm0: [0x0e],
-    colpm1: [0x44, 0x84],
-    colpm2: [0x46],
-    colpm3: [0x28],
+    colpm1: [0x44],
+    colpm2: [0x44],
+    colpm3: [0x1c, 0x28],
   });
   assert.deepEqual(manifest.entityEffects.runtimeBudget.explosionColourFlash, {
     baselineWallCycles: 32_081,
@@ -719,7 +742,17 @@ test("destructible debris passes PAL, inactive-path and linked-code budgets", ()
     manifest.runtimeCodeBudget.actualBytes);
 });
 
-test("enemy breakup passes the hard PAL gate and executes the five-slot runtime path", () => {
+// REWRITTEN 2026-10-01 (recorded failures review, B17; owner-approved). Two
+// things here contradicted decisions in force. `report.gate.passed === true`:
+// since 2026-09-21 that flag is false while any clause failure is recorded
+// (docs/recorded-gate-failures.json), and gate.timing_and_dli_passed carries
+// what this test means. And the "five-slot runtime path": a Raider kill no
+// longer draws character fragments (docs/diagnostics/
+// stage-2b2b-raider-character-effects-removal.json and
+// -raider-transient-breakup-fragments-removal.json); the coverage must show
+// that it draws none. The test was "enemy breakup passes the hard PAL gate and
+// executes the five-slot runtime path".
+test("enemy breakup passes the hard PAL gate and draws no character effect", () => {
   const feature = report.gate.enemy_breakup_effects;
   assert.deepEqual([
     feature.baseline_wall_cycles,
@@ -740,19 +773,19 @@ test("enemy breakup passes the hard PAL gate and executes the five-slot runtime 
   assert.equal(feature.target_overrun_frames > 0, true);
   assert.equal(feature.hard_overrun_frames, 0);
   assert.equal(feature.passed, true);
-  assert.equal(report.gate.passed, true);
+  assert.equal(report.gate.timing_and_dli_passed, true);
   assert.equal(report.gate.missed_frames, 0);
   assert.equal(report.gate.deadline_overrun_frames, 0);
   assert.equal(report.gate.extra_vbi_boundaries, 0);
+  const breakup = report.coverage.interceptor_breakup_effects;
   assert.deepEqual([
-    report.coverage.interceptor_breakup_effects.observed,
-    report.coverage.interceptor_breakup_effects.active_mask,
-    report.coverage.interceptor_breakup_effects.active_count,
-    report.coverage.interceptor_breakup_effects.spawn_updated_and_rendered,
-    report.coverage.interceptor_breakup_effects.full_screen_flash_preserved,
-  ], [true, 0x1f, 5, true, true]);
-  assert.ok(report.coverage.interceptor_breakup_effects.spawner_frames > 0);
-  assert.ok(report.coverage.interceptor_breakup_effects.yellow_death_then_red_materialisation_frames > 0);
+    breakup.observed, breakup.active_mask, breakup.active_count,
+    breakup.character_materializer_frames, breakup.character_writes,
+    breakup.transient_allocations, breakup.flying_fragment_count,
+    breakup.full_screen_flash_preserved,
+  ], [true, 0, 0, 0, 0, 0, 0, true]);
+  assert.ok(breakup.kill_frames > 0);
+  assert.ok(breakup.yellow_death_then_red_flash_pairs > 0);
   assert.deepEqual(manifest.entityEffects.runtimeBudget.enemyBreakupEffects, {
     baselineWallCycles: 32_719,
     baselinePhysicalHeadroomCycles: 2_849,

@@ -25,7 +25,6 @@ import {
   executeSpreadShotVolleyTrace,
   executePlayerFighterBurstBalanceTrace,
   executeWeaponBoosterReplacementTrace,
-  executeWeaponPickupBackingTrace,
   executeWeaponPickupLifecycleTrace,
 } from "../scripts/weapon-pickup-runtime.mjs";
 
@@ -76,8 +75,14 @@ test("Spread Shot owns one phased red fan in the shared six-glyph bank", () => {
   const include = renderEntityEffectsCa65Include(entities);
   assert.match(include, /WEAPON_PICKUP_SPREAD_GLYPH_COUNT = 4/);
   assert.match(include, /WEAPON_PICKUP_TYPE_SPREAD = 1/);
-  assert.match(source.slice(source.indexOf("render_weapon_pickup_overlay:"),
-    source.indexOf("; Effects render after")), /compose_weapon_pickup_phase/);
+  // REWRITTEN 2026-10-01 (recorded failures review, B1; owner-approved): the last assertion
+  // read the character compositor (render_weapon_pickup_overlay calling
+  // compose_weapon_pickup_phase), retired at f6eee5c. The glyphs above are the
+  // source art; at runtime the Spread capsule is the second sixteen-row
+  // silhouette of the PLAYER3 shape table.
+  assert.doesNotMatch(source, /compose_weapon_pickup_phase|render_weapon_pickup_overlay/);
+  assert.match(source,
+    /fighter_pickup_pmg_shape:[\s\S]+; SPREAD[\s\S]+\.byte \$FF,\$FF,\$A5,\$A5,\$C3,\$DB,\$E7,\$E7/);
 });
 
 test("the release ATR executes the deterministic Rapid Spread Shield drop cycle", () => {
@@ -85,7 +90,9 @@ test("the release ATR executes the deterministic Rapid Spread Shield drop cycle"
   const cycle = (trace) => trace.drops.map((drop) => [
     drop.pickupType, drop.nextPickupType, drop.renderId, drop.state,
   ]);
-  assert.deepEqual(cycle(atr), [[0, 1, 120, 1], [1, 2, 248, 1], [2, 0, 120, 1]]);
+  // RE-PINNED 2026-10-01 (recorded failures review, D1): the render id column is 0 for a PMG
+  // capsule; it was 120 / 248 / 120.
+  assert.deepEqual(cycle(atr), [[0, 1, 0, 1], [1, 2, 0, 1], [2, 0, 0, 1]]);
   assert.equal(atr.drops[1].boosterState, 3,
     "Spread capsule must be earned naturally while Rapid Fire is still active");
   assert.equal(atr.spreadCapsuleFrames.every(({ capsuleState, boosterState }) =>
@@ -101,51 +108,16 @@ test("the release ATR executes the deterministic Rapid Spread Shield drop cycle"
     [0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80, 0x90]);
 });
 
-test("both capsule types spawn and Spread moves through every A2 step without ghosts", {
-  todo: "CONFIRMED CURRENT ARCHITECTURE FAILURE: Spread leaves a second capsule trail",
-}, () => {
-  const trace = executeSpreadShotTrace({ root, artifact: "atr" });
-  assert.deepEqual([
-    trace.rapidCapsule.state, trace.rapidCapsule.drawnMask,
-    trace.rapidCapsule.leftCode, trace.rapidCapsule.rightCode,
-    trace.rapidCapsule.bottomLeftCode, trace.rapidCapsule.bottomRightCode,
-  ], [2, 15, 120, 121, 122, 123]);
-  assert.deepEqual(trace.spreadCapsuleFrames.map((frame) => [
-    frame.state, frame.drawnMask, frame.leftCode, frame.rightCode,
-    frame.bottomLeftCode, frame.bottomRightCode,
-  ]), Array.from({ length: 8 }, () => [2, 15, 248, 249, 250, 251]));
-  assert.deepEqual(trace.spreadCapsuleFrames.map(({ y }) => y),
-    [26, 28, 30, 32, 34, 36, 38, 40]);
-  assert.deepEqual(trace.spreadCapsuleFrames.map(({ a2Head }) => a2Head),
-    [0, 26, 26, 25, 25, 24, 24, 23]);
-  for (const frame of trace.spreadCapsuleFrames) {
-    const capsuleCells = [...frame.screen].filter((code) =>
-      (code & 0x7f) >= 120 && (code & 0x7f) <= 125);
-    assert.equal(capsuleCells.length, frame.rasterPhase === 0 ? 4 : 6,
-      `frame ${frame.frame} retained a second capsule position`);
-    assert.deepEqual(frame.backing, [0, 0, 0, 0]);
-    if (frame.rasterPhase !== 0) assert.deepEqual(frame.thirdBacking, [0, 0]);
-  }
-});
-
-test("Spread four-cell reverse erase restores byte-exact backing at every A2 head", () => {
-  for (let head = 0; head < 22; head += 1) {
-    const atr = executeWeaponPickupBackingTrace({
-      root, artifact: "atr", head, pickupType: "spread",
-    });
-    assert.deepEqual([
-      atr.rendered.leftCode, atr.rendered.rightCode,
-      atr.rendered.bottomLeftCode, atr.rendered.bottomRightCode,
-      atr.rendered.drawnMask,
-    ], [248, 249, 250, 251, 15]);
-    assert.deepEqual(atr.rendered.backing, atr.original);
-    assert.deepEqual(atr.restored, atr.original);
-    assert.deepEqual([
-      atr.drawnMaskAfterErase, atr.renderedMaskAfterErase, atr.topLatchAfterErase,
-    ], [0, 0, 0]);
-    assert.notEqual(atr.top, atr.bottom);
-  }
-});
+// RETIRED 2026-10-01 (recorded failures review, action B4 and B1; owner-approved):
+//   * the todo test "both capsule types spawn and Spread moves through every A2
+//     step without ghosts" (it waited for "Spread leaves a second capsule
+//     trail");
+//   * "Spread four-cell reverse erase restores byte-exact backing at every A2
+//     head".
+// Both tested the character capsule: its glyph codes, its second-position
+// trail and the backing of its four cells. The capsule is one PLAYER3 image
+// since f6eee5c, so the trail the todo waited on cannot occur and there is no
+// backing. tests/pickup-pmg-raster-visibility.test.mjs covers the PMG capsule.
 
 test("Spread collection lasts exactly 500 active PAL frames and pause freezes it", () => {
   const trace = executeSpreadShotTrace({ root, artifact: "atr" });
@@ -293,25 +265,46 @@ test("overlapping Spread shots compose without erasing the remaining shot or Hos
   }
 });
 
-test("all three projectiles leave the screen cleanly without HUD or charset corruption", {
-  todo: "CONFIRMED CURRENT ARCHITECTURE FAILURE: final Spread projectile glyph remains",
-}, () => {
+// REWRITTEN 2026-10-01 (recorded failures review, B4 and D2; owner-approved). This was a todo
+// test waiting for "final Spread projectile glyph remains". That defect does
+// not reproduce: the fixture never clears the ring, so the screen held
+// boot-staging bytes in the shot-glyph range before the volley fired, and the
+// test read them as leftover shots. It also expected the charset to hold a
+// capsule phase, which the PMG capsule (f6eee5c) never writes. The test now
+// compares the screen with the screen just before the volley: three shots
+// fly, all three leave, and nothing they drew remains.
+test("all three projectiles leave the screen cleanly without HUD or charset corruption", () => {
   const trace = executeSpreadShotTrace({ root, artifact: "atr" });
+  const volley = trace.trajectoryFrames[0].slots.filter(({ active }) => active !== 0);
+  assert.deepEqual(volley.map(({ active }) => active & 0x70).sort(), [0x10, 0x20, 0x40],
+    "the volley is the full left/centre/right fan");
+  assert.equal(trace.trajectoryFrames.slice(1).some((frame) =>
+    Buffer.compare(Buffer.from(frame.screen), Buffer.from(trace.spreadPickup.screen)) !== 0),
+  true, "the shots are drawn on the playfield while they fly");
   assert.equal(trace.projectilesAfterCleanup.slots.every(({ active, rendered }) =>
     active === 0 && rendered === 0), true);
-  assert.equal([...trace.projectilesAfterCleanup.screen].every((code) => {
-    const glyph = code & 0x7f;
-    return glyph < 11 || glyph >= 47;
-  }), true, "reverse erase must remove every final projectile glyph");
-  const dynamicStart = 120 * 8;
-  const dynamicEnd = 126 * 8;
-  assert.deepEqual(trace.charset.subarray(0, dynamicStart),
-    trace.initialCharset.subarray(0, dynamicStart));
-  assert.deepEqual(trace.charset.subarray(dynamicEnd),
-    trace.initialCharset.subarray(dynamicEnd));
-  assert.deepEqual(Array.from(trace.charset.subarray(dynamicStart, dynamicEnd)),
-    Array.from(assets().entities.pickupPhaseBank.subarray(0x180, 0x1b0)),
-  "the only charset mutation must be the last rendered Spread phase");
+  // Every cell is back to what it held before the volley. The one documented
+  // exception is the dynamic near-star point (screen code 1, STAR_NEAR_POINT):
+  // a shot that captured one restores space, on purpose, because the star is
+  // republished by its own overlay (src/main.s, the PairShot backing
+  // resolvers). The fixture's uncleared ring happens to hold that code.
+  const STAR_NEAR_POINT = 1;
+  const before = trace.spreadPickup.screen;
+  const unrestored = Array.from(trace.projectilesAfterCleanup.screen)
+    .map((code, index) => [index, before[index], code])
+    .filter(([, was, is]) => was !== is && !(was === STAR_NEAR_POINT && is === 0));
+  assert.deepEqual(unrestored, [],
+    "reverse erase must remove every projectile glyph and restore every cell");
+  // The shots may redraw only their slot-owned composite glyphs
+  // (PLAYER_FIGHTER_COMPOSITE_GLYPH_BASE = 11 + 36, one per player slot); the
+  // PMG capsule draws nothing into the charset.
+  const compositeStart = (11 + 36) * 8;
+  const compositeEnd = compositeStart + trace.manifest.fighterWeapons.player_fighter.poolSlots * 8;
+  assert.deepEqual(trace.charset.subarray(0, compositeStart),
+    trace.initialCharset.subarray(0, compositeStart));
+  assert.deepEqual(trace.charset.subarray(compositeEnd),
+    trace.initialCharset.subarray(compositeEnd),
+    "the only charset mutation is the shots' own composite glyphs");
   const hudBefore = trace.spreadPickup.display.subarray(0, 40);
   for (const frame of trace.spreadTimerFrames.slice(0, 51)) {
     const changed = Array.from({ length: 40 }, (_, offset) => offset)
@@ -404,12 +397,16 @@ test("the configured 28-frame Spread cooldown avoids catch-up at the active limi
 
 test("Spread fixed phase is symmetric after 100 updates and both side bounds despawn", () => {
   const trace = executeSpreadShotMotionTrace({ root, artifact: "atr" });
-  assert.deepEqual(trace.initial, [132, 128, 136]);
-  assert.deepEqual(trace.after100, [132, 78, 186]);
-  assert.deepEqual(trace.activeAfter100, [0x11, 0x41, 0x21]);
-  assert.equal(trace.initial[0], trace.after100[0], "centre projectile drifted");
-  assert.equal(trace.initial[1] - trace.after100[1],
-    trace.after100[2] - trace.initial[2]);
+  // RE-PINNED 2026-10-01 (recorded failures review, D2): the harness now fires the volley, and
+  // the volley allocates its side shots first: the slots are left, right,
+  // centre. They were pinned centre, left, right. The symmetry and drift
+  // assertions are the same ones, re-indexed.
+  assert.deepEqual(trace.initial, [128, 136, 132]);
+  assert.deepEqual(trace.after100, [78, 186, 132]);
+  assert.deepEqual(trace.activeAfter100, [0x41, 0x21, 0x11]);
+  assert.equal(trace.initial[2], trace.after100[2], "centre projectile drifted");
+  assert.equal(trace.initial[0] - trace.after100[0],
+    trace.after100[1] - trace.initial[1]);
   assert.equal(trace.leftBoundary.active, 0);
   assert.equal(trace.rightBoundary.active, 0);
 });
@@ -418,7 +415,8 @@ test("all three directions collide with debris and Interceptor scoring resolves 
   const trace = executeSpreadShotCollisionTrace({ root, artifact: "atr" });
   assert.deepEqual(trace.debris.map(({ direction, projectileConsumed, debrisHp, score }) =>
     [direction, projectileConsumed, debrisHp, score]), [
-    [0, true, 2, 0], [0x40, true, 2, 0], [0x20, true, 2, 0],
+    // RE-PINNED 2026-10-01 (recorded failures review, D2): slot order left, right, centre.
+    [0x40, true, 2, 0], [0x20, true, 2, 0], [0, true, 2, 0],
   ]);
   assert.deepEqual(trace.interceptor, {
     pendingDamage: 3,

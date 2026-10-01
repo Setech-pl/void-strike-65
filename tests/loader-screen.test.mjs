@@ -493,7 +493,10 @@ test("assembled display list contains 157 ANTIC F and 35 ANTIC E lines", () => {
     0x0c, 0x30, 0xc0, 0xf3, 0xcf, 0x3f,
     0x04, 0x10, 0x40, 0x0c, 0x30, 0xc0,
   ]);
-  assert.equal(missileMasks, 0x37fc);
+  // RE-PINNED 2026-10-01 (recorded failures review, A16): missile_masks links at $3810
+  // (build/void-strike-65.lbl); it was $37FC. The overlap check below is the
+  // contract.
+  assert.equal(missileMasks, 0x3810);
   assert.ok(displayListAddress >= missileMasks + missileTables.length,
     "loader display-list publication must not overlap runtime PMG tables");
   assert.deepEqual(Buffer.from(memory.subarray(

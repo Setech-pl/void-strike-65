@@ -114,6 +114,10 @@ test("resident compaction proof survives and Spread Shot leaves at least 64 sour
       manifest.entityEffects.stagedSourceAddress);
   assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes,
     manifest.broadsideRuntime.runAddress - manifest.entityEffects.stagedEndExclusive);
+  // RE-PINNED 2026-10-01 (recorded failures review, A13): build/manifest.json. The packed
+  // sources end at $5331, 25 B into the staging at $5318 (copied backwards,
+  // sourceStagingOverlapBytes), the staging ends at $5DEA and the margin to
+  // BROADSIDE is 38 B. It was $5318 / $5DB6 / 0 / 90.
   assert.deepEqual([
     manifest.entityEffects.initialPackedSourcesEndExclusive,
     manifest.entityEffects.stagedSourceAddress,
@@ -121,7 +125,7 @@ test("resident compaction proof survives and Spread Shot leaves at least 64 sour
     manifest.broadsideRuntime.runAddress,
     manifest.entityEffects.sourceToStagingMarginBytes,
     manifest.entityEffects.stagingToBroadsideMarginBytes,
-  ], [0x5318, 0x5318, 0x5db6, 0x5e10, 0, 90]);
+  ], [0x5331, 0x5318, 0x5dea, 0x5e10, -25, 38]);
 
   const lifecycle = manifest.entityEffects.stagingLifecycle;
   assert.equal(lifecycle.stagingReleasedBeforeStarfieldExpansion, true);
@@ -131,9 +135,11 @@ test("resident compaction proof survives and Spread Shot leaves at least 64 sour
     lifecycle.starfieldDestinationOverlapStartAddress,
     lifecycle.starfieldDestinationOverlapEndExclusive,
     lifecycle.starfieldDestinationOverlapBytes,
-  ], [0x54e4, 0x5d45, 0x54e4, 0x5d45, 2145]);
+  ], [0x54e4, 0x5cdb, 0x54e4, 0x5cdb, 2039]);
   assert.match(source,
-    /jsr stage_boot_streams[\s\S]+jsr unpack_resident_runtime\s+jsr unpack_entity_runtime[\s\S]+jsr unpack_loader_bitmap\s+jsr show_loader\s+jsr unpack_starfield_runtime/,
+    // The cold publication (publish_director_abi, 4.5M-M2) sits between the
+    // resident and the entity unpack; the order under test is unchanged.
+    /jsr stage_boot_streams[\s\S]+jsr unpack_resident_runtime[\s\S]+jsr publish_director_abi[\s\S]+layout_d_cold_publish_complete:\s+jsr unpack_entity_runtime[\s\S]+jsr unpack_loader_bitmap\s+jsr show_loader\s+jsr unpack_starfield_runtime/,
     "ENTITY_CODE staging must be consumed before loader/starfield destinations overwrite it");
 
   for (const range of manifest.runtimeTiming.memory.runtimeRanges) {

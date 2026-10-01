@@ -19,7 +19,6 @@ import {
   executeHudPresentationTrace,
   executeWeaponBoosterHudTrace,
   executeWeaponPickupCauseTrace,
-  executeWeaponPickupBackingTrace,
   executeWeaponPickupCollisionTrace,
   executeWeaponPickupLifecycleTrace,
   executeWeaponPickupRingWrapTrace,
@@ -118,7 +117,7 @@ test("Rapid Fire owns fixed slot one without extending BSS or physical pools", (
   assert.equal(128 - manifest.entityEffects.glyphIndex - manifest.entityEffects.glyphCount, 2);
 });
 
-test("three eight-phase banks preserve one tapered 8x16 capsule through 2x2/2x3 footprints", () => {
+test("three eight-phase source banks hold one tapered 8x16 capsule and the runtime draws a PMG silhouette", () => {
   const { entities } = assets();
   assert.equal(entities.pickupGlyphs.length, 32);
   const glyphRows = [...entities.pickupGlyphs].map((row) =>
@@ -152,49 +151,30 @@ test("three eight-phase banks preserve one tapered 8x16 capsule through 2x2/2x3 
   assert.deepEqual(fs.readFileSync(path.join(root, "build", "weapon-pickup-phases.bin")),
     Buffer.from(entities.pickupPhaseBank));
   assert.match(source, /WEAPON_PICKUP_GLYPH_BASE = EFFECT_FRAGMENT_GLYPH_BASE\+EFFECT_FRAGMENT_GLYPH_COUNT/);
+  // REWRITTEN 2026-10-01 (recorded failures review, B1; owner-approved): the rest of this test
+  // read the character compositor - compose_weapon_pickup_phase and
+  // render_weapon_pickup_overlay. f6eee5c retired both: the bank above is
+  // source-only art, and the runtime draws one sixteen-row PLAYER3 silhouette
+  // per type (docs/plans/pickup-colour.md;
+  // tests/pickup-pmg-raster-visibility.test.mjs holds the PMG contract).
+  assert.doesNotMatch(source, /compose_weapon_pickup_phase|render_weapon_pickup_overlay/);
   assert.match(source,
-    /compose_weapon_pickup_phase:[\s\S]+ldy #\(WEAPON_PICKUP_PHASE_GLYPH_COUNT\*8-1\)[\s\S]+sta CHARSET\+WEAPON_PICKUP_GLYPH_BASE\*8,y/);
+    /fighter_pickup_pmg_shape:[\s\S]+\.assert \* - fighter_pickup_pmg_shape = WEAPON_PICKUP_TYPE_COUNT\*WEAPON_PICKUP_HEIGHT_SCANLINES/);
   assert.deepEqual(entities.weaponPickupRapidFire.palette, {
     outlineRegister: "COLPF1", outlineValue: 0x84,
     fillRegister: "COLPF2", fillValue: 0x1e,
     letterRegister: "COLBK", letterValue: 0x00,
   });
-  const renderer = source.slice(source.indexOf("render_weapon_pickup_overlay:"),
-    source.indexOf("; Effects render after"));
-  assert.doesNotMatch(renderer, /ENTITY_OWNER\+WEAPON_PICKUP_SLOT/);
-  assert.match(renderer, /jsr compose_weapon_pickup_phase/);
-  assert.match(renderer,
-    /lda ENTITY_RENDER_ID\+WEAPON_PICKUP_SLOT[\s\S]+adc #\$01/);
-  assert.match(renderer,
-    /jsr advance_dst_to_next_ring_row[\s\S]+lda ENTITY_RENDER_ID\+WEAPON_PICKUP_SLOT[\s\S]+adc #\$02/);
-  assert.doesNotMatch(renderer, /@render_pickup_pair/);
+  const renderer = /^render_fighter_pickup_pmg:[\s\S]*?\n {4}rts\n/m.exec(source)?.[0] ?? "";
+  assert.match(renderer, /lda ENTITY_TYPE\+WEAPON_PICKUP_SLOT[\s\S]+lda fighter_pickup_pmg_shape,x\s+sta PLAYER3,y/);
+  assert.doesNotMatch(renderer, /ENTITY_OWNER\+WEAPON_PICKUP_SLOT|ENTITY_RENDER_ID|CHARSET/);
 });
 
-test("runtime compositor publishes the exact capsule pixels for all types and phases", () => {
-  const { entities } = assets();
-  const glyphBase = manifest.entityEffects.weaponPickupGlyphIndex;
-  for (const [pickupType, typeIndex] of [["rapid", 0], ["spread", 1], ["shield", 2]]) {
-    for (let phase = 0; phase < 8; phase += 1) {
-      const trace = executeWeaponPickupBackingTrace({
-        root, artifact: "atr", pickupType, y: 104 + phase,
-      });
-      const actualBank = trace.charset.slice(glyphBase * 8, glyphBase * 8 + 48);
-      const expectedStart = (typeIndex * 8 + phase) * 48;
-      const expectedBank = Array.from(entities.pickupPhaseBank.subarray(
-        expectedStart, expectedStart + 48,
-      ));
-      assert.deepEqual(actualBank, expectedBank,
-        `${pickupType} phase ${phase} selected the wrong phase-bank bytes`);
-
-      const pixels = pickupPhasePixels(Uint8Array.from(actualBank), 0);
-      const occupiedRows = pixels.map((row) => row.some(Boolean));
-      assert.equal(occupiedRows.findIndex(Boolean), phase,
-        `${pickupType} phase ${phase} shifted the capsule's first visible row`);
-      assert.equal(occupiedRows.findLastIndex(Boolean), phase + 15,
-        `${pickupType} phase ${phase} shifted the capsule's last visible row`);
-    }
-  }
-});
+// RETIRED 2026-10-01 (recorded failures review, action B1; owner-approved): "runtime compositor
+// publishes the exact capsule pixels for all types and phases". It compared 48
+// charset bytes with the phase bank after a character composition. There is no
+// charset composition since f6eee5c - the capsule is a PLAYER3 image - and
+// tests/pickup-pmg-raster-visibility.test.mjs checks the pixels it draws.
 
 test("the release ATR executes 0→1→2→pending only for consumed PlayerFighter kills", () => {
   const atr = executeWeaponPickupTrace({ root, artifact: "atr" });
@@ -273,23 +253,29 @@ test("every booster type enters at the top, crosses the full playfield once and 
     "all three booster types must retain the same movement cadence");
 });
 
-test("active capsule renders one phased 2x2/2x3 footprint continuously and cannot be shot", () => {
+// REWRITTEN 2026-10-01 (recorded failures review, B1; owner-approved). This was "active capsule
+// renders one phased 2x2/2x3 footprint continuously and cannot be shot" and
+// read character codes 120-125, a drawn mask of 15 and the cells' backing. The
+// capsule is a PLAYER3 image (f6eee5c; docs/plans/pickup-colour.md): it stays
+// one logical object for the whole ACTIVE phase, writes no character cell,
+// keeps no backing, and a shot passes through it.
+test("active capsule is one logical PMG object, writes no character cell and cannot be shot", () => {
   const trace = executeWeaponPickupTrace({ root, artifact: "atr" });
   const active = trace.records.filter(({ phase }) => phase === "ACTIVE");
   assert.equal(active.length, 40);
+  assert.equal(active.every(({ state, activeMask, activeCount }) =>
+    state === 2 && (activeMask & 2) !== 0 && activeCount === 1), true);
   assert.equal(active.every(({
-    leftCode, rightCode, bottomLeftCode, bottomRightCode, renderId, drawnMask,
-  }) => leftCode === 120 && rightCode === 121 && bottomLeftCode === 122 &&
-    bottomRightCode === 123 && renderId === 120 && drawnMask === 15), true);
-  assert.equal(active.every(({ rasterPhase, thirdLeftCode, thirdRightCode }) =>
-    rasterPhase === 0 ? thirdLeftCode === 0 && thirdRightCode === 0 :
-      thirdLeftCode === 124 && thirdRightCode === 125), true);
-  assert.deepEqual([...new Set(active.map(({ rasterPhase }) => rasterPhase))], [0, 2, 4, 6]);
-  assert.equal(active.every(({ backing, thirdBacking, rasterPhase }) =>
-    [...backing, ...(rasterPhase === 0 ? [] : thirdBacking)].every((code) =>
-      (code & 0x7f) < 120 || (code & 0x7f) > 125)), true);
-  assert.ok(new Set(active.map(({ y }) => y)).size >= 6,
-    "static RF codes must remain continuously drawn while the capsule moves");
+    leftCode, rightCode, bottomLeftCode, bottomRightCode, thirdLeftCode, thirdRightCode,
+    drawnMask, backing, thirdBacking,
+  }) => [leftCode, rightCode, bottomLeftCode, bottomRightCode, thirdLeftCode, thirdRightCode,
+    drawnMask, ...backing, ...thirdBacking].every((value) => value === 0)), true,
+  "a PMG capsule owns no character cell and no backing");
+  assert.equal(active.every(({ screen }, index) => index === 0 ||
+    Buffer.from(screen).equals(Buffer.from(active[0].screen))), true,
+  "the playfield under a moving capsule is never rewritten");
+  assert.deepEqual(active.map(({ y }) => y),
+    Array.from({ length: 40 }, (_, index) => 24 + index * 2));
   const ignored = trace.records.find(({ phase }) => phase === "PROJECTILE_IGNORED");
   assert.deepEqual([
     ignored.state, ignored.activeMask, ignored.projectileActiveCount,
@@ -312,82 +298,51 @@ test("pickup movement resolves half world speed into smooth scanline phases", ()
     Array(active.length - 1).fill(2));
 });
 
+// REWRITTEN 2026-10-01 (recorded failures review, B1; owner-approved): the tail located the
+// capsule's four character cells in the ring and read their glyph codes. The
+// allocator rule it protects is unchanged and still asserted: debris in slot 0
+// and the capsule in slot 1 are both active, for every ring head. The capsule
+// is a PMG object, so it owns no ring cell at all.
 test("debris and the reserved pickup coexist without allocator overwrite for every A2 head", () => {
   for (let head = 0; head < canonicalPlayfield.ringRows; head += 1) {
     const trace = executeWeaponPickupTrace({ root, artifact: "atr", head, coexistDebris: true });
     const firstActive = trace.records.find(({ phase }) => phase === "ACTIVE");
     assert.deepEqual([firstActive.activeMask, firstActive.activeCount], [3, 2]);
-    const logicalRow = Math.floor((firstActive.y - 24) / 8);
-    const expectedRow = canonicalPlayfield.ringBufferAddress +
-      ((head + logicalRow) % canonicalPlayfield.ringRows) * 40;
-    const expectedBottomRow = canonicalPlayfield.ringBufferAddress +
-      ((head + logicalRow + 1) % canonicalPlayfield.ringRows) * 40;
-    assert.ok(firstActive.screenAddress >= expectedRow && firstActive.screenAddress + 1 < expectedRow + 40);
-    assert.ok(firstActive.bottomScreenAddress >= expectedBottomRow &&
-      firstActive.bottomScreenAddress + 1 < expectedBottomRow + 40);
+    assert.deepEqual([firstActive.state, firstActive.y, firstActive.a2Head], [2, 24, head]);
     assert.deepEqual([
       firstActive.leftCode, firstActive.rightCode,
-      firstActive.bottomLeftCode, firstActive.bottomRightCode,
-    ], [120, 121, 122, 123]);
+      firstActive.bottomLeftCode, firstActive.bottomRightCode, firstActive.drawnMask,
+    ], [0, 0, 0, 0, 0], `head ${head}: the capsule owns no ring cell`);
   }
 });
 
-test("four-cell backing restores byte-exact data in reverse layer order at every A2 head", () => {
-  for (let head = 0; head < canonicalPlayfield.ringRows; head += 1) {
-    const atr = executeWeaponPickupBackingTrace({ root, artifact: "atr", head });
-    assert.deepEqual([
-      atr.rendered.leftCode, atr.rendered.rightCode,
-      atr.rendered.bottomLeftCode, atr.rendered.bottomRightCode,
-      atr.rendered.drawnMask,
-    ], [120, 121, 122, 123, 15]);
-    assert.deepEqual(atr.rendered.backing, atr.original);
-    assert.deepEqual(atr.restored, atr.original);
-    assert.deepEqual([
-      atr.drawnMaskAfterErase, atr.renderedMaskAfterErase, atr.topLatchAfterErase,
-    ], [0, 0, 0]);
-    assert.notEqual(atr.top, atr.bottom);
-  }
-});
+// RETIRED 2026-10-01 (recorded failures review, action B1; owner-approved):
+//   * "four-cell backing restores byte-exact data in reverse layer order at
+//     every A2 head";
+//   * "reverse erase restores every 2x2/2x3 phase across the A2 wrap".
+// Both tested the save and restore of the character cells under the capsule.
+// A PLAYER3 capsule (f6eee5c) overwrites no cell, so there is no backing to
+// restore; its erase is clear_fighter_pickup_pmg, covered by
+// tests/pickup-pmg-raster-visibility.test.mjs and
+// tests/booster-admission-diagnostic.test.mjs.
 
-test("reverse erase restores every 2x2/2x3 phase across the A2 wrap", () => {
-  for (const head of [0, canonicalPlayfield.ringRows - 1]) {
-    for (let phase = 0; phase < 8; phase += 1) {
-      const trace = executeWeaponPickupBackingTrace({
-        root, artifact: "atr", head, y: 104 + phase,
-      });
-      assert.equal(trace.rendered.rasterPhase, phase);
-      assert.equal(trace.hasThirdRow, phase !== 0);
-      assert.deepEqual(trace.restored, trace.original,
-        `phase ${phase}, head ${head} must restore all physical cells`);
-      assert.deepEqual([
-        trace.rendered.leftCode, trace.rendered.rightCode,
-        trace.rendered.bottomLeftCode, trace.rendered.bottomRightCode,
-      ], [120, 121, 122, 123]);
-      assert.deepEqual([
-        trace.rendered.thirdLeftCode, trace.rendered.thirdRightCode,
-      ], phase === 0 ? [0, 0] : [124, 125]);
-      const savedBacking = [...trace.rendered.backing,
-        ...(phase === 0 ? [] : trace.rendered.thirdBacking)];
-      assert.equal(savedBacking.some((code) => (code & 0x7f) >= 120 &&
-        (code & 0x7f) <= 125), false, "capsule codes cannot enter backing");
-      assert.deepEqual([
-        trace.drawnMaskAfterErase, trace.renderedMaskAfterErase,
-        trace.topLatchAfterErase,
-      ], [0, 0, 0]);
-    }
-  }
-});
-
+// REWRITTEN 2026-10-01 (recorded failures review, B1; owner-approved): the
+// patterns read the character overlay (render_weapon_pickup_overlay, its drawn-mask guard and
+// restore) and the frame fence that moved with the capsule
+// (pickup_pending_fence). f6eee5c retired all of them. The rule is the same -
+// one guarded publication per frame, late - on the PMG publisher.
 test("the main frame has one guarded late pickup publication", () => {
   assert.equal((source.match(/jsr entity_effects_render/g) ?? []).length, 1);
-  assert.equal((source.match(/jsr render_weapon_pickup_overlay/g) ?? []).length, 0);
-  assert.equal((source.match(/jmp render_weapon_pickup_overlay/g) ?? []).length, 1);
+  assert.equal((source.match(/render_weapon_pickup_overlay|pickup_pending_fence/g) ?? []).length, 0);
+  assert.equal((source.match(/jsr publish_fighter_pickup_pmg/g) ?? []).length, 1);
   assert.match(source,
-    /main_loop:\n\s+jsr wait_gameplay_frame[\s\S]+wait_gameplay_frame:\n\s+lda ENTITY_STATE\+WEAPON_PICKUP_SLOT\n\s+beq wait_frame\n\s+cmp #WEAPON_PICKUP_STATE_ACTIVE\n\s+beq @visible\n\s+jsr pickup_pending_fence\n\s+bne wait_frame_at_line[\s\S]+@visible:\n\s+lda ENTITY_Y\+WEAPON_PICKUP_SLOT\n\s+lsr[\s\S]+adc #\(WEAPON_PICKUP_HEIGHT_SCANLINES\/2\)[\s\S]+wait_frame:\n\s+ldx #\$70[\s\S]+cpx VCOUNT/);
+    /jsr erase_fighter_projectile_overlays_with_light[\s\S]*jsr publish_fighter_pickup_pmg\s+fighter_projectile_publication_capital_render:/,
+    "the capsule is published in the post-playfield window");
   assert.match(source,
-    /render_weapon_pickup_overlay:[\s\S]+lda ENTITY_DRAWN_MASK\+WEAPON_PICKUP_SLOT[\s\S]+beq :\+[\s\S]+rts/);
-  assert.match(source,
-    /erase_weapon_pickup_overlay_restore:[\s\S]+ENTITY_SCREEN_HI\+3[\s\S]+ENTITY_VY\+WEAPON_PICKUP_SLOT[\s\S]+ENTITY_SCREEN_LO\+WEAPON_PICKUP_SLOT/);
+    /publish_fighter_pickup_pmg:\s+jsr clear_fighter_pickup_pmg\s+lda ENTITY_STATE\+WEAPON_PICKUP_SLOT\s+cmp #WEAPON_PICKUP_STATE_ACTIVE\s+beq render_fighter_pickup_pmg\s+rts/,
+    "it is drawn only while ACTIVE and cleared otherwise");
+  assert.match(source, /\nwait_gameplay_frame:\nwait_frame:\n/,
+    "the frame wait no longer depends on the capsule");
 });
 
 test("player PMG transparency preserves every pickup phase at nose side and rear overlap", () => {
@@ -428,20 +383,13 @@ test("player PMG transparency preserves every pickup phase at nose side and rear
   }
 });
 
-test("one logical footprint survives repeated ring wraps and cannot return after release", () => {
-  const atr = executeWeaponPickupRingWrapTrace({ root, artifact: "atr" });
-  assert.ok(atr.wrapCount >= 6);
-  assert.equal(atr.records.length, 108);
-  assert.equal(atr.records.every((record) => record.exactReverseErase &&
-    record.capsuleCells === (record.bottomScreenAddress === 0 ? 2 :
-      record.thirdScreenAddress === 0 ? 4 : 6) &&
-    record.capsuleFootprints === record.logicalSlots &&
-    record.logicalSlots === 1 && record.finalDrawCalls === 1), true);
-  assert.deepEqual([
-    atr.releasedState, atr.releasedY, atr.activeMask, atr.activeCount,
-    atr.cellsAtRelease, atr.cellsAfterAdditionalWraps,
-  ], [0, 240, 0, 0, 0, 0]);
-});
+// RETIRED 2026-10-01 (recorded failures review, action B1; owner-approved): "one logical
+// footprint survives repeated ring wraps and cannot return after release". It
+// counted the capsule's character cells (2, 4 or 6) and their exact reverse
+// erase on every frame. A PLAYER3 capsule (f6eee5c) has no cells. The part
+// that still applies - released at Y 240, nothing left after further ring
+// wraps - is asserted by tests/playfield-boundaries.test.mjs ("bottom clipping
+// and repeated ring wraps never write the HUD or revive a pickup").
 
 test("EASY MEDIUM and HARD preserve their rates without full-row raster jumps", () => {
   for (const [difficulty, rate] of [[0, 8], [1, 9], [2, 10]]) {
@@ -576,8 +524,12 @@ test("HULL plates and the ten-cell BOOST field remain distinct at native screen 
 
 test("Rapid Fire lasts 500 active frames and keeps its accepted accelerated burst", () => {
   const trace = executeWeaponPickupTrace({ root, artifact: "atr" });
-  assert.deepEqual(trace.normalBurstFrames, [0, 9, 18, 27, 36, 45, 54, 63]);
-  assert.deepEqual(trace.rapidBurstFrames, [0, 6, 12, 18, 24, 30, 36, 42, 48, 54]);
+  // RE-PINNED 2026-10-01 (recorded failures review, D1): a burst is 4 PairShots, a Rapid burst 5
+  // and a Spread burst 2 fire events, in a pool of 5
+  // (assets/graphics/fighter-weapons.json, since 66b90c5 and db64ca8). The
+  // pins were for 8, 10 and 8 single shots in a pool of 10.
+  assert.deepEqual(trace.normalBurstFrames, [0, 9, 18, 27]);
+  assert.deepEqual(trace.rapidBurstFrames, [0, 6, 12, 18, 24]);
   assert.equal(trace.activeRapidFrames, 500);
   assert.equal(trace.rapidTimerFrames.length, 500);
   assert.deepEqual(trace.rapidTimerFrames.map(({ timer }) => timer),
@@ -612,7 +564,7 @@ test("Rapid Fire lasts 500 active frames and keeps its accepted accelerated burs
     weapons.player_fighter.rapidFireIntervalFrames, weapons.player_fighter.rapidFireDurationFrames,
     weapons.player_fighter.poolSlots, weapons.player_fighter.speedScanlines,
     weapons.player_fighter.widthHpos, weapons.player_fighter.heightScanlines,
-  ], [8, 10, 8, 9, 6, 500, 10, 6, 1, 2]);
+  ], [4, 5, 2, 9, 6, 500, 5, 6, 1, 2]);
 });
 
 test("packed runtime distinguishes accepted Normal, Rapid and Spread cadence", () => {
@@ -622,20 +574,23 @@ test("packed runtime distinguishes accepted Normal, Rapid and Spread cadence", (
     mode.firstBurstSalvos, mode.firstBurstProjectiles, mode.emittedProjectiles,
     mode.maximumPoolOccupancy,
   ]);
+  // RE-PINNED 2026-10-01 (recorded failures review, A25): the 4 / 5 / 2 burst counts, and for
+  // Spread the volley of three followed by one centre shot: 2 fire events and 4
+  // shots in the first burst, 8 shots in 80 frames, 4 in the pool at most.
   assert.deepEqual(summary, [
-    ["NORMAL", 8, 9, 12, 8, 8, 9, 4],
-    ["RAPID", 10, 6, 12, 10, 10, 13, 6],
-    ["SPREAD", 8, 28, 12, 3, 9, 9, 6],
-    ["SHIELD", 8, 9, 12, 8, 8, 9, 4],
+    ["NORMAL", 4, 9, 12, 4, 4, 9, 4],
+    ["RAPID", 5, 6, 12, 5, 5, 12, 5],
+    ["SPREAD", 2, 28, 12, 2, 4, 8, 4],
+    ["SHIELD", 4, 9, 12, 4, 4, 9, 4],
   ]);
   const firstBurstFrames = (mode) => mode.records
     .filter(({ allocatedProjectiles }) => allocatedProjectiles > 0)
     .slice(0, mode.expectedBurst)
     .map(({ frame }) => frame);
-  assert.deepEqual(firstBurstFrames(atr.traces[0]), [0, 9, 18, 27, 36, 45, 54, 63]);
+  assert.deepEqual(firstBurstFrames(atr.traces[0]), [0, 9, 18, 27]);
   assert.deepEqual(firstBurstFrames(atr.traces[1]),
-    [0, 6, 12, 18, 24, 30, 36, 42, 48, 54]);
-  assert.deepEqual(firstBurstFrames(atr.traces[2]), [0, 28, 56]);
+    [0, 6, 12, 18, 24]);
+  assert.deepEqual(firstBurstFrames(atr.traces[2]), [0, 28]);
 });
 
 test("released FIRE emits a visible centred first frame across X, Y and ring phases", () => {
@@ -650,7 +605,10 @@ test("released FIRE emits a visible centred first frame across X, Y and ring pha
   const silhouetteHalf = 16 / 2;
   const pixelMasks = [0xc0, 0x30, 0x0c, 0x03];
   for (const record of trace.cases) {
-    const offsets = record.mode === "SPREAD" ? [8, 4, 12] : [8];
+    // RE-PINNED 2026-10-01 (recorded failures review, A26): a Spread volley allocates its two
+    // side shots first and the centre last (player_fighter_spread_volley_sides),
+    // so the slots read left, right, centre; they were centre, left, right.
+    const offsets = record.mode === "SPREAD" ? [4, 12, 8] : [8];
     assert.deepEqual(record.slots.map(({ x }) => x),
       offsets.map((offset) => Math.min(record.playerX + offset, lastHpos)));
     if (record.mode === "SPREAD") continue; // Spread composes with backing
@@ -671,8 +629,10 @@ test("released FIRE emits a visible centred first frame across X, Y and ring pha
 
 test("sector pickup clear republishes still-live PlayerFighter projectiles in the same frame", () => {
   const trace = executePlayerFighterSectorClearVisibilityTrace({ root, artifact: "atr" });
-  assert.deepEqual([trace.before.active, trace.before.rendered], [1, 1]);
-  assert.deepEqual([trace.after.active, trace.after.rendered], [1, 1]);
+  // RE-PINNED 2026-10-01 (recorded failures review, A27): the rendered latch is $FF
+  // (claim_fighter_projectile_visual), not 1.
+  assert.deepEqual([trace.before.active, trace.before.rendered], [1, 0xff]);
+  assert.deepEqual([trace.after.active, trace.after.rendered], [1, 0xff]);
   assert.notEqual(trace.after.screenCode, 0);
   assert.match(source,
     /profile_after_entity_render[\s\S]+jsr integration_update_sector_completion[\s\S]+jsr render_fighter_projectile_overlays/);
@@ -715,7 +675,8 @@ test("Normal and Rapid projectiles render through the PlayerFighter yellow bank"
   assert.deepEqual([
     weapons.player_fighter.widthHpos, weapons.player_fighter.heightScanlines,
     weapons.player_fighter.speedScanlines, weapons.player_fighter.poolSlots,
-  ], [1, 2, 6, 10]);
+  // RE-PINNED 2026-10-01 (recorded failures review, A28): poolSlots 10 -> 5.
+  ], [1, 2, 6, 5]);
   const collisionPath = source.slice(source.indexOf("update_fighter_projectiles:"),
     source.indexOf("allocate_player_fighter_projectile:"));
   assert.match(collisionPath, /lda FIGHTER_PROJECTILE_ACTIVE,x\s+beq @player_fighter_next/);
@@ -756,10 +717,17 @@ test("the packed ATR keeps every implemented PlayerFighter lifecycle path yellow
 test("new game, life loss and Game Over clear RF while a live sector transition preserves it", () => {
   const lifecycle = executeWeaponPickupLifecycleTrace({ root, artifact: "atr" });
   for (const record of [lifecycle.newGame, lifecycle.lifeLoss, lifecycle.gameOver,
-    lifecycle.sectorPending, lifecycle.sectorActive]) {
+    lifecycle.sectorActive]) {
     assert.deepEqual([record.state, record.activeMask, record.activeCount], [0, 0, 0]);
     assert.deepEqual(record.hudCodes, [0, 0, 0, 0]);
   }
+  // REWRITTEN 2026-10-01 (recorded failures review, B2; owner-approved): the test expected a
+  // PENDING capsule to be cleared at a sector boundary. The rule is
+  // docs/game-design.md "Weapon pickups": an ACTIVE capsule is removed, a
+  // PENDING one is frozen and resumes afterwards (since f6eee5c).
+  assert.deepEqual([lifecycle.sectorPending.state, lifecycle.sectorPending.activeMask,
+    lifecycle.sectorPending.activeCount], [1, 0, 0]);
+  assert.deepEqual(lifecycle.sectorPending.hudCodes, [0, 0, 0, 0]);
   assert.deepEqual([
     lifecycle.newGame.qualifiedKillCounter,
     lifecycle.sectorRapid.state, lifecycle.sectorRapid.timer,

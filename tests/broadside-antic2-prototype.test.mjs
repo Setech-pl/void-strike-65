@@ -15,7 +15,6 @@ import {
   createBroadsideModeComparisonPreview,
   createCapitalHullsAntic2StripPreview,
   inspectPng,
-  readBroadsideAntic2PrototypeState,
 } from "../scripts/preview.mjs";
 
 const testDirectory = path.dirname(fileURLToPath(import.meta.url));
@@ -32,14 +31,6 @@ const prototype = compileCapitalHullsAntic2Prototype(
   prototypeDefinition,
   capitalHullsDefinition,
 );
-
-function replaceOnce(text, original, replacement) {
-  const first = text.indexOf(original);
-  assert.notEqual(first, -1, `missing source fixture: ${original}`);
-  assert.equal(text.indexOf(original, first + original.length), -1,
-    `ambiguous source fixture: ${original}`);
-  return `${text.slice(0, first)}${replacement}${text.slice(first + original.length)}`;
-}
 
 test("ANTIC 2 prototype source is deterministic and rejects malformed one-bit glyphs", () => {
   const second = compileCapitalHullsAntic2Prototype(
@@ -96,55 +87,13 @@ test("prototype reuses the 8+24+8 maps, turret metadata, and one aligned 1 KB ch
   }
 });
 
-test("ANTIC 2 palette is genuinely monochrome while PMG remains source-derived", () => {
-  assert.deepEqual(
-    ["COLBK", "COLPF1", "COLPF2"].map((name) => prototype.palette.get(name)),
-    [0x00, 0x0a, 0x00],
-  );
-  const state = readBroadsideAntic2PrototypeState(
-    source,
-    capitalHullsDefinition,
-    prototypeDefinition,
-  );
-  assert.equal(state.charset.length, 1024);
-  assert.deepEqual(
-    state.charset.subarray(59 * 8, 59 * 8 + prototype.glyphBytes.length),
-    prototype.glyphBytes,
-  );
-  assert.ok([...state.screen.subarray(80)].every((screenCode) => screenCode < 0x80));
-
-  const canonical = createBroadsideAntic2PrototypePreview(
-    source,
-    capitalHullsDefinition,
-    prototypeDefinition,
-  );
-  const changedPlayer = replaceOnce(
-    source,
-    "    .byte %11111111\n    .byte %11011011",
-    "    .byte %11111110\n    .byte %11011011",
-  );
-  assert.notDeepEqual(
-    createBroadsideAntic2PrototypePreview(
-      changedPlayer,
-      capitalHullsDefinition,
-      prototypeDefinition,
-    ),
-    canonical,
-  );
-  const changedEngine = replaceOnce(
-    source,
-    "player_engine_shape:\n    .byte $00,$00,$00,$00\n    .byte %00011000",
-    "player_engine_shape:\n    .byte $00,$00,$00,$00\n    .byte %00011001",
-  );
-  assert.notDeepEqual(
-    createBroadsideAntic2PrototypePreview(
-      changedEngine,
-      capitalHullsDefinition,
-      prototypeDefinition,
-    ),
-    canonical,
-  );
-});
+// RETIRED 2026-10-01 (recorded failures review, action B11; owner-approved):
+// "ANTIC 2 palette is genuinely monochrome while PMG remains source-derived".
+// It audited the REJECTED ANTIC 2 monochrome spike against the H4 hull art:
+// glyphs contiguous from 59 and no screen code >= $80. Capital hull set v2
+// (884c446, c28d00d, 2026-09-22) made both untrue of the spike - its glyphs
+// are 59-75 and 77-80 and its rows carry inverse codes - and the spike is not
+// a shipping renderer. The tests that keep it preview-only stay below.
 
 test("prototype previews are deterministic, source-derived, and use exact integer dimensions", () => {
   const gameplay = createBroadsideAntic2PrototypePreview(

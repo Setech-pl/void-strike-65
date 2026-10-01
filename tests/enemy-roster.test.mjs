@@ -273,9 +273,14 @@ test("release gameplay remains one Interceptor with the accepted behaviour and s
   assert.doesNotMatch(source, /ENEMY_ARCHETYPE_SCYTHE_BOMBER\s+sta ENEMY_ARCHETYPE/);
 });
 
-test("PMG ownership preserves one P1/P2 enemy while fighter bursts use playfield glyphs", () => {
+test("PMG ownership gives each Heavy member one of P1/P2 while fighter bursts use playfield glyphs", () => {
   assert.match(source, /sta SIZEP1\s+sta SIZEP2/);
-  assert.match(source, /sta HPOSP1\s+sta HPOSP2/);
+  // REWRITTEN 2026-10-01 (recorded failures review, B8; owner-approved): `sta HPOSP1` then
+  // `sta HPOSP2` positioned ONE enemy drawn on both players. Each Heavy member
+  // owns one of P1/P2 since the two-PMG Raiders (10f1be2; AGENTS.md, enemy
+  // classes), so the position is one indexed store per member.
+  assert.match(source, /sta HPOSP1,x/);
+  assert.doesNotMatch(source, /sta HPOSP1\s+sta HPOSP2/);
   assert.match(source, /sta PLAYER1,y[\s\S]+sta PLAYER2,y/);
   assert.match(source, /MISSILE_M0_MASK = \$03/);
   assert.match(source, /missile_masks:\s+\.byte \$0C,\$30,\$C0/);

@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { Nmos6502 } from "./nmos6502.mjs";
 import { canonicalPlayfield } from "./playfield.mjs";
-import { installBootArtifact, publishEnemyProfileScore } from "./runtime-image.mjs";
+import { installBootArtifact, installRuntimeSegments, publishEnemyProfileScore } from "./runtime-image.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const defaultRoot = path.resolve(scriptDirectory, "..");
@@ -201,6 +201,27 @@ export function initialiseRuntime(root, artifact, coldFill = 0) {
   memory[fixedStateAddress(labels, "BROAD_PLAYER_HEALTH")] = 10;
   memory[fixedStateAddress(labels, "PLAYER_LIVES")] = 3;
   memory[requiredLabel(labels, "gameplay_fire_gate")] = 1;
+  // The boot path above leaves the Director's C records where the loader
+  // staged them and never runs start_gameplay, so DIRECTOR_REQUEST refused
+  // every capsule and a PENDING pickup stayed at Y 8 for ever (recorded
+  // failures review 2026-10, group G2). Place the linked runtime at its final
+  // addresses, open the fighter sector and start the Director with an
+  // admitting state, as tests/booster-admission-diagnostic.test.mjs does.
+  installRuntimeSegments(memory, root);
+  for (const file of ["encounter-director.lbl", "integration-glue.lbl"]) {
+    for (const [name, address] of labelsFromFile(path.join(root, "build", file))) {
+      if (!labels.has(name)) labels.set(name, address);
+    }
+  }
+  memory[requiredLabel(labels, "CAPITAL_SECTOR_STATE")] = 7; // OPEN
+  memory[requiredLabel(labels, "frame_counter")] = 42;
+  runRoutine(memory, labels, "director_init", { a: 0x6d });
+  memory[0x80f6] = 3;  // sector index
+  memory[0x80f8] = 1;  // intensity
+  memory[0x80f9] = 0;  // reaction
+  memory[0x80fa] = 0;  // recovery
+  memory[0x80fe] = 0;  // flags
+  memory[0x80ff] = 41; // admission frame: not this frame
   // The enemy profile the admission path would have published; see
   // publishEnemyProfileScore in scripts/runtime-image.mjs for why a harness
   // that pokes ENEMY_* directly has to do this itself.
@@ -1038,9 +1059,16 @@ export function executePlayerFighterProjectileColourLifecycleTrace({
   const capturePlayerFighter = (phase) => {
     runRoutine(memory, labels, "erase_fighter_projectile_overlays");
     runRoutine(memory, labels, "clear_player_fighter_projectiles");
+    // A Spread fire event is the volley only when BURST_REMAINING is the Spread
+    // burst count; with it unset the allocator emits the centre follow-up alone
+    // (docs/plans/spread-volley-fix.md section 5).
+    if (memory[boosterState] === SPREAD_BOOSTER_STATE) {
+      memory[requiredLabel(labels, "PLAYER_FIGHTER_BURST_REMAINING")] =
+        spreadWeaponGeometry(manifest).volleyRemaining;
+    }
     runRoutine(memory, labels, "allocate_player_fighter_projectile");
     const slots = [];
-    for (let slot = 0; slot < 10; slot += 1) {
+    for (let slot = 0; slot < manifest.fighterWeapons.player_fighter.poolSlots; slot += 1) {
       if (memory[active + slot] === 0) continue;
       memory[xAddress + slot] = 88 + slot * 12;
       memory[yAddress + slot] = 100;
@@ -1631,6 +1659,8 @@ export function executeSpreadShotTrace({
   memory[requiredLabel(labels, "player_x")] = 124;
   memory[requiredLabel(labels, "player_y")] = playerMaximumY;
   runRoutine(memory, labels, "clear_player_fighter_projectiles");
+  memory[requiredLabel(labels, "PLAYER_FIGHTER_BURST_REMAINING")] =
+    spreadWeaponGeometry(manifest).volleyRemaining; // the volley, not the follow-up
   runRoutine(memory, labels, "allocate_player_fighter_projectile");
   const trajectoryFrames = [player_fighterProjectileSnapshot(memory, labels,
     { phase: "SPREAD_VOLLEY", frame: 0 })];
@@ -1924,13 +1954,15 @@ export function executeSpreadShotAdmissionCycleSweep({
 }
 
 export function executeSpreadShotMotionTrace({ root = defaultRoot, artifact = "atr" } = {}) {
-  const { memory, labels } = initialiseRuntime(root, artifact);
+  const { memory, labels, manifest } = initialiseRuntime(root, artifact);
   const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
   const xAddress = requiredLabel(labels, "FIGHTER_PROJECTILE_X");
   const yAddress = requiredLabel(labels, "FIGHTER_PROJECTILE_Y");
   memory[requiredLabel(labels, "ENTITY_STATE") + 2] = 4;
   memory[requiredLabel(labels, "player_x")] = 124;
   memory[requiredLabel(labels, "player_y")] = playerMaximumY;
+  memory[requiredLabel(labels, "PLAYER_FIGHTER_BURST_REMAINING")] =
+    spreadWeaponGeometry(manifest).volleyRemaining; // the volley, not the follow-up
   runRoutine(memory, labels, "allocate_player_fighter_projectile");
   const initial = Array.from(memory.subarray(xAddress, xAddress + 3));
   for (let frame = 0; frame < 100; frame += 1) {
@@ -1972,11 +2004,13 @@ export function executeSpreadShotMotionTrace({ root = defaultRoot, artifact = "a
 
 export function executeSpreadShotCollisionTrace({ root = defaultRoot, artifact = "atr" } = {}) {
   const interceptor = (() => {
-    const { memory, labels } = initialiseRuntime(root, artifact);
+    const { memory, labels, manifest } = initialiseRuntime(root, artifact);
     const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
     memory[requiredLabel(labels, "ENTITY_STATE") + 2] = 4;
     memory[requiredLabel(labels, "player_x")] = 124;
     memory[requiredLabel(labels, "player_y")] = 184;
+    memory[requiredLabel(labels, "PLAYER_FIGHTER_BURST_REMAINING")] =
+      spreadWeaponGeometry(manifest).volleyRemaining; // the volley, not the follow-up
     runRoutine(memory, labels, "allocate_player_fighter_projectile");
     memory[requiredLabel(labels, "ENEMY_ACTIVE")] = 1;
     memory[requiredLabel(labels, "ENEMY_ARCHETYPE")] = 0;
@@ -2005,12 +2039,14 @@ export function executeSpreadShotCollisionTrace({ root = defaultRoot, artifact =
   })();
 
   const debris = Array.from({ length: 3 }, (_, selectedSlot) => {
-    const { memory, labels } = initialiseRuntime(root, artifact);
+    const { memory, labels, manifest } = initialiseRuntime(root, artifact);
     const active = requiredLabel(labels, "FIGHTER_PROJECTILE_ACTIVE");
     const projectileX = requiredLabel(labels, "FIGHTER_PROJECTILE_X");
     memory[requiredLabel(labels, "ENTITY_STATE") + 2] = 4;
     memory[requiredLabel(labels, "player_x")] = 124;
     memory[requiredLabel(labels, "player_y")] = 184;
+    memory[requiredLabel(labels, "PLAYER_FIGHTER_BURST_REMAINING")] =
+      spreadWeaponGeometry(manifest).volleyRemaining; // the volley, not the follow-up
     runRoutine(memory, labels, "allocate_player_fighter_projectile");
     for (let slot = 0; slot < 3; slot += 1) {
       if (slot !== selectedSlot) memory[active + slot] = 0;
@@ -2422,14 +2458,18 @@ export function executeShieldBoosterTrace({
   {
     const m = interceptorProjectile.memory;
     const l = interceptorProjectile.labels;
-    const slot = 10;
+    // The first hostile slot: the pool is player slots, then hostile slots.
+    const slot = interceptorProjectile.manifest.fighterWeapons.player_fighter.poolSlots;
     m[requiredLabel(l, "ENTITY_STATE") + 2] = 5;
     m[requiredLabel(l, "BROAD_DAMAGE_APPLIED")] = 0;
     m[requiredLabel(l, "BROAD_DAMAGE_COOLDOWN")] = 0;
     m[fixedStateAddress(l, "BROAD_PLAYER_HEALTH")] = 10;
     m[requiredLabel(l, "player_x")] = 124;
     m[requiredLabel(l, "player_y")] = playerMaximumY;
-    m[requiredLabel(l, "FIGHTER_PROJECTILE_ACTIVE") + slot] = 2;
+    // A hostile shot's ACTIVE byte is (weapon_class << 3) | kind, and each class
+    // steps only on the frames its mask admits; frame 0 admits every class.
+    m[requiredLabel(l, "FIGHTER_PROJECTILE_ACTIVE") + slot] = (1 << 3) | 2;
+    m[requiredLabel(l, "frame_counter")] = 0;
     m[requiredLabel(l, "FIGHTER_PROJECTILE_X") + slot] = 124;
     // Collision uses PREV_Y as the start of the swept projectile envelope.
     // Keep the fixture aligned with the player now clamped at the playfield bottom.
@@ -2440,7 +2480,8 @@ export function executeShieldBoosterTrace({
   }
   damage.interceptorProjectile = {
     active: interceptorProjectile.memory[requiredLabel(interceptorProjectile.labels,
-      "FIGHTER_PROJECTILE_ACTIVE") + 10],
+      "FIGHTER_PROJECTILE_ACTIVE") +
+      interceptorProjectile.manifest.fighterWeapons.player_fighter.poolSlots],
     health: interceptorProjectile.memory[fixedStateAddress(interceptorProjectile.labels,
       "BROAD_PLAYER_HEALTH")],
     applied: interceptorProjectile.memory[requiredLabel(interceptorProjectile.labels,

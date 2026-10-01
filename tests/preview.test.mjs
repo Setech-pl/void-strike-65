@@ -14,8 +14,6 @@ import {
   createDebrisReviewTrace,
   createDestructibleDebrisPreview,
   createDestructibleDebrisTrace,
-  createInterceptorBreakupPreview,
-  createInterceptorBreakupTrace,
   createHudPresentationNativePreview,
   createHudPresentationPreview,
   createWeaponPickupRapidFirePreview,
@@ -85,7 +83,10 @@ test("start-menu preview is deterministic, 640x384, and source-derived", () => {
     frontend.mainMenuRecords.filter(({ mode }) => mode === 6).map(({ text }) => text),
     ["START GAME", "OPTIONS", "TOP SCORES", "EXIT"],
   );
-  assert.equal(frontend.mainMenuRecords.at(-1).text, "UP/DOWN MOVE   FIRE SELECT");
+  // RE-PINNED 2026-10-01 (recorded failures review, A19): the hint has single spaces in
+  // src/main.s since the rebrand (d72dd6a); the pin had three between MOVE and
+  // FIRE.
+  assert.equal(frontend.mainMenuRecords.at(-1).text, "UP/DOWN MOVE FIRE SELECT");
   assert.equal(frontend.mainMenuRecords[0].text, "VOID STRIKE 65");
   assert.equal(frontend.mainMenuRecords[0].mode, 7);
   assert.equal(frontend.mainMenuRecords.at(-1).mode, 2);
@@ -131,7 +132,13 @@ test("preview consumes the canonical charset, screen, PMG, and palette source", 
     ),
     // COLPF1 is the allied steel: $88 by default since owner decision 2, and
     // level data on top of it (tests/level-hull-block.test.mjs).
-    [0x00, 0x0e, 0x88, 0x1e, 0x46, 0x0e, 0x44, 0x46, 0x28],
+    // RE-PINNED 2026-10-01 (recorded failures review, A3): COLPM2 is $44, as COLPM1 - both
+    // Raiders take ENEMY_RUNTIME_BODY_COLOR. It was $46.
+    // This test stays a RECORDED FAILURE for its real reason, below: the
+    // gameplay preview draws 24 of the 29 rows, the fighter starts in the
+    // clipped ones, and so the `player_shape` variant does not change the
+    // image (review section 6, C2; follow-up chore/preview-29-rows).
+    [0x00, 0x0e, 0x88, 0x1e, 0x46, 0x0e, 0x44, 0x44, 0x28],
   );
   assert.equal(graphics.frontendHardwareState.get("COLPF3"), 0xd8);
   assert.match(
@@ -257,17 +264,19 @@ test("debris owner review is deterministic and covers visuals, trajectories, con
   const trace = createDebrisReviewTrace(entityEffectsDefinition);
   assert.equal(trace, createDebrisReviewTrace(entityEffectsDefinition));
   const rows = trace.trimEnd().split("\n");
-  assert.equal(rows.length, 1 + 38 * 3 + 2);
+  // RE-PINNED 2026-10-01 (recorded failures review, A20): a full pass is 46 rows on the 28-row
+  // playfield (bottom at scanline 240); it was 38.
+  assert.equal(rows.length, 1 + 46 * 3 + 2);
   for (const profile of ["STRAIGHT", "SLIGHT-LEFT", "SLIGHT-RIGHT"]) {
     const pass = rows.filter((row) => row.startsWith(`FULL_PASS_${profile},`));
-    assert.equal(pass.length, 38);
+    assert.equal(pass.length, 46);
     assert.ok(pass.some((row) => row.includes(",200,")), `${profile} lacks bottom despawn`);
   }
   assert.ok(rows.some((row) => row.includes(",DAMAGE_ACCEPTED,10,9")));
   assert.ok(rows.some((row) => row.includes(",INVULNERABLE,10,10")));
   assert.ok(rows.some((row) => row.includes(",$91,$92,") &&
     row.endsWith(",$91,$92,NONE,10,10")));
-  const ringHeads = new Set(rows.slice(1, 39).map((row) => Number(row.split(",")[14])));
+  const ringHeads = new Set(rows.slice(1, 47).map((row) => Number(row.split(",")[14])));
   assert.ok(ringHeads.has(21) && ringHeads.has(0), "preview pass must cross the A2 ring wrap");
 });
 
@@ -282,27 +291,25 @@ test("destructible debris owner preview is an ATR-executed eight-frame breakup",
   assert.equal(rows.filter((row) => row.startsWith("atr,FINAL,")).length, 127);
   assert.ok(rows.some((row) => row.startsWith("atr,FINAL,0,0,0,0,0,0,$1F,5,")));
   assert.ok(rows.some((row) => row.startsWith("atr,FINAL,31,0,0,0,0,0,$00,0,")));
-  assert.ok(rows.slice(1).every((row) => row.endsWith(",0742")),
-    "runtime preview trace changed score");
+  // REWRITTEN 2026-10-01 (recorded failures review, B7; owner-approved): every row had to end
+  // ",0742" ("runtime preview trace changed score"). A debris destroyed by a
+  // shot scores since 2026-09-18, and DEBRIS_SCORE is $25 (STATUS "Debris
+  // reward"), so the score rises by 25 on the kill and not before.
+  const scoreOf = (row) => row.split(",").at(-1);
+  assert.equal(rows.slice(1).filter((row) => !row.startsWith("atr,FINAL,"))
+    .every((row) => scoreOf(row) === "0742"), true, "no award before the debris is destroyed");
+  assert.equal(rows.filter((row) => row.startsWith("atr,FINAL,"))
+    .every((row) => scoreOf(row) === "0767"), true, "the kill awards DEBRIS_SCORE $25 once");
 });
 
-test("Interceptor owner preview is the ATR-executed eight-frame local breakup", () => {
-  const first = createInterceptorBreakupPreview(source, entityEffectsDefinition);
-  const second = createInterceptorBreakupPreview(source, entityEffectsDefinition);
-  assert.deepEqual(first, second);
-  assert.deepEqual([inspectPng(first).width, inspectPng(first).height], [5228, 720]);
-  const trace = createInterceptorBreakupTrace(entityEffectsDefinition);
-  assert.equal(trace, createInterceptorBreakupTrace(entityEffectsDefinition));
-  const rows = trace.trimEnd().split("\n");
-  assert.equal(rows.filter((row) => row.startsWith("atr,BREAKUP,")).length, 127);
-  assert.ok(rows.some((row) => row.startsWith("atr,BREAKUP,0,1,2,24,$1E,$00,0,1,")));
-  assert.ok(rows.some((row) => row.startsWith("atr,BREAKUP,1,1,2,23,$3C,$1F,5,0,")));
-  assert.ok(rows.some((row) => row.startsWith("atr,BREAKUP,31,1,1,0,$00,$00,0,0,")));
-  assert.ok(rows.slice(1).filter((row) => row.includes(",PRE_HIT,")).every((row) =>
-    row.endsWith(",0742")));
-  assert.ok(rows.slice(1).filter((row) => row.includes(",BREAKUP,")).every((row) =>
-    row.endsWith(",0752")), "Interceptor score policy must remain byte-exact");
-});
+// RETIRED 2026-10-01 (recorded failures review, action B7; owner-approved): "Interceptor owner
+// preview is the ATR-executed eight-frame local breakup". It expected 127
+// BREAKUP rows carrying a five-fragment character effect ($1F, 5). A Raider or
+// Interceptor kill draws no character fragments since the removals recorded in
+// docs/diagnostics/stage-2b2b-raider-character-effects-removal.json and
+// stage-2b2b-raider-transient-breakup-fragments-removal.json; the trace is 32
+// rows with an empty effect mask. tests/entity-effects.test.mjs ("every
+// canonical Raider death avoids character effects...") holds the current rule.
 
 test("Rapid Fire owner preview executes the packed ATR pickup lifecycle", () => {
   const first = createWeaponPickupRapidFirePreview(source);
@@ -317,27 +324,34 @@ test("Rapid Fire owner preview executes the packed ATR pickup lifecycle", () => 
   assert.ok(rows.some((row) => row.startsWith("atr,KILL_2,0,2,0,1,2,2,0,0,")));
   assert.ok(rows.some((row) => row.startsWith("atr,KILL_3,0,3,0,1,0,0,0,1,")));
   assert.ok(rows.some((row) => row.startsWith("atr,PENDING,29,")));
-  assert.ok(rows.some((row) => row.includes(",ACTIVE,0,") &&
-    row.includes(",120,120,121,122,123,")));
-  assert.equal(rows.filter((row) => row.startsWith("atr,ACTIVE,")).slice(0, 32)
-    .every((row) => {
-      const fields = row.split(",");
-      return fields.slice(16, 21).join(",") === "120,120,121,122,123" &&
-        fields.slice(23, 27).every((value) => value === "0") && fields[31] === "15";
-    }), true);
+  // REWRITTEN 2026-10-01 (recorded failures review, B1; owner-approved): the ACTIVE, PICKUP and
+  // RAPID_TIMER rows were pinned to the character capsule - render id 120,
+  // glyph codes 120-123 and drawn mask 15. The capsule is one PLAYER3 image
+  // (docs/plans/pickup-colour.md), so those columns are 0 on every row: it
+  // writes no character cell and keeps no backing. Its state, slot and motion
+  // are asserted instead.
+  const activeRows = rows.filter((row) => row.startsWith("atr,ACTIVE,"))
+    .map((row) => row.split(","));
+  assert.equal(activeRows.length, 40);
+  assert.equal(activeRows.every((fields) =>
+    fields.slice(9, 12).join(",") === "2,2,1" &&
+    fields.slice(16, 21).every((value) => value === "0") &&
+    fields.slice(23, 27).every((value) => value === "0") && fields[31] === "0"), true);
+  assert.deepEqual(activeRows.map((fields) => Number(fields[13])),
+    Array.from({ length: 40 }, (_, index) => 24 + index * 2));
   assert.ok(rows.some((row) => {
     if (!row.startsWith("atr,PICKUP,0,")) return false;
     const fields = row.split(",");
     return fields[9] === "3" && fields[10] === "0" && fields[11] === "0" &&
       fields[12] === "128" && Number(fields[13]) >= 40 && Number(fields[13]) <= 184 &&
       fields[14] === "500" && fields[15] === "0" &&
-      fields[16] === "120" && fields.slice(17, 21).every((value) => value === "0") &&
+      fields.slice(16, 21).every((value) => value === "0") &&
       fields.slice(27, 31).join(",") === "7,7,7,7" && fields[31] === "0";
   }));
   assert.ok(rows.some((row) => {
     if (!row.startsWith("atr,RAPID_TIMER,499,")) return false;
     const fields = row.split(",");
-    return fields[9] === "0" && fields[14] === "0" && fields[16] === "120" &&
+    return fields[9] === "0" && fields[14] === "0" && fields[16] === "0" &&
       fields.slice(27, 31).every((value) => value === "0");
   }));
 });
@@ -366,9 +380,14 @@ test("burst-balance owner preview is a deterministic 80-frame ATR execution", ()
   const emitted = (mode) => atrRows.slice(1)
     .filter((row) => row.startsWith(`atr,${mode},`))
     .reduce((sum, row) => sum + Number(row.split(",")[10]), 0);
-  assert.deepEqual([emitted("NORMAL"), emitted("RAPID"), emitted("SPREAD")], [21, 30, 24]);
+  // REWRITTEN 2026-10-01 (recorded failures review, B16; owner-approved): the trace emitted
+  // [21, 30, 24] shots when a burst was 8 / 10 / 8; the bursts are 4 / 5 / 2
+  // PairShots now. A Spread fire event allocates the three-shot volley or its
+  // one centre follow-up (owner decisions 2026-09-16 and 2026-09-30), so an
+  // allocation of 1 is legal where the test allowed only 0 or 3.
+  assert.deepEqual([emitted("NORMAL"), emitted("RAPID"), emitted("SPREAD")], [9, 12, 8]);
   assert.equal(atrRows.filter((row) => row.startsWith("atr,SPREAD,"))
-    .every((row) => [0, 3].includes(Number(row.split(",")[10]))), true);
+    .every((row) => [0, 1, 3].includes(Number(row.split(",")[10]))), true);
 });
 
 test("Spread Shot owner preview is deterministic executed ATR gameplay", () => {
@@ -383,12 +402,15 @@ test("Spread Shot owner preview is deterministic executed ATR gameplay", () => {
   assert.equal(rows.filter((row) => row.startsWith("atr,")).length, 27);
   assert.deepEqual(rows.filter((row) => row.startsWith("atr,DROP_"))
     .map((row) => row.split(",").slice(1, 7)), [
-    ["DROP_1", "0", "1", "0", "1", "120"],
-    ["DROP_2", "0", "1", "1", "2", "252"],
-    ["DROP_3", "0", "1", "2", "0", "124"],
+    // RE-PINNED 2026-10-01 (recorded failures review, D2): the render id column is 0 for a PMG
+    // capsule (it was 120 / 252 / 124), and the volley row below is the real
+    // three-shot fan now that the harness arms it: left, right, centre.
+    ["DROP_1", "0", "1", "0", "1", "0"],
+    ["DROP_2", "0", "1", "1", "2", "0"],
+    ["DROP_3", "0", "1", "2", "0", "0"],
   ]);
   assert.ok(rows.includes(
-    "atr,SPREAD_VOLLEY,1,4,1,0,,,,,,3,17,128,176,65,123,176,33,133,176"));
+    "atr,SPREAD_VOLLEY,1,4,1,0,,,,,,3,65,127,217,33,137,217,17,132,217"));
   assert.ok(rows.some((row) => row.startsWith("atr,SPREAD_CLEAN,51,") &&
     row.split(",")[11] === "0"));
 });

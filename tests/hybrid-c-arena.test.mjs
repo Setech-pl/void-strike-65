@@ -58,8 +58,11 @@ test("HYBRID_C_ARENA is one contiguous 832-B arena at $7BD0-$7F0F", () => {
   // 4.5c: 1-B anchor + 19-B Heavy veneers, 339-B Heavy C, 33-B rodata.
   // 4.5d: + 51-B hostile glyph builder and table (moved from BROADSIDE), the
   // Bomber attack run, charge telegraph and hit flash C, 2-B longer start data.
-  assert.deepEqual([arena.asmBytes, arena.codeBytes, arena.rodataBytes], [71, 504, 39]);
-  assert.equal(arena.freeBytes, 218);
+  // RE-PINNED 2026-10-01 (recorded failures review, A15): build/manifest.json
+  // residentCapacity.arena is 90 + 589 + 39 B with 114 B free (STATUS); it was
+  // 71 + 504 + 39 with 218 free.
+  assert.deepEqual([arena.asmBytes, arena.codeBytes, arena.rodataBytes], [90, 589, 39]);
+  assert.equal(arena.freeBytes, 114);
   assert.equal(labels.get("hybrid_arena_anchor"), ARENA);
   assert.equal(arenaImage[0], 0x60, "the anchor stays first");
   for (const veneer of ["enemy_recycle", "enemy_spawn_raiders", "heavy_publish_hull_colour"]) {
@@ -88,7 +91,11 @@ test("HYBRID_C_ARENA is one contiguous 832-B arena at $7BD0-$7F0F", () => {
 test("the arena lands directly as its own DFMC record and is the only owner of its range", () => {
   const parsed = manifest.transportCapacity.manifest.parsed;
   const records = parsed.records;
-  assert.equal(records.length, 8, "the arena uses the record slot freed by 4.5M-M2");
+  // RE-PINNED 2026-10-01 (recorded failures review, A15): 11 records, the arena record 649 B
+  // packed in 6 sectors, and the transport figures of build/manifest.json
+  // (13,621 B, envelope 75, 107 boot sectors, 208 in all). The limits on those
+  // figures are held by tests/layout-d1.test.mjs "transport limits in force".
+  assert.equal(records.length, 11, "the arena uses the record slot freed by 4.5M-M2");
   const arenaRecords = records.filter((record) =>
     record.finalDestination < ARENA_END && record.finalDestination + record.rawLength > ARENA);
   assert.equal(arenaRecords.length, 1);
@@ -122,7 +129,7 @@ test("the arena lands directly as its own DFMC record and is the only owner of i
   // Emitter-independent hostile shots: ENTITY_CODE −27 B (−25 B packed).
   // 4.5c Bomber: arena record 355 B packed / 3 sectors; 180 transport sectors.
   // 4.5d enemy identity: arena record 558 B packed / 5 sectors; 182 transport sectors.
-  assert.deepEqual([record.packedLength, record.sectorCount], [558, 5]);
+  assert.deepEqual([record.packedLength, record.sectorCount], [649, 6]);
   // Death-frame deferral (2026-09-17): player_dying_tick adds 18 B to ENTITY_CODE.
   // Debris score (2026-09-18): add_debris_score plus its call adds 21 B to
   // ENTITY_CODE; BROADSIDE, the arena and the sector counts are unchanged.
@@ -131,11 +138,11 @@ test("the arena lands directly as its own DFMC record and is the only owner of i
   // 3-B prologue in BROADSIDE's reserved tail (6 B -> 3 B free) instead.
   // ENTITY_CODE is size-neutral; the initial block packs 1 B larger, so the
   // envelope absorbs it (13 -> 12 B) and every sector count holds.
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13172);
-  assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 12);
-  assert.equal(manifest.transportCapacity.initialBootSectors, 103);
-  assert.equal(manifest.transportCapacity.totalTransportSectors, 182);
-  assert.equal(parsed.totalOccupiedSectors, 182);
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13621);
+  assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 75);
+  assert.equal(manifest.transportCapacity.initialBootSectors, 107);
+  assert.equal(manifest.transportCapacity.totalTransportSectors, 208);
+  assert.equal(parsed.totalOccupiedSectors, 208);
 });
 
 test("the temporary Heavy window transport is retired without moving any address", () => {

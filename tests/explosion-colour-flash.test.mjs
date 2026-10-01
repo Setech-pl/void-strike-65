@@ -80,8 +80,13 @@ test("PlayerFighter death wins same-frame arbitration and enemy flashes cannot r
       runtime.baseColor, "enemy flash cannot replace the restored PlayerFighter profile");
   }
   const resolution = routine("resolve_enemy_damage", "add_archetype_score_obsolete");
+  // REWRITTEN 2026-10-01 (recorded failures review, B6; owner-approved): the pattern read the
+  // ASM that decremented ENEMY_LIVE_COUNT and set ENEMY_ACTIVE. Damage and
+  // lifecycle are C now (AGENTS.md, C/ASM ownership): the routine calls the
+  // veneer, and only a lethal result reaches the break-up.
+  // tests/hybrid-lifecycle.test.mjs covers the C side.
   assert.match(resolution,
-    /cmp #ENEMY_ACTIVE_STATE[\s\S]+bne @next[\s\S]+dec ENEMY_LIVE_COUNT[\s\S]+bne @damage_feedback[\s\S]+sta ENEMY_ACTIVE[\s\S]+@damage_feedback:[\s\S]+spawn_interceptor_breakup_effects/);
+    /jsr HYBRID_ENEMY_APPLY_PENDING_DAMAGE\s+beq @restore_next[\s\S]+@damage_feedback:[\s\S]+spawn_interceptor_breakup_effects/);
   assert.match(source,
     /spawn_interceptor_breakup_effects:[\s\S]+begin_enemy_fighter_explosion/);
   assert.match(routine("update_enemy", "draw_enemy"),

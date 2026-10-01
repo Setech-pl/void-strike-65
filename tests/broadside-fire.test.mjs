@@ -720,7 +720,11 @@ test("assembled isolated BROADSIDE slot is one connected object across a 100-fra
   ].map((name) => [name, labels.get(name) ?? constants.get(name)]));
   const lastRingRow = canonicalPlayfield.ringBufferAddress +
     (canonicalPlayfield.ringRows - 1) * canonicalPlayfield.screenColumns;
-  const base = Uint8Array.from({ length: 40 }, (_, index) => 1 + (index & 7));
+  // FIXTURE 2026-10-01 (recorded failures review, D5): codes 2-9, not 1-8. Screen code 1 is
+  // STAR_NEAR_POINT, which the shell erase restores as space on purpose
+  // (sanitize_dynamic_near_backing), so a row holding it can never be restored
+  // byte-exactly.
+  const base = Uint8Array.from({ length: 40 }, (_, index) => 2 + (index & 7));
   const glyphBytes = [0x00, 0x3e, 0x3e, 0x7f, 0x7f, 0x3e, 0x3e, 0x00,
     0x00, 0x7c, 0x7c, 0xfe, 0xfe, 0x7c, 0x7c, 0x00];
 
@@ -794,7 +798,8 @@ test("assembled BROADSIDE overlap unwinds 0->2 draw with 2->0 erase for every sl
     (canonicalPlayfield.ringRows - 1) * canonicalPlayfield.screenColumns;
   const otherRingRow = canonicalPlayfield.ringBufferAddress + 5 *
     canonicalPlayfield.screenColumns;
-  const base = Uint8Array.from({ length: 40 }, (_, index) => 1 + (index & 0x07));
+  // Codes 2-9: see the fixture note in the lifecycle test above.
+  const base = Uint8Array.from({ length: 40 }, (_, index) => 2 + (index & 0x07));
 
   for (const pair of pairs) {
     for (const owners of ownerOrders) for (const overlapKind of overlapKinds) {
@@ -1231,7 +1236,10 @@ test("fixed divider muzzles and launch flashes remap without trails through repe
 test("muzzle remapping leaves the single late booster compositor unchanged", () => {
   const main = routine("main_loop", "wait_frame");
   const muzzle = routine("restore_active_muzzles", "generate_corridor_row");
-  assert.equal((source.match(/jmp render_weapon_pickup_overlay/g) ?? []).length, 1);
+  // RE-PINNED 2026-10-01 (recorded failures review, A1): the capsule is a PMG object; its one
+  // late publication is publish_fighter_pickup_pmg (render_weapon_pickup_overlay
+  // was retired at f6eee5c).
+  assert.equal((source.match(/jsr publish_fighter_pickup_pmg/g) ?? []).length, 1);
   assert.match(main, /jsr entity_effects_erase[\s\S]+jsr entity_effects_render/);
   assert.doesNotMatch(muzzle, /WEAPON_PICKUP|ENTITY_(?:BACKING|DRAWN_MASK)/);
 });
@@ -1505,8 +1513,11 @@ test("muzzle tracking resets with a new sector/game but survives a same-sector l
     "a new game/sector must clear both tracked records");
 });
 
-test("provisional PAL scheduler remains deterministic over denser 8/12/16 layouts", () => {
-  for (const [difficulty, count] of [["easy", 8], ["medium", 12], ["hard", 16]]) {
+// RE-PINNED 2026-10-01 (recorded failures review, A2): the stations are 10 / 15 / 20 per hull
+// (assets/graphics/capital-hulls.json turretLayout.counts, since 16969d8); the
+// test was named and pinned for 8 / 12 / 16.
+test("provisional PAL scheduler remains deterministic over denser 10/15/20 layouts", () => {
+  for (const [difficulty, count] of [["easy", 10], ["medium", 15], ["hard", 20]]) {
     const corrected = simulateBroadsideCadence(asset, { frames: 1800, difficulty });
     assert.equal(asset.sector.cannonRowsByDifficulty.get("allied").get(difficulty).length, count);
     assert.equal(asset.sector.cannonRowsByDifficulty.get("enemy").get(difficulty).length, count);
@@ -2317,7 +2328,9 @@ test("sequence preview uses runtime PMG colours, source muzzles, and determinist
   assert.deepEqual([inspectPng(png).width, inspectPng(png).height], [1280, 1248]);
   assert.equal(sha256(png).length, 64);
   const graphics = readGameGraphicsSource(source, definition);
-  assert.deepEqual([1, 2, 3].map((slot) => graphics.hardwareState.get(`COLPM${slot}`)), [0x44, 0x46, 0x28]);
+  // RE-PINNED 2026-10-01 (recorded failures review, A3): COLPM2 $46 -> $44; both Raiders take
+  // ENEMY_RUNTIME_BODY_COLOR (src/main.s init_screen).
+  assert.deepEqual([1, 2, 3].map((slot) => graphics.hardwareState.get(`COLPM${slot}`)), [0x44, 0x44, 0x28]);
 });
 
 test("acceptance sequence is source-derived across warning, contact, damage, and lethal states", () => {
@@ -2440,13 +2453,16 @@ test("difficulty preview derives exact 8/9/10 displacement from one PAL-frame si
 
 test("cadence preview plots source-derived warning, launch, and world-scroll timing", () => {
   const state = readBroadsideCadenceSequenceRuntimeState(source, definition);
+  // RE-PINNED 2026-10-01 (recorded failures review, A4): the cadence model over the 10/15/20
+  // station layout gives 17 baseline and 21 final warnings (was 9 and 22) and an
+  // average gap of 832/20 (was 832/21).
   assert.deepEqual(
     [state.baseline.warningStats.count, state.baseline.launchStats.count],
-    [9, 9],
+    [17, 17],
   );
-  assert.deepEqual([state.final.warningStats.count, state.final.launchStats.count], [22, 22]);
+  assert.deepEqual([state.final.warningStats.count, state.final.launchStats.count], [21, 21]);
   assert.equal(state.final.warningStats.minimumGap, 16);
-  assert.equal(state.final.warningStats.averageGap, 832 / 21);
+  assert.equal(state.final.warningStats.averageGap, 832 / 20);
   assert.ok(state.final.warningScrolls.some(({ frame }) => frame % 4 === 0));
 
   const png = createBroadsideCadenceSequencePreview(source, definition);

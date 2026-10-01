@@ -157,7 +157,10 @@ test("record overlap, invalid load range, length mismatch, truncation, and ATR o
   assert.throws(() => buildDfmcV1Transport({
     initialContent: initialContent(500), manifestOffset: MANIFEST_OFFSET,
     chunks: [rawChunk(32, 0x9ff0)],
-  }), /forbidden BASIC-ROM window/);
+  // RE-PINNED 2026-10-01 (recorded failures review, A24): owner decision B made $A000-$BC19
+  // usable RAM, so this record is refused for straddling the reviewed residency,
+  // not for entering a forbidden BASIC-ROM window.
+  }), /is not in reviewed free residency/);
   const different = rawChunk(32);
   different.packed = Buffer.from(different.packed);
   different.packed[0] ^= 1;

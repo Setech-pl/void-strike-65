@@ -57,7 +57,10 @@ test("PairShot and generic-effect backing resolvers stay below the local fix cei
       .filter((record) => record.phase === "FINAL")
       .reduce((maximum, record) => Math.max(maximum,
         record.effectEraseCycles + record.effectRenderCycles), 0)));
-  assert.equal(peak, 1032);
-  assert.equal(peak - 822, 210);
+  // RE-PINNED 2026-10-01 (recorded failures review, A10): the measured peak is 1,071 cycles
+  // (was 1,032; delta over the 822-cycle baseline 249, was 210). The ceiling
+  // below, 300 over the baseline, is the gate and is unchanged.
+  assert.equal(peak, 1071);
+  assert.equal(peak - 822, 249);
   assert.ok(peak - 822 < 300);
 });

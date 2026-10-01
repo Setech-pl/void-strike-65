@@ -4,7 +4,12 @@ Branch `fix/recorded-failures-review`, cut from `main` `9694ca9` on 2026-10-01.
 Phase A of the task: every recorded `npm test` failure and every recorded trace
 clause failure is classified here, with evidence. Nothing in `src/`, `cfg/`,
 the build scripts, the wall-trace harness, `dist/` or `docs/media/` was
-changed. Phase B (the edits in §7) waits for the owner's answer.
+changed.
+
+**Phase B is done: §10.** The owner approved the actions of §7 on 2026-10-01,
+with decisions on B12, B15, D1 and C1. The recorded test set is now 5
+(`npm test` 873 / 868 / 5 / 0) and lives in
+[../recorded-test-failures.json](../recorded-test-failures.json).
 
 ## 1. Result
 
@@ -270,6 +275,11 @@ No clause is class (c).
 
 C1 is known and recorded; this review adds only the exact frame. C2 is new.
 
+**Owner decisions, 2026-10-01.** C1 is **owner-accepted as a known
+low-severity issue for now**: it stays recorded with that reason (STATUS, open
+defects) and no task is opened. C2 becomes the follow-up
+`chore/preview-29-rows`; nothing is done about it in this task.
+
 ## 7. Phase B action list
 
 Probed means the edit was applied temporarily and the test passed in full.
@@ -390,3 +400,192 @@ it; the row for it in `docs/README.md`; STATUS points at it. Appendix A of
 * On HARD the hostile hull's shells never fly below Y 180 on level 1; the
   allied hull's reach 212. This follows from the seeded station layout and is
   not a defect.
+
+## 10. Phase B — what was applied (2026-10-01)
+
+Sections 1 to 9 are the Phase A record and are left as written; where Phase B
+went differently, this section says so.
+
+### 10.1 Owner decisions on Phase A
+
+| Item | Decision |
+| --- | --- |
+| Class A, all 30 re-pins (33 tests) | Approved. |
+| D1, D2, D3, D4, D5, D7, D11 | Approved. D6 is retired with B5. D8, D9, D10 stay recorded. |
+| `docs/recorded-test-failures.json` | Approved as the single recorded set, with a pointer where the old list stood. |
+| B1 to B11, B13, B14, B16, B17, B18 | Approved as recommended. Every retirement names its reason and the decision or commit. |
+| **B12** | **The current gun layouts are accepted.** The step-4 hull, with guns scaled by length, passed the owner's smoke. The shared-row limit becomes today's measured maximum per difficulty; no layout regeneration. |
+| **B15** | Retire the two budgets only once the tests that enforce the limits in force are named; a limit with no enforcing test gets the B15 test rewritten to it. |
+| **D1** | The harness may change only `initialiseRuntime` and the Spread and Shield fixtures as probed, with no change to the module's exports, to a function signature, or to anything the wall trace or `readStartMenuRuntimeState` calls. The trace is not regenerated. Committed outputs of the four diagnostic CLIs stay as written. |
+| **C1, the debris death-frame blink** | **Owner-accepted as a known low-severity issue for now.** It stays recorded with that reason; no task is opened. |
+| C2, the preview clipping | Listed as the follow-up `chore/preview-29-rows`; nothing done here. |
+| Clauses | No change in this task; section 8 is the follow-up list. |
+
+### 10.2 Result
+
+One full default-build run after all edits (`node scripts/build.mjs --quiet`,
+then `node --test tests/*.test.mjs`; 782 s), on the test commit `fbc1a24`.
+
+| | Phase A (`main` `9694ca9`) | Phase B |
+| --- | ---: | ---: |
+| tests / pass / fail / todo | 891 / 783 / 105 / 3 | **873 / 868 / 5 / 0** |
+| class A | 33 | 0 |
+| class B | 41 | 0 |
+| class C | 1 | **1** |
+| class D | 30 | **4** |
+| todo tests | 3 | 0 |
+| recorded clause failures (a / b / c) | 16 (3 / 13 / 0) | 16, unchanged |
+
+**Reconciliation by name.** Of the 105 recorded failures, **100 are gone**:
+33 re-pinned, 25 fixed in their fixture, 26 rewritten to the rule in force and
+16 retired. Of the 3 todo tests, 2 are retired and 1 (106) is rewritten and
+passes. **No new failing name appeared.** Twenty-nine test names left the
+suite: the 18 retirements of §10.6 and 11 renames, each of which is the same
+test under a name that matches what it now checks:
+
+| Old name | New name |
+| --- | --- |
+| tracked names and searchable tracked content contain no retired vocabulary | tracked names and player-facing tracked content contain no retired vocabulary |
+| provisional PAL scheduler remains deterministic over denser 8/12/16 layouts | …over denser 10/15/20 layouts |
+| EASY/MEDIUM/HARD expose exact legal 8/12/16 stations on each hull | …exact legal 10/15/20 stations on each hull |
+| loader remains unchanged and the accepted H3.1 menu preview is source-derived | loader and menu previews are deterministic and the hull previews are source-derived |
+| PMG ownership preserves one P1/P2 enemy while fighter bursts use playfield glyphs | PMG ownership gives each Heavy member one of P1/P2 while fighter bursts use playfield glyphs |
+| Layout D.2 exact memory and transport budgets remain frozen | transport limits in force: the initial block STOP rule and every record's sector capacity |
+| enemy breakup passes the hard PAL gate and executes the five-slot runtime path | enemy breakup passes the hard PAL gate and draws no character effect |
+| all score writes use one BCD award path while source ownership stays unchanged | score is written by new-game and the three BCD award paths, and no award inserts a TOP score |
+| three eight-phase banks preserve one tapered 8x16 capsule through 2x2/2x3 footprints | three eight-phase source banks hold one tapered 8x16 capsule and the runtime draws a PMG silhouette |
+| active capsule renders one phased 2x2/2x3 footprint continuously and cannot be shot | active capsule is one logical PMG object, writes no character cell and cannot be shot |
+| Shield keeps the normal eight-shot cadence while Rapid and Spread remain unchanged | Shield keeps the normal burst cadence while Rapid and Spread remain unchanged |
+
+**The five that stay recorded** (`docs/recorded-test-failures.json`):
+
+| Test | Class | Fails at | Same assertion as in Phase A? |
+| --- | :---: | --- | --- |
+| `github-showcase` "showcase manifest binds every image to the current packed release" | D | `:67`, frame 3351 vs 2537 | yes |
+| `menu-raster` "native menu raster is exact for the ATR and four cold RAM fills" | D | `:22`, 8 sessions vs 4 | yes |
+| `menu-raster` "menu evidence preserves the audited boot streams and independent charsets" | D | `:110`, `a2_runtime` range | yes |
+| `runtime-wall-trace` "ten heaviest frames retain exact clock positions, VBI IDs and state" | D | `:836`, no heavy frame has a CPU reference | yes; the line moved from 803 with the edits above it |
+| `preview` "preview consumes the canonical charset, screen, PMG, and palette source" | C | `:166`, the `player_shape` variant does not change the preview | **no: it failed at `:128` on the stale colour pin; with that re-pinned it reaches its real assertion** |
+
+**Unchanged artifacts.** ATR
+`af2e47b62c315ddf9ed05cab44842d8921bcb8c561b9cc2dcf103f1b1e8b31b7` and boot
+`06d2f25665a17c0858c92245f257d6d339858149a5ed4679919d120d6eb4d80a`, before and
+after. `git diff main --stat` shows no path under `src/`, `cfg/`, `dist/` or
+`docs/media/`, no build script, and not `docs/runtime-wall-trace.json`. The
+only file under `scripts/` is the test harness of §10.5.
+
+### 10.3 B12 — the shared-row limit
+
+`tests/capital-hull-extension.test.mjs` now allows as many station rows shared
+by both hulls as the accepted layout has: **5 on EASY, 8 on MEDIUM, 9 on
+HARD**. Source: the seeded generator (`turretLayout` seed 13, counts
+10 / 15 / 20) compiled by `scripts/capital-hulls.mjs` from
+`assets/graphics/capital-hulls.json`; measured in Phase A. A layout that
+aligns more rows than that fails the test. No game byte changed.
+
+### 10.4 B15 — the limits in force and the tests that hold them
+
+| Limit | Enforced by | Before Phase B |
+| --- | --- | --- |
+| Transport STOP rule: no new boot sector (107), initial block ≤ 13,652 B | `tests/level-buffer-16.test.mjs` "Q-1: the window record lands at $AE00 and costs no extra transport" (107 sectors, ≤ 13,652 B, total ≤ 209); `tests/boot-loading-blank-screen.test.mjs` "the blanking costs 9 bytes of the initial block and no sector" (≤ 13,652 B, 107); `tests/boot-xex-reclaim.test.mjs` "the initial block returns the entry's 14 bytes" (107) | enforced |
+| Extension record capacity: `sectors × 128 − 21` B | **no test on the built image.** `tests/chunk-loader.test.mjs` and `tests/transport-enabler.test.mjs` check the 21-B footer on synthetic chunks only. | **not enforced** |
+
+So the two B15 tests were handled differently:
+
+* **43, `layout-d1`** is **rewritten**, not retired. It is now "transport
+  limits in force: the initial block STOP rule and every record's sector
+  capacity": 107 boot sectors, content ≤ 13,652 B, content plus envelope
+  inside the boot sectors, and for each of the 11 extension records
+  `packedLength ≤ sectorCount × 128 − 21` with no more sectors than that
+  needs, contiguous to the last transport sector. The tightest record today is
+  record 5 (747 B in 6 sectors, 0 B to spare); record 2 has 3 B.
+* **61, `runtime-timing`** loses its two frozen figures: the frontend H3.1
+  code budget (+1,280 B, exceeded since it was pinned) and the
+  `safeResidencyBytes` pin. The test keeps what is a limit: every protected
+  segment stays inside its reservation, and the Spread and Shield budgets,
+  which hold.
+
+### 10.5 D1 — the harness change and what can observe it
+
+`scripts/weapon-pickup-runtime.mjs` changed in three places only:
+`initialiseRuntime` (places the linked runtime, opens the fighter sector,
+starts the Director), the Spread fixtures (`executeSpreadShotTrace`,
+`executeSpreadShotMotionTrace`, `executeSpreadShotCollisionTrace`,
+`executePlayerFighterProjectileColourLifecycleTrace` arm the volley) and the
+Shield fixture (`executeShieldBoosterTrace` uses the first hostile slot and a
+valid shot kind). The 34 exports and every function signature are identical
+to `main` (compared mechanically).
+
+**Static evidence that the wall trace calls none of it:**
+
+* `scripts/build.mjs` imports neither the harness nor `scripts/preview.mjs`,
+  directly or through any module it loads.
+* `scripts/runtime-wall-trace.mjs` never names the harness and has no dynamic
+  `import()`. Its only import from `preview.mjs` is line 11,
+  `readStartMenuRuntimeState`, and its only use is line 2387, the menu
+  raster's expected image.
+* Inside `preview.mjs`, 21 functions are reachable from
+  `readStartMenuRuntimeState` (`readFrontendGraphicsSource`,
+  `createStartMenuScreen`, `drawMixedMainMenuScreen` and their parsers). None
+  of them names any of the 12 identifiers `preview.mjs` imports from the
+  harness; the functions that do call the harness are the `create…Preview`
+  and `create…Trace` builders, a disjoint set.
+* The harness module has no top-level statement besides constants, so loading
+  it runs nothing.
+
+`docs/runtime-wall-trace.json` is untouched and no trace was run.
+
+**Who else sees the change:**
+
+* **`npm run preview`** (owner preview images under `build/`): the Rapid Fire
+  preview, which threw "Rapid burst requires collected runtime state", runs
+  again; the Spread preview shows the full three-shot fan instead of a single
+  centre shot, and its drop rows report all three capsule types; the Shield
+  preview's hostile-shot case registers the hit. Every harness-based preview
+  now starts from a memory image with the linked runtime in place and a
+  started Director.
+* **The four diagnostic CLIs** — `pairshot-proof.mjs`,
+  `pairshot-stale-runtime.mjs`, `player-fire-audio-trace.mjs`,
+  `raider-projectile-persistence-runtime.mjs` — call `initialiseRuntime`, so a
+  re-run starts from that same image. Their outputs already committed under
+  `docs/diagnostics/` were not regenerated and stay as written. The tests that
+  run them in-process pass with unchanged pins, except the two re-pins already
+  listed (A17, A18), whose values were the same before the harness change.
+
+### 10.6 Retirements, with their reasons
+
+| Test | Reason | Decision or commit |
+| --- | --- | --- |
+| `broadside-antic2-prototype` "ANTIC 2 palette is genuinely monochrome…" | audits the rejected ANTIC 2 spike against the H4 hull art | hull set v2, `884c446`, `c28d00d` |
+| `flagship-sector` "H4.2 C INDUSTRIAL preserves its structural and immutable data contracts" | the glyph set it names does not exist | the owner rejected the look; hull set v2 |
+| `pickup-fence` "executed wait moves a late fence earlier…" and the todo "PENDING fence keeps an active projectile published…" | the moving frame fence is gone | `f6eee5c` |
+| `preview` "Interceptor owner preview is the ATR-executed eight-frame local breakup" | expects a five-fragment character effect | diagnostics `stage-2b2b-raider-character-effects-removal`, `-transient-breakup-fragments-removal` |
+| `weapon-pickup-rapid-fire` "runtime compositor publishes the exact capsule pixels…", "four-cell backing restores…", "reverse erase restores every 2x2/2x3 phase…", "one logical footprint survives repeated ring wraps…" | character compositor, backing and cells of a capsule that is a PMG object | `f6eee5c`; `plans/pickup-colour.md` §7 |
+| `weapon-pickup-shield` "dynamic glyph ownership is explicit and all capsule transitions restore backing" | the same | the same |
+| `weapon-pickup-spread-shot` "Spread four-cell reverse erase…" and the todo "both capsule types spawn and Spread moves through every A2 step without ghosts" | the same; the todo waited for a character-capsule trail | the same |
+| `tests/hunter-projectile-lifetime.test.mjs`, the whole file (4 tests) | three pin the frame-600 first-capital schedule and Director phases; the fourth is covered by `tests/hostile-projectile-emitter-independence.test.mjs`; the fixture needed a `ca65` on `PATH` | `plans/director-4.6.md` §8 row 2 |
+| `tests/capital-traversal-timing.test.mjs`, the whole file (1 test) | proves a past optimisation against one build's heaviest frame, read from an uncommitted trace CSV | the PAL audit owns the ceiling |
+| `tests/transport-layout-regression.test.mjs`, the whole file (1 test) | a hand-written model of the four-record Layout D.2 | 4.5M and 4.6 placement; the build checks residency |
+
+Eighteen tests in all (sixteen recorded failures and two todo tests). Each
+retirement is also noted at the place the test stood, and in
+`docs/recorded-test-failures.json`.
+
+### 10.7 Differences from the Phase A proposal
+
+* **24, `encounter-director` BOSS_HANDOFF.** The rewrite to the "PENDING is
+  frozen" rule showed that the test's loop also covers a sector that is
+  already COMPLETE (state 6) with an ACTIVE capsule. The routine releases an
+  ACTIVE capsule together with the forced DRAIN; in state 6 it changes
+  nothing, which is what "COMPLETE is terminal" means, and an ACTIVE capsule
+  cannot exist there in play because it is released when the sector takes
+  over. The test asserts exactly that.
+* **106, the Spread cleanup todo.** The rewrite compares the screen with the
+  screen before the volley. One cell differs in the fixture: it held screen
+  code 1, the dynamic near-star point, which a shot's erase restores as space
+  on purpose. The test allows that one documented case and nothing else, and
+  bounds the charset check to the shots' own composite glyphs (47 to 51).
+* **27, the booted-ATR fixture.** The minimal fix is the cold publication
+  (`publish_director_abi`) in the boot's own order; the glue install tried in
+  Phase A is not needed.
+* **61.** Rewritten in place rather than retired whole (§10.4).

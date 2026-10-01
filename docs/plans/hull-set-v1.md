@@ -733,131 +733,16 @@ disagrees with them.
 
 ## Appendix A — the 109 failing tests at `0fb4a52`, default build (evidence)
 
-Recorded because no name list exists in the repository; the next session
-compares its own run against this list, not against the count alone.
+**Superseded 2026-10-01.** This appendix held the 109 failing test names of
+`0fb4a52`, and below them the eleven ATR-only renames of 2026-09-30. Together
+with the removals noted in STATUS they were the recorded test-failure set,
+which had to be combined from three places.
 
-- 600-frame ON/OFF watchdog advances frame, world, stars, and spawn scheduling
-- a live Hunter leaves naturally and gives capital admission a finite bound
-- accepted cadence is movement-independent, pool-safe and every complete SFX is $33..$38
-- active capsule renders one phased 2x2/2x3 footprint continuously and cannot be shot
-- all booster types traverse the lower playfield on EASY, MEDIUM and HARD
-- all score writes use one BCD award path while source ownership stays unchanged
-- all three directions collide with debris and Interceptor scoring resolves only once
-- ANTIC 2 palette is genuinely monochrome while PMG remains source-derived
-- assembled BROADSIDE overlap unwinds 0->2 draw with 2->0 erase for every slot pair
-- assembled burst controllers use accepted counts, intervals, speeds and damage
-- assembled death and respawn preserve whole-game SCORE before the next award
-- assembled decimal score code carries without inserting partial-game scores
-- assembled display list contains 157 ANTIC F and 35 ANTIC E lines
-- assembled gameplay display list and DLI switch a dedicated ANTIC 2 HUD
-- assembled Hunter plus capital heavy frame recovers the PAL working ceiling
-- assembled Hunter shots remain independent through capital traversal and ring wrap
-- assembled isolated BROADSIDE slot is one connected object across a 100-frame lifecycle observation
-- BOSS_HANDOFF maps every capital state once and leaves final COMPLETE terminal
-- bottom clipping and repeated ring wraps never write the HUD or revive a pickup
-- burst-balance owner previews compare identical 80-frame XEX and ATR executions
-- cadence preview plots source-derived warning, launch, and world-scroll timing
-- capital due drains the final legal Hunter pulse before admission
-- cold pickup record excludes the source-only character phase bank
-- collision callers retain their consume and impact contracts
-- debris and the reserved pickup coexist without allocator overwrite for every A2 head
-- debris owner review is deterministic and covers visuals, trajectories, contact and wrap
-- destructible debris owner preview is an XEX/ATR-executed eight-frame breakup
-- dynamic glyph ownership is explicit and all capsule transitions restore backing
-- EASY/MEDIUM/HARD expose exact legal 8/12/16 stations on each hull
-- enemy breakup passes the hard PAL gate and executes the five-slot runtime path
-- every booster type enters at the top, crosses the full playfield once and releases below it
-- every canonical Raider death avoids character effects without changing score policy
-- executed wait moves a late fence earlier without skipping a PAL update
-- explosion colour flash passes its +64 PAL gate with exact GTIA traces
-- fit preserves the reviewed staging and placement gates
-- four-cell backing restores byte-exact data in reverse layer order at every A2 head
-- frame ordering keeps earlier collisions before pickup activation
-- H4.2 C INDUSTRIAL preserves its structural and immutable data contracts
-- hybrid ring reservation fits after staging and before entity/effects RAM
-- HYBRID_C_ARENA is one contiguous 832-B arena at $7BD0-$7F0F
-- Interceptor contact result is byte-identical after XEX and ATR cold boot
-- Interceptor owner preview is the XEX/ATR-executed eight-frame local breakup
-- joystick, FIRE, projectile, enemy, and scoring routines remain connected
-- Layout D.2 exact memory and transport budgets remain frozen
-- loader remains unchanged and the accepted H3.1 menu preview is source-derived
-- menu evidence preserves the audited boot streams and independent charsets
-- muzzle remapping leaves the single late booster compositor unchanged
-- native menu raster is exact for XEX/ATR and four cold RAM fills
-- new game, life loss and Game Over clear RF while a live sector transition preserves it
-- Normal and Rapid projectiles render through the PlayerFighter yellow bank
-- one logical footprint survives repeated ring wraps and cannot return after release
-- one Spread emission is an unambiguous three-projectile fan
-- ordinary awards update only current BCD score until Game Over
-- ordinary waves stay closed through reconstruction and resume without catch-up
-- owner layouts are independent rather than identical, shifted, or strictly alternating
-- packed runtime distinguishes accepted Normal, Rapid and Spread cadence
-- packed startup and relocated GLUE have pairwise-safe real lifetimes
-- packed XEX and ATR keep every implemented PlayerFighter lifecycle path yellow under cold RAM
-- PairShot and generic-effect backing resolvers stay below the local fix ceiling
-- PairShot keeps one collision event per logical player or enemy record
-- pickup admission coexists with slot-0 debris and publishes the 16-row PMG
-- pickup collection is single-shot and changes neither score, HULL nor LIFE
-- pickup movement resolves half world speed into smooth scanline phases
-- pickup pending remains hidden and non-colliding for thirty full frames
-- pickup rotation is exactly Rapid Spread Shield Rapid without RNG
-- PlayerFighter death wins same-frame arbitration and enemy flashes cannot restart forever
-- PMG ownership preserves one P1/P2 enemy while fighter bursts use playfield glyphs
-- PMG runtime remains legal after retiring the rejected central primitive
-- preview consumes the canonical charset, screen, PMG, and palette source
-- protected linked segments do not regress beyond the accepted feature baseline
-- provisional PAL scheduler remains deterministic over denser 8/12/16 layouts
-- public README is English, complete, and free of stale status language
-- Raider lifecycle and score remain canonical without scheduling a character effect
-- Rapid Fire lasts 500 active frames and keeps its accepted accelerated burst
-- Rapid Fire owner preview executes the packed XEX/ATR pickup lifecycle
-- real XEX/ATR startup traces keep one atomic two-phase engine pulse
-- record overlap, invalid load range, length mismatch, truncation, and ATR overflow fail closed
-- release trace CSV exposes the authoritative counter, state, timing and score
-- release XEX and ATR execute 0→1→2→pending only for consumed PlayerFighter kills
-- release XEX and ATR execute the deterministic Rapid Spread Shield drop cycle
-- released FIRE emits a visible centred first frame across X, Y and ring phases
-- resident compaction proof survives and Spread Shot leaves at least 64 source-owned bytes
-- reverse erase restores every 2x2/2x3 phase across the A2 wrap
-- runtime compositor publishes the exact capsule pixels for all types and phases
-- runtime map reservation and payload remain bounded and do not consume PMG or DLI
-- runtime owns a 16-bit hull row and preserves divider/ring muzzle invariants
-- same-frame Shield collection protects later debris and consumes it
-- sector pickup clear republishes still-live PlayerFighter projectiles in the same frame
-- sequence preview uses runtime PMG colours, source muzzles, and deterministic integer geometry
-- Shield keeps the normal eight-shot cadence while Rapid and Spread remain unchanged
-- showcase and asset sheets regenerate without ignored capture files
-- showcase manifest binds every image to the current packed release
-- Spread collection lasts exactly 500 active PAL frames and pause freezes it
-- Spread fixed phase is symmetric after 100 updates and both side bounds despawn
-- Spread four-cell reverse erase restores byte-exact backing at every A2 head
-- Spread respects the six-projectile active budget and admits centre before an atomic side pair
-- Spread Shot owner preview is deterministic executed XEX/ATR gameplay
-- Spread Shot owns one phased red fan in the shared six-glyph bank
-- start-menu preview is deterministic, 640x384, and source-derived
-- ten heaviest frames retain exact clock positions, VBI IDs and state
-- the arena lands directly as its own DFMC record and is the only owner of its range
-- the configured 28-frame Spread cooldown avoids catch-up at the active limit
-- the debris is published between the Light erase and the Light render
-- the main frame has one guarded late pickup publication
-- the shared burst alternates two real Raider origins and skips a destroyed owner
-- three eight-phase banks preserve one tapered 8x16 capsule through 2x2/2x3 footprints
-- tracked names and searchable tracked content contain no retired vocabulary
-- unchanged cadence consumes no more launches than the denser station layout
-- wall trace records the required legal runtime coverage without incoherent RAM seeding
+The recorded set is now one file:
+[../recorded-test-failures.json](../recorded-test-failures.json). It holds the
+tests that are still recorded, each with its class and its true first failing
+assertion, and names every test that left the set on 2026-10-01 and why. The
+review that produced it is
+[../diagnostics/recorded-failures-review-2026-10.md](../diagnostics/recorded-failures-review-2026-10.md).
 
-**Renamed 2026-09-30 (ATR-only build, [atr-only-build.md](atr-only-build.md) §9).**
-Eleven recorded names lost their XEX half and were renamed; each still fails
-with the same first error as before. Compare by the new name:
-
-- release XEX and ATR execute 0→1→2→pending only for consumed PlayerFighter kills → **the release ATR executes 0→1→2→pending only for consumed PlayerFighter kills**
-- packed XEX and ATR keep every implemented PlayerFighter lifecycle path yellow under cold RAM → **the packed ATR keeps every implemented PlayerFighter lifecycle path yellow under cold RAM**
-- release XEX and ATR execute the deterministic Rapid Spread Shield drop cycle → **the release ATR executes the deterministic Rapid Spread Shield drop cycle**
-- Interceptor contact result is byte-identical after XEX and ATR cold boot → **Interceptor contact result is exact after an ATR cold boot**
-- destructible debris owner preview is an XEX/ATR-executed eight-frame breakup → **destructible debris owner preview is an ATR-executed eight-frame breakup**
-- Interceptor owner preview is the XEX/ATR-executed eight-frame local breakup → **Interceptor owner preview is the ATR-executed eight-frame local breakup**
-- Rapid Fire owner preview executes the packed XEX/ATR pickup lifecycle → **Rapid Fire owner preview executes the packed ATR pickup lifecycle**
-- burst-balance owner previews compare identical 80-frame XEX and ATR executions → **burst-balance owner preview is a deterministic 80-frame ATR execution**
-- Spread Shot owner preview is deterministic executed XEX/ATR gameplay → **Spread Shot owner preview is deterministic executed ATR gameplay**
-- real XEX/ATR startup traces keep one atomic two-phase engine pulse → **real ATR startup traces keep one atomic two-phase engine pulse**
-- native menu raster is exact for XEX/ATR and four cold RAM fills → **native menu raster is exact for the ATR and four cold RAM fills**
+The old lists are in Git history: this file at `9694ca9`.

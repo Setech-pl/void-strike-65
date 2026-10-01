@@ -327,6 +327,83 @@ owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
 
+## recorded-failures-review — the recorded test set falls from 105 to 5 — `OWNER REVIEW CANDIDATE` (2026-10-01)
+
+Review, evidence and the Phase B record:
+[diagnostics/recorded-failures-review-2026-10.md](diagnostics/recorded-failures-review-2026-10.md).
+Branch `fix/recorded-failures-review` from `main` `9694ca9`.
+
+**Why.** Three recorded test failures had failed on a stale pin before their
+behavioural assertions ran, which hid the SPREAD livelock for two weeks. This
+task read every recorded failure: 105 tests, 3 todo tests and 16 trace clauses.
+
+**What it found.** No recorded failure hides a second player-visible defect.
+Of the 105 tests, 33 were stale pins, 41 checked behaviour that had been
+deliberately changed, 30 were the test's own harness or a stale evidence file,
+and 1 is a defect of a development tool. Of the 16 recorded clauses, 3 are
+stale scenarios, 13 are observer or clause errors and none is a runtime
+defect; the clauses and the trace harness are unchanged (follow-up list in the
+review, §8).
+
+**What changed.** Tests and one test harness only
+(`scripts/weapon-pickup-runtime.mjs`, which the build does not import and
+whose changed functions the wall trace never calls; static evidence in the
+review, §10.5). **No source, cfg, build script, wall-trace harness, `dist/` or
+`docs/media/` change; the ATR and the boot image are byte-identical to `main`**,
+so every gate figure of the section below stands and no hardware smoke is owed.
+
+| | `main` `9694ca9` | this branch | source |
+| --- | ---: | ---: | --- |
+| `npm test` (default build): tests / pass / fail / todo | 891 / 783 / 105 / 3 | **873 / 868 / 5 / 0** | one full run on each |
+| recorded test failures | 105 | **5** | [recorded-test-failures.json](recorded-test-failures.json) |
+| tests retired (owner-approved, each with its reason) | | 18 (16 recorded failures, 2 todo) | review §10.6 |
+| new failing names | | **0** | reconciliation by name, review §10.2 |
+| recorded clause failures | 16 | **16**, unchanged | [recorded-gate-failures.json](recorded-gate-failures.json) |
+| ATR SHA-256 | `af2e47b6…` | **`af2e47b6…`**, identical | `dist/` |
+| boot SHA-256 | `06d2f256…` | **`06d2f256…`**, identical | `dist/` |
+
+**The recorded test failures, by class** (the file carries each one's first
+failing assertion and the task that would clear it):
+
+| Class | Test | Reason |
+| --- | --- | --- |
+| D | `github-showcase` "showcase manifest binds every image to the current packed release" | the showcase gameplay frames are XEX-era captures |
+| D | `menu-raster` "native menu raster is exact for the ATR and four cold RAM fills" | `docs/menu-raster-trace.json` dates from 2026-09-20 and still describes XEX sessions and an older ATR |
+| D | `menu-raster` "menu evidence preserves the audited boot streams and independent charsets" | the same stale file |
+| D | `runtime-wall-trace` "ten heaviest frames retain exact clock positions, VBI IDs and state" | the JS cycle model in `scripts/runtime-cycles.mjs` still models the retired 10 + 9 shot pool |
+| C | `preview` "preview consumes the canonical charset, screen, PMG, and palette source" | `scripts/preview.mjs` draws 24 of the 29 playfield rows; a tool defect, not in the ATR |
+
+**The recorded set is one file now.** It replaces the list that had to be
+combined from Appendix A of `plans/hull-set-v1.md`, its renames and the
+removals noted in this file. A full default-build `npm test` must fail exactly
+the tests in it.
+
+**Transport limits now have a test on the built image.**
+`tests/layout-d1.test.mjs` "transport limits in force…" holds the STOP rule
+(107 boot sectors, initial block ≤ 13,652 B) and, new, the capacity of every
+extension record (`sectors × 128 − 21` B). The frozen Layout D.2 budget it
+replaces and the frontend H3.1 code budget are retired (owner decision B15).
+
+**Owner decisions of 2026-10-01** (review §10.1): the current gun layouts are
+accepted and the shared-row limit is today's 5 / 8 / 9 (B12); **the debris
+death-frame blink is owner-accepted as a known low-severity issue, with no
+task for now**; the preview clipping becomes the follow-up
+`chore/preview-29-rows`.
+
+**One visible side effect, outside the game.** `npm run preview` uses the fixed
+harness: the Rapid Fire preview, which threw, runs again, and the Spread
+preview shows the full three-shot fan. The four diagnostic CLIs that use the
+harness start from the same fixed image if re-run; their committed outputs
+were not regenerated.
+
+**Follow-ups proposed, none started:** `chore/preview-29-rows`,
+`chore/menu-raster-regeneration` (until it runs, no committed evidence shows
+the menu raster of an ATR built after 2026-09-20), `chore/showcase-recapture`,
+`chore/cycle-model-pairshot`, and the clause-side fixes of review §8.
+
+**Owed by the owner.** A read of the review and of
+`docs/recorded-test-failures.json`. No smoke: the game bytes did not change.
+
 ## boot-loading-blank-screen — no garbage before the splash — `OWNER-SMOKE CANDIDATE` (2026-10-01)
 
 Plan and measurements: [plans/boot-loading-blank-screen.md](plans/boot-loading-blank-screen.md).
@@ -563,6 +640,8 @@ scenarios, which hid this defect. The full run had one new name,
 `light-interceptor.test.mjs` "placement contract: …" (the `PICKUP_CODE` tail pin
 75 → 65). It was re-recorded with the owner's approval and passes. **The
 recorded test failure set is now 105**: the 108 less those three.
+(Superseded 2026-10-01: the recorded set is
+[recorded-test-failures.json](recorded-test-failures.json), 5 tests.)
 
 **Owed by the owner.** A hardware smoke of the default ATR (`npm run play:atr`,
 SHA-256 `3bab2e15…`). Collect Rapid, then Spread while holding fire. Every
@@ -678,7 +757,9 @@ applied, less "showcase and asset sheets regenerate without ignored capture
 files", which disappeared at `c04156a`. The four test files that commits after
 the full run could affect (`flagship-sector`, `github-showcase`,
 `source-contracts`, `branding`) were re-run at HEAD and fail with the same four
-recorded names, and nothing else.
+recorded names, and nothing else. (Superseded 2026-10-01: the recorded set is
+[recorded-test-failures.json](recorded-test-failures.json); Appendix A is a
+pointer to it.)
 
 **Tests.** New: T7, `tests/hull-length.test.mjs` (7, RED 7/7 on `main`), and
 `tests/wall-trace-debug-route.test.mjs` (5, RED on `main`). Five were
@@ -3526,7 +3607,10 @@ section's "what to look for" in the implementation report.
   Seen again 2026-10-01 on the Spread-volley candidate:
   `debris-gate-capital-muzzle-ring-2-sweep-fire4`, 1 blank at host frame 4519,
   the frame after the player's final death. The replay is divergent, and no
-  first-writer proof was made (owner: pre-existing);
+  first-writer proof was made (owner: pre-existing). **Owner-accepted as a
+  known low-severity issue, 2026-10-01** (recorded failures review §6 C1 and
+  §10.1): one frame, during the player's own explosion; it stays recorded and
+  no task is open;
 - pre-existing native gate failures (identical on `2a67684`): the default
   wall-trace mode aborts at `weapon-pickup-contact-2-hunt-fire4` ("changed GTIA
   priority or the single erase/draw lifecycle") after 21 sessions, and

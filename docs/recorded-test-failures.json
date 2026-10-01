@@ -1,0 +1,1156 @@
+{
+  "schema_version": 1,
+  "purpose": "The single source of truth for the npm test failures the owner has accepted as open on the default build. It replaces the list that had to be combined from docs/plans/hull-set-v1.md Appendix A, its renames and the removals noted in docs/STATUS.md. A full default-build npm test must fail exactly the tests in `failures`: a new failing name is a regression, and a recorded name that passes must leave this file in the same change.",
+  "owner_decision": "2026-10-01 - recorded failures review, Phase B. Review and evidence: docs/diagnostics/recorded-failures-review-2026-10.md.",
+  "measured": {
+    "main_before": "9694ca9",
+    "atr_sha256": "af2e47b62c315ddf9ed05cab44842d8921bcb8c561b9cc2dcf103f1b1e8b31b7",
+    "boot_sha256": "06d2f25665a17c0858c92245f257d6d339858149a5ed4679919d120d6eb4d80a",
+    "before": {
+      "tests": 891,
+      "pass": 783,
+      "fail": 105,
+      "todo": 3
+    },
+    "after": {
+      "tests": 873,
+      "pass": 868,
+      "fail": 5,
+      "todo": 0
+    }
+  },
+  "classes": {
+    "A": "Stale pin: an exact value or a source identifier moved; re-pinned to the value the repository has.",
+    "B": "Obsolete: the test checked behaviour that an owner decision or a merged task deliberately changed; rewritten to the rule in force, or retired.",
+    "C": "Real defect: the game or a tool behaves wrongly, or a gate is genuinely violated. Not re-pinned.",
+    "D": "Harness or environment: the test's own fixture, a stale committed evidence file or model, or the machine."
+  },
+  "failures": [
+    {
+      "file": "tests/github-showcase.test.mjs",
+      "test": "showcase manifest binds every image to the current packed release",
+      "class": "D",
+      "first_failing_assertion": "tests/github-showcase.test.mjs:67",
+      "reason": "docs/media/manifest.json records the Spread frame as 3351, an XEX-era capture; the evidence's capture_frame is 2537. The showcase gameplay frames were not recaptured from the ATR.",
+      "cleared_by": "chore/showcase-recapture: a capture run and a docs/media commit"
+    },
+    {
+      "file": "tests/menu-raster.test.mjs",
+      "test": "native menu raster is exact for the ATR and four cold RAM fills",
+      "class": "D",
+      "first_failing_assertion": "tests/menu-raster.test.mjs:22",
+      "reason": "docs/menu-raster-trace.json was last regenerated on 2026-09-20: it holds 8 sessions (4 of them XEX) where the test expects the 4 ATR sessions, and its ATR hash is not the current artifact's.",
+      "cleared_by": "chore/menu-raster-regeneration: repair and re-run the menu raster trace on the ATR"
+    },
+    {
+      "file": "tests/menu-raster.test.mjs",
+      "test": "menu evidence preserves the audited boot streams and independent charsets",
+      "class": "D",
+      "first_failing_assertion": "tests/menu-raster.test.mjs:110",
+      "reason": "The same stale evidence file: a2_runtime ends at $90ED where the test pins $90FF, and the GLUE hold is at $8100 where it pins $7F16.",
+      "cleared_by": "chore/menu-raster-regeneration"
+    },
+    {
+      "file": "tests/preview.test.mjs",
+      "test": "preview consumes the canonical charset, screen, PMG, and palette source",
+      "class": "C",
+      "first_failing_assertion": "tests/preview.test.mjs:166",
+      "reason": "The gameplay preview does not change when player_shape changes: scripts/preview.mjs draws 24 of the 29 playfield rows and the fighter starts in the clipped ones. A development tool defect; not player-visible, not in the ATR.",
+      "cleared_by": "chore/preview-29-rows"
+    },
+    {
+      "file": "tests/runtime-wall-trace.test.mjs",
+      "test": "ten heaviest frames retain exact clock positions, VBI IDs and state",
+      "class": "D",
+      "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:836",
+      "reason": "None of the ten heaviest frames carries a CPU DMA-off reference. The reference comes from the JS cycle model in scripts/runtime-cycles.mjs, which still models the retired 10 + 9 shot pool and has no row for today's heaviest frames.",
+      "cleared_by": "chore/cycle-model-pairshot: bring the model to the 5 + 5 pool, or drop the reference from the evidence"
+    }
+  ],
+  "removed_2026_10_01": {
+    "note": "The tests that left the recorded set in Phase B, and the three todo tests. `outcome` is what was done; a retired test names its reason here and at the place it stood in its test file.",
+    "count": 103,
+    "entries": [
+      {
+        "file": "tests/booster-admission-diagnostic.test.mjs",
+        "test": "pickup admission coexists with slot-0 debris and publishes the 16-row PMG",
+        "class": "B",
+        "action": "B1",
+        "outcome": "rewritten",
+        "protected": "capsule admission beside slot-0 debris, and its publication",
+        "failed_on": "16 non-zero rows at $3B00+lo (missile page) — actual 15 (residue; nothing is published there)",
+        "cause": "The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups')."
+      },
+      {
+        "file": "tests/branding.test.mjs",
+        "test": "tracked names and searchable tracked content contain no retired vocabulary",
+        "renamed_to": "tracked names and player-facing tracked content contain no retired vocabulary",
+        "class": "B",
+        "action": "B13",
+        "outcome": "rewritten",
+        "protected": "no retired franchise vocabulary in the repository",
+        "failed_on": "git ls-files must not match …|raider|… — 15 tracked names contain raider",
+        "cause": "Naming and public text: 'Raider' is the documented Heavy archetype; the README was rewritten in English and Polish (b2a1710, owner decision V)."
+      },
+      {
+        "file": "tests/broadside-antic2-prototype.test.mjs",
+        "test": "ANTIC 2 palette is genuinely monochrome while PMG remains source-derived",
+        "class": "B",
+        "action": "B11",
+        "outcome": "retired",
+        "protected": "the rejected ANTIC 2 monochrome hull spike stays source-derived",
+        "failed_on": "168 B at glyph 59.. equal the prototype glyph bytes — glyph indices are 59-75, 77-80 now",
+        "cause": "Capital hull set v2 replaced the H4.2 C INDUSTRIAL glyphs and JSON schema (884c446, c28d00d).",
+        "retired_because": "It audits the rejected ANTIC 2 monochrome spike against the H4 hull art (contiguous glyphs from 59, no inverse screen codes); hull set v2 made both untrue and the spike is not a shipping renderer.",
+        "decision": "884c446, c28d00d (2026-09-22); owner approval 2026-10-01 (B11)"
+      },
+      {
+        "file": "tests/broadside-fire.test.mjs",
+        "test": "assembled isolated BROADSIDE slot is one connected object across a 100-frame lifecycle observation",
+        "class": "D",
+        "action": "D5",
+        "outcome": "fixture fixed",
+        "protected": "a BROADSIDE shell erases to the exact backing",
+        "failed_on": "ring row restored byte-exactly — cell 16 is 0, fixture expects 1",
+        "cause": "The starfield was redesigned; screen code 1 is the dynamic near-star point (41d136f, 9658ab5)."
+      },
+      {
+        "file": "tests/broadside-fire.test.mjs",
+        "test": "assembled BROADSIDE overlap unwinds 0->2 draw with 2->0 erase for every slot pair",
+        "class": "D",
+        "action": "D5",
+        "outcome": "fixture fixed",
+        "protected": "overlapping shells unwind draw/erase in reverse order",
+        "failed_on": "ring row restored byte-exactly — cell 16 is 0, fixture expects 1",
+        "cause": "The starfield was redesigned; screen code 1 is the dynamic near-star point (41d136f, 9658ab5)."
+      },
+      {
+        "file": "tests/broadside-fire.test.mjs",
+        "test": "muzzle remapping leaves the single late booster compositor unchanged",
+        "class": "A",
+        "action": "A1",
+        "outcome": "re-pinned",
+        "protected": "muzzle remapping does not touch the single late capsule publication",
+        "failed_on": "jmp render_weapon_pickup_overlay ×1 — 0 (label retired)",
+        "cause": "The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups')."
+      },
+      {
+        "file": "tests/broadside-fire.test.mjs",
+        "test": "provisional PAL scheduler remains deterministic over denser 8/12/16 layouts",
+        "renamed_to": "provisional PAL scheduler remains deterministic over denser 10/15/20 layouts",
+        "class": "A",
+        "action": "A2",
+        "outcome": "re-pinned",
+        "protected": "the PAL broadside scheduler is deterministic over the station layout",
+        "failed_on": "station count 8/12/16 — 10/15/20",
+        "cause": "Gun stations are 10 / 15 / 20 per hull (16969d8; docs/plans/director-4.6.md section 11 item 18)."
+      },
+      {
+        "file": "tests/broadside-fire.test.mjs",
+        "test": "sequence preview uses runtime PMG colours, source muzzles, and deterministic integer geometry",
+        "class": "A",
+        "action": "A3",
+        "outcome": "re-pinned",
+        "protected": "the fire-sequence preview uses the runtime PMG colours",
+        "failed_on": "COLPM1-3 [$44,$46,$28] — [$44,$44,$28]",
+        "cause": "Colours: both Raiders $44, allied steel $88, capsule gold $1C (10f1be2; owner decision 2; docs/plans/pickup-colour.md)."
+      },
+      {
+        "file": "tests/broadside-fire.test.mjs",
+        "test": "cadence preview plots source-derived warning, launch, and world-scroll timing",
+        "class": "A",
+        "action": "A4",
+        "outcome": "re-pinned",
+        "protected": "the cadence preview plots the simulated warning/launch timing",
+        "failed_on": "baseline warnings/launches [9,9] — [17,17]",
+        "cause": "Gun stations are 10 / 15 / 20 per hull (16969d8; docs/plans/director-4.6.md section 11 item 18)."
+      },
+      {
+        "file": "tests/capital-hull-extension.test.mjs",
+        "test": "EASY/MEDIUM/HARD expose exact legal 8/12/16 stations on each hull",
+        "renamed_to": "EASY/MEDIUM/HARD expose exact legal 10/15/20 stations on each hull",
+        "class": "A",
+        "action": "A2",
+        "outcome": "re-pinned",
+        "protected": "legal gun stations per hull and difficulty",
+        "failed_on": "station count 8 — 10 (easy)",
+        "cause": "Gun stations are 10 / 15 / 20 per hull (16969d8; docs/plans/director-4.6.md section 11 item 18)."
+      },
+      {
+        "file": "tests/capital-hull-extension.test.mjs",
+        "test": "owner layouts are independent rather than identical, shifted, or strictly alternating",
+        "class": "B",
+        "action": "B12",
+        "outcome": "rewritten",
+        "protected": "allied and enemy station layouts look independent",
+        "failed_on": "≤ 2 rows shared by both hulls — 5 / 8 / 9 (easy/medium/hard)",
+        "cause": "Gun stations are 10 / 15 / 20 per hull (16969d8; docs/plans/director-4.6.md section 11 item 18)."
+      },
+      {
+        "file": "tests/capital-hull-extension.test.mjs",
+        "test": "unchanged cadence consumes no more launches than the denser station layout",
+        "class": "A",
+        "action": "A2",
+        "outcome": "re-pinned",
+        "protected": "the cadence never launches more than the stations exist",
+        "failed_on": "warnings ≤ 8 (easy) — 9, with 10 stations",
+        "cause": "Gun stations are 10 / 15 / 20 per hull (16969d8; docs/plans/director-4.6.md section 11 item 18)."
+      },
+      {
+        "file": "tests/capital-hull-extension.test.mjs",
+        "test": "runtime owns a 16-bit hull row and preserves divider/ring muzzle invariants",
+        "class": "A",
+        "action": "A5",
+        "outcome": "re-pinned",
+        "protected": "the runtime keeps a 16-bit hull row and the muzzle backing invariants",
+        "failed_on": "source: CORRIDOR_BOUNDARY_LEFT after restore_active_muzzles: — every use now precedes the label"
+      },
+      {
+        "file": "tests/capital-hulls.test.mjs",
+        "test": "assembled gameplay display list and DLI switch a dedicated ANTIC 2 HUD",
+        "class": "A",
+        "action": "A6",
+        "outcome": "re-pinned",
+        "protected": "gameplay display list, dedicated HUD charset and DLI CHBASE switches",
+        "failed_on": "24 display rows — 29",
+        "cause": "The playfield is 28 rows, bottom at scanline 240 (effe71c)."
+      },
+      {
+        "file": "tests/capital-hulls.test.mjs",
+        "test": "runtime map reservation and payload remain bounded and do not consume PMG or DLI",
+        "class": "B",
+        "action": "B9",
+        "outcome": "rewritten",
+        "protected": "hull map reservation stays bounded; star generator touches no PMG/DLI",
+        "failed_on": "source slice generate_near_star_row..choose_star_column — empty (labels retired)",
+        "cause": "The starfield was redesigned; screen code 1 is the dynamic near-star point (41d136f, 9658ab5)."
+      },
+      {
+        "file": "tests/capital-hulls.test.mjs",
+        "test": "loader remains unchanged and the accepted H3.1 menu preview is source-derived",
+        "renamed_to": "loader and menu previews are deterministic and the hull previews are source-derived",
+        "class": "B",
+        "action": "B11",
+        "outcome": "rewritten",
+        "protected": "loader and menu previews are frozen and source-derived",
+        "failed_on": "sha256 of the loader preview 83a8b4f7… — b4762b6a…",
+        "cause": "Capital hull set v2 replaced the H4.2 C INDUSTRIAL glyphs and JSON schema (884c446, c28d00d)."
+      },
+      {
+        "file": "tests/capital-hulls.test.mjs",
+        "test": "joystick, FIRE, projectile, enemy, and scoring routines remain connected",
+        "class": "A",
+        "action": "A7",
+        "outcome": "re-pinned",
+        "protected": "input, fire, enemy and scoring routines stay connected",
+        "failed_on": "source: add_archetype_score:…adc enemy_scores,x — routine is add_archetype_score_tail, operand ENEMY_PROFILE_SCORE_BCD",
+        "cause": "The kill score is ENEMY_PROFILE_SCORE_BCD, published by the C admission path; add_archetype_score is an equate (scripts/runtime-image.mjs publishEnemyProfileScore)."
+      },
+      {
+        "file": "tests/capital-traversal-timing.test.mjs",
+        "test": "assembled Hunter plus capital heavy frame recovers the PAL working ceiling",
+        "class": "B",
+        "action": "B10",
+        "outcome": "retired",
+        "file_removed": true,
+        "protected": "a past optimisation recovered the PAL working ceiling on the heaviest frame",
+        "failed_on": "heaviest row [1455,1432,31997] of an uncommitted trace CSV — [77,78,30331]",
+        "cause": "The test re-assembled src/main.s with a ca65 from PATH and only -I build. Stale committed evidence, artefact or model.",
+        "retired_because": "It proves a past optimisation against one build's heaviest frame, read from an uncommitted trace CSV, with a private re-assembly; the PAL audit and the wall-trace gate own the ceiling.",
+        "decision": "PAL timing audit; owner approval 2026-10-01 (B10)"
+      },
+      {
+        "file": "tests/cold-pickup-record-fit.test.mjs",
+        "test": "cold pickup record excludes the source-only character phase bank",
+        "class": "B",
+        "action": "B3",
+        "outcome": "rewritten",
+        "protected": "the cold pickup record ships no character phase bank",
+        "failed_on": "pickup-code-runtime.bin 871 B — 944 B",
+        "cause": "The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups'). Layout and transport values moved with the accepted placement work since 4.5M (build/manifest.json)."
+      },
+      {
+        "file": "tests/cold-pickup-record-fit.test.mjs",
+        "test": "PMG runtime remains legal after retiring the rejected central primitive",
+        "class": "B",
+        "action": "B3",
+        "outcome": "rewritten",
+        "protected": "the PMG capsule runtime is placed legally",
+        "failed_on": "__LIGHT_RESIDENT_RUN__ = $8776 — label gone",
+        "cause": "The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups'). Layout and transport values moved with the accepted placement work since 4.5M (build/manifest.json)."
+      },
+      {
+        "file": "tests/cold-pickup-record-fit.test.mjs",
+        "test": "fit preserves the reviewed staging and placement gates",
+        "class": "A",
+        "action": "A8",
+        "outcome": "re-pinned",
+        "protected": "staging and placement of the pickup record",
+        "failed_on": "finalRuntimeAddress $8800 — $8776",
+        "cause": "Layout and transport values moved with the accepted placement work since 4.5M (build/manifest.json)."
+      },
+      {
+        "file": "tests/debris-visibility-gate.test.mjs",
+        "test": "the debris is published between the Light erase and the Light render",
+        "class": "A",
+        "action": "A9",
+        "outcome": "re-pinned",
+        "protected": "debris is published between the Light erase and the Light render",
+        "failed_on": "source pattern: sta LIGHT_SCREEN_HI,x directly before @erase_next: — sta LIGHT_SCREEN_SLOT_LIMIT sits between"
+      },
+      {
+        "file": "tests/effects-stagger.test.mjs",
+        "test": "PairShot and generic-effect backing resolvers stay below the local fix ceiling",
+        "class": "A",
+        "action": "A10",
+        "outcome": "re-pinned",
+        "protected": "effect backing resolvers stay under the local ceiling",
+        "failed_on": "peak 1,032 cycles — 1,071"
+      },
+      {
+        "file": "tests/encounter-director.test.mjs",
+        "test": "BOSS_HANDOFF maps every capital state once and leaves final COMPLETE terminal",
+        "class": "B",
+        "action": "B2",
+        "outcome": "rewritten",
+        "protected": "LEVEL COMPLETE maps every capital state and is terminal",
+        "failed_on": "PENDING capsule cleared at completion — stays PENDING (frozen)",
+        "cause": "The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups')."
+      },
+      {
+        "file": "tests/encounter-director.test.mjs",
+        "test": "the shared burst alternates two real Raider origins and skips a destroyed owner",
+        "class": "A",
+        "action": "A11",
+        "outcome": "re-pinned",
+        "protected": "the Raider pair burst alternates two origins and survives an emitter's death",
+        "failed_on": "shot kinds [2,3] — [10,11] (weapon class in bits 3-7)",
+        "cause": "The shot pool is 5 player + 5 hostile slots and a hostile ACTIVE byte carries the weapon class (66b90c5, 8a09e57, 35f2b90)."
+      },
+      {
+        "file": "tests/enemy-roster.test.mjs",
+        "test": "PMG ownership preserves one P1/P2 enemy while fighter bursts use playfield glyphs",
+        "renamed_to": "PMG ownership gives each Heavy member one of P1/P2 while fighter bursts use playfield glyphs",
+        "class": "B",
+        "action": "B8",
+        "outcome": "rewritten",
+        "protected": "PMG ownership of the enemy players",
+        "failed_on": "source: sta HPOSP1 then sta HPOSP2 — sta HPOSP1,x (one Heavy per player)"
+      },
+      {
+        "file": "tests/entity-effects.test.mjs",
+        "test": "Interceptor contact result is exact after an ATR cold boot",
+        "class": "D",
+        "action": "D3",
+        "outcome": "fixture fixed",
+        "protected": "a player/Interceptor contact gives the exact result after an ATR cold boot",
+        "failed_on": "run aborts: opcode $80 at $8D67 (C routine not placed by the fixture)",
+        "cause": "The kill score is ENEMY_PROFILE_SCORE_BCD, published by the C admission path; add_archetype_score is an equate (scripts/runtime-image.mjs publishEnemyProfileScore)."
+      },
+      {
+        "file": "tests/entity-effects.test.mjs",
+        "test": "Raider lifecycle and score remain canonical without scheduling a character effect",
+        "class": "D",
+        "action": "D3",
+        "outcome": "fixture fixed",
+        "protected": "a contact kill keeps lifecycle, score and no character effect",
+        "failed_on": "score $10 — 0 (profile byte never published by the fixture)",
+        "cause": "The kill score is ENEMY_PROFILE_SCORE_BCD, published by the C admission path; add_archetype_score is an equate (scripts/runtime-image.mjs publishEnemyProfileScore)."
+      },
+      {
+        "file": "tests/entity-effects.test.mjs",
+        "test": "every canonical Raider death avoids character effects without changing score policy",
+        "class": "D",
+        "action": "D3",
+        "outcome": "fixture fixed",
+        "protected": "every Raider death source scores correctly and schedules no character effect",
+        "failed_on": "score low byte $52 — $42",
+        "cause": "The kill score is ENEMY_PROFILE_SCORE_BCD, published by the C admission path; add_archetype_score is an equate (scripts/runtime-image.mjs publishEnemyProfileScore)."
+      },
+      {
+        "file": "tests/explosion-colour-flash.test.mjs",
+        "test": "PlayerFighter death wins same-frame arbitration and enemy flashes cannot restart forever",
+        "class": "B",
+        "action": "B6",
+        "outcome": "rewritten",
+        "protected": "player death wins the flash arbitration; enemy flashes cannot restart",
+        "failed_on": "source: ASM lifecycle in resolve_enemy_damage — the logic is the C routine behind HYBRID_ENEMY_APPLY_PENDING_DAMAGE",
+        "cause": "Enemy damage and lifecycle are C; the frame-600 first-capital scheduler and the Director phases are retired (AGENTS.md; docs/plans/director-4.6.md section 8 row 2)."
+      },
+      {
+        "file": "tests/fighter-weapons.test.mjs",
+        "test": "assembled burst controllers use accepted counts, intervals, speeds and damage",
+        "class": "A",
+        "action": "A12",
+        "outcome": "re-pinned",
+        "protected": "burst counts, intervals, speeds and damage",
+        "failed_on": "spreadShotBurstCount 4 — 2",
+        "cause": "Burst counts are 4 / 5 / 2 PairShots, not 8 / 10 / 8 shots (assets/graphics/fighter-weapons.json; 66b90c5, db64ca8)."
+      },
+      {
+        "file": "tests/flagship-sector.test.mjs",
+        "test": "H4.2 C INDUSTRIAL preserves its structural and immutable data contracts",
+        "class": "B",
+        "action": "B11",
+        "outcome": "retired",
+        "protected": "the H4.2 C INDUSTRIAL hull art contract",
+        "failed_on": "glyph allied_plate_mass — does not exist (hull set v2)",
+        "cause": "Capital hull set v2 replaced the H4.2 C INDUSTRIAL glyphs and JSON schema (884c446, c28d00d).",
+        "retired_because": "It audits the H4.2 C INDUSTRIAL glyph set by name and by sha256; the owner rejected that look and hull set v2 FULL MASS replaced it, so the glyphs do not exist.",
+        "decision": "884c446, c28d00d; STATUS 'Capital hull set v1 - step 1'; owner approval 2026-10-01 (B11)"
+      },
+      {
+        "file": "tests/formats.test.mjs",
+        "test": "resident compaction proof survives and Spread Shot leaves at least 64 source-owned bytes",
+        "class": "A",
+        "action": "A13",
+        "outcome": "re-pinned",
+        "protected": "boot staging layout and lifetimes",
+        "failed_on": "[$5318,$5318,$5DB6,$5E10,0,90] — [$5331,$5318,$5DEA,$5E10,−25,38]",
+        "cause": "Layout and transport values moved with the accepted placement work since 4.5M (build/manifest.json)."
+      },
+      {
+        "file": "tests/gameplay-music.test.mjs",
+        "test": "600-frame ON/OFF watchdog advances frame, world, stars, and spawn scheduling",
+        "class": "A",
+        "action": "A14",
+        "outcome": "re-pinned",
+        "protected": "gameplay scheduling is independent of the music option",
+        "failed_on": "model snapshot nearSteps 300, farSteps 150, attempts 54, spawns 2 — 600, (gone), 58, 12",
+        "cause": "The starfield was redesigned; screen code 1 is the dynamic near-star point (41d136f, 9658ab5)."
+      },
+      {
+        "file": "tests/github-showcase.test.mjs",
+        "test": "public README is English, complete, and free of stale status language",
+        "class": "B",
+        "action": "B14",
+        "outcome": "rewritten",
+        "protected": "the public README is complete and current",
+        "failed_on": "heading ## Current gameplay — README restructured",
+        "cause": "Naming and public text: 'Raider' is the documented Heavy archetype; the README was rewritten in English and Polish (b2a1710, owner decision V)."
+      },
+      {
+        "file": "tests/hunter-projectile-lifetime.test.mjs",
+        "test": "assembled Hunter shots remain independent through capital traversal and ring wrap",
+        "class": "D",
+        "action": "D6",
+        "outcome": "retired",
+        "file_removed": true,
+        "protected": "released hostile shots are independent of their emitter",
+        "failed_on": "ca65 (from PATH): cannot open include heavy-member.s",
+        "cause": "The test re-assembled src/main.s with a ca65 from PATH and only -I build.",
+        "retired_because": "Its fixture cannot run the hybrid C runtime and needed a ca65 on PATH; the rule it tests (a released hostile shot is independent of its emitter) is held by tests/hostile-projectile-emitter-independence.test.mjs.",
+        "decision": "owner approval 2026-10-01 (D6, retired with B5)"
+      },
+      {
+        "file": "tests/hunter-projectile-lifetime.test.mjs",
+        "test": "capital due drains the final legal Hunter pulse before admission",
+        "class": "B",
+        "action": "B5",
+        "outcome": "retired",
+        "file_removed": true,
+        "protected": "capital admission waits for the last legal pulse (frame 600 schedule)",
+        "failed_on": "ca65 (from PATH): cannot open include heavy-member.s",
+        "cause": "The test re-assembled src/main.s with a ca65 from PATH and only -I build. Enemy damage and lifecycle are C; the frame-600 first-capital scheduler and the Director phases are retired (AGENTS.md; docs/plans/director-4.6.md section 8 row 2).",
+        "retired_because": "It pins the frame-600 first-capital schedule and the Director phase policy, both retired; its fixture also re-assembled main.s with a ca65 from PATH.",
+        "decision": "docs/plans/director-4.6.md section 8 row 2 (FIRST_CAPITAL_FRAME and the phase machinery retired); owner approval 2026-10-01 (B5)"
+      },
+      {
+        "file": "tests/hunter-projectile-lifetime.test.mjs",
+        "test": "a live Hunter leaves naturally and gives capital admission a finite bound",
+        "class": "B",
+        "action": "B5",
+        "outcome": "retired",
+        "file_removed": true,
+        "protected": "a live Hunter bounds the capital admission (≤ 286 frames)",
+        "failed_on": "ca65 (from PATH): cannot open include heavy-member.s",
+        "cause": "The test re-assembled src/main.s with a ca65 from PATH and only -I build. Enemy damage and lifecycle are C; the frame-600 first-capital scheduler and the Director phases are retired (AGENTS.md; docs/plans/director-4.6.md section 8 row 2).",
+        "retired_because": "It pins the frame-600 first-capital schedule and the Director phase policy, both retired; its fixture also re-assembled main.s with a ca65 from PATH.",
+        "decision": "docs/plans/director-4.6.md section 8 row 2 (FIRST_CAPITAL_FRAME and the phase machinery retired); owner approval 2026-10-01 (B5)"
+      },
+      {
+        "file": "tests/hunter-projectile-lifetime.test.mjs",
+        "test": "ordinary waves stay closed through reconstruction and resume without catch-up",
+        "class": "B",
+        "action": "B5",
+        "outcome": "retired",
+        "file_removed": true,
+        "protected": "ordinary waves stay closed through the capital sector",
+        "failed_on": "ca65 (from PATH): cannot open include heavy-member.s",
+        "cause": "The test re-assembled src/main.s with a ca65 from PATH and only -I build. Enemy damage and lifecycle are C; the frame-600 first-capital scheduler and the Director phases are retired (AGENTS.md; docs/plans/director-4.6.md section 8 row 2).",
+        "retired_because": "It pins the frame-600 first-capital schedule and the Director phase policy, both retired; its fixture also re-assembled main.s with a ca65 from PATH.",
+        "decision": "docs/plans/director-4.6.md section 8 row 2 (FIRST_CAPITAL_FRAME and the phase machinery retired); owner approval 2026-10-01 (B5)"
+      },
+      {
+        "file": "tests/hybrid-c-arena.test.mjs",
+        "test": "HYBRID_C_ARENA is one contiguous 832-B arena at $7BD0-$7F0F",
+        "class": "A",
+        "action": "A15",
+        "outcome": "re-pinned",
+        "protected": "`HYBRID_C_ARENA` is one contiguous 832-B arena",
+        "failed_on": "[asm,code,rodata] [71,504,39] — [90,589,39]",
+        "cause": "Layout and transport values moved with the accepted placement work since 4.5M (build/manifest.json)."
+      },
+      {
+        "file": "tests/hybrid-c-arena.test.mjs",
+        "test": "the arena lands directly as its own DFMC record and is the only owner of its range",
+        "class": "A",
+        "action": "A15",
+        "outcome": "re-pinned",
+        "protected": "the arena is its own transport record and sole owner of its range",
+        "failed_on": "8 records — 11",
+        "cause": "Layout and transport values moved with the accepted placement work since 4.5M (build/manifest.json)."
+      },
+      {
+        "file": "tests/layout-d1.test.mjs",
+        "test": "Layout D.2 exact memory and transport budgets remain frozen",
+        "renamed_to": "transport limits in force: the initial block STOP rule and every record's sector capacity",
+        "class": "B",
+        "action": "B15",
+        "outcome": "rewritten",
+        "protected": "the Layout D.2 budgets stay frozen",
+        "failed_on": "initial block content 13,113 B — 13,621 B",
+        "cause": "Layout and transport values moved with the accepted placement work since 4.5M (build/manifest.json)."
+      },
+      {
+        "file": "tests/loader-screen.test.mjs",
+        "test": "assembled display list contains 157 ANTIC F and 35 ANTIC E lines",
+        "class": "A",
+        "action": "A16",
+        "outcome": "re-pinned",
+        "protected": "the loader display list does not overlap the PMG mask tables",
+        "failed_on": "missile_masks at $37FC — $3810",
+        "cause": "Layout and transport values moved with the accepted placement work since 4.5M (build/manifest.json)."
+      },
+      {
+        "file": "tests/pairshot-foundation.test.mjs",
+        "test": "PairShot keeps one collision event per logical player or enemy record",
+        "class": "A",
+        "action": "A17",
+        "outcome": "re-pinned",
+        "protected": "one collision event per PairShot record",
+        "failed_on": "44 cycles per missed object — 43"
+      },
+      {
+        "file": "tests/pickup-fence.test.mjs",
+        "test": "executed wait moves a late fence earlier without skipping a PAL update",
+        "class": "B",
+        "action": "B4",
+        "outcome": "retired",
+        "protected": "the frame fence moves with a PENDING/ACTIVE capsule",
+        "failed_on": "fence 108, 100, … 28 — constant 112",
+        "cause": "The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups').",
+        "retired_because": "It tests the frame fence that moved with a PENDING or ACTIVE character capsule; wait_gameplay_frame is wait_frame with one fixed line.",
+        "decision": "f6eee5c; owner approval 2026-10-01 (B4)"
+      },
+      {
+        "file": "tests/pickup-fence.test.mjs",
+        "test": "PENDING fence keeps an active projectile published through the erase/redraw window",
+        "was_todo": true,
+        "class": "B",
+        "action": "B4",
+        "outcome": "retired",
+        "protected": "a projectile stays published through the fence window",
+        "failed_on": "fence 20 — 112 (moving fence retired)",
+        "cause": "The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups').",
+        "retired_because": "It tests the frame fence that moved with a PENDING or ACTIVE character capsule; wait_gameplay_frame is wait_frame with one fixed line.",
+        "decision": "f6eee5c; owner approval 2026-10-01 (B4)"
+      },
+      {
+        "file": "tests/player-fire-audio.test.mjs",
+        "test": "accepted cadence is movement-independent, pool-safe and every complete SFX is $33..$38",
+        "class": "A",
+        "action": "A18",
+        "outcome": "re-pinned",
+        "protected": "fire cadence is movement-independent, pool-safe, with complete SFX",
+        "failed_on": "SPREAD interval histogram {12:62, 28:187} — {12:149, 28:150}",
+        "cause": "A Spread volley allocates its side shots first and is followed by one centre shot (owner decisions 2026-09-16 and 2026-09-30)."
+      },
+      {
+        "file": "tests/playfield-boundaries.test.mjs",
+        "test": "all booster types traverse the lower playfield on EASY, MEDIUM and HARD",
+        "class": "D",
+        "action": "D1",
+        "outcome": "fixture fixed",
+        "protected": "every booster type crosses the lower playfield",
+        "failed_on": "harness: 'rapid pickup did not activate'",
+        "cause": "The legacy pickup harness never got a capsule admitted: Director C records not placed, sector state uninitialised (scripts/weapon-pickup-runtime.mjs initialiseRuntime)."
+      },
+      {
+        "file": "tests/playfield-boundaries.test.mjs",
+        "test": "bottom clipping and repeated ring wraps never write the HUD or revive a pickup",
+        "class": "B",
+        "action": "B1",
+        "outcome": "rewritten",
+        "protected": "bottom clipping and ring wraps never write the HUD",
+        "failed_on": "source: cmp #(ENTITY_LOGICAL_ROWS-1)…@one_row — character clipping retired",
+        "cause": "The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups')."
+      },
+      {
+        "file": "tests/preview.test.mjs",
+        "test": "start-menu preview is deterministic, 640x384, and source-derived",
+        "class": "A",
+        "action": "A19",
+        "outcome": "re-pinned",
+        "protected": "the start-menu preview is deterministic and source-derived",
+        "failed_on": "hint UP/DOWN MOVE   FIRE SELECT (3 spaces) — 1 space",
+        "cause": "Naming and public text: 'Raider' is the documented Heavy archetype; the README was rewritten in English and Polish (b2a1710, owner decision V)."
+      },
+      {
+        "file": "tests/preview.test.mjs",
+        "test": "debris owner review is deterministic and covers visuals, trajectories, contact and wrap",
+        "class": "A",
+        "action": "A20",
+        "outcome": "re-pinned",
+        "protected": "the debris review trace covers a full pass, contact and ring wrap",
+        "failed_on": "141 rows — pinned 117 (38 rows per pass; a pass is 46 rows now)",
+        "cause": "The playfield is 28 rows, bottom at scanline 240 (effe71c)."
+      },
+      {
+        "file": "tests/preview.test.mjs",
+        "test": "destructible debris owner preview is an ATR-executed eight-frame breakup",
+        "class": "B",
+        "action": "B7",
+        "outcome": "rewritten",
+        "protected": "the debris break-up preview trace",
+        "failed_on": "every row ends ,0742 (score unchanged) — rows after the kill end ,0767",
+        "cause": "Evidence semantics changed: gate.passed is false while a failure is recorded; frame pins give way to relations; character break-up fragments are retired; debris kills score."
+      },
+      {
+        "file": "tests/preview.test.mjs",
+        "test": "Interceptor owner preview is the ATR-executed eight-frame local breakup",
+        "class": "B",
+        "action": "B7",
+        "outcome": "retired",
+        "protected": "the Interceptor break-up preview trace",
+        "failed_on": "127 BREAKUP rows — 32",
+        "cause": "Evidence semantics changed: gate.passed is false while a failure is recorded; frame pins give way to relations; character break-up fragments are retired; debris kills score.",
+        "retired_because": "It expects 127 BREAKUP rows with a five-fragment character effect; a Raider or Interceptor kill draws no character fragments.",
+        "decision": "docs/diagnostics/stage-2b2b-raider-character-effects-removal.json and -raider-transient-breakup-fragments-removal.json; owner approval 2026-10-01 (B7)"
+      },
+      {
+        "file": "tests/preview.test.mjs",
+        "test": "Rapid Fire owner preview executes the packed ATR pickup lifecycle",
+        "class": "B",
+        "action": "B1",
+        "outcome": "rewritten",
+        "protected": "the Rapid Fire preview runs the pickup lifecycle",
+        "failed_on": "harness: 'Rapid burst requires collected runtime state'",
+        "cause": "The legacy pickup harness never got a capsule admitted: Director C records not placed, sector state uninitialised (scripts/weapon-pickup-runtime.mjs initialiseRuntime). The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups')."
+      },
+      {
+        "file": "tests/preview.test.mjs",
+        "test": "burst-balance owner preview is a deterministic 80-frame ATR execution",
+        "class": "B",
+        "action": "B16",
+        "outcome": "rewritten",
+        "protected": "the burst-balance preview trace",
+        "failed_on": "emitted [21,30,24] — [9,12,8]",
+        "cause": "Burst counts are 4 / 5 / 2 PairShots, not 8 / 10 / 8 shots (assets/graphics/fighter-weapons.json; 66b90c5, db64ca8). A Spread volley allocates its side shots first and is followed by one centre shot (owner decisions 2026-09-16 and 2026-09-30)."
+      },
+      {
+        "file": "tests/preview.test.mjs",
+        "test": "Spread Shot owner preview is deterministic executed ATR gameplay",
+        "class": "D",
+        "action": "D2",
+        "outcome": "fixture fixed",
+        "protected": "the Spread preview is executed gameplay",
+        "failed_on": "DROP render ids 120/252/124 — 0",
+        "cause": "The legacy pickup harness fired the Spread centre follow-up instead of the volley (PLAYER_FIGHTER_BURST_REMAINING unset; docs/plans/spread-volley-fix.md section 5). The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups')."
+      },
+      {
+        "file": "tests/runtime-timing.test.mjs",
+        "test": "protected linked segments do not regress beyond the accepted feature baseline",
+        "class": "B",
+        "action": "B15",
+        "outcome": "rewritten",
+        "protected": "linked code stays inside the feature budgets",
+        "failed_on": "frontend H3.1 actualBytes 16,735 (+1,389) — 17,491 (+2,145), hard delta 1,280",
+        "cause": "Layout and transport values moved with the accepted placement work since 4.5M (build/manifest.json)."
+      },
+      {
+        "file": "tests/runtime-timing.test.mjs",
+        "test": "hybrid ring reservation fits after staging and before entity/effects RAM",
+        "class": "A",
+        "action": "A21",
+        "outcome": "re-pinned",
+        "protected": "the ring reservation fits between staging and entity RAM",
+        "failed_on": "source: PLAYFIELD_RING_STATE_END <= $7FDD — <= WEAPON_PICKUP_RUNTIME",
+        "cause": "The playfield is 28 rows, bottom at scanline 240 (effe71c)."
+      },
+      {
+        "file": "tests/runtime-wall-trace.test.mjs",
+        "test": "real ATR startup traces keep one atomic two-phase engine pulse",
+        "class": "A",
+        "action": "A22",
+        "outcome": "re-pinned",
+        "protected": "the engine pulse is one atomic two-phase toggle on every start",
+        "failed_on": "a2_heads.length 22 — 27",
+        "cause": "The playfield is 28 rows, bottom at scanline 240 (effe71c)."
+      },
+      {
+        "file": "tests/runtime-wall-trace.test.mjs",
+        "test": "wall trace records the required legal runtime coverage without incoherent RAM seeding",
+        "class": "B",
+        "action": "B17",
+        "outcome": "rewritten",
+        "protected": "the evidence covers every legal runtime path",
+        "failed_on": "pool [19,13,false] — [10,10,true]",
+        "cause": "The shot pool is 5 player + 5 hostile slots and a hostile ACTIVE byte carries the weapon class (66b90c5, 8a09e57, 35f2b90). Evidence semantics changed: gate.passed is false while a failure is recorded; frame pins give way to relations; character break-up fragments are retired; debris kills score."
+      },
+      {
+        "file": "tests/runtime-wall-trace.test.mjs",
+        "test": "explosion colour flash passes its +64 PAL gate with exact GTIA traces",
+        "class": "A",
+        "action": "A23",
+        "outcome": "re-pinned",
+        "protected": "explosion flash stays in its +64-cycle gate with exact GTIA values",
+        "failed_on": "colpm1 [$44,$84], colpm2 [$46], colpm3 [$28] — [$44], [$44], [$1C,$28]",
+        "cause": "Colours: both Raiders $44, allied steel $88, capsule gold $1C (10f1be2; owner decision 2; docs/plans/pickup-colour.md)."
+      },
+      {
+        "file": "tests/runtime-wall-trace.test.mjs",
+        "test": "enemy breakup passes the hard PAL gate and executes the five-slot runtime path",
+        "renamed_to": "enemy breakup passes the hard PAL gate and draws no character effect",
+        "class": "B",
+        "action": "B17",
+        "outcome": "rewritten",
+        "protected": "enemy break-up passes the hard PAL gate",
+        "failed_on": "report.gate.passed === true — false",
+        "cause": "Evidence semantics changed: gate.passed is false while a failure is recorded; frame pins give way to relations; character break-up fragments are retired; debris kills score."
+      },
+      {
+        "file": "tests/score.test.mjs",
+        "test": "assembled decimal score code carries without inserting partial-game scores",
+        "class": "D",
+        "action": "D4",
+        "outcome": "fixture fixed",
+        "protected": "the BCD score add carries correctly",
+        "failed_on": "TypeError: addresses.addScore undefined (label is an equate)",
+        "cause": "The kill score is ENEMY_PROFILE_SCORE_BCD, published by the C admission path; add_archetype_score is an equate (scripts/runtime-image.mjs publishEnemyProfileScore)."
+      },
+      {
+        "file": "tests/score.test.mjs",
+        "test": "all score writes use one BCD award path while source ownership stays unchanged",
+        "renamed_to": "score is written by new-game and the three BCD award paths, and no award inserts a TOP score",
+        "class": "B",
+        "action": "B18",
+        "outcome": "rewritten",
+        "protected": "exactly one BCD award path",
+        "failed_on": "addresses all integers — enemy_scores, add_archetype_score undefined",
+        "cause": "The kill score is ENEMY_PROFILE_SCORE_BCD, published by the C admission path; add_archetype_score is an equate (scripts/runtime-image.mjs publishEnemyProfileScore)."
+      },
+      {
+        "file": "tests/score.test.mjs",
+        "test": "ordinary awards update only current BCD score until Game Over",
+        "class": "D",
+        "action": "D4",
+        "outcome": "fixture fixed",
+        "protected": "an award changes SCORE only",
+        "failed_on": "enemy score $10 — undefined address",
+        "cause": "The kill score is ENEMY_PROFILE_SCORE_BCD, published by the C admission path; add_archetype_score is an equate (scripts/runtime-image.mjs publishEnemyProfileScore)."
+      },
+      {
+        "file": "tests/score.test.mjs",
+        "test": "assembled death and respawn preserve whole-game SCORE before the next award",
+        "class": "D",
+        "action": "D4",
+        "outcome": "fixture fixed",
+        "protected": "death and respawn preserve SCORE",
+        "failed_on": "enemy score $10 — undefined address (first 30 lines pass)",
+        "cause": "The kill score is ENEMY_PROFILE_SCORE_BCD, published by the C admission path; add_archetype_score is an equate (scripts/runtime-image.mjs publishEnemyProfileScore)."
+      },
+      {
+        "file": "tests/transport-enabler.test.mjs",
+        "test": "record overlap, invalid load range, length mismatch, truncation, and ATR overflow fail closed",
+        "class": "A",
+        "action": "A24",
+        "outcome": "re-pinned",
+        "protected": "bad transport records fail closed",
+        "failed_on": "error text forbidden BASIC-ROM window — is not in reviewed free residency",
+        "cause": "Layout and transport values moved with the accepted placement work since 4.5M (build/manifest.json)."
+      },
+      {
+        "file": "tests/transport-layout-regression.test.mjs",
+        "test": "packed startup and relocated GLUE have pairwise-safe real lifetimes",
+        "class": "B",
+        "action": "B10",
+        "outcome": "retired",
+        "file_removed": true,
+        "protected": "boot staging ranges never overlap while live",
+        "failed_on": "ca65 (from PATH): cannot open include heavy-member.s",
+        "cause": "The test re-assembled src/main.s with a ca65 from PATH and only -I build. Layout and transport values moved with the accepted placement work since 4.5M (build/manifest.json).",
+        "retired_because": "It hand-models the four-record Layout D.2 transport and its lifetimes; the build has 11 records and checks residency itself.",
+        "decision": "4.5M-M1/M2/M3 and roadmap 4.6 placement; owner approval 2026-10-01 (B10)"
+      },
+      {
+        "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+        "test": "three eight-phase banks preserve one tapered 8x16 capsule through 2x2/2x3 footprints",
+        "renamed_to": "three eight-phase source banks hold one tapered 8x16 capsule and the runtime draws a PMG silhouette",
+        "class": "B",
+        "action": "B1",
+        "outcome": "rewritten",
+        "protected": "capsule art and its character compositor",
+        "failed_on": "source: compose_weapon_pickup_phase: — retired (art checks before it pass)",
+        "cause": "The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups')."
+      },
+      {
+        "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+        "test": "runtime compositor publishes the exact capsule pixels for all types and phases",
+        "class": "B",
+        "action": "B1",
+        "outcome": "retired",
+        "protected": "the compositor writes the exact capsule pixels into the charset",
+        "failed_on": "48 charset bytes = phase bank — charset is not composed",
+        "cause": "The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups').",
+        "retired_because": "It tests the character capsule (glyph codes, four-cell backing, charset composition, cell footprint); the capsule is one PLAYER3 PMG image and none of that exists.",
+        "decision": "f6eee5c (2026-09-11); docs/plans/pickup-colour.md section 7; owner approval 2026-10-01 (B1/B4)"
+      },
+      {
+        "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+        "test": "the release ATR executes 0→1→2→pending only for consumed PlayerFighter kills",
+        "class": "D",
+        "action": "D1",
+        "outcome": "fixture fixed",
+        "protected": "kills 1-2-3 create one pending capsule",
+        "failed_on": "harness: 'Rapid burst requires collected runtime state'",
+        "cause": "The legacy pickup harness never got a capsule admitted: Director C records not placed, sector state uninitialised (scripts/weapon-pickup-runtime.mjs initialiseRuntime)."
+      },
+      {
+        "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+        "test": "pickup pending remains hidden and non-colliding for thirty full frames",
+        "class": "D",
+        "action": "D1",
+        "outcome": "fixture fixed",
+        "protected": "a PENDING capsule is hidden and cannot be collected",
+        "failed_on": "harness: same",
+        "cause": "The legacy pickup harness never got a capsule admitted: Director C records not placed, sector state uninitialised (scripts/weapon-pickup-runtime.mjs initialiseRuntime)."
+      },
+      {
+        "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+        "test": "every booster type enters at the top, crosses the full playfield once and releases below it",
+        "class": "D",
+        "action": "D1",
+        "outcome": "fixture fixed",
+        "protected": "each booster type crosses the playfield once",
+        "failed_on": "harness: 'rapid pickup did not activate'",
+        "cause": "The legacy pickup harness never got a capsule admitted: Director C records not placed, sector state uninitialised (scripts/weapon-pickup-runtime.mjs initialiseRuntime)."
+      },
+      {
+        "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+        "test": "active capsule renders one phased 2x2/2x3 footprint continuously and cannot be shot",
+        "renamed_to": "active capsule is one logical PMG object, writes no character cell and cannot be shot",
+        "class": "B",
+        "action": "B1",
+        "outcome": "rewritten",
+        "protected": "the ACTIVE capsule is drawn continuously and cannot be shot",
+        "failed_on": "harness: same",
+        "cause": "The legacy pickup harness never got a capsule admitted: Director C records not placed, sector state uninitialised (scripts/weapon-pickup-runtime.mjs initialiseRuntime). The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups')."
+      },
+      {
+        "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+        "test": "pickup movement resolves half world speed into smooth scanline phases",
+        "class": "D",
+        "action": "D1",
+        "outcome": "fixture fixed",
+        "protected": "capsule motion is half world speed in scanlines",
+        "failed_on": "harness: same (2 checks before it pass)",
+        "cause": "The legacy pickup harness never got a capsule admitted: Director C records not placed, sector state uninitialised (scripts/weapon-pickup-runtime.mjs initialiseRuntime)."
+      },
+      {
+        "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+        "test": "debris and the reserved pickup coexist without allocator overwrite for every A2 head",
+        "class": "B",
+        "action": "B1",
+        "outcome": "rewritten",
+        "protected": "debris and capsule coexist for every ring head",
+        "failed_on": "harness: same",
+        "cause": "The legacy pickup harness never got a capsule admitted: Director C records not placed, sector state uninitialised (scripts/weapon-pickup-runtime.mjs initialiseRuntime). The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups')."
+      },
+      {
+        "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+        "test": "four-cell backing restores byte-exact data in reverse layer order at every A2 head",
+        "class": "B",
+        "action": "B1",
+        "outcome": "retired",
+        "protected": "four-cell backing is restored exactly",
+        "failed_on": "codes [120,121,122,123], mask 15 — all 0",
+        "cause": "The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups').",
+        "retired_because": "It tests the character capsule (glyph codes, four-cell backing, charset composition, cell footprint); the capsule is one PLAYER3 PMG image and none of that exists.",
+        "decision": "f6eee5c (2026-09-11); docs/plans/pickup-colour.md section 7; owner approval 2026-10-01 (B1/B4)"
+      },
+      {
+        "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+        "test": "reverse erase restores every 2x2/2x3 phase across the A2 wrap",
+        "class": "B",
+        "action": "B1",
+        "outcome": "retired",
+        "protected": "reverse erase across the ring wrap",
+        "failed_on": "codes [120,121,122,123] — 0 (3 checks before it pass)",
+        "cause": "The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups').",
+        "retired_because": "It tests the character capsule (glyph codes, four-cell backing, charset composition, cell footprint); the capsule is one PLAYER3 PMG image and none of that exists.",
+        "decision": "f6eee5c (2026-09-11); docs/plans/pickup-colour.md section 7; owner approval 2026-10-01 (B1/B4)"
+      },
+      {
+        "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+        "test": "the main frame has one guarded late pickup publication",
+        "class": "B",
+        "action": "B1",
+        "outcome": "rewritten",
+        "protected": "one guarded late capsule publication per frame",
+        "failed_on": "jmp render_weapon_pickup_overlay ×1 — 0",
+        "cause": "The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups')."
+      },
+      {
+        "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+        "test": "one logical footprint survives repeated ring wraps and cannot return after release",
+        "class": "B",
+        "action": "B1",
+        "outcome": "retired",
+        "protected": "one footprint through ring wraps",
+        "failed_on": "every frame: cells = 2/4/6, exact reverse erase — false",
+        "cause": "The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups').",
+        "retired_because": "It tests the character capsule (glyph codes, four-cell backing, charset composition, cell footprint); the capsule is one PLAYER3 PMG image and none of that exists.",
+        "decision": "f6eee5c (2026-09-11); docs/plans/pickup-colour.md section 7; owner approval 2026-10-01 (B1/B4)"
+      },
+      {
+        "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+        "test": "pickup collection is single-shot and changes neither score, HULL nor LIFE",
+        "class": "D",
+        "action": "D1",
+        "outcome": "fixture fixed",
+        "protected": "collection is single-shot and leaves SCORE/HULL/LIFE alone",
+        "failed_on": "harness: same",
+        "cause": "The legacy pickup harness never got a capsule admitted: Director C records not placed, sector state uninitialised (scripts/weapon-pickup-runtime.mjs initialiseRuntime)."
+      },
+      {
+        "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+        "test": "Rapid Fire lasts 500 active frames and keeps its accepted accelerated burst",
+        "class": "D",
+        "action": "D1",
+        "outcome": "fixture fixed",
+        "protected": "Rapid Fire lasts 500 frames with its burst",
+        "failed_on": "harness: same",
+        "cause": "The legacy pickup harness never got a capsule admitted: Director C records not placed, sector state uninitialised (scripts/weapon-pickup-runtime.mjs initialiseRuntime). Burst counts are 4 / 5 / 2 PairShots, not 8 / 10 / 8 shots (assets/graphics/fighter-weapons.json; 66b90c5, db64ca8)."
+      },
+      {
+        "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+        "test": "packed runtime distinguishes accepted Normal, Rapid and Spread cadence",
+        "class": "A",
+        "action": "A25",
+        "outcome": "re-pinned",
+        "protected": "Normal / Rapid / Spread / Shield cadence",
+        "failed_on": "summary rows for 8/10/8 shots — 4/5/2",
+        "cause": "Burst counts are 4 / 5 / 2 PairShots, not 8 / 10 / 8 shots (assets/graphics/fighter-weapons.json; 66b90c5, db64ca8). A Spread volley allocates its side shots first and is followed by one centre shot (owner decisions 2026-09-16 and 2026-09-30)."
+      },
+      {
+        "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+        "test": "released FIRE emits a visible centred first frame across X, Y and ring phases",
+        "class": "A",
+        "action": "A26",
+        "outcome": "re-pinned",
+        "protected": "the first shot frame is visible and centred",
+        "failed_on": "Spread slot X order [+8,+4,+12] — [+4,+12,+8]",
+        "cause": "A Spread volley allocates its side shots first and is followed by one centre shot (owner decisions 2026-09-16 and 2026-09-30)."
+      },
+      {
+        "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+        "test": "sector pickup clear republishes still-live PlayerFighter projectiles in the same frame",
+        "class": "A",
+        "action": "A27",
+        "outcome": "re-pinned",
+        "protected": "a sector clear republishes live shots in the same frame",
+        "failed_on": "rendered latch 1 — $FF"
+      },
+      {
+        "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+        "test": "Normal and Rapid projectiles render through the PlayerFighter yellow bank",
+        "class": "A",
+        "action": "A28",
+        "outcome": "re-pinned",
+        "protected": "Normal and Rapid shots use the yellow bank",
+        "failed_on": "poolSlots 10 — 5 (all colour checks before it pass)",
+        "cause": "The shot pool is 5 player + 5 hostile slots and a hostile ACTIVE byte carries the weapon class (66b90c5, 8a09e57, 35f2b90)."
+      },
+      {
+        "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+        "test": "the packed ATR keeps every implemented PlayerFighter lifecycle path yellow under cold RAM",
+        "class": "D",
+        "action": "D2",
+        "outcome": "fixture fixed",
+        "protected": "every shot lifecycle path stays yellow",
+        "failed_on": "SPREAD capture: 3 shots — 1 (fixture fires the centre follow-up only)",
+        "cause": "The legacy pickup harness fired the Spread centre follow-up instead of the volley (PLAYER_FIGHTER_BURST_REMAINING unset; docs/plans/spread-volley-fix.md section 5)."
+      },
+      {
+        "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+        "test": "new game, life loss and Game Over clear RF while a live sector transition preserves it",
+        "class": "B",
+        "action": "B2",
+        "outcome": "rewritten",
+        "protected": "new game / life loss / Game Over clear the booster; a sector keeps it",
+        "failed_on": "PENDING capsule cleared at a sector boundary — stays PENDING (frozen)",
+        "cause": "The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups')."
+      },
+      {
+        "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+        "test": "release trace CSV exposes the authoritative counter, state, timing and score",
+        "class": "D",
+        "action": "D1",
+        "outcome": "fixture fixed",
+        "protected": "the pickup trace CSV",
+        "failed_on": "harness: same",
+        "cause": "The legacy pickup harness never got a capsule admitted: Director C records not placed, sector state uninitialised (scripts/weapon-pickup-runtime.mjs initialiseRuntime)."
+      },
+      {
+        "file": "tests/weapon-pickup-shield.test.mjs",
+        "test": "dynamic glyph ownership is explicit and all capsule transitions restore backing",
+        "class": "B",
+        "action": "B1",
+        "outcome": "retired",
+        "protected": "dynamic glyph bank ownership",
+        "failed_on": "dynamicPickupGlyphBankShared true — false",
+        "cause": "The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups').",
+        "retired_because": "It tests the character capsule (glyph codes, four-cell backing, charset composition, cell footprint); the capsule is one PLAYER3 PMG image and none of that exists.",
+        "decision": "f6eee5c (2026-09-11); docs/plans/pickup-colour.md section 7; owner approval 2026-10-01 (B1/B4)"
+      },
+      {
+        "file": "tests/weapon-pickup-shield.test.mjs",
+        "test": "pickup rotation is exactly Rapid Spread Shield Rapid without RNG",
+        "class": "D",
+        "action": "D1",
+        "outcome": "fixture fixed",
+        "protected": "pickup type rotation without RNG",
+        "failed_on": "drops [0,1,120],[1,2,248],[2,0,120] — render id 0, third drop wrong",
+        "cause": "The legacy pickup harness never got a capsule admitted: Director C records not placed, sector state uninitialised (scripts/weapon-pickup-runtime.mjs initialiseRuntime). The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups')."
+      },
+      {
+        "file": "tests/weapon-pickup-shield.test.mjs",
+        "test": "same-frame Shield collection protects later debris and consumes it",
+        "class": "D",
+        "action": "D1",
+        "outcome": "fixture fixed",
+        "protected": "a same-frame Shield collection protects against later debris",
+        "failed_on": "state 5, timer 250 — 0, 0",
+        "cause": "The legacy pickup harness never got a capsule admitted: Director C records not placed, sector state uninitialised (scripts/weapon-pickup-runtime.mjs initialiseRuntime)."
+      },
+      {
+        "file": "tests/weapon-pickup-shield.test.mjs",
+        "test": "frame ordering keeps earlier collisions before pickup activation",
+        "class": "A",
+        "action": "A29",
+        "outcome": "re-pinned",
+        "protected": "collisions run before pickup activation",
+        "failed_on": "source: jsr update_weapon_pickup_active…jmp entity_collide_player_active — jsr update_fighter_pickup_pmg, jmp entity_collide_player",
+        "cause": "The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups')."
+      },
+      {
+        "file": "tests/weapon-pickup-shield.test.mjs",
+        "test": "collision callers retain their consume and impact contracts",
+        "class": "D",
+        "action": "D7",
+        "outcome": "fixture fixed",
+        "protected": "collision callers consume the shot and apply damage",
+        "failed_on": "hostile shot consumed, damage latched — untouched (fixture: slot 10, kind 2)",
+        "cause": "The shot pool is 5 player + 5 hostile slots and a hostile ACTIVE byte carries the weapon class (66b90c5, 8a09e57, 35f2b90)."
+      },
+      {
+        "file": "tests/weapon-pickup-shield.test.mjs",
+        "test": "Shield keeps the normal eight-shot cadence while Rapid and Spread remain unchanged",
+        "renamed_to": "Shield keeps the normal burst cadence while Rapid and Spread remain unchanged",
+        "class": "A",
+        "action": "A30",
+        "outcome": "re-pinned",
+        "protected": "Shield keeps the Normal cadence",
+        "failed_on": "first-burst shots [8,8,10] — [4,4,5]",
+        "cause": "Burst counts are 4 / 5 / 2 PairShots, not 8 / 10 / 8 shots (assets/graphics/fighter-weapons.json; 66b90c5, db64ca8)."
+      },
+      {
+        "file": "tests/weapon-pickup-spread-shot.test.mjs",
+        "test": "Spread Shot owns one phased red fan in the shared six-glyph bank",
+        "class": "B",
+        "action": "B1",
+        "outcome": "rewritten",
+        "protected": "Spread capsule art and its compositor",
+        "failed_on": "source slice render_weapon_pickup_overlay: — empty (art checks before it pass)",
+        "cause": "The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups')."
+      },
+      {
+        "file": "tests/weapon-pickup-spread-shot.test.mjs",
+        "test": "the release ATR executes the deterministic Rapid Spread Shield drop cycle",
+        "class": "D",
+        "action": "D1",
+        "outcome": "fixture fixed",
+        "protected": "the Rapid → Spread → Shield drop cycle",
+        "failed_on": "drops with render ids 120/248/120 — 0, third drop wrong",
+        "cause": "The legacy pickup harness never got a capsule admitted: Director C records not placed, sector state uninitialised (scripts/weapon-pickup-runtime.mjs initialiseRuntime). The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups')."
+      },
+      {
+        "file": "tests/weapon-pickup-spread-shot.test.mjs",
+        "test": "both capsule types spawn and Spread moves through every A2 step without ghosts",
+        "was_todo": true,
+        "class": "B",
+        "action": "B4",
+        "outcome": "retired",
+        "protected": "Spread capsule moves without ghosts",
+        "failed_on": "character codes [2,15,120,121,122,123] — [1,0,0,0,0,0]",
+        "cause": "The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups').",
+        "retired_because": "It tests the character capsule (glyph codes, four-cell backing, charset composition, cell footprint); the capsule is one PLAYER3 PMG image and none of that exists.",
+        "decision": "f6eee5c (2026-09-11); docs/plans/pickup-colour.md section 7; owner approval 2026-10-01 (B1/B4)"
+      },
+      {
+        "file": "tests/weapon-pickup-spread-shot.test.mjs",
+        "test": "Spread four-cell reverse erase restores byte-exact backing at every A2 head",
+        "class": "B",
+        "action": "B1",
+        "outcome": "retired",
+        "protected": "Spread four-cell backing",
+        "failed_on": "codes [248,249,250,251], mask 15 — 0",
+        "cause": "The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups').",
+        "retired_because": "It tests the character capsule (glyph codes, four-cell backing, charset composition, cell footprint); the capsule is one PLAYER3 PMG image and none of that exists.",
+        "decision": "f6eee5c (2026-09-11); docs/plans/pickup-colour.md section 7; owner approval 2026-10-01 (B1/B4)"
+      },
+      {
+        "file": "tests/weapon-pickup-spread-shot.test.mjs",
+        "test": "Spread collection lasts exactly 500 active PAL frames and pause freezes it",
+        "class": "D",
+        "action": "D1",
+        "outcome": "fixture fixed",
+        "protected": "Spread lasts 500 frames; pause freezes it",
+        "failed_on": "[4, 500, [7,7,7,7]] — [1, 32, [0,0,0,0]]",
+        "cause": "The legacy pickup harness never got a capsule admitted: Director C records not placed, sector state uninitialised (scripts/weapon-pickup-runtime.mjs initialiseRuntime)."
+      },
+      {
+        "file": "tests/weapon-pickup-spread-shot.test.mjs",
+        "test": "all three projectiles leave the screen cleanly without HUD or charset corruption",
+        "was_todo": true,
+        "class": "D",
+        "action": "D2",
+        "outcome": "fixture fixed",
+        "protected": "Spread shots leave no glyph behind",
+        "failed_on": "no shot glyph left on screen — 348 residue cells of the fixture's uncleared ring",
+        "cause": "The legacy pickup harness fired the Spread centre follow-up instead of the volley (PLAYER_FIGHTER_BURST_REMAINING unset; docs/plans/spread-volley-fix.md section 5). The weapon capsule is a PLAYER3 PMG object, not characters (f6eee5c; docs/plans/pickup-colour.md section 7; docs/game-design.md 'Weapon pickups')."
+      },
+      {
+        "file": "tests/weapon-pickup-spread-shot.test.mjs",
+        "test": "Spread fixed phase is symmetric after 100 updates and both side bounds despawn",
+        "class": "D",
+        "action": "D2",
+        "outcome": "fixture fixed",
+        "protected": "the Spread fan is symmetric and despawns at both bounds",
+        "failed_on": "initial X [132,128,136] — [132,0,0] (centre only)",
+        "cause": "The legacy pickup harness fired the Spread centre follow-up instead of the volley (PLAYER_FIGHTER_BURST_REMAINING unset; docs/plans/spread-volley-fix.md section 5). A Spread volley allocates its side shots first and is followed by one centre shot (owner decisions 2026-09-16 and 2026-09-30)."
+      },
+      {
+        "file": "tests/weapon-pickup-spread-shot.test.mjs",
+        "test": "all three directions collide with debris and Interceptor scoring resolves only once",
+        "class": "D",
+        "action": "D2",
+        "outcome": "fixture fixed",
+        "protected": "every Spread direction hits debris; scoring resolves once",
+        "failed_on": "directions [0,$40,$20] — [0,0,0]",
+        "cause": "The legacy pickup harness fired the Spread centre follow-up instead of the volley (PLAYER_FIGHTER_BURST_REMAINING unset; docs/plans/spread-volley-fix.md section 5). A Spread volley allocates its side shots first and is followed by one centre shot (owner decisions 2026-09-16 and 2026-09-30)."
+      }
+    ]
+  }
+}

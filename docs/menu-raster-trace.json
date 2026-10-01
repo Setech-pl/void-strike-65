@@ -103,8 +103,8 @@
       {
         "start_sector": 165,
         "sectors": 6,
-        "packed_bytes": 747,
-        "raw_bytes": 747,
+        "packed_bytes": 735,
+        "raw_bytes": 735,
         "destination": 30736,
         "staging_id": 2
       },
@@ -119,29 +119,29 @@
       {
         "start_sector": 172,
         "sectors": 6,
-        "packed_bytes": 649,
-        "raw_bytes": 718,
+        "packed_bytes": 712,
+        "raw_bytes": 790,
         "destination": 31696,
         "staging_id": 2
       },
       {
         "start_sector": 178,
-        "sectors": 8,
-        "packed_bytes": 997,
-        "raw_bytes": 1283,
+        "sectors": 9,
+        "packed_bytes": 1067,
+        "raw_bytes": 1369,
         "destination": 44544,
         "staging_id": 2
       },
       {
-        "start_sector": 186,
+        "start_sector": 187,
         "sectors": 6,
-        "packed_bytes": 637,
-        "raw_bytes": 708,
-        "destination": 45827,
+        "packed_bytes": 653,
+        "raw_bytes": 735,
+        "destination": 45913,
         "staging_id": 2
       },
       {
-        "start_sector": 192,
+        "start_sector": 193,
         "sectors": 12,
         "packed_bytes": 1473,
         "raw_bytes": 1473,
@@ -149,7 +149,7 @@
         "staging_id": 2
       },
       {
-        "start_sector": 204,
+        "start_sector": 205,
         "sectors": 5,
         "packed_bytes": 496,
         "raw_bytes": 602,
@@ -291,10 +291,10 @@
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "af2e47b62c315ddf9ed05cab44842d8921bcb8c561b9cc2dcf103f1b1e8b31b7"
+        "sha256": "04943660e05a380678c4bf6197810588f81772b8be3b9eca049c2da7f86386e8"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/atr-00.json",
-      "first_complete_menu_frame": 549,
+      "first_complete_menu_frame": 550,
       "transitions_completed": 3,
       "pause_entries": 3,
       "pause_latch_failures": 0,
@@ -302,7 +302,7 @@
         {
           "generation": 0,
           "menu_age": 3,
-          "host_frame": 549,
+          "host_frame": 550,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -352,7 +352,7 @@
         {
           "generation": 0,
           "menu_age": 20,
-          "host_frame": 566,
+          "host_frame": 567,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -402,7 +402,7 @@
         {
           "generation": 0,
           "menu_age": 500,
-          "host_frame": 1046,
+          "host_frame": 1047,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -452,7 +452,7 @@
         {
           "generation": 1,
           "menu_age": 3,
-          "host_frame": 1168,
+          "host_frame": 1169,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -502,7 +502,7 @@
         {
           "generation": 1,
           "menu_age": 20,
-          "host_frame": 1185,
+          "host_frame": 1186,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -552,7 +552,7 @@
         {
           "generation": 2,
           "menu_age": 3,
-          "host_frame": 1258,
+          "host_frame": 1259,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -602,7 +602,7 @@
         {
           "generation": 2,
           "menu_age": 20,
-          "host_frame": 1275,
+          "host_frame": 1276,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -652,7 +652,7 @@
         {
           "generation": 3,
           "menu_age": 3,
-          "host_frame": 1348,
+          "host_frame": 1349,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -702,7 +702,7 @@
         {
           "generation": 3,
           "menu_age": 20,
-          "host_frame": 1365,
+          "host_frame": 1366,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -752,7 +752,7 @@
         {
           "generation": 3,
           "menu_age": 500,
-          "host_frame": 1845,
+          "host_frame": 1846,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -809,10 +809,10 @@
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "af2e47b62c315ddf9ed05cab44842d8921bcb8c561b9cc2dcf103f1b1e8b31b7"
+        "sha256": "04943660e05a380678c4bf6197810588f81772b8be3b9eca049c2da7f86386e8"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/atr-a5.json",
-      "first_complete_menu_frame": 549,
+      "first_complete_menu_frame": 550,
       "transitions_completed": 3,
       "pause_entries": 3,
       "pause_latch_failures": 0,
@@ -820,7 +820,7 @@
         {
           "generation": 0,
           "menu_age": 3,
-          "host_frame": 549,
+          "host_frame": 550,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -870,7 +870,7 @@
         {
           "generation": 0,
           "menu_age": 20,
-          "host_frame": 566,
+          "host_frame": 567,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -920,7 +920,7 @@
         {
           "generation": 0,
           "menu_age": 500,
-          "host_frame": 1046,
+          "host_frame": 1047,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -970,7 +970,7 @@
         {
           "generation": 1,
           "menu_age": 3,
-          "host_frame": 1168,
+          "host_frame": 1169,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1020,7 +1020,7 @@
         {
           "generation": 1,
           "menu_age": 20,
-          "host_frame": 1185,
+          "host_frame": 1186,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1070,7 +1070,7 @@
         {
           "generation": 2,
           "menu_age": 3,
-          "host_frame": 1258,
+          "host_frame": 1259,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1120,7 +1120,7 @@
         {
           "generation": 2,
           "menu_age": 20,
-          "host_frame": 1275,
+          "host_frame": 1276,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1170,7 +1170,7 @@
         {
           "generation": 3,
           "menu_age": 3,
-          "host_frame": 1348,
+          "host_frame": 1349,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1220,7 +1220,7 @@
         {
           "generation": 3,
           "menu_age": 20,
-          "host_frame": 1365,
+          "host_frame": 1366,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1270,7 +1270,7 @@
         {
           "generation": 3,
           "menu_age": 500,
-          "host_frame": 1845,
+          "host_frame": 1846,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1327,10 +1327,10 @@
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "af2e47b62c315ddf9ed05cab44842d8921bcb8c561b9cc2dcf103f1b1e8b31b7"
+        "sha256": "04943660e05a380678c4bf6197810588f81772b8be3b9eca049c2da7f86386e8"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/atr-5a.json",
-      "first_complete_menu_frame": 549,
+      "first_complete_menu_frame": 550,
       "transitions_completed": 3,
       "pause_entries": 3,
       "pause_latch_failures": 0,
@@ -1338,7 +1338,7 @@
         {
           "generation": 0,
           "menu_age": 3,
-          "host_frame": 549,
+          "host_frame": 550,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1388,7 +1388,7 @@
         {
           "generation": 0,
           "menu_age": 20,
-          "host_frame": 566,
+          "host_frame": 567,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1438,7 +1438,7 @@
         {
           "generation": 0,
           "menu_age": 500,
-          "host_frame": 1046,
+          "host_frame": 1047,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1488,7 +1488,7 @@
         {
           "generation": 1,
           "menu_age": 3,
-          "host_frame": 1168,
+          "host_frame": 1169,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1538,7 +1538,7 @@
         {
           "generation": 1,
           "menu_age": 20,
-          "host_frame": 1185,
+          "host_frame": 1186,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1588,7 +1588,7 @@
         {
           "generation": 2,
           "menu_age": 3,
-          "host_frame": 1258,
+          "host_frame": 1259,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1638,7 +1638,7 @@
         {
           "generation": 2,
           "menu_age": 20,
-          "host_frame": 1275,
+          "host_frame": 1276,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1688,7 +1688,7 @@
         {
           "generation": 3,
           "menu_age": 3,
-          "host_frame": 1348,
+          "host_frame": 1349,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1738,7 +1738,7 @@
         {
           "generation": 3,
           "menu_age": 20,
-          "host_frame": 1365,
+          "host_frame": 1366,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1788,7 +1788,7 @@
         {
           "generation": 3,
           "menu_age": 500,
-          "host_frame": 1845,
+          "host_frame": 1846,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1845,10 +1845,10 @@
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "af2e47b62c315ddf9ed05cab44842d8921bcb8c561b9cc2dcf103f1b1e8b31b7"
+        "sha256": "04943660e05a380678c4bf6197810588f81772b8be3b9eca049c2da7f86386e8"
       },
       "raw_trace": "build/runtime-wall-trace/menu-raster/atr-ff.json",
-      "first_complete_menu_frame": 549,
+      "first_complete_menu_frame": 550,
       "transitions_completed": 3,
       "pause_entries": 3,
       "pause_latch_failures": 0,
@@ -1856,7 +1856,7 @@
         {
           "generation": 0,
           "menu_age": 3,
-          "host_frame": 549,
+          "host_frame": 550,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1906,7 +1906,7 @@
         {
           "generation": 0,
           "menu_age": 20,
-          "host_frame": 566,
+          "host_frame": 567,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -1956,7 +1956,7 @@
         {
           "generation": 0,
           "menu_age": 500,
-          "host_frame": 1046,
+          "host_frame": 1047,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2006,7 +2006,7 @@
         {
           "generation": 1,
           "menu_age": 3,
-          "host_frame": 1168,
+          "host_frame": 1169,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2056,7 +2056,7 @@
         {
           "generation": 1,
           "menu_age": 20,
-          "host_frame": 1185,
+          "host_frame": 1186,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2106,7 +2106,7 @@
         {
           "generation": 2,
           "menu_age": 3,
-          "host_frame": 1258,
+          "host_frame": 1259,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2156,7 +2156,7 @@
         {
           "generation": 2,
           "menu_age": 20,
-          "host_frame": 1275,
+          "host_frame": 1276,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2206,7 +2206,7 @@
         {
           "generation": 3,
           "menu_age": 3,
-          "host_frame": 1348,
+          "host_frame": 1349,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2256,7 +2256,7 @@
         {
           "generation": 3,
           "menu_age": 20,
-          "host_frame": 1365,
+          "host_frame": 1366,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,
@@ -2306,7 +2306,7 @@
         {
           "generation": 3,
           "menu_age": 500,
-          "host_frame": 1845,
+          "host_frame": 1846,
           "screen_difference": -1,
           "charset_difference": -1,
           "display_list_difference": -1,

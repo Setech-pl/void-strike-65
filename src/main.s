@@ -12717,6 +12717,10 @@ boot_stage2_crc16:
     asl stage2_crc_lo
     rol stage2_crc_hi
     bcc :+
+    ; A taken branch that crosses a page costs one more cycle. These two run
+    ; up to eight times per CRC'd byte, over every extension record: crossing
+    ; cost about 4 ATR boot frames until boot-xex-reclaim (2026-10-01).
+    .assert >* = >:+, error, "boot_stage2_crc16 bit-loop bcc crosses a page (about +4 boot frames)"
     lda stage2_crc_lo
     eor #$21
     sta stage2_crc_lo
@@ -12726,6 +12730,7 @@ boot_stage2_crc16:
 :
     dex
     bne @bit
+    .assert >* = >@bit, error, "boot_stage2_crc16 bit-loop bne crosses a page (about +4 boot frames)"
     inc src_ptr
     bne :+
     inc src_ptr+1

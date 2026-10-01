@@ -1182,8 +1182,7 @@ boot_entry:
     ; reached), so the disk required the player to hold OPTION. Enter the game
     ; directly; DOSVEC stays published for the warm-start path and for the
     ; boot-smoke entry-identity invariant. The OS boot routine's return
-    ; addresses are abandoned on the stack, exactly as the XEX path already
-    ; abandons the binary loader's (boot_stage2_xex_entry).
+    ; addresses are abandoned on the stack.
     jmp start
 
 ; boot_entry is exactly 24 bytes, so `start` still begins at $201E. That address
@@ -1195,8 +1194,8 @@ boot_entry:
 ; `disable_basic_rom` below and is still patched into the boot header from the
 ; link map.
 
-; XEX builds use RUNAD=boot_stage2_xex_entry. Disk boot enters start directly
-; from boot_entry.
+; The disk boot is the only entry: boot_entry runs boot_stage2_atr_entry and
+; then enters start directly. The warm start enters it through DOSVEC.
 start:
     sei
 
@@ -12260,10 +12259,10 @@ boot_stage2_atr_entry:
     ; here on, so no write into it can be swallowed by a mapped ROM. (Nothing
     ; targets that window today - the chunk staging buffer is $8100 and no
     ; segment in cfg/atari-boot.cfg loads above $9FFF - the ordering makes that
-    ; structural instead of incidental.) The call sites are here and in
-    ; boot_stage2_xex_entry rather than in start because the fixed $01A3
-    ; bootstrap prefix has fewer than three bytes free; both are strictly
-    ; earlier than start, and this overlay is not part of that prefix.
+    ; structural instead of incidental.) The call site is here rather than in
+    ; start because the fixed $01A3 bootstrap prefix has fewer than three bytes
+    ; free; it is strictly earlier than start, and this overlay is not part of
+    ; that prefix.
     jsr disable_basic_rom
     jsr copy_boot_splash_blob
     jsr boot_stage2_validate_manifest
@@ -12409,23 +12408,13 @@ stage2_chunk_published:
     sta DOSVEC+1
     rts
 
-boot_stage2_xex_entry:
-    ; Owner decision A: the XEX never executes boot_entry (RUNAD lands here),
-    ; so the file path unmaps the BASIC ROM for itself, before jmp start.
-    jsr disable_basic_rom
-    jsr copy_boot_splash_blob
-    lda #$02
-    sta boot_chunk_ready
-    jmp start
-
 ; The ADR-003 splash blob runs at $0500-$06FF, the one range that is populated
 ; before the hold, untouched between `start` and `show_loader`, and dead
 ; afterwards (owner decision, 2026-09-22; plan §6.2 (a)).
-; Both entries call this immediately after disable_basic_rom: on the ATR that is
-; ahead of the first SIO read and on the XEX ahead of `jmp start`, so it is
-; earlier than every other write either medium makes. The boot order itself is
-; unchanged. Cost: 512 byte copies, about 4,000 cycles, roughly a tenth of a
-; frame, identical on both media.
+; boot_stage2_atr_entry calls this immediately after disable_basic_rom, ahead of
+; the first SIO read, so it is earlier than every other write the boot makes.
+; The boot order itself is unchanged. Cost: 512 byte copies, about 4,000 cycles,
+; roughly a tenth of a frame.
 ;
 ; The blob travels at the tail of the initial block, behind every packed source,
 ; so that the measured addresses of the packed resident, starfield, A2 and
@@ -12784,7 +12773,7 @@ boot_chunk_manifest_end:
 .assert boot_chunk_manifest_end-boot_chunk_manifest = CHUNK_MANIFEST_MAX_BYTES, error, "stage-2 manifest capacity changed"
 .assert *-__BOOT_STAGE2_RUN__ <= $0800, error, "stage-2 loader exceeds transient overlay"
 
-.export boot_stage2_atr_entry, boot_stage2_xex_entry, boot_stage2_error
+.export boot_stage2_atr_entry, boot_stage2_error
 .export copy_boot_splash_blob, boot_splash_source, boot_splash_source_high
 .export boot_chunk_manifest, boot_chunk_manifest_end, stage2_chunk_published
 .export layout_d_manifest_validation_complete
@@ -12965,9 +12954,9 @@ entity_debris_publish_after_pairshot_erase:
 ; ADR-003 boot splash (2026-09-22)
 ;
 ; The blob is a separate linked segment that loads into the BOOT_STAGE2 file
-; area, directly after the stage-2 overlay, and runs at $0500-$06FF. Both
-; stage-2 entries copy it there (copy_boot_splash_blob) before anything else
-; either medium writes. Padding it to the full window keeps that copy one fixed
+; area, directly after the stage-2 overlay, and runs at $0500-$06FF. The
+; stage-2 entry copies it there (copy_boot_splash_blob) before anything else
+; the boot writes. Padding it to the full window keeps that copy one fixed
 ; two-page loop and lets the boot smoke checksum $0500-$06FF against
 ; build/boot-splash.bin byte for byte.
 

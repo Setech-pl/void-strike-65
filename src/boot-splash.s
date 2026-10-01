@@ -9,13 +9,12 @@
 ; PLACEMENT. Every byte of $2000-$9FFF is either written between `start` and
 ; `show_loader` or is live runtime or the displayed bitmap, so no boot-only home
 ; down there survives to the hold (plan §6.1). Owner decision (2026-09-22): the
-; blob travels inside BOOT_STAGE2 and both stage-2 entries copy it to
-; $0500-$06FF immediately after `disable_basic_rom`, before the first SIO read
-; on the ATR and before `jmp start` on the XEX. $0500-$057D and $0600-$06FF are
-; free OS RAM and $057E-$05FF is the floating-point scratch this build never
-; calls; nothing in the game or in the direct-SIO sector reader writes there
-; after takeover. The boot smoke checksums the range at `start` and at `loader`
-; to prove that.
+; blob travels inside BOOT_STAGE2 and the stage-2 entry copies it to
+; $0500-$06FF immediately after `disable_basic_rom`, before the first SIO read.
+; $0500-$057D and $0600-$06FF are free OS RAM and $057E-$05FF is the
+; floating-point scratch this build never calls; nothing in the game or in the
+; direct-SIO sector reader writes there after takeover. The boot smoke checksums
+; the range at `start` and at `loader` to prove that.
 ;
 ; INITIALISED BY THE COPY. Every variable below carries its reset value in the
 ; image, so the hold needs no initialisation pass; the blob runs exactly once.

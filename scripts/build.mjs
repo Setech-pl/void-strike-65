@@ -1747,8 +1747,8 @@ async function build() {
   }
   // BOOT_SPLASH links directly behind BOOT_STAGE2 in the shared BOOT2FILE area,
   // but it is transported separately, at the tail of the initial block (see
-  // initialContentParts below), and copied to $0500-$06FF by both stage-2
-  // entries right after disable_basic_rom.
+  // initialContentParts below), and copied to $0500-$06FF by the stage-2
+  // entry right after disable_basic_rom.
   if (bootSplashRunAddress !== 0x0500 || bootSplashBytes !== 0x0200 ||
     bootSplashLoadAddress !== bootStage2LoadAddress + bootStage2Bytes ||
     bootStage2Bytes + bootSplashBytes > 0x0800 ||
@@ -2184,8 +2184,8 @@ async function build() {
   const entityStagedEndAddress = entityStagedSourceAddress + packedEntityCodeRuntime.length;
   const initialPackedSourcesEnd = entityPackedSourceAddress + packedEntityCodeRuntime.length;
   // The splash blob's transported address, patched into the two `lda abs,x`
-  // operands of copy_boot_splash_blob. Both stage-2 entries read it here, ahead
-  // of every write either medium makes, so no later stage can have touched it.
+  // operands of copy_boot_splash_blob. The stage-2 entry reads it here, ahead
+  // of every other write the boot makes, so no later stage can have touched it.
   const bootSplashSourceAddress = initialPackedSourcesEnd;
   for (const [operand, address] of [
     [bootSplashSourceOperand, bootSplashSourceAddress],
@@ -2320,7 +2320,7 @@ async function build() {
   // source. Placing it there keeps the measured addresses of the packed
   // resident, starfield, A2 and ENTITY streams - and therefore the 91-byte
   // packed-starfield margin below the pickup cold staging - exactly as they
-  // were; both stage-2 entries copy it from here to $0500 before start.
+  // were; the stage-2 entry copies it from here to $0500 before start.
   const initialContentParts = (stage2Bytes) => [
     residentPrefix, stage2Bytes, packedResidentRuntime, packedStarfieldRuntime,
     a2KernelRuntime, packedEntityCodeRuntime, bootSplashRuntime, bootPayloadTrailer,

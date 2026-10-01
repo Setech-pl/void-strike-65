@@ -3,9 +3,10 @@
 // default build may publish one: not dist/, not the distribution manifest, not
 // the runtime evidence that binds the release, not an npm script.
 //
-// `boot_stage2_xex_entry` stays inside the boot image (owner decision 5): the
-// ATR must stay byte-identical, so that ASM label is not what this file pins.
-// What it pins is the product.
+// What this file pins is the product. The retired XEX entry
+// `boot_stage2_xex_entry` was kept in the boot image by owner decision 5 of
+// that plan and reclaimed later (docs/plans/boot-xex-reclaim.md); its absence
+// is pinned by tests/boot-xex-reclaim.test.mjs, not here.
 
 import assert from "node:assert/strict";
 import fs from "node:fs";

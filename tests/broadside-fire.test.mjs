@@ -574,7 +574,10 @@ test("packed resident broadside image round-trips before the loader and stays wi
   assert.ok(starPacked.length <= 1804);
   assert.match(routine("start", "broadside_unpack_command"),
     /jsr stage_boot_streams[\s\S]+boot_chunk_ready[\s\S]+jsr unpack_resident_runtime[\s\S]+jsr unpack_entity_runtime[\s\S]+jsr stage_a2_kernel[\s\S]+jsr init_entity_effects[\s\S]+jsr unpack_loader_bitmap[\s\S]+jsr show_loader[\s\S]+jsr unpack_starfield_runtime/);
-  assert.match(routine("boot_stage2_atr_entry", "boot_stage2_xex_entry"),
+  // RE-POINTED 2026-10-01 (docs/plans/boot-xex-reclaim.md): the retired
+  // boot_stage2_xex_entry that used to close this routine is gone, so the END
+  // delimiter is the routine that follows it now. The pattern is unchanged.
+  assert.match(routine("boot_stage2_atr_entry", "copy_boot_splash_blob"),
     /jsr boot_stage2_validate_manifest[\s\S]+jsr SIOV[\s\S]+jsr boot_stage2_crc16[\s\S]+jsr broadside_unpack_command/);
 });
 

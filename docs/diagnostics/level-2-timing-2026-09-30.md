@@ -106,3 +106,39 @@ level 1's recorded 31,626.
 | capital-sector maximum | 29,538 | **29,538** |
 | capital frames E / M / H | 1,355 / 1,228 / 1,085 | **1,035 / 921 / 829** |
 | miss events / rows over 32,568 | 0 / 0 | **0 / 0** |
+
+## After roadmap 4.6 step 5 — the payload (MEASURED 2026-10-01)
+
+Build `build/level-2-s0` at `7d3697b` (branch `feat/director-step-5-payload`),
+ATR `5eacdc23043d4b6ef982ed69d88295a3c76547c4c45b5693befba25a898aed74`. Same
+three replays, same tool. Level 2 now wears its payload (docs/plans/director-4.6.md
+§8.3): the `hunter`, `escort` and `lancer` Light looks, the staggered-twin
+`PULSE` and broken-beam `LASER`, and a sky per sector. There were 0 distinct
+miss events, 0 rows over 32,568 and 0 clause failures on all three replays.
+
+| Sector | kind | EASY (`-0`) | MEDIUM (`-1`) | HARD (`-2`) |
+| ---: | --- | --- | --- | --- |
+| 1 | swarm | 7,401 @579 / 30,471 @689 | 6,121 @273 / 30,799 @122 | 6,507 @136 / 31,047 @689 |
+| 2 | elite (Bombers) | 3,087 @1807 / **31,140** @2124 | **1,615** @1515 / 30,989 @1476 | 2,632 @2061 / 30,769 @1284 |
+| 3 | capital | 7,852 @3147 / 29,540 @2949 | 8,411 @2539 / 29,440 @2537 | 11,555 @2311 / 29,193 @2353 |
+| 4 | swarm | 6,683 @4687 / 30,684 @4314 | 5,934 @4319 / 31,099 @3964 | 6,239 @4033 / 31,139 @3816 |
+| 5 | elite | 3,739 @6419 / 30,384 @6312 | 2,625 @5679 / 30,827 @5424 | 3,479 @5309 / 30,432 @5136 |
+| 6 | elite (finale) | 3,974 @10334 / 30,573 @8784 | 4,196 @7475 / 30,664 @7356 | 4,143 @6901 / 30,601 @6888 |
+| capital frames (not `SECTOR_FIGHTER`) in sector 3 | | 1,035 | 921 | 829 |
+
+**Level 2 worst after step 5: fence margin 1,615, DMA-on maximum 31,140.** The
+capital traversal lengths are unchanged to the frame. The step's code runs only
+at wave arm, admission, install, level start and sector entry, and the native
+probes in the step-5 notes show every standing Light path at or under `main`'s
+cycles, so the differences against the step-4 table are load coincidences, as
+there. The step-4 maximum (31,205, EASY s5) is gone: EASY s5 now peaks at 30,384.
+MEDIUM and HARD complete the level inside the replay, so sector 6 also counts
+its level-complete frames (748 / 1,664 not `SECTOR_FIGHTER`), which no earlier
+table listed.
+
+| | step 4 (352-row hull) | step 5 (payload) |
+| --- | ---: | ---: |
+| worst fence margin | 1,607 (MEDIUM s2 f1515) | **1,615** (same frame) |
+| DMA-on maximum | 31,205 (EASY s5 f6588) | **31,140** (EASY s2 f2124) |
+| capital-sector maximum | 29,538 | **29,540** |
+| miss events / rows over 32,568 | 0 / 0 | **0 / 0** |

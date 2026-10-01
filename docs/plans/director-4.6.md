@@ -486,7 +486,7 @@ by design; **step 3 is the first step that puts something new on screen.**
 | **2** | `feat/director-level-data` | the Director reads the core page: sectors (R4), waves (R2), caps, archetype mask (R3); `LEVEL1_DATA`, the phase machinery, both provisional schedulers, `provisional_interceptor_director_request`, `select_interceptor_request_phase` and `FIRST_CAPITAL_FRAME` retired; `CAPITAL_DUE` at the sector row; `_asm_director_dispatch_event` becomes the opcode jump table (design §2.4); the debug route (§7); replays re-scripted where the capital row moves; evidence re-recorded | T3, T4, T5, T6, T8, T10, T11; native A/B with `scripts/hybrid-director-ab.mjs` | PAL audit: worst margin ≥ 500, ≤ +100 on every row vs 991; transport rule; boot smoke | level 1 plays as before; the owner jumps to any sector with `--level=1:sector=M` |
 | **3** — **IMPLEMENTED 2026-09-30, pending owner smoke (§8.1)** | `feat/director-step-3-level-2` | the first authored variation, `level-02.json`: a different sector count, different waves, a different archetype mask per sector; `how-to-play` EN+PL only if player text changes | T12 | as step 2 (level 2 is not in the default replays; the default artifacts carry level 1 only) | **first new thing on screen**: level 2 via `--level=2` |
 | **4** — **IMPLEMENTED 2026-09-30, pending owner smoke (§8.2)** | `feat/director-step-4-hull-length` | the geometry page consumed (R1): sequences from `$AC08/$AC44`, thresholds from `$AC02`, `hull_rows`; the `BROADSIDE` sequences retired into a zero pin; `compileCapitalHulls` length/density parameters; hull-set tests re-pinned (`capital-hulls`, `hull-set-v1`, `capital-hull-extension`, `prepared-hull-row`) | T7 | initial block content ≤ 13,652 (expected to fall); boot 107; PAL audit on the capital rows | level 2 with a 352-row hull |
-| **5** | `feat/level-payload` | payload consumers: appearance slots (decision AD re-skins), `weapon_glyph[2]` install at level start, star colour and nebula per sector (21.3; `STARFIELD` run tail 348 B is the home design §10.2 lacked) | T13 | PAL audit (starfield row cost); transport rule | a re-skinned Light and a different sky on level 2 |
+| **5** — **IMPLEMENTED 2026-10-01, pending owner smoke (§8.3)** | `feat/director-step-5-payload` | payload consumers: appearance slots (decision AD re-skins), `weapon_glyph[2]` install at level start, star colour and nebula per sector (21.3; `STARFIELD` run tail 348 B is the home design §10.2 lacked) | T13 | PAL audit (starfield row cost); transport rule | a re-skinned Light and a different sky on level 2 |
 | **6** | `feat/wave-paths` | `PathDef` evaluator + 8-path resident library, `ENEMY_MOVEMENT_PATH`, volley and conditional fire (21.2; 23 §10.4 piecewise-linear, §10.5 column-aimed); a native prototype measurement of the evaluator **before** integration sets its budget | T14 | PAL audit with the swarm replays | a snake-path Interceptor swarm |
 | **7** | `docs/levels-3-12` (+ per-level `feat/` if any code is needed) | the owner authors levels 3-12 with the tool; STATUS and memory-map final figures; the campaign loop itself (level advance, lives, level select) stays **4.9** | validator, preview | — | each level via the debug route |
 
@@ -604,7 +604,7 @@ record 1 **5,583 → 5,502** packed B; `HYBRID_C_SECTOR` **187 → 215** of 248 
 before and after**. Level 2 timing before and after:
 [../diagnostics/level-2-timing-2026-09-30.md](../diagnostics/level-2-timing-2026-09-30.md).
 
-### 8.3 Step 5 notes — the payload (PLANNED 2026-10-01)
+### 8.3 Step 5 notes — the payload (IMPLEMENTED 2026-10-01, pending owner smoke)
 
 Branch `feat/director-step-5-payload` from `main` `f3e3660`. Priced as M2 in
 [budget-1.0.md](budget-1.0.md) §2, without the nebula: the owner fixed the sky
@@ -718,7 +718,7 @@ Light looks (hostile red stays the dominant colour: faction colours hold):
 | 1 | 1 | `flight-lead` | Wingman recolour: the red V with white wingtips and a white nose |
 | 2 | 1 | `hunter` | Interceptor recolour: red arms, white rotor pods, steel hub |
 | 2 | 2 | `escort` | Wingman recolour: steel inner wing edge on the red V |
-| 2 | 3 | `lancer` | Interceptor re-glyph: a downward dart, red tips, steel body, white core |
+| 2 | 3 | `lancer` | Interceptor re-glyph: a kite-shaped dart pointing down, red outline, steel body, white core |
 
 Waves that use them (composition, rows, counts and spacing unchanged):
 
@@ -765,6 +765,47 @@ block ≤ 13,652 B, ATR menu delta ≤ +7 against 596), the PAL audit (worst fen
 margin within 50 cycles of 785, DMA-on maximum within 50 of 31,121), the
 evidence regenerated, and level 2 measured through the debug route as in
 [../diagnostics/level-2-timing-2026-09-30.md](../diagnostics/level-2-timing-2026-09-30.md).
+
+**As built** (`aab002f`, `7996d28`; evidence `7d3697b`). The plan above held,
+with these differences, all MEASURED:
+
+| Segment / record | Budget (M2, no nebula) | Expected here | Actual |
+| --- | --- | ---: | ---: |
+| window C half (record 8) | 90 → 108 B, +1 sector | +68 | **+86 B** (1,283 → 1,369; `director_c_try_event` +28, `enter_sector` +9, `enemy_c_light_tick` +9, `encounter_light_admit` 40 moved in); 997 → 1,067 packed, **8 → 9 sectors** |
+| Light kernel (record 9) | 20 | +26 | **+27 B** (708 → 735): the install by pair key (+26) and `light_cell_resolve`'s in-place exit (+1, below) ; 637 → 653 packed, 6 sectors |
+| `HYBRID_C_ARENA` (record 7) | — (weapon install was budgeted in the window) | +67 | **+72 B** ASM (weapon-look tail 57, sky veneer 15); 718 → 790 of 832, **42 B free**; 649 → 712 packed, 6 sectors |
+| `HYBRID_C_EXT` (record 5) | size-neutral | −15 | **−14 B** (874 → 860; `light_admit` +26, `encounter_light_admit` −40); 747 → **735 of 747** packed; `light_pair_for_record` **124 B**, unchanged |
+| `DIRECTOR_RAM` | 20 | 0 | **0** (602 of 645) |
+| initial block | 0 | 0 | **0**: 13,621 B, 107 sectors |
+| RAM | — | 5 | **5 B** `HYBRID_LIGHT_LOOK` `$812E-$8132` |
+| transport | +1 sector, +2 menu frames | +1 / +2 | **+1 sector (208 → 209), +1 ATR menu frame (546 → 547)** |
+
+The window code total is +113 B (C +86, kernel +27), under the ~130-B line.
+The weapon install went to the arena rather than the window because the arena
+record had 98 B spare and the window record 6: it cost no sector. **Its price is
+the arena's RAM tail, 114 → 42 B: the decision-19 lever (moving
+`sector_c_update_capital_phase`, 98 B, into the arena to return one menu frame)
+no longer fits.**
+
+**Two layout effects, found by native cycle probes and fixed** (`7996d28`):
+`encounter_light_admit`, first placed ahead of `light_tick_body`, pushed a taken
+branch of the per-frame tick across a page (+1 cycle per live Light per frame),
+and the Light kernel's 112-B move put `light_cell_resolve`'s below-range exit
+across `$B600` (+1 per captured cell). The function now sits after the tick
+functions and the exit returns in place. Standing totals, `main` → step 5, from
+the same harness state: escort Wingman 60 frames 31,200 → 31,200; free Wingman
+29,238 → 29,238; Interceptor pursuit 60 frames 32,383 → 32,337; `light_publish`
+×20 16,799 → 16,759; `light_shot` ×20 6,120 → 6,120; resolver 85 → 84; Bomber
+member update ×600 268,573 → 268,149. Event costs: `director_init` 1,384 →
+1,454; a Heavy spawn with its escort 1,695 → 1,730; an install frame 976 → 997.
+
+**Gates.** PAL audit over 48 + 8 replays: 0 miss events, 0 rows over 31,200 or
+32,568; worst fence margin **788** (`director-complete-2` f5815, `main` 785, same
+row); DMA-on maximum **31,133** (`main` 31,121). Clause failures: the same 3
+recorded contact sessions. Mode-gated: formation, sector and remnant PASS; the
+debris gate FAILs on the same single owner-accepted blank (gameplay frames
+3,782-3,794, identical summary). Level 2: worst margin 1,615, maximum 31,140
+([../diagnostics/level-2-timing-2026-09-30.md](../diagnostics/level-2-timing-2026-09-30.md)).
 
 ---
 

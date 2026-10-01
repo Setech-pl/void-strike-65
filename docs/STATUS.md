@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-01 (trace-clause-repairs)
+Last update: 2026-10-01 (director-step-5-payload)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -330,6 +330,94 @@ owner smoke PASS 2026-09-18); before it `b4b942e` (XEX
 owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
+
+## Roadmap 4.6 step 5 — the payload: Light looks, weapon looks, a sky per sector — `OWNER-SMOKE CANDIDATE` (2026-10-01)
+
+Plan, placement, data and the as-built record:
+[plans/director-4.6.md](plans/director-4.6.md) §8.3. Branch
+`feat/director-step-5-payload` from `main` `f3e3660`. Priced as budget-1.0 M2
+without the nebula (owner: sky variant S2 only).
+
+**What the player sees.**
+
+* **A sky per sector** (budget variant S2): the near-star pixel value, patched
+  into the star publish operand on the frame the Director enters a sector -
+  white `COLPF0`, the allied steel `COLPF1` or yellow `COLPF2`; no palette
+  register is touched. One rule for both levels: capital sector steel, last
+  sector yellow, every other sector white. Level 1: white, steel, white,
+  yellow. Level 2: white, white, steel, white, white, yellow.
+* **Light appearance variants** (decision AD): a wave's `wave_flags` bits 0-1
+  pick the archetype's art or one of three 16-B payload looks; a Heavy wave's
+  look re-skins its Light escort. Behaviour, HP, fire and score stay the
+  archetype's. Level 1: one wave - sector 3's last (row 576), its Wingman
+  escorts wear `flight-lead` (white wingtips and nose). Level 2: `hunter`
+  (Interceptor recolour), `escort` (Wingman with a steel inner edge),
+  `lancer` (Interceptor re-glyph, a kite-shaped dart).
+* **Hostile weapon looks**, level 2 only: `PULSE` a staggered twin pulse,
+  `LASER` a broken beam, laid over the defaults at level start. `BOMBER`
+  keeps its shell. Level 1's fire is unchanged.
+* Level 1's waves, rows, counts and timing are unchanged. `how-to-play` EN/PL
+  say that a re-skinned enemy is still its type and that the star colour only
+  marks the sector.
+
+**How.** Pairs are keyed on the look they were admitted for
+(`light_pair_key[3]`), so the tick's per-frame compare keeps its 24 cycles;
+`light_pair_for_record` changes two operands and stays 124 B;
+`encounter_light_admit` moves to the window so the full extension record 5
+shrinks; the weapon looks are a tail of `build_hostile_weapon_glyphs` (arena);
+the sky is `_asm_publish_star_pixel` (arena), called from `enter_sector` only,
+writing an address `src/main.s` asserts at link time. Five bytes of RAM,
+`HYBRID_LIGHT_LOOK` `$812E-$8132`.
+
+| | `main` `f3e3660` | this branch | source |
+| --- | ---: | ---: | --- |
+| worst line-238 fence margin | 785 (`director-complete-2` f5815) | **788**, same row and frame | standalone PAL audit, 48 + 8 replays, 0 miss events, 0 rows over 31,200 |
+| DMA-on maximum / physical headroom | 31,121 / 4,447 | **31,133 / 4,435** | `docs/runtime-wall-trace.json` |
+| DLI per host frame / sequence violations | 2 / 0 | **2 / 0** | same, `gate.memory_integrity` |
+| behavioural clause failures | 3 | **3**, the same contact sessions | [recorded-gate-failures.json](recorded-gate-failures.json) |
+| mode-gated: formation / sector / remnant / debris | PASS / PASS / PASS / FAIL (1 blank) | **PASS / PASS / PASS / FAIL**, the same blank, identical summary | mode-gated reports |
+| `npm test` (default build) | 885 / 882 / 3 | **897 tests**; one full run 891 pass / 6 fail, of which 3 recorded; the 3 new were repaired after it (below) and pass in focused re-runs | `npm test`; [recorded-test-failures.json](recorded-test-failures.json) |
+| initial block / boot sectors | 13,621 B / 107 | **13,621 B / 107** | `build/manifest.json` |
+| extension / total transport sectors | 101 / 208 | **102 / 209** (record 8, the window C half, 8 → 9) | same |
+| ATR menu frame (baseline 596) | 546 | **547** (−49) | boot smoke |
+| `$AE00` window used / free | 1,991 / 1,593 | **2,104 / 1,480** | `residentCapacity.basicWindow` |
+| `HYBRID_C_ARENA` used / free | 718 / 114 | **790 / 42** | `residentCapacity.arena` |
+| `HYBRID_C_EXT` composite / record 5 packed | 874 / 747 of 747 | **860 / 735 of 747** | `directorCodeRuntimes` |
+| `DIRECTOR_RAM` | 602 / 645 | **602 / 645** | map |
+| ATR SHA-256 | `af2e47b6…` | **`04943660e05a380678c4bf6197810588f81772b8be3b9eca049c2da7f86386e8`** | `dist/` |
+| boot SHA-256 | `06d2f256…` | **`c303c33f347280520f4c466e2889f6d849aa3b126c439de3cefe0d62165d8427`** | `dist/` |
+| level 2 worst margin / maximum (diagnostic) | 1,607 / 31,205 (step 4) | **1,615 / 31,140** | [diagnostics/level-2-timing-2026-09-30.md](diagnostics/level-2-timing-2026-09-30.md) |
+
+**No standing per-frame cost**, MEASURED natively on both builds: escort
+Wingman, free Wingman, Interceptor pursuit, Light publish and shot scan, the
+cell resolver and the Bomber member update are equal to or cheaper than
+`main`. Two layout effects that first added a cycle each were found that way
+and fixed (plan §8.3).
+
+**Tests the step re-pointed, each with its reason in the test:** size pins in
+`basic-window-capacity`, `level-buffer-16`, `hybrid-c-arena`,
+`hybrid-lifecycle`, `light-interceptor`, `fighter-weapons` (the builder's
+bytes) and `level-compiler` (the payload page is no longer zero);
+`effects-stagger` (resolver peak 1,071 → 1,068); `light-multiplicity` (its
+negative control now constructs the install that `main`'s Wingman/Interceptor
+pair ping-pong supplied by accident - threshold unchanged); two source slices
+in `light-interceptor`. **Harness repaired, class (b):** the colour-lifecycle
+trace in `scripts/weapon-pickup-runtime.mjs` read hostile slot 10, past the
+5 + 5 pool, i.e. an arena code byte; it now reads slot 5 and passes on `main`
+and here. `docs/menu-raster-trace.json` regenerated for the new ATR (masked
+raster still `cfc72f31…`).
+
+**Recorded test failures, unchanged by name:** `github-showcase` (D),
+`preview` (C), `runtime-wall-trace` "ten heaviest frames…" (D). 0 new,
+0 disappeared.
+
+**Budget consequence.** The arena's free tail fell 114 → 42 B, so the
+decision-19 lever (`sector_c_update_capital_phase` into the arena for one menu
+frame) no longer fits; with the menu at −49 it is not needed now.
+
+**Owed by the owner.** The smoke: the sky changing at sector boundaries on
+levels 1 and 2; the `flight-lead` escorts in level 1's sector 3; the three
+Light looks and the two weapon looks on level 2; nothing else changed.
 
 ## trace-clause-repairs — recorded clauses 16 → 3, recorded tests 5 → 3 — `OWNER REVIEW CANDIDATE` (2026-10-01)
 

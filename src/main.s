@@ -58,6 +58,9 @@ CAPITAL_PLAYER_COLLISION = $8B67
 DOSVEC      = $000A
 APPMHI      = $0014
 BASICF      = $03F8         ; OS BASIC flag: 0 = enabled, non-zero = disabled
+SDMCTL      = $022F         ; OS shadow of DMACTL, copied by the OS VBI
+COLOR2      = $02C6         ; OS shadow of COLPF2
+COLOR4      = $02C8         ; OS shadow of COLBK
 VDSLST      = $0200
 MEMLO       = $02E7
 SIOV        = $E459
@@ -12265,6 +12268,18 @@ boot_stage2_atr_entry:
     ; that prefix.
     jsr disable_basic_rom
     jsr copy_boot_splash_blob
+    ; boot-loading-blank-screen (2026-10-01): blank the display before the
+    ; first SIO read. The OS VBI is still live and still shows its own screen,
+    ; whose display list sits at $9C20 whenever the OS cold start left BASIC
+    ; mapped - every default boot and every RESET - and the records loaded
+    ; below land on $9B40-$9FCE, so ANTIC used to display them as garbage. The
+    ; VBI copies these shadows at the next vertical blank: DMA off, and the
+    ; whole screen in the blue the OS was showing. X = 0 here: the splash copy
+    ; loop only exits when X wraps. `start` keeps DMA off; the splash writes
+    ; its own COLBK before it turns the display on.
+    stx SDMCTL
+    lda COLOR2
+    sta COLOR4
     jsr boot_stage2_validate_manifest
 layout_d_manifest_validation_complete:
     lda #<(boot_chunk_manifest+CHUNK_RECORD)
@@ -12434,6 +12449,7 @@ boot_splash_source_high:
     sta __BOOT_SPLASH_RUN__+$0100,x
     inx
     bne boot_splash_copy_page
+    ; Returns with X = 0, which boot_stage2_atr_entry stores into SDMCTL.
     rts
 
 boot_stage2_validate_manifest:

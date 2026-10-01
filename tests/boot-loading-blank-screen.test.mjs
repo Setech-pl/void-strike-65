@@ -72,8 +72,9 @@ test("the blanking costs 9 bytes of the initial block and no sector", () => {
 test("the committed boot smoke shows no characters before the splash, on every path", () => {
   const smoke = JSON.parse(read("docs", "runtime-wall-trace.json")).boot_smoke;
   assert.match(smoke.blank_window_rule, /at most 64 visible pixels/);
+  // The harness allows one 8x8 cell; MEASURED, no frame of any path uses it.
   const clean = (window) => window.start > window.from && window.frames > 0 &&
-    window.dirty_frames === 0 && window.worst_stray_pixels <= 64;
+    window.dirty_frames === 0 && window.worst_stray_pixels === 0;
   // BASIC enabled and disabled, both cold RAM fills.
   assert.deepEqual([...new Set(smoke.sessions.map(({ basic_enabled }) => basic_enabled))],
     [false, true]);

@@ -9,7 +9,7 @@
     "layout": "Hybrid cc65 C Director + stable ca65 ABI veneer",
     "levelWorldRows": 3712,
     "phaseCount": 8,
-    "initialContentBytes": 13612,
+    "initialContentBytes": 13621,
     "linkedRuntimeBytes": 17491,
     "simultaneousResidencyBytes": 21228,
     "safeResidencyBytes": 959,
@@ -151,7 +151,7 @@
   "bootSectors": 107,
   "payloadBytes": 26624,
   "bootPayloadTrailer": {
-    "address": 21800,
+    "address": 21809,
     "bytes": 4,
     "ascii": "DFB1",
     "hex": "44464231",
@@ -221,8 +221,8 @@
   "transportCapacity": {
     "format": "DFMC-v1 multi-chunk",
     "initialBootBytes": 13696,
-    "initialBootContentBytes": 13612,
-    "initialBootEnvelopeBytes": 84,
+    "initialBootContentBytes": 13621,
+    "initialBootEnvelopeBytes": 75,
     "initialBootSectors": 107,
     "extensionBytes": 12928,
     "extensionSectors": 101,
@@ -243,13 +243,13 @@
     "stage2": {
       "runAddress": 8641,
       "loadAddress": 31232,
-      "bytes": 1323,
+      "bytes": 1332,
       "overwrittenByResidentSuffix": true
     },
     "bootSplash": {
       "runAddress": 1280,
-      "loadAddress": 32555,
-      "transportAddress": 21288,
+      "loadAddress": 32564,
+      "transportAddress": 21297,
       "bytes": 512,
       "codeBytes": 510,
       "immutableAddress": 1301,
@@ -291,7 +291,7 @@
       ]
     },
     "manifest": {
-      "address": 9774,
+      "address": 9783,
       "bytes": 190,
       "crc16": 58959,
       "parsed": {
@@ -434,7 +434,7 @@
     "suffixAddress": 8641,
     "suffixRawBytes": 7743,
     "suffixPackedBytes": 6567,
-    "packedSourceAddress": 9964,
+    "packedSourceAddress": 9973,
     "stagingAddress": 33024,
     "stagedEndAddress": 39590,
     "compression": "LZ-10/5"
@@ -747,10 +747,10 @@
     "bytes": 2039,
     "reservedBytes": 2348,
     "packedBytes": 1750,
-    "packedSourceAddress": 16531,
-    "packedSourceEndExclusive": 18281,
+    "packedSourceAddress": 16540,
+    "packedSourceEndExclusive": 18290,
     "pickupColdStagingAddress": 18433,
-    "packedSourceToPickupMarginBytes": 152,
+    "packedSourceToPickupMarginBytes": 143,
     "stagingAddress": 30736,
     "stagingBytes": 1920,
     "compression": "LZ-10/5, two independent streams expanded into one continuous destination",
@@ -763,7 +763,7 @@
         "rawOffset": 0,
         "rawBytes": 1017,
         "packedBytes": 944,
-        "packedSourceAddress": 16531,
+        "packedSourceAddress": 16540,
         "stagingAddress": 30736,
         "stagingCapacityBytes": 960,
         "stagingEndExclusive": 31696,
@@ -777,7 +777,7 @@
         "rawOffset": 1017,
         "rawBytes": 1022,
         "packedBytes": 806,
-        "packedSourceAddress": 17475,
+        "packedSourceAddress": 17484,
         "stagingAddress": 33274,
         "stagingCapacityBytes": 960,
         "stagingEndExclusive": 34234,
@@ -804,7 +804,7 @@
   "a2Kernel": {
     "loadAddress": 27136,
     "runAddress": 36864,
-    "sourceAddress": 18281,
+    "sourceAddress": 18290,
     "stagingAddress": 32555,
     "bytes": 237,
     "reservedBytes": 256,
@@ -865,14 +865,14 @@
       }
     },
     "packedBytes": 2770,
-    "packedSourceAddress": 18518,
-    "initialPackedSourcesEndExclusive": 21288,
-    "initialPackedSourcesLastAddress": 21287,
+    "packedSourceAddress": 18527,
+    "initialPackedSourcesEndExclusive": 21297,
+    "initialPackedSourcesLastAddress": 21296,
     "stagedSourceAddress": 21272,
     "stagedEndAddress": 24041,
     "stagedEndExclusive": 24042,
-    "sourceToStagingMarginBytes": -16,
-    "sourceStagingOverlapBytes": 16,
+    "sourceToStagingMarginBytes": -25,
+    "sourceStagingOverlapBytes": 25,
     "stagingCopyDirection": "backward",
     "stagingToBroadsideMarginBytes": 38,
     "stagingLifecycle": {
@@ -23575,11 +23575,11 @@
     "estimated_additive_cycles": 28489,
     "wallTrace": {
       "reportPath": "docs/runtime-wall-trace.json",
-      "reportSha256": "ad0ac15d30152d7b418e37b19a7c4a17afedfce6ae20ca257a9b558474cb8041",
+      "reportSha256": "a936b0cdee5a304f4c6e844cd756e3d9e95730b09818ca2308e6a1f2d749f200",
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "1c3ad1b37149cb1c51b19bb356698ff663df17747eac0762feae7be6ea9b3314"
+        "sha256": "af2e47b62c315ddf9ed05cab44842d8921bcb8c561b9cc2dcf103f1b1e8b31b7"
       },
       "emulator": {
         "name": "Atari800",
@@ -23696,20 +23696,20 @@
             "wall_cycles": 30560,
             "physical_headroom": 5008,
             "start": {
-              "clock": 230091487,
-              "host_frame": 6469,
+              "clock": 228241951,
+              "host_frame": 6417,
               "scanline": 18,
               "cycle": 43
             },
             "end": {
-              "clock": 230122047,
-              "host_frame": 6469,
+              "clock": 228272511,
+              "host_frame": 6417,
               "scanline": 286,
               "cycle": 51
             },
             "next_start": {
-              "clock": 230127043,
-              "host_frame": 6470
+              "clock": 228277507,
+              "host_frame": 6418
             },
             "host_vbi_boundaries": 0,
             "extra_vbi_boundaries": 0,
@@ -23975,20 +23975,20 @@
             "wall_cycles": 30127,
             "physical_headroom": 5441,
             "start": {
-              "clock": 32724671,
-              "host_frame": 920,
+              "clock": 30875135,
+              "host_frame": 868,
               "scanline": 18,
               "cycle": 59
             },
             "end": {
-              "clock": 32754798,
-              "host_frame": 920,
+              "clock": 30905262,
+              "host_frame": 868,
               "scanline": 282,
               "cycle": 90
             },
             "next_start": {
-              "clock": 32760223,
-              "host_frame": 921
+              "clock": 30910687,
+              "host_frame": 869
             },
             "host_vbi_boundaries": 0,
             "extra_vbi_boundaries": 0,
@@ -25171,25 +25171,25 @@
       "void-strike-65-boot.bin": {
         "path": "dist/void-strike-65-boot.bin",
         "bytes": 26624,
-        "sha256": "549387abf385562cf3a7ca7cbfef8d5885709add9a5e6bb20cee006034ac366e"
+        "sha256": "06d2f25665a17c0858c92245f257d6d339858149a5ed4679919d120d6eb4d80a"
       },
       "void-strike-65.atr": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
-        "sha256": "1c3ad1b37149cb1c51b19bb356698ff663df17747eac0762feae7be6ea9b3314"
+        "sha256": "af2e47b62c315ddf9ed05cab44842d8921bcb8c561b9cc2dcf103f1b1e8b31b7"
       }
     },
     "reportPath": "docs/runtime-wall-trace.json",
-    "reportSha256": "ad0ac15d30152d7b418e37b19a7c4a17afedfce6ae20ca257a9b558474cb8041"
+    "reportSha256": "a936b0cdee5a304f4c6e844cd756e3d9e95730b09818ca2308e6a1f2d749f200"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {
       "bytes": 26624,
-      "sha256": "549387abf385562cf3a7ca7cbfef8d5885709add9a5e6bb20cee006034ac366e"
+      "sha256": "06d2f25665a17c0858c92245f257d6d339858149a5ed4679919d120d6eb4d80a"
     },
     "void-strike-65.atr": {
       "bytes": 92176,
-      "sha256": "1c3ad1b37149cb1c51b19bb356698ff663df17747eac0762feae7be6ea9b3314"
+      "sha256": "af2e47b62c315ddf9ed05cab44842d8921bcb8c561b9cc2dcf103f1b1e8b31b7"
     }
   }
 }

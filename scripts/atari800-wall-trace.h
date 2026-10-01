@@ -1045,6 +1045,42 @@ static unsigned dfboot_checksum(unsigned address, unsigned length)
 	return value;
 }
 
+/* boot-loading-blank-screen (2026-10-01): from power-on, and from the first
+ * frame drawn after a RESET (window 1), until the splash turns its display on
+ * after `start`, a drawn frame may show at most one 8x8 cell (the OS cursor of
+ * the clean -nobasic boot) outside its two most frequent colours. */
+typedef struct { unsigned from, frames, dirty, first_dirty, worst, start; } DFBootBlank;
+static DFBootBlank dfboot_blank[2] = {{1u, 0u, 0u, 0u, 0u, 0xffffffffu}};
+static unsigned dfboot_blank_phase, dfboot_blank_closed, dfboot_reset_frame;
+int voidstrike65_warmstart_request; /* the prepared atari.c reads it */
+
+static void dfboot_blank_observe(unsigned frame)
+{
+	DFBootBlank *w = &dfboot_blank[dfboot_blank_phase];
+	unsigned counts[256] = {0}, first = 0u, second, stray = 0u, i;
+	int x, y;
+	char name[FILENAME_MAX];
+	if (dfboot_blank_closed || frame < w->from)
+		return;
+	if ((dfboot_blank_closed = w->start != 0xffffffffu && ANTIC_DMACTL != 0u))
+		return;
+	for (y = Screen_visible_y1; y < Screen_visible_y2; ++y)
+		for (x = Screen_visible_x1; x < Screen_visible_x2; ++x)
+			++counts[((const UBYTE *) Screen_atari)[(size_t) y * Screen_WIDTH + x]];
+	for (i = 0u; i < 256u; ++i) if (counts[i] > counts[first]) first = i;
+	for (second = first == 0u, i = 0u; i < 256u; ++i)
+		if (i != first && counts[i] > counts[second]) second = i;
+	for (i = 0u; i < 256u; ++i) if (i != first && i != second) stray += counts[i];
+	++w->frames;
+	w->worst = stray > w->worst ? stray : w->worst;
+	if (stray > 64u && w->dirty++ == 0u) {
+		w->first_dirty = frame - 1u;
+		snprintf(name, sizeof(name), "%s-dirty%u-frame%04u.png",
+			dfboot_screenshot_prefix, dfboot_blank_phase, frame - 1u);
+		Screen_SaveScreenshot(name, 0);
+	}
+}
+
 static int dfboot_target_frame(unsigned frame)
 {
 	if (dfboot_seen_loader != 0xffffffffu &&
@@ -1172,7 +1208,16 @@ static void dfboot_write(void)
 			entry->frame, entry->scanline, entry->audf1, entry->audc1,
 			entry->colpf1, entry->colpf2, entry->colbk);
 	}
-	fprintf(dfboot_file, "]},\n");
+	fprintf(dfboot_file, "]},\n  \"blank_windows\": [");
+	for (index = 0; index <= dfboot_blank_phase; ++index)
+		fprintf(dfboot_file, "%s{\"from\":%u,\"frames\":%u,\"dirty_frames\":%u,"
+			"\"first_dirty\":%d,\"worst_stray_pixels\":%u,\"start\":%d}",
+			index == 0u ? "" : ",", dfboot_blank[index].from, dfboot_blank[index].frames,
+			dfboot_blank[index].dirty, dfboot_blank[index].dirty == 0u ? -1 :
+			(int) dfboot_blank[index].first_dirty, dfboot_blank[index].worst,
+			(int) dfboot_blank[index].start);
+	fprintf(dfboot_file, "],\n  \"reset_frame\": %d,\n  \"blank_closed\": %u,\n",
+		dfboot_blank_phase == 0u ? -1 : (int) dfboot_reset_frame, dfboot_blank_closed);
 	fprintf(dfboot_file,
 		"  \"milestones\": {\"start\":%u,\"loader\":%u,\"menu\":%u,"
 		"\"frontend_poll\":%u,\"gameplay_init\":%u,\"main_loop\":%u}\n}\n",
@@ -1225,6 +1270,8 @@ static void dfboot_init(void)
 	dfboot_pc_sio_frame = dfboot_env_u("DFBOOT_PC_SIO_FRAME");
 	dfboot_pc_sio_retry = dfboot_env_u("DFBOOT_PC_SIO_RETRY");
 	dfboot_pc_level_load = dfboot_env_u("DFBOOT_PC_LEVEL_LOAD");
+	/* Host decoration drawn into the frame buffer, not Atari output. */
+	Screen_show_disk_led = FALSE;
 	dfboot_initialised = 1;
 }
 
@@ -1286,6 +1333,21 @@ static void dfboot_observe(unsigned pc, unsigned a_register, unsigned x_register
 			MEMORY_mem[0x8e63u], MEMORY_mem[0x8e64u]);
 		exit(2);
 	}
+	if (pc == dfboot_pc_start && dfboot_blank[dfboot_blank_phase].start == 0xffffffffu)
+		dfboot_blank[dfboot_blank_phase].start = frame;
+	/* After the RESET only the blank window is observed: the reboot re-runs
+	 * the OS and the splash, whose PCs and DLIs would pollute the counters. */
+	if (dfboot_blank_phase == 1u) {
+		if (frame != dfboot_last_frame) {
+			dfboot_last_frame = frame;
+			dfboot_blank_observe(frame);
+			if (dfboot_blank_closed || frame > dfboot_reset_frame + DFBOOT_GAMEPLAY_FRAME) {
+				dfboot_write();
+				exit(0);
+			}
+		}
+		return;
+	}
 	if (MEMORY_mem[dfboot_game_state] == 0u && pc == dfboot_word(0x0200u)) {
 		++dfboot_loader_dli_count;
 		if (dfboot_splash_dli_count < DFBOOT_SPLASH_DLI_LOG) {
@@ -1337,8 +1399,19 @@ static void dfboot_observe(unsigned pc, unsigned a_register, unsigned x_register
 	GTIA_TRIG[0] = (UBYTE) (frame >= fire_start && frame <= fire_start + 5u ? 0 : 1);
 	if (frame != dfboot_last_frame) {
 		dfboot_last_frame = frame;
+		dfboot_blank_observe(frame);
 		if (dfboot_target_frame(frame))
 			dfboot_capture(frame, pc);
+		if (frame > DFBOOT_GAMEPLAY_FRAME && getenv("DFBOOT_RESET") != NULL) {
+			/* RESET during gameplay: the warm start runs before the next frame
+			 * is drawn, so window 1 starts with the frame after it. */
+			dfboot_reset_frame = frame;
+			voidstrike65_warmstart_request = 1;
+			dfboot_blank_closed = 0u;
+			dfboot_blank_phase = 1u;
+			dfboot_blank[1] = (DFBootBlank) {frame + 2u, 0u, 0u, 0u, 0u, 0xffffffffu};
+			return;
+		}
 		if (frame > DFBOOT_GAMEPLAY_FRAME) {
 			dfboot_write();
 			fflush(NULL);

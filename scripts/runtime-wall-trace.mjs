@@ -1335,6 +1335,18 @@ function prepareAtari800(sourceDirectory) {
       `${executeAnchor}\t\tDFTrace_Observe(GET_PC(), A, X, Y, S);\n`);
   }
   fs.writeFileSync(cpuPath, cpuText);
+  // The boot smoke's RESET session: the observer raises a flag, and the frame
+  // loop turns it into the emulator's own warm-start key before its key switch.
+  const atariPath = path.join(sourceDirectory, "src", "atari.c");
+  let atariText = fs.readFileSync(atariPath, "utf8");
+  if (!atariText.includes("voidstrike65_warmstart_request")) {
+    const keyAnchor = "\tswitch (INPUT_key_code) {\n\tcase AKEY_COLDSTART:";
+    invariant(atariText.includes(keyAnchor), "Atari800 atari.c key switch anchor changed");
+    atariText = atariText.replace(keyAnchor, "\t{ extern int voidstrike65_warmstart_request;\n" +
+      "\t\tif (voidstrike65_warmstart_request) { voidstrike65_warmstart_request = 0; " +
+      "INPUT_key_code = AKEY_WARMSTART; } }\n" + keyAnchor);
+    fs.writeFileSync(atariPath, atariText);
+  }
 
   if (!fs.existsSync(path.join(sourceDirectory, "Makefile"))) {
     invariant(fs.existsSync(configurePath), `Atari800 configure is missing: ${configurePath}`);
@@ -1942,7 +1954,13 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
     }
   }
 
-  const sessions = definitions.map((definition) => {
+  // boot-loading-blank-screen (2026-10-01): RESET during gameplay. The OS
+  // turns it into a cold start (COLDST stays $FF: the boot never returns to
+  // it) and, OPTION being up, maps BASIC, so this is the reboot the player gets.
+  const nobasic = definitions.find(({ basic, fill }) => !basic && fill === 0xa5);
+  definitions.push({ ...nobasic, id: `${nobasic.id}-reset`, reset: true });
+
+  const allSessions = definitions.map((definition) => {
     const outputPath = path.join(outputDirectory, `${definition.id}.json`);
     const screenshotPrefix = path.join(outputDirectory, definition.id);
     run(emulatorPath, definition.arguments, {
@@ -1954,6 +1972,7 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
         DFBOOT_ARTIFACT: definition.id,
         DFBOOT_RAM_FILL: String(definition.fill),
         DFBOOT_SCREENSHOT_PREFIX: screenshotPrefix,
+        ...(definition.reset ? { DFBOOT_RESET: "1" } : {}),
       },
     });
     const result = JSON.parse(fs.readFileSync(outputPath, "utf8"));
@@ -2231,9 +2250,26 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
       boot_deadline: bootDeadlineResult,
       sector_reader: sectorReaderResult,
       screenshots,
+      reset: definition.reset === true,
+      reset_frame: result.reset_frame,
+      blank_windows: result.blank_windows,
       passed: true,
     };
   });
+  // Every window must run from its first frame to the splash, through `start`,
+  // with no dirty frame. Checked after every session ran, so one report names
+  // every path that shows garbage.
+  const blankFailures = allSessions.flatMap(({ id, reset, blank_windows: windows }) =>
+    windows.length !== (reset ? 2 : 1) ? [`${id}: ${windows.length} blank windows`] :
+      windows.flatMap((window, index) => window.start < 0 || window.frames === 0 ||
+        window.dirty_frames !== 0 ? [`${id} window ${index} (from frame ${window.from}, ` +
+        `start ${window.start}): ${window.dirty_frames} of ${window.frames} frames show ` +
+        `characters, first at frame ${window.first_dirty}, worst ${window.worst_stray_pixels} ` +
+        "stray pixels"] : []));
+  invariant(blankFailures.length === 0,
+    `Boot smoke: frames before the splash are not blank:\n  ${blankFailures.join("\n  ")}`);
+  const sessions = allSessions.filter(({ reset }) => !reset);
+  const resetSessions = allSessions.filter(({ reset }) => reset);
 
   const gameplayScreenshots = sessions.map((session) => ({
     artifact: session.artifact,
@@ -2297,6 +2333,10 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
       baseline_path: bootDeadlineRelativePath,
     },
     sessions,
+    reset_sessions: resetSessions,
+    blank_window_rule: "every frame from power-on, and from the frame after RESET, " +
+      "until the splash display after start: at most 64 visible pixels (one 8x8 cell, " +
+      "the OS cursor) outside the frame's two most frequent colours",
     gameplay_frame_sha256: gameplayScreenshots,
     passed: sessions.every(({ passed }) => passed),
   };
@@ -2911,7 +2951,8 @@ function main() {
   const bootSmoke = skipBootSmoke || layout.variant !== null ? null :
     runBootSmoke({ emulatorPath, labels, atrPath, manifest });
   if (bootSmoke !== null)
-    console.log(`Boot smoke: ${bootSmoke.sessions.length} ATR cold-start sessions passed`);
+    console.log(`Boot smoke: ${bootSmoke.sessions.length} ATR cold-start sessions and ` +
+      `${bootSmoke.reset_sessions.length} RESET session passed`);
   if (bootSmokeOnly) {
     invariant(bootSmoke !== null, "--boot-smoke-only cannot be combined with --skip-boot-smoke");
     console.log(`Report: ${path.relative(rootDirectory,

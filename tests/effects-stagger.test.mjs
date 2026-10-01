@@ -60,7 +60,11 @@ test("PairShot and generic-effect backing resolvers stay below the local fix cei
   // RE-PINNED 2026-10-01 (recorded failures review, A10): the measured peak is 1,071 cycles
   // (was 1,032; delta over the 822-cycle baseline 249, was 210). The ceiling
   // below, 300 over the baseline, is the gate and is unchanged.
-  assert.equal(peak, 1071);
-  assert.equal(peak - 822, 249);
+  // RE-PINNED 2026-10-01, roadmap 4.6 step 5 (docs/plans/director-4.6.md
+  // §8.3): 1,071 -> 1,068. light_cell_resolve's below-range exit now returns
+  // in place instead of branching to a far rts - one cycle less per captured
+  // cell, three captures on the peak frame. Delta over the baseline 246.
+  assert.equal(peak, 1068);
+  assert.equal(peak - 822, 246);
   assert.ok(peak - 822 < 300);
 });

@@ -998,7 +998,14 @@ export function executePlayerFighterProjectileColourTrace({
   });
   runRoutine(memory, labels, "erase_fighter_projectile_overlays");
   memory.fill(0, active, active + 19);
-  const interceptorSlot = 10;
+  // The first HOSTILE slot. Repaired 2026-10-01 (roadmap 4.6 step 5, class (b)
+  // observer error): this was the literal 10, left over from the 15-slot pool
+  // (10 player + 5 hostile). The pool is 5 + 5 now, so slot 10 indexed one past
+  // every FIGHTER_PROJECTILE_* array: the render ignored it and the "screen
+  // address" was SCREEN_LO/HI bytes of the next array, which named $7D82, an
+  // HYBRID_C_ARENA code byte. It read $C9 (>= $80, "COLPF3") until step 5 grew
+  // the arena and it became $29. The slot now follows the pool.
+  const interceptorSlot = manifest.fighterWeapons.player_fighter.poolSlots;
   memory[active + interceptorSlot] = 2;
   setProjectile(interceptorSlot, 100);
   runRoutine(memory, labels, "render_fighter_projectile_overlays");
@@ -1139,7 +1146,14 @@ export function executePlayerFighterProjectileColourLifecycleTrace({
   captures.push(capturePlayerFighter("NEW_GAME"));
 
   runRoutine(memory, labels, "clear_player_fighter_projectiles");
-  const interceptorSlot = 10;
+  // The first HOSTILE slot. Repaired 2026-10-01 (roadmap 4.6 step 5, class (b)
+  // observer error): this was the literal 10, left over from the 15-slot pool
+  // (10 player + 5 hostile). The pool is 5 + 5 now, so slot 10 indexed one past
+  // every FIGHTER_PROJECTILE_* array: the render ignored it and the "screen
+  // address" was SCREEN_LO/HI bytes of the next array, which named $7D82, an
+  // HYBRID_C_ARENA code byte. It read $C9 (>= $80, "COLPF3") until step 5 grew
+  // the arena and it became $29. The slot now follows the pool.
+  const interceptorSlot = manifest.fighterWeapons.player_fighter.poolSlots;
   memory[active + interceptorSlot] = 2;
   memory[xAddress + interceptorSlot] = 124;
   memory[yAddress + interceptorSlot] = 100;

@@ -61,10 +61,10 @@ test("the window has room for the Director: the free tail is four digits", () =>
   assert.ok(basicWindow.freeBytes >= 1000,
     `the BASIC window reports ${basicWindow.freeBytes} free bytes; 4.7's boss ` +
     `controller needs 300-500 of them`);
-  // Re-recorded 2026-10-01, roadmap 4.6 step 5 (plan §8.3): 1,593 -> 1,481.
-  // The payload's window share is 112 B - 86 in the C half (40 of them
-  // encounter_light_admit, moved in from HYBRID_C_EXT) and 26 in the kernel.
-  assert.equal(basicWindow.freeBytes, 1481,
+  // Re-recorded 2026-10-01, roadmap 4.6 step 5 (plan §8.3): 1,593 -> 1,480.
+  // The payload's window share is 113 B - 86 in the C half (40 of them
+  // encounter_light_admit, moved in from HYBRID_C_EXT) and 27 in the kernel.
+  assert.equal(basicWindow.freeBytes, 1480,
     "the delivered step-5 figure, re-recorded so a silent change is visible");
   // The tail is still the kernel link's tail, not an independent figure.
   assert.equal(basicWindow.freeBytes, lightKernel.freeBytes);

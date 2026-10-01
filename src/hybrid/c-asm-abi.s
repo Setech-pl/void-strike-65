@@ -335,8 +335,8 @@ light_pair_key = _light_pair_key
 ; publish draws the star from the immediate operand of its `lda #$10`, in the
 ; STARFIELD segment of the main link. This link is built BEFORE main, so it
 ; cannot import the label: the address is declared here, exported through
-; build/director-abi.inc, and src/main.s asserts at link time that its label
-; `near_star_pixel_operand` is exactly this address. A moved operand is a
+; build/director-abi.inc, and src/main.s asserts at link time that its
+; `near_star_pixel_load`+1 is exactly this address. A moved operand is a
 ; build error, never a store into the middle of an instruction.
 NEAR_STAR_PIXEL_OPERAND = $57FA
 near_star_pixel_operand_abi = NEAR_STAR_PIXEL_OPERAND

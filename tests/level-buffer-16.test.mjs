@@ -53,14 +53,15 @@ test("Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reade
   // RE-PINNED 2026-10-01, roadmap 4.6 step 5 (plan §8.3): the C half grew
   // 1,283 -> 1,369 B - encounter_light_admit moved in from HYBRID_C_EXT
   // (40 B), the wave's look published at arm time, the sky call at sector
-  // entry and the per-pair install mark - and the kernel 708 -> 734 B for the
-  // install that reads its source from the pair's look.
+  // entry and the per-pair install mark - and the kernel 708 -> 735 B for the
+  // install that reads its source from the pair's look and the resolver's
+  // layout-proof fast exit.
   assert.equal(window.capacityBytes, 1536 + 2048);
   assert.equal(window.directorHalfBytes, 1369, "the Light C, the cold Director half, step 5");
-  assert.equal(window.lightKernelBytes, 734);
-  assert.equal(window.usedBytes, 2103);
-  assert.equal(window.freeBytes, 3584 - 2103);
-  assert.equal(window.freeBytes, 1481, "the tail steps 2-5 leave for step 6 and 4.7");
+  assert.equal(window.lightKernelBytes, 735);
+  assert.equal(window.usedBytes, 2104);
+  assert.equal(window.freeBytes, 3584 - 2104);
+  assert.equal(window.freeBytes, 1480, "the tail steps 2-5 leave for step 6 and 4.7");
   // Both links moved down as one block; the kernel still closes the window.
   assert.equal(manifest.lightKernel.address, WINDOW + window.directorHalfBytes);
   assert.equal(manifest.lightKernel.windowLimit, READER_BSS);

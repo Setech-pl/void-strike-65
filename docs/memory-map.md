@@ -40,7 +40,7 @@ column wherever it appears earlier or later in this file.
 | §4.4b "ENTITY_CODE free tail 45 → 13 B" | **1 B** at HEAD |
 | `$9D73-$9D74` 2 B "free ENTITY_CODE reservation tail" | 2 B, but it is the gap between `DIRECTOR_C_PRE` and `LEVEL1_DATA` — **not** an `ENTITY_CODE` tail |
 | `$8100-$810B` 12 B Light record; `$810C-$810F` 4 B unowned | `HYBRID_LIGHT_STATE` is **`$8100-$810F`, 16 B**; nothing there is unowned |
-| `$8119-$813F` 39 B unowned | `HYBRID_ENCOUNTER_STATE` `$8119-$811A` and `HYBRID_HEAVY_STATE` `$811B-$8125` occupy 13 B of it; real free was **`$8126-$813F`, 26 B**, then 25 B after owner fix (a) put `HYBRID_LIGHT_SCREEN` at `$8126`, 24 B after the rotate gate put `HYBRID_LIGHT_ROTATE` at `$8127`, and is **23 B (`$8129-$813F`)** since the Heavy break-up put `HYBRID_HEAVY_BREAKUP` at `$8128`. Roadmap 4.6 step 2 takes five of those for `DIRECTOR_SECTOR_STATE` `$8129-$812D`, leaving **`$812E-$813F`, 18 B** |
+| `$8119-$813F` 39 B unowned | `HYBRID_ENCOUNTER_STATE` `$8119-$811A` and `HYBRID_HEAVY_STATE` `$811B-$8125` occupy 13 B of it; real free was **`$8126-$813F`, 26 B**, then 25 B after owner fix (a) put `HYBRID_LIGHT_SCREEN` at `$8126`, 24 B after the rotate gate put `HYBRID_LIGHT_ROTATE` at `$8127`, and is **23 B (`$8129-$813F`)** since the Heavy break-up put `HYBRID_HEAVY_BREAKUP` at `$8128`. Roadmap 4.6 step 2 takes five of those for `DIRECTOR_SECTOR_STATE` `$8129-$812D`, leaving `$812E-$813F`, 18 B; roadmap 4.6 step 5 takes five more for `HYBRID_LIGHT_LOOK` `$812E-$8132`, leaving **`$8133-$813F`, 13 B** |
 | `$5CF7-$5E05` 271 B free starfield tail | `STARFIELD` now ends `$5D93`; real free is **`$5D94-$5E05`, 114 B** |
 | `$7F05-$7F0F` 11 B "unassigned after cold staging" | Inside the arena's 215 B free tail `$7E39-$7F0F`. **Double-counted** if both rows are summed |
 | `$8600-$8601` near-star state (BSS table) **vs** `$85FE-$8601` 4 B `STAR_NEAR_SCREEN_HI` (*Accepted placement*) | **Both are wrong about the extent; neither is wrong about what it names.** Settled from the source — see the next section |
@@ -126,7 +126,8 @@ longer implies a deadline; what it costs is **2 PAL frames per occupied
 | `$8100-$810B` | 12 B | C-owned Light Wingman record (`$8100-$8105`) plus ASM Light render cache/scratch (`$8106-$810B`); `$810C` free — **[SUPERSEDED 2026-09-20: `HYBRID_LIGHT_STATE` is `$8100-$810F`, 16 B; nothing there is unowned]** |
 | `$8110-$8118` | 9 B | C-owned derived Raider profile cache read by the ASM kernel (moved from `$8776`) |
 | `$8126` | 1 B | `HYBRID_LIGHT_SCREEN` — the Light kernel's published-slot bound (`light_screen_slot_limit`), owner fix (a) 2026-09-21. ASM-maintained by `light_publish` from `screen_hi`, ASM-read by `light_cell_resolve`, cleared once by `lifecycle_c_init`. It is here and not in `HYBRID_LIGHT_STATE` (16 of 16) or `HYBRID_LIGHT_SLOTS` (60 of 60) because both are exactly full; it takes the **first** byte of the unowned gap that starts where `HYBRID_HEAVY_STATE` ends, leaving `$8127-$813F`, **25 B**, unowned. `src/hybrid/c-asm-abi.s` asserts it against both neighbours at link time |
-| `$8129-$812D` | 5 B | `DIRECTOR_SECTOR_STATE` — roadmap 4.6 step 2 (docs/plans/director-4.6.md §3.4). The sector's own row clock (`sector_row_lo/hi`), and three holds for cc65 call results that may not be returned into an expression (`wave_end`, `ceiling_row`, `sector_field`): cc65 widens a call's value to int, so a call used as an array subscript or as one side of a compare builds `ptr1` or pushes the C software stack, and the build's audit refuses the module either way. There is deliberately **no published copy of the SectorDef** here: `STATE_SECTOR` (`$80F6`) indexes the core page, so the sector index is the whole of the Director's sector state and a harness that pokes it selects a sector completely. Leaves `$812E-$813F`, **18 B**, unowned |
+| `$8129-$812D` | 5 B | `DIRECTOR_SECTOR_STATE` — roadmap 4.6 step 2 (docs/plans/director-4.6.md §3.4). The sector's own row clock (`sector_row_lo/hi`), and three holds for cc65 call results that may not be returned into an expression (`wave_end`, `ceiling_row`, `sector_field`): cc65 widens a call's value to int, so a call used as an array subscript or as one side of a compare builds `ptr1` or pushes the C software stack, and the build's audit refuses the module either way. There is deliberately **no published copy of the SectorDef** here: `STATE_SECTOR` (`$80F6`) indexes the core page, so the sector index is the whole of the Director's sector state and a harness that pokes it selects a sector completely. Leaves `$812E-$813F`, 18 B, unowned |
+| `$812E-$8132` | 5 B | `HYBRID_LIGHT_LOOK` — roadmap 4.6 step 5 (docs/plans/director-4.6.md §8.3), appearance variants: `light_wave_look` (the armed wave's look, published by `director_c_try_event`), `light_look_key` (the look one admission wants) and `light_pair_key[3]` (per appearance pair, the look it was admitted for; the tick installs when `light_appearance_installed` differs from it and the Light kernel's install reads its source from it). Bss, no file image; none of it is assumed zero (`src/c/lifecycle.c`). `src/hybrid/c-asm-abi.s` asserts it against `DIRECTOR_SECTOR_STATE` below and `$8140` above. Leaves `$8133-$813F`, **13 B**, unowned |
 | `$8127` | 1 B | `HYBRID_LIGHT_ROTATE` — the ring-rotate marker (`light_rotate_frame`), plan-light-multiplicity.md §4.6, owner 2026-09-21. ASM-written by `advance_starfield_layers`, which is reached exactly once per ring rotate and stores `frame_counter` there; C-read by `light_take_deferrable_token`, which denies the one-expensive-event token to a DEFERRABLE consumer when the marker equals `FRAME_COUNTER`. Cleared once by `lifecycle_c_init`. Here for the same reason as `$8126`: both Light RAM areas are exactly full. Leaves `$8128-$813F`, **24 B**, unowned. `src/hybrid/c-asm-abi.s` asserts it against `HYBRID_LIGHT_SCREEN` below and the gap's end above |
 | `$8776-$8857` | 226 B | `LIGHT_RESIDENT` Light Wingman kernel (update, PairShot hit, kill, glyph) heading the pickup/collision stream |
 | `$8858-$8B60` | 777 B | fighter PMG pickup, projectile publication scaffold, narrow effect/PairShot backing resolver, and provisional active-gameplay admission policy (retired inert padding reclaimed) |
@@ -1065,9 +1066,9 @@ is a link error rather than a misread level.
 | `$AA00-$AA0F` | 16 | core header | magic `$51` (`V` in the high nibble, format 1 in the low), level number, sector and wave counts, seed, star colour, nebula, boss id, hull length step, pickup policy, debris density, spacing scale, debug start sector, 3 reserved |
 | `$AA10-$AA5F` | 80 | SectorDef SoA | 8 arrays × 10 sectors: `sector_kind`, `sector_len`, `sector_caps` (packed nibbles), `sector_archetypes` (the R3 mask), `sector_hazards`, `sector_wave_first`, `sector_wave_count`, `sector_look` |
 | `$AA60-$AAFF` | 160 | WaveDef SoA | 8 arrays × 20 waves: `wave_row`, `wave_flags`, `wave_archetype`, `wave_path`, `wave_count`, `wave_spacing`, `wave_entry`, `wave_member_offset` (the escort archetype for a Heavy wave) |
-| `$AB00-$AB2F` | 48 | `appearance[3]` | three 16-B Light bitmaps; **zero until step 5** |
+| `$AB00-$AB2F` | 48 | `appearance[3]` | three 16-B Light bitmaps, left cell rows 0-7 then right cell; **read since step 5** by the Light kernel's install (payload slot s at `$AB00+16(s-1)`) |
 | `$AB30-$AB8F` | 96 | `path[8]` | **zero until step 6** |
-| `$AB90-$ABA1` | 18 | `weapon_glyph[2]` | **zero until step 5** |
+| `$AB90-$ABA1` | 18 | `weapon_glyph[2]` | two 9-B looks: eight glyph rows, then the TARGET class (1 `PULSE`, 2 `LASER`, 0 unused); **read since step 5** by `build_hostile_weapon_glyphs` at gameplay start |
 | `$ABA2-$ABC1` | 32 | `hull_params` | 4.8a gondola/corridor parameters; **zero** |
 | `$ABC2-$ABFF` | 62 | `boss_def` | 4.7; **zero** |
 | `$AC00-$AC01` | 2 | `hull_rows` | 480 on level 1, 352 on level 2, lo/hi. One of 288 / 352 / 416 / 480. **Read since step 4**: capital entry starts the row clock at `480 - hull_rows` |
@@ -1143,6 +1144,26 @@ byte-identical to `main` `55cc361`.
 The CRC per-bit loop stays in page `$25` (per-bit `bne` at `$25FB`, next
 instruction `$25FD`, **2 B before a crossing**); two link-time `.assert`s now
 hold it there.
+
+## Roadmap 4.6 step 5 — the payload is live (2026-10-01)
+
+`docs/plans/director-4.6.md` §8.3. The payload page's appearance and weapon
+blocks and the sector look are read. **No resident address moved, and the
+initial block did not grow** (13,621 B before and after, MEASURED); `STARFIELD`
+gained a label and a link-time assert, no byte.
+
+| Range | Bytes | Was | Is |
+| --- | ---: | --- | --- |
+| `$812E-$8132` | 5 | unowned | `HYBRID_LIGHT_LOOK` (row above) |
+| `STARFIELD` `$57FA` | 1 | the `#$10` of `publish_dynamic_near_star_phase` | the same byte, now `near_star_pixel_load`+1 and patched at sector entry by `_asm_publish_star_pixel` ($10 white, $20 allied steel, $30 yellow). `NEAR_STAR_PIXEL_OPERAND` in `src/hybrid/c-asm-abi.s`; `src/main.s` asserts the two agree |
+| `HYBRID_C_ARENA` `$7BD0-$7EE5` | 790 of 832 | 718 | +72 B of ca65: the weapon-look tail of `build_hostile_weapon_glyphs` (57) and `_asm_publish_star_pixel` (15). **42 B free.** Record 7: 649 → 712 B packed, 6 sectors |
+| `HYBRID_C_EXT` `$8C7D-$8FD8` | 860 | 874 | `light_admit` +26 B (the look key, the pair key), `encounter_light_admit` −40 B (moved to the window). **39 B tail.** Record 5: 747 → 735 of 747 B packed, 6 sectors |
+| `HYBRID_C_WINDOW` `$AE00-$B358` | 1,369 | 1,283 | +86 B: `encounter_light_admit` (40), the wave's look at arm time, the sky call at sector entry, the per-pair install mark. Record 8: 997 → 1,067 B packed, **8 → 9 sectors** |
+| `LIGHT_KERNEL` `$B359-$B637` | 735 | 708 | +27 B: the install reads its source from `light_pair_key` and copies a payload look from `$AB00` (+26); `light_cell_resolve`'s below-range exit returns in place (+1), because the kernel's move put its far branch across a page |
+| `$B638-$BBFF` | **1,480 free** | 1,593 | the window's tail |
+| `DIRECTOR_RAM` | 602 of 645 | 602 | unchanged |
+
+Transport: 101 → **102 extension sectors**, 208 → **209 total**; boot 107.
 
 ## Roadmap 4.6 step 4 — the hull length is level data (2026-09-30)
 
@@ -1765,11 +1786,10 @@ Glyphs 126-127 are the left/right halves of the connected BROADSIDE bolt.
 | 47-56 | Spread Shot overlap-composite scratch |
 | 57-58 | gameplay helpers |
 | 59-89 | capital hulls |
-| 90-109 | hostile weapon visuals: `weapon_class` c at 89+c (left phase) and 99+c (right phase); 90/100 `PULSE`, 91/101 `LASER`, 92/102 reserved `BOMBER`; the rest are never published |
+| 90-109 | hostile weapon visuals: `weapon_class` c at 89+c (left phase) and 99+c (right phase); 90/100 `PULSE`, 91/101 `LASER`, 92/102 reserved `BOMBER`; the rest are never published. Since roadmap 4.6 step 5 a level's payload may replace the `PULSE`/`LASER` glyphs at gameplay start |
 | 110-117 | debris |
 | 118-119 | transient fragments |
-| 120-121 | Light Wingman left/right cells (M1) |
-| 122-125 | retained source glyph allocation; unused at runtime (PMG pickup has no character compositor) |
+| 120-125 | Light appearance pairs 0-2 (120/121, 122/123, 124/125): each holds the bitmap of the look its pair was admitted for - the Wingman or Interceptor art, or since roadmap 4.6 step 5 a payload look |
 | 126-127 | connected BROADSIDE bolt (left/right halves; bit 7 selects the Hostile colour bank) |
 
 Build-time range assertions, linker overlap checks, payload parity tests, and

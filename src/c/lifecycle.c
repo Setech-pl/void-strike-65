@@ -900,26 +900,6 @@ static uint8_t light_admit(void)
  * The stepper runs EVERY frame, unlike the admission it calls, so it belongs
  * in the window with the rest of the per-frame path. */
 #pragma code-name (push, "HYBRID_C_WINDOW")
-/* The Light escort admission of a Heavy formation. Roadmap 4.6 step 2: WHICH
- * Light is the WaveDef's `wave_member_offset`, read as the escort archetype
- * for a Heavy wave (plan §2.2), not a two-entry schedule and a counter. A
- * Light still descending from an earlier formation keeps its lifecycle.
- *
- * Roadmap 4.6 step 5 moved it here from HYBRID_C_EXT, unchanged: light_admit
- * gained the look key, extension record 5 has no spare byte, and this
- * function's only caller is enemy_c_spawn_raiders in the arena, for which a
- * call into the window costs the same jsr (docs/plans/director-4.6.md §8.3). */
-static void encounter_light_admit(void)
-{
-    light_record = heavy_escort_offset;
-    light_archetype[light_slot] = light_record;
-    light_admit_entry = LIGHT_X_ENTRY;
-    light_admit_state = light_record == LIGHT_OFFSET_WINGMAN
-        ? LIGHT_ACTIVE_ESCORT       /* takes its leader's column and lag */
-        : LIGHT_ACTIVE_FREE;        /* no leader, ever: free-flying hunter */
-    light_admit();
-}
-
 static void light_wave_step(void)
 {
     if (light_wave_lock == 0u) {
@@ -1250,6 +1230,29 @@ uint8_t enemy_c_light_hit(void)
     }
     light_state[light_slot] = LIGHT_BREAKUP_PENDING;
     return LIGHT_HIT_LETHAL_DEFER;
+}
+
+/* The Light escort admission of a Heavy formation. Roadmap 4.6 step 2: WHICH
+ * Light is the WaveDef's `wave_member_offset`, read as the escort archetype
+ * for a Heavy wave (plan §2.2), not a two-entry schedule and a counter. A
+ * Light still descending from an earlier formation keeps its lifecycle.
+ *
+ * Roadmap 4.6 step 5 moved it here from HYBRID_C_EXT, unchanged: light_admit
+ * gained the look key, extension record 5 has no spare byte, and this
+ * function's only caller is enemy_c_spawn_raiders in the arena, for which a
+ * call into the window costs the same jsr (docs/plans/director-4.6.md §8.3).
+ * It sits at the END of the window's lifecycle code on purpose: placed ahead of
+ * light_tick_body it pushed a taken branch of that per-frame path across a
+ * page, +1 cycle per live Light per frame (MEASURED natively). */
+static void encounter_light_admit(void)
+{
+    light_record = heavy_escort_offset;
+    light_archetype[light_slot] = light_record;
+    light_admit_entry = LIGHT_X_ENTRY;
+    light_admit_state = light_record == LIGHT_OFFSET_WINGMAN
+        ? LIGHT_ACTIVE_ESCORT       /* takes its leader's column and lag */
+        : LIGHT_ACTIVE_FREE;        /* no leader, ever: free-flying hunter */
+    light_admit();
 }
 
 #pragma code-name (pop)

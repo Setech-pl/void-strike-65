@@ -170,9 +170,12 @@ test("source contract: the Light admission and tick hold no ordering or toggle l
   // reads it - and the decision is now the armed WaveDef, reaching the slot on
   // exactly two paths: the escort of a Heavy wave, and the members of a Light
   // wave. Both take it from a byte director_c_try_event published.
-  const escortAdmit = lifecycleSource.slice(
-    lifecycleSource.indexOf("static void encounter_light_admit"),
-    lifecycleSource.indexOf("static void light_wave_step"));
+  // Roadmap 4.6 step 5 moved encounter_light_admit to the end of the window's
+  // lifecycle code (plan §8.3), so its slice ends at its own closing brace
+  // rather than at light_wave_step.
+  const escortStart = lifecycleSource.indexOf("static void encounter_light_admit");
+  const escortAdmit = lifecycleSource.slice(escortStart,
+    lifecycleSource.indexOf("\n}\n", escortStart) + 3);
   assert.match(escortAdmit, /light_record\s*=\s*heavy_escort_offset;/);
   assert.match(escortAdmit, /light_archetype\[light_slot\]\s*=\s*light_record/);
   const waveStep = lifecycleSource.slice(
@@ -192,8 +195,12 @@ test("source contract: the Light admission and tick hold no ordering or toggle l
   // wraps it so the appearance install can replace the return without
   // swallowing the body. The offset is hoisted once, in the body, and nowhere
   // else - which is the contract this test is about.
+  // Roadmap 4.6 step 5 put encounter_light_admit - an admission, which does
+  // write the offset - after the tick functions (plan §8.3), so the slice
+  // stops there.
   const lightTick = lifecycleSource.slice(
-    lifecycleSource.indexOf("static uint8_t light_tick_body"));
+    lifecycleSource.indexOf("static uint8_t light_tick_body"),
+    lifecycleSource.indexOf("static void encounter_light_admit"));
   assert.doesNotMatch(lightTick, /light_archetype\[[^\]]*\]\s*=(?!=)/,
     "enemy_c_light_tick only reads the offset");
   // The tick hoists it once, and only there.

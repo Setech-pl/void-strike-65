@@ -358,7 +358,7 @@ test("T13: the level's weapon looks are laid over the defaults at level start", 
 });
 
 test("T13: the star pixel changes at sector entry and only there", () => {
-  const operand = L("near_star_pixel_operand");
+  const operand = L("near_star_pixel_load") + 1;
   const publish = L("publish_dynamic_near_star_phase");
   assert.equal(operand - 1 > publish && operand - publish < 24, true,
     "the operand is inside the near-star publish");

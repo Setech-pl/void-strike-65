@@ -118,6 +118,20 @@ function armCoincidence(m, count) {
   m.memory[L("FIGHTER_PROJECTILE_X")] = m.memory[L("light_x")] + 2;
   m.memory[L("FIGHTER_PROJECTILE_Y")] = (m.memory[L("light_y")] & 0xf8) + 4;
   m.memory[L("light_hp")] = 1;                       // the next hit is lethal
+  // RE-POINTED 2026-10-01, roadmap 4.6 step 5 (docs/plans/director-4.6.md
+  // §8.3): a third expensive event - an appearance install - is constructed
+  // here, on slot 1's pair, instead of being left to chance. populate() never
+  // publishes its Lights, so all three share pair 0, and before step 5 that
+  // made the Wingman and the Interceptor re-install each other's art on every
+  // other frame (installed[0] read 24,24,12,12,24,24 - MEASURED on main
+  // f3e3660). That churn put an install on the measured frame by accident and
+  // was part of the 300 cycles below. Step 5 keys a pair on the look it was
+  // admitted for, the churn is gone (12,12,12,...), and the accidental install
+  // with it: the 3-Light saving fell to 212. Constructed, the install lands in
+  // both builds - MEASURED, saving 904 on main and 572 on step 5, with the
+  // serialised frame 6,497 vs 6,494 - and the threshold stays 300.
+  const pair = (m.memory[L("light_code") + 1] - 0xf8) >> 1;
+  m.memory[L("_light_appearance_installed") + pair] = 0xff;
 }
 
 function measure(count, budget) {

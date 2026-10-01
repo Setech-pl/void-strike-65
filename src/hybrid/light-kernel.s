@@ -562,9 +562,17 @@ light_cell_resolve_sanitized:
 ; although only pair 0 is written before step 3. Codes 122-125 are the retired
 ; pickup bank and no runtime path puts them on screen, so widening the filter
 ; now changes nothing and cannot be forgotten later.
+;
+; Roadmap 4.6 step 5: the below-range exit returns in place rather than
+; branching to @keep. The kernel's address is wherever the window's C half
+; ends, so a far exit crosses a page or not by accident of layout - and when
+; step 5 moved the kernel up 112 B, it did, +1 cycle on every captured cell
+; (MEASURED natively). The local rts is layout-proof and one cycle under both.
 light_cell_resolve:
     cmp #LIGHT_SCREEN_CODE
-    bcc @keep
+    bcs :+
+    rts                          ; below the Light codes: the common case
+:
     cmp #(LIGHT_SCREEN_CODE+LIGHT_CODE_COUNT)
     bcs @keep
     ; It is a Light code. The caller's X goes to the one scratch byte the

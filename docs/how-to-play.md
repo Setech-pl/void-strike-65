@@ -112,6 +112,11 @@ disk. The same is true of the score table.
 The Bomber's hull darkens as it takes damage, so the colour tells you how much
 of it is left.
 
+Some waves send Wingmen or Interceptors with different markings or a different
+shape. They are still the same enemy: they fly, fire and score exactly like the
+type they belong to. The colour of the stars changes between sectors too; it
+only marks where you are.
+
 **Heavies cannot be bypassed.** They stay until destroyed. They fly the full
 vertical range — down to the bottom edge and back up — and the sector does not
 advance while they live.

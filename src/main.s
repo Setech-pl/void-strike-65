@@ -5881,13 +5881,14 @@ publish_dynamic_near_star_phase:
 ; Roadmap 4.6 step 5 (docs/plans/director-4.6.md §8.3): the sky. The star's
 ; pixel value is this immediate, patched at sector entry by the Director's
 ; _asm_publish_star_pixel - $10 white, $20 allied steel, $30 yellow. A label
-; and an assert, no byte: STARFIELD is in the initial block.
-near_star_pixel_operand = *+1
+; and an assert, no byte: STARFIELD is in the initial block. Named the way
+; gameplay_dli_allied_colpf1_load is: the instruction, operand at +1.
+near_star_pixel_load = *
     lda #$10
     sta CHARSET+STAR_NEAR_POINT*8,x
     rts
-.export near_star_pixel_operand
-.assert near_star_pixel_operand = NEAR_STAR_PIXEL_OPERAND, lderror, "the near-star pixel operand moved: set NEAR_STAR_PIXEL_OPERAND in src/hybrid/c-asm-abi.s to its new address"
+.export near_star_pixel_load
+.assert near_star_pixel_load+1 = NEAR_STAR_PIXEL_OPERAND, lderror, "the near-star pixel operand moved: set NEAR_STAR_PIXEL_OPERAND in src/hybrid/c-asm-abi.s to its new address"
 
 ; Publish four small white points after the ring and all higher character
 ; layers have reached their new mapping. Only CH_SPACE is claimable, so the

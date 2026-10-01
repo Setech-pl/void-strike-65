@@ -116,6 +116,11 @@ z tabelą wyników.
 Kadłub Bombera ciemnieje w miarę obrywania, więc po kolorze poznasz, ile mu
 zostało.
 
+Niektóre fale wysyłają Wingmany albo Interceptory z innymi oznaczeniami lub w
+innym kształcie. To wciąż ten sam przeciwnik: lata, strzela i daje punkty
+dokładnie tak jak typ, do którego należy. Kolor gwiazd też zmienia się między
+sektorami; pokazuje tylko, gdzie jesteś.
+
 **Ciężkich nie da się ominąć.** Zostają, dopóki ich nie zniszczysz. Latają po
 całej wysokości ekranu — w dół do dolnej krawędzi i z powrotem w górę — a sektor
 nie ruszy dalej, póki żyją.

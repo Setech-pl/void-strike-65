@@ -3,11 +3,12 @@
 How a level is written, what every field means, and what the compiler refuses.
 Engineering document: English only (`docs/README.md` §"Documentation language").
 
-Roadmap 4.6 step 1 (`docs/plans/director-4.6.md` §6). **The runtime reads none
-of this yet.** The compiler emits the bytes and the level image carries them;
-the Director starts reading the core page at step 2, the hull geometry at step
-4 and the payload page at step 5. The format is frozen here so that no later
-step changes it.
+Roadmap 4.6 step 1 (`docs/plans/director-4.6.md` §6). The compiler emits the
+bytes and the level image carries them. The runtime reads the core page since
+step 2, the hull geometry since step 4, and since step 5 the payload page's
+Light and weapon looks and each sector's sky (§8.3). Paths (step 6),
+`hull_params` (4.8a) and `boss_def` (4.7) are still unread. The format was
+frozen at step 1 and no step since has changed it.
 
 ## The commands
 
@@ -76,8 +77,10 @@ numbers; world rows, not eighths.
 | --- | --- | --- | --- |
 | `level` | 1-12 | required | the level number; HUD only |
 | `seed` | 1-255 | 1 | the Director RNG's initial value |
-| `stars` | 0-255 | 0 | the level's default star colour (step 5 binds the values) |
-| `nebula` | 0-255 | 0 | nebula pattern; 0 = none (step 5) |
+| `stars` | `white`, `steel`, `yellow` | `white` | the level's default sky: the near-star pixel value - white `COLPF0`, the allied steel `COLPF1`, yellow `COLPF2` (budget-1.0 M2 variant S2). A sector without `look.stars` takes it. `0` is accepted and means `white` |
+| `nebula` | 0 | 0 | the nebula (variant S3) is not built; any other value is refused |
+| `payload.appearances` | 0-3 looks | `[]` | Light looks for appearance slots 1-3, in order. Each is `{ "name", "rows" }`: a lower-case name a wave can use, and eight rows of eight pixels, left cell then right cell, each pixel `.` black, `W` white, `S` steel or `R` hostile red (a Light's code carries the hostile bit, so `%11` is `COLPF3`). A look is a re-skin (decision AD): the Light keeps its archetype's motion, HP, fire and score |
+| `payload.weapons` | 0-2 looks | `[]` | hostile weapon looks laid over the defaults at level start. Each is `{ "class": "pulse" \| "laser", "rows" }`, `rows` the eight 8-bit masks of `assets/graphics/fighter-weapons.json` with its rules: pixels 0-1 only (the right phase is the glyph shifted two pixels) and never `%11`, so hostile fire stays white and steel. One look per class. `bomber` is refused: its second animation phase does not fit the 9-B record |
 | `boss` | 0-255 | 0 | BossDef index; 0 = none. Non-zero needs a `boss` sector (4.7) |
 | `pickupPolicy` | 0-255 | 3 | every-Nth-kill divisor plus allowed booster bits |
 | `debrisDensity` | 0-255 | 0 | base debris cadence |
@@ -103,8 +106,8 @@ A level has 1-10 sectors, played in order.
 | `hazards.debrisStep` | 0-15 | 0 | debris cadence step |
 | `hazards.pickups` | boolean | false | weapon pickups may drop |
 | `hazards.broadside` | boolean | false | broadside missiles may launch |
-| `look.stars` | 0-15 | 0 | star colour override for this sector |
-| `look.nebula` | boolean | false | nebula on |
+| `look.stars` | `white`, `steel`, `yellow` | the level's `stars` | this sector's sky. It changes on the frame the Director enters the sector, and nowhere else. The compiler writes the resolved value into `sector_look` bits 0-3 for every sector, so the runtime never reads 0 |
+| `look.nebula` | `false` | false | not built (variant S3); `true` is refused |
 | `look.variant` | 0-7 | 0 | capital section variant |
 | `waves` | array | `[]` | 0 waves is legal: a quiet sector |
 
@@ -130,7 +133,7 @@ A level holds at most 20 waves in total, across all its sectors.
 | `entry` | 48-200 | 124 | entry column |
 | `mirror` | boolean | false | mirror the entry |
 | `afterCleared` | boolean | false | arm when the previous wave cleared instead of on `row` |
-| `appearance` | 0-3 | 0 | 0 = the archetype's own art; 1-3 = a payload appearance slot (step 5) |
+| `appearance` | a look's name, or 0-3 | 0 | 0 = the archetype's own art; otherwise a `payload.appearances` look, by name or slot number. On a Light wave its members wear it; on a Heavy wave its **Light escort** does, and the Heavy pair keeps its PMG art, so a Heavy wave without an escort is refused |
 
 `path` is **not** authorable yet: the path evaluator and its library are step 6,
 and a file naming one is rejected. Every wave compiles with `wave_path = $FF`,
@@ -159,7 +162,13 @@ field:
 * an entry column outside 48-200;
 * `lights` above 4 or `heavies` above 2 — the packed nibbles hold no more;
 * a wave arming at or past its own sector's end;
-* a `path` (step 6), or a turret density other than 3 (step 4).
+* a `path` (step 6), or a turret density other than 3 (step 4);
+* a sky other than `white`, `steel` or `yellow`, or a nebula (step 5);
+* an `appearance` that names no authored look, or sits on a Heavy wave with
+  no escort; more than three looks, two looks with one name, a Light row that
+  is not eight of `.WSR`; more than two weapon looks, two for one class, a
+  class other than `pulse`/`laser`, a weapon row outside pixels 0-1 or using
+  `%11` (step 5).
 
 It **warns**, and the file stays legal, when a requested cap exceeds what the
 subtype admits — swarm 3 Light / 0 Heavy, elite 1 Light / 2 Heavy, capital
@@ -182,6 +191,20 @@ sector 6 also carrying every archetype. The Light class floor of 16 frames is
 deliberately **not** used, so later levels have room to escalate. Every sector's
 sizing figures, MEASURED with the timeline probe, are in the file's own notes.
 Play it with `npm run level:play -- --level=2`.
+
+Since step 5 it carries the full payload (plan §8.3): three Light looks -
+`hunter` (the Interceptor recoloured: red arms, white pods, steel hub),
+`escort` (the Wingman with a steel inner edge) and `lancer` (an Interceptor
+re-glyph: a kite-shaped dart) - a staggered twin `PULSE` and a broken-beam
+`LASER`, and all three skies. Sector 1 opens on the plain archetypes, so each
+is met before its variants.
+
+## The sky rule
+
+Both shipped levels follow one rule, so the colour reads as design rather than
+decoration: **the capital sector flies under the allied steel, the level's last
+sector under yellow, and every other sector under white.** Level 1: white,
+steel, white, yellow. Level 2: white, white, steel, white, white, yellow.
 
 ## Level 1
 

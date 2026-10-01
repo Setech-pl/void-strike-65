@@ -604,6 +604,168 @@ record 1 **5,583 → 5,502** packed B; `HYBRID_C_SECTOR` **187 → 215** of 248 
 before and after**. Level 2 timing before and after:
 [../diagnostics/level-2-timing-2026-09-30.md](../diagnostics/level-2-timing-2026-09-30.md).
 
+### 8.3 Step 5 notes — the payload (PLANNED 2026-10-01)
+
+Branch `feat/director-step-5-payload` from `main` `f3e3660`. Priced as M2 in
+[budget-1.0.md](budget-1.0.md) §2, without the nebula: the owner fixed the sky
+as variant **S2**, so S1 (the `COLPF0` patch) and S3 (nebula cells) are not
+built. Decision **AD** holds: a variant is a recoloured or re-glyphed existing
+archetype chosen by level data, never new enemy code.
+
+**What the code says that the budget did not.**
+
+1. **The star pixel is an immediate operand, not a glyph to re-install.**
+   `publish_dynamic_near_star_phase` (`STARFIELD`, initial block) writes
+   `lda #$10 / sta CHARSET+8,x` on every frame, so a re-installed glyph would
+   be overwritten one frame later. S2 is therefore an operand patch at sector
+   entry, the way `publish_level_hull_style` patches
+   `gameplay_dli_allied_colpf1_load`. Pixel value 1 is white `COLPF0`, 2 the
+   allied steel `COLPF1`, 3 the yellow `COLPF2` (the star code has no hostile
+   bit). **0 B in `STARFIELD`**: `main.s` gains a label on the operand and a
+   link-time assert, nothing else.
+2. **The Director link cannot see `main`'s addresses** (it links first and
+   `main` includes its ABI). The patch veneer therefore writes a constant
+   address that `c-asm-abi.s` declares and exports through
+   `build/director-abi.inc`, and `main.s` asserts at link time that its label
+   is exactly there. A moved operand is a build error, not a write into code.
+3. **The appearance cannot key on the archetype alone, and a per-slot byte would
+   cost cycles on every Light frame.** Today a pair is shared when it holds the
+   same archetype offset, and the tick installs when the pair's bitmap is not
+   the slot's archetype. With variants, two slots of one archetype can want
+   different bitmaps. The fix keeps the tick's per-frame compare the same
+   shape: a per-**pair** byte `light_pair_key[3]` says which look the pair is
+   wanted for, written once at admission; the tick compares
+   `installed[pair]` with `light_pair_key[pair]` (same index, same instruction
+   count as today's compare with `light_record`), and the ASM install reads the
+   source from the pair's key. A look key is the archetype offset (12 or 24)
+   for appearance 0, so a level with no variant behaves exactly as today, or
+   `$80 | slot << 4` (`$90`, `$A0`, `$B0`) for payload slot 1-3.
+4. **`HYBRID_C_EXT` (extension record 5, 0 B spare) has to take two stores,**
+   because `light_admit` is the one place a slot is filled: the key
+   (`light_look_key = published look, else light_record`) and
+   `light_pair_key[pair] = light_look_key`, ≈ 25 B. `light_pair_for_record`
+   changes only two operands (`installed` → `light_pair_key`, `light_record` →
+   `light_look_key`), so it stays **124 B**. The record is kept from growing by
+   moving `encounter_light_admit` (40 B, called only from the arena) to the
+   window, where its caller already is a cross-segment call.
+5. **The weapon look is installed by the existing builder.**
+   `build_hostile_weapon_glyphs` (arena) runs once per game in `init_state`,
+   after the sector reader has filled the level buffer and before
+   `DIRECTOR_INIT`. It gains a tail that copies the payload's looks over the
+   defaults. The 9th byte of each 9-B `weapon_glyph` record is the **target
+   class** (1 `PULSE`, 2 `LASER`; 0 = slot unused), **not** design-4.6 §1.1's
+   step period: a look is not a speed, and the step masks live in the initial
+   block's raw prefix. `BOMBER` cannot be re-skinned by a 9-B record (it has a
+   second animation phase) and the compiler refuses it. **DEPARTURE**, §10.
+6. **A Heavy wave's appearance re-skins its Light escort.** The Heavy pair is
+   PMG art and stays as it is; level 1 has no Light wave, so its one variant
+   can only be an escort. The compiler refuses an appearance on a Heavy wave
+   without an escort.
+
+**Items, placement and expected bytes** (raw; packed at the budget's 0.78):
+
+| # | Item | Code | Segment → record | Frame placement | Expected | Budget line |
+| ---: | --- | --- | --- | --- | ---: | --- |
+| 1 | publish the wave's look at arm time | `director_c_try_event` | window C → record 8 | wave arm (row tick event) | +16 | appearance 25 → 30, window |
+| 2 | look key and pair key at admission | `light_admit` | `HYBRID_C_EXT` → record 5 | admission (token event) | +25 | must stay size-neutral |
+| 3 | `encounter_light_admit` moves | — | `HYBRID_C_EXT` −40 → window +40 | Heavy formation spawn | 0 net | — |
+| 4 | pending test and mark per pair | `enemy_c_light_tick` | window C → record 8 | every Light tick: **same compare shape** | +3 | — |
+| 5 | install source by pair key, payload loop | `light_update` `@install` | Light kernel → record 9 | install event (token) | +26 | 16 → 20, Light kernel |
+| 6 | weapon looks over the defaults | `build_hostile_weapon_glyphs` tail | arena → record 7 | level start, display off | +55 | 35 → 42, window |
+| 7 | star pixel at sector entry | `enter_sector` + arena veneer | window C +9, arena +12 | sector entry only | +21 | 30 → 36 window; 16 → 20 `DIRECTOR_RAM` |
+| 8 | `light_wave_look`, `light_look_key`, `light_pair_key[3]` | — | new bss `HYBRID_LIGHT_LOOK` `$812E-$8132` (unowned gap) | — | 5 B RAM | — |
+
+Totals, expected: window C half **+68 B** (record 8: 6 B spare, so **+1
+sector, +2 ATR menu frames**, as budgeted); Light kernel +26 (record 9, 110 B
+spare, 0 sectors); arena +67 (record 7, 98 B spare, 0 sectors); `HYBRID_C_EXT`
+−15 (record 5 shrinks); `DIRECTOR_RAM` 0; initial block 0. The window total
+stays well under the ~130-B STOP line. Per-frame cost: **0** on every row
+(item 4 is checked in the listing); event costs: ~+20 cycles per wave arm,
+~+10 per install, ~+15 per sector entry, all outside a standing frame.
+
+**Format, as compiled** (core and payload pages unchanged in layout):
+
+* header byte 5 `star_colour`: the level's default sky, pixel value 1-3;
+* `sector_look` bits 0-3: the sector's sky, **resolved by the compiler** (never
+  0), so the runtime reads one nibble; bit 4 nebula and the variant bits stay
+  as they are, and the compiler refuses a nebula (not built);
+* `wave_flags` bits 0-1: the appearance slot, 0 = the archetype's own art;
+* payload `appearance[3]`, 16 B each, the same left-cell/right-cell layout as
+  `light_glyph`; payload `weapon_glyph[2]`, 8 glyph rows + target class.
+
+JSON: `"stars": "white" | "steel" | "yellow"` at the level (default white) and
+`"look": { "stars": … }` per sector; `"payload": { "appearances": [ { "name",
+"rows" } ], "weapons": [ { "class": "pulse" | "laser", "rows" } ] }`, Light rows
+as eight characters of `.` `W` `S` `R` (black, white, steel, hostile red) and
+weapon rows as the eight-bit masks `fighter-weapons.json` already uses, with its
+rules (high nibble only, no `%11`); `"appearance": "<name>"` (or 0-3) on a wave.
+
+**The data.**
+
+Sky — one rule for both levels, so it reads as design: **the capital sector
+flies under the allied steel, the level's last sector under yellow, every other
+sector under white.**
+
+| Level | Sector 1 | 2 | 3 | 4 | 5 | 6 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | white (ELITE) | **steel** (CAPITAL) | white (ELITE) | **yellow** (ELITE, last) | — | — |
+| 2 | white (SWARM) | white (ELITE) | **steel** (CAPITAL) | white (SWARM) | white (ELITE) | **yellow** (ELITE, last) |
+
+Light looks (hostile red stays the dominant colour: faction colours hold):
+
+| Level | Slot | Name | What it is |
+| --- | ---: | --- | --- |
+| 1 | 1 | `flight-lead` | Wingman recolour: the red V with white wingtips and a white nose |
+| 2 | 1 | `hunter` | Interceptor recolour: red arms, white rotor pods, steel hub |
+| 2 | 2 | `escort` | Wingman recolour: steel inner wing edge on the red V |
+| 2 | 3 | `lancer` | Interceptor re-glyph: a downward dart, red tips, steel body, white core |
+
+Waves that use them (composition, rows, counts and spacing unchanged):
+
+* **Level 1:** sector 3 wave 5 (row 576, Raider + Wingman), the wave the level
+  file sizes so that it always arms on every difficulty: its Wingman escorts
+  wear `flight-lead`. Nothing else in level 1 changes.
+* **Level 2:** sector 1 wave 3 (Interceptors) `hunter`; sector 2 waves 1-3
+  (Bomber + Wingman escorts) `escort`; sector 4 wave 1 `hunter`, waves 2-3
+  `lancer`; sector 6 wave 1 (Raider + Wingman) `escort`, wave 3 (Interceptors)
+  `lancer`. Sector 1 waves 1-2 and sector 5 keep the archetype art, so each
+  archetype is met plain before its variants.
+
+Weapon look, level 2 only: `PULSE` (Raider, Wingman) becomes a **staggered twin
+pulse** — two one-pixel pulses, steel over white, offset diagonally instead of
+side by side; `LASER` (Interceptor) becomes a **broken beam** — three short
+steel/white dashes. `BOMBER` keeps its shell. Level 1 authors no weapon look.
+
+**Tests** (RED on `main`, GREEN after; all in the focused set with
+`tests/runtime-evidence-binding.test.mjs`):
+
+* T13a `tests/level-payload.test.mjs`: the compiler encodes the appearance
+  bits, the payload looks and weapon records and the resolved sky nibble, and
+  rejects: an appearance past 3 or naming no authored look, an appearance on a
+  Heavy wave without an escort, a weapon class other than `pulse`/`laser`, two
+  looks for one class, a weapon row outside the high nibble or using `%11`, a
+  Light row with a character outside `.WSR`, a sky other than the three names,
+  a nebula.
+* T13b (same file, native): a Light wave with appearance 2 installs payload
+  slot 2 into the admitted slot's pair; an appearance-0 wave installs the
+  archetype art exactly as before; a Heavy wave's appearance re-skins its
+  escort; a plain and a variant Wingman never share a pair.
+* T13c (native): `build_hostile_weapon_glyphs` with a payload `PULSE` look
+  writes glyphs 90/100 from the payload and leaves `LASER`/`BOMBER` at their
+  defaults; a zero or `BOMBER` target is ignored.
+* T13d (native): the star operand takes sector 1's pixel at
+  `director_c_init`, is unchanged on every row tick inside the sector, and
+  changes on the tick that enters the next sector; a source contract pins that
+  only the arena veneer writes it.
+* Size contracts: `light_pair_for_record` is 124 B in the listing; record 5 does
+  not grow; the initial block content is 13,621 B.
+
+**Gates beyond the standing set:** the transport rule (no boot sector, initial
+block ≤ 13,652 B, ATR menu delta ≤ +7 against 596), the PAL audit (worst fence
+margin within 50 cycles of 785, DMA-on maximum within 50 of 31,121), the
+evidence regenerated, and level 2 measured through the debug route as in
+[../diagnostics/level-2-timing-2026-09-30.md](../diagnostics/level-2-timing-2026-09-30.md).
+
 ---
 
 ## 9. Tests — each must fail at `c04156a`
@@ -646,6 +808,8 @@ step 4, and the frozen replay coverage clauses whose capital row moves.
 | Level 1's capital on an authored row instead of active frame 600 (§10.8 answered) | design §10.8, open | the row clock is the only clock; the authored row is the MEDIUM row reached at frame 600, measured from the trace at step 2; replays are re-scripted, as plan-4.6-placement §6.1 anticipated |
 | Paths at step 6, after the four requirements | design §1.4 | not one of the four owner requirements; still binding (21.2), and the evaluator's per-frame cost must be measured first |
 | CAPITAL Light ceiling not lifted | design §9 (unchanged) | costed in §5.1; owner's choice |
+| `weapon_glyph` byte 8 is the target class (1-2), not a step period; the looks override `PULSE`/`LASER` instead of filling classes 4-5 | design §1.1, §1.6 | a level look is not a speed; a new class would need an archetype field per wave, which the frozen records do not have (§8.3 item 5) |
+| Star colour by patching the near-star publish operand, not by re-installing the glyph | budget-1.0 M2 S2 | the publish rewrites the glyph from an immediate every frame (§8.3 item 1) |
 
 ---
 

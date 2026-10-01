@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-09-30
+Last update: 2026-10-01
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -56,7 +56,11 @@ supersedes those four figures.
 **Owner decision, 2026-09-30: the game ships as the ATR only; the XEX is not
 released.** Section "ATR-only build" below.
 
-**Fifteen `OWNER-SMOKE CANDIDATE`s are outstanding: the ATR-only build** (section
+**Sixteen `OWNER-SMOKE CANDIDATE`s are outstanding: the all-or-nothing Spread
+volley** (section "Spread volley — all-or-nothing" below; a Spread volley that
+began with fewer than three free shot slots held the pool full of lone side
+shots with no shot sound until Spread expired; reachable in the default level 1
+ATR, typically Spread right after Rapid with fire held), **the ATR-only build** (section
 "ATR-only build" below; no player-visible change: the ATR and the boot image are
 byte-identical to `main` `e39f2ec`), **level 2** (section "Roadmap 4.6
 step 3 — level 2" below; the first authored level that is not a reproduction,
@@ -322,6 +326,99 @@ owner smoke PASS 2026-09-18); before it `b4b942e` (XEX
 owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
+
+## Spread volley — all-or-nothing — `OWNER-SMOKE CANDIDATE` (2026-10-01)
+
+Plan and measurements: [plans/spread-volley-fix.md](plans/spread-volley-fix.md).
+Diagnosis: [diagnostics/spread-debug-route-2026-09-30.md](diagnostics/spread-debug-route-2026-09-30.md).
+Branch `fix/spread-volley-livelock` from `main` `1c3da14`.
+
+**The defect.** The Spread volley placed its left and right shots first and kept
+them, and only the centre decided whether the fire event counted. A volley that
+began with fewer than three of the five active slots free, while fire was held,
+filled every freed slot with a lone side shot. The centre never fitted, the
+burst never advanced and the shot sound never started, until Spread expired.
+In the default evidence it hit four replays, all of them Spread taken during or
+right after a Rapid burst.
+
+**Owner decision (2026-09-30): the volley is all-or-nothing.** It is admitted
+only with three free slots; then left, centre and right are placed in one frame,
+the burst advances and the sound starts. Otherwise nothing is placed and the one
+pending fire event is retried next frame. The follow-up, offsets, drift,
+duration and sound are unchanged. Also corrected in `docs/game-design.md`: the
+capsule counter counts every Heavy (Raider or Bomber) and every debris
+destroyed by a player shot, one shared counter, capsule on the third (code
+unchanged).
+
+**Gates — the DEFAULT build.** ATR
+`3bab2e15a2200d22e00f7581ef02bceedd361035e1941f048edb8c0fbf6ae869`, boot
+`3cf380ec16098e8c6673a80e0f99893aa7667a3d3da9f5a375cba77a06890327`.
+
+| | `main` `1c3da14` | this branch | source |
+| --- | ---: | ---: | --- |
+| worst line-238 fence margin | 788 | **785** (same row, `director-complete-2` f5815) | PAL audit, 56 replays |
+| DMA-on maximum / physical headroom | 31,626 / 3,942 | **31,121 / 4,447** | `docs/runtime-wall-trace.json` |
+| distinct miss events / rows over 32,568 | 0 / 0 | **0 / 0** | PAL audit |
+| DLI per host frame / sequence violations | 2 / 0 | **2 / 0** | `docs/runtime-wall-trace.json` |
+| behavioural clause failures | 16 | **16**, the same by session and message | `docs/recorded-gate-failures.json` |
+| boot smoke / ATR loader / ATR menu (delta) | 4/4 / 345 / 602 (+6) | **4/4 / 345 / 602 (+6)** | default trace run |
+| boot / extension / total sectors | 107 / 101 / 208 | **107 / 101 / 208** | `build/manifest.json` |
+| initial block content (owner cap) | 13,626 | **13,626** (13,626) | same |
+| extension record 2 (pickup + `HYBRID_C_SECTOR`) | 1,120 B, 9 sectors | **1,128 B, 9 sectors** | same |
+| `PICKUP_CODE` used / free tail before `$8B67` | 934 / 75 | **944 / 65** | `build/void-strike-65.map` |
+| `CODE` / `RODATA` start | 4,478 / `$317E` | **4,478 / `$317E`** | same |
+| `$AE00` window used / free | 1,991 / 1,593 | **1,991 / 1,593** | `build/manifest.json` |
+| `DIRECTOR_RAM` used / capacity | 602 / 645 | **602 / 645** | `build/encounter-director.map` |
+| `npm test` (default build): tests / pass / fail / todo | 880 / 768 / 109 / 3, then 108 recorded after step 4's one re-point | **883 / 774 / 106 / 3**, then **105** after one owner-approved re-pin | the recorded set below |
+
+**Where the bytes went.** `MAIN` is full and its LZ image is the capped initial
+block, so the two side allocations moved to the end of `PICKUP_CODE`
+(`player_fighter_spread_volley_sides`, 10 B). The free-slot count lives in a
+reordered, size-neutral fire path in `CODE`; 3 B of never-executed pad keep
+`play_player_fighter_projectile_sound` at `$2D65`. The Director link,
+`BROADSIDE`, `ENTITY_CODE` and the sector reader are byte-identical to `main`.
+
+**Cycles** (native, all 32 occupancy patterns): an admitted volley costs
+**+46 … +70**, a blocked one **−208 … −298**, the follow-up −4. The
+controller's worst volley-due frame goes 516 → 562. The DMA-on maximum falls
+because `main`'s five heaviest frames were all inside the stuck Spread window
+of `director-complete-0` (f8619-f8654).
+
+**The four replay windows** (plan §8.5): shot-sound frames per Spread
+activation go 6 → **154**, 7 → **79**, 11 → **113** and 3 → **153**. The left /
+centre / right counts go from 59/0/2, 51/0/5, 71/1/2 and 113/0/29 to
+13/25/13, 6/12/6, 9/19/9 and 13/25/13.
+
+**Mode-gated gates.** `--raider-sector-only` ("did not return to post-sector
+OPEN") and the remnant gate (63 kills, 62 explosions) fail identically on `main`.
+**The debris visibility gate fails on this branch and passes on `main`**:
+`debris-gate-capital-muzzle-ring-2-sweep-fire4` has 1 blank of 990 capital
+frames, at host frame 4519. That replay diverges from `main` at game frame
+2660, once the Spread volleys fire, and host frame 4518 is the player's final
+death. This is the known debris death-frame blink (below), reached by a
+different replay. **Owner decision (2026-10-01): pre-existing; the clause is
+unchanged.**
+
+**Tests.** New: `tests/spread-volley-admission.test.mjs` (3; the crowded-pool and
+no-catch-up tests are RED on `main`). Three recorded failures re-pinned to the
+build and now pass, leaving the recorded set:
+* "one Spread emission is an unambiguous three-projectile fan";
+* "Spread respects the six-projectile active budget and admits centre before an
+  atomic side pair", **renamed** "Spread respects the five-projectile active
+  budget and admits its volley whole or not at all";
+* "the configured 28-frame Spread cooldown avoids catch-up at the active limit".
+
+They had failed at their first assertion on stale pins and stale harness
+scenarios, which hid this defect. The full run had one new name,
+`light-interceptor.test.mjs` "placement contract: …" (the `PICKUP_CODE` tail pin
+75 → 65). It was re-recorded with the owner's approval and passes. **The
+recorded test failure set is now 105**: the 108 less those three.
+
+**Owed by the owner.** A hardware smoke of the default ATR (`npm run play:atr`,
+SHA-256 `3bab2e15…`). Collect Rapid, then Spread while holding fire. Every
+volley should be a full left/centre/right fan with the shot sound. Spread from
+an empty screen should behave as before, with its single centre follow-up.
+After a crowded moment there should be no burst of catch-up fire.
 
 ## Roadmap 4.6 step 4 — the capital hull length is level data — `OWNER-SMOKE CANDIDATE` (2026-09-30)
 
@@ -3274,7 +3371,11 @@ section's "what to look for" in the implementation report.
   (space) backing mid-frame and the debris returns only in the late window, so
   the cell scans blank for one frame. It fails `debris-gate-0-evasive-fire3` on
   the hostile-shot candidate (divergent replay); first-writer proof in
-  [diagnostics/stage-2b2n-hostile-shot-emitter-independence.json](diagnostics/stage-2b2n-hostile-shot-emitter-independence.json);
+  [diagnostics/stage-2b2n-hostile-shot-emitter-independence.json](diagnostics/stage-2b2n-hostile-shot-emitter-independence.json).
+  Seen again 2026-10-01 on the Spread-volley candidate:
+  `debris-gate-capital-muzzle-ring-2-sweep-fire4`, 1 blank at host frame 4519,
+  the frame after the player's final death. The replay is divergent, and no
+  first-writer proof was made (owner: pre-existing);
 - pre-existing native gate failures (identical on `2a67684`): the default
   wall-trace mode aborts at `weapon-pickup-contact-2-hunt-fire4` ("changed GTIA
   priority or the single erase/draw lifecycle") after 21 sessions, and

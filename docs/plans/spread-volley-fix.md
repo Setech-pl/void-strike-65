@@ -6,7 +6,9 @@ findings`). Diagnosis: [diagnostics/spread-debug-route-2026-09-30.md](../diagnos
 Every figure is **MEASURED** on `main` `1c3da14` (default build, ATR
 `43e0495e…`, byte-identical to the step 4 evidence) unless it says ESTIMATE.
 
-**Status: PLAN — Phase A.** Implementation follows in Phase B on this branch.
+**Status: IMPLEMENTED — `OWNER-SMOKE CANDIDATE`, awaiting the owner's hardware
+smoke.** Phase A (§1-§7) is the plan as committed. §8 records what was built
+and measured, including where it departs from §3-§4.
 
 ---
 
@@ -146,6 +148,140 @@ kept or, where an owner decision replaced it, rewritten and named.
 
 ## 7. Follow-ups (not in this task)
 
-* The wall trace records POKEY channel 1 only, so no clause can see the shot
-  sound on channel 4. A clause of the kind "Spread active + fire held ⇒ shot
-  sounds occur" needs the trace header extended. This task does not extend it.
+* The wall trace records POKEY channel 1 only (`audf1`/`audc1`), so no clause
+  can see the shot sound's POKEY writes on channel 4. It does record the
+  shot's software phase (`fire_sfx` = `fire_timer` ≠ 0, `fire_timer_value`),
+  the burst state (`player_burst_state/remaining/timer`) and entries into
+  `play_player_fighter_projectile_sound` (`fire_accept_calls`). A clause such
+  as "Spread active + fire held ⇒ shot sounds occur" could be built on those
+  without extending the header; a clause on the POKEY register itself would
+  need the header extended. This task does neither.
+* Per-side shot counts exist only in the per-slot PairShot journal
+  (`DFTRACE_PLAYER_PAIRSHOT_OUTPUT`), which the harness enables for the
+  PairShot sessions alone; §8.5 used it in diagnostic runs.
+* Fire policy is ASM in `CODE` (AGENTS.md puts it in C by default); moving the
+  player weapon controller to C is a separate task.
+
+## 8. As implemented and measured (Phase B)
+
+### 8.1 Where it departs from §3-§4
+
+**Record 2 had 11 B of room, not 32.** A record holds `sectors × 128 − 21` B
+(the chunk footer, `scripts/build.mjs` `sectorsFor`), so 9 sectors carry 1,131 B
+and the pickup record was at 1,120. The §3 design (+27 B in `PICKUP_CODE`) built
+to 1,145 B in **10** sectors (extension 101 → 102, total 209) and was dropped
+without a commit. As built:
+
+* **`PICKUP_CODE` keeps only the two side allocations**,
+  `player_fighter_spread_volley_sides`, 10 B at `$8B1C-$8B25` (left, then a
+  `jmp` tail for the right).
+* **The count and the admission are in `CODE`**, paid for by reordering the
+  fire path so that it costs no `CODE` byte. `allocate_player_fighter_projectile_one`
+  moves first. The booster dispatch becomes a `beq` into the Spread routine, and
+  a normal shot's `bcs` reaches the sound directly. The Spread routine falls
+  through into `play_player_fighter_projectile_sound` instead of `jmp`-ing to
+  it, and the post-burst `bne`/`jmp` becomes a `beq` to the burst start (same
+  behaviour). The 3 B this frees are `spread_volley_code_slack` (zeros after an
+  `rts`), so the sound routine stays at `$2D65` and `RODATA` at `$317E`.
+* A first CODE layout with a 1 B pad packed the initial block to **13,627 B**,
+  one over the cap. The post-burst `beq` (−2 B, pad 1 → 3) brought it back to
+  **13,626 B**.
+
+### 8.2 Bytes (MEASURED, `build/void-strike-65.map`, `build/manifest.json`)
+
+| | `main` `1c3da14` | this branch |
+| --- | ---: | ---: |
+| `CODE` / `RODATA` start | 4,478 B / `$317E` | **4,478 B / `$317E`** |
+| `PICKUP_CODE` / free tail before `$8B67` | 934 / 75 B | **944 / 65 B** |
+| initial block content (owner cap 13,626) | 13,626 B | **13,626 B** |
+| extension record 2 | 1,120 B, 9 sectors | **1,128 B, 9 sectors** (3 B before a tenth) |
+| boot / extension / total sectors | 107 / 101 / 208 | **107 / 101 / 208** |
+| BROADSIDE, ENTITY_CODE, sector reader, Director link | — | byte-identical |
+
+Only labels inside `$2CD0-$2D64` moved. The two burst tables moved −2 B and
+stay inside page `$2C`.
+
+### 8.3 Cycles (MEASURED, native, `executeSpreadShotAdmissionCycleSweep`)
+
+`update_player_fighter_weapon` on the frame a fire event is due, for every one
+of the 32 occupancy patterns of the five active slots, `main` → branch:
+
+| event | patterns | delta |
+| --- | ---: | --- |
+| volley admitted (≥ 3 free) | 16 | **+46 … +70** |
+| volley blocked (< 3 free; on `main` a partial fan) | 16 | **−208 … −298** |
+| centre follow-up | 32 | −4 |
+| controller maximum on a volley-due frame | — | 516 → **562** (+46) |
+
+### 8.4 Timing (MEASURED, regenerated evidence)
+
+DMA-on maximum 31,626 → **31,121**. `main`'s five heaviest frames were all
+inside the stuck Spread window of `director-complete-0` (f8619-f8654). There,
+every frame ran three failing slot scans with the pool full. The new maximum,
+`director-complete-2` f5797, is 31,121 on both builds. PAL audit, 56 replays:
+0 distinct miss events. The worst fence margin is 788 → **785**, on the same
+row (`director-complete-2` f5815, a Shield frame in the post-burst pause, where
+no Spread code runs).
+
+### 8.5 The four replay windows
+
+Each row is one Spread activation in the default evidence, at the frames the
+diagnosis named. The four activations begin on the same frame on both builds,
+because the replays are identical until the first crowded volley. Per-side
+counts come from the per-slot PairShot journal (`DFTRACE_PLAYER_PAIRSHOT_OUTPUT`),
+in diagnostic `--only-session` runs. Each run's main CSV is byte-identical to
+the evidence CSV it shadows, and none of them is evidence.
+
+| replay | from | `main`: length, shot-sound frames, fire events, L / C / R | branch: length, shot-sound frames, fire events, L / C / R |
+| --- | ---: | --- | --- |
+| `capital-muzzle-ring-2-sweep-fire4` | 2280 | 405, **6**, 0, 59 / 0 / 2 | 500, **154**, 25, 13 / 25 / 13 |
+| `director-complete-0-natural-sweep-fire0` | 8303 | 361, **7**, 1, 51 / 0 / 5 | 259, **79**, 13, 6 / 12 / 6 (+1 plain) |
+| `director-complete-2-natural-sweep-fire0` | 6326 | 500, **11**, 1, 71 / 1 / 2 | 370, **113**, 19, 9 / 19 / 9 |
+| `memory-integrity-atr-2-hunt-fire6` | 2517 | 500, **3**, 0, 113 / 0 / 29 | 500, **153**, 25, 13 / 25 / 13 |
+
+On the branch every window has as many left as right shots, and centre =
+volleys + follow-ups. `director-complete-0`'s one plain shot is a normal
+PairShot fired on the activation's first frame. On `main` the pool sat at 5 for
+403 / 360 / 493 / 498 frames of those windows.
+On the branch the figures are 9 / 11 / 14 / 3. A healthy activation for
+comparison (`capital-muzzle-ring` f466, the same on both builds) is 500 frames,
+148 sound frames, 25 fire events, 12 / 25 / 12.
+
+### 8.6 Debris visibility gate — the one new gate result (owner: pre-existing)
+
+`--debris-gate-only` fails on the branch:
+`debris-gate-capital-muzzle-ring-2-sweep-fire4`, capital phase, 1 blank of 990
+frames in view, 1 disappearance. On `main` it is 0 of 1,133 (A/B in a detached
+`main` worktree). The replay is identical up to game frame 2660 and then diverges:
+the Spread volleys now fire, and the first game over moves from host frame 3911
+to 4544. The blank is host frame 4519, game frame 3794, sector 2, the debris at
+x 120, y 48. The two cells hold 7/14 and 8/27 of the debris glyph, and the rest
+is foreign pixels. Host frame 4518 is the player's final death: the game frame
+stops advancing and there is no erase/render that frame. This is the
+documented **debris death-frame blink** (STATUS, known open defects, found
+2026-09-17), which a different replay now reaches. No proof of which store
+writes the cells was made. **Owner decision (2026-10-01): treat it as
+pre-existing; the clause is unchanged.**
+
+The other two mode-gated failures are identical on `main`:
+`raider-sector-atr-hard` "did not return to post-sector OPEN", and the remnant
+gate's 63 kills against 62 explosions.
+
+### 8.7 Tests (MEASURED)
+
+* New `tests/spread-volley-admission.test.mjs`: 3 tests. The crowded-pool test
+  and the no-catch-up test are RED on `main` (the first emission is a lone left
+  shot). The empty-pool guard is green on both. On the branch all 3 pass:
+  9 centre / 5 left / 5 right, 9 sounds with 4 shots live (`main`
+  0 / 29 / 0 / 0), and 10 / 5 / 5 / 10 from an empty pool on both.
+* The three recorded failures pass and leave the recorded set: `:188`
+  "one Spread emission is an unambiguous three-projectile fan", `:316` (renamed
+  "Spread respects the five-projectile active budget and admits its volley
+  whole or not at all") and `:352` "the configured 28-frame Spread cooldown
+  avoids catch-up at the active limit".
+* Full `npm test` on the default build, once: **883 tests, 774 pass, 106 fail,
+  3 todo**. By name, that is the recorded 108 minus those three, plus one new:
+  `tests/light-interceptor.test.mjs:468`, the `PICKUP_CODE` window-tail pin
+  75 → 65, which this change spends. The owner approved re-recording it
+  (2026-10-01). It was re-recorded, and that file was re-run (14/14). The
+  suite was not re-run in full, so the recorded set is now **105**.

@@ -146,8 +146,8 @@ longer implies a deadline; what it costs is **2 PAL frames per occupied
 | `$9E13-$9FF7` | 485 B | remaining cc65 Director code |
 | `$9FF8-$9FF9` | 2 B | free Director reservation tail |
 | `$9FFA-$9FFF` | 6 B | untouched Director guard |
-| `$21C1-$26A9` | 1,257 B | boot-only `BOOT_STAGE2` overlay; replaced by the resident suffix before runtime |
-| `$0500-$06FF` | 512 B | boot-only ADR-003 splash blob: the 250-frame hold, the cassette-sound bit engine, the fade, the SPACE/FIRE skip and `loader_dli`. 499 B of code and tables, the rest zero padding. Both stage-2 entries copy it here right after `disable_basic_rom`; nothing reads or writes it once the hold ends. OS RAM no segment claims: `$0500-$057D` and `$0600-$06FF` are free, `$057E-$05FF` is floating-point scratch this build never calls. **Zero resident bytes** — the 56 B the hold loop and DLI vacated in MAIN are held as the `LOADER_SPLASH_CODE_SLACK` layout pin so no later CODE or RODATA address moves; recoverable |
+| `$21C1-$26EB` | 1,323 B | boot-only `BOOT_STAGE2` overlay; replaced by the resident suffix before runtime (since boot-xex-reclaim, 2026-10-01; the row read `$21C1-$26A9`, 1,257 B, stale against the 1,337 B `main` `97344ad` linked) |
+| `$0500-$06FF` | 512 B | boot-only ADR-003 splash blob: the 250-frame hold, the cassette-sound bit engine, the fade, the SPACE/FIRE skip and `loader_dli`. 499 B of code and tables, the rest zero padding. The stage-2 entry copies it here right after `disable_basic_rom`; nothing reads or writes it once the hold ends. OS RAM no segment claims: `$0500-$057D` and `$0600-$06FF` are free, `$057E-$05FF` is floating-point scratch this build never calls. **Zero resident bytes** — the 56 B the hold loop and DLI vacated in MAIN are held as the `LOADER_SPLASH_CODE_SLACK` layout pin so no later CODE or RODATA address moves; recoverable |
 
 The linked metric is `CODE + STARFIELD + BROADSIDE + A2_KERNEL + ENTITY_CODE +
 PICKUP_CODE = 17,452 B` (17,521 B at `2df89da`). The obsolete 1,152-byte
@@ -953,10 +953,9 @@ and the bank-select bits — and writes `BASICF = $01` so a warm start does not
 map the ROM back in. It is called from `boot_stage2_atr_entry` before the SIO
 chunk load (and, until 2026-09-30, from the executable file's
 `boot_stage2_xex_entry` before `jmp start`), i.e. earlier than every write the
-medium makes. The XEX is no longer published (owner decision, 2026-09-30);
-`boot_stage2_xex_entry` is still in the boot image — **14 B, `$2338-$2345`, in
-`BOOT_STAGE2`, inside the initial block** — and nothing reaches it. Removing it
-moves the ATR, so it waits for its own reclaim task. The window is therefore unconditionally
+medium makes. The XEX is no longer published (owner decision, 2026-09-30), and
+`boot_stage2_xex_entry` (14 B, `$2338-$2345`, `BOOT_STAGE2`) was removed on
+2026-10-01 — see "boot-xex-reclaim" below. The window is therefore unconditionally
 RAM for the whole runtime: still unused, but now *reliably* unused rather than
 avoided because its contents were unknowable.
 
@@ -1085,6 +1084,38 @@ the same 640 B; on the ATR the START GAME read grows by five sectors, behind
 the loader screen and after the menu milestone. Sectors 1-8 are byte-identical
 to the image that shipped at `2577352` apart from header bytes 4-6, which
 state the image's own length (`tests/level-compiler.test.mjs` pins the hash).
+
+## boot-xex-reclaim — the retired XEX entry leaves the initial block (2026-10-01)
+
+[plans/boot-xex-reclaim.md](plans/boot-xex-reclaim.md). `boot_stage2_xex_entry`
+(14 B, `$2338-$2345`) and its export are gone. `BOOT_STAGE2` rides **raw** in the
+initial block, so the block returns exactly 14 B: content **13,626 → 13,612 B**
+(envelope 70 → 84 B), still **107** boot sectors; extension 101, total 208. The
+extension records are byte-identical; the ATR differs only in sectors 1-107.
+**No runtime address moved**: every runtime image in `build/` is byte-identical
+to `main` `97344ad`. MEASURED.
+
+| Initial-block range | Bytes | Was (`97344ad`) |
+| --- | ---: | --- |
+| `$2000-$21C0` raw bootstrap prefix | 449 | same range; six operand bytes follow the move (below) |
+| `$21C1-$26EB` `BOOT_STAGE2` | 1,323 | `$21C1-$26F9`, 1,337 |
+| `$26EC-$4092` packed resident suffix | 6,567 | `$26FA-$40A0` |
+| `$4093-$4442` packed STARFIELD stream A | 944 | `$40A1-$4450` |
+| `$4443-$4768` packed STARFIELD stream B; **152 B** before the pickup cold staging at `$4801` | 806 | `$4451-$4776`, 138 B |
+| `$4769-$4855` A2 source | 237 | `$4777-$4863` |
+| `$4856-$5327` packed `ENTITY_CODE` | 2,770 | `$4864-$5335` |
+| `$5328-$5527` splash blob (copied to `$0500-$06FF`) | 512 | `$5336-$5535` |
+| `$5528-$552B` `DFB1` trailer | 4 | `$5536-$5539` |
+
+Inside `BOOT_STAGE2` every label after the removed entry is 14 B lower:
+`copy_boot_splash_blob` `$2338`, `boot_stage2_crc16` `$25C5`,
+`boot_stage2_error` `$260E`, `boot_chunk_manifest` `$262E`. The prefix keeps its
+size and every instruction; the six bytes that point into the moved region
+change value by −14: `start`'s `jmp boot_stage2_error` operand (`$2038`) and the
+five source addresses of the `boot_stage_streams` table (`$20DA`, `$20E0`,
+`$20EC`, `$20F2`, `$20F8`). `boot_entry` (24 B), `start` `$201E`,
+`boot_chunk_ready` `$21AC`, `disable_basic_rom` `$21AD` and
+`resident_runtime_suffix` `$21C1` are unchanged.
 
 ## Roadmap 4.6 step 4 — the hull length is level data (2026-09-30)
 

@@ -327,6 +327,79 @@ owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
 
+## boot-xex-reclaim — the retired XEX entry leaves the initial block — `OWNER-SMOKE CANDIDATE` (2026-10-01)
+
+Plan and measurements: [plans/boot-xex-reclaim.md](plans/boot-xex-reclaim.md).
+Branch `feat/boot-xex-reclaim` from `main` `97344ad`. It closes the follow-up in
+[plans/atr-only-build.md](plans/atr-only-build.md) §11 and supersedes that
+plan's owner decision 5 ("the ATR stays byte-identical"); nothing else of it is
+reopened.
+
+**What changed.** `boot_stage2_xex_entry` (14 B, `$2338-$2345`, `BOOT_STAGE2`)
+and its export are removed. Nothing had called it since the XEX was retired.
+`boot_stage2_atr_entry` is the only stage-2 entry. The audit found no other dead
+XEX code: the `$02` chunk-complete token, `disable_basic_rom`,
+`copy_boot_splash_blob` and the sector reader's resident skip are all live on the
+ATR, and no `RUNAD`/`INITAD` handling was left. `BOOT_STAGE2` rides raw in the
+initial block, so the block returns exactly 14 B. **Every runtime image is
+byte-identical to `main`**, and the ATR differs only in boot sectors 1-107. In the
+fixed `$01A3` prefix (same size, same instructions) six operand bytes follow
+the moved region by −14: `start`'s `jmp boot_stage2_error` and the five
+`boot_stage_streams` source addresses.
+
+**Gates — the DEFAULT build.** ATR
+`1c3ad1b37149cb1c51b19bb356698ff663df17747eac0762feae7be6ea9b3314`, boot
+`549387abf385562cf3a7ca7cbfef8d5885709add9a5e6bb20cee006034ac366e`.
+
+| | `main` `97344ad` | this branch | source |
+| --- | ---: | ---: | --- |
+| worst line-238 fence margin | 785 (`director-complete-2` f5815) | **785**, same row and frame | PAL audit, 56 replays |
+| DMA-on maximum / physical headroom | 31,121 / 4,447 | **31,121 / 4,447** | `docs/runtime-wall-trace.json` |
+| distinct miss events / rows over 32,568 | 0 / 0 | **0 / 0** | PAL audit |
+| DLI per host frame / sequence violations | 2 / 0 | **2 / 0** | `docs/runtime-wall-trace.json` |
+| behavioural clause failures | 16 | **16**, the same by session and message | `docs/recorded-gate-failures.json` |
+| boot smoke / ATR start / loader / menu (delta) | 4/4 / 288 / 345 / 602 (+6) | **4/4 / 284 / 341 / 598 (+2)** | default trace run; `main` re-measured in a detached worktree |
+| the same, BASIC enabled | 259 / 316 / 573 | **256 / 313 / 570** | same |
+| boot / extension / total sectors | 107 / 101 / 208 | **107 / 101 / 208** | `build/manifest.json` |
+| initial block content / ceiling (STOP line 13,652) | 13,626 / 13,684 | **13,612** / 13,684 | same |
+| `BOOT_STAGE2` | 1,337 B, `$21C1-$26F9` | **1,323 B, `$21C1-$26EB`** | `build/void-strike-65.map` |
+| packed starfield → pickup cold staging margin | 138 B | **152 B** | `build/manifest.json` |
+| `ENTITY_CODE` free tail / `HYBRID_C_ARENA` free | 26 / 114 B | **26 / 114 B** | same |
+| `$AE00` window used / free | 1,991 / 1,593 | **1,991 / 1,593** | same |
+| `DIRECTOR_RAM` used / capacity | 602 / 645 | **602 / 645** | `build/encounter-director.map` |
+| `npm test` (default build): tests / pass / fail / todo | 883 / 775 / 105 / 3 | **887 / 779 / 105 / 3**, the same 105 by name | full run on each |
+
+**Why the ATR boots 3-4 frames sooner (MEASURED cause, cycle count ESTIMATE).**
+`boot_stage2_crc16` also moved 14 B. On `main` its per-bit `bne` at `$2600`
+crossed into page `$25`, costing one cycle on each of the 7 taken branches per
+byte. Now it sits at `$25F2` and stays in page `$25`. The once-per-byte length
+`bne` (`$25FD` → `$2602`) crosses instead. Over the 12,928 B of CRC'd chunks
+that is about −77,000 cycles, all before `start`. Every gameplay
+figure in the trace is the same frame four host frames earlier (537 leaves move
+by exactly −4 frames / −142,272 cycles; nothing else changed). Boot-time only:
+nothing in a gameplay frame moved.
+
+**Mode-gated gates**, unchanged from `main`'s recorded state:
+`--raider-formation-only` passes; `--raider-sector-only` fails with "did not
+return to post-sector OPEN"; the remnant gate still reports 63 kills and 62
+explosions; the debris visibility gate still has the one known blank in
+`debris-gate-capital-muzzle-ring-2-sweep-fire4` (1 of 990 capital frames, the
+life at host frames 4503-4539, four frames earlier than `main`'s 4519 like
+everything else).
+
+**Tests.** New: `tests/boot-xex-reclaim.test.mjs` (4; three RED on `main`, the
+fourth a prefix guard). Re-pointed: `tests/broadside-fire.test.mjs` "packed
+resident broadside image round-trips …" used `boot_stage2_xex_entry` only as
+the END delimiter of `boot_stage2_atr_entry`; it now ends at
+`copy_boot_splash_blob`, with the pattern unchanged, and it passes. The header
+comment of `tests/atr-only-build.test.mjs` no longer cites owner decision 5.
+
+**Owed by the owner.** A hardware smoke of the default ATR (`npm run play:atr`,
+SHA-256 `1c3ad1b3…`). Cold boot without OPTION, BASIC on and off; the splash
+with its cassette sound; the loader; the menu; the start of level 1; RESET warm
+start back into the game. The boot smoke has no RESET session; it checks the
+warm-start entry only as `DOSVEC = start`.
+
 ## Spread volley — all-or-nothing — `OWNER-SMOKE CANDIDATE` (2026-10-01)
 
 Plan and measurements: [plans/spread-volley-fix.md](plans/spread-volley-fix.md).
@@ -563,7 +636,8 @@ Sessions with no medium switched and keep their ids; XEX halves with an ATR twin
 are deleted; XEX-only sessions are renamed `-xex-` → `-atr-`. The XEX-vs-ATR
 parity clauses and parity tests are deleted. `boot_stage2_xex_entry` stays in the
 boot image: **14 B, `$2338-$2345`, segment `BOOT_STAGE2`, inside the initial
-block**. Removing it would move the ATR, so it waits for its own reclaim task.
+block**. Removing it would move the ATR, so it waits for its own reclaim task
+(done 2026-10-01: boot-xex-reclaim, above).
 
 **Gates — the DEFAULT build.** ATR
 `abe3b1819ed23ec74b23b31260adf3317519dd99caa0a757f1a6c4e15b3e80b4` (92,176 B) and

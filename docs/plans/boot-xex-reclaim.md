@@ -7,7 +7,9 @@ This is the follow-up listed in [atr-only-build.md](atr-only-build.md) §11
 `97344ad` (default build, ATR `3bab2e15…`, boot `3cf380ec…`, both equal to the
 SHA-256 values `docs/STATUS.md` records) unless it says ESTIMATE.
 
-**Status: PLAN (Phase A).**
+**Status: IMPLEMENTED — `OWNER-SMOKE CANDIDATE`, awaiting the owner's hardware
+smoke.** Phase A (§1-§8) is the plan as committed (`4281ac7`). §9 records what
+was built and measured, including where it departs from §4.
 
 ---
 
@@ -132,3 +134,63 @@ The removable set is the 14-B entry and its export only; it is outside frame
 code; reachability is proved (no caller, no fall-through); no player-visible
 behaviour changes; no build-script or cfg change is needed beyond comments. Phase
 B proceeds without an owner question.
+
+## 9. Result (MEASURED, default build)
+
+Commits: `f5fc102` (removal and tests), `d16190d` (evidence), plus the media
+manifest and documentation commit. ATR `1c3ad1b3…` (`main` `3bab2e15…`), boot
+`549387ab…` (`main` `3cf380ec…`).
+
+### 9.1 Bytes — as planned
+
+`BOOT_STAGE2` 1,337 → **1,323 B** (`$21C1-$26EB`). Initial block content
+13,626 → **13,612 B**; sectors **107 / 101 / 208**. The extension records,
+`chunk-manifest.bin` and every runtime image in `build/` are byte-identical to
+`main`. Margins against the moved sources grew by 14 B (packed starfield →
+pickup cold staging 138 → 152 B). `ENTITY_CODE` tail 26 B, `HYBRID_C_ARENA`
+114 B free, `$AE00` 1,593 B free and `DIRECTOR_RAM` 602 / 645 are unchanged.
+
+**Departure from §4, reported.** §4 said the prefix does not move. Its size,
+layout and instructions do not, but six of its bytes are operands that point into
+the moved region and follow it by −14: `start`'s `jmp boot_stage2_error`
+(`$2038`: `$261C` → `$260E`) and the five source addresses in the
+`boot_stage_streams` table (`$20DA`, `$20E0`, `$20EC`, `$20F2`, `$20F8`). They are
+link-time and build-time values. Without them no byte could be returned:
+keeping them would mean keeping every address behind `BOOT_STAGE2`.
+
+### 9.2 Boot time — a side effect, not planned
+
+§4 expected the loader 345 and menu 602 to stay put. They moved **4 frames
+earlier** (start 288 → 284, loader 345 → 341, menu 602 → 598; BASIC enabled
+259/316/573 → 256/313/570). `main` was re-measured in a detached worktree on the
+same emulator. Cause: `boot_stage2_crc16`'s per-bit `bne` was at `$2600` → `$25E7`
+and crossed a page on each of the 7 taken branches per byte. It is now at
+`$25F2` → `$25D9`, with no crossing. The per-byte length `bne` (`$25FD` →
+`$2602`) now crosses instead. Over 12,928 CRC'd bytes the net is about −77,000
+cycles (ESTIMATE from the branch count), all before `start`. The ATR menu delta
+against `docs/boot-deadline-baseline.json` goes +6 → **+2**. The baseline is not
+re-recorded: the transport did not grow.
+
+### 9.3 Gates
+
+* Boot smoke **4/4** (ATR, BASIC off and on, fills `$A5`/`$5A`). The warm start is
+  covered by the `DOSVEC = start` entry-identity check; the boot smoke has no
+  RESET session, so the real RESET is on the owner's list.
+* Trace: **16** clause failures, the recorded set by session and message.
+  DMA-on maximum **31,121**, headroom **4,447**, 0 overruns, 0 missed frames,
+  0 extra VBI boundaries, DLI 2 per host frame / 0 violations. Outside
+  `boot_smoke`, every changed leaf of `docs/runtime-wall-trace.json` besides the
+  SHAs is a −4 host frame or −142,272 clock shift (537 leaves).
+* The splash-hold `screen_checksum` (`$4000-$43FF`) changed. Its first 16 B are
+  left-over boot bytes below the loader bitmap at `$4010`, and they moved 14 B.
+  The rendered loader screenshots are byte-identical PNGs to `main`'s. The menu
+  checksum at the fixed frame 3050 differs because the menu has run 4 frames
+  longer. The gameplay snapshot at 3300 is identical.
+* PAL audit, 56 replays: 0 distinct miss events; worst fence margin **785**,
+  `director-complete-2-natural-sweep-fire0` f5815, as on `main`.
+* Mode-gated runs: as recorded on `main` (formation passes; sector "did not
+  return to post-sector OPEN"; remnant 63 / 62; debris gate 1 blank of 990 in
+  `debris-gate-capital-muzzle-ring-2-sweep-fire4`).
+* `npm test`, default build, once in full: **887 / 779 / 105 / 3**. The 105
+  failures are `main`'s 105 by name (`main`: 883 / 775 / 105 / 3, measured this
+  session); the four new tests pass.

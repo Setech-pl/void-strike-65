@@ -34,6 +34,8 @@ unless it says ESTIMATE.
 4. **Contract documents move to the ATR**: `AGENTS.md`,
    `docs/reguly-projektu.txt`, and every build/testing document.
 5. **`boot_stage2_xex_entry` stays.** The ATR must stay byte-identical (§3).
+   *Superseded 2026-10-01 by the follow-up task
+   [boot-xex-reclaim.md](boot-xex-reclaim.md), which removed it.*
 6. **The stale trace emulator** gets a small fail-fast check with a test (§8).
 
 ---
@@ -385,8 +387,9 @@ boot validation), `docs/reguly-projektu.txt`, `docs/agent-workflows/*`,
 
 ## 11. Follow-ups, not in this task
 
-- Reclaim `boot_stage2_xex_entry` (14 B in the initial block). It moves the
-  ATR, so it needs its own gate pass and owner smoke.
+- ~~Reclaim `boot_stage2_xex_entry` (14 B in the initial block). It moves the
+  ATR, so it needs its own gate pass and owner smoke.~~ **Done 2026-10-01:**
+  [boot-xex-reclaim.md](boot-xex-reclaim.md) (`OWNER-SMOKE CANDIDATE`).
 - `docs/capital-player-collision-trace.json` still names the XEX sessions of an
   earlier build; regenerate it the next time `--capital-player-collision-only`
   runs.

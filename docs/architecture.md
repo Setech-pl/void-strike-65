@@ -76,10 +76,11 @@ does that when no cartridge is enabled, so with BASIC enabled the OS started
 BASIC and the game never ran unless the player held OPTION. `boot_entry` now
 ends in `jmp start`, and `disable_basic_rom` unmaps the BASIC ROM (`PORTB`
 bit 1, bits 0 and 7 preserved) and records `BASICF = $01` for the warm start.
-It is called from `boot_stage2_atr_entry` before the SIO chunk load. The boot
-image still carries the retired executable-file entry `boot_stage2_xex_entry`
-(14 B in `BOOT_STAGE2`, inside the initial block); nothing jumps to it any more,
-and it stays until a reclaim task moves the ATR on purpose. `DOSVEC` is still published, for
+It is called from `boot_stage2_atr_entry` before the SIO chunk load;
+`boot_stage2_atr_entry` is the only stage-2 entry. The retired executable-file
+entry `boot_stage2_xex_entry` was removed on 2026-10-01
+([plans/boot-xex-reclaim.md](plans/boot-xex-reclaim.md)), returning its 14 B to
+the initial block. `DOSVEC` is still published, for
 the warm-start path and for the boot-smoke entry-identity invariant.
 `boot_entry` stays exactly 24 bytes, so `start` is still at `$201E` and
 `resident_runtime_suffix` still at `$21C1`; the OS init vector shares the `rts`
@@ -170,7 +171,7 @@ temporal, not simultaneous residency.
 The BSS is exactly `$8000-$80FF` and is initialized deterministically. No
 runtime range lives in `$A000-$BFFF` yet, but the window is no longer outside
 the build: owner decision A made it unconditionally RAM (`disable_basic_rom` at
-both stage-2 entries) and owner decision B opened it. Since 2026-09-20 the
+the stage-2 entry) and owner decision B opened it. Since 2026-09-20 the
 build owns `$A000-$BC1F` through the `BASIC_WINDOW` region, with a six-byte
 guard at `$BC1A-$BC1F` and the OS screen left at `$BC20-$BFFF`; the chunk
 loader accepts records there, so a block in the window is placed into RAM even

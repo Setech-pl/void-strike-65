@@ -9,7 +9,7 @@
     "artifact_binding": "boot BIN and ATR SHA-256"
   },
   "determinism": {
-    "replay_fingerprint_sha256": "7aab5278892432c3b2c517d95d227dcefd0d5dcb272f29bab592e585d35253d0",
+    "replay_fingerprint_sha256": "6623927bb3d976a7153d7ca35fb760e52b8ba0a582b9aa90ac30b7d6365f0953",
     "ordered_frames": 94680,
     "basis": "ordered decoded CSV rows from every required legal replay"
   },
@@ -17,23 +17,23 @@
     "void-strike-65-boot.bin": {
       "path": "dist/void-strike-65-boot.bin",
       "bytes": 26752,
-      "sha256": "c303c33f347280520f4c466e2889f6d849aa3b126c439de3cefe0d62165d8427"
+      "sha256": "1daed1be86e54b1e3195228aa3b05f20d2501a87efc5403ca0638b60e943bd33"
     },
     "void-strike-65.atr": {
       "path": "dist/void-strike-65.atr",
       "bytes": 92176,
-      "sha256": "04943660e05a380678c4bf6197810588f81772b8be3b9eca049c2da7f86386e8"
+      "sha256": "f127d7a48674c7b2cdf103d3808b4145938a8d687586b82e83b3bcb651f33cd1"
     },
     "void-strike-65-manifest.json": {
       "path": "dist/void-strike-65-manifest.json",
-      "bytes": 866106,
-      "sha256": "edab2bf09cf47e3a1fee1d323c9fdf704804a7279bdb497f46e13eb22c405c90"
+      "bytes": 825337,
+      "sha256": "eb2e0ac3d1a5f3c8f01ed4411ce4c577e3d6db8722f33beb13447c3cd5b35a63"
     }
   },
   "artifact": {
     "path": "dist/void-strike-65.atr",
     "bytes": 92176,
-    "sha256": "04943660e05a380678c4bf6197810588f81772b8be3b9eca049c2da7f86386e8"
+    "sha256": "f127d7a48674c7b2cdf103d3808b4145938a8d687586b82e83b3bcb651f33cd1"
   },
   "emulator": {
     "name": "Atari800",
@@ -175,7 +175,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "04943660e05a380678c4bf6197810588f81772b8be3b9eca049c2da7f86386e8"
+          "sha256": "f127d7a48674c7b2cdf103d3808b4145938a8d687586b82e83b3bcb651f33cd1"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -426,7 +426,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "04943660e05a380678c4bf6197810588f81772b8be3b9eca049c2da7f86386e8"
+          "sha256": "f127d7a48674c7b2cdf103d3808b4145938a8d687586b82e83b3bcb651f33cd1"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -677,7 +677,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "04943660e05a380678c4bf6197810588f81772b8be3b9eca049c2da7f86386e8"
+          "sha256": "f127d7a48674c7b2cdf103d3808b4145938a8d687586b82e83b3bcb651f33cd1"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -928,7 +928,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "04943660e05a380678c4bf6197810588f81772b8be3b9eca049c2da7f86386e8"
+          "sha256": "f127d7a48674c7b2cdf103d3808b4145938a8d687586b82e83b3bcb651f33cd1"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1181,7 +1181,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "04943660e05a380678c4bf6197810588f81772b8be3b9eca049c2da7f86386e8"
+          "sha256": "f127d7a48674c7b2cdf103d3808b4145938a8d687586b82e83b3bcb651f33cd1"
         },
         "launch": {
           "emulator_path": "/Users/marcinkrzetowski/Projects/dark-fighter/build/atari800-trace/src/atari800",
@@ -1439,7 +1439,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "04943660e05a380678c4bf6197810588f81772b8be3b9eca049c2da7f86386e8"
+          "sha256": "f127d7a48674c7b2cdf103d3808b4145938a8d687586b82e83b3bcb651f33cd1"
         },
         "sha256": "188357d71352191550503ba7ca0bc54453dd88f055c5496de185bf8591a9f8eb"
       },
@@ -1448,7 +1448,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "04943660e05a380678c4bf6197810588f81772b8be3b9eca049c2da7f86386e8"
+          "sha256": "f127d7a48674c7b2cdf103d3808b4145938a8d687586b82e83b3bcb651f33cd1"
         },
         "sha256": "188357d71352191550503ba7ca0bc54453dd88f055c5496de185bf8591a9f8eb"
       },
@@ -1457,7 +1457,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "04943660e05a380678c4bf6197810588f81772b8be3b9eca049c2da7f86386e8"
+          "sha256": "f127d7a48674c7b2cdf103d3808b4145938a8d687586b82e83b3bcb651f33cd1"
         },
         "sha256": "188357d71352191550503ba7ca0bc54453dd88f055c5496de185bf8591a9f8eb"
       },
@@ -1466,7 +1466,7 @@
           "path": "dist/void-strike-65.atr",
           "absolute_path": "/Users/marcinkrzetowski/Projects/dark-fighter/dist/void-strike-65.atr",
           "bytes": 92176,
-          "sha256": "04943660e05a380678c4bf6197810588f81772b8be3b9eca049c2da7f86386e8"
+          "sha256": "f127d7a48674c7b2cdf103d3808b4145938a8d687586b82e83b3bcb651f33cd1"
         },
         "sha256": "188357d71352191550503ba7ca0bc54453dd88f055c5496de185bf8591a9f8eb"
       }
@@ -1474,11 +1474,11 @@
     "passed": true
   },
   "semantics": {
-    "cpu_cycles_dma_off": 15586,
-    "cpu_comparison_headroom": 19982,
+    "cpu_cycles_dma_off": 14492,
+    "cpu_comparison_headroom": 21076,
     "measured_wall_cycles_dma_on": 31133,
     "measured_physical_headroom": 4435,
-    "estimated_additive_cycles": 28484
+    "estimated_additive_cycles": 27390
   },
   "heaviest_frame_cost_breakdown": {
     "session": "director-complete-2-natural-sweep-fire0",
@@ -3180,7 +3180,7 @@
         "policy": "neutral",
         "fire_delay": 0,
         "measured_frames": 760,
-        "maximum_wall_cycles": 30081,
+        "maximum_wall_cycles": 30078,
         "deadline_overrun_frames": 0,
         "missed_frames": 0
       },
@@ -3204,7 +3204,7 @@
         "policy": "evasive",
         "fire_delay": 1,
         "measured_frames": 920,
-        "maximum_wall_cycles": 30164,
+        "maximum_wall_cycles": 30174,
         "deadline_overrun_frames": 0,
         "missed_frames": 0
       },
@@ -3360,7 +3360,7 @@
         "policy": "sweep",
         "fire_delay": 4,
         "measured_frames": 5000,
-        "maximum_wall_cycles": 30566,
+        "maximum_wall_cycles": 30421,
         "deadline_overrun_frames": 0,
         "missed_frames": 0
       },
@@ -3372,7 +3372,7 @@
         "policy": "hunt",
         "fire_delay": 4,
         "measured_frames": 4000,
-        "maximum_wall_cycles": 30319,
+        "maximum_wall_cycles": 30361,
         "deadline_overrun_frames": 0,
         "missed_frames": 0
       },
@@ -3444,7 +3444,7 @@
         "policy": "pickup-contact",
         "fire_delay": 4,
         "measured_frames": 1300,
-        "maximum_wall_cycles": 30319,
+        "maximum_wall_cycles": 30361,
         "deadline_overrun_frames": 0,
         "missed_frames": 0
       },
@@ -3468,7 +3468,7 @@
         "policy": "broadside-proof",
         "fire_delay": 4,
         "measured_frames": 6000,
-        "maximum_wall_cycles": 30566,
+        "maximum_wall_cycles": 30421,
         "deadline_overrun_frames": 0,
         "missed_frames": 0
       },
@@ -3504,7 +3504,7 @@
         "policy": "early-hunt",
         "fire_delay": 4,
         "measured_frames": 1500,
-        "maximum_wall_cycles": 30319,
+        "maximum_wall_cycles": 30361,
         "deadline_overrun_frames": 0,
         "missed_frames": 0
       },
@@ -3564,7 +3564,7 @@
         "policy": "hunt",
         "fire_delay": 6,
         "measured_frames": 4000,
-        "maximum_wall_cycles": 30344,
+        "maximum_wall_cycles": 30342,
         "deadline_overrun_frames": 0,
         "missed_frames": 0
       },
@@ -5460,7 +5460,7 @@
     },
     "music_with_sfx_preemption": {
       "observed": true,
-      "matching_frames": 55551,
+      "matching_frames": 55561,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-2-natural-sweep-fire0",
@@ -6232,28 +6232,28 @@
       "observed": true,
       "matching_frames": 4068,
       "heaviest": {
-        "trace_kind": "director-level-complete",
-        "session": "director-complete-1-natural-sweep-fire0",
-        "frame": 5628,
-        "gameplay_frame": 252,
-        "difficulty": 1,
-        "wall_cycles": 30366,
-        "physical_headroom": 5202,
+        "trace_kind": "debris-effects-coverage",
+        "session": "debris-effects-2-sweep-fire4",
+        "frame": 2202,
+        "gameplay_frame": 154,
+        "difficulty": 2,
+        "wall_cycles": 30368,
+        "physical_headroom": 5200,
         "start": {
-          "clock": 221661887,
-          "host_frame": 6232,
+          "clock": 100374991,
+          "host_frame": 2822,
           "scanline": 18,
-          "cycle": 59
+          "cycle": 43
         },
         "end": {
-          "clock": 221692253,
-          "host_frame": 6232,
+          "clock": 100405359,
+          "host_frame": 2822,
           "scanline": 284,
-          "cycle": 101
+          "cycle": 87
         },
         "next_start": {
-          "clock": 221697455,
-          "host_frame": 6233
+          "clock": 100410559,
+          "host_frame": 2823
         },
         "host_vbi_boundaries": 0,
         "extra_vbi_boundaries": 0,
@@ -6262,54 +6262,54 @@
         "dma_ctl": 62,
         "nmi_en": 128,
         "state": {
-          "projectiles": 7,
+          "projectiles": 9,
           "broadside": 0,
           "far_rendered": 4,
           "active_muzzles": 0,
-          "entity_active": 2,
-          "entity_x": 128,
-          "entity_y": 32,
+          "entity_active": 1,
+          "entity_x": 124,
+          "entity_y": 232,
           "entity_vx_signed": 0,
           "entity_move_accumulator": 0,
-          "entity_vertical_accumulator": 2,
-          "entity_render_id": 112,
-          "entity_active_mask": 3,
+          "entity_vertical_accumulator": 1,
+          "entity_render_id": 114,
+          "entity_active_mask": 2,
           "weapon_pickup": {
             "state": 2,
-            "booster_state": 0,
+            "booster_state": 3,
             "qualified_kill_counter": 0,
-            "x": 84,
-            "y": 214,
-            "timer": 4,
-            "timer_low": 4,
-            "timer_high": 0,
+            "x": 92,
+            "y": 54,
+            "timer": 346,
+            "timer_low": 90,
+            "timer_high": 1,
             "plane_rows": 16,
             "plane_union": 255
           },
-          "player_fighter_projectiles": 3,
-          "rapid_player_fighter_projectiles": 0,
+          "player_fighter_projectiles": 5,
+          "rapid_player_fighter_projectiles": 5,
           "score_bcd": [
-            23,
-            144
+            4,
+            85
           ],
           "effect_active_mask": 31,
           "effect_active_count": 5,
-          "effect_rendered_mask": 30,
+          "effect_rendered_mask": 25,
           "live_interceptor": true,
           "raider_formation": {
-            "guide_y": 34,
+            "guide_y": 18,
             "member_state": [
               0,
-              0,
+              1,
               0
             ],
             "member_hp": [
               0,
-              0,
+              1,
               0
             ],
-            "live_count": 0,
-            "active_projectiles": 3
+            "live_count": 1,
+            "active_projectiles": 4
           },
           "fighter_explosion": true,
           "capital_explosion": false,
@@ -6322,19 +6322,15 @@
           "sector_state": 7
         },
         "events": [
-          "world-copy",
           "far-erase",
-          "hull-copy",
           "broadside-update",
           "fighter-explosion-render",
           "capital-explosion-render",
           "music-tick",
-          "near-copy",
           "far-step",
           "effect-erase",
           "effect-update",
-          "effect-render",
-          "director-world-row"
+          "effect-render"
         ],
         "cpu_dma_off_reference": null
       },
@@ -6355,8 +6351,8 @@
         "frame": 5628,
         "gameplay_frame": 252,
         "difficulty": 1,
-        "wall_cycles": 30366,
-        "physical_headroom": 5202,
+        "wall_cycles": 30369,
+        "physical_headroom": 5199,
         "start": {
           "clock": 221661887,
           "host_frame": 6232,
@@ -6364,10 +6360,10 @@
           "cycle": 59
         },
         "end": {
-          "clock": 221692253,
+          "clock": 221692256,
           "host_frame": 6232,
           "scanline": 284,
-          "cycle": 101
+          "cycle": 104
         },
         "next_start": {
           "clock": 221697455,
@@ -6410,8 +6406,8 @@
             23,
             144
           ],
-          "effect_active_mask": 31,
-          "effect_active_count": 5,
+          "effect_active_mask": 30,
+          "effect_active_count": 4,
           "effect_rendered_mask": 30,
           "live_interceptor": true,
           "raider_formation": {
@@ -6530,9 +6526,9 @@
               0,
               16
             ],
-            "effect_active_mask": 31,
-            "effect_active_count": 5,
-            "effect_rendered_mask": 7,
+            "effect_active_mask": 0,
+            "effect_active_count": 0,
+            "effect_rendered_mask": 0,
             "live_interceptor": true,
             "raider_formation": {
               "guide_y": 48,
@@ -6570,7 +6566,6 @@
             "near-copy",
             "far-step",
             "effect-update",
-            "effect-render",
             "pickup-qualified-kill",
             "director-world-row"
           ],
@@ -6741,9 +6736,9 @@
               0,
               53
             ],
-            "effect_active_mask": 31,
-            "effect_active_count": 5,
-            "effect_rendered_mask": 7,
+            "effect_active_mask": 0,
+            "effect_active_count": 0,
+            "effect_rendered_mask": 0,
             "live_interceptor": true,
             "raider_formation": {
               "guide_y": 30,
@@ -6781,7 +6776,6 @@
             "near-copy",
             "far-step",
             "effect-update",
-            "effect-render",
             "pickup-qualified-kill",
             "director-world-row"
           ],
@@ -6848,9 +6842,9 @@
               0,
               149
             ],
-            "effect_active_mask": 31,
-            "effect_active_count": 5,
-            "effect_rendered_mask": 31,
+            "effect_active_mask": 30,
+            "effect_active_count": 4,
+            "effect_rendered_mask": 24,
             "live_interceptor": true,
             "raider_formation": {
               "guide_y": 19,
@@ -6901,8 +6895,8 @@
           "frame": 420,
           "gameplay_frame": 164,
           "difficulty": 2,
-          "wall_cycles": 28202,
-          "physical_headroom": 7366,
+          "wall_cycles": 28205,
+          "physical_headroom": 7363,
           "start": {
             "clock": 36992803,
             "host_frame": 1040,
@@ -6910,13 +6904,13 @@
             "cycle": 31
           },
           "end": {
-            "clock": 37021005,
+            "clock": 37021008,
             "host_frame": 1040,
             "scanline": 265,
-            "cycle": 75
+            "cycle": 78
           },
           "next_start": {
-            "clock": 37028399,
+            "clock": 37028371,
             "host_frame": 1041
           },
           "host_vbi_boundaries": 0,
@@ -7004,8 +6998,8 @@
           "frame": 1970,
           "gameplay_frame": 178,
           "difficulty": 2,
-          "wall_cycles": 27765,
-          "physical_headroom": 7803,
+          "wall_cycles": 27762,
+          "physical_headroom": 7806,
           "start": {
             "clock": 92123215,
             "host_frame": 2590,
@@ -7013,10 +7007,10 @@
             "cycle": 43
           },
           "end": {
-            "clock": 92150980,
+            "clock": 92150977,
             "host_frame": 2590,
             "scanline": 261,
-            "cycle": 106
+            "cycle": 103
           },
           "next_start": {
             "clock": 92158783,
@@ -7107,8 +7101,8 @@
           "frame": 2030,
           "gameplay_frame": 238,
           "difficulty": 2,
-          "wall_cycles": 28804,
-          "physical_headroom": 6764,
+          "wall_cycles": 28801,
+          "physical_headroom": 6767,
           "start": {
             "clock": 94257311,
             "host_frame": 2650,
@@ -7116,13 +7110,13 @@
             "cycle": 59
           },
           "end": {
-            "clock": 94286115,
+            "clock": 94286112,
             "host_frame": 2650,
             "scanline": 271,
-            "cycle": 21
+            "cycle": 18
           },
           "next_start": {
-            "clock": 94292863,
+            "clock": 94292879,
             "host_frame": 2651
           },
           "host_vbi_boundaries": 0,
@@ -7210,8 +7204,8 @@
           "frame": 2084,
           "gameplay_frame": 36,
           "difficulty": 2,
-          "wall_cycles": 28566,
-          "physical_headroom": 7002,
+          "wall_cycles": 28569,
+          "physical_headroom": 6999,
           "start": {
             "clock": 96177983,
             "host_frame": 2704,
@@ -7219,10 +7213,10 @@
             "cycle": 59
           },
           "end": {
-            "clock": 96206549,
+            "clock": 96206552,
             "host_frame": 2704,
             "scanline": 269,
-            "cycle": 11
+            "cycle": 14
           },
           "next_start": {
             "clock": 96213535,
@@ -7313,8 +7307,8 @@
           "frame": 2236,
           "gameplay_frame": 188,
           "difficulty": 2,
-          "wall_cycles": 28618,
-          "physical_headroom": 6950,
+          "wall_cycles": 28615,
+          "physical_headroom": 6953,
           "start": {
             "clock": 101584319,
             "host_frame": 2856,
@@ -7322,10 +7316,10 @@
             "cycle": 59
           },
           "end": {
-            "clock": 101612937,
+            "clock": 101612934,
             "host_frame": 2856,
             "scanline": 269,
-            "cycle": 63
+            "cycle": 60
           },
           "next_start": {
             "clock": 101619887,
@@ -7472,9 +7466,9 @@
               3,
               149
             ],
-            "effect_active_mask": 31,
-            "effect_active_count": 5,
-            "effect_rendered_mask": 31,
+            "effect_active_mask": 30,
+            "effect_active_count": 4,
+            "effect_rendered_mask": 30,
             "live_interceptor": true,
             "raider_formation": {
               "guide_y": 6,
@@ -7580,9 +7574,9 @@
               4,
               32
             ],
-            "effect_active_mask": 31,
-            "effect_active_count": 5,
-            "effect_rendered_mask": 23,
+            "effect_active_mask": 30,
+            "effect_active_count": 4,
+            "effect_rendered_mask": 16,
             "live_interceptor": true,
             "raider_formation": {
               "guide_y": 7,
@@ -7633,8 +7627,8 @@
           "frame": 2434,
           "gameplay_frame": 130,
           "difficulty": 2,
-          "wall_cycles": 27806,
-          "physical_headroom": 7762,
+          "wall_cycles": 27803,
+          "physical_headroom": 7765,
           "start": {
             "clock": 108626767,
             "host_frame": 3054,
@@ -7642,13 +7636,13 @@
             "cycle": 43
           },
           "end": {
-            "clock": 108654573,
+            "clock": 108654570,
             "host_frame": 3054,
             "scanline": 262,
-            "cycle": 33
+            "cycle": 30
           },
           "next_start": {
-            "clock": 108662335,
+            "clock": 108662323,
             "host_frame": 3055
           },
           "host_vbi_boundaries": 0,
@@ -7736,8 +7730,8 @@
           "frame": 2462,
           "gameplay_frame": 158,
           "difficulty": 2,
-          "wall_cycles": 28527,
-          "physical_headroom": 7041,
+          "wall_cycles": 28524,
+          "physical_headroom": 7044,
           "start": {
             "clock": 109622687,
             "host_frame": 3082,
@@ -7745,10 +7739,10 @@
             "cycle": 59
           },
           "end": {
-            "clock": 109651214,
+            "clock": 109651211,
             "host_frame": 3082,
             "scanline": 268,
-            "cycle": 86
+            "cycle": 83
           },
           "next_start": {
             "clock": 109658239,
@@ -7840,8 +7834,8 @@
           "frame": 2545,
           "gameplay_frame": 241,
           "difficulty": 2,
-          "wall_cycles": 27464,
-          "physical_headroom": 8104,
+          "wall_cycles": 27461,
+          "physical_headroom": 8107,
           "start": {
             "clock": 112574815,
             "host_frame": 3165,
@@ -7849,13 +7843,13 @@
             "cycle": 43
           },
           "end": {
-            "clock": 112602279,
+            "clock": 112602276,
             "host_frame": 3165,
             "scanline": 259,
-            "cycle": 33
+            "cycle": 30
           },
           "next_start": {
-            "clock": 112610399,
+            "clock": 112610383,
             "host_frame": 3166
           },
           "host_vbi_boundaries": 0,
@@ -7895,9 +7889,9 @@
               4,
               149
             ],
-            "effect_active_mask": 31,
-            "effect_active_count": 5,
-            "effect_rendered_mask": 7,
+            "effect_active_mask": 0,
+            "effect_active_count": 0,
+            "effect_rendered_mask": 0,
             "live_interceptor": true,
             "raider_formation": {
               "guide_y": 44,
@@ -7935,7 +7929,6 @@
             "near-copy",
             "far-step",
             "effect-update",
-            "effect-render",
             "pickup-qualified-kill",
             "director-world-row"
           ],
@@ -8050,8 +8043,8 @@
           "frame": 3943,
           "gameplay_frame": 103,
           "difficulty": 2,
-          "wall_cycles": 27329,
-          "physical_headroom": 8239,
+          "wall_cycles": 27326,
+          "physical_headroom": 8242,
           "start": {
             "clock": 162298879,
             "host_frame": 4563,
@@ -8059,13 +8052,13 @@
             "cycle": 43
           },
           "end": {
-            "clock": 162326208,
+            "clock": 162326205,
             "host_frame": 4563,
             "scanline": 258,
-            "cycle": 12
+            "cycle": 9
           },
           "next_start": {
-            "clock": 162334447,
+            "clock": 162334435,
             "host_frame": 4564
           },
           "host_vbi_boundaries": 0,
@@ -8105,9 +8098,9 @@
               5,
               149
             ],
-            "effect_active_mask": 31,
-            "effect_active_count": 5,
-            "effect_rendered_mask": 7,
+            "effect_active_mask": 0,
+            "effect_active_count": 0,
+            "effect_rendered_mask": 0,
             "live_interceptor": true,
             "raider_formation": {
               "guide_y": 44,
@@ -8145,7 +8138,6 @@
             "near-copy",
             "far-step",
             "effect-update",
-            "effect-render",
             "pickup-qualified-kill",
             "director-world-row"
           ],
@@ -8489,8 +8481,8 @@
           "frame": 2184,
           "gameplay_frame": 136,
           "difficulty": 2,
-          "wall_cycles": 28485,
-          "physical_headroom": 7083,
+          "wall_cycles": 28629,
+          "physical_headroom": 6939,
           "start": {
             "clock": 99734783,
             "host_frame": 2804,
@@ -8498,10 +8490,10 @@
             "cycle": 59
           },
           "end": {
-            "clock": 99763268,
+            "clock": 99763412,
             "host_frame": 2804,
-            "scanline": 268,
-            "cycle": 44
+            "scanline": 269,
+            "cycle": 74
           },
           "next_start": {
             "clock": 99770351,
@@ -8546,7 +8538,7 @@
             ],
             "effect_active_mask": 31,
             "effect_active_count": 5,
-            "effect_rendered_mask": 31,
+            "effect_rendered_mask": 24,
             "live_interceptor": false,
             "raider_formation": {
               "guide_y": 6,
@@ -8580,7 +8572,6 @@
             "capital-explosion-render",
             "music-tick",
             "far-step",
-            "effect-erase",
             "effect-update",
             "effect-render",
             "pickup-collect"
@@ -9017,13 +9008,13 @@
           "frame": 2225,
           "gameplay_frame": 177,
           "difficulty": 2,
-          "wall_cycles": 29028,
-          "physical_headroom": 6540,
+          "wall_cycles": 29044,
+          "physical_headroom": 6524,
           "start": {
-            "clock": 102224543,
+            "clock": 102224527,
             "host_frame": 2874,
             "scanline": 18,
-            "cycle": 59
+            "cycle": 43
           },
           "end": {
             "clock": 102253571,
@@ -9541,8 +9532,8 @@
           "frame": 2196,
           "gameplay_frame": 148,
           "difficulty": 2,
-          "wall_cycles": 28164,
-          "physical_headroom": 7404,
+          "wall_cycles": 28161,
+          "physical_headroom": 7407,
           "start": {
             "clock": 100161599,
             "host_frame": 2816,
@@ -9550,10 +9541,10 @@
             "cycle": 59
           },
           "end": {
-            "clock": 100189763,
+            "clock": 100189760,
             "host_frame": 2816,
             "scanline": 265,
-            "cycle": 65
+            "cycle": 62
           },
           "next_start": {
             "clock": 100197167,
@@ -9596,8 +9587,8 @@
               2,
               133
             ],
-            "effect_active_mask": 30,
-            "effect_active_count": 4,
+            "effect_active_mask": 31,
+            "effect_active_count": 5,
             "effect_rendered_mask": 31,
             "live_interceptor": true,
             "raider_formation": {
@@ -11501,28 +11492,28 @@
         "observed": true,
         "matching_frames": 2834,
         "heaviest": {
-          "trace_kind": "debris-effects-coverage",
-          "session": "debris-effects-2-sweep-fire4",
-          "frame": 2202,
-          "gameplay_frame": 154,
-          "difficulty": 2,
-          "wall_cycles": 30566,
-          "physical_headroom": 5002,
+          "trace_kind": "director-level-complete",
+          "session": "director-complete-1-natural-sweep-fire0",
+          "frame": 2262,
+          "gameplay_frame": 214,
+          "difficulty": 1,
+          "wall_cycles": 30504,
+          "physical_headroom": 5064,
           "start": {
-            "clock": 100374991,
-            "host_frame": 2822,
+            "clock": 101939971,
+            "host_frame": 2866,
             "scanline": 18,
-            "cycle": 43
+            "cycle": 31
           },
           "end": {
-            "clock": 100405557,
-            "host_frame": 2822,
-            "scanline": 286,
-            "cycle": 57
+            "clock": 101970475,
+            "host_frame": 2866,
+            "scanline": 285,
+            "cycle": 97
           },
           "next_start": {
-            "clock": 100410575,
-            "host_frame": 2823
+            "clock": 101975567,
+            "host_frame": 2867
           },
           "host_vbi_boundaries": 0,
           "extra_vbi_boundaries": 0,
@@ -11536,7 +11527,7 @@
             "far_rendered": 4,
             "active_muzzles": 0,
             "entity_active": 1,
-            "entity_x": 124,
+            "entity_x": 84,
             "entity_y": 232,
             "entity_vx_signed": 0,
             "entity_move_accumulator": 0,
@@ -11547,10 +11538,10 @@
               "state": 2,
               "booster_state": 3,
               "qualified_kill_counter": 0,
-              "x": 92,
-              "y": 54,
-              "timer": 346,
-              "timer_low": 90,
+              "x": 142,
+              "y": 60,
+              "timer": 382,
+              "timer_low": 126,
               "timer_high": 1,
               "plane_rows": 16,
               "plane_union": 255
@@ -11559,47 +11550,49 @@
             "rapid_player_fighter_projectiles": 5,
             "score_bcd": [
               4,
-              85
+              53
             ],
-            "effect_active_mask": 30,
-            "effect_active_count": 4,
-            "effect_rendered_mask": 25,
+            "effect_active_mask": 0,
+            "effect_active_count": 0,
+            "effect_rendered_mask": 0,
             "live_interceptor": true,
             "raider_formation": {
-              "guide_y": 18,
+              "guide_y": 48,
               "member_state": [
-                0,
                 1,
-                0
+                0,
+                1
               ],
               "member_hp": [
-                0,
                 1,
+                0,
                 0
               ],
               "live_count": 1,
               "active_projectiles": 4
             },
-            "fighter_explosion": true,
+            "fighter_explosion": false,
             "capital_explosion": false,
             "music_active": true,
             "fire_sfx": true,
-            "hit_sfx": true,
+            "hit_sfx": false,
             "capital_sfx": false,
             "sound_enabled": true,
             "player_lifecycle": 0,
             "sector_state": 7
           },
           "events": [
+            "world-copy",
             "far-erase",
+            "hull-copy",
             "broadside-update",
             "fighter-explosion-render",
             "capital-explosion-render",
             "music-tick",
+            "near-copy",
             "far-step",
-            "effect-erase",
             "effect-update",
-            "effect-render"
+            "director-world-row"
           ],
           "cpu_dma_off_reference": null
         }
@@ -11779,7 +11772,7 @@
             ],
             "effect_active_mask": 30,
             "effect_active_count": 4,
-            "effect_rendered_mask": 16,
+            "effect_rendered_mask": 24,
             "live_interceptor": true,
             "raider_formation": {
               "guide_y": 5,
@@ -12650,7 +12643,54 @@
         "effect-update",
         "director-world-row"
       ],
-      "cpu_dma_off_reference": null
+      "cpu_dma_off_reference": {
+        "main_loop_cycles": 13118,
+        "active_cycles": 13105,
+        "inclusive_procedure_cycles": {
+          "update_white_starfield_phase": 35,
+          "erase_transient_effect_overlays": 169,
+          "entity_effects_erase": 187,
+          "tick_shared_fighter_explosions": 48,
+          "tick_capital_explosions": 41,
+          "tick_launch_flashes": 55,
+          "update_player_death": 26,
+          "read_input": 460,
+          "update_enemy": 850,
+          "entity_player_fighter_projectile_hits_debris": 29,
+          "player_fighter_projectile_hits_enemy": 127,
+          "entity_player_fighter_projectile_target": 182,
+          "interceptor_projectile_hits_player": 32,
+          "update_fighter_projectiles": 1202,
+          "update_broadside": 390,
+          "spawn_interceptor_breakup_effects": 179,
+          "handle_collisions": 2604,
+          "update_player_fighter_weapon": 59,
+          "update_enemy_weapon": 70,
+          "rotate_playfield_rows": 1517,
+          "set_gameplay_row_ptr": 27,
+          "scroll_world_columns": 1975,
+          "resolve_allied_sector_row": 115,
+          "resolve_enemy_sector_row": 115,
+          "scroll_hull_columns": 1343,
+          "update_starfield": 3635,
+          "handle_player_hull_contact": 55,
+          "update_transient_effects": 321,
+          "entity_collide_player": 42,
+          "entity_effects_update": 495,
+          "render_capital_explosions": 41,
+          "render_shared_fighter_explosions": 20,
+          "render_transient_effect_overlays": 630,
+          "entity_effects_render": 639,
+          "publish_dynamic_near_star_phase": 39,
+          "erase_fighter_projectile_overlays": 350,
+          "erase_interactive_entity_overlays": 97,
+          "render_interactive_entity_overlays": 365,
+          "render_fighter_projectile_overlays": 1190,
+          "update_sound": 122,
+          "music_tick_gameplay": 314
+        },
+        "note": "Procedure values are inclusive and may be nested; they must not be summed."
+      }
     },
     {
       "trace_kind": "baseline-9040",

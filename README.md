@@ -14,7 +14,22 @@ too. Dark, worn, military science fiction on a stock 64 KB machine.
 
 A non-commercial hobby project. Free.
 
-[How to play](docs/how-to-play.md) · [Download the disk image](dist/void-strike-65.atr) · [Documentation](docs/README.md)
+[How to play](docs/how-to-play.md) · [Releases](https://github.com/Setech-pl/void-strike-65/releases) · [Documentation](docs/README.md)
+
+<img src="docs/media/showcase/void-strike-65-level-1.gif" width="640" alt="Fourteen seconds of level 1 recorded from the ATR: the fighter picks up the Spread Shot capsule, fires three-shot fans, and flies into the corridor between the allied and the hostile capital ship">
+
+*Level 1, recorded frame by frame from the disk image in Atari800 (PAL, 50 frames
+per second): a Bomber and an Interceptor, the Spread Shot capsule and its
+volley rhythm — the three-shot fan, then the single follow-up — and the capital
+corridor with the first `BROADSIDE`. A deterministic scripted replay, so it is
+regenerated after every game change rather than re-recorded by hand.*
+
+<img src="docs/media/showcase/timing-history.svg" width="720" alt="Chart of the worst fence margin and the DMA-on maximum at each release and key merge, against the GO threshold of 500 cycles and the hard gate of 32,568 cycles">
+
+*Every build is held to the PAL frame: the worst slack before the line-238
+fence must stay above 500 cycles, and no traced frame may exceed 32,568
+cycles with display DMA on. Each point is cited in
+[timing-history.json](docs/media/timing-history.json).*
 
 ---
 
@@ -25,16 +40,20 @@ is the product: one file that boots on an emulator and on a real Atari 65XE
 through an SIO2SD. There is no cartridge, and nothing has to be held down at
 power-on.
 
-There is **no published release yet.** To get the current build from this
-repository:
-
-1. Open [`dist/void-strike-65.atr`](dist/void-strike-65.atr) and use GitHub's
-   **Download raw file** button.
-2. **On an emulator:** mount the file as disk drive **D1:** and boot. In
-   Altirra, that is **File → Boot Image**. Configure the machine as **XL/XE**,
-   **PAL**, **64 KB**.
-3. **On real hardware:** copy it to your SIO2SD as D1: and power the Atari on.
-4. Wait for the title loader and the main menu — about eleven seconds from
+1. **Get the disk image.** Released builds are on the
+   [GitHub releases page](https://github.com/Setech-pl/void-strike-65/releases)
+   (pre-releases for now; the newest is
+   [v0.2.0](https://github.com/Setech-pl/void-strike-65/releases/tag/v0.2.0)).
+   The build at the tip of this repository, including changes that are still
+   being play-tested, is [`dist/void-strike-65.atr`](dist/void-strike-65.atr) —
+   use GitHub's **Download raw file** button.
+2. **In Atari800:** `atari800 -xe -pal void-strike-65.atr`. The disk boots with
+   BASIC on or off, so `-nobasic` is optional.
+3. **In Altirra:** set the hardware to **65XE/130XE** and the video standard to
+   **PAL**, then **File → Boot Image** and pick the ATR.
+4. **On real hardware:** copy it to your SIO2SD as D1: and power the Atari on,
+   with or without BASIC.
+5. Wait for the title loader and the main menu — about eleven seconds from
    disk — then select **START GAME**.
 
 The game reads **joystick port 1** and one fire button; **Space** pauses. On an
@@ -155,7 +174,9 @@ to open the full file.
 | **Rapid Fire active** | **Game Over** |
 
 Capture provenance and checksums are in the
-[media manifest](docs/media/manifest.json).
+[media manifest](docs/media/manifest.json). The gallery, the GIF and the chart
+are regenerated from the current build by `npm run showcase -- --capture`,
+`npm run showcase:gif` and `npm run showcase:chart`.
 
 ## The bosses, as designed
 
@@ -164,10 +185,10 @@ illustrations show the intended shape and mechanics, not final Atari graphics: a
 structure wider than the screen, drifting sideways to reveal its sections, with
 protective modules to strip away before the weapons underneath can be reached.
 
-[![Blockade Breaker concept art: worn armour plates shielding recessed guns; planned boss, not gameplay](docs/media/concepts/void-strike-65-boss-01-blockade-breaker.png)](docs/media/concepts/void-strike-65-boss-01-blockade-breaker.png)
-
-All three are in [boss-concepts.md](docs/boss-concepts.md): Blockade Breaker,
-Siege Spine and Void Citadel.
+All three are in [boss-concepts.md](docs/boss-concepts.md), with their concept
+art: [Blockade Breaker](docs/media/concepts/void-strike-65-boss-01-blockade-breaker.png),
+[Siege Spine](docs/media/concepts/void-strike-65-boss-02-siege-spine.png) and
+[Void Citadel](docs/media/concepts/void-strike-65-boss-03-void-citadel.png).
 
 ---
 
@@ -189,12 +210,10 @@ npm run build:candidate
 `dist/`; intermediates go to `build/`. Never hand-edit
 either directory.
 
-`npm test` builds and runs the focused suites. Be aware of two things before
-reading its output as a verdict: a final build refuses to bind to a stale
-runtime trace report, which currently blocks it at HEAD, and the suite carries a
-known set of failing names — a *new* failure name is a regression signal, an old
-one is not. Both are recorded in
-[project-overview.md](docs/project-overview.md) §1.3.
+`npm test` builds the default target and runs the suites. The suite carries a
+small, named set of failures the owner has accepted as open, listed in
+[recorded-test-failures.json](docs/recorded-test-failures.json) — a *new*
+failure name is a regression signal, a recorded one is not.
 
 Where to go next: the [documentation map](docs/README.md) for the precedence
 order, [STATUS.md](docs/STATUS.md) for what is true right now, and

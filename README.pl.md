@@ -15,7 +15,23 @@ maszynie z 64 KB pamięci.
 
 Projekt hobbystyczny, niekomercyjny. Bezpłatny.
 
-[Jak grać](docs/how-to-play.pl.md) · [Pobierz obraz dyskietki](dist/void-strike-65.atr) · [Dokumentacja](docs/README.md)
+[Jak grać](docs/how-to-play.pl.md) · [Wydania](https://github.com/Setech-pl/void-strike-65/releases) · [Dokumentacja](docs/README.md)
+
+<img src="docs/media/showcase/void-strike-65-level-1.gif" width="640" alt="Czternaście sekund poziomu 1 nagranych z ATR: myśliwiec zbiera kapsułę Spread Shot, strzela wachlarzami po trzy pociski i wlatuje w korytarz między sojuszniczym a wrogim okrętem liniowym">
+
+*Poziom 1, nagrany klatka po klatce z obrazu dyskietki w Atari800 (PAL,
+50 klatek na sekundę): Bomber i Interceptor, kapsuła Spread Shot i rytm jej
+salw — wachlarz trzech pocisków, potem pojedynczy strzał — oraz korytarz okrętów
+liniowych z pierwszą salwą `BROADSIDE`. To deterministyczna, skryptowa
+powtórka, więc po każdej zmianie gry jest generowana na nowo, a nie nagrywana
+ręcznie.*
+
+<img src="docs/media/showcase/timing-history.svg" width="720" alt="Wykres najgorszego zapasu przed płotem i maksimum cykli przy włączonym DMA w każdym wydaniu i kluczowym scaleniu, na tle progu GO 500 cykli i twardej bramki 32 568 cykli">
+
+*Każda wersja musi zmieścić się w ramce PAL: najmniejszy zapas przed płotem na
+linii 238 musi być większy niż 500 cykli, a żadna zmierzona klatka nie może
+przekroczyć 32 568 cykli przy włączonym DMA ekranu. Każdy punkt ma źródło w
+[timing-history.json](docs/media/timing-history.json).*
 
 ---
 
@@ -26,15 +42,20 @@ Projekt hobbystyczny, niekomercyjny. Bezpłatny.
 emulatorze, i na prawdziwym Atari 65XE przez SIO2SD. Nie ma kartridża i nie
 trzeba nic trzymać przy włączaniu zasilania.
 
-**Nie ma jeszcze opublikowanego wydania.** Żeby wziąć bieżącą wersję z tego
-repozytorium:
-
-1. Otwórz [`dist/void-strike-65.atr`](dist/void-strike-65.atr) i użyj przycisku
-   **Download raw file** na GitHubie.
-2. **W emulatorze:** zamontuj plik jako stację **D1:** i wystartuj. W Altirze
-   robi to **File → Boot Image**. Maszynę ustaw na **XL/XE**, **PAL**, **64 KB**.
-3. **Na sprzęcie:** skopiuj plik na SIO2SD jako D1: i włącz Atari.
-4. Poczekaj na ekran loadera i menu główne — z dyskietki to około jedenastu
+1. **Pobierz obraz dyskietki.** Wydane wersje są na
+   [stronie wydań na GitHubie](https://github.com/Setech-pl/void-strike-65/releases)
+   (na razie jako wydania wstępne; najnowsze to
+   [v0.2.0](https://github.com/Setech-pl/void-strike-65/releases/tag/v0.2.0)).
+   Wersja z czubka tego repozytorium, razem ze zmianami, które są jeszcze
+   testowane w grze, to [`dist/void-strike-65.atr`](dist/void-strike-65.atr) —
+   użyj przycisku **Download raw file** na GitHubie.
+2. **W Atari800:** `atari800 -xe -pal void-strike-65.atr`. Dyskietka startuje
+   z włączonym i z wyłączonym BASIC-iem, więc `-nobasic` jest opcjonalne.
+3. **W Altirze:** ustaw sprzęt na **65XE/130XE**, standard obrazu na **PAL**,
+   potem **File → Boot Image** i wskaż plik ATR.
+4. **Na sprzęcie:** skopiuj plik na SIO2SD jako D1: i włącz Atari, z BASIC-iem
+   albo bez.
+5. Poczekaj na ekran loadera i menu główne — z dyskietki to około jedenastu
    sekund — i wybierz **START GAME**.
 
 Gra czyta **joystick w porcie 1** i jeden przycisk ognia; pauzę włącza
@@ -158,7 +179,9 @@ plik.
 | **Aktywny Rapid Fire** | **Game Over** |
 
 Pochodzenie przechwyceń i sumy kontrolne są w
-[manifeście mediów](docs/media/manifest.json).
+[manifeście mediów](docs/media/manifest.json). Galerię, GIF i wykres generuje
+się na nowo z bieżącej wersji poleceniami `npm run showcase -- --capture`,
+`npm run showcase:gif` i `npm run showcase:chart`.
 
 ## Bossowie, tak jak zaprojektowani
 
@@ -168,10 +191,10 @@ grafikę na Atari: konstrukcja szersza niż ekran, przesuwająca się na boki i
 odsłaniająca kolejne swoje części, z modułami ochronnymi, które trzeba zdjąć,
 żeby dojść do dział pod nimi.
 
-[![Grafika koncepcyjna Blockade Breaker: zużyte płyty pancerza osłaniające wpuszczone działa; boss planowany, nie z gry](docs/media/concepts/void-strike-65-boss-01-blockade-breaker.png)](docs/media/concepts/void-strike-65-boss-01-blockade-breaker.png)
-
-Wszyscy trzej są w [boss-concepts.md](docs/boss-concepts.md): Blockade Breaker,
-Siege Spine i Void Citadel.
+Wszyscy trzej są w [boss-concepts.md](docs/boss-concepts.md), razem z grafikami
+koncepcyjnymi: [Blockade Breaker](docs/media/concepts/void-strike-65-boss-01-blockade-breaker.png),
+[Siege Spine](docs/media/concepts/void-strike-65-boss-02-siege-spine.png) i
+[Void Citadel](docs/media/concepts/void-strike-65-boss-03-void-citadel.png).
 
 ---
 
@@ -192,12 +215,10 @@ npm run build:candidate
 `void-strike-65.atr`, ładunek bootowy i manifest budowania powstają w `dist/`; pliki pośrednie w `build/`. Żadnego z tych katalogów nie
 edytuje się ręcznie.
 
-`npm test` buduje projekt i uruchamia skupione zestawy testów. Dwie rzeczy warto
-wiedzieć, zanim potraktuje się jego wynik jako wyrok: finalne budowanie odmawia
-wiązania się z nieaktualnym raportem trasowania czasu wykonania, co blokuje ten
-krok na obecnym HEAD-zie, a sam zestaw testów niesie znany zbiór nazw, które
-padają — *nowa* nazwa w tym zbiorze jest sygnałem regresji, stara nie jest. Oba
-fakty są zapisane w [project-overview.md](docs/project-overview.md) §1.3.
+`npm test` buduje domyślny cel i uruchamia zestawy testów. Zestaw niesie
+niewielki, nazwany zbiór porażek, które właściciel przyjął jako otwarte — lista
+jest w [recorded-test-failures.json](docs/recorded-test-failures.json). *Nowa*
+nazwa porażki jest sygnałem regresji, zapisana nie jest.
 
 Gdzie iść dalej: [mapa dokumentacji](docs/README.md) po kolejność
 pierwszeństwa źródeł, [STATUS.md](docs/STATUS.md) po to, co jest prawdą teraz, i

@@ -5,6 +5,8 @@ import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { generateShowcase } from "../scripts/github-showcase.mjs";
+import { GIF_PATH } from "../scripts/showcase-gif.mjs";
+import { CHART_DATA_PATH, CHART_PATH, renderChart, verifySources } from "../scripts/showcase-timing-chart.mjs";
 
 const testDirectory = path.dirname(fileURLToPath(import.meta.url));
 const rootDirectory = path.resolve(testDirectory, "..");
@@ -52,10 +54,10 @@ test("showcase manifest binds every image to the current packed release", () => 
   totalBytes += manifest.concepts.reduce((sum, { bytes }) => sum + bytes, 0);
   assert.ok(totalBytes < 5_000_000, "showcase media should remain below 5 MB");
   for (const frame of manifest.gameplay) {
-    // Provenance of the committed images: they were captured before the ATR
-    // became the only medium (owner decision, 2026-09-30) and were not
-    // recaptured with it. A --capture run records "ATR".
-    assert.ok(["XEX", "ATR"].includes(frame.source_medium), frame.path);
+    // Recaptured from the ATR, the only medium (owner decision 2026-09-30),
+    // on 2026-10-02 (docs/plans/showcase-atr.md). The XEX-era frames that
+    // this assertion used to tolerate are gone.
+    assert.equal(frame.source_medium, "ATR", frame.path);
     assert.equal(frame.emulator, "Atari800 7.1.2 PAL XL");
     assert.deepEqual([frame.width, frame.height], [320, 240]);
     assert.match(frame.source_sha256, /^[0-9a-f]{64}$/);
@@ -171,9 +173,52 @@ test("README links and image sizes are suitable for the public showcase", () => 
   }
 
   const imageTargets = publicImages(readme).map(({ target }) => target);
-  assert.equal(imageTargets.length, 8); // Banner, six current frames, one boss concept.
+  // Banner, the gameplay GIF, the timing chart, six current frames. Re-pinned
+  // 8 -> 9 by docs/plans/showcase-atr.md §5: the GIF and the chart were added
+  // under the opening paragraph, and the Blockade Breaker concept art became a
+  // link so that the 4 MB budget below holds (owner decision 2026-10-02).
+  assert.equal(imageTargets.length, 9);
+  assert.ok(imageTargets.includes(GIF_PATH), "README shows the gameplay GIF");
+  assert.ok(imageTargets.includes(CHART_PATH), "README shows the timing chart");
   assert.equal(new Set(imageTargets).size, imageTargets.length);
   const totalImageBytes = imageTargets.reduce((sum, target) =>
     sum + read(decodeURIComponent(target)).length, 0);
   assert.ok(totalImageBytes < 4_000_000, "README images should remain below 4 MB total");
+});
+
+test("gameplay GIF is bound to the current ATR and stays within budget", () => {
+  assert.equal(manifest.animations.length, 1);
+  const [gif] = manifest.animations;
+  assert.equal(gif.path, GIF_PATH);
+  assert.equal(gif.source_medium, "ATR");
+  assert.equal(gif.atr_sha256, sha256(read("dist/void-strike-65.atr")),
+    "the GIF predates the current ATR; rerun npm run showcase:gif");
+  const bytes = read(gif.path);
+  assert.equal(bytes.length, gif.bytes);
+  assert.equal(sha256(bytes), gif.sha256);
+  assert.ok(bytes.length <= 5_000_000, "the GIF must stay at or under 5 MB");
+  assert.equal(bytes.toString("ascii", 0, 6), "GIF89a");
+  assert.deepEqual([bytes.readUInt16LE(6), bytes.readUInt16LE(8)], [gif.width, gif.height]);
+  assert.deepEqual([gif.width, gif.height], [320, 240]);
+  assert.equal(gif.frame_delay_centiseconds, 2, "one PAL frame per GIF frame");
+  assert.ok(gif.seconds >= 10 && gif.seconds <= 15, `${gif.seconds} s is outside 10-15 s`);
+  assert.ok(gif.landmarks.spread_collected > gif.gameplay_frames[0] &&
+    gif.landmarks.first_broadside < gif.gameplay_frames[1],
+  "the window holds the Spread pickup and the first BROADSIDE");
+});
+
+test("timing chart cites a committed source for every value and regenerates", () => {
+  const dataBytes = read(CHART_DATA_PATH);
+  const data = JSON.parse(dataBytes);
+  verifySources(data);
+  for (const point of data.points) {
+    assert.ok(point.fence_margin !== null || point.dma_on_max !== null, point.label);
+  }
+  assert.ok(data.points.some(({ release }) => release === "v0.2.0"));
+  const svg = Buffer.from(renderChart(data), "utf8");
+  assert.deepEqual(svg, read(CHART_PATH), "rerun npm run showcase:chart");
+  const [chart] = manifest.charts;
+  assert.equal(chart.path, CHART_PATH);
+  assert.equal(chart.sha256, sha256(svg));
+  assert.equal(chart.data.sha256, sha256(dataBytes));
 });

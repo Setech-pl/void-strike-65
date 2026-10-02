@@ -411,20 +411,33 @@ function runTrace(argumentsList, environment, label) {
   }
 }
 
+// Frames of the observer smoke (level 1, HARD, neutral policy) on the ATR.
+// Chosen by inspection on ATR f127d7a4 (2026-10-02, docs/plans/showcase-atr.md
+// §3.3): the level is driven by world rows, so a level change can move what a
+// frame shows — look at the gallery after every recapture.
+const OBSERVER_FRAMES = 1100;
+const OBSERVER_SHOTS = Object.freeze({
+  standard: 25, breakup: 184, engines: 904, broadside: 990, debris: 1088,
+});
+const observerShot = (name) => path.join(captureDirectory,
+  `neutral-combat-${String(OBSERVER_SHOTS[name]).padStart(3, "0")}.png`);
+
 // Every source frame the gallery reads, captured from the current ATR. The
 // observer smoke also runs the boot smoke, which writes the loader frame; it
 // clears the pickup evidence, so the focused pickup sessions run after it.
 function captureBreakupFrames() {
   fs.mkdirSync(captureDirectory, { recursive: true });
   const prefix = path.join(captureDirectory, "neutral-combat");
-  runTrace(["--smoke-frames=150"], { DFTRACE_ENGINE_SCREENSHOT_PREFIX: prefix }, "showcase");
-  for (const frame of [25, 31, 100, 113]) {
+  runTrace([`--smoke-frames=${OBSERVER_FRAMES}`], {
+    DFTRACE_ENGINE_SCREENSHOT_PREFIX: prefix,
+    DFTRACE_ENGINE_SCREENSHOT_LIMIT: String(OBSERVER_FRAMES),
+  }, "showcase");
+  for (const frame of Object.values(OBSERVER_SHOTS)) {
     invariant(fs.existsSync(`${prefix}-${String(frame).padStart(3, "0")}.png`),
       `Atari800 showcase frame ${frame} is missing`);
   }
   runTrace(["--only-session=weapon-pickup-2-hunt-fire4"], {}, "Rapid Fire showcase");
   runTrace(["--only-session=weapon-pickup-spread-0-hunt-fire4"], {}, "Spread Shot showcase");
-  runTrace(["--only-session=engine-atr-a5-0-immediate"], {}, "capital engine showcase");
 }
 
 // The loader frame is the ATR boot smoke's own loader snapshot: its frame
@@ -448,14 +461,14 @@ function atrLoaderCapture() {
 function requireCaptureSources() {
   const sources = {
     loader: atrLoaderCapture().path,
-    standard: path.join(captureDirectory, "neutral-combat-025.png"),
-    interceptor: path.join(captureDirectory, "neutral-combat-031.png"),
-    debris: path.join(captureDirectory, "neutral-combat-113.png"),
+    standard: observerShot("standard"),
+    breakup: observerShot("breakup"),
+    debris: observerShot("debris"),
     pickup: path.join(runtimeTraceDirectory, "weapon-pickup-static-atari800.png"),
     rapid: path.join(runtimeTraceDirectory, "weapon-pickup-rapid-projectiles-atari800.png"),
     spread: path.join(runtimeTraceDirectory, "weapon-pickup-spread-projectiles-atari800.png"),
-    broadside: path.join(captureDirectory, "neutral-combat-100.png"),
-    engines: path.join(runtimeTraceDirectory, "engine-atr-a5-0-immediate-096.png"),
+    broadside: observerShot("broadside"),
+    engines: observerShot("engines"),
   };
   for (const sourcePath of Object.values(sources)) {
     invariant(fs.existsSync(sourcePath),
@@ -475,13 +488,13 @@ export function createGameplayGallery() {
     "Runtime report is missing the authentic Spread Shot capture frame");
   const definitions = [
     ["01-title-loader.png", sources.loader, "ATR", atrLoaderCapture().frame, "Loader title and capital-ship art"],
-    ["02-standard-combat.png", sources.standard, "ATR", 25, "PlayerFighter, Interceptor, starfield and capital hull corridor"],
-    ["03-interceptor-breakup.png", sources.interceptor, "ATR", 31, "Interceptor local breakup after a PlayerFighter projectile kill"],
-    ["04-debris-breakup.png", sources.debris, "ATR", 113, "Destructible debris with four transient fragments"],
+    ["02-standard-combat.png", sources.standard, "ATR", OBSERVER_SHOTS.standard, "PlayerFighter, a Raider and the starfield in open space"],
+    ["03-heavy-breakup.png", sources.breakup, "ATR", OBSERVER_SHOTS.breakup, "Raider break-up fragments after a PairShot kill, a Light enemy and the next weapon capsule"],
+    ["04-debris-breakup.png", sources.debris, "ATR", OBSERVER_SHOTS.debris, "Destructible debris breaking up in the capital corridor"],
     ["05-rapid-fire-pickup.png", sources.pickup, "ATR", 385, "Static 2x2 Rapid Fire capsule in active gameplay"],
     ["06-rapid-fire-active.png", sources.rapid, "ATR", 449, "Full BOOST HUD label, energy cells, and yellow Rapid Fire projectiles"],
-    ["07-capital-broadside.png", sources.broadside, "ATR", 100, "Capital corridor combat and broadside fire"],
-    ["08-capital-engines.png", sources.engines, "ATR", 96, "Capital engine bank in its deterministic 8-frame phase"],
+    ["07-capital-broadside.png", sources.broadside, "ATR", OBSERVER_SHOTS.broadside, "Capital corridor: turrets on both hulls and BROADSIDE fire"],
+    ["08-capital-engines.png", sources.engines, "ATR", OBSERVER_SHOTS.engines, "Capital corridor entry with the hostile engine bank in its bright phase"],
     ["09-spread-shot-active.png", sources.spread, "ATR", spreadCaptureFrame, "Full BOOST HUD label, energy cells, and all-yellow three-projectile fan"],
   ];
   return definitions.map(([fileName, sourcePath, medium, frame, description]) => {

@@ -12,6 +12,11 @@ and at most one Light in a boss sector; the Heavy behaviour package and its
 three sub-decisions (§2 M3-H); the menu baseline kept until 1.0. All are
 recorded in §5.3; §5.2 lists what is still open.
 
+**Note, 2026-10-02.** The M3 and M3-H **cycle** lines of this document — the
+fence margin ending 374 over GO and the DMA-on line moving at M3 and M3-H — are
+superseded by the re-base in [m3-waves-heavy.md](m3-waves-heavy.md) §1.4 and
+§6.1. Nothing else here is rewritten.
+
 It answers four questions: does everything left until 1.0 fit in the machine,
 which resource does each milestone spend, where are the shortfalls, and which
 levers pay for them.

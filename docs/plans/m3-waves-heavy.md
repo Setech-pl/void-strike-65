@@ -28,7 +28,8 @@ them; §3.5, §5, §6.2 and §6.3 carry one set of byte figures with the arena a
 spawn rotate gate and lists what the owner still has to settle. **Two errors of
 the first version are corrected in §1.4 and §6.1:** it added native cycles to
 the fence margin one for one, and it let work before the fence move the DMA-on
-maximum. Neither holds.
+maximum. Neither holds. **The owner's answers to the re-base's questions are
+recorded in §8.2 (2026-10-02).**
 
 It covers Director plan step 6 ([director-4.6.md](director-4.6.md) §8) and the
 budget lines M3 and M3-H ([budget-1.0.md](budget-1.0.md) §2), plus the two
@@ -76,9 +77,10 @@ look for the Bomber and the armoured Raider.
   more. **Decided: it is a standalone task, before M4 and M5** (§9). **Built
   and measured (§9.5): 24 B, 389 → 0 such kills, the old binding row
   788 → 4,333, worst margin 1,439.**
-* **Open after the re-base (§8.2 A):** the same gate for Heavy *spawns* — 5 B
-  and one extension sector — would move the binding class from 1,439 to about
-  2,944, at the price of re-scripted replays. Not needed for GO.
+* **A reserve lever, not taken (§8.2 A, owner 2026-10-02):** the same gate
+  for Heavy *spawns* — 5 B and one extension sector — would move the binding
+  class from 1,439 to about 2,944, at the price of re-scripted replays. It is
+  not needed for GO and no session builds it.
 
 ---
 
@@ -194,8 +196,9 @@ Spare packed bytes per extension record today: record 1 `BROADSIDE` **94**
 (was 109); 2 pickup + `HYBRID_C_SECTOR` 3; 5 `HYBRID_C_EXT` 12; 7 arena **28**
 (was 35); 8 window C half 64; 9 Light kernel 94; 11 `DIRECTOR_RAM` 123.
 
-**Where the re-base brief and the repo differ** (the repo wins; §8.2 F lists
-the two that are the owner's to confirm): the brief asks for this plan to be
+**Where the re-base brief and the repo differ** (the repo wins; the owner
+confirmed §8.1 on the order and on the armoured Raider's hit points,
+§8.2 F): the brief asks for this plan to be
 written, and it exists with its decisions; it calls M3 + M3-H the next
 milestone, where §8.1 puts M4 and M5 first; it gives the armoured Raider 2 HP,
 where §8.1 item 3 says 2 / 2 / 3; it quotes the window gap at M5 as about
@@ -950,9 +953,9 @@ cost +315 to +540 native (~690 to ~1,190).
 
 **The budget's row for M6** (the booster's +48 native, ≤ 106 of margin if it
 lands on the spawn row): **~630 → 570 over GO** at the end of the road, before
-content coincidences (the budget's −264 example) and before the spawn rotate
-gate of §8.2 A, which would move the binding class to about 2,944 today and
-about 3,600 after the sessions.
+content coincidences (the budget's −264 example). The spawn rotate gate is a
+reserve lever, not taken (§8.2 A); it would move the binding class to about
+2,944 today and about 3,600 after the sessions.
 
 **The first version's table, for the record** (`main` before §9, native cycles
 added one for one): worst fence margin 788 → 1,255 after M3-H → 1,238 after
@@ -1070,7 +1073,8 @@ M3 then leaves level 1's data alone.
 differently: M3-H returns about 930 of margin on Raider kill and standing
 rows, but the worst row is a spawn frame, where sessions 1 and 2 cost about
 200 → 260 and session 3 nothing (§6.1). No session is at risk of the GO line
-on these figures; whether the spawn row gets its own STOP line is §8.2 E.
+on these figures. The spawn row has its own STOP lines in sessions 1 and 2
+(owner, 2026-10-02, §8.2 E).
 
 **Re-base before session 1.** M4, M5 and the lever session will have moved the
 layout and the replays. Session 1 starts by running
@@ -1107,7 +1111,11 @@ path that costs more than `main` beyond the figures this plan names.
 * **Extra STOP conditions:** `update_enemy` with two live assault Raiders over
   1,200 cycles on any frame after the spawn frame, or the net saving under 400;
   record 1 or record 7 gaining a sector; the Raider's pursuit differing from
-  `main`'s frame by frame.
+  `main`'s frame by frame. **The spawn row (owner, 2026-10-02):** `reset_enemy`
+  measured natively (`scripts/measure-population-harness.mjs`) more than
+  **+75** cycles over `main`'s 1,613 for a Raider formation or 2,245 for a
+  Bomber formation is a STOP; a worst fence margin under **1,100** is reported
+  with its row before the session continues.
 * **Tests RED on `main`:** `tests/heavy-package.test.mjs` (§3.5), the compiler
   cases in `tests/level-compiler.test.mjs`.
 * **Evidence:** regenerated; replays re-scripted where the capsule cadence
@@ -1130,6 +1138,10 @@ path that costs more than `main` beyond the figures this plan names.
   `BROADSIDE` label moving; a body copy costing more than `main`'s; the punch
   over 1,100 cycles; a plane byte differing from the body its member's Y and
   damage stage imply on any frame; any cost on a frame with nothing pending.
+  **The spawn row (owner, 2026-10-02):** `reset_enemy` measured natively more
+  than **+125** cycles over the same `main` figures (1,613 Raider, 2,245
+  Bomber; sessions 1 and 2 together) is a STOP; a worst fence margin under
+  **1,100** is reported with its row before the session continues.
 * **Tests RED on `main`:** `tests/heavy-looks.test.mjs` (§3.5).
 * **Evidence:** regenerated (the body copy changes on every frame).
 * **Smoke:** level 2 — the armoured Raider is told from the assault Raider at a
@@ -1179,24 +1191,25 @@ No approval for initial-block bytes was needed: the plan uses none.
 
 ### 8.2 Still open
 
-Restated at the re-base of 2026-10-02. A, B and C were open before; D, E and F
-are new. None of them changes the session order, a session's scope or a §8.1
-decision unless the owner says so.
+Restated at the re-base of 2026-10-02 and **answered by the owner the same
+day**. Only B is still open. None of the answers changes the session order, a
+session's scope or a §8.1 row.
 
-| # | Decision | Latest | Recommended | Numbers |
-| ---: | --- | --- | --- | --- |
-| A | **The spawn rotate gate: defer a Heavy spawn off a ring-rotate frame by one frame** | any time; it calls §9's `world_rotate_due`, which is on `main`, and needs nothing from this plan's sessions | **take it, as its own small task directly before session 1.** Nothing forces it: the plan ends 675 over GO without it | priced in §8.3: 5 B in `PICKUP_CODE`, +1 extension sector, no token; worst margin 1,439 → ~2,944 today and ~1,175 → ~3,600 after the sessions; every replay with a deferred spawn moves, so the evidence is re-scripted |
-| B | **Which levers pay the window, and when** (budget item 6) | after the boss plan, before this plan's session 1 | unchanged: decide after the boss plan | §6.3: 738 → 1,058 B short when the sessions start; `LEVEL_BUFFER` + the `STARFIELD` tail + the arena and pins give 675, the splash RAM 512 more |
-| C | **Assault Raider at today's full speed** | M8 | unchanged: keep the decided alternate-frame descent; the option stays a value change | re-derived in §6.1: the worst margin is the same either way (1,235 → 1,175, the spawn row); full speed gives up ~930 of margin on Raider kill and standing rows and costs ~97 there; DMA-on maximum 31,133 either way |
-| D | **A dated note in `budget-1.0.md`** saying that its M3 / M3-H cycle lines (the fence margin ending 374 over GO; the DMA-on line moving at M3 and M3-H) are superseded by §6.1 here | with the answer to this revision | **yes**, three lines, no rewrite. Not done here because this revision was told to touch one file | cost: one docs commit. Without it the budget still says the Heavy package lowers the DMA-on maximum, which §1.4 shows it cannot |
-| E | **A STOP line for the spawn row in sessions 1 and 2**, now that it is the binding row | before session 1 | **yes**: `reset_enemy` natively no more than +75 over `main`'s 1,613 (Raider) and 2,245 (Bomber) after session 1 and no more than +125 after session 2; a worst fence margin under 1,100 is reported with its row before the session continues | it adds two native measurements with `scripts/measure-population-harness.mjs` to each session; the common STOP at 500 stays |
-| F | **Two readings in the re-base brief that differ from §8.1** | with the answer to this revision | **keep §8.1 on both** | (i) the brief calls M3 + M3-H the next milestone; §8.1 puts M4 and M5 first. Built first, the sessions fit the window today (1,480 free, 928 → 990 needed, 552 → 490 left) and the boss then meets the whole shortfall: 402 → 310 after M4 against the B-A boss's 1,140 → 1,368. The totals do not change, only who needs the lever session. (ii) the brief gives the armoured Raider 2 HP; §8.1 item 3 says 2 / 2 / 3, which costs nothing extra (one rule with the Bomber's +1 on HARD) |
+| # | Item | Owner's answer (2026-10-02) | Numbers |
+| ---: | --- | --- | --- |
+| A | **The spawn rotate gate: defer a Heavy spawn off a ring-rotate frame by one frame** | **Not now. A reserve lever.** No change to the sessions | priced in §8.3: 5 B in `PICKUP_CODE`, +1 extension sector, 1–2 ATR menu frames, no token; the replays diverge and need re-scripting; the binding row would be ~2,944 today and ~3,600 after the sessions (1,439 and ~1,175 without it) |
+| B | **Which levers pay the window, and when** (budget item 6) | **Unchanged — still open:** decided after the boss plan (M5), before this plan's session 1 | §6.3: 738 → 1,058 B short when the sessions start; `LEVEL_BUFFER` + the `STARFIELD` tail + the arena and pins give 675, the splash RAM 512 more |
+| C | **Assault Raider at today's full speed** | **No. Keep the decided descent** | §6.1: the worst margin is the same either way (1,235 → 1,175, the spawn row); full speed would give up ~930 of margin on Raider kill and standing rows and cost ~97 there; DMA-on maximum 31,133 either way. §8.1 item 1 is left as worded |
+| D | **A dated note in `budget-1.0.md`** saying that its M3 / M3-H cycle lines are superseded by §1.4 and §6.1 here | **Yes — done** with this revision; the only change outside this file | three lines under the budget's "Amended" paragraph; nothing else in the budget is rewritten |
+| E | **STOP lines for the spawn row in sessions 1 and 2** | **Yes — done** (§7) | `reset_enemy` natively no more than +75 over `main`'s 1,613 (Raider) and 2,245 (Bomber) after session 1 and no more than +125 after session 2; a worst fence margin under 1,100 is reported with its row before the session continues. The common STOP at 500 stays |
+| F | **Two readings in the re-base brief that differ from §8.1** | **§8.1 wins on both:** M4 and M5 come before this plan's sessions; the armoured Raider's hit points are 2 / 2 / 3 | no figure changes: §6.3 is already in that order and §3.1 already has 2 / 2 / 3 |
 
-### 8.3 The spawn rotate gate, priced (owner question A)
+### 8.3 The spawn rotate gate, priced (reserve lever A — not taken, owner 2026-10-02)
 
 Not built, not measured as a build. Asked for by the owner on 2026-10-02 after
 the re-base showed nine of the ten worst fence rows are Heavy spawns on a
-rotate frame.
+rotate frame. **The owner's answer: not now; it is kept here as a reserve
+lever with this pricing, and no session builds it.**
 
 **What it is.** In `interceptor_admission_update` (`src/main.s`,
 `PICKUP_CODE`), at `@request`, before the Director is asked:
@@ -1240,8 +1253,8 @@ contact sessions, and level 1's pinned counts (100 / 109 / 116 formations,
 capital at frame 606, level complete at 8,249 / 7,424) are re-measured with
 `scripts/level-timeline.mjs`; a sector whose last formation arms with a frame
 or two to spare could lose it (**G**; the session measures it). Session 1
-re-scripts the same replays for the slower Raiders, which is why the
-recommendation is to run this task directly before it.
+re-scripts the same replays for the slower Raiders, so if the lever is ever
+pulled, the cheapest moment is directly before that session.
 
 **Tests, RED on `main`:** natively, in the production frame order — with a
 Heavy wave armed, the retry timer at zero and the accumulator set so the frame
@@ -1519,7 +1532,11 @@ with the reason given in place: the Light path prototypes (§1.3) and the
 Raider gate prototype (§1.1). The spawn rotate gate (§8.3) is priced from
 source reading and today's rows; no line of it was built. §6.1's projections
 are a model: the item costs marked **IC** have never run, and the × 2.0 / × 2.2
-conversion is measured on two code paths, not on each item. The Bomber's items
+conversion is measured on two code paths, not on each item.
+
+**The owner's answers (2026-10-02)** were applied to §7 and §8.2, and one
+dated note was added to `budget-1.0.md`; no other file changed, and no build
+or trace was run. The Bomber's items
 (H5–H8) and the punch (H12–H14) are instruction counts, not measurements, and
 are marked so; the session that builds each replaces the figure. The cycle
 lines of §6.1 are a model on today's replays. The prototypes in

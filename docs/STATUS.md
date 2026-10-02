@@ -60,6 +60,8 @@ released.** Section "ATR-only build" below.
 
 **Resource budget to 1.0 (2026-10-01, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/budget-1.0.md](plans/budget-1.0.md) — the inventory, what M2–M9 each spend, the first shortfall (the `$AE00` window at M5, the boss), the priced levers and the owner decisions with their latest milestone.
 
+**M3 wave paths and M3-H Heavy package — plan (2026-10-02, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/m3-waves-heavy.md](plans/m3-waves-heavy.md) — native measurements (a held Raider saves 485 cycles; the decided descent rule returns 467 per frame with two Raiders live), the two Raider kinds and the damaged look, three implementation sessions and the owner decisions they need.
+
 **Sixteen `OWNER-SMOKE CANDIDATE`s are outstanding: the all-or-nothing Spread
 volley** (section "Spread volley — all-or-nothing" below; a Spread volley that
 began with fewer than three free shot slots held the pool full of lone side

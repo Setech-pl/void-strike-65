@@ -4,13 +4,13 @@
   "evidence": {
     "status": "complete",
     "partial": false,
-    "required_sessions": 48,
-    "completed_sessions": 48,
+    "required_sessions": 49,
+    "completed_sessions": 49,
     "artifact_binding": "boot BIN and ATR SHA-256"
   },
   "determinism": {
-    "replay_fingerprint_sha256": "6623927bb3d976a7153d7ca35fb760e52b8ba0a582b9aa90ac30b7d6365f0953",
-    "ordered_frames": 94680,
+    "replay_fingerprint_sha256": "a448dc3ba4b610310e0a72ec753110cddde59ede94a7e2e21c90c7950d88c373",
+    "ordered_frames": 96680,
     "basis": "ordered decoded CSV rows from every required legal replay"
   },
   "artifacts": {
@@ -3125,19 +3125,11 @@
     "baseline_9040_host_vbi_boundary_crossings": 908,
     "targeted_active_frames_crossing_host_vbi": 90,
     "targeted_host_vbi_boundary_crossings": 90,
-    "active_frames_crossing_host_vbi": 9923,
-    "host_vbi_boundary_crossings": 9923,
+    "active_frames_crossing_host_vbi": 10089,
+    "host_vbi_boundary_crossings": 10089,
     "extra_vbi_boundaries": 0,
-    "behavioural_clause_failure_count": 3,
+    "behavioural_clause_failure_count": 1,
     "behavioural_clause_failures": [
-      {
-        "session": "capital-contact-allied-medium",
-        "message": "capital-contact-allied-medium did not capture 16 consecutive contact rasters"
-      },
-      {
-        "session": "capital-contact-hostile-medium",
-        "message": "capital-contact-hostile-medium did not capture 16 consecutive contact rasters"
-      },
       {
         "session": "lower-playfield-hostile-contact-atr-hard",
         "message": "lower-playfield-hostile-contact-atr-hard did not capture 16 consecutive contact rasters"
@@ -3515,8 +3507,8 @@
         "difficulty": 1,
         "policy": "capital-contact-allied",
         "fire_delay": 4000,
-        "measured_frames": 560,
-        "maximum_wall_cycles": 29408,
+        "measured_frames": 840,
+        "maximum_wall_cycles": 29558,
         "deadline_overrun_frames": 0,
         "missed_frames": 0
       },
@@ -3527,8 +3519,8 @@
         "difficulty": 1,
         "policy": "capital-contact-hostile",
         "fire_delay": 4000,
-        "measured_frames": 360,
-        "maximum_wall_cycles": 29323,
+        "measured_frames": 1080,
+        "maximum_wall_cycles": 29554,
         "deadline_overrun_frames": 0,
         "missed_frames": 0
       },
@@ -3589,6 +3581,18 @@
         "fire_delay": 4000,
         "measured_frames": 1200,
         "maximum_wall_cycles": 29420,
+        "deadline_overrun_frames": 0,
+        "missed_frames": 0
+      },
+      {
+        "id": "lower-playfield-allied-contact-atr-hard",
+        "kind": "lower-playfield-contact",
+        "medium": "ATR",
+        "difficulty": 2,
+        "policy": "lower-contact-allied",
+        "fire_delay": 4000,
+        "measured_frames": 1000,
+        "maximum_wall_cycles": 29538,
         "deadline_overrun_frames": 0,
         "missed_frames": 0
       },
@@ -4068,7 +4072,7 @@
   "coverage": {
     "world_near_with_far_erase": {
       "observed": true,
-      "matching_frames": 44696,
+      "matching_frames": 45646,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-2-natural-sweep-fire0",
@@ -4177,7 +4181,7 @@
     },
     "hull_event": {
       "observed": true,
-      "matching_frames": 44696,
+      "matching_frames": 45646,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-2-natural-sweep-fire0",
@@ -4286,7 +4290,7 @@
     },
     "director_world_row": {
       "observed": true,
-      "matching_frames": 43865,
+      "matching_frames": 44849,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-2-natural-sweep-fire0",
@@ -4395,7 +4399,7 @@
     },
     "director_request": {
       "observed": true,
-      "matching_frames": 6850,
+      "matching_frames": 6872,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-2-natural-sweep-fire0",
@@ -4791,7 +4795,7 @@
     },
     "active_muzzles": {
       "observed": true,
-      "matching_frames": 18376,
+      "matching_frames": 18862,
       "heaviest": {
         "trace_kind": "baseline-9040",
         "session": "2-evasive-fire3",
@@ -5017,7 +5021,7 @@
     },
     "broadside_projectiles": {
       "observed": true,
-      "matching_frames": 11701,
+      "matching_frames": 11999,
       "heaviest": {
         "trace_kind": "baseline-9040",
         "session": "2-evasive-fire3",
@@ -5131,7 +5135,7 @@
     },
     "live_interceptor": {
       "observed": true,
-      "matching_frames": 55249,
+      "matching_frames": 56501,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-2-natural-sweep-fire0",
@@ -5240,7 +5244,7 @@
     },
     "fighter_explosion": {
       "observed": true,
-      "matching_frames": 15107,
+      "matching_frames": 15216,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-1-natural-sweep-fire0",
@@ -5351,7 +5355,7 @@
     },
     "capital_explosion": {
       "observed": true,
-      "matching_frames": 6300,
+      "matching_frames": 6405,
       "heaviest": {
         "trace_kind": "baseline-9040",
         "session": "2-evasive-fire3",
@@ -5460,7 +5464,7 @@
     },
     "music_with_sfx_preemption": {
       "observed": true,
-      "matching_frames": 55561,
+      "matching_frames": 55733,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-2-natural-sweep-fire0",
@@ -5569,7 +5573,7 @@
     },
     "debris_empty_path": {
       "observed": true,
-      "matching_frames": 37478,
+      "matching_frames": 38308,
       "heaviest": {
         "trace_kind": "debris-effects-coverage",
         "session": "debris-effects-2-sweep-fire4",
@@ -5681,7 +5685,7 @@
     },
     "debris_one_active": {
       "observed": true,
-      "matching_frames": 48826,
+      "matching_frames": 49996,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-2-natural-sweep-fire0",
@@ -5790,7 +5794,7 @@
     },
     "debris_spawn": {
       "observed": true,
-      "matching_frames": 524,
+      "matching_frames": 535,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-2-natural-sweep-fire0",
@@ -6012,7 +6016,7 @@
     },
     "debris_despawn": {
       "observed": true,
-      "matching_frames": 504,
+      "matching_frames": 516,
       "heaviest": {
         "trace_kind": "debris-effects-coverage",
         "session": "debris-effects-2-sweep-fire4",
@@ -6230,7 +6234,7 @@
     },
     "debris_destruction_effects": {
       "observed": true,
-      "matching_frames": 4068,
+      "matching_frames": 4088,
       "heaviest": {
         "trace_kind": "debris-effects-coverage",
         "session": "debris-effects-2-sweep-fire4",
@@ -6335,7 +6339,7 @@
         "cpu_dma_off_reference": null
       },
       "spawner_frames": 30,
-      "active_frames": 4068,
+      "active_frames": 4088,
       "active_mask": 31,
       "active_count": 5,
       "spawn_updated_and_rendered": true,
@@ -6344,7 +6348,7 @@
     },
     "interceptor_breakup_effects": {
       "observed": true,
-      "matching_frames": 650,
+      "matching_frames": 654,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-1-natural-sweep-fire0",
@@ -6452,7 +6456,7 @@
         ],
         "cpu_dma_off_reference": null
       },
-      "kill_frames": 650,
+      "kill_frames": 654,
       "character_materializer_frames": 0,
       "character_writes": 0,
       "transient_allocations": 0,
@@ -6461,7 +6465,7 @@
       "active_count": 0,
       "flying_fragment_count": 0,
       "full_screen_flash_preserved": true,
-      "yellow_death_then_red_flash_pairs": 621
+      "yellow_death_then_red_flash_pairs": 628
     },
     "weapon_pickup_rapid_fire": {
       "qualified_kills": [
@@ -11928,7 +11932,7 @@
     },
     "debris_bottom_despawn": {
       "observed": true,
-      "matching_frames": 398,
+      "matching_frames": 410,
       "heaviest": {
         "trace_kind": "debris-effects-coverage",
         "session": "debris-effects-2-sweep-fire4",
@@ -12040,7 +12044,7 @@
     },
     "debris_post_capital_sector": {
       "observed": true,
-      "matching_frames": 37161,
+      "matching_frames": 37952,
       "heaviest": {
         "trace_kind": "director-level-complete",
         "session": "director-complete-2-natural-sweep-fire0",
@@ -12228,10 +12232,10 @@
     ],
     "debris_vertical_cadence": {
       "observed": true,
-      "active_transitions": 48302,
-      "world_events": 22567,
-      "vertical_steps": 13233,
-      "held_events": 9334,
+      "active_transitions": 49461,
+      "world_events": 23109,
+      "vertical_steps": 13551,
+      "held_events": 9558,
       "invalid_transitions": 0
     },
     "debris_visual_variants": {

@@ -22506,7 +22506,7 @@
     "estimated_additive_cycles": 27390,
     "wallTrace": {
       "reportPath": "docs/runtime-wall-trace.json",
-      "reportSha256": "c3071152ae4509d67b25fcc68f860c442ca7a4cda993c1a793b9915197e4e039",
+      "reportSha256": "4189f7bfc774a5f456d845fd6a3fcffbde099addaa71a8a4c5258b75cc28b270",
       "artifact": {
         "path": "dist/void-strike-65.atr",
         "bytes": 92176,
@@ -23988,19 +23988,11 @@
         "baseline_9040_host_vbi_boundary_crossings": 908,
         "targeted_active_frames_crossing_host_vbi": 90,
         "targeted_host_vbi_boundary_crossings": 90,
-        "active_frames_crossing_host_vbi": 9923,
-        "host_vbi_boundary_crossings": 9923,
+        "active_frames_crossing_host_vbi": 10089,
+        "host_vbi_boundary_crossings": 10089,
         "extra_vbi_boundaries": 0,
-        "behavioural_clause_failure_count": 3,
+        "behavioural_clause_failure_count": 1,
         "behavioural_clause_failures": [
-          {
-            "session": "capital-contact-allied-medium",
-            "message": "capital-contact-allied-medium did not capture 16 consecutive contact rasters"
-          },
-          {
-            "session": "capital-contact-hostile-medium",
-            "message": "capital-contact-hostile-medium did not capture 16 consecutive contact rasters"
-          },
           {
             "session": "lower-playfield-hostile-contact-atr-hard",
             "message": "lower-playfield-hostile-contact-atr-hard did not capture 16 consecutive contact rasters"
@@ -24059,7 +24051,7 @@
       }
     },
     "reportPath": "docs/runtime-wall-trace.json",
-    "reportSha256": "c3071152ae4509d67b25fcc68f860c442ca7a4cda993c1a793b9915197e4e039"
+    "reportSha256": "4189f7bfc774a5f456d845fd6a3fcffbde099addaa71a8a4c5258b75cc28b270"
   },
   "artifacts": {
     "void-strike-65-boot.bin": {

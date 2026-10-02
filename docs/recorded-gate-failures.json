@@ -10,25 +10,11 @@
   },
   "failures": [
     {
-      "session": "capital-contact-allied-medium",
-      "message": "capital-contact-allied-medium did not capture 16 consecutive contact rasters",
-      "class": "a-stale-scenario",
-      "measurement": "docs/plans/trace-clause-repairs.md §4.1",
-      "note": "MEASURED 2026-10-01 at 1,600 frames: the capital sector opens at frame 774 and a shell hits at 895, but the mode-1 contact geometry (bolt top = player top + 4) is never captured, and the passive player has already lost two lives in the fighter phase (health 0 at 146 and 458), so the later 'two HULL units, lives 3' clause could not hold either. A longer budget does not repair it. Owner decision 2026-10-01 (trace-clause-repairs, Q3): stays recorded, reclassified from pre-existing-unclassified to (a); the redesign of the contact scenarios is chore/contact-scenario-redesign."
-    },
-    {
-      "session": "capital-contact-hostile-medium",
-      "message": "capital-contact-hostile-medium did not capture 16 consecutive contact rasters",
-      "class": "a-stale-scenario",
-      "measurement": "docs/plans/trace-clause-repairs.md §4.1",
-      "note": "MEASURED 2026-10-01 at 1,600 frames: the capital sector never opens (sector_state 7 on every frame) with the passive player held at x 84, worn down 9 -> 1. A probe-only preamble (sweep + fire, health and lives held while OPEN) opens the sector at 667, but a damage call that applies no damage (769, 10 -> 10) precedes the first hit and no contact raster is captured. Owner decision 2026-10-01 (trace-clause-repairs, Q3): stays recorded, reclassified from pre-existing-unclassified to (a); the redesign of the contact scenarios is chore/contact-scenario-redesign."
-    },
-    {
       "session": "lower-playfield-hostile-contact-atr-hard",
       "message": "lower-playfield-hostile-contact-atr-hard did not capture 16 consecutive contact rasters",
       "class": "a-stale-scenario",
-      "measurement": "docs/plans/trace-clause-repairs.md §4.1",
-      "note": "MEASURED 2026-10-01: on HARD the hostile shells of level 1 stop at Y 180, under the policy's shell_y >= 191; on MEDIUM (probe) they follow the player and stop at Y 156, so a difficulty change does not repair it. RENAMED 2026-09-30 with its session (owner decision 1, docs/plans/atr-only-build.md §5): the XEX-only session switched to the ATR as -atr-hard. Owner decision 2026-10-01 (trace-clause-repairs, Q3): stays recorded, reclassified from pre-existing-unclassified to (a); the redesign of the contact scenarios is chore/contact-scenario-redesign."
+      "measurement": "docs/plans/trace-clause-repairs.md §4.1; docs/plans/contact-scenario-redesign.md §3 (F5, F6) and §8",
+      "note": "MEASURED 2026-10-01: on HARD the hostile shells of level 1 stop at Y 180, under the policy's shell_y >= 191; on MEDIUM (probe) they follow the player and stop at Y 156, so a difficulty change does not repair it. RENAMED 2026-09-30 with its session (owner decision 1, docs/plans/atr-only-build.md §5): the XEX-only session switched to the ATR as -atr-hard. Owner decision 2026-10-01 (trace-clause-repairs, Q3): stays recorded, reclassified from pre-existing-unclassified to (a); the redesign of the contact scenarios is chore/contact-scenario-redesign. RE-DIAGNOSED 2026-10-02 (contact-scenario-redesign, owner decision Q1: kept as it is, class (a)): (1) its steering `target_y = shell_y - 7` predates the final-raster collision of 4753399, so even a qualifying shell cannot give the mode-1 raster contact; (2) on HARD level 1 a low hostile shell (BROAD_Y >= 191) is rare and late: with the contact preamble and a passive player the hostile launches after the sector opens are fixed (116, 180, 180, 116, 172, 172, 180, 180 through +908) whatever the preamble row, and low ones appeared only after ~+840 frames (220 at 1504, 212 at 1582, 220 at +917), each time behind a debris hit or a low Allied damage call. The lower-row contact raster is gated since then by the Allied session lower-playfield-allied-contact-atr-hard. Follow-up: the hostile lower-row contact gets an honest scenario in M5, where the boss's lasers make low hostile shells frequent; the M5 plan must cover it."
     }
   ],
   "removed_2026_10_01": {
@@ -125,6 +111,26 @@
         "recorded_class": "c-real-failure",
         "class": "b-wrong-selection",
         "fix": "The observer counted entries to clear_fighter_pickup_pmg; the publication's re-entry on an empty plane erases nothing. It now counts the entries that zero the plane (additive header field pickup_erase_writes): 1 on each of the four release frames, plane empty."
+      }
+    ]
+  },
+  "removed_2026_10_02": {
+    "note": "Left the recorded set in contact-scenario-redesign (docs/plans/contact-scenario-redesign.md). Each was a stale scenario (a) stacked on three observer errors (b); no clause's assertion changed, and both pass on the regenerated evidence.",
+    "count": 2,
+    "entries": [
+      {
+        "session": "capital-contact-allied-medium",
+        "message": "capital-contact-allied-medium did not capture 16 consecutive contact rasters",
+        "recorded_class": "a-stale-scenario",
+        "class": "a-stale-scenario",
+        "fix": "Scenario (a): contact preamble on row 225 (sweep + FIRE under a trace-only respawn-invulnerability hold until the capital sector first opens, 667), budget 560 -> 840. Observers (b): player oracle reads P0 alone (P3 is the capsule's since 800322b); 16-frame raster window for the contact kinds (4753399 widened it to 32 for the geometry kind); hitbox clause in final-raster scanlines (production since 4753399). Contact 795, Allied slot 0, mode 1, shell 113-118 x player 109-123, hull 10 -> 8; all contact clauses pass."
+      },
+      {
+        "session": "capital-contact-hostile-medium",
+        "message": "capital-contact-hostile-medium did not capture 16 consecutive contact rasters",
+        "recorded_class": "a-stale-scenario",
+        "class": "a-stale-scenario",
+        "fix": "Scenario (a): contact preamble on row 180 (sector opens 889; on the spawn row the player was still climbing through the Allied shell's row at 765), budget 360 -> 1,080. Observers (b): as for capital-contact-allied-medium. Contact 1042, Hostile slot 1, mode 1, shell 113-118 x player 109-123, hull 10 -> 8; all contact clauses pass."
       }
     ]
   }

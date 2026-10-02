@@ -58,14 +58,14 @@ w STATUS i w planach; ten paragraf ich nie powtarza.
 
 **Kolejność:**
 
-1. **Showcase** — GIF, wykres, README, ponowne zrzuty z ATR. **NIE
-   WYKONANE** (stan przy `a773656`): w `docs/media/` nie ma żadnego GIF-a ani
-   wykresu, README pokazuje wyłącznie statyczne PNG, a ostatnie commity
-   „showcase" (`49d0608`, `262d645`, `11b0455`) tylko przewiązują manifest
-   mediów. Ujęcia rozgrywki to wciąż przechwycenia z ery XEX — dlatego test
-   `github-showcase` jest na liście zapisanych porażek (STATUS, porażka D).
-   Zadanie wchłania kontynuację `chore/showcase-recapture` z
-   [`plans/budget-1.0.md`](plans/budget-1.0.md) §2 M9.
+1. **Showcase** — GIF, wykres, README, ponowne zrzuty z ATR. **DONE**
+   2026-10-02 (gałąź `docs/showcase-atr`: plan `2f3101f`, GIF i wykres
+   `0769af9`, zrzuty z ATR `227f6be`, README EN + PL `a6c45f6`, STATUS i
+   zapisane porażki `21eb0c2`; w STATUS jako `OWNER REVIEW CANDIDATE`). Plan i
+   zapis wykonania: [`plans/showcase-atr.md`](plans/showcase-atr.md). Zadanie
+   wchłonęło `chore/showcase-recapture` z
+   [`plans/budget-1.0.md`](plans/budget-1.0.md) §2 M9; test `github-showcase`
+   zszedł z listy zapisanych porażek.
 2. **Heavy break-up rotate gate** — **DONE** (zbudowane: `c5470a8`, dowody
    `2777e8f`, dokumentacja `c92f908`; w STATUS jako `OWNER-SMOKE CANDIDATE`,
    sekcja „Heavy break-up rotate gate"). Plan i zapis wykonania:

@@ -89,8 +89,9 @@ w STATUS i w planach; ten paragraf ich nie powtarza.
 9. **M9 — release candidate** — [`plans/budget-1.0.md`](plans/budget-1.0.md)
    §2 „M9 — Release candidate"; decyzja §5.2 pkt 16.
 
-Poza listą: **M2** (Director krok 5, payload) jest zbudowany i czeka na owner
-smoke (STATUS, sekcja „Roadmap 4.6 step 5"). Pozycje zdecydowane lub
+Poza listą: **M2** (Director krok 5, payload) jest **DONE i wydany** — owner
+smoke PASS, scalony, wydany jako **v0.2.0** 2026-10-02 (tag `v0.2.0` na
+`4da20fd`, ATR `04943660…`; STATUS, sekcja „Roadmap 4.6 step 5"). Pozycje zdecydowane lub
 zaplanowane poza M2–M9 (wybór poziomu L, linie loadera O, ekran końcowy P,
 booster N/U, Nova Missile, geometria capital 4.8a) wymienia
 [`plans/budget-1.0.md`](plans/budget-1.0.md) §2 „Not in the M2–M9 list".
@@ -390,8 +391,10 @@ Przy okazji rozstrzygnąć:
 #### 3. 4.6 — sterowany danymi Encounter / Wave Director
 
 **Stan:** plan [`plans/director-4.6.md`](plans/director-4.6.md) §8. Kroki 1-2
-**OWNER-ACCEPTED**; kroki 3-5 zbudowane, `OWNER-SMOKE CANDIDATE` (krok 5 =
-M2, w tym STARFIELD PER SECTOR); krok 6 (PATH-DRIVEN WAVES) = **M3**, plan
+**OWNER-ACCEPTED**; kroki 3-4 **OWNER-ACCEPTED** (owner smoke 2026-09-30,
+scalone; tamże §8.1, §8.2); krok 5 = **M2**, w tym STARFIELD PER SECTOR —
+**DONE, wydany jako v0.2.0** 2026-10-02 (tag `v0.2.0`, ATR `04943660…`;
+tamże §8.3); krok 6 (PATH-DRIVEN WAVES) = **M3**, plan
 [`plans/m3-waves-heavy.md`](plans/m3-waves-heavy.md); krok 7 (poziomy 3-12) =
 **M7**. Kolejność: §0.
 

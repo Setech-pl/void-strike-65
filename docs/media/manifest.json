@@ -200,5 +200,47 @@
       "bytes": 241007,
       "sha256": "13f700e64232e43fa572992d3bf900bf1f320788ad7e79e53c4b4e6a8e4db659"
     }
+  ],
+  "animations": [
+    {
+      "path": "docs/media/showcase/void-strike-65-level-1.gif",
+      "description": "Level 1 from the ATR: a Bomber and an Interceptor, the Spread Shot capsule and its three-shot fan with the single follow-up, then the capital corridor and the first BROADSIDE",
+      "source_medium": "ATR",
+      "atr_sha256": "f127d7a48674c7b2cdf103d3808b4145938a8d687586b82e83b3bcb651f33cd1",
+      "emulator": "Atari800 7.1.2 PAL XL",
+      "replay": "weapon-pickup-spread-0-hunt-fire4",
+      "generatedBy": "scripts/showcase-gif.mjs",
+      "gameplay_frames": [
+        450,
+        1149
+      ],
+      "landmarks": {
+        "spread_collected": 537,
+        "first_broadside": 1024
+      },
+      "source_frames": 700,
+      "gif_frames": 700,
+      "seconds": 14,
+      "frame_delay_centiseconds": 2,
+      "colours": 14,
+      "width": 320,
+      "height": 240,
+      "bytes": 384732,
+      "sha256": "3af743d1abe14e26e8bcd1fbe16bd2f2cb6b6bc7b8b047f10337149af22f5c09"
+    }
+  ],
+  "charts": [
+    {
+      "path": "docs/media/showcase/timing-history.svg",
+      "description": "Worst line-238 fence margin and DMA-on maximum at releases and key merges, against GO 500, the 31,200 target and the 32,568 hard gate",
+      "generatedBy": "scripts/showcase-timing-chart.mjs",
+      "data": {
+        "path": "docs/media/timing-history.json",
+        "sha256": "30461180a13dda664c1317e69ded5da5717fcc67cbf1e0f2547cc80618b324a9"
+      },
+      "points": 14,
+      "bytes": 14124,
+      "sha256": "303fe8d213c9e857b901896671df1f1f44271d2bfac2101412a9916b1ecb9deb"
+    }
   ]
 }

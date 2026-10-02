@@ -1,0 +1,359 @@
+{
+  "schema_version": 1,
+  "purpose": "The data behind docs/media/showcase/timing-history.svg: the worst line-238 fence margin and the DMA-on maximum at the project's releases and key merges. Every value is copied from committed evidence and cites it. A `status` source is a file at a commit and an exact quote that contains the value; a `trace` source is docs/runtime-wall-trace.json at a commit and a JSON path. scripts/showcase-timing-chart.mjs checks each one with git before drawing. A value with no committed source is null and is listed in `left_out`.",
+  "generatedBy": "scripts/showcase-timing-chart.mjs",
+  "plan": "docs/plans/showcase-atr.md section 4",
+  "thresholds": {
+    "fence_margin_go": {
+      "value": 500,
+      "label": "GO 500",
+      "source": {
+        "kind": "status",
+        "path": "docs/STATUS.md",
+        "commit": "c0d13c9",
+        "quote": "| worst line-238 fence margin | 727 | **788** | GO >= 500 |"
+      }
+    },
+    "dma_on_target": {
+      "value": 31200,
+      "label": "target 31,200",
+      "source": {
+        "kind": "status",
+        "path": "AGENTS.md",
+        "commit": "c0d13c9",
+        "quote": "Target `31,200` cycles; hard gate `32,568`"
+      }
+    },
+    "dma_on_hard_gate": {
+      "value": 32568,
+      "label": "hard gate 32,568",
+      "source": {
+        "kind": "status",
+        "path": "AGENTS.md",
+        "commit": "c0d13c9",
+        "quote": "Target `31,200` cycles; hard gate `32,568`"
+      }
+    }
+  },
+  "points": [
+    {
+      "date": "2026-09-21",
+      "label": "Pre-4.6 baseline",
+      "commit": "82c155b",
+      "fence_margin": {
+        "value": 1464,
+        "source": {
+          "kind": "status",
+          "path": "docs/STATUS.md",
+          "commit": "c0d13c9",
+          "section": "Roadmap 4.6 prerequisite — Light multiplicity, A/B table (82c155b column)",
+          "quote": "| `raider-remnant-rapid-xex-hard` frame 1945 | **1,464** | **552** | **−912** |"
+        }
+      },
+      "dma_on_max": null
+    },
+    {
+      "date": "2026-09-21",
+      "label": "Light multiplicity",
+      "commit": "4cd3024",
+      "fence_margin": {
+        "value": 552,
+        "source": {
+          "kind": "status",
+          "path": "docs/STATUS.md",
+          "commit": "c0d13c9",
+          "section": "Roadmap 4.6 prerequisite — Light multiplicity, A/B table (candidate column)",
+          "quote": "| `raider-remnant-rapid-xex-hard` frame 1945 | **1,464** | **552** | **−912** |"
+        }
+      },
+      "dma_on_max": null
+    },
+    {
+      "date": "2026-09-21",
+      "label": "Ring-rotate token gate",
+      "commit": "9fc73b9",
+      "fence_margin": {
+        "value": 2981,
+        "source": {
+          "kind": "status",
+          "path": "docs/STATUS.md",
+          "commit": "c0d13c9",
+          "section": "Roadmap 4.6 — the ring-rotate token gate",
+          "quote": "**Worst fence margin across the whole set 552 → 2,981**"
+        }
+      },
+      "dma_on_max": null
+    },
+    {
+      "date": "2026-09-22",
+      "label": "Music v2 gameplay theme",
+      "commit": "944450f",
+      "fence_margin": {
+        "value": 1985,
+        "source": {
+          "kind": "status",
+          "path": "docs/STATUS.md",
+          "commit": "c0d13c9",
+          "section": "Music v2 step 10.2 — the GAMEPLAY theme is GRA-2",
+          "quote": "| worst fence margin | 1,977 | **1,985** |"
+        }
+      },
+      "dma_on_max": {
+        "value": 31200,
+        "source": {
+          "kind": "trace",
+          "path": "docs/runtime-wall-trace.json",
+          "commit": "944450f",
+          "json_path": "semantics.measured_wall_cycles_dma_on"
+        }
+      }
+    },
+    {
+      "date": "2026-09-22",
+      "label": "Heavy break-up",
+      "commit": "1fa7e7e",
+      "fence_margin": {
+        "value": 979,
+        "source": {
+          "kind": "status",
+          "path": "docs/STATUS.md",
+          "commit": "c0d13c9",
+          "section": "Heavy break-up — both archetypes, Gates",
+          "quote": "**The worst fence margin is 1,985 → 979 cycles**"
+        }
+      },
+      "dma_on_max": {
+        "value": 31216,
+        "source": {
+          "kind": "trace",
+          "path": "docs/runtime-wall-trace.json",
+          "commit": "1fa7e7e",
+          "json_path": "semantics.measured_wall_cycles_dma_on"
+        }
+      }
+    },
+    {
+      "date": "2026-09-22",
+      "label": "Capital hulls, full mass",
+      "commit": "73108dc",
+      "fence_margin": {
+        "value": 979,
+        "source": {
+          "kind": "status",
+          "path": "docs/STATUS.md",
+          "commit": "c0d13c9",
+          "section": "Capital hull set v1 — step 1 (art v2, FULL MASS)",
+          "quote": "**The worst fence margin is 979 cycles**, unmoved"
+        }
+      },
+      "dma_on_max": {
+        "value": 31351,
+        "source": {
+          "kind": "trace",
+          "path": "docs/runtime-wall-trace.json",
+          "commit": "73108dc",
+          "json_path": "semantics.measured_wall_cycles_dma_on"
+        }
+      }
+    },
+    {
+      "date": "2026-09-23",
+      "label": "Main-menu star sky",
+      "commit": "c8320e9",
+      "fence_margin": {
+        "value": 991,
+        "source": {
+          "kind": "status",
+          "path": "docs/STATUS.md",
+          "commit": "c0d13c9",
+          "section": "Main-menu star sky (owner decision A′)",
+          "quote": "| worst fence margin (GO ≥ 500) | 979 | **991** |"
+        }
+      },
+      "dma_on_max": {
+        "value": 31349,
+        "source": {
+          "kind": "trace",
+          "path": "docs/runtime-wall-trace.json",
+          "commit": "c8320e9",
+          "json_path": "semantics.measured_wall_cycles_dma_on"
+        }
+      }
+    },
+    {
+      "date": "2026-09-23",
+      "label": "Level compiler (4.6 step 1)",
+      "commit": "28bd1e7",
+      "fence_margin": {
+        "value": 991,
+        "source": {
+          "kind": "status",
+          "path": "docs/STATUS.md",
+          "commit": "c0d13c9",
+          "section": "Roadmap 4.6 step 1 — the JSON level compiler, Gates",
+          "quote": "| worst fence margin (GO ≥ 500) | 991 | **991** | PAL audit, `director-complete-2-natural-sweep-fire0`"
+        }
+      },
+      "dma_on_max": {
+        "value": 31349,
+        "source": {
+          "kind": "trace",
+          "path": "docs/runtime-wall-trace.json",
+          "commit": "28bd1e7",
+          "json_path": "semantics.measured_wall_cycles_dma_on"
+        }
+      }
+    },
+    {
+      "date": "2026-09-29",
+      "label": "Director reads the level (step 2)",
+      "commit": "dbf6b1c",
+      "fence_margin": {
+        "value": 727,
+        "source": {
+          "kind": "status",
+          "path": "docs/STATUS.md",
+          "commit": "c0d13c9",
+          "section": "Roadmap 4.6 step 2 — the Director reads the level image",
+          "quote": "| worst line-238 fence margin | 991 | 1,264 | **727** | GO ≥ 500 |"
+        }
+      },
+      "dma_on_max": {
+        "value": 31670,
+        "source": {
+          "kind": "trace",
+          "path": "docs/runtime-wall-trace.json",
+          "commit": "dbf6b1c",
+          "json_path": "semantics.measured_wall_cycles_dma_on"
+        }
+      }
+    },
+    {
+      "date": "2026-09-29",
+      "label": "Pickup boost colour",
+      "commit": "830a023",
+      "fence_margin": {
+        "value": 788,
+        "source": {
+          "kind": "status",
+          "path": "docs/STATUS.md",
+          "commit": "c0d13c9",
+          "section": "Pickup boost colour, Gates — the DEFAULT build",
+          "quote": "| worst line-238 fence margin | 727 | **788** | GO >= 500 |"
+        }
+      },
+      "dma_on_max": {
+        "value": 31626,
+        "source": {
+          "kind": "trace",
+          "path": "docs/runtime-wall-trace.json",
+          "commit": "830a023",
+          "json_path": "semantics.measured_wall_cycles_dma_on"
+        }
+      }
+    },
+    {
+      "date": "2026-10-01",
+      "label": "Spread volley fix",
+      "commit": "02ed450",
+      "fence_margin": {
+        "value": 785,
+        "source": {
+          "kind": "status",
+          "path": "docs/STATUS.md",
+          "commit": "c0d13c9",
+          "section": "Spread volley — all-or-nothing",
+          "quote": "| worst line-238 fence margin | 788 | **785** (same row, `director-complete-2` f5815) | PAL audit, 56 replays |"
+        }
+      },
+      "dma_on_max": {
+        "value": 31121,
+        "source": {
+          "kind": "trace",
+          "path": "docs/runtime-wall-trace.json",
+          "commit": "02ed450",
+          "json_path": "semantics.measured_wall_cycles_dma_on"
+        }
+      }
+    },
+    {
+      "date": "2026-10-01",
+      "label": "v0.1.0",
+      "release": "v0.1.0",
+      "commit": "cf99af3",
+      "fence_margin": {
+        "value": 785,
+        "source": {
+          "kind": "status",
+          "path": "docs/STATUS.md",
+          "commit": "cf99af3",
+          "section": "trace-clause-repairs (STATUS at the v0.1.0 tag)",
+          "quote": "| worst line-238 fence margin | 785 (`director-complete-2` f5815) | **785**, same row and frame | PAL audit, 48 + 8 mode-gated replays, 0 miss events, 0 rows over 32,568 |"
+        }
+      },
+      "dma_on_max": {
+        "value": 31121,
+        "source": {
+          "kind": "trace",
+          "path": "docs/runtime-wall-trace.json",
+          "commit": "cf99af3",
+          "json_path": "semantics.measured_wall_cycles_dma_on"
+        }
+      }
+    },
+    {
+      "date": "2026-10-01",
+      "label": "v0.2.0",
+      "release": "v0.2.0",
+      "commit": "4da20fd",
+      "fence_margin": {
+        "value": 788,
+        "source": {
+          "kind": "status",
+          "path": "docs/STATUS.md",
+          "commit": "c0d13c9",
+          "section": "Roadmap 4.6 step 5 — the payload (released as v0.2.0)",
+          "quote": "| worst line-238 fence margin | 785 (`director-complete-2` f5815) | **788**, same row and frame | standalone PAL audit, 48 + 8 replays, 0 miss events, 0 rows over 31,200 |"
+        }
+      },
+      "dma_on_max": {
+        "value": 31133,
+        "source": {
+          "kind": "trace",
+          "path": "docs/runtime-wall-trace.json",
+          "commit": "4da20fd",
+          "json_path": "semantics.measured_wall_cycles_dma_on"
+        }
+      }
+    },
+    {
+      "date": "2026-10-02",
+      "label": "Heavy break-up rotate gate",
+      "commit": "2777e8f",
+      "fence_margin": {
+        "value": 1439,
+        "source": {
+          "kind": "status",
+          "path": "docs/STATUS.md",
+          "commit": "c0d13c9",
+          "section": "Heavy break-up rotate gate",
+          "quote": "| worst line-238 fence margin | 788 (`director-complete-2` f5815, Raider kill, rotate) | **1,439** (`2-evasive-fire3` f287, Heavy spawn, rotate) |"
+        }
+      },
+      "dma_on_max": {
+        "value": 31133,
+        "source": {
+          "kind": "trace",
+          "path": "docs/runtime-wall-trace.json",
+          "commit": "2777e8f",
+          "json_path": "semantics.measured_wall_cycles_dma_on"
+        }
+      }
+    }
+  ],
+  "left_out": [
+    "DMA-on maximum at 82c155b, 4cd3024 and 9fc73b9: their STATUS sections state only the fence margin, and docs/runtime-wall-trace.json was not regenerated at those commits.",
+    "v0.1.1 (tag 2ef7c6e, 2026-08-06, still named Dark Fighter): neither value has a committed source — docs/runtime-wall-trace.json does not exist at that commit and its STATUS has no fence margin.",
+    "Every checkpoint before 2026-09-21 that is not listed: measured on XEX replays with a different replay set, not comparable with the points above."
+  ]
+}

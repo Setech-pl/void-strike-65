@@ -67,7 +67,9 @@ function encodeRgbPng(rgb, width, height) {
   ]);
 }
 
-function decodeIndexedPng(bytes) {
+// Palette indices and the PLTE table of an Atari800 screenshot. The GIF
+// writer (scripts/showcase-gif.mjs) consumes the indices directly.
+export function readIndexedPng(bytes) {
   invariant(bytes.subarray(0, 8).equals(PNG_SIGNATURE), "Runtime screenshot is not PNG");
   let offset = 8;
   let header;
@@ -111,6 +113,11 @@ function decodeIndexedPng(bytes) {
       indices[y * width + x] = (encoded + predictor) & 0xff;
     }
   }
+  return { width, height, indices, palette };
+}
+
+function decodeIndexedPng(bytes) {
+  const { width, height, indices, palette } = readIndexedPng(bytes);
   const rgb = Buffer.alloc(width * height * 3);
   for (let index = 0; index < indices.length; index += 1) {
     const source = indices[index] * 3;
@@ -371,36 +378,53 @@ export function createAssetSheets() {
   return results;
 }
 
+// The harness runs Atari800 under SDL_VIDEODRIVER=dummy unless the caller
+// sets a driver, and under the dummy driver a screenshot is the 256x192 centre
+// of the display (no HUD, no border). The gallery and the GIF need the native
+// 336x240 frame, which a desktop driver gives (MEASURED 2026-10-02,
+// docs/plans/showcase-atr.md §1). The emulator opens a window while it runs.
+export function desktopVideoEnvironment() {
+  const driver = process.env.SHOWCASE_SDL_VIDEODRIVER ??
+    { darwin: "cocoa", win32: "windows" }[process.platform] ?? "x11";
+  return { SDL_VIDEODRIVER: driver };
+}
+
+// AGENTS.md: the trace runs pass the in-repo emulator copy.
+export function traceSourceArguments() {
+  const inRepo = path.join(rootDirectory, "build", "atari800-trace");
+  return process.env.ATARI800_TRACE_SOURCE === undefined && fs.existsSync(inRepo)
+    ? [`--atari800-source=${inRepo}`] : [];
+}
+
+function runTrace(argumentsList, environment, label) {
+  const result = spawnSync(process.execPath,
+    [path.join(scriptDirectory, "runtime-wall-trace.mjs"), ...traceSourceArguments(), ...argumentsList], {
+      cwd: rootDirectory,
+      encoding: "utf8",
+      maxBuffer: 64 * 1024 * 1024,
+      env: { ...process.env, ...desktopVideoEnvironment(), ...environment },
+    });
+  if (result.status !== 0) {
+    process.stderr.write(result.stdout ?? "");
+    process.stderr.write(result.stderr ?? "");
+    throw new Error(`Atari800 ${label} capture failed`);
+  }
+}
+
+// Every source frame the gallery reads, captured from the current ATR. The
+// observer smoke also runs the boot smoke, which writes the loader frame; it
+// clears the pickup evidence, so the focused pickup sessions run after it.
 function captureBreakupFrames() {
   fs.mkdirSync(captureDirectory, { recursive: true });
   const prefix = path.join(captureDirectory, "neutral-combat");
-  const observer = spawnSync(process.execPath,
-    [path.join(scriptDirectory, "runtime-wall-trace.mjs"), "--smoke-frames=150"], {
-      cwd: rootDirectory,
-      encoding: "utf8",
-      env: { ...process.env, DFTRACE_ENGINE_SCREENSHOT_PREFIX: prefix },
-    });
-  if (observer.status !== 0) {
-    process.stderr.write(observer.stdout ?? "");
-    process.stderr.write(observer.stderr ?? "");
-    throw new Error("Atari800 showcase capture failed");
-  }
+  runTrace(["--smoke-frames=150"], { DFTRACE_ENGINE_SCREENSHOT_PREFIX: prefix }, "showcase");
   for (const frame of [25, 31, 100, 113]) {
     invariant(fs.existsSync(`${prefix}-${String(frame).padStart(3, "0")}.png`),
       `Atari800 showcase frame ${frame} is missing`);
   }
-
-  // The observer smoke intentionally clears stale pickup evidence. Recreate it
-  // from the focused release-runtime session after the neutral-combat capture.
-  const weaponPickup = spawnSync(process.execPath, [
-    path.join(scriptDirectory, "runtime-wall-trace.mjs"),
-    "--only-session=weapon-pickup-2-hunt-fire4",
-  ], { cwd: rootDirectory, encoding: "utf8" });
-  if (weaponPickup.status !== 0) {
-    process.stderr.write(weaponPickup.stdout ?? "");
-    process.stderr.write(weaponPickup.stderr ?? "");
-    throw new Error("Atari800 Rapid Fire showcase capture failed");
-  }
+  runTrace(["--only-session=weapon-pickup-2-hunt-fire4"], {}, "Rapid Fire showcase");
+  runTrace(["--only-session=weapon-pickup-spread-0-hunt-fire4"], {}, "Spread Shot showcase");
+  runTrace(["--only-session=engine-atr-a5-0-immediate"], {}, "capital engine showcase");
 }
 
 // The loader frame is the ATR boot smoke's own loader snapshot: its frame
@@ -544,6 +568,16 @@ export function generateShowcase({ capture = false } = {}) {
   const gameplay = capture ? createGameplayGallery() : readCommittedGameplayGallery();
   const assets = createAssetSheets();
   const concepts = readOwnerSuppliedConceptArt();
+  // The GIF and the chart have their own generators (scripts/showcase-gif.mjs,
+  // scripts/showcase-timing-chart.mjs); this pass keeps their entries and
+  // checks that the committed files still match them.
+  const previous = fs.existsSync(manifestPath)
+    ? JSON.parse(fs.readFileSync(manifestPath, "utf8")) : {};
+  for (const item of [...(previous.animations ?? []), ...(previous.charts ?? [])]) {
+    const bytes = fs.readFileSync(path.join(rootDirectory, item.path));
+    invariant(bytes.length === item.bytes && sha256(bytes) === item.sha256,
+      `${item.path} differs from its manifest entry; rerun its generator`);
+  }
   const manifest = {
     formatVersion: 1,
     generatedBy: "scripts/github-showcase.mjs",
@@ -556,6 +590,8 @@ export function generateShowcase({ capture = false } = {}) {
     gameplay,
     assetSheets: assets,
     concepts,
+    ...(previous.animations === undefined ? {} : { animations: previous.animations }),
+    ...(previous.charts === undefined ? {} : { charts: previous.charts }),
   };
   fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
   return manifest;

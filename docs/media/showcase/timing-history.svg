@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="root" width="960" height="724" viewBox="0 0 960 724" role="img" aria-labelledby="chart-title chart-desc">
+<title id="chart-title">VOID STRIKE 65 — PAL frame budget across releases</title>
+<desc id="chart-desc">2026-09-21 Pre-4.6 baseline: fence margin 1,464, DMA-on maximum n/a; 2026-09-21 Light multiplicity: fence margin 552, DMA-on maximum n/a; 2026-09-21 Ring-rotate token gate: fence margin 2,981, DMA-on maximum n/a; 2026-09-22 Music v2 gameplay theme: fence margin 1,985, DMA-on maximum 31,200; 2026-09-22 Heavy break-up: fence margin 979, DMA-on maximum 31,216; 2026-09-22 Capital hulls, full mass: fence margin 979, DMA-on maximum 31,351; 2026-09-23 Main-menu star sky: fence margin 991, DMA-on maximum 31,349; 2026-09-23 Level compiler (4.6 step 1): fence margin 991, DMA-on maximum 31,349; 2026-09-29 Director reads the level (step 2): fence margin 727, DMA-on maximum 31,670; 2026-09-29 Pickup boost colour: fence margin 788, DMA-on maximum 31,626; 2026-10-01 Spread volley fix: fence margin 785, DMA-on maximum 31,121; 2026-10-01 v0.1.0: fence margin 785, DMA-on maximum 31,121; 2026-10-01 v0.2.0: fence margin 788, DMA-on maximum 31,133; 2026-10-02 Heavy break-up rotate gate: fence margin 1,439, DMA-on maximum 31,133. Data and sources: docs/media/timing-history.json.</desc>
+<style>
+    .root { --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --ink-3: #7a7974; --grid: #e6e5e0;
+      --series: #2a78d6; --band: #2a78d6; }
+    @media (prefers-color-scheme: dark) {
+      .root { --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #96958c; --grid: #34342f;
+        --series: #3987e5; --band: #3987e5; }
+    }
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .surface { fill: var(--surface); }
+    .title { fill: var(--ink); font-size: 20px; font-weight: 600; }
+    .subtitle, .note, .date { fill: var(--ink-2); font-size: 12px; }
+    .panel-title { fill: var(--ink); font-size: 14px; font-weight: 600; }
+    .tick { fill: var(--ink-2); font-size: 11.5px; }
+    .release { fill: var(--ink); font-size: 12px; font-weight: 600; }
+    .value { fill: var(--ink); font-size: 12px; font-weight: 600; }
+    .grid { stroke: var(--grid); stroke-width: 1; }
+    .axis { stroke: var(--ink-3); stroke-width: 1; }
+    .threshold { stroke: var(--ink-2); stroke-width: 1.5; }
+    .threshold.go, .threshold.target { stroke-dasharray: 6 4; }
+    .threshold-label { fill: var(--ink-2); font-size: 11.5px; }
+    .series { fill: none; stroke: var(--series); stroke-width: 2; stroke-linejoin: round; }
+    .marker { fill: var(--series); stroke: var(--surface); stroke-width: 2; }
+    .release-band { fill: var(--band); fill-opacity: 0.08; }
+</style>
+<rect class="surface" width="960" height="724" rx="8"/>
+<text class="title" x="132" y="38">PAL frame budget across releases</text>
+<text class="subtitle" x="132" y="60">Atari 65XE PAL, measured in the instrumented Atari800 on the packed build. Shaded columns are releases.</text>
+<text class="subtitle" x="132" y="78">Every point is cited in docs/media/timing-history.json.</text>
+<rect class="release-band" x="763.7" y="118" width="57.4" height="416"/>
+<rect class="release-band" x="821.1" y="118" width="57.4" height="416"/>
+<text class="panel-title" x="132" y="110">Worst line-238 fence margin</text>
+<text class="note" x="936" y="110" text-anchor="end">cycles of slack in the worst frame — higher is safer</text>
+<line class="grid" x1="132" x2="936" y1="294" y2="294"/>
+<text class="tick" x="124" y="298" text-anchor="end">0</text>
+<line class="grid" x1="132" x2="936" y1="269.7142857142857" y2="269.7142857142857"/>
+<text class="tick" x="124" y="273.7142857142857" text-anchor="end">500</text>
+<line class="grid" x1="132" x2="936" y1="245.42857142857144" y2="245.42857142857144"/>
+<text class="tick" x="124" y="249.42857142857144" text-anchor="end">1,000</text>
+<line class="grid" x1="132" x2="936" y1="221.14285714285717" y2="221.14285714285717"/>
+<text class="tick" x="124" y="225.14285714285717" text-anchor="end">1,500</text>
+<line class="grid" x1="132" x2="936" y1="196.85714285714286" y2="196.85714285714286"/>
+<text class="tick" x="124" y="200.85714285714286" text-anchor="end">2,000</text>
+<line class="grid" x1="132" x2="936" y1="172.57142857142856" y2="172.57142857142856"/>
+<text class="tick" x="124" y="176.57142857142856" text-anchor="end">2,500</text>
+<line class="grid" x1="132" x2="936" y1="148.2857142857143" y2="148.2857142857143"/>
+<text class="tick" x="124" y="152.2857142857143" text-anchor="end">3,000</text>
+<line class="grid" x1="132" x2="936" y1="124" y2="124"/>
+<text class="tick" x="124" y="128" text-anchor="end">3,500</text>
+<line class="threshold go" x1="132" x2="936" y1="269.7142857142857" y2="269.7142857142857"/>
+<text class="threshold-label" x="138" y="264.7142857142857">GO 500</text>
+<path class="series" d="M160.7,222.9 L218.1,267.2 L275.6,149.2 L333.0,197.6 L390.4,246.4 L447.9,246.4 L505.3,245.9 L562.7,245.9 L620.1,258.7 L677.6,255.7 L735.0,255.9 L792.4,255.9 L849.9,255.7 L907.3,224.1"/>
+<circle class="marker" cx="160.7" cy="222.9" r="4.5"><title>2026-09-21 Pre-4.6 baseline (82c155b): 1,464 cycles — docs/STATUS.md@c0d13c9</title></circle>
+<circle class="marker" cx="218.1" cy="267.2" r="4.5"><title>2026-09-21 Light multiplicity (4cd3024): 552 cycles — docs/STATUS.md@c0d13c9</title></circle>
+<text class="value" x="218.1" y="285.2" text-anchor="middle">552</text>
+<circle class="marker" cx="275.6" cy="149.2" r="4.5"><title>2026-09-21 Ring-rotate token gate (9fc73b9): 2,981 cycles — docs/STATUS.md@c0d13c9</title></circle>
+<text class="value" x="275.6" y="139.2" text-anchor="middle">2,981</text>
+<circle class="marker" cx="333.0" cy="197.6" r="4.5"><title>2026-09-22 Music v2 gameplay theme (944450f): 1,985 cycles — docs/STATUS.md@c0d13c9</title></circle>
+<circle class="marker" cx="390.4" cy="246.4" r="4.5"><title>2026-09-22 Heavy break-up (1fa7e7e): 979 cycles — docs/STATUS.md@c0d13c9</title></circle>
+<circle class="marker" cx="447.9" cy="246.4" r="4.5"><title>2026-09-22 Capital hulls, full mass (73108dc): 979 cycles — docs/STATUS.md@c0d13c9</title></circle>
+<circle class="marker" cx="505.3" cy="245.9" r="4.5"><title>2026-09-23 Main-menu star sky (c8320e9): 991 cycles — docs/STATUS.md@c0d13c9</title></circle>
+<circle class="marker" cx="562.7" cy="245.9" r="4.5"><title>2026-09-23 Level compiler (4.6 step 1) (28bd1e7): 991 cycles — docs/STATUS.md@c0d13c9</title></circle>
+<circle class="marker" cx="620.1" cy="258.7" r="4.5"><title>2026-09-29 Director reads the level (step 2) (dbf6b1c): 727 cycles — docs/STATUS.md@c0d13c9</title></circle>
+<circle class="marker" cx="677.6" cy="255.7" r="4.5"><title>2026-09-29 Pickup boost colour (830a023): 788 cycles — docs/STATUS.md@c0d13c9</title></circle>
+<circle class="marker" cx="735.0" cy="255.9" r="4.5"><title>2026-10-01 Spread volley fix (02ed450): 785 cycles — docs/STATUS.md@c0d13c9</title></circle>
+<circle class="marker" cx="792.4" cy="255.9" r="4.5"><title>2026-10-01 v0.1.0 (cf99af3): 785 cycles — docs/STATUS.md@cf99af3</title></circle>
+<text class="value" x="792.4" y="245.9" text-anchor="middle">785</text>
+<circle class="marker" cx="849.9" cy="255.7" r="4.5"><title>2026-10-01 v0.2.0 (4da20fd): 788 cycles — docs/STATUS.md@c0d13c9</title></circle>
+<text class="value" x="849.9" y="245.7" text-anchor="middle">788</text>
+<circle class="marker" cx="907.3" cy="224.1" r="4.5"><title>2026-10-02 Heavy break-up rotate gate (2777e8f): 1,439 cycles — docs/STATUS.md@c0d13c9</title></circle>
+<text class="value" x="907.3" y="214.1" text-anchor="middle">1,439</text>
+<text class="panel-title" x="132" y="350">DMA-on maximum</text>
+<text class="note" x="936" y="350" text-anchor="end">cycles in the heaviest traced frame — lower is safer</text>
+<line class="grid" x1="132" x2="936" y1="534" y2="534"/>
+<text class="tick" x="124" y="538" text-anchor="end">30,800</text>
+<line class="grid" x1="132" x2="936" y1="500" y2="500"/>
+<text class="tick" x="124" y="504" text-anchor="end">31,200</text>
+<line class="grid" x1="132" x2="936" y1="466" y2="466"/>
+<text class="tick" x="124" y="470" text-anchor="end">31,600</text>
+<line class="grid" x1="132" x2="936" y1="432" y2="432"/>
+<text class="tick" x="124" y="436" text-anchor="end">32,000</text>
+<line class="grid" x1="132" x2="936" y1="398" y2="398"/>
+<text class="tick" x="124" y="402" text-anchor="end">32,400</text>
+<line class="grid" x1="132" x2="936" y1="364" y2="364"/>
+<text class="tick" x="124" y="368" text-anchor="end">32,800</text>
+<line class="threshold target" x1="132" x2="936" y1="500" y2="500"/>
+<text class="threshold-label" x="138" y="495">target 31,200</text>
+<line class="threshold hard" x1="132" x2="936" y1="383.72" y2="383.72"/>
+<text class="threshold-label" x="138" y="378.72">hard gate 32,568</text>
+<path class="series" d="M333.0,500.0 L390.4,498.6 L447.9,487.2 L505.3,487.3 L562.7,487.3 L620.1,460.1 L677.6,463.8 L735.0,506.7 L792.4,506.7 L849.9,505.7 L907.3,505.7"/>
+<circle class="marker" cx="333.0" cy="500.0" r="4.5"><title>2026-09-22 Music v2 gameplay theme (944450f): 31,200 cycles — docs/runtime-wall-trace.json@944450f</title></circle>
+<circle class="marker" cx="390.4" cy="498.6" r="4.5"><title>2026-09-22 Heavy break-up (1fa7e7e): 31,216 cycles — docs/runtime-wall-trace.json@1fa7e7e</title></circle>
+<circle class="marker" cx="447.9" cy="487.2" r="4.5"><title>2026-09-22 Capital hulls, full mass (73108dc): 31,351 cycles — docs/runtime-wall-trace.json@73108dc</title></circle>
+<circle class="marker" cx="505.3" cy="487.3" r="4.5"><title>2026-09-23 Main-menu star sky (c8320e9): 31,349 cycles — docs/runtime-wall-trace.json@c8320e9</title></circle>
+<circle class="marker" cx="562.7" cy="487.3" r="4.5"><title>2026-09-23 Level compiler (4.6 step 1) (28bd1e7): 31,349 cycles — docs/runtime-wall-trace.json@28bd1e7</title></circle>
+<circle class="marker" cx="620.1" cy="460.1" r="4.5"><title>2026-09-29 Director reads the level (step 2) (dbf6b1c): 31,670 cycles — docs/runtime-wall-trace.json@dbf6b1c</title></circle>
+<text class="value" x="620.1" y="450.1" text-anchor="middle">31,670</text>
+<circle class="marker" cx="677.6" cy="463.8" r="4.5"><title>2026-09-29 Pickup boost colour (830a023): 31,626 cycles — docs/runtime-wall-trace.json@830a023</title></circle>
+<circle class="marker" cx="735.0" cy="506.7" r="4.5"><title>2026-10-01 Spread volley fix (02ed450): 31,121 cycles — docs/runtime-wall-trace.json@02ed450</title></circle>
+<circle class="marker" cx="792.4" cy="506.7" r="4.5"><title>2026-10-01 v0.1.0 (cf99af3): 31,121 cycles — docs/runtime-wall-trace.json@cf99af3</title></circle>
+<text class="value" x="792.4" y="524.7" text-anchor="middle">31,121</text>
+<circle class="marker" cx="849.9" cy="505.7" r="4.5"><title>2026-10-01 v0.2.0 (4da20fd): 31,133 cycles — docs/runtime-wall-trace.json@4da20fd</title></circle>
+<text class="value" x="849.9" y="523.7" text-anchor="middle">31,133</text>
+<circle class="marker" cx="907.3" cy="505.7" r="4.5"><title>2026-10-02 Heavy break-up rotate gate (2777e8f): 31,133 cycles — docs/runtime-wall-trace.json@2777e8f</title></circle>
+<line class="axis" x1="160.7" x2="160.7" y1="534" y2="539"/>
+<text class="tick" transform="translate(160.7,552) rotate(-35)" text-anchor="end">Pre-4.6 baseline <tspan class="date">09-21</tspan></text>
+<line class="axis" x1="218.1" x2="218.1" y1="534" y2="539"/>
+<text class="tick" transform="translate(218.1,552) rotate(-35)" text-anchor="end">Light multiplicity <tspan class="date">09-21</tspan></text>
+<line class="axis" x1="275.6" x2="275.6" y1="534" y2="539"/>
+<text class="tick" transform="translate(275.6,552) rotate(-35)" text-anchor="end">Ring-rotate token gate <tspan class="date">09-21</tspan></text>
+<line class="axis" x1="333.0" x2="333.0" y1="534" y2="539"/>
+<text class="tick" transform="translate(333.0,552) rotate(-35)" text-anchor="end">Music v2 gameplay theme <tspan class="date">09-22</tspan></text>
+<line class="axis" x1="390.4" x2="390.4" y1="534" y2="539"/>
+<text class="tick" transform="translate(390.4,552) rotate(-35)" text-anchor="end">Heavy break-up <tspan class="date">09-22</tspan></text>
+<line class="axis" x1="447.9" x2="447.9" y1="534" y2="539"/>
+<text class="tick" transform="translate(447.9,552) rotate(-35)" text-anchor="end">Capital hulls, full mass <tspan class="date">09-22</tspan></text>
+<line class="axis" x1="505.3" x2="505.3" y1="534" y2="539"/>
+<text class="tick" transform="translate(505.3,552) rotate(-35)" text-anchor="end">Main-menu star sky <tspan class="date">09-23</tspan></text>
+<line class="axis" x1="562.7" x2="562.7" y1="534" y2="539"/>
+<text class="tick" transform="translate(562.7,552) rotate(-35)" text-anchor="end">Level compiler (4.6 step 1) <tspan class="date">09-23</tspan></text>
+<line class="axis" x1="620.1" x2="620.1" y1="534" y2="539"/>
+<text class="tick" transform="translate(620.1,552) rotate(-35)" text-anchor="end">Director reads the level (step 2) <tspan class="date">09-29</tspan></text>
+<line class="axis" x1="677.6" x2="677.6" y1="534" y2="539"/>
+<text class="tick" transform="translate(677.6,552) rotate(-35)" text-anchor="end">Pickup boost colour <tspan class="date">09-29</tspan></text>
+<line class="axis" x1="735.0" x2="735.0" y1="534" y2="539"/>
+<text class="tick" transform="translate(735.0,552) rotate(-35)" text-anchor="end">Spread volley fix <tspan class="date">10-01</tspan></text>
+<line class="axis" x1="792.4" x2="792.4" y1="534" y2="539"/>
+<text class="release" transform="translate(792.4,552) rotate(-35)" text-anchor="end">v0.1.0 <tspan class="date">10-01</tspan></text>
+<line class="axis" x1="849.9" x2="849.9" y1="534" y2="539"/>
+<text class="release" transform="translate(849.9,552) rotate(-35)" text-anchor="end">v0.2.0 <tspan class="date">10-01</tspan></text>
+<line class="axis" x1="907.3" x2="907.3" y1="534" y2="539"/>
+<text class="tick" transform="translate(907.3,552) rotate(-35)" text-anchor="end">Heavy break-up rotate gate <tspan class="date">10-02</tspan></text>
+<line class="axis" x1="132" x2="936" y1="534" y2="534"/>
+</svg>

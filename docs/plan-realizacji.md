@@ -1,9 +1,18 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 6.1
-Data: 2026-09-20
-Rola: **jedyna aktywna roadmapa projektu**
-Branch roboczy: `wip/4.5d-gate-fail`
+Wersja: 7.0
+Data: 2026-10-02
+Rola: **jedyna aktywna roadmapa projektu** — od 2026-10-02 jako **kolejność
+prac i indeks**: treść, budżet i liczby kamieni milowych M2–M9 żyją w
+[`plans/budget-1.0.md`](plans/budget-1.0.md) i w planach w
+[`plans/`](plans/); ten plik ustala kolejność (§0) i przechowuje treść
+punktów roadmapy, na którą wskazują inne dokumenty (§4).
+
+> Zmiana 6.1 → 7.0 (2026-10-02, `docs/plan-realizacji-sync`): dodany §0 z
+> kolejnością drogi do 1.0 i dwiema nowymi decyzjami właściciela; zakończone
+> punkty §4 oznaczone jako DONE ze wskaźnikiem; przestarzałe planowanie
+> zastąpione wskaźnikami do budżetu i planów. Usunięty nieaktualny wiersz
+> „Branch roboczy: `wip/4.5d-gate-fail`" — gałęzie zadań opisuje `AGENTS.md`.
 
 > **Skonsolidowany obraz całości** (roadmapa, architektura, zmierzona mapa
 > pamięci, decyzje, backlog, cel treściowy, metoda pracy):
@@ -28,6 +37,63 @@ Poprzednia wersja 4.12 (Stage 2A–2D.1, pełna historia proofów i ich dawne
 „Następny task”) jest zachowana bajt w bajt w
 [`history/plan-realizacji-v4.12-2026-09-15.md`](history/plan-realizacji-v4.12-2026-09-15.md).
 Jej instrukcje wykonawcze nie są aktywne.
+
+---
+
+## 0. Droga do 1.0 — kolejność (decyzja właściciela 2026-10-02)
+
+Kolejność jest wiążąca. Liczby (cykle, bajty, sektory, testy) są wyłącznie
+w STATUS i w planach; ten paragraf ich nie powtarza.
+
+**Nowe decyzje właściciela, 2026-10-02:**
+
+1. **Showcase jest następnym zadaniem.** Wchodzi na czoło drogi do 1.0 i
+   obejmuje **ponowne przechwycenie zrzutów ekranu z ATR**.
+2. **M5 (boss) idzie PRZED M4 (pętla kampanii).** To zastępuje kolejność
+   „przerwa-rotacja, M4, M5" zapisaną w
+   [`plans/m3-waves-heavy.md`](plans/m3-waves-heavy.md) §6.3 (i rozumianą tak
+   samo w jego §8.1). Rachunek okna `$AE00` w §6.3 zakłada M4 jako pierwsze;
+   plan M5 przelicza okno w nowej kolejności. Bez zmian zostaje to, że M4 i M5
+   idą przed trzema sesjami M3 / M3-H (§8.1 tamtego planu).
+
+**Kolejność:**
+
+1. **Showcase** — GIF, wykres, README, ponowne zrzuty z ATR. **NIE
+   WYKONANE** (stan przy `a773656`): w `docs/media/` nie ma żadnego GIF-a ani
+   wykresu, README pokazuje wyłącznie statyczne PNG, a ostatnie commity
+   „showcase" (`49d0608`, `262d645`, `11b0455`) tylko przewiązują manifest
+   mediów. Ujęcia rozgrywki to wciąż przechwycenia z ery XEX — dlatego test
+   `github-showcase` jest na liście zapisanych porażek (STATUS, porażka D).
+   Zadanie wchłania kontynuację `chore/showcase-recapture` z
+   [`plans/budget-1.0.md`](plans/budget-1.0.md) §2 M9.
+2. **Heavy break-up rotate gate** — **DONE** (zbudowane: `c5470a8`, dowody
+   `2777e8f`, dokumentacja `c92f908`; w STATUS jako `OWNER-SMOKE CANDIDATE`,
+   sekcja „Heavy break-up rotate gate"). Plan i zapis wykonania:
+   [`plans/m3-waves-heavy.md`](plans/m3-waves-heavy.md) §9.
+3. **M5 — boss 4.7** — [`plans/budget-1.0.md`](plans/budget-1.0.md) §2
+   „M5 — Boss 4.7"; decyzje otwarte §5.2 pkt 5 i 6; treść punktu: §4 pkt 5
+   niżej.
+4. **M4 — pętla kampanii** — [`plans/budget-1.0.md`](plans/budget-1.0.md) §2
+   „M4 — Campaign loop"; decyzja otwarta §5.2 pkt 4; treść punktu: §4 pkt 7
+   niżej.
+5. **M3 + M3-H — ścieżki fal i pakiet zachowań Heavy** — plan
+   [`plans/m3-waves-heavy.md`](plans/m3-waves-heavy.md) (trzy sesje, §7;
+   decyzje §8); budżet: [`plans/budget-1.0.md`](plans/budget-1.0.md) §2 „M3"
+   i „M3-H". Przed sesją 1 — decyzja o dźwigniach okna (tamten plan §8.2 B).
+6. **M6 — boostery** — [`plans/budget-1.0.md`](plans/budget-1.0.md) §2
+   „M6 — Boosters"; decyzja §5.2 pkt 7; treść punktu: §4 pkt 4 niżej.
+7. **M7 — treść: dwanaście poziomów** — [`plans/budget-1.0.md`](plans/budget-1.0.md)
+   §2 „M7 — Content: twelve levels"; decyzje §5.2 pkt 8-13.
+8. **M8 — balans na sprzęcie** — [`plans/budget-1.0.md`](plans/budget-1.0.md)
+   §2 „M8 — Balance on hardware"; decyzje §5.2 pkt 14-15.
+9. **M9 — release candidate** — [`plans/budget-1.0.md`](plans/budget-1.0.md)
+   §2 „M9 — Release candidate"; decyzja §5.2 pkt 16.
+
+Poza listą: **M2** (Director krok 5, payload) jest zbudowany i czeka na owner
+smoke (STATUS, sekcja „Roadmap 4.6 step 5"). Pozycje zdecydowane lub
+zaplanowane poza M2–M9 (wybór poziomu L, linie loadera O, ekran końcowy P,
+booster N/U, Nova Missile, geometria capital 4.8a) wymienia
+[`plans/budget-1.0.md`](plans/budget-1.0.md) §2 „Not in the M2–M9 list".
 
 ---
 
@@ -90,6 +156,9 @@ komórka, glif z dwoma impulsami). `4/4/6` wyłącznie diagnostycznie.
 
 ## 3. Punkt wyjścia (szczegóły w STATUS)
 
+> **Historia (2026-10-02).** Ten paragraf opisuje punkt wyjścia z 2026-09-20.
+> Bieżący checkpoint, kandydaci i liczby są wyłącznie w STATUS („Checkpoint").
+
 - **Zaakceptowany fundament:** `2df89da` — Hybrid C Director, C-owned
   sector/lifecycle, Raider jako pierwszy `EnemyArchetype`; owner-accepted.
 - **Zaakceptowany (owner smoke PASS 2026-09-15):** `41ace65` — Light Wingman M1
@@ -128,8 +197,14 @@ komórka, glif z dwoma impulsami). `4/4/6` wyłącznie diagnostycznie.
 
 ## 4. Roadmapa
 
-Kolejność jest wiążąca. Nie rozpoczynać kolejnego punktu automatycznie po
-`BLOCKED`/`REJECTED`; po każdym punkcie aktualizować STATUS.
+Kolejność wiążącą ustala dziś **§0**. Ten paragraf zostaje, bo inne
+dokumenty wskazują tu po pełną treść punktów (STATUS „Roadmap (owner decision
+21)", `owner-decisions-2026-09-11.md` decyzja 21, `design-4.6-data-architecture.md`,
+`project-overview.md`): zakończone punkty są oznaczone DONE ze wskaźnikiem,
+pozostałe — wskaźnikiem do kamienia milowego w §0. Liczby w punktach niżej są
+historią z chwili zapisu; bieżące są w STATUS i w planach. Nie rozpoczynać
+kolejnego punktu automatycznie po `BLOCKED`/`REJECTED`; po każdym punkcie
+aktualizować STATUS.
 
 ### 4.1 Owner smoke i porządki Light Wingman M1 — DONE
 
@@ -272,7 +347,14 @@ i freeze go nie obejmuje.
 
 ### Kolejność prac
 
+Kolejność z decyzji 21 (2026-09-18). **Zastąpiona przez §0** (2026-10-02);
+treść punktów zostaje.
+
 #### 1. Option D — koszt stały Bombera
+
+**Stan: DONE — OWNER-ACCEPTED** (owner smoke PASS 2026-09-18, `0002d84`;
+§3 wyżej i STATUS). Zdanie o marginesie 450 cykli niżej opisuje stan sprzed
+Option D.
 
 Pominąć 16-wierszowe kopiowanie ciała `P1`/`P2` w `draw_enemy_member`, gdy Y
 członka się nie zmieniło (X i tak przechodzi przez `HPOSP1,x`). Oszczędność
@@ -283,6 +365,11 @@ dowodem obejmującym *każdy* writer `P1`/`P2` oraz ścieżki pauzy i respawnu.
 Najgorszy margines fence wynosi teraz **450 cykli**.
 
 #### 2. Pomiar budżetu populacji
+
+**Stan: DONE** jako wejście do 4.6 — STATUS „Measurement tooling
+(`scripts/measure-*`)" i „Roadmap 4.6 prerequisite — Light multiplicity";
+zmierzony sufit budżetu: [`plans/director-4.6.md`](plans/director-4.6.md)
+§0.1; bieżący inwentarz: [`plans/budget-1.0.md`](plans/budget-1.0.md) §1.
 
 Trzy liczby, które bramkują projekt fal 4.6:
 
@@ -301,6 +388,12 @@ Przy okazji rozstrzygnąć:
   wiersz.
 
 #### 3. 4.6 — sterowany danymi Encounter / Wave Director
+
+**Stan:** plan [`plans/director-4.6.md`](plans/director-4.6.md) §8. Kroki 1-2
+**OWNER-ACCEPTED**; kroki 3-5 zbudowane, `OWNER-SMOKE CANDIDATE` (krok 5 =
+M2, w tym STARFIELD PER SECTOR); krok 6 (PATH-DRIVEN WAVES) = **M3**, plan
+[`plans/m3-waves-heavy.md`](plans/m3-waves-heavy.md); krok 7 (poziomy 3-12) =
+**M7**. Kolejność: §0.
 
 Z trzema wiążącymi decyzjami właściciela (decyzja 21 §21.1-21.3):
 
@@ -332,6 +425,12 @@ Zastępuje TYMCZASOWE harmonogramy smoke (`{WINGMAN, INTERCEPTOR}` oraz
 
 #### 4. Boostery broni gracza
 
+**Stan: = M6** (§0); wycena i warianty:
+[`plans/budget-1.0.md`](plans/budget-1.0.md) §2 „M6 — Boosters". Sygnalizację
+poziomu (kształt i dźwięk; kolor **odrzucony**) rozstrzyga decyzja **U**
+(`owner-decisions-2026-09-11.md` §U) — „Otwarte: kolor" niżej jest tym
+zamknięte. Liczba cykli w tym punkcie jest historią.
+
 `weapon_class` już istnieje, kapsuły pickupu mają pełny lifecycle, a 12 glifów
 wrogich pocisków jest wolnych. Koszt ląduje w slotach pocisków gracza
 (**4 407** cykli w `handle_collisions`, MEASURED przy HEAD w tabeli DMA-off
@@ -354,6 +453,10 @@ zabrania lokalnemu obiektowi zmieniać globalną paletę. Pełny zapis:
 `owner-decisions-2026-09-11.md` §N.
 
 #### 5. 4.7 Boss
+
+**Stan: = M5** (§0) — **następny kamień milowy po showcase**; wycena:
+[`plans/budget-1.0.md`](plans/budget-1.0.md) §2 „M5 — Boss 4.7"; decyzja
+2026-10-01: brak Heavy i najwyżej jeden Light w sektorze bossa (tamże §5.3).
 
 **Decyzja właściciela H (2026-09-20): jedna mechanika, wiele wyglądów.** Jeden
 kontroler bossa; każdy boss to **rekord** opisujący układ modułów, rozmieszczenie
@@ -384,11 +487,18 @@ HULL bossa, nigdy jako zwykły drop.
 
 #### 6. 4.8a Geometria capital
 
+**Stan:** poza listą M2–M9; „w 1.0 czy po" to decyzja otwarta z terminem M7
+([`plans/budget-1.0.md`](plans/budget-1.0.md) §5.2 pkt 13; `hull_params`
+32 B zarezerwowane).
+
 Głębsze, nierówne gondole na zmiennych wysokościach, zmienna szerokość
 korytarza, większe debris. Latanie przestrzenne w stylu River Raid. **Dane plus
 sprawdzenie kolizji** — nie nowy podsystem.
 
 #### 7. Koniec poziomu / następny poziom
+
+**Stan: = M4** (pętla kampanii, po M5) **i M7** (dwanaście poziomów jako
+dane) — §0; [`plans/budget-1.0.md`](plans/budget-1.0.md) §2 „M4" i „M7".
 
 Pętla poziomu, kampania **12 poziomów** jako dane, polish.
 
@@ -432,7 +542,10 @@ Co jeszcze wchodzi w ten punkt po decyzjach 2026-09-20:
 ## 5. Backlog — świadomie odłożone, nie zapomniane
 
 Nie jest to lista defektów (te są w §6 i w STATUS), lecz praca celowo
-odsunięta. Nie realizować bez wskazania właściciela.
+odsunięta. Nie realizować bez wskazania właściciela. Bieżący backlog STATUS
+(„Backlog — deferred, not forgotten") i wycena pozycji spoza M2–M9
+([`plans/budget-1.0.md`](plans/budget-1.0.md) §2) mają pierwszeństwo przed
+liczbami zapisanymi niżej w chwili ich zapisu.
 
 - **Zapis na dysk (postęp, najlepsze wyniki) — ZAPARKOWANE** (2026-09-20).
   Wymaga zapisu SIO, obsługi błędów i decyzji o tym, czy własny ATR gry ma
@@ -574,5 +687,7 @@ inżynierskiej; dziś są decyzjami podjętymi **po** niej. Zapis decyzji:
 
 Po każdym proofie `BLOCKED`/`REJECTED`: zapisać raport w `docs/diagnostics/`,
 wycofać odrzucony kod produkcyjny, zaktualizować STATUS i — jeżeli zmienia się
-kolejność — ten plan, wskazać dokładnie jeden następny krok. Historia proofów
+kolejność — §0 tego planu, wskazać dokładnie jeden następny krok. Treść i
+budżet kamieni milowych aktualizuje się w `plans/budget-1.0.md` i w planie
+danego kamienia, nie tutaj. Historia proofów
 trafia do diagnostyk i `docs/history/`, nie do tego pliku.

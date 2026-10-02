@@ -986,6 +986,8 @@ order); they are not in this table.
 
 ### 6.3 The window, in the decided order
 
+**2026-10-02, later: the owner moved M5 before M4** ([plan-realizacji.md](../plan-realizacji.md) §0); the window ledger in this section assumes M4 first, and the M5 plan re-prices the window in the new order.
+
 Order (owner, 2026-10-02): the break-up task, M4, M5, then this plan's three
 sessions, then M6. Figures are `expected → budgeted`; M4, M5 and M6 are the
 budget's lines (150 → 180, the B-A boss 1,140 → 1,368, 150 → 180), this plan is

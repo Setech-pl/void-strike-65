@@ -60,6 +60,8 @@ released.** Section "ATR-only build" below.
 
 **Resource budget to 1.0 (2026-10-01, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/budget-1.0.md](plans/budget-1.0.md) — the inventory, what M2–M9 each spend, the first shortfall (the `$AE00` window at M5, the boss), the priced levers and the owner decisions with their latest milestone.
 
+**Road to 1.0 — order synced (2026-10-02, `docs/plan-realizacji-sync`, docs only, `OWNER REVIEW CANDIDATE`):** [plan-realizacji.md](plan-realizacji.md) §0 records the owner's order of 2026-10-02 — showcase (next task, not yet done, includes recapturing the screenshots from the ATR) → Heavy break-up rotate gate (built) → M5 boss → M4 campaign loop → M3 + M3-H → M6 → M7 → M8 → M9; M5 before M4 supersedes the order in [plans/m3-waves-heavy.md](plans/m3-waves-heavy.md) §6.3.
+
 **M3 wave paths and M3-H Heavy package — plan (2026-10-02, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/m3-waves-heavy.md](plans/m3-waves-heavy.md) — native measurements (a held Raider saves 485 cycles; the decided descent rule returns 467 per frame with two Raiders live), the two Raider kinds and the damaged look, and three implementation sessions. Owner decisions taken 2026-10-02 (its §8.1): the sessions wait until after M4 and M5, and the rotate-gate fix for Heavy break-ups (its §9) is a standalone task that runs before M4 — **now built, `OWNER-SMOKE CANDIDATE`** (section "Heavy break-up rotate gate" below): worst fence margin 788 → **1,439**.
 
 **Seventeen `OWNER-SMOKE CANDIDATE`s are outstanding: the Heavy break-up

@@ -142,3 +142,43 @@ table listed.
 | DMA-on maximum | 31,205 (EASY s5 f6588) | **31,140** (EASY s2 f2124) |
 | capital-sector maximum | 29,538 | **29,540** |
 | miss events / rows over 32,568 | 0 / 0 | **0 / 0** |
+
+## After the Heavy break-up rotate gate (MEASURED 2026-10-02)
+
+Build `build/level-2-s0` at `2777e8f` (branch `fix/heavy-breakup-rotate-gate`,
+docs/plans/m3-waves-heavy.md §9), ATR
+`15c1aed9e9606b47125a769749d62c51f58d3d88cc5185a16743e8f409fb751b`. Same
+three replays, same tool. There were 0 distinct miss events, 0 rows over
+32,568 and 0 clause failures on all three replays. Of the 170 Heavy kills in
+the three replays, **0** put their break-up on a rotate frame
+(`scripts/measure-breakup-rotate-frames.mjs`).
+
+| Sector | kind | EASY (`-0`) | MEDIUM (`-1`) | HARD (`-2`) |
+| ---: | --- | --- | --- | --- |
+| 1 | swarm | 7,401 @579 / 30,471 @689 | 6,121 @273 / 30,799 @122 | 6,507 @136 / 31,047 @689 |
+| 2 | elite (Bombers) | **5,029** @1559 / **31,140** @2124 | **1,615** @1515 / 30,989 @1476 | **3,453** @1173 / 30,769 @1284 |
+| 3 | capital | 10,327 @2937 / 29,540 @2949 | 8,411 @2539 / 29,440 @2537 | 11,535 @2311 / 29,193 @2353 |
+| 4 | swarm | 6,683 @4687 / 30,684 @4314 | 5,934 @4319 / 31,099 @3964 | 6,239 @4033 / 31,139 @3816 |
+| 5 | elite | **4,027** @6654 / 30,384 @6312 | **4,977** @5931 / 30,827 @5424 | **4,761** @5191 / 30,432 @5136 |
+| 6 | elite (finale) | **4,297** @8369 / 30,573 @8784 | **4,894** @7157 / 30,664 @7356 | **4,220** @6891 / 30,601 @6888 |
+| capital frames (not `SECTOR_FIGHTER`) in sector 3 | | 1,035 | 921 | 829 |
+
+**Level 2 worst after the rotate gate: fence margin 1,615, DMA-on maximum
+31,140** — both unchanged, because both rows are a Heavy spawn on a rotate
+frame (MEDIUM s2 f1515) and a frame with no kill (EASY s2 f2124). The elite
+sectors' minima rose (the step-5 rows were not classified by frame kind, so
+which of them were rotate-frame kills is not shown here): EASY s2 3,087 → 5,029, s5 3,739 → 4,027, s6 3,974 →
+4,297; MEDIUM s5 2,625 → 4,977, s6 4,196 → 4,894; HARD s2 2,632 → 3,453, s5
+3,479 → 4,761, s6 4,143 → 4,220. The five worst rows of the three replays are
+all Heavy spawns on rotate frames (1,615, 3,453, 3,741, 3,747, 4,027): keeping
+spawns off rotate frames is m3-waves-heavy.md §8.2 item A. Capital traversal
+lengths are unchanged to the frame. EASY's capital-sector margin, which comes
+from its fighter frames either side of the hull, moved 7,852 @3147 → 10,327
+@2937; that row was not investigated.
+
+| | step 5 (payload) | rotate gate |
+| --- | ---: | ---: |
+| worst fence margin | 1,615 (MEDIUM s2 f1515) | **1,615** (same frame) |
+| DMA-on maximum | 31,140 (EASY s2 f2124) | **31,140** (same frame) |
+| capital-sector maximum | 29,540 | **29,540** |
+| miss events / rows over 32,568 | 0 / 0 | **0 / 0** |

@@ -1145,6 +1145,20 @@ The CRC per-bit loop stays in page `$25` (per-bit `bne` at `$25FB`, next
 instruction `$25FD`, **2 B before a crossing**); two link-time `.assert`s now
 hold it there.
 
+## The rotate gate for Heavy break-ups (2026-10-02)
+
+`docs/plans/m3-waves-heavy.md` §9. **No resident address moved, and the
+initial block did not grow** (13,621 B before and after, MEASURED). The
+`BROADSIDE` zero pin keeps its label and its 120-B length; its head is code.
+
+| Range | Bytes | Was | Is |
+| --- | ---: | --- | --- |
+| `BROADSIDE` `$69D7-$69E7` | 17 | the head of `hull_sequence_reserve`, zero | `world_rotate_due` (A = 1 when this frame's `update_starfield` will rotate the ring). `WORLD_ROTATE_DUE` in `src/hybrid/c-asm-abi.s`; `src/main.s` asserts the two agree |
+| `BROADSIDE` `$69E8-$6A4E` | 103 | the rest of `hull_sequence_reserve` | unchanged, zero. Extension record 1 packs 5,502 → 5,517 of 5,611 B (44 sectors, unchanged) |
+| `HYBRID_C_ARENA` `$7BD0-$7EEC` | 797 of 832 | 790 | +7 B of C: `enemy_c_heavy_breakup_claim` calls `world_rotate_due`. **35 B free.** Record 7: 712 → 719 B packed, 6 sectors |
+
+Transport: unchanged, boot 107, extension 102, total 209 sectors.
+
 ## Roadmap 4.6 step 5 — the payload is live (2026-10-01)
 
 `docs/plans/director-4.6.md` §8.3. The payload page's appearance and weapon

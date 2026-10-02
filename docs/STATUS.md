@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-01 (director-step-5-payload)
+Last update: 2026-10-02 (heavy-breakup-rotate-gate)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -60,9 +60,12 @@ released.** Section "ATR-only build" below.
 
 **Resource budget to 1.0 (2026-10-01, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/budget-1.0.md](plans/budget-1.0.md) — the inventory, what M2–M9 each spend, the first shortfall (the `$AE00` window at M5, the boss), the priced levers and the owner decisions with their latest milestone.
 
-**M3 wave paths and M3-H Heavy package — plan (2026-10-02, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/m3-waves-heavy.md](plans/m3-waves-heavy.md) — native measurements (a held Raider saves 485 cycles; the decided descent rule returns 467 per frame with two Raiders live), the two Raider kinds and the damaged look, and three implementation sessions. Owner decisions taken 2026-10-02 (its §8.1): the sessions wait until after M4 and M5, and the rotate-gate fix for Heavy break-ups (its §9, ~30 B, expected to lift the worst fence row from 788 to about 1,423) is a standalone task that runs before M4.
+**M3 wave paths and M3-H Heavy package — plan (2026-10-02, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/m3-waves-heavy.md](plans/m3-waves-heavy.md) — native measurements (a held Raider saves 485 cycles; the decided descent rule returns 467 per frame with two Raiders live), the two Raider kinds and the damaged look, and three implementation sessions. Owner decisions taken 2026-10-02 (its §8.1): the sessions wait until after M4 and M5, and the rotate-gate fix for Heavy break-ups (its §9) is a standalone task that runs before M4 — **now built, `OWNER-SMOKE CANDIDATE`** (section "Heavy break-up rotate gate" below): worst fence margin 788 → **1,439**.
 
-**Sixteen `OWNER-SMOKE CANDIDATE`s are outstanding: the all-or-nothing Spread
+**Seventeen `OWNER-SMOKE CANDIDATE`s are outstanding: the Heavy break-up
+rotate gate** (section "Heavy break-up rotate gate" below; a Raider or Bomber
+killed on a frame that scrolls the ring now breaks up one frame later, never
+later than that; worst fence margin 788 → 1,439), **the all-or-nothing Spread
 volley** (section "Spread volley — all-or-nothing" below; a Spread volley that
 began with fewer than three free shot slots held the pool full of lone side
 shots with no shot sound until Spread expired; reachable in the default level 1
@@ -332,6 +335,84 @@ owner smoke PASS 2026-09-18); before it `b4b942e` (XEX
 owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
+
+## Heavy break-up rotate gate — `OWNER-SMOKE CANDIDATE` (2026-10-02)
+
+Plan and as-built record: [plans/m3-waves-heavy.md](plans/m3-waves-heavy.md)
+§9 and §9.5. Branch `fix/heavy-breakup-rotate-gate` from `main` `e3bd098`.
+
+**What was wrong.** A Heavy break-up is a deferrable consumer of the
+one-expensive-event token and should never land on a ring-rotate frame, but
+the claim runs inside `handle_collisions`, before `update_starfield` decides
+whether the frame rotates, so the rotate marker it tested always named an
+earlier frame. 389 of the 902 Heavy kills in the evidence run put their
+break-up on a rotate frame, including the game's worst fence row.
+
+**What changed.** `world_rotate_due` (17 B, the head of the `BROADSIDE` zero
+pin `hull_sequence_reserve`; label, length and every later address unchanged)
+makes `update_starfield`'s own sum early; `enemy_c_heavy_breakup_claim` (+7 B,
+arena) parks the break-up when the frame will rotate, without spending the
+token, and the existing ungated retry lands it on the next frame, which never
+rotates. Kill, score, sound and the `COLBK` flash stay on the kill frame.
+
+| | `main` `e3bd098` | this branch | source |
+| --- | ---: | ---: | --- |
+| worst line-238 fence margin | 788 (`director-complete-2` f5815, Raider kill, rotate) | **1,439** (`2-evasive-fire3` f287, Heavy spawn, rotate) | standalone PAL audit, 48 + 8 replays, 0 miss events |
+| Heavy kills with the break-up on a rotate frame | 389 of 902 | **0** of 902 | `scripts/measure-breakup-rotate-frames.mjs` |
+| worst rotate-frame Heavy kill row | 788 | **3,459** (`raider-remnant-rapid-atr-hard` f123) | same |
+| DMA-on maximum / physical headroom | 31,133 / 4,435 | **31,133 / 4,435** | `docs/runtime-wall-trace.json` |
+| DLI per host frame / sequence violations | 2 / 0 | **2 / 0** | same, `gate.memory_integrity` |
+| behavioural clause failures | 3 | **3**, the same contact sessions | [recorded-gate-failures.json](recorded-gate-failures.json) |
+| `npm test` (default build): tests / pass / fail | 897 / 894 / 3 | **906 / 904 / 2**, one full run | `npm test`; [recorded-test-failures.json](recorded-test-failures.json) |
+| initial block / boot sectors | 13,621 B / 107 | **13,621 B / 107** | `build/manifest.json` |
+| extension / total transport sectors | 102 / 209 | **102 / 209** | same |
+| `BROADSIDE` packed (record 1) | 5,502 of 5,611 | **5,517 of 5,611**, 44 sectors | same |
+| ATR menu frame (baseline 596) | 547 | **547** | boot smoke |
+| `$AE00` window used / free | 2,104 / 1,480 | **2,104 / 1,480** | `residentCapacity.basicWindow` |
+| `HYBRID_C_ARENA` used / free (record 7 packed) | 790 / 42 (712) | **797 / 35 (719)**, 6 sectors | `residentCapacity.arena` |
+| `BROADSIDE` zero pins | 136 B | **119 B** (103 + the 16-B codebook reserve) | `build/void-strike-65.lbl` |
+| ATR SHA-256 | `04943660…` | **`f127d7a48674c7b2cdf103d3808b4145938a8d687586b82e83b3bcb651f33cd1`** | `dist/` |
+| boot SHA-256 | `c303c33f…` | **`1daed1be86e54b1e3195228aa3b05f20d2501a87efc5403ca0638b60e943bd33`** | `dist/` |
+| level 2 worst margin / maximum (diagnostic) | 1,615 / 31,140 | **1,615 / 31,140**, same frames; 0 rotate-frame break-ups; elite-sector minima up to +2,352 | [diagnostics/level-2-timing-2026-09-30.md](diagnostics/level-2-timing-2026-09-30.md) |
+
+**Read before accepting — gameplay is not byte-for-byte `main`'s.** Scores,
+Heavy kill frames, capsule sequences and lives are frame-exact against `main`
+in all 56 replays, but `player_health` differs in 4. `LIGHT_TOKEN_BUDGET` is 1;
+on `main` a rotate-frame break-up spent the frame's token and a Light's fire
+or admission claim later that frame was refused, while now the parked claim
+leaves the token unspent (as §9 specified), so that Light acts one frame
+earlier and the hostile-shot timeline shifts. Owner decision 2026-10-02: keep
+the token unspent.
+
+**Tests.** RED on `main`, GREEN here (`tests/heavy-breakup.test.mjs`): a
+Raider and a Bomber killed on a rotate frame park their break-up in the
+production frame order and it lands on the next frame; `world_rotate_due`
+agrees with `update_starfield` over 400 frames on each difficulty; a denied
+claim leaves the token unspent; the size pins. Controls: a non-rotate kill
+still spawns on the kill frame. Cycle pins: `resolve_enemy_damage` on a
+rotate-frame contact kill ≤ 850 (804 / 836), the retry ≤ 520. §9's 850 was set
+from `scripts/measure-heavy-member-costs.mjs`, whose kill source 1 is
+`DAMAGE_PLAYER_CONTACT` (its comment said projectile; fixed); a shot kill is
+32 cycles dearer (836 / 868) and is pinned structurally instead
+(`heavy_spawn_breakup` does not run on its frame).
+
+**Re-pointed, each with its reason in the test:** `heavy-breakup` (killNow and
+the fragment-contact test put the accumulator on a non-rotate frame; the
+hand-set-marker test is kept and says so), `hybrid-c-arena` (arena bytes,
+record 7 packed), `capital-hull-extension` (the zero pin starts after the
+routine), `hybrid-lifecycle` (the claim's call list gains
+`_asm_world_rotate_due`; still five token claim sites).
+
+**Recorded test failures:** `github-showcase` (D) and `preview` (C) fail as
+recorded. `runtime-wall-trace` "ten heaviest frames…" (D) **passes by
+coincidence**: the JS cycle model re-picked its reference frames and one now
+falls in the trace's ten heaviest; its cause is untouched, so it stays
+recorded and annotated (owner decision 2026-10-02). 0 new.
+
+**Owed by the owner.** The smoke: Raider and Bomber kills still break up into
+fragments, on the hit or one frame after; no missing or doubled fragments;
+score, kill sound and flash unchanged; no stutter when a kill coincides with
+the scrolling.
 
 ## Roadmap 4.6 step 5 — the payload: Light looks, weapon looks, a sky per sector — `OWNER-SMOKE CANDIDATE` (2026-10-01)
 

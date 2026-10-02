@@ -14,6 +14,10 @@ standalone task that runs before M4 and M5 (§9); and **M4 (campaign loop) and
 M5 (boss) now come before this plan's three sessions**, so §6 restates the
 window in that order.
 
+**§9 built 2026-10-02** on `fix/heavy-breakup-rotate-gate`,
+`OWNER-SMOKE CANDIDATE`; its as-built record is §9.5. The other sections are
+still the plan.
+
 It covers Director plan step 6 ([director-4.6.md](director-4.6.md) §8) and the
 budget lines M3 and M3-H ([budget-1.0.md](budget-1.0.md) §2), plus the two
 requirements the owner added after the budget: two Raider kinds, and a damaged
@@ -670,10 +674,10 @@ nearest).
 
 | Home | Record | Today | This plan | After |
 | --- | ---: | --- | --- | --- |
-| `BROADSIDE` zero pin `hull_sequence_reserve` | 1 | 120 B, all zero | the break-up task's rotate test 16 (§9); then gate 58, base veneer 26, pending test 14 | 6 B left; record 1 ~5,605 of 5,611 packed |
+| `BROADSIDE` zero pin `hull_sequence_reserve` | 1 | 120 B, all zero; **17 B of it code since §9 was built** | the break-up task's rotate test **17 as built** (§9.5); then gate 58, base veneer 26, pending test 14 | 5 B left; record 1 ~5,606 of 5,611 packed (estimate; 5,517 measured after §9 alone — re-measure at session 1) |
 | `BROADSIDE`, `draw_enemy_member` | 1 | — | −1 B in place (the pad after it grows by one) | no label moves |
 | `HEAVY_CODE` | 5 | — | one operand | unchanged, 12 B spare |
-| arena | 7 | 42 B free | the break-up task +12 (§9); then spawn out −143, Bomber package +83 | **90 B free**; record 7 ~670 of 747 |
+| arena | 7 | 42 B free; **35 since §9 was built** | the break-up task **+7 as built** (§9.5); then spawn out −143, Bomber package +83 | **95 B free**; record 7 ~677 of 747 |
 | window C half | 8 | 1,369 B | M3 524, M3-H 113, spawn moved in 143 | 2,149 B; packed ~1,675 → **13–14 sectors** (9 today) |
 | window ASM (Light kernel) | 9 | 735 B | armoured half 96, punch 90, hole tables 24 | 945 B; packed ~840 → **7 sectors** (6 today) |
 | `DIRECTOR_RAM` | 11 | 602 of 645 | 0 | 602 of 645 |
@@ -721,6 +725,14 @@ top of what the task gave them.
 | DMA-on maximum (target 31,200, hard gate 32,568) | 31,133 | ~30,890 — f5797 falls to ~30,670; the one-Raider and two-Bomber frames (30,863, 30,889) are not helped on their worst frame | ~30,910 | **M** components |
 | — to the target | 67 | ~310 | ~290 | |
 
+**After §9 (built 2026-10-02, MEASURED, §9.5):** the worst fence margin of the
+evidence set is **1,439** at `2-evasive-fire3` f287 (the Heavy spawn row,
+939 over GO); no Heavy kill puts its break-up on a rotate frame (389 → 0); the
+worst kill row is 2,944 (`raider-remnant-spread-atr-hard` f2052, a non-rotate
+kill with its break-up on it). DMA-on maximum unchanged at 31,133. The "Today"
+column above is `main` before §9; the M3-H effect on kill rows stacks on the
+new figures.
+
 **If the assault Raider kept today's full speed** (not taken; an M8 balance
 option, §8.2): the gate is still needed for the armoured kind and costs 44
 cycles per frame for an assault pair with no saving. On today's rows: fence
@@ -747,9 +759,9 @@ this table.
 | Resource | Today | After the break-up task and this plan (expected → budgeted) | Budget-1.0 expected after M3-H |
 | --- | ---: | ---: | ---: |
 | `$AE00` window free | 1,480 | **552 → 490** | 1,013 |
-| arena free | 42 | **90** (30 after the break-up task alone) | 26 |
+| arena free | 42 | **95** (35 after the break-up task alone, as built) | 26 |
 | `DIRECTOR_RAM` free | 43 | **43** | 1 |
-| `BROADSIDE` zero pins | 136 | **22** (6 + the 16-B codebook reserve; 120 after the break-up task alone) | 56 |
+| `BROADSIDE` zero pins | 136 | **21** (5 + the 16-B codebook reserve; 119 after the break-up task alone, as built) | 56 |
 | `PICKUP_CODE` tail | 65 code or RAM | 33 (32 B of RAM used, no code) | 15 |
 | initial block | 13,621 | **13,621** | 13,621 |
 | DFMC records | 11 of 11 | 11 of 11 | — |
@@ -953,13 +965,17 @@ No approval for initial-block bytes was needed: the plan uses none.
 
 | # | Decision | Latest | Numbers |
 | ---: | --- | --- | --- |
-| A | **Keep Heavy spawns off ring-rotate frames** (the spawn half of the rotate finding) | any time after §9, whose rotate test it calls; it does not depend on this plan's sessions | +5 B in `interceptor_admission_update` (`PICKUP_CODE`): one call to §9's rotate test and a branch, so it needs §9 first. Record 2 has 3 B spare, so **+1 extension sector, +2 ATR menu frames** (M4's 12 B then ride in that sector, as the budget assumed). Effect: the 218 spawn frames that land on a rotate frame in the evidence run (worst margin **1,423**, mean 5,903) move to the non-rotate class (worst **4,448**, mean 9,181) — about +3,000 on the worst spawn row (**AN**, trace classes). Price: a formation arrives one frame later on about half of its admissions, which moves every replay's kill and capsule cadence, so the evidence is re-scripted as well as regenerated. After §9 the spawn row is the worst fence row of the evidence set, at 923 over GO, so nothing forces this |
+| A | **Keep Heavy spawns off ring-rotate frames** (the spawn half of the rotate finding) | any time after §9, whose rotate test it calls; it does not depend on this plan's sessions | +5 B in `interceptor_admission_update` (`PICKUP_CODE`): one call to §9's rotate test and a branch, so it needs §9 first. Record 2 has 3 B spare, so **+1 extension sector, +2 ATR menu frames** (M4's 12 B then ride in that sector, as the budget assumed). Effect: the 218 spawn frames that land on a rotate frame in the evidence run (worst margin **1,423**, mean 5,903) move to the non-rotate class (worst **4,448**, mean 9,181) — about +3,000 on the worst spawn row (**AN**, trace classes). Price: a formation arrives one frame later on about half of its admissions, which moves every replay's kill and capsule cadence, so the evidence is re-scripted as well as regenerated. After §9 the spawn row is the worst fence row of the evidence set — **MEASURED 1,439, 939 over GO** (§9.5) — so nothing forces this |
 | B | **Which levers pay the window, and when** (budget item 6) | after the boss plan, before this plan's session 1 | §6.3: 738 → 1,058 B short when the sessions start; `LEVEL_BUFFER` + the `STARFIELD` tail + the arena and pins give 677, the splash RAM 512 more |
 | C | **Assault Raider at today's full speed** | M8 | the rate is a spawn-time byte, so it is a value change. On today's rows: 227 over GO and 20 under the 31,200 target; re-measure the fence figure after §9 |
 
 ---
 
 ## 9. Standalone task — the rotate gate for Heavy break-ups
+
+**BUILT 2026-10-02, `OWNER-SMOKE CANDIDATE`** (branch
+`fix/heavy-breakup-rotate-gate`); the measured result is §9.5. §9.1–§9.4 are
+the brief as it was given.
 
 **Taken by the owner on 2026-10-02 as its own small task, run before M4 and
 M5.** It is not part of M3 or M3-H and does not depend on them. This section is
@@ -1105,6 +1121,76 @@ identical to `main`'s.
 * **Documents:** STATUS (the new worst margin and row, the arena and pin
   figures), `docs/memory-map.md` (the pin's first 16 bytes are code), this
   section marked as built with its measured figures.
+
+### 9.5 As built (2026-10-02, MEASURED)
+
+**Code.** As §9.2, with two differences. `world_rotate_due` ends `lda #$00 /
+adc #$00`, not `lda #0 / rol`: the JS NMOS core that every build-time cycle
+measurement runs on has no `rol` (no shipped path uses it), so the build stopped
+on `$2A`; the routine is 17 B, the top of §9.2's range. The claim is **+7 B**,
+not 10–12: cc65 shares the parking tail (`lda #1 / sta pending / … / rts`) with
+the token denial.
+
+| | `main` `e3bd098` | built | source |
+| --- | ---: | ---: | --- |
+| `world_rotate_due` | — | 17 B at `$69D7`, head of `hull_sequence_reserve`; 103 B of zero left; no later label moved | `build/void-strike-65.lbl` |
+| `BROADSIDE` raw / packed (record 1) | 6,653 / 5,502 of 5,611 | **6,653 / 5,517 of 5,611**, 44 sectors | `build/manifest.json` |
+| arena used / free (record 7 packed) | 790 / 42 (712) | **797 / 35 (719)**, 6 sectors | same |
+| initial block / boot / total sectors | 13,621 / 107 / 209 | **13,621 / 107 / 209** | same |
+| ATR menu frame (baseline 596) | 547 | **547** | boot smoke |
+
+**Cycles, native harness** (`scripts/measure-heavy-member-costs.mjs` state, a
+contact-sourced kill as §9's figures were): `resolve_enemy_damage` on a
+rotate-frame kill **763 / 795** (Raider / Bomber; §9.3 expected ~810 / ~840);
+on a non-rotate kill **1,309 / 1,344** (+37, §9.3 expected +36); the claim is
+66 cycles when it parks, 129 when it spawns. **A §9 basis error:** that script
+labels its kill source 1 as `DAMAGE_PLAYER_PROJECTILE`, but 1 is
+`DAMAGE_PLAYER_CONTACT` (`src/main.s`); a player-shot kill also runs
+`weapon_pickup_record_qualified_kill` and costs **32 cycles more** (836 / 868
+in the production-frame test state). The test's ≤ 850 pin is held on §9's
+basis (a contact kill: 804 / 836 there); the shot kill is pinned structurally
+(`heavy_spawn_breakup` does not run on its frame). The forced retry on the
+next frame is ≤ 520 (pinned).
+
+**Evidence** (default run, 48 replays, + 8 mode-gated; standalone audit over
+the 56 CSVs; classification by `scripts/measure-breakup-rotate-frames.mjs`):
+
+| | `main` | built |
+| --- | ---: | ---: |
+| Heavy kills with the break-up on a rotate kill frame | 389 of 902 | **0** of 902 |
+| break-ups landing on the frame after the kill | 2 | **400**; none later than kill + 1 |
+| worst fence margin | 788 (`director-complete-2` f5815, Raider kill, rotate) | **1,439** (`2-evasive-fire3` f287, Heavy spawn, rotate) |
+| worst rotate-frame kill row | 788 | **3,459** (`raider-remnant-rapid-atr-hard` f123; §9.3 expected ≥ ~2,700) |
+| worst frame a parked break-up lands on | 4,753 | **4,753** (the same no-rotate row as before) |
+| DMA-on maximum / physical headroom | 31,133 / 4,435 | **31,133 / 4,435** |
+| miss events / DLI per host frame / sequence violations | 0 / 2 / 0 | **0 / 2 / 0** |
+
+Level 2 (debug route, diagnostic): worst margin 1,615 and maximum 31,140, the
+same frames as before (a Heavy spawn on a rotate frame and a no-kill frame);
+0 of its 170 Heavy kills breaks up on a rotate frame; the elite sectors' minima
+rise by up to 2,352 (`docs/diagnostics/level-2-timing-2026-09-30.md`).
+
+The binding row moved +16 (1,423 → 1,439): the frame has no kill, and its
+break-up cluster from an earlier kill is one frame younger. Over the 89,940
+fence rows whose effect pool matches `main`'s, 95 % have an identical margin
+and the median difference is 0: there is no standing cost.
+
+**A finding against §9.3 ("no gameplay state moves").** Scores, Heavy kill
+frames, capsule sequences and lives are frame-exact against `main` in all 56
+replays, but **`player_health` differs in 4** (`2-evasive-fire3`,
+`2-sweep-fire5`, `debris-gate-0-neutral-fire0`,
+`director-complete-1-natural-sweep-fire0`). Cause: `LIGHT_TOKEN_BUDGET` is 1
+and the break-up claim shares the token with the Light's admission and fire
+cadence. On `main` a rotate-frame kill spent the frame's token on the break-up,
+so a Light claim later in the frame was refused; now the rotate denial leaves
+the token unspent (as §9.2 specifies and the control test pins), the Light
+fires one frame earlier, and the hostile-shot timeline shifts — first visible
+as one extra hostile shot on the kill frame (`2-sweep-fire5` f129), then as a
+hit that lands on `main` and not here (f218). None of the STOP conditions
+covers health; it is reported, not re-scripted. If the owner wants `main`'s
+Light cadence exactly, the parked claim could take the frame's token as
+`main`'s claim did (a few bytes of C, not built or measured here), at the price
+of the "a denied claim leaves the token unspent" property §9.4 asked for.
 
 ---
 

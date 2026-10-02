@@ -6,7 +6,8 @@ item 1): the showcase is the next task and includes recapturing the screenshots
 from the ATR; it absorbs `chore/showcase-recapture` from
 [budget-1.0.md](budget-1.0.md) §2 M9.
 
-Status: **PLAN** (Phase A). No game byte changes: the ATR
+Status: **IMPLEMENTED, pending the owner's review** (`OWNER REVIEW CANDIDATE`;
+§7 is the as-built record). No game byte changes: the ATR
 (`f127d7a4…f09cf49e`) and the boot image (`1daed1be…943bd33`) at the end must
 equal those at the start.
 
@@ -76,8 +77,9 @@ equal those at the start.
    32,568. The script verifies every cited value against the cited file at the
    cited commit (`git show`) before drawing.
 3. **Recaptured gallery** — `npm run showcase -- --capture` extended to run
-   every session its nine sources need (boot smoke, observer smoke, the Rapid,
-   Spread and engine sessions), with the desktop video driver.
+   every session its nine sources need (observer smoke, which also runs the
+   boot smoke, then the Rapid and Spread sessions), with the desktop video
+   driver.
 4. **README.md / README.pl.md** — the GIF and the chart under the opening
    paragraph, the releases link, how to run, licences; headings unchanged.
 
@@ -115,8 +117,9 @@ are not on the chart.
 * `github-showcase` "binds every image…": passes after the recapture — leaves
   `docs/recorded-test-failures.json`.
 * `github-showcase` "README links and image sizes…": `imageTargets.length` 8 →
-  10 (the GIF and the chart are added), a layout pin re-pinned with its reason.
-  The 4 MB README image budget is unchanged and still asserted.
+  9 (the GIF and the chart are added; the Blockade Breaker concept art becomes
+  a link — see §7), a layout pin re-pinned with its reason. The 4 MB README
+  image budget is unchanged and still asserted.
 * New assertions for the GIF and the chart: the manifest binds the GIF to the
   current ATR and its bytes; the chart data's every value has a source, and the
   SVG regenerates byte-identically from the data.
@@ -125,3 +128,31 @@ are not on the chart.
 
 `docs/STATUS.md` and `budget-1.0.md` §2 M9 record that `chore/showcase-recapture`
 is done (dated note). No other document changes.
+
+## 7. As built (2026-10-02)
+
+* **GIF** — `docs/media/showcase/void-strike-65-level-1.gif`: gameplay frames
+  450–1149 of `weapon-pickup-spread-0-hunt-fire4` (Spread collected f537, first
+  `BROADSIDE` f1024), 700 frames at 2 cs = 14.0 s at 50 fps, 320×240,
+  14 colours, **384,732 B**. Decoded with ffmpeg, all 700 frames are
+  pixel-identical to the cropped emulator screenshots.
+* **Chart** — `docs/media/showcase/timing-history.svg` from
+  `docs/media/timing-history.json`, the 14 points of §4, every value verified
+  by `git show` on each run and in the test.
+* **Gallery frames changed, not only re-shot.** The XEX-era frame numbers came
+  from a level that opened with the capital corridor; on today's world-row
+  level 1 frames 25/31/96/100/113 show no capital, and f31/f113 fall on a
+  full-screen kill flash. The observer smoke now runs 1,100 frames and the
+  gallery takes f25 (open space), f184 (Raider break-up),
+  f904 (engine bank), f990 (`BROADSIDE`), f1088 (debris break-up in the
+  corridor), chosen by inspection. `03-interceptor-breakup.png` became
+  `03-heavy-breakup.png`, because no clean Light kill frame exists in the
+  replay. The engine frame now comes from the observer smoke, not from
+  `engine-atr-a5-0-immediate` (its 150 frames end before the capital).
+* **README budget (owner decision 2026-10-02).** The README images were
+  already 3.93 MB of the 4 MB budget; a lossless re-encode of the banner and
+  the concept art saved nothing (−0.6 % / +0.6 %). Of four options the owner
+  chose to link the Blockade Breaker concept art instead of embedding it
+  (README and README.pl.md both link all three bosses' art).
+* **Video driver.** Captures need a desktop session: the emulator opens a
+  window while it runs. `SHOWCASE_SDL_VIDEODRIVER` overrides the driver.

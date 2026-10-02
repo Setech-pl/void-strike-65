@@ -27,14 +27,6 @@
   },
   "failures": [
     {
-      "file": "tests/github-showcase.test.mjs",
-      "test": "showcase manifest binds every image to the current packed release",
-      "class": "D",
-      "first_failing_assertion": "tests/github-showcase.test.mjs:67",
-      "reason": "docs/media/manifest.json records the Spread frame as 3351, an XEX-era capture; the evidence's capture_frame is 2537. The showcase gameplay frames were not recaptured from the ATR.",
-      "cleared_by": "chore/showcase-recapture: a capture run and a docs/media commit"
-    },
-    {
       "file": "tests/preview.test.mjs",
       "test": "preview consumes the canonical charset, screen, PMG, and palette source",
       "class": "C",
@@ -1174,6 +1166,22 @@
         "class": "A",
         "outcome": "re-pinned",
         "fix": "A stale test pin, not stale evidence: the evidence already carried the build's a2_runtime $9000-$90ED and glue_holding $8100-$81FA; the test pinned $90FF and $7F16. Both ranges are now derived from dist/void-strike-65-manifest.json, as the harness derives them."
+      }
+    ]
+  },
+  "removed_2026_10_02_showcase_atr": {
+    "note": "Left the recorded set in showcase-atr.",
+    "count": 1,
+    "entries": [
+      {
+        "file": "tests/github-showcase.test.mjs",
+        "test": "showcase manifest binds every image to the current packed release",
+        "class": "D",
+        "first_failing_assertion": "tests/github-showcase.test.mjs:67",
+        "reason": "docs/media/manifest.json records the Spread frame as 3351, an XEX-era capture; the evidence's capture_frame is 2537. The showcase gameplay frames were not recaptured from the ATR.",
+        "cleared_by": "chore/showcase-recapture: a capture run and a docs/media commit",
+        "outcome": "cleared — the evidence (the committed images) was recaptured; the test was not weakened (its source_medium check was tightened from XEX-or-ATR to ATR)",
+        "fix": "showcase-atr (2026-10-02, docs/plans/showcase-atr.md): npm run showcase -- --capture recaptured all nine gallery frames from ATR f127d7a4 under a desktop SDL video driver; the Spread frame now records the evidence's capture_frame 2537 and every frame source_medium ATR."
       }
     ]
   }

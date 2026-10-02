@@ -633,9 +633,10 @@ It is code, not data, and is not in the cumulative table.
 No runtime resource. A new splash silhouette changes the packed loader bitmap
 (1,967 B, inside the initial block) by an amount that depends on the drawing
 and is measured per preview (STATUS backlog). The follow-ups
-`chore/cycle-model-pairshot` (the stale JS cycle model, recorded test D10),
-`chore/preview-29-rows` and `chore/showcase-recapture` touch scripts and media
-only.
+`chore/cycle-model-pairshot` (the stale JS cycle model, recorded test D10) and
+`chore/preview-29-rows` touch scripts and media only. (2026-10-02:
+`chore/showcase-recapture` left this list — it was done by the showcase task,
+[showcase-atr.md](showcase-atr.md).)
 
 ### Not in the M2–M9 list, but decided or planned
 

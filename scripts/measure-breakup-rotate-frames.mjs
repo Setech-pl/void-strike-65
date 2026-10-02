@@ -11,7 +11,9 @@
 // capsule sequence and, frame by frame, the gameplay columns a visual-timing
 // change must not move.
 //
-//   node scripts/measure-breakup-rotate-frames.mjs [--dir=build/runtime-wall-trace] [--compare=<dir>]
+// With --worst=<n> it lists the n worst fence rows of the run with their class.
+//
+//   node scripts/measure-breakup-rotate-frames.mjs [--dir=build/runtime-wall-trace] [--compare=<dir>] [--worst=10]
 import fs from "node:fs";
 import path from "node:path";
 import { auditSamples } from "./pal-timing-audit.mjs";
@@ -19,6 +21,8 @@ import { auditSamples } from "./pal-timing-audit.mjs";
 const argument = (name) => process.argv.find((value) => value.startsWith(`--${name}=`))?.split("=")[1];
 const directory = path.resolve(argument("dir") ?? "build/runtime-wall-trace");
 const compareDirectory = argument("compare") && path.resolve(argument("compare"));
+const worstCount = Number(argument("worst") ?? 0);
+const allRows = [];
 
 const SEGMENTS = ["projectile_erase", "entity_erase", "capsule", "frame_visuals", "player",
   "enemy_update", "fighter_projectile_update", "player_enemy_collision", "broadside_update",
@@ -123,15 +127,21 @@ for (const file of fs.readdirSync(directory).filter((name) => name.endsWith(".cs
     if (sample.fence_margin_cycles !== null && previous && row.frame === previous.frame + 1) {
       const rotate = segments(row).world_ring > ROTATE_RING_CYCLES ? "rotate" : "no rotate";
       const bomber = (previous.colpm1 & 0xf0) === 0xc0 || (previous.colpm2 & 0xf0) === 0xc0;
+      let key = null;
       if (live(row) < live(previous)) {
         const spawned = row.effect_active_count === BREAKUP_CELLS && previous.effect_active_count !== BREAKUP_CELLS;
-        add(`${bomber ? "Bomber" : "Raider"} kill, ${rotate}, break-up ${spawned ? "on the kill frame" : "not on it"}`,
-          sample, `${file}:${row.frame}`);
+        key = `${bomber ? "Bomber" : "Raider"} kill, ${rotate}, break-up ${spawned ? "on the kill frame" : "not on it"}`;
       } else if (live(row) === 2 && live(previous) === 0) {
-        add(`Heavy spawn, ${rotate}`, sample, `${file}:${row.frame}`);
+        key = `Heavy spawn, ${rotate}`;
       } else if (row.effect_active_count === BREAKUP_CELLS && previous.effect_active_count === 0 &&
         live(row) === live(previous)) {
-        add(`break-up on a later frame, ${rotate}`, sample, `${file}:${row.frame}`);
+        key = `break-up on a later frame, ${rotate}`;
+      }
+      if (key) add(key, sample, `${file}:${row.frame}`);
+      if (worstCount > 0) {
+        const effects = row.effect_active_count > 0 ? `, ${row.effect_active_count} effect cells` : "";
+        allRows.push({ margin: sample.fence_margin_cycles, where: `${file.replace(/\.csv$/, "")} f${row.frame}`,
+          what: key ?? `${rotate}, ${live(row)} Heavy live${effects}` });
       }
     }
     previous = row;
@@ -149,6 +159,12 @@ const total = kills.reduce((sum, [, bucket]) => sum + bucket.margins.length, 0);
 const onRotate = kills.filter(([key]) => key.includes(", rotate, break-up on the kill frame"))
   .reduce((sum, [, bucket]) => sum + bucket.margins.length, 0);
 console.log(`Heavy kills ${total}; break-up on a rotate kill frame ${onRotate}`);
+
+if (worstCount > 0) {
+  console.log(`\n== the ${worstCount} worst fence rows`);
+  allRows.sort((a, b) => a.margin - b.margin).slice(0, worstCount).forEach(({ margin, where, what }, index) =>
+    console.log(`${String(index + 1).padStart(2)}. ${String(margin).padStart(5)}  ${where.padEnd(52)} ${what}`));
+}
 
 if (compareDirectory) {
   console.log(`\n== replays against ${path.relative(process.cwd(), compareDirectory)}`);

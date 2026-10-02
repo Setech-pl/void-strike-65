@@ -149,9 +149,15 @@ test("the final ATR publishes the exact seeded hull layout bytes", () => {
   }
   const memory = new Uint8Array(0x10000);
   installBootArtifact(memory, root, "atr");
+  // RE-POINTED 2026-10-02 (docs/plans/m3-waves-heavy.md §9): the pin's head
+  // is world_rotate_due's code now, so the zero range starts where the routine
+  // ends; the pin's label and its 120-B length are unchanged.
   const reserve = labels.get("hull_sequence_reserve");
-  assert.deepEqual([...memory.subarray(reserve, reserve + 120)], new Array(120).fill(0),
-    "the retired resident sequences are a zero pin");
+  const code = labels.get("world_rotate_due_end") - reserve;
+  assert.equal(labels.get("world_rotate_due"), reserve);
+  assert.ok(code > 0 && code <= 17, `world_rotate_due is ${code} B`);
+  assert.deepEqual([...memory.subarray(reserve + code, reserve + 120)], new Array(120 - code).fill(0),
+    "the rest of the retired resident sequences is a zero pin");
 });
 
 test("unchanged cadence consumes no more launches than the denser station layout", () => {

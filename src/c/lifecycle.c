@@ -200,6 +200,8 @@
 #define PLAYER_DYING_OR_OVER     0x01u
 
 extern uint8_t asm_sector_pressure_active(void);
+/* 1 when this frame's update_starfield will rotate the ring (src/main.s). */
+extern uint8_t asm_world_rotate_due(void);
 
 const EnemyArchetypeTable enemy_archetypes = { {
     {
@@ -1511,6 +1513,17 @@ colour:
 uint8_t enemy_c_heavy_breakup_claim(void)
 {
     if (heavy_breakup_pending != 0u) {
+        return 0u;
+    }
+    /* THE ROTATE GATE (docs/plans/m3-waves-heavy.md §9). This claim runs
+     * inside handle_collisions, BEFORE update_starfield decides whether the
+     * frame rotates, so the marker light_take_deferrable_token tests still
+     * names an earlier frame and its rotate test can never be true here. Ask
+     * the question this point in the frame can answer: will this frame
+     * rotate? A denial parks without touching the token, exactly as the
+     * marker's denial does; the frame after a rotate frame never rotates. */
+    if (asm_world_rotate_due() != 0u) {
+        heavy_breakup_pending = 1u;
         return 0u;
     }
     if (light_take_deferrable_token() != 0u) {

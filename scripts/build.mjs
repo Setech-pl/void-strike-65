@@ -1288,6 +1288,9 @@ function renderDirectorAbiInclude(labelBytes, lightKernelAddress) {
     // is its own label.
     ["LIGHT_PAIR_KEY", "light_pair_key"],
     ["NEAR_STAR_PIXEL_OPERAND", "near_star_pixel_operand_abi"],
+    // The rotate gate for Heavy break-ups (docs/plans/m3-waves-heavy.md §9):
+    // the routine the claim calls, which src/main.s asserts is its own label.
+    ["WORLD_ROTATE_DUE", "world_rotate_due_abi"],
   ];
   for (const [, name] of symbols) {
     if (!Number.isInteger(labels.get(name))) throw new Error(`Hybrid ABI symbol ${name} is missing`);

@@ -128,6 +128,7 @@ level_core_magic = LEVEL_CORE_MAGIC
 .export enemy_heavy_breakup_claim, heavy_breakup_pending
 .export heavy_member_colour, build_hostile_weapon_glyphs
 .export light_pair_key, _asm_publish_star_pixel, near_star_pixel_operand_abi
+.export _asm_world_rotate_due, world_rotate_due_abi
 .export light_state, light_hp, light_x, light_y, light_fire_timer
 .export light_screen_lo, light_screen_hi
 .export light_backing0, light_backing1, light_scratch, light_slot_save
@@ -340,6 +341,15 @@ light_pair_key = _light_pair_key
 ; build error, never a store into the middle of an instruction.
 NEAR_STAR_PIXEL_OPERAND = $57FA
 near_star_pixel_operand_abi = NEAR_STAR_PIXEL_OPERAND
+
+; The rotate gate for Heavy break-ups (docs/plans/m3-waves-heavy.md §9): the
+; claim asks world_rotate_due, at the head of the BROADSIDE zero pin
+; hull_sequence_reserve in the main link, whether this frame will rotate the
+; ring. Declared here and asserted there, as NEAR_STAR_PIXEL_OPERAND is. It
+; returns 0/1 in A and touches A, X and the flags only.
+WORLD_ROTATE_DUE = $69D7
+_asm_world_rotate_due = WORLD_ROTATE_DUE
+world_rotate_due_abi = WORLD_ROTATE_DUE
 
 ; HYBRID_C_ARENA (roadmap 4.5M-M3): one contiguous reusable runtime arena
 ; $7BD0-$7F0F (832 B) for cc65 code (#pragma code-name ("HYBRID_C_ARENA")),

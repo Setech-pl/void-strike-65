@@ -99,7 +99,7 @@ for (const [name, offset] of HEAVY) {
     m.memory[FRAME_COUNTER] = 121;
     m.memory[L("ENEMY_HP")] = hp;
     m.memory[L("ENEMY_PENDING_DAMAGE")] = 1;
-    m.memory[L("ENEMY_PENDING_SOURCE")] = 1;      // DAMAGE_PLAYER_PROJECTILE
+    m.memory[L("ENEMY_PENDING_SOURCE")] = 1;      // DAMAGE_PLAYER_CONTACT (a shot kill is 0 and 32 cycles dearer)
     const result = call("resolve_enemy_damage", KILL);
     const parts = [...result.samples].map(([routine, v]) => `${routine}=${v.join("/")}`);
     console.log(`${name} ${label}: ${result.cycles} cycles  ${parts.join(" ")}`);

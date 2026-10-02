@@ -64,8 +64,12 @@ test("HYBRID_C_ARENA is one contiguous 832-B arena at $7BD0-$7F0F", () => {
   // RE-PINNED 2026-10-01, roadmap 4.6 step 5 (plan §8.3): + 72 B of ca65 -
   // the hostile glyph builder's tail that lays the level's weapon looks over
   // the defaults (57 B) and the sky veneer (15 B). The C is unchanged.
-  assert.deepEqual([arena.asmBytes, arena.codeBytes, arena.rodataBytes], [162, 589, 39]);
-  assert.equal(arena.freeBytes, 42);
+  // RE-PINNED 2026-10-02, the rotate gate for Heavy break-ups
+  // (docs/plans/m3-waves-heavy.md §9): + 7 B of C in
+  // enemy_c_heavy_breakup_claim - the world_rotate_due call and its test; cc65
+  // shares the parking tail with the token denial.
+  assert.deepEqual([arena.asmBytes, arena.codeBytes, arena.rodataBytes], [162, 596, 39]);
+  assert.equal(arena.freeBytes, 35);
   assert.equal(labels.get("hybrid_arena_anchor"), ARENA);
   assert.equal(arenaImage[0], 0x60, "the anchor stays first");
   for (const veneer of ["enemy_recycle", "enemy_spawn_raiders", "heavy_publish_hull_colour"]) {
@@ -133,7 +137,9 @@ test("the arena lands directly as its own DFMC record and is the only owner of i
   // 4.5c Bomber: arena record 355 B packed / 3 sectors; 180 transport sectors.
   // 4.5d enemy identity: arena record 558 B packed / 5 sectors; 182 transport sectors.
   // Roadmap 4.6 step 5: 649 -> 712 B packed, still 6 sectors (35 B spare).
-  assert.deepEqual([record.packedLength, record.sectorCount], [712, 6]);
+  // Heavy break-up rotate gate (2026-10-02, m3-waves-heavy.md §9): 712 -> 719
+  // B packed, still 6 sectors (28 B spare).
+  assert.deepEqual([record.packedLength, record.sectorCount], [719, 6]);
   // Death-frame deferral (2026-09-17): player_dying_tick adds 18 B to ENTITY_CODE.
   // Debris score (2026-09-18): add_debris_score plus its call adds 21 B to
   // ENTITY_CODE; BROADSIDE, the arena and the sector counts are unchanged.

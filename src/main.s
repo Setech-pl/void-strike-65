@@ -7776,8 +7776,36 @@ enemy_sector_module_sources:
 ; sequences moved into each level's HullGeometry page at $AC08/$AC44, where the
 ; resolvers above read them. Their 120 resident bytes are held as a zero pin,
 ; as enemy_hull_codebook_reserve is, so that no later BROADSIDE label moves.
+;
+; The rotate gate for Heavy break-ups (docs/plans/m3-waves-heavy.md §9) spends
+; the pin's head on world_rotate_due; the pin keeps its label and its length,
+; so nothing after it moves.
 hull_sequence_reserve:
-    .res 2*LEVEL_GEOMETRY_SEQUENCE_BYTES, $00
+; world_rotate_due - A = 1 when this frame's update_starfield will rotate the
+; ring, 0 otherwise. The Heavy break-up claim asks it from inside
+; handle_collisions, before update_starfield has run, where the rotate marker
+; still names an earlier frame. It makes update_starfield's own sum early: the
+; fighter branch takes world_scroll_rates*2, the capital branch
+; hull_scroll_rates, and the asserts at the head of this file make the two
+; equal on every difficulty; nothing between handle_collisions and
+; update_starfield writes scroll_accumulator. 17 B, 33-34 cycles with the
+; jsr. The carry goes into A through adc, not rol: no shipped path uses rol,
+; and the JS NMOS core every build-time cycle measurement runs on has none.
+; Gameplay runs with the decimal flag clear (add_archetype_score's sed is
+; always closed by its cld).
+world_rotate_due:
+    ldx DIFFICULTY_SETTING
+    lda world_scroll_rates,x
+    asl
+    clc
+    adc scroll_accumulator
+    cmp #HULL_SCROLL_RATE_DENOMINATOR
+    lda #$00
+    adc #$00
+    rts
+world_rotate_due_end:
+.assert world_rotate_due = WORLD_ROTATE_DUE, lderror, "world_rotate_due moved: set WORLD_ROTATE_DUE in src/hybrid/c-asm-abi.s to its new address"
+    .res 2*LEVEL_GEOMETRY_SEQUENCE_BYTES-(world_rotate_due_end-hull_sequence_reserve), $00
 .assert LEVEL_GEOMETRY_SEQUENCE_BYTES = CAPITAL_HULL_SECTOR_MODULE_COUNT, error, "the level page's sequences must cover the 480-row coordinate"
 
 .segment "BROADSIDE"

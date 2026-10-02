@@ -13,15 +13,20 @@
 // gives: the rotate gate, the token, the forcing rule and the retry site only
 // mean anything in the frame order the game actually runs.
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import test from "node:test";
 
-import { boot, frame, L } from "../scripts/measure-population-harness.mjs";
+import { boot, frame, FRAME_ACTIVE, L, run } from "../scripts/measure-population-harness.mjs";
+
+const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 
 const RAIDER = 0;                  // ENEMY_ARCHETYPE_INTERCEPTOR
 const BOMBER = 2;                  // ENEMY_ARCHETYPE_SCYTHE_BOMBER
 const ENEMY_ACTIVE_STATE = 1;
 const ENEMY_EXPLODING_STATE = 2;
 const DAMAGE_PLAYER_PROJECTILE = 0;   // src/main.s
+const DAMAGE_PLAYER_CONTACT = 1;      // src/main.s
 const EFFECT_DEBRIS_ACTIVE_MASK = 0x1f;
 const EFFECT_SLOT_COUNT = 6;
 const ENEMY_SLOT = 1;              // FIGHTER_EXPLOSION_ENEMY_SLOT
@@ -75,7 +80,7 @@ function markRotateFrame(m, rotating) {
 // One lethal hit on member 0 of a live Heavy formation, armed on the state
 // resolve_enemy_damage actually reads. The pool is cleared first so that every
 // EFFECT_* byte an assertion looks at was written by this death.
-function armKill(m, archetype, { x = 0x78, y = 0x60 } = {}) {
+function armKill(m, archetype, { x = 0x78, y = 0x60, source = DAMAGE_PLAYER_PROJECTILE } = {}) {
   call(m, "clear_transient_effects");
   m.memory[L("ENEMY_ARCHETYPE")] = archetype;
   m.memory[L("ENEMY_ACTIVE")] = ENEMY_ACTIVE_STATE;
@@ -85,7 +90,7 @@ function armKill(m, archetype, { x = 0x78, y = 0x60 } = {}) {
   m.memory[L("ENEMY_TARGET_SLOT")] = 0;
   m.memory[L("ENEMY_HP")] = 1;
   m.memory[L("ENEMY_PENDING_DAMAGE")] = 1;
-  m.memory[L("ENEMY_PENDING_SOURCE")] = DAMAGE_PLAYER_PROJECTILE;
+  m.memory[L("ENEMY_PENDING_SOURCE")] = source;
   m.memory[L("ENEMY_X")] = x;
   m.memory[L("ENEMY_Y")] = y;
 }
@@ -125,8 +130,15 @@ function expectedOffsets(m, archetype) {
 // Kill on a NON-rotate frame with a token nobody has spent, so the claim is
 // granted and the spread lands on the kill frame, where it can be compared
 // against the table before update_transient_effects has drifted a single cell.
+//
+// Since the rotate gate for Heavy break-ups (docs/plans/m3-waves-heavy.md §9)
+// the claim also asks world_rotate_due whether update_starfield is about to
+// rotate the ring, which it answers from the scroll accumulator rather than
+// from the marker - so a "non-rotate frame" has to be one by the accumulator
+// too, and advanceTo puts it there.
 function killNow(archetype) {
   const m = boot({ difficulty: DIFFICULTY });
+  advanceTo(m, false);
   m.memory[L("_light_token_budget")] = 8;
   m.memory[L("_light_token")] = 8;
   markRotateFrame(m, false);
@@ -204,6 +216,14 @@ test("the two archetypes differ only by their spread, and the Bomber's is wider"
   }
 });
 
+// This test exercises the TOKEN GATE's rotate denial (light_take_deferrable_
+// token) with a HAND-SET marker, calling resolve_enemy_damage outside a frame.
+// Production never reaches that state: the claim runs inside handle_collisions,
+// before update_starfield writes the marker, so the marker it reads is always a
+// stale one. The production frame order is under test in "a Heavy killed on a
+// frame that rotates the ring parks its break-up, in the production frame
+// order" below (§9). Kept because the token gate's own denial is still code
+// the claim reaches.
 test("a rotate-frame kill defers, and the deferred break-up lands on the very next frame", () => {
   const m = boot({ difficulty: DIFFICULTY });
   // The rotate gate denies a DEFERRABLE consumer on its first attempt, and a
@@ -265,6 +285,9 @@ test("no break-up fragment can ever damage the player", () => {
   // the player's health does not move while a full cluster sits exactly on
   // top of the player fighter and the contact path is run.
   const m = boot({ difficulty: DIFFICULTY });
+  // A non-rotate frame by the accumulator as well as by the marker (§9), so
+  // the cluster spawns at once - see killNow.
+  advanceTo(m, false);
   m.memory[L("_light_token_budget")] = 8;
   m.memory[L("_light_token")] = 8;
   markRotateFrame(m, false);
@@ -288,4 +311,178 @@ test("no break-up fragment can ever damage the player", () => {
   // entity_collide_player walks, and the break-up never enters it.
   assert.equal(byte(m, "ENTITY_ACTIVE_MASK") & 0x01, 0,
     "the break-up must not have entered the interactive debris slot");
+});
+
+// ---------------------------------------------------------------------------
+// THE ROTATE GATE FOR HEAVY BREAK-UPS (docs/plans/m3-waves-heavy.md §9).
+//
+// The claim is made from resolve_enemy_damage, inside handle_collisions, which
+// the main loop runs BEFORE update_starfield decides whether the frame rotates
+// the ring - so the marker light_take_deferrable_token tests still names an
+// earlier rotate frame and its rotate test can never be true there. The claim
+// now asks world_rotate_due, which makes update_starfield's own sum early.
+//
+// Every test below drives a WHOLE production frame and injects the lethal hit
+// at profile_after_broadside_update: the point in handle_collisions where
+// update_fighter_projectiles, the contact test and update_broadside have
+// queued the frame's hits and resolve_enemy_damage is about to run them. The
+// pending damage cannot be armed before the frame, because handle_collisions
+// clears it at its head. Nothing else is poked: the marker is whatever the
+// production frames left in it.
+
+const saveRegisters = (cpu) => ({ a: cpu.a, x: cpu.x, y: cpu.y, p: cpu.p, sp: cpu.sp });
+const restoreRegisters = (cpu, r) => Object.assign(cpu, r);
+
+// Runs one production frame, stopping at profile_after_broadside_update to
+// let `inject` change state (it may `call` routines: registers and the PC are
+// put back), then finishes the frame. Returns the inclusive cycle samples of
+// the watched routines in the frame's second half.
+function frameWithInjection(m, inject, watch = []) {
+  run(m.cpu, FRAME_ACTIVE(), [L("profile_after_broadside_update")]);
+  const pc = m.cpu.pc;
+  const registers = saveRegisters(m.cpu);
+  inject();
+  restoreRegisters(m.cpu, registers);
+  m.cpu.pc = pc;
+  const pre = run(m.cpu, undefined, [L("profile_after_sector")], { watch });
+  run(m.cpu, undefined, [L("main_loop")]);
+  return pre.samples;
+}
+
+// The pool is cleared outside the frame, so every EFFECT_* byte an assertion
+// looks at was written by this death; the member is armed at the injection
+// point. A budget of eight can refuse nobody, so the token cannot be what
+// defers a claim below.
+function productionKill(m, archetype, { rotate, budget = 8, source = DAMAGE_PLAYER_PROJECTILE }) {
+  advanceTo(m, rotate);
+  call(m, "clear_transient_effects");
+  const samples = frameWithInjection(m, () => {
+    armKill(m, archetype, { source });
+    m.memory[L("_light_token_budget")] = budget;
+    m.memory[L("_light_token")] = budget;
+    m.memory[L("_light_token_frame")] = byte(m, "frame_counter");
+    // The rotate decision is update_starfield's, later in this frame; the
+    // marker still names an earlier frame, as production leaves it.
+    assert.equal(rotatedThisFrame(m), false, "the marker must be stale at the claim");
+  }, ["resolve_enemy_damage", "heavy_spawn_breakup"]);
+  assert.equal(rotatedThisFrame(m), rotate,
+    `the kill frame must ${rotate ? "" : "not "}have rotated the ring`);
+  return { samples };
+}
+
+for (const [name, archetype] of [["Raider", RAIDER], ["Bomber", BOMBER]]) {
+  test(`a ${name} killed on a frame that rotates the ring parks its break-up, in the production frame order`, () => {
+    const m = boot({ difficulty: DIFFICULTY });
+    const before = score(m);
+    const { samples } = productionKill(m, archetype, { rotate: true });
+    assert.equal(mask(m), 0, "a Heavy break-up must not spawn on a ring-rotate frame");
+    assert.equal(pending(m), 1, "it must park in heavy_breakup_pending instead");
+    assert.ok(score(m) > before, "the kill still scores on its own frame");
+    assert.equal(samples.get("resolve_enemy_damage")?.length, 1, "the kill ran on this frame");
+    assert.equal(samples.get("heavy_spawn_breakup"), undefined,
+      "the expensive half must have left the rotate kill frame");
+
+    // The forcing rule's ungated retry, on the next frame, which is never a
+    // rotate frame. A budget of zero refuses every gated claim there is.
+    m.memory[L("_light_token_budget")] = 0;
+    m.memory[L("_light_token")] = 0;
+    const next = frame(m, ["heavy_breakup_retry"]);
+    assert.equal(rotatedThisFrame(m), false, "two rotates are never consecutive");
+    assert.equal(pending(m), 0, "the retry must spend the event");
+    assert.equal(mask(m), EFFECT_DEBRIS_ACTIVE_MASK,
+      "the parked break-up must land on the very next frame");
+    const retry = Math.max(...next.samples.get("heavy_breakup_retry"));
+    assert.ok(retry <= 520, `the retry on the next frame took ${retry} cycles`);
+  });
+
+  test(`a ${name} killed on a frame that does not rotate still breaks up on the kill frame`, () => {
+    const m = boot({ difficulty: DIFFICULTY });
+    productionKill(m, archetype, { rotate: false });
+    assert.equal(mask(m), EFFECT_DEBRIS_ACTIVE_MASK, "the break-up must spawn on the kill frame");
+    assert.equal(pending(m), 0, "nothing may be left pending");
+  });
+}
+
+// THE CYCLE PIN (§9.4 item 4): what is left on the rotate kill frame is the
+// kill itself plus the rotate test (§9.3: ~810 / ~840). Measured on the basis
+// §9's figures were taken on - scripts/measure-heavy-member-costs.mjs arms the
+// kill with source 1, which is DAMAGE_PLAYER_CONTACT in src/main.s. A
+// player-SHOT kill also runs weapon_pickup_record_qualified_kill and its two
+// tests, 32 cycles more (here: contact 804 / 836, shot 836 / 868, Raider /
+// Bomber), which is not what the 850 was set against; the shot kill is pinned
+// structurally above instead (heavy_spawn_breakup does not run).
+for (const [name, archetype] of [["Raider", RAIDER], ["Bomber", BOMBER]]) {
+  test(`a ${name} kill on a rotate frame costs resolve_enemy_damage at most 850 cycles`, () => {
+    const m = boot({ difficulty: DIFFICULTY });
+    const { samples } = productionKill(m, archetype, { rotate: true, source: DAMAGE_PLAYER_CONTACT });
+    assert.equal(pending(m), 1, "the frame must be the deferring one");
+    const [resolve] = samples.get("resolve_enemy_damage");
+    assert.ok(resolve <= 850, `resolve_enemy_damage on a rotate-frame kill took ${resolve} cycles`);
+  });
+}
+
+test("a claim denied on a rotate frame leaves the frame's token unspent", () => {
+  // One token, and the token frame set to this frame so that the claim cannot
+  // refresh it: if the denied claim reached light_take_token it would be 0.
+  const m = boot({ difficulty: DIFFICULTY });
+  advanceTo(m, true);
+  call(m, "clear_transient_effects");
+  run(m.cpu, FRAME_ACTIVE(), [L("profile_after_broadside_update")]);
+  const pc = m.cpu.pc;
+  const registers = saveRegisters(m.cpu);
+  armKill(m, BOMBER);
+  restoreRegisters(m.cpu, registers);
+  m.cpu.pc = pc;
+  m.memory[L("_light_token_budget")] = 1;
+  m.memory[L("_light_token")] = 1;
+  m.memory[L("_light_token_frame")] = byte(m, "frame_counter");
+  run(m.cpu, undefined, [L("profile_after_enemy_damage_resolution")]);
+  assert.equal(pending(m), 1, "the claim must have been denied");
+  assert.equal(byte(m, "_light_token"), 1, "a denied claim must not burn the token");
+});
+
+test("world_rotate_due agrees with update_starfield on every frame", () => {
+  for (const difficulty of [0, 1, 2]) {
+    const m = boot({ difficulty });
+    // The capital branch of update_starfield takes hull_scroll_rates, which
+    // src/main.s asserts are world_scroll_rates*2 on every difficulty: the one
+    // sum world_rotate_due makes is exact in both sector kinds.
+    assert.equal(byte(m, "hull_scroll_rates", difficulty),
+      byte(m, "world_scroll_rates", difficulty) * 2);
+    let rotates = 0;
+    for (let f = 0; f < 400; f += 1) {
+      let due = null;
+      // Asked where the claim asks it: after the frame's hits are queued,
+      // before update_starfield.
+      frameWithInjection(m, () => {
+        call(m, "world_rotate_due");
+        due = m.cpu.a;
+      });
+      assert.ok(due === 0 || due === 1, `world_rotate_due returned ${due}`);
+      assert.equal(due === 1, rotatedThisFrame(m),
+        `difficulty ${difficulty}, frame ${f}: world_rotate_due said ${due}`);
+      rotates += due;
+    }
+    assert.ok(rotates > 100 && rotates < 300,
+      `difficulty ${difficulty}: ${rotates} rotates in 400 frames proves nothing`);
+  }
+});
+
+test("the rotate gate adds no byte to the initial block and no sector to any record", () => {
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, "build", "manifest.json"), "utf8"));
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13621);
+  assert.equal(manifest.bootSectors, 107);
+  // BROADSIDE (extension record 1): the routine replaces zero-pin bytes, so
+  // the segment's size, the pin's address and every label after it hold.
+  assert.equal(manifest.broadsideRuntime.bytes, 6653);
+  assert.equal(manifest.broadsideRuntime.externalChunk.sectors, 44);
+  assert.equal(L("hull_sequence_reserve"), 0x69d7);
+  assert.equal(L("world_rotate_due"), L("hull_sequence_reserve"),
+    "world_rotate_due is the head of the zero pin");
+  assert.equal(L("allied_prow_occupancy_masks"), 0x6a4f,
+    "the label after the pin must not move");
+  // The arena (extension record 7): the claim's bytes.
+  assert.ok(manifest.residentCapacity.arena.freeBytes >= 28,
+    `arena free ${manifest.residentCapacity.arena.freeBytes} B`);
+  assert.equal(manifest.residentCapacity.arena.transport.sectors, 6);
 });

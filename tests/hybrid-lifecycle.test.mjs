@@ -275,6 +275,10 @@ test("ownership is singular and generated C requires neither software stack nor 
   // frame, and forced within two frames by the ungated retry at
   // integration_update_enemy. Its own deferred-once bit is heavy_breakup_pending
   // at $8128. A SIXTH site would again be a consumer nobody reviewed.
+  // RE-PINNED 2026-10-02, docs/plans/m3-waves-heavy.md §9: that claim first
+  // asks _asm_world_rotate_due whether this frame will rotate the ring (the
+  // marker the gate wrapper tests is stale inside handle_collisions). It is a
+  // query into the main link, not a token claim: the claim sites stay five.
   const jsrs = [...executableGenerated.matchAll(/\bjsr\s+([^\s;]+)/g)].map((match) => match[1]);
   // Owner fix (a): enemy_c_light_wave wraps _light_wave_step so the frame's
   // slot limit is derived on EVERY frame, not only while a wave is live.
@@ -291,7 +295,7 @@ test("ownership is singular and generated C requires neither software stack nor 
       "_bomber_may_fire", "_bomber_turn", "_bomber_turn", "_bomber_turn", "_bomber_may_fire",
       "_bomber_colour", "_light_tick_body",
       "_light_take_deferrable_token", "_light_take_deferrable_token",
-      "_light_take_deferrable_token",
+      "_asm_world_rotate_due", "_light_take_deferrable_token",
       "_light_wave_step", "_light_ceiling", "_light_live_count", "_light_free_slot",
       "_light_take_token", "_light_pair_for_record", "_light_reload",
       "_light_admit", "_light_live_count",

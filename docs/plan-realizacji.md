@@ -72,7 +72,12 @@ w STATUS i w planach; ten paragraf ich nie powtarza.
    [`plans/m3-waves-heavy.md`](plans/m3-waves-heavy.md) §9.
 3. **M5 — boss 4.7** — [`plans/budget-1.0.md`](plans/budget-1.0.md) §2
    „M5 — Boss 4.7"; decyzje otwarte §5.2 pkt 5 i 6; treść punktu: §4 pkt 5
-   niżej.
+   niżej. Poprzedzające `chore/contact-scenario-redesign` — **DONE**
+   2026-10-02 ([`plans/contact-scenario-redesign.md`](plans/contact-scenario-redesign.md));
+   plan M5 musi objąć uczciwy scenariusz kontaktu z wrogim pociskiem w dolnych
+   wierszach (`lower-playfield-hostile-contact-atr-hard`, nadal zapisany) —
+   lasery bossa czynią niskie wrogie pociski częstymi (decyzja właściciela
+   2026-10-02).
 4. **M4 — pętla kampanii** — [`plans/budget-1.0.md`](plans/budget-1.0.md) §2
    „M4 — Campaign loop"; decyzja otwarta §5.2 pkt 4; treść punktu: §4 pkt 7
    niżej.

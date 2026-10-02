@@ -5,7 +5,7 @@ Source of truth: the repository, then
 [../diagnostics/recorded-failures-review-2026-10.md](../diagnostics/recorded-failures-review-2026-10.md)
 (§5 and §8 for the clauses, §7.2 for the evidence tests), then the brief.
 
-**Status: IMPLEMENTED (2026-10-01).** Sections 1-7 are the Phase A record, left as written; §8 is what Phase B did, including where the owner's answers changed the expected sets of §6.
+**Status: IMPLEMENTED (2026-10-01).** Q3's follow-up `chore/contact-scenario-redesign` is done (2026-10-02, [contact-scenario-redesign.md](contact-scenario-redesign.md)): two of the three contact sessions pass; the hostile lower-row one stays recorded until M5. Sections 1-7 are the Phase A record, left as written; §8 is what Phase B did, including where the owner's answers changed the expected sets of §6.
 
 ## 1. Step 0
 

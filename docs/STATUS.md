@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-02 (showcase-atr)
+Last update: 2026-10-02 (contact-scenario-redesign)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -63,6 +63,8 @@ released.** Section "ATR-only build" below.
 **Road to 1.0 — order synced (2026-10-02, `docs/plan-realizacji-sync`, docs only, `OWNER REVIEW CANDIDATE`):** [plan-realizacji.md](plan-realizacji.md) §0 records the owner's order of 2026-10-02 — showcase (next task, not yet done, includes recapturing the screenshots from the ATR) → Heavy break-up rotate gate (built) → M5 boss → M4 campaign loop → M3 + M3-H → M6 → M7 → M8 → M9; M5 before M4 supersedes the order in [plans/m3-waves-heavy.md](plans/m3-waves-heavy.md) §6.3.
 
 **Showcase from the ATR — done (2026-10-02, `docs/showcase-atr`, media and scripts only, `OWNER REVIEW CANDIDATE`):** [plans/showcase-atr.md](plans/showcase-atr.md). The README opens with a 14-s gameplay GIF of level 1 recorded from the ATR (`npm run showcase:gif`, 384,732 B) and a PAL timing chart of the worst fence margin and the DMA-on maximum at 14 cited milestones (`npm run showcase:chart`); all nine gallery frames are recaptured from the ATR (`npm run showcase -- --capture`), so `chore/showcase-recapture` is done and the recorded `github-showcase` failure is cleared ([recorded-test-failures.json](recorded-test-failures.json)). The Blockade Breaker concept art is a README link now (owner decision 2026-10-02, the 4 MB README image budget). ATR and boot image byte-identical to `main` `c0d13c9`.
+
+**Contact scenario redesign — done (2026-10-02, `chore/contact-scenario-redesign`, harness and evidence only, `OWNER REVIEW CANDIDATE`):** [plans/contact-scenario-redesign.md](plans/contact-scenario-redesign.md). The recorded contact failures hid four stacked faults — scenarios ending before level 1's capital sector (a), a capture oracle still requiring the P0/P3 pair retired in `800322b`, a 32-frame capture window leaking into a 16-frame clause, and a hitbox clause in the coordinates production left in `4753399` (all b). Recorded clause failures 3 → **1**: both `capital-contact-*` sessions pass; new session `lower-playfield-allied-contact-atr-hard` gates the lower-row contact raster; `lower-playfield-hostile-contact-atr-hard` stays recorded (a) until M5 (owner decision Q1). Worst fence margin 1,439 and DMA-on maximum 31,133 unmoved; `npm test` 910 tests (+2); ATR and boot image byte-identical to `main` `c59e28a`.
 
 **M3 wave paths and M3-H Heavy package — plan (2026-10-02, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/m3-waves-heavy.md](plans/m3-waves-heavy.md) — native measurements (a held Raider saves 485 cycles; the decided descent rule returns 467 per frame with two Raiders live), the two Raider kinds and the damaged look, and three implementation sessions. Owner decisions taken 2026-10-02 (its §8.1): the sessions wait until after M4 and M5, and the rotate-gate fix for Heavy break-ups (its §9) is a standalone task that runs before M4 — **now built, `OWNER-SMOKE CANDIDATE`** (section "Heavy break-up rotate gate" below): worst fence margin 788 → **1,439**.
 

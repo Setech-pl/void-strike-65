@@ -579,7 +579,13 @@ A boss palette of its own would need a third DLI: +62 … +180 cycles per frame
 gameplay adds no DLI for a local colour.
 
 `chore/contact-scenario-redesign` is scheduled before M5. It is harness and
-replay work: no runtime byte, no cycle.
+replay work: no runtime byte, no cycle. **Done 2026-10-02**
+([contact-scenario-redesign.md](contact-scenario-redesign.md)): both capital
+contact sessions pass and the lower-row contact raster is gated against the
+Allied faction. **Follow-up for M5 (owner, 2026-10-02):** the hostile lower-row
+contact (`lower-playfield-hostile-contact-atr-hard`, still recorded) gets an
+honest scenario in M5, where the boss's lasers make low hostile shells
+frequent; the M5 plan must cover it.
 
 ### M6 — Boosters (scope not defined)
 

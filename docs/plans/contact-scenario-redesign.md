@@ -5,8 +5,9 @@ Branch `chore/contact-scenario-redesign`, cut from `main` `c59e28a` on
 [trace-clause-repairs.md](trace-clause-repairs.md) §4.1 and §5 Q3 (where this
 task was opened), then the brief.
 
-**Status: PHASE B in progress.** Sections 1-7 are the Phase A record, left as
-written; §8 records the owner's answer to Q1 and what Phase B did.
+**Status: IMPLEMENTED (2026-10-02), pending the owner's review.** Sections 1-7
+are the Phase A record, left as written; §8 records the owner's answer to Q1
+and what Phase B did.
 
 ## 1. Step 0
 
@@ -217,3 +218,40 @@ contact clauses pass. Without F2 the same contact is not captured (§3, F2).
 The hostile lower session, unchanged, fails with its recorded message on the
 corrected observers too: "did not capture 16 consecutive contact rasters"
 (fence margin 3,239, maximum wall 29,420).
+
+### 8.3 Result
+
+Regeneration: `build:candidate` → `runtime:wall-trace` (default, 49 replays
+with the new session) → `build` (default) → `npm test` once, in full.
+
+**Clause failures 3 → 1.** Left the recorded file by name:
+`capital-contact-allied-medium`, `capital-contact-hostile-medium` (moved to
+`removed_2026_10_02` with their fixes). Staying, class (a), note re-diagnosed:
+`lower-playfield-hostile-contact-atr-hard`, same message. 0 new.
+
+| Frame figure | before | after | source |
+| --- | ---: | ---: | --- |
+| worst line-238 fence margin | 1,439 (`2-evasive-fire3` f287) | **1,439**, same row | PAL audit of the default run, 49 replays, 0 miss events |
+| DMA-on maximum / physical headroom | 31,133 / 4,435 | **31,133 / 4,435** (`director-complete-2-natural-sweep-fire0` f5797) | `docs/runtime-wall-trace.json` |
+| DLI per host frame / sequence violations | 2 / 0 | **2 / 0** | same, `gate.memory_integrity` |
+| new/changed replays (fence margin / max wall) | — | allied 9,106 / 29,558; hostile 8,639 / 29,554; lower allied 8,990 / 29,538 | same audit |
+
+The eight mode-gated PAL-audit replays were not rerun: no input or guest state
+of theirs changed (the preamble and the new policy are gated on session env
+values), and the worst row is in the default set.
+`determinism.replay_fingerprint_sha256` moves (three additive CSV columns,
+three changed and one new replay); so do the binding hashes in
+`dist/void-strike-65-manifest.json` and `docs/media/manifest.json` (committed,
+owner decision 2026-10-01).
+
+**`npm test` (default build): 910 / 907 / 3.** `preview` is the recorded (C)
+failure. The other two were this change's own and are fixed in it: the
+re-diagnosed note's `measurement` broke the pinned `….md §N` form
+(`tests/release-gate-semantics.test.mjs:40`), and `github-showcase`'s first
+test read the media manifest's wall-trace hash before a later test regenerated
+it. Both files re-ran green (16 / 16 with `runtime-evidence-binding`); the
+expected full-suite figure is 910 / 909 / 1. "Ten heaviest frames…" still
+passes, as its recorded note says. Recorded test failures unchanged.
+
+ATR `f127d7a4…` and boot `1daed1be…` SHA-256 are byte-identical to `main`
+`c59e28a`; no `src/`, cfg or level file changed.

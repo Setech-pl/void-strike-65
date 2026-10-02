@@ -190,6 +190,9 @@ typedef struct {
 	unsigned broad_collision[3];
 	unsigned broad_raster_x[3];
 	unsigned broad_raster_row[3];
+	/* BROAD_RASTER_TOP: the final-raster bolt top the production collision
+	 * reads (src/capital-player-collision.s). */
+	unsigned broad_raster_top[3];
 	unsigned broad_flash[3];
 	unsigned broad_turret[3];
 	unsigned broad_row[3];
@@ -477,6 +480,9 @@ static unsigned dftrace_fire_delay;
  * the "restart" policy below, which pokes the same byte in the other
  * direction. */
 static unsigned dftrace_hold_player_lives;
+/* chore/contact-scenario-redesign: the PMG row the fighter-phase preamble of
+ * the contact sessions holds (dftrace_contact_preamble). Zero means off. */
+static unsigned dftrace_contact_preamble_row;
 static unsigned dftrace_difficulty;
 static const char *dftrace_policy;
 static const char *dftrace_pmg_lab_screenshot;
@@ -821,6 +827,9 @@ static const char *dftrace_capital_contact_prefix;
 static unsigned dftrace_capital_contact_owner;
 static unsigned dftrace_capital_contact_mode;
 static unsigned dftrace_capital_contact_count;
+/* Rasters per contact window: 32 for the geometry sessions (4753399), 16 for
+ * the contact sessions whose clause asserts 16 (DFTRACE_CAPITAL_CONTACT_LIMIT). */
+static unsigned dftrace_capital_contact_limit = 32u;
 static int dftrace_capital_contact_primed;
 static const char *dftrace_rapid_screenshot;
 static unsigned dftrace_rapid_screenshot_frame = 0xffffffffu;
@@ -2567,8 +2576,12 @@ static DFTracePhysicalBounds dftrace_player_physical_bounds(void)
 	unsigned last = 0u;
 	unsigned size;
 	memset(&result, 0, sizeof(result));
+	/* The PlayerFighter is P0 alone since 800322b (2026-09-29): P3 is the
+	 * capsule's plane and the death explosion's outer mask, and the game no
+	 * longer mirrors player_x into HPOSP3, so the former P0/P3 pair test made
+	 * these bounds invalid on every frame (chore/contact-scenario-redesign). */
 	for (row = 0u; row < 256u; ++row) {
-		if (MEMORY_mem[0x3c00u + row] == 0u && MEMORY_mem[0x3f00u + row] == 0u)
+		if (MEMORY_mem[0x3c00u + row] == 0u)
 			continue;
 		if (first == 0xffffffffu)
 			first = row;
@@ -2577,7 +2590,7 @@ static DFTracePhysicalBounds dftrace_player_physical_bounds(void)
 	if (first == 0xffffffffu || first < DFTRACE_CAPTURE_DMA_Y_OFFSET)
 		return result;
 	size = GTIA_SIZEP0 & 3u;
-	result.valid = GTIA_HPOSP0 == GTIA_HPOSP3 && (GTIA_SIZEP3 & 3u) == size;
+	result.valid = 1u;
 	result.left = GTIA_HPOSP0;
 	result.right = result.left + 8u * (size == 1u ? 2u : size == 3u ? 4u : 1u) - 1u;
 	result.dma_top = first;
@@ -2750,6 +2763,41 @@ static void dftrace_prepare_pairshot_reentry(unsigned frame)
 	dftrace_pairshot_reentry_prior_sector = sector;
 }
 
+/* chore/contact-scenario-redesign. Level 1 opens with its fighter phase, so a
+ * contact session reaches its capital sector only after it. Until the sector
+ * first leaves OPEN (7), sweep with FIRE held on the session's preamble row
+ * while the observer holds the native respawn invulnerability
+ * (PLAYER_LIFECYCLE 2, its timer at 2): a contact gate, not a survival gate.
+ * Once the sector has opened nothing is written again; the held timer runs out
+ * through tick_respawn_invulnerability two frames later, and the contact
+ * clauses then assert the full hull, three lives and no invulnerability on the
+ * hit frame. No release byte is patched. */
+static int dftrace_contact_preamble(unsigned frame, unsigned x, unsigned y,
+	unsigned *stick, unsigned *trigger)
+{
+	static int seen_open;
+	static int sector_opened;
+	unsigned sector = MEMORY_mem[dftrace_sector_state];
+	if (dftrace_contact_preamble_row == 0u || sector_opened)
+		return 0;
+	if (sector == 7u)
+		seen_open = 1;
+	else if (seen_open) {
+		sector_opened = 1;
+		return 0;
+	}
+	MEMORY_mem[dftrace_player_lifecycle] = 2u;
+	MEMORY_mem[dftrace_player_lifecycle + 2u] = 2u;
+	*trigger = 0u;
+	*stick = ((frame / 72u) & 1u) == 0 ? (x < 154u ? 0x07u : 0x0fu) :
+		(x > 94u ? 0x0bu : 0x0fu);
+	if (y > dftrace_contact_preamble_row)
+		*stick &= 0x0eu;
+	else if (y < dftrace_contact_preamble_row)
+		*stick &= 0x0du;
+	return 1;
+}
+
 static void dftrace_set_gameplay_input(unsigned frame)
 {
 	unsigned stick = 0x0f;
@@ -2808,7 +2856,9 @@ static void dftrace_set_gameplay_input(unsigned frame)
 		MEMORY_mem[dftrace_entity_owner + 2u] = 1u;
 		MEMORY_mem[dftrace_entity_hp + 2u] = 17u;
 	}
-	if (strcmp(dftrace_policy, "capital-contact-allied") == 0 ||
+	if (dftrace_contact_preamble(frame, x, y, &stick, &trigger))
+		;	/* the preamble owns this frame's input */
+	else if (strcmp(dftrace_policy, "capital-contact-allied") == 0 ||
 		strcmp(dftrace_policy, "capital-contact-hostile") == 0) {
 		unsigned slot;
 		unsigned target_owner = strcmp(dftrace_policy, "capital-contact-hostile") == 0;
@@ -2943,6 +2993,32 @@ static void dftrace_set_gameplay_input(unsigned frame)
 			stick = 0x0eu;
 		else if (y + 1u < target_y)
 			stick = 0x0du;
+	}
+	else if (strcmp(dftrace_policy, "lower-contact-allied") == 0) {
+		/* chore/contact-scenario-redesign: the lower-row contact against the
+		 * Allied faction. Wait on the bottom clamp at x 148; once an Allied
+		 * shell sits in the lower rows (BROAD_Y >= 191), steer to the mode-1
+		 * raster geometry the production collision decides in: player top =
+		 * BROAD_RASTER_TOP - 4, i.e. PMG index BROAD_RASTER_TOP + 4. */
+		unsigned slot;
+		unsigned target_y = DFTRACE_PLAYER_MAX_Y;
+		trigger = 1u;
+		stick = x < 148u ? 0x07u : x > 148u ? 0x0bu : 0x0fu;
+		for (slot = 0u; slot < 3u; ++slot) {
+			unsigned state = MEMORY_mem[dftrace_broad_state + slot];
+			unsigned owner = MEMORY_mem[dftrace_broad_state + 3u + slot];
+			unsigned shell_y = MEMORY_mem[dftrace_broad_state + 12u + slot];
+			if ((state == 1u || state == 2u) && owner == 0u && shell_y >= 191u) {
+				target_y = MEMORY_mem[dftrace_broad_raster_top + slot] + 4u;
+				if (target_y > DFTRACE_PLAYER_MAX_Y)
+					target_y = DFTRACE_PLAYER_MAX_Y;
+				break;
+			}
+		}
+		if (y > target_y)
+			stick = (stick & 0x0cu) | 0x02u;
+		else if (y < target_y)
+			stick = (stick & 0x0cu) | 0x01u;
 	}
 	else if (strcmp(dftrace_policy, "sweep") == 0 ||
 		strcmp(dftrace_policy, "broadside-proof") == 0) {
@@ -4821,6 +4897,7 @@ static void dftrace_snapshot_muzzles(DFTraceFrame *frame)
 		frame->broad_y[slot] = MEMORY_mem[dftrace_broad_state + 12u + slot];
 		frame->broad_collision[slot] = MEMORY_mem[dftrace_broad_state + 24u + slot];
 		frame->broad_raster_x[slot] = frame->broad_x[slot] & 0xfcu;
+		frame->broad_raster_top[slot] = MEMORY_mem[dftrace_broad_raster_top + slot];
 		frame->broad_raster_row[slot] = 0xffffffffu;
 		if (pointer == DFTRACE_DIVIDER_SCREEN)
 			frame->broad_raster_row[slot] = 0u;
@@ -4988,6 +5065,7 @@ static void dftrace_write(void)
 		fprintf(file, ",broad%u_state,broad%u_flash,broad%u_turret,broad%u_row,broad%u_pointer"
 			",broad%u_owner,broad%u_x,broad%u_y,broad%u_collision,broad%u_raster_x,broad%u_raster_row",
 			index, index, index, index, index, index, index, index, index, index, index);
+	fprintf(file, ",broad0_raster_top,broad1_raster_top,broad2_raster_top");
 	fprintf(file, ",broad_pointer_errors,player_health,player_lives,player_invulnerability"
 		",broad_screen_orphan_cells,broad_screen_first_address,broad_screen_first_code"
 		",broad_screen_missing_cells"
@@ -5204,6 +5282,8 @@ static void dftrace_write(void)
 				frame->broad_owner[slot], frame->broad_x[slot], frame->broad_y[slot],
 				frame->broad_collision[slot], frame->broad_raster_x[slot],
 				frame->broad_raster_row[slot]);
+		fprintf(file, ",%u,%u,%u", frame->broad_raster_top[0],
+			frame->broad_raster_top[1], frame->broad_raster_top[2]);
 		fprintf(file, ",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u"
 			",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u"
 			",%u,%u,%u,%u,%u,%u,%u,%u,%u,%u"
@@ -5976,6 +6056,8 @@ static void dftrace_init(void)
 	dftrace_fire_delay = dftrace_env_u("DFTRACE_FIRE_DELAY");
 	dftrace_hold_player_lives = getenv("DFTRACE_HOLD_PLAYER_LIVES") == NULL ? 0u :
 		dftrace_env_u("DFTRACE_HOLD_PLAYER_LIVES");
+	dftrace_contact_preamble_row = getenv("DFTRACE_CONTACT_PREAMBLE_ROW") == NULL ? 0u :
+		dftrace_env_u("DFTRACE_CONTACT_PREAMBLE_ROW");
 	dftrace_difficulty = dftrace_env_u("DFTRACE_DIFFICULTY");
 	dftrace_frontend_delay = getenv("DFTRACE_FRONTEND_DELAY") == NULL ? 0u :
 		dftrace_env_u("DFTRACE_FRONTEND_DELAY");
@@ -6252,6 +6334,8 @@ static void dftrace_init(void)
 	if (dftrace_capital_contact_prefix != NULL && *dftrace_capital_contact_prefix != '\0') {
 		dftrace_capital_contact_owner = dftrace_env_u("DFTRACE_CAPITAL_CONTACT_OWNER");
 		dftrace_capital_contact_mode = dftrace_env_u("DFTRACE_CAPITAL_CONTACT_MODE");
+		if (getenv("DFTRACE_CAPITAL_CONTACT_LIMIT") != NULL)
+			dftrace_capital_contact_limit = dftrace_env_u("DFTRACE_CAPITAL_CONTACT_LIMIT");
 		if (dftrace_capital_contact_owner > 1u || dftrace_capital_contact_mode > 3u) {
 			fprintf(stderr, "voidstrike65 trace: invalid capital contact owner %u\n",
 				dftrace_capital_contact_owner);
@@ -6760,7 +6844,7 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 		}
 		if (dftrace_capital_contact_prefix != NULL &&
 			*dftrace_capital_contact_prefix != '\0' &&
-			dftrace_capital_contact_count < 32u &&
+			dftrace_capital_contact_count < dftrace_capital_contact_limit &&
 			dftrace_capital_contact_primed) {
 				char path[1024];
 				snprintf(path, sizeof(path), "%s-%02u.png",

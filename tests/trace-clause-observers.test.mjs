@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   acceptedShotsStartFireSound,
+  capitalContactHitboxes,
   firstDliSelectsByteThree,
   pickupReleaseClearedOnce,
   pickupTraversalFrameIntact,
@@ -162,4 +163,48 @@ test("fire-sound clause fails when an accepted shot leaves the channel silent", 
     shotRow("s", 1, { fire_sfx: 0 }),
   ]);
   assert.equal(cutNextFrame.held, false);
+});
+
+// The contact frames measured on chore/contact-scenario-redesign: slot, the
+// shell's rendered column and logical Y, the production raster-top cache, and
+// the PlayerFighter's final PMG position.
+function contactRow(slot, { rasterX, y, rasterTop, playerX, playerY }) {
+  return {
+    [`broad${slot}_raster_x`]: rasterX,
+    [`broad${slot}_y`]: y,
+    [`broad${slot}_raster_top`]: rasterTop,
+    player_x_after: playerX,
+    player_y_after: playerY,
+  };
+}
+
+const alliedContact = contactRow(0,  // capital-contact-allied-medium f795
+  { rasterX: 144, y: 108, rasterTop: 113, playerX: 148, playerY: 117 });
+const hostileContact = contactRow(1, // capital-contact-hostile-medium f1042
+  { rasterX: 96, y: 108, rasterTop: 113, playerX: 84, playerY: 117 });
+
+test("capital contact hitboxes intersect in final-raster scanlines", () => {
+  for (const [row, slot] of [[alliedContact, 0], [hostileContact, 1]]) {
+    const { shell, player, intersect } = capitalContactHitboxes(row, slot);
+    assert.deepEqual([shell.top, shell.bottom], [113, 118]);
+    assert.deepEqual([player.top, player.bottom], [109, 123]);
+    // The mid-body geometry the sessions steer to: bolt top four below player top.
+    assert.equal(shell.top, player.top + 4);
+    assert.equal(intersect, true);
+  }
+  // The clause's former boxes, logical BROAD_Y +-3 against the PMG index,
+  // miss the same contact by seven scanlines.
+  const logicalShellBottom = alliedContact.broad0_y + 2;
+  assert.equal(alliedContact.player_y_after - logicalShellBottom, 7);
+});
+
+test("capital contact hitbox clause still fails without an intersection", () => {
+  // Near miss: the bolt ends one scanline above the player (contact mode "near").
+  const near = capitalContactHitboxes({ ...alliedContact, broad0_raster_top: 103 }, 0);
+  assert.equal(near.shell.bottom + 1, near.player.top);
+  assert.equal(near.intersect, false);
+  // Horizontal gap: the shell's rendered column ends left of the player.
+  const wide = capitalContactHitboxes({ ...alliedContact, broad0_raster_x: 140 }, 0);
+  assert.equal(wide.shell.right + 1, wide.player.left);
+  assert.equal(wide.intersect, false);
 });

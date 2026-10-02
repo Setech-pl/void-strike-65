@@ -1,4 +1,4 @@
-// Row predicates and counters behind five wall-trace clauses, kept out of
+// Row predicates and counters behind six wall-trace clauses, kept out of
 // scripts/runtime-wall-trace.mjs so they can be tested on fixture rows
 // (tests/trace-clause-observers.test.mjs). scripts/build.mjs does not import
 // this file. Each observer counts what its clause states; none of the clauses'
@@ -108,4 +108,39 @@ export function acceptedShotsStartFireSound(rows) {
         fire_timer_value: row.fire_timer_value, next_fire_sfx: next?.fire_sfx });
   }
   return { accepted, violations, held: accepted > 0 && violations.length === 0 };
+}
+
+const CAPITAL_SHELL_VISIBLE_SCANLINES = 6; // src/capital-player-collision.s
+const PLAYER_VISIBLE_WIDTH_HPOS = 16;      // src/main.s
+const PLAYER_COLLISION_LAST_ROW = 14;      // src/main.s
+const PMG_DMA_CAPTURE_Y_OFFSET = 8;        // src/main.s: player_y is the PMG DMA index
+
+/* "Damage occurred with a final-raster hitbox intersection." Both boxes are in
+ * final-raster scanlines, the space the production collision decides in since
+ * 4753399 (2026-09-04): the shell spans its cached BROAD_RASTER_TOP and the
+ * five scanlines below, the PlayerFighter spans player_y minus the PMG DMA
+ * offset and PLAYER_COLLISION_LAST_ROW below. The clause written at d94702b
+ * kept the logical BROAD_Y and the PMG index, which a mid-body contact misses
+ * by seven scanlines (chore/contact-scenario-redesign). Horizontally the shell
+ * is its rendered column and the player its double-width envelope, as before. */
+export function capitalContactHitboxes(row, slot) {
+  const shell = {
+    left: row[`broad${slot}_raster_x`],
+    right: row[`broad${slot}_raster_x`] + 7,
+    top: row[`broad${slot}_raster_top`],
+    bottom: row[`broad${slot}_raster_top`] + CAPITAL_SHELL_VISIBLE_SCANLINES - 1,
+  };
+  const playerTop = row.player_y_after - PMG_DMA_CAPTURE_Y_OFFSET;
+  const player = {
+    left: row.player_x_after,
+    right: row.player_x_after + PLAYER_VISIBLE_WIDTH_HPOS - 1,
+    top: playerTop,
+    bottom: playerTop + PLAYER_COLLISION_LAST_ROW,
+  };
+  return {
+    shell,
+    player,
+    intersect: shell.left <= player.right && shell.right >= player.left &&
+      shell.top <= player.bottom && shell.bottom >= player.top,
+  };
 }

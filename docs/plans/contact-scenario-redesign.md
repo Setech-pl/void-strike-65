@@ -5,9 +5,8 @@ Branch `chore/contact-scenario-redesign`, cut from `main` `c59e28a` on
 [trace-clause-repairs.md](trace-clause-repairs.md) §4.1 and §5 Q3 (where this
 task was opened), then the brief.
 
-**Status: PHASE A — waiting for the owner on §6 Q1.** The two capital-contact
-sessions are diagnosed and their fixes measured in focused runs; the
-lower-playfield session needs a coverage decision.
+**Status: PHASE B in progress.** Sections 1-7 are the Phase A record, left as
+written; §8 records the owner's answer to Q1 and what Phase B did.
 
 ## 1. Step 0
 
@@ -196,3 +195,25 @@ The two capital sessions do not depend on the answer.
 two measured contact frames (and the former logical boxes missing them by 7
 scanlines), and the clause still failing on a near miss and on a horizontal gap.
 `npm test` totals rise by 2.
+
+## 8. Phase B
+
+### 8.1 Owner answer (2026-10-02)
+
+| | Decision | Applied as |
+| --- | --- | --- |
+| Q1 | **Both, remove nothing.** Add the Allied variant as a new session so the lower-row contact raster is gated from now on; keep `lower-playfield-hostile-contact-atr-hard` exactly as it is, recorded as class (a) with the new diagnosis; follow-up: the hostile lower-row contact gets an honest scenario in M5, where the boss's lasers make low hostile shells frequent, and the M5 plan must cover it. No waiting bot. | New session `lower-playfield-allied-contact-atr-hard` (HARD, policy `lower-contact-allied`, preamble row 225, x 148, 1,000 frames); the hostile session's definition and policy are untouched; its recorded note carries F5/F6; follow-up lines in `budget-1.0.md` M5 and `plan-realizacji.md` §0. |
+
+### 8.2 The new session
+
+`lower-contact-allied` (header): wait on the bottom clamp at x 148; when an
+Allied shell is in the lower rows (`BROAD_Y ≥ 191`, warning or flying), steer to
+the mode-1 raster geometry, PMG index `BROAD_RASTER_TOP + 4`. MEASURED (focused
+run, ATR `f127d7a4`): sector opens 667, contact 970 — Allied shell slot 1,
+`BROAD_Y` 204, raster row 26, bolt 209-214 × player 205-219, hull 10 → 8, lives
+3; next damage call 1337; fence margin 8,990, maximum wall 29,538 cycles. All
+contact clauses pass. Without F2 the same contact is not captured (§3, F2).
+
+The hostile lower session, unchanged, fails with its recorded message on the
+corrected observers too: "did not capture 16 consecutive contact rasters"
+(fence margin 3,239, maximum wall 29,420).

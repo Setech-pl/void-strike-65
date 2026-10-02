@@ -25,6 +25,7 @@ import { focusedPalAcceptance } from "./focused-pal-acceptance.mjs";
 import { assertDiagnosticRun, traceArtifactLayout } from "./trace-artifacts.mjs";
 import {
   acceptedShotsStartFireSound,
+  capitalContactHitboxes,
   firstDliSelectsByteThree,
   pickupReleaseClearedOnce,
   pickupTraversalFrameIntact,
@@ -461,26 +462,27 @@ const raiderSectorSessions = [{
   kind: "raider-sector-lifecycle",
 }];
 
-/* RECORDED, owner decision 2026-10-01 (trace-clause-repairs, Q3): class (a), a
- * stale scenario that a longer budget does not repair, so these two sessions
- * and `lower-playfield-hostile-contact-atr-hard` stay recorded until
- * chore/contact-scenario-redesign. MEASURED at 1,600 frames: the allied
- * session reaches its capital sector at 774 and is hit at 895, but the mode-1
- * geometry is never captured and the passive player has lost two lives in the
- * fighter phase; the hostile one never leaves the fighter phase. A probe-only
- * preamble (sweep + fire, health/lives held while OPEN) opens the sector at 667
- * and still captures no contact (docs/plans/trace-clause-repairs.md §4.1). */
+/* chore/contact-scenario-redesign (docs/plans/contact-scenario-redesign.md).
+ * Level 1 opens with its fighter phase, so each session first runs the contact
+ * preamble (sweep + FIRE on `contactPreambleRow` under a trace-only respawn-
+ * invulnerability hold, released when the capital sector first opens). The row
+ * decides when the sector opens. MEASURED on ATR f127d7a4: allied, row 225 —
+ * sector opens 667, contact 795 (slot 0, mode 1), next damage call 859;
+ * hostile, row 180 — opens 889, contact 1042 (slot 1, mode 1), next damage call
+ * 1114. Each budget ends after the 16-frame raster window and before the next
+ * damage call; if either frame moves, re-measure both before re-budgeting. */
 const capitalContactSessions = [0, 1].map((owner) => ({
   id: `capital-contact-${owner === 0 ? "allied" : "hostile"}-medium`,
   difficulty: 1,
   policy: owner === 0 ? "capital-contact-allied" : "capital-contact-hostile",
   fireDelay: 4_000,
-  frames: owner === 0 ? 560 : 360,
+  frames: owner === 0 ? 840 : 1_080,
+  contactPreambleRow: owner === 0 ? 225 : 180,
   kind: "capital-projectile-contact",
   contactOwner: owner,
-  /* Mid-body overlap: the geometry these sessions have always steered to
-   * (`target_y = shell_y - 7`, bolt top four rows below the player top),
-   * expressed as the named mode that replaced the legacy contact delta. */
+  /* Mid-body overlap: bolt raster top four scanlines below the player top,
+   * the geometry these sessions have always steered to, expressed as the
+   * named mode that replaced the legacy contact delta. */
   contactModeId: 1,
 }));
 
@@ -639,6 +641,12 @@ const lowerPlayfieldSessions = [{
   frames: 1_400,
   kind: "lower-playfield-boundary",
 }, {
+  /* RECORDED, class (a), owner decision 2026-10-02 (contact-scenario-redesign
+   * §6 Q1): kept as it is. Its steering (`shell_y - 7`) predates the final-
+   * raster collision of 4753399, and on HARD level 1 a hostile shell in the
+   * lower rows is rare and late (after ~+840 frames of the sector, behind debris
+   * and low Allied hits). It gets an honest scenario in M5, where the boss's
+   * lasers make low hostile shells frequent. */
   id: "lower-playfield-hostile-contact-atr-hard",
   medium: "ATR",
   difficulty: 2,
@@ -648,6 +656,22 @@ const lowerPlayfieldSessions = [{
   kind: "lower-playfield-contact",
   contactOwner: 1,
   /* `lower-contact-hostile` steers to the same `shell_y - 7` mid-body overlap. */
+  contactModeId: 1,
+}, {
+  /* chore/contact-scenario-redesign: the lower-row contact raster, gated
+   * against the Allied faction. Preamble on the spawn row, then
+   * `lower-contact-allied` waits at x 148 on the bottom clamp. MEASURED on ATR
+   * f127d7a4: sector opens 667, contact 970 (Allied shell BROAD_Y 204, raster
+   * row 26, mode 1), next damage call 1337. */
+  id: "lower-playfield-allied-contact-atr-hard",
+  medium: "ATR",
+  difficulty: 2,
+  policy: "lower-contact-allied",
+  fireDelay: 4_000,
+  frames: 1_000,
+  contactPreambleRow: 225,
+  kind: "lower-playfield-contact",
+  contactOwner: 0,
   contactModeId: 1,
 }];
 
@@ -945,7 +969,7 @@ for (const field of ["muzzle_code_cells", "muzzle_illegal_cells", "muzzle_pointe
   numericCsvFields.add(field);
 for (const slot of [0, 1, 2]) {
   for (const field of ["state", "flash", "turret", "row", "pointer", "owner", "x", "y",
-    "collision", "raster_x", "raster_row"])
+    "collision", "raster_x", "raster_row", "raster_top"])
     numericCsvFields.add(`broad${slot}_${field}`);
 }
 for (const field of ["player_health", "player_lives", "player_invulnerability",
@@ -3296,6 +3320,9 @@ function main() {
       ...(session.holdPlayerLives === undefined ? {} : {
         DFTRACE_HOLD_PLAYER_LIVES: String(session.holdPlayerLives),
       }),
+      ...(session.contactPreambleRow === undefined ? {} : {
+        DFTRACE_CONTACT_PREAMBLE_ROW: String(session.contactPreambleRow),
+      }),
       ...(session.kind === "debris-visibility-gate" ? {
         DFDEBRIS_GATE_OUTPUT: path.join(buildDirectory, `${session.id}-debris-gate.csv`),
         DFDEBRIS_ROW_OUTPUT: path.join(buildDirectory, `${session.id}-debris-row.json`),
@@ -3348,6 +3375,9 @@ function main() {
 	    DFTRACE_CAPITAL_CONTACT_PREFIX: capitalScreenshotPrefix,
 	    DFTRACE_CAPITAL_CONTACT_OWNER: String(session.contactOwner),
 	    DFTRACE_CAPITAL_CONTACT_MODE: String(session.contactModeId),
+	    /* The contact clause asserts 16 rasters; only the geometry kind keeps
+	     * the 32-frame window it was widened to in 4753399. */
+	    ...(capitalContactPrefix === undefined ? {} : { DFTRACE_CAPITAL_CONTACT_LIMIT: "16" }),
 	  }),
 	  ...(session.kind === "engine-restart-after-game-over" ? {
 	    DFTRACE_ENGINE_SCREENSHOT_PREFIX: path.join(buildDirectory, session.id),
@@ -3837,21 +3867,12 @@ function main() {
         after.player_damage_cooldown_after === 24 &&
         rows.slice(contactIndex + 1).every((row) => row.capital_player_damage_calls === 0),
       `${session.id} repeated damage after the projectile entered IMPACT`);
-      const shellBox = {
-        left: contact[`broad${slot}_raster_x`],
-        right: contact[`broad${slot}_raster_x`] + 7,
-        top: contact[`broad${slot}_y`] - 3,
-        bottom: contact[`broad${slot}_y`] + 2,
-      };
-      const playerBox = {
-        left: contact.player_x_after,
-        right: contact.player_x_after + 15,
-        top: contact.player_y_after,
-        bottom: contact.player_y_after + 14,
-      };
-      invariant(shellBox.left <= playerBox.right && shellBox.right >= playerBox.left &&
-        shellBox.top <= playerBox.bottom && shellBox.bottom >= playerBox.top,
-      `${session.id} damage occurred without final-raster hitbox intersection`);
+      // Final-raster boxes, the production collision's space since 4753399
+      // (scripts/trace-clause-observers.mjs).
+      const { shell: shellBox, player: playerBox, intersect } =
+        capitalContactHitboxes(contact, slot);
+      invariant(intersect,
+        `${session.id} damage occurred without final-raster hitbox intersection`);
       const maximumWall = Math.max(...rows.map((row) => row.wall_cycles));
       const missed = rows.reduce((sum, row) => sum + row.missed_frames, 0);
       const extraVbi = rows.reduce((sum, row) => sum + row.extra_vbi_boundaries, 0);
@@ -3874,6 +3895,7 @@ function main() {
           slot, owner: row[`broad${slot}_owner`], state: row[`broad${slot}_state`],
           logical_x: row[`broad${slot}_x`], logical_y: row[`broad${slot}_y`],
           raster_x: row[`broad${slot}_raster_x`], raster_row: row[`broad${slot}_raster_row`],
+          raster_top: row[`broad${slot}_raster_top`],
           collision_or_backing: row[`broad${slot}_collision`],
         },
         calls: {

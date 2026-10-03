@@ -504,13 +504,28 @@ function gameplayDmaCycles() {
   };
 }
 
+// A MEMORY area of cfg/atari-boot.cfg, so a reservation the manifest reports
+// is the one the link enforces (M5b-S3: STARFIELD read 2,278 B here while the
+// cfg reserves 2,348).
+function bootCfgArea(name) {
+  const cfg = fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "..",
+    "cfg", "atari-boot.cfg"), "utf8");
+  const match = new RegExp(`${name}\\s*:\\s*start\\s*=\\s*\\$([0-9A-F]+)\\s*,\\s*size\\s*=\\s*\\$([0-9A-F]+)`, "i")
+    .exec(cfg);
+  invariant(match, `cfg/atari-boot.cfg has no ${name}`);
+  const start = Number.parseInt(match[1], 16);
+  const size = Number.parseInt(match[2], 16);
+  return { start, end: start + size - 1, size };
+}
+
 function protectedSegments(segmentSizes) {
+  const starfieldBytes = bootCfgArea("STARFIELD_RAM").size;
   const definitions = [
     ["CODE", segmentSizes.code, 0x0f2d, 0x122d, null],
     ["RODATA", segmentSizes.rodata, 0x109f, 0x139f, null],
     ["MAIN", segmentSizes.code + segmentSizes.rodata, 0x1fcc, 0x2000, 0x2000],
     ["PROJECTILES", segmentSizes.projectiles, 0x00ca, 0x012a, 0x012a],
-    ["STARFIELD", segmentSizes.starfield, 0x08d7, 0x08e6, 0x08e6],
+    ["STARFIELD", segmentSizes.starfield, 0x08d7, starfieldBytes, starfieldBytes],
     ["BROADSIDE", segmentSizes.broadside, 0x1953, 0x1a00, 0x1a00],
     ["A2_KERNEL", segmentSizes.a2Kernel, 0x0000, 0x0100, 0x0100],
     ["ENTITY_STATE", segmentSizes.entityState, 0x0100, 0x0100, 0x0100],
@@ -531,6 +546,8 @@ function protectedSegments(segmentSizes) {
 }
 
 function runtimeRanges() {
+  const projectiles = bootCfgArea("PROJECTILE_RAM");
+  const starfield = bootCfgArea("STARFIELD_RAM");
   const ranges = [
     ["resident-code-data", 0x2000, 0x37ff, "unconditional"],
     ["player-missile-graphics", 0x3800, 0x3fff, "after-loader"],
@@ -540,8 +557,8 @@ function runtimeRanges() {
     ["hulls-and-resident-state", 0x4c00, 0x4efd, "after-loader"],
     ["integration-glue", 0x4efe, 0x4f24, "after-loader"],
     ["hud-charset", 0x5000, 0x53ff, "after-loader"],
-    ["projectile-state", 0x5400, 0x5529, "after-loader"],
-    ["starfield-runtime", 0x552a, 0x5e0f, "after-loader"],
+    ["projectile-state", projectiles.start, projectiles.end, "after-loader"],
+    ["starfield-runtime", starfield.start, starfield.end, "after-loader"],
     ["broadside-runtime", 0x5e10, 0x780f, "after-loader"],
     ["staging-or-pause-backup", 0x7810, 0x7f0f, "after-loader"],
     ["hybrid-ring-display-state", 0x7f10, 0x7fda, "after-loader"],

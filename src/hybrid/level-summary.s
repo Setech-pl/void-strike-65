@@ -966,12 +966,14 @@ summary_animate:
         txa
         clc
         adc summary_anim
+        ; A dash where (cell + phase) & 7 is 0, a space elsewhere. CH_FRONT_SPACE
+        ; is 0, so the old `lda #CH_FRONT_SPACE / bne` never branched and every
+        ; cell got the dash (M5b-S3): the compare sets C for 1-7, same bytes.
         and #$07
-        beq @mark
-        lda #CH_FRONT_SPACE
-        bne @store
-@mark:
+        cmp #$01
         lda #CH_FRONT_DASH
+        bcc @store
+        lda #CH_FRONT_SPACE
 @store:
         sta SUMMARY_ANIMATION_ROW,x
         inx

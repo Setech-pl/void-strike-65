@@ -360,13 +360,11 @@ world_rotate_due_abi = WORLD_ROTATE_DUE
 ; loader lands it in place; there is no hold and no publish copy. The anchor
 ; below stays first and keeps the record non-empty (DFMC rejects a zero-length
 ; record); roadmap 4.5c places the Heavy formation C and its veneers after it.
-; Link-time neighbour guards. The MEMORY areas below are declared larger than
-; the first real neighbour above them, so ld65's own overflow check cannot fire
-; until foreign memory has already been overwritten:
-;   DIRECTOR_ABI_RAM  $8701+$76 = $8777, but PICKUP_CODE_RAM starts at $8776
-;                     (1 B phantom);
-;   DIRECTOR_C_LOW_RAM $8B88+$F8 = $8C80, but HYBRID_C_EXT_RAM starts at $8C7D
-;                     (3 B phantom).
+; Link-time neighbour guards. The MEMORY areas below were declared larger than
+; the first real neighbour above them ($8701+$76 against PICKUP_CODE_RAM at
+; $8776; $8B88+$F8 against HYBRID_C_EXT_RAM at $8C7D). M5b-S3 sized both areas
+; to their neighbours and tests/cfg-overlaps.test.mjs now fails on any such
+; overlap; these asserts stay as the link's own statement of the bound.
 ; __*_RAM_LAST__ is the address after the last byte used in the memory area.
 .import __DIRECTOR_ABI_RAM_LAST__, __DIRECTOR_C_LOW_RAM_LAST__
 .assert __DIRECTOR_ABI_RAM_LAST__ <= $8776, lderror, "DIRECTOR_ABI reaches the PICKUP_CODE window at $8776"

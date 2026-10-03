@@ -6821,6 +6821,8 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 	}
 	if (getenv("DFMENU_OUTPUT") != NULL) {
 		dfmenu_observe(pc);
+		/* M5a-S2: START GAME waits on the summary's FIRE. */
+		dfsummary_observe(pc);
 		return;
 	}
 	if (getenv("DFBOOT_OUTPUT") != NULL) {

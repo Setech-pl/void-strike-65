@@ -2820,6 +2820,26 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, atrPath }) {
   const menuStarModel = menuStarSkyModel(compileMenuStars(loadFrontendH31Definition(
     path.join(rootDirectory, "assets", "graphics", "frontend-h31.json"))));
   const expectedCharset = expectedMenuCharset(expected.graphics.frontendCharset, menuStarModel);
+  // M5a-S2: the level-summary screen draws its picture with 24 glyphs in the
+  // frontend charset's codes 72-95, which no frontend screen names (the highest
+  // named code is 58, the stars hold 64-71) and which the asset leaves blank.
+  // They stay after FIRE, so after a game the menu's charset carries the
+  // played region's glyphs there - level 1, region 1, read from the ATR's own
+  // art sectors. Before the first game they must still be blank.
+  const summaryArt = manifest.levelSummary.art;
+  const summaryRun = summaryArt.runs.find((run) => run.region === 1);
+  const summaryGlyphOffset = summaryArt.layout.firstGlyphCode * 8;
+  const summaryGlyphBytes = summaryArt.layout.glyphCount * 8;
+  const atrBytes = fs.readFileSync(atrPath);
+  const summaryRunBytes = atrBytes.subarray(16 + (summaryRun.startSector - 1) * 128,
+    16 + (summaryRun.startSector - 1 + summaryRun.sectors) * 128);
+  invariant(sha256(summaryRunBytes) === summaryRun.sha256,
+    "the ATR's region-1 summary art does not match the build manifest");
+  const expectedCharsetAfterGame = Buffer.from(expectedCharset);
+  summaryRunBytes.copy(expectedCharsetAfterGame, summaryGlyphOffset,
+    summaryArt.layout.glyphs, summaryArt.layout.glyphs + summaryGlyphBytes);
+  invariant(expectedCharset.subarray(summaryGlyphOffset, summaryGlyphOffset + summaryGlyphBytes)
+    .every((value) => value === 0), "frontend codes 72-95 are no longer blank in the asset");
   const menuStarRects = menuStarCellRects(expectedDisplayList, menuStarModel);
   // The owner-accepted main-menu image, pinned deliberately: this is a description of
   // a player-visible artifact, not a transport or build figure that should be derived.
@@ -2980,6 +3000,9 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, atrPath }) {
   };
   invariant(Object.values(addressEnvironment).every((value) => !value.includes("undefined")),
     "Menu-raster labels are incomplete");
+  // M5a-S2: START GAME passes the level-summary screen, which waits for FIRE;
+  // the summary observer presses it, as in the boot smoke and the replays.
+  Object.assign(addressEnvironment, summaryTraceEnvironment(path.join(rootDirectory, "build"), labels));
 
   const sessions = [];
   for (const artifact of [
@@ -2998,6 +3021,7 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, atrPath }) {
           SDL_VIDEODRIVER: process.env.SDL_VIDEODRIVER ?? "dummy",
           ...addressEnvironment,
           DFMENU_OUTPUT: rawPath,
+          DFSUMMARY_OUTPUT: path.join(outputDirectory, `${id}-summary.jsonl`),
           DFMENU_ARTIFACT: id,
           DFMENU_RAM_FILL: String(fill),
           DFMENU_CYCLES: "3",
@@ -3024,7 +3048,8 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, atrPath }) {
         const charset = Buffer.from(snapshot.charset_hex, "hex");
         const displayLists = Buffer.from(snapshot.dlist_hex, "hex");
         const starSky = checkMenuStarSky(screen, expectedScreen, menuStarModel);
-        const charsetDifference = firstByteDifference(charset, expectedCharset);
+        const charsetDifference = firstByteDifference(charset,
+          snapshot.generation === 0 ? expectedCharset : expectedCharsetAfterGame);
         const displayListDifference = firstByteDifference(
           displayLists.subarray(0, expectedDisplayList.length), expectedDisplayList);
         const screenshotPath = path.resolve(rootDirectory, snapshot.screenshot);

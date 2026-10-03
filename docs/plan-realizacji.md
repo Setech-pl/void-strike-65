@@ -77,7 +77,9 @@ w STATUS i w planach; ten paragraf ich nie powtarza.
    porównanie z najlepszym wynikiem gracza, na tle regionu i z muzyką
    regionu (zmiana co trzy poziomy, decyzja AC); ładowanie z dysku biegnie
    za nim ze standardową prędkością SIO; szybki loader staje się sesją
-   opcjonalną, późniejszą. Wycena i zapis: plan M5 §1.3 i §4.8.
+   opcjonalną, późniejszą. Wycena i zapis: plan M5 §1.3 i §4.8. Odpowiedzi
+   właściciela na wszystkie pytania planu (Q1–Q17) i przyjęta lista życzeń:
+   plan M5 §1.4; okno do końca drogi: §6.1.
 
 **Kolejność:**
 

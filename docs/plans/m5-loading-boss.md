@@ -7,8 +7,11 @@ harness, level or evidence byte changed; three probe builds were made under
 `build/level-1-s0/` and reverted (§3). The ATR and the boot image are the ones
 `main` ships.
 
-**Amended 2026-10-03** with the owner's decisions on the level-summary
-screen, the per-level stats and the letter grade (§1.3, §4.8): the transition
+**Amended 2026-10-03, twice:** first with the owner's decisions on the
+level-summary screen, the per-level stats and the letter grade (§1.3, §4.8);
+then with the owner's answers to every question (§1.4 — Q1–Q17, the wish
+list accepted as recommended, the shots counter as a window scan, the
+end-of-road window re-derived in §6.1 with the levers that remain): the transition
 becomes a summary screen the loading runs behind, the fast loader becomes an
 optional later session, and the sessions are re-ranked (§8).
 
@@ -200,6 +203,29 @@ M8 → M9; systems freeze after M6; `v0.3.0` after the whole of M5.
 | 29 | A comparison with the player's best for the level (best grade and score), saved to disk with the high-score table (item 16): one mechanism, one record | priced in §4.8.4; recommendation: with the summary session |
 | 30 | Until M4, the boss fight ends on the summary screen, then the menu; M4 adds "load the next level" behind the same screen | priced in §4.8.5; **fits M5**: the summary is session M5a-S2 |
 | 31 | Overlays at standard speed first; the fast loader optional and later | §4.8.6, §8 |
+
+### 1.4 The owner's answers (2026-10-03) — every question of §9 is closed
+
+| Q | Answer | Applied in |
+| ---: | --- | --- |
+| Q1 | **The world scroll stops in the boss sector** | §5.2, §5.4 |
+| Q2 | **An 8-row band**, falling back to 6 if S3's audit shows a boss frame under 500 | §5.3 |
+| Q3 | **The reader's bytes come from the AI pool, 8 → 4 lines** (S1); S2 moves every text to disk | §4.2 |
+| Q4 | **Retire `lower-playfield-hostile-contact-atr-hard` by name** once the laser contact session passes | §5.8 |
+| Q5 | **Steel and lasers on 4-level tiers; the hull style stays per 3-level region** | §7 item 21 |
+| Q6 | **Restore variant (b)** | §4.1 |
+| Q7 | **The frontend overlay is deferred** | §4.5 |
+| Q8 | **Speech is dropped for 1.0**; a single sample at campaign start may be reconsidered in M9 if time allows; nothing is budgeted | §7 item 17 |
+| Q9 | answered by decision 26 | — |
+| Q10 | The owner smokes with an **SIO2SD and a California Access (CA) drive**, exact model named at the smoke; it decides only how the optional S6 is smoked | §4.3 |
+| Q11 | **`$A006` becomes the run-read vector** | §4.2 |
+| Q12 | **`LEVEL_BUFFER` stays 16 for now** | §6.1 |
+| Q13 | **Not the recommendation: the shots counter is the per-frame slot scan in the window** (~60 cycles every frame), not 9 B in `CODE` — the initial block keeps its room for M6's booster hooks (10–12 B) | §4.8.2, §5.4, §6.1, §6.5 |
+| Q14 | **A destroyed debris counts as three hits, in `PICKUP_CODE`** | §4.8.2 |
+| Q15 | **A 3-second minimum display** | §4.8.1 |
+| Q16 | **The personal best lands with the summary session**, under the safety rules of §4.8.4 for the first code that writes to the player's disk | §4.8.4 |
+| Q17 | **At START GAME the summary shows the level's best and an empty stats panel** | §4.8.1 |
+| wish list | **accepted as recommended**: do 14, 15, 16, 18 (inside the summary), 21, 22, 24 (density and speed); later 19, 20; drop 17 and 24's layers; 23 confirmed as M3-H session 2 | §7 |
 
 ---
 
@@ -503,9 +529,9 @@ wall-clock figure. A stock 1050 takes the fallback: ×2 (debt item 5).
 session): SIO2SD with ultra speed enabled (default index 6) — the level
 loads, the dotted row steps faster, no `READ ERROR`; SIO2SD with high speed
 disabled in its menu — the game loads at standard speed with no visible
-difference from today; the real drive (Q10: a stock 1050 proves the
-fallback, a CA-2001 or an upgraded drive proves the fast path on real
-electronics); the SIO2SD powered off mid-read — the failure screen within a
+difference from today; the real drive (Q10: the owner's California Access drive, model named at the
+smoke; it proves the fast path if its high-speed mode is Ultra-speed
+compatible, the fallback otherwise); the SIO2SD powered off mid-read — the failure screen within a
 few seconds on both paths; a marginal cable — a fast-path error falls back
 rather than failing.
 
@@ -614,16 +640,18 @@ hangar picture the owner asked for, drawn in the region's hull style.
 | **lives lost** | lives at level start (3, or M4's carried value) − lives at level end | none: the start value is 1 B saved at `start_gameplay`'s C init (`director_c_init`, window) | window | 6 → 8 | no | 0 |
 | **kills** | Heavy: the kill branch of `enemy_c_apply_pending_damage` (C, `HYBRID_C_EXT`, record 5 — 0 B spare: **+1 sector**); Light: the Light kill in `LIGHT_RESIDENT` (`PICKUP_CODE`, 65-B tail; record 2 +1 sector); debris: `debris_shot_reward` (`PICKUP_CODE`); boss modules: the overlay | one `stats_count(kind)` C routine in the window (`inc` a BCD byte pair) called from the four sites | window 24 → 30; sites: ext +6, `PICKUP_CODE` +12, overlay +6 | **no** | +15 per kill event (not per frame) |
 | **hits** | Heavy: the non-lethal and lethal branches of the same C function (one call covers both); Light: same as its kill (1 HP); boss modules: the overlay; **debris**: `entity_debris_hit` is in `ENTITY_CODE` → **Q14**: count a destroyed debris as three hits in `debris_shot_reward` (`PICKUP_CODE`, 0 initial-block B; a debris that scrolls off wounded loses its hits) **or** 6 → 9 B in `ENTITY_CODE` | the same routine | window (shared); sites +6 ext, +6 overlay, +4 `PICKUP_CODE` | **debris: Q14** | +15 per hit event |
-| **shots fired** | every player PairShot allocation is `allocate_player_fighter_projectile_at_slot` (`CODE` `$2D01`, 48 B) — **the one unavoidable initial-block site**: **Q13** — (a) a 6 → 9 B BCD increment there, inside the 31 B to STOP, **or** (b) a per-frame scan of the five player slots for a FREE → ACTIVE edge in the window, 40 → 48 B and **+60 cycles on every frame** including the binding row | (a) `sed`/`adc`/`cld` on a BCD pair | (a) `CODE` 9; (b) window 48 | **(a) yes, 9 B; (b) no** | (a) +12 per shot (×3 on a Spread volley frame); (b) +60 every frame |
+| **shots fired** | every player PairShot allocation is `allocate_player_fighter_projectile_at_slot` (`CODE` `$2D01`, 48 B) — the one event site in the initial block. **Decided (Q13): the per-frame slot scan**, not a `CODE` byte: a window C routine compares the five player slots' state bytes with a 5-B previous-state copy and counts each FREE → ACTIVE edge (a Spread volley is three edges on one frame). **Placement:** called once per frame from the Light class's per-frame entry, which already runs in the window on every gameplay frame (6 B for the call there; no byte in any full segment) | window | 40 → 48 + 5 B RAM | **no** | **+60 on every frame (IC: 5 × ~12), the binding row included: fence margin 1,439 → ~1,379, and with S1's vectors ~1,349; DMA-on maximum 31,133 → ~31,193 (+60), ~31,223 with S1 — over the 31,200 target by ~23, under the 32,568 hard gate; boss worst row 1,238 → 1,178** |
 | **bonuses** | the boss bonus (overlay, `boss_def` reward) and the summary's own stats bonuses (accuracy / no-death / time, computed at the summary from the thresholds; M8 sets the values) | none in play | `$0500` | 30 → 36 | no | 0 |
 | **RAM** | shots 2, hits 2, kills 2 (BCD), lives-at-start 1, bonus 2 | zero page `$AC+` | 9 | | | |
 
-Totals: window **+36 → 44**; `PICKUP_CODE` +16 (record 2: +1 sector, the
-sector M3-H and M4 also ride in); `HYBRID_C_EXT` +12 (record 5: +1 sector);
-overlay +12; initial block **0 by design, 9 B if Q13 (a)**. Cycles on the
-binding row: 0 with (a) — the row is a Heavy spawn, no event; a kill frame
-+15; a Spread volley frame +36 (the heaviest family has 1,439 of margin and
-is ~7,000 over the fence on volley frames).
+Totals: window **+76 → 92** (the counters 36 → 44 and the scan 40 → 48);
+`PICKUP_CODE` +16 (record 2: +1 sector, the sector M3-H and M4 also ride
+in); `HYBRID_C_EXT` +12 (record 5: +1 sector); overlay +12; initial block
+**0** (Q13). Cycles on the binding row: **+60 every frame** (the scan); a
+kill frame +15 more. The 31,200 target is exceeded on the binding family
+by ~23 after S1 and S2 (IC); the GO fence (≥ 500) and the hard gate are not
+in question, and the target is the budget's third figure, not a gate
+(AGENTS.md); the owner chose this over 9 B of initial block.
 
 #### 4.8.3 The letter grade (decision 28)
 
@@ -662,9 +690,17 @@ primitive generalised to pointer + count, ACK after data, COMPLETE):
 still shows the comparison for the session. No persistent RAM beyond the
 20 B of top scores the game already keeps (`$4EEA`).
 
-**Recommendation: the save mechanism and the per-level best land with the
-summary session (M5a-S2)**, because the write is reader work the session is
-already inside, and the `BEST` line then shows from day one; the initials
+**Decided (Q16): the save mechanism and the per-level best land with the
+summary session (M5a-S2)**, under these rules for the first code that
+writes to the player's disk: **one fixed sector, a named constant
+(`SAVE_RECORD_SECTOR`) checked against the directory before every write;
+a read-back verify after the write (the sector read again and compared
+byte for byte; a mismatch leaves the RAM copy and reports nothing); a
+checksum on the record; a missing or corrupt record reads as empty — never
+an error screen, never a hang; a write-protected disk is skipped silently;
+the harness and the owner's smoke use a copy of the ATR or the floppy
+only.** The write is reader work the session is already inside, and the
+`BEST` line then shows from day one; the initials
 entry screen (item 16's other half, 150 → 180 B in the window) lands in M4
 with the frontend. Until a record exists on a disk, `BEST` reads `--`.
 Prerequisite: **the harness mounts a copy of the ATR** (or `-readonly`)
@@ -867,9 +903,11 @@ budgeted:
 
 **So the owner's form is affordable only with the world scroll stopped in
 the boss sector, or with a 6-row band and no Light, or with the pool
-lever.** The recommendation is the first: it is a property of the boss
-design (a station-keeping fight in front of a slowly oscillating hull), it
-costs no byte, and it keeps every boss frame under the 31,200 target. Q1.
+lever.** **Decided (Q1): the scroll stops** — a station-keeping fight in
+front of a slowly oscillating hull; 0 B; every boss frame under the 31,200
+target. With the shots scan (Q13, +60 on every frame) the boss rows above
+read **1,178 / 1,378 / 1,478** for 4 / 2 / 1 lasers on the one-Light
+break-up frame, DMA-on ~30,330.
 
 The band's DMA also applies to the **capital** frames of nothing — the band
 exists only in boss sectors. Fighter and capital frames are unchanged by
@@ -994,33 +1032,53 @@ Figures `expected → budgeted`; the M3 sessions are the m3-waves-heavy plan's
 | --- | ---: | ---: | ---: |
 | today | 1,480 | 1,480 | 1,480 |
 | after M5a-S1 (the vector table, 60 → 72) | 1,420 → 1,408 | 1,480 | 1,480 |
-| after M5a-S2 (the summary's stat counters, 36 → 44; the screen's code is in `$0500`) | 1,384 → 1,364 | 1,480 | 1,480 |
-| after M5b (`BOSS_DUE` + shake, 80 → 96) | 1,304 → **1,268** | 340 → **112** (−1,140 → −1,368) | 270 → 28 |
-| after M4 | 1,154 → 1,088 | 190 → −68 | 120 → −152 |
-| after M3 session 1 (333 → 352) | 821 → 736 | −143 → −420 | −213 → −504 |
-| after session 2 (99 → 114) | 722 → 622 | −242 → −534 | −312 → −618 |
-| after session 3 (496 → 524) | 226 → **98** | −738 → **−1,058** | −808 → −1,142 |
-| after M6 | 76 → **−82** | −888 → −1,238 | −958 → −1,322 |
-| the brief's levers (1,187) | not needed until M6; one (`STARFIELD` tail, 309) covers M6 with 227 to spare | −51 after all five levers | −135 |
+| after M5a-S2 (the stat counters 36 → 44 and the shots scan 40 → 48, Q13; the screen's code is in `$0500`) | 1,344 → 1,316 | 1,480 | 1,480 |
+| after M5b (`BOSS_DUE` + shake, 80 → 96) | 1,264 → **1,220** | 340 → **112** (−1,140 → −1,368) | 270 → 28 |
+| after M4 (150 → 180) | 1,114 → 1,040 | 190 → −68 | 120 → −152 |
+| after M4's initials entry (item 16, 150 → 180) | 964 → 860 | — | — |
+| after M3 session 1 (333 → 352) | 631 → 508 | −143 → −420 | −213 → −504 |
+| after session 2 (99 → 114) | 532 → 394 | −242 → −534 | −312 → −618 |
+| after session 3 (496 → 524) | 36 → **−130** | −738 → **−1,058** | −808 → −1,142 |
+| after M6 (150 → 180) | −114 → −310 | −888 → −1,238 | −958 → −1,322 |
+| after the starfield density and speed (item 24, 50 → 60) | −164 → −370 | — | — |
+| **after the attract mode** (item 15, 200 → 240; the last code item before the freeze) | **−364 → −610** | — | — |
 
 The totals without overlays are §6.3's — the order moves who is short, not
 by how much. **With overlays the shortfall of 1,058 B at the M3 sessions
-disappears**; what is left is M6's 82 B, which any single lever covers.
+becomes 130 B**, and the road with every accepted wish item ends **610 B
+short on budgeted figures, 364 on expected ones** — before the levers.
 
-**With the recommended wish-list items** (§7: attract 200 → 240, starfield
-density/speed 50 → 60, high-score initials entry 150 → 180 — the items that
-have no home but the window): after M6 **−562 B budgeted (−324 expected)**; if the grade and ratio code (120 B) overflow `$0500` (§4.8.3), −682.
-Levers in the order this plan recommends: the `STARFIELD` run tail (309,
-risk 3) and the arena's post-M3 95 → −114; then `LEVEL_BUFFER` 16 → 15
-(128, the buffer keeps two spare sectors so slot B still holds the band)
-→ −30 (−150 with the grade overflow); the splash RAM (512) is **taken by the summary screen's code** (§4.8.1) and is no longer a window lever; what pays the rest is the arena's post-M3 bytes and the cuts m3-waves-heavy §6.3 lists, or one fewer wish item (the attract mode's 240 is the largest). `LEVEL_BUFFER` 16 → 14 is **not**
+**The levers still available at the end of the road**, each with its price
+(the splash RAM is the summary code's home and is no longer a lever;
+`LEVEL_BUFFER` 16 → 14 is ruled out by slot B):
+
+| Lever | Buys | Price | Risk | Basis |
+| --- | ---: | --- | ---: | --- |
+| the `STARFIELD` run tail `$5CDB-$5E0F` as a landing zone (record 1 started lower) | **309** | a cfg and build change; staging windows measured to the byte | 3 | M size, G feasibility (budget §4.1 lever 4) |
+| the arena's free bytes after the M3 sessions' own moves | **95** | none on addresses | 1 | m3-waves-heavy §6.3 |
+| the `BROADSIDE` pins after M3 (5 in the pin, 10 in the codebook reserve) | **15** | none | 1 | same |
+| `LEVEL_BUFFER` 16 → 15 (`$A680`), every level address and the music block re-linked; slot B keeps two spare sectors | **128** | the Q-1 manoeuvre again, plus the gameplay-music cfg; evidence regenerated | 3 | M (Q-1 precedent) |
+| the M3 plan's own cuts (§6.3 there: the column helper 65 at +12 cycles per Interceptor tracking frame, one damage stage 12, the armoured dodge 46, the volley into the arena 72) | up to **195** | each a visible or cycle loss the M3 plan recommends against | 1–2 | m3-waves-heavy §6.3 |
+| **sum, without the cuts** | **547** | | | |
+
+So the road ends **−63 B budgeted after the four levers (+183 on expected
+figures)**. **The item that gives way first is the attract mode** (item 15,
+240 B budgeted): it is the last code item in the order, it is the only
+recommended item that cannot be built partially without changing what it
+is, and dropping it turns −63 into **+177**. The M3 cuts (195, with their
+cycle and visible costs) are the alternative that keeps it. The decision
+is the owner's at the M6 boundary, with measured figures: this plan builds
+in the order of the table and lands the attract mode last, so that whatever
+is short by then is exactly what the attract mode would have cost. If the
+grade and ratio code (120 B) overflow `$0500` (§4.8.3), add 120 to every
+shortfall. `LEVEL_BUFFER` 16 → 14 is **not**
 recommended: slot B needs the spare sectors (§4.1).
 
 ### 6.2 RAM, by home, after M5
 
 | Home | Today free | M5a | M5b | After M5 | Note |
 | --- | ---: | ---: | ---: | ---: | --- |
-| window | 1,480 | −72 −44 | −96 | **1,268** | §6.1 |
+| window | 1,480 | −72 −92 | −96 | **1,220** | §6.1 |
 | sector reader | 63 | +152 −136 (S1); +304 −156 (S2: the AI texts to disk, the summary and the write) = **+227** | 0 | 227 (−25 after the optional fast loader's 100 and the stub's 152 going) | Q3 |
 | `BROADSIDE` | 3 (+119 pins) | 0 (regrouped, byte-neutral) | 0 (the boss lives in the slot) | 3 (+119) | the pins stay M3's |
 | arena | 35 | 0 | 0 | 35 | |
@@ -1028,12 +1086,26 @@ recommended: slot B needs the spare sectors (§4.1).
 | `HYBRID_C_SECTOR` / record 2 | 33 / 3 | `PICKUP_CODE` +16 (record 2 +1 sector) | 0 | 33 / 115 (10 sectors) | the sector M3-H and M4 also ride in |
 | `HYBRID_C_EXT` / record 5 | 39 / 0 | +12 (record 5 +1 sector) | 0 | 27 / ~110 (7 sectors) | |
 | splash RAM `$0500-$06FF` | 512 (lever 10) | −480 (the summary code) | 0 | 32 | read once per session |
-| zero page `$AC-$FF` | 84 | −19 (stats + summary state) | −10 (boss state, if not `ENTITY_STATE`) | 55 … 65 | |
+| zero page `$AC-$FF` | 84 | −24 (stats, the scan's previous-state copy, summary state) | −10 (boss state, if not `ENTITY_STATE`) | 50 … 60 | |
 | `ENTITY_STATE` (~32) | ~32 | 0 | −10 | ~22 | boss state |
 | unowned RAM | 22 | 0 | 0 | 22 | left for M3 |
-| initial block to STOP | 31 | ±8 (G: operand re-points move the packed size); −9 if Q13 (a) | 0 | **14 … 31** | STOP if negative |
+| initial block to STOP | 31 | ±8 (G: operand re-points move the packed size); 0 from the stats (Q13) | 0 | **23 … 31** | STOP if negative |
 | slot A (new) | — | ≥ 2,048 | −1,980 | ≥ 68 | the boss's home |
 | slot B (new) | — | 768 | −610 | 158 | band map 512 + tables ~100 |
+
+**The initial block to the end of the road** (31 B to STOP today; the
+ceiling 13,684 is 32 B further and is not budgeted):
+
+| Point | Bytes to STOP | Basis |
+| --- | ---: | --- |
+| today | 31 | manifest |
+| after M5a-S1 (operand re-points of ~33 `jsr` sites) | 23 … 31 (±8, G: the packed size is not predictable byte for byte) | §4.1 |
+| after M5a-S2 (Q13: no stat byte in the initial block) | 23 … 31 | §4.8.2 |
+| after M5b | 23 … 31 | the boss DLI and transition live in the overlay |
+| after M4 (0 by the C route; 6 → 10 packed B if a main-loop hook proves unavoidable) | 13 … 31 | budget §2 M4 |
+| after M3 + M3-H (0: `HEAVY_CODE` byte-neutral, `PICKUP_CODE` and the arena pay) | 13 … 31 | m3-waves-heavy §6.2 |
+| after M6 (K1's hooks: damage operand, look select, 10 → 12 packed B) | **1 … 19** | budget §2 M6 — the room Q13 protects |
+| a twelfth DFMC record, if ever | −16 | budget §4.1 lever 14 — not taken |
 
 ### 6.3 Transport, sectors and the disk
 
@@ -1060,10 +1132,10 @@ recommended: slot B needs the spare sectors (§4.1).
 
 | Row family | Today | After M5 | Basis |
 | --- | ---: | ---: | --- |
-| binding ELITE row (fence margin) | 1,439 | ~1,410 (the vectored calls that run every frame: ~+3 cycles each, ~10 of them — IC) | §4.1 |
+| binding ELITE row (fence margin) | 1,439 | ~1,349 (the vectored calls ~30 and the shots scan 60 — IC); DMA-on ~31,223, over the 31,200 target by ~23, under the hard gate | §4.1, §4.8.2 (Q13) |
 | capital frames (no fence; maximum 30,568) | 30,568 | ~30,630 (+3 per vectored call, ~20 per frame) | IC |
-| boss frames, worst with one Light, scroll stopped (recommended) | — | **1,238 over GO**; DMA-on ~30,270 | §5.4 |
-| boss frames, worst with one Light, scroll kept | — | **−307 (under GO)**; DMA-on ~31,800 | §5.4 |
+| boss frames, worst with one Light, scroll stopped (decided, Q1) | — | **1,178 over GO**; DMA-on ~30,330 | §5.4 |
+| boss frames, worst with one Light, scroll kept (not taken) | — | −367 (under GO); DMA-on ~31,860 | §5.4 |
 | DLIs per frame | 2 | 2; **3 in a boss sector** | decision 9 |
 
 ---
@@ -1081,11 +1153,11 @@ only, so "later" means the last code session before the freeze or never),
 | 14 | **Music per region (4 tracks) + a boss theme, from disk** | tracks: **M7** (data); the boss-theme copy hook: **M5b S5** | tracks **0 B** — the player and its track already ride in every level image (§2.6), so a region's track is the build picking a JSON per level; boss theme: 25 → 30 B of copy code in the boss overlay, 241 → ≤ 361 B of data per region run | tracks: disk (in the level images, 0 extra sectors); boss theme: overlay data | 0 (+ ~2 per region inside the 10 already counted) | 0 standing (same player; the GRA-2 figures 118 / 336 hold) | 0 | a region track must fit 361 B (16 patterns + the pad); composition is owner work | **do** (must-have, and nearly free) |
 | 15 | **Attract / demo mode from the deterministic replays** | its own session after **M4** (the menu idle timer needs the campaign's menu flow), before M6 | input override in the window: a `jmp` re-point at `read_input` (byte-neutral in `CODE`) to a stream reader 60 → 72; menu idle timer + `DEMO` HUD label + exit on FIRE 80 → 96; the recorded input stream (RLE of stick/fire runs for ~1,000 frames, G 300–500 B) rides in a **level-image variant** of level 1 (id 13 of the 16 `LEVEL_MAX_ID` allows: level 1's 13 sectors + the stream in its 3 spare) **or** in a 4-sector overlay run into slot B; the Director's seed is the level header's (`CORE_SEED ^ difficulty`, `director.c:398`), so the demo forces the difficulty it was recorded on and nothing else — the harness replays prove the determinism the demo rests on | resident 200 → 240 (window); stream on disk | 16 (level variant) or 4 (run) | +20 on every frame (the stream read) — IC | the demo's level read (49 frames) when the menu idles | the recorded stream is hardware-deterministic only if every input-independent state is (the RNG and the frame clock are; VCOUNT-seeded choices like `sector_reader_pick_line` are not and must be excluded) | **do** (must-have); session `feat/attract-mode` |
 | 16 | **High-score table on disk with initials; silent skip when write-protected** | the save mechanism and the record: **M5a-S2 with the per-level best (§4.8.4)**; the initials entry: **M4** | SIO write primitive in the reader 70 → 84 (§2.7); the scores sector read at the first menu entry 20 → 24 (reader); initials entry (3 letters by stick) 150 → 180 — `CODE` is full, so the window; TOP SCORES rows with initials +40 → 48 (window, called through the frontend draw); RAM: 10 × 3 B initials 30 B (`$4FFA-$4FFF` holds 6; the rest in `ENTITY_STATE`) | resident; 1 disk sector | 1 | 0 in gameplay | +1 sector at the first menu entry (~4 frames); the write after a qualifying game over (~1 s on a real drive) | a write-protected ATR or disk answers `ERROR`/NAK: the skip is "any non-COMPLETE"; **the harness mounts `dist/` — a write during a trace session would change the shipped ATR's bytes and break the evidence binding**, so the harness must mount a copy (or `-readonly`) before this lands; a shared disk image carries its finder's scores (the owner's parked concern, now accepted) | **do** (must-have); the harness mount change is the prerequisite |
-| 17 | **Digitised speech on the transition screen** | later, after the hangar; **M6** at the earliest | player 40 → 48 B (reader or the hangar overlay); the sample in transition-time scratch RAM: PMG pages `$3B00-$3FFF` 1,280 B + the gameplay charset `$4400-$47FF` 1,024 B + the hull maps `$4C00-$4E3F` 576 B (all rebuilt by `start_gameplay`) = **2,880 B in three pieces**; at 4-bit 7.8 kHz that is 0.74 s; 5.2 kHz gives 1.1 s | disk, read at every level start | **12 (0.6 s at 5.2 kHz) … 23 (2,880 B)**; a 2-s clip at 7.8 kHz is 61 sectors and does not fit RAM | 0 in gameplay; the CPU is the player's during playback | **+0.9 s (12) … +1.7 s (23) per level at standard speed, ×2 on a 1050**, to hear 0.6–1.1 s of 4-bit speech; the sample cannot play while the level reads (channels 3+4 are the clock) | intelligibility of 4-bit volume-only at ≤ 7.8 kHz is "recognisable 1980s"; the load it adds is longer than the clip | **possible; recommended against** ("not everything must be done"); if wanted: one word, ≤ 12 sectors, only with the fast loader landed |
+| 17 | **Digitised speech on the transition screen** | later, after the hangar; **M6** at the earliest | player 40 → 48 B (reader or the hangar overlay); the sample in transition-time scratch RAM: PMG pages `$3B00-$3FFF` 1,280 B + the gameplay charset `$4400-$47FF` 1,024 B + the hull maps `$4C00-$4E3F` 576 B (all rebuilt by `start_gameplay`) = **2,880 B in three pieces**; at 4-bit 7.8 kHz that is 0.74 s; 5.2 kHz gives 1.1 s | disk, read at every level start | **12 (0.6 s at 5.2 kHz) … 23 (2,880 B)**; a 2-s clip at 7.8 kHz is 61 sectors and does not fit RAM | 0 in gameplay; the CPU is the player's during playback | **+0.9 s (12) … +1.7 s (23) per level at standard speed, ×2 on a 1050**, to hear 0.6–1.1 s of 4-bit speech; the sample cannot play while the level reads (channels 3+4 are the clock) | intelligibility of 4-bit volume-only at ≤ 7.8 kHz is "recognisable 1980s"; the load it adds is longer than the clip | **dropped for 1.0 (owner, Q8)**; a single sample at campaign start may be reconsidered in M9 if time allows; nothing is budgeted |
 | 18 | **Loading screen with a hangar** — **absorbed by the level-summary screen (§4.8): the region background is the hangar picture** | **M5a-S2** | reader: a bitmap band (ANTIC E, 40 × 48 lines = 1,920 B, or ANTIC 4 with 64 custom glyphs = 240 + 512 B) read into the PMG pages / charset scratch before the level, the loader display list gaining the band (40 → 48 B); the AI texts move into the same overlay (−304 B resident, +80 → 96 B of band-and-text install) | overlay (slot: transition scratch), disk | 10 (ANTIC 4 form) … 16 (ANTIC E) | 0 | +38 … +60 frames per level start (0.8 … 1.2 s), ×2 on a 1050 | the band is on screen while the wire runs: ANTIC E's DMA takes ~35 % of a line, inside the receive loop's margin at every speed (§2.9); drawing is owner art | **do** (must-have); ANTIC 4 form recommended (10 sectors, reuses the frontend charset path) |
 | 19 | **Capital hulls take damage where hit — both hulls** | later: **M7** (after the capital overlay exists) or **M8** | in **slot A** (0 window): after `restore_capital_explosion` the cell gets a damage glyph instead of its backing when the backing is a hull cell, 40 → 48; player-shot-versus-enemy-hull (today shots do not collide with hull cells beyond the prow) 60 → 72; 2 damage glyphs (16 B) in the free hostile-weapon codes 93–98 | overlay | 0 | **+150 … +200 on capital frames** for the shot-versus-hull test (five shots × ~35, IC) — capital frames have no fence and 2,000 to the hard gate | 0 | the mark scrolls away with the row (free: the ring row is recycled); the allied hull's marks from enemy shells are the existing impact path | **do later** (M7/M8): cheap once slot A exists |
 | 20 | **Variable protruding nacelles narrowing the corridor (4.8a)** | **M7**, with the hull sets | slot A: per-row corridor extent read by the player clamp and the hull contact (`player_inside_universal_hull_corridor` assumes a fixed width) 150 → 180; a 27 × 2 B extent table 54 B (`ENTITY_STATE` is short: the window's RAM or zero page); the `hull_params` block (32 B, reserved in the payload page) becomes data; +1 B per map row in the hull block (104 B of pad there) | overlay + data | 0 | +40 … +80 on capital frames | 0 | fairness: the scroll squeezing the player (River Raid kills; here hull contact damages, 10 → 8); the hull row generator and the collision read the same table or they disagree | **later** (M7); it is 4.8a itself; the open "geometry 4.8a" item in budget §5.2 (13) gets this price |
-| 21 | **Capital colours change every 4 levels, aligned with the laser tiers** | **M7** (data) | **0 B**: the allied steel is level data since hull step 2, the enemy style since step 2; the build's mapping (`alliedColpf1ForLevel`, `hullStyleIdForLevel`, `scripts/build.mjs:331-339`) changes | data | 0 | 0 | 0 | the enemy hull's colour is `COLPF3`, shared with every hostile accent — a per-tier *enemy* colour recolours shots and Interceptor pods; the allied steel and the enemy *style* per tier are free of that; **it supersedes AC's "regions of three" and the 1–6 / 7–12 steel split**, and with 4-level tiers over twelve levels the fourth enemy style is never used | **do** (Q5 decides what "colour" covers) |
+| 21 | **Capital colours change every 4 levels, aligned with the laser tiers** | **M7** (data) | **0 B**: the allied steel is level data since hull step 2, the enemy style since step 2; the build's mapping (`alliedColpf1ForLevel`, `hullStyleIdForLevel`, `scripts/build.mjs:331-339`) changes | data | 0 | 0 | 0 | the enemy hull's colour is `COLPF3`, shared with every hostile accent — a per-tier *enemy* colour recolours shots and Interceptor pods; the allied steel and the enemy *style* per tier are free of that; **it supersedes AC's "regions of three" and the 1–6 / 7–12 steel split**, and with 4-level tiers over twelve levels the fourth enemy style is never used | **do** — decided (Q5): steel and lasers on 4-level tiers, the hull style per 3-level region, the enemy colour unchanged |
 | 22 | **A booster that lasts until the player loses a life** | **M6** | 15 → 30 B: the timed boosters' countdown skipped for the "life-long" kind (`weapon_pickup_rapid_tick`'s family in `PICKUP_CODE`, 65-B tail; or as a data value: a timer sentinel) ; the HUD label as today | resident (`PICKUP_CODE`; record 2 +1 sector) | 1 transport | 0 (a Spread held for a life makes the heaviest family the common case; the pool bounds it, no new worst row) | 0 | balance: feel, M8 | **do** (M6, with K1) |
 | 23 | **Damaged Bombers** | **M3-H session 2** | — | — | — | — | — | — | **confirmed covered**: m3-waves-heavy §3.4 "the look and the damaged look — one mechanism" and §7 session 2 `feat/heavy-looks` (variant C); nothing to add |
 | 24 | **A varied starfield per sector: density, speed, layers** | **M7** (data) with ~50 B of code before the freeze | density: a per-sector mask read by `generate_starfield_row` 20 → 24; speed: the near-star phase step per sector 15 → 18; 1 B per SectorDef (the core page has room); home: the window (the `BROADSIDE` pins are M3's) 50 → 60; **layers: the far layer was retired for its rotate-frame cost** (codes 2–6 are allocated, `farLayer` disabled) | resident + data | 0 | density/speed: +10 on rotate frames; a far layer: **+100 … +300 on rotate frames**, the binding family | 0 | — | **do** density and speed; **drop** layers (and the nebula stays rejected) |
@@ -1111,7 +1183,7 @@ STATUS updated, the free tails stated in the commit.
 | # | Branch | Scope | Window | Other bytes | Records / sectors / frames | Cycles (worst rows) | DMA | Load | STOP conditions | Tests and clauses | Owner smoke |
 | --- | --- | --- | ---: | --- | --- | --- | --- | --- | --- | --- | --- |
 | **M5a-S1** | `feat/overlay-slot` | §4.1–4.2: `BROADSIDE` regrouped, slot A bounded, the 20-entry table in the window, the reader's run read + directory + boss-resident flag + table copy, the build's overlay runs from sector 512 and the capital restore run, the AI pool 8 → 4 (Q3) | −72 | reader −136 +152; `BROADSIDE` 0; initial block ±8 (G) | window record 9 → 10 (+1 sector, +2 frames); disk +16 | binding row ~−30 (vectored calls); capital ~+60 | 0 | 0 (no read is added until a boss exists) | initial block > 13,652; worst fence < 1,400; a `BROADSIDE` label the harness or a test pins moves without its pin being re-pointed in the same commit; the restore run ≠ the resident bytes | §4.7; the binding replay's cycles proven on both builds (page crossings); boot smoke 8/8 | play level 1 through its capital sector: nothing visible changes; the loader screen with four lines |
-| **M5a-S2** | `feat/level-summary` | §4.8: the summary screen replacing the loader screen (code in `$0500`, art per region read first, labels and the AI texts to disk), the stat counters and their hooks (Q13, Q14), the grade, the save record with the direct-SIO write and the per-level best, the tail-first level read with the music tick in the wait loop, the minimum-time / FIRE interlock; the harness mounts a copy of the ATR | −44 | reader −156 +304; `PICKUP_CODE` +16; `HYBRID_C_EXT` +12; `$0500` −480; zero page −19; initial block 0 (9 with Q13 a) | records 2 and 5 +1 sector each (+4 frames); disk +33 | kill / hit / shot events +12 … +15 each; 0 on the binding row (Q13 b would add +60 every frame) | 0 | START GAME 49 → 94 frames behind the screen; the post-boss transition 139 (§4.8.6 b) | a stat hook in the initial block beyond Q13's answer; the music audibly stalls during a read (owner smoke); a write reaching `dist/` in any harness run; the `$0500` code over 512 B without the grade moved to the window | build: the record format and the art runs pinned; 6502: BCD counters, the ratio and grade on fixture stats, the write primitive's ACK/COMPLETE/NAK paths, the tail-first order; native: a replay through a level's end reaching the summary with the expected stats (the kill and shot counts cross-checked against the trace's own counters), the record written to the copy and read back next session; PAL audit unmoved on fighter rows | the screen on a PAL CRT: stats readable, the picture after ~0.5 s, the music through the load, `PRESS FIRE` after the minimum; a write-protected SIO2SD image: `BEST` still shows, no error; **the real drive: the wall-clock transition time (decides the optional fast loader)** |
+| **M5a-S2** | `feat/level-summary` | §4.8: the summary screen replacing the loader screen (code in `$0500`, art per region read first, labels and the AI texts to disk), the stat counters and their hooks (the shots scan in the window, Q13; debris as three hits, Q14), the grade, the save record with the direct-SIO write under Q16's rules and the per-level best, the tail-first level read with the music tick in the wait loop, the 3-s minimum / FIRE interlock (Q15), the START GAME form (Q17); the harness mounts a copy of the ATR | −92 | reader −156 +304; `PICKUP_CODE` +16; `HYBRID_C_EXT` +12; `$0500` −480; zero page −24; initial block 0 | records 2 and 5 +1 sector each (+4 frames); disk +33 | **+60 on every frame** (the shots scan; binding row ~1,349 with S1, DMA-on ~31,223); kill / hit events +15 each | 0 | START GAME 49 → 94 frames behind the screen; the post-boss transition 139 (§4.8.6 b) | any stat byte in the initial block; a scan over 70 native cycles; the fence under 1,300 on the binding row; the music audibly stalls during a read (owner smoke); a write reaching `dist/` in any harness run; the `$0500` code over 512 B without the grade moved to the window | build: the record format and the art runs pinned; 6502: BCD counters, the ratio and grade on fixture stats, the write primitive's ACK/COMPLETE/NAK paths, the tail-first order; native: a replay through a level's end reaching the summary with the expected stats (the kill and shot counts cross-checked against the trace's own counters), the record written to the copy and read back next session; PAL audit unmoved on fighter rows | the screen on a PAL CRT: stats readable, the picture after ~0.5 s, the music through the load, `PRESS FIRE` after the minimum; a write-protected SIO2SD image: `BEST` still shows, no error; **the real drive: the wall-clock transition time (decides the optional fast loader)** |
 | **M5b-S3** | `feat/boss-band` | §5.1–5.3, §5.6 without lasers: `BOSS_DUE`, the transition and its read, slot B, the band builder, HSCROL motion, the third DLI, region 1's data, module draw/damage, shot-versus-module, the controller's phases (guns → core), the chain explosion, bonus, the hand-off to the summary screen (→ menu until M4), the restore behind the summary; `light[3]` 0 → 1; harness: third DLI, boss milestone, `director-complete-*` through the boss | −48 | slot A ~1,250 B of code; slot B 610; `ENTITY_STATE` −10 | disk +16 +10; transport 0 (the hooks ride S1's sector) | boss frames per §5.4 less lasers: worst with one Light **~1,640** (scroll stopped) | boss frames ~30,000 | boss entry 98 frames; post-boss START GAME +60 | a boss frame under 500 in the audit; DMA-on over 32,568; the restore byte compare fails; the band map crosses a 4 KB boundary | §5.10 less the laser items | a full level 1 to the boss and the clear on hardware; the banner and tone; the band's motion and the palette seam; **a second game after the clear: the capital sector renders** (the restore) |
 | **M5b-S4** | `feat/boss-lasers` | §5.5, §5.8: lasers 1 / 2 / 4, the laser damage source, the shake shared with the player's death (item 25), the boss theme copy (item 14), the laser contact session replacing the recorded one (Q4), the missile-plane clause exception | −48 | slot A +~500 B | disk 0 (inside the 16 + 10) | §5.4 in full: worst **1,238** (scroll stopped) | ~30,270 | 0 | fence < 500 on any boss frame; the laser session not passing on the default ATR; `missile_plane_rows` residue outside the boss sector | §5.8's clauses; `boss-escort`; cycle pins | the warning readable at ~0.5 s; the beam's hit and its sound; the chain explosion and shake on a CRT; the player's death shake |
 | **M5b-S5** | `feat/boss-regions` | regions 2–4's art and data from the concepts, the M8 tuning layout, level 2's boss through the debug route, release prep for `v0.3.0` (hardware checklist, README EN + PL) | 0 | 0 | disk +30 | 0 | 0 | 0 | a region run > 10 sectors | build pins; the four regions through `--level=N` review builds | each region's boss on hardware through a review ATR; level 1's through the default |
@@ -1121,10 +1193,11 @@ STATUS updated, the free tails stated in the commit.
 **After M5b-S5: `v0.3.0`** — the owner's release checklist
 (`hardware-testing.md` §1–§11 plus the S2 and S3 items) on the default ATR.
 
-**Projected figures at the end of M5** (budgeted): window **1,268** free;
-initial block 14 … 31 B to STOP; transport 107 / 105 / 212, ATR menu ~553;
-worst fighter-row fence margin ~1,410; worst boss-row margin 1,238 (scroll
-stopped) with DMA-on ~30,270; DLIs 2 (3 in a boss sector); recorded clause
+**Projected figures at the end of M5** (budgeted): window **1,220** free;
+initial block 23 … 31 B to STOP; transport 107 / 105 / 212, ATR menu ~553;
+worst fighter-row fence margin ~1,349 with DMA-on ~31,223 (over the 31,200
+target by ~23, under the hard gate); worst boss-row margin 1,178 (scroll
+stopped) with DMA-on ~30,330; DLIs 2 (3 in a boss sector); recorded clause
 failures 1 → 0 (the laser session replaces the shell one); free disk 319 −
 105 = 214 sectors after twelve levels (210 with the attract stream).
 
@@ -1132,7 +1205,9 @@ failures 1 → 0 (the laser session replaces the shell one); free disk 319 −
 
 ## 9. Owner questions
 
-Each with the recommended answer and what it costs.
+**All answered on 2026-10-03 — §1.4 has the answers; the table below is kept
+as the record of what was asked and recommended.** Q13 was answered against
+the recommendation.
 
 | # | Question | Recommended answer | Cost of the recommendation | The alternative and its cost |
 | ---: | --- | --- | --- | --- |

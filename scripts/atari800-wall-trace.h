@@ -1087,8 +1087,11 @@ static unsigned dfboot_trace_head;
  * in the boot smoke and in every replay when DFSUMMARY_OUTPUT is set. It
  *   - drives FIRE only while the summary polls for it, with a press every
  *     eight frames, so a replay passes the screen the way a player would;
- *   - records each summary: the entry, the first displayed frame (and that
- *     frame's screen rows), the frame PRESS FIRE appears, the frame FIRE is
+ *   - records each summary: the entry (and, for START GAME, the screen, list
+ *     and colours on at that moment: a session's first START GAME shows the
+ *     interim screen while the module loads), the first displayed frame (and
+ *     that frame's screen rows) - dated by the scanline its list goes on at,
+ *     since ANTIC starts a list at scanline 8 -, the frame PRESS FIRE appears, the frame FIRE is
  *     accepted, every command frame on the wire with its command and sector,
  *     the gameplay music's ticks while the screen is up, the stat block at the
  *     level-end entry, and two counters kept by the observer itself, from
@@ -1103,7 +1106,7 @@ static void dftrace_write(void);
 static FILE *dfsummary_file;
 static int dfsummary_enabled = -1;
 static int dfsummary_end_session;
-static unsigned dfsummary_dlist, dfsummary_fire_release, dfsummary_fire_press;
+static unsigned dfsummary_dlist, dfsummary_dlist_end, dfsummary_fire_release, dfsummary_fire_press;
 static unsigned dfsummary_start_entry, dfsummary_end_entry, dfsummary_exit_start;
 static unsigned dfsummary_exit_end, dfsummary_tick, dfsummary_tx_done, dfsummary_frame_bytes;
 static unsigned dfsummary_score_pc[3], dfsummary_projectile_active, dfsummary_failure;
@@ -1111,7 +1114,7 @@ static unsigned dfsummary_level_loaded;
 static int dfsummary_open;
 static unsigned dfsummary_kind, dfsummary_entry_frame, dfsummary_display_frame;
 static unsigned dfsummary_ready_frame, dfsummary_loaded_frame, dfsummary_ticks;
-static unsigned dfsummary_tick_frames, dfsummary_last_tick_frame, dfsummary_last_frame;
+static unsigned dfsummary_tick_frames, dfsummary_last_tick_frame;
 static unsigned dfsummary_frame_count, dfsummary_frame_cmd[DFSUMMARY_MAX_FRAMES];
 static unsigned dfsummary_frame_sector[DFSUMMARY_MAX_FRAMES], dfsummary_frame_at[DFSUMMARY_MAX_FRAMES];
 static unsigned dfsummary_stats[12], dfsummary_kills, dfsummary_shots, dfsummary_count;
@@ -1120,6 +1123,10 @@ static UBYTE dfsummary_slots[5];
 static unsigned dfsummary_slot_frame[5], dfsummary_frame_counter, dfsummary_cancelled;
 static unsigned dfsummary_entry_cancelled;
 static UBYTE dfsummary_first_screen[DFSUMMARY_ROWS * 40u];
+#define DFSUMMARY_ENTRY_ROWS 24u
+static UBYTE dfsummary_entry_screen[DFSUMMARY_ENTRY_ROWS * 40u];
+static unsigned dfsummary_entry_dlist, dfsummary_entry_dma, dfsummary_entry_colpf1;
+static unsigned dfsummary_entry_colpf2, dfsummary_entry_colbk, dfsummary_entry_chbase;
 
 static unsigned dfsummary_env(const char *name)
 {
@@ -1144,6 +1151,7 @@ static void dfsummary_init(void)
 	}
 	dfsummary_end_session = getenv("DFSUMMARY_END_SESSION") != NULL;
 	dfsummary_dlist = dfsummary_env("DFSUMMARY_DLIST");
+	dfsummary_dlist_end = dfsummary_env("DFSUMMARY_DLIST_END");
 	dfsummary_fire_release = dfsummary_env("DFSUMMARY_FIRE_RELEASE");
 	dfsummary_fire_press = dfsummary_env("DFSUMMARY_FIRE_PRESS");
 	dfsummary_start_entry = dfsummary_env("DFSUMMARY_START_ENTRY");
@@ -1194,6 +1202,12 @@ static void dfsummary_close(unsigned frame, int failed)
 	dfsummary_hex(dfsummary_first_screen, sizeof(dfsummary_first_screen));
 	fprintf(dfsummary_file, ",\"final_screen\":");
 	dfsummary_hex(&MEMORY_mem[0x4000u], DFSUMMARY_ROWS * 40u);
+	fprintf(dfsummary_file, ",\"entry_screen\":");
+	dfsummary_hex(dfsummary_entry_screen, sizeof(dfsummary_entry_screen));
+	fprintf(dfsummary_file, ",\"entry_dlist\":%u,\"entry_dma\":%u,\"entry_colpf1\":%u,"
+		"\"entry_colpf2\":%u,\"entry_colbk\":%u,\"entry_chbase\":%u",
+		dfsummary_entry_dlist, dfsummary_entry_dma, dfsummary_entry_colpf1,
+		dfsummary_entry_colpf2, dfsummary_entry_colbk, dfsummary_entry_chbase);
 	fprintf(dfsummary_file, ",\"record\":");
 	dfsummary_hex(&MEMORY_mem[0x7810u], 128u);
 	fprintf(dfsummary_file, "}\n");
@@ -1246,6 +1260,13 @@ static void dfsummary_observe(unsigned pc)
 		dfsummary_entry_shots = dfsummary_shots;
 		dfsummary_entry_cancelled = dfsummary_cancelled;
 		memset(dfsummary_first_screen, 0, sizeof(dfsummary_first_screen));
+		memcpy(dfsummary_entry_screen, &MEMORY_mem[0x4000u], sizeof(dfsummary_entry_screen));
+		dfsummary_entry_dlist = ANTIC_dlist;
+		dfsummary_entry_dma = ANTIC_DMACTL;
+		dfsummary_entry_colpf1 = GTIA_COLPF1;
+		dfsummary_entry_colpf2 = GTIA_COLPF2;
+		dfsummary_entry_colbk = GTIA_COLBK;
+		dfsummary_entry_chbase = ANTIC_CHBASE;
 		if (dfsummary_kind == 0u) {
 			/* A new game: the observer's counters start with it. */
 			dfsummary_kills = dfsummary_shots = dfsummary_cancelled = 0u;
@@ -1253,13 +1274,16 @@ static void dfsummary_observe(unsigned pc)
 	}
 	if (!dfsummary_open)
 		return;
-	if (frame != dfsummary_last_frame) {
-		dfsummary_last_frame = frame;
-		if (dfsummary_display_frame == 0xffffffffu && ANTIC_DMACTL != 0u &&
-			ANTIC_dlist >= dfsummary_dlist && ANTIC_dlist < dfsummary_dlist + 40u) {
-			dfsummary_display_frame = frame;
-			memcpy(dfsummary_first_screen, &MEMORY_mem[0x4000u], sizeof(dfsummary_first_screen));
-		}
+	/* Owner review of M5a-S2, item 1: the first displayed frame is dated by the
+	 * scanline the summary's list goes on at, checked every instruction - not
+	 * by the next host-frame boundary, which put a list switched on at
+	 * scanline ~3 one frame late. ANTIC starts a list at scanline 8 (antic.c:
+	 * eight blank lines, then the list), so a list on before 8 shows this
+	 * frame. The screen is the one ANTIC is about to show. */
+	if (dfsummary_display_frame == 0xffffffffu && (ANTIC_DMACTL & 0x20u) != 0u &&
+		ANTIC_dlist >= dfsummary_dlist && ANTIC_dlist < dfsummary_dlist_end) {
+		dfsummary_display_frame = ANTIC_ypos < 8 ? frame : frame + 1u;
+		memcpy(dfsummary_first_screen, &MEMORY_mem[0x4000u], sizeof(dfsummary_first_screen));
 	}
 	if (pc == dfsummary_tick && dfsummary_display_frame != 0xffffffffu) {
 		++dfsummary_ticks;

@@ -1406,6 +1406,10 @@ function sessionMedia(sourcePath, id, { readOnly = false, reuse = false } = {}) 
 }
 
 // The summary observer's addresses (scripts/atari800-wall-trace.h, dfsummary).
+// The frontend text list the reader's interim screen uses (owner review of
+// M5a-S2): set with the observer's environment, read by the START clauses.
+let frontendTextDisplayList = null;
+
 function summaryTraceEnvironment(inputDirectory, labels) {
   const readLabels = (file) => parseViceLabels(fs.readFileSync(path.join(inputDirectory, file), "utf8"));
   const summary = readLabels("level-summary.lbl");
@@ -1416,8 +1420,11 @@ function summaryTraceEnvironment(inputDirectory, labels) {
     invariant(Number.isInteger(value), `summary observer label ${name} is missing`);
     return `0x${value.toString(16)}`;
   };
+  frontendTextDisplayList = labels.get("frontend_text_display_list");
+  invariant(Number.isInteger(frontendTextDisplayList), "frontend_text_display_list is missing");
   return {
     DFSUMMARY_DLIST: address(summary, "summary_display_list"),
+    DFSUMMARY_DLIST_END: address(summary, "summary_display_list_end"),
     DFSUMMARY_FIRE_RELEASE: address(summary, "summary_fire_release"),
     DFSUMMARY_FIRE_PRESS: address(summary, "summary_fire_press"),
     DFSUMMARY_START_ENTRY: address(summary, "summary_start_game"),
@@ -1448,18 +1455,20 @@ function levelSummaryClauses(session, records, rows, publishedAtrPath) {
   const starts = records.filter((record) => record.kind === "start");
   invariant(starts.length >= 1, `${session.id} never passed a START GAME summary`);
   const lastRead = (record) => Math.max(-1, ...record.frames.map(([, , at]) => at));
-  // The observer dates `display` to the first host-frame boundary it sees with
-  // the summary's list on; the game counts SUMMARY_MINIMUM_FRAMES VCOUNT wraps
-  // from the DMACTL write inside the frame before it, so PRESS FIRE lands on
-  // display + 149 at the earliest under this sampling, and FIRE is accepted
-  // after at least 150 displayed frames.
+  // `display` is the first frame the summary's list is on screen (the
+  // observer dates it by scanline); PRESS FIRE is polled no earlier than 150
+  // frames after it (Q15).
+  invariant(interimScreenHolds(starts[0], { first: true }),
+    `${session.id} the first START GAME's interim screen: ${interimScreenText(starts[0])}`);
   for (const record of starts) {
     invariant(record.display >= 0 && record.accept - record.display >= 150 &&
-      record.ready >= record.display + 149 && record.ready >= lastRead(record) &&
-      summaryRowText(record.first_screen, 0).includes("LEVEL") &&
+      record.ready >= record.display + 150 && record.ready >= lastRead(record) &&
+      summaryRowText(record.first_screen, 0) === START_TOP_LINE &&
+      interimScreenHolds(record) &&
       record.frames.every(([command]) => command === 0x52),
     `${session.id} START GAME summary: displayed ${record.display}, ready ${record.ready}, ` +
-      `last read ${lastRead(record)}, FIRE accepted ${record.accept}`);
+      `last read ${lastRead(record)}, FIRE accepted ${record.accept}, top line ` +
+      `"${summaryRowText(record.first_screen, 0).trim()}"`);
   }
   const evidence = {
     start_summaries: starts.map((record) => ({
@@ -1553,6 +1562,29 @@ function levelSummaryClauses(session, records, rows, publishedAtrPath) {
     first_screen: [2, 3, 4, 5, 6, 7, 8].map((index) => row(index).trim()),
   };
   return evidence;
+}
+
+// Owner review of M5a-S2 (2026-10-03): START GAME keeps the old loader's top
+// line, and a session's first START GAME shows it alone - same row, column,
+// luminance - on the interim screen while the summary module loads.
+const START_TOP_LINE = " ".repeat(9) + "ENGAGING ENEMY SECTOR" + " ".repeat(10);
+
+function interimScreenText(record) {
+  return Array.from({ length: 24 }, (_, row) => summaryRowText(record.entry_screen, row).trim())
+    .map((text, row) => (text ? `${row}:"${text}"` : "")).filter(Boolean).join(" ") +
+    ` dlist $${record.entry_dlist.toString(16)} dma $${record.entry_dma.toString(16)} ` +
+    `colpf1 $${record.entry_colpf1.toString(16)}`;
+}
+
+function interimScreenHolds(record, { first = false } = {}) {
+  if (record.entry_dma === 0) return !first;      // a later START GAME: the display is off
+  return record.entry_dlist >= frontendTextDisplayList &&
+    record.entry_dlist < frontendTextDisplayList + 32 && (record.entry_dma & 0x20) !== 0 &&
+    summaryRowText(record.entry_screen, 0) === START_TOP_LINE &&
+    Array.from({ length: 23 }, (_, row) => summaryRowText(record.entry_screen, row + 1))
+      .every((text) => text.trim() === "") &&
+    (record.entry_colpf1 & 0x0f) === 0x0a && record.entry_colpf2 === 0 &&
+    record.entry_colbk === 0 && record.entry_chbase === 0x48;
 }
 
 function readSummaryRecords(file) {
@@ -2519,13 +2551,15 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
     const emptyPanel = [2, 3, 4, 5, 6, 7, 8].every((row) =>
       summaryRowText(startSummary.first_screen, row).slice(20).trim() === "");
     const lastRead = Math.max(...startSummary.frames.map(([, , at]) => at));
-    invariant(firstTitle.includes("LEVEL 01") && emptyPanel &&
+    invariant(firstTitle === START_TOP_LINE && emptyPanel &&
+      interimScreenHolds(startSummary, { first: true }) &&
       summaryRowText(startSummary.final_screen, 9).includes("--") &&
       startSummary.display >= 0 &&
       startSummary.accept - startSummary.display >= 150 &&
-      startSummary.ready >= startSummary.display + 149 && startSummary.ready >= lastRead &&
+      startSummary.ready >= startSummary.display + 150 && startSummary.ready >= lastRead &&
       startSummary.frames.every(([command]) => command === 0x52),
-    `${definition.id} START GAME summary: title "${firstTitle.trim()}", empty panel ` +
+    `${definition.id} START GAME summary: title "${firstTitle.trim()}", interim ` +
+      `${interimScreenText(startSummary)}, empty panel ` +
       `${emptyPanel}, displayed ${startSummary.display}, ready ${startSummary.ready}, ` +
       `last read ${lastRead}, FIRE accepted ${startSummary.accept}, commands ` +
       `${[...new Set(startSummary.frames.map(([command]) => command))].join(",")}`);

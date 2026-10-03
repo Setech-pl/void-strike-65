@@ -933,7 +933,7 @@ starfield, so all overlaps are lifetime-safe.
 | `$9D75-$9FF7` | 643 B | C Director RODATA plus high CODE |
 | `$9FF8-$9FF9` | 2 B | free Director reservation tail |
 | `$9FFA-$9FFF` | 6 B | untouched guard; not available capacity |
-| `$A000-$A5FF` | 1,536 B | `SECTOR_READER` (roadmap 4.3): reader, loader-mode display, failure screen, AI text pool |
+| `$A000-$A5FF` | 1,536 B | `SECTOR_READER` (roadmap 4.3): reader, loader-mode display, failure screen, AI text pool; since M5a-S1 also the overlay run read (`$A006`), the overlay directory and the capital vector table image — 1,498 B used, **38 B free** (see *M5a-S1* below) |
 | `$A600-$ADFF` | 2,048 B | `LEVEL_BUFFER`, **16 sectors** since Q-1 (owner, 2026-09-23); 32 since owner decision X (2026-09-21); was 44. Since 2026-09-22 the first five sectors carry the gameplay music player — see *Music v2 §1.4* below |
 | `$AE00-$BBFF` | 3,584 B | `HYBRID_C_WINDOW` (owner decision X, re-sized by Q-1): the Director link's half of decision B's window, home of the Light kernel and of roadmap 4.6's Director. Reached by its own DFMC record |
 | `$BC00-$BC19` | 26 B | `READER_BSS` |
@@ -1144,6 +1144,36 @@ byte-identical to `main` `55cc361`.
 The CRC per-bit loop stays in page `$25` (per-bit `bne` at `$25FB`, next
 instruction `$25FD`, **2 B before a crossing**); two link-time `.assert`s now
 hold it there.
+
+## M5a-S1 — overlay slot A and the capital vector table (2026-10-03)
+
+`docs/plans/m5-loading-boss.md` §4.1–4.2, §4.9. MEASURED from the linked
+images. **The initial block did not grow** (13,621 B before and after), no
+segment changed size except the window's Light kernel and the sector reader,
+and transport is unchanged: boot 107, extension 102, total 209 sectors.
+
+| Range | Bytes | Was | Is |
+| --- | ---: | --- | --- |
+| `BROADSIDE` `$6CF0-$6DE7` | 248 | `update_broadside` … `update_sector_completion` | `apply_broadside_player_damage`, `apply_player_damage`, `update_hud_status`, `update_weapon_booster_hud`, `show_weapon_booster_hud` — moved down from `$7136-$722D`, byte for byte |
+| `BROADSIDE` `$6DE8-$722D` | 1,094 | the damage gate and HUD, then `begin_broadside_impact`'s predecessors | `update_broadside` … `update_sector_completion`, moved up by 248 B. From `begin_broadside_impact` (`$722E`) on, every address is unchanged; `free_broadside_slot` stays `$76A7` |
+| **slot A** `$6DE8-$75E7` | **2,048** | — | the first 16 sectors of the now contiguous capital code, `update_broadside` to the head of `handle_player_hull_contact`. Code only, no data and no self-modified byte: its bytes are the restore run on the disk (sectors 512–527) and are byte-compared after START GAME in every boot-smoke session. `capital_slot_a` / `capital_slot_a_end` (exported equates) |
+| `BROADSIDE` `$75E8-$7666` | 127 | — | the tail of `handle_player_hull_contact`, resident outside the slot, reached only from the routine's head |
+| `BROADSIDE` total | 6,653 | 6,653 | unchanged, **free tail 3 B** (`$780D-$780F`). Extension record 1 packs 5,517 → 5,494 B (44 sectors, unchanged) |
+| `LIGHT_KERNEL` `$B368-$B38B` | 36 | — | the capital vector table: 12 `jmp`s appended to the kernel's five frozen vectors (`CAPITAL_VECTOR_*` in `build/director-abi.inc`). Every resident call into the capital group goes through it |
+| `LIGHT_KERNEL` `$B359-$B65B` | 771 | 735 | +36 B, the table. Record 9: 653 → 689 B packed, 6 sectors (58 B left) |
+| `$B65C-$BBFF` | **1,444 free** | 1,480 | the window's tail |
+| `SECTOR_READER` `$A000-$A5D9` | 1,498 | 1,473 | +25 B net: the run read and the shared sector loop, the restore at START GAME, the `$A009` vector; the AI pool 304 → 152 B. **38 B free** (`$A5DA-$A5FF`); record 10 is 1,498 of 1,515 B, 12 sectors |
+| `SECTOR_READER` `$A4C5-$A55C` | 152 | 304 | `ai_line_pool`, 4 × 38 B, generated from `assets/text/loader-ai-lines.json` |
+| `SECTOR_READER` `$A55D` | 1 | — | `sr_slot_a_overlaid`, in the transported image so it is 0 at every cold start |
+| `SECTOR_READER` `$A58E-$A5B5` | 40 | — | `overlay_directory`, 8 × {sector lo/hi, count, destination lo/hi}; entry 0 the capital slot A run, 1–7 empty |
+| `SECTOR_READER` `$A5B6-$A5D9` | 36 | — | `capital_vector_image`, the window table's bytes, put back after a restore |
+
+Reader vectors: `$A000` START GAME, `$A003` level load, **`$A006` overlay run
+read** (owner Q11; it was the reserved 4.9 drain), **`$A009`** the 4.9 drain
+predicate, appended.
+
+Disk: sectors **512–527** carry the capital restore run (the resident slot A
+bytes); levels keep sectors 320–511.
 
 ## The rotate gate for Heavy break-ups (2026-10-02)
 

@@ -15,6 +15,13 @@ end-of-road window re-derived in §6.1 with the levers that remain): the transit
 becomes a summary screen the loading runs behind, the fast loader becomes an
 optional later session, and the sessions are re-ranked (§8).
 
+**M5a-S1 implemented 2026-10-03** on `feat/overlay-slot`,
+`OWNER-SMOKE CANDIDATE` pending the owner's smoke: slot A, the capital
+vector table, the run read at `$A006`, restore variant (b), the AI pool
+8 → 4. As built, with the owner's fence-floor decision, the measured reserve
+lever (Probe B) and two repo deviations (12 entry points; the capital table
+image in the reader): §4.9. The rest of this plan is still the plan.
+
 Owner decisions of 2026-10-02 that this plan records (and
 [../plan-realizacji.md](../plan-realizacji.md) §0 now carries): **M5 is split
 into M5a, the loading platform — code overlays loaded from disk at
@@ -758,7 +765,7 @@ arithmetic; the 1050-class figure is debt item 5's ×2 ESTIMATE):
 | Read | Sectors | Emulator (frames / s) | 1050-class (s, est.) | SIO2SD standard (s, est.) |
 | --- | ---: | ---: | ---: | ---: |
 | summary art + labels (first) | 7 | 26 / 0.5 | 1.1 | 0.6 |
-| slot A capital restore | 16 | 60 / 1.2 | 2.4 | 1.4 |
+| slot A capital restore | 16 | 60 / 1.2 (**MEASURED 60**, S1 forced-restore boot smoke) | 2.4 | 1.4 |
 | level image, sectors 6–13 | 8 | 30 / 0.6 | 1.2 | 0.7 |
 | save record read (+ write after the stats) | 1 (+1) | 8 / 0.15 | 0.3 | 0.2 |
 | level image, sectors 1–5 (music, last) | 5 | 19 / 0.4 | 0.8 | 0.4 |
@@ -781,6 +788,91 @@ S2 (+75 → −25 budgeted: the 4-line AI stub, 152 B, goes if it lands).
 one 4-sector read per session; labels and art loaded first (7 sectors);
 the stats panel drawn from resident code on frame 1; the music from the
 buffer on frame 1.
+
+### 4.9 M5a-S1 as built (2026-10-03, `feat/overlay-slot`, `OWNER-SMOKE CANDIDATE`)
+
+Implemented as §4.1–4.2 describe, with the owner decision and the two repo
+deviations below. Every figure is MEASURED from the linked images, the
+regenerated evidence (`docs/runtime-wall-trace.json`) or a named run; load
+times are EMULATOR.
+
+**Owner decision, 2026-10-03 (this session).** The plain 3-byte table cost
+the binding row more than §4.1 priced: `2-evasive-fire3` f287 fence margin
+**1,439 → 1,391 (−48)**, A/B on the same emulator, against the brief's STOP
+at 1,400. About nine of the vectored calls run on every fighter frame, and a
+native cycle before the fence costs ~2.2 of margin; §4.1's "~30" counted
+them 1:1. The owner kept the plain table as planned, accepted the measured
+cost, and set this session's fence floor at **1,350** (the end-of-M5
+projection, 1,349, already assumed a cost here).
+
+**Probe B — a measured reserve lever, not taken.** Zero-timer fast paths in
+the four table entries for the launch-flash and capital-explosion ticks and
+renders (each returns before entering its slot loop when every timer is
+zero; the loops do nothing then): binding row **1,391 → 1,598 (+207; +159
+over main)**, DMA-on unchanged, for **+42 B of window** (the table 36 → 78 B).
+Not taken because window bytes, not cycles, are the binding resource on the
+road to 1.0 (§6.1). Probe A (vectoring only the nine entries that reach slot
+A) measured 1,397 and is not a lever. The probe's patch is described here;
+no probe byte is in the tree.
+
+**Deviation 1 — 12 entry points, not 20.** §4.1 listed "~20 distinct
+entries". The call graph has **12** calls into the capital group from code
+outside it: `init_broadside`, `update_broadside`, `tick_capital_explosions`,
+`tick_launch_flashes`, `update_engine_animation`,
+`handle_player_hull_contact`, `render_launch_flashes`,
+`render_capital_explosions`, `update_sector_completion`,
+`restore_active_muzzles` (from the world scroll), `prepare_next_hull_row`,
+`scroll_hull_columns`. The plan's other names (shell scheduling, the warning
+render, the scene scroll, the three muzzle routines, the three shell
+collisions, the slot free) are calls inside the group, and
+`restore_capital_explosions` has no caller. **Byte effect: the table is 36 B,
+not 60 → 72 (window −36 instead of −72).** The boss's hooks (tick, render,
+contact, completion) are all among the 12; a boss that needs another entry
+appends one.
+
+**Deviation 2 — the capital table image lives in the sector reader, not at
+slot A's head.** §4.1 had each overlay carry its table image at its head,
+and the slot's first byte be the image. For the capital overlay that image
+would be resident bytes in `BROADSIDE`, which has **3 B free**. The reader
+therefore carries the capital image (`capital_vector_image`, 36 B, generated
+from the same list as the window table and byte-compared with it by a test)
+and copies it back after a capital restore; a boss overlay's own image can
+still come with its run. **Byte effect: reader +36 B** (inside its
++152 −177 below), `BROADSIDE` 0.
+
+| | Plan (§4.1–4.2, §8) | MEASURED |
+| --- | --- | --- |
+| `BROADSIDE` | regrouped, 0 B | 6,653 B, free tail 3 B (unchanged). One move: the damage gate and HUD (248 B) ahead of `update_broadside`. Record 1: 5,517 → 5,494 B packed, 44 sectors |
+| slot A | ≥ 2,048 B | **`$6DE8-$75E7`, 2,048 B**, `update_broadside` to inside `handle_player_hull_contact`; code only |
+| vector table | 20 entries, 60 → 72 B, window | **12 entries, 36 B**, `$B368-$B38B`, appended to the Light kernel's five vectors |
+| window free | 1,480 → 1,420 … 1,408 | **1,444** |
+| window record | 9 → 10 sectors (+2 frames) | record 8 unchanged; the table is in record 9 (Light kernel), 653 → 689 of 747 B, 6 sectors: **0 sectors** |
+| sector reader | −136 +152 | **+152 −177** (run read and shared loop, restore, directory 40, table image 36, flag 1, `$A009` vector): 1,473 → 1,498 B, **38 B free**, record 10 12 sectors |
+| initial block | 13,621 ± 8 | **13,621** (0) |
+| boot / extension / total sectors | 107 / 102 → 103 / 210 | **107 / 102 / 209** |
+| ATR menu frame | +2 (549) | **547** (unchanged; baseline 596) |
+| disk | +16 | **+16**: sectors 512–527, the capital restore run |
+| binding row | ~−30 | **−48**: 1,439 → 1,391 (owner floor 1,350) |
+| capital rows | ~+60 | every capital replay **loses** 27–108 of margin on its worst row; none comes within 1,000 of the binding row (`capital-muzzle-ring-2-sweep-fire4` 2,859 → 2,832, `director-complete-2` 2,969 → 2,925) |
+| DMA-on maximum | — | 31,133 → **31,117** |
+| START GAME load | 49 frames | **49** frames (13 sectors), unchanged |
+| capital restore load | 16 sectors ≈ 60 frames | **60 frames** (16 sectors, 0 retries), forced-restore boot smoke |
+
+The AI pool is 4 × 38 B from `assets/text/loader-ai-lines.json` (Q3); the
+four kept lines are the v1 placeholders 01–04. The eight-line pool's index
+arithmetic overflowed a byte for line 8 (7 × 38 = 266), so that line was
+never shown correctly; four lines cannot overflow.
+
+Tests: `tests/overlay-slot.test.mjs` (the table, slot A's bounds, the run on
+the disk equal to the resident bytes, the directory and the table image, the
+AI pool from its asset) and five 6502-harness tests in
+`tests/sector-reader.test.mjs` (the run read, an empty entry, START GAME
+with and without an overlay, a failed restore). Harness: every boot-smoke
+session byte-compares slot A and the table after START GAME; a sixth session
+forces the restore (slot and table zeroed at the reader's entry, as a boss
+would leave them); `--force-overlay-restore` runs any replay after a forced
+restore (`2-evasive-fire3`: margin and DMA-on unchanged, every gameplay
+column identical).
 
 ---
 
@@ -1031,7 +1123,7 @@ Figures `expected → budgeted`; the M3 sessions are the m3-waves-heavy plan's
 | Point on the road | **With overlays** (this plan) | Without overlays, boss B-A | Without, boss B-B |
 | --- | ---: | ---: | ---: |
 | today | 1,480 | 1,480 | 1,480 |
-| after M5a-S1 (the vector table, 60 → 72) | 1,420 → 1,408 | 1,480 | 1,480 |
+| after M5a-S1 (the vector table, 60 → 72) — **MEASURED 1,444** (12 entries, 36 B; §4.9): every row below gains **+36 B budgeted / +24 expected** | 1,420 → 1,408 | 1,480 | 1,480 |
 | after M5a-S2 (the stat counters 36 → 44 and the shots scan 40 → 48, Q13; the screen's code is in `$0500`) | 1,344 → 1,316 | 1,480 | 1,480 |
 | after M5b (`BOSS_DUE` + shake, 80 → 96) | 1,264 → **1,220** | 340 → **112** (−1,140 → −1,368) | 270 → 28 |
 | after M4 (150 → 180) | 1,114 → 1,040 | 190 → −68 | 120 → −152 |
@@ -1061,6 +1153,12 @@ short on budgeted figures, 364 on expected ones** — before the levers.
 | the M3 plan's own cuts (§6.3 there: the column helper 65 at +12 cycles per Interceptor tracking frame, one damage stage 12, the armoured dodge 46, the volley into the arena 72) | up to **195** | each a visible or cycle loss the M3 plan recommends against | 1–2 | m3-waves-heavy §6.3 |
 | **sum, without the cuts** | **547** | | | |
 
+**A cycle lever, measured in M5a-S1 (§4.9) and not taken:** Probe B, the
+zero-timer fast paths in four capital vector entries, buys **+207 of fence
+margin** on the binding row (1,391 → 1,598) for **+42 B of window**. It is
+the first lever to reach for if a later session needs cycles rather than
+bytes; it costs the resource this ledger is short of, which is why it waits.
+
 So the road ends **−63 B budgeted after the four levers (+183 on expected
 figures)**. **The item that gives way first is the attract mode** (item 15,
 240 B budgeted): it is the last code item in the order, it is the only
@@ -1078,8 +1176,8 @@ recommended: slot B needs the spare sectors (§4.1).
 
 | Home | Today free | M5a | M5b | After M5 | Note |
 | --- | ---: | ---: | ---: | ---: | --- |
-| window | 1,480 | −72 −92 | −96 | **1,220** | §6.1 |
-| sector reader | 63 | +152 −136 (S1); +304 −156 (S2: the AI texts to disk, the summary and the write) = **+227** | 0 | 227 (−25 after the optional fast loader's 100 and the stub's 152 going) | Q3 |
+| window | 1,480 | −72 −92 (S1 **MEASURED −36**: 1,444) | −96 | **1,220** (1,256 with S1 as measured) | §6.1 |
+| sector reader | 63 | +152 −136 (S1; **MEASURED +152 −177 = 38 B free**, the 177 including the 36-B capital table image §4.9 adds); +304 −156 (S2: the AI texts to disk, the summary and the write) = **+227** | 0 | 227 (−25 after the optional fast loader's 100 and the stub's 152 going) | Q3 |
 | `BROADSIDE` | 3 (+119 pins) | 0 (regrouped, byte-neutral) | 0 (the boss lives in the slot) | 3 (+119) | the pins stay M3's |
 | arena | 35 | 0 | 0 | 35 | |
 | `DIRECTOR_RAM` | 43 | 0 | 0 | 43 | |
@@ -1089,7 +1187,7 @@ recommended: slot B needs the spare sectors (§4.1).
 | zero page `$AC-$FF` | 84 | −24 (stats, the scan's previous-state copy, summary state) | −10 (boss state, if not `ENTITY_STATE`) | 50 … 60 | |
 | `ENTITY_STATE` (~32) | ~32 | 0 | −10 | ~22 | boss state |
 | unowned RAM | 22 | 0 | 0 | 22 | left for M3 |
-| initial block to STOP | 31 | ±8 (G: operand re-points move the packed size); 0 from the stats (Q13) | 0 | **23 … 31** | STOP if negative |
+| initial block to STOP | 31 | ±8 (G: operand re-points move the packed size; S1 **MEASURED 0**: 13,621 B); 0 from the stats (Q13) | 0 | **23 … 31** | STOP if negative |
 | slot A (new) | — | ≥ 2,048 | −1,980 | ≥ 68 | the boss's home |
 | slot B (new) | — | 768 | −610 | 158 | band map 512 + tables ~100 |
 
@@ -1099,7 +1197,7 @@ ceiling 13,684 is 32 B further and is not budgeted):
 | Point | Bytes to STOP | Basis |
 | --- | ---: | --- |
 | today | 31 | manifest |
-| after M5a-S1 (operand re-points of ~33 `jsr` sites) | 23 … 31 (±8, G: the packed size is not predictable byte for byte) | §4.1 |
+| after M5a-S1 (operand re-points of ~33 `jsr` sites) — **MEASURED 31** (12 sites re-pointed; 13,621 B, unchanged) | 23 … 31 (±8, G: the packed size is not predictable byte for byte) | §4.1 |
 | after M5a-S2 (Q13: no stat byte in the initial block) | 23 … 31 | §4.8.2 |
 | after M5b | 23 … 31 | the boss DLI and transition live in the overlay |
 | after M4 (0 by the C route; 6 → 10 packed B if a main-loop hook proves unavoidable) | 13 … 31 | budget §2 M4 |
@@ -1112,7 +1210,7 @@ ceiling 13,684 is 32 B further and is not budgeted):
 | | Today | After M5 | Note |
 | --- | ---: | ---: | --- |
 | boot sectors | 107 | 107 | no new boot sector |
-| extension sectors | 102 | 105 | the window record 9 → 10 (1,067 + ~165 packed B of hooks, counters and table > 1,131); records 2 and 5 +1 each (the stat hooks) |
+| extension sectors | 102 | 105 | the window record 9 → 10 (1,067 + ~165 packed B of hooks, counters and table > 1,131); records 2 and 5 +1 each (the stat hooks). **S1 MEASURED +0**: the table went into the Light kernel's record 9 (653 → 689 of 747 B, 6 sectors), not record 8 |
 | total transport | 209 | 212 | |
 | ATR menu frame (baseline 596, warn 606) | 547 | ~553 | 2 frames per sector, sizing rule |
 | disk, level runs from 320 | 13 used | 192 reserved (12 × 16) | sectors 320–511 |
@@ -1182,7 +1280,7 @@ STATUS updated, the free tails stated in the commit.
 
 | # | Branch | Scope | Window | Other bytes | Records / sectors / frames | Cycles (worst rows) | DMA | Load | STOP conditions | Tests and clauses | Owner smoke |
 | --- | --- | --- | ---: | --- | --- | --- | --- | --- | --- | --- | --- |
-| **M5a-S1** | `feat/overlay-slot` | §4.1–4.2: `BROADSIDE` regrouped, slot A bounded, the 20-entry table in the window, the reader's run read + directory + boss-resident flag + table copy, the build's overlay runs from sector 512 and the capital restore run, the AI pool 8 → 4 (Q3) | −72 | reader −136 +152; `BROADSIDE` 0; initial block ±8 (G) | window record 9 → 10 (+1 sector, +2 frames); disk +16 | binding row ~−30 (vectored calls); capital ~+60 | 0 | 0 (no read is added until a boss exists) | initial block > 13,652; worst fence < 1,400; a `BROADSIDE` label the harness or a test pins moves without its pin being re-pointed in the same commit; the restore run ≠ the resident bytes | §4.7; the binding replay's cycles proven on both builds (page crossings); boot smoke 8/8 | play level 1 through its capital sector: nothing visible changes; the loader screen with four lines |
+| **M5a-S1** — **implemented 2026-10-03, `OWNER-SMOKE CANDIDATE`; as built §4.9** | `feat/overlay-slot` | §4.1–4.2: `BROADSIDE` regrouped, slot A bounded, the 20-entry table in the window, the reader's run read + directory + boss-resident flag + table copy, the build's overlay runs from sector 512 and the capital restore run, the AI pool 8 → 4 (Q3) | −72 | reader −136 +152; `BROADSIDE` 0; initial block ±8 (G) | window record 9 → 10 (+1 sector, +2 frames); disk +16 | binding row ~−30 (vectored calls); capital ~+60 | 0 | 0 (no read is added until a boss exists) | initial block > 13,652; worst fence < 1,400; a `BROADSIDE` label the harness or a test pins moves without its pin being re-pointed in the same commit; the restore run ≠ the resident bytes | §4.7; the binding replay's cycles proven on both builds (page crossings); boot smoke 8/8 | play level 1 through its capital sector: nothing visible changes; the loader screen with four lines |
 | **M5a-S2** | `feat/level-summary` | §4.8: the summary screen replacing the loader screen (code in `$0500`, art per region read first, labels and the AI texts to disk), the stat counters and their hooks (the shots scan in the window, Q13; debris as three hits, Q14), the grade, the save record with the direct-SIO write under Q16's rules and the per-level best, the tail-first level read with the music tick in the wait loop, the 3-s minimum / FIRE interlock (Q15), the START GAME form (Q17); the harness mounts a copy of the ATR | −92 | reader −156 +304; `PICKUP_CODE` +16; `HYBRID_C_EXT` +12; `$0500` −480; zero page −24; initial block 0 | records 2 and 5 +1 sector each (+4 frames); disk +33 | **+60 on every frame** (the shots scan; binding row ~1,349 with S1, DMA-on ~31,223); kill / hit events +15 each | 0 | START GAME 49 → 94 frames behind the screen; the post-boss transition 139 (§4.8.6 b) | any stat byte in the initial block; a scan over 70 native cycles; the fence under 1,300 on the binding row; the music audibly stalls during a read (owner smoke); a write reaching `dist/` in any harness run; the `$0500` code over 512 B without the grade moved to the window | build: the record format and the art runs pinned; 6502: BCD counters, the ratio and grade on fixture stats, the write primitive's ACK/COMPLETE/NAK paths, the tail-first order; native: a replay through a level's end reaching the summary with the expected stats (the kill and shot counts cross-checked against the trace's own counters), the record written to the copy and read back next session; PAL audit unmoved on fighter rows | the screen on a PAL CRT: stats readable, the picture after ~0.5 s, the music through the load, `PRESS FIRE` after the minimum; a write-protected SIO2SD image: `BEST` still shows, no error; **the real drive: the wall-clock transition time (decides the optional fast loader)** |
 | **M5b-S3** | `feat/boss-band` | §5.1–5.3, §5.6 without lasers: `BOSS_DUE`, the transition and its read, slot B, the band builder, HSCROL motion, the third DLI, region 1's data, module draw/damage, shot-versus-module, the controller's phases (guns → core), the chain explosion, bonus, the hand-off to the summary screen (→ menu until M4), the restore behind the summary; `light[3]` 0 → 1; harness: third DLI, boss milestone, `director-complete-*` through the boss | −48 | slot A ~1,250 B of code; slot B 610; `ENTITY_STATE` −10 | disk +16 +10; transport 0 (the hooks ride S1's sector) | boss frames per §5.4 less lasers: worst with one Light **~1,640** (scroll stopped) | boss frames ~30,000 | boss entry 98 frames; post-boss START GAME +60 | a boss frame under 500 in the audit; DMA-on over 32,568; the restore byte compare fails; the band map crosses a 4 KB boundary | §5.10 less the laser items | a full level 1 to the boss and the clear on hardware; the banner and tone; the band's motion and the palette seam; **a second game after the clear: the capital sector renders** (the restore) |
 | **M5b-S4** | `feat/boss-lasers` | §5.5, §5.8: lasers 1 / 2 / 4, the laser damage source, the shake shared with the player's death (item 25), the boss theme copy (item 14), the laser contact session replacing the recorded one (Q4), the missile-plane clause exception | −48 | slot A +~500 B | disk 0 (inside the 16 + 10) | §5.4 in full: worst **1,238** (scroll stopped) | ~30,270 | 0 | fence < 500 on any boss frame; the laser session not passing on the default ATR; `missile_plane_rows` residue outside the boss sector | §5.8's clauses; `boss-escort`; cycle pins | the warning readable at ~0.5 s; the beam's hit and its sound; the chain explosion and shake on a CRT; the player's death shake |

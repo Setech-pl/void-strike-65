@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-02 (contact-scenario-redesign)
+Last update: 2026-10-03 (M5a-S1, the overlay slot)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -68,9 +68,13 @@ released.** Section "ATR-only build" below.
 
 **M5 — the loading platform (M5a) and the boss (M5b) — plan (2026-10-03, `docs/plan-m5`, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/m5-loading-boss.md](plans/m5-loading-boss.md). Owner decisions of 2026-10-02 recorded: M5 = M5a (code overlays loaded from disk at transitions, a fast SIO loader with automatic fallback) then M5b (the boss on it); `v0.2.1` is the checkpoint before the loading rework, `v0.3.0` ships after the whole of M5. The boss becomes an **overlay** in the capital-phase code's range (3,795 B of `BROADSIDE` run only while a hull is on screen) and costs the window ~170 B of hooks instead of 1,368: re-priced in the new order the window ends M6 at −38 B budgeted before any lever (was −1,238). Three probe measurements on the binding replay: one HSCROL band row above the fence −90 of margin (the budget's 72 was an instruction count), a third DLI −174, the one-Light boss frame clears GO only with the world scroll stopped in the boss sector (owner question Q1). Six sessions, the wish list (items 14–25) priced with nine recommended, owner questions Q1–Q17. **Amended 2026-10-03 with the owner's decisions on the level-summary screen** (plan §1.3, §4.8): the transition becomes a stats screen in the region's look with the region's music, loading behind it at standard speed (post-boss transition 37 sectors ≈ 2.8 s emulator MEASURED rate, ~5.6 s on a 1050-class drive ESTIMATE, against a recommended 3-s minimum display); its code lives in the splash RAM `$0500` read once per session, its art is read first; the stat counters cost the window 44 B and the initial block 0 B by design (the shots-fired hook is Q13); the letter grade and the per-level best (one save record with the high-score table, direct-SIO write) are priced with it; the fast loader becomes an optional later session. **Every owner question is answered (plan §1.4, 2026-10-03):** the boss sector stops the world scroll, 8-row band, restore variant (b), the frontend overlay deferred, speech dropped, the shots counter as a per-frame window scan (+60 cycles on every frame; the initial block keeps its room for M6's hooks), the personal best with the summary session under disk-write safety rules, the wish list accepted as recommended. End of the road (M5 → M4 → M3 → M6 with the accepted items): window −610 B budgeted / −364 expected before levers; the four remaining levers (`STARFIELD` tail 309, arena 95, pins 15, `LEVEL_BUFFER` 16 → 15 at 128) give 547, so −63 budgeted / +183 expected; the attract mode (240) gives way first if the measured figures are short at M6. Initial block after M6: 1 … 19 B to STOP. ATR and boot image byte-identical to `main` `7ccd57e`.
 
+**M5a-S1 — overlay slot A, the capital vector table and the run read — built (2026-10-03, `feat/overlay-slot`, `OWNER-SMOKE CANDIDATE`)** (section "M5a-S1 — overlay slot A" below; plan [plans/m5-loading-boss.md](plans/m5-loading-boss.md) §4.9). The capital phase's code is contiguous in `BROADSIDE` and its first 2,048 B are slot A; every resident call into the capital group goes through a 12-entry table in the window; the sector reader reads named runs at `$A006` and restores slot A at START GAME after an overlay (restore variant (b), forced in the boot smoke); the AI pool is four lines from `assets/`. No visible change and gameplay frame-identical to `main` in all 61 trace CSVs. Owner decision 2026-10-03: the table's measured cost (worst fence margin 1,439 → **1,391**) is accepted, this session's floor 1,350; Probe B (+207 for +42 B of window) is recorded as a reserve lever. Initial block 13,621 B and transport 107 / 102 / 209 unchanged; ATR `84c7af52…`.
+
 **M3 wave paths and M3-H Heavy package — plan (2026-10-02, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/m3-waves-heavy.md](plans/m3-waves-heavy.md) — native measurements (a held Raider saves 485 cycles; the decided descent rule returns 467 per frame with two Raiders live), the two Raider kinds and the damaged look, and three implementation sessions. Owner decisions taken 2026-10-02 (its §8.1): the sessions wait until after M4 and M5, and the rotate-gate fix for Heavy break-ups (its §9) is a standalone task that runs before M4 — **built, owner-smoked, merged and released as `v0.2.1` (`OWNER-ACCEPTED`)** (section "Heavy break-up rotate gate" below): worst fence margin 788 → **1,439**.
 
-**Fifteen `OWNER-SMOKE CANDIDATE`s are outstanding: the all-or-nothing Spread
+**Sixteen `OWNER-SMOKE CANDIDATE`s are outstanding: the M5a-S1 overlay slot**
+(section "M5a-S1 — overlay slot A" below; no visible change by design, the
+loader screen now draws one of four AI lines), **the all-or-nothing Spread
 volley** (section "Spread volley — all-or-nothing" below; a Spread volley that
 began with fewer than three free shot slots held the pool full of lone side
 shots with no shot sound until Spread expired; reachable in the default level 1
@@ -336,6 +340,63 @@ owner smoke PASS 2026-09-18); before it `b4b942e` (XEX
 owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
+
+## M5a-S1 — overlay slot A — `OWNER-SMOKE CANDIDATE` (2026-10-03)
+
+Plan and as-built record: [plans/m5-loading-boss.md](plans/m5-loading-boss.md)
+§4.9. Branch `feat/overlay-slot` from `main` `18234da`. Memory:
+[memory-map.md](memory-map.md) "M5a-S1".
+
+**What changed.** The player damage gate and HUD (248 B) move ahead of
+`update_broadside`, so the capital code runs contiguous; **slot A** is its
+first 2,048 B, `$6DE8-$75E7`, code only. The 12 calls into the capital group
+from outside it go through **`CAPITAL_VECTOR_*`**, 3-byte `jmp`s appended to
+the Light kernel's vector block (`$B368`). The sector reader gains
+**`sector_reader_read_run` at `$A006`** (owner Q11; the 4.9 drain vector moves
+to `$A009`), an 8-entry overlay directory, a slot-A-overlaid flag and the
+capital table image; at START GAME, after an overlay, it reads the capital
+restore run (sectors 512–527, the resident slot bytes) and puts the table
+back before the level (restore variant (b), Q6). A failed read reaches the
+failure screen with the flag still set; gameplay never runs a partial slot.
+The AI pool is 4 lines (Q3), creative text in
+`assets/text/loader-ai-lines.json`.
+
+**Owner decision 2026-10-03.** The plain table cost the binding row −48 of
+fence margin, under the brief's STOP at 1,400; the owner kept it as planned
+and set the session floor at 1,350. Probe B, measured and not taken: zero-timer
+fast paths in four table entries, +207 (1,391 → 1,598) for +42 B of window.
+Repo deviations recorded in the plan: 12 entry points, not 20 (table 36 B,
+not 60 → 72); the capital table image lives in the reader, because slot A's
+head would need 60 B of `BROADSIDE`, which has 3.
+
+| | `main` `18234da` | this branch | source |
+| --- | ---: | ---: | --- |
+| worst line-238 fence margin | 1,439 (`2-evasive-fire3` f287) | **1,391** (same row) | standalone PAL audit, 49 + 8 replays on each tree, 0 miss events |
+| DMA-on maximum | 31,133 | **31,117** (`director-complete-2-natural-sweep-fire0`) | same |
+| DLI per host frame / sequence violations | 2 / 0 | **2 / 0** | `docs/runtime-wall-trace.json` |
+| behavioural clause failures | 1 (`lower-playfield-hostile-contact-atr-hard`) | **1**, the same | [recorded-gate-failures.json](recorded-gate-failures.json) |
+| gameplay against `main` | — | **61 of 61 trace CSVs identical** on 30 gameplay columns, frame for frame (score, lives, health, capsules, enemies, Director RNG) | trace CSVs of both trees |
+| `npm test` (default build) | 910 tests | **921** (+11 new); one full run failed 4: `preview` (recorded) and three bindings to the new ATR (menu raster, showcase ×2), regenerated by their own tools in `acc4754`, after which only `preview` fails | [recorded-test-failures.json](recorded-test-failures.json) |
+| initial block / boot sectors | 13,621 B / 107 | **13,621 B / 107** | `build/manifest.json` |
+| extension / total transport sectors | 102 / 209 | **102 / 209** | same |
+| ATR menu frame (baseline 596) | 547 | **547** | boot smoke |
+| `BROADSIDE` used / free (record 1 packed) | 6,653 / 3 (5,517) | **6,653 / 3 (5,494)**, 44 sectors | same |
+| `$AE00` window used / free | 2,104 / 1,480 | **2,140 / 1,444** | `residentCapacity.basicWindow` |
+| sector reader used / free | 1,473 / 63 | **1,498 / 38**, 12 sectors | `sectorReader` |
+| disk | levels from 320 | **+16**: the capital restore run, sectors 512–527 | `overlays.runs` |
+| START GAME level read / capital restore | 49 frames / — | **49 / 60 frames** (13 / 16 sectors, 0 retries), EMULATOR | boot smoke, forced-restore session |
+| boot smoke | 4 + RESET | **4 + RESET + forced restore**, slot A and the table byte-verified after START GAME on every session | same |
+| ATR SHA-256 | `f127d7a4…` | **`84c7af5299788c61644c75f4a53aaa4436ec26197b1f55443f4b0ad1a9eadc2b`** | `dist/` |
+| boot SHA-256 | `1daed1be…` | **`8a9f479552e3364db2f970349e3e286652128d7a0042f3eb53fae73c8d42fdcf`** | `dist/` |
+
+**Read before accepting.** The README gameplay GIF was regenerated: 3 of its
+700 frames differ from `main`'s by 8–16 pixels on one scanline (a Bomber hull
+and the gold capsule, PMG writes racing the beam a line later because the
+frame's work runs ~50 cycles later). Gameplay is identical. Hardware smoke
+items: plan §8, row M5a-S1.
+
+**NEXT TASK:** the owner's smoke of this candidate; then M5a-S2
+(`feat/level-summary`), not started.
 
 ## Heavy break-up rotate gate — **OWNER-ACCEPTED** (owner smoke PASS, merged, released as `v0.2.1`; built 2026-10-02)
 

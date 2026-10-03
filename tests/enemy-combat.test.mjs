@@ -466,7 +466,7 @@ test("natural broadside firing uses an independent pool and preserves capital re
   assert.ok(broadside.state.shotsFired >= 5,
     "capital M1-M3 ownership cannot starve the independent Interceptor pool");
   assert.equal(broadside.trace.every(({ sizeM }) => sizeM === 0x44), true);
-  assert.match(source, /jsr update_broadside[\s\S]+jsr resolve_enemy_damage/);
+  assert.match(source, /jsr CAPITAL_VECTOR_UPDATE[\s\S]+jsr resolve_enemy_damage/);
 });
 
 test("natural-fire trace records burst allocation and playfield movement", () => {

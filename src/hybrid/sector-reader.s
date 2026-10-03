@@ -14,11 +14,16 @@
 ; [C2] and [C3] there, which were measured, not assumed — see
 ; docs/diagnostics/sio-register-probe-2026-09-20.json.
 ;
-; Read-only, one device (D1:), standard speed, whole sectors into a
-; page-aligned buffer. Runs only at a level boundary with gameplay torn down.
+; Read-only, one device (D1:), standard speed, whole sectors into the
+; page-aligned level buffer or, since M5a-S1, into an overlay run's destination
+; (slot A is not page-aligned: (sr_dst),y pays one cycle on a page crossing
+; against a ~900-cycle byte margin). Runs only at a level boundary with
+; gameplay torn down.
 
 ; Main-link entry points, generated after main.s links (plan 4 [C5]).
 .include "main-abi.inc"
+; M5a-S1: the capital vector table's window address and entry count.
+.include "director-abi.inc"
 
 ; ---------------------------------------------------------------------------
 ; Hardware. The game defines none of these: it has never written IRQEN, SKCTL,
@@ -48,8 +53,10 @@ LOADER_TEXT_ROW   = SCREEN + 8 * 40 + 1
 LOADER_ANIM_ROW   = SCREEN + 12 * 40
 LOADER_PROMPT_ROW = SCREEN + 20 * 40 + 15
 
+; The pool's shape; its text is generated from assets/ (see ai_line_pool).
 AI_LINE_BYTES  = 38
-AI_LINE_COUNT  = 8
+AI_LINE_COUNT  = 4
+
 PBCTL           = $D303         ; PIA port B control; CB2 is the command line
 AUDF3           = $D204
 AUDC3           = $D205
@@ -168,7 +175,8 @@ sr_frame:           .res 5      ; the five-byte command frame
 sector_reader_vectors:
         jmp sector_reader_start_gameplay        ; $A000 — the START GAME hook
         jmp sector_reader_load                  ; $A003 — A = level id (4.9)
-        jmp sector_reader_drain_ready           ; $A006 — reserved for 4.9
+        jmp sector_reader_read_run              ; $A006 — X = overlay run (M5a, Q11)
+        jmp sector_reader_drain_ready           ; $A009 — reserved for 4.9
 
 .assert sector_reader_vectors = $A000, error, "the sector reader vectors must sit at $A000"
 
@@ -189,6 +197,17 @@ sector_reader_start_gameplay:
 
         jsr sector_reader_show_loader
 
+        ; M5a-S1, restore variant (b) (docs/plans/m5-loading-boss.md §4.1, Q6):
+        ; slot A still holds the capital group unless an overlay replaced it,
+        ; so the restore run is read only then, behind the same loader screen
+        ; and before the level. A failed read leaves the flag set: gameplay is
+        ; never entered over a partial slot, and the next START GAME retries.
+        lda sr_slot_a_overlaid
+        beq @slot_a_ready
+        jsr sector_reader_restore_capital
+        bcs @failed
+@slot_a_ready:
+
         ; Roadmap 4.6 step 2, the debug route (plan §7). A review build made
         ; with --level=N[:sector=M] assembles this file with -D LEVEL_DEBUG_ID
         ; so the owner can reach a level the campaign does not offer yet; the
@@ -200,9 +219,30 @@ sector_reader_start_gameplay:
 .endif
         jsr sector_reader_load
         bcc @loaded
+@failed:
         jmp sector_reader_failure_screen
 @loaded:
         jmp start_gameplay
+
+; ===========================================================================
+; M5a-S1: put the capital group back into slot A, then its vector table back
+; into the window. C=0 done and the flag cleared; C=1, A=status otherwise.
+; ===========================================================================
+sector_reader_restore_capital:
+        ldx #OVERLAY_CAPITAL_SLOT_A
+        jsr sector_reader_read_run
+        bcs @done
+        ldx #(CAPITAL_VECTOR_COUNT * 3 - 1)
+@table:
+        lda capital_vector_image,x
+        sta CAPITAL_VECTOR_TABLE,x
+        dex
+        bpl @table
+        lda #$00
+        sta sr_slot_a_overlaid
+        clc
+@done:
+        rts
 
 ; ===========================================================================
 ; The loader-mode display (owner decision O, plan 6).
@@ -243,9 +283,9 @@ sector_reader_publish_screen:
         sta DMACTL
         rts
 
-; Copy one AI line into the record list's reserved slot. v1 ships eight
-; PLACEHOLDER lines; the owner writes the real ones later. The choice is the
-; Director RNG if it has been seeded, otherwise VCOUNT, masked to the pool.
+; Copy one AI line into the record list's reserved slot. The pool is four
+; PLACEHOLDER lines from assets/text/loader-ai-lines.json (M5a-S1, Q3); the
+; owner writes the real ones later. The choice is VCOUNT, masked to the pool.
 sector_reader_pick_line:
         lda VCOUNT
         and #(AI_LINE_COUNT - 1)
@@ -367,6 +407,43 @@ sector_reader_drain_ready:
         rts
 
 ; ===========================================================================
+; sector_reader_read_run(X = overlay directory index) — vector $A006
+;
+;   C=0, A=SR_OK        the run's sectors are at its destination
+;   C=1, A=status       a wire, device or directory failure; the destination
+;                       may hold part of the run, so the caller must not run it
+;
+; The same sector loop as a level read, with the start, count and destination
+; taken from the build-generated overlay directory instead of LEVEL_BUFFER. A
+; run has no header to validate: each sector's frame checksum is the check.
+; ===========================================================================
+sector_reader_read_run:
+        cpx #OVERLAY_DIRECTORY_ENTRIES
+        bcs @bad
+        txa                             ; index x 5
+        asl
+        asl
+        sta sr_scratch
+        txa
+        clc
+        adc sr_scratch
+        tay
+        lda overlay_directory+2,y       ; sector count; 0 = not on this disk
+        beq @bad
+        sta sr_sectors_left
+        lda overlay_directory,y
+        sta sr_sector_lo
+        lda overlay_directory+1,y
+        sta sr_sector_hi
+        lda overlay_directory+3,y
+        sta sr_dst
+        lda overlay_directory+4,y
+        sta sr_dst+1
+        jmp sector_reader_read_sectors
+@bad:
+        jmp sector_reader_report_bad_image
+
+; ===========================================================================
 ; sector_reader_load(A = level id, 1..LEVEL_MAX_ID)
 ;
 ;   C=0, A=SR_OK        the buffer holds the requested image
@@ -397,6 +474,16 @@ sector_reader_load:
         sta sr_dst+1
         lda sr_sector_total
         sta sr_sectors_left
+        jsr sector_reader_read_sectors
+        bcs sector_reader_load_done
+        jmp sector_reader_validate
+sector_reader_load_done:
+        rts
+
+; sr_sectors_left sectors from sr_sector_lo/hi into (sr_dst), retries and the
+; no-device probes included. C=0, A=SR_OK; C=1, A=status. Shared by the level
+; read and the overlay run read (M5a-S1).
+sector_reader_read_sectors:
         lda #DEVICE_PROBES
         sta sr_probes
 
@@ -450,7 +537,9 @@ sector_reader_load:
         bne @sector
 
         jsr sector_reader_quiesce
-        jmp sector_reader_validate
+        lda #SR_OK
+        clc
+        rts
 
 sector_reader_report_ok:
         lda #SR_OK
@@ -879,21 +968,19 @@ failure_reasons:
         .byte "BAD DISK  "   ; status 3 DEVICE_ERROR
         .byte "WRONG DISK"   ; status 4 BAD_IMAGE
 
-; v1 ships eight PLACEHOLDER lines of 38 characters (owner decision O). The
-; owner writes the real ones in a later session; the pool's shape is what this
-; step fixes. Sixteen lines do not fit - see the note in plan 1.5 [C4].
-ai_line_pool:
-        .byte "PLACEHOLDER 01 - OWNER WRITES THESE   "   ; line 1
-        .byte "PLACEHOLDER 02 - AI CHATTER LINE      "   ; line 2
-        .byte "PLACEHOLDER 03 - SECTOR TELEMETRY     "   ; line 3
-        .byte "PLACEHOLDER 04 - HULL DIAGNOSTICS     "   ; line 4
-        .byte "PLACEHOLDER 05 - NAV LOCK ACQUIRED    "   ; line 5
-        .byte "PLACEHOLDER 06 - WEAPON BAY CHECK     "   ; line 6
-        .byte "PLACEHOLDER 07 - THREAT BOARD CLEAR   "   ; line 7
-        .byte "PLACEHOLDER 08 - STANDBY FOR DROP     "   ; line 8
-ai_line_pool_end:
+; The AI line pool: four lines of 38 characters, creative text converted from
+; assets/text/loader-ai-lines.json by scripts/loader-ai-lines.mjs (LICENSE-ASSETS,
+; "Mixed files"). M5a-S1 cut it from eight to four (Q3) to pay for the overlay
+; run read; decision O's 8-16 stays the format the hangar screen restores.
+.include "loader-ai-lines.inc"
+.assert (ai_line_pool_end - ai_line_pool) = AI_LINE_COUNT * AI_LINE_BYTES, error, "the AI text pool is not AI_LINE_COUNT x 38 B"
+.assert (AI_LINE_COUNT & (AI_LINE_COUNT - 1)) = 0 && AI_LINE_COUNT * AI_LINE_BYTES <= 256, error, "the AI pool must be a power-of-two count indexable in one byte"
 
-.assert (ai_line_pool_end - ai_line_pool) = AI_LINE_COUNT * AI_LINE_BYTES, error, "the AI text pool is not 8 x 38 B"
+; M5a-S1: set by a transition that put another overlay into slot A (the boss,
+; M5b), cleared once the capital restore run has landed. In the reader's own
+; transported image, so it is 0 at every cold start (RESET is one).
+sr_slot_a_overlaid:
+        .byte $00
 
 ; ---------------------------------------------------------------------------
 ; Level directory, 16 x 3 B, generated by scripts/build.mjs from the runs it
@@ -903,6 +990,14 @@ ai_line_pool_end:
 .include "level-directory.inc"
 
 ; ---------------------------------------------------------------------------
+; M5a-S1: the overlay directory (8 x 5 B), slot A's bounds and the capital
+; vector table image, generated by scripts/build.mjs from the linked main image
+; and the runs it placed from sector 512. Defines overlay_directory and
+; capital_vector_image.
+; ---------------------------------------------------------------------------
+.include "overlay-directory.inc"
+
+; ---------------------------------------------------------------------------
 ; Plan §1.7. Not load-bearing at 19040 baud — a page-crossing branch costs one
 ; cycle against a ~900-cycle margin — but enforced at zero cost so the loops'
 ; cycle counts stay constants the harness can pin.
@@ -910,8 +1005,12 @@ ai_line_pool_end:
 .assert >sector_reader_rx_loop = >sector_reader_rx_loop_end, error, "sector reader receive loop crosses a page"
 .assert >sector_reader_tx_loop = >sector_reader_tx_loop_end, error, "sector reader transmit loop crosses a page"
 .assert (sector_reader_directory_end - sector_reader_directory) = LEVEL_MAX_ID * 3, error, "level directory is not 16 x 3 B"
+.assert (overlay_directory_end - overlay_directory) = OVERLAY_DIRECTORY_ENTRIES * 5, error, "overlay directory is not 8 x 5 B"
+.assert (capital_vector_image_end - capital_vector_image) = CAPITAL_VECTOR_COUNT * 3, error, "capital vector image does not match the window table"
 
-.export sector_reader_directory
+.export sector_reader_directory, overlay_directory, capital_vector_image
+.export sector_reader_read_run, sector_reader_read_sectors, sector_reader_restore_capital
+.export sr_slot_a_overlaid
 .export sector_reader_wait_serial, sector_reader_receive_byte
 .export sector_reader_send_command, sector_reader_read_sector
 .export sector_reader_lookup, sector_reader_resident_hit, sector_reader_validate

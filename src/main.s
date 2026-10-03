@@ -177,7 +177,8 @@ FRONTEND_CHARSET = $4800
 ; three bytes.
 SECTOR_READER_ENTRY = $A000     ; teardown, loader screen, read, start_gameplay
 SECTOR_READER_LOAD  = $A003     ; A = level id (roadmap 4.9)
-SECTOR_READER_DRAIN = $A006     ; reserved for roadmap 4.9
+SECTOR_READER_READ_RUN = $A006  ; X = overlay run (M5a-S1, owner Q11)
+SECTOR_READER_DRAIN = $A009     ; reserved for roadmap 4.9
 HUD_CHARSET = $5000
 CAPITAL_HULL_RUNTIME_ALLIED = $4C00
 CAPITAL_HULL_RUNTIME_ENEMY  = $4D20
@@ -2588,7 +2589,7 @@ start_gameplay:
     jsr DIRECTOR_INIT
     jsr install_entity_effects_glyph
     jsr publish_level_hull_style
-    jsr init_broadside
+    jsr CAPITAL_VECTOR_INIT
     jsr init_screen
     lda player_x
     sta HPOSP0
@@ -2667,9 +2668,9 @@ profile_after_entity_erase = *
     jsr integration_active_gameplay_tick
 profile_after_capsule = *
     jsr tick_shared_fighter_explosions
-    jsr tick_capital_explosions
-    jsr tick_launch_flashes
-    jsr update_engine_animation
+    jsr CAPITAL_VECTOR_TICK_EXPLOSIONS
+    jsr CAPITAL_VECTOR_TICK_FLASHES
+    jsr CAPITAL_VECTOR_ENGINE
 profile_after_frame_visuals = *
 
     jsr integration_update_player_death
@@ -2698,12 +2699,12 @@ profile_after_player_fighter_weapon = *
 profile_after_interceptor_weapon = *
     jsr update_starfield
 profile_after_world = *
-    jsr handle_player_hull_contact
+    jsr CAPITAL_VECTOR_HULL_CONTACT
 profile_after_hull_contact = *
     jsr entity_effects_update_with_light
 profile_after_entity_update = *
     jsr render_launch_flashes_with_capital_debris
-    jsr render_capital_explosions
+    jsr CAPITAL_VECTOR_RENDER_EXPLOSIONS
     jsr render_shared_fighter_explosions
 profile_after_effect_visuals = *
     jsr render_capital_shell_overlays
@@ -5233,7 +5234,7 @@ handle_collisions_player_collision = *
 
 handle_collisions_heavy_projectiles = *
 profile_after_player_enemy_collision = *
-    jsr update_broadside
+    jsr CAPITAL_VECTOR_UPDATE
 profile_after_broadside_update = *
     jsr resolve_enemy_damage
 profile_after_enemy_damage_resolution = *
@@ -5568,13 +5569,13 @@ update_starfield:
     sta HULL_SCROLL_ACCUMULATOR
     ; Preserve the legacy accumulator postcondition; both comparison outcomes
     ; returned through this same bounded no-hull path.
-    jsr prepare_next_hull_row
+    jsr CAPITAL_VECTOR_PREPARE_ROW
     lda scroll_accumulator
     rts
 @hull_scroll:
     sbc #HULL_SCROLL_RATE_DENOMINATOR
     sta HULL_SCROLL_ACCUMULATOR
-    jsr scroll_hull_columns
+    jsr CAPITAL_VECTOR_SCROLL_HULL
     lsr PLAYFIELD_RING_FLAGS
     rts
 
@@ -5612,7 +5613,7 @@ scroll_world_columns:
     ; Remove character transients before the fixed divider becomes a ring-copy
     ; source. The hull path observes PLAYFIELD_RING_FLAGS and therefore never
     ; performs this reverse restore twice in the same scroll event.
-    jsr restore_active_muzzles
+    jsr CAPITAL_VECTOR_RESTORE_MUZZLES
     lda #$01
     sta PLAYFIELD_RING_FLAGS
     jsr rotate_playfield_rows
@@ -8045,7 +8046,179 @@ clear_player_collision_latches:
     sta HITCLR
     rts
 
+apply_broadside_player_damage:
+    lda #CAPITAL_DAMAGE_UNITS
+
+; A is damage in ten-point units. Direct Interceptor contact passes the full ten;
+; capital shells and hull contact pass two; the ordinary Interceptor pulse passes
+; one. Every damage source retains the same lifecycle, cooldown,
+; one-event-per-frame, death and respawn gate.
+apply_player_damage:
+    sta BROAD_WORK_VALUE
+    lda PLAYER_LIFECYCLE
+    cmp #PLAYER_ALIVE
+    bne @done
+    ; Shield is a booster-owned gate, not the post-hit cooldown or respawn
+    ; lifecycle. The first later collision in this frame is consumed by the
+    ; existing one-event latch without changing HULL, LIFE, SCORE or hit SFX.
+    lda ENTITY_STATE+WEAPON_BOOSTER_SLOT
+    cmp #WEAPON_PICKUP_STATE_SHIELD
+    bne @ordinary_damage
+    lda BROAD_DAMAGE_APPLIED
+    bne @done
+    lda #$01
+    sta BROAD_DAMAGE_APPLIED
+    rts
+@ordinary_damage:
+    lda BROAD_DAMAGE_COOLDOWN
+    bne @done
+    lda BROAD_DAMAGE_APPLIED
+    bne @done
+    lda #$01
+    sta BROAD_DAMAGE_APPLIED
+    lda #BROADSIDE_DAMAGE_COOLDOWN
+    sta BROAD_DAMAGE_COOLDOWN
+    lda BROAD_PLAYER_HEALTH
+    beq @done
+    sec
+    sbc BROAD_WORK_VALUE
+    bcs :+
+    lda #$00
+:
+    sta BROAD_PLAYER_HEALTH
+    lda #$12
+    sta damage_timer
+    jsr play_hit_sound
+    lda BROAD_PLAYER_HEALTH
+    bne @update_hud
+    lda #PLAYER_DYING
+    sta PLAYER_LIFECYCLE
+    jsr clear_transient_effects
+    lda PLAYER_LIVES
+    beq :+
+    dec PLAYER_LIVES
+:
+    ; DYING lasts one frame longer than the explosion: the PMG explosion begins
+    ; on the first DYING tick (player_dying_tick), so the death frame pays no
+    ; erase_player and no first explosion phase, and the explosion still erases
+    ; itself in the frame of, and before, the respawn.
+    lda #(SHARED_FIGHTER_EXPLOSION_TOTAL+1)
+    sta BROAD_DEATH_TIMER
+    jsr erase_bullet
+    jsr clear_interceptor_pulses
+    ; begin_player_fighter_explosion moved to player_dying_tick; this lethal
+    ; tail takes the former call's three bytes, so every later BROADSIDE
+    ; address (free_broadside_slot $76A7) stays in place.
+    jmp update_hud_status
+@update_hud:
+    jmp update_hud_status
+@done:
+    rts
+
 .segment "BROADSIDE"
+; LIFE retains its single numeric cell. HULL is always four low plate glyphs:
+; intact quarters remain solid and damaged quarters remain visibly cracked.
+; Stored health is still the canonical 0-10 value; this is presentation only.
+update_hud_status:
+    lda PLAYER_LIVES
+    ora #CH_ZERO
+    sta SCREEN+HUD_LIFE_DIGIT_OFFSET
+
+    ldx #(HUD_HULL_SEGMENTS-1)
+@hull_segment:
+    lda BROAD_PLAYER_HEALTH
+    cmp hud_hull_segment_thresholds,x
+    bcc @damaged
+    lda #CH_HUD_HULL_FULL
+    bne @store_hull
+@damaged:
+    lda #CH_HUD_HULL_DAMAGED
+@store_hull:
+    sta SCREEN+HUD_HULL_SEGMENTS_OFFSET,x
+    dex
+    bpl @hull_segment
+    rts
+
+; HUD cells 30-39 are the only presentation bytes owned by an active weapon
+; booster: full BOOST label, one space, and four tall energy cells. The 16-bit
+; 500-frame gameplay timer remains authoritative. Most frames take the short
+; no-change path; only the energy cells change after activation.
+update_weapon_booster_hud:
+    lda ENTITY_STATE+WEAPON_BOOSTER_SLOT
+    cmp #WEAPON_PICKUP_STATE_SHIELD
+    bne :+
+    jmp update_shield_booster_hud
+:
+    lda ENTITY_MOVE_ACCUMULATOR+WEAPON_BOOSTER_SLOT
+    beq @low_byte
+    lda ENTITY_TIMER+WEAPON_BOOSTER_SLOT
+    cmp #<(HUD_BOOSTER_FOUR_SEGMENT_MIN-1)
+    bne @finished
+    lda #CH_SPACE
+    sta SCREEN+HUD_BOOSTER_SEGMENTS_OFFSET+3
+    rts
+@low_byte:
+    lda ENTITY_TIMER+WEAPON_BOOSTER_SLOT
+    cmp #<(HUD_BOOSTER_THREE_SEGMENT_MIN-1)
+    beq @two_segments
+    cmp #<(HUD_BOOSTER_QUARTER-1)
+    beq @one_segment
+    bcs @finished
+    and #(HUD_BOOSTER_BLINK_HALF_PERIOD-1)
+    cmp #(HUD_BOOSTER_BLINK_HALF_PERIOD-1)
+    bne @finished
+    lda ENTITY_TIMER+WEAPON_BOOSTER_SLOT
+    and #HUD_BOOSTER_BLINK_HALF_PERIOD
+    beq @store_blink
+    lda #CH_HUD_BOOSTER_FULL
+@store_blink:
+    sta SCREEN+HUD_BOOSTER_SEGMENTS_OFFSET
+@finished:
+    rts
+@two_segments:
+    lda #CH_SPACE
+    sta SCREEN+HUD_BOOSTER_SEGMENTS_OFFSET+2
+    rts
+@one_segment:
+    lda #CH_SPACE
+    sta SCREEN+HUD_BOOSTER_SEGMENTS_OFFSET+1
+    rts
+
+show_weapon_booster_hud:
+    ldx #(HUD_BOOSTER_LABEL_CELLS-1)
+@label:
+    lda hud_booster_label,x
+    sta SCREEN+HUD_BOOSTER_OFFSET,x
+    dex
+    bpl @label
+    lda ENTITY_STATE+WEAPON_BOOSTER_SLOT
+    cmp #WEAPON_PICKUP_STATE_SHIELD
+    beq :+
+    lda #CH_HUD_BOOSTER_FULL
+    bne @fill_segments
+:
+    lda #CH_HUD_BOOSTER_SHIELD
+@fill_segments:
+    ldx #(HUD_BOOSTER_SEGMENTS-1)
+@segment:
+    sta SCREEN+HUD_BOOSTER_SEGMENTS_OFFSET,x
+    dex
+    bpl @segment
+    rts
+
+.segment "BROADSIDE"
+
+; M5a-S1 (docs/plans/m5-loading-boss.md §4.1): overlay slot A. From here to
+; handle_player_hull_contact the capital phase's code is contiguous - the
+; player damage gate and the HUD above used to split it - and its first
+; CAPITAL_SLOT_A_BYTES are the slot a later overlay (the boss) may occupy and
+; the sector reader's capital restore run puts back. Nothing outside the
+; capital group names a label in the slot: every resident call into the group
+; goes through the window's vector table (CAPITAL_VECTOR_*, director-abi.inc).
+; An equate, not a label, so the source-reading harnesses still slice the
+; routine below from update_broadside.
+capital_slot_a = *
+.export capital_slot_a, capital_slot_a_end
 
 update_broadside:
     lda #$00
@@ -8660,166 +8833,6 @@ update_sector_completion:
     ; COMPLETE. Collision, expiry, death/respawn, and actual gameplay teardown
     ; own projectile release; a sector phase cannot reset the burst controller.
 @done:
-    rts
-
-apply_broadside_player_damage:
-    lda #CAPITAL_DAMAGE_UNITS
-
-; A is damage in ten-point units. Direct Interceptor contact passes the full ten;
-; capital shells and hull contact pass two; the ordinary Interceptor pulse passes
-; one. Every damage source retains the same lifecycle, cooldown,
-; one-event-per-frame, death and respawn gate.
-apply_player_damage:
-    sta BROAD_WORK_VALUE
-    lda PLAYER_LIFECYCLE
-    cmp #PLAYER_ALIVE
-    bne @done
-    ; Shield is a booster-owned gate, not the post-hit cooldown or respawn
-    ; lifecycle. The first later collision in this frame is consumed by the
-    ; existing one-event latch without changing HULL, LIFE, SCORE or hit SFX.
-    lda ENTITY_STATE+WEAPON_BOOSTER_SLOT
-    cmp #WEAPON_PICKUP_STATE_SHIELD
-    bne @ordinary_damage
-    lda BROAD_DAMAGE_APPLIED
-    bne @done
-    lda #$01
-    sta BROAD_DAMAGE_APPLIED
-    rts
-@ordinary_damage:
-    lda BROAD_DAMAGE_COOLDOWN
-    bne @done
-    lda BROAD_DAMAGE_APPLIED
-    bne @done
-    lda #$01
-    sta BROAD_DAMAGE_APPLIED
-    lda #BROADSIDE_DAMAGE_COOLDOWN
-    sta BROAD_DAMAGE_COOLDOWN
-    lda BROAD_PLAYER_HEALTH
-    beq @done
-    sec
-    sbc BROAD_WORK_VALUE
-    bcs :+
-    lda #$00
-:
-    sta BROAD_PLAYER_HEALTH
-    lda #$12
-    sta damage_timer
-    jsr play_hit_sound
-    lda BROAD_PLAYER_HEALTH
-    bne @update_hud
-    lda #PLAYER_DYING
-    sta PLAYER_LIFECYCLE
-    jsr clear_transient_effects
-    lda PLAYER_LIVES
-    beq :+
-    dec PLAYER_LIVES
-:
-    ; DYING lasts one frame longer than the explosion: the PMG explosion begins
-    ; on the first DYING tick (player_dying_tick), so the death frame pays no
-    ; erase_player and no first explosion phase, and the explosion still erases
-    ; itself in the frame of, and before, the respawn.
-    lda #(SHARED_FIGHTER_EXPLOSION_TOTAL+1)
-    sta BROAD_DEATH_TIMER
-    jsr erase_bullet
-    jsr clear_interceptor_pulses
-    ; begin_player_fighter_explosion moved to player_dying_tick; this lethal
-    ; tail takes the former call's three bytes, so every later BROADSIDE
-    ; address (free_broadside_slot $76A7) stays in place.
-    jmp update_hud_status
-@update_hud:
-    jmp update_hud_status
-@done:
-    rts
-
-.segment "BROADSIDE"
-; LIFE retains its single numeric cell. HULL is always four low plate glyphs:
-; intact quarters remain solid and damaged quarters remain visibly cracked.
-; Stored health is still the canonical 0-10 value; this is presentation only.
-update_hud_status:
-    lda PLAYER_LIVES
-    ora #CH_ZERO
-    sta SCREEN+HUD_LIFE_DIGIT_OFFSET
-
-    ldx #(HUD_HULL_SEGMENTS-1)
-@hull_segment:
-    lda BROAD_PLAYER_HEALTH
-    cmp hud_hull_segment_thresholds,x
-    bcc @damaged
-    lda #CH_HUD_HULL_FULL
-    bne @store_hull
-@damaged:
-    lda #CH_HUD_HULL_DAMAGED
-@store_hull:
-    sta SCREEN+HUD_HULL_SEGMENTS_OFFSET,x
-    dex
-    bpl @hull_segment
-    rts
-
-; HUD cells 30-39 are the only presentation bytes owned by an active weapon
-; booster: full BOOST label, one space, and four tall energy cells. The 16-bit
-; 500-frame gameplay timer remains authoritative. Most frames take the short
-; no-change path; only the energy cells change after activation.
-update_weapon_booster_hud:
-    lda ENTITY_STATE+WEAPON_BOOSTER_SLOT
-    cmp #WEAPON_PICKUP_STATE_SHIELD
-    bne :+
-    jmp update_shield_booster_hud
-:
-    lda ENTITY_MOVE_ACCUMULATOR+WEAPON_BOOSTER_SLOT
-    beq @low_byte
-    lda ENTITY_TIMER+WEAPON_BOOSTER_SLOT
-    cmp #<(HUD_BOOSTER_FOUR_SEGMENT_MIN-1)
-    bne @finished
-    lda #CH_SPACE
-    sta SCREEN+HUD_BOOSTER_SEGMENTS_OFFSET+3
-    rts
-@low_byte:
-    lda ENTITY_TIMER+WEAPON_BOOSTER_SLOT
-    cmp #<(HUD_BOOSTER_THREE_SEGMENT_MIN-1)
-    beq @two_segments
-    cmp #<(HUD_BOOSTER_QUARTER-1)
-    beq @one_segment
-    bcs @finished
-    and #(HUD_BOOSTER_BLINK_HALF_PERIOD-1)
-    cmp #(HUD_BOOSTER_BLINK_HALF_PERIOD-1)
-    bne @finished
-    lda ENTITY_TIMER+WEAPON_BOOSTER_SLOT
-    and #HUD_BOOSTER_BLINK_HALF_PERIOD
-    beq @store_blink
-    lda #CH_HUD_BOOSTER_FULL
-@store_blink:
-    sta SCREEN+HUD_BOOSTER_SEGMENTS_OFFSET
-@finished:
-    rts
-@two_segments:
-    lda #CH_SPACE
-    sta SCREEN+HUD_BOOSTER_SEGMENTS_OFFSET+2
-    rts
-@one_segment:
-    lda #CH_SPACE
-    sta SCREEN+HUD_BOOSTER_SEGMENTS_OFFSET+1
-    rts
-
-show_weapon_booster_hud:
-    ldx #(HUD_BOOSTER_LABEL_CELLS-1)
-@label:
-    lda hud_booster_label,x
-    sta SCREEN+HUD_BOOSTER_OFFSET,x
-    dex
-    bpl @label
-    lda ENTITY_STATE+WEAPON_BOOSTER_SLOT
-    cmp #WEAPON_PICKUP_STATE_SHIELD
-    beq :+
-    lda #CH_HUD_BOOSTER_FULL
-    bne @fill_segments
-:
-    lda #CH_HUD_BOOSTER_SHIELD
-@fill_segments:
-    ldx #(HUD_BOOSTER_SEGMENTS-1)
-@segment:
-    sta SCREEN+HUD_BOOSTER_SEGMENTS_OFFSET,x
-    dex
-    bpl @segment
     rts
 
 .segment "BROADSIDE"
@@ -9636,6 +9649,14 @@ handle_player_hull_contact:
 ; executes here; the jmp above is the only way out of that routine.
 white_starfield_broadside_abi_pad:
     .res 1
+
+; Slot A is 16 whole sectors and ends inside handle_player_hull_contact. The
+; routine's tail stays resident; only its own head, inside the slot, reaches it.
+CAPITAL_SLOT_A_BYTES = 16 * 128
+capital_slot_a_end = capital_slot_a + CAPITAL_SLOT_A_BYTES
+.assert capital_slot_a = update_broadside, error, "slot A must start at update_broadside"
+.assert capital_slot_a_end <= white_starfield_broadside_abi_pad, error, "slot A runs past the capital group"
+.assert capital_slot_a_end > handle_player_hull_contact, error, "slot A no longer reaches the contact routine"
 free_broadside_slot_layout_lead_pad:
 projectile_recycle_broadside_layout_pad:
 restore_recycled_row_projectile_underlay:
@@ -11703,7 +11724,7 @@ integration_update_player_death:
     rts
 
 integration_update_sector_completion:
-    jsr update_sector_completion
+    jsr CAPITAL_VECTOR_SECTOR_COMPLETION
     jsr HYBRID_SECTOR_FORCE_FINAL_DRAIN
     beq @done
     jmp weapon_pickup_clear_sector
@@ -12965,7 +12986,7 @@ render_launch_flashes_with_capital_debris:
     beq :+
     jsr entity_debris_publish
 :
-    jmp render_launch_flashes
+    jmp CAPITAL_VECTOR_RENDER_FLASHES
 
 ; rotate_playfield_rows has just copied the fixed divider into the physical
 ; row recycled from the bottom while the current frame still displays that

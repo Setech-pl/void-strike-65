@@ -14,7 +14,8 @@ const DEBUG_ROUTE_VARIANT = /^level-\d+-s\d+$/;
 // (boot smoke, menu raster, capital/player collision, the full run) or reuses
 // a default-build trace.
 const DIAGNOSTIC_FLAGS = ["--artifacts=", "--only-session=", "--atari800-source=",
-  "--prepare", "--smoke-frames=", "--smoke-difficulty=", "--active-frames="];
+  "--prepare", "--smoke-frames=", "--smoke-difficulty=", "--active-frames=",
+  "--force-overlay-restore"];
 
 export function traceArtifactLayout(rootDirectory, artifacts) {
   if (artifacts === undefined) {

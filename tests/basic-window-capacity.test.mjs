@@ -64,8 +64,12 @@ test("the window has room for the Director: the free tail is four digits", () =>
   // Re-recorded 2026-10-01, roadmap 4.6 step 5 (plan §8.3): 1,593 -> 1,480.
   // The payload's window share is 113 B - 86 in the C half (40 of them
   // encounter_light_admit, moved in from HYBRID_C_EXT) and 27 in the kernel.
-  assert.equal(basicWindow.freeBytes, 1480,
-    "the delivered step-5 figure, re-recorded so a silent change is visible");
+  // Re-recorded 2026-10-03, M5a-S1 (docs/plans/m5-loading-boss.md §4.1):
+  // 1,480 -> 1,444. The 36 B are the capital vector table (12 x 3 B) appended
+  // to the Light kernel's vector block; every resident call into the capital
+  // group now goes through it.
+  assert.equal(basicWindow.freeBytes, 1444,
+    "the delivered M5a-S1 figure, re-recorded so a silent change is visible");
   // The tail is still the kernel link's tail, not an independent figure.
   assert.equal(basicWindow.freeBytes, lightKernel.freeBytes);
 });

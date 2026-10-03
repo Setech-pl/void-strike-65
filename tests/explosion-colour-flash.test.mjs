@@ -145,14 +145,16 @@ test("respawn, Game Over, new game and sector transitions retain their lifecycle
   assert.match(routine("start_gameplay", "start_gameplay_end"),
     /init_state[\s\S]+lda #\$00\s+sta COLBK/);
   assert.match(routine("init_state", "clear_pmg"), /jsr init_fighter_projectiles/);
-  const sector = routine("update_sector_completion", "apply_broadside_player_damage");
+  // M5a-S1 moved the damage gate and HUD ahead of update_broadside, so the
+  // completion routine is now followed by the shell impact, not the damage gate.
+  const sector = routine("update_sector_completion", "begin_broadside_impact");
   assert.match(sector, /lda FIGHTER_EXPLOSION_TIMER\s+ora FIGHTER_EXPLOSION_TIMER\+1/);
   assert.doesNotMatch(sector, /sta FIGHTER_EXPLOSION_TIMER|damage_timer|COLBK/);
 });
 
 test("enemy death during broadside uses the same bounded profile without changing capital effects", () => {
   assert.match(routine("handle_collisions", "queue_enemy_damage"),
-    /jsr update_broadside\s+profile_after_broadside_update\s*=\s*\*\s+jsr resolve_enemy_damage/);
+    /jsr CAPITAL_VECTOR_UPDATE\s+profile_after_broadside_update\s*=\s*\*\s+jsr resolve_enemy_damage/);
   assert.match(routine("update_broadside", "schedule_broadside"),
     /jsr schedule_broadside[\s\S]+@done:\s+rts/);
   assert.doesNotMatch(routine("tick_capital_explosions", "render_capital_explosions"), /COLBK|damage_timer/);

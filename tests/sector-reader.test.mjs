@@ -615,10 +615,12 @@ test("the reader hands POKEY back quiesced", () => {
 // --- the step 4 boundary ----------------------------------------------------
 
 test("the entry vectors sit at $A000 in a frozen order", () => {
-  // main.s reaches the reader through these three addresses alone, so their
-  // order is an ABI. Each is a JMP ($4C) to a routine inside the reader.
+  // main.s reaches the reader through these addresses alone, so their order
+  // is an ABI. Each is a JMP ($4C) to a routine inside the reader. M5a-S1
+  // (owner Q11): $A006 became the overlay run read and the 4.9 drain
+  // predicate, never bound, was appended at $A009.
   const vectors = ["sector_reader_start_gameplay", "sector_reader_load",
-    "sector_reader_drain_ready"];
+    "sector_reader_read_run", "sector_reader_drain_ready"];
   vectors.forEach((name, index) => {
     const offset = index * 3;
     assert.equal(readerImage[offset], 0x4c, `vector ${index} is not a JMP`);
@@ -633,7 +635,8 @@ test("main.s enters the reader by constant, and START GAME costs MAIN nothing", 
   const source = fs.readFileSync(path.join(root, "src/main.s"), "utf8");
   assert.match(source, /^SECTOR_READER_ENTRY = \$A000/m);
   assert.match(source, /^SECTOR_READER_LOAD {2}= \$A003/m);
-  assert.match(source, /^SECTOR_READER_DRAIN = \$A006/m);
+  assert.match(source, /^SECTOR_READER_READ_RUN = \$A006/m);
+  assert.match(source, /^SECTOR_READER_DRAIN = \$A009/m);
   // Operand-only: `jmp start_gameplay` and `jmp SECTOR_READER_ENTRY` are both
   // three bytes, which is why the hook needs no room in MAIN.
   assert.match(source, /jmp SECTOR_READER_ENTRY/);
@@ -644,15 +647,18 @@ test("main.s enters the reader by constant, and START GAME costs MAIN nothing", 
     "only the two review-harness sites may still jump straight into gameplay");
 });
 
-test("the AI text pool is eight lines of 38 characters", () => {
-  // Owner decision O's v1 shape. Sixteen lines do not fit alongside the
-  // driver and the failure screen; see plan §1.5 [C4].
+test("the AI text pool is four lines of 38 characters", () => {
+  // Owner decision O's v1 shape was eight; M5a-S1 (owner Q3) cut the pool to
+  // four to pay for the overlay run read, and the lines became an asset
+  // converted into build/loader-ai-lines.inc (LICENSE-ASSETS, "Mixed files").
   const source = fs.readFileSync(path.join(root, "src/hybrid/sector-reader.s"), "utf8");
   assert.match(source, /^AI_LINE_BYTES {2}= 38$/m);
-  assert.match(source, /^AI_LINE_COUNT {2}= 8$/m);
-  const pool = source.slice(source.indexOf("ai_line_pool:"), source.indexOf("ai_line_pool_end:"));
+  assert.match(source, /^AI_LINE_COUNT {2}= 4$/m);
+  const generated = fs.readFileSync(path.join(root, "build/loader-ai-lines.inc"), "utf8");
+  const pool = generated.slice(generated.indexOf("ai_line_pool:"),
+    generated.indexOf("ai_line_pool_end:"));
   const lines = [...pool.matchAll(/\.byte "([^"]*)"/g)].map((match) => match[1]);
-  assert.equal(lines.length, 8);
+  assert.equal(lines.length, 4);
   for (const line of lines) {
     assert.equal(line.length, 38, `"${line}" is not 38 characters`);
     assert.match(line, /^[A-Z0-9 \-./:?]*$/,
@@ -663,8 +669,9 @@ test("the AI text pool is eight lines of 38 characters", () => {
 test("the failure screen names every status and offers a way out", () => {
   const source = fs.readFileSync(path.join(root, "src/hybrid/sector-reader.s"), "utf8");
   // One ten-character reason per status code 1..4, in status order.
+  // The AI pool that used to follow is an include since M5a-S1.
   const reasons = source.slice(source.indexOf("failure_reasons:"),
-    source.indexOf("ai_line_pool:"));
+    source.indexOf('.include "loader-ai-lines.inc"'));
   const words = [...reasons.matchAll(/\.byte "([^"]*)"/g)].map((match) => match[1]);
   assert.deepEqual(words, ["NO DRIVE  ", "READ ERROR", "BAD DISK  ", "WRONG DISK"]);
   assert.match(source, /"DISK READ FAILED"/);
@@ -717,4 +724,157 @@ test("the level loading screen reads ENGAGING ENEMY SECTOR, centred and in chars
   const trace = JSON.parse(fs.readFileSync(path.join(root, "docs/runtime-wall-trace.json"), "utf8"));
   assert.ok(trace.boot_smoke.sector_reader.free_bytes >= 0,
     "the longer string pushed the sector reader past its window");
+});
+
+// --- M5a-S1: the overlay run read, the capital restore, its failure path -----
+//
+// docs/plans/m5-loading-boss.md §4.1-4.2, §4.7. The device below answers from
+// the built ATR itself, so these read the real restore run and the real level
+// image at their real sector numbers.
+
+const ATR_HEADER_BYTES = 16;
+const builtAtr = fs.readFileSync(path.join(root, "dist/void-strike-65.atr"));
+const atrSector = (sector) => builtAtr.subarray(ATR_HEADER_BYTES + (sector - 1) * SECTOR_BYTES,
+  ATR_HEADER_BYTES + sector * SECTOR_BYTES);
+const overlays = manifest.overlays ?? {};
+const slotA = overlays.slotA ?? { address: 0, endExclusive: 0, bytes: 0 };
+const capitalVectors = overlays.capitalVectors ?? { address: 0, bytes: 0 };
+const broadsideResident = fs.readFileSync(path.join(root, "build/broadside-runtime.bin"));
+const residentSlotA = broadsideResident.subarray(
+  slotA.address - manifest.broadsideRuntime.runAddress,
+  slotA.endExclusive - manifest.broadsideRuntime.runAddress);
+const lightKernelImage = fs.readFileSync(path.join(root, "build/light-kernel.bin"));
+const residentVectorTable = lightKernelImage.subarray(
+  capitalVectors.address - manifest.lightKernel.address,
+  capitalVectors.address - manifest.lightKernel.address + capitalVectors.bytes);
+const mainAbi = new Map(fs.readFileSync(path.join(root, "build/main-abi.inc"), "utf8")
+  .split(/\r?\n/).map((line) => /^(\w+)\s+= \$([0-9A-F]+)/.exec(line))
+  .filter(Boolean).map((match) => [match[1], Number.parseInt(match[2], 16)]));
+
+// Answers every command frame with the ATR's own sector; `fail` may replace
+// the answer for one absolute sector number.
+function atrDevice({ fail = null } = {}) {
+  return (frame) => {
+    const sector = frame[2] | (frame[3] << 8);
+    if (fail && fail.sector === sector) return fail.response;
+    const slice = atrSector(sector);
+    const out = [{ byte: 0x41 }, { byte: 0x43 }];
+    for (const byte of slice) out.push({ byte });
+    out.push({ byte: carryWrapChecksum(slice) });
+    return out;
+  };
+}
+
+function cpuOver(stub, memory) {
+  return new Nmos6502(memory, {
+    read: (address) => {
+      if (address === reg.SERIN) { stub.advance(); return stub.serin; }
+      return stub.read(address);
+    },
+    write: (address, value) => stub.write(address, value),
+  });
+}
+
+function runReadRun(stub, index) {
+  const memory = new Uint8Array(0x10000);
+  memory.set(readerImage, READER_BASE);
+  const cpu = cpuOver(stub, memory);
+  const stop = 0x7fff;
+  cpu.push((stop - 1) >> 8);
+  cpu.push((stop - 1) & 0xff);
+  cpu.pc = READER_BASE + 6;                       // the $A006 vector itself
+  cpu.x = index;
+  let steps = 0;
+  while (steps < 8_000_000 && cpu.pc !== stop) { cpu.step(); steps += 1; }
+  assert.notEqual(steps, 8_000_000, "sector_reader_read_run did not return");
+  return { memory, status: cpu.a, failed: (cpu.p & nmos6502Flags.carry) !== 0 };
+}
+
+// START GAME from the reader's $A000 entry with main's routines stubbed to
+// `rts`. It ends at start_gameplay (success) or at the failure screen.
+function runStartGame(stub, { overlaid }) {
+  const memory = new Uint8Array(0x10000);
+  memory.set(readerImage, READER_BASE);
+  for (const name of ["render_frontend_data", "wait_frame_start", "pause_silence_audio",
+    "clear_pmg_graphics_latches", "clear_pmg", "clear_screen"]) {
+    memory[mainAbi.get(name)] = 0x60;
+  }
+  // What a boss overlay would leave behind: other bytes in the slot and the table.
+  memory.fill(0x00, slotA.address, slotA.endExclusive);
+  memory.fill(0x00, capitalVectors.address, capitalVectors.address + capitalVectors.bytes);
+  memory[labels.get("sr_slot_a_overlaid")] = overlaid ? 1 : 0;
+  const cpu = cpuOver(stub, memory);
+  cpu.pc = READER_BASE;
+  const ends = new Map([[mainAbi.get("start_gameplay"), "start_gameplay"],
+    [labels.get("sector_reader_failure_screen"), "failure_screen"]]);
+  let steps = 0;
+  while (steps < 40_000_000 && !ends.has(cpu.pc)) { cpu.step(); steps += 1; }
+  assert.notEqual(steps, 40_000_000, "START GAME neither started gameplay nor failed");
+  return { memory, end: ends.get(cpu.pc), status: cpu.a };
+}
+
+const overlaySectors = (stub) => stub.commandFrames.map((frame) => frame[2] | (frame[3] << 8))
+  .filter((sector) => sector >= 512);
+
+test("the run read at $A006 lands the capital restore run in slot A byte for byte", () => {
+  assert.equal(slotA.bytes, 2048, "the manifest declares no 16-sector slot A");
+  const stub = new PokeyStub({ respond: atrDevice() });
+  const result = runReadRun(stub, 0);
+  assert.equal(result.failed, false);
+  assert.equal(result.status, status.OK);
+  assert.equal(stub.commandFrames.length, slotA.bytes / SECTOR_BYTES, "one frame per sector");
+  assert.ok(Buffer.from(result.memory.subarray(slotA.address, slotA.endExclusive))
+    .equals(residentSlotA), "slot A does not hold the resident capital image");
+});
+
+test("a directory entry the build left empty is rejected without touching SIO", () => {
+  for (const index of [1, 7, 8, 0xff]) {
+    const stub = new PokeyStub({ respond: atrDevice() });
+    const result = runReadRun(stub, index);
+    assert.equal(result.failed, true, `entry ${index}`);
+    assert.equal(result.status, status.BAD_IMAGE, `entry ${index}`);
+    assert.equal(stub.commandFrames.length, 0, `entry ${index} reached the wire`);
+  }
+});
+
+test("START GAME after an overlay restores slot A and the vector table before the level", () => {
+  const stub = new PokeyStub({ respond: atrDevice() });
+  const result = runStartGame(stub, { overlaid: true });
+  assert.equal(result.end, "start_gameplay");
+  const sectors = stub.commandFrames.map((frame) => frame[2] | (frame[3] << 8));
+  assert.equal(sectors.length, slotA.bytes / SECTOR_BYTES + LEVEL_ONE_SECTORS);
+  assert.deepEqual(sectors.slice(0, 16), Array.from({ length: 16 }, (_, i) => 512 + i),
+    "the restore run must be read first, in order");
+  assert.ok(Buffer.from(result.memory.subarray(slotA.address, slotA.endExclusive))
+    .equals(residentSlotA), "slot A is not byte-identical to the shipped image");
+  assert.ok(Buffer.from(result.memory.subarray(capitalVectors.address,
+    capitalVectors.address + capitalVectors.bytes)).equals(residentVectorTable),
+  "the window's capital vector table was not put back");
+  assert.equal(result.memory[labels.get("sr_slot_a_overlaid")], 0, "the flag was not cleared");
+});
+
+test("START GAME without an overlay sends no restore frame", () => {
+  const stub = new PokeyStub({ respond: atrDevice() });
+  const result = runStartGame(stub, { overlaid: false });
+  assert.equal(result.end, "start_gameplay");
+  assert.deepEqual(overlaySectors(stub), []);
+  assert.equal(stub.commandFrames.length, LEVEL_ONE_SECTORS);
+});
+
+test("a failed restore read reports through the status path and never starts gameplay", () => {
+  // The drive answers ERROR on the run's fifth sector: four sectors of the
+  // slot are new, the rest is still the overlay's. Gameplay must not run it.
+  const stub = new PokeyStub({ respond: atrDevice({
+    fail: { sector: 516, response: [{ byte: 0x41 }, { byte: 0x45 }] },
+  }) });
+  const result = runStartGame(stub, { overlaid: true });
+  assert.equal(result.end, "failure_screen");
+  assert.equal(result.status, status.DEVICE_ERROR);
+  assert.deepEqual(overlaySectors(stub), [512, 513, 514, 515, 516],
+    "no retry after $45 and no level read after a failed restore");
+  assert.equal(result.memory[labels.get("sr_slot_a_overlaid")], 1,
+    "the flag must stay set so the next START GAME reads the run again");
+  assert.ok(result.memory.subarray(capitalVectors.address,
+    capitalVectors.address + capitalVectors.bytes).every((byte) => byte === 0),
+  "the table must not point into a partial slot");
 });

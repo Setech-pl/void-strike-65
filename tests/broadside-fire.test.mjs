@@ -996,10 +996,12 @@ test("tracked muzzle records replace the full-row redraw scan without changing s
   const update = routine("update_starfield", "generate_corridor_row");
   const worldRing = routine("scroll_world_columns", "init_playfield_display_lists");
   const hullCopy = routine("scroll_hull_columns", "update_sector_state");
+  // M5a-S1: update_starfield reaches the hull scroll, and the world step its
+  // muzzle restore, through the capital vector table.
   assert.match(update,
-    /jsr scroll_hull_columns[\s\S]+lsr PLAYFIELD_RING_FLAGS[\s\S]+rts/);
+    /jsr CAPITAL_VECTOR_SCROLL_HULL[\s\S]+lsr PLAYFIELD_RING_FLAGS[\s\S]+rts/);
   assert.match(worldRing,
-    /jsr restore_active_muzzles\s+lda #\$01\s+sta PLAYFIELD_RING_FLAGS\s+jsr rotate_playfield_rows[\s\S]+sta CORRIDOR_BOUNDARY_LEFT[\s\S]+sta CORRIDOR_BOUNDARY_RIGHT/,
+    /jsr CAPITAL_VECTOR_RESTORE_MUZZLES\s+lda #\$01\s+sta PLAYFIELD_RING_FLAGS\s+jsr rotate_playfield_rows[\s\S]+sta CORRIDOR_BOUNDARY_LEFT[\s\S]+sta CORRIDOR_BOUNDARY_RIGHT/,
     "a world step must restore divider transients before rotating LMS rows");
   assert.match(hullCopy,
     /jsr restore_active_muzzles[\s\S]+jsr advance_tracked_muzzles[\s\S]+jsr track_top_muzzles[\s\S]+jsr redraw_tracked_muzzles/,
@@ -1018,7 +1020,7 @@ test("capital exit preserves one full-scene recycle per production world event",
   const hullCopy = routine("scroll_hull_columns", "update_sector_state");
 
   assert.match(update,
-    /@hull_scroll:[\s\S]+jsr scroll_hull_columns[\s\S]+lsr PLAYFIELD_RING_FLAGS[\s\S]+rts/,
+    /@hull_scroll:[\s\S]+jsr CAPITAL_VECTOR_SCROLL_HULL[\s\S]+lsr PLAYFIELD_RING_FLAGS[\s\S]+rts/,
     "the production dispatcher must consume the row-rotation latch after every hull-rate event");
   assert.match(hullCopy,
     /cmp #CAPITAL_HULL_STATE_COMPLETE[\s\S]+bcc scroll_hull_active[\s\S]+lsr PLAYFIELD_RING_FLAGS[\s\S]+bcc scroll_hull_complete_scroll[\s\S]+rts[\s\S]+scroll_hull_complete_scroll:[\s\S]+jmp scroll_world_columns/,
@@ -2069,7 +2071,7 @@ test("heavy impact wins simultaneous damage precedence while hull contact still 
   assert.equal(contactPlayerHull(state, contact, asset, 100), false);
   assert.equal(state.health, 80, "one PAL frame subtracts damage only once");
   assert.match(routine("main_loop", "wait_frame"),
-    /jsr handle_collisions[\s\S]+jsr update_starfield[\s\S]+jsr handle_player_hull_contact/);
+    /jsr handle_collisions[\s\S]+jsr update_starfield[\s\S]+jsr CAPITAL_VECTOR_HULL_CONTACT/);
   assert.match(routine("handle_player_hull_contact", "free_broadside_slot"),
     /sta player_x[\s\S]+sta HPOSP0[\s\S]+jmp apply_broadside_player_damage/);
   assert.doesNotMatch(routine("handle_player_hull_contact", "free_broadside_slot"),
@@ -2114,7 +2116,7 @@ test("both capital factions can hit a fighter while scoring remains source-owned
   assert.equal(hitHostileFighter(state, enemy, asset), true);
   assert.equal(state.score, 0);
   assert.match(routine("handle_collisions", "update_score_display"),
-    /jsr update_fighter_projectiles[\s\S]+jsr update_broadside[\s\S]+jsr resolve_enemy_damage/);
+    /jsr update_fighter_projectiles[\s\S]+jsr CAPITAL_VECTOR_UPDATE[\s\S]+jsr resolve_enemy_damage/);
   assert.match(routine("update_fighter_projectiles", "player_fighter_projectile_hits_enemy"),
     /DAMAGE_PLAYER_PROJECTILE[\s\S]+jsr queue_enemy_damage/);
   assert.match(routine("update_broadside", "schedule_broadside"),
@@ -2264,7 +2266,7 @@ test("heavy, hull, and fighter damage share the lifecycle gate without pausing t
 
   const collisions = routine("handle_collisions", "update_score_display");
   assert.match(collisions,
-    /jsr player_contacts_enemy[\s\S]+lda #PLAYER_HEALTH_UNITS\s+jsr apply_player_damage[\s\S]+jsr update_broadside/);
+    /jsr player_contacts_enemy[\s\S]+lda #PLAYER_HEALTH_UNITS\s+jsr apply_player_damage[\s\S]+jsr CAPITAL_VECTOR_UPDATE/);
   const gate = routine("apply_broadside_player_damage", "update_hud_status");
   assert.match(gate, /PLAYER_LIFECYCLE[\s\S]+cmp #PLAYER_ALIVE[\s\S]+bne @done/);
   assert.doesNotMatch(routine("update_broadside", "schedule_broadside"),
@@ -2483,7 +2485,7 @@ test("broadside state, charset, software collision, and fixed loops remain bound
   const collisions = routine("handle_collisions", "update_score_display");
   assert.doesNotMatch(collisions, /lda M0PL|lda P0PL|lda M1PL/,
     "software envelopes, not star-contaminated GTIA latches, own collisions");
-  assert.match(collisions, /jsr update_broadside[\s\S]+jsr resolve_enemy_damage[\s\S]+sta HITCLR/);
+  assert.match(collisions, /jsr CAPITAL_VECTOR_UPDATE[\s\S]+jsr resolve_enemy_damage[\s\S]+sta HITCLR/);
   assert.match(routine("update_broadside", "schedule_broadside"),
     /ldx #\$00[\s\S]+cpx #BROADSIDE_SLOT_COUNT/);
   assert.doesNotMatch(routine("update_broadside", "schedule_broadside"), /VDSLST|WSYNC|NMIEN/);

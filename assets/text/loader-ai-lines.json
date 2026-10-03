@@ -1,0 +1,11 @@
+{
+  "format": 1,
+  "description": "The fighter's on-board AI lines shown on the level loading screen (owner decision O). Creative text: CC BY-NC-SA 4.0 (LICENSE-ASSETS, 'Mixed files'). Converted by scripts/loader-ai-lines.mjs; never typed into src/. M5a-S1 (docs/plans/m5-loading-boss.md, Q3) cut the pool from eight to four to fund the sector reader's overlay run read; the lines are still the v1 placeholders the owner replaces later, and M5a-S2 moves them to disk.",
+  "lineBytes": 38,
+  "lines": [
+    "PLACEHOLDER 01 - OWNER WRITES THESE",
+    "PLACEHOLDER 02 - AI CHATTER LINE",
+    "PLACEHOLDER 03 - SECTOR TELEMETRY",
+    "PLACEHOLDER 04 - HULL DIAGNOSTICS"
+  ]
+}

@@ -62,7 +62,7 @@ test("no frame-start debris erase and no mid-frame debris render remain", () => 
     "capital frames publish through the launch-flash hook only");
   assert.match(main, /profile_after_entity_update = \*\s+jsr render_launch_flashes_with_capital_debris/);
   assert.match(main,
-    /render_launch_flashes_with_capital_debris:\s+lda FIGHTER_PROJECTILE_PUBLICATION_FRAME\s+beq :\+\s+jsr entity_debris_publish\s+:\s+jmp render_launch_flashes/);
+    /render_launch_flashes_with_capital_debris:\s+lda FIGHTER_PROJECTILE_PUBLICATION_FRAME\s+beq :\+\s+jsr entity_debris_publish\s+:\s+jmp CAPITAL_VECTOR_RENDER_FLASHES/);
   assert.equal((light.match(/jsr entity_debris_publish\b/g) ?? []).length, 1);
 });
 

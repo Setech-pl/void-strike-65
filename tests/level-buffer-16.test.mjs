@@ -58,10 +58,12 @@ test("Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reade
   // layout-proof fast exit.
   assert.equal(window.capacityBytes, 1536 + 2048);
   assert.equal(window.directorHalfBytes, 1369, "the Light C, the cold Director half, step 5");
-  assert.equal(window.lightKernelBytes, 735);
-  assert.equal(window.usedBytes, 2104);
-  assert.equal(window.freeBytes, 3584 - 2104);
-  assert.equal(window.freeBytes, 1480, "the tail steps 2-5 leave for step 6 and 4.7");
+  // RE-PINNED 2026-10-03, M5a-S1: the kernel 735 -> 771 B, the 36-B capital
+  // vector table appended to its frozen vector block.
+  assert.equal(window.lightKernelBytes, 771);
+  assert.equal(window.usedBytes, 2140);
+  assert.equal(window.freeBytes, 3584 - 2140);
+  assert.equal(window.freeBytes, 1444, "the tail M5a-S1 leaves for M5a-S2 and the boss");
   // Both links moved down as one block; the kernel still closes the window.
   assert.equal(manifest.lightKernel.address, WINDOW + window.directorHalfBytes);
   assert.equal(manifest.lightKernel.windowLimit, READER_BSS);

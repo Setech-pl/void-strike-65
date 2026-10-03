@@ -1955,6 +1955,34 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
   addressEnvironment.DFBOOT_PC_SIO_FRAME = readerPc("sector_reader_begin_receive");
   addressEnvironment.DFBOOT_PC_SIO_RETRY = readerPc("sector_reader_settle");
   addressEnvironment.DFBOOT_PC_LEVEL_LOAD = readerPc("sector_reader_load");
+  // M5a-S1 (docs/plans/m5-loading-boss.md §4.7): slot A and the window's
+  // capital vector table are checksummed at every snapshot and must equal the
+  // capital restore run and the reader's table image after START GAME, so the
+  // restore path cannot silently diverge from what boot landed.
+  const overlays = manifest.overlays ?? null;
+  invariant(overlays !== null && overlays.runs?.length === 1,
+    "Boot smoke needs the manifest's overlay accounting");
+  const [capitalRun] = overlays.runs;
+  const capitalRunImage = fs.readFileSync(path.join(rootDirectory, "build", capitalRun.file));
+  invariant(capitalRunImage.length === overlays.slotA.bytes &&
+    capitalRun.destination === overlays.slotA.address,
+  "the capital restore run does not describe slot A");
+  const capitalTableImage = Buffer.concat(overlays.capitalVectors.table.map(({ targetAddress }) =>
+    Buffer.from([0x4c, targetAddress & 0xff, targetAddress >> 8])));
+  const overlayChecksum = (bytes) =>
+    bytes.reduce((value, byte) => ((Math.imul(value, 33) + byte) >>> 0), 0);
+  const capitalRunChecksum = overlayChecksum(capitalRunImage);
+  const capitalTableChecksum = overlayChecksum(capitalTableImage);
+  addressEnvironment.DFBOOT_SLOT_ADDRESS = `0x${overlays.slotA.address.toString(16)}`;
+  addressEnvironment.DFBOOT_SLOT_BYTES = `${overlays.slotA.bytes}`;
+  addressEnvironment.DFBOOT_TABLE_ADDRESS = `0x${overlays.capitalVectors.address.toString(16)}`;
+  addressEnvironment.DFBOOT_TABLE_BYTES = `${overlays.capitalVectors.bytes}`;
+  addressEnvironment.DFBOOT_PC_OVERLAY_READ = readerPc("sector_reader_read_run");
+  const forceOverlayRestore = [
+    sectorReader.slotAOverlaidFlag, readerLabels.get("sector_reader_start_gameplay"),
+    overlays.slotA.address, overlays.slotA.bytes,
+    overlays.capitalVectors.address, overlays.capitalVectors.bytes,
+  ].map((value) => value.toString(16)).join(":");
   // ADR-003 boot splash: the blob's home, checksummed at `start` and at both
   // loader milestones so the chunk load and the resident unpack between them
   // are proved not to have touched it.
@@ -2022,6 +2050,11 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
   // it) and, OPTION being up, maps BASIC, so this is the reboot the player gets.
   const nobasic = definitions.find(({ basic, fill }) => !basic && fill === 0xa5);
   definitions.push({ ...nobasic, id: `${nobasic.id}-reset`, reset: true });
+  // M5a-S1: START GAME after an overlay used slot A. The observer marks the
+  // slot overlaid and zeroes it and the table at the reader's entry, exactly
+  // what a boss would leave; the session must then reach gameplay with both
+  // back to the shipped bytes, one command frame per restored sector.
+  definitions.push({ ...nobasic, id: `${nobasic.id}-force-restore`, forceRestore: true });
 
   const allSessions = definitions.map((definition) => {
     const outputPath = path.join(outputDirectory, `${definition.id}.json`);
@@ -2036,6 +2069,8 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
         DFBOOT_RAM_FILL: String(definition.fill),
         DFBOOT_SCREENSHOT_PREFIX: screenshotPrefix,
         ...(definition.reset ? { DFBOOT_RESET: "1" } : {}),
+        ...(definition.forceRestore
+          ? { DFBOOT_FORCE_OVERLAY_RESTORE: forceOverlayRestore } : {}),
       },
     });
     const result = JSON.parse(fs.readFileSync(outputPath, "utf8"));
@@ -2202,13 +2237,31 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
         `${baselineMenu} (warn band +${bootDeadline.delta_warn_frames}, fail band ` +
         `+${bootDeadline.delta_fail_frames})\n`);
     }
+    // M5a-S1: the slot and the table after START GAME, on every path.
+    const overlay = result.overlay;
+    invariant(overlay !== undefined, `${definition.id} recorded no overlay observation`);
+    invariant(gameplay.slot_checksum === capitalRunChecksum &&
+      gameplay.table_checksum === capitalTableChecksum,
+    `${definition.id} slot A / the capital table read ${gameplay.slot_checksum} / ` +
+      `${gameplay.table_checksum} after START GAME, expected the restore run ` +
+      `${capitalRunChecksum} / ${capitalTableChecksum}`);
+    const restoreSectors = definition.forceRestore ? capitalRun.sectors : 0;
+    invariant(overlay.forced === (definition.forceRestore ? 1 : 0) &&
+      overlay.command_frames === restoreSectors &&
+      (restoreSectors === 0 ? overlay.read_begin === -1 :
+        overlay.read_begin >= 0 && overlay.read_end > overlay.read_begin),
+    `${definition.id} overlay read: forced ${overlay.forced}, ${overlay.command_frames} ` +
+      `command frames (expected ${restoreSectors}), window ${overlay.read_begin}-${overlay.read_end}`);
     const sectorReaderResult = {
       medium: medium.toUpperCase(),
       command_frames: result.sio.command_frames,
-      expected_command_frames: levelOne.sectors,
+      expected_command_frames: levelOne.sectors + restoreSectors,
       wire_retries: result.sio.wire_retries,
       level_load_frames: result.sio.level_load_end - result.sio.level_load_begin,
       level_image_verified: true,
+      slot_a_verified: true,
+      capital_restore_sectors: restoreSectors,
+      capital_restore_frames: restoreSectors === 0 ? 0 : overlay.read_end - overlay.read_begin,
       path: "direct SIO: one command frame per sector at START GAME",
     };
     const bootDeadlineResult = {
@@ -2270,9 +2323,9 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
     invariant(sio.wire_retries === 0,
       `${definition.id} needed ${sio.wire_retries} wire retries; the emulator's ` +
       "wire is lossless, so any retry is a reader defect");
-    invariant(sio.command_frames === levelOne.sectors,
+    invariant(sio.command_frames === levelOne.sectors + restoreSectors,
       `${definition.id} put ${sio.command_frames} command frames on the wire, ` +
-      `expected exactly ${levelOne.sectors} - one per sector, no retries`);
+      `expected exactly ${levelOne.sectors + restoreSectors} - one per sector, no retries`);
     invariant(sio.level_load_begin >= 0 && sio.level_load_end >= sio.level_load_begin,
       `${definition.id} did not record a level load window`);
     const loadFrames = sio.level_load_end - sio.level_load_begin;
@@ -2314,6 +2367,7 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
       sector_reader: sectorReaderResult,
       screenshots,
       reset: definition.reset === true,
+      force_restore: definition.forceRestore === true,
       reset_frame: result.reset_frame,
       blank_windows: result.blank_windows,
       passed: true,
@@ -2331,8 +2385,9 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
         "stray pixels"] : []));
   invariant(blankFailures.length === 0,
     `Boot smoke: frames before the splash are not blank:\n  ${blankFailures.join("\n  ")}`);
-  const sessions = allSessions.filter(({ reset }) => !reset);
+  const sessions = allSessions.filter(({ reset, force_restore: forced }) => !reset && !forced);
   const resetSessions = allSessions.filter(({ reset }) => reset);
+  const forcedRestoreSessions = allSessions.filter(({ force_restore: forced }) => forced);
 
   const gameplayScreenshots = sessions.map((session) => ({
     artifact: session.artifact,
@@ -2397,6 +2452,22 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
     },
     sessions,
     reset_sessions: resetSessions,
+    // M5a-S1: the capital restore run, forced on the default ATR.
+    overlay: {
+      slot_a: { address: overlays.slotA.address, bytes: overlays.slotA.bytes,
+        checksum: capitalRunChecksum, sha256: overlays.slotA.sha256 },
+      capital_vectors: { address: overlays.capitalVectors.address,
+        bytes: overlays.capitalVectors.bytes, checksum: capitalTableChecksum },
+      restore_run: { start_sector: capitalRun.startSector, sectors: capitalRun.sectors },
+      verified_at_frames: [BOOT_GAMEPLAY_FRAME],
+      forced_restore_sessions: forcedRestoreSessions.map((session) => ({
+        id: session.id, ...session.sector_reader,
+      })),
+      note: "Every session reads slot A and the window's capital vector table back after " +
+        "START GAME and compares them with the restore run and the reader's table image. " +
+        "The forced session zeroes both at the reader's entry, as a boss overlay would, " +
+        "and must reach gameplay with the shipped bytes back. Frames are EMULATOR.",
+    },
     blank_window_rule: "every frame from power-on, and from the frame after RESET, " +
       "until the splash display after start: at most 64 visible pixels (one 8x8 cell, " +
       "the OS cursor) outside the frame's two most frequent colours",
@@ -3013,6 +3084,26 @@ function main() {
     invariant(Number.isInteger(address), `Collision trace label ${labelName} is missing`);
     addressEnvironment[environmentName] = `0x${address.toString(16)}`;
   }
+  // M5a-S1 (docs/plans/m5-loading-boss.md §4.7), harness only: with
+  // --force-overlay-restore every replay starts after a forced capital restore
+  // (slot A marked overlaid and zeroed at the reader's entry). The read lands
+  // before gameplay, so a replay's PAL figures must not move.
+  if (process.argv.includes("--force-overlay-restore")) {
+    const readerLabelFile = fs.readFileSync(
+      path.join(layout.inputDirectory, "sector-reader.lbl"), "utf8");
+    const readerLabel = (name) => {
+      const match = new RegExp(`^al\\s+([0-9a-f]+)\\s+\\.${name}$`, "im").exec(readerLabelFile);
+      invariant(match, `sector reader label ${name} is missing`);
+      return Number.parseInt(match[1], 16);
+    };
+    const overlays = manifest.overlays;
+    invariant(overlays?.slotA && overlays?.capitalVectors, "the manifest has no overlay slot");
+    addressEnvironment.DFTRACE_FORCE_OVERLAY_RESTORE = [
+      readerLabel("sr_slot_a_overlaid"), readerLabel("sector_reader_start_gameplay"),
+      overlays.slotA.address, overlays.slotA.bytes,
+      overlays.capitalVectors.address, overlays.capitalVectors.bytes,
+    ].map((value) => value.toString(16)).join(":");
+  }
   const capitalSoundTimer = labels.get("CAPITAL_EXPLOSION_SOUND_TIMER");
   invariant(Number.isInteger(capitalSoundTimer),
     "Trace label CAPITAL_EXPLOSION_SOUND_TIMER is missing");
@@ -3076,7 +3167,8 @@ function main() {
     runBootSmoke({ emulatorPath, labels, atrPath, manifest });
   if (bootSmoke !== null)
     console.log(`Boot smoke: ${bootSmoke.sessions.length} ATR cold-start sessions and ` +
-      `${bootSmoke.reset_sessions.length} RESET session passed`);
+      `${bootSmoke.reset_sessions.length} RESET session and ` +
+      `${bootSmoke.overlay.forced_restore_sessions.length} forced capital restore passed`);
   if (bootSmokeOnly) {
     invariant(bootSmoke !== null, "--boot-smoke-only cannot be combined with --skip-boot-smoke");
     console.log(`Report: ${path.relative(rootDirectory,

@@ -107,6 +107,16 @@ light_kernel_vectors:
     jmp light_cell_resolve_sanitized
 .assert * - light_kernel_vectors = 5*3, error, "the Light kernel vector table must be five 3-byte entries"
 
+; M5a-S1 (docs/plans/m5-loading-boss.md §4.1): the capital vector table, appended
+; to the frozen block. main.s reaches the capital group only through these
+; (CAPITAL_VECTOR_*), so the overlay slot A can hold other code - the boss -
+; once a later overlay installs its own table image here. The jumps are
+; generated from scripts/build.mjs CAPITAL_VECTORS and main's labels.
+capital_vector_table:
+.include "capital-vectors.inc"
+.assert capital_vector_table = CAPITAL_VECTOR_TABLE, error, "the capital vector table moved off its constant"
+.assert * - capital_vector_table = CAPITAL_VECTOR_COUNT*3, error, "the capital vector table is not CAPITAL_VECTOR_COUNT jumps"
+
 ; Replaces the PairShot erase operand in the fighter publication window.
 ; Step 3: erase every published slot, then render every live one. Erase order
 ; among slots does not matter (plan §2.2): if slot B rendered over slot A's

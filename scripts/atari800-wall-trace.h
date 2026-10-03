@@ -919,6 +919,8 @@ typedef struct {
 	 * happened from a frame delta. */
 	UBYTE level_header[8];
 	unsigned level_checksum;
+	unsigned slot_checksum;
+	unsigned table_checksum;
 	unsigned portb;
 	/* ADR-003 boot splash (2026-09-22). The blob is copied to $0500-$06FF by
 	 * both stage-2 entries, before the first SIO read on the ATR and before
@@ -965,6 +967,47 @@ static unsigned dfboot_sio_command_frames;
 static unsigned dfboot_sio_wire_retries;
 static unsigned dfboot_level_load_begin = 0xffffffffu;
 static unsigned dfboot_level_load_end = 0xffffffffu;
+/* M5a-S1 overlay slot A (docs/plans/m5-loading-boss.md §4.7). The slot and the
+ * window's capital vector table are checksummed in every snapshot, so the
+ * gameplay snapshot proves both still hold the bytes the restore run would put
+ * back. The overlay read window runs from the first sector_reader_read_run to
+ * the level read that follows it. */
+static unsigned dfboot_slot_address;
+static unsigned dfboot_slot_bytes;
+static unsigned dfboot_table_address;
+static unsigned dfboot_table_bytes;
+static unsigned dfboot_pc_overlay_read;
+static unsigned dfboot_overlay_read_begin = 0xffffffffu;
+static unsigned dfboot_overlay_read_end = 0xffffffffu;
+static unsigned dfboot_overlay_command_frames;
+
+/* M5a-S1, harness only: DF{BOOT,TRACE}_FORCE_OVERLAY_RESTORE =
+ * "flag:entry:slot:slot_bytes:table:table_bytes". At the first instruction of
+ * the reader's START GAME entry the observer does what a boss transition will:
+ * it marks slot A overlaid and leaves other bytes ($00, BRK) in the slot and
+ * the table, so gameplay can only run if the restore run really put them back. */
+static unsigned dfoverlay_force[6];
+static int dfoverlay_force_armed = -1;
+static int dfoverlay_forced;
+
+static void dfoverlay_force_observe(const char *variable, unsigned pc)
+{
+	unsigned index;
+	if (dfoverlay_force_armed < 0) {
+		const char *value = getenv(variable);
+		dfoverlay_force_armed = value != NULL && sscanf(value, "%x:%x:%x:%x:%x:%x",
+			&dfoverlay_force[0], &dfoverlay_force[1], &dfoverlay_force[2],
+			&dfoverlay_force[3], &dfoverlay_force[4], &dfoverlay_force[5]) == 6;
+	}
+	if (!dfoverlay_force_armed || dfoverlay_forced || pc != dfoverlay_force[1])
+		return;
+	dfoverlay_forced = 1;
+	MEMORY_mem[dfoverlay_force[0] & 0xffffu] = 1u;
+	for (index = 0; index < dfoverlay_force[3]; ++index)
+		MEMORY_mem[(dfoverlay_force[2] + index) & 0xffffu] = 0u;
+	for (index = 0; index < dfoverlay_force[5]; ++index)
+		MEMORY_mem[(dfoverlay_force[4] + index) & 0xffffu] = 0u;
+}
 /* Boot-smoke observation horizon. Owner decision 22 re-bases the ATR menu
  * deadline on a 60-second budget (3,000 PAL frames), so the session must stay
  * alive past that ceiling for a slow-but-legal boot to be observable at all.
@@ -1155,6 +1198,8 @@ static void dfboot_capture(unsigned frame, unsigned pc)
 		snapshot->level_header[index_window] =
 			MEMORY_mem[(dfboot_level_address + index_window) & 0xffffu];
 	snapshot->level_checksum = dfboot_checksum(dfboot_level_address, dfboot_level_bytes);
+	snapshot->slot_checksum = dfboot_checksum(dfboot_slot_address, dfboot_slot_bytes);
+	snapshot->table_checksum = dfboot_checksum(dfboot_table_address, dfboot_table_bytes);
 	snapshot->splash_checksum =
 		dfboot_checksum(dfboot_splash_code_address, dfboot_splash_code_bytes);
 	snapshot->portb = PIA_PORTB;
@@ -1187,7 +1232,8 @@ static void dfboot_write(void)
 			"\"portb\":%u,\"window\":\"%02x%02x%02x%02x%02x%02x%02x%02x"
 			"%02x%02x%02x%02x%02x%02x%02x%02x\","
 			"\"level_header\":\"%02x%02x%02x%02x%02x%02x%02x%02x\","
-			"\"level_checksum\":%u,\"splash_checksum\":%u}%s\n",
+			"\"level_checksum\":%u,\"slot_checksum\":%u,\"table_checksum\":%u,"
+			"\"splash_checksum\":%u}%s\n",
 			snapshot->frame, snapshot->pc, snapshot->scanline, snapshot->cycle,
 			snapshot->loader_timer, snapshot->game_state, snapshot->dlist,
 			snapshot->charset_address, snapshot->pm_base, snapshot->dma_ctl,
@@ -1206,7 +1252,8 @@ static void dfboot_write(void)
 			snapshot->level_header[2], snapshot->level_header[3],
 			snapshot->level_header[4], snapshot->level_header[5],
 			snapshot->level_header[6], snapshot->level_header[7],
-			snapshot->level_checksum, snapshot->splash_checksum,
+			snapshot->level_checksum, snapshot->slot_checksum, snapshot->table_checksum,
+			snapshot->splash_checksum,
 			index + 1u == dfboot_snapshots_count ? "" : ",");
 	}
 	fprintf(dfboot_file,
@@ -1215,6 +1262,12 @@ static void dfboot_write(void)
 		dfboot_sio_command_frames, dfboot_sio_wire_retries,
 		dfboot_level_load_begin == 0xffffffffu ? -1 : (int) dfboot_level_load_begin,
 		dfboot_level_load_end == 0xffffffffu ? -1 : (int) dfboot_level_load_end);
+	fprintf(dfboot_file,
+		"  \"overlay\": {\"forced\":%d,\"read_begin\":%d,\"read_end\":%d,"
+		"\"command_frames\":%u},\n", dfoverlay_forced,
+		dfboot_overlay_read_begin == 0xffffffffu ? -1 : (int) dfboot_overlay_read_begin,
+		dfboot_overlay_read_end == 0xffffffffu ? -1 : (int) dfboot_overlay_read_end,
+		dfboot_overlay_command_frames);
 	fprintf(dfboot_file, "  \"splash\": {\"address\":%u,\"bytes\":%u,"
 		"\"code_address\":%u,\"code_bytes\":%u,"
 		"\"checksum_at_start\":%u,\"teardown_audc1\":%d,"
@@ -1293,6 +1346,11 @@ static void dfboot_init(void)
 	dfboot_pc_sio_frame = dfboot_env_u("DFBOOT_PC_SIO_FRAME");
 	dfboot_pc_sio_retry = dfboot_env_u("DFBOOT_PC_SIO_RETRY");
 	dfboot_pc_level_load = dfboot_env_u("DFBOOT_PC_LEVEL_LOAD");
+	dfboot_slot_address = dfboot_env_u("DFBOOT_SLOT_ADDRESS");
+	dfboot_slot_bytes = dfboot_env_u("DFBOOT_SLOT_BYTES");
+	dfboot_table_address = dfboot_env_u("DFBOOT_TABLE_ADDRESS");
+	dfboot_table_bytes = dfboot_env_u("DFBOOT_TABLE_BYTES");
+	dfboot_pc_overlay_read = dfboot_env_u("DFBOOT_PC_OVERLAY_READ");
 	/* Host decoration drawn into the frame buffer, not Atari output. */
 	Screen_show_disk_led = FALSE;
 	dfboot_initialised = 1;
@@ -1316,6 +1374,15 @@ static void dfboot_observe(unsigned pc, unsigned a_register, unsigned x_register
 	/* Roadmap 4.3 SIO counters. One hit at begin_receive is one command frame
 	 * that reached the wire; one hit at settle is one wire-class retry. The
 	 * load window is the reader's own entry to the frame gameplay starts. */
+	dfoverlay_force_observe("DFBOOT_FORCE_OVERLAY_RESTORE", pc);
+	if (pc == dfboot_pc_overlay_read && dfboot_overlay_read_begin == 0xffffffffu)
+		dfboot_overlay_read_begin = frame;
+	if (pc == dfboot_pc_level_load && dfboot_overlay_read_begin != 0xffffffffu &&
+		dfboot_overlay_read_end == 0xffffffffu)
+		dfboot_overlay_read_end = frame;
+	if (pc == dfboot_pc_sio_frame && dfboot_overlay_read_begin != 0xffffffffu &&
+		dfboot_overlay_read_end == 0xffffffffu)
+		++dfboot_overlay_command_frames;
 	if (pc == dfboot_pc_sio_frame)
 		++dfboot_sio_command_frames;
 	if (pc == dfboot_pc_sio_retry)
@@ -6535,6 +6602,7 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 	}
 	if (!dftrace_initialised)
 		dftrace_init();
+	dfoverlay_force_observe("DFTRACE_FORCE_OVERLAY_RESTORE", pc);
 	dfprobe_observe();
 	dfspread_observe();
 	dfdebris_observe();

@@ -109,8 +109,30 @@ summary_start_game:
         sta summary_level
         lda #$00
         sta PLAYER_LIFECYCLE            ; a quit while dying must not mute the music
-        jsr summary_prepare
+        ; Owner review (2026-10-03): START GAME keeps the old loader's top line,
+        ; the reader's record, which the session's first START GAME already
+        ; shows alone on the interim screen at the same scanline. That screen
+        ; is still on: clear and redraw only once ANTIC has fetched this frame's
+        ; row 0 (scanline 32), so the shared line never blinks - the clear and
+        ; the record take ~60 lines, done long before the next frame's row 0;
+        ; LOADING follows
+        ; the switch, so the interim screen never shows it.
+        jsr wait_frame_start            ; returns on scanline ~3
+        ldx #40
+@past_top_line:
+        sta WSYNC                       ; 40 lines: past row 0's fetch at 32
+        dex
+        bne @past_top_line
+        jsr clear_screen
+        lda #<sr_engaging_record
+        ldx #>sr_engaging_record
+        jsr summary_records
+        lda #<summary_start_display_list
+        ldx #>summary_start_display_list
         jsr summary_publish
+        lda #<summary_loading_records
+        ldx #>summary_loading_records
+        jsr summary_records
         ; A level already in the buffer plays its block from the first frame.
         lda summary_level
         sta sr_requested_id
@@ -155,6 +177,8 @@ summary_level_end:
         jsr summary_bonus
         jsr summary_prepare
         jsr summary_draw_stats
+        lda #<summary_display_list
+        ldx #>summary_display_list
         jsr summary_publish
         jsr summary_art
         bcs summary_failed
@@ -216,13 +240,18 @@ summary_prepare:
         lda summary_level
         jmp summary_two_digits
 
+; A/X = the display list. Everything changes on a frame's edge, before
+; ANTIC fetches the first line at scanline 8: the interim screen of a
+; session's first START GAME leaves DMA on, and a list switched mid-frame
+; would show half of each.
 summary_publish:
+        pha
+        jsr wait_frame_start            ; leaves X alone
+        pla
+        sta DLISTL
+        stx DLISTH
         lda #>FRONTEND_CHARSET
         sta CHBASE
-        lda #<summary_display_list
-        sta DLISTL
-        lda #>summary_display_list
-        sta DLISTH
         lda #$0A                        ; the text's luminance until the art lands
         sta COLPF1
         lda #$00
@@ -231,9 +260,12 @@ summary_publish:
         sta COLPF3
         sta COLBK
         sta NMIEN
-        jsr wait_frame_start
-        lda #$00
         sta SUMMARY_FRAMES              ; Q15 counts from this frame
+        ; Owner review, item 1: the reader's waits tick on a VCOUNT that fell
+        ; below the last one they saw. That value is from an earlier frame; left
+        ; there, the next wait would count this frame's edge a second time.
+        lda VCOUNT
+        sta sr_vcount_last
         lda #$22
         sta DMACTL
         rts
@@ -906,6 +938,7 @@ summary_ai_offsets:
 summary_title_records:
         .byte <(SUMMARY_SCREEN + 16), >(SUMMARY_SCREEN + 16)
         .byte "LEVEL", $00
+summary_loading_records:
         .byte <(SUMMARY_PROMPT_ROW + 16), >(SUMMARY_PROMPT_ROW + 16)
         .byte "LOADING", $00
         .byte $FF
@@ -933,6 +966,30 @@ summary_display_list:
         .byte $02
         .endrepeat
         .byte $41, <summary_display_list, >summary_display_list
+
+; Owner review (2026-10-03): START GAME's list. Its top line sits a row lower,
+; at the interim screen's scanline 32 (the frontend text list's row 0); no AI
+; line under it, so the picture and the panel keep the level-end scanlines
+; (47 and 131); the AI line - row 1's memory, from the art run - shows under
+; the panel, after BEST; then the dotted row and the prompt. 211 lines.
+summary_start_display_list:
+        .byte $70, $70, $70
+        .byte $42, <SUMMARY_SCREEN, >SUMMARY_SCREEN
+        .byte $20
+        .byte $30
+        .byte $44, <SUMMARY_PICTURE, >SUMMARY_PICTURE
+        .repeat SUMMARY_PICTURE_ROWS - 1
+        .byte $04
+        .endrepeat
+        .byte $30
+        .byte $42, <(SUMMARY_SCREEN + 2 * 40), >(SUMMARY_SCREEN + 2 * 40)
+        .repeat 7
+        .byte $02
+        .endrepeat
+        .byte $42, <(SUMMARY_SCREEN + 40), >(SUMMARY_SCREEN + 40)
+        .byte $42, <SUMMARY_ANIMATION_ROW, >SUMMARY_ANIMATION_ROW
+        .byte $02
+        .byte $41, <summary_start_display_list, >summary_start_display_list
 summary_display_list_end:
 
 ; State. The module is RAM; it is read anew each session.
@@ -957,6 +1014,7 @@ summary_verified:       .byte 0
 .assert SUMMARY_PICTURE + 400 <= SUMMARY_SCREEN + $400, error, "the picture leaves the frontend screen RAM"
 
 .export summary_vectors, summary_start_game, summary_level_end, summary_display_list
+.export summary_start_display_list, summary_display_list_end
 .export summary_accuracy, summary_time, summary_grade, summary_bonus, summary_print
 .export summary_percent, summary_seconds, summary_minutes, summary_seconds_part
 .export summary_lives_lost, summary_grade_code, summary_level, summary_verified

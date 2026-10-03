@@ -295,14 +295,16 @@ sector_reader_level_end:
 ; The $0500 module, once per session (§4.8.1): RESET is a cold start, so the
 ; flag in the reader's own transported image is clear at every power-on and
 ; nothing else writes the splash RAM after the boot. C=0 resident; C=1, A=status.
+; Owner review (2026-10-03): while the module lands, the screen shows the
+; START GAME summary's top line alone, at its scanline (row 0 of the frontend
+; text list, scanline 32), column and luminance, so the summary arriving reads
+; as its picture and panel filling in. The dotted row waits for the module.
 sector_reader_ensure_summary:
         lda sr_summary_resident
         bne @resident
-        lda #<title_record
-        sta frontend_data_ptr
-        lda #>title_record
-        sta frontend_data_ptr+1
-        jsr sector_reader_publish_screen
+        lda #<sr_engaging_record
+        ldx #>sr_engaging_record
+        jsr sector_reader_show_records
         ldx #OVERLAY_SUMMARY_CODE
         jsr sector_reader_read_run
         bcs @done
@@ -347,8 +349,11 @@ sector_reader_restore_capital:
 ; confirmation and pause screens already use, FRONTEND_CHARSET survives
 ; gameplay, and the text goes through render_frontend_data. NMIEN stays 0.
 ; ===========================================================================
-; Shared by the title and failure screens: render, then bring the display up
-; on a frame boundary.
+; Shared by the interim and failure screens: A/X = the record list; render,
+; then bring the display up on a frame boundary.
+sector_reader_show_records:
+        sta frontend_data_ptr
+        stx frontend_data_ptr+1
 sector_reader_publish_screen:
         lda #>FRONTEND_CHARSET
         sta CHBASE
@@ -356,7 +361,7 @@ sector_reader_publish_screen:
         sta DLISTL
         lda #>frontend_text_display_list
         sta DLISTH
-        lda #$0E                        ; ANTIC 2 neutral-white foreground
+        lda #$0A                        ; the summary's text luminance (owner review)
         sta COLPF1
         lda #$00                        ; black hue/background
         sta COLPF2
@@ -406,10 +411,8 @@ sector_reader_failure_screen:
         bne @reason
 
         lda #<failure_records
-        sta frontend_data_ptr
-        lda #>failure_records
-        sta frontend_data_ptr+1
-        jsr sector_reader_publish_screen
+        ldx #>failure_records
+        jsr sector_reader_show_records
 
         jsr sector_reader_wait_for_fire
         jmp quit_gameplay_to_menu
@@ -433,6 +436,8 @@ sector_reader_wait_for_fire:
 ; the drive does, which is the diagnostic. It runs between sectors, where the
 ; drive is idle and no byte is in flight.
 sector_reader_animate:
+        lda sr_summary_resident         ; not on the interim screen (owner review)
+        beq @done
         inc sr_anim
         ldx #$00
 @cell:
@@ -450,6 +455,7 @@ sector_reader_animate:
         inx
         cpx #40
         bne @cell
+@done:
         rts
 
 ; Reserved for roadmap 4.9: the level-to-level boundary predicate. The drain
@@ -1027,15 +1033,13 @@ sector_reader_pokey_setup:
         sta SKCTL
         lda #$28                        ; ch3 at 1.79 MHz, ch3+ch4 linked
         sta AUDCTL
-        lda #$28                        ; divisor $0028 (HRM §5.6 p.115)
-        sta AUDF3
+        sta AUDF3                       ; divisor $0028 (HRM §5.6 p.115)
         lda #$00
         sta AUDF4
+        sta IRQEN
         lda #$A0                        ; pure tone, volume 0: silent clock
         sta AUDC3
         sta AUDC4
-        lda #$00
-        sta IRQEN
         lda #IRQ_SERIN|IRQ_SEROUT_RDY
         sta IRQEN
         rts
@@ -1180,8 +1184,7 @@ sector_reader_validate:
 ;
 ; Record lists are {dst_lo, dst_hi, text..., $00} repeated, terminated by $FF,
 ; exactly as render_frontend_data reads them. Only the frontend's own glyph
-; contract is used: A-Z, 0-9, space and a little punctuation. The title is the
-; failure list's LAST record, so the title-only screen is the same bytes.
+; contract is used: A-Z, 0-9, space and a little punctuation.
 ; M5a-S2: the loader's AI lines left with the loader screen; they travel in
 ; the summary's art runs (assets/text/loader-ai-lines.json, Q3).
 ; ---------------------------------------------------------------------------
@@ -1197,6 +1200,15 @@ failure_reason_slot:
 title_record:
         .byte <LOADER_TITLE_ROW, >LOADER_TITLE_ROW
         .byte "VOID STRIKE 65", $00
+        .byte $FF
+
+; Owner review (2026-10-03): START GAME keeps the old loader's top line. One
+; record, drawn by the interim screen here and by the summary module's START
+; GAME screen: row 0, column 9 (21 characters, centred as the loader had it).
+; The level number joins it in M4.
+sr_engaging_record:
+        .byte <(SCREEN + 9), >(SCREEN + 9)
+        .byte "ENGAGING ENEMY SECTOR", $00
         .byte $FF
 
 ; Two words per status, in status order, ten characters each.
@@ -1246,7 +1258,7 @@ sr_summary_resident:
 
 .export sector_reader_directory, overlay_directory, capital_vector_image
 .export sector_reader_read_run, sector_reader_read_sectors, sector_reader_restore_capital
-.export sr_slot_a_overlaid, sr_summary_resident
+.export sr_slot_a_overlaid, sr_summary_resident, sr_engaging_record, sr_vcount_last
 .export SAVE_RECORD_SECTOR, SAVE_RECORD_ENTRY, sector_reader_restore_if_overlaid
 .export sector_reader_tx_done
 .export sector_reader_level_end, sector_reader_ensure_summary, sector_reader_failure_screen

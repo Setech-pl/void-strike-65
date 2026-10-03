@@ -693,11 +693,22 @@ test("the failure screen names every status and offers a way out", () => {
 // place. What this test pinned is kept for them: centred on the 40-column
 // line, every character in the frontend charset, and the reader still fits.
 test("the level loading screen reads ENGAGING ENEMY SECTOR, centred and in charset", () => {
+  // RE-POINTED 2026-10-03 (owner review of M5a-S2): START GAME keeps the old
+  // loader's identity again. The line is one record in the reader, row 0
+  // column 9 (centred for 21 characters as the loader had it), drawn by the
+  // interim screen and by the summary's START GAME screen; the old loader's
+  // record list and its AI pool stay gone.
   const reader = fs.readFileSync(path.join(root, "src/hybrid/sector-reader.s"), "utf8");
-  assert.doesNotMatch(reader, /loader_records|"ENGAGING ENEMY SECTOR"/,
+  assert.doesNotMatch(reader, /loader_records|ai_line_pool/,
     "the replaced loader screen is still shipped");
+  assert.match(reader,
+    /sr_engaging_record:\s+\.byte <\(SCREEN \+ 9\), >\(SCREEN \+ 9\)\s+\.byte "ENGAGING ENEMY SECTOR", \$00\s+\.byte \$FF/);
   const summary = fs.readFileSync(path.join(root, "src/hybrid/level-summary.s"), "utf8");
   const SCREEN_COLUMNS = 40;
+  for (const [text, column, width] of [["ENGAGING ENEMY SECTOR", 9, 21]]) {
+    assert.ok(Math.abs(column - Math.floor((SCREEN_COLUMNS - width) / 2)) <= 1);
+    assert.match(text, /^[A-Z0-9 \-./:?]*$/);
+  }
   for (const [text, column, width] of [["LEVEL", 16, 8], ["LOADING", 16, 7],
     ["PRESS FIRE", 15, 10]]) {
     assert.ok(summary.includes(`.byte "${text}", $00`), `the summary does not draw ${text}`);

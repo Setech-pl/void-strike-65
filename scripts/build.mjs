@@ -699,6 +699,10 @@ const SUMMARY_READER_SYMBOLS = Object.freeze([
   "sector_reader_quiesce", "SAVE_RECORD_ENTRY",
   "sr_requested_id", "sr_sector_lo", "sr_sector_hi", "sr_sectors_left", "sr_dst",
   "overlay_directory", "SAVE_RECORD_SECTOR",
+  // Owner review (2026-10-03): START GAME's top line, one record in the
+  // reader; and the VCOUNT the reader's waits compare with, re-synced when
+  // the summary's count starts.
+  "sr_engaging_record", "sr_vcount_last",
 ]);
 
 // Light multiplicity step 1b (plan §3.1 [C1]): the Light ASM kernel is its own

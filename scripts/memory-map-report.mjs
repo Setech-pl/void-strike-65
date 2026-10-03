@@ -514,6 +514,51 @@ function reservationTails(build, rows, reservations) {
   return tails.sort((left, right) => left.start - right.start);
 }
 
+// Every cfg overlap that is there on purpose (M5b-S3 brief): ld65 cannot see an
+// overlap between two areas, so an accidental one is invisible until something
+// lands on it. tests/cfg-overlaps.test.mjs fails on any overlap not named here
+// and on any entry here that no longer matches one.
+export const DECLARED_CFG_OVERLAPS = Object.freeze([
+  { areas: ["LEVEL_SUMMARY_RAM", "SPLASH_RAM"], name: "summary over the splash",
+    reason: "the level-summary module is read into the boot splash's RAM after the splash hold ends (owner decision 2026-10-03)" },
+  { areas: ["MAIN", "BOOT2_RAM"], name: "stage 2 inside MAIN",
+    reason: "stage 2 runs inside MAIN until the resident suffix is unpacked over it" },
+  { areas: ["ENTITY_STATE_RAM", "DIRECTOR_BSS"], name: "Director state in the entity page",
+    reason: "the Director's twelve state bytes $80F4-$80FF are the top of the entity-state page, read by ASM by address" },
+  { areas: ["A2KERNEL_RAM", "ENTITY_CODE_RAM"], name: "A2 kernel page",
+    reason: "A2_KERNEL owns $9000-$90FF; ENTITY_CODE_RAM starts on the same page and ENTITY_RUN_PAD aligns ENTITY_CODE past it" },
+  { areas: ["ENTITY_CODE_RAM", "DIRECTOR_C_PRE_RAM"], name: "Director RNG in the entity run",
+    reason: "the Director's pre-code is linked into the tail of ENTITY_CODE_RAM that ENTITY_CODE does not reach" },
+  { areas: ["ENTITY_CODE_RAM", "DIRECTOR_RAM"], name: "Director in the entity run",
+    reason: "the Director's high code is linked into the tail of ENTITY_CODE_RAM that ENTITY_CODE does not reach" },
+  { areas: ["ENTITY_CODE_RAM", "DIRECTOR_GUARD"], name: "Director guard",
+    reason: "the six guard bytes below $A000 close the Director link inside ENTITY_CODE_RAM's last page" },
+  { areas: ["LEVEL_BUFFER_RAM", "GAMEPLAY_MUSIC_RAM"], name: "music in the level image",
+    reason: "the gameplay music player is linked to run inside the level image it travels in" },
+  { areas: ["LEVEL_BUFFER_RAM", "LEVEL_CORE_RAM"], name: "LevelDef core page",
+    reason: "the Director's LevelDef core arrays are link-time symbols over the level buffer, filled by the sector reader" },
+  { areas: ["LEVEL_BUFFER_RAM", "LEVEL_GEOMETRY_RAM"], name: "HullGeometry header",
+    reason: "the HullGeometry header is a link-time symbol over the level buffer, filled by the sector reader" },
+  { areas: ["HYBRID_C_WINDOW_GUARD", "READER_GUARD"], name: "one window guard",
+    reason: "the same six guard bytes at $BC1A are declared by both links that share the window" },
+]);
+
+// The overlaps between cfg memory areas, from the cfg files alone: the areas the
+// default build links as written, plus gameplay-music.cfg (build.mjs rewrites
+// only its start, to the same address).
+export function cfgAreaOverlaps() {
+  const reservations = [];
+  for (const name of [...RESERVATION_CFGS, "gameplay-music.cfg"]) {
+    for (const area of parseCfgAreas(name).areas) {
+      if (!NON_RESERVATION_AREAS.has(area.name)) reservations.push(area);
+    }
+  }
+  return reservationOverlaps(reservations);
+}
+
+const declaredOverlapName = (overlap) => DECLARED_CFG_OVERLAPS.find((entry) =>
+  entry.areas.includes(overlap.a.name) && entry.areas.includes(overlap.b.name))?.name;
+
 function reservationOverlaps(reservations) {
   const overlaps = [];
   const sorted = [...reservations].sort((left, right) => left.start - right.start || left.name.localeCompare(right.name));
@@ -780,12 +825,12 @@ export function renderBlock() {
   line();
   line("### Overlapping cfg areas");
   line();
-  line("ld65 does not report overlaps between separate memory areas or separate links. Every overlap the cfg files declare:");
+  line("ld65 does not report overlaps between separate memory areas or separate links. Every overlap the cfg files declare, with the name `DECLARED_CFG_OVERLAPS` gives it; `tests/cfg-overlaps.test.mjs` fails on an undeclared one:");
   line();
-  line("| Range | Size | Area | Area |");
-  line("| --- | ---: | --- | --- |");
+  line("| Range | Size | Area | Area | Declared as |");
+  line("| --- | ---: | --- | --- | --- |");
   for (const overlap of overlaps) {
-    line(`| ${range(overlap.start, overlap.end)} | ${bytes(overlap.end - overlap.start + 1)} | \`${overlap.a.name}\` ${range(overlap.a.start, overlap.a.end)} (${overlap.a.cfg}) | \`${overlap.b.name}\` ${range(overlap.b.start, overlap.b.end)} (${overlap.b.cfg}) |`);
+    line(`| ${range(overlap.start, overlap.end)} | ${bytes(overlap.end - overlap.start + 1)} | \`${overlap.a.name}\` ${range(overlap.a.start, overlap.a.end)} (${overlap.a.cfg}) | \`${overlap.b.name}\` ${range(overlap.b.start, overlap.b.end)} (${overlap.b.cfg}) | ${declaredOverlapName(overlap) ?? "**undeclared**"} |`);
   }
   line();
   line("### Ranges reused across phases");

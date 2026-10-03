@@ -542,6 +542,32 @@ test("accuracy is hits per shot as a whole per cent, clamped to 100, 0 without a
   }
 });
 
+// Decision O: a dotted row stepped once per sector, so a hesitating drive shows
+// as a hesitating row. Since 4.3 the step stored a dash in every cell (the space
+// branch was `lda #0 / bne`, never taken) and the row stood still (M5b-S3 brief).
+test("the dotted row is a dash every eighth cell and moves one cell per sector step", () => {
+  const memory = summaryMemory();
+  const row = SCREEN + 10 * 40;
+  const rows = [];
+  for (let step = 0; step < 9; step += 1) {
+    callRoutine(memory, summary("summary_animate"));
+    rows.push(Array.from(memory.subarray(row, row + 40)));
+  }
+  for (const [step, cells] of rows.entries()) {
+    const dashes = cells.flatMap((code, column) => (code === 37 ? [column] : []));
+    assert.ok(cells.every((code) => code === 0 || code === 37), `step ${step}: only spaces and dashes`);
+    assert.equal(dashes.length, 5, `step ${step}: one dash in every eight of the 40 cells`);
+    assert.ok(dashes.every((column, index) => index === 0 || column - dashes[index - 1] === 8),
+      `step ${step}: dashes eight cells apart`);
+  }
+  for (let step = 1; step < rows.length; step += 1) {
+    const before = rows[step - 1].indexOf(37);
+    const after = rows[step].indexOf(37);
+    assert.equal((before + 8 - after) % 8, 1, `step ${step}: the row moves one cell per sector`);
+  }
+  assert.deepEqual(rows[8], rows[0], "the pattern repeats every eight sectors");
+});
+
 test("time is active gameplay frames as minutes and seconds", () => {
   const cases = [[0, 0, 0], [49, 0, 0], [50, 0, 1], [2999, 0, 59], [3000, 1, 0],
     [8249, 2, 44], [65535, 21, 50]];

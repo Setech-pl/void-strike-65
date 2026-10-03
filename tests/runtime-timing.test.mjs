@@ -112,6 +112,30 @@ test("protected linked segments do not regress beyond the accepted feature basel
   assert.ok(manifest.payloadBudget.weaponPickupSpreadShot.remainingReserveBytes >= 64);
 });
 
+// M5b-S3 brief: the manifest said STARFIELD reserves 2,278 B while
+// cfg/atari-boot.cfg reserves 2,348 ($092C from $54E4). The figure is the
+// cfg's, read from the cfg, so the two cannot drift apart again.
+test("the manifest's STARFIELD reservation and runtime range are the cfg's STARFIELD_RAM", () => {
+  const cfg = fs.readFileSync(path.join(root, "cfg", "atari-boot.cfg"), "utf8");
+  const area = (name) => {
+    const match = new RegExp(`${name}\\s*:\\s*start\\s*=\\s*\\$([0-9A-F]+)\\s*,\\s*size\\s*=\\s*\\$([0-9A-F]+)`, "i")
+      .exec(cfg);
+    assert.ok(match, `cfg/atari-boot.cfg has no ${name}`);
+    return { start: Number.parseInt(match[1], 16), size: Number.parseInt(match[2], 16) };
+  };
+  const starfield = area("STARFIELD_RAM");
+  const segment = timing.protectedSegments.find((entry) => entry.name === "STARFIELD");
+  assert.equal(segment.reservedMaximumBytes, starfield.size, "STARFIELD reserved bytes");
+  assert.equal(segment.acceptedMaximumBytes, starfield.size, "STARFIELD accepted maximum");
+  assert.equal(segment.freeReservedBytes, starfield.size - segment.bytes);
+  const range = timing.memory.runtimeRanges.find((entry) => entry.name === "starfield-runtime");
+  assert.deepEqual([range.start, range.end, range.bytes],
+    [starfield.start, starfield.start + starfield.size - 1, starfield.size], "starfield-runtime range");
+  const projectiles = area("PROJECTILE_RAM");
+  const below = timing.memory.runtimeRanges.find((entry) => entry.name === "projectile-state");
+  assert.equal(below.end, projectiles.start + projectiles.size - 1, "projectile-state ends where the cfg's area does");
+});
+
 test("post-loader runtime and future entity ranges are non-overlapping", () => {
   const ranges = timing.memory.runtimeRanges;
   for (let index = 1; index < ranges.length; index += 1) {

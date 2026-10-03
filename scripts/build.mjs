@@ -668,6 +668,7 @@ const SECTOR_READER_MAIN_SYMBOLS = Object.freeze([
   ["add_debris_score", "the debris hooks' continuation"],
   ["entity_debris_publish", "the capital-frame hook's continuation"],
   ["FIGHTER_PROJECTILE_LIFETIME", "the shot scan: $FF on a slot's allocation frame"],
+  ["FIGHTER_PROJECTILE_ACTIVE", "the shot scan: a slot still holding its shot"],
   ["ENEMY_PENDING_DAMAGE", "this frame's damage per Heavy member"],
   ["ENEMY_PENDING_SOURCE", "this frame's best damage source per Heavy member"],
   ["CAPITAL_SECTOR_STATE", "the terminal COMPLETE the level's end waits for"],

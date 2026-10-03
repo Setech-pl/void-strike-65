@@ -517,6 +517,11 @@ const capitalPlayerGeometrySessions = [["ATR", 1], ["ATR", 2]].flatMap(([medium,
  * The trace-only observer is `DFTRACE_HOLD_PLAYER_LIVES`; no production byte is
  * patched. The survival loss itself is a gameplay-difficulty signal for the
  * owner and is recorded in STATUS, not gated here. */
+/* M5a-S2 (class (a), the scenario moves, no clause weakens): the level's end
+ * now leaves gameplay for the level-summary screen 50 frames after the terminal
+ * COMPLETE, so these replays END there (`endAtSummary`) instead of flying on in
+ * COMPLETE to the frame budget; `frames` stays the budget, the clauses below
+ * assert the rows reach the summary inside it. */
 const directorCompletionSessions = [0, 1, 2].map((difficulty) => ({
   id: `director-complete-${difficulty}-natural-sweep-fire0`,
   difficulty,
@@ -525,7 +530,34 @@ const directorCompletionSessions = [0, 1, 2].map((difficulty) => ({
   frames: 10_500,
   kind: "director-level-complete",
   holdPlayerLives: 3,
+  endAtSummary: true,
 }));
+/* M5a-S2 (§4.8.4, Q16), the save record on a real write path:
+ *   - the record director-complete-1 wrote to ITS copy of the disk is read
+ *     back by a second boot of that same copy, whose START GAME summary must
+ *     show the level's best;
+ *   - director-complete-2 again on a WRITE-PROTECTED copy: the write is
+ *     refused, the summary completes silently and the copy stays unchanged. */
+const summaryRecordSessions = [{
+  id: "summary-record-readback-1",
+  difficulty: 1,
+  policy: "neutral",
+  fireDelay: 4_000,
+  frames: 8,
+  kind: "summary-record-readback",
+  media: { id: "director-complete-1-natural-sweep-fire0", reuse: true },
+  writtenBy: "director-complete-1-natural-sweep-fire0",
+}, {
+  id: "director-complete-2-write-protected",
+  difficulty: 2,
+  policy: "sweep",
+  fireDelay: 0,
+  frames: 10_500,
+  kind: "summary-write-protected",
+  holdPlayerLives: 3,
+  endAtSummary: true,
+  media: { id: "director-complete-2-write-protected", readOnly: true },
+}];
 
 // The `hunt` half's fire delay, re-scripted at roadmap 4.6 step 2's closure
 // (owner decision 12, 2026-09-28, class (a)). At the authored 4 the pair
@@ -1347,6 +1379,196 @@ function tracePcSymbols(binary) {
   return new Set(binary.toString("latin1").match(/DFTRACE_PC_[A-Z0-9_]+/g) ?? []);
 }
 
+// M5a-S2 (docs/plans/m5-loading-boss.md §4.8.4, owner answer Q16): the game
+// writes its save record to the disk it booted from, so no emulator session may
+// ever mount dist/. Every session boots its own copy under the output
+// directory; a `readOnly` copy is the write-protected disk Atari800 refuses to
+// write (src/sio.c answers ERROR), and `reuse` boots a copy an earlier session
+// already wrote to. The path is relative to the repository: Atari800 failed to
+// mount an image through a long absolute path in this repository's probe runs.
+const sessionMediaWritten = new Set();
+function sessionMedia(sourcePath, id, { readOnly = false, reuse = false } = {}) {
+  const directory = path.join(buildDirectory, "media");
+  fs.mkdirSync(directory, { recursive: true });
+  const target = path.join(directory, `${id}.atr`);
+  if (!reuse) {
+    if (fs.existsSync(target)) {
+      fs.chmodSync(target, 0o644);
+      fs.unlinkSync(target);
+    }
+    fs.copyFileSync(sourcePath, target);
+    if (readOnly) fs.chmodSync(target, 0o444);
+  } else {
+    invariant(fs.existsSync(target), `the media copy ${id} has not been written yet`);
+  }
+  sessionMediaWritten.add(target);
+  return path.relative(rootDirectory, target);
+}
+
+// The summary observer's addresses (scripts/atari800-wall-trace.h, dfsummary).
+function summaryTraceEnvironment(inputDirectory, labels) {
+  const readLabels = (file) => parseViceLabels(fs.readFileSync(path.join(inputDirectory, file), "utf8"));
+  const summary = readLabels("level-summary.lbl");
+  const reader = readLabels("sector-reader.lbl");
+  const music = readLabels("gameplay-music.lbl");
+  const address = (map, name) => {
+    const value = map.get(name);
+    invariant(Number.isInteger(value), `summary observer label ${name} is missing`);
+    return `0x${value.toString(16)}`;
+  };
+  return {
+    DFSUMMARY_DLIST: address(summary, "summary_display_list"),
+    DFSUMMARY_FIRE_RELEASE: address(summary, "summary_fire_release"),
+    DFSUMMARY_FIRE_PRESS: address(summary, "summary_fire_press"),
+    DFSUMMARY_START_ENTRY: address(summary, "summary_start_game"),
+    DFSUMMARY_END_ENTRY: address(summary, "summary_level_end"),
+    DFSUMMARY_LEVEL_LOADED: address(summary, "summary_level_loaded"),
+    DFSUMMARY_EXIT_START: address(labels, "start_gameplay"),
+    DFSUMMARY_EXIT_END: address(labels, "quit_gameplay_to_menu"),
+    DFSUMMARY_FAILURE: address(reader, "sector_reader_failure_screen"),
+    DFSUMMARY_TX_DONE: address(reader, "sector_reader_tx_loop_end"),
+    DFSUMMARY_FRAME_BYTES: address(reader, "sr_frame"),
+    DFSUMMARY_TICK: `0x${(music.get("gameplay_music_vectors") + 3).toString(16)}`,
+    DFSUMMARY_SCORE_HEAVY: address(labels, "add_archetype_score_tail"),
+    DFSUMMARY_SCORE_LIGHT: address(labels, "light_add_score"),
+    DFSUMMARY_SCORE_DEBRIS: address(labels, "add_debris_score"),
+    DFSUMMARY_PROJECTILE_ACTIVE: address(labels, "FIGHTER_PROJECTILE_ACTIVE"),
+    DFSUMMARY_FRAME_COUNTER: address(labels, "frame_counter"),
+  };
+}
+
+// M5a-S2 clauses on one replay's summaries (§4.8, decisions 26-28, Q13-Q17).
+// Every replay passes a START GAME summary; a level played to its end passes
+// the level-end summary, whose stats are cross-checked against the observer's
+// own counters and whose record write goes to sector 599 alone.
+function levelSummaryClauses(session, records, rows, publishedAtrPath) {
+  const failed = records.find((record) => record.failed !== 0);
+  invariant(failed === undefined, `${session.id} reached the reader's failure screen at ` +
+    `frame ${failed?.accept}`);
+  const starts = records.filter((record) => record.kind === "start");
+  invariant(starts.length >= 1, `${session.id} never passed a START GAME summary`);
+  const lastRead = (record) => Math.max(-1, ...record.frames.map(([, , at]) => at));
+  for (const record of starts) {
+    invariant(record.display >= 0 && record.accept - record.display >= 150 &&
+      record.ready >= record.display + 150 && record.ready >= lastRead(record) &&
+      summaryRowText(record.first_screen, 0).includes("LEVEL") &&
+      record.frames.every(([command]) => command === 0x52),
+    `${session.id} START GAME summary: displayed ${record.display}, ready ${record.ready}, ` +
+      `last read ${lastRead(record)}, FIRE accepted ${record.accept}`);
+  }
+  const evidence = {
+    start_summaries: starts.map((record) => ({
+      entry: record.entry, display: record.display, loaded: record.loaded,
+      ready: record.ready, accept: record.accept, reads: record.frames.length,
+      shown_frames: record.accept - record.display,
+      best: summaryRowText(record.final_screen, 9).trim(),
+    })),
+  };
+  if (session.kind === "summary-record-readback") {
+    const written = readSummaryRecords(path.join(buildDirectory,
+      `${session.writtenBy}-summary.jsonl`)).find((record) => record.kind === "end");
+    invariant(written !== undefined, `${session.id}: ${session.writtenBy} wrote no record`);
+    const slot = written.record.slice(64 * 2, 68 * 2);
+    const grade = { "01": "C", "02": "B", "03": "A", "04": "S" }[slot.slice(0, 2)];
+    const expected = `${grade} 0${slot.slice(4, 8)}`;
+    const best = summaryRowText(starts[0].final_screen, 9);
+    invariant(grade !== undefined && best.includes(expected),
+      `${session.id}: BEST reads "${best.trim()}" on the disk ${session.writtenBy} wrote; ` +
+        `expected "${expected}"`);
+    evidence.record_read_back = { written_by: session.writtenBy, best: best.trim(), expected };
+    return evidence;
+  }
+  if (!session.endAtSummary) return evidence;
+  const end = records.find((record) => record.kind === "end");
+  invariant(end !== undefined, `${session.id} did not reach the level-end summary inside ` +
+    `${session.frames} frames`);
+  const word = (index) => end.stats[index] | (end.stats[index + 1] << 8);
+  const shots = word(0);
+  const hits = word(2);
+  const kills = word(4);
+  // A shot is a PairShot still in its slot when its frame publishes: the
+  // observer counts every FREE -> ACTIVE write and, apart, the ones freed in
+  // the same main-loop iteration (wiped by the player's death before they flew).
+  invariant(shots === end.observer_shots - end.observer_cancelled &&
+    kills === end.observer_kills,
+  `${session.id} level-end stats: shots ${shots} / kills ${kills}; the observer counted ` +
+    `${end.observer_shots} allocations, ${end.observer_cancelled} wiped in their own frame, ` +
+    `and ${end.observer_kills} kills (score-routine entries)`);
+  const lastRow = rows.at(-1);
+  invariant(Math.abs(end.stats[10] - lastRow.active_gameplay_frame) <= 1,
+    `${session.id}: the summary's clock ${end.stats[10]} is not the trace's ` +
+      `${lastRow.active_gameplay_frame}`);
+  const seconds = Math.floor(end.stats[10] / 50);
+  const percent = shots === 0 ? 0 : Math.floor(100 * Math.min(hits, shots) / shots);
+  const score = `0${end.stats[11].toString(16).padStart(4, "0")}`;
+  const row = (index) => summaryRowText(end.first_screen, index);
+  const time = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+  const lives = 3 - (session.holdPlayerLives ?? 3);
+  invariant(row(2).includes(score) && row(3).trim().endsWith(String(kills)) &&
+    row(4).includes(`${percent}%`) && row(5).trim().endsWith(time) &&
+    row(6).trim().endsWith(String(lives)) && /[SABC]$/.test(row(8).trim()),
+  `${session.id} level-end summary's first frame: ${[2, 3, 4, 5, 6, 8].map((index) =>
+    `"${row(index).trim()}"`).join(" ")}; expected score ${score}, kills ${kills}, ` +
+    `${percent}%, ${time}, ${lives} lost`);
+  invariant(end.accept - end.display >= 150 && end.ready >= lastRead(end),
+    `${session.id} level-end summary: displayed ${end.display}, ready ${end.ready}, ` +
+      `FIRE accepted ${end.accept}`);
+  const writes = end.frames.filter(([command]) => command !== 0x52);
+  invariant(writes.length === 1 && writes.every(([command, sector]) =>
+    command === 0x50 && sector === 599),
+  `${session.id} level-end writes: ${JSON.stringify(writes)}; expected one 'P' to sector 599`);
+  const afterWrite = end.frames.filter(([, , at]) => at >= writes[0][2])
+    .filter(([command]) => command === 0x52);
+  const media = path.join(buildDirectory, "media", `${session.media?.id ?? session.id}.atr`);
+  const mediaSector = fs.readFileSync(media).subarray(16 + 598 * 128, 16 + 599 * 128);
+  if (session.kind === "summary-write-protected") {
+    invariant(afterWrite.length === 0 && mediaSector.every((byte) => byte === 0) &&
+      fs.readFileSync(media).equals(fs.readFileSync(publishedAtrPath)),
+    `${session.id}: the refused write changed the protected copy or was read back`);
+  } else {
+    invariant(afterWrite.length === 1 && afterWrite[0][1] === 599 &&
+      Buffer.from(end.record, "hex").equals(mediaSector),
+    `${session.id}: the record was not verified by a read-back, or the disk does not hold it`);
+  }
+  const best = summaryRowText(end.final_screen, 9).trim();
+  invariant(/[SABC]\s+0\d{4}/.test(best),
+    `${session.id}: BEST reads "${best}" after the level-end summary`);
+  const shown = end.accept - end.display;
+  invariant(end.music_ticks === 0 || end.tick_frames >= shown - 4,
+    `${session.id}: the music ticked on ${end.tick_frames} of ${shown} summary frames`);
+  evidence.level_end_summary = {
+    entry: end.entry, display: end.display, ready: end.ready, accept: end.accept,
+    shown_frames: shown, reads: end.frames.filter(([command]) => command === 0x52).length,
+    writes: writes.length, write_sector: 599, write_protected: session.kind === "summary-write-protected",
+    shots, hits, kills, observer_shots: end.observer_shots,
+    observer_cancelled: end.observer_cancelled, observer_kills: end.observer_kills,
+    active_frames: end.stats[10], score, percent, time,
+    grade: row(8).trim().slice(-1), best,
+    music_ticks: end.music_ticks, music_tick_frames: end.tick_frames,
+    first_screen: [2, 3, 4, 5, 6, 7, 8].map((index) => row(index).trim()),
+  };
+  return evidence;
+}
+
+function readSummaryRecords(file) {
+  if (!fs.existsSync(file)) return [];
+  return fs.readFileSync(file, "utf8").split(/\r?\n/).filter(Boolean).map((line) => JSON.parse(line));
+}
+
+// Frontend screen codes back to text: 0 space, 1-10 digits, 11-36 letters,
+// then the punctuation main.s maps; the art's per-cent sign is code 95.
+function summaryRowText(hex, row) {
+  let text = "";
+  for (let column = 0; column < 40; column += 1) {
+    const code = Number.parseInt(hex.slice((row * 40 + column) * 2, (row * 40 + column) * 2 + 2), 16) & 0x7f;
+    if (code === 0) text += " ";
+    else if (code <= 10) text += String.fromCharCode(47 + code);
+    else if (code <= 36) text += String.fromCharCode(54 + code);
+    else text += { 37: "-", 38: ".", 39: "/", 40: ":", 41: "?", 95: "%" }[code] ?? "#";
+  }
+  return text;
+}
+
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, {
     cwd: options.cwd ?? rootDirectory,
@@ -1424,6 +1646,8 @@ function parseCsv(csvText, sessionDefinition) {
     ? lines.length > 1 && lines.length <= sessionDefinition.activeFrames + 257 &&
       Number(lines.at(-1).split(",")[lines[0].split(",").indexOf("active_gameplay_frame")]) ===
         sessionDefinition.activeFrames
+    : sessionDefinition.endAtSummary
+    ? lines.length > 1 && lines.length <= sessionDefinition.frames + 1
     : lines.length === sessionDefinition.frames + 1,
     `${sessionDefinition.id} emitted ${lines.length - 1}/${sessionDefinition.frames} frames`);
   const headers = lines[0].split(",");
@@ -1821,6 +2045,8 @@ function sessionSummary(session, rows) {
     maximum_wall_cycles: maximum.wall_cycles,
     deadline_overrun_frames: rows.filter((row) => row.missed_frames > 0).length,
     missed_frames: rows.reduce((sum, row) => sum + row.missed_frames, 0),
+    ...(session.levelSummaryEvidence === undefined ? {} :
+      { level_summary: session.levelSummaryEvidence }),
   };
 }
 
@@ -1829,8 +2055,12 @@ function sessionSummary(session, rows) {
 // above the 3,000-frame owner ceiling so that a slow-but-legal boot is
 // observable at all; the gameplay proof snapshot keeps the 250-frame handoff
 // window the old frame-500/750 pair provided.
+// M5a-S2: START GAME now passes the level-summary screen - the session's
+// first read of the $0500 module, at least SUMMARY_MINIMUM_FRAMES (150) of
+// display and FIRE - so the gameplay proof moved 100 frames later to keep the
+// handoff margin (MEASURED at 3300 it would sit ~40 frames into gameplay).
 const BOOT_MENU_FRAME = 3050;
-const BOOT_GAMEPLAY_FRAME = 3300;
+const BOOT_GAMEPLAY_FRAME = 3400;
 // Loader-raster observation, mirrored from scripts/atari800-wall-trace.h
 // (DFBOOT_LOADER_OBSERVE_OFFSET / DFBOOT_LOADER_OBSERVE_SPAN). The two loader
 // snapshots are taken relative to the measured `loader` milestone instead of
@@ -1977,7 +2207,19 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
   addressEnvironment.DFBOOT_SLOT_BYTES = `${overlays.slotA.bytes}`;
   addressEnvironment.DFBOOT_TABLE_ADDRESS = `0x${overlays.capitalVectors.address.toString(16)}`;
   addressEnvironment.DFBOOT_TABLE_BYTES = `${overlays.capitalVectors.bytes}`;
-  addressEnvironment.DFBOOT_PC_OVERLAY_READ = readerPc("sector_reader_read_run");
+  // M5a-S2: the first run read of a START GAME is now the summary module's; the
+  // capital restore is its own entry, and the save record's run read (or the
+  // level) closes the restore's window. The level read ends where the summary
+  // resumes after it, not at gameplay.
+  addressEnvironment.DFBOOT_PC_OVERLAY_READ = readerPc("sector_reader_restore_capital");
+  addressEnvironment.DFBOOT_PC_RUN_READ = readerPc("sector_reader_read_run");
+  {
+    const summaryLabels = parseViceLabels(fs.readFileSync(
+      path.join(rootDirectory, "build", "level-summary.lbl"), "utf8"));
+    addressEnvironment.DFBOOT_PC_LEVEL_LOADED =
+      `0x${summaryLabels.get("summary_level_loaded").toString(16)}`;
+  }
+  Object.assign(addressEnvironment, summaryTraceEnvironment(path.join(rootDirectory, "build"), labels));
   const forceOverlayRestore = [
     sectorReader.slotAOverlaidFlag, readerLabels.get("sector_reader_start_gameplay"),
     overlays.slotA.address, overlays.slotA.bytes,
@@ -2058,9 +2300,15 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
 
   const allSessions = definitions.map((definition) => {
     const outputPath = path.join(outputDirectory, `${definition.id}.json`);
+    const summaryPath = path.join(outputDirectory, `${definition.id}-summary.jsonl`);
     const screenshotPrefix = path.join(outputDirectory, definition.id);
-    run(emulatorPath, definition.arguments, {
+    const media = sessionMedia(definition.path, `boot-${definition.id}`);
+    const launchArguments = definition.arguments.map((argument) =>
+      argument === definition.path ? media : argument);
+    invariant(launchArguments.includes(media), `${definition.id} does not boot its media copy`);
+    run(emulatorPath, launchArguments, {
       env: {
+        DFSUMMARY_OUTPUT: summaryPath,
         ...process.env,
         SDL_VIDEODRIVER: process.env.SDL_VIDEODRIVER ?? "dummy",
         ...addressEnvironment,
@@ -2252,17 +2500,53 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
         overlay.read_begin >= 0 && overlay.read_end > overlay.read_begin),
     `${definition.id} overlay read: forced ${overlay.forced}, ${overlay.command_frames} ` +
       `command frames (expected ${restoreSectors}), window ${overlay.read_begin}-${overlay.read_end}`);
+    // M5a-S2: the START GAME summary. A fresh copy of the disk: the module
+    // read (once per session), the region's art, the restore if forced, the
+    // empty save record, then the level tail first.
+    const summaryRecords = readSummaryRecords(path.join(outputDirectory,
+      `${definition.id}-summary.jsonl`));
+    const startSummary = summaryRecords.find((record) => record.kind === "start");
+    const levelSummary = manifest.levelSummary;
+    const summarySectors = levelSummary.code.sectors + levelSummary.art.sectorsPerRegion + 1;
+    invariant(startSummary !== undefined && startSummary.failed === 0,
+      `${definition.id} did not pass a START GAME summary`);
+    const firstTitle = summaryRowText(startSummary.first_screen, 0);
+    const emptyPanel = [2, 3, 4, 5, 6, 7, 8].every((row) =>
+      summaryRowText(startSummary.first_screen, row).slice(20).trim() === "");
+    const lastRead = Math.max(...startSummary.frames.map(([, , at]) => at));
+    invariant(firstTitle.includes("LEVEL 01") && emptyPanel &&
+      summaryRowText(startSummary.final_screen, 9).includes("--") &&
+      startSummary.display >= 0 &&
+      startSummary.accept - startSummary.display >= 150 &&
+      startSummary.ready >= startSummary.display + 150 && startSummary.ready >= lastRead &&
+      startSummary.frames.every(([command]) => command === 0x52),
+    `${definition.id} START GAME summary: title "${firstTitle.trim()}", empty panel ` +
+      `${emptyPanel}, displayed ${startSummary.display}, ready ${startSummary.ready}, ` +
+      `last read ${lastRead}, FIRE accepted ${startSummary.accept}, commands ` +
+      `${[...new Set(startSummary.frames.map(([command]) => command))].join(",")}`);
     const sectorReaderResult = {
       medium: medium.toUpperCase(),
       command_frames: result.sio.command_frames,
-      expected_command_frames: levelOne.sectors + restoreSectors,
+      expected_command_frames: levelOne.sectors + restoreSectors + summarySectors,
+      summary: {
+        entry_frame: startSummary.entry,
+        first_display_frame: startSummary.display,
+        level_loaded_frame: startSummary.loaded,
+        ready_frame: startSummary.ready,
+        fire_accepted_frame: startSummary.accept,
+        last_read_frame: lastRead,
+        reads: startSummary.frames.length,
+        title: firstTitle.trim(),
+        best: summaryRowText(startSummary.final_screen, 9).trim(),
+      },
       wire_retries: result.sio.wire_retries,
       level_load_frames: result.sio.level_load_end - result.sio.level_load_begin,
       level_image_verified: true,
       slot_a_verified: true,
       capital_restore_sectors: restoreSectors,
       capital_restore_frames: restoreSectors === 0 ? 0 : overlay.read_end - overlay.read_begin,
-      path: "direct SIO: one command frame per sector at START GAME",
+      path: "direct SIO: one command frame per sector at START GAME (summary module, " +
+        "region art, capital restore if forced, save record, level tail then head)",
     };
     const bootDeadlineResult = {
       medium: medium.toUpperCase(),
@@ -2323,9 +2607,10 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
     invariant(sio.wire_retries === 0,
       `${definition.id} needed ${sio.wire_retries} wire retries; the emulator's ` +
       "wire is lossless, so any retry is a reader defect");
-    invariant(sio.command_frames === levelOne.sectors + restoreSectors,
+    invariant(sio.command_frames === levelOne.sectors + restoreSectors + summarySectors,
       `${definition.id} put ${sio.command_frames} command frames on the wire, ` +
-      `expected exactly ${levelOne.sectors + restoreSectors} - one per sector, no retries`);
+      `expected exactly ${levelOne.sectors + restoreSectors + summarySectors} - one per ` +
+      "sector, no retries");
     invariant(sio.level_load_begin >= 0 && sio.level_load_end >= sio.level_load_begin,
       `${definition.id} did not record a level load window`);
     const loadFrames = sio.level_load_end - sio.level_load_begin;
@@ -2701,7 +2986,7 @@ function runMenuRasterAudit({ emulatorPath, labels, manifest, atrPath }) {
       const screenshotPrefix = path.join(outputDirectory, id);
       run(emulatorPath, [
         "-xe", "-pal", "-nobasic", "-nosound", "-turbo", "-no-video-accel",
-        "-no-vsync", ...artifact.args,
+        "-no-vsync", sessionMedia(artifact.path, `menu-${id}`),
       ], {
         env: {
           ...process.env,
@@ -3129,6 +3414,15 @@ function main() {
   addressEnvironment.DFTRACE_ENEMY_Y = `0x${labels.get("ENEMY_Y").toString(16)}`;
   addressEnvironment.DFTRACE_DIRECTOR_STATE = "0x80f6";
 
+  const summaryEnvironment = summaryTraceEnvironment(layout.inputDirectory, labels);
+  // M5a-S2 (Q16): no session may write the published ATR. Its bytes are
+  // fixed here and compared after the boot smoke and after the replays.
+  const publishedAtrBytes = fs.readFileSync(atrPath);
+  const assertPublishedAtrUntouched = (stage) => invariant(
+    fs.readFileSync(atrPath).equals(publishedAtrBytes),
+    `${path.relative(rootDirectory, atrPath)} changed during the ${stage}: a session wrote to ` +
+      "the published disk instead of its copy");
+
   if (tracePreflightOnly) {
     const observerSymbols = tracePcSymbols(fs.readFileSync(emulatorPath));
     const generatedSymbols = new Set(Object.keys(addressEnvironment)
@@ -3165,6 +3459,7 @@ function main() {
   // A debug-route run never boot-smokes: that audit reads the default build/.
   const bootSmoke = skipBootSmoke || layout.variant !== null ? null :
     runBootSmoke({ emulatorPath, labels, atrPath, manifest });
+  assertPublishedAtrUntouched("boot smoke");
   if (bootSmoke !== null)
     console.log(`Boot smoke: ${bootSmoke.sessions.length} ATR cold-start sessions and ` +
       `${bootSmoke.reset_sessions.length} RESET session and ` +
@@ -3263,7 +3558,7 @@ function main() {
     : smokeFrames === null
     ? [...baselineSessions, ...targetedSessions, ...cadenceSessions, ...fighterFlashSessions,
       ...debrisEffectsSessions, ...weaponPickupSessions, ...weaponPickupSpreadSessions,
-      ...directorCompletionSessions,
+      ...directorCompletionSessions, ...summaryRecordSessions,
       ...weaponPickupTraversalSessions, ...weaponPickupContactSessions,
       ...capitalMuzzleSessions, ...provisionalCapitalSessions, ...capitalContactSessions,
       ...memoryIntegritySessions, ...lowerPlayfieldSessions]
@@ -3360,10 +3655,17 @@ function main() {
           fs.unlinkSync(path.join(buildDirectory, name));
       }
     }
+    // M5a-S2: the level-summary observer, for every replay; the sessions that
+    // play a level to its end stop at that level's summary (class (a): they
+    // used to keep flying in the terminal COMPLETE until the frame budget).
+    const summaryOutput = path.join(buildDirectory, `${session.id}-summary.jsonl`);
     const environment = {
       ...process.env,
       SDL_VIDEODRIVER: process.env.SDL_VIDEODRIVER ?? "dummy",
       ...addressEnvironment,
+      ...summaryEnvironment,
+      DFSUMMARY_OUTPUT: summaryOutput,
+      ...(session.endAtSummary ? { DFSUMMARY_END_SESSION: "1" } : {}),
       DFTRACE_FRAMES: String(activeFrames === 0 ? session.frames : activeFrames + 256),
       DFTRACE_ACTIVE_FRAMES: String(activeFrames),
       DFTRACE_FIRE_DELAY: String(session.fireDelay),
@@ -3479,11 +3781,18 @@ function main() {
     if (!reuseExistingTraces || !fs.existsSync(outputPath)) {
       // The ATR is the only published medium (owner decision, 2026-09-30), so
       // every replay boots it from D1:.
+      // M5a-S2: each replay boots its own copy of the ATR (the game writes
+      // its save record at a level's end); `media` names a copy to reuse or a
+      // write-protected one.
+      const media = sessionMedia(atrPath, session.media?.id ?? session.id, {
+        readOnly: session.media?.readOnly === true, reuse: session.media?.reuse === true,
+      });
       run(emulatorPath, [
         "-xe", "-pal", "-nobasic", "-nosound", "-turbo", "-no-video-accel", "-no-vsync",
-        atrPath,
+        media,
       ], { env: environment });
     }
+    const summaryRecords = readSummaryRecords(summaryOutput);
     const rows = parseCsv(fs.readFileSync(outputPath, "utf8"), session);
     // Stage 1 of the session-failure accumulation (owner decision 2026-09-19).
     // A failing behavioural clause records {session, message} and the loop
@@ -3499,6 +3808,7 @@ function main() {
     // The body is deliberately left at its original indentation — reindenting
     // ~670 lines would bury the change in whitespace.
     try {
+    session.levelSummaryEvidence = levelSummaryClauses(session, summaryRecords, rows, atrPath);
     // draw_enemy_member publishes a member's 16-row P1/P2 body only on frames
     // where its Y moved. The licence for that skip is "the plane already holds
     // the body at the member's current Y", so hold every traced frame to it:
@@ -6094,6 +6404,7 @@ function main() {
     console.log(`Capital/player geometry: ${geometryEvidence.length} native sessions passed`);
     return;
   }
+  assertPublishedAtrUntouched("replays");
   if (onlySession !== undefined) {
     console.log(`Focused trace completed: ${onlySession}`);
     return;
@@ -6133,10 +6444,16 @@ function main() {
     .reduce((sum, session) => sum + session.frames, 0);
   invariant(weaponPickupRows.length === expectedWeaponPickupFrames,
     `Weapon-pickup trace measured ${weaponPickupRows.length}/${expectedWeaponPickupFrames} frames`);
+  // M5a-S2: these replays end at the level-end summary inside their budget
+  // (levelSummaryClauses asserts each reached it); the rows are what they flew.
   const expectedDirectorCompletionFrames = directorCompletionSessions
     .reduce((sum, session) => sum + session.frames, 0);
-  invariant(directorCompletionRows.length === expectedDirectorCompletionFrames,
-    `Director completion trace measured ${directorCompletionRows.length}/${expectedDirectorCompletionFrames} frames`);
+  invariant(directorCompletionSessions.every((session) =>
+    session.levelSummaryEvidence?.level_end_summary !== undefined) &&
+    directorCompletionRows.length <= expectedDirectorCompletionFrames,
+  `Director completion trace measured ${directorCompletionRows.length} frames and ` +
+    `${directorCompletionSessions.filter((session) =>
+      session.levelSummaryEvidence?.level_end_summary !== undefined).length}/3 level-end summaries`);
   const directorCompletionEvidence = directorCompletionSessions.map((session) => {
     const rows = directorCompletionRows.filter((row) => row.session === session.id);
     /* Owner decision 9, 2026-09-28 (plans/director-4.6.md §11 item 9;

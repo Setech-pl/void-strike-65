@@ -414,6 +414,20 @@ test("a slot freed and refilled in the same frame still counts as a new shot", (
     "the capital-frame entry runs the same scan (one call per frame either way)");
 });
 
+test("a slot the player's death cleared keeps lifetime $FF but is never counted again", () => {
+  // clear_player_fighter_projectiles zeroes ACTIVE and leaves the lifetime: a
+  // shot wiped on its own allocation frame leaves $FF frozen in an empty slot.
+  const memory = statMemory();
+  memory[main("FIGHTER_PROJECTILE_LIFETIME")] = 0xff;
+  memory[main("FIGHTER_PROJECTILE_ACTIVE")] = 0;
+  for (let frame = 0; frame < 5; frame += 1) callRoutine(memory, READER_BASE + 0x0c);
+  assert.equal(word(memory, ZP.shots), 0);
+  // The slot's next shot is a new allocation and counts once.
+  memory[main("FIGHTER_PROJECTILE_ACTIVE")] = 1;
+  callRoutine(memory, READER_BASE + 0x0c);
+  assert.equal(word(memory, ZP.shots), 1);
+});
+
 test("a Heavy hit by a PlayerFighter shot counts its damage units; contact and cleanup do not", () => {
   const memory = statMemory();
   const damage = main("ENEMY_PENDING_DAMAGE");

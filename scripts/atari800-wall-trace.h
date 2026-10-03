@@ -977,6 +977,8 @@ static unsigned dfboot_slot_bytes;
 static unsigned dfboot_table_address;
 static unsigned dfboot_table_bytes;
 static unsigned dfboot_pc_overlay_read;
+static unsigned dfboot_pc_run_read;
+static unsigned dfboot_pc_level_loaded;
 static unsigned dfboot_overlay_read_begin = 0xffffffffu;
 static unsigned dfboot_overlay_read_end = 0xffffffffu;
 static unsigned dfboot_overlay_command_frames;
@@ -1015,7 +1017,7 @@ static void dfoverlay_force_observe(const char *variable, unsigned pc)
  * pressed after it, and the gameplay proof snapshot keeps the same 250-frame
  * handoff window the frame-500/750 pair used to provide. */
 #define DFBOOT_MENU_FRAME 3050u
-#define DFBOOT_GAMEPLAY_FRAME 3300u
+#define DFBOOT_GAMEPLAY_FRAME 3400u
 /* Loader-raster observation, re-based 2026-09-20 in the shape of owner
  * decision 22. The old fixed pair (frames 250 and 300) was a second constant
  * that silently tracked the transport: the loader raster comes up at
@@ -1079,6 +1081,223 @@ static unsigned dfboot_trace_x[64];
 static unsigned dfboot_trace_y[64];
 static unsigned dfboot_trace_s[64];
 static unsigned dfboot_trace_head;
+
+
+/* M5a-S2 level-summary observer (docs/plans/m5-loading-boss.md §4.8). Active
+ * in the boot smoke and in every replay when DFSUMMARY_OUTPUT is set. It
+ *   - drives FIRE only while the summary polls for it, with a press every
+ *     eight frames, so a replay passes the screen the way a player would;
+ *   - records each summary: the entry, the first displayed frame (and that
+ *     frame's screen rows), the frame PRESS FIRE appears, the frame FIRE is
+ *     accepted, every command frame on the wire with its command and sector,
+ *     the gameplay music's ticks while the screen is up, the stat block at the
+ *     level-end entry, and two counters kept by the observer itself, from
+ *     the START GAME before it: kills (PC hits at the three score routines)
+ *     and PlayerFighter shots (FREE -> ACTIVE writes to the five slots);
+ *   - with DFSUMMARY_END_SESSION, ends a replay once the level-end summary
+ *     hands back to the menu.
+ * One JSON object per summary, appended to DFSUMMARY_OUTPUT. */
+#define DFSUMMARY_ROWS 12u
+#define DFSUMMARY_MAX_FRAMES 96u
+static void dftrace_write(void);
+static FILE *dfsummary_file;
+static int dfsummary_enabled = -1;
+static int dfsummary_end_session;
+static unsigned dfsummary_dlist, dfsummary_fire_release, dfsummary_fire_press;
+static unsigned dfsummary_start_entry, dfsummary_end_entry, dfsummary_exit_start;
+static unsigned dfsummary_exit_end, dfsummary_tick, dfsummary_tx_done, dfsummary_frame_bytes;
+static unsigned dfsummary_score_pc[3], dfsummary_projectile_active, dfsummary_failure;
+static unsigned dfsummary_level_loaded;
+static int dfsummary_open;
+static unsigned dfsummary_kind, dfsummary_entry_frame, dfsummary_display_frame;
+static unsigned dfsummary_ready_frame, dfsummary_loaded_frame, dfsummary_ticks;
+static unsigned dfsummary_tick_frames, dfsummary_last_tick_frame, dfsummary_last_frame;
+static unsigned dfsummary_frame_count, dfsummary_frame_cmd[DFSUMMARY_MAX_FRAMES];
+static unsigned dfsummary_frame_sector[DFSUMMARY_MAX_FRAMES], dfsummary_frame_at[DFSUMMARY_MAX_FRAMES];
+static unsigned dfsummary_stats[12], dfsummary_kills, dfsummary_shots, dfsummary_count;
+static unsigned dfsummary_entry_kills, dfsummary_entry_shots, dfsummary_failures;
+static UBYTE dfsummary_slots[5];
+static unsigned dfsummary_slot_frame[5], dfsummary_frame_counter, dfsummary_cancelled;
+static unsigned dfsummary_entry_cancelled;
+static UBYTE dfsummary_first_screen[DFSUMMARY_ROWS * 40u];
+
+static unsigned dfsummary_env(const char *name)
+{
+	const char *value = getenv(name);
+	if (value == NULL || *value == '\0') {
+		fprintf(stderr, "voidstrike65 summary observer: missing %s\n", name);
+		exit(2);
+	}
+	return (unsigned) strtoul(value, NULL, 0);
+}
+
+static void dfsummary_init(void)
+{
+	const char *path = getenv("DFSUMMARY_OUTPUT");
+	dfsummary_enabled = path != NULL && *path != '\0';
+	if (!dfsummary_enabled)
+		return;
+	dfsummary_file = fopen(path, "w");
+	if (dfsummary_file == NULL) {
+		fprintf(stderr, "voidstrike65 summary observer: cannot open %s\n", path);
+		exit(2);
+	}
+	dfsummary_end_session = getenv("DFSUMMARY_END_SESSION") != NULL;
+	dfsummary_dlist = dfsummary_env("DFSUMMARY_DLIST");
+	dfsummary_fire_release = dfsummary_env("DFSUMMARY_FIRE_RELEASE");
+	dfsummary_fire_press = dfsummary_env("DFSUMMARY_FIRE_PRESS");
+	dfsummary_start_entry = dfsummary_env("DFSUMMARY_START_ENTRY");
+	dfsummary_end_entry = dfsummary_env("DFSUMMARY_END_ENTRY");
+	dfsummary_exit_start = dfsummary_env("DFSUMMARY_EXIT_START");
+	dfsummary_exit_end = dfsummary_env("DFSUMMARY_EXIT_END");
+	dfsummary_failure = dfsummary_env("DFSUMMARY_FAILURE");
+	dfsummary_tick = dfsummary_env("DFSUMMARY_TICK");
+	dfsummary_tx_done = dfsummary_env("DFSUMMARY_TX_DONE");
+	dfsummary_frame_bytes = dfsummary_env("DFSUMMARY_FRAME_BYTES");
+	dfsummary_level_loaded = dfsummary_env("DFSUMMARY_LEVEL_LOADED");
+	dfsummary_score_pc[0] = dfsummary_env("DFSUMMARY_SCORE_HEAVY");
+	dfsummary_score_pc[1] = dfsummary_env("DFSUMMARY_SCORE_LIGHT");
+	dfsummary_score_pc[2] = dfsummary_env("DFSUMMARY_SCORE_DEBRIS");
+	dfsummary_projectile_active = dfsummary_env("DFSUMMARY_PROJECTILE_ACTIVE");
+	dfsummary_frame_counter = dfsummary_env("DFSUMMARY_FRAME_COUNTER");
+}
+
+static void dfsummary_hex(const UBYTE *bytes, unsigned length)
+{
+	unsigned index;
+	fputc('"', dfsummary_file);
+	for (index = 0; index < length; ++index)
+		fprintf(dfsummary_file, "%02x", bytes[index]);
+	fputc('"', dfsummary_file);
+}
+
+static void dfsummary_close(unsigned frame, int failed)
+{
+	unsigned index;
+	fprintf(dfsummary_file, "{\"kind\":\"%s\",\"failed\":%d,\"entry\":%u,\"display\":%d,"
+		"\"loaded\":%d,\"ready\":%d,\"accept\":%u,\"music_ticks\":%u,\"tick_frames\":%u,"
+		"\"stats\":[", dfsummary_kind == 0u ? "start" : "end", failed,
+		dfsummary_entry_frame,
+		dfsummary_display_frame == 0xffffffffu ? -1 : (int) dfsummary_display_frame,
+		dfsummary_loaded_frame == 0xffffffffu ? -1 : (int) dfsummary_loaded_frame,
+		dfsummary_ready_frame == 0xffffffffu ? -1 : (int) dfsummary_ready_frame, frame,
+		dfsummary_ticks, dfsummary_tick_frames);
+	for (index = 0; index < 12u; ++index)
+		fprintf(dfsummary_file, "%s%u", index ? "," : "", dfsummary_stats[index]);
+	fprintf(dfsummary_file, "],\"observer_kills\":%u,\"observer_shots\":%u,"
+		"\"observer_cancelled\":%u,\"frames\":[",
+		dfsummary_entry_kills, dfsummary_entry_shots, dfsummary_entry_cancelled);
+	for (index = 0; index < dfsummary_frame_count; ++index)
+		fprintf(dfsummary_file, "%s[%u,%u,%u]", index ? "," : "", dfsummary_frame_cmd[index],
+			dfsummary_frame_sector[index], dfsummary_frame_at[index]);
+	fprintf(dfsummary_file, "],\"first_screen\":");
+	dfsummary_hex(dfsummary_first_screen, sizeof(dfsummary_first_screen));
+	fprintf(dfsummary_file, ",\"final_screen\":");
+	dfsummary_hex(&MEMORY_mem[0x4000u], DFSUMMARY_ROWS * 40u);
+	fprintf(dfsummary_file, ",\"record\":");
+	dfsummary_hex(&MEMORY_mem[0x7810u], 128u);
+	fprintf(dfsummary_file, "}\n");
+	fflush(dfsummary_file);
+	dfsummary_open = 0;
+	++dfsummary_count;
+}
+
+static void dfsummary_observe(unsigned pc)
+{
+	unsigned frame = (unsigned) Atari800_nframes;
+	unsigned slot;
+	if (dfsummary_enabled < 0)
+		dfsummary_init();
+	if (!dfsummary_enabled)
+		return;
+	/* The observer's own counters, every instruction. */
+	for (slot = 0; slot < 3u; ++slot)
+		if (pc == dfsummary_score_pc[slot])
+			++dfsummary_kills;
+	for (slot = 0; slot < 5u; ++slot) {
+		UBYTE active = MEMORY_mem[(dfsummary_projectile_active + slot) & 0xffffu];
+		unsigned now = MEMORY_mem[dfsummary_frame_counter & 0xffffu];
+		if (dfsummary_slots[slot] == 0u && active != 0u) {
+			++dfsummary_shots;
+			dfsummary_slot_frame[slot] = now;
+		}
+		/* A shot freed in the main-loop iteration that allocated it never
+		 * left the gun (the player's death wipes the pool); the summary does
+		 * not count it, and neither does this counter's "flown" figure. */
+		else if (dfsummary_slots[slot] != 0u && active == 0u &&
+			dfsummary_slot_frame[slot] == now)
+			++dfsummary_cancelled;
+		dfsummary_slots[slot] = active;
+	}
+	if (pc == dfsummary_start_entry || pc == dfsummary_end_entry) {
+		unsigned index;
+		dfsummary_open = 1;
+		dfsummary_kind = pc == dfsummary_end_entry;
+		dfsummary_entry_frame = frame;
+		dfsummary_display_frame = dfsummary_ready_frame = dfsummary_loaded_frame = 0xffffffffu;
+		dfsummary_ticks = dfsummary_tick_frames = 0u;
+		dfsummary_last_tick_frame = 0xffffffffu;
+		dfsummary_frame_count = 0u;
+		for (index = 0; index < 10u; ++index)
+			dfsummary_stats[index] = MEMORY_mem[0xacu + index];
+		dfsummary_stats[10] = MEMORY_mem[0x4ff8u] | ((unsigned) MEMORY_mem[0x4ff9u] << 8);
+		dfsummary_stats[11] = MEMORY_mem[0x008du] | ((unsigned) MEMORY_mem[0x008eu] << 8);
+		dfsummary_entry_kills = dfsummary_kills;
+		dfsummary_entry_shots = dfsummary_shots;
+		dfsummary_entry_cancelled = dfsummary_cancelled;
+		memset(dfsummary_first_screen, 0, sizeof(dfsummary_first_screen));
+		if (dfsummary_kind == 0u) {
+			/* A new game: the observer's counters start with it. */
+			dfsummary_kills = dfsummary_shots = dfsummary_cancelled = 0u;
+		}
+	}
+	if (!dfsummary_open)
+		return;
+	if (frame != dfsummary_last_frame) {
+		dfsummary_last_frame = frame;
+		if (dfsummary_display_frame == 0xffffffffu && ANTIC_DMACTL != 0u &&
+			ANTIC_dlist >= dfsummary_dlist && ANTIC_dlist < dfsummary_dlist + 40u) {
+			dfsummary_display_frame = frame;
+			memcpy(dfsummary_first_screen, &MEMORY_mem[0x4000u], sizeof(dfsummary_first_screen));
+		}
+	}
+	if (pc == dfsummary_tick && dfsummary_display_frame != 0xffffffffu) {
+		++dfsummary_ticks;
+		if (frame != dfsummary_last_tick_frame) {
+			++dfsummary_tick_frames;
+			dfsummary_last_tick_frame = frame;
+		}
+	}
+	if (pc == dfsummary_tx_done && dfsummary_frame_count < DFSUMMARY_MAX_FRAMES) {
+		dfsummary_frame_cmd[dfsummary_frame_count] = MEMORY_mem[(dfsummary_frame_bytes + 1u) & 0xffffu];
+		dfsummary_frame_sector[dfsummary_frame_count] =
+			MEMORY_mem[(dfsummary_frame_bytes + 2u) & 0xffffu] |
+			((unsigned) MEMORY_mem[(dfsummary_frame_bytes + 3u) & 0xffffu] << 8);
+		dfsummary_frame_at[dfsummary_frame_count] = frame;
+		++dfsummary_frame_count;
+	}
+	if (pc == dfsummary_level_loaded && dfsummary_loaded_frame == 0xffffffffu)
+		dfsummary_loaded_frame = frame;
+	if (pc == dfsummary_fire_release || pc == dfsummary_fire_press) {
+		if (dfsummary_ready_frame == 0xffffffffu)
+			dfsummary_ready_frame = frame;
+		GTIA_TRIG[0] = (UBYTE) (((frame >> 2) & 1u) ? 0u : 1u);
+	}
+	if (pc == dfsummary_failure) {
+		++dfsummary_failures;
+		dfsummary_close(frame, 1);
+		return;
+	}
+	if (pc == (dfsummary_kind == 0u ? dfsummary_exit_start : dfsummary_exit_end)) {
+		int ended = dfsummary_kind == 1u;
+		dfsummary_close(frame, 0);
+		if (ended && dfsummary_end_session) {
+			dftrace_write();
+			fflush(NULL);
+			exit(0);
+		}
+	}
+}
 
 static unsigned dfboot_env_u(const char *name)
 {
@@ -1351,6 +1570,8 @@ static void dfboot_init(void)
 	dfboot_table_address = dfboot_env_u("DFBOOT_TABLE_ADDRESS");
 	dfboot_table_bytes = dfboot_env_u("DFBOOT_TABLE_BYTES");
 	dfboot_pc_overlay_read = dfboot_env_u("DFBOOT_PC_OVERLAY_READ");
+	dfboot_pc_run_read = dfboot_env_u("DFBOOT_PC_RUN_READ");
+	dfboot_pc_level_loaded = dfboot_env_u("DFBOOT_PC_LEVEL_LOADED");
 	/* Host decoration drawn into the frame buffer, not Atari output. */
 	Screen_show_disk_led = FALSE;
 	dfboot_initialised = 1;
@@ -1377,7 +1598,10 @@ static void dfboot_observe(unsigned pc, unsigned a_register, unsigned x_register
 	dfoverlay_force_observe("DFBOOT_FORCE_OVERLAY_RESTORE", pc);
 	if (pc == dfboot_pc_overlay_read && dfboot_overlay_read_begin == 0xffffffffu)
 		dfboot_overlay_read_begin = frame;
-	if (pc == dfboot_pc_level_load && dfboot_overlay_read_begin != 0xffffffffu &&
+	/* M5a-S2: the restore is followed by the save record's read and then the
+	 * level; either closes the window. */
+	if ((pc == dfboot_pc_level_load || pc == dfboot_pc_run_read) &&
+		dfboot_overlay_read_begin != 0xffffffffu && dfboot_overlay_read_begin != frame &&
 		dfboot_overlay_read_end == 0xffffffffu)
 		dfboot_overlay_read_end = frame;
 	if (pc == dfboot_pc_sio_frame && dfboot_overlay_read_begin != 0xffffffffu &&
@@ -1471,12 +1695,13 @@ static void dfboot_observe(unsigned pc, unsigned a_register, unsigned x_register
 		 * the deck must already be silent on the first frontend frame. */
 		dfboot_first_frontend_audc1 = POKEY_AUDC[0];
 	}
-	if (pc == dfboot_pc_gameplay && dfboot_seen_gameplay == 0xffffffffu) {
+	if (pc == dfboot_pc_gameplay && dfboot_seen_gameplay == 0xffffffffu)
 		dfboot_seen_gameplay = frame;
-		/* The reader has handed over, so the load window closes here. */
-		if (dfboot_level_load_end == 0xffffffffu)
-			dfboot_level_load_end = frame;
-	}
+	/* M5a-S2: the level read closes when its last sector has landed and the
+	 * summary resumes - not at gameplay, which now waits for the 3-second
+	 * minimum and FIRE. */
+	if (pc == dfboot_pc_level_loaded && dfboot_level_load_end == 0xffffffffu)
+		dfboot_level_load_end = frame;
 	if (pc == dfboot_pc_main && dfboot_seen_main == 0xffffffffu)
 		dfboot_seen_main = frame;
 
@@ -1487,6 +1712,8 @@ static void dfboot_observe(unsigned pc, unsigned a_register, unsigned x_register
 		(dfboot_seen_frontend + 2u < DFBOOT_MENU_FRAME + 1u ?
 			DFBOOT_MENU_FRAME + 1u : dfboot_seen_frontend + 2u);
 	GTIA_TRIG[0] = (UBYTE) (frame >= fire_start && frame <= fire_start + 5u ? 0 : 1);
+	/* M5a-S2: the summary's own FIRE poll overrides the menu press above. */
+	dfsummary_observe(pc);
 	if (frame != dfboot_last_frame) {
 		dfboot_last_frame = frame;
 		dfboot_blank_observe(frame);
@@ -6607,6 +6834,7 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 	dfspread_observe();
 	dfdebris_observe();
 	dfgate_observe(pc);
+	dfsummary_observe(pc);
 	dftrace_track_character_screen_write(x_register, y_register);
 	dftrace_first_writer_track(x_register, y_register);
 	dftrace_player_pairshot_track(pc, x_register, y_register);

@@ -902,12 +902,17 @@ sector_reader_frame_tick:
 ; M5a-S2: the stat hooks (§4.8.2, owner answers Q13 and Q14).
 ;
 ; The shot count is the per-frame scan Q13 chose, not an allocation hook in
-; CODE. It counts slots whose lifetime is $FF: allocate_player_fighter_
+; CODE. It counts active slots whose lifetime is $FF: allocate_player_fighter_
 ; projectile_at_slot stores exactly that, and update_fighter_projectiles (in
 ; handle_collisions, before the allocation in the same frame) decrements it
 ; before the next scan can look, so each shot is seen on its allocation frame
 ; and never again. A FREE -> ACTIVE edge test would miss a slot that a hit
-; frees and the next shot refills in the same frame. The scan runs once per
+; frees and the next shot refills in the same frame. The ACTIVE test matters:
+; clear_player_fighter_projectiles (the player's death) zeroes ACTIVE and
+; leaves the lifetime, so a shot wiped on its own allocation frame would leave
+; a frozen $FF that every later scan saw again (MEASURED: 24 extra counts in
+; director-complete-1). Such a shot never left the gun and is not counted: a
+; shot is a PairShot still in its slot when its frame publishes. The scan runs once per
 ; frame on whichever publication path the frame takes: fighter frames after
 ; the line-238 fence (the kernel's publish vector), capital frames from the
 ; debris publish; both are chosen by FIGHTER_PROJECTILE_PUBLICATION_FRAME,
@@ -952,6 +957,8 @@ stats_scan:
         ldy FIGHTER_PROJECTILE_LIFETIME,x
         iny                             ; $FF: allocated this frame
         bne @next_shot
+        lda FIGHTER_PROJECTILE_ACTIVE,x ; and still in its slot: a shot the
+        beq @next_shot                  ; player's death wiped keeps $FF, frozen
         inc STATS_SHOTS
         bne @next_shot
         inc STATS_SHOTS+1

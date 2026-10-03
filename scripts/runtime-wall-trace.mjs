@@ -1448,9 +1448,14 @@ function levelSummaryClauses(session, records, rows, publishedAtrPath) {
   const starts = records.filter((record) => record.kind === "start");
   invariant(starts.length >= 1, `${session.id} never passed a START GAME summary`);
   const lastRead = (record) => Math.max(-1, ...record.frames.map(([, , at]) => at));
+  // The observer dates `display` to the first host-frame boundary it sees with
+  // the summary's list on; the game counts SUMMARY_MINIMUM_FRAMES VCOUNT wraps
+  // from the DMACTL write inside the frame before it, so PRESS FIRE lands on
+  // display + 149 at the earliest under this sampling, and FIRE is accepted
+  // after at least 150 displayed frames.
   for (const record of starts) {
     invariant(record.display >= 0 && record.accept - record.display >= 150 &&
-      record.ready >= record.display + 150 && record.ready >= lastRead(record) &&
+      record.ready >= record.display + 149 && record.ready >= lastRead(record) &&
       summaryRowText(record.first_screen, 0).includes("LEVEL") &&
       record.frames.every(([command]) => command === 0x52),
     `${session.id} START GAME summary: displayed ${record.display}, ready ${record.ready}, ` +
@@ -2518,7 +2523,7 @@ function runBootSmoke({ emulatorPath, labels, atrPath, manifest }) {
       summaryRowText(startSummary.final_screen, 9).includes("--") &&
       startSummary.display >= 0 &&
       startSummary.accept - startSummary.display >= 150 &&
-      startSummary.ready >= startSummary.display + 150 && startSummary.ready >= lastRead &&
+      startSummary.ready >= startSummary.display + 149 && startSummary.ready >= lastRead &&
       startSummary.frames.every(([command]) => command === 0x52),
     `${definition.id} START GAME summary: title "${firstTitle.trim()}", empty panel ` +
       `${emptyPanel}, displayed ${startSummary.display}, ready ${startSummary.ready}, ` +

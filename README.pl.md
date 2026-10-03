@@ -139,6 +139,10 @@ Zaprojektowane i rozstrzygnięte, ale nie ma tego w wersji do pobrania.
 - **Doczytywanie z dyskietki między poziomami** — rezydentny czytnik sektorów po
   bezpośrednim SIO i ekran ładowania — oraz 8 KB RAM-u pod `$A000-$BFFF`, które
   otworzyła poprawka bootowania, na dane poziomu.
+- **Ekran podsumowania poziomu** między poziomami: wynik, zestrzelenia,
+  celność, czas, stracone życia i premia, ocena S/A/B/C oraz twój najlepszy
+  wynik na tym poziomie, zapisywany na dyskietce; podczas doczytywania gra
+  muzyka regionu.
 
 Prace zaplanowane nie mają ogłoszonej daty. Nic z powyższego nie jest w wersji
 do pobrania.

@@ -142,9 +142,10 @@ fact and its citation — so the first real drive is the first real test.
 
 Run from SIO2SD with the ATR, cold boot each time.
 
-- [ ] **START GAME reads level 1.** The loader screen appears (title,
-      `ENGAGING ENEMY SECTOR`, one placeholder line, a stepping dotted row),
-      then gameplay starts. On a 2-sector level this is brief.
+- [ ] **START GAME reads level 1.** Since M5a-S2 the loader screen is the
+      level-summary screen (§12): the plain title while the summary module
+      loads (first START GAME of a session only), then the summary with a
+      stepping dotted row while the art, the record and the level load.
 - [ ] **START GAME a second time** (play, quit to the menu, START again): the
       buffer already holds level 1, so the resident skip must fire and **no
       command frame goes out**. If the loader screen dwells the same as the
@@ -179,6 +180,64 @@ Unverifiable anywhere but here, carried under owner decision R:
       never run outside the 6502 harness.
 - [ ] That a stock 65XE's POKEY latches `IRQST` exactly as the manual
       describes with `I` set. The whole polled design rests on this.
+
+## 12. The level-summary screen (M5a-S2)
+
+Plan §4.8 (decisions 26–28, answers Q13–Q17). **Use a COPY of the ATR on the
+SIO2SD and a COPY of the floppy in the CA drive**: from this build on the game
+writes its save record (sector 599) to the disk it booted from. A stopwatch
+for the load times. Emulator figures, for comparison only (EMULATOR, Atari800
+models the wire and nothing else): START GAME → summary on screen 47 frames
+(0.9 s, the module's one read per session); every read done 79 frames later;
+PRESS FIRE at 150 frames (3.0 s); the level-end summary appears 2 frames after
+the exit.
+
+- [ ] **The copy is this build.** Its SHA-256 starts `caf8c93f`
+      (`STATUS.md` has it in full). In the emulator, `npm run play:atr` now
+      mounts `build/play/void-strike-65.atr`, a copy it keeps between launches
+      and replaces when `dist/` changes, never `dist/` itself.
+- [ ] **Boot with BASIC enabled** (no OPTION held) and once with BASIC off;
+      both reach the menu, and the first START GAME shows the summary.
+- [ ] **START GAME (Q17).** The plain title for a moment (first START GAME
+      after power-on only), then `LEVEL 01`, the labels with **no values**, and
+      `BEST --` on a fresh copy; the corridor picture and an AI line appear
+      about half a second later (1050: about a second); `LOADING`, then
+      `PRESS FIRE` no earlier than 3 seconds. FIRE held from the menu must not
+      skip it; release, then press. Stopwatch: START GAME → summary, and
+      summary → `PRESS FIRE`.
+- [ ] **The level's end.** Play level 1 to its end (about 2:45 on MEDIUM). About
+      a second after the screen clears the summary appears with **every value
+      already on the first frame**: score (a leading 0 and four digits), kills,
+      accuracy with `%`, time `m:ss`, lives lost, bonus `00000` (M8 sets the
+      bonus values), the grade letter. Labels and the picture follow.
+- [ ] **The music** of the level keeps playing through the summary, the art
+      read and the record write, with no stall, no squeal and no buzz. (By ear
+      only: the emulator's audio is not captured.)
+- [ ] **The 3-second minimum and FIRE** at the level's end, as at START GAME;
+      FIRE then returns to the main menu (until M4) and the score is in TOP
+      SCORES.
+- [ ] **The personal best survives a power cycle.** After the level's end,
+      switch the machine off, boot the same copy again, START GAME: `BEST`
+      shows the grade and score just earned.
+- [ ] **A write-protected floppy** (the CA drive's copy with its notch covered)
+      or a read-only SIO2SD image: the level's end shows `BEST` from memory,
+      no error screen, no hang, FIRE returns to the menu; the disk is unchanged.
+- [ ] **The range `$0500-$0BFF` holds on the machine.** The summary works at
+      START GAME and at the level's end **after several games and a GAME
+      OVER** in one power-on session. The module lives in RAM the emulator
+      measured untouched by the game (`$0700-$0BFF`,
+      [diagnostics/low-ram-0700-1fff-2026-10-03.md](diagnostics/low-ram-0700-1fff-2026-10-03.md));
+      a corrupted screen, a crash or a wrong value after a GAME OVER would mean
+      the hardware uses it.
+- [ ] **The real drive's transition time** (decides the optional fast loader,
+      plan §8 S6): the level's end, summary on screen → `PRESS FIRE`, and START
+      GAME on a second game of the session, by stopwatch.
+
+Unverifiable anywhere but here: the write's 12-ms pause after the command ACK
+(HRM ch.9 p.218: 10–18 ms), a real drive's data-frame ACK and COMPLETE timing
+for a write, and how the owner's CA drive refuses a protected disk (HRM ch.10:
+the 1050 answers ERROR after the data frame; others may NAK the command — the
+reader treats both as "skip silently").
 
 ---
 

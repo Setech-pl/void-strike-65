@@ -136,6 +136,9 @@ Designed and decided, not in the build you can download.
 - **Between-levels disk loading** — a resident direct-SIO sector reader and a
   loader screen — and the 8 KB of RAM at `$A000-$BFFF` that the boot fix opened
   up to hold per-level data.
+- **A level-summary screen** between levels: score, kills, accuracy, time,
+  lives lost and a bonus, an S/A/B/C grade, and your best for the level, kept
+  on the disk; the region's music plays while the next data loads.
 
 Planned work has no announced date. Nothing above is in the downloadable build.
 

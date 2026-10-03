@@ -1433,6 +1433,7 @@ function summaryTraceEnvironment(inputDirectory, labels) {
     DFSUMMARY_EXIT_START: address(labels, "start_gameplay"),
     DFSUMMARY_EXIT_END: address(labels, "quit_gameplay_to_menu"),
     DFSUMMARY_FAILURE: address(reader, "sector_reader_failure_screen"),
+    DFSUMMARY_RESIDENT_FLAG: address(reader, "sr_summary_resident"),
     DFSUMMARY_TX_DONE: address(reader, "sector_reader_tx_loop_end"),
     DFSUMMARY_FRAME_BYTES: address(reader, "sr_frame"),
     DFSUMMARY_TICK: `0x${(music.get("gameplay_music_vectors") + 3).toString(16)}`,

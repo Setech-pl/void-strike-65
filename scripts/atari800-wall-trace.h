@@ -1110,7 +1110,7 @@ static unsigned dfsummary_dlist, dfsummary_dlist_end, dfsummary_fire_release, df
 static unsigned dfsummary_start_entry, dfsummary_end_entry, dfsummary_exit_start;
 static unsigned dfsummary_exit_end, dfsummary_tick, dfsummary_tx_done, dfsummary_frame_bytes;
 static unsigned dfsummary_score_pc[3], dfsummary_projectile_active, dfsummary_failure;
-static unsigned dfsummary_level_loaded;
+static unsigned dfsummary_level_loaded, dfsummary_resident_flag;
 static int dfsummary_open;
 static unsigned dfsummary_kind, dfsummary_entry_frame, dfsummary_display_frame;
 static unsigned dfsummary_ready_frame, dfsummary_loaded_frame, dfsummary_ticks;
@@ -1163,6 +1163,7 @@ static void dfsummary_init(void)
 	dfsummary_tx_done = dfsummary_env("DFSUMMARY_TX_DONE");
 	dfsummary_frame_bytes = dfsummary_env("DFSUMMARY_FRAME_BYTES");
 	dfsummary_level_loaded = dfsummary_env("DFSUMMARY_LEVEL_LOADED");
+	dfsummary_resident_flag = dfsummary_env("DFSUMMARY_RESIDENT_FLAG");
 	dfsummary_score_pc[0] = dfsummary_env("DFSUMMARY_SCORE_HEAVY");
 	dfsummary_score_pc[1] = dfsummary_env("DFSUMMARY_SCORE_LIGHT");
 	dfsummary_score_pc[2] = dfsummary_env("DFSUMMARY_SCORE_DEBRIS");
@@ -1220,6 +1221,7 @@ static void dfsummary_observe(unsigned pc)
 {
 	unsigned frame = (unsigned) Atari800_nframes;
 	unsigned slot;
+	int resident;
 	if (dfsummary_enabled < 0)
 		dfsummary_init();
 	if (!dfsummary_enabled)
@@ -1243,7 +1245,10 @@ static void dfsummary_observe(unsigned pc)
 			++dfsummary_cancelled;
 		dfsummary_slots[slot] = active;
 	}
-	if (pc == dfsummary_start_entry || pc == dfsummary_end_entry) {
+	/* The module's own addresses count only once the reader has read it in:
+	 * before that, $0500-$06FF is the boot splash's code. */
+	resident = MEMORY_mem[dfsummary_resident_flag & 0xffffu] != 0u;
+	if (resident && (pc == dfsummary_start_entry || pc == dfsummary_end_entry)) {
 		unsigned index;
 		dfsummary_open = 1;
 		dfsummary_kind = pc == dfsummary_end_entry;
@@ -1300,9 +1305,9 @@ static void dfsummary_observe(unsigned pc)
 		dfsummary_frame_at[dfsummary_frame_count] = frame;
 		++dfsummary_frame_count;
 	}
-	if (pc == dfsummary_level_loaded && dfsummary_loaded_frame == 0xffffffffu)
+	if (resident && pc == dfsummary_level_loaded && dfsummary_loaded_frame == 0xffffffffu)
 		dfsummary_loaded_frame = frame;
-	if (pc == dfsummary_fire_release || pc == dfsummary_fire_press) {
+	if (resident && (pc == dfsummary_fire_release || pc == dfsummary_fire_press)) {
 		if (dfsummary_ready_frame == 0xffffffffu)
 			dfsummary_ready_frame = frame;
 		GTIA_TRIG[0] = (UBYTE) (((frame >> 2) & 1u) ? 0u : 1u);
@@ -1724,7 +1729,10 @@ static void dfboot_observe(unsigned pc, unsigned a_register, unsigned x_register
 	/* M5a-S2: the level read closes when its last sector has landed and the
 	 * summary resumes - not at gameplay, which now waits for the 3-second
 	 * minimum and FIRE. */
-	if (pc == dfboot_pc_level_loaded && dfboot_level_load_end == 0xffffffffu)
+	/* Only after the read began: the label lies in the summary module at
+	 * $0500, which is the boot splash's RAM while the splash runs. */
+	if (pc == dfboot_pc_level_loaded && dfboot_level_load_end == 0xffffffffu &&
+		dfboot_level_load_begin != 0xffffffffu)
 		dfboot_level_load_end = frame;
 	if (pc == dfboot_pc_main && dfboot_seen_main == 0xffffffffu)
 		dfboot_seen_main = frame;

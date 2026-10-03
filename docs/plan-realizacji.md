@@ -71,6 +71,13 @@ w STATUS i w planach; ten paragraf ich nie powtarza.
    przed przebudową ładowania; **`v0.3.0`** wychodzi po całym M5. Plan obu
    części, wycena listy życzeń (pozycje 14–25) i pytania do właściciela:
    [`plans/m5-loading-boss.md`](plans/m5-loading-boss.md).
+4. **Ekran podsumowania poziomu (2026-10-03).** Ekran przejścia między
+   poziomami pokazuje statystyki ukończonego poziomu (wynik, zestrzelenia,
+   celność, czas, stracone życia, bonusy), ocenę literową S/A/B/C i
+   porównanie z najlepszym wynikiem gracza, na tle regionu i z muzyką
+   regionu (zmiana co trzy poziomy, decyzja AC); ładowanie z dysku biegnie
+   za nim ze standardową prędkością SIO; szybki loader staje się sesją
+   opcjonalną, późniejszą. Wycena i zapis: plan M5 §1.3 i §4.8.
 
 **Kolejność:**
 

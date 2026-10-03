@@ -7,6 +7,11 @@ harness, level or evidence byte changed; three probe builds were made under
 `build/level-1-s0/` and reverted (§3). The ATR and the boot image are the ones
 `main` ships.
 
+**Amended 2026-10-03** with the owner's decisions on the level-summary
+screen, the per-level stats and the letter grade (§1.3, §4.8): the transition
+becomes a summary screen the loading runs behind, the fast loader becomes an
+optional later session, and the sessions are re-ranked (§8).
+
 Owner decisions of 2026-10-02 that this plan records (and
 [../plan-realizacji.md](../plan-realizacji.md) §0 now carries): **M5 is split
 into M5a, the loading platform — code overlays loaded from disk at
@@ -21,8 +26,8 @@ M3 + M3-H → M6 → M7 → M8 → M9, systems freeze after M6.
   code the boss took the `$AE00` window negative (budget §3: −535 B at M5 in
   the old order; [m3-waves-heavy.md](m3-waves-heavy.md) §6.3: the M3 sessions
   start 738 → 1,058 B short). As an **overlay** the boss costs the window
-  **~170 B of resident hooks** and lives on disk otherwise. Re-priced in the
-  new order the window ends M6 at **−38 B budgeted (+112 on expected
+  **~170 B of resident hooks** (214 with the stat counters) and lives on disk otherwise. Re-priced in the
+  new order the window ends M6 at **−82 B budgeted (+82 on expected
   figures)**, before any wish-list item and before any lever; one lever
   (§6.2) covers it with the whole of M3 and M6 inside. The brief's three
   levers stay reserves.
@@ -42,12 +47,17 @@ M3 + M3-H → M6 → M7 → M8 → M9, systems freeze after M6.
   returns ~1,545 per frame and has no rotate frames for a break-up to be
   forced onto); with the scroll kept, the worst one-Light frame is **~300
   under GO** (§5.4). Owner question Q1.
-* **The fast loader is hardware-proven only.** Atari800's SIO is patched for
-  speed and models no drive latency; the standard-speed figure the evidence
-  carries (49 frames for 13 sectors, 3.77 frames/sector) is wire time. The
-  owner's smoke on SIO2SD and on a real drive is the first test of the
-  high-speed negotiation; a stock 1050 has no high-speed mode and takes the
-  fallback, where debt item 5 (no sector interleave) doubles every figure.
+* **The transition is a level-summary screen that the loading hides behind**
+  (owner, 2026-10-03, §4.8): stats of the finished level over the region's
+  look with the region's music, at standard SIO speed; the full post-boss
+  transition is 37 sectors ≈ **2.8 s in the emulator (MEASURED rate), ~5.6 s
+  on a 1050-class drive (ESTIMATE)**, against a recommended 3-s minimum
+  display. Its code lives in the splash RAM at `$0500` (read once per
+  session, 0 window bytes); its art is read first (0.5 s) while the stats
+  text is already up. **The fast loader is now an optional later session**,
+  recommended only if the owner's real-drive measurement exceeds the
+  summary's minimum by more than ~2 s; Atari800 cannot vouch for it either
+  way (its SIO models the wire only).
 * **Of the twelve wish-list items, nine are recommended** at a combined
   ~550 B of window plus overlay and disk space; speech is possible but costs
   0.9–4.6 s of load per level and is recommended against; nacelles and the
@@ -179,6 +189,17 @@ M8 → M9; systems freeze after M6; `v0.3.0` after the whole of M5.
 | 12 | Nova Missile is not in M5; an M6 booster; no hook unless free | §5.7 — one free hook named |
 | 13 | The hostile lower-row contact gets an honest scenario on the boss's lasers | §5.8 |
 | 14–25 | The wish list, priced; the owner chooses before the freeze | §7 |
+
+### 1.3 Taken on 2026-10-03 (recorded here; priced in §4.8)
+
+| # | Decision | Status |
+| ---: | --- | --- |
+| 26 | **Level-summary screen.** The transition between levels shows the finished level's stats — score, kills, accuracy (hits / shots), time, lives lost, bonuses — over a background in the current region's look, with the region's music; loading runs behind it at standard SIO speed; it stays up for a minimum time; once loading is complete, FIRE continues. Look and music change per region, every three levels (AC), not per laser tier | **owner decision** |
+| 27 | **Stats collected during play**, each rewarding a different way of playing (accuracy → aiming, time → aggression, lives lost → care), not duplicating the score; the design target is **zero bytes in the initial block** (`CODE`, `RODATA`, `STARFIELD`, `ENTITY_CODE`), any such byte is an owner question | **owner decision**; the hooks are §4.8.2, the two initial-block candidates are Q13 and Q14 |
+| 28 | **A letter grade per level (S / A / B / C)** from the same stats, shown on the summary; thresholds are level data, tuned in M8 | **owner decision**; §4.8.3 |
+| 29 | A comparison with the player's best for the level (best grade and score), saved to disk with the high-score table (item 16): one mechanism, one record | priced in §4.8.4; recommendation: with the summary session |
+| 30 | Until M4, the boss fight ends on the summary screen, then the menu; M4 adds "load the next level" behind the same screen | priced in §4.8.5; **fits M5**: the summary is session M5a-S2 |
+| 31 | Overlays at standard speed first; the fast loader optional and later | §4.8.6, §8 |
 
 ---
 
@@ -545,6 +566,188 @@ smoke re-baseline); the level format; the window's two records beyond the
 
 ---
 
+### 4.8 The level-summary screen (owner decisions 26–28, 2026-10-03)
+
+#### 4.8.1 What it is, and where it runs
+
+The reader's loading screen becomes the summary screen. At every transition
+(START GAME from the menu, the end of a level) the reader shows: the title
+row, the level's stats panel (six lines of label + value, the grade, the
+best), a region background, and a `LOADING` / `PRESS FIRE` line. Loading
+runs behind it at standard speed, in this order (the reason is the music,
+§4.8.6): the summary art for the region first, then slot A's capital restore
+(after a boss), then the next level image **tail-first** (sectors 6–13: hull
+block, LevelDef pages, geometry), then the save record, then the level's
+sectors 1–5 (the music block) last. A minimum display time (Q15: 3 s) runs
+from the first frame; when both the minimum and the loading are done, the
+last line reads `PRESS FIRE`, and FIRE calls `start_gameplay` (until M4:
+after a boss the summary returns to the menu instead — decision 30).
+
+| Part | Home | Bytes | When it arrives | Basis |
+| --- | --- | ---: | --- | --- |
+| **code**: display list (ANTIC 4 picture rows, a CHBASE DLI, ANTIC 2 text rows), stats formatting (BCD → glyphs for six values), accuracy ratio and grade, time conversion (frames → seconds), the minimum-time / loading / FIRE interlock, the read order, the best-record compare | **the splash RAM `$0500-$06FF`** (512 B, free after the boot splash; lever 10 of the budget, risk 4 then — risk 2 now because the reader reads four sectors there at the first START GAME of a session, no boot-time copy) | 400 → 480 | read **once per session**, 4 sectors (15 frames) before the first level; resident thereafter — RESET is a cold start, so the splash never collides | IC; AN `render_frontend_state` 66 + `draw_top_score_bcd_byte` 21 + `select_frontend_display` 128 |
+| **labels** (`SCORE`, `KILLS`, `ACCURACY`, `TIME`, `LIVES LOST`, `BONUS`, `GRADE`, `BEST`, `LOADING`, `PRESS FIRE`) as frontend text records | the region art run (shared bytes, repeated per region) | 150 | with the art | fixed by the text |
+| **art per region**: a 10-row × 40-B ANTIC 4 background map, the region's 31 hull glyphs for codes 59–89 (the gameplay charset is copied from `RODATA` once at boot and is not rebuilt per level — only codes 59–89 are republished, so the picture may use only those plus the stars and helpers), a 4-colour palette | the frontend screen RAM `$4050-$43FF` (map, 400 of 944 B; the text rows take 200) and the charset codes 59–89 (248 B, staged through the pause backup) | 652 + 150 labels → **7 sectors** | **read first** at every transition: 26 frames (0.5 s); the stats text is drawn with the frontend charset on frame 1 by the resident code, so the panel never waits — the picture fills in after 0.5 s | M (the hull block's glyph count) |
+| the reader's changes: two-run tail-first level read, the `$0500` run read, the music tick inside the wait loop, the summary entry and the minimum-time latch, the save-record read and write (§4.8.4) | reader | 60 → 72 (+ the write primitive 70 → 84) | — | IC |
+| state: minimum-time counter 1, loading-done flag 1, per-level stats (§4.8.2) | zero page `$AC+` (84 B free) | ~10 | | |
+
+**Which must be resident or loaded first (decision 5d).** The code is
+resident after the first START GAME; the labels and the art are loaded
+first (7 sectors). The screen therefore waits on nothing it covers: the
+text panel is visible from the first frame, the background 0.5 s later, the
+music from the first frame (the finished level's block is still in the
+buffer, §4.8.6). The one thing it cannot show on the first frame of a session
+is itself: the 4-sector `$0500` read precedes the first summary of a
+session (0.3 s of the plain title row) — acceptable, or the `$0500` run is
+read at the boot's end by stage 2 for 0 B (it would be a twelfth DFMC record:
+−16 B of initial block; not recommended).
+
+**Item 18 (the hangar) is absorbed**: the region background *is* the
+hangar picture the owner asked for, drawn in the region's hull style.
+
+#### 4.8.2 The stat counters (decision 27)
+
+| Stat | Source | Hook | Home | Bytes | Initial block? | Cycles |
+| --- | --- | --- | --- | ---: | --- | ---: |
+| **score** | exists (`SCORE_LO/HI`, BCD) | none | — | 0 | no | 0 |
+| **time** | exists: `ACTIVE_GAMEPLAY_FRAME_LO/HI` (`$4FF8`, 16-bit, counts active gameplay frames only) | none; converted to m:ss at the summary (÷ 50 by repeated subtraction, 30 → 36 B in `$0500`) | — | 0 | no | 0 |
+| **lives lost** | lives at level start (3, or M4's carried value) − lives at level end | none: the start value is 1 B saved at `start_gameplay`'s C init (`director_c_init`, window) | window | 6 → 8 | no | 0 |
+| **kills** | Heavy: the kill branch of `enemy_c_apply_pending_damage` (C, `HYBRID_C_EXT`, record 5 — 0 B spare: **+1 sector**); Light: the Light kill in `LIGHT_RESIDENT` (`PICKUP_CODE`, 65-B tail; record 2 +1 sector); debris: `debris_shot_reward` (`PICKUP_CODE`); boss modules: the overlay | one `stats_count(kind)` C routine in the window (`inc` a BCD byte pair) called from the four sites | window 24 → 30; sites: ext +6, `PICKUP_CODE` +12, overlay +6 | **no** | +15 per kill event (not per frame) |
+| **hits** | Heavy: the non-lethal and lethal branches of the same C function (one call covers both); Light: same as its kill (1 HP); boss modules: the overlay; **debris**: `entity_debris_hit` is in `ENTITY_CODE` → **Q14**: count a destroyed debris as three hits in `debris_shot_reward` (`PICKUP_CODE`, 0 initial-block B; a debris that scrolls off wounded loses its hits) **or** 6 → 9 B in `ENTITY_CODE` | the same routine | window (shared); sites +6 ext, +6 overlay, +4 `PICKUP_CODE` | **debris: Q14** | +15 per hit event |
+| **shots fired** | every player PairShot allocation is `allocate_player_fighter_projectile_at_slot` (`CODE` `$2D01`, 48 B) — **the one unavoidable initial-block site**: **Q13** — (a) a 6 → 9 B BCD increment there, inside the 31 B to STOP, **or** (b) a per-frame scan of the five player slots for a FREE → ACTIVE edge in the window, 40 → 48 B and **+60 cycles on every frame** including the binding row | (a) `sed`/`adc`/`cld` on a BCD pair | (a) `CODE` 9; (b) window 48 | **(a) yes, 9 B; (b) no** | (a) +12 per shot (×3 on a Spread volley frame); (b) +60 every frame |
+| **bonuses** | the boss bonus (overlay, `boss_def` reward) and the summary's own stats bonuses (accuracy / no-death / time, computed at the summary from the thresholds; M8 sets the values) | none in play | `$0500` | 30 → 36 | no | 0 |
+| **RAM** | shots 2, hits 2, kills 2 (BCD), lives-at-start 1, bonus 2 | zero page `$AC+` | 9 | | | |
+
+Totals: window **+36 → 44**; `PICKUP_CODE` +16 (record 2: +1 sector, the
+sector M3-H and M4 also ride in); `HYBRID_C_EXT` +12 (record 5: +1 sector);
+overlay +12; initial block **0 by design, 9 B if Q13 (a)**. Cycles on the
+binding row: 0 with (a) — the row is a Heavy spawn, no event; a kill frame
++15; a Spread volley frame +36 (the heaviest family has 1,439 of margin and
+is ~7,000 over the fence on volley frames).
+
+#### 4.8.3 The letter grade (decision 28)
+
+Grade = the sum of three tiers (accuracy, time, lives lost), each 0–2 from
+two thresholds, mapped S / A / B / C — so a perfect aim with slow play and a
+death can still reach A, and no single stat duplicates the score. Code
+60 → 72 B in `$0500`. Thresholds: 6 B per level (two accuracy percentages
+as hits×4 ≥ shots×3-style compares to avoid a division, two time limits in
+seconds, two lives-lost bounds) in the payload page's 26 spare bytes (230
+of 256 used); M8 tunes them. Accuracy itself needs a ratio: shown as a
+percentage from an 8-bit scaled compare loop (40 → 48 B, `$0500`), computed
+once at the summary. The `$0500` total with the grade: 400 + 36 + 72 + 48 =
+**556 → 480 after sharing the BCD and text helpers the frontend already
+has** — within 512 on expected figures, 56 B over on budgeted ones; if it
+runs over, the grade and ratio (120 B) move to the window (Q13's ledger
+line shows both).
+
+#### 4.8.4 Personal best and the save record (item 29 / wish 16)
+
+One record, one sector, one mechanism:
+
+| Field | Bytes |
+| --- | ---: |
+| magic + version + checksum | 4 |
+| ten high scores: 3 B BCD score + 3 initials | 60 |
+| twelve levels: best grade 1 + best score 3 | 48 |
+| **total** | **112 of 128** |
+
+The record lives on disk at a fixed sector (599) and is read at every
+summary (1 sector, 4 frames) into the pause backup area `$7810` (free during
+a transition), compared, updated and **written back** after the summary's
+stats are final — the direct-SIO write (`'P'`, the data frame from the tx
+primitive generalised to pointer + count, ACK after data, COMPLETE):
+**70 → 84 B in the reader**. A write-protected disk or image answers
+`ERROR`/NAK or nothing: any non-COMPLETE skips silently; the record in RAM
+still shows the comparison for the session. No persistent RAM beyond the
+20 B of top scores the game already keeps (`$4EEA`).
+
+**Recommendation: the save mechanism and the per-level best land with the
+summary session (M5a-S2)**, because the write is reader work the session is
+already inside, and the `BEST` line then shows from day one; the initials
+entry screen (item 16's other half, 150 → 180 B in the window) lands in M4
+with the frontend. Until a record exists on a disk, `BEST` reads `--`.
+Prerequisite: **the harness mounts a copy of the ATR** (or `-readonly`)
+before any session can write, or a trace that reaches a summary would
+rewrite `dist/` and break the evidence binding — a harness change the S2
+session makes first.
+
+#### 4.8.5 Placement (decision 30) — it fits M5
+
+The summary replaces the loading screen at START GAME and the "SECTOR
+CLEARED" hand-off after the boss. It is a loader session, so it is
+**M5a-S2**, before the boss: at the end of M5a a level that ends by its
+existing LEVEL COMPLETE route already goes to the summary (stats, grade,
+best, music, art), and M5b's boss simply hands off to it. M4 later puts
+"load the next level" behind the same screen (the tail-first read is built
+for that). Cost to M5: window 44 (counters) + 0 (code in `$0500`); reader
++156 (which the AI-pool texts moving to disk, +304, more than cover: the
+reader ends **+63 +304 −136 −156 = +75 B**); records 2 and 5 +1 sector each;
+disk 4 + 4 × 7 + 1 = 33 sectors; initial block 0 or 9 (Q13).
+
+#### 4.8.6 Consequences (decision 5)
+
+**(a) Music during standard-speed SIO.** The reader owns POKEY channels 3
+and 4 as the serial clock (`AUDCTL $28`, `AUDF3 $28`, `AUDC3/4 $A0`: pure
+tone at **volume 0**), so the clock is silent by construction — the OS's
+loading buzz comes from the OS SIO routine's "noisy I/O" volume, which the
+direct reader never sets (STATUS 4.3: "anything audible means `AUDC3/4` are
+wrong"; by-ear confirmation is owner smoke, the emulator's audio is not
+capturable). **Channels 1 and 2 are free and are exactly the gameplay
+player's two voices** (`gameplay-music.s` owns 1 and 2 and never touches
+`AUDCTL`); `AUDCTL $28` leaves bits 0, 4 and 6 clear, so channels 1 and 2
+keep the 64-kHz base clock the gameplay profile (`audctlProfile 0`) assumes
+— pitch is unchanged. The tick is called at each VCOUNT frame edge inside
+`sector_reader_wait_serial` (+20 → 24 B): its worst row costs 336 cycles
+against the 930-cycle gap between bytes at standard speed, so a byte waits
+in `SERIN` at most 336 cycles and never overruns. **Arranging the four
+region themes:** two voices (bass + lead), no engine bed, no SFX — the
+gameplay format as it is; a theme must keep its worst tick under the
+inter-byte gap (the GRA-2 figures 118 / 336 do). At 52 kbaud the gap is
+~340 cycles, so a fast loader would have to pause the music during data
+frames — one more reason it comes later (c).
+
+**Which track plays:** the finished level's — its block is in the buffer
+and keeps playing while the next image's sectors 6–13 land; the music
+block (1–5) is read last. Inside a region the next level's block is
+byte-identical, so it is written over the running player without a glitch;
+at a region boundary the music stops for the 19 frames of that read and the
+new region's theme starts as the last sector lands — the region change
+announces itself.
+
+**(b) The full transition load** (after a boss, from the summary's first
+frame; the 3.77 frames/sector rate is MEASURED in the emulator, the rest is
+arithmetic; the 1050-class figure is debt item 5's ×2 ESTIMATE):
+
+| Read | Sectors | Emulator (frames / s) | 1050-class (s, est.) | SIO2SD standard (s, est.) |
+| --- | ---: | ---: | ---: | ---: |
+| summary art + labels (first) | 7 | 26 / 0.5 | 1.1 | 0.6 |
+| slot A capital restore | 16 | 60 / 1.2 | 2.4 | 1.4 |
+| level image, sectors 6–13 | 8 | 30 / 0.6 | 1.2 | 0.7 |
+| save record read (+ write after the stats) | 1 (+1) | 8 / 0.15 | 0.3 | 0.2 |
+| level image, sectors 1–5 (music, last) | 5 | 19 / 0.4 | 0.8 | 0.4 |
+| **transition total** | **37 (+1)** | **143 / 2.9 s** | **5.8 s** | **3.3 s** |
+| + once per session: the `$0500` code | 4 | 15 / 0.3 | 0.6 | 0.3 |
+| (not covered by the summary) boss entry, mid-level | 26 | 98 / 2.0 | 3.9 | 2.3 |
+
+A **3-s minimum display** (Q15) covers the emulator and SIO2SD transitions
+entirely; a 1050-class drive exceeds it by ~2.8 s, during which the last
+line keeps reading `LOADING` — the stats stay readable, nothing is lost.
+
+**(c) The fast loader re-ranked.** Overlays and the summary at standard
+speed come first (S1, S2). The fast loader becomes **optional session
+S6**, recommended only if the owner's real-drive measurement of the S2
+transition exceeds the minimum display by more than ~2 s; on SIO2SD the
+estimate is already inside it. Its bytes (84 → 100, reader) still fit after
+S2 (+75 → −25 budgeted: the 4-line AI stub, 152 B, goes if it lands).
+
+**(d) Resident or loaded first:** §4.8.1 — code resident in `$0500` after
+one 4-sector read per session; labels and art loaded first (7 sectors);
+the stats panel drawn from resident code on frame 1; the music from the
+buffer on frame 1.
+
+---
+
 ## 5. M5b — the boss
 
 ### 5.1 Form: one code path, four regions of data
@@ -699,10 +902,10 @@ records, resident), `COLBK` flash on each, the shake for 24 frames (window
 routine, §5.1), the band's cells rewritten to wreck glyphs as the chain
 passes. Score bonus: `boss_def`'s reward through the BCD add
 (`light_add_score`'s path). Then `sector_c_begin_complete` → the complete
-scroll → until M4 exists, the LEVEL COMPLETE route to the menu with the
-HUD row reading `SECTOR CLEARED` (the text through the HUD glyphs, 14 B in
-the overlay). The boss-resident flag is set before the hand-off so the next
-START GAME restores slot A.
+scroll → **the level-summary screen (§4.8; owner decision 30 replaces the
+plain `SECTOR CLEARED` text)**, which until M4 returns to the menu. The
+boss-resident flag is set before the hand-off so the summary's loading
+restores slot A.
 
 ### 5.7 Nova Missile — not in M5; one free hook
 
@@ -790,43 +993,45 @@ Figures `expected → budgeted`; the M3 sessions are the m3-waves-heavy plan's
 | Point on the road | **With overlays** (this plan) | Without overlays, boss B-A | Without, boss B-B |
 | --- | ---: | ---: | ---: |
 | today | 1,480 | 1,480 | 1,480 |
-| after M5a (the vector table, 60 → 72) | 1,420 → 1,408 | 1,480 | 1,480 |
-| after M5b (`BOSS_DUE` + shake, 80 → 96) | 1,340 → **1,312** | 340 → **112** (−1,140 → −1,368) | 270 → 28 |
-| after M4 | 1,190 → 1,132 | 190 → −68 | 120 → −152 |
-| after M3 session 1 (333 → 352) | 857 → 780 | −143 → −420 | −213 → −504 |
-| after session 2 (99 → 114) | 758 → 666 | −242 → −534 | −312 → −618 |
-| after session 3 (496 → 524) | 262 → **142** | −738 → **−1,058** | −808 → −1,142 |
-| after M6 | 112 → **−38** | −888 → −1,238 | −958 → −1,322 |
-| the brief's levers (1,187) | not needed until M6; one (`STARFIELD` tail, 309) covers M6 with 271 to spare | −51 after all five levers | −135 |
+| after M5a-S1 (the vector table, 60 → 72) | 1,420 → 1,408 | 1,480 | 1,480 |
+| after M5a-S2 (the summary's stat counters, 36 → 44; the screen's code is in `$0500`) | 1,384 → 1,364 | 1,480 | 1,480 |
+| after M5b (`BOSS_DUE` + shake, 80 → 96) | 1,304 → **1,268** | 340 → **112** (−1,140 → −1,368) | 270 → 28 |
+| after M4 | 1,154 → 1,088 | 190 → −68 | 120 → −152 |
+| after M3 session 1 (333 → 352) | 821 → 736 | −143 → −420 | −213 → −504 |
+| after session 2 (99 → 114) | 722 → 622 | −242 → −534 | −312 → −618 |
+| after session 3 (496 → 524) | 226 → **98** | −738 → **−1,058** | −808 → −1,142 |
+| after M6 | 76 → **−82** | −888 → −1,238 | −958 → −1,322 |
+| the brief's levers (1,187) | not needed until M6; one (`STARFIELD` tail, 309) covers M6 with 227 to spare | −51 after all five levers | −135 |
 
 The totals without overlays are §6.3's — the order moves who is short, not
 by how much. **With overlays the shortfall of 1,058 B at the M3 sessions
-disappears**; what is left is M6's 38 B, which any single lever covers.
+disappears**; what is left is M6's 82 B, which any single lever covers.
 
 **With the recommended wish-list items** (§7: attract 200 → 240, starfield
 density/speed 50 → 60, high-score initials entry 150 → 180 — the items that
-have no home but the window): after M6 **−518 B budgeted (−288 expected)**.
+have no home but the window): after M6 **−562 B budgeted (−324 expected)**; if the grade and ratio code (120 B) overflow `$0500` (§4.8.3), −682.
 Levers in the order this plan recommends: the `STARFIELD` run tail (309,
 risk 3) and the arena's post-M3 95 → −114; then `LEVEL_BUFFER` 16 → 15
 (128, the buffer keeps two spare sectors so slot B still holds the band)
-→ +14; the splash RAM (512) stays the reserve — **its risk falls from 4 to
-2 with the loader, which can read four sectors to `$0500` at START GAME**
-instead of needing a boot-time copy. `LEVEL_BUFFER` 16 → 14 is **not**
+→ −30 (−150 with the grade overflow); the splash RAM (512) is **taken by the summary screen's code** (§4.8.1) and is no longer a window lever; what pays the rest is the arena's post-M3 bytes and the cuts m3-waves-heavy §6.3 lists, or one fewer wish item (the attract mode's 240 is the largest). `LEVEL_BUFFER` 16 → 14 is **not**
 recommended: slot B needs the spare sectors (§4.1).
 
 ### 6.2 RAM, by home, after M5
 
 | Home | Today free | M5a | M5b | After M5 | Note |
 | --- | ---: | ---: | ---: | ---: | --- |
-| window | 1,480 | −72 | −96 | **1,312** | §6.1 |
-| sector reader | 63 | +152 −136 −100 = −84 → **−21 budgeted, +20 expected** (S1 + S2); the hangar session (S3) returns +152 → **+131** | 0 | 131 with S3, −21 without | Q3 |
+| window | 1,480 | −72 −44 | −96 | **1,268** | §6.1 |
+| sector reader | 63 | +152 −136 (S1); +304 −156 (S2: the AI texts to disk, the summary and the write) = **+227** | 0 | 227 (−25 after the optional fast loader's 100 and the stub's 152 going) | Q3 |
 | `BROADSIDE` | 3 (+119 pins) | 0 (regrouped, byte-neutral) | 0 (the boss lives in the slot) | 3 (+119) | the pins stay M3's |
 | arena | 35 | 0 | 0 | 35 | |
 | `DIRECTOR_RAM` | 43 | 0 | 0 | 43 | |
-| `HYBRID_C_SECTOR` / record 2 | 33 / 3 | 0 | 0 | 33 / 3 | |
+| `HYBRID_C_SECTOR` / record 2 | 33 / 3 | `PICKUP_CODE` +16 (record 2 +1 sector) | 0 | 33 / 115 (10 sectors) | the sector M3-H and M4 also ride in |
+| `HYBRID_C_EXT` / record 5 | 39 / 0 | +12 (record 5 +1 sector) | 0 | 27 / ~110 (7 sectors) | |
+| splash RAM `$0500-$06FF` | 512 (lever 10) | −480 (the summary code) | 0 | 32 | read once per session |
+| zero page `$AC-$FF` | 84 | −19 (stats + summary state) | −10 (boss state, if not `ENTITY_STATE`) | 55 … 65 | |
 | `ENTITY_STATE` (~32) | ~32 | 0 | −10 | ~22 | boss state |
 | unowned RAM | 22 | 0 | 0 | 22 | left for M3 |
-| initial block to STOP | 31 | ±8 (G: operand re-points move the packed size) | 0 | **23 … 31** | STOP if negative |
+| initial block to STOP | 31 | ±8 (G: operand re-points move the packed size); −9 if Q13 (a) | 0 | **14 … 31** | STOP if negative |
 | slot A (new) | — | ≥ 2,048 | −1,980 | ≥ 68 | the boss's home |
 | slot B (new) | — | 768 | −610 | 158 | band map 512 + tables ~100 |
 
@@ -835,20 +1040,20 @@ recommended: slot B needs the spare sectors (§4.1).
 | | Today | After M5 | Note |
 | --- | ---: | ---: | --- |
 | boot sectors | 107 | 107 | no new boot sector |
-| extension sectors | 102 | 103 | the window record 9 → 10 (1,067 + ~131 packed B of hooks and table > 1,131) |
-| total transport | 209 | 210 | |
-| ATR menu frame (baseline 596, warn 606) | 547 | ~549 | 2 frames per sector, sizing rule |
+| extension sectors | 102 | 105 | the window record 9 → 10 (1,067 + ~165 packed B of hooks, counters and table > 1,131); records 2 and 5 +1 each (the stat hooks) |
+| total transport | 209 | 212 | |
+| ATR menu frame (baseline 596, warn 606) | 547 | ~553 | 2 frames per sector, sizing rule |
 | disk, level runs from 320 | 13 used | 192 reserved (12 × 16) | sectors 320–511 |
-| disk, overlay runs from 512 | — | capital restore 16, boss code 16, regions 40, hangar 10, attract 4, scores 1 = **87** | sectors 512–598; speech would add 12–61 |
-| free sectors after twelve levels and every recommended item | 319 | **232** | |
+| disk, overlay runs from 512 | — | capital restore 16, boss code 16, boss regions 40, summary code 4, summary art 4 × 7 = 28, save record 1, attract 4 = **109** | sectors 512–620; speech would add 12–61; the hangar (item 18) is absorbed by the summary art |
+| free sectors after twelve levels and every recommended item | 319 | **210** | |
 
 ### 6.4 Load time, by transition (frames at 3.77 per sector; EMULATOR; 1050 ×2; SIO2SD fast ÷3 ESTIMATE)
 
 | Transition | Today | After M5 (standard speed) | SIO2SD fast (est.) | 1050 (est.) |
 | --- | ---: | ---: | ---: | ---: |
-| START GAME, first level of a game | 49 (1.0 s) | 49; +38 with the hangar (1.7 s) | 0.3 … 0.6 s | 2.0 … 3.5 s |
-| START GAME after a boss was fought (slot A restored) | — | 109 (2.2 s); +38 with the hangar (2.9 s) | 0.7 … 1.0 s | 4.4 … 5.9 s |
-| boss entry (code 16 + region 10) | — | 98 (2.0 s) | 0.7 s | 3.9 s |
+| START GAME, first level of a session (summary code 4 + art 7 + level 13 + record 1) | 49 (1.0 s) | 94 (1.9 s), behind the summary screen | 0.6 s (not built: the fast loader is optional) | 3.8 s |
+| transition after a boss (art 7 + restore 16 + level 13 + record 1) | — | 139 (2.8 s) + the write, behind the summary; a 3-s minimum display covers it | 0.9 s | 5.6 s (exceeds the minimum by ~2.6 s: `LOADING` stays up) |
+| boss entry (code 16 + region 10), mid-level | — | 98 (2.0 s) behind the `WARNING` banner | 0.7 s | 3.9 s |
 | return to the menu | 0 | 0 (the frontend stays resident) | 0 | 0 |
 
 ### 6.5 Cycles and DMA, by row family
@@ -875,9 +1080,9 @@ only, so "later" means the last code session before the freeze or never),
 | ---: | --- | --- | --- | --- | ---: | ---: | --- | --- | --- |
 | 14 | **Music per region (4 tracks) + a boss theme, from disk** | tracks: **M7** (data); the boss-theme copy hook: **M5b S5** | tracks **0 B** — the player and its track already ride in every level image (§2.6), so a region's track is the build picking a JSON per level; boss theme: 25 → 30 B of copy code in the boss overlay, 241 → ≤ 361 B of data per region run | tracks: disk (in the level images, 0 extra sectors); boss theme: overlay data | 0 (+ ~2 per region inside the 10 already counted) | 0 standing (same player; the GRA-2 figures 118 / 336 hold) | 0 | a region track must fit 361 B (16 patterns + the pad); composition is owner work | **do** (must-have, and nearly free) |
 | 15 | **Attract / demo mode from the deterministic replays** | its own session after **M4** (the menu idle timer needs the campaign's menu flow), before M6 | input override in the window: a `jmp` re-point at `read_input` (byte-neutral in `CODE`) to a stream reader 60 → 72; menu idle timer + `DEMO` HUD label + exit on FIRE 80 → 96; the recorded input stream (RLE of stick/fire runs for ~1,000 frames, G 300–500 B) rides in a **level-image variant** of level 1 (id 13 of the 16 `LEVEL_MAX_ID` allows: level 1's 13 sectors + the stream in its 3 spare) **or** in a 4-sector overlay run into slot B; the Director's seed is the level header's (`CORE_SEED ^ difficulty`, `director.c:398`), so the demo forces the difficulty it was recorded on and nothing else — the harness replays prove the determinism the demo rests on | resident 200 → 240 (window); stream on disk | 16 (level variant) or 4 (run) | +20 on every frame (the stream read) — IC | the demo's level read (49 frames) when the menu idles | the recorded stream is hardware-deterministic only if every input-independent state is (the RNG and the frame clock are; VCOUNT-seeded choices like `sector_reader_pick_line` are not and must be excluded) | **do** (must-have); session `feat/attract-mode` |
-| 16 | **High-score table on disk with initials; silent skip when write-protected** | **M4** (the campaign loop's frontend session) | SIO write primitive in the reader 70 → 84 (§2.7); the scores sector read at the first menu entry 20 → 24 (reader); initials entry (3 letters by stick) 150 → 180 — `CODE` is full, so the window; TOP SCORES rows with initials +40 → 48 (window, called through the frontend draw); RAM: 10 × 3 B initials 30 B (`$4FFA-$4FFF` holds 6; the rest in `ENTITY_STATE`) | resident; 1 disk sector | 1 | 0 in gameplay | +1 sector at the first menu entry (~4 frames); the write after a qualifying game over (~1 s on a real drive) | a write-protected ATR or disk answers `ERROR`/NAK: the skip is "any non-COMPLETE"; **the harness mounts `dist/` — a write during a trace session would change the shipped ATR's bytes and break the evidence binding**, so the harness must mount a copy (or `-readonly`) before this lands; a shared disk image carries its finder's scores (the owner's parked concern, now accepted) | **do** (must-have); the harness mount change is the prerequisite |
+| 16 | **High-score table on disk with initials; silent skip when write-protected** | the save mechanism and the record: **M5a-S2 with the per-level best (§4.8.4)**; the initials entry: **M4** | SIO write primitive in the reader 70 → 84 (§2.7); the scores sector read at the first menu entry 20 → 24 (reader); initials entry (3 letters by stick) 150 → 180 — `CODE` is full, so the window; TOP SCORES rows with initials +40 → 48 (window, called through the frontend draw); RAM: 10 × 3 B initials 30 B (`$4FFA-$4FFF` holds 6; the rest in `ENTITY_STATE`) | resident; 1 disk sector | 1 | 0 in gameplay | +1 sector at the first menu entry (~4 frames); the write after a qualifying game over (~1 s on a real drive) | a write-protected ATR or disk answers `ERROR`/NAK: the skip is "any non-COMPLETE"; **the harness mounts `dist/` — a write during a trace session would change the shipped ATR's bytes and break the evidence binding**, so the harness must mount a copy (or `-readonly`) before this lands; a shared disk image carries its finder's scores (the owner's parked concern, now accepted) | **do** (must-have); the harness mount change is the prerequisite |
 | 17 | **Digitised speech on the transition screen** | later, after the hangar; **M6** at the earliest | player 40 → 48 B (reader or the hangar overlay); the sample in transition-time scratch RAM: PMG pages `$3B00-$3FFF` 1,280 B + the gameplay charset `$4400-$47FF` 1,024 B + the hull maps `$4C00-$4E3F` 576 B (all rebuilt by `start_gameplay`) = **2,880 B in three pieces**; at 4-bit 7.8 kHz that is 0.74 s; 5.2 kHz gives 1.1 s | disk, read at every level start | **12 (0.6 s at 5.2 kHz) … 23 (2,880 B)**; a 2-s clip at 7.8 kHz is 61 sectors and does not fit RAM | 0 in gameplay; the CPU is the player's during playback | **+0.9 s (12) … +1.7 s (23) per level at standard speed, ×2 on a 1050**, to hear 0.6–1.1 s of 4-bit speech; the sample cannot play while the level reads (channels 3+4 are the clock) | intelligibility of 4-bit volume-only at ≤ 7.8 kHz is "recognisable 1980s"; the load it adds is longer than the clip | **possible; recommended against** ("not everything must be done"); if wanted: one word, ≤ 12 sectors, only with the fast loader landed |
-| 18 | **Loading screen with a hangar** | **M5a S3** (or M4 if the owner prefers the loader untouched until then) | reader: a bitmap band (ANTIC E, 40 × 48 lines = 1,920 B, or ANTIC 4 with 64 custom glyphs = 240 + 512 B) read into the PMG pages / charset scratch before the level, the loader display list gaining the band (40 → 48 B); the AI texts move into the same overlay (−304 B resident, +80 → 96 B of band-and-text install) | overlay (slot: transition scratch), disk | 10 (ANTIC 4 form) … 16 (ANTIC E) | 0 | +38 … +60 frames per level start (0.8 … 1.2 s), ×2 on a 1050 | the band is on screen while the wire runs: ANTIC E's DMA takes ~35 % of a line, inside the receive loop's margin at every speed (§2.9); drawing is owner art | **do** (must-have); ANTIC 4 form recommended (10 sectors, reuses the frontend charset path) |
+| 18 | **Loading screen with a hangar** — **absorbed by the level-summary screen (§4.8): the region background is the hangar picture** | **M5a-S2** | reader: a bitmap band (ANTIC E, 40 × 48 lines = 1,920 B, or ANTIC 4 with 64 custom glyphs = 240 + 512 B) read into the PMG pages / charset scratch before the level, the loader display list gaining the band (40 → 48 B); the AI texts move into the same overlay (−304 B resident, +80 → 96 B of band-and-text install) | overlay (slot: transition scratch), disk | 10 (ANTIC 4 form) … 16 (ANTIC E) | 0 | +38 … +60 frames per level start (0.8 … 1.2 s), ×2 on a 1050 | the band is on screen while the wire runs: ANTIC E's DMA takes ~35 % of a line, inside the receive loop's margin at every speed (§2.9); drawing is owner art | **do** (must-have); ANTIC 4 form recommended (10 sectors, reuses the frontend charset path) |
 | 19 | **Capital hulls take damage where hit — both hulls** | later: **M7** (after the capital overlay exists) or **M8** | in **slot A** (0 window): after `restore_capital_explosion` the cell gets a damage glyph instead of its backing when the backing is a hull cell, 40 → 48; player-shot-versus-enemy-hull (today shots do not collide with hull cells beyond the prow) 60 → 72; 2 damage glyphs (16 B) in the free hostile-weapon codes 93–98 | overlay | 0 | **+150 … +200 on capital frames** for the shot-versus-hull test (five shots × ~35, IC) — capital frames have no fence and 2,000 to the hard gate | 0 | the mark scrolls away with the row (free: the ring row is recycled); the allied hull's marks from enemy shells are the existing impact path | **do later** (M7/M8): cheap once slot A exists |
 | 20 | **Variable protruding nacelles narrowing the corridor (4.8a)** | **M7**, with the hull sets | slot A: per-row corridor extent read by the player clamp and the hull contact (`player_inside_universal_hull_corridor` assumes a fixed width) 150 → 180; a 27 × 2 B extent table 54 B (`ENTITY_STATE` is short: the window's RAM or zero page); the `hull_params` block (32 B, reserved in the payload page) becomes data; +1 B per map row in the hull block (104 B of pad there) | overlay + data | 0 | +40 … +80 on capital frames | 0 | fairness: the scroll squeezing the player (River Raid kills; here hull contact damages, 10 → 8); the hull row generator and the collision read the same table or they disagree | **later** (M7); it is 4.8a itself; the open "geometry 4.8a" item in budget §5.2 (13) gets this price |
 | 21 | **Capital colours change every 4 levels, aligned with the laser tiers** | **M7** (data) | **0 B**: the allied steel is level data since hull step 2, the enemy style since step 2; the build's mapping (`alliedColpf1ForLevel`, `hullStyleIdForLevel`, `scripts/build.mjs:331-339`) changes | data | 0 | 0 | 0 | the enemy hull's colour is `COLPF3`, shared with every hostile accent — a per-tier *enemy* colour recolours shots and Interceptor pods; the allied steel and the enemy *style* per tier are free of that; **it supersedes AC's "regions of three" and the 1–6 / 7–12 steel split**, and with 4-level tiers over twelve levels the fourth enemy style is never used | **do** (Q5 decides what "colour" covers) |
@@ -906,21 +1111,22 @@ STATUS updated, the free tails stated in the commit.
 | # | Branch | Scope | Window | Other bytes | Records / sectors / frames | Cycles (worst rows) | DMA | Load | STOP conditions | Tests and clauses | Owner smoke |
 | --- | --- | --- | ---: | --- | --- | --- | --- | --- | --- | --- | --- |
 | **M5a-S1** | `feat/overlay-slot` | §4.1–4.2: `BROADSIDE` regrouped, slot A bounded, the 20-entry table in the window, the reader's run read + directory + boss-resident flag + table copy, the build's overlay runs from sector 512 and the capital restore run, the AI pool 8 → 4 (Q3) | −72 | reader −136 +152; `BROADSIDE` 0; initial block ±8 (G) | window record 9 → 10 (+1 sector, +2 frames); disk +16 | binding row ~−30 (vectored calls); capital ~+60 | 0 | 0 (no read is added until a boss exists) | initial block > 13,652; worst fence < 1,400; a `BROADSIDE` label the harness or a test pins moves without its pin being re-pointed in the same commit; the restore run ≠ the resident bytes | §4.7; the binding replay's cycles proven on both builds (page crossings); boot smoke 8/8 | play level 1 through its capital sector: nothing visible changes; the loader screen with four lines |
-| **M5a-S2** | `feat/fast-sio` | §4.3: `$3F` negotiation, divisor, fallback; `hardware-testing.md` §11 extended | 0 | reader −100 | 0 / 0 / 0 | 0 | 0 | ÷3 on SIO2SD (est.); unchanged elsewhere | the standard path's command-frame count or bytes on the wire change; boot smoke < 8/8; the fallback test fails in the 6502 harness | §4.7's harness tests; the emulator path per `sio.c` (§2.9) | **the session's point**: SIO2SD fast / disabled / off mid-read; the real drive (Q10); a marginal cable |
-| **M5a-S3** (optional, item 18) | `feat/hangar-loader` | the hangar band and the AI texts as an overlay read before the level; the loader list gains the band | 0 | reader +152 −96 (net +56 → the reader ends ~+131 free) | disk +10; +0 transport | 0 | 0 | +38 frames per level start | the band's DMA makes the wire retry (0 retries required); the reader's free tail negative | boot smoke: the hangar read's command frames and a byte compare of the band; the screen's checksum pinned like the menu's | the hangar on a PAL CRT: colours, no tearing while the dotted row steps |
-| **M5b-S4** | `feat/boss-band` | §5.1–5.3, §5.6 without lasers: `BOSS_DUE`, the transition and its read, slot B, the band builder, HSCROL motion, the third DLI, region 1's data, module draw/damage, shot-versus-module, the controller's phases (guns → core), the chain explosion, bonus, `SECTOR CLEARED` → menu, the restore at the next START GAME; `light[3]` 0 → 1; harness: third DLI, boss milestone, `director-complete-*` through the boss | −48 | slot A ~1,250 B of code; slot B 610; `ENTITY_STATE` −10 | disk +16 +10; transport 0 (the hooks ride S1's sector) | boss frames per §5.4 less lasers: worst with one Light **~1,640** (scroll stopped) | boss frames ~30,000 | boss entry 98 frames; post-boss START GAME +60 | a boss frame under 500 in the audit; DMA-on over 32,568; the restore byte compare fails; the band map crosses a 4 KB boundary | §5.10 less the laser items | a full level 1 to the boss and the clear on hardware; the banner and tone; the band's motion and the palette seam; **a second game after the clear: the capital sector renders** (the restore) |
-| **M5b-S5** | `feat/boss-lasers` | §5.5, §5.8: lasers 1 / 2 / 4, the laser damage source, the shake shared with the player's death (item 25), the boss theme copy (item 14), the laser contact session replacing the recorded one (Q4), the missile-plane clause exception | −48 | slot A +~500 B | disk 0 (inside the 16 + 10) | §5.4 in full: worst **1,238** (scroll stopped) | ~30,270 | 0 | fence < 500 on any boss frame; the laser session not passing on the default ATR; `missile_plane_rows` residue outside the boss sector | §5.8's clauses; `boss-escort`; cycle pins | the warning readable at ~0.5 s; the beam's hit and its sound; the chain explosion and shake on a CRT; the player's death shake |
-| **M5b-S6** | `feat/boss-regions` | regions 2–4's art and data from the concepts, the M8 tuning layout, level 2's boss through the debug route, release prep for `v0.3.0` (hardware checklist, README EN + PL) | 0 | 0 | disk +30 | 0 | 0 | 0 | a region run > 10 sectors | build pins; the four regions through `--level=N` review builds | each region's boss on hardware through a review ATR; level 1's through the default |
+| **M5a-S2** | `feat/level-summary` | §4.8: the summary screen replacing the loader screen (code in `$0500`, art per region read first, labels and the AI texts to disk), the stat counters and their hooks (Q13, Q14), the grade, the save record with the direct-SIO write and the per-level best, the tail-first level read with the music tick in the wait loop, the minimum-time / FIRE interlock; the harness mounts a copy of the ATR | −44 | reader −156 +304; `PICKUP_CODE` +16; `HYBRID_C_EXT` +12; `$0500` −480; zero page −19; initial block 0 (9 with Q13 a) | records 2 and 5 +1 sector each (+4 frames); disk +33 | kill / hit / shot events +12 … +15 each; 0 on the binding row (Q13 b would add +60 every frame) | 0 | START GAME 49 → 94 frames behind the screen; the post-boss transition 139 (§4.8.6 b) | a stat hook in the initial block beyond Q13's answer; the music audibly stalls during a read (owner smoke); a write reaching `dist/` in any harness run; the `$0500` code over 512 B without the grade moved to the window | build: the record format and the art runs pinned; 6502: BCD counters, the ratio and grade on fixture stats, the write primitive's ACK/COMPLETE/NAK paths, the tail-first order; native: a replay through a level's end reaching the summary with the expected stats (the kill and shot counts cross-checked against the trace's own counters), the record written to the copy and read back next session; PAL audit unmoved on fighter rows | the screen on a PAL CRT: stats readable, the picture after ~0.5 s, the music through the load, `PRESS FIRE` after the minimum; a write-protected SIO2SD image: `BEST` still shows, no error; **the real drive: the wall-clock transition time (decides the optional fast loader)** |
+| **M5b-S3** | `feat/boss-band` | §5.1–5.3, §5.6 without lasers: `BOSS_DUE`, the transition and its read, slot B, the band builder, HSCROL motion, the third DLI, region 1's data, module draw/damage, shot-versus-module, the controller's phases (guns → core), the chain explosion, bonus, the hand-off to the summary screen (→ menu until M4), the restore behind the summary; `light[3]` 0 → 1; harness: third DLI, boss milestone, `director-complete-*` through the boss | −48 | slot A ~1,250 B of code; slot B 610; `ENTITY_STATE` −10 | disk +16 +10; transport 0 (the hooks ride S1's sector) | boss frames per §5.4 less lasers: worst with one Light **~1,640** (scroll stopped) | boss frames ~30,000 | boss entry 98 frames; post-boss START GAME +60 | a boss frame under 500 in the audit; DMA-on over 32,568; the restore byte compare fails; the band map crosses a 4 KB boundary | §5.10 less the laser items | a full level 1 to the boss and the clear on hardware; the banner and tone; the band's motion and the palette seam; **a second game after the clear: the capital sector renders** (the restore) |
+| **M5b-S4** | `feat/boss-lasers` | §5.5, §5.8: lasers 1 / 2 / 4, the laser damage source, the shake shared with the player's death (item 25), the boss theme copy (item 14), the laser contact session replacing the recorded one (Q4), the missile-plane clause exception | −48 | slot A +~500 B | disk 0 (inside the 16 + 10) | §5.4 in full: worst **1,238** (scroll stopped) | ~30,270 | 0 | fence < 500 on any boss frame; the laser session not passing on the default ATR; `missile_plane_rows` residue outside the boss sector | §5.8's clauses; `boss-escort`; cycle pins | the warning readable at ~0.5 s; the beam's hit and its sound; the chain explosion and shake on a CRT; the player's death shake |
+| **M5b-S5** | `feat/boss-regions` | regions 2–4's art and data from the concepts, the M8 tuning layout, level 2's boss through the debug route, release prep for `v0.3.0` (hardware checklist, README EN + PL) | 0 | 0 | disk +30 | 0 | 0 | 0 | a region run > 10 sectors | build pins; the four regions through `--level=N` review builds | each region's boss on hardware through a review ATR; level 1's through the default |
 
-**After M5b-S6: `v0.3.0`** — the owner's release checklist
-(`hardware-testing.md` §1–§11 plus the S2 and S4 items) on the default ATR.
+| **S6** (optional, later) | `feat/fast-sio` | §4.3: `$3F` negotiation, divisor, fallback; `hardware-testing.md` §11 extended; the music tick paused during data frames | 0 | reader −100 (the 4-line AI stub, 152 B, goes) | 0 / 0 / 0 | 0 | 0 | ÷3 on SIO2SD (est.) | the standard path's bytes on the wire change; boot smoke < 8/8; the fallback test fails | §4.7's harness tests; the emulator path per `sio.c` | SIO2SD fast / disabled / off mid-read; the real drive (Q10); a marginal cable. **Built only if S2's real-drive transition exceeds the minimum display by more than ~2 s** |
 
-**Projected figures at the end of M5** (budgeted): window **1,312** free;
-initial block 23 … 31 B to STOP; transport 107 / 103 / 210, ATR menu ~549;
+**After M5b-S5: `v0.3.0`** — the owner's release checklist
+(`hardware-testing.md` §1–§11 plus the S2 and S3 items) on the default ATR.
+
+**Projected figures at the end of M5** (budgeted): window **1,268** free;
+initial block 14 … 31 B to STOP; transport 107 / 105 / 212, ATR menu ~553;
 worst fighter-row fence margin ~1,410; worst boss-row margin 1,238 (scroll
 stopped) with DMA-on ~30,270; DLIs 2 (3 in a boss sector); recorded clause
 failures 1 → 0 (the laser session replaces the shell one); free disk 319 −
-82 = 237 sectors after twelve levels.
+105 = 214 sectors after twelve levels (210 with the attract stream).
 
 ---
 
@@ -932,16 +1138,21 @@ Each with the recommended answer and what it costs.
 | ---: | --- | --- | --- | --- |
 | **Q1** | Does the world scroll stop in the boss sector? | **Yes** — the ring does not rotate; stars drift by their fine phase and hold | 0 B; every boss frame gains ~1,545; the worst one-Light frame ends 1,238 over GO and under the 31,200 target | scroll kept: the one-Light break-up frame ends −307 (4 lasers) … −7 (1 laser); needs the pool lever (574–729, visible) or no Light at all or a 6-row band and 1 laser only |
 | **Q2** | Band height: 8 rows (64 scanlines) or 6? | **8**, falling to 6 if S4's audit shows a boss frame under 500 | 720 of margin per boss frame (M) | 6 rows: 540; the boss art loses a quarter of its height |
-| **Q3** | Where do the reader's 173 B for S1 + S2 come from? | **The AI line pool 8 → 4 lines** (+152 B; the format stays decision O's); the hangar session later moves the texts to disk and returns the rest | the loader shows one of four placeholders until the hangar lands | (b) `LEVEL_BUFFER` 16 → 15 with the buffer moved to `$A680` and every level address re-linked (risk 3; +128 B); (c) the overlay logic in the window and the reader kept: window −200 → −240 |
+| **Q3** | Where do the reader's 136 B for S1 come from, before S2 moves the texts to disk? | **The AI line pool 8 → 4 lines** (+152 B; the format stays decision O's); S2 then moves every text to the summary art run and returns the rest | the loader shows one of four placeholders between S1 and S2 | (b) `LEVEL_BUFFER` 16 → 15 with the buffer moved to `$A680` and every level address re-linked (risk 3; +128 B); (c) the overlay logic in the window and the reader kept: window −200 → −240 |
 | **Q4** | The recorded `lower-playfield-hostile-contact-atr-hard` once the laser session passes | **Retire it by name** into the recorded file's removed block, with F5/F6 kept as its epitaph | 0 | keep both: the recorded set carries a scenario the game cannot contain, forever |
 | **Q5** | Item 21: do 4-level tiers replace AC's regions of three for the hull **style** too, or only for the allied steel and the lasers? | **Steel and lasers by 4-level tier; the enemy hull style stays per 3-level region** (all four styles used, as AC wants); the enemy *colour* does not change (it is `COLPF3`) | 0 B, a build mapping | style by 4-level tier: the fourth style is never seen in twelve levels; enemy colour per tier: every hostile accent recolours |
 | **Q6** | Restore variant (a) or (b)? | **(b)**: the capital group stays in record 1; only the slot is restored after a boss | +60 frames at START GAME after a boss | (a): +113 frames at every START GAME, −50 at boot |
 | **Q7** | The frontend overlay (2,180 packed B of initial block returned, risk 4) — in M5a as an optional session, or deferred? | **Deferred**; revisit if the initial block binds before M6 | 0 | S4-optional: 2–3 sessions of layout work; the menu re-read at every return (1.7 s EMULATOR) |
 | **Q8** | Speech (item 17) | **Drop** for 1.0; at most one word ≤ 12 sectors after the fast loader | 0 | 12 … 23 sectors per level start (+0.9 … 1.7 s), a 40-B player, and 4-bit speech |
-| **Q9** | The hangar: M5a S3 or M4? | **M5a S3** (the loader is open on the bench; the reader's bytes come back before M4 needs them) | one more M5a session | M4: the reader stays at −21 B budgeted until then |
+| **Q9** | ~~The hangar: M5a S3 or M4?~~ | **answered by decision 26**: the region background of the summary screen is the hangar; M5a-S2 | — | — |
 | **Q10** | Which real drive does the owner smoke the loader with? | the answer sets S2's scope: a **stock 1050** proves the fallback only; a **CA-2001** or a US-Doubler/Happy/Speedy 1050 proves the fast path on real electronics; an **XF551** needs the XF551 mode (+30 → 36 B) | — | — |
 | **Q11** | The reserved reader vector `$A006` (`sector_reader_drain_ready`, "reserved for 4.9") becomes the run-read entry and the drain vector moves to `$A009` | **Yes** — nothing binds `$A006` today (grep: only the reader's own table) | 0 | a fourth vector at `$A009` for the run read and `$A006` kept idle: +3 B |
-| **Q12** | `LEVEL_BUFFER` stays 16 (slot B needs the spare sectors); the window levers for M6 are the `STARFIELD` tail first, then 16 → 15, the splash RAM as reserve | **Yes** | 0 now | 16 → 14 now: slot B shrinks to the hull block (384 B): a 48-B-wide band (8 cells of travel) and no room for the tables |
+| **Q12** | `LEVEL_BUFFER` stays 16 (slot B needs the spare sectors); the window levers for M6 are the `STARFIELD` tail first, then 16 → 15; the splash RAM is the summary code's home, not a lever | **Yes** | 0 now | 16 → 14 now: slot B shrinks to the hull block (384 B): a 48-B-wide band (8 cells of travel) and no room for the tables |
+| **Q13** | The **shots-fired** counter: (a) 6 → 9 B in `CODE` at `allocate_player_fighter_projectile_at_slot` — the one stat whose only event site is in the initial block — or (b) a per-frame slot scan in the window | **(a)**: 9 of the 31 B to STOP, no cycle on any frame but a shot's; (b) spends 60 cycles on every frame of the game, the binding row included, to save 9 initial-block bytes | 9 B of initial block (14 … 22 left after S1's drift) | (b): window 48 B, −60 on every row (1,439 → ~1,380) |
+| **Q14** | The **debris hits**: `entity_debris_hit` is in `ENTITY_CODE`; count a destroyed debris as three hits in `debris_shot_reward` (`PICKUP_CODE`) instead? | **Yes** — 0 initial-block bytes; a debris that scrolls off after one or two hits loses them (accuracy reads slightly low on debris-heavy levels) | 0 | 6 → 9 B of `ENTITY_CODE` for exact counting |
+| **Q15** | The summary's minimum display time | **3 s (150 frames)**: covers the emulator and SIO2SD transitions (2.8 s), readable for six lines; a 1050-class drive keeps `LOADING` up ~2.6 s longer | 0 | 2 s: the picture and the stats flash by on fast media; 4 s: a wait on every medium |
+| **Q16** | Personal best (item 29) with the summary session, or later? | **With it** (M5a-S2): the write primitive is reader work the session is inside; `BEST` shows from day one; the initials entry waits for M4 | reader 84 B, 1 sector, the harness mount change | later: the summary shows `BEST --` until M4, and M4 grows by the write primitive |
+| **Q17** | At START GAME from the menu there is no finished level: the summary shows the region look, `ENGAGING SECTOR N`, the level's best grade and score, and an empty stats panel? | **Yes** — one screen, one code path | 0 | a separate plain loading screen: +60 B of reader for two screens |
 
 ---
 

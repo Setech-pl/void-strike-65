@@ -892,6 +892,36 @@ test("before the summary module arrives the screen shows only the summary's top 
   assert.equal(run.memory[COLPF1] & 0x0f, 0x0a, "the region palette changed the text luminance");
 });
 
+// Owner review of M5a-S2, item 1: the minimum counts frame edges from the
+// summary's first displayed frame. publish zeroes the count just after an
+// edge; a disk wait that then compares VCOUNT with a value left from an
+// earlier frame must not count a wrap that never happened.
+test("the 3-second count starts at the summary's first frame: its first tick is the next frame edge", () => {
+  for (const variant of ["start", "level end"]) {
+    const drive = new Drive({ trig: variant === "start"
+      ? (frame) => (frame > 200 && frame % 8 < 4 ? 0 : 1) : fireLate });
+    let shown = null;
+    let firstTick = null;
+    const list = variant === "start" ? startDisplayList() : summary("summary_display_list");
+    const watch = (memory) => () => {
+      if (shown === null) {
+        const on = drive.dmactl.find((entry) => entry.value !== 0 && entry.dlist === list);
+        if (on) shown = on.frame;
+      } else if (firstTick === null && memory[ZP.frames] === 1) {
+        firstTick = drive.frames;
+      }
+    };
+    if (variant === "start") {
+      const memory = runtimeMemory();
+      startGame(drive, { memory, watch: watch(memory) });
+    } else {
+      levelEnd(drive, { watch: watch });
+    }
+    assert.ok(Number.isInteger(shown) && Number.isInteger(firstTick), variant);
+    assert.equal(firstTick, shown + 1, `${variant}: the count ticked inside its first frame`);
+  }
+});
+
 test("the summary changes display lists on a frame's edge, before ANTIC fetches the first line", () => {
   const drive = new Drive({ trig: (frame) => (frame > 200 && frame % 8 < 4 ? 0 : 1) });
   const run = startGame(drive);
@@ -906,7 +936,7 @@ test("the summary changes display lists on a frame's edge, before ANTIC fetches 
 });
 
 // The level's end, from the reader's exit with the stats of a played level.
-function levelEnd(drive, { setup = () => {} } = {}) {
+function levelEnd(drive, { setup = () => {}, watch: watchFor = null } = {}) {
   const memory = runtimeMemory();
   memory.set(levelOneImage, LEVEL_BUFFER);
   memory.set([50, 75, 200, 0, 170, 0, 1, 0, 0x00, 0x00], PAYLOAD_SUMMARY);
@@ -925,11 +955,13 @@ function levelEnd(drive, { setup = () => {} } = {}) {
   let snapshot = null;
   let firstSummaryFrame = null;
   const ticks = [];
+  const extra = watchFor?.(memory);
   const end = runUntil(cpu, {
     menu: main("quit_gameplay_to_menu"),
     failure: reader("sector_reader_failure_screen"),
   }, {
     watch: (pc) => {
+      extra?.(pc);
       if (pc === 0xa60b) ticks.push(drive.frames);
       if (snapshot === null) {
         const on = drive.dmactl.find((entry) => entry.value !== 0 &&

@@ -266,3 +266,32 @@ test("the stat block in zero page is the summary ABI's and no link claims it", (
   const mainLabels = readLabels("void-strike-65.lbl");
   assert.ok(mainLabels.get("__ZP_LAST__") <= 0xa0, "main's ZEROPAGE reaches the summary block");
 });
+
+// Owner review of M5a-S2 (2026-10-03): START GAME keeps the old loader's
+// identity. The top line is one copy in the sector reader - the interim
+// screen of a session's first START GAME draws it, and the summary module
+// draws the same record - and the AI lines stay the four of
+// assets/text/loader-ai-lines.json, carried by the art runs. No new text.
+test("ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; the AI lines stay in the art", () => {
+  const line = Buffer.from("ENGAGING ENEMY SECTOR", "ascii");
+  const count = (image) => {
+    let found = 0;
+    for (let at = image.indexOf(line); at >= 0; at = image.indexOf(line, at + 1)) found += 1;
+    return found;
+  };
+  const summaryImage = fs.readFileSync(build("level-summary.bin"));
+  assert.equal(count(readerImage), 1, "the reader holds the line once");
+  assert.equal(count(summaryImage), 0, "the module draws the reader's record, not a copy");
+  assert.ok(Number.isInteger(readerLabels.get("sr_engaging_record")));
+  const aiSource = JSON.parse(fs.readFileSync(path.join(root, "assets/text/loader-ai-lines.json"), "utf8"));
+  for (const text of aiSource.lines) {
+    const bytes = Buffer.from(text, "ascii");
+    assert.equal(readerImage.indexOf(bytes), -1, "an AI line is back in the reader");
+    assert.equal(summaryImage.indexOf(bytes), -1, "an AI line is in the module");
+  }
+  // The reader stays inside its 1,536 B; the window and the initial block
+  // are pinned by the operand-only test above.
+  assert.ok(manifest.sectorReader.freeBytes >= 0);
+  assert.equal(manifest.residentCapacity.basicWindow.freeBytes, 1444, "the window moved");
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13621, "the initial block moved");
+});

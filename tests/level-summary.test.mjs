@@ -21,6 +21,7 @@ import { fileURLToPath } from "node:url";
 
 import { Nmos6502, nmos6502Flags } from "../scripts/nmos6502.mjs";
 import { installRuntimeSegments } from "../scripts/runtime-image.mjs";
+import { loadLoaderAiLines } from "../scripts/loader-ai-lines.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const build = (name) => path.join(root, "build", name);
@@ -154,6 +155,10 @@ class Drive {
     this.serin = 0;
     this.dmactl = [];
     this.dlist = 0;
+    // Every DLISTL/H write with how many VCOUNT reads have passed since the
+    // last read of 0, the frame edge: 1 is "straight after wait_frame_start".
+    this.dlistWrites = [];
+    this.zeroRead = 0;
   }
 
   sector(number) {
@@ -188,7 +193,7 @@ class Drive {
         // waits name ($70, $77) is reached; the wrap to 0 is the frame edge.
         const phase = this.vcountReads % 23;
         this.vcountReads += 1;
-        if (phase === 0) this.frames += 1;
+        if (phase === 0) { this.frames += 1; this.zeroRead = this.vcountReads; }
         this.vcount = phase * 7;
         return this.vcount;
       }
@@ -270,9 +275,12 @@ class Drive {
         return undefined;
       case reg.DLISTL:
         this.dlist = (this.dlist & 0xff00) | value;
+        this.dlistWrites.push({ register: "L", readsSinceEdge: this.vcountReads - this.zeroRead });
         return undefined;
       case reg.DLISTH:
         this.dlist = (this.dlist & 0x00ff) | (value << 8);
+        this.dlistWrites.push({ register: "H", dlist: this.dlist,
+          readsSinceEdge: this.vcountReads - this.zeroRead });
         return undefined;
       case reg.WSYNC:
         return false;
@@ -629,23 +637,30 @@ function saveRecord({ levels = {}, corrupt = null } = {}) {
   return record;
 }
 
-function startGame(drive, { memory = runtimeMemory(), maxSteps = 120_000_000 } = {}) {
+// The START GAME summary has its own display list since the owner's review
+// (2026-10-03); a build without one shows the level-end list at START GAME.
+const startDisplayList = () => summaryLabels.get("summary_start_display_list") ??
+  summary("summary_display_list");
+
+function startGame(drive, { memory = runtimeMemory(), maxSteps = 120_000_000, watch = null } = {}) {
   const cpu = cpuOver(drive, memory);
   cpu.pc = READER_BASE;
   let firstSummaryFrame = null;
   let snapshot = null;
   let ticks = 0;
   const tick = 0xa60b;
+  const startList = startDisplayList();
   const end = runUntil(cpu, {
     start_gameplay: main("start_gameplay"),
     failure: reader("sector_reader_failure_screen"),
   }, {
     maxSteps,
-    watch: (pc) => {
+    watch: (pc, cpuNow) => {
+      watch?.(pc, cpuNow);
       if (pc === tick) ticks += 1;
       if (snapshot === null) {
         const on = drive.dmactl.find((entry) => entry.value !== 0 &&
-          entry.dlist === summary("summary_display_list"));
+          entry.dlist === startList);
         if (on) {
           firstSummaryFrame = on.frame;
           snapshot = Uint8Array.from(memory);
@@ -663,7 +678,10 @@ test("START GAME shows the level's best and an empty panel, and loads the level 
   assert.equal(run.end, "start_gameplay");
   assert.ok(run.snapshot, "the summary's display list was never shown");
   // Frame 1: the title and the empty panel - no value is drawn at START GAME.
-  assert.match(decode(run.snapshot, SCREEN, 40), /LEVEL 01/);
+  // RE-POINTED 2026-10-03 (owner review of M5a-S2): START GAME keeps the old
+  // loader's identity, ENGAGING ENEMY SECTOR on top; the level number joins
+  // it in M4. The level-end summary keeps LEVEL nn.
+  assert.equal(decode(run.snapshot, SCREEN, 40).trim(), "ENGAGING ENEMY SECTOR");
   for (const row of ["score", "kills", "accuracy", "time", "lives", "bonus", "grade"]) {
     assert.match(rowText(run.snapshot, ROWS[row]).slice(20), /^\s*$/,
       `START GAME drew a value on the ${row} row`);
@@ -740,6 +758,151 @@ test("the second START GAME of a session reads no code and no level", () => {
     [...Array.from({ length: art.sectors }, (_, i) => art.startSector + i), SAVE_SECTOR],
     "the summary code and the resident level must not be read again");
   assert.ok(before > again.readSectors.length);
+});
+
+// --------------------------------------------------------------------------
+// The START GAME identity (owner review of M5a-S2, 2026-10-03): the old
+// loader's top line and one of its four AI lines, under the empty panel; the
+// session's first START GAME shows that top line alone until the module is in.
+// --------------------------------------------------------------------------
+
+// The lines an ANTIC display list shows, from scanline 8: mode, first byte,
+// scanline. Mode 2 and mode 4 lines are eight scanlines of 40 bytes each.
+function displayLines(memory, start) {
+  const lines = [];
+  let pc = start;
+  let scanline = 8;
+  let address = 0;
+  for (let guard = 0; guard < 256; guard += 1) {
+    const op = memory[pc];
+    const mode = op & 0x0f;
+    if (mode === 0) { scanline += ((op >> 4) & 7) + 1; pc += 1; continue; }
+    if (mode === 1) break;                       // JVB / JMP: the frame ends here
+    if (op & 0x40) { address = memory[pc + 1] | (memory[pc + 2] << 8); pc += 3; } else pc += 1;
+    lines.push({ mode, address, scanline });
+    scanline += 8;
+    address += 40;
+  }
+  return lines;
+}
+
+const AI_LINES = loadLoaderAiLines(path.join(root, "assets", "text", "loader-ai-lines.json"));
+const ENGAGING = " ".repeat(9) + "ENGAGING ENEMY SECTOR" + " ".repeat(10);
+const COLPF1 = 0xd017;
+const COLPF2 = 0xd018;
+const COLBK = 0xd01a;
+const CHBASE = 0xd409;
+const PICTURE = SCREEN + 480;
+
+function assertSummaryBody(lines, firstPictureLine, where) {
+  for (let row = 0; row < 10; row += 1) {
+    assert.deepEqual([lines[firstPictureLine + row].mode, lines[firstPictureLine + row].address],
+      [4, PICTURE + row * 40], `${where}: picture row ${row}`);
+  }
+}
+
+test("the START GAME summary: ENGAGING ENEMY SECTOR on top, an AI line under the empty panel", () => {
+  const drive = new Drive({ trig: (frame) => (frame > 200 && frame % 8 < 4 ? 0 : 1) });
+  const run = startGame(drive);
+  assert.equal(run.end, "start_gameplay");
+  const list = summary("summary_start_display_list");
+  const first = displayLines(run.snapshot, list);
+  // The top line: the old loader's line at the place the session's first
+  // START GAME already shows it (scanline 32, column 9), no level number.
+  assert.deepEqual([first[0].mode, first[0].address, first[0].scanline], [2, SCREEN, 32]);
+  assert.equal(decode(run.snapshot, first[0].address, 40), ENGAGING);
+  // The picture and the panel sit where the level-end summary has them.
+  const levelEnd = displayLines(run.snapshot, summary("summary_display_list"));
+  assertSummaryBody(first, 1, "START GAME");
+  assert.equal(first[1].scanline, levelEnd[2].scanline, "the picture moved");
+  for (let row = 2; row <= 9; row += 1) {
+    const line = first[1 + 10 + row - 2];
+    assert.deepEqual([line.mode, line.address], [2, SCREEN + row * 40], `panel row ${row}`);
+    assert.equal(line.scanline, levelEnd[12 + row - 2].scanline, `panel row ${row} moved`);
+  }
+  // Under the panel (after BEST): one of the four AI lines, picked from
+  // assets/text/loader-ai-lines.json; then the dotted row and the prompt.
+  const ai = first[19];
+  assert.equal(ai.mode, 2);
+  const shown = decode(run.memory, ai.address, 40);
+  assert.ok(AI_LINES.some((line) => shown === ` ${line} `), `not an AI line: "${shown}"`);
+  assert.deepEqual(first.slice(20).map((line) => [line.mode, line.address]),
+    [[2, SCREEN + 10 * 40], [2, SCREEN + 11 * 40]]);
+  assert.equal(first.length, 22);
+  assert.ok(!first.some((line) => /LEVEL/.test(decode(run.memory, line.address, 40))),
+    "START GAME shows no LEVEL line until M4");
+});
+
+test("the level-end summary keeps its layout: LEVEL nn on top, the AI line under it", () => {
+  const drive = new Drive({ trig: fireLate });
+  const run = levelEnd(drive);
+  assert.equal(run.end, "menu");
+  const lines = displayLines(run.snapshot, summary("summary_display_list"));
+  assert.deepEqual([lines[0].mode, lines[0].address, lines[0].scanline], [2, SCREEN, 24]);
+  assert.match(decode(run.snapshot, SCREEN, 40), /LEVEL 01/);
+  assert.deepEqual([lines[1].mode, lines[1].address], [2, SCREEN + 40]);
+  assertSummaryBody(lines, 2, "level end");
+  assert.deepEqual(lines.slice(12).map((line) => line.address),
+    Array.from({ length: 10 }, (_, index) => SCREEN + (2 + index) * 40));
+  const shown = decode(run.memory, SCREEN + 40, 40);
+  assert.ok(AI_LINES.some((line) => shown === ` ${line} `), `not an AI line: "${shown}"`);
+});
+
+test("before the summary module arrives the screen shows only the summary's top line, in its place and colours", () => {
+  const drive = new Drive({ trig: (frame) => (frame > 200 && frame % 8 < 4 ? 0 : 1) });
+  let interim = null;
+  let summaryOn = null;
+  const memory = runtimeMemory();
+  const run = startGame(drive, {
+    memory,
+    watch: (pc) => {
+      // $0500 is entered once the module's last sector has landed: the
+      // interim screen has been up for the whole read and still is.
+      if (pc === SUMMARY_BASE && interim === null) {
+        interim = { memory: Uint8Array.from(memory), dlist: drive.dlist,
+          dma: drive.dmactl.at(-1)?.value };
+      }
+      if (summaryOn === null && drive.dmactl.some((entry) => entry.value !== 0 &&
+        entry.dlist === startDisplayList())) {
+        summaryOn = Uint8Array.from(memory);
+      }
+    },
+  });
+  assert.equal(run.end, "start_gameplay");
+  assert.ok(interim, "the module was never entered");
+  assert.equal(interim.dma, 0x22, "the interim screen is not on");
+  const lines = displayLines(interim.memory, interim.dlist);
+  const text = lines.filter((line) => line.mode === 2)
+    .map((line) => ({ ...line, text: decode(interim.memory, line.address, 40) }));
+  const shown = text.filter((line) => line.text.trim() !== "");
+  assert.equal(shown.length, 1, `the interim screen shows ${shown.map((l) => `"${l.text.trim()}"`).join(", ")}`);
+  assert.equal(shown[0].text, ENGAGING);
+  assert.equal(shown[0].scanline, 32, "not at the summary's top-line scanline");
+  assert.ok(lines.every((line) => line.mode === 2), "the interim screen draws only text");
+  // The summary's colours: ANTIC 2 text takes COLPF2's hue and COLPF1's
+  // luminance; the summary's top line is luminance $A on black throughout.
+  assert.equal(interim.memory[CHBASE], 0x48);
+  assert.equal(interim.memory[COLPF2], 0x00);
+  assert.equal(interim.memory[COLBK], 0x00);
+  assert.equal(interim.memory[COLPF1] & 0x0f, 0x0a);
+  assert.ok(summaryOn, "the START GAME summary never came on");
+  assert.equal(summaryOn[COLPF1] & 0x0f, interim.memory[COLPF1] & 0x0f);
+  assert.equal(summaryOn[COLPF2], 0x00);
+  assert.equal(summaryOn[COLBK], 0x00);
+  assert.equal(run.memory[COLPF1] & 0x0f, 0x0a, "the region palette changed the text luminance");
+});
+
+test("the summary changes display lists on a frame's edge, before ANTIC fetches the first line", () => {
+  const drive = new Drive({ trig: (frame) => (frame > 200 && frame % 8 < 4 ? 0 : 1) });
+  const run = startGame(drive);
+  assert.equal(run.end, "start_gameplay");
+  const switches = drive.dlistWrites.filter((entry) => entry.register === "H" &&
+    entry.dlist === startDisplayList());
+  assert.ok(switches.length > 0);
+  for (const entry of switches) {
+    // wait_frame_start returns on the first read after the 0: one read.
+    assert.equal(entry.readsSinceEdge, 1, "the list changed mid-frame");
+  }
 });
 
 // The level's end, from the reader's exit with the stats of a played level.

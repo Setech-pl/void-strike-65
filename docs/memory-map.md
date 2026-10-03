@@ -149,7 +149,7 @@ longer implies a deadline; what it costs is **2 PAL frames per occupied
 | `$9FF8-$9FF9` | 2 B | free Director reservation tail |
 | `$9FFA-$9FFF` | 6 B | untouched Director guard |
 | `$21C1-$26F4` | 1,332 B | boot-only `BOOT_STAGE2` overlay; replaced by the resident suffix before runtime (since boot-loading-blank-screen, 2026-10-01: +9 B for the stage-2 display blanking; 1,323 B `$21C1-$26EB` after boot-xex-reclaim) |
-| `$0500-$0BFF` | 1,792 B | **M5a-S2** (owner decision 2026-10-03): the level-summary module, its own link (`cfg/level-summary.cfg`), read from the disk once per session at the first START GAME and resident until RESET. 1,489 B used, 303 B free. Claimed: no other link or cfg area may reach it, and `tests/level-summary-build.test.mjs` fails if any segment, cfg area or boot-path range does. Before the first START GAME of a session `$0500-$06FF` still holds the boot splash (next row) |
+| `$0500-$0BFF` | 1,792 B | **M5a-S2** (owner decision 2026-10-03): the level-summary module, its own link (`cfg/level-summary.cfg`), read from the disk once per session at the first START GAME and resident until RESET. 1,598 B used, 194 B free (1,489 / 303 before the owner review of 2026-10-03 added START GAME's own display list, the frame-edge publish and the reader's dotted-row step behind a third vector at `$0506`). Claimed: no other link or cfg area may reach it, and `tests/level-summary-build.test.mjs` fails if any segment, cfg area or boot-path range does. Before the first START GAME of a session `$0500-$06FF` still holds the boot splash (next row) |
 | `$0C00-$1FFF` | 5,120 B | **unclaimed lever** (owner decision 2026-10-03): no link, equate or boot path uses it, and it was MEASURED never written after `start` in Atari800 (patterns `$5A`/`$A5`, BASIC on and off, menu, three games, GAME OVER — [diagnostics/low-ram-0700-1fff-2026-10-03.md](diagnostics/low-ram-0700-1fff-2026-10-03.md)). Not used; recorded for M3/M6 (plan §6.1). Real hardware unproven until the owner's smoke |
 | `$0500-$06FF` | 512 B | boot-only ADR-003 splash blob: the 250-frame hold, the cassette-sound bit engine, the fade, the SPACE/FIRE skip and `loader_dli`. 499 B of code and tables, the rest zero padding. The stage-2 entry copies it here right after `disable_basic_rom`; nothing reads or writes it once the hold ends. OS RAM no segment claims: `$0500-$057D` and `$0600-$06FF` are free, `$057E-$05FF` is floating-point scratch this build never calls. **Zero resident bytes** — the 56 B the hold loop and DLI vacated in MAIN are held as the `LOADER_SPLASH_CODE_SLACK` layout pin so no later CODE or RODATA address moves; recoverable |
 
@@ -936,7 +936,7 @@ starfield, so all overlaps are lifetime-safe.
 | `$9D75-$9FF7` | 643 B | C Director RODATA plus high CODE |
 | `$9FF8-$9FF9` | 2 B | free Director reservation tail |
 | `$9FFA-$9FFF` | 6 B | untouched guard; not available capacity |
-| `$A000-$A5FF` | 1,536 B | `SECTOR_READER` (roadmap 4.3): reader, loader-mode display, failure screen, AI text pool; since M5a-S1 also the overlay run read (`$A006`), the overlay directory and the capital vector table image — 1,498 B used, **38 B free** (see *M5a-S1* below) |
+| `$A000-$A5FF` | 1,536 B | `SECTOR_READER` (roadmap 4.3): reader and failure screen; since M5a-S1 also the overlay run read (`$A006`), the overlay directory and the capital vector table image; since M5a-S2 the stat hooks (`$A00C-$A01B`), the level-end exit and START GAME's interim screen (the loader display and its AI pool are gone) — 1,507 B used, **29 B free**, but its transport record 10 has **8 B** left before it buys a sector (see *M5a-S1* and *M5a-S2* below) |
 | `$A600-$ADFF` | 2,048 B | `LEVEL_BUFFER`, **16 sectors** since Q-1 (owner, 2026-09-23); 32 since owner decision X (2026-09-21); was 44. Since 2026-09-22 the first five sectors carry the gameplay music player — see *Music v2 §1.4* below |
 | `$AE00-$BBFF` | 3,584 B | `HYBRID_C_WINDOW` (owner decision X, re-sized by Q-1): the Director link's half of decision B's window, home of the Light kernel and of roadmap 4.6's Director. Reached by its own DFMC record |
 | `$BC00-$BC19` | 26 B | `READER_BSS` |
@@ -1160,17 +1160,17 @@ re-points to the reader's fixed vectors.
 | Range | Bytes | Was | Is |
 | --- | ---: | --- | --- |
 | `$00AC-$00B5` | 10 | unclaimed | the stat block (`level-summary-abi.inc`) |
-| `$0500-$0BFF` | 1,792 | splash RAM `$0500-$06FF` (boot only), `$0700-$0BFF` unclaimed | the summary module `$0500-$0AD0` (1,489 B: two entries at `$0500`/`$0503`, the code, its record logic and write path, its data, the display list at `$0A9A`, its state); 303 B free |
+| `$0500-$0BFF` | 1,792 | splash RAM `$0500-$06FF` (boot only), `$0700-$0BFF` unclaimed | the summary module `$0500-$0B3D` (1,598 B: three entries at `$0500`/`$0503`/`$0506`, the code, its record logic and write path, the per-sector dotted-row step, its data, the level-end display list at `$0ADD` and START GAME's at `$0B01`, its state); 194 B free |
 | `$0C00-$1FFF` | 5,120 | unclaimed | still unclaimed; recorded as a lever |
-| `SECTOR_READER` `$A000-$A5E9` | 1,514 | 1,498 | the stat vectors `$A00C-$A01B` and their hooks, the level-end exit, the session's module read, the tail-first level read, the frame tick in `wait_serial`; the loader screen, its records and the 152-B AI pool removed. **22 B free**; record 10 is 1,514 of its 1,515-B capacity (12 sectors) |
-| `SECTOR_READER` `$A568` | 1 | — | `sr_summary_resident`, in the transported image (0 at every cold start) |
-| `SECTOR_READER` `$A599-$A5C5` | 45 | 40 | `overlay_directory`, 9 × 5 B: entry 6 the summary art (region 1, regions follow at 7 sectors), 7 the save record, 8 the summary module |
+| `SECTOR_READER` `$A000-$A5E2` | 1,507 | 1,498 | the stat vectors `$A00C-$A01B` and their hooks, the level-end exit, the session's module read and its interim screen (`sr_engaging_record` at `$A51F`, START GAME's top line, also drawn by the module), the tail-first level read, the frame tick in `wait_serial`; the loader screen, its records, the 152-B AI pool and (owner review) the dotted-row step removed. **29 B free** in RAM, but record 10 holds 1,507 of its 1,515-B capacity (12 sectors): **8 B before the reader buys a transport sector** |
+| `SECTOR_READER` `$A561` | 1 | — | `sr_summary_resident`, in the transported image (0 at every cold start) |
+| `SECTOR_READER` `$A592-$A5BE` | 45 | 40 | `overlay_directory`, 9 × 5 B: entry 6 the summary art (region 1, regions follow at 7 sectors), 7 the save record, 8 the summary module |
 | `$7810-$7B8F` | 896 | pause backup, free at a transition | the art run's staging, copied out at once; then `$7810-$788F` the save record and `$7890-$790F` its read-back |
 | `$4000-$43FF` | 1,024 | frontend screen | the summary's rows 0–11 (`$4000-$41DF`) and its picture (`$41E0-$436F`) |
 | frontend charset codes 72–95 (`$4A40-$4AFF`) | 192 | unused by the menu | the region's 24 art glyphs (code 95 is the `%` of the accuracy line); rewritten at every summary |
 | `LEVEL_PAYLOAD` `$AB00+184` | 10 | `hull_params` reserve (32 B, unread) | the grade block: two accuracy tiers, two 16-bit time limits, two lives-lost bounds, the bonus per tier point; `hull_params` keeps 22 B |
 
-Disk: the summary module, sectors **584–595** (12); the save record, sector
+Disk: the summary module, sectors **584–596** (13); the save record, sector
 **599**, shipped all zero; the art, four regions × 7 sectors, **600–627**.
 Sectors 528–583 stay empty for M5b.
 

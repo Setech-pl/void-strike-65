@@ -941,9 +941,19 @@ summary after several games and a GAME OVER on the 65XE).
 5. **The labels travel with the art** (as §4.8.1 plans): on the level-end
    summary's first frame the values are on screen and their labels arrive
    with the art run, ~0.5 s later (7 sectors). The AI lines (Q3) travel in the
-   same run; the loader screen, its `ENGAGING ENEMY SECTOR` line (owner,
-   2026-09-23) and the reader's AI pool are gone — decision 26 makes the
-   loading screen the summary.
+   same run; the loader screen and the reader's AI pool are gone — decision
+   26 makes the loading screen the summary. **Owner review, 2026-10-03:**
+   START GAME's summary keeps the old loader's identity — `ENGAGING ENEMY
+   SECTOR` as its top line (the level number joins it in M4) and the AI line
+   under the empty panel, after BEST — on a display list of its own; the
+   level-end summary is unchanged. The line is one 25-B record in the reader,
+   which the module draws too. While a session's first START GAME reads the
+   module, the reader's interim screen shows that line alone at the same
+   scanline (32), column (9) and luminance ($A on black), so the summary
+   arrives as its picture and panel filling in; the dotted row waits for the
+   module, the clear waits until ANTIC has fetched row 0, and every list
+   change lands on a frame's edge. The failure screen shares the reader's
+   publish, so its text luminance went $E → $A.
 6. **Read order:** module (once per session), art, capital restore, **the
    save record, then the level** (tail first, head last) — the record moved
    ahead of the level's tail so `sector_reader_load` stays one call; the music
@@ -965,29 +975,30 @@ summary after several games and a GAME OVER on the 65XE).
    stars), generated from `capital-hulls.json` by
    `scripts/level-summary-assets.mjs`; 24 glyphs in the frontend charset's
    unused codes 72–95, so the screen needs **no DLI**.
-9. **The disk:** module 584–595 (12 sectors, planned 4), the save record
+9. **The disk:** module 584–596 (13 sectors after the owner review; 12 in the first build; planned 4), the save record
    **599**, the art **600–627** (four regions × 7). 528–583 stay M5b's.
 10. **The time stat is scroll-bound**: the level-end clock MEASURED 3:10 / 2:47 /
     2:33 on EASY / MEDIUM / HARD in the `director-complete` replays, so the time
-    tier mostly reflects the difficulty. A design note for M8.
+    tier mostly reflects the difficulty. Owner decision 2026-10-03: once the
+    boss exists, the time grade counts only the boss fight (§5.6).
 
 | | Plan (§4.8, §8) | MEASURED |
 | --- | --- | --- |
-| summary code | `$0500`, 400 → 480 B, 4 sectors | **`$0500-$0AD0`, 1,489 B** of the claimed `$0500-$0BFF` (303 B free), 12 sectors |
+| summary code | `$0500`, 400 → 480 B, 4 sectors | **`$0500-$0B3D`, 1,598 B** of the claimed `$0500-$0BFF` (194 B free), 13 sectors — after the owner review (first build 1,489 B, 12 sectors; +109: START GAME's own display list 42, the frame-edge publish, the START screen's order, the dotted-row step moved from the reader 39) |
 | `$AE00` window | −92 (1,344 → 1,316 free) | **0** (1,444 free) |
-| sector reader | −156 +304 (+75 B free) | **1,514 B, 22 free**; record 10 1,514 of 1,515 B (12 sectors) |
+| sector reader | −156 +304 (+75 B free) | **1,507 B, 29 free** after the owner review (first build 1,514); record 10 1,507 of 1,515 B (12 sectors) — the reader's real limit is the record: 8 B |
 | records 2 / 5 | +1 sector each | **0 / 0** |
 | initial block | 0 | **13,621 B (0)** |
 | boot / extension / total sectors | 107 / 104 / 211 | **107 / 102 / 209** |
 | ATR menu frame | +4 (551) | **547** (BASIC 538), unchanged |
 | zero page | −24 | **−10** (`$AC-$B5`) |
-| disk | +33 | **+41** (module 12, record 1, art 28) |
+| disk | +33 | **+42** (module 13, record 1, art 28) |
 | binding row fence margin | ~1,349 | **1,378** (`2-evasive-fire3` f287; S1 1,391) |
 | DMA-on maximum | ~31,223 | **31,268** (`director-complete-2` f5797; S1 31,117): +151, over the 31,200 target by 68, under the 32,568 gate |
 | a Heavy kill on a rotate frame | +15 | inside the 850-cycle pin (`heavy-breakup` 17/17) after inlining the kill counter |
-| START GAME, first of a session | 94 frames behind the screen | START → summary **47** frames (the module's 12 sectors, plain title); summary → every read done **79** frames (art 7, record 1, level 13); `PRESS FIRE` at **+150**; gameplay ≈ +153 |
-| START GAME, later in a session | — | summary in **2** frames; art + record (8 sectors) in **29**; `PRESS FIRE` at +150 |
-| the level's end | — | summary **2** frames after the exit; art 7 + record 1 + write 1 + read-back 1 behind it; `PRESS FIRE` at +149 (sampling) |
+| START GAME, first of a session | 94 frames behind the screen | START → summary **52** frames, the interim screen (`ENGAGING ENEMY SECTOR` alone) up for them while the module's 13 sectors land; summary → every read done **76** frames (art 7, record 1, level 13); `PRESS FIRE` drawn after **150** shown frames, FIRE read from **+151**; gameplay +157 (boot smoke `atr-a5`: FIRE 3051, summary 3103, last read 3179, FIRE polled 3254, gameplay 3260) |
+| START GAME, later in a session | — | summary in **1–2** frames; art + record (8 sectors) in **30**; FIRE read from +151 |
+| the level's end | — | summary **1** frame after the exit; art 7 + record 1 + write 1 + read-back 1 behind it; FIRE read from +151 |
 | gameplay against `main` | identical | **61 of 61 replay files identical**: 58 frame by frame on 40 gameplay columns, the three debris-gate files on every gameplay column aligned by gameplay frame; the three `director-complete` replays identical up to their level-end summary |
 
 ---
@@ -1152,6 +1163,15 @@ scroll → **the level-summary screen (§4.8; owner decision 30 replaces the
 plain `SECTOR CLEARED` text)**, which until M4 returns to the menu. The
 boss-resident flag is set before the hand-off so the summary's loading
 restores slot A.
+
+**The time grade counts the boss fight only (owner decision 2026-10-03, the
+review of M5a-S2).** The level clock follows the scroll speed — MEASURED
+3:10 / 2:47 / 2:33 on EASY / MEDIUM / HARD (§4.10 item 10) — so over the whole
+level the time stat measures the difficulty, not the player. Once the boss
+exists, the summary's time and its time tier measure the boss fight alone:
+M5b starts the clock when the boss engages and stops it at the chain
+explosion, and the level's time thresholds become boss-fight thresholds. No
+code change was made in M5a-S2; this is M5b's to build.
 
 ### 5.7 Nova Missile — not in M5; one free hook
 

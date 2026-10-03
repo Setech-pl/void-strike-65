@@ -143,9 +143,10 @@ fact and its citation — so the first real drive is the first real test.
 Run from SIO2SD with the ATR, cold boot each time.
 
 - [ ] **START GAME reads level 1.** Since M5a-S2 the loader screen is the
-      level-summary screen (§12): the plain title while the summary module
-      loads (first START GAME of a session only), then the summary with a
-      stepping dotted row while the art, the record and the level load.
+      level-summary screen (§12): `ENGAGING ENEMY SECTOR` alone while the
+      summary module loads (first START GAME of a session only), then the
+      summary with a stepping dotted row while the art, the record and the
+      level load.
 - [ ] **START GAME a second time** (play, quit to the menu, START again): the
       buffer already holds level 1, so the resident skip must fire and **no
       command frame goes out**. If the loader screen dwells the same as the
@@ -192,19 +193,30 @@ models the wire and nothing else): START GAME → summary on screen 47 frames
 PRESS FIRE at 150 frames (3.0 s); the level-end summary appears 2 frames after
 the exit.
 
-- [ ] **The copy is this build.** Its SHA-256 starts `caf8c93f`
+- [ ] **The copy is this build.** Its SHA-256 starts `cbbafe93`
       (`STATUS.md` has it in full). In the emulator, `npm run play:atr` now
       mounts `build/play/void-strike-65.atr`, a copy it keeps between launches
       and replaces when `dist/` changes, never `dist/` itself.
 - [ ] **Boot with BASIC enabled** (no OPTION held) and once with BASIC off;
       both reach the menu, and the first START GAME shows the summary.
-- [ ] **START GAME (Q17).** The plain title for a moment (first START GAME
-      after power-on only), then `LEVEL 01`, the labels with **no values**, and
-      `BEST --` on a fresh copy; the corridor picture and an AI line appear
-      about half a second later (1050: about a second); `LOADING`, then
+- [ ] **START GAME (Q17; changed after the owner review, ATR `cbbafe93`).** The
+      first START GAME after power-on: `ENGAGING ENEMY SECTOR` **alone** for
+      about a second, then the picture and the panel fill in around it — the
+      line itself must not move, blink or change brightness, and no dotted
+      row or `VOID STRIKE 65` shows before it. Every START GAME: the top line
+      reads `ENGAGING ENEMY SECTOR` (no level number until M4), the labels with
+      **no values**, `BEST --` on a fresh copy; the corridor picture and one AI
+      line appear about half a second later (1050: about a second) — the AI line
+      **under the panel, after BEST**, above the dotted row; `LOADING`, then
       `PRESS FIRE` no earlier than 3 seconds. FIRE held from the menu must not
       skip it; release, then press. Stopwatch: START GAME → summary, and
       summary → `PRESS FIRE`.
+- [ ] **The level-end summary is as before** (`LEVEL 01` on top, the AI line
+      under it).
+- [ ] **The disk-failure screen** (pull the floppy at START GAME, or an image
+      without the level): its text is now the summary's brightness, a little
+      dimmer than before; it still reads `DISK READ FAILED`, the reason and
+      `PRESS FIRE`.
 - [ ] **The level's end.** Play level 1 to its end (about 2:45 on MEDIUM). About
       a second after the screen clears the summary appears with **every value
       already on the first frame**: score (a leading 0 and four digits), kills,

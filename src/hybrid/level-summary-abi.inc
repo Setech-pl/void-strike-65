@@ -32,6 +32,7 @@ SECTOR_READER_STATS_LIGHT_HIT      = $A01B
 SUMMARY_MODULE     = $0500
 SUMMARY_START_GAME = $0500     ; A = level id; returns once FIRE is accepted
 SUMMARY_LEVEL_END  = $0503     ; the level in LEVEL_BUFFER; returns once FIRE is accepted
+SUMMARY_ANIMATE    = $0506     ; the reader's per-sector dotted-row step (owner review)
 
 ; Staging, in the pause-screen backup ($7810-$7BCF, free at a transition):
 ; the art run lands here and is copied out; the save record follows it here,

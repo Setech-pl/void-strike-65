@@ -60,6 +60,7 @@ VCOUNT  = $D40B
 NMIEN   = $D40E
 
 FRONTEND_CHARSET = $4800
+CH_FRONT_SPACE   = 0
 CH_FRONT_ZERO    = 1
 CH_FRONT_A       = 11
 CH_FRONT_DASH    = 37
@@ -101,6 +102,7 @@ VALUE_FIELD      = SUMMARY_VALUE_END - 4      ; a five-cell right-aligned field
 summary_vectors:
         jmp summary_start_game                  ; $0500 — A = level id
         jmp summary_level_end                   ; $0503 — the level in the buffer
+        jmp summary_animate                     ; $0506 — the reader, per sector
 
 ; ---------------------------------------------------------------------------
 ; START GAME (Q17): the best and an empty panel, the reads behind it.
@@ -950,6 +952,33 @@ summary_fire_records:
 ; 16 blank lines, the title and the AI line, the 10-row ANTIC 4 picture, then
 ; the stats, the animation row and the prompt: 204 lines, no DLI - the picture
 ; draws from the frontend charset's codes 72-95, which the menu never uses.
+; ---------------------------------------------------------------------------
+; One animation step per completed sector (moved from the sector reader by
+; the owner review, byte for byte; the reader calls it only once this module
+; is resident): decision O's "one frame per sector, not a progress bar" - it
+; hesitates visibly when the drive does. It runs between sectors, where the
+; drive is idle and no byte is in flight. Clobbers A and X.
+; ---------------------------------------------------------------------------
+summary_animate:
+        inc summary_anim
+        ldx #$00
+@cell:
+        txa
+        clc
+        adc summary_anim
+        and #$07
+        beq @mark
+        lda #CH_FRONT_SPACE
+        bne @store
+@mark:
+        lda #CH_FRONT_DASH
+@store:
+        sta SUMMARY_ANIMATION_ROW,x
+        inx
+        cpx #40
+        bne @cell
+        rts
+
 summary_display_list:
         .byte $70, $70
         .byte $42, <SUMMARY_SCREEN, >SUMMARY_SCREEN
@@ -994,6 +1023,7 @@ summary_display_list_end:
 
 ; State. The module is RAM; it is read anew each session.
 summary_level:          .byte 0
+summary_anim:           .byte 0
 summary_tmp:            .byte 0
 summary_number:         .word 0
 summary_hits:           .word 0
@@ -1010,6 +1040,7 @@ summary_changed:        .byte 0
 summary_verified:       .byte 0
 
 .assert summary_vectors = SUMMARY_MODULE, error, "the summary module must start at $0500"
+.assert summary_vectors + 6 = SUMMARY_ANIMATE, error, "the animation vector must sit at $0506"
 .assert (summary_display_list & $FC00) = ((summary_display_list_end - 1) & $FC00), error, "the summary display list crosses an ANTIC 1 KiB boundary"
 .assert SUMMARY_PICTURE + 400 <= SUMMARY_SCREEN + $400, error, "the picture leaves the frontend screen RAM"
 

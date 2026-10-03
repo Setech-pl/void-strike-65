@@ -430,33 +430,9 @@ sector_reader_wait_for_fire:
         bne @press
         rts
 
-; One animation step per completed sector: a sweeping dotted row, eight
-; phases, drawn from glyphs the frontend charset already has. This is decision
-; O's "one frame per sector, not a progress bar" - it hesitates visibly when
-; the drive does, which is the diagnostic. It runs between sectors, where the
-; drive is idle and no byte is in flight.
-sector_reader_animate:
-        lda sr_summary_resident         ; not on the interim screen (owner review)
-        beq @done
-        inc sr_anim
-        ldx #$00
-@cell:
-        txa
-        clc
-        adc sr_anim
-        and #$07
-        beq @mark
-        lda #CH_FRONT_SPACE
-        bne @store
-@mark:
-        lda #CH_FRONT_DASH
-@store:
-        sta LOADER_ANIM_ROW,x
-        inx
-        cpx #40
-        bne @cell
-@done:
-        rts
+; The per-sector animation step lives in the summary module since the owner
+; review (SUMMARY_ANIMATE, level-summary.s): it draws on the summary's row,
+; and the module is resident whenever a read should show it.
 
 ; Reserved for roadmap 4.9: the level-to-level boundary predicate. The drain
 ; clause itself is sector_c_drain_clear in the arena (step 5); this vector
@@ -624,7 +600,12 @@ sector_reader_read_sectors:
         bne :+
         inc sr_sector_hi
 :
-        jsr sector_reader_animate
+        ; Owner review: nothing until the module is in - the interim screen of
+        ; a session's first START GAME shows its top line alone.
+        lda sr_summary_resident
+        beq :+
+        jsr SUMMARY_ANIMATE
+:
         dec sr_sectors_left
         bne @sector
 
@@ -1262,7 +1243,7 @@ sr_summary_resident:
 .export SAVE_RECORD_SECTOR, SAVE_RECORD_ENTRY, sector_reader_restore_if_overlaid
 .export sector_reader_tx_done
 .export sector_reader_level_end, sector_reader_ensure_summary, sector_reader_failure_screen
-.export sector_reader_frame_tick, sector_reader_animate, sector_reader_tx_byte
+.export sector_reader_frame_tick, sector_reader_tx_byte
 .export stats_fighter_frame, stats_capital_frame, stats_kill, stats_debris_shot
 .export stats_debris_contact, stats_light_hit, stats_scan
 .export sector_reader_wait_serial, sector_reader_receive_byte

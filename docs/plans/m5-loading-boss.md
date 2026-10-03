@@ -22,7 +22,7 @@ vector table, the run read at `$A006`, restore variant (b), the AI pool
 lever (Probe B) and two repo deviations (12 entry points; the capital table
 image in the reader): §4.9.
 
-**M5b spike 2026-10-04** on `spike/boss-controller` (`OWNER REVIEW CANDIDATE`, a throw-away prototype, no code committed): the boss measured in slot A, the window and the emulator — §5.11. It fits slot A only with its once-only install moved to a staging run (1,826 of 2,048 B); the entry costs the window 125 B; the worst boss frame clears the fence by **10,103** (plan ~1,200), DMA-on 29,219; the entry reads 28 sectors in 107 frames (EMULATOR). Six owner questions, Q-S1–Q-S6.
+**M5b spike 2026-10-04** on `spike/boss-controller` (`OWNER REVIEW CANDIDATE`, a throw-away prototype, no code committed): the boss measured in slot A, the window and the emulator — §5.11. It fits slot A only with its once-only install moved to a staging run (1,826 of 2,048 B); the entry costs the window 125 B; the worst boss frame clears the fence by **10,103** (plan ~1,200), DMA-on 29,219; the entry reads 28 sectors in 107 frames (EMULATOR). Six owner questions, Q-S1–Q-S6 — **all answered 2026-10-04 (§1.5)**, with the 3,500-native tick limit and a new decision for S3: the entry is presented as a `WARNING - BOSS APPROACHING` screen with the boss theme starting (decision 32, priced in §5.11.7).
 
 **M5a-S2 implemented 2026-10-03** on `feat/level-summary`,
 `OWNER-SMOKE CANDIDATE` pending the owner's smoke: the level-summary screen,
@@ -244,6 +244,22 @@ M8 → M9; systems freeze after M6; `v0.3.0` after the whole of M5.
 | Q16 | **The personal best lands with the summary session**, under the safety rules of §4.8.4 for the first code that writes to the player's disk | §4.8.4 |
 | Q17 | **At START GAME the summary shows the level's best and an empty stats panel** | §4.8.1 |
 | wish list | **accepted as recommended**: do 14, 15, 16, 18 (inside the summary), 21, 22, 24 (density and speed); later 19, 20; drop 17 and 24's layers; 23 confirmed as M3-H session 2 | §7 |
+
+### 1.5 The owner's answers to the M5b spike (2026-10-04)
+
+Every question of §5.11.6 is answered as recommended; correction 9 is
+confirmed; one new decision for S3.
+
+| # | Answer | Applied in |
+| ---: | --- | --- |
+| Q-S1 | **Yes** — the boss splits into per-frame code in slot A and a once-only install run (linked at the staging RAM `$7810`, run in place once per boss entry) | §5.11.1, §8 S3 |
+| Q-S2 | **Yes** — the window pays the measured **125 B** of boss-entry hooks (before decision 32's change, §5.11.7) | §6.1, §6.2 |
+| Q-S3 | **Yes** — the overlay links against the sector reader's addresses in the same build, and the build **fails if any of them moves** (the same check covers the addresses the window's gate uses, which links before the reader) | §5.11.4 item 2, §8 S3 |
+| Q-S4 | **Yes** — the slot-A restore at START GAME also restores **every setting the boss patches**: the world and hull scroll rates, `PRIOR`, `SIZEM`, `HPOSM0-3`, `HSCROL`, the DLI vector and display list, the band's state, so a game that ends in the boss sector (GAME OVER, pause-quit) leaves nothing behind. Placement and price: §5.11.7 | §5.11.4 item 7, §8 S3 |
+| Q-S5 | **Yes** — **no shake on the player's death**; the existing death flash stays, and §7 item 25 is **covered by the flash only**. The boss win keeps its shake: the band's HSCROL jitter (built in the spike, 0 resident bytes) | §5.1, §7 item 25, §8 S4 |
+| Q-S6 | **Yes** — **a shared install run on disk**: boss code 16 + install 3 + four regions × 9 = **55 of the 56** sectors reserved at 528–583 | §6.3, §8 S5 |
+| correction 9 | **The boss's per-frame work is limited to ≤ 3,500 native cycles** (was ≤ 300). Reason: the spike MEASURED 3,259 native at worst (four lasers, the core destroyed on the frame) and the worst boss frame still cleared the line-238 fence by **10,103** in the emulator (~6,500 composed worst, ESTIMATE), against GO 500 | §5.10 |
+| **32** | **New owner decision for M5b-S3: the boss-entry transition is presented as a `WARNING - BOSS APPROACHING` screen with the start of the boss theme, not as a plain load.** Priced in §5.11.7 | §4.4, §5.11.7, §8 S3 |
 
 ---
 
@@ -554,6 +570,11 @@ few seconds on both paths; a marginal cable — a fast-path error falls back
 rather than failing.
 
 ### 4.4 The boss-entry transition (platform half; the boss half is §5.2)
+
+**Owner decision 32 (2026-10-04, §1.5): the transition is a `WARNING - BOSS
+APPROACHING` screen with the boss theme starting, not a plain load. The
+re-ordered reads and the price are §5.11.7; the banner described below is
+replaced by it.**
 
 The Director raises `BOSS_DUE` as it raises `CAPITAL_DUE` (a flag bit, C in
 the window, 20 → 24 B) when its row clock enters the BOSS sector; the sector
@@ -1045,7 +1066,7 @@ The **boss code** (slot A) is one image for all regions:
 | Hook | Bytes | Where | Basis |
 | --- | ---: | --- | --- |
 | `BOSS_DUE` raised on sector entry; the drain wait; the transition call | 40 → 48 | window (C, beside `sector_c_update_first_capital`'s pattern) | AN `sector_c_update_first_capital` 60 |
-| screen shake (vertical: the HUD header's blank-line count toggled 8 → 7 → 6 for N frames) + `COLBK` flash trigger, **shared with the player's death (§7 item 25)** | 40 → 48 | window | IC |
+| screen shake (vertical: the HUD header's blank-line count toggled 8 → 7 → 6 for N frames) + `COLBK` flash trigger, **shared with the player's death (§7 item 25)** — **superseded (Q-S5, 2026-10-04): no resident shake; the boss win shakes the band by HSCROL jitter inside the overlay, the player's death keeps its flash only** | 40 → 48 (**0**) | window (**overlay**) | IC (**spike MEASURED**) |
 | `subtype_ceiling_light[3]` 0 → 1 | 0 | window RODATA (a value) | decision 5a |
 | boss state: phase, module cursor, laser timers (4), shake timer, flag | 10 | `ENTITY_STATE`'s ~32 free or zero page `$AC+` — **not** the unowned gaps M3 is priced on | IC |
 | `DIRECTOR_RAM` | 0 (the dispatch is in the window's `compute_ceiling_row` already) | | |
@@ -1250,7 +1271,9 @@ Light alive through a break-up, PAL audit on all of them with the fence
 ≥ 500. Cycle pins: the boss tick ≤ 300 native, the band DMA by the measured
 90 × rows, the third DLI ≤ 180. **Spike (§5.11): the 300-native pin is
 unreachable — the prototype's tick MEASURED 845–1,737 native median and
-3,259 worst; the pin becomes ≤ 3,500 native at four lasers.**
+3,259 worst. Decided (correction 9, §1.5): the boss's per-frame work is
+limited to ≤ 3,500 native cycles**, because at that cost the worst boss
+frame still cleared the fence by 10,103 (MEASURED).
 
 ### 5.11 Spike results (2026-10-04, `spike/boss-controller`, `OWNER REVIEW CANDIDATE`)
 
@@ -1455,6 +1478,8 @@ build (0 B, no ring rotation under a band); no change recommended.
 
 #### 5.11.6 Owner questions the spike raises
 
+**All six answered as recommended on 2026-10-04 — §1.5.**
+
 | # | Question | Recommendation | Alternative and its cost |
 | --- | --- | --- | --- |
 | **Q-S1** | The boss in two homes: per-frame code in slot A, the once-only install in a staging run at `$7810`? | **Yes**: it is the only measured way to fit (1,826 + 222 free); the install code is read once per entry, shared by the four regions as one 3-sector run | all in slot A: 148 B over with the lean controller — would need the controller's laser logic in ASM (against the C/ASM ownership rule) or a second slot |
@@ -1463,6 +1488,72 @@ build (0 B, no ring rotation under a band); no change recommended.
 | **Q-S4** | A game that ends inside the boss sector leaves the world stopped, `PRIOR $10`, `SIZEM $FF` | **The reader's slot-A restore also restores them** (an 8-B image + copy, ~20 B in the reader: record 10 +1 sector, ATR menu +2 frames) | (b) a boss flag tested in `update_starfield` (~8 B, ~5 cycles on every frame, the binding row included); (c) re-init in `start_gameplay` — `CODE` is full |
 | **Q-S5** | The player-death shake (item 25) has no cheap mechanism | **Keep the existing death `COLBK` flash and drop the shake from item 25**; the boss keeps its band jitter (built, 0 resident) | a leading blank-line toggle: 24 frames a death with the ring 1–2 scanlines late against the fence — needs its own measurement |
 | **Q-S6** | Disk: four regions at 12 sectors overrun 528–583 by 8 | **The shared install run**: 55 of 56, one more read per entry | move the summary code (584+) — a disk-layout change the S2 tests pin |
+
+#### 5.11.7 Priced for S3: the `WARNING - BOSS APPROACHING` screen (decision 32) and the full restore (Q-S4)
+
+Estimates (**IC** from the spike's MEASURED pieces, **G** where marked);
+S3 measures them.
+
+**The screen.** The reader already has the screen it needs:
+`sector_reader_show_records` publishes the frontend text display list
+(ANTIC 2, the frontend charset, DLI-free, luminance $A on black) from a
+record list, which is what START GAME's interim screen and the failure screen
+use. The boss entry passes it a two-line record, `WARNING` and `BOSS
+APPROACHING`, centred — inside the frontend glyph contract
+(`A-Z 0-9 space - . / :`); the dash of the owner's wording is `-`.
+
+**The theme starting with it.** The boss theme travels in the region's
+staging run, which the spike read last. The order becomes: (1) the region's
+staging run (glyphs + theme, 4 sectors with the shared install run of Q-S6,
+through the region's own directory entry 2–5, to `$7990` so it does not
+collide with the install run at `$7810`); (2) stop the level's track, copy
+the 241-B theme over it and start the player — from then on the reader's
+wait loop ticks it on channels 1 and 2, as it ticks the summary's music
+(§4.8.6 a); (3) the boss code, 16 sectors into slot A; (4) the slot-A head
+reads the shared install run (3) and the band rows (3 + 2) and runs the
+install. **Same 28 sectors and 107 frames (EMULATOR) as measured; the theme
+plays under the screen for the last 24 sectors, ~90 frames (~1.8 s;
+~3.6 s on a 1050-class drive, ESTIMATE)**, then carries on into the fight.
+
+| Item | Bytes | Home | Basis |
+| --- | ---: | --- | --- |
+| the two-line record | +30 | window (the Director link's RODATA) | the reader's record format: address 2 + text + 0 per line, $FF |
+| the call to the text screen | +7 | window | IC |
+| the region's staging read first, the region index from the level id | +18 | window | IC |
+| the theme copy and the player start, before the code read | +20 | window | IC (the spike's install loop, moved) |
+| the spike's banner (text 7, list 6, store / charset / colour / list code ~30) | −43 | window | MEASURED spike, removed |
+| **net, window** | **+~32 → ~157 B with the spike's 125** | | ESTIMATE |
+| slot A: the head no longer reads the staging run; the install no longer copies the theme | −~10 / −11 (staging run) | slot A, install run | IC |
+| the full HUD redraw after the screen (`render_frontend_data` clears `$4000-$43FF`, the HUD row included) | already in §5.11.1's owed ~10 B | slot A | — |
+| sector reader | **0** | — | the screen, the record format and the region entries already exist |
+
+Q-S3's build check gains `sector_reader_show_records` (the window's gate
+links before the reader, like the slot flag and the failure screen it
+already names). The engine bed stays silent while the reader owns
+channels 3 and 4; the boss theme must be a two-voice gameplay-format track
+(§4.8.6 a), which item 14 already requires.
+
+**The full restore (Q-S4).** What a game that ends inside the boss sector
+leaves behind, and what puts each back at the next START GAME:
+
+| Setting | Put back by | Bytes |
+| --- | --- | ---: |
+| slot A and the capital vector table | the reader's restore (S1) | 0 (exists) |
+| the DLI vector, the display list, the missile plane | `start_gameplay` (`VDSLST`, the list builders, `clear_pmg`) | 0 (exists) |
+| charset codes 59–89 | `publish_level_hull_style` at the level start | 0 (exists) |
+| the theme over the level's track | the level read (the music block is re-read last) | 0 (exists) |
+| the world and hull scroll rates (6 B) | **new**: copied back from a 6-B image | 17 |
+| `PRIOR`, `SIZEM`, `HSCROL`, `HPOSM0-3` | **new**: zeroed | 23 |
+| the band's map, tables and column map in slot B (`$A880-$A9FF`, `$AC80-$ADBF`) | the level read refills `$A880-$A9FF`; `$AC80-$ADFF` is past the image and stays, but nothing outside a boss sector reads it and the next boss entry rewrites it | 0 |
+
+**~40 B new. They do not fit the reader**: it has 29 B of RAM free and its
+record 10 is 8 B from another sector. **Placement: the `$0500` summary
+module** (194 B free; 1,598 + ~40 = ~1,640 B, still 13 sectors), in
+`SUMMARY_START_GAME` next to its call to the reader's restore and gated by
+the same slot-A flag — the same START GAME step the owner named, 0 reader
+bytes, 0 transport. Every path out of a boss sector except the win (GAME
+OVER, pause-quit) reaches the menu and then START GAME; RESET is a cold
+start.
 
 ---
 ## 6. Ledgers
@@ -1530,7 +1621,7 @@ recommended: slot B needs the spare sectors (§4.1).
 
 | Home | Today free | M5a | M5b | After M5 | Note |
 | --- | ---: | ---: | ---: | ---: | --- |
-| window | 1,480 | −72 −92 (S1 **MEASURED −36**: 1,444) | −96 (**spike MEASURED −125**) | **1,220** (1,256 with S1 as measured; **1,319 with S1, S2 and the spike**) | §6.1, §5.11.1 |
+| window | 1,480 | −72 −92 (S1 **MEASURED −36**: 1,444) | −96 (**spike MEASURED −125**) | **1,220** (1,256 with S1 as measured; **1,319 with S1, S2 and the spike; ~1,287 with decision 32's screen**) | §6.1, §5.11.1, §5.11.7 |
 | sector reader | 63 | +152 −136 (S1; **MEASURED +152 −177 = 38 B free**, the 177 including the 36-B capital table image §4.9 adds); +304 −156 (S2: the AI texts to disk, the summary and the write) = **+227** | 0 | 227 (−25 after the optional fast loader's 100 and the stub's 152 going) | Q3 |
 | `BROADSIDE` | 3 (+119 pins) | 0 (regrouped, byte-neutral) | 0 (the boss lives in the slot) | 3 (+119) | the pins stay M3's |
 | arena | 35 | 0 | 0 | 35 | |
@@ -1613,7 +1704,7 @@ only, so "later" means the last code session before the freeze or never),
 | 22 | **A booster that lasts until the player loses a life** | **M6** | 15 → 30 B: the timed boosters' countdown skipped for the "life-long" kind (`weapon_pickup_rapid_tick`'s family in `PICKUP_CODE`, 65-B tail; or as a data value: a timer sentinel) ; the HUD label as today | resident (`PICKUP_CODE`; record 2 +1 sector) | 1 transport | 0 (a Spread held for a life makes the heaviest family the common case; the pool bounds it, no new worst row) | 0 | balance: feel, M8 | **do** (M6, with K1) |
 | 23 | **Damaged Bombers** | **M3-H session 2** | — | — | — | — | — | — | **confirmed covered**: m3-waves-heavy §3.4 "the look and the damaged look — one mechanism" and §7 session 2 `feat/heavy-looks` (variant C); nothing to add |
 | 24 | **A varied starfield per sector: density, speed, layers** | **M7** (data) with ~50 B of code before the freeze | density: a per-sector mask read by `generate_starfield_row` 20 → 24; speed: the near-star phase step per sector 15 → 18; 1 B per SectorDef (the core page has room); home: the window (the `BROADSIDE` pins are M3's) 50 → 60; **layers: the far layer was retired for its rotate-frame cost** (codes 2–6 are allocated, `farLayer` disabled) | resident + data | 0 | density/speed: +10 on rotate frames; a far layer: **+100 … +300 on rotate frames**, the binding family | 0 | — | **do** density and speed; **drop** layers (and the nebula stays rejected) |
-| 25 | **Screen shake and flashes when the player is destroyed** | **M5b S5**, as one mechanism with the boss death | the shake routine is resident (window, 40 → 48 — already in M5b's hooks); the player-death trigger 10 → 12 in `update_player_death`'s path (`BROADSIDE`, 3 B free → via the window) | resident | 0 | +15 per frame for 24 frames | 0 | the HUD moves with the playfield (the blank-line count is above the HUD line) — the owner may prefer the playfield alone, which needs the shake on the divider instead (+8 B) | **do** (M5b) |
+| 25 | **Screen shake and flashes when the player is destroyed** | **M5b S5**, as one mechanism with the boss death | the shake routine is resident (window, 40 → 48 — already in M5b's hooks); the player-death trigger 10 → 12 in `update_player_death`'s path (`BROADSIDE`, 3 B free → via the window) | resident | 0 | +15 per frame for 24 frames | 0 | the HUD moves with the playfield (the blank-line count is above the HUD line) — the owner may prefer the playfield alone, which needs the shake on the divider instead (+8 B) | **do** (M5b) — **covered by the flash only (Q-S5, 2026-10-04)**: the spike found no blank-line header to toggle (§5.11.4 item 3), so the player's death keeps its existing `COLBK` flash and gets no shake; the boss win shakes its band (overlay, 0 resident B) |
 
 **Placement before the freeze, by milestone:** M5a — 18 (hangar); M5b — 14's
 boss theme, 25; M4 — 16, 15 (its own session after M4); M3/M3-H — 23
@@ -1636,9 +1727,9 @@ STATUS updated, the free tails stated in the commit.
 | --- | --- | --- | ---: | --- | --- | --- | --- | --- | --- | --- | --- |
 | **M5a-S1** — **implemented 2026-10-03, `OWNER-SMOKE CANDIDATE`; as built §4.9** | `feat/overlay-slot` | §4.1–4.2: `BROADSIDE` regrouped, slot A bounded, the 20-entry table in the window, the reader's run read + directory + boss-resident flag + table copy, the build's overlay runs from sector 512 and the capital restore run, the AI pool 8 → 4 (Q3) | −72 | reader −136 +152; `BROADSIDE` 0; initial block ±8 (G) | window record 9 → 10 (+1 sector, +2 frames); disk +16 | binding row ~−30 (vectored calls); capital ~+60 | 0 | 0 (no read is added until a boss exists) | initial block > 13,652; worst fence < 1,400; a `BROADSIDE` label the harness or a test pins moves without its pin being re-pointed in the same commit; the restore run ≠ the resident bytes | §4.7; the binding replay's cycles proven on both builds (page crossings); boot smoke 8/8 | play level 1 through its capital sector: nothing visible changes; the loader screen with four lines |
 | **M5a-S2** — **implemented 2026-10-03, `OWNER-SMOKE CANDIDATE`; as built §4.10** | `feat/level-summary` | §4.8: the summary screen replacing the loader screen (code in `$0500`, art per region read first, labels and the AI texts to disk), the stat counters and their hooks (the shots scan in the window, Q13; debris as three hits, Q14), the grade, the save record with the direct-SIO write under Q16's rules and the per-level best, the tail-first level read with the music tick in the wait loop, the 3-s minimum / FIRE interlock (Q15), the START GAME form (Q17); the harness mounts a copy of the ATR | −92 | reader −156 +304; `PICKUP_CODE` +16; `HYBRID_C_EXT` +12; `$0500` −480; zero page −24; initial block 0 | records 2 and 5 +1 sector each (+4 frames); disk +33 | **+60 on every frame** (the shots scan; binding row ~1,349 with S1, DMA-on ~31,223); kill / hit events +15 each | 0 | START GAME 49 → 94 frames behind the screen; the post-boss transition 139 (§4.8.6 b) | any stat byte in the initial block; a scan over 70 native cycles; the fence under 1,300 on the binding row; the music audibly stalls during a read (owner smoke); a write reaching `dist/` in any harness run; the `$0500` code over 512 B without the grade moved to the window | build: the record format and the art runs pinned; 6502: BCD counters, the ratio and grade on fixture stats, the write primitive's ACK/COMPLETE/NAK paths, the tail-first order; native: a replay through a level's end reaching the summary with the expected stats (the kill and shot counts cross-checked against the trace's own counters), the record written to the copy and read back next session; PAL audit unmoved on fighter rows | the screen on a PAL CRT: stats readable, the picture after ~0.5 s, the music through the load, `PRESS FIRE` after the minimum; a write-protected SIO2SD image: `BEST` still shows, no error; **the real drive: the wall-clock transition time (decides the optional fast loader)** |
-| **M5b-S3** | `feat/boss-band` | §5.1–5.3, §5.6 without lasers: `BOSS_DUE`, the transition and its read, slot B, the band builder, HSCROL motion, the third DLI, region 1's data, module draw/damage, shot-versus-module, the controller's phases (guns → core), the chain explosion, bonus, the hand-off to the summary screen (→ menu until M4), the restore behind the summary; `light[3]` 0 → 1; harness: third DLI, boss milestone, `director-complete-*` through the boss | −48 (**spike: −125**, `HYBRID_C_SECTOR` −14) | slot A ~1,250 B of code (**spike: ~1,350**, + a 859-B staging run); slot B 610 (**704**); `ENTITY_STATE` −10 (**0**) | disk +16 +10 (**+28**); transport 0 (**+2 extension sectors**) | boss frames per §5.4 less lasers: worst with one Light **~1,640** (scroll stopped) (**spike: ≥ 12,000 MEASURED**) | boss frames ~30,000 (**≤ 29,219**) | boss entry 98 frames (**107**); post-boss START GAME +60 | a boss frame under 500 in the audit; DMA-on over 32,568; the restore byte compare fails; the band map crosses a 4 KB boundary | §5.10 less the laser items | a full level 1 to the boss and the clear on hardware; the banner and tone; the band's motion and the palette seam; **a second game after the clear: the capital sector renders** (the restore) |
-| **M5b-S4** | `feat/boss-lasers` | §5.5, §5.8: lasers 1 / 2 / 4, the laser damage source, the shake shared with the player's death (item 25), the boss theme copy (item 14), the laser contact session replacing the recorded one (Q4), the missile-plane clause exception | −48 (**spike: 0** beyond S3's; the player-death shake per Q-S5) | slot A +~500 B (**spike: +~480 + ~100 owed: ~1,930 of 2,048**) | disk 0 (inside the 16 + 10) | §5.4 in full: worst **1,238** (scroll stopped) (**spike: 10,103 MEASURED, ~6,500 composed**) | ~30,270 (**29,219**) | 0 | fence < 500 on any boss frame; the laser session not passing on the default ATR; `missile_plane_rows` residue outside the boss sector | §5.8's clauses; `boss-escort`; cycle pins | the warning readable at ~0.5 s; the beam's hit and its sound; the chain explosion and shake on a CRT; the player's death shake |
-| **M5b-S5** | `feat/boss-regions` | regions 2–4's art and data from the concepts, the M8 tuning layout, level 2's boss through the debug route, release prep for `v0.3.0` (hardware checklist, README EN + PL) | 0 | 0 | disk +30 (**spike: +27**, 9 a region with the shared install run) | 0 | 0 | 0 | a region run > 10 sectors (**> 9**) | build pins; the four regions through `--level=N` review builds | each region's boss on hardware through a review ATR; level 1's through the default |
+| **M5b-S3** | `feat/boss-band` | §5.1–5.3, §5.6 without lasers: `BOSS_DUE`, the transition and its read, slot B, the band builder, HSCROL motion, the third DLI, region 1's data, module draw/damage, shot-versus-module, the controller's phases (guns → core), the chain explosion, bonus, the hand-off to the summary screen (→ menu until M4), the restore behind the summary; `light[3]` 0 → 1; harness: third DLI, boss milestone, `director-complete-*` through the boss | −48 (**spike: −125**, `HYBRID_C_SECTOR` −14; **~−157 with decision 32**, §5.11.7) | slot A ~1,250 B of code (**spike: ~1,350**, + a 859-B staging run); slot B 610 (**704**); `ENTITY_STATE` −10 (**0**) | disk +16 +10 (**+28**); transport 0 (**+2 extension sectors**) | boss frames per §5.4 less lasers: worst with one Light **~1,640** (scroll stopped) (**spike: ≥ 12,000 MEASURED**) | boss frames ~30,000 (**≤ 29,219**) | boss entry 98 frames (**107**, behind the `WARNING - BOSS APPROACHING` screen with the theme, decision 32); post-boss START GAME +60; **in scope (2026-10-04): the install run (Q-S1), the reader-address build check (Q-S3), the full restore in the summary module, ~40 B (Q-S4), the shared install run (Q-S6), the 3,500-native pin** | a boss frame under 500 in the audit; DMA-on over 32,568; the restore byte compare fails; the band map crosses a 4 KB boundary | §5.10 less the laser items | a full level 1 to the boss and the clear on hardware; the `WARNING - BOSS APPROACHING` screen and the theme starting under it (decision 32); a GAME OVER inside the boss sector, then START GAME: the world scrolls and nothing of the boss is left (Q-S4); the band's motion and the palette seam; **a second game after the clear: the capital sector renders** (the restore) |
+| **M5b-S4** | `feat/boss-lasers` | §5.5, §5.8: lasers 1 / 2 / 4, the laser damage source, the boss win's band shake (**the player's death keeps its flash only, Q-S5**), ~~the boss theme copy (item 14)~~ (**moved to S3 by decision 32**), the laser contact session replacing the recorded one (Q4), the missile-plane clause exception | −48 (**spike: 0** beyond S3's; **no player-death shake, Q-S5**) | slot A +~500 B (**spike: +~480 + ~100 owed: ~1,930 of 2,048**) | disk 0 (inside the 16 + 10) | §5.4 in full: worst **1,238** (scroll stopped) (**spike: 10,103 MEASURED, ~6,500 composed**) | ~30,270 (**29,219**) | 0 | fence < 500 on any boss frame; the laser session not passing on the default ATR; `missile_plane_rows` residue outside the boss sector | §5.8's clauses; `boss-escort`; cycle pins | the warning readable at ~0.5 s; the beam's hit and its sound; the chain explosion and the band shake on a CRT; the player's death flash unchanged (no shake, Q-S5) |
+| **M5b-S5** | `feat/boss-regions` | regions 2–4's art and data from the concepts, the M8 tuning layout, level 2's boss through the debug route, release prep for `v0.3.0` (hardware checklist, README EN + PL) | 0 | 0 | disk +30 (**spike: +27**, 9 a region with the shared install run, **decided Q-S6**) | 0 | 0 | 0 | a region run > 10 sectors (**> 9**) | build pins; the four regions through `--level=N` review builds | each region's boss on hardware through a review ATR; level 1's through the default |
 
 | **S6** (optional, later) | `feat/fast-sio` | §4.3: `$3F` negotiation, divisor, fallback; `hardware-testing.md` §11 extended; the music tick paused during data frames | 0 | reader −100 (the 4-line AI stub, 152 B, goes) | 0 / 0 / 0 | 0 | 0 | ÷3 on SIO2SD (est.) | the standard path's bytes on the wire change; boot smoke < 8/8; the fallback test fails | §4.7's harness tests; the emulator path per `sio.c` | SIO2SD fast / disabled / off mid-read; the real drive (Q10); a marginal cable. **Built only if S2's real-drive transition exceeds the minimum display by more than ~2 s** |
 

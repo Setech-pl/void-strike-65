@@ -347,8 +347,13 @@ test("T2: build/level-1.bin is 13 sectors with the three LevelDef pages where th
     const payload = levelOneImage.subarray(LEVEL_PAYLOAD_OFFSET,
       LEVEL_PAYLOAD_OFFSET + LEVEL_PAYLOAD_BYTES);
     assert.equal(Buffer.compare(payload, compiled.pages.payload), 0);
-    assert.equal(Buffer.compare(payload.subarray(16), Buffer.alloc(LEVEL_PAYLOAD_BYTES - 16)), 0,
-      "one 16-B look and nothing else");
+    // RE-POINTED 2026-10-03 (M5a-S2, decision 28): the grade's ten bytes at
+    // payload offset 184 are level data now; everything else beyond the look
+    // is still zero.
+    const outside = Buffer.concat([payload.subarray(16, 184), payload.subarray(194)]);
+    assert.equal(Buffer.compare(outside, Buffer.alloc(outside.length)), 0,
+      "one 16-B look, the grade block and nothing else");
+    assert.ok(payload.subarray(184, 194).some((byte) => byte !== 0), "level 1 grades");
   });
 
 test("T2: the geometry page says 480 rows and carries today's two module sequences", () => {

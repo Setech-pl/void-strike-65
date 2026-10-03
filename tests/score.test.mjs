@@ -313,6 +313,12 @@ function executeScoreRoutine(memory, startAddress, {
       case 0xd8: // CLD
         decimal = false;
         break;
+      case 0xe6: { // INC zp - M5a-S2: the reader's kill counter on the award path
+        const address = readByte();
+        memory[address] = memory[address] + 1 & 0xff;
+        zero = memory[address] === 0;
+        break;
+      }
       case 0xe8: // INX
         x = x + 1 & 0xff;
         zero = x === 0;
@@ -362,8 +368,10 @@ test("score is written by new-game and the three BCD award paths, and no award i
   assert.ok(Object.values(addresses).every(Number.isInteger));
   assert.match(source,
     /TOP_SCORE_RECORD_COUNT\s*=\s*10[\s\S]+TOP_SCORE_TABLE_LO\s*=\s*TOP_SCORE_TABLE[\s\S]+TOP_SCORE_TABLE_HI\s*=\s*TOP_SCORE_TABLE_LO\+TOP_SCORE_STORAGE_COUNT/);
+  // RE-POINTED 2026-10-03 (M5a-S2): the HUD refresh is reached through the
+  // reader's kill-count vector; the award itself is unchanged.
   assert.match(routine("add_archetype_score_tail"),
-    /adc ENEMY_PROFILE_SCORE_BCD[\s\S]+sta score_bcd_hi[\s\S]+cld\s+jmp update_score_display/);
+    /adc ENEMY_PROFILE_SCORE_BCD[\s\S]+sta score_bcd_hi[\s\S]+cld\s+jmp SECTOR_READER_STATS_KILL/);
   assert.doesNotMatch(routine("add_archetype_score_tail"), /insert_top_score/);
   assert.match(routine("update_player_death_finished"),
     /@game_over:[\s\S]+sta PLAYER_LIFECYCLE\s+jsr insert_top_score/);

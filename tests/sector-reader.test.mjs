@@ -14,6 +14,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { Nmos6502, nmos6502Flags } from "../scripts/nmos6502.mjs";
+import { installRuntimeSegments } from "../scripts/runtime-image.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -303,10 +304,13 @@ test("the command frame is D1:, read sector, with a carry wrap-around checksum",
   const stub = new PokeyStub({ respond: healthyDevice(image) });
   runLoad(stub);
 
+  // RE-POINTED 2026-10-03 (M5a-S2, §4.8.1): the level is read tail first, so
+  // the first frame names the image's sixth sector, 320 + 5; the frame format,
+  // its checksum and the advancing sector number are what this test pins.
   const [first, second] = stub.commandFrames;
-  assert.deepEqual(first.slice(0, 4), [0x31, 0x52, 320 & 0xff, 320 >> 8]);
+  assert.deepEqual(first.slice(0, 4), [0x31, 0x52, 325 & 0xff, 325 >> 8]);
   assert.equal(first[4], carryWrapChecksum(first.slice(0, 4)));
-  assert.deepEqual(second.slice(0, 4), [0x31, 0x52, 321 & 0xff, 321 >> 8],
+  assert.deepEqual(second.slice(0, 4), [0x31, 0x52, 326 & 0xff, 326 >> 8],
     "the sector number must advance");
   assert.equal(second[4], carryWrapChecksum(second.slice(0, 4)));
 });
@@ -647,17 +651,18 @@ test("main.s enters the reader by constant, and START GAME costs MAIN nothing", 
     "only the two review-harness sites may still jump straight into gameplay");
 });
 
+// RE-POINTED 2026-10-03 (M5a-S2, Q3: "S2 moves every text to disk"): the pool
+// left the reader with the loader screen; the four 38-character lines travel
+// in each region's summary art run (tests/overlay-slot.test.mjs checks them
+// against the asset). What stays pinned here: the format, and that the reader
+// carries no copy.
 test("the AI text pool is four lines of 38 characters", () => {
-  // Owner decision O's v1 shape was eight; M5a-S1 (owner Q3) cut the pool to
-  // four to pay for the overlay run read, and the lines became an asset
-  // converted into build/loader-ai-lines.inc (LICENSE-ASSETS, "Mixed files").
   const source = fs.readFileSync(path.join(root, "src/hybrid/sector-reader.s"), "utf8");
-  assert.match(source, /^AI_LINE_BYTES {2}= 38$/m);
-  assert.match(source, /^AI_LINE_COUNT {2}= 4$/m);
-  const generated = fs.readFileSync(path.join(root, "build/loader-ai-lines.inc"), "utf8");
-  const pool = generated.slice(generated.indexOf("ai_line_pool:"),
-    generated.indexOf("ai_line_pool_end:"));
-  const lines = [...pool.matchAll(/\.byte "([^"]*)"/g)].map((match) => match[1]);
+  assert.doesNotMatch(source, /AI_LINE_COUNT|ai_line_pool/);
+  const art = fs.readFileSync(path.join(root, "build", manifest.levelSummary.art.runs[0].file));
+  const { layout } = manifest.levelSummary.art;
+  const lines = Array.from({ length: 4 }, (_, index) =>
+    art.subarray(layout.ai + index * 42 + 2, layout.ai + index * 42 + 40).toString("latin1"));
   assert.equal(lines.length, 4);
   for (const line of lines) {
     assert.equal(line.length, 38, `"${line}" is not 38 characters`);
@@ -682,48 +687,29 @@ test("the failure screen names every status and offers a way out", () => {
   assert.match(source, /jsr sector_reader_wait_for_fire\s+jmp quit_gameplay_to_menu/);
 });
 
+// RE-POINTED 2026-10-03 (M5a-S2, decision 26: "the reader's loading screen
+// becomes the summary screen"). The loader screen and its ENGAGING ENEMY SECTOR
+// line (owner, 2026-09-23) are gone; the summary's title and prompt take their
+// place. What this test pinned is kept for them: centred on the 40-column
+// line, every character in the frontend charset, and the reader still fits.
 test("the level loading screen reads ENGAGING ENEMY SECTOR, centred and in charset", () => {
-  // Owner, 2026-09-23: "LOADING SECTOR" becomes "ENGAGING ENEMY SECTOR". The
-  // three things that had to be true before the string could change are pinned
-  // here rather than eyeballed: it fits the 40-column ANTIC 2 line at the
-  // column it is written to, every character has a frontend glyph, and it fits
-  // the sector reader's remaining bytes.
-  const source = fs.readFileSync(path.join(root, "src/hybrid/sector-reader.s"), "utf8");
+  const reader = fs.readFileSync(path.join(root, "src/hybrid/sector-reader.s"), "utf8");
+  assert.doesNotMatch(reader, /loader_records|"ENGAGING ENEMY SECTOR"/,
+    "the replaced loader screen is still shipped");
+  const summary = fs.readFileSync(path.join(root, "src/hybrid/level-summary.s"), "utf8");
   const SCREEN_COLUMNS = 40;
-  const STATUS_LINE = 5;
-
-  const records = source.slice(source.indexOf("loader_records:"),
-    source.indexOf("failure_records:"));
-  assert.match(records, /"ENGAGING ENEMY SECTOR"/,
-    "the level loading screen no longer reads ENGAGING ENEMY SECTOR");
-  assert.doesNotMatch(records, /"LOADING SECTOR"/, "the old string is still shipped");
-
-  // The row constant the string is written to, and the column it lands on.
-  const rowName = /\.byte <(LOADER_\w+_ROW), >\1\s*\n\s*\.byte "ENGAGING ENEMY SECTOR"/
-    .exec(records)?.[1];
-  assert.ok(rowName, "the string is not written through a named row constant");
-  const rowDefinition = new RegExp(`^${rowName}\\s*=\\s*SCREEN \\+ (\\d+) \\* 40 \\+ (\\d+)`, "m")
-    .exec(source);
-  assert.ok(rowDefinition, `${rowName} has no SCREEN + line * 40 + column definition`);
-  const [line, column] = [Number(rowDefinition[1]), Number(rowDefinition[2])];
-  assert.equal(line, STATUS_LINE, "the status line moved off row 5");
-
-  const text = "ENGAGING ENEMY SECTOR";
-  assert.ok(column + text.length <= SCREEN_COLUMNS,
-    `"${text}" at column ${column} runs ${column + text.length - SCREEN_COLUMNS} ` +
-    "characters past the 40-column line");
-  // Centred: one column either way of exact centre, so it does not read as a
-  // string that merely happened to fit.
-  assert.ok(Math.abs(column - Math.floor((SCREEN_COLUMNS - text.length) / 2)) <= 1,
-    `"${text}" sits at column ${column}, not centred on a ${SCREEN_COLUMNS}-column line`);
-  // render_frontend_data maps only these; anything else becomes a question mark.
-  assert.match(text, /^[A-Z0-9 \-./:?]*$/,
-    "the frontend charset has no glyph for this string");
-
-  // The byte budget: the reader has to still fit its window after the growth.
+  for (const [text, column, width] of [["LEVEL", 16, 8], ["LOADING", 16, 7],
+    ["PRESS FIRE", 15, 10]]) {
+    assert.ok(summary.includes(`.byte "${text}", $00`), `the summary does not draw ${text}`);
+    assert.ok(column + width <= SCREEN_COLUMNS);
+    assert.ok(Math.abs(column - Math.floor((SCREEN_COLUMNS - width) / 2)) <= 1,
+      `"${text}" sits at column ${column}, not centred`);
+    assert.match(text, /^[A-Z0-9 \-./:?]*$/);
+  }
   const trace = JSON.parse(fs.readFileSync(path.join(root, "docs/runtime-wall-trace.json"), "utf8"));
   assert.ok(trace.boot_smoke.sector_reader.free_bytes >= 0,
-    "the longer string pushed the sector reader past its window");
+    "the sector reader overflows its window");
+  assert.ok(manifest.sectorReader.freeBytes >= 0);
 });
 
 // --- M5a-S1: the overlay run read, the capital restore, its failure path -----
@@ -790,31 +776,45 @@ function runReadRun(stub, index) {
   return { memory, status: cpu.a, failed: (cpu.p & nmos6502Flags.carry) !== 0 };
 }
 
-// START GAME from the reader's $A000 entry with main's routines stubbed to
-// `rts`. It ends at start_gameplay (success) or at the failure screen.
+// START GAME from the reader's $A000 entry. RE-POINTED 2026-10-03 (M5a-S2):
+// START GAME now passes the level-summary screen, which calls main's music,
+// screen and frame routines and reads its module from the disk, so the real
+// resident runtime is installed instead of `rts` stubs, and FIRE is pressed
+// every few frames for the summary to accept once its minimum and the reads
+// are done. It ends at start_gameplay (success) or at the failure screen.
 function runStartGame(stub, { overlaid }) {
   const memory = new Uint8Array(0x10000);
+  installRuntimeSegments(memory, root);
   memory.set(readerImage, READER_BASE);
-  for (const name of ["render_frontend_data", "wait_frame_start", "pause_silence_audio",
-    "clear_pmg_graphics_latches", "clear_pmg", "clear_screen"]) {
-    memory[mainAbi.get(name)] = 0x60;
-  }
   // What a boss overlay would leave behind: other bytes in the slot and the table.
   memory.fill(0x00, slotA.address, slotA.endExclusive);
   memory.fill(0x00, capitalVectors.address, capitalVectors.address + capitalVectors.bytes);
   memory[labels.get("sr_slot_a_overlaid")] = overlaid ? 1 : 0;
-  const cpu = cpuOver(stub, memory);
+  const cpu = new Nmos6502(memory, {
+    read: (address) => {
+      if (address === reg.SERIN) { stub.advance(); return stub.serin; }
+      if (address === 0xd010) {
+        return Math.floor(stub.vcountReads / stub.vcountPeriod) % 8 < 4 ? 1 : 0;
+      }
+      return stub.read(address);
+    },
+    write: (address, value) => stub.write(address, value),
+  });
   cpu.pc = READER_BASE;
   const ends = new Map([[mainAbi.get("start_gameplay"), "start_gameplay"],
     [labels.get("sector_reader_failure_screen"), "failure_screen"]]);
   let steps = 0;
-  while (steps < 40_000_000 && !ends.has(cpu.pc)) { cpu.step(); steps += 1; }
-  assert.notEqual(steps, 40_000_000, "START GAME neither started gameplay nor failed");
+  while (steps < 120_000_000 && !ends.has(cpu.pc)) { cpu.step(); steps += 1; }
+  assert.notEqual(steps, 120_000_000, "START GAME neither started gameplay nor failed");
   return { memory, end: ends.get(cpu.pc), status: cpu.a };
 }
 
+// RE-POINTED 2026-10-03 (M5a-S2): sectors from 512 also hold the summary's
+// module and art now; the capital restore run is 512-527.
 const overlaySectors = (stub) => stub.commandFrames.map((frame) => frame[2] | (frame[3] << 8))
-  .filter((sector) => sector >= 512);
+  .filter((sector) => sector >= 512 && sector < 528);
+const summarySectorCount = manifest.levelSummary.code.sectors +
+  manifest.levelSummary.art.sectorsPerRegion + 1;
 
 test("the run read at $A006 lands the capital restore run in slot A byte for byte", () => {
   assert.equal(slotA.bytes, 2048, "the manifest declares no 16-sector slot A");
@@ -828,7 +828,9 @@ test("the run read at $A006 lands the capital restore run in slot A byte for byt
 });
 
 test("a directory entry the build left empty is rejected without touching SIO", () => {
-  for (const index of [1, 7, 8, 0xff]) {
+  // RE-POINTED 2026-10-03 (M5a-S2): entries 6-8 are the summary's now; 1-5
+  // (M5b) are still empty, and 9 is past the directory's end.
+  for (const index of [1, 5, 9, 0xff]) {
     const stub = new PokeyStub({ respond: atrDevice() });
     const result = runReadRun(stub, index);
     assert.equal(result.failed, true, `entry ${index}`);
@@ -841,10 +843,17 @@ test("START GAME after an overlay restores slot A and the vector table before th
   const stub = new PokeyStub({ respond: atrDevice() });
   const result = runStartGame(stub, { overlaid: true });
   assert.equal(result.end, "start_gameplay");
+  // RE-POINTED 2026-10-03 (M5a-S2, §4.8.1 read order): the summary module and
+  // the region's art come first now; the restore run is still read whole, in
+  // order, and before any sector of the level.
   const sectors = stub.commandFrames.map((frame) => frame[2] | (frame[3] << 8));
-  assert.equal(sectors.length, slotA.bytes / SECTOR_BYTES + LEVEL_ONE_SECTORS);
-  assert.deepEqual(sectors.slice(0, 16), Array.from({ length: 16 }, (_, i) => 512 + i),
-    "the restore run must be read first, in order");
+  assert.equal(sectors.length,
+    slotA.bytes / SECTOR_BYTES + LEVEL_ONE_SECTORS + summarySectorCount);
+  const restoreAt = sectors.indexOf(512);
+  assert.deepEqual(sectors.slice(restoreAt, restoreAt + 16),
+    Array.from({ length: 16 }, (_, i) => 512 + i), "the restore run must be read in order");
+  assert.ok(sectors.findIndex((sector) => sector >= 320 && sector < 512) > restoreAt + 15,
+    "the restore run must land before the level");
   assert.ok(Buffer.from(result.memory.subarray(slotA.address, slotA.endExclusive))
     .equals(residentSlotA), "slot A is not byte-identical to the shipped image");
   assert.ok(Buffer.from(result.memory.subarray(capitalVectors.address,
@@ -858,7 +867,7 @@ test("START GAME without an overlay sends no restore frame", () => {
   const result = runStartGame(stub, { overlaid: false });
   assert.equal(result.end, "start_gameplay");
   assert.deepEqual(overlaySectors(stub), []);
-  assert.equal(stub.commandFrames.length, LEVEL_ONE_SECTORS);
+  assert.equal(stub.commandFrames.length, LEVEL_ONE_SECTORS + summarySectorCount);
 });
 
 test("a failed restore read reports through the status path and never starts gameplay", () => {
@@ -872,6 +881,10 @@ test("a failed restore read reports through the status path and never starts gam
   assert.equal(result.status, status.DEVICE_ERROR);
   assert.deepEqual(overlaySectors(stub), [512, 513, 514, 515, 516],
     "no retry after $45 and no level read after a failed restore");
+  assert.ok(stub.commandFrames.every((frame) => {
+    const sector = frame[2] | (frame[3] << 8);
+    return sector < 320 || sector >= 512;
+  }), "a level sector was read after the failed restore");
   assert.equal(result.memory[labels.get("sr_slot_a_overlaid")], 1,
     "the flag must stay set so the next START GAME reads the run again");
   assert.ok(result.memory.subarray(capitalVectors.address,

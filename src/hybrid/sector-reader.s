@@ -14,16 +14,32 @@
 ; [C2] and [C3] there, which were measured, not assumed — see
 ; docs/diagnostics/sio-register-probe-2026-09-20.json.
 ;
-; Read-only, one device (D1:), standard speed, whole sectors into the
-; page-aligned level buffer or, since M5a-S1, into an overlay run's destination
-; (slot A is not page-aligned: (sr_dst),y pays one cycle on a page crossing
-; against a ~900-cycle byte margin). Runs only at a level boundary with
-; gameplay torn down.
+; One device (D1:), standard speed, whole sectors into the page-aligned level
+; buffer or, since M5a-S1, into an overlay run's destination (slot A is not
+; page-aligned: (sr_dst),y pays one cycle on a page crossing against a
+; ~900-cycle byte margin). Runs only at a level boundary with gameplay torn
+; down. Since M5a-S2 it names the one sector the game ever writes, the save
+; record (SAVE_RECORD_SECTOR, docs/plans/m5-loading-boss.md §4.8.4, owner
+; answer Q16; the write itself is the $0500 module's, built on the primitives
+; exported below), and it is the resident half of the level-summary screen: the stat hooks the
+; gameplay frame reaches through the fixed vectors below, the two transitions
+; that hand the screen to the $0500 module, and the music and the summary's
+; clock ticking inside the one timing primitive.
 
 ; Main-link entry points, generated after main.s links (plan 4 [C5]).
 .include "main-abi.inc"
 ; M5a-S1: the capital vector table's window address and entry count.
 .include "director-abi.inc"
+; M5a-S2: the stat block, the summary module's entries and its layout.
+.include "level-summary-abi.inc"
+; M5a-S2: the Light kernel's publish entry, which the fighter-frame hook
+; continues into (the kernel links before the reader).
+.include "light-kernel-labels.inc"
+; PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT; CAPITAL_HULL_STATE_COMPLETE.
+.include "fighter-weapons.inc"
+.include "capital-hulls.inc"
+; GAMEPLAY_MUSIC_TICK: the per-level music player, ticked inside the serial wait.
+.include "gameplay-music-abi.inc"
 
 ; ---------------------------------------------------------------------------
 ; Hardware. The game defines none of these: it has never written IRQEN, SKCTL,
@@ -45,17 +61,19 @@ FRONTEND_CHARSET = $4800
 CH_FRONT_SPACE   = 0
 CH_FRONT_DASH    = 37
 
-; Loader-mode screen rows (ANTIC 2, 40 columns).
+; Failure- and title-screen rows (ANTIC 2, 40 columns).
 LOADER_TITLE_ROW  = SCREEN + 2 * 40 + 13
 LOADER_STATUS_ROW = SCREEN + 5 * 40 + 12    ; centres the 16-char failure line
-LOADER_ENGAGING_ROW = SCREEN + 5 * 40 + 9   ; same row, centred for 21 chars
 LOADER_TEXT_ROW   = SCREEN + 8 * 40 + 1
-LOADER_ANIM_ROW   = SCREEN + 12 * 40
 LOADER_PROMPT_ROW = SCREEN + 20 * 40 + 15
+; M5a-S2: the per-sector animation draws on the summary layout's own row; on
+; the plain title screen of a session's first read it is the same cells.
+LOADER_ANIM_ROW   = SUMMARY_ANIMATION_ROW
 
-; The pool's shape; its text is generated from assets/ (see ai_line_pool).
-AI_LINE_BYTES  = 38
-AI_LINE_COUNT  = 4
+DIRECTOR_STATE_FLAGS = $80FE
+DIRECTOR_FLAG_COMPLETE = $01
+DAMAGE_PLAYER_PROJECTILE = 0
+RAIDER_SLOT_COUNT = 2
 
 PBCTL           = $D303         ; PIA port B control; CB2 is the command line
 AUDF3           = $D204
@@ -129,6 +147,14 @@ BUDGET_SETTLE     = 2           ; after a failed attempt
 
 SECTOR_BYTES      = 128
 MAX_LEVEL_SECTORS = 16          ; the level buffer is 2,048 B (Q-1, 2026-09-23)
+; M5a-S2: the image's first five sectors are the header and the gameplay music
+; block; the level read lands them last (§4.8.1, the tail-first order).
+LEVEL_HEAD_SECTORS = 5
+; The record's one sector (§4.8.4, Q16). The write path that uses it lives in
+; the $0500 summary module (src/hybrid/level-summary.s, owner 2026-10-03: the
+; reader has no room); it takes the sector from here and nowhere else.
+SAVE_RECORD_SECTOR = 599
+SAVE_RECORD_ENTRY  = 7                      ; = OVERLAY_SAVE_RECORD, asserted below
 WIRE_ATTEMPTS     = 3
 DEVICE_PROBES     = 2
 
@@ -177,8 +203,20 @@ sector_reader_vectors:
         jmp sector_reader_load                  ; $A003 — A = level id (4.9)
         jmp sector_reader_read_run              ; $A006 — X = overlay run (M5a, Q11)
         jmp sector_reader_drain_ready           ; $A009 — reserved for 4.9
+        ; M5a-S2: the stat hooks (§4.8.2). Every caller is an operand-only
+        ; re-point in a full segment (the Light kernel's publish vector, its
+        ; PairShot hit and kill refresh; LIGHT_CODE, BROADSIDE and PICKUP_CODE in
+        ; main), so the hooks live here, behind fixed addresses, and nothing in
+        ; those segments or in the hot kernel moved.
+        jmp stats_fighter_frame                 ; $A00C — post-fence, fighter frames
+        jmp stats_capital_frame                 ; $A00F — capital frames; the level's end
+        jmp stats_kill                          ; $A012 — a kill's HUD refresh
+        jmp stats_debris_shot                   ; $A015 — a debris destroyed by a shot
+        jmp stats_debris_contact                ; $A018 — a debris destroyed by contact
+        jmp stats_light_hit                     ; $A01B — a Light hit by a PairShot
 
 .assert sector_reader_vectors = $A000, error, "the sector reader vectors must sit at $A000"
+.assert sector_reader_vectors + 12 = SECTOR_READER_STATS_FIGHTER && sector_reader_vectors + 27 = SECTOR_READER_STATS_LIGHT_HIT, error, "the stat vectors moved off their ABI addresses"
 
 ; ===========================================================================
 ; The START GAME boundary (plan 5). Entered from the frontend, so the state
@@ -188,25 +226,17 @@ sector_reader_vectors:
 ; loader-mode display can be DLI-free.
 ; ===========================================================================
 sector_reader_start_gameplay:
+        jsr sector_reader_blank
+        jsr music_stop                  ; the menu theme off, every channel silent
+        ; The stat block starts every level at zero (§4.8.2).
         lda #$00
-        sta DMACTL                      ; display off while the state changes
-        sta GRACTL
-        jsr clear_pmg_graphics_latches  ; also stores NMIEN = 0
-        jsr pause_silence_audio         ; AUDCTL = 0: POKEY is the reader's now
-        jsr clear_pmg
-
-        jsr sector_reader_show_loader
-
-        ; M5a-S1, restore variant (b) (docs/plans/m5-loading-boss.md §4.1, Q6):
-        ; slot A still holds the capital group unless an overlay replaced it,
-        ; so the restore run is read only then, behind the same loader screen
-        ; and before the level. A failed read leaves the flag set: gameplay is
-        ; never entered over a partial slot, and the next START GAME retries.
-        lda sr_slot_a_overlaid
-        beq @slot_a_ready
-        jsr sector_reader_restore_capital
+        ldx #(STATS_BLOCK_END - STATS_SHOTS - 1)
+@clear:
+        sta STATS_SHOTS,x
+        dex
+        bpl @clear
+        jsr sector_reader_ensure_summary
         bcs @failed
-@slot_a_ready:
 
         ; Roadmap 4.6 step 2, the debug route (plan §7). A review build made
         ; with --level=N[:sector=M] assembles this file with -D LEVEL_DEBUG_ID
@@ -217,17 +247,82 @@ sector_reader_start_gameplay:
 .else
         lda #$01                        ; level 1; 4.9 supplies the real id
 .endif
-        jsr sector_reader_load
-        bcc @loaded
+        ; The summary screen (§4.8.1, Q17): the level's best and an empty panel
+        ; while the art, the capital restore (variant (b), Q6), the save record
+        ; and the level image land behind it. It returns once the 3-second
+        ; minimum (Q15) and the data are both done and FIRE has been pressed; a
+        ; read the game cannot run without ends at the failure screen instead.
+        jsr SUMMARY_START_GAME
+        jmp start_gameplay
 @failed:
         jmp sector_reader_failure_screen
-@loaded:
-        jmp start_gameplay
+
+; Display, DLIs and PMG off; NMIEN = 0. Both transitions start here.
+sector_reader_blank:
+        lda #$00
+        sta DMACTL
+        sta GRACTL
+        jsr clear_pmg_graphics_latches  ; also stores NMIEN = 0
+        jmp clear_pmg
+
+; ===========================================================================
+; M5a-S2: the level's end (§4.8.5, decision 30). Reached from the capital-frame
+; hook once the Director has completed the level and the terminal COMPLETE has
+; been held LEVEL_END_HOLD_FRAMES. Until M4 there is no next level, so the
+; summary hands back to the menu, as the boss fight will (M5b).
+; ===========================================================================
+sector_reader_level_end:
+        ldx #$FF                        ; nothing below the main loop returns
+        txs
+        jsr sector_reader_blank
+        ; The SFX and the engine bed stop; the finished level's music (channels
+        ; 1 and 2) keeps playing through the summary, on its own clock again.
+        lda #$00
+        sta AUDC3
+        sta AUDC4
+        sta AUDCTL
+        sta hit_timer                   ; channel 2 is the music's, not the hit's
+        jsr sector_reader_ensure_summary
+        bcs @failed
+        jsr SUMMARY_LEVEL_END
+        ; The game ends here until M4: the score, bonus included, goes to the
+        ; TOP SCORES table as a game over would put it there.
+        jsr insert_top_score
+        jmp quit_gameplay_to_menu
+@failed:
+        jmp sector_reader_failure_screen
+
+; The $0500 module, once per session (§4.8.1): RESET is a cold start, so the
+; flag in the reader's own transported image is clear at every power-on and
+; nothing else writes the splash RAM after the boot. C=0 resident; C=1, A=status.
+sector_reader_ensure_summary:
+        lda sr_summary_resident
+        bne @resident
+        lda #<title_record
+        sta frontend_data_ptr
+        lda #>title_record
+        sta frontend_data_ptr+1
+        jsr sector_reader_publish_screen
+        ldx #OVERLAY_SUMMARY_CODE
+        jsr sector_reader_read_run
+        bcs @done
+        inc sr_summary_resident
+@resident:
+        clc
+@done:
+        rts
 
 ; ===========================================================================
 ; M5a-S1: put the capital group back into slot A, then its vector table back
 ; into the window. C=0 done and the flag cleared; C=1, A=status otherwise.
 ; ===========================================================================
+; M5a-S2: the summary's call, in its read order (§4.8.1): art, then this.
+sector_reader_restore_if_overlaid:
+        lda sr_slot_a_overlaid
+        bne sector_reader_restore_capital
+        clc
+        rts
+
 sector_reader_restore_capital:
         ldx #OVERLAY_CAPITAL_SLOT_A
         jsr sector_reader_read_run
@@ -245,24 +340,14 @@ sector_reader_restore_capital:
         rts
 
 ; ===========================================================================
-; The loader-mode display (owner decision O, plan 6).
+; The plain screens (owner decision O, plan 6): the title while a session's
+; first read lands the summary module, and the failure screen.
 ;
 ; No new display path: frontend_text_display_list is the ANTIC 2 screen the
 ; confirmation and pause screens already use, FRONTEND_CHARSET survives
-; gameplay, and the text goes through render_frontend_data. NMIEN stays 0, so
-; there is no DLI to service while the receive loop holds the CPU; ANTIC needs
-; no CPU once the list and screen are set, and the only interaction with the
-; wire is DMA cycle stealing, already inside the plan 1.6 margin.
+; gameplay, and the text goes through render_frontend_data. NMIEN stays 0.
 ; ===========================================================================
-sector_reader_show_loader:
-        jsr sector_reader_pick_line
-        lda #<loader_records
-        sta frontend_data_ptr
-        lda #>loader_records
-        sta frontend_data_ptr+1
-        jmp sector_reader_publish_screen
-
-; Shared by the loader and failure screens: render, then bring the display up
+; Shared by the title and failure screens: render, then bring the display up
 ; on a frame boundary.
 sector_reader_publish_screen:
         lda #>FRONTEND_CHARSET
@@ -281,39 +366,6 @@ sector_reader_publish_screen:
         jsr wait_frame_start
         lda #$22                        ; normal playfield DMA, no PMG
         sta DMACTL
-        rts
-
-; Copy one AI line into the record list's reserved slot. The pool is four
-; PLACEHOLDER lines from assets/text/loader-ai-lines.json (M5a-S1, Q3); the
-; owner writes the real ones later. The choice is VCOUNT, masked to the pool.
-sector_reader_pick_line:
-        lda VCOUNT
-        and #(AI_LINE_COUNT - 1)
-        ; index x 38 = x32 + x4 + x2
-        sta sr_scratch
-        asl
-        sta sr_anim                     ; x2 (scratch, reused below)
-        asl                             ; x4
-        clc
-        adc sr_anim                     ; x6
-        sta sr_anim
-        lda sr_scratch
-        asl
-        asl
-        asl
-        asl
-        asl                             ; x32
-        clc
-        adc sr_anim                     ; x38
-        tay
-        ldx #$00
-@copy:
-        lda ai_line_pool,y
-        sta loader_ai_slot,x
-        iny
-        inx
-        cpx #AI_LINE_BYTES
-        bne @copy
         rts
 
 ; ===========================================================================
@@ -467,13 +519,47 @@ sector_reader_load:
         bcc @have_directory
         jmp sector_reader_report_bad_image
 @have_directory:
-
+        ; M5a-S2 (§4.8.1, §4.8.6): the tail first - sectors 6..N, the hull block,
+        ; the LevelDef pages and the geometry - while the music block in sectors
+        ; 1-5 may still be playing; then the head. The header is in the head, so
+        ; a load cut short never validates.
+        lda sr_sector_total
+        sec
+        sbc #LEVEL_HEAD_SECTORS
+        beq @head                       ; five sectors or fewer: no tail
+        bcc @head
+        sta sr_sectors_left
+        lda sr_sector_lo
+        clc
+        adc #LEVEL_HEAD_SECTORS
+        sta sr_sector_lo
+        bcc :+
+        inc sr_sector_hi
+:
+        lda #<(LEVEL_BUFFER + LEVEL_HEAD_SECTORS * SECTOR_BYTES)
+        sta sr_dst
+        lda #>(LEVEL_BUFFER + LEVEL_HEAD_SECTORS * SECTOR_BYTES)
+        sta sr_dst+1
+        jsr sector_reader_read_sectors
+        bcs sector_reader_load_done
+        ; The music block is about to be overwritten: stop the player first
+        ; (the summary restarts it once the new block has landed).
+        lda MUSIC_ACTIVE
+        beq :+
+        jsr music_stop_gameplay
+:
+        jsr sector_reader_lookup        ; the head's start and the total again
+@head:
+        lda sr_sector_total
+        cmp #LEVEL_HEAD_SECTORS
+        bcc :+
+        lda #LEVEL_HEAD_SECTORS
+:
+        sta sr_sectors_left
         lda #<LEVEL_BUFFER
         sta sr_dst
         lda #>LEVEL_BUFFER
         sta sr_dst+1
-        lda sr_sector_total
-        sta sr_sectors_left
         jsr sector_reader_read_sectors
         bcs sector_reader_load_done
         jmp sector_reader_validate
@@ -561,6 +647,7 @@ sector_reader_report_bad_image:
 ; ===========================================================================
 sector_reader_read_sector:
         jsr sector_reader_pokey_setup
+        lda #SIO_CMD_READ
         jsr sector_reader_send_command
         bcs sector_reader_rs_wire
         jsr sector_reader_begin_receive
@@ -635,8 +722,8 @@ sector_reader_rs_no_device:
         rts
 
 ; ===========================================================================
-; Send the five-byte command frame. C=1 if a transmit step timed out.
-; The command line is released on both paths.
+; Send the five-byte command frame for the command in A. C=1 if a transmit
+; step timed out. The command line is released on both paths.
 ; ===========================================================================
 sector_reader_send_command:
         jsr sector_reader_build_frame
@@ -659,29 +746,15 @@ sector_reader_send_command:
 
         ldy #$00
 sector_reader_tx_loop:
-        ; Bits 5 and 4 are latched: drop the out-ready latch, then re-arm it,
-        ; so the wait below observes THIS byte and not the previous one.
-        lda #IRQ_SERIN
-        sta IRQEN
-        lda #IRQ_SERIN|IRQ_SEROUT_RDY
-        sta IRQEN
         lda sr_frame,y
-        sta SEROUT                      ; the first write primes; it does not wait
-        ldx #IRQ_SEROUT_RDY
-        lda #BUDGET_TX
-        jsr sector_reader_wait_serial
+        jsr sector_reader_tx_byte
         bcs sector_reader_tx_failed
         iny
         cpy #$05
         bne sector_reader_tx_loop
 sector_reader_tx_loop_end:
 
-        ; HRM §5.6 warning: wait for output READY before output COMPLETE, or a
-        ; momentarily idle shift register reports complete after SEROUT has
-        ; already been reloaded.
-        ldx #IRQ_XMTDONE
-        lda #BUDGET_TX
-        jsr sector_reader_wait_serial
+        jsr sector_reader_tx_done
         bcs sector_reader_tx_failed
 
         ; HRM ch.9 step 1, second delay: 650-950 us before the line is raised.
@@ -701,6 +774,29 @@ sector_reader_tx_failed:
         sta PBCTL
         sec
         rts
+
+; One byte out: drop the out-ready latch, re-arm it, so the wait observes THIS
+; byte and not the previous one (bits 5 and 4 are latched); the first write
+; primes and does not wait. C=1 on timeout. Y is preserved.
+sector_reader_tx_byte:
+        tax
+        lda #IRQ_SERIN
+        sta IRQEN
+        lda #IRQ_SERIN|IRQ_SEROUT_RDY
+        sta IRQEN
+        stx SEROUT
+        ldx #IRQ_SEROUT_RDY
+        lda #BUDGET_TX
+        jmp sector_reader_wait_serial
+
+; HRM §5.6 warning: wait for output READY before output COMPLETE, or a
+; momentarily idle shift register reports complete after SEROUT has already
+; been reloaded. tx_byte has waited READY; this waits COMPLETE.
+sector_reader_tx_done:
+        ldx #IRQ_XMTDONE
+        lda #BUDGET_TX
+        jmp sector_reader_wait_serial
+
 
 ; ===========================================================================
 ; Receive one byte.  A = frame budget on entry.
@@ -754,8 +850,15 @@ sector_reader_receive_byte:
 sector_reader_wait_serial:
         stx sr_mask
         sta sr_frames_left
+        ; M5a-S2: sr_vcount_last still holds what the previous wait saw last. A
+        ; wrap since then fell between two waits - between bytes, between
+        ; sectors - and is ticked here, so the music and the summary's clock
+        ; lose no frame to the gaps; the budget starts fresh either way.
         lda VCOUNT
+        cmp sr_vcount_last
         sta sr_vcount_last
+        bcs @poll
+        jsr sector_reader_frame_tick
 @poll:
         lda IRQST
         and sr_mask
@@ -764,13 +867,148 @@ sector_reader_wait_serial:
         cmp sr_vcount_last
         sta sr_vcount_last              ; STA does not disturb the compare
         bcs @poll                       ; rose or held: still the same frame
-        dec sr_frames_left              ; it wrapped: one frame gone
+        jsr sector_reader_frame_tick    ; it wrapped: one frame gone
+        dec sr_frames_left
         bne @poll
         sec
         rts
 @asserted:
         clc
         rts
+
+; M5a-S2 (§4.8.6 (a)): every frame edge the reader waits through advances the
+; summary's clock and ticks the gameplay music if it is playing - the finished
+; level's block, still in the buffer. The reader's POKEY clock is channels 3+4
+; at volume 0; the music owns 1 and 2 and never touches AUDCTL, whose $28
+; leaves their 64 kHz base alone. The worst tick (336 cycles, GRA-2) is under
+; the ~900-cycle gap between bytes, and the edge falls in the vertical blank,
+; where ANTIC steals nothing. Y is preserved for the transmit and receive loops.
+sector_reader_frame_tick:
+        inc SUMMARY_FRAMES
+        bne :+
+        dec SUMMARY_FRAMES              ; saturate at 255
+:
+        lda MUSIC_ACTIVE
+        beq @done
+        tya
+        pha
+        jsr GAMEPLAY_MUSIC_TICK
+        pla
+        tay
+@done:
+        rts
+
+; ===========================================================================
+; M5a-S2: the stat hooks (§4.8.2, owner answers Q13 and Q14).
+;
+; The shot count is the per-frame scan Q13 chose, not an allocation hook in
+; CODE. It counts slots whose lifetime is $FF: allocate_player_fighter_
+; projectile_at_slot stores exactly that, and update_fighter_projectiles (in
+; handle_collisions, before the allocation in the same frame) decrements it
+; before the next scan can look, so each shot is seen on its allocation frame
+; and never again. A FREE -> ACTIVE edge test would miss a slot that a hit
+; frees and the next shot refills in the same frame. The scan runs once per
+; frame on whichever publication path the frame takes: fighter frames after
+; the line-238 fence (the kernel's publish vector), capital frames from the
+; debris publish; both are chosen by FIGHTER_PROJECTILE_PUBLICATION_FRAME,
+; latched once at the frame's start. ~110 cycles on a fighter frame, none of
+; them before the fence (IC).
+;
+; Heavy hits are read back from the damage mailboxes the same frame filled:
+; handle_collisions resets every source to DAMAGE_CLEANUP before the shots
+; move, so a source of DAMAGE_PLAYER_PROJECTILE means this frame's PairShots,
+; and the pending damage is how many (one unit each).
+; ===========================================================================
+stats_fighter_frame:
+        jsr stats_scan
+        jmp light_publish
+
+stats_capital_frame:
+        jsr stats_scan
+        ; The level's end (§4.8.5): the Director has completed the level and
+        ; the terminal COMPLETE - which the capital path publishes - has been
+        ; seen for LEVEL_END_HOLD_FRAMES frames with the player alive. A
+        ; capital sector's own COMPLETE has no FLAG_COMPLETE behind it.
+        lda DIRECTOR_STATE_FLAGS
+        lsr                             ; FLAG_COMPLETE -> C
+        bcc @publish
+        lda CAPITAL_SECTOR_STATE
+        cmp #CAPITAL_HULL_STATE_COMPLETE
+        bne @publish
+        lda PLAYER_LIFECYCLE
+        lsr                             ; DYING and GAME OVER are odd: hold
+        bcs @publish
+        inc STATS_END_HOLD
+        lda STATS_END_HOLD
+        cmp #LEVEL_END_HOLD_FRAMES
+        bcc @publish
+        jmp sector_reader_level_end
+@publish:
+        jmp entity_debris_publish
+
+stats_scan:
+        ldx #(PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT - 1)
+@shot:
+        ldy FIGHTER_PROJECTILE_LIFETIME,x
+        iny                             ; $FF: allocated this frame
+        bne @next_shot
+        inc STATS_SHOTS
+        bne @next_shot
+        inc STATS_SHOTS+1
+@next_shot:
+        dex
+        bpl @shot
+        ldx #(RAIDER_SLOT_COUNT - 1)
+@heavy:
+        lda ENEMY_PENDING_SOURCE,x
+        bne @next_heavy                 ; DAMAGE_PLAYER_PROJECTILE = 0
+        lda ENEMY_PENDING_DAMAGE,x
+        jsr stats_add_hits
+@next_heavy:
+        dex
+        bpl @heavy
+        rts
+
+; A Heavy's and a Light's kill share their HUD refresh: add_archetype_score_
+; tail and light_destroyed reach update_score_display through this vector.
+; Inline, not a subroutine: a Heavy kill on a rotate frame is pinned at 850
+; cycles of resolve_enemy_damage (tests/heavy-breakup.test.mjs); this costs
+; the kill 14 (the vector's jmp, the inc, the branch, the jmp on).
+stats_kill:
+        inc STATS_KILLS
+        bne :+
+        inc STATS_KILLS+1
+:
+        jmp update_score_display
+
+; Q14: a debris destroyed by a shot is one kill and three hits (it takes three);
+; one destroyed by contact is a kill and no hit.
+stats_debris_shot:
+        lda #3
+        jsr stats_add_hits
+stats_debris_contact:
+        inc STATS_KILLS
+        bne :+
+        inc STATS_KILLS+1
+:
+        jmp add_debris_score
+
+; The PairShot path of light_shot only; the contact path calls the C hit
+; directly. A and the flags C returns are left for the kernel to branch on.
+stats_light_hit:
+        lda #1
+        jsr stats_add_hits
+        jmp ENEMY_LIGHT_HIT
+
+stats_add_hits:
+        clc
+        adc STATS_HITS
+        sta STATS_HITS
+        bcc :+
+        inc STATS_HITS+1
+:
+        rts
+
 
 ; ===========================================================================
 ; Support
@@ -839,12 +1077,12 @@ sector_reader_quiesce:
         sta PBCTL
         rts
 
-; The five-byte frame and its carry wrap-around checksum (HRM ch.9 p.217).
+; The five-byte frame for the command in A and its carry wrap-around checksum
+; (HRM ch.9 p.217).
 sector_reader_build_frame:
+        sta sr_frame+1                  ; the command, from the caller
         lda #SIO_DEVICE_D1
         sta sr_frame
-        lda #SIO_CMD_READ
-        sta sr_frame+1
         lda sr_sector_lo
         sta sr_frame+2
         lda sr_sector_hi
@@ -931,26 +1169,16 @@ sector_reader_validate:
 
 
 ; ---------------------------------------------------------------------------
-; Loader-mode screen content.
+; Plain-screen content.
 ;
 ; Record lists are {dst_lo, dst_hi, text..., $00} repeated, terminated by $FF,
 ; exactly as render_frontend_data reads them. Only the frontend's own glyph
-; contract is used: A-Z, 0-9, space and a little punctuation.
+; contract is used: A-Z, 0-9, space and a little punctuation. The title is the
+; failure list's LAST record, so the title-only screen is the same bytes.
+; M5a-S2: the loader's AI lines left with the loader screen; they travel in
+; the summary's art runs (assets/text/loader-ai-lines.json, Q3).
 ; ---------------------------------------------------------------------------
-loader_records:
-        .byte <LOADER_TITLE_ROW, >LOADER_TITLE_ROW
-        .byte "VOID STRIKE 65", $00
-        .byte <LOADER_ENGAGING_ROW, >LOADER_ENGAGING_ROW
-        .byte "ENGAGING ENEMY SECTOR", $00
-        .byte <LOADER_TEXT_ROW, >LOADER_TEXT_ROW
-loader_ai_slot:
-        .res AI_LINE_BYTES, $20         ; filled from the pool at entry
-        .byte $00
-        .byte $FF
-
 failure_records:
-        .byte <LOADER_TITLE_ROW, >LOADER_TITLE_ROW
-        .byte "VOID STRIKE 65", $00
         .byte <LOADER_STATUS_ROW, >LOADER_STATUS_ROW
         .byte "DISK READ FAILED", $00
         .byte <LOADER_TEXT_ROW, >LOADER_TEXT_ROW
@@ -959,6 +1187,9 @@ failure_reason_slot:
         .byte $00
         .byte <LOADER_PROMPT_ROW, >LOADER_PROMPT_ROW
         .byte "PRESS FIRE", $00
+title_record:
+        .byte <LOADER_TITLE_ROW, >LOADER_TITLE_ROW
+        .byte "VOID STRIKE 65", $00
         .byte $FF
 
 ; Two words per status, in status order, ten characters each.
@@ -968,18 +1199,14 @@ failure_reasons:
         .byte "BAD DISK  "   ; status 3 DEVICE_ERROR
         .byte "WRONG DISK"   ; status 4 BAD_IMAGE
 
-; The AI line pool: four lines of 38 characters, creative text converted from
-; assets/text/loader-ai-lines.json by scripts/loader-ai-lines.mjs (LICENSE-ASSETS,
-; "Mixed files"). M5a-S1 cut it from eight to four (Q3) to pay for the overlay
-; run read; decision O's 8-16 stays the format the hangar screen restores.
-.include "loader-ai-lines.inc"
-.assert (ai_line_pool_end - ai_line_pool) = AI_LINE_COUNT * AI_LINE_BYTES, error, "the AI text pool is not AI_LINE_COUNT x 38 B"
-.assert (AI_LINE_COUNT & (AI_LINE_COUNT - 1)) = 0 && AI_LINE_COUNT * AI_LINE_BYTES <= 256, error, "the AI pool must be a power-of-two count indexable in one byte"
-
 ; M5a-S1: set by a transition that put another overlay into slot A (the boss,
 ; M5b), cleared once the capital restore run has landed. In the reader's own
 ; transported image, so it is 0 at every cold start (RESET is one).
 sr_slot_a_overlaid:
+        .byte $00
+; M5a-S2: the $0500 module has been read this session. Same lifetime: 0 at
+; every cold start, set once by sector_reader_ensure_summary.
+sr_summary_resident:
         .byte $00
 
 ; ---------------------------------------------------------------------------
@@ -990,7 +1217,7 @@ sr_slot_a_overlaid:
 .include "level-directory.inc"
 
 ; ---------------------------------------------------------------------------
-; M5a-S1: the overlay directory (8 x 5 B), slot A's bounds and the capital
+; M5a-S1: the overlay directory (M5a-S2: 9 x 5 B), slot A's bounds and the capital
 ; vector table image, generated by scripts/build.mjs from the linked main image
 ; and the runs it placed from sector 512. Defines overlay_directory and
 ; capital_vector_image.
@@ -1005,12 +1232,20 @@ sr_slot_a_overlaid:
 .assert >sector_reader_rx_loop = >sector_reader_rx_loop_end, error, "sector reader receive loop crosses a page"
 .assert >sector_reader_tx_loop = >sector_reader_tx_loop_end, error, "sector reader transmit loop crosses a page"
 .assert (sector_reader_directory_end - sector_reader_directory) = LEVEL_MAX_ID * 3, error, "level directory is not 16 x 3 B"
-.assert (overlay_directory_end - overlay_directory) = OVERLAY_DIRECTORY_ENTRIES * 5, error, "overlay directory is not 8 x 5 B"
+.assert (overlay_directory_end - overlay_directory) = OVERLAY_DIRECTORY_ENTRIES * 5, error, "overlay directory is not OVERLAY_DIRECTORY_ENTRIES x 5 B"
+.assert OVERLAY_SAVE_RECORD = 7 && OVERLAY_SUMMARY_CODE = 8, error, "the summary's directory entries moved"
+.assert SAVE_RECORD_BUFFER + 2 * SECTOR_BYTES <= $7BD0, error, "the record and its read-back leave the pause backup"
 .assert (capital_vector_image_end - capital_vector_image) = CAPITAL_VECTOR_COUNT * 3, error, "capital vector image does not match the window table"
 
 .export sector_reader_directory, overlay_directory, capital_vector_image
 .export sector_reader_read_run, sector_reader_read_sectors, sector_reader_restore_capital
-.export sr_slot_a_overlaid
+.export sr_slot_a_overlaid, sr_summary_resident
+.export SAVE_RECORD_SECTOR, SAVE_RECORD_ENTRY, sector_reader_restore_if_overlaid
+.export sector_reader_tx_done
+.export sector_reader_level_end, sector_reader_ensure_summary, sector_reader_failure_screen
+.export sector_reader_frame_tick, sector_reader_animate, sector_reader_tx_byte
+.export stats_fighter_frame, stats_capital_frame, stats_kill, stats_debris_shot
+.export stats_debris_contact, stats_light_hit, stats_scan
 .export sector_reader_wait_serial, sector_reader_receive_byte
 .export sector_reader_send_command, sector_reader_read_sector
 .export sector_reader_lookup, sector_reader_resident_hit, sector_reader_validate

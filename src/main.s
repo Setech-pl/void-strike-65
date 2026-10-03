@@ -179,6 +179,17 @@ SECTOR_READER_ENTRY = $A000     ; teardown, loader screen, read, start_gameplay
 SECTOR_READER_LOAD  = $A003     ; A = level id (roadmap 4.9)
 SECTOR_READER_READ_RUN = $A006  ; X = overlay run (M5a-S1, owner Q11)
 SECTOR_READER_DRAIN = $A009     ; reserved for roadmap 4.9
+; M5a-S2 (docs/plans/m5-loading-boss.md §4.8.2): the level-summary stat hooks,
+; behind the reader's fixed vectors. Every site below is an operand-only
+; re-point, so no byte moves in a full segment and none lands in the initial
+; block (owner decision 27, answer Q13).
+SECTOR_READER_STATS_FIGHTER        = $A00C  ; the Light kernel's publish vector
+SECTOR_READER_STATS_CAPITAL        = $A00F  ; capital frames; the level's end
+SECTOR_READER_STATS_KILL           = $A012  ; a kill's HUD refresh
+SECTOR_READER_STATS_DEBRIS_SHOT    = $A015  ; a debris destroyed by a shot (Q14)
+SECTOR_READER_STATS_DEBRIS_CONTACT = $A018  ; a debris destroyed by contact
+SECTOR_READER_STATS_LIGHT_HIT      = $A01B  ; a Light hit by a PairShot
+.export ACTIVE_GAMEPLAY_FRAME_LO
 HUD_CHARSET = $5000
 CAPITAL_HULL_RUNTIME_ALLIED = $4C00
 CAPITAL_HULL_RUNTIME_ENEMY  = $4D20
@@ -11850,7 +11861,7 @@ provisional_capital_broadside_request:
 ; add_debris_score's ~105, only on the frame a contact destroys the debris —
 ; a frame that already runs the release and the player-damage paths.
 debris_contact_destroyed:
-    jsr add_debris_score
+    jsr SECTOR_READER_STATS_DEBRIS_CONTACT ; M5a-S2: a kill, then the score
 integration_debris_release:
     ldx #DIRECTOR_HAZARD_DEBRIS
     jsr DIRECTOR_RELEASE
@@ -11871,7 +11882,7 @@ add_archetype_score_tail:
     adc #$00
     sta score_bcd_hi
     cld
-    jmp update_score_display
+    jmp SECTOR_READER_STATS_KILL ; M5a-S2: one kill, then update_score_display
 
 .segment "PICKUP_CODE"
 ; Roadmap 4.6 step 2 retired the provisional Interceptor request wrapper here.
@@ -12042,7 +12053,7 @@ heavy_breakup_offsets:
 ; MEASURED-ESTIMATE ~30 cycles on a frame that has no capsule pending, only on
 ; the frame a shot destroys debris.
 debris_shot_reward:
-    jsr add_debris_score
+    jsr SECTOR_READER_STATS_DEBRIS_SHOT ; M5a-S2 (Q14): a kill, three hits, the score
     lda ENTITY_STATE+WEAPON_PICKUP_SLOT
     bne @done
     inc ENTITY_HP+WEAPON_PICKUP_SLOT
@@ -12984,7 +12995,7 @@ entity_debris_publish:
 render_launch_flashes_with_capital_debris:
     lda FIGHTER_PROJECTILE_PUBLICATION_FRAME
     beq :+
-    jsr entity_debris_publish
+    jsr SECTOR_READER_STATS_CAPITAL ; M5a-S2: the shot scan, then the debris publish
 :
     jmp CAPITAL_VECTOR_RENDER_FLASHES
 

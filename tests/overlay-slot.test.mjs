@@ -175,12 +175,15 @@ test("the reader's overlay directory and table image match the disk and the wind
   const reader = read("build/sector-reader.bin");
   const base = manifest.sectorReader.address;
   const directory = reader.subarray(readerLabels.get("overlay_directory") - base,
-    readerLabels.get("overlay_directory") - base + 8 * 5);
+    readerLabels.get("overlay_directory") - base + 9 * 5);
   const [run] = manifest.overlays.runs;
   assert.deepEqual([...directory.subarray(0, 5)], [run.startSector & 0xff,
     run.startSector >> 8, run.sectors, run.destination & 0xff, run.destination >> 8]);
-  assert.ok(directory.subarray(5).every((byte) => byte === 0),
-    "entries 1-7 must read as not on this disk until their sessions fill them");
+  // RE-POINTED 2026-10-03 (M5a-S2): entries 6-8 are the level summary's
+  // (art, save record, module; tests/level-summary-build.test.mjs pins them),
+  // and the directory grew to nine. Entries 1-5 stay M5b's, empty.
+  assert.ok(directory.subarray(5, 6 * 5).every((byte) => byte === 0),
+    "entries 1-5 must read as not on this disk until M5b fills them");
 
   const vectors = manifest.overlays.capitalVectors;
   const image = reader.subarray(readerLabels.get("capital_vector_image") - base,
@@ -194,21 +197,24 @@ test("the reader's overlay directory and table image match the disk and the wind
   assert.equal(reader.readUInt16LE(10), readerLabels.get("sector_reader_drain_ready"));
 });
 
+// RE-POINTED 2026-10-03 (M5a-S2, Q3: "S2 moves every text to disk"): the four
+// lines left the reader with the loader screen and travel in every region's
+// summary art run, generated from the same asset.
 test("the AI pool holds exactly four lines generated from the assets source", () => {
   const source = JSON.parse(read("assets/text/loader-ai-lines.json").toString("utf8"));
   assert.equal(source.lines.length, 4);
-  const reader = read("build/sector-reader.bin");
-  const base = manifest.sectorReader.address;
-  const pool = reader.subarray(readerLabels.get("ai_line_pool") - base,
-    readerLabels.get("ai_line_pool_end") - base);
-  assert.equal(pool.length, 4 * 38);
-  assert.equal(pool.toString("latin1"),
-    source.lines.map((line) => line.padEnd(38, " ")).join(""));
+  const { layout, runs } = manifest.levelSummary.art;
+  for (const run of runs) {
+    const bytes = read(`build/${run.file}`);
+    const lines = Array.from({ length: 4 }, (_, index) =>
+      bytes.subarray(layout.ai + index * 42 + 2, layout.ai + index * 42 + 40).toString("latin1"));
+    assert.deepEqual(lines, source.lines.map((line) => line.padEnd(38, " ")),
+      `region ${run.region}'s run does not carry the asset's four lines`);
+  }
   // Creative text is an asset (LICENSE-ASSETS, "Mixed files"): no line is
-  // typed into the reader's source, which only includes the generated pool.
+  // typed into src/, and the reader no longer carries a pool at all.
   const asm = read("src/hybrid/sector-reader.s").toString("utf8");
-  assert.match(asm, /^\.include "loader-ai-lines\.inc"$/m);
-  assert.match(asm, /^AI_LINE_COUNT {2}= 4$/m);
+  assert.doesNotMatch(asm, /ai_line_pool|loader-ai-lines\.inc/);
   for (const line of source.lines) assert.ok(!asm.includes(line), `"${line}" is typed into src/`);
-  assert.match(read("build/loader-ai-lines.inc").toString("utf8"), /assets\/text\/loader-ai-lines\.json/);
+  assert.ok(!readerLabels.has("ai_line_pool"), "the reader still links an AI pool");
 });

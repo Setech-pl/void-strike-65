@@ -74,11 +74,22 @@ export const WAVE_ARRAY_OFFSET = Object.freeze(Object.fromEntries(
 // Payload page - plan §2.3. Step 1 zeroed every block; step 5 fills the
 // appearances and the weapon looks (plan §8.3). Paths are step 6, hull_params
 // 4.8a and boss_def 4.7, so those three stay zero.
+// M5a-S2 (docs/plans/m5-loading-boss.md §4.8.3, decision 28): the level-summary
+// grade block takes the last ten bytes of the hull_params reserve (still unread;
+// 4.8a keeps 22). The plan counted 26 spare bytes on this page; the repo had
+// none outside the reserved blocks, so the block was carved from the one whose
+// consumer is furthest off.
 export const PAYLOAD_OFFSET = Object.freeze({
-  appearance: 0, path: 48, weaponGlyph: 144, hullParams: 162, bossDef: 194,
+  appearance: 0, path: 48, weaponGlyph: 144, hullParams: 162, summary: 184, bossDef: 194,
 });
 export const PAYLOAD_BLOCK_BYTES = Object.freeze({
-  appearance: 48, path: 96, weaponGlyph: 18, hullParams: 32, bossDef: 62,
+  appearance: 48, path: 96, weaponGlyph: 18, hullParams: 22, summary: 10, bossDef: 62,
+});
+// The grade's thresholds (decision 28; M8 tunes them): two accuracy tiers in
+// per cent, two time limits in whole seconds (16-bit), two lives-lost bounds,
+// and the bonus per tier point as one packed-BCD byte in score units.
+export const SUMMARY_DEFAULTS = Object.freeze({
+  accuracyPercent: [50, 75], timeSeconds: [600, 300], livesLost: [1, 0], bonusPerTier: 0,
 });
 
 // Roadmap 4.6 step 5 (plan §8.3). Three Light looks of 16 B - left cell rows
@@ -492,7 +503,34 @@ function compilePayload(source, context) {
     Buffer.from(rows).copy(page, offset);
     page[offset + 8] = target;
   }
+  compileSummary(source, context).copy(page, PAYLOAD_OFFSET.summary);
   return { page, looks: names, weaponClasses: classes };
+}
+
+// M5a-S2: the summary block. Every pair is ordered so each tier is reachable:
+// the second accuracy tier at or above the first, the second time limit and
+// lives bound at or below the first.
+function compileSummary(source, context) {
+  const summary = { ...SUMMARY_DEFAULTS, ...(source.summary ?? {}) };
+  const where = "summary";
+  const pair = (field, low, high) => {
+    const value = summary[field];
+    if (!Array.isArray(value) || value.length !== 2) {
+      fail(context, where, `summary ${field} must be a pair`);
+    }
+    value.forEach((entry) => requireInteger(context, where, `summary ${field}`, entry, low, high));
+    return value;
+  };
+  const accuracy = pair("accuracyPercent", 0, 100);
+  const time = pair("timeSeconds", 0, 0xffff);
+  const lives = pair("livesLost", 0, 255);
+  if (accuracy[1] < accuracy[0]) fail(context, where, "summary accuracyPercent must rise");
+  if (time[1] > time[0]) fail(context, where, "summary timeSeconds must fall");
+  if (lives[1] > lives[0]) fail(context, where, "summary livesLost must fall");
+  requireInteger(context, where, "summary bonusPerTier", summary.bonusPerTier, 0, 99);
+  const bcd = Number.parseInt(String(summary.bonusPerTier), 16);
+  return Buffer.from([accuracy[0], accuracy[1], time[0] & 0xff, time[0] >> 8,
+    time[1] & 0xff, time[1] >> 8, lives[0], lives[1], bcd, 0]);
 }
 
 function compileSectors(source, context, warnings) {
@@ -870,6 +908,8 @@ export function renderLevelDefCa65Include() {
   // glyph builder read (plan §8.3).
   lines.push(`LEVEL_PAYLOAD_APPEARANCE = ` +
     `$${(LEVEL_PAYLOAD_ADDRESS + PAYLOAD_OFFSET.appearance).toString(16).toUpperCase()}`);
+  lines.push(`LEVEL_PAYLOAD_SUMMARY = ` +
+    `$${(LEVEL_PAYLOAD_ADDRESS + PAYLOAD_OFFSET.summary).toString(16).toUpperCase()}`);
   lines.push(`LEVEL_PAYLOAD_WEAPON = ` +
     `$${(LEVEL_PAYLOAD_ADDRESS + PAYLOAD_OFFSET.weaponGlyph).toString(16).toUpperCase()}`);
   lines.push(`LEVEL_LIGHT_LOOK_BYTES = ${LIGHT_LOOK_BYTES}`);

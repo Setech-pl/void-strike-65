@@ -88,7 +88,13 @@ import {
   renderMenuStarsCa65Include,
 } from "./frontend-h31-assets.mjs";
 import { packBroadsideLzss, unpackBroadsideLzss } from "./broadside-lzss.mjs";
-import { loadLoaderAiLines, renderLoaderAiLinesCa65Include } from "./loader-ai-lines.mjs";
+import {
+  buildSummaryArtRuns,
+  loadSummaryArtDefinition,
+  renderSummaryLayoutInclude,
+  SUMMARY_ART_SECTORS,
+  SUMMARY_LAYOUT,
+} from "./level-summary-assets.mjs";
 import { measureRuntimeCycles } from "./runtime-cycles.mjs";
 import {
   evaluateReleaseGate,
@@ -362,7 +368,25 @@ const OVERLAY_DIRECTORY = Object.freeze([
   "boss region 4 (M5b)",
   "hangar / summary art (M5a-S2)",
   "scores / save record (M5a-S2)",
+  "level summary code (M5a-S2)",
 ]);
+// M5a-S2 (§4.8, §6.3): the summary's runs. The code reads once per session at
+// $0500; the art, one run per region at a fixed stride, is read first at every
+// transition; the save record is ONE sector the reader alone may write
+// (SAVE_RECORD_SECTOR in src/hybrid/sector-reader.s), shipped empty. Sectors
+// 528-583 stay M5b's (boss code 16 + four regions of 10).
+const OVERLAY_SUMMARY_ART = 6;
+const OVERLAY_SAVE_RECORD = 7;
+const OVERLAY_SUMMARY_CODE = 8;
+const summaryCodeSector = 584;
+// Owner decision 2026-10-03: the module's home is $0500-$0BFF (1,792 B), so its
+// run may take up to 14 sectors, 584-597, below the save record at 599.
+const summaryModuleCapacityBytes = 0x0c00 - 0x0500;
+const summaryCodeMaxSectors = summaryModuleCapacityBytes / 128;
+const saveRecordSector = 599;
+const summaryArtBaseSector = 600;
+const summaryStagingAddress = 0x7810;
+const summaryModuleAddress = 0x0500;
 // Music v2 §1.4 placement G1 (owner answer Q-P1 ACCEPTED, 2026-09-22). The
 // gameplay music player is code inside the per-level image: it sits directly
 // behind the eight-byte header and executes from $A608 once the image is in
@@ -634,6 +658,46 @@ const SECTOR_READER_MAIN_SYMBOLS = Object.freeze([
   ["start_gameplay", "the boundary the reader hands control to on success"],
   ["quit_gameplay_to_menu", "teardown to the main menu, used by the failure screen"],
   ["frontend_data_ptr", "zero-page source pointer read by render_frontend_data"],
+  // M5a-S2 (docs/plans/m5-loading-boss.md §4.8): the transitions and the stat hooks.
+  ["music_stop", "START GAME: the menu theme off, every channel silent"],
+  ["music_stop_gameplay", "the level read: the music block is about to be overwritten"],
+  ["insert_top_score", "the level's end: the game's score into TOP SCORES"],
+  ["hit_timer", "the hit SFX timer; zero gives channel 2 back to the music"],
+  ["MUSIC_ACTIVE", "the music player's live flag (menu and gameplay share it)"],
+  ["update_score_display", "the kill hook's continuation"],
+  ["add_debris_score", "the debris hooks' continuation"],
+  ["entity_debris_publish", "the capital-frame hook's continuation"],
+  ["FIGHTER_PROJECTILE_LIFETIME", "the shot scan: $FF on a slot's allocation frame"],
+  ["ENEMY_PENDING_DAMAGE", "this frame's damage per Heavy member"],
+  ["ENEMY_PENDING_SOURCE", "this frame's best damage source per Heavy member"],
+  ["CAPITAL_SECTOR_STATE", "the terminal COMPLETE the level's end waits for"],
+  ["PLAYER_LIFECYCLE", "the level's end waits while the player is dying"],
+]);
+
+// M5a-S2: what the $0500 summary module calls in main.
+const SUMMARY_MAIN_SYMBOLS = Object.freeze([
+  ["render_frontend_data", "jsr clear_screen, then the record loop (the summary enters at +3)"],
+  ["clear_screen", "clears SCREEN"],
+  ["wait_frame_start", "returns just after VCOUNT leaves zero"],
+  ["draw_top_score_bcd_byte", "two BCD digits at (dst_ptr),y"],
+  ["dst_ptr", "zero-page destination pointer"],
+  ["frontend_data_ptr", "zero-page source pointer read by render_frontend_data"],
+  ["score_bcd_lo", "the score, packed BCD"],
+  ["score_bcd_hi", "the score, packed BCD"],
+  ["MUSIC_ACTIVE", "the music player's live flag"],
+  ["PLAYER_LIFECYCLE", "PLAYER_LIVES is the byte after it"],
+  ["ACTIVE_GAMEPLAY_FRAME_LO", "the active gameplay clock, 16-bit"],
+]);
+// M5a-S2: what the $0500 summary module calls in the reader (its own link).
+const SUMMARY_READER_SYMBOLS = Object.freeze([
+  "sector_reader_read_run", "sector_reader_read_sectors", "sector_reader_load",
+  "sector_reader_resident_hit", "sector_reader_restore_if_overlaid",
+  "sector_reader_failure_screen", "sector_reader_frame_tick",
+  "sector_reader_pokey_setup", "sector_reader_send_command", "sector_reader_begin_receive",
+  "sector_reader_receive_byte", "sector_reader_tx_byte", "sector_reader_tx_done",
+  "sector_reader_quiesce", "SAVE_RECORD_ENTRY",
+  "sr_requested_id", "sr_sector_lo", "sr_sector_hi", "sr_sectors_left", "sr_dst",
+  "overlay_directory", "SAVE_RECORD_SECTOR",
 ]);
 
 // Light multiplicity step 1b (plan §3.1 [C1]): the Light ASM kernel is its own
@@ -915,21 +979,25 @@ function buildLevelImage({ id, sectors, musicBytes, hullBlock, alliedColpf1, lev
 
 // The resident directory the reader indexes by level id. Generated so the
 // sector numbers can never drift from where the build actually put the runs.
-function renderOverlayDirectoryInclude({ runs, slotAddress, slotBytes, vectorImage }) {
+function renderOverlayDirectoryInclude({ runs, slotAddress, slotBytes, vectorImage, entries = [] }) {
   const byte = (value) => `$${(value & 0xff).toString(16).padStart(2, "0")}`;
   const lines = [
     "; Generated by scripts/build.mjs for M5a-S1 - do not edit.",
-    "; Overlay directory: 8 entries of {sector_lo, sector_hi, count, dest_lo, dest_hi}.",
+    `; Overlay directory: ${OVERLAY_DIRECTORY.length} entries of {sector_lo, sector_hi, count, dest_lo, dest_hi}.`,
     "; A zero count means the build placed no run there; sector_reader_read_run",
     "; rejects it without touching SIO.",
     `OVERLAY_DIRECTORY_ENTRIES = ${OVERLAY_DIRECTORY.length}`,
     "OVERLAY_CAPITAL_SLOT_A = 0",
+    `OVERLAY_SUMMARY_ART = ${OVERLAY_SUMMARY_ART}`,
+    `OVERLAY_SAVE_RECORD = ${OVERLAY_SAVE_RECORD}`,
+    `OVERLAY_SUMMARY_CODE = ${OVERLAY_SUMMARY_CODE}`,
     `CAPITAL_SLOT_A = $${slotAddress.toString(16).toUpperCase()}`,
     `CAPITAL_SLOT_A_BYTES = ${slotBytes}`,
     "overlay_directory:",
   ];
   OVERLAY_DIRECTORY.forEach((name, index) => {
-    const run = runs.find((entry) => entry.index === index);
+    const run = runs.find((entry) => entry.index === index) ??
+      entries.find((entry) => entry.index === index);
     lines.push(run
       ? `        .byte ${byte(run.startSector)}, ${byte(run.startSector >> 8)}, ${run.sectors}, ` +
         `${byte(run.destination)}, ${byte(run.destination >> 8)}\t; ${index}: ${name}, ` +
@@ -2111,6 +2179,9 @@ async function build() {
     stem: "light-kernel",
     extraInputs: {
       "/project/build/light-kernel-abi.inc": Buffer.from(lightKernelMainAbiInclude),
+      // M5a-S2: the reader's fixed stat vectors the kernel's re-points name.
+      "/project/build/level-summary-abi.inc": fs.readFileSync(
+        path.join(rootDirectory, "src", "hybrid", "level-summary-abi.inc")),
       "/project/build/capital-vectors.inc": Buffer.from(capitalVectorsInclude),
       "/project/build/director-abi.inc": directorAbiInclude,
       "/project/build/fighter-weapons.inc": fighterWeaponsInclude,
@@ -2170,16 +2241,53 @@ async function build() {
       throw new Error(`M5a-S1: the window's ${constant} is not jmp $${address.toString(16)}`);
     }
   });
-  const overlayDirectoryInclude = renderOverlayDirectoryInclude({
+  // M5a-S2: the summary's art runs, one per region, from assets. They are
+  // placed before the reader links so the directory can name region 1's run.
+  const summaryArtSource = path.join(rootDirectory, "assets", "graphics", "level-summary.json");
+  const summaryArtRuns = buildSummaryArtRuns({
+    definition: loadSummaryArtDefinition(summaryArtSource),
+    hullAsset: JSON.parse(fs.readFileSync(capitalHullsDefinitionPath, "utf8")),
+    aiLinesPath: path.join(rootDirectory, "assets", "text", "loader-ai-lines.json"),
+  }).map((run, index) => ({
+    ...run,
+    startSector: summaryArtBaseSector + index * SUMMARY_ART_SECTORS,
+    sectors: SUMMARY_ART_SECTORS,
+    file: `level-summary-art-${run.region}.bin`,
+  }));
+  const summaryLayoutInclude = renderSummaryLayoutInclude();
+  writeFile(path.join(buildDirectory, "level-summary-layout.inc"), summaryLayoutInclude);
+  // The summary module links after the reader (it calls the reader), but the
+  // reader's directory names the module's sector count: the reader links once
+  // with the region's full 14 sectors, the module links, and the reader is
+  // relinked with the real count - one data byte, which moves no label (checked).
+  const summaryDirectoryEntries = (codeSectors) => [
+    { index: OVERLAY_SUMMARY_ART, startSector: summaryArtRuns[0].startSector,
+      sectors: SUMMARY_ART_SECTORS, destination: summaryStagingAddress },
+    { index: OVERLAY_SAVE_RECORD, startSector: saveRecordSector, sectors: 1,
+      destination: summaryStagingAddress },
+    { index: OVERLAY_SUMMARY_CODE, startSector: summaryCodeSector,
+      sectors: codeSectors, destination: summaryModuleAddress },
+  ];
+  const renderDirectory = (codeSectors) => renderOverlayDirectoryInclude({
     runs: overlayRuns, slotAddress, slotBytes: capitalSlotImage.length,
-    vectorImage: capitalVectorImage,
+    vectorImage: capitalVectorImage, entries: summaryDirectoryEntries(codeSectors),
   });
-  writeFile(path.join(buildDirectory, "overlay-directory.inc"), overlayDirectoryInclude);
-  const loaderAiLinesInclude = renderLoaderAiLinesCa65Include(loadLoaderAiLines(
-    path.join(rootDirectory, "assets", "text", "loader-ai-lines.json")));
-  writeFile(path.join(buildDirectory, "loader-ai-lines.inc"), loaderAiLinesInclude);
+  let overlayDirectoryInclude = renderDirectory(summaryCodeMaxSectors);
+  const levelSummaryAbiInclude = fs.readFileSync(
+    path.join(rootDirectory, "src", "hybrid", "level-summary-abi.inc"));
+  const lightKernelLabels = parseViceLabels(lightKernelModule.labels.toString("utf8"));
+  const lightKernelLabelsInclude = [
+    "; Generated by scripts/build.mjs for M5a-S2 - do not edit.",
+    "; The Light kernel's entries the sector reader's stat hooks continue into.",
+    ...["light_publish"].map((name) => {
+      const address = lightKernelLabels.get(name);
+      if (!Number.isInteger(address)) throw new Error(`M5a-S2: the Light kernel has no ${name}`);
+      return `${name} = $${address.toString(16).toUpperCase()}`;
+    }),
+    "",
+  ].join("\n");
 
-  const sectorReaderModule = await buildResidentModule({
+  const linkSectorReader = () => buildResidentModule({
     sourcePath: path.join(rootDirectory, "src", "hybrid", "sector-reader.s"),
     configPath: path.join(rootDirectory, "cfg", "sector-reader.cfg"),
     stem: "sector-reader",
@@ -2191,10 +2299,103 @@ async function build() {
       "/project/build/main-abi.inc": Buffer.from(sectorReaderMainAbiInclude),
       "/project/build/director-abi.inc": directorAbiInclude,
       "/project/build/overlay-directory.inc": Buffer.from(overlayDirectoryInclude),
-      "/project/build/loader-ai-lines.inc": Buffer.from(loaderAiLinesInclude),
+      "/project/build/level-summary-abi.inc": levelSummaryAbiInclude,
+      "/project/build/light-kernel-labels.inc": Buffer.from(lightKernelLabelsInclude),
+      "/project/build/fighter-weapons.inc": fighterWeaponsInclude,
+      "/project/build/capital-hulls.inc": capitalHullsInclude,
+      "/project/build/gameplay-music-abi.inc": Buffer.from(gameplayMusicAbiInclude),
     },
   });
-  const sectorReaderLabels = parseViceLabels(sectorReaderModule.labels.toString("utf8"));
+  let sectorReaderModule = await linkSectorReader();
+  let sectorReaderLabels = parseViceLabels(sectorReaderModule.labels.toString("utf8"));
+  if (sectorReaderLabels.get("SAVE_RECORD_SECTOR") !== saveRecordSector) {
+    throw new Error("M5a-S2: the reader's SAVE_RECORD_SECTOR is not the directory's record sector");
+  }
+
+  // M5a-S2: the $0500 summary module, its own link after the reader.
+  if (linkedPayload[labels.get("render_frontend_data") - loadAddress] !== 0x20 ||
+    linkedPayload.readUInt16LE(labels.get("render_frontend_data") - loadAddress + 1) !==
+      labels.get("clear_screen")) {
+    throw new Error("M5a-S2: render_frontend_data no longer starts `jsr clear_screen`; " +
+      "the summary's record entry at +3 would draw from the wrong place");
+  }
+  const summaryMainAbiInclude = SUMMARY_MAIN_SYMBOLS.map(([name, note]) => {
+    const address = labels.get(name);
+    if (!Number.isInteger(address)) throw new Error(`M5a-S2: main has no ${name}`);
+    return `${name.padEnd(28)} = $${address.toString(16).toUpperCase().padStart(4, "0")}   ; ${note}`;
+  }).join("\n") + "\n";
+  writeFile(path.join(buildDirectory, "summary-main-abi.inc"), summaryMainAbiInclude);
+  const summaryReaderAbiInclude = [
+    ...SUMMARY_READER_SYMBOLS.map((name) => {
+      const address = sectorReaderLabels.get(name);
+      if (!Number.isInteger(address)) throw new Error(`M5a-S2: the reader has no ${name}`);
+      return `${name.padEnd(36)} = $${address.toString(16).toUpperCase().padStart(4, "0")}`;
+    }),
+    `OVERLAY_SUMMARY_ART = ${OVERLAY_SUMMARY_ART}`,
+    `OVERLAY_SAVE_RECORD = ${OVERLAY_SAVE_RECORD}`,
+    "",
+  ].join("\n");
+  writeFile(path.join(buildDirectory, "summary-reader-abi.inc"), summaryReaderAbiInclude);
+  const levelSummaryModule = await buildResidentModule({
+    sourcePath: path.join(rootDirectory, "src", "hybrid", "level-summary.s"),
+    configPath: path.join(rootDirectory, "cfg", "level-summary.cfg"),
+    stem: "level-summary",
+    extraInputs: {
+      "/project/build/level-summary-abi.inc": levelSummaryAbiInclude,
+      "/project/build/level-summary-layout.inc": Buffer.from(summaryLayoutInclude),
+      "/project/build/summary-main-abi.inc": Buffer.from(summaryMainAbiInclude),
+      "/project/build/summary-reader-abi.inc": Buffer.from(summaryReaderAbiInclude),
+      "/project/build/gameplay-music-abi.inc": Buffer.from(gameplayMusicAbiInclude),
+      "/project/build/level-def.inc": levelDefInclude,
+      "/project/build/capital-hulls.inc": capitalHullsInclude,
+    },
+  });
+  writeFile(path.join(buildDirectory, "level-summary.lst"), levelSummaryModule.listing);
+  writeFile(path.join(buildDirectory, "level-summary.map"), levelSummaryModule.map);
+  writeFile(path.join(buildDirectory, "level-summary.lbl"), levelSummaryModule.labels);
+  if (levelSummaryModule.raw.length > summaryModuleCapacityBytes) {
+    throw new Error(`M5a-S2: the summary module is ${levelSummaryModule.raw.length} B; its ` +
+      `claimed home $0500-$0BFF holds ${summaryModuleCapacityBytes}`);
+  }
+  const summaryCodeSectors = Math.ceil(levelSummaryModule.raw.length / 128);
+  overlayDirectoryInclude = renderDirectory(summaryCodeSectors);
+  {
+    const firstPass = sectorReaderLabels;
+    sectorReaderModule = await linkSectorReader();
+    sectorReaderLabels = parseViceLabels(sectorReaderModule.labels.toString("utf8"));
+    for (const [name, address] of firstPass) {
+      if (sectorReaderLabels.get(name) !== address) {
+        throw new Error(`M5a-S2: relinking the reader with the summary's sector count moved ${name}`);
+      }
+    }
+  }
+  writeFile(path.join(buildDirectory, "overlay-directory.inc"), overlayDirectoryInclude);
+  const summaryCodeRun = {
+    startSector: summaryCodeSector,
+    sectors: summaryCodeSectors,
+    data: Buffer.concat([levelSummaryModule.raw,
+      Buffer.alloc(summaryCodeSectors * 128 - levelSummaryModule.raw.length)]),
+  };
+  const summaryDiskRuns = [summaryCodeRun, ...summaryArtRuns];
+  for (const run of summaryDiskRuns) {
+    const last = run.startSector + run.sectors - 1;
+    if (run.data.length > run.sectors * 128 || last > chunkLoaderConstants.atrSectors) {
+      throw new Error(`M5a-S2: a summary run at sector ${run.startSector} does not fit`);
+    }
+    if (run.startSector <= saveRecordSector && saveRecordSector <= last) {
+      throw new Error(`M5a-S2: a summary run at sector ${run.startSector} covers the save record`);
+    }
+    for (const other of [...levelRuns.map((level) => ({ startSector: level.startSector,
+      sectors: levelBufferSectors })), ...overlayRuns, { startSector: 528, sectors: 56 }]) {
+      if (run.startSector < other.startSector + other.sectors &&
+        other.startSector < last + 1) {
+        throw new Error(`M5a-S2: a summary run at sector ${run.startSector} overlaps sector ` +
+          `${other.startSector}`);
+      }
+    }
+  }
+  writeFile(path.join(buildDirectory, "level-summary.bin"), levelSummaryModule.raw);
+  for (const run of summaryArtRuns) writeFile(path.join(buildDirectory, run.file), run.data);
   if (sectorReaderModule.raw.length > sectorReaderCapacityBytes) {
     throw new Error(`4.3 sector reader exceeds $A000-$A5FF: ` +
       `${sectorReaderModule.raw.length} of ${sectorReaderCapacityBytes} B`);
@@ -2692,6 +2893,7 @@ async function build() {
   const atr = makeAtr(transportPayload, [
     ...levelRuns.map((run) => ({ startSector: run.startSector, data: levelImages.get(run.id) })),
     ...overlayRuns.map((run) => ({ startSector: run.startSector, data: run.data })),
+    ...summaryDiskRuns.map((run) => ({ startSector: run.startSector, data: run.data })),
   ]);
   const runtimeArtifacts = runtimeArtifactSet({ boot: transportPayload, atr });
   const cpuRuntimeTiming = isReviewVariant || twoPmgRaiderPrototype || skipRuntimeMeasurement
@@ -2723,6 +2925,9 @@ async function build() {
         ? directorModule.codeSegments
         : [...directorModule.codeSegments, directorModule.windowSegment]),
       { runAddress: lightKernelAddress, data: lightKernelModule.raw },
+      // M5a-S2: the stat hooks are the reader's, reached through its fixed
+      // vectors from the kernel and from main, so the reader is placed too.
+      { runAddress: sectorReaderAddress, data: sectorReaderModule.raw },
       // Music v2 §1.4: the gameplay music player executes from the level
       // buffer, so the CPU harness has to place the level image's music block
       // exactly as the loader does.
@@ -3167,7 +3372,37 @@ async function build() {
         names: OVERLAY_DIRECTORY,
       },
       slotAOverlaidFlag: sectorReaderLabels.get("sr_slot_a_overlaid"),
-      aiLines: { count: 4, bytesPerLine: 38, source: "assets/text/loader-ai-lines.json" },
+      summaryResidentFlag: sectorReaderLabels.get("sr_summary_resident"),
+    },
+    // M5a-S2 (docs/plans/m5-loading-boss.md §4.8): the level-summary screen.
+    levelSummary: {
+      code: {
+        address: summaryModuleAddress,
+        bytes: levelSummaryModule.raw.length,
+        endExclusive: summaryModuleAddress + summaryModuleCapacityBytes,
+        capacityBytes: summaryModuleCapacityBytes,
+        freeBytes: summaryModuleCapacityBytes - levelSummaryModule.raw.length,
+        maxSectors: summaryCodeMaxSectors,
+        startSector: summaryCodeSector,
+        sectors: summaryCodeSectors,
+        file: "level-summary.bin",
+        displayList: levelSummaryModule.labels.toString("utf8").match(
+          /^al ([0-9A-F]+) \.summary_display_list$/im)?.[1] ?? null,
+      },
+      art: {
+        source: "assets/graphics/level-summary.json",
+        aiLinesSource: "assets/text/loader-ai-lines.json",
+        sectorsPerRegion: SUMMARY_ART_SECTORS,
+        staging: summaryStagingAddress,
+        layout: SUMMARY_LAYOUT,
+        runs: summaryArtRuns.map(({ region, hullStyle, startSector, sectors, data, usedBytes, file }) =>
+          ({ region, hullStyle, startSector, sectors, bytes: data.length, usedBytes, file,
+            sha256: sha256(data) })),
+      },
+      saveRecord: { sector: saveRecordSector, buffer: summaryStagingAddress, bytes: 128,
+        shipped: "empty (all zero): BEST reads -- until the player earns one" },
+      statBlock: { address: 0xac, bytes: 10 },
+      mboss: { reservedSectors: [528, 583] },
     },
     // M5a-S1 (docs/plans/m5-loading-boss.md §4.1): overlay slot A and the
     // capital vector table. Restore variant (b): the capital group stays in its

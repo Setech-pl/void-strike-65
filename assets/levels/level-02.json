@@ -107,6 +107,13 @@
   "nebula": 0,
   "boss": 0,
   "pickupPolicy": 3,
+  "summary": {
+    "_": "M5a-S2 grade thresholds (decision 28), placeholders M8 tunes: accuracy tiers at these per cents, time tiers at or under these seconds, lives tiers at or under these losses; bonusPerTier is score units per tier point, 0 until M8.",
+    "accuracyPercent": [40, 70],
+    "timeSeconds": [210, 200],
+    "livesLost": [1, 0],
+    "bonusPerTier": 0
+  },
   "hull": {
     "length": 1,
     "turrets": 3

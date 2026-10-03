@@ -38,6 +38,8 @@
 .include "light-kernel-abi.inc"
 ; Roadmap 4.6 step 5: LEVEL_PAYLOAD_APPEARANCE, the level page's three looks.
 .include "level-def.inc"
+; M5a-S2: the reader's fixed stat vectors (SECTOR_READER_STATS_*).
+.include "level-summary-abi.inc"
 
 .import __LIGHT_KERNEL_RUN__, __LIGHT_KERNEL_RAM_LAST__
 ; The two halves cannot overlap and the ASM half cannot reach the sector
@@ -100,7 +102,9 @@ LIGHT_BACKING1 = LIGHT_BACKING0+1
 ; and to nothing else in this file. Order is a contract - build.mjs derives
 ; LIGHT_KERNEL_* from it by index - so entries are only ever APPENDED.
 light_kernel_vectors:
-    jmp light_publish
+    ; M5a-S2: the publish vector enters the reader's per-frame shot scan first
+    ; (after the line-238 fence), which continues into light_publish.
+    jmp SECTOR_READER_STATS_FIGHTER
     jmp light_update
     jmp light_shot
     jmp light_backing
@@ -497,7 +501,7 @@ light_shot:
     bcs @next
     lda #FIGHTER_PROJECTILE_FREE
     sta FIGHTER_PROJECTILE_ACTIVE,x
-    jsr ENEMY_LIGHT_HIT
+    jsr SECTOR_READER_STATS_LIGHT_HIT ; M5a-S2: one hit, then ENEMY_LIGHT_HIT
     tay
     beq :+
     jsr light_destroyed
@@ -530,7 +534,7 @@ light_destroyed:
     lda LIGHT_ARCHETYPE_OFFSET,x ; C names the selected Light record
     tax
     jsr light_add_score          ; BROADSIDE pad; C-owned record value
-    jsr update_score_display
+    jsr SECTOR_READER_STATS_KILL ; M5a-S2: one kill, then update_score_display
     jmp play_hit_sound
 
 ; The expensive half on its own, so the deferred path can reach it.

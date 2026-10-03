@@ -164,20 +164,28 @@ test("the despawn path does not score", () => {
 // The two sites are the only player-caused destructions of debris; the despawn,
 // fall-through and sector-boundary releases reach integration_debris_release
 // without passing either.
+// RE-POINTED 2026-10-03 (M5a-S2): each of the two sites reaches add_debris_score
+// through its own reader stat vector (a shot: a kill and three hits, Q14; a
+// contact: a kill), which continues into add_debris_score. Still exactly two
+// player-caused callers, and nothing else reaches the award.
 test("only the two player-caused destruction paths call add_debris_score", () => {
   const callers = source.split(/\r?\n/)
-    .filter((line) => /\b(jsr|jmp)\s+add_debris_score\b/.test(line));
+    .filter((line) => /\b(jsr|jmp)\s+(add_debris_score|SECTOR_READER_STATS_DEBRIS_(SHOT|CONTACT))\b/
+      .test(line));
   assert.equal(callers.length, 2, "add_debris_score must have exactly two call sites");
+  const reader = fs.readFileSync(path.join(root, "src/hybrid/sector-reader.s"), "utf8");
+  assert.equal((reader.match(/jmp add_debris_score/g) ?? []).length, 1,
+    "the reader's two debris vectors share one continuation into add_debris_score");
   // Re-recorded 2026-09-22: the shot path reaches add_debris_score through
   // debris_shot_reward, which is where the capsule count lives. The contact
   // path is untouched, which is exactly what makes a ram kill not count.
   assert.match(source,
     /entity_debris_destroyed:\s*\n\s*jsr spawn_debris_destruction_effects\s*\n\s*jsr integration_debris_release\s*\n\s*jsr debris_shot_reward/);
-  assert.match(source, /debris_shot_reward:\s*\n\s*jsr add_debris_score/);
+  assert.match(source, /debris_shot_reward:\s*\n\s*jsr SECTOR_READER_STATS_DEBRIS_SHOT/);
   // The contact site is a three-byte BROADSIDE prologue that falls through into
   // the unchanged release wrapper, so ENTITY_CODE stays size-neutral.
   assert.match(source,
-    /debris_contact_destroyed:\s*\n\s*jsr add_debris_score\s*\nintegration_debris_release:/);
+    /debris_contact_destroyed:\s*\n\s*jsr SECTOR_READER_STATS_DEBRIS_CONTACT[^\n]*\nintegration_debris_release:/);
   assert.match(source, /entity_damage_applied:(?:\s*\n\s*;[^\n]*)*\s*\n\s*jmp debris_contact_destroyed/);
   // The shared mechanism: packed-BCD add then the shared HUD refresh, exactly
   // as light_add_score / add_archetype_score_tail do.

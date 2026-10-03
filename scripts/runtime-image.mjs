@@ -104,6 +104,13 @@ export function loadRuntimeSegments(rootDirectory,
         ["lightKernel", "light-kernel.bin",
           manifest.lightKernel.address, manifest.lightKernel.bytes],
       ]),
+      // M5a-S2: the level-summary stat hooks are the reader's, reached from
+      // the kernel and from main through its fixed vectors at $A00C-$A01B, so
+      // the reader is resident for every runtime harness too.
+      ...(manifest.sectorReader == null ? [] : [
+        ["sectorReader", "sector-reader.bin", manifest.sectorReader.address,
+          manifest.sectorReader.bytes],
+      ]),
       ...(manifest.residentCapacity?.window == null ? [] : [
         ["residentWindow", "resident-window-runtime.bin",
           manifest.residentCapacity.window.address,

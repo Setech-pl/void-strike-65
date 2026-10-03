@@ -582,9 +582,10 @@ test("tier sums map to S / A / B / C at their edges", () => {
   assert.deepEqual(at(10, 180, 1), { letter: "B", tiers: 2 });
   assert.deepEqual(at(10, 250, 1), { letter: "C", tiers: 1 });
   assert.deepEqual(at(10, 250, 3), { letter: "C", tiers: 0 });
-  // "A perfect aim with slow play and a death can still reach A" (§4.8.3).
-  assert.equal(at(100, 190, 1).letter, "B");
-  assert.equal(at(100, 170, 1).letter, "A");
+  // "A perfect aim with slow play and a death can still reach A" (§4.8.3):
+  // slow = time tier 1 reaches A; slower than the first limit (tier 0) is B.
+  assert.equal(at(100, 190, 1).letter, "A");
+  assert.equal(at(100, 250, 1).letter, "B");
 });
 
 // ==========================================================================
@@ -633,7 +634,7 @@ function startGame(drive, { memory = runtimeMemory(), maxSteps = 120_000_000 } =
           entry.dlist === summary("summary_display_list"));
         if (on) {
           firstSummaryFrame = on.frame;
-          snapshot = Uint8Array.from(memory.subarray(SCREEN, SCREEN + 0x400));
+          snapshot = Uint8Array.from(memory);
         }
       }
     },
@@ -758,7 +759,7 @@ function levelEnd(drive, { setup = () => {} } = {}) {
           entry.dlist === summary("summary_display_list"));
         if (on) {
           firstSummaryFrame = on.frame;
-          snapshot = Uint8Array.from(memory.subarray(SCREEN, SCREEN + 0x400));
+          snapshot = Uint8Array.from(memory);
         }
       }
     },

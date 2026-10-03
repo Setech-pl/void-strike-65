@@ -61,17 +61,65 @@ test("the overlay directory has nine entries; the summary code is entry 8 at $05
   }
 });
 
-test("the summary module is at most four sectors at $0500 and on the disk byte for byte", () => {
+test("the summary module fits its claimed home $0500-$0BFF and is on the disk byte for byte", () => {
+  // Owner decision 2026-10-03: the module MEASURED 1,359 B in its first build
+  // (+~110 B write path) against the plan's 480-B estimate, so it lives at
+  // $0500-$0BFF - the splash RAM plus $0700-$0BFF - still read once per session.
   const image = fs.readFileSync(build("level-summary.bin"));
   const { code } = levelSummary;
   assert.equal(code.address, 0x0500);
-  assert.ok(image.length <= 512, `the $0500 module is ${image.length} B of the 512 the splash RAM has`);
+  assert.equal(code.endExclusive, 0x0c00);
+  assert.ok(image.length <= 0x0700, `the module is ${image.length} B of the 1,792 its home has`);
   assert.equal(code.sectors, Math.ceil(image.length / SECTOR_BYTES));
+  assert.ok(code.sectors <= 14);
   assert.equal(code.startSector, 584);
+  assert.ok(code.startSector + code.sectors - 1 < SAVE_SECTOR, "the code run reaches the save record");
   const onDisk = atrSectors(code.startSector, code.sectors);
   assert.ok(onDisk.subarray(0, image.length).equals(image));
   // The module's two entries: START GAME and the level's end.
   assert.deepEqual([image[0], image[3]], [0x4c, 0x4c]);
+});
+
+test("$0700-$0BFF is claimed: no link, cfg area or boot-path range but the summary's reaches it", () => {
+  const CLAIM = [0x0700, 0x0c00];
+  const overlaps = (start, endExclusive) => start < CLAIM[1] && CLAIM[0] < endExclusive;
+  // Every segment every link placed.
+  for (const file of fs.readdirSync(path.join(root, "build")).filter((name) => name.endsWith(".map"))) {
+    const text = fs.readFileSync(build(file), "utf8");
+    const list = text.slice(text.indexOf("Segment list:"), text.indexOf("Exports list"));
+    for (const match of list.matchAll(/^(\w+)\s+([0-9A-F]{6})\s+([0-9A-F]{6})\s+([0-9A-F]{6})/gm)) {
+      const [, name, start, end, size] = match;
+      if (Number.parseInt(size, 16) === 0) continue;
+      if (file === "level-summary.map" && name === "LEVEL_SUMMARY") continue;
+      assert.ok(!overlaps(Number.parseInt(start, 16), Number.parseInt(end, 16) + 1),
+        `${file}: ${name} $${start}-$${end} reaches the summary's $0700-$0BFF`);
+    }
+  }
+  // Every memory area every link config declares, load areas included.
+  for (const file of fs.readdirSync(path.join(root, "cfg"))) {
+    const text = fs.readFileSync(path.join(root, "cfg", file), "utf8");
+    for (const match of text.matchAll(/^\s*(\w+):\s*start\s*=\s*\$([0-9A-Fa-f]+),\s*size\s*=\s*\$([0-9A-Fa-f]+)/gm)) {
+      const [, name, start, size] = match;
+      if (file === "level-summary.cfg") continue;
+      const from = Number.parseInt(start, 16);
+      assert.ok(!overlaps(from, from + Number.parseInt(size, 16)),
+        `cfg/${file}: ${name} reaches the summary's $0700-$0BFF`);
+    }
+  }
+  // The boot path: the initial block from $2000, the extension records'
+  // staging and final destinations, the splash (which is over before START GAME).
+  const transport = manifest.transportCapacity;
+  assert.ok(!overlaps(manifest.loadAddress, manifest.loadAddress + transport.initialBootBytes));
+  for (const record of transport.manifest.parsed.records) {
+    assert.ok(!overlaps(record.destination, record.destination + record.rawLength),
+      `a record stages at $${record.destination.toString(16)} inside the claim`);
+    assert.ok(!overlaps(record.finalDestination, record.finalDestination + record.rawLength),
+      `a record lands at $${record.finalDestination.toString(16)} inside the claim`);
+  }
+  const splash = transport.bootSplash;
+  assert.ok(splash.runAddress + splash.bytes <= CLAIM[0], "the boot splash grew into the claim");
+  assert.ok(!overlaps(transport.bootOnlyStaging.address,
+    transport.bootOnlyStaging.address + transport.bootOnlyStaging.bytes));
 });
 
 test("four regions of art, seven sectors each from sector 600, generated from assets", () => {
@@ -152,8 +200,8 @@ test("the stat hooks are operand-only in every full segment", () => {
     ["SECTOR_READER_STATS_LIGHT_HIT", "A01B"]]) {
     assert.match(source, new RegExp(`^${name}\\s*= \\$${value}`, "m"), name);
   }
-  const after = (label, lines) => source.slice(source.indexOf(`${label}:`)).split(/\r?\n/)
-    .slice(0, lines).join("\n");
+  const after = (label, lines) => source.slice(source.indexOf(`\n${label}:`) + 1)
+    .split(/\r?\n/).slice(0, lines).join("\n");
   assert.match(after("render_launch_flashes_with_capital_debris", 5),
     /jsr SECTOR_READER_STATS_CAPITAL/);
   assert.match(after("add_archetype_score_tail", 12), /jmp SECTOR_READER_STATS_KILL/);
@@ -161,7 +209,7 @@ test("the stat hooks are operand-only in every full segment", () => {
   assert.match(after("debris_contact_destroyed", 3), /jsr SECTOR_READER_STATS_DEBRIS_CONTACT/);
   // The kernel: the publish vector, the PairShot Light hit and the kill refresh.
   const kernel = fs.readFileSync(path.join(root, "src/hybrid/light-kernel.s"), "utf8");
-  assert.match(kernel, /light_kernel_vectors:\s*\n\s*jmp SECTOR_READER_STATS_FIGHTER/);
+  assert.match(kernel, /light_kernel_vectors:\s*\n(?:\s*;[^\n]*\n)*\s*jmp SECTOR_READER_STATS_FIGHTER/);
   assert.equal((kernel.match(/jsr SECTOR_READER_STATS_LIGHT_HIT/g) ?? []).length, 1,
     "only the PairShot hit is a hit; the contact path stays on ENEMY_LIGHT_HIT");
   assert.match(kernel, /light_destroyed:[\s\S]*?jsr SECTOR_READER_STATS_KILL[\s\S]*?jmp play_hit_sound/);

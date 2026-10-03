@@ -710,8 +710,11 @@ test("joystick, FIRE, projectile, enemy, and scoring routines remain connected",
   // RE-PINNED 2026-10-01 (recorded failures review, A7): the award routine is
   // add_archetype_score_tail and adds ENEMY_PROFILE_SCORE_BCD, the profile byte
   // the C admission path publishes; `enemy_scores,x` is gone.
+  // RE-POINTED 2026-10-03 (M5a-S2): the award's last jump goes through the
+  // reader's stat vector, which counts the kill and continues into
+  // update_score_display (tests/level-summary.test.mjs proves the continuation).
   assert.match(source,
-    /add_archetype_score_tail:[\s\S]+adc ENEMY_PROFILE_SCORE_BCD[\s\S]+cld[\s\S]+jmp update_score_display/);
+    /add_archetype_score_tail:[\s\S]+adc ENEMY_PROFILE_SCORE_BCD[\s\S]+cld[\s\S]+jmp SECTOR_READER_STATS_KILL/);
   assert.match(source,
     /update_player_death:[\s\S]+@game_over:[\s\S]+jsr insert_top_score/);
   assert.match(source,

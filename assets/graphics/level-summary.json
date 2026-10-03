@@ -1,0 +1,36 @@
+{
+  "format": 1,
+  "description": "M5a-S2 level-summary art, one picture per region (owner decisions 26 and Q-answers in docs/plans/m5-loading-boss.md §4.8): the capital corridor in the region's hull style - the allied hull on the left, the region's enemy hull mirrored on the right, as gameplay draws them - with a few stars between. The glyph pixels and the hull maps are read from assets/graphics/capital-hulls.json; this file chooses the rows, the stars and the palette. CC BY-NC-SA 4.0 (LICENSE-ASSETS, 'Mixed files'). Converted by scripts/level-summary-assets.mjs into one seven-sector run per region; never typed into src/. The palette is the summary screen's: COLPF0 and COLPF3 colour the picture alone, COLPF1 is also the luminance of every text row (ANTIC 2 text takes its hue from COLPF2, which stays black), so its luminance is kept at $A or brighter.",
+  "regions": [
+    {
+      "region": 1,
+      "hullStyle": "R1",
+      "segmentRow": 4,
+      "palette": { "COLPF0": "$0E", "COLPF1": "$8A", "COLPF3": "$34" },
+      "stars": [[14, 1], [24, 3], [18, 6], [27, 8], [12, 9]]
+    },
+    {
+      "region": 2,
+      "hullStyle": "R2",
+      "segmentRow": 10,
+      "palette": { "COLPF0": "$0E", "COLPF1": "$9A", "COLPF3": "$26" },
+      "stars": [[22, 0], [13, 2], [26, 5], [16, 7], [20, 9]]
+    },
+    {
+      "region": 3,
+      "hullStyle": "R3",
+      "segmentRow": 16,
+      "palette": { "COLPF0": "$0C", "COLPF1": "$7A", "COLPF3": "$54" },
+      "stars": [[15, 0], [25, 2], [12, 4], [21, 7], [28, 9]]
+    },
+    {
+      "region": 4,
+      "hullStyle": "R4",
+      "segmentRow": 22,
+      "palette": { "COLPF0": "$0C", "COLPF1": "$AA", "COLPF3": "$B4" },
+      "stars": [[19, 1], [13, 3], [27, 4], [23, 8], [16, 9]]
+    }
+  ],
+  "star": ["....", ".1..", "....", "....", "....", "....", "....", "...."],
+  "percent": ["$62", "$64", "$08", "$10", "$26", "$46", "$00", "$00"]
+}

@@ -17,6 +17,17 @@ fence margin ending 374 over GO and the DMA-on line moving at M3 and M3-H — ar
 superseded by the re-base in [m3-waves-heavy.md](m3-waves-heavy.md) §1.4 and
 §6.1. Nothing else here is rewritten.
 
+**Note, 2026-10-03.** The **M5** lines of this document — the boss as
+1,140 → 1,368 B of resident window code (§2 M5, §3, §5.1 risk 1, §5.2 items
+5 and 6) and the window going negative at M5 — are superseded by
+[m5-loading-boss.md](m5-loading-boss.md): the owner split M5 into M5a (the
+loading platform: overlays from disk, a fast SIO loader) and M5b (the boss
+as an overlay in the capital-phase code's range), which costs the window
+~170 B of hooks; its §6.1 re-prices the window in the M5 → M4 → M3 → M6
+order with and without overlays. The band's DMA (72 per row, IC, in §2 M5)
+measured 90 of fence margin per row; the third DLI measured 174. Nothing
+else here is rewritten.
+
 It answers four questions: does everything left until 1.0 fit in the machine,
 which resource does each milestone spend, where are the shortfalls, and which
 levers pay for them.

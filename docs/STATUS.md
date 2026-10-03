@@ -66,22 +66,17 @@ released.** Section "ATR-only build" below.
 
 **Contact scenario redesign — done (2026-10-02, `chore/contact-scenario-redesign`, harness and evidence only, `OWNER REVIEW CANDIDATE`):** [plans/contact-scenario-redesign.md](plans/contact-scenario-redesign.md). The recorded contact failures hid four stacked faults — scenarios ending before level 1's capital sector (a), a capture oracle still requiring the P0/P3 pair retired in `800322b`, a 32-frame capture window leaking into a 16-frame clause, and a hitbox clause in the coordinates production left in `4753399` (all b). Recorded clause failures 3 → **1**: both `capital-contact-*` sessions pass; new session `lower-playfield-allied-contact-atr-hard` gates the lower-row contact raster; `lower-playfield-hostile-contact-atr-hard` stays recorded (a) until M5 (owner decision Q1). Worst fence margin 1,439 and DMA-on maximum 31,133 unmoved; `npm test` 910 tests (+2); ATR and boot image byte-identical to `main` `c59e28a`.
 
-**M3 wave paths and M3-H Heavy package — plan (2026-10-02, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/m3-waves-heavy.md](plans/m3-waves-heavy.md) — native measurements (a held Raider saves 485 cycles; the decided descent rule returns 467 per frame with two Raiders live), the two Raider kinds and the damaged look, and three implementation sessions. Owner decisions taken 2026-10-02 (its §8.1): the sessions wait until after M4 and M5, and the rotate-gate fix for Heavy break-ups (its §9) is a standalone task that runs before M4 — **now built, `OWNER-SMOKE CANDIDATE`** (section "Heavy break-up rotate gate" below): worst fence margin 788 → **1,439**.
+**M5 — the loading platform (M5a) and the boss (M5b) — plan (2026-10-03, `docs/plan-m5`, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/m5-loading-boss.md](plans/m5-loading-boss.md). Owner decisions of 2026-10-02 recorded: M5 = M5a (code overlays loaded from disk at transitions, a fast SIO loader with automatic fallback) then M5b (the boss on it); `v0.2.1` is the checkpoint before the loading rework, `v0.3.0` ships after the whole of M5. The boss becomes an **overlay** in the capital-phase code's range (3,795 B of `BROADSIDE` run only while a hull is on screen) and costs the window ~170 B of hooks instead of 1,368: re-priced in the new order the window ends M6 at −38 B budgeted before any lever (was −1,238). Three probe measurements on the binding replay: one HSCROL band row above the fence −90 of margin (the budget's 72 was an instruction count), a third DLI −174, the one-Light boss frame clears GO only with the world scroll stopped in the boss sector (owner question Q1). Six sessions, the wish list (items 14–25) priced with nine recommended, twelve owner questions. ATR and boot image byte-identical to `main` `7ccd57e`.
 
-**Seventeen `OWNER-SMOKE CANDIDATE`s are outstanding: the Heavy break-up
-rotate gate** (section "Heavy break-up rotate gate" below; a Raider or Bomber
-killed on a frame that scrolls the ring now breaks up one frame later, never
-later than that; worst fence margin 788 → 1,439), **the all-or-nothing Spread
+**M3 wave paths and M3-H Heavy package — plan (2026-10-02, `OWNER REVIEW CANDIDATE`, planning only, no artifact byte changed):** [plans/m3-waves-heavy.md](plans/m3-waves-heavy.md) — native measurements (a held Raider saves 485 cycles; the decided descent rule returns 467 per frame with two Raiders live), the two Raider kinds and the damaged look, and three implementation sessions. Owner decisions taken 2026-10-02 (its §8.1): the sessions wait until after M4 and M5, and the rotate-gate fix for Heavy break-ups (its §9) is a standalone task that runs before M4 — **built, owner-smoked, merged and released as `v0.2.1` (`OWNER-ACCEPTED`)** (section "Heavy break-up rotate gate" below): worst fence margin 788 → **1,439**.
+
+**Fifteen `OWNER-SMOKE CANDIDATE`s are outstanding: the all-or-nothing Spread
 volley** (section "Spread volley — all-or-nothing" below; a Spread volley that
 began with fewer than three free shot slots held the pool full of lone side
 shots with no shot sound until Spread expired; reachable in the default level 1
 ATR, typically Spread right after Rapid with fire held), **the ATR-only build** (section
 "ATR-only build" below; no player-visible change: the ATR and the boot image are
-byte-identical to `main` `e39f2ec`), **level 2** (section "Roadmap 4.6
-step 3 — level 2" below; the first authored level that is not a reproduction,
-reached only through the debug route `npm run level:play -- --level=2`; the
-default build is **byte-identical** to `main` `138689e`, so every gate figure is
-unmoved), **the pickup boost colour**
+byte-identical to `main` `e39f2ec`), **the pickup boost colour**
 (section "Pickup boost colour — the capsule is one `PLAYER3` image in gold `$1C`"
 below; the capsule leaves the GTIA fifth player and `COLPF3` for `PLAYER3` and a
 dedicated `COLPM3`, so a booster mark can never wear an enemy's colour again; the
@@ -342,7 +337,7 @@ owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
 
-## Heavy break-up rotate gate — `OWNER-SMOKE CANDIDATE` (2026-10-02)
+## Heavy break-up rotate gate — **OWNER-ACCEPTED** (owner smoke PASS, merged, released as `v0.2.1`; built 2026-10-02)
 
 Plan and as-built record: [plans/m3-waves-heavy.md](plans/m3-waves-heavy.md)
 §9 and §9.5. Branch `fix/heavy-breakup-rotate-gate` from `main` `e3bd098`.
@@ -420,7 +415,7 @@ fragments, on the hit or one frame after; no missing or doubled fragments;
 score, kill sound and flash unchanged; no stutter when a kill coincides with
 the scrolling.
 
-## Roadmap 4.6 step 5 — the payload: Light looks, weapon looks, a sky per sector — `OWNER-SMOKE CANDIDATE` (2026-10-01)
+## Roadmap 4.6 step 5 — the payload: Light looks, weapon looks, a sky per sector — **OWNER-ACCEPTED** (released as `v0.2.0`; built 2026-10-01)
 
 Plan, placement, data and the as-built record:
 [plans/director-4.6.md](plans/director-4.6.md) §8.3. Branch
@@ -905,7 +900,7 @@ volley should be a full left/centre/right fan with the shot sound. Spread from
 an empty screen should behave as before, with its single centre follow-up.
 After a crowded moment there should be no burst of catch-up fire.
 
-## Roadmap 4.6 step 4 — the capital hull length is level data — `OWNER-SMOKE CANDIDATE` (2026-09-30)
+## Roadmap 4.6 step 4 — the capital hull length is level data — **OWNER-ACCEPTED** (released as `v0.2.0`; built 2026-09-30)
 
 Plan: [plans/director-4.6.md](plans/director-4.6.md) §8 step 4, §8.2, owner
 decision §11 item 18 (2026-09-30). Branch `feat/director-step-4-hull-length`
@@ -1124,7 +1119,7 @@ slower.
 **Owed by the owner.** A smoke of the ATR (`npm run play:atr`), to confirm
 nothing player-visible moved. The bytes say it cannot have.
 
-## Roadmap 4.6 step 3 — level 2 — `OWNER-SMOKE CANDIDATE` (2026-09-30)
+## Roadmap 4.6 step 3 — level 2 — **OWNER-ACCEPTED** (released as `v0.2.0`; built 2026-09-30)
 
 Plan: [plans/director-4.6.md](plans/director-4.6.md) §8 step 3, §8.1, owner
 decisions §11 items 15-17 (2026-09-30). Branch `feat/director-step-3-level-2`

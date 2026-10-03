@@ -484,9 +484,9 @@ by design; **step 3 is the first step that puts something new on screen.**
 | **0** | `feat/level-buffer-16` | Q-1: `LEVEL_BUFFER` 32 → 16 sectors, the Director link's window at `$AE00`; no behaviour change (four edits, §3.1) | buffer/window pins in `tests/basic-window-capacity.test.mjs` and `tests/sector-reader.test.mjs` re-pinned; boot smoke 8/8 | XEX/ATR byte-identical except the window record's addresses; ATR menu unmoved | none visible — may be folded into step 1 |
 | **1** | `feat/level-compiler` | `assets/levels/level-01.json`, `scripts/level-compiler.mjs`, `level-preview.mjs`, `levels:check`; level image 13 sectors with all three pages; the geometry page carries today's 480 rows and the two sequences byte-for-byte; **the runtime reads nothing new**; `docs/level-authoring.md`, `docs/memory-map.md` (image layout) | T1, T2 | 0 boot sectors; ATR START GAME read +5 sectors | none visible; the loader animation runs five sectors longer |
 | **2** | `feat/director-level-data` | the Director reads the core page: sectors (R4), waves (R2), caps, archetype mask (R3); `LEVEL1_DATA`, the phase machinery, both provisional schedulers, `provisional_interceptor_director_request`, `select_interceptor_request_phase` and `FIRST_CAPITAL_FRAME` retired; `CAPITAL_DUE` at the sector row; `_asm_director_dispatch_event` becomes the opcode jump table (design §2.4); the debug route (§7); replays re-scripted where the capital row moves; evidence re-recorded | T3, T4, T5, T6, T8, T10, T11; native A/B with `scripts/hybrid-director-ab.mjs` | PAL audit: worst margin ≥ 500, ≤ +100 on every row vs 991; transport rule; boot smoke | level 1 plays as before; the owner jumps to any sector with `--level=1:sector=M` |
-| **3** — **IMPLEMENTED 2026-09-30, pending owner smoke (§8.1)** | `feat/director-step-3-level-2` | the first authored variation, `level-02.json`: a different sector count, different waves, a different archetype mask per sector; `how-to-play` EN+PL only if player text changes | T12 | as step 2 (level 2 is not in the default replays; the default artifacts carry level 1 only) | **first new thing on screen**: level 2 via `--level=2` |
-| **4** — **IMPLEMENTED 2026-09-30, pending owner smoke (§8.2)** | `feat/director-step-4-hull-length` | the geometry page consumed (R1): sequences from `$AC08/$AC44`, thresholds from `$AC02`, `hull_rows`; the `BROADSIDE` sequences retired into a zero pin; `compileCapitalHulls` length/density parameters; hull-set tests re-pinned (`capital-hulls`, `hull-set-v1`, `capital-hull-extension`, `prepared-hull-row`) | T7 | initial block content ≤ 13,652 (expected to fall); boot 107; PAL audit on the capital rows | level 2 with a 352-row hull |
-| **5** — **IMPLEMENTED 2026-10-01, pending owner smoke (§8.3)** | `feat/director-step-5-payload` | payload consumers: appearance slots (decision AD re-skins), `weapon_glyph[2]` install at level start, star colour and nebula per sector (21.3; `STARFIELD` run tail 348 B is the home design §10.2 lacked) | T13 | PAL audit (starfield row cost); transport rule | a re-skinned Light and a different sky on level 2 |
+| **3** — **IMPLEMENTED 2026-09-30, OWNER-ACCEPTED (released as `v0.2.0`; §8.1)** | `feat/director-step-3-level-2` | the first authored variation, `level-02.json`: a different sector count, different waves, a different archetype mask per sector; `how-to-play` EN+PL only if player text changes | T12 | as step 2 (level 2 is not in the default replays; the default artifacts carry level 1 only) | **first new thing on screen**: level 2 via `--level=2` |
+| **4** — **IMPLEMENTED 2026-09-30, OWNER-ACCEPTED (released as `v0.2.0`; §8.2)** | `feat/director-step-4-hull-length` | the geometry page consumed (R1): sequences from `$AC08/$AC44`, thresholds from `$AC02`, `hull_rows`; the `BROADSIDE` sequences retired into a zero pin; `compileCapitalHulls` length/density parameters; hull-set tests re-pinned (`capital-hulls`, `hull-set-v1`, `capital-hull-extension`, `prepared-hull-row`) | T7 | initial block content ≤ 13,652 (expected to fall); boot 107; PAL audit on the capital rows | level 2 with a 352-row hull |
+| **5** — **IMPLEMENTED 2026-10-01, OWNER-ACCEPTED (released as `v0.2.0`; §8.3)** | `feat/director-step-5-payload` | payload consumers: appearance slots (decision AD re-skins), `weapon_glyph[2]` install at level start, star colour and nebula per sector (21.3; `STARFIELD` run tail 348 B is the home design §10.2 lacked) | T13 | PAL audit (starfield row cost); transport rule | a re-skinned Light and a different sky on level 2 |
 | **6** — **PLANNED 2026-10-02 with the Heavy behaviour package in [m3-waves-heavy.md](m3-waves-heavy.md), which supersedes this row's scope and estimates** | `feat/wave-paths` | `PathDef` evaluator + 8-path resident library, `ENEMY_MOVEMENT_PATH`, volley and conditional fire (21.2; 23 §10.4 piecewise-linear, §10.5 column-aimed); a native prototype measurement of the evaluator **before** integration sets its budget | T14 | PAL audit with the swarm replays | a snake-path Interceptor swarm |
 | **7** | `docs/levels-3-12` (+ per-level `feat/` if any code is needed) | the owner authors levels 3-12 with the tool; STATUS and memory-map final figures; the campaign loop itself (level advance, lives, level select) stays **4.9** | validator, preview | — | each level via the debug route |
 
@@ -496,8 +496,8 @@ step 3 may then author a capital sector with a Light.
 
 ### 8.1 Step 3 notes
 
-**IMPLEMENTED 2026-09-30 on `feat/director-step-3-level-2`, pending the
-owner's smoke (`OWNER-SMOKE CANDIDATE`).** The owner approved the level 2 draft
+**IMPLEMENTED 2026-09-30 on `feat/director-step-3-level-2`; OWNER-ACCEPTED,
+released as `v0.2.0`.** The owner approved the level 2 draft
 with changes and answered the step's two other questions on 2026-09-30:
 §11 items **15** (the content), **16** (replays and the diagnostic timing
 measurement) and **17** (the build-script fix and `level:play`).
@@ -518,7 +518,7 @@ measurement) and **17** (the build-script fix and `level:play`).
   [../diagnostics/level-2-timing-2026-09-30.md](../diagnostics/level-2-timing-2026-09-30.md).
   Step 4's phase 0 built it and measured level 2 (§8.2).
 
-### 8.2 Step 4 notes — hull length (IMPLEMENTED 2026-09-30, pending owner smoke)
+### 8.2 Step 4 notes — hull length (IMPLEMENTED 2026-09-30, OWNER-ACCEPTED, released as `v0.2.0`)
 
 Branch `feat/director-step-4-hull-length` from `main` `a930ba0`.
 
@@ -604,7 +604,7 @@ record 1 **5,583 → 5,502** packed B; `HYBRID_C_SECTOR` **187 → 215** of 248 
 before and after**. Level 2 timing before and after:
 [../diagnostics/level-2-timing-2026-09-30.md](../diagnostics/level-2-timing-2026-09-30.md).
 
-### 8.3 Step 5 notes — the payload (IMPLEMENTED 2026-10-01, pending owner smoke)
+### 8.3 Step 5 notes — the payload (IMPLEMENTED 2026-10-01, OWNER-ACCEPTED, released as `v0.2.0`)
 
 Branch `feat/director-step-5-payload` from `main` `f3e3660`. Priced as M2 in
 [budget-1.0.md](budget-1.0.md) §2, without the nebula: the owner fixed the sky

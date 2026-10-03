@@ -1,13 +1,20 @@
 # VOID STRIKE 65 — plan realizacji
 
-Wersja: 7.0
-Data: 2026-10-02
+Wersja: 7.1
+Data: 2026-10-03
 Rola: **jedyna aktywna roadmapa projektu** — od 2026-10-02 jako **kolejność
 prac i indeks**: treść, budżet i liczby kamieni milowych M2–M9 żyją w
 [`plans/budget-1.0.md`](plans/budget-1.0.md) i w planach w
 [`plans/`](plans/); ten plik ustala kolejność (§0) i przechowuje treść
 punktów roadmapy, na którą wskazują inne dokumenty (§4).
 
+> Zmiana 7.0 → 7.1 (2026-10-03, `docs/plan-m5`): w §0 zapisane decyzje
+> właściciela z 2026-10-02 o podziale M5 na M5a (platforma ładowania) i M5b
+> (boss), o `v0.2.1` jako punkcie kontrolnym przed przebudową ładowania i o
+> `v0.3.0` po całym M5; wskaźnik do planu
+> [`plans/m5-loading-boss.md`](plans/m5-loading-boss.md); pozycja 2 (rotate
+> gate) oznaczona jako zaakceptowana i wydana.
+>
 > Zmiana 6.1 → 7.0 (2026-10-02, `docs/plan-realizacji-sync`): dodany §0 z
 > kolejnością drogi do 1.0 i dwiema nowymi decyzjami właściciela; zakończone
 > punkty §4 oznaczone jako DONE ze wskaźnikiem; przestarzałe planowanie
@@ -55,6 +62,15 @@ w STATUS i w planach; ten paragraf ich nie powtarza.
    samo w jego §8.1). Rachunek okna `$AE00` w §6.3 zakłada M4 jako pierwsze;
    plan M5 przelicza okno w nowej kolejności. Bez zmian zostaje to, że M4 i M5
    idą przed trzema sesjami M3 / M3-H (§8.1 tamtego planu).
+3. **M5 dzieli się na M5a i M5b (2026-10-02).** Sześć pozycji z listy życzeń
+   właściciela opiera się na jednym fundamencie — ładowaniu z dysku na
+   przejściach — więc najpierw powstaje ten fundament: **M5a — platforma
+   ładowania** (nakładki kodu ładowane z dysku na przejściach; szybki loader
+   SIO zawsze z automatycznym powrotem do prędkości standardowej), a na nim
+   **M5b — boss**. **`v0.2.1`** (tag na `7ccd57e`) jest punktem kontrolnym
+   przed przebudową ładowania; **`v0.3.0`** wychodzi po całym M5. Plan obu
+   części, wycena listy życzeń (pozycje 14–25) i pytania do właściciela:
+   [`plans/m5-loading-boss.md`](plans/m5-loading-boss.md).
 
 **Kolejność:**
 
@@ -66,18 +82,23 @@ w STATUS i w planach; ten paragraf ich nie powtarza.
    wchłonęło `chore/showcase-recapture` z
    [`plans/budget-1.0.md`](plans/budget-1.0.md) §2 M9; test `github-showcase`
    zszedł z listy zapisanych porażek.
-2. **Heavy break-up rotate gate** — **DONE** (zbudowane: `c5470a8`, dowody
-   `2777e8f`, dokumentacja `c92f908`; w STATUS jako `OWNER-SMOKE CANDIDATE`,
-   sekcja „Heavy break-up rotate gate"). Plan i zapis wykonania:
+2. **Heavy break-up rotate gate** — **DONE, zaakceptowane i wydane** jako
+   `v0.2.1` (zbudowane: `c5470a8`, dowody `2777e8f`, dokumentacja `c92f908`;
+   owner smoke PASS, scalone; w STATUS jako `OWNER-ACCEPTED`, sekcja „Heavy
+   break-up rotate gate"). Plan i zapis wykonania:
    [`plans/m3-waves-heavy.md`](plans/m3-waves-heavy.md) §9.
-3. **M5 — boss 4.7** — [`plans/budget-1.0.md`](plans/budget-1.0.md) §2
-   „M5 — Boss 4.7"; decyzje otwarte §5.2 pkt 5 i 6; treść punktu: §4 pkt 5
-   niżej. Poprzedzające `chore/contact-scenario-redesign` — **DONE**
+3. **M5 — M5a platforma ładowania, potem M5b boss 4.7** — plan
+   [`plans/m5-loading-boss.md`](plans/m5-loading-boss.md) (sześć sesji, §8;
+   pytania do właściciela §9); budżet pierwotny:
+   [`plans/budget-1.0.md`](plans/budget-1.0.md) §2 „M5 — Boss 4.7" (jego
+   linie M5 zastępuje plan M5, patrz nota datowana w budżecie); treść punktu:
+   §4 pkt 5 niżej. Po całym M5 — wydanie `v0.3.0`. Poprzedzające
+   `chore/contact-scenario-redesign` — **DONE**
    2026-10-02 ([`plans/contact-scenario-redesign.md`](plans/contact-scenario-redesign.md));
    plan M5 musi objąć uczciwy scenariusz kontaktu z wrogim pociskiem w dolnych
    wierszach (`lower-playfield-hostile-contact-atr-hard`, nadal zapisany) —
    lasery bossa czynią niskie wrogie pociski częstymi (decyzja właściciela
-   2026-10-02).
+   2026-10-02); scenariusz i klauzule: plan M5 §5.8.
 4. **M4 — pętla kampanii** — [`plans/budget-1.0.md`](plans/budget-1.0.md) §2
    „M4 — Campaign loop"; decyzja otwarta §5.2 pkt 4; treść punktu: §4 pkt 7
    niżej.

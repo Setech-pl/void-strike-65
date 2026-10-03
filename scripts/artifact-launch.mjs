@@ -91,12 +91,30 @@ function cli() {
   const emulatorArgument = process.argv.find((argument) => argument.startsWith("--emulator="));
   const emulator = emulatorArgument?.slice("--emulator=".length) || "atari800";
   const launch = validateAtari800Launch(atari800ArtifactLaunches(rootDirectory)[kind]);
-  const args = ["-xe", "-pal", "-nobasic", ...launch.mediaArguments];
+  // M5a-S2 (docs/plans/m5-loading-boss.md §4.8.4, Q16): the game writes its
+  // save record to the disk it booted from, so the emulator never mounts
+  // dist/. It plays a copy in build/play/, kept between launches (the personal
+  // best survives) and replaced whenever dist/'s ATR changes.
+  const playDirectory = path.join(rootDirectory, "build", "play");
+  const playCopy = path.join(playDirectory, publicArtifactNames.atr);
+  const stampPath = `${playCopy}.source-sha256`;
+  const published = launch.artifact.sha256;
+  if (!process.argv.includes("--dry-run")) {
+    fs.mkdirSync(playDirectory, { recursive: true });
+    const stale = !fs.existsSync(playCopy) || !fs.existsSync(stampPath) ||
+      fs.readFileSync(stampPath, "utf8").trim() !== published;
+    if (stale) {
+      fs.copyFileSync(launch.artifact.path, playCopy);
+      fs.writeFileSync(stampPath, `${published}\n`);
+    }
+  }
+  const args = ["-xe", "-pal", "-nobasic", playCopy];
   const record = {
     emulator,
     medium: launch.medium,
     mode: launch.mode,
     artifact: launch.artifact,
+    disk_copy: path.relative(rootDirectory, playCopy),
     arguments: args,
   };
   process.stdout.write(`${JSON.stringify(record, null, 2)}\n`);

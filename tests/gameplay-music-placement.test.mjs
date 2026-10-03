@@ -181,8 +181,13 @@ test("the ATR START GAME read grows by the planned five plus three plus five sec
     assert.equal(session.level_image_verified, true, `${session.id} level image`);
     assert.equal(session.wire_retries, 0, `${session.id} wire retries`);
     if (session.medium !== "ATR") continue;
-    assert.equal(session.command_frames, levelOne.sectors,
-      `${session.id} must send one command frame per sector`);
+    // RE-POINTED 2026-10-03 (M5a-S2): START GAME also reads the summary module
+    // (once per session), the region's art and the save record; the level is
+    // still its own 13 sectors, one frame each.
+    const summary = manifest.levelSummary;
+    assert.equal(session.command_frames, levelOne.sectors + summary.code.sectors +
+      summary.art.sectorsPerRegion + 1,
+    `${session.id} must send one command frame per sector`);
     // The v1 two-sector read took 7 frames. plan-4.3 measured ~3.8 frames a
     // sector, so the eleven more sectors music, the hull block and the three
     // LevelDef pages cost is ~42 frames; anything beyond that is the reader

@@ -89,7 +89,9 @@ test("real Atari800 ATR cold boots reach visible gameplay inside the boot horizo
   // The horizon must stay above the owner's 3,000-frame (60 s PAL) ceiling,
   // or a slow-but-legal boot is unobservable and the gate is nominal only.
   assert.equal(smoke.menu_snapshot_frame, 3050);
-  assert.equal(smoke.gameplay_snapshot_frame, 3300);
+  // RE-POINTED 2026-10-03 (M5a-S2): START GAME passes the level-summary
+  // screen (its 150-frame minimum and FIRE), so the gameplay proof moved to 3400.
+  assert.equal(smoke.gameplay_snapshot_frame, 3400);
   assert.ok(smoke.deadline.absolute_ceiling_frames < smoke.menu_snapshot_frame);
   assert.equal(smoke.frames_observed, smoke.gameplay_snapshot_frame);
   assert.equal(smoke.duration_seconds_pal, smoke.gameplay_snapshot_frame / 50);
@@ -199,7 +201,18 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
   assert.equal(report.replay.parallax_cadence_measured_frames, 1_200);
   assert.equal(report.replay.fighter_flash_measured_frames, 1_600);
   assert.equal(report.replay.debris_effects_measured_frames, 5_000);
-  assert.equal(report.replay.director_completion_measured_frames, 31_500);
+  // RE-POINTED 2026-10-03 (M5a-S2): the director-complete replays end at the
+  // level-end summary inside their 10,500-frame budgets (they used to fly on
+  // in the terminal COMPLETE), and each records that summary.
+  const directorSessions = report.replay.sessions
+    .filter((session) => session.kind === "director-level-complete");
+  assert.equal(directorSessions.length, 3);
+  assert.equal(report.replay.director_completion_measured_frames,
+    directorSessions.reduce((sum, session) => sum + session.measured_frames, 0));
+  for (const session of directorSessions) {
+    assert.ok(session.measured_frames <= 10_500 &&
+      session.level_summary?.level_end_summary !== undefined, session.id);
+  }
   assert.equal(report.replay.memory_integrity_measured_frames, 12_000);
   assert.equal(report.replay.engine_startup_measured_frames, 1_800);
   assert.equal(report.replay.sessions

@@ -58,11 +58,17 @@ test("no frame-start debris erase and no mid-frame debris render remain", () => 
   assert.doesNotMatch(erase, /erase_interactive_entity_overlays/);
   const render = section(main, "entity_effects_render:", "render_interactive_entity_overlays:");
   assert.doesNotMatch(render, /(?:jsr|jmp|bne|beq) render_interactive_entity_overlays/);
-  assert.equal((main.match(/jsr entity_debris_publish\b/g) ?? []).length, 1,
+  // RE-POINTED 2026-10-03 (M5a-S2): the launch-flash hook's call reaches
+  // entity_debris_publish through the reader's capital-frame stat vector (the
+  // shot scan and the level-end check run first, then it jumps on), so main
+  // has no direct call left; the reader holds the one continuation.
+  assert.equal((main.match(/jsr entity_debris_publish\b/g) ?? []).length, 0,
     "capital frames publish through the launch-flash hook only");
+  const reader = fs.readFileSync(path.join(root, "src/hybrid/sector-reader.s"), "utf8");
+  assert.equal((reader.match(/jmp entity_debris_publish\b/g) ?? []).length, 1);
   assert.match(main, /profile_after_entity_update = \*\s+jsr render_launch_flashes_with_capital_debris/);
   assert.match(main,
-    /render_launch_flashes_with_capital_debris:\s+lda FIGHTER_PROJECTILE_PUBLICATION_FRAME\s+beq :\+\s+jsr entity_debris_publish\s+:\s+jmp CAPITAL_VECTOR_RENDER_FLASHES/);
+    /render_launch_flashes_with_capital_debris:\s+lda FIGHTER_PROJECTILE_PUBLICATION_FRAME\s+beq :\+\s+jsr SECTOR_READER_STATS_CAPITAL[^\n]*\s+:\s+jmp CAPITAL_VECTOR_RENDER_FLASHES/);
   assert.equal((light.match(/jsr entity_debris_publish\b/g) ?? []).length, 1);
 });
 

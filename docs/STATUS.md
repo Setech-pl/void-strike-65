@@ -14,6 +14,8 @@ the values below.
 > file's included (see its §8.3 and §8.4). It does not replace this file; this
 > file stays the primary handoff.
 
+> **Memory map:** the generated block at the top of [memory-map.md](memory-map.md) (`npm run memory-map`, checked by `tests/memory-map-generated.test.mjs`) is the build's own `$0000-$FFFF` map, with phases, unclaimed ranges, reservation tails and per-segment contents; it overrides every hand-written row.
+
 ---
 
 ## Checkpoint

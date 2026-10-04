@@ -2370,6 +2370,17 @@ code, offset 249 of the 7 free).
 4. The region run is 16 of its 16 sectors (theme 2, band 3 + 3, charset 8);
    the boss entry 38 → 39 sectors.
 
+#### 5.15.6 The owner's answers to Phase A (2026-10-04)
+
+| # | Answer | Applied in |
+| ---: | --- | --- |
+| 1 | **The look is approved as drafted**; build on it. The owner retouches the art later through the preview pipeline | Phase B: the drafts move into `region-1/` |
+| 2 | **Option A**: 16 modules, plates up to 6 × 4 (≤ 24 cells), with the **one-module-per-frame draw queue** and the **exposure check one frame after the kill**; both recorded with their measured cost (§5.15.7); the per-frame work limit stays **7,000 native** | converter, slot A, slot C |
+| 3 | **The open-bay cannon (`gun-2`) fires from the first frame of the fight** | region 1's layout |
+| 4 | **No escort Light in region 1's boss sector.** No wave is freed and no byte is spent on it; the decision "at most one Light" in the boss sector (§1.1) is satisfied by **zero** here; the escort item leaves this session's tests | — |
+| 5 | **The central weapon placement (columns 23–46) is accepted for region 1.** Later regions are designed **for the player**: when a layout needs it, the sweep bot's reach is widened (a stale-scenario fix, class (a)) rather than the layout bending to the bot | S5 |
+| 6 | **Every emitter slot is capped until S4b** | slot C |
+
 **Owner questions (Phase A STOP):** (1) the look — the drafts and the four
 composite frames; (2) the limit: option A (16 modules, plates ≤ 6 × 4 with the
 draw queue and the deferred exposure) or B / C; (3) `gun-2` in an open bay,

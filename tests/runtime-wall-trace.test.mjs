@@ -209,8 +209,12 @@ test("wall trace covers legal short replays and long ATR integrity runs", () => 
   assert.equal(directorSessions.length, 3);
   assert.equal(report.replay.director_completion_measured_frames,
     directorSessions.reduce((sum, session) => sum + session.measured_frames, 0));
+  // RE-POINTED 2026-10-04 (M5b-S3, class (a)): level 1 now ends in its boss,
+  // so these replays fight it and their budget is 15,000 frames
+  // (DIRECTOR_COMPLETION_FRAMES in scripts/runtime-wall-trace.mjs); each must
+  // still reach its level-end summary inside it.
   for (const session of directorSessions) {
-    assert.ok(session.measured_frames <= 10_500 &&
+    assert.ok(session.measured_frames <= 15_000 &&
       session.level_summary?.level_end_summary !== undefined, session.id);
   }
   assert.equal(report.replay.memory_integrity_measured_frames, 12_000);

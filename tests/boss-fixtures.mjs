@@ -38,7 +38,7 @@ export function fixtureLayout(modules, overrides = {}) {
     formatVersion: 2,
     name: "Fixture",
     style: 1,
-    palette: { colpf0: 12, colpf1: 6, colpf2: 42, colpf3: 50, flashLuma: 4 },
+    palette: { colpf0: 10, colpf1: 6, colpf2: 40, colpf3: 50, flashLuma: 4 },
     motion: { framesPerColourClock: 2, travelColourClocks: 63, startColourClock: 16,
       shakeFrames: 8, shakeAmplitude: 1 },
     chain: { blasts: Math.max(modules.length, 2), framesBetween: 4 },

@@ -1,18 +1,25 @@
 /*
- * Void Strike 65 - the boss controller (M5b-S3).
+ * Void Strike 65 - the boss controller (M5b-S3, rebuilt in M5b-S4a-i).
  *
- * docs/plans/m5-loading-boss.md §5.1-5.2, §5.6, §5.11. The boss's policy: its
- * phases (the guns, then the core), the hit points, which module a shot that
- * reached the band damages, the chain after the core, the bonus, the hold and
- * the boss-fight clock the summary's time grade reads. It is linked into
- * overlay slot A with the boss's ASM (src/hybrid/boss.s), which owns the band,
- * the DLI, the collision scan, the drawing and the hand-off, and calls these
- * three functions through the mailboxes below (C/ASM ownership, AGENTS.md).
+ * docs/plans/m5-loading-boss.md §5.13.2: the layered fight's policy, one engine
+ * for both styles (decision F) - up to 16 modules, each covered by a 16-bit
+ * cover mask and exposed once every module of its cover is destroyed; damage
+ * stages at the converter's thresholds; emitter slots the level's laser tier
+ * enables, the rest turned into capped armour (decision B); the defeat when
+ * the last weapon module falls, armour left standing (decision A); the single
+ * fire countdown (the policy only - S4a-ii fires the shots); the chain, the
+ * bonus, the hold and the boss-fight clock the summary's time grade reads.
  *
- * The whole module lives in slot A, read from disk at every boss entry, so
- * its BSS is zero in the image and boss_c_init sets every byte it reads.
- * Like the Director it uses no cc65 software stack and no runtime zero page:
- * no parameters, no locals, no arithmetic helpers.
+ * It lives in slot C ($1000-$17FF, owner answer Q-B5), read from disk at every
+ * boss entry with the boss's ASM in slot A (src/hybrid/boss.s), which owns the
+ * band, the DLI, the collision scan, the drawing and the hand-off and calls
+ * these three functions through the mailboxes below (C/ASM ownership,
+ * AGENTS.md). Its BSS follows the code in slot C and is never read from disk:
+ * boss_c_init sets every byte it reads. Like the Director it uses no cc65
+ * software stack and no runtime zero page: no parameters, no locals, no
+ * arithmetic helpers. Every address it reads outside slot C is a symbol of
+ * the boss link (the region's tables, the level's boss_def, main's clock and
+ * difficulty, the summary's bonus), so none of them can drift (Q-S3).
  */
 #include <stdint.h>
 
@@ -23,147 +30,375 @@
 #pragma rodata-name ("BOSS_C_RODATA")
 #pragma bss-name ("BOSS_C_BSS")
 
-#define U8_AT(address)   (*(volatile uint8_t *)(address))
-/* The region's tables at $AD00 and their module records, as arrays the boss's
- * ASM link places there (src/hybrid/boss.s exports both names), so that every
- * access is `absolute,Y` with a byte index: no cc65 pointer or helper state. */
+/* The region's tables at $AD00 and their module records, the level image's
+ * id and boss_def, main's difficulty and active-gameplay clock, the summary's
+ * bonus: arrays the boss's ASM link places (src/hybrid/boss.s exports each
+ * name), so that every access is `absolute,Y` with a byte index. */
 extern volatile uint8_t boss_tables[];
 extern volatile uint8_t boss_module_table[];
+extern volatile uint8_t boss_level[];          /* the image header: [3] the level id */
+extern volatile uint8_t boss_def[];            /* the level's boss_def block */
+extern volatile uint8_t boss_difficulty[];     /* [0] DIFFICULTY_SETTING: 0 EASY .. 2 HARD */
+extern volatile uint8_t boss_active_frame[];   /* [0] lo, [1] hi */
+extern volatile uint8_t boss_stats_bonus[];    /* [0] lo, [1] hi, packed BCD */
 #define TABLE            boss_tables
-#define MODULE_TABLE     boss_module_table
+#define LEVEL_HEADER_ID  3u
+/* A module record's field, indexed by the record's offset: `abs,Y` on the
+ * field's own address, never a computed index (which cc65 reaches through a
+ * runtime pointer). */
+#define FIELD(offset)    (boss_module_table + (offset))
 
-/* The active gameplay clock (src/main.s ACTIVE_GAMEPLAY_FRAME_LO/HI). */
-#define ACTIVE_FRAME_LO  U8_AT(0x4FF8u)
-#define ACTIVE_FRAME_HI  U8_AT(0x4FF9u)
-/* The summary's bonus, packed BCD lo/hi (src/hybrid/level-summary-abi.inc). */
-#define STATS_BONUS_LO   U8_AT(0x00B4u)
-#define STATS_BONUS_HI   U8_AT(0x00B5u)
 /* The terminal hold before the summary, as the capital level end had it
  * (LEVEL_END_HOLD_FRAMES): the last blast is seen settling. */
 #define BOSS_HOLD_FRAMES 50u
 
-#define PHASE_GUNS       0u
-#define PHASE_CORE       1u
+/* The phases the trace reads as boss_state = 1 + phase (§5.13.7: 1 fight,
+ * 3 chain, 4 hold, 5 done). 1 was S3's core phase: the core is a module now. */
+#define PHASE_FIGHT      0u
 #define PHASE_CHAIN      2u
 #define PHASE_HOLD       3u
 #define PHASE_DONE       4u
 #define NONE             0xFFu
+#define DIFFICULTY_EASY  0u
+#define DIFFICULTY_HARD  2u
 
-/* In: the column map's value for the band column a shot reached, and that
- * column. */
+/* In: the front intact module the column map gave the band column a shot
+ * reached, and that column (S4a-ii's spark). */
 uint8_t boss_hit_module;
 uint8_t boss_hit_cell;
-/* Out, after boss_c_hit: the module to draw wrecked, the module to draw open
- * and the module destroyed for score, each NONE when nothing happened. */
-uint8_t boss_draw_wreck;
-uint8_t boss_draw_open;
+/* Out, after boss_c_hit: a module whose damage stage changed and what to add
+ * to each of its cells' codes; a destroyed module (its score, the kill, its
+ * bay look, its columns rebuilt); the modules the kill exposed (their open
+ * looks). Each NONE or 0 when nothing happened. */
+uint8_t boss_stage_module;
+uint8_t boss_stage_add;
 uint8_t boss_score_module;
-/* Out, after boss_c_tick: the module the chain blasts this frame, or NONE;
- * nonzero once the chain and its hold are over (the ASM hands off). */
+uint8_t boss_newly_lo;
+uint8_t boss_newly_hi;
+/* Out, after boss_c_tick: the module whose turn to fire it is (S4a-ii spawns
+ * the shot), the module the chain blasts this frame, or NONE; nonzero once
+ * the chain and its hold are over (the ASM hands off). */
+uint8_t boss_fire_module;
 uint8_t boss_blast;
 uint8_t boss_handoff;
-/* The fight's length in frames, from the engagement to the core's death. */
+/* The fight's length in frames, from the engagement to the defeat. */
 uint8_t boss_clock_lo;
 uint8_t boss_clock_hi;
 
 uint8_t boss_phase;
+uint8_t boss_count;
 uint8_t boss_hp[BOSS_MAX_MODULES];
-static uint8_t boss_core;
-static uint8_t boss_guns_left;
+uint8_t boss_crack[BOSS_MAX_MODULES];
+uint8_t boss_break[BOSS_MAX_MODULES];
+uint8_t boss_stage[BOSS_MAX_MODULES];
+/* The kind after the tier conversion: a capped emitter reads ARMOUR. */
+uint8_t boss_kind[BOSS_MAX_MODULES];
+uint8_t boss_alive_lo;
+uint8_t boss_alive_hi;
+uint8_t boss_exposed_lo;
+uint8_t boss_exposed_hi;
+/* Alive, exposed weapons with a reload: the modules the countdown serves. */
+uint8_t boss_armed_lo;
+uint8_t boss_armed_hi;
+uint8_t boss_weapons_left;
+uint8_t boss_countdown;
+uint8_t boss_cursor;
 static uint8_t boss_timer;
 static uint8_t boss_chain_left;
 static uint8_t boss_chain_next;
 static uint8_t boss_start_lo;
 static uint8_t boss_start_hi;
-static uint8_t boss_core_x;
-static uint8_t boss_core_end;
+static uint8_t boss_adjust;
+static uint8_t boss_enabled;
 static uint8_t boss_i;
+static uint8_t boss_n;
 static uint8_t boss_record;
 static uint8_t boss_value;
+static uint8_t boss_quarter;
+static uint8_t boss_bit_lo;
+static uint8_t boss_bit_hi;
+static uint8_t boss_t;
+static uint8_t boss_u;
 
-/* Once, from the install: the hit points from the region's module table, the
- * phase, the clock's start. The core is the table's last module (the
- * compiler's rule), the guns every module before it. */
-void boss_c_init(void)
+/* Nonzero when module boss_n's bit is set in the 16-bit mask (lo, hi): two
+ * byte ANDs on plain globals, so cc65 needs no temporary of its own. */
+#define MASK_HAS(lo, hi) (boss_t = (lo), boss_t &= boss_bit_lo, boss_u = (hi), \
+    boss_u &= boss_bit_hi, (uint8_t)(boss_t | boss_u))
+
+static const uint8_t boss_bit_table[8] = { 0x01u, 0x02u, 0x04u, 0x08u, 0x10u, 0x20u, 0x40u, 0x80u };
+
+/* boss_n -> boss_bit_lo/hi, its bit in a 16-bit module mask. */
+static void boss_bit_of(void)
 {
-    boss_core = (uint8_t)(TABLE[BOSS_T_MODULE_COUNT] - 1u);
-    boss_guns_left = boss_core;
-    boss_record = BOSS_M_HP;
-    for (boss_i = 0u; boss_i != boss_core; ++boss_i) {
-        boss_value = MODULE_TABLE[boss_record];
-        boss_hp[boss_i] = boss_value;
-        boss_record = (uint8_t)(boss_record + BOSS_MODULE_BYTES);
+    if (boss_n < 8u) {
+        boss_bit_lo = boss_bit_table[boss_n];
+        boss_bit_hi = 0u;
+    } else {
+        boss_bit_lo = 0u;
+        boss_bit_hi = (boss_bit_table - 8)[boss_n];
     }
-    /* boss_record is the core's HP field now: its HP and its span. */
-    boss_value = MODULE_TABLE[boss_record];
-    boss_hp[boss_core] = boss_value;
-    boss_record = (uint8_t)(boss_record - BOSS_M_HP + BOSS_M_X);
-    boss_core_x = MODULE_TABLE[boss_record];
-    boss_record = (uint8_t)(boss_record - BOSS_M_X + BOSS_M_WIDTH);
-    boss_core_end = (uint8_t)(boss_core_x + MODULE_TABLE[boss_record]);
-    boss_phase = PHASE_GUNS;
-    boss_blast = NONE;
-    boss_handoff = 0u;
-    boss_start_lo = ACTIVE_FRAME_LO;
-    boss_start_hi = ACTIVE_FRAME_HI;
 }
 
-/* A player shot reached the band in a column whose map value is a module.
- * A live gun takes the hit; once every gun is down the core does, in its own
- * columns, whichever gun's wreck lies in front of them; anything else is the
- * hull absorbing the shot. Returns 1 when a module was damaged. */
+/* boss_n -> boss_record, its record's offset in the module table (x 12). */
+static void boss_record_of(void)
+{
+    boss_record = (uint8_t)(boss_n << 2);
+    boss_record = (uint8_t)(boss_record + (uint8_t)(boss_record << 1));
+}
+
+/* boss_value scaled by boss_adjust quarters (owner answer Q-B3: the
+ * per-difficulty scale in boss_def, -2..+2 quarters, by shift). */
+static void boss_scale(void)
+{
+    boss_quarter = (uint8_t)(boss_value >> 2);
+    if (boss_adjust == 2u || boss_adjust == 0xFEu) {
+        boss_quarter <<= 1;
+    }
+    if (boss_adjust == 1u || boss_adjust == 2u) {
+        boss_value += boss_quarter;
+    } else if (boss_adjust == 0xFFu || boss_adjust == 0xFEu) {
+        boss_value -= boss_quarter;
+    }
+}
+
+/* Every live module not yet exposed whose cover is all destroyed becomes
+ * exposed now (decisions A, F): its open look is drawn and, a weapon with a
+ * reload, it joins the modules the countdown serves. O(modules), on a kill. */
+static void boss_expose(void)
+{
+    for (boss_n = 0u; boss_n != boss_count; ++boss_n) {
+        boss_bit_of();
+        if (MASK_HAS(boss_alive_lo, boss_alive_hi) == 0u) {
+            continue;
+        }
+        if (MASK_HAS(boss_exposed_lo, boss_exposed_hi) != 0u) {
+            continue;
+        }
+        boss_record_of();
+        boss_value = FIELD(BOSS_M_COVER_LO)[boss_record];
+        boss_value &= boss_alive_lo;
+        if (boss_value != 0u) {
+            continue;
+        }
+        boss_value = FIELD(BOSS_M_COVER_HI)[boss_record];
+        boss_value &= boss_alive_hi;
+        if (boss_value != 0u) {
+            continue;
+        }
+        boss_exposed_lo |= boss_bit_lo;
+        boss_exposed_hi |= boss_bit_hi;
+        boss_newly_lo |= boss_bit_lo;
+        boss_newly_hi |= boss_bit_hi;
+        if (boss_kind[boss_n] != BOSS_KIND_ARMOUR && FIELD(BOSS_M_RELOAD)[boss_record] != 0u) {
+            boss_armed_lo |= boss_bit_lo;
+            boss_armed_hi |= boss_bit_hi;
+        }
+    }
+}
+
+/* Once, from the install, BEFORE the column map is built (§5.13.5: the map's
+ * alive test reads these hit points): every module's hit points, thresholds
+ * and kind - the tier's emitter slots enabled, the rest capped armour - the
+ * first exposure, the countdown, the clock's start. */
+void boss_c_init(void)
+{
+    boss_count = TABLE[BOSS_T_MODULE_COUNT];
+    boss_value = boss_difficulty[0];
+    boss_adjust = (boss_def + BOSS_DEF_HP_SCALE)[boss_value];
+    /* Decision 8: 1 / 2 / 4 emitters on levels 1-4 / 5-8 / 9-12 (and on). */
+    boss_value = (uint8_t)((uint8_t)(boss_level[LEVEL_HEADER_ID] - 1u) >> 2);
+    boss_enabled = 4u;
+    if (boss_value == 0u) {
+        boss_enabled = 1u;
+    } else if (boss_value == 1u) {
+        boss_enabled = 2u;
+    }
+    boss_alive_lo = 0u;
+    boss_alive_hi = 0u;
+    boss_exposed_lo = 0u;
+    boss_exposed_hi = 0u;
+    boss_armed_lo = 0u;
+    boss_armed_hi = 0u;
+    boss_newly_lo = 0u;
+    boss_newly_hi = 0u;
+    boss_weapons_left = 0u;
+    for (boss_n = 0u; boss_n != boss_count; ++boss_n) {
+        boss_bit_of();
+        boss_record_of();
+        boss_alive_lo |= boss_bit_lo;
+        boss_alive_hi |= boss_bit_hi;
+        boss_stage[boss_n] = 0u;
+        boss_value = FIELD(BOSS_M_KIND)[boss_record];
+        boss_i = (uint8_t)(boss_value & 0x0Fu);
+        boss_value = (uint8_t)(boss_value >> 4);
+        if (boss_i == BOSS_KIND_EMITTER && boss_value > boss_enabled) {
+            boss_i = BOSS_KIND_ARMOUR;
+            boss_value = TABLE[BOSS_T_CAPPED_HP];
+            boss_scale();
+            boss_hp[boss_n] = boss_value;
+            boss_value = TABLE[BOSS_T_CAPPED_CRACKED];
+            boss_scale();
+            boss_crack[boss_n] = boss_value;
+            boss_value = TABLE[BOSS_T_CAPPED_BROKEN];
+        } else {
+            boss_value = FIELD(BOSS_M_HP)[boss_record];
+            boss_scale();
+            boss_hp[boss_n] = boss_value;
+            boss_value = FIELD(BOSS_M_HP_CRACKED)[boss_record];
+            boss_scale();
+            boss_crack[boss_n] = boss_value;
+            boss_value = FIELD(BOSS_M_HP_BROKEN)[boss_record];
+        }
+        boss_scale();
+        boss_break[boss_n] = boss_value;
+        if (boss_hp[boss_n] == 0u) {
+            boss_hp[boss_n] = 1u;
+        }
+        boss_kind[boss_n] = boss_i;
+        if (boss_i != BOSS_KIND_ARMOUR) {
+            ++boss_weapons_left;
+        }
+    }
+    /* Everything is alive: a module is exposed now when it has no cover. */
+    boss_expose();
+    boss_newly_lo = 0u;
+    boss_newly_hi = 0u;
+    boss_phase = PHASE_FIGHT;
+    boss_blast = NONE;
+    boss_handoff = 0u;
+    boss_fire_module = NONE;
+    boss_stage_module = NONE;
+    boss_score_module = NONE;
+    boss_countdown = TABLE[BOSS_T_FIRE_COOLDOWN];
+    boss_cursor = (uint8_t)(boss_count - 1u);
+    boss_start_lo = boss_active_frame[0];
+    boss_start_hi = boss_active_frame[1];
+}
+
+/* A player shot reached the band in a column whose front intact module is
+ * boss_hit_module. A covered module absorbs it (no damage, and not a hit for
+ * the accuracy stat - owner answer Q-B7); an exposed one loses a hit point,
+ * may change its damage stage, and at 0 is destroyed: the kill may expose the
+ * modules behind it, and the last weapon's kill is the defeat (decision A).
+ * Returns 1 when a module was damaged. */
 uint8_t boss_c_hit(void)
 {
-    boss_draw_wreck = NONE;
-    boss_draw_open = NONE;
+    boss_stage_module = NONE;
     boss_score_module = NONE;
-    boss_i = boss_hit_module;
-    if (boss_i >= boss_core || boss_hp[boss_i] == 0u) {
-        if (boss_phase != PHASE_CORE) {
-            return 0u;
-        }
-        if (boss_hit_cell < boss_core_x || boss_hit_cell >= boss_core_end) {
-            return 0u;
-        }
-        boss_i = boss_core;
+    boss_newly_lo = 0u;
+    boss_newly_hi = 0u;
+    if (boss_phase != PHASE_FIGHT) {
+        return 0u;
     }
-    boss_value = (uint8_t)(boss_hp[boss_i] - 1u);
-    boss_hp[boss_i] = boss_value;
+    boss_n = boss_hit_module;
+    if (boss_hp[boss_n] == 0u) {
+        return 0u;
+    }
+    boss_bit_of();
+    if (MASK_HAS(boss_exposed_lo, boss_exposed_hi) == 0u) {
+        return 0u;
+    }
+    boss_value = (uint8_t)(boss_hp[boss_n] - 1u);
+    boss_hp[boss_n] = boss_value;
     if (boss_value != 0u) {
-        return 1u;
-    }
-    boss_draw_wreck = boss_i;
-    boss_score_module = boss_i;
-    if (boss_i == boss_core) {
-        /* The win (plan §5.6): the chain starts on the next frame, the fight's
-         * clock stops here, and the level's boss bonus goes to the summary,
-         * which adds it to the score with the tier bonus. */
-        boss_phase = PHASE_CHAIN;
-        boss_timer = 0u;
-        boss_chain_left = TABLE[BOSS_T_CHAIN_BLASTS];
-        boss_chain_next = 0u;
-        boss_clock_lo = (uint8_t)(ACTIVE_FRAME_LO - boss_start_lo);
-        boss_clock_hi = (uint8_t)(ACTIVE_FRAME_HI - boss_start_hi);
-        if (ACTIVE_FRAME_LO < boss_start_lo) {
-            --boss_clock_hi;
+        /* The stage the hit points read now: 0 intact, 1 cracked, 2 broken. */
+        boss_i = 0u;
+        if (boss_value <= boss_break[boss_n]) {
+            boss_i = 2u;
+        } else if (boss_value <= boss_crack[boss_n]) {
+            boss_i = 1u;
         }
-        STATS_BONUS_LO = U8_AT(LEVEL_BOSS_DEF_ADDRESS + BOSS_DEF_BONUS_LO);
-        STATS_BONUS_HI = U8_AT(LEVEL_BOSS_DEF_ADDRESS + BOSS_DEF_BONUS_HI);
+        boss_t = boss_stage[boss_n];
+        if (boss_i != boss_t) {
+            boss_value = TABLE[BOSS_T_STAGE_STEP];
+            boss_t = (uint8_t)(boss_i - boss_t);
+            if (boss_t == 2u) {
+                boss_value <<= 1;
+            }
+            boss_stage_add = boss_value;
+            boss_stage[boss_n] = boss_i;
+            boss_stage_module = boss_n;
+        }
         return 1u;
     }
-    --boss_guns_left;
-    if (boss_guns_left == 0u) {
-        boss_phase = PHASE_CORE;
-        boss_draw_open = boss_core;
+    boss_score_module = boss_n;
+    boss_alive_lo &= (uint8_t)~boss_bit_lo;
+    boss_alive_hi &= (uint8_t)~boss_bit_hi;
+    boss_armed_lo &= (uint8_t)~boss_bit_lo;
+    boss_armed_hi &= (uint8_t)~boss_bit_hi;
+    if (boss_kind[boss_n] != BOSS_KIND_ARMOUR) {
+        --boss_weapons_left;
+        if (boss_weapons_left == 0u) {
+            /* The win (plan §5.6): the chain starts on the next frame, the
+             * fight's clock stops here, and the level's boss bonus goes to the
+             * summary, which adds it to the score with the tier bonus. */
+            boss_phase = PHASE_CHAIN;
+            boss_timer = 0u;
+            boss_chain_left = TABLE[BOSS_T_CHAIN_BLASTS];
+            boss_chain_next = 0u;
+            boss_clock_lo = (uint8_t)(boss_active_frame[0] - boss_start_lo);
+            boss_clock_hi = (uint8_t)(boss_active_frame[1] - boss_start_hi);
+            if (boss_active_frame[0] < boss_start_lo) {
+                --boss_clock_hi;
+            }
+            boss_stats_bonus[0] = boss_def[BOSS_DEF_BONUS_LO];
+            boss_stats_bonus[1] = boss_def[BOSS_DEF_BONUS_HI];
+            return 1u;
+        }
     }
+    boss_expose();
     return 1u;
 }
 
-/* Every frame: the chain's cadence - one blast every chainFrames frames,
+/* The next armed module after the cursor fires (the policy only in S4a-i:
+ * boss_fire_module names it), and the countdown restarts from its reload -
+ * EASY +1/2, HARD -1/4 - never under the region's cooldown. O(modules), once
+ * a firing; the frame's own path stays O(1). */
+static void boss_fire_next(void)
+{
+    boss_n = boss_cursor;
+    do {
+        ++boss_n;
+        if (boss_n == boss_count) {
+            boss_n = 0u;
+        }
+        boss_bit_of();
+    } while (MASK_HAS(boss_armed_lo, boss_armed_hi) == 0u);
+    boss_cursor = boss_n;
+    boss_fire_module = boss_n;
+    boss_record_of();
+    boss_value = FIELD(BOSS_M_RELOAD)[boss_record];
+    boss_t = boss_difficulty[0];
+    if (boss_t == DIFFICULTY_EASY) {
+        boss_quarter = (uint8_t)(boss_value >> 1);
+        boss_value += boss_quarter;
+    } else if (boss_t == DIFFICULTY_HARD) {
+        boss_quarter = (uint8_t)(boss_value >> 2);
+        boss_value -= boss_quarter;
+    }
+    if (boss_value < TABLE[BOSS_T_FIRE_COOLDOWN]) {
+        boss_value = TABLE[BOSS_T_FIRE_COOLDOWN];
+    }
+    boss_countdown = boss_value;
+}
+
+/* Every frame: in the fight, the one countdown to the next firing module;
+ * after the defeat, the chain's cadence - one blast every chainFrames frames,
  * walking the modules - then the hold, then the hand-off. */
 void boss_c_tick(void)
 {
     boss_blast = NONE;
+    boss_fire_module = NONE;
+    if (boss_phase == PHASE_FIGHT) {
+        if ((uint8_t)(boss_armed_lo | boss_armed_hi) == 0u) {
+            return;
+        }
+        --boss_countdown;
+        if (boss_countdown == 0u) {
+            boss_fire_next();
+        }
+        return;
+    }
     if (boss_phase == PHASE_CHAIN) {
         if (boss_timer != 0u) {
             --boss_timer;
@@ -177,7 +412,7 @@ void boss_c_tick(void)
         --boss_chain_left;
         boss_blast = boss_chain_next;
         ++boss_chain_next;
-        if (boss_chain_next > boss_core) {
+        if (boss_chain_next == boss_count) {
             boss_chain_next = 0u;
         }
         boss_timer = TABLE[BOSS_T_CHAIN_FRAMES];

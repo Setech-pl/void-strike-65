@@ -372,6 +372,12 @@
   ],
   "bossDef": {
     "_": "M5b-S3 (plan §5.6): the boss bonus in score units, added to STATS_BONUS at the win and shown and scored by the level-end summary. Placeholder; M8 tunes it.",
-    "bonus": 2000
+    "bonus": 2000,
+    "hpScale": {
+      "_": "M5b-S4a-i (owner answer Q-B3): every module's hit points x 3/4 on EASY, x 1 on MEDIUM, x 5/4 on HARD (quarters: 0.5, 0.75, 1, 1.25 or 1.5). Placeholder; M8 tunes it.",
+      "easy": 0.75,
+      "medium": 1,
+      "hard": 1.25
+    }
   }
 }

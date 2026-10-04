@@ -1,0 +1,50 @@
+{
+  "formatVersion": 2,
+  "name": "Bastion",
+  "style": 2,
+  "_": "Region 1's boss (owner answer Q-B1): the S3 core boss rebuilt as style 2, the teaching boss - the core behind a cover group of guns (decision F). Placeholder art drawn by the agent (decision G); the owner retouches the PNGs. The drafts: band.png (the intact band, closed looks), cracked.png and broken.png (read inside module rectangles), open.png (the core's exposed art), extras.png (spark, bays, capped plate, nozzle phases, blasts). docs/level-authoring.md, 'The boss', is the format. Hit points are owner answer Q-B3's MEDIUM values (M8 tunes them); scores are packed BCD per module.",
+  "palette": {
+    "_": "COLPF0 cold-white edge, COLPF1 worn steel, COLPF2 reactor amber, COLPF3 hostile burgundy armour; flashLuma is S4a-ii's band flash.",
+    "colpf0": 12,
+    "colpf1": 6,
+    "colpf2": 42,
+    "colpf3": 50,
+    "flashLuma": 4
+  },
+  "motion": {
+    "_": "The band drifts one colour clock every framesPerColourClock frames across travelColourClocks and back (plan §5.2); the win shakes it by HSCROL jitter (Q-S5).",
+    "framesPerColourClock": 2,
+    "travelColourClocks": 63,
+    "startColourClock": 32,
+    "shakeFrames": 24,
+    "shakeAmplitude": 2
+  },
+  "chain": {
+    "_": "The win: blasts along every module, the surviving armour included (§5.13.2 item 10).",
+    "blasts": 8,
+    "framesBetween": 8
+  },
+  "fire": {
+    "_": "The least frames between two firings of any module (one countdown, §5.13.2 item 6). The shots are S4a-ii's.",
+    "cooldown": 20
+  },
+  "capped": {
+    "_": "An emitter slot the level's laser tier does not enable becomes armour with the capped plate (extras.png) and these hit points.",
+    "hp": 6
+  },
+  "nozzles": {
+    "_": "The engine nozzles at both ends (decision D): the cells that show the left and the right nozzle glyph; S4a-ii animates their three phases.",
+    "left": [[7, 2], [7, 3], [7, 4]],
+    "right": [[49, 2], [49, 3], [49, 4]],
+    "framesPerPhase": 8
+  },
+  "modules": [
+    { "name": "gun-left", "kind": "pulse", "x": 17, "row": 6, "width": 3, "height": 2, "hp": 8, "score": 50, "reload": 90 },
+    { "name": "emitter", "kind": "emitter", "x": 27, "row": 6, "width": 3, "height": 2, "hp": 10, "score": 60, "slot": 1 },
+    { "name": "gun-right", "kind": "pulse", "x": 37, "row": 6, "width": 3, "height": 2, "hp": 8, "score": 50, "reload": 90 },
+    { "name": "plate-left", "kind": "armour", "x": 21, "row": 5, "width": 3, "height": 1, "hp": 6, "score": 20 },
+    { "name": "plate-right", "kind": "armour", "x": 33, "row": 5, "width": 3, "height": 1, "hp": 6, "score": 20 },
+    { "name": "core", "kind": "core", "x": 27, "row": 3, "width": 4, "height": 2, "hp": 24, "score": 99,
+      "cover": ["gun-left", "emitter", "gun-right"] }
+  ]
+}

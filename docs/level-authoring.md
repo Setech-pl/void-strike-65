@@ -7,7 +7,7 @@ Roadmap 4.6 step 1 (`docs/plans/director-4.6.md` §6). The compiler emits the
 bytes and the level image carries them. The runtime reads the core page since
 step 2, the hull geometry since step 4, and since step 5 the payload page's
 Light and weapon looks and each sector's sky (§8.3). Paths (step 6),
-`hull_params` (4.8a) and `boss_def` (4.7) are still unread. The format was
+`hull_params` (4.8a) are still unread; `boss_def` is read by the boss (M5b, "The boss" below). The format was
 frozen at step 1 and no step since has changed it.
 
 ## The commands
@@ -81,7 +81,7 @@ numbers; world rows, not eighths.
 | `nebula` | 0 | 0 | the nebula (variant S3) is not built; any other value is refused |
 | `payload.appearances` | 0-3 looks | `[]` | Light looks for appearance slots 1-3, in order. Each is `{ "name", "rows" }`: a lower-case name a wave can use, and eight rows of eight pixels, left cell then right cell, each pixel `.` black, `W` white, `S` steel or `R` hostile red (a Light's code carries the hostile bit, so `%11` is `COLPF3`). A look is a re-skin (decision AD): the Light keeps its archetype's motion, HP, fire and score |
 | `payload.weapons` | 0-2 looks | `[]` | hostile weapon looks laid over the defaults at level start. Each is `{ "class": "pulse" \| "laser", "rows" }`, `rows` the eight 8-bit masks of `assets/graphics/fighter-weapons.json` with its rules: pixels 0-1 only (the right phase is the glyph shifted two pixels) and never `%11`, so hostile fire stays white and steel. One look per class. `bomber` is refused: its second animation phase does not fit the 9-B record |
-| `boss` | 0-255 | 0 | BossDef index; 0 = none. Non-zero needs a `boss` sector (4.7) |
+| `boss` | 0-255 | 0 | BossDef index; 0 = none. Non-zero needs a `boss` sector and a `bossDef` ("The boss" below) |
 | `pickupPolicy` | 0-255 | 3 | every-Nth-kill divisor plus allowed booster bits |
 | `debrisDensity` | 0-255 | 0 | base debris cadence |
 | `spacingScale` | 0-255 | 0 | difficulty spacing rule selector |
@@ -178,6 +178,115 @@ subtype admits — swarm 3 Light / 0 Heavy, elite 1 Light / 2 Heavy, capital
 Nothing in a level file can name code. An archetype is an offset into the
 frozen four-record roster (ROSTER FREEZE, decision 21); a path is an id into a
 resident library or the payload page.
+
+## The boss
+
+M5b (`docs/plans/m5-loading-boss.md` §5.13; owner decisions A-G, answers
+Q-B1-Q-B8). A level that names a boss ends in a `boss` sector; the boss itself
+is **region data**, one boss per region of three levels, drawn as PNG drafts
+and converted by `scripts/boss-assets.mjs` (formatVersion 2).
+
+### The level's side
+
+| Field | Meaning |
+| --- | --- |
+| `boss` | non-zero: the level ends in a boss sector. The id is written (`core[7]`) and **not read**: the region comes from the level id, `min(3, (id - 1) / 3)` + 1 (levels 1-3 region 1, ... 10-12 and on region 4). It is kept as the style/variant selector a later session may read. |
+| `bossDef.bonus` | the boss bonus in score units (0-9999), added to `STATS_BONUS` at the win, shown and scored by the summary. |
+| `bossDef.hpScale` | `{ easy, medium, hard }`, each 0.5, 0.75, 1, 1.25 or 1.5 (default 0.75 / 1 / 1.25, owner answer Q-B3): every module's hit points and damage thresholds scaled by that many quarters at the boss's install. |
+
+The boss sector itself takes no `rows` (its clock is the boss's death), admits
+no Heavy and at most one Light, and an escort wave must arm on row 0 (the world
+stops in the boss sector, Q1).
+
+The laser tier comes from the level, not the region: levels 1-4 enable emitter
+slot 1, levels 5-8 slots 1-2, levels 9 and on slots 1-4 (decisions B, 8). An
+emitter whose slot is not enabled becomes **capped armour**: the capped plate
+over its cells, `capped.hp` hit points, kind armour.
+
+### The region's drafts
+
+`assets/graphics/boss-regions/region-N/` holds six files. The owner edits the
+PNGs in any pixel editor; `npm run boss:preview` (or `-- --region=N`) converts
+them and renders the whole band, every stage and the extras at the Atari palette
+and 2:1 aspect into `build/boss-preview/region-N.png` without building the game.
+
+| File | Size | Content |
+| --- | --- | --- |
+| `band.png` | 256 x 64 | the band as the fight starts: 64 cells x 8 rows, a cell 4 x 8 pixels; a covered module's closed look (S3's shutters) |
+| `cracked.png`, `broken.png` | 256 x 64 | every module's cracked and broken look, read inside module rectangles only |
+| `open.png` | 256 x 64 | a covered module's exposed look; a module whose cells here equal `band.png`'s has none |
+| `extras.png` | 68 x 8 | 17 cells: the spark; the bays (gone looks) of armour, pulse, emitter, salvo, core; the capped plate intact, cracked, broken; the left nozzle's 3 phases; the right nozzle's 3 phases; blast A, blast B |
+| `modules.json` | | the layout (below) |
+
+**The PNG format.** Non-interlaced, 8 bits a channel, **RGBA** (32-bit), every
+pixel opaque, in exactly five colours. A pixel is one ANTIC 4 pixel, two colour
+clocks wide: view the drafts at 2:1.
+
+| RGB | Shows as |
+| --- | --- |
+| `#000000` | background |
+| `#FFFFFF` | `COLPF0` |
+| `#888888` | `COLPF1` |
+| `#FFA000` | colour 3 in the pf2 bank (`COLPF2`) |
+| `#B00040` | colour 3 in the pf3 bank (`COLPF3`) |
+
+The last two are the same pixel value; a cell's screen code takes bit 7 from
+the bank it uses, so **a cell may use one of them, not both**, and a module
+cell's intact, cracked and broken looks must agree on it.
+
+**`modules.json`** (formatVersion 2):
+
+| Field | Meaning |
+| --- | --- |
+| `name`, `style` | documentation; style 1 the layered fortress (geometric covers), style 2 the core boss (an explicit cover group) |
+| `palette` | `colpf0`-`colpf3` under the band (the band's own palette, set by its DLI), `flashLuma` (S4a-ii's band flash) |
+| `motion` | `framesPerColourClock`, `travelColourClocks` (1-63), `startColourClock`, `shakeFrames`, `shakeAmplitude` (0-3) |
+| `chain` | `blasts` (at least one a module: the chain passes every module, standing armour included), `framesBetween` |
+| `fire.cooldown` | the least frames between two firings (one countdown serves every weapon) |
+| `capped.hp` | a capped emitter's hit points |
+| `nozzles` | `left` and `right`: the `[column, row]` cells that show that nozzle; `framesPerPhase` (S4a-ii animates them). `band.png` must show each side's phase 0 there |
+| `modules[]` | up to 16: `name`, `kind` (`armour`, `pulse`, `emitter`, `salvo`, `core`), `x`, `row`, `width` (1-4), `height` (1-2), `hp` (1-100), `score` (0-99, packed BCD), `slot` (emitters only, 1-4), `reload` (frames, 0 = never fires), `cover` (`"auto"` or a list of module names) |
+
+Every kind but armour is a **weapon**; the boss is defeated when its last
+weapon is destroyed, armour left standing or not. Rows count from the player's
+side: row 7 is the front. A module is **exposed** when every module of its
+cover is destroyed; `"auto"` is every module in a nearer row whose columns
+overlap it. A covered module absorbs shots: no damage, and not a hit for the
+accuracy stat (Q-B7). A destroyed module shows its kind's bay glyph, and a
+shot in its columns then meets the module behind it, or the hull.
+
+**Damage stages.** A module cracks at 2/3 of its hit points and breaks at 1/3.
+Every module cell is a *staged* glyph: the converter puts each distinct
+(intact, cracked, broken) cell into a block so that cracked = code + K and
+broken = code + 2K. A module with an open look is staged by its open look.
+
+**The charset.** The region's glyphs land at `$0C00` and the band's DLI points
+`CHBASE` there under the band. Codes 0-6 are the divider row's (copied from the
+gameplay charset by the install); the region has the remaining 121. The charset
+run is sized to its glyphs plus the look tail (open looks, nozzle phases) and
+may not exceed 8 sectors.
+
+### What the converter refuses
+
+Each naming the file, the cell or the module:
+
+* a PNG that is not 8-bit RGBA, has the wrong size, a translucent pixel, or a
+  colour outside the five;
+* a cell mixing the pf2 and pf3 banks, or a module cell whose three stages do;
+* more than 128 codes (7 divider + 3K staged + plain + 2 nozzles);
+* covers that are cyclic (a module covered, through any chain, by itself), a
+  self cover, or an unknown name;
+* modules that overlap, more than 16, no weapon at all, a duplicated emitter
+  slot, a slot on a non-emitter, a module with an open look but no cover;
+* a nozzle cell that is not its side's phase 0, or inside a module;
+* a charset and look tail over 1 KB, or a theme over its 2 sectors.
+
+### The disk
+
+Each region owns 16 sectors from 632: the theme (2, read first, under the
+WARNING screen), band A (3), band B (3, with the 256 B of tables) and the
+charset (<= 8). The boss code (slot A), the install and slot C (the controller)
+are shared, at 528-583.
 
 ## Level 2
 

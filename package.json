@@ -30,6 +30,7 @@
     "hull:style:R4": "node scripts/build.mjs --hull-style=R4",
     "levels:check": "node scripts/level-compiler.mjs",
     "levels:preview": "node scripts/level-preview.mjs",
+    "boss:preview": "node scripts/boss-preview.mjs",
     "level:play": "node scripts/build.mjs",
     "clean": "node scripts/clean.mjs",
     "package": "npm run build && node scripts/package-release.mjs",

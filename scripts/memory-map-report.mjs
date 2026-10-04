@@ -123,13 +123,15 @@ const SEGMENTS = {
   GAMEPLAY_MUSIC: ["gameplay music player (in the level image)", "level"],
   GLUE: ["late-published integration glue", "resident"],
   COLLISION: ["capital-bolt / Player Fighter collision module", "resident"],
-  // M5b-S3: the boss overlay link, slot A's run and the once-only install.
+  // M5b-S3: the boss overlay link, slot A's run and the once-only install;
+  // M5b-S4a-i (Q-B5): slot C and the scratch page in the boss's low-RAM claim.
   BOSS_HEAD: ["boss overlay: head JMP and the capital vector table's boss image", "overlay"],
-  BOSS_CODE: ["boss overlay: band, boss DLI, motion, shot-versus-module, drawing, hand-off", "overlay"],
-  BOSS_C_CODE: ["boss overlay: C controller (phases, hit points, chain, bonus, clock)", "overlay"],
-  BOSS_C_RODATA: ["boss overlay: C read-only data", "overlay"],
-  BOSS_BSS: ["boss overlay: band and collision state (zero in the image)", "overlay"],
-  BOSS_C_BSS: ["boss overlay: C controller state (zero in the image)", "overlay"],
+  BOSS_CODE: ["boss overlay: band, boss DLI, motion, the column map, shot-versus-module, drawing, hand-off", "overlay"],
+  BOSS_C_CODE: ["boss slot C: the C controller (cover and exposure, stages, tier, defeat, fire countdown, chain, bonus, clock)", "overlay"],
+  BOSS_C_RODATA: ["boss slot C: C read-only data", "overlay"],
+  BOSS_C_BSS: ["boss slot C: the controller's state (after its code, never read from disk)", "overlay"],
+  BOSS_SCRATCH: ["boss scratch page: the column map, S4a-ii's cell-flash ring", "overlay"],
+  BOSS_BSS: ["boss scratch page: slot A's band and collision state", "overlay"],
   BOSS_INSTALL: ["boss install run at $7810, run once in place per boss entry", "boss-entry"],
 };
 
@@ -433,6 +435,11 @@ function collectRows(build) {
   add(m.overlays.slotA.address, m.overlays.slotA.endExclusive - 1, "slot", `overlay slot A (\`${m.overlays.slotA.firstRoutine}\` onward; run \`${m.overlays.runs[0].name}\`)`, "overlay", "manifest `overlays.slotA`");
   add(m.overlays.capitalVectors.address, m.overlays.capitalVectors.address + m.overlays.capitalVectors.bytes - 1, "slot", `capital vector table, ${m.overlays.capitalVectors.entries} entries (inside \`LIGHT_KERNEL\`)`, "resident", "manifest `overlays.capitalVectors`");
   add(m.levelSummary.code.address, m.levelSummary.code.endExclusive - 1, "slot", "level-summary claim (owner decision 2026-10-03): no other link, cfg area or boot range may reach it", "session", "manifest `levelSummary.code`, tests/level-summary-build.test.mjs");
+  // M5b-S4a-i (owner answer Q-B5): the boss's claim and its three homes.
+  add(m.boss.claim.start, m.boss.claim.endExclusive - 1, "slot", "boss claim (owner answer Q-B5): the region charset, slot C, the scratch page; no other link, cfg area or boot range may reach it", "overlay", "manifest `boss.claim`, tests/boss-claim.test.mjs");
+  add(m.boss.charset.address, m.boss.charset.address + m.boss.charset.capacityBytes - 1, "slot", "boss region charset (CHBASE `$0C` under the band), read at every boss entry; codes 0-6 the divider's, copied by the install", "overlay", "manifest `boss.charset`");
+  add(m.boss.slotC.address, m.boss.slotC.address + m.boss.slotC.capacityBytes - 1, "slot", `boss slot C: the C controller, run \`boss-slot-c\` (${m.boss.slotC.sectors} sectors)`, "overlay", "manifest `boss.slotC`");
+  add(m.boss.scratch.address, m.boss.scratch.address + m.boss.scratch.capacityBytes - 1, "slot", "boss scratch page: the column map, the ring, slot A's state; set by the install", "overlay", "manifest `boss.scratch`");
   add(m.pause.screenBackupAddress, m.pause.screenBackupAddress + m.pause.screenBackupBytes - 1, "transient", "pause-screen backup (`PAUSE_SCREEN_BACKUP`)", "pause", "manifest `pause`");
   add(m.levelSummary.art.staging, m.levelSummary.art.staging + Math.max(...m.levelSummary.art.runs.map((run) => run.bytes)) - 1, "transient", "summary art run (largest region run) read for the summary screen", "summary", "manifest `levelSummary.art`");
   add(m.levelSummary.saveRecord.buffer, m.levelSummary.saveRecord.buffer + m.levelSummary.saveRecord.bytes - 1, "transient", "save-record sector buffer", "summary", "manifest `levelSummary.saveRecord`");
@@ -640,6 +647,7 @@ function reuseWindows(build) {
   const m = build.manifest;
   return [
     ["the boot splash RAM / the summary module", m.transportCapacity.bootSplash.runAddress, m.levelSummary.code.endExclusive - 1],
+    ["the boss's low-RAM claim (charset, slot C, scratch)", m.boss.claim.start, m.boss.claim.endExclusive - 1],
     ["the initial block over `MAIN` (stage 2 and its suffix)", m.loadAddress, sym("PMG_BASE") - 1],
     ["the PMG window", sym("PMG_BASE"), sym("PMG_BASE") + 0x7ff],
     ["the screen, charsets and hull maps under the loader bitmap", m.loaderScreen.bitmapAddress, m.loaderScreen.secondLmsAddress + (m.loaderScreen.height - m.loaderScreen.secondLmsLine) * m.loaderScreen.bytesPerRow - 1],

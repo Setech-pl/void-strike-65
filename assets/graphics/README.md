@@ -25,6 +25,15 @@ provenance belong under `docs/media/`.
   PMG/descriptors for Interceptor, Talon, and Scythe. The release enables only Interceptor;
   Talon and Scythe remain review-only and use no runtime weapon.
 
+- `boss-regions/region-N/` holds a regional boss as PNG drafts and
+  `modules.json` (M5b-S4a-i, formatVersion 2): `band.png`, `cracked.png`,
+  `broken.png`, `open.png` (256 x 64, one pixel per ANTIC 4 pixel, five fixed
+  colours) and `extras.png` (68 x 8). `scripts/boss-assets.mjs` converts them
+  into the region's charset, band and tables; `npm run boss:preview` renders
+  them without building the game. The format is `docs/level-authoring.md`,
+  "The boss". Region 1's drafts are **agent-drawn placeholders** (owner decision
+  G; provenance in `THIRD_PARTY_NOTICES.md`), for the owner to retouch.
+
 `scripts/*.mjs` validate these definitions and generate the includes consumed by
 `src/main.s`. Generated Atari bytes must not be edited by hand.
 

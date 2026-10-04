@@ -100,11 +100,19 @@ import { measureRuntimeCycles } from "./runtime-cycles.mjs";
 import {
   BOSS_BAND_A_SECTORS,
   BOSS_BAND_B_SECTORS,
+  BOSS_CHARSET_MAX_SECTORS,
+  BOSS_CLAIM,
+  BOSS_REGION_RUN_OFFSETS,
   BOSS_REGION_SECTORS,
+  BOSS_SCRATCH_ADDRESS,
+  BOSS_SCRATCH_BYTES,
+  BOSS_SLOT_C_ADDRESS,
+  BOSS_SLOT_C_BYTES,
   BOSS_STAGING_ADDRESS,
-  BOSS_STAGING_SECTORS,
+  BOSS_THEME_SECTORS,
+  bossRegionDirectory,
   compileBossRegion,
-  loadBossRegionDefinition,
+  loadBossRegionDraft,
   renderBossLayoutHeader,
   renderBossLayoutInclude,
 } from "./boss-assets.mjs";
@@ -399,23 +407,28 @@ const saveRecordSector = 599;
 const summaryArtBaseSector = 600;
 const summaryStagingAddress = 0x7810;
 const summaryModuleAddress = 0x0500;
-// M5b-S3 (docs/plans/m5-loading-boss.md §5.11, owner answers Q-S1, Q-S6): the
-// boss's disk, inside the 528-583 reservation. The boss code is slot A's
-// sixteen sectors, read at every boss entry; the install is ONE shared
-// three-sector run read to the staging RAM at $7810 and run in place; then
-// each region's nine: its staging run (glyphs + theme, to $7990, read first,
-// through its directory entry), then the band's two runs (rows 0-5 to $A880,
-// rows 6-7 + tables to $AC80), read by slot A's head. 16 + 3 + 4 x 9 = 55.
+// M5b-S3 / S4a-i (docs/plans/m5-loading-boss.md §5.11, §5.13.4; owner answers
+// Q-S1, Q-S6, Q-B5, Q-B8): the boss's disk. Inside the 528-583 reservation:
+// the boss code (slot A, up to 16 sectors from 528, sized to use), the ONE
+// shared three-sector install run at 544 (read to the staging RAM at $7810 and
+// run in place) and slot C (the C controller at $1000, up to 16 sectors from
+// 547, sized to use) - 35 of 56. Each region's runs in its own 16 sectors from
+// 632: the theme (2, to $7990, read FIRST through the region's directory
+// entry), band A (3, rows 0-5 to $A880), band B (3, rows 6-7 + tables to
+// $AC80) and the charset (<= 8, sized to use, to $0C00), the last three read
+// by slot A's head.
 const OVERLAY_BOSS_CODE = 1;
 const OVERLAY_BOSS_REGION = 2;
 const bossReservationSector = 528;
 const bossReservationSectors = 56;
 const bossCodeSector = 528;
-const bossCodeSectors = 16;
-const bossInstallSector = bossCodeSector + bossCodeSectors;
+const bossCodeMaxSectors = 16;
+const bossInstallSector = bossCodeSector + bossCodeMaxSectors;
 const bossInstallSectors = 3;
 const bossInstallAddress = 0x7810;
-const bossRegionBaseSector = bossInstallSector + bossInstallSectors;
+const bossSlotCSector = bossInstallSector + bossInstallSectors;
+const bossSlotCMaxSectors = BOSS_SLOT_C_BYTES / 128;
+const bossRegionBaseSector = 632;
 const bossRegionCount = 4;
 // The window copies this many bytes of the region's staging run over the
 // level's track (src/hybrid/c-asm-abi.s `@theme`, an 8-bit loop that wraps).
@@ -1677,8 +1690,9 @@ async function build() {
   writeFile(path.join(buildDirectory, "gameplay-music.inc"), gameplayMusicInclude);
   // M5b-S3: the boss theme, laid out like the level's track so that the boss
   // entry can copy it over that track inside the level's music block (§2.6,
-  // decision 32), and region 1's boss with the theme in its staging run.
-  // Regions 2-4 are S5's: their directory entries and runs stay empty.
+  // decision 32), and region 1's boss (M5b-S4a-i: from its PNG drafts, Q-B2)
+  // with the theme in its first run. Regions 2-4 are S5's: their directory
+  // entries and runs stay empty.
   const bossThemeAsset = compileGameplayMusic(
     loadMusicDefinition(path.join(rootDirectory, "assets", "music", "boss-theme.json")),
     { pitches: menuMusicAsset.pitches },
@@ -1686,9 +1700,8 @@ async function build() {
   const bossThemeImage = layoutGameplayMusicLike(bossThemeAsset, gameplayMusicAsset,
     { capacity: bossThemeCopyBytes });
   const bossRegions = [compileBossRegion(
-    loadBossRegionDefinition(path.join(rootDirectory, "assets", "graphics", "boss-region-1.json")),
-    { themeImage: bossThemeImage })];
-  const bossLayoutInclude = Buffer.from(renderBossLayoutInclude(bossRegions[0]));
+    loadBossRegionDraft(bossRegionDirectory(rootDirectory, 1)), { themeImage: bossThemeImage })];
+  const bossLayoutInclude = Buffer.from(renderBossLayoutInclude());
   const bossLayoutHeader = Buffer.from(renderBossLayoutHeader());
   writeFile(path.join(buildDirectory, "boss-layout.inc"), bossLayoutInclude);
   writeFile(path.join(buildDirectory, "boss-layout.h"), bossLayoutHeader);
@@ -2322,26 +2335,27 @@ async function build() {
   // reader's directory names the module's sector count: the reader links once
   // with the region's full 14 sectors, the module links, and the reader is
   // relinked with the real count - one data byte, which moves no label (checked).
-  const summaryDirectoryEntries = (codeSectors) => [
+  const summaryDirectoryEntries = (codeSectors, bossCodeSectors = bossCodeMaxSectors) => [
     { index: OVERLAY_SUMMARY_ART, startSector: summaryArtRuns[0].startSector,
       sectors: SUMMARY_ART_SECTORS, destination: summaryStagingAddress },
     { index: OVERLAY_SAVE_RECORD, startSector: saveRecordSector, sectors: 1,
       destination: summaryStagingAddress },
     { index: OVERLAY_SUMMARY_CODE, startSector: summaryCodeSector,
       sectors: codeSectors, destination: summaryModuleAddress },
-    // M5b-S3: the boss code into slot A, and each region's staging run - the
-    // two runs the window's boss entry reads by index.
+    // M5b-S3: the boss code into slot A, and each region's theme run - the
+    // two runs the window's boss entry reads by index. M5b-S4a-i (Q-B8): the
+    // boss code's count is the linked code's, set once the boss has linked.
     { index: OVERLAY_BOSS_CODE, startSector: bossCodeSector, sectors: bossCodeSectors,
       destination: slotAddress },
     ...bossRegions.map((region, index) => ({
       index: OVERLAY_BOSS_REGION + index,
-      startSector: bossRegionBaseSector + index * BOSS_REGION_SECTORS,
-      sectors: BOSS_STAGING_SECTORS, destination: BOSS_STAGING_ADDRESS,
+      startSector: bossRegionBaseSector + index * BOSS_REGION_SECTORS + BOSS_REGION_RUN_OFFSETS.theme,
+      sectors: BOSS_THEME_SECTORS, destination: BOSS_STAGING_ADDRESS,
     })),
   ];
-  const renderDirectory = (codeSectors) => renderOverlayDirectoryInclude({
+  const renderDirectory = (codeSectors, bossCodeSectors) => renderOverlayDirectoryInclude({
     runs: overlayRuns, slotAddress, slotBytes: capitalSlotImage.length,
-    vectorImage: capitalVectorImage, entries: summaryDirectoryEntries(codeSectors),
+    vectorImage: capitalVectorImage, entries: summaryDirectoryEntries(codeSectors, bossCodeSectors),
   });
   let overlayDirectoryInclude = renderDirectory(summaryCodeMaxSectors);
   const levelSummaryAbiInclude = fs.readFileSync(
@@ -2551,7 +2565,8 @@ async function build() {
       "SCREEN", "update_score_display", "update_hud_status", "set_gameplay_row_ptr",
       "generate_starfield_row", "weapon_pickup_clear_sector", "draw_player", "HUD_CHARSET",
       "HUD_COLPF1", "HUD_COLPF2", "STATE_GAMEPLAY", "game_state", "wait_frame_start",
-      "main_loop", "sound_enabled", "GAMEPLAY_DIVIDER_SCREEN", "capital_slot_a"],
+      "main_loop", "sound_enabled", "GAMEPLAY_DIVIDER_SCREEN", "capital_slot_a",
+      "DIFFICULTY_SETTING"],
     reader: ["sr_sectors_left", "sr_sector_lo", "sr_sector_hi", "sr_dst",
       "sector_reader_read_sectors", "sector_reader_failure_screen", "sector_reader_level_end"],
     director: ["_sector_wave_count", "_director_c_try_event"],
@@ -2592,25 +2607,31 @@ async function build() {
     `        .byte $${(startSector & 0xff).toString(16).padStart(2, "0")}, ` +
     `$${(startSector >> 8).toString(16).padStart(2, "0")}, ${sectors}, ` +
     `$${(destination & 0xff).toString(16).padStart(2, "0")}, $${(destination >> 8).toString(16).padStart(2, "0")}`;
-  const bossRunsInclude = [
-    "; Generated by scripts/build.mjs for M5b-S3 - do not edit.",
-    "; {sector lo, sector hi, count, dst lo, dst hi}: the shared install run, then",
-    "; per region the band's rows 0-5 and rows 6-7 + tables (0 = not on this disk).",
+  const bossRegionRunSector = (index, run) =>
+    bossRegionBaseSector + index * BOSS_REGION_SECTORS + BOSS_REGION_RUN_OFFSETS[run];
+  // M5b-S4a-i (Q-B8): slot C's run is sized to the linked code, so the run
+  // table is rendered twice - first with slot C's whole reservation, then
+  // with the linked size; the table's bytes do not move a label (checked).
+  const renderBossRuns = (slotCSectors) => [
+    "; Generated by scripts/build.mjs for M5b-S4a-i - do not edit.",
+    "; {sector lo, sector hi, count, dst lo, dst hi}: the shared install run, slot C,",
+    "; then per region band A, band B and the charset (0 = not on this disk).",
     bossRunEntry(bossInstallSector, bossInstallSectors, bossInstallAddress) + "\t; install",
+    bossRunEntry(bossSlotCSector, slotCSectors, BOSS_SLOT_C_ADDRESS) + "\t; slot C",
     ...Array.from({ length: bossRegionCount }, (_, index) => {
       const region = bossRegions[index];
-      const base = bossRegionBaseSector + index * BOSS_REGION_SECTORS + BOSS_STAGING_SECTORS;
       return region === undefined
-        ? [`        .byte 0, 0, 0, 0, 0\t; region ${index + 1}: band A, not on this disk`,
-          `        .byte 0, 0, 0, 0, 0\t; region ${index + 1}: band B, not on this disk`]
-        : [bossRunEntry(base, BOSS_BAND_A_SECTORS, region.runs.bandA.address) +
-            `\t; region ${index + 1}: band A`,
-          bossRunEntry(base + BOSS_BAND_A_SECTORS, BOSS_BAND_B_SECTORS, region.runs.bandB.address) +
-            `\t; region ${index + 1}: band B`];
+        ? ["band A", "band B", "charset"].map((what) =>
+          `        .byte 0, 0, 0, 0, 0\t; region ${index + 1}: ${what}, not on this disk`)
+        : [bossRunEntry(bossRegionRunSector(index, "bandA"), BOSS_BAND_A_SECTORS,
+          region.runs.bandA.address) + `\t; region ${index + 1}: band A`,
+        bossRunEntry(bossRegionRunSector(index, "bandB"), BOSS_BAND_B_SECTORS,
+          region.runs.bandB.address) + `\t; region ${index + 1}: band B`,
+        bossRunEntry(bossRegionRunSector(index, "charset"), region.runs.charset.sectors,
+          region.runs.charset.address) + `\t; region ${index + 1}: charset`];
     }).flat(),
     "",
   ].join("\n");
-  writeFile(path.join(buildDirectory, "boss-runs.inc"), bossRunsInclude);
   const bossConfig = fs.readFileSync(path.join(rootDirectory, "cfg", "boss.cfg"), "utf8").replace(
     /BOSS_SLOT_RAM:(\s*)start = \$[0-9A-Fa-f]+, size = \$[0-9A-Fa-f]+/,
     (_, spacing) => `BOSS_SLOT_RAM:${spacing}start = $${slotAddress.toString(16).toUpperCase()}, ` +
@@ -2630,6 +2651,7 @@ async function build() {
     [`${bossBase}-c-generated.s`],
   );
   const bossGenerated = bossCompiled.outputs[`${bossBase}-c-generated.s`];
+  writeFile(path.join(buildDirectory, "boss-c-generated.s"), bossGenerated);
   {
     const text = bossGenerated.toString("utf8");
     const executable = text.replace(/^\s*\.importzp.*$/gmi, "");
@@ -2647,75 +2669,139 @@ async function build() {
       "-o", `${bossBase}-c.o`, `${bossBase}-c-generated.s`],
     [`${bossBase}-c.o`, `${bossBase}-c.lst`],
   );
-  const bossAsmAssembled = await runWasmTool(
-    "ca65",
-    {
-      [`${bossBase}.s`]: fs.readFileSync(path.join(rootDirectory, "src", "hybrid", "boss.s")),
-      "/project/build/boss-layout.inc": bossLayoutInclude,
-      "/project/build/boss-imports.inc": Buffer.from(bossImportsInclude),
-      "/project/build/boss-runs.inc": Buffer.from(bossRunsInclude),
-      "/project/build/fighter-weapons.inc": fighterWeaponsInclude,
-      "/project/build/level-summary-abi.inc": levelSummaryAbiInclude,
-    },
-    ["--cpu", "6502", "-g", "-l", `${bossBase}.lst`, "-o", `${bossBase}.o`, `${bossBase}.s`],
-    [`${bossBase}.o`, `${bossBase}.lst`],
-  );
-  const bossLinked = await runWasmTool(
-    "ld65",
-    {
-      [`${bossBase}.o`]: bossAsmAssembled.outputs[`${bossBase}.o`],
-      [`${bossBase}-c.o`]: bossCAssembled.outputs[`${bossBase}-c.o`],
-      [`${bossBase}.cfg`]: Buffer.from(bossConfig),
-    },
-    ["-C", `${bossBase}.cfg`, "-o", `${bossBase}.bin`, "-m", `${bossBase}.map`,
-      "-Ln", `${bossBase}.lbl`, `${bossBase}.o`, `${bossBase}-c.o`],
-    [`${bossBase}.bin`, `${bossBase}.map`, `${bossBase}.lbl`],
-  );
+  const linkBoss = async (runsInclude) => {
+    const assembled = await runWasmTool(
+      "ca65",
+      {
+        [`${bossBase}.s`]: fs.readFileSync(path.join(rootDirectory, "src", "hybrid", "boss.s")),
+        "/project/build/boss-layout.inc": bossLayoutInclude,
+        "/project/build/boss-imports.inc": Buffer.from(bossImportsInclude),
+        "/project/build/boss-runs.inc": Buffer.from(runsInclude),
+        "/project/build/fighter-weapons.inc": fighterWeaponsInclude,
+        "/project/build/level-summary-abi.inc": levelSummaryAbiInclude,
+        "/project/build/level-def.inc": levelDefInclude,
+      },
+      ["--cpu", "6502", "-g", "-l", `${bossBase}.lst`, "-o", `${bossBase}.o`, `${bossBase}.s`],
+      [`${bossBase}.o`, `${bossBase}.lst`],
+    );
+    const linked = await runWasmTool(
+      "ld65",
+      {
+        [`${bossBase}.o`]: assembled.outputs[`${bossBase}.o`],
+        [`${bossBase}-c.o`]: bossCAssembled.outputs[`${bossBase}-c.o`],
+        [`${bossBase}.cfg`]: Buffer.from(bossConfig),
+      },
+      ["-C", `${bossBase}.cfg`, "-o", `${bossBase}.bin`, "-m", `${bossBase}.map`,
+        "-Ln", `${bossBase}.lbl`, `${bossBase}.o`, `${bossBase}-c.o`],
+      [`${bossBase}.bin`, `${bossBase}.map`, `${bossBase}.lbl`],
+    );
+    return { assembled, linked,
+      labels: parseViceLabels(linked.outputs[`${bossBase}.lbl`].toString("utf8")) };
+  };
+  let bossRunsInclude = renderBossRuns(bossSlotCMaxSectors);
+  let bossLink = await linkBoss(bossRunsInclude);
+  const bossSlotCCodeBytes = bossLink.labels.get("__BOSS_C_BSS_RUN__") - BOSS_SLOT_C_ADDRESS;
+  const bossSlotCSectors = Math.ceil(bossSlotCCodeBytes / 128);
+  {
+    const firstPass = bossLink.labels;
+    bossRunsInclude = renderBossRuns(bossSlotCSectors);
+    bossLink = await linkBoss(bossRunsInclude);
+    for (const [name, address] of firstPass) {
+      if (bossLink.labels.get(name) !== address) {
+        throw new Error(`M5b-S4a-i: relinking the boss with slot C's sector count moved ${name}`);
+      }
+    }
+  }
+  writeFile(path.join(buildDirectory, "boss-runs.inc"), bossRunsInclude);
+  const bossAsmAssembled = bossLink.assembled;
+  const bossLinked = bossLink.linked;
   const bossImage = Buffer.from(bossLinked.outputs[`${bossBase}.bin`]);
-  const bossLabels = parseViceLabels(bossLinked.outputs[`${bossBase}.lbl`].toString("utf8"));
+  const bossLabels = bossLink.labels;
   const bossSlotUsed = bossLabels.get("__BOSS_SLOT_RAM_LAST__") - slotAddress;
   const bossInstallUsed = bossLabels.get("__BOSS_INSTALL_RAM_LAST__") - bossInstallAddress;
-  if (bossImage.length !== capitalSlotImage.length + bossInstallSectors * 128 ||
-    !(bossSlotUsed > 0 && bossSlotUsed <= capitalSlotImage.length) ||
-    !(bossInstallUsed > 0 && bossInstallUsed <= bossInstallSectors * 128) ||
+  const bossSlotCUsed = bossLabels.get("__BOSS_SLOT_C_RAM_LAST__") - BOSS_SLOT_C_ADDRESS;
+  const bossScratchUsed = bossLabels.get("__BOSS_SCRATCH_RAM_LAST__") - BOSS_SCRATCH_ADDRESS;
+  const bossCodeSectors = Math.ceil(bossSlotUsed / 128);
+  const slotABytes = capitalSlotImage.length;
+  const installBytes = bossInstallSectors * 128;
+  if (bossImage.length !== slotABytes + installBytes + BOSS_SLOT_C_BYTES ||
+    !(bossSlotUsed > 0 && bossSlotUsed <= slotABytes) ||
+    !(bossInstallUsed > 0 && bossInstallUsed <= installBytes) ||
+    !(bossSlotCUsed > 0 && bossSlotCUsed <= BOSS_SLOT_C_BYTES) ||
+    !(bossScratchUsed > 0 && bossScratchUsed <= BOSS_SCRATCH_BYTES) ||
+    bossCodeSectors > bossCodeMaxSectors || bossSlotCSectors > bossSlotCMaxSectors ||
     bossLabels.get("boss_slot") !== slotAddress ||
     bossLabels.get("boss_install") !== bossInstallAddress ||
-    bossInstallAddress + bossInstallSectors * 128 > BOSS_STAGING_ADDRESS) {
-    throw new Error(`M5b-S3: the boss overlay does not fit its homes: slot A ${bossSlotUsed} of ` +
-      `${capitalSlotImage.length} B, install ${bossInstallUsed} of ${bossInstallSectors * 128} B`);
+    bossLabels.get("boss_column_map") !== BOSS_SCRATCH_ADDRESS ||
+    bossInstallAddress + installBytes > BOSS_STAGING_ADDRESS ||
+    BOSS_SCRATCH_ADDRESS + BOSS_SCRATCH_BYTES !== BOSS_CLAIM.endExclusive) {
+    throw new Error(`M5b-S4a-i: the boss overlay does not fit its homes: slot A ${bossSlotUsed} of ` +
+      `${slotABytes} B, install ${bossInstallUsed} of ${installBytes} B, slot C ${bossSlotCUsed} of ` +
+      `${BOSS_SLOT_C_BYTES} B, scratch ${bossScratchUsed} of ${BOSS_SCRATCH_BYTES} B`);
   }
+  // The reader's directory names the boss code's sector count: relinked with
+  // the linked count - one data byte, which moves no label (checked), as the
+  // summary's count above.
+  overlayDirectoryInclude = renderDirectory(summaryCodeSectors, bossCodeSectors);
+  {
+    const firstPass = sectorReaderLabels;
+    sectorReaderModule = await linkSectorReader();
+    sectorReaderLabels = parseViceLabels(sectorReaderModule.labels.toString("utf8"));
+    for (const [name, address] of firstPass) {
+      if (sectorReaderLabels.get(name) !== address) {
+        throw new Error(`M5b-S4a-i: relinking the reader with the boss code's sector count moved ${name}`);
+      }
+    }
+  }
+  writeFile(path.join(buildDirectory, "overlay-directory.inc"), overlayDirectoryInclude);
   const bossCodeRun = { name: "boss-code", startSector: bossCodeSector, sectors: bossCodeSectors,
-    destination: slotAddress, data: bossImage.subarray(0, capitalSlotImage.length),
+    destination: slotAddress, data: bossImage.subarray(0, bossCodeSectors * 128),
     file: "overlay-boss-code.bin" };
   const bossInstallRun = { name: "boss-install", startSector: bossInstallSector,
     sectors: bossInstallSectors, destination: bossInstallAddress,
-    data: bossImage.subarray(capitalSlotImage.length), file: "overlay-boss-install.bin" };
-  const bossRegionRuns = bossRegions.flatMap((region, index) => {
-    const base = bossRegionBaseSector + index * BOSS_REGION_SECTORS;
-    return [
-      { name: `boss-region-${index + 1}-staging`, startSector: base,
-        sectors: BOSS_STAGING_SECTORS, destination: region.runs.staging.address,
-        data: Buffer.from(region.runs.staging.data), file: `boss-region-${index + 1}-staging.bin` },
-      { name: `boss-region-${index + 1}-band-a`, startSector: base + BOSS_STAGING_SECTORS,
-        sectors: BOSS_BAND_A_SECTORS, destination: region.runs.bandA.address,
-        data: Buffer.from(region.runs.bandA.data), file: `boss-region-${index + 1}-band-a.bin` },
-      { name: `boss-region-${index + 1}-band-b`,
-        startSector: base + BOSS_STAGING_SECTORS + BOSS_BAND_A_SECTORS,
-        sectors: BOSS_BAND_B_SECTORS, destination: region.runs.bandB.address,
-        data: Buffer.from(region.runs.bandB.data), file: `boss-region-${index + 1}-band-b.bin` },
-    ];
-  });
-  const bossDiskRuns = [bossCodeRun, bossInstallRun, ...bossRegionRuns];
+    data: bossImage.subarray(slotABytes, slotABytes + installBytes), file: "overlay-boss-install.bin" };
+  const bossSlotCRun = { name: "boss-slot-c", startSector: bossSlotCSector, sectors: bossSlotCSectors,
+    destination: BOSS_SLOT_C_ADDRESS,
+    data: bossImage.subarray(slotABytes + installBytes, slotABytes + installBytes + bossSlotCSectors * 128),
+    file: "overlay-boss-slot-c.bin" };
+  const bossRegionRuns = bossRegions.flatMap((region, index) => ["theme", "bandA", "bandB", "charset"]
+    .map((run) => ({
+      name: `boss-region-${index + 1}-${run.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}`,
+      startSector: bossRegionRunSector(index, run), sectors: region.runs[run].sectors,
+      destination: region.runs[run].address, data: Buffer.from(region.runs[run].data),
+      file: `boss-region-${index + 1}-${run.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}.bin`,
+      region: index + 1,
+    })));
+  for (const region of bossRegions) {
+    if (region.runs.charset.sectors > BOSS_CHARSET_MAX_SECTORS) {
+      throw new Error(`M5b-S4a-i: region ${region.name}'s charset is ${region.runs.charset.sectors} sectors`);
+    }
+  }
+  const bossDiskRuns = [bossCodeRun, bossInstallRun, bossSlotCRun, ...bossRegionRuns];
+  const bossRegionAreaEnd = bossRegionBaseSector + bossRegionCount * BOSS_REGION_SECTORS;
   for (const run of bossDiskRuns) {
-    if (run.data.length !== run.sectors * 128 || run.startSector < bossReservationSector ||
-      run.startSector + run.sectors > bossReservationSector + bossReservationSectors) {
-      throw new Error(`M5b-S3: the boss run ${run.name} leaves sectors 528-583`);
+    const inCode = run.startSector >= bossReservationSector &&
+      run.startSector + run.sectors <= bossReservationSector + bossReservationSectors;
+    const inRegion = run.region !== undefined &&
+      run.startSector >= bossRegionBaseSector + (run.region - 1) * BOSS_REGION_SECTORS &&
+      run.startSector + run.sectors <= bossRegionBaseSector + run.region * BOSS_REGION_SECTORS;
+    if (run.data.length !== run.sectors * 128 || !(run.region === undefined ? inCode : inRegion) ||
+      run.startSector + run.sectors - 1 > chunkLoaderConstants.atrSectors) {
+      throw new Error(`M5b-S4a-i: the boss run ${run.name} leaves its reservation`);
+    }
+    for (const other of [...levelRuns.map((level) => ({ startSector: level.startSector,
+      sectors: levelBufferSectors })), ...overlayRuns, ...summaryArtRuns,
+      { startSector: summaryCodeSector, sectors: summaryCodeMaxSectors },
+      { startSector: saveRecordSector, sectors: 1 }]) {
+      if (run.startSector < other.startSector + other.sectors &&
+        other.startSector < run.startSector + run.sectors) {
+        throw new Error(`M5b-S4a-i: the boss run ${run.name} overlaps sector ${other.startSector}`);
+      }
     }
     writeFile(path.join(buildDirectory, run.file), run.data);
   }
-  if (bossRegionBaseSector + bossRegionCount * BOSS_REGION_SECTORS >
-    bossReservationSector + bossReservationSectors) {
-    throw new Error("M5b-S3: four regions do not fit the boss reservation (Q-S6)");
+  if (bossRegionAreaEnd - 1 > chunkLoaderConstants.atrSectors) {
+    throw new Error("M5b-S4a-i: four regions do not fit the disk");
   }
   writeFile(path.join(buildDirectory, "boss.bin"), bossImage);
   writeFile(path.join(buildDirectory, "boss.lbl"), bossLinked.outputs[`${bossBase}.lbl`]);
@@ -3782,6 +3868,35 @@ async function build() {
         sha256: sha256(data), file,
       })),
       sectorsUsed: overlayRuns.reduce((total, run) => total + run.sectors, 0),
+    },
+    // M5b-S4a-i (docs/plans/m5-loading-boss.md §5.13.4; owner answers Q-B5,
+    // Q-B8): the boss's homes, its runs and the entry they make.
+    boss: {
+      claim: { start: BOSS_CLAIM.start, endExclusive: BOSS_CLAIM.endExclusive,
+        bytes: BOSS_CLAIM.endExclusive - BOSS_CLAIM.start,
+        owner: "owner answer Q-B5: the region charset, slot C, the scratch page" },
+      slotA: { address: slotAddress, bytes: bossSlotUsed, capacityBytes: slotABytes,
+        freeBytes: slotABytes - bossSlotUsed, sectors: bossCodeSectors },
+      install: { address: bossInstallAddress, bytes: bossInstallUsed, capacityBytes: installBytes,
+        freeBytes: installBytes - bossInstallUsed, sectors: bossInstallSectors },
+      slotC: { address: BOSS_SLOT_C_ADDRESS, bytes: bossSlotCUsed, codeBytes: bossSlotCCodeBytes,
+        capacityBytes: BOSS_SLOT_C_BYTES, freeBytes: BOSS_SLOT_C_BYTES - bossSlotCUsed,
+        sectors: bossSlotCSectors },
+      scratch: { address: BOSS_SCRATCH_ADDRESS, bytes: bossScratchUsed, capacityBytes: BOSS_SCRATCH_BYTES,
+        freeBytes: BOSS_SCRATCH_BYTES - bossScratchUsed,
+        columnMap: bossLabels.get("boss_column_map"), ring: bossLabels.get("boss_ring") },
+      charset: { address: bossRegions[0].runs.charset.address, capacityBytes: 1024 },
+      reservedSectors: { code: [bossReservationSector, bossReservationSector + bossReservationSectors - 1],
+        regions: [bossRegionBaseSector, bossRegionAreaEnd - 1] },
+      runs: bossDiskRuns.map(({ name, startSector, sectors, destination, data, file }) =>
+        ({ name, startSector, sectors, destination, bytes: data.length, sha256: sha256(data), file })),
+      regions: bossRegions.map((region, index) => ({
+        region: index + 1, name: region.name, style: region.style, codes: region.codeCount,
+        stageStep: region.stageStep, charsetBytes: region.charsetBytes,
+        charsetSectors: region.runs.charset.sectors, modules: region.modules.length,
+        entrySectors: BOSS_THEME_SECTORS + bossCodeSectors + bossInstallSectors + bossSlotCSectors +
+          BOSS_BAND_A_SECTORS + BOSS_BAND_B_SECTORS + region.runs.charset.sectors,
+      })),
     },
     lightWingman: lightPlacement,
     // Light multiplicity step 1b (plan §3.1 [C1]): the fourth link. Its start

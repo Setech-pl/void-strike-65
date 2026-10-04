@@ -1842,7 +1842,7 @@ function hslToRgb(hueDegrees, saturation, lightness) {
   );
 }
 
-function atariPalRegisterToRgb(registerValue) {
+export function atariPalRegisterToRgb(registerValue) {
   const hue = (registerValue >>> 4) & 0x0f;
   const luminance = registerValue & 0x0e;
   const lightness = 0.04 + (luminance / 14) * 0.86;
@@ -1911,7 +1911,7 @@ function makePngChunk(type, data) {
   return chunk;
 }
 
-function encodePng(rgb, width = PREVIEW_WIDTH, height = PREVIEW_HEIGHT) {
+export function encodePng(rgb, width = PREVIEW_WIDTH, height = PREVIEW_HEIGHT) {
   const header = Buffer.alloc(13);
   header.writeUInt32BE(width, 0);
   header.writeUInt32BE(height, 4);
@@ -1938,7 +1938,7 @@ function encodePng(rgb, width = PREVIEW_WIDTH, height = PREVIEW_HEIGHT) {
   ]);
 }
 
-function decodeRgbaReferencePng(png) {
+export function decodeRgbaReferencePng(png) {
   if (!png.subarray(0, PNG_SIGNATURE.length).equals(PNG_SIGNATURE)) {
     throw new Error("Invalid reference PNG signature");
   }

@@ -509,10 +509,16 @@ function compilePayload(source, context) {
   return { page, looks: names, weaponClasses: classes };
 }
 
-// M5b-S3 (docs/plans/m5-loading-boss.md §5.6): boss_def. Two bytes so far -
-// the boss bonus in packed BCD, lo then hi, which the win adds to STATS_BONUS
-// and the summary adds to the score. The rest of the 62-B block stays zero for
-// S4-S5 (laser counts by tier, damage by difficulty).
+// M5b-S3 (docs/plans/m5-loading-boss.md §5.6): boss_def. Bytes 0-1: the boss
+// bonus in packed BCD, lo then hi, which the win adds to STATS_BONUS and the
+// summary adds to the score. M5b-S4a-i (owner answer Q-B3): bytes 2-4, the
+// hit-point scale per difficulty (EASY, MEDIUM, HARD) in quarters, -2..+2 as a
+// two's-complement byte - x 1/2, 3/4, 1, 5/4, 3/2 - applied by the boss
+// controller to every module's hit points and thresholds. The rest of the 62-B
+// block stays zero for S4b-S5.
+export const BOSS_DEF_HP_SCALE_OFFSET = 2;
+export const BOSS_HP_SCALES = Object.freeze({ 0.5: -2, 0.75: -1, 1: 0, 1.25: 1, 1.5: 2 });
+export const BOSS_HP_SCALE_DEFAULTS = Object.freeze({ easy: 0.75, medium: 1, hard: 1.25 });
 function compileBossDef(source, context, bossId) {
   const block = Buffer.alloc(PAYLOAD_BLOCK_BYTES.bossDef);
   if (bossId === 0) {
@@ -530,6 +536,15 @@ function compileBossDef(source, context, bossId) {
   const digits = String(bonus).padStart(4, "0");
   block[0] = Number.parseInt(digits.slice(2), 16);
   block[1] = Number.parseInt(digits.slice(0, 2), 16);
+  const hpScale = { ...BOSS_HP_SCALE_DEFAULTS, ...(def.hpScale ?? {}) };
+  ["easy", "medium", "hard"].forEach((difficulty, index) => {
+    const quarters = BOSS_HP_SCALES[hpScale[difficulty]];
+    if (quarters === undefined) {
+      fail(context, "bossDef", `hpScale.${difficulty} is ${JSON.stringify(hpScale[difficulty])}; ` +
+        `it is one of ${Object.keys(BOSS_HP_SCALES).join(", ")}`);
+    }
+    block[BOSS_DEF_HP_SCALE_OFFSET + index] = quarters & 0xff;
+  });
   return block;
 }
 
@@ -1031,12 +1046,14 @@ export function renderLevelDefCHeader() {
       `#define GEOMETRY_PHASE_${name}`.padEnd(33, " ") +
       `${GEOMETRY_OFFSET.phaseStarts + index}u`),
     `#define GEOMETRY_DRAIN_MODULE    ${HULL_SEQUENCE_BYTES + 1}u`);
-  // M5b-S3 (plan §5.6): boss_def's bonus, packed BCD lo then hi.
+  // M5b-S3 (plan §5.6): boss_def's bonus, packed BCD lo then hi; M5b-S4a-i
+  // (Q-B3): the hit-point scale, one byte a difficulty.
   lines.push("", "/* boss_def, payload page */",
     `#define LEVEL_BOSS_DEF_ADDRESS   0x${(LEVEL_PAYLOAD_ADDRESS + PAYLOAD_OFFSET.bossDef)
       .toString(16).toUpperCase()}u`,
     "#define BOSS_DEF_BONUS_LO        0u",
-    "#define BOSS_DEF_BONUS_HI        1u");
+    "#define BOSS_DEF_BONUS_HI        1u",
+    `#define BOSS_DEF_HP_SCALE        ${BOSS_DEF_HP_SCALE_OFFSET}u`);
   lines.push("", "#endif", "");
   return lines.join("\n");
 }

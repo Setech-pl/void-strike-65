@@ -71,6 +71,18 @@ None of these five images is shipped in the ATR. They are distributed with the
 rest of the game content under CC BY-NC-SA 4.0 to the extent that rights in
 them exist.
 
+## Agent-drawn placeholder art
+
+Owner decision G (2026-10-04, `docs/plans/m5-loading-boss.md` §1.6): the coding
+agent draws placeholder art and the owner retouches it afterwards.
+
+| Files | Made by | Shipped |
+| --- | --- | --- |
+| `assets/graphics/boss-regions/region-1/` `band.png`, `cracked.png`, `broken.png`, `open.png`, `extras.png` | drawn by the coding agent (Claude, Anthropic) in M5b-S4a-i, pixel by pixel from a script it wrote and did not commit: S3's agent-authored region-1 glyphs (the hull, the guns, the shutters, the core, the blasts) redrawn as PNG cells, plus new agent-drawn cells (the emitter, the armour plates, the engine blocks and nozzle flames, the bays, the spark, the capped plate) and cracked/broken versions made by cutting jagged cracks and knocking corners out of each intact cell | yes, converted into the ATR by `scripts/boss-assets.mjs` |
+
+They are this project's own game content under CC BY-NC-SA 4.0 like the rest
+of `assets/`, and placeholders until the owner replaces them.
+
 ## Origin not recorded in the repository
 
 The commit history, comments and documentation do not record how these

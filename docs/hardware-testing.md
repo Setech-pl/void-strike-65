@@ -251,6 +251,46 @@ for a write, and how the owner's CA drive refuses a protected disk (HRM ch.10:
 the 1050 answers ERROR after the data frame; others may NAK the command — the
 reader treats both as "skip silently").
 
+## 13. The boss (M5b-S3)
+
+Plan §5.1–5.3, §5.6, §5.11 (decisions 9 and 32, answers Q1, Q-S1–Q-S6). **On
+copies**, as §12. Two disks: the default ATR (a full level 1 to its boss, about
+2:45 on MEDIUM, then the fight) and the debug-route ATR that starts in the boss
+sector (`build/level-1-s4/void-strike-65.atr`). Emulator figures, for comparison
+only (EMULATOR): the boss entry reads 28 sectors in about 108 frames (2.2 s);
+the bot's fights took 52–57 s.
+
+- [ ] **The entry (decision 32).** At the end of sector 4 the screen clears to
+      `WARNING` over `BOSS APPROACHING`, centred, the dotted row stepping under
+      them; the boss theme starts within about a quarter of a second and plays
+      through the rest of the load into the fight, no stall, no squeal.
+      Stopwatch: the screen clearing → the band on screen (SIO2SD and CA drive).
+- [ ] **The sector.** The world scroll has stopped: ring and stars hold still;
+      the HUD reads as before. The band sits under the divider, eight rows,
+      in its own colours; the colour seams above and below it are clean.
+- [ ] **The band moves sideways** smoothly, back and forth, with no jump.
+- [ ] **The player stays below the band**: pushing up stops at its bottom edge.
+- [ ] **Guns, then the core.** Shots that reach the band hit what is drawn
+      there: the three guns take eight hits each and become wrecks (kill sound,
+      50 points each); the hull absorbs shots; the core's shutters open once
+      all three guns are down, and only then does it take damage (24 hits, 99).
+- [ ] **The win.** Six blasts along the modules, a background flash on each,
+      the band shaking; about two seconds later the level-end summary with
+      BONUS `02000` (placeholder), the score including it, and the time **of
+      the fight alone** (under a minute).
+- [ ] **GAME OVER inside the boss sector** (debug ATR: lose three lives), then
+      START GAME: level 1 starts as always — the world scrolls, no band, normal
+      colours, and later the capital sector renders correctly (Q-S4). The same
+      after **pause → quit** inside the boss sector.
+- [ ] **Pause inside the boss sector**, then resume: band and colours return.
+- [ ] **A second game after a win** reaches a normally rendered capital sector.
+- [ ] **The dotted row** on the summary and loading screens now steps (one
+      dash in eight cells, moving one cell per sector read).
+- [ ] **RESET** during the fight returns to the splash.
+
+Unverifiable anywhere but here: the colour seams at the band's DLI lines on
+a real GTIA, the HSCROL motion on a CRT, and the CA drive's entry time.
+
 ---
 
 ## Recording the result

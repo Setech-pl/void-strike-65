@@ -886,6 +886,32 @@ Nothing is renamed by this report; a rename is a source change with its own sess
 
 <!-- END GENERATED MEMORY MAP -->
 
+## M5b-S3 — the boss (2026-10-04)
+
+Design notes; the generated block above has every range. Plan §5.12.
+
+- **Slot A `$6DE8-$75E7`** holds the boss overlay during a boss sector
+  (`cfg/boss.cfg` `BOSS_SLOT_RAM`, declared over `BROADSIDE_RAM` by name in
+  `scripts/memory-map-report.mjs`): 1,297 B, its state zero in the image.
+  START GAME restores the capital code (reader) and every patched setting
+  (`$0500` module, `build/boss-restore.inc`).
+- **`$7810-$798F`**: the boss install run, run once in place per entry;
+  **`$7990-$7B8F`**: the region's staging run (glyphs, theme). Both inside the
+  pause backup / summary staging RAM, dead once the install has run.
+- **Slot B**: band rows 0-5 at `$A880-$A9FF` (over the level's hull block,
+  dead after the capital sector; the entry clears the level's magic so the
+  next START GAME re-reads it), rows 6-7 at `$AC80-$ACFF`, the region tables
+  `$AD00-$AD7F` and the column map `$AD80-$ADBF` past every level image.
+- **Patched while the boss runs, restored at START GAME:** the six scroll
+  rates (`world_scroll_rates`, BROADSIDE), `resume_gameplay`'s two DLI
+  operands, `read_input`'s Y-floor operand, charset codes 59-89 (put back by
+  `publish_level_hull_style`), the capital vector table, display list A,
+  HSCROL.
+- **Window**: the boss entry's resident half is `HYBRID_ASM_WINDOW`, the last
+  segment of the Director link's half (109 B); the window is 1,316 B free.
+- **Disk**: boss code 528-543, install 544-546, region 1 547-555; regions 2-4
+  556-582 (S5).
+
 ## Superseded rows — the measured values, in one place (2026-09-20)
 
 MEASURED at HEAD `ac71df7` from `build/void-strike-65.map`,

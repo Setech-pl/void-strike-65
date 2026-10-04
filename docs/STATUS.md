@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-03 (M5a-S2, the level-summary screen)
+Last update: 2026-10-04 (M5b-S3, the boss band, its phases and the boss entry)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -343,6 +343,67 @@ owner smoke PASS 2026-09-16); before that `41ace65` (XEX `900152fe…`).
 
 ---
 
+## M5b-S3 — the boss band, its phases and the boss entry — `OWNER-SMOKE CANDIDATE` (2026-10-04)
+
+Plan and as-built record: [plans/m5-loading-boss.md](plans/m5-loading-boss.md)
+§5.12 (owner answers Q1, Q2, Q-S1–Q-S6, decisions 9 and 32, correction 9).
+Branch `feat/boss-band` from `main` `ce464eb`. Smoke:
+[hardware-testing.md](hardware-testing.md) §13.
+
+**What changed.** Level 1 gains a fifth sector, its **boss** (sectors 1-4
+unchanged). When the row clock enters it and the playfield drains, the screen
+shows **`WARNING` / `BOSS APPROACHING`**, the boss theme starts under it
+(decision 32), and 28 sectors land behind it: region 1's glyphs and theme,
+the boss code into overlay slot A, a once-only install run, the band. Then the
+world stops (Q1), an **8-row band** with HSCROL/LMS motion sits under the
+divider with its own palette (the **third DLI**, boss sector only), and the
+player fights **three guns, then the core**; the core's death sets off six
+blasts with flashes and the band shaking, and hands off to the level-end
+summary with the **boss bonus** (2,000, placeholder) and the **fight's time**.
+A game that ends inside the boss sector leaves nothing behind: START GAME
+restores slot A and every patched setting (Q-S4).
+
+**Also in this session (owner-approved):** the summary's dotted row now steps
+as decision O designed (it was solid dashes since 4.3: the space branch never
+ran); the cfg overlap at `$8776` (and a second at `$8C7D-$8C7F`) is gone and a
+test fails on any undeclared overlap between cfg memory areas; the manifest's
+STARFIELD reservation is the cfg's 2,348 B.
+
+| | `main` `ce464eb` | this branch | source |
+| --- | ---: | ---: | --- |
+| worst line-238 fence margin | 1,378 (`2-evasive-fire3` f287) | **1,370** (same row; the ten worst rows are the same rows, each 8–32 lower) | standalone fence scan of the 51 default replay CSVs, 0 miss events |
+| boss frames: worst fence margin / DMA-on | — | **16,089 / 28,008** over 11,171 boss frames (GO 500, gate 32,568) | same |
+| boss per-frame work, native (limit 3,500) | — | **2,760** worst, DLIs included | `tests/boss-runtime.test.mjs` |
+| DMA-on maximum | 31,268 (`director-complete-2` f5797) | **31,237** (same row) | `docs/runtime-wall-trace.json` |
+| DLI per host frame / sequence violations | 2 / 0 | **2**, **3 in the boss sector** / **0** | same |
+| behavioural clause failures | 1 (`lower-playfield-hostile-contact-atr-hard`) | **1**, the same | [recorded-gate-failures.json](recorded-gate-failures.json) |
+| gameplay against `main` | — | **51 of 51 replay files identical** on 42 gameplay columns frame by frame up to the boss sector | trace CSVs of both trees |
+| `npm test` (default build) | 964 / 963 / 1 | **1,003 / 1,002 / 1**: `preview` (recorded) | [recorded-test-failures.json](recorded-test-failures.json) |
+| initial block / boot sectors | 13,621 B / 107 | **13,621 B / 107** | `build/manifest.json` |
+| extension / total transport sectors | 102 / 209 | **104 / 211** (window and pickup records +1 each, the plan's figure) | same |
+| ATR menu frame (baseline 596) | 547 (BASIC 538) | **550** (BASIC 541) | boot smoke |
+| `$AE00` window free | 1,444 | **1,316** (−128; plan ~157) | `residentCapacity.basicWindow` |
+| slot A (boss) | — | **1,297 of 2,048 B** (751 free); install run **343 of 384 B** | `build/boss.lbl` |
+| `$0500` summary module | 1,598 B, 194 free, 13 sectors | **1,677 B, 115 free, 14 sectors** (Q-S4 restore, 70 B) | `levelSummary.code` |
+| sector reader | 1,507 / 29 free | **unchanged** | `sectorReader` |
+| disk | levels, restore 512–527, summary 584–627 | **+28**: boss 528–555; 556–583 for regions 2–4 | `build/manifest.json` |
+| boss entry (EMULATOR) | — | **28 sectors, 108 host frames (2.2 s)** in every replay | `docs/runtime-wall-trace.json` |
+| ATR SHA-256 | `cbbafe93…` | **`8300ba01f4000b7172759783fb86241134900f2eadd17111bc9e58a41657d2a9`** | `dist/` |
+| boot SHA-256 | `fdc7af70…` | **`4ba68124ed2336fa7dd7d3d1be491357d45ea41f8994a8c21cc0a3503e263b53`** | `dist/` |
+
+**Read before accepting.** The boss's art, theme, hit points and bonus are
+placeholders (owner work, M8). A non-lethal hit on a gun or the core shows no
+flash — only a kill shows (wreck look, sound, score). The `$0500` module is
+one sector longer (read once per session). The `director-complete-*` replays
+now fight the boss (budget 15,000 frames); their ending clause and the
+summary's clock and score clauses were re-pointed to the boss, class (a), and
+the trace learned the boss DLI, the boss-entry frame and a boss-state column
+(correction 10). Lasers (S4) and regions 2–4 (S5) are not built; a level 4+
+boss would fail at its region read today. **Smoke on copies** (§12).
+
+**NEXT TASK:** the owner's smoke (`hardware-testing.md` §13); then M5b-S4
+(`feat/boss-lasers`), not started.
+
 ## M5a-S2 — the level-summary screen — `OWNER-SMOKE CANDIDATE` (2026-10-03)
 
 Plan and as-built record: [plans/m5-loading-boss.md](plans/m5-loading-boss.md)
@@ -419,10 +480,9 @@ are placeholders; BONUS reads `00000` until M8 and M5b. The sector reader's
 limit is its transport record, not its RAM: 8 B before record 10 buys a
 sector (the review's interim screen did once; the dotted-row step moved into
 the module to win it back). The failure screen's text is now luminance $A
-(the reader's shared publish). **Confirmed pre-existing bug, not fixed:** the
-dotted row's step never draws a space (`lda #CH_FRONT_SPACE` / `bne` with
-`CH_FRONT_SPACE` = 0), so the row is solid dashes, not decision O's sweeping
-dots — so since 4.3 (`eb1a1c0`), and what the owner smoked; an owner call.
+(the reader's shared publish). The dotted row's step never drew a space
+(`lda #CH_FRONT_SPACE` / `bne` with `CH_FRONT_SPACE` = 0) since 4.3 — **fixed
+in M5b-S3** (owner-approved), see above.
 The late publication window (debris, Light) now starts about a scanline later
 on fighter frames — the shot scan runs ahead of it; every visibility clause
 passes. **The ATR now writes to its own disk: smoke on copies.**

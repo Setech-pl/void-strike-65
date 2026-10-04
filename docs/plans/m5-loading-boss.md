@@ -2191,6 +2191,191 @@ placeholder drafts; the harness's `boss_state` read as fight 1 / chain 3 / hold
 | the end | 6 blasts, hold 54 frames after the core | the chain passes every module | **8 blasts** (6 modules, the plates included), hold 72 frames after the defeat |
 | gameplay before the boss | 51 of 51 identical on 42 columns | identical | **51 of 51 replay files identical to `main` on 369 gameplay columns**, frame by frame up to the boss entry (entry frames 9,734 / 8,787 / 7,877 as on `main`) |
 
+### 5.15 Region 1 as the layered fortress — Blockade Breaker (design, 2026-10-04, `feat/boss-fortress-r1`, Phase A, `OWNER REVIEW CANDIDATE`)
+
+Under decisions H–K (§1.6). **Phase A: the design, the drafts, the price; nothing
+is implemented.** No source, cfg, script, test, level or evidence byte changed;
+the ATR and the boot image are `main`'s. The drafts are committed under
+`assets/graphics/boss-regions/blockade-breaker/` (not yet `region-1/`, so the
+default build still converts S4a-i's region 1: the v2 converter refuses plates
+larger than 4 × 2); Phase B moves them into `region-1/` with the converter
+change the owner approves. The preview was rendered through a scratch copy of
+the converter carrying the proposed limits and the extras layout below (not
+committed): `build/boss-preview/region-1.png` and
+`build/boss-preview/region-1-composite.png` (not committed; running
+`npm run boss:preview` on this commit renders S4a-i's region 1 over the first).
+
+**Step 0.** `main` `f88b7cb` (the S4a-i merge, §5.14), tree clean, one worktree;
+ATR `821134954c4608a8…`, boot `640249a7a75234f1…`. Branch `feat/boss-fortress-r1`.
+
+#### 5.15.1 The layout
+
+64 × 8 band, the hull on columns 7–56, the nozzle cells on columns 6 and 57
+(rows 2–4). The window shows band columns 4 + p/4 … 43 + p/4, so over the
+travel (p 0…63) columns 4–59: each engine end comes into view in turn.
+
+* **Layer 1, the front armour (rows 3–7): the plates are the hull's lower face.**
+  Ten plates of nine sizes, 3 × 3 to 6 × 4, at two depths (bottom edge on row 7,
+  or recessed to row 6 with open sky under it), separated by three X-braced
+  girders and one open bay; 47 of the hull's 50 columns are a module's.
+* **Layer 2, the deep layer (rows 1–3):** four pulse cannons (3 × 2) at two
+  depths and the emitter slot (4 × 2), between machinery and bay walls.
+  `gun-2` sits at the back of the **open bay** and fires from the first frame
+  (decision I; the concept's "open structural bays"); `gun-1`, `gun-4` are behind
+  one plate each, `gun-3` behind two (`plate-e` + `plate-f`, staggered), the
+  emitter behind `plate-d`. Covers are the converter's geometric ones.
+* **The emitter slot is capped armour on every level until S4b** (decision H):
+  the S4a-i controller enables slot 1 on levels 1–4, which would make it a
+  weapon that never fires; Phase B caps every slot (one constant in the
+  controller; S4b restores the tier rule).
+* Row 0 is an irregular superstructure (masts, domes, the bridge, stacks); the
+  engine housings fill rows 1–4 at both ends with cowling plates under them.
+* Every weapon sits in columns 23–46: the director-complete bot sweeps player x
+  94–154, so its shots reach band columns (x + 8 − 32 + p) / 4 = 17…48 only, and
+  a weapon outside that range would never fall in the replays.
+
+| Module | Kind | Cells (x, rows) | Size | HP MEDIUM (EASY / HARD) | Cracked / broken at | Reload | Covered by |
+| --- | --- | --- | ---: | ---: | --- | ---: | --- |
+| `cowl-left` | armour | 7–10, 5–7 | 4 × 3 | 6 (5 / 7) | 4 / 2 | — | — |
+| `plate-a` | armour | 11–15, 4–6 | 5 × 3 | 8 (6 / 10) | 5 / 2 | — | — |
+| `plate-b` | armour | 17–21, 3–6 | 5 × 4 | 10 (8 / 12) | 6 / 3 | — | — |
+| `plate-c` | armour | 22–25, 4–7 | 4 × 4 | 8 (6 / 10) | 5 / 2 | — | — |
+| `plate-d` | armour | 29–34, 4–7 | 6 × 4 | 10 (8 / 12) | 6 / 3 | — | — |
+| `plate-e` | armour | 36–39, 3–6 | 4 × 4 | 8 (6 / 10) | 5 / 2 | — | — |
+| `plate-f` | armour | 40–42, 4–7 | 3 × 4 | 6 (5 / 7) | 4 / 2 | — | — |
+| `plate-g` | armour | 43–48, 5–7 | 6 × 3 | 8 (6 / 10) | 5 / 2 | — | — |
+| `plate-h` | armour | 50–53, 4–7 | 4 × 4 | 8 (6 / 10) | 5 / 2 | — | — |
+| `cowl-right` | armour | 54–56, 5–7 | 3 × 3 | 6 (5 / 7) | 4 / 2 | — | — |
+| `gun-1` | pulse | 23–25, 1–2 | 3 × 2 | 12 (9 / 15) | 8 / 4 | 55 | `plate-c` |
+| `gun-2` | pulse | 26–28, 2–3 | 3 × 2 | 12 (9 / 15) | 8 / 4 | 90 | — (the open bay) |
+| `emitter` (slot 1) | capped armour | 30–33, 1–2 | 4 × 2 | 8 (6 / 10) `capped.hp` | 5 / 2 | — | `plate-d` |
+| `gun-3` | pulse | 38–40, 1–2 | 3 × 2 | 12 (9 / 15) | 8 / 4 | 60 | `plate-e` + `plate-f` |
+| `gun-4` | pulse | 44–46, 2–3 | 3 × 2 | 12 (9 / 15) | 8 / 4 | 65 | `plate-g` |
+
+Hit points start from Q-B3 (armour 6, pulse 8): **plates by size** (≤ 12 cells 6,
+≤ 18 cells 8, larger 10 — a big plate takes longer, as it looks) and **pulse 8 → 12**,
+so the bot's MEDIUM fight lands in 45–60 s (below). The defeat needs the four
+cannons (48 HP) and the four plates over them (30): 78 of the boss's 134 HP; the
+cowlings, `plate-a`, `plate-b`, `plate-h` and the capped emitter may stand.
+Fire: one countdown (§5.13.2 item 6), cooldown 24 frames; `gun-2`'s slow 90
+opens the fight (1 shot per 1.8 s on MEDIUM), the faster cannons behind the
+plates raise the rate as they are exposed (all four armed: one per 1.4 s on
+average); EASY +½, HARD −¼. Tuned as data (decision I); Phase B measures lives
+lost per difficulty against the bot.
+
+#### 5.15.2 Expected fight lengths, and how they were estimated
+
+A **model** (a scratch script, not committed): the bot's recorded x trajectory
+per difficulty from the S4a-i trace CSVs (`build/runtime-wall-trace/director-complete-N-*.csv`,
+boss rows), the production burst controller (4 shots 9 frames apart, a
+12-frame pause, 5 slots), shots from y 223 at 6 lines a frame, the band's
+drift (start 32, ±1 every 2 frames over 0–63, published a frame late), and the
+engine's rules (the front-first column map, ARMOUR/OPEN, covers, absorb,
+HP ×¾ / ×1 / ×5⁄4, the defeat on the last weapon). Each fight runs nine times
+with the shot's x offset 7/8/9 and the phase ±2 frames; the median and the
+range are reported. **Calibration**: the same model on S4a-i's region 1 gives
+EASY 2,352 / MEDIUM 3,281 / HARD 4,063 frames against the MEASURED 2,353 /
+2,871 / 3,682; every measured value lies inside the model's nine-run range
+(1,970–2,472 / 2,903–4,152 / 2,801–4,072), its MEDIUM median 14 % long. That
+fight hung on one late module (the core); the fortress spreads its kills over
+eleven modules, so the spread is narrower.
+
+| Difficulty | Model median | Nine-run range | Kills at the defeat |
+| --- | ---: | ---: | --- |
+| EASY | 1,641 frames, **32.8 s** | 1,561–1,961 (31–39 s) | 11 of 15 |
+| MEDIUM | 2,361 frames, **47.2 s** | 2,090–2,832 (42–57 s) | 11 of 15 |
+| HARD | 2,850 frames, **57.0 s** | 2,570–3,561 (51–71 s) | 11 of 15 |
+
+ESTIMATE; Phase B MEASURES the three director-complete fights with boss fire
+and tunes the data if MEDIUM leaves 45–60 s (the model at pulse 10, the next
+step down: MEDIUM 42.1 s).
+
+#### 5.15.3 The module limit — **16 is enough; the plates must grow**
+
+The layout needs **15 modules** (10 plates, 4 cannons, 1 emitter slot). With the
+v2 converter's module size (width ≤ 4, height ≤ 2, 8 cells) the same hull face —
+about 190 cells of plates at rows 3–7 over 47 columns — would need ~24 plates
+plus the 5 deep modules, **~29–32 modules**: that is the size question, not the
+count. Three ways, priced:
+
+| | **A. 16 modules, plates ≤ 6 × 4 (≤ 24 cells)** (recommended) | B. 24 modules, plates ≤ 4 × 2 | C. 32 modules, plates ≤ 4 × 2 |
+| --- | --- | --- | --- |
+| cover mask | 16 bits, unchanged | 24 bits: records +1 B, `alive`/`exposed`/`armed`/`newly` 3 B each, `MASK_HAS` three ANDs: C **+~150 B**, ASM +~8 | 32 bits: C **+~250 B**, ASM +~12 |
+| module record table | 16 × 12 = 192 B in the 256-B table page, unchanged | 24 × 13 = 312 + header 56 + open looks 24 = **392 B**: slot B is full (768 / 768); the only home is the claim growing by a page (`$1900-$19FF`, an owner decision: `$1900-$1FFF` is unclaimed and nothing may link there), and the record offset (× 13) overflows a byte past 19 modules → structure-of-arrays tables (converter, C `FIELD`, ASM `boss_record_of`) | 32 × 14 = 448 + 88 = **536 B**: +2 pages of claim; structure-of-arrays |
+| column map | full build ~120 native a live module (P2, install only); a kill's local rebuild: the dead module's ≤ 6 columns, scanned from the dead module on (+~6 B, −~30 %) | +8 modules: +960 native at the install, +160 a rebuilt column | +16: +1,920 at the install, +320 a column |
+| slot A / slot C / scratch / slot B | +~6 B / 0 / 0 / 0 | ASM +~20 / C +~150, BSS +40 / mx-mxe +16 (152 → 168) / tables out of slot B | ASM +~30 / C +~250, BSS +80 / +32 / out |
+| per-frame work, the kill frame's exposure pass (cc65, ~90 a module) | 16 × 90 = 1,440 | 24 × 90 = **2,160** | 32 × 90 = **2,880** |
+| charset | 113 of 128 codes MEASURED (K 19 staged × 3, 47 plain), 970 B, 8 sectors | about the same glyphs (the plates are tiles) | the same |
+| price in one line | converter limits only (0 B runtime) + the draw queue below | +1 claim page (owner) + a table-format rewrite + ~170 B | +2 pages + rewrite + ~280 B |
+
+**The per-frame work** decides A's shape, not the count. Q-B6's test drives five
+player shots a frame into one module. With 24-cell plates and S4a-ii's feedback,
+a kill frame that also crosses a stage would cost ~9,000 native (ESTIMATE from
+MEASURED parts: the stage add 24 × 36 + rows ≈ 1,100, the hole draw ≈ 950, the
+rebuild ≈ 1,500, the exposure 1,440, the newly exposed cannon's open look ≈ 450,
+five hits in C ≈ 900, sparks, flash, nozzles, fire ≈ 1,200, the DLIs 581, the
+rest ≈ 900) — **over 7,000**. Two design rules bring it to **~6,200 (ESTIMATE)**:
+(1) a **draw queue** in slot A (4 entries in the scratch page, ~40 B): a stage
+change, a hole and an open look are drawn one module a frame, at most 3 frames
+late (60 ms); (2) the **exposure pass runs on the C tick of the frame after the
+kill** (the cannon arms a frame later; the column map is rebuilt on the kill
+frame as now). Smaller plates do not avoid this: at ≤ 16 cells the same frame
+is ~7,900, because S4a-ii's ~1,200 lands on S4a-i's 5,021.
+
+#### 5.15.4 The art (drafts; agent-drawn, decision G)
+
+`band.png`, `cracked.png`, `broken.png`, `open.png` (256 × 64) and `extras.png`
+(72 × 8); five fixed colours as v2. Palette `COLPF0` $0A light steel (the plate
+face), `COLPF1` $06 grey, `COLPF2` $28 amber, `COLPF3` $32 dark burgundy (the
+hull's bulk); `flashLuma` 4 keeps every colour inside its hue ($0A → $0E).
+
+* **Plates**: 9-slice tiles (rivets, a bevel and a black seam on the right and
+  bottom) and five detail tiles (vent, bolt, hazard stripe, front light) placed
+  by hand per plate, so no two plates read alike; the plates' sizes, depths
+  and gaps carry the irregularity. 12 staged tiles cover every plate.
+* **Stages, by luminance at a glance (decision J)**: intact light steel →
+  **cracked** mid grey with a few bold black fractures → **broken** black voids,
+  large grey fragments on the torn edges, an amber glow along them →
+  **gone** the hole below.
+* **The hole** (replaces the five bay glyphs): a black opening with a glowing
+  amber torn rim on the top and the sides, the interior the blank code — drawn
+  by a frame rule (top-left, top, top-right, left, right) over any module's
+  rectangle, so every module leaves a hole of its own shape. 5 plain codes.
+* **Cannons**: a closed burgundy housing while covered (plain), the lit amber
+  turret and barrel once exposed (the open look, staged); `gun-2` shows the lit
+  look from the start.
+* **The spark** (a white core in an amber burst with a dark surround, readable
+  on light plates and dark hull), **the muzzle flash** (white over amber, drawn
+  in the cannon's bottom-centre cell), **three nozzle phases** per end (left
+  blows left, right blows right), two blasts, the capped emitter's slatted
+  shutter (it tiles into one shutter).
+
+**The extras strip's new layout** (18 cells): spark, muzzle, hole ×5, capped ×3,
+nozzle left ×3, nozzle right ×3, blast ×2; the tables gain one byte (the muzzle
+code, offset 249 of the 7 free).
+
+#### 5.15.5 For Phase B (found while designing)
+
+1. **The escort Light**: level 1's core page has no free wave (its boss sector
+   says so: the 20 waves are sectors 1–4's), and P3's probe freed one by taking
+   a Bomber wave from sector 3 — which would change gameplay before the boss
+   (a STOP). Phase B needs an escort that costs no wave of the page (e.g. an
+   escort record in `boss_def`, 60 B free, admitted by the install through the
+   Director's own entry); if that needs a byte in the window, the initial block
+   or `$0500`, it is an owner question then.
+2. Every emitter slot capped until S4b (above).
+3. The armour hit's spark lands in the lowest non-blank cell of the column (a
+   per-column lookup over the 8 rows), the module hit's in the module's bottom
+   row at the shot's column (§5.13.2 item 5).
+4. The region run is 16 of its 16 sectors (theme 2, band 3 + 3, charset 8);
+   the boss entry 38 → 39 sectors.
+
+**Owner questions (Phase A STOP):** (1) the look — the drafts and the four
+composite frames; (2) the limit: option A (16 modules, plates ≤ 6 × 4 with the
+draw queue and the deferred exposure) or B / C; (3) `gun-2` in an open bay,
+firing from the first frame — or every cannon behind a plate (the fight then
+opens silent for ~6–15 s with the bot).
+
 ---
 ## 6. Ledgers
 

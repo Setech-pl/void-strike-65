@@ -6,10 +6,11 @@
 //
 //   1. the band as the fight starts (closed looks)
 //   2. every module cracked      3. every module broken
-//   4. every module gone (its kind's bay glyph)
+//   4. every module gone (the hole frame over its rectangle)
 //   5. every open look exposed   6. every emitter slot capped
-//   7. the extras: spark, the five bays, the capped plate's three stages,
-//      the nozzles' phases (left, right), the two blasts
+//   7. the extras: spark, deflection, muzzle flash, the hole frame's five
+//      cells, the capped plate's three stages, the nozzles' phases (left,
+//      right), the two blasts
 //
 // Panels 2-4 show a module with an open look in its exposed art, as it is
 // once it can take damage. The owner edits the PNGs and runs this again.
@@ -18,7 +19,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
-  BOSS_BAND_COLUMNS, BOSS_BAND_ROWS, BOSS_KIND, BOSS_TABLE, bossRegionDirectory,
+  BOSS_BAND_COLUMNS, BOSS_BAND_ROWS, BOSS_TABLE, bossRegionDirectory,
   compileBossRegion, loadBossRegionDraft,
 } from "./boss-assets.mjs";
 import { atariPalRegisterToRgb, encodePng } from "./preview.mjs";
@@ -34,10 +35,10 @@ export const BOSS_PREVIEW_PANELS = Object.freeze([
   "the band as the fight starts (closed looks)",
   "every module cracked",
   "every module broken",
-  "every module gone (bay glyphs)",
+  "every module gone (the hole frame)",
   "every open look exposed",
   "every emitter slot capped",
-  "extras: spark, bays (armour pulse emitter salvo core), capped x3, nozzle left x3, right x3, blasts",
+  "extras: spark, deflection, muzzle flash, hole (top-left top top-right left right), capped x3, nozzle left x3, right x3, blasts",
 ]);
 
 function panels(region) {
@@ -63,9 +64,18 @@ function panels(region) {
     region.modules.forEach((module) => eachCell(rows, module, (code) => code + stage * K));
     return rows;
   };
+  // The hole frame (decision J): the top row's corners and edge, the sides,
+  // the interior blank - every module leaves a hole of its own shape.
   const gone = () => {
     const rows = base();
-    region.modules.forEach((module) => eachCell(rows, module, () => region.bays[BOSS_KIND[module.kind]]));
+    const [topLeft, top, topRight, left, interior, right] = region.hole;
+    region.modules.forEach((module) => eachCell(rows, module, (code, i) => {
+      const dx = i % module.width;
+      const first = dx === 0;
+      const last = dx === module.width - 1;
+      if (i < module.width) return first ? topLeft : last ? topRight : top;
+      return first ? left : last ? right : interior;
+    }));
     return rows;
   };
   const capped = () => {
@@ -89,7 +99,8 @@ export function renderBossPreview(region) {
   const bandWidth = BOSS_BAND_COLUMNS * 4 * PIXEL_WIDTH;
   const bandHeight = BOSS_BAND_ROWS * 8 * PIXEL_HEIGHT;
   const views = panels(region);
-  const extrasCells = [region.spark, ...region.bays, region.capped.code, region.capped.code + region.stageStep,
+  const extrasCells = [region.spark, region.deflect, region.muzzle, ...region.hole.filter((code) => code !== 0),
+    region.capped.code, region.capped.code + region.stageStep,
     region.capped.code + 2 * region.stageStep];
   const extraBytes = [...extrasCells.map((code) => ({ code, bytes: glyphBytes(region, code) })),
     ...region.nozzle.phases.flat().map((bytes, i) => ({

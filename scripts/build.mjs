@@ -2558,6 +2558,7 @@ async function build() {
       "PLAYFIELD_ACTIVE_DLIST_LO", "PLAYFIELD_NEXT_DLIST_LO", "PLAYFIELD_PREBUILD_PENDING",
       "frame_counter", "FIGHTER_PROJECTILE_ACTIVE", "FIGHTER_PROJECTILE_X",
       "FIGHTER_PROJECTILE_Y", "FIGHTER_PROJECTILE_FREE", "FIGHTER_EXPLOSION_TIMER",
+      "FIGHTER_PROJECTILE_PREV_Y", "FIGHTER_PROJECTILE_LIFETIME",
       "FIGHTER_EXPLOSION_ENEMY_SLOT", "CAPITAL_EXPLOSION_SOUND_TIMER", "score_bcd_lo",
       "score_bcd_hi", "play_hit_sound", "dst_ptr", "ACTIVE_GAMEPLAY_FRAME_LO",
       "world_scroll_rates", "hull_scroll_rates", "resume_gameplay_dli_lo_operand",

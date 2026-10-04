@@ -21,6 +21,9 @@ const BOSS_HOMES = Object.freeze({
   // segment -> the part of the claim it may occupy
   BOSS_C_CODE: [BOSS_SLOT_C_ADDRESS, BOSS_SLOT_C_ADDRESS + BOSS_SLOT_C_BYTES],
   BOSS_C_RODATA: [BOSS_SLOT_C_ADDRESS, BOSS_SLOT_C_ADDRESS + BOSS_SLOT_C_BYTES],
+  // The fortress session (plan §5.15.7): the overlay's once-per-entry ASM
+  // (boss_prepare) moved from slot A into slot C, read with the controller.
+  BOSS_C_ASM: [BOSS_SLOT_C_ADDRESS, BOSS_SLOT_C_ADDRESS + BOSS_SLOT_C_BYTES],
   BOSS_C_BSS: [BOSS_SLOT_C_ADDRESS, BOSS_SLOT_C_ADDRESS + BOSS_SLOT_C_BYTES],
   BOSS_SCRATCH: [BOSS_SCRATCH_ADDRESS, BOSS_CLAIM.endExclusive],
   BOSS_BSS: [BOSS_SCRATCH_ADDRESS, BOSS_CLAIM.endExclusive],

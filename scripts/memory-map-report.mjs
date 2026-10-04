@@ -126,12 +126,14 @@ const SEGMENTS = {
   // M5b-S3: the boss overlay link, slot A's run and the once-only install;
   // M5b-S4a-i (Q-B5): slot C and the scratch page in the boss's low-RAM claim.
   BOSS_HEAD: ["boss overlay: head JMP and the capital vector table's boss image", "overlay"],
-  BOSS_CODE: ["boss overlay: band, boss DLI, motion, the column map, shot-versus-module, drawing, hand-off", "overlay"],
+  BOSS_CODE: ["boss overlay: band, boss DLI, motion, the column map, shot-versus-module, hit feedback, fire, the draw queue, nozzles, drawing, hand-off", "overlay"],
   BOSS_C_CODE: ["boss slot C: the C controller (cover and exposure, stages, tier, defeat, fire countdown, chain, bonus, clock)", "overlay"],
   BOSS_C_RODATA: ["boss slot C: C read-only data", "overlay"],
+  // The fortress session (plan §5.15.7): the once-per-entry ASM moved from slot A.
+  BOSS_C_ASM: ["boss slot C: the overlay's once-per-entry ASM (boss_prepare)", "overlay"],
   BOSS_C_BSS: ["boss slot C: the controller's state (after its code, never read from disk)", "overlay"],
-  BOSS_SCRATCH: ["boss scratch page: the column map, S4a-ii's cell-flash ring", "overlay"],
-  BOSS_BSS: ["boss scratch page: slot A's band and collision state", "overlay"],
+  BOSS_SCRATCH: ["boss scratch page: the column map, the cell-flash ring, the draw queue, a rebuild's candidates", "overlay"],
+  BOSS_BSS: ["boss scratch page: slot A's band, collision, feedback, queue and nozzle state", "overlay"],
   BOSS_INSTALL: ["boss install run at $7810, run once in place per boss entry", "boss-entry"],
 };
 

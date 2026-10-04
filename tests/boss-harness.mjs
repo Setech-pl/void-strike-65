@@ -317,11 +317,15 @@ export function visibleCells(p) {
   return { left: Math.ceil((16 + p) / 4), right: Math.floor((175 + p) / 4) };
 }
 
-// A PairShot in `slot` at the band's bottom edge whose band column is `cell`.
+// A PairShot in `slot` at the band's bottom edge whose band column is `cell`:
+// its HPOS inside the cell's colour clocks and inside the screen's window (a
+// cell at the window's edge shows one colour clock; the fortress session's
+// layouts put modules there, S4a-i's never did).
 export function shootAt(memory, cell, slot = 0) {
   const p = memory[label("boss", "boss_shown_pos")];
-  const x = cell * 4 + BAND_ORIGIN_HPOS - p + 1;
-  assert.ok(x >= 48 && x < 208, `column ${cell} is off screen at position ${p}`);
+  const first = cell * 4 + BAND_ORIGIN_HPOS - p;
+  const x = Math.min(207, Math.max(48, first + 1));
+  assert.ok(x >= first && x <= first + 3, `column ${cell} is off screen at position ${p}`);
   memory[label("main", "FIGHTER_PROJECTILE_ACTIVE") + slot] = 1;
   memory[label("main", "FIGHTER_PROJECTILE_X") + slot] = x;
   memory[label("main", "FIGHTER_PROJECTILE_Y") + slot] = BAND_BOTTOM_Y - 4;

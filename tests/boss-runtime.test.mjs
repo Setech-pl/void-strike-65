@@ -12,6 +12,16 @@
 // re-entering the main loop, then the overlay's own frame entries and DLI
 // called the way the main loop and ANTIC reach them. The engine's own rules on
 // fixtures are tests/boss-engine.test.mjs's.
+//
+// RE-POINTED (fortress session, owner decisions H-K, plan §5.15.6): region 1
+// is the layered fortress now (its own runtime tests: tests/boss-fortress.
+// test.mjs). The entry, the install, the band and Q-S4 still read region 1 as
+// the disk delivers it; the core boss's tests (the cover group, its column
+// map, its shots, its win, Q-B6's drive) run on the S4a-i core boss - the
+// Bastion fixture - installed over the entry the way the head and the install
+// would install it, every assertion kept. A module's redraw now waits for the
+// one-module-a-frame queue (settled before a look is read), and the bay glyphs
+// gave way to the hole frame (decision J).
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -23,7 +33,7 @@ import {
 } from "../scripts/boss-assets.mjs";
 import {
   call, cpuOver, Drive, label, manifest, nmi, readBuild, root, runBossEntry, runUntil, word,
-  bossGateMemory, atrRun,
+  bossGateMemory, atrRun, installRegion,
 } from "./boss-harness.mjs";
 import { Nmos6502 } from "../scripts/nmos6502.mjs";
 
@@ -42,7 +52,9 @@ const vector = (name) => manifest.overlays.capitalVectors.address +
   ["INIT", "UPDATE", "TICK_EXPLOSIONS", "TICK_FLASHES", "ENGINE", "HULL_CONTACT",
     "RENDER_FLASHES", "RENDER_EXPLOSIONS", "SECTOR_COMPLETION", "RESTORE_MUZZLES",
     "PREPARE_ROW", "SCROLL_HULL"].indexOf(name) * 3;
-const byName = new Map(region1.modules.map((module, index) => [module.name, index]));
+// The core boss (style 2), kept in the engine as the Bastion fixture.
+const coreBoss = compileBossRegion(loadBossRegionDraft(path.join(root, "assets", "graphics", "boss-regions", "bastion")));
+const byName = new Map(coreBoss.modules.map((module, index) => [module.name, index]));
 const GUNS = ["gun-left", "emitter", "gun-right"].map((name) => byName.get(name));
 const CORE = byName.get("core");
 
@@ -60,6 +72,16 @@ function bossEntered() {
     });
   }
   return { ...entry, memory: Uint8Array.from(entry.memory) };
+}
+// The entry with the core boss installed over region 1.
+function coreBossEntered() {
+  const entered = bossEntered();
+  installRegion(entered.memory, coreBoss);
+  return entered;
+}
+// Frames with no shot: the draw queue drains, the ring's sparks expire.
+function settle(memory, frames = 8) {
+  for (let frame = 0; frame < frames; frame += 1) call(memory, vector("UPDATE"));
 }
 
 const decode = (memory, address, length) => [...memory.subarray(address, address + length)]
@@ -151,7 +173,12 @@ test("the install: slot A, the charset, the vector table, the band list with thr
   const code = readBuild("overlay-boss-code.bin");
   const operand = label("boss", "boss_look_operand");
   const asRead = Uint8Array.from(memory.subarray(SLOT.address, SLOT.address + code.length));
-  asRead.set(code.subarray(operand - SLOT.address, operand - SLOT.address + 2), operand - SLOT.address);
+  // boss_prepare patches the look copy's operand and (fortress session) the
+  // nozzle copy's four operands.
+  for (const at of [operand, ...["boss_nozzle_src_l", "boss_nozzle_src_r", "boss_nozzle_dst_l", "boss_nozzle_dst_r"]
+    .map((name) => label("boss", name) + 1)]) {
+    asRead.set(code.subarray(at - SLOT.address, at - SLOT.address + 2), at - SLOT.address);
+  }
   assert.deepEqual([...asRead], [...code]);
   assert.equal(word(memory, operand), region1.lookTailAddress, "the look copy reads the region's look tail");
   assert.deepEqual([...memory.subarray(0x0c38, 0x0c00 + region1.codeCount * 8)],
@@ -362,7 +389,7 @@ function hitUntil(memory, index, hits) {
 // the plates, the hull as ARMOUR wherever the band has hull (S3: an authored
 // 8-48 span), open sky elsewhere.
 test("the column map: the guns and plates in front, the core in its own column, armour, open sky", () => {
-  const { memory } = bossEntered();
+  const { memory } = coreBossEntered();
   const map = memory.subarray(COLUMN_MAP, COLUMN_MAP + 64);
   for (const name of ["gun-left", "emitter", "gun-right", "plate-left", "plate-right"]) {
     const index = byName.get(name);
@@ -375,8 +402,8 @@ test("the column map: the guns and plates in front, the core in its own column, 
   }
   assert.ok(map.includes(CORE), "the core is the front of the column the emitter leaves");
   for (let c = 0; c < 64; c += 1) {
-    if (map[c] < region1.modules.length) continue;
-    const hull = region1.bandRows.some((row) => row[c] !== 0);
+    if (map[c] < coreBoss.modules.length) continue;
+    const hull = coreBoss.bandRows.some((row) => row[c] !== 0);
     assert.equal(map[c], hull ? BOSS_COLUMN_ARMOUR : BOSS_COLUMN_OPEN, `column ${c}`);
   }
 });
@@ -385,7 +412,7 @@ test("the column map: the guns and plates in front, the core in its own column, 
 // controller (it is a covered module, not a column the ASM skips), and still
 // leaves the accuracy stat alone; the rest is S3's assertion unchanged.
 test("shots against the band: a gun takes damage, armour and the guarded core absorb, open sky lets it fly", () => {
-  const { memory } = bossEntered();
+  const { memory } = coreBossEntered();
   const { active } = PROJECTILE();
   const hits = 0xae;
   // A live gun: one hit point, the shot spent, the accuracy stat counted.
@@ -398,10 +425,10 @@ test("shots against the band: a gun takes damage, armour and the guarded core ab
   const visibleArmour = visibleCell(memory, [...Array(64).keys()]
     .filter((c) => memory[COLUMN_MAP + c] === BOSS_COLUMN_ARMOUR));
   shootAt(memory, visibleArmour);
-  before = region1.modules.map((_, i) => hpOf(memory, i));
+  before = coreBoss.modules.map((_, i) => hpOf(memory, i));
   call(memory, vector("UPDATE"));
   assert.equal(memory[active], 0);
-  assert.deepEqual(region1.modules.map((_, i) => hpOf(memory, i)), before);
+  assert.deepEqual(coreBoss.modules.map((_, i) => hpOf(memory, i)), before);
   assert.equal(memory[hits], 1);
   // The core while any gun lives: its own column absorbs.
   const coreOnly = visibleCell(memory, frontColumns(memory, CORE));
@@ -437,18 +464,21 @@ function killGuns(memory) {
 // (S3: an authored wreck look); the emitter scores 60 (three guns: 160); the
 // plates (armour) stand and are not required.
 test("the cover group: every gun down exposes the core; its death, the last weapon's, starts the chain with the bonus", () => {
-  const { memory } = bossEntered();
+  const { memory } = coreBossEntered();
   const score = () => memory[label("main", "score_bcd_lo")] | (memory[label("main", "score_bcd_hi")] << 8);
   const kills = 0xb0;
   assert.equal(memory[label("boss", "_boss_phase")], 0);
   killGuns(memory);
+  settle(memory);
+  const hole = coreBoss.hole;
   for (const index of GUNS) {
     assert.equal(hpOf(memory, index), 0);
     const m = module(memory, index);
-    const bay = memory[T("bay") + memory[label("boss", "_boss_kind") + index]];
     for (let row = 0; row < m.height; row += 1) {
       for (let c = 0; c < m.width; c += 1) {
-        assert.equal(memory[BAND_ROW_BASE[m.row + row] + m.x + c], bay, `module ${index} cell ${row},${c}`);
+        const edge = c === 0 ? 0 : c === m.width - 1 ? 2 : 1;
+        assert.equal(memory[BAND_ROW_BASE[m.row + row] + m.x + c], hole[(row === 0 ? 0 : 3) + edge],
+          `module ${index} cell ${row},${c}: the hole frame`);
       }
     }
   }
@@ -456,7 +486,7 @@ test("the cover group: every gun down exposes the core; its death, the last weap
   assert.equal(score(), 0x0160, "two guns at 50 and the emitter at 60 (packed BCD)");
   assert.equal(memory[label("boss", "_boss_phase")], 0, "still the fight: the core is the last weapon");
   const core = module(memory, CORE);
-  assert.equal(memory[BAND_ROW_BASE[core.row] + core.x], region1.openLooks.get(CORE)[0], "the core opened");
+  assert.equal(memory[BAND_ROW_BASE[core.row] + core.x], coreBoss.openLooks.get(CORE)[0], "the core opened");
   // The core takes its hits through its own columns, the dead guns' included.
   hitUntil(memory, CORE, core.hp - 1);
   assert.equal(hpOf(memory, CORE), 1);
@@ -479,12 +509,13 @@ test("the cover group: every gun down exposes the core; its death, the last weap
 // format's offsets (chainBlasts 10, shakeFrames 8); the blast glyphs are the
 // region's extras.
 test("the win: the chain, the shake and the flash, then the hand-off to the level summary with the fight's time", () => {
-  const { memory } = bossEntered();
+  const { memory } = coreBossEntered();
   const active = label("main", "ACTIVE_GAMEPLAY_FRAME_LO");
   memory[active] = 0x10;
   memory[active + 1] = 0x02;
   // The fight clock started at the install (the harness's clock read 0 there).
   killGuns(memory);
+  settle(memory);                       // the exposure check runs a frame after the kill
   const core = module(memory, CORE);
   hitUntil(memory, CORE, core.hp);
   const clock = memory[label("boss", "_boss_clock_lo")] | (memory[label("boss", "_boss_clock_hi")] << 8);
@@ -493,7 +524,7 @@ test("the win: the chain, the shake and the flash, then the hand-off to the leve
   let flashes = blasts;
   let shakes = 0;
   const enemyTimer = label("main", "FIGHTER_EXPLOSION_TIMER") + 1;
-  const blastGlyphs = new Set(region1.blasts);
+  const blastGlyphs = new Set(coreBoss.blasts);
   let handedOff = false;
   for (let frame = 0; frame < 400 && !handedOff; frame += 1) {
     memory[enemyTimer] = 0;
@@ -517,7 +548,7 @@ test("the win: the chain, the shake and the flash, then the hand-off to the leve
   }
   assert.ok(handedOff, "the boss never handed off to the level summary");
   assert.equal(blasts, memory[T("chainBlasts")], "one blast per chain link");
-  assert.ok(blasts >= region1.modules.length, "the chain passes every module, the standing armour included");
+  assert.ok(blasts >= coreBoss.modules.length, "the chain passes every module, the standing armour included");
   assert.equal(flashes, blasts, "every blast flashes the background");
   assert.ok(shakes >= memory[T("shakeFrames")], "the band shakes");
   const shown = [...Array(64).keys()].some((c) => [...BAND_ROW_BASE].some((base) =>
@@ -611,7 +642,7 @@ test("Q-S4: START GAME after a game ended inside the boss sector restores slot A
 // weapon, then the chain - in the order the cover group allows: the guns, the
 // plates, the core.
 test("Q-B6: the worst boss frame's own work stays under 7,000 native cycles", () => {
-  const { memory } = bossEntered();
+  const { memory } = coreBossEntered();
   let worst = 0;
   const frame = (shoot) => {
     shoot?.();
@@ -626,7 +657,7 @@ test("Q-B6: the worst boss frame's own work stays under 7,000 native cycles", ()
     worst = Math.max(worst, cycles);
     return cycles;
   };
-  for (let index = 0; index < region1.modules.length; index += 1) {
+  for (let index = 0; index < coreBoss.modules.length; index += 1) {
     for (let guard = 0; guard < 4000 && hpOf(memory, index) > 0 &&
       memory[label("boss", "_boss_phase")] === 0; guard += 1) {
       frame(() => {
@@ -644,10 +675,12 @@ test("Q-B6: the worst boss frame's own work stays under 7,000 native cycles", ()
   console.log(`# boss per-frame work, worst: ${worst} native cycles (Q-B6 limit 7,000)`);
 });
 
-// Every kind's bay glyph (the "gone" look) is a code of the region's charset.
-test("every kind's bay glyph is in the region's charset", () => {
-  for (const kind of Object.values(BOSS_KIND)) {
-    const code = region1.tables[BOSS_TABLE.bay + kind] & 0x7f;
-    assert.ok(code >= 7 && code < region1.codeCount);
-  }
+// RE-POINTED (decision J): the "gone" look is the hole frame, whose five
+// drawn cells are codes of the region's charset (its interior is the blank 0).
+test("the hole frame's glyphs are in the region's charset", () => {
+  region1.hole.forEach((value, i) => {
+    const code = value & 0x7f;
+    if (i === 4) assert.equal(code, 0);
+    else assert.ok(code >= 7 && code < region1.codeCount, `hole cell ${i}`);
+  });
 });

@@ -88,8 +88,7 @@ export const BOSS_TABLE = Object.freeze({
   chainFrames: 11,
   moduleCount: 12,
   stageStep: 13,         // K: cracked = intact + K, broken = intact + 2K
-  bay: 14,               // 5 B: the "gone" glyph per kind
-  spark: 19,             // the hit spark (S4a-ii)
+  hole: 14,              // 6 B: the "gone" frame - top-left, top, top-right, left, interior (0), right
   cappedCode: 20,        // the capped emitter plate (intact, staged)
   cappedHp: 21,
   cappedCracked: 22,
@@ -105,6 +104,9 @@ export const BOSS_TABLE = Object.freeze({
   open: 40,              // 16 B: each module's open look, an offset into the tail
   modules: 56,           // 16 x 12 B
   nozzlePhases: 248,     // the nozzle phase images' offset into the tail
+  spark: 249,            // a damaging hit's spark
+  deflect: 250,          // the spark of a hit that does no damage (hull, a covered module)
+  muzzle: 251,           // a firing cannon's muzzle flash
 });
 export const BOSS_MODULE_BYTES = 12;
 export const BOSS_MODULE = Object.freeze({
@@ -131,14 +133,22 @@ export const BOSS_DRAFT_FILES = Object.freeze(["band", "cracked", "broken", "ope
 export const BOSS_BAND_IMAGE = Object.freeze({ width: BOSS_BAND_COLUMNS * 4, height: BOSS_BAND_ROWS * 8 });
 // extras.png: one strip of cells, in this order.
 export const BOSS_EXTRAS = Object.freeze({
-  spark: 0,
-  bay: 1,                // 5 cells: armour, pulse, emitter, salvo, core
-  capped: 6,             // 3 cells: intact, cracked, broken
-  nozzleLeft: 9,         // 3 phases
-  nozzleRight: 12,       // 3 phases
-  blast: 15,             // 2 cells: A, B
-  cells: 17,
+  spark: 0,              // a damaging hit
+  deflect: 1,            // a hit that does no damage
+  muzzle: 2,             // a firing cannon
+  hole: 3,               // 5 cells: top-left, top, top-right, left, right (the interior is blank)
+  capped: 8,             // 3 cells: intact, cracked, broken
+  nozzleLeft: 11,        // 3 phases
+  nozzleRight: 14,       // 3 phases
+  blast: 17,             // 2 cells: A, B
+  cells: 19,
 });
+// A module is up to 6 x 4 cells and at most 24 (owner answer to the fortress
+// design, option A, plan §5.15.6): plates are the hull's face, and every
+// module's draw is one entry of the one-module-a-frame queue.
+export const BOSS_MODULE_MAX_WIDTH = 6;
+export const BOSS_MODULE_MAX_HEIGHT = 4;
+export const BOSS_MODULE_MAX_CELLS = 24;
 export const BOSS_EXTRAS_IMAGE = Object.freeze({ width: BOSS_EXTRAS.cells * 4, height: 8 });
 export const BOSS_NOZZLE_PHASES = 3;
 
@@ -315,8 +325,13 @@ function resolveModules(layout) {
     if (kind === undefined) fail(`module ${name} has kind ${JSON.stringify(source.kind)}; ${BOSS_KIND_NAMES.join(", ")}`);
     const x = integerIn(source.x, 0, BOSS_BAND_COLUMNS - 1, `module ${name} x`);
     const row = integerIn(source.row, 0, BOSS_BAND_ROWS - 1, `module ${name} row`);
-    const width = integerIn(source.width, 1, Math.min(4, BOSS_BAND_COLUMNS - x), `module ${name} width`);
-    const height = integerIn(source.height, 1, Math.min(2, BOSS_BAND_ROWS - row), `module ${name} height`);
+    const width = integerIn(source.width, 1, Math.min(BOSS_MODULE_MAX_WIDTH, BOSS_BAND_COLUMNS - x),
+      `module ${name} width`);
+    const height = integerIn(source.height, 1, Math.min(BOSS_MODULE_MAX_HEIGHT, BOSS_BAND_ROWS - row),
+      `module ${name} height`);
+    if (width * height > BOSS_MODULE_MAX_CELLS) {
+      fail(`module ${name} is ${width * height} cells; a module has at most ${BOSS_MODULE_MAX_CELLS}`);
+    }
     for (let r = row; r < row + height; r += 1) {
       for (let c = x; c < x + width; c += 1) {
         const key = r * BOSS_BAND_COLUMNS + c;
@@ -371,6 +386,14 @@ export function compileBossRegion(draft, { themeImage = null } = {}) {
   const paletteBytes = ["colpf0", "colpf1", "colpf2", "colpf3"].map((key) =>
     integerIn(palette[key], 0, 255, `palette.${key}`));
   const flashLuma = integerIn(palette.flashLuma ?? 0, 0, 14, "palette.flashLuma");
+  // The band flash adds flashLuma to each colour for one frame: every colour
+  // must stay inside its hue (a luminance of at most 15).
+  paletteBytes.forEach((value, i) => {
+    if ((value & 0x0f) + flashLuma > 0x0f) {
+      fail(`palette.colpf${i} $${value.toString(16)} + flashLuma ${flashLuma} leaves its hue; ` +
+        "the band flash must keep every luminance at 15 or under");
+    }
+  });
   const motion = layout.motion ?? {};
   const framesPerStep = integerIn(motion.framesPerColourClock, 1, 255, "motion.framesPerColourClock");
   const travel = integerIn(motion.travelColourClocks, 1, 63, "motion.travelColourClocks");
@@ -475,8 +498,11 @@ export function compileBossRegion(draft, { themeImage = null } = {}) {
     extra(BOSS_EXTRAS.capped + 1, "capped cracked"), extra(BOSS_EXTRAS.capped + 2, "capped broken"),
     "the capped emitter plate");
   const plainRef = (cell) => ({ index: plainIndex(cell), bank: cell.bank ?? 0 });
-  const bayRefs = BOSS_KIND_NAMES.map((name, kind) => plainRef(extra(BOSS_EXTRAS.bay + kind, `bay ${name}`)));
+  const holeRefs = ["top-left", "top", "top-right", "left", "right"].map((name, i) =>
+    plainRef(extra(BOSS_EXTRAS.hole + i, `hole ${name}`)));
   const sparkRef = plainRef(extra(BOSS_EXTRAS.spark, "spark"));
+  const deflectRef = plainRef(extra(BOSS_EXTRAS.deflect, "deflection"));
+  const muzzleRef = plainRef(extra(BOSS_EXTRAS.muzzle, "muzzle flash"));
   const blastRefs = [0, 1].map((i) => plainRef(extra(BOSS_EXTRAS.blast + i, "blast")));
   const nozzlePhases = ["nozzleLeft", "nozzleRight"].map((side) =>
     Array.from({ length: BOSS_NOZZLE_PHASES }, (_, phase) =>
@@ -582,8 +608,8 @@ export function compileBossRegion(draft, { themeImage = null } = {}) {
   tables[BOSS_TABLE.chainFrames] = chainFrames;
   tables[BOSS_TABLE.moduleCount] = modules.length;
   tables[BOSS_TABLE.stageStep] = K;
-  bayRefs.forEach((ref, kind) => { tables[BOSS_TABLE.bay + kind] = plainCode(ref); });
-  tables[BOSS_TABLE.spark] = plainCode(sparkRef);
+  const holeCodes = [...holeRefs.slice(0, 4).map(plainCode), 0, plainCode(holeRefs[4])];
+  tables.set(holeCodes, BOSS_TABLE.hole);
   tables[BOSS_TABLE.cappedCode] = stagedCode(cappedRef);
   const [cappedCracked, cappedBroken] = bossThresholds(cappedHp);
   tables[BOSS_TABLE.cappedHp] = cappedHp;
@@ -617,6 +643,9 @@ export function compileBossRegion(draft, { themeImage = null } = {}) {
     tables.set(record, BOSS_TABLE.modules + module.index * BOSS_MODULE_BYTES);
   });
   tables[BOSS_TABLE.nozzlePhases] = nozzleTailOffset;
+  tables[BOSS_TABLE.spark] = plainCode(sparkRef);
+  tables[BOSS_TABLE.deflect] = plainCode(deflectRef);
+  tables[BOSS_TABLE.muzzle] = plainCode(muzzleRef);
 
   const theme = new Uint8Array(BOSS_THEME_CAPACITY);
   if (themeImage !== null) {
@@ -647,8 +676,10 @@ export function compileBossRegion(draft, { themeImage = null } = {}) {
     tables,
     openLooks: new Map([...openLooks].map(([index, look]) => [index, look.map(stagedCode)])),
     capped: { code: stagedCode(cappedRef), hp: cappedHp, cracked: cappedCracked, broken: cappedBroken },
-    bays: bayRefs.map(plainCode),
+    hole: holeCodes,
     spark: plainCode(sparkRef),
+    deflect: plainCode(deflectRef),
+    muzzle: plainCode(muzzleRef),
     blasts: blastRefs.map(plainCode),
     nozzle: { codes: [nozzleBase, nozzleBase + 1], phases: nozzlePhases.map((phases) => phases.map((p) => p.bytes)) },
     modules: modules.map((module) => ({ name: module.name, kind: module.kindName, x: module.x,

@@ -3,6 +3,11 @@
 // (scripts/boss-assets.mjs) from PNG drafts and modules.json, its validation
 // with a failing fixture for each rule, the cover masks, the staged block and
 // region 1's drafts, and the preview that renders them without the game.
+// RE-POINTED (fortress session, owner decision H, plan §5.15): region 1 is the
+// layered fortress now; the style-2 core boss of S4a-i stays in the engine as
+// the Bastion drafts (assets/graphics/boss-regions/bastion/), and the tests
+// that read the core boss read those - every assertion kept. The bay glyphs
+// gave way to the hole frame (decision J).
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -23,6 +28,7 @@ import {
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 const regionDirectory = bossRegionDirectory(root, 1);
 const region1 = compileBossRegion(loadBossRegionDraft(regionDirectory));
+const bastion = compileBossRegion(loadBossRegionDraft(path.join(root, "assets", "graphics", "boss-regions", "bastion")));
 const rejects = (fn, pattern) => assert.throws(fn, (error) =>
   error instanceof BossDraftError && pattern.test(error.message), `expected ${pattern}`);
 
@@ -149,17 +155,22 @@ test("cover masks from geometry: every nearer module whose columns overlap, fron
   assert.equal(LAYERED_MODULES.length, 9);
 });
 
-test("cover masks from an explicit group: region 1's core behind all three guns (style 2)", () => {
-  const index = new Map(region1.modules.map((module, i) => [module.name, i]));
+// RE-POINTED (decision H): the core boss is the Bastion fixture now.
+test("cover masks from an explicit group: the core boss's core behind all three guns (style 2)", () => {
+  const index = new Map(bastion.modules.map((module, i) => [module.name, i]));
   const group = ["gun-left", "emitter", "gun-right"].reduce((value, name) => value | (1 << index.get(name)), 0);
-  assert.equal(region1.style, 2);
-  assert.equal(region1.modules[index.get("core")].cover, group);
+  assert.equal(bastion.style, 2);
+  assert.equal(bastion.modules[index.get("core")].cover, group);
   // Geometry alone would name only the emitter in front of it.
-  const geometric = resolveBossCovers(region1.modules.map((module) => ({ ...module, cover: "auto" })));
+  const geometric = resolveBossCovers(bastion.modules.map((module) => ({ ...module, cover: "auto" })));
   assert.equal(geometric[index.get("core")], 1 << index.get("emitter"));
   for (const name of ["gun-left", "emitter", "gun-right", "plate-left", "plate-right"]) {
-    assert.equal(region1.modules[index.get(name)].cover, 0, `${name} is in front`);
+    assert.equal(bastion.modules[index.get(name)].cover, 0, `${name} is in front`);
   }
+  // Region 1, the fortress (style 1), covers by geometry alone.
+  assert.equal(region1.style, 1);
+  const auto = resolveBossCovers(region1.modules.map((module) => ({ ...module, cover: "auto" })));
+  region1.modules.forEach((module, i) => assert.equal(module.cover, auto[i], `${module.name}'s cover is geometric`));
 });
 
 // ---------------------------------------------------------------------------
@@ -202,26 +213,31 @@ test("every module cell is staged: cracked = code + K and broken = code + 2K, re
   }
 });
 
-test("region 1: Q-B3's hit points, an open core, capped plate and bays, the divider's codes left to the install", () => {
-  const byName = new Map(region1.modules.map((module) => [module.name, module]));
+// RE-POINTED (decisions H, J): the core boss's values are read from the
+// Bastion fixture; the five bay glyphs are the hole frame's five cells now.
+test("the core boss: Q-B3's hit points, an open core, capped plate and the hole frame, the divider's codes left to the install", () => {
+  const byName = new Map(bastion.modules.map((module) => [module.name, module]));
   assert.equal(byName.get("core").hp, 24);
   assert.equal(byName.get("gun-left").hp, 8);
   assert.equal(byName.get("emitter").hp, 10);
   assert.equal(byName.get("emitter").slot, 1, "decision 8: one emitter on levels 1-3");
   assert.equal(byName.get("plate-left").hp, 6);
   assert.equal(byName.get("core").open, true, "the S3 shutters open onto the core");
-  assert.equal(region1.capped.hp, 6);
-  assert.ok(region1.codeCount <= BOSS_MAX_CODES);
-  assert.ok(region1.tables[BOSS_TABLE.open + region1.modules.findIndex((m) => m.name === "core")] !== BOSS_NO_LOOK);
-  for (const [kind, value] of Object.entries(BOSS_KIND)) {
-    assert.notEqual(region1.tables[BOSS_TABLE.bay + value], 0, `${kind} has a bay glyph`);
+  assert.equal(bastion.capped.hp, 6);
+  for (const region of [bastion, region1]) {
+    assert.ok(region.codeCount <= BOSS_MAX_CODES);
+    region.hole.forEach((code, i) => {
+      if (i === 4) assert.equal(code, 0, "the hole's interior is blank");
+      else assert.notEqual(code, 0, `hole cell ${i} has a glyph`);
+    });
+    assert.ok([...region.runs.charset.data.subarray(0, BOSS_DIVIDER_CODES * 8)].every((b) => b === 0));
+    // Every band column with hull is armour, open sky elsewhere.
+    for (let c = 0; c < BOSS_BAND_COLUMNS; c += 1) {
+      const hull = region.bandRows.some((row) => row[c] !== 0);
+      assert.equal((region.tables[BOSS_TABLE.armour + (c >> 3)] >> (c & 7)) & 1, hull ? 1 : 0, `column ${c}`);
+    }
   }
-  assert.ok([...region1.runs.charset.data.subarray(0, BOSS_DIVIDER_CODES * 8)].every((b) => b === 0));
-  // Every band column with hull is armour, open sky elsewhere.
-  for (let c = 0; c < BOSS_BAND_COLUMNS; c += 1) {
-    const hull = region1.bandRows.some((row) => row[c] !== 0);
-    assert.equal((region1.tables[BOSS_TABLE.armour + (c >> 3)] >> (c & 7)) & 1, hull ? 1 : 0, `column ${c}`);
-  }
+  assert.ok(bastion.tables[BOSS_TABLE.open + bastion.modules.findIndex((m) => m.name === "core")] !== BOSS_NO_LOOK);
 });
 
 test("the runs: theme 2, band A 3, band B 3 with the 256-B tables, the charset sized to its contents (<= 8)", () => {

@@ -8,6 +8,17 @@
 // guns) is the shipped boss; the layered fixture (style 1, geometric covers,
 // four emitter slots - tests/boss-fixtures.mjs) is installed over it the way
 // the head and the install would install it.
+//
+// RE-POINTED (fortress session, owner decisions H-K and the answers of plan
+// §5.15.6): region 1 is the layered fortress now, and the S4a-i core boss
+// (style 2) is the Bastion fixture, installed over the entry like the layered
+// one - every style-2 assertion reads it, unchanged. Three engine rules moved
+// with the owner's answers, and the tests follow them: a kill's exposure check
+// runs on the next frame's tick (kill() runs that frame); a module's redraw
+// goes through the one-module-a-frame queue (settle() drains it, and lets the
+// hit's spark expire, before a look is read); every emitter slot is capped
+// armour until the lasers exist (S4b). The bay glyphs gave way to the hole
+// frame (decision J).
 import assert from "node:assert/strict";
 import path from "node:path";
 import test from "node:test";
@@ -23,6 +34,7 @@ import {
 import { layeredDraft } from "./boss-fixtures.mjs";
 
 const region1 = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(root, 1)));
+const bastion = compileBossRegion(loadBossRegionDraft(path.join(root, "assets", "graphics", "boss-regions", "bastion")));
 const layered = compileBossRegion(layeredDraft());
 const TABLES = 0xad00;
 const STATS_HITS = 0xae;
@@ -54,6 +66,25 @@ const cellsOf = (memory, module) => {
   return cells;
 };
 
+// A module's codes under the cell-flash ring: a cell a live record covers (a
+// spark, a muzzle flash) reads as the code the record will give back.
+const codesOf = (memory, module) => {
+  const under = new Map();
+  for (let r = 0; r < 8; r += 1) {
+    if (memory[lbl("boss_ring_timer") + r] !== 0) {
+      under.set(memory[lbl("boss_ring_lo") + r] | (memory[lbl("boss_ring_hi") + r] << 8), memory[lbl("boss_ring_saved") + r]);
+    }
+  }
+  const cells = [];
+  for (let r = module.row; r < module.row + module.height; r += 1) {
+    for (let c = module.x; c < module.x + module.width; c += 1) {
+      const address = bossBandRowAddress(r) + c;
+      cells.push(under.has(address) ? under.get(address) : memory[address]);
+    }
+  }
+  return cells;
+};
+
 // The rule the map implements, in JS: the first live module of the
 // front-first table that covers the column, else hull or open sky.
 function expectedMap(region, memory) {
@@ -80,7 +111,13 @@ function fire(memory, cell) {
   return { counted: memory[STATS_HITS] - hitsBefore };
 }
 
-// Destroys module `index` through a column in which it is the front module.
+// Frames with no shot: the draw queue drains and the ring's sparks expire.
+function settle(memory, frames = 8) {
+  for (let frame = 0; frame < frames; frame += 1) call(memory, lbl("boss_update"));
+}
+
+// Destroys module `index` through a column in which it is the front module,
+// then runs the next frame, whose tick checks the exposure (§5.15.6 item 2).
 function kill(memory, region, index) {
   const module = region.modules[index];
   const map = columnMap(memory);
@@ -88,6 +125,7 @@ function kill(memory, region, index) {
   assert.notEqual(column, undefined, `${module.name} is the front of none of its columns`);
   for (let guard = 0; guard < 400 && hp(memory, index) > 0; guard += 1) fire(memory, column);
   assert.equal(hp(memory, index), 0, `${module.name} did not die`);
+  call(memory, lbl("boss_update"));
 }
 
 // ---------------------------------------------------------------------------
@@ -102,8 +140,10 @@ test("the install order: the controller's hit points before the column map that 
   assert.ok(entryTrace.indexOf("prepare") > init);
   // With the order wrong every module reads dead and its columns hull.
   assert.deepEqual(columnMap(memory), expectedMap(region1, memory));
+  // RE-POINTED (decision H): every uncovered module is the front of a column
+  // (S4a-i's region 1: every module but its covered core).
   region1.modules.forEach((module, index) => {
-    assert.ok(columnMap(memory).includes(index) || module.name === "core", `${module.name} has no column`);
+    assert.ok(columnMap(memory).includes(index) || module.cover !== 0, `${module.name} has no column`);
   });
 });
 
@@ -188,17 +228,19 @@ test("exposure is re-evaluated on every kill, and the column-local rebuild equal
 });
 
 test("an exposed module's open look is drawn the moment its cover group falls (style 2)", () => {
-  const memory = withRegion(region1);
-  const index = new Map(region1.modules.map((module, i) => [module.name, i]));
-  const core = region1.modules[index.get("core")];
+  const memory = withRegion(bastion);
+  const index = new Map(bastion.modules.map((module, i) => [module.name, i]));
+  const core = bastion.modules[index.get("core")];
   const closed = cellsOf(memory, core);
   for (const name of ["gun-left", "emitter"]) {
-    kill(memory, region1, index.get(name));
+    kill(memory, bastion, index.get(name));
+    settle(memory);
     assert.deepEqual(cellsOf(memory, core), closed, `the core opened after ${name} alone`);
   }
-  kill(memory, region1, index.get("gun-right"));
-  assert.deepEqual(cellsOf(memory, core), region1.openLooks.get(index.get("core")), "the core's open look");
+  kill(memory, bastion, index.get("gun-right"));
   assert.ok(mask16(memory, "_boss_exposed") & (1 << index.get("core")));
+  settle(memory);
+  assert.deepEqual(cellsOf(memory, core), bastion.openLooks.get(index.get("core")), "the core's open look");
 });
 
 // ---------------------------------------------------------------------------
@@ -206,6 +248,7 @@ test("an exposed module's open look is drawn the moment its cover group falls (s
 // ---------------------------------------------------------------------------
 
 test("a covered module and the hull absorb a shot: spent, no damage, not a hit for accuracy (Q-B7)", () => {
+  const region1 = bastion;
   const memory = withRegion(region1);
   const index = new Map(region1.modules.map((module, i) => [module.name, i]));
   const coreIndex = index.get("core");
@@ -232,33 +275,46 @@ test("a covered module and the hull absorb a shot: spent, no damage, not a hit f
   assert.equal(hp(fixture, plate), record(layered, plate, "hp"));
 });
 
-test("the four damage stages: intact, cracked (+K), broken (+2K), gone (the kind's bay)", () => {
+// RE-POINTED (decisions H, J; §5.15.6): read on the core boss (Bastion), each
+// look after the queue drew it; a capped emitter stages at the capped plate's
+// thresholds; gone is the hole frame over the module (S4a-i: the kind's bay).
+test("the four damage stages: intact, cracked (+K), broken (+2K), gone (the hole frame)", () => {
+  const region1 = bastion;
   const memory = withRegion(region1);
   const K = region1.stageStep;
   const index = new Map(region1.modules.map((module, i) => [module.name, i]));
+  const [tl, t, tr, l, blank, r] = region1.hole;
   for (const name of ["gun-left", "plate-right", "gun-right", "emitter", "core"]) {
     const i = index.get(name);
     const module = region1.modules[i];
     const intact = module.open ? region1.openLooks.get(i) : cellsOf(memory, module);
     if (name === "core") assert.deepEqual(cellsOf(memory, module), intact, "the core is open");
-    const [cracked, broken] = module.thresholds;
+    const capped = memory[lbl("_boss_kind") + i] === BOSS_KIND.armour && module.kind === "emitter";
+    const [cracked, broken] = capped ? [region1.capped.cracked, region1.capped.broken] : module.thresholds;
     const column = columnMap(memory).indexOf(i);
     const stages = [];
     while (hp(memory, i) > 0) {
       fire(memory, column);
       const now = hp(memory, i);
       if (now === 0) break;
+      settle(memory, 3);
       const expected = now <= broken ? 2 : now <= cracked ? 1 : 0;
-      assert.deepEqual(cellsOf(memory, module), intact.map((code) => code + expected * K),
+      assert.deepEqual(codesOf(memory, module), intact.map((code) => code + expected * K),
         `${name} at ${now} HP is stage ${expected}`);
       stages.push(expected);
     }
     assert.ok(stages.includes(1) && stages.includes(2), `${name} showed both damage stages`);
-    const bay = region1.tables[BOSS_TABLE.bay + BOSS_KIND[module.kind]];
-    assert.ok(cellsOf(memory, module).every((code) => code === bay), `${name} gone: its bay glyph`);
+    settle(memory);
+    codesOf(memory, module).forEach((code, k) => {
+      const dx = k % module.width;
+      const first = dx === 0;
+      const last = dx === module.width - 1;
+      const expected = k < module.width ? (first ? tl : last ? tr : t) : (first ? l : last ? r : blank);
+      assert.equal(code, expected, `${name} gone: the hole frame at cell ${k}`);
+    });
     if (name === "emitter") {
       // The guns are down: the core is exposed now and shows its open look.
-      assert.deepEqual(cellsOf(memory, region1.modules[index.get("core")]),
+      assert.deepEqual(codesOf(memory, region1.modules[index.get("core")]),
         region1.openLooks.get(index.get("core")));
     }
   }
@@ -268,8 +324,11 @@ test("the four damage stages: intact, cracked (+K), broken (+2K), gone (the kind
 // The laser tier (decisions B, 8), the defeat (decision A), the HP scale (Q-B3)
 // ---------------------------------------------------------------------------
 
-test("emitter slots by tier: 1 / 1 / 2 / 4 on levels 1 / 4 / 5 / 9, the rest capped armour", () => {
-  for (const [level, enabled] of [[1, 1], [4, 1], [5, 2], [9, 4]]) {
+// RE-POINTED (owner answer, plan §5.15.6 item 6): every emitter slot is capped
+// armour until the lasers exist (S4b brings decision 8's 1 / 2 / 4 back), so
+// on every level the slots enabled are none.
+test("emitter slots: every slot capped armour on levels 1 / 4 / 5 / 9 until the lasers (S4b)", () => {
+  for (const [level, enabled] of [[1, 0], [4, 0], [5, 0], [9, 0]]) {
     const memory = withRegion(layered, { level });
     let weapons = 0;
     layered.modules.forEach((module, i) => {
@@ -290,7 +349,7 @@ test("emitter slots by tier: 1 / 1 / 2 / 4 on levels 1 / 4 / 5 / 9, the rest cap
       if (memory[lbl("_boss_kind") + i] !== BOSS_KIND.armour) weapons += 1;
     });
     assert.equal(memory[lbl("_boss_weapons_left")], weapons, `level ${level}`);
-    assert.equal(weapons, 4 + enabled, `level ${level}: two guns, the salvo, the core and ${enabled} emitter(s)`);
+    assert.equal(weapons, 4 + enabled, `level ${level}: two guns, the salvo and the core`);
   }
 });
 
@@ -307,20 +366,21 @@ test("the defeat: the last weapon module's death starts the chain, armour left s
     assert.ok(hp(memory, index.get(name)) > 0, `${name}, capped armour, still stands`);
   }
   assert.equal(memory[lbl("_boss_weapons_left")], 0);
-  // Region 1: the core's death is the defeat with both plates standing.
-  const shipped = withRegion(region1);
-  const byName = new Map(region1.modules.map((module, i) => [module.name, i]));
-  for (const name of ["gun-left", "emitter", "gun-right"]) kill(shipped, region1, byName.get(name));
+  // The core boss (Bastion): the core's death is the defeat with both plates
+  // standing.
+  const shipped = withRegion(bastion);
+  const byName = new Map(bastion.modules.map((module, i) => [module.name, i]));
+  for (const name of ["gun-left", "emitter", "gun-right"]) kill(shipped, bastion, byName.get(name));
   assert.equal(shipped[lbl("_boss_phase")], 0);
-  kill(shipped, region1, byName.get("core"));
+  kill(shipped, bastion, byName.get("core"));
   assert.equal(shipped[lbl("_boss_phase")], 2);
   assert.ok(hp(shipped, byName.get("plate-left")) > 0 && hp(shipped, byName.get("plate-right")) > 0);
 });
 
 test("the hit-point scale per difficulty from boss_def: x 3/4, x 1, x 5/4 (Q-B3)", () => {
-  const coreIndex = region1.modules.findIndex((module) => module.name === "core");
+  const coreIndex = bastion.modules.findIndex((module) => module.name === "core");
   const scaled = [0, 1, 2].map((difficulty) => {
-    const memory = withRegion(region1, { difficulty });
+    const memory = withRegion(bastion, { difficulty });
     return [hp(memory, coreIndex), memory[lbl("_boss_crack") + coreIndex], memory[lbl("_boss_break") + coreIndex]];
   });
   assert.deepEqual(scaled, [[18, 12, 6], [24, 16, 8], [30, 20, 10]]);
@@ -341,6 +401,9 @@ test("one fire countdown: only armed modules fire, one at a time, never under th
     const armed = mask16(memory, "_boss_armed");
     const cycles = call(memory, lbl("_boss_c_tick")).cycles;
     const module = memory[lbl("_boss_fire_module")];
+    // RE-POINTED (§5.15.6 item 2): the tick after a kill runs the exposure
+    // check - that frame is not an idle one.
+    if (memory[lbl("_boss_heavy")] !== 0) continue;
     if (module !== 0xff) {
       assert.ok(armed & (1 << module), `frame ${frame}: ${layered.modules[module].name} fired unarmed`);
       fired.push({ frame, module });

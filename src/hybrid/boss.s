@@ -37,7 +37,9 @@
 ; capital vector table carries this overlay's image, so the resident calls
 ; that reached the capital group reach the boss instead:
 ;
-;   UPDATE             boss_update      PairShots against the band, the C tick
+;   UPDATE             boss_update      PairShots against the band and their
+;                                        feedback, the C tick, the boss's fire,
+;                                        one queued module draw, the nozzles
 ;   PREPARE_ROW        boss_motion      the band's drift and the win's shake
 ;   SECTOR_COMPLETION  boss_completion  the hand-off to the level summary
 ;   every other entry  boss_rts         (INIT keeps init_broadside: it runs
@@ -92,11 +94,37 @@ BAND_ORIGIN_HPOS = 32
 RING_FIRST_VISIBLE = BOSS_BAND_ROWS
 RING_ROWS       = 27
 
-; boss_draw_module's three ways to fill a module's cells (bits 7 and 6, read
-; by BIT): copy a look from the look tail, fill one code, add to each code.
+; boss_draw_module's four ways to fill a module's cells (bits 7 and 6, read
+; by BIT): copy a look from the look tail, fill one code, add to each code,
+; or the hole frame (decision J: the top row's corners and edge, the sides,
+; the interior blank, from the region's six hole codes).
 BOSS_MODE_COPY  = $00
 BOSS_MODE_FILL  = $40
 BOSS_MODE_ADD   = $80
+BOSS_MODE_HOLE  = $C0
+BOSS_MODE_NONE  = $01           ; a queued draw a later one superseded
+
+; The fortress session (plan §5.15, decisions I-K, §5.15.6): the hit feedback,
+; the boss's fire, the draw queue, the nozzles.
+BOSS_RING_RECORDS  = 8          ; the cell-flash ring (§5.13.2 item 5)
+BOSS_SPARK_FRAMES  = 2          ; a spark or a deflection: restored 2 frames on
+BOSS_MUZZLE_FRAMES = 3
+BOSS_QUEUE_ENTRIES = 8          ; one module drawn a frame (§5.15.6 item 2)
+BOSS_TICK_FRAMES   = 2          ; the hit tick on channel 3 (Q-B4)
+BOSS_TONE_DAMAGE   = 0
+BOSS_TONE_ABSORB   = 1
+BOSS_TONE_HULL     = 2
+BOSS_BED_AUDF      = $68        ; the engine bed start_gameplay sets on channel 3
+BOSS_BED_AUDC      = $22
+; A boss shot is a PULSE shot of the shared hostile pool (§5.13.2 item 6):
+; ACTIVE = (weapon_class << 3) | owner bits; class 1 is PULSE (main.s
+; ENEMY_WEAPON_PULSE), the owner the Light kernel's (light-kernel.s
+; LIGHT_PROJECTILE_OWNER = FIGHTER_PROJECTILE_INTERCEPTOR | 4). No Light flies
+; in region 1's boss sector (owner answer, §5.15.6 item 4).
+BOSS_SHOT_ACTIVE   = (1 << 3) | 2 | 4
+.assert BOSS_SHOT_ACTIVE = $0E, error, "a boss shot is a PULSE shot with the Light owner bits"
+.assert (BOSS_RING_RECORDS & (BOSS_RING_RECORDS - 1)) = 0, error, "the ring's steal walks a power of two"
+.assert (BOSS_QUEUE_ENTRIES & (BOSS_QUEUE_ENTRIES - 1)) = 0, error, "the queue wraps on a power of two"
 
 ; The head's run table (boss-runs.inc): the install, slot C, then per region
 ; its band A, band B and charset runs, 5 bytes a run.
@@ -113,7 +141,10 @@ BOSS_REGION_RUNS = 3
 .export boss_completion, boss_install, boss_shown_pos, boss_dli_pos, boss_pos
 .export boss_rts, boss_runs, boss_draw_module, boss_apply_pos, boss_module_scored
 .export boss_column_map, boss_column_at, boss_rebuild_module, boss_prepare
-.export boss_ring, boss_mx, boss_mxe, boss_look_operand, boss_shake_timer
+.export boss_mx, boss_mxe, boss_look_operand, boss_shake_timer
+.export boss_ring_lo, boss_ring_hi, boss_ring_saved, boss_ring_timer, boss_ring_module, boss_ring_glyph
+.export boss_palette, boss_flash_timer, boss_tick_timer, boss_queue_head, boss_queue_tail
+.export boss_nozzle_dark, boss_column_from, boss_ring_set
 ; The controller's view of the region's tables, the level, main and the
 ; summary (src/c/boss.c): every address it reads is one of this link's.
 .export _boss_tables, _boss_module_table, _boss_level, _boss_def
@@ -129,6 +160,7 @@ _boss_stats_bonus  = STATS_BONUS
 .import _boss_hit_module, _boss_hit_cell, _boss_stage_module, _boss_stage_add
 .import _boss_score_module, _boss_newly_lo, _boss_newly_hi, _boss_kind, _boss_hp
 .import _boss_blast, _boss_handoff, _boss_clock_lo, _boss_clock_hi, _boss_phase
+.import _boss_fire_module, _boss_fire_offset, _boss_heavy
 
 ; ===========================================================================
 ; Slot A's head: the entry, then the vector table image.
@@ -247,13 +279,13 @@ boss_dli:
     sta WSYNC
     lda #>BOSS_CHARSET
     sta CHBASE
-    lda BOSS_T_PALETTE
+    lda boss_palette                    ; the region's, or the flash's frame
     sta COLPF0
-    lda BOSS_T_PALETTE+1
+    lda boss_palette+1
     sta COLPF1
-    lda BOSS_T_PALETTE+2
+    lda boss_palette+2
     sta COLPF2
-    lda BOSS_T_PALETTE+3
+    lda boss_palette+3
     sta COLPF3
     inc gameplay_dli_phase
     pla
@@ -374,10 +406,16 @@ boss_motion:
 ; the front intact module, else hull or open sky (§5.13.2 item 3). Open sky
 ; lets it fly on, hidden behind the band; hull absorbs it (no damage, not a
 ; hit, Q-B7); a module column goes to the controller, which decides whether
-; the module is exposed (damage) or covered (absorbed, Q-B7). Then the
-; controller's tick, and the chain's blast when it asks for one.
+; the module is exposed (damage) or covered (absorbed, Q-B7). Every hit reads
+; (decision J): a spark in the struck cell, the band flash and the damage
+; tick on a damaging hit; a deflection and the absorb or hull tick otherwise.
+; Then the controller's tick - the exposure a kill asked for, the next firing,
+; the chain - the boss's shot, one queued module draw, the nozzles.
 ; ===========================================================================
 boss_update:
+    lda #$00
+    sta boss_frame_heavy
+    jsr boss_frame_timers
     ldx #(PLAYER_FIGHTER_PROJECTILE_SLOT_COUNT - 1)
 @shot:
     lda FIGHTER_PROJECTILE_ACTIVE,x
@@ -399,23 +437,18 @@ boss_update:
     sta _boss_hit_module
     lda #FIGHTER_PROJECTILE_FREE
     sta FIGHTER_PROJECTILE_ACTIVE,x
-    lda _boss_hit_module
-    cmp #BOSS_COLUMN_ARMOUR
-    beq @next
     sty _boss_hit_cell
     stx boss_slot_save
-    jsr _boss_c_hit
-    cmp #$00                            ; cc65 returns in A; the flags are X's
-    beq @absorbed
-    jsr boss_after_hit
-@absorbed:
+    jsr boss_hit
     ldx boss_slot_save
 @next:
     dex
     bpl @shot
     jsr _boss_c_tick
+    jsr boss_open_looks
+    jsr boss_fire
     lda _boss_blast
-    bmi @done
+    bmi @queue
     ; One link of the chain (plan §5.6, §5.11.4 item 4): blast glyphs over
     ; the module, the shared enemy-explosion slot's COLBK flash, the band's
     ; shake and the capital explosion's sound.
@@ -434,30 +467,108 @@ boss_update:
     sta boss_shake_timer
     lda #CAPITAL_EXPLOSION_DURATION
     sta CAPITAL_EXPLOSION_SOUND_TIMER
-@done:
+@queue:
+    ; A kill frame (the rebuild) and the exposure check's frame leave their
+    ; queued draw to the next frame (plan §5.15.7: the worst frame's budget).
+    lda boss_frame_heavy
+    ora _boss_heavy
+    bne :+
+    jsr boss_queue_draw
+:
+    jmp boss_nozzles
+
+; A shot reached a band column that is not open sky: _boss_hit_module is the
+; column map's value, _boss_hit_cell the column. After the defeat a shot is
+; only spent.
+boss_hit:
+    lda _boss_phase
+    beq :+
+    rts
+:
+    lda _boss_hit_cell
+    sta boss_column
+    lda _boss_hit_module
+    cmp #BOSS_COLUMN_ARMOUR
+    bne @module
+    ; The hull: the deflection on the column's lowest drawn cell (a hole's
+    ; back rim once a plate is gone), the hull tick.
+    ldx #(BOSS_BAND_ROWS - 1)
+@row:
+    jsr boss_cell_at
+    ldy #$00
+    lda (dst_ptr),y
+    bne @hull
+    dex
+    bpl @row
+@hull:
+    lda #$FF
+    sta boss_ring_tag
+    ldx #BOSS_TONE_HULL
+    bne boss_deflect
+@module:
+    jsr _boss_c_hit
+    sta boss_hit_result
+    cmp #$00                            ; cc65 returns in A; the flags are X's
+    beq :+
+    jsr boss_after_hit
+:
+    ; The struck cell: the module's bottom row at the shot's column.
+    ldx _boss_hit_module
+    stx boss_ring_tag
+    jsr boss_record_of
+    lda BOSS_T_MODULES + BOSS_M_ROW,y
+    clc
+    adc BOSS_T_MODULES + BOSS_M_HEIGHT,y
+    tax
+    dex
+    jsr boss_cell_at
+    lda boss_hit_result
+    beq @absorbed
+    jsr boss_flash_on
+    lda BOSS_T_SPARK
+    ldx #BOSS_TONE_DAMAGE
+    jmp boss_feedback
+@absorbed:
+    ldx #BOSS_TONE_ABSORB
+boss_deflect:
+    lda BOSS_T_DEFLECT
+; A = the glyph, X = the tick's tone, dst_ptr = the cell, boss_ring_tag.
+boss_feedback:
+    pha
+    jsr boss_tick_sound
+    pla
+    ldy #BOSS_SPARK_FRAMES
+    jmp boss_ring_set
+
+; X = a band row, boss_column a column -> dst_ptr = that cell. Keeps X.
+boss_cell_at:
+    lda boss_band_lo,x
+    ora boss_column                     ; each row is 64 B on a 64-B boundary
+    sta dst_ptr
+    lda boss_band_hi,x
+    sta dst_ptr+1
     rts
 
 ; A module took damage: the accuracy stat, then what the controller asked
-; for - a damage stage (+K to every cell, §5.13.2 item 4), or the kill.
+; for - a damage stage (+K to every cell, §5.13.2 item 4), or the kill. Both
+; draws go through the queue: one module drawn a frame (§5.15.6 item 2).
 boss_after_hit:
     inc STATS_HITS
     bne :+
     inc STATS_HITS+1
 :
-    ldx _boss_stage_module
+    lda _boss_stage_module
     bmi boss_after_stage
-    lda _boss_stage_add
-    sta boss_add
-    lda #BOSS_MODE_ADD
-    sta boss_mode
-    txa
-    jsr boss_draw_module
+    ldx #BOSS_MODE_ADD
+    ldy _boss_stage_add
+    jsr boss_enqueue
 boss_after_stage:
     ldx _boss_score_module
     bmi boss_after_done
     ; The module's score, packed BCD (light_add_score's path), then the kill
-    ; stat and the HUD through the reader's kill vector, and the kill sound.
-    ; (The harness counts kills at this label, as it does at the score routines.)
+    ; stat and the HUD through the reader's kill vector, and the kill sound
+    ; (channel 2). (The harness counts kills at this label, as it does at the
+    ; score routines.)
 boss_module_scored:
     jsr boss_record_of
     sed
@@ -471,20 +582,22 @@ boss_module_scored:
     cld
     jsr SECTOR_READER_STATS_KILL
     jsr play_hit_sound
-    ; Gone: the kind's bay glyph over the module, and its columns rebuilt -
-    ; a shot there now meets the module behind it, or the hull.
+    ; Gone: the hole frame over the module (queued), and its columns rebuilt
+    ; now - a shot there meets the module behind it, or the hull.
+    lda _boss_score_module
+    ldx #BOSS_MODE_HOLE
+    ldy #$00
+    sty boss_frame_heavy                ; any nonzero: Y is 0, so...
+    inc boss_frame_heavy                ; ... 1
+    jsr boss_enqueue
     ldx _boss_score_module
-    ldy _boss_kind,x
-    lda BOSS_T_BAY,y
-    sta boss_fill
-    lda #BOSS_MODE_FILL
-    sta boss_mode
-    txa
-    jsr boss_draw_module
-    ldx _boss_score_module
-    jsr boss_rebuild_module
-    ; Every module the kill exposed shows its open look (the S3 core's
-    ; shutters opening), lowest index first.
+    jmp boss_rebuild_module
+boss_after_done:
+    rts
+
+; Every module the tick's exposure check exposed shows its open look (the S3
+; core's shutters, a cannon's lit barrel), queued, lowest index first.
+boss_open_looks:
     lda _boss_newly_lo
     sta boss_bits_lo
     lda _boss_newly_hi
@@ -493,27 +606,447 @@ boss_module_scored:
 @open:
     lda boss_bits_lo
     ora boss_bits_hi
-    beq boss_after_done
+    beq @done
     lsr boss_bits_hi
     lda boss_bits_lo
     ror
     sta boss_bits_lo
-    bcc @next_open
+    bcc @next
     lda BOSS_T_OPEN,x
     cmp #BOSS_NO_LOOK
-    beq @next_open
-    sta boss_look
-    lda #BOSS_MODE_COPY
-    sta boss_mode
+    beq @next
+    tay
     stx boss_open_x
     txa
-    jsr boss_draw_module
+    ldx #BOSS_MODE_COPY
+    jsr boss_enqueue
     ldx boss_open_x
-@next_open:
+@next:
     inx
     bne @open
-boss_after_done:
+@done:
     rts
+
+; The controller named a firing module (§5.13.2 item 6): the muzzle flash in
+; its bottom row at its centre column (+ a salvo's offset), and one PULSE
+; shot of the shared hostile pool straight down from the band's bottom edge -
+; when that column is on screen and a slot is free (a full pool drops it).
+boss_fire:
+    lda _boss_fire_module
+    bmi @done
+    tax
+    stx boss_ring_tag
+    jsr boss_record_of
+    lda BOSS_T_MODULES + BOSS_M_WIDTH,y
+    lsr
+    clc
+    adc BOSS_T_MODULES + BOSS_M_X,y
+    clc
+    adc _boss_fire_offset
+    sta boss_column
+    lda BOSS_T_MODULES + BOSS_M_ROW,y
+    clc
+    adc BOSS_T_MODULES + BOSS_M_HEIGHT,y
+    tax
+    dex
+    jsr boss_cell_at
+    lda BOSS_T_MUZZLE
+    ldy #BOSS_MUZZLE_FRAMES
+    jsr boss_ring_set
+    ; The shot's HPOS: column * 4 + 32 - p, +1 and even (the two-pixel core
+    ; inside one cell); the column must lie in the screen's window.
+    lda boss_column
+    asl
+    asl
+    sec
+    sbc boss_shown_pos
+    bcc @done                           ; left of the band's first byte
+    adc #BAND_ORIGIN_HPOS               ; C = 1: + 33
+    bcs @done
+    cmp #GAMEPLAY_LEFT_HPOS
+    bcc @done
+    cmp #(GAMEPLAY_LEFT_HPOS + GAMEPLAY_SCREEN_COLUMNS * 4 - 1)
+    bcs @done
+    and #$FE
+    ldx #INTERCEPTOR_PROJECTILE_SLOT_BASE
+@slot:
+    ldy FIGHTER_PROJECTILE_ACTIVE,x
+    beq @spawn
+    inx
+    cpx #(INTERCEPTOR_PROJECTILE_SLOT_BASE + INTERCEPTOR_PROJECTILE_ACTIVE_LIMIT)
+    bne @slot
+@done:
+    rts
+@spawn:
+    sta FIGHTER_PROJECTILE_X,x
+    lda #BAND_BOTTOM_Y
+    sta FIGHTER_PROJECTILE_Y,x
+    sta FIGHTER_PROJECTILE_PREV_Y,x
+    lda #INTERCEPTOR_PROJECTILE_LIFETIME
+    sta FIGHTER_PROJECTILE_LIFETIME,x
+    lda #BOSS_SHOT_ACTIVE
+    sta FIGHTER_PROJECTILE_ACTIVE,x
+    rts
+
+; ---------------------------------------------------------------------------
+; The frame's timers: the ring's records expire (their cells get their codes
+; back), the band flash ends after its frame, the tick gives channel 3 back to
+; the engine bed after its two frames.
+; ---------------------------------------------------------------------------
+boss_frame_timers:
+    ldx #(BOSS_RING_RECORDS - 1)
+@ring:
+    lda boss_ring_timer,x
+    beq @next
+    dec boss_ring_timer,x
+    bne @next
+    jsr boss_ring_restore
+@next:
+    dex
+    bpl @ring
+    lda boss_flash_timer
+    beq @tick
+    dec boss_flash_timer
+    bne @tick
+    ldx #3
+@palette:
+    lda BOSS_T_PALETTE,x
+    sta boss_palette,x
+    dex
+    bpl @palette
+@tick:
+    lda boss_tick_timer
+    beq @done
+    dec boss_tick_timer
+    bne @done
+    lda sound_enabled
+    beq @done
+    lda #BOSS_BED_AUDF
+    sta AUDF3
+    lda #BOSS_BED_AUDC
+    sta AUDC3
+@done:
+    rts
+
+; A damaging hit: the band's four colours raised by flashLuma for one frame
+; (the converter keeps every colour inside its hue). Keeps dst_ptr.
+boss_flash_on:
+    lda boss_flash_timer
+    bne @done                           ; this frame's flash is up already
+    lda #$01
+    sta boss_flash_timer
+    ldx #3
+:
+    lda BOSS_T_PALETTE,x
+    clc
+    adc BOSS_T_FLASH_LUMA
+    sta boss_palette,x
+    dex
+    bpl :-
+@done:
+    rts
+
+; X = the tone: the tick over the engine bed for two frames (Q-B4), never
+; when the sound is off. Keeps dst_ptr.
+boss_tick_sound:
+    lda boss_tick_timer
+    cmp #BOSS_TICK_FRAMES
+    beq @off                            ; this frame's first hit set the tick
+    lda sound_enabled
+    beq @off
+    lda boss_tone_audf,x
+    sta AUDF3
+    lda boss_tone_audc,x
+    sta AUDC3
+    lda #BOSS_TICK_FRAMES
+    sta boss_tick_timer
+@off:
+    rts
+
+; ---------------------------------------------------------------------------
+; The cell-flash ring (§5.13.2 item 5): records of (cell, saved code, timer,
+; module, glyph). A record on the struck cell is refreshed (its saved code
+; stays the cell's own); else a free one is taken, else the next in turn
+; gives its cell back first.
+; ---------------------------------------------------------------------------
+
+; A = the glyph, Y = its frames, dst_ptr = the cell, boss_ring_tag = the
+; module whose draws carry the record along ($FF: none).
+boss_ring_set:
+    sta boss_ring_new
+    sty boss_ring_frames
+    ; Five shots on one cell in a frame: the record written last, at once.
+    ldx boss_ring_last
+    lda boss_ring_timer,x
+    beq @search
+    lda boss_ring_lo,x
+    cmp dst_ptr
+    bne @search
+    lda boss_ring_hi,x
+    cmp dst_ptr+1
+    beq @refresh
+@search:
+    ldx #(BOSS_RING_RECORDS - 1)
+@same:
+    lda boss_ring_timer,x
+    beq @next_same
+    lda boss_ring_lo,x
+    cmp dst_ptr
+    bne @next_same
+    lda boss_ring_hi,x
+    cmp dst_ptr+1
+    beq @refresh
+@next_same:
+    dex
+    bpl @same
+    ldx #(BOSS_RING_RECORDS - 1)
+@free:
+    lda boss_ring_timer,x
+    beq @take
+    dex
+    bpl @free
+    lda boss_ring_next
+    clc
+    adc #$01
+    and #(BOSS_RING_RECORDS - 1)
+    sta boss_ring_next
+    tax
+    jsr boss_ring_restore
+@take:
+    lda dst_ptr
+    sta boss_ring_lo,x
+    lda dst_ptr+1
+    sta boss_ring_hi,x
+    ldy #$00
+    lda (dst_ptr),y
+    sta boss_ring_saved,x
+    lda boss_ring_tag
+    sta boss_ring_module,x
+@refresh:
+    stx boss_ring_last
+    lda boss_ring_new
+    sta boss_ring_glyph,x
+    ldy #$00
+    sta (dst_ptr),y
+    lda boss_ring_frames
+    sta boss_ring_timer,x
+    rts
+
+; X = a record: its cell gets its saved code back. Keeps X.
+boss_ring_restore:
+    lda boss_ring_lo,x
+    sta @cell+1
+    lda boss_ring_hi,x
+    sta @cell+2
+    lda boss_ring_saved,x
+@cell:
+    sta $FFFF
+    rts
+
+; Around a module's draw (boss_draw_m): A = $00 before, every live record of
+; that module gives its cell back; A = $FF after, each takes the new code as
+; its saved code and shows its glyph again - a spark outlives a stage change.
+boss_ring_rebase:
+    sta boss_rebase_mode
+    ldx #(BOSS_RING_RECORDS - 1)
+@record:
+    lda boss_ring_timer,x
+    beq @next
+    lda boss_ring_module,x
+    cmp boss_draw_m
+    bne @next
+    lda boss_ring_lo,x
+    sta @read+1
+    sta @write+1
+    lda boss_ring_hi,x
+    sta @read+2
+    sta @write+2
+    bit boss_rebase_mode
+    bmi @read
+    lda boss_ring_saved,x
+    jmp @write
+@read:
+    lda $FFFF
+    sta boss_ring_saved,x
+    lda boss_ring_glyph,x
+@write:
+    sta $FFFF
+@next:
+    dex
+    bpl @record
+    rts
+
+; ---------------------------------------------------------------------------
+; The draw queue (§5.15.6 item 2): a stage change, a hole and an open look are
+; drawn one module a frame, in the order asked; a full queue draws its oldest
+; at once.
+; ---------------------------------------------------------------------------
+
+; A = the module, X = how (BOSS_MODE_*), Y = the value (the add or the look).
+; A module's queued draws merge: its hole takes the place of the first of
+; them and cancels the rest, a second damage stage adds into its queued one -
+; so a burst of hits never fills the queue.
+boss_enqueue:
+    sta boss_q_module
+    stx boss_q_mode
+    sty boss_q_value
+    lda #$00
+    sta boss_q_placed
+    ldx boss_queue_head
+@walk:
+    cpx boss_queue_tail
+    beq @append
+    lda boss_queue_module,x
+    cmp boss_q_module
+    bne @step
+    lda boss_q_mode
+    cmp #BOSS_MODE_HOLE
+    bne @add
+    lda boss_q_placed
+    bne @cancel
+    inc boss_q_placed
+    lda #BOSS_MODE_HOLE
+    sta boss_queue_mode,x
+    bne @step
+@cancel:
+    lda #BOSS_MODE_NONE
+    sta boss_queue_mode,x
+    bne @step
+@add:
+    cmp #BOSS_MODE_ADD
+    bne @step
+    lda boss_queue_mode,x
+    cmp #BOSS_MODE_ADD
+    bne @step
+    lda boss_queue_value,x
+    clc
+    adc boss_q_value
+    sta boss_queue_value,x
+    rts
+@step:
+    inx
+    txa
+    and #(BOSS_QUEUE_ENTRIES - 1)
+    tax
+    jmp @walk
+@append:
+    lda boss_q_placed
+    beq :+
+    rts
+:
+    lda boss_queue_tail
+    clc
+    adc #$01
+    and #(BOSS_QUEUE_ENTRIES - 1)
+    cmp boss_queue_head
+    bne @room
+    jsr boss_queue_draw
+@room:
+    ldx boss_queue_tail
+    lda boss_q_module
+    sta boss_queue_module,x
+    lda boss_q_mode
+    sta boss_queue_mode,x
+    lda boss_q_value
+    sta boss_queue_value,x
+    inx
+    txa
+    and #(BOSS_QUEUE_ENTRIES - 1)
+    sta boss_queue_tail
+    rts
+
+; The oldest entry, drawn (superseded ones are passed over); nothing when the
+; queue is empty.
+boss_queue_draw:
+    ldx boss_queue_head
+    cpx boss_queue_tail
+    beq @empty
+    lda boss_queue_mode,x
+    cmp #BOSS_MODE_NONE
+    bne @draw
+    inx
+    txa
+    and #(BOSS_QUEUE_ENTRIES - 1)
+    sta boss_queue_head
+    jmp boss_queue_draw
+@draw:
+    sta boss_mode
+    lda boss_queue_value,x
+    sta boss_add
+    sta boss_look
+    lda boss_queue_module,x
+    pha
+    inx
+    txa
+    and #(BOSS_QUEUE_ENTRIES - 1)
+    sta boss_queue_head
+    pla
+    jmp boss_draw_module
+@empty:
+    rts
+
+; ---------------------------------------------------------------------------
+; The nozzles at both ends (decision K, §5.13.2 item 9): every framesPerPhase
+; frames the next of three phase images is copied over the two nozzle codes'
+; glyphs (the capital engine banks' mechanism: no cell is written); the
+; defeat darkens both, for good, before the chain's first blast shows.
+; ---------------------------------------------------------------------------
+boss_nozzles:
+    lda boss_nozzle_dark
+    bne @done
+    lda _boss_phase
+    beq @lit
+    inc boss_nozzle_dark
+    lda #$00
+    ldx #7
+:
+    jsr boss_nozzle_dst_l
+    dex
+    bpl :-
+@done:
+    rts
+@lit:
+    dec boss_nozzle_timer
+    bne @done
+    lda BOSS_T_NOZZLE_FRAMES
+    sta boss_nozzle_timer
+    ldx boss_nozzle_phase
+    inx
+    cpx #3
+    bne :+
+    ldx #0
+:
+    stx boss_nozzle_phase
+    txa
+    asl
+    asl
+    asl
+    tay
+    ldx #$00
+boss_nozzle_copy:
+boss_nozzle_src_l:
+    lda $FFFF,y
+    jsr boss_nozzle_dst_l
+boss_nozzle_src_r:
+    lda $FFFF,y
+    jsr boss_nozzle_dst_r
+    iny
+    inx
+    cpx #8
+    bne boss_nozzle_copy
+    rts
+; The two glyphs' byte X, written (and, for the dark phase, both at once).
+boss_nozzle_dst_l:
+    sta $FFFF,x
+boss_nozzle_dst_r:
+    sta $FFFF,x
+    rts
+
+boss_tone_audf:
+    .byte $18, $40, $28                 ; damage (high, pure), absorbed, hull
+boss_tone_audc:
+    .byte $A6, $A4, $C5                 ; pure tone, pure tone, poly4 (a clank)
+
 
 ; X = module -> Y = its record's offset in the module table (x 12). A, Y.
 boss_record_of:
@@ -531,8 +1064,16 @@ boss_record_of:
 ;                   operand below is the tail's address, set by boss_prepare)
 ;   BOSS_MODE_FILL  boss_fill in every cell
 ;   BOSS_MODE_ADD   boss_add added to every cell's code (a damage stage)
+;   BOSS_MODE_HOLE  the hole frame (decision J)
+; The ring's records on the module's cells are lifted before and laid back
+; after, so a spark or a muzzle flash outlives the redraw.
 boss_draw_module:
-    tax
+    sta boss_draw_m
+    lda #$00
+    jsr boss_ring_rebase
+    ldx boss_draw_m
+    lda #$00
+    sta boss_hole_base
     jsr boss_record_of
     lda BOSS_T_MODULES + BOSS_M_ROW,y
     sta boss_row
@@ -559,9 +1100,25 @@ boss_draw_module:
     inc boss_look
     jmp @store
 @add:
+    bvs @hole
     lda (dst_ptr),y
     clc
     adc boss_add
+    jmp @store
+@hole:
+    ; Top-left, top, top-right on the module's first row; left, blank,
+    ; right below it.
+    ldx boss_hole_base
+    tya
+    beq @hole_code
+    inx
+    clc
+    adc #$01
+    cmp boss_width
+    bne @hole_code
+    inx
+@hole_code:
+    lda BOSS_T_HOLE,x
     jmp @store
 @fill:
     lda boss_fill
@@ -570,10 +1127,13 @@ boss_draw_module:
     iny
     cpy boss_width
     bne @cell
+    lda #$03
+    sta boss_hole_base
     inc boss_row
     dec boss_rows_left
     bne @row
-    rts
+    lda #$FF
+    jmp boss_ring_rebase
 
 ; X = an offset into the region's look tail -> A = that cell's code. The
 ; operand is the tail's address, set by boss_prepare from the region's tables.
@@ -590,9 +1150,10 @@ boss_look_operand = boss_look_code + 1
 ; rebuilding the whole map (tests/boss-engine.test.mjs).
 ; ===========================================================================
 
-; X = column; keeps X.
+; X = column; keeps X. boss_column_from: Y = the first module to consider.
 boss_column_at:
     ldy #$00
+boss_column_from:
 @module:
     cpy BOSS_T_MODULE_COUNT
     beq @base
@@ -611,6 +1172,8 @@ boss_column_at:
     sta boss_column_map,x
     rts
 @base:
+; X = column: hull (ARMOUR) where the band has any hull cell, else OPEN.
+boss_column_base:
     txa
     and #$07
     tay
@@ -631,62 +1194,72 @@ boss_column_at:
     sta boss_column_map,x
     rts
 
-; X = a destroyed module: its columns again.
+; X = a destroyed module: its columns again - only those it was the front
+; of. Every module before it in the front-first table was already dead in
+; those columns, so the new front is the first live module after it whose
+; columns meet its span: those few are listed once, then each column tries
+; them in order, else hull or open sky (the same map a full rebuild gives,
+; tests/boss-engine.test.mjs).
 boss_rebuild_module:
+    stx boss_dead
+    lda boss_mx,x
+    sta boss_col_start
     lda boss_mxe,x
     sta boss_col_end
-    lda boss_mx,x
-    tax
-:
-    jsr boss_column_at
+    ldx #$00
+    ldy boss_dead
+@candidate:
+    iny
+    cpy BOSS_T_MODULE_COUNT
+    beq @listed
+    lda _boss_hp,y
+    beq @candidate
+    lda boss_mx,y
+    cmp boss_col_end
+    bcs @candidate                      ; starts at or past the span's end
+    lda boss_mxe,y
+    cmp boss_col_start
+    bcc @candidate                      ; ends before the span's start
+    beq @candidate
+    tya
+    sta boss_candidates,x
+    inx
+    bne @candidate
+@listed:
+    stx boss_candidate_count
+    ldx boss_col_start
+@column:
+    lda boss_column_map,x
+    cmp boss_dead
+    bne @keep
+    txa
+    ldy #$00
+@try:
+    cpy boss_candidate_count
+    beq @base
+    sty boss_tmp
+    pha
+    lda boss_candidates,y
+    tay
+    pla
+    cmp boss_mx,y
+    bcc @not
+    cmp boss_mxe,y
+    bcc @found
+@not:
+    ldy boss_tmp
+    iny
+    bne @try
+@found:
+    tya
+    sta boss_column_map,x
+    jmp @keep
+@base:
+    jsr boss_column_base
+@keep:
     inx
     cpx boss_col_end
-    bne :-
-    rts
-
-; Once, from the install, after the controller's init (its hit points are the
-; map's alive test, §5.13.5): the look copy's operand, every module's column
-; span, a capped emitter's plate (an emitter slot the tier did not enable is
-; armour now, decision B), then the whole map.
-boss_prepare:
-    lda BOSS_T_LOOK_TAIL
-    sta boss_look_operand
-    lda BOSS_T_LOOK_TAIL+1
-    sta boss_look_operand+1
-    ldx #$00
-@span:
-    cpx BOSS_T_MODULE_COUNT
-    beq @map
-    jsr boss_record_of
-    lda BOSS_T_MODULES + BOSS_M_X,y
-    sta boss_mx,x
-    clc
-    adc BOSS_T_MODULES + BOSS_M_WIDTH,y
-    sta boss_mxe,x
-    lda BOSS_T_MODULES + BOSS_M_KIND,y
-    and #$0F
-    cmp #BOSS_KIND_EMITTER
-    bne @next_span
-    lda _boss_kind,x
-    .assert BOSS_KIND_ARMOUR = 0, error, "a capped emitter is read as kind 0"
-    bne @next_span
-    lda BOSS_T_CAPPED_CODE
-    sta boss_fill
-    lda #BOSS_MODE_FILL
-    sta boss_mode
-    stx boss_open_x
-    txa
-    jsr boss_draw_module
-    ldx boss_open_x
-@next_span:
-    inx
-    bne @span
-@map:
-    ldx #(BOSS_BAND_COLUMNS - 1)
-:
-    jsr boss_column_at
-    dex
-    bpl :-
+    bne @column
     rts
 
 ; ===========================================================================
@@ -738,12 +1311,142 @@ boss_dl_lms_offsets:
     .endrepeat
 
 ; ---------------------------------------------------------------------------
+; Once-per-entry code in slot C (BOSS_C_ASM, read with the controller): the
+; plan's lever for slot A (§5.13.6), taken by the fortress session (§5.15.7).
+; ---------------------------------------------------------------------------
+.segment "BOSS_C_ASM"
+
+; Once, from the install, after the controller's init (its hit points are the
+; map's alive test, §5.13.5): the look copy's operand, every module's column
+; span, a capped emitter's plate (an emitter slot the tier did not enable is
+; armour now, decision B), then the whole map.
+boss_prepare:
+    ; The frame state first (the capped draws below already rebase the ring):
+    ; no record, an empty queue, no flash, no tick, the band's own colours.
+    lda #$00
+    ldx #(BOSS_RING_RECORDS - 1)
+:
+    sta boss_ring_timer,x
+    dex
+    bpl :-
+    sta boss_queue_head
+    sta boss_queue_tail
+    sta boss_flash_timer
+    sta boss_tick_timer
+    sta boss_ring_next
+    sta boss_ring_last
+    sta boss_nozzle_phase
+    sta boss_nozzle_dark
+    ldx #3
+:
+    lda BOSS_T_PALETTE,x
+    sta boss_palette,x
+    dex
+    bpl :-
+    ; The nozzles: the phase images in the look tail (left 0-2, right 3-5),
+    ; the two nozzle codes' glyphs in the region's charset.
+    lda BOSS_T_NOZZLE_FRAMES
+    sta boss_nozzle_timer
+    lda BOSS_T_LOOK_TAIL
+    clc
+    adc BOSS_T_NOZZLE_PHASES
+    sta boss_nozzle_src_l+1
+    lda BOSS_T_LOOK_TAIL+1
+    adc #$00
+    sta boss_nozzle_src_l+2
+    lda boss_nozzle_src_l+1
+    clc
+    adc #(3 * 8)
+    sta boss_nozzle_src_r+1
+    lda boss_nozzle_src_l+2
+    adc #$00
+    sta boss_nozzle_src_r+2
+    lda BOSS_T_NOZZLE_LEFT_CODE
+    ldx #(boss_nozzle_dst_l + 1 - boss_nozzle_dst_l)
+    jsr boss_nozzle_operand
+    lda BOSS_T_NOZZLE_RIGHT_CODE
+    ldx #(boss_nozzle_dst_r + 1 - boss_nozzle_dst_l)
+    jsr boss_nozzle_operand
+    lda BOSS_T_LOOK_TAIL
+    sta boss_look_operand
+    lda BOSS_T_LOOK_TAIL+1
+    sta boss_look_operand+1
+    ldx #$00
+@span:
+    cpx BOSS_T_MODULE_COUNT
+    beq @map
+    jsr boss_record_of
+    lda BOSS_T_MODULES + BOSS_M_X,y
+    sta boss_mx,x
+    clc
+    adc BOSS_T_MODULES + BOSS_M_WIDTH,y
+    sta boss_mxe,x
+    lda BOSS_T_MODULES + BOSS_M_KIND,y
+    and #$0F
+    cmp #BOSS_KIND_EMITTER
+    bne @next_span
+    lda _boss_kind,x
+    .assert BOSS_KIND_ARMOUR = 0, error, "a capped emitter is read as kind 0"
+    bne @next_span
+    lda BOSS_T_CAPPED_CODE
+    sta boss_fill
+    lda #BOSS_MODE_FILL
+    sta boss_mode
+    stx boss_open_x
+    txa
+    jsr boss_draw_module
+    ldx boss_open_x
+@next_span:
+    inx
+    bne @span
+@map:
+    ldx #(BOSS_BAND_COLUMNS - 1)
+:
+    jsr boss_column_at
+    dex
+    bpl :-
+    rts
+
+; A = a nozzle code, X = its store's operand offset from boss_nozzle_dst_l:
+; the operand becomes the code's glyph in the region's charset.
+boss_nozzle_operand:
+    and #$7F
+    pha
+    asl
+    asl
+    asl
+    sta boss_nozzle_dst_l,x
+    pla
+    lsr
+    lsr
+    lsr
+    lsr
+    lsr
+    clc
+    adc #>BOSS_CHARSET
+    sta boss_nozzle_dst_l+1,x
+    rts
+
+.segment "BOSS_CODE"
+
+; ---------------------------------------------------------------------------
 ; The scratch page ($1800-$18FF, Q-B5): never read from disk; the install
 ; sets what must not start undefined.
 ; ---------------------------------------------------------------------------
 .segment "BOSS_SCRATCH"
 boss_column_map:    .res BOSS_BAND_COLUMNS  ; per band column: module, ARMOUR or OPEN
-boss_ring:          .res 32                 ; S4a-ii's cell-flash ring (8 x 4 B)
+; The cell-flash ring, one array a field (§5.13.2 item 5).
+boss_ring_lo:       .res BOSS_RING_RECORDS  ; the cell
+boss_ring_hi:       .res BOSS_RING_RECORDS
+boss_ring_saved:    .res BOSS_RING_RECORDS  ; the code the cell gets back
+boss_ring_timer:    .res BOSS_RING_RECORDS  ; frames left; 0 = free
+boss_ring_module:   .res BOSS_RING_RECORDS  ; the module whose draws carry it, $FF none
+boss_ring_glyph:    .res BOSS_RING_RECORDS  ; the spark, deflection or muzzle flash
+; The draw queue (§5.15.6 item 2).
+boss_queue_module:  .res BOSS_QUEUE_ENTRIES
+boss_queue_mode:    .res BOSS_QUEUE_ENTRIES
+boss_queue_value:   .res BOSS_QUEUE_ENTRIES
+boss_candidates:    .res BOSS_MAX_MODULES   ; a rebuild's modules behind the dead one
 .assert boss_column_map = BOSS_SCRATCH, error, "the column map leads the scratch page"
 
 .segment "BOSS_BSS"
@@ -773,6 +1476,32 @@ boss_col_end:       .res 1
 boss_bits_lo:       .res 1
 boss_bits_hi:       .res 1
 boss_open_x:        .res 1
+boss_palette:       .res 4      ; the band's colours the DLI shows (the flash's frame)
+boss_flash_timer:   .res 1
+boss_tick_timer:    .res 1
+boss_ring_next:     .res 1      ; the record a full ring gives back next
+boss_ring_new:      .res 1
+boss_ring_frames:   .res 1
+boss_ring_tag:      .res 1
+boss_rebase_mode:   .res 1
+boss_draw_m:        .res 1
+boss_hole_base:     .res 1
+boss_hit_result:    .res 1
+boss_dead:          .res 1
+boss_col_start:     .res 1
+boss_candidate_count: .res 1
+boss_frame_heavy:   .res 1
+boss_column:        .res 1      ; the band column boss_cell_at reads
+boss_queue_head:    .res 1
+boss_queue_tail:    .res 1
+boss_q_module:      .res 1
+boss_q_mode:        .res 1
+boss_q_value:       .res 1
+boss_q_placed:      .res 1
+boss_ring_last:     .res 1      ; the record boss_ring_set wrote last
+boss_nozzle_timer:  .res 1
+boss_nozzle_phase:  .res 1
+boss_nozzle_dark:   .res 1
 
 ; ===========================================================================
 ; The once-only install (Q-S1), at $7810, run in place before the pause
@@ -928,9 +1657,9 @@ boss_install:
     ;     waits for this frame's first DLI like the first frame of a game.
     lda sound_enabled
     beq :+
-    lda #$68
+    lda #BOSS_BED_AUDF
     sta AUDF3
-    lda #$22
+    lda #BOSS_BED_AUDC
     sta AUDC3
 :
     lda #<PLAYFIELD_DLIST_A

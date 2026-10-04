@@ -151,6 +151,9 @@ test("the level image still ends before $AC80, where band rows 6-7 and the table
 // ---------------------------------------------------------------------------
 
 const region = compileBossRegion(loadBossRegionDraft(bossRegionDirectory(root, 1)));
+// RE-POINTED (fortress session, owner decision H): the core boss's layout is
+// the Bastion fixture now, kept in the engine for a later region (S5).
+const coreBoss = compileBossRegion(loadBossRegionDraft(path.join(root, "assets", "graphics", "boss-regions", "bastion")));
 
 // RE-POINTED M5b-S4a-i (§5.13.4, Q-B5): the band is drawn in the region's own
 // charset at $0C00 (codes 7..), not over the capital hull's codes 59-89.
@@ -171,13 +174,13 @@ test("region 1: an 8 x 64 band in its own charset's codes, the divider's 0-6 lef
 // in front, the core last and covered by all three, two armour plates; no
 // two front modules share a column (decision 7's "guns then core" is this
 // layout's cover group).
-test("region 1: the gun group in front, the core last behind all of it, no two guns share a column", () => {
-  const kinds = region.modules.map((module) => module.kind);
+test("the core boss: the gun group in front, the core last behind all of it, no two guns share a column", () => {
+  const kinds = coreBoss.modules.map((module) => module.kind);
   assert.equal(kinds.at(-1), "core");
-  const guns = region.modules.filter((module) => module.kind === "pulse" || module.kind === "emitter");
+  const guns = coreBoss.modules.filter((module) => module.kind === "pulse" || module.kind === "emitter");
   assert.equal(guns.length, 3, "decision 7: three guns in front of the core");
-  const core = region.modules.at(-1);
-  assert.equal(core.cover, guns.reduce((mask, gun) => mask | (1 << region.modules.indexOf(gun)), 0));
+  const core = coreBoss.modules.at(-1);
+  assert.equal(core.cover, guns.reduce((mask, gun) => mask | (1 << coreBoss.modules.indexOf(gun)), 0));
   const columns = new Set();
   for (const module of guns) {
     for (let column = module.x; column < module.x + module.width; column += 1) {
@@ -185,8 +188,10 @@ test("region 1: the gun group in front, the core last behind all of it, no two g
       columns.add(column);
     }
   }
-  assert.ok(region.modules.filter((module) => module.kind === "armour").length >= 1,
-    "armour the player may leave standing (decision A)");
+  for (const layout of [coreBoss, region]) {
+    assert.ok(layout.modules.filter((module) => module.kind === "armour").length >= 1,
+      "armour the player may leave standing (decision A)");
+  }
   assert.deepEqual(Object.keys(BOSS_KIND), ["armour", "pulse", "emitter", "salvo", "core"]);
 });
 

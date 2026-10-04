@@ -229,6 +229,8 @@ pierwszeństwa źródeł, [STATUS.md](docs/STATUS.md) po to, co jest prawdą ter
 [project-overview.md](docs/project-overview.md) po całość obrazu w jednym
 dokumencie. [AGENTS.md](AGENTS.md) to kontrakt wykonawczy dla każdego — człowieka
 i sztucznej inteligencji — kto pracuje w tym repozytorium.
+[making-of.md](docs/making-of.md) (po angielsku) opisuje, jak gra powstaje: role,
+życie zadania, bramki i wnioski, z każdą liczbą ze źródłem.
 
 ## Rozwiązania techniczne
 

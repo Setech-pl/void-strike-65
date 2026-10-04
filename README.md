@@ -223,6 +223,8 @@ order, [STATUS.md](docs/STATUS.md) for what is true right now, and
 [project-overview.md](docs/project-overview.md) for the whole picture in one
 document. [AGENTS.md](AGENTS.md) is the execution contract for anyone, human or
 AI, working in this repository.
+[making-of.md](docs/making-of.md) tells how the game is built: the roles, the
+life of a task, the gates and the lessons, with every figure cited.
 
 ## Technical highlights
 

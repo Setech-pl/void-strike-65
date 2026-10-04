@@ -169,8 +169,10 @@ test("region 1: an 8 x 64 band in its own charset's codes, the divider's 0-6 lef
   }
 });
 
-// RE-POINTED M5b-S4a-i (owner answer Q-B1, decision F): region 1 is the S3
-// core boss as style 2 - the guns (two pulse cannons and the tier's emitter)
+// RE-POINTED M5b-S4a-i (owner answer Q-B1, decision F), and again in the
+// fortress session (decision H: region 1 is the fortress; this layout is the
+// Bastion fixture now): the S3 core boss as style 2 - the guns (two pulse
+// cannons and the tier's emitter)
 // in front, the core last and covered by all three, two armour plates; no
 // two front modules share a column (decision 7's "guns then core" is this
 // layout's cover group).

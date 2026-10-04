@@ -181,8 +181,8 @@ resident library or the payload page.
 
 ## The boss
 
-M5b (`docs/plans/m5-loading-boss.md` §5.13; owner decisions A-G, answers
-Q-B1-Q-B8). A level that names a boss ends in a `boss` sector; the boss itself
+M5b (`docs/plans/m5-loading-boss.md` §5.13, §5.15; owner decisions A-K,
+answers Q-B1-Q-B8 and the fortress answers of §5.15.6). A level that names a boss ends in a `boss` sector; the boss itself
 is **region data**, one boss per region of three levels, drawn as PNG drafts
 and converted by `scripts/boss-assets.mjs` (formatVersion 2).
 
@@ -196,12 +196,18 @@ and converted by `scripts/boss-assets.mjs` (formatVersion 2).
 
 The boss sector itself takes no `rows` (its clock is the boss's death), admits
 no Heavy and at most one Light, and an escort wave must arm on row 0 (the world
-stops in the boss sector, Q1).
+stops in the boss sector, Q1). Region 1's boss sector has no escort (owner
+answer, §5.15.6 item 4): "at most one Light" is met by none.
 
 The laser tier comes from the level, not the region: levels 1-4 enable emitter
 slot 1, levels 5-8 slots 1-2, levels 9 and on slots 1-4 (decisions B, 8). An
 emitter whose slot is not enabled becomes **capped armour**: the capped plate
-over its cells, `capped.hp` hit points, kind armour.
+over its cells, `capped.hp` hit points, kind armour. **Until the lasers exist
+(S4b) every slot is capped** (§5.15.6 item 6).
+
+Region 1 is the layered fortress Blockade Breaker (decision H); the S4a-i core
+boss (style 2) is kept in the engine as `assets/graphics/boss-regions/bastion/`,
+a later region's boss decided at S5, and the engine's tests' style-2 fixture.
 
 ### The region's drafts
 
@@ -215,7 +221,7 @@ and 2:1 aspect into `build/boss-preview/region-N.png` without building the game.
 | `band.png` | 256 x 64 | the band as the fight starts: 64 cells x 8 rows, a cell 4 x 8 pixels; a covered module's closed look (S3's shutters) |
 | `cracked.png`, `broken.png` | 256 x 64 | every module's cracked and broken look, read inside module rectangles only |
 | `open.png` | 256 x 64 | a covered module's exposed look; a module whose cells here equal `band.png`'s has none |
-| `extras.png` | 68 x 8 | 17 cells: the spark; the bays (gone looks) of armour, pulse, emitter, salvo, core; the capped plate intact, cracked, broken; the left nozzle's 3 phases; the right nozzle's 3 phases; blast A, blast B |
+| `extras.png` | 76 x 8 | 19 cells: the spark (a damaging hit); the deflection (a hit that does no damage: the hull, a covered module); the muzzle flash; the hole frame's top-left, top, top-right, left, right (its interior is blank: every destroyed module leaves a hole of its own shape, decision J); the capped plate intact, cracked, broken; the left nozzle's 3 phases; the right nozzle's 3 phases; blast A, blast B |
 | `modules.json` | | the layout (below) |
 
 **The PNG format.** Non-interlaced, 8 bits a channel, **RGBA** (32-bit), every
@@ -239,21 +245,29 @@ cell's intact, cracked and broken looks must agree on it.
 | Field | Meaning |
 | --- | --- |
 | `name`, `style` | documentation; style 1 the layered fortress (geometric covers), style 2 the core boss (an explicit cover group) |
-| `palette` | `colpf0`-`colpf3` under the band (the band's own palette, set by its DLI), `flashLuma` (S4a-ii's band flash) |
+| `palette` | `colpf0`-`colpf3` under the band (the band's own palette, set by its DLI), `flashLuma`: added to every colour for one frame on a damaging hit - every colour's luminance plus `flashLuma` must stay at 15 or under (the flash never leaves a hue) |
 | `motion` | `framesPerColourClock`, `travelColourClocks` (1-63), `startColourClock`, `shakeFrames`, `shakeAmplitude` (0-3) |
 | `chain` | `blasts` (at least one a module: the chain passes every module, standing armour included), `framesBetween` |
-| `fire.cooldown` | the least frames between two firings (one countdown serves every weapon) |
+| `fire.cooldown` | the least frames between two firings (one countdown serves every weapon: the next armed weapon fires when it runs out, and it restarts from that weapon's `reload`, EASY +1/2, HARD -1/4). A pulse cannon fires one PULSE shot of the shared hostile pool from its centre column at the band's bottom edge, straight down; a salvo launcher three, on three frames, from the columns left of, at and right of its centre; one spawn a frame, a full pool drops the shot |
 | `capped.hp` | a capped emitter's hit points |
-| `nozzles` | `left` and `right`: the `[column, row]` cells that show that nozzle; `framesPerPhase` (S4a-ii animates them). `band.png` must show each side's phase 0 there |
-| `modules[]` | up to 16: `name`, `kind` (`armour`, `pulse`, `emitter`, `salvo`, `core`), `x`, `row`, `width` (1-4), `height` (1-2), `hp` (1-100), `score` (0-99, packed BCD), `slot` (emitters only, 1-4), `reload` (frames, 0 = never fires), `cover` (`"auto"` or a list of module names) |
+| `nozzles` | `left` and `right`: the `[column, row]` cells that show that nozzle; `framesPerPhase` (the three phases cycle; both nozzles go dark at the defeat). `band.png` must show each side's phase 0 there. The window shows band columns 4 + p/4 to 43 + p/4, so over the travel (p 0-63) columns 4-59: put the ends inside that range |
+| `modules[]` | up to 16: `name`, `kind` (`armour`, `pulse`, `emitter`, `salvo`, `core`), `x`, `row`, `width` (1-6), `height` (1-4), at most 24 cells, `hp` (1-100), `score` (0-99, packed BCD), `slot` (emitters only, 1-4), `reload` (frames, 0 = never fires), `cover` (`"auto"` or a list of module names) |
 
 Every kind but armour is a **weapon**; the boss is defeated when its last
 weapon is destroyed, armour left standing or not. Rows count from the player's
 side: row 7 is the front. A module is **exposed** when every module of its
 cover is destroyed; `"auto"` is every module in a nearer row whose columns
 overlap it. A covered module absorbs shots: no damage, and not a hit for the
-accuracy stat (Q-B7). A destroyed module shows its kind's bay glyph, and a
-shot in its columns then meets the module behind it, or the hull.
+accuracy stat (Q-B7). A destroyed module shows the hole frame, and a shot in
+its columns then meets the module behind it, or the hull. The exposure check
+runs on the frame after a kill, and a module's redraw (a stage, a hole, an open
+look) goes through a queue that draws one module a frame (§5.15.6 item 2).
+
+**Every hit reads** (decision J): a damaging hit shows the spark in the struck
+cell (the module's bottom row at the shot's column) for 2 frames, flashes the
+band for one frame and ticks on channel 3; a covered module's or the hull's
+absorb shows the deflection (the hull: on the column's lowest drawn cell) with
+a tick of its own. The kill sounds on channel 2, the win's blasts on channel 4.
 
 **Damage stages.** A module cracks at 2/3 of its hit points and breaks at 1/3.
 Every module cell is a *staged* glyph: the converter puts each distinct
@@ -276,8 +290,10 @@ Each naming the file, the cell or the module:
 * more than 128 codes (7 divider + 3K staged + plain + 2 nozzles);
 * covers that are cyclic (a module covered, through any chain, by itself), a
   self cover, or an unknown name;
-* modules that overlap, more than 16, no weapon at all, a duplicated emitter
-  slot, a slot on a non-emitter, a module with an open look but no cover;
+* modules that overlap, more than 16, wider than 6, taller than 4 or over 24
+  cells, no weapon at all, a duplicated emitter slot, a slot on a
+  non-emitter, a module with an open look but no cover;
+* a palette colour whose luminance plus `flashLuma` passes 15;
 * a nozzle cell that is not its side's phase 0, or inside a module;
 * a charset and look tail over 1 KB, or a theme over its 2 sectors.
 
@@ -285,8 +301,8 @@ Each naming the file, the cell or the module:
 
 Each region owns 16 sectors from 632: the theme (2, read first, under the
 WARNING screen), band A (3), band B (3, with the 256 B of tables) and the
-charset (<= 8). The boss code (slot A), the install and slot C (the controller)
-are shared, at 528-583.
+charset (<= 8). The boss code (slot A), the install and slot C (the controller
+and the overlay's once-per-entry ASM) are shared, at 528-583.
 
 ## Level 2
 

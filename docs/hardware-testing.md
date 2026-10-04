@@ -347,6 +347,66 @@ on a real GTIA/ANTIC, and the CA drive's entry time.
 
 ---
 
+## 15. Region 1 as the layered fortress, and the fight's feedback (fortress session)
+
+Plan §5.15 (decisions H–K, the owner's answers of §5.15.6). **On copies**, as
+§12. Two disks, as §14: the default ATR (level 1 to its boss, then the fight)
+and the debug-route ATR that starts in the boss sector
+(`build/level-1-s4/void-strike-65.atr`). Region 1 is the layered fortress
+**Blockade Breaker** with **placeholder art drawn by the agent** (decision G).
+Not built yet, so not to be looked for: lasers (S4b; the emitter slot stays a
+capped shutter until then). Emulator figures, for comparison only (EMULATOR):
+the entry reads 48 sectors in about 184 frames (3.7 s); the bot's fights took
+37 / 47 / 71 s on EASY / MEDIUM / HARD and it took 2 / 3 / 7 hits (a pulse hit
+is one of ten health units, so it lost no life). Artifacts as built: default
+ATR `c9168624…` (`npm run play:atr`), debug-route ATR `1c79ad0d…`
+(`atari800 -xe -pal -nobasic <absolute path to
+build/level-1-s4/void-strike-65.atr>`).
+
+- [ ] **The hull is the target.** Ten grey plates of different sizes and
+      depths make up the boss's lower face, between three X-braced girders and
+      one open bay; behind them, a burgundy hull with four recessed cannons and
+      a slatted shutter (the emitter slot). Both ends carry engine housings with
+      **flames at both ends**, flickering; each end comes into view as the
+      band drifts.
+- [ ] **Plate by plate.** Each plate turns **darker grey with black cracks**,
+      then **dark and torn with amber edges**, then leaves a **black hole with a
+      glowing amber rim** of its own shape — never a dithered pattern.
+- [ ] **Every hit shows.** A damaging hit: a white-and-amber **spark** in the
+      struck cell, the whole band **flashing** for one frame, a short high
+      **tick**. A hit on a girder, the hull or a cannon still covered: a grey
+      **deflection** spark and a different, duller tick, no flash. The kill sounds
+      different again (the old hit sound), the win's blasts are the explosion.
+- [ ] **Cannons open fire as their cover falls.** The cannon in the open bay
+      fires from the first second (amber muzzle flash, a shot straight down);
+      the others sit dark and silent behind their plates, light up and join in
+      once their plate (two plates for one of them) is gone. Shots come from
+      each cannon's centre, are dodgeable, and hit the player.
+- [ ] **The win on the last cannon.** The fourth cannon's death ends the fight
+      with armour still standing: the nozzles **go dark first**, then the chain
+      of blasts along every module, the flashing background, the band's shake;
+      the summary with BONUS `02000` (placeholder), the fight's time, kills
+      counting every module destroyed.
+- [ ] **Length and danger per difficulty.** Play a fight on EASY, MEDIUM and
+      HARD: MEDIUM should take roughly 45–60 s and cost lives if the player
+      stands still; HARD fires faster (reload −¼) and the modules take ×5⁄4
+      hits, EASY slower (+½) and ×¾.
+- [ ] **The entry**, as §14: `WARNING` / `BOSS APPROACHING`, stopwatch on the
+      SIO2SD and the CA drive (one sector longer than §14).
+- [ ] **GAME OVER inside the boss sector** (debug ATR: lose three lives), then
+      START GAME: level 1 starts as always — normal characters everywhere, **no
+      boss shot left on screen**, the engine hum back, no band, the world
+      scrolling. The same after **pause → quit**.
+- [ ] **Pause inside the boss sector**, then resume: band, charset, colours,
+      nozzles and the engine hum return.
+- [ ] **RESET** during the fight returns to the splash.
+
+Unverifiable anywhere but here: `$0C00-$18FF` on a real 65XE (EMULATOR-only
+evidence, as §14), the band flash and the CHBASE seams on a real GTIA/ANTIC,
+the tick's sound on a real POKEY, and the CA drive's entry time.
+
+---
+
 ## Recording the result
 
 Report the artifact SHA-256, emulator and hardware versions, which sections

@@ -320,6 +320,23 @@ superseded by it; the others are the recommendations as written.
 | **Q-B7** | **Hits absorbed by a covered module, or by armour that takes no damage, do not count as hits for accuracy** | S4a-i (the absorb path), S4a-ii (the spark and tick) |
 | **Q-B8** | **Accept the longer boss entry, with every run sized to its contents**; the owner measures it on the CA drive, and if it clearly exceeds about 8 s the optional fast loader (S6) is reconsidered | S4a-i |
 
+**The owner's decisions after smoking M5b-S4a-i (2026-10-04, before
+`feat/boss-fortress-r1`).** The smoke (emulator recording, MEDIUM): the fight
+took 26 s with 6 kills, 0 lives lost and grade A — the boss never fires; the
+long hull (about 90 % of the band, one repeated panel motif) reacts to nothing,
+so "the boss is not destructible"; a destroyed module leaves a dithered red and
+grey pattern that reads as noise, not as a hole; shots vanish at the band's edge
+and the cracked and broken stages are small and low in contrast; only one end
+shows nozzles. Designed and built in §5.15; S4a-ii's scope (§5.13.7: the ring,
+the flash, the tick, the spawn, the nozzles) is taken into the same session.
+
+| # | Decision | Applied in |
+| ---: | --- | --- |
+| **H** | **Region 1's boss becomes the layered fortress Blockade Breaker** (style 1, [../boss-concepts.md](../boss-concepts.md)): two layers; **armour plates make up the hull itself**, so the hull the player sees is destructible in pieces; **pulse cannons sit recessed behind the plates** and open fire once their cover falls; the tier's emitter slot (1 on levels 1–4) is placed now and **becomes capped armour until the lasers (S4b) exist**; the boss is defeated when its last weapon module falls; leftover armour is not required. Placement is irregular, with varied gaps and depths, no repeating pattern. **Supersedes Q-B1's region-1 entry.** The core boss (style 2) stays in the engine and moves to a later region, decided at S5; its fixture and tests stay | §5.15 |
+| **I** | **The fight must threaten**: the boss fires from its first exposed weapons, and on MEDIUM the fight lasts **about 45–60 s with the bot** (decision 11), tuned through module HP and fire data, not code | §5.15 |
+| **J** | **Every hit reads on screen**: a spark in the struck cell; a damage stage clearly visible at a glance (high contrast); a one-frame band flash on damaging hits; a short hit tick; a destroyed module leaves a **readable dark hole or scorched opening with a lit edge**, never a dithered pattern | §5.15 |
+| **K** | **The hull art has no repeated panel motif; engine nozzles at both ends, animated** | §5.15 |
+
 ---
 
 ## 2. Phase A — inventory (what is true today, with file:line)
